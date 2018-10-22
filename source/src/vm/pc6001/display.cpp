@@ -11,6 +11,8 @@
 #include "timer.h"
 #include "../mc6847.h"
 
+namespace PC6001 {
+
 void DISPLAY::reset()
 {
 	vram_ptr = ram_ptr + 0xe000;
@@ -60,4 +62,6 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 		state_fio->FputInt32_LE((int)(vram_ptr - ram_ptr));
 	}
 	return true;
+}
+
 }

@@ -9,6 +9,8 @@
 
 #include "sysport.h"
 
+namespace MZ5500 {
+
 void SYSPORT::initialize()
 {
 	rst = 0;
@@ -79,4 +81,6 @@ bool SYSPORT::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateInt32(rst);
 	state_fio->StateInt32(highden);
 	return true;
+}
+
 }

@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace N5200 {
+
 class SYSTEM : public DEVICE
 {
 private:
@@ -41,5 +43,6 @@ public:
 	}
 };
 
+}
 #endif
 

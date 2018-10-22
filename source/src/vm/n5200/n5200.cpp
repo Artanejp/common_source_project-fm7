@@ -35,6 +35,12 @@
 #include "./memory.h"
 #include "system.h"
 
+using N5200::DISPLAY;
+using N5200::FLOPPY;
+using N5200::KEYBOARD;
+using N5200::MEMORY;
+using N5200::SYSTEM;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -74,7 +80,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	display = new DISPLAY(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new N5200_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	system = new SYSTEM(this, emu);
 	
 	// set contexts

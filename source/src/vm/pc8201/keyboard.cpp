@@ -9,6 +9,8 @@
 
 #include "keyboard.h"
 
+namespace PC8201 {
+
 static const int key_map[9][8] = {
 	{0x5a, 0x58, 0x43, 0x56, 0x42, 0x4e, 0x4d, 0x4c},	//	Z	X	C	V	B	N	M	L
 	{0x41, 0x53, 0x44, 0x46, 0x47, 0x48, 0x4a, 0x4b},	//	A	S	D	F	G	H	J	K
@@ -95,4 +97,6 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(caps);
 	state_fio->StateBool(kana);
 	return true;
+}
+
 }

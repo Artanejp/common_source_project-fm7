@@ -9,6 +9,8 @@
 
 #include "lcd.h"
 
+namespace PC8201 {
+
 void LCD::initialize()
 {
 	memset(seg, 0, sizeof(seg));
@@ -183,4 +185,6 @@ bool LCD::process_state(FILEIO* state_fio, bool loading)
 	}		
 	state_fio->StateUint16(sel);
 	return true;
+}
+
 }

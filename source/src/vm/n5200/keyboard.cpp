@@ -10,6 +10,8 @@
 #include "keyboard.h"
 #include "../i8251.h"
 
+namespace N5200 {
+
 static const int key_table[256] = {
 	  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,0x0e,0x0f,  -1,  -1,  -1,0x1c,  -1,  -1,
 	0x70,0x74,0x73,0x60,  -1,  -1,  -1,  -1,  -1,  -1,  -1,0x00,0x35,0x51,  -1,  -1,
@@ -94,3 +96,4 @@ void KEYBOARD::key_up(int code)
 	}
 }
 
+}

@@ -15,6 +15,8 @@
 #include "../../emu.h"
 #include "pac2dev.h"
 
+namespace PASOPIA {
+
 class JOYPAC2 : public PAC2DEV
 {
 private:
@@ -32,5 +34,6 @@ public:
 	uint32_t read_io8(uint32_t addr);
 };
 
+}
 #endif
 

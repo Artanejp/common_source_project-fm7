@@ -16,6 +16,8 @@
 
 #define SIG_IOBUS_MIO	0
 
+namespace PASOPIA7 {
+
 class IOBUS : public DEVICE
 {
 private:
@@ -47,6 +49,8 @@ public:
 		ram = ptr;
 	}
 };
+
+}
 
 #endif
 

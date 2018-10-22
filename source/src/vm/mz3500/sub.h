@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace MZ3500 {
+
 class SUB : public DEVICE
 {
 private:
@@ -123,5 +125,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

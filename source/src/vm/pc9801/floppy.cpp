@@ -25,6 +25,8 @@
 
 #define EVENT_TIMER	0
 
+namespace PC9801 {
+
 void FLOPPY::reset()
 {
 #if defined(SUPPORT_2HD_FDD_IF)
@@ -341,3 +343,4 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 
+}

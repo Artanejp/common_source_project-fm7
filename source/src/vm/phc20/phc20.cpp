@@ -23,6 +23,8 @@
 
 #include "./memory.h"
 
+using PHC20::MEMORY;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -41,7 +43,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	vdp = new MC6847(this, emu);
 	cpu = new Z80(this, emu);
-	memory = new PHC20_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(drec);

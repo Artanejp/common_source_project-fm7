@@ -18,6 +18,8 @@
 
 class FIFO;
 
+namespace PC100 {
+
 class IOCTRL : public DEVICE
 {
 private:
@@ -81,5 +83,6 @@ public:
 	}
 };
 
+}
 #endif
 

@@ -17,6 +17,8 @@
 #define SIG_IOTRAP_I8255_2_A	0
 #define SIG_IOTRAP_I8255_2_C	1
 
+namespace PASOPIA7 {
+
 class IOTRAP : public DEVICE
 {
 private:
@@ -49,5 +51,6 @@ public:
 	void do_reset();
 };
 
+}
 #endif
 

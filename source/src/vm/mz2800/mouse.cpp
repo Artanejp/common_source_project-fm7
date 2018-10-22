@@ -10,6 +10,8 @@
 #include "mouse.h"
 #include "../z80sio.h"
 
+namespace MZ2800 {
+
 void MOUSE::initialize()
 {
 	stat = emu->get_mouse_buffer();
@@ -50,4 +52,6 @@ bool MOUSE::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateBool(select);
 	return true;
+}
+
 }

@@ -33,6 +33,8 @@
 #define ISR_IXO		0x04
 #define ISR_INT		0x01
 
+namespace PC9801 {
+
 void SASI::reset()
 {
 	ocr = 0;
@@ -209,5 +211,7 @@ bool SASI::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(irq_status);
 	state_fio->StateBool(drq_status);
 	return true;
+}
+
 }
 

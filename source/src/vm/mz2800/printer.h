@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace MZ2800 {
+
 class PRINTER : public DEVICE
 {
 private:
@@ -37,5 +39,6 @@ public:
 	}
 };
 
+}
 #endif
 

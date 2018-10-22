@@ -61,7 +61,9 @@ class UPD16434;
 class UPD1990A;
 class UPD7810;
 
-class PC2001_IO;
+namespace PC2001 {
+	class IO;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -78,7 +80,7 @@ protected:
 	UPD1990A* rtc;
 	UPD7810* cpu;
 	
-	PC2001_IO* io;
+	PC2001::IO* io;
 	
 	// memory
 	uint8_t ram[0x5000];

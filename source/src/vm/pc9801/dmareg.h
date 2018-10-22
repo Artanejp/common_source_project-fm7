@@ -18,6 +18,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace PC9801 {
+
 class DMAREG : public DEVICE
 {
 private:
@@ -42,5 +44,6 @@ public:
 	}
 };
 
+}
 #endif
 

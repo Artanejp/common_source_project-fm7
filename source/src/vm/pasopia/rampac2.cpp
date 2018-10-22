@@ -10,6 +10,8 @@
 
 #include "rampac2.h"
 
+namespace PASOPIA {
+
 static const uint8_t header[16] = {
 	0xaa, 0x1f, 0x04, 0x00, 0x04, 0x80, 0x00, 0x01, 0x04, 0x04, 0x01, 0x03, 0x08, 0x00, 0x00, 0x00
 };
@@ -106,4 +108,6 @@ bool RAMPAC2::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(opened);
 	state_fio->StateBool(modified);
 	return true;
+}
+
 }

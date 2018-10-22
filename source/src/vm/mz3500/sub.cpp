@@ -10,6 +10,8 @@
 #include "./sub.h"
 #include "./main.h"
 
+namespace MZ3500 {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
 	for(int i = sb; i <= eb; i++) { \
@@ -584,4 +586,6 @@ bool SUB::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateInt32(cblink);
 	state_fio->StateBool(crt_400line);
 	return true;
+}
+
 }

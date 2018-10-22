@@ -65,8 +65,6 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class csp_state_utils;
-
 class EMU;
 class DEVICE;
 class EVENT;
@@ -83,12 +81,14 @@ class UPD765A;
 class Z80;
 class Z80SIO;
 
-class DISPLAY;
-class FLOPPY;
-class KEYBOARD;
-class MEMORY;
-class MFONT;
-
+namespace QC10 {
+	class DISPLAY;
+	class FLOPPY;
+	class KEYBOARD;
+	class MEMORY;
+	class MFONT;
+}
+	
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -112,11 +112,11 @@ protected:
 	Z80* cpu;
 	Z80SIO* sio;
 	
-	DISPLAY* display;
-	FLOPPY* floppy;
-	KEYBOARD* keyboard;
-	MEMORY* memory;
-	MFONT* mfont;
+	QC10::DISPLAY* display;
+	QC10::FLOPPY* floppy;
+	QC10::KEYBOARD* keyboard;
+	QC10::MEMORY* memory;
+	QC10::MFONT* mfont;
 	
 public:
 	// ----------------------------------------
@@ -165,9 +165,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

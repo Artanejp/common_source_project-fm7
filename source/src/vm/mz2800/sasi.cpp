@@ -20,6 +20,8 @@
 #define STATUS_ACK	0x40
 #define STATUS_REQ	0x80
 
+namespace MZ2800 {
+
 void SASI::reset()
 {
 	control = 0x00;
@@ -135,4 +137,6 @@ bool SASI::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(irq_status);
 	state_fio->StateBool(drq_status);
 	return true;
+}
+
 }

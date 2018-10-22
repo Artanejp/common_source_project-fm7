@@ -24,6 +24,8 @@
 
 class SASI_HDD;
 
+namespace PC9801 {
+
 class SASI : public DEVICE
 {
 private:
@@ -70,5 +72,6 @@ public:
 	}
 };
 
+}
 #endif
 

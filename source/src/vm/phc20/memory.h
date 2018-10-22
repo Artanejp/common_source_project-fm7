@@ -16,7 +16,9 @@
 
 #define SIG_MEMORY_SYSPORT	0
 
-class PHC20_MEMORY : public DEVICE
+namespace PHC20 {
+
+class MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_drec;
@@ -35,11 +37,11 @@ private:
 	uint8_t sysport;
 	
 public:
-	PHC20_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~PHC20_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -61,5 +63,6 @@ public:
 	}
 };
 
+}
 #endif
 

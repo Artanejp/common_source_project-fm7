@@ -17,7 +17,9 @@
 
 #define SIG_SYSTEM_PORT	0
 
-class PHC25_SYSTEM : public DEVICE
+namespace PHC25 {
+
+class SYSTEM : public DEVICE
 {
 private:
 	DEVICE *d_drec, *d_vdp;
@@ -25,11 +27,11 @@ private:
 	uint8_t sysport;
 	
 public:
-	PHC25_SYSTEM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SYSTEM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("System I/O"));
 	}
-	~PHC25_SYSTEM() {}
+	~SYSTEM() {}
 	
 	// common functions
 	void initialize();
@@ -50,5 +52,6 @@ public:
 	}
 };
 
+}
 #endif
 

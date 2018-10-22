@@ -19,6 +19,8 @@
 
 class UPD765A;
 
+namespace PC98HA {
+
 class FLOPPY : public DEVICE
 {
 private:
@@ -46,5 +48,6 @@ public:
 	}
 };
 
+}
 #endif
 

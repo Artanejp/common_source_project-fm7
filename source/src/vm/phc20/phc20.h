@@ -45,8 +45,6 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class csp_state_utils;
-
 class EMU;
 class DEVICE;
 class EVENT;
@@ -55,7 +53,9 @@ class DATAREC;
 class MC6847;
 class Z80;
 
-class PHC20_MEMORY;
+namespace PHC20 {
+	class MEMORY;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -70,7 +70,7 @@ protected:
 	MC6847* vdp;
 	Z80* cpu;
 	
-	PHC20_MEMORY* memory;
+	PHC20::MEMORY* memory;
 	
 public:
 	// ----------------------------------------

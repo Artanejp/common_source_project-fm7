@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace N5200 {
+
 class DISPLAY : public DEVICE
 {
 private:
@@ -51,5 +53,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

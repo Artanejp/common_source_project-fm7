@@ -10,6 +10,8 @@
 
 #include "./memory.h"
 
+namespace PHC25 {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
 	for(int i = sb; i <= eb; i++) { \
@@ -26,7 +28,7 @@
 	} \
 }
 
-void PHC25_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	memset(rom, 0xff, sizeof(rom));
 	memset(rdmy, 0xff, sizeof(rdmy));
@@ -53,13 +55,13 @@ void PHC25_MEMORY::initialize()
 #endif
 }
 
-void PHC25_MEMORY::reset()
+void MEMORY::reset()
 {
 	memset(ram, 0, sizeof(ram));
 	memset(vram, 0, sizeof(vram));
 }
 
-void PHC25_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 #ifdef _MAP1010
@@ -71,7 +73,7 @@ void PHC25_MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32_t PHC25_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 #ifdef _MAP1010
@@ -87,7 +89,7 @@ uint32_t PHC25_MEMORY::read_data8(uint32_t addr)
 
 #define STATE_VERSION	1
 
-bool PHC25_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -98,4 +100,6 @@ bool PHC25_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(ram, sizeof(ram), 1);
 	state_fio->StateBuffer(vram, sizeof(vram), 1);
 	return true;
+}
+
 }

@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace MZ5500 {
+
 class SYSPORT : public DEVICE
 {
 private:
@@ -53,5 +55,6 @@ public:
 	}
 };
 
+}
 #endif
 

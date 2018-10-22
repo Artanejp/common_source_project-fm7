@@ -101,10 +101,12 @@ class AY_3_891X;
 class Z80CTC;
 class Z80SIO;
 
-class DISPLAY;
-class KEYBOARD;
-class MZ5500_MEMORY;
-class SYSPORT;
+namespace MZ5500 {
+	class DISPLAY;
+	class KEYBOARD;
+	class MEMORY;
+	class SYSPORT;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -146,10 +148,10 @@ protected:
 #endif
 	Z80SIO* sio;
 	
-	DISPLAY* display;
-	KEYBOARD* keyboard;
-	MZ5500_MEMORY* memory;
-	SYSPORT* sysport;
+	MZ5500::DISPLAY* display;
+	MZ5500::KEYBOARD* keyboard;
+	MZ5500::MEMORY* memory;
+	MZ5500::SYSPORT* sysport;
 	
 public:
 	// ----------------------------------------

@@ -14,7 +14,9 @@
 #include "../../emu.h"
 #include "../device.h"
 
-class PC8201_MEMORY : public DEVICE
+namespace PC8201 {
+
+class MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_cmt, *d_drec, *d_rtc;
@@ -31,11 +33,11 @@ private:
 	void update_bank();
 	
 public:
-	PC8201_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~PC8201_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -62,5 +64,6 @@ public:
 	}
 };
 
+}
 #endif
 

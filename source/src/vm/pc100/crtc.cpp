@@ -10,6 +10,8 @@
 #include "crtc.h"
 #include "../i8259.h"
 
+namespace PC100 {
+
 void CRTC::initialize()
 {
 	// init vram
@@ -353,4 +355,6 @@ bool CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint32(write_plane);
 	state_fio->StateUint32(read_plane);
 	return true;
+}
+
 }

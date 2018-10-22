@@ -11,6 +11,8 @@
 #include "note.h"
 #include "../i8259.h"
 
+namespace PC98HA {
+
 void NOTE::initialize()
 {
 	ch = 0;
@@ -92,3 +94,6 @@ bool NOTE::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(regs, sizeof(regs), 1);
 	return true;
 }
+
+}
+

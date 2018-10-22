@@ -12,6 +12,8 @@
 #include "../disk.h"
 #include "../upd765a.h"
 
+namespace PC98HA {
+
 void FLOPPY::reset()
 {
 /*
@@ -80,4 +82,6 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(ctrlreg);
 	state_fio->StateUint8(modereg);
 	return true;
+}
+
 }

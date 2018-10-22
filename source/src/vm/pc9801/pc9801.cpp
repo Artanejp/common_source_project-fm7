@@ -86,6 +86,30 @@
 #include "ide.h"
 #endif
 
+#if defined(SUPPORT_CMT_IF)
+using PC9801::CMT;
+#endif
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+using PC9801::CPUREG;
+#endif
+using PC9801::DISPLAY;
+using PC9801::DMAREG;
+using PC9801::FLOPPY;
+using PC9801::FMSOUND;
+using PC9801::JOYSTICK;
+using PC9801::KEYBOARD;
+using PC9801::MEMBUS;
+using PC9801::MOUSE;
+#if defined(SUPPORT_SASI_IF)
+using PC9801::SASI;
+#endif
+#if defined(SUPPORT_SCSI_IF)
+using PC9801::SCSI;
+#endif
+#if defined(SUPPORT_IDE_IF)
+using PC9801::IDE;
+#endif
+
 #if defined(SUPPORT_320KB_FDD_IF)
 #include "../pc80s31k.h"
 #include "../z80.h"
@@ -100,6 +124,9 @@
 #include "../pc8801/pc88.h"
 #endif
 
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
+using PC88DEV::PC88;
+#endif
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------

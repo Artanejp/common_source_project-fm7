@@ -11,6 +11,8 @@
 #include "iobus.h"
 #include "../i8255.h"
 
+namespace PASOPIA7 {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
 	for(int i = sb; i <= eb; i++) { \
@@ -27,7 +29,7 @@
 	} \
 }
 
-void PASOPIA7_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	memset(bios, 0xff, sizeof(bios));
 	memset(basic, 0xff, sizeof(basic));
@@ -52,12 +54,12 @@ void PASOPIA7_MEMORY::initialize()
 	vram_sel = pal_sel = attr_wrap = false;
 }
 
-void PASOPIA7_MEMORY::reset()
+void MEMORY::reset()
 {
 	memset(vram, 0, sizeof(vram));
 }
 
-void PASOPIA7_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if(vram_sel && (addr & 0xc000) == 0x8000) {
@@ -84,7 +86,7 @@ void PASOPIA7_MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32_t PASOPIA7_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if(vram_sel && (addr & 0xc000) == 0x8000) {
@@ -109,7 +111,7 @@ uint32_t PASOPIA7_MEMORY::read_data8(uint32_t addr)
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void PASOPIA7_MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	if(mem_map != (data & 7)) {
 		mem_map = data & 7;
@@ -124,7 +126,7 @@ void PASOPIA7_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	d_pio2->write_signal(SIG_I8255_PORT_C, data, 3);
 }
 
-void PASOPIA7_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_I8255_1_A) {
 		plane = data;
@@ -136,7 +138,7 @@ void PASOPIA7_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void PASOPIA7_MEMORY::update_memory_map()
+void MEMORY::update_memory_map()
 {
 	if(mem_map == 0xff) {
 		SET_BANK(0x0000, 0x3fff, wdmy, bios);
@@ -167,7 +169,7 @@ void PASOPIA7_MEMORY::update_memory_map()
 
 #define STATE_VERSION	1
 
-bool PASOPIA7_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -191,4 +193,6 @@ bool PASOPIA7_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		update_memory_map();
 	}
 	return true;
+}
+
 }

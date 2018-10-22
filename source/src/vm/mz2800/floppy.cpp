@@ -11,6 +11,8 @@
 #include "../mb8877.h"
 #include "../disk.h"
 
+namespace MZ2800 {
+
 void FLOPPY::reset()
 {
 	for(int i = 0; i < 4; i++) {
@@ -48,3 +50,4 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
+}

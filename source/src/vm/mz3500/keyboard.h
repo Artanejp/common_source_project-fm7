@@ -20,6 +20,8 @@
 
 class FIFO;
 
+namespace MZ3500 {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -77,4 +79,5 @@ public:
 	}
 };
 
+}
 #endif

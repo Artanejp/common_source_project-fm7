@@ -10,6 +10,8 @@
 
 #include "keyboard.h"
 
+namespace PHC25 {
+
 #ifdef _MAP1010
 static const uint8_t key_map[0x50] = {
 /*
@@ -134,4 +136,6 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(status, sizeof(status), 1);
 #endif
 	return true;
+}
+
 }

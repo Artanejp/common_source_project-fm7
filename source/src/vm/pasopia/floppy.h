@@ -16,6 +16,8 @@
 
 #define SIG_FLOPPY_INTR	0
 
+namespace PASOPIA {
+
 class FLOPPY : public DEVICE
 {
 private:
@@ -44,5 +46,6 @@ public:
 	bool supported;
 };
 
+}
 #endif
 

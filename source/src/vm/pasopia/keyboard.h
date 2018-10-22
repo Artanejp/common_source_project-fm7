@@ -16,6 +16,8 @@
 
 #define SIG_KEYBOARD_Z80PIO_A	0
 
+namespace PASOPIA {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -45,5 +47,6 @@ public:
 	}
 };
 
+}
 #endif
 

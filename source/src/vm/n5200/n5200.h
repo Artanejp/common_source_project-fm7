@@ -65,11 +65,13 @@ class UPD1990A;
 class UPD7220;
 class UPD765A;
 
-class DISPLAY;
-class FLOPPY;
-class KEYBOARD;
-class N5200_MEMORY;
-class SYSTEM;
+namespace N5200 {
+	class DISPLAY;
+	class FLOPPY;
+	class KEYBOARD;
+	class MEMORY;
+	class SYSTEM;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -94,11 +96,11 @@ protected:
 	UPD7220* gdc_g;
 	UPD765A* fdc;
 	
-	DISPLAY* display;
-	FLOPPY* floppy;
-	KEYBOARD* keyboard;
-	N5200_MEMORY* memory;
-	SYSTEM* system;
+	N5200::DISPLAY* display;
+	N5200::FLOPPY* floppy;
+	N5200::KEYBOARD* keyboard;
+	N5200::MEMORY* memory;
+	N5200::SYSTEM* system;
 	
 public:
 	// ----------------------------------------

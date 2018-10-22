@@ -9,6 +9,8 @@
 
 #include "printer.h"
 
+namespace MZ2800 {
+
 void PRINTER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0x7fff) {
@@ -31,3 +33,4 @@ uint32_t PRINTER::read_io8(uint32_t addr)
 	return 0xff;
 }
 
+}

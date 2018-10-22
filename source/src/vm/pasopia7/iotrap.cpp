@@ -10,6 +10,8 @@
 #include "iotrap.h"
 #include "../i8255.h"
 
+namespace PASOPIA7 {
+
 void IOTRAP::initialize()
 {
 	nmi_mask = pasopia = false;
@@ -90,4 +92,6 @@ bool IOTRAP::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(nmi_mask);
 	state_fio->StateBool(pasopia);
 	return true;
+}
+
 }

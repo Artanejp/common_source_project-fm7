@@ -13,6 +13,8 @@
 #include "../upd1990a.h"
 #endif
 
+namespace PC98HA {
+
 void CALENDAR::initialize()
 {
 #ifdef _PC98HA
@@ -68,3 +70,4 @@ bool CALENDAR::process_state(FILEIO* state_fio, bool loading)
 }
 #endif
 
+}

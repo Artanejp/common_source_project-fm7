@@ -89,13 +89,15 @@ class Z80;
 class Z80CTC;
 class Z80PIO;
 
-class FLOPPY;
-class DISPLAY;
-class IOBUS;
-class IOTRAP;
-class KEYBOARD;
-class PASOPIA7_MEMORY;
-class PAC2;
+namespace PASOPIA7 {
+	class FLOPPY;
+	class DISPLAY;
+	class IOBUS;
+	class IOTRAP;
+	class KEYBOARD;
+	class MEMORY;
+	class PAC2;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -122,13 +124,13 @@ protected:
 	Z80CTC* ctc;
 	Z80PIO* pio;
 	
-	FLOPPY* floppy;
-	DISPLAY* display;
-	IOBUS* iobus;
-	IOTRAP* iotrap;
-	KEYBOARD* key;
-	PASOPIA7_MEMORY* memory;
-	PAC2* pac2;
+	PASOPIA7::FLOPPY* floppy;
+	PASOPIA7::DISPLAY* display;
+	PASOPIA7::IOBUS* iobus;
+	PASOPIA7::IOTRAP* iotrap;
+	PASOPIA7::KEYBOARD* key;
+	PASOPIA7::MEMORY* memory;
+	PASOPIA7::PAC2* pac2;
 	
 public:
 	// ----------------------------------------

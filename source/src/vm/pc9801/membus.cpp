@@ -52,6 +52,8 @@
 		F0000h - FFFFFh: BIOS
 */
 
+namespace PC9801 {
+
 void MEMBUS::initialize()
 {
 	MEMORY::initialize();
@@ -604,4 +606,6 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 #endif
 	}
  	return true;
+}
+
 }

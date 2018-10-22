@@ -17,7 +17,9 @@
 
 #define SIG_MEMORY_IR2	0
 
-class PC98LT_MEMORY : public DEVICE
+namespace PC98HA {
+
+class MEMORY : public DEVICE
 {
 private:
 	uint8_t* rbank[64];	// 1MB / 16KB
@@ -57,11 +59,11 @@ private:
 #endif
 	
 public:
-	PC98LT_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~PC98LT_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -81,5 +83,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

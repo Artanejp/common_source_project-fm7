@@ -35,7 +35,9 @@
 #define SeqPix21(c) dest[X*8+W]=c;W++;
 #define SeqPix41(c) dest[X*8+W]=c;W++;dest[X*8+W]=c;W++;
 
-void PC6001_MEMORY::draw_screen()
+namespace PC6001 {
+
+void MEMORY::draw_screen()
 {
 	if (CRTKILL) {
 		for(int y = 0; y < 400; y++) {
@@ -137,7 +139,7 @@ void PC6001_MEMORY::draw_screen()
 }
 
 // RefreshScr10: N60-BASIC select function
-void PC6001_MEMORY::RefreshScr10()
+void MEMORY::RefreshScr10()
 {
 	if ((*VRAM&0x80) == 0x00)
 		RefreshScr11();
@@ -159,7 +161,7 @@ void PC6001_MEMORY::RefreshScr10()
 }
 
 // RefreshScr11: N60-BASIC screen 1,2
-void PC6001_MEMORY::RefreshScr11()
+void MEMORY::RefreshScr11()
 {
 	uint8_t X,Y,K;
 	int FC,BC;
@@ -197,7 +199,7 @@ W=0;
 }
 
 // RefreshScr13: N60-BASIC screen 3,4
-void PC6001_MEMORY::RefreshScr13()
+void MEMORY::RefreshScr13()
 {
 	uint8_t X,Y;
 	uint8_t *T1,*T2;
@@ -233,7 +235,7 @@ W=0;
 }
 
 // RefreshScr13a: N60-BASIC screen 3,4
-void PC6001_MEMORY::RefreshScr13a() /*  64x 64 color / 128x 64 */
+void MEMORY::RefreshScr13a() /*  64x 64 color / 128x 64 */
 {
 	uint8_t X,Y;
 	uint8_t *T1,*T2;
@@ -275,7 +277,7 @@ W=0;
 }
 
 // RefreshScr13b: N60-BASIC screen 3,4
-void PC6001_MEMORY::RefreshScr13b() /* 128x 64 color */
+void MEMORY::RefreshScr13b() /* 128x 64 color */
 {
 	uint8_t X,Y;
 	uint8_t *T1,*T2;
@@ -299,7 +301,7 @@ W=0;
 }
 
 // RefreshScr13c: N60-BASIC screen 3,4
-void PC6001_MEMORY::RefreshScr13c() /* 128x 96 */
+void MEMORY::RefreshScr13c() /* 128x 96 */
 {
 	uint8_t X,Y;
 	uint8_t *T1,*T2;
@@ -327,7 +329,7 @@ W=0;
 }
 
 // RefreshScr13d: N60-BASIC screen 3,4
-void PC6001_MEMORY::RefreshScr13d() /* 128x 96 color */
+void MEMORY::RefreshScr13d() /* 128x 96 color */
 {
 	uint8_t X,Y;
 	uint8_t *T1,*T2;
@@ -351,7 +353,7 @@ W=0;
 }
 
 // RefreshScr13e: N60-BASIC screen 3,4
-void PC6001_MEMORY::RefreshScr13e() /* 128x192 */
+void MEMORY::RefreshScr13e() /* 128x192 */
 {
 	uint8_t X,Y;
 	uint8_t *T1,*T2;
@@ -378,7 +380,7 @@ W=0;
 }
 
 // RefreshScr51: N60m/66-BASIC screen 1,2
-void PC6001_MEMORY::RefreshScr51()
+void MEMORY::RefreshScr51()
 {
 	uint8_t X,Y,K;
 	int FC,BC;
@@ -406,7 +408,7 @@ W=0;
 }
 
 // RefreshScr53: N60m/66-BASIC screen 3
-void PC6001_MEMORY::RefreshScr53()
+void MEMORY::RefreshScr53()
 {
 	uint8_t X,Y;
 	uint8_t *T1,*T2;
@@ -427,7 +429,7 @@ W=0;
 }
 
 // RefreshScr54: N60m/66-BASIC screen 4
-void PC6001_MEMORY::RefreshScr54()
+void MEMORY::RefreshScr54()
 {
 	uint8_t X,Y;
 	uint8_t *T1,*T2;
@@ -456,7 +458,7 @@ W=0;
 
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
 // RefreshScr61: N66-SR BASIC screen 1
-void PC6001_MEMORY::RefreshScr61()
+void MEMORY::RefreshScr61()
 {
 	uint8_t X,Y,K;
 	register int FC,BC;
@@ -490,7 +492,7 @@ W=0;
 }
 
 // RefreshScr62  N66-SR BASIC screen 2
-void PC6001_MEMORY::RefreshScr62()
+void MEMORY::RefreshScr62()
 {
 	uint8_t X,Y;
 	uint8_t *T1,*T2;
@@ -524,7 +526,7 @@ W=0;
 }
 
 // RefreshScr63  N66-SR BASIC screen 3
-void PC6001_MEMORY::RefreshScr63()
+void MEMORY::RefreshScr63()
 {
 	uint8_t X,Y;
 	uint8_t *T1,*T2;
@@ -566,7 +568,7 @@ W=0;
 	}
 }
 
-void PC6001_MEMORY::do_palet(int dest,int src)
+void MEMORY::do_palet(int dest,int src)
 {
 	int textpalet2[16]={0,4,1,5,2,6,3,7,8,12,9,13,10,14,11,15}; /*  color code-> VRAM code*/
 	// *************** for RefreshScr 53/54/62/63 ***************************
@@ -596,7 +598,7 @@ void PC6001_MEMORY::do_palet(int dest,int src)
 		BPal[textpalet2[dest]]= BPal61[ textpalet2[src]];  
 }
 
-void PC6001_MEMORY::make_semigraph(void)
+void MEMORY::make_semigraph(void)
 {
 	uint8_t *P;
 	unsigned int i, j, m1, m2;
@@ -638,14 +640,14 @@ void PC6001_MEMORY::make_semigraph(void)
 	}
 }
 
-int PC6001_MEMORY::chk_gvram(uint32_t A,int flag)
+int MEMORY::chk_gvram(uint32_t A,int flag)
 {
 	if (port60[ (A>>13)+flag ]==0x00 && bitmap)	// VRAM ÇÃêÊì™Ç©Ç¬ÅACRTÇ™ BITMAP mode
 		return 1;
 	return 0;
 }
 
-uint8_t PC6001_MEMORY::gvram_read(uint32_t A)
+uint8_t MEMORY::gvram_read(uint32_t A)
 {
 	uint8_t* adr;
 	uint8_t  ret;
@@ -669,7 +671,7 @@ uint8_t PC6001_MEMORY::gvram_read(uint32_t A)
 	return (ret);
 }
 
-void PC6001_MEMORY::gvram_write(uint32_t A, uint32_t V)
+void MEMORY::gvram_write(uint32_t A, uint32_t V)
 {
 	uint8_t* adr;
 	int x,y,z,w,off;
@@ -692,4 +694,6 @@ void PC6001_MEMORY::gvram_write(uint32_t A, uint32_t V)
 	}
 }
 #endif
+
+}
 

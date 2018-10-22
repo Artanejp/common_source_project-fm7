@@ -76,9 +76,11 @@ class MSM58321;
 class PCM1BIT;
 class UPD765A;
 
-class CRTC;
-class IOCTRL;
-class KANJI;
+namespace PC100 {
+	class CRTC;
+	class IOCTRL;
+	class KANJI;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -102,9 +104,9 @@ protected:
 	PCM1BIT* pcm;
 	UPD765A* fdc;
 	
-	CRTC* crtc;
-	IOCTRL* ioctrl;
-	KANJI* kanji;
+	PC100::CRTC* crtc;
+	PC100::IOCTRL* ioctrl;
+	PC100::KANJI* kanji;
 	
 	// memory
 	uint8_t ram[0xc0000];	// Main RAM 768KB

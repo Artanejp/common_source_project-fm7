@@ -27,6 +27,8 @@
 
 #include "./io.h"
 
+using PC2001::IO;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -55,7 +57,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	rtc = new UPD1990A(this, emu);
 	cpu = new UPD7810(this, emu);
 	
-	io = new PC2001_IO(this, emu);
+	io = new PC2001::IO(this, emu);
 	
 	// set contexts
 	event->set_context_cpu(cpu);

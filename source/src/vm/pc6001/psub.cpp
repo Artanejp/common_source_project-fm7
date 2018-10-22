@@ -41,6 +41,8 @@
 #define EVENT_CASSETTE	0
 #define EVENT_STRIG	1
 
+namespace PC6001 {
+
 /* normal (small alphabet) */
 uint8_t Keys1[256][2] =
 {
@@ -1169,4 +1171,6 @@ bool PSUB::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateInt32(StrigIntFlag);
 	state_fio->StateInt32(StrigEventID);
 	return true;
+}
+
 }

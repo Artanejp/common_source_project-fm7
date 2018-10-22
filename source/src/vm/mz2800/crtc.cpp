@@ -17,6 +17,8 @@
 #define SCRN_640x400	1
 #define SCRN_640x200	2
 
+namespace MZ2800 {
+
 void CRTC::initialize()
 {
 	// set 16/4096 palette
@@ -1481,4 +1483,6 @@ bool CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(map_init);
 	state_fio->StateBool(trans_init);
 	return true;
+}
+
 }

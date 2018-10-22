@@ -18,6 +18,8 @@
 #define SIG_DISPLAY_I8255_1_B	1
 #define SIG_DISPLAY_I8255_1_C	2
 
+namespace PASOPIA7 {
+
 class DISPLAY : public DEVICE
 {
 private:
@@ -74,5 +76,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

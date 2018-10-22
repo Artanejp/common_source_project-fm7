@@ -47,6 +47,13 @@
 #include "./memory.h"
 #include "note.h"
 
+using PC98HA::BIOS;
+using PC98HA::CALENDAR;
+using PC98HA::FLOPPY;
+using PC98HA::KEYBOARD;
+using PC98HA::MEMORY;
+using PC98HA::NOTE;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -103,7 +110,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	calendar = new CALENDAR(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new PC98LT_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	note = new NOTE(this, emu);
 	// set contexts
 	event->set_context_cpu(cpu);

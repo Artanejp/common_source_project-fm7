@@ -55,7 +55,6 @@ typedef struct {
 	bool mfm;
 } fd_format_t;
 
-class csp_state_utils;
 class CSP_Logger;
 class FILEIO;
 class OSD;
@@ -66,7 +65,6 @@ protected:
 	EMU* emu;
 	OSD* osd;
 #endif
-	csp_state_utils *state_entry;
 private:
 	uint8_t buffer[DISK_BUFFER_SIZE + TRACK_BUFFER_SIZE];
 	_TCHAR orig_path[_MAX_PATH];

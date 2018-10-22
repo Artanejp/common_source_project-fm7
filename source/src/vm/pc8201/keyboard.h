@@ -17,6 +17,8 @@
 #define SIG_KEYBOARD_COLUMN_L	0
 #define SIG_KEYBOARD_COLUMN_H	1
 
+namespace PC8201 {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -49,4 +51,5 @@ public:
 	}
 };
 
+}
 #endif

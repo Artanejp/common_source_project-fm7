@@ -9,6 +9,8 @@
 
 #include "iobus.h"
 
+namespace PASOPIA7 {
+
 void IOBUS::reset()
 {
 	mio = false;
@@ -53,4 +55,6 @@ bool IOBUS::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateBool(mio);
 	return true;
+}
+
 }

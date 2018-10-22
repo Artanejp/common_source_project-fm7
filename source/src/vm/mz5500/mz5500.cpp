@@ -44,6 +44,11 @@
 #include "./memory.h"
 #include "sysport.h"
 
+using MZ5500::DISPLAY;
+using MZ5500::KEYBOARD;
+using MZ5500::MEMORY;
+using MZ5500::SYSPORT;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -107,7 +112,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new MZ5500_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	sysport = new SYSPORT(this, emu);
 
 	// set contexts

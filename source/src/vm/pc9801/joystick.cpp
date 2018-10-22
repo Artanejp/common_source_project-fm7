@@ -20,6 +20,8 @@
 #include "joystick.h"
 #include "../ym2203.h"
 
+namespace PC9801 {
+
 void JOYSTICK::initialize()
 {
 	joy_status = emu->get_joy_buffer();
@@ -55,3 +57,4 @@ bool JOYSTICK::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 
+}

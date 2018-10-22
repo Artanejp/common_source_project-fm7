@@ -16,6 +16,8 @@
 
 class MB8877;
 
+namespace MZ2800 {
+
 class FLOPPY : public DEVICE
 {
 private:
@@ -39,5 +41,6 @@ public:
 	}
 };
 
+}
 #endif
 

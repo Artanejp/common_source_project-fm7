@@ -76,8 +76,10 @@ class HUC6280;
 class MSM5205;
 class SCSI_HOST;
 class SCSI_CDROM;
-class PCE;
 
+namespace PCEDEV {
+	class PCE;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -91,7 +93,7 @@ protected:
 	MSM5205* adpcm;
 	SCSI_HOST* scsi_host;
 	SCSI_CDROM* scsi_cdrom;
-	PCE* pce;
+	PCEDEV::PCE* pce;
 	
 public:
 	// ----------------------------------------

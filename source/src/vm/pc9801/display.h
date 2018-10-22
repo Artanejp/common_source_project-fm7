@@ -26,6 +26,8 @@
 
 class UPD7220;
 
+namespace PC9801 {
+
 class DISPLAY : public DEVICE
 {
 private:
@@ -243,5 +245,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

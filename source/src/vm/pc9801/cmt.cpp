@@ -11,6 +11,8 @@
 #include "cmt.h"
 #include "../i8251.h"
 
+namespace PC9801 {
+
 void CMT::initialize()
 {
 	fio = new FILEIO();
@@ -122,3 +124,4 @@ bool CMT::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 
+}

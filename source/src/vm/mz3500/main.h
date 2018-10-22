@@ -25,6 +25,8 @@
 #define SIG_MAIN_DRQ	8
 #define SIG_MAIN_INDEX	9
 
+namespace MZ3500 {
+
 class MAIN : public DEVICE
 {
 private:
@@ -98,5 +100,6 @@ public:
 	}
 };
 
+}
 #endif
 

@@ -53,6 +53,19 @@
 #include "sub.h"
 #include "timer.h"
 
+#ifdef _PC6001
+using PC6001::DISPLAY;
+#endif
+#if defined(_PC6601) || defined(_PC6601SR)
+using PC6001::FLOPPY;
+#endif
+
+using PC6001::JOYSTICK;
+using PC6001::MEMORY;
+using PC6001::PSUB;
+using PC6001::SUB;
+using PC6001::TIMER;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -96,7 +109,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	floppy->set_context_noise_head_up(noise_head_up);
 #endif
 	joystick = new JOYSTICK(this, emu);
-	memory = new PC6001_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	timer = new TIMER(this, emu);
 	
 	// set contexts

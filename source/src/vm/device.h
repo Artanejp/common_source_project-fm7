@@ -54,8 +54,6 @@
 
 #if defined(_USE_QT)
 class CSP_Logger;
-class csp_state_utils;
-
 extern CSP_Logger *csp_logger;
 
 #endif
@@ -67,7 +65,6 @@ protected:
 	OSD* osd;
 #if defined(_USE_QT)
 	CSP_Logger *p_logger;
-	csp_state_utils *state_entry;
 #endif
 
 public:
@@ -76,7 +73,6 @@ public:
 #if defined(_USE_QT)
 		osd = emu->get_osd();
 		p_logger = csp_logger;
-		state_entry = NULL;
 #else
 		osd = NULL;
 #endif
@@ -107,8 +103,6 @@ public:
 	virtual void initialize() {	/* osd = emu->get_osd(); */ /* Initializing VM must be after initializing OSD. */ }
 #if defined(_USE_QT)
 	virtual void release() {
-		if(state_entry != NULL) delete state_entry;
-		state_entry = NULL;
 	}
 #else
 	virtual void release() {}

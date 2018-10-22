@@ -11,6 +11,8 @@
 
 #include "display.h"
 
+namespace TK80 {
+
 static const int led_pattern[LED_SIZE_Y][LED_SIZE_X] = {
 #if defined(_TK80BS) || defined(_TK80)
 	{9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9},
@@ -210,56 +212,6 @@ void DISPLAY::draw_screen()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void DISPLAY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-#if defined(_TK80BS)
-	DECL_STATE_ENTRY_INT32(mode);
-#endif
-	DECL_STATE_ENTRY_BOOL(dma);
-	
-	leave_decl_state();
-}
-
-void DISPLAY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-//	
-//#if defined(_TK80BS)
-//	state_fio->FputInt32(mode);
-//#endif
-//	state_fio->FputBool(dma);
-}
-
-bool DISPLAY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//#if defined(_TK80BS)
-//	mode = state_fio->FgetInt32();
-//#endif
-//	dma = state_fio->FgetBool();
-	return true;
-}
-
 bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -273,4 +225,6 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 #endif
 	state_fio->StateBool(dma);
 	return true;
+}
+
 }

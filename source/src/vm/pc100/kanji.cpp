@@ -9,6 +9,8 @@
 
 #include "kanji.h"
 
+namespace PC100 {
+
 void KANJI::initialize()
 {
 	// init image
@@ -68,4 +70,6 @@ bool KANJI::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint16(ptr);
 	state_fio->StateBool(strobe);
 	return true;
+}
+
 }

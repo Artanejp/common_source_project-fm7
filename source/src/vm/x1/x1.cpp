@@ -64,6 +64,7 @@
 #if defined(Q_OS_WIN)
 DLL_PREFIX_I struct cur_time_s cur_time;
 #endif
+
 using X1::DISPLAY;
 using X1::EMM;
 using X1::FLOPPY;
@@ -75,7 +76,9 @@ using X1::PSUB;
 using X1::SASI;
 using X1::SUB;
 using X1::KEYBOARD;
-
+#ifdef _X1TWIN
+using PCEDEV::PCE;
+#endif
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------

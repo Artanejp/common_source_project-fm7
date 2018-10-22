@@ -93,12 +93,14 @@ class UPD1990A;
 class UPD71071;
 class UPD765A;
 
-class BIOS;
-class CALENDAR;
-class FLOPPY;
-class KEYBOARD;
-class PC98LT_MEMORY;
-class NOTE;
+namespace PC98HA {
+	class BIOS;
+	class CALENDAR;
+	class FLOPPY;
+	class KEYBOARD;
+	class MEMORY;
+	class NOTE;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -132,12 +134,12 @@ protected:
 	UPD71071* dma;
 	UPD765A* fdc;
 	
-	BIOS* bios;
-	CALENDAR* calendar;
-	FLOPPY* floppy;
-	KEYBOARD* keyboard;
-	PC98LT_MEMORY* memory;
-	NOTE* note;
+	PC98HA::BIOS* bios;
+	PC98HA::CALENDAR* calendar;
+	PC98HA::FLOPPY* floppy;
+	PC98HA::KEYBOARD* keyboard;
+	PC98HA::MEMORY* memory;
+	PC98HA::NOTE* note;
 	
 public:
 	// ----------------------------------------

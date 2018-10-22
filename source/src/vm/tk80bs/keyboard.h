@@ -18,6 +18,8 @@
 
 #define SIG_KEYBOARD_COLUMN	0
 
+namespace TK80 {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -54,9 +56,7 @@ public:
 		return kb_type & 3;
 	}
 #endif
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 #if defined(_TK80BS)
@@ -90,5 +90,6 @@ public:
 	}
 };
 
+}
 #endif
 

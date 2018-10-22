@@ -10,6 +10,8 @@
 #include "sysport.h"
 #include "../i8253.h"
 
+namespace MZ2800 {
+
 void SYSPORT::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0x7fff) {
@@ -34,3 +36,4 @@ uint32_t SYSPORT::read_io8(uint32_t addr)
 	return 0xff;
 }
 
+}

@@ -10,6 +10,8 @@
 #include "./memory.h"
 #include "../datarec.h"
 
+namespace PHC20 {
+
 static const uint8_t key_map[9][8] = {
 	{0x31, 0x57, 0x53, 0x58, 0x00, 0x28, 0xba, 0xbd},	//	1	W	S	X		DOWN	:	-
 	{0x1b, 0x51, 0x41, 0x5a, 0x00, 0x0d, 0xbb, 0xbf},	//	ESC???	Q	A	Z		RET	;	/
@@ -38,7 +40,7 @@ static const uint8_t key_map[9][8] = {
 	} \
 }
 
-void PHC20_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	memset(rom, 0xff, sizeof(rom));
 	memset(rdmy, 0xff, sizeof(rdmy));
@@ -64,7 +66,7 @@ void PHC20_MEMORY::initialize()
 	register_frame_event(this);
 }
 
-void PHC20_MEMORY::reset()
+void MEMORY::reset()
 {
 	memset(ram, 0, sizeof(ram));
 	memset(vram, 0, sizeof(vram));
@@ -73,7 +75,7 @@ void PHC20_MEMORY::reset()
 	sysport = 0;
 }
 
-void PHC20_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if((0x3000 <= addr && addr < 0x4000) || 0x4400 <= addr) {
@@ -104,7 +106,7 @@ void PHC20_MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 10][addr & 0x3ff] = data;
 }
 
-uint32_t PHC20_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if((0x3000 <= addr && addr < 0x4000) || 0x4400 <= addr) {
@@ -134,7 +136,7 @@ uint32_t PHC20_MEMORY::read_data8(uint32_t addr)
 	return rbank[addr >> 10][addr & 0x3ff];
 }
 
-void PHC20_MEMORY::event_frame()
+void MEMORY::event_frame()
 {
 	memset(status, 0, sizeof(status));
 	
@@ -147,7 +149,7 @@ void PHC20_MEMORY::event_frame()
 	}
 }
 
-void PHC20_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(data & mask) {
 		sysport |= mask;
@@ -158,7 +160,7 @@ void PHC20_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	1
 
-bool PHC20_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -171,4 +173,6 @@ bool PHC20_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(status, sizeof(status), 1);
 	state_fio->StateUint8(sysport);
 	return true;
+}
+
 }

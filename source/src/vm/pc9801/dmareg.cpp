@@ -14,6 +14,8 @@
 #include "dmareg.h"
 #include "../i8237.h"
 
+namespace PC9801 {
+
 static const int bank_lo_id[] = {
 	SIG_I8237_BANK1, SIG_I8237_BANK2, SIG_I8237_BANK3, SIG_I8237_BANK0,
 };
@@ -94,3 +96,6 @@ bool DMAREG::process_state(FILEIO* state_fio, bool loading)
 }
 
 */
+
+}
+

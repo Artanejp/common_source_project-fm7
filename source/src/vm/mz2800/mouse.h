@@ -17,6 +17,8 @@
 #define SIG_MOUSE_SEL	0
 #define SIG_MOUSE_DTR	1
 
+namespace MZ2800 {
+
 class MOUSE : public DEVICE
 {
 private:
@@ -45,5 +47,6 @@ public:
 	}
 };
 
+}
 #endif
 

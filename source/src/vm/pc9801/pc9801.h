@@ -375,29 +375,31 @@ class UPD7220;
 class UPD765A;
 class YM2203;
 
+namespace PC9801 {
 #if defined(SUPPORT_CMT_IF)
-class CMT;
+	class CMT;
 #endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-class CPUREG;
+	class CPUREG;
 #endif
-class DISPLAY;
-class DMAREG;
-class FLOPPY;
-class FMSOUND;
-class JOYSTICK;
-class KEYBOARD;
-class MEMBUS;
-class MOUSE;
+	class DISPLAY;
+	class DMAREG;
+	class FLOPPY;
+	class FMSOUND;
+	class JOYSTICK;
+	class KEYBOARD;
+	class MEMBUS;
+	class MOUSE;
 #if defined(SUPPORT_SASI_IF)
-class SASI;
+	class SASI;
 #endif
 #if defined(SUPPORT_SCSI_IF)
-class SCSI;
+	class SCSI;
 #endif
 #if defined(SUPPORT_IDE_IF)
-class IDE;
+	class IDE;
 #endif
+}
 
 #if defined(SUPPORT_320KB_FDD_IF)
 // 320kb fdd drives
@@ -407,7 +409,9 @@ class Z80;
 
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 class PC80S31K;
-class PC88;
+namespace PC88DEV {
+	class PC88;
+}
 class Z80;
 #endif
 
@@ -480,27 +484,27 @@ protected:
 	YM2203* opn;
 	
 #if defined(SUPPORT_CMT_IF)
-	CMT* cmt;
+	PC9801::CMT* cmt;
 #endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-	CPUREG* cpureg;
+	PC9801::CPUREG* cpureg;
 #endif
-	DISPLAY* display;
-	DMAREG* dmareg;
-	FLOPPY* floppy;
-	FMSOUND* fmsound;
-	JOYSTICK* joystick;
-	KEYBOARD* keyboard;
-	MEMBUS* memory;
-	MOUSE* mouse;
+	PC9801::DISPLAY* display;
+	PC9801::DMAREG* dmareg;
+	PC9801::FLOPPY* floppy;
+	PC9801::FMSOUND* fmsound;
+	PC9801::JOYSTICK* joystick;
+	PC9801::KEYBOARD* keyboard;
+	PC9801::MEMBUS* memory;
+	PC9801::MOUSE* mouse;
 #if defined(SUPPORT_SASI_IF)
-	SASI* sasi;
+	PC9801::SASI* sasi;
 #endif
 #if defined(SUPPORT_SCSI_IF)
-	SCSI* scsi;
+	PC9801::SCSI* scsi;
 #endif
 #if defined(SUPPORT_IDE_IF)
-	IDE* ide;
+	PC9801::IDE* ide;
 #endif
 	
 	// PC-9801-14
@@ -524,7 +528,7 @@ protected:
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	EVENT* pc88event;
 	
-	PC88* pc88;
+	PC88DEV::PC88* pc88;
 	DEVICE* pc88prn;
 	I8251* pc88sio;
 	I8255* pc88pio;

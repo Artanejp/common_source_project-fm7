@@ -9,6 +9,8 @@
 
 #include "display.h"
 
+namespace MZ5500 {
+
 static const int plane_priority[8][8] = {
 	{0, 1, 2, 3, 0, 1, 2, 3}, {0, 1, 2, 3, 4, 1, 2, 3},
 	{0, 1, 2, 3, 4, 4, 2, 3}, {0, 1, 2, 3, 4, 4, 4, 3},
@@ -544,4 +546,6 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(mode_c);
 	state_fio->StateUint8(mode_p);
 	return true;
+}
+
 }

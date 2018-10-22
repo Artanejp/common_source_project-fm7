@@ -15,6 +15,8 @@
 #define BIT_ERR	2
 #define BIT_OBF	1
 
+namespace QC10 {
+
 void MFONT::initialize()
 {
 	memset(mfont, 0xff, sizeof(mfont));
@@ -94,57 +96,6 @@ uint32_t MFONT::read_io8(uint32_t addr)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void MFONT::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_UINT8(status);
-	DECL_STATE_ENTRY_FIFO(cmd);
-	DECL_STATE_ENTRY_FIFO(res);
-	
-	leave_decl_state();
-}
-
-void MFONT::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint8(status);
-//	cmd->save_state((void *)state_fio);
-//	res->save_state((void *)state_fio);
-}
-
-bool MFONT::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	status = state_fio->FgetUint8();
-//	if(!cmd->load_state((void *)state_fio)) {
-//		return false;
-//	}
-//	if(!res->load_state((void *)state_fio)) {
-//		return false;
-//	}
-	return true;
-}
-
 bool MFONT::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -161,4 +112,6 @@ bool MFONT::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	return true;
+}
+
 }

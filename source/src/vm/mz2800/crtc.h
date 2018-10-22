@@ -18,6 +18,8 @@
 #define SIG_CRTC_PALLETE	1
 #define SIG_CRTC_MASK		2
 
+namespace MZ2800 {
+
 class CRTC : public DEVICE
 {
 private:
@@ -133,5 +135,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

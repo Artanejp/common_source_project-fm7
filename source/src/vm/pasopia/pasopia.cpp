@@ -36,6 +36,13 @@
 #include "./memory.h"
 #include "pac2.h"
 
+using PASOPIA::DISPLAY;
+using PASOPIA::FLOPPY;
+using PASOPIA::KEYBOARD;
+using PASOPIA::MEMORY;
+using PASOPIA::PAC2;
+
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -76,7 +83,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	floppy = new FLOPPY(this, emu);
 	display = new DISPLAY(this, emu);
 	key = new KEYBOARD(this, emu);
-	memory = new PASOPIA_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	pac2 = new PAC2(this, emu);
 	// set contexts
 	event->set_context_cpu(cpu);

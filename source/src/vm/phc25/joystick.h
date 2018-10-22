@@ -15,6 +15,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace PHC25 {
+
 class JOYSTICK : public DEVICE
 {
 private:
@@ -39,4 +41,5 @@ public:
 	}
 };
 
+}
 #endif

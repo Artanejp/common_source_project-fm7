@@ -10,6 +10,8 @@
 
 #include "joypac2.h"
 
+namespace PASOPIA7 {
+
 void JOYPAC2::initialize(int id)
 {
 	joy = emu->get_joy_buffer();
@@ -45,3 +47,4 @@ uint32_t JOYPAC2::read_io8(uint32_t addr)
 	return 0xff;
 }
 
+}

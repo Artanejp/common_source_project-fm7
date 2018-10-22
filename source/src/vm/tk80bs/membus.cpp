@@ -12,6 +12,8 @@
 #include "membus.h"
 #include "../i8080.h"
 
+namespace TK80 {
+
 void MEMBUS::reset()
 {
 #if defined(_TK85)
@@ -51,47 +53,6 @@ void MEMBUS::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void MEMBUS::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-#if defined(_TK85)
-	DECL_STATE_ENTRY_UINT32(pc7);
-	DECL_STATE_ENTRY_UINT32(count);
-#endif
-	MEMORY::decl_state();
-	
-	leave_decl_state();
-}
-
-void MEMBUS::save_state(FILEIO* state_fio)
-{
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//#if defined(_TK85)
-//	state_fio->FputUint32(pc7);
-//	state_fio->FputUint32(count);
-//#endif
-	MEMORY::save_state(state_fio);
-}
-
-bool MEMBUS::load_state(FILEIO* state_fio)
-{
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//#if defined(_TK85)
-//	pc7 = state_fio->FgetUint32();
-//	count = state_fio->FgetUint32();
-//#endif
-	return MEMORY::load_state(state_fio);
-}
 bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -105,4 +66,6 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint32(count);
 #endif
 	return MEMORY::process_state(state_fio, loading);
+}
+
 }

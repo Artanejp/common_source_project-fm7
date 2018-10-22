@@ -16,6 +16,8 @@
 
 class Z80SIO;
 
+namespace MZ2800 {
+
 class SERIAL : public DEVICE
 {
 private:
@@ -42,5 +44,6 @@ public:
 	}
 };
 
+}
 #endif
 

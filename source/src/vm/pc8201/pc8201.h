@@ -63,10 +63,12 @@ class IO;
 class PCM1BIT;
 class UPD1990A;
 
-class CMT;
-class KEYBOARD;
-class LCD;
-class PC8201_MEMORY;
+namespace PC8201 {
+	class CMT;
+	class KEYBOARD;
+	class LCD;
+	class MEMORY;
+}
 
 class VM :public VM_TEMPLATE
 {
@@ -84,10 +86,10 @@ protected:
 	PCM1BIT* pcm;
 	UPD1990A* rtc;
 	
-	CMT* cmt;
-	KEYBOARD* keyboard;
-	LCD* lcd;
-	PC8201_MEMORY* memory;
+	PC8201::CMT* cmt;
+	PC8201::KEYBOARD* keyboard;
+	PC8201::LCD* lcd;
+	PC8201::MEMORY* memory;
 	
 public:
 	// ----------------------------------------

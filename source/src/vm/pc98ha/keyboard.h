@@ -17,6 +17,8 @@
 
 #define SIG_KEYBOARD_RECV	0
 
+namespace PC98HA {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -54,4 +56,5 @@ public:
 	}
 };
 
+}
 #endif

@@ -83,7 +83,6 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class csp_state_utils;
 class EMU;
 class DEVICE;
 class EVENT;
@@ -100,11 +99,13 @@ class Z80;
 class Z80CTC;
 class Z80PIO;
 
-class FLOPPY;
-class DISPLAY;
-class KEYBOARD;
-class PASOPIA_MEMORY;
-class PAC2;
+namespace PASOPIA {
+	class FLOPPY;
+	class DISPLAY;
+	class KEYBOARD;
+	class MEMORY;
+	class PAC2;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -129,11 +130,11 @@ protected:
 	Z80CTC* ctc;
 	Z80PIO* pio;
 	
-	FLOPPY* floppy;
-	DISPLAY* display;
-	KEYBOARD* key;
-	PASOPIA_MEMORY* memory;
-	PAC2* pac2;
+	PASOPIA::FLOPPY* floppy;
+	PASOPIA::DISPLAY* display;
+	PASOPIA::KEYBOARD* key;
+	PASOPIA::MEMORY* memory;
+	PASOPIA::PAC2* pac2;
 	
 	int boot_mode;
 	

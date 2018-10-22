@@ -15,13 +15,17 @@
 #include "../device.h"
 
 class MC6847;
-class TIMER;
+
+namespace PC6001 {
+	class TIMER;
+}
+namespace PC6001 {
 
 class DISPLAY : public DEVICE
 {
 private:
 	MC6847 *d_vdp;
-	TIMER *d_timer;
+	PC6001::TIMER *d_timer;
 	
 	uint8_t *ram_ptr;
 	uint8_t *vram_ptr;
@@ -48,10 +52,12 @@ public:
 	{
 		ram_ptr = vram_ptr = ptr;
 	}
-	void set_context_timer(TIMER* device)
+	void set_context_timer(PC6001::TIMER* device)
 	{
 		d_timer = device;
 	}
 	void draw_screen();
 };
+
+}
 #endif

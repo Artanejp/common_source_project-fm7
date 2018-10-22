@@ -19,6 +19,8 @@
 #include "../disk.h"
 #include "../noise.h"
 
+namespace PC6001 {
+
 int FLOPPY::Seek88(int drvno, int trackno, int sectno)
 {
 	if(drvno < 2) {
@@ -651,4 +653,6 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateInt32(DIO);
 	state_fio->StateUint8(Status);
 	return true;
+}
+
 }

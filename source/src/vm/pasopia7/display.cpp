@@ -9,6 +9,8 @@
 
 #include "display.h"
 
+namespace PASOPIA7 {
+
 void DISPLAY::initialize()
 {
 	// load rom image
@@ -773,4 +775,6 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(blink);
 	state_fio->StateBool(pal_dis);
 	return true;
+}
+
 }

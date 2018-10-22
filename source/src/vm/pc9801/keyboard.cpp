@@ -20,6 +20,8 @@
 #include "keyboard.h"
 #include "../i8251.h"
 
+namespace PC9801 {
+
 static const int key_table[256] = {
 	  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,0x0e,0x0f,  -1,  -1,  -1,0x1c,  -1,  -1,
 	0x70,0x74,0x73,0x60,  -1,  -1,  -1,  -1,  -1,  -1,  -1,0x00,0x35,  -1,  -1,  -1,
@@ -99,3 +101,4 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 
+}

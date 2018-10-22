@@ -12,6 +12,8 @@
 #include "system.h"
 #include "../i8237.h"
 
+namespace N5200 {
+
 void SYSTEM::reset()
 {
 	mode = 0;
@@ -60,5 +62,7 @@ uint32_t SYSTEM::read_io8(uint32_t addr)
 		return mode;
 	}
 	return 0xff;
+}
+
 }
 

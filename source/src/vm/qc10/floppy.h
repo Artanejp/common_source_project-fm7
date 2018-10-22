@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace QC10 {
+
 class FLOPPY : public DEVICE
 {
 private:
@@ -40,5 +42,6 @@ public:
 	}
 };
 
+}
 #endif
 

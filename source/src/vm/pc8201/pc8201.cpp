@@ -29,6 +29,11 @@
 #include "lcd.h"
 #include "./memory.h"
 
+using PC8201::CMT;
+using PC8201::KEYBOARD;
+using PC8201::LCD;
+using PC8201::MEMORY;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -53,7 +58,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cmt = new CMT(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	lcd = new LCD(this, emu);
-	memory = new PC8201_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	
 	// set contexts
 	event->set_context_cpu(cpu);

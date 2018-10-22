@@ -69,10 +69,12 @@ class NOT;
 class AY_3_891X;
 class Z80;
 
-class JOYSTICK;
-class KEYBOARD;
-class PHC25_MEMORY;
-class PHC25_SYSTEM;
+namespace PHC25 {
+	class JOYSTICK;
+	class KEYBOARD;
+	class MEMORY;
+	class SYSTEM;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -91,10 +93,10 @@ protected:
 	AY_3_891X* psg;
 	Z80* cpu;
 	
-	JOYSTICK* joystick;
-	KEYBOARD* keyboard;
-	PHC25_MEMORY* memory;
-	PHC25_SYSTEM* system;
+	PHC25::JOYSTICK* joystick;
+	PHC25::KEYBOARD* keyboard;
+	PHC25::MEMORY* memory;
+	PHC25::SYSTEM* system;
 	
 public:
 	// ----------------------------------------

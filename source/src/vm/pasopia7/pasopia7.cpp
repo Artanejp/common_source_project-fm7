@@ -39,6 +39,14 @@
 #include "./memory.h"
 #include "pac2.h"
 
+using PASOPIA7::DISPLAY;
+using PASOPIA7::FLOPPY;
+using PASOPIA7::IOBUS;
+using PASOPIA7::IOTRAP;
+using PASOPIA7::KEYBOARD;
+using PASOPIA7::MEMORY;
+using PASOPIA7::PAC2;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -82,7 +90,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	iobus = new IOBUS(this, emu);
 	iotrap = new IOTRAP(this, emu);
 	key = new KEYBOARD(this, emu);
-	memory = new PASOPIA7_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	pac2 = new PAC2(this, emu);
 	
 	// set contexts

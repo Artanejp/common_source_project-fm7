@@ -13,6 +13,13 @@
 #include "kanjipac2.h"
 #include "joypac2.h"
 
+using PASOPIA::RAMPAC2;
+using PASOPIA::KANJIPAC2;
+using PASOPIA::JOYPAC2;
+using PASOPIA::PAC2DEV;
+
+namespace PASOPIA {
+
 void PAC2::initialize()
 {
 	rampac2 = new RAMPAC2(static_cast<VM *>(vm), emu);
@@ -87,4 +94,6 @@ bool PAC2::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateInt32(device_type);
 	return get_device()->process_state(state_fio, loading);
+}
+
 }

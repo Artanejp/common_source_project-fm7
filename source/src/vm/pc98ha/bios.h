@@ -17,6 +17,8 @@
 
 class UPD765A;
 
+namespace PC98HA {
+
 class BIOS : public DEVICE
 {
 private:
@@ -39,5 +41,6 @@ public:
 	}
 };
 
+}
 #endif
 

@@ -23,6 +23,8 @@
 
 #define EVENT_TIMER	0
 
+namespace PC9801 {
+
 static const int freq_table[4] = {120, 60, 30, 15};
 
 void MOUSE::initialize()
@@ -146,3 +148,4 @@ bool MOUSE::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 
+}

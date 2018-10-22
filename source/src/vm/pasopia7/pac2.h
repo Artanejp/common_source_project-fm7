@@ -14,10 +14,14 @@
 #include "../../emu.h"
 #include "../device.h"
 
-class PAC2DEV;
-class RAMPAC2;
-class KANJIPAC2;
-class JOYPAC2;
+namespace PASOPIA7 {
+	class PAC2DEV;
+	class RAMPAC2;
+	class KANJIPAC2;
+	class JOYPAC2;
+}
+
+namespace PASOPIA7 {
 
 class PAC2 : public DEVICE
 {
@@ -25,10 +29,10 @@ private:
 	PAC2DEV* dev[8];
 	int sel;
 	
-	RAMPAC2* rampac2[2];
-	KANJIPAC2* kanji;
-	JOYPAC2* joy;
-	PAC2DEV* dummy;
+	PASOPIA7::RAMPAC2* rampac2[2];
+	PASOPIA7::KANJIPAC2* kanji;
+	PASOPIA7::JOYPAC2* joy;
+	PASOPIA7::PAC2DEV* dummy;
 	
 public:
 	PAC2(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -49,5 +53,6 @@ public:
 	void open_rampac2(int drv, const _TCHAR* file_path);
 };
 
+}
 #endif
 

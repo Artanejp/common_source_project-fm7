@@ -18,6 +18,8 @@
 
 class UPD7220;
 
+namespace MZ5500 {
+
 class DISPLAY : public DEVICE
 {
 private:
@@ -82,5 +84,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

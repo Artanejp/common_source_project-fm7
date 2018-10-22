@@ -9,6 +9,8 @@
 
 #include "display.h"
 
+namespace PASOPIA {
+
 void DISPLAY::initialize()
 {
 	// load rom image
@@ -643,4 +645,6 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint16(cursor);
 	state_fio->StateUint16(cblink);
 	return true;
+}
+
 }

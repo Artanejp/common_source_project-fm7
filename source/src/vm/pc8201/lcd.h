@@ -17,6 +17,8 @@
 #define SIG_LCD_CHIPSEL_L	0
 #define SIG_LCD_CHIPSEL_H	1
 
+namespace PC8201 {
+
 class LCD : public DEVICE
 {
 private:
@@ -46,4 +48,5 @@ public:
 	void draw_screen();
 };
 
+}
 #endif

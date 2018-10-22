@@ -14,13 +14,13 @@
 #include "../vm.h"
 #include "../../emu.h"
 
-class csp_state_utils;
+namespace PASOPIA7 {
+
 class PAC2DEV
 {
 protected:
 	VM* vm;
 	EMU* emu;
-	csp_state_utils *state_entry;
 public:
 	PAC2DEV(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 	{
@@ -58,5 +58,6 @@ public:
 	_TCHAR this_device_name[128];
 };
 
+}
 #endif
 

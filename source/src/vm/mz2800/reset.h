@@ -16,6 +16,8 @@
 
 #define SIG_RESET_CONTROL	0
 
+namespace MZ2800 {
+
 class RESET : public DEVICE
 {
 private:
@@ -34,5 +36,6 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 };
 
+}
 #endif
 

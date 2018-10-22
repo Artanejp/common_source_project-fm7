@@ -9,6 +9,8 @@
 
 #include "reset.h"
 
+namespace MZ2800 {
+
 void RESET::initialize()
 {
 	prev = 0xff;
@@ -38,4 +40,6 @@ bool RESET::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateUint8(prev);
 	return true;
+}
+
 }

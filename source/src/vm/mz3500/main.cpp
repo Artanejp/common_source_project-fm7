@@ -10,6 +10,8 @@
 #include "./main.h"
 #include "../upd765a.h"
 
+namespace MZ3500 {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
 	for(int i = sb; i <= eb; i++) { \
@@ -429,4 +431,6 @@ bool MAIN::process_state(FILEIO* state_fio, bool loading)
 		 update_bank();
 	}
 	return true;
+}
+
 }

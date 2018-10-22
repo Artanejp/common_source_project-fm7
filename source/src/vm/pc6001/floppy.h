@@ -25,6 +25,8 @@
 class DISK;
 class NOISE;
 
+namespace PC6001 {
+
 class FLOPPY : public DEVICE
 {
 private:
@@ -160,5 +162,6 @@ public:
 	bool is_disk_protected(int drv);
 };
 
+}
 #endif
 

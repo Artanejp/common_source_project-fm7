@@ -10,6 +10,8 @@
 #include "floppy.h"
 #include "../upd765a.h"
 
+namespace PASOPIA7 {
+
 void FLOPPY::initialize()
 {
 	intr = false;
@@ -66,4 +68,6 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateBool(intr);
 	return true;
+}
+
 }

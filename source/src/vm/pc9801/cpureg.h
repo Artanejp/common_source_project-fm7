@@ -24,6 +24,8 @@ class I386;
 class I286;
 #endif
 
+namespace PC9801 {
+
 class CPUREG : public DEVICE
 {
 private:
@@ -58,5 +60,6 @@ public:
 	}
 };
 
+}
 #endif
 

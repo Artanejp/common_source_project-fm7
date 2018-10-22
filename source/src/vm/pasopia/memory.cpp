@@ -10,6 +10,8 @@
 #include "./memory.h"
 #include "../i8255.h"
 
+namespace PASOPIA {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
 	for(int i = sb; i <= eb; i++) { \
@@ -26,7 +28,7 @@
 	} \
 }
 
-void PASOPIA_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	// load ipl
 	memset(rdmy, 0xff, sizeof(rdmy));
@@ -39,7 +41,7 @@ void PASOPIA_MEMORY::initialize()
 	vram_data = mem_map = 0;
 }
 
-void PASOPIA_MEMORY::load_ipl()
+void MEMORY::load_ipl()
 {
 	// load ipl
 	memset(rom, 0xff, sizeof(rom));
@@ -76,24 +78,24 @@ void PASOPIA_MEMORY::load_ipl()
 	
 }
 
-void PASOPIA_MEMORY::reset()
+void MEMORY::reset()
 {
 	memset(vram, 0, sizeof(vram));
 }
 
-void PASOPIA_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32_t PASOPIA_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void PASOPIA_MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	mem_map = data;
 	
@@ -109,7 +111,7 @@ void PASOPIA_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	d_pio2->write_signal(SIG_I8255_PORT_C, (mem_map & 2) ? 4 : 0, 4);
 }
 
-void PASOPIA_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// vram control
 	if(id == SIG_MEMORY_I8255_0_A) {
@@ -141,7 +143,7 @@ void PASOPIA_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 
 #define STATE_VERSION	1
 
-bool PASOPIA_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -165,4 +167,6 @@ bool PASOPIA_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		}
 	}
 	return true;
+}
+
 }

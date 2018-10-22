@@ -26,6 +26,8 @@
 
 #define SIG_JOYSTICK_SELECT	0
 
+namespace PC9801 {
+
 class JOYSTICK : public DEVICE
 {
 private:
@@ -54,4 +56,5 @@ public:
 	}
 };
 
+}
 #endif

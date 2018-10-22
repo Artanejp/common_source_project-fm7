@@ -16,6 +16,8 @@
 
 #define SIG_FLOPPY_DRQ	0
 
+namespace N5200 {
+
 class FLOPPY : public DEVICE
 {
 private:
@@ -47,5 +49,6 @@ public:
 	}
 };
 
+}
 #endif
 

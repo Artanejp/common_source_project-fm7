@@ -24,6 +24,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace PC9801 {
+
 class FMSOUND : public DEVICE
 {
 private:
@@ -60,5 +62,6 @@ public:
 	}
 };
 
+}
 #endif
 

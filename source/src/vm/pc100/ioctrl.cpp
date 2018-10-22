@@ -14,6 +14,8 @@
 #include "../upd765a.h"
 #include "../../fifo.h"
 
+namespace PC100 {
+
 static const int key_table[256] = {
 	  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,0x18,0x12,  -1,  -1,  -1,0x38,  -1,  -1,
 	  -1,0x04,0x05,0x09,  -1,  -1,  -1,  -1,  -1,0x10,  -1,0x11,  -1,  -1,  -1,  -1,
@@ -240,4 +242,6 @@ bool IOCTRL::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateInt32(register_id);
 	state_fio->StateUint8(ts);
 	return true;
+}
+
 }

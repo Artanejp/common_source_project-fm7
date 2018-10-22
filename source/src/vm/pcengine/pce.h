@@ -41,6 +41,8 @@ class SCSI_HOST;
 class SCSI_CDROM;
 #endif
 
+namespace PCEDEV {
+
 class PCE : public DEVICE
 {
 private:
@@ -278,4 +280,5 @@ public:
 	void draw_screen();
 };
 
+}
 #endif

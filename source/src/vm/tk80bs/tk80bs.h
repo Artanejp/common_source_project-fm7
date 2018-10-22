@@ -182,8 +182,6 @@ const struct {
 #endif
 };
 
-class csp_state_utils;
-
 class EMU;
 class DEVICE;
 class EVENT;
@@ -195,21 +193,22 @@ class I8251;
 class IO;
 #endif
 class I8255;
-//class MEMORY;
 class PCM1BIT;
 
+namespace TK80 {
 #if defined(_TK80BS)
-class CMT;
+	class CMT;
 #endif
-class DISPLAY;
-class KEYBOARD;
-class MEMBUS;
+	//class MEMORY;
+	class DISPLAY;
+	class KEYBOARD;
+	class MEMBUS;
+}
 
 class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
-	//csp_state_utils* state_entry;
 	
 	// devices
 	//EVENT* event;
@@ -222,16 +221,16 @@ protected:
 	IO* memio;
 #endif
 	I8255* pio_t;
-//	MEMORY* memory;
+//	TK80::MEMORY* memory;
 	PCM1BIT* pcm0;
 	PCM1BIT* pcm1;
 	
 #if defined(_TK80BS)
-	CMT* cmt;
+	TK80::CMT* cmt;
 #endif
-	DISPLAY* display;
-	KEYBOARD* keyboard;
-	MEMBUS* memory;
+	TK80::DISPLAY* display;
+	TK80::KEYBOARD* keyboard;
+	TK80::MEMBUS* memory;
 	
 	// memory
 	uint8_t mon[0x800];
@@ -306,9 +305,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

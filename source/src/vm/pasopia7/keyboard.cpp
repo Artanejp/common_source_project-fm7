@@ -10,6 +10,8 @@
 #include "keyboard.h"
 #include "../z80pio.h"
 
+namespace PASOPIA7 {
+
 static const int key_map[12][8] = {
 	{ 0x12, 0x10, 0x14, 0x00, 0x11, 0x15, 0x00, 0x00 },
 	{ 0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67 },
@@ -89,4 +91,6 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateUint8(sel);
 	return true;
+}
+
 }

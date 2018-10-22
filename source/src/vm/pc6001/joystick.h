@@ -18,6 +18,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace PC6001 {
+
 class JOYSTICK : public DEVICE
 {
 private:
@@ -41,4 +43,6 @@ public:
 		d_psg = device;
 	}
 };
+
+}
 #endif

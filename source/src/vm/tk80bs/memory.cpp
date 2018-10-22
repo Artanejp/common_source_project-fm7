@@ -10,8 +10,10 @@
 // AUTO/STEPスイッチのために実装中のソース
 // 実際に使用するかは未定
 
-#include "memory.h"
+#include "./memory.h"
 #include "../i8080.h"
+
+namespace TK80 {
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 9, eb = (e) >> 9; \
@@ -161,47 +163,6 @@ void MEMORY::save_binary(const _TCHAR* file_path)
 
 #define STATE_VERSION	1
 
-void MEMORY::decl_state(FILEIO* state_fio)
-{
-	// enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	// leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	state_fio->Fread(vram, sizeof(vram), 1);
-	return true;
-}
-
 bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -213,4 +174,6 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(ram, sizeof(ram), 1);
 	state_fio->StateBuffer(vram, sizeof(vram), 1);
 	return true;
+}
+
 }

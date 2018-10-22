@@ -18,7 +18,9 @@
 #define SIG_MEMORY_I8255_1_B	1
 #define SIG_MEMORY_I8255_1_C	2
 
-class PASOPIA7_MEMORY : public DEVICE
+namespace PASOPIA7 {
+
+class MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_iobus, *d_pio0, *d_pio2;
@@ -39,11 +41,11 @@ private:
 	void update_memory_map();
 	
 public:
-	PASOPIA7_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~PASOPIA7_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -81,5 +83,6 @@ public:
 	}
 };
 
+}
 #endif
 

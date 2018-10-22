@@ -18,6 +18,8 @@
 
 #define EVENT_TIMER	0
 
+namespace PC6001 {
+
 void TIMER::initialize()
 {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
@@ -306,3 +308,6 @@ bool TIMER::process_state(FILEIO* state_fio, bool loading)
 #endif
 	return true;
 }
+
+}
+

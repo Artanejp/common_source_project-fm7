@@ -9,6 +9,8 @@
 
 #include "joystick.h"
 
+namespace MZ2800 {
+
 void JOYSTICK::initialize()
 {
 	mode = 0xf;
@@ -63,4 +65,6 @@ bool JOYSTICK::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateUint32(mode);
 	return true;
+}
+
 }

@@ -16,7 +16,9 @@
 
 #define SIG_MEMORY_BANK	0
 
-class MZ5500_MEMORY : public DEVICE
+namespace MZ5500 {
+
+class MEMORY : public DEVICE
 {
 private:
 	DEVICE* d_cpu;
@@ -50,11 +52,11 @@ private:
 	void update_bank();
 	
 public:
-	MZ5500_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MZ5500_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -79,5 +81,6 @@ public:
 	}
 };
 
+}
 #endif
 

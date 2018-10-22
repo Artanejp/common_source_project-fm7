@@ -50,6 +50,18 @@
 #include "serial.h"
 #include "sysport.h"
 
+using MZ2800::CRTC;
+using MZ2800::FLOPPY;
+using MZ2800::JOYSTICK;
+using MZ2800::KEYBOARD;
+using MZ2800::MEMORY;
+using MZ2800::MOUSE;
+using MZ2800::PRINTER;
+using MZ2800::RESET;
+using MZ2800::SASI;
+using MZ2800::SERIAL;
+using MZ2800::SYSPORT;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -95,7 +107,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	floppy = new FLOPPY(this, emu);
 	joystick = new JOYSTICK(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new MZ2800_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	mouse = new MOUSE(this, emu);
 	printer = new PRINTER(this, emu);
 	rst = new RESET(this, emu);

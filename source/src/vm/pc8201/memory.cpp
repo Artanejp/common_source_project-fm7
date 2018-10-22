@@ -12,6 +12,8 @@
 #include "../datarec.h"
 #include "../upd1990a.h"
 
+namespace PC8201 {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
 	for(int i = sb; i <= eb; i++) { \
@@ -28,7 +30,7 @@
 	} \
 }
 
-void PC8201_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -53,7 +55,7 @@ void PC8201_MEMORY::initialize()
 	delete fio;
 }
 
-void PC8201_MEMORY::release()
+void MEMORY::release()
 {
 	// save ram image
 	FILEIO* fio = new FILEIO();
@@ -64,25 +66,25 @@ void PC8201_MEMORY::release()
 	delete fio;
 }
 
-void PC8201_MEMORY::reset()
+void MEMORY::reset()
 {
 	sio = bank = 0;
 	update_bank();
 }
 
-void PC8201_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32_t PC8201_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void PC8201_MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xf0) {
 	case 0x90:
@@ -104,13 +106,13 @@ void PC8201_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t PC8201_MEMORY::read_io8(uint32_t addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	// $A0: bank status
 	return (sio & 0xc0) | (bank & 0xf);
 }
 
-void PC8201_MEMORY::update_bank()
+void MEMORY::update_bank()
 {
 	switch(bank & 3) {
 	case 0:
@@ -144,7 +146,7 @@ void PC8201_MEMORY::update_bank()
 
 #define STATE_VERSION	1
 
-bool PC8201_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -161,4 +163,6 @@ bool PC8201_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		update_bank();
 	}
 	return true;
+}
+
 }

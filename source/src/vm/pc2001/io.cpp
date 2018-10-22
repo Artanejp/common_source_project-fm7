@@ -17,20 +17,22 @@
 
 #define EVENT_TIMER	0
 
-void PC2001_IO::initialize()
+namespace PC2001 {
+
+void IO::initialize()
 {
 	register_event(this, EVENT_TIMER, 20000, true, NULL);
 	key_stat = emu->get_key_buffer();
 }
 
-void PC2001_IO::reset()
+void IO::reset()
 {
 	port_a = port_b = port_s = 0xff;
 	drec_in = rtc_in = false;
 	key_strobe = 0xffff;
 }
 
-void PC2001_IO::write_io8(uint32_t addr, uint32_t data)
+void IO::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case UPD7807_PORTA:
@@ -81,7 +83,7 @@ void PC2001_IO::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t PC2001_IO::read_io8(uint32_t addr)
+uint32_t IO::read_io8(uint32_t addr)
 {
 	uint32_t value = 0xff;
 	
@@ -110,7 +112,7 @@ uint32_t PC2001_IO::read_io8(uint32_t addr)
 	return value;
 }
 
-void PC2001_IO::write_io16(uint32_t addr, uint32_t data)
+void IO::write_io16(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case UPD7807_PORTE:
@@ -122,7 +124,7 @@ void PC2001_IO::write_io16(uint32_t addr, uint32_t data)
 	}
 }
 
-void PC2001_IO::write_signal(int id, uint32_t data, uint32_t mask)
+void IO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 	case SIG_IO_DREC_IN:
@@ -135,14 +137,14 @@ void PC2001_IO::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void PC2001_IO::event_callback(int event_id, int err)
+void IO::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_TIMER) {
 		d_cpu->write_signal(SIG_UPD7810_INTF1, 1, 1);
 	}
 }
 
-uint8_t PC2001_IO::get_key()
+uint8_t IO::get_key()
 {
 	uint8_t data = 0x3f;
 	
@@ -267,7 +269,7 @@ uint8_t PC2001_IO::get_key()
 	return data;
 }
 
-bool PC2001_IO::key_hit(int code)
+bool IO::key_hit(int code)
 {
 	bool value = (key_stat[code] != 0);
 	return value;
@@ -275,7 +277,7 @@ bool PC2001_IO::key_hit(int code)
 
 #define STATE_VERSION	2
 
-bool PC2001_IO::process_state(FILEIO* state_fio, bool loading)
+bool IO::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -290,4 +292,6 @@ bool PC2001_IO::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(rtc_in);
 	state_fio->StateUint16(key_strobe);
 	return true;
+}
+
 }

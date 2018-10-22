@@ -31,6 +31,11 @@
 #include "./memory.h"
 #include "./system.h"
 
+using PHC25::JOYSTICK;
+using PHC25::KEYBOARD;
+using PHC25::MEMORY;
+using PHC25::SYSTEM;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -57,8 +62,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	joystick = new JOYSTICK(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new PHC25_MEMORY(this, emu);
-	system = new PHC25_SYSTEM(this, emu);
+	memory = new MEMORY(this, emu);
+	system = new SYSTEM(this, emu);
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);

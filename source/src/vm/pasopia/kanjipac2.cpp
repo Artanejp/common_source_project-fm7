@@ -10,6 +10,8 @@
 
 #include "kanjipac2.h"
 
+namespace PASOPIA {
+
 void KANJIPAC2::initialize(int id)
 {
 	FILEIO* fio = new FILEIO();
@@ -51,4 +53,6 @@ bool KANJIPAC2::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateUint32(ptr);
 	return true;
+}
+
 }

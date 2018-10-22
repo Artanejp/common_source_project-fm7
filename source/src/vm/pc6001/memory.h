@@ -27,7 +27,9 @@
 #define SIG_MEMORY_PIO_PORT_C	0
 
 #ifndef _PC6001
-class TIMER;
+namespace PC6001 {
+	class TIMER;
+}
 #endif
 
 // memory offset
@@ -65,12 +67,14 @@ class TIMER;
 #define MEMORY_SIZE		(CGROM6_BASE + CGROM6_SIZE)
 #endif
 
-class PC6001_MEMORY : public DEVICE
+namespace PC6001 {
+
+class MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_cpu;
 #ifndef _PC6001
-	TIMER *d_timer;
+	PC6001::TIMER *d_timer;
 #endif
 	uint8_t MEMORY_BASE[MEMORY_SIZE];
 //	uint8_t RAM[0x10000];
@@ -165,12 +169,12 @@ private:
 #endif
 
 public:
-	PC6001_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		inserted = false;
 		set_device_name(_T("Memory Bus"));
 	}
-	~PC6001_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -195,7 +199,7 @@ public:
 		d_cpu = device;
 	}
 #ifndef _PC6001
-	void set_context_timer(TIMER* device)
+	void set_context_timer(PC6001::TIMER* device)
 	{
 		d_timer = device;
 	}
@@ -217,4 +221,6 @@ public:
 	}
 #endif
 };
+
+}
 #endif

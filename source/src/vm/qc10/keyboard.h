@@ -16,6 +16,8 @@
 
 #define SIG_KEYBOARD_RECV	0
 
+namespace QC10 {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -36,9 +38,7 @@ public:
 	// common functions
 	void initialize();
 	void write_signal(int id, uint32_t data, uint32_t mask);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_sio(DEVICE* device)
@@ -49,4 +49,5 @@ public:
 	void key_up(int code);
 };
 
+}
 #endif

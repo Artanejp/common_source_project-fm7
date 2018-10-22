@@ -9,6 +9,8 @@
 
 #include "./memory.h"
 
+namespace MZ2800 {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
 	for(int i = sb; i <= eb; i++) { \
@@ -25,7 +27,7 @@
 	} \
 }
 
-void MZ2800_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -61,7 +63,7 @@ void MZ2800_MEMORY::initialize()
 	delete fio;
 }
 
-void MZ2800_MEMORY::reset()
+void MEMORY::reset()
 {
 	SET_BANK(0x000000, 0x0bffff, ram, ram);
 	SET_BANK(0x0c0000, 0x0dffff, vram, vram);
@@ -79,7 +81,7 @@ void MZ2800_MEMORY::reset()
 	vram_bank = dic_bank = kanji_bank = 0;
 }
 
-void MZ2800_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	if((addr & 0xfc0000) == 0x80000) {
 		write_dma_data8((addr & 0x3ffff) | mem_window, data);
@@ -90,7 +92,7 @@ void MZ2800_MEMORY::write_data8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t MZ2800_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	if((addr & 0xfc0000) == 0x80000) {
 		return read_dma_data8((addr & 0x3ffff) | mem_window);
@@ -101,17 +103,17 @@ uint32_t MZ2800_MEMORY::read_data8(uint32_t addr)
 	}
 }
 
-void MZ2800_MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
 {
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32_t MZ2800_MEMORY::read_dma_data8(uint32_t addr)
+uint32_t MEMORY::read_dma_data8(uint32_t addr)
 {
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MZ2800_MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0x7fff) {
 	case 0x8c:
@@ -160,7 +162,7 @@ void MZ2800_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t MZ2800_MEMORY::read_io8(uint32_t addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0x7fff) {
 	case 0x8c:
@@ -177,7 +179,7 @@ uint32_t MZ2800_MEMORY::read_io8(uint32_t addr)
 
 #define STATE_VERSION	2
 
-bool MZ2800_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -219,4 +221,6 @@ bool MZ2800_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		SET_BANK(0x0f6000, 0x0f7fff, tvram, tvram);
 	}
 	return true;
+}
+
 }

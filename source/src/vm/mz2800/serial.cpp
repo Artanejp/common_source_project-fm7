@@ -10,6 +10,8 @@
 #include "serial.h"
 #include "../z80sio.h"
 
+namespace MZ2800 {
+
 void SERIAL::reset()
 {
 	addr_a0 = true;
@@ -79,4 +81,6 @@ bool SERIAL::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateBool(addr_a0);
 	return true;
+}
+
 }

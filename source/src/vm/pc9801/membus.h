@@ -22,8 +22,9 @@
 
 #include "../memory.h"
 
-class DISPLAY;
-
+namespace PC9801 {
+	class DISPLAY;
+}
 #if defined(SUPPORT_32BIT_ADDRESS)
 	#define RAM_SIZE	0x800000	// 8MB
 #elif defined(SUPPORT_24BIT_ADDRESS)
@@ -33,6 +34,8 @@ class DISPLAY;
 #endif
 
 //class csp_state_utils;
+
+namespace PC9801 {
 
 class MEMBUS : public MEMORY
 {
@@ -138,4 +141,5 @@ public:
 	}
 };
 
+}
 #endif

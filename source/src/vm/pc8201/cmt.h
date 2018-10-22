@@ -20,6 +20,8 @@
 // max 256kbytes
 #define BUFFER_SIZE	0x40000
 
+namespace PC8201 {
+
 class CMT : public DEVICE
 {
 private:
@@ -69,5 +71,6 @@ public:
 	}
 };
 
+}
 #endif
 

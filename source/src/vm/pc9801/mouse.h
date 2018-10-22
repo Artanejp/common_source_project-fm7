@@ -26,6 +26,8 @@
 
 #define SIG_MOUSE_PORT_C	0
 
+namespace PC9801 {
+
 class MOUSE : public DEVICE
 {
 private:
@@ -68,5 +70,6 @@ public:
 	}
 };
 
+}
 #endif
 

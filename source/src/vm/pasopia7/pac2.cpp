@@ -13,6 +13,13 @@
 #include "kanjipac2.h"
 #include "joypac2.h"
 
+using PASOPIA7::PAC2DEV;
+using PASOPIA7::RAMPAC2;
+using PASOPIA7::KANJIPAC2;
+using PASOPIA7::JOYPAC2;
+
+namespace PASOPIA7 {
+
 void PAC2::initialize()
 {
 	// slot 4 : ram pack #5
@@ -109,4 +116,6 @@ bool PAC2::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	return true;
+}
+
 }

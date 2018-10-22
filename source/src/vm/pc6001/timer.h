@@ -28,15 +28,18 @@
 #define SIG_TIMER_IRQ_EXT_INT	7
 
 #ifndef _PC6001
-class PC6001_MEMORY;
+namespace PC6001 {
+	class MEMORY;
+}
 #endif
 
+namespace PC6001 {
 class TIMER : public DEVICE
 {
 private:
 	DEVICE *d_cpu, *d_sub;
 #ifndef _PC6001
-	PC6001_MEMORY *d_mem;
+	PC6001::MEMORY *d_mem;
 #endif
 	
 	uint8_t IRQ, NewIRQ;
@@ -83,11 +86,12 @@ public:
 		d_sub = device;
 	}
 #ifndef _PC6001
-	void set_context_memory(PC6001_MEMORY* device)
+	void set_context_memory(PC6001::MEMORY* device)
 	{
 		d_mem = device;
 	}
 #endif
 	void set_portB0(uint32_t data);
 };
+}
 #endif

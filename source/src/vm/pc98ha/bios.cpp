@@ -12,6 +12,8 @@
 #include "../upd765a.h"
 #include "../disk.h"
 
+namespace PC98HA {
+
 // regs
 #define AL	regs8[0]
 #define AH	regs8[1]
@@ -44,4 +46,6 @@ bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* 
 		}
 	}
 	return false;
+}
+
 }

@@ -15,6 +15,8 @@
 #include "../../emu.h"
 #include "pac2dev.h"
 
+namespace PASOPIA {
+
 class KANJIPAC2 : public PAC2DEV
 {
 private:
@@ -34,5 +36,6 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 };
 
+}
 #endif
 

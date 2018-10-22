@@ -22,6 +22,8 @@
 // PC-98DO+
 #define BOARD_ID	0
 
+namespace PC9801 {
+
 #ifdef SUPPORT_PC98_OPNA
 void FMSOUND::reset()
 {
@@ -97,3 +99,4 @@ bool FMSOUND::process_state(FILEIO* state_fio, bool loading)
 }
 #endif
 
+}

@@ -14,7 +14,9 @@
 #include "../../emu.h"
 #include "../device.h"
 
-class N5200_MEMORY : public DEVICE
+namespace N5200 {
+
+class MEMORY : public DEVICE
 {
 private:
 	uint8_t* rbank[8192];	// 16MB / 2KB
@@ -32,11 +34,11 @@ private:
 	bool protect;
 	
 public:
-	N5200_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~N5200_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -58,5 +60,6 @@ public:
 	}
 };
 
+}
 #endif
 

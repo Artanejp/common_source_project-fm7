@@ -121,8 +121,6 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("CMT (Signal)"), _T("Noise (FDD)"), _T("Noise (CMT)"),
 };
 #endif
-
-class csp_state_utils;
 class EMU;
 class DEVICE;
 class EVENT;
@@ -149,22 +147,28 @@ class DATAREC;
 class MCS48;
 
 #ifdef _PC6001
-class DISPLAY;
+namespace PC6001 {
+	class DISPLAY;
+}
 #endif
 #if defined(_PC6601) || defined(_PC6601SR)
-class FLOPPY;
+namespace PC6001 {
+	class FLOPPY;
+}
 #endif
-class JOYSTICK;
-class PC6001_MEMORY;
-class PSUB;
-class SUB;
-class TIMER;
+
+namespace PC6001 {
+	class JOYSTICK;
+	class MEMORY;
+	class PSUB;
+	class SUB;
+	class TIMER;
+}
 
 class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
-	//csp_state_utils *state_entry;
 
 	int vdata;
 	
@@ -185,20 +189,20 @@ protected:
 	Z80* cpu;
 #ifdef _PC6001
 	MC6847* vdp;
-	DISPLAY* display;
+	PC6001::DISPLAY* display;
 #else
 	UPD7752* voice;
 #endif
 #if defined(_PC6601) || defined(_PC6601SR)
-	FLOPPY* floppy;
+	PC6001::FLOPPY* floppy;
 #endif
-	JOYSTICK* joystick;
-	PC6001_MEMORY* memory;
-	PSUB* psub;
-	TIMER* timer;
+	PC6001::JOYSTICK* joystick;
+	PC6001::MEMORY* memory;
+	PC6001::PSUB* psub;
+	PC6001::TIMER* timer;
 	
 	MCS48* cpu_sub;
-	SUB* sub;
+	PC6001::SUB* sub;
 	DATAREC* drec;
 	
 	PC6031* pc6031;

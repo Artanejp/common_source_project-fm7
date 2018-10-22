@@ -20,6 +20,8 @@
 #define EVENT_PLAY	0
 #define EVENT_STOP	1
 
+namespace PC6001 {
+
 static const uint8_t key_matrix[16][8] = {
 	{0x00,	0x11,	0x10,	0x12,	0x00,	0x00,	0x00,	0x00},
 	{0x31,	0x51,	0x41,	0x5a,	0x4b,	0x49,	0x38,	0xbc},
@@ -441,3 +443,6 @@ bool SUB::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(buffer, sizeof(buffer), 1);
 	return true;
 }
+
+}
+

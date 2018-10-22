@@ -20,6 +20,8 @@
 
 class FILEIO;
 
+namespace PC6001 {
+
 class PSUB : public DEVICE
 {
 private:
@@ -88,4 +90,6 @@ public:
 	void key_down(int code);
 	void key_up(int code);
 };
+
+}
 #endif

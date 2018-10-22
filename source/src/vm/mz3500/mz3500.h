@@ -77,9 +77,11 @@ class UPD7220;
 class UPD765A;
 class Z80;
 
-class MAIN;
-class SUB;
-class KEYBOARD;
+namespace MZ3500 {
+	class MAIN;
+	class SUB;
+	class KEYBOARD;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -94,7 +96,7 @@ protected:
 	IO* mainio;
 	UPD765A* fdc;
 	Z80* maincpu;
-	MAIN* mainbus;
+	MZ3500::MAIN* mainbus;
 	
 	// for sub cpu
 	DEVICE* printer;
@@ -117,8 +119,8 @@ protected:
 	UPD7220* gdc_chr;
 	UPD7220* gdc_gfx;
 	Z80* subcpu;
-	SUB* subbus;
-	KEYBOARD* kbd;
+	MZ3500::SUB* subbus;
+	MZ3500::KEYBOARD* kbd;
 	
 	uint8_t halt;
 	

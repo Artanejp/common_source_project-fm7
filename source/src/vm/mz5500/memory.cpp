@@ -9,6 +9,8 @@
 
 #include "./memory.h"
 
+namespace MZ5500 {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 14, eb = (e) >> 14; \
 	for(int i = sb; i <= eb; i++) { \
@@ -25,7 +27,7 @@
 	} \
 }
 
-void MZ5500_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -84,14 +86,14 @@ void MZ5500_MEMORY::initialize()
 	haddr = 0;
 }
 
-void MZ5500_MEMORY::reset()
+void MEMORY::reset()
 {
 	bank1 = 0xe0;
 	bank2 = 0;
 	update_bank();
 }
 
-void MZ5500_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xfffff;
 //	if((0x80000 <= addr && addr < 0xa0000) || (0xf0000 <= addr && addr < 0xfc000)) {
@@ -100,7 +102,7 @@ void MZ5500_MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 14][addr & 0x3fff] = data;
 }
 
-uint32_t MZ5500_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xfffff;
 //	if((0x80000 <= addr && addr < 0xa0000) || (0xf0000 <= addr && addr < 0xfc000)) {
@@ -109,7 +111,7 @@ uint32_t MZ5500_MEMORY::read_data8(uint32_t addr)
 	return rbank[addr >> 14][addr & 0x3fff];
 }
 
-void MZ5500_MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
 {
 	addr = (addr & 0xffff) | haddr;
 //	if((0x80000 <= addr && addr < 0xa0000) || (0xf0000 <= addr && addr < 0xfc000)) {
@@ -118,7 +120,7 @@ void MZ5500_MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 14][addr & 0x3fff] = data;
 }
 
-uint32_t MZ5500_MEMORY::read_dma_data8(uint32_t addr)
+uint32_t MEMORY::read_dma_data8(uint32_t addr)
 {
 	addr = (addr & 0xffff) | haddr;
 //	if((0x80000 <= addr && addr < 0xa0000) || (0xf0000 <= addr && addr < 0xfc000)) {
@@ -127,7 +129,7 @@ uint32_t MZ5500_MEMORY::read_dma_data8(uint32_t addr)
 	return rbank[addr >> 14][addr & 0x3fff];
 }
 
-void MZ5500_MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x50:
@@ -145,12 +147,12 @@ void MZ5500_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t MZ5500_MEMORY::read_io8(uint32_t addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	return 0xf0 | bank2;	// ???
 }
 
-void MZ5500_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(bank1 != data) {
 		bank1 = data;
@@ -158,7 +160,7 @@ void MZ5500_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void MZ5500_MEMORY::update_bank()
+void MEMORY::update_bank()
 {
 	switch(bank1 & 0xe0) {
 	case 0xe0:
@@ -190,7 +192,7 @@ void MZ5500_MEMORY::update_bank()
 
 #define STATE_VERSION	1
 
-bool MZ5500_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -212,4 +214,6 @@ bool MZ5500_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		 update_bank();
 		}
 	return true;
+}
+
 }

@@ -16,6 +16,8 @@
 
 #define SIG_KEYBOARD_COLUMN	0
 
+namespace MZ2800 {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -52,5 +54,6 @@ public:
 	}
 };
 
+}
 #endif
 

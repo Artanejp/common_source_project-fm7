@@ -17,6 +17,8 @@
 #define SIG_KEYBOARD_RST	0
 #define SIG_KEYBOARD_RECV	1
 
+namespace N5200 {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -54,4 +56,5 @@ public:
 	}
 };
 
+}
 #endif

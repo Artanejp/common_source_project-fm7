@@ -18,6 +18,8 @@
 #include "../i286.h"
 #endif
 
+namespace PC9801 {
+
 void CPUREG::reset()
 {
 	d_cpu->set_address_mask(0x000fffff);
@@ -117,3 +119,6 @@ bool CPUREG::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(nmi_enabled);
  	return true;
 }
+
+}
+

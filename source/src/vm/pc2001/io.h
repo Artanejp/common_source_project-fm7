@@ -20,7 +20,9 @@
 
 class UPD16434;
 
-class PC2001_IO : public DEVICE
+namespace PC2001 {
+
+class IO : public DEVICE
 {
 private:
 	UPD16434 *d_lcd[4];
@@ -38,11 +40,11 @@ private:
 	bool key_hit(int code);
 	
 public:
-	PC2001_IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("I/O Bus"));
 	}
-	~PC2001_IO() {}
+	~IO() {}
 	
 	// common functions
 	void initialize();
@@ -73,4 +75,5 @@ public:
 	}
 };
 
+}
 #endif

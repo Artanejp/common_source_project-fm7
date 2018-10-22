@@ -11,6 +11,8 @@
 
 #define SAMPLE_RATE 48000
 
+namespace PC8201 {
+
 void CMT::initialize()
 {
 	fio = new FILEIO();
@@ -229,4 +231,6 @@ bool CMT::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateInt32(prev_signal);
 	state_fio->StateUint32(prev_clock);
 	return true;
+}
+
 }

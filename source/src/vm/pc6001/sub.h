@@ -23,6 +23,8 @@
 
 class FILEIO;
 
+namespace PC6001 {
+
 class SUB : public DEVICE
 {
 private:
@@ -78,4 +80,6 @@ public:
 		return rec;
 	}
 };
+
+}
 #endif

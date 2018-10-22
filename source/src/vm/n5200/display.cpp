@@ -10,6 +10,8 @@
 #include "display.h"
 #include "../i8259.h"
 
+namespace N5200 {
+
 void DISPLAY::initialize()
 {
 	register_vline_event(this);
@@ -42,3 +44,4 @@ void DISPLAY::draw_screen()
 	emu->screen_skip_line(false);
 }
 
+}

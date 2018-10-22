@@ -14,7 +14,9 @@
 #include "../../emu.h"
 #include "../device.h"
 
-class MZ2800_MEMORY : public DEVICE
+namespace MZ2800 {
+
+class MEMORY : public DEVICE
 {
 private:
 	DEVICE* d_crtc;
@@ -36,11 +38,11 @@ private:
 	uint8_t vram_bank, dic_bank, kanji_bank;
 	
 public:
-	MZ2800_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MZ2800_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -76,5 +78,6 @@ public:
 	}
 };
 
+}
 #endif
 

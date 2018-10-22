@@ -293,7 +293,9 @@ namespace X1 {
 
 #ifdef _X1TWIN
 class HUC6280;
-class PCE;
+namespace PCEDEV {
+	class PCE;
+}
 #define USE_CPU_HUC6280
 #endif
 class VM : public VM_TEMPLATE
@@ -350,7 +352,7 @@ protected:
 	EVENT* pceevent;
 	
 	HUC6280* pcecpu;
-	PCE* pce;
+	PCEDEV::PCE* pce;
 #endif
 	
 public:

@@ -10,6 +10,8 @@
 
 #include "./memory.h"
 
+namespace PC98HA {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 14, eb = (e) >> 14; \
 	for(int i = sb; i <= eb; i++) { \
@@ -26,7 +28,7 @@
 	} \
 }
 
-void PC98LT_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -87,7 +89,7 @@ void PC98LT_MEMORY::initialize()
 #endif
 }
 
-void PC98LT_MEMORY::release()
+void MEMORY::release()
 {
 	// save ram images
 	FILEIO* fio = new FILEIO();
@@ -114,7 +116,7 @@ void PC98LT_MEMORY::release()
 	delete fio;
 }
 
-void PC98LT_MEMORY::reset()
+void MEMORY::reset()
 {
 	// set memory bank
 	learn_bank = dic_bank = kanji_bank = romdrv_bank = 0;
@@ -126,7 +128,7 @@ void PC98LT_MEMORY::reset()
 	update_bank();
 }
 
-void PC98LT_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xfffff;
 	wbank[addr >> 14][addr & 0x3fff] = data;
@@ -138,13 +140,13 @@ void PC98LT_MEMORY::write_data8(uint32_t addr, uint32_t data)
 #endif
 }
 
-uint32_t PC98LT_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xfffff;
 	return rbank[addr >> 14][addr & 0x3fff];
 }
 
-void PC98LT_MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 #ifdef _PC98HA
@@ -205,7 +207,7 @@ void PC98LT_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t PC98LT_MEMORY::read_io8(uint32_t addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xffff) {
 	case 0x0c10:
@@ -220,7 +222,7 @@ uint32_t PC98LT_MEMORY::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-void PC98LT_MEMORY::update_bank()
+void MEMORY::update_bank()
 {
 	SET_BANK(0x00000, 0xfffff, wdmy, rdmy);
 	
@@ -253,7 +255,7 @@ void PC98LT_MEMORY::update_bank()
 	SET_BANK(0xf0000, 0xfffff, wdmy, ipl);
 }
 
-void PC98LT_MEMORY::draw_screen()
+void MEMORY::draw_screen()
 {
 	// draw to real screen
 	scrntype_t cd = RGB_COLOR(48, 56, 16);
@@ -278,7 +280,7 @@ void PC98LT_MEMORY::draw_screen()
 
 #define STATE_VERSION	1
 
-bool PC98LT_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -314,4 +316,6 @@ bool PC98LT_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		update_bank();
 	}
 	return true;
+}
+
 }

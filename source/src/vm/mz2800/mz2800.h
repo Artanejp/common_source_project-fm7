@@ -78,17 +78,19 @@ class YM2203;
 class Z80PIO;
 class Z80SIO;
 
-class CRTC;
-class FLOPPY;
-class JOYSTICK;
-class KEYBOARD;
-class MZ2800_MEMORY;
-class MOUSE;
-class PRINTER;
-class RESET;
-class SASI;
-class SERIAL;
-class SYSPORT;
+namespace MZ2800 {
+	class CRTC;
+	class FLOPPY;
+	class JOYSTICK;
+	class KEYBOARD;
+	class MEMORY;
+	class MOUSE;
+	class PRINTER;
+	class RESET;
+	class SASI;
+	class SERIAL;
+	class SYSPORT;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -115,17 +117,17 @@ protected:
 	Z80PIO* pio1;
 	Z80SIO* sio;
 	
-	CRTC* crtc;
-	FLOPPY* floppy;
-	JOYSTICK* joystick;
-	KEYBOARD* keyboard;
-	MZ2800_MEMORY* memory;
-	MOUSE* mouse;
-	PRINTER* printer;
-	RESET* rst;
-	SASI* sasi;
-	SERIAL* serial;
-	SYSPORT* sysport;
+	MZ2800::CRTC* crtc;
+	MZ2800::FLOPPY* floppy;
+	MZ2800::JOYSTICK* joystick;
+	MZ2800::KEYBOARD* keyboard;
+	MZ2800::MEMORY* memory;
+	MZ2800::MOUSE* mouse;
+	MZ2800::PRINTER* printer;
+	MZ2800::RESET* rst;
+	MZ2800::SASI* sasi;
+	MZ2800::SERIAL* serial;
+	MZ2800::SYSPORT* sysport;
 	
 public:
 	// ----------------------------------------

@@ -12,6 +12,8 @@
 #include "floppy.h"
 #include "../i8237.h"
 
+namespace N5200 {
+
 void FLOPPY::reset()
 {
 	chgreg = 3;
@@ -81,3 +83,4 @@ void FLOPPY::write_signal(int id, uint32_t data, uint32_t mask)
 	d_dma->write_signal(dma_ids[chgreg & 1], data, mask);
 }
 
+}

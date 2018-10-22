@@ -15,6 +15,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace PHC25 {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -41,4 +43,5 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 };
 
+}
 #endif

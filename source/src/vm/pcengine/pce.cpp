@@ -52,6 +52,8 @@
 #define DCR_DVC         0x02    /* VRAM > VRAM EOT interrupt enable */
 #define DCR_DSC         0x01    /* VRAM > SATB EOT interrupt enable */
 
+namespace PCEDEV {
+
 /* just to keep things simple... */
 enum vdc_regs {MAWR = 0, MARR, VxR, reg3, reg4, CR, RCR, BXR, BYR, MWR, HSR, HDR, VPR, VDW, VCR, DCR, SOUR, DESR, LENR, DVSSR };
 
@@ -2609,4 +2611,6 @@ bool PCE::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateInt32(event_adpcm_fader);
 #endif
  	return true;
+}
+
 }
