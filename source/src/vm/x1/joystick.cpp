@@ -13,6 +13,8 @@
 #include "joystick.h"
 #include "../ay_3_891x.h"
 
+namespace X1 {
+
 void JOYSTICK::initialize()
 {
 	joy_stat = emu->get_joy_buffer();
@@ -45,3 +47,4 @@ void JOYSTICK::event_frame()
 	}
 }
 
+}

@@ -17,7 +17,9 @@
 #define SIG_MEMORY_HBLANK	0
 #define SIG_MEMORY_VBLANK	1
 
-class MZ2500_MEMORY : public DEVICE
+namespace MZ2500 {
+
+class MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_cpu, *d_crtc;
@@ -50,11 +52,11 @@ private:
 	void set_map(uint8_t data);
 	
 public:
-	MZ2500_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus(MZ2500)"));
 	}
-	~MZ2500_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -97,5 +99,6 @@ public:
 	}
 };
 
+}
 #endif
 

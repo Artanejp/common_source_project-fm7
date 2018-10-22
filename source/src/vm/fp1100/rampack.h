@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace FP1100 {
+	
 class RAMPACK : public DEVICE
 {
 private:
@@ -38,4 +40,5 @@ public:
 	int index;
 };
 
+}
 #endif

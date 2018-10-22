@@ -16,7 +16,9 @@
 
 #define SIG_MEMORY_I8255_C	0
 
-class MULTI8_MEMORY : public DEVICE
+namespace MULTI8 {
+
+class MEMORY : public DEVICE
 {
 private:
 	DEVICE* d_pio;
@@ -36,11 +38,11 @@ private:
 	uint8_t map1, map2;
 	
 public:
-	MULTI8_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MULTI8_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -62,5 +64,6 @@ public:
 	}
 };
 
+}
 #endif
 

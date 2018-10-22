@@ -20,6 +20,8 @@
 
 class HD46505;
 
+namespace MYCOMZ80A {
+
 class DISPLAY : public DEVICE
 {
 private:
@@ -63,5 +65,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

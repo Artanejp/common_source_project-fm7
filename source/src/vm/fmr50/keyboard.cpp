@@ -12,6 +12,8 @@
 #include "../i8259.h"
 #include "../../fifo.h"
 
+namespace FMR50 {
+	
 void KEYBOARD::initialize()
 {
 	key_buf = new FIFO(64);
@@ -118,4 +120,6 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(kbmsk);
 	state_fio->StateBuffer(table, sizeof(table), 1);
 	return true;
+}
+
 }

@@ -12,6 +12,8 @@
 #include "keyboard.h"
 #include "../i8255.h"
 
+namespace MZ700 {
+	
 static const int key_map[10][8] = {
 #if defined(_MZ800)
 	{0x0d, 0xba, 0xbb, 0x14, 0x09, 0x78, 0x21, 0x22},
@@ -75,4 +77,6 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateUint8(column);
 	return true;
+}
+
 }

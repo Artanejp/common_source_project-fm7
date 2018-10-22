@@ -50,6 +50,19 @@
 #include "quickdisk.h"
 #endif
 
+//using	MZ700::CMOS* cmos;
+using MZ700::EMM;
+using MZ700::KANJI;
+using MZ700::KEYBOARD;
+using MZ700::MEMORY;
+using MZ700::RAMFILE;
+#if defined(_MZ800) || defined(_MZ1500)
+using MZ700::FLOPPY;
+  #if defined(_MZ1500)
+using MZ700::PSG;
+  #endif
+using MZ700::QUICKDISK;
+#endif
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -84,7 +97,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	emm = new EMM(this, emu);
 	kanji = new KANJI(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new MZ700_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	ramfile = new RAMFILE(this, emu);
 
 #if defined(_MZ800) || defined(_MZ1500)

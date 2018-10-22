@@ -49,6 +49,8 @@ static struct s_typestr {
 
 #define EVENT_CLOCK	0
 
+namespace MSX {
+	
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 13, eb = (e) >> 13; \
 	for(int i = sb; i <= eb; i++) { \
@@ -260,8 +262,6 @@ uint32_t SLOT_MAINROM::read_data8(uint32_t addr)
 {
 	return rbank[addr >> 13][addr & 0x1fff];
 }
-
-#include "../../statesub.h"
 
 #define SLOT_MAINROM_STATE_VERSION	1
 
@@ -1417,3 +1417,4 @@ bool MEMORY_EX::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 
+}

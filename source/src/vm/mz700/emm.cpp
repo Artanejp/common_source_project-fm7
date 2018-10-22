@@ -14,6 +14,8 @@
 #define DATA_SIZE	0x1000000
 #define ADDR_MASK	(DATA_SIZE - 1)
 
+namespace MZ700 {
+	
 void EMM::initialize()
 {
 	// init memory
@@ -86,4 +88,6 @@ bool EMM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(data_buffer, DATA_SIZE, 1);
 	state_fio->StateUint32(data_addr);
 	return true;
+}
+
 }

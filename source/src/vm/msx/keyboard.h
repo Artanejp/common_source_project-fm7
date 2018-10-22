@@ -20,6 +20,8 @@
 
 #define SIG_KEYBOARD_COLUMN	0
 
+namespace MSX {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -55,4 +57,6 @@ public:
 		d_pio = device;
 	}
 };
+
+}
 #endif

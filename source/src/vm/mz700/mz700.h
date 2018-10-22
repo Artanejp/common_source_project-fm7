@@ -178,7 +178,6 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class csp_state_utils;
 class EMU;
 class DEVICE;
 class EVENT;
@@ -191,12 +190,14 @@ class IO;
 class PCM1BIT;
 class Z80;
 
+namespace MZ700 {
 //class CMOS;
-class EMM;
-class KANJI;
-class KEYBOARD;
-class MZ700_MEMORY;
-class RAMFILE;
+	class EMM;
+	class KANJI;
+	class KEYBOARD;
+	class MEMORY;
+	class RAMFILE;
+}
 
 #if defined(_MZ800) || defined(_MZ1500)
 class MB8877;
@@ -204,11 +205,13 @@ class NOT;
 class SN76489AN;
 class Z80PIO;
 class Z80SIO;
-class FLOPPY;
+namespace MZ700 {
+	class FLOPPY;
 #if defined(_MZ1500)
-class PSG;
+	class PSG;
 #endif
-class QUICKDISK;
+	class QUICKDISK;
+}
 #endif
 
 class VM : public VM_TEMPLATE
@@ -228,12 +231,12 @@ protected:
 	PCM1BIT* pcm;
 	Z80* cpu;
 	
-//	CMOS* cmos;
-	EMM* emm;
-	KANJI* kanji;
-	KEYBOARD* keyboard;
-	MZ700_MEMORY* memory;
-	RAMFILE* ramfile;
+//	MZ700::CMOS* cmos;
+	MZ700::EMM* emm;
+	MZ700::KANJI* kanji;
+	MZ700::KEYBOARD* keyboard;
+	MZ700::MEMORY* memory;
+	MZ700::RAMFILE* ramfile;
 	
 #if defined(_MZ800) || defined(_MZ1500)
 	AND* and_snd;
@@ -252,11 +255,11 @@ protected:
 	Z80SIO* sio_rs;	// RS-232C
 	Z80SIO* sio_qd;	// QD
 	
-	FLOPPY* floppy;
+	MZ700::FLOPPY* floppy;
 #if defined(_MZ1500)
-	PSG* psg;
+	MZ700::PSG* psg;
 #endif
-	QUICKDISK* qd;
+	MZ700::QUICKDISK* qd;
 #endif
 	
 #if defined(_MZ800)

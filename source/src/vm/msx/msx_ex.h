@@ -238,46 +238,50 @@ class TMS9918A;
 #endif
 class Z80;
 
-class JOYSTICK;
-class KEYBOARD;
-class MEMORY_EX;
+namespace MSX {
+	class JOYSTICK;
+	class KEYBOARD;
+	class MEMORY_EX;
 #if !defined(_MSX1_VARIANTS)
-class RTCIF;
+	class RTCIF;
 #endif
-class SLOT_MAINROM;
-class SLOT_CART;
-class SOUND_CART;
-class KANJIROM;
+	class SLOT_MAINROM;
+	class SLOT_CART;
+	class SOUND_CART;
+	class KANJIROM;
 #if defined(MSX_PSG_STEREO)
-class PSG_STEREO;
+	class PSG_STEREO;
 #endif
 #if defined(USE_PRINTER)
-class PRINTER;
+	class PRINTER;
 #endif
 #if defined(LDC_SLOT)
-class SLOT_LDC;
+	class SLOT_LDC;
 #endif
 #if defined(MAPPERRAM_SLOT)
-class SLOT_MAPPERRAM;
+	class SLOT_MAPPERRAM;
 #endif
 #if defined(RAM64K_SLOT)
-class SLOT_RAM64K;
+	class SLOT_RAM64K;
 #endif
 #if defined(SUBROM_SLOT)
-class SLOT_SUBROM;
+	class SLOT_SUBROM;
 #endif
 #if defined(FIRMWARE32K1_SLOT)
-class SLOT_FIRMWARE32K;
+	class SLOT_FIRMWARE32K;
 #endif
 #if defined(FDD_PATCH_SLOT)
-class SLOT_FDD_PATCH;
+	class SLOT_FDD_PATCH;
 #endif
 #if defined(MSXDOS2_SLOT)
-class SLOT_MSXDOS2;
+	class SLOT_MSXDOS2;
 #endif
+}
 class YM2413;
 #if defined(MSXMUSIC_SLOT)
-class SLOT_MSXMUSIC;
+namespace MSX {
+	class SLOT_MSXMUSIC;
+}
 #endif
 
 
@@ -308,49 +312,49 @@ protected:
 #endif
 	Z80* cpu;
 	
-	JOYSTICK* joystick;
-	KEYBOARD* keyboard;
-	MEMORY_EX* memory;
+	MSX::JOYSTICK* joystick;
+	MSX::KEYBOARD* keyboard;
+	MSX::MEMORY_EX* memory;
 #if !defined(_MSX1_VARIANTS)
-	RTCIF* rtcif;
+	MSX::RTCIF* rtcif;
 #endif
-	SLOT_MAINROM *slot_mainrom;
-	SLOT_CART *slot_cart[2];
-	SOUND_CART* sound_cart[2];
-	KANJIROM* kanjirom;
+	MSX::SLOT_MAINROM *slot_mainrom;
+	MSX::SLOT_CART *slot_cart[2];
+	MSX::SOUND_CART* sound_cart[2];
+	MSX::KANJIROM* kanjirom;
 #if defined(MSX_PSG_STEREO)
-	PSG_STEREO* psg_stereo;
+	MSX::PSG_STEREO* psg_stereo;
 #endif
 #ifdef USE_PRINTER
-	PRINTER* printer;
+	MSX::PRINTER* printer;
 #endif
 #if defined(LDC_SLOT)
-	SLOT_LDC *slot_ldc;
+	MSX::SLOT_LDC *slot_ldc;
 #endif
 #if defined(MAPPERRAM_SLOT)
-	SLOT_MAPPERRAM *slot_ram;
+	MSX::SLOT_MAPPERRAM *slot_ram;
 #endif
 #if defined(RAM64K_SLOT)
-	SLOT_RAM64K *slot_ram;
+	MSX::SLOT_RAM64K *slot_ram;
 #endif
 #if defined(SUBROM_SLOT)
-	SLOT_SUBROM *slot_subrom;
+	MSX::SLOT_SUBROM *slot_subrom;
 #endif
 #if defined(FIRMWARE32K1_SLOT)
-	SLOT_FIRMWARE32K *slot_firmware32k1;
+	MSX::SLOT_FIRMWARE32K *slot_firmware32k1;
 #endif
 #if defined(FIRMWARE32K2_SLOT)
-	SLOT_FIRMWARE32K *slot_firmware32k2;
+	MSX::SLOT_FIRMWARE32K *slot_firmware32k2;
 #endif
 #if defined(FDD_PATCH_SLOT)
-	SLOT_FDD_PATCH *slot_fdd_patch;
+	MSX::SLOT_FDD_PATCH *slot_fdd_patch;
 #endif
 #if defined(MSXDOS2_SLOT)
-	SLOT_MSXDOS2 *slot_msxdos2;
+	MSX::SLOT_MSXDOS2 *slot_msxdos2;
 #endif
 	YM2413* ym2413;
 #if defined(MSXMUSIC_SLOT)
-	SLOT_MSXMUSIC *slot_msxmusic;
+	MSX::SLOT_MSXMUSIC *slot_msxmusic;
 #endif
 	
 public:

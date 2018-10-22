@@ -9,6 +9,8 @@
 
 #include "slmemory.h"
 
+namespace J3100SL {
+	
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
 	for(int i = sb; i <= eb; i++) { \
@@ -259,3 +261,4 @@ void MEMORY::update_ems(int page)
 	}
 }
 
+}

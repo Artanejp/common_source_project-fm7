@@ -14,6 +14,8 @@
 #include "keyboard.h"
 #include "../i8255.h"
 
+namespace MSX {
+
 static const uint8_t key_map[11][8] = {
 	0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
 	0x38, 0x39, 0xbd, 0xde, 0xdc, 0xc0, 0xdb, 0xbb,
@@ -84,4 +86,6 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(column);
 //	state_fio->StateBool(break_pressed);
 	return true;
+}
+
 }

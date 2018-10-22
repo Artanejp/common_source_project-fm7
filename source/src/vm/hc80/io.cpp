@@ -61,6 +61,8 @@
 #define EVENT_1SEC	1
 #define EVENT_6303	2
 
+namespace HC80 {
+
 static const int key_tbl[256] = {
 	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0x56,0x57,0xff,0xff,0xff,0x71,0xff,0xff,
 	0xb3,0xb2,0xff,0x10,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0x00,0xff,0xff,0xff,0xff,
@@ -87,7 +89,7 @@ static const uint8_t dot_tbl[8] = {
 DLL_PREFIX_I struct cur_time_s cur_time;
 #endif
 
-void HC80_IO::initialize()
+void IO::initialize()
 {
 	// config
 	device_type = config.device_type;
@@ -161,7 +163,7 @@ void HC80_IO::initialize()
 	register_event_by_clock(this, EVENT_6303, 100, true, NULL);
 }
 
-void HC80_IO::release()
+void IO::release()
 {
 	// save external ram disk
 	FILEIO* fio = new FILEIO();
@@ -194,7 +196,7 @@ void HC80_IO::release()
 	delete key_buf;
 }
 
-void HC80_IO::reset()
+void IO::reset()
 {
 	// reset gapnit
 	bcr = slbcr = isr = ier = ioctlr = 0;
@@ -223,7 +225,7 @@ void HC80_IO::reset()
 	iramdisk_ptr = iramdisk_buf;
 }
 
-void HC80_IO::sysreset()
+void IO::sysreset()
 {
 	// reset 7508
 	onesec_intr = alarm_intr = false;
@@ -231,7 +233,7 @@ void HC80_IO::sysreset()
 	res_7508 = true;
 }
 
-void HC80_IO::write_signal(int id, uint32_t data, uint32_t mask)
+void IO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_IO_RXRDY) {
 		// notify rxrdy is changed from i8251
@@ -258,14 +260,14 @@ void HC80_IO::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void HC80_IO::event_frame()
+void IO::event_frame()
 {
 	d_beep->write_signal(SIG_BEEP_ON, beep ? 1 : 0, 1);
 	beep = false;
 	blink++;
 }
 
-void HC80_IO::event_callback(int event_id, int err)
+void IO::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_FRC) {
 		// FRC overflow event
@@ -297,7 +299,7 @@ void HC80_IO::event_callback(int event_id, int err)
 	}
 }
 
-void HC80_IO::write_io8(uint32_t addr, uint32_t data)
+void IO::write_io8(uint32_t addr, uint32_t data)
 {
 	//this->out_debug_log(_T("OUT %2x,%2x\n"), addr & 0xff, data);
 	switch(addr & 0xff) {
@@ -400,7 +402,7 @@ void HC80_IO::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t HC80_IO::read_io8(uint32_t addr)
+uint32_t IO::read_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
 //	this->out_debug_log(_T("IN %2x\n"), addr & 0xff);
@@ -482,7 +484,7 @@ uint32_t HC80_IO::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-uint32_t HC80_IO::get_intr_ack()
+uint32_t IO::get_intr_ack()
 {
 	if(isr & BIT_7508) {
 		isr &= ~BIT_7508;
@@ -502,7 +504,7 @@ uint32_t HC80_IO::get_intr_ack()
 	return 0xff;
 }
 
-void HC80_IO::update_intr()
+void IO::update_intr()
 {
 	// set int signal
 	bool next = ((isr & ier & 0x3f) != 0);
@@ -513,7 +515,7 @@ void HC80_IO::update_intr()
 // 7508
 // ----------------------------------------------------------------------------
 
-void HC80_IO::send_to_7508(uint8_t val)
+void IO::send_to_7508(uint8_t val)
 {
 	int res;
 	
@@ -772,12 +774,12 @@ void HC80_IO::send_to_7508(uint8_t val)
 	}
 }
 
-uint8_t HC80_IO::rec_from_7508()
+uint8_t IO::rec_from_7508()
 {
 	return rsp7508_buf->read();
 }
 
-void HC80_IO::key_down(int code)
+void IO::key_down(int code)
 {
 	if(code == 0x14) {
 		// toggle caps lock
@@ -789,7 +791,7 @@ void HC80_IO::key_down(int code)
 	}
 }
 
-void HC80_IO::key_up(int code)
+void IO::key_up(int code)
 {
 	if(code == 0x10) {
 		update_key(0xa3);	// break shift
@@ -798,7 +800,7 @@ void HC80_IO::key_up(int code)
 	}
 }
 
-void HC80_IO::update_key(int code)
+void IO::update_key(int code)
 {
 	if(code != 0xff) {
 		// add to buffer
@@ -822,7 +824,7 @@ void HC80_IO::update_key(int code)
 // 6303
 // ----------------------------------------------------------------------------
 
-void HC80_IO::process_6303()
+void IO::process_6303()
 {
 	switch(cmd6303) {
 	case 0x00:
@@ -1581,7 +1583,7 @@ void HC80_IO::process_6303()
 	}
 }
 
-uint8_t HC80_IO::get_point(int x, int y)
+uint8_t IO::get_point(int x, int y)
 {
 	if(0 <= x && x < 480 && 0 <= y && y < 64) {
 		uint8_t bit = dot_tbl[x & 7];
@@ -1591,7 +1593,7 @@ uint8_t HC80_IO::get_point(int x, int y)
 	return 0;
 }
 
-void HC80_IO::draw_point(int x, int y, uint16_t dot)
+void IO::draw_point(int x, int y, uint16_t dot)
 {
 	if(0 <= x && x < 480 && 0 <= y && y < 64) {
 		uint8_t bit = dot_tbl[x & 7];
@@ -1604,7 +1606,7 @@ void HC80_IO::draw_point(int x, int y, uint16_t dot)
 	}
 }
 
-void HC80_IO::draw_line(int sx, int sy, int ex, int ey, uint16_t ope)
+void IO::draw_line(int sx, int sy, int ex, int ey, uint16_t ope)
 {
 	int next_x = sx, next_y = sy;
 	int delta_x = abs(ex - sx) * 2;
@@ -1684,7 +1686,7 @@ SECTOR:		0-63
 BANK:		1 or 2
 */
 
-void HC80_IO::iramdisk_write_data(uint8_t val)
+void IO::iramdisk_write_data(uint8_t val)
 {
 	if(iramdisk_dest == IRAMDISK_IN && iramdisk_count) {
 		*(iramdisk_ptr++) = val;
@@ -1729,7 +1731,7 @@ void HC80_IO::iramdisk_write_data(uint8_t val)
 	}
 }
 
-void HC80_IO::iramdisk_write_cmd(uint8_t val)
+void IO::iramdisk_write_cmd(uint8_t val)
 {
 	iramdisk_cmd = val;
 	iramdisk_count = 0;
@@ -1759,7 +1761,7 @@ void HC80_IO::iramdisk_write_cmd(uint8_t val)
 	}
 }
 
-uint8_t HC80_IO::iramdisk_read_data()
+uint8_t IO::iramdisk_read_data()
 {
 	if(iramdisk_dest == IRAMDISK_OUT) {
 		if(iramdisk_count) {
@@ -1773,7 +1775,7 @@ uint8_t HC80_IO::iramdisk_read_data()
 	return 0;
 }
 
-uint8_t HC80_IO::iramdisk_read_stat()
+uint8_t IO::iramdisk_read_stat()
 {
 	if(iramdisk_dest == IRAMDISK_OUT) {
 		return IRAMDISK_WAIT;
@@ -1787,7 +1789,7 @@ uint8_t HC80_IO::iramdisk_read_stat()
 // ----------------------------------------------------------------------------
 
 
-void HC80_IO::draw_screen()
+void IO::draw_screen()
 {
 	if(lcd_on) {
 		memset(lcd, 0, sizeof(lcd));
@@ -1900,7 +1902,7 @@ void HC80_IO::draw_screen()
 
 #define STATE_VERSION	1
 
-bool HC80_IO::process_state(FILEIO* state_fio, bool loading)
+bool IO::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -1993,4 +1995,6 @@ bool HC80_IO::process_state(FILEIO* state_fio, bool loading)
 		state_fio->FputInt32_LE((int)(iramdisk_ptr - iramdisk_buf));
 	}
 	return true;
+}
+
 }

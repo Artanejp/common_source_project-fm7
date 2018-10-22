@@ -12,6 +12,8 @@
 #include "../i8259.h"
 #include "../../fifo.h"
 
+namespace J3100SL {
+	
 void KEYBOARD::initialize()
 {
 	key_buf = new FIFO(8);
@@ -95,3 +97,4 @@ void KEYBOARD::key_up(int code)
 	}
 }
 
+}

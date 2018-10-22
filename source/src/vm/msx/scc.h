@@ -23,6 +23,8 @@
 
 #define SCC_MASK_CH(x) (1<<(x))
 
+namespace MSX {
+	
 typedef struct __SCC {
 
   uint32_t clk, rate ,base_incr, quality ;
@@ -100,4 +102,5 @@ public:
 	void initialize_sound(int rate, int clock, int samples);
 };
 
+}
 #endif

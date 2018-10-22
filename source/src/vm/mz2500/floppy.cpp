@@ -12,6 +12,8 @@
 #include "floppy.h"
 #include "../mb8877.h"
 
+namespace MZ2500 {
+
 #ifdef _MZ2500
 void FLOPPY::initialize()
 {
@@ -62,3 +64,5 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 }
 
 #endif
+
+}

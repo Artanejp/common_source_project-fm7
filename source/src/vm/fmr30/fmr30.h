@@ -79,7 +79,9 @@ class SCSI_HDD;
 class SCSI_HOST;
 class SN76489AN;
 
-class BIOS;
+namespace FMR50 {
+	class BIOS;
+}
 namespace FMR30 {
 	class CMOS;
 	class FLOPPY;
@@ -118,7 +120,7 @@ protected:
 	SCSI_HOST* scsi_host;
 	SN76489AN* psg;
 	
-	BIOS* bios;
+	FMR50::BIOS* bios;
 	FMR30::CMOS* cmos;
 	FMR30::FLOPPY* floppy;
 	FMR30::KEYBOARD* keyboard;

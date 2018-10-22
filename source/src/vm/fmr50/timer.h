@@ -19,6 +19,8 @@
 #define SIG_TIMER_CH1	1
 #define SIG_TIMER_RTC	2
 
+namespace FMR50 {
+	
 class TIMER : public DEVICE
 {
 private:
@@ -58,5 +60,6 @@ public:
 	}
 };
 
+}
 #endif
 

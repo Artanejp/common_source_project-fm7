@@ -17,6 +17,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace MZ80 {
+
 class MZ80AIF : public DEVICE
 {
 private:
@@ -39,5 +41,6 @@ public:
 	}
 };
 
+}
 #endif
 

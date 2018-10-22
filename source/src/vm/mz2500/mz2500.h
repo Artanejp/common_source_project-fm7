@@ -90,22 +90,24 @@ class Z80;
 class Z80PIO;
 class Z80SIO;
 
-class CALENDAR;
-class CMT;
-class CRTC;
-class FLOPPY;
-class INTERRUPT;
-class JOYSTICK;
-class KEYBOARD;
-class MZ2500_MEMORY;
-class MOUSE;
-class MZ1E26;
-class MZ1E30;
-class MZ1R13;
-class MZ1R37;
-class PRINTER;
-class SERIAL;
-class TIMER;
+namespace MZ2500 {
+	class CALENDAR;
+	class CMT;
+	class CRTC;
+	class FLOPPY;
+	class INTERRUPT;
+	class JOYSTICK;
+	class KEYBOARD;
+	class MEMORY;
+	class MOUSE;
+	class MZ1E26;
+	class MZ1E30;
+	class MZ1R13;
+	class MZ1R37;
+	class PRINTER;
+	class SERIAL;
+	class TIMER;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -131,22 +133,22 @@ protected:
 	Z80PIO* pio;
 	Z80SIO* sio;
 	
-	CALENDAR* calendar;
-	CMT* cmt;
-	CRTC* crtc;
-	FLOPPY* floppy;
-	INTERRUPT* interrupt;
-	JOYSTICK* joystick;
-	KEYBOARD* keyboard;
-	MZ2500_MEMORY* memory;
-	MOUSE* mouse;
-	MZ1E26* mz1e26;
-	MZ1E30* mz1e30;
-	MZ1R13* mz1r13;
-	MZ1R37* mz1r37;
-	PRINTER* printer;
-	SERIAL* serial;
-	TIMER* timer;
+	MZ2500::CALENDAR* calendar;
+	MZ2500::CMT* cmt;
+	MZ2500::CRTC* crtc;
+	MZ2500::FLOPPY* floppy;
+	MZ2500::INTERRUPT* interrupt;
+	MZ2500::JOYSTICK* joystick;
+	MZ2500::KEYBOARD* keyboard;
+	MZ2500::MEMORY* memory;
+	MZ2500::MOUSE* mouse;
+	MZ2500::MZ1E26* mz1e26;
+	MZ2500::MZ1E30* mz1e30;
+	MZ2500::MZ1R13* mz1r13;
+	MZ2500::MZ1R37* mz1r37;
+	MZ2500::PRINTER* printer;
+	MZ2500::SERIAL* serial;
+	MZ2500::TIMER* timer;
 	
 	// monitor type cache
 	int monitor_type;

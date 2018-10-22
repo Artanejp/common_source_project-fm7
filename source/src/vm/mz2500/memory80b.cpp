@@ -31,6 +31,8 @@
 #define MONITOR_TYPE_GREEN_COLOR	3
 #endif
 
+namespace MZ80B {
+	
 #define SET_BANK(s, e, w, r, v) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
 	for(int i = sb; i <= eb; i++) { \
@@ -48,7 +50,7 @@
 	} \
 }
 
-void MZ80B_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	// memory
 	memset(rdmy, 0xff, sizeof(rdmy));
@@ -94,7 +96,7 @@ void MZ80B_MEMORY::initialize()
 	register_vline_event(this);
 }
 
-void MZ80B_MEMORY::reset()
+void MEMORY::reset()
 {
 	// ipl reset
 	SET_BANK(0x0000, 0x07ff, wdmy, ipl, false);
@@ -105,7 +107,7 @@ void MZ80B_MEMORY::reset()
 	update_vram_map();
 }
 
-void MZ80B_MEMORY::special_reset()
+void MEMORY::special_reset()
 {
 	// reset
 	SET_BANK(0x0000, 0xffff, ram, ram, false);
@@ -114,7 +116,7 @@ void MZ80B_MEMORY::special_reset()
 	update_vram_map();
 }
 
-void MZ80B_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if(!hblank && is_vram[addr >> 11]) {
@@ -123,7 +125,7 @@ void MZ80B_MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32_t MZ80B_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if(!hblank && is_vram[addr >> 11]) {
@@ -132,14 +134,14 @@ uint32_t MZ80B_MEMORY::read_data8(uint32_t addr)
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-uint32_t MZ80B_MEMORY::fetch_op(uint32_t addr, int *wait)
+uint32_t MEMORY::fetch_op(uint32_t addr, int *wait)
 {
 	addr &= 0xffff;
 	*wait = (ipl_selected && addr < 0x800);
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MZ80B_MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 #ifndef _MZ80B
@@ -197,7 +199,7 @@ void MZ80B_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-void MZ80B_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_VRAM_SEL) {
 		if(vram_sel != (data & mask)) {
@@ -216,7 +218,7 @@ void MZ80B_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void MZ80B_MEMORY::event_vline(int v, int clock)
+void MEMORY::event_vline(int v, int clock)
 {
 	if(v == 0) {
 		d_pio->write_signal(SIG_I8255_PORT_B, 1, 1);
@@ -229,7 +231,7 @@ void MZ80B_MEMORY::event_vline(int v, int clock)
 //	}
 }
 
-void MZ80B_MEMORY::event_callback(int event_id, int err)
+void MEMORY::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_HBLANK) {
 		hblank = true;
@@ -238,14 +240,14 @@ void MZ80B_MEMORY::event_callback(int event_id, int err)
 }
 
 #ifndef _MZ80B
-void MZ80B_MEMORY::update_green_palette()
+void MEMORY::update_green_palette()
 {
 	palette_green[reverse ? 1 : 0] = RGB_COLOR(0, 0, 0);
 	palette_green[reverse ? 0 : 1] = RGB_COLOR(0, 255, 0);
 }
 #endif
 
-void MZ80B_MEMORY::update_vram_map()
+void MEMORY::update_vram_map()
 {
 #ifndef _MZ80B
 	if(vram_sel == 0x80) {
@@ -282,7 +284,7 @@ void MZ80B_MEMORY::update_vram_map()
 #endif
 }
 
-void MZ80B_MEMORY::load_dat_image(const _TCHAR* file_path)
+void MEMORY::load_dat_image(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
@@ -297,7 +299,7 @@ void MZ80B_MEMORY::load_dat_image(const _TCHAR* file_path)
 	delete fio;
 }
 
-bool MZ80B_MEMORY::load_mzt_image(const _TCHAR* file_path)
+bool MEMORY::load_mzt_image(const _TCHAR* file_path)
 {
 	bool result = false;
 	bool is_mtw = check_file_extension(file_path, _T(".mtw"));
@@ -327,7 +329,7 @@ bool MZ80B_MEMORY::load_mzt_image(const _TCHAR* file_path)
 	return result;
 }
 
-void MZ80B_MEMORY::draw_screen()
+void MEMORY::draw_screen()
 {
 	// render text
 #ifndef _MZ80B
@@ -624,7 +626,7 @@ void MZ80B_MEMORY::draw_screen()
 
 #define STATE_VERSION	3
 
-bool MZ80B_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -666,4 +668,6 @@ bool MZ80B_MEMORY::process_state(FILEIO* state_fio, bool loading)
 #endif
 	}
 	return true;
+}
+
 }

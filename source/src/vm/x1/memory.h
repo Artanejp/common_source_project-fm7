@@ -17,7 +17,9 @@
 #include "../../emu.h"
 #include "../device.h"
 
-class X1_MEMORY : public DEVICE
+namespace X1 {
+
+class MEMORY : public DEVICE
 {
 private:
 #ifdef _X1TURBO_FEATURE
@@ -39,11 +41,11 @@ private:
 	void update_map();
 	
 public:
-	X1_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~X1_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -66,5 +68,6 @@ public:
 #endif
 };
 
+}
 #endif
 

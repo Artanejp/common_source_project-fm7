@@ -16,6 +16,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace MSX {
+	
 class RTCIF : public DEVICE
 {
 private:
@@ -41,5 +43,6 @@ public:
 	}
 };
 
+}
 #endif
 

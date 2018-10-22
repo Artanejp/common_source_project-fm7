@@ -11,6 +11,8 @@
 #include "../datarec.h"
 #include "../i8080.h"
 
+namespace FP200 {
+	
 #define EVENT_CMT_READY	0
 #define EVENT_CMT_CLOCK	1
 
@@ -167,7 +169,7 @@ static const uint8_t key_table[10][8] = {
 	{0x0d, 0xdd, 0x14, 0xe2, 0x36, 0x59, 0x48, 0x4e}
 };
 
-void FP200_IO::initialize()
+void IO::initialize()
 {
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
@@ -209,13 +211,13 @@ void FP200_IO::initialize()
 	key_stat = emu->get_key_buffer();
 }
 
-void FP200_IO::release()
+void IO::release()
 {
 	close_tape();
 	delete cmt_fio;
 }
 
-void FP200_IO::reset()
+void IO::reset()
 {
 	mode_basic = (config.boot_mode == 0);
 	
@@ -235,7 +237,7 @@ void FP200_IO::reset()
 
 #define REVERSE(v) (((v) & 0x80) >> 7) | (((v) & 0x40) >> 5) | (((v) & 0x20) >> 3) | (((v) & 0x10) >> 1) | (((v) & 0x08) << 1) | (((v) & 0x04) << 3) | (((v) & 0x02) << 5) | (((v) & 0x01) << 7)
 
-void FP200_IO::write_io8(uint32_t addr, uint32_t data)
+void IO::write_io8(uint32_t addr, uint32_t data)
 {
 #ifdef _IO_DEBUG_LOG
 	this->out_debug_log(_T("%06x\tSOD=%d\tOUT8\t%04x, %02x\n"), get_cpu_pc(0), sod ? 1 : 0, addr & 0xff, data & 0xff);
@@ -310,7 +312,7 @@ void FP200_IO::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t FP200_IO::read_io8(uint32_t addr)
+uint32_t IO::read_io8(uint32_t addr)
 {
 	uint32_t value = 0xff;
 	
@@ -364,19 +366,19 @@ uint32_t FP200_IO::read_io8(uint32_t addr)
 	return value;
 }
 
-void FP200_IO::write_io8w(uint32_t addr, uint32_t data, int* wait)
+void IO::write_io8w(uint32_t addr, uint32_t data, int* wait)
 {
 	*wait = 2;
 	write_io8(addr, data);
 }
 
-uint32_t FP200_IO::read_io8w(uint32_t addr, int* wait)
+uint32_t IO::read_io8w(uint32_t addr, int* wait)
 {
 	*wait = 2;
 	return read_io8(addr);
 }
 
-void FP200_IO::write_signal(int id, uint32_t data, uint32_t mask)
+void IO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_IO_SOD) {
 		sod = ((data & mask) != 0);
@@ -390,7 +392,7 @@ void FP200_IO::write_signal(int id, uint32_t data, uint32_t mask)
 #define BIT_1200HZ	0x20
 #define BIT_300HZ	0x80
 
-void FP200_IO::event_callback(int event_id, int err)
+void IO::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_CMT_READY) {
 		if(CMT_RECORDING) {
@@ -415,7 +417,7 @@ void FP200_IO::event_callback(int event_id, int err)
 	}
 }
 
-void FP200_IO::key_down(int code)
+void IO::key_down(int code)
 {
 	if(code >= 0x10 && code <= 0x13) {
 		update_sid();
@@ -424,12 +426,12 @@ void FP200_IO::key_down(int code)
 	}
 }
 
-void FP200_IO::key_up()
+void IO::key_up()
 {
 	update_sid();
 }
 
-void FP200_IO::update_sid()
+void IO::update_sid()
 {
 	switch(key_column) {
 	case 5:
@@ -453,7 +455,7 @@ void FP200_IO::update_sid()
 	}
 }
 
-void FP200_IO::cmt_write_buffer(uint8_t value, int samples)
+void IO::cmt_write_buffer(uint8_t value, int samples)
 {
 	if(cmt_is_wav) {
 		for(int i = 0; i < samples; i++) {
@@ -477,7 +479,7 @@ void FP200_IO::cmt_write_buffer(uint8_t value, int samples)
 	}
 }
 
-void FP200_IO::rec_tape(const _TCHAR* file_path)
+void IO::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
@@ -492,7 +494,7 @@ void FP200_IO::rec_tape(const _TCHAR* file_path)
 	}
 }
 
-void FP200_IO::close_tape()
+void IO::close_tape()
 {
 	// close file
 	if(cmt_fio->IsOpened()) {
@@ -558,7 +560,7 @@ void FP200_IO::close_tape()
 	cmt_bufcnt = 0;
 }
 
-void FP200_IO::update_cmt()
+void IO::update_cmt()
 {
 	bool prev_load_clock = c15.out_y;
 	
@@ -588,7 +590,7 @@ void FP200_IO::update_cmt()
 	}
 }
 
-void FP200_IO::draw_screen()
+void IO::draw_screen()
 {
 	// render screen
 	for(int y = 0; y < 8; y++) {
@@ -680,7 +682,7 @@ void FP200_IO::draw_screen()
 
 #define STATE_VERSION	4
 
-bool FP200_IO::process_state(FILEIO* state_fio, bool loading)
+bool IO::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -761,4 +763,6 @@ bool FP200_IO::process_state(FILEIO* state_fio, bool loading)
 	PROCESS_STATE_4024(f21);
 	state_fio->StateUint8(key_column);
 	return true;
+}
+
 }

@@ -12,6 +12,8 @@
 
 #include "emm.h"
 
+namespace X1 {
+
 void EMM::initialize()
 {
 	memset(data_buffer, 0, sizeof(data_buffer));
@@ -71,4 +73,6 @@ bool EMM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(data_buffer, sizeof(data_buffer), 1);
 	state_fio->StateUint32(data_addr);
  	return true;
+}
+
 }

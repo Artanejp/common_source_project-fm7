@@ -9,6 +9,8 @@
 
 #include "display.h"
 
+namespace MULTI8 {
+
 void DISPLAY::initialize()
 {
 	// load rom image
@@ -331,4 +333,6 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(display);
 	state_fio->StateBool(blink);
 	return true;
+}
+
 }

@@ -9,7 +9,9 @@
 
 #include "memory.h"
 
-void SMS_MEMORY::sms_mapper_w(uint32_t addr, uint32_t data)
+namespace GAMEGEAR {
+
+void MEMORY::sms_mapper_w(uint32_t addr, uint32_t data)
 {
 	/* Calculate ROM page index */
 	uint8_t page = (data % pages);
@@ -52,7 +54,7 @@ void SMS_MEMORY::sms_mapper_w(uint32_t addr, uint32_t data)
 	}
 }
 
-void SMS_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	cart=NULL;
 	
@@ -87,12 +89,12 @@ void SMS_MEMORY::initialize()
 	inserted = false;
 }
 
-void SMS_MEMORY::release()
+void MEMORY::release()
 {
 	if (cart) free(cart);
 }
 
-void SMS_MEMORY::bios()
+void MEMORY::bios()
 {
 	FILEIO* fio = new FILEIO();
 	
@@ -136,19 +138,19 @@ void SMS_MEMORY::bios()
 	delete fio;
 }
 
-void SMS_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	cpu_writemap[(addr >> 13)][(addr & 0x1FFF)] = data;
 	if (pages < 4) return;
 	if (addr >= 0xFFFC) sms_mapper_w(addr & 3, data);
 }
 
-uint32_t SMS_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	return cpu_readmap[(addr >> 13)][(addr & 0x1FFF)];
 }
 
-void SMS_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// from PIO-P6
 	if(data & mask) {
@@ -178,7 +180,7 @@ void SMS_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void SMS_MEMORY::open_cart(const _TCHAR* file_path)
+void MEMORY::open_cart(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	
@@ -248,8 +250,10 @@ void SMS_MEMORY::open_cart(const _TCHAR* file_path)
 	fcr[3] = 0x00;
 }
 
-void SMS_MEMORY::close_cart()
+void MEMORY::close_cart()
 {
 	if (cart) free(cart);
 	initialize();
+}
+
 }

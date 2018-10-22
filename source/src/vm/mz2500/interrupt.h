@@ -19,6 +19,8 @@
 #define SIG_INTERRUPT_PRINTER	2
 #define SIG_INTERRUPT_RP5C15	3
 
+namespace MZ2500 {
+
 class INTERRUPT : public DEVICE
 {
 private:
@@ -67,6 +69,7 @@ public:
 	uint32_t get_intr_ack();
 	void notify_intr_reti();
 };
-
+	
+}
 #endif
 

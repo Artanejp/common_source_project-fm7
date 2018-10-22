@@ -7,10 +7,12 @@
 	[ system ]
 */
 
-#include "system.h"
+#include "./system.h"
 #include "../i8253.h"
 #include "../pcm1bit.h"
 
+namespace J3100 {
+	
 void SYSTEM::initialize()
 {
 	status = 0x0f;
@@ -51,3 +53,4 @@ void SYSTEM::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
+}

@@ -7,8 +7,8 @@
 	[ system ]
 */
 
-#ifndef _SYSTEM_H_
-#define _SYSTEM_H_
+#ifndef _J3100_SYSTEM_H_
+#define _J3100_SYSTEM_H_
 
 #include "../vm.h"
 #include "../../emu.h"
@@ -16,6 +16,8 @@
 
 #define SIG_SYSTEM_TC2O	0
 
+namespace J3100 {
+	
 class SYSTEM : public DEVICE
 {
 private:
@@ -47,5 +49,6 @@ public:
 	}
 };
 
+}
 #endif
 

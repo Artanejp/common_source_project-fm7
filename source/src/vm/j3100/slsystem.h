@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace J3100SL {
+	
 class SYSTEM : public DEVICE
 {
 private:
@@ -32,5 +34,6 @@ public:
 	uint32_t read_io8(uint32_t addr);
 };
 
+}
 #endif
 

@@ -17,6 +17,8 @@
 
 class UPD765A;
 
+namespace J3100 {
+
 class FLOPPY : public DEVICE
 {
 private:
@@ -44,5 +46,6 @@ public:
 	}
 };
 
+}
 #endif
 

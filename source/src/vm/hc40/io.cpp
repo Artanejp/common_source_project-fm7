@@ -36,6 +36,8 @@
 #define EVENT_1SEC	1
 #define EVENT_ART	2
 
+namespace HC40 {
+	
 static const int key_tbl[256] = {
 	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0x56,0x57,0xff,0xff,0xff,0x71,0xff,0xff,
 	0xb3,0xb2,0xff,0x10,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0x00,0xff,0xff,0xff,0xff,
@@ -58,7 +60,7 @@ static const int key_tbl[256] = {
 DLL_PREFIX_I struct cur_time_s cur_time;
 #endif
 
-void HC40_IO::initialize()
+void IO::initialize()
 {
 	// init external ram disk
 	memset(ext, 0, 0x20000);
@@ -100,7 +102,7 @@ void HC40_IO::initialize()
 	register_event_by_clock(this, EVENT_1SEC, CPU_CLOCKS, true, &register_id_1sec);
 }
 
-void HC40_IO::release()
+void IO::release()
 {
 	// save external ram disk
 	FILEIO* fio = new FILEIO();
@@ -120,7 +122,7 @@ void HC40_IO::release()
 	delete art_buf;
 }
 
-void HC40_IO::reset()
+void IO::reset()
 {
 	// reset gapnit
 	bcr = slbcr = isr = ier = bankr = ioctlr = 0;
@@ -136,7 +138,7 @@ void HC40_IO::reset()
 	register_id_art = -1;
 }
 
-void HC40_IO::sysreset()
+void IO::sysreset()
 {
 	// reset 7508
 	onesec_intr = alarm_intr = false;
@@ -144,7 +146,7 @@ void HC40_IO::sysreset()
 	res_7508 = true;
 }
 
-void HC40_IO::write_signal(int id, uint32_t data, uint32_t mask)
+void IO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_IO_DREC) {
 		// signal from data recorder
@@ -166,13 +168,13 @@ void HC40_IO::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void HC40_IO::event_frame()
+void IO::event_frame()
 {
 	d_beep->write_signal(SIG_BEEP_ON, beep ? 1 : 0, 1);
 	beep = false;
 }
 
-void HC40_IO::event_callback(int event_id, int err)
+void IO::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_FRC) {
 		// FRC overflow event
@@ -215,7 +217,7 @@ void HC40_IO::event_callback(int event_id, int err)
 	}
 }
 
-void HC40_IO::write_io8(uint32_t addr, uint32_t data)
+void IO::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x00:
@@ -322,7 +324,7 @@ void HC40_IO::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t HC40_IO::read_io8(uint32_t addr)
+uint32_t IO::read_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
 	
@@ -377,7 +379,7 @@ uint32_t HC40_IO::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-uint32_t HC40_IO::get_intr_ack()
+uint32_t IO::get_intr_ack()
 {
 	if(isr & BIT_7508) {
 		isr &= ~BIT_7508;
@@ -395,7 +397,7 @@ uint32_t HC40_IO::get_intr_ack()
 	return 0xff;
 }
 
-void HC40_IO::update_intr()
+void IO::update_intr()
 {
 	// set int signal
 	bool next = ((isr & ier & 0x1f) != 0);
@@ -406,7 +408,7 @@ void HC40_IO::update_intr()
 // 7508
 // ----------------------------------------------------------------------------
 
-void HC40_IO::send_to_7508(uint8_t val)
+void IO::send_to_7508(uint8_t val)
 {
 	int res;
 	
@@ -644,12 +646,12 @@ void HC40_IO::send_to_7508(uint8_t val)
 	}
 }
 
-uint8_t HC40_IO::rec_from_7508()
+uint8_t IO::rec_from_7508()
 {
 	return rsp_buf->read();
 }
 
-void HC40_IO::key_down(int code)
+void IO::key_down(int code)
 {
 	if(code == 0x14) {
 		// toggle caps lock
@@ -661,7 +663,7 @@ void HC40_IO::key_down(int code)
 	}
 }
 
-void HC40_IO::key_up(int code)
+void IO::key_up(int code)
 {
 	if(code == 0x10) {
 		update_key(0xa3);	// break shift
@@ -670,7 +672,7 @@ void HC40_IO::key_up(int code)
 	}
 }
 
-void HC40_IO::update_key(int code)
+void IO::update_key(int code)
 {
 	if(code != 0xff) {
 		// add to buffer
@@ -694,7 +696,7 @@ void HC40_IO::update_key(int code)
 // video
 // ----------------------------------------------------------------------------
 
-void HC40_IO::draw_screen()
+void IO::draw_screen()
 {
 	if(yoff & 0x80) {
 		uint8_t* vram = ram + ((vadr & 0xf8) << 8);
@@ -726,7 +728,7 @@ void HC40_IO::draw_screen()
 
 #define STATE_VERSION	1
 
-bool HC40_IO::process_state(FILEIO* state_fio, bool loading)
+bool IO::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -785,4 +787,6 @@ bool HC40_IO::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint32(extar);
 	state_fio->StateUint8(extcr);
 	return true;
+}
+
 }

@@ -11,7 +11,9 @@
 #include "./io.h"
 #include "../hd44102.h"
 
-void JR800_IO::write_memory_mapped_io8(uint32_t addr, uint32_t data)
+namespace JR800 {
+
+void IO::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	int chip = 0;
 	
@@ -33,7 +35,7 @@ void JR800_IO::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t JR800_IO::read_memory_mapped_io8(uint32_t addr)
+uint32_t IO::read_memory_mapped_io8(uint32_t addr)
 {
 	const uint8_t* key_stat = emu->get_key_buffer();
 	uint8_t data = 0;
@@ -164,7 +166,7 @@ uint32_t JR800_IO::read_memory_mapped_io8(uint32_t addr)
 
 #define STATE_VERSION	1
 
-bool JR800_IO::process_state(FILEIO* state_fio, bool loading)
+bool IO::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -173,4 +175,6 @@ bool JR800_IO::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	return true;
+}
+
 }

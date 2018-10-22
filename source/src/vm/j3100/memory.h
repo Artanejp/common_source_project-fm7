@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace J3100 {
+	
 class MEMORY : public DEVICE
 {
 private:
@@ -54,5 +56,6 @@ public:
 	}
 };
 
+}
 #endif
 

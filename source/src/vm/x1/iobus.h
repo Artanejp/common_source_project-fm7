@@ -19,6 +19,8 @@
 
 #define SIG_IOBUS_MODE	0
 
+namespace X1 {
+
 class IOBUS : public DEVICE
 {
 private:
@@ -92,5 +94,6 @@ public:
 	}
 };
 
+}
 #endif
 

@@ -14,7 +14,9 @@
 #include "../../emu.h"
 #include "../device.h"
 
-class HC40_MEMORY : public DEVICE
+namespace HC40 {
+	
+class MEMORY : public DEVICE
 {
 private:
 	// memory
@@ -32,11 +34,11 @@ private:
 	void set_bank(uint32_t val);
 	
 public:
-	HC40_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~HC40_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -54,5 +56,6 @@ public:
 	}
 };
 
+}
 #endif
 

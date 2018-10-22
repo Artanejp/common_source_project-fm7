@@ -20,6 +20,8 @@
 #define SIG_SASI_IRQ	0
 #define SIG_SASI_DRQ	1
 
+namespace X1 {
+
 class SASI : public DEVICE
 {
 private:
@@ -60,5 +62,6 @@ public:
 #endif
 };
 
+}
 #endif
 

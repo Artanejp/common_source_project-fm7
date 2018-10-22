@@ -68,10 +68,11 @@ class MSM5832;
 class SN76489AN;
 class Z80;
 
-class DISPLAY;
-class KEYBOARD;
-class MYCOMZ80_MEMORY;
-
+namespace MYCOMZ80A {
+	class DISPLAY;
+	class KEYBOARD;
+	class MEMORY;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -91,9 +92,9 @@ protected:
 	SN76489AN* psg;
 	Z80* cpu;
 	
-	DISPLAY* display;
-	KEYBOARD* keyboard;
-	MYCOMZ80_MEMORY* memory;
+	MYCOMZ80A::DISPLAY* display;
+	MYCOMZ80A::KEYBOARD* keyboard;
+	MYCOMZ80A::MEMORY* memory;
 	
 public:
 	// ----------------------------------------

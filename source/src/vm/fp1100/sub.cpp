@@ -16,6 +16,8 @@
 
 #define EVENT_CLOCK	0
 
+namespace FP1100 {
+	
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 7, eb = (e) >> 7; \
 	for(int i = sb; i <= eb; i++) { \
@@ -624,4 +626,6 @@ bool SUB::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(wait);
 	state_fio->StateUint8(cblink);
 	return true;
+}
+
 }

@@ -17,6 +17,8 @@
 #define CAPS	0xfe
 #define KANA	0xff
 
+namespace X1 {
+
 static const uint8_t matrix[15][8] = {
 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, //	(CMT buttons ???)
 	{0x1b, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37}, //	ESC	1	2	3	4	5	6	7
@@ -178,3 +180,4 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
  	return true;
 }
 
+}

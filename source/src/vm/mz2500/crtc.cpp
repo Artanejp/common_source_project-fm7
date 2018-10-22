@@ -19,6 +19,8 @@
 #define SCRN_640x200	2
 #define SCRN_320x200	3
 
+namespace MZ2500 {
+
 void CRTC::initialize()
 {
 	// config
@@ -1940,4 +1942,6 @@ bool CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(map_init);
 	state_fio->StateBool(trans_init);
 	return true;
+}
+
 }

@@ -47,6 +47,17 @@
 #include "rtcif.h"
 #endif
 
+using MSX::JOYSTICK;
+using MSX::KEYBOARD;
+using MSX::MEMORY;
+#ifdef _MSX2
+using MSX::RTCIF;
+#endif
+using MSX::SLOT0;
+using MSX::SLOT1;
+using MSX::SLOT2;
+using MSX::SLOT3;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------

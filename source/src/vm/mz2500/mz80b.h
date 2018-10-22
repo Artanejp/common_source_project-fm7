@@ -99,26 +99,33 @@ class MB8877;
 class PCM1BIT;
 class Z80;
 class Z80PIO;
-
-class CMT;
-class FLOPPY;
-class KEYBOARD;
-class MZ80B_MEMORY;
-class MZ1R12;
-class MZ1R13;
-class PRINTER;
-class TIMER;
-
 #ifdef SUPPORT_QUICK_DISK
 class Z80SIO;
-class QUICKDISK;
 #endif
-
+#ifdef SUPPORT_QUICK_DISK
+namespace MZ700 {
+	class QUICKDISK;
+}
+#endif
 #ifdef SUPPORT_16BIT_BOARD
-class I286;
-class I8259;
-class MZ1M01;
+	class I286;
+	class I8259;
 #endif
+namespace MZ2500 {
+	class CMT;
+	class FLOPPY;
+	class KEYBOARD;
+	class MZ1R12;
+	class MZ1R13;
+	class PRINTER;
+	class TIMER;
+}
+namespace MZ80B {
+	class MEMORY;
+#ifdef SUPPORT_16BIT_BOARD
+	class MZ1M01;
+#endif
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -138,25 +145,25 @@ protected:
 	Z80* cpu;
 	Z80PIO* pio;
 	
-	CMT* cmt;
-	FLOPPY* floppy;
-	KEYBOARD* keyboard;
-	MZ80B_MEMORY* memory;
-	MZ1R12* mz1r12;
-	MZ1R13* mz1r13;
-	PRINTER* printer;
-	TIMER* timer;
+	MZ2500::CMT* cmt;
+	MZ2500::FLOPPY* floppy;
+	MZ2500::KEYBOARD* keyboard;
+	MZ80B::MEMORY* memory;
+	MZ2500::MZ1R12* mz1r12;
+	MZ2500::MZ1R13* mz1r13;
+	MZ2500::PRINTER* printer;
+	MZ2500::TIMER* timer;
 	
 #ifdef SUPPORT_QUICK_DISK
 	Z80SIO* sio;
-	QUICKDISK* qd;
+	MZ700::QUICKDISK* qd;
 #endif
 	
 #ifdef SUPPORT_16BIT_BOARD
 	Z80PIO* pio_to16;
 	I286* cpu_16;
 	I8259* pic_16;
-	MZ1M01* mz1m01;
+	MZ80B::MZ1M01* mz1m01;
 #endif
 	
 public:

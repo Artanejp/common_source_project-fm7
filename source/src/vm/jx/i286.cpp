@@ -23,6 +23,8 @@
 #pragma warning( disable : 4996 )
 #endif
 
+namespace JX {
+
 #if defined(HAS_I86)
 	#define CPU_MODEL i8086
 #elif defined(HAS_I88)
@@ -576,3 +578,4 @@ bool I286::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 
+}

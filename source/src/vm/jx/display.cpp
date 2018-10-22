@@ -11,6 +11,8 @@
 #include "display.h"
 #include "../memory.h"
 
+namespace JX {
+
 void DISPLAY::initialize()
 {
 	// create pc palette
@@ -547,4 +549,6 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(status);
 	state_fio->StateInt32(cblink);
 	return true;
+}
+
 }

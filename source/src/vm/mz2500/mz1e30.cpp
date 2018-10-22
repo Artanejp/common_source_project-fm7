@@ -19,6 +19,8 @@
 #define STATUS_IRQ	0
 #define STATUS_DRQ	0
 
+namespace MZ2500 {
+
 void MZ1E30::initialize()
 {
 	// rom file
@@ -154,4 +156,6 @@ bool MZ1E30::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(irq_status);
 	state_fio->StateBool(drq_status);
 	return true;
+}
+
 }

@@ -68,18 +68,19 @@ class I8251;
 class I8253;
 class I8255;
 class I8259;
-class I286;
 class IO;
 class MEMORY;
 class PCM1BIT;
 class SN76489AN;
 class UPD765A;
 
-class DISPLAY;
-class FLOPPY;
-class KEYBOARD;
-class SPEAKER;
-
+namespace JX {
+	class I286;
+	class DISPLAY;
+	class FLOPPY;
+	class KEYBOARD;
+	class SPEAKER;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -93,17 +94,17 @@ protected:
 	I8253* pit;
 	I8255* pio;
 	I8259* pic;
-	I286* cpu;
+	JX::I286* cpu;
 	IO* io;
 	MEMORY* mem;
 	PCM1BIT* pcm;
 	SN76489AN* psg;
 	UPD765A* fdc;
 	
-	DISPLAY* display;
-	FLOPPY* floppy;
-	KEYBOARD* keyboard;
-	SPEAKER* speaker;
+	JX::DISPLAY* display;
+	JX::FLOPPY* floppy;
+	JX::KEYBOARD* keyboard;
+	JX::SPEAKER* speaker;
 	
 	// memory
 	uint8_t font[0x800];

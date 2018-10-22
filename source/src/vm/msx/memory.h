@@ -31,6 +31,8 @@ class DISK;
 
 // slot #0
 
+namespace MSX {
+
 class SLOT0 : public DEVICE
 {
 private:
@@ -256,5 +258,6 @@ public:
 #endif
 };
 
+}
 #endif
 

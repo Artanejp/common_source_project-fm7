@@ -56,9 +56,10 @@ class I8251;
 class PTF20;
 class Z80;
 
-class HC80_IO;
-class HC80_MEMORY;
-
+namespace HC80 {
+	class IO;
+	class MEMORY;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -73,8 +74,8 @@ protected:
 	PTF20* tf20;
 	Z80* cpu;
 	
-	HC80_IO* io;
-	HC80_MEMORY* memory;
+	HC80::IO* io;
+	HC80::MEMORY* memory;
 	
 public:
 	// ----------------------------------------

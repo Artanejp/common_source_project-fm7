@@ -9,6 +9,8 @@
 
 #include "keyboard.h"
 
+namespace M5 {
+	
 static const int key_map[7][8] = {
 	// back-space (0x08): reset/halt key
 	{0x11, 0x09, 0x10, 0x10, 0x00, 0x00, 0x20, 0x0d},
@@ -64,3 +66,4 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 	return 0xff;
 }
 
+}

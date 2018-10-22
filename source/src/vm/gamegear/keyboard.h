@@ -16,6 +16,8 @@
 
 #define SIG_KEYBOARD_COLUMN	0
 
+namespace GAMEGEAR {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -53,4 +55,6 @@ public:
 	bool is_start();
 	bool sk1100;
 };
+
+}
 #endif

@@ -10,6 +10,8 @@
 #include "display.h"
 #include "../hd46505.h"
 
+namespace MYCOMZ80A {
+
 void DISPLAY::initialize()
 {
 	// load rom image
@@ -226,4 +228,6 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(vram, sizeof(vram), 1);
 	state_fio->StateUint16(vram_addr);
 	return true;
+}
+
 }

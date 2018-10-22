@@ -10,6 +10,7 @@
 #include "interrupt.h"
 
 //#define SUPPURT_CHILD_DEVICE
+namespace MZ2500 {
 
 void INTERRUPT::reset()
 {
@@ -193,4 +194,6 @@ bool INTERRUPT::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(oei);
 	state_fio->StateUint32(intr_bit);
 	return true;
+}
+
 }

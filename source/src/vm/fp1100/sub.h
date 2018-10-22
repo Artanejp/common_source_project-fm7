@@ -22,6 +22,8 @@
 
 class HD46505;
 
+namespace FP1100 {
+	
 class SUB : public DEVICE
 {
 private:
@@ -213,4 +215,5 @@ public:
 	void draw_screen();
 };
 
+}
 #endif

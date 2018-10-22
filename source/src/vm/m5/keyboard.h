@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace M5 {
+	
 class KEYBOARD : public DEVICE
 {
 private:
@@ -31,4 +33,5 @@ public:
 	uint32_t read_io8(uint32_t addr);
 };
 
+}
 #endif

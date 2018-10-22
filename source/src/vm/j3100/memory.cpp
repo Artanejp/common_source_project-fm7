@@ -9,6 +9,8 @@
 
 #include "memory.h"
 
+namespace J3100 {
+	
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
 	for(int i = sb; i <= eb; i++) { \
@@ -143,3 +145,4 @@ void MEMORY::update_ems(int page)
 	SET_BANK(start_addr, end_addr, wdmy, rdmy);
 }
 
+}

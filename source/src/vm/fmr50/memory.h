@@ -24,7 +24,9 @@ class I286;
 class I386;
 #endif
 
-class FMR50_MEMORY : public DEVICE
+namespace FMR50 {
+	
+class MEMORY : public DEVICE
 {
 private:
 #if defined(HAS_I286)
@@ -111,11 +113,11 @@ private:
 	void draw_cg();
 	
 public:
-	FMR50_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) 
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) 
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~FMR50_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -172,6 +174,8 @@ public:
 #endif
 	void draw_screen();
 };
+
+}
 
 #endif
 

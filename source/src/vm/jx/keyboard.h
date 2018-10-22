@@ -18,6 +18,8 @@
 
 class FIFO;
 
+namespace JX {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -66,5 +68,6 @@ public:
 	void key_up(int code);
 };
 
+}
 #endif
 

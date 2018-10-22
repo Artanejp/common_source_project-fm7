@@ -111,17 +111,18 @@ class TMS9918A;
 #endif
 class Z80;
 
-class JOYSTICK;
-class KEYBOARD;
-class MSX_MEMORY;
+namespace MSX {
+	class JOYSTICK;
+	class KEYBOARD;
+	class MEMORY;
 #if defined(_MSX2)
-class RTCIF;
+	class RTCIF;
 #endif
-class SLOT0;
-class SLOT1;
-class SLOT2;
-class SLOT3;
-
+	class SLOT0;
+	class SLOT1;
+	class SLOT2;
+	class SLOT3;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -148,16 +149,16 @@ protected:
 #endif
 	Z80* cpu;
 	
-	JOYSTICK* joystick;
-	KEYBOARD* keyboard;
-	MSX_MEMORY* memory;
+	MSX::JOYSTICK* joystick;
+	MSX::KEYBOARD* keyboard;
+	MSX::MEMORY* memory;
 #ifdef _MSX2
-	RTCIF* rtcif;
+	MSX::RTCIF* rtcif;
 #endif
-	SLOT0 *slot0;
-	SLOT1 *slot1;
-	SLOT2 *slot2;
-	SLOT3 *slot3;
+	MSX::SLOT0 *slot0;
+	MSX::SLOT1 *slot1;
+	MSX::SLOT2 *slot2;
+	MSX::SLOT3 *slot3;
 	
 public:
 	// ----------------------------------------

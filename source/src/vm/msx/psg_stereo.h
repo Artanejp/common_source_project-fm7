@@ -18,6 +18,8 @@
 //#include "../ym2203.h"
 #include "../ay_3_891x.h"
 
+namespace MSX {
+	
 class PSG_STEREO : public DEVICE
 {
 private:
@@ -53,4 +55,5 @@ public:
 	}
 };
 
+}
 #endif

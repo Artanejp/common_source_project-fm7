@@ -12,6 +12,8 @@
 #include "kanjirom.h"
 #include "../../fileio.h"
 
+namespace MSX {
+
 KANJIROM::KANJIROM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	index = 0;
@@ -48,3 +50,4 @@ uint32_t KANJIROM::read_io8(uint32_t addr)
 	return 0xFF;
 }
 
+}

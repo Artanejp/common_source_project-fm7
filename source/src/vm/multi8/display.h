@@ -16,6 +16,8 @@
 
 #define SIG_DISPLAY_I8255_B	0
 
+namespace MULTI8 {
+
 class DISPLAY : public DEVICE
 {
 private:
@@ -71,5 +73,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

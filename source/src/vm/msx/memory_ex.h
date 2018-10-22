@@ -36,6 +36,8 @@ class DISK;
 // MAIN ROM 32K
 // or MAIN ROM 32K + MAIN RAM 32K
 
+namespace MSX {
+	
 class SLOT_MAINROM : public DEVICE
 {
 private:
@@ -451,5 +453,6 @@ public:
 #endif
 };
 
+}
 #endif
 

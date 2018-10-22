@@ -21,6 +21,8 @@
 #define PSG14_MASK 0x7f
 #endif
 
+namespace MSX {
+
 void JOYSTICK::initialize()
 {
 	joy_stat = emu->get_joy_buffer();
@@ -57,4 +59,6 @@ bool JOYSTICK::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateInt32(select);
 	return true;
+}
+
 }

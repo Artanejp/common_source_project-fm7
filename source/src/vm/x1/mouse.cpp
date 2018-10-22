@@ -13,6 +13,8 @@
 #include "mouse.h"
 #include "../z80sio.h"
 
+namespace X1 {
+
 void MOUSE::initialize()
 {
 	stat = emu->get_mouse_buffer();
@@ -36,4 +38,6 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 		d_sio->write_signal(SIG_Z80SIO_RECV_CH1, d1, 0xff);
 		d_sio->write_signal(SIG_Z80SIO_RECV_CH1, d2, 0xff);
 	}
+}
+
 }

@@ -16,6 +16,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace MZ700 {
+	
 class CMOS : public DEVICE
 {
 private:
@@ -39,5 +41,6 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 };
 
+}
 #endif
 

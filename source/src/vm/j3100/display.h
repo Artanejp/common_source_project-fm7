@@ -19,8 +19,11 @@
 #define SIG_DISPLAY_VBLANK	1
 #define SIG_DISPLAY_PIO		2
 
-class MEMORY;
-
+namespace J3100 {
+	class MEMORY;
+}
+namespace J3100 {
+	
 class DISPLAY : public DEVICE
 {
 private:
@@ -66,5 +69,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

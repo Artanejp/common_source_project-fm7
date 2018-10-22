@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace JX {
+
 class FLOPPY : public DEVICE
 {
 private:
@@ -45,5 +47,6 @@ public:
 	}
 };
 
+}
 #endif
 

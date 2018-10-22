@@ -14,6 +14,8 @@
 #define DATA_SIZE	0x8000
 #define ADDR_MASK	(DATA_SIZE - 1)
 
+namespace MZ700 {
+	
 void CMOS::initialize()
 {
 	// init memory
@@ -96,4 +98,6 @@ bool CMOS::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint32(data_addr);
 	state_fio->StateBool(modified);
 	return true;
+}
+
 }

@@ -15,6 +15,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace MZ700 {
+	
 class PSG : public DEVICE
 {
 private:
@@ -41,5 +43,6 @@ public:
 	}
 };
 
+}
 #endif
 

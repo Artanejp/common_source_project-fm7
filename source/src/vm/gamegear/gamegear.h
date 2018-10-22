@@ -60,9 +60,11 @@ class _315_5124;
 class UPD765A;
 class Z80;
 
-class KEYBOARD;
-class SMS_MEMORY;
-class SYSTEM;
+namespace GAMEGEAR {
+	class KEYBOARD;
+	class MEMORY;
+	class SYSTEM;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -82,9 +84,9 @@ protected:
 	UPD765A* fdc;
 	Z80* cpu;
 	
-	KEYBOARD* key;
-	SMS_MEMORY* memory;
-	SYSTEM* system;
+	GAMEGEAR::KEYBOARD* key;
+	GAMEGEAR::MEMORY* memory;
+	GAMEGEAR::SYSTEM* system;
 	
 public:
 	// ----------------------------------------

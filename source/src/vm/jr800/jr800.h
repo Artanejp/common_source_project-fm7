@@ -57,8 +57,9 @@ class HD6301;
 class MEMORY;
 class PCM1BIT;
 
-class JR800_IO;
-
+namespace JR800 {
+	class IO;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -75,7 +76,7 @@ protected:
 	MEMORY* memory;
 	PCM1BIT* pcm;
 	
-	JR800_IO* io;
+	JR800::IO* io;
 	
 	uint8_t ram[0x6000];
 	uint8_t rom[0x8000];

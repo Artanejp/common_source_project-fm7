@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace MULTI8 {
+
 class KANJI : public DEVICE
 {
 private:
@@ -43,5 +45,6 @@ public:
 	}
 };
 
+}
 #endif
 

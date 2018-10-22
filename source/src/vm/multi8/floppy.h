@@ -16,6 +16,8 @@
 
 #define SIG_FLOPPY_DRQ	0
 
+namespace MULTI8 {
+
 class FLOPPY : public DEVICE
 {
 private:
@@ -42,5 +44,6 @@ public:
 	}
 };
 
+}
 #endif
 

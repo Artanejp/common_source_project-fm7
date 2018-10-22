@@ -10,6 +10,8 @@
 #include "kanji.h"
 #include "../i8255.h"
 
+namespace MULTI8 {
+
 void KANJI::initialize()
 {
 	// load rom image
@@ -67,4 +69,6 @@ bool KANJI::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateUint32(ptr);
 	return true;
+}
+
 }

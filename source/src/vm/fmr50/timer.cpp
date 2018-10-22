@@ -13,6 +13,8 @@
 #include "../msm58321.h"
 #include "../pcm1bit.h"
 
+namespace FMR50 {
+	
 void TIMER::initialize()
 {
 	free_run_counter = 0;
@@ -99,4 +101,6 @@ bool TIMER::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(tmout0);
 	state_fio->StateBool(tmout1);
 	return true;
+}
+
 }

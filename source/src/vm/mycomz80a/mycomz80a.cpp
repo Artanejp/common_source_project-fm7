@@ -29,6 +29,10 @@
 #include "keyboard.h"
 #include "./memory.h"
 
+using MYCOMZ80A::DISPLAY;
+using MYCOMZ80A::KEYBOARD;
+using MYCOMZ80A::MEMORY;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -59,7 +63,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new MYCOMZ80_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 
 	// set contexts
 	event->set_context_cpu(cpu);

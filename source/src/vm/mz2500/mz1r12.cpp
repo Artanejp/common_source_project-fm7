@@ -10,6 +10,8 @@
 
 #include "mz1r12.h"
 
+namespace MZ2500 {
+
 void MZ1R12::initialize()
 {
 	memset(sram, 0, sizeof(sram));
@@ -90,4 +92,6 @@ bool MZ1R12::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint16(address);
 	state_fio->StateUint32(crc32);
 	return true;
+}
+
 }

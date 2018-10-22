@@ -9,6 +9,8 @@
 
 #include "memory.h"
 
+namespace HC80 {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 13, eb = (e) >> 13; \
 	for(int i = sb; i <= eb; i++) { \
@@ -25,7 +27,7 @@
 	} \
 }
 
-void HC80_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	// initialize memory
 	memset(ram, 0, sizeof(ram));
@@ -45,7 +47,7 @@ void HC80_MEMORY::initialize()
 	delete fio;
 }
 
-void HC80_MEMORY::release()
+void MEMORY::release()
 {
 	// save battery backuped ram
 	FILEIO* fio = new FILEIO();
@@ -56,29 +58,29 @@ void HC80_MEMORY::release()
 	delete fio;
 }
 
-void HC80_MEMORY::reset()
+void MEMORY::reset()
 {
 	set_bank(0);
 }
 
-void HC80_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[(addr >> 13) & 7][addr & 0x1fff] = data;
 }
 
-uint32_t HC80_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[(addr >> 13) & 7][addr & 0x1fff];
 }
 
-void HC80_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	set_bank(data);
 }
 
-void HC80_MEMORY::set_bank(uint32_t val)
+void MEMORY::set_bank(uint32_t val)
 {
 	if(val & 1) {
 		SET_BANK(0x0000, 0xffff, ram, ram);
@@ -91,7 +93,7 @@ void HC80_MEMORY::set_bank(uint32_t val)
 
 #define STATE_VERSION	1
 
-bool HC80_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -107,4 +109,6 @@ bool HC80_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		set_bank(bank);
 	}
 	return true;
+}
+
 }

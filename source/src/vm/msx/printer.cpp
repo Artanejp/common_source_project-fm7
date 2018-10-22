@@ -12,6 +12,8 @@
 
 #include "printer.h"
 
+namespace MSX {
+	
 void PRINTER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 1) {
@@ -35,3 +37,4 @@ uint32_t PRINTER::read_io8(uint32_t addr)
 	return 0xff;
 }
 
+}

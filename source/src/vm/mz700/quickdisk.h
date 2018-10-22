@@ -25,6 +25,8 @@
 
 #define QUICKDISK_BUFFER_SIZE	65536
 
+namespace MZ700 {
+
 class QUICKDISK : public DEVICE
 {
 private:
@@ -82,5 +84,6 @@ public:
 	}
 };
 
+}
 #endif
 

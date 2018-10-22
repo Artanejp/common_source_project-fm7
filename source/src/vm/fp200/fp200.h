@@ -60,8 +60,9 @@ class I8080;
 class MEMORY;
 class RP5C01;
 
-class FP200_IO;
-
+namespace FP200 {
+	class IO;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -76,7 +77,7 @@ protected:
 	MEMORY* memory;
 	RP5C01* rtc;
 	
-	FP200_IO* io;
+	FP200::IO* io;
 	
 	// memory
 	uint8_t rom[0x8000];

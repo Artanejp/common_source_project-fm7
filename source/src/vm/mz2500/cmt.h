@@ -25,6 +25,8 @@
 
 class DATAREC;
 
+namespace MZ2500 {
+
 class CMT : public DEVICE
 {
 private:
@@ -78,6 +80,7 @@ public:
 	void rec_tape(bool value);
 	void close_tape();
 };
+}
 
 #endif
 

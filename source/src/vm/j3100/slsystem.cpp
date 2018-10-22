@@ -9,6 +9,8 @@
 
 #include "slsystem.h"
 
+namespace J3100SL {
+	
 void SYSTEM::initialize()
 {
 	nmi_mask = 0;
@@ -39,3 +41,4 @@ uint32_t SYSTEM::read_io8(uint32_t addr)
 	return 0xff;
 }
 
+}

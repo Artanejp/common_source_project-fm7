@@ -122,8 +122,9 @@ class NOT;
 class PCM1BIT;
 class SY6522;
 
-class JR100_MEMORY;
-
+namespace JR100 {
+class MEMORY;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -140,7 +141,7 @@ protected:
 	PCM1BIT* pcm;
 	SY6522* via;
 	
-	JR100_MEMORY* memory;
+	JR100::MEMORY* memory;
 	
 public:
 	// ----------------------------------------

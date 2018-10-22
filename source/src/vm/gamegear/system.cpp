@@ -7,10 +7,12 @@
 	[ system port ]
 */
 
-#include "system.h"
+#include "./system.h"
 #include "keyboard.h"
 #include "../event.h"
 #include "../z80.h"
+
+namespace GAMEGEAR {
 
 void SYSTEM::write_io8(uint32_t addr, uint32_t data)
 {
@@ -80,4 +82,6 @@ uint32_t SYSTEM::read_io8(uint32_t addr)
 		return 0x80; /// 1000 0000
 	}
 	return 0x00;
+}
+
 }

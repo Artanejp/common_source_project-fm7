@@ -75,13 +75,14 @@ class UPD765A;
 class AY_3_891X;
 class Z80;
 
-class CMT;
-class DISPLAY;
-class FLOPPY;
-class KANJI;
-class KEYBOARD;
-class MULTI8_MEMORY;
-
+namespace MULTI8 {
+	class CMT;
+	class DISPLAY;
+	class FLOPPY;
+	class KANJI;
+	class KEYBOARD;
+	class MEMORY;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -103,12 +104,12 @@ protected:
 	AY_3_891X* psg;
 	Z80* cpu;
 	
-	CMT* cmt;
-	DISPLAY* display;
-	FLOPPY* floppy;
-	KANJI* kanji;
-	KEYBOARD* key;
-	MULTI8_MEMORY* memory;
+	MULTI8::CMT* cmt;
+	MULTI8::DISPLAY* display;
+	MULTI8::FLOPPY* floppy;
+	MULTI8::KANJI* kanji;
+	MULTI8::KEYBOARD* key;
+	MULTI8::MEMORY* memory;
 	
 public:
 	// ----------------------------------------

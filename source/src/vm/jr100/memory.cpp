@@ -10,6 +10,8 @@
 #include "memory.h"
 #include "../sy6522.h"
 
+namespace JR100 {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 13, eb = (e) >> 13; \
 	for(int i = sb; i <= eb; i++) { \
@@ -26,7 +28,7 @@
 	} \
 }
 
-void JR100_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	// initialize memory
 	memset(ram, 0, sizeof(ram));
@@ -64,7 +66,7 @@ void JR100_MEMORY::initialize()
 	register_frame_event(this);
 }
 
-void JR100_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	if((addr & 0xf000) == 0xc000) {
 		switch(addr & 0xfc00) {
@@ -80,7 +82,7 @@ void JR100_MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[(addr >> 13) & 7][addr & 0x1fff] = data;
 }
 
-uint32_t JR100_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	if((addr & 0xf000) == 0xc000) {
 		switch(addr & 0xfc00) {
@@ -104,7 +106,7 @@ uint32_t JR100_MEMORY::read_data8(uint32_t addr)
 	return rbank[(addr >> 13) & 7][addr & 0x1fff];
 }
 
-void JR100_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_VIA_PORT_A) {
 		key_column = data & 0x0f;
@@ -126,7 +128,7 @@ static const int key_table[9][5] = {
 	{0xbe, 0x20, 0xba, 0x0d, 0xbd},	//	.	SPACE	:	RET	-
 };
 
-void JR100_MEMORY::event_frame()
+void MEMORY::event_frame()
 {
 	uint32_t data = 0;
 	if(key_column < 9) {
@@ -139,7 +141,7 @@ void JR100_MEMORY::event_frame()
 	d_via->write_signal(SIG_SY6522_PORT_B, ~data, 0x1f);
 }
 
-void JR100_MEMORY::draw_screen()
+void MEMORY::draw_screen()
 {
 	int src = 0x100;
 	for(int y = 0, yy = 0; y < 24; y++, yy += 8) {
@@ -166,7 +168,7 @@ void JR100_MEMORY::draw_screen()
 
 #define STATE_VERSION	1
 
-bool JR100_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -179,4 +181,6 @@ bool JR100_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateInt32(key_column);
 	state_fio->StateBool(cmode);
 	return true;
+}
+
 }

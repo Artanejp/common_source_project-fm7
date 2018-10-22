@@ -25,7 +25,9 @@
 #define SIG_MEMORY_FDC_DRQ	2
 #endif
 
-class MZ80A_MEMORY : public DEVICE
+namespace MZ80 {
+
+class MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_ctc, *d_pio;
@@ -81,11 +83,11 @@ private:
 	uint8_t pcg_ctrl;
 	
 public:
-	MZ80A_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MZ80A_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -112,5 +114,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

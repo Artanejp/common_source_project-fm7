@@ -11,6 +11,8 @@
 #include "../i8259.h"
 #include "../upd765a.h"
 
+namespace JX {
+
 void FLOPPY::reset()
 {
 	prev = 0;
@@ -67,3 +69,4 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 
+}

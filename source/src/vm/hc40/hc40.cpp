@@ -25,6 +25,9 @@
 #include "io.h"
 #include "memory.h"
 
+using HC40::IO;
+using HC40::MEMORY;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -45,8 +48,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	tf20 = new PTF20(this, emu);
 	cpu = new Z80(this, emu);
 	
-	io = new HC40_IO(this, emu);
-	memory = new HC40_MEMORY(this, emu);
+	io = new IO(this, emu);
+	memory = new MEMORY(this, emu);
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);

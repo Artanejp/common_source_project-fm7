@@ -15,7 +15,9 @@
 #define PAGE_TYPE_DIC		3
 #define PAGE_TYPE_MODIFY	4
 
-#define SET_BANK(s, e, w, r) { \
+namespace MZ2500 {
+
+#define SET_BANK(s, e, w, r) {			\
 	int sb = (s) >> 11, eb = (e) >> 11; \
 	for(int i = sb; i <= eb; i++) { \
 		if((w) == wdmy) { \
@@ -31,7 +33,7 @@
 	} \
 }
 
-void MZ2500_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -67,7 +69,7 @@ void MZ2500_MEMORY::initialize()
 
 // NOTE: IPL reset is done at system boot
 
-void MZ2500_MEMORY::reset()
+void MEMORY::reset()
 {
 	// ipl reset
 	bank = 0;
@@ -85,7 +87,7 @@ void MZ2500_MEMORY::reset()
 	extra_wait = 0;
 }
 
-void MZ2500_MEMORY::special_reset()
+void MEMORY::special_reset()
 {
 	// reset
 	bank = 0;
@@ -103,7 +105,7 @@ void MZ2500_MEMORY::special_reset()
 	extra_wait = 0;
 }
 
-void MZ2500_MEMORY::write_data8_tmp(int b, uint32_t addr, uint32_t data)
+void MEMORY::write_data8_tmp(int b, uint32_t addr, uint32_t data)
 {
 	if(is_vram[b] && !blank) {
 		// vram wait
@@ -126,7 +128,7 @@ void MZ2500_MEMORY::write_data8_tmp(int b, uint32_t addr, uint32_t data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32_t MZ2500_MEMORY::read_data8_tmp(int b, uint32_t addr)
+uint32_t MEMORY::read_data8_tmp(int b, uint32_t addr)
 {
 	if(is_vram[b] && !blank) {
 		// vram wait
@@ -149,21 +151,21 @@ uint32_t MZ2500_MEMORY::read_data8_tmp(int b, uint32_t addr)
 }
 
 
-void MZ2500_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	int b = addr >> 13;
 	write_data8_tmp(b, addr, data);
 }
 
-uint32_t MZ2500_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	int b = addr >> 13;
 	return read_data8_tmp(b, addr);
 }
 
-void MZ2500_MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
+void MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 {
 	addr &= 0xffff;
 	int b = addr >> 13;
@@ -178,7 +180,7 @@ void MZ2500_MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 	}
 }
 
-uint32_t MZ2500_MEMORY::read_data8w(uint32_t addr, int* wait)
+uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
 {
 	addr &= 0xffff;
 	int b = addr >> 13;
@@ -194,13 +196,13 @@ uint32_t MZ2500_MEMORY::read_data8w(uint32_t addr, int* wait)
 	return data;
 }
 
-uint32_t MZ2500_MEMORY::fetch_op(uint32_t addr, int* wait)
+uint32_t MEMORY::fetch_op(uint32_t addr, int* wait)
 {
 	*wait = 1;
 	return read_data8(addr);
 }
 
-void MZ2500_MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xb4:
@@ -236,7 +238,7 @@ void MZ2500_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t MZ2500_MEMORY::read_io8(uint32_t addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xb4:
@@ -251,7 +253,7 @@ uint32_t MZ2500_MEMORY::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-void MZ2500_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_HBLANK) {
 		hblank = ((data & mask) != 0);
@@ -268,7 +270,7 @@ void MZ2500_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	blank = next;
 }
 
-void MZ2500_MEMORY::set_map(uint8_t data)
+void MEMORY::set_map(uint8_t data)
 {
 	int base = bank * 0x2000;
 	
@@ -331,7 +333,7 @@ void MZ2500_MEMORY::set_map(uint8_t data)
 #define STATE_VERSION	1
 
 
-bool MZ2500_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -362,4 +364,6 @@ bool MZ2500_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		bank = bank_tmp;
 	}
 	return true;
+}
+
 }

@@ -13,6 +13,8 @@
 #include "dmareg.h"
 #include "../i8237.h"
 
+namespace J3100 {
+	
 void DMAREG::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
@@ -55,3 +57,4 @@ void DMAREG::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
+}

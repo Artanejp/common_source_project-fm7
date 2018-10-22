@@ -272,20 +272,24 @@ class Z80SIO;
 class Z80DMA;
 #endif
 
-class DISPLAY;
-class EMM;
-class FLOPPY;
-class IOBUS;
-class JOYSTICK;
-class X1_MEMORY;
-class MOUSE;
-class PSUB;
-class SASI;
-
+namespace X1 {
+	class DISPLAY;
+	class EMM;
+	class FLOPPY;
+	class IOBUS;
+	class JOYSTICK;
+	class MEMORY;
+	class MOUSE;
+	class PSUB;
+	class SASI;
+}
 class MCS48;
 class UPD1990A;
-class SUB;
-class KEYBOARD;
+
+namespace X1 {
+	class SUB;
+	class KEYBOARD;
+}
 
 #ifdef _X1TWIN
 class HUC6280;
@@ -320,23 +324,23 @@ protected:
 #ifdef _X1TURBO_FEATURE
 	Z80DMA* dma;
 #endif
-	DISPLAY* display;
-	EMM* emm;
-	FLOPPY* floppy;
-	IOBUS* iobus;
-	JOYSTICK* joy;
-	X1_MEMORY* memory;
-	MOUSE* mouse;
-	PSUB* psub;
-	SASI* sasi;
+	X1::DISPLAY* display;
+	X1::EMM* emm;
+	X1::FLOPPY* floppy;
+	X1::IOBUS* iobus;
+	X1::JOYSTICK* joy;
+	X1::MEMORY* memory;
+	X1::MOUSE* mouse;
+	X1::PSUB* psub;
+	X1::SASI* sasi;
 	
 	MCS48* cpu_sub;
 	UPD1990A* rtc_sub;
 	I8255* pio_sub;
-	SUB* sub;
+	X1::SUB* sub;
 	
 	MCS48* cpu_kbd;
-	KEYBOARD* kbd;
+	X1::KEYBOARD* kbd;
 	
 	bool pseudo_sub_cpu;
 	int sound_type;

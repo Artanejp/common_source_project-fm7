@@ -20,6 +20,8 @@
 
 #define SIG_JOYSTICK_SEL	0
 
+namespace MSX {
+
 class JOYSTICK : public DEVICE
 {
 private:
@@ -47,5 +49,6 @@ public:
 	}
 };
 
+}
 #endif
 

@@ -19,7 +19,9 @@
 
 class FIFO;
 
-class HC40_IO : public DEVICE
+namespace HC40 {
+	
+class IO : public DEVICE
 {
 private:
 	DEVICE *d_cpu, *d_mem, *d_tf20, *d_beep, *d_drec;
@@ -71,11 +73,11 @@ private:
 	scrntype_t pd, pb;
 	
 public:
-	HC40_IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("I/O Bus"));
 	}
-	~HC40_IO() {}
+	~IO() {}
 	
 	// common functions
 	void initialize();
@@ -117,4 +119,5 @@ public:
 	void key_up(int code);
 };
 
+}
 #endif

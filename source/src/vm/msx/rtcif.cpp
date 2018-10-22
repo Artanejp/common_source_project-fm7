@@ -11,6 +11,8 @@
 
 #include "rtcif.h"
 
+namespace MSX {
+
 void RTCIF::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 1) {
@@ -40,4 +42,6 @@ bool RTCIF::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateUint8(adrs);
 	return true;
+}
+
 }

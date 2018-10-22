@@ -26,6 +26,7 @@
 
 #include "./memory.h"
 
+using JR100::MEMORY;
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -51,7 +52,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pcm = new PCM1BIT(this, emu);
 	via = new SY6522(this, emu);
 	
-	memory = new JR100_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);

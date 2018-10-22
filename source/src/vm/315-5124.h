@@ -22,11 +22,13 @@
 
 #define CYCLES_PER_LINE 228
 
-class KEYBOARD;
+namespace GAMEGEAR {
+	class KEYBOARD;
+}
 class _315_5124 : public DEVICE
 {
 private:
-	KEYBOARD *d_key;
+	GAMEGEAR::KEYBOARD *d_key;
 	DEVICE *d_psg;
 	// output signals
 	outputs_t outputs_irq;
@@ -107,7 +109,7 @@ public:
 	uint32_t read_io8(uint32_t addr);
 	void event_vline(int v, int clock);
 	// unique function
-	void set_context_key(KEYBOARD* device)
+	void set_context_key(GAMEGEAR::KEYBOARD* device)
 	{
 		d_key = device;
 	}

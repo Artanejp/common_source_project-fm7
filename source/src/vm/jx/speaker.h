@@ -16,6 +16,8 @@
 
 #define SIG_SPEAKER_PIO	0
 
+namespace JX {
+
 class SPEAKER : public DEVICE
 {
 private:
@@ -43,5 +45,6 @@ public:
 	}
 };
 
+}
 #endif
 

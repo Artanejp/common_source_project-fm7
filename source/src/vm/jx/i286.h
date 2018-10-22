@@ -21,6 +21,8 @@
 class DEBUGGER;
 #endif
 
+namespace JX {
+
 class I286 : public DEVICE
 {
 private:
@@ -145,4 +147,5 @@ public:
 #endif
 };
 
+}
 #endif

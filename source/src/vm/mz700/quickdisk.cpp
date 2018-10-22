@@ -32,6 +32,8 @@
 #define HEADER_BLOCK_ID	0
 #define DATA_BLOCK_ID	1
 
+namespace MZ700 {
+
 void QUICKDISK::initialize()
 {
 	insert = protect = false;
@@ -589,4 +591,6 @@ bool QUICKDISK::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateInt32(restore_id);
 	state_fio->StateInt32(end_id);
 	return true;
+}
+
 }

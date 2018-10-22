@@ -36,6 +36,7 @@
 class YM2203;
 class Z80;
 
+namespace PC88DEV {
 typedef struct {
 	struct {
 		int rate, counter;
@@ -378,5 +379,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

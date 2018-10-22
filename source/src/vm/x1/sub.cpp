@@ -65,6 +65,8 @@ SUB 8255
 	PC7	--> OBF(L)
 */
 
+namespace X1 {
+
 void SUB::reset()
 {
 	p1_out = p2_out = portc = 0xff;
@@ -288,4 +290,6 @@ bool SUB::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(iei);
 	state_fio->StateUint32(intr_bit);
  	return true;
+}
+
 }

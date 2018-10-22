@@ -108,18 +108,23 @@ class LS393;
 class PCM1BIT;
 class Z80;
 
-class KEYBOARD;
-class MZ80A_MEMORY;
-class PRINTER;
-
+namespace MZ80 {
+	class KEYBOARD;
+	class MEMORY;
+	class PRINTER;
+}
 #if defined(SUPPORT_MZ80AIF)
 class MB8877;
 class IO;
-class MZ80AIF;
+namespace MZ80 {
+	class MZ80AIF;
+}
 #elif defined(SUPPORT_MZ80FIO)
-class T3444A;
 class IO;
-class MZ80FIO;
+class T3444A;
+namespace MZ80 {
+	class MZ80FIO;
+}
 #endif
 
 class VM : public VM_TEMPLATE
@@ -141,18 +146,18 @@ protected:
 	PCM1BIT* pcm;
 	Z80* cpu;
 	
-	KEYBOARD* keyboard;
-	MZ80A_MEMORY* memory;
-	PRINTER* printer;
+	MZ80::KEYBOARD* keyboard;
+	MZ80::MEMORY* memory;
+	MZ80::PRINTER* printer;
 	
 #if defined(SUPPORT_MZ80AIF)
 	MB8877* fdc;
 	IO* io;
-	MZ80AIF* mz80aif;
+	MZ80::MZ80AIF* mz80aif;
 #elif defined(SUPPORT_MZ80FIO)
 	T3444A* fdc;
 	IO* io;
-	MZ80FIO* mz80fio;
+	MZ80::MZ80FIO* mz80fio;
 #endif
 	
 public:

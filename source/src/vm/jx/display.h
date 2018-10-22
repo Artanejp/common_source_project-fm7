@@ -20,6 +20,8 @@
 
 class MEMORY;
 
+namespace JX {
+
 class DISPLAY : public DEVICE
 {
 private:
@@ -92,5 +94,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

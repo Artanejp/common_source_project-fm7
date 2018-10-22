@@ -17,6 +17,8 @@
 #endif
 #include "display.h"
 
+namespace X1 {
+
 #ifdef _X1TURBOZ
 #define AEN	((zmode1 & 0x80) != 0)
 #define APEN	((zmode2 & 0x80) != 0)
@@ -269,4 +271,6 @@ bool IOBUS::process_state(FILEIO* state_fio, bool loading)
 #endif
 #endif
  	return true;
+}
+
 }

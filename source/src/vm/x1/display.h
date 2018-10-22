@@ -24,6 +24,8 @@
 
 class HD46505;
 
+namespace X1 {
+
 class DISPLAY : public DEVICE
 {
 private:
@@ -189,5 +191,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

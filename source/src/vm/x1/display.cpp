@@ -20,6 +20,8 @@
 #define EVENT_AFTER_BLANK	0
 #endif
 
+namespace X1 {
+
 #ifdef _X1TURBOZ
 #define AEN	((zmode1 & 0x80) != 0)
 #define C64	((zmode1 & 0x10) != 0)
@@ -1640,4 +1642,6 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 		update_crtc(); // force update timing
 	}
  	return true;
+}
+
 }

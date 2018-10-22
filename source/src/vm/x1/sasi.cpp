@@ -22,6 +22,8 @@
 #define STATUS_CXD	0x08
 #define STATUS_MSG	0x10
 
+namespace X1 {
+
 void SASI::reset()
 {
 	irq_status = drq_status = false;
@@ -134,4 +136,6 @@ bool SASI::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(irq_status);
 	state_fio->StateBool(drq_status);
  	return true;
+}
+
 }

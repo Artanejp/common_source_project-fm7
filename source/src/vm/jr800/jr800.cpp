@@ -25,6 +25,7 @@
 #endif
 
 #include "./io.h"
+using JR800::IO;
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -49,7 +50,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory = new MEMORY(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	
-	io = new JR800_IO(this, emu);
+	io = new IO(this, emu);
 	
 	// set contexts
 	event->set_context_cpu(cpu);

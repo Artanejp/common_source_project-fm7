@@ -9,6 +9,8 @@
 
 #include "rompack.h"
 
+namespace FP1100 {
+	
 void ROMPACK::initialize()
 {
 	memset(rom, 0xff, sizeof(rom));
@@ -29,4 +31,6 @@ uint32_t ROMPACK::read_io8(uint32_t addr)
 		return 0x00; // device id
 	}
 	return 0xff;
+}
+
 }

@@ -44,7 +44,7 @@
 #include "system.h"
 #include "timer.h"
 
-//using FMR50::BIOS;
+using FMR50::BIOS;
 using FMR30::CMOS;
 using FMR30::FLOPPY;
 using FMR30::KEYBOARD;

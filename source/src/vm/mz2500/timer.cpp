@@ -11,6 +11,8 @@
 #include "timer.h"
 #include "../i8253.h"
 
+namespace MZ2500 {
+
 void TIMER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
@@ -29,3 +31,4 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
+}

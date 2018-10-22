@@ -166,8 +166,9 @@ class UPD765A;
 #ifdef SUPPORT_PC88_PCG8100
 class I8253;
 #endif
-class PC88;
-
+namespace PC88DEV {
+	class PC88;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -203,7 +204,7 @@ protected:
 	PCM1BIT* pc88pcm2;
 #endif
 	
-	PC88* pc88;
+	PC88DEV::PC88* pc88;
 	
 	int boot_mode;
 	

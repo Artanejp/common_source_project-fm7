@@ -11,7 +11,8 @@
 #include "display.h"
 
 // SL:	0-6,74
-
+namespace J3100 {
+	
 void DISPLAY::initialize()
 {
 	// load rom image
@@ -310,3 +311,4 @@ void DISPLAY::draw_graph_640x400()
 	}
 }
 
+}

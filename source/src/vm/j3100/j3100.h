@@ -92,13 +92,25 @@ class RP5C01;
 class HD146818P;
 #endif
 
-class DISPLAY;
-class DMAREG;
-class FLOPPY;
-class KEYBOARD;
-class MEMORY;
-class SASI;
-class SYSTEM;
+namespace J3100 {
+	class DISPLAY;
+	class DMAREG;
+	class FLOPPY;
+	class SASI;
+#ifndef TYPE_SL
+	class KEYBOARD;
+	class MEMORY;
+	class SYSTEM;
+#endif
+}
+
+#ifdef TYPE_SL
+namespace J3100SL {
+	class KEYBOARD;
+	class MEMORY;
+	class SYSTEM;
+}
+#endif
 
 class VM : public VM_TEMPLATE
 {
@@ -128,13 +140,19 @@ protected:
 	I8237* dma2;
 #endif
 	
-	DISPLAY* display;
-	DMAREG* dmareg;
-	FLOPPY* floppy;
-	KEYBOARD* keyboard;
-	MEMORY* memory;
-	SASI* sasi;
-	SYSTEM* system;
+	J3100::DISPLAY* display;
+	J3100::DMAREG* dmareg;
+	J3100::FLOPPY* floppy;
+	J3100::SASI* sasi;
+#ifdef TYPE_SL
+	J3100SL::KEYBOARD* keyboard;
+	J3100SL::MEMORY* memory;
+	J3100SL::SYSTEM* system;
+#else
+	J3100::KEYBOARD* keyboard;
+	J3100::MEMORY* memory;
+	J3100::SYSTEM* system;
+#endif
 	
 public:
 	// ----------------------------------------

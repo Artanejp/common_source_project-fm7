@@ -11,6 +11,8 @@
 
 #include "printer.h"
 
+namespace MZ80 {
+
 void PRINTER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
@@ -56,3 +58,5 @@ bool PRINTER::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 #endif
+
+}

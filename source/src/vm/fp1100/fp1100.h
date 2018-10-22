@@ -71,11 +71,13 @@ class UPD765A;
 class UPD7801;
 class Z80;
 
-class MAIN;
-class SUB;
-class FDCPACK;
-class RAMPACK;
-class ROMPACK;
+namespace FP1100 {
+	class MAIN;
+	class SUB;
+	class FDCPACK;
+	class RAMPACK;
+	class ROMPACK;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -93,16 +95,16 @@ protected:
 	UPD7801* subcpu;
 	Z80* maincpu;
 	
-	MAIN* mainbus;
-	SUB* subbus;
-	FDCPACK* fdcpack;
-	RAMPACK* rampack1;
-	RAMPACK* rampack2;
-	RAMPACK* rampack3;
-	RAMPACK* rampack4;
-	RAMPACK* rampack5;
-	RAMPACK* rampack6;
-	ROMPACK* rompack;
+	FP1100::MAIN* mainbus;
+	FP1100::SUB* subbus;
+	FP1100::FDCPACK* fdcpack;
+	FP1100::RAMPACK* rampack1;
+	FP1100::RAMPACK* rampack2;
+	FP1100::RAMPACK* rampack3;
+	FP1100::RAMPACK* rampack4;
+	FP1100::RAMPACK* rampack5;
+	FP1100::RAMPACK* rampack6;
+	FP1100::ROMPACK* rompack;
 	
 public:
 	// ----------------------------------------

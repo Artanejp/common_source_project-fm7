@@ -21,6 +21,8 @@
 #define SIG_MAIN_INTD	4
 #define SIG_MAIN_COMM	5
 
+namespace FP1100 {
+	
 class MAIN : public DEVICE
 {
 private:
@@ -96,4 +98,5 @@ public:
 	}
 };
 
+}
 #endif

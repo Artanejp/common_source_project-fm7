@@ -19,6 +19,8 @@
 
 #define EMM_BUFFER_SIZE	0x50000
 
+namespace X1 {
+
 class EMM : public DEVICE
 {
 private:
@@ -40,5 +42,6 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 };
 
+}
 #endif
 

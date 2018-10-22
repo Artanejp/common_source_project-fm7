@@ -20,7 +20,9 @@
 class DISPLAY;
 #endif
 
-class MZ700_MEMORY : public DEVICE
+namespace MZ700 {
+	
+class MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_cpu, *d_pit, *d_pio;
@@ -114,11 +116,11 @@ private:
 #endif
 	
 public:
-	MZ700_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~MZ700_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -160,5 +162,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

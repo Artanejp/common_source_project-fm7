@@ -50,6 +50,21 @@
 #include "mz1m01.h"
 #endif
 
+using MZ80B::MEMORY;
+using MZ2500::CMT;
+using MZ2500::FLOPPY;
+using MZ2500::KEYBOARD;
+using MZ2500::MZ1R12;
+using MZ2500::MZ1R13;
+using MZ2500::PRINTER;
+using MZ2500::TIMER;
+#ifdef SUPPORT_QUICK_DISK
+using MZ700::QUICKDISK;
+#endif
+#ifdef SUPPORT_16BIT_BOARD
+using MZ80B::MZ1M01;
+#endif
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -82,7 +97,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cmt = new CMT(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new MZ80B_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	mz1r12 = new MZ1R12(this, emu);
 	mz1r13 = new MZ1R13(this, emu);
 	printer = new PRINTER(this, emu);

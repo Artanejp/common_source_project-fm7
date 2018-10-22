@@ -27,7 +27,9 @@
 
 class Z80;
 
-class MZ80B_MEMORY : public DEVICE
+namespace MZ80B {
+
+class MEMORY : public DEVICE
 {
 private:
 	Z80 *d_cpu;
@@ -81,11 +83,11 @@ private:
 #endif
 	
 public:
-	MZ80B_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus(MZ80B/2000/2200)"));
 	}
-	~MZ80B_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -114,4 +116,5 @@ public:
 	void draw_screen();
 };
 
+}
 #endif

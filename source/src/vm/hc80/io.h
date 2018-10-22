@@ -20,7 +20,9 @@
 
 class FIFO;
 
-class HC80_IO : public DEVICE
+namespace HC80 {
+
+class IO : public DEVICE
 {
 private:
 	DEVICE *d_cpu, *d_mem, *d_sio, *d_beep, *d_tf20;
@@ -111,11 +113,11 @@ private:
 	uint8_t *iramdisk_ptr;
 
 public:
-	HC80_IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("I/O Bus"));
 	}
-	~HC80_IO() {}
+	~IO() {}
 	
 	// common functions
 	void initialize();
@@ -156,4 +158,5 @@ public:
 	void key_up(int code);
 };
 
+}
 #endif

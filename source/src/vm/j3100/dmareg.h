@@ -15,6 +15,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace J3100 {
+	
 class DMAREG : public DEVICE
 {
 private:
@@ -46,5 +48,6 @@ public:
 #endif
 };
 
+}
 #endif
 

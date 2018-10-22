@@ -15,6 +15,8 @@
 #include "keyboard.h"
 #include "../i8255.h"
 
+namespace MZ80 {
+
 static const int key_map[10][8] = {
 #if defined(_MZ80A)
 	// MZ-80A
@@ -133,4 +135,6 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(column);
 	state_fio->StateBool(kana);
 	return true;
+}
+
 }

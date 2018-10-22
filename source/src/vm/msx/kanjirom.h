@@ -16,6 +16,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace MSX {
+
 class KANJIROM : public DEVICE
 {
 private:
@@ -33,6 +35,7 @@ public:
 	// unique functions
 };
 
+}
 #endif
 
 

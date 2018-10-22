@@ -36,6 +36,11 @@
 #include "keyboard.h"
 #include "speaker.h"
 
+using JX::I286;
+using JX::DISPLAY;
+using JX::FLOPPY;
+using JX::KEYBOARD;
+using JX::SPEAKER;
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------

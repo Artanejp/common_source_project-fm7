@@ -13,6 +13,8 @@
 #include "../i8259.h"
 #include "../mb8877.h"
 
+namespace FMR50 {
+
 void FLOPPY::initialize()
 {
 	drvreg = drvsel = 0;
@@ -130,4 +132,6 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateBool(changed[i]);
 	}
 	return true;
+}
+
 }

@@ -16,6 +16,8 @@
 
 class FIFO;
 
+namespace MYCOMZ80A {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -67,5 +69,6 @@ public:
 	}
 };
 
+}
 #endif
 

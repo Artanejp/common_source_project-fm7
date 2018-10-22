@@ -52,6 +52,14 @@
 // initialize
 // ----------------------------------------------------------------------------
 
+using FMR50::BIOS;
+using FMR50::CMOS;
+using FMR50::FLOPPY;
+using FMR50::KEYBOARD;
+using FMR50::MEMORY;
+using FMR50::SCSI;
+using FMR50::TIMER;
+
 VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 /*
@@ -161,7 +169,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cmos = new CMOS(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new FMR50_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	scsi = new SCSI(this, emu);
 //	serial = new SERIAL(this, emu);
 	timer = new TIMER(this, emu);

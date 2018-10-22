@@ -11,6 +11,8 @@
 
 #define EMM_SIZE	(640 * 1024)
 
+namespace MZ2500 {
+
 void MZ1R37::initialize()
 {
 	buffer = (uint8_t*)calloc(EMM_SIZE, sizeof(uint8_t));
@@ -65,4 +67,5 @@ bool MZ1R37::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(buffer, EMM_SIZE, 1);
 	state_fio->StateUint32(address);
 	return true;
+}
 }

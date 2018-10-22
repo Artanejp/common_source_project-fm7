@@ -17,17 +17,19 @@
 
 class HD44102;
 
-class JR800_IO : public DEVICE
+namespace JR800 {
+	
+class IO : public DEVICE
 {
 private:
 	HD44102 *d_lcd[8];
 	
 public:
-	JR800_IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Mapped I/O"));
 	}
-	~JR800_IO() {}
+	~IO() {}
 	
 	// common functions
 	void write_memory_mapped_io8(uint32_t addr, uint32_t data);
@@ -41,5 +43,6 @@ public:
 	}
 };
 
+}
 #endif
 

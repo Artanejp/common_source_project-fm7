@@ -17,6 +17,8 @@
 #define SIG_MZ1E30_IRQ	0
 #define SIG_MZ1E30_DRQ	1
 
+namespace MZ2500 {
+
 class MZ1E30 : public DEVICE
 {
 private:
@@ -55,5 +57,6 @@ public:
 	}
 };
 
+}
 #endif
 

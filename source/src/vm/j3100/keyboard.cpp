@@ -15,6 +15,8 @@
 #define STATUS_OBF	1
 #define STATUS_IBF	2
 
+namespace J3100 {
+	
 void KEYBOARD::initialize()
 {
 	recv_buf = new FIFO(32);
@@ -136,3 +138,4 @@ void KEYBOARD::key_up(int code)
 	}
 }
 
+}

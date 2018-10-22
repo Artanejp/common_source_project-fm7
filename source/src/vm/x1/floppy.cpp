@@ -19,6 +19,8 @@
 #define EVENT_MOTOR_ON	0
 #define EVENT_MOTOR_OFF	1
 
+namespace X1 {
+
 void FLOPPY::reset()
 {
 	register_id = -1;
@@ -108,4 +110,6 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(motor_on);
 	state_fio->StateInt32(register_id);
  	return true;
+}
+
 }

@@ -10,6 +10,8 @@
 #include "mz1m01.h"
 #include "../z80pio.h"
 
+namespace MZ80B {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 13, eb = (e) >> 13; \
 	for(int i = sb; i <= eb; i++) { \
@@ -124,4 +126,6 @@ bool MZ1M01::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(ram, sizeof(ram), 1);
 	state_fio->StateBuffer(port, sizeof(port), 1);
 	return true;
+}
+
 }

@@ -27,6 +27,7 @@
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
+using FP200::IO;
 
 VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
@@ -44,7 +45,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory = new MEMORY(this, emu);
 	rtc = new RP5C01(this, emu);
 	
-	io = new FP200_IO(this, emu);
+	io = new IO(this, emu);
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(drec);

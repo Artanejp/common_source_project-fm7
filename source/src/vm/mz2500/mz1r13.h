@@ -16,6 +16,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace MZ2500 {
+
 class MZ1R13 : public DEVICE
 {
 private:
@@ -38,6 +40,6 @@ public:
 	uint32_t read_io8(uint32_t addr);
 	bool process_state(FILEIO* state_fio, bool loading);
 };
-
+}
 #endif
 

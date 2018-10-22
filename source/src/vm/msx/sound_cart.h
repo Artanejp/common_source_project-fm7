@@ -20,6 +20,8 @@
 #define	SOUND_CHIP_SCC 0
 #define	SOUND_CHIP_MAX 0
 
+namespace MSX {
+
 class SOUND_CART : public DEVICE
 {
 private:
@@ -47,5 +49,6 @@ public:
 	uint32_t read_data8_c(int chip, uint32_t addr);
 };
 
+}
 #endif
 

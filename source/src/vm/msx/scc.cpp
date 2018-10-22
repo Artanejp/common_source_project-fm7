@@ -51,6 +51,8 @@
 
 #define GETA_BITS 22
 
+namespace MSX {
+
 static void
 internal_refresh (SCC * scc)
 {
@@ -637,3 +639,4 @@ void SCC::save_load_state(FILEIO* state_fio, bool is_save)
 	return;
 }
 
+}

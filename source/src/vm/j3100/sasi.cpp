@@ -32,6 +32,8 @@
 #define EVENT_COMMAND	0
 #define EVENT_STATUS	1
 
+namespace J3100 {
+
 void SASI::initialize()
 {
 	// open hard drive images
@@ -400,3 +402,4 @@ bool SASI::format(int drv)
 	return true;
 }
 
+}

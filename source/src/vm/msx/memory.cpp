@@ -22,6 +22,8 @@
 
 #define EVENT_CLOCK	0
 
+namespace MSX {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 13, eb = (e) >> 13; \
 	for(int i = sb; i <= eb; i++) { \
@@ -541,7 +543,7 @@ bool SLOT3::process_state(FILEIO* state_fio, bool loading)
 // memory bus
 
 #if !defined(_PX7)
-void MSX_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		disk[i] = new DISK(emu);
@@ -550,7 +552,7 @@ void MSX_MEMORY::initialize()
 	}
 }
 
-void MSX_MEMORY::release()
+void MEMORY::release()
 {
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		if(disk[i]) {
@@ -561,7 +563,7 @@ void MSX_MEMORY::release()
 }
 #endif
 
-void MSX_MEMORY::reset()
+void MEMORY::reset()
 {
 #if !defined(_PX7)
 	for(int i = 0; i < MAX_DRIVE; i++) {
@@ -571,25 +573,25 @@ void MSX_MEMORY::reset()
 	update_map((0 << 0) | (1 << 2) | (2 << 4) | (3 << 6));
 }
 
-void MSX_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	d_map[addr >> 14]->write_data8(addr, data);
 }
 
-uint32_t MSX_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return d_map[addr >> 14]->read_data8(addr);
 }
 
-uint32_t MSX_MEMORY::fetch_op(uint32_t addr, int* wait)
+uint32_t MEMORY::fetch_op(uint32_t addr, int* wait)
 {
 	*wait = 1;
 	return read_data8(addr);
 }
 
-void MSX_MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 #if !defined(_PX7)
 //	if(d_map[3] == d_slot[3]) {
@@ -598,7 +600,7 @@ void MSX_MEMORY::write_io8(uint32_t addr, uint32_t data)
 #endif
 }
 
-void MSX_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_SEL) {
 		if(slot_select != (data & mask)) {
@@ -607,7 +609,7 @@ void MSX_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void MSX_MEMORY::update_map(uint32_t val)
+void MEMORY::update_map(uint32_t val)
 {
 	d_map[0] = d_slot[(val >> 0) & 3];
 	d_map[1] = d_slot[(val >> 2) & 3];
@@ -660,7 +662,7 @@ static bool get_boot_sector(DISK *disk)
 	return false;
 }
 
-uint32_t MSX_MEMORY::read_signal(int id)
+uint32_t MEMORY::read_signal(int id)
 {
 	uint32_t stat = 0;
 	for(int i = 0; i < MAX_DRIVE; i++) {
@@ -672,7 +674,7 @@ uint32_t MSX_MEMORY::read_signal(int id)
 	return stat;
 }
 
-bool MSX_MEMORY::bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_t* hl, pair_t* ix, pair_t* iy, uint8_t* iff1)
+bool MEMORY::bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_t* hl, pair_t* ix, pair_t* iy, uint8_t* iff1)
 {
 	#define AF	af->w.l
 	#define A	af->b.h
@@ -892,21 +894,21 @@ bool MSX_MEMORY::bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, p
 	return false;
 }
 
-void MSX_MEMORY::open_disk(int drv, const _TCHAR* file_path, int bank)
+void MEMORY::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	if(drv < MAX_DRIVE) {
 		disk[drv]->open(file_path, bank);
 	}
 }
 
-void MSX_MEMORY::close_disk(int drv)
+void MEMORY::close_disk(int drv)
 {
 	if(drv < MAX_DRIVE && disk[drv]->inserted) {
 		disk[drv]->close();
 	}
 }
 
-bool MSX_MEMORY::is_disk_inserted(int drv)
+bool MEMORY::is_disk_inserted(int drv)
 {
 	if(drv < MAX_DRIVE) {
 		return disk[drv]->inserted;
@@ -914,14 +916,14 @@ bool MSX_MEMORY::is_disk_inserted(int drv)
 	return false;
 }
 
-void MSX_MEMORY::is_disk_protected(int drv, bool value)
+void MEMORY::is_disk_protected(int drv, bool value)
 {
 	if(drv < MAX_DRIVE) {
 		disk[drv]->write_protected = value;
 	}
 }
 
-bool MSX_MEMORY::is_disk_protected(int drv)
+bool MEMORY::is_disk_protected(int drv)
 {
 	if(drv < MAX_DRIVE) {
 		return disk[drv]->write_protected;
@@ -933,7 +935,7 @@ bool MSX_MEMORY::is_disk_protected(int drv)
 
 #define STATE_VERSION	1
 
-bool MSX_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -957,3 +959,4 @@ bool MSX_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 
+}

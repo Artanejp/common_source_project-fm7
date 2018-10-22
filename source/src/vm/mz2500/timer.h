@@ -15,6 +15,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace MZ2500 {
+
 class TIMER : public DEVICE
 {
 private:
@@ -37,5 +39,6 @@ public:
 	}
 };
 
+}
 #endif
 

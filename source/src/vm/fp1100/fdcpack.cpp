@@ -10,6 +10,8 @@
 #include "fdcpack.h"
 #include "../upd765a.h"
 
+namespace FP1100 {
+	
 void FDCPACK::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr < 0xff00) {
@@ -52,4 +54,6 @@ uint32_t FDCPACK::read_io8(uint32_t addr)
 		return 0x04; // device id
 	}
 	return 0xff;
+}
+
 }

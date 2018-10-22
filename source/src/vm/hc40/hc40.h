@@ -56,9 +56,10 @@ class DATAREC;
 class PTF20;
 class Z80;
 
-class HC40_IO;
-class HC40_MEMORY;
-
+namespace HC40 {
+	class IO;
+	class MEMORY;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -73,8 +74,8 @@ protected:
 	PTF20* tf20;
 	Z80* cpu;
 	
-	HC40_IO* io;
-	HC40_MEMORY* memory;
+	HC40::IO* io;
+	HC40::MEMORY* memory;
 	
 public:
 	// ----------------------------------------

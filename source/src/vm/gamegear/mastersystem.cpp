@@ -30,11 +30,15 @@
 
 #include "keyboard.h"
 #include "./memory.h"
-#include "system.h"
+#include "./system.h"
 
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
+
+using GAMEGEAR::KEYBOARD;
+using GAMEGEAR::MEMORY;
+using GAMEGEAR::SYSTEM;
 
 VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
@@ -63,7 +67,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new Z80(this, emu);
 	
 	key = new KEYBOARD(this, emu);
-	memory = new SMS_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	system = new SYSTEM(this, emu);
 
 	// set contexts

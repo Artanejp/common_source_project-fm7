@@ -10,6 +10,8 @@
 #include "cmt.h"
 #include "../datarec.h"
 
+namespace M5 {
+	
 void CMT::initialize()
 {
 	// data recorder
@@ -86,4 +88,6 @@ bool CMT::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(strobe);
 	state_fio->StateBool(busy);
 	return true;
+}
+
 }

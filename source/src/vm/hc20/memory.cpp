@@ -35,6 +35,8 @@
 
 #define EVENT_SOUND	0
 
+namespace HC20 {
+
 static int key_table[8][10] = {
 	// PAUSE=F6, MENU=F7, BREAK=F8 NUM=F9 CLR=F10 SCRN=F11 PRINT=PgUp PAPER=PgDn
 	0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x70, 0x00,
@@ -47,7 +49,7 @@ static int key_table[8][10] = {
 	0x79, 0x7a, 0x77, 0x75, 0x2e, 0x76, 0x00, 0x00, 0x00, 0x21
 };
 
-void HC20_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	// initialize memory
 	memset(ram, 0, sizeof(ram));
@@ -127,7 +129,7 @@ void HC20_MEMORY::initialize()
 	register_event_by_clock(this, EVENT_SOUND, 256, true, NULL);
 }
 
-void HC20_MEMORY::release()
+void MEMORY::release()
 {
 	// save battery backuped ram
 	FILEIO* fio = new FILEIO();
@@ -146,7 +148,7 @@ void HC20_MEMORY::release()
 	delete cmd_buf;
 }
 
-void HC20_MEMORY::reset()
+void MEMORY::reset()
 {
 	// select internal rom
 //	SET_BANK(0x4000, 0x7fff, wdmy, rdmy);
@@ -172,7 +174,7 @@ void HC20_MEMORY::reset()
 	int_mask = 0;
 }
 
-void HC20_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if(addr < 0x40) {
@@ -222,7 +224,7 @@ void HC20_MEMORY::write_data8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t HC20_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if(addr < 0x40) {
@@ -284,7 +286,7 @@ uint32_t HC20_MEMORY::read_data8(uint32_t addr)
 	return rbank[(addr >> 13) & 7][addr & 0x1fff];
 }
 
-void HC20_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_PORT_2) {
 		sio_select = ((data & 0x04) != 0);
@@ -312,14 +314,14 @@ void HC20_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void HC20_MEMORY::event_callback(int event_id, int err)
+void MEMORY::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_SOUND) {
 		update_sound();
 	}
 }
 
-void HC20_MEMORY::update_sound()
+void MEMORY::update_sound()
 {
 	if(sound_ptr < sound_count) {
 		if(sound[sound_ptr].remain-- == 0) {
@@ -342,7 +344,7 @@ void HC20_MEMORY::update_sound()
 	}
 }
 
-void HC20_MEMORY::update_keyboard()
+void MEMORY::update_keyboard()
 {
 	key_data = 0x3ff;
 	
@@ -378,13 +380,13 @@ void HC20_MEMORY::update_keyboard()
 	}
 }
 
-void HC20_MEMORY::notify_power_off()
+void MEMORY::notify_power_off()
 {
 	int_status |= INT_POWER;
 	update_intr();
 }
 
-void HC20_MEMORY::key_down(int code)
+void MEMORY::key_down(int code)
 {
 	key_stat[code] = 1;
 	
@@ -398,18 +400,18 @@ void HC20_MEMORY::key_down(int code)
 	}
 }
 
-void HC20_MEMORY::key_up(int code)
+void MEMORY::key_up(int code)
 {
 	key_stat[code] = 0;
 }
 
-void HC20_MEMORY::update_intr()
+void MEMORY::update_intr()
 {
 //	d_cpu->write_signal(SIG_CPU_IRQ, (int_status && !int_mask) ? 1 : 0, 1);
 	d_cpu->write_signal(SIG_CPU_IRQ, int_status ? 1 : 0, 1);
 }
 
-void HC20_MEMORY::send_to_slave(uint8_t val)
+void MEMORY::send_to_slave(uint8_t val)
 {
 	cmd_buf->write(val);
 	uint8_t cmd = cmd_buf->read_not_remove(0);
@@ -729,13 +731,13 @@ void HC20_MEMORY::send_to_slave(uint8_t val)
 	}
 }
 
-void HC20_MEMORY::send_to_main(uint8_t val)
+void MEMORY::send_to_main(uint8_t val)
 {
 	// send to main cpu
 	d_cpu->write_signal(SIG_MC6801_SIO_RECV, val, 0xff);
 }
 
-void HC20_MEMORY::play_tape(const _TCHAR* file_path)
+void MEMORY::play_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
@@ -748,7 +750,7 @@ void HC20_MEMORY::play_tape(const _TCHAR* file_path)
 	}
 }
 
-void HC20_MEMORY::rec_tape(const _TCHAR* file_path)
+void MEMORY::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
@@ -759,7 +761,7 @@ void HC20_MEMORY::rec_tape(const _TCHAR* file_path)
 	}
 }
 
-void HC20_MEMORY::close_tape()
+void MEMORY::close_tape()
 {
 	if(cmt_fio->IsOpened()) {
 		if(cmt_rec && cmt_count) {
@@ -771,7 +773,7 @@ void HC20_MEMORY::close_tape()
 	cmt_play = cmt_rec = false;
 }
 
-void HC20_MEMORY::draw_screen()
+void MEMORY::draw_screen()
 {
 	static const int xtop[12] = {0, 0, 40, 40, 80, 80, 0, 0, 40, 40, 80, 80};
 	static const int ytop[12] = {0, 8, 0, 8, 0, 8, 16, 24, 16, 24, 16, 24};
@@ -801,7 +803,7 @@ void HC20_MEMORY::draw_screen()
 
 #define STATE_VERSION	1
 
-bool HC20_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	bool wr = false;
 	bool rd = false;
@@ -895,4 +897,6 @@ bool HC20_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		SET_BANK(0x8000, 0xbfff, wr ? ext : wdmy, rd ? ext : rom);
 	}
 	return true;
+}
+
 }

@@ -10,6 +10,8 @@
 #include "cmt.h"
 #include "../i8251.h"
 
+namespace MULTI8 {
+
 void CMT::initialize()
 {
 	fio = new FILEIO();
@@ -144,4 +146,6 @@ bool CMT::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateInt32(bufcnt);
 	state_fio->StateBuffer(buffer, sizeof(buffer), 1);
 	return true;
+}
+
 }

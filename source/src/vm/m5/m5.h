@@ -61,9 +61,10 @@ class TMS9918A;
 class Z80;
 class Z80CTC;
 
-class CMT;
-class KEYBOARD;
-
+namespace M5 {
+	class CMT;
+	class KEYBOARD;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -81,8 +82,8 @@ protected:
 	Z80* cpu;
 	Z80CTC* ctc;
 	
-	CMT* cmt;
-	KEYBOARD* key;
+	M5::CMT* cmt;
+	M5::KEYBOARD* key;
 	
 	// memory
 	uint8_t ipl[0x2000];	// ipl (8k)

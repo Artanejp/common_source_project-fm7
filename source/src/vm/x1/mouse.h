@@ -19,6 +19,8 @@
 
 #define SIG_MOUSE_RTS	0
 
+namespace X1 {
+
 class MOUSE : public DEVICE
 {
 private:
@@ -45,5 +47,6 @@ public:
 	}
 };
 
+}
 #endif
 

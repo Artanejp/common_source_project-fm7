@@ -19,7 +19,9 @@
 
 class FILEIO;
 
-class FP200_IO : public DEVICE
+namespace FP200 {
+
+class IO : public DEVICE
 {
 private:
 	DEVICE *d_cpu, *d_drec, *d_rtc;
@@ -150,11 +152,11 @@ private:
 	void update_sid();
 	
 public:
-	FP200_IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("I/O Bus"));
 	}
-	~FP200_IO() {}
+	~IO() {}
 	
 	// common functions
 	void initialize();
@@ -203,5 +205,7 @@ public:
 	}
 	void draw_screen();
 };
+
+}
 
 #endif

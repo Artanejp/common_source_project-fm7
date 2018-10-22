@@ -26,7 +26,9 @@
 class BEEP;
 class FIFO;
 
-class HC20_MEMORY : public DEVICE
+namespace HC20 {
+
+class MEMORY : public DEVICE
 {
 private:
 	BEEP *d_beep;
@@ -92,11 +94,11 @@ private:
 	void send_to_main(uint8_t val);
 	
 public:
-	HC20_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~HC20_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -138,5 +140,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

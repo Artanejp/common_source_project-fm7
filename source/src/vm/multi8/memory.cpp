@@ -10,6 +10,8 @@
 #include "memory.h"
 #include "../i8255.h"
 
+namespace MULTI8 {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
 	for(int i = sb; i <= eb; i++) { \
@@ -26,7 +28,7 @@
 	} \
 }
 
-void MULTI8_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	// init memory
 	memset(rom, 0xff, sizeof(rom));
@@ -55,14 +57,14 @@ void MULTI8_MEMORY::initialize()
 	delete fio;
 }
 
-void MULTI8_MEMORY::reset()
+void MEMORY::reset()
 {
 	map1 = 0xf;
 	map2 = 0;
 	update_map();
 }
 
-void MULTI8_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if((addr & 0xc000) == 0x8000 && (map1 & 0x10)) {
@@ -85,7 +87,7 @@ void MULTI8_MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32_t MULTI8_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if((addr & 0xc000) == 0x8000 && (map1 & 0x10)) {
@@ -109,13 +111,13 @@ uint32_t MULTI8_MEMORY::read_data8(uint32_t addr)
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void MULTI8_MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	map2 = data;
 	update_map();
 }
 
-void MULTI8_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_I8255_C) {
 		map1 = data & mask;
@@ -123,7 +125,7 @@ void MULTI8_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void MULTI8_MEMORY::update_map()
+void MEMORY::update_map()
 {
 	if(map1 & 0x20) {
 		SET_BANK(0x0000, 0x7fff, ram0, ram0);
@@ -139,7 +141,7 @@ void MULTI8_MEMORY::update_map()
 
 #define STATE_VERSION	1
 
-bool MULTI8_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -158,4 +160,6 @@ bool MULTI8_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		update_map();
 	}
 	return true;
+}
+
 }

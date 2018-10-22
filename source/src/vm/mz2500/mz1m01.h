@@ -17,6 +17,8 @@
 #define SIG_MZ1M01_PORT_A	0
 #define SIG_MZ1M01_PORT_B	1
 
+namespace MZ80B {
+
 class MZ1M01 : public DEVICE
 {
 private:
@@ -64,5 +66,6 @@ public:
 	}
 };
 
+}
 #endif
 

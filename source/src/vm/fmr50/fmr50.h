@@ -130,14 +130,16 @@ class SCSI_HDD;
 class SCSI_HOST;
 class UPD71071;
 
-class BIOS;
-class CMOS;
-class FLOPPY;
-class KEYBOARD;
-class FMR50_MEMORY;
-//class SERIAL;
-class SCSI;
-class TIMER;
+namespace FMR50 {
+	class BIOS;
+	class CMOS;
+	class FLOPPY;
+	class KEYBOARD;
+	class MEMORY;
+	//class SERIAL;
+	class SCSI;
+	class TIMER;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -169,14 +171,14 @@ protected:
 	SCSI_HOST* scsi_host;
 	UPD71071* dma;
 	
-	BIOS* bios;
-	CMOS* cmos;
-	FLOPPY* floppy;
-	KEYBOARD* keyboard;
-	FMR50_MEMORY* memory;
-	SCSI* scsi;
-//	SERIAL* serial;
-	TIMER* timer;
+	FMR50::BIOS* bios;
+	FMR50::CMOS* cmos;
+	FMR50::FLOPPY* floppy;
+	FMR50::KEYBOARD* keyboard;
+	FMR50::MEMORY* memory;
+	FMR50::SCSI* scsi;
+//	FMR50::SERIAL* serial;
+	FMR50::TIMER* timer;
 	
 public:
 	// ----------------------------------------

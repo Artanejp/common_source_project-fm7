@@ -15,6 +15,8 @@
 #include "../i386.h"
 #endif
 
+namespace FMR50 {
+	
 static const uint8_t bios1[] = {
 	0xFA,				// cli
 	0xDB,0xE3,			// fninit
@@ -60,7 +62,7 @@ static const uint8_t bios2[] = {
 	} \
 }
 
-void FMR50_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -149,7 +151,7 @@ void FMR50_MEMORY::initialize()
 	register_frame_event(this);
 }
 
-void FMR50_MEMORY::reset()
+void MEMORY::reset()
 {
 	// reset memory
 	protect = rst = 0;
@@ -178,7 +180,7 @@ void FMR50_MEMORY::reset()
 	d_cpu->set_address_mask(0x00ffffff);
 }
 
-void FMR50_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	if(addr & 0xff000000) {
 		// > 16MB
@@ -423,7 +425,7 @@ void FMR50_MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32_t FMR50_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	if(addr & 0xff000000) {
 		// > 16MB
@@ -483,17 +485,17 @@ uint32_t FMR50_MEMORY::read_data8(uint32_t addr)
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void FMR50_MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
 {
 	write_data8(addr & dma_addr_mask, data);
 }
 
-uint32_t FMR50_MEMORY::read_dma_data8(uint32_t addr)
+uint32_t MEMORY::read_dma_data8(uint32_t addr)
 {
 	return read_data8(addr & dma_addr_mask);
 }
 
-void FMR50_MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	case 0x20:
@@ -594,7 +596,7 @@ void FMR50_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t FMR50_MEMORY::read_io8(uint32_t addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
 	
@@ -653,7 +655,7 @@ uint32_t FMR50_MEMORY::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-void FMR50_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_DISP) {
 		disp = ((data & mask) != 0);
@@ -662,12 +664,12 @@ void FMR50_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void FMR50_MEMORY::event_frame()
+void MEMORY::event_frame()
 {
 	blink++;
 }
 
-void FMR50_MEMORY::update_bank()
+void MEMORY::update_bank()
 {
 	if(!mainmem) {
 #ifdef _FMR60
@@ -713,7 +715,7 @@ void FMR50_MEMORY::update_bank()
 	}
 }
 
-void FMR50_MEMORY::update_dma_addr_mask()
+void MEMORY::update_dma_addr_mask()
 {
 	switch(dma_addr_reg & 3) {
 	case 0:
@@ -737,7 +739,7 @@ void FMR50_MEMORY::update_dma_addr_mask()
 }
 
 #ifndef _FMR60
-void FMR50_MEMORY::point(int x, int y, int col)
+void MEMORY::point(int x, int y, int col)
 {
 	if(x < 640 && y < 400) {
 		int ofs = ((lofs & 0x3fff) + (x >> 3) + y * 80) & 0x7fff;
@@ -755,7 +757,7 @@ void FMR50_MEMORY::point(int x, int y, int col)
 	}
 }
 
-void FMR50_MEMORY::line()
+void MEMORY::line()
 {
 	int nx = lsx, ny = lsy;
 	int dx = abs(lex - lsx) * 2;
@@ -792,7 +794,7 @@ void FMR50_MEMORY::line()
 }
 #endif
 
-void FMR50_MEMORY::draw_screen()
+void MEMORY::draw_screen()
 {
 	// render screen
 	memset(screen_txt, 0, sizeof(screen_txt));
@@ -825,7 +827,7 @@ void FMR50_MEMORY::draw_screen()
 }
 
 #ifdef _FMR60
-void FMR50_MEMORY::draw_text()
+void MEMORY::draw_text()
 {
 	int src = ((chreg[12] << 9) | (chreg[13] << 1)) & 0x1fff;
 	int caddr = ((chreg[8] & 0xc0) == 0xc0) ? -1 : (((chreg[14] << 9) | (chreg[15] << 1)) & 0x1fff);
@@ -932,7 +934,7 @@ void FMR50_MEMORY::draw_text()
 	}
 }
 #else
-void FMR50_MEMORY::draw_text40()
+void MEMORY::draw_text40()
 {
 	int src = ((chreg[12] << 9) | (chreg[13] << 1)) & 0xfff;
 	int caddr = ((chreg[8] & 0xc0) == 0xc0) ? -1 : (((chreg[14] << 9) | (chreg[15] << 1) | (mix & 0x20 ? 1 : 0)) & 0x7ff);
@@ -1026,7 +1028,7 @@ void FMR50_MEMORY::draw_text40()
 	}
 }
 
-void FMR50_MEMORY::draw_text80()
+void MEMORY::draw_text80()
 {
 	int src = ((chreg[12] << 9) | (chreg[13] << 1)) & 0xfff;
 	int caddr = ((chreg[8] & 0xc0) == 0xc0) ? -1 : (((chreg[14] << 9) | (chreg[15] << 1) | (mix & 0x20 ? 1 : 0)) & 0x7ff);
@@ -1121,7 +1123,7 @@ void FMR50_MEMORY::draw_text80()
 }
 #endif
 
-void FMR50_MEMORY::draw_cg()
+void MEMORY::draw_cg()
 {
 #ifdef _FMR60
 	uint8_t* p0 = &vram[0x00000];
@@ -1213,7 +1215,7 @@ void FMR50_MEMORY::draw_cg()
 
 #define STATE_VERSION	1
 
-bool FMR50_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -1314,4 +1316,6 @@ bool FMR50_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		update_bank();
 	}
 	return true;
+}
+
 }

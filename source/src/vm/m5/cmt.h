@@ -18,6 +18,8 @@
 #define SIG_CMT_EOT		1
 //#define SIG_PRINTER_BUSY	2
 
+namespace M5 {
+	
 class CMT : public DEVICE
 {
 private:
@@ -54,4 +56,5 @@ public:
 	}
 };
 
+}
 #endif

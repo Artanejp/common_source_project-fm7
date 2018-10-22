@@ -20,6 +20,8 @@
 #define EVENT_BLINK	1
 #define EVENT_HBLANK	2
 
+namespace MZ80 {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 10, eb = (e) >> 10; \
 	for(int i = sb; i <= eb; i++) { \
@@ -36,7 +38,7 @@
 	} \
 }
 
-void MZ80A_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -131,7 +133,7 @@ void MZ80A_MEMORY::initialize()
 	register_event_by_clock(this, EVENT_BLINK, CPU_CLOCKS / 3, true, NULL);		// 1.5hz * 2
 }
 
-void MZ80A_MEMORY::reset()
+void MEMORY::reset()
 {
 #if defined(_MZ1200) || defined(_MZ80A)
 	// reset memory swap
@@ -156,7 +158,7 @@ void MZ80A_MEMORY::reset()
 	d_pio->write_signal(SIG_I8255_PORT_C, 0xff, 0x10);
 }
 
-void MZ80A_MEMORY::event_vline(int v, int clock)
+void MEMORY::event_vline(int v, int clock)
 {
 	// draw one line
 	if(0 <= v && v < 200) {
@@ -212,7 +214,7 @@ void MZ80A_MEMORY::event_vline(int v, int clock)
 #endif
 }
 
-void MZ80A_MEMORY::event_callback(int event_id, int err)
+void MEMORY::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_TEMPO) {
 		// 32khz
@@ -227,7 +229,7 @@ void MZ80A_MEMORY::event_callback(int event_id, int err)
 	}
 }
 
-void MZ80A_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if(0xe000 <= addr && addr <= 0xe7ff) {
@@ -266,7 +268,7 @@ void MZ80A_MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 10][addr & 0x3ff] = data;
 }
 
-uint32_t MZ80A_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if(0xe000 <= addr && addr <= 0xe7ff) {
@@ -320,7 +322,7 @@ uint32_t MZ80A_MEMORY::read_data8(uint32_t addr)
 }
 
 #if defined(_MZ1200) || defined(_MZ80A)
-void MZ80A_MEMORY::update_memory_swap()
+void MEMORY::update_memory_swap()
 {
 	if(memory_swap) {
 		SET_BANK(0x0000, 0x0fff, ram + 0xc000, ram + 0xc000);
@@ -333,7 +335,7 @@ void MZ80A_MEMORY::update_memory_swap()
 #endif
 
 #if defined(SUPPORT_MZ80AIF)
-void MZ80A_MEMORY::update_fdif_rom_bank()
+void MEMORY::update_fdif_rom_bank()
 {
 	// FD IF ROM BANK switching
 	if(fdc_drq) {
@@ -348,7 +350,7 @@ void MZ80A_MEMORY::update_fdif_rom_bank()
 }
 #endif
 
-void MZ80A_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool signal = ((data & mask) != 0);
 	
@@ -376,7 +378,7 @@ void MZ80A_MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 }
 
 #if defined(_MZ80K)
-void MZ80A_MEMORY::update_config()
+void MEMORY::update_config()
 {
 	if(config.monitor_type) {
 		palette_pc[1] = RGB_COLOR(0, 255, 0);
@@ -386,7 +388,7 @@ void MZ80A_MEMORY::update_config()
 }
 #endif
 
-void MZ80A_MEMORY::draw_screen()
+void MEMORY::draw_screen()
 {
 	// copy to real screen
 	emu->set_vm_screen_lines(200);
@@ -410,7 +412,7 @@ void MZ80A_MEMORY::draw_screen()
 
 #define STATE_VERSION	3
 
-bool MZ80A_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -455,4 +457,6 @@ bool MZ80A_MEMORY::process_state(FILEIO* state_fio, bool loading)
 #endif
 	}
 	return true;
+}
+
 }

@@ -78,6 +78,8 @@
 
 #define BLOCK_SIZE	512
 
+namespace FMR50 {
+	
 static const int iotable[][2] = {
 #ifdef _FMR30
 	{0x0100, 0x19},	// pic
@@ -1171,4 +1173,6 @@ bool BIOS::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateInt32(scsi_blocks[i]);
 	}
 	return true;
+}
+
 }

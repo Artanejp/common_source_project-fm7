@@ -132,9 +132,15 @@ private:
 		} else
 #endif
 #if defined(USE_CPU_I86) || defined(USE_CPU_I286) || defined(USE_CPU_I186) || defined(USE_CPU_V30)
+  #if defined(_JX)
+			if(typeid(T) == typeid(JX::I286)) {
+			cpu_type[num] = EVENT_CPUTYPE_I286;
+		} else
+  #else
 		if(typeid(T) == typeid(I286)) {
 			cpu_type[num] = EVENT_CPUTYPE_I286;
 		} else
+  #endif
 #endif
 #if defined(USE_CPU_I386) || defined(USE_CPU_I486) || defined(USE_CPU_PENTIUM)
 		if(typeid(T) == typeid(I386)) {

@@ -19,6 +19,8 @@
 class DISK;
 class HARDDISK;
 
+namespace FMR50 {
+
 class BIOS : public DEVICE
 {
 private:
@@ -99,6 +101,8 @@ public:
 	}
 #endif
 };
+
+}
 
 #endif
 

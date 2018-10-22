@@ -19,6 +19,8 @@
 
 class MB8877;
 
+namespace FMR50 {
+	
 class FLOPPY : public DEVICE
 {
 private:
@@ -59,5 +61,6 @@ public:
 	}
 };
 
+}
 #endif
 

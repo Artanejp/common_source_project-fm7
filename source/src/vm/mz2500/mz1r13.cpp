@@ -11,6 +11,8 @@
 
 #include "mz1r13.h"
 
+namespace MZ2500 {
+
 void MZ1R13::initialize()
 {
 	// load rom images
@@ -83,4 +85,6 @@ bool MZ1R13::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint16(address);
 	state_fio->StateBool(select_kanji);
 	return true;
+}
+
 }

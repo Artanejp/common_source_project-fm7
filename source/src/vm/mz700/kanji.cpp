@@ -11,6 +11,8 @@
 
 #include "kanji.h"
 
+namespace MZ700 {
+	
 void KANJI::initialize()
 {
 	memset(kanji, 0xff, sizeof(kanji));
@@ -86,4 +88,6 @@ bool KANJI::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint32(kanji_addr);
 	state_fio->StateUint32(dic_addr);
 	return true;
+}
+
 }

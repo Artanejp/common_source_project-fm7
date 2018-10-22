@@ -29,6 +29,8 @@
 #define STATUS_INT	0x02
 #define STATUS_PERR	0x01
 
+namespace FMR50 {
+
 void SCSI::reset()
 {
 	ctrl_reg = CTRL_IMSK;
@@ -125,4 +127,6 @@ bool SCSI::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(ctrl_reg);
 	state_fio->StateBool(irq_status);
 	return true;
+}
+
 }

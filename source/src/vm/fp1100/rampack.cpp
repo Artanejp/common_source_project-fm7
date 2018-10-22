@@ -9,6 +9,8 @@
 
 #include "rampack.h"
 
+namespace FP1100 {
+	
 void RAMPACK::initialize()
 {
 	memset(ram, 0, sizeof(ram));
@@ -67,4 +69,6 @@ bool RAMPACK::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(ram, sizeof(ram), 1);
 	state_fio->StateBool(modified);
 	return true;
+}
+
 }

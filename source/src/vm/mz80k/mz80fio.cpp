@@ -11,6 +11,8 @@
 #include "mz80fio.h"
 #include "../t3444a.h"
 
+namespace MZ80 {
+
 void MZ80FIO::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
@@ -49,3 +51,4 @@ uint32_t MZ80FIO::read_io8(uint32_t addr)
 	return 0xff;
 }
 
+}

@@ -10,6 +10,8 @@
 
 #include "sound_cart.h"
 
+namespace MSX {
+
 SOUND_CART::SOUND_CART(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	d_chip[SOUND_CHIP_SCC] = new SCC(parent_vm, parent_emu);
@@ -101,4 +103,6 @@ void SOUND_CART::set_volume(int ch, int decibel_l, int decibel_r)
 			d_chip[i]->set_volume(1, decibel_l, decibel_r);
 		}
 	}
+}
+
 }

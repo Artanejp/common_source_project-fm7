@@ -22,6 +22,8 @@ class MB8877;
 class Z80DMA;
 #endif
 
+namespace X1 {
+
 class FLOPPY : public DEVICE
 {
 private:
@@ -55,5 +57,6 @@ public:
 	}
 };
 
+}
 #endif
 

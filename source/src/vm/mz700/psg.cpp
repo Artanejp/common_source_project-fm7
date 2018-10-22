@@ -10,6 +10,8 @@
 
 #include "psg.h"
 
+namespace MZ700 {
+	
 void PSG::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
@@ -20,3 +22,4 @@ void PSG::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
+}

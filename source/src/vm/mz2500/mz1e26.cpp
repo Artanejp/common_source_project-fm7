@@ -9,6 +9,8 @@
 
 #include "mz1e26.h"
 
+namespace MZ2500 {
+
 void MZ1E26::initialize()
 {
 //	prev_data = 0;
@@ -35,3 +37,4 @@ uint32_t MZ1E26::read_io8(uint32_t addr)
 	return 0xff;
 }
 
+}

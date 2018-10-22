@@ -14,6 +14,8 @@
 #define EVENT_MOTOR_ON	0
 #define EVENT_MOTOR_OFF	1
 
+namespace MZ700 {
+	
 void FLOPPY::initialize()
 {
 	prev_dc = 0;
@@ -109,4 +111,6 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(motor_on);
 	state_fio->StateBool(irq_enabled);
 	return true;
+}
+
 }

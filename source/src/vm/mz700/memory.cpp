@@ -37,6 +37,8 @@
 #define MEM_BANK_PCG		0x20
 #endif
 
+namespace MZ700 {
+	
 #if defined(_MZ800)
 #define MZ700_MODE	(dmd & 8)
 #endif
@@ -65,7 +67,7 @@
 #define EXT_FILE_NAME	"EXT.ROM"
 #endif
 
-void MZ700_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	// init memory
 	memset(ipl, 0xff, sizeof(ipl));
@@ -127,7 +129,7 @@ void MZ700_MEMORY::initialize()
 }
 
 
-void MZ700_MEMORY::reset()
+void MEMORY::reset()
 {
 #if defined(_MZ800)
 	// check dip-switch
@@ -191,7 +193,7 @@ void MZ700_MEMORY::reset()
 }
 
 #if defined(_MZ800)
-void MZ700_MEMORY::update_config()
+void MEMORY::update_config()
 {
 	if(config.monitor_type == 0) {
 		// color
@@ -215,7 +217,7 @@ void MZ700_MEMORY::update_config()
 }
 #endif
 
-void MZ700_MEMORY::event_vline(int v, int clock)
+void MEMORY::event_vline(int v, int clock)
 {
 	// vblank / vsync
 	set_vblank(v >= 200);
@@ -275,7 +277,7 @@ void MZ700_MEMORY::event_vline(int v, int clock)
 	}
 }
 
-void MZ700_MEMORY::event_callback(int event_id, int err)
+void MEMORY::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_TEMPO) {
 		// 32KHz
@@ -307,7 +309,7 @@ void MZ700_MEMORY::event_callback(int event_id, int err)
 	}
 }
 
-void MZ700_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 #if defined(_MZ800)
@@ -456,7 +458,7 @@ void MZ700_MEMORY::write_data8(uint32_t addr, uint32_t data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32_t MZ700_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 #if defined(_MZ800)
@@ -541,19 +543,19 @@ uint32_t MZ700_MEMORY::read_data8(uint32_t addr)
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MZ700_MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
+void MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 {
 	*wait = ((mem_bank & MEM_BANK_MON_L) && addr < 0x1000) ? 1 : 0;
 	write_data8(addr, data);
 }
 
-uint32_t MZ700_MEMORY::read_data8w(uint32_t addr, int* wait)
+uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
 {
 	*wait = ((mem_bank & MEM_BANK_MON_L) && addr < 0x1000) ? 1 : 0;
 	return read_data8(addr);
 }
 
-void MZ700_MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 #if defined(_MZ800)
@@ -656,7 +658,7 @@ void MZ700_MEMORY::write_io8(uint32_t addr, uint32_t data)
 }
 
 #if defined(_MZ800)
-uint32_t MZ700_MEMORY::read_io8(uint32_t addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xce:
@@ -675,7 +677,7 @@ uint32_t MZ700_MEMORY::read_io8(uint32_t addr)
 }
 #endif
 
-void MZ700_MEMORY::set_vblank(bool val)
+void MEMORY::set_vblank(bool val)
 {
 	if(vblank != val) {
 		// VBLANK -> 8255:PC7
@@ -688,14 +690,14 @@ void MZ700_MEMORY::set_vblank(bool val)
 	}
 }
 
-void MZ700_MEMORY::set_hblank(bool val)
+void MEMORY::set_hblank(bool val)
 {
 	if(hblank != val) {
 		hblank = val;
 	}
 }
 
-void MZ700_MEMORY::update_map_low()
+void MEMORY::update_map_low()
 {
 	if(mem_bank & MEM_BANK_MON_L) {
 		SET_BANK(0x0000, 0x0fff, wdmy, ipl);
@@ -704,7 +706,7 @@ void MZ700_MEMORY::update_map_low()
 	}
 }
 
-void MZ700_MEMORY::update_map_middle()
+void MEMORY::update_map_middle()
 {
 #if defined(_MZ800)
 	if(MZ700_MODE) {
@@ -726,7 +728,7 @@ void MZ700_MEMORY::update_map_middle()
 #endif
 }
 
-void MZ700_MEMORY::update_map_high()
+void MEMORY::update_map_high()
 {
 #if defined(_MZ800)
 	// MZ-800
@@ -781,7 +783,7 @@ void MZ700_MEMORY::update_map_high()
 }
 
 #if defined(_MZ800)
-int MZ700_MEMORY::vram_page_mask(uint8_t f)
+int MEMORY::vram_page_mask(uint8_t f)
 {
 	switch(dmd & 7) {
 	case 0:	// 320x200,4col
@@ -798,7 +800,7 @@ int MZ700_MEMORY::vram_page_mask(uint8_t f)
 	return 0;
 }
 
-int MZ700_MEMORY::vram_addr(int addr)
+int MEMORY::vram_addr(int addr)
 {
 	if(dmd & 4) {
 		// 640x200
@@ -822,7 +824,7 @@ int MZ700_MEMORY::vram_addr(int addr)
 #endif
 
 #if defined(_MZ700) || defined(_MZ1500)
-void MZ700_MEMORY::draw_line(int v)
+void MEMORY::draw_line(int v)
 {
 	int ptr = 40 * (v >> 3);
 #if defined(_MZ700)
@@ -899,7 +901,7 @@ void MZ700_MEMORY::draw_line(int v)
 	}
 }
 
-void MZ700_MEMORY::draw_screen()
+void MEMORY::draw_screen()
 {
 	// copy to real screen
 	emu->set_vm_screen_lines(200);
@@ -924,7 +926,7 @@ void MZ700_MEMORY::draw_screen()
 	emu->screen_skip_line(true);
 }
 #else
-void MZ700_MEMORY::draw_line_320x200_2bpp(int v)
+void MEMORY::draw_line_320x200_2bpp(int v)
 {
 	int ofs1 = (dmd & 1) ? 0x4000 : 0;
 	int ofs2 = ofs1 | 0x2000;
@@ -947,7 +949,7 @@ void MZ700_MEMORY::draw_line_320x200_2bpp(int v)
 	}
 }
 
-void MZ700_MEMORY::draw_line_320x200_4bpp(int v)
+void MEMORY::draw_line_320x200_4bpp(int v)
 {
 	int ptr = 40 * v;
 	
@@ -970,7 +972,7 @@ void MZ700_MEMORY::draw_line_320x200_4bpp(int v)
 	}
 }
 
-void MZ700_MEMORY::draw_line_640x200_1bpp(int v)
+void MEMORY::draw_line_640x200_1bpp(int v)
 {
 	int ofs = (dmd & 1) ? 0x4000 : 0;
 	int ptr = 80 * v;
@@ -991,7 +993,7 @@ void MZ700_MEMORY::draw_line_640x200_1bpp(int v)
 	}
 }
 
-void MZ700_MEMORY::draw_line_640x200_2bpp(int v)
+void MEMORY::draw_line_640x200_2bpp(int v)
 {
 	int ptr = 80 * v;
 	
@@ -1012,7 +1014,7 @@ void MZ700_MEMORY::draw_line_640x200_2bpp(int v)
 	}
 }
 
-void MZ700_MEMORY::draw_line_mz700(int v)
+void MEMORY::draw_line_mz700(int v)
 {
 	int ptr = (40 * (v >> 3)) | 0x3000;
 	
@@ -1037,7 +1039,7 @@ void MZ700_MEMORY::draw_line_mz700(int v)
 	}
 }
 
-void MZ700_MEMORY::draw_screen()
+void MEMORY::draw_screen()
 {
 	// copy to real screen
 	emu->set_vm_screen_lines(200);
@@ -1074,7 +1076,7 @@ void MZ700_MEMORY::draw_screen()
 
 #define STATE_VERSION	2
 
-bool MZ700_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -1178,4 +1180,6 @@ bool MZ700_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		update_map_high();
 	}
 	return true;
+}
+
 }

@@ -37,6 +37,13 @@
 #include "keyboard.h"
 #include "./memory.h"
 
+using MULTI8::CMT;
+using MULTI8::DISPLAY;
+using MULTI8::FLOPPY;
+using MULTI8::KANJI;
+using MULTI8::KEYBOARD;
+using MULTI8::MEMORY;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -69,7 +76,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	floppy = new FLOPPY(this, emu);
 	kanji = new KANJI(this, emu);
 	key = new KEYBOARD(this, emu);
-	memory = new MULTI8_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	
 	// set contexts
 	event->set_context_cpu(cpu);

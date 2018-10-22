@@ -17,6 +17,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace X1 {
+
 class JOYSTICK : public DEVICE
 {
 private:
@@ -41,5 +43,6 @@ public:
 	}
 };
 
+}
 #endif
 

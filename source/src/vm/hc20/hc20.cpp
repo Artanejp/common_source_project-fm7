@@ -30,6 +30,8 @@
 
 #include "memory.h"
 
+using HC20::MEMORY;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -58,7 +60,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu_tf20->set_device_name(_T("TF20 CPU(Z80)"));
 	sio_tf20->set_device_name(_T("TF20 SIO(Z80 SIO)"));
 	fdc_tf20->set_device_name(_T("TF20 FDC(uPD765A)"));
-	memory = new HC20_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_cpu(cpu_tf20, 4000000);

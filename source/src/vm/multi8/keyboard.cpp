@@ -12,6 +12,7 @@
 // f9 (78)=hard copy
 // f10(79)=break
 // f11(7a)=erase line
+namespace MULTI8 {
 
 static const uint8_t matrix_normal[256] = {
 	0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x08,0x09,0x00,0x00, 0x00,0x0d,0x00,0x00,	// 00
@@ -263,4 +264,6 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(kana);
 	state_fio->StateBool(kana_prev);
 	return true;
+}
+
 }

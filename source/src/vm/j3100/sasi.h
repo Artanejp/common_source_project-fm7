@@ -17,6 +17,8 @@
 
 class FILEIO;
 
+namespace J3100 {
+
 class SASI : public DEVICE
 {
 private:
@@ -76,5 +78,6 @@ public:
 	}
 };
 
+}
 #endif
 

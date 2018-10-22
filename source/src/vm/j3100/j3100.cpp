@@ -51,6 +51,21 @@
 #include "system.h"
 #endif
 
+using J3100::DISPLAY;
+using J3100::DMAREG;
+using J3100::FLOPPY;
+using J3100::SASI;
+
+#ifdef TYPE_SL
+using J3100SL::KEYBOARD;
+using J3100SL::MEMORY;
+using J3100SL::SYSTEM;
+#else
+using J3100::KEYBOARD;
+using J3100::MEMORY;
+using J3100::SYSTEM;
+#endif
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------

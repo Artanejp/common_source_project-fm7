@@ -50,6 +50,15 @@
 #include "mz80fio.h"
 #endif
 
+using MZ80::KEYBOARD;
+using MZ80::MEMORY;
+using MZ80::PRINTER;
+#if defined(SUPPORT_MZ80AIF)
+using MZ80::MZ80AIF;
+#elif defined(SUPPORT_MZ80FIO)
+using MZ80::MZ80FIO;
+#endif
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -78,7 +87,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	counter->set_device_name(_T("74LS393 Counter (CTC/Sound)"));
 	
 	keyboard = new KEYBOARD(this, emu);
-	memory = new MZ80A_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	printer = new PRINTER(this, emu);
 #if defined(SUPPORT_MZ80AIF)
 	io = new IO(this, emu);

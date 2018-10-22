@@ -9,6 +9,8 @@
 
 #include "memory.h"
 
+namespace MYCOMZ80A {
+
 #define SET_BANK_W(s, e, w) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
 	for(int i = sb; i <= eb; i++) { \
@@ -30,7 +32,7 @@
 	} \
 }
 
-void MYCOMZ80_MEMORY::initialize()
+void MEMORY::initialize()
 {
 	// init memory
 	memset(ram, 0, sizeof(ram));
@@ -54,26 +56,26 @@ void MYCOMZ80_MEMORY::initialize()
 	SET_BANK_R(0x0000, 0xffff, ram);
 }
 
-void MYCOMZ80_MEMORY::reset()
+void MEMORY::reset()
 {
 	addr_mask = 0xc000;
 	rom_sel = true;
 	update_memory_map();
 }
 
-void MYCOMZ80_MEMORY::write_data8(uint32_t addr, uint32_t data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr = (addr & 0xffff) | addr_mask;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32_t MYCOMZ80_MEMORY::read_data8(uint32_t addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr = (addr & 0xffff) | addr_mask;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void MYCOMZ80_MEMORY::write_io8(uint32_t addr, uint32_t data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	// $00: system control
 	switch(data) {
@@ -94,7 +96,7 @@ void MYCOMZ80_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-void MYCOMZ80_MEMORY::update_memory_map()
+void MEMORY::update_memory_map()
 {
 	if(rom_sel) {
 		SET_BANK_R(0xc000, 0xefff, bios);
@@ -106,7 +108,7 @@ void MYCOMZ80_MEMORY::update_memory_map()
 
 #define STATE_VERSION	1
 
-bool MYCOMZ80_MEMORY::process_state(FILEIO* state_fio, bool loading)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -123,4 +125,6 @@ bool MYCOMZ80_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		update_memory_map();
 	}
 	return true;
+}
+
 }

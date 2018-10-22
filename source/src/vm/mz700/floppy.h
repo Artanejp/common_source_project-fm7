@@ -17,6 +17,8 @@
 
 #define SIG_FLOPPY_DRQ	0
 
+namespace MZ700 {
+	
 class FLOPPY : public DEVICE
 {
 private:
@@ -54,5 +56,6 @@ public:
 	}
 };
 
+}
 #endif
 

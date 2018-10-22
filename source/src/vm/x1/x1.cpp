@@ -64,6 +64,17 @@
 #if defined(Q_OS_WIN)
 DLL_PREFIX_I struct cur_time_s cur_time;
 #endif
+using X1::DISPLAY;
+using X1::EMM;
+using X1::FLOPPY;
+using X1::IOBUS;
+using X1::JOYSTICK;
+using X1::MEMORY;
+using X1::MOUSE;
+using X1::PSUB;
+using X1::SASI;
+using X1::SUB;
+using X1::KEYBOARD;
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -139,7 +150,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	floppy = new FLOPPY(this, emu);
 	iobus = new IOBUS(this, emu);
 	joy = new JOYSTICK(this, emu);
-	memory = new X1_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	mouse = new MOUSE(this, emu);
 	sasi = new SASI(this, emu);
 	

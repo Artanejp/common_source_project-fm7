@@ -12,6 +12,8 @@
 #include "../disk.h"
 #include "../upd765a.h"
 
+namespace J3100 {
+	
 void FLOPPY::initialize()
 {
 	ctrl_reg = 0;
@@ -65,3 +67,4 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 	return 0xff;
 }
 
+}

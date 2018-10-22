@@ -68,8 +68,9 @@ class UPD765A;
 class Z80;
 class Z80SIO;
 
-class HC20_MEMORY;
-
+namespace HC20 {
+	class MEMORY;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -90,7 +91,7 @@ protected:
 	Z80* cpu_tf20;
 	Z80SIO* sio_tf20;
 	
-	HC20_MEMORY* memory;
+	HC20::MEMORY* memory;
 	
 public:
 	// ----------------------------------------

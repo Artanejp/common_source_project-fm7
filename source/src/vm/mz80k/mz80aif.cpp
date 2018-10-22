@@ -13,6 +13,8 @@
 #include "mz80aif.h"
 #include "../mb8877.h"
 
+namespace MZ80 {
+
 void MZ80AIF::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
@@ -28,3 +30,4 @@ void MZ80AIF::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
+}

@@ -67,6 +67,51 @@
 #include "psg_stereo.h"
 #endif
 
+using MSX::JOYSTICK;
+using MSX::KEYBOARD;
+using MSX::MEMORY_EX;
+#if !defined(_MSX1_VARIANTS)
+using MSX::RTCIF;
+#endif
+using MSX::SLOT_MAINROM;
+using MSX::SLOT_CART;
+using MSX::SOUND_CART;
+using MSX::KANJIROM;
+#if defined(MSX_PSG_STEREO)
+using MSX::PSG_STEREO;
+#endif
+#ifdef USE_PRINTER
+using MSX::PRINTER;
+#endif
+#if defined(LDC_SLOT)
+using MSX::SLOT_LDC;
+#endif
+#if defined(MAPPERRAM_SLOT)
+using MSX::SLOT_MAPPERRAM;
+#endif
+#if defined(RAM64K_SLOT)
+using MSX::SLOT_RAM64K;
+#endif
+#if defined(SUBROM_SLOT)
+using MSX::SLOT_SUBROM;
+#endif
+#if defined(FIRMWARE32K1_SLOT)
+using MSX::SLOT_FIRMWARE32K;
+#endif
+#if defined(FIRMWARE32K2_SLOT)
+using MSX::SLOT_FIRMWARE32K;
+#endif
+#if defined(FDD_PATCH_SLOT)
+using MSX::SLOT_FDD_PATCH;
+#endif
+#if defined(MSXDOS2_SLOT)
+using MSX::SLOT_MSXDOS2;
+#endif
+#if defined(MSXMUSIC_SLOT)
+using MSX::SLOT_MSXMUSIC;
+#endif
+
+
 #ifdef USE_PORT_F4
 class PORT_F4 : public DEVICE
 {

@@ -18,6 +18,8 @@
 
 class FIFO;
 
+namespace J3100 {
+	
 class KEYBOARD : public DEVICE
 {
 private:
@@ -57,5 +59,6 @@ public:
 	void key_up(int code);
 };
 
+}
 #endif
 

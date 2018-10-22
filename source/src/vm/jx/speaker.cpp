@@ -11,6 +11,8 @@
 #include "../pcm1bit.h"
 #include "../sn76489an.h"
 
+namespace JX {
+
 void SPEAKER::initialize()
 {
 	d_pcm->write_signal(SIG_PCM1BIT_MUTE, 1, 1);
@@ -31,3 +33,4 @@ void SPEAKER::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
+}

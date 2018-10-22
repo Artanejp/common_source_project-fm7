@@ -13,6 +13,8 @@
 #define USE_PSG_STEREO_REALLY
 #define DECIBEL_MIN (-120)
 
+namespace MSX {
+	
 PSG_STEREO::PSG_STEREO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 #if defined(USE_PSG_STEREO_REALLY)
@@ -161,4 +163,6 @@ void PSG_STEREO::update_config()
 		m_stereo = config.sound_type;
 		set_volume(1, m_decibel_l, m_decibel_r);
 	}
+}
+
 }

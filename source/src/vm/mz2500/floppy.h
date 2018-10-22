@@ -18,6 +18,8 @@
 
 #define SIG_FLOPPY_REVERSE	0
 
+namespace MZ2500 {
+
 class FLOPPY : public DEVICE
 {
 private:
@@ -50,5 +52,6 @@ public:
 	}
 };
 
+}
 #endif
 

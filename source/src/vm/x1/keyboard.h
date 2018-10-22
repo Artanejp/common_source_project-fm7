@@ -17,6 +17,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace X1 {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -54,5 +56,6 @@ public:
 	}
 };
 
+}
 #endif
 

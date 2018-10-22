@@ -7,12 +7,14 @@
 	[ system port ]
 */
 
-#ifndef _SYSTEM_H_
-#define _SYSTEM_H_
+#ifndef _GG_SYSTEM_H_
+#define _GG_SYSTEM_H_
 
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
+
+namespace GAMEGEAR {
 
 class SYSTEM : public DEVICE
 {
@@ -37,4 +39,6 @@ public:
 		d_key = device;
 	}
 };
+
+}
 #endif

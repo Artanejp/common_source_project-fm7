@@ -17,7 +17,9 @@
 #define SIG_MEMORY_VIA_PORT_A	0
 #define SIG_MEMORY_VIA_PORT_B	1
 
-class JR100_MEMORY : public DEVICE
+namespace JR100 {
+
+class MEMORY : public DEVICE
 {
 private:
 	// contexts
@@ -40,11 +42,11 @@ private:
 	scrntype_t palette_pc[2];
 	
 public:
-	JR100_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
-	~JR100_MEMORY() {}
+	~MEMORY() {}
 	
 	// common functions
 	void initialize();
@@ -62,5 +64,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

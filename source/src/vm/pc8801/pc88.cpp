@@ -17,6 +17,8 @@
 #include "../ym2203.h"
 #include "../z80.h"
 
+namespace PC88DEV {
+
 #define DEVICE_JOYSTICK	0
 #define DEVICE_MOUSE	1
 #define DEVICE_JOYMOUSE	2	// not supported yet
@@ -3192,5 +3194,7 @@ bool PC88::process_state(FILEIO* state_fio, bool loading)
 #endif
 	}
  	return true;
+}
+
 }
 

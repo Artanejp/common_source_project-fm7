@@ -18,6 +18,8 @@
 #define SIG_SCSI_IRQ	0
 #define SIG_SCSI_DRQ	1
 
+namespace FMR50 {
+	
 class SCSI : public DEVICE
 {
 private:
@@ -56,5 +58,6 @@ public:
 	}
 };
 
+}
 #endif
 

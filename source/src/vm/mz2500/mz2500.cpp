@@ -54,6 +54,23 @@
 #include "serial.h"
 #include "timer.h"
 
+using MZ2500::CALENDAR;
+using MZ2500::CMT;
+using MZ2500::CRTC;
+using MZ2500::FLOPPY;
+using MZ2500::INTERRUPT;
+using MZ2500::JOYSTICK;
+using MZ2500::KEYBOARD;
+using MZ2500::MEMORY;
+using MZ2500::MOUSE;
+using MZ2500::MZ1E26;
+using MZ2500::MZ1E30;
+using MZ2500::MZ1R13;
+using MZ2500::MZ1R37;
+using MZ2500::PRINTER;
+using MZ2500::SERIAL;
+using MZ2500::TIMER;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -107,7 +124,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	interrupt = new INTERRUPT(this, emu);
 	joystick = new JOYSTICK(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new MZ2500_MEMORY(this, emu);
+	memory = new MEMORY(this, emu);
 	mouse = new MOUSE(this, emu);
 	mz1e26 = new MZ1E26(this, emu);
 	mz1e30 = new MZ1E30(this, emu);

@@ -23,6 +23,8 @@
 class DATAREC;
 class FIFO;
 
+namespace X1 {
+
 class PSUB : public DEVICE
 {
 private:
@@ -107,5 +109,6 @@ public:
 	void close_tape();
 };
 
+}
 #endif
 

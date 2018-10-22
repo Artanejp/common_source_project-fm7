@@ -35,6 +35,12 @@
 // initialize
 // ----------------------------------------------------------------------------
 
+using FP1100::MAIN;
+using FP1100::SUB;
+using FP1100::FDCPACK;
+using FP1100::RAMPACK;
+using FP1100::ROMPACK;
+
 VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices

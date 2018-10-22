@@ -10,6 +10,8 @@
 #include "./main.h"
 #include "./sub.h"
 
+namespace FP1100 {
+	
 #define SET_BANK_W(s, e, w) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
 	for(int i = sb; i <= eb; i++) { \
@@ -270,4 +272,6 @@ bool MAIN::process_state(FILEIO* state_fio, bool loading)
 		update_memory_map();
 	}
 	return true;
+}
+
 }

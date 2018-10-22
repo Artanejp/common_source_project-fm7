@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace MULTI8 {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -50,5 +52,6 @@ public:
 	}
 };
 
+}
 #endif
 

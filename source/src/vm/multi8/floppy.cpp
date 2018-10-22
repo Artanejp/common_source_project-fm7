@@ -10,6 +10,8 @@
 #include "floppy.h"
 #include "../upd765a.h"
 
+namespace MULTI8 {
+
 void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
@@ -57,4 +59,6 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateBool(drq);
 	return true;
+}
+
 }

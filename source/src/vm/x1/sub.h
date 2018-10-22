@@ -23,6 +23,8 @@
 
 class DATAREC;
 
+namespace X1 {
+
 class SUB : public DEVICE
 {
 private:
@@ -86,5 +88,6 @@ public:
 	uint32_t rom_crc32;
 };
 
+}
 #endif
 

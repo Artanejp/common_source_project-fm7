@@ -10,6 +10,8 @@
 
 #include "cmos.h"
 
+namespace FMR50 {
+
 void CMOS::initialize()
 {
 	// load cmos image
@@ -80,4 +82,6 @@ bool CMOS::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(modified);
 	state_fio->StateUint8(bank);
 	return true;
+}
+
 }
