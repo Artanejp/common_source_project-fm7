@@ -18,6 +18,8 @@
 
 #define EVENT_KEY_REPEAT	0
 
+namespace SMC777 {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 14, eb = (e) >> 14; \
 	for(int i = sb; i <= eb; i++) { \
@@ -148,7 +150,7 @@ void MEMORY::initialize()
 #endif
 	delete fio;
 
-
+	
 
 	
 	// initialize inputs
@@ -975,189 +977,6 @@ void MEMORY::draw_graph_320x200()
 
 #define STATE_VERSION	2
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_1D_ARRAY(cram, sizeof(cram));
-	DECL_STATE_ENTRY_1D_ARRAY(aram, sizeof(aram));
-	DECL_STATE_ENTRY_1D_ARRAY(pcg, sizeof(pcg));
-	DECL_STATE_ENTRY_1D_ARRAY(gram, sizeof(gram));
-	DECL_STATE_ENTRY_BOOL(rom_selected);
-	DECL_STATE_ENTRY_INT32(rom_switch_wait);
-	DECL_STATE_ENTRY_INT32(ram_switch_wait);
-	DECL_STATE_ENTRY_1D_ARRAY(keytable, sizeof(keytable));
-	DECL_STATE_ENTRY_1D_ARRAY(keytable_shift, sizeof(keytable_shift));
-	DECL_STATE_ENTRY_1D_ARRAY(keytable_ctrl, sizeof(keytable_ctrl));
-	DECL_STATE_ENTRY_1D_ARRAY(keytable_kana, sizeof(keytable_kana));
-	DECL_STATE_ENTRY_1D_ARRAY(keytable_kana_shift, sizeof(keytable_kana_shift));
-	DECL_STATE_ENTRY_UINT8(key_code);
-	DECL_STATE_ENTRY_UINT8(key_status);
-	DECL_STATE_ENTRY_UINT8(key_cmd);
-	DECL_STATE_ENTRY_INT32(key_repeat_start);
-	DECL_STATE_ENTRY_INT32(key_repeat_interval);
-	DECL_STATE_ENTRY_INT32(key_repeat_event);
-	DECL_STATE_ENTRY_UINT8(funckey_code);
-	DECL_STATE_ENTRY_INT32(funckey_index);
-	DECL_STATE_ENTRY_BOOL(caps);
-	DECL_STATE_ENTRY_BOOL(kana);
-	DECL_STATE_ENTRY_UINT8(gcw);
-	DECL_STATE_ENTRY_BOOL(vsup);
-	DECL_STATE_ENTRY_BOOL(vsync);
-	DECL_STATE_ENTRY_BOOL(disp);
-	DECL_STATE_ENTRY_INT32(cblink);
-#if defined(_SMC777)
-	DECL_STATE_ENTRY_BOOL(use_palette_text);
-	
-	DECL_STATE_ENTRY_BOOL(use_palette_graph);
-	DECL_STATE_ENTRY_INT32_STRIDE((pal[0].r), 16, sizeof(pal[0]));
-	DECL_STATE_ENTRY_INT32_STRIDE((pal[0].g), 16, sizeof(pal[0]));
-	DECL_STATE_ENTRY_INT32_STRIDE((pal[0].b), 16, sizeof(pal[0]));
-	DECL_STATE_ENTRY_SCRNTYPE_T_1D_ARRAY(palette_pc, sizeof(palette_pc) / sizeof(scrntype_t));
-#endif
-	DECL_STATE_ENTRY_INT32(kanji_hi);
-	DECL_STATE_ENTRY_INT32(kanji_lo);
-	DECL_STATE_ENTRY_BOOL(ief_key);
-	DECL_STATE_ENTRY_BOOL(ief_vsync);
-	DECL_STATE_ENTRY_BOOL(fdc_irq);
-	DECL_STATE_ENTRY_BOOL(fdc_drq);
-	DECL_STATE_ENTRY_BOOL(drec_in);
-#if defined(_SMC70)
-	DECL_STATE_ENTRY_UINT8(rtc_data);
-	DECL_STATE_ENTRY_BOOL(rtc_busy);
-#endif
-
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->Fwrite(cram, sizeof(cram), 1);
-//	state_fio->Fwrite(aram, sizeof(aram), 1);
-//	state_fio->Fwrite(pcg, sizeof(pcg), 1);
-//	state_fio->Fwrite(gram, sizeof(gram), 1);
-//	state_fio->FputBool(rom_selected);
-//	state_fio->FputInt32(rom_switch_wait);
-//	state_fio->FputInt32(ram_switch_wait);
-//	state_fio->Fwrite(keytable, sizeof(keytable), 1);
-//	state_fio->Fwrite(keytable_shift, sizeof(keytable_shift), 1);
-//	state_fio->Fwrite(keytable_ctrl, sizeof(keytable_ctrl), 1);
-//	state_fio->Fwrite(keytable_kana, sizeof(keytable_kana), 1);
-//	state_fio->Fwrite(keytable_kana_shift, sizeof(keytable_kana_shift), 1);
-//	state_fio->FputUint8(key_code);
-//	state_fio->FputUint8(key_status);
-//	state_fio->FputUint8(key_cmd);
-//	state_fio->FputInt32(key_repeat_start);
-//	state_fio->FputInt32(key_repeat_interval);
-//	state_fio->FputInt32(key_repeat_event);
-//	state_fio->FputUint8(funckey_code);
-//	state_fio->FputInt32(funckey_index);
-//	state_fio->FputBool(caps);
-//	state_fio->FputBool(kana);
-//	state_fio->FputUint8(gcw);
-//	state_fio->FputBool(vsup);
-//	state_fio->FputBool(vsync);
-//	state_fio->FputBool(disp);
-//	state_fio->FputInt32(cblink);
-//#if defined(_SMC777)
-//	state_fio->FputBool(use_palette_text);
-//	state_fio->FputBool(use_palette_graph);
-//	state_fio->Fwrite(pal, sizeof(pal), 1);
-//	state_fio->Fwrite(palette_pc, sizeof(palette_pc), 1);
-//#endif
-//	state_fio->FputInt32(kanji_hi);
-//	state_fio->FputInt32(kanji_lo);
-//	state_fio->FputBool(ief_key);
-//	state_fio->FputBool(ief_vsync);
-//	state_fio->FputBool(fdc_irq);
-//	state_fio->FputBool(fdc_drq);
-//	state_fio->FputBool(drec_in);
-//#if defined(_SMC70)
-//	state_fio->FputUint8(rtc_data);
-//	state_fio->FputBool(rtc_busy);
-//#endif
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	state_fio->Fread(cram, sizeof(cram), 1);
-//	state_fio->Fread(aram, sizeof(aram), 1);
-//	state_fio->Fread(pcg, sizeof(pcg), 1);
-//	state_fio->Fread(gram, sizeof(gram), 1);
-//	rom_selected = state_fio->FgetBool();
-//	rom_switch_wait = state_fio->FgetInt32();
-//	ram_switch_wait = state_fio->FgetInt32();
-//	state_fio->Fread(keytable, sizeof(keytable), 1);
-//	state_fio->Fread(keytable_shift, sizeof(keytable_shift), 1);
-//	state_fio->Fread(keytable_ctrl, sizeof(keytable_ctrl), 1);
-//	state_fio->Fread(keytable_kana, sizeof(keytable_kana), 1);
-//	state_fio->Fread(keytable_kana_shift, sizeof(keytable_kana_shift), 1);
-//	key_code = state_fio->FgetUint8();
-//	key_status = state_fio->FgetUint8();
-//	key_cmd = state_fio->FgetUint8();
-//	key_repeat_start = state_fio->FgetInt32();
-//	key_repeat_interval = state_fio->FgetInt32();
-//	key_repeat_event = state_fio->FgetInt32();
-//	funckey_code = state_fio->FgetUint8();
-//	funckey_index = state_fio->FgetInt32();
-//	caps = state_fio->FgetBool();
-//	kana = state_fio->FgetBool();
-//	gcw = state_fio->FgetUint8();
-//	vsup = state_fio->FgetBool();
-//	vsync = state_fio->FgetBool();
-//	disp = state_fio->FgetBool();
-//	cblink = state_fio->FgetInt32();
-//#if defined(_SMC777)
-//	use_palette_text = state_fio->FgetBool();
-//	use_palette_graph = state_fio->FgetBool();
-//	state_fio->Fread(pal, sizeof(pal), 1);
-//	state_fio->Fread(palette_pc, sizeof(palette_pc), 1);
-//#endif
-//	kanji_hi = state_fio->FgetInt32();
-//	kanji_lo = state_fio->FgetInt32();
-//	ief_key = state_fio->FgetBool();
-//	ief_vsync = state_fio->FgetBool();
-//	fdc_irq = state_fio->FgetBool();
-//	fdc_drq = state_fio->FgetBool();
-//	drec_in = state_fio->FgetBool();
-//#if defined(_SMC70)
-//	rtc_data = state_fio->FgetUint8();
-//	rtc_busy = state_fio->FgetBool();
-//#endif
-	
-	// post process
-	if(rom_selected) {
-		SET_BANK(0x0000, sizeof(rom) - 1, wdmy, rom);
-	} else {
-		SET_BANK(0x0000, sizeof(rom) - 1, ram, ram);
-	}
-	return true;
-}
-
 bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -1197,8 +1016,30 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 #if defined(_SMC777)
 	state_fio->StateBool(use_palette_text);
 	state_fio->StateBool(use_palette_graph);
-	state_fio->StateBuffer(pal, sizeof(pal), 1);
-	state_fio->StateBuffer(palette_pc, sizeof(palette_pc), 1);
+	//state_fio->StateBuffer(pal, sizeof(pal), 1);
+	for(int i = 0; i < 16; i++) {
+		state_fio->StateInt32(pal[i].r);
+		state_fio->StateInt32(pal[i].g);
+		state_fio->StateInt32(pal[i].b);
+	}		
+	//state_fio->StateBuffer(palette_pc, sizeof(palette_pc), 1); // Is this right position? Is not for SMC70? 20181023 K.O
+	for(int i = 0; i < (sizeof(palette_pc) / sizeof(scrntype_t)); i++) {
+		if(loading) {
+			uint8_t r, g, b;
+			r = state_fio->FgetUint8();
+			g = state_fio->FgetUint8();
+			b = state_fio->FgetUint8();
+			palette_pc[i] = RGB_COLOR(r, g, b);
+		} else {
+			uint8_t r, g, b;
+			r = R_OF_COLOR(palette_pc[i]);
+			g = G_OF_COLOR(palette_pc[i]);
+			b = B_OF_COLOR(palette_pc[i]);
+			state_fio->FputUint8(r);
+			state_fio->FputUint8(g);
+			state_fio->FputUint8(b);
+		}
+	}
 #endif
 	state_fio->StateInt32(kanji_hi);
 	state_fio->StateInt32(kanji_lo);
@@ -1221,4 +1062,6 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 		}
 	}
 	return true;
+}
+
 }

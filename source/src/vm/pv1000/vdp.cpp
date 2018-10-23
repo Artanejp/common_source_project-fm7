@@ -9,6 +9,8 @@
 
 #include "vdp.h"
 
+namespace PV1000 {
+
 static const scrntype_t palette_pc[8] = {
 	RGB_COLOR(  0,  0,  0), RGB_COLOR(255,  0,  0), RGB_COLOR(  0,255,  0), RGB_COLOR(255,255,  0),
 	RGB_COLOR(  0,  0,255), RGB_COLOR(255,  0,255), RGB_COLOR(  0,255,255), RGB_COLOR(255,255,255)
@@ -150,3 +152,6 @@ bool VDP::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBool(force_pattern);
 	return true;
 }
+
+}
+

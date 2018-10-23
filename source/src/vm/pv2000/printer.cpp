@@ -9,6 +9,8 @@
 
 #include "printer.h"
 
+namespace PV2000 {
+
 void PRINTER::initialize()
 {
 	busy = false;
@@ -53,4 +55,6 @@ bool PRINTER::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(ctrl1);
 	state_fio->StateBool(busy);
 	return true;
+}
+
 }

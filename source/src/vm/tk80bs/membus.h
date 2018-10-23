@@ -18,7 +18,6 @@
 #define SIG_MEMBUS_PC7	0
 #endif
 
-//class csp_state_utils;
 namespace TK80 {
 
 class MEMBUS : public MEMORY

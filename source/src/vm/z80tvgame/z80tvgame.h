@@ -47,8 +47,6 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class csp_state_utils;
-
 class EMU;
 class DEVICE;
 class EVENT;
@@ -61,8 +59,10 @@ class Z80PIO;
 class PCM1BIT;
 class Z80;
 
-class JOYSTICK;
-class MEMORY;
+namespace Z80TVGAME {
+	class JOYSTICK;
+	class MEMORY;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -81,8 +81,8 @@ protected:
 	PCM1BIT* pcm;
 	Z80* cpu;
 	
-	JOYSTICK* joystick;
-	MEMORY* memory;
+	Z80TVGAME::JOYSTICK* joystick;
+	Z80TVGAME::MEMORY* memory;
 	
 public:
 	// ----------------------------------------
@@ -123,9 +123,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

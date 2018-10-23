@@ -27,6 +27,8 @@
 
 #define MAX_PARAM 0x8000
 
+namespace SCV {
+
 class SOUND : public DEVICE
 {
 private:
@@ -67,6 +69,8 @@ private:
 	void process_pcm(uint8_t data);
 	void process_cmd();
 	
+	bool process_state_channel_t(channel_t *p, FILEIO* state_fio, bool loading);
+	
 public:
 	SOUND(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -81,9 +85,7 @@ public:
 	void event_callback(int event_id, int err);
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)
@@ -93,5 +95,6 @@ public:
 	void initialize_sound(int rate);
 };
 
+}
 #endif
 

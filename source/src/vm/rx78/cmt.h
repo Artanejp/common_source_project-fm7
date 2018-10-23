@@ -16,6 +16,8 @@
 
 #define SIG_CMT_IN	0
 
+namespace RX78 {
+
 class CMT : public DEVICE
 {
 private:
@@ -38,9 +40,7 @@ public:
 	uint32_t read_io8(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
 	void set_context_drec(DEVICE* device)
@@ -49,4 +49,5 @@ public:
 	}
 };
 
+}
 #endif

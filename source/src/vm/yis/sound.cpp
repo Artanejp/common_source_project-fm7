@@ -10,6 +10,8 @@
 #include "sound.h"
 #include "../beep.h"
 
+namespace YIS {
+
 void SOUND::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
@@ -27,3 +29,4 @@ void SOUND::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
+}

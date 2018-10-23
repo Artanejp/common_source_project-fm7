@@ -43,18 +43,18 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class csp_state_utils;
-
 class EMU;
 class DEVICE;
 class EVENT;
 
 class UPD7801;
 
-class IO;
-class MEMORY;
-class SOUND;
-class VDP;
+namespace SCV {
+	class IO;
+	class MEMORY;
+	class SOUND;
+	class VDP;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -67,10 +67,10 @@ protected:
 	
 	UPD7801* cpu;
 	
-	IO* io;
-	MEMORY* memory;
-	SOUND* sound;
-	VDP* vdp;
+	SCV::IO* io;
+	SCV::MEMORY* memory;
+	SCV::SOUND* sound;
+	SCV::VDP* vdp;
 	
 public:
 	// ----------------------------------------
@@ -111,9 +111,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

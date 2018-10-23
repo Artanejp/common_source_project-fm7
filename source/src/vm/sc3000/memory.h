@@ -16,6 +16,8 @@
 
 #define SIG_MEMORY_SEL	0
 
+namespace SC3000 {
+
 class MEMORY : public DEVICE
 {
 private:
@@ -47,9 +49,7 @@ public:
 	void write_data8(uint32_t addr, uint32_t data);
 	uint32_t read_data8(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void open_cart(const _TCHAR* file_path);
@@ -60,5 +60,6 @@ public:
 	}
 };
 
+}
 #endif
 

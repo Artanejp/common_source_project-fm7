@@ -49,8 +49,6 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class csp_state_utils;
-
 class EMU;
 class DEVICE;
 class EVENT;
@@ -64,14 +62,15 @@ class TMS9918A;
 class UPD765A;
 class Z80;
 
-class KEYBOARD;
-class MEMORY;
+namespace SC3000 {
+	class KEYBOARD;
+	class MEMORY;
+}
 
 class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
-	//csp_state_utils* state_entry;
 	
 	// devices
 	//EVENT* event;
@@ -86,8 +85,8 @@ protected:
 	UPD765A* fdc;
 	Z80* cpu;
 	
-	KEYBOARD* key;
-	MEMORY* memory;
+	SC3000::KEYBOARD* key;
+	SC3000::MEMORY* memory;
 	
 public:
 	// ----------------------------------------
@@ -148,9 +147,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

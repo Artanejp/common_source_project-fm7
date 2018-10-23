@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace SCV {
+
 class VDP : public DEVICE
 {
 private:
@@ -45,9 +47,7 @@ public:
 	// common functions
 	void initialize();
 	void event_vline(int v, int clock);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)
@@ -65,4 +65,5 @@ public:
 	void draw_screen();
 };
 
+}
 #endif

@@ -11,7 +11,9 @@
 
 #define MEM_WAIT_VDP 0
 
-#define SET_BANK(s, e, w, r) { \
+namespace SCV {
+
+#define SET_BANK(s, e, w, r) {		  \
 	int sb = (s) >> 7, eb = (e) >> 7; \
 	for(int i = sb; i <= eb; i++) { \
 		if((w) == wdmy) { \
@@ -214,76 +216,6 @@ void MEMORY::close_cart()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_STRING(save_path, sizeof(save_path) / sizeof(_TCHAR));
-	{
-		//DECL_STATE_ENTRY_1D_ARRAY(&header, sizeof(header));
-		DECL_STATE_ENTRY_1D_ARRAY((header.id), 4);
-		DECL_STATE_ENTRY_UINT8((header.ctype));
-		DECL_STATE_ENTRY_1D_ARRAY((header.dummy), 11);
-	}		
-	DECL_STATE_ENTRY_BOOL(inserted);
-	DECL_STATE_ENTRY_UINT32(sram_crc32);
-	DECL_STATE_ENTRY_1D_ARRAY(vram, sizeof(vram));
-	DECL_STATE_ENTRY_1D_ARRAY(wreg, sizeof(wreg));
-	DECL_STATE_ENTRY_1D_ARRAY(sram, sizeof(sram));
-	DECL_STATE_ENTRY_UINT8(cur_bank);
-
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(save_path, sizeof(save_path), 1);
-//	state_fio->Fwrite(&header, sizeof(header), 1);
-//	state_fio->FputBool(inserted);
-//	state_fio->FputUint32(sram_crc32);
-//	state_fio->Fwrite(vram, sizeof(vram), 1);
-//	state_fio->Fwrite(wreg, sizeof(wreg), 1);
-//	state_fio->Fwrite(sram, sizeof(sram), 1);
-//	state_fio->FputUint8(cur_bank);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(save_path, sizeof(save_path), 1);
-//	state_fio->Fread(&header, sizeof(header), 1);
-//	inserted = state_fio->FgetBool();
-//	sram_crc32 = state_fio->FgetUint32();
-//	state_fio->Fread(vram, sizeof(vram), 1);
-//	state_fio->Fread(wreg, sizeof(wreg), 1);
-//	state_fio->Fread(sram, sizeof(sram), 1);
-//	cur_bank = state_fio->FgetUint8();
-	
-	// post process
-	set_bank(cur_bank);
-	return true;
-}
-
 bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -293,6 +225,7 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	state_fio->StateBuffer(save_path, sizeof(save_path), 1);
+	// HEADER CONTAINS *ONLY* uint8_t.
 	state_fio->StateBuffer(&header, sizeof(header), 1);
 	state_fio->StateBool(inserted);
 	state_fio->StateUint32(sram_crc32);
@@ -306,4 +239,6 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 		set_bank(cur_bank);
 	}
 	return true;
+}
+
 }

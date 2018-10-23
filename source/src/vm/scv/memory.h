@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace SCV {
+
 class MEMORY : public DEVICE
 {
 private:
@@ -23,7 +25,9 @@ private:
 	_TCHAR save_path[_MAX_PATH];
 	
 	struct {
-		char id[4];	// SCV^Z
+		// Maybe should *not* be char, should be uint8_t.
+		// Because sizeof(char) may not be 1 byte at unicode. code.20181023 K.O
+		uint8_t id[4];	// SCV^Z
 		uint8_t ctype;	// 0=16KB,32KB,32K+8KB ROM, bankswitched by PC5
 				// 1=32KB ROM+8KB SRAM, bank switched by PC5
 				// 2=32KB+32KB,32KB+32KB+32KB+32KB ROM, bank switched by PC5,PC6
@@ -62,9 +66,7 @@ public:
 	void write_data8w(uint32_t addr, uint32_t data, int* wait);
 	uint32_t read_data8w(uint32_t addr, int* wait);
 	void write_io8(uint32_t addr, uint32_t data);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void open_cart(const _TCHAR* file_path);
@@ -87,4 +89,5 @@ public:
 	}
 };
 
+}
 #endif

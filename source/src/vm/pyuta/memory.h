@@ -78,6 +78,7 @@ public:
 		return (ctype != 0);
 	}
 };
+
 }
 #endif
 

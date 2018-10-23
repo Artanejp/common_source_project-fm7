@@ -9,6 +9,8 @@
 
 #include "cmt.h"
 
+namespace PV2000 {
+
 void CMT::initialize()
 {
 	fio = new FILEIO();
@@ -146,4 +148,6 @@ bool CMT::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(start);
 	state_fio->StateUint8(bit);
 	return true;
+}
+
 }

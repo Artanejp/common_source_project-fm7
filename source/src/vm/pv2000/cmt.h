@@ -18,6 +18,8 @@ class FILEIO;
 
 #define BUFFER_SIZE 0x10000
 
+namespace PV2000 {
+
 class CMT : public DEVICE
 {
 private:
@@ -53,5 +55,6 @@ public:
 	bool skip() { return (start & 1) && (play || rec); }
 };
 
+}
 #endif
 

@@ -16,6 +16,8 @@
 
 class MEMORY;
 
+namespace YIS {
+
 class MAPPER : public DEVICE
 {
 private:
@@ -40,9 +42,7 @@ public:
 	void reset();
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
 	void set_context_memory(MEMORY* device)
@@ -51,4 +51,5 @@ public:
 	}
 };
 
+}
 #endif

@@ -10,6 +10,8 @@
 #include "floppy.h"
 #include "../mb8877.h"
 
+namespace YIS {
+
 void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
@@ -24,3 +26,4 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
+}

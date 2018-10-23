@@ -24,10 +24,10 @@
 
 #include "./memory.h"
 
+using PYUTA::MEMORY;
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
-using PYUTA::MEMORY;
 
 VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {

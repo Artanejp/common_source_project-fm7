@@ -94,8 +94,6 @@ const struct {
 	{446 + 32 * 0, 110, LED_WIDTH, LED_HEIGHT},
 };
 
-class csp_state_utils;
-
 class EMU;
 class DEVICE;
 class EVENT;
@@ -106,8 +104,9 @@ class NOT;
 class Z80;
 class Z80PIO;
 
-class MEMORY;
-
+namespace SMB80TE {
+	class MEMORY;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -124,7 +123,7 @@ protected:
 	Z80PIO* pio1;
 	Z80PIO* pio2;
 	
-	MEMORY* memory;
+	SMB80TE::MEMORY* memory;
 	
 public:
 	// ----------------------------------------
@@ -183,9 +182,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

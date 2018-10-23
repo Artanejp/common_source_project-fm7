@@ -9,6 +9,8 @@
 
 #include "./joystick.h"
 
+namespace PV1000 {
+
 void JOYSTICK::initialize()
 {
 	key = emu->get_key_buffer();
@@ -97,4 +99,6 @@ bool JOYSTICK::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(column);
 	state_fio->StateUint8(status);
 	return true;
+}
+
 }

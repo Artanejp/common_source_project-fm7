@@ -16,6 +16,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace Z80TVGAME {
+
 class JOYSTICK : public DEVICE
 {
 private:
@@ -40,4 +42,5 @@ public:
 	}
 };
 
+}
 #endif

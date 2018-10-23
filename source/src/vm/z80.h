@@ -27,7 +27,6 @@
 //#ifdef USE_DEBUGGER
 class DEBUGGER;
 //#endif
-class csp_state_utils;
 class Z80_BASE : public DEVICE
 {
 protected:

@@ -10,6 +10,8 @@
 #include "vdp.h"
 #include "../upd7801.h"
 
+namespace SCV {
+
 static const scrntype_t palette_pc[16] = {
 #if 1
 	RGB_COLOR(  0, 90,156), RGB_COLOR(  0,  0,  0), RGB_COLOR( 58,148,255), RGB_COLOR(  0,  0,255),
@@ -337,55 +339,6 @@ void VDP::draw_sprite(int dx, int dy, int sx, int ex, int sy, int ey, int no, ui
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void VDP::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_UINT8(vdc0);
-	DECL_STATE_ENTRY_UINT8(vdc1);
-	DECL_STATE_ENTRY_UINT8(vdc2);
-	DECL_STATE_ENTRY_UINT8(vdc3);
-
-	leave_decl_state();
-}
-
-void VDP::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint8(vdc0);
-//	state_fio->FputUint8(vdc1);
-//	state_fio->FputUint8(vdc2);
-//	state_fio->FputUint8(vdc3);
-}
-
-bool VDP::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	vdc0 = state_fio->FgetUint8();
-//	vdc1 = state_fio->FgetUint8();
-//	vdc2 = state_fio->FgetUint8();
-//	vdc3 = state_fio->FgetUint8();
-	return true;
-}
 
 bool VDP::process_state(FILEIO* state_fio, bool loading)
 {
@@ -400,4 +353,6 @@ bool VDP::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(vdc2);
 	state_fio->StateUint8(vdc3);
 	return true;
+}
+
 }

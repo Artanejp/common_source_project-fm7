@@ -54,8 +54,6 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class csp_state_utils;
-
 class EMU;
 class DEVICE;
 class EVENT;
@@ -64,7 +62,9 @@ class BEEP;
 class MEMORY;
 class Z80;
 
-class IO;
+namespace X07 {
+	class IO;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -78,7 +78,7 @@ protected:
 	MEMORY* memory;
 	Z80* cpu;
 	
-	IO* io;
+	X07::IO* io;
 	
 	// memory
 //	uint8_t c3[0x2000];
@@ -134,9 +134,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

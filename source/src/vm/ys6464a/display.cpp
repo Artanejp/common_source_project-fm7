@@ -9,6 +9,8 @@
 
 #include "display.h"
 
+namespace YS6464A {
+
 static const int pat_7seg_led[40][28] = {
 	{0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0},
 	{0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0},
@@ -116,53 +118,6 @@ void DISPLAY::draw_screen()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void DISPLAY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_2D_ARRAY(seg, 6, 8);
-	DECL_STATE_ENTRY_UINT8(pb);
-	DECL_STATE_ENTRY_UINT8(pc);
-	
-	leave_decl_state();
-}
-
-void DISPLAY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(seg, sizeof(seg), 1);
-//	state_fio->FputUint8(pb);
-//	state_fio->FputUint8(pc);
-}
-
-bool DISPLAY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(seg, sizeof(seg), 1);
-//	pb = state_fio->FgetUint8();
-//	pc = state_fio->FgetUint8();
-	return true;
-}
-
 bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -171,8 +126,15 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(seg, sizeof(seg), 1);
+	//state_fio->StateBuffer(seg, sizeof(seg), 1);
+	for(int i = 0; i < 6; i++) {
+		for(int j = 0; j < 8; j++) {
+			state_fio->StateInt32(seg[i][j]);
+		}
+	}
 	state_fio->StateUint8(pb);
 	state_fio->StateUint8(pc);
 	return true;
+}
+
 }

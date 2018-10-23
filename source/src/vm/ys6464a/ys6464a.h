@@ -74,8 +74,6 @@ const struct {
 	{582, 23, 28, 40},
 };
 
-class csp_state_utils;
-
 class EMU;
 class DEVICE;
 class EVENT;
@@ -86,14 +84,15 @@ class MEMORY;
 //class PCM1BIT;
 class Z80;
 
-class DISPLAY;
-class KEYBOARD;
+namespace YS6464A {
+	class DISPLAY;
+	class KEYBOARD;
+}
 
 class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
-	//csp_state_utils* state_entry;
 	
 	// devices
 	//EVENT* event;
@@ -104,8 +103,8 @@ protected:
 //	PCM1BIT* pcm;
 	Z80* cpu;
 	
-	DISPLAY* display;
-	KEYBOARD* keyboard;
+	YS6464A::DISPLAY* display;
+	YS6464A::KEYBOARD* keyboard;
 	
 	// memory
 	uint8_t rom[0x2000];
@@ -146,9 +145,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

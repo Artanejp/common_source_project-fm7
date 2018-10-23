@@ -11,6 +11,8 @@
 
 #include "memory.h"
 
+namespace Z80TVGAME {
+
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
 	for(int i = sb; i <= eb; i++) { \
@@ -98,50 +100,6 @@ void MEMORY::draw_screen()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void MEMORY::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_1D_ARRAY(ram, sizeof(ram));
-	DECL_STATE_ENTRY_BOOL(inserted);
-	
-	leave_decl_state();
-}
-
-void MEMORY::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(ram, sizeof(ram), 1);
-//	state_fio->FputBool(inserted);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(ram, sizeof(ram), 1);
-//	inserted = state_fio->FgetBool();
-	return true;
-}
-
 bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -153,4 +111,6 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(ram, sizeof(ram), 1);
 	state_fio->StateBool(inserted);
 	return true;
+}
+
 }

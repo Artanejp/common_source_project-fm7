@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace PV1000 {
+
 class JOYSTICK : public DEVICE
 {
 private:
@@ -38,4 +40,5 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 };
 
+}
 #endif

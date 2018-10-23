@@ -511,18 +511,18 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	//state_fio->StateBuffer(palette_pc, sizeof(palette_pc), 1);
-	for(int i = 0; i < (sizeof(palette) / sizeof(scrntype_t)); i++) {
+	for(int i = 0; i < (sizeof(palette_pc) / sizeof(scrntype_t)); i++) {
 		if(loading) {
 			uint8_t r, g, b;
 			r = state_fio->FgetUint8();
 			g = state_fio->FgetUint8();
 			b = state_fio->FgetUint8();
-			palette[i] = RGB_COLOR(r, g, b);
+			palette_pc[i] = RGB_COLOR(r, g, b);
 		} else {
 			uint8_t r, g, b;
-			r = R_OF_COLOR(palette[i]);
-			g = G_OF_COLOR(palette[i]);
-			b = B_OF_COLOR(palette[i]);
+			r = R_OF_COLOR(palette_pc[i]);
+			g = G_OF_COLOR(palette_pc[i]);
+			b = B_OF_COLOR(palette_pc[i]);
 			state_fio->FputUint8(r);
 			state_fio->FputUint8(g);
 			state_fio->FputUint8(b);

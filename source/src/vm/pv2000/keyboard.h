@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace PV2000 {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -47,5 +49,6 @@ public:
 	void key_up(int code);
 };
 
+}
 #endif
 

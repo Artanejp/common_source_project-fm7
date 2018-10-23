@@ -10,6 +10,8 @@
 #include "keyboard.h"
 #include "../i8255.h"
 
+namespace YS6464A {
+
 void KEYBOARD::initialize()
 {
 	key_stat = emu->get_key_buffer();
@@ -54,3 +56,4 @@ void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 	d_pio->write_signal(SIG_I8255_PORT_C, val, 0xf);
 }
 
+}

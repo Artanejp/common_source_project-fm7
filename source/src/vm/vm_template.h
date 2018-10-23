@@ -6,13 +6,11 @@
 class EMU;
 class EVENT;
 class DEVICE;
-class csp_state_utils;
 class DLL_PREFIX VM_TEMPLATE {
 protected:
 	EMU* emu;
 	// devices
 	EVENT* event;
-	csp_state_utils *state_entry;
 	_TCHAR _git_revision[256];
 public:
 	VM_TEMPLATE(EMU* parent_emu) : emu(parent_emu)

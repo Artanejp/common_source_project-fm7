@@ -51,8 +51,6 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class csp_state_utils;
-
 class EMU;
 class DEVICE;
 class EVENT;
@@ -62,13 +60,14 @@ class I8080;
 class I8155;
 class MEMORY;
 
-class IO;
+namespace YALKY {
+	class IO;
+}
 
 class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
-	//csp_state_utils* state_entry;
 	
 	// devices
 	//EVENT* event;
@@ -78,7 +77,7 @@ protected:
 	I8155* pio;
 	MEMORY* memory;
 	
-	IO* io;
+	YALKY::IO* io;
 	
 	uint8_t rom[0x2000];
 	uint8_t ram[0x100];
@@ -135,9 +134,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

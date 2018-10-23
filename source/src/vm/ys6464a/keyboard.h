@@ -16,6 +16,8 @@
 
 #define SIG_KEYBOARD_PORT_C	0
 
+namespace YS6464A {
+
 class KEYBOARD : public DEVICE
 {
 private:
@@ -40,5 +42,6 @@ public:
 	}
 };
 
+}
 #endif
 

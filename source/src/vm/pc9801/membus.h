@@ -33,8 +33,6 @@ namespace PC9801 {
 	#define RAM_SIZE	0x100000	// 1MB
 #endif
 
-//class csp_state_utils;
-
 namespace PC9801 {
 
 class MEMBUS : public MEMORY

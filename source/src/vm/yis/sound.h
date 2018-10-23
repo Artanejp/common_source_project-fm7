@@ -16,6 +16,8 @@
 
 class BEEP;
 
+namespace YIS {
+
 class SOUND : public DEVICE
 {
 private:
@@ -38,5 +40,6 @@ public:
 	}
 };
 
+}
 #endif
 

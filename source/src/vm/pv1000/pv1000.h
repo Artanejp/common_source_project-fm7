@@ -57,8 +57,6 @@ static const _TCHAR *joy_button_captions[] = {
 };
 #endif
 
-class csp_state_utils;
-
 class EMU;
 class DEVICE;
 class EVENT;
@@ -67,9 +65,11 @@ class IO;
 class MEMORY;
 class Z80;
 
-class JOYSTICK;
-class PSG;
-class VDP;
+namespace PV1000 {
+	class JOYSTICK;
+	class PSG;
+	class VDP;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -84,9 +84,9 @@ protected:
 	MEMORY* memory;
 	Z80* cpu;
 	
-	JOYSTICK* joystick;
-	PSG* psg;
-	VDP* vdp;
+	PV1000::JOYSTICK* joystick;
+	PV1000::PSG* psg;
+	PV1000::VDP* vdp;
 	
 	// memory
 	uint8_t mem[0x10000];

@@ -36,6 +36,12 @@
 #include "mapper.h"
 #include "sound.h"
 
+using YIS::CALENDAR;
+using YIS::DISPLAY;
+using YIS::FLOPPY;
+using YIS::KEYBOARD;
+using YIS::MAPPER;
+using YIS::SOUND;
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -122,7 +128,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	decl_state();
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2DD); // 1DD
 		fdc->set_track_size(i, 6238);
@@ -299,69 +304,37 @@ void VM::update_config()
 
 #define STATE_VERSION	2
 
-#include "../../statesub.h"
-#include "../../qt/gui/csp_logger.h"
-extern CSP_Logger DLL_PREFIX_I *csp_logger;
-
-void VM::decl_state(void)
-{
-	state_entry = new csp_state_utils(STATE_VERSION, 0, (_TCHAR *)(_T("CSP::YIS_HEAD")), csp_logger);
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->decl_state();
-	}
-}
-
-void VM::save_state(FILEIO* state_fio)
-{
-	//state_fio->FputUint32(STATE_VERSION);
-	
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->save_state(state_fio);
-	}
-}
-
-bool VM::load_state(FILEIO* state_fio)
-{
-	//if(state_fio->FgetUint32() != STATE_VERSION) {
-	//	return false;
-	//}
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		emu->out_debug_log("INFO: HEADER DATA ERROR");
-		return false;
-	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(!device->load_state(state_fio)) {
-			return false;
-		}
-	}
-	return true;
-}
-
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
+ 	for(DEVICE* device = first_device; device; device = device->next_device) {
+		// Note: typeid(foo).name is fixed by recent ABI.Not dec 6.
+ 		// const char *name = typeid(*device).name();
+		//       But, using get_device_name() instead of typeid(foo).name() 20181008 K.O
+		const char *name = device->get_device_name();
 		int len = strlen(name);
 		
 		if(!state_fio->StateCheckInt32(len)) {
+			if(loading) {
+				printf("Class name len Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
+			}
 			return false;
 		}
 		if(!state_fio->StateCheckBuffer(name, len, 1)) {
-			return false;
-		}
+			if(loading) {
+				printf("Class name Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
+			}
+ 			return false;
+ 		}
 		if(!device->process_state(state_fio, loading)) {
-			return false;
-		}
-	}
+			if(loading) {
+				printf("Data loading Error: DEVID=%d\n", device->this_device_id);
+			}
+ 			return false;
+ 		}
+ 	}
+	// Machine specified.
 	return true;
 }

@@ -9,6 +9,8 @@
 
 #include "keyboard.h"
 
+namespace PV2000 {
+
 static const int key_map[16][8] = {
 	{0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38},	// 1	2	3	4	5	6	7	8
 	{0x51, 0x57, 0x45, 0x52, 0x54, 0x59, 0x55, 0x49},	// Q	W	E	R	T	Y	U	I
@@ -123,4 +125,6 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateInt32(key_no);
 	state_fio->StateBool(intr_enb);
 	return true;
+}
+
 }

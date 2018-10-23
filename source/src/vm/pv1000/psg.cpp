@@ -13,6 +13,8 @@
 #define PSG_CLOCK
 #define PSG_VOLUME	8192
 
+namespace PV1000 {
+
 void PSG::reset()
 {
 	touch_sound();
@@ -74,4 +76,6 @@ bool PSG::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateInt32(ch[i].period);
 	}
 	return true;
+}
+
 }

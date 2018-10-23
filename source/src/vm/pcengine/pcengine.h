@@ -67,7 +67,6 @@ static const _TCHAR *joy_button_captions[] = {
 };
 #endif
 
-class csp_state_utils;
 class EMU;
 class DEVICE;
 class EVENT;

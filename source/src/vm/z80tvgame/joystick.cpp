@@ -16,6 +16,8 @@
 #include "../z80pio.h"
 #endif
 
+namespace Z80TVGAME {
+
 void JOYSTICK::initialize()
 {
 	joy_stat = emu->get_joy_buffer();
@@ -38,3 +40,4 @@ void JOYSTICK::event_frame()
 #endif
 }
 
+}

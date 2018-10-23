@@ -51,8 +51,6 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class csp_state_utils;
-	
 class EMU;
 class DEVICE;
 class EVENT;
@@ -63,10 +61,11 @@ class SN76489AN;
 class TMS9918A;
 class Z80;
 
-class CMT;
-class KEYBOARD;
-class PRINTER;
-
+namespace PV2000 {
+	class CMT;
+	class KEYBOARD;
+	class PRINTER;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -82,9 +81,9 @@ protected:
 	TMS9918A* vdp;
 	Z80* cpu;
 	
-	CMT* cmt;
-	KEYBOARD* key;
-	PRINTER* prt;
+	PV2000::CMT* cmt;
+	PV2000::KEYBOARD* key;
+	PV2000::PRINTER* prt;
 	
 	// memory
 	uint8_t ipl[0x4000];	// ipl (16k)

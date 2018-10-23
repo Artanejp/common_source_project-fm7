@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace PV2000 {
+
 class PRINTER : public DEVICE
 {
 private:
@@ -34,5 +36,6 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 };
 
+}
 #endif
 

@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace YIS {
+
 class FLOPPY : public DEVICE
 {
 private:
@@ -36,5 +38,6 @@ public:
 	}
 };
 
+}
 #endif
 

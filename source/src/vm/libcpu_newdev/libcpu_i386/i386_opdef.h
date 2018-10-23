@@ -524,7 +524,6 @@ struct vtlb_state
 };
 
 class DEBUG;
-class csp_state_utils;
 class I386_OPS_BASE {
 protected:
 	i386_state *cpustate;

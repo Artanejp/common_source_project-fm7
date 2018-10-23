@@ -9,6 +9,8 @@
 
 #include "keyboard.h"
 
+namespace RX78 {
+
 static const int key_map[9][8] = {
 	{0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37},
 	{0x38, 0x39, 0xba, 0xbb, 0xbc, 0xbd, 0xbe, 0xbf},
@@ -94,50 +96,6 @@ void KEYBOARD::event_frame()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void KEYBOARD::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_1D_ARRAY(status, sizeof(status));
-	DECL_STATE_ENTRY_UINT8(column);
-	
-	leave_decl_state();
-}
-
-void KEYBOARD::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(status, sizeof(status), 1);
-//	state_fio->FputUint8(column);
-}
-
-bool KEYBOARD::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(status, sizeof(status), 1);
-//	column = state_fio->FgetUint8();
-	return true;
-}
-
 bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -149,4 +107,6 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(status, sizeof(status), 1);
 	state_fio->StateUint8(column);
 	return true;
+}
+
 }

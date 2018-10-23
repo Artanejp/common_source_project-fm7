@@ -45,9 +45,6 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("PSG"), _T("CMT (Signal)"), _T("Noise (CMT)"),
 };
 #endif
-
-class csp_state_utils;
-
 class EMU;
 class DEVICE;
 class EVENT;
@@ -57,18 +54,18 @@ class IO;
 class SN76489AN;
 class Z80;
 
-class CMT;
-class KEYBOARD;
-class MEMORY;
-class PRINTER;
-class VDP;
+namespace RX78 {
+	class CMT;
+	class KEYBOARD;
+	class MEMORY;
+	class PRINTER;
+	class VDP;
+}
 
 class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
-	//csp_state_utils* state_entry;
-	
 	// devices
 	//EVENT* event;
 	
@@ -77,11 +74,11 @@ protected:
 	SN76489AN* psg;
 	Z80* cpu;
 	
-	CMT* cmt;
-	KEYBOARD* key;
-	MEMORY* memory;
-	PRINTER* prt;
-	VDP* vdp;
+	RX78::CMT* cmt;
+	RX78::KEYBOARD* key;
+	RX78::MEMORY* memory;
+	RX78::PRINTER* prt;
+	RX78::VDP* vdp;
 	
 public:
 	// ----------------------------------------
@@ -136,9 +133,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

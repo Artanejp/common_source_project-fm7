@@ -15,6 +15,8 @@
 //#define SOUND_DEBUG
 #define ACK_WAIT 100
 
+namespace SCV {
+
 void SOUND::reset()
 {
 	touch_sound();
@@ -339,107 +341,15 @@ void SOUND::set_volume(int ch, int decibel_l, int decibel_r)
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-#define DECL_STATE_ENTRY_CHANNEL_T(__pname) {		\
-		DECL_STATE_ENTRY_INT32((__pname.count));	\
-		DECL_STATE_ENTRY_INT32((__pname.diff));	\
-		DECL_STATE_ENTRY_INT32((__pname.period)); \
-		DECL_STATE_ENTRY_INT32((__pname.timbre)); \
-		DECL_STATE_ENTRY_INT32((__pname.volume)); \
-		DECL_STATE_ENTRY_INT32((__pname.output)); \
-		DECL_STATE_ENTRY_INT32((__pname.ptr));	\
-	}		
-
-void SOUND::decl_state()
+bool SOUND::process_state_channel_t(channel_t *p, FILEIO* state_fio, bool loading)
 {
-	enter_decl_state(STATE_VERSION);
-	
-	DECL_STATE_ENTRY_CHANNEL_T(tone);
-	DECL_STATE_ENTRY_CHANNEL_T(noise);
-	DECL_STATE_ENTRY_CHANNEL_T(square1);
-	DECL_STATE_ENTRY_CHANNEL_T(square2);
-	DECL_STATE_ENTRY_CHANNEL_T(square3);
-	DECL_STATE_ENTRY_CHANNEL_T(pcm);
-	
-	DECL_STATE_ENTRY_1D_ARRAY(pcm_table, sizeof(pcm_table) / sizeof(int));
-	DECL_STATE_ENTRY_UINT32(cmd_addr);
-	DECL_STATE_ENTRY_INT32(pcm_len);
-	DECL_STATE_ENTRY_INT32(param_cnt);
-	DECL_STATE_ENTRY_INT32(param_ptr);
-	DECL_STATE_ENTRY_INT32(register_id);
-	DECL_STATE_ENTRY_1D_ARRAY(params, sizeof(params));
-	
-	leave_decl_state();
-}
-
-void SOUND::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->Fwrite(&tone, sizeof(tone), 1);
-//	state_fio->Fwrite(&noise, sizeof(noise), 1);
-//	state_fio->Fwrite(&square1, sizeof(square1), 1);
-//	state_fio->Fwrite(&square2, sizeof(square2), 1);
-//	state_fio->Fwrite(&square3, sizeof(square3), 1);
-//	state_fio->Fwrite(&pcm, sizeof(pcm), 1);
-//	state_fio->Fwrite(pcm_table, sizeof(pcm_table), 1);
-//	state_fio->FputUint32(cmd_addr);
-//	state_fio->FputInt32(pcm_len);
-//	state_fio->FputInt32(param_cnt);
-//	state_fio->FputInt32(param_ptr);
-//	state_fio->FputInt32(register_id);
-//	state_fio->Fwrite(params, sizeof(params), 1);
-}
-
-bool SOUND::load_state(FILEIO* state_fio)
-{
-	// pre process
-	int tone_diff = tone.diff;
-	int noise_diff = noise.diff;
-	int square1_diff = square1.diff;
-	int square2_diff = square2.diff;
-	int square3_diff = square3.diff;
-	int pcm_diff = pcm.diff;
-	
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	state_fio->Fread(&tone, sizeof(tone), 1);
-//	state_fio->Fread(&noise, sizeof(noise), 1);
-//	state_fio->Fread(&square1, sizeof(square1), 1);
-//	state_fio->Fread(&square2, sizeof(square2), 1);
-//	state_fio->Fread(&square3, sizeof(square3), 1);
-//	state_fio->Fread(&pcm, sizeof(pcm), 1);
-//	state_fio->Fread(pcm_table, sizeof(pcm_table), 1);
-//	cmd_addr = state_fio->FgetUint32();
-//	pcm_len = state_fio->FgetInt32();
-//	param_cnt = state_fio->FgetInt32();
-//	param_ptr = state_fio->FgetInt32();
-//	register_id = state_fio->FgetInt32();
-//	state_fio->Fread(params, sizeof(params), 1);
-	
-	// post process
-	tone.diff = tone_diff;
-	noise.diff = noise_diff;
-	square1.diff = square1_diff;
-	square2.diff = square2_diff;
-	square3.diff = square3_diff;
-	pcm.diff = pcm_diff;
+	state_fio->StateInt32(p->count);
+	state_fio->StateInt32(p->diff);
+	state_fio->StateInt32(p->period);
+	state_fio->StateInt32(p->timbre);
+	state_fio->StateInt32(p->volume);
+	state_fio->StateInt32(p->output);
+	state_fio->StateInt32(p->ptr);
 	return true;
 }
 
@@ -459,13 +369,23 @@ bool SOUND::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(&tone, sizeof(tone), 1);
-	state_fio->StateBuffer(&noise, sizeof(noise), 1);
-	state_fio->StateBuffer(&square1, sizeof(square1), 1);
-	state_fio->StateBuffer(&square2, sizeof(square2), 1);
-	state_fio->StateBuffer(&square3, sizeof(square3), 1);
-	state_fio->StateBuffer(&pcm, sizeof(pcm), 1);
-	state_fio->StateBuffer(pcm_table, sizeof(pcm_table), 1);
+	//state_fio->StateBuffer(&tone, sizeof(tone), 1);
+	//state_fio->StateBuffer(&noise, sizeof(noise), 1);
+	//state_fio->StateBuffer(&square1, sizeof(square1), 1);
+	//state_fio->StateBuffer(&square2, sizeof(square2), 1);
+	//state_fio->StateBuffer(&square3, sizeof(square3), 1);
+	//state_fio->StateBuffer(&pcm, sizeof(pcm), 1);
+	process_state_channel_t(&tone, state_fio, loading);
+	process_state_channel_t(&noise, state_fio, loading);
+	process_state_channel_t(&square1, state_fio, loading);
+	process_state_channel_t(&square2, state_fio, loading);
+	process_state_channel_t(&square3, state_fio, loading);
+	process_state_channel_t(&pcm, state_fio, loading);
+	
+	//state_fio->StateBuffer(pcm_table, sizeof(pcm_table), 1);
+	for(int i = 0; i < (sizeof(pcm_table) / sizeof(int)); i++) {
+		state_fio->StateInt32(pcm_table[i]);
+	}
 	state_fio->StateUint32(cmd_addr);
 	state_fio->StateInt32(pcm_len);
 	state_fio->StateInt32(param_cnt);
@@ -483,4 +403,6 @@ bool SOUND::process_state(FILEIO* state_fio, bool loading)
 		pcm.diff = pcm_diff;
 	}
 	return true;
+}
+
 }

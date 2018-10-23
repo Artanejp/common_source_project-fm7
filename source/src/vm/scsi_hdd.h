@@ -13,7 +13,6 @@
 #include "scsi_dev.h"
 
 class HARDDISK;
-//class csp_state_utils;
 
 class SCSI_HDD : public SCSI_DEV
 {

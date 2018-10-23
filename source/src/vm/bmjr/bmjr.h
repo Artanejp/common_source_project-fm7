@@ -61,7 +61,6 @@ class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
-	//csp_state_utils *state_entry;
 	// devices
 	//EVENT* event;
 	

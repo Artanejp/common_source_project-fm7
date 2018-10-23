@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace PV1000 {
+
 class PSG : public DEVICE
 {
 private:
@@ -44,5 +46,6 @@ public:
 	void initialize_sound(int rate);
 };
 
+}
 #endif
 

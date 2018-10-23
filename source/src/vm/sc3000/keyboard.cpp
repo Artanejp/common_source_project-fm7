@@ -10,6 +10,8 @@
 #include "keyboard.h"
 #include "../i8255.h"
 
+namespace SC3000 {
+
 static const uint8_t key_map[8][12] = {
 	{ 0x31, 0x51, 0x41, 0x5a, 0x15, 0xbc, 0x4b, 0x49, 0x38, 0x00, 0x00, 0x00 },
 	{ 0x32, 0x57, 0x53, 0x58, 0x20, 0xbe, 0x4c, 0x4f, 0x39, 0x00, 0x00, 0x00 },
@@ -80,50 +82,6 @@ void KEYBOARD::update_keyboard()
 
 #define STATE_VERSION	1
 
-#include "../../statesub.h"
-
-void KEYBOARD::decl_state()
-{
-	enter_decl_state(STATE_VERSION);
-
-	DECL_STATE_ENTRY_UINT8(column);
-	DECL_STATE_ENTRY_BOOL(break_pressed);
-	
-	leave_decl_state();
-}
-
-void KEYBOARD::save_state(FILEIO* state_fio)
-{
-	if(state_entry != NULL) {
-		state_entry->save_state(state_fio);
-	}
-//	state_fio->FputUint32(STATE_VERSION);
-//	state_fio->FputInt32(this_device_id);
-	
-//	state_fio->FputUint8(column);
-//	state_fio->FputBool(break_pressed);
-}
-
-bool KEYBOARD::load_state(FILEIO* state_fio)
-{
-	bool mb = false;
-	if(state_entry != NULL) {
-		mb = state_entry->load_state(state_fio);
-	}
-	if(!mb) {
-		return false;
-	}
-//	if(state_fio->FgetUint32() != STATE_VERSION) {
-//		return false;
-//	}
-//	if(state_fio->FgetInt32() != this_device_id) {
-//		return false;
-//	}
-//	column = state_fio->FgetUint8();
-//	break_pressed = state_fio->FgetBool();
-	return true;
-}
-
 bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -135,4 +93,6 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateUint8(column);
 	state_fio->StateBool(break_pressed);
 	return true;
+}
+
 }

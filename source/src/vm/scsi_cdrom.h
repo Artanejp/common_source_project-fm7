@@ -17,7 +17,6 @@
 #define SIG_SCSI_CDROM_SAMPLE_R	2
 
 class FILEIO;
-//class csp_state_utils;
 
 class SCSI_CDROM : public SCSI_DEV
 {

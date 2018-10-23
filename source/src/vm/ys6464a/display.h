@@ -17,6 +17,8 @@
 #define SIG_DISPLAY_PORT_B	0
 #define SIG_DISPLAY_PORT_C	1
 
+namespace YS6464A {
+	
 class DISPLAY : public DEVICE
 {
 private:
@@ -34,13 +36,12 @@ public:
 	void initialize();
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_vline(int v, int clock);
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
 	void draw_screen();
 };
 
+}
 #endif
 

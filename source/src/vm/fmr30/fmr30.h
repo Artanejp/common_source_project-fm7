@@ -58,8 +58,6 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("PSG"), _T("Noise (FDD)"),
 };
 #endif
-
-class csp_state_utils;
 class EMU;
 class DEVICE;
 class EVENT;

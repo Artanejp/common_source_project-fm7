@@ -10,6 +10,8 @@
 #include "calendar.h"
 #include "../msm58321.h"
 
+namespace YIS {
+
 void CALENDAR::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
@@ -35,3 +37,4 @@ uint32_t CALENDAR::read_io8(uint32_t addr)
 	return 0xff;
 }
 
+}

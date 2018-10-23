@@ -37,7 +37,6 @@ enum {
 class VM;
 class EMU;
 class DEBUGGER;
-class csp_state_utils;
 class MC6809_BASE : public DEVICE
 {
 protected:

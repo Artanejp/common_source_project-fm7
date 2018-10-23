@@ -12,9 +12,8 @@
 
 #include "../memory.h"
 
-//class csp_state_utils;
-
 namespace BUBCOM80 {
+
 class MEMBUS : public MEMORY
 {
 private:

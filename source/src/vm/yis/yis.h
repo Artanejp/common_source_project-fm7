@@ -71,8 +71,6 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class csp_state_utils;
-
 class EMU;
 class DEVICE;
 class EVENT;
@@ -88,12 +86,14 @@ class MC6844;
 class MC6850;
 class MSM58321;
 
-class CALENDAR;
-class DISPLAY;
-class FLOPPY;
-class KEYBOARD;
-class MAPPER;
-class SOUND;
+namespace YIS {
+	class CALENDAR;
+	class DISPLAY;
+	class FLOPPY;
+	class KEYBOARD;
+	class MAPPER;
+	class SOUND;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -116,12 +116,12 @@ protected:
 	MC6850* acia2;
 	MSM58321* rtc;
 	
-	CALENDAR* calendar;
-	DISPLAY* display;
-	FLOPPY* floppy;
-	KEYBOARD* keyboard;
-	MAPPER* mapper;
-	SOUND* sound;
+	YIS::CALENDAR* calendar;
+	YIS::DISPLAY* display;
+	YIS::FLOPPY* floppy;
+	YIS::KEYBOARD* keyboard;
+	YIS::MAPPER* mapper;
+	YIS::SOUND* sound;
 	
 	uint8_t rom[0x1000];
 	
@@ -173,9 +173,7 @@ public:
 	bool is_frame_skippable();
 	
 	void update_config();
-	void decl_state();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

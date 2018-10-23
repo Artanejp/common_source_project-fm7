@@ -13,7 +13,8 @@
 #include "../tms9995.h"
 
 namespace PYUTA {
-#define SET_BANK(s, e, w, r) { \
+
+#define SET_BANK(s, e, w, r) {			\
 	int sb = (s) >> 12, eb = (e) >> 12; \
 	for(int i = sb; i <= eb; i++) { \
 		if((w) == wdmy) { \
@@ -340,4 +341,5 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	}
 	return true;
 }
+
 }

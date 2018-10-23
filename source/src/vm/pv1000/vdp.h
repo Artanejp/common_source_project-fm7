@@ -14,6 +14,8 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace PV1000 {
+
 class VDP : public DEVICE
 {
 private:
@@ -63,4 +65,6 @@ public:
 	void draw_screen();
 };
 
+
+}
 #endif

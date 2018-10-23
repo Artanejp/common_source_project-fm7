@@ -12,7 +12,6 @@
 #include "fmtimer.h"
 #include "psg.h"
 
-class csp_state_utils;
 class CSP_Logger;
 // ---------------------------------------------------------------------------
 //	class OPN/OPNA
