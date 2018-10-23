@@ -215,6 +215,7 @@
     <ClInclude Include="..\src\vm\upd765a.h" />
     <ClInclude Include="..\src\vm\upd7752.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\ym2203.h" />
     <ClInclude Include="..\src\vm\z80.h" />
     <ClInclude Include="..\src\vm\fmgen\diag.h" />

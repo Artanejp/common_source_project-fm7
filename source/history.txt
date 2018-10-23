@@ -1,3 +1,17 @@
+10/7/2018
+
+[COMMON] add pair16_t and pair64_t (thanks Mr.Artane.)
+[COMMON] rename pair_t to pair32_t
+[COMMON] add functions for endians (thanks Mr.Artane.)
+[EMU] fix roman/kana conversion when uppercase alphabet is input (thanks Mr.Artane.)
+[EMU] abolish SUPPORT_VARIABLE_TIMING and USE_TAPE_BUTTON
+[WINMAIN] abolish USE_ALT_F10_KEY
+[WIN32/INPUT] abolish NOTIFY_KEY_DOWN and USE_SHIFT_NUMPAD_KEY
+[WIN32/INPUT] improve key input for shift + numpad keys
+
+[VM/*] introduce VM_TEMPLATE (thanks Mr.Artane.)
+
+
 10/5/2018
 
 [COMMON] combine load_state and save_statet of cur_time_t to process_state

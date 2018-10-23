@@ -79,6 +79,7 @@
 				OutputFile=".\Debug/mz800.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/mz800.pdb"
 				SubSystem="2"
@@ -175,6 +176,7 @@
 				OutputFile=".\Release/mz800.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
 				ProgramDatabaseFile=".\Release/mz800.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -1054,6 +1056,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\vm.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\vm_template.h"
 					>
 				</File>
 				<File

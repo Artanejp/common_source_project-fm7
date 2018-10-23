@@ -71,7 +71,7 @@ private:
 	_TCHAR dest_path[_MAX_PATH];
 	fd_format_t fd_formats[32];
 
-	pair_t file_size;
+	pair32_t file_size;
 	int file_bank;
 	uint32_t orig_file_size;
 	uint32_t orig_crc32;
@@ -200,7 +200,7 @@ public:
 	
 	// track
 	uint8_t track[TRACK_BUFFER_SIZE];
-	pair_t sector_num;
+	pair32_t sector_num;
 	bool track_mfm;
 	bool invalid_format;
 //	bool no_skew;
@@ -214,7 +214,7 @@ public:
 	
 	// sector
 	uint8_t* sector;
-	pair_t sector_size;
+	pair32_t sector_size;
 	uint8_t id[6];
 	uint8_t density;
 	bool deleted;

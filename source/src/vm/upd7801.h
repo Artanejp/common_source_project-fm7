@@ -56,7 +56,7 @@ private:
 	int count, period, scount, tcount;
 	bool wait;
 	
-	pair_t regs[8];
+	pair32_t regs[8];
 	uint16_t SP, PC, prevPC;
 	uint8_t PSW, IRR, IFF, SIRQ, HALT, MK, MB, MC, TM0, TM1, SR;
 	// for port c

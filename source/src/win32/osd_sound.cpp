@@ -140,7 +140,6 @@ void OSD::update_sound(int* extra_frames)
 					// sync video recording
 					static double frames = 0;
 					static int prev_samples = -1;
-#ifdef SUPPORT_VARIABLE_TIMING
 					static double prev_fps = -1;
 					double fps = vm->get_frame_rate();
 					if(prev_samples != samples || prev_fps != fps) {
@@ -148,12 +147,6 @@ void OSD::update_sound(int* extra_frames)
 						prev_fps = fps;
 						frames = fps * (double)samples / (double)sound_rate;
 					}
-#else
-					if(prev_samples != samples) {
-						prev_samples = samples;
-						frames = FRAMES_PER_SEC * (double)samples / (double)sound_rate;
-					}
-#endif
 					rec_video_frames -= frames;
 					if(rec_video_frames > 2) {
 						rec_video_run_frames -= (rec_video_frames - 2);

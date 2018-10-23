@@ -54,13 +54,10 @@
 #define USE_BOOT_MODE		2
 #endif
 #define USE_TAPE		1
-#define USE_TAPE_BUTTON
 #if defined(_MZ800) || defined(_MZ1500)
 #define USE_FLOPPY_DISK		2
 #define USE_QUICK_DISK		1
 #endif
-#define USE_SHIFT_NUMPAD_KEY
-#define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_CAPS
@@ -281,6 +278,10 @@ public:
 	// drive virtual machine
 	void reset();
 	void run();
+	double get_frame_rate()
+	{
+		return FRAMES_PER_SEC;
+	}
 	
 #ifdef USE_DEBUGGER
 	// debugger

@@ -190,6 +190,7 @@
     <ClInclude Include="..\src\vm\m6502.h" />
     <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\ym2413.h" />
     <ClInclude Include="..\src\vm\familybasic\apu.h" />
     <ClInclude Include="..\src\vm\familybasic\familybasic.h" />

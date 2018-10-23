@@ -56,7 +56,7 @@ uint32_t MC6800::RM16(uint32_t Addr)
 	return result | RM((Addr + 1) & 0xffff);
 }
 
-void MC6800::WM16(uint32_t Addr, pair_t *p)
+void MC6800::WM16(uint32_t Addr, pair32_t *p)
 {
 	WM(Addr, p->b.h);
 	WM((Addr + 1) & 0xffff, p->b.l);
@@ -2024,7 +2024,7 @@ void MC6800::adda_im()
 void MC6800::cmpx_im()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	IMMWORD(b);
 	d = X;
 	r = d - b.d;
@@ -2177,7 +2177,7 @@ void MC6800::adda_di()
 void MC6800::cmpx_di()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	DIRWORD(b);
 	d = X;
 	r = d - b.d;
@@ -2330,7 +2330,7 @@ void MC6800::adda_ix()
 void MC6800::cmpx_ix()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	IDXWORD(b);
 	d = X;
 	r = d - b.d;
@@ -2483,7 +2483,7 @@ void MC6800::adda_ex()
 void MC6800::cmpx_ex()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	EXTWORD(b);
 	d = X;
 	r = d - b.d;

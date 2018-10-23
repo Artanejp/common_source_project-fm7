@@ -191,6 +191,7 @@
     <ClInclude Include="..\src\vm\tms9918a.h" />
     <ClInclude Include="..\src\vm\tms9995.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\pyuta\memory.h" />
     <ClInclude Include="..\src\vm\pyuta\pyuta.h" />
     <ClInclude Include="..\src\res\resource.h" />

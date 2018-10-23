@@ -192,6 +192,7 @@
     <ClInclude Include="..\src\vm\mc6820.h" />
     <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\bmjr\bmjr.h" />
     <ClInclude Include="..\src\vm\bmjr\memory.h" />
     <ClInclude Include="..\src\res\resource.h" />

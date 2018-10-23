@@ -43,10 +43,7 @@
 
 // device informations for win32
 #define USE_FLOPPY_DISK		1
-#define NOTIFY_KEY_DOWN
 #define USE_KEY_LOCKED
-#define USE_SHIFT_NUMPAD_KEY
-#define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NUMPAD
@@ -154,6 +151,10 @@ public:
 	// drive virtual machine
 	void reset();
 	void run();
+	double get_frame_rate()
+	{
+		return FRAMES_PER_SEC;
+	}
 	
 #ifdef USE_DEBUGGER
 	// debugger

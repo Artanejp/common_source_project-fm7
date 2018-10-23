@@ -25,15 +25,12 @@
 #define MEMORY_ADDR_MAX		0x10000
 #define MEMORY_BANK_SIZE	0x800
 #define IO_ADDR_MAX		0x10000
-#define SUPPORT_VARIABLE_TIMING
 
 // device informations for win32
 #define USE_FLOPPY_DISK		4
 #define USE_TAPE		1
 #define TAPE_BINARY_ONLY
 #define USE_BUBBLE		2
-#define USE_SHIFT_NUMPAD_KEY
-#define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NUMPAD

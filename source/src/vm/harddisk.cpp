@@ -13,7 +13,7 @@
 void HARDDISK::open(const _TCHAR* file_path, int default_sector_size)
 {
 	uint8_t header[512];
-	pair_t tmp;
+	pair32_t tmp;
 	
 	close();
 	

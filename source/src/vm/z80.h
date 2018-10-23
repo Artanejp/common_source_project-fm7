@@ -65,8 +65,8 @@ protected:
 	int icount;
 	int extra_icount;
 	uint16_t prevpc;
-	pair_t pc, sp, af, bc, de, hl, ix, iy, wz;
-	pair_t af2, bc2, de2, hl2;
+	pair32_t pc, sp, af, bc, de, hl, ix, iy, wz;
+	pair32_t af2, bc2, de2, hl2;
 	uint8_t I, R, R2;
 	uint32_t ea;
 	
@@ -77,8 +77,8 @@ protected:
 	
 	Z80_INLINE uint8_t RM8(uint32_t addr);
 	Z80_INLINE void WM8(uint32_t addr, uint8_t val);
-	Z80_INLINE void RM16(uint32_t addr, pair_t *r);
-	Z80_INLINE void WM16(uint32_t addr, pair_t *r);
+	Z80_INLINE void RM16(uint32_t addr, pair32_t *r);
+	Z80_INLINE void WM16(uint32_t addr, pair32_t *r);
 	Z80_INLINE uint8_t FETCHOP();
 	Z80_INLINE uint8_t FETCH8();
 	Z80_INLINE uint32_t FETCH16();

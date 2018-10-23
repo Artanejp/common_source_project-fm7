@@ -119,7 +119,7 @@ inline void MC6809_BASE::BRANCH(bool cond)
 
 inline void MC6809_BASE::LBRANCH(bool cond)
 {
-	pair_t t;
+	pair32_t t;
 	IMMWORD(t);
 	if(!cond) return;
 	icount -= 1;
@@ -129,16 +129,16 @@ inline void MC6809_BASE::LBRANCH(bool cond)
 
 /* macros for setting/getting registers in TFR/EXG instructions */
 
-inline pair_t MC6809_BASE::RM16_PAIR(uint32_t addr)
+inline pair32_t MC6809_BASE::RM16_PAIR(uint32_t addr)
 {
-	pair_t b;
+	pair32_t b;
 	b.d = 0;
 	b.b.h = RM(addr);
 	b.b.l = RM((addr + 1));
 	return b;
 }
 
-inline void MC6809_BASE::WM16(uint32_t Addr, pair_t *p)
+inline void MC6809_BASE::WM16(uint32_t Addr, pair32_t *p)
 {
 	WM(Addr , p->b.h);
 	WM((Addr + 1), p->b.l);
@@ -323,7 +323,7 @@ void MC6809_BASE::cpu_firq_fetch_vector_address(void)
 
 void MC6809_BASE::cpu_firq_push(void)
 {
-	//pair_t rpc = pPC;
+	//pair32_t rpc = pPC;
 	if ((int_state & MC6809_CWAI_IN) == 0) {
 		/* NORMAL */
 		CC &= ~CC_E;
@@ -348,7 +348,7 @@ void MC6809_BASE::cpu_irq_push(void)
 }
 void MC6809_BASE::cpu_irq_fetch_vector_address(void)
 {
-	//pair_t rpc = pPC;
+	//pair32_t rpc = pPC;
 	pPC = RM16_PAIR(0xfff8);
 	int_state |= MC6809_CWAI_OUT;
 	int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT);
@@ -776,7 +776,7 @@ inline void MC6809_BASE::fetch_effective_address_IDX(uint8_t upper, uint8_t lowe
 	bool indirect = false;
 	uint16_t *reg;
 	uint8_t bx_p;
-	pair_t pp;
+	pair32_t pp;
 	
 	indirect = ((upper & 0x01) != 0) ? true : false;
 
@@ -883,9 +883,9 @@ inline uint8_t MC6809_BASE::GET_INDEXED_DATA(void)
 	return t;
 }
 
-inline pair_t MC6809_BASE::GET_INDEXED_DATA16(void)
+inline pair32_t MC6809_BASE::GET_INDEXED_DATA16(void)
 {
-	pair_t t;
+	pair32_t t;
 	fetch_effective_address();
 	t = RM16_PAIR(EAD);
 	return t;
@@ -1295,7 +1295,7 @@ inline uint16_t MC6809_BASE::CMP16_REG(uint16_t reg, uint16_t data)
 	return reg;
 }
 
-inline void MC6809_BASE::STORE16_REG(pair_t *p)
+inline void MC6809_BASE::STORE16_REG(pair32_t *p)
 {
 	CLR_NZV;
 	SET_NZ16(p->w.l);
@@ -1512,7 +1512,7 @@ OP_HANDLER(sex) {
 
 	/* $1E EXG inherent ----- */// 20100825
 OP_HANDLER(exg) {
-	pair_t t1, t2;
+	pair32_t t1, t2;
 	uint8_t tb;
 	IMMBYTE(tb);
 	t1.d = 0;
@@ -1671,7 +1671,7 @@ OP_HANDLER(exg) {
 /* $1F TFR inherent ----- */
 OP_HANDLER(tfr) {
 	uint8_t tb;
-	pair_t t;
+	pair32_t t;
 	IMMBYTE(tb);
 	t.d = 0;
 	/*
@@ -2113,7 +2113,7 @@ OP_HANDLER(rts) {
 
 /* $3A ABX inherent ----- */
 OP_HANDLER(abx) {
-	pair_t bt;
+	pair32_t bt;
 	bt.d = 0;
 	bt.b.l = B;
 	X = X + bt.w.l;
@@ -2158,7 +2158,7 @@ OP_HANDLER(cwai) {
 
 /* $3D MUL inherent --*-@ */
 OP_HANDLER(mul) {
-	pair_t t, r;
+	pair32_t t, r;
 	t.d = 0;
 	r.d = 0;
 	t.b.l = A;
@@ -2613,21 +2613,21 @@ OP_HANDLER(sbca_im) {
 
 /* $83 SUBD (CMPD CMPU) immediate -**** */
 OP_HANDLER(subd_im) {
-	pair_t b;
+	pair32_t b;
 	IMMWORD(b);
 	D = SUB16_REG(D, b.w.l);
 }
 
 /* $1083 CMPD immediate -**** */
 OP_HANDLER(cmpd_im) {
-	pair_t b;
+	pair32_t b;
 	IMMWORD(b);
 	D = CMP16_REG(D, b.w.l);
 }
 
 /* $1183 CMPU immediate -**** */
 OP_HANDLER(cmpu_im) {
-	pair_t b;
+	pair32_t b;
 	IMMWORD(b);
 	U = CMP16_REG(U, b.w.l);
 }
@@ -2705,21 +2705,21 @@ OP_HANDLER(adda_im) {
 
 /* $8C CMPX (CMPY CMPS) immediate -**** */
 OP_HANDLER(cmpx_im) {
-	pair_t b;
+	pair32_t b;
 	IMMWORD(b);
 	X = CMP16_REG(X, b.w.l);
 }
 
 /* $108C CMPY immediate -**** */
 OP_HANDLER(cmpy_im) {
-	pair_t b;
+	pair32_t b;
 	IMMWORD(b);
 	Y = CMP16_REG(Y, b.w.l);
 }
 
 /* $118C CMPS immediate -**** */
 OP_HANDLER(cmps_im) {
-	pair_t b;
+	pair32_t b;
 	IMMWORD(b);
 	S = CMP16_REG(S, b.w.l);
 }
@@ -2757,7 +2757,7 @@ OP_HANDLER(stx_im) {
  * $8F , $CF: FLAG16
  */
 OP_HANDLER(flag16_im) {
-		pair_t t;
+		pair32_t t;
 		IMMWORD(t);
 		CLR_NZV;
 		CC |= CC_N;
@@ -2796,21 +2796,21 @@ OP_HANDLER(sbca_di) {
 
 /* $93 SUBD (CMPD CMPU) direct -**** */
 OP_HANDLER(subd_di) {
-	pair_t b;
+	pair32_t b;
 	DIRWORD(b);
 	D = SUB16_REG(D, b.w.l);
 }
 
 /* $1093 CMPD direct -**** */
 OP_HANDLER(cmpd_di) {
-	pair_t b;
+	pair32_t b;
 	DIRWORD(b);
 	D = CMP16_REG(D, b.w.l);
 }
 
 /* $1193 CMPU direct -**** */
 OP_HANDLER(cmpu_di) {
-	pair_t b;
+	pair32_t b;
 	DIRWORD(b);
 	U = CMP16_REG(U, b.w.l);
 }
@@ -2871,21 +2871,21 @@ OP_HANDLER(adda_di) {
 
 /* $9C CMPX (CMPY CMPS) direct -**** */
 OP_HANDLER(cmpx_di) {
-	pair_t b;
+	pair32_t b;
 	DIRWORD(b);
 	X = CMP16_REG(X, b.w.l);
 }
 
 /* $109C CMPY direct -**** */
 OP_HANDLER(cmpy_di) {
-	pair_t b;
+	pair32_t b;
 	DIRWORD(b);
 	Y = CMP16_REG(Y, b.w.l);
 }
 
 /* $119C CMPS direct -**** */
 OP_HANDLER(cmps_di) {
-	pair_t b;
+	pair32_t b;
 	DIRWORD(b);
 	S = CMP16_REG(S, b.w.l);
 }
@@ -2944,21 +2944,21 @@ OP_HANDLER(sbca_ix) {
 
 /* $a3 SUBD (CMPD CMPU) indexed -**** */
 OP_HANDLER(subd_ix) {
-	pair_t b;
+	pair32_t b;
 	b = GET_INDEXED_DATA16();
 	D = SUB16_REG(D, b.w.l);
 }
 
 /* $10a3 CMPD indexed -**** */
 OP_HANDLER(cmpd_ix) {
-	pair_t b;
+	pair32_t b;
 	b = GET_INDEXED_DATA16();
 	D = CMP16_REG(D, b.w.l);
 }
 
 /* $11a3 CMPU indexed -**** */
 OP_HANDLER(cmpu_ix) {
-	pair_t b;
+	pair32_t b;
 	b = GET_INDEXED_DATA16();
 	U = CMP16_REG(U, b.w.l);
 }
@@ -3019,21 +3019,21 @@ OP_HANDLER(adda_ix) {
 
 /* $aC CMPX (CMPY CMPS) indexed -**** */
 OP_HANDLER(cmpx_ix) {
-	pair_t b;
+	pair32_t b;
 	b = GET_INDEXED_DATA16();
 	X = CMP16_REG(X, b.w.l);
 }
 
 /* $10aC CMPY indexed -**** */
 OP_HANDLER(cmpy_ix) {
-	pair_t b;
+	pair32_t b;
 	b = GET_INDEXED_DATA16();
 	Y = CMP16_REG(Y, b.w.l);
 }
 
 /* $11aC CMPS indexed -**** */
 OP_HANDLER(cmps_ix) {
-	pair_t b;
+	pair32_t b;
 	b = GET_INDEXED_DATA16();
 	S = CMP16_REG(S, b.w.l);
 }
@@ -3047,7 +3047,7 @@ OP_HANDLER(jsr_ix) {
 
 /* $aE LDX (LDY) indexed -**0- */
 OP_HANDLER(ldx_ix) {
-	pair_t t;
+	pair32_t t;
 	t = GET_INDEXED_DATA16();
 	X = t.w.l;
 	X = LOAD16_REG(X);
@@ -3055,7 +3055,7 @@ OP_HANDLER(ldx_ix) {
 
 /* $10aE LDY indexed -**0- */
 OP_HANDLER(ldy_ix) {
-	pair_t t;
+	pair32_t t;
 	t = GET_INDEXED_DATA16();
 	Y = t.w.l;
 	Y = LOAD16_REG(Y);
@@ -3096,21 +3096,21 @@ OP_HANDLER(sbca_ex) {
 
 /* $b3 SUBD (CMPD CMPU) extended -**** */
 OP_HANDLER(subd_ex) {
-	pair_t b;
+	pair32_t b;
 	EXTWORD(b);
 	D = SUB16_REG(D, b.w.l);
 }
 
 /* $10b3 CMPD extended -**** */
 OP_HANDLER(cmpd_ex) {
-	pair_t b;
+	pair32_t b;
 	EXTWORD(b);
 	D = CMP16_REG(D, b.w.l);
 }
 
 /* $11b3 CMPU extended -**** */
 OP_HANDLER(cmpu_ex) {
-	pair_t b;
+	pair32_t b;
 	EXTWORD(b);
 	U = CMP16_REG(U, b.w.l);
 }
@@ -3171,21 +3171,21 @@ OP_HANDLER(adda_ex) {
 
 /* $bC CMPX (CMPY CMPS) extended -**** */
 OP_HANDLER(cmpx_ex) {
-	pair_t b;
+	pair32_t b;
 	EXTWORD(b);
 	X = CMP16_REG(X, b.w.l);
 }
 
 /* $10bC CMPY extended -**** */
 OP_HANDLER(cmpy_ex) {
-	pair_t b;
+	pair32_t b;
 	EXTWORD(b);
 	Y = CMP16_REG(Y, b.w.l);
 }
 
 /* $11bC CMPS extended -**** */
 OP_HANDLER(cmps_ex) {
-	pair_t b;
+	pair32_t b;
 	EXTWORD(b);
 	S = CMP16_REG(S, b.w.l);
 }
@@ -3244,7 +3244,7 @@ OP_HANDLER(sbcb_im) {
 
 /* $c3 ADDD immediate -**** */
 OP_HANDLER(addd_im) {
-	pair_t b;
+	pair32_t b;
 	IMMWORD(b);
 	D = ADD16_REG(D, b.w.l);
 }
@@ -3374,7 +3374,7 @@ OP_HANDLER(sbcb_di) {
 
 /* $d3 ADDD direct -**** */
 OP_HANDLER(addd_di) {
-	pair_t b;
+	pair32_t b;
 	DIRWORD(b);
 	D = ADD16_REG(D, b.w.l);
 }
@@ -3493,7 +3493,7 @@ OP_HANDLER(sbcb_ix) {
 
 /* $e3 ADDD indexed -**** */
 OP_HANDLER(addd_ix) {
-	pair_t b;
+	pair32_t b;
 	b = GET_INDEXED_DATA16();
 	D = ADD16_REG(D, b.w.l);
 }
@@ -3554,7 +3554,7 @@ OP_HANDLER(addb_ix) {
 
 /* $eC LDD indexed -**0- */
 OP_HANDLER(ldd_ix) {
-	pair_t t;
+	pair32_t t;
 	t = GET_INDEXED_DATA16();
 	D = t.w.l;
 	D = LOAD16_REG(D);
@@ -3568,7 +3568,7 @@ OP_HANDLER(std_ix) {
 
 /* $eE LDU (LDS) indexed -**0- */
 OP_HANDLER(ldu_ix) {
-	pair_t t;
+	pair32_t t;
 	t = GET_INDEXED_DATA16();
 	U = t.w.l;
 	U = LOAD16_REG(U);
@@ -3576,7 +3576,7 @@ OP_HANDLER(ldu_ix) {
 
 /* $10eE LDS indexed -**0- */
 OP_HANDLER(lds_ix) {
-	pair_t t;
+	pair32_t t;
 	t = GET_INDEXED_DATA16();
 	S = t.w.l;
 	S = LOAD16_REG(S);
@@ -3618,7 +3618,7 @@ OP_HANDLER(sbcb_ex) {
 
 /* $f3 ADDD extended -**** */
 OP_HANDLER(addd_ex) {
-	pair_t b;
+	pair32_t b;
 	EXTWORD(b);
 	D = ADD16_REG(D, b.w.l);
 }

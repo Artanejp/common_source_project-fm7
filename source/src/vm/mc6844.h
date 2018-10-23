@@ -26,8 +26,8 @@ private:
 	
 	struct {
 		DEVICE *device;
-		pair_t address_reg;
-		pair_t byte_count_reg;
+		pair32_t address_reg;
+		pair32_t byte_count_reg;
 		uint8_t channel_ctrl_reg;
 	} dma[4];
 	

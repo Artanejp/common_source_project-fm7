@@ -92,6 +92,10 @@ public:
 	void reset();
 	void special_reset();
 	void run();
+	double get_frame_rate()
+	{
+		return FRAMES_PER_SEC;
+	}
 	
 #ifdef USE_DEBUGGER
 	// debugger

@@ -79,6 +79,7 @@
 				OutputFile=".\Debug/fmr50_i386.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/fmr50_i386.pdb"
 				SubSystem="2"
@@ -175,6 +176,7 @@
 				OutputFile=".\Release/fmr50_i386.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
 				ProgramDatabaseFile=".\Release/fmr50_i386.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -1094,6 +1096,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\vm.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\vm_template.h"
 					>
 				</File>
 			</Filter>

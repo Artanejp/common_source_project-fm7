@@ -27,8 +27,6 @@
 // device informations for win32
 #define USE_CART		1
 #define USE_TAPE		1
-#define USE_TAPE_BUTTON
-#define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	8
 #define USE_SOUND_VOLUME	3
@@ -109,6 +107,10 @@ public:
 	// drive virtual machine
 	void reset();
 	void run();
+	double get_frame_rate()
+	{
+		return FRAMES_PER_SEC;
+	}
 	
 #ifdef USE_DEBUGGER
 	// debugger

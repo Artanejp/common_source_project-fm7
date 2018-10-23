@@ -30,8 +30,6 @@
 #define USE_FLOPPY_DISK		2
 #define USE_TAPE		1
 #define TAPE_BINARY_ONLY
-#define NOTIFY_KEY_DOWN
-#define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		6
 #define USE_AUTO_KEY_RELEASE	12
 #define USE_AUTO_KEY_CAPS
@@ -108,6 +106,10 @@ public:
 	void reset();
 	void notify_power_off();
 	void run();
+	double get_frame_rate()
+	{
+		return FRAMES_PER_SEC;
+	}
 	
 #ifdef USE_DEBUGGER
 	// debugger

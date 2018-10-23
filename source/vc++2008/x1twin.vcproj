@@ -79,6 +79,7 @@
 				OutputFile=".\Debug/x1twin.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/x1twin.pdb"
 				SubSystem="2"
@@ -175,6 +176,7 @@
 				OutputFile=".\Release/x1twin.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
 				ProgramDatabaseFile=".\Release/x1twin.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -1403,6 +1405,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\vm.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\vm_template.h"
 					>
 				</File>
 				<File

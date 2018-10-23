@@ -200,6 +200,7 @@
     <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\tk80bs\cmt.h" />
     <ClInclude Include="..\src\vm\tk80bs\display.h" />
     <ClInclude Include="..\src\vm\tk80bs\keyboard.h" />

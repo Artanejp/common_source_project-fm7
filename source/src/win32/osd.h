@@ -17,8 +17,8 @@
 #define DIRECT3D_VERSION	0x900
 // XXX: if your DirectX 9.0 SDK is newer and does not contain dinput.lib,
 // please change the definition of DIRECTINPUT_VERSION from 0x500 to 0x800
-#define DIRECTINPUT_VERSION	0x500
-//#define DIRECTINPUT_VERSION	0x800
+//#define DIRECTINPUT_VERSION	0x500
+#define DIRECTINPUT_VERSION	0x800
 
 #include <windows.h>
 #include <windowsx.h>
@@ -103,9 +103,9 @@ public:
 #ifdef USE_MOVIE_PLAYER
 class CMySampleGrabberCB : public ISampleGrabberCB {
 private:
-	VM *vm;
+	VM_TEMPLATE *vm;
 public:
-	CMySampleGrabberCB(VM *vm_ptr)
+	CMySampleGrabberCB(VM_TEMPLATE *vm_ptr)
 	{
 		vm = vm_ptr;
 	}
@@ -253,10 +253,9 @@ private:
 	
 	uint8_t keycode_conv[256];
 	uint8_t key_status[256];	// windows key code mapping
+	uint8_t key_dik[256];
 	uint8_t key_dik_prev[256];
-#ifdef USE_SHIFT_NUMPAD_KEY
 	bool key_shift_pressed, key_shift_released;
-#endif
 	bool key_caps_locked;
 	bool lost_focus;
 	
@@ -419,7 +418,7 @@ public:
 	~OSD() {}
 	
 	// common
-	VM* vm;
+	VM_TEMPLATE* vm;
 	
 	void initialize(int rate, int samples);
 	void release();

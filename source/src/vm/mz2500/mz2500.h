@@ -30,7 +30,6 @@
 //#define DATAREC_FAST_FWD_SPEED	10
 //#define DATAREC_FAST_REW_SPEED	10
 #define SCSI_HOST_AUTO_ACK
-#define SUPPORT_VARIABLE_TIMING
 
 // memory wait
 #define Z80_MEMORY_WAIT
@@ -40,11 +39,8 @@
 #define USE_SPECIAL_RESET
 #define USE_FLOPPY_DISK		4
 #define USE_TAPE		1
-#define USE_TAPE_BUTTON
 #define USE_HARD_DISK		2
 #define USE_SOCKET
-#define USE_SHIFT_NUMPAD_KEY
-#define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NUMPAD

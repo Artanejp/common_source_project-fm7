@@ -674,7 +674,7 @@ uint32_t MEMORY::read_signal(int id)
 	return stat;
 }
 
-bool MEMORY::bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_t* hl, pair_t* ix, pair_t* iy, uint8_t* iff1)
+bool MEMORY::bios_ret_z80(uint16_t PC, pair32_t* af, pair32_t* bc, pair32_t* de, pair32_t* hl, pair32_t* ix, pair32_t* iy, uint8_t* iff1)
 {
 	#define AF	af->w.l
 	#define A	af->b.h

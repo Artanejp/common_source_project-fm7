@@ -210,14 +210,14 @@ void DISK::open(const _TCHAR* file_path, int bank)
 			
 			// fix sector number from big endian to little endian
 			for(int trkside = 0; trkside < 164; trkside++) {
-				pair_t offset;
+				pair32_t offset;
 				offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 				
 				if(!IS_VALID_TRACK(offset.d)) {
 					break;
 				}
 				uint8_t* t = buffer + offset.d;
-				pair_t sector_num, data_size;
+				pair32_t sector_num, data_size;
 				sector_num.read_2bytes_le_from(t + 4);
 				bool is_be = (sector_num.b.l == 0 && sector_num.b.h >= 4);
 				if(is_be) {
@@ -481,7 +481,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 			if((media_type = buffer[0x1b]) == MEDIA_TYPE_2HD) {
 				// check 1.2MB or 1.44MB
 				for(int trkside = 0; trkside < 164; trkside++) {
-					pair_t offset;
+					pair32_t offset;
 					offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 					
 					if(!IS_VALID_TRACK(offset.d)) {
@@ -489,7 +489,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 					}
 					// track found
 					uint8_t *t = buffer + offset.d;
-					pair_t sector_num, data_size;
+					pair32_t sector_num, data_size;
 					sector_num.read_2bytes_le_from(t + 4);
 					data_size.read_2bytes_le_from(t + 14);
 					
@@ -507,7 +507,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 		for(int trk = 0; trk < 82; trk++) {
 			for(int side = 0; side < 2; side++) {
 				int trkside = trk * 2 + side;
-				pair_t offset;
+				pair32_t offset;
 				offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 				
 				if(IS_VALID_TRACK(offset.d)) {
@@ -535,7 +535,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 			// FIXME: ugly patch for FM-7 Gambler Jiko Chuushin Ha, DEATH FORCE and Psy-O-Blade
 			if(media_type == MEDIA_TYPE_2D) {
 				// check first track
-				pair_t offset, sector_num, data_size;
+				pair32_t offset, sector_num, data_size;
 				offset.read_4bytes_le_from(buffer + 0x20);
 
 				if(IS_VALID_TRACK(offset.d)) {
@@ -733,7 +733,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 			// FIXME: ugly patch for X1turbo ALPHA and X1 Batten Tanuki
 			if(media_type == MEDIA_TYPE_2D) {
 				// check first track
-				pair_t offset;
+				pair32_t offset;
 				offset.read_4bytes_le_from(buffer + 0x20);
 				if(IS_VALID_TRACK(offset.d)) {
 					// check first sector
@@ -801,7 +801,7 @@ void DISK::close()
 				int tracks = 0;
 				
 				for(int trkside = 0; trkside < 164; trkside++) {
-					pair_t offset;
+					pair32_t offset;
 					offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 					
 					if(!IS_VALID_TRACK(offset.d)) {
@@ -813,7 +813,7 @@ void DISK::close()
 					tracks++;
 					
 					uint8_t* t = buffer + offset.d;
-					pair_t sector_num, data_size;
+					pair32_t sector_num, data_size;
 					sector_num.read_2bytes_le_from(t + 4);
 					
 					if(sector_num.sd != solid_nsec) {
@@ -851,14 +851,14 @@ void DISK::close()
 						fio->Fwrite(fdi_header, 4096, 1);
 					}
 					for(int trkside = 0; trkside < 164; trkside++) {
-						pair_t offset;
+						pair32_t offset;
 						offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 						
 						if(!IS_VALID_TRACK(offset.d)) {
 							continue;
 						}
 						uint8_t* t = buffer + offset.d;
-						pair_t sector_num, data_size;
+						pair32_t sector_num, data_size;
 						sector_num.read_2bytes_le_from(t + 4);
 						
 						for(int i = 0; i < sector_num.sd; i++) {
@@ -949,7 +949,7 @@ bool DISK::get_track_tmp(int trk, int side)
 	cur_track = trk;
 	cur_side = side;
 	
-	pair_t offset;
+	pair32_t offset;
 	offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 	
 	if(!IS_VALID_TRACK(offset.d)) {
@@ -959,7 +959,7 @@ bool DISK::get_track_tmp(int trk, int side)
 	// track found
 	sector = buffer + offset.d;
 	sector_num.read_2bytes_le_from(sector + 4);
-	pair_t data_size;
+	pair32_t data_size;
 	data_size.read_2bytes_le_from(sector + 14);
 	
 	// create each sector position in track
@@ -1127,7 +1127,7 @@ bool DISK::make_track_tmp(int trk, int side)
 	uint8_t *t = sector;
 	
 	for(int i = 0; i < sector_num.sd; i++) {
-		pair_t data_size;
+		pair32_t data_size;
 		data_size.read_2bytes_le_from(t + 14);
 		int p = sync_position[i];
 		
@@ -1220,7 +1220,7 @@ bool DISK::get_sector_tmp(int trk, int side, int index)
 	if(!(0 <= trkside && trkside < 164)) {
 		return false;
 	}
-	pair_t offset;
+	pair32_t offset;
 	offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 	
 	if(!IS_VALID_TRACK(offset.d)) {
@@ -1237,7 +1237,7 @@ bool DISK::get_sector_tmp(int trk, int side, int index)
 	
 	// skip sector
 	for(int i = 0; i < index; i++) {
-		pair_t data_size;
+		pair32_t data_size;
 		data_size.read_2bytes_le_from(t + 14);
 		t += data_size.sd + 0x10;
 	}
@@ -1347,7 +1347,7 @@ bool DISK::format_track_tmp(int trk, int side)
 		trim_required = false;
 	}
 	memset(buffer + DISK_BUFFER_SIZE, 0, sizeof(buffer) - DISK_BUFFER_SIZE);
-	pair_t offset;
+	pair32_t offset;
 	offset.d = DISK_BUFFER_SIZE;
 	offset.write_4bytes_le_to(buffer + 0x20 + trkside * 4);
 	
@@ -1366,7 +1366,7 @@ void DISK::insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool delete
 	for(int i = 0; i < (sector_num.sd - 1); i++) {
 		t[4] = sector_num.b.l;
 		t[5] = sector_num.b.h;
-		pair_t data_size;
+		pair32_t data_size;
 		data_size.read_2bytes_le_from(t + 14);
 		t += data_size.sd + 0x10;
 	}
@@ -1409,7 +1409,7 @@ void DISK::trim_buffer()
 		track_limit = 84;
 	}
 	for(int trkside = 0; trkside < 164; trkside++) {
-		pair_t src_trk_offset;
+		pair32_t src_trk_offset;
 		src_trk_offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 		if(src_trk_offset.d != 0) {
 #if 1
@@ -1433,15 +1433,15 @@ void DISK::trim_buffer()
 	
 	// copy tracks
 	for(int trkside = 0; trkside < max_tracks; trkside++) {
-		pair_t src_trk_offset;
+		pair32_t src_trk_offset;
 		src_trk_offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 		
-		pair_t dest_trk_offset;
+		pair32_t dest_trk_offset;
 		dest_trk_offset.d = 0;
 		
 		if(IS_VALID_TRACK(src_trk_offset.d)) {
 			uint8_t* t = buffer + src_trk_offset.d;
-			pair_t sector_num, data_size;
+			pair32_t sector_num, data_size;
 			sector_num.read_2bytes_le_from(t + 4);
 			if(sector_num.sd != 0) {
 				dest_trk_offset.d = dest_offset;
@@ -1971,7 +1971,7 @@ bool DISK::teledisk_to_d88(FILEIO *fio)
 				if(flag == 0) {
 					memcpy(dst, buf, len);
 				} else if(flag == 1) {
-					pair_t len2;
+					pair32_t len2;
 					len2.read_2bytes_le_from(buf);
 					while(len2.sd--) {
 						dst[d++] = buf[2];

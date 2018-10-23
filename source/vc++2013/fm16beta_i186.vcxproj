@@ -214,6 +214,7 @@
     <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\fm16beta\cmos.h" />
     <ClInclude Include="..\src\vm\fm16beta\fm16beta.h" />
     <ClInclude Include="..\src\vm\fm16beta\keyboard.h" />

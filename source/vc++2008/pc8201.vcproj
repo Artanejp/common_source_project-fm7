@@ -79,6 +79,7 @@
 				OutputFile=".\Debug/pc8201.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/pc8201.pdb"
 				SubSystem="2"
@@ -175,6 +176,7 @@
 				OutputFile=".\Release/pc8201.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
 				ProgramDatabaseFile=".\Release/pc8201.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -818,6 +820,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\vm.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\vm_template.h"
 					>
 				</File>
 			</Filter>

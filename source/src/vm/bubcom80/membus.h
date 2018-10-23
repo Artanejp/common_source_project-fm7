@@ -23,7 +23,7 @@ private:
 	uint8_t basic[0x10000];
 	uint8_t ram[0x10000];
 	
-	pair_t basic_addr;
+	pair32_t basic_addr;
 	bool ram_selected;
 	
 	void update_bank();

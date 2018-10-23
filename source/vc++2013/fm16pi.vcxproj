@@ -207,6 +207,7 @@
     <ClInclude Include="..\src\vm\not.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\fm16pi\fm16pi.h" />
     <ClInclude Include="..\src\vm\fm16pi\sub.h" />
     <ClInclude Include="..\src\res\resource.h" />

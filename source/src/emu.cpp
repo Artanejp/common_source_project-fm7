@@ -168,16 +168,11 @@ int EMU::get_host_cpus()
 
 double EMU::get_frame_rate()
 {
-#ifdef SUPPORT_VARIABLE_TIMING
 	return vm->get_frame_rate();
-#else
-	return FRAMES_PER_SEC;
-#endif
 }
 
 int EMU::get_frame_interval()
 {
-#ifdef SUPPORT_VARIABLE_TIMING
 	static int prev_interval = 0;
 	static double prev_fps = -1;
 	double fps = vm->get_frame_rate();
@@ -186,9 +181,6 @@ int EMU::get_frame_interval()
 		prev_fps = fps;
 	}
 	return prev_interval;
-#else
-	return (int)(1024. * 1000. / FRAMES_PER_SEC + 0.5);
-#endif
 }
 
 bool EMU::is_frame_skippable()
@@ -2230,11 +2222,7 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 		if(vm->is_floppy_disk_inserted(drv)) {
 			vm->close_floppy_disk(drv);
 			// wait 0.5sec
-#ifdef SUPPORT_VARIABLE_TIMING
 			floppy_disk_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
-#else
-			floppy_disk_status[drv].wait_count = (int)(FRAMES_PER_SEC / 2);
-#endif
 #if USE_FLOPPY_DISK > 1
 			out_message(_T("FD%d: Ejected"), drv + BASE_FLOPPY_DISK_NUM);
 #else
@@ -2304,11 +2292,7 @@ void EMU::open_quick_disk(int drv, const _TCHAR* file_path)
 		if(vm->is_quick_disk_inserted(drv)) {
 			vm->close_quick_disk(drv);
 			// wait 0.5sec
-#ifdef SUPPORT_VARIABLE_TIMING
 			quick_disk_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
-#else
-			quick_disk_status[drv].wait_count = (int)(FRAMES_PER_SEC / 2);
-#endif
 #if USE_QUICK_DISK > 1
 			out_message(_T("QD%d: Ejected"), drv + BASE_QUICK_DISK_NUM);
 #else
@@ -2361,11 +2345,7 @@ void EMU::open_hard_disk(int drv, const _TCHAR* file_path)
 		if(vm->is_hard_disk_inserted(drv)) {
 			vm->close_hard_disk(drv);
 			// wait 0.5sec
-#ifdef SUPPORT_VARIABLE_TIMING
 			hard_disk_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
-#else
-			hard_disk_status[drv].wait_count = (int)(FRAMES_PER_SEC / 2);
-#endif
 #if USE_HARD_DISK > 1
 			out_message(_T("HD%d: Unmounted"), drv + BASE_HARD_DISK_NUM);
 #else
@@ -2420,11 +2400,7 @@ void EMU::play_tape(int drv, const _TCHAR* file_path)
 		if(vm->is_tape_inserted(drv)) {
 			vm->close_tape(drv);
 			// wait 0.5sec
-#ifdef SUPPORT_VARIABLE_TIMING
 			tape_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
-#else
-			tape_status[drv].wait_count = (int)(FRAMES_PER_SEC / 2);
-#endif
 #if USE_TAPE > 1
 			out_message(_T("CMT%d: Ejected"), drv + BASE_TAPE_NUM);
 #else
@@ -2449,11 +2425,7 @@ void EMU::rec_tape(int drv, const _TCHAR* file_path)
 		if(vm->is_tape_inserted(drv)) {
 			vm->close_tape(drv);
 			// wait 0.5sec
-#ifdef SUPPORT_VARIABLE_TIMING
 			tape_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
-#else
-			tape_status[drv].wait_count = (int)(FRAMES_PER_SEC / 2);
-#endif
 #if USE_TAPE > 1
 			out_message(_T("CMT%d: Ejected"), drv + BASE_TAPE_NUM);
 #else
@@ -2496,96 +2468,80 @@ bool EMU::is_tape_inserted(int drv)
 
 bool EMU::is_tape_playing(int drv)
 {
-#ifndef TAPE_BINARY_ONLY
 	if(drv < USE_TAPE) {
 		return vm->is_tape_playing(drv);
-	} else
-#endif
-	return false;
+	} else {
+		return false;
+	}
 }
 
 bool EMU::is_tape_recording(int drv)
 {
-#ifndef TAPE_BINARY_ONLY
 	if(drv < USE_TAPE) {
 		return vm->is_tape_recording(drv);
-	} else
-#endif
-	return false;
+	} else {
+		return false;
+	}
 }
 
 int EMU::get_tape_position(int drv)
 {
-#ifndef TAPE_BINARY_ONLY
 	if(drv < USE_TAPE) {
 		return vm->get_tape_position(drv);
-	} else
-#endif
-	return 0;
+	} else {
+		return 0;
+	}
 }
 
 const _TCHAR* EMU::get_tape_message(int drv)
 {
-#ifndef TAPE_BINARY_ONLY
 	if(drv < USE_TAPE) {
 		return vm->get_tape_message(drv);
-	} else
-#endif
-	return NULL;
+	} else {
+		return NULL;
+	}
 }
 
 void EMU::push_play(int drv)
 {
-#ifdef USE_TAPE_BUTTON
 	if(drv < USE_TAPE) {
 		vm->push_play(drv);
 	}
-#endif
 }
 
 void EMU::push_stop(int drv)
 {
-#ifdef USE_TAPE_BUTTON
 	if(drv < USE_TAPE) {
 		vm->push_stop(drv);
 	}
-#endif
 }
 
 void EMU::push_fast_forward(int drv)
 {
-#ifdef USE_TAPE_BUTTON
 	if(drv < USE_TAPE) {
 		vm->push_fast_forward(drv);
 	}
-#endif
 }
 
 void EMU::push_fast_rewind(int drv)
 {
-#ifdef USE_TAPE_BUTTON
 	if(drv < USE_TAPE) {
 		vm->push_fast_rewind(drv);
 	}
-#endif
 }
 
 void EMU::push_apss_forward(int drv)
 {
-#ifdef USE_TAPE_BUTTON
 	if(drv < USE_TAPE) {
 		vm->push_apss_forward(drv);
 	}
-#endif
 }
 
 void EMU::push_apss_rewind(int drv)
 {
-#ifdef USE_TAPE_BUTTON
 	if(drv < USE_TAPE) {
 		vm->push_apss_rewind(drv);
 	}
-#endif
 }
 #endif
 
@@ -2595,11 +2551,7 @@ void EMU::open_compact_disc(int drv, const _TCHAR* file_path)
 	if(vm->is_compact_disc_inserted(drv)) {
 		vm->close_compact_disc(drv);
 		// wait 0.5sec
-#ifdef SUPPORT_VARIABLE_TIMING
 		compact_disc_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
-#else
-		compact_disc_status[drv].wait_count = (int)(FRAMES_PER_SEC / 2);
-#endif
 #if USE_COMPACT_DISC > 1
 		out_message(_T("CD%d: Ejected"), drv + BASE_COMPACT_DISC_NUM);
 #else
@@ -2644,11 +2596,7 @@ void EMU::open_laser_disc(int drv, const _TCHAR* file_path)
 	if(vm->is_laser_disc_inserted(drv)) {
 		vm->close_laser_disc(drv);
 		// wait 0.5sec
-#ifdef SUPPORT_VARIABLE_TIMING
 		laser_disc_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
-#else
-		laser_disc_status[drv].wait_count = (int)(FRAMES_PER_SEC / 2);
-#endif
 #if USE_LASER_DISC > 1
 		out_message(_T("LD%d: Ejected"), drv + BASE_LASER_DISC_NUM);
 #else
@@ -2725,11 +2673,7 @@ void EMU::open_bubble_casette(int drv, const _TCHAR* file_path, int bank)
 		if(vm->is_bubble_casette_inserted(drv)) {
 			vm->close_bubble_casette(drv);
 			// wait 0.5sec
-#ifdef SUPPORT_VARIABLE_TIMING
 			bubble_casette_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
-#else
-			bubble_casette_status[drv].wait_count = (int)(FRAMES_PER_SEC / 2);
-#endif
 #if USE_BUBBLE > 1
 			out_message(_T("Bubble%d: Ejected"), drv + BASE_BUBBLE_NUM);
 #else

@@ -29,8 +29,6 @@
 #define SUPPORT_TV_RENDER
 #define USE_BOOT_MODE		6
 #define USE_TAPE		1
-#define USE_TAPE_BUTTON
-#define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NO_CAPS
@@ -134,6 +132,10 @@ public:
 	// drive virtual machine
 	void reset();
 	void run();
+	double get_frame_rate()
+	{
+		return FRAMES_PER_SEC;
+	}
 	
 #ifdef USE_DEBUGGER
 	// debugger

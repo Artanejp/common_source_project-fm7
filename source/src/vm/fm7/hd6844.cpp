@@ -60,7 +60,7 @@ void HD6844::initialize()
 void HD6844::write_data8(uint32_t addr, uint32_t data)
 {
 	uint8_t ch = addr & 0x03;
-	pair_t tmpd;
+	pair32_t tmpd;
 	uint32_t channel = (addr >> 2) & 3;
 
 	tmpd.d = 0;
@@ -102,7 +102,7 @@ void HD6844::write_data8(uint32_t addr, uint32_t data)
 uint32_t HD6844::read_data8(uint32_t addr)
 {
 	uint8_t ch = addr & 0x03;
-	pair_t tmpd;
+	pair32_t tmpd;
 	uint32_t channel = (addr >> 2) & 3; 
 	uint32_t retval = 0xff;
 

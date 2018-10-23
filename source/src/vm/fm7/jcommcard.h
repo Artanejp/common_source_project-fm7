@@ -22,7 +22,7 @@ private:
    
 	uint8_t n_bank;
 	uint8_t rcb_address;
-	pair_t kanji_address;
+	pair32_t kanji_address;
 	
 	bool diag_dictrom_load;
 	

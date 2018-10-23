@@ -51,17 +51,13 @@
 #define WINDOW_HEIGHT_ASPECT	480
 #endif
 #define MAX_DRIVE		4
-#define SUPPORT_VARIABLE_TIMING
 
 // device informations for win32
 #define USE_BOOT_MODE		5
 #define USE_DEVICE_TYPE		3
 #define USE_TAPE		1
-#define USE_TAPE_BUTTON
 #define USE_FLOPPY_DISK		2
 #define USE_BINARY_FILE		1
-#define USE_SHIFT_NUMPAD_KEY
-#define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NUMPAD

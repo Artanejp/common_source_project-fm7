@@ -65,12 +65,12 @@ protected:
 	};
 #undef XX // invalid opcode unknown cc
 	
-	pair_t pc;
+	pair32_t pc;
 	uint16_t prevpc;
-	pair_t sp;
-	pair_t ix;
-	pair_t acc_d;
-	pair_t ea;
+	pair32_t sp;
+	pair32_t ix;
+	pair32_t acc_d;
+	pair32_t ea;
 	
 	uint8_t cc;
 	int wai_state;
@@ -86,7 +86,7 @@ protected:
 	virtual uint32_t RM(uint32_t Addr);
 	virtual void WM(uint32_t Addr, uint32_t Value);
 	uint32_t RM16(uint32_t Addr);
-	void WM16(uint32_t Addr, pair_t *p);
+	void WM16(uint32_t Addr, pair32_t *p);
 	
 	
 	virtual void increment_counter(int amount);

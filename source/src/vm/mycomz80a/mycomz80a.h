@@ -22,16 +22,11 @@
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
-#define SUPPORT_VARIABLE_TIMING
 #define HAS_MSM5832
 
 // device informations for win32
 #define USE_TAPE		1
-#define USE_TAPE_BUTTON
-#define NOTIFY_KEY_DOWN
 #define USE_KEY_LOCKED
-#define USE_SHIFT_NUMPAD_KEY
-#define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_CAPS

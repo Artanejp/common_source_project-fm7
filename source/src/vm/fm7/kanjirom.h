@@ -23,7 +23,7 @@ private:
 	uint8_t data_table[0x20000];
 	bool read_ok;
 	bool class2;
-	pair_t kanjiaddr;
+	pair32_t kanjiaddr;
 
 public:
 	KANJIROM(VM_TEMPLATE* parent_vm, EMU* parent_emu, bool type_2std);

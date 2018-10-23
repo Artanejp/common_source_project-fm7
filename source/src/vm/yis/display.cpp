@@ -580,7 +580,7 @@ uint32_t DISPLAY::read_io8(uint32_t addr)
 
 int get_word(uint8_t flag, uint8_t h, uint8_t l)
 {
-	pair_t tmp;
+	pair32_t tmp;
 	tmp.b.h = flag ? (h & 0x7f) | ((h & 0x40) << 1) : (h & 0x7f);
 	tmp.b.l = l;
 	return (int)tmp.sw.l;

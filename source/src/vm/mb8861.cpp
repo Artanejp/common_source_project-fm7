@@ -401,7 +401,7 @@ void MB8861::adx_im()
 void MB8861::adx_ex()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	EXTWORD(b);
 	d = X;
 	r = d + b.d;

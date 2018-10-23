@@ -1125,16 +1125,10 @@ RESTART_GO:
 						if(num == 4) {
 							msec = my_hexatoi(target, params[3]);
 						}
-#ifdef SUPPORT_VARIABLE_TIMING
 						int frames = (int)(p->vm->get_frame_rate() * (double)msec / 1000.0 + 0.5);
-#else
-						int frames = (int)(FRAMES_PER_SEC * (double)msec / 1000.0 + 0.5);
-#endif
 						p->osd->get_key_buffer()[code] &= 0x7f;
 						p->osd->get_key_buffer()[code] |= max(1, min(127, frames));
-#ifdef NOTIFY_KEY_DOWN
 						p->vm->key_down(code, false);
-#endif
 					} else {
 						my_printf(p->osd, _T("invalid parameter number\n"));
 					}

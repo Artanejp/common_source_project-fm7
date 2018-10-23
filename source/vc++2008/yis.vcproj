@@ -79,6 +79,7 @@
 				OutputFile=".\Debug/yis.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/yis.pdb"
 				SubSystem="2"
@@ -175,6 +176,7 @@
 				OutputFile=".\Release/yis.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
 				ProgramDatabaseFile=".\Release/yis.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -978,6 +980,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\vm.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\vm_template.h"
 					>
 				</File>
 			</Filter>

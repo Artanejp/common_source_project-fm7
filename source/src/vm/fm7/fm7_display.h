@@ -171,10 +171,10 @@ protected:
 	bool stat_400linecard;
 # endif	
 	bool kanjisub;
-	pair_t kanjiaddr;
+	pair32_t kanjiaddr;
 #elif defined(_FM77AV_VARIANTS)
 	bool kanjisub;
-	pair_t kanjiaddr;
+	pair32_t kanjiaddr;
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
      defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 	bool mode400line;
@@ -216,7 +216,7 @@ protected:
 	
 	uint8_t dpalette_data[8];
 #if defined(_FM77AV_VARIANTS)
-	pair_t apalette_index;
+	pair32_t apalette_index;
 	uint8_t analog_palette_r[4096];
 	uint8_t analog_palette_g[4096];
 	uint8_t analog_palette_b[4096];
@@ -236,7 +236,7 @@ protected:
 	bool multimode_dispflags[4];
    
 	uint32_t offset_point;
-	pair_t tmp_offset_point[2];
+	pair32_t tmp_offset_point[2];
 	bool offset_changed[2];
 	bool offset_77av;
    
@@ -285,12 +285,12 @@ protected:
 	bool cursor_blink;
 	bool text_width40;
 	
-	pair_t text_start_addr;
+	pair32_t text_start_addr;
 	uint32_t text_lines;
 	uint32_t text_xmax;
 	uint32_t text_ymax;
 	
-	pair_t cursor_addr;
+	pair32_t cursor_addr;
 	int cursor_start;
 	int cursor_end;
 	uint8_t cursor_type;

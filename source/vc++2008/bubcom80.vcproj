@@ -80,6 +80,7 @@
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
+				GenerateManifest="false"
 				ProgramDatabaseFile=".\Debug/bubcom80.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -175,6 +176,7 @@
 				OutputFile=".\Release/bubcom80.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
 				ProgramDatabaseFile=".\Release/bubcom80.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -966,6 +968,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\vm.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\vm_template.h"
 					>
 				</File>
 				<File

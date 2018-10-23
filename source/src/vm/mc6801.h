@@ -73,9 +73,9 @@ protected:
 	bool sc2_state;
 	
 	// timer
-	pair_t counter;
-	pair_t output_compare;
-	pair_t timer_over;
+	pair32_t counter;
+	pair32_t output_compare;
+	pair32_t timer_over;
 	uint8_t tcsr;
 	uint8_t pending_tcsr;
 	uint16_t input_capture;

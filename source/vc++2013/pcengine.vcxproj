@@ -191,6 +191,7 @@
     <ClInclude Include="..\src\vm\scsi_dev.h" />
     <ClInclude Include="..\src\vm\scsi_host.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\pcengine\pce.h" />
     <ClInclude Include="..\src\vm\pcengine\pcengine.h" />
     <ClInclude Include="..\src\res\resource.h" />

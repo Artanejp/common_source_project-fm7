@@ -31,8 +31,6 @@
 // device informations for win32
 #define USE_SPECIAL_RESET
 #define USE_TAPE		1
-#define USE_TAPE_BUTTON
-#define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_CAPS
@@ -99,6 +97,10 @@ public:
 	void reset();
 	void special_reset();
 	void run();
+	double get_frame_rate()
+	{
+		return FRAMES_PER_SEC;
+	}
 	
 #ifdef USE_DEBUGGER
 	// debugger

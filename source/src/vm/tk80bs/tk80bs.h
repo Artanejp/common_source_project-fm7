@@ -68,11 +68,8 @@
 #else
 #define USE_TAPE			1
 #endif
-#define USE_TAPE_BUTTON
 #define USE_BINARY_FILE		1
-#define NOTIFY_KEY_DOWN
 #define USE_KEY_LOCKED
-#define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NO_CAPS
@@ -259,6 +256,10 @@ public:
 	// drive virtual machine
 	void reset();
 	void run();
+	double get_frame_rate()
+	{
+		return FRAMES_PER_SEC;
+	}
 	
 #ifdef USE_DEBUGGER
 	// debugger

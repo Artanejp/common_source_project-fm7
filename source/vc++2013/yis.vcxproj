@@ -210,6 +210,7 @@
     <ClInclude Include="..\src\vm\msm58321.h" />
     <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\yis\calendar.h" />
     <ClInclude Include="..\src\vm\yis\display.h" />
     <ClInclude Include="..\src\vm\yis\floppy.h" />

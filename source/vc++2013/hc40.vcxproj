@@ -193,6 +193,7 @@
     <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\ptf20.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\z80.h" />
     <ClInclude Include="..\src\vm\hc40\hc40.h" />
     <ClInclude Include="..\src\vm\hc40\io.h" />

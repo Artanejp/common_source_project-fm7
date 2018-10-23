@@ -236,6 +236,7 @@
     <ClInclude Include="..\src\vm\scsi_hdd.h" />
     <ClInclude Include="..\src\vm\scsi_host.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\w3100a.h" />
     <ClInclude Include="..\src\vm\ym2203.h" />
     <ClInclude Include="..\src\vm\z80.h" />

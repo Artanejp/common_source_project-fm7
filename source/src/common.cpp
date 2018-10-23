@@ -45,6 +45,7 @@
 
 void DLL_PREFIX common_initialize()
 {
+	// get the initial current path when the software starts
 	get_initial_current_path();
 }
 
@@ -141,6 +142,7 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x)
 #endif
 }
 
+
 #ifndef _MSC_VER
 int DLL_PREFIX max(int a, int b)
 {
@@ -151,14 +153,6 @@ int DLL_PREFIX max(int a, int b)
 	}
 }
 
-unsigned DLL_PREFIX int max(unsigned int a, unsigned int b)
-{
-	if(a > b) {
-		return a;
-	} else {
-		return b;
-	}
-}
 
 unsigned DLL_PREFIX int max(unsigned int a, int b)
 {
@@ -174,6 +168,15 @@ unsigned DLL_PREFIX int max(int a, unsigned int b)
 {
 	if(a < 0) return b;
 	if((unsigned int)a > b) {
+		return a;
+	} else {
+		return b;
+	}
+}
+
+unsigned int DLL_PREFIX max(unsigned int a, unsigned int b)
+{
+	if(a > b) {
 		return a;
 	} else {
 		return b;
@@ -1339,7 +1342,7 @@ uint32_t DLL_PREFIX calc_crc32(uint32_t seed, uint8_t data[], int size)
 
 uint16_t DLL_PREFIX jis_to_sjis(uint16_t jis)
 {
-	pair_t tmp;
+	pair32_t tmp;
 	
 	tmp.w.l = jis - 0x2121;
 	if(tmp.w.l & 0x100) {
@@ -1562,13 +1565,13 @@ bool DLL_PREFIX set_wav_header(wav_header_t *header, wav_chunk_t *first_chunk, u
 	if(header == NULL) return false;
 	if(first_chunk == NULL) return false;
 
-	pair_t __riff_chunk_size;
-	pair_t __fmt_chunk_size;
-	pair_t __wav_chunk_size;
+	pair32_t __riff_chunk_size;
+	pair32_t __fmt_chunk_size;
+	pair32_t __wav_chunk_size;
 	pair16_t __fmt_id;
 	pair16_t __channels;
-	pair_t __sample_rate;
-	pair_t __data_speed;
+	pair32_t __sample_rate;
+	pair32_t __data_speed;
 	pair16_t __block_size;
 	pair16_t __sample_bits;
 
@@ -1626,8 +1629,8 @@ bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **ri
 	pair16_t __fmt_id;
 	pair16_t __sample_bits;
 	pair16_t __channels;
-	pair_t __sample_rate;
-	pair_t __chunk_size;
+	pair32_t __sample_rate;
+	pair32_t __chunk_size;
 
 	fio->Fread(&header, sizeof(header), 1);
 	__fmt_id.set_2bytes_le_from(header.format_id);
@@ -1803,8 +1806,8 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 	pair16_t __fmt_id;
 	pair16_t __sample_bits;
 	pair16_t __channels;
-	pair_t __sample_rate;
-	pair_t __chunk_size;
+	pair32_t __sample_rate;
+	pair32_t __chunk_size;
 
 	fio->Fread(&header, sizeof(header), 1);
 	__fmt_id.set_2bytes_le_from(header.format_id);

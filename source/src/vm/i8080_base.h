@@ -50,7 +50,7 @@ protected:
 	--------------------------------------------------------------------------- */
 	
 	int count;
-	pair_t regs[4];
+	pair32_t regs[4];
 	uint16_t SP, PC, prevPC;
 	uint16_t IM, RIM_IEN;
 	bool afterHALT, BUSREQ, SID, afterEI;

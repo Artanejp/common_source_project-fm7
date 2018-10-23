@@ -72,12 +72,12 @@ class MB61VH010: public DEVICE {
 	uint8_t tile_reg[4];        // D41C-D41F (WO)
 	uint8_t multi_page;
 	uint32_t direct_access_offset;	
-	pair_t  line_addr_offset; // D420-D421 (WO)
-	pair_t  line_pattern;     // D422-D423 (WO)
-	pair_t  line_xbegin;      // D424-D425 (WO)
-	pair_t  line_ybegin;      // D426-D427 (WO)
-	pair_t  line_xend;        // D428-D429 (WO)
-	pair_t  line_yend;        // D42A-D42B (WO)
+	pair32_t  line_addr_offset; // D420-D421 (WO)
+	pair32_t  line_pattern;     // D422-D423 (WO)
+	pair32_t  line_xbegin;      // D424-D425 (WO)
+	pair32_t  line_ybegin;      // D426-D427 (WO)
+	pair32_t  line_xend;        // D428-D429 (WO)
+	pair32_t  line_yend;        // D42A-D42B (WO)
 	
 	bool busy_flag;
 	int eventid_busy;
@@ -89,7 +89,7 @@ class MB61VH010: public DEVICE {
 	uint32_t screen_height;
 	uint32_t oldaddr;
 	uint32_t alu_addr;
-	pair_t line_style;
+	pair32_t line_style;
 	bool disable_flags[4];
 	bool multi_flags[4];
 	// ALU COMMANDS

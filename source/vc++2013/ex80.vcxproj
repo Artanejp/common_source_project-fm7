@@ -195,6 +195,7 @@
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\ex80\cmt.h" />
     <ClInclude Include="..\src\vm\ex80\display.h" />
     <ClInclude Include="..\src\vm\ex80\ex80.h" />

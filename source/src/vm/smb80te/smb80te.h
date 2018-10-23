@@ -19,7 +19,6 @@
 #define CPU_CLOCKS		2457600
 #define SCREEN_WIDTH		768
 #define SCREEN_HEIGHT		512
-#define SUPPORT_VARIABLE_TIMING
 
 // device informations for win32
 #define ONE_BOARD_MICRO_COMPUTER

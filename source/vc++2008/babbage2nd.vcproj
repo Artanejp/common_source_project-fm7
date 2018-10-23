@@ -79,6 +79,7 @@
 				OutputFile=".\Debug/babbage2nd.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/babbage2nd.pdb"
 				SubSystem="2"
@@ -175,6 +176,7 @@
 				OutputFile=".\Release/babbage2nd.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
 				ProgramDatabaseFile=".\Release/babbage2nd.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -721,6 +723,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\vm_template.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\z80.h"
 					>
 				</File>
@@ -780,10 +786,6 @@
 						AdditionalIncludeDirectories="..\src\res"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\src\res\resource.h"
-				>
 			</File>
 			<File
 				RelativePath="..\src\res\babbage2nd\board.png"
@@ -871,6 +873,10 @@
 			</File>
 			<File
 				RelativePath="..\src\res\babbage2nd\button20.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\resource.h"
 				>
 			</File>
 		</Filter>

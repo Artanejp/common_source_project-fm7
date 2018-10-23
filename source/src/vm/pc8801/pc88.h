@@ -82,7 +82,7 @@ typedef struct {
 
 typedef struct {
 	struct {
-		pair_t addr, count;
+		pair32_t addr, count;
 		uint8_t mode;
 		int nbytes;
 		DEVICE *io;

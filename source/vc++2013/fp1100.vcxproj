@@ -200,6 +200,7 @@
     <ClInclude Include="..\src\vm\upd765a.h" />
     <ClInclude Include="..\src\vm\upd7801.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\z80.h" />
     <ClInclude Include="..\src\vm\fp1100\fdcpack.h" />
     <ClInclude Include="..\src\vm\fp1100\fp1100.h" />

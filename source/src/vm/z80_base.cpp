@@ -130,13 +130,13 @@ Z80_INLINE void Z80_BASE::WM8(uint32_t addr, uint8_t val)
 //#endif
 }
 
-Z80_INLINE void Z80_BASE::RM16(uint32_t addr, pair_t *r)
+Z80_INLINE void Z80_BASE::RM16(uint32_t addr, pair32_t *r)
 {
 	r->b.l = RM8(addr);
 	r->b.h = RM8((addr + 1) & 0xffff);
 }
 
-Z80_INLINE void Z80_BASE::WM16(uint32_t addr, pair_t *r)
+Z80_INLINE void Z80_BASE::WM16(uint32_t addr, pair32_t *r)
 {
 	WM8(addr, r->b.l);
 	WM8((addr + 1) & 0xffff, r->b.h);
@@ -445,24 +445,24 @@ Z80_INLINE uint8_t Z80_BASE::DEC(uint8_t value)
 } while(0)
 
 #define EX_AF() do { \
-	pair_t tmp; \
+	pair32_t tmp; \
 	tmp = af; af = af2; af2 = tmp; \
 } while(0)
 
 #define EX_DE_HL() do { \
-	pair_t tmp; \
+	pair32_t tmp; \
 	tmp = de; de = hl; hl = tmp; \
 } while(0)
 
 #define EXX() do { \
-	pair_t tmp; \
+	pair32_t tmp; \
 	tmp = bc; bc = bc2; bc2 = tmp; \
 	tmp = de; de = de2; de2 = tmp; \
 	tmp = hl; hl = hl2; hl2 = tmp; \
 } while(0)
 
 #define EXSP(DR) do { \
-	pair_t tmp; \
+	pair32_t tmp; \
 	tmp.d = 0; \
 	RM16(SPD, &tmp); \
 	WM16(SPD, &DR); \

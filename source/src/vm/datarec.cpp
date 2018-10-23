@@ -736,14 +736,14 @@ int DATAREC::load_wav_image(int offset)
 	// check wave header
 	wav_header_t header;
 	wav_chunk_t chunk;
-	pair_t tmpval32;
+	pair32_t tmpval32;
 	pair16_t tmpval16;
 	
 	pair16_t __fmt_id;
 	pair16_t __sample_bits;
 	pair16_t __channels;
-	pair_t __sample_rate;
-	pair_t __chunk_size;
+	pair32_t __sample_rate;
+	pair32_t __chunk_size;
 	
 	play_fio->Fseek(offset, FILEIO_SEEK_SET);
 	play_fio->Fread(&header, sizeof(header), 1);
@@ -1053,12 +1053,12 @@ void DATAREC::save_wav_image()
 	wav_header_t wav_header;
 	wav_chunk_t wav_chunk;
 #if 0
-	pair_t __riff_chunk_size;
-	pair_t __fmt_chunk_size;
-	pair_t __wav_chunk_size;
+	pair32_t __riff_chunk_size;
+	pair32_t __fmt_chunk_size;
+	pair32_t __wav_chunk_size;
 	pair16_t __fmt_id;
 	pair16_t __channels;
-	pair_t __sample_rate;
+	pair32_t __sample_rate;
 	pair16_t __block_size;
 	pair16_t __sample_bits;
 

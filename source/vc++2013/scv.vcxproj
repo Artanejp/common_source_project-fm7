@@ -186,6 +186,7 @@
     <ClInclude Include="..\src\vm\event.h" />
     <ClInclude Include="..\src\vm\upd7801.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\scv\io.h" />
     <ClInclude Include="..\src\vm\scv\memory.h" />
     <ClInclude Include="..\src\vm\scv\scv.h" />

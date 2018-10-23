@@ -27,8 +27,6 @@
 // Nonintelligent ram disk
 #define DEVICE_TYPE_DEFAULT	2
 #define USE_FLOPPY_DISK		4
-#define NOTIFY_KEY_DOWN
-#define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		6
 #define USE_AUTO_KEY_RELEASE	10
 #define USE_SOUND_VOLUME	1
@@ -92,6 +90,10 @@ public:
 	void reset();
 	void special_reset();
 	void run();
+	double get_frame_rate()
+	{
+		return FRAMES_PER_SEC;
+	}
 	
 #ifdef USE_DEBUGGER
 	// debugger

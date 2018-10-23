@@ -58,7 +58,6 @@
 #endif
 #define Z80_MEMORY_WAIT
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467
-#define SUPPORT_VARIABLE_TIMING
 
 // device informations for win32
 #if defined(_PC8001SR)
@@ -78,10 +77,7 @@
 #define USE_FLOPPY_DISK		2
 #define USE_TAPE		1
 #define TAPE_BINARY_ONLY
-#define NOTIFY_KEY_DOWN
 #define USE_KEY_LOCKED
-#define USE_SHIFT_NUMPAD_KEY
-#define USE_ALT_F10_KEY
 // slow enough for N88-“ú–{ŒêBASIC
 #define USE_AUTO_KEY		8
 #define USE_AUTO_KEY_RELEASE	10

@@ -94,15 +94,15 @@ private:
 		uint8_t inc;
 		uint8_t vdc_register;
 		uint8_t vdc_latch;
-		pair_t vdc_data[32];
+		pair32_t vdc_data[32];
 		int status;
 		int y_scroll;
 	} vdc[2];
 	
 	struct {
 		uint8_t vce_control;		/* VCE control register */
-		pair_t vce_address;		/* Current address in the palette */
-		pair_t vce_data[512];		/* Palette data */
+		pair32_t vce_address;		/* Current address in the palette */
+		pair32_t vce_data[512];		/* Palette data */
 		int current_bitmap_line;	/* The current line in the display we are on */
 		//bitmap_ind16 *bmp;
 		scrntype_t bmp[VDC_LPF][VDC_WPF];
@@ -116,10 +116,10 @@ private:
 			UINT8 vdc1_enabled;
 		} vpc_prio[4];
 		UINT8	prio_map[512];		/* Pre-calculated priority map */
-		pair_t	priority;			/* Priority settings registers */
-		pair_t	window1;			/* Window 1 setting */
-		pair_t	window2;			/* Window 2 setting */
-		UINT8	vdc_select;			/* Which VDC do the ST0, ST1, and ST2 instructions write to */
+		pair32_t	priority;	/* Priority settings registers */
+		pair32_t	window1;	/* Window 1 setting */
+		pair32_t	window2;	/* Window 2 setting */
+		UINT8	vdc_select;		/* Which VDC do the ST0, ST1, and ST2 instructions write to */
 	} vpc;
 	
 	void pce_interrupt();

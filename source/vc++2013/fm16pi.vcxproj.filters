@@ -202,6 +202,9 @@
     <ClInclude Include="..\src\vm\vm.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\vm_template.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\fm16pi\fm16pi.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>

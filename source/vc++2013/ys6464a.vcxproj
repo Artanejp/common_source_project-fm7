@@ -191,6 +191,7 @@
     <ClInclude Include="..\src\vm\memory.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\z80.h" />
     <ClInclude Include="..\src\vm\ys6464a\display.h" />
     <ClInclude Include="..\src\vm\ys6464a\keyboard.h" />

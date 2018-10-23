@@ -58,6 +58,7 @@
 #define MAX_B77_BANKS 16
 #endif
 
+class VM_TEMPLATE;
 class EMU;
 class FIFO;
 class FILEIO;
@@ -65,16 +66,16 @@ class OSD;
 
 #ifdef USE_DEBUGGER
 #if defined(OSD_QT)
+class CSP_Debugger;
 class CSP_DebuggerThread;
 #endif
 typedef struct {
 	OSD *osd;
-	VM *vm;
+	VM_TEMPLATE *vm;
 	int cpu_index;
 	bool running;
 	bool request_terminate;
 } debugger_thread_t;
-class CSP_Debugger;
 #endif
 
 #if defined(OSD_QT)
@@ -87,7 +88,7 @@ class DrawThreadClass;
 class EMU
 {
 protected:
-	VM* vm;
+	VM_TEMPLATE* vm;
 	OSD* osd;
 private:
 	_TCHAR app_path[_MAX_PATH];
@@ -195,7 +196,7 @@ public:
 	// qt dependent
 	EmuThreadClass *get_parent_handler();
 	void set_parent_handler(EmuThreadClass *p, DrawThreadClass *q);
-	VM *get_vm()
+	VM_TEMPLATE *get_vm()
 	{
 		return vm;
 	}
@@ -242,12 +243,6 @@ public:
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	void press_button(int num);
 #endif
-#ifdef USE_MOUSE
-	void enable_mouse();
-	void disable_mouse();
-	void toggle_mouse();
-	bool is_mouse_enabled();
-#endif	
 #ifdef USE_AUTO_KEY
 	void set_auto_key_list(char *buf, int size);
 	void set_auto_key_char(char code);
@@ -269,6 +264,10 @@ public:
 #endif	
 #ifdef USE_MOUSE
 	const int* get_mouse_buffer();
+	void EMU::enable_mouse();
+	void EMU::disable_mouse();
+	void EMU::toggle_mouse();
+	bool EMU::is_mouse_enabled();
 #endif	
 	// screen
 	int get_window_mode_width(int mode);

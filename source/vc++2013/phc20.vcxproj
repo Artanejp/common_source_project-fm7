@@ -188,6 +188,7 @@
     <ClInclude Include="..\src\vm\mc6847.h" />
     <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\vm.h" />
+    <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\z80.h" />
     <ClInclude Include="..\src\vm\phc20\memory.h" />
     <ClInclude Include="..\src\vm\phc20\phc20.h" />

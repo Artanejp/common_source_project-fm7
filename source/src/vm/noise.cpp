@@ -83,8 +83,8 @@ bool NOISE::load_wav_file(const _TCHAR *file_name)
 		pair16_t __fmt_id;
 		pair16_t __sample_bits;
 		pair16_t __channels;
-		pair_t __sample_rate;
-		pair_t __chunk_size;
+		pair32_t __sample_rate;
+		pair32_t __chunk_size;
 
 		fio->Fread(&header, sizeof(header), 1);
 		__fmt_id.set_2bytes_le_from(header.format_id);

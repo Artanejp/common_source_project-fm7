@@ -51,14 +51,14 @@ protected:
 	outputs_t outputs_bus_bs; // Bus status.
 
 	// registers
-	pair_t pc; 	/* Program counter */
-	pair_t ppc;	/* Previous program counter */
-	pair_t acc;	/* Accumulator a and b */
-	pair_t dp;	/* Direct Page register (page in MSB) */
-	pair_t u, s;	/* Stack pointers */
-	pair_t x, y;	/* Index registers */
+	pair32_t pc; 	/* Program counter */
+	pair32_t ppc;	/* Previous program counter */
+	pair32_t acc;	/* Accumulator a and b */
+	pair32_t dp;	/* Direct Page register (page in MSB) */
+	pair32_t u, s;	/* Stack pointers */
+	pair32_t x, y;	/* Index registers */
 	uint8_t cc;
-	pair_t ea;	/* effective address */
+	pair32_t ea;	/* effective address */
 	
 	uint32_t int_state;
 	/* In Motorola's datasheet, status has some valiants. 20171207 K.O */
@@ -74,7 +74,7 @@ protected:
 
 	int icount;
 	int extra_icount;
-	void WM16(uint32_t Addr, pair_t *p);
+	void WM16(uint32_t Addr, pair32_t *p);
 	void cpu_irq_push(void);
 	void cpu_firq_push(void);
 	void cpu_nmi_push(void);
@@ -175,9 +175,9 @@ protected:
 	inline void BRANCH(bool cond);
 	inline void LBRANCH(bool cond);
 	
-	inline pair_t RM16_PAIR(uint32_t addr);
+	inline pair32_t RM16_PAIR(uint32_t addr);
 	inline uint8_t GET_INDEXED_DATA(void);
-	inline pair_t GET_INDEXED_DATA16(void);
+	inline pair32_t GET_INDEXED_DATA16(void);
 	
 	inline void  NEG_MEM(uint8_t a_neg);
 	inline uint8_t NEG_REG(uint8_t r_neg);
@@ -221,7 +221,7 @@ protected:
 	inline uint16_t ADD16_REG(uint16_t reg, uint16_t data);
 	inline uint16_t CMP16_REG(uint16_t reg, uint16_t data);
 	inline uint16_t LOAD16_REG(uint16_t reg);
-	inline void STORE16_REG(pair_t *p);
+	inline void STORE16_REG(pair32_t *p);
  public:
 	void abx();
 	void adca_di();

@@ -557,30 +557,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			bool repeat = ((HIWORD(lParam) & 0x4000) != 0);
 			emu->key_down(LOBYTE(wParam), extended, repeat);
 		}
-#ifdef USE_ALT_F10_KEY
 		return 0;	// not activate menu when hit ALT/F10
-#else
-		break;
-#endif
 	case WM_SYSKEYUP:
 		if(emu) {
 			bool extended = ((HIWORD(lParam) & 0x100) != 0);
 			emu->key_up(LOBYTE(wParam), extended);
 		}
-#ifdef USE_ALT_F10_KEY
 		return 0;	// not activate menu when hit ALT/F10
-#else
-		break;
-#endif
 	case WM_CHAR:
 		if(emu) {
 			emu->key_char(LOBYTE(wParam));
 		}
 		break;
-#ifdef USE_ALT_F10_KEY
 	case WM_SYSCHAR:
 		return 0;	// not activate menu when hit ALT/F10
-#endif
 	case WM_INITMENUPOPUP:
 		if(emu) {
 			emu->suspend();
@@ -3452,11 +3442,7 @@ LRESULT CALLBACK ButtonSubProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lPara
 					bool repeat = ((HIWORD(lParam) & 0x4000) != 0);
 					emu->key_down(LOBYTE(wParam), extended, repeat);
 				}
-#ifdef USE_ALT_F10_KEY
 				return 0;	// not activate menu when hit ALT/F10
-#else
-				break;
-#endif
 			case WM_KEYUP:
 				if(emu) {
 					bool extended = ((HIWORD(lParam) & 0x100) != 0);
@@ -3468,11 +3454,7 @@ LRESULT CALLBACK ButtonSubProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lPara
 					bool extended = ((HIWORD(lParam) & 0x100) != 0);
 					emu->key_up(LOBYTE(wParam), extended);
 				}
-#ifdef USE_ALT_F10_KEY
 				return 0;	// not activate menu when hit ALT/F10
-#else
-				break;
-#endif
 			case WM_CHAR:
 				if(emu) {
 					emu->key_char(LOBYTE(wParam));

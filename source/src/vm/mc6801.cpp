@@ -1027,7 +1027,7 @@ void MC6801::mul()
 void MC6801::subd_im()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	IMMWORD(b);
 	d = D;
 	r = d - b.d;
@@ -1040,7 +1040,7 @@ void MC6801::subd_im()
 void MC6801::cpx_im()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	IMMWORD(b);
 	d = X;
 	r = d - b.d;
@@ -1052,7 +1052,7 @@ void MC6801::cpx_im()
 void MC6801::subd_di()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	DIRWORD(b);
 	d = D;
 	r = d - b.d;
@@ -1065,7 +1065,7 @@ void MC6801::subd_di()
 void MC6801::cpx_di()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	DIRWORD(b);
 	d = X;
 	r = d - b.d;
@@ -1076,7 +1076,7 @@ void MC6801::cpx_di()
 void MC6801::subd_ix()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	IDXWORD(b);
 	d = D;
 	r = d - b.d;
@@ -1089,7 +1089,7 @@ void MC6801::subd_ix()
 void MC6801::cpx_ix()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	IDXWORD(b);
 	d = X;
 	r = d - b.d;
@@ -1101,7 +1101,7 @@ void MC6801::cpx_ix()
 void MC6801::subd_ex()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	EXTWORD(b);
 	d = D;
 	r = d - b.d;
@@ -1114,7 +1114,7 @@ void MC6801::subd_ex()
 void MC6801::cpx_ex()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	EXTWORD(b);
 	d = X;
 	r = d - b.d;
@@ -1126,7 +1126,7 @@ void MC6801::cpx_ex()
 void MC6801::addd_im()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	IMMWORD(b);
 	d = D;
 	r = d + b.d;
@@ -1157,7 +1157,7 @@ void MC6801::std_im()
 void MC6801::addd_di()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	DIRWORD(b);
 	d = D;
 	r = d + b.d;
@@ -1187,7 +1187,7 @@ void MC6801::std_di()
 void MC6801::addd_ix()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	IDXWORD(b);
 	d = D;
 	r = d + b.d;
@@ -1217,7 +1217,7 @@ void MC6801::std_ix()
 void MC6801::addd_ex()
 {
 	uint32_t r, d;
-	pair_t b;
+	pair32_t b;
 	EXTWORD(b);
 	d = D;
 	r = d + b.d;

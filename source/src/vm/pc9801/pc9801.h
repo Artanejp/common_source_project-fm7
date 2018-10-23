@@ -233,7 +233,6 @@
 #define I8259_MAX_CHIPS		2
 #define SINGLE_MODE_DMA
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467
-#define SUPPORT_VARIABLE_TIMING
 
 // device informations for win32
 #if defined(_PC9801) || defined(_PC9801E)
@@ -252,10 +251,7 @@
 #define USE_TAPE		1
 #define TAPE_BINARY_ONLY
 #endif
-#define NOTIFY_KEY_DOWN
 #define USE_KEY_LOCKED
-#define USE_SHIFT_NUMPAD_KEY
-#define USE_ALT_F10_KEY
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 // slow enough for N88-“ú–{ŒêBASIC
 #define USE_AUTO_KEY		8

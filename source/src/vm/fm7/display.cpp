@@ -2749,7 +2749,7 @@ void DISPLAY::write_mmio(uint32_t addr, uint8_t data)
 {
 	uint8_t rval = 0;
 	uint8_t active_block_old;
-	pair_t tmpvar;
+	pair32_t tmpvar;
 	if(addr < 0xd400) return;
 	
 #if !defined(_FM77AV_VARIANTS)

@@ -32,7 +32,6 @@
 #define MB8877_NO_BUSY_AFTER_SEEK
 #define SUPPORT_MEDIA_TYPE_1DD
 #define IO_ADDR_MAX		0x10000
-#define SUPPORT_VARIABLE_TIMING
 
 // device informations for win32
 #if defined(_SMC70)
@@ -42,11 +41,7 @@
 #define USE_SPECIAL_RESET
 #define USE_FLOPPY_DISK		2
 #define USE_TAPE		1
-#define USE_TAPE_BUTTON
-#define NOTIFY_KEY_DOWN
 #define USE_KEY_LOCKED
-//#define USE_SHIFT_NUMPAD_KEY
-#define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		8
 #define USE_AUTO_KEY_RELEASE	10
 #define USE_AUTO_KEY_NUMPAD

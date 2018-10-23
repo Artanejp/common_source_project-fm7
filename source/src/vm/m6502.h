@@ -30,7 +30,7 @@ protected:
 	DEVICE *d_mem_stored;
 //#endif
 	
-	pair_t pc, sp, zp, ea;
+	pair32_t pc, sp, zp, ea;
 	uint16_t prev_pc;
 	uint8_t a, x, y, p;
 	bool pending_irq, after_cli;

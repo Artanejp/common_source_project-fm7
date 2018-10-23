@@ -384,7 +384,8 @@ typedef union {
 	} p16;
 	uint32_t d;
 	int32_t sd;
-	float f;
+	float f; // single float
+  
 	inline void read_2bytes_le_from(uint8_t *t)
 	{
 		b.l = t[0]; b.h = t[1]; b.h2 = b.h3 = 0;
@@ -509,7 +510,7 @@ typedef union {
 		littlev.b.l = b.l; littlev.b.h = b.h; littlev.b.h2 = b.h2; littlev.b.h3 = b.h3;
 		return littlev.dw;
 	}
-} pair_t;
+} pair32_t;
 
 
 typedef union {
@@ -564,14 +565,21 @@ typedef union {
 	} sd;
 	struct {
 #ifdef __BIG_ENDIAN__
-		pair_t h, l;
+		pair32_t h, l;
 #else
-		pair_t l, h;
+		pair32_t l, h;
 #endif
 	} p32;
-	uint64_t u64;
-	int64_t s64;
-	double d64;
+	struct {
+#ifdef __BIG_ENDIAN__
+		float h, l;
+#else
+		float l, h;
+#endif
+	} f32;
+	uint64_t q;
+	int64_t sq;
+	double df; // double float
 	inline void read_2bytes_le_from(uint8_t *t)
 	{
 		b.l = t[0]; b.h = t[1]; b.h2 = b.h3 = 0;
@@ -936,7 +944,7 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 
 // C99 math functions
 #ifdef _MSC_VER
-	#define my_isfinite _finite
+	#define my_isfinite  _finite
 	#define my_log2(v) (log((double)(v)) / log(2.0))
 #else
 	#include <cmath>
@@ -993,7 +1001,7 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 inline uint64_t ExchangeEndianU64(uint64_t __in)
 {
 	pair64_t __i, __o;
-	__i.u64 = __in;
+	__i.q = __in;
 	__o.b.h7  = __i.b.l;
 	__o.b.h6  = __i.b.h;
 	__o.b.h5  = __i.b.h2;
@@ -1002,13 +1010,13 @@ inline uint64_t ExchangeEndianU64(uint64_t __in)
 	__o.b.h2  = __i.b.h5;
 	__o.b.h   = __i.b.h6;
 	__o.b.l   = __i.b.h7;
-	return __o.u64;
+	return __o.q;
 }
 
 inline int64_t ExchangeEndianS64(uint64_t __in)
 {
 	pair64_t __i, __o;
-	__i.u64 = __in;
+	__i.q = __in;
 	__o.b.h7  = __i.b.l;
 	__o.b.h6  = __i.b.h;
 	__o.b.h5  = __i.b.h2;
@@ -1017,11 +1025,11 @@ inline int64_t ExchangeEndianS64(uint64_t __in)
 	__o.b.h2  = __i.b.h5;
 	__o.b.h   = __i.b.h6;
 	__o.b.l   = __i.b.h7;
-	return __o.s64;
+	return __o.sq;
 }
 inline uint32_t ExchangeEndianU32(uint32_t __in)
 {
-	pair_t __i, __o;
+	pair32_t __i, __o;
 	__i.d = __in;
 	__o.b.h3 = __i.b.l;
 	__o.b.h2 = __i.b.h;
@@ -1032,7 +1040,7 @@ inline uint32_t ExchangeEndianU32(uint32_t __in)
 
 inline int32_t ExchangeEndianS32(uint32_t __in)
 {
-	pair_t __i, __o;
+	pair32_t __i, __o;
 	__i.d = __in;
 	__o.b.h3 = __i.b.l;
 	__o.b.h2 = __i.b.h;

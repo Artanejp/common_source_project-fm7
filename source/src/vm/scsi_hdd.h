@@ -80,7 +80,7 @@ public:
 class SASI_HDD : public SCSI_HDD
 {
 public:
-	SASI_HDD(VM* parent_vm, EMU* parent_emu) : SCSI_HDD(parent_vm, parent_emu)
+	SASI_HDD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : SCSI_HDD(parent_vm, parent_emu)
 	{
 		set_device_name(_T("SASI Hard Disk Drive"));
 	}

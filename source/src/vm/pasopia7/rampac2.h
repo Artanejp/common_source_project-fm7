@@ -26,7 +26,7 @@ private:
 	bool opened, modified;
 	int this_device_id;
 public:
-	RAMPAC2(VM* parent_vm, EMU* parent_emu) : PAC2DEV(parent_vm, parent_emu)
+	RAMPAC2(VM_TEMPLATE* parent_vm, EMU* parent_emu) : PAC2DEV(parent_vm, parent_emu)
 	{
 		static int num = 1;
 		this_device_id = num++;

@@ -25,9 +25,6 @@
 // device informations for win32
 #define SUPPORT_TV_RENDER
 #define USE_TAPE			1
-#define USE_TAPE_BUTTON
-#define NOTIFY_KEY_DOWN
-#define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		8
 #define USE_AUTO_KEY_RELEASE	10
 //#define USE_SCREEN_FILTER

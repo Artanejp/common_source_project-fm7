@@ -19,10 +19,10 @@ namespace PASOPIA7 {
 class PAC2DEV
 {
 protected:
-	VM* vm;
+	VM_TEMPLATE* vm;
 	EMU* emu;
 public:
-	PAC2DEV(VM* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
+	PAC2DEV(VM_TEMPLATE* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 	{
 		set_device_name(_T("PAC2 Base Device"));
 	}

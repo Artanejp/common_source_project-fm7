@@ -1289,8 +1289,6 @@ int OSD::add_video_frames()
 	static double frames = 0;
 	static int prev_video_fps = -1;
 	int counter = 0;
-	
-#ifdef SUPPORT_VARIABLE_TIMING
 	static double prev_vm_fps = -1;
 	double vm_fps = vm->get_frame_rate();
 	
@@ -1299,12 +1297,6 @@ int OSD::add_video_frames()
 		prev_vm_fps = vm_fps;
 		frames = vm_fps / rec_video_fps;
 	}
-#else
-	if(prev_video_fps != rec_video_fps) {
-		prev_video_fps = rec_video_fps;
-		frames = FRAMES_PER_SEC / rec_video_fps;
-	}
-#endif
 	while(rec_video_run_frames > 0) {
 		rec_video_run_frames -= frames;
 		rec_video_frames += frames;
