@@ -53,7 +53,7 @@ class EmuThreadClass;
 class DrawThreadClass;
 class Ui_MainWindow;
 class EMU;
-class VM;
+class VM_TEMPLATE;
 class FIFO;
 class FILEIO;
 class CSP_KeyTables;
@@ -270,7 +270,7 @@ public:
 	~OSD_BASE();
 	
 	// common
-	VM* vm;
+	VM_TEMPLATE* vm;
 	//EMU* emu;
 	class Ui_MainWindow *main_window_handle;
 	GLDrawClass *glv;

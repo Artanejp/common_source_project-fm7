@@ -25,7 +25,7 @@
 #include <assert.h>
 #include "common.h"
 #include "config.h"
-#include "vm/vm.h"
+//#include "vm/vm_template.h"
 
 #if defined(_USE_QT)
 #include <pthread.h>
@@ -58,6 +58,7 @@
 #define MAX_B77_BANKS 16
 #endif
 
+class VM;
 class VM_TEMPLATE;
 class EMU;
 class FIFO;
@@ -88,7 +89,7 @@ class DrawThreadClass;
 class EMU
 {
 protected:
-	VM_TEMPLATE* vm;
+	VM* vm;
 	OSD* osd;
 private:
 	_TCHAR app_path[_MAX_PATH];
@@ -198,7 +199,7 @@ public:
 	void set_parent_handler(EmuThreadClass *p, DrawThreadClass *q);
 	VM_TEMPLATE *get_vm()
 	{
-		return vm;
+		return (VM_TEMPLATE *)vm;
 	}
 	OSD *get_osd()
 	{

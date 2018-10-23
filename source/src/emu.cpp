@@ -94,7 +94,8 @@ EMU::EMU()
 #endif
 	osd->initialize(sound_rate, sound_samples);
 	// initialize vm
-	osd->vm = vm = new VM(this);
+   	vm = new VM(this);
+	osd->vm = vm;
 # if defined(_USE_QT)
 	osd->reset_vm_node();
 # endif	
@@ -251,7 +252,8 @@ void EMU::reset()
 		// reinitialize virtual machine
 		osd->lock_vm();		
 		delete vm;
-		osd->vm = vm = new VM(this);
+		vm = new VM(this);
+ 		osd->vm = vm;;
 #if defined(_USE_QT)
 		osd->reset_vm_node();
 #endif
@@ -2920,7 +2922,8 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 					// reinitialize virtual machine
 					osd->stop_sound();
 					delete vm;
-					osd->vm = vm = new VM(this);
+					vm = new VM(this);
+					osd->vm = vm;
 # if defined(_USE_QT)
 					osd->reset_vm_node();
 # endif	

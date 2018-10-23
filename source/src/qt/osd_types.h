@@ -67,7 +67,7 @@ public:
 #ifdef USE_MOVIE_PLAYER
 class CMySampleGrabberCB : public ISampleGrabberCB {
 private:
-	VM *vm;
+	VM_TEMPLATE *vm;
 public:
 	CMySampleGrabberCB(VM *vm_ptr)
 	{
