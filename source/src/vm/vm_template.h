@@ -11,14 +11,18 @@ protected:
 	EMU* emu;
 	// devices
 	EVENT* event;
+#if defined(__GIT_REPO_VERSION)
 	_TCHAR _git_revision[256];
+#endif	
 public:
 	VM_TEMPLATE(EMU* parent_emu) : emu(parent_emu)
 	{
 		emu = parent_emu;
+#if defined(__GIT_REPO_VERSION)
 		memset(_git_revision, 0x00, sizeof(_git_revision));
+#endif
 	}
-	~VM_TEMPLATE() {}
+	virtual ~VM_TEMPLATE() {} // OK?
 	// drive virtual machine
 	virtual void reset() { }
 	virtual void special_reset() { }

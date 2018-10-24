@@ -1,3 +1,11 @@
+10/13/2018
+
+[EMU/DEBUGGER] increase breakpoint number from 8 to 16
+
+[VM/SCSI_DEV] fix to clear req signal after ack signal is raised
+[VM/VM_TEMPLATE] fix issue that virtual machine is not correctly released
+
+
 10/10/2018
 
 [VM/SCSI_DEV] fix ack signal issue when multiple devices are attached

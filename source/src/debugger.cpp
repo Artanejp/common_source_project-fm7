@@ -808,11 +808,11 @@ void* debugger_thread(void *lpx)
 				} else if(num >= 2) {
 					for(int i = 1; i < num; i++) {
 						int index = my_hexatoi(cpu, params[i]);
-						if(!(index >= 1 && index <= MAX_BREAK_POINTS)) {
+						if(!(index >= 0 && index < MAX_BREAK_POINTS)) {
 							my_printf(p->osd, _T("invalid index %x\n"), index);
 						} else {
-							bp->table[index - 1].addr = bp->table[index - 1].mask = 0;
-							bp->table[index - 1].status = 0;
+							bp->table[index].addr = bp->table[index].mask = 0;
+							bp->table[index].status = 0;
 						}
 					}
 				} else {
@@ -831,12 +831,12 @@ void* debugger_thread(void *lpx)
 				} else if(num >= 2) {
 					for(int i = 1; i < num; i++) {
 						int index = my_hexatoi(cpu, params[i]);
-						if(!(index >= 1 && index <= MAX_BREAK_POINTS)) {
+						if(!(index >= 0 && index < MAX_BREAK_POINTS)) {
 							my_printf(p->osd, _T("invalid index %x\n"), index);
-						} else if(bp->table[index - 1].status == 0) {
+						} else if(bp->table[index].status == 0) {
 							my_printf(p->osd, _T("break point %x is null\n"), index);
 						} else {
-							bp->table[index - 1].status = enabled ? 1 : -1;
+							bp->table[index].status = enabled ? 1 : -1;
 						}
 					}
 				} else {
@@ -847,7 +847,7 @@ void* debugger_thread(void *lpx)
 					break_point_t *bp = get_break_point(debugger, params[0]);
 					for(int i = 0; i < MAX_BREAK_POINTS; i++) {
 						if(bp->table[i].status) {
-							my_printf(p->osd, _T("%d %c %s %s\n"), i + 1,
+							my_printf(p->osd, _T("%x %c %s %s\n"), i,
 								bp->table[i].status == 1 ? _T('e') : _T('d'),
 								my_get_value_and_symbol(cpu, _T("%08X"), bp->table[i].addr),
 								bp->table[i].check_point ? "checkpoint" : "");
@@ -861,7 +861,7 @@ void* debugger_thread(void *lpx)
 					break_point_t *bp = get_break_point(debugger, params[0]);
 					for(int i = 0; i < MAX_BREAK_POINTS; i++) {
 						if(bp->table[i].status) {
-							my_printf(p->osd, _T("%d %c %s %08X %s\n"), i + 1,
+							my_printf(p->osd, _T("%x %c %s %08X %s\n"), i,
 								bp->table[i].status == 1 ? _T('e') : _T('d'),
 								my_get_value_and_symbol(cpu, _T("%08X"), bp->table[i].addr),
 								bp->table[i].mask,
