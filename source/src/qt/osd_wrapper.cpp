@@ -179,59 +179,6 @@ bool OSD::get_use_socket(void)
 #endif
 }
 
-bool OSD::get_support_variable_timing(void)
-{
-#ifdef SUPPORT_VARIABLE_TIMING
-	return true;
-#else
-	return false;
-#endif
-}
-
-bool OSD::get_notify_key_down(void)
-{
-#ifdef NOTIFY_KEY_DOWN
-	return true;
-#else
-	return false;
-#endif	
-}
-
-bool OSD::get_notify_key_down_lr_shift(void)
-{
-#ifdef NOTIFY_KEY_DOWN_LR_SHIFT
-	return true;
-#else
-	return false;
-#endif
-}
-
-bool OSD::get_notify_key_down_lr_control(void)
-{
-#ifdef NOTIFY_KEY_DOWN_LR_CONTROL
-	return true;
-#else
-	return false;
-#endif
-}
-
-bool OSD::get_notify_key_down_lr_menu(void)
-{
-#ifdef NOTIFY_KEY_DOWN_LR_MEHU
-	return true;
-#else
-	return false;
-#endif
-}
-
-bool OSD::get_use_shift_numpad_key(void)
-{
-#ifdef USE_SHIFT_NUMPAD_KEY
-	return true;
-#else
-	return false;
-#endif
-}
 
 bool OSD::get_use_auto_key(void)
 {
@@ -289,16 +236,12 @@ bool OSD::get_use_video_capture(void)
 
 void OSD::vm_key_down(int code, bool flag)
 {
-#ifdef NOTIFY_KEY_DOWN
 	vm->key_down(code, flag);
-#endif
 }
 
 void OSD::vm_key_up(int code)
 {
-#ifdef NOTIFY_KEY_DOWN
 	vm->key_up(code);
-#endif
 }
 
 void OSD::vm_reset(void)

@@ -207,35 +207,6 @@ bool OSD_BASE::get_use_socket(void)
 {
 	return false;
 }
-bool OSD_BASE::get_support_variable_timing(void)
-{
-	return false;
-}
-
-bool OSD_BASE::get_notify_key_down(void)
-{
-	return false;
-}
-
-bool OSD_BASE::get_notify_key_down_lr_shift(void)
-{
-	return false;
-}
-
-bool OSD_BASE::get_notify_key_down_lr_control(void)
-{
-	return false;
-}
-
-bool OSD_BASE::get_notify_key_down_lr_menu(void)
-{
-	return false;
-}
-
-bool OSD_BASE::get_use_shift_numpad_key(void)
-{
-	return false;
-}
 
 bool OSD_BASE::get_use_auto_key(void)
 {

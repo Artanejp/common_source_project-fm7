@@ -243,12 +243,6 @@ protected:
 	virtual void vm_draw_screen(void);
 	virtual Sint16* create_sound(int *extra_frames);
 	virtual bool get_use_socket(void);
-	virtual bool get_support_variable_timing(void);
-	virtual bool get_notify_key_down(void);
-	virtual bool get_notify_key_down_lr_shift(void);
-	virtual bool get_notify_key_down_lr_control(void);
-	virtual bool get_notify_key_down_lr_menu(void);
-	virtual bool get_use_shift_numpad_key(void);
 	virtual bool get_use_auto_key(void);
 	virtual bool get_dont_keeep_key_pressed(void);
 	virtual bool get_one_board_micro_computer(void);

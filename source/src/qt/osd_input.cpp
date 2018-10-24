@@ -99,20 +99,37 @@ void OSD_BASE::update_input()
 {
 	bool press_flag = false;
 	bool release_flag = false;
-	if(get_use_shift_numpad_key()) {
+//	bool get_keycode = false;
+//	if(get_use_auto_key()) {
+//		get_keycode = (!(now_auto_key) && !(config.romaji_to_kana));
+//	} else {
+//		get_keycode = true;
+//	}
+	{
 		//update numpad key status
 		if(key_shift_pressed && !key_shift_released) {
 			if(key_status[VK_SHIFT] == 0) {
 				// shift key is newly pressed
-				key_status[VK_SHIFT] = 0x80;
-				if(!this->get_notify_key_down_lr_shift()) key_status[VK_LSHIFT] = 0x80;
-				if(this->get_notify_key_down()) vm_key_down(VK_SHIFT, false);
+				if(!key_status[VK_RSHIFT]) {
+					vm_key_down(VK_SHIFT, false);
+				}
+				vm_key_down(VK_LSHIFT, false);
+				key_status[VK_LSHIFT] = key_status[VK_SHIFT] = 0x80;
 			}
 		} else if(!key_shift_pressed && key_shift_released) {
+			if(key_status[VK_LSHIFT] != 0) {
+				// shift key is newly released
+				vm_key_up(VK_LSHIFT);
+				if(!key_status[VK_RSHIFT]) {
+					vm_key_up(VK_SHIFT);
+				}
+				key_status[VK_LSHIFT] = key_status[VK_SHIFT] = 0;
+			}
+#if 0
 			if(key_status[VK_SHIFT] != 0) {
 			// shift key is newly released
 				key_status[VK_SHIFT] = 0;
-				if(!this->get_notify_key_down_lr_shift()) key_status[VK_LSHIFT] = 0;
+				key_status[VK_LSHIFT] = 0;
 				if(this->get_notify_key_down()) vm_key_up(VK_SHIFT);
 				// check l/r shift
 				if(!(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
@@ -132,9 +149,11 @@ void OSD_BASE::update_input()
 				// check l/r shift
 				if(!(GetAsyncKeyState(VK_RSHIFT) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
 			}
+#endif
 		}
 		key_shift_pressed = key_shift_released = false;
 	}
+	
 	    
 	// release keys
 	if(lost_focus && !now_auto_key) {
@@ -143,11 +162,11 @@ void OSD_BASE::update_input()
 			if(key_status[i] & 0x80) {
 				key_status[i] &= 0x7f;
 				release_flag = true;
-				if(this->get_notify_key_down()) {
+				//if(this->get_notify_key_down()) {
 					if(!key_status[i]) {
 						vm_key_up(i);
 					}
-				}
+				//}
 			}
 		}
 	} else {
@@ -155,11 +174,11 @@ void OSD_BASE::update_input()
 			if(key_status[i] & 0x7f) {
 				key_status[i] = (key_status[i] & 0x80) | ((key_status[i] & 0x7f) - 1);
 				press_flag = true;
-				if(this->get_notify_key_down()) {
+				//if(this->get_notify_key_down()) {
 					if(!key_status[i]) {
 						vm_key_up(i);
 					}
-				}
+				//}
 			}
 		}
 	}
@@ -454,44 +473,6 @@ void OSD_BASE::key_up(int code, bool extended)
 //#ifdef USE_AUTO_KEY
 //}
 //#endif
-#if 0
-	if(code == VK_SHIFT) {
-		if((key_status[VK_LSHIFT] & 0x80) && !(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) {
-			code = VK_LSHIFT;
-		} else if((key_status[VK_RSHIFT] & 0x80) && !(GetAsyncKeyState(VK_RSHIFT) & 0x8000)) {
-			code = VK_RSHIFT;
-		} else {
-			return;
-		}
-	} else if(code == VK_CONTROL) {
-		if((key_status[VK_LCONTROL] & 0x80) && !(GetAsyncKeyState(VK_LCONTROL) & 0x8000)) {
-			code = VK_LCONTROL;
-		} else if((key_status[VK_RCONTROL] & 0x80) && !(GetAsyncKeyState(VK_RCONTROL) & 0x8000)) {
-			code = VK_RCONTROL;
-		} else {
-			return;
-		}
-	} else if(code == VK_MENU) {
-		if((key_status[VK_LMENU] & 0x80) && !(GetAsyncKeyState(VK_LMENU) & 0x8000)) {
-			code = VK_LMENU;
-		} else if((key_status[VK_RMENU] & 0x80) && !(GetAsyncKeyState(VK_RMENU) & 0x8000)) {
-			code = VK_RMENU;
-		} else {
-			return;
-		}
-	}
-	if(get_use_shift_numpad_key()) {
-		if(code == VK_LSHIFT) {
-			key_shift_pressed = false;
-			key_shift_released = true;
-			return;
-		} else if(key_converted[code] != 0) {
-			key_converted[code] = 0;
-			code = numpad_table[code];
-		}
-	}
-	key_up_native(code);
-#endif
 }
 
 
@@ -502,15 +483,19 @@ void OSD_BASE::key_down_native(int code, bool repeat)
 	if(code == 0xf0) {
 		code = VK_CAPITAL;
 		keep_frames = true;
-	} else if(code == 0xf2) {
+	} else if(code == 0xf1 || code == 0xf2) {
 		code = VK_KANA;
 		keep_frames = true;
 	} else if(code == 0xf3 || code == 0xf4) {
 		code = VK_KANJI;
 		keep_frames = true;
 	}
-	code = keycode_conv[code];
-	
+	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
+		code = keycode_conv[code];
+	}
+	if(key_status[code] == 0 || keep_frames) {
+		repeat = false;
+	}
 	if(get_dont_keeep_key_pressed()) {
 		if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
 			key_status[code] = KEY_KEEP_FRAMES;
@@ -520,44 +505,28 @@ void OSD_BASE::key_down_native(int code, bool repeat)
 	} else {
 		key_status[code] = keep_frames ? KEY_KEEP_FRAMES : 0x80;
 	}
-
 	uint8_t prev_shift = key_status[VK_SHIFT];
 	uint8_t prev_control = key_status[VK_CONTROL];
 	uint8_t prev_menu = key_status[VK_MENU];
+	
 	key_status[VK_SHIFT] = key_status[VK_LSHIFT] | key_status[VK_RSHIFT];
 	key_status[VK_CONTROL] = key_status[VK_LCONTROL] | key_status[VK_RCONTROL];
 	key_status[VK_MENU] = key_status[VK_LMENU] | key_status[VK_RMENU];
 	
-	if(get_notify_key_down()) {
-		if(keep_frames) {
-			repeat = false;
+	if(code == VK_LSHIFT || code == VK_RSHIFT) {
+		if(prev_shift == 0 && key_status[VK_SHIFT] != 0) {
+			vm_key_down(VK_SHIFT, repeat);
 		}
-		if(!get_notify_key_down_lr_shift()) {
-			if(code == VK_LSHIFT || code == VK_RSHIFT) {
-				if(prev_shift == 0 && key_status[VK_SHIFT] != 0) {
-					vm_key_down(VK_SHIFT, repeat);
-				}
-				return;
-			}
+	} else if(code == VK_LCONTROL|| code == VK_RCONTROL) {
+		if(prev_control == 0 && key_status[VK_CONTROL] != 0) {
+			vm_key_down(VK_CONTROL, repeat);
 		}
-		if(!get_notify_key_down_lr_control()) {
-			if(code == VK_LCONTROL|| code == VK_RCONTROL) {
-				if(prev_control == 0 && key_status[VK_CONTROL] != 0) {
-					vm_key_down(VK_CONTROL, repeat);
-				}
-				return;
-			}
+	} else if(code == VK_LMENU|| code == VK_RMENU) {
+		if(prev_menu == 0 && key_status[VK_MENU] != 0) {
+			vm_key_down(VK_MENU, repeat);
 		}
-		if(!get_notify_key_down_lr_menu()) {
-			if(code == VK_LMENU|| code == VK_RMENU) {
-				if(prev_menu == 0 && key_status[VK_MENU] != 0) {
-					vm_key_down(VK_MENU, repeat);
-				}
-				return;
-			}
-		}
-		vm_key_down(code, repeat);
 	}
+	vm_key_down(code, repeat);
 }
 
 void OSD_BASE::key_up_native(int code)
@@ -571,41 +540,28 @@ void OSD_BASE::key_up_native(int code)
 	if((key_status[code] &= 0x7f) != 0) {
 		return;
 	}
+	vm_key_up(code);
 	
 	uint8_t prev_shift = key_status[VK_SHIFT];
 	uint8_t prev_control = key_status[VK_CONTROL];
 	uint8_t prev_menu = key_status[VK_MENU];
+	
 	key_status[VK_SHIFT] = key_status[VK_LSHIFT] | key_status[VK_RSHIFT];
 	key_status[VK_CONTROL] = key_status[VK_LCONTROL] | key_status[VK_RCONTROL];
 	key_status[VK_MENU] = key_status[VK_LMENU] | key_status[VK_RMENU];
 	
-
-	if(get_notify_key_down()) {
-		if(!get_notify_key_down_lr_shift()) {
-			if(code == VK_LSHIFT || code == VK_RSHIFT) {
-				if(prev_shift != 0 && key_status[VK_SHIFT] == 0) {
-					vm_key_up(VK_SHIFT);
-				}
-				return;
-			}
+	if(code == VK_LSHIFT || code == VK_RSHIFT) {
+		if(prev_shift != 0 && key_status[VK_SHIFT] == 0) {
+			vm_key_up(VK_SHIFT);
 		}
-		if(!get_notify_key_down_lr_control()) {
-			if(code == VK_LCONTROL|| code == VK_RCONTROL) {
-				if(prev_control != 0 && key_status[VK_CONTROL] == 0) {
-					vm_key_up(VK_CONTROL);
-				}
-				return;
-			}
+	} else if(code == VK_LCONTROL|| code == VK_RCONTROL) {
+		if(prev_control != 0 && key_status[VK_CONTROL] == 0) {
+			vm_key_up(VK_CONTROL);
 		}
-		if(!get_notify_key_down_lr_menu()) {
-			if(code == VK_LMENU || code == VK_RMENU) {
-				if(prev_menu != 0 && key_status[VK_MENU] == 0) {
-					vm_key_up(VK_MENU);
-				}
-				return;
-			}
+	} else if(code == VK_LMENU || code == VK_RMENU) {
+		if(prev_menu != 0 && key_status[VK_MENU] == 0) {
+			vm_key_up(VK_MENU);
 		}
-		vm_key_up(code);
 	}
 }
 
@@ -646,11 +602,11 @@ void OSD_BASE::key_down_sub(int code, bool repeat)
 	key_status[VK_CONTROL] = key_status[VK_LCONTROL] | key_status[VK_RCONTROL];
 	key_status[VK_MENU] = key_status[VK_LMENU] | key_status[VK_RMENU];
 	
-	if(get_notify_key_down()) {
+	{
 		if(keep_frames) {
 			repeat = false;
 		}
-		if(!get_notify_key_down_lr_shift()) {
+		{
 			if(code == VK_LSHIFT || code == VK_RSHIFT) {
 				if(prev_shift == 0 && key_status[VK_SHIFT] != 0) {
 					vm_key_down(VK_SHIFT, repeat);
@@ -658,7 +614,7 @@ void OSD_BASE::key_down_sub(int code, bool repeat)
 				return;
 			}
 		}
-		if(!get_notify_key_down_lr_control()) {
+		{
 			if(code == VK_LCONTROL|| code == VK_RCONTROL) {
 				if(prev_control == 0 && key_status[VK_CONTROL] != 0) {
 					vm_key_down(VK_CONTROL, repeat);
@@ -666,7 +622,7 @@ void OSD_BASE::key_down_sub(int code, bool repeat)
 				return;
 			}
 		}
-		if(!get_notify_key_down_lr_menu()) {
+		{
 			if(code == VK_LMENU|| code == VK_RMENU) {
 				if(prev_menu == 0 && key_status[VK_MENU] != 0) {
 					vm_key_down(VK_MENU, repeat);
@@ -696,8 +652,8 @@ void OSD_BASE::key_up_sub(int code)
 	key_status[VK_SHIFT] = key_status[VK_LSHIFT] | key_status[VK_RSHIFT];
 	key_status[VK_CONTROL] = key_status[VK_LCONTROL] | key_status[VK_RCONTROL];
 	key_status[VK_MENU] = key_status[VK_LMENU] | key_status[VK_RMENU];
-	if(get_notify_key_down()) {
-		if(!get_notify_key_down_lr_shift()) {
+	{
+		{
 			if(code == VK_LSHIFT || code == VK_RSHIFT) {
 				if(prev_shift != 0 && key_status[VK_SHIFT] == 0) {
 					vm_key_up(VK_SHIFT);
@@ -705,7 +661,7 @@ void OSD_BASE::key_up_sub(int code)
 				return;
 			}
 		}
-		if(!get_notify_key_down_lr_control()) {
+		{
 			if(code == VK_LCONTROL|| code == VK_RCONTROL) {
 				if(prev_control != 0 && key_status[VK_CONTROL] == 0) {
 					vm_key_up(VK_CONTROL);
@@ -713,7 +669,7 @@ void OSD_BASE::key_up_sub(int code)
 				return;
 			}
 		}
-		if(!get_notify_key_down_lr_menu()) {
+		{
 			if(code == VK_LMENU || code == VK_RMENU) {
 				if(prev_menu != 0 && key_status[VK_MENU] == 0) {
 					vm_key_up(VK_MENU);
