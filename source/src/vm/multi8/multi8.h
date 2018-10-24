@@ -26,7 +26,6 @@
 #define MAX_DRIVE		4
 #define UPD765A_DONT_WAIT_SEEK
 #define HAS_AY_3_8912
-#define SUPPORT_VARIABLE_TIMING
 
 // device informations for win32
 #define SUPPORT_TV_RENDER

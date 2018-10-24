@@ -26,7 +26,6 @@
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		4
-#define SUPPORT_VARIABLE_TIMING
 
 // device informations for win32
 #define SUPPORT_TV_RENDER

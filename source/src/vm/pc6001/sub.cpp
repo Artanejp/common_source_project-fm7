@@ -293,51 +293,11 @@ void SUB::close_tape()
 				}
 #endif
 				uint32_t length = fio->Ftell();
-#if 0				
-				pair_t __riff_chunk_size;
-				pair_t __fmt_chunk_size;
-				pair_t __wav_chunk_size;
-				pair16_t __fmt_id;
-				pair16_t __channels;
-				pair_t __sample_rate;
-				pair16_t __block_size;
-				pair16_t __sample_bits;
-
-				__riff_chunk_size.d = length - 8;
-				__fmt_chunk_size.d = 16;
-				__fmt_id.w = 1;
-				__channels.w = 1;
-				__sample_rate.d = sample_rate;
-				__block_size.w = 1;
-				__sample_bits.w = 8;
-	
-				memcpy(wav_header.riff_chunk.id, "RIFF", 4);
-				wav_header.riff_chunk.size = __riff_chunk_size.get_4bytes_le_to();
-	
-				memcpy(wav_header.wave, "WAVE", 4);
-				memcpy(wav_header.fmt_chunk.id, "fmt ", 4);
-				wav_header.fmt_chunk.size = __riff_chunk_size.get_4bytes_le_to();
-				wav_header.format_id = __fmt_id.get_2bytes_le_to();
-				wav_header.channels = __channels.get_2byte_le_to();
-				wav_header.sample_rate = __sample_rate.get_4bytes_le_to();
-				wav_header.data_speed =  __sample_rate.get_4bytes_le_to();
-				wav_header.block_size = __block_size.get_2bytes_le_to();
-				wav_header.sample_bits = __sample_bits_get_2bytes_le_to();
-	
-				memcpy(wav_chunk.id, "data", 4);
-				__wav_chunk_size.d = length - sizeof(wav_header) - sizeof(wav_chunk);
-				wav_chunk.size = __wav_chunk_size.get_4bytes_le_to();
-				
-				fio->Fseek(0, FILEIO_SEEK_SET);
-				fio->Fwrite(&wav_header, sizeof(wav_header), 1);
-				fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
-#else
 				if(set_wav_header(&wav_header, &wav_chunk, 1, sample_rate, 8, length)) {
 					fio->Fseek(0, FILEIO_SEEK_SET);
 					fio->Fwrite(&wav_header, sizeof(wav_header), 1);
 					fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
 				}
-#endif
 			} else {
 				fio->Fwrite(buffer, index, 1);
 				if(is_p6t) {

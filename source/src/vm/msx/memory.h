@@ -240,7 +240,7 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 #if !defined(_PX7)
 	uint32_t read_signal(int id);
-	bool bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_t* hl, pair_t* ix, pair_t* iy, uint8_t* iff1);
+	bool bios_ret_z80(uint16_t PC, pair32_t* af, pair32_t* bc, pair32_t* de, pair32_t* hl, pair32_t* ix, pair32_t* iy, uint8_t* iff1);
 #endif
 	bool process_state(FILEIO* state_fio, bool loading);
 	
