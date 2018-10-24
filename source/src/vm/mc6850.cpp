@@ -178,17 +178,17 @@ bool MC6850::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateUint8(recv);
-	state_fio->StateUint8(status);
-	state_fio->StateUint8(ctrl);
+	state_fio->StateValue(recv);
+	state_fio->StateValue(status);
+	state_fio->StateValue(ctrl);
 	if(!recv_buffer->process_state((void *)state_fio, loading)) {
  		return false;
  	}
 	if(!send_buffer->process_state((void *)state_fio, loading)) {
  		return false;
  	}
-	state_fio->StateInt32(recv_id);
-	state_fio->StateInt32(send_id);
+	state_fio->StateValue(recv_id);
+	state_fio->StateValue(send_id);
  	return true;
 }
 

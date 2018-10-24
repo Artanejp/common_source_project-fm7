@@ -505,16 +505,16 @@ bool UPD7752::process_state(FILEIO* state_fio, bool loading)
 			voicebuf = NULL;
 		}
 	}
-	state_fio->StateBool(mute);
-	state_fio->StateInt32(ThreadLoopStop);
-	state_fio->StateUint8(io_E0H);
-	state_fio->StateUint8(io_E2H);
-	state_fio->StateUint8(io_E3H);
-	state_fio->StateInt32(VStat);
-	state_fio->StateBuffer(ParaBuf, sizeof(ParaBuf), 1);
-	state_fio->StateUint8(Pnum);
-	state_fio->StateInt32(Fnum);
-	state_fio->StateInt32(PReady);
+	state_fio->StateValue(mute);
+	state_fio->StateValue(ThreadLoopStop);
+	state_fio->StateValue(io_E0H);
+	state_fio->StateValue(io_E2H);
+	state_fio->StateValue(io_E3H);
+	state_fio->StateValue(VStat);
+	state_fio->StateArray(ParaBuf, sizeof(ParaBuf), 1);
+	state_fio->StateValue(Pnum);
+	state_fio->StateValue(Fnum);
+	state_fio->StateValue(PReady);
 	if(loading) {
 		FbufLength = state_fio->FgetInt32_LE();
 		if(FbufLength > 0) {
@@ -527,28 +527,15 @@ bool UPD7752::process_state(FILEIO* state_fio, bool loading)
 			state_fio->Fwrite(Fbuf, FbufLength, 1);
 		}
 	}
-	state_fio->StateInt32(fin);
-	state_fio->StateInt32(fout);
-	//state_fio->StateBuffer(&Coef, sizeof(D7752Coef), 1);
-	{
-		// D7752_FIXED == int
-		for(int i = 0; i < 5; i++) {
-			state_fio->StateInt32(Coef.f[i]);
-		}
-		for(int i = 0; i < 5; i++) {
-			state_fio->StateInt32(Coef.b[i]);
-		}
-		state_fio->StateInt32(Coef.amp);
-		state_fio->StateInt32(Coef.pitch);
-	}
-	//state_fio->StateBuffer(Y, sizeof(Y), 1);
-	for(int i = 0; i < 5; i++) {
-		for(int j = 0; j < 2; j++) {
-			state_fio->StateInt32(Y[i][j]);
-		}
-	}
-	state_fio->StateInt32(PitchCount);
-	state_fio->StateInt32(FrameSize);
+	state_fio->StateValue(fin);
+	state_fio->StateValue(fout);
+	state_fio->StateArray(Coef.f, sizeof(Coef.f), 1);
+	state_fio->StateArray(Coef.b, sizeof(Coef.b), 1);
+	state_fio->StateValue(Coef.amp);
+	state_fio->StateValue(Coef.pitch);
+	state_fio->StateArray(&Y[0][0], sizeof(Y), 1);
+	state_fio->StateValue(PitchCount);
+	state_fio->StateValue(FrameSize);
  	return true;
 }
  

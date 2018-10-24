@@ -2588,68 +2588,54 @@ bool DISK::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
  		return false;
  	}
-	state_fio->StateBuffer(buffer, sizeof(buffer), 1);
-	state_fio->StateBuffer(orig_path, sizeof(orig_path), 1);
-	state_fio->StateBuffer(dest_path, sizeof(dest_path), 1);
-	state_fio->StateUint32(file_size.d);
-	state_fio->StateInt32(file_bank);
-	state_fio->StateUint32(orig_file_size);
-	state_fio->StateUint32(orig_crc32);
-	state_fio->StateBool(trim_required);
-	state_fio->StateBool(is_1dd_image);
-	state_fio->StateBool(is_solid_image);
-	state_fio->StateBool(is_fdi_image);
-	state_fio->StateBuffer(fdi_header, sizeof(fdi_header), 1);
-	state_fio->StateInt32(solid_ncyl);
-	state_fio->StateInt32(solid_nside);
-	state_fio->StateInt32(solid_nsec);
-	state_fio->StateInt32(solid_size);
-	state_fio->StateBool(solid_mfm);
-	state_fio->StateBool(inserted);
-	state_fio->StateBool(ejected);
-	state_fio->StateBool(write_protected);
-	state_fio->StateBool(changed);
-	state_fio->StateUint8(media_type);
-	state_fio->StateInt32(is_special_disk);
-	state_fio->StateBuffer(track, sizeof(track), 1);
-	state_fio->StateInt32(sector_num.sd);
-	state_fio->StateBool(track_mfm);
-	state_fio->StateBool(invalid_format);
-//	state_fio->StateBool(no_skew);
-
-//	state_fio->StateBuffer(sync_position, sizeof(sync_position), 1);
-//	state_fio->StateBuffer(am1_position, sizeof(am1_position), 1);
-//	state_fio->StateBuffer(id_position, sizeof(id_position), 1);
-//	state_fio->StateBuffer(data_position, sizeof(data_position), 1);
-	for(int i = 0; i < (sizeof(sync_position) / sizeof(int)); i++) {
-		state_fio->StateInt32(sync_position[i]);
-	}
-	for(int i = 0; i < (sizeof(am1_position) / sizeof(int)); i++) {
-		state_fio->StateInt32(am1_position[i]);
-	}
-	for(int i = 0; i < (sizeof(id_position) / sizeof(int)); i++) {
-		state_fio->StateInt32(id_position[i]);
-	}
-	for(int i = 0; i < (sizeof(data_position) / sizeof(int)); i++) {
-		state_fio->StateInt32(data_position[i]);
-	}
-
-//	state_fio->StateInt32(gap3_size);
+	state_fio->StateArray(buffer, sizeof(buffer), 1);
+	state_fio->StateArray(orig_path, sizeof(orig_path), 1);
+	state_fio->StateArray(dest_path, sizeof(dest_path), 1);
+	state_fio->StateValue(file_size.d);
+	state_fio->StateValue(file_bank);
+	state_fio->StateValue(orig_file_size);
+	state_fio->StateValue(orig_crc32);
+	state_fio->StateValue(trim_required);
+	state_fio->StateValue(is_1dd_image);
+	state_fio->StateValue(is_solid_image);
+	state_fio->StateValue(is_fdi_image);
+	state_fio->StateArray(fdi_header, sizeof(fdi_header), 1);
+	state_fio->StateValue(solid_ncyl);
+	state_fio->StateValue(solid_nside);
+	state_fio->StateValue(solid_nsec);
+	state_fio->StateValue(solid_size);
+	state_fio->StateValue(solid_mfm);
+	state_fio->StateValue(inserted);
+	state_fio->StateValue(ejected);
+	state_fio->StateValue(write_protected);
+	state_fio->StateValue(changed);
+	state_fio->StateValue(media_type);
+	state_fio->StateValue(is_special_disk);
+	state_fio->StateArray(track, sizeof(track), 1);
+	state_fio->StateValue(sector_num.sd);
+	state_fio->StateValue(track_mfm);
+	state_fio->StateValue(invalid_format);
+//	state_fio->StateValue(no_skew);
+	state_fio->StateArray(sync_position, sizeof(sync_position), 1);
+	state_fio->StateArray(am1_position, sizeof(am1_position), 1);
+	state_fio->StateArray(id_position, sizeof(id_position), 1);
+	state_fio->StateArray(data_position, sizeof(data_position), 1);
+//	state_fio->StateValue(gap3_size);
 	if(loading) {
 		int offset = state_fio->FgetInt32_LE();
 		sector = (offset != -1) ? buffer + offset : NULL;
 	} else {
 		state_fio->FputInt32_LE(sector ? (int)(sector - buffer) : -1);
 	}
-	state_fio->StateInt32(sector_size.sd);
-	state_fio->StateBuffer(id, sizeof(id), 1);
-	state_fio->StateUint8(density);
-	state_fio->StateBool(deleted);
-	state_fio->StateBool(addr_crc_error);
-	state_fio->StateBool(data_crc_error);
-	state_fio->StateUint8(drive_type);
-	state_fio->StateInt32(drive_rpm);
-	state_fio->StateBool(drive_mfm);
+	state_fio->StateValue(sector_size.sd);
+	state_fio->StateArray(id, sizeof(id), 1);
+	state_fio->StateValue(density);
+	state_fio->StateValue(deleted);
+	state_fio->StateValue(addr_crc_error);
+	state_fio->StateValue(data_crc_error);
+	state_fio->StateValue(drive_type);
+	state_fio->StateValue(drive_rpm);
+	state_fio->StateValue(drive_mfm);
  	return true;
 }
 

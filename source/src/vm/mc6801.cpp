@@ -1253,52 +1253,52 @@ bool MC6801::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateUint32(pc.d);
-	state_fio->StateUint16(prevpc);
-	state_fio->StateUint32(sp.d);
-	state_fio->StateUint32(ix.d);
-	state_fio->StateUint32(acc_d.d);
-	state_fio->StateUint32(ea.d);
-	state_fio->StateUint8(cc);
-	state_fio->StateInt32(wai_state);
-	state_fio->StateInt32(int_state);
+	state_fio->StateValue(pc.d);
+	state_fio->StateValue(prevpc);
+	state_fio->StateValue(sp.d);
+	state_fio->StateValue(ix.d);
+	state_fio->StateValue(acc_d.d);
+	state_fio->StateValue(ea.d);
+	state_fio->StateValue(cc);
+	state_fio->StateValue(wai_state);
+	state_fio->StateValue(int_state);
 	if(__USE_DEBUGGER) {
-		state_fio->StateUint64(total_icount);
+		state_fio->StateValue(total_icount);
 	}
-	state_fio->StateInt32(icount);
+	state_fio->StateValue(icount);
 // #if defined(HAS_MC6801) || defined(HAS_HD6301)
  	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint8(port[i].wreg);
-		state_fio->StateUint8(port[i].rreg);
-		state_fio->StateUint8(port[i].ddr);
-		state_fio->StateUint8(port[i].latched_data);
-		state_fio->StateBool(port[i].latched);
-		state_fio->StateBool(port[i].first_write);
+		state_fio->StateValue(port[i].wreg);
+		state_fio->StateValue(port[i].rreg);
+		state_fio->StateValue(port[i].ddr);
+		state_fio->StateValue(port[i].latched_data);
+		state_fio->StateValue(port[i].latched);
+		state_fio->StateValue(port[i].first_write);
  	}
-	state_fio->StateUint8(p3csr);
-	state_fio->StateBool(p3csr_is3_flag_read);
-	state_fio->StateBool(sc1_state);
-	state_fio->StateBool(sc2_state);
-	state_fio->StateUint32(counter.d);
-	state_fio->StateUint32(output_compare.d);
-	state_fio->StateUint32(timer_over.d);
-	state_fio->StateUint8(tcsr);
-	state_fio->StateUint8(pending_tcsr);
-	state_fio->StateUint16(input_capture);
-	state_fio->StateUint32(timer_next);
+	state_fio->StateValue(p3csr);
+	state_fio->StateValue(p3csr_is3_flag_read);
+	state_fio->StateValue(sc1_state);
+	state_fio->StateValue(sc2_state);
+	state_fio->StateValue(counter.d);
+	state_fio->StateValue(output_compare.d);
+	state_fio->StateValue(timer_over.d);
+	state_fio->StateValue(tcsr);
+	state_fio->StateValue(pending_tcsr);
+	state_fio->StateValue(input_capture);
+	state_fio->StateValue(timer_next);
 	if(!recv_buffer->process_state((void *)state_fio, loading)) {
  		return false;
  	}
-	state_fio->StateUint8(trcsr);
-	state_fio->StateUint8(rdr);
-	state_fio->StateUint8(tdr);
-	state_fio->StateBool(trcsr_read_tdre);
-	state_fio->StateBool(trcsr_read_orfe);
-	state_fio->StateBool(trcsr_read_rdrf);
-	state_fio->StateUint8(rmcr);
-	state_fio->StateInt32(sio_counter);
-	state_fio->StateUint8(ram_ctrl);
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateValue(trcsr);
+	state_fio->StateValue(rdr);
+	state_fio->StateValue(tdr);
+	state_fio->StateValue(trcsr_read_tdre);
+	state_fio->StateValue(trcsr_read_orfe);
+	state_fio->StateValue(trcsr_read_rdrf);
+	state_fio->StateValue(rmcr);
+	state_fio->StateValue(sio_counter);
+	state_fio->StateValue(ram_ctrl);
+	state_fio->StateArray(ram, sizeof(ram), 1);
 //#endif
 	
 	// post process

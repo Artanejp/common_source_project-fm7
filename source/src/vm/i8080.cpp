@@ -583,19 +583,19 @@ bool I8080::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 #ifdef USE_DEBUGGER
-	state_fio->StateUint64(total_count);
+	state_fio->StateValue(total_count);
 #endif
-	state_fio->StateInt32(count);
-	state_fio->StateBuffer(regs, sizeof(regs), 1); // ToDo:
-	state_fio->StateUint16(SP);
-	state_fio->StateUint16(PC);
-	state_fio->StateUint16(prevPC);
-	state_fio->StateUint16(IM);
-	state_fio->StateUint16(RIM_IEN);
-	state_fio->StateBool(afterHALT);
-	state_fio->StateBool(BUSREQ);
-	state_fio->StateBool(SID);
-	state_fio->StateBool(afterEI);
+	state_fio->StateValue(count);
+	state_fio->StateArray(regs, sizeof(regs), 1); // ToDo:
+	state_fio->StateValue(SP);
+	state_fio->StateValue(PC);
+	state_fio->StateValue(prevPC);
+	state_fio->StateValue(IM);
+	state_fio->StateValue(RIM_IEN);
+	state_fio->StateValue(afterHALT);
+	state_fio->StateValue(BUSREQ);
+	state_fio->StateValue(SID);
+	state_fio->StateValue(afterEI);
 	
 #ifdef USE_DEBUGGER
 	// post process

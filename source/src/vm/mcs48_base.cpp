@@ -853,7 +853,7 @@ int MCS48_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 }
 //#endif
 
-#define STATE_VERSION   2
+#define STATE_VERSION   3
 
 bool MCS48MEM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -863,6 +863,6 @@ bool MCS48MEM::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateArray(ram, sizeof(ram), 1);
  	return true;
 }

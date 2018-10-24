@@ -140,11 +140,11 @@ bool UPD4991A::process_state(FILEIO* state_fio, bool loading)
 	if(!cur_time.process_state((void *)state_fio, loading)) {
  		return false;
  	}
-	state_fio->StateInt32(register_id);
-	state_fio->StateBuffer(regs, sizeof(regs), 1);
-	state_fio->StateUint8(ctrl1);
-	state_fio->StateUint8(ctrl2);
-	state_fio->StateUint8(mode);
+	state_fio->StateValue(register_id);
+	state_fio->StateArray(&regs[0][0], sizeof(regs), 1);
+	state_fio->StateValue(ctrl1);
+	state_fio->StateValue(ctrl2);
+	state_fio->StateValue(mode);
  	return true;
 }
 

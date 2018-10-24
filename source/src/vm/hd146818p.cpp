@@ -233,14 +233,14 @@ bool HD146818P::process_state(FILEIO* state_fio, bool loading)
 	if(!cur_time.process_state((void *)state_fio, loading)) {
  		return false;
  	}
-	state_fio->StateInt32(register_id_1sec);
-	state_fio->StateBuffer(regs, sizeof(regs), 1);
-	state_fio->StateInt32(ch);
-	state_fio->StateInt32(period);
-	state_fio->StateInt32(register_id_sqw);
-	state_fio->StateBool(intr);
-	state_fio->StateBool(sqw);
-	state_fio->StateBool(modified);
+	state_fio->StateValue(register_id_1sec);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateValue(ch);
+	state_fio->StateValue(period);
+	state_fio->StateValue(register_id_sqw);
+	state_fio->StateValue(intr);
+	state_fio->StateValue(sqw);
+	state_fio->StateValue(modified);
  	return true;
 }
 

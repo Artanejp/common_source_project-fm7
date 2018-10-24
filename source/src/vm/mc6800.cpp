@@ -3057,19 +3057,19 @@ bool MC6800::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateUint32(pc.d);
-	state_fio->StateUint16(prevpc);
-	state_fio->StateUint32(sp.d);
-	state_fio->StateUint32(ix.d);
-	state_fio->StateUint32(acc_d.d);
-	state_fio->StateUint32(ea.d);
-	state_fio->StateUint8(cc);
-	state_fio->StateInt32(wai_state);
-	state_fio->StateInt32(int_state);
+	state_fio->StateValue(pc.d);
+	state_fio->StateValue(prevpc);
+	state_fio->StateValue(sp.d);
+	state_fio->StateValue(ix.d);
+	state_fio->StateValue(acc_d.d);
+	state_fio->StateValue(ea.d);
+	state_fio->StateValue(cc);
+	state_fio->StateValue(wai_state);
+	state_fio->StateValue(int_state);
 	if(__USE_DEBUGGER) {
-		state_fio->StateUint64(total_icount);
+		state_fio->StateValue(total_icount);
 	}
-	state_fio->StateInt32(icount);
+	state_fio->StateValue(icount);
 	
 	// post process
 	if(__USE_DEBUGGER) {

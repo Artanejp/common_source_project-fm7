@@ -218,21 +218,21 @@ bool I8237::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
  	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint16(dma[i].areg);
-		state_fio->StateUint16(dma[i].creg);
-		state_fio->StateUint16(dma[i].bareg);
-		state_fio->StateUint16(dma[i].bcreg);
-		state_fio->StateUint8(dma[i].mode);
-		state_fio->StateUint16(dma[i].bankreg);
-		state_fio->StateUint16(dma[i].incmask);
+		state_fio->StateValue(dma[i].areg);
+		state_fio->StateValue(dma[i].creg);
+		state_fio->StateValue(dma[i].bareg);
+		state_fio->StateValue(dma[i].bcreg);
+		state_fio->StateValue(dma[i].mode);
+		state_fio->StateValue(dma[i].bankreg);
+		state_fio->StateValue(dma[i].incmask);
  	}
-	state_fio->StateBool(low_high);
-	state_fio->StateUint8(cmd);
-	state_fio->StateUint8(req);
-	state_fio->StateUint8(mask);
-	state_fio->StateUint8(tc);
-	state_fio->StateUint32(tmp);
-	state_fio->StateBool(mode_word);
-	state_fio->StateUint32(addr_mask);
+	state_fio->StateValue(low_high);
+	state_fio->StateValue(cmd);
+	state_fio->StateValue(req);
+	state_fio->StateValue(mask);
+	state_fio->StateValue(tc);
+	state_fio->StateValue(tmp);
+	state_fio->StateValue(mode_word);
+	state_fio->StateValue(addr_mask);
  	return true;
 }

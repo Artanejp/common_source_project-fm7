@@ -73,9 +73,9 @@ bool BEEP::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateBool(signal);
-	state_fio->StateInt32(count);
-	state_fio->StateBool(on);
-	state_fio->StateBool(mute);
+	state_fio->StateValue(signal);
+	state_fio->StateValue(count);
+	state_fio->StateValue(on);
+	state_fio->StateValue(mute);
  	return true;
 }

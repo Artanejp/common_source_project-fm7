@@ -425,32 +425,32 @@ bool I8253::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
  	for(int i = 0; i < 3; i++) {
-		state_fio->StateBool(counter[i].prev_out);
-		state_fio->StateBool(counter[i].prev_in);
-		state_fio->StateBool(counter[i].gate);
-		state_fio->StateInt32(counter[i].count);
-		state_fio->StateUint16(counter[i].latch);
-		state_fio->StateUint16(counter[i].count_reg);
-		state_fio->StateUint8(counter[i].ctrl_reg);
-		state_fio->StateBool(counter[i].count_latched);
-		state_fio->StateBool(counter[i].low_read);
-		state_fio->StateBool(counter[i].high_read);
-		state_fio->StateBool(counter[i].low_write);
-		state_fio->StateBool(counter[i].high_write);
-		state_fio->StateInt32(counter[i].mode);
-		state_fio->StateBool(counter[i].delay);
-		state_fio->StateBool(counter[i].start);
+		state_fio->StateValue(counter[i].prev_out);
+		state_fio->StateValue(counter[i].prev_in);
+		state_fio->StateValue(counter[i].gate);
+		state_fio->StateValue(counter[i].count);
+		state_fio->StateValue(counter[i].latch);
+		state_fio->StateValue(counter[i].count_reg);
+		state_fio->StateValue(counter[i].ctrl_reg);
+		state_fio->StateValue(counter[i].count_latched);
+		state_fio->StateValue(counter[i].low_read);
+		state_fio->StateValue(counter[i].high_read);
+		state_fio->StateValue(counter[i].low_write);
+		state_fio->StateValue(counter[i].high_write);
+		state_fio->StateValue(counter[i].mode);
+		state_fio->StateValue(counter[i].delay);
+		state_fio->StateValue(counter[i].start);
 		if(__HAS_I8254) {
-			state_fio->StateBool(counter[i].null_count);
-			state_fio->StateBool(counter[i].status_latched);
-			state_fio->StateUint8(counter[i].status);
+			state_fio->StateValue(counter[i].null_count);
+			state_fio->StateValue(counter[i].status_latched);
+			state_fio->StateValue(counter[i].status);
 		}
-		state_fio->StateUint64(counter[i].freq);
-		state_fio->StateInt32(counter[i].register_id);
-		state_fio->StateUint32(counter[i].input_clk);
-		state_fio->StateInt32(counter[i].period);
-		state_fio->StateUint32(counter[i].prev_clk);
+		state_fio->StateValue(counter[i].freq);
+		state_fio->StateValue(counter[i].register_id);
+		state_fio->StateValue(counter[i].input_clk);
+		state_fio->StateValue(counter[i].period);
+		state_fio->StateValue(counter[i].prev_clk);
  	}
-	state_fio->StateUint64(cpu_clocks);
+	state_fio->StateValue(cpu_clocks);
  	return true;
 }

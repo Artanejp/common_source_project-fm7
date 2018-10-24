@@ -239,19 +239,19 @@ bool I8251::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateUint8(recv);
-	state_fio->StateUint8(status);
-	state_fio->StateUint8(mode);
-	state_fio->StateBool(txen);
-	state_fio->StateBool(rxen);
-	state_fio->StateBool(loopback);
+	state_fio->StateValue(recv);
+	state_fio->StateValue(status);
+	state_fio->StateValue(mode);
+	state_fio->StateValue(txen);
+	state_fio->StateValue(rxen);
+	state_fio->StateValue(loopback);
 	if(!recv_buffer->process_state((void *)state_fio, loading)) {
  		return false;
  	}
 	if(!send_buffer->process_state((void *)state_fio, loading)) {
  		return false;
  	}
-	state_fio->StateInt32(recv_id);
-	state_fio->StateInt32(send_id);
+	state_fio->StateValue(recv_id);
+	state_fio->StateValue(send_id);
  	return true;
 }

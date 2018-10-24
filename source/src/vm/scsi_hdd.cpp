@@ -192,11 +192,8 @@ bool SCSI_HDD::process_state(FILEIO* state_fio, bool loading)
  		}
  	}
 	*/
-	state_fio->StateBuffer(image_path, sizeof(image_path), 1);
-//	state_fio->StateBuffer(sector_size, sizeof(sector_size), 1);
-	for(int i = 0; i < (sizeof(sector_size) / sizeof(int)); i++) {
-		state_fio->StateInt32(sector_size[i]);
-	}
+	state_fio->StateArray(image_path, sizeof(image_path), 1);
+	state_fio->StateArray(sector_size, sizeof(sector_size), 1);
 	return SCSI_DEV::process_state(state_fio, loading);
 }
 

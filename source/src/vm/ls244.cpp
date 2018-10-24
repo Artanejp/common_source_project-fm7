@@ -40,7 +40,7 @@ bool LS244::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateUint8(din);
+	state_fio->StateValue(din);
  	return true;
 }
 

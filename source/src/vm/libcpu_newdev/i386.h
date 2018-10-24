@@ -26,8 +26,6 @@ protected:
 #ifdef USE_DEBUGGER
 	DEBUGGER *d_debugger;
 #endif
-	void cpu_table_call(void);
-
 public:
 	I386(VM_TEMPLATE* parent_vm, EMU* parent_emu) : I386_BASE(parent_vm, parent_emu)
 	{

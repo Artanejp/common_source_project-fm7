@@ -209,11 +209,11 @@ bool NOISE::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateInt32(register_id);
-	state_fio->StateInt32(ptr);
-	state_fio->StateInt32(sample_l);
-	state_fio->StateInt32(sample_r);
-	state_fio->StateBool(loop);
-	state_fio->StateBool(mute);
+	state_fio->StateValue(register_id);
+	state_fio->StateValue(ptr);
+	state_fio->StateValue(sample_l);
+	state_fio->StateValue(sample_r);
+	state_fio->StateValue(loop);
+	state_fio->StateValue(mute);
  	return true;
 }

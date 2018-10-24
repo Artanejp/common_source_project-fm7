@@ -2006,68 +2006,52 @@ bool MB8877::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
 //
-//	state_fio->StateBuffer(fdc, sizeof(fdc), 1);
-	for(int ch = 0; ch < 16; ch++) { // ToDo
-		process_state_fdc(ch, state_fio, loading);
+	for(int i = 0; i < array_length(fdc); i++) {
+		state_fio->StateValue(fdc[i].track);
+		state_fio->StateValue(fdc[i].index);
+		state_fio->StateValue(fdc[i].access);
+		state_fio->StateValue(fdc[i].head_load);
+		state_fio->StateValue(fdc[i].id_written);
+		state_fio->StateValue(fdc[i].sector_found);
+		state_fio->StateValue(fdc[i].sector_length);
+		state_fio->StateValue(fdc[i].sector_index);
+		state_fio->StateValue(fdc[i].side);
+		state_fio->StateValue(fdc[i].side_changed);
+		state_fio->StateValue(fdc[i].cur_position);
+		state_fio->StateValue(fdc[i].next_trans_position);
+		state_fio->StateValue(fdc[i].bytes_before_2nd_drq);
+		state_fio->StateValue(fdc[i].next_am1_position);
+		state_fio->StateValue(fdc[i].prev_clock);
 	}
- 	for(int i = 0; i < _max_drive; i++) {
+ 	for(int i = 0; i < array_length(disk); i++) {
 		if(!disk[i]->process_state(state_fio, loading)) {
  			return false;
  		}
  	}
-	state_fio->StateUint8(status);
-	state_fio->StateUint8(status_tmp);
-	state_fio->StateUint8(cmdreg);
-	state_fio->StateUint8(cmdreg_tmp);
-	state_fio->StateUint8(trkreg);
-	state_fio->StateUint8(secreg);
-	state_fio->StateUint8(datareg);
-	state_fio->StateUint8(drvreg);
-	state_fio->StateUint8(sidereg);
-	state_fio->StateUint8(cmdtype);
-	//state_fio->StateBuffer(register_id, sizeof(register_id), 1);
-	for(int i = 0; i < (sizeof(register_id) / sizeof(register_id)); i++) {
-		state_fio->StateInt32(register_id[i]);
-	}
-
-	state_fio->StateBool(now_search);
-	state_fio->StateBool(now_seek);
-	state_fio->StateBool(sector_changed);
-	state_fio->StateInt32(no_command);
-	state_fio->StateInt32(seektrk);
-	state_fio->StateBool(seekvct);
-	state_fio->StateBool(motor_on);
-	state_fio->StateBool(drive_sel);
-	state_fio->StateUint32(prev_drq_clock);
-	state_fio->StateUint32(seekend_clock);
+	state_fio->StateValue(status);
+	state_fio->StateValue(status_tmp);
+	state_fio->StateValue(cmdreg);
+	state_fio->StateValue(cmdreg_tmp);
+	state_fio->StateValue(trkreg);
+	state_fio->StateValue(secreg);
+	state_fio->StateValue(datareg);
+	state_fio->StateValue(drvreg);
+	state_fio->StateValue(sidereg);
+	state_fio->StateValue(cmdtype);
+	state_fio->StateArray(register_id, sizeof(register_id), 1);
+	state_fio->StateValue(now_search);
+	state_fio->StateValue(now_seek);
+	state_fio->StateValue(sector_changed);
+	state_fio->StateValue(no_command);
+	state_fio->StateValue(seektrk);
+	state_fio->StateValue(seekvct);
+	state_fio->StateValue(motor_on);
+	state_fio->StateValue(drive_sel);
+	state_fio->StateValue(prev_drq_clock);
+	state_fio->StateValue(seekend_clock);
 	if(loading) {
 		fdc_debug_log = config.special_debug_fdc;
 	}
  	return true;
-}
-
-void MB8877::process_state_fdc(int ch, FILEIO* state_fio, bool loading)
-{
-	state_fio->StateInt32(fdc[ch].track);
-	state_fio->StateInt32(fdc[ch].index);
-	state_fio->StateBool(fdc[ch].access);
-	state_fio->StateBool(fdc[ch].head_load);
-	state_fio->StateBool(fdc[ch].id_written);
-	state_fio->StateBool(fdc[ch].sector_found);
-
-	state_fio->StateInt32(fdc[ch].sector_length);
-	state_fio->StateInt32(fdc[ch].sector_index);
-	
-	state_fio->StateInt32(fdc[ch].side);
-	state_fio->StateBool(fdc[ch].side_changed);
-	
-	state_fio->StateInt32(fdc[ch].cur_position);
-	state_fio->StateInt32(fdc[ch].next_trans_position);
-
-	state_fio->StateInt32(fdc[ch].bytes_before_2nd_drq);
-	state_fio->StateInt32(fdc[ch].next_am1_position);
-
-	state_fio->StateUint32(fdc[ch].prev_clock);
-	state_fio->StateBool(fdc[ch].count_immediate);
 }
 

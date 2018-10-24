@@ -225,19 +225,19 @@ bool MSM58321_BASE::process_state(FILEIO* state_fio, bool loading)
 	if(!cur_time.process_state((void *)state_fio, loading)) {
  		return false;
  	}
-	state_fio->StateInt32(register_id);
-	state_fio->StateBuffer(regs, sizeof(regs), 1);
-	state_fio->StateUint8(wreg);
-	state_fio->StateUint8(regnum);
-	state_fio->StateBool(cs);
-	state_fio->StateBool(rd);
-	state_fio->StateBool(wr);
-	state_fio->StateBool(addr_wr);
-	state_fio->StateBool(busy);
-	state_fio->StateBool(hold);
-	state_fio->StateInt32(count_1024hz);
-	state_fio->StateInt32(count_1s);
-	state_fio->StateInt32(count_1m);
-	state_fio->StateInt32(count_1h);
+	state_fio->StateValue(register_id);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateValue(wreg);
+	state_fio->StateValue(regnum);
+	state_fio->StateValue(cs);
+	state_fio->StateValue(rd);
+	state_fio->StateValue(wr);
+	state_fio->StateValue(addr_wr);
+	state_fio->StateValue(busy);
+	state_fio->StateValue(hold);
+	state_fio->StateValue(count_1024hz);
+	state_fio->StateValue(count_1s);
+	state_fio->StateValue(count_1m);
+	state_fio->StateValue(count_1h);
  	return true;
  }

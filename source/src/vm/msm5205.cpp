@@ -341,17 +341,17 @@ bool MSM5205::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateInt32(m_mod_clock);
-	state_fio->StateInt32(m_timer);
-	state_fio->StateInt32(m_data);
-	state_fio->StateInt32(m_vclk);
-	state_fio->StateInt32(m_reset);
-	state_fio->StateInt32(m_prescaler);
-	state_fio->StateInt32(m_bitwidth);
-	state_fio->StateInt32(m_signal);
-	state_fio->StateInt32(m_step);
-	state_fio->StateInt32(m_select);
-	state_fio->StateInt32(volume_m);
+	state_fio->StateValue(m_mod_clock);
+	state_fio->StateValue(m_timer);
+	state_fio->StateValue(m_data);
+	state_fio->StateValue(m_vclk);
+	state_fio->StateValue(m_reset);
+	state_fio->StateValue(m_prescaler);
+	state_fio->StateValue(m_bitwidth);
+	state_fio->StateValue(m_signal);
+	state_fio->StateValue(m_step);
+	state_fio->StateValue(m_select);
+	state_fio->StateValue(volume_m);
  	return true;
 }
 

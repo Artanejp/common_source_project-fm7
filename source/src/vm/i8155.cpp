@@ -326,29 +326,29 @@ bool I8155::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateUint16(count);
-	state_fio->StateUint16(countreg);
-	state_fio->StateBool(now_count);
-	state_fio->StateBool(stop_tc);
-	state_fio->StateBool(half);
-	state_fio->StateBool(prev_out);
-	state_fio->StateBool(prev_in);
-	state_fio->StateUint64(freq);
-	state_fio->StateInt32(register_id);
-	state_fio->StateUint32(input_clk);
-	state_fio->StateUint32(prev_clk);
-	state_fio->StateInt32(period);
-	state_fio->StateUint64(cpu_clocks);
+	state_fio->StateValue(count);
+	state_fio->StateValue(countreg);
+	state_fio->StateValue(now_count);
+	state_fio->StateValue(stop_tc);
+	state_fio->StateValue(half);
+	state_fio->StateValue(prev_out);
+	state_fio->StateValue(prev_in);
+	state_fio->StateValue(freq);
+	state_fio->StateValue(register_id);
+	state_fio->StateValue(input_clk);
+	state_fio->StateValue(prev_clk);
+	state_fio->StateValue(period);
+	state_fio->StateValue(cpu_clocks);
  	for(int i = 0; i < 3; i++) {
-		state_fio->StateUint8(pio[i].wreg);
-		state_fio->StateUint8(pio[i].rreg);
-		state_fio->StateUint8(pio[i].rmask);
-		state_fio->StateUint8(pio[i].mode);
-		state_fio->StateBool(pio[i].first);
+		state_fio->StateValue(pio[i].wreg);
+		state_fio->StateValue(pio[i].rreg);
+		state_fio->StateValue(pio[i].rmask);
+		state_fio->StateValue(pio[i].mode);
+		state_fio->StateValue(pio[i].first);
  	}
-	state_fio->StateUint8(cmdreg);
-	state_fio->StateUint8(statreg);
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateValue(cmdreg);
+	state_fio->StateValue(statreg);
+	state_fio->StateArray(ram, sizeof(ram), 1);
  	return true;
 }
 

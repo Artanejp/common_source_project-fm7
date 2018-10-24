@@ -802,27 +802,27 @@ bool EVENT::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
  	for(int i = 0; i < dcount_cpu; i++) {
-		state_fio->StateUint32(d_cpu[i].cpu_clocks);
-		state_fio->StateUint32(d_cpu[i].update_clocks);
-		state_fio->StateUint32(d_cpu[i].accum_clocks);
+		state_fio->StateValue(d_cpu[i].cpu_clocks);
+		state_fio->StateValue(d_cpu[i].update_clocks);
+		state_fio->StateValue(d_cpu[i].accum_clocks);
 	}
-	state_fio->StateBuffer(vclocks, sizeof(vclocks), 1);
-	state_fio->StateInt32(event_remain);
-	state_fio->StateInt32(cpu_remain);
-	state_fio->StateInt32(cpu_accum);
-	state_fio->StateInt32(cpu_done);
-	state_fio->StateUint64(event_clocks);
+	state_fio->StateArray(vclocks, sizeof(vclocks), 1);
+	state_fio->StateValue(event_remain);
+	state_fio->StateValue(cpu_remain);
+	state_fio->StateValue(cpu_accum);
+	state_fio->StateValue(cpu_done);
+	state_fio->StateValue(event_clocks);
  	for(int i = 0; i < MAX_EVENT; i++) {
 		if(loading) {
 			event[i].device = vm->get_device(state_fio->FgetInt32_LE());
 		} else {
 			state_fio->FputInt32_LE(event[i].device != NULL ? event[i].device->this_device_id : -1);
 		}
-		state_fio->StateInt32(event[i].event_id);
-		state_fio->StateUint64(event[i].expired_clock);
-		state_fio->StateUint64(event[i].loop_clock);
-		state_fio->StateUint64(event[i].accum_clocks);
-		state_fio->StateBool(event[i].active);
+		state_fio->StateValue(event[i].event_id);
+		state_fio->StateValue(event[i].expired_clock);
+		state_fio->StateValue(event[i].loop_clock);
+		state_fio->StateValue(event[i].accum_clocks);
+		state_fio->StateValue(event[i].active);
 		if(loading) {
 			event[i].next = (event_t *)get_event(state_fio->FgetInt32_LE());
 			event[i].prev = (event_t *)get_event(state_fio->FgetInt32_LE());
@@ -838,12 +838,12 @@ bool EVENT::process_state(FILEIO* state_fio, bool loading)
 		state_fio->FputInt32_LE(first_free_event != NULL ? first_free_event->index : -1);
 		state_fio->FputInt32_LE(first_fire_event != NULL ? first_fire_event->index : -1);
 	}
-	state_fio->StateDouble(frames_per_sec);
-	state_fio->StateDouble(next_frames_per_sec);
-	state_fio->StateInt32(lines_per_frame);
-	state_fio->StateInt32(next_lines_per_frame);
-	state_fio->StateBuffer(dev_need_mix, sizeof(dev_need_mix), 1);
-	state_fio->StateInt32(need_mix);
+	state_fio->StateValue(frames_per_sec);
+	state_fio->StateValue(next_frames_per_sec);
+	state_fio->StateValue(lines_per_frame);
+	state_fio->StateValue(next_lines_per_frame);
+	state_fio->StateArray(dev_need_mix, sizeof(dev_need_mix), 1);
+	state_fio->StateValue(need_mix);
  	
  	// post process
 	if(loading) {

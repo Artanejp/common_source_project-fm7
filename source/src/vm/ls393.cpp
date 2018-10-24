@@ -37,8 +37,8 @@ bool LS393::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateUint32(count);
-	state_fio->StateBool(prev_in);
+	state_fio->StateValue(count);
+	state_fio->StateValue(prev_in);
  	return true;
 }
 

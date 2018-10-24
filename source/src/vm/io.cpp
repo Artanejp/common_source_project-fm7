@@ -394,7 +394,7 @@ bool IO::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
  	for(int i = 0; i < addr_max; i++) {
-		state_fio->StateUint32(rd_table[i].value);
+		state_fio->StateValue(rd_table[i].value);
  	}
  	return true;
 }

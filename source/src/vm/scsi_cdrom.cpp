@@ -742,19 +742,19 @@ bool SCSI_CDROM::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateUint32(cdda_start_frame);
-	state_fio->StateUint32(cdda_end_frame);
-	state_fio->StateUint32(cdda_playing_frame);
-	state_fio->StateUint8(cdda_status);
-	state_fio->StateBool(cdda_repeat);
-	state_fio->StateBool(cdda_interrupt);
-	state_fio->StateBuffer(cdda_buffer, sizeof(cdda_buffer), 1);
-	state_fio->StateInt32(cdda_buffer_ptr);
-	state_fio->StateInt32(cdda_sample_l);
-	state_fio->StateInt32(cdda_sample_r);
-	state_fio->StateInt32(event_cdda);
-//	state_fio->StateInt32(mix_loop_num);
-	state_fio->StateInt32(volume_m);
+	state_fio->StateValue(cdda_start_frame);
+	state_fio->StateValue(cdda_end_frame);
+	state_fio->StateValue(cdda_playing_frame);
+	state_fio->StateValue(cdda_status);
+	state_fio->StateValue(cdda_repeat);
+	state_fio->StateValue(cdda_interrupt);
+	state_fio->StateArray(cdda_buffer, sizeof(cdda_buffer), 1);
+	state_fio->StateValue(cdda_buffer_ptr);
+	state_fio->StateValue(cdda_sample_l);
+	state_fio->StateValue(cdda_sample_r);
+	state_fio->StateValue(event_cdda);
+//	state_fio->StateValue(mix_loop_num);
+	state_fio->StateValue(volume_m);
 	if(loading) {
 		offset = state_fio->FgetUint32_LE();
 	} else {

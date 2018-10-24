@@ -253,12 +253,12 @@ bool HD44102::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateBuffer(m_ram, sizeof(m_ram), 1);
-	state_fio->StateUint8(m_status);
-	state_fio->StateUint8(m_output);
-//	state_fio->StateInt32(m_cs2);
-	state_fio->StateInt32(m_page);
-	state_fio->StateInt32(m_x);
-	state_fio->StateInt32(m_y);
+	state_fio->StateArray(&m_ram[0][0], sizeof(m_ram), 1);
+	state_fio->StateValue(m_status);
+	state_fio->StateValue(m_output);
+//	state_fio->StateValue(m_cs2);
+	state_fio->StateValue(m_page);
+	state_fio->StateValue(m_x);
+	state_fio->StateValue(m_y);
  	return true;
 }

@@ -243,21 +243,21 @@ bool UPD1990A::process_state(FILEIO* state_fio, bool loading)
 	if(!cur_time.process_state((void *)state_fio, loading)) {
  		return false;
  	}
-	state_fio->StateInt32(register_id_1sec);
-	state_fio->StateUint8(cmd);
-	state_fio->StateUint8(mode);
-	state_fio->StateUint8(tpmode);
-	state_fio->StateUint64(shift_data);
-	state_fio->StateBool(clk);
-	state_fio->StateBool(stb);
-	state_fio->StateBool(din);
-	state_fio->StateBool(hold);
-	state_fio->StateBool(tp);
-	state_fio->StateUint32(dout);
-	state_fio->StateBool(dout_changed);
-	state_fio->StateInt32(register_id_tp);
+	state_fio->StateValue(register_id_1sec);
+	state_fio->StateValue(cmd);
+	state_fio->StateValue(mode);
+	state_fio->StateValue(tpmode);
+	state_fio->StateValue(shift_data);
+	state_fio->StateValue(clk);
+	state_fio->StateValue(stb);
+	state_fio->StateValue(din);
+	state_fio->StateValue(hold);
+	state_fio->StateValue(tp);
+	state_fio->StateValue(dout);
+	state_fio->StateValue(dout_changed);
+	state_fio->StateValue(register_id_tp);
 	if(__HAS_UPD4990A) {
-		state_fio->StateUint8(shift_cmd);
+		state_fio->StateValue(shift_cmd);
 	}
  	return true;
 }

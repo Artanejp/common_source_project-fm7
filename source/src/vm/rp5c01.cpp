@@ -317,17 +317,17 @@ bool RP5C01::process_state(FILEIO* state_fio, bool loading)
 	if(!cur_time.process_state((void *)state_fio, loading)) {
  		return false;
  	}
-	state_fio->StateInt32(register_id);
-	state_fio->StateBuffer(regs, sizeof(regs), 1);
-	state_fio->StateBuffer(time, sizeof(time), 1);
+	state_fio->StateValue(register_id);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateArray(time, sizeof(time), 1);
 	if(!(__HAS_RP5C15)) {
-		state_fio->StateBuffer(ram, sizeof(ram), 1);
-		state_fio->StateBool(modified);
+		state_fio->StateArray(ram, sizeof(ram), 1);
+		state_fio->StateValue(modified);
 	}
-	state_fio->StateBool(alarm);
-	state_fio->StateBool(pulse_1hz);
-	state_fio->StateBool(pulse_16hz);
-	state_fio->StateInt32(count_16hz);
+	state_fio->StateValue(alarm);
+	state_fio->StateValue(pulse_1hz);
+	state_fio->StateValue(pulse_16hz);
+	state_fio->StateValue(count_16hz);
  	return true;
 }
  

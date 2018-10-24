@@ -469,8 +469,8 @@ bool UPD16434::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateUint8(pointer);
-	state_fio->StateUint8(mode);
-	state_fio->StateBuffer(imem, sizeof(imem), 1);
+	state_fio->StateValue(pointer);
+	state_fio->StateValue(mode);
+	state_fio->StateArray(imem, sizeof(imem), 1);
  	return true;
 }

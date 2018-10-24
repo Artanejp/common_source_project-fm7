@@ -115,32 +115,52 @@ int HUC6280::run_one_opecode()
 	return passed_icount;
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool HUC6280::process_state(FILEIO* state_fio, bool loading)
 {
+	h6280_Regs *cpustate = (h6280_Regs *)opaque;
+	
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
  		return false;
  	}
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateBuffer(opaque, sizeof(h6280_Regs), 1);
-#ifdef USE_DEBUGGER
-	state_fio->StateUint64(total_icount);
+	state_fio->StateValue(cpustate->ICount);
+	state_fio->StateValue(cpustate->ppc);
+	state_fio->StateValue(cpustate->pc);
+	state_fio->StateValue(cpustate->sp);
+	state_fio->StateValue(cpustate->zp);
+	state_fio->StateValue(cpustate->ea);
+	state_fio->StateValue(cpustate->a);
+	state_fio->StateValue(cpustate->x);
+	state_fio->StateValue(cpustate->y);
+	state_fio->StateValue(cpustate->p);
+	state_fio->StateArray(cpustate->mmr, sizeof(cpustate->mmr), 1);
+	state_fio->StateValue(cpustate->irq_mask);
+	state_fio->StateValue(cpustate->timer_status);
+	state_fio->StateValue(cpustate->timer_ack);
+	state_fio->StateValue(cpustate->clocks_per_cycle);
+	state_fio->StateValue(cpustate->timer_value);
+	state_fio->StateValue(cpustate->timer_load);
+	state_fio->StateValue(cpustate->nmi_state);
+	state_fio->StateArray(cpustate->irq_state, sizeof(cpustate->irq_state), 1);
+	state_fio->StateValue(cpustate->irq_pending);
+#if LAZY_FLAGS
+	state_fio->StateValue(cpustate->NZ);
 #endif
+#ifdef USE_DEBUGGER
+	state_fio->StateValue(total_icount);
+#endif
+	state_fio->StateValue(icount);
+	state_fio->StateValue(busreq);
+	
+#ifdef USE_DEBUGGER
 	if(loading) {
-		h6280_Regs *cpustate = (h6280_Regs *)opaque;
-		cpustate->program = d_mem;
-		cpustate->io = d_io;
-#ifdef USE_DEBUGGER
-		cpustate->emu = emu;
-		cpustate->debugger = d_debugger;
-		cpustate->program_stored = d_mem;
-		cpustate->io_stored = d_io;
 		prev_total_icount = total_icount;
-#endif
 	}
+#endif
  	return true;
 }
 

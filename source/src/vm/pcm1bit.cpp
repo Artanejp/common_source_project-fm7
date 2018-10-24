@@ -123,14 +123,14 @@ bool PCM1BIT::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateBool(signal);
-	state_fio->StateBool(on);
-	state_fio->StateBool(mute);
-	state_fio->StateBool(realtime);
-	state_fio->StateInt32(changed);
-	state_fio->StateUint32(prev_clock);
-	state_fio->StateInt32(positive_clocks);
-	state_fio->StateInt32(negative_clocks);
+	state_fio->StateValue(signal);
+	state_fio->StateValue(on);
+	state_fio->StateValue(mute);
+	state_fio->StateValue(realtime);
+	state_fio->StateValue(changed);
+	state_fio->StateValue(prev_clock);
+	state_fio->StateValue(positive_clocks);
+	state_fio->StateValue(negative_clocks);
  	
  	// post process
 	if(loading) {

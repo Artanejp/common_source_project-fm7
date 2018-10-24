@@ -264,19 +264,19 @@ bool MC6847_BASE::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateBuffer(sg4, sizeof(sg4), 1);
-	state_fio->StateBuffer(sg6, sizeof(sg6), 1);
-	state_fio->StateBool(ag);
-	state_fio->StateBool(as);
-	state_fio->StateBool(intext);
-	state_fio->StateUint8(gm);
-	state_fio->StateBool(css);
-	state_fio->StateBool(inv);
-	state_fio->StateBool(vsync);
-	state_fio->StateBool(hsync);
-	state_fio->StateBool(disp);
-	state_fio->StateInt32(tWHS);
-	state_fio->StateBool(disabled);
+	state_fio->StateArray(sg4, sizeof(sg4), 1);
+	state_fio->StateArray(sg6, sizeof(sg6), 1);
+	state_fio->StateValue(ag);
+	state_fio->StateValue(as);
+	state_fio->StateValue(intext);
+	state_fio->StateValue(gm);
+	state_fio->StateValue(css);
+	state_fio->StateValue(inv);
+	state_fio->StateValue(vsync);
+	state_fio->StateValue(hsync);
+	state_fio->StateValue(disp);
+	state_fio->StateValue(tWHS);
+	state_fio->StateValue(disabled);
  	return true;
 }
  

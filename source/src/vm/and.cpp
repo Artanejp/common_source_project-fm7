@@ -34,10 +34,10 @@ bool AND::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateUint32(bits_mask);
-	state_fio->StateUint32(bits_in);
-	state_fio->StateBool(prev);
-	state_fio->StateBool(first);
+	state_fio->StateValue(bits_mask);
+	state_fio->StateValue(bits_in);
+	state_fio->StateValue(prev);
+	state_fio->StateValue(first);
 	return true;
 }
 

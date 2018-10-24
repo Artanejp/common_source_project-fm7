@@ -276,34 +276,34 @@ bool HD46505::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateBuffer(regs, sizeof(regs), 1);
-	state_fio->StateBuffer(regs_written, sizeof(regs_written), 1);
-	state_fio->StateInt32(ch);
-	state_fio->StateBool(timing_changed);
-	state_fio->StateInt32(cpu_clocks);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateArray(regs_written, sizeof(regs_written), 1);
+	state_fio->StateValue(ch);
+	state_fio->StateValue(timing_changed);
+	state_fio->StateValue(cpu_clocks);
 	if(_E_HD46505_CHAR_CLOCK) {
-		state_fio->StateDouble(char_clock);
-		state_fio->StateDouble(next_char_clock);
+		state_fio->StateValue(char_clock);
+		state_fio->StateValue(next_char_clock);
 	} else if(_E_HD46505_HORIZ_FREQ) {
-		state_fio->StateDouble(horiz_freq);
-		state_fio->StateDouble(next_horiz_freq);
+		state_fio->StateValue(horiz_freq);
+		state_fio->StateValue(next_horiz_freq);
 	}
-	state_fio->StateDouble(frames_per_sec);
-	state_fio->StateInt32(hz_total);
-	state_fio->StateInt32(hz_disp);
-	state_fio->StateInt32(hs_start);
-	state_fio->StateInt32(hs_end);
-	state_fio->StateInt32(vt_total);
-	state_fio->StateInt32(vt_disp);
-	state_fio->StateInt32(vs_start);
-	state_fio->StateInt32(vs_end);
-	state_fio->StateInt32(disp_end_clock);
-	state_fio->StateInt32(hs_start_clock);
-	state_fio->StateInt32(hs_end_clock);
-	state_fio->StateBool(display);
-	state_fio->StateBool(vblank);
-	state_fio->StateBool(vsync);
-	state_fio->StateBool(hsync);
+	state_fio->StateValue(frames_per_sec);
+	state_fio->StateValue(hz_total);
+	state_fio->StateValue(hz_disp);
+	state_fio->StateValue(hs_start);
+	state_fio->StateValue(hs_end);
+	state_fio->StateValue(vt_total);
+	state_fio->StateValue(vt_disp);
+	state_fio->StateValue(vs_start);
+	state_fio->StateValue(vs_end);
+	state_fio->StateValue(disp_end_clock);
+	state_fio->StateValue(hs_start_clock);
+	state_fio->StateValue(hs_end_clock);
+	state_fio->StateValue(display);
+	state_fio->StateValue(vblank);
+	state_fio->StateValue(vsync);
+	state_fio->StateValue(hsync);
  	
  	// post process
 	if(loading) {

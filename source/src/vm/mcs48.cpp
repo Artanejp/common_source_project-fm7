@@ -211,6 +211,8 @@ int MCS48::run(int icount)
 
 bool MCS48::process_state(FILEIO* state_fio, bool loading)
 {
+	mcs48_state *cpustate = (mcs48_state *)opaque;
+	
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
  		return false;
  	}
@@ -218,37 +220,33 @@ bool MCS48::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
 #ifdef USE_DEBUGGER
-	state_fio->StateUint64(total_icount);
+	state_fio->StateValue(total_icount);
 #endif
-	//state_fio->StateBuffer(opaque, sizeof(mcs48_state), 1);
+	state_fio->StateValue(cpustate->prevpc);
+	state_fio->StateValue(cpustate->pc);
+	state_fio->StateValue(cpustate->a);
+	state_fio->StateValue(cpustate->regptr);
+	state_fio->StateValue(cpustate->psw);
+	state_fio->StateValue(cpustate->p1);
+	state_fio->StateValue(cpustate->p2);
+	state_fio->StateValue(cpustate->timer);
+	state_fio->StateValue(cpustate->prescaler);
+	state_fio->StateValue(cpustate->t1_history);
+	state_fio->StateValue(cpustate->sts);
+	state_fio->StateValue(cpustate->int_state);
+	state_fio->StateValue(cpustate->irq_state);
+	state_fio->StateValue(cpustate->irq_in_progress);
+	state_fio->StateValue(cpustate->timer_overflow);
+	state_fio->StateValue(cpustate->timer_flag);
+	state_fio->StateValue(cpustate->tirq_enabled);
+	state_fio->StateValue(cpustate->xirq_enabled);
+	state_fio->StateValue(cpustate->t0_clk_enabled);
+	state_fio->StateValue(cpustate->timecount_enabled);
+	state_fio->StateValue(cpustate->a11);
+	state_fio->StateValue(cpustate->icount);
+//	state_fio->StateArray(cpustate->rom, sizeof(cpustate->rom), 1);
 
-	// BEGIN CPUREGS
-	mcs48_state *cpustate = (mcs48_state *)opaque;
-	state_fio->StateUint16(cpustate->prevpc);
-	state_fio->StateUint16(cpustate->pc);
-	state_fio->StateUint8(cpustate->a);
-	state_fio->StateInt32(cpustate->regptr);
-	state_fio->StateUint8(cpustate->psw);
-	state_fio->StateUint8(cpustate->p1);
-	state_fio->StateUint8(cpustate->p2);
-	state_fio->StateUint8(cpustate->timer);
-	state_fio->StateUint8(cpustate->prescaler);
-	state_fio->StateUint8(cpustate->t1_history);
-	state_fio->StateUint8(cpustate->sts);
-	state_fio->StateUint8(cpustate->int_state);
-	state_fio->StateUint8(cpustate->irq_state);
-	state_fio->StateUint8(cpustate->irq_in_progress);
-	state_fio->StateUint8(cpustate->timer_overflow);
-	state_fio->StateUint8(cpustate->timer_flag);
-	state_fio->StateUint8(cpustate->tirq_enabled);
-	state_fio->StateUint8(cpustate->xirq_enabled);
-	state_fio->StateUint8(cpustate->t0_clk_enabled);
-	state_fio->StateUint8(cpustate->timecount_enabled);
-	state_fio->StateUint16(cpustate->a11);
-	state_fio->StateInt32(cpustate->icount);
-	state_fio->StateBuffer(cpustate->rom, 0x1000, 1); // 0x100 ?
-	// END CPUREGS
-
+ 	// post process
 	if(loading) {
 		mcs48_state *cpustate = (mcs48_state *)opaque;
 		cpustate->mem = d_mem;

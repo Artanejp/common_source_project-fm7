@@ -208,23 +208,19 @@ bool SN76489AN::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	//state_fio->StateBuffer(regs, sizeof(regs), 1);
-	for(int i = 0; i < (sizeof(regs) / sizeof(uint16_t)) ; i++) {
-		state_fio->StateUint16(regs[i]);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateValue(index);
+	for(int i = 0; i < array_length(ch); i++) {
+		state_fio->StateValue(ch[i].count);
+		state_fio->StateValue(ch[i].period);
+		state_fio->StateValue(ch[i].volume);
+		state_fio->StateValue(ch[i].signal);
 	}
-	state_fio->StateInt32(index);
-	//state_fio->StateBuffer(ch, sizeof(ch), 1);
-	for(int i = 0; i < 4; i++) {
-		state_fio->StateInt32(ch[i].count);
-		state_fio->StateInt32(ch[i].period);
-		state_fio->StateInt32(ch[i].volume);
-		state_fio->StateBool(ch[i].signal);
-	}
-	state_fio->StateUint32(noise_gen);
-	state_fio->StateBool(mute);
-	state_fio->StateBool(cs);
-	state_fio->StateBool(we);
-	state_fio->StateUint8(val);
+	state_fio->StateValue(noise_gen);
+	state_fio->StateValue(mute);
+	state_fio->StateValue(cs);
+	state_fio->StateValue(we);
+	state_fio->StateValue(val);
 //if(loading) {
 	//touch_sound();
 //}

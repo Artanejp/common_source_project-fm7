@@ -438,46 +438,28 @@ bool PC6031::process_state(FILEIO* state_fio, bool loading)
  			return false;
  		}
  	}
-//	state_fio->StateBuffer(cur_trk, sizeof(cur_trk), 1);
-//	state_fio->StateBuffer(cur_sct, sizeof(cur_sct), 1);
-//	state_fio->StateBuffer(cur_pos, sizeof(cur_pos), 1);
-//	state_fio->StateBuffer(access, sizeof(access), 1);
-//	state_fio->StateBuffer(&mdisk, sizeof(DISK60), 1);
-	for(int i = 0; i < (sizeof(cur_trk) / sizeof(int)); i++) {
-		state_fio->StateInt32(cur_trk[i]);
-	}
-	for(int i = 0; i < (sizeof(cur_sct) / sizeof(int)); i++) {
-		state_fio->StateInt32(cur_sct[i]);
-	}
-	for(int i = 0; i < (sizeof(cur_pos) / sizeof(int)); i++) {
-		state_fio->StateInt32(cur_pos[i]);
-	}
-	for(int i = 0; i < (sizeof(access) / sizeof(bool)); i++) {
-		state_fio->StateBool(access[i]);
-	}
+	state_fio->StateArray(cur_trk, sizeof(cur_trk), 1);
+	state_fio->StateArray(cur_sct, sizeof(cur_sct), 1);
+	state_fio->StateArray(cur_pos, sizeof(cur_pos), 1);
+	state_fio->StateArray(access, sizeof(access), 1);
 	// mdisk
-	{
-		state_fio->StateInt32(mdisk.ATN);
-		state_fio->StateInt32(mdisk.DAC);
-		state_fio->StateInt32(mdisk.RFD);
-		state_fio->StateInt32(mdisk.DAV);
-		
-		state_fio->StateInt32(mdisk.command);
-		state_fio->StateInt32(mdisk.step);
-		state_fio->StateInt32(mdisk.blk);
-
-		state_fio->StateInt32(mdisk.drv);
-		state_fio->StateInt32(mdisk.trk);
-		state_fio->StateInt32(mdisk.sct);
-		state_fio->StateInt32(mdisk.size);
-		
-		state_fio->StateUint8(mdisk.retdat);
-	}
-	state_fio->StateUint8(io_D1H);
-	state_fio->StateUint8(io_D2H);
-	state_fio->StateUint8(old_D2H);
-	state_fio->StateUint8(io_D3H);
-	state_fio->StateInt32(DrvNum);
+	state_fio->StateValue(mdisk.ATN);
+	state_fio->StateValue(mdisk.DAC);
+	state_fio->StateValue(mdisk.RFD);
+	state_fio->StateValue(mdisk.DAV);
+	state_fio->StateValue(mdisk.command);
+	state_fio->StateValue(mdisk.step);
+	state_fio->StateValue(mdisk.blk);
+	state_fio->StateValue(mdisk.drv);
+	state_fio->StateValue(mdisk.trk);
+	state_fio->StateValue(mdisk.sct);
+	state_fio->StateValue(mdisk.size);
+	state_fio->StateValue(mdisk.retdat);
+	state_fio->StateValue(io_D1H);
+	state_fio->StateValue(io_D2H);
+	state_fio->StateValue(old_D2H);
+	state_fio->StateValue(io_D3H);
+	state_fio->StateValue(DrvNum);
 	return true;
 }
 

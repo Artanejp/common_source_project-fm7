@@ -509,10 +509,10 @@ bool PTF20::process_state(FILEIO* state_fio, bool loading)
  			return false;
  		}
  	}
-	state_fio->StateBuffer(bufr, sizeof(bufr), 1);
-	state_fio->StateBuffer(bufs, sizeof(bufs), 1);
-	state_fio->StateInt32(buflen);
-	state_fio->StateInt32(phase);
+	state_fio->StateArray(bufr, sizeof(bufr), 1);
+	state_fio->StateArray(bufs, sizeof(bufs), 1);
+	state_fio->StateValue(buflen);
+	state_fio->StateValue(phase);
  	return true;
 }
 

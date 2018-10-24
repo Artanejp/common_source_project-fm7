@@ -227,24 +227,24 @@ bool AY_3_891X::process_state(FILEIO* state_fio, bool loading)
 	if(!opn->ProcessState((void *)state_fio, loading)) {
  		return false;
  	}
-	state_fio->StateUint8(ch);
-	state_fio->StateUint8(fnum2);
+	state_fio->StateValue(ch);
+	state_fio->StateValue(fnum2);
 #ifdef SUPPORT_AY_3_891X_PORT
  	for(int i = 0; i < 2; i++) {
-		state_fio->StateUint8(port[i].wreg);
-		state_fio->StateUint8(port[i].rreg);
-		state_fio->StateBool(port[i].first);
+		state_fio->StateValue(port[i].wreg);
+		state_fio->StateValue(port[i].rreg);
+		state_fio->StateValue(port[i].first);
  	}
-	state_fio->StateUint8(mode);
+	state_fio->StateValue(mode);
 #endif
-	state_fio->StateInt32(chip_clock);
-	state_fio->StateBool(irq_prev);
-	state_fio->StateBool(mute);
-	state_fio->StateUint32(clock_prev);
-	state_fio->StateUint32(clock_accum);
-	state_fio->StateUint32(clock_const);
-	state_fio->StateUint32(clock_busy);
-	state_fio->StateInt32(timer_event_id);
-	state_fio->StateBool(busy);
+	state_fio->StateValue(chip_clock);
+	state_fio->StateValue(irq_prev);
+	state_fio->StateValue(mute);
+	state_fio->StateValue(clock_prev);
+	state_fio->StateValue(clock_accum);
+	state_fio->StateValue(clock_const);
+	state_fio->StateValue(clock_busy);
+	state_fio->StateValue(timer_event_id);
+	state_fio->StateValue(busy);
  	return true;
 }

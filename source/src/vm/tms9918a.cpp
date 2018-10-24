@@ -645,26 +645,24 @@ bool TMS9918A::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	//state_fio->StateBuffer(vram, sizeof(vram), 1);
-	state_fio->StateBuffer(vram, _VRAM_SIZE, 1);
-	state_fio->StateBuffer(regs, sizeof(regs), 1);
-	state_fio->StateUint8(status_reg);
-	state_fio->StateUint8(read_ahead);
-	state_fio->StateUint8(first_byte);
-	state_fio->StateUint16(vram_addr);
-	state_fio->StateBool(latch);
-	state_fio->StateBool(intstat);
-	state_fio->StateUint16(color_table);
-	state_fio->StateUint16(pattern_table);
-	state_fio->StateUint16(name_table);
-	state_fio->StateUint16(sprite_pattern);
-	state_fio->StateUint16(sprite_attrib);
-	state_fio->StateUint16(color_mask);
-	state_fio->StateUint16(pattern_mask);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateValue(status_reg);
+	state_fio->StateValue(read_ahead);
+	state_fio->StateValue(first_byte);
+	state_fio->StateValue(vram_addr);
+	state_fio->StateValue(latch);
+	state_fio->StateValue(intstat);
+	state_fio->StateValue(color_table);
+	state_fio->StateValue(pattern_table);
+	state_fio->StateValue(name_table);
+	state_fio->StateValue(sprite_pattern);
+	state_fio->StateValue(sprite_attrib);
+	state_fio->StateValue(color_mask);
+	state_fio->StateValue(pattern_mask);
 	if(_tms9918a_super_impose) {
-		state_fio->StateBool(now_super_impose);
+		state_fio->StateValue(now_super_impose);
 	}
-
  	return true;
 }
 

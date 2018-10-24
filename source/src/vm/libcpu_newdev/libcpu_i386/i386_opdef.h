@@ -514,13 +514,9 @@ struct vtlb_state
 	int                 pageshift;          /* bits to shift to get page index */
 	int                 addrwidth;          /* logical address bus width */
 	offs_t *            live;               /* array of live entries by table index */
-	int                 live_size;
 	int *               fixedpages;         /* number of pages each fixed entry covers */
-	int                 fixedpages_size;
 	vtlb_entry *        table;              /* table of entries by address */
-	int                 table_size;
-//	vtlb_entry *        save;               /* cache of live table entries for saving */
-//	int                 save_size;
+	vtlb_entry *        save;               /* cache of live table entries for saving */
 };
 
 class DEBUG;
@@ -730,17 +726,6 @@ public:
 	void cpu_reset_pentium3(void);
 	void cpu_reset_pentium4(void);
 
-	// Re-Build table per type.
-	void cpu_table_i386(void);
-	void cpu_table_i486(void);
-	void cpu_table_pentium(void);
-	void cpu_table_mediagx(void);
-	void cpu_table_pentium_pro(void);
-	void cpu_table_pentium_mmx(void);
-	void cpu_table_pentium2(void);
-	void cpu_table_pentium3(void);
-	void cpu_table_pentium4(void);
-	
 	// INSNs.
 	// i386/op16
 	void I386OP_D(adc_rm16_r16)();      // Opcode 0x11
@@ -1873,6 +1858,8 @@ protected:
 	int x87_inc_stack();
 	int x87_dec_stack();
 	int x87_check_exceptions();
+public:
+
 };
 extern const X86_OPCODE x86_opcode_table[];
 extern const X86_CYCLE_TABLE x86_cycle_table[];

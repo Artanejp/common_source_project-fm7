@@ -983,25 +983,25 @@ bool N2A03::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateUint32(pc.d);
-	state_fio->StateUint32(sp.d);
-	state_fio->StateUint32(zp.d);
-	state_fio->StateUint32(ea.d);
-	state_fio->StateUint16(prev_pc);
-	state_fio->StateUint8(a);
-	state_fio->StateUint8(x);
-	state_fio->StateUint8(y);
-	state_fio->StateUint8(p);
-	state_fio->StateBool(pending_irq);
-	state_fio->StateBool(after_cli);
-	state_fio->StateBool(nmi_state);
-	state_fio->StateBool(irq_state);
-	state_fio->StateBool(so_state);
+	state_fio->StateValue(pc.d);
+	state_fio->StateValue(sp.d);
+	state_fio->StateValue(zp.d);
+	state_fio->StateValue(ea.d);
+	state_fio->StateValue(prev_pc);
+	state_fio->StateValue(a);
+	state_fio->StateValue(x);
+	state_fio->StateValue(y);
+	state_fio->StateValue(p);
+	state_fio->StateValue(pending_irq);
+	state_fio->StateValue(after_cli);
+	state_fio->StateValue(nmi_state);
+	state_fio->StateValue(irq_state);
+	state_fio->StateValue(so_state);
 #ifdef USE_DEBUGGER
-	state_fio->StateUint64(total_icount);
+	state_fio->StateValue(total_icount);
 #endif
-	state_fio->StateInt32(icount);
-	state_fio->StateBool(busreq);
+	state_fio->StateValue(icount);
+	state_fio->StateValue(busreq);
 	
 #ifdef USE_DEBUGGER
 	// post process

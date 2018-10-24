@@ -1906,18 +1906,18 @@ bool DATAREC::process_state(FILEIO* state_fio, bool loading)
 			state_fio->FputInt32_LE(0);
 		}
  	}
-	state_fio->StateInt32(ff_rew);
-	state_fio->StateBool(in_signal);
-	state_fio->StateBool(out_signal);
-	state_fio->StateUint32(prev_clock);
-	state_fio->StateInt32(positive_clocks);
-	state_fio->StateInt32(negative_clocks);
-	state_fio->StateInt32(signal_changed);
-	state_fio->StateInt32(register_id);
-	state_fio->StateBool(realtime);
-	state_fio->StateInt32(sample_rate);
-	state_fio->StateDouble(sample_usec);
-	state_fio->StateInt32(buffer_ptr);
+	state_fio->StateValue(ff_rew);
+	state_fio->StateValue(in_signal);
+	state_fio->StateValue(out_signal);
+	state_fio->StateValue(prev_clock);
+	state_fio->StateValue(positive_clocks);
+	state_fio->StateValue(negative_clocks);
+	state_fio->StateValue(signal_changed);
+	state_fio->StateValue(register_id);
+	state_fio->StateValue(realtime);
+	state_fio->StateValue(sample_rate);
+	state_fio->StateValue(sample_usec);
+	state_fio->StateValue(buffer_ptr);
 	if(loading) {
 		if((buffer_length = state_fio->FgetInt32_LE()) != 0) {
 			buffer = (uint8_t *)malloc(buffer_length);
@@ -1956,11 +1956,11 @@ bool DATAREC::process_state(FILEIO* state_fio, bool loading)
 		}
 	}
 	if(__DATAREC_SOUND) {
-		state_fio->StateInt16(sound_sample);
+		state_fio->StateValue(sound_sample);
 	}
-	state_fio->StateBool(is_wav);
-	state_fio->StateBool(is_tap);
-	state_fio->StateBool(is_t77);
+	state_fio->StateValue(is_wav);
+	state_fio->StateValue(is_tap);
+	state_fio->StateValue(is_t77);
 	if(loading) {
 		if((apss_buffer_length = state_fio->FgetInt32_LE()) != 0) {
 			apss_buffer = (bool *)malloc(apss_buffer_length);
@@ -1974,14 +1974,14 @@ bool DATAREC::process_state(FILEIO* state_fio, bool loading)
 			state_fio->FputInt32_LE(0);
 		}
 	}
-	state_fio->StateInt32(apss_ptr);
-	state_fio->StateInt32(apss_count);
-	state_fio->StateInt32(apss_remain);
-	state_fio->StateBool(apss_signals);
-	state_fio->StateInt32(pcm_changed);
-	state_fio->StateUint32(pcm_prev_clock);
-	state_fio->StateInt32(pcm_positive_clocks);
-	state_fio->StateInt32(pcm_negative_clocks);
+	state_fio->StateValue(apss_ptr);
+	state_fio->StateValue(apss_count);
+	state_fio->StateValue(apss_remain);
+	state_fio->StateValue(apss_signals);
+	state_fio->StateValue(pcm_changed);
+	state_fio->StateValue(pcm_prev_clock);
+	state_fio->StateValue(pcm_positive_clocks);
+	state_fio->StateValue(pcm_negative_clocks);
  	
  	// post process
 	if(loading) {

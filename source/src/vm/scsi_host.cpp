@@ -201,13 +201,13 @@ bool SCSI_HOST::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateUint32(data_reg);
-	state_fio->StateUint32(bsy_status);
-	state_fio->StateUint32(cd_status);
-	state_fio->StateUint32(io_status);
-	state_fio->StateUint32(msg_status);
-	state_fio->StateUint32(req_status);
-	state_fio->StateUint32(ack_status);
+	state_fio->StateValue(data_reg);
+	state_fio->StateValue(bsy_status);
+	state_fio->StateValue(cd_status);
+	state_fio->StateValue(io_status);
+	state_fio->StateValue(msg_status);
+	state_fio->StateValue(req_status);
+	state_fio->StateValue(ack_status);
  	return true;
 }
 

@@ -114,7 +114,6 @@ private:
 	// rqm
 	void set_rqm(bool val);
 
-	bool process_state_fdc(int ch, FILEIO* state_fio, bool loading);
 public:
 	T3444A(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

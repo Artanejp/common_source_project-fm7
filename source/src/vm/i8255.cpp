@@ -252,11 +252,11 @@ bool I8255::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
  	for(int i = 0; i < 3; i++) {
-		state_fio->StateUint8(port[i].wreg);
-		state_fio->StateUint8(port[i].rreg);
-		state_fio->StateUint8(port[i].rmask);
-		state_fio->StateUint8(port[i].mode);
-		state_fio->StateBool(port[i].first);
+		state_fio->StateValue(port[i].wreg);
+		state_fio->StateValue(port[i].rreg);
+		state_fio->StateValue(port[i].rmask);
+		state_fio->StateValue(port[i].mode);
+		state_fio->StateValue(port[i].first);
  	}
  	return true;
 }

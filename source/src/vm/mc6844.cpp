@@ -194,13 +194,13 @@ bool MC6844::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
  	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint32(dma[i].address_reg.d);
-		state_fio->StateUint32(dma[i].byte_count_reg.d);
-		state_fio->StateUint8(dma[i].channel_ctrl_reg);
+		state_fio->StateValue(dma[i].address_reg.d);
+		state_fio->StateValue(dma[i].byte_count_reg.d);
+		state_fio->StateValue(dma[i].channel_ctrl_reg);
  	}
-	state_fio->StateUint8(priority_ctrl_reg);
-	state_fio->StateUint8(interrupt_ctrl_reg);
-	state_fio->StateUint8(data_chain_reg);
+	state_fio->StateValue(priority_ctrl_reg);
+	state_fio->StateValue(interrupt_ctrl_reg);
+	state_fio->StateValue(data_chain_reg);
  	return true;
 }
 

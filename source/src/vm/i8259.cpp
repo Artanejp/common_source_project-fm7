@@ -287,10 +287,25 @@ bool I8259::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateBuffer(pic, sizeof(pic), 1); // ToDo:
-	state_fio->StateInt32(req_chip);
-	state_fio->StateInt32(req_level);
-	state_fio->StateUint8(req_bit);
+	for(int i = 0; i < array_length(pic); i++) {
+		state_fio->StateValue(pic[i].imr);
+		state_fio->StateValue(pic[i].isr);
+		state_fio->StateValue(pic[i].irr);
+		state_fio->StateValue(pic[i].irr_tmp);
+		state_fio->StateValue(pic[i].prio);
+		state_fio->StateValue(pic[i].icw1);
+		state_fio->StateValue(pic[i].icw2);
+		state_fio->StateValue(pic[i].icw3);
+		state_fio->StateValue(pic[i].icw4);
+		state_fio->StateValue(pic[i].ocw3);
+		state_fio->StateValue(pic[i].icw2_r);
+		state_fio->StateValue(pic[i].icw3_r);
+		state_fio->StateValue(pic[i].icw4_r);
+		state_fio->StateValue(pic[i].irr_tmp_id);
+	}
+	state_fio->StateValue(req_chip);
+	state_fio->StateValue(req_level);
+	state_fio->StateValue(req_bit);
  	return true;
 }
 

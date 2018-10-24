@@ -677,10 +677,10 @@ bool AM9511::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateBuffer(_apu_stack, sizeof(_apu_stack), 1);
-	state_fio->StateInt32(_apu_tos);
-	state_fio->StateUint8(_apu_status);
-	state_fio->StateInt32(register_id);
+	state_fio->StateArray(_apu_stack, sizeof(_apu_stack), 1);
+	state_fio->StateValue(_apu_tos);
+	state_fio->StateValue(_apu_status);
+	state_fio->StateValue(register_id);
 	return true;
 }
 

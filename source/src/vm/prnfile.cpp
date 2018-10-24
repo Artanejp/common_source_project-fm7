@@ -184,13 +184,13 @@ bool PRNFILE::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateInt32(value);
-	state_fio->StateInt32(busy_id);
-	state_fio->StateInt32(ack_id);
-	state_fio->StateBool(strobe);
-	state_fio->StateBool(res);
-	state_fio->StateBool(busy);
-	state_fio->StateBool(ack);
+	state_fio->StateValue(value);
+	state_fio->StateValue(busy_id);
+	state_fio->StateValue(ack_id);
+	state_fio->StateValue(strobe);
+	state_fio->StateValue(res);
+	state_fio->StateValue(busy);
+	state_fio->StateValue(ack);
  	
  	// post process
 	if(loading) {

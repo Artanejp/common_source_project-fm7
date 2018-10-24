@@ -146,8 +146,6 @@ private:
 	void set_irq(bool val);
 	void set_drq(bool val);
 
-	void process_state_fdc(int ch, FILEIO* state_fio, bool loading);
-
 public:
 	MB8877(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

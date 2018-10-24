@@ -3952,29 +3952,29 @@ bool MC6809_BASE::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateInt32(icount);
-	state_fio->StateInt32(extra_icount);
-	state_fio->StateUint32(int_state);
+	state_fio->StateValue(icount);
+	state_fio->StateValue(extra_icount);
+	state_fio->StateValue(int_state);
 
-	state_fio->StateUint32(pc.d);
-	state_fio->StateUint32(ppc.d);
-	state_fio->StateUint32(acc.d);
-	state_fio->StateUint32(dp.d);
-	state_fio->StateUint32(u.d);
-	state_fio->StateUint32(s.d);
-	state_fio->StateUint32(x.d);
-	state_fio->StateUint32(y.d);
-	state_fio->StateUint8(cc);
-	state_fio->StateUint32(ea.d);
+	state_fio->StateValue(pc.d);
+	state_fio->StateValue(ppc.d);
+	state_fio->StateValue(acc.d);
+	state_fio->StateValue(dp.d);
+	state_fio->StateValue(u.d);
+	state_fio->StateValue(s.d);
+	state_fio->StateValue(x.d);
+	state_fio->StateValue(y.d);
+	state_fio->StateValue(cc);
+	state_fio->StateValue(ea.d);
  
  	// V2
-	state_fio->StateBool(req_halt_on);
-	state_fio->StateBool(req_halt_off);
-	state_fio->StateBool(busreq);
+	state_fio->StateValue(req_halt_on);
+	state_fio->StateValue(req_halt_off);
+	state_fio->StateValue(busreq);
 	
-	state_fio->StateUint64(total_icount);
-	state_fio->StateUint32(waitfactor);
-	state_fio->StateUint32(waitcount);
+	state_fio->StateValue(total_icount);
+	state_fio->StateValue(waitfactor);
+	state_fio->StateValue(waitcount);
 	
 	// post process
 	if(loading) {

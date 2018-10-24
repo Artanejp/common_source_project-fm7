@@ -841,28 +841,28 @@ bool SCSI_DEV::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateUint32(data_bus);
-	state_fio->StateBool(sel_status);
-	state_fio->StateBool(atn_status);
-	state_fio->StateBool(ack_status);
-	state_fio->StateBool(rst_status);
-	state_fio->StateBool(selected);
-	state_fio->StateBool(atn_pending);
-	state_fio->StateInt32(phase);
-	state_fio->StateInt32(next_phase);
-	state_fio->StateInt32(next_req);
-	state_fio->StateInt32(event_sel);
-	state_fio->StateInt32(event_phase);
-	state_fio->StateInt32(event_req);
-	state_fio->StateUint32(first_req_clock);
-	state_fio->StateDouble(next_req_usec);
-	state_fio->StateBuffer(command, sizeof(command), 1);
-	state_fio->StateInt32(command_index);
+	state_fio->StateValue(data_bus);
+	state_fio->StateValue(sel_status);
+	state_fio->StateValue(atn_status);
+	state_fio->StateValue(ack_status);
+	state_fio->StateValue(rst_status);
+	state_fio->StateValue(selected);
+	state_fio->StateValue(atn_pending);
+	state_fio->StateValue(phase);
+	state_fio->StateValue(next_phase);
+	state_fio->StateValue(next_req);
+	state_fio->StateValue(event_sel);
+	state_fio->StateValue(event_phase);
+	state_fio->StateValue(event_req);
+	state_fio->StateValue(first_req_clock);
+	state_fio->StateValue(next_req_usec);
+	state_fio->StateArray(command, sizeof(command), 1);
+	state_fio->StateValue(command_index);
 	if(!buffer->process_state((void *)state_fio, loading)) {
  		return false;
  	}
-	state_fio->StateUint64(position);
-	state_fio->StateUint64(remain);
-	state_fio->StateUint8(sense_code);
+	state_fio->StateValue(position);
+	state_fio->StateValue(remain);
+	state_fio->StateValue(sense_code);
  	return true;
 }

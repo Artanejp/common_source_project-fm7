@@ -3764,59 +3764,45 @@ bool MZ1P17::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateInt32(value);
-	state_fio->StateInt32(busy_id);
-	state_fio->StateInt32(ack_id);
-	state_fio->StateBool(strobe);
-	state_fio->StateBool(res);
-	state_fio->StateBool(busy);
-	state_fio->StateBool(ack);
-//	state_fio->StateBuffer(gaiji, sizeof(gaiji), 1);
-//	state_fio->StateBuffer(htab, sizeof(htab), 1);
-//	state_fio->StateBuffer(vtab, sizeof(vtab), 1);
-	for(int i = 0; i < 3; i++) {
-		for(int j = 0; j < 94; j++) {
-			for(int k = 0; k < 48; k++) {
-				for(int l = 0; l < 48; l++) {
-					state_fio->StateBool(gaiji[i][j][k][l]);
-				}
-			}
-		}
+	state_fio->StateValue(value);
+	state_fio->StateValue(busy_id);
+	state_fio->StateValue(ack_id);
+	state_fio->StateValue(strobe);
+	state_fio->StateValue(res);
+	state_fio->StateValue(busy);
+	state_fio->StateValue(ack);
+	state_fio->StateArray(&gaiji[0][0][0][0], sizeof(gaiji), 1);
+	state_fio->StateArray(htab, sizeof(htab), 1);
+	for(int i = 0; i < array_length(vtab); i++) {
+		state_fio->StateValue(vtab[i].y);
+		state_fio->StateValue(vtab[i].active);
 	}
-	for(int i = 0; i < (sizeof(htab) / sizeof(bool)) ; i++) {
-		state_fio->StateBool(htab[i]);
-	}
-	for(int i = 0; i < 14; i++) {
-		state_fio->StateInt32(vtab[i].y);
-		state_fio->StateBool(vtab[i].active);
-	}
-	
 	if(!fifo->process_state((void *)state_fio, loading)) {
  		return false;
  	}
-	state_fio->StateInt32(lf_pitch);
-	state_fio->StateBool(prev_esc_6);
-	state_fio->StateInt32(margin_left);
-	state_fio->StateInt32(margin_right);
-	state_fio->StateInt32(pitch_mode);
-	state_fio->StateInt32(script_mode);
-	state_fio->StateBool(kanji_mode);
-	state_fio->StateBool(kanji_half);
-	state_fio->StateBool(bold);
-	state_fio->StateBool(underline);
-	state_fio->StateBool(hiragana_mode);
-	state_fio->StateBool(reverse);
-	state_fio->StateBool(vertical);
-	state_fio->StateBool(ank_double_x);
-	state_fio->StateBool(ank_double_y);
-	state_fio->StateBool(kanji_double_x);
-	state_fio->StateBool(kanji_double_y);
-	state_fio->StateInt32(kanji_pitch);
-	state_fio->StateInt32(kanji_half_pitch);
-	state_fio->StateInt32(dest_line_x);
-	state_fio->StateInt32(dest_paper_y);
-	state_fio->StateInt32(color_mode);
-	state_fio->StateBool(double_y_printed);
+	state_fio->StateValue(lf_pitch);
+	state_fio->StateValue(prev_esc_6);
+	state_fio->StateValue(margin_left);
+	state_fio->StateValue(margin_right);
+	state_fio->StateValue(pitch_mode);
+	state_fio->StateValue(script_mode);
+	state_fio->StateValue(kanji_mode);
+	state_fio->StateValue(kanji_half);
+	state_fio->StateValue(bold);
+	state_fio->StateValue(underline);
+	state_fio->StateValue(hiragana_mode);
+	state_fio->StateValue(reverse);
+	state_fio->StateValue(vertical);
+	state_fio->StateValue(ank_double_x);
+	state_fio->StateValue(ank_double_y);
+	state_fio->StateValue(kanji_double_x);
+	state_fio->StateValue(kanji_double_y);
+	state_fio->StateValue(kanji_pitch);
+	state_fio->StateValue(kanji_half_pitch);
+	state_fio->StateValue(dest_line_x);
+	state_fio->StateValue(dest_paper_y);
+	state_fio->StateValue(color_mode);
+	state_fio->StateValue(double_y_printed);
  	
  	// post process
 	if(loading) {

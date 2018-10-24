@@ -117,13 +117,13 @@ bool MC6820::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
  	for(int i = 0; i < 2; i++) {
-		state_fio->StateUint8(port[i].wreg);
-		state_fio->StateUint8(port[i].rreg);
-		state_fio->StateUint8(port[i].ctrl);
-		state_fio->StateUint8(port[i].ddr);
-		state_fio->StateBool(port[i].c1);
-		state_fio->StateBool(port[i].c2);
-		state_fio->StateBool(port[i].first);
+		state_fio->StateValue(port[i].wreg);
+		state_fio->StateValue(port[i].rreg);
+		state_fio->StateValue(port[i].ctrl);
+		state_fio->StateValue(port[i].ddr);
+		state_fio->StateValue(port[i].c1);
+		state_fio->StateValue(port[i].c2);
+		state_fio->StateValue(port[i].first);
  	}
  	return true;
 }
