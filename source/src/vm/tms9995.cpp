@@ -504,7 +504,7 @@ void TMS9995::update_int()
 			cur_int = int_state | int_latch;
 		}
 		if(cur_int) {
-			for (level = 0; !(cur_int & 1); cur_int >>= 1, level++) {
+			for(level = 0; !(cur_int & 1); cur_int >>= 1, level++) {
 				;
 			}
 		} else {

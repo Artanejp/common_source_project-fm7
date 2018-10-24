@@ -584,7 +584,7 @@ void EVENT::register_vline_event(DEVICE* device)
 {
 	if(vline_event_count < MAX_EVENT) {
 		for(int i = 0; i < vline_event_count; i++) {
-			if (vline_event[i] == device) {
+			if(vline_event[i] == device) {
 #ifdef _DEBUG_LOG
 				this->out_debug_log(_T("EVENT: device (name=%s, id=%d) has already registered vline event !!!\n"), device->this_device_name, device->this_device_id);
 #endif

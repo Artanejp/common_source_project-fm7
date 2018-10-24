@@ -294,14 +294,14 @@ uint32_t YM2203::read_io8(uint32_t addr)
 					// from PC-88 machine language master bible (XM8 version 1.00)
 //#ifdef HAS_YM2608
 					if(_HAS_YM2608) {
-						if (get_passed_usec(clock_busy) < (is_ym2608 ? 4.25 : 2.13)) {
+						if(get_passed_usec(clock_busy) < (is_ym2608 ? 4.25 : 2.13)) {
 							status |= 0x80;
 						} else {
 							busy = false;
 						}
 					} else {
 //#else
-						if (get_passed_usec(clock_busy) < 2.13) {
+						if(get_passed_usec(clock_busy) < 2.13) {
 							status |= 0x80;
 						} else {
 							busy = false;

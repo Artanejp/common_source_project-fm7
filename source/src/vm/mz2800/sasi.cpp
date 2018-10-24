@@ -25,6 +25,12 @@ namespace MZ2800 {
 void SASI::reset()
 {
 	control = 0x00;
+	bsy_status = prev_bsy_status = true;
+	cxd_status = prev_cxd_status = true;
+	ixo_status = prev_ixo_status = true;
+	msg_status = prev_msg_status = true;
+	req_status = prev_req_status = true;
+	ack_status = prev_ack_status = true;
 	irq_status = drq_status = false;
 }
 
@@ -35,21 +41,23 @@ void SASI::write_io8(uint32_t addr, uint32_t data)
 		#ifdef _SCSI_DEBUG_LOG
 			this->out_debug_log(_T("[SASI] out %04X %02X\n"), addr, data);
 		#endif
-//		if(!d_host->read_signal(SIG_SCSI_IO)) {
-			d_host->write_dma_io8(addr, data);
-//		}
+		d_host->write_dma_io8(addr, data);
 		break;
 	case 0xa5:
 		#ifdef _SCSI_DEBUG_LOG
 			this->out_debug_log(_T("[SASI] out %04X %02X\n"), addr, data);
 		#endif
-		if((control & 0x20) != (data & 0x20)) {
+		control = data;
+		if((prev_control & 0x20) != (control & 0x20)) {
 			d_host->write_signal(SIG_SCSI_SEL, data, 0x20);
 		}
-		if((control & 0x08) != (data & 0x08)) {
+		if((prev_control & 0x08) != (control & 0x08)) {
 			d_host->write_signal(SIG_SCSI_RST, data, 0x08);
 		}
-		control = data;
+		if((prev_control & 0x03) != (control & 0x03)) {
+			update_signal();
+		}
+		prev_control = control;
 		break;
 	}
 }
@@ -60,25 +68,23 @@ uint32_t SASI::read_io8(uint32_t addr)
 	
 	switch(addr & 0xff) {
 	case 0xa4:
-//		if(d_host->read_signal(SIG_SCSI_IO)) {
-			val = d_host->read_dma_io8(addr);
-//		}
+		val = d_host->read_dma_io8(addr);
 		#ifdef _SCSI_DEBUG_LOG
 			this->out_debug_log(_T("[SASI] in  %04X %02X\n"), addr, val);
 		#endif
 		return val;
 	case 0xa5:
-		val = (d_host->read_signal(SIG_SCSI_REQ) ? STATUS_REQ : 0) |
-//		      (d_host->read_signal(SIG_SCSI_ACK) ? STATUS_ACK : 0) |
-		      (d_host->read_signal(SIG_SCSI_BSY) ? STATUS_BSY : 0) |
-		      (d_host->read_signal(SIG_SCSI_MSG) ? STATUS_MSG : 0) |
-		      (d_host->read_signal(SIG_SCSI_CD ) ? STATUS_CXD : 0) |
-		      (d_host->read_signal(SIG_SCSI_IO ) ? STATUS_IXO : 0) |
-		      (irq_status                        ? STATUS_INT : 0);
-		irq_status = false;
+		val = (!req_status ? STATUS_REQ : 0) |
+//		      (!ack_status ? STATUS_ACK : 0) |
+		      (!bsy_status ? STATUS_BSY : 0) |
+		      (!msg_status ? STATUS_MSG : 0) |
+		      (!cxd_status ? STATUS_CXD : 0) |
+		      (!ixo_status ? STATUS_IXO : 0) |
+		      ( irq_status ? STATUS_INT : 0);
 		#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SASI] in  %04X %02X (REQ=%d,BSY=%d,MSG=%d,CxD=%d,IxO=%d)\n"), addr, val,
+			this->out_debug_log(_T("[SASI] in  %04X %02X (REQ=%d,ACK=%d,BSY=%d,MSG=%d,CxD=%d,IxO=%d)\n"), addr, val,
 				(val & STATUS_REQ) ? 1 : 0,
+				(val & STATUS_ACK) ? 1 : 0,
 				(val & STATUS_BSY) ? 1 : 0,
 				(val & STATUS_MSG) ? 1 : 0,
 				(val & STATUS_CXD) ? 1 : 0,
@@ -91,39 +97,116 @@ uint32_t SASI::read_io8(uint32_t addr)
 
 void SASI::write_dma_io8(uint32_t addr, uint32_t data)
 {
-	write_io8(0xa4, data);
+	#ifdef _SCSI_DEBUG_LOG
+		this->out_debug_log(_T("[SASI] DMA out %02X\n"), data);
+	#endif
+	d_host->write_dma_io8(addr, data);
 }
 
 uint32_t SASI::read_dma_io8(uint32_t addr)
 {
-	return read_io8(0xa4);
+	uint32_t val = d_host->read_dma_io8(addr);
+	#ifdef _SCSI_DEBUG_LOG
+		this->out_debug_log(_T("[SASI] DMA in  %02X\n"), val);
+	#endif
+	return val;
 }
 
 void SASI::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
-	case SIG_SASI_IRQ:
-		#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SASI] IRQ=%d\n"), (data & mask) ? 1 : 0);
-		#endif
-		if(control & 0x01) {
-			d_pic->write_signal(SIG_I8259_CHIP0 | SIG_I8259_IR4, data, mask);
-		}
-		irq_status = ((data & mask) != 0);
+	case SIG_SASI_BSY:
+		bsy_status = ((data & mask) == 0);
+		update_signal();
+		prev_bsy_status = bsy_status;
 		break;
-	case SIG_SASI_DRQ:
-		#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SASI] DRQ=%d\n"), (data & mask) ? 1 : 0);
-		#endif
-		if(control & 0x02) {
-			d_dma->write_signal(SIG_UPD71071_CH0, data, mask);
+	case SIG_SASI_CXD:
+		cxd_status = ((data & mask) == 0);
+		update_signal();
+		prev_cxd_status = cxd_status;
+		break;
+	case SIG_SASI_IXO:
+		ixo_status = ((data & mask) == 0);
+		update_signal();
+		prev_ixo_status = ixo_status;
+		break;
+	case SIG_SASI_MSG:
+		msg_status = ((data & mask) == 0);
+		update_signal();
+		prev_msg_status = msg_status;
+		break;
+	case SIG_SASI_REQ:
+		req_status = ((data & mask) == 0);
+		update_signal();
+		prev_req_status = req_status;
+		break;
+	case SIG_SASI_ACK:
+		ack_status = ((data & mask) == 0);
+		update_signal();
+		prev_ack_status = ack_status;
+		break;
+	case SIG_SASI_TC:
+		if(data & mask) {
+			control &= ~0x02;
+			update_signal();
+			prev_control = control;
 		}
-		drq_status = ((data & mask) != 0);
 		break;
 	}
 }
 
-#define STATE_VERSION	2
+void SASI::update_signal()
+{
+	// http://retropc.net/ohishi/museum/mz1e30.htm
+	bool prev_ic20_o11 = (!prev_req_status) && prev_cxd_status;
+	bool prev_ic10_o8 = !(!prev_req_status && !prev_ixo_status && prev_msg_status && !prev_cxd_status);
+	bool prev_ic18_o11 = !(!(prev_control & 0x02) && prev_ic20_o11);
+	bool prev_ic18_o8 = !(prev_ic10_o8 && prev_ic18_o11);
+	
+	bool ic20_o11 = (!req_status) && cxd_status;
+	bool ic10_o8 = !(!req_status && !ixo_status && msg_status && !cxd_status);
+	bool ic18_o11 = !(!(control & 0x02) && ic20_o11);
+	bool ic18_o8 = !(ic10_o8 && ic18_o11);
+	
+	bool prev_irq_status = irq_status;
+	bool prev_drq_status = drq_status;
+	
+	if(!prev_ic18_o8 && ic18_o8) {
+		irq_status = ((control & 0x01) != 0);
+	}
+	if(!prev_ic20_o11 && ic20_o11) {
+		drq_status = ((control & 0x02) != 0);
+	}
+	if((prev_control & 0x01) && !(control & 0x01)) {
+		irq_status = false;
+	}
+	if((prev_control & 0x02) && !(control & 0x02)) {
+		drq_status = false;
+	}
+	if(prev_ack_status && !ack_status) {
+		drq_status = false;
+	}
+#ifdef _SCSI_DEBUG_LOG
+	if(prev_irq_status != irq_status) {
+		this->out_debug_log(_T("[SASI] irq_status=%d\n"), irq_status ? 1 : 0);
+	}
+	if(prev_drq_status != drq_status) {
+		this->out_debug_log(_T("[SASI] drq_status=%d\n"), drq_status ? 1 : 0);
+	}
+#endif
+	if(irq_status) {
+		d_pic->write_signal(SIG_I8259_CHIP0 | SIG_I8259_IR4, 1, 1);
+	} else {
+		d_pic->write_signal(SIG_I8259_CHIP0 | SIG_I8259_IR4, 0, 1);
+	}
+	if(drq_status) {
+		d_dma->write_signal(SIG_UPD71071_CH0, 1, 1);
+	} else {
+		d_dma->write_signal(SIG_UPD71071_CH0, 0, 1);
+	}
+}
+
+#define STATE_VERSION	4
 
 bool SASI::process_state(FILEIO* state_fio, bool loading)
 {
@@ -134,6 +217,19 @@ bool SASI::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	state_fio->StateUint8(control);
+	state_fio->StateUint8(prev_control);
+	state_fio->StateBool(bsy_status);
+	state_fio->StateBool(prev_bsy_status);
+	state_fio->StateBool(cxd_status);
+	state_fio->StateBool(prev_cxd_status);
+	state_fio->StateBool(ixo_status);
+	state_fio->StateBool(prev_ixo_status);
+	state_fio->StateBool(msg_status);
+	state_fio->StateBool(prev_msg_status);
+	state_fio->StateBool(req_status);
+	state_fio->StateBool(prev_req_status);
+	state_fio->StateBool(ack_status);
+	state_fio->StateBool(prev_ack_status);
 	state_fio->StateBool(irq_status);
 	state_fio->StateBool(drq_status);
 	return true;

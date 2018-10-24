@@ -1,3 +1,11 @@
+10/10/2018
+
+[VM/SCSI_DEV] fix ack signal issue when multiple devices are attached
+[VM/SCSI_HOST] support to output cd/io/msg/req signals to other devices
+
+[MZ2800/SASI] support SASI I/F and HDD (thanks Mr.Oh!Ishi)
+
+
 10/7/2018
 
 [COMMON] add pair16_t and pair64_t (thanks Mr.Artane.)

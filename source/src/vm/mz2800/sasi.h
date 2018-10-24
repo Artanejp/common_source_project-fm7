@@ -14,8 +14,13 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_SASI_IRQ	0
-#define SIG_SASI_DRQ	1
+#define SIG_SASI_BSY	0
+#define SIG_SASI_CXD	1
+#define SIG_SASI_IXO	2
+#define SIG_SASI_MSG	3
+#define SIG_SASI_REQ	4
+#define SIG_SASI_ACK	5
+#define SIG_SASI_TC	6
 
 namespace MZ2800 {
 
@@ -26,13 +31,28 @@ private:
 	DEVICE *d_dma, *d_pic;
 	
 	// sasi
-	uint8_t control;
-	bool irq_status;
-	bool drq_status;
+	uint8_t control, prev_control;
+	bool bsy_status, prev_bsy_status;
+	bool cxd_status, prev_cxd_status;
+	bool ixo_status, prev_ixo_status;
+	bool msg_status, prev_msg_status;
+	bool req_status, prev_req_status;
+	bool ack_status, prev_ack_status;
+	bool irq_status, drq_status;
+	
+	void update_signal();
 	
 public:
 	SASI(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		control = 0x00;
+		bsy_status = prev_bsy_status = false;
+		cxd_status = prev_cxd_status = false;
+		ixo_status = prev_ixo_status = false;
+		msg_status = prev_msg_status = false;
+		req_status = prev_req_status = false;
+		ack_status = prev_ack_status = false;
+		irq_status = drq_status = false;
 		set_device_name(_T("SASI I/F"));
 	}
 	~SASI() {}

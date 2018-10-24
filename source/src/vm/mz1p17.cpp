@@ -3625,8 +3625,8 @@ void MZ1P17::draw_char(uint16_t code)
 			int ye = font_height * (y + 1) / dot_y_split + dest_line_y;
 			int yw = ye - ys;
 			int yc = y * (16 / dot_y_split);
-			for (int x = 0; x < 8; x++) {
-				if (ank[code & 0xff][yc][x]) {
+			for(int x = 0; x < 8; x++) {
+				if(ank[code & 0xff][yc][x]) {
 					int xs = font_width * x / 8 + dest_line_x + gap_p1;
 					int xe = font_width * (x + 1) / 8 + dest_line_x + gap_p1;
 					int xw = xe - xs;
@@ -3679,10 +3679,10 @@ void MZ1P17::draw_dot(bitmap_t *bitmap, int x, int y, int width, int height, uin
 	} else {
 		// dot pattern : convex (“ÊŒ^)
 		int loop = (int)(width / 3) + (width % 3 > 0 ? 1 : 0);
-		for (int i = 0; i < loop; i++) {
+		for(int i = 0; i < loop; i++) {
 			int sx = x + 3 * i;
 			int sw = 3;
-			if (3 * i > width) {
+			if(3 * i > width) {
 				sw = 3 * i - width;
 				emu->draw_rectangle_to_bitmap(&bitmap_line[color_mode], sx, y, sw, height, r, g, b);
 			} else {

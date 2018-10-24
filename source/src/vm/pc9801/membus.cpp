@@ -524,7 +524,7 @@ void MEMBUS::update_ide_bios()
 #if defined(SUPPORT_NEC_EMS)
 void MEMBUS::update_nec_ems()
 {
-	if (nec_ems_selected) {
+	if(nec_ems_selected) {
 		unset_memory_rw(0xb0000, 0xbffff);
 		set_memory_rw(0xb0000, 0xbffff, nec_ems);
 	} else {

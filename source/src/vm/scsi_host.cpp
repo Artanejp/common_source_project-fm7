@@ -105,16 +105,19 @@ void SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_SCSI_CD:
 		cd_status &= ~mask;
 		cd_status |= (data & mask);
+		write_signals(&outputs_cd, cd_status ? 0xffffffff : 0);
 		break;
 		
 	case SIG_SCSI_IO:
 		io_status &= ~mask;
 		io_status |= (data & mask);
+		write_signals(&outputs_io, io_status ? 0xffffffff : 0);
 		break;
 		
 	case SIG_SCSI_MSG:
 		msg_status &= ~mask;
 		msg_status |= (data & mask);
+		write_signals(&outputs_msg, msg_status ? 0xffffffff : 0);
 		break;
 		
 	case SIG_SCSI_REQ:
@@ -130,7 +133,7 @@ void SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 						// data phase
 						set_drq(true);
 						access = true;
-					} else if (cd_status) {
+					} else if(cd_status) {
 						// command/status/message phase
 						set_irq(true);
 					}
@@ -143,6 +146,7 @@ void SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 					this->write_signal(SIG_SCSI_ACK, 0, 0);
 				#endif
 			}
+			write_signals(&outputs_req, req_status ? 0xffffffff : 0);
 		}
 		break;
 	}

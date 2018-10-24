@@ -20,7 +20,12 @@ class SCSI_HOST : public DEVICE
 private:
 	outputs_t outputs_irq;	// to adaptor
 	outputs_t outputs_drq;
+	
 	outputs_t outputs_bsy;
+	outputs_t outputs_cd;
+	outputs_t outputs_io;
+	outputs_t outputs_msg;
+	outputs_t outputs_req;
 	
 	outputs_t outputs_dat;	// to devices
 	outputs_t outputs_sel;
@@ -40,7 +45,12 @@ public:
 	{
 		initialize_output_signals(&outputs_irq);
 		initialize_output_signals(&outputs_drq);
+		
 		initialize_output_signals(&outputs_bsy);
+		initialize_output_signals(&outputs_cd);
+		initialize_output_signals(&outputs_io);
+		initialize_output_signals(&outputs_msg);
+		initialize_output_signals(&outputs_req);
 		
 		initialize_output_signals(&outputs_dat);
 		initialize_output_signals(&outputs_sel);
@@ -76,6 +86,26 @@ public:
 	void set_context_bsy(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_bsy, device, id, mask);
+	}
+	void set_context_cd(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_cd, device, id, mask);
+	}
+	void set_context_io(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_io, device, id, mask);
+	}
+	void set_context_msg(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_msg, device, id, mask);
+	}
+	void set_context_req(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_req, device, id, mask);
+	}
+	void set_context_ack(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_ack, device, id, mask);
 	}
 	void set_context_target(DEVICE* device)
 	{

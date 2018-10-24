@@ -167,7 +167,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 					buffer->write(data_bus);
 					break;
 				}
-				set_req(0);
+				set_req_delay(0, 1.0);
 			} else if(prev_status && !ack_status) {
 				// H -> L
 				if(atn_pending) {

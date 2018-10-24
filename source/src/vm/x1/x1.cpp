@@ -107,7 +107,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	sasi_host = new SCSI_HOST(this, emu);
-	for (int i = 0; i < array_length(sasi_hdd); i++) {
+	for(int i = 0; i < array_length(sasi_hdd); i++) {
 		sasi_hdd[i] = new SASI_HDD(this, emu);
 		sasi_hdd[i]->set_device_name(_T("SASI Hard Disk Drive #%d"), i + 1);
 		sasi_hdd[i]->scsi_id = i;

@@ -31,7 +31,7 @@
 
 // device informations for win32
 #define USE_FLOPPY_DISK		4
-#define USE_HARD_DISK		2
+#define USE_HARD_DISK		4
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NUMPAD
@@ -107,7 +107,7 @@ protected:
 	NOT* not_busy;
 	PCM1BIT* pcm;
 	RP5C01* rtc;
-	SASI_HDD* sasi_hdd[4];
+	SASI_HDD* sasi_hdd[(USE_HARD_DISK >> 1) + (USE_HARD_DISK & 1)];
 	SCSI_HOST* sasi_host;
 	UPD71071* dma;
 	YM2203* opn;

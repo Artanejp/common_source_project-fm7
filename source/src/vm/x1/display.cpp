@@ -686,13 +686,13 @@ void DISPLAY::event_callback(int event_id, int err)
 void DISPLAY::update_crtc()
 {
 #ifdef _X1TURBO_FEATURE
-	if (column40) {
+	if(column40) {
 		d_crtc->set_char_clock((mode1 & 1) ? VDP_CLOCK * 1.5 / 32.0 : VDP_CLOCK / 32.0);
 	} else {
 		d_crtc->set_char_clock((mode1 & 1) ? VDP_CLOCK * 1.5 / 16.0 : VDP_CLOCK / 16.0);
 	}
 #else
-	if (column40) {
+	if(column40) {
 		d_crtc->set_char_clock(VDP_CLOCK / 32.0);
 	} else {
 		d_crtc->set_char_clock(VDP_CLOCK / 16.0);

@@ -12,7 +12,8 @@
 // type definition
 typedef unsigned char uint8_t;
 
-#define HDD_SIZE (20*1024*1024)
+//#define HDD_SIZE (20*1024*1024)
+#define HDD_SIZE 22437888
 
 void main()
 {

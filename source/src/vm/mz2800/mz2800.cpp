@@ -89,14 +89,16 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pcm = new PCM1BIT(this, emu);
 	rtc = new RP5C01(this, emu);	// RP-5C15
 	sasi_host = new SCSI_HOST(this, emu);
-	for(int i = 0; i < USE_HARD_DISK; i++) {
+	for(int i = 0; i < array_length(sasi_hdd); i++) {
 		sasi_hdd[i] = new SASI_HDD(this, emu);
 		sasi_hdd[i]->set_device_name(_T("SASI Hard Disk Drive #%d"), i + 1);
 		sasi_hdd[i]->scsi_id = i;
-		sasi_hdd[i]->set_disk_handler(0, new HARDDISK(emu));
-		sasi_hdd[i]->set_context_interface(sasi_host);
 		sasi_hdd[i]->bytes_per_sec = 32 * 1024; // 32KB/s
+		sasi_hdd[i]->set_context_interface(sasi_host);
 		sasi_host->set_context_target(sasi_hdd[i]);
+	}
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		sasi_hdd[drv >> 1]->set_disk_handler(drv & 1, new HARDDISK(emu));
 	}
 	dma = new UPD71071(this, emu);
 	opn = new YM2203(this, emu);
@@ -142,12 +144,17 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	not_busy->set_context_out(pic, SIG_I8259_CHIP1 | SIG_I8259_IR1, 1);
 	rtc->set_context_alarm(pic, SIG_I8259_CHIP1 | SIG_I8259_IR2, 1);
 	rtc->set_context_pulse(opn, SIG_YM2203_PORT_B, 8);
-	sasi_host->set_context_irq(sasi, SIG_SASI_IRQ, 1);
-	sasi_host->set_context_drq(sasi, SIG_SASI_DRQ, 1);
+	sasi_host->set_context_bsy(sasi, SIG_SASI_BSY, 1);
+	sasi_host->set_context_cd (sasi, SIG_SASI_CXD, 1);
+	sasi_host->set_context_io (sasi, SIG_SASI_IXO, 1);
+	sasi_host->set_context_msg(sasi, SIG_SASI_MSG, 1);
+	sasi_host->set_context_req(sasi, SIG_SASI_REQ, 1);
+	sasi_host->set_context_ack(sasi, SIG_SASI_ACK, 1);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(sasi);
 	dma->set_context_ch1(fdc);
 	dma->set_context_tc(pic, SIG_I8259_CHIP0 | SIG_I8259_IR3, 1);
+	dma->set_context_tc(sasi, SIG_SASI_TC, 1);
 	opn->set_context_irq(pic, SIG_I8259_CHIP1 | SIG_I8259_IR7, 1);
 	opn->set_context_port_a(crtc, SIG_CRTC_PALLETE, 0x04, 0);
 	opn->set_context_port_a(mouse, SIG_MOUSE_SEL, 0x08, 0);
@@ -417,21 +424,21 @@ uint32_t VM::is_floppy_disk_accessed()
 void VM::open_hard_disk(int drv, const _TCHAR* file_path)
 {
 	if(drv < USE_HARD_DISK) {
-		sasi_hdd[drv]->open(0, file_path, 1024);
+		sasi_hdd[drv >> 1]->open(drv & 1, file_path, 1024);
 	}
 }
 
 void VM::close_hard_disk(int drv)
 {
 	if(drv < USE_HARD_DISK) {
-		sasi_hdd[drv]->close(0);
+		sasi_hdd[drv >> 1]->close(drv & 1);
 	}
 }
 
 bool VM::is_hard_disk_inserted(int drv)
 {
 	if(drv < USE_HARD_DISK) {
-		return sasi_hdd[drv]->mounted(0);
+		return sasi_hdd[drv >> 1]->mounted(drv & 1);
 	}
 	return false;
 }
@@ -441,7 +448,7 @@ uint32_t VM::is_hard_disk_accessed()
 	uint32_t status = 0;
 	
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
-		if(sasi_hdd[drv]->accessed(0)) {
+		if(sasi_hdd[drv >> 1]->accessed(drv & 1)) {
 			status |= 1 << drv;
 		}
 	}
@@ -460,7 +467,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
