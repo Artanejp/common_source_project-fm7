@@ -291,20 +291,20 @@ bool TIMER::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint8(IRQ);
-	state_fio->StateUint8(NewIRQ);
-	state_fio->StateInt32(timer_id);
+	state_fio->StateValue(IRQ);
+	state_fio->StateValue(NewIRQ);
+	state_fio->StateValue(timer_id);
 #ifndef _PC6001
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
-	state_fio->StateBuffer(sr_vectors, sizeof(sr_vectors), 1);
-	state_fio->StateUint8(portFA);
-	state_fio->StateUint8(portFB);
+	state_fio->StateArray(sr_vectors, sizeof(sr_vectors), 1);
+	state_fio->StateValue(portFA);
+	state_fio->StateValue(portFB);
 #endif
-	state_fio->StateUint8(portF3);
-	state_fio->StateUint8(portF4);
-	state_fio->StateUint8(portF5);
-	state_fio->StateUint8(portF6);
-	state_fio->StateUint8(portF7);
+	state_fio->StateValue(portF3);
+	state_fio->StateValue(portF4);
+	state_fio->StateValue(portF5);
+	state_fio->StateValue(portF6);
+	state_fio->StateValue(portF7);
 #endif
 	return true;
 }

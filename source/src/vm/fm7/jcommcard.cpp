@@ -228,15 +228,15 @@ bool FM7_JCOMMCARD::process_state(FILEIO *state_fio, bool loading)
 		return false;
 	}
  
-	state_fio->StateUint8(n_bank);
-	state_fio->StateUint8(rcb_address);
-	state_fio->StateUint32(kanji_address.d);
-	state_fio->StateBool(halted);
+	state_fio->StateValue(n_bank);
+	state_fio->StateValue(rcb_address);
+	state_fio->StateValue(kanji_address.d);
+	state_fio->StateValue(halted);
 
-	state_fio->StateBuffer(prog_rom, sizeof(prog_rom), 1);
-	state_fio->StateBuffer(dict_rom, sizeof(dict_rom), 1);
-	state_fio->StateBuffer(p_ram, sizeof(p_ram), 1);
-	state_fio->StateBool(firmware_ok);
+	state_fio->StateArray(prog_rom, sizeof(prog_rom), 1);
+	state_fio->StateArray(dict_rom, sizeof(dict_rom), 1);
+	state_fio->StateArray(p_ram, sizeof(p_ram), 1);
+	state_fio->StateValue(firmware_ok);
 
 	if(loading) {
 		n_bank &= 0x3f;

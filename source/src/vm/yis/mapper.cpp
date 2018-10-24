@@ -111,10 +111,10 @@ bool MAPPER::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateUint8(mapper_reg);
-	state_fio->StateBuffer(bank_reg, sizeof(bank_reg), 1);
-//	state_fio->StateBuffer(cur_bank, sizeof(cur_bank), 1);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateValue(mapper_reg);
+	state_fio->StateArray(bank_reg, sizeof(bank_reg), 1);
+//	state_fio->StateArray(cur_bank, sizeof(cur_bank), 1);
 	
 	// post process
 	if(loading) {

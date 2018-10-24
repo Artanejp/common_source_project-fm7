@@ -182,7 +182,7 @@ bool SLOT0::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 #if defined(_PX7)
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateArray(ram, sizeof(ram), 1);
 #endif
 	return true;
 }
@@ -257,9 +257,9 @@ bool SLOT1::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBool(inserted);
+	state_fio->StateValue(inserted);
 #if defined(_MSX2)
-	state_fio->StateBuffer(mapper, sizeof(mapper), 1);
+	state_fio->StateArray(mapper, sizeof(mapper), 1);
 #endif
 	
 	// post process
@@ -396,14 +396,14 @@ bool SLOT2::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBool(clock);
-	state_fio->StateBool(exv);
-	state_fio->StateBool(ack);
-	state_fio->StateBool(super_impose);
-	state_fio->StateBool(req_intr);
-	state_fio->StateBool(pc4);
-	state_fio->StateBool(mute_l);
-	state_fio->StateBool(mute_r);
+	state_fio->StateValue(clock);
+	state_fio->StateValue(exv);
+	state_fio->StateValue(ack);
+	state_fio->StateValue(super_impose);
+	state_fio->StateValue(req_intr);
+	state_fio->StateValue(pc4);
+	state_fio->StateValue(mute_l);
+	state_fio->StateValue(mute_r);
 	return true;
 }
 #else
@@ -522,9 +522,9 @@ bool SLOT3::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBool(inserted);
-	state_fio->StateBuffer(mapper, sizeof(mapper), 1);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateValue(inserted);
+	state_fio->StateArray(mapper, sizeof(mapper), 1);
 	
 	// post process
 	if(loading) {
@@ -950,7 +950,7 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 		}
 	}
 #endif
-	state_fio->StateUint32(slot_select);
+	state_fio->StateValue(slot_select);
 	
 	// post process
 	if(loading) {

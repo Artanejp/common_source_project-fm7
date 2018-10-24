@@ -116,9 +116,9 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateUint32(addr_mask);
-	state_fio->StateBool(rom_sel);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateValue(addr_mask);
+	state_fio->StateValue(rom_sel);
 	
 	// post process
 	if(loading) {

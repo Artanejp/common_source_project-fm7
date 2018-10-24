@@ -760,7 +760,7 @@ void Z80DMA::notify_intr_reti()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool Z80DMA::process_state(FILEIO* state_fio, bool loading)
 {

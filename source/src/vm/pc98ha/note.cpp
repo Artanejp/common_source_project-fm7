@@ -90,8 +90,8 @@ bool NOTE::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint8(ch);
-	state_fio->StateBuffer(regs, sizeof(regs), 1);
+	state_fio->StateValue(ch);
+	state_fio->StateArray(regs, sizeof(regs), 1);
 	return true;
 }
 

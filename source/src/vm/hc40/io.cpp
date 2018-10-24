@@ -736,18 +736,18 @@ bool IO::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint32(cur_clock);
-	state_fio->StateUint8(bcr);
-	state_fio->StateUint8(slbcr);
-	state_fio->StateUint8(isr);
-	state_fio->StateUint8(ier);
-	state_fio->StateUint8(bankr);
-	state_fio->StateUint8(ioctlr);
-	state_fio->StateUint32(icrc);
-	state_fio->StateUint32(icrb);
-	state_fio->StateBool(ear);
-	state_fio->StateUint8(vadr);
-	state_fio->StateUint8(yoff);
+	state_fio->StateValue(cur_clock);
+	state_fio->StateValue(bcr);
+	state_fio->StateValue(slbcr);
+	state_fio->StateValue(isr);
+	state_fio->StateValue(ier);
+	state_fio->StateValue(bankr);
+	state_fio->StateValue(ioctlr);
+	state_fio->StateValue(icrc);
+	state_fio->StateValue(icrb);
+	state_fio->StateValue(ear);
+	state_fio->StateValue(vadr);
+	state_fio->StateValue(yoff);
 	if(!cmd_buf->process_state((void *)state_fio, loading)) {
 		return false;
 	}
@@ -757,35 +757,35 @@ bool IO::process_state(FILEIO* state_fio, bool loading)
 	if(!cur_time.process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateInt32(register_id_1sec);
-	state_fio->StateBool(onesec_intr);
-	state_fio->StateBool(onesec_intr_enb);
-	state_fio->StateBool(alarm_intr);
-	state_fio->StateBool(alarm_intr_enb);
-	state_fio->StateBuffer(alarm, sizeof(alarm), 1);
+	state_fio->StateValue(register_id_1sec);
+	state_fio->StateValue(onesec_intr);
+	state_fio->StateValue(onesec_intr_enb);
+	state_fio->StateValue(alarm_intr);
+	state_fio->StateValue(alarm_intr_enb);
+	state_fio->StateArray(alarm, sizeof(alarm), 1);
 	if(!key_buf->process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateBool(kb_intr_enb);
-	state_fio->StateBool(kb_rep_enb);
-	state_fio->StateBool(kb_caps);
-	state_fio->StateUint8(kb_rep_spd1);
-	state_fio->StateUint8(kb_rep_spd2);
+	state_fio->StateValue(kb_intr_enb);
+	state_fio->StateValue(kb_rep_enb);
+	state_fio->StateValue(kb_caps);
+	state_fio->StateValue(kb_rep_spd1);
+	state_fio->StateValue(kb_rep_spd2);
 	if(!art_buf->process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateUint8(artsr);
-	state_fio->StateUint8(artdir);
-	state_fio->StateBool(txen);
-	state_fio->StateBool(rxen);
-	state_fio->StateBool(dsr);
-	state_fio->StateInt32(register_id_art);
-	state_fio->StateBool(beep);
-	state_fio->StateBool(res_z80);
-	state_fio->StateBool(res_7508);
-	state_fio->StateBuffer(ext, sizeof(ext), 1);
-	state_fio->StateUint32(extar);
-	state_fio->StateUint8(extcr);
+	state_fio->StateValue(artsr);
+	state_fio->StateValue(artdir);
+	state_fio->StateValue(txen);
+	state_fio->StateValue(rxen);
+	state_fio->StateValue(dsr);
+	state_fio->StateValue(register_id_art);
+	state_fio->StateValue(beep);
+	state_fio->StateValue(res_z80);
+	state_fio->StateValue(res_7508);
+	state_fio->StateArray(ext, sizeof(ext), 1);
+	state_fio->StateValue(extar);
+	state_fio->StateValue(extcr);
 	return true;
 }
 

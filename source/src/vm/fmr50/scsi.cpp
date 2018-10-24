@@ -124,8 +124,8 @@ bool SCSI::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint8(ctrl_reg);
-	state_fio->StateBool(irq_status);
+	state_fio->StateValue(ctrl_reg);
+	state_fio->StateValue(irq_status);
 	return true;
 }
 

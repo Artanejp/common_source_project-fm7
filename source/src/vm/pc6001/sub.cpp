@@ -357,15 +357,15 @@ bool SUB::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateInt32(p1_out);
-	state_fio->StateInt32(p2_in);
-	state_fio->StateBool(drec_in);
-	state_fio->StateBool(rxrdy_in);
-	state_fio->StateBool(update_key);
-	state_fio->StateBool(rec);
-	state_fio->StateBool(is_wav);
-	state_fio->StateBool(is_p6t);
-	state_fio->StateBuffer(rec_file_path, sizeof(rec_file_path), 1);
+	state_fio->StateValue(p1_out);
+	state_fio->StateValue(p2_in);
+	state_fio->StateValue(drec_in);
+	state_fio->StateValue(rxrdy_in);
+	state_fio->StateValue(update_key);
+	state_fio->StateValue(rec);
+	state_fio->StateValue(is_wav);
+	state_fio->StateValue(is_p6t);
+	state_fio->StateArray(rec_file_path, sizeof(rec_file_path), 1);
 	if(loading) {
 		int length_tmp = state_fio->FgetInt32_LE();
 		if(rec) {
@@ -396,11 +396,11 @@ bool SUB::process_state(FILEIO* state_fio, bool loading)
 			state_fio->FputInt32_LE(0);
 		}
 	}
-	state_fio->StateInt32(prev_command);
-	state_fio->StateInt32(baud);
-	state_fio->StateInt32(index);
-	state_fio->StateBool(skip);
-	state_fio->StateBuffer(buffer, sizeof(buffer), 1);
+	state_fio->StateValue(prev_command);
+	state_fio->StateValue(baud);
+	state_fio->StateValue(index);
+	state_fio->StateValue(skip);
+	state_fio->StateArray(buffer, sizeof(buffer), 1);
 	return true;
 }
 

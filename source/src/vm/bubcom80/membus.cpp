@@ -91,9 +91,9 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 	if(!MEMORY::process_state(state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateUint32(basic_addr.d);
-	state_fio->StateBool(ram_selected);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateValue(basic_addr.d);
+	state_fio->StateValue(ram_selected);
 	
 	// post process
 	if(loading) {

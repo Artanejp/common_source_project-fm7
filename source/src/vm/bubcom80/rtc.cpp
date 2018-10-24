@@ -161,7 +161,7 @@ bool RTC::process_state(FILEIO* state_fio, bool loading)
 	if(!tmp_time.process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateUint8(ctrl);
+	state_fio->StateValue(ctrl);
 	return true;
 }
 }

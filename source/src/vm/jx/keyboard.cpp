@@ -208,11 +208,11 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 #ifndef KEYBOARD_HACK
-	state_fio->StateUint64(send_data);
-	state_fio->StateInt32(send_count);
+	state_fio->StateValue(send_data);
+	state_fio->StateValue(send_count);
 #endif
-	state_fio->StateBool(key_latched);
-	state_fio->StateUint8(nmi_reg);
+	state_fio->StateValue(key_latched);
+	state_fio->StateValue(nmi_reg);
 	return true;
 }
 

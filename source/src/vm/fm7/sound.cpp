@@ -428,17 +428,17 @@ void FM7_MAINIO::event_beep_cycle(void)
 
 bool FM7_MAINIO::decl_state_opn(FILEIO *state_fio, bool loading)
 {
-	state_fio->StateBool(connect_opn);
-	state_fio->StateBool(connect_whg);
-	state_fio->StateBool(connect_thg);
+	state_fio->StateValue(connect_opn);
+	state_fio->StateValue(connect_whg);
+	state_fio->StateValue(connect_thg);
 
-	state_fio->StateBool(opn_psg_77av);
-	state_fio->StateBuffer(opn_address, sizeof(opn_address), 1);
-	state_fio->StateBuffer(opn_data, sizeof(opn_data), 1);
-	state_fio->StateBuffer(opn_stat, sizeof(opn_stat), 1);
-	state_fio->StateBuffer(opn_cmdreg, sizeof(opn_cmdreg), 1);
-	state_fio->StateBuffer(opn_prescaler_type, sizeof(opn_prescaler_type), 1);
-	state_fio->StateBuffer(opn_regs, sizeof(opn_regs), 1);
+	state_fio->StateValue(opn_psg_77av);
+	state_fio->StateArray(opn_address, sizeof(opn_address), 1);
+	state_fio->StateArray(opn_data, sizeof(opn_data), 1);
+	state_fio->StateArray(opn_stat, sizeof(opn_stat), 1);
+	state_fio->StateArray(opn_cmdreg, sizeof(opn_cmdreg), 1);
+	state_fio->StateArray(opn_prescaler_type, sizeof(opn_prescaler_type), 1);
+	state_fio->StateArray(&opn_regs[0][0], sizeof(opn_regs), 1);
 
 	return true;
 }

@@ -214,7 +214,7 @@ void MEMORY::close_cart()
 	memset(sram, 0xff, sizeof(sram));
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {

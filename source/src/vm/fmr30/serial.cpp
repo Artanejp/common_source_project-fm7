@@ -141,7 +141,7 @@ void SERIAL::update_intr(int ch)
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool SERIAL::process_state(FILEIO* state_fio, bool loading)
 {

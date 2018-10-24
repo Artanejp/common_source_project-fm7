@@ -87,9 +87,9 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	if(!key_buf->process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateInt32(kbstat);
-	state_fio->StateInt32(kbdata);
-	state_fio->StateBuffer(table, sizeof(table), 1);
+	state_fio->StateValue(kbstat);
+	state_fio->StateValue(kbdata);
+	state_fio->StateArray(table, sizeof(table), 1);
 	return true;
 }
 

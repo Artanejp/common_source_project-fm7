@@ -1432,7 +1432,7 @@ OP_HANDLER(sync_09)	// Rename 20101110
 /* $14 trap(HALT) */
 OP_HANDLER(trap) {
 	int_state |= MC6809_INSN_HALT;	// HALTフラグ
-	// Debug: トラップ要因
+	// Debug: トラチE�E要因
 	this->out_debug_log(_T("TRAP(HALT) @%04x %02x %02x\n"), PC - 1, RM((PC - 1)), RM(PC));
 }
 

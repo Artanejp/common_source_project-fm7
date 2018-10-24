@@ -1871,11 +1871,11 @@ bool DATAREC::process_state(FILEIO* state_fio, bool loading)
 	if(loading) {
 		close_file();
 	}
-	state_fio->StateBool(play);
-	state_fio->StateBool(rec);
-	state_fio->StateBool(remote);
-	state_fio->StateBool(trigger);
-	state_fio->StateBuffer(rec_file_path, sizeof(rec_file_path), 1);
+	state_fio->StateValue(play);
+	state_fio->StateValue(rec);
+	state_fio->StateValue(remote);
+	state_fio->StateValue(trigger);
+	state_fio->StateArray(rec_file_path, sizeof(rec_file_path), 1);
 	if(loading) {
 		length_tmp = state_fio->FgetInt32_LE();
 		if(rec) {

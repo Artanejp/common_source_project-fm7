@@ -150,10 +150,10 @@ bool CMT::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBool(is_wav);
-	state_fio->StateBool(rec);
-	state_fio->StateBool(remote);
-	state_fio->StateBuffer(rec_file_path, sizeof(rec_file_path), 1);
+	state_fio->StateValue(is_wav);
+	state_fio->StateValue(rec);
+	state_fio->StateValue(remote);
+	state_fio->StateArray(rec_file_path, sizeof(rec_file_path), 1);
 	if(loading) {
 		int length_tmp = state_fio->FgetInt32_LE();
 		if(rec) {
@@ -184,10 +184,10 @@ bool CMT::process_state(FILEIO* state_fio, bool loading)
 			state_fio->FputInt32_LE(0);
 		}
 	}
-	state_fio->StateInt32(bufcnt);
-	state_fio->StateBuffer(buffer, sizeof(buffer), 1);
-	state_fio->StateInt32(prev_signal);
-	state_fio->StateUint32(prev_clock);
+	state_fio->StateValue(bufcnt);
+	state_fio->StateArray(buffer, sizeof(buffer), 1);
+	state_fio->StateValue(prev_signal);
+	state_fio->StateValue(prev_clock);
 	return true;
 }
 

@@ -100,11 +100,11 @@ bool FIFO::process_state(void *f, bool loading)
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	state_fio->StateInt32(size);
-	state_fio->StateBuffer(buf, size * sizeof(int), 1);
-	state_fio->StateInt32(cnt);
-	state_fio->StateInt32(rpt);
-	state_fio->StateInt32(wpt);
+	state_fio->StateValue(size);
+	state_fio->StateArray(buf, size * sizeof(int), 1);
+	state_fio->StateValue(cnt);
+	state_fio->StateValue(rpt);
+	state_fio->StateValue(wpt);
 	return true;
 }
 

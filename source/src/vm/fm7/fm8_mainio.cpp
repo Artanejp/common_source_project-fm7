@@ -462,7 +462,7 @@ bool FM8_MAINIO::decl_state(FILEIO *state_fio, bool loading)
 	if(!FM7_MAINIO::decl_state(state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateBool(connect_psg);
+	state_fio->StateValue(connect_psg);
 
 	return true;
 }

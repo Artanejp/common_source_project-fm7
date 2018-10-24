@@ -54,9 +54,9 @@ bool PRINTER::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBool(strobe);
-	state_fio->StateBool(busy);
-	state_fio->StateUint8(out);
+	state_fio->StateValue(strobe);
+	state_fio->StateValue(busy);
+	state_fio->StateValue(out);
 	return true;
 }
 

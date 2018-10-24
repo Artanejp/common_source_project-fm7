@@ -228,13 +228,13 @@ bool RTC::process_state(FILEIO* state_fio, bool loading)
 	if(!cur_time.process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateInt32(register_id);
-	state_fio->StateUint16(rtcmr);
-	state_fio->StateUint16(rtdsr);
-	state_fio->StateUint16(rtadr);
-	state_fio->StateUint16(rtobr);
-	state_fio->StateUint16(rtibr);
-	state_fio->StateBuffer(regs, sizeof(regs), 1);
+	state_fio->StateValue(register_id);
+	state_fio->StateValue(rtcmr);
+	state_fio->StateValue(rtdsr);
+	state_fio->StateValue(rtadr);
+	state_fio->StateValue(rtobr);
+	state_fio->StateValue(rtibr);
+	state_fio->StateArray(regs, sizeof(regs), 1);
 	return true;
 }
 

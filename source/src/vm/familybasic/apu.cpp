@@ -315,7 +315,7 @@ void APU::enqueue(queue_t *d)
 	q_head = (q_head + 1) & APUQUEUE_MASK;
 }
 
-APU::queue_t* APU::dequeue()
+queue_t* APU::dequeue()
 {
 	int loc = q_tail;
 	q_tail = (q_tail + 1) & APUQUEUE_MASK;

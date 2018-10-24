@@ -715,44 +715,44 @@ bool BUBBLECASETTE::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	// Attributes
-	state_fio->StateUint32(file_length);
-	state_fio->StateBool(bubble_inserted);
-	state_fio->StateInt32(bubble_type);
-	state_fio->StateInt32(media_num);
-	state_fio->StateUint32(media_offset);
-	state_fio->StateUint32(media_offset_new);
-	state_fio->StateUint32(media_size);
+	state_fio->StateValue(file_length);
+	state_fio->StateValue(bubble_inserted);
+	state_fio->StateValue(bubble_type);
+	state_fio->StateValue(media_num);
+	state_fio->StateValue(media_offset);
+	state_fio->StateValue(media_offset_new);
+	state_fio->StateValue(media_size);
 	// Data reg
-	state_fio->StateUint8(data_reg);
+	state_fio->StateValue(data_reg);
 	// Command reg
-	state_fio->StateUint8(cmd_reg);
+	state_fio->StateValue(cmd_reg);
 	// Status reg
-	state_fio->StateBool(stat_busy);
-	state_fio->StateBool(stat_tdra);
-	state_fio->StateBool(stat_rda);
-	state_fio->StateBool(cmd_error);
-	state_fio->StateBool(stat_error);
-	state_fio->StateBool(not_ready);
+	state_fio->StateValue(stat_busy);
+	state_fio->StateValue(stat_tdra);
+	state_fio->StateValue(stat_rda);
+	state_fio->StateValue(cmd_error);
+	state_fio->StateValue(stat_error);
+	state_fio->StateValue(not_ready);
 	// Error reg
-	state_fio->StateBool(eject_error);
-	state_fio->StateBool(povr_error);
-	state_fio->StateBool(crc_error);
-	state_fio->StateBool(transfer_error);
-	state_fio->StateBool(bad_loop_over_error);
-	state_fio->StateBool(no_marker_error);
-	state_fio->StateBool(undefined_cmd_error);
+	state_fio->StateValue(eject_error);
+	state_fio->StateValue(povr_error);
+	state_fio->StateValue(crc_error);
+	state_fio->StateValue(transfer_error);
+	state_fio->StateValue(bad_loop_over_error);
+	state_fio->StateValue(no_marker_error);
+	state_fio->StateValue(undefined_cmd_error);
 	// Page address
-	state_fio->StateUint32(page_address.d);
+	state_fio->StateValue(page_address.d);
 	//Page Count
-	state_fio->StateUint32(page_count.d);
+	state_fio->StateValue(page_count.d);
 	// Misc flags
-	state_fio->StateBool(is_b77);
-	state_fio->StateBool(read_access);
-	state_fio->StateBool(write_access);
-	state_fio->StateBool(write_protect);
-	state_fio->StateUint8(offset_reg);
+	state_fio->StateValue(is_b77);
+	state_fio->StateValue(read_access);
+	state_fio->StateValue(write_access);
+	state_fio->StateValue(write_protect);
+	state_fio->StateValue(offset_reg);
 	
-	state_fio->StateBuffer(image_path, _MAX_PATH * sizeof(_TCHAR), 1);
+	state_fio->StateArray(image_path, _MAX_PATH * sizeof(_TCHAR), 1);
 	
 	// post process
 	if(loading) {

@@ -414,25 +414,25 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateUint8(memory_bank);
-	state_fio->StateBuffer(color_table, sizeof(color_table), 1);
-	state_fio->StateUint8(char_color);
-	state_fio->StateUint8(back_color);
-	state_fio->StateUint8(mp1710_enb);
-	state_fio->StateUint8(screen_mode);
-	state_fio->StateBool(screen_reversed);
-	state_fio->StateBool(drec_bit);
-	state_fio->StateBool(drec_in);
-	state_fio->StateUint32(drec_clock);
-	state_fio->StateUint8(key_column);
-	state_fio->StateUint8(key_data);
-	state_fio->StateBool(nmi_enb);
-	state_fio->StateBool(break_pressed);
-	state_fio->StateUint8(sound_sample);
-	state_fio->StateDouble(sound_accum);
-	state_fio->StateUint32(sound_clock);
-	state_fio->StateUint32(sound_mix_clock);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateValue(memory_bank);
+	state_fio->StateArray(color_table, sizeof(color_table), 1);
+	state_fio->StateValue(char_color);
+	state_fio->StateValue(back_color);
+	state_fio->StateValue(mp1710_enb);
+	state_fio->StateValue(screen_mode);
+	state_fio->StateValue(screen_reversed);
+	state_fio->StateValue(drec_bit);
+	state_fio->StateValue(drec_in);
+	state_fio->StateValue(drec_clock);
+	state_fio->StateValue(key_column);
+	state_fio->StateValue(key_data);
+	state_fio->StateValue(nmi_enb);
+	state_fio->StateValue(break_pressed);
+	state_fio->StateValue(sound_sample);
+	state_fio->StateValue(sound_accum);
+	state_fio->StateValue(sound_clock);
+	state_fio->StateValue(sound_mix_clock);
 	
 	// post process
 	if(loading) {

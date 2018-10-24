@@ -1253,36 +1253,36 @@ bool IO::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(rregs, sizeof(rregs), 1);
-	state_fio->StateBuffer(wregs, sizeof(wregs), 1);
+	state_fio->StateArray(rregs, sizeof(rregs), 1);
+	state_fio->StateArray(wregs, sizeof(wregs), 1);
 	if(!cur_time.process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateInt32(register_id_1sec);
+	state_fio->StateValue(register_id_1sec);
 	if(!cmd_buf->process_state((void *)state_fio, loading)) {
 		return false;
 	}
 	if(!rsp_buf->process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateUint8(sub_int);
-	state_fio->StateBuffer(wram, sizeof(wram), 1);
-	state_fio->StateBuffer(alarm, sizeof(alarm), 1);
+	state_fio->StateValue(sub_int);
+	state_fio->StateArray(wram, sizeof(wram), 1);
+	state_fio->StateArray(alarm, sizeof(alarm), 1);
 	if(!key_buf->process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateBool(ctrl);
-	state_fio->StateBool(shift);
-	state_fio->StateBool(kana);
-	state_fio->StateBool(graph);
-	state_fio->StateBool(brk);
-	state_fio->StateUint8(stick);
-	state_fio->StateUint8(strig);
-	state_fio->StateUint8(strig1);
-	state_fio->StateBool(cmt_play);
-	state_fio->StateBool(cmt_rec);
-	state_fio->StateBool(cmt_mode);
-	state_fio->StateBuffer(rec_file_path, sizeof(rec_file_path), 1);
+	state_fio->StateValue(ctrl);
+	state_fio->StateValue(shift);
+	state_fio->StateValue(kana);
+	state_fio->StateValue(graph);
+	state_fio->StateValue(brk);
+	state_fio->StateValue(stick);
+	state_fio->StateValue(strig);
+	state_fio->StateValue(strig1);
+	state_fio->StateValue(cmt_play);
+	state_fio->StateValue(cmt_rec);
+	state_fio->StateValue(cmt_mode);
+	state_fio->StateArray(rec_file_path, sizeof(rec_file_path), 1);
 	if(loading) {
 		int length_tmp = state_fio->FgetInt32_LE();
 		if(cmt_rec) {
@@ -1313,24 +1313,24 @@ bool IO::process_state(FILEIO* state_fio, bool loading)
 			state_fio->FputInt32_LE(0);
 		}
 	}
-	state_fio->StateInt32(cmt_len);
-	state_fio->StateInt32(cmt_ptr);
-	state_fio->StateBuffer(cmt_buf, sizeof(cmt_buf), 1);
-	state_fio->StateBool(vblank);
-	state_fio->StateUint8(font_code);
-	state_fio->StateBuffer(udc, sizeof(udc), 1);
-	state_fio->StateBuffer(lcd, sizeof(lcd), 1);
-	state_fio->StateBool(locate_on);
-	state_fio->StateBool(cursor_on);
-	state_fio->StateBool(udk_on);
-	state_fio->StateInt32(locate_x);
-	state_fio->StateInt32(locate_y);
-	state_fio->StateInt32(cursor_x);
-	state_fio->StateInt32(cursor_y);
-	state_fio->StateInt32(cursor_blink);
-	state_fio->StateInt32(scroll_min);
-	state_fio->StateInt32(scroll_max);
-	state_fio->StateInt32(register_id_beep);
+	state_fio->StateValue(cmt_len);
+	state_fio->StateValue(cmt_ptr);
+	state_fio->StateArray(cmt_buf, sizeof(cmt_buf), 1);
+	state_fio->StateValue(vblank);
+	state_fio->StateValue(font_code);
+	state_fio->StateArray(udc, sizeof(udc), 1);
+	state_fio->StateArray(&lcd[0][0], sizeof(lcd), 1);
+	state_fio->StateValue(locate_on);
+	state_fio->StateValue(cursor_on);
+	state_fio->StateValue(udk_on);
+	state_fio->StateValue(locate_x);
+	state_fio->StateValue(locate_y);
+	state_fio->StateValue(cursor_x);
+	state_fio->StateValue(cursor_y);
+	state_fio->StateValue(cursor_blink);
+	state_fio->StateValue(scroll_min);
+	state_fio->StateValue(scroll_max);
+	state_fio->StateValue(register_id_beep);
 	return true;
 }
 

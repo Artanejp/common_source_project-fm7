@@ -872,46 +872,46 @@ bool process_config_state(void *f, bool loading)
 		return false;
 	}
 	#ifdef USE_BOOT_MODE
-		state_fio->StateInt32(config.boot_mode);
+		state_fio->StateValue(config.boot_mode);
 	#endif
 	#ifdef USE_CPU_TYPE
-		state_fio->StateInt32(config.cpu_type);
+		state_fio->StateValue(config.cpu_type);
 	#endif
 	#ifdef USE_DIPSWITCH
-		state_fio->StateUint32(config.dipswitch);
+		state_fio->StateValue(config.dipswitch);
 	#endif
 	#ifdef USE_DEVICE_TYPE
-		state_fio->StateInt32(config.device_type);
+		state_fio->StateValue(config.device_type);
 	#endif
 	#ifdef USE_DRIVE_TYPE
-		state_fio->StateInt32(config.drive_type);
+		state_fio->StateValue(config.drive_type);
 	#endif
 	#ifdef USE_KEYBOARD_TYPE
-		state_fio->StateInt32(config.keyboard_type);
+		state_fio->StateValue(config.keyboard_type);
 	#endif
 	#ifdef USE_MOUSE_TYPE
-		state_fio->StateInt32(config.mouse_type);
+		state_fio->StateValue(config.mouse_type);
 	#endif
 	#ifdef USE_JOYSTICK_TYPE
-		state_fio->StateInt32(config.joystick_type);
+		state_fio->StateValue(config.joystick_type);
 	#endif
 	#ifdef USE_SOUND_TYPE
-		state_fio->StateInt32(config.sound_type);
+		state_fio->StateValue(config.sound_type);
 	#endif
 	#ifdef USE_MONITOR_TYPE
-		state_fio->StateInt32(config.monitor_type);
+		state_fio->StateValue(config.monitor_type);
 	#endif
 	#ifdef USE_PRINTER_TYPE
-		state_fio->StateInt32(config.printer_type);
+		state_fio->StateValue(config.printer_type);
 	#endif
 	#ifdef USE_FLOPPY_DISK
 		for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
-			state_fio->StateBool(config.correct_disk_timing[drv]);
-			state_fio->StateBool(config.ignore_disk_crc[drv]);
+			state_fio->StateValue(config.correct_disk_timing[drv]);
+			state_fio->StateValue(config.ignore_disk_crc[drv]);
 		}
 	#endif
-	state_fio->StateInt32(config.sound_frequency);
-	state_fio->StateInt32(config.sound_latency);
+	state_fio->StateValue(config.sound_frequency);
+	state_fio->StateValue(config.sound_latency);
 	return true;
 }
 

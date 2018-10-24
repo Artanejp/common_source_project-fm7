@@ -78,8 +78,8 @@ bool SYSPORT::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateInt32(rst);
-	state_fio->StateInt32(highden);
+	state_fio->StateValue(rst);
+	state_fio->StateValue(highden);
 	return true;
 }
 

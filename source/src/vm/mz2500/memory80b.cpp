@@ -634,23 +634,23 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBuffer(vram, sizeof(vram), 1);
-	state_fio->StateBuffer(tvram, sizeof(tvram), 1);
-	state_fio->StateBool(ipl_selected);
-	state_fio->StateUint8(vram_sel);
-	state_fio->StateUint8(vram_page);
-	state_fio->StateUint8(back_color);
-	state_fio->StateUint8(text_color);
-	state_fio->StateUint8(vram_mask);
-	state_fio->StateBool(width80);
-	state_fio->StateBool(reverse);
-	state_fio->StateBool(vgate);
-	state_fio->StateBool(hblank);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateArray(tvram, sizeof(tvram), 1);
+	state_fio->StateValue(ipl_selected);
+	state_fio->StateValue(vram_sel);
+	state_fio->StateValue(vram_page);
+	state_fio->StateValue(back_color);
+	state_fio->StateValue(text_color);
+	state_fio->StateValue(vram_mask);
+	state_fio->StateValue(width80);
+	state_fio->StateValue(reverse);
+	state_fio->StateValue(vgate);
+	state_fio->StateValue(hblank);
 #ifdef _MZ80B
-	state_fio->StateBuffer(pio3039_palette, sizeof(pio3039_palette), 1);
-	state_fio->StateBool(pio3039_txt_sw);
-	state_fio->StateUint8(pio3039_data);
+	state_fio->StateArray(pio3039_palette, sizeof(pio3039_palette), 1);
+	state_fio->StateValue(pio3039_txt_sw);
+	state_fio->StateValue(pio3039_data);
 #endif
 	
 	// post process

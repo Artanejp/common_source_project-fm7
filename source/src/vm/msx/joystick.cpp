@@ -57,7 +57,7 @@ bool JOYSTICK::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateInt32(select);
+	state_fio->StateValue(select);
 	return true;
 }
 

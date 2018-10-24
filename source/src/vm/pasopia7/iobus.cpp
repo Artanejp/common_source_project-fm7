@@ -53,7 +53,7 @@ bool IOBUS::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBool(mio);
+	state_fio->StateValue(mio);
 	return true;
 }
 

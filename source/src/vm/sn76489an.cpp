@@ -198,7 +198,7 @@ void SN76489AN::initialize_sound(int rate, int clock, int volume)
 	diff = (int)(16.0 * (double)clock / (double)rate + 0.5);
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool SN76489AN::process_state(FILEIO* state_fio, bool loading)
 {

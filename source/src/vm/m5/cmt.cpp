@@ -80,13 +80,13 @@ bool CMT::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBool(in);
-	state_fio->StateBool(out);
-	state_fio->StateBool(remote);
-	state_fio->StateBool(eot);
-	state_fio->StateUint8(pout);
-	state_fio->StateBool(strobe);
-	state_fio->StateBool(busy);
+	state_fio->StateValue(in);
+	state_fio->StateValue(out);
+	state_fio->StateValue(remote);
+	state_fio->StateValue(eot);
+	state_fio->StateValue(pout);
+	state_fio->StateValue(strobe);
+	state_fio->StateValue(busy);
 	return true;
 }
 

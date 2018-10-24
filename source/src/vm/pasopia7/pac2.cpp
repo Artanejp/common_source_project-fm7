@@ -105,7 +105,7 @@ bool PAC2::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateInt32(sel);
+	state_fio->StateValue(sel);
 	if(!rampac2[0]->process_state(state_fio, loading)) {
 		return false;
 	}

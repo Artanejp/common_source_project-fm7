@@ -60,8 +60,8 @@ bool CMOS::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(cmos, sizeof(cmos), 1);
-	state_fio->StateBool(modified);
+	state_fio->StateArray(cmos, sizeof(cmos), 1);
+	state_fio->StateValue(modified);
 	return true;
 }
 

@@ -801,7 +801,7 @@ void MEMORY::draw_screen()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {

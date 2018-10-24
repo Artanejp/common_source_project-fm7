@@ -348,10 +348,10 @@ bool VDP::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint8(vdc0);
-	state_fio->StateUint8(vdc1);
-	state_fio->StateUint8(vdc2);
-	state_fio->StateUint8(vdc3);
+	state_fio->StateValue(vdc0);
+	state_fio->StateValue(vdc1);
+	state_fio->StateValue(vdc2);
+	state_fio->StateValue(vdc3);
 	return true;
 }
 

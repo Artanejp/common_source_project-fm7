@@ -216,22 +216,22 @@ bool SASI::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint8(control);
-	state_fio->StateUint8(prev_control);
-	state_fio->StateBool(bsy_status);
-	state_fio->StateBool(prev_bsy_status);
-	state_fio->StateBool(cxd_status);
-	state_fio->StateBool(prev_cxd_status);
-	state_fio->StateBool(ixo_status);
-	state_fio->StateBool(prev_ixo_status);
-	state_fio->StateBool(msg_status);
-	state_fio->StateBool(prev_msg_status);
-	state_fio->StateBool(req_status);
-	state_fio->StateBool(prev_req_status);
-	state_fio->StateBool(ack_status);
-	state_fio->StateBool(prev_ack_status);
-	state_fio->StateBool(irq_status);
-	state_fio->StateBool(drq_status);
+	state_fio->StateValue(control);
+	state_fio->StateValue(prev_control);
+	state_fio->StateValue(bsy_status);
+	state_fio->StateValue(prev_bsy_status);
+	state_fio->StateValue(cxd_status);
+	state_fio->StateValue(prev_cxd_status);
+	state_fio->StateValue(ixo_status);
+	state_fio->StateValue(prev_ixo_status);
+	state_fio->StateValue(msg_status);
+	state_fio->StateValue(prev_msg_status);
+	state_fio->StateValue(req_status);
+	state_fio->StateValue(prev_req_status);
+	state_fio->StateValue(ack_status);
+	state_fio->StateValue(prev_ack_status);
+	state_fio->StateValue(irq_status);
+	state_fio->StateValue(drq_status);
 	return true;
 }
 

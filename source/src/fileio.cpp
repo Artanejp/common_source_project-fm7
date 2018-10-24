@@ -573,6 +573,26 @@ void FILEIO::FputDouble_LE(double val)
 	FputUint8(tmp.b.h7);
 }
 
+_TCHAR FILEIO::FgetTCHAR_LE()
+{
+	switch(sizeof(_TCHAR)) {
+	case 2: return (_TCHAR)FgetUint16_LE();
+	case 4: return (_TCHAR)FgetUint32_LE();
+	case 8: return (_TCHAR)FgetUint64_LE();
+	}
+	return (_TCHAR)FgetUint8();
+}
+
+void FILEIO::FputTCHAR_LE(_TCHAR val)
+{
+	switch(sizeof(_TCHAR)) {
+	case 2: FputUint16_LE((uint16_t)val); return;
+	case 4: FputUint32_LE((uint32_t)val); return;
+	case 8: FputUint32_LE((uint64_t)val); return;
+	}
+	FputUint8((uint8_t )val);
+}
+
 uint16_t FILEIO::FgetUint16_BE()
 {
 	pair16_t tmp;
@@ -749,6 +769,26 @@ void FILEIO::FputDouble_BE(double val)
 	FputUint8(tmp.b.l);
 }
 
+_TCHAR FILEIO::FgetTCHAR_BE()
+{
+	switch(sizeof(_TCHAR)) {
+	case 2: return (_TCHAR)FgetUint16_BE();
+	case 4: return (_TCHAR)FgetUint32_BE();
+	case 8: return (_TCHAR)FgetUint64_BE();
+	}
+	return (_TCHAR)FgetUint8();
+}
+
+void FILEIO::FputTCHAR_BE(_TCHAR val)
+{
+	switch(sizeof(_TCHAR)) {
+	case 2: FputUint16_BE((uint16_t)val); return;
+	case 4: FputUint32_BE((uint32_t)val); return;
+	case 8: FputUint32_BE((uint64_t)val); return;
+	}
+	FputUint8((uint8_t )val);
+}
+
 int FILEIO::Fgetc()
 {
 #ifdef USE_ZLIB
@@ -915,29 +955,6 @@ long FILEIO::Ftell()
 	return 0;
 }
 
-bool FILEIO::Fcompare(const void* buffer, size_t size)
-{
-	return Fcompare(buffer, size, 1);
-}
-
-bool FILEIO::Fcompare(const void* buffer, size_t size, size_t count)
-{
-	bool result = true;
-	void *tmp = malloc(size);
-	
-	for(size_t i = 0; i < count; i++) {
-		if(Fread(tmp, size, 1) != 1) {
-			result = false;
-			break;
-		}
-		if(memcmp(buffer, tmp, size) != 0) {
-			result = false;
-			break;
-		}
-	}
-	free(tmp);
-	return result;
-}
 
 bool FILEIO::Fflush()
 {
@@ -972,17 +989,21 @@ bool FILEIO::StateCheckInt32(int32_t val)
 	}
 }
 
-bool FILEIO::StateCheckBuffer(const void *buffer, size_t size, size_t count)
+bool FILEIO::StateCheckBuffer(const _TCHAR *buffer, size_t size, size_t count)
 {
-	if(open_mode == FILEIO_READ_BINARY) {
-		return Fcompare(buffer, size, count);
-	} else {
-		Fwrite(buffer, size, count);
-		return true;
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		if(open_mode == FILEIO_READ_BINARY) {
+			if(buffer[i] != FgetTCHAR_LE()) {
+				return false;
+			}
+		} else {
+			FputTCHAR_LE(buffer[i]);
+		}
 	}
+	return true;
 }
 
-void FILEIO::StateBool(bool &val)
+void FILEIO::StateValue(bool &val)
 {
 	if(open_mode == FILEIO_READ_BINARY) {
 		val = FgetBool();
@@ -991,7 +1012,7 @@ void FILEIO::StateBool(bool &val)
 	}
 }
 
-void FILEIO::StateUint8(uint8_t &val)
+void FILEIO::StateValue(uint8_t &val)
 {
 	if(open_mode == FILEIO_READ_BINARY) {
 		val = FgetUint8();
@@ -1000,7 +1021,7 @@ void FILEIO::StateUint8(uint8_t &val)
 	}
 }
 
-void FILEIO::StateUint16(uint16_t &val)
+void FILEIO::StateValue(uint16_t &val)
 {
 	if(open_mode == FILEIO_READ_BINARY) {
 		val = FgetUint16_LE();
@@ -1009,7 +1030,7 @@ void FILEIO::StateUint16(uint16_t &val)
 	}
 }
 
-void FILEIO::StateUint32(uint32_t &val)
+void FILEIO::StateValue(uint32_t &val)
 {
 	if(open_mode == FILEIO_READ_BINARY) {
 		val = FgetUint32_LE();
@@ -1018,7 +1039,7 @@ void FILEIO::StateUint32(uint32_t &val)
 	}
 }
 
-void FILEIO::StateUint64(uint64_t &val)
+void FILEIO::StateValue(uint64_t &val)
 {
 	if(open_mode == FILEIO_READ_BINARY) {
 		val = FgetUint64_LE();
@@ -1027,7 +1048,7 @@ void FILEIO::StateUint64(uint64_t &val)
 	}
 }
 
-void FILEIO::StateInt8(int8_t &val)
+void FILEIO::StateValue(int8_t &val)
 {
 	if(open_mode == FILEIO_READ_BINARY) {
 		val = FgetInt8();
@@ -1036,7 +1057,7 @@ void FILEIO::StateInt8(int8_t &val)
 	}
 }
 
-void FILEIO::StateInt16(int16_t &val)
+void FILEIO::StateValue(int16_t &val)
 {
 	if(open_mode == FILEIO_READ_BINARY) {
 		val = FgetInt16_LE();
@@ -1045,7 +1066,7 @@ void FILEIO::StateInt16(int16_t &val)
 	}
 }
 
-void FILEIO::StateInt32(int32_t &val)
+void FILEIO::StateValue(int32_t &val)
 {
 	if(open_mode == FILEIO_READ_BINARY) {
 		val = FgetInt32_LE();
@@ -1054,7 +1075,7 @@ void FILEIO::StateInt32(int32_t &val)
 	}
 }
 
-void FILEIO::StateInt64(int64_t &val)
+void FILEIO::StateValue(int64_t &val)
 {
 	if(open_mode == FILEIO_READ_BINARY) {
 		val = FgetInt64_LE();
@@ -1063,7 +1084,34 @@ void FILEIO::StateInt64(int64_t &val)
 	}
 }
 
-void FILEIO::StateFloat(float &val)
+void FILEIO::StateValue(pair16_t &val)
+{
+	if(open_mode == FILEIO_READ_BINARY) {
+		val.w = FgetUint16_LE();
+	} else {
+		FputUint16_LE(val.w);
+	}
+}
+
+void FILEIO::StateValue(pair32_t &val)
+{
+	if(open_mode == FILEIO_READ_BINARY) {
+		val.d = FgetUint32_LE();
+	} else {
+		FputUint32_LE(val.d);
+	}
+}
+
+void FILEIO::StateValue(pair64_t &val)
+{
+	if(open_mode == FILEIO_READ_BINARY) {
+		val.q = FgetUint64_LE();
+	} else {
+		FputUint64_LE(val.q);
+	}
+}
+
+void FILEIO::StateValue(float &val)
 {
 	if(open_mode == FILEIO_READ_BINARY) {
 		val = FgetFloat_LE();
@@ -1072,12 +1120,126 @@ void FILEIO::StateFloat(float &val)
 	}
 }
 
-void FILEIO::StateDouble(double &val)
+void FILEIO::StateValue(double &val)
 {
 	if(open_mode == FILEIO_READ_BINARY) {
 		val = FgetDouble_LE();
 	} else {
 		FputDouble_LE(val);
+	}
+}
+
+void FILEIO::StateValue(_TCHAR &val)
+{
+	if(open_mode == FILEIO_READ_BINARY) {
+		val = FgetTCHAR_LE();
+	} else {
+		FputTCHAR_LE(val);
+	}
+}
+
+void FILEIO::StateArray(bool *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
+	}
+}
+
+void FILEIO::StateArray(uint8_t *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
+	}
+}
+
+void FILEIO::StateArray(uint16_t *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
+	}
+}
+
+void FILEIO::StateArray(uint32_t *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
+	}
+}
+
+void FILEIO::StateArray(uint64_t *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
+	}
+}
+
+void FILEIO::StateArray(int8_t *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
+	}
+}
+
+void FILEIO::StateArray(int16_t *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
+	}
+}
+
+void FILEIO::StateArray(int32_t *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
+	}
+}
+
+void FILEIO::StateArray(int64_t *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
+	}
+}
+
+void FILEIO::StateArray(pair16_t *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
+	}
+}
+
+void FILEIO::StateArray(pair32_t *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
+	}
+}
+
+void FILEIO::StateArray(pair64_t *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
+	}
+}
+
+void FILEIO::StateArray(float *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
+	}
+}
+
+void FILEIO::StateArray(double *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
+	}
+}
+
+void FILEIO::StateArray(_TCHAR *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
 	}
 }
 

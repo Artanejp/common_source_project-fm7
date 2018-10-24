@@ -333,8 +333,8 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateInt32(odd_even);
-	state_fio->StateBool(dma);
+	state_fio->StateValue(odd_even);
+	state_fio->StateValue(dma);
 	return true;
 }
 }

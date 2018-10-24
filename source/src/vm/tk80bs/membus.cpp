@@ -62,8 +62,8 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 #if defined(_TK85)
-	state_fio->StateUint32(pc7);
-	state_fio->StateUint32(count);
+	state_fio->StateValue(pc7);
+	state_fio->StateValue(count);
 #endif
 	return MEMORY::process_state(state_fio, loading);
 }

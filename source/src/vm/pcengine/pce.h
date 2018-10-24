@@ -43,6 +43,61 @@ class SCSI_CDROM;
 
 namespace PCEDEV {
 
+typedef struct vdc_s {
+	int dvssr_write;		/* Set when the DVSSR register has been written to */
+	int physical_width;		/* Width of the display */
+	int physical_height;		/* Height of the display */
+	uint16_t sprite_ram[64*4];	/* Sprite RAM */
+	int curline;			/* the current scanline we're on */
+	int current_segment;		/* current segment of display */
+	int current_segment_line;	/* current line inside a segment of display */
+	int vblank_triggered;		/* to indicate whether vblank has been triggered */
+	int raster_count;		/* counter to compare RCR against */
+	int satb_countdown;		/* scanlines to wait to trigger the SATB irq */
+	uint8_t vram[0x10000];
+	uint8_t inc;
+	uint8_t vdc_register;
+	uint8_t vdc_latch;
+	pair32_t vdc_data[32];
+	int status;
+	int y_scroll;
+} vdc_t;
+
+typedef struct vce_s {
+	uint8_t vce_control;		/* VCE control register */
+	pair32_t vce_address;		/* Current address in the palette */
+	pair32_t vce_data[512];		/* Palette data */
+	int current_bitmap_line;	/* The current line in the display we are on */
+	//bitmap_ind16 *bmp;
+	scrntype_t bmp[VDC_LPF][VDC_WPF];
+	scrntype_t palette[1024];
+} vce_t;
+
+typedef struct vpc_s {
+	struct {
+		UINT8 prio;
+		UINT8 vdc0_enabled;
+		UINT8 vdc1_enabled;
+	} vpc_prio[4];
+	UINT8	prio_map[512];		/* Pre-calculated priority map */
+	pair32_t	priority;	/* Priority settings registers */
+	pair32_t	window1;	/* Window 1 setting */
+	pair32_t	window2;	/* Window 2 setting */
+	UINT8	vdc_select;		/* Which VDC do the ST0, ST1, and ST2 instructions write to */
+} vpc_t;
+
+typedef struct {
+	// registers
+	uint8_t regs[8];
+	uint8_t wav[32];
+	uint8_t wavptr;
+	// sound gen
+	uint32_t genptr;
+	uint32_t remain;
+	bool noise;
+	uint32_t randval;
+} psg_t;
+
 class PCE : public DEVICE
 {
 private:
@@ -79,48 +134,9 @@ private:
 	bool inserted;
 	
 	// vdc
-	struct {
-		int dvssr_write;		/* Set when the DVSSR register has been written to */
-		int physical_width;		/* Width of the display */
-		int physical_height;		/* Height of the display */
-		uint16_t sprite_ram[64*4];	/* Sprite RAM */
-		int curline;			/* the current scanline we're on */
-		int current_segment;		/* current segment of display */
-		int current_segment_line;	/* current line inside a segment of display */
-		int vblank_triggered;		/* to indicate whether vblank has been triggered */
-		int raster_count;		/* counter to compare RCR against */
-		int satb_countdown;		/* scanlines to wait to trigger the SATB irq */
-		uint8_t vram[0x10000];
-		uint8_t inc;
-		uint8_t vdc_register;
-		uint8_t vdc_latch;
-		pair32_t vdc_data[32];
-		int status;
-		int y_scroll;
-	} vdc[2];
-	
-	struct {
-		uint8_t vce_control;		/* VCE control register */
-		pair32_t vce_address;		/* Current address in the palette */
-		pair32_t vce_data[512];		/* Palette data */
-		int current_bitmap_line;	/* The current line in the display we are on */
-		//bitmap_ind16 *bmp;
-		scrntype_t bmp[VDC_LPF][VDC_WPF];
-		scrntype_t palette[1024];
-	} vce;
-	
-	struct {
-		struct {
-			UINT8 prio;
-			UINT8 vdc0_enabled;
-			UINT8 vdc1_enabled;
-		} vpc_prio[4];
-		UINT8	prio_map[512];		/* Pre-calculated priority map */
-		pair32_t	priority;	/* Priority settings registers */
-		pair32_t	window1;	/* Window 1 setting */
-		pair32_t	window2;	/* Window 2 setting */
-		UINT8	vdc_select;		/* Which VDC do the ST0, ST1, and ST2 instructions write to */
-	} vpc;
+	vdc_t vdc[2];
+	vce_t vce;
+	vpc_t vpc;
 	
 	void pce_interrupt();
 #ifdef SUPPORT_SUPER_GFX
@@ -152,17 +168,6 @@ private:
 #endif
 	
 	// psg
-	typedef struct {
-		// registers
-		uint8_t regs[8];
-		uint8_t wav[32];
-		uint8_t wavptr;
-		// sound gen
-		uint32_t genptr;
-		uint32_t remain;
-		bool noise;
-		uint32_t randval;
-	} psg_t;
 	psg_t psg[8];
 	uint8_t psg_ch, psg_vol, psg_lfo_freq, psg_lfo_ctrl;
 	int sample_rate;

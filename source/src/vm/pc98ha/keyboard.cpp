@@ -82,9 +82,9 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBool(kana);
-	state_fio->StateBool(caps);
-	state_fio->StateBuffer(flag, sizeof(flag), 1);
+	state_fio->StateValue(kana);
+	state_fio->StateValue(caps);
+	state_fio->StateArray(flag, sizeof(flag), 1);
 	return true;
 }
 

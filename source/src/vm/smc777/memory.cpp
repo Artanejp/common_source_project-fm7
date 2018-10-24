@@ -975,7 +975,7 @@ void MEMORY::draw_graph_320x200()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {

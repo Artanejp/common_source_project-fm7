@@ -50,7 +50,7 @@ bool MOUSE::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBool(select);
+	state_fio->StateValue(select);
 	return true;
 }
 

@@ -104,7 +104,7 @@ bool MFONT::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint8(status);
+	state_fio->StateValue(status);
 	if(!cmd->process_state((void *)state_fio, loading)) {
 		return false;
 	}

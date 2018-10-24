@@ -294,13 +294,13 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 #if defined(_TK80BS)
-	state_fio->StateUint8(prev_type);
-	state_fio->StateUint8(prev_brk);
-	state_fio->StateUint8(prev_kana);
-	state_fio->StateBool(kana_lock);
-	state_fio->StateUint32(kb_type);
+	state_fio->StateValue(prev_type);
+	state_fio->StateValue(prev_brk);
+	state_fio->StateValue(prev_kana);
+	state_fio->StateValue(kana_lock);
+	state_fio->StateValue(kb_type);
 #endif
-	state_fio->StateUint32(column);
+	state_fio->StateValue(column);
 	return true;
 }
 

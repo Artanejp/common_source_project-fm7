@@ -176,10 +176,10 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBuffer(vram, sizeof(vram), 1);
-	state_fio->StateInt32(key_column);
-	state_fio->StateBool(cmode);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateValue(key_column);
+	state_fio->StateValue(cmode);
 	return true;
 }
 

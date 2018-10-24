@@ -301,21 +301,21 @@ bool UPD71071::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint32(dma[i].areg);
-		state_fio->StateUint32(dma[i].bareg);
-		state_fio->StateUint16(dma[i].creg);
-		state_fio->StateUint16(dma[i].bcreg);
-		state_fio->StateUint8(dma[i].mode);
+		state_fio->StateValue(dma[i].areg);
+		state_fio->StateValue(dma[i].bareg);
+		state_fio->StateValue(dma[i].creg);
+		state_fio->StateValue(dma[i].bcreg);
+		state_fio->StateValue(dma[i].mode);
 	}
-	state_fio->StateUint8(b16);
-	state_fio->StateUint8(selch);
-	state_fio->StateUint8(base);
-	state_fio->StateUint16(cmd);
-	state_fio->StateUint16(tmp);
-	state_fio->StateUint8(req);
-	state_fio->StateUint8(sreq);
-	state_fio->StateUint8(mask);
-	state_fio->StateUint8(tc);
+	state_fio->StateValue(b16);
+	state_fio->StateValue(selch);
+	state_fio->StateValue(base);
+	state_fio->StateValue(cmd);
+	state_fio->StateValue(tmp);
+	state_fio->StateValue(req);
+	state_fio->StateValue(sreq);
+	state_fio->StateValue(mask);
+	state_fio->StateValue(tc);
 	return true;
 }
 

@@ -931,7 +931,7 @@ void M6502::reset()
 int M6502::run(int clock)
 {
 	if(clock == -1) {
-		if (busreq) {
+		if(busreq) {
 			// don't run cpu!
 #ifdef USE_DEBUGGER
 			total_icount += 1;

@@ -152,14 +152,14 @@ bool CMT::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBool(mic);
-	state_fio->StateBool(ear);
-	state_fio->StateBool(pulse);
-	state_fio->StateInt32(pulse_count);
+	state_fio->StateValue(mic);
+	state_fio->StateValue(ear);
+	state_fio->StateValue(pulse);
+	state_fio->StateValue(pulse_count);
 #if defined(_TK80BS)
-	state_fio->StateBool(play);
-	state_fio->StateBool(rec);
-	state_fio->StateBuffer(rec_file_path, sizeof(rec_file_path), 1);
+	state_fio->StateValue(play);
+	state_fio->StateValue(rec);
+	state_fio->StateArray(rec_file_path, sizeof(rec_file_path), 1);
 	if(loading) {
 		int length_tmp = state_fio->FgetInt32_LE();
 		if(rec) {
@@ -190,8 +190,8 @@ bool CMT::process_state(FILEIO* state_fio, bool loading)
 			state_fio->FputInt32_LE(0);
 		}
 	}
-	state_fio->StateInt32(bufcnt);
-	state_fio->StateBuffer(buffer, sizeof(buffer), 1);
+	state_fio->StateValue(bufcnt);
+	state_fio->StateArray(buffer, sizeof(buffer), 1);
 #endif
 	return true;
 }

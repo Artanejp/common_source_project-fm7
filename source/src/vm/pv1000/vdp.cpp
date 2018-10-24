@@ -149,7 +149,7 @@ bool VDP::process_state(FILEIO* state_fio, bool loading)
 		state_fio->FputInt32_LE((int)(pcg - base));
 		state_fio->FputInt32_LE((int)(pattern - base));
 	}
-	state_fio->StateBool(force_pattern);
+	state_fio->StateValue(force_pattern);
 	return true;
 }
 

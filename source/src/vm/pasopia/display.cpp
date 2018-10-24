@@ -641,9 +641,9 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint8(mode);
-	state_fio->StateUint16(cursor);
-	state_fio->StateUint16(cblink);
+	state_fio->StateValue(mode);
+	state_fio->StateValue(cursor);
+	state_fio->StateValue(cblink);
 	return true;
 }
 

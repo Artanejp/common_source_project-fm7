@@ -118,9 +118,9 @@ bool IO::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint8(pa);
-	state_fio->StateUint8(pb);
-	state_fio->StateUint8(pc);
+	state_fio->StateValue(pa);
+	state_fio->StateValue(pb);
+	state_fio->StateValue(pc);
 	return true;
 }
 

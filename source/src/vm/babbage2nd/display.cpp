@@ -170,10 +170,10 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(seg, sizeof(seg), 1);
-	state_fio->StateUint8(ls373);
-	state_fio->StateUint8(pio_7seg);
-	state_fio->StateUint8(pio_8bit);
+	state_fio->StateArray(&seg[0][0], sizeof(seg), 1);
+	state_fio->StateValue(ls373);
+	state_fio->StateValue(pio_7seg);
+	state_fio->StateValue(pio_8bit);
 	return true;
 }
 }

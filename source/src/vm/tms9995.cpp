@@ -1706,29 +1706,29 @@ bool TMS9995::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
 #ifdef USE_DEBUGGER
-	state_fio->StateUint64(total_count);
+	state_fio->StateValue(total_count);
 #endif
-	state_fio->StateInt32(count);
-	state_fio->StateInt32(period);
-	state_fio->StateUint16(WP);
-	state_fio->StateUint16(PC);
-	state_fio->StateUint16(prevPC);
-	state_fio->StateUint16(ST);
-	state_fio->StateBuffer(RAM, sizeof(RAM), 1);
-	state_fio->StateUint8(irq_level);
-	state_fio->StateUint8(int_state);
-	state_fio->StateUint8(int_latch);
-	state_fio->StateBool(int_pending);
-	state_fio->StateBool(int_enabled);
-	state_fio->StateUint16(dec_count);
-	state_fio->StateUint16(dec_interval);
-	state_fio->StateInt32(dec_timer);
-	state_fio->StateBool(dec_enabled);
-	state_fio->StateUint16(mode);
-	state_fio->StateUint8(lastparity);
-	state_fio->StateBool(nmi);
-	state_fio->StateBool(mid);
-	state_fio->StateBool(idle);
+	state_fio->StateValue(count);
+	state_fio->StateValue(period);
+	state_fio->StateValue(WP);
+	state_fio->StateValue(PC);
+	state_fio->StateValue(prevPC);
+	state_fio->StateValue(ST);
+	state_fio->StateArray(RAM, sizeof(RAM), 1);
+	state_fio->StateValue(irq_level);
+	state_fio->StateValue(int_state);
+	state_fio->StateValue(int_latch);
+	state_fio->StateValue(int_pending);
+	state_fio->StateValue(int_enabled);
+	state_fio->StateValue(dec_count);
+	state_fio->StateValue(dec_interval);
+	state_fio->StateValue(dec_timer);
+	state_fio->StateValue(dec_enabled);
+	state_fio->StateValue(mode);
+	state_fio->StateValue(lastparity);
+	state_fio->StateValue(nmi);
+	state_fio->StateValue(mid);
+	state_fio->StateValue(idle);
 	
 #ifdef USE_DEBUGGER
 	// post process

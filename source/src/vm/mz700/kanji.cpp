@@ -84,9 +84,9 @@ bool KANJI::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint32(control_reg);
-	state_fio->StateUint32(kanji_addr);
-	state_fio->StateUint32(dic_addr);
+	state_fio->StateValue(control_reg);
+	state_fio->StateValue(kanji_addr);
+	state_fio->StateValue(dic_addr);
 	return true;
 }
 

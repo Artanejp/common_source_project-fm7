@@ -131,9 +131,9 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 #ifdef _MAP1010
-	state_fio->StateInt32(kana_pressed);
+	state_fio->StateValue(kana_pressed);
 #else
-	state_fio->StateBuffer(status, sizeof(status), 1);
+	state_fio->StateArray(status, sizeof(status), 1);
 #endif
 	return true;
 }

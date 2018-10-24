@@ -3754,7 +3754,7 @@ void MZ1P17::finish_paper()
 	dest_paper_y = 0;
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool MZ1P17::process_state(FILEIO* state_fio, bool loading)
 {

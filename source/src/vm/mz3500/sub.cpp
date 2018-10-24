@@ -579,12 +579,12 @@ bool SUB::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBuffer(vram_chr, sizeof(vram_chr), 1);
-	state_fio->StateBuffer(vram_gfx, sizeof(vram_gfx), 1);
-	state_fio->StateBuffer(disp, sizeof(disp), 1);
-	state_fio->StateInt32(cblink);
-	state_fio->StateBool(crt_400line);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(vram_chr, sizeof(vram_chr), 1);
+	state_fio->StateArray(vram_gfx, sizeof(vram_gfx), 1);
+	state_fio->StateArray(disp, sizeof(disp), 1);
+	state_fio->StateValue(cblink);
+	state_fio->StateValue(crt_400line);
 	return true;
 }
 

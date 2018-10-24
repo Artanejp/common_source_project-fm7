@@ -695,7 +695,7 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(RAM, RAM_SIZE, 1);
+	state_fio->StateArray(RAM, RAM_SIZE, 1);
 	if(loading) {
 		CGROM = MEMORY_BASE + state_fio->FgetInt32_LE();
 		EXTROM1 = MEMORY_BASE + state_fio->FgetInt32_LE();
@@ -715,29 +715,29 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 		}
 		state_fio->FputInt32_LE((int)(VRAM - MEMORY_BASE));
 	}
-	state_fio->StateBuffer(EnWrite, sizeof(EnWrite), 1);
-	state_fio->StateUint8(CGSW93);
-	state_fio->StateBool(inserted);
+	state_fio->StateArray(EnWrite, sizeof(EnWrite), 1);
+	state_fio->StateValue(CGSW93);
+	state_fio->StateValue(inserted);
 #ifndef _PC6001
-	state_fio->StateUint8(CRTKILL);
+	state_fio->StateValue(CRTKILL);
 	if(loading) {
 		CurKANJIROM = MEMORY_BASE + state_fio->FgetInt32_LE();
 	} else {
 		state_fio->FputInt32_LE((int)(CurKANJIROM - MEMORY_BASE));
 	}
-	state_fio->StateUint8(CRTMode1);
-	state_fio->StateUint8(CRTMode2);
-	state_fio->StateUint8(CRTMode3);
-	state_fio->StateUint8(CSS1);
-	state_fio->StateUint8(CSS2);
-	state_fio->StateUint8(CSS3);
-	state_fio->StateUint8(portF0);
-	state_fio->StateUint8(portF1);
+	state_fio->StateValue(CRTMode1);
+	state_fio->StateValue(CRTMode2);
+	state_fio->StateValue(CRTMode3);
+	state_fio->StateValue(CSS1);
+	state_fio->StateValue(CSS2);
+	state_fio->StateValue(CSS3);
+	state_fio->StateValue(portF0);
+	state_fio->StateValue(portF1);
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
-	state_fio->StateInt32(bitmap);
-	state_fio->StateInt32(cols);
-	state_fio->StateInt32(rows);
-	state_fio->StateInt32(lines);
+	state_fio->StateValue(bitmap);
+	state_fio->StateValue(cols);
+	state_fio->StateValue(rows);
+	state_fio->StateValue(lines);
 	if(loading) {
 		TEXTVRAM = MEMORY_BASE + state_fio->FgetInt32_LE();
 		SYSROM2 = MEMORY_BASE + state_fio->FgetInt32_LE();
@@ -745,16 +745,16 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 		state_fio->FputInt32_LE((int)(TEXTVRAM - MEMORY_BASE));
 		state_fio->FputInt32_LE((int)(SYSROM2 - MEMORY_BASE));
 	}
-	state_fio->StateBuffer(EXTRAM, EXTRAM_SIZE, 1);
-	state_fio->StateBuffer(port60, sizeof(port60), 1);
-	state_fio->StateUint8(portC1);
-	state_fio->StateUint8(portC8);
-	state_fio->StateUint8(portCA);
-	state_fio->StateUint8(portCB);
-	state_fio->StateUint8(portCC);
-	state_fio->StateUint8(portCE);
-	state_fio->StateUint8(portCF);
-	state_fio->StateBuffer(palet, sizeof(palet), 1);
+	state_fio->StateArray(EXTRAM, EXTRAM_SIZE, 1);
+	state_fio->StateArray(port60, sizeof(port60), 1);
+	state_fio->StateValue(portC1);
+	state_fio->StateValue(portC8);
+	state_fio->StateValue(portCA);
+	state_fio->StateValue(portCB);
+	state_fio->StateValue(portCC);
+	state_fio->StateValue(portCE);
+	state_fio->StateValue(portCF);
+	state_fio->StateArray(palet, sizeof(palet), 1);
 #endif
 #endif
 	return true;

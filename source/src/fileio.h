@@ -111,6 +111,8 @@ public:
 	void FputFloat_LE(float val);
 	double FgetDouble_LE();
 	void FputDouble_LE(double val);
+	_TCHAR FgetTCHAR_LE();
+	void FputTCHAR_LE(_TCHAR val);
 	
 	uint16_t FgetUint16_BE();
 	void FputUint16_BE(uint16_t val);
@@ -128,6 +130,8 @@ public:
 	void FputFloat_BE(float val);
 	double FgetDouble_BE();
 	void FputDouble_BE(double val);
+	_TCHAR FgetTCHAR_BE();
+	void FputTCHAR_BE(_TCHAR val);
 	
 	int Fgetc();
 	int Fputc(int c);
@@ -146,19 +150,41 @@ public:
 	
 	bool StateCheckUint32(uint32_t val);
 	bool StateCheckInt32(int32_t val);
-	bool StateCheckBuffer(const void *buffer, size_t size, size_t count);
+	bool StateCheckBuffer(const _TCHAR *buffer, size_t size, size_t count);
 	
-	void StateBool(bool &val);
-	void StateUint8(uint8_t &val);
-	void StateUint16(uint16_t &val);
-	void StateUint32(uint32_t &val);
-	void StateUint64(uint64_t &val);
-	void StateInt8(int8_t &val);
-	void StateInt16(int16_t &val);
-	void StateInt32(int32_t &val);
-	void StateInt64(int64_t &val);
-	void StateFloat(float &val);
-	void StateDouble(double &val);
+	void StateValue(bool &val);
+	void StateValue(uint8_t &val);
+	void StateValue(uint16_t &val);
+	void StateValue(uint32_t &val);
+	void StateValue(uint64_t &val);
+	void StateValue(int8_t &val);
+	void StateValue(int16_t &val);
+	void StateValue(int32_t &val);
+	void StateValue(int64_t &val);
+	void StateValue(pair16_t &val);
+	void StateValue(pair32_t &val);
+	void StateValue(pair64_t &val);
+	void StateValue(float &val);
+	void StateValue(double &val);
+	void StateValue(_TCHAR &val);
+	
+	void StateArray(bool *buffer, size_t size, size_t count);
+	void StateArray(uint8_t *buffer, size_t size, size_t count);
+	void StateArray(uint16_t *buffer, size_t size, size_t count);
+	void StateArray(uint32_t *buffer, size_t size, size_t count);
+	void StateArray(uint64_t *buffer, size_t size, size_t count);
+	void StateArray(int8_t *buffer, size_t size, size_t count);
+	void StateArray(int16_t *buffer, size_t size, size_t count);
+	void StateArray(int32_t *buffer, size_t size, size_t count);
+	void StateArray(int64_t *buffer, size_t size, size_t count);
+	void StateArray(pair16_t *buffer, size_t size, size_t count);
+	void StateArray(pair32_t *buffer, size_t size, size_t count);
+	void StateArray(pair64_t *buffer, size_t size, size_t count);
+	void StateArray(float *buffer, size_t size, size_t count);
+	void StateArray(double *buffer, size_t size, size_t count);
+	void StateArray(_TCHAR *buffer, size_t size, size_t count);
+	
+	// obsolete function
 	void StateBuffer(void *buffer, size_t size, size_t count);
 };
 

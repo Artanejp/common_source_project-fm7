@@ -744,7 +744,7 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
  		}
  	}
 #if defined(_MZ800)
-	state_fio->StateInt32(boot_mode);
+	state_fio->StateValue(boot_mode);
 #endif
 	return true;
 }

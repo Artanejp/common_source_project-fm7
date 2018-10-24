@@ -401,30 +401,30 @@ bool MAIN::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBuffer(common, sizeof(common), 1);
-	state_fio->StateUint8(ma);
-	state_fio->StateUint8(ms);
-	state_fio->StateUint8(mo);
-	state_fio->StateBool(me1);
-	state_fio->StateBool(me2);
-	state_fio->StateUint8(srqb);
-	state_fio->StateUint8(sres);
-	state_fio->StateBool(sack);
-	state_fio->StateBool(srdy);
-	state_fio->StateBool(intfd);
-	state_fio->StateBool(int0);
-	state_fio->StateBool(int1);
-	state_fio->StateBool(int2);
-	state_fio->StateBool(int3);
-	state_fio->StateBool(int4);
-	state_fio->StateBool(me);
-	state_fio->StateBool(e1);
-	state_fio->StateUint8(inp);
-	state_fio->StateBool(motor);
-	state_fio->StateBool(drq);
-	state_fio->StateBool(index);
-	state_fio->StateBool(crt_400line);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(common, sizeof(common), 1);
+	state_fio->StateValue(ma);
+	state_fio->StateValue(ms);
+	state_fio->StateValue(mo);
+	state_fio->StateValue(me1);
+	state_fio->StateValue(me2);
+	state_fio->StateValue(srqb);
+	state_fio->StateValue(sres);
+	state_fio->StateValue(sack);
+	state_fio->StateValue(srdy);
+	state_fio->StateValue(intfd);
+	state_fio->StateValue(int0);
+	state_fio->StateValue(int1);
+	state_fio->StateValue(int2);
+	state_fio->StateValue(int3);
+	state_fio->StateValue(int4);
+	state_fio->StateValue(me);
+	state_fio->StateValue(e1);
+	state_fio->StateValue(inp);
+	state_fio->StateValue(motor);
+	state_fio->StateValue(drq);
+	state_fio->StateValue(index);
+	state_fio->StateValue(crt_400line);
 	
 	// post process
 	if(loading) {

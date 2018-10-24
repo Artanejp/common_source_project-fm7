@@ -811,7 +811,7 @@ void dmac_t::run(int c)
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {

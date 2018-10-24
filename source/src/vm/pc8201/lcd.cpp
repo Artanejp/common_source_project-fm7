@@ -163,7 +163,7 @@ void LCD::draw_screen()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool LCD::process_state(FILEIO* state_fio, bool loading)
 {

@@ -171,7 +171,7 @@ void INTERRUPT::notify_intr_reti()
 #endif
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool INTERRUPT::process_state(FILEIO* state_fio, bool loading)
 {

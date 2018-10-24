@@ -288,27 +288,27 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBuffer(vram, sizeof(vram), 1);
-	state_fio->StateBuffer(learn, sizeof(learn), 1);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateArray(learn, sizeof(learn), 1);
 #ifdef _PC98HA
-	state_fio->StateBuffer(ramdrv, sizeof(ramdrv), 1);
-	state_fio->StateBuffer(ems, sizeof(ems), 1);
-	state_fio->StateBuffer(memcard, sizeof(memcard), 1);
+	state_fio->StateArray(ramdrv, sizeof(ramdrv), 1);
+	state_fio->StateArray(ems, sizeof(ems), 1);
+	state_fio->StateArray(memcard, sizeof(memcard), 1);
 #endif
-	state_fio->StateUint32(learn_crc32);
+	state_fio->StateValue(learn_crc32);
 #ifdef _PC98HA
-	state_fio->StateUint32(ramdrv_crc32);
-	state_fio->StateUint32(memcard_crc32);
+	state_fio->StateValue(ramdrv_crc32);
+	state_fio->StateValue(memcard_crc32);
 #endif
-	state_fio->StateUint8(learn_bank);
-	state_fio->StateUint8(dic_bank);
-	state_fio->StateUint8(kanji_bank);
-	state_fio->StateUint8(romdrv_bank);
+	state_fio->StateValue(learn_bank);
+	state_fio->StateValue(dic_bank);
+	state_fio->StateValue(kanji_bank);
+	state_fio->StateValue(romdrv_bank);
 #ifdef _PC98HA
-	state_fio->StateUint8(ramdrv_bank);
-	state_fio->StateUint8(ramdrv_sel);
-	state_fio->StateBuffer(ems_bank, sizeof(ems_bank), 1);
+	state_fio->StateValue(ramdrv_bank);
+	state_fio->StateValue(ramdrv_sel);
+	state_fio->StateArray(ems_bank, sizeof(ems_bank), 1);
 #endif
 	
 	// post process

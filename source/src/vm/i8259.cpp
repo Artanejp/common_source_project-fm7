@@ -277,7 +277,7 @@ uint32_t I8259::get_intr_ack()
 	return vector;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool I8259::process_state(FILEIO* state_fio, bool loading)
 {

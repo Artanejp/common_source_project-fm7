@@ -330,16 +330,16 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 #if defined(SUPPORT_2HD_FDD_IF)
-	state_fio->StateUint8(ctrlreg_2hd);
+	state_fio->StateValue(ctrlreg_2hd);
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
-	state_fio->StateUint8(ctrlreg_2dd);
+	state_fio->StateValue(ctrlreg_2dd);
 #endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
-	state_fio->StateUint8(ctrlreg);
-	state_fio->StateUint8(modereg);
+	state_fio->StateValue(ctrlreg);
+	state_fio->StateValue(modereg);
 #endif
-	state_fio->StateInt32(timer_id);
+	state_fio->StateValue(timer_id);
 	return true;
 }
 

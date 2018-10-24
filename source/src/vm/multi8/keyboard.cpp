@@ -253,16 +253,16 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateInt32(init);
-	state_fio->StateUint8(code);
-	state_fio->StateUint8(code_prev);
-	state_fio->StateUint8(stat);
-	state_fio->StateBool(caps);
-	state_fio->StateBool(caps_prev);
-	state_fio->StateBool(graph);
-	state_fio->StateBool(graph_prev);
-	state_fio->StateBool(kana);
-	state_fio->StateBool(kana_prev);
+	state_fio->StateValue(init);
+	state_fio->StateValue(code);
+	state_fio->StateValue(code_prev);
+	state_fio->StateValue(stat);
+	state_fio->StateValue(caps);
+	state_fio->StateValue(caps_prev);
+	state_fio->StateValue(graph);
+	state_fio->StateValue(graph_prev);
+	state_fio->StateValue(kana);
+	state_fio->StateValue(kana_prev);
 	return true;
 }
 

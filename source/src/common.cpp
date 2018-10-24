@@ -1474,14 +1474,14 @@ bool DLL_PREFIX cur_time_t::process_state(void *f, bool loading)
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	state_fio->StateInt32(year);
-	state_fio->StateInt32(month);
-	state_fio->StateInt32(day);
-	state_fio->StateInt32(day_of_week);
-	state_fio->StateInt32(hour);
-	state_fio->StateInt32(minute);
-	state_fio->StateInt32(second);
-	state_fio->StateBool(initialized);
+	state_fio->StateValue(year);
+	state_fio->StateValue(month);
+	state_fio->StateValue(day);
+	state_fio->StateValue(day_of_week);
+	state_fio->StateValue(hour);
+	state_fio->StateValue(minute);
+	state_fio->StateValue(second);
+	state_fio->StateValue(initialized);
 	return true;
 }
 

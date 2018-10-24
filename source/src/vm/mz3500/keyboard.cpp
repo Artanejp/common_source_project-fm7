@@ -475,16 +475,16 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	if(!key_buf->process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateInt32(phase);
-	state_fio->StateUint16(send_data);
-	state_fio->StateUint32(stc_clock);
-	state_fio->StateUint8(recv_data);
-	state_fio->StateBool(recv_ok);
-	state_fio->StateBool(stc);
-	state_fio->StateBool(dc);
-	state_fio->StateBool(caps);
-	state_fio->StateBool(kana);
-	state_fio->StateBool(pro_mode);
+	state_fio->StateValue(phase);
+	state_fio->StateValue(send_data);
+	state_fio->StateValue(stc_clock);
+	state_fio->StateValue(recv_data);
+	state_fio->StateValue(recv_ok);
+	state_fio->StateValue(stc);
+	state_fio->StateValue(dc);
+	state_fio->StateValue(caps);
+	state_fio->StateValue(kana);
+	state_fio->StateValue(pro_mode);
 	return true;
 }
 

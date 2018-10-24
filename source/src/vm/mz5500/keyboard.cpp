@@ -482,17 +482,17 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	if(!rsp_buf->process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateBool(caps);
-	state_fio->StateBool(kana);
-	state_fio->StateBool(graph);
-	state_fio->StateInt32(dk);
-	state_fio->StateInt32(srk);
-	state_fio->StateInt32(dc);
-	state_fio->StateInt32(stc);
-	state_fio->StateInt32(send);
-	state_fio->StateInt32(recv);
-	state_fio->StateInt32(phase);
-	state_fio->StateInt32(timeout);
+	state_fio->StateValue(caps);
+	state_fio->StateValue(kana);
+	state_fio->StateValue(graph);
+	state_fio->StateValue(dk);
+	state_fio->StateValue(srk);
+	state_fio->StateValue(dc);
+	state_fio->StateValue(stc);
+	state_fio->StateValue(send);
+	state_fio->StateValue(recv);
+	state_fio->StateValue(phase);
+	state_fio->StateValue(timeout);
 	return true;
 }
 

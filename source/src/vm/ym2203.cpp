@@ -722,7 +722,7 @@ void YM2203::update_timing(int new_clocks, double new_frames_per_sec, int new_li
 	clock_const = (uint32_t)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool YM2203::process_state(FILEIO* state_fio, bool loading)
 {

@@ -232,7 +232,7 @@ void YM2151::update_timing(int new_clocks, double new_frames_per_sec, int new_li
 	clock_const = (uint32_t)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool YM2151::process_state(FILEIO* state_fio, bool loading)
 {

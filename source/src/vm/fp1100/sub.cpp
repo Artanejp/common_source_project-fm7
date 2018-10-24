@@ -581,7 +581,61 @@ void SUB::draw_screen()
 		state_fio->StateUint8(foo.counter);		\
 	}
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
+
+void process_state_ls74(ls74_t* val, FILEIO* state_fio)
+{
+	state_fio->StateValue(val->in_d);
+	state_fio->StateValue(val->in_ck);
+	state_fio->StateValue(val->in_s);
+	state_fio->StateValue(val->in_r);
+	state_fio->StateValue(val->out_q);
+	state_fio->StateValue(val->out_nq);
+	state_fio->StateValue(val->tmp_ck);
+}
+
+void process_state_ls151(ls151_t* val, FILEIO* state_fio)
+{
+	state_fio->StateValue(val->in_d0);
+	state_fio->StateValue(val->in_d1);
+	state_fio->StateValue(val->in_d2);
+	state_fio->StateValue(val->in_d3);
+	state_fio->StateValue(val->in_d4);
+	state_fio->StateValue(val->in_d5);
+	state_fio->StateValue(val->in_d6);
+	state_fio->StateValue(val->in_d7);
+	state_fio->StateValue(val->in_a);
+	state_fio->StateValue(val->in_b);
+	state_fio->StateValue(val->in_c);
+	state_fio->StateValue(val->in_s);
+	state_fio->StateValue(val->out_y);
+	state_fio->StateValue(val->out_ny);
+}
+
+void process_state_ls93(ls93_t* val, FILEIO* state_fio)
+{
+	state_fio->StateValue(val->in_a);
+	state_fio->StateValue(val->in_b);
+	state_fio->StateValue(val->in_rc1);
+	state_fio->StateValue(val->in_rc2);
+	state_fio->StateValue(val->out_qa);
+	state_fio->StateValue(val->out_qb);
+	state_fio->StateValue(val->out_qc);
+	state_fio->StateValue(val->tmp_a);
+	state_fio->StateValue(val->tmp_b);
+	state_fio->StateValue(val->counter_a);
+	state_fio->StateValue(val->counter_b);
+}
+
+void process_state_tc4024bp(tc4024bp_t* val, FILEIO* state_fio)
+{
+	state_fio->StateValue(val->in_ck);
+	state_fio->StateValue(val->in_clr);
+	state_fio->StateValue(val->out_q5);
+	state_fio->StateValue(val->out_q6);
+	state_fio->StateValue(val->tmp_ck);
+	state_fio->StateValue(val->counter);
+}
 
 bool SUB::process_state(FILEIO* state_fio, bool loading)
 {

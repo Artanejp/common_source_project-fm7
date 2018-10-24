@@ -1077,11 +1077,11 @@ bool PSUB::process_state(FILEIO* state_fio, bool loading)
 	if(loading) {
 		close_tape();
 	}
-	state_fio->StateBool(play);
-	state_fio->StateBool(rec);
-	state_fio->StateBool(is_wav);
-	state_fio->StateBool(is_p6t);
-	state_fio->StateBuffer(rec_file_path, sizeof(rec_file_path), 1);
+	state_fio->StateValue(play);
+	state_fio->StateValue(rec);
+	state_fio->StateValue(is_wav);
+	state_fio->StateValue(is_p6t);
+	state_fio->StateArray(rec_file_path, sizeof(rec_file_path), 1);
 	if(loading) {
 		int length_tmp = state_fio->FgetInt32_LE();
 		if(rec) {
@@ -1112,24 +1112,24 @@ bool PSUB::process_state(FILEIO* state_fio, bool loading)
 			state_fio->FputInt32_LE(0);
 		}
 	}
-	state_fio->StateInt32(CasIntFlag);
-	state_fio->StateInt32(CasIndex);
-	state_fio->StateInt32(CasRecv);
-	state_fio->StateInt32(CasMode);
-	state_fio->StateInt32(CasBaud);
-	state_fio->StateInt32(FileBaud);
-	state_fio->StateBuffer(CasData, sizeof(CasData), 1);
-	state_fio->StateInt32(CasLength);
-	state_fio->StateInt32(CasSkipFlag);
-	state_fio->StateInt32(kbFlagFunc);
-	state_fio->StateInt32(kbFlagGraph);
-	state_fio->StateInt32(kbFlagCtrl);
-	state_fio->StateInt32(kanaMode);
-	state_fio->StateInt32(katakana);
-	state_fio->StateInt32(p6key);
-	state_fio->StateInt32(stick0);
-	state_fio->StateInt32(StrigIntFlag);
-	state_fio->StateInt32(StrigEventID);
+	state_fio->StateValue(CasIntFlag);
+	state_fio->StateValue(CasIndex);
+	state_fio->StateValue(CasRecv);
+	state_fio->StateValue(CasMode);
+	state_fio->StateValue(CasBaud);
+	state_fio->StateValue(FileBaud);
+	state_fio->StateArray(CasData, sizeof(CasData), 1);
+	state_fio->StateValue(CasLength);
+	state_fio->StateValue(CasSkipFlag);
+	state_fio->StateValue(kbFlagFunc);
+	state_fio->StateValue(kbFlagGraph);
+	state_fio->StateValue(kbFlagCtrl);
+	state_fio->StateValue(kanaMode);
+	state_fio->StateValue(katakana);
+	state_fio->StateValue(p6key);
+	state_fio->StateValue(stick0);
+	state_fio->StateValue(StrigIntFlag);
+	state_fio->StateValue(StrigEventID);
 	return true;
 }
 

@@ -1599,7 +1599,7 @@ void DISPLAY::draw_text()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {

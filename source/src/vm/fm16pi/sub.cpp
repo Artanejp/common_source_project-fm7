@@ -197,11 +197,11 @@ bool SUB::process_state(FILEIO* state_fio, bool loading)
 	if(!key_buffer->process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateUint8(key_data);
-	state_fio->StateBool(key_irq);
-	state_fio->StateUint8(fdc_drive);
-	state_fio->StateUint8(fdc_side);
-	state_fio->StateUint8(rtc_data);
+	state_fio->StateValue(key_data);
+	state_fio->StateValue(key_irq);
+	state_fio->StateValue(fdc_drive);
+	state_fio->StateValue(fdc_side);
+	state_fio->StateValue(rtc_data);
 	return true;
 }
 

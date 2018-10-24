@@ -321,17 +321,17 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(pal, sizeof(pal), 1);
-	state_fio->StateBool(text_wide);
-	state_fio->StateBool(text_color);
-	state_fio->StateUint8(graph_color);
-	state_fio->StateUint8(graph_page);
-	state_fio->StateUint16(cursor);
-	state_fio->StateUint16(cblink);
-	state_fio->StateBool(hsync);
-	state_fio->StateBool(vsync);
-	state_fio->StateBool(display);
-	state_fio->StateBool(blink);
+	state_fio->StateArray(pal, sizeof(pal), 1);
+	state_fio->StateValue(text_wide);
+	state_fio->StateValue(text_color);
+	state_fio->StateValue(graph_color);
+	state_fio->StateValue(graph_page);
+	state_fio->StateValue(cursor);
+	state_fio->StateValue(cblink);
+	state_fio->StateValue(hsync);
+	state_fio->StateValue(vsync);
+	state_fio->StateValue(display);
+	state_fio->StateValue(blink);
 	return true;
 }
 

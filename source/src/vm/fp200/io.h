@@ -21,6 +21,104 @@ class FILEIO;
 
 namespace FP200 {
 
+// 74LS74
+typedef struct ls74_s {
+	bool in_d, in_ck, in_s, in_r;
+	bool out_q, out_nq;
+	bool tmp_ck;
+	void update()
+	{
+		if(!in_s && in_r) {
+			out_q = true;
+			out_nq = false;
+		} else if(in_s && !in_r) {
+			out_q = false;
+			out_nq = true;
+		} else if(!in_s && !in_r) {
+			out_q = out_nq = true; // undetermined
+		} else if(!tmp_ck && in_ck) {
+			out_q = in_d;
+			out_nq = !in_d;
+		}
+		tmp_ck = in_ck;
+	}
+} ls74_t;
+
+// 74LS151
+typedef struct ls151_s {
+	bool in_d0, in_d1, in_d2, in_d3, in_d4, in_d5, in_d6, in_d7;
+	bool in_a, in_b, in_c, in_s;
+	bool out_y, out_ny;
+	void update()
+	{
+		if(in_s) {
+			out_y = false;
+		} else if(!in_a && !in_b && !in_c) {
+			out_y = in_d0;
+		} else if( in_a && !in_b && !in_c) {
+			out_y = in_d1;
+		} else if(!in_a &&  in_b && !in_c) {
+			out_y = in_d2;
+		} else if( in_a &&  in_b && !in_c) {
+			out_y = in_d3;
+		} else if(!in_a && !in_b &&  in_c) {
+			out_y = in_d4;
+		} else if( in_a && !in_b &&  in_c) {
+			out_y = in_d5;
+		} else if(!in_a &&  in_b &&  in_c) {
+			out_y = in_d6;
+		} else if( in_a &&  in_b &&  in_c) {
+			out_y = in_d7;
+		}
+		out_ny = !out_y;
+	}
+} ls151_t;
+
+// 74LS93
+typedef struct ls93_s {
+	bool in_a, in_b, in_rc1, in_rc2;
+	bool out_qa, out_qb, out_qc;
+	bool tmp_a, tmp_b;
+	uint8_t counter_a, counter_b;
+	void update()
+	{
+		if(in_rc1 && in_rc2) {
+			counter_a = counter_b = 0;
+		} else {
+			if(tmp_a && !in_a) {
+				counter_a++;
+			}
+			if(tmp_b && !in_b) {
+				counter_b++;
+			}
+		}
+		tmp_a = in_a;
+		tmp_b = in_b;
+		out_qa = ((counter_a & 1) != 0);
+		out_qb = ((counter_b & 1) != 0);
+		out_qc = ((counter_b & 2) != 0);
+	}
+} ls93_t;
+
+// TC4024BP
+typedef struct tc4024bp_s {
+	bool in_ck, in_clr;
+	bool out_q5, out_q6;
+	bool tmp_ck;
+	uint8_t counter;
+	void update()
+	{
+		if(in_clr) {
+			counter = 0;
+		} else if(tmp_ck && !in_ck) {
+			counter++;
+		}
+		tmp_ck = in_ck;
+		out_q5 = ((counter & 0x10) != 0);
+		out_q6 = ((counter & 0x20) != 0);
+	}
+} tc4024bp_t;
+
 class IO : public DEVICE
 {
 private:
@@ -54,96 +152,10 @@ private:
 	
 	// from FP-1100
 	uint8_t cmt_clock;
-	struct {
-		bool in_d, in_ck, in_s, in_r;
-		bool out_q, out_nq;
-		bool tmp_ck;
-		void update()
-		{
-			if(!in_s && in_r) {
-				out_q = true;
-				out_nq = false;
-			} else if(in_s && !in_r) {
-				out_q = false;
-				out_nq = true;
-			} else if(!in_s && !in_r) {
-				out_q = out_nq = true; // undetermined
-			} else if(!tmp_ck && in_ck) {
-				out_q = in_d;
-				out_nq = !in_d;
-			}
-			tmp_ck = in_ck;
-		}
-	} b16_1, b16_2, g21_1, g21_2;
-	struct {
-		bool in_d0, in_d1, in_d2, in_d3, in_d4, in_d5, in_d6, in_d7;
-		bool in_a, in_b, in_c, in_s;
-		bool out_y, out_ny;
-		void update()
-		{
-			if(in_s) {
-				out_y = false;
-			} else if(!in_a && !in_b && !in_c) {
-				out_y = in_d0;
-			} else if( in_a && !in_b && !in_c) {
-				out_y = in_d1;
-			} else if(!in_a &&  in_b && !in_c) {
-				out_y = in_d2;
-			} else if( in_a &&  in_b && !in_c) {
-				out_y = in_d3;
-			} else if(!in_a && !in_b &&  in_c) {
-				out_y = in_d4;
-			} else if( in_a && !in_b &&  in_c) {
-				out_y = in_d5;
-			} else if(!in_a &&  in_b &&  in_c) {
-				out_y = in_d6;
-			} else if( in_a &&  in_b &&  in_c) {
-				out_y = in_d7;
-			}
-			out_ny = !out_y;
-		}
-	} c15;
-	struct {
-		bool in_a, in_b, in_rc1, in_rc2;
-		bool out_qa, out_qb, out_qc;
-		bool tmp_a, tmp_b;
-		uint8_t counter_a, counter_b;
-		void update()
-		{
-			if(in_rc1 && in_rc2) {
-				counter_a = counter_b = 0;
-			} else {
-				if(tmp_a && !in_a) {
-					counter_a++;
-				}
-				if(tmp_b && !in_b) {
-					counter_b++;
-				}
-			}
-			tmp_a = in_a;
-			tmp_b = in_b;
-			out_qa = ((counter_a & 1) != 0);
-			out_qb = ((counter_b & 1) != 0);
-			out_qc = ((counter_b & 2) != 0);
-		}
-	} c16;
-	struct {
-		bool in_ck, in_clr;
-		bool out_q5, out_q6;
-		bool tmp_ck;
-		uint8_t counter;
-		void update()
-		{
-			if(in_clr) {
-				counter = 0;
-			} else if(tmp_ck && !in_ck) {
-				counter++;
-			}
-			tmp_ck = in_ck;
-			out_q5 = ((counter & 0x10) != 0);
-			out_q6 = ((counter & 0x20) != 0);
-		}
-	} f21;
+	ls74_t b16_1, b16_2, g21_1, g21_2;
+	ls151_t c15;
+	ls93_t c16;
+	tc4024bp_t f21;
 	void update_cmt();
 	
 	// keyboard

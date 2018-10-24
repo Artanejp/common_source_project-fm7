@@ -73,7 +73,7 @@ bool PSG::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	for(int i = 0; i < 3; i++) {
-		state_fio->StateInt32(ch[i].period);
+		state_fio->StateValue(ch[i].period);
 	}
 	return true;
 }

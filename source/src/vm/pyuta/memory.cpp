@@ -325,11 +325,11 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBool(cmt_signal);
-	state_fio->StateBool(cmt_remote);
-	state_fio->StateBool(has_extrom);
-	state_fio->StateBool(cart_enabled);
-	state_fio->StateInt32(ctype);
+	state_fio->StateValue(cmt_signal);
+	state_fio->StateValue(cmt_remote);
+	state_fio->StateValue(has_extrom);
+	state_fio->StateValue(cart_enabled);
+	state_fio->StateValue(ctype);
 	
 	// post process
 	if(loading) {

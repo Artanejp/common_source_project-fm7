@@ -232,9 +232,9 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	if(!key_buf->process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateInt32(key_code);
-	state_fio->StateBool(kana);
-	state_fio->StateInt32(event_cnt);
+	state_fio->StateValue(key_code);
+	state_fio->StateValue(kana);
+	state_fio->StateValue(event_cnt);
 	return true;
 }
 

@@ -108,8 +108,8 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBool(inserted);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateValue(inserted);
 	return true;
 }
 

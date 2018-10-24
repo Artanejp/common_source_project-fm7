@@ -137,14 +137,14 @@ bool MOUSE::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateInt32(ctrlreg);
-	state_fio->StateInt32(freq);
-	state_fio->StateInt32(cur_freq);
-	state_fio->StateInt32(dx);
-	state_fio->StateInt32(dy);
-	state_fio->StateInt32(lx);
-	state_fio->StateInt32(ly);
-	state_fio->StateInt32(register_id);
+	state_fio->StateValue(ctrlreg);
+	state_fio->StateValue(freq);
+	state_fio->StateValue(cur_freq);
+	state_fio->StateValue(dx);
+	state_fio->StateValue(dy);
+	state_fio->StateValue(lx);
+	state_fio->StateValue(ly);
+	state_fio->StateValue(register_id);
 	return true;
 }
 

@@ -221,9 +221,9 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 #if defined(_TK80BS)
-	state_fio->StateInt32(mode);
+	state_fio->StateValue(mode);
 #endif
-	state_fio->StateBool(dma);
+	state_fio->StateValue(dma);
 	return true;
 }
 

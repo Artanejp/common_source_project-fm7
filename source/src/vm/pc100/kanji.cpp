@@ -67,8 +67,8 @@ bool KANJI::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint16(ptr);
-	state_fio->StateBool(strobe);
+	state_fio->StateValue(ptr);
+	state_fio->StateValue(strobe);
 	return true;
 }
 

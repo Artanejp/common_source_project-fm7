@@ -1513,7 +1513,7 @@ uint16_t DISPLAY::jis2sjis(uint16_t jis)
 	return (c1 << 8) | c2;
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {

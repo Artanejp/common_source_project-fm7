@@ -38,7 +38,7 @@ bool RESET::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint8(prev);
+	state_fio->StateValue(prev);
 	return true;
 }
 

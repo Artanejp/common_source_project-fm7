@@ -119,7 +119,7 @@ void TMS3631::initialize_sound(int rate, int volume)
 	vol = volume / 8;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool TMS3631::process_state(FILEIO* state_fio, bool loading)
 {

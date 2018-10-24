@@ -73,8 +73,8 @@ bool TIMER::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint8(ctrl);
-	state_fio->StateUint8(status);
+	state_fio->StateValue(ctrl);
+	state_fio->StateValue(status);
 	return true;
 }
 

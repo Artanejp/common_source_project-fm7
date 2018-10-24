@@ -279,16 +279,16 @@ bool IO::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint8(pb);
-	state_fio->StateUint8(pc);
-	state_fio->StateUint8(div_counter);
-	state_fio->StateUint8(counter);
-	state_fio->StateInt32(posi_counter);
-	state_fio->StateInt32(nega_counter);
-	state_fio->StateBool(drec_in);
-	state_fio->StateBool(drec_toggle);
-	state_fio->StateUint32(prev_clock);
-	state_fio->StateInt32(register_id);
+	state_fio->StateValue(pb);
+	state_fio->StateValue(pc);
+	state_fio->StateValue(div_counter);
+	state_fio->StateValue(counter);
+	state_fio->StateValue(posi_counter);
+	state_fio->StateValue(nega_counter);
+	state_fio->StateValue(drec_in);
+	state_fio->StateValue(drec_toggle);
+	state_fio->StateValue(prev_clock);
+	state_fio->StateValue(register_id);
 	return true;
 }
 

@@ -72,9 +72,9 @@ bool DUMMYDEVICE::process_state(FILEIO* state_fio, bool loading)
 	}
 	// Version 1
 	{
-		state_fio->StateUint32(status);
-		state_fio->StateBool(clear_on_reset);
-		state_fio->StateBool(clear_with_zero);
+		state_fio->StateValue(status);
+		state_fio->StateValue(clear_on_reset);
+		state_fio->StateValue(clear_with_zero);
 	}
 	return true;
 }

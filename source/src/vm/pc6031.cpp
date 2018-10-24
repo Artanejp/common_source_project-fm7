@@ -423,7 +423,7 @@ void PC6031::update_config()
 //	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool PC6031::process_state(FILEIO* state_fio, bool loading)
 {

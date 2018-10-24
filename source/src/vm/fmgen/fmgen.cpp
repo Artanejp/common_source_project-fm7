@@ -1071,8 +1071,8 @@ bool Channel4::ProcessState(void *f, bool loading)
 	if(!state_fio->StateCheckUint32(CHANNEL4_STATE_VERSION)) {
 		return false;
 	}
-	state_fio->StateUint32(fb);
-	state_fio->StateBuffer(buf, sizeof(buf), 1);
+	state_fio->StateValue(fb);
+	state_fio->StateArray(buf, sizeof(buf), 1);
 	if(loading) {
 		for(int i = 0; i < 3; i++) {
 			in [i] = &buf[0] + state_fio->FgetInt32_LE();
@@ -1086,7 +1086,7 @@ bool Channel4::ProcessState(void *f, bool loading)
 		}
 		state_fio->FputInt32_LE((int)(pms - &pmtable[0][0][0]));
 	}
-	state_fio->StateInt32(algo_);
+	state_fio->StateValue(algo_);
 	for(int i = 0; i < 4; i++) {
 		if(!op[i].ProcessState(f, loading)) {
 			return false;

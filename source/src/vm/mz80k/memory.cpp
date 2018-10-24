@@ -420,32 +420,32 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBuffer(vram, sizeof(vram), 1);
-	state_fio->StateBool(tempo);
-	state_fio->StateBool(blink);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateValue(tempo);
+	state_fio->StateValue(blink);
 #if defined(_MZ1200) || defined(_MZ80A)
-	state_fio->StateBool(hblank);
-	state_fio->StateBool(memory_swap);
+	state_fio->StateValue(hblank);
+	state_fio->StateValue(memory_swap);
 #endif
 #if defined(SUPPORT_MZ80AIF)
-	state_fio->StateBool(fdc_irq);
-	state_fio->StateBool(fdc_drq);
+	state_fio->StateValue(fdc_irq);
+	state_fio->StateValue(fdc_drq);
 #endif
-	state_fio->StateBool(vgate);
+	state_fio->StateValue(vgate);
 #if defined(_MZ1200) || defined(_MZ80A)
-	state_fio->StateBool(reverse);
+	state_fio->StateValue(reverse);
 #endif
 #if defined(_MZ80A)
-	state_fio->StateUint32(e200);
+	state_fio->StateValue(e200);
 #endif
-	state_fio->StateBuffer(pcg + 0x400, 0x400, 1);
+	state_fio->StateArray(pcg + 0x400, 0x400, 1);
 #if defined(_MZ1200)
-	state_fio->StateBuffer(pcg + 0xc00, 0x400, 1);
+	state_fio->StateArray(pcg + 0xc00, 0x400, 1);
 #endif
-	state_fio->StateUint8(pcg_data);
-	state_fio->StateUint8(pcg_addr);
-	state_fio->StateUint8(pcg_ctrl);
+	state_fio->StateValue(pcg_data);
+	state_fio->StateValue(pcg_addr);
+	state_fio->StateValue(pcg_ctrl);
 	
 	// post process
 	if(loading) {

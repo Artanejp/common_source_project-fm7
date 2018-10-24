@@ -177,16 +177,16 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBuffer(vram, sizeof(vram), 1);
-	state_fio->StateBuffer(pal, sizeof(pal), 1);
-	state_fio->StateUint8(mem_map);
-	state_fio->StateUint8(plane);
-	state_fio->StateUint8(attr_data);
-	state_fio->StateUint8(attr_latch);
-	state_fio->StateBool(vram_sel);
-	state_fio->StateBool(pal_sel);
-	state_fio->StateBool(attr_wrap);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateArray(pal, sizeof(pal), 1);
+	state_fio->StateValue(mem_map);
+	state_fio->StateValue(plane);
+	state_fio->StateValue(attr_data);
+	state_fio->StateValue(attr_latch);
+	state_fio->StateValue(vram_sel);
+	state_fio->StateValue(pal_sel);
+	state_fio->StateValue(attr_wrap);
 	
 	// post process
 	if(loading) {

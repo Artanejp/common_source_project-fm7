@@ -57,7 +57,7 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBool(drq);
+	state_fio->StateValue(drq);
 	return true;
 }
 

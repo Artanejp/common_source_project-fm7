@@ -1,8 +1,14 @@
+10/14/2018
+
+[COMMON/FILEIO] improve functions to load/save state file for big-endian
+
+[VM/*] improve process_state for big-endian
+
+
 10/13/2018
 
 [EMU/DEBUGGER] increase breakpoint number from 8 to 16
 
-[VM/SCSI_DEV] fix to clear req signal after ack signal is raised
 [VM/VM_TEMPLATE] fix issue that virtual machine is not correctly released
 
 
