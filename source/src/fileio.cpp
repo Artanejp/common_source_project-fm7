@@ -1138,6 +1138,27 @@ void FILEIO::StateValue(_TCHAR &val)
 	}
 }
 
+// 20181025 K.O
+// Note: scrntype_t is variable size type.2 bytes@15/16bpp, 4bytes@24/32bpp.
+void FILEIO::StateValue(scrntype_t &val)
+{
+	uint8_t r, g, b;
+	if(open_mode == FILEIO_READ_BINARY) {
+		r = FgetUint8();
+		g = FgetUint8();
+		b = FgetUint8();
+		val = RGB_COLOR(r, g, b);
+	} else {
+		r = R_OF_COLOR(val);
+		g = G_OF_COLOR(val);
+		b = B_OF_COLOR(val);
+		FputUint8(r);
+		FputUint8(g);
+		FputUint8(b);
+	}
+}
+
+
 void FILEIO::StateArray(bool *buffer, size_t size, size_t count)
 {
 	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
@@ -1242,6 +1263,16 @@ void FILEIO::StateArray(_TCHAR *buffer, size_t size, size_t count)
 		StateValue(buffer[i]);
 	}
 }
+
+// 20181025 K.O
+// Note: scrntype_t is variable size type.2 bytes@15/16bpp, 4bytes@24/32bpp.
+void FILEIO::StateArray(scrntype_t *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
+	}
+}
+
 
 void FILEIO::StateBuffer(void *buffer, size_t size, size_t count)
 {

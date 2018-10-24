@@ -167,6 +167,7 @@ public:
 	void StateValue(float &val);
 	void StateValue(double &val);
 	void StateValue(_TCHAR &val);
+	void StateValue(scrntype_t &val);
 	
 	void StateArray(bool *buffer, size_t size, size_t count);
 	void StateArray(uint8_t *buffer, size_t size, size_t count);
@@ -183,6 +184,7 @@ public:
 	void StateArray(float *buffer, size_t size, size_t count);
 	void StateArray(double *buffer, size_t size, size_t count);
 	void StateArray(_TCHAR *buffer, size_t size, size_t count);
+	void StateArray(scrntype_t *buffer, size_t size, size_t count);
 	
 	// obsolete function
 	void StateBuffer(void *buffer, size_t size, size_t count);
