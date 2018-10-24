@@ -82,11 +82,7 @@ void OSD::vm_draw_screen(void)
 
 double OSD::vm_frame_rate(void)
 {
-#ifdef SUPPORT_VARIABLE_TIMING
 	return vm->get_frame_rate();
-#else
-	return FRAMES_PER_SEC;
-#endif   
 }
 
 Sint16* OSD::create_sound(int *extra_frames)

@@ -1057,9 +1057,6 @@ void OSD::set_features_misc(void)
 #ifdef CHARS_PER_LINE
 	add_feature(_T("CHARS_PER_LINE"), (int)CHARS_PER_LINE);
 #endif
-#ifdef SUPPORT_VARIABLE_TIMING
-	add_feature(_T("SUPPORT_VARIABLE_TIMING"), 1);
-#endif
 #ifdef USE_ALPHA_BLENDING_TO_IMPOSE
 	add_feature(_T("USE_ALPHA_BLENDING_TO_IMPOSE"), 1);
 #endif

@@ -378,7 +378,7 @@ void OSD_BASE::stop_record_sound()
 			wav_chunk_t wav_chunk;
 #if 0
 			pair16_t tmpval16;
-			pair_t tmpval32;
+			pair32_t tmpval32;
 			
 			memcpy(wav_header.riff_chunk.id, "RIFF", 4);
 			

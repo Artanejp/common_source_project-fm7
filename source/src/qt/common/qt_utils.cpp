@@ -1466,6 +1466,7 @@ QString Ui_MainWindow::get_system_version()
 	libfmgen_ver = QString::fromUtf8(FM::get_libfmgen_version());
 	
 	outstr.clear();
+	outstr.append(QString::fromUtf8("<FONT SIZE=+2>"));
 	if(!(common_vmver.isEmpty())) {
 		outstr.append(common_vmver);
 		outstr.append("<BR>\n");
@@ -1478,6 +1479,10 @@ QString Ui_MainWindow::get_system_version()
 		outstr.append(libfmgen_ver);
 		outstr.append("<BR>\n");
 	}
+	if(!(osdver.isEmpty())) {
+		outstr.append(osdver);
+		outstr.append("<BR>\n");
+	}
 	if(!(guiver.isEmpty())) {
 		outstr.append(guiver);
 		outstr.append("<BR>\n");
@@ -1486,6 +1491,7 @@ QString Ui_MainWindow::get_system_version()
 		outstr.append(aviover);
 		outstr.append("<BR>\n");
 	}
+	outstr.append(QString::fromUtf8("</FONT>"));
 	if(!(vm_gitver.isEmpty())) {
 		outstr.append("Build Version: ");
 		outstr.append(vm_gitver);

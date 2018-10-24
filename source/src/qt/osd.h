@@ -42,7 +42,6 @@ protected:
 	void vm_draw_screen(void);
 	Sint16* create_sound(int *extra_frames);
 	bool get_use_socket(void);
-	bool get_support_variable_timing(void);
 	bool get_use_auto_key(void);
 	bool get_dont_keeep_key_pressed(void);
 	bool get_one_board_micro_computer(void);
