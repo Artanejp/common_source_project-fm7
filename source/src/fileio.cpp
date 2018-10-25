@@ -1087,9 +1087,9 @@ void FILEIO::StateValue(int64_t &val)
 void FILEIO::StateValue(pair16_t &val)
 {
 	if(open_mode == FILEIO_READ_BINARY) {
-		val.w = FgetUint16_LE();
+		val.u16 = FgetUint16_LE();
 	} else {
-		FputUint16_LE(val.w);
+		FputUint16_LE(val.u16);
 	}
 }
 
@@ -1140,7 +1140,7 @@ void FILEIO::StateValue(_TCHAR &val)
 
 // 20181025 K.O
 // Note: scrntype_t is variable size type.2 bytes@15/16bpp, 4bytes@24/32bpp.
-void FILEIO::StateValue(scrntype_t &val)
+void FILEIO::StateValueScrnType_t(scrntype_t &val)
 {
 	uint8_t r, g, b;
 	if(open_mode == FILEIO_READ_BINARY) {
@@ -1266,7 +1266,7 @@ void FILEIO::StateArray(_TCHAR *buffer, size_t size, size_t count)
 
 // 20181025 K.O
 // Note: scrntype_t is variable size type.2 bytes@15/16bpp, 4bytes@24/32bpp.
-void FILEIO::StateArray(scrntype_t *buffer, size_t size, size_t count)
+void FILEIO::StateArrayScrnType_t(scrntype_t *buffer, size_t size, size_t count)
 {
 	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
 		StateValue(buffer[i]);
