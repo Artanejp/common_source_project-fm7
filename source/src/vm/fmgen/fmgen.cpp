@@ -295,10 +295,10 @@ bool Chip::ProcessState(void *f, bool loading)
 	if(!state_fio->StateCheckUint32(CHIP_STATE_VERSION)) {
  		return false;
  	}
-	state_fio->StateUint32(ratio_);
-	state_fio->StateUint32(aml_);
-	state_fio->StateUint32(pml_);
-	state_fio->StateInt32(pmv_);
+	state_fio->StateValue(ratio_);
+	state_fio->StateValue(aml_);
+	state_fio->StateValue(pml_);
+	state_fio->StateValue(pmv_);
  	return true;
 }
 
@@ -743,30 +743,29 @@ bool Operator::ProcessState(void *f, bool loading)
 	if(!state_fio->StateCheckUint32(OPERATOR_STATE_VERSION)) {
 		return false;
 	}
-	
-	state_fio->StateInt32(out_);
-	state_fio->StateInt32(out2_);
-	state_fio->StateInt32(in2_);
-	state_fio->StateUint32(dp_);
-	state_fio->StateUint32(detune_);
-	state_fio->StateUint32(detune2_);
-	state_fio->StateUint32(multiple_);
-	state_fio->StateUint32(pg_count_);
-	state_fio->StateUint32(pg_diff_);
-	state_fio->StateInt32(pg_diff_lfo_);
-	state_fio->StateUint32(bn_);
-	state_fio->StateInt32(eg_level_);
-	state_fio->StateInt32(eg_level_on_next_phase_);
-	state_fio->StateInt32(eg_count_);
-	state_fio->StateInt32(eg_count_diff_);
-	state_fio->StateInt32(eg_out_);
-	state_fio->StateInt32(tl_out_);
-	state_fio->StateInt32(eg_rate_);
-	state_fio->StateInt32(eg_curve_count_);
-	state_fio->StateInt32(ssg_offset_);
-	state_fio->StateInt32(ssg_vector_);
-	state_fio->StateInt32(ssg_phase_);
-	state_fio->StateUint32(key_scale_rate_);
+	state_fio->StateValue(out_);
+	state_fio->StateValue(out2_);
+	state_fio->StateValue(in2_);
+	state_fio->StateValue(dp_);
+	state_fio->StateValue(detune_);
+	state_fio->StateValue(detune2_);
+	state_fio->StateValue(multiple_);
+	state_fio->StateValue(pg_count_);
+	state_fio->StateValue(pg_diff_);
+	state_fio->StateValue(pg_diff_lfo_);
+	state_fio->StateValue(bn_);
+	state_fio->StateValue(eg_level_);
+	state_fio->StateValue(eg_level_on_next_phase_);
+	state_fio->StateValue(eg_count_);
+	state_fio->StateValue(eg_count_diff_);
+	state_fio->StateValue(eg_out_);
+	state_fio->StateValue(tl_out_);
+	state_fio->StateValue(eg_rate_);
+	state_fio->StateValue(eg_curve_count_);
+	state_fio->StateValue(ssg_offset_);
+	state_fio->StateValue(ssg_vector_);
+	state_fio->StateValue(ssg_phase_);
+	state_fio->StateValue(key_scale_rate_);
 	if(loading) {
 		eg_phase_ = static_cast<EGPhase>(state_fio->FgetInt32_LE());
 		ams_ = &amtable[0][0][0] + state_fio->FgetInt32_LE();
@@ -774,22 +773,22 @@ bool Operator::ProcessState(void *f, bool loading)
 		state_fio->FputInt32_LE(static_cast<int>(eg_phase_));
 		state_fio->FputInt32_LE((int)(ams_ - &amtable[0][0][0]));
 	}
-	state_fio->StateUint32(ms_);
-	state_fio->StateUint32(tl_);
-	state_fio->StateUint32(tl_latch_);
-	state_fio->StateUint32(ar_);
-	state_fio->StateUint32(dr_);
-	state_fio->StateUint32(sr_);
-	state_fio->StateUint32(sl_);
-	state_fio->StateUint32(rr_);
-	state_fio->StateUint32(ks_);
-	state_fio->StateUint32(ssg_type_);
-	state_fio->StateBool(keyon_);
-	state_fio->StateBool(amon_);
-	state_fio->StateBool(param_changed_);
-	state_fio->StateBool(mute_);
-	state_fio->StateInt32(dbgopout_);
-	state_fio->StateInt32(dbgpgout_);
+	state_fio->StateValue(ms_);
+	state_fio->StateValue(tl_);
+	state_fio->StateValue(tl_latch_);
+	state_fio->StateValue(ar_);
+	state_fio->StateValue(dr_);
+	state_fio->StateValue(sr_);
+	state_fio->StateValue(sl_);
+	state_fio->StateValue(rr_);
+	state_fio->StateValue(ks_);
+	state_fio->StateValue(ssg_type_);
+	state_fio->StateValue(keyon_);
+	state_fio->StateValue(amon_);
+	state_fio->StateValue(param_changed_);
+	state_fio->StateValue(mute_);
+	state_fio->StateValue(dbgopout_);
+	state_fio->StateValue(dbgpgout_);
  	return true;
 }
 

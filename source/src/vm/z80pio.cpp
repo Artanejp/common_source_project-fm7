@@ -333,28 +333,28 @@ bool Z80PIO::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
  	for(int i = 0; i < 2; i++) {
-		state_fio->StateUint32(port[i].wreg);
-		state_fio->StateUint8(port[i].rreg);
-		state_fio->StateUint8(port[i].mode);
-		state_fio->StateUint8(port[i].ctrl1);
-		state_fio->StateUint8(port[i].ctrl2);
-		state_fio->StateUint8(port[i].dir);
-		state_fio->StateUint8(port[i].mask);
-		state_fio->StateUint8(port[i].vector);
-		state_fio->StateBool(port[i].set_dir);
-		state_fio->StateBool(port[i].set_mask);
-		state_fio->StateBool(port[i].hand_shake);
-		state_fio->StateInt32(port[i].ready_signal);
-		state_fio->StateBool(port[i].input_empty);
-		state_fio->StateBool(port[i].output_ready);
-		state_fio->StateBool(port[i].enb_intr);
-		state_fio->StateBool(port[i].enb_intr_tmp);
-		state_fio->StateBool(port[i].req_intr);
-		state_fio->StateBool(port[i].in_service);
+		state_fio->StateValue(port[i].wreg);
+		state_fio->StateValue(port[i].rreg);
+		state_fio->StateValue(port[i].mode);
+		state_fio->StateValue(port[i].ctrl1);
+		state_fio->StateValue(port[i].ctrl2);
+		state_fio->StateValue(port[i].dir);
+		state_fio->StateValue(port[i].mask);
+		state_fio->StateValue(port[i].vector);
+		state_fio->StateValue(port[i].set_dir);
+		state_fio->StateValue(port[i].set_mask);
+		state_fio->StateValue(port[i].hand_shake);
+		state_fio->StateValue(port[i].ready_signal);
+		state_fio->StateValue(port[i].input_empty);
+		state_fio->StateValue(port[i].output_ready);
+		state_fio->StateValue(port[i].enb_intr);
+		state_fio->StateValue(port[i].enb_intr_tmp);
+		state_fio->StateValue(port[i].req_intr);
+		state_fio->StateValue(port[i].in_service);
  	}
-	state_fio->StateBool(iei);
-	state_fio->StateBool(oei);
-	state_fio->StateUint32(intr_bit);
+	state_fio->StateValue(iei);
+	state_fio->StateValue(oei);
+	state_fio->StateValue(intr_bit);
  	return true;
 }
 

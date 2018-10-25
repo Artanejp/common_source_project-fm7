@@ -122,13 +122,13 @@ bool Timer::ProcessState(void *f, bool loading)
 	if(!state_fio->StateCheckUint32(TIMER_STATE_VERSION)) {
  		return false;
  	}
-	state_fio->StateUint8(status);
-	state_fio->StateUint8(regtc);
-	state_fio->StateBuffer(regta, sizeof(regta), 1);
-	state_fio->StateInt32(timera);
-	state_fio->StateInt32(timera_count);
-	state_fio->StateInt32(timerb);
-	state_fio->StateInt32(timerb_count);
-	state_fio->StateInt32(prescaler);
+	state_fio->StateValue(status);
+	state_fio->StateValue(regtc);
+	state_fio->StateArray(regta, sizeof(regta), 1);
+	state_fio->StateValue(timera);
+	state_fio->StateValue(timera_count);
+	state_fio->StateValue(timerb);
+	state_fio->StateValue(timerb_count);
+	state_fio->StateValue(prescaler);
  	return true;
 }

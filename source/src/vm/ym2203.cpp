@@ -743,30 +743,33 @@ bool YM2203::process_state(FILEIO* state_fio, bool loading)
 		}
 	}
 #ifdef SUPPORT_MAME_FM_DLL
-	state_fio->StateBuffer(port_log, sizeof(port_log), 1);
+	for(int i = 0; i < array_length(port_log); i++) {
+		state_fio->StateValue(port_log[i].written);
+		state_fio->StateValue(port_log[i].data);
+	}
 #endif
-	state_fio->StateUint8(ch);
-	state_fio->StateUint8(fnum2);
+	state_fio->StateValue(ch);
+	state_fio->StateValue(fnum2);
 	if(_HAS_YM2608) {
-		state_fio->StateUint8(ch1);
-		state_fio->StateUint8(data1);
-		state_fio->StateUint8(fnum21);
+	state_fio->StateValue(ch1);
+	state_fio->StateValue(data1);
+	state_fio->StateValue(fnum21);
 	}
  	for(int i = 0; i < 2; i++) {
-		state_fio->StateUint8(port[i].wreg);
-		state_fio->StateUint8(port[i].rreg);
-		state_fio->StateBool(port[i].first);
+		state_fio->StateValue(port[i].wreg);
+		state_fio->StateValue(port[i].rreg);
+		state_fio->StateValue(port[i].first);
  	}
-	state_fio->StateUint8(mode);
-	state_fio->StateInt32(chip_clock);
-	state_fio->StateBool(irq_prev);
-	state_fio->StateBool(mute);
-	state_fio->StateUint32(clock_prev);
-	state_fio->StateUint32(clock_accum);
-	state_fio->StateUint32(clock_const);
-	state_fio->StateUint32(clock_busy);
-	state_fio->StateInt32(timer_event_id);
-	state_fio->StateBool(busy);
+	state_fio->StateValue(mode);
+	state_fio->StateValue(chip_clock);
+	state_fio->StateValue(irq_prev);
+	state_fio->StateValue(mute);
+	state_fio->StateValue(clock_prev);
+	state_fio->StateValue(clock_accum);
+	state_fio->StateValue(clock_const);
+	state_fio->StateValue(clock_busy);
+	state_fio->StateValue(timer_event_id);
+	state_fio->StateValue(busy);
  	
 #ifdef SUPPORT_MAME_FM_DLL
  	// post process

@@ -770,44 +770,29 @@ bool Z80DMA::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	//state_fio->StateBuffer(&regs, sizeof(regs), 1);
-	{
-		for(int i = 0; i < 7; i++) {
-			for(int j = 0; j < 8; j++) {
-				state_fio->StateUint16(regs.m[i][j]);
-			}
-		}
-		for(int i = 0; i < (6 * 8 + 1 + 1); i++) {
-			state_fio->StateUint16(regs.t[i]);
-		}
-	}
-	state_fio->StateUint8(status);
-	//state_fio->StateBuffer(wr_tmp, sizeof(wr_tmp), 1);
-	for(int i = 0; i < (sizeof(wr_tmp) / sizeof(uint16_t)); i++) {
-		state_fio->StateUint16(wr_tmp[i]);
-	}
-	state_fio->StateInt32(wr_num);
-	state_fio->StateInt32(wr_ptr);
-	//state_fio->StateBuffer(rr_tmp, sizeof(rr_tmp), 1);
-	for(int i = 0; i < (sizeof(rr_tmp) / sizeof(uint16_t)); i++) {
-		state_fio->StateUint16(rr_tmp[i]);
-	}
-	state_fio->StateInt32(rr_num);
-	state_fio->StateInt32(rr_ptr);
-	state_fio->StateBool(enabled);
-	state_fio->StateUint32(ready);
-	state_fio->StateBool(force_ready);
-	state_fio->StateUint16(addr_a);
-	state_fio->StateUint16(addr_b);
-	state_fio->StateInt32(upcount);
-	state_fio->StateInt32(blocklen);
-	state_fio->StateBool(dma_stop);
-	state_fio->StateBool(bus_master);
-	state_fio->StateBool(req_intr);
-	state_fio->StateBool(in_service);
-	state_fio->StateUint8(vector);
-	state_fio->StateBool(iei);
-	state_fio->StateBool(oei);
-	state_fio->StateUint32(intr_bit);
+	state_fio->StateArray(&regs.m[0][0], sizeof(regs.m), 1);
+	state_fio->StateArray(&regs.t[0], sizeof(regs.t), 1);
+	state_fio->StateValue(status);
+	state_fio->StateArray(wr_tmp, sizeof(wr_tmp), 1);
+	state_fio->StateValue(wr_num);
+	state_fio->StateValue(wr_ptr);
+	state_fio->StateArray(rr_tmp, sizeof(rr_tmp), 1);
+	state_fio->StateValue(rr_num);
+	state_fio->StateValue(rr_ptr);
+	state_fio->StateValue(enabled);
+	state_fio->StateValue(ready);
+	state_fio->StateValue(force_ready);
+	state_fio->StateValue(addr_a);
+	state_fio->StateValue(addr_b);
+	state_fio->StateValue(upcount);
+	state_fio->StateValue(blocklen);
+	state_fio->StateValue(dma_stop);
+	state_fio->StateValue(bus_master);
+	state_fio->StateValue(req_intr);
+	state_fio->StateValue(in_service);
+	state_fio->StateValue(vector);
+	state_fio->StateValue(iei);
+	state_fio->StateValue(oei);
+	state_fio->StateValue(intr_bit);
  	return true;
 }

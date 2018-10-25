@@ -246,18 +246,21 @@ bool YM2151::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
 #ifdef SUPPORT_MAME_FM_DLL
-	state_fio->StateBuffer(port_log, sizeof(port_log), 1);
+	for(int i = 0; i < array_length(port_log); i++) {
+		state_fio->StateValue(port_log[i].written);
+		state_fio->StateValue(port_log[i].data);
+	}
 #endif
-	state_fio->StateInt32(chip_clock);
-	state_fio->StateUint8(ch);
-	state_fio->StateBool(irq_prev);
-	state_fio->StateBool(mute);
-	state_fio->StateUint32(clock_prev);
-	state_fio->StateUint32(clock_accum);
-	state_fio->StateUint32(clock_const);
-	state_fio->StateUint32(clock_busy);
-	state_fio->StateInt32(timer_event_id);
-	state_fio->StateBool(busy);
+	state_fio->StateValue(chip_clock);
+	state_fio->StateValue(ch);
+	state_fio->StateValue(irq_prev);
+	state_fio->StateValue(mute);
+	state_fio->StateValue(clock_prev);
+	state_fio->StateValue(clock_accum);
+	state_fio->StateValue(clock_const);
+	state_fio->StateValue(clock_busy);
+	state_fio->StateValue(timer_event_id);
+	state_fio->StateValue(busy);
  	
 #ifdef SUPPORT_MAME_FM_DLL
  	// post process

@@ -365,144 +365,108 @@ int UPD7810::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 }
 #endif
 
-#define STATE_VERSION	4
-
-void UPD7810::process_state_cpustate(FILEIO* state_fio, bool loading)
-{
-	upd7810_state *cpustate = (upd7810_state *)opaque;
-
-	state_fio->StateUint32(cpustate->ppc.d);    /* previous program counter */
-	state_fio->StateUint32(cpustate->pc.d);     /* program counter */
-	state_fio->StateUint32(cpustate->sp.d);     /* stack pointer */
-	state_fio->StateUint8(cpustate->op);     /* opcode */
-	state_fio->StateUint8(cpustate->op2);    /* opcode part 2 */
-	state_fio->StateUint8(cpustate->iff);    /* interrupt enable flip flop */
-	state_fio->StateUint8(cpustate->softi);
-	state_fio->StateUint8(cpustate->psw);    /* processor status word */
-	state_fio->StateUint32(cpustate->ea.d);     /* extended accumulator */
-	state_fio->StateUint32(cpustate->va.d);     /* accumulator + vector register */
-	state_fio->StateUint32(cpustate->bc.d);     /* 8bit B and C registers / 16bit BC register */
-	state_fio->StateUint32(cpustate->de.d);     /* 8bit D and E registers / 16bit DE register */
-	state_fio->StateUint32(cpustate->hl.d);     /* 8bit H and L registers / 16bit HL register */
-	state_fio->StateUint32(cpustate->ea2.d);    /* alternate register set */
-	state_fio->StateUint32(cpustate->va2.d);
-	state_fio->StateUint32(cpustate->bc2.d);
-	state_fio->StateUint32(cpustate->de2.d);
-	state_fio->StateUint32(cpustate->hl2.d);
-	state_fio->StateUint32(cpustate->cnt.d);    /* 8 bit timer counter */
-	state_fio->StateUint32(cpustate->tm.d);     /* 8 bit timer 0/1 comparator inputs */
-	state_fio->StateUint32(cpustate->ecnt.d);   /* timer counter register / capture register */
-	state_fio->StateUint32(cpustate->etm.d);    /* timer 0/1 comparator inputs */
-	state_fio->StateUint8(cpustate->ma);     /* port A input or output mask */
-	state_fio->StateUint8(cpustate->mb);     /* port B input or output mask */
-	state_fio->StateUint8(cpustate->mcc);    /* port C control/port select */
-	state_fio->StateUint8(cpustate->mc);     /* port C input or output mask */
-	state_fio->StateUint8(cpustate->mm);     /* memory mapping */
-	state_fio->StateUint8(cpustate->mf);     /* port F input or output mask */
-	state_fio->StateUint8(cpustate->tmm);    /* timer 0 and timer 1 operating parameters */
-	state_fio->StateUint8(cpustate->etmm);   /* 16-bit multifunction timer/event counter */
-	state_fio->StateUint8(cpustate->eom);    /* 16-bit timer/event counter output control */
-	state_fio->StateUint8(cpustate->sml);    /* serial interface parameters low */
-	state_fio->StateUint8(cpustate->smh);    /* -"- high */
-	state_fio->StateUint8(cpustate->anm);    /* analog to digital converter operating parameters */
-	state_fio->StateUint8(cpustate->mkl);    /* interrupt mask low */
-	state_fio->StateUint8(cpustate->mkh);    /* -"- high */
-	state_fio->StateUint8(cpustate->zcm);    /* bias circuitry for ac zero-cross detection */
-	state_fio->StateUint8(cpustate->pa_in);  /* port A,B,C,D,F inputs */
-	state_fio->StateUint8(cpustate->pb_in);
-	state_fio->StateUint8(cpustate->pc_in);
-	state_fio->StateUint8(cpustate->pd_in);
-	state_fio->StateUint8(cpustate->pf_in);
-	state_fio->StateUint8(cpustate->pa_out); /* port A,B,C,D,F outputs */
-	state_fio->StateUint8(cpustate->pb_out);
-	state_fio->StateUint8(cpustate->pc_out);
-	state_fio->StateUint8(cpustate->pd_out);
-	state_fio->StateUint8(cpustate->pf_out);
-	state_fio->StateUint8(cpustate->cr0);    /* analog digital conversion register 0 */
-	state_fio->StateUint8(cpustate->cr1);    /* analog digital conversion register 1 */
-	state_fio->StateUint8(cpustate->cr2);    /* analog digital conversion register 2 */
-	state_fio->StateUint8(cpustate->cr3);    /* analog digital conversion register 3 */
-	state_fio->StateUint8(cpustate->txb);    /* transmitter buffer */
-	state_fio->StateUint8(cpustate->rxb);    /* receiver buffer */
-	state_fio->StateUint8(cpustate->txd);    /* port C control line states */
-	state_fio->StateUint8(cpustate->rxd);
-	state_fio->StateUint8(cpustate->sck);
-	state_fio->StateUint8(cpustate->ti);
-	state_fio->StateUint8(cpustate->to);
-	state_fio->StateUint8(cpustate->ci);
-	state_fio->StateUint8(cpustate->co0);
-	state_fio->StateUint8(cpustate->co1);
-	state_fio->StateUint16(cpustate->irr);    /* interrupt request register */
-	state_fio->StateUint16(cpustate->itf);    /* interrupt test flag register */
-	state_fio->StateInt32(cpustate->int1);   /* keep track of current int1 state. Needed for 7801 irq checking. */
-	state_fio->StateInt32(cpustate->int2);   /* keep track to current int2 state. Needed for 7801 irq checking. */
-
-/* internal helper variables */
-	state_fio->StateUint16(cpustate->txs);    /* transmitter shift register */
-	state_fio->StateUint16(cpustate->rxs);    /* receiver shift register */
-	state_fio->StateUint8(cpustate->txcnt);  /* transmitter shift register bit count */
-	state_fio->StateUint8(cpustate->rxcnt);  /* receiver shift register bit count */
-	state_fio->StateUint8(cpustate->txbuf);  /* transmitter buffer was written */
-	state_fio->StateInt32(cpustate->ovc0);   /* overflow counter for timer 0 ((for clock div 12/384) */
-	state_fio->StateInt32(cpustate->ovc1);   /* overflow counter for timer 0 (for clock div 12/384) */
-	state_fio->StateInt32(cpustate->ovce);   /* overflow counter for ecnt */
-	state_fio->StateInt32(cpustate->ovcf);   /* overflow counter for fixed clock div 3 mode */
-	state_fio->StateInt32(cpustate->ovcs);   /* overflow counter for serial I/O */
-	state_fio->StateInt32(cpustate->ovcsio);
-	state_fio->StateUint8(cpustate->edges);  /* rising/falling edge flag for serial I/O */
-	state_fio->StateInt32(cpustate->icount);
-
-}
+#define STATE_VERSION	5
 
 bool UPD7810::process_state(FILEIO* state_fio, bool loading)
 {
 	upd7810_state *cpustate = (upd7810_state *)opaque;
-	const struct opcode_s *opXX = cpustate->opXX;
-	const struct opcode_s *op48 = cpustate->op48;
-	const struct opcode_s *op4C = cpustate->op4C;
-	const struct opcode_s *op4D = cpustate->op4D;
-	const struct opcode_s *op60 = cpustate->op60;
-	const struct opcode_s *op64 = cpustate->op64;
-	const struct opcode_s *op70 = cpustate->op70;
-	const struct opcode_s *op74 = cpustate->op74;
-	void(*handle_timers)(upd7810_state *cpustate, int cycles) = cpustate->handle_timers;
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
  		return false;
  	}
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	//state_fio->StateBuffer(opaque, sizeof(upd7810_state), 1);
-	process_state_cpustate(state_fio, loading);
+	state_fio->StateValue(cpustate->ppc);
+	state_fio->StateValue(cpustate->pc);
+	state_fio->StateValue(cpustate->sp);
+	state_fio->StateValue(cpustate->op);
+	state_fio->StateValue(cpustate->op2);
+	state_fio->StateValue(cpustate->iff);
+	state_fio->StateValue(cpustate->softi);
+	state_fio->StateValue(cpustate->psw);
+	state_fio->StateValue(cpustate->ea);
+	state_fio->StateValue(cpustate->va);
+	state_fio->StateValue(cpustate->bc);
+	state_fio->StateValue(cpustate->de);
+	state_fio->StateValue(cpustate->hl);
+	state_fio->StateValue(cpustate->ea2);
+	state_fio->StateValue(cpustate->va2);
+	state_fio->StateValue(cpustate->bc2);
+	state_fio->StateValue(cpustate->de2);
+	state_fio->StateValue(cpustate->hl2);
+	state_fio->StateValue(cpustate->cnt);
+	state_fio->StateValue(cpustate->tm);
+	state_fio->StateValue(cpustate->ecnt);
+	state_fio->StateValue(cpustate->etm);
+	state_fio->StateValue(cpustate->ma);
+	state_fio->StateValue(cpustate->mb);
+	state_fio->StateValue(cpustate->mcc);
+	state_fio->StateValue(cpustate->mc);
+	state_fio->StateValue(cpustate->mm);
+	state_fio->StateValue(cpustate->mf);
+	state_fio->StateValue(cpustate->tmm);
+	state_fio->StateValue(cpustate->etmm);
+	state_fio->StateValue(cpustate->eom);
+	state_fio->StateValue(cpustate->sml);
+	state_fio->StateValue(cpustate->smh);
+	state_fio->StateValue(cpustate->anm);
+	state_fio->StateValue(cpustate->mkl);
+	state_fio->StateValue(cpustate->mkh);
+	state_fio->StateValue(cpustate->zcm);
+	state_fio->StateValue(cpustate->pa_in);
+	state_fio->StateValue(cpustate->pb_in);
+	state_fio->StateValue(cpustate->pc_in);
+	state_fio->StateValue(cpustate->pd_in);
+	state_fio->StateValue(cpustate->pf_in);
+	state_fio->StateValue(cpustate->pa_out);
+	state_fio->StateValue(cpustate->pb_out);
+	state_fio->StateValue(cpustate->pc_out);
+	state_fio->StateValue(cpustate->pd_out);
+	state_fio->StateValue(cpustate->pf_out);
+	state_fio->StateValue(cpustate->cr0);
+	state_fio->StateValue(cpustate->cr1);
+	state_fio->StateValue(cpustate->cr2);
+	state_fio->StateValue(cpustate->cr3);
+	state_fio->StateValue(cpustate->txb);
+	state_fio->StateValue(cpustate->rxb);
+	state_fio->StateValue(cpustate->txd);
+	state_fio->StateValue(cpustate->rxd);
+	state_fio->StateValue(cpustate->sck);
+	state_fio->StateValue(cpustate->ti);
+	state_fio->StateValue(cpustate->to);
+	state_fio->StateValue(cpustate->ci);
+	state_fio->StateValue(cpustate->co0);
+	state_fio->StateValue(cpustate->co1);
+	state_fio->StateValue(cpustate->irr);
+	state_fio->StateValue(cpustate->itf);
+	state_fio->StateValue(cpustate->int1);
+	state_fio->StateValue(cpustate->int2);
+	state_fio->StateValue(cpustate->txs);
+	state_fio->StateValue(cpustate->rxs);
+	state_fio->StateValue(cpustate->txcnt);
+	state_fio->StateValue(cpustate->rxcnt);
+	state_fio->StateValue(cpustate->txbuf);
+	state_fio->StateValue(cpustate->ovc0);
+	state_fio->StateValue(cpustate->ovc1);
+	state_fio->StateValue(cpustate->ovce);
+	state_fio->StateValue(cpustate->ovcf);
+	state_fio->StateValue(cpustate->ovcs);
+	state_fio->StateValue(cpustate->ovcsio);
+	state_fio->StateValue(cpustate->edges);
+	state_fio->StateValue(cpustate->icount);
 #ifdef USE_DEBUGGER
-	state_fio->StateUint64(total_icount);
+	state_fio->StateValue(total_icount);
 #endif
 	state_fio->StateInt32(icount);
 	state_fio->StateBool(busreq);
+	state_fio->StateValue(icount);
+	state_fio->StateValue(busreq);
  	
+#ifdef USE_DEBUGGER
  	// post process
 	if(loading) {
-		cpustate->opXX = opXX;
-		cpustate->op48 = op48;
-		cpustate->op4C = op4C;
-		cpustate->op4D = op4D;
-		cpustate->op60 = op60;
-		cpustate->op64 = op64;
-		cpustate->op70 = op70;
-		cpustate->op74 = op74;
-		cpustate->handle_timers = handle_timers;
-
-		cpustate->program = d_mem;
-		cpustate->io = d_io;
-		cpustate->outputs_to = (void*)&outputs_to;
-		cpustate->outputs_txd = (void*)&outputs_txd;
-#ifdef USE_DEBUGGER
-		cpustate->emu = emu;
-		cpustate->debugger = d_debugger;
-		cpustate->program_stored = d_mem;
-		cpustate->io_stored = d_io;
 		prev_total_icount = total_icount;
-#endif
 	}
+#endif
  	return true;
 }

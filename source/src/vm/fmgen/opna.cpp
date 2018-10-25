@@ -208,14 +208,14 @@ bool OPNBase::ProcessState(void *f, bool loading)
 	if(!Timer::ProcessState(f, loading)) {
  		return false;
  	}
-	state_fio->StateInt32(fmvolume_l);
-	state_fio->StateInt32(fmvolume_r);
-	state_fio->StateUint32(clock);
-	state_fio->StateUint32(rate);
-	state_fio->StateUint32(psgrate);
-	state_fio->StateUint32(status);
-	state_fio->StateBool(interrupt);
-	state_fio->StateUint8(prescale);
+	state_fio->StateValue(fmvolume_l);
+	state_fio->StateValue(fmvolume_r);
+	state_fio->StateValue(clock);
+	state_fio->StateValue(rate);
+	state_fio->StateValue(psgrate);
+	state_fio->StateValue(status);
+	state_fio->StateValue(interrupt);
+	state_fio->StateValue(prescale);
 	if(loading){
 		// Make force-restore around prescaler and timers. 20180625 K.O
 		uint bak = prescale;
@@ -450,17 +450,9 @@ bool OPN::ProcessState(void *f, bool loading)
 	if(!OPNBase::ProcessState(f, loading)) {
  		return false;
  	}
- 	
-	if(!state_fio->StateCheckUint32(OPN_STATE_VERSION)) {
- 		return false;
- 	}
-	if(!OPNBase::ProcessState(f, loading)) {
- 		return false;
- 	}
-
-	state_fio->StateBuffer(fnum, sizeof(fnum), 1);
-	state_fio->StateBuffer(fnum3, sizeof(fnum3), 1);
-	state_fio->StateBuffer(fnum2, sizeof(fnum2), 1);
+	state_fio->StateArray(fnum, sizeof(fnum), 1);
+	state_fio->StateArray(fnum3, sizeof(fnum3), 1);
+	state_fio->StateArray(fnum2, sizeof(fnum2), 1);
  	for(int i = 0; i < 3; i++) {
 		if(!ch[i].ProcessState(f, loading)) {
  			return false;
@@ -1303,48 +1295,48 @@ bool OPNABase::ProcessState(void *f, bool loading)
 	if(!OPNBase::ProcessState(f, loading)) {
  		return false;
  	}
-	state_fio->StateBuffer(pan, sizeof(pan), 1);
-	state_fio->StateBuffer(fnum2, sizeof(fnum2), 1);
-	state_fio->StateUint8(reg22);
-	state_fio->StateUint32(reg29);
-	state_fio->StateUint32(stmask);
-	state_fio->StateUint32(statusnext);
-	state_fio->StateUint32(lfocount);
-	state_fio->StateUint32(lfodcount);
-	state_fio->StateBuffer(fnum, sizeof(fnum), 1);
-	state_fio->StateBuffer(fnum3, sizeof(fnum3), 1);
-	state_fio->StateBuffer(adpcmbuf, 0x40000, 1);
-	state_fio->StateUint32(adpcmmask);
-	state_fio->StateUint32(adpcmnotice);
-	state_fio->StateUint32(startaddr);
-	state_fio->StateUint32(stopaddr);
-	state_fio->StateUint32(memaddr);
-	state_fio->StateUint32(limitaddr);
-	state_fio->StateInt32(adpcmlevel);
-	state_fio->StateInt32(adpcmvolume_l);
-	state_fio->StateInt32(adpcmvolume_r);
-	state_fio->StateInt32(adpcmvol_l);
-	state_fio->StateInt32(adpcmvol_r);
-	state_fio->StateUint32(deltan);
-	state_fio->StateInt32(adplc);
-	state_fio->StateInt32(adpld);
-	state_fio->StateUint32(adplbase);
-	state_fio->StateInt32(adpcmx);
-	state_fio->StateInt32(adpcmd);
-	state_fio->StateInt32(adpcmout_l);
-	state_fio->StateInt32(adpcmout_r);
-	state_fio->StateInt32(apout0_l);
-	state_fio->StateInt32(apout0_r);
-	state_fio->StateInt32(apout1_l);
-	state_fio->StateInt32(apout1_r);
-	state_fio->StateUint32(adpcmreadbuf);
-	state_fio->StateBool(adpcmplay);
-	state_fio->StateInt8(granuality);
-	state_fio->StateBool(adpcmmask_);
-	state_fio->StateUint8(control1);
-	state_fio->StateUint8(control2);
-	state_fio->StateBuffer(adpcmreg, sizeof(adpcmreg), 1);
-	state_fio->StateInt32(rhythmmask_);
+	state_fio->StateArray(pan, sizeof(pan), 1);
+	state_fio->StateArray(fnum2, sizeof(fnum2), 1);
+	state_fio->StateValue(reg22);
+	state_fio->StateValue(reg29);
+	state_fio->StateValue(stmask);
+	state_fio->StateValue(statusnext);
+	state_fio->StateValue(lfocount);
+	state_fio->StateValue(lfodcount);
+	state_fio->StateArray(fnum, sizeof(fnum), 1);
+	state_fio->StateArray(fnum3, sizeof(fnum3), 1);
+	state_fio->StateArray(adpcmbuf, 0x40000, 1);
+	state_fio->StateValue(adpcmmask);
+	state_fio->StateValue(adpcmnotice);
+	state_fio->StateValue(startaddr);
+	state_fio->StateValue(stopaddr);
+	state_fio->StateValue(memaddr);
+	state_fio->StateValue(limitaddr);
+	state_fio->StateValue(adpcmlevel);
+	state_fio->StateValue(adpcmvolume_l);
+	state_fio->StateValue(adpcmvolume_r);
+	state_fio->StateValue(adpcmvol_l);
+	state_fio->StateValue(adpcmvol_r);
+	state_fio->StateValue(deltan);
+	state_fio->StateValue(adplc);
+	state_fio->StateValue(adpld);
+	state_fio->StateValue(adplbase);
+	state_fio->StateValue(adpcmx);
+	state_fio->StateValue(adpcmd);
+	state_fio->StateValue(adpcmout_l);
+	state_fio->StateValue(adpcmout_r);
+	state_fio->StateValue(apout0_l);
+	state_fio->StateValue(apout0_r);
+	state_fio->StateValue(apout1_l);
+	state_fio->StateValue(apout1_r);
+	state_fio->StateValue(adpcmreadbuf);
+	state_fio->StateValue(adpcmplay);
+	state_fio->StateValue(granuality);
+	state_fio->StateValue(adpcmmask_);
+	state_fio->StateValue(control1);
+	state_fio->StateValue(control2);
+	state_fio->StateArray(adpcmreg, sizeof(adpcmreg), 1);
+	state_fio->StateValue(rhythmmask_);
 	for(int i = 0; i < 6; i++) {
 		if(!ch[i].ProcessState(f, loading)) {
  			return false;
@@ -1741,14 +1733,14 @@ bool OPNA::ProcessState(void *f, bool loading)
  		return false;
  	}
  	for(int i = 0; i < 6; i++) {
-		state_fio->StateUint8(rhythm[i].pan);
-		state_fio->StateInt8(rhythm[i].level);
-		state_fio->StateUint32(rhythm[i].pos);
+		state_fio->StateValue(rhythm[i].pan);
+		state_fio->StateValue(rhythm[i].level);
+		state_fio->StateValue(rhythm[i].pos);
 	}
-	state_fio->StateInt8(rhythmtl);
-	state_fio->StateInt32(rhythmtvol_l);
-	state_fio->StateInt32(rhythmtvol_r);
-	state_fio->StateUint8(rhythmkey);
+	state_fio->StateValue(rhythmtl);
+	state_fio->StateValue(rhythmtvol_l);
+	state_fio->StateValue(rhythmtvol_r);
+	state_fio->StateValue(rhythmkey);
  	return true;
 }
  
@@ -2546,16 +2538,16 @@ bool OPN2Base::ProcessState(void *f, bool loading)
 	if(!OPNBase::ProcessState(f, loading)) {
  		return false;
  	}
-	state_fio->StateBuffer(pan, sizeof(pan), 1);
-	state_fio->StateBuffer(fnum2, sizeof(fnum2), 1);
-	state_fio->StateUint8(reg22);
-	state_fio->StateUint32(reg29);
-	state_fio->StateUint32(stmask);
-	state_fio->StateUint32(statusnext);
-	state_fio->StateUint32(lfocount);
-	state_fio->StateUint32(lfodcount);
-	state_fio->StateBuffer(fnum, sizeof(fnum), 1);
-	state_fio->StateBuffer(fnum3, sizeof(fnum3), 1);
+	state_fio->StateArray(pan, sizeof(pan), 1);
+	state_fio->StateArray(fnum2, sizeof(fnum2), 1);
+	state_fio->StateValue(reg22);
+	state_fio->StateValue(reg29);
+	state_fio->StateValue(stmask);
+	state_fio->StateValue(statusnext);
+	state_fio->StateValue(lfocount);
+	state_fio->StateValue(lfodcount);
+	state_fio->StateArray(fnum, sizeof(fnum), 1);
+	state_fio->StateArray(fnum3, sizeof(fnum3), 1);
 	
 	if(loading) {
 		// Make force-restore around prescaler and timers. 20180625 K.O

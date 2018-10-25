@@ -1840,6 +1840,7 @@ bool UPD765A::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateValue(fdc[i].prev_clock);
 	}
 	for(int i = 0; i < array_length(disk); i++) {
+		if(disk[i] == NULL) continue;
 		if(!disk[i]->process_state(state_fio, loading)) {
  			return false;
  		}

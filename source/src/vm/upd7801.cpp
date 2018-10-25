@@ -3921,38 +3921,35 @@ bool UPD7801::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
 	if(__USE_DEBUGGER) {
-		state_fio->StateUint64(total_count);
+		state_fio->StateValue(total_count);
 	}
-	state_fio->StateInt32(count);
-	state_fio->StateInt32(period);
-	state_fio->StateInt32(scount);
-	state_fio->StateInt32(tcount);
-	state_fio->StateBool(wait);
-	//state_fio->StateBuffer(regs, sizeof(regs), 1);
-	for(int i = 0; i < (sizeof(regs) / sizeof(uint32_t)); i++) {
-		state_fio->StateUint32(regs[i].d);
-	}
-	state_fio->StateUint16(SP);
-	state_fio->StateUint16(PC);
-	state_fio->StateUint16(prevPC);
-	state_fio->StateUint8(PSW);
-	state_fio->StateUint8(IRR);
-	state_fio->StateUint8(IFF);
-	state_fio->StateUint8(SIRQ);
-	state_fio->StateUint8(HALT);
-	state_fio->StateUint8(MK);
-	state_fio->StateUint8(MB);
-	state_fio->StateUint8(MC);
-	state_fio->StateUint8(TM0);
-	state_fio->StateUint8(TM1);
-	state_fio->StateUint8(SR);
-	state_fio->StateUint8(SAK);
-	state_fio->StateUint8(TO);
-	state_fio->StateUint8(HLDA);
-	state_fio->StateUint8(PORTC);
-	state_fio->StateBool(SI);
-	state_fio->StateBool(SCK);
-	state_fio->StateInt32(sio_count);
+	state_fio->StateValue(count);
+	state_fio->StateValue(period);
+	state_fio->StateValue(scount);
+	state_fio->StateValue(tcount);
+	state_fio->StateValue(wait);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateValue(SP);
+	state_fio->StateValue(PC);
+	state_fio->StateValue(prevPC);
+	state_fio->StateValue(PSW);
+	state_fio->StateValue(IRR);
+	state_fio->StateValue(IFF);
+	state_fio->StateValue(SIRQ);
+	state_fio->StateValue(HALT);
+	state_fio->StateValue(MK);
+	state_fio->StateValue(MB);
+	state_fio->StateValue(MC);
+	state_fio->StateValue(TM0);
+	state_fio->StateValue(TM1);
+	state_fio->StateValue(SR);
+	state_fio->StateValue(SAK);
+	state_fio->StateValue(TO);
+	state_fio->StateValue(HLDA);
+	state_fio->StateValue(PORTC);
+	state_fio->StateValue(SI);
+	state_fio->StateValue(SCK);
+	state_fio->StateValue(sio_count);
 	
 	// post process
 	if(__USE_DEBUGGER) {

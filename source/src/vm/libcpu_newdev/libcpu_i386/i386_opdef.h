@@ -553,6 +553,15 @@ protected:
 	
 	UINT32 i386_escape_ea;   // hack around GCC 4.6 error because we need the side effects of GetEA()
 
+
+	void process_state_SREG(I386_SREG* val, FILEIO* state_fio);
+	void process_state_SYS_TABLE(I386_SYS_TABLE* val, FILEIO* state_fio);
+	void process_state_SEG_DESC(I386_SEG_DESC* val, FILEIO* state_fio);
+	void process_state_GPR(I386_GPR* val, FILEIO* state_fio);
+	void process_state_floatx80(floatx80* val, FILEIO* state_fio);
+	void process_state_XMM_REG(XMM_REG* val, FILEIO* state_fio);
+	void process_state_vtlb(vtlb_state* val, FILEIO* state_fio);
+
 public:
 	I386_OPS_BASE(int cputypes = I386_OPS_CPUTYPE_I386)
 	{

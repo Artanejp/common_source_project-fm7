@@ -357,30 +357,30 @@ bool Z80CTC::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
  	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint8(counter[i].control);
-		state_fio->StateBool(counter[i].slope);
-		state_fio->StateUint16(counter[i].count);
-		state_fio->StateUint16(counter[i].constant);
-		state_fio->StateUint8(counter[i].vector);
-		state_fio->StateInt32(counter[i].clocks);
-		state_fio->StateInt32(counter[i].prescaler);
-		state_fio->StateBool(counter[i].freeze);
-		state_fio->StateBool(counter[i].start);
-		state_fio->StateBool(counter[i].latch);
-		state_fio->StateBool(counter[i].prev_in);
-		state_fio->StateBool(counter[i].first_constant);
-		state_fio->StateUint64(counter[i].freq);
-		state_fio->StateInt32(counter[i].clock_id);
-		state_fio->StateInt32(counter[i].sysclock_id);
-		state_fio->StateUint32(counter[i].input);
-		state_fio->StateUint32(counter[i].period);
-		state_fio->StateUint32(counter[i].prev);
-		state_fio->StateBool(counter[i].req_intr);
-		state_fio->StateBool(counter[i].in_service);
+		state_fio->StateValue(counter[i].control);
+		state_fio->StateValue(counter[i].slope);
+		state_fio->StateValue(counter[i].count);
+		state_fio->StateValue(counter[i].constant);
+		state_fio->StateValue(counter[i].vector);
+		state_fio->StateValue(counter[i].clocks);
+		state_fio->StateValue(counter[i].prescaler);
+		state_fio->StateValue(counter[i].freeze);
+		state_fio->StateValue(counter[i].start);
+		state_fio->StateValue(counter[i].latch);
+		state_fio->StateValue(counter[i].prev_in);
+		state_fio->StateValue(counter[i].first_constant);
+		state_fio->StateValue(counter[i].freq);
+		state_fio->StateValue(counter[i].clock_id);
+		state_fio->StateValue(counter[i].sysclock_id);
+		state_fio->StateValue(counter[i].input);
+		state_fio->StateValue(counter[i].period);
+		state_fio->StateValue(counter[i].prev);
+		state_fio->StateValue(counter[i].req_intr);
+		state_fio->StateValue(counter[i].in_service);
  	}
-	state_fio->StateUint64(cpu_clocks);
-	state_fio->StateBool(iei);
-	state_fio->StateBool(oei);
-	state_fio->StateUint32(intr_bit);
+	state_fio->StateValue(cpu_clocks);
+	state_fio->StateValue(iei);
+	state_fio->StateValue(oei);
+	state_fio->StateValue(intr_bit);
  	return true;
 }

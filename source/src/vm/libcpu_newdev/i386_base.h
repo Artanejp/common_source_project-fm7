@@ -34,14 +34,6 @@ protected:
 	DEVICE *d_bios;
 	DEVICE *d_dma;
 
-	void process_state_SREG(I386_SREG* val, FILEIO* state_fio);
-	void process_state_SYS_TABLE(I386_SYS_TABLE* val, FILEIO* state_fio);
-	void process_state_SEG_DESC(I386_SEG_DESC* val, FILEIO* state_fio);
-	void process_state_GPR(I386_GPR* val, FILEIO* state_fio);
-	void process_state_floatx80(floatx80* val, FILEIO* state_fio);
-	void process_state_XMM_REG(XMM_REG* val, FILEIO* state_fio);
-	void process_state_vtlb(vtlb_state* val, FILEIO* state_fio);
-
 public:
 	I386_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

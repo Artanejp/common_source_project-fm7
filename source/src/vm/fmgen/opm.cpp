@@ -541,32 +541,32 @@ bool OPM::ProcessState(void *f, bool loading)
 	if(!Timer::ProcessState(f, loading)) {
  		return false;
  	}
-	state_fio->StateInt32(fmvolume_l);
-	state_fio->StateInt32(fmvolume_r);
-	state_fio->StateUint32(clock);
-	state_fio->StateUint32(rate);
-	state_fio->StateUint32(pcmrate);
-	state_fio->StateUint32(pmd);
-	state_fio->StateUint32(amd);
-	state_fio->StateUint32(lfocount);
-	state_fio->StateUint32(lfodcount);
-	state_fio->StateUint32(lfo_count_);
-	state_fio->StateUint32(lfo_count_diff_);
-	state_fio->StateUint32(lfo_step_);
-	state_fio->StateUint32(lfo_count_prev_);
-	state_fio->StateUint32(lfowaveform);
-	state_fio->StateUint32(rateratio);
-	state_fio->StateUint32(noise);
-	state_fio->StateInt32(noisecount);
-	state_fio->StateUint32(noisedelta);
-	state_fio->StateBool(interpolation);
-	state_fio->StateUint8(lfofreq);
-	state_fio->StateUint8(status);
-	state_fio->StateBool(interrupt);
-	state_fio->StateUint8(reg01);
-	state_fio->StateBuffer(kc, sizeof(kc), 1);
-	state_fio->StateBuffer(kf, sizeof(kf), 1);
-	state_fio->StateBuffer(pan, sizeof(pan), 1);
+	state_fio->StateValue(fmvolume_l);
+	state_fio->StateValue(fmvolume_r);
+	state_fio->StateValue(clock);
+	state_fio->StateValue(rate);
+	state_fio->StateValue(pcmrate);
+	state_fio->StateValue(pmd);
+	state_fio->StateValue(amd);
+	state_fio->StateValue(lfocount);
+	state_fio->StateValue(lfodcount);
+	state_fio->StateValue(lfo_count_);
+	state_fio->StateValue(lfo_count_diff_);
+	state_fio->StateValue(lfo_step_);
+	state_fio->StateValue(lfo_count_prev_);
+	state_fio->StateValue(lfowaveform);
+	state_fio->StateValue(rateratio);
+	state_fio->StateValue(noise);
+	state_fio->StateValue(noisecount);
+	state_fio->StateValue(noisedelta);
+	state_fio->StateValue(interpolation);
+	state_fio->StateValue(lfofreq);
+	state_fio->StateValue(status);
+	state_fio->StateValue(interrupt);
+	state_fio->StateValue(reg01);
+	state_fio->StateArray(kc, sizeof(kc), 1);
+	state_fio->StateArray(kf, sizeof(kf), 1);
+	state_fio->StateArray(pan, sizeof(pan), 1);
  	for(int i = 0; i < 8; i++) {
 		if(!ch[i].ProcessState(f, loading)) {
  			return false;

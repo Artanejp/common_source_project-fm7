@@ -443,24 +443,24 @@ bool PSG::ProcessState(void *f, bool loading)
 	if(!state_fio->StateCheckUint32(PSG_STATE_VERSION)) {
  		return false;
  	}
-	state_fio->StateBuffer(reg, sizeof(reg), 1);
+	state_fio->StateArray(reg, sizeof(reg), 1);
 	if(loading) {
 		int offset = state_fio->FgetInt32_LE();
 		envelop_l = &enveloptable_l[0][0] + offset;
 	} else {
 		state_fio->FputInt32_LE((int)(envelop_l - &enveloptable_l[0][0]));
 	}
-	state_fio->StateBuffer(olevel_l, sizeof(olevel_l), 1);
-	state_fio->StateBuffer(olevel_r, sizeof(olevel_r), 1);
-	state_fio->StateBuffer(scount, sizeof(scount), 1);
-	state_fio->StateBuffer(speriod, sizeof(speriod), 1);
-	state_fio->StateUint32(ecount);
-	state_fio->StateUint32(eperiod);
-	state_fio->StateUint32(ncount);
-	state_fio->StateUint32(nperiod);
-	state_fio->StateUint32(tperiodbase);
-	state_fio->StateUint32(eperiodbase);
-	state_fio->StateUint32(nperiodbase);
-	state_fio->StateInt32(mask);
+	state_fio->StateArray(olevel_l, sizeof(olevel_l), 1);
+	state_fio->StateArray(olevel_r, sizeof(olevel_r), 1);
+	state_fio->StateArray(scount, sizeof(scount), 1);
+	state_fio->StateArray(speriod, sizeof(speriod), 1);
+	state_fio->StateValue(ecount);
+	state_fio->StateValue(eperiod);
+	state_fio->StateValue(ncount);
+	state_fio->StateValue(nperiod);
+	state_fio->StateValue(tperiodbase);
+	state_fio->StateValue(eperiodbase);
+	state_fio->StateValue(nperiodbase);
+	state_fio->StateValue(mask);
  	return true;
 }

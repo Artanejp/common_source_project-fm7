@@ -397,50 +397,19 @@ bool W3100A::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateUint8(idm_or);
-	state_fio->StateUint8(idm_ar0);
-	state_fio->StateUint8(idm_ar1);
-	state_fio->StateBuffer(regs, sizeof(regs), 1);
-	//state_fio->StateBuffer(is_tcp, sizeof(is_tcp), 1);
-	for(int i = 0; i < 4; i++) {
-		state_fio->StateBool(is_tcp[i]);
-	}
-	//state_fio->StateBuffer(rx_bufsz, sizeof(rx_bufsz), 1);
-	//state_fio->StateBuffer(tx_bufsz, sizeof(tx_bufsz), 1);
-	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint16(rx_bufsz[i]);
-	}
-	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint16(tx_bufsz[i]);
-	}
-	//state_fio->StateBuffer(cx_rw_pr, sizeof(cx_rw_pr), 1);
-	//state_fio->StateBuffer(cx_rr_pr, sizeof(cx_rr_pr), 1);
-	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint32(cx_rw_pr[i]);
-	}
-	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint32(cx_rr_pr[i]);
-	}
-	//state_fio->StateBuffer(cx_ta_pr, sizeof(cx_ta_pr), 1);
-	//state_fio->StateBuffer(cx_tw_pr, sizeof(cx_tw_pr), 1);
-	//state_fio->StateBuffer(cx_tr_pr, sizeof(cx_tr_pr), 1);
-	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint32(cx_ta_pr[i]);
-	}
-	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint32(cx_tw_pr[i]);
-	}
-	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint32(cx_tr_pr[i]);
-	}
-	//state_fio->StateBuffer(send_dst_ptr, sizeof(send_dst_ptr), 1);
-	//state_fio->StateBuffer(recv_dst_ptr, sizeof(recv_dst_ptr), 1);
-	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint32(send_dst_ptr[i]);
-	}
-	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint32(recv_dst_ptr[i]);
-	}
-
+	state_fio->StateValue(idm_or);
+	state_fio->StateValue(idm_ar0);
+	state_fio->StateValue(idm_ar1);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateArray(is_tcp, sizeof(is_tcp), 1);
+	state_fio->StateArray(rx_bufsz, sizeof(rx_bufsz), 1);
+	state_fio->StateArray(tx_bufsz, sizeof(tx_bufsz), 1);
+	state_fio->StateArray(cx_rw_pr, sizeof(cx_rw_pr), 1);
+	state_fio->StateArray(cx_rr_pr, sizeof(cx_rr_pr), 1);
+	state_fio->StateArray(cx_ta_pr, sizeof(cx_ta_pr), 1);
+	state_fio->StateArray(cx_tw_pr, sizeof(cx_tw_pr), 1);
+	state_fio->StateArray(cx_tr_pr, sizeof(cx_tr_pr), 1);
+	state_fio->StateArray(send_dst_ptr, sizeof(send_dst_ptr), 1);
+	state_fio->StateArray(recv_dst_ptr, sizeof(recv_dst_ptr), 1);
  	return true;
 }

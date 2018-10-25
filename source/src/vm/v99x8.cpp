@@ -3024,94 +3024,65 @@ bool V99X8::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
 #ifdef USE_CMDTIME
-	state_fio->StateInt32(cmdtime_t);
-	state_fio->StateInt32(cmdtime_m);
+	state_fio->StateValue(cmdtime_t);
+	state_fio->StateValue(cmdtime_m);
 #endif
-	state_fio->StateInt32(latch1);
-	state_fio->StateInt32(latch2);
-	state_fio->StateInt32(vram_addr);
-	state_fio->StateInt32(vram_page);
-	state_fio->StateBool(f_out3);
-	state_fio->StateBool(f_mode);
-	state_fio->StateBool(flag_frame);
-	//state_fio->StateBuffer(&vcom, sizeof(vcom), 1);
+	state_fio->StateValue(latch1);
+	state_fio->StateValue(latch2);
+	state_fio->StateValue(vram_addr);
+	state_fio->StateValue(vram_page);
+	state_fio->StateValue(f_out3);
+	state_fio->StateValue(f_mode);
+	state_fio->StateValue(flag_frame);
+	//state_fio->StateArray(&vcom, sizeof(vcom), 1); // vcom contains uint8_t*.Pointer of 64bit is sizeof(uint64_t).
 	{
-		state_fio->StateInt32(vcom.xbytes);
-		state_fio->StateInt32(vcom.xmask);
-		state_fio->StateInt32(vcom.ymask);
-		state_fio->StateInt32(vcom.xshift);
-		state_fio->StateInt32(vcom.yshift);
+		state_fio->StateValue(vcom.xbytes);
+		state_fio->StateValue(vcom.xmask);
+		state_fio->StateValue(vcom.ymask);
+		state_fio->StateValue(vcom.xshift);
+		state_fio->StateValue(vcom.yshift);
 		
-		state_fio->StateInt32(vcom.sx);
-		state_fio->StateInt32(vcom.sy);
-		state_fio->StateInt32(vcom.dx);
-		state_fio->StateInt32(vcom.dy);
-		state_fio->StateInt32(vcom.nx);
-		state_fio->StateInt32(vcom.ny);
+		state_fio->StateValue(vcom.sx);
+		state_fio->StateValue(vcom.sy);
+		state_fio->StateValue(vcom.dx);
+		state_fio->StateValue(vcom.dy);
+		state_fio->StateValue(vcom.nx);
+		state_fio->StateValue(vcom.ny);
 	}
 	if(loading) {
-		vcom.src = vram + state_fio->FgetInt32_LE();
-		vcom.dst = vram + state_fio->FgetInt32_LE();
+		uintptr_t p = (uintptr_t)vram;
+		vcom.src = (uint8_t*)(p + state_fio->FgetInt32_LE());
+		vcom.dst = (uint8_t*)(p + state_fio->FgetInt32_LE());
 	} else {
-		state_fio->FputInt32_LE((int)(vcom.src - vram));
-		state_fio->FputInt32_LE((int)(vcom.dst - vram));
+		uintptr_t _v, _s, _d;
+		_v = (uintptr_t)vram;
+		_s = (uintptr_t)(vcom.src);
+		_d = (uintptr_t)(vcom.dst);
+		state_fio->FputInt32_LE((int)(_s - _v));
+		state_fio->FputInt32_LE((int)(_d - _v));
 	}
-	//state_fio->StateBuffer(&r44, sizeof(r44), 1);
-	{
-		state_fio->StateInt32(r44.sx);
-		state_fio->StateInt32(r44.sy);
-		state_fio->StateInt32(r44.ex);
-		state_fio->StateInt32(r44.ey);
-		state_fio->StateInt32(r44.x);
-		state_fio->StateInt32(r44.y);
-		state_fio->StateInt32(r44.xsize);
-	}		
-	//state_fio->StateBuffer(&pixmask, sizeof(pixmask), 1);
-	{
-		state_fio->StateInt32(pixmask.npix);
-		state_fio->StateInt32(pixmask.xmask);
-		state_fio->StateInt32(pixmask.mask);
-		for(int i = 0; i < 4; i++) {
-			state_fio->StateInt32(pixmask.pmask[i]);
-		}
-		for(int i = 0; i < 4; i++) {
-			state_fio->StateInt32(pixmask.lshift[i]);
-		}
-		for(int i = 0; i < 4; i++) {
-			state_fio->StateInt32(pixmask.rshift[i]);
-		}
+
+	state_fio->StateArray(&r44, sizeof(r44), 1); // All of this are Int32
+	state_fio->StateArray(&pixmask, sizeof(pixmask), 1); // All of this are Int32
+	state_fio->StateArray(&v99x8_refresh, sizeof(v99x8_refresh), 1);// All of this are Int32
+	//state_fio->StateArray(pal, sizeof(pal), 1);
+	for(int i = 0; i < array_length(pal); i++) {
+		state_fio->StateValue(pai[i].flag);
+		state_fio->StateValue(pai[i].r);
+		state_fio->StateValue(pai[i].g);
+		state_fio->StateValue(pai[i].b);
+		state_fio->StateValue(pai[i].color);
 	}
-	//state_fio->StateBuffer(&v99x8_refresh, sizeof(v99x8_refresh), 1);
-	{
-		state_fio->StateInt32(v99x8_refresh.width);
-		state_fio->StateInt32(v99x8_refresh.height);
-		state_fio->StateInt32(v99x8_refresh.bpp);
-	}
-	//state_fio->StateBuffer(pal, sizeof(pal), 1);
-	//state_fio->StateBuffer(pal_8, sizeof(pal_8), 1);
-	//state_fio->StateBuffer(pal_m, sizeof(pal_m), 1);
-	{
-		for(int i = 0; i < (16 + 1); i++) {
-			state_fio->StateBool(pal[i].flag);
-			state_fio->StateUint8(pal[i].r);
-			state_fio->StateUint8(pal[i].g);
-			state_fio->StateUint8(pal[i].b);
-			state_fio->StateUint32(pal[i].color);
-		}
-		for(int i = 0; i < 256; i++) {
-			state_fio->StateUint32(pal_8[i]);
-		}
-		for(int i = 0; i < 256; i++) {
-			state_fio->StateUint32(pal_m[i]);
-		}
-	}
-	state_fio->StateInt32(col_bg);
-	state_fio->StateBuffer(tbl_yjk_b, sizeof(tbl_yjk_b), 1);
-	state_fio->StateBuffer(tbl_yjk_rg, sizeof(tbl_yjk_rg), 1);
-	state_fio->StateBuffer(blackbuf, sizeof(blackbuf), 1);
-	state_fio->StateBuffer(sbuf, sizeof(sbuf), 1);
-	state_fio->StateBuffer(this->vram, sizeof(this->vram), 1);
-	state_fio->StateBool(intstat);
+		
+	state_fio->StateArray(pal_8, sizeof(pal_8), 1);
+	state_fio->StateArray(pal_m, sizeof(pal_m), 1);
+	state_fio->StateValue(col_bg);
+	state_fio->StateArray(tbl_yjk_b, sizeof(tbl_yjk_b), 1);
+	state_fio->StateArray(tbl_yjk_rg, sizeof(tbl_yjk_rg), 1);
+	state_fio->StateArray(blackbuf, sizeof(blackbuf), 1);
+	state_fio->StateArray(sbuf, sizeof(sbuf), 1);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateValue(intstat);
 	// Q: Do not save "v99x8_t v99x8"? 20181014 K.O
 	
  	// post process
