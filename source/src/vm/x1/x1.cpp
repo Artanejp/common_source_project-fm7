@@ -962,7 +962,7 @@ void VM::update_dipswitch()
 }
 #endif
 
-#define STATE_VERSION	10
+#define STATE_VERSION	11
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -988,8 +988,8 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
  			return false;
  		}
  	}
-	state_fio->StateBool(pseudo_sub_cpu);
-	state_fio->StateInt32(sound_type);
+	state_fio->StateValue(pseudo_sub_cpu);
+	state_fio->StateValue(sound_type);
  	
 #ifdef _X1TURBO_FEATURE
  	// post process

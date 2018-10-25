@@ -3520,144 +3520,144 @@ bool DISPLAY::process_state(FILEIO *state_fio, bool loading)
 	}
  	{
  		int i;
-		state_fio->StateBool(delay_busy);
-		state_fio->StateBool(halt_flag);
-		state_fio->StateInt32(active_page);
-		state_fio->StateBool(sub_busy);
-		state_fio->StateBool(crt_flag);
-		state_fio->StateBool(vram_wrote);
-		state_fio->StateBool(is_cyclesteal);
+		state_fio->StateValue(delay_busy);
+		state_fio->StateValue(halt_flag);
+		state_fio->StateValue(active_page);
+		state_fio->StateValue(sub_busy);
+		state_fio->StateValue(crt_flag);
+		state_fio->StateValue(vram_wrote);
+		state_fio->StateValue(is_cyclesteal);
  		
-		state_fio->StateBool(clock_fast);
+		state_fio->StateValue(clock_fast);
  		
 #if defined(_FM77AV_VARIANTS)
-		state_fio->StateBool(subcpu_resetreq);
-		state_fio->StateBool(power_on_reset);
+		state_fio->StateValue(subcpu_resetreq);
+		state_fio->StateValue(power_on_reset);
 #endif	
-		state_fio->StateBool(cancel_request);
-		state_fio->StateBool(key_firq_req);
-		state_fio->StateInt32(display_mode);
-		state_fio->StateUint32(prev_clock);
+		state_fio->StateValue(cancel_request);
+		state_fio->StateValue(key_firq_req);
+		state_fio->StateValue(display_mode);
+		state_fio->StateValue(prev_clock);
 #if !defined(_FM8)	
-		state_fio->StateBuffer(dpalette_data, sizeof(dpalette_data), 1);
-		state_fio->StateUint8(multimode_accessmask);
-		state_fio->StateUint8(multimode_dispmask);
+		state_fio->StateArray(dpalette_data, sizeof(dpalette_data), 1);
+		state_fio->StateValue(multimode_accessmask);
+		state_fio->StateValue(multimode_dispmask);
 #endif		
-		state_fio->StateUint32(offset_point);
+		state_fio->StateValue(offset_point);
 #if defined(_FM77AV_VARIANTS)
-		state_fio->StateUint32(offset_point_bank1);
+		state_fio->StateValue(offset_point_bank1);
 #endif		
 		//for(i = 0; i < 2; i++) {
-		state_fio->StateBuffer(tmp_offset_point, sizeof(tmp_offset_point), 1);
-		state_fio->StateBuffer(offset_changed, sizeof(offset_changed), 1);
+		state_fio->StateArray(tmp_offset_point, sizeof(tmp_offset_point), 1);
+		state_fio->StateArray(offset_changed, sizeof(offset_changed), 1);
 		//}
-		state_fio->StateBool(offset_77av);
-		state_fio->StateBool(diag_load_subrom_c);
-		state_fio->StateBuffer(io_w_latch, sizeof(io_w_latch), 1);
-		state_fio->StateBuffer(console_ram, sizeof(console_ram), 1);
-		state_fio->StateBuffer(work_ram, sizeof(work_ram), 1);
-		state_fio->StateBuffer(shared_ram, sizeof(shared_ram), 1);
-		state_fio->StateBuffer(subsys_c, sizeof(subsys_c), 1);
-		state_fio->StateBuffer(gvram, sizeof(gvram), 1);
-		state_fio->StateBuffer(gvram_shadow, sizeof(gvram_shadow), 1);
+		state_fio->StateValue(offset_77av);
+		state_fio->StateValue(diag_load_subrom_c);
+		state_fio->StateArray(io_w_latch, sizeof(io_w_latch), 1);
+		state_fio->StateArray(console_ram, sizeof(console_ram), 1);
+		state_fio->StateArray(work_ram, sizeof(work_ram), 1);
+		state_fio->StateArray(shared_ram, sizeof(shared_ram), 1);
+		state_fio->StateArray(subsys_c, sizeof(subsys_c), 1);
+		state_fio->StateArray(gvram, sizeof(gvram), 1);
+		state_fio->StateArray(gvram_shadow, sizeof(gvram_shadow), 1);
 #if defined(_FM77_VARIANTS)
-		state_fio->StateBool(kanjisub);
-		state_fio->StateUint32(kanjiaddr.d);
+		state_fio->StateValue(kanjisub);
+		state_fio->StateValue(kanjiaddr.d);
 # if defined(_FM77L4)
-		state_fio->StateBool(mode400line);
-		state_fio->StateBool(stat_400linecard);
+		state_fio->StateValue(mode400line);
+		state_fio->StateValue(stat_400linecard);
 # endif
 #elif defined(_FM77AV_VARIANTS)
-		state_fio->StateBool(kanjisub);
-		state_fio->StateUint32(kanjiaddr.d);
-		state_fio->StateBool(mode320);
-		state_fio->StateInt32(cgrom_bank);
+		state_fio->StateValue(kanjisub);
+		state_fio->StateValue(kanjiaddr.d);
+		state_fio->StateValue(mode320);
+		state_fio->StateValue(cgrom_bank);
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX) || \
 	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
-		state_fio->StateInt32(vram_bank);
+		state_fio->StateValue(vram_bank);
 #endif	
-		state_fio->StateUint32(displine);
-		state_fio->StateUint8(subrom_bank);
-		state_fio->StateUint8(subrom_bank_using);
-		state_fio->StateBool(nmi_enable);
-		state_fio->StateBool(use_alu);
-		state_fio->StateUint32(apalette_index.d);
-		state_fio->StateBuffer(analog_palette_r, sizeof(analog_palette_r), 1);
-		state_fio->StateBuffer(analog_palette_g, sizeof(analog_palette_g), 1);
-		state_fio->StateBuffer(analog_palette_b, sizeof(analog_palette_b), 1);
-		state_fio->StateBool(diag_load_subrom_a);
-		state_fio->StateBool(diag_load_subrom_b);
-		state_fio->StateBool(diag_load_subrom_cg);
+		state_fio->StateValue(displine);
+		state_fio->StateValue(subrom_bank);
+		state_fio->StateValue(subrom_bank_using);
+		state_fio->StateValue(nmi_enable);
+		state_fio->StateValue(use_alu);
+		state_fio->StateValue(apalette_index.d);
+		state_fio->StateArray(analog_palette_r, sizeof(analog_palette_r), 1);
+		state_fio->StateArray(analog_palette_g, sizeof(analog_palette_g), 1);
+		state_fio->StateArray(analog_palette_b, sizeof(analog_palette_b), 1);
+		state_fio->StateValue(diag_load_subrom_a);
+		state_fio->StateValue(diag_load_subrom_b);
+		state_fio->StateValue(diag_load_subrom_cg);
 	
-		state_fio->StateBuffer(subsys_a, sizeof(subsys_a), 1);
-		state_fio->StateBuffer(subsys_b, sizeof(subsys_b), 1);
-		state_fio->StateBuffer(subsys_cg, sizeof(subsys_cg), 1);
-		state_fio->StateBuffer(submem_hidden, sizeof(submem_hidden), 1);
+		state_fio->StateArray(subsys_a, sizeof(subsys_a), 1);
+		state_fio->StateArray(subsys_b, sizeof(subsys_b), 1);
+		state_fio->StateArray(subsys_cg, sizeof(subsys_cg), 1);
+		state_fio->StateArray(submem_hidden, sizeof(submem_hidden), 1);
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-		state_fio->StateBool(mode400line);
-		state_fio->StateBool(mode256k);
-		state_fio->StateBool(monitor_ram);
+		state_fio->StateValue(mode400line);
+		state_fio->StateValue(mode256k);
+		state_fio->StateValue(monitor_ram);
 #  if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-		state_fio->StateUint16(window_low);
-		state_fio->StateUint16(window_high);
-		state_fio->StateUint16(window_xbegin);
-		state_fio->StateUint16(window_xend);
-		state_fio->StateBool(window_opened);
+		state_fio->StateValue(window_low);
+		state_fio->StateValue(window_high);
+		state_fio->StateValue(window_xbegin);
+		state_fio->StateValue(window_xend);
+		state_fio->StateValue(window_opened);
 #  endif	
-		state_fio->StateBool(kanji_level2);
-		state_fio->StateUint8(vram_active_block);
-		state_fio->StateUint8(vram_display_block);
-		state_fio->StateUint8(console_ram_bank);
-		state_fio->StateBool(ram_protect);
-		state_fio->StateUint8(cgram_bank);
-		state_fio->StateBuffer(subsys_ram, sizeof(subsys_ram), 1);
-		state_fio->StateBuffer(submem_cgram, sizeof(submem_cgram), 1);
-		state_fio->StateBuffer(submem_console_av40, sizeof(submem_console_av40), 1);
+		state_fio->StateValue(kanji_level2);
+		state_fio->StateValue(vram_active_block);
+		state_fio->StateValue(vram_display_block);
+		state_fio->StateValue(console_ram_bank);
+		state_fio->StateValue(ram_protect);
+		state_fio->StateValue(cgram_bank);
+		state_fio->StateArray(subsys_ram, sizeof(subsys_ram), 1);
+		state_fio->StateArray(submem_cgram, sizeof(submem_cgram), 1);
+		state_fio->StateArray(submem_console_av40, sizeof(submem_console_av40), 1);
 # endif
 #endif
  	}
  	// V2
  	{
-		state_fio->StateInt32(nmi_event_id);
+		state_fio->StateValue(nmi_event_id);
 //#if defined(_FM77AV_VARIANTS)
-		state_fio->StateInt32(hblank_event_id);
-		state_fio->StateInt32(hdisp_event_id);
-		state_fio->StateInt32(vsync_event_id);
-		state_fio->StateInt32(vstart_event_id);
+		state_fio->StateValue(hblank_event_id);
+		state_fio->StateValue(hdisp_event_id);
+		state_fio->StateValue(vsync_event_id);
+		state_fio->StateValue(vstart_event_id);
 //#endif
-		state_fio->StateBool(firq_mask);
-		state_fio->StateBool(vram_accessflag);
-		state_fio->StateInt8(display_page);
-		state_fio->StateInt8(display_page_bak);
-		state_fio->StateBool(vblank);
-		state_fio->StateBool(vsync);
-		state_fio->StateBool(hblank);
-		state_fio->StateInt32(vblank_count);
+		state_fio->StateValue(firq_mask);
+		state_fio->StateValue(vram_accessflag);
+		state_fio->StateValue(display_page);
+		state_fio->StateValue(display_page_bak);
+		state_fio->StateValue(vblank);
+		state_fio->StateValue(vsync);
+		state_fio->StateValue(hblank);
+		state_fio->StateValue(vblank_count);
  	}			
 #if defined(_FM77L4)
-	state_fio->StateBuffer(subsys_cg_l4, sizeof(subsys_cg_l4), 1);
-	state_fio->StateBuffer(subsys_l4, sizeof(subsys_l4), 1);
-	state_fio->StateBuffer(text_vram, sizeof(text_vram), 1);
+	state_fio->StateArray(subsys_cg_l4, sizeof(subsys_cg_l4), 1);
+	state_fio->StateArray(subsys_l4, sizeof(subsys_l4), 1);
+	state_fio->StateArray(text_vram, sizeof(text_vram), 1);
  	//state_fio->Fwrite(crtc_regs, sizeof(crtc_regs), 1);
-	state_fio->StateBool(workram_l4);
-	state_fio->StateBool(cursor_lsb);
-	state_fio->StateBool(text_width40);
+	state_fio->StateValue(workram_l4);
+	state_fio->StateValue(cursor_lsb);
+	state_fio->StateValue(text_width40);
 	
-	state_fio->StateBool(text_blink);
-	state_fio->StateBool(cursor_blink);
+	state_fio->StateValue(text_blink);
+	state_fio->StateValue(cursor_blink);
 	
-	state_fio->StateUint32(text_start_addr.d);
-	state_fio->StateUint32(text_lines);
-	state_fio->StateUint32(text_xmax);
+	state_fio->StateValue(text_start_addr.d);
+	state_fio->StateValue(text_lines);
+	state_fio->StateValue(text_xmax);
 	
-	state_fio->StateUint32(cursor_addr.d);
-	state_fio->StateInt32(cursor_start);
-	state_fio->StateInt32(cursor_end);
-	state_fio->StateUint8(cursor_type);
-	state_fio->StateUint8(text_scroll_count);
+	state_fio->StateValue(cursor_addr.d);
+	state_fio->StateValue(cursor_start);
+	state_fio->StateValue(cursor_end);
+	state_fio->StateValue(cursor_type);
+	state_fio->StateValue(text_scroll_count);
  
-	state_fio->StateInt32(event_id_l4_cursor_blink);
-	state_fio->StateInt32(event_id_l4_text_blink);
+	state_fio->StateValue(event_id_l4_cursor_blink);
+	state_fio->StateValue(event_id_l4_text_blink);
 #endif
 
 	if(loading) {	

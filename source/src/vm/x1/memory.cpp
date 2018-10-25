@@ -172,13 +172,13 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateUint8(romsel);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateValue(romsel);
 #ifdef _X1TURBO_FEATURE
-	state_fio->StateBuffer(extram, sizeof(extram), 1);
-	state_fio->StateUint8(bank);
+	state_fio->StateArray(extram, sizeof(extram), 1);
+	state_fio->StateValue(bank);
 #else
-	state_fio->StateInt32(m1_cycle);
+	state_fio->StateValue(m1_cycle);
 #endif
  	
  	// post process

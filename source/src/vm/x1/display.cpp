@@ -1523,86 +1523,68 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateBuffer(vram_t, sizeof(vram_t), 1);
-	state_fio->StateBuffer(vram_a, sizeof(vram_a), 1);
+	state_fio->StateArray(vram_t, sizeof(vram_t), 1);
+	state_fio->StateArray(vram_a, sizeof(vram_a), 1);
 #ifdef _X1TURBO_FEATURE
-	state_fio->StateBuffer(vram_k, sizeof(vram_k), 1);
+	state_fio->StateArray(vram_k, sizeof(vram_k), 1);
 #endif
-	state_fio->StateBuffer(pcg_b, sizeof(pcg_b), 1);
-	state_fio->StateBuffer(pcg_r, sizeof(pcg_r), 1);
-	state_fio->StateBuffer(pcg_g, sizeof(pcg_g), 1);
+	state_fio->StateArray(&pcg_b[0][0], sizeof(pcg_b), 1);
+	state_fio->StateArray(&pcg_r[0][0], sizeof(pcg_r), 1);
+	state_fio->StateArray(&pcg_g[0][0], sizeof(pcg_g), 1);
 #ifdef _X1TURBO_FEATURE
-	state_fio->StateBuffer(gaiji_b, sizeof(gaiji_b), 1);
-	state_fio->StateBuffer(gaiji_r, sizeof(gaiji_r), 1);
-	state_fio->StateBuffer(gaiji_g, sizeof(gaiji_g), 1);
+	state_fio->StateArray(&gaiji_b[0][0], sizeof(gaiji_b), 1);
+	state_fio->StateArray(&gaiji_r[0][0], sizeof(gaiji_r), 1);
+	state_fio->StateArray(&gaiji_g[0][0], sizeof(gaiji_g), 1);
 #endif
-	state_fio->StateUint8(cur_code);
-	state_fio->StateUint8(cur_line);
-	state_fio->StateInt32(kaddr);
-	state_fio->StateInt32(kofs);
-	state_fio->StateInt32(kflag);
+	state_fio->StateValue(cur_code);
+	state_fio->StateValue(cur_line);
+	state_fio->StateValue(kaddr);
+	state_fio->StateValue(kofs);
+	state_fio->StateValue(kflag);
 	if(loading) {
-		kanji_ptr = &kanji[0] + state_fio->FgetInt32_LE();
+		intptr_t p = (intptr_t)(&kanji[0]);
+		kanji_ptr = (uint8_t*)(p + state_fio->FgetInt32_LE());
 	} else {
-		state_fio->FputInt32_LE((int)(kanji_ptr - &kanji[0]));
+		intptr_t p = (intptr_t)(&kanji[0]);
+		intptr_t q = (intptr_t)kanji_ptr;
+		state_fio->FputInt32_LE((int)(q - p));
 	}
-	state_fio->StateBuffer(pal, sizeof(pal), 1);
-	state_fio->StateUint8(priority);
-	state_fio->StateBuffer(pri, sizeof(pri), 1);
-	state_fio->StateBool(column40);
+	state_fio->StateArray(pal, sizeof(pal), 1);
+	state_fio->StateValue(priority);
+	state_fio->StateArray(&pri[0][0], sizeof(pri), 1);
+	state_fio->StateValue(column40);
 #ifdef _X1TURBO_FEATURE
-	state_fio->StateUint8(mode1);
-	state_fio->StateUint8(mode2);
-	state_fio->StateBool(hireso);
+	state_fio->StateValue(mode1);
+	state_fio->StateValue(mode2);
+	state_fio->StateValue(hireso);
 #endif
 #ifdef _X1TURBOZ
-	state_fio->StateUint8(zmode1);
-	state_fio->StateUint8(zpriority);
-	state_fio->StateUint8(zadjust);
-	state_fio->StateUint8(zmosaic);
-	state_fio->StateUint8(zchromakey);
-	state_fio->StateUint8(zscroll);
-	state_fio->StateUint8(zmode2);
-	state_fio->StateBuffer(ztpal, sizeof(ztpal), 1);
-	//state_fio->StateBuffer(zpal, sizeof(zpal), 1);
-	for(int i = 0; i < 4096; i++) {
-		state_fio->StateUint8(zpal[i].b);
-		state_fio->StateUint8(zpal[i].r);
-		state_fio->StateUint8(zpal[i].g);
-	}							  
-	state_fio->StateInt32(zpal_num);
-	//state_fio->StateBuffer(zpalette_pc, sizeof(zpalette_pc), 1);
-	if(loading) {
-		for(int i = 0; i < (sizeof(zpalette_pc) / sizeof(scrntype_t)); i++) {
-			uint8_t r, g, b;
-			r = state_fio->FgetUint8();
-			g = state_fio->FgetUint8();
-			b = state_fio->FgetUint8();
-			zpalette_pc[i] = RGB_COLOR(r, g, b);
-		}
-	} else {
-		for(int i = 0; i < (sizeof(zpalette_pc) / sizeof(scrntype_t)); i++) {
-			uint8_t r, g, b;
-			r = R_OF_COLOR(zpalette_pc[i]);
-			g = G_OF_COLOR(zpalette_pc[i]);
-			b = B_OF_COLOR(zpalette_pc[i]);
-			state_fio->FputUint8(r);
-			state_fio->FputUint8(g);
-			state_fio->FputUint8(b);
-		}
+	state_fio->StateValue(zmode1);
+	state_fio->StateValue(zpriority);
+	state_fio->StateValue(zadjust);
+	state_fio->StateValue(zmosaic);
+	state_fio->StateValue(zchromakey);
+	state_fio->StateValue(zscroll);
+	state_fio->StateValue(zmode2);
+	state_fio->StateArray(ztpal, sizeof(ztpal), 1);
+	for(int i = 0; i < array_length(zpal); i++){
+		state_fio->StateValue(zpal[i].r);
+		state_fio->StateValue(zpal[i].g);
+		state_fio->StateValue(zpal[i].b);
 	}
-
+	state_fio->StateValue(zpal_num);
+	state_fio->StateArrayScrnType_t(zpalette_pc, sizeof(zpalette_pc), 1);
 #endif
-	state_fio->StateBool(prev_vert_double);
-	state_fio->StateInt32(raster);
-	state_fio->StateInt32(cblink);
-	state_fio->StateInt32(ch_height);
-	state_fio->StateInt32(hz_total);
-	state_fio->StateInt32(hz_disp);
-	state_fio->StateInt32(vt_disp);
-	state_fio->StateInt32(st_addr);
-	state_fio->StateUint32(vblank_clock);
-	state_fio->StateBool(cur_blank);
+	state_fio->StateValue(prev_vert_double);
+	state_fio->StateValue(raster);
+	state_fio->StateValue(cblink);
+	state_fio->StateValue(ch_height);
+	state_fio->StateValue(hz_total);
+	state_fio->StateValue(hz_disp);
+	state_fio->StateValue(vt_disp);
+	state_fio->StateValue(st_addr);
+	state_fio->StateValue(vblank_clock);
+	state_fio->StateValue(cur_blank);
  	
  	// post process
 	if(loading) {

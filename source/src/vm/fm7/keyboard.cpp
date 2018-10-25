@@ -1245,52 +1245,52 @@ bool KEYBOARD::decl_state(FILEIO *state_fio, bool loading)
 		return false;
 	}
 	
-	state_fio->StateUint32(keycode_7);
-	state_fio->StateInt32(keymode);
-	state_fio->StateBool(ctrl_pressed);
-	state_fio->StateBool(lshift_pressed);
-	state_fio->StateBool(rshift_pressed);
-	state_fio->StateBool(shift_pressed);
-	state_fio->StateBool(graph_pressed);
-	state_fio->StateBool(caps_pressed);
-	state_fio->StateBool(kana_pressed);
-	state_fio->StateBool(break_pressed);
+	state_fio->StateValue(keycode_7);
+	state_fio->StateValue(keymode);
+	state_fio->StateValue(ctrl_pressed);
+	state_fio->StateValue(lshift_pressed);
+	state_fio->StateValue(rshift_pressed);
+	state_fio->StateValue(shift_pressed);
+	state_fio->StateValue(graph_pressed);
+	state_fio->StateValue(caps_pressed);
+	state_fio->StateValue(kana_pressed);
+	state_fio->StateValue(break_pressed);
 
-	state_fio->StateInt32(event_keyrepeat);
+	state_fio->StateValue(event_keyrepeat);
 	   
-	state_fio->StateUint8(scancode); // After V.4, uint8_t
-	state_fio->StateUint8(datareg);
-	state_fio->StateUint32(older_vk);
+	state_fio->StateValue(scancode); // After V.4, uint8_t
+	state_fio->StateValue(datareg);
+	state_fio->StateValue(older_vk);
 	   
-	state_fio->StateBool(repeat_mode);
-	state_fio->StateInt32(repeat_time_short);
-	state_fio->StateInt32(repeat_time_long);
-	state_fio->StateUint8(repeat_keycode);
+	state_fio->StateValue(repeat_mode);
+	state_fio->StateValue(repeat_time_short);
+	state_fio->StateValue(repeat_time_long);
+	state_fio->StateValue(repeat_keycode);
  	   
 #if defined(_FM77AV_VARIANTS)
-	state_fio->StateInt32(event_key_rtc);
-	state_fio->StateUint8(rtc_yy);
-	state_fio->StateUint8(rtc_mm);
-	state_fio->StateUint8(rtc_dd);
-	state_fio->StateUint8(rtc_dayofweek);
-	state_fio->StateUint8(rtc_hour);
-	state_fio->StateUint8(rtc_minute);
-	state_fio->StateUint8(rtc_sec);
+	state_fio->StateValue(event_key_rtc);
+	state_fio->StateValue(rtc_yy);
+	state_fio->StateValue(rtc_mm);
+	state_fio->StateValue(rtc_dd);
+	state_fio->StateValue(rtc_dayofweek);
+	state_fio->StateValue(rtc_hour);
+	state_fio->StateValue(rtc_minute);
+	state_fio->StateValue(rtc_sec);
 
-	state_fio->StateBool(rtc_count24h);
-	state_fio->StateBool(rtc_ispm);
+	state_fio->StateValue(rtc_count24h);
+	state_fio->StateValue(rtc_ispm);
 
-	state_fio->StateBool(rtc_set);
-	state_fio->StateBool(rtc_set_flag);
-	state_fio->StateBool(rxrdy_status);
-	state_fio->StateBool(key_ack_status);
+	state_fio->StateValue(rtc_set);
+	state_fio->StateValue(rtc_set_flag);
+	state_fio->StateValue(rxrdy_status);
+	state_fio->StateValue(key_ack_status);
 		
-	state_fio->StateBool(did_hidden_message_av_1);
-	state_fio->StateInt32(event_hidden1_av);
+	state_fio->StateValue(did_hidden_message_av_1);
+	state_fio->StateValue(event_hidden1_av);
 
-	state_fio->StateInt32(cmd_phase);
-	state_fio->StateUint16(hidden1_ptr);
-	state_fio->StateInt32(beep_phase);
+	state_fio->StateValue(cmd_phase);
+	state_fio->StateValue(hidden1_ptr);
+	state_fio->StateValue(beep_phase);
 	
 	if(!cmd_fifo->process_state(state_fio, loading)) {
 		return false;
@@ -1305,14 +1305,14 @@ bool KEYBOARD::decl_state(FILEIO *state_fio, bool loading)
 	if(!key_fifo->process_state(state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateInt32(event_int);
-	state_fio->StateUint8(autokey_backup);
+	state_fio->StateValue(event_int);
+	state_fio->StateValue(autokey_backup);
  	// Version 5
-	state_fio->StateBool(ins_led_status);
-	state_fio->StateBool(kana_led_status);
-	state_fio->StateBool(caps_led_status);
+	state_fio->StateValue(ins_led_status);
+	state_fio->StateValue(kana_led_status);
+	state_fio->StateValue(caps_led_status);
  	// Version 6
-	state_fio->StateBool(override_break_key);
+	state_fio->StateValue(override_break_key);
 
 	return true;
 }
@@ -1322,7 +1322,7 @@ void KEYBOARD::save_state(FILEIO *state_fio)
 	decl_state(state_fio, false);
 	//state_fio->FputUint32_BE(STATE_VERSION);
 	//state_fio->FputInt32_BE(this_device_id);
-	this->out_debug_log(_T("Save State: KEYBOARD: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
+	//this->out_debug_log(_T("Save State: KEYBOARD: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
 }
  
 bool KEYBOARD::load_state(FILEIO *state_fio)

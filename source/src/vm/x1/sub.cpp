@@ -276,19 +276,19 @@ bool SUB::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateUint8(p1_out);
-	state_fio->StateUint8(p1_in);
-	state_fio->StateUint8(p2_out);
-	state_fio->StateUint8(p2_in);
-	state_fio->StateUint8(portc);
-	state_fio->StateBool(tape_play);
-	state_fio->StateBool(tape_rec);
-	state_fio->StateBool(tape_eot);
-	state_fio->StateBool(tape_apss);
-	state_fio->StateBool(intr);
-	state_fio->StateBool(obf);
-	state_fio->StateBool(iei);
-	state_fio->StateUint32(intr_bit);
+	state_fio->StateValue(p1_out);
+	state_fio->StateValue(p1_in);
+	state_fio->StateValue(p2_out);
+	state_fio->StateValue(p2_in);
+	state_fio->StateValue(portc);
+	state_fio->StateValue(tape_play);
+	state_fio->StateValue(tape_rec);
+	state_fio->StateValue(tape_eot);
+	state_fio->StateValue(tape_apss);
+	state_fio->StateValue(intr);
+	state_fio->StateValue(obf);
+	state_fio->StateValue(iei);
+	state_fio->StateValue(intr_bit);
  	return true;
 }
 

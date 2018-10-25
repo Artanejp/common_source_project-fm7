@@ -297,7 +297,7 @@ void JOYSTICK::update_config(void)
 	}
 #endif	
 }
-#define STATE_VERSION 5
+#define STATE_VERSION 6
 
 bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 {
@@ -307,27 +307,24 @@ bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	for(int ch = 0; ch < 2; ch++) {
-		state_fio->StateUint32(joydata[ch]);
-	}
+	state_fio->StateArray(joydata, sizeof(joydata), 1);
 #if !defined(_FM8)
-	for(int ch = 0; ch < 2; ch++) {
-		state_fio->StateBool(emulate_mouse[ch]);
-	}
-	state_fio->StateInt32(dx);
-	state_fio->StateInt32(dy);
-	state_fio->StateInt32(lx);
-	state_fio->StateInt32(ly);
-	state_fio->StateUint32(mouse_button);
-	state_fio->StateBool(mouse_strobe);
-	state_fio->StateInt32(mouse_phase);
-	state_fio->StateUint32(mouse_data);
-	//state_fio->StateInt32(mouse_timeout_event);
+	state_fio->StateArray(emulate_mouse, sizeof(emulate_mouse), 1);
+	state_fio->StateValue(dx);
+	state_fio->StateValue(dy);
+	state_fio->StateValue(lx);
+	state_fio->StateValue(ly);
+	state_fio->StateValue(mouse_button);
+	state_fio->StateValue(mouse_strobe);
+	state_fio->StateValue(mouse_phase);
+	state_fio->StateValue(mouse_data);
+	//state_fio->StateValue(mouse_timeout_event);
 #endif	
  	// Version 3
-	state_fio->StateUint8(lpmask);
+	state_fio->StateValue(lpmask);
  	// Version 4
-	state_fio->StateUint8(port_b_val);
+	state_fio->StateValue(port_b_val);
+	// Version 5
 
 	return true;
 }

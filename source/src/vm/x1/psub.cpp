@@ -840,37 +840,39 @@ bool PSUB::process_state(FILEIO* state_fio, bool loading)
 	if(!cur_time.process_state((void *)state_fio, loading)) {
  		return false;
  	}
-	state_fio->StateInt32(time_register_id);
-	state_fio->StateBuffer(databuf, sizeof(databuf), 1);
+	state_fio->StateValue(time_register_id);
+	state_fio->StateArray(&databuf[0][0], sizeof(databuf), 1);
 	if(loading) {
-		datap = &databuf[0][0] + state_fio->FgetInt32_LE();
+		intptr_t _d = (intptr_t)(&databuf[0][0]);
+		datap = (uint8_t*)(_d + state_fio->FgetInt32_LE());
 	} else {
-		state_fio->FputInt32_LE((int)(datap - &databuf[0][0]));
+		intptr_t _d = (intptr_t)(&databuf[0][0]);
+		state_fio->FputInt32_LE((int)((intptr_t)datap - _d));
 	}
-	state_fio->StateUint8(mode);
-	state_fio->StateUint8(inbuf);
-	state_fio->StateUint8(outbuf);
-	state_fio->StateBool(ibf);
-	state_fio->StateBool(obf);
-	state_fio->StateInt32(cmdlen);
-	state_fio->StateInt32(datalen);
+	state_fio->StateValue(mode);
+	state_fio->StateValue(inbuf);
+	state_fio->StateValue(outbuf);
+	state_fio->StateValue(ibf);
+	state_fio->StateValue(obf);
+	state_fio->StateValue(cmdlen);
+	state_fio->StateValue(datalen);
 	if(!key_buf->process_state((void *)state_fio, loading)) {
  		return false;
  	}
-	state_fio->StateInt32(key_prev);
-	state_fio->StateInt32(key_break);
-	state_fio->StateBool(key_shift);
-	state_fio->StateBool(key_ctrl);
-	state_fio->StateBool(key_graph);
-	state_fio->StateBool(key_caps_locked);
-	state_fio->StateBool(key_kana_locked);
-	state_fio->StateInt32(key_register_id);
-	state_fio->StateBool(play);
-	state_fio->StateBool(rec);
-	state_fio->StateBool(eot);
-	state_fio->StateBool(iei);
-	state_fio->StateBool(intr);
-	state_fio->StateUint32(intr_bit);
+	state_fio->StateValue(key_prev);
+	state_fio->StateValue(key_break);
+	state_fio->StateValue(key_shift);
+	state_fio->StateValue(key_ctrl);
+	state_fio->StateValue(key_graph);
+	state_fio->StateValue(key_caps_locked);
+	state_fio->StateValue(key_kana_locked);
+	state_fio->StateValue(key_register_id);
+	state_fio->StateValue(play);
+	state_fio->StateValue(rec);
+	state_fio->StateValue(eot);
+	state_fio->StateValue(iei);
+	state_fio->StateValue(intr);
+	state_fio->StateValue(intr_bit);
  	return true;
 }
 

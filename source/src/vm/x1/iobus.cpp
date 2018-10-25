@@ -245,17 +245,23 @@ bool IOBUS::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateBuffer(vram, sizeof(vram), 1);
-	state_fio->StateBool(vram_mode);
-	state_fio->StateBool(signal);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateValue(vram_mode);
+	state_fio->StateValue(signal);
 	if(loading) {
-		vram_b = vram + state_fio->FgetInt32_LE();
-		vram_r = vram + state_fio->FgetInt32_LE();
-		vram_g = vram + state_fio->FgetInt32_LE();
+		intptr_t _v = (intptr_t)vram;
+		vram_b = (uint8_t*)(_v + state_fio->FgetInt32_LE());
+		vram_r = (uint8_t*)(_v + state_fio->FgetInt32_LE());
+		vram_g = (uint8_t*)(_v + state_fio->FgetInt32_LE());
 	} else {
-		state_fio->FputInt32_LE((int)(vram_b - vram));
-		state_fio->FputInt32_LE((int)(vram_r - vram));
-		state_fio->FputInt32_LE((int)(vram_g - vram));
+		intptr_t _v = (intptr_t)vram;
+		intptr_t _b = (intptr_t)vram_b;
+		intptr_t _r = (intptr_t)vram_r;
+		intptr_t _g = (intptr_t)vram_g;
+		
+		state_fio->FputInt32_LE((int)(_b - _v));
+		state_fio->FputInt32_LE((int)(_r - _v));
+		state_fio->FputInt32_LE((int)(_g - _v));
 	}
 	state_fio->StateValue(vdisp);
 	state_fio->StateValue(prev_clock);

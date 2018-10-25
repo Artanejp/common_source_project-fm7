@@ -442,7 +442,7 @@ void HD6844::event_callback(int event_id, int err)
 	}
 }
 
-#define STATE_VERSION 5
+#define STATE_VERSION 6
 
 bool HD6844::process_state(FILEIO *state_fio, bool loading)
 {
@@ -453,27 +453,24 @@ bool HD6844::process_state(FILEIO *state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
  	}
-	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint32(addr_reg[i]);
-		state_fio->StateUint16(words_reg[i]);
-		state_fio->StateUint8(channel_control[i]);
-	}
-	state_fio->StateUint8(priority_reg);
-	state_fio->StateUint8(interrupt_reg);
-	state_fio->StateUint8(datachain_reg);
-	state_fio->StateUint8(num_reg);
-	state_fio->StateUint32(addr_offset);
+	state_fio->StateArray(addr_reg, sizeof(addr_reg), 1);
+	state_fio->StateArray(words_reg, sizeof(words_reg), 1);
+	state_fio->StateArray(channel_control, sizeof(channel_control), 1);
+	state_fio->StateValue(priority_reg);
+	state_fio->StateValue(interrupt_reg);
+	state_fio->StateValue(datachain_reg);
+	state_fio->StateValue(num_reg);
+	state_fio->StateValue(addr_offset);
 		
-	for(int i = 0; i < 4; i++) {
-		state_fio->StateBool(transfering[i]);
-		state_fio->StateBool(first_transfer[i]);
-		state_fio->StateBool(cycle_steal[i]);
-		state_fio->StateBool(halt_flag[i]);
-		
-		state_fio->StateUint32(fixed_addr[i]);
-		state_fio->StateUint8(data_reg[i]);
-		state_fio->StateInt32(event_dmac[i]);
-	}
+	state_fio->StateArray(transfering, sizeof(transfering), 1);
+	state_fio->StateArray(first_transfer, sizeof(first_transfer), 1);
+	state_fio->StateArray(cycle_steal, sizeof(cycle_steal), 1);
+	state_fio->StateArray(halt_flag, sizeof(halt_flag), 1);
+
+	state_fio->StateArray(fixed_addr, sizeof(fixed_addr), 1);
+	state_fio->StateArray(data_reg, sizeof(data_reg), 1);
+	state_fio->StateArray(event_dmac, sizeof(event_dmac), 1);
+
 	return true;
 }
 

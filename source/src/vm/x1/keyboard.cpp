@@ -174,9 +174,9 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateUint8(caps_locked);
-	state_fio->StateUint8(kana_locked);
-	state_fio->StateUint16(column);
+	state_fio->StateValue(caps_locked);
+	state_fio->StateValue(kana_locked);
+	state_fio->StateValue(column);
  	return true;
 }
 

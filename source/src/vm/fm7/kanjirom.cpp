@@ -116,10 +116,10 @@ bool KANJIROM::process_state(FILEIO *state_fio, bool loading)
 		return false;
 	}
 	
-	state_fio->StateBool(class2);
-	state_fio->StateBool(read_ok);
-	state_fio->StateBuffer(data_table, sizeof(data_table), 1);
-	state_fio->StateUint32(kanjiaddr.d);
+	state_fio->StateValue(class2);
+	state_fio->StateValue(read_ok);
+	state_fio->StateArray(data_table, sizeof(data_table), 1);
+	state_fio->StateValue(kanjiaddr.d);
 	if(loading) {
 		kanjiaddr.w.h = 0;
 	}

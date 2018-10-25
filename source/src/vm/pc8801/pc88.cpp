@@ -2971,164 +2971,103 @@ bool PC88::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateArray(ram, sizeof(ram), 1);
 #if defined(PC88_EXRAM_BANKS)
-	state_fio->StateBuffer(exram, sizeof(exram), 1);
+	state_fio->StateArray(exram, sizeof(exram), 1);
 #endif
-	state_fio->StateBuffer(gvram, sizeof(gvram), 1);
-	state_fio->StateBuffer(tvram, sizeof(tvram), 1);
-	state_fio->StateBuffer(port, sizeof(port), 1);
-	//state_fio->StateBuffer(&crtc, sizeof(crtc), 1);
-	{
-		{
-			state_fio->StateInt32(crtc.blink.rate);
-			state_fio->StateInt32(crtc.blink.counter);
-			state_fio->StateUint8(crtc.blink.cursor);
-			state_fio->StateUint8(crtc.blink.attrib);
-		}
-		{
-			state_fio->StateInt32(crtc.cursor.type);
-			state_fio->StateInt32(crtc.cursor.mode);
-			state_fio->StateInt32(crtc.cursor.x);
-			state_fio->StateInt32(crtc.cursor.y);
-		}
-		{
-			state_fio->StateUint8(crtc.attrib.data);
-			state_fio->StateInt32(crtc.attrib.num);
-			for(int i = 0; i < 200; i++) {
-				for(int j = 0; j < 80; j++) {
-					state_fio->StateUint8(crtc.attrib.expand[i][j]);
-				}
-			}
-		}
-		{
-			for(int i = 0; i < 200; i++) {
-				for(int j = 0; j < 80; j++) {
-					state_fio->StateUint8(crtc.text.expand[i][j]);
-				}
-			}
-		}
-		state_fio->StateInt32(crtc.width);
-		state_fio->StateInt32(crtc.height);
-		state_fio->StateInt32(crtc.char_height);
-		state_fio->StateBool(crtc.skip_line);
-		state_fio->StateInt32(crtc.vretrace);
-		state_fio->StateBool(crtc.timing_changed);
-		state_fio->StateBuffer(crtc.buffer, sizeof(crtc.buffer), 1);
-		state_fio->StateInt32(crtc.buffer_ptr);
-		state_fio->StateUint8(crtc.cmd);
-		state_fio->StateInt32(crtc.cmd_ptr);
-		state_fio->StateUint8(crtc.mode);
-		state_fio->StateUint8(crtc.reverse);
-		state_fio->StateUint8(crtc.intr_mask);
-		state_fio->StateUint8(crtc.status);
-		state_fio->StateBool(crtc.vblank);
+	state_fio->StateArray(gvram, sizeof(gvram), 1);
+	state_fio->StateArray(tvram, sizeof(tvram), 1);
+	state_fio->StateArray(port, sizeof(port), 1);
+	state_fio->StateValue(crtc.blink.rate);
+	state_fio->StateValue(crtc.blink.counter);
+	state_fio->StateValue(crtc.blink.cursor);
+	state_fio->StateValue(crtc.blink.attrib);
+	state_fio->StateValue(crtc.cursor.type);
+	state_fio->StateValue(crtc.cursor.mode);
+	state_fio->StateValue(crtc.cursor.x);
+	state_fio->StateValue(crtc.cursor.y);
+	state_fio->StateValue(crtc.attrib.data);
+	state_fio->StateValue(crtc.attrib.num);
+	state_fio->StateArray(&crtc.attrib.expand[0][0], sizeof(crtc.attrib.expand), 1);
+	state_fio->StateArray(&crtc.text.expand[0][0], sizeof(crtc.text.expand), 1);
+	state_fio->StateValue(crtc.width);
+	state_fio->StateValue(crtc.height);
+	state_fio->StateValue(crtc.char_height);
+	state_fio->StateValue(crtc.skip_line);
+	state_fio->StateValue(crtc.vretrace);
+	state_fio->StateValue(crtc.timing_changed);
+	state_fio->StateArray(crtc.buffer, sizeof(crtc.buffer), 1);
+	state_fio->StateValue(crtc.buffer_ptr);
+	state_fio->StateValue(crtc.cmd);
+	state_fio->StateValue(crtc.cmd_ptr);
+	state_fio->StateValue(crtc.mode);
+	state_fio->StateValue(crtc.reverse);
+	state_fio->StateValue(crtc.intr_mask);
+	state_fio->StateValue(crtc.status);
+	state_fio->StateValue(crtc.vblank);
+	for(int i = 0; i < array_length(dmac.ch); i++) {
+		state_fio->StateValue(dmac.ch[i].addr);
+		state_fio->StateValue(dmac.ch[i].count);
+		state_fio->StateValue(dmac.ch[i].mode);
+		state_fio->StateValue(dmac.ch[i].nbytes);
+		state_fio->StateValue(dmac.ch[i].running);
 	}
-	//state_fio->StateBuffer(&dmac, sizeof(dmac), 1);
-	{
-		for(int i = 0; i < 4; i++) {
-			state_fio->StateUint32(dmac.ch[i].addr.d);
-			state_fio->StateUint32(dmac.ch[i].count.d);
-			state_fio->StateUint8(dmac.ch[i].mode);
-			state_fio->StateInt32(dmac.ch[i].nbytes);
-			state_fio->StateBool(dmac.ch[i].running);
-		}
-		state_fio->StateUint8(dmac.mode);
-		state_fio->StateUint8(dmac.status);
-		state_fio->StateBool(dmac.high_low);
-
-	}
-	state_fio->StateBuffer(alu_reg, sizeof(alu_reg), 1);
-	state_fio->StateUint8(gvram_plane);
-	state_fio->StateUint8(gvram_sel);
-	state_fio->StateBool(cpu_clock_low);
+	state_fio->StateValue(dmac.mode);
+	state_fio->StateValue(dmac.status);
+	state_fio->StateValue(dmac.high_low);
+	state_fio->StateArray(alu_reg, sizeof(alu_reg), 1);
+	state_fio->StateValue(gvram_plane);
+	state_fio->StateValue(gvram_sel);
+	state_fio->StateValue(cpu_clock_low);
 #if defined(SUPPORT_PC88_HIGH_CLOCK)
-	state_fio->StateBool(cpu_clock_high_fe2);
+	state_fio->StateValue(cpu_clock_high_fe2);
 #endif
-	state_fio->StateBool(mem_wait_on);
-	state_fio->StateInt32(m1_wait_clocks);
-	state_fio->StateInt32(f000_m1_wait_clocks);
-	state_fio->StateInt32(mem_wait_clocks_r);
-	state_fio->StateInt32(mem_wait_clocks_w);
-	state_fio->StateInt32(tvram_wait_clocks_r);
-	state_fio->StateInt32(tvram_wait_clocks_w);
-	state_fio->StateInt32(gvram_wait_clocks_r);
-	state_fio->StateInt32(gvram_wait_clocks_w);
-	state_fio->StateInt32(busreq_clocks);
-	//state_fio->StateBuffer(palette, sizeof(palette), 1);
-	for(int i = 0; i < 9; i++) {
-		state_fio->StateUint8(palette[i].b);
-		state_fio->StateUint8(palette[i].r);
-		state_fio->StateUint8(palette[i].g);
+	state_fio->StateValue(mem_wait_on);
+	state_fio->StateValue(m1_wait_clocks);
+	state_fio->StateValue(f000_m1_wait_clocks);
+	state_fio->StateValue(mem_wait_clocks_r);
+	state_fio->StateValue(mem_wait_clocks_w);
+	state_fio->StateValue(tvram_wait_clocks_r);
+	state_fio->StateValue(tvram_wait_clocks_w);
+	state_fio->StateValue(gvram_wait_clocks_r);
+	state_fio->StateValue(gvram_wait_clocks_w);
+	state_fio->StateValue(busreq_clocks);
+	for(int i = 0; i < array_length(palette); i++) {
+		state_fio->StateValue(palette[i].r);
+		state_fio->StateValue(palette[i].g);
+		state_fio->StateValue(palette[i].b);
 	}
-	state_fio->StateBool(update_palette);
-	state_fio->StateBool(hireso);
-	state_fio->StateBuffer(text, sizeof(text), 1);
-	state_fio->StateBuffer(graph, sizeof(graph), 1);
+	state_fio->StateValue(update_palette);
+	state_fio->StateValue(hireso);
+	state_fio->StateArray(&text[0][0], sizeof(text), 1);
+	state_fio->StateArray(&graph[0][0], sizeof(graph), 1);
 
-	//state_fio->StateBuffer(palette_text_pc, sizeof(palette_text_pc), 1);
-	//state_fio->StateBuffer(palette_graph_pc, sizeof(palette_graph_pc), 1);
-	if(loading) {
-		for(int i = 0; i < (sizeof(palette_text_pc) / sizeof(scrntype_t)); i++) {
-			uint8_t r, g, b;
-			r = state_fio->FgetUint8();
-			g = state_fio->FgetUint8();
-			b = state_fio->FgetUint8();
-			palette_text_pc[i] = RGB_COLOR(r, g, b);
-		}
-	} else {
-		for(int i = 0; i < (sizeof(palette_text_pc) / sizeof(scrntype_t)); i++) {
-			uint8_t r, g, b;
-			r = R_OF_COLOR(palette_text_pc[i]);
-			g = G_OF_COLOR(palette_text_pc[i]);
-			b = B_OF_COLOR(palette_text_pc[i]);
-			state_fio->FputUint8(r);
-			state_fio->FputUint8(g);
-			state_fio->FputUint8(b);
-		}
-	}
-	if(loading) {
-		for(int i = 0; i < (sizeof(palette_graph_pc) / sizeof(scrntype_t)); i++) {
-			uint8_t r, g, b;
-			r = state_fio->FgetUint8();
-			g = state_fio->FgetUint8();
-			b = state_fio->FgetUint8();
-			palette_graph_pc[i] = RGB_COLOR(r, g, b);
-		}
-	} else {
-		for(int i = 0; i < (sizeof(palette_graph_pc) / sizeof(scrntype_t)); i++) {
-			uint8_t r, g, b;
-			r = R_OF_COLOR(palette_graph_pc[i]);
-			g = G_OF_COLOR(palette_graph_pc[i]);
-			b = B_OF_COLOR(palette_graph_pc[i]);
-			state_fio->FputUint8(r);
-			state_fio->FputUint8(g);
-			state_fio->FputUint8(b);
-		}
-	}
-	state_fio->StateBool(usart_dcd);
-	state_fio->StateBool(opn_busy);
-	state_fio->StateUint8(key_caps);
-	state_fio->StateUint8(key_kana);
+	state_fio->StateArrayScrnType_t(palette_graph_pc, sizeof(palette_text_pc), 1);
+	state_fio->StateArrayScrnType_t(palette_graph_pc, sizeof(palette_graph_pc), 1);
+
+	state_fio->StateValue(usart_dcd);
+	state_fio->StateValue(opn_busy);
+	state_fio->StateValue(key_caps);
+	state_fio->StateValue(key_kana);
 #ifdef SUPPORT_PC88_JOYSTICK
-	state_fio->StateUint32(mouse_strobe_clock);
-	state_fio->StateUint32(mouse_strobe_clock_lim);
-	state_fio->StateInt32(mouse_phase);
-	state_fio->StateInt32(mouse_dx);
-	state_fio->StateInt32(mouse_dy);
-	state_fio->StateInt32(mouse_lx);
-	state_fio->StateInt32(mouse_ly);
+	state_fio->StateValue(mouse_strobe_clock);
+	state_fio->StateValue(mouse_strobe_clock_lim);
+	state_fio->StateValue(mouse_phase);
+	state_fio->StateValue(mouse_dx);
+	state_fio->StateValue(mouse_dy);
+	state_fio->StateValue(mouse_lx);
+	state_fio->StateValue(mouse_ly);
 #endif
-	state_fio->StateUint8(intr_req);
-	state_fio->StateBool(intr_req_sound);
+	state_fio->StateValue(intr_req);
+	state_fio->StateValue(intr_req_sound);
 #ifdef SUPPORT_PC88_SB2
-	state_fio->StateBool(intr_req_sb2);
+	state_fio->StateValue(intr_req_sb2);
 #endif
-	state_fio->StateUint8(intr_mask1);
-	state_fio->StateUint8(intr_mask2);
-	state_fio->StateBool(cmt_play);
-	state_fio->StateBool(cmt_rec);
-	state_fio->StateBuffer(rec_file_path, sizeof(rec_file_path), 1);
+	state_fio->StateValue(intr_mask1);
+	state_fio->StateValue(intr_mask2);
+	state_fio->StateValue(cmt_play);
+	state_fio->StateValue(cmt_rec);
+	state_fio->StateArray(rec_file_path, sizeof(rec_file_path), 1);
 	if(loading) {
 		int length_tmp = state_fio->FgetInt32_LE();
 		if(cmt_rec) {
@@ -3159,26 +3098,23 @@ bool PC88::process_state(FILEIO* state_fio, bool loading)
 			state_fio->FputInt32_LE(0);
  		}
  	}
-	state_fio->StateInt32(cmt_bufptr);
-	state_fio->StateInt32(cmt_bufcnt);
-	state_fio->StateBuffer(cmt_buffer, sizeof(cmt_buffer), 1);
-	//state_fio->StateBuffer(cmt_data_carrier, sizeof(cmt_data_carrier), 1);
-	for(int i = 0; i < (sizeof(cmt_data_carrier) / sizeof(int)); i++) {
-		state_fio->StateInt32(cmt_data_carrier[i]);
-	}
-	state_fio->StateInt32(cmt_data_carrier_cnt);
-	state_fio->StateInt32(cmt_register_id);
-	state_fio->StateBool(beep_on);
-	state_fio->StateBool(beep_signal);
-	state_fio->StateBool(sing_signal);
+	state_fio->StateValue(cmt_bufptr);
+	state_fio->StateValue(cmt_bufcnt);
+	state_fio->StateArray(cmt_buffer, sizeof(cmt_buffer), 1);
+	state_fio->StateArray(cmt_data_carrier, sizeof(cmt_data_carrier), 1);
+	state_fio->StateValue(cmt_data_carrier_cnt);
+	state_fio->StateValue(cmt_register_id);
+	state_fio->StateValue(beep_on);
+	state_fio->StateValue(beep_signal);
+	state_fio->StateValue(sing_signal);
 #ifdef SUPPORT_PC88_PCG8100
-	state_fio->StateUint16(pcg_addr);
-	state_fio->StateUint8(pcg_data);
-	state_fio->StateUint8(pcg_ctrl);
-	state_fio->StateBuffer(pcg_pattern, sizeof(pcg_pattern), 1);
+	state_fio->StateValue(pcg_addr);
+	state_fio->StateValue(pcg_data);
+	state_fio->StateValue(pcg_ctrl);
+	state_fio->StateArray(pcg_pattern, sizeof(pcg_pattern), 1);
 #endif
 #ifdef NIPPY_PATCH
-	state_fio->StateBool(nippy_patch);
+	state_fio->StateValue(nippy_patch);
 #endif
  	
  	// post process

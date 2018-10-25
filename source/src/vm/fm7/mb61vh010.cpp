@@ -935,37 +935,37 @@ bool MB61VH010::decl_state(FILEIO *state_fio, bool loading)
 		return false;
 	}
 	
-	state_fio->StateUint8(command_reg);
-	state_fio->StateUint8(color_reg);
-	state_fio->StateUint8(mask_reg);
-	state_fio->StateUint8(cmp_status_reg);
-	state_fio->StateUint8(bank_disable_reg);
-	state_fio->StateUint8(multi_page);
-	state_fio->StateUint32(direct_access_offset);
+	state_fio->StateValue(command_reg);
+	state_fio->StateValue(color_reg);
+	state_fio->StateValue(mask_reg);
+	state_fio->StateValue(cmp_status_reg);
+	state_fio->StateValue(bank_disable_reg);
+	state_fio->StateValue(multi_page);
+	state_fio->StateValue(direct_access_offset);
 	
-	state_fio->StateBuffer(cmp_color_data, sizeof(cmp_color_data), 1);
-	state_fio->StateBuffer(tile_reg, sizeof(tile_reg), 1);
+	state_fio->StateArray(cmp_color_data, sizeof(cmp_color_data), 1);
+	state_fio->StateArray(tile_reg, sizeof(tile_reg), 1);
 
-	state_fio->StateUint32(line_addr_offset.d);
-	state_fio->StateUint32(line_pattern.d);
-	state_fio->StateUint32(line_xbegin.d);
-	state_fio->StateUint32(line_ybegin.d);
-	state_fio->StateUint32(line_xend.d);
-	state_fio->StateUint32(line_yend.d);
+	state_fio->StateValue(line_addr_offset.d);
+	state_fio->StateValue(line_pattern.d);
+	state_fio->StateValue(line_xbegin.d);
+	state_fio->StateValue(line_ybegin.d);
+	state_fio->StateValue(line_xend.d);
+	state_fio->StateValue(line_yend.d);
  		
-	state_fio->StateBool(busy_flag);
-	state_fio->StateUint32(line_style.d);
+	state_fio->StateValue(busy_flag);
+	state_fio->StateValue(line_style.d);
  
-	state_fio->StateUint32(total_bytes);
-	state_fio->StateUint32(oldaddr);
-	state_fio->StateUint32(alu_addr);
+	state_fio->StateValue(total_bytes);
+	state_fio->StateValue(oldaddr);
+	state_fio->StateValue(alu_addr);
 
-	state_fio->StateUint32(planes);
-	state_fio->StateBool(is_400line);
-	state_fio->StateUint32(screen_width);
-	state_fio->StateUint32(screen_height);
+	state_fio->StateValue(planes);
+	state_fio->StateValue(is_400line);
+	state_fio->StateValue(screen_width);
+	state_fio->StateValue(screen_height);
  
-	state_fio->StateInt32(eventid_busy);
+	state_fio->StateValue(eventid_busy);
 
 	return true;
 }

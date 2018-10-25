@@ -1284,8 +1284,8 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
  		}
  	}
 	// Machine specified.
-	state_fio->StateBool(connect_320kfdc);
-	state_fio->StateBool(connect_1Mfdc);
+	state_fio->StateValue(connect_320kfdc);
+	state_fio->StateValue(connect_1Mfdc);
 	if(loading) {
 		update_config();
 	}

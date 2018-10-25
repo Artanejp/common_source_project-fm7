@@ -526,7 +526,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	9
+#define STATE_VERSION	10
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -553,7 +553,7 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
  		}
  	}
 	// Machine specified.
-	state_fio->StateInt32(boot_mode);
+	state_fio->StateValue(boot_mode);
  	return true;
 }
 

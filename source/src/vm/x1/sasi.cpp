@@ -133,8 +133,8 @@ bool SASI::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateBool(irq_status);
-	state_fio->StateBool(drq_status);
+	state_fio->StateValue(irq_status);
+	state_fio->StateValue(drq_status);
  	return true;
 }
 

@@ -106,9 +106,9 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateInt32(prev);
-	state_fio->StateBool(motor_on);
-	state_fio->StateInt32(register_id);
+	state_fio->StateValue(prev);
+	state_fio->StateValue(motor_on);
+	state_fio->StateValue(register_id);
  	return true;
 }
 

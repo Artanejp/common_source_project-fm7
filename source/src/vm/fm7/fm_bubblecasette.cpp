@@ -694,50 +694,50 @@ bool BUBBLECASETTE::process_state(FILEIO *state_fio, bool loading)
 		return false;
 	}
 	
-	state_fio->StateBool(is_wrote);
-	state_fio->StateBool(is_b77);
-	state_fio->StateBool(header_changed);
-	state_fio->StateBool(read_access);
-	state_fio->StateBool(write_access);
+	state_fio->StateValue(is_wrote);
+	state_fio->StateValue(is_b77);
+	state_fio->StateValue(header_changed);
+	state_fio->StateValue(read_access);
+	state_fio->StateValue(write_access);
 
-	state_fio->StateUint8(offset_reg);
-	state_fio->StateUint8(data_reg);
-	state_fio->StateUint8(cmd_reg);
+	state_fio->StateValue(offset_reg);
+	state_fio->StateValue(data_reg);
+	state_fio->StateValue(cmd_reg);
 
-	state_fio->StateBool(cmd_error);  
-	state_fio->StateBool(stat_tdra);  
-	state_fio->StateBool(stat_rda);   
-	state_fio->StateBool(not_ready);  
-	state_fio->StateBool(write_protect); 
-	state_fio->StateBool(stat_error); 
-	state_fio->StateBool(stat_busy);  
+	state_fio->StateValue(cmd_error);  
+	state_fio->StateValue(stat_tdra);  
+	state_fio->StateValue(stat_rda);   
+	state_fio->StateValue(not_ready);  
+	state_fio->StateValue(write_protect); 
+	state_fio->StateValue(stat_error); 
+	state_fio->StateValue(stat_busy);  
 
-	state_fio->StateBool(eject_error);         
-	state_fio->StateBool(povr_error);          
-	state_fio->StateBool(crc_error);           
-	state_fio->StateBool(transfer_error);      
-	state_fio->StateBool(bad_loop_over_error); 
-	state_fio->StateBool(no_marker_error);     
-	state_fio->StateBool(undefined_cmd_error); 
+	state_fio->StateValue(eject_error);         
+	state_fio->StateValue(povr_error);          
+	state_fio->StateValue(crc_error);           
+	state_fio->StateValue(transfer_error);      
+	state_fio->StateValue(bad_loop_over_error); 
+	state_fio->StateValue(no_marker_error);     
+	state_fio->StateValue(undefined_cmd_error); 
 	
-	state_fio->StateUint32(page_address.d);
-	state_fio->StateUint32(page_count.d);
-	state_fio->StateBool(bubble_inserted);
-	state_fio->StateInt32(bubble_type);
-	state_fio->StateInt32(media_num);
+	state_fio->StateValue(page_address.d);
+	state_fio->StateValue(page_count.d);
+	state_fio->StateValue(bubble_inserted);
+	state_fio->StateValue(bubble_type);
+	state_fio->StateValue(media_num);
 	// Header
-	state_fio->StateBuffer(image_path, sizeof(image_path), 1);
-	state_fio->StateBuffer((bbl_header.filename), sizeof(bbl_header.filename), 1);
-	state_fio->StateUint32((bbl_header.size.d));
-	state_fio->StateUint32((bbl_header.offset.d));
-	state_fio->StateBuffer((bbl_header.misc), sizeof(bbl_header.misc), 1);
+	state_fio->StateArray(image_path, sizeof(image_path), 1);
+	state_fio->StateArray((bbl_header.filename), sizeof(bbl_header.filename), 1);
+	state_fio->StateValue(bbl_header.size.d);
+	state_fio->StateValue(bbl_header.offset.d);
+	state_fio->StateArray((bbl_header.misc), sizeof(bbl_header.misc), 1);
 
 
-	state_fio->StateUint32(media_offset);
-	state_fio->StateUint32(media_offset_new);
-	state_fio->StateUint32(media_size);
-	state_fio->StateUint32(file_length);
-	state_fio->StateBuffer(bubble_data, sizeof(bubble_data), 1);
+	state_fio->StateValue(media_offset);
+	state_fio->StateValue(media_offset_new);
+	state_fio->StateValue(media_size);
+	state_fio->StateValue(file_length);
+	state_fio->StateArray(bubble_data, sizeof(bubble_data), 1);
  
 #if 0
 	if(loading) {
