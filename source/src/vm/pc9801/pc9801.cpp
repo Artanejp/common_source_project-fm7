@@ -1636,10 +1636,10 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
  			return false;
  		}
  	}
-	state_fio->StateBool(pit_clock_8mhz);
+	state_fio->StateValue(pit_clock_8mhz);
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
-	state_fio->StateInt32(boot_mode);
+	state_fio->StateValue(boot_mode);
 #endif
-	state_fio->StateInt32(sound_type);
+	state_fio->StateValue(sound_type);
  	return true;
 }

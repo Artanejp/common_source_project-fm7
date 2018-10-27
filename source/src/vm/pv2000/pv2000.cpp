@@ -305,8 +305,8 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
  		}
  	}
 	// Machine specified.
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBuffer(ext, sizeof(ext), 1);
-	state_fio->StateBool(inserted);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(ext, sizeof(ext), 1);
+	state_fio->StateValue(inserted);
 	return true;
 }

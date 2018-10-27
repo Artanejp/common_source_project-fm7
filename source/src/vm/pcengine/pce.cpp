@@ -2451,6 +2451,62 @@ void PCE::event_callback(int event_id, int err)
 
 #define STATE_VERSION	5
 
+void process_state_vdc(vdc_t* val, FILEIO* state_fio)
+{
+	state_fio->StateValue(val->dvssr_write);
+	state_fio->StateValue(val->physical_width);
+	state_fio->StateValue(val->physical_height);
+	state_fio->StateArray(val->sprite_ram, sizeof(val->sprite_ram), 1);
+	state_fio->StateValue(val->curline);
+	state_fio->StateValue(val->current_segment);
+	state_fio->StateValue(val->current_segment_line);
+	state_fio->StateValue(val->vblank_triggered);
+	state_fio->StateValue(val->raster_count);
+	state_fio->StateValue(val->satb_countdown);
+	state_fio->StateArray(val->vram, sizeof(val->vram), 1);
+	state_fio->StateValue(val->inc);
+	state_fio->StateValue(val->vdc_register);
+	state_fio->StateValue(val->vdc_latch);
+	state_fio->StateArray(val->vdc_data, sizeof(val->vdc_data), 1);
+	state_fio->StateValue(val->status);
+	state_fio->StateValue(val->y_scroll);
+}
+
+void process_state_vce(vce_t* val, FILEIO* state_fio)
+{
+	state_fio->StateValue(val->vce_control);
+	state_fio->StateValue(val->vce_address);
+	state_fio->StateArray(val->vce_data, sizeof(val->vce_data), 1);
+	state_fio->StateValue(val->current_bitmap_line);
+	state_fio->StateArrayScrnType_t(&val->bmp[0][0], sizeof(val->bmp), 1);
+	state_fio->StateArrayScrnType_t(val->palette, sizeof(val->palette), 1);
+}
+
+void process_state_vpc(vpc_t* val, FILEIO* state_fio)
+{
+	for(int i = 0; i < array_length(val->vpc_prio); i++) {
+		state_fio->StateValue(val->vpc_prio[i].prio);
+		state_fio->StateValue(val->vpc_prio[i].vdc0_enabled);
+		state_fio->StateValue(val->vpc_prio[i].vdc1_enabled);
+	}
+	state_fio->StateArray(val->prio_map, sizeof(val->prio_map), 1);
+	state_fio->StateValue(val->priority);
+	state_fio->StateValue(val->window1);
+	state_fio->StateValue(val->window2);
+	state_fio->StateValue(val->vdc_select);
+}
+
+void process_state_psg(psg_t* val, FILEIO* state_fio)
+{
+	state_fio->StateArray(val->regs, sizeof(val->regs), 1);
+	state_fio->StateArray(val->wav, sizeof(val->wav), 1);
+	state_fio->StateValue(val->wavptr);
+	state_fio->StateValue(val->genptr);
+	state_fio->StateValue(val->remain);
+	state_fio->StateValue(val->noise);
+	state_fio->StateValue(val->randval);
+}
+
 bool PCE::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
@@ -2459,156 +2515,63 @@ bool PCE::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateBool(support_6btn_pad);
-	state_fio->StateBool(support_multi_tap);
-#ifdef SUPPORT_SUPER_GFX
-	state_fio->StateBool(support_sgfx);
-#endif
+	state_fio->StateValue(support_6btn_pad);
+	state_fio->StateValue(support_multi_tap);
+ #ifdef SUPPORT_SUPER_GFX
+	state_fio->StateValue(support_sgfx);
+ #endif
+ #ifdef SUPPORT_CDROM
+	state_fio->StateValue(support_cdrom);
+ #endif
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(cart + 0x80000, 0x80000, 1);
+ #ifdef SUPPORT_BACKUP_RAM
+	state_fio->StateArray(backup, sizeof(backup), 1);
+	state_fio->StateValue(backup_crc32);
+ #endif
+	state_fio->StateValue(bank);
+	state_fio->StateValue(buffer);
+	state_fio->StateValue(prev_width);
+	state_fio->StateValue(inserted);
+	for(int i = 0; i < array_length(vdc); i++) {
+		process_state_vdc(&vdc[i], state_fio);
+	}
+	process_state_vce(&vce, state_fio);
+	process_state_vpc(&vpc, state_fio);
+	for(int i = 0; i < array_length(psg); i++) {
+		process_state_psg(&psg[i], state_fio);
+	}
+	state_fio->StateValue(psg_ch);
+	state_fio->StateValue(psg_vol);
+	state_fio->StateValue(psg_lfo_freq);
+	state_fio->StateValue(psg_lfo_ctrl);
+	state_fio->StateValue(joy_counter);
+	state_fio->StateValue(joy_high_nibble);
+	state_fio->StateValue(joy_second_byte);
 #ifdef SUPPORT_CDROM
-	state_fio->StateBool(support_cdrom);
-#endif
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBuffer(cart + 0x80000, 0x80000, 1);
-#ifdef SUPPORT_BACKUP_RAM
-	state_fio->StateBuffer(backup, sizeof(backup), 1);
-	state_fio->StateUint32(backup_crc32);
-#endif
-	state_fio->StateUint32(bank);
-	state_fio->StateUint8(buffer);
-	state_fio->StateInt32(prev_width);
-	state_fio->StateBool(inserted);
-
-	//state_fio->StateBuffer(vdc, sizeof(vdc), 1);
-	//state_fio->StateBuffer(&vce, sizeof(vce), 1);
-	//state_fio->StateBuffer(&vpc, sizeof(vpc), 1);
-	//state_fio->StateBuffer(psg, sizeof(psg), 1);
-	// vdc
-	for(int i = 0; i < 2; i++) {
-		state_fio->StateInt32(vdc[i].dvssr_write);		/* Set when the DVSSR register has been written to */
-		state_fio->StateInt32(vdc[i].physical_width);		/* Width of the display */
-		state_fio->StateInt32(vdc[i].physical_height);		/* Height of the display */
-		for(int j = 0; j < (64 * 4); j++) {
-			state_fio->StateUint16(vdc[i].sprite_ram[j]);	/* Sprite RAM */
-		}
-		state_fio->StateInt32(vdc[i].curline);				/* the current scanline we're on */
-		state_fio->StateInt32(vdc[i].current_segment);		/* current segment of display */
-		state_fio->StateInt32(vdc[i].current_segment_line);	/* current line inside a segment of display */
-		state_fio->StateInt32(vdc[i].vblank_triggered);		/* to indicate whether vblank has been triggered */
-		state_fio->StateInt32(vdc[i].raster_count);		/* counter to compare RCR against */
-		state_fio->StateInt32(vdc[i].satb_countdown);		/* scanlines to wait to trigger the SATB irq */
-		state_fio->StateBuffer((vdc[i].vram), 0x10000, 1);
-		state_fio->StateUint8(vdc[i].inc);
-		state_fio->StateUint8(vdc[i].vdc_register);
-		state_fio->StateUint8(vdc[i].vdc_latch);
-		for(int j = 0; j < 32; j++) {
-			state_fio->StateUint32(vdc[i].vdc_data[j].d);
-		}
-		state_fio->StateInt32(vdc[i].status);
-		state_fio->StateInt32(vdc[i].y_scroll);
-	}
-	// vce
-	{
-		state_fio->StateUint8(vce.vce_control);		/* VCE control register */
-		state_fio->StateUint32(vce.vce_address.d);		/* Current address in the palette */
-		for(int i = 0; i < 512; i++) {
-			state_fio->StateUint32(vce.vce_data[i].d);		/* Palette data */
-		}
-		state_fio->StateInt32(vce.current_bitmap_line);	/* The current line in the display we are on */
-		//bitmap_ind16 *bmp;
-		for(int i = 0; i < VDC_LPF; i++) {
-			for(int j = 0; j < VDC_WPF; j++) {
-				if(loading) {
-					uint8_t r, g, b;
-					r = state_fio->FgetUint8();
-					g = state_fio->FgetUint8();
-					b = state_fio->FgetUint8();
-					vce.bmp[i][j] = RGB_COLOR(r, g, b);
-				} else {
-					uint8_t r, g, b;
-					r = R_OF_COLOR(vce.bmp[i][j]);
-					g = G_OF_COLOR(vce.bmp[i][j]);
-					b = B_OF_COLOR(vce.bmp[i][j]);
-					state_fio->FputUint8(r);
-					state_fio->FputUint8(g);
-					state_fio->FputUint8(b);
-				}
-			}
-		}
-		for(int i = 0; i < 1024; i++) {
-			if(loading) {
-				uint8_t r, g, b;
-				r = state_fio->FgetUint8();
-				g = state_fio->FgetUint8();
-				b = state_fio->FgetUint8();
-				vce.palette[i] = RGB_COLOR(r, g, b);
-			} else {
-				uint8_t r, g, b;
-				r = R_OF_COLOR(vce.palette[i]);
-				g = G_OF_COLOR(vce.palette[i]);
-				b = B_OF_COLOR(vce.palette[i]);
-				state_fio->FputUint8(r);
-				state_fio->FputUint8(g);
-				state_fio->FputUint8(b);
-			}
-		}
-	}
-	// vpc
-	{
-		for(int i = 0; i < 4; i++) {
-			state_fio->StateUint8(vpc.vpc_prio[i].prio);
-			state_fio->StateUint8(vpc.vpc_prio[i].vdc0_enabled);
-			state_fio->StateUint8(vpc.vpc_prio[i].vdc1_enabled);
-		}
-		state_fio->StateBuffer(vpc.prio_map, 512, 1);
-		state_fio->StateUint32(vpc.priority.d);
-		state_fio->StateUint32(vpc.window1.d);
-		state_fio->StateUint32(vpc.window2.d);
-		state_fio->StateUint8(vpc.vdc_select);
-	}
-	// psg
-	{
-		for(int i = 0; i < 8; i++ ){
-		    state_fio->StateBuffer(psg[i].regs, 8, 1);
-			state_fio->StateBuffer(psg[i].wav, 32, 1);
-			state_fio->StateUint8(psg[i].wavptr);
-			state_fio->StateUint32(psg[i].genptr);
-			state_fio->StateUint32(psg[i].remain);
-			state_fio->StateBool(psg[i].noise);
-			state_fio->StateUint32(psg[i].randval);
-		}
-	}
-
-	state_fio->StateUint8(psg_ch);
-	state_fio->StateUint8(psg_vol);
-	state_fio->StateUint8(psg_lfo_freq);
-	state_fio->StateUint8(psg_lfo_ctrl);
-	state_fio->StateUint8(joy_counter);
-	state_fio->StateBool(joy_high_nibble);
-	state_fio->StateBool(joy_second_byte);
-#ifdef SUPPORT_CDROM
-	state_fio->StateBuffer(cdrom_ram, sizeof(cdrom_ram), 1);
-	state_fio->StateBuffer(cdrom_regs, sizeof(cdrom_regs), 1);
-	state_fio->StateBool(backup_locked);
-	state_fio->StateBool(irq_status);
-	state_fio->StateBool(drq_status);
-	state_fio->StateBuffer(adpcm_ram, sizeof(adpcm_ram), 1);
-	state_fio->StateInt32(adpcm_read_ptr);
-	state_fio->StateInt32(adpcm_write_ptr);
-	state_fio->StateInt32(adpcm_written);
-	state_fio->StateInt32(adpcm_length);
-	state_fio->StateInt32(adpcm_clock_divider);
-	state_fio->StateUint8(adpcm_read_buf);
-	state_fio->StateUint8(adpcm_write_buf);
-	state_fio->StateBool(adpcm_dma_enabled);
-	state_fio->StateInt32(msm_start_addr);
-	state_fio->StateInt32(msm_end_addr);
-	state_fio->StateInt32(msm_half_addr);
-	state_fio->StateUint8(msm_nibble);
-	state_fio->StateUint8(msm_idle);
-	state_fio->StateDouble(cdda_volume);
-	state_fio->StateDouble(adpcm_volume);
-	state_fio->StateInt32(event_cdda_fader);
-	state_fio->StateInt32(event_adpcm_fader);
+	state_fio->StateArray(cdrom_ram, sizeof(cdrom_ram), 1);
+	state_fio->StateArray(cdrom_regs, sizeof(cdrom_regs), 1);
+	state_fio->StateValue(backup_locked);
+	state_fio->StateValue(irq_status);
+	state_fio->StateValue(drq_status);
+	state_fio->StateArray(adpcm_ram, sizeof(adpcm_ram), 1);
+	state_fio->StateValue(adpcm_read_ptr);
+	state_fio->StateValue(adpcm_write_ptr);
+	state_fio->StateValue(adpcm_written);
+	state_fio->StateValue(adpcm_length);
+	state_fio->StateValue(adpcm_clock_divider);
+	state_fio->StateValue(adpcm_read_buf);
+	state_fio->StateValue(adpcm_write_buf);
+	state_fio->StateValue(adpcm_dma_enabled);
+	state_fio->StateValue(msm_start_addr);
+	state_fio->StateValue(msm_end_addr);
+	state_fio->StateValue(msm_half_addr);
+	state_fio->StateValue(msm_nibble);
+	state_fio->StateValue(msm_idle);
+	state_fio->StateValue(cdda_volume);
+	state_fio->StateValue(adpcm_volume);
+	state_fio->StateValue(event_cdda_fader);
+	state_fio->StateValue(event_adpcm_fader);
 #endif
  	return true;
 }

@@ -168,29 +168,11 @@ bool VDP::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	//state_fio->StateBuffer(palette_pc, sizeof(palette_pc), 1);
-	for(int i = 0; i < (sizeof(palette_pc) / sizeof(scrntype_t)); i++) {
-		if(loading) {
-			uint8_t r, g, b;
-			r = state_fio->FgetUint8();
-			g = state_fio->FgetUint8();
-			b = state_fio->FgetUint8();
-			palette_pc[i] = RGB_COLOR(r, g, b);
-		} else {
-			uint8_t r, g, b;
-			r = R_OF_COLOR(palette_pc[i]);
-			g = G_OF_COLOR(palette_pc[i]);
-			b = B_OF_COLOR(palette_pc[i]);
-			state_fio->FputUint8(r);
-			state_fio->FputUint8(g);
-			state_fio->FputUint8(b);
-		}
-	}
-
-	state_fio->StateBuffer(reg, sizeof(reg), 1);
-	state_fio->StateUint8(bg);
-	state_fio->StateUint8(cmask);
-	state_fio->StateUint8(pmask);
+	state_fio->StateArrayScrnType_t(palette_pc, sizeof(palette_pc), 1);
+	state_fio->StateArray(reg, sizeof(reg), 1);
+	state_fio->StateValue(bg);
+	state_fio->StateValue(cmask);
+	state_fio->StateValue(pmask);
 	return true;
 }
 
