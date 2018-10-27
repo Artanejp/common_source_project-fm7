@@ -457,8 +457,8 @@ bool UPD7810::process_state(FILEIO* state_fio, bool loading)
 #ifdef USE_DEBUGGER
 	state_fio->StateValue(total_icount);
 #endif
-	state_fio->StateInt32(icount);
-	state_fio->StateBool(busreq);
+	state_fio->StateValue(icount);
+	state_fio->StateValue(busreq);
 	state_fio->StateValue(icount);
 	state_fio->StateValue(busreq);
  	
