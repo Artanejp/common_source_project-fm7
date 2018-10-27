@@ -320,40 +320,20 @@ bool CRTC::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	//state_fio->StateBuffer(palette_pc, sizeof(palette_pc), 1);
-	for(int i = 0; i < (sizeof(palette_pc) / sizeof(scrntype_t)); i++) {
-		if(loading) {
-			uint8_t r, g, b;
-			r = state_fio->FgetUint8();
-			g = state_fio->FgetUint8();
-			b = state_fio->FgetUint8();
-			palette_pc[i] = RGB_COLOR(r, g, b);
-		} else {
-			uint8_t r, g, b;
-			r = R_OF_COLOR(palette_pc[i]);
-			g = G_OF_COLOR(palette_pc[i]);
-			b = B_OF_COLOR(palette_pc[i]);
-			state_fio->FputUint8(r);
-			state_fio->FputUint8(g);
-			state_fio->FputUint8(b);
-		}
-	}
-	//state_fio->StateBuffer(palette, sizeof(palette), 1);
-	for(int i = 0; i < (sizeof(palette) / sizeof(uint16_t)); i++) {
-		state_fio->StateUint16(palette[i]);
-	}
-	state_fio->StateUint8(sel);
-	state_fio->StateBuffer(regs, sizeof(regs), 1);
-	state_fio->StateUint16(vs);
-	state_fio->StateUint16(cmd);
-	state_fio->StateBuffer(vram, sizeof(vram), 1);
-	state_fio->StateUint32(shift);
-	state_fio->StateUint32(maskl);
-	state_fio->StateUint32(maskh);
-	state_fio->StateUint32(busl);
-	state_fio->StateUint32(bush);
-	state_fio->StateUint32(write_plane);
-	state_fio->StateUint32(read_plane);
+	state_fio->StateArrayScrnType_t(palette_pc, sizeof(palette_pc), 1);
+	state_fio->StateArray(palette, sizeof(palette), 1);
+	state_fio->StateValue(sel);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateValue(vs);
+	state_fio->StateValue(cmd);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateValue(shift);
+	state_fio->StateValue(maskl);
+	state_fio->StateValue(maskh);
+	state_fio->StateValue(busl);
+	state_fio->StateValue(bush);
+	state_fio->StateValue(write_plane);
+	state_fio->StateValue(read_plane);
 	return true;
 }
 
