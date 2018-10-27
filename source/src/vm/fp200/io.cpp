@@ -586,61 +586,61 @@ void IO::draw_screen()
 	}
 }
 
-#define PROCESS_STATE_74LS74(foo)				\
-	{											\
-		state_fio->StateBool(foo.in_d);			\
-		state_fio->StateBool(foo.in_ck);		\
-		state_fio->StateBool(foo.in_s);			\
-		state_fio->StateBool(foo.in_r);			\
-		state_fio->StateBool(foo.out_q);		\
-		state_fio->StateBool(foo.out_nq);		\
-		state_fio->StateBool(foo.tmp_ck);		\
-	}
+#define STATE_VERSION	3
 
-#define PROCESS_STATE_74LS151(foo)				\
-	{											\
-		state_fio->StateBool(foo.in_d0);		\
-		state_fio->StateBool(foo.in_d1);		\
-		state_fio->StateBool(foo.in_d2);		\
-		state_fio->StateBool(foo.in_d3);		\
-		state_fio->StateBool(foo.in_d4);		\
-		state_fio->StateBool(foo.in_d5);		\
-		state_fio->StateBool(foo.in_d6);		\
-		state_fio->StateBool(foo.in_d7);		\
-		state_fio->StateBool(foo.in_a);			\
-		state_fio->StateBool(foo.in_b);			\
-		state_fio->StateBool(foo.in_c);			\
-		state_fio->StateBool(foo.in_s);			\
-		state_fio->StateBool(foo.out_y);		\
-		state_fio->StateBool(foo.out_ny);		\
-	}
+void process_state_ls74(ls74_t* val, FILEIO* state_fio)
+{
+	state_fio->StateValue(val->in_d);
+	state_fio->StateValue(val->in_ck);
+	state_fio->StateValue(val->in_s);
+	state_fio->StateValue(val->in_r);
+	state_fio->StateValue(val->out_q);
+	state_fio->StateValue(val->out_nq);
+	state_fio->StateValue(val->tmp_ck);
+}
 
-#define PROCESS_STATE_74LS93(foo)				\
-	{											\
-		state_fio->StateBool(foo.in_a);			\
-		state_fio->StateBool(foo.in_b);			\
-		state_fio->StateBool(foo.in_rc1);		\
-		state_fio->StateBool(foo.in_rc2);		\
-		state_fio->StateBool(foo.out_qa);		\
-		state_fio->StateBool(foo.out_qb);		\
-		state_fio->StateBool(foo.out_qc);		\
-		state_fio->StateBool(foo.tmp_a);		\
-		state_fio->StateBool(foo.tmp_b);		\
-		state_fio->StateUint8(foo.counter_a);	\
-		state_fio->StateUint8(foo.counter_b);	\
-	}
+void process_state_ls151(ls151_t* val, FILEIO* state_fio)
+{
+	state_fio->StateValue(val->in_d0);
+	state_fio->StateValue(val->in_d1);
+	state_fio->StateValue(val->in_d2);
+	state_fio->StateValue(val->in_d3);
+	state_fio->StateValue(val->in_d4);
+	state_fio->StateValue(val->in_d5);
+	state_fio->StateValue(val->in_d6);
+	state_fio->StateValue(val->in_d7);
+	state_fio->StateValue(val->in_a);
+	state_fio->StateValue(val->in_b);
+	state_fio->StateValue(val->in_c);
+	state_fio->StateValue(val->in_s);
+	state_fio->StateValue(val->out_y);
+	state_fio->StateValue(val->out_ny);
+}
 
-#define PROCESS_STATE_4024(foo)			\
-	{											\
-		state_fio->StateBool(foo.in_ck);		\
-		state_fio->StateBool(foo.in_clr);		\
-		state_fio->StateBool(foo.out_q5);		\
-		state_fio->StateBool(foo.out_q6);		\
-		state_fio->StateBool(foo.tmp_ck);		\
-		state_fio->StateUint8(foo.counter);		\
-	}
+void process_state_ls93(ls93_t* val, FILEIO* state_fio)
+{
+	state_fio->StateValue(val->in_a);
+	state_fio->StateValue(val->in_b);
+	state_fio->StateValue(val->in_rc1);
+	state_fio->StateValue(val->in_rc2);
+	state_fio->StateValue(val->out_qa);
+	state_fio->StateValue(val->out_qb);
+	state_fio->StateValue(val->out_qc);
+	state_fio->StateValue(val->tmp_a);
+	state_fio->StateValue(val->tmp_b);
+	state_fio->StateValue(val->counter_a);
+	state_fio->StateValue(val->counter_b);
+}
 
-#define STATE_VERSION	4
+void process_state_tc4024bp(tc4024bp_t* val, FILEIO* state_fio)
+{
+	state_fio->StateValue(val->in_ck);
+	state_fio->StateValue(val->in_clr);
+	state_fio->StateValue(val->out_q5);
+	state_fio->StateValue(val->out_q6);
+	state_fio->StateValue(val->tmp_ck);
+	state_fio->StateValue(val->counter);
+}
 
 bool IO::process_state(FILEIO* state_fio, bool loading)
 {
@@ -654,23 +654,22 @@ bool IO::process_state(FILEIO* state_fio, bool loading)
 	if(loading) {
 		close_tape();
 	}
-	//state_fio->StateBuffer(lcd, sizeof(lcd), 1);
-	for(int i = 0; i < 2; i++) {
-		state_fio->StateBuffer(&(lcd[i].ram), 0x400, 1);
-		state_fio->StateInt32(lcd[i].offset);
-		state_fio->StateInt32(lcd[i].cursor);
-	}		
-	state_fio->StateInt32(lcd_status);
-	state_fio->StateInt32(lcd_addr);
-	state_fio->StateBool(lcd_text);
-	state_fio->StateBool(cmt_selected);
-	state_fio->StateUint8(cmt_mode);
-	state_fio->StateBool(cmt_play_ready);
-	state_fio->StateBool(cmt_play_signal);
-	state_fio->StateBool(cmt_rec_ready);
-	state_fio->StateBool(cmt_rec);
-	state_fio->StateBool(cmt_is_wav);
-	state_fio->StateBuffer(cmt_rec_file_path, sizeof(cmt_rec_file_path), 1);
+	for(int i = 0; i < array_length(lcd); i++) {
+		state_fio->StateArray(lcd[i].ram, sizeof(lcd[i].ram), 1);
+		state_fio->StateValue(lcd[i].offset);
+		state_fio->StateValue(lcd[i].cursor);
+	}
+	state_fio->StateValue(lcd_status);
+	state_fio->StateValue(lcd_addr);
+	state_fio->StateValue(lcd_text);
+	state_fio->StateValue(cmt_selected);
+	state_fio->StateValue(cmt_mode);
+	state_fio->StateValue(cmt_play_ready);
+	state_fio->StateValue(cmt_play_signal);
+	state_fio->StateValue(cmt_rec_ready);
+	state_fio->StateValue(cmt_rec);
+	state_fio->StateValue(cmt_is_wav);
+	state_fio->StateArray(cmt_rec_file_path, sizeof(cmt_rec_file_path), 1);
 	if(loading) {
 		int length_tmp = state_fio->FgetInt32_LE();
 		if(cmt_rec) {
@@ -701,27 +700,17 @@ bool IO::process_state(FILEIO* state_fio, bool loading)
 			state_fio->FputInt32_LE(0);
 		}
 	}
-	state_fio->StateInt32(cmt_bufcnt);
-	state_fio->StateBuffer(cmt_buffer, cmt_bufcnt, 1);
-	state_fio->StateUint8(cmt_clock);
-	
-	//state_fio->StateBuffer(&b16_1, sizeof(b16_1), 1);
-	//state_fio->StateBuffer(&b16_2, sizeof(b16_2), 1);
-	//state_fio->StateBuffer(&g21_1, sizeof(g21_1), 1);
-	//state_fio->StateBuffer(&g21_2, sizeof(g21_2), 1);
-	PROCESS_STATE_74LS74(b16_1);
-	PROCESS_STATE_74LS74(b16_2);
-	PROCESS_STATE_74LS74(g21_1);
-	PROCESS_STATE_74LS74(g21_2);
-	
-	//state_fio->StateBuffer(&c15, sizeof(c15), 1);
-	PROCESS_STATE_74LS151(c15);
-	
-	//state_fio->StateBuffer(&c16, sizeof(c16), 1);
-	PROCESS_STATE_74LS93(c16);
-	//state_fio->StateBuffer(&f21, sizeof(f21), 1);
-	PROCESS_STATE_4024(f21);
-	state_fio->StateUint8(key_column);
+	state_fio->StateValue(cmt_bufcnt);
+	state_fio->StateArray(cmt_buffer, cmt_bufcnt, 1);
+	state_fio->StateValue(cmt_clock);
+	process_state_ls74(&b16_1, state_fio);
+	process_state_ls74(&b16_2, state_fio);
+	process_state_ls74(&g21_1, state_fio);
+	process_state_ls74(&g21_2, state_fio);
+	process_state_ls151(&c15, state_fio);
+	process_state_ls93(&c16, state_fio);
+	process_state_tc4024bp(&f21, state_fio);
+	state_fio->StateValue(key_column);
 	return true;
 }
 

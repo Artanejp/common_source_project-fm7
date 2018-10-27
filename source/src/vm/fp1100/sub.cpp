@@ -526,61 +526,6 @@ void SUB::draw_screen()
 	}
 }
 
-
-#define PROCESS_STATE_74LS74(foo)			\
-	{											\
-		state_fio->StateBool(foo.in_d);			\
-		state_fio->StateBool(foo.in_ck);		\
-		state_fio->StateBool(foo.in_s);			\
-		state_fio->StateBool(foo.in_r);			\
-		state_fio->StateBool(foo.out_q);		\
-		state_fio->StateBool(foo.out_nq);		\
-		state_fio->StateBool(foo.tmp_ck);		\
-	}
-
-#define PROCESS_STATE_74LS151(foo)		\
-	{											\
-		state_fio->StateBool(foo.in_d0);		\
-		state_fio->StateBool(foo.in_d1);		\
-		state_fio->StateBool(foo.in_d2);		\
-		state_fio->StateBool(foo.in_d3);		\
-		state_fio->StateBool(foo.in_d4);		\
-		state_fio->StateBool(foo.in_d5);		\
-		state_fio->StateBool(foo.in_d6);		\
-		state_fio->StateBool(foo.in_d7);		\
-		state_fio->StateBool(foo.in_a);			\
-		state_fio->StateBool(foo.in_b);			\
-		state_fio->StateBool(foo.in_c);			\
-		state_fio->StateBool(foo.in_s);			\
-		state_fio->StateBool(foo.out_y);		\
-		state_fio->StateBool(foo.out_ny);		\
-	}
-
-#define PROCESS_STATE_74LS93(foo)			\
-	{											\
-		state_fio->StateBool(foo.in_a);			\
-		state_fio->StateBool(foo.in_b);			\
-		state_fio->StateBool(foo.in_rc1);		\
-		state_fio->StateBool(foo.in_rc2);		\
-		state_fio->StateBool(foo.out_qa);		\
-		state_fio->StateBool(foo.out_qb);		\
-		state_fio->StateBool(foo.out_qc);		\
-		state_fio->StateBool(foo.tmp_a);		\
-		state_fio->StateBool(foo.tmp_b);		\
-		state_fio->StateUint8(foo.counter_a);	\
-		state_fio->StateUint8(foo.counter_b);	\
-	}
-
-#define PROCESS_STATE_4024(foo)			\
-	{											\
-		state_fio->StateBool(foo.in_ck);		\
-		state_fio->StateBool(foo.in_clr);		\
-		state_fio->StateBool(foo.out_q5);		\
-		state_fio->StateBool(foo.out_q6);		\
-		state_fio->StateBool(foo.tmp_ck);		\
-		state_fio->StateUint8(foo.counter);		\
-	}
-
 #define STATE_VERSION	3
 
 void process_state_ls74(ls74_t* val, FILEIO* state_fio)
@@ -645,40 +590,29 @@ bool SUB::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBuffer(vram_b, sizeof(vram_b), 1);
-	state_fio->StateBuffer(vram_r, sizeof(vram_r), 1);
-	state_fio->StateBuffer(vram_g, sizeof(vram_g), 1);
-	state_fio->StateUint8(pa);
-	state_fio->StateUint8(pb);
-	state_fio->StateUint8(pc);
-	state_fio->StateUint8(comm_data);
-	state_fio->StateBool(so);
-	state_fio->StateUint8(clock);
-	//state_fio->StateBuffer(&b16_1, sizeof(b16_1), 1);
-	//state_fio->StateBuffer(&b16_2, sizeof(b16_2), 1);
-	//state_fio->StateBuffer(&g21_1, sizeof(g21_1), 1);
-	//state_fio->StateBuffer(&g21_2, sizeof(g21_2), 1);
-	PROCESS_STATE_74LS74(b16_1);
-	PROCESS_STATE_74LS74(b16_2);
-	PROCESS_STATE_74LS74(g21_1);
-	PROCESS_STATE_74LS74(g21_2);
-	
-	//state_fio->StateBuffer(&c15, sizeof(c15), 1);
-	PROCESS_STATE_74LS151(c15);
-	
-	//state_fio->StateBuffer(&c16, sizeof(c16), 1);
-	PROCESS_STATE_74LS93(c16);
-	
-	//state_fio->StateBuffer(&f21, sizeof(f21), 1);
-	PROCESS_STATE_4024(f21);
-	
-	state_fio->StateUint8(key_sel);
-	state_fio->StateUint8(key_data);
-	state_fio->StateUint8(color_reg);
-	state_fio->StateBool(hsync);
-	state_fio->StateBool(wait);
-	state_fio->StateUint8(cblink);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(vram_b, sizeof(vram_b), 1);
+	state_fio->StateArray(vram_r, sizeof(vram_r), 1);
+	state_fio->StateArray(vram_g, sizeof(vram_g), 1);
+	state_fio->StateValue(pa);
+	state_fio->StateValue(pb);
+	state_fio->StateValue(pc);
+	state_fio->StateValue(comm_data);
+	state_fio->StateValue(so);
+	state_fio->StateValue(clock);
+	process_state_ls74(&b16_1, state_fio);
+	process_state_ls74(&b16_2, state_fio);
+	process_state_ls74(&g21_1, state_fio);
+	process_state_ls74(&g21_2, state_fio);
+	process_state_ls151(&c15, state_fio);
+	process_state_ls93(&c16, state_fio);
+	process_state_tc4024bp(&f21, state_fio);
+	state_fio->StateValue(key_sel);
+	state_fio->StateValue(key_data);
+	state_fio->StateValue(color_reg);
+	state_fio->StateValue(hsync);
+	state_fio->StateValue(wait);
+	state_fio->StateValue(cblink);
 	return true;
 }
 

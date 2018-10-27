@@ -821,67 +821,49 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(font, sizeof(font), 1);
-	state_fio->StateBuffer(vram, sizeof(vram), 1);
-	state_fio->StateInt32(busreq_clocks);
-	state_fio->StateBool(color);
-	state_fio->StateBool(width40);
-	state_fio->StateUint8(mode);
-	//state_fio->StateBuffer(&crtc, sizeof(crtc), 1);
-	{
-		// crtc
-		/* struct */{
-			state_fio->StateInt32(crtc.blink.rate);
-			state_fio->StateInt32(crtc.blink.counter);
-			state_fio->StateUint8(crtc.blink.cursor);
-			state_fio->StateUint8(crtc.blink.attrib);
-		} /* blink */;
-		/*struct */{
-			state_fio->StateInt32(crtc.cursor.type);
-			state_fio->StateInt32(crtc.cursor.mode);
-			state_fio->StateInt32(crtc.cursor.x);
-			state_fio->StateInt32(crtc.cursor.y);
-		} /* cursor */;
-		/*struct */{
-			state_fio->StateUint8(crtc.attrib.data);
-			state_fio->StateInt32(crtc.attrib.num);
-			state_fio->StateBuffer(crtc.attrib.expand, sizeof(crtc.attrib.expand), 1);
-		} /* attrib */;
-		/* struct */{
-			state_fio->StateBuffer(crtc.text.expand, sizeof(crtc.text.expand), 1);
-		} /*text; */
-		state_fio->StateInt32(crtc.width);
-		state_fio->StateInt32(crtc.height);
-		state_fio->StateInt32(crtc.char_height);
-		state_fio->StateBool(crtc.skip_line);
-		state_fio->StateInt32(crtc.vretrace);
-		state_fio->StateBool(crtc.timing_changed);
-		state_fio->StateBuffer(crtc.buffer, sizeof(crtc.buffer), 1);
-		state_fio->StateInt32(crtc.buffer_ptr);
-		state_fio->StateUint8(crtc.cmd);
-		state_fio->StateInt32(crtc.cmd_ptr);
-		state_fio->StateUint8(crtc.mode);
-		state_fio->StateUint8(crtc.reverse);
-		state_fio->StateUint8(crtc.intr_mask);
-		state_fio->StateUint8(crtc.status);
-		state_fio->StateBool(crtc.vblank);
+	state_fio->StateArray(font, sizeof(font), 1);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateValue(busreq_clocks);
+	state_fio->StateValue(color);
+	state_fio->StateValue(width40);
+	state_fio->StateValue(mode);
+	state_fio->StateValue(crtc.blink.rate);
+	state_fio->StateValue(crtc.blink.counter);
+	state_fio->StateValue(crtc.blink.cursor);
+	state_fio->StateValue(crtc.blink.attrib);
+	state_fio->StateValue(crtc.cursor.type);
+	state_fio->StateValue(crtc.cursor.mode);
+	state_fio->StateValue(crtc.cursor.x);
+	state_fio->StateValue(crtc.cursor.y);
+	state_fio->StateValue(crtc.attrib.data);
+	state_fio->StateValue(crtc.attrib.num);
+	state_fio->StateArray(&crtc.attrib.expand[0][0], sizeof(crtc.attrib.expand), 1);
+	state_fio->StateArray(&crtc.text.expand[0][0], sizeof(crtc.text.expand), 1);
+	state_fio->StateValue(crtc.width);
+	state_fio->StateValue(crtc.height);
+	state_fio->StateValue(crtc.char_height);
+	state_fio->StateValue(crtc.skip_line);
+	state_fio->StateValue(crtc.vretrace);
+	state_fio->StateValue(crtc.timing_changed);
+	state_fio->StateArray(crtc.buffer, sizeof(crtc.buffer), 1);
+	state_fio->StateValue(crtc.buffer_ptr);
+	state_fio->StateValue(crtc.cmd);
+	state_fio->StateValue(crtc.cmd_ptr);
+	state_fio->StateValue(crtc.mode);
+	state_fio->StateValue(crtc.reverse);
+	state_fio->StateValue(crtc.intr_mask);
+	state_fio->StateValue(crtc.status);
+	state_fio->StateValue(crtc.vblank);
+	for(int i = 0; i < array_length(dmac.ch); i++) {
+		state_fio->StateValue(dmac.ch[i].addr);
+		state_fio->StateValue(dmac.ch[i].count);
+		state_fio->StateValue(dmac.ch[i].mode);
+		state_fio->StateValue(dmac.ch[i].nbytes);
+		state_fio->StateValue(dmac.ch[i].running);
 	}
-	STORE_DMAC_CONTEXTS();
-	//state_fio->StateBuffer(&dmac, sizeof(dmac), 1);
-	{ // dmac
-
-		for(int i = 0; i < 4; i++) {
-			state_fio->StateUint32(dmac.ch[i].addr.d);
-			state_fio->StateUint32(dmac.ch[i].count.d);
-			state_fio->StateUint8(dmac.ch[i].mode);
-			state_fio->StateInt32(dmac.ch[i].nbytes);
-			state_fio->StateBool(dmac.ch[i].running);
-		} /* ch[4] */
-		state_fio->StateUint8(dmac.mode);
-		state_fio->StateUint8(dmac.status);
-		state_fio->StateBool(dmac.high_low);
-	}		
-	RESTORE_DMAC_CONTEXTS();
+	state_fio->StateValue(dmac.mode);
+	state_fio->StateValue(dmac.status);
+	state_fio->StateValue(dmac.high_low);
 	return true;
 }
 }

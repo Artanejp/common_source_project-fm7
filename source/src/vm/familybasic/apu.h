@@ -159,12 +159,6 @@ private:
 	
 	int volume_l, volume_r;
 
-	void process_state_rectangle(int num, FILEIO* state_fio, bool loading);
-	void process_state_triangle(FILEIO* state_fio, bool loading);
-	void process_state_noise(FILEIO* state_fio, bool loading);
-	void process_state_dmc(FILEIO* state_fio, bool loading);
-	void process_state_queue(int num, FILEIO* state_fio, bool loading);
-	
 public:
 	APU(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

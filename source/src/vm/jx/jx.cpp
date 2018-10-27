@@ -386,7 +386,7 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
  			return false;
  		}
  	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateArray(ram, sizeof(ram), 1);
 	return true;
 }
 

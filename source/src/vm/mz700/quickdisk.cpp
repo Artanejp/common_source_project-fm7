@@ -570,26 +570,23 @@ bool QUICKDISK::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(file_path, sizeof(file_path), 1);
-	state_fio->StateBool(insert);
-	state_fio->StateBool(protect);
-	state_fio->StateBool(home);
-	state_fio->StateBool(modified);
-	state_fio->StateBool(accessed);
-	//state_fio->StateBuffer(buffer, sizeof(buffer), 1);
-	for(int i = 0; i < QUICKDISK_BUFFER_SIZE; i++) {
-		state_fio->StateUint16(buffer[i]);
-	}
-	state_fio->StateInt32(buffer_ptr);
-	state_fio->StateInt32(write_ptr);
-	state_fio->StateBool(first_data);
-	state_fio->StateBool(send_break);
-	state_fio->StateBool(wrga);
-	state_fio->StateBool(mton);
-	state_fio->StateBool(sync);
-	state_fio->StateBool(motor_on);
-	state_fio->StateInt32(restore_id);
-	state_fio->StateInt32(end_id);
+	state_fio->StateArray(file_path, sizeof(file_path), 1);
+	state_fio->StateValue(insert);
+	state_fio->StateValue(protect);
+	state_fio->StateValue(home);
+	state_fio->StateValue(modified);
+	state_fio->StateValue(accessed);
+	state_fio->StateArray(buffer, sizeof(buffer), 1);
+	state_fio->StateValue(buffer_ptr);
+	state_fio->StateValue(write_ptr);
+	state_fio->StateValue(first_data);
+	state_fio->StateValue(send_break);
+	state_fio->StateValue(wrga);
+	state_fio->StateValue(mton);
+	state_fio->StateValue(sync);
+	state_fio->StateValue(motor_on);
+	state_fio->StateValue(restore_id);
+	state_fio->StateValue(end_id);
 	return true;
 }
 

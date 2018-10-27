@@ -181,18 +181,17 @@ bool INTERRUPT::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint8(select);
-	//state_fio->StateBuffer(irq, sizeof(irq), 1);
-	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint8(irq[i].vector);
-		state_fio->StateBool(irq[i].enb_intr);
-		state_fio->StateBool(irq[i].req_intr);
-		state_fio->StateBool(irq[i].in_service);
+	state_fio->StateValue(select);
+	for(int i = 0; i < array_length(irq); i++) {
+		state_fio->StateValue(irq[i].vector);
+		state_fio->StateValue(irq[i].enb_intr);
+		state_fio->StateValue(irq[i].req_intr);
+		state_fio->StateValue(irq[i].in_service);
 	}
-	state_fio->StateInt32(req_intr_ch);
-	state_fio->StateBool(iei);
-	state_fio->StateBool(oei);
-	state_fio->StateUint32(intr_bit);
+	state_fio->StateValue(req_intr_ch);
+	state_fio->StateValue(iei);
+	state_fio->StateValue(oei);
+	state_fio->StateValue(intr_bit);
 	return true;
 }
 

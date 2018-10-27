@@ -1223,94 +1223,58 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBuffer(vram, sizeof(vram), 1);
-	state_fio->StateBuffer(cvram, sizeof(cvram), 1);
-#ifdef _FMR60
-	state_fio->StateBuffer(avram, sizeof(avram), 1);
-#else
-	state_fio->StateBuffer(kvram, sizeof(kvram), 1);
-#endif
-	state_fio->StateUint8(machine_id);
-	state_fio->StateUint8(protect);
-	state_fio->StateUint8(rst);
-	state_fio->StateUint8(mainmem);
-	state_fio->StateUint8(rplane);
-	state_fio->StateUint8(wplane);
-	state_fio->StateUint8(dma_addr_reg);
-	state_fio->StateUint8(dma_wrap_reg);
-	state_fio->StateUint32(dma_addr_mask);
-	state_fio->StateBool(disp);
-	state_fio->StateBool(vsync);
-	state_fio->StateInt32(blink);
-	state_fio->StateBuffer(apal, sizeof(apal), 1);
-	state_fio->StateUint8(apalsel);
-	state_fio->StateBuffer(dpal, sizeof(dpal), 1);
-	state_fio->StateUint8(outctrl);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateArray(cvram, sizeof(cvram), 1);
+ #ifdef _FMR60
+	state_fio->StateArray(avram, sizeof(avram), 1);
+ #else
+	state_fio->StateArray(kvram, sizeof(kvram), 1);
+ #endif
+	state_fio->StateValue(machine_id);
+	state_fio->StateValue(protect);
+	state_fio->StateValue(rst);
+	state_fio->StateValue(mainmem);
+	state_fio->StateValue(rplane);
+	state_fio->StateValue(wplane);
+	state_fio->StateValue(dma_addr_reg);
+	state_fio->StateValue(dma_wrap_reg);
+	state_fio->StateValue(dma_addr_mask);
+	state_fio->StateValue(disp);
+	state_fio->StateValue(vsync);
+	state_fio->StateValue(blink);
+	state_fio->StateArray(&apal[0][0], sizeof(apal), 1);
+	state_fio->StateValue(apalsel);
+	state_fio->StateArray(dpal, sizeof(dpal), 1);
+	state_fio->StateValue(outctrl);
 #ifndef _FMR60
-	state_fio->StateUint8(pagesel);
-	state_fio->StateUint8(ankcg);
-	state_fio->StateUint8(dispctrl);
-	state_fio->StateUint8(mix);
-	state_fio->StateUint16(accaddr);
-	state_fio->StateUint16(dispaddr);
-	state_fio->StateInt32(kj_h);
-	state_fio->StateInt32(kj_l);
-	state_fio->StateInt32(kj_ofs);
-	state_fio->StateInt32(kj_row);
-	state_fio->StateUint8(cmdreg);
-	state_fio->StateUint8(imgcol);
-	state_fio->StateUint8(maskreg);
-	state_fio->StateBuffer(compreg, sizeof(compreg), 1);
-	state_fio->StateUint8(compbit);
-	state_fio->StateUint8(bankdis);
-	state_fio->StateBuffer(tilereg, sizeof(tilereg), 1);
-	state_fio->StateUint16(lofs);
-	state_fio->StateUint16(lsty);
-	state_fio->StateUint16(lsx);
-	state_fio->StateUint16(lsy);
-	state_fio->StateUint16(lex);
-	state_fio->StateUint16(ley);
+	state_fio->StateValue(pagesel);
+	state_fio->StateValue(ankcg);
+	state_fio->StateValue(dispctrl);
+	state_fio->StateValue(mix);
+	state_fio->StateValue(accaddr);
+	state_fio->StateValue(dispaddr);
+	state_fio->StateValue(kj_h);
+	state_fio->StateValue(kj_l);
+	state_fio->StateValue(kj_ofs);
+	state_fio->StateValue(kj_row);
+	state_fio->StateValue(cmdreg);
+	state_fio->StateValue(imgcol);
+	state_fio->StateValue(maskreg);
+	state_fio->StateArray(compreg, sizeof(compreg), 1);
+	state_fio->StateValue(compbit);
+	state_fio->StateValue(bankdis);
+	state_fio->StateArray(tilereg, sizeof(tilereg), 1);
+	state_fio->StateValue(lofs);
+	state_fio->StateValue(lsty);
+	state_fio->StateValue(lsx);
+	state_fio->StateValue(lsy);
+	state_fio->StateValue(lex);
+	state_fio->StateValue(ley);
 #endif
-	//state_fio->StateBuffer(palette_cg, sizeof(palette_cg), 1);
-	if(loading) {
-		for(int i = 0; i < (sizeof(palette_cg) / sizeof(scrntype_t)); i++) {
-			uint8_t r, g, b;
-			r = state_fio->FgetUint8();
-			g = state_fio->FgetUint8();
-			b = state_fio->FgetUint8();
-			palette_cg[i] = RGB_COLOR(r, g, b);
-		}
-	} else {
-		for(int i = 0; i < (sizeof(palette_cg) / sizeof(scrntype_t)); i++) {
-			uint8_t r, g, b;
-			r = R_OF_COLOR(palette_cg[i]);
-			g = G_OF_COLOR(palette_cg[i]);
-			b = B_OF_COLOR(palette_cg[i]);
-			state_fio->FputUint8(r);
-			state_fio->FputUint8(g);
-			state_fio->FputUint8(b);
-		}
-	}
-	if(loading) {
-		for(int i = 0; i < (sizeof(palette_txt) / sizeof(scrntype_t)); i++) {
-			uint8_t r, g, b;
-			r = state_fio->FgetUint8();
-			g = state_fio->FgetUint8();
-			b = state_fio->FgetUint8();
-			palette_txt[i] = RGB_COLOR(r, g, b);
-		}
-	} else {
-		for(int i = 0; i < (sizeof(palette_txt) / sizeof(scrntype_t)); i++) {
-			uint8_t r, g, b;
-			r = R_OF_COLOR(palette_txt[i]);
-			g = G_OF_COLOR(palette_txt[i]);
-			b = B_OF_COLOR(palette_txt[i]);
-			state_fio->FputUint8(r);
-			state_fio->FputUint8(g);
-			state_fio->FputUint8(b);
-		}
-	}
+	state_fio->StateArrayScrnType_t(palette_cg, sizeof(palette_cg), 1);
+//	state_fio->StateArrayScrnType_t(palette_txt, sizeof(palette_txt), 1);
+
 	// post process
 	if(loading) {
 		update_bank();

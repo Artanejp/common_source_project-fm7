@@ -673,34 +673,18 @@ bool PPU::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	//state_fio->StateBuffer(palette_pc, sizeof(palette_pc), 1);
-	if(loading) {
-		for(int i = 0; i < (sizeof(palette_pc) / sizeof(scrntype_t)); i++) {
-			uint8_t r, g, b;
-			r = state_fio->FgetUint8();
-			g = state_fio->FgetUint8();
-			b = state_fio->FgetUint8();
-			palette_pc[i] = RGB_COLOR(r, g, b);
-		}
-	} else {
-		for(int i = 0; i < (sizeof(palette_pc) / sizeof(scrntype_t)); i++) {
-			uint8_t r, g, b;
-			r = R_OF_COLOR(palette_pc[i]);
-			g = G_OF_COLOR(palette_pc[i]);
-			b = B_OF_COLOR(palette_pc[i]);
-			state_fio->FputUint8(r);
-			state_fio->FputUint8(g);
-			state_fio->FputUint8(b);
-		}
-	}
-	state_fio->StateBuffer(solid_buf, sizeof(solid_buf), 1);
-	state_fio->StateBuffer(&header, sizeof(header), 1); // OK?
-//	state_fio->StateBuffer(banks, sizeof(banks), 1);
-	for(int i = 0; i < (sizeof(banks) / sizeof(uint32_t)); i++) {
-		state_fio->StateUint32(banks[i]);
-	}
-	state_fio->StateUint32(chr_rom_size);
-//	state_fio->StateInt32(chr_rom_mask);
+	state_fio->StateArrayScrnType_t(palette_pc, sizeof(palette_pc), 1);
+	state_fio->StateArray(solid_buf, sizeof(solid_buf), 1);
+	state_fio->StateArray(header.id, sizeof(header.id), 1);
+	state_fio->StateValue(header.ctrl_z);
+	state_fio->StateValue(header.dummy);
+	state_fio->StateValue(header.num_8k_vrom_banks);
+	state_fio->StateValue(header.flags_1);
+	state_fio->StateValue(header.flags_2);
+	state_fio->StateArray(header.reserved, sizeof(header.reserved), 1);
+	state_fio->StateArray(banks, sizeof(banks), 1);
+	state_fio->StateValue(chr_rom_size);
+//	state_fio->StateValue(chr_rom_mask);
 	if(loading) {
 		chr_rom_mask = (chr_rom_size / 0x400) - 1;
 		if(chr_rom != NULL) {
@@ -708,22 +692,22 @@ bool PPU::process_state(FILEIO* state_fio, bool loading)
 		}
 		chr_rom = (uint8_t *)malloc(chr_rom_size);
 	}
-	state_fio->StateBuffer(chr_rom, chr_rom_size, 1);
-	state_fio->StateBuffer(name_tables, sizeof(name_tables), 1);
-	state_fio->StateBuffer(spr_ram, sizeof(spr_ram), 1);
-	state_fio->StateBuffer(bg_pal, sizeof(bg_pal), 1);
-	state_fio->StateBuffer(spr_pal, sizeof(spr_pal), 1);
-	state_fio->StateUint8(spr_ram_rw_ptr);
-	state_fio->StateBuffer(regs, sizeof(regs), 1);
-	state_fio->StateUint16(bg_pattern_table_addr);
-	state_fio->StateUint16(spr_pattern_table_addr);
-	state_fio->StateUint16(ppu_addr_inc);
-	state_fio->StateUint8(rgb_bak);
-	state_fio->StateBool(toggle_2005_2006);
-	state_fio->StateUint8(read_2007_buffer);
-	state_fio->StateUint16(loopy_v);
-	state_fio->StateUint16(loopy_t);
-	state_fio->StateUint8(loopy_x);
+	state_fio->StateArray(chr_rom, chr_rom_size, 1);
+	state_fio->StateArray(name_tables, sizeof(name_tables), 1);
+	state_fio->StateArray(spr_ram, sizeof(spr_ram), 1);
+	state_fio->StateArray(bg_pal, sizeof(bg_pal), 1);
+	state_fio->StateArray(spr_pal, sizeof(spr_pal), 1);
+	state_fio->StateValue(spr_ram_rw_ptr);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateValue(bg_pattern_table_addr);
+	state_fio->StateValue(spr_pattern_table_addr);
+	state_fio->StateValue(ppu_addr_inc);
+	state_fio->StateValue(rgb_bak);
+	state_fio->StateValue(toggle_2005_2006);
+	state_fio->StateValue(read_2007_buffer);
+	state_fio->StateValue(loopy_v);
+	state_fio->StateValue(loopy_t);
+	state_fio->StateValue(loopy_x);
 	
 	// post process
 	if(loading) {

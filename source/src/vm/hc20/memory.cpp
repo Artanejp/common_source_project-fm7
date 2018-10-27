@@ -821,33 +821,32 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 		state_fio->FputBool(wbank[0x8000 >> 13] == ext);
 		state_fio->FputBool(rbank[0x8000 >> 13] == ext);
 	}
-	state_fio->StateBuffer(rom, sizeof(rom), 1);
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBuffer(ext, sizeof(ext), 1);
+	state_fio->StateArray(rom, sizeof(rom), 1);
+//	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(ext, sizeof(ext), 1);
 	if(!cmd_buf->process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateBool(sio_select);
-	state_fio->StateBool(special_cmd_masked);
-	state_fio->StateBuffer(slave_mem, sizeof(slave_mem), 1);
-	//state_fio->StateBuffer(sound, sizeof(sound), 1);
-	for(int i = 0; i < 256; i++) {
-		state_fio->StateDouble(sound[i].freq);
-		state_fio->StateInt32(sound[i].period);
-		state_fio->StateInt32(sound[i].remain);
-	}		
-	state_fio->StateInt32(sound_ptr);
-	state_fio->StateInt32(sound_count);
-	state_fio->StateUint8(sound_reply);
-	state_fio->StateDouble(sound_freq);
-	state_fio->StateBuffer(key_stat, sizeof(key_stat), 1);
-	state_fio->StateBuffer(key_flag, sizeof(key_flag), 1);
-	state_fio->StateInt32(key_data);
-	state_fio->StateInt32(key_strobe);
-	state_fio->StateInt32(key_intmask);
-	state_fio->StateBool(cmt_play);
-	state_fio->StateBool(cmt_rec);
-	state_fio->StateBuffer(cmt_file_path, sizeof(cmt_file_path), 1);
+	state_fio->StateValue(sio_select);
+	state_fio->StateValue(special_cmd_masked);
+	state_fio->StateArray(slave_mem, sizeof(slave_mem), 1);
+	for(int i = 0; i < array_length(sound); i++) {
+		state_fio->StateValue(sound[i].freq);
+		state_fio->StateValue(sound[i].period);
+		state_fio->StateValue(sound[i].remain);
+	}
+	state_fio->StateValue(sound_ptr);
+	state_fio->StateValue(sound_count);
+	state_fio->StateValue(sound_reply);
+	state_fio->StateValue(sound_freq);
+	state_fio->StateArray(key_stat, sizeof(key_stat), 1);
+	state_fio->StateArray(key_flag, sizeof(key_flag), 1);
+	state_fio->StateValue(key_data);
+	state_fio->StateValue(key_strobe);
+	state_fio->StateValue(key_intmask);
+	state_fio->StateValue(cmt_play);
+	state_fio->StateValue(cmt_rec);
+	state_fio->StateArray(cmt_file_path, sizeof(cmt_file_path), 1);
 	if(loading) {
 		int length_tmp = state_fio->FgetInt32_LE();
 		if(cmt_rec) {
@@ -878,19 +877,18 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 			state_fio->FputInt32_LE(0);
 		}
 	}
-	state_fio->StateInt32(cmt_count);
-	state_fio->StateBuffer(cmt_buffer, sizeof(cmt_buffer), 1);
-	//state_fio->StateBuffer(lcd, sizeof(lcd), 1);
-	for(int i = 0; i < (sizeof(lcd) / sizeof(lcd_t)); i++) {
-		state_fio->StateBuffer(lcd[i].buffer, 0x80, 1);
-		state_fio->StateInt32(lcd[i].bank);
-		state_fio->StateInt32(lcd[i].addr);
-	}		
-	state_fio->StateUint8(lcd_select);
-	state_fio->StateUint8(lcd_data);
-	state_fio->StateInt32(lcd_clock);
-	state_fio->StateInt32(int_status);
-	state_fio->StateInt32(int_mask);
+	state_fio->StateValue(cmt_count);
+	state_fio->StateArray(cmt_buffer, sizeof(cmt_buffer), 1);
+	for(int i = 0; i < array_length(lcd); i++) {
+		state_fio->StateArray(lcd[i].buffer, sizeof(lcd[i].buffer), 1);
+		state_fio->StateValue(lcd[i].bank);
+		state_fio->StateValue(lcd[i].addr);
+	}
+	state_fio->StateValue(lcd_select);
+	state_fio->StateValue(lcd_data);
+	state_fio->StateValue(lcd_clock);
+	state_fio->StateValue(int_status);
+	state_fio->StateValue(int_mask);
 	
 	// post process
 	if(loading) {

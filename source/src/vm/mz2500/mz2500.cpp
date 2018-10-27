@@ -635,6 +635,6 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
  		}
  	}
 	// Machine specified.
-	state_fio->StateInt32(monitor_type);
+	state_fio->StateValue(monitor_type);
 	return true;
 }

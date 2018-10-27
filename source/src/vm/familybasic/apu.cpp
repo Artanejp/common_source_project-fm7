@@ -798,108 +798,106 @@ void APU::set_volume(int ch, int decibel_l, int decibel_r)
 
 #define STATE_VERSION	2
 
-void APU::process_state_rectangle(int num, FILEIO* state_fio, bool loading)
+void process_state_rectangle(rectangle_t* val, FILEIO* state_fio)
 {
-	state_fio->StateBuffer(rectangle[num].regs, sizeof(rectangle[0].regs), 1);
-	state_fio->StateBool(rectangle[num].enabled);
-	state_fio->StateInt32(rectangle[num].phaseacc);
-	state_fio->StateInt32(rectangle[num].freq);
-	state_fio->StateInt32(rectangle[num].output_vol);
-	state_fio->StateBool(rectangle[num].fixed_envelope);
-	state_fio->StateBool(rectangle[num].holdnote);
-	state_fio->StateUint8(rectangle[num].volume);
-	state_fio->StateInt32(rectangle[num].sweep_phase);
-	state_fio->StateInt32(rectangle[num].sweep_delay);
-	state_fio->StateBool(rectangle[num].sweep_on);
-	state_fio->StateUint8(rectangle[num].sweep_shifts);
-	state_fio->StateUint8(rectangle[num].sweep_length);
-	state_fio->StateBool(rectangle[num].sweep_inc);
-	state_fio->StateInt32(rectangle[num].freq_limit);
-	state_fio->StateBool(rectangle[num].sweep_complement);
-	state_fio->StateInt32(rectangle[num].env_phase);
-	state_fio->StateInt32(rectangle[num].env_delay);
-	state_fio->StateUint8(rectangle[num].env_vol);
-	state_fio->StateInt32(rectangle[num].vbl_length);
-	state_fio->StateUint8(rectangle[num].adder);
-	state_fio->StateInt32(rectangle[num].duty_flip);
-	state_fio->StateBool(rectangle[num].enabled_cur);
-	state_fio->StateBool(rectangle[num].holdnote_cur);
-	state_fio->StateInt32(rectangle[num].vbl_length_cur);
+	state_fio->StateArray(val->regs, sizeof(val->regs), 1);
+	state_fio->StateValue(val->enabled);
+	state_fio->StateValue(val->phaseacc);
+	state_fio->StateValue(val->freq);
+	state_fio->StateValue(val->output_vol);
+	state_fio->StateValue(val->fixed_envelope);
+	state_fio->StateValue(val->holdnote);
+	state_fio->StateValue(val->volume);
+	state_fio->StateValue(val->sweep_phase);
+	state_fio->StateValue(val->sweep_delay);
+	state_fio->StateValue(val->sweep_on);
+	state_fio->StateValue(val->sweep_shifts);
+	state_fio->StateValue(val->sweep_length);
+	state_fio->StateValue(val->sweep_inc);
+	state_fio->StateValue(val->freq_limit);
+	state_fio->StateValue(val->sweep_complement);
+	state_fio->StateValue(val->env_phase);
+	state_fio->StateValue(val->env_delay);
+	state_fio->StateValue(val->env_vol);
+	state_fio->StateValue(val->vbl_length);
+	state_fio->StateValue(val->adder);
+	state_fio->StateValue(val->duty_flip);
+	state_fio->StateValue(val->enabled_cur);
+	state_fio->StateValue(val->holdnote_cur);
+	state_fio->StateValue(val->vbl_length_cur);
 }
 
-void APU::process_state_triangle(FILEIO* state_fio, bool loading)
+void process_state_triangle(triangle_t* val, FILEIO* state_fio)
 {
-	state_fio->StateBuffer(triangle.regs, sizeof(triangle.regs), 1);
-	state_fio->StateBool(triangle.enabled);
-	state_fio->StateInt32(triangle.freq);
-	state_fio->StateInt32(triangle.phaseacc);
-	state_fio->StateInt32(triangle.output_vol);
-	state_fio->StateUint8(triangle.adder);
-	state_fio->StateBool(triangle.holdnote);
-	state_fio->StateBool(triangle.counter_started);
-	state_fio->StateInt32(triangle.write_latency);
-	state_fio->StateInt32(triangle.vbl_length);
-	state_fio->StateInt32(triangle.linear_length);
-	state_fio->StateBool(triangle.enabled_cur);
-	state_fio->StateBool(triangle.holdnote_cur);
-	state_fio->StateBool(triangle.counter_started_cur);
-	state_fio->StateInt32(triangle.vbl_length_cur);
-	
+	state_fio->StateArray(val->regs, sizeof(val->regs), 1);
+	state_fio->StateValue(val->enabled);
+	state_fio->StateValue(val->freq);
+	state_fio->StateValue(val->phaseacc);
+	state_fio->StateValue(val->output_vol);
+	state_fio->StateValue(val->adder);
+	state_fio->StateValue(val->holdnote);
+	state_fio->StateValue(val->counter_started);
+	state_fio->StateValue(val->write_latency);
+	state_fio->StateValue(val->vbl_length);
+	state_fio->StateValue(val->linear_length);
+	state_fio->StateValue(val->enabled_cur);
+	state_fio->StateValue(val->holdnote_cur);
+	state_fio->StateValue(val->counter_started_cur);
+	state_fio->StateValue(val->vbl_length_cur);
 }
 
-void APU::process_state_noise(FILEIO* state_fio, bool loading)
+void process_state_noise(noise_t* val, FILEIO* state_fio)
 {
-	state_fio->StateBuffer(noise.regs, sizeof(noise.regs), 1);
-	state_fio->StateBool(noise.enabled);
-	state_fio->StateInt32(noise.freq);
-	state_fio->StateInt32(noise.phaseacc);
-	state_fio->StateInt32(noise.output_vol);
-	state_fio->StateInt32(noise.env_phase);
-	state_fio->StateInt32(noise.env_delay);
-	state_fio->StateUint8(noise.env_vol);
-	state_fio->StateBool(noise.fixed_envelope);
-	state_fio->StateBool(noise.holdnote);
-	state_fio->StateUint8(noise.volume);
-	state_fio->StateInt32(noise.vbl_length);
-	state_fio->StateUint8(noise.xor_tap);
-	state_fio->StateBool(noise.enabled_cur);
-	state_fio->StateBool(noise.holdnote_cur);
-	state_fio->StateInt32(noise.vbl_length_cur);
-		
-	state_fio->StateInt32(noise.shift_reg);
-	state_fio->StateInt32(noise.noise_bit);
+	state_fio->StateArray(val->regs, sizeof(val->regs), 1);
+	state_fio->StateValue(val->enabled);
+	state_fio->StateValue(val->freq);
+	state_fio->StateValue(val->phaseacc);
+	state_fio->StateValue(val->output_vol);
+	state_fio->StateValue(val->env_phase);
+	state_fio->StateValue(val->env_delay);
+	state_fio->StateValue(val->env_vol);
+	state_fio->StateValue(val->fixed_envelope);
+	state_fio->StateValue(val->holdnote);
+	state_fio->StateValue(val->volume);
+	state_fio->StateValue(val->vbl_length);
+	state_fio->StateValue(val->xor_tap);
+	state_fio->StateValue(val->enabled_cur);
+	state_fio->StateValue(val->holdnote_cur);
+	state_fio->StateValue(val->vbl_length_cur);
+	state_fio->StateValue(val->shift_reg);
+	state_fio->StateValue(val->noise_bit);
 }
 
-void APU::process_state_dmc(FILEIO* state_fio, bool loading)
+void process_state_dmc(dmc_t* val, FILEIO* state_fio)
 {
-	state_fio->StateBuffer(dmc.regs, sizeof(dmc.regs), 1);
-	state_fio->StateBool(dmc.enabled);
-	state_fio->StateInt32(dmc.freq);
-	state_fio->StateInt32(dmc.phaseacc);
-	state_fio->StateInt32(dmc.output_vol);
-	state_fio->StateUint32(dmc.address);
-	state_fio->StateUint32(dmc.cached_addr);
-	state_fio->StateInt32(dmc.dma_length);
-	state_fio->StateInt32(dmc.cached_dmalength);
-	state_fio->StateUint8(dmc.cur_byte);
-	state_fio->StateBool(dmc.looping);
-	state_fio->StateBool(dmc.irq_gen);
-	state_fio->StateBool(dmc.irq_occurred);
-	state_fio->StateInt32(dmc.freq_cur);
-	state_fio->StateInt32(dmc.phaseacc_cur);
-	state_fio->StateInt32(dmc.dma_length_cur);
-	state_fio->StateInt32(dmc.cached_dmalength_cur);
-	state_fio->StateBool(dmc.enabled_cur);
-	state_fio->StateBool(dmc.looping_cur);
-	state_fio->StateBool(dmc.irq_gen_cur);
-	state_fio->StateBool(dmc.irq_occurred_cur);
+	state_fio->StateArray(val->regs, sizeof(val->regs), 1);
+	state_fio->StateValue(val->enabled);
+	state_fio->StateValue(val->freq);
+	state_fio->StateValue(val->phaseacc);
+	state_fio->StateValue(val->output_vol);
+	state_fio->StateValue(val->address);
+	state_fio->StateValue(val->cached_addr);
+	state_fio->StateValue(val->dma_length);
+	state_fio->StateValue(val->cached_dmalength);
+	state_fio->StateValue(val->cur_byte);
+	state_fio->StateValue(val->looping);
+	state_fio->StateValue(val->irq_gen);
+	state_fio->StateValue(val->irq_occurred);
+	state_fio->StateValue(val->freq_cur);
+	state_fio->StateValue(val->phaseacc_cur);
+	state_fio->StateValue(val->dma_length_cur);
+	state_fio->StateValue(val->cached_dmalength_cur);
+	state_fio->StateValue(val->enabled_cur);
+	state_fio->StateValue(val->looping_cur);
+	state_fio->StateValue(val->irq_gen_cur);
+	state_fio->StateValue(val->irq_occurred_cur);
 }
 
-void APU::process_state_queue(int num, FILEIO* state_fio, bool loading)
+void process_state_queue(queue_t* val, FILEIO* state_fio)
 {
-	state_fio->StateUint32(queue[num].timestamp);
-	state_fio->StateUint32(queue[num].addr);
-	state_fio->StateUint32(queue[num].data);
+	state_fio->StateValue(val->timestamp);
+	state_fio->StateValue(val->addr);
+	state_fio->StateValue(val->data);
 }
 
 bool APU::process_state(FILEIO* state_fio, bool loading)
@@ -910,30 +908,24 @@ bool APU::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	//state_fio->StateBuffer(rectangle, sizeof(rectangle), 1);
-	//state_fio->StateBuffer(&triangle, sizeof(triangle), 1);
-	//state_fio->StateBuffer(&noise, sizeof(noise), 1);
-	//state_fio->StateBuffer(&dmc, sizeof(dmc), 1);
-	for(int i = 0; i < 2; i++) {
-		process_state_rectangle(i, state_fio, loading);
+	for(int i = 0; i < array_length(rectangle); i++) {
+		process_state_rectangle(&rectangle[i], state_fio);
 	}
-	process_state_triangle(state_fio, loading);
-	process_state_noise(state_fio, loading);
-	process_state_dmc(state_fio, loading);
-	
-	state_fio->StateUint32(enable_reg);
-	state_fio->StateUint32(enable_reg_cur);
-	state_fio->StateInt32(count_rate);
-	//state_fio->StateBuffer(queue, sizeof(queue), 1);
-	for(int i = 0; i < APUQUEUE_SIZE; i++) {
-		process_state_queue(i, state_fio, loading);
+	process_state_triangle(&triangle, state_fio);
+	process_state_noise(&noise, state_fio);
+	process_state_dmc(&dmc, state_fio);
+	state_fio->StateValue(enable_reg);
+	state_fio->StateValue(enable_reg_cur);
+	state_fio->StateValue(count_rate);
+	for(int i = 0; i < array_length(queue); i++) {
+		process_state_queue(&queue[i], state_fio);
 	}
-	state_fio->StateInt32(q_head);
-	state_fio->StateInt32(q_tail);
-	state_fio->StateUint32(elapsed_cycles);
-	state_fio->StateDouble(ave);
-	state_fio->StateDouble(max);
-	state_fio->StateDouble(min);
+	state_fio->StateValue(q_head);
+	state_fio->StateValue(q_tail);
+	state_fio->StateValue(elapsed_cycles);
+	state_fio->StateValue(ave);
+	state_fio->StateValue(max);
+	state_fio->StateValue(min);
 	return true;
 }
 

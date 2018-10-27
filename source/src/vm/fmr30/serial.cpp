@@ -152,13 +152,13 @@ bool SERIAL::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	//state_fio->StateBuffer(sioctrl, sizeof(sioctrl), 1);
-	for(int i = 0; i < 4; i++) {
-		state_fio->StateUint8(sioctrl[i].baud);
-		state_fio->StateUint8(sioctrl[i].ctrl);
-		state_fio->StateBool(sioctrl[i].rxrdy);
-		state_fio->StateBool(sioctrl[i].txrdy);
-		state_fio->StateUint8(sioctrl[i].intmask);
-		state_fio->StateUint8(sioctrl[i].intstat);
+	for(int i = 0; i < 4; i++) {	
+		state_fio->StateValue(sioctrl[i].baud);
+		state_fio->StateValue(sioctrl[i].ctrl);
+		state_fio->StateValue(sioctrl[i].rxrdy);
+		state_fio->StateValue(sioctrl[i].txrdy);
+		state_fio->StateValue(sioctrl[i].intmask);
+		state_fio->StateValue(sioctrl[i].intstat);
 	}
 	return true;
 }

@@ -107,15 +107,12 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint8(fdcr);
-	state_fio->StateUint8(fdsl);
-	state_fio->StateUint8(fdst);
-	state_fio->StateInt32(drvsel);
-	state_fio->StateBool(irq);
-	//state_fio->StateBuffer(changed, sizeof(changed), 1);
-	for(int i = 0; i < (sizeof(changed) / sizeof(bool)); i++) {
-		state_fio->StateBool(changed[i]);
-	}
+	state_fio->StateValue(fdcr);
+	state_fio->StateValue(fdsl);
+	state_fio->StateValue(fdst);
+	state_fio->StateValue(drvsel);
+	state_fio->StateValue(irq);
+	state_fio->StateArray(changed, sizeof(changed), 1);
 	return true;
 }
 

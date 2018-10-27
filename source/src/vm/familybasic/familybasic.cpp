@@ -349,7 +349,7 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
  		}
  	}
 	// Machine specified.
-	state_fio->StateInt32(boot_mode);
+	state_fio->StateValue(boot_mode);
 	if(loading) {
 		update_config();
 	}
