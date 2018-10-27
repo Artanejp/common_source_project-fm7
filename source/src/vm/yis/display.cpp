@@ -1612,63 +1612,51 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	if(!cmd_buffer->process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	state_fio->StateInt32(active_cmd);
-	state_fio->StateUint8(dpp_data);
-	state_fio->StateUint8(dpp_ctrl);
-	state_fio->StateInt32(scroll_x0);
-	state_fio->StateInt32(scroll_y0);
-	state_fio->StateInt32(scroll_x1);
-	state_fio->StateInt32(scroll_y1);
-	state_fio->StateInt32(cursor_x);
-	state_fio->StateInt32(cursor_y);
-	state_fio->StateInt32(read_x);
-	state_fio->StateInt32(read_y);
-	state_fio->StateUint8(mode1);
-	state_fio->StateUint8(mode2);
-	state_fio->StateUint8(mode3);
-	state_fio->StateUint32(report);
-	state_fio->StateBool(write_cr);
-	state_fio->StateBuffer(cvram, sizeof(cvram), 1); // Contains only uint8_t.
-	state_fio->StateBuffer(gvram, sizeof(gvram), 1); // Contains only uint8_t.
-	state_fio->StateInt32(window_x0);
-	state_fio->StateInt32(window_y0);
-	state_fio->StateInt32(window_x1);
-	state_fio->StateInt32(window_y1);
-	state_fio->StateInt32(view_x0);
-	state_fio->StateInt32(view_y0);
-	state_fio->StateInt32(view_x1);
-	state_fio->StateInt32(view_y1);
-	state_fio->StateDouble(expand);
-	state_fio->StateInt32(rotate);
-	state_fio->StateInt32(translate_x);
-	state_fio->StateInt32(translate_y);
-	state_fio->StateInt32(point_x);
-	state_fio->StateInt32(point_y);
-	state_fio->StateInt32(fore_color);
-	state_fio->StateInt32(back_color);
-	state_fio->StateBool(erase);
-	state_fio->StateInt32(texture);
-	state_fio->StateInt32(texture_index);
-	state_fio->StateInt32(pattern);
-	//state_fio->StateBuffer(palette_graph, sizeof(palette_graph), 1);
-	for(int i = 0; i < (sizeof(palette_graph) / sizeof(scrntype_t)); i++) {
-		if(loading) {
-			uint8_t r, g, b;
-			r = state_fio->FgetUint8();
-			g = state_fio->FgetUint8();
-			b = state_fio->FgetUint8();
-			palette_graph[i] = RGB_COLOR(r, g, b);
-		} else {
-			uint8_t r, g, b;
-			r = R_OF_COLOR(palette_graph[i]);
-			g = G_OF_COLOR(palette_graph[i]);
-			b = B_OF_COLOR(palette_graph[i]);
-			state_fio->FputUint8(r);
-			state_fio->FputUint8(g);
-			state_fio->FputUint8(b);
+	state_fio->StateValue(active_cmd);
+	state_fio->StateValue(dpp_data);
+	state_fio->StateValue(dpp_ctrl);
+	state_fio->StateValue(scroll_x0);
+	state_fio->StateValue(scroll_y0);
+	state_fio->StateValue(scroll_x1);
+	state_fio->StateValue(scroll_y1);
+	state_fio->StateValue(cursor_x);
+	state_fio->StateValue(cursor_y);
+	state_fio->StateValue(read_x);
+	state_fio->StateValue(read_y);
+	state_fio->StateValue(mode1);
+	state_fio->StateValue(mode2);
+	state_fio->StateValue(mode3);
+	state_fio->StateValue(report);
+	state_fio->StateValue(write_cr);
+	for(int y = 0; y < 25; y++) {
+		for(int x = 0; x < 80; x++) {
+			state_fio->StateValue(cvram[y][x].code);
+			state_fio->StateValue(cvram[y][x].attr);
 		}
 	}
-	state_fio->StateInt32(blink);
+	state_fio->StateArray(&gvram[0][0], sizeof(gvram), 1);
+	state_fio->StateValue(window_x0);
+	state_fio->StateValue(window_y0);
+	state_fio->StateValue(window_x1);
+	state_fio->StateValue(window_y1);
+	state_fio->StateValue(view_x0);
+	state_fio->StateValue(view_y0);
+	state_fio->StateValue(view_x1);
+	state_fio->StateValue(view_y1);
+	state_fio->StateValue(expand);
+	state_fio->StateValue(rotate);
+	state_fio->StateValue(translate_x);
+	state_fio->StateValue(translate_y);
+	state_fio->StateValue(point_x);
+	state_fio->StateValue(point_y);
+	state_fio->StateValue(fore_color);
+	state_fio->StateValue(back_color);
+	state_fio->StateValue(erase);
+	state_fio->StateValue(texture);
+	state_fio->StateValue(texture_index);
+	state_fio->StateValue(pattern);
+	state_fio->StateArrayScrnType_t(palette_graph, sizeof(palette_graph), 1);
+	state_fio->StateValue(blink);
 	return true;
 }
 
