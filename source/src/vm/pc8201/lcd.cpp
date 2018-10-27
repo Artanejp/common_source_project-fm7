@@ -173,17 +173,16 @@ bool LCD::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	//state_fio->StateBuffer(seg, sizeof(seg), 1);
-	for(int i = 0; i < 10; i++) {
-		state_fio->StateBuffer(&(seg[i].vram[0][0]), sizeof(seg[i].vram), 1);
-		state_fio->StateInt32(seg[i].updown);
-		state_fio->StateInt32(seg[i].disp);
-		state_fio->StateInt32(seg[i].spg);
-		state_fio->StateInt32(seg[i].page);
-		state_fio->StateInt32(seg[i].ofs);
-		state_fio->StateInt32(seg[i].ofs2);
-	}		
-	state_fio->StateUint16(sel);
+	for(int i = 0; i < array_length(seg); i++) {
+		state_fio->StateArray(&seg[i].vram[0][0], sizeof(seg[i].vram), 1);
+		state_fio->StateValue(seg[i].updown);
+		state_fio->StateValue(seg[i].disp);
+		state_fio->StateValue(seg[i].spg);
+		state_fio->StateValue(seg[i].page);
+		state_fio->StateValue(seg[i].ofs);
+		state_fio->StateValue(seg[i].ofs2);
+	}
+	state_fio->StateValue(sel);
 	return true;
 }
 

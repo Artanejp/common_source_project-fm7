@@ -609,49 +609,28 @@ bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateUint8(io_B1H);
+	state_fio->StateValue(io_B1H);
 	for(int i = 0; i < 2; i++) {
 		if(!disk[i]->process_state(state_fio, loading)) {
 			return false;
 		}
 	}
-	//state_fio->StateBuffer(cur_trk, sizeof(cur_trk), 1);
-	for(int i = 0; i < (sizeof(cur_trk) / sizeof(int)); i++) {
-		state_fio->StateInt32(cur_trk[i]);
-	}
-	//state_fio->StateBuffer(cur_sct, sizeof(cur_sct), 1);
-	for(int i = 0; i < (sizeof(cur_sct) / sizeof(int)); i++) {
-		state_fio->StateInt32(cur_sct[i]);
-	}
-	//state_fio->StateBuffer(cur_pos, sizeof(cur_pos), 1);
-	for(int i = 0; i < (sizeof(cur_pos) / sizeof(int)); i++) {
-		state_fio->StateInt32(cur_pos[i]);
-	}
-	//state_fio->StateBuffer(access, sizeof(access), 1);
-	for(int i = 0; i < (sizeof(access) / sizeof(bool)); i++) {
-		state_fio->StateBool(access[i]);
-	}
-	state_fio->StateBuffer(Data, sizeof(Data), 1);
-	//state_fio->StateBuffer(Index, sizeof(Index), 1);
-	for(int i = 0; i < (sizeof(Index) / sizeof(int)); i++) {
-		state_fio->StateInt32(Index[i]);
-	}
-	//state_fio->StateBuffer(&CmdIn, sizeof(CmdBuffer), 1);
-	{
-		state_fio->StateBuffer(CmdIn.Data, sizeof(CmdIn.Data), 1);
-		state_fio->StateInt32(CmdIn.Index);
-	}
-	//state_fio->StateBuffer(&CmdOut, sizeof(CmdBuffer), 1);
-	{
-		state_fio->StateBuffer(CmdOut.Data, sizeof(CmdOut.Data), 1);
-		state_fio->StateInt32(CmdOut.Index);
-	}
-	state_fio->StateUint8(SeekST0);
-	state_fio->StateUint8(LastCylinder);
-	state_fio->StateInt32(SeekEnd);
-	state_fio->StateUint8(SendSectors);
-	state_fio->StateInt32(DIO);
-	state_fio->StateUint8(Status);
+	state_fio->StateArray(cur_trk, sizeof(cur_trk), 1);
+	state_fio->StateArray(cur_sct, sizeof(cur_sct), 1);
+	state_fio->StateArray(cur_pos, sizeof(cur_pos), 1);
+	state_fio->StateArray(access, sizeof(access), 1);
+	state_fio->StateArray(&Data[0][0], sizeof(Data), 1);
+	state_fio->StateArray(Index, sizeof(Index), 1);
+	state_fio->StateArray(CmdIn.Data, sizeof(CmdIn.Data), 1);
+	state_fio->StateValue(CmdIn.Index);
+	state_fio->StateArray(CmdOut.Data, sizeof(CmdOut.Data), 1);
+	state_fio->StateValue(CmdOut.Index);
+	state_fio->StateValue(SeekST0);
+	state_fio->StateValue(LastCylinder);
+	state_fio->StateValue(SeekEnd);
+	state_fio->StateValue(SendSectors);
+	state_fio->StateValue(DIO);
+	state_fio->StateValue(Status);
 	return true;
 }
 
