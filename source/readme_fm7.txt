@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               August 07, 2018
+                                               October 28, 2018
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 1.Background

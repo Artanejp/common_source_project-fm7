@@ -1,5 +1,20 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT October 28, 2018
+  * Upstream 2018-10-14 .
+  * Update state framework to upstream, excepts scrntype_t.
+  * [VM] Use namespace {VMNAME} to separate around VMs.
+  * [STATE/FILEIO] Change StateValue(scrntype_t&) to StateValueScrnType_t(&) due to compiler not detect differ of scrntipe_t and (uint32_t | uint16_t);
+  * [OSD/Qt] Remove some APIs.
+  * [GUI/Qt] DIALOG/ABOUT:Fix not displaying version of libOSD.
+  * [GENERAL] Update gitignore.
+  * [MISC/TOOL] Add function extraction script.
+  * [COMMON/FILEIO] common.h : Fix pair16_t and pair64_t to fileio.cpp .
+  * [COMMON/FILEIO] Re-Add FILEIO::Fflush().
+  * Built with 5cdfe7e27393edaecd445ac9b315d837dd697654 (or later).
+
+-- October 28, 2018 03:36:00 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT September 30, 2018
   * Upstream 2018-09-30 .
   * [General/I18N] Update Japanese translations.

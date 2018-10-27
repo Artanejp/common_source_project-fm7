@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                       September 30, 2018
+                                                       October 28, 2018
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -10,7 +10,7 @@ and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
 
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20180930
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20181028
    
 Additional INFO:
 
@@ -161,46 +161,72 @@ Changes:
 
 * To see older changes, read ChangeLog and 000_gitlog.txt.
 
-* SNAPSHOT September 30, 2018
-  * Upstream 2018-09-30 .
-  * [General/I18N] Update Japanese translations.
-  * [FMGEN] Initial implementation of OPN2 (YM2612) from OPNA.
-  * [VM/FMTOWNS] WORKING IN PROGRESS, WILL NOT BUILD due to still implement partly.
-  * Built with ecf1a85f48bd98c353ea90bc3a0a49ff100b9af4 (or later).
+* SNAPSHOT October 28, 2018
+  * Upstream 2018-10-14 .
+  * Update state framework to upstream, excepts scrntype_t.
+  * [VM] Use namespace {VMNAME} to separate around VMs.
+  * [STATE/FILEIO] Change StateValue(scrntype_t&) to StateValueScrnType_t(&) due to compiler not detect differ of scrntipe_t and (uint32_t | uint16_t);
+  * [OSD/Qt] Remove some APIs.
+  * [GUI/Qt] DIALOG/ABOUT:Fix not displaying version of libOSD.
+  * [GENERAL] Update gitignore.
+  * [MISC/TOOL] Add function extraction script.
+  * [COMMON/FILEIO] common.h : Fix pair16_t and pair64_t to fileio.cpp .
+  * [COMMON/FILEIO] Re-Add FILEIO::Fflush().
+  * Built with 5cdfe7e27393edaecd445ac9b315d837dd697654 (or later).
 
--- September 30, 2018 17:40:12 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- October 28, 2018 03:36:00 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
 * To see older upstream's changes, read history.txt.
 
-9/30/2018
+10/14/2018
 
-[COMMON/FILEIO] improve Fseek for compressed file by gzip
-[EMU] improve to mount/unmount hard disk image in reset() if not hot swappable
-[EMU/DEBUGGER] add commands for checkpoint
-[EMU/DEBUGGER] improve to read/write files in initial current directory
+[COMMON/FILEIO] improve functions to load/save state file for big-endian
 
-[VM/DISK] improve for case 2D disk is inserted to 2DD drive (thanks Mr.Sato)
-[VM/HARDDISK] support Virtual98 hdd image
-[VM/HARDDISK] improve for solid image file
-[VM/IO] improve debug log
-[VM/MSM58321] fix pulse event (thanks Mr.Artane.)
-[VM/SCSI_DEV] add is_hot_swappable
-[VM/SCSI_HDD] improve to mount/unmount image in reset() if not hot swappable
-[VM/SASI_HDD] support SASI hard disk drive
-[VM/SN76489AN] fix save/load state function
-[VM/UPD71071] fix verify command
+[VM/*] improve process_state for big-endian
 
-[FM77L4] add eFM77L4 codes (thanks Mr.Artane.)
-[MZ80A] improve to switch 2D/2DD drive type
-[MZ80B] improve to switch 2D/2DD drive type
-[MZ1500] improve to switch 2D/2DD drive type
-[MZ2500] improve to switch 2D/2DD drive type
-[MZ2800/FLOPPY] improve to switch 2D/2DD drive type
-[MZ2800/SASI] support SASI I/F and HDD (partial)
-[PC98XA] support NEC PC-98XA
-[PC9801/MEMBUS] fix save/load state function
-[X1TURBO/FLOPPY] improve to switch 2D/2DD drive type (thanks Mr.Sato)
+
+10/13/2018
+
+[EMU/DEBUGGER] increase breakpoint number from 8 to 16
+
+[VM/VM_TEMPLATE] fix issue that virtual machine is not correctly released
+
+
+10/10/2018
+
+[VM/SCSI_DEV] fix ack signal issue when multiple devices are attached
+[VM/SCSI_HOST] support to output cd/io/msg/req signals to other devices
+
+[MZ2800/SASI] support SASI I/F and HDD (thanks Mr.Oh!Ishi)
+
+
+10/7/2018
+
+[COMMON] add pair16_t and pair64_t (thanks Mr.Artane.)
+[COMMON] rename pair_t to pair32_t
+[COMMON] add functions for endians (thanks Mr.Artane.)
+[EMU] fix roman/kana conversion when uppercase alphabet is input (thanks Mr.Artane.)
+[EMU] abolish SUPPORT_VARIABLE_TIMING and USE_TAPE_BUTTON
+[WINMAIN] abolish USE_ALT_F10_KEY
+[WIN32/INPUT] abolish NOTIFY_KEY_DOWN and USE_SHIFT_NUMPAD_KEY
+[WIN32/INPUT] improve key input for shift + numpad keys
+
+[VM/*] introduce VM_TEMPLATE (thanks Mr.Artane.)
+
+
+10/5/2018
+
+[COMMON] combine load_state and save_statet of cur_time_t to process_state
+[COMMON/FIFO] combine load_state and save_statet to process_state
+[COMMON/FILEIO] add functions to load/save state file
+
+[VM/*] combine load_state and save_statet to process_state
+[VM/I386] fix to load/save vtlb state
+[VM/I386] fix to rebuild tables when load state
+
+[JX] support save/load state
+[FM77AV] import Mr.Artane.'s fixes (Release in September 30, 2018)
 
 -----
 

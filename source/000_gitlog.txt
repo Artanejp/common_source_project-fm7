@@ -1,3 +1,9 @@
+commit 5cdfe7e27393edaecd445ac9b315d837dd697654
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 28 03:29:53 2018 +0900
+
+    [UI][Qt] Change font size of "ABOUT".
+
 commit a67b2adc484ff19ae2035efa1f40dfee6cd71182
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Oct 28 03:21:02 2018 +0900
