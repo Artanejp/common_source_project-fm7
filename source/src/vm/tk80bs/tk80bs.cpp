@@ -585,11 +585,11 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
  		}
  	}
 	// Machine specified.
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
+	state_fio->StateArray(ram, sizeof(ram), 1);
 #if defined(_TK80BS)
-	state_fio->StateBuffer(vram, sizeof(vram), 1);
-	state_fio->StateInt32(boot_mode);
-//	state_fio->StateInt32(draw_ranges);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateValue(boot_mode);
+//	state_fio->StateValue(draw_ranges);
 	
 	// post process
 	if(loading) {

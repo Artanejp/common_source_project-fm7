@@ -224,15 +224,16 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(save_path, sizeof(save_path), 1);
-	// HEADER CONTAINS *ONLY* uint8_t.
-	state_fio->StateBuffer(&header, sizeof(header), 1);
-	state_fio->StateBool(inserted);
-	state_fio->StateUint32(sram_crc32);
-	state_fio->StateBuffer(vram, sizeof(vram), 1);
-	state_fio->StateBuffer(wreg, sizeof(wreg), 1);
-	state_fio->StateBuffer(sram, sizeof(sram), 1);
-	state_fio->StateUint8(cur_bank);
+	state_fio->StateArray(save_path, sizeof(save_path), 1);
+	state_fio->StateArray(header.id, sizeof(header.id), 1);
+	state_fio->StateValue(header.ctype);
+	state_fio->StateArray(header.dummy, sizeof(header.dummy), 1);
+	state_fio->StateValue(inserted);
+	state_fio->StateValue(sram_crc32);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateArray(wreg, sizeof(wreg), 1);
+	state_fio->StateArray(sram, sizeof(sram), 1);
+	state_fio->StateValue(cur_bank);
 	
 	// post process
 	if(loading) {

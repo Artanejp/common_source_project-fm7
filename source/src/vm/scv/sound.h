@@ -70,8 +70,6 @@ private:
 	void process_pcm(uint8_t data);
 	void process_cmd();
 	
-	bool process_state_channel_t(channel_t *p, FILEIO* state_fio, bool loading);
-	
 public:
 	SOUND(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

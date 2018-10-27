@@ -985,72 +985,54 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateBuffer(ram, sizeof(ram), 1);
-	state_fio->StateBuffer(cram, sizeof(cram), 1);
-	state_fio->StateBuffer(aram, sizeof(aram), 1);
-	state_fio->StateBuffer(pcg, sizeof(pcg), 1);
-	state_fio->StateBuffer(gram, sizeof(gram), 1);
-	state_fio->StateBool(rom_selected);
-	state_fio->StateInt32(rom_switch_wait);
-	state_fio->StateInt32(ram_switch_wait);
-	state_fio->StateBuffer(keytable, sizeof(keytable), 1);
-	state_fio->StateBuffer(keytable_shift, sizeof(keytable_shift), 1);
-	state_fio->StateBuffer(keytable_ctrl, sizeof(keytable_ctrl), 1);
-	state_fio->StateBuffer(keytable_kana, sizeof(keytable_kana), 1);
-	state_fio->StateBuffer(keytable_kana_shift, sizeof(keytable_kana_shift), 1);
-	state_fio->StateUint8(key_code);
-	state_fio->StateUint8(key_status);
-	state_fio->StateUint8(key_cmd);
-	state_fio->StateInt32(key_repeat_start);
-	state_fio->StateInt32(key_repeat_interval);
-	state_fio->StateInt32(key_repeat_event);
-	state_fio->StateUint8(funckey_code);
-	state_fio->StateInt32(funckey_index);
-	state_fio->StateBool(caps);
-	state_fio->StateBool(kana);
-	state_fio->StateUint8(gcw);
-	state_fio->StateBool(vsup);
-	state_fio->StateBool(vsync);
-	state_fio->StateBool(disp);
-	state_fio->StateInt32(cblink);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(cram, sizeof(cram), 1);
+	state_fio->StateArray(aram, sizeof(aram), 1);
+	state_fio->StateArray(pcg, sizeof(pcg), 1);
+	state_fio->StateArray(gram, sizeof(gram), 1);
+	state_fio->StateValue(rom_selected);
+	state_fio->StateValue(rom_switch_wait);
+	state_fio->StateValue(ram_switch_wait);
+	state_fio->StateArray(keytable, sizeof(keytable), 1);
+	state_fio->StateArray(keytable_shift, sizeof(keytable_shift), 1);
+	state_fio->StateArray(keytable_ctrl, sizeof(keytable_ctrl), 1);
+	state_fio->StateArray(keytable_kana, sizeof(keytable_kana), 1);
+	state_fio->StateArray(keytable_kana_shift, sizeof(keytable_kana_shift), 1);
+	state_fio->StateValue(key_code);
+	state_fio->StateValue(key_status);
+	state_fio->StateValue(key_cmd);
+	state_fio->StateValue(key_repeat_start);
+	state_fio->StateValue(key_repeat_interval);
+	state_fio->StateValue(key_repeat_event);
+	state_fio->StateValue(funckey_code);
+	state_fio->StateValue(funckey_index);
+	state_fio->StateValue(caps);
+	state_fio->StateValue(kana);
+	state_fio->StateValue(gcw);
+	state_fio->StateValue(vsup);
+	state_fio->StateValue(vsync);
+	state_fio->StateValue(disp);
+	state_fio->StateValue(cblink);
 #if defined(_SMC777)
-	state_fio->StateBool(use_palette_text);
-	state_fio->StateBool(use_palette_graph);
-	//state_fio->StateBuffer(pal, sizeof(pal), 1);
-	for(int i = 0; i < 16; i++) {
-		state_fio->StateInt32(pal[i].r);
-		state_fio->StateInt32(pal[i].g);
-		state_fio->StateInt32(pal[i].b);
-	}		
-	//state_fio->StateBuffer(palette_pc, sizeof(palette_pc), 1); // Is this right position? Is not for SMC70? 20181023 K.O
-	for(int i = 0; i < (sizeof(palette_pc) / sizeof(scrntype_t)); i++) {
-		if(loading) {
-			uint8_t r, g, b;
-			r = state_fio->FgetUint8();
-			g = state_fio->FgetUint8();
-			b = state_fio->FgetUint8();
-			palette_pc[i] = RGB_COLOR(r, g, b);
-		} else {
-			uint8_t r, g, b;
-			r = R_OF_COLOR(palette_pc[i]);
-			g = G_OF_COLOR(palette_pc[i]);
-			b = B_OF_COLOR(palette_pc[i]);
-			state_fio->FputUint8(r);
-			state_fio->FputUint8(g);
-			state_fio->FputUint8(b);
-		}
+	state_fio->StateValue(use_palette_text);
+	state_fio->StateValue(use_palette_graph);
+	for(int i = 0; i < array_length(pal); i++) {
+		state_fio->StateValue(pal[i].r);
+		state_fio->StateValue(pal[i].g);
+		state_fio->StateValue(pal[i].b);
 	}
+	state_fio->StateArrayScrnType_t(palette_pc, sizeof(palette_pc), 1);
 #endif
-	state_fio->StateInt32(kanji_hi);
-	state_fio->StateInt32(kanji_lo);
-	state_fio->StateBool(ief_key);
-	state_fio->StateBool(ief_vsync);
-	state_fio->StateBool(fdc_irq);
-	state_fio->StateBool(fdc_drq);
-	state_fio->StateBool(drec_in);
-#if defined(_SMC70)
-	state_fio->StateUint8(rtc_data);
-	state_fio->StateBool(rtc_busy);
+	state_fio->StateValue(kanji_hi);
+	state_fio->StateValue(kanji_lo);
+	state_fio->StateValue(ief_key);
+	state_fio->StateValue(ief_vsync);
+	state_fio->StateValue(fdc_irq);
+	state_fio->StateValue(fdc_drq);
+	state_fio->StateValue(drec_in);
+ #if defined(_SMC70)
+	state_fio->StateValue(rtc_data);
+	state_fio->StateValue(rtc_busy);
 #endif
 	
 	// post process

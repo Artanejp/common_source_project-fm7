@@ -339,69 +339,39 @@ void SOUND::set_volume(int ch, int decibel_l, int decibel_r)
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
-bool SOUND::process_state_channel_t(channel_t *p, FILEIO* state_fio, bool loading)
+void process_state_channel(channel_t* val, FILEIO* state_fio)
 {
-	state_fio->StateInt32(p->count);
-	state_fio->StateInt32(p->diff);
-	state_fio->StateInt32(p->period);
-	state_fio->StateInt32(p->timbre);
-	state_fio->StateInt32(p->volume);
-	state_fio->StateInt32(p->output);
-	state_fio->StateInt32(p->ptr);
-	return true;
+	state_fio->StateValue(val->count);
+//	state_fio->StateValue(val->diff);
+	state_fio->StateValue(val->period);
+	state_fio->StateValue(val->timbre);
+	state_fio->StateValue(val->volume);
+	state_fio->StateValue(val->output);
+	state_fio->StateValue(val->ptr);
 }
-
 bool SOUND::process_state(FILEIO* state_fio, bool loading)
 {
-	// pre process
-	int tone_diff = tone.diff;
-	int noise_diff = noise.diff;
-	int square1_diff = square1.diff;
-	int square2_diff = square2.diff;
-	int square3_diff = square3.diff;
-	int pcm_diff = pcm.diff;
-	
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	//state_fio->StateBuffer(&tone, sizeof(tone), 1);
-	//state_fio->StateBuffer(&noise, sizeof(noise), 1);
-	//state_fio->StateBuffer(&square1, sizeof(square1), 1);
-	//state_fio->StateBuffer(&square2, sizeof(square2), 1);
-	//state_fio->StateBuffer(&square3, sizeof(square3), 1);
-	//state_fio->StateBuffer(&pcm, sizeof(pcm), 1);
-	process_state_channel_t(&tone, state_fio, loading);
-	process_state_channel_t(&noise, state_fio, loading);
-	process_state_channel_t(&square1, state_fio, loading);
-	process_state_channel_t(&square2, state_fio, loading);
-	process_state_channel_t(&square3, state_fio, loading);
-	process_state_channel_t(&pcm, state_fio, loading);
-	
-	//state_fio->StateBuffer(pcm_table, sizeof(pcm_table), 1);
-	for(int i = 0; i < (sizeof(pcm_table) / sizeof(int)); i++) {
-		state_fio->StateInt32(pcm_table[i]);
-	}
-	state_fio->StateUint32(cmd_addr);
-	state_fio->StateInt32(pcm_len);
-	state_fio->StateInt32(param_cnt);
-	state_fio->StateInt32(param_ptr);
-	state_fio->StateInt32(register_id);
-	state_fio->StateBuffer(params, sizeof(params), 1);
-	
-	// post process
-	if(loading) {
-		tone.diff = tone_diff;
-		noise.diff = noise_diff;
-		square1.diff = square1_diff;
-		square2.diff = square2_diff;
-		square3.diff = square3_diff;
-		pcm.diff = pcm_diff;
-	}
+	process_state_channel(&tone, state_fio);
+	process_state_channel(&noise, state_fio);
+	process_state_channel(&square1, state_fio);
+	process_state_channel(&square2, state_fio);
+	process_state_channel(&square3, state_fio);
+	process_state_channel(&pcm, state_fio);
+	state_fio->StateArray(pcm_table, sizeof(pcm_table), 1);
+	state_fio->StateValue(cmd_addr);
+	state_fio->StateValue(pcm_len);
+	state_fio->StateValue(param_cnt);
+	state_fio->StateValue(param_ptr);
+	state_fio->StateValue(register_id);
+	state_fio->StateArray(params, sizeof(params), 1);
 	return true;
 }
 
