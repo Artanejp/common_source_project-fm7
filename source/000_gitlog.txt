@@ -1,3 +1,386 @@
+commit a67b2adc484ff19ae2035efa1f40dfee6cd71182
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 28 03:21:02 2018 +0900
+
+    [VM] Enable to build *ALL* VMs ＼(^o^)／
+
+commit b435d92307edc63f1547f9596a72d157bbf37dc9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 28 03:16:32 2018 +0900
+
+    [VM] Enable to build with more VMs.
+
+commit 1f5a5a6cbfcc92741b6df4024ee1d70b7f2de3a9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 28 03:11:34 2018 +0900
+
+    [VM] Enable to build with more VMs.
+
+commit 209aef32158ea170d261c5a5dde776d62d9699f1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 28 03:10:19 2018 +0900
+
+    [TOOL] Update installer.
+    [TOOL][MZ2500] Update tools.
+
+commit 30132bb49f313ef6b9bd692c543b83b2e16b621f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 28 02:49:14 2018 +0900
+
+    [VM] Enable to build with more VMs.
+
+commit 50a48780c0eeba88255cbab87fc91d7ae23cffc6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 28 02:46:02 2018 +0900
+
+    [VM] Enable to build with some VMs.
+
+commit 05f00e654a76e521410cf439c5edd010a193d1be
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 28 02:44:39 2018 +0900
+
+    [VM][UPD7810] Fix FTBFS.
+
+commit 1664531c66d5e1b5e0f71cba47ba5c7ebed2d1c3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 28 02:37:38 2018 +0900
+
+    [VM] Enable to build with upstream 2018-10-14 @some VMs.
+
+commit 200961b8b4e2c031d81e8b540cba52172d6b258e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 25 17:23:53 2018 +0900
+
+    [VM}[FM7][PC8801][X1] At least enable to build FM7,PC8801 and X1 (excepts X!Twin).
+
+commit c8b0795a5f481f6e37624a4a0a66af85a0939cef
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 25 17:03:34 2018 +0900
+
+    [VM][SCSI_HDD] Fix FTBFS.
+
+commit 5f4f672c4ff389790afdc2f5f9131f164eec6854
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 25 16:52:38 2018 +0900
+
+    [VM][DEVICE] Enable to build with new state framework.
+
+commit 65e38b2f129837c2ec10a593b76849444b8b2a36
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 25 16:50:18 2018 +0900
+
+    [STATE][FILEIO] Change StateValue(scrntype_t&) to StateValueScrnType_t(&) due to compiler not detect differ of scrntipe_t and (uint32_t | uint16_t);
+
+commit 11dabbd92f76d3f9a454e87f451d3e3b967d780d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 25 02:49:28 2018 +0900
+
+    [VM][DEVICE][WIP] Updating State functions.Still cause FTBFS.
+
+commit b831c4342c95b58420ea504280feb80917e89ff3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 25 01:15:45 2018 +0900
+
+    [STATE][FILEIO] Add StateValue(scrntype_t&).
+
+commit 09054ddb6a96d784b2efeabcc98e5b1d9ee30f90
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 25 01:00:01 2018 +0900
+
+    [VM][I386] Update mame/emu/cpu/i386 .
+
+commit acb16536bf4ecbcda40bd658a49325fe81355f65
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 25 00:58:58 2018 +0900
+
+    [VM][General][WIP] Start to merge upstream 2018-10-14.Open branch upstream_20181014 .
+
+commit 9ee7ad7898eb9bac21cfe50f9c2ccd55e27a8b03
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 25 00:49:38 2018 +0900
+
+    .
+
+commit 62a372fd2946b022d3c94c0dd42f5628f3775e51
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 25 00:48:51 2018 +0900
+
+    [General] Merge upstream 2018-10-13.
+
+commit f28e3dadbea82556609dcd86e5529f165c6155a8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 25 00:43:23 2018 +0900
+
+    [General] Merge upstream 2018-10-10.
+
+commit 0d4f7f1d45a2e1db1cd33a02060c1e1ca5003633
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 25 00:28:40 2018 +0900
+
+    [VM] Really update to upstream 2018-10-07.
+
+commit ede69559620ce228b3f600be80e946b63e50843a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 25 00:27:21 2018 +0900
+
+    [DOC][VM][FM7] Update ToDo.
+
+commit 9a3c7593c1ea4016af2b091fc457062a07715057
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 25 00:25:34 2018 +0900
+
+    [OSD][Qt] Remove some APIs.
+    [GUI][Qt] DIALOG/ABOUT:Fix not displaying version of libOSD.
+
+commit a4da112933d0387ddfc1a7aa6d5c81d26b6ff159
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 25 00:00:39 2018 +0900
+
+    [Qt][OSD][KEYBOARD] Apply upstream's update.
+
+commit bb8a2366d9f9c5d7d835258d22e040c2a1ad60cc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 24 06:50:12 2018 +0900
+
+    [EMU] Update VM.
+
+commit e342dc806cca93081409c415d22e74d9daa25631
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 24 05:01:37 2018 +0900
+
+    [VM][General] Apply Upstream 2018-10-07.Still WIP.
+
+commit 70e50d594d22b8881ccc9d09a68055743372def3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 23 20:47:22 2018 +0900
+
+    [STATE][ROMAKANA] Remove unused source codes.
+
+commit 07c39e5dacb4487b201eb26adfe2930f093d6c70
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 23 20:46:08 2018 +0900
+
+    [VM][STATE] Now enable to build @ALL VMs.Upstream 2018-10-05.
+
+commit 1a7386afa4c2ce25de158ba8285bc795446a8584
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 23 00:20:35 2018 +0900
+
+    [VM][STATE] Use namespace {VMNAME} to separate per VMs.
+
+commit 2fc1443c0f411167f1b61ff87e13fee36cd5876b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 22 15:39:56 2018 +0900
+
+    [VM][WIP] Use namespace to devices per VMs.
+
+commit a242cd86aa4dbc2e52fed779f7b7e8ce7947c887
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 22 04:03:18 2018 +0900
+
+    [VM] .
+
+commit aceae4e764439f1847620868f05444a15679bfe9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 21 21:48:44 2018 +0900
+
+    [VM] .
+
+commit 9657068762e0ebc1ed5a42638db31cdcdda7c9db
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 21 21:46:57 2018 +0900
+
+    [VM] TRY:Use namespace {VMNAME} to separate around VMs. This feature still apply to some VMs.Not ALL.
+
+commit 8639d5f3a215d3d68dceb1a6c0e4291d1bfa17cf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 21 21:31:14 2018 +0900
+
+    [VM][STATE] Apply New framework to some VMs.
+
+commit c5b89a2e60d06c73d19ea6d1413660998d8d2df0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 21 12:54:45 2018 +0900
+
+    [VM][UPD7810] Fix FTBFS.
+
+commit e4bf0bb6c5867c5e224272c397d193948c5bb27e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 21 12:54:18 2018 +0900
+
+    [VM][STATE] Apply new framework to some VMs.
+
+commit 96d7bf40eaaac890f4b993b126ebfec64cb4840c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 21 00:26:05 2018 +0900
+
+    [VM][STATE] Apply new framework to some VMs.
+
+commit 74a401e5c916ee1a634f4dec90e3157b580352e5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 18 18:29:50 2018 +0900
+
+    [VM][I286] Save cpustate without StateBuffer().
+    [VM] Apply new state framework to some VMs.
+
+commit 779a6f39d29e1fa1ae6a2bd3d89aaacf804ba13c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 17 21:32:51 2018 +0900
+
+    [GENERAL] Update gitignore.
+
+commit 9277aa0e5e7073a6dc425e90296a5db6805849e2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 17 21:28:44 2018 +0900
+
+    [VM] MEMORY:: class within some VM will change Foo_MEMORY:: to reduce misundestanding for reader (and compiler).
+    [VM][STATE] Apply new state framework to some VMs.
+
+commit 411218144c2e1cc0f97b53d8469bed1325de05c2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 17 19:00:01 2018 +0900
+
+    [VM][WIP] Pre-process to apply new state framework.Still not buildable.
+
+commit 9c8bc4bb716ca29bcf119509156e4d34b9d83356
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 17 18:48:38 2018 +0900
+
+    [VM][State] Apply new state framework to some VMs.
+
+commit eff8bb6c9e3222e8baf1be4c175225d814b183fb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 17 18:43:24 2018 +0900
+
+    [MISC] Add function extraction script.
+
+commit f39b6480185551b5eb5a0f828157147090a8de3a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 14 19:27:59 2018 +0900
+
+    [VM][PCENGINE][X1] Enable to build.
+
+commit cfcc84b947adfaa26ebbfc7edb0b1058dbca1110
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 14 19:27:28 2018 +0900
+
+    [VM][MCS48] Fix FTBFS.
+
+commit 7fc095b6611c43312d90eb6741f78f1fbb0100ca
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 14 18:16:24 2018 +0900
+
+    [VM][PC9801] Enable to build PC-9801 with upstream 2018-10-05.
+
+commit 49b32a61d89ec04ef14459247b5612b0cb922aaf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 14 18:13:26 2018 +0900
+
+    [VM][SCSI_HDD] Fix FTBFS.
+
+commit 91c52e20dde477344a4d19efc8d3dee3068b0f08
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 14 18:13:14 2018 +0900
+
+    [VM][I386] Fix FTBFS.
+
+commit a49512b062a48720098bcb863dee2878e0144b7c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 14 17:37:42 2018 +0900
+
+    [FMGEN][OPNA] .
+
+commit 2fd54779ebdb57a8471600146041dda33445da3d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 14 17:36:20 2018 +0900
+
+    [VM][FM7][PC8801] Apply upstream 2018-10-05.Enable to build.
+    [VM][FM7] Update VM::process_state().Update some device's state version.
+
+commit 08b793b1e272a0f6ac0a9665b37607dbb45b12b3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 14 17:35:05 2018 +0900
+
+    [VM] Apply VM_TEMPLATE:: to upstream 2018-10-05/
+
+commit 9b25d05cd87bb63671c0c3f71999e45cbcc4bb98
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 14 16:36:09 2018 +0900
+
+    [RES] Update jx.rc.
+
+commit 172f1e293cc95c9eb4056331569f6aa8c33bc8f9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 14 16:35:41 2018 +0900
+
+    [DOC] Update histroy.txt to upstream 2018-10-05.
+
+commit 22e767792b7fdb2411c7e11ddbc9a2f3ffcc1170
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 14 16:32:40 2018 +0900
+
+    [COMMON][FILEIO] common.h : Fix pair16_t and pair64_t to fileio.cpp .
+
+commit 3703614db7c0e24cdb6e20f91b6fd00c92363baa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 14 16:32:20 2018 +0900
+
+    [LIBCPU_NEWDEV] Fix FTBFS.
+
+commit c0c9c854d84b4736d896a283c6fe26fbff2cfe05
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 14 01:17:36 2018 +0900
+
+    [VM][STATE][WIP] .
+
+commit e2ab079fbaa448af72246cda929486215deda0b6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 14 01:00:13 2018 +0900
+
+    [COMMON][FILEIO] Re-Add FILEIO::Fflush().
+
+commit 994a9f7bc99c022b2313b46e5fa0cbf0fdee9031
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 14 00:58:55 2018 +0900
+
+    [VM][WIP] Apply some devices merging upstream 2018-10-05.This still not build.WIP.
+
+commit 68970192afbebeb8a3d7537abbb6adc01135a8af
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 13 14:56:51 2018 +0900
+
+    [VM][STATE][WIP] Apply process_state() to some devices.
+
+commit 4ea25603a556c997ccb7c7cc1a6f3282c63b41c8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 9 03:43:36 2018 +0900
+
+    .
+
+commit 6bff5cc24d8fb2e8cd148cb63904e7a7e2940e44
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 9 03:43:02 2018 +0900
+
+    [VM][FM7] .
+
+commit 6814d044c4e9c4965ee6bc6bc5ac9cafda3e7cf1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 9 02:48:59 2018 +0900
+
+    [VM][WIP][STATE] Updating state framework to upstream 2018-10-05.Still may cause FTBFS.
+
+commit 12d508e1fd99d1299f4bf292c417475f0894dc16
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 8 14:25:28 2018 +0900
+
+    [WIP] Update to upstream 2018-10-05.This still not finish.May cause FTBFS.
+
+commit 07f08b973256b7d8ab3c19e60500dabef0dfcfaa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 30 17:52:02 2018 +0900
+
+    [DOC] .
+
 commit d84c1bcfd7b3af192ca3bf4a315cd53cb74074c9
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Sep 30 17:51:18 2018 +0900

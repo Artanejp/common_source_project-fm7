@@ -1466,7 +1466,7 @@ QString Ui_MainWindow::get_system_version()
 	libfmgen_ver = QString::fromUtf8(FM::get_libfmgen_version());
 	
 	outstr.clear();
-	outstr.append(QString::fromUtf8("<FONT SIZE=+2>"));
+	outstr.append(QString::fromUtf8("<FONT SIZE=+1>"));
 	if(!(common_vmver.isEmpty())) {
 		outstr.append(common_vmver);
 		outstr.append("<BR>\n");
