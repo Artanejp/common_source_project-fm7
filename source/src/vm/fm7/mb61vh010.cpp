@@ -435,6 +435,8 @@ void MB61VH010::do_line(void)
 	//bool updated = false;
 	static const uint8_t vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	double usec;
+ 	if(busy_flag) return;
+  
 	oldaddr = 0xffffffff;
 	alu_addr = 0xffffffff;
 	line_style = line_pattern;
@@ -626,16 +628,18 @@ void MB61VH010::do_line(void)
 	do_alucmds(alu_addr);
 	total_bytes++;
 _finish:   
-	//if(total_bytes == 0) total_bytes = 1;
+	if(total_bytes <= 0) total_bytes = 1;
 	mask_reg = 0xff;
 	//if(total_bytes >= 8) { // Only greater than 8bytes.
 	usec = (double)total_bytes / 16.0;
-	if(usec < 1.0) {
-		busy_flag = false; // ToDo
-	} else {
-		if(eventid_busy >= 0) cancel_event(this, eventid_busy) ;
-		register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy);
-	}
+	if(eventid_busy >= 0) cancel_event(this, eventid_busy) ;
+	register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy);
+//	if(usec < 1.0) {
+//		busy_flag = false; // ToDo
+//	} else {
+//		if(eventid_busy >= 0) cancel_event(this, eventid_busy) ;
+//		register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy);
+//	}
 }
 
 
