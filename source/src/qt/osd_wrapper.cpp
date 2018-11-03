@@ -512,7 +512,7 @@ void OSD::reset_vm_node()
 	for(DEVICE *p = vm->first_device; p != NULL; p = p->next_device) {
 		sp.id = p->this_device_id;
 		sp.name = p->this_device_name;
-		p_logger->set_device_name(sp.id, sp.name);
+		p_logger->set_device_name(sp.id, (char *)sp.name);
 		p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL,  "Device %d :%s", sp.id, sp.name);
 		device_node_list.append(sp);
 		if(max_vm_nodes <= p->this_device_id) max_vm_nodes = p->this_device_id + 1;

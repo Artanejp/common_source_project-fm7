@@ -1370,7 +1370,7 @@ void Ui_MainWindow::OnOpenDebugger(int no)
 {
 	if((no < 0) || (no > 7)) return;
 	//emu->open_debugger(no);
-	VM *vm = emu->get_vm();
+	VM *vm = static_cast<VM*>(emu->get_vm());
 
  	if((emu->now_debugging ) || (emu->hDebugger != NULL)) /* OnCloseDebugger(); */ return;
 	
@@ -1444,9 +1444,9 @@ QString Ui_MainWindow::get_system_version()
 	}
 	if(emu != NULL) {
 		if(emu->get_osd() != NULL) {
-			_TCHAR *cvp = emu->get_osd()->get_lib_common_vm_version();
-			_TCHAR *gvp = emu->get_osd()->get_lib_common_vm_git_version();
-			_TCHAR *ovp = emu->get_osd()->get_lib_osd_version();
+			_TCHAR *cvp = (_TCHAR *)emu->get_osd()->get_lib_common_vm_version();
+			_TCHAR *gvp = (_TCHAR *)emu->get_osd()->get_lib_common_vm_git_version();
+			_TCHAR *ovp = (_TCHAR *)emu->get_osd()->get_lib_osd_version();
 			if(cvp != NULL) {
 				common_vmver = QString::fromUtf8(cvp);
 			}

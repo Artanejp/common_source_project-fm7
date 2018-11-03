@@ -935,7 +935,7 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 
 // hint for SIMD
 #if defined(__clang__)
-	#define __DECL_VECTORIZED_LOOP   _Pragma("clang loop vectorize(enable) interleave(enable)")
+	#define __DECL_VECTORIZED_LOOP   _Pragma("clang loop vectorize(enable) distribute(enable)")
 #elif defined(__GNUC__)
 	#define __DECL_VECTORIZED_LOOP	_Pragma("GCC ivdep")
 #else

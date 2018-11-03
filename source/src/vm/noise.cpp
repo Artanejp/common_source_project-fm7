@@ -164,7 +164,7 @@ void NOISE::play()
 	if(samples > 0 && register_id == -1 && !mute) {
 		touch_sound();
 //		if(register_id == -1) {
-			register_event(this, EVENT_SAMPLE, 1000000.0 / sample_rate, true, &register_id);
+		register_event(this, EVENT_SAMPLE, 1000000.0 / (double)sample_rate, true, &register_id);
 //		}
 		ptr = 0;
 		get_sample();

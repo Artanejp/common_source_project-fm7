@@ -145,7 +145,7 @@ void Ui_MainWindowBase::do_set_window_focus_type(bool flag)
 	p_config->focus_with_click = flag;
 	if(flag) {
 		graphicsView->setFocusPolicy(Qt::ClickFocus);
-		graphicsView->setFocus(0);
+		graphicsView->setFocus(Qt::MouseFocusReason);
 	} else {
 		graphicsView->setFocusPolicy(Qt::NoFocus);
 		graphicsView->clearFocus();
@@ -441,7 +441,7 @@ void Ui_MainWindowBase::setupUi(void)
 	
 	if(p_config->focus_with_click) {
 		graphicsView->setFocusPolicy(Qt::ClickFocus);
-		graphicsView->setFocus(0);
+		graphicsView->setFocus(Qt::MouseFocusReason);
 	} else {
 		graphicsView->setFocusPolicy(Qt::NoFocus);
 	}

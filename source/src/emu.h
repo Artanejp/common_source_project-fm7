@@ -265,10 +265,10 @@ public:
 #endif	
 #ifdef USE_MOUSE
 	const int* get_mouse_buffer();
-	void EMU::enable_mouse();
-	void EMU::disable_mouse();
-	void EMU::toggle_mouse();
-	bool EMU::is_mouse_enabled();
+	void enable_mouse();
+	void disable_mouse();
+	void toggle_mouse();
+	bool is_mouse_enabled();
 #endif	
 	// screen
 	int get_window_mode_width(int mode);

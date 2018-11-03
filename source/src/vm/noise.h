@@ -20,7 +20,7 @@ private:
 	int16_t *buffer_l;
 	int16_t *buffer_r;
 	int samples;
-	int sample_rate;
+	uint32_t sample_rate;
 	int register_id;
 	int ptr;
 	int sample_l, sample_r;
