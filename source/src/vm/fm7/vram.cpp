@@ -515,12 +515,28 @@ void DISPLAY::GETVRAM_8_200L(int yoff, scrntype_t *p,
 	if(!multimode_dispflags[1]) r = gvram_shadow[yoff_d + 0x04000];
 	if(!multimode_dispflags[2]) g = gvram_shadow[yoff_d + 0x08000];
 
+#if 0
 	uint16_t *pg = &(bit_trans_table_0[g][0]);
 	uint16_t *pr = &(bit_trans_table_1[r][0]);
 	uint16_t *pb = &(bit_trans_table_2[b][0]);
-	uint16_t tmp_d[8];
-	scrntype_t tmp_dd[8];
-
+	uint16_t tmp_d[8] __attribute__((aligned(16)));
+	pg = (uint16_t *)__builtin_assume_aligned(pg, 16);
+	pr = (uint16_t *)__builtin_assume_aligned(pr, 16);
+	pb = (uint16_t *)__builtin_assume_aligned(pb, 16);
+#else
+	__v8hi *pg = (__v8hi*)__builtin_assume_aligned(&(bit_trans_table_0[g][0]), 16);
+	__v8hi *pr = (__v8hi*)__builtin_assume_aligned(&(bit_trans_table_1[r][0]), 16);
+	__v8hi *pb = (__v8hi*)__builtin_assume_aligned(&(bit_trans_table_2[b][0]), 16);
+	uint16_vec8_t tmp_d __attribute__((aligned(16)));
+	uint16_vec8_t tmp_v __attribute__((aligned(16)));
+#endif	
+#if defined(FIXED_FRAMEBUFFER_SIZE)
+	scrntype_vec8_t tmp_dd __attribute__((aligned(sizeof(scrntype_vec8_t))));
+#else
+	scrntype_t tmp_dd[8] __attribute__((aligned(sizeof(scrntype_vec8_t))));
+#endif
+	
+#if 0
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_d[i] = pr[i];
@@ -528,31 +544,66 @@ __DECL_VECTORIZED_LOOP
 		tmp_d[i]  = tmp_d[i] | pb[i];
 		tmp_d[i] = tmp_d[i] >> 5;
 	}
-
+#else
+	tmp_v.v = *pr;
+	tmp_d.v = *pg;
+	tmp_d.v = tmp_d.v | tmp_v.v;
+	tmp_v.v = *pb;
+	tmp_d.v = tmp_d.v | tmp_v.v;
+	tmp_d.v = tmp_d.v >> 5;
+#endif
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
-		tmp_dd[i] = dpalette_pixel[tmp_d[i]];
-	}
 #if defined(FIXED_FRAMEBUFFER_SIZE)
-	if(scan_line) {
-/* Fancy scanline */
+		tmp_dd.w[i] = dpalette_pixel[tmp_d.w[i]];
+#else		
+		tmp_dd[i] = dpalette_pixel[tmp_d.w[i]];
+#endif
+	}
+
+	
+#if defined(FIXED_FRAMEBUFFER_SIZE)
 	#if defined(_RGB555) || defined(_RGBA565)
 		static const int shift_factor = 2;
+		scrntype_vec8_t sline __attribute__((aligned(16)));
+		__v8hi* vp = (__v8hi*)__builtin_assume_aligned(p, 16); 
+		__v8hi* vpx = (__v8hi*)__builtin_assume_aligned(px, 16); 
 	#else // 24bit
 		static const int shift_factor = 3;
+		scrntype_vec8_t sline __attribute__((aligned(32)));
+		__v16hi* vp = (__v16hi*)__builtin_assume_aligned(p, 32); 
+		__v16hi* vpx = (__v16hi*)__builtin_assume_aligned(px, 32); 
 	#endif
+	if(scan_line) {
+/* Fancy scanline */
+#if 0		
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			p[i] = tmp_dd[i];
 			tmp_dd[i] = (tmp_dd[i] >> shift_factor) & (const scrntype_t)RGBA_COLOR(31, 31, 31, 255);;
 			px[i] = tmp_dd[i];
 		}
+#else
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 8; i++) {
+			sline.w[i] = (scrntype_t)RGBA_COLOR(31, 31, 31, 255);
+		}
+		*vp = tmp_dd.v;
+		tmp_dd.v = tmp_dd.v >> shift_factor;
+		tmp_dd.v = tmp_dd.v & sline.v;
+		*vpx = tmp_dd.v;
+#endif
 	} else {
+#if 0
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			p[i] = tmp_dd[i];
 			px[i] = tmp_dd[i];
 		}
+#else
+		*vp = tmp_dd.v;
+		*vpx = tmp_dd.v;
+#endif
 	}
 #else
 __DECL_VECTORIZED_LOOP
@@ -675,6 +726,7 @@ void DISPLAY::GETVRAM_8_200L_GREEN(int yoff, scrntype_t *p,
 	if(!multimode_dispflags[1]) r = gvram_shadow[yoff_d + 0x04000];
 	if(!multimode_dispflags[2]) g = gvram_shadow[yoff_d + 0x08000];
 
+#if 0	
 	uint16_t *pg = &(bit_trans_table_0[g][0]);
 	uint16_t *pr = &(bit_trans_table_1[r][0]);
 	uint16_t *pb = &(bit_trans_table_2[b][0]);
@@ -693,6 +745,27 @@ __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_dd[i] = dpalette_pixel_green[tmp_d[i]];
 	}
+#else
+	__v8hi *pg = (__v8hi *)__builtin_assume_aligned(&(bit_trans_table_0[g][0]), 16);
+	__v8hi *pr = (__v8hi *)__builtin_assume_aligned(&(bit_trans_table_1[r][0]), 16);
+	__v8hi *pb = (__v8hi *)__builtin_assume_aligned(&(bit_trans_table_2[b][0]), 16);
+	uint16_vec8_t tmp_d __attribute__((aligned(16)));
+	uint16_vec8_t tmp_v __attribute__((aligned(16)));
+	scrntype_vec8_t tmp_dd __attribute__((aligned(32)));
+
+	tmp_d.v = *pg;
+	tmp_d.v = tmp_d.v | tmp_v.v;
+	tmp_v.v = *pb;
+	tmp_d.v = tmp_d.v | tmp_v.v;
+	tmp_d.v = tmp_d.v >> 5;
+	
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		tmp_dd.w[i] = dpalette_pixel_green[tmp_d.w[i]];
+	}
+#endif
+
+#if 0
 #if defined(FIXED_FRAMEBUFFER_SIZE)
 	if(scan_line) {
 /* Fancy scanline */
@@ -701,6 +774,7 @@ __DECL_VECTORIZED_LOOP
 	#else // 24bit
 		static const int shift_factor = 3;
 	#endif
+
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			p[i] = tmp_dd[i];
@@ -719,7 +793,38 @@ __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		p[i] = tmp_dd[i];
 	}
+#endif
+#else
+#if defined(FIXED_FRAMEBUFFER_SIZE)
+	scrntype_vec8_t *vp = (scrntype_vec8_t*)__builtin_assume_aligned(vp, sizeof(scrntype_vec8_t));
+	scrntype_vec8_t *vpx = (scrntype_vec8_t*)__builtin_assume_aligned(vpx, sizeof(scrntype_vec8_t));
+	scrntype_vec8_t sline __attribute__((aligned(sizeof(scrntype_vec8_t))));
+	if(scan_line) {
+/* Fancy scanline */
+	#if defined(_RGB555) || defined(_RGBA565)
+		static const int shift_factor = 2;
+	#else // 24bit
+		static const int shift_factor = 3;
+	#endif
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 8; i++) {
+			sline.w[i] = (scrntype_t)RGBA_COLOR(31, 31, 31, 255);
+		}
+		vp->v = tmp_dd.v;
+		tmp_dd.v = tmp_dd.v >> shift_factor;
+		tmp_dd.v = tmp_dd.v & sline.v;
+		vpx->v = tmp_dd.v;
+	} else {
+		vp->v = tmp_dd.v;
+		vpx->v = tmp_dd.v;
+	}
+#else
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		p[i] = tmp_dd[i];
+	}
 #endif	
+#endif
 }
 #endif
 
@@ -731,8 +836,12 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,
 {
 	uint32_t b3, r3, g3;
 	uint8_t  bb[4], rr[4], gg[4];
+#if 0
 	uint16_t pixels[8];
-	const uint16_t __masks[8] = {(uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask};
+#else
+	uint16_vec8_t pixels;
+#endif
+	const uint16_t __masks[8]  __attribute__((aligned(16))) = {(uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask};
 	scrntype_t b, r, g;
 	uint32_t idx;;
 	scrntype_t pixel;
@@ -774,13 +883,15 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,
 	gg[2] = gvram_shadow[yoff_d2 + 0x14000];
 	gg[3] = gvram_shadow[yoff_d2 + 0x16000];
 
-	uint16_t tmp_g[8], tmp_r[8], tmp_b[8];
 	uint16_t *p0, *p1, *p2, *p3;
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
-	scrntype_t tmp_dd[8];
+	scrntype_t tmp_dd[8] __attribute__((aligned(sizeof(scrntype_t) * 8)));
 #else
-	scrntype_t tmp_dd[16];
+	scrntype_t tmp_dd[16] __attribute__((aligned(sizeof(scrntype_t) * 8)));
 #endif
+#if 0
+	uint16_t tmp_g[8], tmp_r[8], tmp_b[8];
+	uint16_t *p0, *p1, *p2, *p3;
 	// G
 	p0 = &(bit_trans_table_0[gg[0]][0]);
 	p1 = &(bit_trans_table_1[gg[1]][0]);
@@ -793,6 +904,19 @@ __DECL_VECTORIZED_LOOP
 		tmp_g[i]  = tmp_g[i] | p2[i];
 		tmp_g[i]  = tmp_g[i] | p3[i];
 	}
+#else
+	uint16_vec8_t tmp_g, tmp_r, tmp_b;
+	__v8hi *vp0, *vp1, *vp2, *vp3;
+	vp0 = (__v8hi*)__builtin_assume_aligned(&(bit_trans_table_0[gg[0]][0]), 16);
+	vp1 = (__v8hi*)__builtin_assume_aligned(&(bit_trans_table_1[gg[1]][0]), 16);
+	vp2 = (__v8hi*)__builtin_assume_aligned(&(bit_trans_table_2[gg[2]][0]), 16);
+	vp3 = (__v8hi*)__builtin_assume_aligned(&(bit_trans_table_3[gg[3]][0]), 16);
+	tmp_g.v = *vp0;
+	tmp_g.v = tmp_g.v | *vp1;
+	tmp_g.v = tmp_g.v | *vp2;
+	tmp_g.v = tmp_g.v | *vp3;
+#endif
+#if 0	
 	// R
 	p0 = &(bit_trans_table_0[rr[0]][0]);
 	p1 = &(bit_trans_table_1[rr[1]][0]);
@@ -805,7 +929,18 @@ __DECL_VECTORIZED_LOOP
 		tmp_r[i]  = tmp_r[i] | p2[i];
 		tmp_r[i]  = tmp_r[i] | p3[i];
 	}
+#else
+	vp0 = (__v8hi*)__builtin_assume_aligned(&(bit_trans_table_0[rr[0]][0]), 16);
+	vp1 = (__v8hi*)__builtin_assume_aligned(&(bit_trans_table_1[rr[1]][0]), 16);
+	vp2 = (__v8hi*)__builtin_assume_aligned(&(bit_trans_table_2[rr[2]][0]), 16);
+	vp3 = (__v8hi*)__builtin_assume_aligned(&(bit_trans_table_3[rr[3]][0]), 16);
+	tmp_r.v = *vp0;
+	tmp_r.v = tmp_r.v | *vp1;
+	tmp_r.v = tmp_r.v | *vp2;
+	tmp_r.v = tmp_r.v | *vp3;
+#endif
 	// B
+#if 0
 	p0 = &(bit_trans_table_0[bb[0]][0]);
 	p1 = &(bit_trans_table_1[bb[1]][0]);
 	p2 = &(bit_trans_table_2[bb[2]][0]);
@@ -817,17 +952,38 @@ __DECL_VECTORIZED_LOOP
 		tmp_b[i]  = tmp_b[i] | p2[i];
 		tmp_b[i]  = tmp_b[i] | p3[i];
 	}
+#else
+	vp0 = (__v8hi*)__builtin_assume_aligned(&(bit_trans_table_0[bb[0]][0]), 16);
+	vp1 = (__v8hi*)__builtin_assume_aligned(&(bit_trans_table_1[bb[1]][0]), 16);
+	vp2 = (__v8hi*)__builtin_assume_aligned(&(bit_trans_table_2[bb[2]][0]), 16);
+	vp3 = (__v8hi*)__builtin_assume_aligned(&(bit_trans_table_3[bb[3]][0]), 16);
+	tmp_b.v = *vp0;
+	tmp_b.v = tmp_b.v | *vp1;
+	tmp_b.v = tmp_b.v | *vp2;
+	tmp_b.v = tmp_b.v | *vp3;
+#endif
+#if 0
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
-		tmp_g[i] <<= 4;
-		pixels[i] = tmp_b[i] >> 4;
-		pixels[i] = pixels[i] | tmp_r[i];
-		pixels[i] = pixels[i] | tmp_g[i];
-		pixels[i] = pixels[i] & __masks[i];
+		tmp_g.w[i] <<= 4;
+		pixels.w[i] = tmp_b.w[i] >> 4;
+		pixels.w[i] = pixels.w[i] | tmp_r.w[i];
+		pixels.w[i] = pixels.w[i] | tmp_g.w[i];
+		pixels.w[i] = pixels.w[i] & __masks[i];
 	}
+#else
+	__v8hi *mp = (__v8hi*)__masks;
+	tmp_g.v = tmp_g.v << 4;
+	tmp_b.v = tmp_b.v >> 4;
+	pixels.v = tmp_b.v;
+	pixels.v = pixels.v | tmp_r.v;
+	pixels.v = pixels.v | tmp_g.v;
+	pixels.v = pixels.v & *mp;
+#endif
 	//for(int i = 0; i < 8; i++) {
 	//	pixels[i] = pixels[i] & mask;
 	//}
+#if 1
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
@@ -837,9 +993,59 @@ __DECL_VECTORIZED_LOOP
 #else
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
-		tmp_dd[i * 2] = tmp_dd[i * 2 + 1] = analog_palette_pixel[pixels[i]];;
+		tmp_dd[i * 2] = tmp_dd[i * 2 + 1] = analog_palette_pixel[pixels.w[i]];;
+	}
+	scrntype_vec8_t *vp = (scrntype_vec8_t*)__builtin_assume_aligned(p, sizeof(scrntype_vec8_t));
+	scrntype_vec8_t *dp = (scrntype_vec8_t*)__builtin_assume_aligned(tmp_dd, sizeof(scrntype_vec8_t));
+	scrntype_vec8_t *vpx = (scrntype_vec8_t*)__builtin_assume_aligned(px, sizeof(scrntype_vec8_t));
+	scrntype_vec8_t vmask;
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 2; i++) {
+		vp[i].v = dp[i].v;
+	}
+	if(scan_line) {
+/* Fancy scanline */
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 2; i++) {
+#if defined(_RGB888) || defined(_RGBA888)
+			dp[i].v = dp[i].v >> 3;
+#elif defined(_RGB555)
+			dp[i].v = dp[i].v >> 2;
+#elif defined(_RGB565)
+			dp[i].v = dp[i].v >> 2;
+#endif
+		}
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 8; i++) {
+			vmask.w[i] = (const scrntype_t)RGBA_COLOR(31, 31, 31, 255);
+		}
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 2; i++) {
+			dp[i].v = dp[i].v & vmask.v; 
+			vpx[i].v = dp[i].v;
+		}
+	} else {
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 2; i++) {
+			vpx[i].v = dp[i].v;
+		}
+	}
+#endif
+#else
+#if !defined(FIXED_FRAMEBUFFER_SIZE)
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		tmp_dd[i] = analog_palette_pixel[pixels.w[i]];
+		p[i] = tmp_dd[i];
+	}
+#else
+	
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		tmp_dd[i * 2] = tmp_dd[i * 2 + 1] = analog_palette_pixel[pixels.w[i]];;
 	}
 __DECL_VECTORIZED_LOOP
+	
 	for(int i = 0; i < 16; i++) {
 		p[i] = tmp_dd[i];
 	}
@@ -867,7 +1073,7 @@ __DECL_VECTORIZED_LOOP
 		}
 	}
 #endif
-
+#endif	
 }
 #endif
 

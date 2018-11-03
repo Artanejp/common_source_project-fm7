@@ -9,7 +9,7 @@
 #include "../../emu.h"
 #include "../../config.h"
 #include "../device.h"
-#include "../event.h"
+
 #include "../memory.h"
 #include "../prnfile.h"
 
@@ -61,6 +61,7 @@
 #if defined(CAPABLE_JCOMMCARD)
 #include "./jcommcard.h"
 #endif
+#include "../event.h"
 
 #if defined(USE_BUBBLE)
 using FM7::BUBBLECASETTE;

@@ -98,7 +98,7 @@ void FM7_MAINMEM::initialize(void)
 	{
 		uint8_t *tmpp;
 		bool tmpb = false;
-		tmpp = malloc(0x800);
+		tmpp = (uint8_t*)malloc(0x800);
 		// SM11-14
 		diag_load_sm11_14 = false;
 		diag_load_sm11_15 = false;
@@ -159,7 +159,7 @@ void FM7_MAINMEM::initialize(void)
 	{
 		uint8_t *tmpp;
 		bool tmpb = false;
-		tmpp = malloc(0x800);
+		tmpp = (uint8_t*)malloc(0x800);
 		if(tmpp != NULL) memset(tmpp, 0xff, 0x800);
 # if defined(_FMNEW7)
 		// For FM-NEW7, If you have TL11-12, load first.
@@ -216,7 +216,7 @@ void FM7_MAINMEM::initialize(void)
 	{
 		uint8_t *tmpp;
 		bool tmpb = false;
-		tmpp = malloc(0x1000);
+		tmpp = (uint8_t*)malloc(0x1000);
 		// WB11-12
 		diag_load_wb11_12 = false;
 		if(tmpp != NULL) {

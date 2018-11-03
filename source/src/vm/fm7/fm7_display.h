@@ -39,17 +39,38 @@ namespace FM7 {
 
 namespace FM7 {
 
+#if defined(_RGB555) || defined(_RGBA565)
+typedef	union {
+			scrntype_t w[8];
+			__v8hi v;
+} scrntype_vec8_t;
+#else
+typedef	union {
+			scrntype_t w[8];
+			__v16hi v;
+} scrntype_vec8_t;
+#endif
+typedef union {
+	__v8hi v;
+	uint16_t w[8];
+} uint16_vec8_t;
+
+typedef union {
+	__v16hi v;
+	uint32_t w[8];
+} uint32_vec8_t;
+	
 class DISPLAY: public DEVICE
 {
 private:
 
-	uint16_t bit_trans_table_0[256][8];
-	uint16_t bit_trans_table_1[256][8];
-	uint16_t bit_trans_table_2[256][8];
-	uint16_t bit_trans_table_3[256][8];
+	uint16_t bit_trans_table_0[256][8] __attribute__((aligned(16)));
+	uint16_t bit_trans_table_1[256][8] __attribute__((aligned(16)));
+	uint16_t bit_trans_table_2[256][8] __attribute__((aligned(16)));
+	uint16_t bit_trans_table_3[256][8] __attribute__((aligned(16)));
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	uint16_t bit_trans_table_4[256][8];
-	uint16_t bit_trans_table_5[256][8];
+	uint16_t bit_trans_table_4[256][8] __attribute__((aligned(16)));
+	uint16_t bit_trans_table_5[256][8] __attribute__((aligned(16)));
 #endif
 protected:
 	uint32_t (DISPLAY::*read_cpu_func_table[512])(uint32_t);
@@ -254,8 +275,8 @@ protected:
 	//uint8_t  write_access_page;
 	
 	// ROM/RAM on Sub-System.
-	uint8_t gvram[__FM7_GVRAM_PAG_SIZE];
-	uint8_t gvram_shadow[__FM7_GVRAM_PAG_SIZE];
+	uint8_t gvram[__FM7_GVRAM_PAG_SIZE] __attribute__((aligned(16)));
+	uint8_t gvram_shadow[__FM7_GVRAM_PAG_SIZE] __attribute__((aligned(16)));
 	
 	uint8_t console_ram[0x1000];
 	uint8_t work_ram[0x380];
