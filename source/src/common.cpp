@@ -530,6 +530,142 @@ uint8_t DLL_PREFIX A_OF_COLOR(scrntype_t c)
 }
 #endif
 
+void DLL_PREFIX PrepareBitTransTable(_bit_trans_table_t *tbl, uint16_t on_val, uint16_t off_val)
+{
+	if(tbl == NULL) return;
+__DECL_VECTORIZED_LOOP
+	for(uint16_t i = 0; i < 256; i++) {
+		uint16_t n = i;
+__DECL_VECTORIZED_LOOP
+		for(int j = 0; j < 8; j++) {
+			tbl->plane_table[i].w[j] = ((n & 0x80) == 0) ? off_val : on_val;
+			n <<= 1;
+		}
+	}
+}
+
+void DLL_PREFIX Render8Colors_Line(_render_command_data_t *src, scrntype_t *dst, scrntype_t* dst2, bool scan_line)
+{
+	if(src == NULL) return;
+	if(dst == NULL) return;
+
+//__DECL_VECTORIZED_LOOP
+//	for(int i = 0; i < 3; i++) {
+//		if(src->bit_trans_table[i] == NULL) return;
+//		if(src->data[i] == NULL) return;
+//	}
+	scrntype_t dummy_palette[8]; // fallback
+	scrntype_t *palette = src->palette;
+	
+	uint16_vec8_t *vpb = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[0], sizeof(uint16_vec8_t));
+	uint16_vec8_t *vpr = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[1], sizeof(uint16_vec8_t));
+	uint16_vec8_t *vpg = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[2], sizeof(uint16_vec8_t));
+
+	uint32_t x;
+	uint32_t offset[3];
+	uint32_t beginaddr[3];
+	uint32_t mask = src->addrmask;
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 3; i++) {
+		offset[i] = src->voffset[i];
+	}
+	if(palette == NULL) {
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 8; i++) {
+			dummy_palette[i] = RGB_COLOR(i & 2, i & 4, i & 1);
+		}
+		palette = dummy_palette;
+	}
+	uint8_t *bp = &(src->data[0][src->baseaddress[0]]);
+	uint8_t *rp = &(src->data[1][src->baseaddress[1]]);
+	uint8_t *gp = &(src->data[2][src->baseaddress[2]]);
+	
+	uint8_t r, g, b;
+	int shift = src->shift;
+	const bool is_render[3] = { src->is_render[0], src->is_render[1],  src->is_render[2] };
+	uint16_vec8_t tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	scrntype_vec8_t tmp_dd; 
+	scrntype_vec8_t* vdp = (scrntype_vec8_t*)__builtin_assume_aligned(dst, sizeof(scrntype_vec8_t));
+	
+	x = src->begin_pos;
+	offset[0] = offset[0] + x;
+	offset[1] = offset[1] + x;
+	offset[2] = offset[2] + x;
+	if(dst2 == NULL) {	
+	__DECL_VECTORIZED_LOOP
+		for(uint32_t xx = 0; xx < src->render_width; xx++) {
+			b = r = g = 0;
+			
+			if(is_render[0]) {
+				b = bp[offset[0] & mask];
+			}
+			if(is_render[2]) {
+				g = gp[offset[2] & mask];
+			}
+			if(is_render[1]) {
+				r = rp[offset[1] & mask];
+			}
+			tmpd.v = vpb[b].v;
+			tmpd.v = tmpd.v | vpr[r].v;
+			tmpd.v = tmpd.v | vpg[g].v;
+//			if(shift != 0) {
+				tmpd.v = tmpd.v >> shift;
+//			}
+			for(int i = 0; i < 8; i++) {
+				tmp_dd.w[i] = palette[tmpd.w[i]];
+			}
+			vdp[xx].v = tmp_dd.v;
+			offset[0]++;
+			offset[1]++;
+			offset[2]++;
+		}
+	} else {
+#if defined(_RGB555) || defined(_RGBA565)
+		static const int shift_factor = 2;
+#else // 24bit
+		static const int shift_factor = 3;
+#endif
+		scrntype_vec8_t sline __attribute__((aligned(sizeof(scrntype_vec8_t))));
+		scrntype_vec8_t* vdp2 = (scrntype_vec8_t*)__builtin_assume_aligned(dst2, sizeof(scrntype_vec8_t));
+		for(int i = 0; i < 8; i++) {
+			sline.w[i] = (scrntype_t)RGBA_COLOR(31, 31, 31, 255);
+		}
+	__DECL_VECTORIZED_LOOP
+		for(uint32_t xx = 0; xx < src->render_width; xx++) {
+			b = r = g = 0;
+				
+			if(is_render[0]) {
+				b = bp[offset[0] & mask];
+			}
+			if(is_render[2]) {
+				g = gp[offset[2] & mask];
+			}
+			if(is_render[1]) {
+				r = rp[offset[1] & mask];
+			}
+			tmpd.v = vpb[b].v;
+			tmpd.v = tmpd.v | vpr[r].v;
+			tmpd.v = tmpd.v | vpg[g].v;
+//			if(shift != 0) {
+				tmpd.v = tmpd.v >> shift;
+//			}
+			for(int i = 0; i < 8; i++) {
+				tmp_dd.w[i] = palette[tmpd.w[i]];
+			}
+			vdp[xx].v = tmp_dd.v;
+			if(scan_line) {
+				tmp_dd.v = tmp_dd.v >> shift_factor;
+				tmp_dd.v = tmp_dd.v & sline.v;
+			}
+			vdp2[xx].v = tmp_dd.v;
+			offset[0]++;
+			offset[1]++;
+			offset[2]++;
+		}
+	}
+}
+
+
 #ifndef _MSC_VER
 struct to_upper {  // Refer from documentation of libstdc++, GCC5.
 	char operator() (char c) const { return std::toupper(c); }

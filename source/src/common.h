@@ -1031,18 +1031,23 @@ typedef struct {
 } _bit_trans_table_t;
 
 typedef struct {
-	int planes;
-	int palette_colors;
-	scrntype_t* palette;
-	_bit_trans_table_t* bit_trans_table; // Must be exist >= planes.
+	scrntype_t* palette; // Must be 2^planes entries. If NULL, assume RGB.
+	_bit_trans_table_t* bit_trans_table[16]; // Must be exist >= planes. Must be aligned with sizeof(uint16_vec8_t).
 	int xzoom; // 1 - 4?
 	bool is_render[16];
+	int shift;
 	uint8_t* data[16];
 	uint32_t baseaddress[16];
-	uint32_t offset[16];
-	uint32_t addrmask[16];
+	uint32_t voffset[16];
+	uint32_t addrmask;
+	uint32_t begin_pos;
+	uint32_t render_width;
 } _render_command_data_t;
-	
+
+
+void DLL_PREFIX PrepareBitTransTable(_bit_trans_table_t *tbl, uint16_t on_val, uint16_t off_val);
+void DLL_PREFIX Render8Colors_Line(_render_command_data_t *src, scrntype_t *dst, scrntype_t *dst2, bool scan_line);
+
 inline uint64_t ExchangeEndianU64(uint64_t __in)
 {
 	pair64_t __i, __o;
