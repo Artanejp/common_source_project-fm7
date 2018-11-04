@@ -39,6 +39,7 @@ namespace FM7 {
 
 namespace FM7 {
 
+#if 0
 #if defined(_RGB555) || defined(_RGBA565)
 typedef	union {
 			scrntype_t w[8];
@@ -59,6 +60,7 @@ typedef union {
 	__v16hi v;
 	uint32_t w[8];
 } uint32_vec8_t;
+#endif
 	
 class DISPLAY: public DEVICE
 {

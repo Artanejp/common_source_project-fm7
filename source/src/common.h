@@ -15,6 +15,10 @@
 //	#define USE_SHARED_DLL
 //#endif
 
+#ifdef _USE_QT
+#include <SDL.h>
+#endif
+
 // use zlib to decompress gzip file???
 #ifdef _WIN32
 	#if defined(_MSC_VER) && (_MSC_VER >= 1500)
@@ -998,6 +1002,47 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 #endif
 #endif
 
+// 20181104 K.O:
+// Below routines aims to render common routine.
+
+#if defined(_RGB555) || defined(_RGBA565)
+typedef	union {
+			scrntype_t w[8];
+			__v8hi v;
+} scrntype_vec8_t;
+#else
+typedef	union {
+			scrntype_t w[8];
+			__v16hi v;
+} scrntype_vec8_t;
+#endif
+typedef union {
+	__v8hi v;
+	uint16_t w[8];
+} uint16_vec8_t;
+
+typedef union {
+	__v16hi v;
+	uint32_t w[8];
+} uint32_vec8_t;
+
+typedef struct {
+	uint16_vec8_t plane_table[256];
+} _bit_trans_table_t;
+
+typedef struct {
+	int planes;
+	int palette_colors;
+	scrntype_t* palette;
+	_bit_trans_table_t* bit_trans_table; // Must be exist >= planes.
+	int xzoom; // 1 - 4?
+	bool is_render[16];
+	uint8_t* data[16];
+	uint32_t baseaddress[16];
+	uint32_t offset[16];
+	uint32_t addrmask[16];
+} _render_command_data_t;
+	
 inline uint64_t ExchangeEndianU64(uint64_t __in)
 {
 	pair64_t __i, __o;
