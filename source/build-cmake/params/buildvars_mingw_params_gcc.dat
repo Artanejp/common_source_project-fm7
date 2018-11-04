@@ -20,7 +20,7 @@ case ${LOCAL_ARCH_TYPE} in
       ARCH_FLAGS="-march=i686"
       ;;
    * )
-      ARCH_FLAGS="-march=generic -mtune=generic"
+      ARCH_FLAGS="-march=i686 -mtune=generic"
       ;;
  esac
 
