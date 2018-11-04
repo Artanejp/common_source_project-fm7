@@ -352,9 +352,7 @@ protected:
 #endif
 	MC6809 *subcpu;
 	
-#if defined(USE_GREEN_DISPLAY)
-	void GETVRAM_8_200L_GREEN(int yoff, scrntype_t *p, scrntype_t *px, bool window_inv = false, bool scan_line = false);
-#endif
+	void CopyDrawnData(scrntype_t* src, scrntype_t* dst, int width, bool scan_line);
 #if defined(_FM77L4)
 	scrntype_t GETVRAM_TEXTCOLOR(uint8_t attr, bool do_green);
 	uint8_t GETVRAM_TEXTPIX(uint8_t bitdata, bool reverse, bool cursor_rev);
@@ -364,12 +362,10 @@ protected:
 	void text_blink_77l4();
 #endif
 	
-	void GETVRAM_8_200L(int yoff, scrntype_t *p, scrntype_t *px, bool window_inv = false, bool scan_line = false);
 #if defined(_FM77AV_VARIANTS)	
 	void GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px, uint32_t rgbmask, bool window_inv = false, bool scan_line = false);
 #endif
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	void GETVRAM_8_400L(int yoff, scrntype_t *p, bool window_inv = false);
 	void GETVRAM_256k(int yoff, scrntype_t *p, scrntype_t *px, bool scan_line = false);
 #endif   
 	uint32_t read_mmio(uint32_t addr);

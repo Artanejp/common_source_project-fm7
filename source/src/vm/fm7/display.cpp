@@ -42,6 +42,16 @@ DISPLAY::DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, pa
 	mainio = NULL;
 	subcpu = NULL;
 	keyboard = NULL;
+#if 1
+	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_0[0][0])), 0x0080, 0x0000);
+	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_1[0][0])), 0x0040, 0x0000);
+	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_2[0][0])), 0x0020, 0x0000);
+	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_3[0][0])), 0x0010, 0x0000);
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_4[0][0])), 0x0008, 0x0000);
+	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_5[0][0])), 0x0004, 0x0000);
+#endif	
+#else
 	for(int i = 0; i < 256; i++) {
 		uint16_t n = (uint16_t)i;
 		for(int j = 0; j < 8; j++) {
@@ -56,6 +66,7 @@ DISPLAY::DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, pa
 			n <<= 1;
 		}
 	}
+#endif
 	displine = 0;
 	active_page = 0;
 #if defined(USE_GREEN_DISPLAY)
