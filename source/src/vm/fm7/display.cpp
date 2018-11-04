@@ -489,19 +489,21 @@ void DISPLAY::set_dpalette(uint32_t addr, uint8_t val)
 {
 	scrntype_t r, g, b;
 	addr &= 7;
-	dpalette_data[addr] = val | 0xf8; //0b11111000;
-	b =  ((val & 0x01) != 0x00)? 255 : 0x00;
-	r =  ((val & 0x02) != 0x00)? 255 : 0x00;
-	g =  ((val & 0x04) != 0x00)? 255 : 0x00;
+	if(dpalette_data[addr] != (val | 0xf8)) { 
+		dpalette_data[addr] = val | 0xf8; //0b11111000;
+		b =  ((val & 0x01) != 0x00)? 255 : 0x00;
+		r =  ((val & 0x02) != 0x00)? 255 : 0x00;
+		g =  ((val & 0x04) != 0x00)? 255 : 0x00;
 	
-	dpalette_pixel_tmp[addr] = RGB_COLOR(r, g, b);
+		dpalette_pixel_tmp[addr] = RGB_COLOR(r, g, b);
 #if defined(USE_GREEN_DISPLAY)
-	static const scrntype_t colortable[8] = {0, 48, 70, 100, 140, 175, 202, 255};
-	g = colortable[val & 0x07];
-	b = r = ((val & 0x07) > 4) ? 48 : 0;
-	dpalette_green_tmp[addr] = RGB_COLOR(r, g, b);
-#endif	
-	palette_changed = true;
+		static const scrntype_t colortable[8] = {0, 48, 70, 100, 140, 175, 202, 255};
+		g = colortable[val & 0x07];
+		b = r = ((val & 0x07) > 4) ? 48 : 0;
+		dpalette_green_tmp[addr] = RGB_COLOR(r, g, b);
+#endif
+		palette_changed = true;
+	}
 }
 
 uint8_t DISPLAY::get_dpalette(uint32_t addr)
