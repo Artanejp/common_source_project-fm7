@@ -139,6 +139,7 @@ void DISPLAY::draw_screen2()
 		cmd.bit_trans_table[2] = (_bit_trans_table_t*)(&(bit_trans_table_0[0][0])); // G
 		cmd.xzoom = 1;
 		cmd.addrmask = 0x3fff;
+		cmd.addrmask2 = 0x3fff;
 		cmd.begin_pos = 0;
 		cmd.shift = 5;
 		cmd.render_width = 80;
@@ -493,6 +494,7 @@ void DISPLAY::draw_screen2()
 		cmd.bit_trans_table[2] = (_bit_trans_table_t*)(&(bit_trans_table_0[0][0])); // G
 		cmd.xzoom = 1;
 		cmd.addrmask = 0x7fff;
+		cmd.addrmask2 = 0x7fff;
 		cmd.begin_pos = 0;
 		cmd.shift = 5;
 		cmd.render_width = 80;
