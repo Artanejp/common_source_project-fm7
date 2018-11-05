@@ -40,6 +40,8 @@ void MEMORY::initialize()
 	SET_BANK(0xe000, 0xffff, wdmy, rdmy);
 	
 	inserted = false;
+
+	PrepareReverseBitTransTableScrnType(&pixel_trans_table, RGB_COLOR(255, 255, 255), RGB_COLOR(0,0,0) );
 }
 
 void MEMORY::reset()
@@ -84,17 +86,28 @@ void MEMORY::draw_screen()
 	emu->set_vm_screen_lines(210);
 	
 	scrntype_t col_w = RGB_COLOR(255, 255, 255);
-	scrntype_t col_b = 0;
+	scrntype_t col_b = RGB_COLOR(0, 0, 0);
 	
 	emu->set_vm_screen_lines(210);
 	for(int y = 0, offset = 0x403c; y < 210; y++, offset += 30) {
 		scrntype_t* dest = emu->get_screen_buffer(y) - 30;
 		// (30 * 8 - 176) / 2 = 32
+#if 0		
 		for(int x = 32; x < 240 - 32; x++) {
 			uint8_t val = ram[offset + (x >> 3)];
 			uint8_t bit = 1 << (x & 7);
 			dest[x] = (val & bit) ? col_w : col_b;
 		}
+#else
+		scrntype_vec8_t d __attribute__((aligned(sizeof(scrntype_vec8_t))));
+		for(int xx = 32; xx < (240 - 32); xx += 8) {
+			uint8_t val = ram[offset + (xx >> 3)];
+			d = ConvertByteToPackedPixel_PixelTbl(val, &pixel_trans_table);
+			for(int i = 0; i < 8; i++) {
+				dest[xx + i] = d.w[i];
+			}
+		}
+#endif
 	}
 }
 

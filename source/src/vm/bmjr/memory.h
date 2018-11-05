@@ -57,7 +57,8 @@ private:
 	uint32_t sound_clock;
 	uint32_t sound_mix_clock;
 	int volume_l, volume_r;
-	
+
+	_bit_trans_table_t bit_table __attribute__((aligned(sizeof(uint16_vec8_t))));
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

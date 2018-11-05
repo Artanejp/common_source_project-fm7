@@ -530,7 +530,10 @@ uint8_t DLL_PREFIX A_OF_COLOR(scrntype_t c)
 }
 #endif
 
-void DLL_PREFIX PrepareBitTransTable(_bit_trans_table_t *tbl, uint16_t on_val, uint16_t off_val)
+// Note: table strongly recommend to be aligned by sizeof(uint16_vec8_t).
+// This is sizeof(uint16) * 8, some compilers may require to align 16bytes(128)
+// when using SIMD128 -- 20181105 K.O
+void DLL_PREFIX PrepareBitTransTableUint16(_bit_trans_table_t *tbl, uint16_t on_val, uint16_t off_val)
 {
 	if(tbl == NULL) return;
 __DECL_VECTORIZED_LOOP
@@ -543,6 +546,247 @@ __DECL_VECTORIZED_LOOP
 		}
 	}
 }
+
+// Note: table strongly recommend to be aligned by sizeof(scrntype_vec8_t).
+// This is sizeof(uint16) * 8, some compilers may require to align 32bytes(256) or 16bytes(128)
+// when using SIMD256 or SIMD128 -- 20181105 K.O
+void DLL_PREFIX PrepareBitTransTableScrnType(_bit_trans_table_scrn_t *tbl, scrntype_t on_val, scrntype_t off_val)
+{
+	if(tbl == NULL) return;
+__DECL_VECTORIZED_LOOP
+	for(uint16_t i = 0; i < 256; i++) {
+		uint16_t n = i;
+__DECL_VECTORIZED_LOOP
+		for(int j = 0; j < 8; j++) {
+			tbl->plane_table[i].w[j] = ((n & 0x80) == 0) ? off_val : on_val;
+			n <<= 1;
+		}
+	}
+}
+
+// Prepare reverse byte-order table(s).
+void DLL_PREFIX PrepareReverseBitTransTableUint16(_bit_trans_table_t *tbl, uint16_t on_val, uint16_t off_val)
+{
+	if(tbl == NULL) return;
+__DECL_VECTORIZED_LOOP
+	for(uint16_t i = 0; i < 256; i++) {
+		uint16_t n = i;
+__DECL_VECTORIZED_LOOP
+		for(int j = 0; j < 8; j++) {
+			tbl->plane_table[i].w[j] = ((n & 0x01) == 0) ? off_val : on_val;
+			n >>= 1;
+		}
+	}
+}
+
+void DLL_PREFIX PrepareReverseBitTransTableScrnType(_bit_trans_table_scrn_t *tbl, scrntype_t on_val, scrntype_t off_val)
+{
+	if(tbl == NULL) return;
+__DECL_VECTORIZED_LOOP
+	for(uint16_t i = 0; i < 256; i++) {
+		uint16_t n = i;
+__DECL_VECTORIZED_LOOP
+		for(int j = 0; j < 8; j++) {
+			tbl->plane_table[i].w[j] = ((n & 0x01) == 0) ? off_val : on_val;
+			n >>= 1;
+		}
+	}
+}
+
+// With _bit_trans_table_scrn_t.
+void DLL_PREFIX ConvertByteToPackedPixelByColorTable2(uint8_t *src, scrntype_t* dst, int bytes, _bit_trans_table_scrn_t *tbl, scrntype_t *on_color_table, scrntype_t* off_color_table)
+{
+	
+    scrntype_vec8_t tmpd __attribute__((aligned(sizeof(scrntype_vec8_t))));
+	scrntype_vec8_t tmpdd __attribute__((aligned(sizeof(scrntype_vec8_t))));
+	scrntype_vec8_t colors __attribute__((aligned(sizeof(scrntype_vec8_t))));
+	scrntype_vec8_t* vt = (scrntype_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(scrntype_vec8_t));
+	
+	uintptr_t disalign = (uintptr_t)dst;
+	disalign = disalign & (sizeof(scrntype_vec8_t) - 1); //Is align by 128bits or 256bytes?
+	if(disalign == 0) {
+		// Yes.
+		scrntype_vec8_t *vdst = (scrntype_vec8_t*)__builtin_assume_aligned(dst, sizeof(scrntype_vec8_t));
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < bytes; i++) {
+			tmpd.v = vt[src[i]].v;
+			tmpdd.v = ~tmpd.v;
+			
+__DECL_VECTORIZED_LOOP
+			for(int j = 0; j < 8; j++) {
+				colors.w[j] = on_color_table[j];
+			}
+			tmpd.v = tmpd.v & colors.v;
+__DECL_VECTORIZED_LOOP
+			for(int j = 0; j < 8; j++) {
+				colors.w[j] = off_color_table[j];
+			}
+			tmpdd.v = tmpdd.v & colors.v;
+			vdst->v = (tmpd.v | tmpdd.v);
+			off_color_table += 8;
+			on_color_table += 8;
+			vdst++;
+		}
+	} else {
+		// Sorry, not aligned.
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < bytes; i++) {
+			tmpd.v = vt[src[i]].v;
+			tmpdd.v = ~tmpd.v;
+			
+__DECL_VECTORIZED_LOOP
+			for(int j = 0; j < 8; j++) {
+				colors.w[j] = on_color_table[j];
+			}
+			tmpd.v = tmpd.v & colors.v;
+__DECL_VECTORIZED_LOOP
+			for(int j = 0; j < 8; j++) {
+				colors.w[j] = off_color_table[j];
+			}
+			tmpdd.v = tmpdd.v & colors.v;
+			tmpdd.v = tmpdd.v | tmpd.v;
+__DECL_VECTORIZED_LOOP
+			for(int j = 0; j < 8; j++) {
+				dst[j] = tmpdd.w[j];
+			}
+			off_color_table += 8;
+			on_color_table += 8;
+			dst += 8;
+		}
+	}
+}
+
+
+// Convert uint8_t[] ed VRAM to uint16_t[] mono pixel pattern.
+// You must set table to "ON_VALUE" : "OFF_VALUE" via PrepareBitTransTableUint16().
+// -- 20181105 K.O
+void DLL_PREFIX ConvertByteToSparceUint16(uint8_t *src, uint16_t* dst, int bytes, _bit_trans_table_t *tbl, uint16_t mask)
+{
+	
+	uint16_vec8_t   tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
+
+	uint16_vec8_t __masks __attribute__((aligned(sizeof(uint16_vec8_t))));
+
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		__masks.w[i] = mask;
+	}
+	uintptr_t disalign = (uintptr_t)dst;
+	disalign = disalign & 0x0f; //Is align by 128bits?
+	if(disalign == 0) {
+		// Yes.
+		uint16_vec8_t *vdst = (uint16_vec8_t*)__builtin_assume_aligned(dst, sizeof(uint16_vec8_t));
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < bytes; i++) {
+			tmpd.v = vt[src[i]].v;
+			tmpd.v = tmpd.v & __masks.v;
+			vdst->v = tmpd.v;
+			vdst++;
+		}
+	} else {
+		// Sorry, not aligned.
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < bytes; i++) {
+			tmpd.v = vt[src[i]].v;
+			tmpd.v = tmpd.v & __masks.v;
+__DECL_VECTORIZED_LOOP
+			for(int j = 0; j < 8; j++) {
+				dst[j] = tmpd.w[j];
+			}
+			dst += 8;
+		}
+	}
+}
+
+// Convert uint8_t[] ed VRAM to uint8_t[] mono pixel pattern.
+// You must set table to "ON_VALUE" : "OFF_VALUE" via PrepareBitTransTableUint16().
+// -- 20181105 K.O
+void DLL_PREFIX ConvertByteToSparceUint8(uint8_t *src, uint16_t* dst, int bytes, _bit_trans_table_t *tbl, uint16_t mask)
+{
+	
+	uint16_vec8_t   tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
+
+	uint16_vec8_t __masks __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint8_vec8_t tmpdd __attribute__((aligned(sizeof(uint8_vec8_t))));
+
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		__masks.w[i] = mask;
+	}
+	uintptr_t disalign = (uintptr_t)dst;
+	disalign = disalign & 0x07; //Is align by 128bits?
+	if(disalign == 0) {
+		// Yes.
+		uint8_vec8_t *vdst = (uint8_vec8_t*)__builtin_assume_aligned(dst, sizeof(uint8_vec8_t));
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < bytes; i++) {
+			tmpd.v = vt[src[i]].v;
+			tmpd.v = tmpd.v & __masks.v;
+__DECL_VECTORIZED_LOOP
+			for(int j = 0; j < 8; j++) {
+				tmpdd.w[j] = (uint8_t)(tmpd.w[j]);
+			}
+			vdst->v = tmpdd.v;
+			vdst++;
+		}
+	} else {
+		// Sorry, not aligned.
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < bytes; i++) {
+			tmpd.v = vt[src[i]].v;
+			tmpd.v = tmpd.v & __masks.v;
+__DECL_VECTORIZED_LOOP
+			for(int j = 0; j < 8; j++) {
+				dst[j] = (uint8_t)(tmpd.w[j]);
+			}
+			dst += 8;
+		}
+	}
+}
+
+
+void DLL_PREFIX ConvertByteToPackedPixelByColorTable(uint8_t *src, scrntype_t* dst, int bytes, _bit_trans_table_t *tbl, scrntype_t *on_color_table, scrntype_t* off_color_table)
+{
+	
+	uint16_vec8_t   tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	scrntype_vec8_t tmpdd __attribute__((aligned(sizeof(scrntype_vec8_t))));
+	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
+	
+	uintptr_t disalign = (uintptr_t)dst;
+	disalign = disalign & 0x0f; //Is align by 128bits?
+	if(disalign == 0) {
+		// Yes.
+		scrntype_vec8_t *vdst = (scrntype_vec8_t*)__builtin_assume_aligned(dst, sizeof(scrntype_vec8_t));
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < bytes; i++) {
+			tmpd.v = vt[src[i]].v;
+__DECL_VECTORIZED_LOOP
+			for(int j = 0; j < 8; j++) {
+				tmpdd.w[j] = (tmpd.w[j] == 0) ? off_color_table[j] : on_color_table[j];
+			}
+			vdst->v = tmpdd.v;
+			off_color_table += 8;
+			on_color_table += 8;
+			vdst++;
+		}
+	} else {
+		// Sorry, not aligned.
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < bytes; i++) {
+			tmpd.v = vt[src[i]].v;
+__DECL_VECTORIZED_LOOP
+			for(int j = 0; j < 8; j++) {
+				dst[j] = (tmpd.w[j] == 0) ? off_color_table[j] : on_color_table[j];
+			}
+			off_color_table += 8;
+			on_color_table += 8;
+			dst += 8;
+		}
+	}
+}
+
 
 void DLL_PREFIX Render8Colors_Line(_render_command_data_t *src, scrntype_t *dst, scrntype_t* dst2, bool scan_line)
 {
@@ -562,8 +806,8 @@ void DLL_PREFIX Render8Colors_Line(_render_command_data_t *src, scrntype_t *dst,
 	uint16_vec8_t *vpg = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[2], sizeof(uint16_vec8_t));
 
 	uint32_t x;
-	uint32_t offset[3];
-	uint32_t beginaddr[3];
+	uint32_t offset[4] __attribute__((aligned(16))) = {0};
+	uint32_t beginaddr[4] __attribute__((aligned(16))) = {0};
 	uint32_t mask = src->addrmask;
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 3; i++) {
@@ -594,30 +838,24 @@ __DECL_VECTORIZED_LOOP
 	if(dst2 == NULL) {	
 	__DECL_VECTORIZED_LOOP
 		for(uint32_t xx = 0; xx < src->render_width; xx++) {
-			b = r = g = 0;
-			
-			if(is_render[0]) {
-				b = bp[offset[0] & mask];
-			}
-			if(is_render[2]) {
-				g = gp[offset[2] & mask];
-			}
-			if(is_render[1]) {
-				r = rp[offset[1] & mask];
-			}
+			b = (is_render[0]) ? bp[offset[0] & mask] : 0;
+			r = (is_render[1]) ? rp[offset[1] & mask] : 0;
+			g = (is_render[2]) ? gp[offset[2] & mask] : 0;
 			tmpd.v = vpb[b].v;
 			tmpd.v = tmpd.v | vpr[r].v;
 			tmpd.v = tmpd.v | vpg[g].v;
 //			if(shift != 0) {
 				tmpd.v = tmpd.v >> shift;
 //			}
+	__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
 				tmp_dd.w[i] = palette[tmpd.w[i]];
 			}
 			vdp[xx].v = tmp_dd.v;
-			offset[0]++;
-			offset[1]++;
-			offset[2]++;
+	__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < 4; i++) {
+				offset[i]++;
+			}
 		}
 	} else {
 #if defined(_RGB555) || defined(_RGBA565)
@@ -632,23 +870,16 @@ __DECL_VECTORIZED_LOOP
 		}
 	__DECL_VECTORIZED_LOOP
 		for(uint32_t xx = 0; xx < src->render_width; xx++) {
-			b = r = g = 0;
-				
-			if(is_render[0]) {
-				b = bp[offset[0] & mask];
-			}
-			if(is_render[2]) {
-				g = gp[offset[2] & mask];
-			}
-			if(is_render[1]) {
-				r = rp[offset[1] & mask];
-			}
+			b = (is_render[0]) ? bp[offset[0] & mask] : 0;
+			r = (is_render[1]) ? rp[offset[1] & mask] : 0;
+			g = (is_render[2]) ? gp[offset[2] & mask] : 0;
 			tmpd.v = vpb[b].v;
 			tmpd.v = tmpd.v | vpr[r].v;
 			tmpd.v = tmpd.v | vpg[g].v;
 //			if(shift != 0) {
 				tmpd.v = tmpd.v >> shift;
 //			}
+	__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
 				tmp_dd.w[i] = palette[tmpd.w[i]];
 			}
@@ -658,9 +889,126 @@ __DECL_VECTORIZED_LOOP
 				tmp_dd.v = tmp_dd.v & sline.v;
 			}
 			vdp2[xx].v = tmp_dd.v;
-			offset[0]++;
-			offset[1]++;
-			offset[2]++;
+	__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < 4; i++) {
+				offset[i]++;
+			}
+		}
+	}
+}
+
+void DLL_PREFIX Render16Colors_Line(_render_command_data_t *src, scrntype_t *dst, scrntype_t* dst2, bool scan_line)
+{
+	if(src == NULL) return;
+	if(dst == NULL) return;
+
+//__DECL_VECTORIZED_LOOP
+//	for(int i = 0; i < 3; i++) {
+//		if(src->bit_trans_table[i] == NULL) return;
+//		if(src->data[i] == NULL) return;
+//	}
+	scrntype_t dummy_palette[8]; // fallback
+	scrntype_t *palette = src->palette;
+	
+	uint16_vec8_t *vpb = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[0], sizeof(uint16_vec8_t));
+	uint16_vec8_t *vpr = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[1], sizeof(uint16_vec8_t));
+	uint16_vec8_t *vpg = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[2], sizeof(uint16_vec8_t));
+	uint16_vec8_t *vpn = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[3], sizeof(uint16_vec8_t));
+
+	uint32_t x;
+	uint32_t offset[4] __attribute__((aligned(16)));
+	uint32_t beginaddr[4] __attribute__((aligned(16)));
+	uint32_t mask = src->addrmask;
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 4; i++) {
+		offset[i] = src->voffset[i];
+	}
+	if(palette == NULL) {
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 8; i++) {
+			dummy_palette[i] = RGB_COLOR(i & 2, i & 4, i & 1);
+		}
+		palette = dummy_palette;
+	}
+	uint8_t *bp = &(src->data[0][src->baseaddress[0]]);
+	uint8_t *rp = &(src->data[1][src->baseaddress[1]]);
+	uint8_t *gp = &(src->data[2][src->baseaddress[2]]);
+	uint8_t *np = &(src->data[3][src->baseaddress[3]]);
+	
+	uint8_t r, g, b, n;
+	int shift = src->shift;
+	const bool is_render[4] = { src->is_render[0], src->is_render[1],  src->is_render[2], src->is_render[3] };
+	uint16_vec8_t tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	scrntype_vec8_t tmp_dd; 
+	scrntype_vec8_t* vdp = (scrntype_vec8_t*)__builtin_assume_aligned(dst, sizeof(scrntype_vec8_t));
+	
+	x = src->begin_pos;
+	offset[0] = offset[0] + x;
+	offset[1] = offset[1] + x;
+	offset[2] = offset[2] + x;
+	offset[3] = offset[3] + x;
+	if(dst2 == NULL) {	
+	__DECL_VECTORIZED_LOOP
+		for(uint32_t xx = 0; xx < src->render_width; xx++) {
+			b = (is_render[0]) ? bp[offset[0] & mask] : 0;
+			r = (is_render[1]) ? rp[offset[1] & mask] : 0;
+			g = (is_render[2]) ? gp[offset[2] & mask] : 0;
+			n = (is_render[3]) ? np[offset[3] & mask] : 0;
+			tmpd.v = vpb[b].v;
+			tmpd.v = tmpd.v | vpr[r].v;
+			tmpd.v = tmpd.v | vpg[g].v;
+			tmpd.v = tmpd.v | vpn[n].v;
+//			if(shift != 0) {
+				tmpd.v = tmpd.v >> shift;
+//			}
+	__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < 8; i++) {
+				tmp_dd.w[i] = palette[tmpd.w[i]];
+			}
+			vdp[xx].v = tmp_dd.v;
+	__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < 4; i++) {
+				offset[i]++;
+			}
+		}
+	} else {
+#if defined(_RGB555) || defined(_RGBA565)
+		static const int shift_factor = 2;
+#else // 24bit
+		static const int shift_factor = 3;
+#endif
+		scrntype_vec8_t sline __attribute__((aligned(sizeof(scrntype_vec8_t))));
+		scrntype_vec8_t* vdp2 = (scrntype_vec8_t*)__builtin_assume_aligned(dst2, sizeof(scrntype_vec8_t));
+		for(int i = 0; i < 8; i++) {
+			sline.w[i] = (scrntype_t)RGBA_COLOR(31, 31, 31, 255);
+		}
+	__DECL_VECTORIZED_LOOP
+		for(uint32_t xx = 0; xx < src->render_width; xx++) {
+			b = (is_render[0]) ? bp[offset[0] & mask] : 0;
+			r = (is_render[1]) ? rp[offset[1] & mask] : 0;
+			g = (is_render[2]) ? gp[offset[2] & mask] : 0;
+			n = (is_render[3]) ? np[offset[3] & mask] : 0;
+			tmpd.v = vpb[b].v;
+			tmpd.v = tmpd.v | vpr[r].v;
+			tmpd.v = tmpd.v | vpg[g].v;
+			tmpd.v = tmpd.v | vpn[n].v;
+//			if(shift != 0) {
+				tmpd.v = tmpd.v >> shift;
+//			}
+	__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < 8; i++) {
+				tmp_dd.w[i] = palette[tmpd.w[i]];
+			}
+			vdp[xx].v = tmp_dd.v;
+			if(scan_line) {
+				tmp_dd.v = tmp_dd.v >> shift_factor;
+				tmp_dd.v = tmp_dd.v & sline.v;
+			}
+			vdp2[xx].v = tmp_dd.v;
+	__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < 4; i++) {
+				offset[i]++;
+			}
 		}
 	}
 }

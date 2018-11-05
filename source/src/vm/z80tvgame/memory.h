@@ -30,7 +30,8 @@ private:
 	uint8_t* rbank[16];
 	
 	bool inserted;
-	
+
+	_bit_trans_table_scrn_t pixel_trans_table __attribute__((aligned(sizeof(scrntype_vec8_t))));
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

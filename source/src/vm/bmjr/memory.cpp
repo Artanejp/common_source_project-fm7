@@ -94,7 +94,9 @@ void MEMORY::initialize()
 	for(int i = 0; i < 8; i++) {
 		palette_pc[i] = RGB_COLOR((i & 2) ? 0xff : 0, (i & 4) ? 0xff : 0, (i & 1) ? 0xff : 0);
 	}
-	
+
+	PrepareBitTransTableUint16(&bit_table, 0xff, 0x00);
+
 	// register event
 	register_frame_event(this);
 }
@@ -354,6 +356,7 @@ void MEMORY::draw_screen()
 				for(int l = 0; l < 8; l++) {
 					scrntype_t* dest = emu->get_screen_buffer(yy + l) + xx;
 					uint8_t pat = font[code + l];
+#if 0
 					dest[0] = (pat & 0x80) ? fore : back;
 					dest[1] = (pat & 0x40) ? fore : back;
 					dest[2] = (pat & 0x20) ? fore : back;
@@ -362,6 +365,10 @@ void MEMORY::draw_screen()
 					dest[5] = (pat & 0x04) ? fore : back;
 					dest[6] = (pat & 0x02) ? fore : back;
 					dest[7] = (pat & 0x01) ? fore : back;
+#else
+					scrntype_vec8_t* vdest = (scrntype_vec8_t*)__builtin_assume_aligned(dest, sizeof(scrntype_vec8_t));
+					*vdest = ConvertByteToMonochromePackedPixel(pat, &bit_table, fore, back);
+#endif
 				}
 				taddr++;
 			}
@@ -386,6 +393,7 @@ void MEMORY::draw_screen()
 				for(int l = 0, ll = 0; l < 8; l++, ll += 32) {
 					scrntype_t* dest = emu->get_screen_buffer(yy + l) + xx;
 					uint8_t pat = ram[gaddr + ll];
+#if 0
 					dest[0] = (pat & 0x80) ? fore : back;
 					dest[1] = (pat & 0x40) ? fore : back;
 					dest[2] = (pat & 0x20) ? fore : back;
@@ -394,6 +402,10 @@ void MEMORY::draw_screen()
 					dest[5] = (pat & 0x04) ? fore : back;
 					dest[6] = (pat & 0x02) ? fore : back;
 					dest[7] = (pat & 0x01) ? fore : back;
+#else
+					scrntype_vec8_t* vdest = (scrntype_vec8_t*)__builtin_assume_aligned(dest, sizeof(scrntype_vec8_t));
+					*vdest = ConvertByteToMonochromePackedPixel(pat, &bit_table, fore, back);
+#endif
 				}
 				taddr++;
 				gaddr++;

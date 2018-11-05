@@ -1007,15 +1007,29 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 
 #if defined(_RGB555) || defined(_RGBA565)
 typedef	union {
-			scrntype_t w[8];
-			__v8hi v;
+	scrntype_t w[8];
+	__v8hi v;
 } scrntype_vec8_t;
+typedef	union {
+	scrntype_t w[16];
+	__v8hi v[2];
+} scrntype_vec16_t;
 #else
 typedef	union {
-			scrntype_t w[8];
-			__v16hi v;
+	scrntype_t w[8];
+	__v16hi v;
 } scrntype_vec8_t;
+typedef	union {
+	scrntype_t w[16];
+	__v16hi v[2];
+} scrntype_vec16_t;
 #endif
+
+typedef union {
+	__v4hi v;
+	uint8_t w[8];
+} uint8_vec8_t;
+
 typedef union {
 	__v8hi v;
 	uint16_t w[8];
@@ -1029,6 +1043,10 @@ typedef union {
 typedef struct {
 	uint16_vec8_t plane_table[256];
 } _bit_trans_table_t;
+
+typedef struct {
+	scrntype_vec8_t plane_table[256];
+} _bit_trans_table_scrn_t;
 
 typedef struct {
 	scrntype_t* palette; // Must be 2^planes entries. If NULL, assume RGB.
@@ -1045,8 +1063,128 @@ typedef struct {
 } _render_command_data_t;
 
 
-void DLL_PREFIX PrepareBitTransTable(_bit_trans_table_t *tbl, uint16_t on_val, uint16_t off_val);
+inline scrntype_vec8_t ConvertByteToMonochromePackedPixel(uint8_t src, _bit_trans_table_t *tbl,scrntype_t on_val, scrntype_t off_val)
+{
+	uint16_vec8_t   tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	scrntype_vec8_t tmpdd __attribute__((aligned(sizeof(scrntype_vec8_t))));
+	_bit_trans_table_t*  vt = (_bit_trans_table_t*)__builtin_assume_aligned(tbl, sizeof(uint16_vec8_t));
+
+	tmpd.v = vt->plane_table[src].v;
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		tmpdd.w[i] = (tmpd.w[i] == 0) ? off_val: on_val;
+	}
+	return tmpdd;
+}
+
+// Note: Pls. read Note(s) of common.cpp -- 20181105 K.Ohta.
+// Tables for below functions must be aligned by 16 (_bit_trans_table_t) or 32(_bit_trans_table_scrn_t).  
+void DLL_PREFIX ConvertByteToPackedPixelByColorTable(uint8_t *src, scrntype_t* dst, int bytes, _bit_trans_table_t *tbl, scrntype_t *on_color_table, scrntype_t* off_color_table);
+void DLL_PREFIX ConvertByteToPackedPixelByColorTable2(uint8_t *src, scrntype_t* dst, int bytes, _bit_trans_table_scrn_t *tbl, scrntype_t *on_color_table, scrntype_t* off_color_table);
+void DLL_PREFIX ConvertByteToSparceUint16(uint8_t *src, uint16_t* dst, int bytes, _bit_trans_table_t *tbl, uint16_t mask);
+void DLL_PREFIX ConvertByteToSparceUint8(uint8_t *src, uint16_t* dst, int bytes, _bit_trans_table_t *tbl, uint16_t mask);
+
+// Table must be (ON_VAL_COLOR : OFF_VAL_COLOR)[256].
+inline scrntype_vec8_t ConvertByteToPackedPixel_PixelTbl(uint8_t src, _bit_trans_table_scrn_t *tbl)
+{
+	scrntype_vec8_t tmpdd __attribute__((aligned(sizeof(scrntype_vec8_t))));
+	_bit_trans_table_scrn_t*  vt = (_bit_trans_table_scrn_t*)__builtin_assume_aligned(tbl, sizeof(uint16_vec8_t));
+
+	tmpdd.v = vt->plane_table[src].v;
+	return tmpdd;
+}
+
+// Table must be (ON_VAL_COLOR : OFF_VAL_COLOR)[256].
+inline scrntype_vec16_t ConvertByteToDoublePackedPixel_PixelTbl(uint8_t src, _bit_trans_table_scrn_t *tbl)
+{
+	scrntype_vec16_t tmpdd __attribute__((aligned(sizeof(scrntype_vec16_t))));
+	scrntype_vec8_t tmpd __attribute__((aligned(sizeof(scrntype_vec8_t))));
+	_bit_trans_table_scrn_t*  vt = (_bit_trans_table_scrn_t*)__builtin_assume_aligned(tbl, sizeof(uint16_vec8_t));
+	tmpd.v = vt->plane_table[src].v;
+	int j = 0;
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 16; i += 2) {
+		tmpdd.w[i]     = tmpd.w[j];
+		tmpdd.w[i + 1] = tmpd.w[j];
+		j++;
+	}
+	return tmpdd;
+}
+
+// Table must be initialize ON_COLOR : OFF_COLOR
+inline void ConvertByteToDoubleMonochromeUint8(uint8_t src, uint8_t* dst, _bit_trans_table_t* tbl)
+{
+	uint16_vec8_t   tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
+
+	uint8_t d[16] __attribute__((aligned(16)));
+	tmpd = vt[src];
+	int j = 0;
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 16; i += 2) {
+		d[i]     = (uint8_t)(tmpd.w[j]);
+		d[i + 1] = (uint8_t)(tmpd.w[j]);
+		j++;
+	}
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 16; i++) {
+		dst[i] = d[i];
+	}
+}
+
+inline void ConvertByteToMonochromeUint8(uint8_t src, uint8_t* dst, _bit_trans_table_t* tbl)
+{
+	uint16_vec8_t   tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
+
+	tmpd = vt[src];
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		dst[i] = (uint8_t)(tmpd.w[i]);
+	}
+}
+
+inline void ConvertByteToDoubleMonochromeUint8Cond(uint8_t src, uint8_t* dst, _bit_trans_table_t* tbl, uint8_t on_color, uint8_t off_color)
+{
+	uint16_vec8_t   tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
+
+	uint8_t d[16] __attribute__((aligned(16)));
+	tmpd = vt[src];
+	int j = 0;
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 16; i += 2) {
+		d[i]     = (tmpd.w[j] == 0) ? off_color : on_color;
+		d[i + 1] = (tmpd.w[j] == 0) ? off_color : on_color;
+		j++;
+	}
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 16; i++) {
+		dst[i] = d[i];
+	}
+}
+
+inline void ConvertByteToMonochromeUint8Cond(uint8_t src, uint8_t* dst, _bit_trans_table_t* tbl, uint8_t on_color, uint8_t off_color)
+{
+	uint16_vec8_t   tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
+
+	uint8_t d[16];
+	tmpd = vt[src];
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		dst[i]     = (tmpd.w[i] == 0) ? off_color : on_color;
+	}
+}
+
+void DLL_PREFIX PrepareBitTransTableUint16(_bit_trans_table_t *tbl, uint16_t on_val, uint16_t off_val);
+void DLL_PREFIX PrepareBitTransTableScrnType(_bit_trans_table_scrn_t *tbl, scrntype_t on_val, scrntype_t off_val);
+void DLL_PREFIX PrepareReverseBitTransTableUint16(_bit_trans_table_t *tbl, uint16_t on_val, uint16_t off_val);
+void DLL_PREFIX PrepareReverseBitTransTableScrnType(_bit_trans_table_scrn_t *tbl, scrntype_t on_val, scrntype_t off_val);
+
 void DLL_PREFIX Render8Colors_Line(_render_command_data_t *src, scrntype_t *dst, scrntype_t *dst2, bool scan_line);
+
+void DLL_PREFIX Render16Colors_Line(_render_command_data_t *src, scrntype_t *dst, scrntype_t *dst2, bool scan_line);
 
 inline uint64_t ExchangeEndianU64(uint64_t __in)
 {
