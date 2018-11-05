@@ -1057,7 +1057,8 @@ typedef struct {
 	uint8_t* data[16];
 	uint32_t baseaddress[16];
 	uint32_t voffset[16];
-	uint32_t addrmask;
+	uint32_t addrmask;  // For global increment.
+	uint32_t addrmask2; // For local increment.
 	uint32_t begin_pos;
 	uint32_t render_width;
 } _render_command_data_t;
@@ -1144,7 +1145,78 @@ __DECL_VECTORIZED_LOOP
 	}
 }
 
-inline void ConvertByteToDoubleMonochromeUint8Cond(uint8_t src, uint8_t* dst, _bit_trans_table_t* tbl, uint8_t on_color, uint8_t off_color)
+inline void ConvertRGBTo8ColorsUint8(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, _bit_trans_table_t* rtbl, _bit_trans_table_t* gtbl, _bit_trans_table_t* btbl, int shift)
+{
+	uint16_vec8_t   tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t*  rvt = (uint16_vec8_t*)__builtin_assume_aligned(&(rtbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  gvt = (uint16_vec8_t*)__builtin_assume_aligned(&(gtbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  bvt = (uint16_vec8_t*)__builtin_assume_aligned(&(btbl->plane_table[0]), sizeof(uint16_vec8_t));
+
+	tmpd.v = rvt[r].v;
+	tmpd.v = tmpd.v | gvt[g].v;
+	tmpd.v = tmpd.v | bvt[b].v;
+	tmpd.v = tmpd.v >> shift;
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		dst[i] = (uint8_t)(tmpd.w[i]);
+	}
+}
+
+inline void ConvertRGBTo8ColorsUint8_Zoom2Left(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, _bit_trans_table_t* rtbl, _bit_trans_table_t* gtbl, _bit_trans_table_t* btbl, int shift)
+{
+	uint16_vec8_t   tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t*  rvt = (uint16_vec8_t*)__builtin_assume_aligned(&(rtbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  gvt = (uint16_vec8_t*)__builtin_assume_aligned(&(gtbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  bvt = (uint16_vec8_t*)__builtin_assume_aligned(&(btbl->plane_table[0]), sizeof(uint16_vec8_t));
+
+	tmpd.v = rvt[r].v;
+	tmpd.v = tmpd.v | gvt[g].v;
+	tmpd.v = tmpd.v | bvt[b].v;
+	tmpd.v = tmpd.v >> shift;
+__DECL_VECTORIZED_LOOP
+	for(int i = 0, j = 0; i < 8; i += 2, j++) {
+		dst[i]     = (uint8_t)(tmpd.w[j]);
+		dst[i + 1] = (uint8_t)(tmpd.w[j]);
+	}
+}
+
+inline void ConvertRGBTo8ColorsUint8_Zoom2Right(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, _bit_trans_table_t* rtbl, _bit_trans_table_t* gtbl, _bit_trans_table_t* btbl, int shift)
+{
+	uint16_vec8_t   tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t*  rvt = (uint16_vec8_t*)__builtin_assume_aligned(&(rtbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  gvt = (uint16_vec8_t*)__builtin_assume_aligned(&(gtbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  bvt = (uint16_vec8_t*)__builtin_assume_aligned(&(btbl->plane_table[0]), sizeof(uint16_vec8_t));
+
+	tmpd.v = rvt[r].v;
+	tmpd.v = tmpd.v | gvt[g].v;
+	tmpd.v = tmpd.v | bvt[b].v;
+	tmpd.v = tmpd.v >> shift;
+__DECL_VECTORIZED_LOOP
+	for(int i = 0, j = 4; i < 8; i += 2, j++) {
+		dst[i]     = (uint8_t)(tmpd.w[j]);
+		dst[i + 1] = (uint8_t)(tmpd.w[j]);
+	}
+}
+
+inline void ConvertRGBTo8ColorsUint8_Zoom2Double(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, _bit_trans_table_t* rtbl, _bit_trans_table_t* gtbl, _bit_trans_table_t* btbl, int shift)
+{
+	uint16_vec8_t   tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t*  rvt = (uint16_vec8_t*)__builtin_assume_aligned(&(rtbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  gvt = (uint16_vec8_t*)__builtin_assume_aligned(&(gtbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  bvt = (uint16_vec8_t*)__builtin_assume_aligned(&(btbl->plane_table[0]), sizeof(uint16_vec8_t));
+
+	tmpd.v = rvt[r].v;
+	tmpd.v = tmpd.v | gvt[g].v;
+	tmpd.v = tmpd.v | bvt[b].v;
+	tmpd.v = tmpd.v >> shift;
+__DECL_VECTORIZED_LOOP
+	for(int i = 0, j = 0; i < 16; i += 2, j++) {
+		dst[i]     = (uint8_t)(tmpd.w[j]);
+		dst[i + 1] = (uint8_t)(tmpd.w[j]);
+	}
+}
+
+inline void ConvertByteToMonochromeUint8Cond_Zoom2(uint8_t src, uint8_t* dst, _bit_trans_table_t* tbl, uint8_t on_color, uint8_t off_color)
 {
 	uint16_vec8_t   tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
 	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
@@ -1185,6 +1257,11 @@ void DLL_PREFIX PrepareReverseBitTransTableScrnType(_bit_trans_table_scrn_t *tbl
 void DLL_PREFIX Render8Colors_Line(_render_command_data_t *src, scrntype_t *dst, scrntype_t *dst2, bool scan_line);
 
 void DLL_PREFIX Render16Colors_Line(_render_command_data_t *src, scrntype_t *dst, scrntype_t *dst2, bool scan_line);
+void DLL_PREFIX Render2NColors_Line(_render_command_data_t *src, scrntype_t *dst, scrntype_t* dst2, bool scan_line, int planes);
+
+void DLL_PREFIX Convert8ColorsToByte_Line(_render_command_data_t *src, uint8_t *dst);
+void DLL_PREFIX Convert2NColorsToByte_Line(_render_command_data_t *src, uint8_t *dst, int planes);
+void DLL_PREFIX Convert2NColorsToByte_LineZoom2(_render_command_data_t *src, uint8_t *dst, int planes);
 
 inline uint64_t ExchangeEndianU64(uint64_t __in)
 {
