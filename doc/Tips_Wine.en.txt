@@ -1,0 +1,32 @@
+**How to use ANGLE PROJECT with Wine.
+                                   Nov 15, 2018 K.Ohta
+		    <whatisthis.sowhat _at_ gmail.com>
+
+1.Background
+ Using OpenGL ES (launch with -g gles) at native windows 
+ seems to work correctly via Google's Angle project.
+ But running via Wine ( http://winehq.org/ ) (at maybe GNU/Linux),
+ with OpenGL 2/3/4 works correctly, but with Angle project
+ don't work.
+
+2.How to
+  a. Download DirectX development files from Microsoft.
+  b. Extract below CABs under Redist/ :
+     Aug2009_D3DCompiler_42_x86.cab
+     Jun2010_D3DCompiler_43_x86.cab
+     ※ If you build for Win64 and running via Wine64, below files
+       are required:
+     Aug2009_D3DCompiler_42_x64.cab
+     Jun2010_D3DCompiler_43_x64.cab
+  
+  c. Copy D3DCompiler_[42|43].dll to
+     $WINEPREFIX/drive_c/windows/system32 (or wow64?).
+     
+  d. Run winecfg and select "Libraries".
+  e. Set override DLL to d3dcompiler_42.dll and d3dcompiler_43.dll
+     to "Native, builtin".
+     
+  f. If you don't wrong, running correctly with Angle project and Wine :-)
+  
+Good luck!
+-- Ohta.
