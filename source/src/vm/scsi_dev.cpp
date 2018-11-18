@@ -13,6 +13,7 @@
 #define EVENT_SEL	0
 #define EVENT_PHASE	1
 #define EVENT_REQ	2
+//#define _SCSI_DEBUG_LOG
 
 void SCSI_DEV::initialize()
 {

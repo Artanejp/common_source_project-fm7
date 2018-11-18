@@ -20,14 +20,19 @@ class FILEIO;
 
 class SCSI_CDROM : public SCSI_DEV
 {
-private:
+protected:
 	outputs_t outputs_done;
 	
 	FILEIO* fio_img;
 	struct {
 		uint32_t index0, index1, pregap;
+		uint32_t lba_offset;
 		bool is_audio;
 	} toc_table[1024];
+	bool is_cue;
+	_TCHAR track_data_path[99][_MAX_PATH];
+	int current_track;
+	
 	int track_num;
 	uint32_t max_logical_block;
 	bool access;
@@ -47,9 +52,10 @@ private:
 	int volume_m;
 	int volume_l, volume_r;
 
-//protected:
-//	csp_state_utils *state_entry;
-	
+	bool open_cue_file(const _TCHAR *file_path);
+	void get_track_by_track_num(int track);
+	uint32_t lba_to_msf(int trk, uint32_t lba);
+	uint32_t lba_to_msf_alt(int trk, uint32_t lba);
 public:
 	SCSI_CDROM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : SCSI_DEV(parent_vm, parent_emu) 
 	{
