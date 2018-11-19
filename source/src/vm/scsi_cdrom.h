@@ -27,6 +27,7 @@ protected:
 	struct {
 		uint32_t index0, index1, pregap;
 		uint32_t lba_offset;
+		uint32_t lba_size;
 		bool is_audio;
 	} toc_table[1024];
 	bool is_cue;
@@ -54,8 +55,8 @@ protected:
 
 	bool open_cue_file(const _TCHAR *file_path);
 	void get_track_by_track_num(int track);
-	uint32_t lba_to_msf(int trk, uint32_t lba);
-	uint32_t lba_to_msf_alt(int trk, uint32_t lba);
+	uint32_t lba_to_msf(uint32_t lba);
+	uint32_t lba_to_msf_alt(uint32_t lba);
 public:
 	SCSI_CDROM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : SCSI_DEV(parent_vm, parent_emu) 
 	{

@@ -82,9 +82,20 @@ void SCSI_CDROM::event_callback(int event_id, int err)
 			// one frame finished
 			if(++cdda_playing_frame == cdda_end_frame) {
 				// reached to end frame
+				#ifdef _CDROM_DEBUG_LOG
+					this->out_debug_log(_T("Reaches to the end of track. REPEAT=%s\n"), (cdda_repeat) ? _T("YES") : _T("NO"));
+				#endif
 				if(cdda_repeat) {
 					// reload buffer
-					fio_img->Fseek(cdda_start_frame * 2352, FILEIO_SEEK_SET);
+					if(is_cue) {
+						fio_img->Fclose();
+						current_track = 0;
+						int trk = get_track(cdda_start_frame);
+						//int trk = current_track;
+						fio_img->Fseek((cdda_start_frame - toc_table[trk].lba_offset) * 2352, FILEIO_SEEK_SET);
+					} else {
+						fio_img->Fseek(cdda_start_frame * 2352, FILEIO_SEEK_SET);
+					}
 					fio_img->Fread(cdda_buffer, sizeof(cdda_buffer), 1);
 					cdda_buffer_ptr = 0;
 					cdda_playing_frame = cdda_start_frame;
@@ -121,6 +132,9 @@ void SCSI_CDROM::set_cdda_status(uint8_t status)
 		if(cdda_status != CDDA_PLAYING) {
 			touch_sound();
 			set_realtime_render(this, true);
+			#ifdef _CDROM_DEBUG_LOG
+					this->out_debug_log(_T("START Playing CDDA.\n"));
+			#endif
 		}
 	} else {
 		//if(status == CDDA_OFF) {
@@ -135,6 +149,9 @@ void SCSI_CDROM::set_cdda_status(uint8_t status)
 		if(cdda_status == CDDA_PLAYING) {
 			touch_sound();
 			set_realtime_render(this, false);
+			#ifdef _CDROM_DEBUG_LOG
+					this->out_debug_log(_T("STOP Playing CDDA.\n"));
+			#endif
 		}
 	}
 	cdda_status = status;
@@ -177,18 +194,15 @@ void SCSI_CDROM::get_track_by_track_num(int track)
 	}
 	if(is_cue) {
 		// ToDo: Apply audio with some codecs.
-		if(current_track != track) {
-			if(fio_img != NULL) {
-				if(fio_img->IsOpened()) {
-					fio_img->Fclose();
-				}
-				current_track = track;
+		if((current_track != track) || !(fio_img->IsOpened())){
+			if(fio_img->IsOpened()) {
+				fio_img->Fclose();
 			}
 		#ifdef _CDROM_DEBUG_LOG
 			this->out_debug_log(_T("LOAD TRK #%02d from %s\n"), track, track_data_path[track - 1]);
 		#endif
 			
-			if((track > 0) && (track < 100) && (track <= track_num)) {
+			if((track > 0) && (track < 100) && (track < track_num)) {
 				if((strlen(track_data_path[track - 1]) <= 0) ||
 				   !(fio_img->Fopen(track_data_path[track - 1], FILEIO_READ_BINARY))) {
 					track = 0;
@@ -198,21 +212,22 @@ void SCSI_CDROM::get_track_by_track_num(int track)
 			}
 		}
 	}
+	current_track = track;
 }
 
 int SCSI_CDROM::get_track(uint32_t lba)
 {
 	int track = 0;
 
-	if(is_cue) {
-		for(int i = 1; i <= track_num; i++) {
-			if(lba >= toc_table[i].lba_offset) {
-				track = i;
-			} else {
-				break;
-			}
-		}
-	} else {
+//	if(is_cue) {
+//		for(int i = 1; i <= track_num; i++) {
+//			if(lba >= toc_table[i].lba_offset) {
+//				track = i;
+//			} else {
+//				break;
+//			}
+//		}
+//	} else {
 		for(int i = 0; i < track_num; i++) {
 			if(lba >= toc_table[i].index0) {
 				track = i;
@@ -220,7 +235,7 @@ int SCSI_CDROM::get_track(uint32_t lba)
 				break;
 			}
 		}
-	}
+//	}
 	if(is_cue) {
 		get_track_by_track_num(track);
 	} else {
@@ -241,13 +256,8 @@ double SCSI_CDROM::get_seek_time(uint32_t lba)
 	}
 }
 
-uint32_t SCSI_CDROM::lba_to_msf(int trk, uint32_t lba)
+uint32_t SCSI_CDROM::lba_to_msf(uint32_t lba)
 {
-	if(is_cue) {
-		if(trk > 0) {
-			lba = lba + toc_table[trk - 1].lba_offset;
-		}
-	}
 	uint8_t m = lba / (60 * 75);
 	lba -= m * (60 * 75);
 	uint8_t s = lba / 75;
@@ -256,13 +266,8 @@ uint32_t SCSI_CDROM::lba_to_msf(int trk, uint32_t lba)
 	return ((m / 10) << 20) | ((m % 10) << 16) | ((s / 10) << 12) | ((s % 10) << 8) | ((f / 10) << 4) | ((f % 10) << 0);
 }
 
-uint32_t SCSI_CDROM::lba_to_msf_alt(int trk, uint32_t lba)
+uint32_t SCSI_CDROM::lba_to_msf_alt(uint32_t lba)
 {
-	if(is_cue) {
-		if(trk > 0) {
-			lba = lba + toc_table[trk - 1].lba_offset;
-		}
-	}
 	uint32_t ret = 0;
 	ret |= ((lba / (60 * 75)) & 0xff) << 16;
 	ret |= (((lba / 75) % 60) & 0xff) <<  8;
@@ -290,7 +295,7 @@ void SCSI_CDROM::start_command()
 		
 	case 0xd8:
 		#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: NEC Set Audio Playback Start Position\n"), scsi_id);
+		this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: NEC Set Audio Playback Start Position CMD=%02x\n"), scsi_id, ((command[2] == 0) && (command[3] == 0) && (command[4] == 0)) ? 0x00 : command[9]);
 		#endif
 		if(is_device_ready()) {
 			if(command[2] == 0 && command[3] == 0 && command[4] == 0) {
@@ -317,13 +322,13 @@ void SCSI_CDROM::start_command()
 						// PCE tries to be clever here and set (start of track + track pregap size) to skip the pregap
 						// (I guess it wants the TOC to have the real start sector for data tracks and the start of the pregap for audio?)
 						int track = get_track(cdda_start_frame);
-						if((is_cue) && (track > 1)) {
-							if(cdda_start_frame >= toc_table[track].lba_offset) {
-								cdda_start_frame = cdda_start_frame - toc_table[track].lba_offset;
-							} else {
-								cdda_start_frame = 0;
-							}
-						}
+//						if((is_cue) && (track > 1)) {
+//							if(cdda_start_frame >= toc_table[track - 1].lba_offset) {
+//								cdda_start_frame = cdda_start_frame - toc_table[track - 1].lba_offset;
+//							} else {
+//								cdda_start_frame = 0;
+//							}
+//						}
 						cdda_start_frame -= toc_table[track].pregap;
 						
 						if(cdda_start_frame < toc_table[track].index1) {
@@ -350,7 +355,6 @@ void SCSI_CDROM::start_command()
 //				} else
 				if((command[1] & 3) != 0) {
 					if((is_cue) && (current_track != track_num)){
-						seek_offset = toc_table[current_track].lba_offset;
 						get_track_by_track_num(track_num);
 					}
 					cdda_end_frame = toc_table[track_num].index0; // end of disc
@@ -358,12 +362,12 @@ void SCSI_CDROM::start_command()
 				} else {
 					uint32_t _sframe = cdda_start_frame;
 					int _trk;
-					if((is_cue) && (current_track > 0)) {
-						_sframe = _sframe + toc_table[current_track].lba_offset;
+//					if((is_cue) && (current_track > 0)) {
+//						_sframe = _sframe + toc_table[current_track].lba_offset;
+//						cdda_end_frame = toc_table[get_track(_sframe) + 1].index1; // end of this track
+//					} else {
 						cdda_end_frame = toc_table[get_track(_sframe) + 1].index1; // end of this track
-					} else {
-						cdda_end_frame = toc_table[get_track(_sframe) + 1].index1; // end of this track
-					}
+//					}
 					set_cdda_status(CDDA_PAUSED);
 				}
 				cdda_repeat = false;
@@ -371,7 +375,12 @@ void SCSI_CDROM::start_command()
 				
 				// read buffer
 				double seek_time = get_seek_time(cdda_start_frame);
-				fio_img->Fseek(cdda_start_frame * 2352, FILEIO_SEEK_SET);
+				if(is_cue) {
+					int trk = get_track(cdda_start_frame);
+					fio_img->Fseek((cdda_start_frame - toc_table[trk].lba_offset) * 2352, FILEIO_SEEK_SET);
+				} else {
+					fio_img->Fseek(cdda_start_frame * 2352, FILEIO_SEEK_SET);
+				}
 				fio_img->Fread(cdda_buffer, sizeof(cdda_buffer), 1);
 				cdda_buffer_ptr = 0;
 				cdda_playing_frame = cdda_start_frame;
@@ -390,12 +399,22 @@ void SCSI_CDROM::start_command()
 		
 	case 0xd9:
 		#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: NEC Set Audio Playback End Position\n"), scsi_id);
+		this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: NEC Set Audio Playback End Position CMD=%02x ARG=%02x %02x %02x %02x\n"), scsi_id, command[9], command[2], command[3], command[4], command[5]);
 		#endif
 		if(is_device_ready()) {
 			switch(command[9] & 0xc0) {
 			case 0x00:
 				cdda_end_frame = (command[3] << 16) | (command[4] << 8) | command[5];
+//				if(is_cue) {
+//					int track = get_track(cdda_end_frame);
+//					if(track > 1) {
+//						if(cdda_end_frame >= toc_table[track].lba_offset) {
+//							cdda_end_frame = cdda_end_frame - toc_table[track].lba_offset;
+//						} else {
+//							cdda_end_frame = 0;
+//						}
+//					}
+//				}					
 				break;
 			case 0x40:
 				{
@@ -403,30 +422,45 @@ void SCSI_CDROM::start_command()
 					uint8_t s = FROM_BCD(command[3]);
 					uint8_t f = FROM_BCD(command[4]);
 					cdda_end_frame = f + 75 * (s + m * 60);
+					//printf("END FRAME=%d\n", cdda_end_frame);
 					
 					// PCE tries to be clever here and set (start of track + track pregap size) to skip the pregap
 					// (I guess it wants the TOC to have the real start sector for data tracks and the start of the pregap for audio?)
 					int track =get_track(cdda_end_frame);
-					if((is_cue) && (track > 1)) {
-						if(cdda_end_frame >= toc_table[track].lba_offset) {
-							cdda_end_frame = cdda_end_frame - toc_table[track].lba_offset;
-						} else {
-							cdda_end_frame = 0;
-						}
-					}
-					
+//					if((is_cue) && (track > 1)) {
+//						if(cdda_end_frame >= toc_table[track - 1].lba_offset) {
+//							cdda_end_frame = cdda_end_frame - toc_table[track - 1].lba_offset;
+//						} else {
+//							cdda_end_frame = 0;
+//						}
+//						//if(cdda_end_frame >= toc_table[track - 1].lba_size) {
+//						//	cdda_end_frame = toc_table[track - 1].lba_size - 1;
+//						//}
+//						//if(toc_table[track - 1].lba_size == 0) cdda_end_frame = 0;
+//					}
 					if(cdda_end_frame > toc_table[track].index1 && (cdda_end_frame - toc_table[track].pregap) <= toc_table[track].index1) {
 						cdda_end_frame = toc_table[track].index1;
 					}
 				}
 				break;
 			case 0x80:
-				cdda_end_frame = toc_table[FROM_BCD(command[2]) - 1].index1;
+				{
+					int _track = FROM_BCD(command[2]) - 1;
+					if(_track >= 0) {
+						cdda_end_frame = toc_table[_track].index1;
+						if(is_cue) {
+							if(_track != current_track) {
+								get_track_by_track_num(_track);
+							}
+						}
+					}
+				}
 				break;
 			}
 			if((command[1] & 3) != 0) {
 				set_cdda_status(CDDA_PLAYING);
 				cdda_repeat = ((command[1] & 3) == 1);
+				//cdda_repeat = ((command[1] & 1) == 1);
 				cdda_interrupt = ((command[1] & 3) == 2);
 			} else {
 				set_cdda_status(CDDA_OFF);
@@ -461,7 +495,7 @@ void SCSI_CDROM::start_command()
 		if(is_device_ready()) {
 			// create track info
 			uint32_t frame = (cdda_status == CDDA_OFF) ? cdda_start_frame : cdda_playing_frame;
-			uint32_t msf_abs = lba_to_msf_alt(current_track - 1, frame);
+			uint32_t msf_abs = lba_to_msf_alt(frame);
 			int track;
 			if(is_cue) {
 				//track = get_track(frame + ((current_track > 0) ? toc_table[current_track - 1].lba_offset : 0));
@@ -469,7 +503,7 @@ void SCSI_CDROM::start_command()
 			} else {
 				track = get_track(frame);
 			}
-			uint32_t msf_rel = lba_to_msf_alt(track - 1, frame - toc_table[track].index0);
+			uint32_t msf_rel = lba_to_msf_alt(frame - toc_table[track].index0);
 			buffer->clear();
 			buffer->write((cdda_status == CDDA_PLAYING) ? 0x00 : (cdda_status == CDDA_PAUSED) ? 0x02 : 0x03);
 			buffer->write(0x01 | (toc_table[track].is_audio ? 0x00 : 0x40));
@@ -510,7 +544,7 @@ void SCSI_CDROM::start_command()
 				break;
 			case 0x01:      /* Get total disk size in MSF format */
 				{
-					uint32_t msf = lba_to_msf(track_num - 1, toc_table[track_num].index0 + 150);
+					uint32_t msf = lba_to_msf(toc_table[track_num].index0 + 150);
 					buffer->write((msf >> 16) & 0xff);
 					buffer->write((msf >>  8) & 0xff);
 					buffer->write((msf >>  0) & 0xff);
@@ -518,25 +552,25 @@ void SCSI_CDROM::start_command()
 				break;
 			case 0x02:      /* Get track information */
 				if(command[2] == 0xaa) {
-					uint32_t msf = lba_to_msf(track_num - 1, toc_table[track_num].index0 + 150);
+					uint32_t msf = lba_to_msf(toc_table[track_num].index0 + 150);
 					buffer->write((msf >> 16) & 0xff);
 					buffer->write((msf >>  8) & 0xff);
 					buffer->write((msf >>  0) & 0xff);
 					buffer->write(0x04); // correct ?
 				} else {
 					int track = max(FROM_BCD(command[2]), 1);
-					uint32_t frame = toc_table[track - 1].index0;
+					uint32_t frame = toc_table[track].index0;
 					// PCE wants the start sector for data tracks to *not* include the pregap
-					if(!toc_table[track - 1].is_audio) {
-						frame += toc_table[track - 1].pregap;
+					if(!toc_table[track].is_audio) {
+						frame += toc_table[track].pregap;
 					}
 					get_track_by_track_num(track);
 					
-					uint32_t msf = lba_to_msf(track - 1, toc_table[track - 1].index1 + 150);
+					uint32_t msf = lba_to_msf(toc_table[track].index1 + 150);
 					buffer->write((msf >> 16) & 0xff); // M
 					buffer->write((msf >>  8) & 0xff); // S
 					buffer->write((msf >>  0) & 0xff); // F
-					buffer->write(toc_table[track - 1].is_audio ? 0x00 : 0x04);
+					buffer->write(toc_table[track].is_audio ? 0x00 : 0x04);
 				}
 				break;
 			}
@@ -565,10 +599,17 @@ bool SCSI_CDROM::read_buffer(int length)
 		return false;
 	}
 	uint32_t offset = (uint32_t)(position % 2352);
-	
-	if(fio_img->Fseek((long)position, FILEIO_SEEK_SET) != 0) {
-		set_sense_code(SCSI_SENSE_ILLGLBLKADDR); //SCSI_SENSE_SEEKERR
-		return false;
+
+	if(is_cue) {
+		if(fio_img->Fseek(((long)position - (long)(toc_table[current_track].lba_offset * 2352)), FILEIO_SEEK_SET) != 0) {
+			set_sense_code(SCSI_SENSE_ILLGLBLKADDR); //SCSI_SENSE_SEEKERR
+			return false;
+		}
+	} else {
+		if(fio_img->Fseek((long)position, FILEIO_SEEK_SET) != 0) {
+			set_sense_code(SCSI_SENSE_ILLGLBLKADDR); //SCSI_SENSE_SEEKERR
+			return false;
+		}
 	}
 	while(length > 0) {
 		uint8_t tmp_buffer[SCSI_BUFFER_SIZE];
@@ -636,14 +677,16 @@ int hexatoi(const char *string)
 	return value;
 }
 
+#include <string>
+
 bool SCSI_CDROM::open_cue_file(const _TCHAR* file_path)
 {
+	std::string line_buf;
+	std::string line_buf_shadow;
+	std::string image_tmp_data_path;
 
-	_TCHAR line_buf[2048];
-	_TCHAR line_buf_shadow[2048];
 	_TCHAR full_path_cue[_MAX_PATH];
-	_TCHAR image_tmp_data_path[_MAX_PATH];
-	int ptr;
+	size_t ptr;
 	int line_count = 0;
 	int slen;
 	int nr_current_track = 0;
@@ -651,14 +694,24 @@ bool SCSI_CDROM::open_cue_file(const _TCHAR* file_path)
 	if(fio == NULL) return false;
 
 	memset(full_path_cue, 0x00, sizeof(full_path_cue));
-	memset(image_tmp_data_path, 0x00, sizeof(image_tmp_data_path));
+	image_tmp_data_path.clear();
 
 	get_long_full_path_name(file_path, full_path_cue, sizeof(full_path_cue));
 	
-	_TCHAR *parent_dir = get_parent_dir(full_path_cue);	
-	if(fio->Fopen(file_path, FILEIO_READ_ASCII)) { // ToDo: Support not ASCII cue file (i.e. SJIS/UTF8).20181118 K.O
-		memset(line_buf, 0x00, sizeof(line_buf));
+	_TCHAR *parent_dir = get_parent_dir(full_path_cue);
 
+	size_t _arg1_ptr;
+	size_t _arg2_ptr;
+	size_t _arg2_ptr_s;
+	size_t _arg3_ptr;
+	size_t _arg3_ptr_s;
+
+	std::string _arg1;
+	std::string _arg2;
+	std::string _arg3;
+	
+	if(fio->Fopen(file_path, FILEIO_READ_ASCII)) { // ToDo: Support not ASCII cue file (i.e. SJIS/UTF8).20181118 K.O
+		line_buf.clear();
 		for(int i = 0; i < 100; i++) {
 			memset(&(track_data_path[i][0]), 0x00, _MAX_PATH * sizeof(_TCHAR));
 		}
@@ -666,162 +719,126 @@ bool SCSI_CDROM::open_cue_file(const _TCHAR* file_path)
 		bool is_eof = false;
 		int sptr = 0;
 		while(1) {
-			memset(line_buf, 0x00, sizeof(line_buf));
+			line_buf.clear();
 			int _np = 0;
 			_c = EOF;
 			do {
 				_c = fio->Fgetc();
-				if((_c == '\n') || (_c == EOF) || (_np >= 2048)) break;
-				if(_c != '\r') line_buf[_np++] = (_TCHAR)_c;
+				if((_c == '\0') || (_c == '\n') || (_c == EOF)) break;;
+				if(_c != '\r') line_buf.push_back((char)_c);
 			} while(1);
 			if(_c == EOF) is_eof = true;
-			slen = strlen(line_buf);
+			slen = (int)line_buf.length();
 			if(slen <= 0) goto _n_continue;
 			// Trim head of Space or TAB
 			ptr = 0;
 			sptr = 0;
-			while((line_buf[ptr] == '\t') || (line_buf[ptr] == ' ')) {
-				ptr++;
-				if(ptr >= slen) break;
-			}
-			if(ptr > slen) {
+			// Tokenize
+			_arg1.clear();
+			_arg2.clear();
+			_arg3.clear();
+			
+			ptr = line_buf.find_first_not_of((const char*)" \t");
+			if(ptr == std::string::npos) {
 				goto _n_continue;
 			}
-			memset(line_buf_shadow, 0x00, sizeof(line_buf_shadow));
-			while((line_buf[ptr] != ' ') && (line_buf[ptr] != '\0') && (line_buf[ptr] != '\t')) {
-				line_buf_shadow[sptr++] = (_TCHAR)(toupper(line_buf[ptr++]));
-				if(ptr >= slen) break;
+			// Token1
+			line_buf_shadow = line_buf.substr(ptr);
+
+			_arg1_ptr = line_buf_shadow.find_first_of((const char *)" \t");
+			_arg1 = line_buf_shadow.substr(0, _arg1_ptr);
+			_arg2 = line_buf_shadow.substr(_arg1_ptr);
+			std::transform(_arg1.begin(), _arg1.end(), _arg1.begin(),
+						   [](unsigned char c) -> unsigned char{ return std::toupper(c); });
+
+			_arg2_ptr = _arg2.find_first_not_of((const char *)" \t");
+
+			if(_arg2_ptr != std::string::npos) {
+				_arg2 = _arg2.substr(_arg2_ptr);
 			}
-			if((ptr > slen) || (sptr == 0)) {
-				goto _n_continue;
-			}
-			// Command
-			if(strcmp(line_buf_shadow, "REM") == 0) {
+
+			if(_arg1 == "REM") {
 				// REM
 				goto _n_continue;
-			} else if(strcmp(line_buf_shadow, "FILE") == 0) {
-				while((line_buf[ptr] != '"') && (line_buf[ptr] != '\0')) {
-					ptr++;
-					if(ptr > slen) break;
-				}
-				if(ptr >= slen) {
-					goto _n_continue;
-				}
-				// ARG1
-				ptr++;
-				if(ptr >= slen) goto _n_continue;
-				sptr = 0;
-				_TCHAR _tmps[_MAX_PATH];
-				memset(_tmps, 0x00, sizeof(_tmps));
-				while((line_buf[ptr] != '"') && (line_buf[ptr] != '\0')) {
-					_tmps[sptr++] = line_buf[ptr++];
-					if(ptr >= slen) break;
-				}
-				if(ptr >= slen) {
-					goto _n_continue;
-				}
-				if((sptr != 0) && (line_buf[ptr] == '"')) {
-					strncpy(image_tmp_data_path, parent_dir, _MAX_PATH);
-					strncat(image_tmp_data_path, _tmps, _MAX_PATH - 1);
-					#ifdef _CDROM_DEBUG_LOG
-						this->out_debug_log(_T("**FILE %s\n"), image_tmp_data_path);
-					#endif
-//					goto _n_continue; 
-				}
+			} else if(_arg1 == "FILE") {
+				_arg2_ptr = _arg2.find_first_of((const char *)"\"") + 1;
+				if(_arg2_ptr == std::string::npos) goto _n_continue;
+				
+				_arg2 = _arg2.substr(_arg2_ptr);
+				_arg3_ptr = _arg2.find_first_of((const char *)"\"");
+				if(_arg3_ptr == std::string::npos) goto _n_continue;
+				_arg2 = _arg2.substr(0, _arg3_ptr);
+				
+				image_tmp_data_path.clear();
+				image_tmp_data_path = std::string(parent_dir);
+				image_tmp_data_path.append(_arg2);
+				
+				#ifdef _CDROM_DEBUG_LOG
+					this->out_debug_log(_T("**FILE %s\n"), image_tmp_data_path.c_str());
+				#endif
 				goto _n_continue; // ToDo: Check ARG2 (BINARY etc..) 20181118 K.O
-			} else if(strcmp(line_buf_shadow, "TRACK") == 0) {
-				while((line_buf[ptr] == ' ') || (line_buf[ptr] == '\t')) {
-					ptr++;
-					if(ptr >= slen) break;
-				}
-				if(ptr > slen) goto _n_continue;
-				int _nr_num = 0;
-				_TCHAR _tmps[128];
-				int _n = 0;
-				memset(_tmps, 0x00, sizeof(_tmps));
-				while((line_buf[ptr] != ' ') && (line_buf[ptr] != '\t') && (line_buf[ptr] != '\0')) {
-					if(ptr >= slen) break;
-					_tmps[_n++] = line_buf[ptr++];
-				}
-				_nr_num = atoi(_tmps);
-				//ptr++;
+			} else if(_arg1 == "TRACK") {
+				_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
+				
+				_arg3 = _arg2.substr(_arg2_ptr_s);
+				_arg2 = _arg2.substr(0, _arg2_ptr_s);
+				_arg3_ptr = _arg3.find_first_not_of((const char *)" \t");
+				int _nr_num = atoi(_arg2.c_str());
+				
 				// Set image file
-				if((_nr_num > 0) && (_nr_num < 100)) {
+				if((_nr_num > 0) && (_nr_num < 100) && (_arg3_ptr != std::string::npos)) {
 					nr_current_track = _nr_num;
-					if(strlen(image_tmp_data_path) > 0) {
-						strncpy(track_data_path[_nr_num - 1], image_tmp_data_path, _MAX_PATH);
-						// ARG2
-						while((line_buf[ptr] == ' ') || (line_buf[ptr] == '\t')) {
-							ptr++;
-							if(ptr >= slen) break;
-						}
-						memset(_tmps, 0x00, sizeof(_tmps));
-						for(int i = 0; i < 127; i++) {
-							if((line_buf[ptr] == '\0') || (line_buf[ptr] == ' ') ||
-							   (line_buf[ptr] == '\n') || (line_buf[ptr] == '\t')) break;
-							_tmps[i] = (_TCHAR)(toupper(line_buf[ptr++]));
-							if(ptr > slen) break;
-						}
-
-						toc_table[nr_current_track - 1].is_audio = false;
-						toc_table[nr_current_track - 1].index0 = 0;
-						toc_table[nr_current_track - 1].index1 = 0;
-						toc_table[nr_current_track - 1].pregap = 0;
+					_arg3 = _arg3.substr(_arg3_ptr);
+					
+					memset(track_data_path[_nr_num - 1], 0x00, sizeof(_TCHAR) * _MAX_PATH);
+					strncpy((char *)(track_data_path[_nr_num - 1]), image_tmp_data_path.c_str(), _MAX_PATH);
+					
+					_arg3_ptr_s = _arg3.find_first_of((const char *)" \t\n");
+					_arg3.substr(0, _arg3_ptr_s);
+					
+					std::transform(_arg3.begin(), _arg3.end(), _arg3.begin(),
+								   [](unsigned char c) -> unsigned char{ return std::toupper(c); });
+					
+					toc_table[nr_current_track].is_audio = false;
+					toc_table[nr_current_track].index0 = 0;
+					toc_table[nr_current_track].index1 = 0;
+					toc_table[nr_current_track].pregap = 0;
 						
-						if(strcmp(_tmps, "AUDIO") == 0) {
-							toc_table[nr_current_track - 1].is_audio = true;
-						} else if(strcmp(_tmps, "MODE1/2352") == 0) {
-							toc_table[nr_current_track - 1].is_audio = false;
-						} else {
-							// ToDo: Another data mode 20181118 K.Ohta
-							memset(track_data_path[_nr_num - 1], 0x00, _MAX_PATH * sizeof(_TCHAR));
-						}
-						if(track_num < _nr_num) track_num = _nr_num;
+					if(_arg3.compare("AUDIO") == 0) {
+						toc_table[nr_current_track].is_audio = true;
+					} else if(_arg3.compare("MODE1/2352") == 0) {
+						toc_table[nr_current_track].is_audio = false;
+					} else {
+						// ToDo:  another type
 					}
+					if(track_num < (_nr_num + 1)) track_num = _nr_num + 1;
 				} else {
 					// ToDo: 20181118 K.Ohta
 					nr_current_track = 0;
 				}
 				goto _n_continue;
-			} else if(strcmp(line_buf_shadow, "INDEX") == 0) {
-
+			} else if(_arg1 == "INDEX") {
+				
 				if((nr_current_track > 0) && (nr_current_track < 100)) {
-					while((line_buf[ptr] == '\t') || (line_buf[ptr] == ' ')) {
-						ptr++;
-						if(ptr >= slen) break;
-					}
-					// ARG1
-					int index_type = 0;
-					_TCHAR _tmps[32];
-					memset(_tmps, 0x00, sizeof(_tmps));
-					for(int i = 0; i < 31; i++) {
-						if((line_buf[ptr] < '0') || (line_buf[ptr] > '9')) break;
-						_tmps[i] = line_buf[ptr++];
-						if(ptr > slen) break;
-					}
-					index_type = atoi(_tmps);
-					if(ptr >= slen) goto _n_continue;
+					_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
+					if(_arg2_ptr_s == std::string::npos) goto _n_continue;
 					
-					// ARG2
-					while((line_buf[ptr] == '\t') || (line_buf[ptr] == ' ')) {
-						ptr++;
-						if(ptr > slen) break;
-					}
-					memset(_tmps, 0x00, sizeof(_tmps));
-					for(int i = 0; i < 31; i++) {
-						if((line_buf[ptr] < '0') || (line_buf[ptr] > '9')) {
-							if(line_buf[ptr] != ':') break;
-						}
-						_tmps[i] = line_buf[ptr++];
-						if(ptr > slen) break;
-					}
+					_arg3 = _arg2.substr(_arg2_ptr_s);
+					_arg2 = _arg2.substr(0, _arg2_ptr_s);
+					_arg3_ptr = _arg3.find_first_not_of((const char *)" \t");
+					if(_arg3_ptr == std::string::npos) goto _n_continue;
+
+					_arg3 = _arg3.substr(_arg3_ptr);
+					_arg3_ptr_s = _arg3.find_first_of((const char *)" \t");
+					_arg3.substr(0, _arg3_ptr_s);
+					int index_type = atoi(_arg2.c_str());
 
 					switch(index_type) {
 					case 0:
-						toc_table[nr_current_track - 1].index0 = get_frames_from_msf(_tmps);
+						toc_table[nr_current_track].index0 = get_frames_from_msf(_arg3.c_str());
 						break;
 					case 1:
-						toc_table[nr_current_track - 1].index1 = get_frames_from_msf(_tmps);
+						toc_table[nr_current_track].index1 = get_frames_from_msf(_arg3.c_str());
 						break;
 					default:
 						break;
@@ -830,23 +847,12 @@ bool SCSI_CDROM::open_cue_file(const _TCHAR* file_path)
 				} else {
 					goto _n_continue;
 				}
-			} else if(strcmp(line_buf_shadow, "PREGAP") == 0) {
+			} else if(_arg1 == "PREGAP") {
 				if((nr_current_track > 0) && (nr_current_track < 100)) {
-					while((line_buf[ptr] == '\t') || (line_buf[ptr] == ' ')) {
-						ptr++;
-						if(ptr >= slen) break;
-					}
-					// ARG1
-					_TCHAR _tmps[32];
-					memset(_tmps, 0x00, sizeof(_tmps));
-					for(int i = 0; i < 31; i++) {
-						if((line_buf[ptr] < '0') || (line_buf[ptr] > '9')) {
-							if(line_buf[ptr] != ':') break;
-						}
-						_tmps[i] = line_buf[ptr++];
-						if(ptr >= slen) goto _n_continue;
-					}
-					toc_table[nr_current_track - 1].pregap = get_frames_from_msf(_tmps);
+					_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
+					_arg2 = _arg2.substr(0, _arg2_ptr_s - 1);
+					
+					toc_table[nr_current_track].pregap = get_frames_from_msf(_arg2.c_str());
 					goto _n_continue;
 				} else {
 					goto _n_continue;
@@ -854,44 +860,54 @@ bool SCSI_CDROM::open_cue_file(const _TCHAR* file_path)
 			}
 		_n_continue:
 			if(is_eof) break;
-			memset(line_buf, 0x00, sizeof(line_buf));
+			line_buf.clear();
 			continue;
 		}
 		// Finish
 		max_logical_block = 0;
 		if(track_num > 0) {
 			toc_table[0].lba_offset = 0;
-			for(int i = 0; i < track_num; i++) {
-					   
-				if(toc_table[i].index0 == 0) {
-					toc_table[i].index0 = toc_table[i].index1 - toc_table[i].pregap;
-				} else if(toc_table[i].pregap == 0) {
-					toc_table[i].pregap = toc_table[i].index1 - toc_table[i].index0;
-				}
+			toc_table[0].lba_size = 0;
+			toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
+			// P1: Calc
+			int _n = 0;
+			for(int i = 1; i < track_num; i++) {
+
 				if(fio_img->IsOpened()) {
 					fio_img->Fclose();
 				}
-				// ToDo: Support unreguler (!CDDA, i.e. MP3/WAV...) codec.20181118 K.O
-				int _n = 0;
-				toc_table[i].lba_offset = max_logical_block;
-				if(strlen(track_data_path[i]) > 0) {
-					if(fio_img->Fopen(track_data_path[i], FILEIO_READ_BINARY)) {
+				toc_table[i].index1 = toc_table[i].index1 + max_logical_block;
+				if(toc_table[i].index0 == 0) {
+					toc_table[i].index0 = toc_table[i].index1 - toc_table[i].pregap;
+				} else {
+					toc_table[i].index0 = toc_table[i].index0 + max_logical_block;
+					if(toc_table[i].pregap == 0) {
+						toc_table[i].pregap = toc_table[i].index1 - toc_table[i].index0;
+					}					
+				}					
+				if(strlen(track_data_path[i - 1]) > 0) {
+					if(fio_img->Fopen(track_data_path[i - 1], FILEIO_READ_BINARY)) {
 						if((_n = fio_img->FileLength() / 2352) > 0) {
 							max_logical_block += _n;
 						}
 					}
 				}
+				toc_table[i].lba_size = _n;
+				toc_table[i].lba_offset = max_logical_block - _n;
 
+				
 				#ifdef _CDROM_DEBUG_LOG
 				this->out_debug_log(_T("TRACK#%02d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d LBA_OFFSET=%d PATH=%s\n"),
-									i + 1, (toc_table[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352"),
+									i, (toc_table[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352"),
 									toc_table[i].pregap, toc_table[i].index0, toc_table[i].index1,
-									_n, toc_table[i].lba_offset, track_data_path[i]);
+									toc_table[i].lba_size, toc_table[i].lba_offset, track_data_path[i - 1]);
 				#endif
 			}
-			//toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
-			toc_table[track_num].index0 = toc_table[track_num].index1 = max_logical_block;
-			toc_table[track_num].lba_offset = max_logical_block;
+			toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
+//			toc_table[track_num].index0 = toc_table[track_num].index1 = max_logical_block;
+//			toc_table[track_num].lba_offset = max_logical_block;
+//			toc_table[track_num].lba_size = 0;
+			
 		}
 		fio->Fclose();
 	}
@@ -913,7 +929,7 @@ void SCSI_CDROM::open(const _TCHAR* file_path)
 	// 20181014 K.O
 	if(check_file_extension(file_path, _T(".cue"))) {
 #if 1
-		is_cue = true;
+		is_cue = false;
 		current_track = 0;
 		open_cue_file(file_path);
 #else
@@ -1042,12 +1058,19 @@ void SCSI_CDROM::open(const _TCHAR* file_path)
 					}
 					if(track_num != 0) {
 						toc_table[0].lba_offset = 0;
+						toc_table[0].pregap = 0;
 						for(int i = 1; i < track_num; i++) {
 							toc_table[i].index0 = toc_table[i].index1 - toc_table[i].pregap;
-							toc_table[i].lba_offset = toc_table[i].index0;
+							toc_table[i].lba_offset = toc_table[i].pregap;
+							toc_table[i - 1].lba_size = toc_table[i].pregap - toc_table[i - 1].pregap;
 						}
 						toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
 						toc_table[track_num].index0 = toc_table[track_num].index1 = max_logical_block;
+						if(track_num > 0) {
+							toc_table[track_num].lba_size = max_logical_block - toc_table[track_num - 1].lba_offset;
+						} else {
+							toc_table[track_num].lba_size = 0;
+						}
 					} else {
 						fio_img->Fclose();
 					}
@@ -1060,9 +1083,9 @@ void SCSI_CDROM::open(const _TCHAR* file_path)
 #ifdef _SCSI_DEBUG_LOG
 	if(mounted()) {
 		for(int i = 0; i < track_num + 1; i++) {
-			uint32_t idx0_msf = lba_to_msf(i, toc_table[i].index0);
-			uint32_t idx1_msf = lba_to_msf(i, toc_table[i].index1);
-			uint32_t pgap_msf = lba_to_msf(i, toc_table[i].pregap);
+			uint32_t idx0_msf = lba_to_msf(toc_table[i].index0);
+			uint32_t idx1_msf = lba_to_msf(toc_table[i].index1);
+			uint32_t pgap_msf = lba_to_msf(toc_table[i].pregap);
 			this->out_debug_log(_T("Track%02d: Index0=%02x:%02x:%02x Index1=%02x:%02x:%02x PreGpap=%02x:%02x:%02x\n"), i + 1,
 			(idx0_msf >> 16) & 0xff, (idx0_msf >> 8) & 0xff, idx0_msf & 0xff,
 			(idx1_msf >> 16) & 0xff, (idx1_msf >> 8) & 0xff, idx1_msf & 0xff,
