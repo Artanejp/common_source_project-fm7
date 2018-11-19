@@ -40,7 +40,18 @@ uint32_t TOWNS_VRAM::read_data8(uint32_t addr)
 {
 	// ToDo:Offset.
 	// ToDo: Wait.
-	return vram[addr & 0x7ffff];
+#ifdef __LITTLE_ENDIAN__
+	uint8_t*p = (uint8_t*)vram;
+	return (uint32_t)(p[addr & 0x7ffff]);
+#else
+	pair16_t d;
+	d.w= vram[(addr & 0x7ffff) >> 1];
+	if((addr & 0x01) == 0) { // Hi
+		return (uint32_t)(d.b.h);
+	} else { // Lo
+		return (uint32_t)(d.b.l);
+	}
+#endif	
 }
 
 
@@ -49,41 +60,92 @@ uint32_t TOWNS_VRAM::read_data16(uint32_t addr)
 {
 	// ToDo:Offset.
 	// ToDo: Wait.
-	uint32_t naddr = addr & 0x7fffe;
+	// Host: Little endian
+	// ToDo: Mask Register.
+	uint32_t naddr = (addr & 0x7fffe) >> 1;
+#ifdef __LITTLE_ENDIAN__
+	uint16_t w = vram[naddr];
+	return (uint32_t)w;
+#else // __BIG_ENDIAN__	
 	pair16_t nw;
-	nw.l = vram[naddr + 0];
-	nw.h = vram[naddr + 1];
+	nw.w = vram[naddr];
 	return (uint32_t)(nw.w);
+#endif
 }
 
 uint32_t TOWNS_VRAM::read_data32(uint32_t addr)
 {
 	// ToDo: Wait.
+	// ToDo: Mask Register.
+#ifdef __LITTLE_ENDIAN__
+	uint32_t*p = (uint32_t*)vram;
+	uint32_t naddr = (addr & 0x7ffff) >> 2;
+	uint32_t w = p[naddr];
+	return w;
+#else // __BIG_ENDIAN__	
 	pair32_t nd;
-	uint32_t naddr = addr & 0x7fffc;
-	nd.w.l = read_data16(naddr + 0);
-	nd.w.h = read_data16(naddr + 2);
+	uint32_t naddr = (addr & 0x7ffff) >> 1;
+	nd.w.l = vram[naddr];
+	nd.w.h = vram[naddr + 1];;
 	return nd.d;
+#endif
 }
 
 void TOWNS_VRAM::write_data8(uint32_t addr, uint32_t data)
 {
 	// ToDo:Offset.
 	// ToDo: Wait.
+	// ToDo: Mask Register.
 	bool dirty;
 	uint32_t naddr = addr & 0x7ffff;
-	uint8_t n = vram[naddr];
+
+#ifdef __LITTLE_ENDIAN__
+	uint8_t* p = (uint8_t*)vram;
+	n = p[naddr];
+#else
+	pair16_t d;
+	// ToDo: Mask register
+	d.w = vram[naddr >> 1];
+	if((addr & 0x01) != 0) { // Hi
+		n = d.b.h;
+		d.b.h = data;
+	} else { // Lo
+		n = d.b.l;
+		d.b.l = data;
+	}
+#endif
+	// ToDo: Mask register
+	
 	dirty =	((uint8_t)data != n) ? true : false;
-    dirty_flag[naddr] = dirty;
+
 	if(dirty) {
-		vram[naddr] = n;
+		dirty_flag[naddr >> 3] = true;
+	// ToDo: Mask register
+#ifdef __LITTLE_ENDIAN__
+		p[naddr] = data;
+#else
+		vram[naddr >> 1] = d.w; 
+#endif
+
+#if 0		
 		if((naddr & 1) != 0) {
+			// Upper address: Change mask for 32768colors. 
 			uint16_t nd = (n < 0x80) ? 0xffff : 0x0000;
 			alpha_32768_byte[naddr >> 1] = (uint8_t)nd;
 			alpha_32768_word[naddr >> 1] = nd;
 			mask_32768_word[naddr >> 1]  = ~nd;
 		}
 		// ToDo: Mask/alpha16.
+		uint16_t nu = ((n & 0xf0) != 0) ? 0x0000 : 0xffff;
+		uint16_t nl = ((n & 0x0f) != 0) ? 0x0000 : 0xffff;
+		naddr = naddr << 1;
+		alpha_16_byte[naddr + 0] = (uint8_t)nu;
+		alpha_16_byte[naddr + 1] = (uint8_t)nl;
+		alpha_16_word[naddr + 0] = nu;
+		alpha_16_word[naddr + 1] = nl;
+		mask_16_byte[naddr + 0]  = ~nu;
+		mask_16_byte[naddr + 1]  = ~nl;
+#endif
 	}
 }
 
@@ -92,83 +154,204 @@ void TOWNS_VRAM::write_data16(uint32_t addr, uint32_t data)
 	// ToDo:Offset.
 	// ToDo: Wait.
 	bool dirty;
-	uint32_t naddr = addr & 0x7fffe;
-	uint16_t *vp = (uint16_t*)(&(vram[naddr]));
-	pair16_t nw;
-	nw.b.l = vram[naddr + 0];
-	nw.b.h = vram[naddr + 1];
-	
-    dirty = ((uint16_t)data != nw.w) ? true : false;
-	dirty_flag[naddr] = dirty;
-	dirty_flag[naddr + 1] = dirty;
+	uint32_t naddr = (addr & 0x7fffe) >> 1;
+	uint16_t d;
+	// ToDo: Mask register
+	d = vram[naddr];
+    dirty = ((uint16_t)data != d) ? true : false;
 
 	if(dirty) {
+		dirty_flag[naddr >> 2] = true;
+		// ToDo: Mask register
+		vram[naddr] = data; 
+#if 0		
 		uint16_t alphaw = (nw.w < 0x8000) ? 0xffff : 0x0000;
 		alpha_32768_byte[naddr >> 1] = (uint8_t)alphaw;
 		alpha_32768_word[naddr >> 1] = alphaw;
 		mask_32768_word[naddr >> 1] = ~alphaw;
-		*vp = (uint16_t)data;
+
+		
+		uint16_t n0 = ((nw.b.h  & 0xf0) != 0) ? 0x0000 : 0xffff;
+		uint16_t n1 = ((nw.b.h  & 0x0f) != 0) ? 0x0000 : 0xffff;
+		uint16_t n2 = ((nw.b.l & 0xf0) != 0)  ? 0x0000 : 0xffff;
+		uint16_t n3 = ((nw.b.l & 0x0f) != 0)  ? 0x0000 : 0xffff;
+		naddr = naddr << 1;
+		alpha_16_byte[naddr + 0] = (uint8_t)n0;
+		alpha_16_byte[naddr + 1] = (uint8_t)n1;
+		alpha_16_byte[naddr + 2] = (uint8_t)n2;
+		alpha_16_byte[naddr + 3] = (uint8_t)n3;
+		alpha_16_word[naddr + 0] = n0;
+		alpha_16_word[naddr + 1] = n1;
+		alpha_16_word[naddr + 2] = n2;
+		alpha_16_word[naddr + 3] = n3;
+		
+		mask_16_byte[naddr + 0]  = ~n0;
+		mask_16_byte[naddr + 1]  = ~n1;
+		mask_16_byte[naddr + 2]  = ~n2;
+		mask_16_byte[naddr + 3]  = ~n3;
+#endif
 	}
 }
 
 void TOWNS_VRAM::write_data32(uint32_t addr, uint32_t data)
 {
-	uint32_t naddr = addr & 0x7fffc; // OK?
-	write_data16(naddr + 0, (uint16_t)data);
-	write_data16(naddr + 2, (uint16_t)(data >> 16));
+	// ToDo:Offset.
+	// ToDo: Wait.
+	bool dirty;
+	uint32_t naddr = (addr & 0x7fffc) >> 1;
+	uint32_t *p = (uint32_t*)vram; 
+	pair32_t nw;
+
+	// ToDo: Mask register
+#ifdef __LITTLE_ENDIAN__
+	nw.d = p[naddr >> 1];
+#else
+	nw.w.l = vram[naddr + 0];
+	nw.w.h = vram[naddr + 1];
+#endif
+	// ToDo: Mask register
+    dirty = (data != nw.d) ? true : false;
+
+	if(dirty) {
+		// ToDo: Mask register
+		dirty_flag[(naddr >> 2) + 0] = true;
+
+#ifdef __LITTLE_ENDIAN__
+		p[naddr >> 1] = data;
+#else
+		nw.d = data;
+		vram[naddr + 0] = nw.w.l;
+		vram[naddr + 1] = nw.w.h;
+#endif
+	}	
 }
 
 
+uint32_t TOWNS_VRAM::read_plane_data8(uint32_t addr)
+{
+	// Plane Access
+	pair_t data_p;
+	uint32_t x_addr = 0;
+	uint8_t *p = (uint8_t*)vram;
+	uint32_t mod_pos;
+
+	// ToDo: Writing plane.
+	if(access_page1) x_addr = 0x40000; //?
+	addr = (addr & 0x7fff) << 3;
+	p = &(p[x_addr + addr]); 
+	
+	// 8bit -> 32bit
+	uint32_t *pp = (uint32_t *)p;
+	uint8_t tmp = 0;
+	uint32_t tmp_d = *pp;
+	
+#ifdef __LITTLE_ENDIAN__
+	uint32_t tmp_m1 = 0x000000f0;
+	uint32_t tmp_m2 = 0x0000000f;
+#else
+	uint32_t tmp_m1 = 0xf0000000;
+	uint32_t tmp_m2 = 0x0f000000;
+#endif	
+	uint32_t tmp_r;
+	tmp_d = tmp_d & write_plane_mask;
+	
+	for(int i = 0; i < 4; i++) {
+		tmp <<= 2;
+		tmp = tmp | (((tmp_d & tmp_m1) != 0) ? 0x02 : 0x00);
+		tmp = tmp | (((tmp_d & tmp_m2) != 0) ? 0x01 : 0x00);
+		
+#ifdef __LITTLE_ENDIAN__
+		tmp_d <<= 8;
+#else
+		tmp_d >>= 8;
+#endif		
+	}
+	return tmp;
+}
+
+uint32_t TOWNS_VRAM::read_plane_data16(uint32_t addr)
+{
+	pair16_t d;
+	d.b.l = (uint8_t)(read_plane_data8(addr + 0));
+	d.b.h = (uint8_t)(read_plane_data8(addr + 1));
+	return (uint32_t)(d.w);
+}
+
+uint32_t TOWNS_VRAM::read_plane_data32(uint32_t addr)
+{
+	pair32_t d;
+	d.b.l  = (uint8_t)(read_plane_data8(addr + 0));
+	d.b.h  = (uint8_t)(read_plane_data8(addr + 1));
+	d.b.h2 = (uint8_t)(read_plane_data8(addr + 2));
+	d.b.h3 = (uint8_t)(read_plane_data8(addr + 3));
+	return d.d;
+}
 
 void TOWNS_VRAM::write_plane_data8(uint32_t addr, uint32_t data)
 {
 	// Plane Access
 	pair_t data_p;
 	uint32_t x_addr = 0;
-	uint8_t *p;
+	uint8_t *p = (uint8_t*)vram;
 	uint32_t mod_pos;
 
-	if(access_page1) x_addr = 0x20000; //?
-	p = &(vram[x_addr]); 
-
+	// ToDo: Writing plane.
+	if(access_page1) x_addr = 0x40000; //?
+	addr = (addr & 0x7fff) << 3;
+	x_addr = x_addr + addr;
+	p = &(p[x_addr]); 
+	
 	// 8bit -> 32bit
 	uint32_t *pp = (uint32_t *)p;
 	uint32_t tmp = 0;
 	uint32_t tmp_d = data & 0xff;
-	uint32_t tmp_m = 0xf0000000 & write_plane_mask;
-	uint32_t tmp_r;
+#ifdef __LITTLE_ENDIAN__
+	uint32_t tmp_m1 = 0xf0000000 & write_plane_mask;
+	uint32_t tmp_m2 = 0x0f000000 & write_plane_mask;
+#else
+	uint32_t tmp_m1 = 0x000000f0 & write_plane_mask;
+	uint32_t tmp_m2 = 0x0000000f & write_plane_mask;
+#endif	
+	uint32_t tmp_r1;
+	uint32_t tmp_r2;
 
-	for(int i = 0; i < 8; i++) {
-		if((tmp_d & 0x80)) tmp |= tmp_m;
-		tmp_d << 1;
-		tmp_m >>= 4;
+	for(int i = 0; i < 4; i++) {
+#ifdef __LITTLE_ENDIAN__
+		tmp = tmp >> 8;
+#else
+		tmp = tmp << 8;
+#endif
+		tmp = tmp | (((tmp_d & 0x02) != 0) ? tmp_m1 : 0x00);
+		tmp = tmp | (((tmp_d & 0x01) != 0) ? tmp_m2 : 0x00);
+		tmp_d >>= 2;
 	}
-	tmp_r = pp[addr];
-	tmp_r = tmp_r & ~write_plane_mask;
-	tmp_r = tmp_d | tmp_r;
-	pp[addr] = tmp_r;
+	tmp_r1 = *pp;
+	tmp_r2 = tmp_r1;
+	tmp_r1 = tmp_r1 & ~write_plane_mask;
+	tmp_r1 = tmp_d | tmp_r1;
+	if(tmp_r2 != tmp_r1) {
+		*pp = tmp_r1;
+		dirty_flag[x_addr >> 3] = true;
+	}
 }
 
 void TOWNS_VRAM::write_plane_data16(uint32_t addr, uint32_t data)
 {
-	pair_t d;
-	d.d = data;
-	write_plane_data8(addr, d.b.l);
+	pair16_t d;
+	d.w = (uint16_t)data;
+	write_plane_data8(addr + 0, d.b.l);
 	write_plane_data8(addr + 1, d.b.h);
 }
 
-void TOWNS_VRAM::write_plane_data16(uint32_t addr, uint32_t data)
-{
-	write_plane_data8(addr, data & 0xff);
-	write_plane_data8(addr + 1, (data >> 8) & 0xff);
-}
 
 void TOWNS_VRAM::write_plane_data32(uint32_t addr, uint32_t data)
 {
-	write_plane_data8(addr, data & 0xff);
-	write_plane_data8(addr + 1, (data >> 8) & 0xff);
-	write_plane_data8(addr + 2, (data >> 16) & 0xff);
-	write_plane_data8(addr + 3, (data >> 24) & 0xff);
+	pair32_t d;
+	d.d = data;
+	write_plane_data8(addr + 0, d.b.l);
+	write_plane_data8(addr + 1, d.b.h);
+	write_plane_data8(addr + 2, d.b.h2);
+	write_plane_data8(addr + 3, d.b.h3);
 }
 
 
@@ -240,20 +423,39 @@ void TOWNS_CRTC::set_apalette_num(int layer, uint8_t val)
 }
 
 // Renderers
-void TOWNS_CRTC::render_line_16(int layer, scrntype_t *framebuffer, uint8_t *vramptr, uint32_t words)
+void TOWNS_CRTC::render_line_16(int layer, bool upper_layer, scrntype_t *framebuffer, uint8_t *vramptr, uint32_t startaddr, uint32_t words)
 {
 	uint32_t wordptr = 0;
 	int nwords = (int)words / 16;
 	int ip;
 	uint32_t src;
 	uint32_t src1, src2;
-	uint8_t  srcdat[16];
-	scrntype_t tmpdat[16];
+	uint8_t  srcdat[16]  __attribute__((__aligned(16)));
+	scrntype_t tmpdat[16] __attribute__((__aligned(sizeof(scrntype_t) * 8)));
+	
+	scrntype_t alpha_cache_16[16] __attribute__((__aligned(16)));
+	scrntype_t data_cache_16[16] __attribute__((__aligned(16)));
+	
 	scrntype_t *pdst = framebuffer;
 	uint8_t *pp = (uint8_t *)vramptr;
 	if(framebuffer == NULL) return;
 	if(vramptr == NULL) return;
+
+	uintptr_t offset_base = (uintptr_t)startaddr;
+	uintptr_t base = ((layer == 0) ? 0x00000 : 0x40000);
+	uintptr_t offset;
+	// offet_base = (offset_base + [value_of_offset_register]) & mask.
+	offset_base = (offet_base & 0x3ffff) + base;
+	pp = &(pp[offset_base]);
+	
 	for(ip = 0; ip < nwords; ip++) {
+		if(!dirty_flag[(offset_base >> 3)]) {
+			pdst += 16;
+			pp += 8;
+			offset_base += 8;
+			continue;
+		}
+		dirty_flag[(offset_base >> 3)] = false;
 		for(int ii = 0; ii < 8; ii++) {
 			srcdat[ii << 1]       =  pp[ii];
 			srcdat[(ii << 1) + 1] =  srcdat[ii << 1] & 0x0f;
@@ -261,19 +463,24 @@ void TOWNS_CRTC::render_line_16(int layer, scrntype_t *framebuffer, uint8_t *vra
 		}
 		
 		for(int ii = 0; ii < 16; ii++) {
-			uint16_t c = (srcdat[ii] == 0) ? 0x0000 : 0xffff;
-			alpha_cache_16_word[ii] = c;
-			alpha_cache_16_byte[ii] = (uint8_t)c;
-			mask_cache_16_word[ii] = ~c;
+			data_cache_16[ii] = apalette_16[layer][srcdat1[ii]];
 		}
 		if(upper_layer) {
+			// ToDo: For hadrdware that does not upport alpha blending(not RGBA32).
 			for(int ii = 0; ii < 16; i++) {
-				tmpdat[ii] = (alpha_cache_16_byte[ii] != 0) ? apalette_16[layer][srcdat1[ii]] : RGBA_COLOR(0, 0, 0, 0);
+				alpha_cache_16[ii] = (srcdat[ii] == 0) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
 			}
+			for(int ii = 0; ii < 16; i++) {
+				tmpdat[ii] = alpha_cache_16_byte[ii] * data_cache_16[ii];
+			}		
 		} else {
+			// ToDo: For hadrdware that does not upport alpha blending(not RGBA32).
 			for(int ii = 0; ii < 16; i++) {
-				tmpdat[ii] = (alpha_cache_16_byte[ii] != 0) ? apalette_16[layer][srcdat1[ii]] : RGBA_COLOR(0, 0, 0, 255);
+				alpha_cache_16[ii] = (srcdat[ii] == 0) ? RGBA_COLOR(0,0,0,255) : RGBA_COLOR(255, 255, 255, 255);
 			}
+			for(int ii = 0; ii < 16; i++) {
+				tmpdat[ii] = alpha_cache_16_byte[ii] * data_cache_16[ii];
+			}		
 		}
 		for(int ii = 0; ii < 16; ii++) {
 			pdst[ii] = tmpdat[ii];
@@ -283,71 +490,92 @@ void TOWNS_CRTC::render_line_16(int layer, scrntype_t *framebuffer, uint8_t *vra
 	}
 	int mod_words = words - (nwords * 16);
 	uint8_t sdat1, sdat2;
-	uint16_t c1 = 0xffff;
-	uint16_t c2 = 0xffff;
+	scrntype_t c1, c2;
 	
 	if(mod_words > 0) {
-		for(int ii = 0; ii < mod_words; i++) {
-			if((ii & 1) == 0) {
-				sdat1 = *pp;
-				sdat2 = sdat1 & 0x0f;
-				sdat1 = (sdat1 & 0xf0) >> 4;
-				c1 = (sdat1 == 0) ? 0x0000 : 0xffff;
-				c2 = (sdat2 == 0) ? 0x0000 : 0xffff;
-			}
-			if((ii & 1) == 0) {
-				alpha_cache_16_word[ii] = c1;
-				alpha_cache_16_byte[ii] = (uint8_t)c1;
-				mask_cache_16_word[ii]  = ~c1;
-			} else {
-				alpha_cache_16_word[ii] = c2;
-				alpha_cache_16_byte[ii] = (uint8_t)c2;
-				mask_cache_16_word[ii]  = ~c2;
-			}	
-			
-			if((ii & 1) == 0) {
-				if(upper_layer) {
-					tmpdat[ii] = (c1 != 0) ? apalette_16_pixel[layer][sdat1] : RGBA_COLOR(0, 0, 0, 0);
-				} else {
-					tmpdat[ii] = (c1 != 0) ? apalette_16_pixel[layer][sdat1] : RGBA_COLOR(0, 0, 0, 255);
+		offset_base = (uintptr_t)startaddr;
+		// offet_base = (offset_base + [value_of_offset_register]) & mask.
+		offset_base = ((offet_base + nwords) & 0x3ffff) + base;
+		if(dirty_flag[offset_base >> 3]) {
+			dirty_flag[offset_base >> 3] = false;
+			for(int ii = 0; ii < mod_words; i++) {
+				if((ii & 1) == 0) {
+					sdat1 = *pp;
+					sdat2 = sdat1 & 0x0f;
+					sdat1 = (sdat1 & 0xf0) >> 4;
+					if(upper_layer) {
+						c1 = (sdat1 == 0) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
+						c2 = (sdat2 == 0) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
+					} else {
+						c1 = (sdat1 == 0) ? RGBA_COLOR(0, 0, 0, 255) : RGBA_COLOR(255, 255, 255, 255);
+						c2 = (sdat2 == 0) ? RGBA_COLOR(0, 0, 0, 255) : RGBA_COLOR(255, 255, 255, 255);
+					}
 				}
-			} else {
-				if(upper_layer) {
-					tmpdat[ii] = (c2 != 0) ? apalette_16_pixel[layer][sdat2] : RGBA_COLOR(0, 0, 0, 0);
+				if((ii & 1) == 0) {
+					tmpdat[ii] = c1 * apalette_16_pixel[layer][sdat1];
 				} else {
-					tmpdat[ii] = (c2 != 0) ? apalette_16_pixel[layer][sdat2] : RGBA_COLOR(0, 0, 0, 255);
+					tmpdat[ii] = c2 * apalette_16_pixel[layer][sdat2];
 				}
+				pp++;
 			}
-			pp++;
-		}
-		for(int ii = 0; ii < mod_words; i++) {
-			pdst[ii] = tmpdat[ii];
+			for(int ii = 0; ii < mod_words; i++) {
+				pdst[ii] = tmpdat[ii];
+			}
 		}
 	}
 }
 
-void TOWNS_CRTC::render_line_256(int layer, scrntype_t *framebuffer, uint8_t *vramptr, uint32_t words)
+void TOWNS_CRTC::render_line_256(int layer, bool upper_layer, scrntype_t *framebuffer, uint8_t *vramptr, uint32_t startaddr, uint32_t words)
 {
 	uint32_t wordptr = 0;
-	int nwords = (int)words / 4;
+	int nwords = (int)words / 8;
 	int ip;
-	uint32_t src;
-	uint8_t  srcdat[4];
-	scrntype_t *pdst = framebuffer;
+	uint32_t src[2] __attribute__((aligned(8)));
+	uint8_t  srcdat[8] __attribute__((aligned(16)));;
+	scrntype_t *pdst  = __builtin_assume_aligned(framebuffer, sizeof(scrntype_t) * 4);
 	uint32_t *pp = (uint32_t *)vramptr;
 	
 	if(framebuffer == NULL) return;
 	if(vramptr == NULL) return;
+
+	uintptr_t offset_base = (uintptr_t)startaddr;
+	uintptr_t base = ((layer == 0) ? 0x00000 : 0x40000);
+	// offet_base = (offset_base + [value_of_offset_register]) & mask.
+	offset_base = (offet_base & 0x3ffff) + base;
+	pp = &(pp[offset_base >> 2]);
+	
 	for(ip = 0; ip < nwords; ip++) {
-		src = pp[ip];
-		srcdat[0] = (uint8_t)((src & 0xff000000) >> 24);
-		srcdat[1] = (uint8_t)((src & 0x00ff0000) >> 16);
-		srcdat[2] = (uint8_t)((src & 0x0000ff00) >> 8);
-		srcdat[3] = (uint8_t) (src & 0x000000ff);
-		for(int i = 0; i < 4; i++) {
-			pdst[i] = apalette_256_pixel[srcdat[i]];
+		if(dirty_flag[offset_base >> 3]) {
+			src[0] = pp[0];
+			src[1] = pp[1];
+#if defined(__LITTLE_ENDIAN__)
+			srcdat[0] = (uint8_t)((src[0] & 0xff000000) >> 24);
+			srcdat[1] = (uint8_t)((src[0] & 0x00ff0000) >> 16);
+			srcdat[2] = (uint8_t)((src[0] & 0x0000ff00) >> 8);
+			srcdat[3] = (uint8_t) (src[0] & 0x000000ff);
+			
+			srcdat[4] = (uint8_t)((src[1] & 0xff000000) >> 24);
+			srcdat[5] = (uint8_t)((src[1] & 0x00ff0000) >> 16);
+			srcdat[6] = (uint8_t)((src[1] & 0x0000ff00) >> 8);
+			srcdat[7] = (uint8_t) (src[1] & 0x000000ff);
+#else
+			srcdat[0] = (uint8_t)( src[0] & 0x000000ff);
+			srcdat[1] = (uint8_t)((src[0] & 0x0000ff00) >> 8);
+			srcdat[2] = (uint8_t)((src[0] & 0x00ff0000) >> 16);
+			srcdat[3] = (uint8_t)((src[0] & 0xff000000) >> 24);
+			
+			srcdat[4] = (uint8_t)( src[1] & 0x000000ff);
+			srcdat[5] = (uint8_t)((src[1] & 0x0000ff00) >> 8);
+			srcdat[6] = (uint8_t)((src[1] & 0x00ff0000) >> 16);
+			srcdat[7] = (uint8_t)((src[1] & 0xff000000) >> 24);
+#endif
+			// ToDo: Super Impose.
+			for(int i = 0; i < 8; i++) {
+				pdst[i] = apalette_256_pixel[srcdat[i]];
+			}
 		}
-		pdst += 4;
+		pp += 2;
+		pdst += 8;
 	}
 	int mod_words = words - (nwords * 4);
 	if(mod_words > 0) {
@@ -355,64 +583,78 @@ void TOWNS_CRTC::render_line_256(int layer, scrntype_t *framebuffer, uint8_t *vr
 		uint8_t *p8 = (uint8_t *)(&pp[ip]);
 		for(int i = 0; i < mod_words; i++) {
 			src8 = p8[i];
+			// ToDo: Super Impose.
 			pdst[i] = apalette_256_pixel[src8];
 		}
 	}
 }
 
 // To be used table??
-void TOWNS_CRTC::render_line_32768(int layer, scrntype_t *pixcache, uint8_t *vramptr, uint32_t words)
+void TOWNS_CRTC::render_line_32768(int layer, bool do_impose, scrntype_t *pixcache, uint16_t *vramptr, uint32_t words)
 {
 	uint32_t wordptr = 0;
 	int nwords = (int)words / 8;
 	int ip;
 	uint16_t src16;
 	scrntype_t *pdst = pixcache;
-	uint8_t *pp = (uint8_t *)vramptr;
+	uint16_t *pp = (uint16_t *)vramptr;
 	uint16_t *cachep = (uint16_t *)srcdat;
-	pair16_t rgb[8];
-	uint8_t a[8], r[8], g[8], b[8];
-	scrntype_t dcache[8];
+	pair16_t rgb[8] __attribute__((aligned(16)));
+	uint8_t a[8] __attribute__((aligned(16)));
+	uint8_t r[8] __attribute__((aligned(16)));
+	uint8_t g[8] __attribute__((aligned(16)));
+	uint8_t b[8] __attribute__((aligned(16)));
+	scrntype_t dcache[8] __attribute__((aligned(sizeof(scrntype_t) * 8)));
 
 	int i = 0;
 	
 	if(framebuffer == NULL) return;
 	if(vramptr == NULL) return;
 
-	union {
-		uint16_t u16[8];
-		pair16_t p16[8];
-		uint8_t  u8[16];
-	} srcdat;
+	uintptr_t offset_base = (uintptr_t)startaddr;
+	uintptr_t base = ((layer == 0) ? 0x00000 : 0x40000);
+	// offet_base = (offset_base + [value_of_offset_register]) & mask.
+	offset_base = (offet_base & 0x3ffff) + base;
+	pp = &(pp[offset_base >> 1]);
 	for(ip = 0; ip < nwords; ip++) {
-		for(int i = 0; i < 16; i++) {
-			srcdat.u8[i] = pp[i];
+		if(dirty_flag[offset_base >> 3]) {
+			dirty_flags[offset_base >> 3] = false;
+			for(int i = 0; i < 8; i++) {
+				rgb[i].w = pp[i];
+			}
+			for(int i = 0; i < 8; i++) {
+				dcache[i] = _CLEAR_COLOR;
+			}
+			
+			for(int ii = 0; ii < 8; ii++) {
+				//g5r5b5
+				g[ii] = rgb[ii].b.h & 0x7c;
+				b[ii] = rgb[ii].b.l & 0x1f;
+			}
+			for(int ii = 0; ii < 8; ii++) {
+				//g5r5b5
+				b[ii] = b[ii] << 3;
+			}
+			for(int ii = 0; ii < 8; ii++) {
+				r[ii] = ((rgb[ii].b.h & 0x03) << 6) | ((rgb[ii].b.l & 0xe0) >> 2);
+			}
+			if(do_impose) {
+				for(int ii = 0; ii < 8; ii++) {
+					a[ii] =  (rgb[ii].h < 0x80) ? 0xff : 0x00;
+				}
+			} else {
+				for(int ii = 0; ii < 8; ii++) {
+					a[ii] = 0xff;
+				}
+			}
+			for(int ii = 0; ii < 8; ii++) {
+				dcache[ii] = RGBA_COLOR(r[ii], g[ii], b[ii], a[ii]);
+			}
+			for(int ii = 0; ii < 8; ii++) {
+				pdst[ii] = dcache[ii];
+			}
 		}
-		for(int i = 0; i < 8; i++) {
-			dcache[i] = _CLEAR_COLOR;
-		}
-
-		for(int ii = 0; ii < 8; ii++) {
-#if defined(__LITTLE_ENDIAN__)
-			rgb[ii].w = srcdat.w[ii];
-#else
-			rgb[ii].b.l = srcdat.u8[ii << 1];
-			rgb[ii].b.h = srcdat.u8[(ii << 1) + 1];
-#endif
-		}
-		for(int ii = 0; ii < 8; ii++) {
-			//g5r5b5
-			g[ii] = (rgb[ii].w & 0x7c00) >> 10;
-			r[ii] = (rgb[ii].w & 0x03e0) >> 5;
-			b[ii] = (rgb[ii].w & 0x001f);
-			a[ii] = (rgb[ii].w < 0x8000) ? 0xff : 0x00;
-		}
-		for(int ii = 0; ii < 8; ii++) {
-			dcache[ii] = RGBA_COLOR(r[ii], g[ii], b[ii], a[ii]);
-		}
-		for(int ii = 0; ii < 8; ii++) {
-			pdst[ii] = dcache[ii];
-		}
+		offset_base += 8;
 		pdst += 8;
 		pp += 16;
 	}
@@ -421,19 +663,16 @@ void TOWNS_CRTC::render_line_32768(int layer, scrntype_t *pixcache, uint8_t *vra
 	}
 	int mod_words = words - nwords * 8;
 	for(ip = 0; ip < mod_words; ip++) {
-		srcdat.u8[ip << 1] = pp[ip << 1];
-		srcdat.u8[(ip << 1) + 1] = pp[(ip << 1) + 1];
-#if defined(__LITTLE_ENDIAN__)
-		rgb[ip].w = srcdat.w[ip];
-#else
-		rgb[ip].b.l = srcdat.u8[ip << 1];
-		rgb[ip].b.h = srcdat.u8[(ip << 1) + 1];
-#endif
+		rgb[ip].w = pp[ip];
 		//g5r5b5
-		g[ip] = (rgb[ip].w & 0x7c00) >> 10;
-		r[ip] = (rgb[ip].w & 0x03e0) >> 5;
-		b[ip] = (rgb[ip].w & 0x001f);
-		a[ip] = (rgb[ip].w < 0x8000) ? 0xff : 0x00;
+		g[ip] = rgb[ip].b.h & 0x7c;
+		r[ip] = ((rgb[ip].b.h & 0x03)  << 6) | ((rgb[ip].b.l & 0xe0) >> 2);
+		b[ip] = (rgb[ip].b.l & 0x1f)   << 3;
+		if(do_impose) {
+			a[ip] = (rgb[ip].b.h < 0x80) ? 0xff : 0x00;
+		} else {
+			a[i] = 0xff;
+		}
 		dcache[ip] = RGBA_COLOR(r[ip], g[ip], b[ip], a[ip]);
 	}
 	for(ip = 0; ip < mod_words; ip++) {

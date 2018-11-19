@@ -289,8 +289,16 @@ uint32_t TOWNS_MEMORY::read_data16w(uint32_t addr, int *wait)
 	if(maddr != NULL)  {
 		// Memory found.
 		if(wait != NULL) *wait = mem_wait_val;
-		uint16_t *p = (uint16_t*)(&maddr[addr & 0x00000fff]);
+		uint16_t *p = (uint16_t*)(&maddr[addr & 0x00000ffe]);
+#if defined(__LITTLE_ENDIAN__)		
 		return (uint32_t)(*p);
+#else
+		pair16_t d, n;
+		d.w = *p;
+		n.l  = d.h;
+		n.h  = d.l;
+		return (uint32_t)(n.w);
+#endif
 	} else {
 		daddr = device_bank_adrs_cx[banknum];
 		if(daddr != NULL) {
@@ -303,10 +311,16 @@ uint32_t TOWNS_MEMORY::read_data16w(uint32_t addr, int *wait)
 			DEVICE* writefn;
 			uint16_t* readp;
 			uint16_t* writep;
-			if(bank_check(addr, &_mask, &_offset, (void**)(&readfn), (void**)(&writefn), (void**)(&readp), (void**)(&writep))) {
+			if(bank_check(addr & 0xfffffffe, &_mask, &_offset, (void**)(&readfn), (void**)(&writefn), (void**)(&readp), (void**)(&writep))) {
 				if(readp != NULL) {
 					if(wait != NULL) *wait = mem_wait_val;
+#if defined(__LITTLE_ENDIAN__)		
 					return (uint32_t)(*readp);
+#else
+					pair16_t d, n;
+					d.w = *readp;
+					
+					
 				} else if(readfn != NULL) {
 					return readfn->read_data16w((addr & _mask) + _offset, wait);
 				}
@@ -339,8 +353,18 @@ uint32_t TOWNS_MEMORY::read_data32w(uint32_t addr, int *wait)
 	if(maddr != NULL)  {
 		// Memory found.
 		if(wait != NULL) *wait = mem_wait_val;
-		uint32_t *p = (uint32_t*)(&maddr[addr & 0x00000fff]);
+		uint32_t *p = (uint32_t*)(&maddr[addr & 0x00000ffc]);
+#if defined(__LITTLE_ENDIAN__)		
 		return (uint32_t)(*p);
+#else
+		pair32_t d, n;
+		d.d = (uint32_t)*p;
+		n.l  = d.h3;
+		n.h  = d.h2;
+		n.h2 = d.h;
+		n.h3 = d.l;
+		return n.d;
+#endif
 	} else {
 		daddr = device_bank_adrs_cx[banknum];
 		if(daddr != NULL) {
@@ -353,10 +377,20 @@ uint32_t TOWNS_MEMORY::read_data32w(uint32_t addr, int *wait)
 			DEVICE* writefn;
 			uint32_t* readp;
 			uint32_t* writep;
-			if(bank_check(addr, &_mask, &_offset, (void**)(&readfn), (void**)(&writefn), (void**)(&readp), (void**)(&writep))) {
+			if(bank_check(addr & 0xfffffffc, &_mask, &_offset, (void**)(&readfn), (void**)(&writefn), (void**)(&readp), (void**)(&writep))) {
 				if(readp != NULL) {
 					if(wait != NULL) *wait = mem_wait_val;
-					return (uint32_t)(*readp);
+#if defined(__LITTLE_ENDIAN__)		
+					return *readp;
+#else
+					pair32_t d, n;
+					d.d = *readp;
+					n.h2 = d.l;
+					n.h1 = d.h;
+					n.h  = d.h2;
+					n.l  = d.h3;
+					return n.d;
+#endif
 				} else if(readfn != NULL) {
 					return readfn->read_data32w((addr & _mask) + _offset, wait);
 				}
@@ -444,8 +478,16 @@ void TOWNS_MEMORY::write_data16w(uint32_t addr, uint32_t data, int *wait)
 	if(maddr != NULL)  {
 		// Memory found.
 		if(wait != NULL) *wait = mem_wait_val;
-		uint16_t *p = (uint16_t*)(&maddr[addr & 0x00000fff]);
+#if defined(__LITTLE_ENDIAN__)		
+		uint16_t *p = (uint16_t*)(&maddr[addr & 0x00000ffe]); // OK?
 		*p = (uint16_t)(data & 0x0000ffff);
+#else
+		uint8_t *p = (uint8_t*)(&maddr[addr & 0x00000ffe]); // OK?
+		pair16_t d;
+		d.w = (uint16_t)(data & 0xffff);
+		p[0] = d.b.l;
+		p[1] = d.b.h;
+#endif
 		return;
 	} else {
 		daddr = device_bank_adrs_cx[banknum];
@@ -460,10 +502,18 @@ void TOWNS_MEMORY::write_data16w(uint32_t addr, uint32_t data, int *wait)
 			DEVICE* writefn;
 			uint16_t* readp;
 			uint16_t* writep;
-			if(bank_check(addr, &_mask, &_offset, (void**)(&readfn), (void**)(&writefn), (void**)(&readp), (void**)(&writep))) {
+			if(bank_check(addr & 0xfffffffe, &_mask, &_offset, (void**)(&readfn), (void**)(&writefn), (void**)(&readp), (void**)(&writep))) {
 				if(writep != NULL) {
 					if(wait != NULL) *wait = mem_wait_val;
+#if defined(__LITTLE_ENDIAN__)		
 					*writep = (uint16_t)(data & 0x0000ffff);
+#else
+					uint8_t *p = (uint8_t*)writep;
+					pair16_t d;
+					d.w = (uint16_t)(data & 0xffff);
+					p[0] = d.b.l;
+					p[1] = d.b.h;
+#endif
 					return;
 				} else if(writefn != NULL) {
 					writefn->write_data16w((addr & _mask) + _offset, data, wait);
@@ -477,8 +527,9 @@ void TOWNS_MEMORY::write_data16w(uint32_t addr, uint32_t data, int *wait)
 					write_mmio(addr, data, wait, &_hit);
 					if(!_hit) {
 						///
+						return; // NOP?Exception?
 					} else {
-						return val;
+						return;
 					}
 				}
 			}
@@ -498,8 +549,18 @@ void TOWNS_MEMORY::write_data32w(uint32_t addr, uint32_t data, int *wait)
 	if(maddr != NULL)  {
 		// Memory found.
 		if(wait != NULL) *wait = mem_wait_val;
-		uint32_t *p = (uint32_t*)(&maddr[addr & 0x00000fff]);
+#if defined(__LITTLE_ENDIAN__)
+		uint32_t *p = (uint32_t*)(&maddr[addr & 0x00000ffc]);
 		*p = data;
+#else
+		uint8_t *p = (uint8_t*)(&maddr[addr & 0x00000ffc]);
+		pair32_t d;
+		d.d = data;
+		p[0] = d.b.l;
+		p[1] = d.b.h;
+		p[2] = d.b.h2;
+		p[3] = d.b.h3;
+#endif		
 		return;
 	} else {
 		daddr = device_bank_adrs_cx[banknum];
@@ -514,10 +575,21 @@ void TOWNS_MEMORY::write_data32w(uint32_t addr, uint32_t data, int *wait)
 			DEVICE* writefn;
 			uint32_t* readp;
 			uint32_t* writep;
-			if(bank_check(addr, &_mask, &_offset, (void**)(&readfn), (void**)(&writefn), (void**)(&readp), (void**)(&writep))) {
+			if(bank_check(addr & 0xfffffffc, &_mask, &_offset, (void**)(&readfn), (void**)(&writefn), (void**)(&readp), (void**)(&writep))) {
 				if(writep != NULL) {
 					if(wait != NULL) *wait = mem_wait_val;
-					*writep = data;
+#if defined(__LITTLE_ENDIAN__)
+					*writep = data;					
+#else
+					uint8_t *p = (uint8_t*)writep;
+					pair32_t d;
+					d.d = data;
+					p[0] = d.b.l;
+					p[1] = d.b.h;
+					p[2] = d.b.h2;
+					p[3] = d.b.h3;
+#endif
+
 					return;
 				} else if(writefn != NULL) {
 					writefn->write_data32w((addr & _mask) + _offset, data, wait);

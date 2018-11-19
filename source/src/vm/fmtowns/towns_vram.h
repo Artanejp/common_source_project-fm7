@@ -59,9 +59,24 @@ protected:
 	uint32_t write_plane_mask; // for plane-access.
 	uint8_t packed_access_mask_lo;
 	uint8_t packed_access_mask_hi;
-	
 
-	uint8_t vram[0x80000]; // Related by machine.
+	bool dirty_flag[0x80000 >> 3]; // Per 8bytes : 16pixels(16colors) / 8pixels(256) / 4pixels(32768)
+
+#if 0
+	// WIP: Still not use mask rendering.
+	uint16_t mask_32768_word[0x80000 >> 1];
+	uint16_t alpha_32768_word[0x80000 >> 1];
+	uint8_t  alpha_32768_byte[0x80000 >> 1];
+
+	uint16_t mask_16_word[0x80000 << 1];
+	uint16_t alpha_16_word[0x80000 << 1];
+	uint8_t  alpha_16_byte[0x80000 << 1];
+
+#endif	
+	
+	uint16_t vram[0x80000 / 2]; // Related by machine.
+	
+	
 	// FMR50 Compatible registers. They are mostly dummy.
 	// Digital paletts. I/O FD98H - FD9FH.
 	uint8_t r50_digital_palette[8];
