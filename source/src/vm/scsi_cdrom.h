@@ -45,6 +45,7 @@ protected:
 	int cdda_buffer_ptr;
 	int cdda_sample_l, cdda_sample_r;
 	int event_cdda, mix_loop_num;
+	int event_cdda_delay_play;
 	
 	void set_cdda_status(uint8_t status);
 	int get_track(uint32_t lba);
@@ -55,6 +56,7 @@ protected:
 
 	bool open_cue_file(const _TCHAR *file_path);
 	void get_track_by_track_num(int track);
+	int get_track_noop(uint32_t lba);
 	uint32_t lba_to_msf(uint32_t lba);
 	uint32_t lba_to_msf_alt(uint32_t lba);
 public:
