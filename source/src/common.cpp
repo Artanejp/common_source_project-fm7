@@ -597,9 +597,9 @@ __DECL_VECTORIZED_LOOP
 void DLL_PREFIX ConvertByteToPackedPixelByColorTable2(uint8_t *src, scrntype_t* dst, int bytes, _bit_trans_table_scrn_t *tbl, scrntype_t *on_color_table, scrntype_t* off_color_table)
 {
 	
-    scrntype_vec8_t tmpd __attribute__((aligned(sizeof(scrntype_vec8_t))));
-	scrntype_vec8_t tmpdd __attribute__((aligned(sizeof(scrntype_vec8_t))));
-	scrntype_vec8_t colors __attribute__((aligned(sizeof(scrntype_vec8_t))));
+    scrntype_vec8_t tmpd;
+	scrntype_vec8_t tmpdd;
+	scrntype_vec8_t colors;
 	scrntype_vec8_t* vt = (scrntype_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(scrntype_vec8_t));
 	
 	uintptr_t disalign = (uintptr_t)dst;
@@ -663,10 +663,10 @@ __DECL_VECTORIZED_LOOP
 void DLL_PREFIX ConvertByteToSparceUint16(uint8_t *src, uint16_t* dst, int bytes, _bit_trans_table_t *tbl, uint16_t mask)
 {
 	
-	uint16_vec8_t   tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t   tmpd;
 	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
 
-	uint16_vec8_t __masks __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t __masks;
 
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
@@ -705,11 +705,11 @@ __DECL_VECTORIZED_LOOP
 void DLL_PREFIX ConvertByteToSparceUint8(uint8_t *src, uint16_t* dst, int bytes, _bit_trans_table_t *tbl, uint16_t mask)
 {
 	
-	uint16_vec8_t   tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t   tmpd;
 	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
 
-	uint16_vec8_t __masks __attribute__((aligned(sizeof(uint16_vec8_t))));
-	uint8_vec8_t tmpdd __attribute__((aligned(sizeof(uint8_vec8_t))));
+	uint16_vec8_t __masks;
+	uint8_vec8_t tmpdd;
 
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
@@ -750,8 +750,8 @@ __DECL_VECTORIZED_LOOP
 void DLL_PREFIX ConvertByteToPackedPixelByColorTable(uint8_t *src, scrntype_t* dst, int bytes, _bit_trans_table_t *tbl, scrntype_t *on_color_table, scrntype_t* off_color_table)
 {
 	
-	uint16_vec8_t   tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
-	scrntype_vec8_t tmpdd __attribute__((aligned(sizeof(scrntype_vec8_t))));
+	uint16_vec8_t   tmpd;
+	scrntype_vec8_t tmpdd;
 	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
 	
 	uintptr_t disalign = (uintptr_t)dst;
@@ -806,8 +806,8 @@ void DLL_PREFIX Render8Colors_Line(_render_command_data_t *src, scrntype_t *dst,
 	uint16_vec8_t *vpg = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[2], sizeof(uint16_vec8_t));
 
 	uint32_t x;
-	uint32_t offset[4] __attribute__((aligned(16))) = {0};
-	uint32_t beginaddr[4] __attribute__((aligned(16))) = {0};
+	__DECL_ALIGNED(16) uint32_t offset[4] = {0};
+	__DECL_ALIGNED(16) uint32_t beginaddr[4] = {0};
 	uint32_t mask = src->addrmask;
 	uint32_t offsetmask = src->addrmask2;
 __DECL_VECTORIZED_LOOP
@@ -830,7 +830,7 @@ __DECL_VECTORIZED_LOOP
 	uint8_t r, g, b;
 	int shift = src->shift;
 	const bool is_render[3] = { src->is_render[0], src->is_render[1],  src->is_render[2] };
-	uint16_vec8_t tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t tmpd;
 	scrntype_vec8_t tmp_dd; 
 	scrntype_vec8_t* vdp = (scrntype_vec8_t*)__builtin_assume_aligned(dst, sizeof(scrntype_vec8_t));
 	
@@ -859,7 +859,7 @@ __DECL_VECTORIZED_LOOP
 #else // 24bit
 		static const int shift_factor = 3;
 #endif
-		scrntype_vec8_t sline __attribute__((aligned(sizeof(scrntype_vec8_t))));
+		scrntype_vec8_t sline;
 		scrntype_vec8_t* vdp2 = (scrntype_vec8_t*)__builtin_assume_aligned(dst2, sizeof(scrntype_vec8_t));
 	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
@@ -908,8 +908,8 @@ void DLL_PREFIX Render16Colors_Line(_render_command_data_t *src, scrntype_t *dst
 	uint16_vec8_t *vpn = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[3], sizeof(uint16_vec8_t));
 
 	uint32_t x;
-	uint32_t offset[4] __attribute__((aligned(16)));
-	uint32_t beginaddr[4] __attribute__((aligned(16)));
+	__DECL_ALIGNED(16) uint32_t offset[4];
+	__DECL_ALIGNED(16) uint32_t beginaddr[4];
 	uint32_t mask = src->addrmask;
 	uint32_t offsetmask = src->addrmask2;
 	
@@ -934,7 +934,7 @@ __DECL_VECTORIZED_LOOP
 	uint8_t r, g, b, n;
 	int shift = src->shift;
 	const bool is_render[4] = { src->is_render[0], src->is_render[1],  src->is_render[2], src->is_render[3] };
-	uint16_vec8_t tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t tmpd;
 	scrntype_vec8_t tmp_dd; 
 	scrntype_vec8_t* vdp = (scrntype_vec8_t*)__builtin_assume_aligned(dst, sizeof(scrntype_vec8_t));
 	
@@ -965,7 +965,7 @@ __DECL_VECTORIZED_LOOP
 #else // 24bit
 		static const int shift_factor = 3;
 #endif
-		scrntype_vec8_t sline __attribute__((aligned(sizeof(scrntype_vec8_t))));
+		scrntype_vec8_t sline;
 		scrntype_vec8_t* vdp2 = (scrntype_vec8_t*)__builtin_assume_aligned(dst2, sizeof(scrntype_vec8_t));
 	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
@@ -1011,7 +1011,6 @@ void DLL_PREFIX Render2NColors_Line(_render_command_data_t *src, scrntype_t *dst
 //		if(src->data[i] == NULL) return;
 //	}
 	scrntype_t *palette = src->palette;
-
 	
 	uint16_vec8_t* vp[16];
 	for(int i = 0; i < planes; i++) {
@@ -1019,8 +1018,8 @@ void DLL_PREFIX Render2NColors_Line(_render_command_data_t *src, scrntype_t *dst
 	}
 
 	uint32_t x;
-	uint32_t offset[16] __attribute__((aligned(16)));
-	uint32_t beginaddr[16] __attribute__((aligned(16)));
+	__DECL_ALIGNED(16) uint32_t offset[16];
+	__DECL_ALIGNED(16) uint32_t beginaddr[16];
 	uint32_t mask = src->addrmask;
 	uint32_t offsetmask = src->addrmask2;
 __DECL_VECTORIZED_LOOP
@@ -1035,7 +1034,7 @@ __DECL_VECTORIZED_LOOP
 	uint8_t d[16];
 	int shift = src->shift;
 	const bool is_render[4] = { src->is_render[0], src->is_render[1],  src->is_render[2], src->is_render[3] };
-	uint16_vec8_t tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t tmpd;
 	scrntype_vec8_t tmp_dd; 
 	scrntype_vec8_t* vdp = (scrntype_vec8_t*)__builtin_assume_aligned(dst, sizeof(scrntype_vec8_t));
 	
@@ -1065,7 +1064,7 @@ __DECL_VECTORIZED_LOOP
 #else // 24bit
 		static const int shift_factor = 3;
 #endif
-		scrntype_vec8_t sline __attribute__((aligned(sizeof(scrntype_vec8_t))));
+		scrntype_vec8_t sline;
 		scrntype_vec8_t* vdp2 = (scrntype_vec8_t*)__builtin_assume_aligned(dst2, sizeof(scrntype_vec8_t));
 	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
@@ -1103,8 +1102,8 @@ void DLL_PREFIX Convert2NColorsToByte_Line(_render_command_data_t *src, uint8_t 
 	if(planes <= 0) return;
 
 	uint8_t* srcp[8];
-	uint32_t offset[8] __attribute__((aligned(16))) = {0};
-	uint16_vec8_t dat __attribute__((aligned(sizeof(uint16_vec8_t))));
+	__DECL_ALIGNED(32) uint32_t offset[8] = {0};
+	uint16_vec8_t dat;
 	uint16_vec8_t* bp[8] ;
 		
 __DECL_VECTORIZED_LOOP
@@ -1127,7 +1126,7 @@ __DECL_VECTORIZED_LOOP
 	for(int x = 0; x < src->render_width; x++) {
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < planes; i++) {
-			td[i] = srcp[(noffset + offset[i]) & addrmask];
+			td[i] = srcp[i][(noffset + offset[i]) & addrmask];
 		}
 		noffset = (noffset + 1) & offsetmask;
 		dat.v = bp[0][td[0]].v;
@@ -1151,8 +1150,8 @@ void DLL_PREFIX Convert2NColorsToByte_LineZoom2(_render_command_data_t *src, uin
 	if(planes <= 0) return;
 
 	uint8_t* srcp[8];
-	uint32_t offset[8] __attribute__((aligned(16))) = {0};
-	uint16_vec8_t dat __attribute__((aligned(sizeof(uint16_vec8_t))));
+	__DECL_ALIGNED(32) uint32_t offset[8] = {0};
+	uint16_vec8_t dat;
 	uint16_vec8_t* bp[8] ;
 		
 __DECL_VECTORIZED_LOOP
@@ -1175,7 +1174,7 @@ __DECL_VECTORIZED_LOOP
 	for(int x = 0; x < src->render_width; x++) {
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < planes; i++) {
-			td[i] = srcp[(noffset + offset[i]) & addrmask];
+			td[i] = srcp[i][(noffset + offset[i]) & addrmask];
 		}
 		noffset = (noffset + 1) & offsetmask;
 		dat.v = bp[0][td[0]].v;
@@ -1198,12 +1197,12 @@ void DLL_PREFIX Convert8ColorsToByte_Line(_render_command_data_t *src, uint8_t *
 	uint8_t *bp = &(src->data[0][src->baseaddress[0]]);
 	uint8_t *rp = &(src->data[1][src->baseaddress[1]]);
 	uint8_t *gp = &(src->data[2][src->baseaddress[2]]);
-	uint32_t offset[4] __attribute__((aligned(16))) = {0};
+	__DECL_ALIGNED(16) uint32_t offset[4] = {0};
 
-	uint16_vec8_t rdat __attribute__((aligned(sizeof(uint16_vec8_t))));
-	uint16_vec8_t gdat __attribute__((aligned(sizeof(uint16_vec8_t))));
-	uint16_vec8_t bdat __attribute__((aligned(sizeof(uint16_vec8_t))));
-	uint16_vec8_t tmpd __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t rdat;
+	uint16_vec8_t gdat;
+	uint16_vec8_t bdat;
+	uint16_vec8_t tmpd;
 
 	uint16_vec8_t* bpb = (uint16_vec8_t*)__builtin_assume_aligned(&(src->bit_trans_table[0]->plane_table[0]), sizeof(uint16_vec8_t));
 	uint16_vec8_t* bpr = (uint16_vec8_t*)__builtin_assume_aligned(&(src->bit_trans_table[1]->plane_table[0]), sizeof(uint16_vec8_t));

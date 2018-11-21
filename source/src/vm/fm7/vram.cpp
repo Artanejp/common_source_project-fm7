@@ -671,8 +671,8 @@ void DISPLAY::CopyDrawnData(scrntype_t* src, scrntype_t* dst, int width, bool sc
 #endif
 	scrntype_vec8_t* vsrc = (scrntype_vec8_t*)__builtin_assume_aligned(src, sizeof(scrntype_vec8_t));
 	scrntype_vec8_t* vdst = (scrntype_vec8_t*)__builtin_assume_aligned(dst, sizeof(scrntype_vec8_t));
-	scrntype_vec8_t tmp_dd __attribute__((aligned(sizeof(scrntype_vec8_t))));
-	scrntype_vec8_t sline __attribute__((aligned(sizeof(scrntype_vec8_t))));
+	scrntype_vec8_t tmp_dd;
+	scrntype_vec8_t sline;
 	
 	if(scan_line) {
 __DECL_VECTORIZED_LOOP
@@ -746,8 +746,8 @@ void DISPLAY::GETVRAM_1_400L(int yoff, scrntype_t *p)
 	yoff_d = yoff & 0x7fff;
 	pixel = gvram_shadow[yoff_d];
 	uint16_vec8_t *ppx = (uint16_vec8_t *)__builtin_assume_aligned(&(bit_trans_table_0[pixel][0]), 16);
-	uint16_vec8_t tmp_d  __attribute__((aligned(16)));
-	scrntype_vec8_t tmp_dd  __attribute__((aligned(16)));
+	__DECL_ALIGNED(16) uint16_vec8_t tmp_d;
+	scrntype_vec8_t tmp_dd;
 	scrntype_vec8_t *vp = (scrntype_vec8_t *)__builtin_assume_aligned(p, sizeof(scrntype_vec8_t));
 
 	tmp_d.v = ppx->v;
@@ -769,8 +769,8 @@ void DISPLAY::GETVRAM_1_400L_GREEN(int yoff, scrntype_t *p)
 	yoff_d = yoff & 0x7fff;
 	pixel = gvram_shadow[yoff_d];
 	uint16_vec8_t *ppx = (uint16_vec8_t *)__builtin_assume_aligned(&(bit_trans_table_0[pixel][0]), 16);
-	uint16_vec8_t tmp_d  __attribute__((aligned(16)));
-	scrntype_vec8_t tmp_dd  __attribute__((aligned(16)));
+	__DECL_ALIGNED(16) uint16_vec8_t tmp_d;
+	scrntype_vec8_t tmp_dd;
 	scrntype_vec8_t *vp = (scrntype_vec8_t *)__builtin_assume_aligned(p, sizeof(scrntype_vec8_t));
 
 	tmp_d.v = ppx->v;
@@ -795,7 +795,7 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,
 	uint32_t b3, r3, g3;
 	uint8_t  bb[4], rr[4], gg[4];
 	uint16_vec8_t pixels;
-	const uint16_t __masks[8]  __attribute__((aligned(16))) = {(uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask};
+	__DECL_ALIGNED(16) const uint16_t __masks[8] = {(uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask, (uint16_t)mask};
 	scrntype_t b, r, g;
 	uint32_t idx;;
 	scrntype_t pixel;
@@ -837,9 +837,9 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,
 
 	uint16_t *p0, *p1, *p2, *p3;
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
-	scrntype_t tmp_dd[8] __attribute__((aligned(sizeof(scrntype_t) * 8)));
+	__DECL_ALIGNED(sizeof(scrntype_t) * 8) scrntype_t tmp_dd[8];
 #else
-	scrntype_t tmp_dd[16] __attribute__((aligned(sizeof(scrntype_t) * 8)));
+	__DECL_ALIGNED(sizeof(scrntype_t) * 8) scrntype_t tmp_dd[16];
 #endif
 	uint16_vec8_t tmp_g, tmp_r, tmp_b;
 	__v8hi *vp0, *vp1, *vp2, *vp3;
@@ -957,14 +957,14 @@ void DISPLAY::GETVRAM_256k(int yoff, scrntype_t *p, scrntype_t *px, bool scan_li
 
 	uint8_t  bb[8], rr[8], gg[8];
 
-	uint16_vec8_t _btmp __attribute__((aligned(sizeof(uint16_vec8_t))));
-	uint16_vec8_t _rtmp __attribute__((aligned(sizeof(uint16_vec8_t))));
-	uint16_vec8_t _gtmp __attribute__((aligned(sizeof(uint16_vec8_t))));
+	uint16_vec8_t _btmp;
+	uint16_vec8_t _rtmp;
+	uint16_vec8_t _gtmp;
 	uint16_vec8_t *vp0, *vp1, *vp2, *vp3, *vp4, *vp5;
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
-	scrntype_t tmp_dd[8] __attribute__((aligned(sizeof(scrntype_vec8_t))));
+	__DECL_ALIGNED(sizeof(scrntype_t) * 8) scrntype_t tmp_dd[8];
 #else
-	scrntype_t tmp_dd[16] __attribute__((aligned(sizeof(scrntype_vec8_t))));
+	__DECL_ALIGNED(sizeof(scrntype_t) * 8) scrntype_t tmp_dd[16];
 #endif
 //	if(mask & 0x01) {
 	if(!multimode_dispflags[0]) {
@@ -1088,7 +1088,7 @@ __DECL_VECTORIZED_LOOP
 			dp[i].v = dp[i].v >> 2;
 #endif
 		}
-		scrntype_vec8_t scanline_data __attribute__((aligned(sizeof(scrntype_vec8_t))));
+		scrntype_vec8_t scanline_data;
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			scanline_data.w[i] = RGBA_COLOR(31, 31, 31, 255);

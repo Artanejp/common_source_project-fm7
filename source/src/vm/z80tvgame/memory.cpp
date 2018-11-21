@@ -99,7 +99,7 @@ void MEMORY::draw_screen()
 			dest[x] = (val & bit) ? col_w : col_b;
 		}
 #else
-		scrntype_vec8_t d __attribute__((aligned(sizeof(scrntype_vec8_t))));
+		scrntype_vec8_t d;
 		for(int xx = 32; xx < (240 - 32); xx += 8) {
 			uint8_t val = ram[offset + (xx >> 3)];
 			d = ConvertByteToPackedPixel_PixelTbl(val, &pixel_trans_table);
