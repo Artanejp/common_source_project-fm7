@@ -430,11 +430,11 @@ void TOWNS_CRTC::render_line_16(int layer, bool upper_layer, scrntype_t *framebu
 	int ip;
 	uint32_t src;
 	uint32_t src1, src2;
-	uint8_t  srcdat[16]  __attribute__((__aligned(16)));
-	scrntype_t tmpdat[16] __attribute__((__aligned(sizeof(scrntype_t) * 8)));
+	__DECL_ALIGNED(16) uint8_t  srcdat[16];
+	__DECL_ALIGNED(sizeof(scrntype_t) * 16) scrntype_t tmpdat[16];
 	
-	scrntype_t alpha_cache_16[16] __attribute__((__aligned(16)));
-	scrntype_t data_cache_16[16] __attribute__((__aligned(16)));
+	__DECL_ALIGNED(sizeof(scrntype_t) * 16) scrntype_t alpha_cache_16[16];
+	__DECL_ALIGNED(sizeof(scrntype_t) * 16) scrntype_t data_cache_16[16];
 	
 	scrntype_t *pdst = framebuffer;
 	uint8_t *pp = (uint8_t *)vramptr;
@@ -530,8 +530,8 @@ void TOWNS_CRTC::render_line_256(int layer, bool upper_layer, scrntype_t *frameb
 	uint32_t wordptr = 0;
 	int nwords = (int)words / 8;
 	int ip;
-	uint32_t src[2] __attribute__((aligned(8)));
-	uint8_t  srcdat[8] __attribute__((aligned(16)));;
+	__DECL_ALIGNED(8) uint32_t src[2];
+	__DECL_ALIGNED(8) uint8_t  srcdat[8];
 	scrntype_t *pdst  = __builtin_assume_aligned(framebuffer, sizeof(scrntype_t) * 4);
 	uint32_t *pp = (uint32_t *)vramptr;
 	
@@ -599,12 +599,12 @@ void TOWNS_CRTC::render_line_32768(int layer, bool do_impose, scrntype_t *pixcac
 	scrntype_t *pdst = pixcache;
 	uint16_t *pp = (uint16_t *)vramptr;
 	uint16_t *cachep = (uint16_t *)srcdat;
-	pair16_t rgb[8] __attribute__((aligned(16)));
-	uint8_t a[8] __attribute__((aligned(16)));
-	uint8_t r[8] __attribute__((aligned(16)));
-	uint8_t g[8] __attribute__((aligned(16)));
-	uint8_t b[8] __attribute__((aligned(16)));
-	scrntype_t dcache[8] __attribute__((aligned(sizeof(scrntype_t) * 8)));
+	__DECL_ALIGNED(16) pair16_t rgb[8];
+	__DECL_ALIGNED(8) uint8_t a[8];
+	__DECL_ALIGNED(8) uint8_t r[8];
+	__DECL_ALIGNED(8) uint8_t g[8];
+	__DECL_ALIGNED(8) uint8_t b[8];
+	__DECL_ALIGNED(sizeof(scrntype_t) * 8) scrntype_t dcache[8];
 
 	int i = 0;
 	
