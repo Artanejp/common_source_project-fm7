@@ -1,5 +1,5 @@
 // license:BSD-3-Clause
-// copyright-holders:Ville Linde, Barry Rodewald, Carl, Philp Bennett
+// copyright-holders:Ville Linde, Barry Rodewald, Carl, Philip Bennett, Samuele Zannoli
 // Pentium+ specific opcodes
 
 extern flag float32_is_nan( float32 a ); // since its not defined in softfloat.h
@@ -198,7 +198,7 @@ static void PENTIUMOP(rsm)(i386_state* cpustate)
 static void PENTIUMOP(prefetch_m8)(i386_state* cpustate)    // Opcode 0x0f 18
 {
 	UINT8 modrm = FETCH(cpustate);
-	UINT32 ea = GetEA(cpustate,modrm,0);
+	UINT32 ea = GetEA(cpustate,modrm,0,1);
 	CYCLES(cpustate,1+(ea & 1)); // TODO: correct cycle count
 }
 
@@ -218,7 +218,7 @@ static void PENTIUMOP(cmovo_r16_rm16)(i386_state* cpustate)    // Opcode 0x0f 40
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		if (cpustate->OF == 1)
 		{
 			src = READ16(cpustate,ea);
@@ -244,7 +244,7 @@ static void PENTIUMOP(cmovo_r32_rm32)(i386_state* cpustate)    // Opcode 0x0f 40
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		if (cpustate->OF == 1)
 		{
 			src = READ32(cpustate,ea);
@@ -270,7 +270,7 @@ static void PENTIUMOP(cmovno_r16_rm16)(i386_state* cpustate)    // Opcode 0x0f 4
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		if (cpustate->OF == 0)
 		{
 			src = READ16(cpustate,ea);
@@ -296,7 +296,7 @@ static void PENTIUMOP(cmovno_r32_rm32)(i386_state* cpustate)    // Opcode 0x0f 4
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		if (cpustate->OF == 0)
 		{
 			src = READ32(cpustate,ea);
@@ -322,7 +322,7 @@ static void PENTIUMOP(cmovb_r16_rm16)(i386_state* cpustate)    // Opcode 0x0f 42
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		if (cpustate->CF == 1)
 		{
 			src = READ16(cpustate,ea);
@@ -348,7 +348,7 @@ static void PENTIUMOP(cmovb_r32_rm32)(i386_state* cpustate)    // Opcode 0x0f 42
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		if (cpustate->CF == 1)
 		{
 			src = READ32(cpustate,ea);
@@ -374,7 +374,7 @@ static void PENTIUMOP(cmovae_r16_rm16)(i386_state* cpustate)    // Opcode 0x0f 4
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		if (cpustate->CF == 0)
 		{
 			src = READ16(cpustate,ea);
@@ -400,7 +400,7 @@ static void PENTIUMOP(cmovae_r32_rm32)(i386_state* cpustate)    // Opcode 0x0f 4
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		if (cpustate->CF == 0)
 		{
 			src = READ32(cpustate,ea);
@@ -426,7 +426,7 @@ static void PENTIUMOP(cmove_r16_rm16)(i386_state* cpustate)    // Opcode 0x0f 44
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		if (cpustate->ZF == 1)
 		{
 			src = READ16(cpustate,ea);
@@ -452,7 +452,7 @@ static void PENTIUMOP(cmove_r32_rm32)(i386_state* cpustate)    // Opcode 0x0f 44
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		if (cpustate->ZF == 1)
 		{
 			src = READ32(cpustate,ea);
@@ -478,7 +478,7 @@ static void PENTIUMOP(cmovne_r16_rm16)(i386_state* cpustate)    // Opcode 0x0f 4
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		if (cpustate->ZF == 0)
 		{
 			src = READ16(cpustate,ea);
@@ -504,7 +504,7 @@ static void PENTIUMOP(cmovne_r32_rm32)(i386_state* cpustate)    // Opcode 0x0f 4
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		if (cpustate->ZF == 0)
 		{
 			src = READ32(cpustate,ea);
@@ -530,7 +530,7 @@ static void PENTIUMOP(cmovbe_r16_rm16)(i386_state* cpustate)    // Opcode 0x0f 4
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		if ((cpustate->CF == 1) || (cpustate->ZF == 1))
 		{
 			src = READ16(cpustate,ea);
@@ -556,7 +556,7 @@ static void PENTIUMOP(cmovbe_r32_rm32)(i386_state* cpustate)    // Opcode 0x0f 4
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		if ((cpustate->CF == 1) || (cpustate->ZF == 1))
 		{
 			src = READ32(cpustate,ea);
@@ -582,7 +582,7 @@ static void PENTIUMOP(cmova_r16_rm16)(i386_state* cpustate)    // Opcode 0x0f 47
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		if ((cpustate->CF == 0) && (cpustate->ZF == 0))
 		{
 			src = READ16(cpustate,ea);
@@ -608,7 +608,7 @@ static void PENTIUMOP(cmova_r32_rm32)(i386_state* cpustate)    // Opcode 0x0f 47
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		if ((cpustate->CF == 0) && (cpustate->ZF == 0))
 		{
 			src = READ32(cpustate,ea);
@@ -634,7 +634,7 @@ static void PENTIUMOP(cmovs_r16_rm16)(i386_state* cpustate)    // Opcode 0x0f 48
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		if (cpustate->SF == 1)
 		{
 			src = READ16(cpustate,ea);
@@ -660,7 +660,7 @@ static void PENTIUMOP(cmovs_r32_rm32)(i386_state* cpustate)    // Opcode 0x0f 48
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		if (cpustate->SF == 1)
 		{
 			src = READ32(cpustate,ea);
@@ -686,7 +686,7 @@ static void PENTIUMOP(cmovns_r16_rm16)(i386_state* cpustate)    // Opcode 0x0f 4
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		if (cpustate->SF == 0)
 		{
 			src = READ16(cpustate,ea);
@@ -712,7 +712,7 @@ static void PENTIUMOP(cmovns_r32_rm32)(i386_state* cpustate)    // Opcode 0x0f 4
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		if (cpustate->SF == 0)
 		{
 			src = READ32(cpustate,ea);
@@ -738,7 +738,7 @@ static void PENTIUMOP(cmovp_r16_rm16)(i386_state* cpustate)    // Opcode 0x0f 4a
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		if (cpustate->PF == 1)
 		{
 			src = READ16(cpustate,ea);
@@ -764,7 +764,7 @@ static void PENTIUMOP(cmovp_r32_rm32)(i386_state* cpustate)    // Opcode 0x0f 4a
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		if (cpustate->PF == 1)
 		{
 			src = READ32(cpustate,ea);
@@ -790,7 +790,7 @@ static void PENTIUMOP(cmovnp_r16_rm16)(i386_state* cpustate)    // Opcode 0x0f 4
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		if (cpustate->PF == 0)
 		{
 			src = READ16(cpustate,ea);
@@ -816,7 +816,7 @@ static void PENTIUMOP(cmovnp_r32_rm32)(i386_state* cpustate)    // Opcode 0x0f 4
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		if (cpustate->PF == 0)
 		{
 			src = READ32(cpustate,ea);
@@ -842,7 +842,7 @@ static void PENTIUMOP(cmovl_r16_rm16)(i386_state* cpustate)    // Opcode 0x0f 4c
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		if (cpustate->SF != cpustate->OF)
 		{
 			src = READ16(cpustate,ea);
@@ -868,7 +868,7 @@ static void PENTIUMOP(cmovl_r32_rm32)(i386_state* cpustate)    // Opcode 0x0f 4c
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		if (cpustate->SF != cpustate->OF)
 		{
 			src = READ32(cpustate,ea);
@@ -894,7 +894,7 @@ static void PENTIUMOP(cmovge_r16_rm16)(i386_state* cpustate)    // Opcode 0x0f 4
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		if (cpustate->SF == cpustate->OF)
 		{
 			src = READ16(cpustate,ea);
@@ -920,7 +920,7 @@ static void PENTIUMOP(cmovge_r32_rm32)(i386_state* cpustate)    // Opcode 0x0f 4
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		if (cpustate->SF == cpustate->OF)
 		{
 			src = READ32(cpustate,ea);
@@ -946,7 +946,7 @@ static void PENTIUMOP(cmovle_r16_rm16)(i386_state* cpustate)    // Opcode 0x0f 4
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		if ((cpustate->ZF == 1) || (cpustate->SF != cpustate->OF))
 		{
 			src = READ16(cpustate,ea);
@@ -972,7 +972,7 @@ static void PENTIUMOP(cmovle_r32_rm32)(i386_state* cpustate)    // Opcode 0x0f 4
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		if ((cpustate->ZF == 1) || (cpustate->SF != cpustate->OF))
 		{
 			src = READ32(cpustate,ea);
@@ -998,7 +998,7 @@ static void PENTIUMOP(cmovg_r16_rm16)(i386_state* cpustate)    // Opcode 0x0f 4f
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		if ((cpustate->ZF == 0) && (cpustate->SF == cpustate->OF))
 		{
 			src = READ16(cpustate,ea);
@@ -1024,7 +1024,7 @@ static void PENTIUMOP(cmovg_r32_rm32)(i386_state* cpustate)    // Opcode 0x0f 4f
 	}
 	else
 	{
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		if ((cpustate->ZF == 0) && (cpustate->SF == cpustate->OF))
 		{
 			src = READ32(cpustate,ea);
@@ -1042,7 +1042,7 @@ static void PENTIUMOP(movnti_m16_r16)(i386_state* cpustate) // Opcode 0f c3
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	} else {
 		// since cache is not implemented
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 2);
 		WRITE16(cpustate,ea,LOAD_RM16(modrm));
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	}
@@ -1056,7 +1056,7 @@ static void PENTIUMOP(movnti_m32_r32)(i386_state* cpustate) // Opcode 0f c3
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	} else {
 		// since cache is not implemented
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		WRITE32(cpustate,ea,LOAD_RM32(modrm));
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	}
@@ -1087,7 +1087,7 @@ static void PENTIUMOP(cmpxchg8b_m64)(i386_state* cpustate)  // Opcode 0x0f c7
 	if( modm >= 0xc0 ) {
 		report_invalid_modrm(cpustate, "cmpxchg8b_m64", modm);
 	} else {
-		UINT32 ea = GetEA(cpustate,modm, 0);
+		UINT32 ea = GetEA(cpustate,modm, 0, 8);
 		UINT64 value = READ64(cpustate, ea);
 		UINT64 edx_eax = (((UINT64) REG32(EDX)) << 32) | REG32(EAX);
 		UINT64 ecx_ebx = (((UINT64) REG32(ECX)) << 32) | REG32(EBX);
@@ -1113,7 +1113,7 @@ static void PENTIUMOP(movntq_m64_r64)(i386_state* cpustate) // Opcode 0f e7
 		CYCLES(cpustate,1);     // unsupported
 	} else {
 		// since cache is not implemented
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		WRITEMMX(cpustate, ea, MMX((modrm >> 3) & 0x7));
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	}
@@ -1123,7 +1123,7 @@ static void PENTIUMOP(maskmovq_r64_r64)(i386_state* cpustate)  // Opcode 0f f7
 {
 	int s,m,n;
 	UINT8 modm = FETCH(cpustate);
-	UINT32 ea = GetEA(cpustate,7, 0); // ds:di/edi/rdi register
+	UINT32 ea = GetEA(cpustate,7, 0, 8); // ds:di/edi/rdi register
 	MMXPROLOG(cpustate);
 	s=(modm >> 3) & 7;
 	m=modm & 7;
@@ -1136,7 +1136,7 @@ static void SSEOP(maskmovdqu_r128_r128)(i386_state* cpustate)  // Opcode 66 0f f
 {
 	int s,m,n;
 	UINT8 modm = FETCH(cpustate);
-	UINT32 ea = GetEA(cpustate,7, 0); // ds:di/edi/rdi register
+	UINT32 ea = GetEA(cpustate,7, 0, 16); // ds:di/edi/rdi register
 	s=(modm >> 3) & 7;
 	m=modm & 7;
 	for (n=0;n < 16;n++)
@@ -1153,7 +1153,7 @@ static void PENTIUMOP(popcnt_r16_rm16)(i386_state* cpustate)    // Opcode f3 0f 
 	if( modrm >= 0xc0 ) {
 		src = LOAD_RM16(modrm);
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,2);
 		src = READ16(cpustate,ea);
 	}
 	count=0;
@@ -1174,7 +1174,7 @@ static void PENTIUMOP(popcnt_r32_rm32)(i386_state* cpustate)    // Opcode f3 0f 
 	if( modrm >= 0xc0 ) {
 		src = LOAD_RM32(modrm);
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,4);
 		src = READ32(cpustate,ea);
 	}
 	count=0;
@@ -1437,7 +1437,7 @@ static void MMXOP(psrlw_r64_rm64)(i386_state* cpustate)  // Opcode 0f d1
 		MMX((modrm >> 3) & 0x7).w[3]=MMX((modrm >> 3) & 0x7).w[3] >> count;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, src);
 		int count=(int)src.q;
 		MMX((modrm >> 3) & 0x7).w[0]=MMX((modrm >> 3) & 0x7).w[0] >> count;
@@ -1458,7 +1458,7 @@ static void MMXOP(psrld_r64_rm64)(i386_state* cpustate)  // Opcode 0f d2
 		MMX((modrm >> 3) & 0x7).d[1]=MMX((modrm >> 3) & 0x7).d[1] >> count;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, src);
 		int count=(int)src.q;
 		MMX((modrm >> 3) & 0x7).d[0]=MMX((modrm >> 3) & 0x7).d[0] >> count;
@@ -1476,7 +1476,7 @@ static void MMXOP(psrlq_r64_rm64)(i386_state* cpustate)  // Opcode 0f d3
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q >> count;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, src);
 		int count=(int)src.q;
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q >> count;
@@ -1492,7 +1492,7 @@ static void MMXOP(paddq_r64_rm64)(i386_state* cpustate)  // Opcode 0f d4
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q+MMX(modrm & 7).q;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, src);
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q+src.q;
 	}
@@ -1510,7 +1510,7 @@ static void MMXOP(pmullw_r64_rm64)(i386_state* cpustate)  // Opcode 0f d5
 		MMX((modrm >> 3) & 0x7).w[3]=(UINT32)((INT32)MMX((modrm >> 3) & 0x7).s[3]*(INT32)MMX(modrm & 7).s[3]) & 0xffff;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, src);
 		MMX((modrm >> 3) & 0x7).w[0]=(UINT32)((INT32)MMX((modrm >> 3) & 0x7).s[0]*(INT32)src.s[0]) & 0xffff;
 		MMX((modrm >> 3) & 0x7).w[1]=(UINT32)((INT32)MMX((modrm >> 3) & 0x7).s[1]*(INT32)src.s[1]) & 0xffff;
@@ -1530,7 +1530,7 @@ static void MMXOP(psubusb_r64_rm64)(i386_state* cpustate)  // Opcode 0f d8
 			MMX((modrm >> 3) & 0x7).b[n]=MMX((modrm >> 3) & 0x7).b[n] < MMX(modrm & 7).b[n] ? 0 : MMX((modrm >> 3) & 0x7).b[n]-MMX(modrm & 7).b[n];
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, src);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).b[n]=MMX((modrm >> 3) & 0x7).b[n] < src.b[n] ? 0 : MMX((modrm >> 3) & 0x7).b[n]-src.b[n];
@@ -1548,7 +1548,7 @@ static void MMXOP(psubusw_r64_rm64)(i386_state* cpustate)  // Opcode 0f d9
 			MMX((modrm >> 3) & 0x7).w[n]=MMX((modrm >> 3) & 0x7).w[n] < MMX(modrm & 7).w[n] ? 0 : MMX((modrm >> 3) & 0x7).w[n]-MMX(modrm & 7).w[n];
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, src);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).w[n]=MMX((modrm >> 3) & 0x7).w[n] < src.w[n] ? 0 : MMX((modrm >> 3) & 0x7).w[n]-src.w[n];
@@ -1564,7 +1564,7 @@ static void MMXOP(pand_r64_rm64)(i386_state* cpustate)  // Opcode 0f db
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q & MMX(modrm & 7).q;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, src);
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q & src.q;
 	}
@@ -1581,7 +1581,7 @@ static void MMXOP(paddusb_r64_rm64)(i386_state* cpustate)  // Opcode 0f dc
 			MMX((modrm >> 3) & 0x7).b[n]=MMX((modrm >> 3) & 0x7).b[n] > (0xff-MMX(modrm & 7).b[n]) ? 0xff : MMX((modrm >> 3) & 0x7).b[n]+MMX(modrm & 7).b[n];
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, src);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).b[n]=MMX((modrm >> 3) & 0x7).b[n] > (0xff-src.b[n]) ? 0xff : MMX((modrm >> 3) & 0x7).b[n]+src.b[n];
@@ -1599,7 +1599,7 @@ static void MMXOP(paddusw_r64_rm64)(i386_state* cpustate)  // Opcode 0f dd
 			MMX((modrm >> 3) & 0x7).w[n]=MMX((modrm >> 3) & 0x7).w[n] > (0xffff-MMX(modrm & 7).w[n]) ? 0xffff : MMX((modrm >> 3) & 0x7).w[n]+MMX(modrm & 7).w[n];
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, src);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).w[n]=MMX((modrm >> 3) & 0x7).w[n] > (0xffff-src.w[n]) ? 0xffff : MMX((modrm >> 3) & 0x7).w[n]+src.w[n];
@@ -1615,7 +1615,7 @@ static void MMXOP(pandn_r64_rm64)(i386_state* cpustate)  // Opcode 0f df
 		MMX((modrm >> 3) & 0x7).q=(~MMX((modrm >> 3) & 0x7).q) & MMX(modrm & 7).q;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, src);
 		MMX((modrm >> 3) & 0x7).q=(~MMX((modrm >> 3) & 0x7).q) & src.q;
 	}
@@ -1634,7 +1634,7 @@ static void MMXOP(psraw_r64_rm64)(i386_state* cpustate)  // Opcode 0f e1
 		MMX((modrm >> 3) & 0x7).s[3]=MMX((modrm >> 3) & 0x7).s[3] >> count;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, src);
 		int count=(int)src.q;
 		MMX((modrm >> 3) & 0x7).s[0]=MMX((modrm >> 3) & 0x7).s[0] >> count;
@@ -1655,7 +1655,7 @@ static void MMXOP(psrad_r64_rm64)(i386_state* cpustate)  // Opcode 0f e2
 		MMX((modrm >> 3) & 0x7).i[1]=MMX((modrm >> 3) & 0x7).i[1] >> count;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, src);
 		int count=(int)src.q;
 		MMX((modrm >> 3) & 0x7).i[0]=MMX((modrm >> 3) & 0x7).i[0] >> count;
@@ -1675,7 +1675,7 @@ static void MMXOP(pmulhw_r64_rm64)(i386_state* cpustate)  // Opcode 0f e5
 		MMX((modrm >> 3) & 0x7).w[3]=(UINT32)((INT32)MMX((modrm >> 3) & 0x7).s[3]*(INT32)MMX(modrm & 7).s[3]) >> 16;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, src);
 		MMX((modrm >> 3) & 0x7).w[0]=(UINT32)((INT32)MMX((modrm >> 3) & 0x7).s[0]*(INT32)src.s[0]) >> 16;
 		MMX((modrm >> 3) & 0x7).w[1]=(UINT32)((INT32)MMX((modrm >> 3) & 0x7).s[1]*(INT32)src.s[1]) >> 16;
@@ -1695,7 +1695,7 @@ static void MMXOP(psubsb_r64_rm64)(i386_state* cpustate)  // Opcode 0f e8
 			MMX((modrm >> 3) & 0x7).c[n]=SaturatedSignedWordToSignedByte((INT16)MMX((modrm >> 3) & 0x7).c[n] - (INT16)MMX(modrm & 7).c[n]);
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).c[n]=SaturatedSignedWordToSignedByte((INT16)MMX((modrm >> 3) & 0x7).c[n] - (INT16)s.c[n]);
@@ -1713,7 +1713,7 @@ static void MMXOP(psubsw_r64_rm64)(i386_state* cpustate)  // Opcode 0f e9
 			MMX((modrm >> 3) & 0x7).s[n]=SaturatedSignedDwordToSignedWord((INT32)MMX((modrm >> 3) & 0x7).s[n] - (INT32)MMX(modrm & 7).s[n]);
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).s[n]=SaturatedSignedDwordToSignedWord((INT32)MMX((modrm >> 3) & 0x7).s[n] - (INT32)s.s[n]);
@@ -1729,7 +1729,7 @@ static void MMXOP(por_r64_rm64)(i386_state* cpustate)  // Opcode 0f eb
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q | MMX(modrm & 7).q;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q | s.q;
 	}
@@ -1746,7 +1746,7 @@ static void MMXOP(paddsb_r64_rm64)(i386_state* cpustate)  // Opcode 0f ec
 			MMX((modrm >> 3) & 0x7).c[n]=SaturatedSignedWordToSignedByte((INT16)MMX((modrm >> 3) & 0x7).c[n] + (INT16)MMX(modrm & 7).c[n]);
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).c[n]=SaturatedSignedWordToSignedByte((INT16)MMX((modrm >> 3) & 0x7).c[n] + (INT16)s.c[n]);
@@ -1764,7 +1764,7 @@ static void MMXOP(paddsw_r64_rm64)(i386_state* cpustate)  // Opcode 0f ed
 			MMX((modrm >> 3) & 0x7).s[n]=SaturatedSignedDwordToSignedWord((INT32)MMX((modrm >> 3) & 0x7).s[n] + (INT32)MMX(modrm & 7).s[n]);
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).s[n]=SaturatedSignedDwordToSignedWord((INT32)MMX((modrm >> 3) & 0x7).s[n] + (INT32)s.s[n]);
@@ -1780,7 +1780,7 @@ static void MMXOP(pxor_r64_rm64)(i386_state* cpustate)  // Opcode 0f ef
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q ^ MMX(modrm & 7).q;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q ^ s.q;
 	}
@@ -1799,7 +1799,7 @@ static void MMXOP(psllw_r64_rm64)(i386_state* cpustate)  // Opcode 0f f1
 		MMX((modrm >> 3) & 0x7).w[3]=MMX((modrm >> 3) & 0x7).w[3] << count;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		int count=(int)s.q;
 		MMX((modrm >> 3) & 0x7).w[0]=MMX((modrm >> 3) & 0x7).w[0] << count;
@@ -1820,7 +1820,7 @@ static void MMXOP(pslld_r64_rm64)(i386_state* cpustate)  // Opcode 0f f2
 		MMX((modrm >> 3) & 0x7).d[1]=MMX((modrm >> 3) & 0x7).d[1] << count;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		int count=(int)s.q;
 		MMX((modrm >> 3) & 0x7).d[0]=MMX((modrm >> 3) & 0x7).d[0] << count;
@@ -1838,7 +1838,7 @@ static void MMXOP(psllq_r64_rm64)(i386_state* cpustate)  // Opcode 0f f3
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q << count;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		int count=(int)s.q;
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q << count;
@@ -1857,7 +1857,7 @@ static void MMXOP(pmaddwd_r64_rm64)(i386_state* cpustate)  // Opcode 0f f5
 										(INT32)MMX((modrm >> 3) & 0x7).s[3]*(INT32)MMX(modrm & 7).s[3];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		MMX((modrm >> 3) & 0x7).i[0]=(INT32)MMX((modrm >> 3) & 0x7).s[0]*(INT32)s.s[0]+
 										(INT32)MMX((modrm >> 3) & 0x7).s[1]*(INT32)s.s[1];
@@ -1877,7 +1877,7 @@ static void MMXOP(psubb_r64_rm64)(i386_state* cpustate)  // Opcode 0f f8
 			MMX((modrm >> 3) & 0x7).b[n]=MMX((modrm >> 3) & 0x7).b[n] - MMX(modrm & 7).b[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).b[n]=MMX((modrm >> 3) & 0x7).b[n] - s.b[n];
@@ -1895,7 +1895,7 @@ static void MMXOP(psubw_r64_rm64)(i386_state* cpustate)  // Opcode 0f f9
 			MMX((modrm >> 3) & 0x7).w[n]=MMX((modrm >> 3) & 0x7).w[n] - MMX(modrm & 7).w[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).w[n]=MMX((modrm >> 3) & 0x7).w[n] - s.w[n];
@@ -1913,7 +1913,7 @@ static void MMXOP(psubd_r64_rm64)(i386_state* cpustate)  // Opcode 0f fa
 			MMX((modrm >> 3) & 0x7).d[n]=MMX((modrm >> 3) & 0x7).d[n] - MMX(modrm & 7).d[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (n=0;n < 2;n++)
 			MMX((modrm >> 3) & 0x7).d[n]=MMX((modrm >> 3) & 0x7).d[n] - s.d[n];
@@ -1931,7 +1931,7 @@ static void MMXOP(paddb_r64_rm64)(i386_state* cpustate)  // Opcode 0f fc
 			MMX((modrm >> 3) & 0x7).b[n]=MMX((modrm >> 3) & 0x7).b[n] + MMX(modrm & 7).b[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).b[n]=MMX((modrm >> 3) & 0x7).b[n] + s.b[n];
@@ -1949,7 +1949,7 @@ static void MMXOP(paddw_r64_rm64)(i386_state* cpustate)  // Opcode 0f fd
 			MMX((modrm >> 3) & 0x7).w[n]=MMX((modrm >> 3) & 0x7).w[n] + MMX(modrm & 7).w[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).w[n]=MMX((modrm >> 3) & 0x7).w[n] + s.w[n];
@@ -1967,7 +1967,7 @@ static void MMXOP(paddd_r64_rm64)(i386_state* cpustate)  // Opcode 0f fe
 			MMX((modrm >> 3) & 0x7).d[n]=MMX((modrm >> 3) & 0x7).d[n] + MMX(modrm & 7).d[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (n=0;n < 2;n++)
 			MMX((modrm >> 3) & 0x7).d[n]=MMX((modrm >> 3) & 0x7).d[n] + s.d[n];
@@ -1987,7 +1987,7 @@ static void I386OP(cyrix_svdc)(i386_state* cpustate) // Opcode 0f 78
 	UINT8 modrm = FETCH(cpustate);
 
 	if( modrm < 0xc0 ) {
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,10);
 		int index = (modrm >> 3) & 7;
 		int limit;
 		switch (index)
@@ -2051,7 +2051,7 @@ static void I386OP(cyrix_rsdc)(i386_state* cpustate) // Opcode 0f 79
 	UINT8 modrm = FETCH(cpustate);
 
 	if( modrm < 0xc0 ) {
-		UINT32 ea = GetEA(cpustate,modrm,0);
+		UINT32 ea = GetEA(cpustate,modrm,0,10);
 		int index = (modrm >> 3) & 7;
 		UINT16 flags;
 		UINT32 base;
@@ -2120,7 +2120,7 @@ static void I386OP(cyrix_svldt)(i386_state* cpustate) // Opcode 0f 7a
 		UINT8 modrm = FETCH(cpustate);
 
 		if( !(modrm & 0xf8) ) {
-			UINT32 ea = GetEA(cpustate,modrm,0);
+			UINT32 ea = GetEA(cpustate,modrm,0,10);
 			UINT32 limit = cpustate->ldtr.limit;
 
 			if (cpustate->ldtr.flags & 0x8000) //G bit
@@ -2152,7 +2152,7 @@ static void I386OP(cyrix_rsldt)(i386_state* cpustate) // Opcode 0f 7b
 		UINT8 modrm = FETCH(cpustate);
 
 		if( !(modrm & 0xf8) ) {
-			UINT32 ea = GetEA(cpustate,modrm,0);
+			UINT32 ea = GetEA(cpustate,modrm,0,10);
 			UINT16 flags = READ16(cpustate,ea + 5);
 			UINT32 base = (READ32(cpustate,ea + 2) | 0x00ffffff) | (READ8(cpustate,ea + 7) << 24);
 			UINT32 limit = READ16(cpustate,ea + 0) | ((flags & 3) << 16);
@@ -2185,7 +2185,7 @@ static void I386OP(cyrix_svts)(i386_state* cpustate) // Opcode 0f 7c
 		UINT8 modrm = FETCH(cpustate);
 
 		if( !(modrm & 0xf8) ) {
-			UINT32 ea = GetEA(cpustate,modrm,0);
+			UINT32 ea = GetEA(cpustate,modrm,0,10);
 			UINT32 limit = cpustate->task.limit;
 
 			if (cpustate->task.flags & 0x8000) //G bit
@@ -2216,7 +2216,7 @@ static void I386OP(cyrix_rsts)(i386_state* cpustate) // Opcode 0f 7d
 		UINT8 modrm = FETCH(cpustate);
 
 		if( !(modrm & 0xf8) ) {
-			UINT32 ea = GetEA(cpustate,modrm,0);
+			UINT32 ea = GetEA(cpustate,modrm,0,10);
 			UINT16 flags = READ16(cpustate,ea + 5);
 			UINT32 base = (READ32(cpustate,ea + 2) | 0x00ffffff) | (READ8(cpustate,ea + 7) << 24);
 			UINT32 limit = READ16(cpustate,ea + 0) | ((flags & 3) << 16);
@@ -2245,7 +2245,7 @@ static void MMXOP(movd_r64_rm32)(i386_state* cpustate) // Opcode 0f 6e
 	if( modrm >= 0xc0 ) {
 		MMX((modrm >> 3) & 0x7).d[0]=LOAD_RM32(modrm);
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		MMX((modrm >> 3) & 0x7).d[0]=READ32(cpustate,ea);
 	}
 	MMX((modrm >> 3) & 0x7).d[1]=0;
@@ -2259,7 +2259,7 @@ static void MMXOP(movq_r64_rm64)(i386_state* cpustate) // Opcode 0f 6f
 	if( modrm >= 0xc0 ) {
 		MMX((modrm >> 3) & 0x7).l=MMX(modrm & 0x7).l;
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, MMX((modrm >> 3) & 0x7));
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -2272,7 +2272,7 @@ static void MMXOP(movd_rm32_r64)(i386_state* cpustate) // Opcode 0f 7e
 	if( modrm >= 0xc0 ) {
 		STORE_RM32(modrm, MMX((modrm >> 3) & 0x7).d[0]);
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		WRITE32(cpustate,ea, MMX((modrm >> 3) & 0x7).d[0]);
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -2285,7 +2285,7 @@ static void MMXOP(movq_rm64_r64)(i386_state* cpustate) // Opcode 0f 7f
 	if( modrm >= 0xc0 ) {
 		MMX(modrm & 0x7)=MMX((modrm >> 3) & 0x7);
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		WRITEMMX(cpustate, ea, MMX((modrm >> 3) & 0x7));
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -2305,7 +2305,7 @@ static void MMXOP(pcmpeqb_r64_rm64)(i386_state* cpustate) // Opcode 0f 74
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (c=0;c <= 7;c++)
 			MMX(d).b[c]=(MMX(d).b[c] == s.b[c]) ? 0xff : 0;
@@ -2328,7 +2328,7 @@ static void MMXOP(pcmpeqw_r64_rm64)(i386_state* cpustate) // Opcode 0f 75
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		MMX(d).w[0]=(MMX(d).w[0] == s.w[0]) ? 0xffff : 0;
 		MMX(d).w[1]=(MMX(d).w[1] == s.w[1]) ? 0xffff : 0;
@@ -2351,7 +2351,7 @@ static void MMXOP(pcmpeqd_r64_rm64)(i386_state* cpustate) // Opcode 0f 76
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		MMX(d).d[0]=(MMX(d).d[0] == s.d[0]) ? 0xffffffff : 0;
 		MMX(d).d[1]=(MMX(d).d[1] == s.d[1]) ? 0xffffffff : 0;
@@ -2377,7 +2377,7 @@ static void MMXOP(pshufw_r64_rm64_i8)(i386_state* cpustate) // Opcode 0f 70
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		UINT8 imm8 = FETCH(cpustate);
 		READMMX(cpustate, ea, s);
 		MMX(d).w[0]=s.w[imm8 & 3];
@@ -2418,7 +2418,7 @@ static void SSEOP(punpcklbw_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 60
 	else {
 		XMM_REG xd, xs;
 		int d = (modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		xd.l[0] = XMM(d).l[0];
 		xs.q[0] = READ64(cpustate, ea);
 		for (int n = 0; n < 8; n++) {
@@ -2447,7 +2447,7 @@ static void SSEOP(punpcklwd_r128_rm128)(i386_state* cpustate)
 	else {
 		XMM_REG xd, xs;
 		int d = (modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		xd.l[0] = XMM(d).l[0];
 		xs.q[0] = READ64(cpustate, ea);
 		for (int n = 0; n < 4; n++) {
@@ -2476,7 +2476,7 @@ static void SSEOP(punpckldq_r128_rm128)(i386_state* cpustate)
 	else {
 		XMM_REG xd, xs;
 		int d = (modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		xd.l[0] = XMM(d).l[0];
 		xs.q[0] = READ64(cpustate, ea);
 		for (int n = 0; n < 2; n++) {
@@ -2503,7 +2503,7 @@ static void SSEOP(punpcklqdq_r128_rm128)(i386_state* cpustate)
 	else {
 		XMM_REG xd, xs;
 		int d = (modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		xd.l[0] = XMM(d).l[0];
 		xs.q[0] = READ64(cpustate, ea);
 		XMM(d).q[0] = xd.q[0];
@@ -2533,7 +2533,7 @@ static void MMXOP(punpcklbw_r64_r64m32)(i386_state* cpustate) // Opcode 0f 60
 	} else {
 		UINT32 s,t;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		s = READ32(cpustate,ea);
 		t=MMX(d).d[0];
 		MMX(d).b[0]=t & 0xff;
@@ -2566,7 +2566,7 @@ static void MMXOP(punpcklwd_r64_r64m32)(i386_state* cpustate) // Opcode 0f 61
 		UINT32 s;
 		UINT16 t;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		s = READ32(cpustate,ea);
 		t=MMX(d).w[1];
 		MMX(d).w[0]=MMX(d).w[0];
@@ -2590,7 +2590,7 @@ static void MMXOP(punpckldq_r64_r64m32)(i386_state* cpustate) // Opcode 0f 62
 	} else {
 		UINT32 s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		s = READ32(cpustate,ea);
 		MMX(d).d[0]=MMX(d).d[0];
 		MMX(d).d[1]=s;
@@ -2617,7 +2617,7 @@ static void MMXOP(packsswb_r64_rm64)(i386_state* cpustate) // Opcode 0f 63
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		MMX(d).c[0]=SaturatedSignedWordToSignedByte(MMX(d).s[0]);
 		MMX(d).c[1]=SaturatedSignedWordToSignedByte(MMX(d).s[1]);
@@ -2645,7 +2645,7 @@ static void MMXOP(pcmpgtb_r64_rm64)(i386_state* cpustate) // Opcode 0f 64
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (c=0;c <= 7;c++)
 			MMX(d).b[c]=(MMX(d).c[c] > s.c[c]) ? 0xff : 0;
@@ -2667,7 +2667,7 @@ static void MMXOP(pcmpgtw_r64_rm64)(i386_state* cpustate) // Opcode 0f 65
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (c=0;c <= 3;c++)
 			MMX(d).w[c]=(MMX(d).s[c] > s.s[c]) ? 0xffff : 0;
@@ -2689,7 +2689,7 @@ static void MMXOP(pcmpgtd_r64_rm64)(i386_state* cpustate) // Opcode 0f 66
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (c=0;c <= 1;c++)
 			MMX(d).d[c]=(MMX(d).i[c] > s.i[c]) ? 0xffffffff : 0;
@@ -2719,7 +2719,7 @@ static void MMXOP(packuswb_r64_rm64)(i386_state* cpustate) // Opcode 0f 67
 	} else {
 		MMX_REG s,t;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		t.q = MMX(d).q;
 		MMX(d).b[0]=SaturatedSignedWordToUnsignedByte(t.s[0]);
@@ -2753,7 +2753,7 @@ static void MMXOP(punpckhbw_r64_rm64)(i386_state* cpustate) // Opcode 0f 68
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		MMX(d).b[0]=MMX(d).b[4];
 		MMX(d).b[1]=s.b[4];
@@ -2782,7 +2782,7 @@ static void MMXOP(punpckhwd_r64_rm64)(i386_state* cpustate) // Opcode 0f 69
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		MMX(d).w[0]=MMX(d).w[2];
 		MMX(d).w[1]=s.w[2];
@@ -2805,7 +2805,7 @@ static void MMXOP(punpckhdq_r64_rm64)(i386_state* cpustate) // Opcode 0f 6a
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		MMX(d).d[0]=MMX(d).d[1];
 		MMX(d).d[1]=s.d[1];
@@ -2835,7 +2835,7 @@ static void MMXOP(packssdw_r64_rm64)(i386_state* cpustate) // Opcode 0f 6b
 		MMX_REG s;
 		INT32 t1, t2;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		t1 = MMX(d).i[0];
 		t2 = MMX(d).i[1];
@@ -2862,11 +2862,11 @@ static void SSEOP(group_0fae)(i386_state* cpustate)  // Opcode 0f ae
 		switch ( (modm & 0x38) >> 3 )
 		{
 			case 2: // ldmxcsr m32
-				ea = GetEA(cpustate,modm, 0);
+				ea = GetEA(cpustate,modm, 0, 4);
 				cpustate->mxcsr = READ32(cpustate,ea);
 				break;
 			case 3: // stmxcsr m32
-				ea = GetEA(cpustate,modm, 0);
+				ea = GetEA(cpustate,modm, 0, 4);
 				WRITE32(cpustate,ea, cpustate->mxcsr);
 				break;
 			case 7: // clflush m8
@@ -2890,7 +2890,7 @@ static void SSEOP(cvttps2dq_r128_rm128)(i386_state* cpustate) // Opcode f3 0f 5b
 		XMM((modrm >> 3) & 0x7).i[3]=(INT32)XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).i[0]=(INT32)src.f[0];
 		XMM((modrm >> 3) & 0x7).i[1]=(INT32)src.f[1];
@@ -2907,7 +2907,7 @@ static void SSEOP(cvtss2sd_r128_r128m32)(i386_state* cpustate) // Opcode f3 0f 5
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		s.d[0] = READ32(cpustate,ea);
 		XMM((modrm >> 3) & 0x7).f64[0] = s.f[0];
 	}
@@ -2922,7 +2922,7 @@ static void SSEOP(cvttss2si_r32_r128m32)(i386_state* cpustate) // Opcode f3 0f 2
 		src = (INT32)XMM(modrm & 0x7).f[0^NATIVE_ENDIAN_VALUE_LE_BE(0,1)];
 	} else { // otherwise is a memory address
 		XMM_REG t;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		t.d[0] = READ32(cpustate,ea);
 		src = (INT32)t.f[0];
 	}
@@ -2938,7 +2938,7 @@ static void SSEOP(cvtss2si_r32_r128m32)(i386_state* cpustate) // Opcode f3 0f 2d
 		src = (INT32)XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG t;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		t.d[0] = READ32(cpustate,ea);
 		src = (INT32)t.f[0];
 	}
@@ -2952,7 +2952,7 @@ static void SSEOP(cvtsi2ss_r128_rm32)(i386_state* cpustate) // Opcode f3 0f 2a
 	if( modrm >= 0xc0 ) {
 		XMM((modrm >> 3) & 0x7).f[0] = (INT32)LOAD_RM32(modrm);
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		XMM((modrm >> 3) & 0x7).f[0] = (INT32)READ32(cpustate,ea);
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -2967,7 +2967,7 @@ static void SSEOP(cvtpi2ps_r128_rm64)(i386_state* cpustate) // Opcode 0f 2a
 		XMM((modrm >> 3) & 0x7).f[1] = (float)MMX(modrm & 0x7).i[1];
 	} else {
 		MMX_REG r;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, r);
 		XMM((modrm >> 3) & 0x7).f[0] = (float)r.i[0];
 		XMM((modrm >> 3) & 0x7).f[1] = (float)r.i[1];
@@ -2984,7 +2984,7 @@ static void SSEOP(cvttps2pi_r64_r128m64)(i386_state* cpustate) // Opcode 0f 2c
 		MMX((modrm >> 3) & 0x7).i[1] = XMM(modrm & 0x7).f[1];
 	} else {
 		XMM_REG r;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, r);
 		XMM((modrm >> 3) & 0x7).i[0] = r.f[0];
 		XMM((modrm >> 3) & 0x7).i[1] = r.f[1];
@@ -3001,7 +3001,7 @@ static void SSEOP(cvtps2pi_r64_r128m64)(i386_state* cpustate) // Opcode 0f 2d
 		MMX((modrm >> 3) & 0x7).i[1] = XMM(modrm & 0x7).f[1];
 	} else {
 		XMM_REG r;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, r);
 		XMM((modrm >> 3) & 0x7).i[0] = r.f[0];
 		XMM((modrm >> 3) & 0x7).i[1] = r.f[1];
@@ -3017,7 +3017,7 @@ static void SSEOP(cvtps2pd_r128_r128m64)(i386_state* cpustate) // Opcode 0f 5a
 		XMM((modrm >> 3) & 0x7).f64[1] = (double)XMM(modrm & 0x7).f[1];
 	} else {
 		MMX_REG r;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, r);
 		XMM((modrm >> 3) & 0x7).f64[0] = (double)r.f[0];
 		XMM((modrm >> 3) & 0x7).f64[1] = (double)r.f[1];
@@ -3035,7 +3035,7 @@ static void SSEOP(cvtdq2ps_r128_rm128)(i386_state* cpustate) // Opcode 0f 5b
 		XMM((modrm >> 3) & 0x7).f[3] = (float)XMM(modrm & 0x7).i[3];
 	} else {
 		XMM_REG r;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, r);
 		XMM((modrm >> 3) & 0x7).f[0] = (float)r.i[0];
 		XMM((modrm >> 3) & 0x7).f[1] = (float)r.i[1];
@@ -3053,7 +3053,7 @@ static void SSEOP(cvtdq2pd_r128_r128m64)(i386_state* cpustate) // Opcode f3 0f e
 		XMM((modrm >> 3) & 0x7).f64[1] = (double)XMM(modrm & 0x7).i[1];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		XMM((modrm >> 3) & 0x7).f64[0] = (double)s.i[0];
 		XMM((modrm >> 3) & 0x7).f64[1] = (double)s.i[1];
@@ -3067,7 +3067,7 @@ static void SSEOP(movss_r128_rm128)(i386_state* cpustate) // Opcode f3 0f 10
 	if( modrm >= 0xc0 ) {
 		XMM((modrm >> 3) & 0x7).d[0] = XMM(modrm & 0x7).d[0];
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		XMM((modrm >> 3) & 0x7).d[0] = READ32(cpustate,ea);
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -3079,7 +3079,7 @@ static void SSEOP(movss_rm128_r128)(i386_state* cpustate) // Opcode f3 0f 11
 	if( modrm >= 0xc0 ) {
 		XMM(modrm & 0x7).d[0] = XMM((modrm >> 3) & 0x7).d[0];
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		WRITE32(cpustate,ea, XMM((modrm >> 3) & 0x7).d[0]);
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -3095,7 +3095,7 @@ static void SSEOP(movsldup_r128_rm128)(i386_state* cpustate) // Opcode f3 0f 12
 		XMM((modrm >> 3) & 0x7).d[3] = XMM(modrm & 0x7).d[2];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).d[0] = src.d[0];
 		XMM((modrm >> 3) & 0x7).d[1] = src.d[0];
@@ -3115,7 +3115,7 @@ static void SSEOP(movshdup_r128_rm128)(i386_state* cpustate) // Opcode f3 0f 16
 		XMM((modrm >> 3) & 0x7).d[3] = XMM(modrm & 0x7).d[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).d[0] = src.d[1];
 		XMM((modrm >> 3) & 0x7).d[1] = src.d[1];
@@ -3131,7 +3131,7 @@ static void SSEOP(movaps_r128_rm128)(i386_state* cpustate) // Opcode 0f 28
 	if( modrm >= 0xc0 ) {
 		XMM((modrm >> 3) & 0x7) = XMM(modrm & 0x7);
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -3143,7 +3143,7 @@ static void SSEOP(movaps_rm128_r128)(i386_state* cpustate) // Opcode 0f 29
 	if( modrm >= 0xc0 ) {
 		XMM(modrm & 0x7) = XMM((modrm >> 3) & 0x7);
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		WRITEXMM(cpustate, ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -3155,7 +3155,7 @@ static void SSEOP(movups_r128_rm128)(i386_state* cpustate) // Opcode 0f 10
 	if( modrm >= 0xc0 ) {
 		XMM((modrm >> 3) & 0x7) = XMM(modrm & 0x7);
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, XMM((modrm >> 3) & 0x7)); // address does not need to be 16-byte aligned
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -3167,7 +3167,7 @@ static void SSEOP(movupd_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 10
 	if( modrm >= 0xc0 ) {
 		XMM((modrm >> 3) & 0x7) = XMM(modrm & 0x7);
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, XMM((modrm >> 3) & 0x7)); // address does not need to be 16-byte aligned
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -3179,7 +3179,7 @@ static void SSEOP(movups_rm128_r128)(i386_state* cpustate) // Opcode 0f 11
 	if( modrm >= 0xc0 ) {
 		XMM(modrm & 0x7) = XMM((modrm >> 3) & 0x7);
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		WRITEXMM(cpustate, ea, XMM((modrm >> 3) & 0x7)); // address does not need to be 16-byte aligned
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -3191,7 +3191,7 @@ static void SSEOP(movupd_rm128_r128)(i386_state* cpustate) // Opcode 66 0f 11
 	if( modrm >= 0xc0 ) {
 		XMM(modrm & 0x7) = XMM((modrm >> 3) & 0x7);
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		WRITEXMM(cpustate, ea, XMM((modrm >> 3) & 0x7)); // address does not need to be 16-byte aligned
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -3206,7 +3206,7 @@ static void SSEOP(movlps_r128_m64)(i386_state* cpustate) // Opcode 0f 12
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	} else {
 		// MOVLPS opcode
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READXMM_LO64(cpustate, ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	}
@@ -3219,7 +3219,7 @@ static void SSEOP(movlpd_r128_m64)(i386_state* cpustate) // Opcode 66 0f 12
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	} else {
 		// MOVLPS opcode
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READXMM_LO64(cpustate, ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	}
@@ -3232,7 +3232,7 @@ static void SSEOP(movlps_m64_r128)(i386_state* cpustate) // Opcode 0f 13
 		// unsupported by cpu
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		WRITEXMM_LO64(cpustate, ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	}
@@ -3245,7 +3245,7 @@ static void SSEOP(movlpd_m64_r128)(i386_state* cpustate) // Opcode 66 0f 13
 		// unsupported by cpu
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		WRITEXMM_LO64(cpustate, ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	}
@@ -3260,7 +3260,7 @@ static void SSEOP(movhps_r128_m64)(i386_state* cpustate) // Opcode 0f 16
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	} else {
 		// MOVHPS opcode
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READXMM_HI64(cpustate, ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	}
@@ -3274,7 +3274,7 @@ static void SSEOP(movhpd_r128_m64)(i386_state* cpustate) // Opcode 66 0f 16
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	} else {
 		// MOVHPS opcode
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READXMM_HI64(cpustate, ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	}
@@ -3287,7 +3287,7 @@ static void SSEOP(movhps_m64_r128)(i386_state* cpustate) // Opcode 0f 17
 		// unsupported by cpu
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		WRITEXMM_HI64(cpustate, ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	}
@@ -3300,7 +3300,7 @@ static void SSEOP(movhpd_m64_r128)(i386_state* cpustate) // Opcode 66 0f 17
 		// unsupported by cpu
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		WRITEXMM_HI64(cpustate, ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	}
@@ -3314,7 +3314,7 @@ static void SSEOP(movntps_m128_r128)(i386_state* cpustate) // Opcode 0f 2b
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	} else {
 		// since cache is not implemented
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		WRITEXMM(cpustate, ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	}
@@ -3379,7 +3379,7 @@ static void SSEOP(movdqu_r128_rm128)(i386_state* cpustate) // Opcode f3 0f 6f
 		XMM((modrm >> 3) & 0x7).q[0] = XMM(modrm & 0x7).q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = XMM(modrm & 0x7).q[1];
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -3393,7 +3393,7 @@ static void SSEOP(movdqu_rm128_r128)(i386_state* cpustate) // Opcode f3 0f 7f
 		XMM(modrm & 0x7).q[0] = XMM((modrm >> 3) & 0x7).q[0];
 		XMM(modrm & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1];
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		WRITEXMM(cpustate, ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -3406,7 +3406,7 @@ static void SSEOP(movd_m128_rm32)(i386_state* cpustate) // Opcode 66 0f 6e
 		XMM((modrm >> 3) & 0x7).d[0] = LOAD_RM32(modrm);
 	}
 	else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		XMM((modrm >> 3) & 0x7).d[0] = READ32(cpustate,ea);
 	}
 	XMM((modrm >> 3) & 0x7).d[1] = 0;
@@ -3422,7 +3422,7 @@ static void SSEOP(movdqa_m128_rm128)(i386_state* cpustate) // Opcode 66 0f 6f
 		XMM((modrm >> 3) & 0x7).q[1] = XMM(modrm & 0x7).q[1];
 	}
 	else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -3436,7 +3436,7 @@ static void SSEOP(movq_r128_r128m64)(i386_state* cpustate) // Opcode f3 0f 7e
 		XMM((modrm >> 3) & 0x7).q[0] = XMM(modrm & 0x7).q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = 0;
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		XMM((modrm >> 3) & 0x7).q[0] = READ64(cpustate, ea);
 		XMM((modrm >> 3) & 0x7).q[1] = 0;
 	}
@@ -3450,7 +3450,7 @@ static void SSEOP(movd_rm32_r128)(i386_state* cpustate) // Opcode 66 0f 7e
 		STORE_RM32(modrm, XMM((modrm >> 3) & 0x7).d[0]);
 	}
 	else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		WRITE32(cpustate,ea, XMM((modrm >> 3) & 0x7).d[0]);
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -3464,7 +3464,7 @@ static void SSEOP(movdqa_rm128_r128)(i386_state* cpustate) // Opcode 66 0f 7f
 		XMM(modrm & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1];
 	}
 	else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		WRITEXMM(cpustate, ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -3544,7 +3544,7 @@ static void SSEOP(xorps)(i386_state* cpustate) // Opcode 0f 57
 		XMM((modrm >> 3) & 0x7).d[3] = XMM((modrm >> 3) & 0x7).d[3] ^ XMM(modrm & 0x7).d[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).d[0] = XMM((modrm >> 3) & 0x7).d[0] ^ src.d[0];
 		XMM((modrm >> 3) & 0x7).d[1] = XMM((modrm >> 3) & 0x7).d[1] ^ src.d[1];
@@ -3562,7 +3562,7 @@ static void SSEOP(xorpd_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 57
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] ^ XMM(modrm & 0x7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).q[0] = XMM((modrm >> 3) & 0x7).q[0] ^ src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] ^ src.q[1];
@@ -3580,7 +3580,7 @@ static void SSEOP(addps)(i386_state* cpustate) // Opcode 0f 58
 		XMM((modrm >> 3) & 0x7).f[3] = XMM((modrm >> 3) & 0x7).f[3] + XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] + src.f[0];
 		XMM((modrm >> 3) & 0x7).f[1] = XMM((modrm >> 3) & 0x7).f[1] + src.f[1];
@@ -3600,7 +3600,7 @@ static void SSEOP(sqrtps_r128_rm128)(i386_state* cpustate) // Opcode 0f 51
 		XMM((modrm >> 3) & 0x7).f[3] = sqrt(XMM(modrm & 0x7).f[3]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = sqrt(src.f[0]);
 		XMM((modrm >> 3) & 0x7).f[1] = sqrt(src.f[1]);
@@ -3620,7 +3620,7 @@ static void SSEOP(rsqrtps_r128_rm128)(i386_state* cpustate) // Opcode 0f 52
 		XMM((modrm >> 3) & 0x7).f[3] = 1.0 / sqrt(XMM(modrm & 0x7).f[3]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = 1.0 / sqrt(src.f[0]);
 		XMM((modrm >> 3) & 0x7).f[1] = 1.0 / sqrt(src.f[1]);
@@ -3640,7 +3640,7 @@ static void SSEOP(rcpps_r128_rm128)(i386_state* cpustate) // Opcode 0f 53
 		XMM((modrm >> 3) & 0x7).f[3] = 1.0f / XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = 1.0f / src.f[0];
 		XMM((modrm >> 3) & 0x7).f[1] = 1.0f / src.f[1];
@@ -3658,7 +3658,7 @@ static void SSEOP(andps_r128_rm128)(i386_state* cpustate) // Opcode 0f 54
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] & XMM(modrm & 0x7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).q[0] = XMM((modrm >> 3) & 0x7).q[0] & src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] & src.q[1];
@@ -3674,7 +3674,7 @@ static void SSEOP(andpd_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 54
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] & XMM(modrm & 0x7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).q[0] = XMM((modrm >> 3) & 0x7).q[0] & src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] & src.q[1];
@@ -3690,7 +3690,7 @@ static void SSEOP(andnps_r128_rm128)(i386_state* cpustate) // Opcode 0f 55
 		XMM((modrm >> 3) & 0x7).q[1] = ~(XMM((modrm >> 3) & 0x7).q[1]) & XMM(modrm & 0x7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).q[0] = ~(XMM((modrm >> 3) & 0x7).q[0]) & src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = ~(XMM((modrm >> 3) & 0x7).q[1]) & src.q[1];
@@ -3706,7 +3706,7 @@ static void SSEOP(andnpd_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 55
 		XMM((modrm >> 3) & 0x7).q[1] = ~(XMM((modrm >> 3) & 0x7).q[1]) & XMM(modrm & 0x7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).q[0] = ~(XMM((modrm >> 3) & 0x7).q[0]) & src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = ~(XMM((modrm >> 3) & 0x7).q[1]) & src.q[1];
@@ -3722,7 +3722,7 @@ static void SSEOP(orps_r128_rm128)(i386_state* cpustate) // Opcode 0f 56
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] | XMM(modrm & 0x7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).q[0] = XMM((modrm >> 3) & 0x7).q[0] | src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] | src.q[1];
@@ -3738,7 +3738,7 @@ static void SSEOP(orpd_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 56
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] | XMM(modrm & 0x7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).q[0] = XMM((modrm >> 3) & 0x7).q[0] | src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] | src.q[1];
@@ -3756,7 +3756,7 @@ static void SSEOP(mulps)(i386_state* cpustate) // Opcode 0f 59 ????
 		XMM((modrm >> 3) & 0x7).f[3] = XMM((modrm >> 3) & 0x7).f[3] * XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] * src.f[0];
 		XMM((modrm >> 3) & 0x7).f[1] = XMM((modrm >> 3) & 0x7).f[1] * src.f[1];
@@ -3776,7 +3776,7 @@ static void SSEOP(subps)(i386_state* cpustate) // Opcode 0f 5c
 		XMM((modrm >> 3) & 0x7).f[3] = XMM((modrm >> 3) & 0x7).f[3] - XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] - src.f[0];
 		XMM((modrm >> 3) & 0x7).f[1] = XMM((modrm >> 3) & 0x7).f[1] - src.f[1];
@@ -3822,7 +3822,7 @@ static void SSEOP(minps)(i386_state* cpustate) // Opcode 0f 5d
 		XMM((modrm >> 3) & 0x7).f[3] = sse_min_single(XMM((modrm >> 3) & 0x7).f[3], XMM(modrm & 0x7).f[3]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = sse_min_single(XMM((modrm >> 3) & 0x7).f[0], src.f[0]);
 		XMM((modrm >> 3) & 0x7).f[1] = sse_min_single(XMM((modrm >> 3) & 0x7).f[1], src.f[1]);
@@ -3842,7 +3842,7 @@ static void SSEOP(divps)(i386_state* cpustate) // Opcode 0f 5e
 		XMM((modrm >> 3) & 0x7).f[3] = XMM((modrm >> 3) & 0x7).f[3] / XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] / src.f[0];
 		XMM((modrm >> 3) & 0x7).f[1] = XMM((modrm >> 3) & 0x7).f[1] / src.f[1];
@@ -3888,7 +3888,7 @@ static void SSEOP(maxps)(i386_state* cpustate) // Opcode 0f 5f
 		XMM((modrm >> 3) & 0x7).f[3] = sse_max_single(XMM((modrm >> 3) & 0x7).f[3], XMM(modrm & 0x7).f[3]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = sse_max_single(XMM((modrm >> 3) & 0x7).f[0], src.f[0]);
 		XMM((modrm >> 3) & 0x7).f[1] = sse_max_single(XMM((modrm >> 3) & 0x7).f[1], src.f[1]);
@@ -3905,7 +3905,7 @@ static void SSEOP(maxss_r128_r128m32)(i386_state* cpustate) // Opcode f3 0f 5f
 		XMM((modrm >> 3) & 0x7).f[0] = sse_max_single(XMM((modrm >> 3) & 0x7).f[0], XMM(modrm & 0x7).f[0]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		src.d[0]=READ32(cpustate,ea);
 		XMM((modrm >> 3) & 0x7).f[0] = sse_max_single(XMM((modrm >> 3) & 0x7).f[0], src.f[0]);
 	}
@@ -3919,7 +3919,7 @@ static void SSEOP(addss)(i386_state* cpustate) // Opcode f3 0f 58
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] + XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] + src.f[0];
 	}
@@ -3933,7 +3933,7 @@ static void SSEOP(subss)(i386_state* cpustate) // Opcode f3 0f 5c
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] - XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] - src.f[0];
 	}
@@ -3947,7 +3947,7 @@ static void SSEOP(mulss)(i386_state* cpustate) // Opcode f3 0f 5e
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] * XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] * src.f[0];
 	}
@@ -3961,7 +3961,7 @@ static void SSEOP(divss)(i386_state* cpustate) // Opcode 0f 59
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] / XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] / src.f[0];
 	}
@@ -3975,7 +3975,7 @@ static void SSEOP(rcpss_r128_r128m32)(i386_state* cpustate) // Opcode f3 0f 53
 		XMM((modrm >> 3) & 0x7).f[0] = 1.0f / XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		s.d[0]=READ32(cpustate,ea);
 		XMM((modrm >> 3) & 0x7).f[0] = 1.0f / s.f[0];
 	}
@@ -3989,7 +3989,7 @@ static void SSEOP(sqrtss_r128_r128m32)(i386_state* cpustate) // Opcode f3 0f 51
 		XMM((modrm >> 3) & 0x7).f[0] = sqrt(XMM(modrm & 0x7).f[0]);
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		s.d[0]=READ32(cpustate,ea);
 		XMM((modrm >> 3) & 0x7).f[0] = sqrt(s.f[0]);
 	}
@@ -4003,7 +4003,7 @@ static void SSEOP(rsqrtss_r128_r128m32)(i386_state* cpustate) // Opcode f3 0f 52
 		XMM((modrm >> 3) & 0x7).f[0] = 1.0 / sqrt(XMM(modrm & 0x7).f[0]);
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		s.d[0]=READ32(cpustate,ea);
 		XMM((modrm >> 3) & 0x7).f[0] = 1.0 / sqrt(s.f[0]);
 	}
@@ -4017,7 +4017,7 @@ static void SSEOP(minss_r128_r128m32)(i386_state* cpustate) // Opcode f3 0f 5d
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] < XMM(modrm & 0x7).f[0] ? XMM((modrm >> 3) & 0x7).f[0] : XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		s.d[0] = READ32(cpustate,ea);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] < s.f[0] ? XMM((modrm >> 3) & 0x7).f[0] : s.f[0];
 	}
@@ -4033,7 +4033,7 @@ static void SSEOP(comiss_r128_r128m32)(i386_state* cpustate) // Opcode 0f 2f
 		b = XMM(modrm & 0x7).d[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		a = XMM((modrm >> 3) & 0x7).d[0];
 		b = src.d[0];
@@ -4070,7 +4070,7 @@ static void SSEOP(comisd_r128_r128m64)(i386_state* cpustate) // Opcode 66 0f 2f
 		b = XMM(modrm & 0x7).q[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		a = XMM((modrm >> 3) & 0x7).q[0];
 		b = src.q[0];
@@ -4107,7 +4107,7 @@ static void SSEOP(ucomiss_r128_r128m32)(i386_state* cpustate) // Opcode 0f 2e
 		b = XMM(modrm & 0x7).d[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		a = XMM((modrm >> 3) & 0x7).d[0];
 		b = src.d[0];
@@ -4144,7 +4144,7 @@ static void SSEOP(ucomisd_r128_r128m64)(i386_state* cpustate) // Opcode 66 0f 2e
 		b = XMM(modrm & 0x7).q[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		a = XMM((modrm >> 3) & 0x7).q[0];
 		b = src.q[0];
@@ -4197,7 +4197,7 @@ static void SSEOP(shufps)(i386_state* cpustate) // Opcode 0f c6
 	} else {
 		UINT32 t1,t2;
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		t1=XMM(d).d[m1];
 		t2=XMM(d).d[m2];
@@ -4228,7 +4228,7 @@ static void SSEOP(shufpd_r128_rm128_i8)(i386_state* cpustate) // Opcode 66 0f c6
 	} else {
 		UINT64 t1;
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		t1=XMM(d).q[m1];
 		XMM(d).q[0]=t1;
@@ -4255,7 +4255,7 @@ static void SSEOP(unpcklps_r128_rm128)(i386_state* cpustate) // Opcode 0f 14
 		XMM(d).d[0]=t4;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		t2 = XMM(d).d[1];
 		XMM(d).d[3]=src.d[1];
@@ -4276,7 +4276,7 @@ static void SSEOP(unpcklpd_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 14
 		XMM(d).q[0]=XMM(d).q[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM(d).q[1]=src.q[0];
 		XMM(d).q[0]=XMM(d).q[0];
@@ -4302,7 +4302,7 @@ static void SSEOP(unpckhps_r128_rm128)(i386_state* cpustate) // Opcode 0f 15
 		XMM(d).d[3]=t4;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		t1 = XMM(d).d[2];
 		t2 = XMM(d).d[3];
@@ -4325,7 +4325,7 @@ static void SSEOP(unpckhpd_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 15
 		XMM(d).q[1]=XMM(s).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM(d).q[0]=XMM(d).q[1];
 		XMM(d).q[1]=src.q[1];
@@ -4525,7 +4525,7 @@ static void SSEOP(cmpps_r128_rm128_i8)(i386_state* cpustate) // Opcode 0f c2
 	} else {
 		int d;
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		UINT8 imm8 = FETCH(cpustate);
 		READXMM(cpustate, ea, s);
 		d=(modrm >> 3) & 0x7;
@@ -4546,7 +4546,7 @@ static void SSEOP(cmppd_r128_rm128_i8)(i386_state* cpustate) // Opcode 66 0f c2
 	} else {
 		int d;
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		UINT8 imm8 = FETCH(cpustate);
 		READXMM(cpustate, ea, s);
 		d=(modrm >> 3) & 0x7;
@@ -4567,7 +4567,7 @@ static void SSEOP(cmpss_r128_r128m32_i8)(i386_state* cpustate) // Opcode f3 0f c
 	} else {
 		int d;
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		UINT8 imm8 = FETCH(cpustate);
 		s.d[0]=READ32(cpustate,ea);
 		d=(modrm >> 3) & 0x7;
@@ -4588,7 +4588,7 @@ static void SSEOP(pinsrw_r64_r16m16_i8)(i386_state* cpustate) // Opcode 0f c4, 1
 		else
 			MMX((modrm >> 3) & 0x7).w[imm8 & 3] = v;
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 2);
 		UINT8 imm8 = FETCH(cpustate);
 		UINT16 v = READ16(cpustate,ea);
 		if (cpustate->xmm_operand_size)
@@ -4608,7 +4608,7 @@ static void SSEOP(pinsrw_r64_r32m16_i8)(i386_state* cpustate) // Opcode 0f c4, 3
 		UINT16 v = (UINT16)LOAD_RM32(modrm);
 		MMX((modrm >> 3) & 0x7).w[imm8 & 3] = v;
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 2);
 		UINT8 imm8 = FETCH(cpustate);
 		UINT16 v = READ16(cpustate,ea);
 		MMX((modrm >> 3) & 0x7).w[imm8 & 3] = v;
@@ -4625,7 +4625,7 @@ static void SSEOP(pinsrw_r128_r32m16_i8)(i386_state* cpustate) // Opcode 66 0f c
 		XMM((modrm >> 3) & 0x7).w[imm8 & 7] = v;
 	}
 	else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 2);
 		UINT8 imm8 = FETCH(cpustate);
 		UINT16 v = READ16(cpustate,ea);
 		XMM((modrm >> 3) & 0x7).w[imm8 & 7] = v;
@@ -4688,7 +4688,7 @@ static void SSEOP(pminub_r64_rm64)(i386_state* cpustate) // Opcode 0f da
 			MMX((modrm >> 3) & 0x7).b[n] = MMX((modrm >> 3) & 0x7).b[n] < MMX(modrm & 0x7).b[n] ? MMX((modrm >> 3) & 0x7).b[n] : MMX(modrm & 0x7).b[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).b[n] = MMX((modrm >> 3) & 0x7).b[n] < s.b[n] ? MMX((modrm >> 3) & 0x7).b[n] : s.b[n];
@@ -4704,7 +4704,7 @@ static void SSEOP(pminub_r128_rm128)(i386_state* cpustate) // Opcode 66 0f da
 			XMM((modrm >> 3) & 0x7).b[n] = XMM((modrm >> 3) & 0x7).b[n] < XMM(modrm & 0x7).b[n] ? XMM((modrm >> 3) & 0x7).b[n] : XMM(modrm & 0x7).b[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).b[n] = XMM((modrm >> 3) & 0x7).b[n] < s.b[n] ? XMM((modrm >> 3) & 0x7).b[n] : s.b[n];
@@ -4722,7 +4722,7 @@ static void SSEOP(pmaxub_r64_rm64)(i386_state* cpustate) // Opcode 0f de
 			MMX((modrm >> 3) & 0x7).b[n] = MMX((modrm >> 3) & 0x7).b[n] > MMX(modrm & 0x7).b[n] ? MMX((modrm >> 3) & 0x7).b[n] : MMX(modrm & 0x7).b[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).b[n] = MMX((modrm >> 3) & 0x7).b[n] > s.b[n] ? MMX((modrm >> 3) & 0x7).b[n] : s.b[n];
@@ -4740,7 +4740,7 @@ static void SSEOP(pavgb_r64_rm64)(i386_state* cpustate) // Opcode 0f e0
 			MMX((modrm >> 3) & 0x7).b[n] = ((UINT16)MMX((modrm >> 3) & 0x7).b[n] + (UINT16)MMX(modrm & 0x7).b[n] + 1) >> 1;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).b[n] = ((UINT16)MMX((modrm >> 3) & 0x7).b[n] + (UINT16)s.b[n] + 1) >> 1;
@@ -4758,7 +4758,7 @@ static void SSEOP(pavgw_r64_rm64)(i386_state* cpustate) // Opcode 0f e3
 			MMX((modrm >> 3) & 0x7).w[n] = ((UINT32)MMX((modrm >> 3) & 0x7).w[n] + (UINT32)MMX(modrm & 0x7).w[n] + 1) >> 1;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).w[n] = ((UINT32)MMX((modrm >> 3) & 0x7).w[n] + (UINT32)s.w[n] + 1) >> 1;
@@ -4777,7 +4777,7 @@ static void SSEOP(pmulhuw_r64_rm64)(i386_state* cpustate)  // Opcode 0f e4
 		MMX((modrm >> 3) & 0x7).w[3]=((UINT32)MMX((modrm >> 3) & 0x7).w[3]*(UINT32)MMX(modrm & 7).w[3]) >> 16;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		MMX((modrm >> 3) & 0x7).w[0]=((UINT32)MMX((modrm >> 3) & 0x7).w[0]*(UINT32)s.w[0]) >> 16;
 		MMX((modrm >> 3) & 0x7).w[1]=((UINT32)MMX((modrm >> 3) & 0x7).w[1]*(UINT32)s.w[1]) >> 16;
@@ -4797,7 +4797,7 @@ static void SSEOP(pminsw_r64_rm64)(i386_state* cpustate) // Opcode 0f ea
 			MMX((modrm >> 3) & 0x7).s[n] = MMX((modrm >> 3) & 0x7).s[n] < MMX(modrm & 0x7).s[n] ? MMX((modrm >> 3) & 0x7).s[n] : MMX(modrm & 0x7).s[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).s[n] = MMX((modrm >> 3) & 0x7).s[n] < s.s[n] ? MMX((modrm >> 3) & 0x7).s[n] : s.s[n];
@@ -4815,7 +4815,7 @@ static void SSEOP(pmaxsw_r64_rm64)(i386_state* cpustate) // Opcode 0f ee
 			MMX((modrm >> 3) & 0x7).s[n] = MMX((modrm >> 3) & 0x7).s[n] > MMX(modrm & 0x7).s[n] ? MMX((modrm >> 3) & 0x7).s[n] : MMX(modrm & 0x7).s[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).s[n] = MMX((modrm >> 3) & 0x7).s[n] > s.s[n] ? MMX((modrm >> 3) & 0x7).s[n] : s.s[n];
@@ -4831,7 +4831,7 @@ static void SSEOP(pmuludq_r64_rm64)(i386_state* cpustate) // Opcode 0f f4
 		MMX((modrm >> 3) & 0x7).q = (UINT64)MMX((modrm >> 3) & 0x7).d[0] * (UINT64)MMX(modrm & 0x7).d[0];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		MMX((modrm >> 3) & 0x7).q = (UINT64)MMX((modrm >> 3) & 0x7).d[0] * (UINT64)s.d[0];
 	}
@@ -4846,7 +4846,7 @@ static void SSEOP(pmuludq_r128_rm128)(i386_state* cpustate) // Opcode 66 0f f4
 		XMM((modrm >> 3) & 0x7).q[1] = (UINT64)XMM((modrm >> 3) & 0x7).d[2] * (UINT64)XMM(modrm & 0x7).d[2];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		XMM((modrm >> 3) & 0x7).q[0] = (UINT64)XMM((modrm >> 3) & 0x7).d[0] * (UINT64)s.d[0];
 		XMM((modrm >> 3) & 0x7).q[1] = (UINT64)XMM((modrm >> 3) & 0x7).d[2] * (UINT64)s.d[2];
@@ -4867,7 +4867,7 @@ static void SSEOP(psadbw_r64_rm64)(i386_state* cpustate) // Opcode 0f f6
 		MMX((modrm >> 3) & 0x7).l=(UINT64)temp & 0xffff;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		temp=0;
 		for (n=0;n < 8;n++)
@@ -4885,7 +4885,7 @@ static void SSEOP(psubq_r64_rm64)(i386_state* cpustate)  // Opcode 0f fb
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q - MMX(modrm & 7).q;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, s);
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q - s.q;
 	}
@@ -4900,7 +4900,7 @@ static void SSEOP(psubq_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f fb
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] - XMM(modrm & 7).q[1];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		XMM((modrm >> 3) & 0x7).q[0]=XMM((modrm >> 3) & 0x7).q[0] - s.q[0];
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] - s.q[1];
@@ -4926,7 +4926,7 @@ static void SSEOP(pshufd_r128_rm128_i8)(i386_state* cpustate) // Opcode 66 0f 70
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		UINT8 imm8 = FETCH(cpustate);
 		READXMM(cpustate, ea, s);
 		XMM(d).d[0]=s.d[(imm8 & 3)];
@@ -4955,7 +4955,7 @@ static void SSEOP(pshuflw_r128_rm128_i8)(i386_state* cpustate) // Opcode f2 0f 7
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		UINT8 imm8 = FETCH(cpustate);
 		READXMM(cpustate, ea, s);
 		XMM(d).q[1]=s.q[1];
@@ -4985,7 +4985,7 @@ static void SSEOP(pshufhw_r128_rm128_i8)(i386_state* cpustate) // Opcode f3 0f 7
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		UINT8 imm8 = FETCH(cpustate);
 		READXMM(cpustate, ea, s);
 		XMM(d).q[0]=s.q[0];
@@ -5015,7 +5015,7 @@ static void SSEOP(packsswb_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 63
 	else {
 		XMM_REG s;
 		int d = (modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n = 0; n < 8; n++)
 			XMM(d).c[n] = SaturatedSignedWordToSignedByte(XMM(d).s[n]);
@@ -5047,7 +5047,7 @@ static void SSEOP(packssdw_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 6b
 	else {
 		XMM_REG s;
 		int d = (modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		XMM(d).s[0] = SaturatedSignedDwordToSignedWord(XMM(d).i[0]);
 		XMM(d).s[1] = SaturatedSignedDwordToSignedWord(XMM(d).i[1]);
@@ -5073,7 +5073,7 @@ static void SSEOP(pcmpgtb_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 64
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int c=0;c <= 15;c++)
 			XMM(d).b[c]=(XMM(d).c[c] > s.c[c]) ? 0xff : 0;
@@ -5093,7 +5093,7 @@ static void SSEOP(pcmpgtw_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 65
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int c=0;c <= 7;c++)
 			XMM(d).w[c]=(XMM(d).s[c] > s.s[c]) ? 0xffff : 0;
@@ -5113,7 +5113,7 @@ static void SSEOP(pcmpgtd_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 66
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int c=0;c <= 3;c++)
 			XMM(d).d[c]=(XMM(d).i[c] > s.i[c]) ? 0xffffffff : 0;
@@ -5138,7 +5138,7 @@ static void SSEOP(packuswb_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 67
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n = 0; n < 8;n++)
 			XMM(d).b[n]=SaturatedSignedWordToUnsignedByte(XMM(d).s[n]);
@@ -5164,7 +5164,7 @@ static void SSEOP(punpckhbw_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 68
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n = 0; n < 16; n += 2) {
 			XMM(d).b[n]=XMM(d).b[8+(n >> 1)];
@@ -5190,7 +5190,7 @@ static void SSEOP(punpckhwd_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 69
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n = 0; n < 8; n += 2) {
 			XMM(d).w[n]=XMM(d).w[4+(n >> 1)];
@@ -5216,7 +5216,7 @@ static void SSEOP(unpckhdq_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 6a
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		XMM(d).d[0]=XMM(d).d[2];
 		XMM(d).d[1]=s.d[2];
@@ -5240,7 +5240,7 @@ static void SSEOP(punpckhqdq_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 6
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		XMM(d).q[0]=XMM(d).q[1];
 		XMM(d).q[1]=s.q[1];
@@ -5260,7 +5260,7 @@ static void SSEOP(pcmpeqb_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 74
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int c=0;c <= 15;c++)
 			XMM(d).b[c]=(XMM(d).c[c] == s.c[c]) ? 0xff : 0;
@@ -5280,7 +5280,7 @@ static void SSEOP(pcmpeqw_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 75
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int c=0;c <= 7;c++)
 			XMM(d).w[c]=(XMM(d).s[c] == s.s[c]) ? 0xffff : 0;
@@ -5300,7 +5300,7 @@ static void SSEOP(pcmpeqd_r128_rm128)(i386_state* cpustate) // Opcode 66 0f 76
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int c=0;c <= 3;c++)
 			XMM(d).d[c]=(XMM(d).i[c] == s.i[c]) ? 0xffffffff : 0;
@@ -5320,7 +5320,7 @@ static void SSEOP(paddq_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f d4
 	} else {
 		XMM_REG src;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM(d).q[0]=XMM(d).q[0]+src.q[0];
 		XMM(d).q[1]=XMM(d).q[1]+src.q[1];
@@ -5340,7 +5340,7 @@ static void SSEOP(pmullw_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f d5
 	} else {
 		XMM_REG src;
 		int d;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		d=(modrm >> 3) & 0x7;
 		for (int n = 0; n < 8;n++)
@@ -5357,7 +5357,7 @@ static void SSEOP(paddb_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f fc
 			XMM((modrm >> 3) & 0x7).b[n]=XMM((modrm >> 3) & 0x7).b[n] + XMM(modrm & 7).b[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).b[n]=XMM((modrm >> 3) & 0x7).b[n] + s.b[n];
@@ -5373,7 +5373,7 @@ static void SSEOP(paddw_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f fd
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] + XMM(modrm & 7).w[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] + s.w[n];
@@ -5389,7 +5389,7 @@ static void SSEOP(paddd_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f fe
 			XMM((modrm >> 3) & 0x7).d[n]=XMM((modrm >> 3) & 0x7).d[n] + XMM(modrm & 7).d[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 4;n++)
 			XMM((modrm >> 3) & 0x7).d[n]=XMM((modrm >> 3) & 0x7).d[n] + s.d[n];
@@ -5405,7 +5405,7 @@ static void SSEOP(psubusb_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f d8
 			XMM((modrm >> 3) & 0x7).b[n]=XMM((modrm >> 3) & 0x7).b[n] < XMM(modrm & 7).b[n] ? 0 : XMM((modrm >> 3) & 0x7).b[n]-XMM(modrm & 7).b[n];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).b[n]=XMM((modrm >> 3) & 0x7).b[n] < src.b[n] ? 0 : XMM((modrm >> 3) & 0x7).b[n]-src.b[n];
@@ -5421,7 +5421,7 @@ static void SSEOP(psubusw_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f d9
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] < XMM(modrm & 7).w[n] ? 0 : XMM((modrm >> 3) & 0x7).w[n]-XMM(modrm & 7).w[n];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] < src.w[n] ? 0 : XMM((modrm >> 3) & 0x7).w[n]-src.w[n];
@@ -5437,7 +5437,7 @@ static void SSEOP(pand_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f db
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] & XMM(modrm & 7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).q[0]=XMM((modrm >> 3) & 0x7).q[0] & src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] & src.q[1];
@@ -5453,7 +5453,7 @@ static void SSEOP(pandn_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f df
 		XMM((modrm >> 3) & 0x7).q[1]=(~XMM((modrm >> 3) & 0x7).q[1]) & XMM(modrm & 7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).q[0]=(~XMM((modrm >> 3) & 0x7).q[0]) & src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1]=(~XMM((modrm >> 3) & 0x7).q[1]) & src.q[1];
@@ -5469,7 +5469,7 @@ static void SSEOP(paddusb_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f dc
 			XMM((modrm >> 3) & 0x7).b[n]=XMM((modrm >> 3) & 0x7).b[n] > (0xff-XMM(modrm & 7).b[n]) ? 0xff : XMM((modrm >> 3) & 0x7).b[n]+XMM(modrm & 7).b[n];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).b[n]=XMM((modrm >> 3) & 0x7).b[n] > (0xff-src.b[n]) ? 0xff : XMM((modrm >> 3) & 0x7).b[n]+src.b[n];
@@ -5485,7 +5485,7 @@ static void SSEOP(paddusw_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f dd
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] > (0xffff-XMM(modrm & 7).w[n]) ? 0xffff : XMM((modrm >> 3) & 0x7).w[n]+XMM(modrm & 7).w[n];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] > (0xffff-src.w[n]) ? 0xffff : XMM((modrm >> 3) & 0x7).w[n]+src.w[n];
@@ -5501,7 +5501,7 @@ static void SSEOP(pmaxub_r128_rm128)(i386_state* cpustate) // Opcode 66 0f de
 			XMM((modrm >> 3) & 0x7).b[n] = XMM((modrm >> 3) & 0x7).b[n] > XMM(modrm & 0x7).b[n] ? XMM((modrm >> 3) & 0x7).b[n] : XMM(modrm & 0x7).b[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).b[n] = XMM((modrm >> 3) & 0x7).b[n] > s.b[n] ? XMM((modrm >> 3) & 0x7).b[n] : s.b[n];
@@ -5517,7 +5517,7 @@ static void SSEOP(pmulhuw_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f e4
 			XMM((modrm >> 3) & 0x7).w[n]=((UINT32)XMM((modrm >> 3) & 0x7).w[n]*(UINT32)XMM(modrm & 7).w[n]) >> 16;
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).w[n]=((UINT32)XMM((modrm >> 3) & 0x7).w[n]*(UINT32)s.w[n]) >> 16;
@@ -5533,7 +5533,7 @@ static void SSEOP(pmulhw_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f e5
 			XMM((modrm >> 3) & 0x7).w[n]=(UINT32)((INT32)XMM((modrm >> 3) & 0x7).s[n]*(INT32)XMM(modrm & 7).s[n]) >> 16;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).w[n]=(UINT32)((INT32)XMM((modrm >> 3) & 0x7).s[n]*(INT32)src.s[n]) >> 16;
@@ -5549,7 +5549,7 @@ static void SSEOP(psubsb_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f e8
 			XMM((modrm >> 3) & 0x7).c[n]=SaturatedSignedWordToSignedByte((INT16)XMM((modrm >> 3) & 0x7).c[n] - (INT16)XMM(modrm & 7).c[n]);
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).c[n]=SaturatedSignedWordToSignedByte((INT16)XMM((modrm >> 3) & 0x7).c[n] - (INT16)s.c[n]);
@@ -5565,7 +5565,7 @@ static void SSEOP(psubsw_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f e9
 			XMM((modrm >> 3) & 0x7).s[n]=SaturatedSignedDwordToSignedWord((INT32)XMM((modrm >> 3) & 0x7).s[n] - (INT32)XMM(modrm & 7).s[n]);
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).s[n]=SaturatedSignedDwordToSignedWord((INT32)XMM((modrm >> 3) & 0x7).s[n] - (INT32)s.s[n]);
@@ -5581,7 +5581,7 @@ static void SSEOP(pminsw_r128_rm128)(i386_state* cpustate) // Opcode 66 0f ea
 			XMM((modrm >> 3) & 0x7).s[n] = XMM((modrm >> 3) & 0x7).s[n] < XMM(modrm & 0x7).s[n] ? XMM((modrm >> 3) & 0x7).s[n] : XMM(modrm & 0x7).s[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).s[n] = XMM((modrm >> 3) & 0x7).s[n] < s.s[n] ? XMM((modrm >> 3) & 0x7).s[n] : s.s[n];
@@ -5597,7 +5597,7 @@ static void SSEOP(pmaxsw_r128_rm128)(i386_state* cpustate) // Opcode 66 0f ee
 			XMM((modrm >> 3) & 0x7).s[n] = XMM((modrm >> 3) & 0x7).s[n] > XMM(modrm & 0x7).s[n] ? XMM((modrm >> 3) & 0x7).s[n] : XMM(modrm & 0x7).s[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).s[n] = XMM((modrm >> 3) & 0x7).s[n] > s.s[n] ? XMM((modrm >> 3) & 0x7).s[n] : s.s[n];
@@ -5613,7 +5613,7 @@ static void SSEOP(paddsb_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f ec
 			XMM((modrm >> 3) & 0x7).c[n]=SaturatedSignedWordToSignedByte((INT16)XMM((modrm >> 3) & 0x7).c[n] + (INT16)XMM(modrm & 7).c[n]);
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).c[n]=SaturatedSignedWordToSignedByte((INT16)XMM((modrm >> 3) & 0x7).c[n] + (INT16)s.c[n]);
@@ -5629,7 +5629,7 @@ static void SSEOP(paddsw_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f ed
 			XMM((modrm >> 3) & 0x7).s[n]=SaturatedSignedDwordToSignedWord((INT32)XMM((modrm >> 3) & 0x7).s[n] + (INT32)XMM(modrm & 7).s[n]);
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).s[n]=SaturatedSignedDwordToSignedWord((INT32)XMM((modrm >> 3) & 0x7).s[n] + (INT32)s.s[n]);
@@ -5645,7 +5645,7 @@ static void SSEOP(por_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f eb
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] | XMM(modrm & 7).q[1];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		XMM((modrm >> 3) & 0x7).q[0]=XMM((modrm >> 3) & 0x7).q[0] | s.q[0];
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] | s.q[1];
@@ -5661,7 +5661,7 @@ static void SSEOP(pxor_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f ef
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] ^ XMM(modrm & 7).q[1];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		XMM((modrm >> 3) & 0x7).q[0]=XMM((modrm >> 3) & 0x7).q[0] ^ s.q[0];
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] ^ s.q[1];
@@ -5678,7 +5678,7 @@ static void SSEOP(pmaddwd_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f f5
 										(INT32)XMM((modrm >> 3) & 0x7).s[n]*(INT32)XMM(modrm & 7).s[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 4;n++)
 			XMM((modrm >> 3) & 0x7).i[n]=(INT32)XMM((modrm >> 3) & 0x7).s[n]*(INT32)s.s[n]+
@@ -5695,7 +5695,7 @@ static void SSEOP(psubb_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f f8
 			XMM((modrm >> 3) & 0x7).b[n]=XMM((modrm >> 3) & 0x7).b[n] - XMM(modrm & 7).b[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).b[n]=XMM((modrm >> 3) & 0x7).b[n] - s.b[n];
@@ -5711,7 +5711,7 @@ static void SSEOP(psubw_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f f9
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] - XMM(modrm & 7).w[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] - s.w[n];
@@ -5727,7 +5727,7 @@ static void SSEOP(psubd_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f fa
 			XMM((modrm >> 3) & 0x7).d[n]=XMM((modrm >> 3) & 0x7).d[n] - XMM(modrm & 7).d[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 4;n++)
 			XMM((modrm >> 3) & 0x7).d[n]=XMM((modrm >> 3) & 0x7).d[n] - s.d[n];
@@ -5750,7 +5750,7 @@ static void SSEOP(psadbw_r128_rm128)(i386_state* cpustate) // Opcode 66 0f f6
 		XMM((modrm >> 3) & 0x7).l[1]=(UINT64)temp & 0xffff;
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		temp=0;
 		for (int n=0;n < 8;n++)
@@ -5772,7 +5772,7 @@ static void SSEOP(pavgb_r128_rm128)(i386_state* cpustate) // Opcode 66 0f e0
 			XMM((modrm >> 3) & 0x7).b[n] = ((UINT16)XMM((modrm >> 3) & 0x7).b[n] + (UINT16)XMM(modrm & 0x7).b[n] + 1) >> 1;
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).b[n] = ((UINT16)XMM((modrm >> 3) & 0x7).b[n] + (UINT16)s.b[n] + 1) >> 1;
@@ -5788,7 +5788,7 @@ static void SSEOP(pavgw_r128_rm128)(i386_state* cpustate) // Opcode 66 0f e3
 			XMM((modrm >> 3) & 0x7).w[n] = ((UINT32)XMM((modrm >> 3) & 0x7).w[n] + (UINT32)XMM(modrm & 0x7).w[n] + 1) >> 1;
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).w[n] = ((UINT32)XMM((modrm >> 3) & 0x7).w[n] + (UINT32)s.w[n] + 1) >> 1;
@@ -5805,7 +5805,7 @@ static void SSEOP(psrlw_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f d1
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] >> count;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		int count=(int)src.q[0];
 		for (int n=0; n < 8;n++)
@@ -5825,7 +5825,7 @@ static void SSEOP(psrld_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f d2
 		XMM((modrm >> 3) & 0x7).d[3]=XMM((modrm >> 3) & 0x7).d[3] >> count;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		int count=(int)src.q[0];
 		XMM((modrm >> 3) & 0x7).d[0]=XMM((modrm >> 3) & 0x7).d[0] >> count;
@@ -5845,7 +5845,7 @@ static void SSEOP(psrlq_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f d3
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] >> count;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		int count=(int)src.q[0];
 		XMM((modrm >> 3) & 0x7).q[0]=XMM((modrm >> 3) & 0x7).q[0] >> count;
@@ -5863,7 +5863,7 @@ static void SSEOP(psllw_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f f1
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] << count;
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		int count=(int)s.q[0];
 		for (int n=0; n < 8;n++)
@@ -5883,7 +5883,7 @@ static void SSEOP(pslld_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f f2
 		XMM((modrm >> 3) & 0x7).d[3]=XMM((modrm >> 3) & 0x7).d[3] << count;
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		int count=(int)s.q[0];
 		XMM((modrm >> 3) & 0x7).d[0]=XMM((modrm >> 3) & 0x7).d[0] << count;
@@ -5903,7 +5903,7 @@ static void SSEOP(psllq_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f f3
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] << count;
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, s);
 		int count=(int)s.q[0];
 		XMM((modrm >> 3) & 0x7).q[0]=XMM((modrm >> 3) & 0x7).q[0] << count;
@@ -5921,7 +5921,7 @@ static void SSEOP(psraw_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f e1
 			XMM((modrm >> 3) & 0x7).s[n]=XMM((modrm >> 3) & 0x7).s[n] >> count;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		int count=(int)src.q[0];
 		for (int n=0; n < 8;n++)
@@ -5941,7 +5941,7 @@ static void SSEOP(psrad_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f e2
 		XMM((modrm >> 3) & 0x7).i[3]=XMM((modrm >> 3) & 0x7).i[3] >> count;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		int count=(int)src.q[0];
 		XMM((modrm >> 3) & 0x7).i[0]=XMM((modrm >> 3) & 0x7).i[0] >> count;
@@ -5959,7 +5959,7 @@ static void SSEOP(movntdq_m128_r128)(i386_state* cpustate)  // Opcode 66 0f e7
 		CYCLES(cpustate,1);     // unsupported
 	} else {
 		// since cache is not implemented
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		WRITEXMM(cpustate, ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	}
@@ -5974,7 +5974,7 @@ static void SSEOP(cvttpd2dq_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f e
 		XMM((modrm >> 3) & 0x7).q[1] = 0;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).i[0]=(INT32)src.f64[0];
 		XMM((modrm >> 3) & 0x7).i[1]=(INT32)src.f64[1];
@@ -5990,7 +5990,7 @@ static void SSEOP(movq_r128m64_r128)(i386_state* cpustate)  // Opcode 66 0f d6
 		XMM(modrm & 0x7).q[0]=XMM((modrm >> 3) & 0x7).q[0];
 		XMM(modrm & 0x7).q[1] = 0;
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		WRITE64(cpustate, ea, XMM((modrm >> 3) & 0x7).q[0]);
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -6008,7 +6008,7 @@ static void SSEOP(addsubpd_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f d0
 	} else {
 		XMM_REG src;
 		int d;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		d=(modrm >> 3) & 0x7;
 		READXMM(cpustate, ea, src);
 		XMM(d).f64[0]=XMM(d).f64[0]-src.f64[0];
@@ -6029,7 +6029,7 @@ static void SSEOP(haddpd_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f 7c
 	} else {
 		XMM_REG src;
 		int d;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		d=(modrm >> 3) & 0x7;
 		READXMM(cpustate, ea, src);
 		XMM(d).f64[0]=XMM(d).f64[0]+XMM(d).f64[1];
@@ -6050,7 +6050,7 @@ static void SSEOP(hsubpd_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f 7d
 	} else {
 		XMM_REG src;
 		int d;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		d=(modrm >> 3) & 0x7;
 		READXMM(cpustate, ea, src);
 		XMM(d).f64[0]=XMM(d).f64[0]-XMM(d).f64[1];
@@ -6071,7 +6071,7 @@ static void SSEOP(sqrtpd_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f 51
 	} else {
 		XMM_REG src;
 		int d;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		d=(modrm >> 3) & 0x7;
 		READXMM(cpustate, ea, src);
 		XMM(d).f64[0]=sqrt(src.f64[0]);
@@ -6089,7 +6089,7 @@ static void SSEOP(cvtpi2pd_r128_rm64)(i386_state* cpustate)  // Opcode 66 0f 2a
 		XMM((modrm >> 3) & 0x7).f64[1] = (double)MMX(modrm & 0x7).i[1];
 	} else {
 		MMX_REG r;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READMMX(cpustate, ea, r);
 		XMM((modrm >> 3) & 0x7).f64[0] = (double)r.i[0];
 		XMM((modrm >> 3) & 0x7).f64[1] = (double)r.i[1];
@@ -6106,7 +6106,7 @@ static void SSEOP(cvttpd2pi_r64_rm128)(i386_state* cpustate)  // Opcode 66 0f 2c
 		MMX((modrm >> 3) & 0x7).i[1] = XMM(modrm & 0x7).f64[1];
 	} else {
 		XMM_REG r;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, r);
 		MMX((modrm >> 3) & 0x7).i[0] = r.f64[0];
 		MMX((modrm >> 3) & 0x7).i[1] = r.f64[1];
@@ -6123,7 +6123,7 @@ static void SSEOP(cvtpd2pi_r64_rm128)(i386_state* cpustate)  // Opcode 66 0f 2d
 		MMX((modrm >> 3) & 0x7).i[1] = XMM(modrm & 0x7).f64[1];
 	} else {
 		XMM_REG r;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, r);
 		MMX((modrm >> 3) & 0x7).i[0] = r.f64[0];
 		MMX((modrm >> 3) & 0x7).i[1] = r.f64[1];
@@ -6140,7 +6140,7 @@ static void SSEOP(cvtpd2ps_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f 5a
 		XMM((modrm >> 3) & 0x7).q[1] = 0;
 	} else {
 		XMM_REG r;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, r);
 		XMM((modrm >> 3) & 0x7).f[0] = (float)r.f64[0];
 		XMM((modrm >> 3) & 0x7).f[1] = (float)r.f64[1];
@@ -6159,7 +6159,7 @@ static void SSEOP(cvtps2dq_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f 5b
 		XMM((modrm >> 3) & 0x7).i[3] = XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG r;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, r);
 		XMM((modrm >> 3) & 0x7).i[0] = r.f[0];
 		XMM((modrm >> 3) & 0x7).i[1] = r.f[1];
@@ -6177,7 +6177,7 @@ static void SSEOP(addpd_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f 58
 		XMM((modrm >> 3) & 0x7).f64[1] = XMM((modrm >> 3) & 0x7).f64[1] + XMM(modrm & 0x7).f64[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] + src.f64[0];
 		XMM((modrm >> 3) & 0x7).f64[1] = XMM((modrm >> 3) & 0x7).f64[1] + src.f64[1];
@@ -6193,7 +6193,7 @@ static void SSEOP(mulpd_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f 59
 		XMM((modrm >> 3) & 0x7).f64[1] = XMM((modrm >> 3) & 0x7).f64[1] * XMM(modrm & 0x7).f64[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] * src.f64[0];
 		XMM((modrm >> 3) & 0x7).f64[1] = XMM((modrm >> 3) & 0x7).f64[1] * src.f64[1];
@@ -6209,7 +6209,7 @@ static void SSEOP(subpd_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f 5c
 		XMM((modrm >> 3) & 0x7).f64[1] = XMM((modrm >> 3) & 0x7).f64[1] - XMM(modrm & 0x7).f64[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] - src.f64[0];
 		XMM((modrm >> 3) & 0x7).f64[1] = XMM((modrm >> 3) & 0x7).f64[1] - src.f64[1];
@@ -6225,7 +6225,7 @@ static void SSEOP(minpd_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f 5d
 		XMM((modrm >> 3) & 0x7).f64[1] = sse_min_double(XMM((modrm >> 3) & 0x7).f64[1], XMM(modrm & 0x7).f64[1]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = sse_min_double(XMM((modrm >> 3) & 0x7).f64[0], src.f64[0]);
 		XMM((modrm >> 3) & 0x7).f64[1] = sse_min_double(XMM((modrm >> 3) & 0x7).f64[1], src.f64[1]);
@@ -6241,7 +6241,7 @@ static void SSEOP(divpd_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f 5e
 		XMM((modrm >> 3) & 0x7).f64[1] = XMM((modrm >> 3) & 0x7).f64[1] / XMM(modrm & 0x7).f64[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] / src.f64[0];
 		XMM((modrm >> 3) & 0x7).f64[1] = XMM((modrm >> 3) & 0x7).f64[1] / src.f64[1];
@@ -6257,7 +6257,7 @@ static void SSEOP(maxpd_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f 5f
 		XMM((modrm >> 3) & 0x7).f64[1] = sse_max_double(XMM((modrm >> 3) & 0x7).f64[1], XMM(modrm & 0x7).f64[1]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = sse_max_double(XMM((modrm >> 3) & 0x7).f64[0], src.f64[0]);
 		XMM((modrm >> 3) & 0x7).f64[1] = sse_max_double(XMM((modrm >> 3) & 0x7).f64[1], src.f64[1]);
@@ -6273,7 +6273,7 @@ static void SSEOP(movntpd_m128_r128)(i386_state* cpustate)  // Opcode 66 0f 2b
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	} else {
 		// since cache is not implemented
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		WRITEXMM(cpustate, ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	}
@@ -6285,7 +6285,7 @@ static void SSEOP(movapd_r128_rm128)(i386_state* cpustate)  // Opcode 66 0f 28
 	if( modrm >= 0xc0 ) {
 		XMM((modrm >> 3) & 0x7) = XMM(modrm & 0x7);
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -6297,7 +6297,7 @@ static void SSEOP(movapd_rm128_r128)(i386_state* cpustate)  // Opcode 66 0f 29
 	if( modrm >= 0xc0 ) {
 		XMM(modrm & 0x7) = XMM((modrm >> 3) & 0x7);
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		WRITEXMM(cpustate, ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -6309,7 +6309,7 @@ static void SSEOP(movsd_r128_r128m64)(i386_state* cpustate) // Opcode f2 0f 10
 	if( modrm >= 0xc0 ) {
 		XMM((modrm >> 3) & 0x7).q[0] = XMM(modrm & 0x7).q[0];
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READXMM_LO64(cpustate, ea, XMM((modrm >> 3) & 0x7));
 		XMM((modrm >> 3) & 0x7).q[1] = 0;
 	}
@@ -6322,7 +6322,7 @@ static void SSEOP(movsd_r128m64_r128)(i386_state* cpustate) // Opcode f2 0f 11
 	if( modrm >= 0xc0 ) {
 		XMM(modrm & 0x7).q[0] = XMM((modrm >> 3) & 0x7).q[0];
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		WRITEXMM_LO64(cpustate, ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -6335,7 +6335,7 @@ static void SSEOP(movddup_r128_r128m64)(i386_state* cpustate) // Opcode f2 0f 12
 		XMM((modrm >> 3) & 0x7).q[0] = XMM(modrm & 0x7).q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[0];
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READXMM_LO64(cpustate, ea, XMM((modrm >> 3) & 0x7));
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[0];
 	}
@@ -6348,7 +6348,7 @@ static void SSEOP(cvtsi2sd_r128_rm32)(i386_state* cpustate) // Opcode f2 0f 2a
 	if( modrm >= 0xc0 ) {
 		XMM((modrm >> 3) & 0x7).f64[0] = (INT32)LOAD_RM32(modrm);
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 4);
 		XMM((modrm >> 3) & 0x7).f64[0] = (INT32)READ32(cpustate,ea);
 	}
 	CYCLES(cpustate,1);     // TODO: correct cycle count
@@ -6362,7 +6362,7 @@ static void SSEOP(cvttsd2si_r32_r128m64)(i386_state* cpustate) // Opcode f2 0f 2
 		src = (INT32)XMM(modrm & 0x7).f64[0];
 	} else { // otherwise is a memory address
 		XMM_REG t;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READXMM_LO64(cpustate, ea, t);
 		src = (INT32)t.f64[0];
 	}
@@ -6378,7 +6378,7 @@ static void SSEOP(cvtsd2si_r32_r128m64)(i386_state* cpustate) // Opcode f2 0f 2d
 		src = (INT32)XMM(modrm & 0x7).f64[0];
 	} else { // otherwise is a memory address
 		XMM_REG t;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READXMM_LO64(cpustate, ea, t);
 		src = (INT32)t.f64[0];
 	}
@@ -6397,7 +6397,7 @@ static void SSEOP(sqrtsd_r128_r128m64)(i386_state* cpustate) // Opcode f2 0f 51
 	} else {
 		XMM_REG src;
 		int d;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		d=(modrm >> 3) & 0x7;
 		READXMM(cpustate, ea, src);
 		XMM(d).f64[0]=sqrt(src.f64[0]);
@@ -6412,7 +6412,7 @@ static void SSEOP(addsd_r128_r128m64)(i386_state* cpustate) // Opcode f2 0f 58
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] + XMM(modrm & 0x7).f64[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] + src.f64[0];
 	}
@@ -6426,7 +6426,7 @@ static void SSEOP(mulsd_r128_r128m64)(i386_state* cpustate) // Opcode f2 0f 59
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] * XMM(modrm & 0x7).f64[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] * src.f64[0];
 	}
@@ -6440,7 +6440,7 @@ static void SSEOP(cvtsd2ss_r128_r128m64)(i386_state* cpustate) // Opcode f2 0f 5
 		XMM((modrm >> 3) & 0x7).f[0] = XMM(modrm & 0x7).f64[0];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		READXMM_LO64(cpustate, ea, s);
 		XMM((modrm >> 3) & 0x7).f[0] = s.f64[0];
 	}
@@ -6454,7 +6454,7 @@ static void SSEOP(subsd_r128_r128m64)(i386_state* cpustate) // Opcode f2 0f 5c
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] - XMM(modrm & 0x7).f64[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] - src.f64[0];
 	}
@@ -6468,7 +6468,7 @@ static void SSEOP(minsd_r128_r128m64)(i386_state* cpustate) // Opcode f2 0f 5d
 		XMM((modrm >> 3) & 0x7).f64[0] = sse_min_double(XMM((modrm >> 3) & 0x7).f64[0], XMM(modrm & 0x7).f64[0]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = sse_min_double(XMM((modrm >> 3) & 0x7).f64[0], src.f64[0]);
 	}
@@ -6482,7 +6482,7 @@ static void SSEOP(divsd_r128_r128m64)(i386_state* cpustate) // Opcode f2 0f 5e
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] / XMM(modrm & 0x7).f64[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] / src.f64[0];
 	}
@@ -6496,7 +6496,7 @@ static void SSEOP(maxsd_r128_r128m64)(i386_state* cpustate) // Opcode f2 0f 5f
 		XMM((modrm >> 3) & 0x7).f64[0] = sse_max_double(XMM((modrm >> 3) & 0x7).f64[0], XMM(modrm & 0x7).f64[0]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = sse_max_double(XMM((modrm >> 3) & 0x7).f64[0], src.f64[0]);
 	}
@@ -6523,7 +6523,7 @@ static void SSEOP(haddps_r128_rm128)(i386_state* cpustate) // Opcode f2 0f 7c
 		XMM_REG src;
 		int d;
 		float f1, f2;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		d=(modrm >> 3) & 0x7;
 		READXMM(cpustate, ea, src);
 		f1=XMM(d).f[0]+XMM(d).f[1];
@@ -6556,7 +6556,7 @@ static void SSEOP(hsubps_r128_rm128)(i386_state* cpustate) // Opcode f2 0f 7d
 		XMM_REG src;
 		int d;
 		float f1, f2;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		d=(modrm >> 3) & 0x7;
 		READXMM(cpustate, ea, src);
 		f1=XMM(d).f[0]-XMM(d).f[1];
@@ -6581,7 +6581,7 @@ static void SSEOP(cmpsd_r128_r128m64_i8)(i386_state* cpustate) // Opcode f2 0f c
 	} else {
 		int d;
 		XMM_REG s;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 8);
 		UINT8 imm8 = FETCH(cpustate);
 		READXMM_LO64(cpustate, ea, s);
 		d=(modrm >> 3) & 0x7;
@@ -6600,7 +6600,7 @@ static void SSEOP(addsubps_r128_rm128)(i386_state* cpustate) // Opcode f2 0f d0
 		XMM((modrm >> 3) & 0x7).f[3]=XMM((modrm >> 3) & 0x7).f[3] + XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).f[0]=XMM((modrm >> 3) & 0x7).f[0] - src.f[0];
 		XMM((modrm >> 3) & 0x7).f[1]=XMM((modrm >> 3) & 0x7).f[1] + src.f[1];
@@ -6632,7 +6632,7 @@ static void SSEOP(cvtpd2dq_r128_rm128)(i386_state* cpustate) // Opcode f2 0f e6
 		XMM((modrm >> 3) & 0x7).q[1] = 0;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, src);
 		XMM((modrm >> 3) & 0x7).i[0]=(INT32)src.f64[0];
 		XMM((modrm >> 3) & 0x7).i[1]=(INT32)src.f64[1];
@@ -6648,7 +6648,7 @@ static void SSEOP(lddqu_r128_m128)(i386_state* cpustate) // Opcode f2 0f f0
 		// unsupported by cpu
 		CYCLES(cpustate,1);     // TODO: correct cycle count
 	} else {
-		UINT32 ea = GetEA(cpustate,modrm, 0);
+		UINT32 ea = GetEA(cpustate,modrm, 0, 16);
 		READXMM(cpustate, ea, XMM((modrm >> 3) & 0x7));
 	}
 }

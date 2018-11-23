@@ -1255,7 +1255,6 @@ inline void ConvertByteToMonochromeUint8Cond(uint8_t src, uint8_t* dst, _bit_tra
 	uint16_vec8_t   tmpd;
 	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
 
-	__DECL_ALIGNED(16) uint8_t d[16];
 	tmpd = vt[src];
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {

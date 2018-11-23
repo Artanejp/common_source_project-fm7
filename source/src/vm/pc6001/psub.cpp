@@ -1003,10 +1003,9 @@ void PSUB::write_io8(uint32_t addr, uint32_t data)
 				StrigEventID = -1;
 			}
 //			register_event(this, EVENT_STRIG, 3000, false, &StrigEventID); // 3msec
-			register_event(this, EVENT_STRIG, 100, false, &StrigEventID); // 0.1nsec
+			register_event(this, EVENT_STRIG, 100, false, &StrigEventID); // 0.1msec
 		}
 		else if (data==0x3e || data==0x3d) { //	１－１）0x3E 受信(1200baud）　または　0x3D 受信(600baud）
-			CasMode=CAS_NONE;
 			CasBaud=(data==0x3e)?1200:600;
 		}
 		else if (data==0x39) { ///
@@ -1016,7 +1015,6 @@ void PSUB::write_io8(uint32_t addr, uint32_t data)
 			CasMode=CAS_SAVEBYTE;
 		}
 		else if (data==0x1e || data==0x1d) { //	１－１）0x1E 受信(1200baud）　または　0x1D 受信(600baud）
-			CasMode=CAS_NONE;
 			CasBaud=(data==0x1e)?1200:600;
 		}
 		else if (data==0x1a && CasMode!=CAS_NONE) { /* CMT LOAD STOP */
@@ -1024,7 +1022,7 @@ void PSUB::write_io8(uint32_t addr, uint32_t data)
 		}
 		/* CMT LOAD OPEN(0x1E,0x19(1200baud)/0x1D,0x19(600baud)) */
 		else if (data==0x19) {
-			if(play /*&& CasBaud == FileBaud*/) {
+			if (play && CasMode != CAS_LOADING /*&& CasBaud == FileBaud*/) {
 				register_event(this, EVENT_CASSETTE, 1000000.0 / (CasBaud / 12), false, NULL);
 			}
 			CasRecv=0xff;

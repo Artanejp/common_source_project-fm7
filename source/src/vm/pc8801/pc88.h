@@ -190,6 +190,8 @@ private:
 	uint8_t graph[400][640];
 	scrntype_t palette_text_pc[9];	// 0 = back color for attrib mode, 8 = black
 	scrntype_t palette_graph_pc[9];
+	scrntype_t line_palette_text_pc[400][9];
+	scrntype_t line_palette_graph_pc[400][9];
 	
 	void draw_text();
 #if defined(_PC8001SR)

@@ -94,7 +94,7 @@ void I386_OPS::i386_groupFF_16()        // Opcode 0xff
 				STORE_RM16(modrm, dst);
 				CYCLES(CYCLES_INC_REG);
 			} else {
-				UINT32 ea = GetEA(modrm,1);
+				UINT32 ea = GetEA(modrm,1, 2);
 				UINT16 dst = READ16(ea);
 				dst = INC16(dst);
 				WRITE16(ea, dst);
@@ -108,7 +108,7 @@ void I386_OPS::i386_groupFF_16()        // Opcode 0xff
 				STORE_RM16(modrm, dst);
 				CYCLES(CYCLES_DEC_REG);
 			} else {
-				UINT32 ea = GetEA(modrm,1);
+				UINT32 ea = GetEA(modrm,1, 2);
 				UINT16 dst = READ16(ea);
 				dst = DEC16(dst);
 				WRITE16(ea, dst);
@@ -122,7 +122,7 @@ void I386_OPS::i386_groupFF_16()        // Opcode 0xff
 					address = LOAD_RM16(modrm);
 					CYCLES(CYCLES_CALL_REG);       /* TODO: Timing = 7 + m */
 				} else {
-					UINT32 ea = GetEA(modrm,0);
+					UINT32 ea = GetEA(modrm,0, 2);
 					address = READ16(ea);
 					CYCLES(CYCLES_CALL_MEM);       /* TODO: Timing = 10 + m */
 				}
@@ -140,7 +140,7 @@ void I386_OPS::i386_groupFF_16()        // Opcode 0xff
 				}
 				else
 				{
-					UINT32 ea = GetEA(modrm,0);
+					UINT32 ea = GetEA(modrm,0, 4);
 					address = READ16(ea + 0);
 					selector = READ16(ea + 2);
 					CYCLES(CYCLES_CALL_MEM_INTERSEG);      /* TODO: Timing = 10 + m */
@@ -171,7 +171,7 @@ void I386_OPS::i386_groupFF_16()        // Opcode 0xff
 					address = LOAD_RM16(modrm);
 					CYCLES(CYCLES_JMP_REG);        /* TODO: Timing = 7 + m */
 				} else {
-					UINT32 ea = GetEA(modrm,0);
+					UINT32 ea = GetEA(modrm,0, 2);
 					address = READ16(ea);
 					CYCLES(CYCLES_JMP_MEM);        /* TODO: Timing = 10 + m */
 				}
@@ -189,7 +189,7 @@ void I386_OPS::i386_groupFF_16()        // Opcode 0xff
 				}
 				else
 				{
-					UINT32 ea = GetEA(modrm,0);
+					UINT32 ea = GetEA(modrm,0, 4);
 					address = READ16(ea + 0);
 					selector = READ16(ea + 2);
 					CYCLES(CYCLES_JMP_MEM_INTERSEG);       /* TODO: Timing = 10 + m */
@@ -214,7 +214,7 @@ void I386_OPS::i386_groupFF_16()        // Opcode 0xff
 				if( modrm >= 0xc0 ) {
 					value = LOAD_RM16(modrm);
 				} else {
-					UINT32 ea = GetEA(modrm,0);
+					UINT32 ea = GetEA(modrm,0, 2);
 					value = READ16(ea);
 				}
 				PUSH16(value);
@@ -225,4 +225,17 @@ void I386_OPS::i386_groupFF_16()        // Opcode 0xff
 			report_invalid_modrm( "groupFF_16", modrm);
 			break;
 	}
+}
+
+void I386_OPS::i386__int()               // Opcode 0xcd
+{
+	int interrupt = FETCH();
+	CYCLES(CYCLES_INT);
+
+#ifdef I386_PSEUDO_BIOS
+	BIOS_INT(interrupt)
+#endif
+	cpustate->ext = 0; // not an external interrupt
+	i386_trap(interrupt, 1, 0);
+	cpustate->ext = 1;
 }

@@ -1,5 +1,5 @@
 // license:BSD-3-Clause
-// copyright-holders:Ville Linde, Barry Rodewald, Carl, Philp Bennett
+// copyright-holders:Ville Linde, Barry Rodewald, Carl, Philip Bennett
 // Intel 486+ specific opcodes
 #include "./i386_opdef.h"
 
@@ -68,7 +68,7 @@ void I386_OPS_BASE::I486OP(cmpxchg_rm8_r8)()    // Opcode 0x0f b0
 		}
 	} else {
 		// TODO: Check write if needed
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 1);
 		UINT8 dst = READ8(ea);
 		UINT8 src = LOAD_REG8(modrm);
 
@@ -101,7 +101,7 @@ void I386_OPS_BASE::I486OP(cmpxchg_rm16_r16)()  // Opcode 0x0f b1
 			CYCLES(CYCLES_CMPXCHG_REG_REG_F);
 		}
 	} else {
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		UINT16 dst = READ16(ea);
 		UINT16 src = LOAD_REG16(modrm);
 
@@ -134,7 +134,7 @@ void I386_OPS_BASE::I486OP(cmpxchg_rm32_r32)()  // Opcode 0x0f b1
 			CYCLES(CYCLES_CMPXCHG_REG_REG_F);
 		}
 	} else {
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		UINT32 dst = READ32(ea);
 		UINT32 src = LOAD_REG32(modrm);
 
@@ -160,7 +160,7 @@ void I386_OPS_BASE::I486OP(xadd_rm8_r8)()   // Opcode 0x0f c0
 		STORE_RM8(modrm, dst + src);
 		CYCLES(CYCLES_XADD_REG_REG);
 	} else {
-		UINT32 ea = GetEA(modrm,1);
+		UINT32 ea = GetEA(modrm, 1, 1);
 		UINT8 dst = READ8(ea);
 		UINT8 src = LOAD_REG8(modrm);
 		WRITE8(ea, dst + src);
@@ -179,7 +179,7 @@ void I386_OPS_BASE::I486OP(xadd_rm16_r16)() // Opcode 0x0f c1
 		STORE_RM16(modrm, dst + src);
 		CYCLES(CYCLES_XADD_REG_REG);
 	} else {
-		UINT32 ea = GetEA(modrm,1);
+		UINT32 ea = GetEA(modrm, 1, 2);
 		UINT16 dst = READ16(ea);
 		UINT16 src = LOAD_REG16(modrm);
 		WRITE16(ea, dst + src);
@@ -198,7 +198,7 @@ void I386_OPS_BASE::I486OP(xadd_rm32_r32)() // Opcode 0x0f c1
 		STORE_RM32(modrm, dst + src);
 		CYCLES(CYCLES_XADD_REG_REG);
 	} else {
-		UINT32 ea = GetEA(modrm,1);
+		UINT32 ea = GetEA(modrm, 1, 4);
 		UINT32 dst = READ32(ea);
 		UINT32 src = LOAD_REG32(modrm);
 		WRITE32(ea, dst + src);
@@ -219,9 +219,9 @@ void I386_OPS_BASE::I486OP(group0F01_16)()      // Opcode 0x0f 01
 			{
 				if( modrm >= 0xc0 ) {
 					address = LOAD_RM16(modrm);
-					ea = i386_translate(  CS, address, 1 );
+					ea = i386_translate(  CS, address, 1, 6 );
 				} else {
-					ea = GetEA(modrm,1);
+					ea = GetEA(modrm, 1, 6);
 				}
 				WRITE16(ea, cpustate->gdtr.limit);
 				WRITE32(ea + 2, cpustate->gdtr.base & 0xffffff);
@@ -233,11 +233,11 @@ void I386_OPS_BASE::I486OP(group0F01_16)()      // Opcode 0x0f 01
 				if (modrm >= 0xc0)
 				{
 					address = LOAD_RM16(modrm);
-					ea = i386_translate(  CS, address, 1 );
+					ea = i386_translate(  CS, address, 1, 6 );
 				}
 				else
 				{
-					ea = GetEA(modrm,1);
+					ea = GetEA(modrm, 1, 6);
 				}
 				WRITE16(ea, cpustate->idtr.limit);
 				WRITE32(ea + 2, cpustate->idtr.base & 0xffffff);
@@ -250,9 +250,9 @@ void I386_OPS_BASE::I486OP(group0F01_16)()      // Opcode 0x0f 01
 					FAULT(FAULT_GP,0)
 				if( modrm >= 0xc0 ) {
 					address = LOAD_RM16(modrm);
-					ea = i386_translate(  CS, address, 0 );
+					ea = i386_translate(  CS, address, 0, 6 );
 				} else {
-					ea = GetEA(modrm,0);
+					ea = GetEA(modrm, 0, 6);
 				}
 				cpustate->gdtr.limit = READ16(ea);
 				cpustate->gdtr.base = READ32(ea + 2) & 0xffffff;
@@ -265,9 +265,9 @@ void I386_OPS_BASE::I486OP(group0F01_16)()      // Opcode 0x0f 01
 					FAULT(FAULT_GP,0)
 				if( modrm >= 0xc0 ) {
 					address = LOAD_RM16(modrm);
-					ea = i386_translate(  CS, address, 0 );
+					ea = i386_translate(  CS, address, 0, 6 );
 				} else {
-					ea = GetEA(modrm,0);
+					ea = GetEA(modrm, 0, 6);
 				}
 				cpustate->idtr.limit = READ16(ea);
 				cpustate->idtr.base = READ32(ea + 2) & 0xffffff;
@@ -280,7 +280,7 @@ void I386_OPS_BASE::I486OP(group0F01_16)()      // Opcode 0x0f 01
 					STORE_RM16(modrm, cpustate->cr[0]);
 					CYCLES(CYCLES_SMSW_REG);
 				} else {
-					ea = GetEA(modrm,1);
+					ea = GetEA(modrm, 1, 2);
 					WRITE16(ea, cpustate->cr[0]);
 					CYCLES(CYCLES_SMSW_MEM);
 				}
@@ -295,7 +295,7 @@ void I386_OPS_BASE::I486OP(group0F01_16)()      // Opcode 0x0f 01
 					b = LOAD_RM16(modrm);
 					CYCLES(CYCLES_LMSW_REG);
 				} else {
-					ea = GetEA(modrm,0);
+					ea = GetEA(modrm, 0, 2);
 					CYCLES(CYCLES_LMSW_MEM);
 					b = READ16(ea);
 				}
@@ -314,7 +314,7 @@ void I386_OPS_BASE::I486OP(group0F01_16)()      // Opcode 0x0f 01
 					logerror("i486: invlpg with modrm %02X\n", modrm);
 					FAULT(FAULT_UD,0)
 				}
-				ea = GetEA(modrm,-1);
+				ea = GetEA(modrm, -1, 1);
 				CYCLES(25); // TODO: add to cycles.h
 				vtlb_flush_address(cpustate->vtlb, ea);
 				break;
@@ -336,9 +336,9 @@ void I386_OPS_BASE::I486OP(group0F01_32)()      // Opcode 0x0f 01
 			{
 				if( modrm >= 0xc0 ) {
 					address = LOAD_RM32(modrm);
-					ea = i386_translate(  CS, address, 1 );
+					ea = i386_translate(  CS, address, 1, 6 );
 				} else {
-					ea = GetEA(modrm,1);
+					ea = GetEA(modrm, 1, 6);
 				}
 				WRITE16(ea, cpustate->gdtr.limit);
 				WRITE32(ea + 2, cpustate->gdtr.base);
@@ -350,11 +350,11 @@ void I386_OPS_BASE::I486OP(group0F01_32)()      // Opcode 0x0f 01
 				if (modrm >= 0xc0)
 				{
 					address = LOAD_RM32(modrm);
-					ea = i386_translate(  CS, address, 1 );
+					ea = i386_translate(  CS, address, 1, 6 );
 				}
 				else
 				{
-					ea = GetEA(modrm,1);
+					ea = GetEA(modrm, 1, 6);
 				}
 				WRITE16(ea, cpustate->idtr.limit);
 				WRITE32(ea + 2, cpustate->idtr.base);
@@ -367,9 +367,9 @@ void I386_OPS_BASE::I486OP(group0F01_32)()      // Opcode 0x0f 01
 					FAULT(FAULT_GP,0)
 				if( modrm >= 0xc0 ) {
 					address = LOAD_RM32(modrm);
-					ea = i386_translate(  CS, address, 0 );
+					ea = i386_translate(  CS, address, 0, 6 );
 				} else {
-					ea = GetEA(modrm,0);
+					ea = GetEA(modrm, 0, 6);
 				}
 				cpustate->gdtr.limit = READ16(ea);
 				cpustate->gdtr.base = READ32(ea + 2);
@@ -382,9 +382,9 @@ void I386_OPS_BASE::I486OP(group0F01_32)()      // Opcode 0x0f 01
 					FAULT(FAULT_GP,0)
 				if( modrm >= 0xc0 ) {
 					address = LOAD_RM32(modrm);
-					ea = i386_translate( CS, address, 0 );
+					ea = i386_translate( CS, address, 0, 6 );
 				} else {
-					ea = GetEA(modrm,0);
+					ea = GetEA(modrm, 0, 6);
 				}
 				cpustate->idtr.limit = READ16(ea);
 				cpustate->idtr.base = READ32(ea + 2);
@@ -398,7 +398,7 @@ void I386_OPS_BASE::I486OP(group0F01_32)()      // Opcode 0x0f 01
 					CYCLES(CYCLES_SMSW_REG);
 				} else {
 					/* always 16-bit memory operand */
-					ea = GetEA(modrm,1);
+					ea = GetEA(modrm, 1, 2);
 					WRITE16(ea, cpustate->cr[0]);
 					CYCLES(CYCLES_SMSW_MEM);
 				}
@@ -413,7 +413,7 @@ void I386_OPS_BASE::I486OP(group0F01_32)()      // Opcode 0x0f 01
 					b = LOAD_RM16(modrm);
 					CYCLES(CYCLES_LMSW_REG);
 				} else {
-					ea = GetEA(modrm,0);
+					ea = GetEA(modrm, 0, 2);
 					CYCLES(CYCLES_LMSW_MEM);
 				b = READ16(ea);
 				}
@@ -432,7 +432,7 @@ void I386_OPS_BASE::I486OP(group0F01_32)()      // Opcode 0x0f 01
 					logerror("i486: invlpg with modrm %02X\n", modrm);
 					FAULT(FAULT_UD,0)
 				}
-				ea = GetEA(modrm,-1);
+				ea = GetEA(modrm, -1, 1);
 				CYCLES(25); // TODO: add to cycles.h
 				vtlb_flush_address(cpustate->vtlb, ea);
 				break;

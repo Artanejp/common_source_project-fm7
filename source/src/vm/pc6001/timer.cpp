@@ -132,14 +132,14 @@ void TIMER::event_callback(int event_id, int err)
 		timer_id = -1;
 		// register next event
 #ifdef _PC6001
-		register_event(this, EVENT_TIMER, 2000.0, false, &timer_id);
+		register_event(this, EVENT_TIMER, TIMER_PERIOD, false, &timer_id);
 #else
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
 		if(static_cast<VM *>(vm)->sr_mode) {
-			register_event(this, EVENT_TIMER, 2000.0 * (portF6 + 1) / 0x80, false, &timer_id);
+			register_event(this, EVENT_TIMER, TIMER_PERIOD * (portF6 + 1.) / 0x80, false, &timer_id);
 		} else
 #endif
-		register_event(this, EVENT_TIMER, 2000.0 * (portF6 + 1) / 4, false, &timer_id);
+		register_event(this, EVENT_TIMER, TIMER_PERIOD * (portF6 + 1.) / 4, false, &timer_id);
 #endif
 	}
 }
@@ -157,14 +157,14 @@ void TIMER::set_portB0(uint32_t data)
 		if(timer_id == -1) {
 #ifdef _PC6001
 			// first period is 1msec
-			register_event(this, EVENT_TIMER, 1000.0, false, &timer_id);
+			register_event(this, EVENT_TIMER, TIMER_PERIOD / 2, false, &timer_id);
 #else
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
 			if(static_cast<VM *>(vm)->sr_mode) {
-				register_event(this, EVENT_TIMER, 2000.0 * (portF6 + 1) / 0x80, false, &timer_id);
+				register_event(this, EVENT_TIMER, TIMER_PERIOD * (portF6 + 1.) / 0x80, false, &timer_id);
 			} else
 #endif
-			register_event(this, EVENT_TIMER, 2000.0 * (portF6 + 1) / 4, false, &timer_id);
+			register_event(this, EVENT_TIMER, TIMER_PERIOD * (portF6 + 1.) / 4, false, &timer_id);
 #endif
 		}
 	}

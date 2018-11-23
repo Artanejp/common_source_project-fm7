@@ -1,5 +1,5 @@
 // license:BSD-3-Clause
-// copyright-holders:Ville Linde, Barry Rodewald, Carl, Philp Bennett
+// copyright-holders:Ville Linde, Barry Rodewald, Carl, Philip Bennett
 // Pentium+ specific opcodes
 #include "./i386_opdef.h"
 
@@ -154,7 +154,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
  void I386_OPS_BASE::PENTIUMOP(prefetch_m8)()    // Opcode 0x0f 18
 {
 	UINT8 modrm = FETCH();
-	UINT32 ea = GetEA(modrm,0);
+	UINT32 ea = GetEA(modrm, 0, 1);
 	CYCLES(1+(ea & 1)); // TODO: correct cycle count
 }
 
@@ -174,7 +174,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		if (cpustate->OF == 1)
 		{
 			src = READ16(ea);
@@ -200,7 +200,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		if (cpustate->OF == 1)
 		{
 			src = READ32(ea);
@@ -226,7 +226,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		if (cpustate->OF == 0)
 		{
 			src = READ16(ea);
@@ -252,7 +252,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		if (cpustate->OF == 0)
 		{
 			src = READ32(ea);
@@ -278,7 +278,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		if (cpustate->CF == 1)
 		{
 			src = READ16(ea);
@@ -304,7 +304,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		if (cpustate->CF == 1)
 		{
 			src = READ32(ea);
@@ -330,7 +330,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		if (cpustate->CF == 0)
 		{
 			src = READ16(ea);
@@ -356,7 +356,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		if (cpustate->CF == 0)
 		{
 			src = READ32(ea);
@@ -382,7 +382,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		if (cpustate->ZF == 1)
 		{
 			src = READ16(ea);
@@ -408,7 +408,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		if (cpustate->ZF == 1)
 		{
 			src = READ32(ea);
@@ -434,7 +434,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		if (cpustate->ZF == 0)
 		{
 			src = READ16(ea);
@@ -460,7 +460,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		if (cpustate->ZF == 0)
 		{
 			src = READ32(ea);
@@ -486,7 +486,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		if ((cpustate->CF == 1) || (cpustate->ZF == 1))
 		{
 			src = READ16(ea);
@@ -512,7 +512,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		if ((cpustate->CF == 1) || (cpustate->ZF == 1))
 		{
 			src = READ32(ea);
@@ -538,7 +538,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		if ((cpustate->CF == 0) && (cpustate->ZF == 0))
 		{
 			src = READ16(ea);
@@ -564,7 +564,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		if ((cpustate->CF == 0) && (cpustate->ZF == 0))
 		{
 			src = READ32(ea);
@@ -590,7 +590,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		if (cpustate->SF == 1)
 		{
 			src = READ16(ea);
@@ -616,7 +616,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		if (cpustate->SF == 1)
 		{
 			src = READ32(ea);
@@ -642,7 +642,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		if (cpustate->SF == 0)
 		{
 			src = READ16(ea);
@@ -668,7 +668,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		if (cpustate->SF == 0)
 		{
 			src = READ32(ea);
@@ -694,7 +694,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		if (cpustate->PF == 1)
 		{
 			src = READ16(ea);
@@ -720,7 +720,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		if (cpustate->PF == 1)
 		{
 			src = READ32(ea);
@@ -746,7 +746,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		if (cpustate->PF == 0)
 		{
 			src = READ16(ea);
@@ -772,7 +772,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		if (cpustate->PF == 0)
 		{
 			src = READ32(ea);
@@ -798,7 +798,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		if (cpustate->SF != cpustate->OF)
 		{
 			src = READ16(ea);
@@ -824,7 +824,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		if (cpustate->SF != cpustate->OF)
 		{
 			src = READ32(ea);
@@ -850,7 +850,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		if (cpustate->SF == cpustate->OF)
 		{
 			src = READ16(ea);
@@ -876,7 +876,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		if (cpustate->SF == cpustate->OF)
 		{
 			src = READ32(ea);
@@ -902,7 +902,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		if ((cpustate->ZF == 1) || (cpustate->SF != cpustate->OF))
 		{
 			src = READ16(ea);
@@ -928,7 +928,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		if ((cpustate->ZF == 1) || (cpustate->SF != cpustate->OF))
 		{
 			src = READ32(ea);
@@ -954,7 +954,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		if ((cpustate->ZF == 0) && (cpustate->SF == cpustate->OF))
 		{
 			src = READ16(ea);
@@ -980,7 +980,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	}
 	else
 	{
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		if ((cpustate->ZF == 0) && (cpustate->SF == cpustate->OF))
 		{
 			src = READ32(ea);
@@ -998,7 +998,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 		CYCLES(1);     // TODO: correct cycle count
 	} else {
 		// since cache is not implemented
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		WRITE16(ea,LOAD_RM16(modrm));
 		CYCLES(1);     // TODO: correct cycle count
 	}
@@ -1012,7 +1012,7 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 		CYCLES(1);     // TODO: correct cycle count
 	} else {
 		// since cache is not implemented
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		WRITE32(ea,LOAD_RM32(modrm));
 		CYCLES(1);     // TODO: correct cycle count
 	}
@@ -1043,7 +1043,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	if( modm >= 0xc0 ) {
 		report_invalid_modrm( "cmpxchg8b_m64", modm);
 	} else {
-		UINT32 ea = GetEA(modm, 0);
+		UINT32 ea = GetEA(modm, 0, 8);
 		UINT64 value = READ64( ea);
 		UINT64 edx_eax = (((UINT64) REG32(EDX)) << 32) | REG32(EAX);
 		UINT64 ecx_ebx = (((UINT64) REG32(ECX)) << 32) | REG32(EBX);
@@ -1069,7 +1069,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		CYCLES(1);     // unsupported
 	} else {
 		// since cache is not implemented
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		WRITEMMX( ea, MMX((modrm >> 3) & 0x7));
 		CYCLES(1);     // TODO: correct cycle count
 	}
@@ -1079,7 +1079,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 {
 	int s,m,n;
 	UINT8 modm = FETCH();
-	UINT32 ea = GetEA(7, 0); // ds:di/edi/rdi register
+	UINT32 ea = GetEA(7, 0, 8); // ds:di/edi/rdi register
 	MMXPROLOG();
 	s=(modm >> 3) & 7;
 	m=modm & 7;
@@ -1092,7 +1092,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 {
 	int s,m,n;
 	UINT8 modm = FETCH();
-	UINT32 ea = GetEA(7, 0); // ds:di/edi/rdi register
+	UINT32 ea = GetEA(7, 0, 16); // ds:di/edi/rdi register
 	s=(modm >> 3) & 7;
 	m=modm & 7;
 	for (n=0;n < 16;n++)
@@ -1109,7 +1109,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	if( modrm >= 0xc0 ) {
 		src = LOAD_RM16(modrm);
 	} else {
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		src = READ16(ea);
 	}
 	count=0;
@@ -1130,7 +1130,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	if( modrm >= 0xc0 ) {
 		src = LOAD_RM32(modrm);
 	} else {
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		src = READ32(ea);
 	}
 	count=0;
@@ -1358,7 +1358,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).w[3]=MMX((modrm >> 3) & 0x7).w[3] >> count;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, src);
 		int count=(int)src.q;
 		MMX((modrm >> 3) & 0x7).w[0]=MMX((modrm >> 3) & 0x7).w[0] >> count;
@@ -1379,7 +1379,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).d[1]=MMX((modrm >> 3) & 0x7).d[1] >> count;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, src);
 		int count=(int)src.q;
 		MMX((modrm >> 3) & 0x7).d[0]=MMX((modrm >> 3) & 0x7).d[0] >> count;
@@ -1397,7 +1397,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q >> count;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, src);
 		int count=(int)src.q;
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q >> count;
@@ -1413,7 +1413,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q+MMX(modrm & 7).q;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, src);
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q+src.q;
 	}
@@ -1431,7 +1431,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).w[3]=(UINT32)((INT32)MMX((modrm >> 3) & 0x7).s[3]*(INT32)MMX(modrm & 7).s[3]) & 0xffff;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, src);
 		MMX((modrm >> 3) & 0x7).w[0]=(UINT32)((INT32)MMX((modrm >> 3) & 0x7).s[0]*(INT32)src.s[0]) & 0xffff;
 		MMX((modrm >> 3) & 0x7).w[1]=(UINT32)((INT32)MMX((modrm >> 3) & 0x7).s[1]*(INT32)src.s[1]) & 0xffff;
@@ -1451,7 +1451,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 			MMX((modrm >> 3) & 0x7).b[n]=MMX((modrm >> 3) & 0x7).b[n] < MMX(modrm & 7).b[n] ? 0 : MMX((modrm >> 3) & 0x7).b[n]-MMX(modrm & 7).b[n];
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, src);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).b[n]=MMX((modrm >> 3) & 0x7).b[n] < src.b[n] ? 0 : MMX((modrm >> 3) & 0x7).b[n]-src.b[n];
@@ -1469,7 +1469,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 			MMX((modrm >> 3) & 0x7).w[n]=MMX((modrm >> 3) & 0x7).w[n] < MMX(modrm & 7).w[n] ? 0 : MMX((modrm >> 3) & 0x7).w[n]-MMX(modrm & 7).w[n];
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, src);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).w[n]=MMX((modrm >> 3) & 0x7).w[n] < src.w[n] ? 0 : MMX((modrm >> 3) & 0x7).w[n]-src.w[n];
@@ -1485,7 +1485,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q & MMX(modrm & 7).q;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, src);
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q & src.q;
 	}
@@ -1502,7 +1502,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 			MMX((modrm >> 3) & 0x7).b[n]=MMX((modrm >> 3) & 0x7).b[n] > (0xff-MMX(modrm & 7).b[n]) ? 0xff : MMX((modrm >> 3) & 0x7).b[n]+MMX(modrm & 7).b[n];
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, src);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).b[n]=MMX((modrm >> 3) & 0x7).b[n] > (0xff-src.b[n]) ? 0xff : MMX((modrm >> 3) & 0x7).b[n]+src.b[n];
@@ -1520,7 +1520,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 			MMX((modrm >> 3) & 0x7).w[n]=MMX((modrm >> 3) & 0x7).w[n] > (0xffff-MMX(modrm & 7).w[n]) ? 0xffff : MMX((modrm >> 3) & 0x7).w[n]+MMX(modrm & 7).w[n];
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, src);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).w[n]=MMX((modrm >> 3) & 0x7).w[n] > (0xffff-src.w[n]) ? 0xffff : MMX((modrm >> 3) & 0x7).w[n]+src.w[n];
@@ -1536,7 +1536,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).q=(~MMX((modrm >> 3) & 0x7).q) & MMX(modrm & 7).q;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, src);
 		MMX((modrm >> 3) & 0x7).q=(~MMX((modrm >> 3) & 0x7).q) & src.q;
 	}
@@ -1555,7 +1555,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).s[3]=MMX((modrm >> 3) & 0x7).s[3] >> count;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, src);
 		int count=(int)src.q;
 		MMX((modrm >> 3) & 0x7).s[0]=MMX((modrm >> 3) & 0x7).s[0] >> count;
@@ -1576,7 +1576,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).i[1]=MMX((modrm >> 3) & 0x7).i[1] >> count;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, src);
 		int count=(int)src.q;
 		MMX((modrm >> 3) & 0x7).i[0]=MMX((modrm >> 3) & 0x7).i[0] >> count;
@@ -1596,7 +1596,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).w[3]=(UINT32)((INT32)MMX((modrm >> 3) & 0x7).s[3]*(INT32)MMX(modrm & 7).s[3]) >> 16;
 	} else {
 		MMX_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, src);
 		MMX((modrm >> 3) & 0x7).w[0]=(UINT32)((INT32)MMX((modrm >> 3) & 0x7).s[0]*(INT32)src.s[0]) >> 16;
 		MMX((modrm >> 3) & 0x7).w[1]=(UINT32)((INT32)MMX((modrm >> 3) & 0x7).s[1]*(INT32)src.s[1]) >> 16;
@@ -1616,7 +1616,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 			MMX((modrm >> 3) & 0x7).c[n]=SaturatedSignedWordToSignedByte((INT16)MMX((modrm >> 3) & 0x7).c[n] - (INT16)MMX(modrm & 7).c[n]);
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).c[n]=SaturatedSignedWordToSignedByte((INT16)MMX((modrm >> 3) & 0x7).c[n] - (INT16)s.c[n]);
@@ -1634,7 +1634,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 			MMX((modrm >> 3) & 0x7).s[n]=SaturatedSignedDwordToSignedWord((INT32)MMX((modrm >> 3) & 0x7).s[n] - (INT32)MMX(modrm & 7).s[n]);
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).s[n]=SaturatedSignedDwordToSignedWord((INT32)MMX((modrm >> 3) & 0x7).s[n] - (INT32)s.s[n]);
@@ -1650,7 +1650,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q | MMX(modrm & 7).q;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q | s.q;
 	}
@@ -1667,7 +1667,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 			MMX((modrm >> 3) & 0x7).c[n]=SaturatedSignedWordToSignedByte((INT16)MMX((modrm >> 3) & 0x7).c[n] + (INT16)MMX(modrm & 7).c[n]);
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).c[n]=SaturatedSignedWordToSignedByte((INT16)MMX((modrm >> 3) & 0x7).c[n] + (INT16)s.c[n]);
@@ -1685,7 +1685,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 			MMX((modrm >> 3) & 0x7).s[n]=SaturatedSignedDwordToSignedWord((INT32)MMX((modrm >> 3) & 0x7).s[n] + (INT32)MMX(modrm & 7).s[n]);
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).s[n]=SaturatedSignedDwordToSignedWord((INT32)MMX((modrm >> 3) & 0x7).s[n] + (INT32)s.s[n]);
@@ -1701,7 +1701,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q ^ MMX(modrm & 7).q;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q ^ s.q;
 	}
@@ -1720,7 +1720,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).w[3]=MMX((modrm >> 3) & 0x7).w[3] << count;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		int count=(int)s.q;
 		MMX((modrm >> 3) & 0x7).w[0]=MMX((modrm >> 3) & 0x7).w[0] << count;
@@ -1741,7 +1741,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).d[1]=MMX((modrm >> 3) & 0x7).d[1] << count;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		int count=(int)s.q;
 		MMX((modrm >> 3) & 0x7).d[0]=MMX((modrm >> 3) & 0x7).d[0] << count;
@@ -1759,7 +1759,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q << count;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		int count=(int)s.q;
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q << count;
@@ -1778,7 +1778,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 										(INT32)MMX((modrm >> 3) & 0x7).s[3]*(INT32)MMX(modrm & 7).s[3];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		MMX((modrm >> 3) & 0x7).i[0]=(INT32)MMX((modrm >> 3) & 0x7).s[0]*(INT32)s.s[0]+
 										(INT32)MMX((modrm >> 3) & 0x7).s[1]*(INT32)s.s[1];
@@ -1798,7 +1798,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 			MMX((modrm >> 3) & 0x7).b[n]=MMX((modrm >> 3) & 0x7).b[n] - MMX(modrm & 7).b[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).b[n]=MMX((modrm >> 3) & 0x7).b[n] - s.b[n];
@@ -1816,7 +1816,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 			MMX((modrm >> 3) & 0x7).w[n]=MMX((modrm >> 3) & 0x7).w[n] - MMX(modrm & 7).w[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).w[n]=MMX((modrm >> 3) & 0x7).w[n] - s.w[n];
@@ -1834,7 +1834,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 			MMX((modrm >> 3) & 0x7).d[n]=MMX((modrm >> 3) & 0x7).d[n] - MMX(modrm & 7).d[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (n=0;n < 2;n++)
 			MMX((modrm >> 3) & 0x7).d[n]=MMX((modrm >> 3) & 0x7).d[n] - s.d[n];
@@ -1852,7 +1852,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 			MMX((modrm >> 3) & 0x7).b[n]=MMX((modrm >> 3) & 0x7).b[n] + MMX(modrm & 7).b[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).b[n]=MMX((modrm >> 3) & 0x7).b[n] + s.b[n];
@@ -1870,7 +1870,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 			MMX((modrm >> 3) & 0x7).w[n]=MMX((modrm >> 3) & 0x7).w[n] + MMX(modrm & 7).w[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).w[n]=MMX((modrm >> 3) & 0x7).w[n] + s.w[n];
@@ -1888,7 +1888,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 			MMX((modrm >> 3) & 0x7).d[n]=MMX((modrm >> 3) & 0x7).d[n] + MMX(modrm & 7).d[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (n=0;n < 2;n++)
 			MMX((modrm >> 3) & 0x7).d[n]=MMX((modrm >> 3) & 0x7).d[n] + s.d[n];
@@ -1908,7 +1908,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	UINT8 modrm = FETCH();
 
 	if( modrm < 0xc0 ) {
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 10);
 		int index = (modrm >> 3) & 7;
 		int limit;
 		switch (index)
@@ -1972,7 +1972,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	UINT8 modrm = FETCH();
 
 	if( modrm < 0xc0 ) {
-		UINT32 ea = GetEA(modrm,0);
+		UINT32 ea = GetEA(modrm, 0, 10);
 		int index = (modrm >> 3) & 7;
 		UINT16 flags;
 		UINT32 base;
@@ -2041,7 +2041,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		UINT8 modrm = FETCH();
 
 		if( !(modrm & 0xf8) ) {
-			UINT32 ea = GetEA(modrm,0);
+			UINT32 ea = GetEA(modrm, 0, 10);
 			UINT32 limit = cpustate->ldtr.limit;
 
 			if (cpustate->ldtr.flags & 0x8000) //G bit
@@ -2073,7 +2073,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		UINT8 modrm = FETCH();
 
 		if( !(modrm & 0xf8) ) {
-			UINT32 ea = GetEA(modrm,0);
+			UINT32 ea = GetEA(modrm, 0, 10);
 			UINT16 flags = READ16(ea + 5);
 			UINT32 base = (READ32(ea + 2) | 0x00ffffff) | (READ8(ea + 7) << 24);
 			UINT32 limit = READ16(ea + 0) | ((flags & 3) << 16);
@@ -2106,7 +2106,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		UINT8 modrm = FETCH();
 
 		if( !(modrm & 0xf8) ) {
-			UINT32 ea = GetEA(modrm,0);
+			UINT32 ea = GetEA(modrm, 0, 10);
 			UINT32 limit = cpustate->task.limit;
 
 			if (cpustate->task.flags & 0x8000) //G bit
@@ -2137,7 +2137,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		UINT8 modrm = FETCH();
 
 		if( !(modrm & 0xf8) ) {
-			UINT32 ea = GetEA(modrm,0);
+			UINT32 ea = GetEA(modrm, 0, 10);
 			UINT16 flags = READ16(ea + 5);
 			UINT32 base = (READ32(ea + 2) | 0x00ffffff) | (READ8(ea + 7) << 24);
 			UINT32 limit = READ16(ea + 0) | ((flags & 3) << 16);
@@ -2166,7 +2166,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	if( modrm >= 0xc0 ) {
 		MMX((modrm >> 3) & 0x7).d[0]=LOAD_RM32(modrm);
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		MMX((modrm >> 3) & 0x7).d[0]=READ32(ea);
 	}
 	MMX((modrm >> 3) & 0x7).d[1]=0;
@@ -2180,7 +2180,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	if( modrm >= 0xc0 ) {
 		MMX((modrm >> 3) & 0x7).l=MMX(modrm & 0x7).l;
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, MMX((modrm >> 3) & 0x7));
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -2193,7 +2193,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	if( modrm >= 0xc0 ) {
 		STORE_RM32(modrm, MMX((modrm >> 3) & 0x7).d[0]);
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		WRITE32(ea, MMX((modrm >> 3) & 0x7).d[0]);
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -2206,7 +2206,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	if( modrm >= 0xc0 ) {
 		MMX(modrm & 0x7)=MMX((modrm >> 3) & 0x7);
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		WRITEMMX( ea, MMX((modrm >> 3) & 0x7));
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -2226,7 +2226,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (c=0;c <= 7;c++)
 			MMX(d).b[c]=(MMX(d).b[c] == s.b[c]) ? 0xff : 0;
@@ -2249,7 +2249,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		MMX(d).w[0]=(MMX(d).w[0] == s.w[0]) ? 0xffff : 0;
 		MMX(d).w[1]=(MMX(d).w[1] == s.w[1]) ? 0xffff : 0;
@@ -2272,7 +2272,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		MMX(d).d[0]=(MMX(d).d[0] == s.d[0]) ? 0xffffffff : 0;
 		MMX(d).d[1]=(MMX(d).d[1] == s.d[1]) ? 0xffffffff : 0;
@@ -2298,7 +2298,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		UINT8 imm8 = FETCH();
 		READMMX( ea, s);
 		MMX(d).w[0]=s.w[imm8 & 3];
@@ -2339,7 +2339,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	else {
 		XMM_REG xd, xs;
 		int d = (modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		xd.l[0] = XMM(d).l[0];
 		xs.q[0] = READ64( ea);
 		for (int n = 0; n < 8; n++) {
@@ -2368,7 +2368,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	else {
 		XMM_REG xd, xs;
 		int d = (modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		xd.l[0] = XMM(d).l[0];
 		xs.q[0] = READ64( ea);
 		for (int n = 0; n < 4; n++) {
@@ -2397,7 +2397,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	else {
 		XMM_REG xd, xs;
 		int d = (modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		xd.l[0] = XMM(d).l[0];
 		xs.q[0] = READ64( ea);
 		for (int n = 0; n < 2; n++) {
@@ -2424,7 +2424,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	else {
 		XMM_REG xd, xs;
 		int d = (modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		xd.l[0] = XMM(d).l[0];
 		xs.q[0] = READ64( ea);
 		XMM(d).q[0] = xd.q[0];
@@ -2454,7 +2454,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	} else {
 		UINT32 s,t;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		s = READ32(ea);
 		t=MMX(d).d[0];
 		MMX(d).b[0]=t & 0xff;
@@ -2487,7 +2487,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		UINT32 s;
 		UINT16 t;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		s = READ32(ea);
 		t=MMX(d).w[1];
 		MMX(d).w[0]=MMX(d).w[0];
@@ -2511,7 +2511,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	} else {
 		UINT32 s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		s = READ32(ea);
 		MMX(d).d[0]=MMX(d).d[0];
 		MMX(d).d[1]=s;
@@ -2538,7 +2538,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		MMX(d).c[0]=SaturatedSignedWordToSignedByte(MMX(d).s[0]);
 		MMX(d).c[1]=SaturatedSignedWordToSignedByte(MMX(d).s[1]);
@@ -2566,7 +2566,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (c=0;c <= 7;c++)
 			MMX(d).b[c]=(MMX(d).c[c] > s.c[c]) ? 0xff : 0;
@@ -2588,7 +2588,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (c=0;c <= 3;c++)
 			MMX(d).w[c]=(MMX(d).s[c] > s.s[c]) ? 0xffff : 0;
@@ -2610,7 +2610,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (c=0;c <= 1;c++)
 			MMX(d).d[c]=(MMX(d).i[c] > s.i[c]) ? 0xffffffff : 0;
@@ -2640,7 +2640,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	} else {
 		MMX_REG s,t;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		t.q = MMX(d).q;
 		MMX(d).b[0]=SaturatedSignedWordToUnsignedByte(t.s[0]);
@@ -2674,7 +2674,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		MMX(d).b[0]=MMX(d).b[4];
 		MMX(d).b[1]=s.b[4];
@@ -2703,7 +2703,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		MMX(d).w[0]=MMX(d).w[2];
 		MMX(d).w[1]=s.w[2];
@@ -2726,7 +2726,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	} else {
 		MMX_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		MMX(d).d[0]=MMX(d).d[1];
 		MMX(d).d[1]=s.d[1];
@@ -2756,7 +2756,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX_REG s;
 		INT32 t1, t2;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		t1 = MMX(d).i[0];
 		t2 = MMX(d).i[1];
@@ -2783,11 +2783,11 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		switch ( (modm & 0x38) >> 3 )
 		{
 			case 2: // ldmxcsr m32
-				ea = GetEA(modm, 0);
+				ea = GetEA(modm, 0, 4);
 				cpustate->mxcsr = READ32(ea);
 				break;
 			case 3: // stmxcsr m32
-				ea = GetEA(modm, 0);
+				ea = GetEA(modm, 0, 4);
 				WRITE32(ea, cpustate->mxcsr);
 				break;
 			case 7: // clflush m8
@@ -2811,7 +2811,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).i[3]=(INT32)XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).i[0]=(INT32)src.f[0];
 		XMM((modrm >> 3) & 0x7).i[1]=(INT32)src.f[1];
@@ -2828,7 +2828,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		s.d[0] = READ32(ea);
 		XMM((modrm >> 3) & 0x7).f64[0] = s.f[0];
 	}
@@ -2843,7 +2843,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		src = (INT32)XMM(modrm & 0x7).f[0^NATIVE_ENDIAN_VALUE_LE_BE(0,1)];
 	} else { // otherwise is a memory address
 		XMM_REG t;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		t.d[0] = READ32(ea);
 		src = (INT32)t.f[0];
 	}
@@ -2859,7 +2859,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		src = (INT32)XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG t;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		t.d[0] = READ32(ea);
 		src = (INT32)t.f[0];
 	}
@@ -2873,7 +2873,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	if( modrm >= 0xc0 ) {
 		XMM((modrm >> 3) & 0x7).f[0] = (INT32)LOAD_RM32(modrm);
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		XMM((modrm >> 3) & 0x7).f[0] = (INT32)READ32(ea);
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -2888,7 +2888,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).f[1] = (float)MMX(modrm & 0x7).i[1];
 	} else {
 		MMX_REG r;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, r);
 		XMM((modrm >> 3) & 0x7).f[0] = (float)r.i[0];
 		XMM((modrm >> 3) & 0x7).f[1] = (float)r.i[1];
@@ -2905,7 +2905,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).i[1] = XMM(modrm & 0x7).f[1];
 	} else {
 		XMM_REG r;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, r);
 		XMM((modrm >> 3) & 0x7).i[0] = r.f[0];
 		XMM((modrm >> 3) & 0x7).i[1] = r.f[1];
@@ -2922,7 +2922,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		MMX((modrm >> 3) & 0x7).i[1] = XMM(modrm & 0x7).f[1];
 	} else {
 		XMM_REG r;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, r);
 		XMM((modrm >> 3) & 0x7).i[0] = r.f[0];
 		XMM((modrm >> 3) & 0x7).i[1] = r.f[1];
@@ -2938,7 +2938,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).f64[1] = (double)XMM(modrm & 0x7).f[1];
 	} else {
 		MMX_REG r;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, r);
 		XMM((modrm >> 3) & 0x7).f64[0] = (double)r.f[0];
 		XMM((modrm >> 3) & 0x7).f64[1] = (double)r.f[1];
@@ -2956,7 +2956,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).f[3] = (float)XMM(modrm & 0x7).i[3];
 	} else {
 		XMM_REG r;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, r);
 		XMM((modrm >> 3) & 0x7).f[0] = (float)r.i[0];
 		XMM((modrm >> 3) & 0x7).f[1] = (float)r.i[1];
@@ -2974,7 +2974,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).f64[1] = (double)XMM(modrm & 0x7).i[1];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		XMM((modrm >> 3) & 0x7).f64[0] = (double)s.i[0];
 		XMM((modrm >> 3) & 0x7).f64[1] = (double)s.i[1];
@@ -2988,7 +2988,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	if( modrm >= 0xc0 ) {
 		XMM((modrm >> 3) & 0x7).d[0] = XMM(modrm & 0x7).d[0];
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		XMM((modrm >> 3) & 0x7).d[0] = READ32(ea);
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -3000,7 +3000,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	if( modrm >= 0xc0 ) {
 		XMM(modrm & 0x7).d[0] = XMM((modrm >> 3) & 0x7).d[0];
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		WRITE32(ea, XMM((modrm >> 3) & 0x7).d[0]);
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -3016,7 +3016,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).d[3] = XMM(modrm & 0x7).d[2];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).d[0] = src.d[0];
 		XMM((modrm >> 3) & 0x7).d[1] = src.d[0];
@@ -3036,7 +3036,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).d[3] = XMM(modrm & 0x7).d[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).d[0] = src.d[1];
 		XMM((modrm >> 3) & 0x7).d[1] = src.d[1];
@@ -3052,7 +3052,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	if( modrm >= 0xc0 ) {
 		XMM((modrm >> 3) & 0x7) = XMM(modrm & 0x7);
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -3064,7 +3064,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	if( modrm >= 0xc0 ) {
 		XMM(modrm & 0x7) = XMM((modrm >> 3) & 0x7);
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		WRITEXMM( ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -3076,7 +3076,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	if( modrm >= 0xc0 ) {
 		XMM((modrm >> 3) & 0x7) = XMM(modrm & 0x7);
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, XMM((modrm >> 3) & 0x7)); // address does not need to be 16-byte aligned
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -3088,7 +3088,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	if( modrm >= 0xc0 ) {
 		XMM((modrm >> 3) & 0x7) = XMM(modrm & 0x7);
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, XMM((modrm >> 3) & 0x7)); // address does not need to be 16-byte aligned
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -3100,7 +3100,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	if( modrm >= 0xc0 ) {
 		XMM(modrm & 0x7) = XMM((modrm >> 3) & 0x7);
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		WRITEXMM( ea, XMM((modrm >> 3) & 0x7)); // address does not need to be 16-byte aligned
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -3112,7 +3112,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 	if( modrm >= 0xc0 ) {
 		XMM(modrm & 0x7) = XMM((modrm >> 3) & 0x7);
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		WRITEXMM( ea, XMM((modrm >> 3) & 0x7)); // address does not need to be 16-byte aligned
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -3127,7 +3127,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		CYCLES(1);     // TODO: correct cycle count
 	} else {
 		// MOVLPS opcode
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READXMM_LO64( ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(1);     // TODO: correct cycle count
 	}
@@ -3140,7 +3140,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		CYCLES(1);     // TODO: correct cycle count
 	} else {
 		// MOVLPS opcode
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READXMM_LO64( ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(1);     // TODO: correct cycle count
 	}
@@ -3153,7 +3153,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		// unsupported by cpu
 		CYCLES(1);     // TODO: correct cycle count
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		WRITEXMM_LO64( ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(1);     // TODO: correct cycle count
 	}
@@ -3166,7 +3166,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		// unsupported by cpu
 		CYCLES(1);     // TODO: correct cycle count
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		WRITEXMM_LO64( ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(1);     // TODO: correct cycle count
 	}
@@ -3181,7 +3181,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		CYCLES(1);     // TODO: correct cycle count
 	} else {
 		// MOVHPS opcode
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READXMM_HI64( ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(1);     // TODO: correct cycle count
 	}
@@ -3195,7 +3195,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		CYCLES(1);     // TODO: correct cycle count
 	} else {
 		// MOVHPS opcode
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READXMM_HI64( ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(1);     // TODO: correct cycle count
 	}
@@ -3208,7 +3208,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		// unsupported by cpu
 		CYCLES(1);     // TODO: correct cycle count
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		WRITEXMM_HI64( ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(1);     // TODO: correct cycle count
 	}
@@ -3221,7 +3221,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		// unsupported by cpu
 		CYCLES(1);     // TODO: correct cycle count
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		WRITEXMM_HI64( ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(1);     // TODO: correct cycle count
 	}
@@ -3235,7 +3235,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		CYCLES(1);     // TODO: correct cycle count
 	} else {
 		// since cache is not implemented
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		WRITEXMM( ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(1);     // TODO: correct cycle count
 	}
@@ -3300,7 +3300,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).q[0] = XMM(modrm & 0x7).q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = XMM(modrm & 0x7).q[1];
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -3314,7 +3314,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM(modrm & 0x7).q[0] = XMM((modrm >> 3) & 0x7).q[0];
 		XMM(modrm & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1];
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		WRITEXMM( ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -3327,7 +3327,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).d[0] = LOAD_RM32(modrm);
 	}
 	else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		XMM((modrm >> 3) & 0x7).d[0] = READ32(ea);
 	}
 	XMM((modrm >> 3) & 0x7).d[1] = 0;
@@ -3343,7 +3343,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).q[1] = XMM(modrm & 0x7).q[1];
 	}
 	else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -3357,7 +3357,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).q[0] = XMM(modrm & 0x7).q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = 0;
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		XMM((modrm >> 3) & 0x7).q[0] = READ64( ea);
 		XMM((modrm >> 3) & 0x7).q[1] = 0;
 	}
@@ -3371,7 +3371,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		STORE_RM32(modrm, XMM((modrm >> 3) & 0x7).d[0]);
 	}
 	else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		WRITE32(ea, XMM((modrm >> 3) & 0x7).d[0]);
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -3385,7 +3385,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM(modrm & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1];
 	}
 	else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		WRITEXMM( ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -3465,7 +3465,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).d[3] = XMM((modrm >> 3) & 0x7).d[3] ^ XMM(modrm & 0x7).d[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).d[0] = XMM((modrm >> 3) & 0x7).d[0] ^ src.d[0];
 		XMM((modrm >> 3) & 0x7).d[1] = XMM((modrm >> 3) & 0x7).d[1] ^ src.d[1];
@@ -3483,7 +3483,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] ^ XMM(modrm & 0x7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).q[0] = XMM((modrm >> 3) & 0x7).q[0] ^ src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] ^ src.q[1];
@@ -3501,7 +3501,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).f[3] = XMM((modrm >> 3) & 0x7).f[3] + XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] + src.f[0];
 		XMM((modrm >> 3) & 0x7).f[1] = XMM((modrm >> 3) & 0x7).f[1] + src.f[1];
@@ -3521,7 +3521,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).f[3] = sqrt(XMM(modrm & 0x7).f[3]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = sqrt(src.f[0]);
 		XMM((modrm >> 3) & 0x7).f[1] = sqrt(src.f[1]);
@@ -3541,7 +3541,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).f[3] = 1.0 / sqrt(XMM(modrm & 0x7).f[3]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = 1.0 / sqrt(src.f[0]);
 		XMM((modrm >> 3) & 0x7).f[1] = 1.0 / sqrt(src.f[1]);
@@ -3561,7 +3561,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).f[3] = 1.0f / XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = 1.0f / src.f[0];
 		XMM((modrm >> 3) & 0x7).f[1] = 1.0f / src.f[1];
@@ -3579,7 +3579,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] & XMM(modrm & 0x7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).q[0] = XMM((modrm >> 3) & 0x7).q[0] & src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] & src.q[1];
@@ -3595,7 +3595,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] & XMM(modrm & 0x7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).q[0] = XMM((modrm >> 3) & 0x7).q[0] & src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] & src.q[1];
@@ -3611,7 +3611,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).q[1] = ~(XMM((modrm >> 3) & 0x7).q[1]) & XMM(modrm & 0x7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).q[0] = ~(XMM((modrm >> 3) & 0x7).q[0]) & src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = ~(XMM((modrm >> 3) & 0x7).q[1]) & src.q[1];
@@ -3627,7 +3627,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).q[1] = ~(XMM((modrm >> 3) & 0x7).q[1]) & XMM(modrm & 0x7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).q[0] = ~(XMM((modrm >> 3) & 0x7).q[0]) & src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = ~(XMM((modrm >> 3) & 0x7).q[1]) & src.q[1];
@@ -3643,7 +3643,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] | XMM(modrm & 0x7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).q[0] = XMM((modrm >> 3) & 0x7).q[0] | src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] | src.q[1];
@@ -3659,7 +3659,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] | XMM(modrm & 0x7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).q[0] = XMM((modrm >> 3) & 0x7).q[0] | src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[1] | src.q[1];
@@ -3677,7 +3677,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).f[3] = XMM((modrm >> 3) & 0x7).f[3] * XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] * src.f[0];
 		XMM((modrm >> 3) & 0x7).f[1] = XMM((modrm >> 3) & 0x7).f[1] * src.f[1];
@@ -3697,7 +3697,7 @@ void I386_OPS_BASE::I386OP(cyrix_special)()     // Opcode 0x0f 3a-3d
 		XMM((modrm >> 3) & 0x7).f[3] = XMM((modrm >> 3) & 0x7).f[3] - XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] - src.f[0];
 		XMM((modrm >> 3) & 0x7).f[1] = XMM((modrm >> 3) & 0x7).f[1] - src.f[1];
@@ -3743,7 +3743,7 @@ INLINE double sse_min_double(double src1, double src2)
 		XMM((modrm >> 3) & 0x7).f[3] = sse_min_single(XMM((modrm >> 3) & 0x7).f[3], XMM(modrm & 0x7).f[3]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = sse_min_single(XMM((modrm >> 3) & 0x7).f[0], src.f[0]);
 		XMM((modrm >> 3) & 0x7).f[1] = sse_min_single(XMM((modrm >> 3) & 0x7).f[1], src.f[1]);
@@ -3763,7 +3763,7 @@ INLINE double sse_min_double(double src1, double src2)
 		XMM((modrm >> 3) & 0x7).f[3] = XMM((modrm >> 3) & 0x7).f[3] / XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] / src.f[0];
 		XMM((modrm >> 3) & 0x7).f[1] = XMM((modrm >> 3) & 0x7).f[1] / src.f[1];
@@ -3809,7 +3809,7 @@ INLINE double sse_max_double(double src1, double src2)
 		XMM((modrm >> 3) & 0x7).f[3] = sse_max_single(XMM((modrm >> 3) & 0x7).f[3], XMM(modrm & 0x7).f[3]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = sse_max_single(XMM((modrm >> 3) & 0x7).f[0], src.f[0]);
 		XMM((modrm >> 3) & 0x7).f[1] = sse_max_single(XMM((modrm >> 3) & 0x7).f[1], src.f[1]);
@@ -3826,7 +3826,7 @@ INLINE double sse_max_double(double src1, double src2)
 		XMM((modrm >> 3) & 0x7).f[0] = sse_max_single(XMM((modrm >> 3) & 0x7).f[0], XMM(modrm & 0x7).f[0]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		src.d[0]=READ32(ea);
 		XMM((modrm >> 3) & 0x7).f[0] = sse_max_single(XMM((modrm >> 3) & 0x7).f[0], src.f[0]);
 	}
@@ -3840,7 +3840,7 @@ INLINE double sse_max_double(double src1, double src2)
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] + XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] + src.f[0];
 	}
@@ -3854,7 +3854,7 @@ INLINE double sse_max_double(double src1, double src2)
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] - XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] - src.f[0];
 	}
@@ -3868,7 +3868,7 @@ INLINE double sse_max_double(double src1, double src2)
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] * XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] * src.f[0];
 	}
@@ -3882,7 +3882,7 @@ INLINE double sse_max_double(double src1, double src2)
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] / XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] / src.f[0];
 	}
@@ -3896,7 +3896,7 @@ INLINE double sse_max_double(double src1, double src2)
 		XMM((modrm >> 3) & 0x7).f[0] = 1.0f / XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		s.d[0]=READ32(ea);
 		XMM((modrm >> 3) & 0x7).f[0] = 1.0f / s.f[0];
 	}
@@ -3910,7 +3910,7 @@ INLINE double sse_max_double(double src1, double src2)
 		XMM((modrm >> 3) & 0x7).f[0] = sqrt(XMM(modrm & 0x7).f[0]);
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		s.d[0]=READ32(ea);
 		XMM((modrm >> 3) & 0x7).f[0] = sqrt(s.f[0]);
 	}
@@ -3924,7 +3924,7 @@ INLINE double sse_max_double(double src1, double src2)
 		XMM((modrm >> 3) & 0x7).f[0] = 1.0 / sqrt(XMM(modrm & 0x7).f[0]);
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		s.d[0]=READ32(ea);
 		XMM((modrm >> 3) & 0x7).f[0] = 1.0 / sqrt(s.f[0]);
 	}
@@ -3938,7 +3938,7 @@ INLINE double sse_max_double(double src1, double src2)
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] < XMM(modrm & 0x7).f[0] ? XMM((modrm >> 3) & 0x7).f[0] : XMM(modrm & 0x7).f[0];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		s.d[0] = READ32(ea);
 		XMM((modrm >> 3) & 0x7).f[0] = XMM((modrm >> 3) & 0x7).f[0] < s.f[0] ? XMM((modrm >> 3) & 0x7).f[0] : s.f[0];
 	}
@@ -3954,7 +3954,7 @@ INLINE double sse_max_double(double src1, double src2)
 		b = XMM(modrm & 0x7).d[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		a = XMM((modrm >> 3) & 0x7).d[0];
 		b = src.d[0];
@@ -3991,7 +3991,7 @@ INLINE double sse_max_double(double src1, double src2)
 		b = XMM(modrm & 0x7).q[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		a = XMM((modrm >> 3) & 0x7).q[0];
 		b = src.q[0];
@@ -4028,7 +4028,7 @@ INLINE double sse_max_double(double src1, double src2)
 		b = XMM(modrm & 0x7).d[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		a = XMM((modrm >> 3) & 0x7).d[0];
 		b = src.d[0];
@@ -4065,7 +4065,7 @@ INLINE double sse_max_double(double src1, double src2)
 		b = XMM(modrm & 0x7).q[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		a = XMM((modrm >> 3) & 0x7).q[0];
 		b = src.q[0];
@@ -4118,7 +4118,7 @@ INLINE double sse_max_double(double src1, double src2)
 	} else {
 		UINT32 t1,t2;
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		t1=XMM(d).d[m1];
 		t2=XMM(d).d[m2];
@@ -4149,7 +4149,7 @@ INLINE double sse_max_double(double src1, double src2)
 	} else {
 		UINT64 t1;
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		t1=XMM(d).q[m1];
 		XMM(d).q[0]=t1;
@@ -4176,7 +4176,7 @@ INLINE double sse_max_double(double src1, double src2)
 		XMM(d).d[0]=t4;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		t2 = XMM(d).d[1];
 		XMM(d).d[3]=src.d[1];
@@ -4197,7 +4197,7 @@ INLINE double sse_max_double(double src1, double src2)
 		XMM(d).q[0]=XMM(d).q[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM(d).q[1]=src.q[0];
 		XMM(d).q[0]=XMM(d).q[0];
@@ -4223,7 +4223,7 @@ INLINE double sse_max_double(double src1, double src2)
 		XMM(d).d[3]=t4;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		t1 = XMM(d).d[2];
 		t2 = XMM(d).d[3];
@@ -4246,7 +4246,7 @@ INLINE double sse_max_double(double src1, double src2)
 		XMM(d).q[1]=XMM(s).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM(d).q[0]=XMM(d).q[1];
 		XMM(d).q[1]=src.q[1];
@@ -4446,7 +4446,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		int d;
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		UINT8 imm8 = FETCH();
 		READXMM( ea, s);
 		d=(modrm >> 3) & 0x7;
@@ -4467,7 +4467,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		int d;
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		UINT8 imm8 = FETCH();
 		READXMM( ea, s);
 		d=(modrm >> 3) & 0x7;
@@ -4488,7 +4488,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		int d;
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		UINT8 imm8 = FETCH();
 		s.d[0]=READ32(ea);
 		d=(modrm >> 3) & 0x7;
@@ -4509,7 +4509,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		else
 			MMX((modrm >> 3) & 0x7).w[imm8 & 3] = v;
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		UINT8 imm8 = FETCH();
 		UINT16 v = READ16(ea);
 		if (cpustate->xmm_operand_size)
@@ -4529,7 +4529,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		UINT16 v = (UINT16)LOAD_RM32(modrm);
 		MMX((modrm >> 3) & 0x7).w[imm8 & 3] = v;
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		UINT8 imm8 = FETCH();
 		UINT16 v = READ16(ea);
 		MMX((modrm >> 3) & 0x7).w[imm8 & 3] = v;
@@ -4546,7 +4546,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).w[imm8 & 7] = v;
 	}
 	else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 2);
 		UINT8 imm8 = FETCH();
 		UINT16 v = READ16(ea);
 		XMM((modrm >> 3) & 0x7).w[imm8 & 7] = v;
@@ -4609,7 +4609,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			MMX((modrm >> 3) & 0x7).b[n] = MMX((modrm >> 3) & 0x7).b[n] < MMX(modrm & 0x7).b[n] ? MMX((modrm >> 3) & 0x7).b[n] : MMX(modrm & 0x7).b[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).b[n] = MMX((modrm >> 3) & 0x7).b[n] < s.b[n] ? MMX((modrm >> 3) & 0x7).b[n] : s.b[n];
@@ -4625,7 +4625,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).b[n] = XMM((modrm >> 3) & 0x7).b[n] < XMM(modrm & 0x7).b[n] ? XMM((modrm >> 3) & 0x7).b[n] : XMM(modrm & 0x7).b[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).b[n] = XMM((modrm >> 3) & 0x7).b[n] < s.b[n] ? XMM((modrm >> 3) & 0x7).b[n] : s.b[n];
@@ -4643,7 +4643,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			MMX((modrm >> 3) & 0x7).b[n] = MMX((modrm >> 3) & 0x7).b[n] > MMX(modrm & 0x7).b[n] ? MMX((modrm >> 3) & 0x7).b[n] : MMX(modrm & 0x7).b[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).b[n] = MMX((modrm >> 3) & 0x7).b[n] > s.b[n] ? MMX((modrm >> 3) & 0x7).b[n] : s.b[n];
@@ -4661,7 +4661,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			MMX((modrm >> 3) & 0x7).b[n] = ((UINT16)MMX((modrm >> 3) & 0x7).b[n] + (UINT16)MMX(modrm & 0x7).b[n] + 1) >> 1;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (n=0;n < 8;n++)
 			MMX((modrm >> 3) & 0x7).b[n] = ((UINT16)MMX((modrm >> 3) & 0x7).b[n] + (UINT16)s.b[n] + 1) >> 1;
@@ -4679,7 +4679,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			MMX((modrm >> 3) & 0x7).w[n] = ((UINT32)MMX((modrm >> 3) & 0x7).w[n] + (UINT32)MMX(modrm & 0x7).w[n] + 1) >> 1;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).w[n] = ((UINT32)MMX((modrm >> 3) & 0x7).w[n] + (UINT32)s.w[n] + 1) >> 1;
@@ -4698,7 +4698,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		MMX((modrm >> 3) & 0x7).w[3]=((UINT32)MMX((modrm >> 3) & 0x7).w[3]*(UINT32)MMX(modrm & 7).w[3]) >> 16;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		MMX((modrm >> 3) & 0x7).w[0]=((UINT32)MMX((modrm >> 3) & 0x7).w[0]*(UINT32)s.w[0]) >> 16;
 		MMX((modrm >> 3) & 0x7).w[1]=((UINT32)MMX((modrm >> 3) & 0x7).w[1]*(UINT32)s.w[1]) >> 16;
@@ -4718,7 +4718,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			MMX((modrm >> 3) & 0x7).s[n] = MMX((modrm >> 3) & 0x7).s[n] < MMX(modrm & 0x7).s[n] ? MMX((modrm >> 3) & 0x7).s[n] : MMX(modrm & 0x7).s[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).s[n] = MMX((modrm >> 3) & 0x7).s[n] < s.s[n] ? MMX((modrm >> 3) & 0x7).s[n] : s.s[n];
@@ -4736,7 +4736,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			MMX((modrm >> 3) & 0x7).s[n] = MMX((modrm >> 3) & 0x7).s[n] > MMX(modrm & 0x7).s[n] ? MMX((modrm >> 3) & 0x7).s[n] : MMX(modrm & 0x7).s[n];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		for (n=0;n < 4;n++)
 			MMX((modrm >> 3) & 0x7).s[n] = MMX((modrm >> 3) & 0x7).s[n] > s.s[n] ? MMX((modrm >> 3) & 0x7).s[n] : s.s[n];
@@ -4752,7 +4752,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		MMX((modrm >> 3) & 0x7).q = (UINT64)MMX((modrm >> 3) & 0x7).d[0] * (UINT64)MMX(modrm & 0x7).d[0];
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		MMX((modrm >> 3) & 0x7).q = (UINT64)MMX((modrm >> 3) & 0x7).d[0] * (UINT64)s.d[0];
 	}
@@ -4767,7 +4767,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).q[1] = (UINT64)XMM((modrm >> 3) & 0x7).d[2] * (UINT64)XMM(modrm & 0x7).d[2];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		XMM((modrm >> 3) & 0x7).q[0] = (UINT64)XMM((modrm >> 3) & 0x7).d[0] * (UINT64)s.d[0];
 		XMM((modrm >> 3) & 0x7).q[1] = (UINT64)XMM((modrm >> 3) & 0x7).d[2] * (UINT64)s.d[2];
@@ -4788,7 +4788,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		MMX((modrm >> 3) & 0x7).l=(UINT64)temp & 0xffff;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		temp=0;
 		for (n=0;n < 8;n++)
@@ -4806,7 +4806,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q - MMX(modrm & 7).q;
 	} else {
 		MMX_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, s);
 		MMX((modrm >> 3) & 0x7).q=MMX((modrm >> 3) & 0x7).q - s.q;
 	}
@@ -4821,7 +4821,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] - XMM(modrm & 7).q[1];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		XMM((modrm >> 3) & 0x7).q[0]=XMM((modrm >> 3) & 0x7).q[0] - s.q[0];
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] - s.q[1];
@@ -4847,7 +4847,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		UINT8 imm8 = FETCH();
 		READXMM( ea, s);
 		XMM(d).d[0]=s.d[(imm8 & 3)];
@@ -4876,7 +4876,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		UINT8 imm8 = FETCH();
 		READXMM( ea, s);
 		XMM(d).q[1]=s.q[1];
@@ -4906,7 +4906,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		UINT8 imm8 = FETCH();
 		READXMM( ea, s);
 		XMM(d).q[0]=s.q[0];
@@ -4936,7 +4936,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	else {
 		XMM_REG s;
 		int d = (modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n = 0; n < 8; n++)
 			XMM(d).c[n] = SaturatedSignedWordToSignedByte(XMM(d).s[n]);
@@ -4968,7 +4968,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	else {
 		XMM_REG s;
 		int d = (modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		XMM(d).s[0] = SaturatedSignedDwordToSignedWord(XMM(d).i[0]);
 		XMM(d).s[1] = SaturatedSignedDwordToSignedWord(XMM(d).i[1]);
@@ -4994,7 +4994,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int c=0;c <= 15;c++)
 			XMM(d).b[c]=(XMM(d).c[c] > s.c[c]) ? 0xff : 0;
@@ -5014,7 +5014,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int c=0;c <= 7;c++)
 			XMM(d).w[c]=(XMM(d).s[c] > s.s[c]) ? 0xffff : 0;
@@ -5034,7 +5034,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int c=0;c <= 3;c++)
 			XMM(d).d[c]=(XMM(d).i[c] > s.i[c]) ? 0xffffffff : 0;
@@ -5059,7 +5059,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n = 0; n < 8;n++)
 			XMM(d).b[n]=SaturatedSignedWordToUnsignedByte(XMM(d).s[n]);
@@ -5085,7 +5085,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n = 0; n < 16; n += 2) {
 			XMM(d).b[n]=XMM(d).b[8+(n >> 1)];
@@ -5111,7 +5111,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n = 0; n < 8; n += 2) {
 			XMM(d).w[n]=XMM(d).w[4+(n >> 1)];
@@ -5137,7 +5137,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		XMM(d).d[0]=XMM(d).d[2];
 		XMM(d).d[1]=s.d[2];
@@ -5161,7 +5161,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		XMM(d).q[0]=XMM(d).q[1];
 		XMM(d).q[1]=s.q[1];
@@ -5181,7 +5181,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int c=0;c <= 15;c++)
 			XMM(d).b[c]=(XMM(d).c[c] == s.c[c]) ? 0xff : 0;
@@ -5201,7 +5201,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int c=0;c <= 7;c++)
 			XMM(d).w[c]=(XMM(d).s[c] == s.s[c]) ? 0xffff : 0;
@@ -5221,7 +5221,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG s;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int c=0;c <= 3;c++)
 			XMM(d).d[c]=(XMM(d).i[c] == s.i[c]) ? 0xffffffff : 0;
@@ -5241,7 +5241,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG src;
 		int d=(modrm >> 3) & 0x7;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM(d).q[0]=XMM(d).q[0]+src.q[0];
 		XMM(d).q[1]=XMM(d).q[1]+src.q[1];
@@ -5261,7 +5261,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG src;
 		int d;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		d=(modrm >> 3) & 0x7;
 		for (int n = 0; n < 8;n++)
@@ -5278,7 +5278,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).b[n]=XMM((modrm >> 3) & 0x7).b[n] + XMM(modrm & 7).b[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).b[n]=XMM((modrm >> 3) & 0x7).b[n] + s.b[n];
@@ -5294,7 +5294,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] + XMM(modrm & 7).w[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] + s.w[n];
@@ -5310,7 +5310,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).d[n]=XMM((modrm >> 3) & 0x7).d[n] + XMM(modrm & 7).d[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 4;n++)
 			XMM((modrm >> 3) & 0x7).d[n]=XMM((modrm >> 3) & 0x7).d[n] + s.d[n];
@@ -5326,7 +5326,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).b[n]=XMM((modrm >> 3) & 0x7).b[n] < XMM(modrm & 7).b[n] ? 0 : XMM((modrm >> 3) & 0x7).b[n]-XMM(modrm & 7).b[n];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).b[n]=XMM((modrm >> 3) & 0x7).b[n] < src.b[n] ? 0 : XMM((modrm >> 3) & 0x7).b[n]-src.b[n];
@@ -5342,7 +5342,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] < XMM(modrm & 7).w[n] ? 0 : XMM((modrm >> 3) & 0x7).w[n]-XMM(modrm & 7).w[n];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] < src.w[n] ? 0 : XMM((modrm >> 3) & 0x7).w[n]-src.w[n];
@@ -5358,7 +5358,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] & XMM(modrm & 7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).q[0]=XMM((modrm >> 3) & 0x7).q[0] & src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] & src.q[1];
@@ -5374,7 +5374,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).q[1]=(~XMM((modrm >> 3) & 0x7).q[1]) & XMM(modrm & 7).q[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).q[0]=(~XMM((modrm >> 3) & 0x7).q[0]) & src.q[0];
 		XMM((modrm >> 3) & 0x7).q[1]=(~XMM((modrm >> 3) & 0x7).q[1]) & src.q[1];
@@ -5390,7 +5390,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).b[n]=XMM((modrm >> 3) & 0x7).b[n] > (0xff-XMM(modrm & 7).b[n]) ? 0xff : XMM((modrm >> 3) & 0x7).b[n]+XMM(modrm & 7).b[n];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).b[n]=XMM((modrm >> 3) & 0x7).b[n] > (0xff-src.b[n]) ? 0xff : XMM((modrm >> 3) & 0x7).b[n]+src.b[n];
@@ -5406,7 +5406,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] > (0xffff-XMM(modrm & 7).w[n]) ? 0xffff : XMM((modrm >> 3) & 0x7).w[n]+XMM(modrm & 7).w[n];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] > (0xffff-src.w[n]) ? 0xffff : XMM((modrm >> 3) & 0x7).w[n]+src.w[n];
@@ -5422,7 +5422,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).b[n] = XMM((modrm >> 3) & 0x7).b[n] > XMM(modrm & 0x7).b[n] ? XMM((modrm >> 3) & 0x7).b[n] : XMM(modrm & 0x7).b[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).b[n] = XMM((modrm >> 3) & 0x7).b[n] > s.b[n] ? XMM((modrm >> 3) & 0x7).b[n] : s.b[n];
@@ -5438,7 +5438,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).w[n]=((UINT32)XMM((modrm >> 3) & 0x7).w[n]*(UINT32)XMM(modrm & 7).w[n]) >> 16;
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).w[n]=((UINT32)XMM((modrm >> 3) & 0x7).w[n]*(UINT32)s.w[n]) >> 16;
@@ -5454,7 +5454,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).w[n]=(UINT32)((INT32)XMM((modrm >> 3) & 0x7).s[n]*(INT32)XMM(modrm & 7).s[n]) >> 16;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).w[n]=(UINT32)((INT32)XMM((modrm >> 3) & 0x7).s[n]*(INT32)src.s[n]) >> 16;
@@ -5470,7 +5470,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).c[n]=SaturatedSignedWordToSignedByte((INT16)XMM((modrm >> 3) & 0x7).c[n] - (INT16)XMM(modrm & 7).c[n]);
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).c[n]=SaturatedSignedWordToSignedByte((INT16)XMM((modrm >> 3) & 0x7).c[n] - (INT16)s.c[n]);
@@ -5486,7 +5486,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).s[n]=SaturatedSignedDwordToSignedWord((INT32)XMM((modrm >> 3) & 0x7).s[n] - (INT32)XMM(modrm & 7).s[n]);
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).s[n]=SaturatedSignedDwordToSignedWord((INT32)XMM((modrm >> 3) & 0x7).s[n] - (INT32)s.s[n]);
@@ -5502,7 +5502,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).s[n] = XMM((modrm >> 3) & 0x7).s[n] < XMM(modrm & 0x7).s[n] ? XMM((modrm >> 3) & 0x7).s[n] : XMM(modrm & 0x7).s[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).s[n] = XMM((modrm >> 3) & 0x7).s[n] < s.s[n] ? XMM((modrm >> 3) & 0x7).s[n] : s.s[n];
@@ -5518,7 +5518,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).s[n] = XMM((modrm >> 3) & 0x7).s[n] > XMM(modrm & 0x7).s[n] ? XMM((modrm >> 3) & 0x7).s[n] : XMM(modrm & 0x7).s[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).s[n] = XMM((modrm >> 3) & 0x7).s[n] > s.s[n] ? XMM((modrm >> 3) & 0x7).s[n] : s.s[n];
@@ -5534,7 +5534,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).c[n]=SaturatedSignedWordToSignedByte((INT16)XMM((modrm >> 3) & 0x7).c[n] + (INT16)XMM(modrm & 7).c[n]);
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).c[n]=SaturatedSignedWordToSignedByte((INT16)XMM((modrm >> 3) & 0x7).c[n] + (INT16)s.c[n]);
@@ -5550,7 +5550,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).s[n]=SaturatedSignedDwordToSignedWord((INT32)XMM((modrm >> 3) & 0x7).s[n] + (INT32)XMM(modrm & 7).s[n]);
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).s[n]=SaturatedSignedDwordToSignedWord((INT32)XMM((modrm >> 3) & 0x7).s[n] + (INT32)s.s[n]);
@@ -5566,7 +5566,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] | XMM(modrm & 7).q[1];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		XMM((modrm >> 3) & 0x7).q[0]=XMM((modrm >> 3) & 0x7).q[0] | s.q[0];
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] | s.q[1];
@@ -5582,7 +5582,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] ^ XMM(modrm & 7).q[1];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		XMM((modrm >> 3) & 0x7).q[0]=XMM((modrm >> 3) & 0x7).q[0] ^ s.q[0];
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] ^ s.q[1];
@@ -5599,7 +5599,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 										(INT32)XMM((modrm >> 3) & 0x7).s[n]*(INT32)XMM(modrm & 7).s[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 4;n++)
 			XMM((modrm >> 3) & 0x7).i[n]=(INT32)XMM((modrm >> 3) & 0x7).s[n]*(INT32)s.s[n]+
@@ -5616,7 +5616,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).b[n]=XMM((modrm >> 3) & 0x7).b[n] - XMM(modrm & 7).b[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).b[n]=XMM((modrm >> 3) & 0x7).b[n] - s.b[n];
@@ -5632,7 +5632,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] - XMM(modrm & 7).w[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] - s.w[n];
@@ -5648,7 +5648,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).d[n]=XMM((modrm >> 3) & 0x7).d[n] - XMM(modrm & 7).d[n];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 4;n++)
 			XMM((modrm >> 3) & 0x7).d[n]=XMM((modrm >> 3) & 0x7).d[n] - s.d[n];
@@ -5671,7 +5671,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).l[1]=(UINT64)temp & 0xffff;
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		temp=0;
 		for (int n=0;n < 8;n++)
@@ -5693,7 +5693,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).b[n] = ((UINT16)XMM((modrm >> 3) & 0x7).b[n] + (UINT16)XMM(modrm & 0x7).b[n] + 1) >> 1;
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 16;n++)
 			XMM((modrm >> 3) & 0x7).b[n] = ((UINT16)XMM((modrm >> 3) & 0x7).b[n] + (UINT16)s.b[n] + 1) >> 1;
@@ -5709,7 +5709,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).w[n] = ((UINT32)XMM((modrm >> 3) & 0x7).w[n] + (UINT32)XMM(modrm & 0x7).w[n] + 1) >> 1;
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		for (int n=0;n < 8;n++)
 			XMM((modrm >> 3) & 0x7).w[n] = ((UINT32)XMM((modrm >> 3) & 0x7).w[n] + (UINT32)s.w[n] + 1) >> 1;
@@ -5726,7 +5726,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] >> count;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		int count=(int)src.q[0];
 		for (int n=0; n < 8;n++)
@@ -5746,7 +5746,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).d[3]=XMM((modrm >> 3) & 0x7).d[3] >> count;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		int count=(int)src.q[0];
 		XMM((modrm >> 3) & 0x7).d[0]=XMM((modrm >> 3) & 0x7).d[0] >> count;
@@ -5766,7 +5766,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] >> count;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		int count=(int)src.q[0];
 		XMM((modrm >> 3) & 0x7).q[0]=XMM((modrm >> 3) & 0x7).q[0] >> count;
@@ -5784,7 +5784,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).w[n]=XMM((modrm >> 3) & 0x7).w[n] << count;
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		int count=(int)s.q[0];
 		for (int n=0; n < 8;n++)
@@ -5804,7 +5804,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).d[3]=XMM((modrm >> 3) & 0x7).d[3] << count;
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		int count=(int)s.q[0];
 		XMM((modrm >> 3) & 0x7).d[0]=XMM((modrm >> 3) & 0x7).d[0] << count;
@@ -5824,7 +5824,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).q[1]=XMM((modrm >> 3) & 0x7).q[1] << count;
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, s);
 		int count=(int)s.q[0];
 		XMM((modrm >> 3) & 0x7).q[0]=XMM((modrm >> 3) & 0x7).q[0] << count;
@@ -5842,7 +5842,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 			XMM((modrm >> 3) & 0x7).s[n]=XMM((modrm >> 3) & 0x7).s[n] >> count;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		int count=(int)src.q[0];
 		for (int n=0; n < 8;n++)
@@ -5862,7 +5862,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).i[3]=XMM((modrm >> 3) & 0x7).i[3] >> count;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		int count=(int)src.q[0];
 		XMM((modrm >> 3) & 0x7).i[0]=XMM((modrm >> 3) & 0x7).i[0] >> count;
@@ -5880,7 +5880,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		CYCLES(1);     // unsupported
 	} else {
 		// since cache is not implemented
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		WRITEXMM( ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(1);     // TODO: correct cycle count
 	}
@@ -5895,7 +5895,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).q[1] = 0;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).i[0]=(INT32)src.f64[0];
 		XMM((modrm >> 3) & 0x7).i[1]=(INT32)src.f64[1];
@@ -5911,7 +5911,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM(modrm & 0x7).q[0]=XMM((modrm >> 3) & 0x7).q[0];
 		XMM(modrm & 0x7).q[1] = 0;
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		WRITE64( ea, XMM((modrm >> 3) & 0x7).q[0]);
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -5929,7 +5929,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG src;
 		int d;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		d=(modrm >> 3) & 0x7;
 		READXMM( ea, src);
 		XMM(d).f64[0]=XMM(d).f64[0]-src.f64[0];
@@ -5950,7 +5950,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG src;
 		int d;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		d=(modrm >> 3) & 0x7;
 		READXMM( ea, src);
 		XMM(d).f64[0]=XMM(d).f64[0]+XMM(d).f64[1];
@@ -5971,7 +5971,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG src;
 		int d;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		d=(modrm >> 3) & 0x7;
 		READXMM( ea, src);
 		XMM(d).f64[0]=XMM(d).f64[0]-XMM(d).f64[1];
@@ -5992,7 +5992,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG src;
 		int d;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		d=(modrm >> 3) & 0x7;
 		READXMM( ea, src);
 		XMM(d).f64[0]=sqrt(src.f64[0]);
@@ -6010,7 +6010,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).f64[1] = (double)MMX(modrm & 0x7).i[1];
 	} else {
 		MMX_REG r;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READMMX( ea, r);
 		XMM((modrm >> 3) & 0x7).f64[0] = (double)r.i[0];
 		XMM((modrm >> 3) & 0x7).f64[1] = (double)r.i[1];
@@ -6027,7 +6027,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		MMX((modrm >> 3) & 0x7).i[1] = XMM(modrm & 0x7).f64[1];
 	} else {
 		XMM_REG r;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, r);
 		MMX((modrm >> 3) & 0x7).i[0] = r.f64[0];
 		MMX((modrm >> 3) & 0x7).i[1] = r.f64[1];
@@ -6044,7 +6044,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		MMX((modrm >> 3) & 0x7).i[1] = XMM(modrm & 0x7).f64[1];
 	} else {
 		XMM_REG r;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, r);
 		MMX((modrm >> 3) & 0x7).i[0] = r.f64[0];
 		MMX((modrm >> 3) & 0x7).i[1] = r.f64[1];
@@ -6061,7 +6061,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).q[1] = 0;
 	} else {
 		XMM_REG r;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, r);
 		XMM((modrm >> 3) & 0x7).f[0] = (float)r.f64[0];
 		XMM((modrm >> 3) & 0x7).f[1] = (float)r.f64[1];
@@ -6080,7 +6080,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).i[3] = XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG r;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, r);
 		XMM((modrm >> 3) & 0x7).i[0] = r.f[0];
 		XMM((modrm >> 3) & 0x7).i[1] = r.f[1];
@@ -6098,7 +6098,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).f64[1] = XMM((modrm >> 3) & 0x7).f64[1] + XMM(modrm & 0x7).f64[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] + src.f64[0];
 		XMM((modrm >> 3) & 0x7).f64[1] = XMM((modrm >> 3) & 0x7).f64[1] + src.f64[1];
@@ -6114,7 +6114,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).f64[1] = XMM((modrm >> 3) & 0x7).f64[1] * XMM(modrm & 0x7).f64[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] * src.f64[0];
 		XMM((modrm >> 3) & 0x7).f64[1] = XMM((modrm >> 3) & 0x7).f64[1] * src.f64[1];
@@ -6130,7 +6130,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).f64[1] = XMM((modrm >> 3) & 0x7).f64[1] - XMM(modrm & 0x7).f64[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] - src.f64[0];
 		XMM((modrm >> 3) & 0x7).f64[1] = XMM((modrm >> 3) & 0x7).f64[1] - src.f64[1];
@@ -6146,7 +6146,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).f64[1] = sse_min_double(XMM((modrm >> 3) & 0x7).f64[1], XMM(modrm & 0x7).f64[1]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = sse_min_double(XMM((modrm >> 3) & 0x7).f64[0], src.f64[0]);
 		XMM((modrm >> 3) & 0x7).f64[1] = sse_min_double(XMM((modrm >> 3) & 0x7).f64[1], src.f64[1]);
@@ -6162,7 +6162,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).f64[1] = XMM((modrm >> 3) & 0x7).f64[1] / XMM(modrm & 0x7).f64[1];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] / src.f64[0];
 		XMM((modrm >> 3) & 0x7).f64[1] = XMM((modrm >> 3) & 0x7).f64[1] / src.f64[1];
@@ -6178,7 +6178,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).f64[1] = sse_max_double(XMM((modrm >> 3) & 0x7).f64[1], XMM(modrm & 0x7).f64[1]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = sse_max_double(XMM((modrm >> 3) & 0x7).f64[0], src.f64[0]);
 		XMM((modrm >> 3) & 0x7).f64[1] = sse_max_double(XMM((modrm >> 3) & 0x7).f64[1], src.f64[1]);
@@ -6194,7 +6194,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		CYCLES(1);     // TODO: correct cycle count
 	} else {
 		// since cache is not implemented
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		WRITEXMM( ea, XMM((modrm >> 3) & 0x7));
 		CYCLES(1);     // TODO: correct cycle count
 	}
@@ -6206,7 +6206,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	if( modrm >= 0xc0 ) {
 		XMM((modrm >> 3) & 0x7) = XMM(modrm & 0x7);
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -6218,7 +6218,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	if( modrm >= 0xc0 ) {
 		XMM(modrm & 0x7) = XMM((modrm >> 3) & 0x7);
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		WRITEXMM( ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -6230,7 +6230,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	if( modrm >= 0xc0 ) {
 		XMM((modrm >> 3) & 0x7).q[0] = XMM(modrm & 0x7).q[0];
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READXMM_LO64( ea, XMM((modrm >> 3) & 0x7));
 		XMM((modrm >> 3) & 0x7).q[1] = 0;
 	}
@@ -6243,7 +6243,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	if( modrm >= 0xc0 ) {
 		XMM(modrm & 0x7).q[0] = XMM((modrm >> 3) & 0x7).q[0];
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		WRITEXMM_LO64( ea, XMM((modrm >> 3) & 0x7));
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -6256,7 +6256,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).q[0] = XMM(modrm & 0x7).q[0];
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[0];
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READXMM_LO64( ea, XMM((modrm >> 3) & 0x7));
 		XMM((modrm >> 3) & 0x7).q[1] = XMM((modrm >> 3) & 0x7).q[0];
 	}
@@ -6269,7 +6269,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	if( modrm >= 0xc0 ) {
 		XMM((modrm >> 3) & 0x7).f64[0] = (INT32)LOAD_RM32(modrm);
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 4);
 		XMM((modrm >> 3) & 0x7).f64[0] = (INT32)READ32(ea);
 	}
 	CYCLES(1);     // TODO: correct cycle count
@@ -6283,7 +6283,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		src = (INT32)XMM(modrm & 0x7).f64[0];
 	} else { // otherwise is a memory address
 		XMM_REG t;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READXMM_LO64( ea, t);
 		src = (INT32)t.f64[0];
 	}
@@ -6299,7 +6299,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		src = (INT32)XMM(modrm & 0x7).f64[0];
 	} else { // otherwise is a memory address
 		XMM_REG t;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READXMM_LO64( ea, t);
 		src = (INT32)t.f64[0];
 	}
@@ -6318,7 +6318,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		XMM_REG src;
 		int d;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		d=(modrm >> 3) & 0x7;
 		READXMM( ea, src);
 		XMM(d).f64[0]=sqrt(src.f64[0]);
@@ -6333,7 +6333,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] + XMM(modrm & 0x7).f64[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] + src.f64[0];
 	}
@@ -6347,7 +6347,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] * XMM(modrm & 0x7).f64[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] * src.f64[0];
 	}
@@ -6361,7 +6361,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).f[0] = XMM(modrm & 0x7).f64[0];
 	} else {
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		READXMM_LO64( ea, s);
 		XMM((modrm >> 3) & 0x7).f[0] = s.f64[0];
 	}
@@ -6375,7 +6375,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] - XMM(modrm & 0x7).f64[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] - src.f64[0];
 	}
@@ -6389,7 +6389,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).f64[0] = sse_min_double(XMM((modrm >> 3) & 0x7).f64[0], XMM(modrm & 0x7).f64[0]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = sse_min_double(XMM((modrm >> 3) & 0x7).f64[0], src.f64[0]);
 	}
@@ -6403,7 +6403,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] / XMM(modrm & 0x7).f64[0];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = XMM((modrm >> 3) & 0x7).f64[0] / src.f64[0];
 	}
@@ -6417,7 +6417,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).f64[0] = sse_max_double(XMM((modrm >> 3) & 0x7).f64[0], XMM(modrm & 0x7).f64[0]);
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f64[0] = sse_max_double(XMM((modrm >> 3) & 0x7).f64[0], src.f64[0]);
 	}
@@ -6444,7 +6444,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM_REG src;
 		int d;
 		float f1, f2;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		d=(modrm >> 3) & 0x7;
 		READXMM( ea, src);
 		f1=XMM(d).f[0]+XMM(d).f[1];
@@ -6477,7 +6477,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM_REG src;
 		int d;
 		float f1, f2;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		d=(modrm >> 3) & 0x7;
 		READXMM( ea, src);
 		f1=XMM(d).f[0]-XMM(d).f[1];
@@ -6502,7 +6502,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 	} else {
 		int d;
 		XMM_REG s;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 8);
 		UINT8 imm8 = FETCH();
 		READXMM_LO64( ea, s);
 		d=(modrm >> 3) & 0x7;
@@ -6521,7 +6521,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).f[3]=XMM((modrm >> 3) & 0x7).f[3] + XMM(modrm & 0x7).f[3];
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).f[0]=XMM((modrm >> 3) & 0x7).f[0] - src.f[0];
 		XMM((modrm >> 3) & 0x7).f[1]=XMM((modrm >> 3) & 0x7).f[1] + src.f[1];
@@ -6553,7 +6553,7 @@ INLINE bool sse_isdoubleunordered(double op1, double op2)
 		XMM((modrm >> 3) & 0x7).q[1] = 0;
 	} else {
 		XMM_REG src;
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM( ea, src);
 		XMM((modrm >> 3) & 0x7).i[0]=(INT32)src.f64[0];
 		XMM((modrm >> 3) & 0x7).i[1]=(INT32)src.f64[1];
@@ -6569,7 +6569,7 @@ void I386_OPS_BASE::SSEOP(lddqu_r128_m128)() // Opcode f2 0f f0
 		// unsupported by cpu
 		CYCLES(1);     // TODO: correct cycle count
 	} else {
-		UINT32 ea = GetEA(modrm, 0);
+		UINT32 ea = GetEA(modrm, 0, 16);
 		READXMM(ea, XMM((modrm >> 3) & 0x7));
 	}
 }

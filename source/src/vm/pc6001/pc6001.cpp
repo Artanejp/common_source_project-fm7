@@ -130,7 +130,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	display->set_vram_ptr(memory->get_vram());
 	display->set_context_timer(timer);
 	vdp->load_font_image(create_local_path(_T("CGROM60.60")));
-	vdp->set_context_cpu(cpu);
+//	vdp->set_context_cpu(cpu);
 	pio_sub->set_context_port_c(vdp, SIG_MC6847_ENABLE, 0x02, 0);	// CRTKILL
 #else
 	voice = new UPD7752(this, emu);

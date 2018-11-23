@@ -250,7 +250,7 @@ Z80_INLINE void Z80_BASE::OUT8(uint32_t addr, uint8_t val)
 	if(cond) { \
 		JR(); \
 		icount -= cc_ex[opcode]; \
-	} else PC++; \
+	} else FETCH8();			 \
 } while(0)
 
 #define CALL() do { \

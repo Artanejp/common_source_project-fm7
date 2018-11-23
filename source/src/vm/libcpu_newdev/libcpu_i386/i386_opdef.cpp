@@ -1,5 +1,5 @@
 // license:BSD-3-Clause
-// copyright-holders:Ville Linde, Barry Rodewald, Carl, Phil Bennett
+// copyright-holders:Ville Linde, Barry Rodewald, Carl, Philip Bennett
 /*
     Intel 386 emulator
 
@@ -374,12 +374,12 @@ UINT32 I386_OPS_BASE::GetNonTranslatedEA(UINT8 modrm,UINT8 *seg)
 	return ea;
 }
 
-UINT32 I386_OPS_BASE::GetEA(UINT8 modrm, int rwn)
+UINT32 I386_OPS_BASE::GetEA(UINT8 modrm, int rwn, UINT32 size)
 {
 	UINT8 segment;
 	UINT32 ea;
 	modrm_to_EA(modrm, &ea, &segment );
-	return i386_translate(segment, ea, rwn );
+	return i386_translate(segment, ea, rwn, size );
 }
 
 /* Check segment register for validity when changing privilege level after an RETF */
@@ -430,14 +430,14 @@ void I386_OPS_BASE::i386_check_sreg_validity(int reg)
 	}
 }
 
-int I386_OPS_BASE::i386_limit_check( int seg, UINT32 offset)
+int I386_OPS_BASE::i386_limit_check( int seg, UINT32 offset, UINT32 size)
 {
 	if(PROTECTED_MODE && !V8086_MODE)
 	{
 		if((cpustate->sreg[seg].flags & 0x0018) == 0x0010 && cpustate->sreg[seg].flags & 0x0004) // if expand-down data segment
 		{
 			// compare if greater then 0xffffffff when we're passed the access size
-			if((offset <= cpustate->sreg[seg].limit) || ((cpustate->sreg[seg].d)?0:(offset > 0xffff)))
+			if((offset <= cpustate->sreg[seg].limit) || ((cpustate->sreg[seg].d)?0:((offset + size - 1) > 0xffff)))
 			{
 				logerror("Limit check at 0x%08x failed. Segment %04x, limit %08x, offset %08x (expand-down)\n",cpustate->pc,cpustate->sreg[seg].selector,cpustate->sreg[seg].limit,offset);
 				return 1;
@@ -445,7 +445,7 @@ int I386_OPS_BASE::i386_limit_check( int seg, UINT32 offset)
 		}
 		else
 		{
-			if(offset > cpustate->sreg[seg].limit)
+			if((offset + size - 1) > cpustate->sreg[seg].limit)
 			{
 				logerror("Limit check at 0x%08x failed. Segment %04x, limit %08x, offset %08x\n",cpustate->pc,cpustate->sreg[seg].selector,cpustate->sreg[seg].limit,offset);
 				return 1;
@@ -1603,7 +1603,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 		if (operand32 != 0)  // if 32-bit
 		{
 			UINT32 offset = (STACK_32BIT ? REG32(ESP) - 8 : (REG16(SP) - 8) & 0xffff);
-			if(i386_limit_check(SS, offset))
+			if(i386_limit_check(SS, offset, 8))
 			{
 				logerror("CALL (%08x): Stack has no room for return address.\n",cpustate->pc);
 				FAULT(FAULT_SS,0)  // #SS(0)
@@ -1612,7 +1612,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 		else
 		{
 			UINT32 offset = (STACK_32BIT ? REG32(ESP) - 4 : (REG16(SP) - 4) & 0xffff);
-			if(i386_limit_check(SS, offset))
+			if(i386_limit_check(SS, offset, 4))
 			{
 				logerror("CALL (%08x): Stack has no room for return address.\n",cpustate->pc);
 				FAULT(FAULT_SS,0)  // #SS(0)
@@ -1863,7 +1863,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 					if (operand32 != 0)  // if 32-bit
 					{
 						UINT32 stkoff = (STACK_32BIT ? REG32(ESP) - 8 : (REG16(SP) - 8) & 0xffff);
-						if(i386_limit_check(SS, stkoff))
+						if(i386_limit_check(SS, stkoff, 8))
 						{
 							logerror("CALL: Stack has no room for return address.\n");
 							FAULT(FAULT_SS,0) // #SS(0)
@@ -1874,7 +1874,7 @@ void I386_OPS_BASE::i386_protected_mode_call( UINT16 seg, UINT32 off, int indire
 					else
 					{
 						UINT32 stkoff = (STACK_32BIT ? REG32(ESP) - 4 : (REG16(SP) - 4) & 0xffff);
-						if(i386_limit_check(SS, stkoff))
+						if(i386_limit_check(SS, stkoff, 4))
 						{
 							logerror("CALL: Stack has no room for return address.\n");
 							FAULT(FAULT_SS,0) // #SS(0)
@@ -1992,7 +1992,7 @@ void I386_OPS_BASE::i386_protected_mode_retf(UINT8 count, UINT8 operand32)
 	I386_SREG desc;
 	UINT8 CPL, RPL, DPL;
 
-	UINT32 ea = i386_translate(SS, (STACK_32BIT)?REG32(ESP):REG16(SP), 0);
+	UINT32 ea = i386_translate(SS, (STACK_32BIT)?REG32(ESP):REG16(SP), 0, (operand32!=0) ? 8 : 4);
 
 	if(operand32 == 0)
 	{
@@ -2076,7 +2076,7 @@ void I386_OPS_BASE::i386_protected_mode_retf(UINT8 count, UINT8 operand32)
 		if(operand32 == 0)
 		{
 			UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-			if(i386_limit_check(SS,offset+count+3) != 0)
+			if(i386_limit_check(SS, offset, count + 4) != 0)
 			{
 				logerror("RETF (%08x): SP is past stack segment limit.\n",cpustate->pc);
 				FAULT(FAULT_SS,0)
@@ -2085,7 +2085,7 @@ void I386_OPS_BASE::i386_protected_mode_retf(UINT8 count, UINT8 operand32)
 		else
 		{
 			UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-			if(i386_limit_check(SS,offset+count+7) != 0)
+			if(i386_limit_check(SS, offset, count + 8) != 0)
 			{
 				logerror("RETF: ESP is past stack segment limit.\n");
 				FAULT(FAULT_SS,0)
@@ -2103,7 +2103,7 @@ void I386_OPS_BASE::i386_protected_mode_retf(UINT8 count, UINT8 operand32)
 		if(operand32 == 0)
 		{
 			UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-			if(i386_limit_check(SS,offset+count+7) != 0)
+			if(i386_limit_check(SS, offset, count + 8) != 0)
 			{
 				logerror("RETF (%08x): SP is past stack segment limit.\n",cpustate->pc);
 				FAULT(FAULT_SS,0)
@@ -2112,7 +2112,7 @@ void I386_OPS_BASE::i386_protected_mode_retf(UINT8 count, UINT8 operand32)
 		else
 		{
 			UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-			if(i386_limit_check(SS,offset+count+15) != 0)
+			if(i386_limit_check(SS, offset, count + 16) != 0)
 			{
 				logerror("RETF: ESP is past stack segment limit.\n");
 				FAULT(FAULT_SS,0)
@@ -2267,7 +2267,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
 
 	CPL = cpustate->CPL;
-	UINT32 ea = i386_translate(SS, (STACK_32BIT)?REG32(ESP):REG16(SP), 0);
+	UINT32 ea = i386_translate(SS, (STACK_32BIT)?REG32(ESP):REG16(SP), 0, (operand32 != 0) ? 12 : 6);
 	if(operand32 == 0)
 	{
 		newEIP = READ16(ea) & 0xffff;
@@ -2383,7 +2383,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 			if(operand32 == 0)
 			{
 				UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-				if(i386_limit_check(SS,offset+3) != 0)
+				if(i386_limit_check(SS, offset, 4) != 0)
 				{
 					logerror("IRET: Data on stack is past SS limit.\n");
 					FAULT(FAULT_SS,0)
@@ -2392,7 +2392,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 			else
 			{
 				UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-				if(i386_limit_check(SS,offset+7) != 0)
+				if(i386_limit_check(SS, offset, 8) != 0)
 				{
 					logerror("IRET: Data on stack is past SS limit.\n");
 					FAULT(FAULT_SS,0)
@@ -2410,7 +2410,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 				if(operand32 == 0)
 				{
 					UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-					if(i386_limit_check(SS,offset+5) != 0)
+					if(i386_limit_check(SS, offset, 6) != 0)
 					{
 						logerror("IRET (%08x): Data on stack is past SS limit.\n",cpustate->pc);
 						FAULT(FAULT_SS,0)
@@ -2419,7 +2419,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 				else
 				{
 					UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-					if(i386_limit_check(SS,offset+11) != 0)
+					if(i386_limit_check(SS, offset, 12) != 0)
 					{
 						logerror("IRET (%08x): Data on stack is past SS limit.\n",cpustate->pc);
 						FAULT(FAULT_SS,0)
@@ -2515,7 +2515,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 				if(operand32 == 0)
 				{
 					UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-					if(i386_limit_check(SS,offset+9) != 0)
+					if(i386_limit_check(SS, offset, 10) != 0)
 					{
 						logerror("IRET: SP is past SS limit.\n");
 						FAULT(FAULT_SS,0)
@@ -2524,7 +2524,7 @@ void I386_OPS_BASE::i386_protected_mode_iret(int operand32)
 				else
 				{
 					UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
-					if(i386_limit_check(SS,offset+19) != 0)
+					if(i386_limit_check(SS, offset, 20) != 0)
 					{
 						logerror("IRET: ESP is past SS limit.\n");
 						FAULT(FAULT_SS,0)
@@ -3041,7 +3041,7 @@ bool I386_OPS_BASE::process_state(FILEIO *state_fio, bool loading)
 
 	
 	process_state_GPR(&cpustate->reg, state_fio);
-	for(int i = 0; i < array_length(cpustate->sreg); i++) {
+	for(int i = 0; i < (int)array_length(cpustate->sreg); i++) {
 		process_state_SREG(&cpustate->sreg[i], state_fio);
 	}
 	state_fio->StateValue(cpustate->eip);

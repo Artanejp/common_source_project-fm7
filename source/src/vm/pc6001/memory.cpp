@@ -165,8 +165,8 @@ void MEMORY::initialize()
 	palette_pc[15] = RGB_COLOR(0xFF,0xFF,0xFF); // COL080			= FFFFFF			;mk2` ”’
 	
 	// register event
-	register_vline_event(this);
 #endif
+	register_vline_event(this);
 }
 
 void MEMORY::reset()
@@ -253,9 +253,9 @@ void MEMORY::reset()
 	portF1 = 0xdd;
 	CRTMode1 = CRTMode2 = CRTMode3 = 0;
 	CSS3=CSS2=CSS1=0;
-	CGSW93 = CRTKILL = 0;
 	CurKANJIROM = KANJIROM;
 #endif
+	CGSW93 = CRTKILL = 0;
 }
 
 void MEMORY::write_data8(uint32_t addr, uint32_t data)
@@ -279,6 +279,68 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 		return(gvram_read(addr));
 #endif
 	return(RdMem[addr >> 13][addr & 0x1FFF]);
+}
+
+void MEMORY::write_data8w(uint32_t addr, uint32_t data, int *wait)
+{
+#ifdef _PC6001
+	*wait = addr < 0x8000 ? 1 : 0;
+#else
+	bool is_rom;
+	uint32_t portF3 = d_timer->read_io8(0xf3);
+#if defined(_PC6601SR) || defined(_PC6001MK2SR)
+	if (static_cast<VM *>(vm)->sr_mode) {
+		is_rom = (port60[8 + (addr >> 13)] & 0xf0) > 0x20 ? true: false;
+	} else
+#endif
+	{
+		is_rom = EnWrite[addr >> 14] ? false : true;
+	}
+	*wait = is_rom && (portF3 & 0x40) || !is_rom && (portF3 & 0x20) ? 1 : 0;
+#endif
+	write_data8(addr, data);
+}
+
+uint32_t MEMORY::read_data8w(uint32_t addr, int *wait)
+{
+#ifdef _PC6001
+	*wait = addr < 0x8000 ? 1 : 0;
+#else
+	bool is_rom;
+	uint32_t portF3 = d_timer->read_io8(0xf3);
+#if defined(_PC6601SR) || defined(_PC6001MK2SR)
+	if (static_cast<VM *>(vm)->sr_mode) {
+		is_rom = (port60[addr >> 13] & 0xf0) > 0x20 ? true : false;
+	} else
+#endif
+	{
+		if (CGSW93 && 0x6000 <= addr && addr < 0x8000) {
+			is_rom = true;
+		} else if (addr < 0x4000) {
+			is_rom = (portF0 & 0x0f) == 0x0d || (portF0 & 0x0f) == 0x0e ? false : true;
+		} else if (addr < 0x8000) {
+			is_rom = (portF0 & 0xf0) == 0xd0 || (portF0 & 0xf0) == 0xe0 ? false : true;
+		} else if (addr < 0xc000) {
+			is_rom = (portF1 & 0x0f) == 0x0d || (portF1 & 0x0f) == 0x0e ? false : true;
+		} else {
+			is_rom = (portF1 & 0xf0) == 0xd0 || (portF1 & 0xf0) == 0xe0 ? false : true;
+		}
+	}
+	*wait = is_rom && (portF3 & 0x40) || !is_rom && (portF3 & 0x20) ? 1 : 0;
+#endif
+	return read_data8(addr);
+}
+
+uint32_t MEMORY::fetch_op(uint32_t addr, int *wait)
+{
+#ifndef _PC6001
+	uint32_t portF3 = d_timer->read_io8(0xf3);
+	if ((portF3 & 0x80) == 0) {
+		return read_data8w(addr, wait);
+	}
+#endif
+	*wait = 1;
+	return read_data8(addr);
 }
 
 void MEMORY::write_io8(uint32_t addr, uint32_t data)
@@ -603,6 +665,19 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 	}
 	return(Value);
 }
+#endif
+
+void MEMORY::write_io8w(uint32_t addr, uint32_t data, int* wait)
+{
+	*wait = (addr & 0xf0) == 0xa0 ? 1 : 0;
+	write_io8(addr, data);
+}
+
+uint32_t MEMORY::read_io8w(uint32_t addr, int* wait)
+{
+	*wait = (addr & 0xf0) == 0xa0 ? 1 : 0;
+	return read_io8(addr);
+}
 
 #define EVENT_HBLANK	1
 
@@ -619,11 +694,18 @@ void MEMORY::event_vline(int v, int clock)
 	} else
 #endif
 	{
-		if(!CRTKILL) {
-			if(v < (CRTMode1 ? 200 : 192)) {
+		if (!CRTKILL) {
+#ifdef _PC6001
+			if (v < 192) {
 				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-				register_event_by_clock(this, EVENT_HBLANK, CPU_CLOCKS /  FRAMES_PER_SEC / LINES_PER_FRAME * 368 / 456, false, NULL);
+				register_event_by_clock(this, EVENT_HBLANK, (double)CPU_CLOCKS / FRAMES_PER_SEC / LINES_PER_FRAME * 296 / 455, false, NULL);
 			}
+#else
+			if (v < (CRTMode1 ? 200 : 192)) {
+				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+				register_event_by_clock(this, EVENT_HBLANK, (double)CPU_CLOCKS / FRAMES_PER_SEC / LINES_PER_FRAME * (CRTMode1 ? 368 : 304) / 456, false, NULL);
+			}
+#endif
 		}
 	}
 }
@@ -634,7 +716,6 @@ void MEMORY::event_callback(int event_id, int err)
 		d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
 	}
 }
-#endif
 
 void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
@@ -651,8 +732,11 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 		} else {
 			CGSW93=1; RdMem[3]=CGROM;
 		}
-		CRTKILL = (data & 2) ? 0 : 1;
 #endif
+		CRTKILL = (data & 2) ? 0 : 1;
+		if (CRTKILL) {
+			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
+		}
 	}
 }
 

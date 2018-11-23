@@ -18,9 +18,10 @@ public:
 	int cpu_execute_i386(int cycles);
 	void i386_trap(int irq, int irq_gate, int trap_level);
 	void i386_trap_with_error(int irq, int irq_gate, int trap_level, UINT32 error);
-	void i386_call_abs16();        // Opcode 0x9a
-	void i386_call_rel16();        // Opcode 0xe8
-	void i386_groupFF_16();        // Opcode 0xff
+	void i386__int();		// Opcode 0xcd
+	void i386_call_abs16();		// Opcode 0x9a
+	void i386_call_rel16();		// Opcode 0xe8
+	void i386_groupFF_16();		// Opcode 0xff
 	void i386_decode_opcode();
 	//void build_opcode_table(UINT32 features);
 	i386_state *i386_common_init(int tlbsize);

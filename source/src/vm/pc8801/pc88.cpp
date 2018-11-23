@@ -1715,6 +1715,68 @@ void PC88::event_vline(int v, int clock)
 		request_intr(IRQ_VRTC, true);
 		update_gvram_wait();
 	}
+	// update palette
+#if !defined(_PC8001SR)
+	if(v < (disp_line <= 200 ? 200 : 400)) {
+#else
+	if(v < 200) {
+#endif
+		if(update_palette) {
+			static const int pex[8] = {
+				0,  36,  73, 109, 146, 182, 219, 255 // from m88
+			};
+#if defined(_PC8001SR)
+			if(config.boot_mode != MODE_PC80_V2) {
+				if(Port31_V1_320x200) {
+					for(int i = 0; i < 3; i++) {
+						uint8_t b = (port[0x31] & 4) ? 7 : 0;
+						uint8_t r = (i          & 1) ? 7 : 0;
+						uint8_t g = (i          & 2) ? 7 : 0;
+						palette_graph_pc[i] = RGB_COLOR(pex[r], pex[g], pex[b]);
+					}
+					palette_graph_pc[3] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
+				} else if(Port31_V1_MONO) {
+					palette_graph_pc[0] = 0;
+					palette_graph_pc[1] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
+				} else {
+					for(int i = 1; i < 8; i++) {
+						palette_graph_pc[i] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);
+					}
+					palette_graph_pc[0] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
+				}
+				if(Port31_V1_320x200) {
+					palette_text_pc[0] = 0;
+				} else {
+					palette_text_pc[0] = palette_graph_pc[0];
+				}
+			} else {
+				for(int i = 0; i < 8; i++) {
+					uint8_t b = (port[0x54 + i] & 1) ? 7 : 0;
+					uint8_t r = (port[0x54 + i] & 2) ? 7 : 0;
+					uint8_t g = (port[0x54 + i] & 4) ? 7 : 0;
+					palette_graph_pc[i] = RGB_COLOR(pex[r], pex[g], pex[b]);
+				}
+				if(!Port31_HCOLOR) {
+					palette_graph_pc[0] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
+				}
+				palette_text_pc[0] = palette_graph_pc[0];
+			}
+#else
+			for(int i = 0; i < 8; i++) {
+				palette_graph_pc[i] = RGB_COLOR(pex[palette[i].r], pex[palette[i].g], pex[palette[i].b]);
+			}
+			if(!Port31_HCOLOR && !Port32_PMODE) {
+				palette_graph_pc[0] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
+			}
+			palette_text_pc[0] = palette_graph_pc[0];
+#endif
+			update_palette = false;
+		}
+		for(int i = 0; i < 9; i++) {
+			line_palette_text_pc[v][i] = palette_text_pc[i];
+			line_palette_graph_pc[v][i] = palette_graph_pc[i];
+		}
+	}
 }
 
 void PC88::key_down(int code, bool repeat)
@@ -1900,67 +1962,20 @@ void PC88::draw_screen()
 	}
 #endif
 	
-	// update palette
-	if(update_palette) {
-		static const int pex[8] = {
-			0,  36,  73, 109, 146, 182, 219, 255 // from m88
-		};
-#if defined(_PC8001SR)
-		if(config.boot_mode != MODE_PC80_V2) {
-			if(Port31_V1_320x200) {
-				for(int i = 0; i < 3; i++) {
-					uint8_t b = (port[0x31] & 4) ? 7 : 0;
-					uint8_t r = (i          & 1) ? 7 : 0;
-					uint8_t g = (i          & 2) ? 7 : 0;
-					palette_graph_pc[i] = RGB_COLOR(pex[r], pex[g], pex[b]);
-				}
-				palette_graph_pc[3] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
-			} else if(Port31_V1_MONO) {
-				palette_graph_pc[0] = 0;
-				palette_graph_pc[1] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
-			} else {
-				for(int i = 1; i < 8; i++) {
-					palette_graph_pc[i] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);
-				}
-				palette_graph_pc[0] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
-			}
-			if(Port31_V1_320x200) {
-				palette_text_pc[0] = 0;
-			} else {
-				palette_text_pc[0] = palette_graph_pc[0];
-			}
-		} else {
-			for(int i = 0; i < 8; i++) {
-				uint8_t b = (port[0x54 + i] & 1) ? 7 : 0;
-				uint8_t r = (port[0x54 + i] & 2) ? 7 : 0;
-				uint8_t g = (port[0x54 + i] & 4) ? 7 : 0;
-				palette_graph_pc[i] = RGB_COLOR(pex[r], pex[g], pex[b]);
-			}
-			if(!Port31_HCOLOR) {
-				palette_graph_pc[0] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
-			}
-			palette_text_pc[0] = palette_graph_pc[0];
-		}
-#else
-		for(int i = 0; i < 8; i++) {
-			palette_graph_pc[i] = RGB_COLOR(pex[palette[i].r], pex[palette[i].g], pex[palette[i].b]);
-		}
-		if(!Port31_HCOLOR && !Port32_PMODE) {
-			palette_graph_pc[0] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
-		}
-		palette_text_pc[0] = palette_graph_pc[0];
-#endif
-		update_palette = false;
-	}
-	
 	// set back color to black if cg screen is off in color mode
-	scrntype_t palette_text_back = palette_text_pc[0];
-	scrntype_t palette_graph_back = palette_graph_pc[0];
+#if !defined(_PC8001SR)
+	int disp_line = crtc.height * crtc.char_height;
+	int shift = (disp_line <= 200) ? 0 : 1;
 	
-	if(!disp_color_graph) {
-		palette_text_pc[0] = palette_graph_pc[0] = 0;
+	for(int y = 0; y < (disp_line <= 200 ? 200 : 400); y++) {
+#else
+	for(int y = 0; y < 200; y++) {
+#endif
+		if(!disp_color_graph) {
+			line_palette_text_pc[y][0] = line_palette_graph_pc[y][0] = 0;
+		}
+		line_palette_graph_pc[y][8] = /*line_palette_text_pc[y][8] = */line_palette_text_pc[y][0];
 	}
-	palette_graph_pc[8] = /*palette_text_pc[8] = */palette_text_pc[0];
 	
 	// copy to screen buffer
 #if !defined(_PC8001SR)
@@ -1971,34 +1986,39 @@ void PC88::draw_screen()
 			scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
 			uint8_t* src_t = text[y];
 			uint8_t* src_g = graph[y];
-			
 #if defined(_PC8001SR)
+			scrntype_t* pal_t = line_palette_text_pc[y];
+			scrntype_t* pal_g = line_palette_graph_pc[y];
+			
 			if(port[0x33] & 8) {
 				for(int x = 0; x < 640; x++) {
 					uint32_t g = src_g[x];
-					dest0[x] = g ? palette_graph_pc[g] : palette_text_pc[src_t[x]];
+					dest0[x] = g ? pal_g[g] : pal_t[src_t[x]];
 				}
 			} else {
 				for(int x = 0; x < 640; x++) {
 					uint32_t t = src_t[x];
-					dest0[x] = t ? palette_text_pc[t] : palette_graph_pc[src_g[x]];
+					dest0[x] = t ? pal_t[t] : pal_g[src_g[x]];
 				}
 			}
 #else
+			scrntype_t* pal_t = line_palette_text_pc[y << shift];
+			scrntype_t* pal_g = line_palette_graph_pc[y << shift];
+			
 			if(Port31_HCOLOR) {
 				for(int x = 0; x < 640; x++) {
 					uint32_t t = src_t[x];
-					dest0[x] = t ? palette_text_pc[t] : palette_graph_pc[src_g[x]];
+					dest0[x] = t ? pal_t[t] : pal_g[src_g[x]];
 				}
 			} else if(Port32_PMODE) {
 				for(int x = 0; x < 640; x++) {
 					uint32_t t = src_t[x];
-					dest0[x] = palette_graph_pc[t ? t : src_g[x]];
+					dest0[x] = pal_g[t ? t : src_g[x]];
 				}
 			} else {
 				for(int x = 0; x < 640; x++) {
 					uint32_t t = src_t[x];
-					dest0[x] = palette_text_pc[t ? t : src_g[x]];
+					dest0[x] = pal_t[t ? t : src_g[x]];
 				}
 			}
 #endif
@@ -2017,32 +2037,30 @@ void PC88::draw_screen()
 			scrntype_t* dest = emu->get_screen_buffer(y);
 			uint8_t* src_t = text[y >> 1];
 			uint8_t* src_g = graph[y];
+			scrntype_t* pal_t = line_palette_text_pc[y];
+			scrntype_t* pal_g = line_palette_graph_pc[y];
 			
 //			if(Port31_HCOLOR) {
 //				for(int x = 0; x < 640; x++) {
 //					uint32_t t = src_t[x];
-//					dest[x] = t ? palette_text_pc[t] : palette_graph_pc[src_g[x]];
+//					dest[x] = t ? pal_t[t] : pal_g[src_g[x]];
 //				}
 //			} else
 			if(Port32_PMODE) {
 				for(int x = 0; x < 640; x++) {
 					uint32_t t = src_t[x];
-					dest[x] = palette_graph_pc[t ? t : src_g[x]];
+					dest[x] = pal_g[t ? t : src_g[x]];
 				}
 			} else {
 				for(int x = 0; x < 640; x++) {
 					uint32_t t = src_t[x];
-					dest[x] = palette_text_pc[t ? t : src_g[x]];
+					dest[x] = pal_t[t ? t : src_g[x]];
 				}
 			}
 		}
 		emu->screen_skip_line(false);
 	}
 #endif
-	
-	// restore back color palette
-	palette_text_pc[0] = palette_text_back;
-	palette_graph_pc[0] = palette_graph_back;
 }
 
 /*

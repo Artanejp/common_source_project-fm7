@@ -175,13 +175,13 @@ void SASI::write_signal(int id, uint32_t data, uint32_t mask)
 			#else
 				d_dma->write_signal(SIG_I8237_CH0, data, mask);
 			#endif
-		} else {
-			if(data & mask) {
-				#ifdef _SCSI_DEBUG_LOG
-					this->out_debug_log(_T("[SASI] DMAE=0, change IRQ\n"));
-				#endif
-				write_signal(SIG_SASI_IRQ, data, mask);
-			}
+//		} else {
+//			if(data & mask) {
+//				#ifdef _SCSI_DEBUG_LOG
+//					this->out_debug_log(_T("[SASI] DMAE=0, change IRQ\n"));
+//				#endif
+//				write_signal(SIG_SASI_IRQ, data, mask);
+//			}
 		}
 		drq_status = ((data & mask) != 0);
 		break;

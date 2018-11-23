@@ -578,7 +578,7 @@ public:
 	virtual void i386_trap_with_error(int irq, int irq_gate, int trap_level, UINT32 error);
 	void i386_set_irq_line(int irqline, int state);
 	void i386_set_a20_line(int state);
-	int i386_limit_check( int seg, UINT32 offset);
+	int i386_limit_check( int seg, UINT32 offset, UINT32 size);
 	void i386_vtlb_free(void);
 	void i386_free_state(void);
 
@@ -667,7 +667,7 @@ protected:
 	void modrm_to_EA(UINT8 mod_rm, UINT32* out_ea, UINT8* out_segment);
 	
 	UINT32 GetNonTranslatedEA(UINT8 modrm,UINT8 *seg);
-	UINT32 GetEA(UINT8 modrm, int rwn);
+	UINT32 GetEA(UINT8 modrm, int rwn, UINT32 size);
 
 	// 
 	void i386_check_sreg_validity(int reg);
@@ -1215,7 +1215,7 @@ public:
 	void I386OP_D(address_size)();      // Opcode 0x67
 	void I386OP_D(nop)();               // Opcode 0x90
 	void I386OP_D(int3)();              // Opcode 0xcc
-	void I386OP_D(int)();               // Opcode 0xcd
+	virtual void I386OP_D(_int)();               // Opcode 0xcd
 	void I386OP_D(into)();              // Opcode 0xce
 	void I386OP_D(escape)();            // Opcodes 0xd8 - 0xdf
 	void I386OP_D(hlt)();               // Opcode 0xf4
@@ -1759,7 +1759,7 @@ protected:
 	//
 	INLINE vtlb_entry get_permissions(UINT32 pte, int wp);
 	INLINE int translate_address(int pl, int type, UINT32 *address, UINT32 *error);
-	INLINE UINT32 i386_translate(int segment, UINT32 ip, int rwn);
+	INLINE UINT32 i386_translate(int segment, UINT32 ip, int rwn, UINT32 size);
 	
 	INLINE UINT8 FETCH();
 	INLINE UINT16 FETCH16();
@@ -1916,14 +1916,14 @@ INLINE void I386_OPS_BASE::CYCLES_RM(int modrm, int r, int m)
 }
 
 
-INLINE UINT32 I386_OPS_BASE::i386_translate(int segment, UINT32 ip, int rwn)
+INLINE UINT32 I386_OPS_BASE::i386_translate(int segment, UINT32 ip, int rwn, UINT32 size)
 {
 	// TODO: segment limit access size, execution permission, handle exception thrown from exception handler
 	if(PROTECTED_MODE && !V8086_MODE && (rwn != -1))
 	{
 		if(!(cpustate->sreg[segment].valid))
 			FAULT_THROW((segment==SS)?FAULT_SS:FAULT_GP, 0);
-		if(i386_limit_check(segment, ip))
+		if(i386_limit_check(segment, ip, size))
 			FAULT_THROW((segment==SS)?FAULT_SS:FAULT_GP, 0);
 		if((rwn == 0) && ((cpustate->sreg[segment].flags & 8) && !(cpustate->sreg[segment].flags & 2)))
 			FAULT_THROW(FAULT_GP, 0);
@@ -1991,7 +1991,7 @@ INLINE int I386_OPS_BASE::translate_address(int pl, int type, UINT32 *address, U
 
 INLINE void I386_OPS_BASE::CHANGE_PC(UINT32 pc)
 {
-	cpustate->pc = i386_translate(CS, pc, -1 );
+	cpustate->pc = i386_translate(CS, pc, -1, 1 );
 }
 
 INLINE void I386_OPS_BASE::NEAR_BRANCH(INT32 offs)
@@ -2228,7 +2228,7 @@ INLINE void I386_OPS_BASE::WRITE32(UINT32 ea, UINT32 value)
 		if(!translate_address(cpustate->CPL,TRANSLATE_WRITE,&address,&error))
 			PF_THROW(error);
 
-		ea &= cpustate->a20_mask;
+		address &= cpustate->a20_mask;
 		cpustate->program->write_data32(address, value);
 	}
 }
@@ -2250,7 +2250,7 @@ INLINE void I386_OPS_BASE::WRITE64(UINT32 ea, UINT64 value)
 		if(!translate_address(cpustate->CPL,TRANSLATE_WRITE,&address,&error))
 			PF_THROW(error);
 
-		ea &= cpustate->a20_mask;
+		address &= cpustate->a20_mask;
 		cpustate->program->write_data32(address+0, value & 0xffffffff);
 		cpustate->program->write_data32(address+4, (value >> 32) & 0xffffffff);
 	}
@@ -2449,12 +2449,12 @@ INLINE void I386_OPS_BASE::PUSH16(UINT16 value)
 	UINT32 ea, new_esp;
 	if( STACK_32BIT ) {
 		new_esp = REG32(ESP) - 2;
-		ea = i386_translate( SS, new_esp, 1);
+		ea = i386_translate( SS, new_esp, 1, 2);
 		WRITE16( ea, value );
 		REG32(ESP) = new_esp;
 	} else {
 		new_esp = (REG16(SP) - 2) & 0xffff;
-		ea = i386_translate( SS, new_esp, 1);
+		ea = i386_translate( SS, new_esp, 1, 2);
 		WRITE16( ea, value );
 		REG16(SP) = new_esp;
 	}
@@ -2464,12 +2464,12 @@ INLINE void I386_OPS_BASE::PUSH32(UINT32 value)
 	UINT32 ea, new_esp;
 	if( STACK_32BIT ) {
 		new_esp = REG32(ESP) - 4;
-		ea = i386_translate( SS, new_esp, 1);
+		ea = i386_translate( SS, new_esp, 1, 4);
 		WRITE32( ea, value );
 		REG32(ESP) = new_esp;
 	} else {
 		new_esp = (REG16(SP) - 4) & 0xffff;
-		ea = i386_translate( SS, new_esp, 1);
+		ea = i386_translate( SS, new_esp, 1, 4);
 		WRITE32( ea, value );
 		REG16(SP) = new_esp;
 	}
@@ -2480,13 +2480,23 @@ INLINE void I386_OPS_BASE::PUSH32SEG(UINT32 value)
 	UINT32 ea, new_esp;
 	if( STACK_32BIT ) {
 		new_esp = REG32(ESP) - 4;
-		ea = i386_translate(SS, new_esp, 1);
-		((cpustate->cpu_version & 0xf00) == 0x300) ? WRITE16(ea, value) : WRITE32(ea, value ); // 486 also?
+		if( (cpustate->cpu_version & 0xf00) == 0x300 ) {
+			ea = i386_translate(SS, new_esp, 1, 2);
+			WRITE16(ea, value); // 486 also?
+		} else {
+			ea = i386_translate(SS, new_esp, 1, 4);
+			WRITE32(ea, value ); // 486 also?
+		}
 		REG32(ESP) = new_esp;
 	} else {
 		new_esp = (REG16(SP) - 4) & 0xffff;
-		ea = i386_translate(SS, new_esp, 1);
-		((cpustate->cpu_version & 0xf00) == 0x300) ? WRITE16(ea, value) : WRITE32(ea, value );
+		if( (cpustate->cpu_version & 0xf00) == 0x300 ) {
+			ea = i386_translate(SS, new_esp, 1, 2);
+			WRITE16(ea, value);
+		} else {
+			ea = i386_translate(SS, new_esp, 1, 4);
+			WRITE32(ea, value );
+		}
 		REG16(SP) = new_esp;
 	}
 }
@@ -2506,12 +2516,12 @@ INLINE UINT8 I386_OPS_BASE::POP8()
 	UINT32 ea, new_esp;
 	if( STACK_32BIT ) {
 		new_esp = REG32(ESP) + 1;
-		ea = i386_translate( SS, new_esp - 1, 0);
+		ea = i386_translate( SS, new_esp - 1, 0, 1);
 		value = READ8( ea );
 		REG32(ESP) = new_esp;
 	} else {
 		new_esp = REG16(SP) + 1;
-		ea = i386_translate( SS, (new_esp - 1) & 0xffff, 0);
+		ea = i386_translate( SS, (new_esp - 1) & 0xffff, 0, 1);
 		value = READ8( ea );
 		REG16(SP) = new_esp;
 	}
@@ -2524,12 +2534,12 @@ INLINE UINT16 I386_OPS_BASE::POP16()
 	UINT32 ea, new_esp;
 	if( STACK_32BIT ) {
 		new_esp = REG32(ESP) + 2;
-		ea = i386_translate( SS, new_esp - 2, 0);
+		ea = i386_translate( SS, new_esp - 2, 0, 2);
 		value = READ16( ea );
 		REG32(ESP) = new_esp;
 	} else {
 		new_esp = REG16(SP) + 2;
-		ea = i386_translate( SS, (new_esp - 2) & 0xffff, 0);
+		ea = i386_translate( SS, (new_esp - 2) & 0xffff, 0, 2);
 		value = READ16( ea );
 		REG16(SP) = new_esp;
 	}
@@ -2541,12 +2551,12 @@ INLINE UINT32 I386_OPS_BASE::POP32()
 	UINT32 ea, new_esp;
 	if( STACK_32BIT ) {
 		new_esp = REG32(ESP) + 4;
-		ea = i386_translate( SS, new_esp - 4, 0);
+		ea = i386_translate( SS, new_esp - 4, 0, 4);
 		value = READ32( ea );
 		REG32(ESP) = new_esp;
 	} else {
 		new_esp = REG16(SP) + 4;
-		ea = i386_translate( SS, (new_esp - 4) & 0xffff, 0);
+		ea = i386_translate( SS, (new_esp - 4) & 0xffff, 0, 4);
 		value = READ32( ea );
 		REG16(SP) = new_esp;
 	}

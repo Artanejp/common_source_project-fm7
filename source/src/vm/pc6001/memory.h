@@ -91,8 +91,8 @@ private:
 	uint8_t EnWrite[4];			// MEMORY MAPPING WRITE ENABLE [N60/N66]
 	uint8_t CGSW93;
 	bool inserted;
-#ifndef _PC6001
 	uint8_t CRTKILL;
+#ifndef _PC6001
 //	uint8_t VOICEROM[0x4000];
 //	uint8_t KANJIROM[0x8000];
 	uint8_t *CurKANJIROM;
@@ -181,12 +181,17 @@ public:
 	void reset();
 	void write_data8(uint32_t addr, uint32_t data);
 	uint32_t read_data8(uint32_t addr);
+	void write_data8w(uint32_t addr, uint32_t data, int *wait);
+	uint32_t read_data8w(uint32_t addr, int *wait);
+	uint32_t fetch_op(uint32_t addr, int *wait);
 	void write_io8(uint32_t addr, uint32_t data);
 #ifndef _PC6001
 	uint32_t read_io8(uint32_t addr);
+#endif
+	void write_io8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t read_io8w(uint32_t addr, int* wait);
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
-#endif
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
 	

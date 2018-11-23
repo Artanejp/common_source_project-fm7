@@ -1,5 +1,5 @@
 // license:BSD-3-Clause
-// copyright-holders:Ville Linde, Barry Rodewald, Carl, Phil Bennett
+// copyright-holders:Ville Linde, Barry Rodewald, Carl, Philip Bennett
 
 #ifndef __LIB_I386_OPS_TABLE_H__
 #define __LIB_I386_OPS_TABLE_H__
@@ -216,7 +216,7 @@ const X86_OPCODE x86_opcode_table[] =
 	{ 0xCA,     OP_I386,                    &I386_OPS_BASE::i386_retf_i16,               &I386_OPS_BASE::i386_retf_i32,           false},
 	{ 0xCB,     OP_I386,                    &I386_OPS_BASE::i386_retf16,                 &I386_OPS_BASE::i386_retf32,             false},
 	{ 0xCC,     OP_I386,                    &I386_OPS_BASE::i386_int3,                   &I386_OPS_BASE::i386_int3,               false},
-	{ 0xCD,     OP_I386,                    &I386_OPS_BASE::i386_int,                    &I386_OPS_BASE::i386_int,                false},
+	{ 0xCD,     OP_I386,                    &I386_OPS_BASE::i386__int,                    &I386_OPS_BASE::i386__int,                false},
 	{ 0xCE,     OP_I386,                    &I386_OPS_BASE::i386_into,                   &I386_OPS_BASE::i386_into,               false},
 	{ 0xCF,     OP_I386,                    &I386_OPS_BASE::i386_iret16,                 &I386_OPS_BASE::i386_iret32,             false},
 	{ 0xD0,     OP_I386,                    &I386_OPS_BASE::i386_groupD0_8,              &I386_OPS_BASE::i386_groupD0_8,          false},

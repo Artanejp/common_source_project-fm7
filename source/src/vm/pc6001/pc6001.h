@@ -22,6 +22,7 @@
 #define SCREEN_HEIGHT		192
 #define CPU_CLOCKS		3993600
 #define HAS_AY_3_8910
+#define TIMER_PERIOD	(8192. / CPU_CLOCKS * 1000000)
 #elif defined(_PC6001MK2)
 #define DEVICE_NAME		"NEC PC-6001mkII"
 #define CONFIG_NAME		"pc6001mk2"
@@ -29,8 +30,9 @@
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
-#define CPU_CLOCKS		4000000
+#define CPU_CLOCKS		3993600
 #define HAS_AY_3_8910
+#define TIMER_PERIOD	(8192. / CPU_CLOCKS * 1000000)
 #elif defined(_PC6001MK2SR)
 #define DEVICE_NAME		"NEC PC-6001mkIISR"
 #define CONFIG_NAME		"pc6001mk2sr"
@@ -39,6 +41,7 @@
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
 #define CPU_CLOCKS		3580000
+#define TIMER_PERIOD	(2000/.999)
 #elif defined(_PC6601)
 #define DEVICE_NAME		"NEC PC-6601"
 #define CONFIG_NAME		"pc6601"
@@ -48,6 +51,7 @@
 #define WINDOW_HEIGHT_ASPECT	480
 #define CPU_CLOCKS		4000000
 #define HAS_AY_3_8910
+#define TIMER_PERIOD	(8192. / CPU_CLOCKS * 1000000)
 #elif defined(_PC6601SR)
 #define DEVICE_NAME		"NEC PC-6601SR"
 #define CONFIG_NAME		"pc6601sr"
@@ -58,7 +62,12 @@
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
 #define CPU_CLOCKS		3580000
+#define TIMER_PERIOD	(2000 / .999)
 #endif
+
+//memory wait
+#define Z80_MEMORY_WAIT
+#define Z80_IO_WAIT
 
 // device informations for virtual machine
 #define FRAMES_PER_SEC		60

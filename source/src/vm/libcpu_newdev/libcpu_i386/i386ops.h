@@ -1,5 +1,5 @@
 // license:BSD-3-Clause
-// copyright-holders:Ville Linde, Barry Rodewald, Carl, Phil Bennett
+// copyright-holders:Ville Linde, Barry Rodewald, Carl, Philip Bennett
 #ifndef __LIB_I386_OPS_OPS_H__
 #define __LIB_I386_OPS_OPS_H__
 class I386_OPS_BASE;

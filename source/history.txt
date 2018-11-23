@@ -1,3 +1,14 @@
+11/23/2018
+
+[VM/I386] improve i386_limit_check to consider data size
+[VM/SCSI_DEV] improve REQ timing just after ACK is raised
+
+[PC6001/*] apply patch for timing issues (thanks Mr.Akikawa)
+[PC8801/PC88] support to change palette for each scan line
+[PC9801] support PC-9801-86 sound board for PC-9801RA and PC-98RL
+[PC9801/FMSOUND] fix process_state
+
+
 10/14/2018
 
 [COMMON/FILEIO] improve functions to load/save state file for big-endian

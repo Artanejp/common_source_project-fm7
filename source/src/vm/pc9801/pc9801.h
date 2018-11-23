@@ -172,6 +172,8 @@
 	#if !defined(SUPPORT_HIRESO)
 		#define SUPPORT_BIOS_RAM
 	#endif
+	// PC-9801-86
+	#define SUPPORT_PC98_OPNA
 #endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	#define MEMORY_ADDR_MAX		0x1000000	// 16MB
@@ -183,9 +185,6 @@
 //#endif
 #define MEMORY_BANK_SIZE		0x800
 #define IO_ADDR_MAX			0x10000
-
-// PC-9801-86
-//#define SUPPORT_PC98_OPNA
 
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	#define MODE_PC98	0
@@ -306,18 +305,18 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 #if defined(SUPPORT_PC98_OPNA)
-	_T("PC-9801-86 (FM)"), _T("PC-9801-86 (PSG)"), _T("PC-9801-86 (ADPCM)"), _T("PC-9801-86 (Rhythm)"),
+	_T("OPNA (FM)"), _T("OPNA (PSG)"), _T("OPNA (ADPCM)"), _T("OPNA (Rhythm)"),
 #else
-	_T("PC-9801-26 (FM)"), _T("PC-9801-26 (PSG)"),
+	_T("OPN (FM)"), _T("OPN (PSG)"),
 #endif
 	_T("PC-9801-14"), _T("Beep"),
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 #if defined(SUPPORT_PC88_OPNA)
-	_T("PC-88 OPNA (FM)"), _T("PC-88 OPNA (PSG)"), _T("PC-88 OPNA (ADPCM)"), _T("PC-88 OPNA (Rhythm)"),
+	_T("PC-88 (FM)"), _T("PC-88 (PSG)"), _T("PC-88 (ADPCM)"), _T("PC-88 (Rhythm)"),
 #else
-	_T("PC-88 OPN (FM)"), _T("PC-88 OPN (PSG)"),
+	_T("PC-88 (FM)"), _T("PC-88 (PSG)"),
 #endif
-	_T("PC-88 Beep"), 
+	_T("PC-88 (Beep)"), 
 #endif
 	_T("Noise (FDD)"),
 };
