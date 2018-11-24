@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         October 28, 2018
+                                         November 24, 2018
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20181028
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20181124
 
    追加情報:
    
@@ -158,73 +158,42 @@ Changes:
 
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
 
-* SNAPSHOT October 28, 2018
-  * Upstream 2018-10-14 .
-  * Update state framework to upstream, excepts scrntype_t.
-  * [VM] Use namespace {VMNAME} to separate around VMs.
-  * [STATE/FILEIO] Change StateValue(scrntype_t&) to StateValueScrnType_t(&) due to compiler not detect differ of scrntipe_t and (uint32_t | uint16_t);
-  * [OSD/Qt] Remove some APIs.
-  * [GUI/Qt] DIALOG/ABOUT:Fix not displaying version of libOSD.
-  * [GENERAL] Update gitignore.
-  * [MISC/TOOL] Add function extraction script.
-  * [COMMON/FILEIO] common.h : Fix pair16_t and pair64_t to fileio.cpp .
-  * [COMMON/FILEIO] Re-Add FILEIO::Fflush().
-  * Built with 5cdfe7e27393edaecd445ac9b315d837dd697654 (or later).
+* SNAPSHOT November 24, 2018
+  * Upstream 2018-11-23 .
+  * [DOC] Add how to running OpenGL ES with Wine (not native Windows).See Doc/Tips_Wine.en.txt.
+  * [General] Fix FTBFS with LLVM CLANG.
+  * [BUILD/IA32] Build even don't use MMX, SSE and AVX.
+  * [COMMON] Define some SIMD related types to common.h.Please re-define some types (__v4hi, __v8hi and __v16hi) with MSVC.
+  * [COMMON] Add VRAM render common routine.This needs to initialize bit_plane_table before use.
+  * [COMMON] Define decl.of alignment.Wish to fix FTBFS with Microsoft C++.
+  * [VM/SCSI_CDROM] Implement *correctness* CUE parser.Mostly works fine, but lip-syncing with CDDA still not correct.
+  * [VM/MB61VH010][FM77AV] More accurate busy flag implement.Don't accept drawing line if before drawing line still not end.This saves host CPU usage.
+  * [VM/X1] VRAM: Apply renderer to TEXT/(P)CG rendering.
+  * [VM/I386] Fix INT xxh with pseudo-bios.
+  * [VM/PCENGINE] Fix around CD-ROM^2 and ADPCM.Most of softwares works.(But,lip-syncing don't well).
+  * [VM/MSM5205] Use toggle switch clock.Reserve of future extend.
+  * [VM/HUC6280] Fix not start debugger.
+  * [VM/SCSI_CDROM] Fix around CDDA.
+  * Built with b4d06ae650417feb326d304770d258b3c5fa3aaa (or later).
 
--- October 28, 2018 03:36:00 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- November 24, 2018 19:27:42 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
 
-10/14/2018
+11/23/2018
 
-[COMMON/FILEIO] improve functions to load/save state file for big-endian
+[VM/I386] improve i386_limit_check to consider data size
 
-[VM/*] improve process_state for big-endian
+[VM/SCSI_DEV] improve REQ timing just after ACK is raised
 
+[PC6001/*] apply patch for timing issues (thanks Mr.Akikawa)
 
-10/13/2018
+[PC8801/PC88] support to change palette for each scan line
 
-[EMU/DEBUGGER] increase breakpoint number from 8 to 16
+[PC9801] support PC-9801-86 sound board for PC-9801RA and PC-98RL
 
-[VM/VM_TEMPLATE] fix issue that virtual machine is not correctly released
-
-
-10/10/2018
-
-[VM/SCSI_DEV] fix ack signal issue when multiple devices are attached
-[VM/SCSI_HOST] support to output cd/io/msg/req signals to other devices
-
-[MZ2800/SASI] support SASI I/F and HDD (thanks Mr.Oh!Ishi)
-
-
-10/7/2018
-
-[COMMON] add pair16_t and pair64_t (thanks Mr.Artane.)
-[COMMON] rename pair_t to pair32_t
-[COMMON] add functions for endians (thanks Mr.Artane.)
-[EMU] fix roman/kana conversion when uppercase alphabet is input (thanks Mr.Artane.)
-[EMU] abolish SUPPORT_VARIABLE_TIMING and USE_TAPE_BUTTON
-[WINMAIN] abolish USE_ALT_F10_KEY
-[WIN32/INPUT] abolish NOTIFY_KEY_DOWN and USE_SHIFT_NUMPAD_KEY
-[WIN32/INPUT] improve key input for shift + numpad keys
-
-[VM/*] introduce VM_TEMPLATE (thanks Mr.Artane.)
-
-
-10/5/2018
-
-[COMMON] combine load_state and save_statet of cur_time_t to process_state
-[COMMON/FIFO] combine load_state and save_statet to process_state
-[COMMON/FILEIO] add functions to load/save state file
-
-[VM/*] combine load_state and save_statet to process_state
-[VM/I386] fix to load/save vtlb state
-[VM/I386] fix to rebuild tables when load state
-
-[JX] support save/load state
-[FM77AV] import Mr.Artane.'s fixes (Release in September 30, 2018)
-
+[PC9801/FMSOUND] fix process_state
 -----
 
 お楽しみあれ!

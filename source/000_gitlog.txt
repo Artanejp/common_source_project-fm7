@@ -1,3 +1,169 @@
+commit b4d06ae650417feb326d304770d258b3c5fa3aaa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 24 19:16:35 2018 +0900
+
+    [VM][PCENGINE] Fix around CD-ROM^2 and ADPCM.Most of softwares works.(But,lip-syncing don't well).
+    [VM][MSM5205] Use toggle switch clock.Reserve of future extend.
+    [VM][HUC6280] Fix not start debugger.
+
+commit 6154a99f89d2ec043dd936ceb7cadf581668e334
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 24 05:04:26 2018 +0900
+
+    [General] Update revision.
+
+commit d09afc4f6dca84760c8cec0baa9f1424305b07d2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 24 04:58:02 2018 +0900
+
+    [GENERAL] Merge Upstream 2018-11-23.
+    [VM][I386] Merge Upstream 2018-11-23.
+    [VM][I386] Debugger: Fix get_debug_regs_info().
+    [VM][I386][FMR50] Fix INT xxh with pseudo-bios.
+
+commit 862f4efcf39a5d98b7c3ac11fb9424a13d5b0db5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Nov 21 17:30:47 2018 +0900
+
+    .
+
+commit a65d02d18c8074b3a2b16d76a16fc64584dab1f8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Nov 21 17:28:48 2018 +0900
+
+    [COMMON] Define decl.of alignment.Wish to fix FTBFS with Microsoft C++.
+
+commit ea1f80de5e756fbd1b8a4a260b6b5e5f169513c5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 20 21:43:54 2018 +0900
+
+    [VM][SCSI_CDROM][PCENGINE][WIP] .
+
+commit 4968506ddcc7995efb04fda764c3c8694ad0073f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 20 05:16:35 2018 +0900
+
+    [VM][SCSI_CDROM] Use std::string instead of C string functions.
+    [VM][SCSI_CDROM] CUE image:Fix correct toc description.
+    [VM][SCSI_CDROM][WIP] Fixing around CDDA.
+
+commit 30f40ef94f8ac1483b7f724858fc8eb24ec7dfa0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 19 22:20:56 2018 +0900
+
+    [VM][FMTOWNS][VRAM][MEMORY][WIP Implementing some routines.WIP,will cause FTBFS.
+
+commit 72a2b302e07e47378d19430861b78386ec151617
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 19 02:46:16 2018 +0900
+
+    [VM][SCSI_CDROM] Fix wrong track definitions.
+
+commit a4da972d7814763e51713c4ceff6ccd90f1be432
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 19 01:07:13 2018 +0900
+
+    [VM][SCSI_CDROM][PCENGINE] Implement *correctness* CUE parser.Some softwares still don't work yet.(i.e. PCE's Dokyusei).
+
+commit 3a8a967c4d9089e08d53a5df8acaa62e752e0774
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 15 01:45:32 2018 +0900
+
+    [DOC] Add how to running OpenGL ES with Wine (not native Windows).
+
+commit 1a9e156197f199d3bbd1c9c17d94754773729abd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 5 21:57:03 2018 +0900
+
+    [VM][X1][VRAM] Apply renderer to TEXT/(P)CG rendering.
+
+commit 36846e467e3c4a1c0a13e421cbf5a122c26070d2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 5 21:56:32 2018 +0900
+
+    [VM][FM7][VRAM] Update render API.
+
+commit 9f622184903eb3a6656f0a906a86ba985a3193ec
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 5 21:55:58 2018 +0900
+
+    [COMMON] Add some renderer to common.[cpp|h].
+
+commit 34ad7196dfc6f15d7822b6e095b40e9d99c53b36
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 5 18:26:56 2018 +0900
+
+    [VM][COMMON] Add common rendering routines to common.[cpp|h].Please read vm/bmjr/memory.cpp and vm/z80tvgame/memory.cpp.
+
+commit 57e0af055e09bf048bd51f47a2e68b121f18a77a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 5 00:51:54 2018 +0900
+
+    [VM][FM7] Don't redraw when write same value to digital palette.
+
+commit 8fd5612d77dc53dd6cd4ae8b0dda6526a0678773
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 5 00:51:22 2018 +0900
+
+    [BUILD][CMAKE] Update version of libCSPemu_utils.
+
+commit 14c71be356eaf861e424d4478b75c4b9eae156cd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 4 21:37:13 2018 +0900
+
+    [VM][FM7][VRAM] Apply before commit to 8 colors rendering of FM-7 series.
+
+commit 4da9039c74584c8e3aeab4a7af7474224f0255d0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 4 21:36:17 2018 +0900
+
+    [COMMON] Add VRAM render common routine.This needs to initialize bit_plane_table before use.
+
+commit 0ce6f2a9ab0c6576836c05c2dcbd53f440e0142f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 4 17:07:35 2018 +0900
+
+    [BUILD][IA32] Build even don't use MMX, SSE and AVX.
+
+commit 0412cb070a790e9677d9ee861344bd8554236852
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 4 17:05:15 2018 +0900
+
+    [VM][FM7][VRAM] Expect to use SIMD even building with LLVM CLANG.
+    [COMMON] Define some SIMD related types to common.h.Please re-define some types (__v4hi, __v8hi and __v16hi) with MSVC.
+
+commit e87933d56cb1b0726e267caad1a8c8bffc70db06
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 3 22:28:11 2018 +0900
+
+    [Build][FM7] Fix FTBFS with LLVM CLANG.
+    [COMMON] Will abondon my_memcpy() due to performance.
+    [VM][FM7][VRAM] TRY: Optimize to SIMD even LLVM CLANG.
+
+commit 3f75efeb58c49cefbff1bacb1315378226b913d1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 3 22:27:45 2018 +0900
+
+    [General] Fix FTBFS with LLVM CLANG.
+
+commit d28a8b5ec1d5489851b88628fafcf17bbfbe1ea0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 1 05:40:46 2018 +0900
+
+    [VM][FMTOWNS][VRAM][WIP] Implementing vram and renderer.
+
+commit 990954bc7387618ffb2b18c65a402b7f3018d84c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 31 04:54:23 2018 +0900
+
+    [VM][MB61VH010][FM77AV] More accurate busy flag implement.Don't accept drawing line if before drawing line still not end.This saves host CPU usage.
+
+commit bdf7013452972a0737a2b7595c61c533c832581d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 28 03:40:40 2018 +0900
+
+    [DOC] Update documents.
+
 commit 5cdfe7e27393edaecd445ac9b315d837dd697654
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Oct 28 03:29:53 2018 +0900

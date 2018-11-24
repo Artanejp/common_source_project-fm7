@@ -1,5 +1,25 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT November 24, 2018
+  * Upstream 2018-11-23 .
+  * [DOC] Add how to running OpenGL ES with Wine (not native Windows).See Doc/Tips_Wine.en.txt.
+  * [General] Fix FTBFS with LLVM CLANG.
+  * [BUILD/IA32] Build even don't use MMX, SSE and AVX.
+  * [COMMON] Define some SIMD related types to common.h.Please re-define some types (__v4hi, __v8hi and __v16hi) with MSVC.
+  * [COMMON] Add VRAM render common routine.This needs to initialize bit_plane_table before use.
+  * [COMMON] Define decl.of alignment.Wish to fix FTBFS with Microsoft C++.
+  * [VM/SCSI_CDROM] Implement *correctness* CUE parser.Mostly works fine, but lip-syncing with CDDA still not correct.
+  * [VM/MB61VH010][FM77AV] More accurate busy flag implement.Don't accept drawing line if before drawing line still not end.This saves host CPU usage.
+  * [VM/X1] VRAM: Apply renderer to TEXT/(P)CG rendering.
+  * [VM/I386] Fix INT xxh with pseudo-bios.
+  * [VM/PCENGINE] Fix around CD-ROM^2 and ADPCM.Most of softwares works.(But,lip-syncing don't well).
+  * [VM/MSM5205] Use toggle switch clock.Reserve of future extend.
+  * [VM/HUC6280] Fix not start debugger.
+  * [VM/SCSI_CDROM] Fix around CDDA.
+  * Built with b4d06ae650417feb326d304770d258b3c5fa3aaa (or later).
+
+-- November 24, 2018 19:27:42 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT October 28, 2018
   * Upstream 2018-10-14 .
   * Update state framework to upstream, excepts scrntype_t.
