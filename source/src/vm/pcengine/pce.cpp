@@ -1998,7 +1998,7 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 			if(!(data & 0x20)) {
 				set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
 				set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, CLEAR_LINE);
-				adpcm_stop();
+				adpcm_stop(false);
 				d_msm->reset_w(1);
 			}
 		}
@@ -2169,7 +2169,7 @@ void PCE::reset_adpcm()
 	adpcm_read_ptr = adpcm_write_ptr = 0;
 	msm_start_addr = msm_end_addr = msm_half_addr = 0;
 	msm_nibble = 0;
-	adpcm_stop();
+	adpcm_stop(false);
 	d_msm->reset_w(1);
 	
 	// stop ADPCM dma
@@ -2204,11 +2204,14 @@ void PCE::adpcm_play()
 	msm_idle = 0;
 }
 
-void PCE::adpcm_stop()
+void PCE::adpcm_stop(bool do_irq)
 {
 	touch_sound();
 	cdrom_regs[0x0c] |= PCE_CD_ADPCM_STOP_FLAG;
 	cdrom_regs[0x0c] &= ~PCE_CD_ADPCM_PLAY_FLAG;
+	if(do_irq) {
+		set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, ASSERT_LINE);
+	}
 	cdrom_regs[0x0d] &= ~0x60;
 	msm_idle = 1;
 }
@@ -2340,6 +2343,8 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 			// bus free
 			set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_READY, CLEAR_LINE);
 			set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_DONE, CLEAR_LINE);
+			d_msm->reset_w(1);
+			adpcm_dma_enabled = false;
 		}
 		break;
 		
@@ -2355,6 +2360,7 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 		// The PCE cd unit actually divides the clock signal supplied to
 		// the MSM5205. Currently we can only use static clocks for the
 		// MSM5205.
+		if((data & mask) == 0) {
 		if(!msm_idle) {
 			uint8_t msm_data = (msm_nibble) ? (adpcm_ram[msm_start_addr & 0xffff] & 0x0f) : ((adpcm_ram[msm_start_addr & 0xffff] & 0xf0) >> 4);
 			d_msm->data_w(msm_data);
@@ -2366,7 +2372,7 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 					// finish streaming when all samples are played
 					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
 					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, ASSERT_LINE);
-					adpcm_stop();
+					adpcm_stop(true);
 					d_msm->reset_w(1);
 				} else if((msm_start_addr & 0xffff) == msm_half_addr) {
 					// reached to half address
@@ -2382,7 +2388,7 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 						// stop playing adpcm
 						set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
 						set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, ASSERT_LINE);
-						adpcm_stop();
+						adpcm_stop(true);
 						d_msm->reset_w(1);
 					}
 				}
@@ -2402,6 +2408,7 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 					}
 				}
 			}
+		}
 		}
 		break;
 	}

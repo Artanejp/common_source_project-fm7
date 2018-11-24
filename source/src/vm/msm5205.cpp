@@ -78,8 +78,8 @@ void MSM5205::reset()
 {
 	/* initialize work */
 	m_data    = 0;
-	m_vclk    = 0;
-	m_reset   = 0;
+	m_vclk    = false;
+	m_reset   = false;
 	m_signal  = 0;
 	m_step    = 0;
 
@@ -134,17 +134,17 @@ void MSM5205::compute_tables()
 }
 
 /* timer callback at VCLK low edge on MSM5205 (at rising edge on MSM6585) */
+// Change: Check edge value via m_vclk, to be half cycle.
 void MSM5205::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_TIMER)
 	{
 		int val;
-		int new_signal;
+		int new_signal = m_signal;
 
 		/* callback user handler and latch next data */
-//		if (!m_vclk_cb.isnull())
-//			m_vclk_cb(1);
-		write_signals(&m_vclk_cb, 0xffffffff);
+		m_vclk = !m_vclk;
+		write_signals(&m_vclk_cb, (m_vclk) ? 0xffffffff : 0x00000000);
 
 		/* reset check at last hiedge of VCLK */
 		if (m_reset)
@@ -152,8 +152,8 @@ void MSM5205::event_callback(int event_id, int err)
 			new_signal = 0;
 			m_step = 0;
 		}
-		else
-		{
+		else {
+			if(m_vclk) return; // If MSM6585 Invert level.
 			/* update signal */
 			/* !! MSM5205 has internal 12bit decoding, signal width is 0 to 8191 !! */
 			val = m_data;
@@ -187,15 +187,15 @@ void MSM5205::vclk_w(int vclk)
 {
 	if (m_prescaler != 0)
 	{
-//		logerror("error: msm5205_vclk_w() called with chip = '%s', but VCLK selected master mode\n", this->device().tag());
+		out_debug_log(_T("ERROR: msm5205_vclk_w() called, but VCLK selected master mode\n"));
 	}
 	else
 	{
-		if (m_vclk != vclk)
+		bool val = (vclk == 0) ? false : true;
+		if (m_vclk != val)
 		{
-			m_vclk = vclk;
-			if (!vclk)
-//				vclk_callback(this, 0);
+			m_vclk = val;
+			if (!val)
 				event_callback(EVENT_TIMER, 0);
 		}
 	}
@@ -208,8 +208,8 @@ void MSM5205::vclk_w(int vclk)
 void MSM5205::reset_w(int reset)
 {
 	touch_sound();
-	m_reset = reset;
-	set_realtime_render(this, (m_reset == 0));
+	m_reset = (reset != 0);
+	set_realtime_render(this, (!m_reset)); // ?? 20181124 K.O
 }
 
 /*
@@ -242,9 +242,7 @@ void MSM5205::playmode_w(int select)
 	if (m_prescaler != prescaler)
 	{
 		touch_sound();
-//		m_stream->update();
 
-		touch_sound();
 		m_prescaler = prescaler;
 
 		/* timer set */
@@ -252,7 +250,7 @@ void MSM5205::playmode_w(int select)
 		{
 //			attotime period = attotime::from_hz(m_mod_clock) * prescaler;
 //			m_timer->adjust(period, 0, period);
-			double period = 1000000.0 / m_mod_clock * prescaler;
+			double period = ((1000000.0 / m_mod_clock) * prescaler) / 2.0;
 			if (m_timer != -1) {
 				cancel_event(this, m_timer);
 			}
@@ -289,7 +287,7 @@ void MSM5205::change_clock_w(int32_t clock)
 
 	if (m_prescaler != 0) {
 		touch_sound();
-		double period = 1000000.0 / m_mod_clock * m_prescaler;
+		double period = ((1000000.0 / m_mod_clock) * m_prescaler) / 2.0;
 		if(m_timer != -1) {
 			cancel_event(this, m_timer);
 		}
@@ -313,7 +311,7 @@ void MSM5205::mix(int32_t* buffer, int cnt)
 	/* if this voice is active */
 	if(m_signal)
 	{
-		int32_t val = apply_volume(m_signal * 16, volume_m);
+		int32_t val = apply_volume((int32_t)(m_signal) * 16, volume_m);
 		int32_t val_l = apply_volume(val, volume_l);
 		int32_t val_r = apply_volume(val, volume_r);
 		
@@ -331,7 +329,7 @@ void MSM5205::set_volume(int ch, int decibel_l, int decibel_r)
 	volume_r = decibel_to_volume(decibel_r);
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool MSM5205::process_state(FILEIO* state_fio, bool loading)
 {

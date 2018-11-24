@@ -102,6 +102,7 @@ int HUC6280::run(int clock)
 	}
 }
 
+
 int HUC6280::run_one_opecode()
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;

@@ -118,7 +118,16 @@ int HUC6280_BASE::run(int clocks)
 int HUC6280_BASE::run_one_opecode()
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
-	int passed_icount = CPU_EXECUTE_CALL(h6280);
+	int passed_icount;
+	if(cpustate->debugger != NULL) {
+		if(cpustate->debugger->now_debugging) {
+			passed_icount = CPU_EXECUTE_CALL(h6280_debug);
+		} else {
+			passed_icount = CPU_EXECUTE_CALL(h6280);
+		}
+	} else {
+		passed_icount = CPU_EXECUTE_CALL(h6280);
+	}
 	return passed_icount;
 }
 

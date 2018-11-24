@@ -217,7 +217,7 @@ private:
 	uint8_t read_adpcm_ram();
 	void adpcm_do_dma();
 	void adpcm_play();
-	void adpcm_stop();
+	void adpcm_stop(bool do_irq);
 	
 	double cdda_volume, adpcm_volume;
 	int event_cdda_fader, event_adpcm_fader;

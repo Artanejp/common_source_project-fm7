@@ -45,8 +45,8 @@ private:
 	int32_t m_mod_clock;          /* clock rate                   */
 	int m_timer;
 	int32_t m_data;               /* next adpcm data              */
-	int32_t m_vclk;               /* vclk signal (external mode)  */
-	int32_t m_reset;              /* reset pin signal             */
+	bool	 m_vclk;               /* vclk signal (external mode)  */
+	bool	 m_reset;              /* reset pin signal             */
 	int32_t m_prescaler;          /* prescaler selector S1 and S2 */
 	int32_t m_bitwidth;           /* bit width selector -3B/4B    */
 	int32_t m_signal;             /* current ADPCM signal         */
