@@ -7,12 +7,14 @@ LDCONFIG=/sbin/ldconfig
 CSP_ARCH="x86_64-linux-gnu"
 MULTIARCH="Yes"
 CSP_PREFIX=/usr/local
+
 CSP_GUILIB=" \
-             libCSPcommon_vm.2.4.0 \
-	     libCSPemu_utils.2.14.1 \
+             libCSPcommon_vm.2.4.1 \
+	     libCSPemu_utils.2.14.2 \
 	     libCSPfmgen.1.4.0 \
 	     libCSPgui.2.15.3 \
 	     libCSPavio.2.9.2 \
+	     libCSPosd.2.14.0 \
 	     "
 
 for i in "$@"; do
