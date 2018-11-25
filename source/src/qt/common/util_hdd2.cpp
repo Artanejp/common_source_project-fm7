@@ -49,7 +49,7 @@ void Ui_MainWindow::_open_hard_disk(int drv, const QString fname)
 	drv = drv & 7;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
 	UPDATE_HISTORY(path_shadow, config.recent_hard_disk_path[drv], listHDDs[drv]);
-	strcpy(config.initial_floppy_disk_dir, 	get_parent_dir((const _TCHAR *)path_shadow));
+	strncpy(config.initial_hard_disk_dir, 	get_parent_dir((const _TCHAR *)path_shadow), _MAX_PATH - 1);
 	// Update List
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
 	if(emu) {
