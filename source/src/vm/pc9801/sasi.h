@@ -41,6 +41,9 @@ public:
 	SASI(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("SASI I/F"));
+		d_hdd = NULL;
+		d_dma = NULL;
+		d_pic = NULL;
 	}
 	~SASI() {}
 	
@@ -69,6 +72,10 @@ public:
 	void set_context_pic(DEVICE* device)
 	{
 		d_pic = device;
+	}
+	SASI_HDD* get_hdd(int drivenum)
+	{
+		return d_hdd;
 	}
 };
 

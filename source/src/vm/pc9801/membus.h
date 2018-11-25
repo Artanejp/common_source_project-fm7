@@ -81,6 +81,7 @@ private:
 	uint8_t sasi_bios_ram[0x1000];
 	bool sasi_bios_selected;
 	bool sasi_bios_ram_selected;
+	bool sasi_bios_load;
 	void update_sasi_bios();
 #endif
 #if defined(SUPPORT_SCSI_IF)
@@ -136,6 +137,14 @@ public:
 	void set_context_display(DISPLAY* device)
 	{
 		d_display = device;
+	}
+
+	bool is_sasi_bios_load()
+	{
+#if defined(SUPPORT_SASI_IF)
+		return sasi_bios_load;
+#endif
+		return false;
 	}
 };
 

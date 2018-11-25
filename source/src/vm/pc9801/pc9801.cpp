@@ -78,6 +78,7 @@
 #include "mouse.h"
 #if defined(SUPPORT_SASI_IF)
 #include "sasi.h"
+#include "sasi_bios.h"
 #endif
 #if defined(SUPPORT_SCSI_IF)
 #include "scsi.h"
@@ -102,6 +103,7 @@ using PC9801::MEMBUS;
 using PC9801::MOUSE;
 #if defined(SUPPORT_SASI_IF)
 using PC9801::SASI;
+using PC9801::BIOS;
 #endif
 #if defined(SUPPORT_SCSI_IF)
 using PC9801::SCSI;
@@ -312,6 +314,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	mouse = new MOUSE(this, emu);
 #if defined(SUPPORT_SASI_IF)
 	sasi = new SASI(this, emu);
+	sasi_bios = new BIOS(this, emu);
 #endif
 #if defined(SUPPORT_SCSI_IF)
 	scsi = new SCSI(this, emu);
@@ -509,6 +512,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	sasi->set_context_hdd(sasi_hdd);
 	sasi->set_context_dma(dma);
 	sasi->set_context_pic(pic);
+
+	sasi_bios->set_context_sasi(sasi);
+	sasi_bios->set_context_memory(memory);
+	cpu->set_context_bios(sasi_bios);
 #endif
 #if defined(SUPPORT_SCSI_IF)
 	dma->set_context_ch0(scsi);

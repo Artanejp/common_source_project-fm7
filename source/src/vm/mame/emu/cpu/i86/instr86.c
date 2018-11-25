@@ -2417,14 +2417,33 @@ static void PREFIX86(_int3)(i8086_state *cpustate)    /* Opcode 0xcc */
 	PREFIX(_interrupt)(cpustate, 3);
 }
 
+#ifdef I80286
+extern void i80286_code_descriptor(i80286_state *cpustate, UINT16 selector, UINT16 offset, int gate);
+#endif
 static void PREFIX86(_int)(i8086_state *cpustate)    /* Opcode 0xcd */
 {
 	unsigned int_num = FETCH;
 	ICOUNT -= timing.int_imm;
 
 #ifdef I86_PSEUDO_BIOS
+	cpustate->regs.w[8] = 0x0000;
+	cpustate->regs.w[9] = 0x0000;
 	if(cpustate->bios != NULL && cpustate->bios->bios_int_i86(int_num, cpustate->regs.w, cpustate->sregs, &cpustate->ZeroVal, &cpustate->CarryVal)) {
 		ICOUNT -= timing.iret;
+#if 1		
+		if((cpustate->regs.w[8] != 0x0000) || (cpustate->regs.w[9] != 0x0000)) {
+			UINT32 hi = cpustate->regs.w[9];
+			UINT32 lo = cpustate->regs.w[8];
+			UINT32 addr = (hi << 16) | lo;
+#ifdef I80286
+			i80286_code_descriptor(cpustate, cpustate->sregs[1],lo, 1);
+#else
+			cpustate->base[CS] = SegBase(CS);
+			cpustate->pc = (cpustate->base[CS] + addr) & AMASK;
+#endif
+			printf("PC=%04x:%04x\n", cpustate->sregs[CS], cpustate->pc);
+		}
+#endif
 		return;
 	}
 #endif

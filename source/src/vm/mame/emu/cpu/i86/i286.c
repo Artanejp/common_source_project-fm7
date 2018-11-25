@@ -26,10 +26,11 @@
 /* cpu state                                                               */
 /***************************************************************************/
 /* I86 registers */
+/* ADD DUMMY ENTRY 20181126 K.O */
 union i80286basicregs
 {                   /* eight general registers */
-	UINT16 w[8];    /* viewed as 16 bits registers */
-	UINT8  b[16];   /* or as 8 bit registers */
+	UINT16 w[10];    /* viewed as 16 bits registers */
+	UINT8  b[20];   /* or as 8 bit registers */ 
 };
 
 struct i80286_state
@@ -105,11 +106,33 @@ static UINT8 parity_table[256];
 
 static struct i80x86_timing timing;
 
+#ifdef I80286
+extern void i80286_code_descriptor(i80286_state *cpustate, UINT16 selector, UINT16 offset, int gate);
+#endif
 bool i286_call_pseudo_bios(i80286_state *cpustate, uint32_t PC)
 {
 #ifdef I86_PSEUDO_BIOS
 	if(cpustate->bios != NULL) {
-		if(cpustate->bios->bios_call_far_i86(PC & AMASK, cpustate->regs.w, cpustate->sregs, &cpustate->ZeroVal, &cpustate->CarryVal)) return true;
+		cpustate->regs.w[8] = 0x0000;
+		cpustate->regs.w[9] = 0x0000;
+		if(cpustate->bios->bios_call_far_i86(PC & AMASK, cpustate->regs.w, cpustate->sregs, &cpustate->ZeroVal, &cpustate->CarryVal)) {
+#if 0
+		   
+			if((cpustate->regs.w[8] != 0x0000) || (cpustate->regs.w[9] != 0x0000)) {
+				UINT32 hi = cpustate->regs.w[9];
+				UINT32 lo = cpustate->regs.w[8];
+				UINT32 addr = (hi << 16) | lo;
+#ifdef I80286
+				i80286_code_descriptor(cpustate, cpustate->sregs[1],lo, 1);
+#else
+				cpustate->base[1] = (cpustate->sregs[1] << 4);
+				cpustate->pc = (cpustate->base[1] + addr) & AMASK;
+#endif
+			}
+#endif
+			return true;
+			
+		}
 	}
 #endif
 	return false;

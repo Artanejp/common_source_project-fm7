@@ -5,9 +5,10 @@
 
 #ifdef I386_PSEUDO_BIOS
 #define BIOS_INT(num) if(cpustate->bios != NULL) { \
-	uint16_t regs[8], sregs[4]; \
+	uint16_t regs[10], sregs[4]; \
 	regs[0] = REG16(AX); regs[1] = REG16(CX); regs[2] = REG16(DX); regs[3] = REG16(BX); \
 	regs[4] = REG16(SP); regs[5] = REG16(BP); regs[6] = REG16(SI); regs[7] = REG16(DI); \
+	regs[8] = 0x0000; regs[9] = 0x0000; \
 	sregs[0] = cpustate->sreg[ES].selector; sregs[1] = cpustate->sreg[CS].selector; \
 	sregs[2] = cpustate->sreg[SS].selector; sregs[3] = cpustate->sreg[DS].selector; \
 	int32_t ZeroFlag = cpustate->ZF, CarryFlag = cpustate->CF; \
@@ -16,14 +17,21 @@
 		REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; \
 		cpustate->ZF = (UINT8)ZeroFlag; cpustate->CF = (UINT8)CarryFlag; \
 		CYCLES(CYCLES_IRET); \
+		if((regs[8] != 0x0000) || (regs[9] != 0x0000)) {	\
+			uint32_t hi = regs[9]; \
+			uint32_t lo = regs[8]; \
+			uint32_t addr = (hi << 16) | lo; \
+			cpustate->eip = addr; \
+		}								 \
 		return; \
 	} \
 }
 
 #define BIOS_CALL_FAR(address) if(cpustate->bios != NULL) {	\
-	uint16_t regs[8], sregs[4]; \
+	uint16_t regs[10], sregs[4]; \
 	regs[0] = REG16(AX); regs[1] = REG16(CX); regs[2] = REG16(DX); regs[3] = REG16(BX); \
 	regs[4] = REG16(SP); regs[5] = REG16(BP); regs[6] = REG16(SI); regs[7] = REG16(DI); \
+	regs[8] = 0x0000; regs[9] = 0x0000; \
 	sregs[0] = cpustate->sreg[ES].selector; sregs[1] = cpustate->sreg[CS].selector; \
 	sregs[2] = cpustate->sreg[SS].selector; sregs[3] = cpustate->sreg[DS].selector; \
 	int32_t ZeroFlag = cpustate->ZF, CarryFlag = cpustate->CF; \
@@ -32,6 +40,12 @@
 		REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; \
 		cpustate->ZF = (UINT8)ZeroFlag; cpustate->CF = (UINT8)CarryFlag; \
 		CYCLES(CYCLES_RET_INTERSEG);							\
+		if((regs[8] != 0x0000) || (regs[9] != 0x0000)) {	\
+			uint32_t hi = regs[9]; \
+			uint32_t lo = regs[8]; \
+			uint32_t addr = (hi << 16) | lo; \
+			cpustate->eip = addr; \
+		}								 \
 		return;															\
 	} \
 }

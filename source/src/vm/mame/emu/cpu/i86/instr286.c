@@ -320,7 +320,7 @@ static void i80286_switch_task(i80286_state *cpustate, UINT16 ntask, int type)
 	i80286_data_descriptor_full(cpustate, DS, ntss[TSS_DS], RPL(ntss[TSS_CS]), TRAP(INVALID_TSS,IDXTBL(ntss[TSS_DS])), 0, 0);
 }
 
-static void i80286_code_descriptor(i80286_state *cpustate, UINT16 selector, UINT16 offset, int gate)
+void i80286_code_descriptor(i80286_state *cpustate, UINT16 selector, UINT16 offset, int gate)
 {
 	if (PM) {
 		UINT16 desc[3];

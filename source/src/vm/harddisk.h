@@ -46,14 +46,22 @@ public:
 	bool read_buffer(long position, int length, uint8_t *buffer);
 	bool write_buffer(long position, int length, uint8_t *buffer);
 	
-//	int cylinders;
+	int cylinders;
 	int surfaces;
-//	int sectors;
+	int sectors;
 	int sector_size;
 	int sector_num;
 	int drive_num;
 	bool access;
 	
+	long get_cur_position();
+	int get_sector_size();
+	int get_cylinders();
+	int get_headers();
+	int get_sectors_per_cylinder();
+	int get_sector_num();
+	int get_drive_num();
+		
 	// device name
 	void set_device_name(const _TCHAR* format, ...)
 	{

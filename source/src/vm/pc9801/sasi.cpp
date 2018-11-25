@@ -73,9 +73,9 @@ uint32_t SASI::read_io8(uint32_t addr)
 //		if(ocr & OCR_CHEN) {
 			value = d_host->read_dma_io8(addr);
 //		}
-		#ifdef _SCSI_DEBUG_LOG
+//		#ifdef _SCSI_DEBUG_LOG
 			this->out_debug_log(_T("[SASI] in  %04X %02X\n"), addr, value);
-		#endif
+//		#endif
 		return value;
 		
 	case 0x0082:
@@ -131,9 +131,9 @@ uint32_t SASI::read_io8(uint32_t addr)
 				value |= dt << (i == 0 ? 3 : 0);
 				value |= ct << (i == 0 ? 7 : 6);
 			}
-			#ifdef _SCSI_DEBUG_LOG
+//			#ifdef _SCSI_DEBUG_LOG
 				this->out_debug_log(_T("[SASI] in  %04X %02X (NRDSW=0)\n"), addr, value);
-			#endif
+//			#endif
 		}
 		return value;
 	}

@@ -245,6 +245,11 @@
 #endif
 #if defined(SUPPORT_SASI_IF) || defined(SUPPORT_SCSI_IF) || defined(SUPPORT_IDE_IF)
 #define USE_HARD_DISK		2
+	#if defined(HAS_I286)
+	#define I86_PSEUDO_BIOS
+	#else
+	#define I386_PSEUDO_BIOS
+	#endif
 #endif
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
 #define USE_TAPE		1
@@ -385,6 +390,7 @@ namespace PC9801 {
 	class MOUSE;
 #if defined(SUPPORT_SASI_IF)
 	class SASI;
+	class BIOS;
 #endif
 #if defined(SUPPORT_SCSI_IF)
 	class SCSI;
@@ -492,6 +498,7 @@ protected:
 	PC9801::MOUSE* mouse;
 #if defined(SUPPORT_SASI_IF)
 	PC9801::SASI* sasi;
+	PC9801::BIOS *sasi_bios;
 #endif
 #if defined(SUPPORT_SCSI_IF)
 	PC9801::SCSI* scsi;
