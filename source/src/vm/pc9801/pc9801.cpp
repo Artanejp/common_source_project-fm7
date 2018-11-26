@@ -515,7 +515,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	sasi_bios->set_context_sasi(sasi);
 	sasi_bios->set_context_memory(memory);
+	sasi_bios->set_context_cpu(cpu);
+	sasi_bios->set_context_pic(pic);
 	cpu->set_context_bios(sasi_bios);
+   
 #endif
 #if defined(SUPPORT_SCSI_IF)
 	dma->set_context_ch0(scsi);

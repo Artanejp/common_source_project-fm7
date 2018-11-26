@@ -19,6 +19,22 @@
 #include "../scsi_host.h"
 #include "../scsi_hdd.h"
 
+#include "../i8259.h"
+
+#if defined(HAS_I386) || defined(HAS_I486)
+#include "../i386.h"
+#elif defined(HAS_I86) || defined(HAS_V30)
+#include "../i286.h"
+#else
+#include "../i286.h"
+#endif
+
+#define EVENT_HALT_HOST 97
+#define EVENT_IRQ_HOST  98
+#define EVENT_IRQ_OFF   99
+
+//#define _PSEUDO_BIOS_DEBUG
+
 namespace PC9801 {
 
 // regs
@@ -68,12 +84,16 @@ namespace PC9801 {
 
 void BIOS::initialize()
 {
-	
+	event_halt = -1;
+	event_irq = -1;
 }
 	
 void BIOS::reset()
 {
-	
+	if(event_halt >= 0) cancel_event(this, event_halt);
+	event_halt = -1;
+	if(event_irq >= 0) cancel_event(this, event_irq);
+	event_irq = -1;
 }
 
 bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
@@ -95,7 +115,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 {
 	uint8_t *regs8 = (uint8_t *)regs;
 	bool need_retcall = false;
-#ifdef _DEBUG_LOG
+#ifdef _PSEUDO_BIOS_DEBUG
 	this->out_debug_log(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
 #endif
 	// ToDo: Check ITF BANK for EPSON :
@@ -103,16 +123,19 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 	if(d_mem->is_sasi_bios_load()) return false;
 	// Check ADDRESS: This pseudo-bios acts only $fffc4 ($1B) : 
 	if(PC != 0xfffc4) return false; // INT 1Bh
-#if 0		
-		{
+#if 1		
+	/*	if((((AL & 0xf0) != 0x00) && ((AL & 0xf0) != 0x80))) */	{
 			uint8_t seg = d_mem->read_data8(0x004b0 + (AL >> 4));
 			uint32_t sp, ss;
-			if (seg != 0) {
+			if ((seg != 0) && ((seg >= 0xd8) && (seg < 0xd7))) {
+#ifdef _PSEUDO_BIOS_DEBUG
 				this->out_debug_log(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
+#endif
 				sp = (uint32_t)SP;
 				ss = (uint32_t)SS;
 				ss = ss << 4;
 				ss = ss & 0xfffff0;
+#ifdef _PSEUDO_BIOS_DEBUG
 				out_debug_log("call by %.4x:%.4x",
 							   d_mem->read_data16(ss + sp + 2),
 							   d_mem->read_data16(ss + sp + 0));
@@ -120,7 +143,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				out_debug_log("From AX=%04x BX=%04x %02x:%02x:%02x:%02x ES=%04x BP=%04x",
 							AX, BX, CL, DH, DL, CH,
 							ES, BP);
-
+#endif
 				d_mem->write_data16(ss + sp - 2, DS);
 				d_mem->write_data16(ss + sp - 4, SI);
 				d_mem->write_data16(ss + sp - 6, DI);
@@ -140,14 +163,21 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				CS = ((uint16_t)seg) << 8;
 				IP_L = 0x0018;
 				IP_H = 0x0000;
+#ifdef _PSEUDO_BIOS_DEBUG
 				out_debug_log("To AX=%04x BX=%04x %02x:%02x:%02x:%02x ES=%04x BP=%04x",
 							AX, BX, CL, DH, DL, CH,
 							ES, BP);
-				return false;
+#endif
+				return true;
 			}
 		}
 #endif
 	// FUNC $1B: If FLOPPY, return (MAY USE STANDARD IPL).
+	uint16_t backup_ax = AX;
+	uint16_t backup_bx = BX;
+	uint16_t backup_cx = CX;
+	uint16_t backup_dx = DX;
+	
 	switch(AL & 0xf0) {
 		case 0xc0:
 			// ToDo: SCSI BIOS
@@ -155,14 +185,14 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			break;
 		case 0x00:
 		case 0x80:
-#if 0
-			out_debug_log(_T("SASI BIOS CALL\n  AH=%02x AL=%02x"), AH, AL);
-#endif
 			if(sasi_bios(PC, regs, sregs, ZeroFlag, CarryFlag)) {
 				need_retcall = true;
+#ifdef _PSEUDO_BIOS_DEBUG
+				out_debug_log(_T("SASI BIOS CALL SUCCESS:\n From AX=%04x BX=%04x CX=%04x DX=%04x\n ToAX=%04x BX=%04x CX=%04x DX=%04x\n"), backup_ax, backup_bx, backup_cx, backup_dx, AX, BX, CX, DX);
+#endif
 			} else {
-#if 0
-				out_debug_log(_T("SASI BIOS CALL\n ERROR AH = %02x"), AH);
+#ifdef _PSEUDO_BIOS_DEBUG
+				out_debug_log(_T("SASI BIOS CALL FAILED:\n From AX=%04x BX=%04x CX=%04x DX=%04x\n ToAX=%04x BX=%04x CX=%04x DX=%04x\n"), backup_ax, backup_bx, backup_cx, backup_dx, AX, BX, CX, DX);
 #endif
 				need_retcall = true;
 			}
@@ -273,10 +303,12 @@ void BIOS::sasi_command_retract(uint32_t PC, uint16_t regs[], uint16_t sregs[], 
 	uint8_t *regs8 = (uint8_t *)regs;
 	// Assume success
 	int drive = sxsi_get_drive(AL);
+	//halt_host_cpu(20.0 * 1000.0); // Seek time
 	if (drive < 0) {
 		AH = 0x60;
 		*CarryFlag = 1;
 	}
+	interrupt_to_host(15.0 * 1000.0);
 	AH = 0x00;
 	*CarryFlag = 0;
 	return;
@@ -324,9 +356,18 @@ long BIOS::sasi_get_position(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					return npos;
 				} else {
 					long npos;
+					long apos;
 					npos = (DL << 16) | CX;
+					//apos = hdd->get_cur_position();
+					//if(npos >= 0x100000) {
+					//	npos = -npos;
+					//}
+					//npos = npos + apos;
 					npos = npos & 0x1fffff;
-					if(npos >= (long)hdd->get_sector_num()) return -1;
+					if(npos < 0) npos = 0;
+					if(npos >= (long)hdd->get_sector_num()) {
+						return -1;
+					}
 					return npos;
 				}
 			}
@@ -365,7 +406,7 @@ void BIOS::sasi_command_initialize(uint32_t PC, uint16_t regs[], uint16_t sregs[
 	d_mem->write_data8(0x055c + 0, _d.b.l);
 	d_mem->write_data8(0x055c + 1, _d.b.h);
 	d_mem->write_io8(0x043f, 0xc0); // Disable to write ram
-#if 0
+#ifdef _PSEUDO_BIOS_DEBUG
 	out_debug_log(_T("SASI CMD: INITIALIZE STAT=%04x"), disk_equip);
 #endif
 	AH = 0x00;
@@ -389,15 +430,16 @@ void BIOS::sasi_command_sense(uint32_t PC, uint16_t regs[], uint16_t sregs[], in
 		// ToDo: Multi HDD.
 		uint8_t d = AL & 0x0f;
 		uint8_t cmd = AH;
-		if(d == 0x0f) {
-			// HOST
-			AH = 0x07;
-			*CarryFlag = 0;
-#if 0
+//		if(d == 0x0f) {
+//			// HOST
+//			AH = 0x07;
+//			*CarryFlag = 0;
+#ifdef _PSEUDO_BIOS_DEBUG
 			out_debug_log(_T("SASI CMD: SENSE DL=%02x DH=%02x CX=%04x BX=%04x\n"), DL, DH, CX, BX);
 #endif
-			return;
-		} else {
+//			return;
+//		} else
+		{
 			SASI_HDD*  d_hdd = d_sasi->get_hdd(d);
 #if 0 // Still not support wait state
 			if(d_hdd != NULL) {
@@ -431,14 +473,14 @@ void BIOS::sasi_command_sense(uint32_t PC, uint16_t regs[], uint16_t sregs[], in
 							CX = (uint16_t)cylinders; // Cylinders
 							BX = (uint16_t)(sectsize); // logical block
 						}
-#if 0
+#ifdef _PSEUDO_BIOS_DEBUG
 						out_debug_log(_T("SASI CMD: CMD#=%02x SENSE DL=%02x DH=%02x CX=%04x BX=%04x\n"), cmd, DL, DH, CX, BX);
 #endif
 						return;
 					}
 				}
 			}
-#if 0
+#ifdef _PSEUDO_BIOS_DEBUG
 			out_debug_log(_T("SASI CMD: SENSE DL=%02x DH=%02x CX=%04x BX=%04x\n"), DL, DH, CX, BX);
 #endif
 			AH = 0x60; // Not Ready
@@ -459,7 +501,7 @@ void BIOS::sasi_command_read(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 	if(drive < 0) { // ToDo: Multi SASI
 		AH = 0x80;
 		*CarryFlag = 1;
-#if 0
+#ifdef _PSEUDO_BIOS_DEBUG
 		out_debug_log(_T("SASI CMD: READ AH=%02x\n"), AH);
 #endif
 		return;
@@ -469,7 +511,7 @@ void BIOS::sasi_command_read(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			// Not Connected
 			AH = 0x80;
 			*CarryFlag = 1;
-#if 0
+#ifdef _PSEUDO_BIOS_DEBUG
 			out_debug_log(_T("SASI CMD: READ AH=%02x\n"), AH);
 #endif
 			return;
@@ -478,7 +520,7 @@ void BIOS::sasi_command_read(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			HARDDISK* harddisk = d_hdd->get_disk_handler(drive);
 			const uint32_t sectors = d_hdd->max_logical_block_addr();
 			const int block_size = (int)(d_hdd->logical_block_size());
-#if 0
+#ifdef _PSEUDO_BIOS_DEBUG
 			out_debug_log(_T("SASI CMD: READ: DRIVE=%d POS=%d DL=%02x DH=%02x CX=%04x BX=%04x\n"), drive, npos, DL, DH, CX, BX);
 #endif
 			if(npos < 0) {
@@ -554,7 +596,7 @@ void BIOS::sasi_command_write(uint32_t PC, uint16_t regs[], uint16_t sregs[], in
 			HARDDISK* harddisk = d_hdd->get_disk_handler(drive);
 			const uint32_t sectors = d_hdd->max_logical_block_addr();
 			const int block_size = (int)(d_hdd->logical_block_size());
-#if 0
+#ifdef _PSEUDO_BIOS_DEBUG
 			out_debug_log(_T("SASI CMD: WRITE DL=%02x DH=%02x CX=%04x BX=%04x\n"), DL, DH, CX, BX);
 #endif			
 			if(npos < 0) {
@@ -627,9 +669,9 @@ void BIOS::sasi_command_format(uint32_t PC, uint16_t regs[], uint16_t sregs[], i
 		return;
 	} else {
 		HARDDISK* harddisk = d_hdd->get_disk_handler(drive);
-#if 1
+//#ifdef _PSEUDO_BIOS_DEBUG
 		out_debug_log(_T("SASI CMD: FORMAT DL=%02x DH=%02x CX=%04x BX=%04x\n"), DL, DH, CX, BX);
-#endif
+//#endif
 		if(harddisk == NULL) {
 			AH = 0x60;
 			*CarryFlag = 1;
@@ -691,5 +733,59 @@ void BIOS::sasi_command_format(uint32_t PC, uint16_t regs[], uint16_t sregs[], i
 	return;
 }
 
+void BIOS::event_callback(int event_id, int err)
+{
+	switch(event_id) {
+	case EVENT_HALT_HOST:
+		d_cpu->write_signal(SIG_CPU_BUSREQ, 0x00000000, 0xffffffff);
+		event_halt = -1;
+		break;
+	case EVENT_IRQ_HOST:
+		d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR1, 0xffffffff, 0xffffffff);
+		//register_event(this, EVENT_IRQ_HOST, 1.0, false, &event_irq);
+		event_irq = -1;
+		break;
+	case EVENT_IRQ_OFF:
+		d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR1, 0x00000000, 0xffffffff);
+		event_irq = -1;
+		break;
+	default:
+		break;
+	}
+}
+
+void BIOS::halt_host_cpu(double usec)
+{
+	if(event_halt >= 0) {
+		cancel_event(this, event_halt);
+	}
+	d_cpu->write_signal(SIG_CPU_BUSREQ, 0xffffffff, 0xffffffff);
+	register_event(this, EVENT_HALT_HOST, usec, false, &event_halt);
+}
+
+void BIOS::interrupt_to_host(double usec)
+{
+	if(event_irq >= 0) {
+		cancel_event(this, event_irq);
+	}
+	register_event(this, EVENT_IRQ_HOST, usec, false, &event_irq);
+}
+
+#define STATE_VERSION	1
+
+bool BIOS::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+
+	state_fio->StateValue(event_halt);
+	state_fio->StateValue(event_irq);
+
+	return true;
+}
 
 }
