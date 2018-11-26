@@ -2441,7 +2441,7 @@ static void PREFIX86(_int)(i8086_state *cpustate)    /* Opcode 0xcd */
 			cpustate->base[CS] = SegBase(CS);
 			cpustate->pc = (cpustate->base[CS] + addr) & AMASK;
 #endif
-			printf("PC=%04x:%04x\n", cpustate->sregs[CS], cpustate->pc);
+			//printf("PC=%04x:%04x\n", cpustate->sregs[CS], cpustate->pc);
 		}
 #endif
 		return;
