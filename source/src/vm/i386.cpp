@@ -16,6 +16,11 @@
 /* ----------------------------------------------------------------------------
 	MAME i386
 ---------------------------------------------------------------------------- */
+// Note:
+// API of bios_int_i86() / bios_caii_i86() has changed.
+// regs[8] regs[9] are added.These entries set redirect-address by PSEUDO-BIOS.
+// If need, will add more entries for cycle#.
+// - 20181126 K.O
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
 #pragma warning( disable : 4018 )
