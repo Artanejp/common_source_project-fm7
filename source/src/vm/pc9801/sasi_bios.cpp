@@ -518,8 +518,8 @@ void BIOS::sasi_command_read(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 		} else {
 			long npos = sasi_get_position(PC, regs, sregs, ZeroFlag, CarryFlag);
 			HARDDISK* harddisk = d_hdd->get_disk_handler(drive);
-			const uint32_t sectors = d_hdd->max_logical_block_addr();
-			const int block_size = (int)(d_hdd->logical_block_size());
+			const uint32_t sectors = (uint32_t)harddisk->get_sector_num();
+			const int block_size = (int)harddisk->get_sector_size();
 #ifdef _PSEUDO_BIOS_DEBUG
 			out_debug_log(_T("SASI CMD: READ: DRIVE=%d POS=%d DL=%02x DH=%02x CX=%04x BX=%04x\n"), drive, npos, DL, DH, CX, BX);
 #endif
@@ -594,8 +594,8 @@ void BIOS::sasi_command_write(uint32_t PC, uint16_t regs[], uint16_t sregs[], in
 		} else {
 			long npos = sasi_get_position(PC, regs, sregs, ZeroFlag, CarryFlag);
 			HARDDISK* harddisk = d_hdd->get_disk_handler(drive);
-			const uint32_t sectors = d_hdd->max_logical_block_addr();
-			const int block_size = (int)(d_hdd->logical_block_size());
+			const uint32_t sectors = (uint32_t)harddisk->get_sector_num();
+			const int block_size = (int)harddisk->get_sector_size();
 #ifdef _PSEUDO_BIOS_DEBUG
 			out_debug_log(_T("SASI CMD: WRITE DL=%02x DH=%02x CX=%04x BX=%04x\n"), DL, DH, CX, BX);
 #endif			
@@ -688,10 +688,9 @@ void BIOS::sasi_command_format(uint32_t PC, uint16_t regs[], uint16_t sregs[], i
 			return;
 		} else {
 			long npos = sasi_get_position(PC, regs, sregs, ZeroFlag, CarryFlag);
-			HARDDISK* harddisk = d_hdd->get_disk_handler(drive);
-			const uint32_t sectors = d_hdd->max_logical_block_addr();
-			const int block_size = (int)(d_hdd->logical_block_size());
-			
+			const uint32_t sectors = (uint32_t)harddisk->get_sector_num();
+			const int block_size = (int)harddisk->get_sector_size();
+
 			if(block_size > 1024) {
 				AH = 0xd0;
 				*CarryFlag = 1;
