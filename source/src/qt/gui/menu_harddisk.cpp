@@ -33,6 +33,7 @@ void Menu_HDDClass::connect_menu_device_sub(void)
    
    	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_hard_disk(int, QString)));
 	connect(this, SIGNAL(sig_eject_media(int)), p_wid, SLOT(eject_hard_disk(int)));
+	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_hard_disk(int, int)));
 }
 
 void Menu_HDDClass::retranslate_pulldown_menu_device_sub(void)

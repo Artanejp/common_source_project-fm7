@@ -55,6 +55,7 @@ EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, USING_FLAGS *p, QObj
 	
 	connect(this, SIGNAL(sig_set_d88_num(int, int)), MainWindow, SLOT(set_d88_slot(int, int)));
 	connect(this, SIGNAL(sig_set_b77_num(int, int)), MainWindow, SLOT(set_b77_slot(int, int)));
+
 }
 
 EmuThreadClass::~EmuThreadClass()
@@ -672,3 +673,76 @@ bool EmuThreadClass::get_power_state(void)
 {
 	return MainWindow->GetPowerState();
 }
+
+int EmuThreadClass::get_d88_file_cur_bank(int drive)
+{
+#ifdef USE_FLOPPY_DISK
+	if(drive > USE_FLOPPY_DISK) {
+		QMutexLocker _locker(&uiMutex);
+		return p_emu->d88_file[drive].cur_bank;
+	}
+#endif
+	return -1;
+}
+
+int EmuThreadClass::get_d88_file_bank_num(int drive)
+{
+#ifdef USE_FLOPPY_DISK
+	if(drive > USE_FLOPPY_DISK) {
+		QMutexLocker _locker(&uiMutex);
+		return p_emu->d88_file[drive].bank_num;
+	}
+#endif
+	return -1;
+}
+
+
+QString EmuThreadClass::get_d88_file_disk_name(int drive, int banknum)
+{
+#ifdef USE_FLOPPY_DISK
+	if(drive < 0) return QString::fromUtf8("");
+	if((drive < USE_FLOPPY_DISK) && (banknum < get_d88_file_cur_bank(drive))) {
+		QMutexLocker _locker(&uiMutex);
+		QString _n = QString::fromLocal8Bit((const char *)(&(p_emu->d88_file[drive].disk_name[banknum][0])));
+		return _n;
+	}
+#endif
+	return QString::fromUtf8("");
+}
+
+
+bool EmuThreadClass::is_floppy_disk_protected(int drive)
+{
+
+#ifdef USE_FLOPPY_DISK
+	QMutexLocker _locker(&uiMutex);
+
+	bool _b = p_emu->is_floppy_disk_protected(drive);
+	return _b;
+#endif
+	return false;
+}
+
+void EmuThreadClass::set_floppy_disk_protected(int drive, bool flag)
+{
+#ifdef USE_FLOPPY_DISK
+	QMutexLocker _locker(&uiMutex);
+
+	p_emu->is_floppy_disk_protected(drive, flag);
+#endif
+}
+
+QString EmuThreadClass::get_d88_file_path(int drive)
+{
+#ifdef USE_FLOPPY_DISK
+	if(drive < 0) return QString::fromUtf8("");
+	if(drive < USE_FLOPPY_DISK) {
+		QMutexLocker _locker(&uiMutex);
+		QString _n = QString::fromLocal8Bit((const char *)(&(p_emu->d88_file[drive].path)));
+		return _n;
+	}
+#endif
+	return QString::fromUtf8("");
+}
+
+

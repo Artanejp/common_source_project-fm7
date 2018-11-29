@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.15.3)
+set(THIS_LIB_VERSION 2.16.0)
 #include(cotire)
 #include(PrecompiledHeader)
 
@@ -116,6 +116,8 @@ set(s_qt_gui_srcs
 	  qt_debugger_tmpl.cpp
 
 	  menu_flags_tmpl.cpp
+	  ../common/util_fd2.cpp
+	  ../common/util_hdd2.cpp
 	  ../common/util_bubble2.cpp
 #	  qt_main.cpp
 )

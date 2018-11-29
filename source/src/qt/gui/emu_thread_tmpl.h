@@ -187,6 +187,14 @@ public:
 	void resize_screen(int sw, int sh, int stw, int sth);
 	void sample_access_drv(void);
 	virtual bool now_debugging() { return false; };
+
+	virtual int get_d88_file_cur_bank(int drive);
+	virtual int get_d88_file_bank_num(int drive);
+	virtual QString get_d88_file_disk_name(int drive, int banknum);
+	virtual bool is_floppy_disk_protected(int drive);
+	virtual void set_floppy_disk_protected(int drive, bool flag);
+	virtual QString get_d88_file_path(int drive);
+
 public slots:
 	void doExit(void);
 	

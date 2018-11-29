@@ -54,17 +54,17 @@ public:
 	QString get_build_date();
 
 public slots:
-#if defined(USE_FLOPPY_DISK)
-	void _open_disk(int drv, const QString fname);
-	void do_update_recent_disk(int);
-	int set_d88_slot(int drive, int num);
-	int set_recent_disk(int, int);
-#endif
-#if defined(USE_HARD_DISK)
-	void _open_hard_disk(int drv, const QString fname);
-	void do_update_recent_hard_disk(int);
-	int set_recent_hard_disk(int, int);
-#endif
+//#if defined(USE_FLOPPY_DISK)
+//	void _open_disk(int drv, const QString fname);
+//	void do_update_recent_disk(int);
+//	int set_d88_slot(int drive, int num);
+//	int set_recent_disk(int, int);
+//#endif
+//#if defined(USE_HARD_DISK)
+//	void _open_hard_disk(int drv, const QString fname);
+//	void do_update_recent_hard_disk(int);
+//	int set_recent_hard_disk(int, int);
+//#endif
 #if defined(USE_DEBUGGER)
 	void OnOpenDebugger(int n);
 	void OnCloseDebugger(void);

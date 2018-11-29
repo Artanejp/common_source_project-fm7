@@ -68,24 +68,6 @@ int Ui_MainWindowBase::write_protect_fd(int drv, bool flag)
 	return 0;
 }
   
-int Ui_MainWindowBase::set_d88_slot(int drive, int num)
-{
-	return 0;
-}
-
-void Ui_MainWindowBase::do_update_recent_disk(int drv)
-{
-}
-
-
-int Ui_MainWindowBase::set_recent_disk(int drv, int num) 
-{
-	return 0;
-}
-
-void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
-{
-}
 
 void Ui_MainWindowBase::eject_fd(int drv) 
 {

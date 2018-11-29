@@ -14,6 +14,8 @@
 #include <QQueue>
 #include <QString>
 #include <QElapsedTimer>
+#include <QMutexLocker>
+#include <QMutex>
 
 #include "common.h"
 #include "commonclasses.h"
@@ -42,6 +44,8 @@ QT_BEGIN_NAMESPACE
 class EmuThreadClass : public EmuThreadClassBase {
 	Q_OBJECT
 protected:
+
+	QMutex uiMutex;
 	char dbg_prev_command[MAX_COMMAND_LEN];
   
 	void button_pressed_mouse_sub(Qt::MouseButton button);
@@ -58,14 +62,22 @@ protected:
 	void dec_message_count(void);
 	const _TCHAR *get_device_name(void);
 	bool get_power_state(void);
-
+	
 public:
 	EmuThreadClass(META_MainWindow *rootWindow, USING_FLAGS *p, QObject *parent = 0);
 	~EmuThreadClass();
 	void run() { doWork("");}
 	bool now_debugging();
 	int get_interval(void);
+						  
+	int get_d88_file_cur_bank(int drive);
+	int get_d88_file_bank_num(int drive);
+	QString get_d88_file_disk_name(int drive, int banknum);
+	bool is_floppy_disk_protected(int drive);
+	void set_floppy_disk_protected(int drive, bool flag);
+	QString get_d88_file_path(int drive);
 
+						  
 public slots:
 	void doWork(const QString &param);
 	

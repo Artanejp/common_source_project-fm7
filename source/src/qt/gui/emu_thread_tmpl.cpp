@@ -429,3 +429,34 @@ void EmuThreadClassBase::print_framerate(int frames)
 			calc_message = true;
 		}
 }
+
+int EmuThreadClassBase::get_d88_file_cur_bank(int drive)
+{
+	return 0;
+}
+
+int EmuThreadClassBase::get_d88_file_bank_num(int drive)
+{
+	return 0;
+}
+
+
+QString EmuThreadClassBase::get_d88_file_disk_name(int drive, int banknum)
+{
+	return QString::fromUtf8("");
+}
+
+
+bool EmuThreadClassBase::is_floppy_disk_protected(int drive)
+{
+	return false;
+}
+
+void EmuThreadClassBase::set_floppy_disk_protected(int drive, bool flag)
+{
+}
+
+QString EmuThreadClassBase::get_d88_file_path(int drive)
+{
+	return QString::fromUtf8("");
+}

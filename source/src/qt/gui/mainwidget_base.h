@@ -129,7 +129,7 @@ class Menu_CompactDiscClass;
 class Menu_LaserdiscClass;
 class CSP_DockDisks;
 class MOVIE_SAVER;
-class EmuThreadClass;
+class EmuThreadClassBase;
 class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 {
 	Q_OBJECT
@@ -455,7 +455,7 @@ protected:
 	QImage *bitmapImage;
 	QClipboard *ClipBoard;
 	// Constructor
-	EmuThreadClass *hRunEmu;
+	EmuThreadClassBase *hRunEmu;
 	class DrawThreadClass *hDrawEmu;
 	class JoyThreadClass *hRunJoy;
 	class MOVIE_SAVER *hSaveMovieThread;
@@ -598,7 +598,6 @@ public slots:
 	void eject_Qd(int drv);
 
 
-	virtual void _open_disk(int drv, const QString fname);
 	void _open_cart(int drv, const QString fname);
 	void eject_cmt(int drv);
 	void do_change_boot_mode(int mode);
@@ -620,15 +619,8 @@ public slots:
 
 	int write_protect_fd(int drv, bool flag);
 	void eject_fd(int drv);
-	virtual void do_update_recent_disk(int);
-	virtual int set_d88_slot(int drive, int num);
-	virtual int set_recent_disk(int, int);
-
-	virtual void do_update_recent_hard_disk(int);
-	virtual void _open_hard_disk(int drv, const QString fname);
 	void eject_hard_disk(int drv);
-	virtual int set_recent_hard_disk(int, int);
-	// Bubble Casette
+		// Bubble Casette
 	int write_protect_bubble(int drv, bool flag);
 
 	int set_b77_slot(int drive, int num);
@@ -692,6 +684,16 @@ public slots:
 	void do_set_state_log_to_record(bool f);
 	void do_set_state_log_to_console(bool f);
 	void do_set_state_log_to_syslog(bool f);
+
+	// HDD
+	void _open_hard_disk(int drv, const QString fname);
+	void do_update_recent_hard_disk(int);
+	int set_recent_hard_disk(int, int);
+	// FDD
+	void _open_disk(int drv, const QString fname);
+	void do_update_recent_disk(int);
+	int set_d88_slot(int drive, int num);
+	int set_recent_disk(int, int);
 
 signals:
 	int message_changed(QString);

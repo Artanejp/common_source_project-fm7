@@ -21,20 +21,6 @@
 //extern class EMU *emu;
 
 
-void Ui_MainWindowBase::do_update_recent_hard_disk(int drv)
-{
-}
-
-
-int Ui_MainWindowBase::set_recent_hard_disk(int drv, int num) 
-{
-	return 0;
-}
-
-void Ui_MainWindowBase::_open_hard_disk(int drv, const QString fname)
-{
-}
-
 void Ui_MainWindowBase::eject_hard_disk(int drv) 
 {
 	emit sig_close_hard_disk(drv);
