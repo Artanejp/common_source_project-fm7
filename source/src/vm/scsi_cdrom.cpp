@@ -551,7 +551,6 @@ void SCSI_CDROM::start_command()
 				break;
 			case 0x80:
 				{
-					// ToDo: Over reading boundary of both tracks.
 					int _track = FROM_BCD(command[2]) - 1;
 					if(_track >= 0) {
 						cdda_end_frame = toc_table[_track].index0;
@@ -1113,8 +1112,6 @@ void SCSI_CDROM::open(const _TCHAR* file_path)
 	
 	close();
 	
-	// ToDo: Process multi track cue file.Most of CDROMs contain both audio and data and more than 2 tracks.
-	// 20181014 K.O
 	if(check_file_extension(file_path, _T(".cue"))) {
 #if 1
 		is_cue = false;
