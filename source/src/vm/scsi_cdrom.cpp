@@ -499,7 +499,7 @@ void SCSI_CDROM::start_command()
 				// From Mame 0.203
 				if(event_delay_interrupt >= 0) cancel_event(this, event_delay_interrupt);
 				register_event(this, EVENT_CDROM_DELAY_INTERRUPT_ON, delay_time, false, &event_delay_interrupt);
-				set_phase_delay(SCSI_PHASE_STATUS, delay_time + 10.0);
+				//set_phase_delay(SCSI_PHASE_STATUS, delay_time + 10.0);
 				//write_signals(&outputs_done, 0xffffffff);
 				set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 				return;
@@ -608,9 +608,9 @@ void SCSI_CDROM::start_command()
 		// change to status phase
 		set_dat(is_device_ready() ? SCSI_STATUS_GOOD : SCSI_STATUS_CHKCOND);
 		if(is_device_ready()) {
-			//write_signals(&outputs_done, 0xffffffff);
-			if(event_delay_interrupt >= 0) cancel_event(this, event_delay_interrupt);
-			register_event(this, EVENT_CDROM_DELAY_INTERRUPT_ON, 10.0, false, &event_delay_interrupt);
+			write_signals(&outputs_done, 0xffffffff);
+			//if(event_delay_interrupt >= 0) cancel_event(this, event_delay_interrupt);
+			//register_event(this, EVENT_CDROM_DELAY_INTERRUPT_ON, 10.0, false, &event_delay_interrupt);
 
 		}
 		set_phase_delay(SCSI_PHASE_STATUS, 10.0);
@@ -627,7 +627,7 @@ void SCSI_CDROM::start_command()
 		}
 		// change to status phase
 		set_dat(is_device_ready() ? SCSI_STATUS_GOOD : SCSI_STATUS_CHKCOND);
-		//if(is_device_ready()) write_signals(&outputs_done, 0xffffffff);
+		if(is_device_ready()) write_signals(&outputs_done, 0xffffffff);
 		set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		return;
 		
@@ -798,7 +798,7 @@ bool SCSI_CDROM::read_buffer(int length)
 		access = true;
 	}
 	// Is This right? 20181120 K.O
-	write_signals(&outputs_done, 0xffffffff);
+	//write_signals(&outputs_done, 0xffffffff); // Maybe don't need "DONE SIGNAL" with reading DATA TRACK. 20181207 K.O
 	set_sense_code(SCSI_SENSE_NOSENSE);
 	return true;
 }
