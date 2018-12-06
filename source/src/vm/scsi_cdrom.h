@@ -25,7 +25,7 @@ protected:
 	
 	FILEIO* fio_img;
 	struct {
-		uint32_t index0, index1, pregap;
+		int32_t index0, index1, pregap;
 		uint32_t lba_offset;
 		uint32_t lba_size;
 		bool is_audio;
@@ -42,10 +42,12 @@ protected:
 	uint8_t cdda_status;
 	bool cdda_repeat, cdda_interrupt;
 	uint8_t cdda_buffer[2352 * 75];
+	int read_sectors;
 	int cdda_buffer_ptr;
 	int cdda_sample_l, cdda_sample_r;
 	int event_cdda, mix_loop_num;
 	int event_cdda_delay_play;
+	int event_delay_interrupt;
 	
 	void set_cdda_status(uint8_t status);
 	int get_track(uint32_t lba);

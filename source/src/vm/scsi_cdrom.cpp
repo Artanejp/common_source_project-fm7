@@ -10,15 +10,22 @@
 #include "scsi_cdrom.h"
 #include "../fifo.h"
 
+#include <algorithm>
+#include <cctype> 
+
 #define CDDA_OFF	0
 #define CDDA_PLAYING	1
 #define CDDA_PAUSED	2
-//#define _SCSI_DEBUG_LOG
+#define _SCSI_DEBUG_LOG
 #define _CDROM_DEBUG_LOG
 // 0-99 is reserved for SCSI_DEV class
-#define EVENT_CDDA	100
-#define EVENT_CDDA_DELAY_PLAY 101
-#define EVENT_CDROM_SEEK_SCSI  102
+#define EVENT_CDDA						100
+#define EVENT_CDDA_DELAY_PLAY			101
+#define EVENT_CDROM_SEEK_SCSI			102
+#define EVENT_CDROM_DELAY_INTERRUPT_ON	103
+#define EVENT_CDROM_DELAY_INTERRUPT_OFF	104
+#define EVENT_CDDA_DELAY_STOP			105
+
 void SCSI_CDROM::initialize()
 {
 	SCSI_DEV::initialize();
@@ -31,9 +38,11 @@ void SCSI_CDROM::initialize()
 	}
 	event_cdda = -1;
 	event_cdda_delay_play = -1;
+	event_delay_interrupt = -1;
 	cdda_status = CDDA_OFF;
 	is_cue = false;
 	current_track = 0;
+	read_sectors = 0;
 	for(int i = 0; i < 99; i++) {
 		memset(track_data_path[i], 0x00, _MAX_PATH * sizeof(_TCHAR));
 	}
@@ -51,10 +60,18 @@ void SCSI_CDROM::release()
 void SCSI_CDROM::reset()
 {
 	touch_sound();
+	if(event_delay_interrupt != -1) cancel_event(this, event_delay_interrupt);
+	if(event_cdda_delay_play != -1) cancel_event(this, event_cdda_delay_play);
+	if(event_cdda != -1) cancel_event(this, event_cdda);
+	event_cdda = -1;
+	event_cdda_delay_play = -1;
+	event_delay_interrupt = -1;
 	SCSI_DEV::reset();
 	set_cdda_status(CDDA_OFF);
+	read_sectors = 0;
 	// Q: Does not seek to track 0? 20181118 K.O
 	//current_track = 0;
+
 }
 
 uint32_t SCSI_CDROM::read_signal(int id)
@@ -75,6 +92,14 @@ uint32_t SCSI_CDROM::read_signal(int id)
 void SCSI_CDROM::event_callback(int event_id, int err)
 {
 	switch (event_id) {
+	case EVENT_CDROM_DELAY_INTERRUPT_ON:
+		write_signals(&outputs_done, 0xffffffff);
+		event_delay_interrupt = -1;
+		break;
+	case EVENT_CDROM_DELAY_INTERRUPT_OFF:
+		write_signals(&outputs_done, 0x00000000);
+		event_delay_interrupt = -1;
+		break;
 	case EVENT_CDDA_DELAY_PLAY:
 		if(cdda_status != CDDA_PLAYING) {
 			set_cdda_status(CDDA_PLAYING);
@@ -87,7 +112,9 @@ void SCSI_CDROM::event_callback(int event_id, int err)
 		SCSI_DEV::start_command();
 		break;
 	case EVENT_CDDA:
+		if(event_cdda_delay_play > -1) return; // WAIT for SEEK COMPLETED
 		// read 16bit 2ch samples in the cd-da buffer, called 44100 times/sec
+		
 		cdda_sample_l = (int)(int16_t)(cdda_buffer[cdda_buffer_ptr + 0] + cdda_buffer[cdda_buffer_ptr + 1] * 0x100);
 		cdda_sample_r = (int)(int16_t)(cdda_buffer[cdda_buffer_ptr + 2] + cdda_buffer[cdda_buffer_ptr + 3] * 0x100);
 		// ToDo: CLEAR IRQ Line (for PCE)
@@ -104,33 +131,42 @@ void SCSI_CDROM::event_callback(int event_id, int err)
 					// reload buffer
 					if(is_cue) {
 						fio_img->Fclose();
-						current_track = 0;
-						int trk = get_track(cdda_start_frame);
-						//int trk = current_track;
+						//current_track = 0;
+						//int trk = get_track(cdda_start_frame);
+						int trk = current_track;
 						fio_img->Fseek((cdda_start_frame - toc_table[trk].lba_offset) * 2352, FILEIO_SEEK_SET);
 					} else {
 						fio_img->Fseek(cdda_start_frame * 2352, FILEIO_SEEK_SET);
 					}
-					fio_img->Fread(cdda_buffer, sizeof(cdda_buffer), 1);
+					read_sectors = fio_img->Fread(cdda_buffer, 2352 * sizeof(uint8_t) , array_length(cdda_buffer) / 2352);
 					cdda_buffer_ptr = 0;
 					cdda_playing_frame = cdda_start_frame;
 					access = true;
 				} else {
-					// stop
-					if(cdda_interrupt) {
-						write_signals(&outputs_done, 0xffffffff);
-					}
+					// Stop
+					//if(event_cdda_delay_play >= 0) cancel_event(this, event_cdda_delay_play);
 					set_cdda_status(CDDA_OFF);
+					//register_event(this, EVENT_CDDA_DELAY_STOP, 1000.0, false, &event_cdda_delay_play);
 				}
-			} else if(cdda_buffer_ptr == array_length(cdda_buffer)) {
+			} else if((cdda_buffer_ptr % 2352) == 0) {
 				// refresh buffer
-				fio_img->Fread(cdda_buffer, sizeof(cdda_buffer), 1);
-				cdda_buffer_ptr = 0;
-				access = true;
-				
+				read_sectors--;
+				if(read_sectors <= 0) {
+					read_sectors = fio_img->Fread(cdda_buffer, 2352 * sizeof(uint8_t), array_length(cdda_buffer) / 2352);
+					cdda_buffer_ptr = 0;
+					access = true;
+				} else {
+				}
 			}
 		}
 		break;
+	case EVENT_CDDA_DELAY_STOP:
+		if(cdda_interrupt) {
+			write_signals(&outputs_done, 0xffffffff);
+		}
+		set_cdda_status(CDDA_OFF);
+		event_cdda_delay_play = -1;
+		break;			
 	default:
 		SCSI_DEV::event_callback(event_id, err);
 		break;
@@ -147,14 +183,16 @@ void SCSI_CDROM::set_cdda_status(uint8_t status)
 		}
 		if(cdda_status != CDDA_PLAYING) {
 			//// Notify to release bus.
-			//write_signals(&outputs_done, 0x00000000);
+			write_signals(&outputs_done, 0x00000000);
 			if(cdda_status == CDDA_OFF) {
 				//get_track_by_track_num(current_track); // Re-Play
+				//memset(cdda_buffer, 0x00, sizeof(cdda_buffer));
 				cdda_playing_frame = cdda_start_frame;
+				get_track(cdda_playing_frame);
+				cdda_buffer_ptr = 0;
 			} else if(cdda_status == CDDA_PAUSED) {
 				// Unpause
-				// Maybe need seek position.
-				get_track_by_track_num(current_track); // Re-Play
+				access = true;
 			}
 			touch_sound();
 			set_realtime_render(this, true);
@@ -170,7 +208,12 @@ void SCSI_CDROM::set_cdda_status(uint8_t status)
 		if(cdda_status == CDDA_PLAYING) {
 			// Notify to release bus.
 			write_signals(&outputs_done, 0x00000000);
+			//if(event_delay_interrupt >= 0) cancel_event(this, event_delay_interrupt);
+			//register_event(this, EVENT_CDROM_DELAY_INTERRUPT_OFF, 1.0e6 / (44100.0 * 2352), false, &event_delay_interrupt);
 			if(status == CDDA_OFF) {
+				memset(cdda_buffer, 0x00, sizeof(cdda_buffer));
+				cdda_buffer_ptr = 0;
+				read_sectors = 0;
 				//if(is_cue) {
 				//	if(fio_img->IsOpened()) fio_img->Fclose();
 				//}
@@ -235,7 +278,7 @@ void SCSI_CDROM::get_track_by_track_num(int track)
 				if((strlen(track_data_path[track - 1]) <= 0) ||
 				   !(fio_img->Fopen(track_data_path[track - 1], FILEIO_READ_BINARY))) {
 					track = 0;
-				}
+				}	
 			} else {
 				track = 0;
 			}
@@ -291,7 +334,7 @@ double SCSI_CDROM::get_seek_time(uint32_t lba)
 		} else {
 			distance = abs((int)(lba * physical_block_size()) - (int)cur_position);
 		}
-		double ratio = (double)distance / 333000 / physical_block_size(); // 333000: sectors in media
+		double ratio = ((double)distance / 333000.0) / physical_block_size(); // 333000: sectors in media
 		return max(10, (int)(400000 * 2 * ratio));
 	} else {
 		return 400000; // 400msec
@@ -321,7 +364,7 @@ void SCSI_CDROM::start_command()
 {
 	touch_sound();
 	#ifdef _SCSI_DEBUG_LOG
-	this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: #%02x %02x %02x %02x %02x %02x\n"), scsi_id, command[0], command[1], command[2], command[3], command[4], command[5]);
+//	this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: #%02x %02x %02x %02x %02x %02x\n"), scsi_id, command[0], command[1], command[2], command[3], command[4], command[5]);
 	#endif
 	switch(command[0]) {
 	case SCSI_CMD_READ6:
@@ -357,17 +400,20 @@ void SCSI_CDROM::start_command()
 		
 	case 0xd8:
 		#ifdef _SCSI_DEBUG_LOG
-		this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: NEC Set Audio Playback Start Position CMD=%02x\n"), scsi_id, ((command[2] == 0) && (command[3] == 0) && (command[4] == 0)) ? 0x00 : command[9]);
+		this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: NEC Set Audio Playback Start Position CMD=%02x ARG=%02x %02x %02x %02x\n"), scsi_id, command[9], command[2], command[3], command[4], command[5]);
 		#endif
 		if(is_device_ready()) {
 			if(command[2] == 0 && command[3] == 0 && command[4] == 0) {
 				// stop cd-da if all params are zero
 				cdda_start_frame = 0;
 				cdda_end_frame = toc_table[track_num].index0; // end of disc
+				double seek_time = get_seek_time(cdda_end_frame);
 				if(is_cue) {
 					get_track_by_track_num(track_num);
 				}
-				set_cdda_status(CDDA_OFF);
+				//set_cdda_status(CDDA_OFF);
+				if(event_cdda_delay_play >= 0) cancel_event(this, event_cdda_delay_play);
+				register_event(this, EVENT_CDDA_DELAY_STOP, (seek_time > 10.0) ? seek_time : 10.0, false, &event_cdda_delay_play);
 			} else {
 				uint32_t seek_offset = 0;
 				switch(command[9] & 0xc0) {
@@ -384,23 +430,24 @@ void SCSI_CDROM::start_command()
 						// PCE tries to be clever here and set (start of track + track pregap size) to skip the pregap
 						// (I guess it wants the TOC to have the real start sector for data tracks and the start of the pregap for audio?)
 						int track = get_track(cdda_start_frame);
-						cdda_start_frame -= toc_table[track].pregap;
-						
-						if(cdda_start_frame < toc_table[track].index1) {
-							cdda_start_frame = toc_table[track].index1; // don't play pregap
+						if(cdda_start_frame >= toc_table[track].pregap) {
+							cdda_start_frame -= toc_table[track].pregap;
+						}
+						if(cdda_start_frame < toc_table[track].index0) {
+							cdda_start_frame = toc_table[track].index0; // don't play pregap
 						} else if(cdda_start_frame > max_logical_block) {
 							cdda_start_frame = 0;
 						}
 					}
 					break;
 				case 0x80:
-					if(is_cue) {
-						int trk = FROM_BCD(command[2]) - 1;
-//						int trk = FROM_BCD(command[2]);
-						get_track_by_track_num(trk);
+					{
+						int8_t track = FROM_BCD(command[2] - 1);
+						cdda_start_frame = toc_table[track].index1;
+						if(cdda_start_frame >= toc_table[track].pregap) {
+							cdda_start_frame -= toc_table[track].pregap;
+						}
 					}
-					cdda_start_frame = toc_table[FROM_BCD(command[2]) - 1].index1;
-//					cdda_start_frame = toc_table[FROM_BCD(command[2])].index1;
 					break;
 				default:
 					cdda_start_frame = 0;
@@ -410,29 +457,39 @@ void SCSI_CDROM::start_command()
 //					cdda_end_frame = toc_table[track_num].index0; // end of disc
 //					set_cdda_status(CDDA_OFF);
 //				} else
+				double delay_time = get_seek_time(cdda_start_frame);
 				if((command[1] & 3) != 0) {
 					if((is_cue) && (current_track != track_num)){
 						get_track_by_track_num(track_num);
 					}
 					cdda_end_frame = toc_table[track_num].index0; // end of disc
-					set_cdda_status(CDDA_PLAYING);
+					double seek_time = get_seek_time(cdda_start_frame);
+					if(event_cdda_delay_play >= 0) {
+						cancel_event(this, event_cdda_delay_play);
+						event_cdda_delay_play = -1;
+					}
+					//set_cdda_status(CDDA_PLAYING);
+					register_event(this, EVENT_CDROM_SEEK_SCSI, seek_time, false, &event_cdda_delay_play);
 				} else {
 					uint32_t _sframe = cdda_start_frame;
 					//cdda_end_frame = toc_table[get_track(_sframe) + 1].index1; // end of this track
-					cdda_end_frame = toc_table[get_track(_sframe)].index1; // end of this track
+					//cdda_end_frame = toc_table[get_track(_sframe)].index1; // end of this track
 					set_cdda_status(CDDA_PAUSED);
 				}
 				cdda_repeat = false;
 				cdda_interrupt = ((command[1] & 3) == 2);
 				
 				// read buffer
-				double delay_time = get_seek_time(cdda_start_frame);
+				//double delay_time = 10.0;
+#if 1
 				if(is_cue) {
-					fio_img->Fseek((cdda_start_frame - toc_table[current_track].lba_offset) * 2352, FILEIO_SEEK_SET);
+					//if(cdda_start_frame > 150) cdda_start_frame = cdda_start_frame - 150;
+					fio_img->Fseek((cdda_start_frame - toc_table[current_track].index0) * 2352, FILEIO_SEEK_SET);
 				} else {
 					fio_img->Fseek(cdda_start_frame * 2352, FILEIO_SEEK_SET);
 				}
-				fio_img->Fread(cdda_buffer, sizeof(cdda_buffer), 1);
+#endif
+				read_sectors = fio_img->Fread(cdda_buffer, 2352 * sizeof(uint8_t), array_length(cdda_buffer) / 2352);
 				cdda_buffer_ptr = 0;
 				cdda_playing_frame = cdda_start_frame;
 				access = true;
@@ -440,8 +497,11 @@ void SCSI_CDROM::start_command()
 				// change to status phase
 				set_dat(SCSI_STATUS_GOOD);
 				// From Mame 0.203
-				write_signals(&outputs_done, 0xffffffff);
-				set_phase_delay(SCSI_PHASE_STATUS, delay_time);
+				if(event_delay_interrupt >= 0) cancel_event(this, event_delay_interrupt);
+				register_event(this, EVENT_CDROM_DELAY_INTERRUPT_ON, delay_time, false, &event_delay_interrupt);
+				set_phase_delay(SCSI_PHASE_STATUS, delay_time + 10.0);
+				//write_signals(&outputs_done, 0xffffffff);
+				set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 				return;
 			}
 		}
@@ -458,6 +518,7 @@ void SCSI_CDROM::start_command()
 		this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: NEC Set Audio Playback End Position CMD=%02x ARG=%02x %02x %02x %02x\n"), scsi_id, command[9], command[2], command[3], command[4], command[5]);
 		#endif
 		if(is_device_ready()) {
+			
 			switch(command[9] & 0xc0) {
 			case 0x00:
 				cdda_end_frame = (command[3] << 16) | (command[4] << 8) | command[5];
@@ -468,29 +529,46 @@ void SCSI_CDROM::start_command()
 					uint8_t s = FROM_BCD(command[3]);
 					uint8_t f = FROM_BCD(command[4]);
 					cdda_end_frame = f + 75 * (s + m * 60);
-					//printf("END FRAME=%d\n", cdda_end_frame);
 					
 					// PCE tries to be clever here and set (start of track + track pregap size) to skip the pregap
 					// (I guess it wants the TOC to have the real start sector for data tracks and the start of the pregap for audio?)
 					
+//					int track = get_track(cdda_start_frame);
 					int track = current_track;
-					//track = get_track_noop(cdda_end_frame);
-					
-					if(cdda_end_frame > toc_table[track].index1 && (cdda_end_frame - toc_table[track].pregap) <= toc_table[track].index1) {
-						cdda_end_frame = toc_table[track].index1;
+					cdda_playing_frame = cdda_start_frame;
+//					if(is_cue) {
+//						fio_img->Fseek((cdda_start_frame - toc_table[current_track].lba_offset) * 2352, FILEIO_SEEK_SET);
+//					} else {
+//						fio_img->Fseek(cdda_start_frame * 2352, FILEIO_SEEK_SET);
+//					}
+					//read_sectors = fio_img->Fread(cdda_buffer, 2352 * sizeof(uint8_t), array_length(cdda_buffer) / 2352);
+
+					if(cdda_end_frame > toc_table[track + 1].index1 && (cdda_end_frame - toc_table[track].pregap) <= toc_table[track + 1].index1) {
+						cdda_end_frame = toc_table[track + 1].index1;
 					}
+					cdda_buffer_ptr = 0;
 				}
 				break;
 			case 0x80:
 				{
-					// ToDo: When _track != current_track.
 					// ToDo: Over reading boundary of both tracks.
 					int _track = FROM_BCD(command[2]) - 1;
-//					int _track = FROM_BCD(command[2]);
 					if(_track >= 0) {
-						cdda_end_frame = toc_table[_track].index1;
+						cdda_end_frame = toc_table[_track].index0;
 						if(is_cue) {
-							get_track_by_track_num(_track);
+							if(current_track != _track) {
+								get_track_by_track_num(_track);
+								cdda_start_frame = toc_table[_track].index0;
+								cdda_end_frame = toc_table[_track].lba_size + toc_table[_track].lba_offset;
+								cdda_playing_frame = cdda_start_frame;
+								if(is_cue) {
+									fio_img->Fseek((cdda_start_frame - toc_table[current_track].lba_offset) * 2352, FILEIO_SEEK_SET);
+								} else {
+									fio_img->Fseek(cdda_start_frame * 2352, FILEIO_SEEK_SET);
+								}
+								read_sectors = fio_img->Fread(cdda_buffer, 2352 * sizeof(uint8_t), array_length(cdda_buffer) / 2352);
+								cdda_buffer_ptr = 0;
+							}
 						}
 					}
 				}
@@ -502,17 +580,39 @@ void SCSI_CDROM::start_command()
 				cdda_repeat = ((command[1] & 3) == 1);
 				cdda_interrupt = ((command[1] & 3) == 2);
 				
-				set_cdda_status(CDDA_PLAYING);
+				if(event_cdda_delay_play >= 0) cancel_event(this, event_cdda_delay_play);
+				register_event(this, EVENT_CDDA_DELAY_PLAY, 10.0, false, &event_cdda_delay_play);
+				//set_cdda_status(CDDA_PLAYING);
 			} else {
 				set_cdda_status(CDDA_OFF);
-				cdda_start_frame = 0;
-				cdda_end_frame = toc_table[track_num].index0; // end of disc
+				cdda_start_frame = toc_table[track_num].index0;;
+				cdda_end_frame = toc_table[track_num].index1; // end of disc
+				double seek_time = get_seek_time(cdda_start_frame);
+				//double seek_time = 10.0;
 				get_track_by_track_num(track_num); // END OF DISC
+
+				set_dat(is_device_ready() ? SCSI_STATUS_GOOD : SCSI_STATUS_CHKCOND);
+//				if(event_cdda_delay_play >= 0) cancel_event(this, event_cdda_delay_play);
+//				register_event(this, EVENT_CDDA_DELAY_STOP, (seek_time > 10.0) ? seek_time : 10.0, false, &event_cdda_delay_play);
+				if(is_device_ready()) {
+					if(event_delay_interrupt >= 0) {
+						cancel_event(this, event_delay_interrupt);
+						event_delay_interrupt = -1;
+					}
+					register_event(this, EVENT_CDROM_DELAY_INTERRUPT_ON, (seek_time > 10.0) ? (seek_time + 10.0) : (10.0 + 10.0), false, &event_delay_interrupt);
+				}
+				set_phase_delay(SCSI_PHASE_STATUS, (seek_time > 10.0) ? (seek_time + 10.0) : (10.0 + 10.0));
+				return;
 			}
 		}
 		// change to status phase
 		set_dat(is_device_ready() ? SCSI_STATUS_GOOD : SCSI_STATUS_CHKCOND);
-		if(is_device_ready()) write_signals(&outputs_done, 0xffffffff);
+		if(is_device_ready()) {
+			//write_signals(&outputs_done, 0xffffffff);
+			if(event_delay_interrupt >= 0) cancel_event(this, event_delay_interrupt);
+			register_event(this, EVENT_CDROM_DELAY_INTERRUPT_ON, 10.0, false, &event_delay_interrupt);
+
+		}
 		set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		return;
 		
@@ -525,9 +625,6 @@ void SCSI_CDROM::start_command()
 				set_cdda_status(CDDA_PAUSED);
 			}
 		}
-		if(is_cue) { // NEC PC-ENGINE ONLY.This expect to be temporally workaround.20181119 K.O
-			get_track_by_track_num(2);
-		}
 		// change to status phase
 		set_dat(is_device_ready() ? SCSI_STATUS_GOOD : SCSI_STATUS_CHKCOND);
 		//if(is_device_ready()) write_signals(&outputs_done, 0xffffffff);
@@ -535,23 +632,20 @@ void SCSI_CDROM::start_command()
 		return;
 		
 	case 0xdd:
-//		#ifdef _SCSI_DEBUG_LOG
-//			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: NEC Read Sub Channel Q\n"), scsi_id);
-//		#endif
+		#ifdef _SCSI_DEBUG_LOG
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: NEC Read Sub Channel Q\n"), scsi_id);
+		#endif
 		if(is_device_ready()) {
 			// create track info
 			uint32_t frame = (cdda_status == CDDA_OFF) ? cdda_start_frame : cdda_playing_frame;
 			uint32_t msf_abs = lba_to_msf_alt(frame);
 			int track;
 			double delay_time = 10.0;
-			if(frame == 0) {
-				track = current_track;
-			} else {
-				track = get_track(frame);
-			}
+			track = current_track;
 			if((cdda_status == CDDA_OFF) && (toc_table[track].is_audio)) { // OK? (or force ERROR) 20181120 K.O
 				//set_cdda_status(CDDA_PLAYING);
 				delay_time = get_seek_time(frame);
+				//delay_time = 10.0;
 				if(event_cdda_delay_play >= 0) {
 					cancel_event(this, event_cdda_delay_play);
 					event_cdda_delay_play = -1;
@@ -969,24 +1063,33 @@ bool SCSI_CDROM::open_cue_file(const _TCHAR* file_path)
 							toc_table[i].pregap = toc_table[i].index1 - toc_table[i].index0;
 						}
 					}
-				}					
+				}
+				// Even...
+				if(toc_table[i].pregap <= 0) {
+					toc_table[i].pregap = 150; // Default PREGAP must be 2Sec. From OoTake.(Only with PCE? Not with FM-Towns?)
+				}
+
+				_n = 0;
 				if(strlen(track_data_path[i - 1]) > 0) {
 					if(fio_img->Fopen(track_data_path[i - 1], FILEIO_READ_BINARY)) {
 						if((_n = fio_img->FileLength() / 2352) > 0) {
 							max_logical_block += _n;
+						} else {
+							_n = 0;
 						}
+						fio_img->Fclose();
 					}
 				}
 				toc_table[i].lba_size = _n;
 				toc_table[i].lba_offset = max_logical_block - _n;
 
 				
-				#ifdef _CDROM_DEBUG_LOG
+				//#ifdef _CDROM_DEBUG_LOG
 				this->out_debug_log(_T("TRACK#%02d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d LBA_OFFSET=%d PATH=%s\n"),
 									i, (toc_table[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352"),
 									toc_table[i].pregap, toc_table[i].index0, toc_table[i].index1,
 									toc_table[i].lba_size, toc_table[i].lba_offset, track_data_path[i - 1]);
-				#endif
+				//#endif
 			}
 			toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
 //			toc_table[track_num].index0 = toc_table[track_num].index1 = max_logical_block;
@@ -1239,7 +1342,7 @@ void SCSI_CDROM::set_volume(int volume)
 	volume_m = (int)(1024.0 * (max(0, min(100, volume)) / 100.0));
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 // Q: If loading state when using another (saved) image? 20181013 K.O
 //    May need close() and open() (or ...?).
@@ -1265,6 +1368,8 @@ bool SCSI_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cdda_sample_r);
 	state_fio->StateValue(event_cdda);
 	state_fio->StateValue(event_cdda_delay_play);
+	state_fio->StateValue(event_delay_interrupt);
+	state_fio->StateValue(read_sectors);
 //	state_fio->StateValue(mix_loop_num);
 	state_fio->StateValue(volume_m);
 	if(loading) {
