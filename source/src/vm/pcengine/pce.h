@@ -219,6 +219,7 @@ private:
 	void adpcm_play();
 	void adpcm_stop(bool do_irq);
 	
+	bool adpcm_play_in_progress;
 	double cdda_volume, adpcm_volume;
 	int event_cdda_fader, event_adpcm_fader;
 	
