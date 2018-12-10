@@ -17,8 +17,8 @@
 #define CDDA_PLAYING	1
 #define CDDA_PAUSED	2
 
-//#define _SCSI_DEBUG_LOG
-//#define _CDROM_DEBUG_LOG
+#define _SCSI_DEBUG_LOG
+#define _CDROM_DEBUG_LOG
 
 // 0-99 is reserved for SCSI_DEV class
 #define EVENT_CDDA						100
