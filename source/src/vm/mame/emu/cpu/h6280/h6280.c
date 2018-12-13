@@ -387,14 +387,27 @@ WRITE8_HANDLER( h6280_timer_w )
 	switch (offset & 1) {
 		case 0: /* Counter preload */
 			cpustate->timer_load=cpustate->timer_value=((data&127)+1)*1024;
+			if(cpustate->timer_status==0) {
+				/* From Ootake v2.26 */
+				if(cpustate->timer_value == 1) cpustate->timer_value = cpustate->timer_load + 1;
+			}
 			return;
 
 		case 1: /* Counter enable */
+			if(cpustate->timer_status==0) {
+				/* From Ootake v2.26 */
+				if(cpustate->timer_value == 1) cpustate->timer_value = cpustate->timer_load + 1;
+			}
 			if(data&1)
 			{	/* stop -> start causes reload */
 				if(cpustate->timer_status==0) cpustate->timer_value=cpustate->timer_load;
 			}
 			cpustate->timer_status=data&1;
+			
+			if(cpustate->timer_status==0) {
+				/* From Ootake v2.26 */
+				cpustate->timer_value = 1;
+			}			
 			return;
 	}
 }
