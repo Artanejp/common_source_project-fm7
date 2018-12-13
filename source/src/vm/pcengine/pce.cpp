@@ -1989,14 +1989,14 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 		if(data & 0x02) {
 			// ADPCM set write address
 			adpcm_write_ptr = (cdrom_regs[0x09] << 8) | cdrom_regs[0x08];
-			adpcm_write_buf = data & 1;
+			adpcm_write_buf = ((data & 1) == 0) ? 1 : 0;
 			adpcm_written = 0;
 			out_debug_log(_T("ADPCM SET WRITE ADDRESS ADDR=%04x\n"), adpcm_write_ptr);
 		}
 		if(data & 0x08) {
 			// ADPCM set read address
 			adpcm_read_ptr = (cdrom_regs[0x09] << 8) | cdrom_regs[0x08];
-			adpcm_read_buf = 2;
+			adpcm_read_buf = ((data & 0x04) == 0) ? 2 : 1;
 			out_debug_log(_T("ADPCM SET READ ADDRESS ADDR=%04x\n"), adpcm_read_ptr);
 		}
 		if(data & 0x10) {
