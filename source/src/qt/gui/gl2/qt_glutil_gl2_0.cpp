@@ -874,6 +874,7 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 				prg->enableAttributeArray(vertex_loc);
 				prg->enableAttributeArray(texcoord_loc);
 				
+				extfunc_2->glDisable(GL_DEPTH_TEST);
 				extfunc_2->glEnableClientState(GL_VERTEX_ARRAY);
 				extfunc_2->glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 				extfunc_2->glColor3f(1.0f, 1.0f, 1.0f);
@@ -895,6 +896,7 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 		
 		{ // Fallback
 			int i;
+			extfunc_2->glDisable(GL_DEPTH_TEST);
 			extfunc_2->glBegin(GL_POLYGON);
 			for(i = 0; i < 4; i++) {
 				extfunc_2->glTexCoord2f(vertex_data[i].s, vertex_data[i].t);
@@ -1053,6 +1055,7 @@ void GLDraw_2_0::paintGL(void)
 		extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 		
 		extfunc_2->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//extfunc_2->glDisable(GL_DEPTH_TEST);
 		extfunc_2->glEnable(GL_DEPTH_TEST);
 		extfunc_2->glDisable(GL_BLEND);
 		if(using_flags->is_use_one_board_computer() || using_flags->is_use_bitmap()) {

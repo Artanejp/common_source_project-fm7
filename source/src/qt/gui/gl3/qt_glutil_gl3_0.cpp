@@ -1237,7 +1237,8 @@ void GLDraw_3_0::paintGL(void)
 		extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 		
 		extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		extfunc->glEnable(GL_DEPTH_TEST);
+		//extfunc->glEnable(GL_DEPTH_TEST);
+		extfunc->glDisable(GL_DEPTH_TEST);
 		extfunc->glDisable(GL_BLEND);
 		if(using_flags->is_use_one_board_computer() || using_flags->is_use_bitmap()) {
 			extfunc->glEnable(GL_BLEND);

@@ -6,6 +6,5 @@ out uvec4 opixel;
 uniform usampler2D a_texture;
 void main ()
 {
-	uvec4 pixel = texture(a_texture, v_texcoord);
-	opixel = pixel;
+	opixel = texture(a_texture, v_texcoord);
 }
