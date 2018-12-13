@@ -542,7 +542,10 @@ void EVENT::cancel_event(DEVICE* device, int register_id)
 	if(0 <= register_id && register_id < MAX_EVENT) {
 		event_t *event_handle = &event[register_id];
 		if(device != NULL && device != event_handle->device) {
-			this->out_debug_log(_T("EVENT: device (name=%s, id=%d) tries to cancel event that is not its own !!!\n"), device->this_device_name, device->this_device_id);
+			this->out_debug_log(_T("EVENT: device (name=%s, id=%d) tries to cancel event %d that is not its own (owned by (name=%s id=%d))!!!\n"), device->this_device_name, device->this_device_id,
+								register_id,
+								event_handle->device->this_device_name,
+								event_handle->device->this_device_id);			
 			return;
 		}
 		if(event_handle->active) {
