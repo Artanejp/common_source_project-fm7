@@ -2450,7 +2450,7 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 			// bus free
 			set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_READY, CLEAR_LINE);
 			set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_DONE, CLEAR_LINE);
-			if(!adpcm_play_in_progress) {
+			if(!(adpcm_play_in_progress) && (adpcm_dma_enabled)){
 				d_msm->reset_w(1);
 				adpcm_dma_enabled = false;
 				out_debug_log(_T("SIG_PCE_SCSI_BSY: RESET ADPCM\n"));
