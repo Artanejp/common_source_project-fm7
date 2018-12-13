@@ -76,6 +76,31 @@ void SCSI_CDROM::reset()
 
 }
 
+void SCSI_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
+{
+	bool _b = ((data & mask) != 0);
+	switch(id) {
+	case SIG_SCSI_CDROM_CDDA_STOP:
+		if(cdda_status != CDDA_OFF) {
+			if(_b) set_cdda_status(CDDA_OFF);
+		}
+		break;
+	case SIG_SCSI_CDROM_CDDA_PLAY:
+		if(cdda_status != CDDA_PLAYING) {
+			if(_b) set_cdda_status(CDDA_PLAYING);
+		}
+		break;
+	case SIG_SCSI_CDROM_CDDA_PAUSE:
+		if(cdda_status != CDDA_PAUSED) {
+			if(_b) set_cdda_status(CDDA_PAUSED);
+		}
+		break;
+	default:
+		SCSI_DEV::write_signal(id, data, mask);
+		break;
+	}
+}
+
 uint32_t SCSI_CDROM::read_signal(int id)
 {
 	switch(id) {

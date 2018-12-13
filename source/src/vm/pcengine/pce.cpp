@@ -1887,10 +1887,7 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 		d_scsi_host->write_signal(SIG_SCSI_SEL, 0, 1);
 		adpcm_dma_enabled = false;
 		// From Ootake v2.38
-		//d_scsi_host->write_signal(SIG_SCSI_RST, 0xff, 0xff);
-		//d_scsi_cdrom->reset_device();
 		cdrom_regs[0x03] = 0x00; // Reset IRQ status at al.
-		//set_cdrom_irq_line(0x70, CLEAR_LINE);
 		set_cdrom_irq_line(0x0, 0x0); // Update IRQ
 		break;
 		
@@ -1921,12 +1918,15 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 		
 	case 0x04:  /* CD reset */
 		if(data & 0x02) {
+			// Reset CDROM
+			// From Ootake v2.38
+			d_scsi_cdrom->write_signal(SIG_SCSI_CDROM_CDDA_STOP, 0xff, 0xff);
 			// Reset ADPCM hardware
 			reset_adpcm();
-			set_cdrom_irq_line(0x70, CLEAR_LINE);
 			adpcm_dma_enabled = false;
 			out_debug_log(_T("ADPCM CMD=$04 RESET\n"));
-			
+			cdrom_regs[0x03] = 0x00; // Reset IRQ status at al.
+			set_cdrom_irq_line(0x0, 0x0); // Update IRQ
 		}
 		d_scsi_host->write_signal(SIG_SCSI_RST, data, 0x02);
 		break;
@@ -2025,20 +2025,15 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 			adpcm_play();
 			d_msm->reset_w(0);
 			out_debug_log(_T("ADPCM START PLAY START=%04x END=%04x HALF=%04x\n"), msm_start_addr, msm_end_addr, msm_half_addr);
-		} else if(((data & 0x40) == 0) && ((cdrom_regs[0x0D] & 0x40) != 0) && (adpcm_play_in_progress)) {
-			// 20181213 K.O: Import from Ootake v2.83.Thanks to developers of Ootake.
-			if(((data & 0x20) != 0) && ((adpcm_length & 0xffff) >= 0x8000) && ((adpcm_length & 0xffff) <= 0x80ff)) {
-				msm_half_addr = (adpcm_read_ptr + 0x85) & 0xffff;
-			} else {
-				msm_half_addr = (adpcm_read_ptr + (adpcm_length >> 1)) & 0xffff;
+		} else if(((data & 0x40) == 0)) {
+			if(((cdrom_regs[0x0D] & 0x40) != 0) && (adpcm_play_in_progress)) {
+				// 20181213 K.O: Import from Ootake v2.83.Thanks to developers of Ootake.
+				if(((data & 0x20) != 0) && ((adpcm_length & 0xffff) >= 0x8000) && ((adpcm_length & 0xffff) <= 0x80ff)) {
+					msm_half_addr = (adpcm_read_ptr + 0x85) & 0xffff;
+				} else {
+					msm_half_addr = (adpcm_read_ptr + (adpcm_length >> 1)) & 0xffff;
+				}
 			}
-			if(!(data & 0x20)) {
-				set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
-				set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, CLEAR_LINE);
-				adpcm_stop(false);
-				d_msm->reset_w(1);
-			}
-		} else if ((data & 0x40) == 0) {
 			// used by Buster Bros to cancel an in-flight sample
 			// if repeat flag (bit5) is high, ADPCM should be fully played (from Ootake)
 			if(!(data & 0x20)) {

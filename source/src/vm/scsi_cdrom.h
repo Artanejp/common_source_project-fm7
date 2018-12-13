@@ -15,6 +15,9 @@
 #define SIG_SCSI_CDROM_PLAYING	0
 #define SIG_SCSI_CDROM_SAMPLE_L	1
 #define SIG_SCSI_CDROM_SAMPLE_R	2
+#define SIG_SCSI_CDROM_CDDA_PLAY	3
+#define SIG_SCSI_CDROM_CDDA_STOP	4
+#define SIG_SCSI_CDROM_CDDA_PAUSE	5
 
 class FILEIO;
 
@@ -89,6 +92,7 @@ public:
 	void release();
 	void reset();
 	uint32_t read_signal(int id);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
