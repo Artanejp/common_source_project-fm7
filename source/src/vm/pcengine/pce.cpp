@@ -2025,13 +2025,20 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 			adpcm_play();
 			d_msm->reset_w(0);
 			out_debug_log(_T("ADPCM START PLAY START=%04x END=%04x HALF=%04x\n"), msm_start_addr, msm_end_addr, msm_half_addr);
-		} /*else if(((data & 0x40) == 0) && ((cdrom_regs[0x0D] & 0x40) != 0) && (adpcm_play_in_progress)) {
+		} else if(((data & 0x40) == 0) && ((cdrom_regs[0x0D] & 0x40) != 0) && (adpcm_play_in_progress)) {
+			// 20181213 K.O: Import from Ootake v2.83.Thanks to developers of Ootake.
 			if(((data & 0x20) != 0) && ((adpcm_length & 0xffff) >= 0x8000) && ((adpcm_length & 0xffff) <= 0x80ff)) {
 				msm_half_addr = (adpcm_read_ptr + 0x85) & 0xffff;
 			} else {
 				msm_half_addr = (adpcm_read_ptr + (adpcm_length >> 1)) & 0xffff;
 			}
-		} */else if ((data & 0x40) == 0) {
+			if(!(data & 0x20)) {
+				set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
+				set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, CLEAR_LINE);
+				adpcm_stop(false);
+				d_msm->reset_w(1);
+			}
+		} else if ((data & 0x40) == 0) {
 			// used by Buster Bros to cancel an in-flight sample
 			// if repeat flag (bit5) is high, ADPCM should be fully played (from Ootake)
 			if(!(data & 0x20)) {
@@ -2471,18 +2478,8 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 			
 			if(msm_nibble == 0) {
 				adpcm_written--;
-				if(adpcm_dma_enabled && adpcm_written == 0) {
-					// finish streaming when all samples are played
-					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
-					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, ASSERT_LINE);
-					adpcm_stop(true);
-					d_msm->reset_w(1);
-				} else if((msm_start_addr & 0xffff) == msm_half_addr) {
-					// reached to half address
-					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, CLEAR_LINE);
-					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, ASSERT_LINE);
-					out_debug_log(_T("HALF ADDRESS READ_PTR=%04x WRITE_PTR=%04x\n"), adpcm_read_ptr, adpcm_write_ptr);
-				} else if((msm_start_addr & 0xffff) == msm_end_addr) {
+				// 20181213 K.O: Re-order sequence from Ootake v2.83.Thanks to developers of Ootake.
+				if((msm_start_addr & 0xffff) == msm_end_addr) {
 					// reached to end address
 					if(adpcm_dma_enabled) {
 						// restart streaming
@@ -2498,7 +2495,31 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 						d_msm->reset_w(1);
 						out_debug_log(_T("END ADDRESS(NON-DMA) READ_PTR=%04x WRITE_PTR=%04x\n"), adpcm_read_ptr, adpcm_write_ptr);
 					}
-				}
+				} else if(adpcm_dma_enabled && adpcm_written == 0) {
+					// finish streaming when all samples are played
+					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
+					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, ASSERT_LINE);
+					adpcm_stop(true);
+					d_msm->reset_w(1);
+				} else if((msm_start_addr & 0xffff) == msm_half_addr) {
+					// reached to half address
+					// 20181213 K.O: Porting from Ootake v2.83.Thanks to developers of Ootake.
+					if((adpcm_dma_enabled) && (adpcm_length >= 0x8000) && (adpcm_length <= 0x80ff)) {
+						msm_half_addr = (msm_half_addr + 0x85) & 0xffff;
+					} else if(adpcm_length < 0x7fff) {
+						msm_half_addr = (msm_half_addr + (uint16_t)(adpcm_length - 1024)) & 0xffff;
+					}
+					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, CLEAR_LINE);
+					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, ASSERT_LINE);
+					out_debug_log(_T("HALF ADDRESS READ_PTR=%04x WRITE_PTR=%04x\n"), adpcm_read_ptr, adpcm_write_ptr);
+				} else if((!((adpcm_dma_enabled) && (adpcm_length >= 0x8000) && (adpcm_length <= 0x80ff)) &&
+						   !(adpcm_length < 0x7fff)) &&
+						  (((msm_start_addr & 0xffff) == 0x8000) || ((msm_start_addr & 0xffff) == 0x0000))) {
+					// 20181213 K.O: Porting from Ootake v2.83.Thanks to developers of Ootake.
+					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, CLEAR_LINE);
+					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, ASSERT_LINE);
+					out_debug_log(_T("HALF ADDRESS READ_PTR=%04x WRITE_PTR=%04x\n"), adpcm_read_ptr, adpcm_write_ptr);
+				} 
 				
 				msm_start_addr++;
 				//msm_start_addr = msm_start_addr & 0xffff;
