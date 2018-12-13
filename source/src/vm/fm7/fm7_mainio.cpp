@@ -207,7 +207,6 @@ void FM7_MAINIO::reset()
 	event_beep = -1;
 	if(event_beep_oneshot >= 0) cancel_event(this, event_beep_oneshot);
 	event_beep_oneshot = -1;
-	if(event_timerirq >= 0) cancel_event(this, event_timerirq);
 	beep_snd = true;
 	beep_flag = false;
 	register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
@@ -331,6 +330,7 @@ void FM7_MAINIO::reset()
 	do_irq();
 
 //#if !defined(_FM8)
+	if(event_timerirq >= 0) cancel_event(this, event_timerirq);
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
 //#endif
 #if defined(_FM77_VARIANTS) || defined(_FM8)

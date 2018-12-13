@@ -223,7 +223,6 @@ void DISPLAY::reset_some_devices()
 void DISPLAY::reset()
 {
 	int i;
-	//printf("RESET\n");
 	halt_flag = false;
 	vram_accessflag = true;
 	display_mode = DISPLAY_MODE_8_200L;
@@ -1488,15 +1487,15 @@ void DISPLAY::event_callback_vsync(void)
 	//write_access_page = (write_access_page + 1) & 1;
 	//displine = 0;
 	
-	if((display_mode == DISPLAY_MODE_8_400L) || (display_mode == DISPLAY_MODE_1_400L)) {
-		usec = 0.33 * 1000.0; 
-	} else {
-		usec = 0.51 * 1000.0;
-	}
 	call_write_signal(mainio, SIG_DISPLAY_VSYNC, 0x01, 0xff);
 	call_write_signal(mainio, SIG_DISPLAY_DISPLAY, 0x00, 0xff);
+	//if((display_mode == DISPLAY_MODE_8_400L) || (display_mode == DISPLAY_MODE_1_400L)) {
+	//	usec = 0.33 * 1000.0; 
+	//} else {
+	//	usec = 0.51 * 1000.0;
+	//}
 	//register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
-
+	vsync_event_id = -1; // Fix for logging "[EVENT] EVENT: device (name=DISPLAY SUBSYSTEM, id=25) tries to cancel event 6 that is not its own (owned by (name=PRINTER I/F id=20))!!!" 
 	if(palette_changed) {
 #if defined(_FM77AV_VARIANTS)
 		memcpy(analog_palette_pixel, analog_palette_pixel_tmp, sizeof(analog_palette_pixel));
