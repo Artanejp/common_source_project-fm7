@@ -141,7 +141,7 @@ public:
 
 	bool is_sasi_bios_load()
 	{
-#if defined(SUPPORT_SASI_IF)
+#if defined(SUPPORT_SASI_IF) && !defined(SUPPORT_HIRESO)
 		return sasi_bios_load;
 #endif
 		return false;
