@@ -56,9 +56,9 @@ int Ui_MainWindowBase::set_d88_slot(int drive, int num)
 
 void Ui_MainWindowBase::do_update_recent_disk(int drv)
 {
-	if(emu == NULL) return;
+	if(hRunEmu == NULL) return;
 	menu_fds[drv]->do_update_histories(listFDs[drv]);
-	menu_fds[drv]->do_set_initialize_directory(config.initial_floppy_disk_dir);
+	menu_fds[drv]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
 	if(hRunEmu != NULL) {
 //		if(hRunEmu->get_d88_file_cur_bank(drv) != num) {
 			if(hRunEmu->is_floppy_disk_protected(drv)) {
@@ -78,18 +78,18 @@ int Ui_MainWindowBase::set_recent_disk(int drv, int num)
 	QString s_path;
 	char path_shadow[PATH_MAX];
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
-	s_path = QString::fromLocal8Bit(config.recent_floppy_disk_path[drv][num]);
+	s_path = QString::fromLocal8Bit(p_config->recent_floppy_disk_path[drv][num]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
-	UPDATE_HISTORY(path_shadow, config.recent_floppy_disk_path[drv], listFDs[drv]);
+	UPDATE_HISTORY(path_shadow, p_config->recent_floppy_disk_path[drv], listFDs[drv]);
    
-	strncpy(config.initial_floppy_disk_dir, 	get_parent_dir((const _TCHAR *)path_shadow), _MAX_PATH - 1);
+	strncpy(p_config->initial_floppy_disk_dir, 	get_parent_dir((const _TCHAR *)path_shadow), _MAX_PATH - 1);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
 
 //	if(emu) {
 		emit sig_close_disk(drv);
 		emit sig_open_disk(drv, s_path, 0);
 		menu_fds[drv]->do_update_histories(listFDs[drv]);
-		menu_fds[drv]->do_set_initialize_directory(config.initial_floppy_disk_dir);
+		menu_fds[drv]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
 		if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
 			UPDATE_D88_LIST(drv, listD88[drv]);
 			menu_fds[drv]->do_update_inner_media(listD88[drv], 0);
@@ -104,7 +104,7 @@ int Ui_MainWindowBase::set_recent_disk(int drv, int num)
 					emit sig_close_disk(drv2);
 					emit sig_open_disk(drv2, s_path, 1);
 					menu_fds[drv2]->do_update_histories(listFDs[drv2]);
-					menu_fds[drv2]->do_set_initialize_directory(config.initial_floppy_disk_dir);
+					menu_fds[drv2]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
 					UPDATE_D88_LIST(drv2, listD88[drv2]);
 					menu_fds[drv2]->do_update_inner_media(listD88[drv2], 1);
 				}
@@ -121,8 +121,8 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 	if(fname.length() <= 0) return;
 	drv = drv & 7;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
-	UPDATE_HISTORY(path_shadow, config.recent_floppy_disk_path[drv], listFDs[drv]);
-	strcpy(config.initial_floppy_disk_dir, 	get_parent_dir((const _TCHAR *)path_shadow));
+	UPDATE_HISTORY(path_shadow, p_config->recent_floppy_disk_path[drv], listFDs[drv]);
+	strcpy(p_config->initial_floppy_disk_dir, 	get_parent_dir((const _TCHAR *)path_shadow));
 	// Update List
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
 //	if(emu) {
@@ -130,7 +130,7 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 		//emu->LockVM();
 		emit sig_open_disk(drv, fname, 0);
 		menu_fds[drv]->do_update_histories(listFDs[drv]);
-		menu_fds[drv]->do_set_initialize_directory(config.initial_floppy_disk_dir);
+		menu_fds[drv]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
 		if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
 			UPDATE_D88_LIST(drv, listD88[drv]);
 			menu_fds[drv]->do_update_inner_media(listD88[drv], 0);
@@ -147,7 +147,7 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 				strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
 				emit sig_open_disk(drv2, fname, 1);
 				menu_fds[drv2]->do_update_histories(listFDs[drv2]);
-				menu_fds[drv2]->do_set_initialize_directory(config.initial_floppy_disk_dir);
+				menu_fds[drv2]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
 				UPDATE_D88_LIST(drv2, listD88[drv2]);
 				menu_fds[drv2]->do_update_inner_media(listD88[drv2], 1);
 			}
