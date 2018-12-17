@@ -83,7 +83,7 @@ private:
 	// display
 	uint8_t gcw;
 	bool vsup;
-	bool vsync, disp;
+	bool vsync, disp, blink;
 	int cblink;
 #if defined(_SMC777)
 	bool use_palette_text;
@@ -93,13 +93,18 @@ private:
 	} pal[16];
 #endif
 	uint8_t text[200][640];
-	uint8_t graph[200][640];
+	uint8_t graph[400][640];
 	scrntype_t palette_pc[16 + 16];	// color generator + palette board
+#if defined(_SMC70)
+	scrntype_t palette_bw_pc[2];
+#endif
 	
 	void draw_text_80x25();
 	void draw_text_40x25();
+	void draw_graph_640x400();
 	void draw_graph_640x200();
 	void draw_graph_320x200();
+	void draw_graph_160x100();
 	
 	// kanji rom
 	uint8_t kanji[0x23400];
@@ -110,6 +115,7 @@ private:
 	
 	// misc
 	bool ief_key, ief_vsync;
+	bool vsync_irq;
 	bool fdc_irq, fdc_drq;
 	bool drec_in;
 #if defined(_SMC70)

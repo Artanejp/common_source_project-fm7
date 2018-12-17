@@ -226,9 +226,6 @@
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 #define Z80_MEMORY_WAIT
 #endif
-#if defined(SUPPORT_PC98_OPNA) || defined(SUPPORT_PC88_OPNA)
-#define HAS_YM2608
-#endif
 #define I8259_MAX_CHIPS		2
 #define SINGLE_MODE_DMA
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467

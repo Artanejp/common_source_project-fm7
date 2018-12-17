@@ -22,7 +22,7 @@
 #define MAX_DRIVE		4
 
 // device informations for win32
-#define WINDOW_MODE_BASE	2
+#define WINDOW_MODE_BASE	3
 #define USE_SPECIAL_RESET
 #define USE_FLOPPY_DISK		4
 #define USE_TAPE		1

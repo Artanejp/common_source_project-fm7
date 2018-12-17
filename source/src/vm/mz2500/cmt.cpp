@@ -52,6 +52,7 @@ void CMT::reset()
 void CMT::fast_forward()
 {
 	if(play) {
+		d_drec->set_remote(false);
 		d_drec->set_ff_rew(1);
 		d_drec->set_remote(true);
 	}
@@ -61,6 +62,7 @@ void CMT::fast_forward()
 void CMT::fast_rewind()
 {
 	if(play) {
+		d_drec->set_remote(false);
 		d_drec->set_ff_rew(-1);
 		d_drec->set_remote(true);
 	}
@@ -71,6 +73,7 @@ void CMT::fast_rewind()
 void CMT::forward()
 {
 	if(play || rec) {
+		d_drec->set_remote(false);
 		d_drec->set_ff_rew(0);
 		d_drec->set_remote(true);
 	}
@@ -84,7 +87,7 @@ void CMT::stop()
 		d_drec->set_remote(false);
 	}
 	now_play = now_rewind = false;
-	d_pio->write_signal(SIG_I8255_PORT_B, 0, 0x40);
+	d_pio->write_signal(SIG_I8255_PORT_B, 0x00, 0x40);
 }
 
 void CMT::write_signal(int id, uint32_t data, uint32_t mask)
@@ -215,10 +218,10 @@ void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 		} else
 #endif
 		if(now_play) {
-			d_pio->write_signal(SIG_I8255_PORT_B, (data & mask) ? 0x40 : 0, 0x40);
+			d_pio->write_signal(SIG_I8255_PORT_B, (data & mask) ? 0x40 : 0x00, 0x40);
 		}
 	} else if(id == SIG_CMT_REMOTE) {
-		d_pio->write_signal(SIG_I8255_PORT_B, (data & mask) ? 0 : 8, 8);
+		d_pio->write_signal(SIG_I8255_PORT_B, (data & mask) ? 0x00 : 0x08, 0x08);
 	} else if(id == SIG_CMT_END) {
 		if((data & mask) && now_play) {
 #ifndef _MZ80B
@@ -279,7 +282,7 @@ void CMT::event_callback(int event_id, int err)
 		register_id_eject = -1;
 #ifndef _MZ80B
 	} else if(event_id == EVENT_APSS) {
-		d_pio->write_signal(SIG_I8255_PORT_B, 0, 0x40);
+		d_pio->write_signal(SIG_I8255_PORT_B, 0x00, 0x40);
 		register_id_apss = -1;
 #endif
 	} else if(event_id == EVENT_IPL) {
@@ -299,7 +302,7 @@ void CMT::rec_tape(bool value)
 {
 	play = false;
 	rec = value;
-	d_pio->write_signal(SIG_I8255_PORT_B, rec ? 0 : 0x30, 0x30);
+	d_pio->write_signal(SIG_I8255_PORT_B, rec ? 0x00 : 0x30, 0x30);
 }
 
 void CMT::close_tape()
@@ -307,7 +310,7 @@ void CMT::close_tape()
 	play = rec = false;
 	now_play = now_rewind = false;
 	d_pio->write_signal(SIG_I8255_PORT_B, 0x30, 0x30);
-	d_pio->write_signal(SIG_I8255_PORT_B, 0, 0x40);
+	d_pio->write_signal(SIG_I8255_PORT_B, 0x00, 0x40);
 	
 #ifndef _MZ80B
 	if(register_id_apss != -1) {

@@ -24,7 +24,7 @@
 #define HAS_UPD7201
 
 // device informations for win32
-#define WINDOW_MODE_BASE	3
+#define WINDOW_MODE_BASE	4
 #define USE_DIPSWITCH
 #define DIPSWITCH_DEFAULT	0x0f
 #define USE_FLOPPY_DISK		2

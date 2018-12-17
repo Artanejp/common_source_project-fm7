@@ -25,7 +25,7 @@
 #define MEMORY_BANK_SIZE	0x2000
 
 // device informations for win32
-#define WINDOW_MODE_BASE	2
+#define WINDOW_MODE_BASE	3
 #define USE_BOOT_MODE		2
 #define USE_TAPE		1
 #define USE_AUTO_KEY		5

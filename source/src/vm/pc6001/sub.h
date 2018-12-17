@@ -73,6 +73,10 @@ public:
 	{
 		d_timer = device;
 	}
+	bool play_tape(const _TCHAR* file_path)
+	{
+		return false;
+	}
 	bool rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool is_tape_inserted()

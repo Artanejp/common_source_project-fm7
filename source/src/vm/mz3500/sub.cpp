@@ -127,7 +127,7 @@ uint32_t SUB::read_io8(uint32_t addr)
 
 void SUB::event_frame()
 {
-	cblink++;
+	cblink = (cblink + 1) & 0x1f;
 }
 
 // display

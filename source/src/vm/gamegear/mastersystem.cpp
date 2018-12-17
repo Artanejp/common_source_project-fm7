@@ -314,16 +314,24 @@ bool VM::is_cart_inserted(int drv)
 ///	return fdc->read_signal(0);
 ///}
 
-///void VM::play_tape(int drv, const _TCHAR* file_path)
+//void VM::play_tape(int drv, const _TCHAR* file_path)
 ///{
-///	drec->play_tape(file_path);
-///	drec->set_remote(true);
+///	bool remote = drec->get_remote();
+///	
+///	if(drec->play_tape(file_path) && remote) {
+///		// if machine already sets remote on, start playing now
+///		push_play(drv);
+///	}
 ///}
 
 ///void VM::rec_tape(int drv, const _TCHAR* file_path)
 ///{
-///	drec->rec_tape(file_path);
-///	drec->set_remote(true);
+///	bool remote = drec->get_remote();
+///	
+///	if(drec->rec_tape(file_path) && remote) {
+///		// if machine already sets remote on, start recording now
+///		push_play(drv);
+///	}
 ///}
 
 ///void VM::close_tape(int drv)
@@ -361,6 +369,7 @@ bool VM::is_cart_inserted(int drv)
 
 ///void VM::push_play(int drv)
 ///{
+///	drec->set_remote(false);
 ///	drec->set_ff_rew(0);
 ///	drec->set_remote(true);
 ///}
@@ -372,12 +381,14 @@ bool VM::is_cart_inserted(int drv)
 
 ///void VM::push_fast_forward(int drv)
 ///{
+///	drec->set_remote(false);
 ///	drec->set_ff_rew(1);
 ///	drec->set_remote(true);
 ///}
 
 ///void VM::push_fast_rewind(int drv)
 ///{
+///	drec->set_remote(false);
 ///	drec->set_ff_rew(-1);
 ///	drec->set_remote(true);
 ///}

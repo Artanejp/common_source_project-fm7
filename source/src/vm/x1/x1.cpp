@@ -812,25 +812,37 @@ uint32_t VM::is_hard_disk_accessed()
 
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
-	bool value = drec->play_tape(file_path);
+	bool remote = drec->get_remote();
+	bool opened = drec->play_tape(file_path);
+	
+	if(opened && remote) {
+		// if machine already sets remote on, start playing now
+		push_play(drv);
+	}
 	if(pseudo_sub_cpu) {
 		psub->close_tape();
-		psub->play_tape(value);
+		psub->play_tape(opened);
 	} else {
 		sub->close_tape();
-		sub->play_tape(value);
+		sub->play_tape(opened);
 	}
 }
 
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
-	bool value = drec->rec_tape(file_path);
+	bool remote = drec->get_remote();
+	bool opened = drec->rec_tape(file_path);
+	
+	if(opened && remote) {
+		// if machine already sets remote on, start recording now
+		push_play(drv);
+	}
 	if(pseudo_sub_cpu) {
 		psub->close_tape();
-		psub->rec_tape(value);
+		psub->rec_tape(opened);
 	} else {
 		sub->close_tape();
-		sub->rec_tape(value);
+		sub->rec_tape(opened);
 	}
 }
 
@@ -839,6 +851,8 @@ void VM::close_tape(int drv)
 	emu->lock_vm();
 	drec->close_tape();
 	emu->unlock_vm();
+	drec->set_remote(false);
+	
 	if(pseudo_sub_cpu) {
 		psub->close_tape();
 	} else {
@@ -873,6 +887,7 @@ const _TCHAR* VM::get_tape_message(int drv)
 
 void VM::push_play(int drv)
 {
+	drec->set_remote(false);
 	drec->set_ff_rew(0);
 	drec->set_remote(true);
 }
@@ -884,12 +899,14 @@ void VM::push_stop(int drv)
 
 void VM::push_fast_forward(int drv)
 {
+	drec->set_remote(false);
 	drec->set_ff_rew(1);
 	drec->set_remote(true);
 }
 
 void VM::push_fast_rewind(int drv)
 {
+	drec->set_remote(false);
 	drec->set_ff_rew(-1);
 	drec->set_remote(true);
 }

@@ -279,7 +279,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	if(sound_type == 0 || sound_type == 1) {
 		opn = new YM2203(this, emu);
 #ifdef SUPPORT_PC98_OPNA
+		opn->set_device_name(_T("YM2608 OPNA (PC-9801-86)"));
 		opn->is_ym2608 = true;
+#else
+		opn->set_device_name(_T("YM2203 OPN (PC-9801-26)"));
+		opn->is_ym2608 = false;
 #endif
 		fmsound = new FMSOUND(this, emu);
 		joystick = new JOYSTICK(this, emu);
@@ -853,6 +857,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88opn->is_ym2608 = true;
 #else
 	pc88opn->set_device_name(_T("YM2203 OPN (PC-8801)"));
+	pc88opn->is_ym2608 = false;
 #endif
 	pc88opn->set_context_event_manager(pc88event);
 	pc88cpu = new Z80(this, emu);
@@ -1227,11 +1232,11 @@ void VM::initialize_sound(int rate, int samples)
 	beep->initialize_sound(rate, 8000);
 #endif
 	if(sound_type == 0 || sound_type == 1) {
-#ifdef HAS_YM2608
-		opn->initialize_sound(rate, 7987248, samples, 0, 0);
-#else
-		opn->initialize_sound(rate, 3993624, samples, 0, 0);
-#endif
+		if(opn->is_ym2608) {
+			opn->initialize_sound(rate, 7987248, samples, 0, 0);
+		} else {
+			opn->initialize_sound(rate, 3993624, samples, 0, 0);
+		}
 	} else if(sound_type == 2 || sound_type == 3) {
 		tms3631->initialize_sound(rate, 8000);
 	}
@@ -1241,11 +1246,11 @@ void VM::initialize_sound(int rate, int samples)
 	pc88event->initialize_sound(rate, samples);
 	
 	// init sound gen
-#ifdef HAS_YM2608
-	pc88opn->initialize_sound(rate, 7987248, samples, 0, 0);
-#else
-	pc88opn->initialize_sound(rate, 3993624, samples, 0, 0);
-#endif
+	if(pc88opn->is_ym2608) {
+		pc88opn->initialize_sound(rate, 7987248, samples, 0, 0);
+	} else {
+		pc88opn->initialize_sound(rate, 3993624, samples, 0, 0);
+	}
 	pc88pcm->initialize_sound(rate, 8000);
 #endif
 }
