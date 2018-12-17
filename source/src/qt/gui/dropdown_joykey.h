@@ -41,6 +41,7 @@ public slots:
 	void do_set_type_cursor();
 	void do_set_type_2468();
 	void do_set_type_1379();
+	void do_set_type_1235();
 
 signals:
 	

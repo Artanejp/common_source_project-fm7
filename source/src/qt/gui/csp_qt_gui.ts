@@ -38,13 +38,18 @@
         <translation>2468 + 1379</translation>
     </message>
     <message>
-        <location filename="dropdown_joykey.cpp" line="52"/>
+        <location filename="dropdown_joykey.cpp" line="36"/>
+        <source>1235</source>
+        <translation>1235</translation>
+    </message>
+    <message>
+        <location filename="dropdown_joykey.cpp" line="56"/>
         <source>Joykey Type:</source>
         <oldsource>&lt;B&gt;Joykey Type:&lt;/B&gt;</oldsource>
         <translation>ジョイスティック→キーボード&#x3000;変換方式:</translation>
     </message>
     <message>
-        <location filename="dropdown_joykey.cpp" line="62"/>
+        <location filename="dropdown_joykey.cpp" line="68"/>
         <source>Physical Buttons:</source>
         <oldsource>&lt;B&gt;Physical Buttons:&lt;/B&gt;</oldsource>
         <translation>物理ボタン:</translation>

@@ -272,7 +272,7 @@ typedef struct {
 	#if defined(USE_FIXED_CONFIG) || defined(USE_JOYSTICK)
 		int joy_buttons[4][16];
 		bool use_joy_to_key;
-		int joy_to_key_type;
+		int joy_to_key_type; // Note: ADD "1235" as type 3.20181218 K.O
 		bool joy_to_key_numpad5;
 		int joy_to_key_buttons[16];
 	#endif

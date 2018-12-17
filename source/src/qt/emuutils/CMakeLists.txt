@@ -13,7 +13,7 @@ set(s_qt_emuutils_srcs
 
 QT5_WRAP_CPP(s_qt_emuutils_headers_MOC ${s_qt_emuutils_headers})
 	
-SET(THIS_LIB_VERSION 2.14.2) 
+SET(THIS_LIB_VERSION 2.15.0) 
 
 add_definitions(-D__LIBEMU_UTIL_VERSION=\"libCSPemu_utils.${THIS_LIB_VERSION}\")
 

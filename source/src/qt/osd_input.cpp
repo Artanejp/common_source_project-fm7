@@ -161,6 +161,13 @@ void OSD_BASE::update_input()
 			case 0x01       : status[VK_NUMPAD8] = 1; break; // up
 			case 0x01 + 0x08: status[VK_NUMPAD9] = 1; break; // up-right
 			}
+		} else if(p_config->joy_to_key_type == 3) { // 1235			
+			static const int vk[] = {VK_NUMPAD5, VK_NUMPAD2, VK_NUMPAD1, VK_NUMPAD3};
+			for(int i = 0; i < 4; i++) {
+				if(joy_status[0] & (1 << i)) {
+					status[vk[i]] = 1;
+				}
+			}
 		}
 		if(p_config->joy_to_key_type == 1 || p_config->joy_to_key_type == 2) {
 			// numpad key
@@ -170,7 +177,16 @@ void OSD_BASE::update_input()
 					numpad_5_pressed = true;
 				}
 			}
+		} else if(p_config->joy_to_key_type == 3) {
+			// numpad key
+			if(p_config->joy_to_key_numpad5 && !(joy_status[0] & 0x0f)) {
+				if(!numpad_5_pressed) {
+					status[VK_NUMPAD8] = 1;
+					numpad_5_pressed = true;
+				}
+			}
 		}
+
 		for(int i = 0; i < 16; i++) {
 			if(joy_status[0] & (1 << (i + 4))) {
 				if(p_config->joy_to_key_buttons[i] < 0 && -p_config->joy_to_key_buttons[i] < 256) {
@@ -186,8 +202,14 @@ void OSD_BASE::update_input()
 						// do not keep key pressed
 						if(p_config->joy_to_key_numpad5 && (i >= VK_NUMPAD1 && i <= VK_NUMPAD9)) {
 							key_status[i] = KEY_KEEP_FRAMES;
-							if(numpad_5_pressed && (i != VK_NUMPAD5)) {
-								numpad_5_pressed = false;
+							if(p_config->joy_to_key_type == 3) {
+								if(numpad_5_pressed && (i != VK_NUMPAD8)) {
+									numpad_5_pressed = false;
+								}
+							} else if((p_config->joy_to_key_type == 1) || (p_config->joy_to_key_type == 2)) {
+								if(numpad_5_pressed && (i != VK_NUMPAD5)) {
+									numpad_5_pressed = false;
+								}
 							}
 						}
 					}
