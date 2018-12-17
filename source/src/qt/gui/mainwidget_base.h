@@ -203,6 +203,7 @@ private:
 	class Action_Control *action_FocusWithClick;
 	class Action_Control *action_UseRomaKana;
 	class Action_Control *action_NumPadEnterAsFullkey;
+	class Action_Control *action_UseJoykey;
 	class Action_Control *action_Logging_FDC;
 	class Action_Control *action_LogToSyslog;
 	class Action_Control *action_LogToConsole;
@@ -212,6 +213,7 @@ private:
 	class Action_Control *action_DevLogRecord[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
 	// Emulator
 	class Action_Control *action_SetupJoystick;
+	class Action_Control *action_SetupJoykey;
 	class Action_Control *action_SetupKeyboard;
 	class Action_Control *action_LogView;
 	class Action_Control *action_PrintCpuStatistics;
@@ -554,6 +556,7 @@ public slots:
 	void rise_log_viewer(void);
 	void rise_volume_dialog(void);
 	void rise_joystick_dialog(void);
+	void rise_joykey_dialog(void);
 	void rise_keyboard_dialog(void);
 	virtual void rise_movie_dialog(void);
 	void do_stop_saving_movie(void);
@@ -692,7 +695,7 @@ public slots:
 	void do_set_state_log_to_record(bool f);
 	void do_set_state_log_to_console(bool f);
 	void do_set_state_log_to_syslog(bool f);
-
+	void do_set_joy_to_key(bool flag);
 
 signals:
 	int message_changed(QString);

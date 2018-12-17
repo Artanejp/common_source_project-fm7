@@ -113,6 +113,9 @@ protected:
 	uint8_t key_status[256];	// windows key code mapping
 	uint8_t key_dik_prev[256];
 	uint8_t key_converted[256];
+	bool    joy_to_key_status[256];
+
+	bool numpad_5_pressed;
 	bool key_shift_pressed, key_shift_released;
 
 

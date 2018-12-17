@@ -53,8 +53,8 @@ CSP_DropDownJSPage::CSP_DropDownJSPage(USING_FLAGS *pp, QWidget *parent, QString
 		}
 	}
 	this->setLayout(layout);
-	connect(this, SIGNAL(sig_select_js_button(int, int, int)), parent, SLOT(do_set_js_button(int, int, int)));
-	connect(this, SIGNAL(sig_select_js_button_idx(int, int, int)), parent, SLOT(do_set_js_button_idx(int, int, int)));
+	connect(this, SIGNAL(sig_set_js_button(int, int, int)), parent, SLOT(do_set_js_button(int, int, int)));
+	connect(this, SIGNAL(sig_set_js_button_idx(int, int, int)), parent, SLOT(do_set_js_button_idx(int, int, int)));
 }
 
 CSP_DropDownJSPage::~CSP_DropDownJSPage()
@@ -62,46 +62,46 @@ CSP_DropDownJSPage::~CSP_DropDownJSPage()
 }
 
 
-void CSP_DropDownJSPage::do_select_up(int index)
+void CSP_DropDownJSPage::do_select_common(int index, int axes)
 {
 	if(index < 16) {
-		emit sig_select_js_button(bind_jsnum, 0, joystick_define_tbl[index].scan);
+		emit sig_set_js_button(bind_jsnum, axes, joystick_define_tbl[index].scan);
+	} else if(index < 20) {
+		emit sig_set_js_button(bind_jsnum, axes, ((joystick_define_tbl[index - 16].scan) >> 20) | ((index - 16 + 1) << 5));
+	} else if(index < 24) {
+		emit sig_set_js_button(bind_jsnum, axes, ((joystick_define_tbl[index - 16].scan) >> 24) | ((index - 16 + 1) << 5));
+	} else {		
+		emit sig_set_js_button_idx(bind_jsnum, axes, -(index - 24));
 	}
-	emit sig_select_js_button_idx(bind_jsnum, 0, -(index - 16));
+}
+void CSP_DropDownJSPage::do_select_up(int index)
+{
+	do_select_common(index, 0);
 }
 
 void CSP_DropDownJSPage::do_select_down(int index)
 {
-	if(index < 16) {
-		emit sig_select_js_button(bind_jsnum, 1, joystick_define_tbl[index].scan);
-	}
-	emit sig_select_js_button_idx(bind_jsnum, 1, -(index - 16));
+	do_select_common(index, 1);
 }
 
 void CSP_DropDownJSPage::do_select_left(int index)
 {
-	if(index < 16) {
-		emit sig_select_js_button(bind_jsnum, 2, joystick_define_tbl[index].scan);
-	}
-	emit sig_select_js_button_idx(bind_jsnum, 2, -(index - 16));
+	do_select_common(index, 2);
 }
 
 void CSP_DropDownJSPage::do_select_right(int index)
 {
-	if(index < 16) {
-		emit sig_select_js_button(bind_jsnum, 3, joystick_define_tbl[index].scan);
-	}
-	emit sig_select_js_button_idx(bind_jsnum, 3, -(index - 16));
+	do_select_common(index, 3);
 }
 
 void CSP_DropDownJSPage::do_select_js_button(int jsnum, int button, int scan)
 {
 	//printf("Select: %d %d %d\n", jsnum, button, scan);
-	emit sig_select_js_button(jsnum, button, scan);
+	emit sig_set_js_button(jsnum, button, scan);
 }
 
 void CSP_DropDownJSPage::do_select_js_button_idx(int jsnum, int button, int scan)
 {
-	emit sig_select_js_button_idx(jsnum, button, scan);
+	emit sig_set_js_button_idx(jsnum, button, scan);
 	//printf("Select_Idx: %d %d %d\n", jsnum, button, scan);
 }

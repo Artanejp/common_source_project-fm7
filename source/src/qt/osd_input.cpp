@@ -77,6 +77,10 @@ void OSD_BASE::initialize_input()
 	memset(key_converted, 0, sizeof(key_converted));
 	key_shift_pressed = key_shift_released = false;
 	lost_focus = false;
+	numpad_5_pressed = false;
+	for(int i = 0; i < 256; i++) {
+		joy_to_key_status[i] = false;
+	}
 }
 
 void OSD_BASE::release_input()
@@ -125,36 +129,80 @@ void OSD_BASE::update_input()
 				}
 				key_status[VK_LSHIFT] = key_status[VK_SHIFT] = 0;
 			}
-#if 0
-			if(key_status[VK_SHIFT] != 0) {
-			// shift key is newly released
-				key_status[VK_SHIFT] = 0;
-				key_status[VK_LSHIFT] = 0;
-				if(this->get_notify_key_down()) vm_key_up(VK_SHIFT);
-				// check l/r shift
-				if(!(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
-				if(!(GetAsyncKeyState(VK_RSHIFT) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
-			}
-			if(key_status[VK_LSHIFT] != 0) {
-				// shift key is newly released
-				key_status[VK_LSHIFT] = 0;
-			if(this->get_notify_key_down()) vm_key_up(VK_LSHIFT);
-			// check l/r shift
-			if(!(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
-			}
-			if(key_status[VK_RSHIFT] != 0) {
-				// shift key is newly released
-				key_status[VK_RSHIFT] = 0;
-				if(this->get_notify_key_down()) vm_key_up(VK_RSHIFT);
-				// check l/r shift
-				if(!(GetAsyncKeyState(VK_RSHIFT) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
-			}
-#endif
 		}
 		key_shift_pressed = key_shift_released = false;
 	}
-	
-	    
+	if(p_config->use_joy_to_key) {
+		int status[256] = {0};
+		if(p_config->joy_to_key_type == 0) { // Cursor
+			static const int vk[] = {VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT};
+			for(int i = 0; i < 4; i++) {
+				if(joy_status[0] & (1 << i)) {
+					status[vk[i]] = 1;
+				}
+			}
+		} else if(p_config->joy_to_key_type == 1) { // 2468			
+			static const int vk[] = {VK_NUMPAD8, VK_NUMPAD2, VK_NUMPAD4, VK_NUMPAD6};
+			for(int i = 0; i < 4; i++) {
+				if(joy_status[0] & (1 << i)) {
+					status[vk[i]] = 1;
+				}
+			}
+		} else if(p_config->joy_to_key_type == 2) { // 24681379
+			// numpad key (8-directions)
+			switch(joy_status[0] & 0x0f) {
+			case 0x02 + 0x04: status[VK_NUMPAD1] = 1; break; // down-left
+			case 0x02       : status[VK_NUMPAD2] = 1; break; // down
+			case 0x02 + 0x08: status[VK_NUMPAD3] = 1; break; // down-right
+			case 0x00 + 0x04: status[VK_NUMPAD4] = 1; break; // left
+//			case 0x00       : status[VK_NUMPAD5] = 1; break;
+			case 0x00 + 0x08: status[VK_NUMPAD6] = 1; break; // right
+			case 0x01 + 0x04: status[VK_NUMPAD7] = 1; break; // up-left
+			case 0x01       : status[VK_NUMPAD8] = 1; break; // up
+			case 0x01 + 0x08: status[VK_NUMPAD9] = 1; break; // up-right
+			}
+		}
+		if(p_config->joy_to_key_type == 1 || p_config->joy_to_key_type == 2) {
+			// numpad key
+			if(p_config->joy_to_key_numpad5 && !(joy_status[0] & 0x0f)) {
+				if(!numpad_5_pressed) {
+					status[VK_NUMPAD5] = 1;
+					numpad_5_pressed = true;
+				}
+			}
+		}
+		for(int i = 0; i < 16; i++) {
+			if(joy_status[0] & (1 << (i + 4))) {
+				if(p_config->joy_to_key_buttons[i] < 0 && -p_config->joy_to_key_buttons[i] < 256) {
+					status[-p_config->joy_to_key_buttons[i]] = 1;
+				}
+			}
+		}
+		for(int i = 0; i < 256; i++) {
+			if(status[i]) {
+				if(!joy_to_key_status[i]) {
+					if(!(key_status[i] & 0x80)) {
+						key_down_native(i, false);
+						// do not keep key pressed
+						if(p_config->joy_to_key_numpad5 && (i >= VK_NUMPAD1 && i <= VK_NUMPAD9)) {
+							key_status[i] = KEY_KEEP_FRAMES;
+							if(numpad_5_pressed && (i != VK_NUMPAD5)) {
+								numpad_5_pressed = false;
+							}
+						}
+					}
+					joy_to_key_status[i] = true;
+				}
+			} else {
+				if(joy_to_key_status[i]) {
+					if(key_status[i]) {
+						key_up_native(i);
+					}
+					joy_to_key_status[i] = false;
+				}
+			}
+		}
+	}		   			
 	// release keys
 	if(lost_focus && !now_auto_key) {
 		// we lost key focus so release all pressed keys
@@ -162,11 +210,9 @@ void OSD_BASE::update_input()
 			if(key_status[i] & 0x80) {
 				key_status[i] &= 0x7f;
 				release_flag = true;
-				//if(this->get_notify_key_down()) {
-					if(!key_status[i]) {
-						vm_key_up(i);
-					}
-				//}
+				if(!(key_status[i])) {
+					vm_key_up(i);
+				}
 			}
 		}
 	} else {
@@ -174,11 +220,9 @@ void OSD_BASE::update_input()
 			if(key_status[i] & 0x7f) {
 				key_status[i] = (key_status[i] & 0x80) | ((key_status[i] & 0x7f) - 1);
 				press_flag = true;
-				//if(this->get_notify_key_down()) {
-					if(!key_status[i]) {
-						vm_key_up(i);
-					}
-				//}
+				if(!(key_status[i]) && !(joy_to_key_status[i])) {
+					vm_key_up(i);
+				}
 			}
 		}
 	}

@@ -35,6 +35,7 @@ protected:
 	QLabel *label_button[12];
 	int bind_jsnum;
 	USING_FLAGS *using_flags;
+	void do_select_common(int index, int axes);
 public:
 	CSP_DropDownJSPage(USING_FLAGS *pp, QWidget *parent = 0, QStringList *lst = 0, int jsnum = 0);
 	~CSP_DropDownJSPage();
@@ -47,8 +48,8 @@ public slots:
 	void do_select_js_button(int jsnum, int button_num, int assigned_value);
 	void do_select_js_button_idx(int jsnum, int button_num, int assigned_value);
 signals:
-	int sig_select_js_button(int jsnum, int button_num, int assigned_value);
-	int sig_select_js_button_idx(int jsnum, int button_num, int assigned_value);
+	int sig_set_js_button(int jsnum, int button_num, int assigned_value);
+	int sig_set_js_button_idx(int jsnum, int button_num, int assigned_value);
 };	
 
 QT_END_NAMESPACE

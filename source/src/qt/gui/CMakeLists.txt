@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.17.0)
+set(THIS_LIB_VERSION 2.17.1)
 #include(cotire)
 #include(PrecompiledHeader)
 
@@ -34,6 +34,9 @@ set(s_qt_gui_headers
 	  dropdown_joystick.h
 	  dropdown_jsbutton.h
 	  dropdown_jspage.h
+
+	  dropdown_joykey.h
+	  dropdown_joykeybutton.h
 	  dialog_set_key.h
 	  dialog_set_key_combo.h
 	  dialog_movie.h
@@ -99,6 +102,10 @@ set(s_qt_gui_srcs
 	  dropdown_joystick.cpp
 	  dropdown_jsbutton.cpp
 	  dropdown_jspage.cpp
+
+	  dropdown_joykey.cpp
+	  dropdown_joykeybutton.cpp
+	  
 	  dialog_set_key.cpp
 	  dialog_set_key_combo.cpp
 	  dialog_movie.cpp

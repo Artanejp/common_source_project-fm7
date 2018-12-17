@@ -23,7 +23,7 @@ CSP_DropDownJSButton::CSP_DropDownJSButton(USING_FLAGS *p, QWidget *parent, QStr
 	layout = new QHBoxLayout(this);
 	combo = new QComboBox(this);	
 	int i;
-	for(i = 0; i < 16; i++) {
+	for(i = 0; i < (sizeof(joystick_define_tbl) / sizeof(keydef_table_t)) ; i++) {
 		combo->addItem(QString::fromUtf8(joystick_define_tbl[i].name));
 	}
 	if(lst != NULL) combo->addItems(*lst);

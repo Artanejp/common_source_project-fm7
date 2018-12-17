@@ -741,6 +741,7 @@ void Ui_MainWindowBase::setupUi(void)
 		graphicsView->do_set_screen_multiply(nd);
 	}
 	if(using_flags->is_use_joystick()) {
+		connect(action_SetupJoykey, SIGNAL(triggered()), this, SLOT(rise_joykey_dialog()));
 		connect(action_SetupJoystick, SIGNAL(triggered()), this, SLOT(rise_joystick_dialog()));
 	}
 
@@ -782,6 +783,7 @@ void Ui_MainWindowBase::setupUi(void)
 
 // Emulator
 #include "dropdown_joystick.h"
+#include "dropdown_joykey.h"
 #include "dialog_set_key.h"
 
 void Ui_MainWindowBase::retranslateEmulatorMenu(void)
@@ -789,6 +791,10 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick->setText(QApplication::translate("MenuEmulator", "Configure Joysticks", 0));
 		action_SetupJoystick->setToolTip(QApplication::translate("MenuEmulator", "Configure assigning buttons/directions of joysticks.", 0));
+		action_SetupJoykey->setText(QApplication::translate("MenuEmulator", "Configure Joystick to KEYBOARD", 0));
+		action_SetupJoykey->setToolTip(QApplication::translate("MenuEmulator", "Configure assigning keycode to joystick buttons.\nThis feature using Joystick #1.", 0));
+		action_UseJoykey->setText(QApplication::translate("MenuEmulator", "Joystick to KEYBOARD", 0));
+		action_UseJoykey->setToolTip(QApplication::translate("MenuEmulator", "Use Joystick axis/buttons to input keyboard.\nThis feature using Joystick #1.", 0));
 		action_SetupJoystick->setIcon(QIcon(":/icon_gamepad.png"));
 	}
 	if(using_flags->is_use_auto_key()) {
@@ -889,6 +895,11 @@ void Ui_MainWindowBase::do_set_numpad_enter_as_fullkey(bool flag)
 	p_config->numpad_enter_as_fullkey = flag;
 }
 
+void Ui_MainWindowBase::do_set_joy_to_key(bool flag)
+{
+	p_config->use_joy_to_key = flag;
+}
+
 void Ui_MainWindowBase::do_set_print_cpu_statistics(bool flag)
 {
 	p_config->print_statistics = flag;
@@ -904,6 +915,9 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	if(using_flags->is_use_auto_key()) {
 		menuEmulator->addAction(action_UseRomaKana);
 	}
+	if(using_flags->is_use_joystick()) {
+		menuEmulator->addAction(action_UseJoykey);
+	}		
 	menuEmulator->addAction(action_NumPadEnterAsFullkey);
 	menuEmulator->addSeparator();
 	menuEmulator->addAction(actionSpeed_FULL);
@@ -934,6 +948,7 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	
 	if(using_flags->is_use_joystick()) {
 		menuEmulator->addAction(action_SetupJoystick);
+		menuEmulator->addAction(action_SetupJoykey);
 	}
 	menuEmulator->addAction(action_SetupKeyboard);
 	menuEmulator->addAction(action_SetupMovie);
@@ -985,7 +1000,12 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	connect(action_DispVirtualMedias[0], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_none()));
 	connect(action_DispVirtualMedias[1], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_upper()));
 	connect(action_DispVirtualMedias[2], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_lower()));
-			
+
+	if(using_flags->is_use_joystick()) {
+		SET_ACTION_SINGLE(action_UseJoykey, true, true, (p_config->use_joy_to_key));
+		connect(action_UseJoykey, SIGNAL(toggled(bool)), this, SLOT(do_set_joy_to_key(bool)));
+	}
+	
 	if(using_flags->is_use_auto_key()) {
 		// ToDo: Setup if checked.
 		SET_ACTION_SINGLE(action_UseRomaKana, true, true, (p_config->romaji_to_kana)); 
@@ -1030,6 +1050,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick = new Action_Control(this, using_flags);
+		action_SetupJoykey = new Action_Control(this, using_flags);
 	}
 	if(using_flags->is_use_sound_files_fdd()) {
 		/*
@@ -1192,6 +1213,16 @@ void Ui_MainWindowBase::rise_joystick_dialog(void)
 		QStringList *lst = graphicsView->getVKNames();
 		CSP_DropDownJoysticks *dlg = new CSP_DropDownJoysticks(NULL, lst, using_flags);
 		dlg->setWindowTitle(QApplication::translate("CSP_DropDownJoysticks", "Configure Joysticks", 0));
+		dlg->show();
+	}
+}
+
+void Ui_MainWindowBase::rise_joykey_dialog(void)
+{
+	if(graphicsView != NULL) {
+		QStringList *lst = graphicsView->getVKNames();
+		CSP_DropDownJoykey *dlg = new CSP_DropDownJoykey(NULL, lst, using_flags);
+		dlg->setWindowTitle(QApplication::translate("CSP_DropDownJoysticks", "Configure Joystick to KEYBOARD", 0));
 		dlg->show();
 	}
 }

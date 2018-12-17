@@ -734,7 +734,7 @@ void OSD::set_features_vm(void)
 	add_feature(_T("BASE_BUBBLE_NUM"), (int)BASE_BUBBLE_NUM);
 #endif
 
-#ifndef KEY_KEEP_FRAMES
+#ifdef KEY_KEEP_FRAMES
 	add_feature(_T("KEY_KEEP_FRAMES"), (int)KEY_KEEP_FRAMES);
 #endif
 // End vm.h
