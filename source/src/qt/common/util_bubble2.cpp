@@ -1,10 +1,11 @@
-#include "mainwidget_base.h"
+#include "mainwidget.h"
 #include "commonclasses.h"
 #include "menu_bubble.h"
 
 #include "qt_dialogs.h"
 //#include "csp_logger.h"
 
+#if defined(USE_BUBBLE)
 
 #ifndef UPDATE_B77_LIST
 #define UPDATE_B77_LIST(__d, lst) { \
@@ -20,7 +21,7 @@
 }
 #endif
 
-int Ui_MainWindowBase::set_b77_slot(int drive, int num)
+int Ui_MainWindow::set_b77_slot(int drive, int num)
 {
 	QString path;
 	if((num < 0) || (num >= using_flags->get_max_b77_banks())) return -1;
@@ -38,7 +39,7 @@ int Ui_MainWindowBase::set_b77_slot(int drive, int num)
 	return 0;
 }
 
-void Ui_MainWindowBase::do_update_recent_bubble(int drv)
+void Ui_MainWindow::do_update_recent_bubble(int drv)
 {
 	int i;
 	menu_bubbles[drv]->do_update_histories(listBubbles[drv]);
@@ -51,7 +52,7 @@ void Ui_MainWindowBase::do_update_recent_bubble(int drv)
 }
 
 
-int Ui_MainWindowBase::set_recent_bubble(int drv, int num) 
+int Ui_MainWindow::set_recent_bubble(int drv, int num) 
 {
 	QString s_path;
 	char path_shadow[PATH_MAX];
@@ -79,7 +80,7 @@ int Ui_MainWindowBase::set_recent_bubble(int drv, int num)
 	return 0;
 }
 
-void Ui_MainWindowBase::_open_bubble(int drv, const QString fname)
+void Ui_MainWindow::_open_bubble(int drv, const QString fname)
 {
 	char path_shadow[PATH_MAX];
 	int i;
@@ -105,9 +106,11 @@ void Ui_MainWindowBase::_open_bubble(int drv, const QString fname)
 	}
 }
 
-void Ui_MainWindowBase::eject_bubble(int drv) 
+void Ui_MainWindow::eject_bubble(int drv) 
 {
 	int i;
 	emit sig_close_bubble(drv);
 	menu_bubbles[drv]->do_clear_inner_media();
 }
+
+#endif

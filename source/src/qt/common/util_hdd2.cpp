@@ -9,6 +9,7 @@
 
 #include "menu_flags.h"
 
+//#if defined(USE_HARD_DISK)
 //extern USING_FLAGS *using_flags;
 void Ui_MainWindowBase::do_update_recent_hard_disk(int drv)
 {
@@ -57,4 +58,4 @@ void Ui_MainWindowBase::_open_hard_disk(int drv, const QString fname)
 		menu_hdds[drv]->do_clear_inner_media();
 //	}
 }
-
+//#endif

@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.16.0)
+set(THIS_LIB_VERSION 2.17.0)
 #include(cotire)
 #include(PrecompiledHeader)
 
@@ -118,7 +118,7 @@ set(s_qt_gui_srcs
 	  menu_flags_tmpl.cpp
 	  ../common/util_fd2.cpp
 	  ../common/util_hdd2.cpp
-	  ../common/util_bubble2.cpp
+#	  ../common/util_bubble2.cpp
 #	  qt_main.cpp
 )
 add_definitions(-D__GUI_LIBRARY_NAME=\"libCSPgui.${THIS_LIB_VERSION}\")

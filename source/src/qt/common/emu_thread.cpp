@@ -677,7 +677,7 @@ bool EmuThreadClass::get_power_state(void)
 int EmuThreadClass::get_d88_file_cur_bank(int drive)
 {
 #ifdef USE_FLOPPY_DISK
-	if(drive > USE_FLOPPY_DISK) {
+	if(drive < USE_FLOPPY_DISK) {
 		QMutexLocker _locker(&uiMutex);
 		return p_emu->d88_file[drive].cur_bank;
 	}
@@ -688,7 +688,7 @@ int EmuThreadClass::get_d88_file_cur_bank(int drive)
 int EmuThreadClass::get_d88_file_bank_num(int drive)
 {
 #ifdef USE_FLOPPY_DISK
-	if(drive > USE_FLOPPY_DISK) {
+	if(drive < USE_FLOPPY_DISK) {
 		QMutexLocker _locker(&uiMutex);
 		return p_emu->d88_file[drive].bank_num;
 	}
@@ -701,7 +701,7 @@ QString EmuThreadClass::get_d88_file_disk_name(int drive, int banknum)
 {
 #ifdef USE_FLOPPY_DISK
 	if(drive < 0) return QString::fromUtf8("");
-	if((drive < USE_FLOPPY_DISK) && (banknum < get_d88_file_cur_bank(drive))) {
+	if((drive < USE_FLOPPY_DISK) && (banknum < get_d88_file_bank_num(drive))) {
 		QMutexLocker _locker(&uiMutex);
 		QString _n = QString::fromLocal8Bit((const char *)(&(p_emu->d88_file[drive].disk_name[banknum][0])));
 		return _n;

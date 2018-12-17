@@ -54,6 +54,13 @@ public:
 	QString get_build_date();
 
 public slots:
+#if defined(USE_BUBBLE)
+	int set_b77_slot(int drive, int num);
+	void do_update_recent_bubble(int drv);
+	int set_recent_bubble(int drv, int num);
+	void _open_bubble(int drv, const QString fname);
+	void eject_bubble(int drv);
+#endif
 //#if defined(USE_FLOPPY_DISK)
 //	void _open_disk(int drv, const QString fname);
 //	void do_update_recent_disk(int);

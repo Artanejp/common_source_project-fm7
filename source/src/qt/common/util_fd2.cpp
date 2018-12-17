@@ -4,9 +4,9 @@
 #include "menu_disk.h"
 #include "qt_dialogs.h"
 
-
 #include "menu_flags.h"
 
+//#if defined(USE_FLOPPY_DISK)
 
 #ifndef UPDATE_D88_LIST
 #define UPDATE_D88_LIST(__d, lst) { \
@@ -22,13 +22,16 @@
 }
 #endif
 
+
+//extern DLL_PREFIX_I EMU *emu;
 int Ui_MainWindowBase::set_d88_slot(int drive, int num)
 {
 	QString path;
 	if((num < 0) || (num >= 64)) return -1;
-#if 0
-	path = QString::fromUtf8(emu->d88_file[drive].path);
+	//path = QString::fromUtf8(emu->d88_file[drive].path);
+	path = hRunEmu->get_d88_file_path(drive);
 	menu_fds[drive]->do_select_inner_media(num);
+#if 0	
 	if(emu && emu->d88_file[drive].cur_bank != num) {
 		emit sig_open_disk(drive, path, num);
 		if(emu->is_floppy_disk_protected(drive)) {
@@ -38,19 +41,15 @@ int Ui_MainWindowBase::set_d88_slot(int drive, int num)
 		}
 	}
 #else
-	if(hRunEmu != NULL) {
-		path = hRunEmu->get_d88_file_path(drive);
-		menu_fds[drive]->do_select_inner_media(num);
-		if(hRunEmu->get_d88_file_cur_bank(drive) != num) {
-			emit sig_open_disk(drive, path, num);
-			if(hRunEmu->is_floppy_disk_protected(drive)) {
-				menu_fds[drive]->do_set_write_protect(true);
-			} else {
-				menu_fds[drive]->do_set_write_protect(false);
-			}
+	if(hRunEmu->get_d88_file_cur_bank(drive) != num) {
+		emit sig_open_disk(drive, path, num);
+		if(hRunEmu->is_floppy_disk_protected(drive)) {
+			menu_fds[drive]->do_set_write_protect(true);
+		} else {
+			menu_fds[drive]->do_set_write_protect(false);
 		}
 	}
-#endif
+#endif		
 	return 0;
 }
 
@@ -99,7 +98,8 @@ int Ui_MainWindowBase::set_recent_disk(int drv, int num)
 		if(using_flags->get_max_drive() >= 2) {
 			strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
 			if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
-				if(((drv & 1) == 0) && (drv + 1 < using_flags->get_max_drive()) && (1 < hRunEmu->get_d88_file_bank_num(drv))) {
+				if(((drv & 1) == 0) && ((drv + 1) < using_flags->get_max_drive()) && (1 < hRunEmu->get_d88_file_bank_num(drv))) {
+
 					int drv2 = drv + 1;
 					emit sig_close_disk(drv2);
 					emit sig_open_disk(drv2, s_path, 1);
@@ -127,7 +127,6 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
 //	if(emu) {
 		emit sig_close_disk(drv);
-		//emu->LockVM();
 		emit sig_open_disk(drv, fname, 0);
 		menu_fds[drv]->do_update_histories(listFDs[drv]);
 		menu_fds[drv]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
@@ -143,7 +142,6 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 			if(((drv & 1) == 0) && (drv + 1 < using_flags->get_max_drive()) && (1 < hRunEmu->get_d88_file_bank_num(drv))) {
 				int drv2 = drv + 1;
 				emit sig_close_disk(drv2);
-				//emu->LockVM();
 				strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
 				emit sig_open_disk(drv2, fname, 1);
 				menu_fds[drv2]->do_update_histories(listFDs[drv2]);
@@ -155,4 +153,4 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 	}
 }
 
-
+//#endif

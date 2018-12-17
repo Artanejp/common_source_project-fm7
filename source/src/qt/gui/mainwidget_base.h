@@ -620,15 +620,23 @@ public slots:
 	int write_protect_fd(int drv, bool flag);
 	void eject_fd(int drv);
 	void eject_hard_disk(int drv);
-		// Bubble Casette
+	// Bubble Casette
 	int write_protect_bubble(int drv, bool flag);
 
-	int set_b77_slot(int drive, int num);
-	void do_update_recent_bubble(int drv);
-	int set_recent_bubble(int drv, int num);
-	void _open_bubble(int drv, const QString fname);
-	void eject_bubble(int drv);
+	virtual int set_b77_slot(int drive, int num) { return 0; }
+	virtual void do_update_recent_bubble(int drv) { }
+	virtual int set_recent_bubble(int drv, int num) { return 0; }
+	virtual void _open_bubble(int drv, const QString fname) { }
+	virtual void eject_bubble(int drv) { }
+	
+	void _open_disk(int drv, const QString fname);
+	void do_update_recent_disk(int);
+	int set_d88_slot(int drive, int num);
+	int set_recent_disk(int, int);
 
+	void _open_hard_disk(int drv, const QString fname);
+	void do_update_recent_hard_disk(int);
+	int set_recent_hard_disk(int, int);
 
 	void start_record_sound(bool rec);
 	void set_freq(int);
@@ -685,15 +693,6 @@ public slots:
 	void do_set_state_log_to_console(bool f);
 	void do_set_state_log_to_syslog(bool f);
 
-	// HDD
-	void _open_hard_disk(int drv, const QString fname);
-	void do_update_recent_hard_disk(int);
-	int set_recent_hard_disk(int, int);
-	// FDD
-	void _open_disk(int drv, const QString fname);
-	void do_update_recent_disk(int);
-	int set_d88_slot(int drive, int num);
-	int set_recent_disk(int, int);
 
 signals:
 	int message_changed(QString);
