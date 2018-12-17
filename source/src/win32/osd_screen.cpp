@@ -71,24 +71,34 @@ void OSD::release_screen()
 	release_screen_buffer(&video_screen_buffer);
 }
 
+double OSD::get_window_mode_power(int mode)
+{
+	if(mode + WINDOW_MODE_BASE == 2) {
+		return 1.5;
+	} else if(mode + WINDOW_MODE_BASE > 2) {
+		return mode + WINDOW_MODE_BASE - 1;
+	}
+	return mode + WINDOW_MODE_BASE;
+}
+
 int OSD::get_window_mode_width(int mode)
 {
 //#ifdef USE_SCREEN_ROTATE
 	if(config.rotate_type == 1 || config.rotate_type == 3) {
-		return (config.window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * (mode + WINDOW_MODE_BASE);
+		return (int)((config.window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * get_window_mode_power(mode));
 	}
 //#endif
-	return (config.window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * (mode + WINDOW_MODE_BASE);
+	return (int)((config.window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * get_window_mode_power(mode));
 }
 
 int OSD::get_window_mode_height(int mode)
 {
 //#ifdef USE_SCREEN_ROTATE
 	if(config.rotate_type == 1 || config.rotate_type == 3) {
-		return (config.window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * (mode + WINDOW_MODE_BASE);
+		return (int)((config.window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * get_window_mode_power(mode));
 	}
 //#endif
-	return (config.window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * (mode + WINDOW_MODE_BASE);
+	return (int)((config.window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * get_window_mode_power(mode));
 }
 
 void OSD::set_host_window_size(int window_width, int window_height, bool window_mode)

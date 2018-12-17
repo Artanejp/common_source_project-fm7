@@ -69,6 +69,7 @@ void SCSI_CDROM::reset()
 	event_cdda_delay_play = -1;
 	event_delay_interrupt = -1;
 	SCSI_DEV::reset();
+	read_mode = false;
 	set_cdda_status(CDDA_OFF);
 	read_sectors = 0;
 	// Q: Does not seek to track 0? 20181118 K.O
@@ -423,6 +424,13 @@ void SCSI_CDROM::start_command()
 		} else {
 			seek_time = 10.0;
 		}
+		break;
+		
+	case SCSI_CMD_MODE_SEL6:
+		#ifdef _SCSI_DEBUG_LOG
+			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: NEC Read Mode Select 6-byte\n"), scsi_id);
+		#endif
+		read_mode = (command[4] != 0);
 		break;
 		
 	case 0xd8:
@@ -1395,6 +1403,7 @@ bool SCSI_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(event_delay_interrupt);
 	state_fio->StateValue(read_sectors);
 //	state_fio->StateValue(mix_loop_num);
+	state_fio->StateValue(read_mode);
 	state_fio->StateValue(volume_m);
 	if(loading) {
 		offset = state_fio->FgetUint32_LE();

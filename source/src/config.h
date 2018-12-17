@@ -264,9 +264,17 @@ typedef struct {
 	int sound_volume_l[MAX_VOLUME_TMP];
 	int sound_volume_r[MAX_VOLUME_TMP];
 #endif
+ 	#if defined(USE_SHARED_DLL) || defined(_WIN32) && !defined(_USE_QT)
+		_TCHAR mame2151_dll_path[_MAX_PATH];
+		_TCHAR mame2608_dll_path[_MAX_PATH];
+ 	#endif
 	// input
 	#if defined(USE_FIXED_CONFIG) || defined(USE_JOYSTICK)
 		int joy_buttons[4][16];
+		bool use_joy_to_key;
+		int joy_to_key_type;
+		bool joy_to_key_numpad5;
+		int joy_to_key_buttons[16];
 	#endif
 	#if defined(USE_FIXED_CONFIG) || defined(USE_AUTO_KEY)
 		bool romaji_to_kana;
@@ -281,7 +289,6 @@ typedef struct {
 	bool print_statistics;
 
 #if defined(_WIN32) && !defined(_USE_QT)
-	_TCHAR fmgen_dll_path[_MAX_PATH];
 	bool use_direct_input;
 	bool disable_dwm;
 

@@ -284,6 +284,7 @@ public:
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 	
 	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int id);
 	void set_intr_line(bool line, bool pending, uint32_t bit)
 	{
 		uint32_t mask = 1 << bit;

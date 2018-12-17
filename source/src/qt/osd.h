@@ -90,6 +90,7 @@ public:
 	void release_screen();
 	int get_window_mode_width(int mode);
 	int get_window_mode_height(int mode);
+	double get_window_mode_power(int mode);
 	QString get_vm_config_name(void);
 	double vm_frame_rate(void);
 

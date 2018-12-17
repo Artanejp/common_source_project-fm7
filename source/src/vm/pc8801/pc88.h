@@ -21,7 +21,10 @@
 #ifdef SUPPORT_PC88_SB2
 #define SIG_PC88_SB2_IRQ	2
 #endif
-#define SIG_PC88_USART_OUT	3
+#ifdef SUPPORT_PC88_CDROM
+#define SIG_PC88_SCSI_DRQ	3
+#endif
+#define SIG_PC88_USART_OUT	4
 
 #define CMT_BUFFER_SIZE		0x40000
 
@@ -35,6 +38,10 @@
 
 class YM2203;
 class Z80;
+#ifdef SUPPORT_PC88_CDROM
+class SCSI_HOST;
+//class SCSI_CDROM;
+#endif
 
 namespace PC88DEV {
 typedef struct {
@@ -108,6 +115,13 @@ private:
 #endif
 	Z80 *d_cpu;
 	DEVICE *d_pcm, *d_pio, *d_prn, *d_rtc, *d_sio;
+#ifdef SUPPORT_PC88_CDROM
+	SCSI_HOST* d_scsi_host;
+//	SCSI_CDROM* d_scsi_cdrom;
+#endif
+#ifdef SUPPORT_PC88_HMB20
+	DEVICE *d_opm;
+#endif
 #ifdef SUPPORT_PC88_PCG8100
 	DEVICE *d_pcg_pit, *d_pcg_pcm0, *d_pcg_pcm1, *d_pcg_pcm2;
 #endif
@@ -136,6 +150,10 @@ private:
 	uint8_t kanji2[0x20000];
 #ifdef SUPPORT_PC88_DICTIONARY
 	uint8_t dicrom[0x80000];
+#endif
+#ifdef SUPPORT_PC88_CDROM
+	uint8_t cdbios[0x10000];
+	bool cdbios_loaded;
 #endif
 	
 	// i/o port
@@ -177,22 +195,27 @@ private:
 	int busreq_clocks;
 	
 	// screen
-	struct {
+	typedef struct palette_s {
 		uint8_t b, r, g;
-	} palette[9];
+	} palette_t;
+	palette_t palette[10]; // 8 = digital back color, 9 = analog back color
 	bool update_palette;
 	bool hireso;
 	
 	uint8_t sg_pattern[0x800];
-	uint8_t text[200][640];
-	uint8_t text_color[200][80];
-	bool text_reverse[200][80];
+	uint8_t text[400][640];
 	uint8_t graph[400][640];
-	scrntype_t palette_text_pc[9];	// 0 = back color for attrib mode, 8 = black
-	scrntype_t palette_graph_pc[9];
-	scrntype_t line_palette_text_pc[400][9];
-	scrntype_t line_palette_graph_pc[400][9];
 	
+	palette_t palette_digital[9];
+	palette_t palette_analog [9];
+	palette_t palette_line_digital[400][9];
+	palette_t palette_line_analog [400][9];
+	bool palette_line_changed[400];
+#if defined(SUPPORT_PC88_VAB)
+	scrntype_t palette_vab_pc[0x10000];
+#endif
+	
+	int get_char_height();
 	void draw_text();
 #if defined(_PC8001SR)
 	bool draw_320x200_color_graph();
@@ -341,6 +364,22 @@ public:
 	{
 		d_sio = device;
 	}
+#ifdef SUPPORT_PC88_CDROM
+	void set_context_scsi_host(SCSI_HOST* device)
+	{
+		d_scsi_host = device;
+	}
+//	void set_context_scsi_cdrom(SCSI_CDROM* device)
+//	{
+//		d_scsi_cdrom = device;
+//	}
+#endif
+#ifdef SUPPORT_PC88_HMB20
+	void set_context_opm(DEVICE* device)
+	{
+		d_opm = device;
+	}
+#endif
 #ifdef SUPPORT_PC88_PCG8100
 	void set_context_pcg_pit(DEVICE* device)
 	{

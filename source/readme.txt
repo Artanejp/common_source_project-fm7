@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								9/30/2018								
+								12/9/2018								
 
 --- What's this ?
 
@@ -467,6 +467,7 @@ Save/Load State info:
 - vm/pc8801/pc88.*
 	M88 by Mr.CISC
 	XM8 by Mr.PI.
+	X88000 by Mr.Manuke
 	MESS PC-8801 driver
 - vm/pc9801/display.*
 	Neko Project 2 by Mr.Yui

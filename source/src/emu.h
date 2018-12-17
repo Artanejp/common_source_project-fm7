@@ -271,6 +271,7 @@ public:
 	bool is_mouse_enabled();
 #endif	
 	// screen
+	double get_window_mode_power(int mode);
 	int get_window_mode_width(int mode);
 	int get_window_mode_height(int mode);
 	void set_host_window_size(int window_width, int window_height, bool window_mode);

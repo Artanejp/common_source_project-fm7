@@ -96,6 +96,13 @@
 #define IDC_JOYSTICK_PARAM15            213
 #define IDC_JOYSTICK_RESET              214
 
+#define IDD_JOYTOKEY                    221
+#define IDC_JOYTOKEY_CHECK0             222
+#define IDC_JOYTOKEY_CHECK1             223
+#define IDC_JOYTOKEY_RADIO0             224
+#define IDC_JOYTOKEY_RADIO1             225
+#define IDC_JOYTOKEY_RADIO2             226
+
 #define ID_STATUS                       1001
 #define ID_BUTTON                       1002
 
@@ -361,6 +368,7 @@
 #define ID_INPUT_JOYSTICK5              41606
 #define ID_INPUT_JOYSTICK6              41607
 #define ID_INPUT_JOYSTICK7              41608
+#define ID_INPUT_JOYTOKEY               41609
 #define ID_INPUT_MENU_END               41609
 
 #define ID_CAPTURE_MENU_START           41701

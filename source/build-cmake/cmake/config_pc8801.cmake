@@ -64,6 +64,12 @@ elseif(BUILD_PC8801MA)
   set(EXEC_TARGET emupc8801ma)
   add_definitions(-D_PC8801MA)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc8801ma.qrc)
+  set(VMFILES_LIB ${VMFILES_LIB}
+            ym2151.cpp
+  )      
+  set(VMFILES ${VMFILES}
+            scsi_dev.cpp scsi_cdrom.cpp scsi_host.cpp
+  )      
 endif()
 
 add_definitions(-DPC88_EXRAM_BANKS=${PC88_EXTRAM_PAGES})

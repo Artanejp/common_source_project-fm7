@@ -2029,6 +2029,15 @@ void Z80_BASE::write_signal(int id, uint32_t data, uint32_t mask)
 //#endif
 }
 
+uint32_t Z80_BASE::read_signal(int id)
+{
+	if(id == SIG_CPU_IRQ) {
+		return intr_req_bit;
+	}
+	return 0;
+}
+
+
 int Z80_BASE::run(int clock)
 {
 	if(extra_icount > 0) {

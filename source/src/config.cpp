@@ -138,9 +138,14 @@ void initialize_config()
 	#ifdef USE_JOYSTICK
 		for(int i = 0; i < 4; i++) {
 			for(int j = 0; j < 16; j++) {
-				config.joy_buttons[i][j] = (i << 4) | j;
+				config.joy_buttons[i][j] = (i << 5) | j;
 			}
 		}
+		config.use_joy_to_key = false;
+		config.joy_to_key_type = 2;
+		config.joy_to_key_numpad5 = false;
+		config.joy_to_key_buttons[0] = -('Z');
+		config.joy_to_key_buttons[1] = -('X');
 	#endif
 	// debug
 	config.special_debug_fdc = false;
@@ -397,16 +402,35 @@ void load_config(const _TCHAR *config_path)
 			#endif
 		}
 	#endif
-	#if defined(_WIN32) && !defined(_USE_QT)
-		MyGetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
-	#endif
 	
+	#if defined(_WIN32) && !defined(_USE_QT)
+		// for compatibilities
+		#ifdef _X1_H_
+			MyGetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mame2151.dll"), config.mame2151_dll_path, _MAX_PATH, config_path);
+			my_tcscpy_s(config.mame2608_dll_path, _MAX_PATH, _T("mamefm.dll"));
+		#else
+			MyGetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.mame2608_dll_path, _MAX_PATH, config_path);
+			my_tcscpy_s(config.mame2151_dll_path, _MAX_PATH, _T("mame2151.dll"));
+		#endif
+		MyGetPrivateProfileString(_T("Sound"), _T("YM2151GenDll"), config.mame2151_dll_path, config.mame2151_dll_path, _MAX_PATH, config_path);
+		MyGetPrivateProfileString(_T("Sound"), _T("YM2608GenDll"), config.mame2608_dll_path, config.mame2608_dll_path, _MAX_PATH, config_path);
+ 	#endif
+
 	// input
 	#ifdef USE_JOYSTICK
 		for(int i = 0; i < 4; i++) {
 			for(int j = 0; j < 16; j++) {
-				config.joy_buttons[i][j] = MyGetPrivateProfileInt(_T("Input"), create_string(_T("JoyButtons%d_%d"), i + 1, j + 1), config.joy_buttons[i][j], config_path);
-			}
+				int old = (i << 4) | j;
+				old = MyGetPrivateProfileInt(_T("Input"), create_string(_T("JoyButtons%d_%d"), i + 1, j + 1), old, config_path);
+				old = ((old >> 4) << 5) | (old & 0x0f);
+				config.joy_buttons[i][j] = MyGetPrivateProfileInt(_T("Input"), create_string(_T("JoyButtonsEx%d_%d"), i + 1, j + 1), old, config_path);
+ 			}
+ 		}
+		config.use_joy_to_key = MyGetPrivateProfileBool(_T("Input"), _T("UseJoyToKey"), config.use_joy_to_key, config_path);
+		config.joy_to_key_type = MyGetPrivateProfileInt(_T("Input"), _T("JoyToKeyType"), config.joy_to_key_type, config_path);
+		config.joy_to_key_numpad5 = MyGetPrivateProfileBool(_T("Input"), _T("JoyToKeyNumPad5"), config.joy_to_key_numpad5, config_path);
+		for(int i = 0; i < 16; i++) {
+			config.joy_to_key_buttons[i] = MyGetPrivateProfileInt(_T("Input"), create_string(_T("JoyToKeyButtons%d"), i + 1), config.joy_to_key_buttons[i], config_path);
 		}
 	#endif
 	// debug
@@ -745,15 +769,22 @@ void save_config(const _TCHAR *config_path)
 		}
 	#endif
 	#if defined(_WIN32) && !defined(_USE_QT)
-		MyWritePrivateProfileString(_T("Sound"), _T("FMGenDll"), config.fmgen_dll_path, config_path);
+		MyWritePrivateProfileString(_T("Sound"), _T("YM2151GenDll"), config.mame2151_dll_path, config_path);
+		MyWritePrivateProfileString(_T("Sound"), _T("YM2608GenDll"), config.mame2608_dll_path, config_path);
 	#endif
 	
 	// input
 	#ifdef USE_JOYSTICK
 		for(int i = 0; i < 4; i++) {
 			for(int j = 0; j < 16; j++) {
-				MyWritePrivateProfileInt(_T("Input"), create_string(_T("JoyButtons%d_%d"), i + 1, j + 1), config.joy_buttons[i][j], config_path);
+				MyWritePrivateProfileInt(_T("Input"), create_string(_T("JoyButtonsEx%d_%d"), i + 1, j + 1), config.joy_buttons[i][j], config_path);
 			}
+		}
+		MyWritePrivateProfileBool(_T("Input"), _T("UseJoyToKey"), config.use_joy_to_key, config_path);
+		MyWritePrivateProfileInt(_T("Input"), _T("JoyToKeyType"), config.joy_to_key_type, config_path);
+		MyWritePrivateProfileBool(_T("Input"), _T("JoyToKeyNumPad5"), config.joy_to_key_numpad5, config_path);
+		for(int i = 0; i < 16; i++) {
+			MyWritePrivateProfileInt(_T("Input"), create_string(_T("JoyToKeyButtons%d"), i + 1), config.joy_to_key_buttons[i], config_path);
 		}
 	#endif
 

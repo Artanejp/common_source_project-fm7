@@ -1,3 +1,4 @@
+
 /*
 	NEC PC-8801MA Emulator 'ePC-8801MA'
 	NEC PC-8001mkIISR Emulator 'ePC-8001mkIISR'
@@ -31,6 +32,15 @@
 #include "../debugger.h"
 #endif
 
+#ifdef SUPPORT_PC88_CDROM
+#include "../scsi_cdrom.h"
+#include "../scsi_host.h"
+#endif
+
+#ifdef SUPPORT_PC88_HMB20
+#include "../ym2151.h"
+#endif
+
 #ifdef SUPPORT_PC88_PCG8100
 #include "../i8253.h"
 #endif
@@ -38,7 +48,6 @@
 #include "pc88.h"
 
 using PC88DEV::PC88;
-
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -53,17 +62,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	
 	pc88event = new EVENT(this, emu);
-	pc88event->set_device_name(_T("Event Manager (PC-8801)"));
+//	pc88event->set_device_name(_T("Event Manager (PC-8801)"));
 //	pc88event->set_frames_per_sec(60);
 //	pc88event->set_lines_per_frame(260);
-	dummy->set_device_name(_T("1st Dummy"));
+	
 	pc88 = new PC88(this, emu);
-
-  #if defined(_PC8001) || defined(_PC8001MK2) || defined(_PC8001SR)
-	pc88->set_device_name(_T("PC8001 MAIN"));
-  #else
-	pc88->set_device_name(_T("PC8801 MAIN"));
-  #endif
 //	pc88->set_context_event_manager(pc88event);
 	pc88sio = new I8251(this, emu);
 //	pc88sio->set_device_name(_T("8251 SIO (PC-8801)"));
@@ -92,8 +95,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		pc88opn->is_ym2608 = true;
 		pc88opn->set_device_name(_T("YM2608 OPNA"));
 	} else {
+#endif
 		pc88opn->is_ym2608 = false;
 		pc88opn->set_device_name(_T("YM2203 OPN"));
+#ifdef SUPPORT_PC88_OPNA
 	}
 #endif
 #ifdef SUPPORT_PC88_SB2
@@ -105,8 +110,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 			pc88sb2->is_ym2608 = true;
 			pc88sb2->set_device_name(_T("YM2608 OPNA (SB2)"));
 		} else {
-			pc88sb2->is_ym2608 = false;
 #endif
+			pc88sb2->is_ym2608 = false;
 			pc88sb2->set_device_name(_T("YM2203 OPN (SB2)"));
 #ifdef SUPPORT_PC88_OPNA
 		}
@@ -125,12 +130,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	} else {
 		pc88prn = dummy;
 	}
-
-	dummycpu = new DEVICE(this, emu);
 	pc88cpu = new Z80(this, emu);
 //	pc88cpu->set_context_event_manager(pc88event);
-	dummycpu->set_device_name(_T("DUMMY CPU"));
-	pc88cpu->set_device_name(_T("MAIN CPU(Z80)"));
 	
 	pc88sub = new PC80S31K(this, emu);
 	pc88sub->set_device_name(_T("PC-80S31K (Sub)"));
@@ -150,23 +151,35 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88cpu_sub = new Z80(this, emu);
 	pc88cpu_sub->set_device_name(_T("Z80 CPU (Sub)"));
 //	pc88cpu_sub->set_context_event_manager(pc88event);
-
-#ifdef SUPPORT_PC88_PCG8100
-	pc88pit = new I8253(this, emu);
-//	pc88pit->set_context_event_manager(pc88event);
-	pc88pcm0 = new PCM1BIT(this, emu);
-//	pc88pcm0->set_context_event_manager(pc88event);
-	pc88pcm1 = new PCM1BIT(this, emu);
-//	pc88pcm1->set_context_event_manager(pc88event);
-	pc88pcm2 = new PCM1BIT(this, emu);
-//	pc88pcm2->set_context_event_manager(pc88event);
-	pc88pit->set_device_name(_T("i8253 PIT (PCG8100)"));
-	pc88pcm0->set_device_name(_T("SOUND #1 (PCG8100)"));
-	pc88pcm1->set_device_name(_T("SOUND #2 (PCG8100)"));
-	pc88pcm2->set_device_name(_T("SOUND #3 (PCG8100)"));
+	
+#ifdef SUPPORT_PC88_CDROM
+	pc88scsi_host = new SCSI_HOST(this, emu);
+//	pc88scsi_host->set_context_event_manager(pc88event);
+	pc88scsi_cdrom = new SCSI_CDROM(this, emu);
+//	pc88scsi_cdrom->set_context_event_manager(pc88event);
 #endif
 	
-	pc88event->set_context_cpu(dummycpu, 3993624 / 4);
+#ifdef SUPPORT_PC88_HMB20
+	pc88opm = new YM2151(this, emu);
+	pc88opm->set_device_name(_T("YM2151 OPM (HMB20)"));
+//	pc88opm->set_context_event_manager(pc88event);
+#endif
+	
+#ifdef SUPPORT_PC88_PCG8100
+	pc88pit = new I8253(this, emu);
+	pc88pit->set_device_name(_T("8253 PIT (PCG8100)"));
+//	pc88pit->set_context_event_manager(pc88event);
+	pc88pcm0 = new PCM1BIT(this, emu);
+	pc88pcm0->set_device_name(_T("1-Bit PCM Sound (PCG8100 #1)"));
+//	pc88pcm0->set_context_event_manager(pc88event);
+	pc88pcm1 = new PCM1BIT(this, emu);
+	pc88pcm1->set_device_name(_T("1-Bit PCM Sound (PCG8100 #2)"));
+//	pc88pcm1->set_context_event_manager(pc88event);
+	pc88pcm2 = new PCM1BIT(this, emu);
+	pc88pcm2->set_device_name(_T("1-Bit PCM Sound (PCG8100 #3)"));
+//	pc88pcm2->set_context_event_manager(pc88event);
+#endif
+	
 #ifdef SUPPORT_PC88_HIGH_CLOCK
 	pc88event->set_context_cpu(pc88cpu, (config.cpu_type == 1) ? 3993624 : 7987248);
 #else
@@ -180,6 +193,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	}
 #endif
 	pc88event->set_context_sound(pc88pcm);
+#ifdef SUPPORT_PC88_CDROM
+	pc88event->set_context_sound(pc88scsi_cdrom);
+#endif
+#ifdef SUPPORT_PC88_HMB20
+	pc88event->set_context_sound(pc88opm);
+#endif
 #ifdef SUPPORT_PC88_PCG8100
 	pc88event->set_context_sound(pc88pcm0);
 	pc88event->set_context_sound(pc88pcm1);
@@ -188,6 +207,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88event->set_context_sound(pc88noise_seek);
 	pc88event->set_context_sound(pc88noise_head_down);
 	pc88event->set_context_sound(pc88noise_head_up);
+	
 	pc88->set_context_cpu(pc88cpu);
 	pc88->set_context_opn(pc88opn);
 #ifdef SUPPORT_PC88_SB2
@@ -198,6 +218,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88->set_context_prn(pc88prn);
 	pc88->set_context_rtc(pc88rtc);
 	pc88->set_context_sio(pc88sio);
+#ifdef SUPPORT_PC88_CDROM
+	pc88->set_context_scsi_host(pc88scsi_host);
+//	pc88->set_context_scsi_cdrom(pc88scsi_cdrom);
+#endif
+#ifdef SUPPORT_PC88_HMB20
+	pc88->set_context_opm(pc88opm);
+#endif
 #ifdef SUPPORT_PC88_PCG8100
 	pc88->set_context_pcg_pit(pc88pit);
 	pc88->set_context_pcg_pcm0(pc88pcm0);
@@ -243,6 +270,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88cpu_sub->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	
+#ifdef SUPPORT_PC88_CDROM
+	pc88scsi_cdrom->scsi_id = 0;
+	pc88scsi_cdrom->set_context_interface(pc88scsi_host);
+	pc88scsi_host->set_context_target(pc88scsi_cdrom);
+	pc88scsi_host->set_context_drq(pc88, SIG_PC88_SCSI_DRQ, 1);
+#endif
 #ifdef SUPPORT_PC88_PCG8100
 	pc88pit->set_context_ch0(pc88pcm0, SIG_PCM1BIT_SIGNAL, 1);
 	pc88pit->set_context_ch1(pc88pcm1, SIG_PCM1BIT_SIGNAL, 1);
@@ -251,14 +284,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88pit->set_constant_clock(1, 3993624);
 	pc88pit->set_constant_clock(2, 3993624);
 #endif
+	
 	// initialize all devices
-#if defined(__GIT_REPO_VERSION)
-	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
-#endif
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-
 }
 
 VM::~VM()
@@ -347,23 +377,24 @@ void VM::initialize_sound(int rate, int samples)
 	pc88event->initialize_sound(rate, samples);
 	
 	// init sound gen
-#ifdef SUPPORT_PC88_OPNA
 	if(pc88opn->is_ym2608) {
 		pc88opn->initialize_sound(rate, 7987248, samples, 0, 0);
-	} else
-#endif
-	pc88opn->initialize_sound(rate, 3993624, samples, 0, 0);
+	} else {
+		pc88opn->initialize_sound(rate, 3993624, samples, 0, 0);
+	}
 #ifdef SUPPORT_PC88_SB2
 	if(pc88sb2 != NULL) {
-#ifdef SUPPORT_PC88_OPNA
 		if(pc88sb2->is_ym2608) {
 			pc88sb2->initialize_sound(rate, 7987248, samples, 0, 0);
-		} else
-#endif
-		pc88sb2->initialize_sound(rate, 3993624, samples, 0, 0);
+		} else {
+			pc88sb2->initialize_sound(rate, 3993624, samples, 0, 0);
+		}
 	}
 #endif
 	pc88pcm->initialize_sound(rate, 8000);
+#ifdef SUPPORT_PC88_HMB20
+	pc88opm->initialize_sound(rate, 4000000, samples, 0);
+#endif
 #ifdef SUPPORT_PC88_PCG8100
 	pc88pcm0->initialize_sound(rate, 8000);
 	pc88pcm1->initialize_sound(rate, 8000);
@@ -413,6 +444,14 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 			pc88sb2->set_volume(3, decibel_l, decibel_r);
 		}
 #endif
+#endif
+#ifdef SUPPORT_PC88_CDROM
+	} else if(ch-- == 0) {
+		pc88scsi_cdrom->set_volume(0, decibel_l, decibel_r);
+#endif
+#ifdef SUPPORT_PC88_HMB20
+	} else if(ch-- == 0) {
+		pc88opm->set_volume(0, decibel_l, decibel_r);
 #endif
 #ifdef SUPPORT_PC88_PCG8100
 	} else if(ch-- == 0) {
@@ -506,6 +545,28 @@ bool VM::is_tape_inserted(int drv)
 {
 	return pc88->is_tape_inserted();
 }
+
+#ifdef SUPPORT_PC88_CDROM
+void VM::open_compact_disc(int drv, const _TCHAR* file_path)
+{
+	pc88scsi_cdrom->open(file_path);
+}
+
+void VM::close_compact_disc(int drv)
+{
+	pc88scsi_cdrom->close();
+}
+
+bool VM::is_compact_disc_inserted(int drv)
+{
+	return pc88scsi_cdrom->mounted();
+}
+
+uint32_t VM::is_compact_disc_accessed()
+{
+	return pc88scsi_cdrom->accessed();
+}
+#endif
 
 bool VM::is_frame_skippable()
 {

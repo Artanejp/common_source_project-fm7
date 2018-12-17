@@ -1,3 +1,65 @@
+12/9/2018
+
+[VM/SCSI_CDROM] add vendor specific command for NEC CD-ROM^2
+
+[PC8801/PC88] support CD-ROM drive (thanks M88/cdif)
+[PC8801/PC88] support Video Art Boad (thanks X88000)
+
+
+12/5/2018
+
+[VM/MB8877] improve reset() to finish previous command and reset fdc completely
+[VM/Z80] add read_signal() to read irq status
+
+[PC8801/PC88] improve to render scan line with black if color graphic mode
+[SMC70/MEMORY] support 640x400 and 160x100 graphic mode
+[SMC777/MEMORY] fix issue that text blink is not working
+[SMC777/MEMORY] improve inport 21h to read vsync irq status
+[SMC777/MEMORY] improve inport 51h to read cursor and space keys as joystick #1
+[VM/*] improve tape interfaces for each virtual machine
+
+
+12/4/2018
+
+[CONFIG] remove fmgen_dll_path and add mame2151_dll_path/mame2608_dll_path
+
+[VM/YM2203] remove HAS_YM2608 and YM2203_PORT_MODE to simplify code
+
+[PC8801] support HMB-20 sound board
+
+
+12/2/2018-2
+
+[PC8801/PC88] fix text/graph renderer again (thanks Mr.Bookworm)
+
+
+12/2/2018
+
+[PC8801/PC88] fix not to apply reverse attribute to monochrome graphic screen
+
+
+12/1/2018
+
+[PC8801] enable/disable drawing scan line when monitor type is hireso/standard
+[PC8801/PC88] improve text attributes/rederer (thanks ePC-8801MA‰ü)
+[PC8801/PC88] fix analog back color
+[PC8801/PC88] improve routine to change palette for each scan line
+
+
+11/28/2018
+
+[WIN32/INPUT] support joystick with multiple axes and hat key
+[WIN32/INPUT] improve joystick to keyboard function for numpad key 5
+
+
+11/27/2018
+
+[WIN32/INPUT] support joystick to keyboard function
+[WIN32/SCREEN] support Window x1.5 mode
+
+[PC8801/PC88] support PC key, that is mapped to F11
+
+
 11/23/2018
 
 [VM/I386] improve i386_limit_check to consider data size

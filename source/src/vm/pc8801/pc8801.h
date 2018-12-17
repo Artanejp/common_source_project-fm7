@@ -35,7 +35,16 @@
 #define SUPPORT_PC88_HIGH_CLOCK
 #define SUPPORT_PC88_OPNA
 #define SUPPORT_PC88_SB2
+#define SUPPORT_PC88_CDROM
+#define SUPPORT_PC88_VAB
+#define SUPPORT_PC88_HMB20
+#if defined(SUPPORT_PC88_VAB)
+// X88000
+#define PC88_EXRAM_BANKS	8
+#define PC88_VAB_PAGE		1
+#else
 #define PC88_EXRAM_BANKS	4
+#endif
 #define HAS_UPD4990A
 #endif
 #define SUPPORT_PC88_JOYSTICK
@@ -53,8 +62,9 @@
 #if defined(_PC8801MA)
 #define PC80S31K_NO_WAIT
 #endif
-#if defined(SUPPORT_PC88_OPNA) || defined(SUPPORT_PC88_SB2)
-#define HAS_YM2608
+#if defined(SUPPORT_PC88_CDROM)
+#define SCSI_HOST_AUTO_ACK
+#define SCSI_DEV_IMMEDIATE_SELECT
 #endif
 #define Z80_MEMORY_WAIT
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467
@@ -77,6 +87,9 @@
 #define USE_FLOPPY_DISK		2
 #define USE_TAPE		1
 #define TAPE_BINARY_ONLY
+#if defined(SUPPORT_PC88_CDROM)
+#define USE_COMPACT_DISC	1
+#endif
 #define USE_KEY_LOCKED
 // slow enough for N88-“ú–{ŒêBASIC
 #define USE_AUTO_KEY		8
@@ -92,23 +105,49 @@
 #define USE_SOUND_TYPE		2
 #endif
 #endif
-#if    defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
-#define USE_SOUND_VOLUME	(4 + 4 + 1 + 1 + 1)
-#elif  defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
-#define USE_SOUND_VOLUME	(4 + 4 + 0 + 1 + 1)
-#elif  defined(SUPPORT_PC88_OPNA) && !defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
-#define USE_SOUND_VOLUME	(4 + 0 + 1 + 1 + 1)
-#elif  defined(SUPPORT_PC88_OPNA) && !defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
-#define USE_SOUND_VOLUME	(4 + 0 + 0 + 1 + 1)
-#elif !defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
-#define USE_SOUND_VOLUME	(2 + 2 + 1 + 1 + 1)
-#elif !defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
-#define USE_SOUND_VOLUME	(2 + 2 + 0 + 1 + 1)
-#elif !defined(SUPPORT_PC88_OPNA) && !defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
-#define USE_SOUND_VOLUME	(2 + 0 + 1 + 1 + 1)
-#elif !defined(SUPPORT_PC88_OPNA) && !defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
-#define USE_SOUND_VOLUME	(2 + 0 + 0 + 1 + 1)
+
+#undef _SOUNDS_OPN
+#undef _SOUNDS_SB2
+#undef _SOUNDS_PCG8100
+#undef _SOUNDS_CDROM
+#undef _SOUNDS_HMB20
+#undef _SOUNDS_BEEP
+#undef _SOUNDS_NOISE
+
+#if defined(SUPPORT_PC88_OPNA)
+	#define _SOUNDS_OPN 4
+#else /* ToDo: PC8001 without OPN/OPNA */
+	#define _SOUNDS_OPN 2
 #endif
+#if defined(SUPPORT_PC88_SB2)
+	#if defined(SUPPORT_PC88_OPNA)
+	#define _SOUNDS_SB2 4
+	#else /* SB2=OPN */
+	#define _SOUNDS_SB2 2
+	#endif
+#else /* Have not SB2 */
+	#define _SOUNDS_SB2 0
+#endif
+#if defined(SUPPORT_PC88_PCG8100)
+	#define _SOUNDS_PCG8100 1
+#else
+	#define _SOUNDS_PCG8100 0
+#endif
+#if defined(SUPPORT_PC88_CDROM)
+	#define _SOUNDS_CDROM 1
+#else
+	#define _SOUNDS_CDROM 0
+#endif
+#if defined(SUPPORT_PC88_HMB20)
+	#define _SOUNDS_HMB20 1
+#else
+	#define _SOUNDS_HMB20 0
+#endif
+#define _SOUNDS_BEEP 1
+#define _SOUNDS_NOISE 1
+
+#define USE_SOUND_VOLUME (_SOUNDS_OPN + _SOUNDS_SB2 + _SOUNDS_PCG8100 + _SOUNDS_CDROM + _SOUNDS_HMB20 + _SOUNDS_BEEP + _SOUNDS_NOISE)
+
 
 #define SUPPORT_TV_RENDER
 #define USE_JOYSTICK
@@ -124,7 +163,7 @@
 #include "../vm_template.h"
 
 #ifdef USE_SOUND_VOLUME
-static const _TCHAR *sound_device_caption[] = {
+static const _TCHAR *sound_device_caption[USE_SOUND_VOLUME] = {
 #ifdef SUPPORT_PC88_OPNA
 	_T("OPNA (FM)"), _T("OPNA (PSG)"), _T("OPNA (ADPCM)"), _T("OPNA (Rhythm)"),
 #else
@@ -136,6 +175,12 @@ static const _TCHAR *sound_device_caption[] = {
 #else
 	_T("SB2 (FM)"), _T("SB2 (PSG)"),
 #endif
+#endif
+#ifdef SUPPORT_PC88_CDROM
+	_T("CD-DA"),
+#endif
+#ifdef SUPPORT_PC88_HMB20
+	_T("HMB-20"),
 #endif
 #ifdef SUPPORT_PC88_PCG8100
 	_T("PCG-8100"),
@@ -158,6 +203,15 @@ class Z80;
 
 class PC80S31K;
 class UPD765A;
+
+#ifdef SUPPORT_PC88_CDROM
+class SCSI_HOST;
+class SCSI_CDROM;
+#endif
+
+#ifdef SUPPORT_PC88_HMB20
+class YM2151;
+#endif
 
 #ifdef SUPPORT_PC88_PCG8100
 class I8253;
@@ -193,6 +247,16 @@ protected:
 	NOISE* pc88noise_head_down;
 	NOISE* pc88noise_head_up;
 	Z80* pc88cpu_sub;
+
+#ifdef SUPPORT_PC88_CDROM
+	SCSI_HOST* pc88scsi_host;
+	SCSI_CDROM* pc88scsi_cdrom;
+#endif
+
+#ifdef SUPPORT_PC88_HMB20
+	YM2151* pc88opm;
+#endif
+	
 #ifdef SUPPORT_PC88_PCG8100
 	I8253* pc88pit;
 	PCM1BIT* pc88pcm0;
@@ -254,6 +318,12 @@ public:
 	void rec_tape(int drv, const _TCHAR* file_path);
 	void close_tape(int drv);
 	bool is_tape_inserted(int drv);
+#ifdef SUPPORT_PC88_CDROM
+	void open_compact_disc(int drv, const _TCHAR* file_path);
+	void close_compact_disc(int drv);
+	bool is_compact_disc_inserted(int drv);
+	uint32_t is_compact_disc_accessed();
+#endif
 	bool is_frame_skippable();
 	
 	void update_config();

@@ -154,7 +154,9 @@ public:
 		d_noise_seek = NULL;
 		d_noise_head_down = NULL;
 		d_noise_head_up = NULL;
-		motor_on = false;
+		// these parameters may be modified before calling initialize()
+		drvreg = sidereg = 0;
+		motor_on = drive_sel = false;
 		//
 		fdc_debug_log = invert_registers = type_fm77av_2dd = false;
 		type_mb8866 = type_mb89311 = false;

@@ -138,6 +138,7 @@ BOOL CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
 #endif
 #ifdef USE_JOYSTICK
 BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK JoyToKeyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
 #endif
 
 // buttons
@@ -967,6 +968,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			{
 				LONG index = LOWORD(wParam) - ID_INPUT_JOYSTICK0;
 				DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_JOYSTICK), hWnd, JoyWndProc, (LPARAM)&index);
+			}
+			break;
+		case ID_INPUT_JOYTOKEY:
+			{
+				LONG index = 0;
+				DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_JOYTOKEY), hWnd, JoyToKeyWndProc, (LPARAM)&index);
 			}
 			break;
 #endif
@@ -1861,7 +1868,12 @@ void update_host_screen_menu(HMENU hMenu)
 	}
 	for(int i = 0; i < MAX_WINDOW; i++) {
 		if(i == 0 || (emu && emu->get_window_mode_width(i) <= desktop_width && emu->get_window_mode_height(i) <= desktop_height)) {
-			my_stprintf_s(buf, 64, _T("Window x%d"), i + 1);
+			double power = emu->get_window_mode_power(i);
+			if(power == (double)(int)power) {
+				my_stprintf_s(buf, 64, _T("Window x%d"), (int)power);
+			} else {
+				my_stprintf_s(buf, 64, _T("Window x%.1f"), power); // x1.5
+			}
 			InsertMenu(hMenu, position++, MF_BYPOSITION | MF_STRING, ID_SCREEN_WINDOW + i, buf);
 			last = ID_SCREEN_WINDOW + i;
 		}
@@ -3255,7 +3267,7 @@ static const _TCHAR *vk_names[] = {
 	_T("VK_NONAME"),		_T("VK_PA1"),			_T("VK_OEM_CLEAR"),		_T("VK_$FF"),			
 };
 
-static const _TCHAR *joy_button_names[16] = {
+static const _TCHAR *joy_button_names[32] = {
 	_T("Up"),
 	_T("Down"),
 	_T("Left"),
@@ -3272,6 +3284,22 @@ static const _TCHAR *joy_button_names[16] = {
 	_T("Button #10"),
 	_T("Button #11"),
 	_T("Button #12"),
+	_T("Button #13"),
+	_T("Button #14"),
+	_T("Button #15"),
+	_T("Button #16"),
+	_T("Z-Axis Low"),
+	_T("Z-Axis High"),
+	_T("R-Axis Low"),
+	_T("R-Axis High"),
+	_T("U-Axis Low"),
+	_T("U-Axis High"),
+	_T("V-Axis Low"),
+	_T("V-Axis High"),
+	_T("POV 0deg"),
+	_T("POV 90deg"),
+	_T("POV 180deg"),
+	_T("POV 270deg"),
 };
 
 HWND hJoyDlg;
@@ -3281,6 +3309,13 @@ int joy_stick_index;
 int joy_button_index;
 int joy_button_params[16];
 uint32_t joy_status[4];
+
+#define get_joy_range(min_value, max_value, lo_value, hi_value) \
+{ \
+	uint64_t center = ((uint64_t)min_value + (uint64_t)max_value) / 2; \
+	lo_value = (DWORD)((center + (uint64_t)min_value) / 2); \
+	hi_value = (DWORD)((center + (uint64_t)max_value) / 2); \
+}
 
 uint32_t get_joy_status(int index)
 {
@@ -3292,12 +3327,62 @@ uint32_t get_joy_status(int index)
 		joyinfo.dwSize = sizeof(JOYINFOEX);
 		joyinfo.dwFlags = JOY_RETURNALL;
 		if(joyGetPosEx(index, &joyinfo) == JOYERR_NOERROR) {
-			if(joyinfo.dwYpos < 0x3fff) status |= 0x01;
-			if(joyinfo.dwYpos > 0xbfff) status |= 0x02;
-			if(joyinfo.dwXpos < 0x3fff) status |= 0x04;
-			if(joyinfo.dwXpos > 0xbfff) status |= 0x08;
-			uint32_t mask = (1 << joycaps.wNumButtons) - 1;
-			status |= ((joyinfo.dwButtons & mask) << 4);
+			if(joycaps.wNumAxes >= 2) {
+				DWORD dwYposLo, dwYposHi;
+				get_joy_range(joycaps.wYmin, joycaps.wYmax, dwYposLo, dwYposHi);
+				if(joyinfo.dwYpos < dwYposLo) status |= 0x00000001;	// up
+				if(joyinfo.dwYpos > dwYposHi) status |= 0x00000002;	// down
+			}
+			if(joycaps.wNumAxes >= 1) {
+				DWORD dwXposLo, dwXposHi;
+				get_joy_range(joycaps.wXmin, joycaps.wXmax, dwXposLo, dwXposHi);
+				if(joyinfo.dwXpos < dwXposLo) status |= 0x00000004;	// left
+				if(joyinfo.dwXpos > dwXposHi) status |= 0x00000008;	// right
+			}
+			if(joycaps.wNumAxes >= 3) {
+				DWORD dwZposLo, dwZposHi;
+				get_joy_range(joycaps.wZmin, joycaps.wZmax, dwZposLo, dwZposHi);
+				if(joyinfo.dwZpos < dwZposLo) status |= 0x00100000;
+				if(joyinfo.dwZpos > dwZposHi) status |= 0x00200000;
+			}
+			if(joycaps.wNumAxes >= 4) {
+				DWORD dwRposLo, dwRposHi;
+				get_joy_range(joycaps.wRmin, joycaps.wRmax, dwRposLo, dwRposHi);
+				if(joyinfo.dwRpos < dwRposLo) status |= 0x00400000;
+				if(joyinfo.dwRpos > dwRposHi) status |= 0x00800000;
+			}
+			if(joycaps.wNumAxes >= 5) {
+				DWORD dwUposLo, dwUposHi;
+				get_joy_range(joycaps.wUmin, joycaps.wUmax, dwUposLo, dwUposHi);
+				if(joyinfo.dwUpos < dwUposLo) status |= 0x01000000;
+				if(joyinfo.dwUpos > dwUposHi) status |= 0x02000000;
+			}
+			if(joycaps.wNumAxes >= 6) {
+				DWORD dwVposLo, dwVposHi;
+				get_joy_range(joycaps.wVmin, joycaps.wVmax, dwVposLo, dwVposHi);
+				if(joyinfo.dwVpos < dwVposLo) status |= 0x04000000;
+				if(joyinfo.dwVpos > dwVposHi) status |= 0x08000000;
+			}
+			if(joyinfo.dwPOV != 0xffff) {
+				static const uint32_t dir[8] = {
+					0x10000000 + 0x00000000,
+					0x10000000 + 0x20000000,
+					0x00000000 + 0x20000000,
+					0x40000000 + 0x20000000,
+					0x40000000 + 0x00000000,
+					0x40000000 + 0x80000000,
+					0x00000000 + 0x80000000,
+					0x10000000 + 0x80000000,
+				};
+				for(int i = 0; i < 9; i++) {
+					if(joyinfo.dwPOV < (DWORD)(2250 + 4500 * i)) {
+						status |= dir[i & 7];
+						break;
+					}
+				}
+			}
+			DWORD dwButtonsMask = (1 << min(16, joycaps.wNumButtons)) - 1;
+			status |= ((joyinfo.dwButtons & dwButtonsMask) << 4);
 		}
 	}
 	return status;
@@ -3307,8 +3392,10 @@ void set_joy_button_text(int index)
 {
 	if(joy_button_params[index] < 0) {
 		SetDlgItemText(hJoyDlg, IDC_JOYSTICK_PARAM0 + index, vk_names[-joy_button_params[index]]);
+	} else if(joy_stick_index == -1) {
+			SetDlgItemText(hJoyDlg, IDC_JOYSTICK_PARAM0 + index, _T("(None)"));
 	} else {
-		SetDlgItemText(hJoyDlg, IDC_JOYSTICK_PARAM0 + index, create_string(_T("Joystick #%d - %s"), (joy_button_params[index] >> 4) + 1, joy_button_names[joy_button_params[index] & 15]));
+		SetDlgItemText(hJoyDlg, IDC_JOYSTICK_PARAM0 + index, create_string(_T("Joystick #%d - %s"), (joy_button_params[index] >> 5) + 1, joy_button_names[joy_button_params[index] & 0x1f]));
 	}
 }
 
@@ -3329,7 +3416,11 @@ LRESULT CALLBACK JoySubProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		return 0L;
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
-		joy_button_params[index] = -(int)LOBYTE(wParam);
+		if(joy_stick_index == -1 && LOBYTE(wParam) == VK_BACK) {
+			joy_button_params[index] = 0;
+		} else {
+			joy_button_params[index] = -(int)LOBYTE(wParam);
+		}
 		set_joy_button_text(index);
 		if(hJoyEdit[++index] == NULL) {
 			index = 0;
@@ -3382,7 +3473,7 @@ BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break;
 		case IDC_JOYSTICK_RESET:
 			for(int i = 0; i < 16; i++) {
-				joy_button_params[i] = (joy_stick_index << 4) | i;
+				joy_button_params[i] = (joy_stick_index << 5) | i;
 				set_joy_button_text(i);
 			}
 			break;
@@ -3393,15 +3484,95 @@ BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	case WM_TIMER:
 		for(int i = 0; i < 4; i++) {
 			uint32_t status = get_joy_status(i);
-			for(int j = 0; j < 16; j++) {
+			for(int j = 0; j < 32; j++) {
 				uint32_t bit = 1 << j;
-				if(!(joy_status[i] & bit) && (status & bit)) {
-					joy_button_params[joy_button_index] = (i << 4) | j;
+				if((joy_status[i] & bit) && !(status & bit)) {
+					joy_button_params[joy_button_index] = (i << 5) | j;
 					set_joy_button_text(joy_button_index);
 					if(hJoyEdit[++joy_button_index] == NULL) {
 						joy_button_index = 0;
 					}
 					SetFocus(hJoyEdit[joy_button_index]);
+					break;
+				}
+			}
+			joy_status[i] = status;
+		}
+		break;
+	default:
+		return FALSE;
+	}
+	return TRUE;
+}
+
+BOOL CALLBACK JoyToKeyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch(iMsg) {
+	case WM_CLOSE:
+		EndDialog(hDlg, IDCANCEL);
+		break;
+	case WM_INITDIALOG:
+		hJoyDlg = hDlg;
+		joy_stick_index = -1;//(int)(*(LONG*)lParam);
+//		SetWindowText(hDlg, create_string(_T("Joystick To Keyboard #%d"), joy_stick_index + 1));
+		SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_CHECK0), BM_SETCHECK, (WPARAM)config.use_joy_to_key, 0L);
+		SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO0), BM_SETCHECK, (WPARAM)(config.joy_to_key_type == 0), 0L);
+		SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO1), BM_SETCHECK, (WPARAM)(config.joy_to_key_type == 1), 0L);
+		SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO2), BM_SETCHECK, (WPARAM)(config.joy_to_key_type == 2), 0L);
+		SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_CHECK1), BM_SETCHECK, (WPARAM)config.joy_to_key_numpad5, 0L);
+		for(int i = 0; i < 16; i++) {
+			joy_button_params[i] = config.joy_to_key_buttons[i];
+			if((hJoyEdit[i] = GetDlgItem(hDlg, IDC_JOYSTICK_PARAM0 + i)) != NULL) {
+				set_joy_button_text(i);
+				JoyOldProc[i] = (WNDPROC)GetWindowLong(hJoyEdit[i], GWL_WNDPROC);
+				SetWindowLong(hJoyEdit[i], GWL_WNDPROC, (LONG)JoySubProc);
+			}
+		}
+		memset(joy_status, 0, sizeof(joy_status));
+		SetTimer(hDlg, 1, 100, NULL);
+		break;
+	case WM_COMMAND:
+		switch(LOWORD(wParam)) {
+		case IDOK:
+			config.use_joy_to_key = (IsDlgButtonChecked(hDlg, IDC_JOYTOKEY_CHECK0) == BST_CHECKED);
+			if(IsDlgButtonChecked(hDlg, IDC_JOYTOKEY_RADIO0) == BST_CHECKED) {
+				config.joy_to_key_type = 0;
+			} else if(IsDlgButtonChecked(hDlg, IDC_JOYTOKEY_RADIO1) == BST_CHECKED) {
+				config.joy_to_key_type = 1;
+			} else {
+				config.joy_to_key_type = 2;
+			}
+			config.joy_to_key_numpad5 = (IsDlgButtonChecked(hDlg, IDC_JOYTOKEY_CHECK1) == BST_CHECKED);
+			for(int i = 0; i < 16; i++) {
+				config.joy_to_key_buttons[i] = joy_button_params[i];
+			}
+			EndDialog(hDlg, IDOK);
+			break;
+		case IDC_JOYSTICK_RESET:
+			SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_CHECK0), BM_SETCHECK, (WPARAM)false, 0L);
+			SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO0), BM_SETCHECK, (WPARAM)false, 0L);
+			SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO1), BM_SETCHECK, (WPARAM)false, 0L);
+			SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO2), BM_SETCHECK, (WPARAM)true,  0L);
+			SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_CHECK1), BM_SETCHECK, (WPARAM)false, 0L);
+			for(int i = 0; i < 16; i++) {
+				joy_button_params[i] = (i == 0) ? -('Z') : (i == 1) ? -('X') : 0;
+				set_joy_button_text(i);
+			}
+			break;
+		default:
+			return FALSE;
+		}
+		break;
+	case WM_TIMER:
+		for(int i = 0; i < 1; i++) {
+			uint32_t status = get_joy_status(i);
+			for(int j = 0; j < 16; j++) {
+				uint32_t bit = 1 << (j + 4);
+				if((joy_status[i] & bit) && !(status & bit)) {
+					if(hJoyEdit[j] != NULL) {
+						joy_button_index = j;
+						SetFocus(hJoyEdit[joy_button_index]);
+					}
 					break;
 				}
 			}

@@ -238,17 +238,15 @@ void MB8877::initialize()
 		d_noise_head_up->set_mute(!config.sound_noise_fdd);
 	}
 	
-	// initialize timing
+	// initialize fdc
 	memset(fdc, 0, sizeof(fdc));
 	for(int i = 0; i < 16; i++) {
 		fdc[i].track = 40;  // OK?
 		fdc[i].count_immediate = false;
 	}
-	// initialize fdc
-	seektrk = 0;
-	seekvct = true;
-	status = cmdreg = trkreg = secreg = datareg = sidereg = cmdtype = 0;
-	drvreg = 0;
+//	drvreg = sidereg = 0;
+	cmdtype = 0;
+//	motor_on = drive_sel = false;
 	prev_drq_clock = seekend_clock = 0;
 }
 
@@ -265,17 +263,34 @@ void MB8877::release()
 
 void MB8877::reset()
 {
-	for(int i = 0; i < _max_drive; i++) {
-		fdc[i].track = 0; // Not Hold to track 20180506 K.O
-		fdc[i].index = 0;
-		fdc[i].access = false;
-	}
+	// finish previous command
+	if(cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC) {
+		// abort write sector command
+		if(sector_changed) {
+			disk[drvreg]->set_data_crc_error(false);
+		}
+	} else if(cmdtype == FDC_CMD_WR_TRK) {
+		// abort write track command
+		if(!disk[drvreg]->write_protected) {
+			if(fdc[drvreg].id_written && !fdc[drvreg].sector_found) {
+				// data mark of last sector is not written
+				disk[drvreg]->set_data_mark_missing();
+			}
+			disk[drvreg]->sync_buffer();
+		}
+ 	}
+	
+	// single events are automatically canceled in event manager
 	for(int i = 0; i < (int)array_length(register_id); i++) {
 		register_id[i] = -1;
 	}
-	now_search = now_seek = drive_sel = false;
-	no_command = 0;
 	
+	// reset fdc
+	memset(fdc, 0, sizeof(fdc));
+	status = status_tmp = cmdreg = cmdreg_tmp = trkreg = secreg = datareg = cmdtype = 0;
+	now_search = now_seek = sector_changed = false;
+	no_command = seektrk = 0;
+	seekvct = false;
 //#ifdef HAS_MB89311
 	if(type_mb89311) {
 		extended_mode = true;

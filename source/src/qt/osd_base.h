@@ -334,6 +334,7 @@ public:
 	// common screen
 	int get_window_mode_width(int mode);
 	int get_window_mode_height(int mode);
+	double get_window_mode_power(int mode);
 	void set_host_window_size(int window_width, int window_height, bool window_mode);
 	void set_vm_screen_size(int width, int height, int width_aspect, int height_aspect, int window_width, int window_height);
 	void set_vm_screen_lines(int lines); // 20170118

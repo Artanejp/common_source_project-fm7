@@ -1363,9 +1363,9 @@ void EMU::update_joystick()
 					//printf("%d %d %02x %02x\n", i, j, config.joy_buttons[i][j], joy_status[i]);
 				}
 			} else {
-				int stick = config.joy_buttons[i][j] >> 4;
-				int button = config.joy_buttons[i][j] & 15;
-				if(stick < 2 && (joy_buffer[stick & 3] & (1 << button))) {
+				int stick = config.joy_buttons[i][j] >> 5;
+				int button = config.joy_buttons[i][j] & 0x1f;
+				if(stick < 4 && (joy_buffer[stick & 3] & (1 << button))) {
 					joy_status[i] |= (1 << j);
 					//printf("%d %d %02x %02x\n", i, j, config.joy_buttons[i][j], joy_status[i]);
 				}
@@ -1397,6 +1397,11 @@ const int32_t* EMU::get_mouse_buffer()
 // ----------------------------------------------------------------------------
 // screen
 // ----------------------------------------------------------------------------
+
+double EMU::get_window_mode_power(int mode)
+{
+	return osd->get_window_mode_power(mode);
+}
 
 int EMU::get_window_mode_width(int mode)
 {

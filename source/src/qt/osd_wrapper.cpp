@@ -399,6 +399,16 @@ int OSD::get_window_mode_height(int mode)
 	return (p_config->window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * (mode + WINDOW_MODE_BASE);
 }
 
+double OSD::get_window_mode_power(int mode)
+{
+	if(mode + WINDOW_MODE_BASE == 2) {
+		return 1.5;
+	} else if(mode + WINDOW_MODE_BASE > 2) {
+		return mode + WINDOW_MODE_BASE - 1;
+	}
+	return mode + WINDOW_MODE_BASE;
+}
+
 void OSD::initialize_video()
 {
 	movie_loader = NULL;

@@ -320,6 +320,16 @@ int OSD_BASE::get_window_mode_height(int mode)
 	return 200;
 }
 
+double OSD_BASE::get_window_mode_power(int mode)
+{
+	if(mode + 1 == 2) {
+		return 1.5;
+	} else if(mode + 1 > 2) {
+		return mode + 1 - 1;
+	}
+	return mode + 1;
+}
+
 void OSD_BASE::reset_vm_node(void)
 {
 	device_node_list.clear();

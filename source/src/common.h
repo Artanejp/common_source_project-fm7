@@ -283,8 +283,10 @@ typedef union {
 		int8_t l, h;
 #endif
 	} sb;
-	uint16_t u16;
-	int16_t s16;
+	uint16_t u16; // ToDo: Remove
+	int16_t s16; // ToDo: Remove
+	uint16_t w;
+	int16_t sw;
 
 	inline void read_2bytes_le_from(uint8_t *t)
 	{

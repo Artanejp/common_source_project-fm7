@@ -25,8 +25,8 @@ void YM2151::initialize()
 	opm = new FM::OPM;
 #ifdef SUPPORT_MAME_FM_DLL
 	if(!fmdll) {
-//		fmdll = new CFMDLL(_T("mamefm.dll"));
-		fmdll = new CFMDLL(config.fmgen_dll_path);
+//		fmdll = new CFMDLL(_T("mame2151.dll"));
+		fmdll = new CFMDLL(config.mame2151_dll_path);
 	}
 	dllchip = NULL;
 #endif
