@@ -1,6 +1,6 @@
 "ePC-8801MA" - NEC PC-8801MA emulator for Win32
 'ePC-8001mkIISR' - NEC PC-8001mkIISR emulator for Win32
-								12/29/2012
+								12/9/2018
 
 --- Internal ROM images
 
@@ -14,6 +14,7 @@
 	KANJI1.ROM	Kanji ROM
 	KANJI2.ROM	Kanji ROM
 	JISYO.ROM	Dictionary ROM
+	CDBIOS.ROM	CD-ROM BIOS ROM
 	---
 	N80_2.ROM	PC-8001mkII
 	N80_3.ROM	PC-8001mkIISR
@@ -25,12 +26,15 @@
 	STOP		BREAK
 	ROLL UP		PAGE UP
 	ROLL DOWN	PAGE DOWN
+	PC		F11
 	COPY		F12
 	HOME/CLR	HOME
 	HELP		END
 	GRPAH		ALT
 	KANA		KATAKANA
-	XFER		HENKAN
+	HENKAN		HENKAN
+	KETTEI		MUHENKAN
+	ZENKAKU		KANJI
 
 ----------------------------------------
 TAKEDA, toshiya

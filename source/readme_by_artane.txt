@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         November 24, 2018
+                                         December 18, 2018
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20181124
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20181218
 
    追加情報:
    
@@ -152,48 +152,102 @@
 
 
 Special thanks to:
-  Ryu Takegamiさん : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
-  はせりんさん     : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
+  Ryu Takegamiさん     : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
+  はせりんさん         : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
+  Ootake 開発者の皆さん: ePCENGINEの改善のヒントをソースコードから勉強させていただいてます。
+
 Changes:
 
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
 
-* SNAPSHOT November 24, 2018
-  * Upstream 2018-11-23 .
-  * [DOC] Add how to running OpenGL ES with Wine (not native Windows).See Doc/Tips_Wine.en.txt.
-  * [General] Fix FTBFS with LLVM CLANG.
-  * [BUILD/IA32] Build even don't use MMX, SSE and AVX.
-  * [COMMON] Define some SIMD related types to common.h.Please re-define some types (__v4hi, __v8hi and __v16hi) with MSVC.
-  * [COMMON] Add VRAM render common routine.This needs to initialize bit_plane_table before use.
-  * [COMMON] Define decl.of alignment.Wish to fix FTBFS with Microsoft C++.
-  * [VM/SCSI_CDROM] Implement *correctness* CUE parser.Mostly works fine, but lip-syncing with CDDA still not correct.
-  * [VM/MB61VH010][FM77AV] More accurate busy flag implement.Don't accept drawing line if before drawing line still not end.This saves host CPU usage.
-  * [VM/X1] VRAM: Apply renderer to TEXT/(P)CG rendering.
-  * [VM/I386] Fix INT xxh with pseudo-bios.
-  * [VM/PCENGINE] Fix around CD-ROM^2 and ADPCM.Most of softwares works.(But,lip-syncing don't well).
-  * [VM/MSM5205] Use toggle switch clock.Reserve of future extend.
-  * [VM/HUC6280] Fix not start debugger.
-  * [VM/SCSI_CDROM] Fix around CDDA.
-  * Built with b4d06ae650417feb326d304770d258b3c5fa3aaa (or later).
-
--- November 24, 2018 19:27:42 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+* SNAPSHOT December 18, 2018
+  * Upstream 2018-12-09 .
+  * [VM/PC9801] Add pseudo SASI (HDD) BIOS for PC-9801.WIP.
+  * [VM/EVENT] Improve error message at cancel_event().
+  * [VM/HUC2680] Improve around timer.Thanks to  Ootake v2.83.
+  * [VM/PCENGINE] Improve process around NEC extended command (0xd*).
+  * [VM/PCENGINE] PCE_ADPCM: Fix not sound data length >= 65536 bytes.This still don't fix some softwares.i.e. Megami-Paradise.
+  * [VM/PCENGINE] Porting from Ootake v2.83.This still WORK-IN-PROGRESS.
+  * [VM/PCENGINE] CDROM: Don't reset ADPCM more than once at CDROM makes "NOT BUSY".
+  * [VM/PCENGINE] Most of CD-ROM^2 softwares maybe work.Excepts LASERSOFT's products and using "ARCADE card".
+  * [VM/SCSI_CDROM] Add write_signal() to control CDDA from MACHINE.
+  * [VM/SCSI_CDROM] Fix CD-DA buffer handling.Reading buffer should be per 2352 bytes.
+  * [VM/SCSI_CDROM] CUE: More correctness cue parsing.
+  * [VM/SCSI_CDROM] CUE: Set default pre-gap to 2Sec (150frames).Fix audio problems of most softwares.Maybe fixed issues on Manhole.
+  * [VM/SCSI_CDROM] More correctness SEEK/Interrupt timing.
+  * [VM/FM7] DISPLAY: Fix for logging "[EVENT] EVENT: device (name=DISPLAY SUBSYSTEM, id=25) tries to cancel event 6 that is not its own (owned by (name=PRINTER I/F id=20))!!!"
+  * [Draw/Qt] OpenGL: Abondon depth test.
+  * [UI/Qt] OOPS: Fix OOPs around mounting virtual D88/D77 image(s).
+  * [UI/MENU] HARDDISK: OOPS: I missed update directory.
+  * [UI/MENU] Fix oops dialog of opening virtual HDD.
+  * Built with ee880845ec85aa431df3c7a937611e9c20dd591d (or later).
+  
+-- December 18, 2018 16:31:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
 
-11/23/2018
+12/9/2018
 
-[VM/I386] improve i386_limit_check to consider data size
+[VM/SCSI_CDROM] add vendor specific command for NEC CD-ROM^2
 
-[VM/SCSI_DEV] improve REQ timing just after ACK is raised
+[PC8801/PC88] support CD-ROM drive (thanks M88/cdif)
+[PC8801/PC88] support Video Art Boad (thanks X88000)
 
-[PC6001/*] apply patch for timing issues (thanks Mr.Akikawa)
 
-[PC8801/PC88] support to change palette for each scan line
+12/5/2018
 
-[PC9801] support PC-9801-86 sound board for PC-9801RA and PC-98RL
+[VM/MB8877] improve reset() to finish previous command and reset fdc completely
+[VM/Z80] add read_signal() to read irq status
 
-[PC9801/FMSOUND] fix process_state
+[PC8801/PC88] improve to render scan line with black if color graphic mode
+[SMC70/MEMORY] support 640x400 and 160x100 graphic mode
+[SMC777/MEMORY] fix issue that text blink is not working
+[SMC777/MEMORY] improve inport 21h to read vsync irq status
+[SMC777/MEMORY] improve inport 51h to read cursor and space keys as joystick #1
+[VM/*] improve tape interfaces for each virtual machine
+
+
+12/4/2018
+
+[CONFIG] remove fmgen_dll_path and add mame2151_dll_path/mame2608_dll_path
+
+[VM/YM2203] remove HAS_YM2608 and YM2203_PORT_MODE to simplify code
+
+[PC8801] support HMB-20 sound board
+
+
+12/2/2018-2
+
+[PC8801/PC88] fix text/graph renderer again (thanks Mr.Bookworm)
+
+
+12/2/2018
+
+[PC8801/PC88] fix not to apply reverse attribute to monochrome graphic screen
+
+
+12/1/2018
+
+[PC8801] enable/disable drawing scan line when monitor type is hireso/standard
+[PC8801/PC88] improve text attributes/rederer (thanks ePC-8801MA��)
+[PC8801/PC88] fix analog back color
+[PC8801/PC88] improve routine to change palette for each scan line
+
+
+11/28/2018
+
+[WIN32/INPUT] support joystick with multiple axes and hat key
+[WIN32/INPUT] improve joystick to keyboard function for numpad key 5
+
+
+11/27/2018
+
+[WIN32/INPUT] support joystick to keyboard function
+[WIN32/SCREEN] support Window x1.5 mode
+
+[PC8801/PC88] support PC key, that is mapped to F11
+
 -----
 
 お楽しみあれ!

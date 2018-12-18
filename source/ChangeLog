@@ -1,5 +1,29 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT December 18, 2018
+  * Upstream 2018-12-09 .
+  * [VM/PC9801] Add pseudo SASI BIOS for PC-9801.WIP.
+  * [VM/EVENT] Improve error message at cancel_event().
+  * [VM/HUC2680] Improve around timer.Thanks to  Ootake v2.83.
+  * [VM/PCENGINE] Improve process around NEC extended command (0xd*).
+  * [VM/PCENGINE] PCE_ADPCM: Fix not sound data length >= 65536 bytes.This still don't fix some softwares.i.e. Megami-Paradise.
+  * [VM/PCENGINE] Porting from Ootake v2.83.This still WORK-IN-PROGRESS.
+  * [VM/PCENGINE] CDROM: Don't reset ADPCM more than once at CDROM makes "NOT BUSY".
+  * [VM/PCENGINE] Most of CD-ROM^2 softwares maybe work.Excepts LASERSOFT's products and using "ARCADE card".
+  * [VM/SCSI_CDROM] Add write_signal() to control CDDA from MACHINE.
+  * [VM/SCSI_CDROM] Fix CD-DA buffer handling.Reading buffer should be per 2352 bytes.
+  * [VM/SCSI_CDROM] CUE: More correctness cue parsing.
+  * [VM/SCSI_CDROM] CUE: Set default pre-gap to 2Sec (150frames).Fix audio problems of most softwares.Maybe fixed issues on Manhole.
+  * [VM/SCSI_CDROM] More correctness SEEK/Interrupt timing.
+  * [VM/FM7] DISPLAY: Fix for logging "[EVENT] EVENT: device (name=DISPLAY SUBSYSTEM, id=25) tries to cancel event 6 that is not its own (owned by (name=PRINTER I/F id=20))!!!"
+  * [Draw/Qt] OpenGL: Abondon depth test.
+  * [UI/Qt] OOPS: Fix OOPs around mounting virtual D88/D77 image(s).
+  * [UI/MENU] HARDDISK: OOPS: I missed update directory.
+  * [UI/MENU] Fix oops dialog of opening virtual HDD.
+  * Built with ee880845ec85aa431df3c7a937611e9c20dd591d (or later).
+  
+-- December 18, 2018 16:31:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT November 24, 2018
   * Upstream 2018-11-23 .
   * [DOC] Add how to running OpenGL ES with Wine (not native Windows).See Doc/Tips_Wine.en.txt.

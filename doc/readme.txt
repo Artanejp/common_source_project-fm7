@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								5/6/2018
+								12/9/2018
 
 --- What's this ?
 
@@ -31,6 +31,7 @@ This archive includes the binaries of the emulators listed below:
 		eFM8		FM-8 (by Mr.Artane.)
 		eFM7		FM-7 (by Mr.Artane.)
 		eFM77		FM-77 (by Mr.Artane.)
+		eFM77L4		FM-77L4 (by Mr.Artane.)
 		eFM77AV		FM77AV (by Mr.Artane.)
 		eFM77AV40	FM77AV40 (by Mr.Artane.)
 		eFM77AV40EX	FM77AV40EX (by Mr.Artane.)
@@ -74,6 +75,7 @@ This archive includes the binaries of the emulators listed below:
 		ePC-9801VM	PC-9801VM
 		ePC-9801VX	PC-9801VX
 		ePC-9801RA	PC-9801RA
+		ePC-98XA	PC-98XA
 		ePC-98XL	PC-98XL
 		ePC-98RL	PC-98RL
 		ePC-98DO	PC-98DO
@@ -123,6 +125,8 @@ This archive includes the binaries of the emulators listed below:
 		eSMC-777	SMC-777
 	SORD
 		Emu5		m5
+	Systems Formulate
+		eBUBCOM80	BUBCOM80
 	TOMY
 		ePyuTa		PyuTa/PyuTa Jr.
 	TOSHIBA
@@ -463,6 +467,7 @@ Save/Load State info:
 - vm/pc8801/pc88.*
 	M88 by Mr.CISC
 	XM8 by Mr.PI.
+	X88000 by Mr.Manuke
 	MESS PC-8801 driver
 - vm/pc9801/display.*
 	Neko Project 2 by Mr.Yui

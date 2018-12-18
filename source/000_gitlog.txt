@@ -1,3 +1,210 @@
+commit ee880845ec85aa431df3c7a937611e9c20dd591d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 18 03:30:41 2018 +0900
+
+    [UI][Qt][OSD] Joystick-To-Keyboard: Add "1235" feature.Useful for DELPHIS (for FM-8/7) etc.
+
+commit 3f4faf07f5527a0e4afe6620c591fc005c9b519f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 18 03:07:00 2018 +0900
+
+    [UI][OSD][Qt] Apply "Joystick to Keyboard" feature.
+
+commit 74c1a850abb11727a63f20431ce378c074fa37bb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 17 19:26:39 2018 +0900
+
+    .
+
+commit a3c2626fdfbf42177da06e66695636b84fc5cecf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 17 19:25:20 2018 +0900
+
+    [VM] Merge Upstream 2018-12-09.
+
+commit fdf840597f3ef88aeedbe2f960e31ff42810a599
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 17 19:09:45 2018 +0900
+
+    [VM][General][WIP] Merging Upstream 2018-12-09.Still WIP.
+
+commit 7452825c4069f4db4ffdc731caa32a5468d678a2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 17 19:05:43 2018 +0900
+
+    [UI][Qt][OOPS] Fix OOPs around mounting virtual D88/D77 image(s).
+
+commit 67e59ad8a757a612e0a4adc12c8e2001f4f33b73
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Dec 14 23:01:24 2018 +0900
+
+    [PC98XL][PC98RL][PSEUDO_BIOS] Fix FTBFS.
+
+commit cc9d48c53b0e688023eef800ca8d199da80058f1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Dec 14 23:00:34 2018 +0900
+
+    [Qt][GUI][WIN32] Fix linkage error building libCSPgui.dll.
+
+commit 2de26546d6af6d4bb241e785d6dbae0f5e69ac94
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 13 22:22:24 2018 +0900
+
+    [Draw][Qt][OpenGL] Abondon depth test.
+
+commit c2157ea0d8bf02b4215d8fea0cda9c6ad05d0a29
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 13 21:00:43 2018 +0900
+
+    [VM][SCSI_CDROM] Add write_signal() to control CDDA from MACHINE.
+    [VM][PCENGINE] Stop CDDA at writing to $1804.
+
+commit bd1ac6784d2bd95e17571460b556841d34a30b42
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 13 20:18:14 2018 +0900
+
+    [VM][PCENGINE][OOPS] Fix dummy reading/writing bytes @ $180D:W.
+
+commit 20f4c8d11bf2d52baed9c5e964afaea662155a76
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 13 19:36:29 2018 +0900
+
+    [VM][PCENGINE][CDROM] Don't reset ADPCM more than once at CDROM makes "NOT BUSY".
+
+commit b13a50382382e3aac604f3f918ce4a3fefbbb451
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 13 19:19:34 2018 +0900
+
+    [VM][HUC2680] Improve around timer.Thanks to  Ootake v2.83.
+
+commit 55957b4d166a4e329dab18619d8b96f32779f457
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 13 19:18:02 2018 +0900
+
+    [VM][PCENGINE][CDROMROM][ADPCM] Fix sequence around longer (>= 65536bytes) ADPCM.Porting from Ootake v2.83.
+    [VM][PCENGINE] Still not playable LASERSOFT's games.
+
+commit 0d62c7cf8b4cb8df15f1399a84d693367a6bed55
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 13 18:05:15 2018 +0900
+
+    [VM][EVENT] Improve error message at cancel_event().
+
+commit 9e022b913ba25d95360b42de8b1a5cd6233da334
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 13 18:04:52 2018 +0900
+
+    [VM][FM7][DISPLAY] Fix for logging "[EVENT] EVENT: device (name=DISPLAY SUBSYSTEM, id=25) tries to cancel event 6 that is not its own (owned by (name=PRINTER I/F id=20))!!!"
+
+commit e1999e69c01c38ed62520492980178331523f3f6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 11 05:12:35 2018 +0900
+
+    [VM][PCENGINE][ADPCM][WIP] Porting from Ootake v2.83.This still WORK-IN-PROGRESS.
+
+commit 8a2c439f6860fee2a3b709d922d42b3d76ee0782
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 10 04:57:34 2018 +0900
+
+    [VM][SCSI_CDROM] .
+
+commit 8eae7ddebb22d2184041c62db30e9d43658bf0d4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 10 04:55:35 2018 +0900
+
+    [VM][PCENGINE][PCE_ADPCM] (Temporally) Fix not sound data length >= 65536 bytes.This still don't fix some softwares.i.e. Megami-Paradise.
+
+commit 75cda09a9d5201fb5bcd4127924c1afcaf1f1520
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Dec 7 03:26:57 2018 +0900
+
+    [VM][SCSI_CDROM] Delete some ToDo(s).
+
+commit 20e44a902aa953e9feac3401eee299e76950c296
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Dec 7 03:18:37 2018 +0900
+
+    [VM][SCSI_CDROM] Dont send DONE signal when reading completed with CD-DATA track.
+    [VM][SCSI_CDROM] Send done signal immediately at start_command().
+
+commit 7c496c9ad802eb4783424d507ea3fb9a89141b0d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Dec 7 01:34:44 2018 +0900
+
+    [VM][MSM5205] Adjust sound volume, add 6dB.
+    [VM][SCSI_CDROM] Adjust sound volume, add 3dB.
+
+commit 540c4efe4c11f685e5ecba28f381d95a4e8d7bbe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 6 23:39:22 2018 +0900
+
+    [VM][SCSI_CDROM][CUE] Set default pre-gap to 2Sec (150frames).Fix audio problems of most softwares.Maybe fixed issues on Manhole.
+    [VM][SCSI_CDROM][CUE] More correctness cue parsing.
+    [VM][SCSI_CDROM][PCENGINE] Improve process around NEC extended command (0xd*).
+    [VM][SCSI_CDROM] Fix CD-DA buffer handling.Reading buffer should be per 2352 bytes.
+    [VM][SCSI_CDROM] Fix FTBFS with Microsoft VC++.Thanks to Takeda-San.
+    [VM][SCSI_CDROM] More correctness SEEK/Interrupt timing.
+
+commit 388ff3beef5a5218b634908076467228b2716457
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 30 04:35:51 2018 +0900
+
+    [UI][Qt] Include common/util_*2.cpp to libCSPgui.so .
+
+commit 93b22979eab98eb86e3aac37381beb543a3adc00
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 30 04:34:51 2018 +0900
+
+    [VM][PSEUDO_BIOS] Fix not detect second HDD differ sector size from first HDD.
+
+commit a59ac3dcc6d910a20f647af2c5439568340cafd1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 30 01:07:59 2018 +0900
+
+    [UI][MENU][HDD] Fix oops dialog of opening virtual HDD.
+
+commit 81cda7e759d73e7c8a0ae15b7d82ff6517bfc185
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 26 18:31:55 2018 +0900
+
+    [VM][I386][I286] Add note changes for using pseud-bios.
+
+commit 8d23f0edda69a3ac628f3834b789f09bcedfae26
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 26 18:20:56 2018 +0900
+
+    [VM][I286][I86] Update around PSEUDO-BIOS.
+
+commit 7e32f68ff6c2c47c7615a4dfef215b4ee26c301c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 26 18:19:29 2018 +0900
+
+    [VM][PC9801][SASI_BIOS] Mostly working pseudo-bios (excepts format, I still not test).
+
+commit c25b8bd04cecfa0421ef9654655a0f506c972e3e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 26 04:22:41 2018 +0900
+
+    [UI][MENU][HARDDISK] OOPS: I missed update directory.
+
+commit de3c25f7be0ef52e07a0a19cb9156abe960986d4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 26 04:21:37 2018 +0900
+
+    [VM][PC9801][I286][I86][I386][WIP] Add pseudo SASI BIOS for PC-9801.WIP.
+
+commit 47c1a07d29cbbed3bf11fb58c52bd798244b5509
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 24 20:45:33 2018 +0900
+
+    [OOPS] I forgot update installer_unix.sh X-)
+
+commit 297ab673b31d9eb5d18c734d6ed5c5a6eb807ab1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 24 19:31:06 2018 +0900
+
+    [DOC] Update.
+
 commit b4d06ae650417feb326d304770d258b3c5fa3aaa
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Nov 24 19:16:35 2018 +0900
