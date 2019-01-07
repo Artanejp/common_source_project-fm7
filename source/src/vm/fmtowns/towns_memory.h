@@ -82,12 +82,17 @@ protected:
 	
 	bool bankc0_vram;
 	bool bankf8_ram;
-	bool bank0_dict;
+	bool bankd0_dict;
 	bool ankcg_enabled;
 	uint8_t dict_bank;
 
 	uint16_t machine_id;
 	uint8_t cpu_id;
+
+	// ToDo: around DMA
+	uint32_t dma_addr_mask;
+	//uint8_t dma_addr_reg;
+	//uint8_t dma_wrap_reg;
 	
 	// RAM
 	uint8_t ram_page0[0xc0000];       // 0x00000000 - 0x000bffff : RAM
@@ -124,14 +129,21 @@ protected:
 	uint8_t rom_font20[0x80000];
 #endif
 	// misc
-	uint8_t machine_id;
-	uint32_t dicrom_bank;
 	uint32_t vram_size; // Normally 512KB.
 
 	uint8_t* read_bank_adrs_cx[0x100000]; // Per 4KB.
 	uint8_t* write_bank_adrs_cx[0x100000]; // Per 4KB.
 	DEVICE*   device_bank_adrs_cx[0x100000]; // Per 4KB.
 	uint32_t type_bank_adrs_cx[0x100000]; // Per 4KB.
+
+	void     write_data_base(uint32_t addr, uint32_t data, int* wait, int wordsize);
+	uint32_t read_data_base(uint32_t addr, int* wait, int wordsize);
+	bool     check_bank(uint32_t addr, uint32_t *mask, uint32_t *offset, void** readfn, void** writefn, void** readp, void** writep);
+	virtual void initialize_tables(void);
+	
+	virtual uint32_t read_mmio(uint32_t addr, int *wait, bool *hit);
+	virtual void     write_mmio(uint32_t addr, uint32_t data, int *wait, bool *hit);
+
 public:
 	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("FMTOWNS_MEMORY"));
@@ -170,12 +182,11 @@ public:
 	void write_dma_data16(uint32_t addr, uint32_t data);
 	uint32_t read_dma_data16(uint32_t addr);
 	
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	virtual void     write_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t read_io8(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(I386* device)
