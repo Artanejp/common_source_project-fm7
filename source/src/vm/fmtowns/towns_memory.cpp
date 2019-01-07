@@ -10,6 +10,8 @@
 #include "./towns_memory.h"
 #include "../i386.h"
 
+namespace FMTOWNS {
+	
 void TOWNS_MEMORY::initialize()
 {
 
@@ -1152,4 +1154,6 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		initialize_tables();
 	}
 	return true;
+}
+
 }

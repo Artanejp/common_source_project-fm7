@@ -17,6 +17,8 @@
 #define _USE_ALPHA_CHANNEL
 #endif
 
+namespace FMTOWNS {
+
 void TOWNS_VRAM::initialize()
 {
 #ifdef _USE_ALPHA_CHANNEL
@@ -807,6 +809,6 @@ __exit_0:
 	return;
 }
 
-
+}
 #undef _CLEAR_COLOR
 

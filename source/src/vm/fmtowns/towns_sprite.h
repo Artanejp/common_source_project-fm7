@@ -16,46 +16,51 @@
 #define SIG_FMTOWNS_RENDER_SPRITE_CLEAR_VRAM  263
 
 
-enum {
-	ROT_FMTOWNS_SPRITE_0 = 0,
-	ROT_FMTOWNS_SPRITE_90,
-	ROT_FMTOWNS_SPRITE_180,
-	ROT_FMTOWNS_SPRITE_270
-};
-
-
-class TOWNS_VRAM;
+namespace FMTOWNS {
+	enum {
+		ROT_FMTOWNS_SPRITE_0 = 0,
+		ROT_FMTOWNS_SPRITE_90,
+		ROT_FMTOWNS_SPRITE_180,
+		ROT_FMTOWNS_SPRITE_270
+	};
+}
 
 #define TOWNS_SPRITE_CACHE_NUM 512
 
-typedef struct {
-	uint16_t num;
-	uint8_t rotate_type;
-	uint16_t attribute;
-	uint16_t color;
-	
-	bool is_halfx;
-	bool is_halfy;
-	bool enable_offset;
-	bool is_32768;
-	bool is_impose;
-	bool is_disp;
-} sprite_table_t;
+namespace FMTOWNS {
+	typedef struct {
+		uint16_t num;
+		uint8_t rotate_type;
+		uint16_t attribute;
+		uint16_t color;
+		
+		bool is_halfx;
+		bool is_halfy;
+		bool enable_offset;
+		bool is_32768;
+		bool is_impose;
+		bool is_disp;
+	} sprite_table_t;
 
-typedef struct {
-	bool is_use;
-	uint16_t num;
-	uint16_t attribute;
-	uint8_t rotate_type;
-	bool is_32768;
-	bool is_halfx;
-	bool is_halfy;
-	uint16_t* pixels;
-	uint16_t* masks;
-	uint16_t color;
-} sprite_cache_t;	
+	typedef struct {
+		bool is_use;
+		uint16_t num;
+		uint16_t attribute;
+		uint8_t rotate_type;
+		bool is_32768;
+		bool is_halfx;
+		bool is_halfy;
+		uint16_t* pixels;
+		uint16_t* masks;
+		uint16_t color;
+	} sprite_cache_t;	
+}
 
-class TOWNS_VRAM;
+namespace FMTOWNS {
+	class TOWNS_VRAM;
+}
+
+namespace FMTOWNS {
 class TOWNS_SPRITE : public DEVICE
 {
 
@@ -476,6 +481,7 @@ __DECL_VECTORIZED_LOOP
 			memcpy(dstmask, maskcache, 16 * 16 * sizeof(uint16_t));
 		}
 	}
+}
 }
 
 #endif /* _TOWNS_SPRITE_H */

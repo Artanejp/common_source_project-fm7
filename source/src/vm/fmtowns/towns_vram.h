@@ -32,6 +32,7 @@
 #define SIG_TOWNS_VRAM_SET_VLINE   0x07
 #define SIG_TOWNS_RENDER_FLAG      0x08
 
+namespace FMTOWNS {
 class TOWNS_VRAM : public DEVICE
 {
 protected:
@@ -169,4 +170,5 @@ public:
 	};
 };
 
+}
 #endif

@@ -39,6 +39,7 @@ class I386;
 // c2201000 - fffbffff : Reserved.
 // FFFC0000 - FFFFFFFF : Towns System ROM.
 
+namespace FMTOWNS {
 enum {
 	TOWNS_MEMORY_NORMAL = 0,
 	TOWNS_MEMORY_FMR_VRAM,
@@ -57,17 +58,22 @@ enum {
 	TOWNS_MEMORY_TYPE_WAVERAM,
 	TOWNS_MEMORY_TYPE_SYSTEM_ROM,
 };
-
+}
 // Please set from config
 #define TOWNS_EXTRAM_PAGES 6
 
 class I386;
 class BEEP;
-class TOWNS_VRAM;
-class TOWNS_SPRITE;
-class TOWNS_ROM_CARD;
-class TOWNS_CMOS;
-class TOWNS_PCM;
+	
+namespace FMTOWNS {
+	class TOWNS_VRAM;
+	class TOWNS_SPRITE;
+	class TOWNS_ROM_CARD;
+	class TOWNS_CMOS;
+	class TOWNS_PCM;
+}
+	
+namespace FMTOWNS {
 class TOWNS_MEMORY : public DEVICE
 {
 protected:
@@ -220,5 +226,6 @@ public:
 	
 };
 
+}
 #endif
 

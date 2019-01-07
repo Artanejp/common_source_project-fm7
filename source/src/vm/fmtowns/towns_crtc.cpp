@@ -10,6 +10,7 @@
 
 #include "towns_crtc.h"
 
+namespace FMTOWNS {
 enum {
 	EVENT_CRTC_VSTART = 0,
 	EVENT_CRTC_VST1   = 2,
@@ -446,4 +447,6 @@ bool TOWNS_CRTC::load_state(FILEIO* state_fio)
 	hsync = state_fio->FgetBool();
 
 	return true;
+}
+
 }

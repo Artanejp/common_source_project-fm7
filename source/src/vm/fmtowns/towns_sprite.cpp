@@ -10,6 +10,8 @@
 #include "../../common.h"
 #include "./towns_sprite.h"
 
+namespace FMTOWNS {
+	
 void TOWNS_SPRITE::initialize(void)
 {
 	memset(index_ram, 0x00, sizeof(index_ram));
@@ -823,4 +825,6 @@ bool TOWNS_SPRITE::load_state(FILEIO *state_fio)
 		render(vram_buffer, mask_buffer);
 	}
 	return true;
+}
+
 }
