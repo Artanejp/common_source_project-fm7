@@ -10,12 +10,11 @@
 #ifndef _TOWNS_MEMORY_H_
 #define _TOWNS_MEMORY_H_
 
-#include "../vm.h"
-#include "../../emu.h"
+//#include "../vm.h"
+//#include "../../emu.h"
 #include "../device.h"
 
-//#define SIG_MEMORY_DISP		0
-//#define SIG_MEMORY_VSYNC	1
+#define SIG_FMTOWNS_MACHINE_ID	1
 
 class I386;
 // Bank size = 1GB / 1MB.
@@ -49,14 +48,10 @@ enum {
 	TOWNS_MEMORY_ANKCG2,
 	
 	TOWNS_MEMORY_MMIO_0CC,
-	TOWNS_MEMORY_DICT_0D0,
-	TOWNS_MEMORY_CMOS_0D8,
-	TOWNS_MEMORY_PAGE0F8,
 	
 	TOWNS_MEMORY_TYPE_EXT_MMIO,
 	TOWNS_MEMORY_TYPE_LEARN_RAM,
 	TOWNS_MEMORY_TYPE_WAVERAM,
-	TOWNS_MEMORY_TYPE_SYSTEM_ROM,
 };
 }
 // Please set from config
@@ -69,7 +64,6 @@ namespace FMTOWNS {
 	class TOWNS_VRAM;
 	class TOWNS_SPRITE;
 	class TOWNS_ROM_CARD;
-	class TOWNS_CMOS;
 	class TOWNS_PCM;
 }
 	
@@ -82,15 +76,16 @@ protected:
 	TOWNS_VRAM* d_vram;
 	TOWNS_SPRITE* d_sprite;       // 0x81000000 - 0x8101ffff ?
 	TOWNS_ROM_CARD* d_romcard[2]; // 0xc0000000 - 0xc0ffffff / 0xc1000000 - 0xc1ffffff
-	TOWNS_CMOS* d_cmos;             // 0xc2140000 - 0xc2141fff 
 	TOWNS_PCM* d_pcm;             // 0xc2200000 - 0xc2200fff 
 	BEEP* d_beep;
+
+	DEVICE* d_dictionary;
+	DEVICE* d_sysrom;
+	DEVICE* d_msdos;
+	DEVICE* d_serialrom;
 	
 	bool bankc0_vram;
-	bool bankf8_ram;
-	bool bankd0_dict;
 	bool ankcg_enabled;
-	uint8_t dict_bank;
 
 	uint16_t machine_id;
 	uint8_t cpu_id;
@@ -114,11 +109,6 @@ protected:
 	uint8_t ram_0ca[0x1000];          // 0x000ca000 - 0x000cafff : ANKCG1 / IO / RAM
 	uint8_t ram_0cb[0x1000];          // 0x000cb000 - 0x000cbfff : ANKCG2 / RAM
 	uint8_t ram_0cc[0x4000];          // 0x000cc000 - 0x000cffff : MMIO / RAM
-	uint8_t ram_0d0[0x8000];          // 0x000d0000 - 0x000d7fff : RAM / BANKED DICTIONARY
-	uint8_t ram_0d8[0x2000];          // 0x000d8000 - 0x000d9fff : RAM / CMOS
-	uint8_t ram_0da[0x16000];         // 0x000da000 - 0x000effff : RAM
-	uint8_t ram_0f0[0x8000];          // 0x000f0000 - 0x000f7fff
-	uint8_t ram_0f8[0x8000];          // 0x000f8000 - 0x000fffff : RAM/ROM
 
 	uint8_t *extram;                  // 0x00100000 - (0x3fffffff) : Size is defined by extram_size;
 	uint32_t extram_size;
@@ -127,10 +117,7 @@ protected:
 	uint32_t mem_wait_val;
 
 	// ROM
-	uint8_t rom_msdos[0x80000];   // 0xc2000000 - 0xc207ffff
-	uint8_t rom_dict[0x80000];    // 0xc2080000 - 0xc20fffff
 	uint8_t rom_font1[0x40000];   // 0xc2100000 - 0xc23f0000
-	uint8_t rom_system[0x40000];  // 0xfffc0000 - 0xffffffff
 #if 0
 	uint8_t rom_font20[0x80000];
 #endif
@@ -159,7 +146,32 @@ public:
 		d_sprite = NULL;
 		d_romcard[0] = d_romcard[1] = NULL;
 		d_beep = NULL;
-		machine_id = 0;
+		d_sysrom = NULL;
+		d_dictionary = NULL;
+		d_msdos = NULL;
+		// Note: machine id must set before initialize() from set_context_machine_id() by VM::VM().
+		// machine_id = 0x0100;   // FM-Towns 1,2
+		// machine_id = 0x0200 // FM-Towns  1F/2F/1H/2H
+		// machine_id = 0x0300 // FM-Towns  UX10/UX20/UX40
+		// machine_id = 0x0400 // FM-Towns  10F/20F/40H/80H
+		// machine_id = 0x0500 // FM-Towns2 CX10/CX20/CX40/CX100
+		// machine_id = 0x0600 // FM-Towns2 UG10/UG20/UG40/UG80
+		// machine_id = 0x0700 // FM-Towns2 HR20/HR100/HR200
+		// machine_id = 0x0800 // FM-Towns2 HG20/HG40/HG100
+		// machine_id = 0x0900 // FM-Towns2 UR20/UR40/UR80
+		// machine_id = 0x0b00 // FM-Towns2 MA20/MA170/MA340
+		// machine_id = 0x0c00 // FM-Towns2 MX20/MX170/MX340
+		// machine_id = 0x0d00 // FM-Towns2 ME20/ME170
+		// machine_id = 0x0f00 // FM-Towns2 MF20/MF170/Fresh
+		machine_id = 0x0100;   // FM-Towns 1,2
+		
+		// Note: cpu id must set before initialize() from set_context_cpu_id() by VM::VM().
+		// cpu_id = 0x00; // 80286. 
+		// cpu_id = 0x01; // 80386DX. 
+		// cpu_id = 0x02; // 80486SX/DX. 
+		// cpu_id = 0x03; // 80386SX. 
+		cpu_id = 0x01; // 80386DX. 
+
 	}
 	~TOWNS_MEMORY() {}
 	
@@ -207,6 +219,18 @@ public:
 	{
 		d_vram = device;
 	}
+	void set_context_system_rom(DEVICE* device)
+	{
+		d_sysrom = device;
+	}
+	void set_context_dictionary(DEVICE* device)
+	{
+		d_dictionary = device;
+	}
+	void set_context_msdos(DEVICE* device)
+	{
+		d_msdos = device;
+	}
 	void set_context_beep(DEVICE* device)
 	{
 		d_beep = device;
@@ -223,7 +247,18 @@ public:
 	{
 		d_pcm = device;
 	}
-	
+	void set_context_serial_rom(DEVICE* device)
+	{
+		d_serialrom = device;
+	}
+	void set_context_machine_id(uint16_t val)
+	{
+		machine_id = val & 0xfff8;
+	}
+	void set_context_cpu_id(uint16_t val)
+	{
+		cpu_id = val & 0x07;
+	}
 };
 
 }
