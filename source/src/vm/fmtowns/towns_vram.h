@@ -49,7 +49,12 @@ protected:
 	uint32_t vram_size[2];   // Layer [01] size [bytes].
 	uint32_t vram_offset[2]; // Layer [01] address offset.
 
-	scrntype_t table_32768c[65536];
+	__DECL_ALIGNED(sizeof(scrntype_t) * 4) scrntype_t table_32768c[65536];
+	__DECL_ALIGNED(sizeof(scrntype_t) * 4) scrntype_t alpha_32768c[65536];
+	__DECL_ALIGNED(sizeof(uint16_t) * 8)   uint16_t   mask_32768c[65536];
+	
+	__DECL_ALIGNED(sizeof(scrntype_t) * 4) scrntype_t alpha_16c[8 * 8 * 2];
+	__DECL_ALIGNED(sizeof(uint16_t) * 8)   uint16_t   mask_16c[8 * 8];
 	
 	uint32_t layer_virtual_width[2];
 	uint32_t layer_virtual_height[2];
@@ -63,17 +68,14 @@ protected:
 
 	bool dirty_flag[0x80000 >> 3]; // Per 8bytes : 16pixels(16colors) / 8pixels(256) / 4pixels(32768)
 
-#if 0
-	// WIP: Still not use mask rendering.
-	uint16_t mask_32768_word[0x80000 >> 1];
-	uint16_t alpha_32768_word[0x80000 >> 1];
-	uint8_t  alpha_32768_byte[0x80000 >> 1];
+	scrntype_t alpha_buffer_32768[0x80000 >> 1];
+	scrntype_t alpha_buffer_16[0x80000 << 1];
 
-	uint16_t mask_16_word[0x80000 << 1];
-	uint16_t alpha_16_word[0x80000 << 1];
-	uint8_t  alpha_16_byte[0x80000 << 1];
-
-#endif	
+	uint16_t mask_buffer_32768[0x80000 >> 1];
+	uint16_t mask_buffer_32768_neg[0x80000 >> 1];
+	uint8_t  mask_buffer_16[0x80000];
+	uint8_t  mask_buffer_16_neg[0x80000];
+	
 	
 	uint16_t vram[0x80000 / 2]; // Related by machine.
 	
