@@ -21,8 +21,7 @@ class SYSROM : public DEVICE
 protected:
 	uint8_t rom[0x40000]; // 256KB
 	uint8_t ram[0x10000];  // 64KB
-	int wait_val;
-
+	
 	bool map_dos;
 
 public:
@@ -35,10 +34,8 @@ public:
 	void reset();
 
 	uint32_t read_data8(uint32_t addr);
-	uint32_t read_data8w(uint32_t addr, int* wait);
 
 	void write_data8(uint32_t addr, uint32_t data);
-	void write_data8w(uint32_t addr, uint32_t data, int* wait);
 
 	void write_signal(int ch, uint32_t data, uint32_t mask);
 	uint32_t read_signal(int ch);

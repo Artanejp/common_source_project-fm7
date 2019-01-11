@@ -125,6 +125,13 @@ namespace FMTOWNS {
 		TOWNS_CRTC_REG_DUMMY, // 30
 		TOWNS_CRTC_REG_CTRL, // 31
 	};
+
+	enum {
+		DISPMODE_NONE = 0,
+		DISPMODE_32768_2,
+		DISPMODE_32768_1,
+		DISPMODE_256_OR_16,
+	};
 }
 
 namespace FMTOWNS {
@@ -134,13 +141,14 @@ private:
 	// output signals
 	outputs_t outputs_int_vsync;  // Connect to int 11.
 	uint16_t regs[32];      // I/O 0442H, 0443H
-	bool regs_written[32];
-	uint8_t reg_ch;         // I/O 0440H
-	bool timing_changed;
-
-	// Not include around video input/dizitize features yet.
-	bool line_changed[2][TOWNS_CRTC_MAX_LINES];
-
+	uint8_t ch;         // I/O 0440H
+	bool timing_changed[2];
+	bool address_changed[2];
+	bool mode_changed[2];
+	
+	uint8_t display_mode[2]; 
+	bool display_enabled;
+	
 	double crtc_clock; // 
 	// They are not saved.Must be calculate when loading.
 	double horiz_us, next_horiz_us; // (HST + 1) * clock
@@ -152,14 +160,18 @@ private:
 	// End
 
 	double frames_per_sec;
-	
+
+	uint32_t vstart_addr[2];  // VSTART ADDRESS
     uint32_t hstart_words[2]; // HSTART ((HDS[01] * clock) : Horizonal offset words (Related by ZH[01]). Maybe 0.
     uint32_t hend_words[2];   // HEND   ((HDE[01] * clock) : Horizonal offset words (Related by ZH[01]). Maybe 0.
     uint32_t vstart_lines[2]; // VSTART ((VDS[01] * clock) : Horizonal offset words (Related by VH[01]).
     uint32_t vend_lines[2];   // VEND   ((VDE[01] * clock) : Horizonal offset words (Related by VH[01]).
-
-	uint32_t zoom_factor_vert; // Related display resolutions of two layers and zoom factors. Multiplied by 1024.
-	uint32_t zoom_factor_horiz; // Related display resolutions of two layers and zoom factors. Multiplied by 1024.
+	uint32_t frame_offset[2]; // FO.
+	uint32_t vram_line[2];
+	
+	uint8_t zoom_factor_vert[2]; // Related display resolutions of two layers and zoom factors.
+	uint8_t zoom_factor_horiz[2]; // Related display resolutions of two layers and zoom factors.
+	uint8_t zoom_count_vert[2];
 	
 	uint32_t line_count[2]; // Separate per layer.
 	

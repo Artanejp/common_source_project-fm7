@@ -35,7 +35,6 @@ void DICTIONARY::initialize()
 	}
 	delete fio;
 
-	wait_val = 3;
 	dict_bank = 0;
 	bankd0_dict = false;
 }
@@ -54,7 +53,6 @@ void DICTIONARY::release()
 
 void DICTIONARY::reset()
 {
-	//wait_val = 6; // OK?
 	dict_bank = 0;
 	bankd0_dict = false;
 	
@@ -140,42 +138,6 @@ void DICTIONARY::write_data32(uint32_t addr, uint32_t data)
 	write_data8(addr + 3, n.h3);
 }
 
-uint32_t DICTIONARY::read_data8w(uint32_t addr, int *wait)
-{
-	if(wait != NULL) *wait = wait_val;
-	return read_data8(addr, data);
-}
-
-uint32_t DICTIONARY::read_data16w(uint32_t addr, int *wait)
-{
-	if(wait != NULL) *wait = wait_val * 2;
-	return read_data16(addr, data);
-}
-
-uint32_t DICTIONARY::read_data32w(uint32_t addr, int *wait)
-{
-	if(wait != NULL) *wait = wait_val * 4;
-	return read_data32(addr, data);
-}
-
-
-void DICTIONARY::write_data8w(uint32_t addr, uint32_t data, int *wait)
-{
-	if(wait != NULL) *wait = wait_val;
-	write_data8(addr, data);
-}
-
-void DICTIONARY::write_data16w(uint32_t addr, uint32_t data, int *wait)
-{
-	if(wait != NULL) *wait = wait_val * 2;
-	write_data16(addr, data);
-}
-
-void DICTIONARY::write_data32w(uint32_t addr, uint32_t data, int *wait)
-{
-	if(wait != NULL) *wait = wait_val * 4;
-	write_data32(addr, data);
-}
 
 void DICTIONARY::write_io8(uint32_t addr, uint32_t data)
 {
@@ -222,9 +184,6 @@ void DICTIONARY::write_signal(int ch, uint32_t data, uint32_t mask)
 	case SIG_FMTOWNS_DICTBANK:
 		dict_bank = (uint8_t)(data & 0x0f);
 		break;
-	case SIG_FMTOWNS_SET_MEMWAIT:
-		wait_val = (int)data;
-		break;
 	}
 }
 
@@ -236,9 +195,6 @@ uint32_t DICTIONARY::read_signal(int ch)
 		break;
 	case SIG_FMTOWNS_DICTBANK:
 		return (uint32_t)(dict_bank & 0x0f);
-		break;
-	case SIG_FMTOWNS_SET_MEMWAIT:
-		return (uinrt32_t)wait_val;
 		break;
 	}
 	return 0x00;
@@ -254,7 +210,6 @@ bool DICTIONARY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateValue(wait_val);
 	state_fio->StateValue(dict_bank);
 	state_fio->StateValue(bankd0_dict);
 	state_fio->StateArray(dict_ram, sizeof(dict_ram), 1);

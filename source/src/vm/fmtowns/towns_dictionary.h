@@ -28,7 +28,6 @@ protected:
 
 	bool bankd0_dict;
 	uint8_t dict_bank;
-	int wait_val;
 
 	bool cmos_dirty;
 
@@ -46,17 +45,9 @@ public:
 	uint32_t read_data16(uint32_t addr);
 	uint32_t read_data32(uint32_t addr);
 
-	uint32_t read_data8w(uint32_t addr, int* wait);
-	uint32_t read_data16w(uint32_t addr, int* wait);
-	uint32_t read_data32w(uint32_t addr, int* wait);
-
 	void write_data8(uint32_t addr, uint32_t data);
 	void write_data16(uint32_t addr, uint32_t data);
 	void write_data32(uint32_t addr, uint32_t data);
-
-	void write_data8w(uint32_t addr, uint32_t data, int* wait);
-	void write_data16w(uint32_t addr, uint32_t data, int* wait);
-	void write_data32w(uint32_t addr, uint32_t data, int* wait);
 
 	void write_io8(uint32_t addr, uint32_t data);
 	void read_io8(uint32_t addr, uint32_t data);

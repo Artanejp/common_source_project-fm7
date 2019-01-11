@@ -23,7 +23,7 @@ public:
 	~MSDOSROM() {}
 
 	void initialize();
-
+	uint32_t read_data8(uint32_t addr);	
 };
 
 }

@@ -24,15 +24,12 @@ void SYSROM::initialize()
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
 	}
-	
-	wait_val = 3;
 	map_dos = true;
 }
 
 
 void SYSROM::reset()
 {
-	//wait_val = 6; // OK?
 	//map_dos = true;
 }
 
@@ -74,9 +71,6 @@ void SYSROM::write_signal(int ch, uint32_t data, uint32_t mask)
 	case SIG_FMTOWNS_SYSROMSEL:
 		map_dos = ((data & mask) == 0);
 		break;
-	case SIG_FMTOWNS_SET_MEMWAIT:
-		wait_val = (int)data;
-		break;
 	}
 }
 
@@ -86,23 +80,8 @@ uint32_t SYSROM::read_signal(int ch)
 	case SIG_FMTOWNS_SYSROMSEL:
 		return ((map_dos) ? 0x00 : 0x02);
 		break;
-	case SIG_FMTOWNS_SET_MEMWAIT:
-		return (uint32_t)wait_val;
-		break;
 	}
 	return 0x00;
-}
-	
-uint32_t SYSROM::read_data8w(uint32_t addr, int *wait)
-{
-	if(wait != NULL) *wait = wait_val;
-	return read_data8(addr, data);
-}
-
-void SYSROM::write_data8w(uint32_t addr, uint32_t data, int *wait)
-{
-	if(wait != NULL) *wait = wait_val;
-	write_data8(addr, data);
 }
 
 #define STATE_VERSION	1
@@ -115,7 +94,6 @@ bool SYSROM::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateValue(wait_val);
 	state_fio->StateValue(map_dos);
 	state_fio->StateArray(ram, sizeof(ram), 1);
 	return true;

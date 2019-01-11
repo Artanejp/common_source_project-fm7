@@ -9,21 +9,20 @@
 
 #pragma once
 
-#include "../vm.h"
 #include "../device.h"
 
 namespace FMTOWNS {
 
-class FONT_ROMS : public DEVICE
+class FONT_ROM_20PIX : public DEVICE
 {
 protected:
-	uint8_t font_kanji16[0x40000];
+	uint8_t font_kanji20[0x40000];
 public:
-	FONT_ROMS(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	FONT_ROM_20PIX(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		set_device_name("Font Roms");
+		set_device_name("Font Roms(20pix)");
 	}
-	~FONT_ROMS() {}
+	~FONT_ROM_20PIX() {}
 
 	void initialize();
 	uint32_t read_data8(uint32_t addr);
