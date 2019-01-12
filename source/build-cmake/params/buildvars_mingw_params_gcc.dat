@@ -88,7 +88,7 @@ esac
 
 case ${USE_LTO} in
    "Yes" | "yes" | "YES" )
-       MAKEFLAGS_LINK_BASE="-flto ${LTO_FLAGS} ${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_LINK_BASE="-flto=${LTO_THREADS} ${LTO_FLAGS} ${MAKEFLAGS_BASE2}"
        MAKEFLAGS_BASE2="-flto -ffat-lto-objects ${MAKEFLAGS_BASE2}"
        ;;
    "No" | "no" | "NO" | * )

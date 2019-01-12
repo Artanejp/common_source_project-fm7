@@ -136,7 +136,7 @@ esac
 
 case ${USE_LTO} in
    "Yes" | "yes" | "YES" )
-       MAKEFLAGS_LINK_BASE2="-flto=6 -flto-compression-level=9 ${LTO_FLAGS} ${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_LINK_BASE2="-flto=${LTO_THREADS} -flto-compression-level=9 ${LTO_FLAGS} ${MAKEFLAGS_BASE2}"
        MAKEFLAGS_BASE2="-flto -flto-compression-level=9 -ffat-lto-objects ${MAKEFLAGS_BASE2}"
        ;;
    "No" | "no" | "NO" | * )
