@@ -130,6 +130,7 @@ BEGIN
     BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD1
         MENUITEM "Eject",                       ID_CLOSE_FD1
+        MENUITEM "Insert Blank 2D Disk",        ID_OPEN_BLANK_2D_FD1
         MENUITEM SEPARATOR
         MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD1
         MENUITEM "Correct Timing",              ID_CORRECT_TIMING_FD1
@@ -141,6 +142,7 @@ BEGIN
     BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD2
         MENUITEM "Eject",                       ID_CLOSE_FD2
+        MENUITEM "Insert Blank 2D Disk",        ID_OPEN_BLANK_2D_FD2
         MENUITEM SEPARATOR
         MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD2
         MENUITEM "Correct Timing",              ID_CORRECT_TIMING_FD2

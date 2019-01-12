@@ -701,7 +701,7 @@ void VM::connect_bus(void)
 		if(fdc != NULL) {
 			for(int i = 0; i < 4; i++) {
 #if defined(_FM77AV20) || defined(_FM77AV20EX) || \
-	defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 				fdc->set_drive_type(i, DRIVE_TYPE_2DD);
 #else
 				fdc->set_drive_type(i, DRIVE_TYPE_2D);

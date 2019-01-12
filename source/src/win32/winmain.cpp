@@ -67,6 +67,7 @@ void open_recent_cart(int drv, int index);
 #endif
 #ifdef USE_FLOPPY_DISK
 void open_floppy_disk_dialog(HWND hWnd, int drv);
+void open_blank_floppy_disk_dialog(HWND hWnd, int drv, uint8_t type);
 void open_floppy_disk(int drv, const _TCHAR* path, int bank);
 void open_recent_floppy_disk(int drv, int index);
 void select_d88_bank(int drv, int index);
@@ -109,6 +110,7 @@ void open_any_file(const _TCHAR* path);
 #endif
 
 _TCHAR* get_open_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* title, _TCHAR* dir, size_t dir_len);
+_TCHAR* get_save_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* file, const _TCHAR* title, _TCHAR* dir, size_t dir_len);
 
 // screen
 int desktop_width;
@@ -1032,7 +1034,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 #endif
 #ifdef USE_FLOPPY_DISK
 	#if USE_FLOPPY_DISK >= 1
-		#define FD_MENU_ITEMS(drv, ID_OPEN_FD, ID_CLOSE_FD, ID_WRITE_PROTECT_FD, ID_CORRECT_TIMING_FD, ID_IGNORE_CRC_FD, ID_RECENT_FD, ID_SELECT_D88_BANK, ID_EJECT_D88_BANK) \
+		#define FD_MENU_ITEMS(drv, ID_OPEN_FD, ID_CLOSE_FD, ID_OPEN_BLANK_2D_FD, ID_OPEN_BLANK_2DD_FD, ID_OPEN_BLANK_2HD_FD, ID_WRITE_PROTECT_FD, ID_CORRECT_TIMING_FD, ID_IGNORE_CRC_FD, ID_RECENT_FD, ID_SELECT_D88_BANK, ID_EJECT_D88_BANK) \
 		case ID_OPEN_FD: \
 			if(emu) { \
 				open_floppy_disk_dialog(hWnd, drv); \
@@ -1041,6 +1043,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_CLOSE_FD: \
 			if(emu) { \
 				close_floppy_disk(drv); \
+			} \
+			break; \
+		case ID_OPEN_BLANK_2D_FD: \
+			if(emu) { \
+				open_blank_floppy_disk_dialog(hWnd, drv, 0x00); \
+			} \
+			break; \
+		case ID_OPEN_BLANK_2DD_FD: \
+			if(emu) { \
+				open_blank_floppy_disk_dialog(hWnd, drv, 0x10); \
+			} \
+			break; \
+		case ID_OPEN_BLANK_2HD_FD: \
+			if(emu) { \
+				open_blank_floppy_disk_dialog(hWnd, drv, 0x20); \
 			} \
 			break; \
 		case ID_WRITE_PROTECT_FD: \
@@ -1085,28 +1102,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				select_d88_bank(drv, -1) ; \
 			} \
 			break;
-		FD_MENU_ITEMS(0, ID_OPEN_FD1, ID_CLOSE_FD1, ID_WRITE_PROTECT_FD1, ID_CORRECT_TIMING_FD1, ID_IGNORE_CRC_FD1, ID_RECENT_FD1, ID_SELECT_D88_BANK1, ID_EJECT_D88_BANK1)
+		FD_MENU_ITEMS(0, ID_OPEN_FD1, ID_CLOSE_FD1, ID_OPEN_BLANK_2D_FD1, ID_OPEN_BLANK_2DD_FD1, ID_OPEN_BLANK_2HD_FD1, ID_WRITE_PROTECT_FD1, ID_CORRECT_TIMING_FD1, ID_IGNORE_CRC_FD1, ID_RECENT_FD1, ID_SELECT_D88_BANK1, ID_EJECT_D88_BANK1)
 	#endif
 	#if USE_FLOPPY_DISK >= 2
-		FD_MENU_ITEMS(1, ID_OPEN_FD2, ID_CLOSE_FD2, ID_WRITE_PROTECT_FD2, ID_CORRECT_TIMING_FD2, ID_IGNORE_CRC_FD2, ID_RECENT_FD2, ID_SELECT_D88_BANK2, ID_EJECT_D88_BANK2)
+		FD_MENU_ITEMS(1, ID_OPEN_FD2, ID_CLOSE_FD2, ID_OPEN_BLANK_2D_FD2, ID_OPEN_BLANK_2DD_FD2, ID_OPEN_BLANK_2HD_FD2, ID_WRITE_PROTECT_FD2, ID_CORRECT_TIMING_FD2, ID_IGNORE_CRC_FD2, ID_RECENT_FD2, ID_SELECT_D88_BANK2, ID_EJECT_D88_BANK2)
 	#endif
 	#if USE_FLOPPY_DISK >= 3
-		FD_MENU_ITEMS(2, ID_OPEN_FD3, ID_CLOSE_FD3, ID_WRITE_PROTECT_FD3, ID_CORRECT_TIMING_FD3, ID_IGNORE_CRC_FD3, ID_RECENT_FD3, ID_SELECT_D88_BANK3, ID_EJECT_D88_BANK3)
+		FD_MENU_ITEMS(2, ID_OPEN_FD3, ID_CLOSE_FD3, ID_OPEN_BLANK_2D_FD3, ID_OPEN_BLANK_2DD_FD3, ID_OPEN_BLANK_2HD_FD3, ID_WRITE_PROTECT_FD3, ID_CORRECT_TIMING_FD3, ID_IGNORE_CRC_FD3, ID_RECENT_FD3, ID_SELECT_D88_BANK3, ID_EJECT_D88_BANK3)
 	#endif
 	#if USE_FLOPPY_DISK >= 4
-		FD_MENU_ITEMS(3, ID_OPEN_FD4, ID_CLOSE_FD4, ID_WRITE_PROTECT_FD4, ID_CORRECT_TIMING_FD4, ID_IGNORE_CRC_FD4, ID_RECENT_FD4, ID_SELECT_D88_BANK4, ID_EJECT_D88_BANK4)
+		FD_MENU_ITEMS(3, ID_OPEN_FD4, ID_CLOSE_FD4, ID_OPEN_BLANK_2D_FD4, ID_OPEN_BLANK_2DD_FD4, ID_OPEN_BLANK_2HD_FD4, ID_WRITE_PROTECT_FD4, ID_CORRECT_TIMING_FD4, ID_IGNORE_CRC_FD4, ID_RECENT_FD4, ID_SELECT_D88_BANK4, ID_EJECT_D88_BANK4)
 	#endif
 	#if USE_FLOPPY_DISK >= 5
-		FD_MENU_ITEMS(4, ID_OPEN_FD5, ID_CLOSE_FD5, ID_WRITE_PROTECT_FD5, ID_CORRECT_TIMING_FD5, ID_IGNORE_CRC_FD5, ID_RECENT_FD5, ID_SELECT_D88_BANK5, ID_EJECT_D88_BANK5)
+		FD_MENU_ITEMS(4, ID_OPEN_FD5, ID_CLOSE_FD5, ID_OPEN_BLANK_2D_FD5, ID_OPEN_BLANK_2DD_FD5, ID_OPEN_BLANK_2HD_FD5, ID_WRITE_PROTECT_FD5, ID_CORRECT_TIMING_FD5, ID_IGNORE_CRC_FD5, ID_RECENT_FD5, ID_SELECT_D88_BANK5, ID_EJECT_D88_BANK5)
 	#endif
 	#if USE_FLOPPY_DISK >= 6
-		FD_MENU_ITEMS(5, ID_OPEN_FD6, ID_CLOSE_FD6, ID_WRITE_PROTECT_FD6, ID_CORRECT_TIMING_FD6, ID_IGNORE_CRC_FD6, ID_RECENT_FD6, ID_SELECT_D88_BANK6, ID_EJECT_D88_BANK6)
+		FD_MENU_ITEMS(5, ID_OPEN_FD6, ID_CLOSE_FD6, ID_OPEN_BLANK_2D_FD6, ID_OPEN_BLANK_2DD_FD6, ID_OPEN_BLANK_2HD_FD6, ID_WRITE_PROTECT_FD6, ID_CORRECT_TIMING_FD6, ID_IGNORE_CRC_FD6, ID_RECENT_FD6, ID_SELECT_D88_BANK6, ID_EJECT_D88_BANK6)
 	#endif
 	#if USE_FLOPPY_DISK >= 7
-		FD_MENU_ITEMS(6, ID_OPEN_FD7, ID_CLOSE_FD7, ID_WRITE_PROTECT_FD7, ID_CORRECT_TIMING_FD7, ID_IGNORE_CRC_FD7, ID_RECENT_FD7, ID_SELECT_D88_BANK7, ID_EJECT_D88_BANK7)
+		FD_MENU_ITEMS(6, ID_OPEN_FD7, ID_CLOSE_FD7, ID_OPEN_BLANK_2D_FD7, ID_OPEN_BLANK_2DD_FD7, ID_OPEN_BLANK_2HD_FD7, ID_WRITE_PROTECT_FD7, ID_CORRECT_TIMING_FD7, ID_IGNORE_CRC_FD7, ID_RECENT_FD7, ID_SELECT_D88_BANK7, ID_EJECT_D88_BANK7)
 	#endif
 	#if USE_FLOPPY_DISK >= 8
-		FD_MENU_ITEMS(7, ID_OPEN_FD8, ID_CLOSE_FD8, ID_WRITE_PROTECT_FD8, ID_CORRECT_TIMING_FD8, ID_IGNORE_CRC_FD8, ID_RECENT_FD8, ID_SELECT_D88_BANK8, ID_EJECT_D88_BANK8)
+		FD_MENU_ITEMS(7, ID_OPEN_FD8, ID_CLOSE_FD8, ID_OPEN_BLANK_2D_FD8, ID_OPEN_BLANK_2DD_FD8, ID_OPEN_BLANK_2HD_FD8, ID_WRITE_PROTECT_FD8, ID_CORRECT_TIMING_FD8, ID_IGNORE_CRC_FD8, ID_RECENT_FD8, ID_SELECT_D88_BANK8, ID_EJECT_D88_BANK8)
 	#endif
 #endif
 #ifdef USE_QUICK_DISK
@@ -2498,6 +2515,43 @@ void open_floppy_disk_dialog(HWND hWnd, int drv)
 	}
 }
 
+void open_blank_floppy_disk_dialog(HWND hWnd, int drv, uint8_t type)
+{
+	_TCHAR* path = get_save_file_name(
+		hWnd,
+		_T("Supported Files (*.d88;*.d77)\0*.d88;*.d77\0All Files (*.*)\0*.*\0\0"),
+		create_date_file_name(_T("d88")),
+		_T("Floppy Disk"),
+		config.initial_floppy_disk_dir, _MAX_PATH
+	);
+	if(path) {
+		UPDATE_HISTORY(path, config.recent_floppy_disk_path[drv]);
+		my_tcscpy_s(config.initial_floppy_disk_dir, _MAX_PATH, get_parent_dir(path));
+		
+		struct {
+			char title[17];
+			uint8_t rsrv[9];
+			uint8_t protect;
+			uint8_t type;
+			uint32_t size;
+			uint32_t trkptr[164];
+		} d88_hdr;
+		
+		memset(&d88_hdr, 0, sizeof(d88_hdr));
+		my_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "BLANK");
+		d88_hdr.type = type;
+		d88_hdr.size = sizeof(d88_hdr);
+		
+		FILEIO *fio = new FILEIO();
+		if(fio->Fopen(path, FILEIO_WRITE_BINARY)) {
+			fio->Fwrite(&d88_hdr, sizeof(d88_hdr), 1);
+			fio->Fclose();
+			open_floppy_disk(drv, path, 0);
+		}
+		delete fio;
+	}
+}
+
 void open_floppy_disk(int drv, const _TCHAR* path, int bank)
 {
 	emu->d88_file[drv].bank_num = 0;
@@ -2954,6 +3008,7 @@ _TCHAR* get_open_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* title,
 	OpenFileName.lpstrFile = tmp;
 	OpenFileName.nMaxFile = _MAX_PATH;
 	OpenFileName.lpstrTitle = title;
+	OpenFileName.Flags = OFN_FILEMUSTEXIST;
 	if(dir[0]) {
 		OpenFileName.lpstrInitialDir = dir;
 	} else {
@@ -2962,6 +3017,36 @@ _TCHAR* get_open_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* title,
 		OpenFileName.lpstrInitialDir = get_parent_dir(app);
 	}
 	if(GetOpenFileName(&OpenFileName)) {
+		get_long_full_path_name(OpenFileName.lpstrFile, path, _MAX_PATH);
+		my_tcscpy_s(dir, dir_len, get_parent_dir(path));
+		return path;
+	}
+	return NULL;
+}
+
+_TCHAR* get_save_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* file, const _TCHAR* title, _TCHAR* dir, size_t dir_len)
+{
+	static _TCHAR path[_MAX_PATH];
+	_TCHAR tmp[_MAX_PATH] = _T("");
+	OPENFILENAME OpenFileName;
+	
+	my_tcscpy_s(tmp, _MAX_PATH, file);
+	memset(&OpenFileName, 0, sizeof(OpenFileName));
+	OpenFileName.lStructSize = sizeof(OPENFILENAME);
+	OpenFileName.hwndOwner = hWnd;
+	OpenFileName.lpstrFilter = filter;
+	OpenFileName.lpstrFile = tmp;
+	OpenFileName.nMaxFile = _MAX_PATH;
+	OpenFileName.lpstrTitle = title;
+	OpenFileName.Flags = OFN_OVERWRITEPROMPT;
+	if(dir[0]) {
+		OpenFileName.lpstrInitialDir = dir;
+	} else {
+		_TCHAR app[_MAX_PATH];
+		GetModuleFileName(NULL, app, _MAX_PATH);
+		OpenFileName.lpstrInitialDir = get_parent_dir(app);
+	}
+	if(GetSaveFileName(&OpenFileName)) {
 		get_long_full_path_name(OpenFileName.lpstrFile, path, _MAX_PATH);
 		my_tcscpy_s(dir, dir_len, get_parent_dir(path));
 		return path;

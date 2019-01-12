@@ -132,6 +132,7 @@ BEGIN
     BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD1
         MENUITEM "Eject",                       ID_CLOSE_FD1
+        MENUITEM "Insert Blank 2HD Disk",       ID_OPEN_BLANK_2HD_FD1
         MENUITEM SEPARATOR
         MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD1
         MENUITEM "Correct Timing",              ID_CORRECT_TIMING_FD1
@@ -143,6 +144,7 @@ BEGIN
     BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD2
         MENUITEM "Eject",                       ID_CLOSE_FD2
+        MENUITEM "Insert Blank 2HD Disk",       ID_OPEN_BLANK_2HD_FD2
         MENUITEM SEPARATOR
         MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD2
         MENUITEM "Correct Timing",              ID_CORRECT_TIMING_FD2
@@ -154,6 +156,7 @@ BEGIN
     BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD3
         MENUITEM "Eject",                       ID_CLOSE_FD3
+        MENUITEM "Insert Blank 2HD Disk",       ID_OPEN_BLANK_2HD_FD3
         MENUITEM SEPARATOR
         MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD3
         MENUITEM "Correct Timing",              ID_CORRECT_TIMING_FD3
@@ -165,6 +168,7 @@ BEGIN
     BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD4
         MENUITEM "Eject",                       ID_CLOSE_FD4
+        MENUITEM "Insert Blank 2HD Disk",       ID_OPEN_BLANK_2HD_FD4
         MENUITEM SEPARATOR
         MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD4
         MENUITEM "Correct Timing",              ID_CORRECT_TIMING_FD4

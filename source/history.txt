@@ -1,3 +1,8 @@
+12/28/2018
+
+[EMU] support to insert blank 2D/2DD/2HD disk image
+
+
 12/27/2018
 
 [PC6001/PSUB] improve keyboard irq

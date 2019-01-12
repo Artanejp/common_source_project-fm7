@@ -382,9 +382,12 @@
 #define ID_FD1_MENU_START               42001
 #define ID_OPEN_FD1                     42001
 #define ID_CLOSE_FD1                    42002
-#define ID_WRITE_PROTECT_FD1            42003
-#define ID_CORRECT_TIMING_FD1           42004
-#define ID_IGNORE_CRC_FD1               42005
+#define ID_OPEN_BLANK_2D_FD1            42003
+#define ID_OPEN_BLANK_2DD_FD1           42004
+#define ID_OPEN_BLANK_2HD_FD1           42005
+#define ID_WRITE_PROTECT_FD1            42006
+#define ID_CORRECT_TIMING_FD1           42007
+#define ID_IGNORE_CRC_FD1               42008
 #define ID_RECENT_FD1                   42011 // 42011-42018
 #define ID_D88_FILE_PATH1               42020
 #define ID_SELECT_D88_BANK1             42021 // 42021-42099
@@ -394,9 +397,12 @@
 #define ID_FD2_MENU_START               42101
 #define ID_OPEN_FD2                     42101
 #define ID_CLOSE_FD2                    42102
-#define ID_WRITE_PROTECT_FD2            42103
-#define ID_CORRECT_TIMING_FD2           42104
-#define ID_IGNORE_CRC_FD2               42105
+#define ID_OPEN_BLANK_2D_FD2            42103
+#define ID_OPEN_BLANK_2DD_FD2           42104
+#define ID_OPEN_BLANK_2HD_FD2           42105
+#define ID_WRITE_PROTECT_FD2            42106
+#define ID_CORRECT_TIMING_FD2           42107
+#define ID_IGNORE_CRC_FD2               42108
 #define ID_RECENT_FD2                   42111 // 42111-42118
 #define ID_D88_FILE_PATH2               42120
 #define ID_SELECT_D88_BANK2             42121 // 42121-42199
@@ -406,9 +412,12 @@
 #define ID_FD3_MENU_START               42201
 #define ID_OPEN_FD3                     42201
 #define ID_CLOSE_FD3                    42202
-#define ID_WRITE_PROTECT_FD3            42203
-#define ID_CORRECT_TIMING_FD3           42204
-#define ID_IGNORE_CRC_FD3               42205
+#define ID_OPEN_BLANK_2D_FD3            42203
+#define ID_OPEN_BLANK_2DD_FD3           42204
+#define ID_OPEN_BLANK_2HD_FD3           42205
+#define ID_WRITE_PROTECT_FD3            42206
+#define ID_CORRECT_TIMING_FD3           42207
+#define ID_IGNORE_CRC_FD3               42208
 #define ID_RECENT_FD3                   42211 // 42211-42218
 #define ID_D88_FILE_PATH3               42220
 #define ID_SELECT_D88_BANK3             42221 // 42221-42299
@@ -418,9 +427,12 @@
 #define ID_FD4_MENU_START               42301
 #define ID_OPEN_FD4                     42301
 #define ID_CLOSE_FD4                    42302
-#define ID_WRITE_PROTECT_FD4            42303
-#define ID_CORRECT_TIMING_FD4           42304
-#define ID_IGNORE_CRC_FD4               42305
+#define ID_OPEN_BLANK_2D_FD4            42303
+#define ID_OPEN_BLANK_2DD_FD4           42304
+#define ID_OPEN_BLANK_2HD_FD4           42305
+#define ID_WRITE_PROTECT_FD4            42306
+#define ID_CORRECT_TIMING_FD4           42307
+#define ID_IGNORE_CRC_FD4               42308
 #define ID_RECENT_FD4                   42311 // 42311-42318
 #define ID_D88_FILE_PATH4               42320
 #define ID_SELECT_D88_BANK4             42321 // 42321-42399
@@ -430,9 +442,12 @@
 #define ID_FD5_MENU_START               42401
 #define ID_OPEN_FD5                     42401
 #define ID_CLOSE_FD5                    42402
-#define ID_WRITE_PROTECT_FD5            42403
-#define ID_CORRECT_TIMING_FD5           42404
-#define ID_IGNORE_CRC_FD5               42405
+#define ID_OPEN_BLANK_2D_FD5            42403
+#define ID_OPEN_BLANK_2DD_FD5           42404
+#define ID_OPEN_BLANK_2HD_FD5           42405
+#define ID_WRITE_PROTECT_FD5            42406
+#define ID_CORRECT_TIMING_FD5           42407
+#define ID_IGNORE_CRC_FD5               42408
 #define ID_RECENT_FD5                   42411 // 42411-42418
 #define ID_D88_FILE_PATH5               42420
 #define ID_SELECT_D88_BANK5             42421 // 42421-42499
@@ -442,9 +457,12 @@
 #define ID_FD6_MENU_START               42501
 #define ID_OPEN_FD6                     42501
 #define ID_CLOSE_FD6                    42502
-#define ID_WRITE_PROTECT_FD6            42503
-#define ID_CORRECT_TIMING_FD6           42504
-#define ID_IGNORE_CRC_FD6               42505
+#define ID_OPEN_BLANK_2D_FD6            42503
+#define ID_OPEN_BLANK_2DD_FD6           42504
+#define ID_OPEN_BLANK_2HD_FD6           42505
+#define ID_WRITE_PROTECT_FD6            42506
+#define ID_CORRECT_TIMING_FD6           42507
+#define ID_IGNORE_CRC_FD6               42508
 #define ID_RECENT_FD6                   42511 // 42511-42518
 #define ID_D88_FILE_PATH6               42520
 #define ID_SELECT_D88_BANK6             42521 // 42521-42599
@@ -454,9 +472,12 @@
 #define ID_FD7_MENU_START               42601
 #define ID_OPEN_FD7                     42601
 #define ID_CLOSE_FD7                    42602
-#define ID_WRITE_PROTECT_FD7            42603
-#define ID_CORRECT_TIMING_FD7           42604
-#define ID_IGNORE_CRC_FD7               42605
+#define ID_OPEN_BLANK_2D_FD7            42603
+#define ID_OPEN_BLANK_2DD_FD7           42604
+#define ID_OPEN_BLANK_2HD_FD7           42605
+#define ID_WRITE_PROTECT_FD7            42606
+#define ID_CORRECT_TIMING_FD7           42607
+#define ID_IGNORE_CRC_FD7               42608
 #define ID_RECENT_FD7                   42611 // 42611-42618
 #define ID_D88_FILE_PATH7               42620
 #define ID_SELECT_D88_BANK7             42621 // 42621-42699
@@ -466,9 +487,12 @@
 #define ID_FD8_MENU_START               42701
 #define ID_OPEN_FD8                     42701
 #define ID_CLOSE_FD8                    42702
-#define ID_WRITE_PROTECT_FD8            42703
-#define ID_CORRECT_TIMING_FD8           42704
-#define ID_IGNORE_CRC_FD8               42705
+#define ID_OPEN_BLANK_2D_FD8            42703
+#define ID_OPEN_BLANK_2DD_FD8           42704
+#define ID_OPEN_BLANK_2HD_FD8           42705
+#define ID_WRITE_PROTECT_FD8            42706
+#define ID_CORRECT_TIMING_FD8           42707
+#define ID_IGNORE_CRC_FD8               42708
 #define ID_RECENT_FD8                   42711 // 42711-42718
 #define ID_D88_FILE_PATH8               42720
 #define ID_SELECT_D88_BANK8             42721 // 42721-42799

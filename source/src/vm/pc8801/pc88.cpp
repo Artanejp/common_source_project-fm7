@@ -1048,6 +1048,7 @@ void PC88::write_io8(uint32_t addr, uint32_t data)
 			case 1:
 				if(cdda_register_id != -1) {
 					cancel_event(this, cdda_register_id);
+					cdda_register_id = -1;
 				}
 				d_scsi_cdrom->set_volume((int)(cdda_volume = 100.0));
 				break;
@@ -1055,6 +1056,7 @@ void PC88::write_io8(uint32_t addr, uint32_t data)
 			case 3:
 				if(cdda_register_id != -1) {
 					cancel_event(this, cdda_register_id);
+					cdda_register_id = -1;
 				}
 				d_scsi_cdrom->set_volume((int)(cdda_volume = 0.0));
 				break;

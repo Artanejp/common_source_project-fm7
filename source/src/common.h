@@ -1402,6 +1402,8 @@ void DLL_PREFIX create_local_path(_TCHAR *file_path, int length, const _TCHAR *f
 const _TCHAR *DLL_PREFIX create_date_file_path(const _TCHAR *extension);
 bool DLL_PREFIX is_absolute_path(const _TCHAR *file_path);
 void DLL_PREFIX create_date_file_path(_TCHAR *file_path, int length, const _TCHAR *extension);
+const _TCHAR *DLL_PREFIX create_date_file_name(const _TCHAR *extension);
+void DLL_PREFIX create_date_file_name(_TCHAR *file_path, int length, const _TCHAR *extension);
 bool DLL_PREFIX check_file_extension(const _TCHAR *file_path, const _TCHAR *ext);
 const _TCHAR *DLL_PREFIX get_file_path_without_extensiton(const _TCHAR *file_path);
 void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len);

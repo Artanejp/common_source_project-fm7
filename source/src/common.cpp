@@ -1379,6 +1379,23 @@ void DLL_PREFIX create_date_file_path(_TCHAR *file_path, int length, const _TCHA
 	my_tcscpy_s(file_path, length, create_date_file_path(extension));
 }
 
+const _TCHAR *DLL_PREFIX create_date_file_name(const _TCHAR *extension)
+{
+	static _TCHAR file_name[8][_MAX_PATH];
+	static unsigned int table_index = 0;
+	unsigned int output_index = (table_index++) & 7;
+	cur_time_t cur_time;
+	
+	get_host_time(&cur_time);
+	my_stprintf_s(file_name[output_index], _MAX_PATH, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.%s"), cur_time.year, cur_time.month, cur_time.day, cur_time.hour, cur_time.minute, cur_time.second, extension);
+	return (const _TCHAR *)file_name[output_index];
+}
+
+void DLL_PREFIX create_date_file_name(_TCHAR *file_path, int length, const _TCHAR *extension)
+{
+	my_tcscpy_s(file_path, length, create_date_file_name(extension));
+}
+
 bool DLL_PREFIX check_file_extension(const _TCHAR *file_path, const _TCHAR *ext)
 {
 #if defined(_USE_QT)
