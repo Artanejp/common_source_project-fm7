@@ -77,7 +77,7 @@ void SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 		
 	case SIG_SCSI_ACK:
 		#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SCSI_HOST] ACK = %d\n"), (data & mask) ? 1 : 0);
+//			this->out_debug_log(_T("[SCSI_HOST] ACK = %d\n"), (data & mask) ? 1 : 0);
 		#endif
 		write_signals(&outputs_ack, (data & mask) ? 0xffffffff : 0);
 		ack_status = data & mask;

@@ -123,6 +123,14 @@ uint32_t SCSI_HDD::max_logical_block_addr()
 
 bool SCSI_HDD::read_buffer(int length)
 {
+	if(!(command[0] == SCSI_CMD_READ6 || command[0] == SCSI_CMD_READ10 || command[0] == SCSI_CMD_READ12)) {
+		for(int i = 0; i < length; i++) {
+			buffer->write(0);
+			position++;
+		}
+		set_sense_code(SCSI_SENSE_NOSENSE);
+		return true;
+	}
 	HARDDISK *unit = disk[get_logical_unit_number()];
 	
 	if(!(unit != NULL && unit->mounted())) {
@@ -149,6 +157,14 @@ bool SCSI_HDD::read_buffer(int length)
 
 bool SCSI_HDD::write_buffer(int length)
 {
+	if(!(command[0] == SCSI_CMD_WRITE6 || command[0] == SCSI_CMD_WRITE10 || command[0] == SCSI_CMD_WRITE12)) {
+		for(int i = 0; i < length; i++) {
+			buffer->read();
+			position++;
+		}
+		set_sense_code(SCSI_SENSE_NOSENSE);
+		return true;
+	}
 	HARDDISK *unit = disk[get_logical_unit_number()];
 	
 	if(!(unit != NULL && unit->mounted())) {

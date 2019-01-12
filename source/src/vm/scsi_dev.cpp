@@ -180,19 +180,20 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 					switch(phase) {
 					case SCSI_PHASE_DATA_OUT:
 						if(--remain > 0) {
+							// flush buffer
+							if(buffer->full()) {
+								if(!write_buffer(buffer->count())) {
+									// change to status phase
+									set_dat(SCSI_STATUS_CHKCOND);
+									set_phase_delay(SCSI_PHASE_STATUS, 10.0);
+									break;
+								}
+								buffer->clear(); // just in case
+							}
 							switch(command[0]) {
 							case SCSI_CMD_WRITE6:
 							case SCSI_CMD_WRITE10:
 							case SCSI_CMD_WRITE12:
-								// flush buffer
-								if(buffer->full()) {
-									if(!write_buffer(buffer->count())) {
-										// change to status phase
-										set_dat(SCSI_STATUS_CHKCOND);
-										set_phase_delay(SCSI_PHASE_STATUS, 10.0);
-										break;
-									}
-								}
 								// request to write next data
 								{
 									next_req_usec += 1000000.0 / bytes_per_sec;
@@ -201,35 +202,20 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 								}
 								break;
 							default:
-								// flush buffer
-								if(buffer->full()) {
-									buffer->clear();
-								}
 								// request to write next data
 								set_req_delay(1, 1.0);
 								break;
 							}
 						} else {
-							switch(command[0]) {
-							case SCSI_CMD_WRITE6:
-							case SCSI_CMD_WRITE10:
-							case SCSI_CMD_WRITE12:
-								// flush buffer
-								if(!buffer->empty()) {
-									if(!write_buffer(buffer->count())) {
-										// change to status phase
-										set_dat(SCSI_STATUS_CHKCOND);
-										set_phase_delay(SCSI_PHASE_STATUS, 10.0);
-										break;
-									}
+							// flush buffer
+							if(!buffer->empty()) {
+								if(!write_buffer(buffer->count())) {
+									// change to status phase
+									set_dat(SCSI_STATUS_CHKCOND);
+									set_phase_delay(SCSI_PHASE_STATUS, 10.0);
+									break;
 								}
-								break;
-							default:
-								// flush buffer
-								if(!buffer->empty()) {
-									buffer->clear();
-								}
-								break;
+								buffer->clear(); // just in case
 							}
 							// change to status phase
 							set_dat(SCSI_STATUS_GOOD);
@@ -451,7 +437,7 @@ void SCSI_DEV::set_msg(int value)
 void SCSI_DEV::set_req(int value)
 {
 	#ifdef _SCSI_DEBUG_LOG
-		this->out_debug_log(_T("[SCSI_DEV:ID=%d] REQ = %d\n"), scsi_id, value ? 1 : 0);
+//		this->out_debug_log(_T("[SCSI_DEV:ID=%d] REQ = %d\n"), scsi_id, value ? 1 : 0);
 	#endif
 	if(event_req != -1) {
 		cancel_event(this, event_req);
@@ -521,25 +507,19 @@ void SCSI_DEV::start_command()
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
 		position *= physical_block_size();
 		// transfer length
-		remain = 16;
+//		remain = 16;
+		remain = command[4];
 		// create sense data table
 		buffer->clear();
-		buffer->write(SCSI_SERROR_CURRENT);
-		buffer->write(0x00);
-		buffer->write(is_device_ready() ? SCSI_KEY_NOSENSE : SCSI_KEY_UNITATT);
-		buffer->write(0x00);
-		buffer->write(0x00);
-		buffer->write(0x00);
-		buffer->write(0x00);
-		buffer->write(0x08);
-		buffer->write(0x00);
-		buffer->write(0x00);
-		buffer->write(0x00);
-		buffer->write(0x00);
-		buffer->write(0x00);
-		buffer->write(0x00);
-		buffer->write(0x00);
-		buffer->write(0x00);
+		for(int i = 0; i < remain; i++) {
+			int value = 0;
+			switch(i) {
+			case 0: value = SCSI_SERROR_CURRENT; break;
+			case 2: value = is_device_ready() ? SCSI_KEY_NOSENSE : SCSI_KEY_UNITATT; break;
+			case 7: value = 0x08; break;
+			}
+			buffer->write(value);
+		}
 		// change to data in phase
 		set_dat(buffer->read());
 		set_phase_delay(SCSI_PHASE_DATA_IN, 10.0);
