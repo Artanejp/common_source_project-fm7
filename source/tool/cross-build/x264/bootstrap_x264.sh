@@ -4,4 +4,4 @@
 	    --enable-pic \
 	    --enable-shared \
 	    --enable-static \
-	    --prefix=/usr/local/i586-mingw-msvc/libx264-155
+	    --prefix=/usr/local/i586-mingw-msvc/libx264-157
