@@ -132,7 +132,7 @@ void I386_OPS_BASE::i386_load_segment_descriptor( int segment )
 		{
 			i386_load_protected_mode_segment(&cpustate->sreg[segment], NULL );
 			{
- 				i386_set_descriptor_accessed(cpustate, cpustate->sreg[segment].selector);
+ 				i386_set_descriptor_accessed(cpustate->sreg[segment].selector);
 				cpustate->sreg[segment].flags |= 0x0001;
 			}
 		}

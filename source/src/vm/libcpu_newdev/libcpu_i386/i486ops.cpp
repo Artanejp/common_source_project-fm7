@@ -156,7 +156,7 @@ void I386_OPS_BASE::I486OP(xadd_rm8_r8)()   // Opcode 0x0f c0
 	if( modrm >= 0xc0 ) {
 		UINT8 dst = LOAD_RM8(modrm);
 		UINT8 src = LOAD_REG8(modrm);
-		UINT8 sum = ADD8(cpustate, dst, src);
+		UINT8 sum = ADD8(dst, src);
 		STORE_REG8(modrm, dst);
 		STORE_RM8(modrm, sum);
 		CYCLES(CYCLES_XADD_REG_REG);
@@ -164,7 +164,7 @@ void I386_OPS_BASE::I486OP(xadd_rm8_r8)()   // Opcode 0x0f c0
 		UINT32 ea = GetEA(modrm, 1, 1);
 		UINT8 dst = READ8(ea);
 		UINT8 src = LOAD_REG8(modrm);
-		UINT8 sum = ADD8(cpustate, dst, src);
+		UINT8 sum = ADD8(dst, src);
 		WRITE8(ea, sum);
 		STORE_REG8(modrm, dst);
 		CYCLES(CYCLES_XADD_REG_MEM);
@@ -177,7 +177,7 @@ void I386_OPS_BASE::I486OP(xadd_rm16_r16)() // Opcode 0x0f c1
 	if( modrm >= 0xc0 ) {
 		UINT16 dst = LOAD_RM16(modrm);
 		UINT16 src = LOAD_REG16(modrm);
-		UINT16 sum = ADD16(cpustate, dst, src);
+		UINT16 sum = ADD16(dst, src);
 		STORE_REG16(modrm, dst);
 		STORE_RM16(modrm, sum);
 		CYCLES(CYCLES_XADD_REG_REG);
@@ -185,7 +185,7 @@ void I386_OPS_BASE::I486OP(xadd_rm16_r16)() // Opcode 0x0f c1
 		UINT32 ea = GetEA(modrm, 1, 2);
 		UINT16 dst = READ16(ea);
 		UINT16 src = LOAD_REG16(modrm);
-		UINT16 sum = ADD16(cpustate, dst, src);
+		UINT16 sum = ADD16(dst, src);
 		WRITE16(ea, sum);
 		STORE_REG16(modrm, dst);
 		CYCLES(CYCLES_XADD_REG_MEM);
@@ -198,7 +198,7 @@ void I386_OPS_BASE::I486OP(xadd_rm32_r32)() // Opcode 0x0f c1
 	if( modrm >= 0xc0 ) {
 		UINT32 dst = LOAD_RM32(modrm);
 		UINT32 src = LOAD_REG32(modrm);
-		UINT32 sum = ADD32(cpustate, dst, src);
+		UINT32 sum = ADD32(dst, src);
  		STORE_REG32(modrm, dst);
 		STORE_RM32(modrm, sum);
 		CYCLES(CYCLES_XADD_REG_REG);
@@ -206,7 +206,7 @@ void I386_OPS_BASE::I486OP(xadd_rm32_r32)() // Opcode 0x0f c1
 		UINT32 ea = GetEA(modrm, 1, 4);
 		UINT32 dst = READ32(ea);
 		UINT32 src = LOAD_REG32(modrm);
-		UINT32 sum = ADD32(cpustate, dst, src);
+		UINT32 sum = ADD32(dst, src);
 		WRITE32(ea, sum);
 		STORE_REG32(modrm, dst);
 		CYCLES(CYCLES_XADD_REG_MEM);
