@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								12/9/2018
+								1/11/2019
 
 --- What's this ?
 
@@ -65,8 +65,12 @@ This archive includes the binaries of the emulators listed below:
 		yaPC-6401	PC-6001mkIISR (by Mr.tanam)
 		yaPC-6601	PC-6601 (by Mr.tanam)
 		yaPC-6801	PC-6601SR (by Mr.tanam)
+		ePC-8001	PC-8001
+		ePC-8001mkII	PC-8001mkII
 		ePC-8001mkIISR	PC-8001mkIISR
 		ePC-8201	PC-8201/PC-8201A
+		ePC-8801	PC-8801
+		ePC-8801mkII	PC-8801mkII
 		ePC-8801MA	PC-8801MA
 		ePC-9801	PC-9801
 		ePC-9801E	PC-9801E/F/M

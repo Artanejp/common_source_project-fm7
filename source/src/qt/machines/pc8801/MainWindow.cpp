@@ -12,6 +12,7 @@
 #include <QApplication>
 #include <QMenu>
 
+#include "../../../src/vm/vm.h"
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
@@ -105,19 +106,39 @@ void META_MainWindow::retranslateUi(void)
 	
 	// PC88 Specified
 	menuCpuType->setTitle(QApplication::translate("MenuPC88", "CPU Frequency", 0));
-#if defined(_PC8801MA)
+#ifdef SUPPORT_PC88_HIGH_CLOCK
 	actionCpuType[0]->setText(QString::fromUtf8("8MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("4MHz"));
 	actionCpuType[2]->setText(QString::fromUtf8("8MHz (FE2/MC)"));
 #else // _PC8001SR
 	actionCpuType[0]->setText(QString::fromUtf8("4MHz"));
-	//menuCpuType->setVisible(false);
-	//actionCpuType[0]->setVisible(false);
+#if defined(USE_CPU_TYPE)
+	for(int i = 1; i < USE_CPU_TYPE; i++) {
+		actionCpuType[i]->setVisible(false);
+	}
 #endif
-  
-#if defined(_PC8801MA)
+//	menuCpuType->setVisible(false);
+//	actionCpuType[0]->setVisible(false);
+#endif
+
 	menuBootMode->setTitle(QApplication::translate("MenuPC88", "Machine Mode", 0));
 	menuBootMode->setToolTipsVisible(true);
+#if defined(_PC8801)
+	actionBootMode[0]->setText(QString::fromUtf8("N88 Mode"));
+	actionBootMode[3]->setText(QString::fromUtf8("N Mode (N80 compatible)"));
+	actionBootMode[0]->setToolTip(QApplication::translate("MenuPC88", "N88 Mode.\nYou can run softwares of PC-8801/mk2.", 0));
+	actionBootMode[3]->setToolTip(QApplication::translate("MenuPC88", "N Mode.\nYou can run softwares of PC-8001/mk2.", 0));
+	actionBootMode[1]->setVisible(false);
+	actionBootMode[2]->setVisible(false);
+#elif defined(_PC8801MK2)
+	actionBootMode[0]->setText(QString::fromUtf8("N88 Mode"));
+	actionBootMode[3]->setText(QString::fromUtf8("N Mode (N80 compatible)"));
+	actionBootMode[0]->setToolTip(QApplication::translate("MenuPC88", "N88 Mode.\nYou can run softwares of PC-8801/mk2.", 0));
+	actionBootMode[3]->setToolTip(QApplication::translate("MenuPC88", "N Mode.\nYou can run softwares of PC-8001/mk2.", 0));
+	actionBootMode[1]->setVisible(false);
+	actionBootMode[2]->setVisible(false);
+	
+#elif defined(_PC8801MA)
 	actionBootMode[0]->setText(QString::fromUtf8("N88-V1(S) Mode"));
 	actionBootMode[1]->setText(QString::fromUtf8("N88-V1(H) Mode"));	
 	actionBootMode[2]->setText(QString::fromUtf8("N88-V2 Mode"));
@@ -126,38 +147,62 @@ void META_MainWindow::retranslateUi(void)
 	actionBootMode[1]->setToolTip(QApplication::translate("MenuPC88", "V1(High Speed) Mode.\nYou can run softwares of PC-8801/mk2 faster.", 0));	
 	actionBootMode[2]->setToolTip(QApplication::translate("MenuPC88", "V2 Mode.\nYou can run only softwares for PC-8801SR or later.", 0));
 	actionBootMode[3]->setToolTip(QApplication::translate("MenuPC88", "N Mode.\nYou can run softwares of PC-8001/mk2.", 0));
+#elif defined(_PC8001)
+	menuBootMode->setVisible(false);
+	menuBootMode->setToolTipsVisible(false);
+	actionBootMode[0]->setVisible(false);
+	actionBootMode[1]->setVisible(false);
+	actionBootMode[2]->setVisible(false);
+#elif defined(_PC8001MK2)
+	actionBootMode[0]->setText(QString::fromUtf8("N80     Mode"));
+	actionBootMode[2]->setText(QString::fromUtf8("N Mode"));
+	actionBootMode[0]->setToolTip(QApplication::translate("MenuPC88", "N80 Mode.\nYou can run softwares of PC-8001/mk2.", 0));
+	actionBootMode[2]->setToolTip(QApplication::translate("MenuPC88", "N  Mode.\nYou can run only softwares for PC-8001.", 0));
+	actionBootMode[1]->setVisible(false);
 #elif defined(_PC8001SR)
-	menuBootMode->setTitle("Machine Mode");
-	menuBootMode->setToolTipsVisible(true);
-	actionBootMode[0]->setText(QString::fromUtf8("N80-V1     Mode"));
+	actionBootMode[0]->setText(QString::fromUtf8("N80     Mode"));
 	actionBootMode[1]->setText(QString::fromUtf8("N80-V2(SR) Mode"));	
 	actionBootMode[2]->setText(QString::fromUtf8("N Mode"));
-	actionBootMode[0]->setToolTip(QApplication::translate("MenuPC88", "V1 Mode.\nYou can run softwares of PC-8001/mk2.", 0));
-	actionBootMode[1]->setToolTip(QApplication::translate("MenuPC88", "V2 Mode.\nYou can run only softwares for PC-8001mk2SR or later.", 0));
+	actionBootMode[0]->setToolTip(QApplication::translate("MenuPC88", "N80 Mode.\nYou can run softwares of PC-8001/mk2.", 0));
+	actionBootMode[1]->setToolTip(QApplication::translate("MenuPC88", "N80 V2 Mode.\nYou can run only softwares for PC-8001mk2SR or later.", 0));
 	actionBootMode[2]->setToolTip(QApplication::translate("MenuPC88", "N  Mode.\nYou can run only softwares for PC-8001.", 0));
 #endif
 
-	menuSoundDevice->setTitle(QApplication::translate("MenuPC88", "Sound Boards", 0));
-#if defined(SUPPORT_PC88_SB2)
+#if defined(SUPPORT_PC88_OPN1) && defined(SUPPORT_PC88_OPN2)
+	#if defined(_PC8001SR)
+		menuSoundDevice->setTitle(QApplication::translate("MenuPC88", "Sound Board", 0));
+		actionSoundDevice[0]->setText(QString::fromUtf8("OPN"));
+		actionSoundDevice[1]->setText(QString::fromUtf8("OPNA"));   
+		actionSoundDevice[2]->setText(QString::fromUtf8("OPN + OPNA"));   
+		actionSoundDevice[0]->setToolTip(QApplication::translate("MenuPC88", "Using YM2203(OPN) as FM sounder.", 0));
+		actionSoundDevice[1]->setToolTip(QApplication::translate("MenuPC88", "Using YM2608(OPNA) as FM sounder.", 0));
+		actionSoundDevice[2]->setToolTip(QApplication::translate("MenuPC88", "Using YM2203(OPN) and YM2608(OPNA) as FM sounder.", 0));
+	#else
+		menuSoundDevice->setTitle(QApplication::translate("MenuPC88", "Sound Board", 0));
+		actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-23 (OPNA)"));
+		actionSoundDevice[1]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));   
+		actionSoundDevice[2]->setText(QString::fromUtf8("Sound Board 2 (OPN + OPNA)"));   
+		actionSoundDevice[3]->setText(QString::fromUtf8("Sound Board 2(OPN + OPN)"));   
+		actionSoundDevice[4]->setText(QString::fromUtf8("Sound Board 2 (OPNA + OPNA)"));   
+		actionSoundDevice[5]->setText(QString::fromUtf8("Sound Board 2 (OPNA + OPN)"));
+		actionSoundDevice[0]->setToolTip(QApplication::translate("MenuPC88", "PC-8801-23 (OPNA).", 0));
+		actionSoundDevice[1]->setToolTip(QApplication::translate("MenuPC88", "PC-8801-11 (OPN).", 0));   
+		actionSoundDevice[2]->setToolTip(QApplication::translate("MenuPC88", "Sound Board 2 (OPN + OPNA).", 0));   
+		actionSoundDevice[3]->setToolTip(QApplication::translate("MenuPC88", "Sound Board 2 (OPN + OPN).", 0));   
+		actionSoundDevice[4]->setToolTip(QApplication::translate("MenuPC88", "Sound Board 2 (OPNA + OPNA).", 0));   
+		actionSoundDevice[5]->setToolTip(QApplication::translate("MenuPC88", "Sound Board 2 (OPNA + OPN).", 0));
+	#endif
+#elif defined(SUPPORT_PC88_OPN1) || defined(SUPPORT_PC88_OPN2)
 	menuSoundDevice->setTitle(QApplication::translate("MenuPC88", "Sound Board", 0));
-	actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-23 (OPNA)"));
-	actionSoundDevice[1]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));   
-	actionSoundDevice[2]->setText(QString::fromUtf8("Sound Board 2 (OPN + OPNA)"));   
-	actionSoundDevice[3]->setText(QString::fromUtf8("Sound Board 2(OPN + OPN)"));   
-	actionSoundDevice[4]->setText(QString::fromUtf8("Sound Board 2 (OPNA + OPNA)"));   
-	actionSoundDevice[5]->setText(QString::fromUtf8("Sound Board 2 (OPNA + OPN)"));
-	actionSoundDevice[0]->setToolTip(QApplication::translate("MenuPC88", "PC-8801-23 (OPNA).", 0));
-	actionSoundDevice[1]->setToolTip(QApplication::translate("MenuPC88", "PC-8801-11 (OPN).", 0));   
-	actionSoundDevice[2]->setToolTip(QApplication::translate("MenuPC88", "Sound Board 2 (OPN + OPNA).", 0));   
-	actionSoundDevice[3]->setToolTip(QApplication::translate("MenuPC88", "Sound Board 2 (OPN + OPN).", 0));   
-	actionSoundDevice[4]->setToolTip(QApplication::translate("MenuPC88", "Sound Board 2 (OPNA + OPNA).", 0));   
-	actionSoundDevice[5]->setToolTip(QApplication::translate("MenuPC88", "Sound Board 2 (OPNA + OPN).", 0));   
-#elif defined(SUPPORT_PC88_OPNA)
-	menuSoundDevice->setTitle(QApplication::translate("MenuPC88", "Sound Board", 0));
-	actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-23 (OPNA)"));
-	actionSoundDevice[1]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));
-	actionSoundDevice[0]->setToolTip(QApplication::translate("MenuPC88", "PC-8801-23 (OPNA).", 0));
-	actionSoundDevice[1]->setToolTip(QApplication::translate("MenuPC88", "PC-8801-11 (OPN).", 0));
+	#if defined(SUPPORT_OPNA)
+		actionSoundDevice[0]->setToolTip(QApplication::translate("MenuPC88", "PC-8801-11 (OPN).", 0));
+		actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));
+		actionSoundDevice[1]->setText(QString::fromUtf8("PC-8801-23 (OPNA)"));
+		actionSoundDevice[1]->setToolTip(QApplication::translate("MenuPC88", "PC-8801-23 (OPNA).", 0));
+	#else
+		actionSoundDevice[0]->setToolTip(QApplication::translate("MenuPC88", "PC-8801-11 (OPN).", 0));
+		actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));
+	#endif
 #endif
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setText(QApplication::translate("MenuPC88", "Main CPU", 0));
@@ -203,10 +248,10 @@ void META_MainWindow::setupUI_Emu(void)
 	ConfigCPUTypes(USE_CPU_TYPE);
 #endif
 
-#if defined(_PC8801MA)
-	ConfigCPUBootMode(4);
-#elif defined(_PC8001SR)
+#if defined(PC8001_VARIANT)
 	ConfigCPUBootMode(3);
+#else
+	ConfigCPUBootMode(4);
 #endif
 	actionMemoryWait = new Action_Control_88(this, using_flags);
 	actionMemoryWait->setCheckable(true);

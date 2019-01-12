@@ -187,19 +187,23 @@
 #define IO_ADDR_MAX			0x10000
 
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
+	#define PC8801_VARIANT
+	#define PC8801SR_VARIANT
 	#define MODE_PC98	0
 	#define MODE_PC88_V1S	1
 	#define MODE_PC88_V1H	2
 	#define MODE_PC88_V2	3
 	#define MODE_PC88_N	4
+	#define SUPPORT_PC88_KANJI1
+	#define SUPPORT_PC88_KANJI2
 	//#define SUPPORT_PC88_DICTIONARY
 	#define SUPPORT_PC88_HIGH_CLOCK
 	//#define SUPPORT_PC88_JOYSTICK
 	#define PC88_EXRAM_BANKS	4
-#endif
+	#define SUPPORT_PC88_OPN1
 #if defined(_PC98DOPLUS)
 	#define SUPPORT_PC88_OPNA
-	#define SUPPORT_PC88_SB2
+#endif
 #endif
 
 // device informations for virtual machine
@@ -531,7 +535,7 @@ protected:
 	I8255* pc88pio;
 	PCM1BIT* pc88pcm;
 	UPD1990A* pc88rtc;
-	YM2203* pc88opn;
+	YM2203* pc88opn1;
 	Z80* pc88cpu;
 	
 	PC80S31K* pc88sub;

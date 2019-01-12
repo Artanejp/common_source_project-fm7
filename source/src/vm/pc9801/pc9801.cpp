@@ -851,15 +851,15 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88rtc = new UPD1990A(this, emu);
 	pc88rtc->set_device_name(_T("uPD1990A RTC (PC-8801)"));
 	pc88rtc->set_context_event_manager(pc88event);
-	pc88opn = new YM2203(this, emu);
+	pc88opn1 = new YM2203(this, emu);
 #ifdef SUPPORT_PC88_OPNA
-	pc88opn->set_device_name(_T("YM2608 OPNA (PC-8801)"));
-	pc88opn->is_ym2608 = true;
+	pc88opn1->set_device_name(_T("YM2608 OPNA (PC-8801)"));
+	pc88opn1->is_ym2608 = true;
 #else
-	pc88opn->set_device_name(_T("YM2203 OPN (PC-8801)"));
-	pc88opn->is_ym2608 = false;
+	pc88opn1->set_device_name(_T("YM2203 OPN (PC-8801)"));
+	pc88opn1->is_ym2608 = false;
 #endif
-	pc88opn->set_context_event_manager(pc88event);
+	pc88opn1->set_context_event_manager(pc88event);
 	pc88cpu = new Z80(this, emu);
 	pc88cpu->set_device_name(_T("Z80 CPU (PC-8801)"));
 	pc88cpu->set_context_event_manager(pc88event);
@@ -895,14 +895,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	pc88event->set_context_cpu(pc88cpu, (config.cpu_type == 1) ? 3993624 : 7987248);
 	pc88event->set_context_cpu(pc88cpu_sub, 3993624);
-	pc88event->set_context_sound(pc88opn);
+	pc88event->set_context_sound(pc88opn1);
 	pc88event->set_context_sound(pc88pcm);
 	pc88event->set_context_sound(pc88noise_seek);
 	pc88event->set_context_sound(pc88noise_head_down);
 	pc88event->set_context_sound(pc88noise_head_up);
 	
 	pc88->set_context_cpu(pc88cpu);
-	pc88->set_context_opn(pc88opn);
+	pc88->set_context_opn1(pc88opn1);
 	pc88->set_context_pcm(pc88pcm);
 	pc88->set_context_pio(pc88pio);
 	pc88->set_context_prn(pc88prn);
@@ -914,7 +914,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	pc88cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	pc88opn->set_context_irq(pc88, SIG_PC88_SOUND_IRQ, 1);
+	pc88opn1->set_context_irq(pc88, SIG_PC88_OPN1_IRQ, 1);
 	pc88sio->set_context_rxrdy(pc88, SIG_PC88_USART_IRQ, 1);
 	pc88sio->set_context_out(pc88, SIG_PC88_USART_OUT);
 	
@@ -1148,7 +1148,7 @@ void VM::reset()
 #endif
 	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
-	pc88opn->set_reg(0x29, 3); // for Misty Blue
+	pc88opn1->set_reg(0x29, 3); // for Misty Blue
 	pc88pio->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 	pc88pio_sub->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 #endif
@@ -1246,10 +1246,10 @@ void VM::initialize_sound(int rate, int samples)
 	pc88event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	if(pc88opn->is_ym2608) {
-		pc88opn->initialize_sound(rate, 7987248, samples, 0, 0);
+	if(pc88opn1->is_ym2608) {
+		pc88opn1->initialize_sound(rate, 7987248, samples, 0, 0);
 	} else {
-		pc88opn->initialize_sound(rate, 3993624, samples, 0, 0);
+		pc88opn1->initialize_sound(rate, 3993624, samples, 0, 0);
 	}
 	pc88pcm->initialize_sound(rate, 8000);
 #endif
@@ -1304,14 +1304,14 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		beep->set_volume(0, decibel_l, decibel_r);
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	} else if(ch-- == 0) {
-		pc88opn->set_volume(0, decibel_l, decibel_r);
+		pc88opn1->set_volume(0, decibel_l, decibel_r);
 	} else if(ch-- == 0) {
-		pc88opn->set_volume(1, decibel_l, decibel_r);
+		pc88opn1->set_volume(1, decibel_l, decibel_r);
 #if defined(SUPPORT_PC88_OPNA)
 	} else if(ch-- == 0) {
-		pc88opn->set_volume(2, decibel_l, decibel_r);
+		pc88opn1->set_volume(2, decibel_l, decibel_r);
 	} else if(ch-- == 0) {
-		pc88opn->set_volume(3, decibel_l, decibel_r);
+		pc88opn1->set_volume(3, decibel_l, decibel_r);
 #endif
 	} else if(ch-- == 0) {
 		pc88pcm->set_volume(0, decibel_l, decibel_r);

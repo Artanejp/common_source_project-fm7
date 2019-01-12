@@ -1846,22 +1846,27 @@ CD-ROMやCDなどです。</translation>
         <translation>CD ROM</translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="81"/>
+        <location filename="menu_disk.cpp" line="80"/>
+        <source>Create D88/D77 virtual floppy</source>
+        <translation>D88/D77形式の仮想フロッピーを作成する。</translation>
+    </message>
+    <message>
+        <location filename="menu_disk.cpp" line="186"/>
         <source>Insert virtual floppy disk file.</source>
         <translation>仮想フロッピーディスクファイルを挿入します。</translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="82"/>
+        <location filename="menu_disk.cpp" line="187"/>
         <source>Eject virtual floppy disk.</source>
         <translation>仮想フロッピーディスクを取り出します。</translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="84"/>
+        <location filename="menu_disk.cpp" line="189"/>
         <source>Ignore CRC error</source>
         <translation>CRCエラー無視</translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="85"/>
+        <location filename="menu_disk.cpp" line="190"/>
         <source>Ignore CRC error of virtual floppy.
 Useful for some softwares,
  but causes wrong working with some softwares.</source>
@@ -1870,12 +1875,12 @@ Useful for some softwares,
 他のソフトウェアではバグなどの問題の原因になるかもしれません。</translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="86"/>
+        <location filename="menu_disk.cpp" line="191"/>
         <source>Correct transfer timing</source>
         <translation>転送タイミング調整</translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="87"/>
+        <location filename="menu_disk.cpp" line="192"/>
         <source>Correct transferring timing.
 Useful for some softwares
  needs strict transfer timing.</source>
@@ -1886,12 +1891,24 @@ Useful for some softwares
 </translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="89"/>
+        <location filename="menu_disk.cpp" line="194"/>
+        <source>Create Virtual Floppy</source>
+        <translation>仮想フロッピーの作成</translation>
+    </message>
+    <message>
+        <location filename="menu_disk.cpp" line="195"/>
+        <source>Create and mount virtual blank-floppy disk.
+This makes only D88/D77 format.</source>
+        <translation>仮想ブランクディスクを作成してマウントします。
+D88/D77形式の仮想ディスクのみ作成可能です。</translation>
+    </message>
+    <message>
+        <location filename="menu_disk.cpp" line="197"/>
         <source>Immediate increment</source>
         <translation>データカウンターを即時加算する</translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="90"/>
+        <location filename="menu_disk.cpp" line="198"/>
         <source>Increment data pointer immediately.
 This is test hack for MB8877.
 Useful for some softwares
@@ -1984,7 +2001,7 @@ You *can* write datas to this media.</source>
         <translation>バイナリ</translation>
     </message>
     <message>
-        <location filename="util_fd.cpp" line="107"/>
+        <location filename="util_fd.cpp" line="110"/>
         <source>FDD</source>
         <translation>FD</translation>
     </message>
@@ -2006,6 +2023,16 @@ You *can* write datas to this media.</source>
         <location filename="util_hdd.cpp" line="58"/>
         <source>HDD</source>
         <translation>HD</translation>
+    </message>
+    <message>
+        <location filename="qt_dialogs.cpp" line="62"/>
+        <source>Virtual FD type:</source>
+        <translation>仮想ディスク形式:</translation>
+    </message>
+    <message>
+        <location filename="qt_dialogs.cpp" line="63"/>
+        <source>Select type of virtual floppy.</source>
+        <translation>仮想フロッピーの種類を選択してください。</translation>
     </message>
 </context>
 <context>

@@ -237,9 +237,13 @@ copy Release\pc6001mk2sr.exe build_xp\pc6001\.
 copy Release\pc6601.exe build_xp\pc6001\.
 copy Release\pc6601sr.exe build_xp\pc6001\.
 
+devenv.com pc8001.vcproj /Rebuild Release
+devenv.com pc8001mk2.vcproj /Rebuild Release
 devenv.com pc8001mk2sr.vcproj /Rebuild Release
-mkdir build_xp\pc8001mk2sr
-copy Release\pc8001mk2sr.exe build_xp\pc8001mk2sr\.
+mkdir build_xp\pc8001
+copy Release\pc8001.exe build_xp\pc8001\.
+copy Release\pc8001mk2.exe build_xp\pc8001\.
+copy Release\pc8001mk2sr.exe build_xp\pc8001\.
 
 devenv.com pc8201.vcproj /Rebuild Release
 mkdir build_xp\pc8201
@@ -248,6 +252,12 @@ copy Release\pc8201.exe build_xp\pc8201\.
 devenv.com pc8201a.vcproj /Rebuild Release
 mkdir build_xp\pc8201a
 copy Release\pc8201a.exe build_xp\pc8201a\.
+
+devenv.com pc8801.vcproj /Rebuild Release
+devenv.com pc8801mk2.vcproj /Rebuild Release
+mkdir build_xp\pc8801
+copy Release\pc8801.exe build_xp\pc8801\.
+copy Release\pc8801mk2.exe build_xp\pc8801\.
 
 devenv.com pc8801ma.vcproj /Rebuild Release
 mkdir build_xp\pc8801ma

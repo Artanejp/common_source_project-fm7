@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								5/24/2018
+								1/11/2018
 
 --- What's this ?
 
@@ -31,6 +31,7 @@ This archive includes the binaries of the emulators listed below:
 		eFM8		FM-8 (by Mr.Artane.)
 		eFM7		FM-7 (by Mr.Artane.)
 		eFM77		FM-77 (by Mr.Artane.)
+		eFM77L4		FM-77L4 (by Mr.Artane.)
 		eFM77AV		FM77AV (by Mr.Artane.)
 		eFM77AV40	FM77AV40 (by Mr.Artane.)
 		eFM77AV40EX	FM77AV40EX (by Mr.Artane.)
@@ -64,8 +65,12 @@ This archive includes the binaries of the emulators listed below:
 		yaPC-6401	PC-6001mkIISR (by Mr.tanam)
 		yaPC-6601	PC-6601 (by Mr.tanam)
 		yaPC-6801	PC-6601SR (by Mr.tanam)
+		ePC-8001	PC-8001
+		ePC-8001mkII	PC-8001mkII
 		ePC-8001mkIISR	PC-8001mkIISR
 		ePC-8201	PC-8201/PC-8201A
+		ePC-8801	PC-8801
+		ePC-8801mkII	PC-8801mkII
 		ePC-8801MA	PC-8801MA
 		ePC-9801	PC-9801
 		ePC-9801E	PC-9801E/F/M
@@ -74,6 +79,7 @@ This archive includes the binaries of the emulators listed below:
 		ePC-9801VM	PC-9801VM
 		ePC-9801VX	PC-9801VX
 		ePC-9801RA	PC-9801RA
+		ePC-98XA	PC-98XA
 		ePC-98XL	PC-98XL
 		ePC-98RL	PC-98RL
 		ePC-98DO	PC-98DO
@@ -465,6 +471,7 @@ Save/Load State info:
 - vm/pc8801/pc88.*
 	M88 by Mr.CISC
 	XM8 by Mr.PI.
+	X88000 by Mr.Manuke
 	MESS PC-8801 driver
 - vm/pc9801/display.*
 	Neko Project 2 by Mr.Yui

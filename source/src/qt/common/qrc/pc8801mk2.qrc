@@ -1,6 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-    <file alias="default.ico">../../../res/pc8001mk2sr.ico</file>
+    <file alias="default.ico">../../../res/pc8801mk2.ico</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/pc8801.txt</file>
     <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/pc8801.qm</file>
 </qresource>

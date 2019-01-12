@@ -301,10 +301,16 @@ copy binary_vc12\pc6001mk2sr.exe build_vc12\pc6001\.
 copy binary_vc12\pc6601.exe build_vc12\pc6001\.
 copy binary_vc12\pc6601sr.exe build_vc12\pc6001\.
 
+devenv.com pc8001.vcxproj /Rebuild Release
+call :clean
+devenv.com pc8001mk2.vcxproj /Rebuild Release
+call :clean
 devenv.com pc8001mk2sr.vcxproj /Rebuild Release
 call :clean
-mkdir build_vc12\pc8001mk2sr
-copy binary_vc12\pc8001mk2sr.exe build_vc12\pc8001mk2sr\.
+mkdir build_vc12\pc8001
+copy binary_vc12\pc8001.exe build_vc12\pc8001\.
+copy binary_vc12\pc8001mk2.exe build_vc12\pc8001\.
+copy binary_vc12\pc8001mk2sr.exe build_vc12\pc8001\.
 
 devenv.com pc8201.vcxproj /Rebuild Release
 call :clean
@@ -315,6 +321,14 @@ devenv.com pc8201a.vcxproj /Rebuild Release
 call :clean
 mkdir build_vc12\pc8201a
 copy binary_vc12\pc8201a.exe build_vc12\pc8201a\.
+
+devenv.com pc8801.vcxproj /Rebuild Release
+call :clean
+devenv.com pc8801mk2.vcxproj /Rebuild Release
+call :clean
+mkdir build_vc12\pc8801
+copy binary_vc12\pc8801.exe build_vc12\pc8801\.
+copy binary_vc12\pc8801mk2.exe build_vc12\pc8801\.
 
 devenv.com pc8801ma.vcxproj /Rebuild Release
 call :clean

@@ -125,34 +125,6 @@ PC-8001専用のモードです。</translation>
         <translation>テープ</translation>
     </message>
     <message>
-        <source>OPNA</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>OPN</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>OPN-1</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>OPN-2</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>OPNA-1</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>OPNA-2</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>MainWindow</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>CPU Frequency</source>
         <translation>CPU周波数</translation>
     </message>
@@ -187,13 +159,13 @@ PC-8001/mk2のソフトウェアを実行できます。</translation>
     <message>
         <source>V1 Mode.
 You can run softwares of PC-8001/mk2.</source>
-        <translation>V1モード。
+        <translation type="vanished">V1モード。
 PC-8001/mk2のソフトウェアを実行できます。</translation>
     </message>
     <message>
         <source>V2 Mode.
 You can run only softwares for PC-8001mk2SR or later.</source>
-        <translation>V2モード。
+        <translation type="vanished">V2モード。
 PC-8001mk2SR専用のソフトのみ実行できます。</translation>
     </message>
     <message>
@@ -204,19 +176,11 @@ PC-8001専用のモードです。</translation>
     </message>
     <message>
         <source>Sound Boards</source>
-        <translation>サウンドボード</translation>
+        <translation type="vanished">サウンドボード</translation>
     </message>
     <message>
         <source>Sound Board</source>
         <translation>サウンドボード</translation>
-    </message>
-    <message>
-        <source>PC-8801-23 (OPNA).</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>PC-8801-11 (OPN).</source>
-        <translation></translation>
     </message>
     <message>
         <source>Sound Board 2 (OPN + OPNA).</source>
@@ -285,6 +249,72 @@ PC-8001専用のモードです。</translation>
     <message>
         <source>Standard</source>
         <translation>通常モード</translation>
+    </message>
+    <message>
+        <source>OPNA</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>OPN</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>OPN-1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>OPN-2</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>OPNA-1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>OPNA-2</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>MainWindow</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>N88 Mode.
+You can run softwares of PC-8801/mk2.</source>
+        <translation>N88モードです。
+PC-8801/mk2のソフトウェアが利用できます。</translation>
+    </message>
+    <message>
+        <source>N80 Mode.
+You can run softwares of PC-8001/mk2.</source>
+        <translation>N80モードです。
+PC-8001/mk2のソフトが利用できます。</translation>
+    </message>
+    <message>
+        <source>N80 V2 Mode.
+You can run only softwares for PC-8001mk2SR or later.</source>
+        <translation>N80 V2モードです。
+PC-8001mk2SR以降のソフトウェアのみが利用できます。</translation>
+    </message>
+    <message>
+        <source>Using YM2203(OPN) as FM sounder.</source>
+        <translation>YM2203(OPN)をFM音源として使います。</translation>
+    </message>
+    <message>
+        <source>Using YM2608(OPNA) as FM sounder.</source>
+        <translation>YM2608(OPNA)をFM音源として使います。</translation>
+    </message>
+    <message>
+        <source>Using YM2203(OPN) and YM2608(OPNA) as FM sounder.</source>
+        <translation>YM2203(OPN)とYM2608(OPNA)の両方をFM音源として使います。</translation>
+    </message>
+    <message>
+        <source>PC-8801-23 (OPNA).</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PC-8801-11 (OPN).</source>
+        <translation></translation>
     </message>
 </context>
 </TS>

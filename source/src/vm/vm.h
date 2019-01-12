@@ -352,6 +352,16 @@
 #include "pc6001/pc6001.h"
 #endif
 
+// NEC PC-8001
+#ifdef _PC8001
+#include "pc8801/pc8801.h"
+#endif
+
+// NEC PC-8001mkII
+#ifdef _PC8001MK2
+#include "pc8801/pc8801.h"
+#endif
+
 // NEC PC-8001mkIISR
 #ifdef _PC8001SR
 #include "pc8801/pc8801.h"
@@ -365,6 +375,16 @@
 // NEC PC-8201A
 #ifdef _PC8201A
 #include "pc8201/pc8201.h"
+#endif
+
+// NEC PC-8801
+#ifdef _PC8801
+#include "pc8801/pc8801.h"
+#endif
+
+// NEC PC-8801mkII
+#ifdef _PC8801MK2
+#include "pc8801/pc8801.h"
 #endif
 
 // NEC PC-8801MA

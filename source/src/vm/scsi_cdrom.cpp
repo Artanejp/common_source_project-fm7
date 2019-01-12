@@ -1,4 +1,4 @@
-k/*
+/*
 	Skelton for retropc emulator
 
 	Author : Takeda.Toshiya
