@@ -61,6 +61,7 @@ void Object_Menu_Control::do_set_disk_count_immediate(bool flag)
 	emit sig_emu_update_config();
 }
 
+
 int Ui_MainWindowBase::write_protect_fd(int drv, bool flag)
 {
 	if((drv < 0) || (drv >= using_flags->get_max_drive())) return -1;
@@ -87,6 +88,8 @@ void Ui_MainWindowBase::CreateFloppyMenu(int drv, int drv_base)
 		
 		menu_fds[drv]->do_clear_inner_media();
 		menu_fds[drv]->do_add_media_extension(ext, desc1);
+
+	
 		SETUP_HISTORY(p_config->recent_floppy_disk_path[drv], listFDs[drv]);
 		menu_fds[drv]->do_update_histories(listFDs[drv]);
 		menu_fds[drv]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);

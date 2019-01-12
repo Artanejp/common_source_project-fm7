@@ -31,16 +31,6 @@ int Ui_MainWindowBase::set_d88_slot(int drive, int num)
 	//path = QString::fromUtf8(emu->d88_file[drive].path);
 	path = hRunEmu->get_d88_file_path(drive);
 	menu_fds[drive]->do_select_inner_media(num);
-#if 0	
-	if(emu && emu->d88_file[drive].cur_bank != num) {
-		emit sig_open_disk(drive, path, num);
-		if(emu->is_floppy_disk_protected(drive)) {
-			menu_fds[drive]->do_set_write_protect(true);
-		} else {
-			menu_fds[drive]->do_set_write_protect(false);
-		}
-	}
-#else
 	if(hRunEmu->get_d88_file_cur_bank(drive) != num) {
 		emit sig_open_disk(drive, path, num);
 		if(hRunEmu->is_floppy_disk_protected(drive)) {
@@ -49,7 +39,6 @@ int Ui_MainWindowBase::set_d88_slot(int drive, int num)
 			menu_fds[drive]->do_set_write_protect(false);
 		}
 	}
-#endif		
 	return 0;
 }
 

@@ -399,6 +399,7 @@ DWORD DLL_PREFIX MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName,
 		lpp[0] = '\0';
 	}
 	FILEIO* fio = new FILEIO();
+	if(!(fio->IsFileExisting(lpFileName))) return 0;
 	if(fio->Fopen(lpFileName, FILEIO_READ_ASCII)) {
 		bool in_section = false;
 		char section[1024], line[1024], *equal;
@@ -424,7 +425,7 @@ DWORD DLL_PREFIX MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName,
 		fio->Fclose();
 	}
 	delete fio;
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Try App: %s Key: %s", lpAppName, lpKeyName);
+	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Try App: %s Key: %s", lpAppName, lpKeyName);
 	return strlen(lpp);
 }
 

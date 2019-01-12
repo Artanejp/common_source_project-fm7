@@ -11,6 +11,11 @@
 #define _CSP_QT_DIALOGS_H
 
 #include <QFileDialog>
+#include <QComboBox>
+#include <QGridLayout>
+#include <QLabel>
+#include <QApplication>
+#include <QWindow>
 
 #include "qt_main.h"
 
@@ -66,6 +71,32 @@ public:
 		delete param;
 	}
 } CSP_DiskDialog;
+
+class CSP_CreateDiskDialog : public QWidget {
+	Q_OBJECT
+	quint8 __real_media_type;
+	QComboBox media_type;
+	QLabel type_label;
+	QGridLayout layout;
+public:
+	QFileDialog* dlg;
+	CSP_FileParams *param;
+	CSP_CreateDiskDialog(bool *masks, QWidget *parent = 0);
+	~CSP_CreateDiskDialog() {
+		delete param;
+		delete dlg;
+	}
+signals:
+	int sig_create_disk(quint8, QString);
+public slots:
+	void do_set_type(int i) {
+		__real_media_type = media_type.itemData(i).toUInt();
+	}
+	void do_create_disk(QString s) {
+		emit sig_create_disk(__real_media_type, s);
+	}
+};
+
 QT_END_NAMESPACE
 
 #endif //End.

@@ -19,11 +19,108 @@ Menu_FDClass::Menu_FDClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, Q
 	use_write_protect = true;
 	use_d88_menus = true;
 	icon_floppy = QIcon(":/icon_floppy.png");
+
+	for(int i = 0; i < 4; i++) {
+		type_mask[i] = true;
+	}
 }
 
 Menu_FDClass::~Menu_FDClass()
 {
 }
+
+void Menu_FDClass::do_set_create_mask(quint8 type, bool flag)
+{
+	switch(type) {
+	case 0x00: // 2D
+		type_mask[0] = flag;
+		break;
+	case 0x10: // 2DD
+		type_mask[1] = flag;
+		break;
+	case 0x20: // 2HD
+		type_mask[2] = flag;
+		break;
+	case 0x30: // 2HD/1.44M
+		type_mask[3] = flag;
+		break;
+	}
+}
+
+void Menu_FDClass::do_open_dialog_create_fd()
+{
+	CSP_CreateDiskDialog dlg(type_mask);
+	
+	if(initial_dir.isEmpty()) { 
+		QDir dir;
+		char app[PATH_MAX];
+		initial_dir = dir.currentPath();
+		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX - 1);
+		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
+	}
+
+	dlg.dlg->setDirectory(initial_dir);
+	QString create_ext = QString::fromUtf8("*.d88 *.d77");
+	QString create_desc = QString::fromUtf8("D88/D77 Virtual Floppy Image.");
+	QString all = QString::fromUtf8("All Files (*.*)");
+	QString tmps = create_desc;
+	tmps.append(QString::fromUtf8(" ("));
+	tmps.append(create_ext.toLower());
+	tmps.append(QString::fromUtf8(" "));
+	tmps.append(create_ext.toUpper());
+	tmps.append(QString::fromUtf8(")"));
+	QStringList __filter;
+	__filter.clear();
+	__filter << tmps;
+	__filter << all;
+	__filter.removeDuplicates();
+	dlg.dlg->setNameFilters(__filter);
+
+	tmps.clear();
+	tmps = QApplication::translate("MenuMedia", "Create D88/D77 virtual floppy", 0);
+	if(!window_title.isEmpty()) {
+		tmps = tmps + QString::fromUtf8(" ") + window_title;
+	} else {
+		tmps = tmps + QString::fromUtf8(" ") + this->title();
+	}
+	dlg.dlg->setWindowTitle(tmps);
+	
+	QObject::connect(&dlg, SIGNAL(sig_create_disk(quint8, QString)), this, SLOT(do_create_media(quint8, QString)));
+
+	dlg.show();
+	dlg.dlg->exec();
+	return;
+}
+
+void Menu_FDClass::do_create_media(quint8 media_type, QString name)
+{
+
+	if(!(name.isEmpty())) {
+#pragma pack(1)
+		struct {
+			char title[17];
+			uint8_t rsrv[9];
+			uint8_t protect;
+			uint8_t type;
+			uint32_t size;
+			uint32_t trkptr[164];
+		} d88_hdr;
+#pragma pack()
+		memset(&d88_hdr, 0, sizeof(d88_hdr));
+		my_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "BLANK");
+		d88_hdr.type = media_type;
+		d88_hdr.size = sizeof(d88_hdr);
+		
+		FILEIO *fio = new FILEIO();
+		if(fio->Fopen(name.toUtf8().data(), FILEIO_WRITE_BINARY)) {
+			fio->Fwrite(&d88_hdr, sizeof(d88_hdr), 1);
+			fio->Fclose();
+			emit sig_open_media(media_drive, name);
+		}
+		delete fio;
+	}
+}
+
 
 void Menu_FDClass::create_pulldown_menu_device_sub(void)
 {
@@ -43,6 +140,10 @@ void Menu_FDClass::create_pulldown_menu_device_sub(void)
 	action_count_immediate->setCheckable(true);
 	action_count_immediate->binds->setDrive(media_drive);
 	
+	action_create_fd = new Action_Control(p_wid, using_flags);
+	action_create_fd->setVisible(true);
+	action_create_fd->setCheckable(false);
+
 	p = p_config;
 	if(p != NULL) {
 		if(p->correct_disk_timing[media_drive]) action_correct_timing->setChecked(true);
@@ -54,6 +155,8 @@ void Menu_FDClass::create_pulldown_menu_device_sub(void)
 
 void Menu_FDClass::connect_menu_device_sub(void)
 {
+	this->addSeparator();
+	this->addAction(action_create_fd);
 	this->addSeparator();
 	this->addAction(action_ignore_crc_error);
 	this->addAction(action_correct_timing);
@@ -67,7 +170,9 @@ void Menu_FDClass::connect_menu_device_sub(void)
 	
 	connect(action_count_immediate, SIGNAL(toggled(bool)),
 			action_count_immediate->binds, SLOT(do_set_disk_count_immediate(bool)));
-   
+
+	connect(action_create_fd, SIGNAL(triggered()), this, SLOT(do_open_dialog_create_fd()));
+	
    	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_disk(int, QString)));
 	connect(this, SIGNAL(sig_eject_media(int)), p_wid, SLOT(eject_fd(int)));
 	connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(write_protect_fd(int, bool)));	
@@ -86,6 +191,9 @@ void Menu_FDClass::retranslate_pulldown_menu_device_sub(void)
 	action_correct_timing->setText(QApplication::translate("MenuMedia", "Correct transfer timing", 0));
 	action_correct_timing->setToolTip(QApplication::translate("MenuMedia", "Correct transferring timing.\nUseful for some softwares\n needs strict transfer timing.", 0));
 	
+	action_create_fd->setText(QApplication::translate("MenuMedia", "Create Virtual Floppy", 0));
+	action_create_fd->setToolTip(QApplication::translate("MenuMedia", "Create and mount virtual blank-floppy disk.\nThis makes only D88/D77 format.", 0));
+
 	action_count_immediate->setText(QApplication::translate("MenuMedia", "Immediate increment", 0));
 	action_count_immediate->setToolTip(QApplication::translate("MenuMedia", "Increment data pointer immediately.\nThis is test hack for MB8877.\nUseful for some softwares\n needs strict transfer timing.", 0));
 }
