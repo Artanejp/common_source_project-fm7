@@ -23,7 +23,6 @@ set(VMFILES_LIB
 		pcm1bit.cpp
 		upd1990a.cpp
 		upd765a.cpp
-		ym2203.cpp
 		z80ctc.cpp
 		z80dma.cpp
 		z80pio.cpp
@@ -36,10 +35,13 @@ set(FLAG_USE_Z80 ON)
 
 set(BUILD_SHARED_LIBS OFF)
 
+set(BUILD_PC8001 OFF CACHE BOOL "Build for PC8001")
+set(BUILD_PC8001MK2 OFF CACHE BOOL "Build for PC8001 mk2")
 set(BUILD_PC8001SR OFF CACHE BOOL "Build for PC8001SR")
+set(BUILD_PC8801 OFF CACHE BOOL "Build with PC8801")
+set(BUILD_PC8801MK2 OFF CACHE BOOL "Build with PC8801 mk2")
 set(BUILD_PC8801MA OFF CACHE BOOL "Build with PC8801MA")
-set(USE_OPNA ON CACHE BOOL "Use OPNA sound with PC8801MA")
-set(USE_SOUNDBOARD2 ON CACHE BOOL "Use Sound Board sound with PC8801MA")
+
 set(USE_PCG  ON CACHE BOOL "Use PCG8100")
 set(PC88_EXTRAM_PAGES  "4" CACHE STRING "Set banks of EXTRAM of PC8801, bank = 32Kbytes")
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
@@ -53,19 +55,47 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 
 add_definitions(-D_CONFIGURE_WITH_CMAKE)
 
-
-
-if(BUILD_PC8001SR)
+if(BUILD_PC8001)
+  set(EXEC_TARGET emupc8001)
+  add_definitions(-D_PC8001)
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc8001.qrc)
+  
+elseif(BUILD_PC8001MK2)
+  set(EXEC_TARGET emupc8001mk2)
+  add_definitions(-D_PC8001MK2)
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc8001mk2.qrc)
+  set(VMFILES_LIB ${VMFILES_LIB}
+		ym2203.cpp
+  )      
+  
+elseif(BUILD_PC8001SR)
   set(EXEC_TARGET emupc8001sr)
   add_definitions(-D_PC8001SR)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc8001mk2sr.qrc)
+  set(VMFILES_LIB ${VMFILES_LIB}
+		ym2203.cpp
+  )      
+  
+elseif(BUILD_PC8801)
+  set(EXEC_TARGET emupc8801)
+  add_definitions(-D_PC8801)
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc8801.qrc)
+
+elseif(BUILD_PC8801MK2)
+  set(EXEC_TARGET emupc8801mk2)
+  add_definitions(-D_PC8801MK2)
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc8801mk2.qrc)
+  set(VMFILES_LIB ${VMFILES_LIB}
+		ym2203.cpp
+  )      
   
 elseif(BUILD_PC8801MA)
   set(EXEC_TARGET emupc8801ma)
   add_definitions(-D_PC8801MA)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc8801ma.qrc)
   set(VMFILES_LIB ${VMFILES_LIB}
-            ym2151.cpp
+		ym2203.cpp
+        ym2151.cpp
   )      
   set(VMFILES ${VMFILES}
             scsi_dev.cpp scsi_cdrom.cpp scsi_host.cpp
@@ -80,14 +110,5 @@ if(USE_PCG)
       )      
   add_definitions(-DSUPPORT_PC88_PCG8100)
 endif()
-
-if(USE_SOUNDBOARD2)
-  add_definitions(-DSUPPORT_PC88_SB2)
-  add_definitions(-DSUPPORT_PC88_OPNA)
-else()  
- if(USE_OPNA)
-    add_definitions(-DSUPPORT_PC88_OPNA)
- endif()
-endif() 
 
 include(config_commonsource)

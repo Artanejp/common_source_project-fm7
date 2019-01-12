@@ -9,14 +9,14 @@ SET(CMAKE_AR  i686-w64-mingw32-gcc-ar)
 
 #set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 #set(CMAKE_EXE_LINKER_FLAGS "-static-libstdc++")
-set(CMAKE_EXE_LINKER_FLAGS "-flto=6 -fwhole-program")
+#set(CMAKE_EXE_LINKER_FLAGS "-flto=12 -fwhole-program")
 
 #SET(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET> --plugin==$(i686-w64-mingw32-gcc --print-file-name=liblto_plugin.so) <LINK_FLAGS> <OBJECTS>")
 #SET(CMAKE_C_ARCHIVE_FINISH   true)
 #SET(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET> --plugin==$(i686-w64-mingw32-gcc --print-file-name=liblto_plugin.so) <LINK_FLAGS> <OBJECTS>")
 #SET(CMAKE_CXX_ARCHIVE_FINISH   true)
 
-set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-4.0")
+set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-4.1")
 
 # here is the target environment located
 set(USE_SDL2 ON)
@@ -24,15 +24,13 @@ if(USE_SDL2)
    SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
                           /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32
-			  /usr/local/i586-mingw-msvc/5.10.1/mingw_73x
-#			  /usr/local/i586-mingw-msvc/devel-libs/usr/i686-w64-mingw32/sys-root/mingw
+			  /usr/local/i586-mingw-msvc/5.12/mingw_82x
 			  )
 else()
    SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
                           /usr/local/i586-mingw-msvc/SDL1/
-			  /usr/local/i586-mingw-msvc/5.10.1/mingw_73x
-#			  /usr/local/i586-mingw-msvc/devel-libs/usr/i686-w64-mingw32/sys-root/mingw
+			  /usr/local/i586-mingw-msvc/5.12/mingw_82x
 			  )
 endif()
 SET(CSP_CROSS_BUILD 1)
@@ -43,8 +41,6 @@ SET(CSP_CROSS_BUILD 1)
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-
-#set(LIBAV_INCLUDE_DIRS /usr/local/i586-mingw-msvc/ffmpeg-3.0/include)
 
 set(SDL2_LIBRARIES
                          /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32/lib/libSDL2.dll.a 

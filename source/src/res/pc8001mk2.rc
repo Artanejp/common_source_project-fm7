@@ -97,33 +97,33 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "Save State"
         BEGIN
-            MENUITEM "State 0",                 ID_SAVE_STATE0
-            MENUITEM "State 1",                 ID_SAVE_STATE1
-            MENUITEM "State 2",                 ID_SAVE_STATE2
-            MENUITEM "State 3",                 ID_SAVE_STATE3
-            MENUITEM "State 4",                 ID_SAVE_STATE4
-            MENUITEM "State 5",                 ID_SAVE_STATE5
-            MENUITEM "State 6",                 ID_SAVE_STATE6
-            MENUITEM "State 7",                 ID_SAVE_STATE7
-            MENUITEM "State 8",                 ID_SAVE_STATE8
-            MENUITEM "State 9",                 ID_SAVE_STATE9
+            MENUITEM "State 0",                     ID_SAVE_STATE0
+            MENUITEM "State 1",                     ID_SAVE_STATE1
+            MENUITEM "State 2",                     ID_SAVE_STATE2
+            MENUITEM "State 3",                     ID_SAVE_STATE3
+            MENUITEM "State 4",                     ID_SAVE_STATE4
+            MENUITEM "State 5",                     ID_SAVE_STATE5
+            MENUITEM "State 6",                     ID_SAVE_STATE6
+            MENUITEM "State 7",                     ID_SAVE_STATE7
+            MENUITEM "State 8",                     ID_SAVE_STATE8
+            MENUITEM "State 9",                     ID_SAVE_STATE9
         END
         POPUP "Load State"
         BEGIN
-            MENUITEM "State 0",                 ID_LOAD_STATE0
-            MENUITEM "State 1",                 ID_LOAD_STATE1
-            MENUITEM "State 2",                 ID_LOAD_STATE2
-            MENUITEM "State 3",                 ID_LOAD_STATE3
-            MENUITEM "State 4",                 ID_LOAD_STATE4
-            MENUITEM "State 5",                 ID_LOAD_STATE5
-            MENUITEM "State 6",                 ID_LOAD_STATE6
-            MENUITEM "State 7",                 ID_LOAD_STATE7
-            MENUITEM "State 8",                 ID_LOAD_STATE8
-            MENUITEM "State 9",                 ID_LOAD_STATE9
+            MENUITEM "State 0",                     ID_LOAD_STATE0
+            MENUITEM "State 1",                     ID_LOAD_STATE1
+            MENUITEM "State 2",                     ID_LOAD_STATE2
+            MENUITEM "State 3",                     ID_LOAD_STATE3
+            MENUITEM "State 4",                     ID_LOAD_STATE4
+            MENUITEM "State 5",                     ID_LOAD_STATE5
+            MENUITEM "State 6",                     ID_LOAD_STATE6
+            MENUITEM "State 7",                     ID_LOAD_STATE7
+            MENUITEM "State 8",                     ID_LOAD_STATE8
+            MENUITEM "State 9",                     ID_LOAD_STATE9
         END
         MENUITEM SEPARATOR
         MENUITEM "Debug Main CPU",              ID_OPEN_DEBUGGER0
-        MENUITEM "Debug Sub CPU",               ID_OPEN_DEBUGGER1
+        MENUITEM "Debug PC-80S31K CPU",         ID_OPEN_DEBUGGER1
         MENUITEM "Close Debugger",              ID_CLOSE_DEBUGGER
         MENUITEM SEPARATOR
         MENUITEM "Exit",                        ID_EXIT
@@ -158,60 +158,33 @@ BEGIN
         MENUITEM "Rec",                         ID_REC_TAPE1
         MENUITEM "Eject",                       ID_CLOSE_TAPE1
         MENUITEM SEPARATOR
-        MENUITEM "Play Button",                 ID_PLAY_BUTTON1
-        MENUITEM "Stop Button",                 ID_STOP_BUTTON1
-        MENUITEM "Fast Forward",                ID_FAST_FORWARD1
-        MENUITEM "Fast Rewind",                 ID_FAST_REWIND1
-        MENUITEM SEPARATOR
-        MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER1
-        MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_TAPE1
     END
     POPUP "Device"
     BEGIN
         POPUP "Boot"
         BEGIN
-            MENUITEM "BASIC"                    ID_VM_BOOT_MODE0
-            MENUITEM "DOS"                      ID_VM_BOOT_MODE1
-        END
-        POPUP "CPU"
-        BEGIN
-            MENUITEM "68B09E 2.0MHz",           ID_VM_CPU_TYPE0
-            MENUITEM "68B09E 1.2MHz",           ID_VM_CPU_TYPE1
-        END
-        POPUP "Option"
-        BEGIN
-            MENUITEM "Cycle Steal",             ID_VM_DIPSWITCH0
-            MENUITEM "Extra RAM",               ID_VM_DIPSWITCH2
-            MENUITEM "Sync to HSYNC",           ID_VM_DIPSWITCH31
-        END
-        POPUP "Mouse"
-        BEGIN
-            MENUITEM "None",                    ID_VM_MOUSE_TYPE0
-            MENUITEM "JS-Port1",                ID_VM_MOUSE_TYPE1
-            MENUITEM "JS-Port2",                ID_VM_MOUSE_TYPE2
+            MENUITEM "N80 mode"                 ID_VM_BOOT_MODE0
+            MENUITEM "N mode"                   ID_VM_BOOT_MODE2
         END
         POPUP "Sound"
         BEGIN
-            MENUITEM "OPN",                     ID_VM_SOUND_TYPE1
-            MENUITEM "OPN+WHG",                 ID_VM_SOUND_TYPE3
-            MENUITEM "OPN+THG",                 ID_VM_SOUND_TYPE5
-            MENUITEM "OPN+WHG+THG",             ID_VM_SOUND_TYPE7
+            MENUITEM "OPN",                     ID_VM_SOUND_TYPE0
+            MENUITEM "OPNA",                    ID_VM_SOUND_TYPE1
             MENUITEM SEPARATOR
-            MENUITEM "Play FDD Noise",          ID_VM_SOUND_NOISE_FDD
-            MENUITEM "Play CMT Noise",          ID_VM_SOUND_NOISE_CMT
-            MENUITEM "Play CMT Sound",          ID_VM_SOUND_PLAY_TAPE
+            MENUITEM "Play FDD Noise",              ID_VM_SOUND_NOISE_FDD
+            MENUITEM "Play CMT Noise",              ID_VM_SOUND_NOISE_CMT, GRAYED
+            MENUITEM "Play CMT Sound",              ID_VM_SOUND_PLAY_TAPE, GRAYED
         END
         POPUP "Display"
         BEGIN
-            MENUITEM "Scanline",                ID_VM_MONITOR_SCANLINE
+            MENUITEM "Scanline",                    ID_VM_MONITOR_SCANLINE
         END
         POPUP "Printer"
         BEGIN
-            MENUITEM "Write Printer to File",   ID_VM_PRINTER_TYPE0
-            MENUITEM "Dempa Joystick #1",       ID_VM_PRINTER_TYPE1
-            MENUITEM "Dempa Joystick #2",       ID_VM_PRINTER_TYPE2
-            MENUITEM "None",                    ID_VM_PRINTER_TYPE3
+            MENUITEM "Write Printer to File",       ID_VM_PRINTER_TYPE0
+            MENUITEM "PC-PR201",                    ID_VM_PRINTER_TYPE1, GRAYED
+            MENUITEM "None",                        ID_VM_PRINTER_TYPE2
         END
     END
     POPUP "Host"
@@ -225,54 +198,54 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "Screen"
         BEGIN
-            MENUITEM "Window x1",               ID_SCREEN_WINDOW
-            MENUITEM "Fullscreen 640x400",      ID_SCREEN_FULLSCREEN
+            MENUITEM "Window x1",                   ID_SCREEN_WINDOW
+            MENUITEM "Fullscreen 640x400",          ID_SCREEN_FULLSCREEN
             MENUITEM SEPARATOR
-            MENUITEM "Window Stretch 1",        ID_SCREEN_WINDOW_STRETCH
-            MENUITEM "Window Stretch 2",        ID_SCREEN_WINDOW_ASPECT
+            MENUITEM "Window Stretch 1",            ID_SCREEN_WINDOW_STRETCH
+            MENUITEM "Window Stretch 2",            ID_SCREEN_WINDOW_ASPECT
             MENUITEM SEPARATOR
-            MENUITEM "Fullscreen Stretch 1",    ID_SCREEN_FULLSCREEN_DOTBYDOT
-            MENUITEM "Fullscreen Stretch 2",    ID_SCREEN_FULLSCREEN_STRETCH
-            MENUITEM "Fullscreen Stretch 3",    ID_SCREEN_FULLSCREEN_ASPECT
-            MENUITEM "Fullscreen Stretch 4",    ID_SCREEN_FULLSCREEN_FILL
+            MENUITEM "Fullscreen Stretch 1",        ID_SCREEN_FULLSCREEN_DOTBYDOT
+            MENUITEM "Fullscreen Stretch 2",        ID_SCREEN_FULLSCREEN_STRETCH
+            MENUITEM "Fullscreen Stretch 3",        ID_SCREEN_FULLSCREEN_ASPECT
+            MENUITEM "Fullscreen Stretch 4",        ID_SCREEN_FULLSCREEN_FILL
             MENUITEM SEPARATOR
-            MENUITEM "Rotate 0deg",             ID_SCREEN_ROTATE_0
-            MENUITEM "Rotate +90deg",           ID_SCREEN_ROTATE_90
-            MENUITEM "Rotate 180deg",           ID_SCREEN_ROTATE_180
-            MENUITEM "Rotate -90deg",           ID_SCREEN_ROTATE_270
+            MENUITEM "Rotate 0deg",                 ID_SCREEN_ROTATE_0
+            MENUITEM "Rotate +90deg",               ID_SCREEN_ROTATE_90
+            MENUITEM "Rotate 180deg",               ID_SCREEN_ROTATE_180
+            MENUITEM "Rotate -90deg",               ID_SCREEN_ROTATE_270
         END
         POPUP "Filter"
         BEGIN
-            MENUITEM "RGB Filter",              ID_FILTER_RGB
-            MENUITEM "None",                    ID_FILTER_NONE
+            MENUITEM "RGB Filter",                  ID_FILTER_RGB
+            MENUITEM "None",                        ID_FILTER_NONE
         END
         POPUP "Sound"
         BEGIN
-            MENUITEM "2000Hz",                  ID_SOUND_FREQ0
-            MENUITEM "4000Hz",                  ID_SOUND_FREQ1
-            MENUITEM "8000Hz",                  ID_SOUND_FREQ2
-            MENUITEM "11025Hz",                 ID_SOUND_FREQ3
-            MENUITEM "22050Hz",                 ID_SOUND_FREQ4
-            MENUITEM "44100Hz",                 ID_SOUND_FREQ5
-            MENUITEM "48000Hz",                 ID_SOUND_FREQ6
-            MENUITEM "96000Hz",                 ID_SOUND_FREQ7
+            MENUITEM "2000Hz",                      ID_SOUND_FREQ0
+            MENUITEM "4000Hz",                      ID_SOUND_FREQ1
+            MENUITEM "8000Hz",                      ID_SOUND_FREQ2
+            MENUITEM "11025Hz",                     ID_SOUND_FREQ3
+            MENUITEM "22050Hz",                     ID_SOUND_FREQ4
+            MENUITEM "44100Hz",                     ID_SOUND_FREQ5
+            MENUITEM "55467Hz",                     ID_SOUND_FREQ6
+            MENUITEM "96000Hz",                     ID_SOUND_FREQ7
             MENUITEM SEPARATOR
-            MENUITEM "50msec",                  ID_SOUND_LATE0
-            MENUITEM "100msec",                 ID_SOUND_LATE1
-            MENUITEM "200msec",                 ID_SOUND_LATE2
-            MENUITEM "300msec",                 ID_SOUND_LATE3
-            MENUITEM "400msec",                 ID_SOUND_LATE4
+            MENUITEM "50msec",                      ID_SOUND_LATE0
+            MENUITEM "100msec",                     ID_SOUND_LATE1
+            MENUITEM "200msec",                     ID_SOUND_LATE2
+            MENUITEM "300msec",                     ID_SOUND_LATE3
+            MENUITEM "400msec",                     ID_SOUND_LATE4
             MENUITEM SEPARATOR
-            MENUITEM "Realtime Mix",            ID_SOUND_STRICT_RENDER
-            MENUITEM "Light Weight Mix",        ID_SOUND_LIGHT_RENDER
+            MENUITEM "Realtime Mix",                ID_SOUND_STRICT_RENDER
+            MENUITEM "Light Weight Mix",            ID_SOUND_LIGHT_RENDER
             MENUITEM SEPARATOR
-            MENUITEM "Volume",                  ID_SOUND_VOLUME
+            MENUITEM "Volume",                      ID_SOUND_VOLUME
         END
         POPUP "Input"
         BEGIN
-            MENUITEM "Joystick #1",             ID_INPUT_JOYSTICK0
-            MENUITEM "Joystick #2",             ID_INPUT_JOYSTICK1
-            MENUITEM "Joystick To Keyboard",    ID_INPUT_JOYTOKEY
+            MENUITEM "Joystick #1",                 ID_INPUT_JOYSTICK0
+            MENUITEM "Joystick #2",                 ID_INPUT_JOYSTICK1
+            MENUITEM "Joystick To Keyboard",        ID_INPUT_JOYTOKEY
         END
         MENUITEM SEPARATOR
         MENUITEM "Use Direct3D9",               ID_HOST_USE_D3D9
@@ -300,7 +273,7 @@ IDI_BITMAP_ACCESS_ON    BITMAP  DISCARDABLE     "indicator/access_on.bmp"
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON    DISCARDABLE     "fm77av.ico"
+IDI_ICON1               ICON    DISCARDABLE     "pc8001mk2.ico"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -310,7 +283,7 @@ IDI_ICON1               ICON    DISCARDABLE     "fm77av.ico"
 // Dialog
 //
 
-IDD_VOLUME DIALOG DISCARDABLE  0, 0, 250, 360
+IDD_VOLUME DIALOG DISCARDABLE  0, 0, 250, 240
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Volume"
 FONT 9, "MS PGothic"
@@ -336,20 +309,8 @@ BEGIN
     LTEXT           "Sound Device #7",IDC_VOLUME_CAPTION6,6,186,60,8
     CONTROL         "",IDC_VOLUME_PARAM_L6,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,186,175,12
     CONTROL         "",IDC_VOLUME_PARAM_R6,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,201,175,12
-    LTEXT           "Sound Device #8",IDC_VOLUME_CAPTION7,6,216,60,8
-    CONTROL         "",IDC_VOLUME_PARAM_L7,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,216,175,12
-    CONTROL         "",IDC_VOLUME_PARAM_R7,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,231,175,12
-    LTEXT           "Sound Device #9",IDC_VOLUME_CAPTION8,6,246,60,8
-    CONTROL         "",IDC_VOLUME_PARAM_L8,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,246,175,12
-    CONTROL         "",IDC_VOLUME_PARAM_R8,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,261,175,12
-    LTEXT           "Sound Device #10",IDC_VOLUME_CAPTION9,6,276,60,8
-    CONTROL         "",IDC_VOLUME_PARAM_L9,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,276,175,12
-    CONTROL         "",IDC_VOLUME_PARAM_R9,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,291,175,12
-    LTEXT           "Sound Device #11",IDC_VOLUME_CAPTION10,6,306,60,8
-    CONTROL         "",IDC_VOLUME_PARAM_L10,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,306,175,12
-    CONTROL         "",IDC_VOLUME_PARAM_R10,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,321,175,12
-    DEFPUSHBUTTON   "OK",IDOK,70,340,50,14
-    DEFPUSHBUTTON   "Reset",IDC_VOLUME_RESET,130,340,50,14
+    DEFPUSHBUTTON   "OK",IDOK,70,220,50,14
+    DEFPUSHBUTTON   "Reset",IDC_VOLUME_RESET,130,220,50,14
 END
 
 IDD_JOYSTICK DIALOG DISCARDABLE  0, 0, 175, 120

@@ -1,7 +1,11 @@
 /*
-	NEC PC-98DO Emulator 'ePC-98DO'
-	NEC PC-8801MA Emulator 'ePC-8801MA'
+	NEC PC-8001 Emulator 'ePC-8001'
+	NEC PC-8001mkII Emulator 'ePC-8001mkII'
 	NEC PC-8001mkIISR Emulator 'ePC-8001mkIISR'
+	NEC PC-8801 Emulator 'ePC-8801'
+	NEC PC-8801mkII Emulator 'ePC-8801mkII'
+	NEC PC-8801MA Emulator 'ePC-8801MA'
+	NEC PC-98DO Emulator 'ePC-98DO'
 
 	Author : Takeda.Toshiya
 	Date   : 2011.12.29-
@@ -17,9 +21,11 @@
 #include "../device.h"
 
 #define SIG_PC88_USART_IRQ	0
-#define SIG_PC88_SOUND_IRQ	1
-#ifdef SUPPORT_PC88_SB2
-#define SIG_PC88_SB2_IRQ	2
+#ifdef SUPPORT_PC88_OPN1
+#define SIG_PC88_OPN1_IRQ	1
+#endif
+#ifdef SUPPORT_PC88_OPN2
+#define SIG_PC88_OPN2_IRQ	2
 #endif
 #ifdef SUPPORT_PC88_CDROM
 #define SIG_PC88_SCSI_DRQ	3
@@ -28,15 +34,13 @@
 
 #define CMT_BUFFER_SIZE		0x40000
 
-#if defined(_PC8001SR) && !defined(PC88_EXRAM_BANKS)
-#define PC88_EXRAM_BANKS	1
-#endif
-
-#if !defined(_PC8001SR)
+#if defined(PC8801_VARIANT)
 #define NIPPY_PATCH
 #endif
 
+#if defined(SUPPORT_PC88_OPN1) || defined(SUPPORT_PC88_OPN2)
 class YM2203;
+#endif
 class Z80;
 #ifdef SUPPORT_PC88_CDROM
 class SCSI_HOST;
@@ -109,9 +113,11 @@ typedef struct {
 class PC88 : public DEVICE
 {
 private:
-	YM2203 *d_opn;
-#ifdef SUPPORT_PC88_SB2
-	YM2203 *d_sb2;
+#ifdef SUPPORT_PC88_OPN1
+	YM2203 *d_opn1;
+#endif
+#ifdef SUPPORT_PC88_OPN2
+	YM2203 *d_opn2;
 #endif
 	Z80 *d_cpu;
 	DEVICE *d_pcm, *d_pio, *d_prn, *d_rtc, *d_sio;
@@ -137,17 +143,25 @@ private:
 #endif
 	uint8_t gvram[0xc000];
 	uint8_t gvram_null[0x4000];
+#if defined(PC8801SR_VARIANT)
 	uint8_t tvram[0x1000];
+#endif
+#if defined(PC8001_VARIANT)
+	uint8_t n80rom[0x8000];
 #if defined(_PC8001SR)
-	uint8_t n80mk2rom[0x8000];
-	uint8_t n80mk2srrom[0xa000];
+	uint8_t n80srrom[0xa000];
+#endif
 #else
 	uint8_t n88rom[0x8000];
 	uint8_t n88exrom[0x8000];
 	uint8_t n80rom[0x8000];
 #endif
+//#ifdef SUPPORT_PC88_KANJI1
 	uint8_t kanji1[0x20000];
+//#endif
+#ifdef SUPPORT_PC88_KANJI2
 	uint8_t kanji2[0x20000];
+#endif
 #ifdef SUPPORT_PC88_DICTIONARY
 	uint8_t dicrom[0x80000];
 #endif
@@ -163,22 +177,29 @@ private:
 	pc88_dmac_t dmac;
 	
 	// memory mapper
+#if defined(_PC8001SR) || defined(PC8801SR_VARIANT)
 	uint8_t alu_reg[3];
+#endif
 	uint8_t gvram_plane, gvram_sel;
 	
 	void update_timing();
 	int get_m1_wait(bool addr_f000);
 	int get_main_wait(bool read);
+#if defined(PC8801SR_VARIANT)
 	int get_tvram_wait(bool read);
+#endif
 	int get_gvram_wait(bool read);
 	void update_gvram_wait();
 	void update_gvram_sel();
-#if defined(_PC8001SR)
+#if defined(PC8001_VARIANT)
 	void update_n80_write();
 	void update_n80_read();
 #else
-	void update_low_memmap();
+	void update_low_write();
+	void update_low_read();
+#if defined(PC8801SR_VARIANT)
 	void update_tvram_memmap();
+#endif
 #endif
 	
 	// cpu
@@ -190,7 +211,9 @@ private:
 	int m1_wait_clocks;
 	int f000_m1_wait_clocks;
 	int mem_wait_clocks_r, mem_wait_clocks_w;
+#if defined(PC8801SR_VARIANT)
 	int tvram_wait_clocks_r, tvram_wait_clocks_w;
+#endif
 	int gvram_wait_clocks_r, gvram_wait_clocks_w;
 	int busreq_clocks;
 	
@@ -218,15 +241,17 @@ private:
 #endif
 	
 	void draw_text();
+#if defined(PC8001_VARIANT)
 #if defined(_PC8001SR)
 	bool draw_320x200_color_graph();
+#endif
 	bool draw_320x200_4color_graph();
 	void draw_320x200_attrib_graph();
 #endif
 	bool draw_640x200_color_graph();
 	void draw_640x200_mono_graph();
 	void draw_640x200_attrib_graph();
-#if !defined(_PC8001SR)
+#if defined(PC8801SR_VARIANT)
 	void draw_640x400_mono_graph();
 	void draw_640x400_attrib_graph();
 #endif
@@ -252,9 +277,11 @@ private:
 	
 	// intterrupt
 	uint8_t intr_req;
-	bool intr_req_sound;
-#ifdef SUPPORT_PC88_SB2
-	bool intr_req_sb2;
+#ifdef SUPPORT_PC88_OPN1
+	bool intr_req_opn1;
+#endif
+#ifdef SUPPORT_PC88_OPN2
+	bool intr_req_opn2;
 #endif
 	uint8_t intr_mask1, intr_mask2;
 	void request_intr(int level, bool status);
@@ -294,7 +321,7 @@ private:
 public:
 	PC88(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-#if defined(_PC8001SR)
+#if defined(PC8001_VARIANT)
 		set_device_name(_T("PC-8001 Core"));
 #else
 		set_device_name(_T("PC-8801 Core"));
@@ -329,26 +356,26 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
+#ifdef PC8801SR_VARIANT
 	bool is_sr_mr()
 	{
-#if !defined(_PC8001SR)
 		return (n88rom[0x79d7] < 0x38);
-#else
-		return true;
-#endif
 	}
+#endif
 	void set_context_cpu(Z80* device)
 	{
 		d_cpu = device;
 	}
-	void set_context_opn(YM2203* device)
+#ifdef SUPPORT_PC88_OPN1
+	void set_context_opn1(YM2203* device)
 	{
-		d_opn = device;
+		d_opn1 = device;
 	}
-#ifdef SUPPORT_PC88_SB2
-	void set_context_sb2(YM2203* device)
+#endif
+#ifdef SUPPORT_PC88_OPN2
+	void set_context_opn2(YM2203* device)
 	{
-		d_sb2 = device;
+		d_opn2 = device;
 	}
 #endif
 	void set_context_pcm(DEVICE* device)

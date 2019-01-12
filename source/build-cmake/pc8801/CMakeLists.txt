@@ -7,12 +7,12 @@ cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
 message("")
-message("** Start of configure CommonSourceProject,PC8001mk2 SR, Qt **")
+message("** Start of configure CommonSourceProject,PC8801, Qt **")
 message("")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
+project (emupc8801)
 
-project (emupc8001sr)
-set(BUILD_PC8001SR ON CACHE BOOL "Build for PC8001SR")
+set(BUILD_PC8801 ON CACHE BOOL "Build with PC8801")
 
 include(config_pc8801)

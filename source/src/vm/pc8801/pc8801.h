@@ -1,6 +1,10 @@
 /*
-	NEC PC-8801MA Emulator 'ePC-8801MA'
+	NEC PC-8001 Emulator 'ePC-8001'
+	NEC PC-8001mkII Emulator 'ePC-8001mkII'
 	NEC PC-8001mkIISR Emulator 'ePC-8001mkIISR'
+	NEC PC-8801 Emulator 'ePC-8801'
+	NEC PC-8801mkII Emulator 'ePC-8801mkII'
+	NEC PC-8801MA Emulator 'ePC-8801MA'
 
 	Author : Takeda.Toshiya
 	Date   : 2012.02.16-
@@ -14,40 +18,92 @@
 #if defined(_PC8801MA)
 #define DEVICE_NAME		"NEC PC-8801MA"
 #define CONFIG_NAME		"pc8801ma"
+#elif defined(_PC8801MK2)
+#define DEVICE_NAME		"NEC PC-8801mkII"
+#define CONFIG_NAME		"pc8801mk2"
+#elif defined(_PC8801)
+#define DEVICE_NAME		"NEC PC-8801"
+#define CONFIG_NAME		"pc8801"
 #elif defined(_PC8001SR)
 #define DEVICE_NAME		"NEC PC-8001mkIISR"
 #define CONFIG_NAME		"pc8001mk2sr"
+#elif defined(_PC8001MK2)
+#define DEVICE_NAME		"NEC PC-8001mkII"
+#define CONFIG_NAME		"pc8001mk2"
+#elif defined(_PC8001)
+#define DEVICE_NAME		"NEC PC-8001"
+#define CONFIG_NAME		"pc8001"
 #endif
 
-#if defined(_PC8001SR)
-#define MODE_PC80_V1	0
-#define MODE_PC80_V2	1
-#define MODE_PC80_N	2
+#if defined(_PC8001) || defined(_PC8001MK2) || defined(_PC8001SR)
+#define PC8001_VARIANT
 #else
-#define MODE_PC88_V1S	0
-#define MODE_PC88_V1H	1
-#define MODE_PC88_V2	2
-#define MODE_PC88_N	3
+#define PC8801_VARIANT
+#endif
+#if defined(_PC8801MA)
+#define PC8801SR_VARIANT
+#endif
+
+#if defined(PC8001_VARIANT)
+	#define MODE_PC80_V1	0
+	#define MODE_PC80_V2	1
+	#define MODE_PC80_N	2
+#else
+	#define MODE_PC88_V1S	0
+	#define MODE_PC88_V1H	1
+	#define MODE_PC88_V2	2
+	#define MODE_PC88_N	3
 #endif
 
 #if defined(_PC8801MA)
-#define SUPPORT_PC88_DICTIONARY
-#define SUPPORT_PC88_HIGH_CLOCK
-#define SUPPORT_PC88_OPNA
-#define SUPPORT_PC88_SB2
-#define SUPPORT_PC88_CDROM
-#define SUPPORT_PC88_VAB
-#define SUPPORT_PC88_HMB20
-#if defined(SUPPORT_PC88_VAB)
-// X88000
-#define PC88_EXRAM_BANKS	8
-#define PC88_VAB_PAGE		1
-#else
-#define PC88_EXRAM_BANKS	4
+	#define SUPPORT_PC88_KANJI1
+	#define SUPPORT_PC88_KANJI2
+	#define SUPPORT_PC88_DICTIONARY
+	#define SUPPORT_PC88_HIGH_CLOCK
+	#define SUPPORT_PC88_OPN1
+	#define SUPPORT_PC88_OPN2
+	#define SUPPORT_PC88_OPNA
+	#define SUPPORT_PC88_CDROM
+	#define SUPPORT_PC88_VAB
+	#define SUPPORT_PC88_HMB20
+	#define SUPPORT_PC88_JOYSTICK
+	#if defined(SUPPORT_PC88_VAB)
+		// X88000
+		#define PC88_EXRAM_BANKS	8
+		#define PC88_VAB_PAGE		1
+	#else
+		#define PC88_EXRAM_BANKS	4
+	#endif
+	#define HAS_UPD4990A
+#elif defined(_PC8801MK2)
+	#define SUPPORT_PC88_KANJI1
+//	#define SUPPORT_PC88_KANJI2
+	#define SUPPORT_PC88_OPN2
+	#define SUPPORT_PC88_OPNA
+#elif defined(_PC8801)
+	#define SUPPORT_PC88_KANJI1
+//	#define SUPPORT_PC88_KANJI2
+//	#define SUPPORT_PC88_OPN2
+//	#define SUPPORT_PC88_OPNA
+#elif defined(_PC8001SR)
+	#define SUPPORT_PC88_KANJI1
+//	#define SUPPORT_PC88_KANJI2
+	#define SUPPORT_PC88_OPN1
+	#define SUPPORT_PC88_OPN2
+	#define SUPPORT_PC88_OPNA
+	#define PC88_EXRAM_BANKS	1
+#elif defined(_PC8001MK2)
+	#define SUPPORT_PC88_KANJI1
+//	#define SUPPORT_PC88_KANJI2
+	#define SUPPORT_PC88_OPN2
+	#define SUPPORT_PC88_OPNA
+	#define PC88_EXRAM_BANKS	1
+#elif defined(_PC8001)
+//	#define SUPPORT_PC88_KANJI1
+//	#define SUPPORT_PC88_KANJI2
+//	#define SUPPORT_PC88_OPN2
+//	#define SUPPORT_PC88_OPNA
 #endif
-#define HAS_UPD4990A
-#endif
-#define SUPPORT_PC88_JOYSTICK
 #define SUPPORT_PC88_PCG8100
 
 // device informations for virtual machine
@@ -59,7 +115,7 @@
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		2
 #define UPD765A_NO_ST1_EN_OR_FOR_RESULT7
-#if defined(_PC8801MA)
+#if defined(PC8801_VARIANT)
 #define PC80S31K_NO_WAIT
 #endif
 #if defined(SUPPORT_PC88_CDROM)
@@ -70,7 +126,7 @@
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467
 
 // device informations for win32
-#if defined(_PC8001SR)
+#if defined(PC8001_VARIANT)
 #define USE_BOOT_MODE		3
 #define USE_CPU_TYPE		2
 #else
@@ -98,56 +154,49 @@
 #define USE_MONITOR_TYPE	2
 #define USE_SCREEN_FILTER
 #define USE_SCANLINE
-#ifdef SUPPORT_PC88_OPNA
-#ifdef SUPPORT_PC88_SB2
-#define USE_SOUND_TYPE		6
-#else
-#define USE_SOUND_TYPE		2
-#endif
-#endif
 
-#undef _SOUNDS_OPN
-#undef _SOUNDS_SB2
-#undef _SOUNDS_PCG8100
-#undef _SOUNDS_CDROM
-#undef _SOUNDS_HMB20
-#undef _SOUNDS_BEEP
-#undef _SOUNDS_NOISE
-
-#if defined(SUPPORT_PC88_OPNA)
-	#define _SOUNDS_OPN 4
-#else /* ToDo: PC8001 without OPN/OPNA */
-	#define _SOUNDS_OPN 2
+#if defined(_PC8801MA)
+	#define USE_SOUND_TYPE		6	// OPNA,OPN,OPN+OPNA,OPN+OPN,OPNA+OPNA,OPNA+OPN
+#elif defined(_PC8001SR)
+	#define USE_SOUND_TYPE		3	// OPN,OPN+OPN,OPN+OPNA
+#elif defined(_PC8001MK2) || defined(_PC8801MK2)
+	#define USE_SOUND_TYPE		3	// None,OPN,OPNA
 #endif
-#if defined(SUPPORT_PC88_SB2)
+#if defined(SUPPORT_PC88_OPN1)
 	#if defined(SUPPORT_PC88_OPNA)
-	#define _SOUNDS_SB2 4
-	#else /* SB2=OPN */
-	#define _SOUNDS_SB2 2
+		#define SOUND_VOLUME_OPN1	4
+	#else
+		#define SOUND_VOLUME_OPN1	2
 	#endif
-#else /* Have not SB2 */
-	#define _SOUNDS_SB2 0
-#endif
-#if defined(SUPPORT_PC88_PCG8100)
-	#define _SOUNDS_PCG8100 1
 #else
-	#define _SOUNDS_PCG8100 0
+	#define SOUND_VOLUME_OPN1	0
 #endif
-#if defined(SUPPORT_PC88_CDROM)
-	#define _SOUNDS_CDROM 1
+#if defined(SUPPORT_PC88_OPN2)
+	#if defined(SUPPORT_PC88_OPNA)
+		#define SOUND_VOLUME_OPN2	4
+	#else
+		#define SOUND_VOLUME_OPN2	2
+	#endif
 #else
-	#define _SOUNDS_CDROM 0
+	#define SOUND_VOLUME_OPN2	0
+#endif
+ #if defined(SUPPORT_PC88_CDROM)
+#define SOUND_VOLUME_CDROM	1
+	#define SOUND_VOLUME_CDROM	1
+#else
+	#define SOUND_VOLUME_CDROM	0
 #endif
 #if defined(SUPPORT_PC88_HMB20)
-	#define _SOUNDS_HMB20 1
+	#define SOUND_VOLUME_HMB20	1
 #else
-	#define _SOUNDS_HMB20 0
+	#define SOUND_VOLUME_HMB20	0
 #endif
-#define _SOUNDS_BEEP 1
-#define _SOUNDS_NOISE 1
-
-#define USE_SOUND_VOLUME (_SOUNDS_OPN + _SOUNDS_SB2 + _SOUNDS_PCG8100 + _SOUNDS_CDROM + _SOUNDS_HMB20 + _SOUNDS_BEEP + _SOUNDS_NOISE)
-
+#if defined(SUPPORT_PC88_PCG8100)
+	#define SOUND_VOLUME_PCG8100	1
+#else
+	#define SOUND_VOLUME_PCG8100	0
+#endif
+#define USE_SOUND_VOLUME	(SOUND_VOLUME_OPN1 + SOUND_VOLUME_OPN2 + SOUND_VOLUME_CDROM + SOUND_VOLUME_HMB20 + SOUND_VOLUME_PCG8100 + 1 + 1)
 
 #define SUPPORT_TV_RENDER
 #define USE_JOYSTICK
@@ -164,16 +213,16 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[USE_SOUND_VOLUME] = {
+#ifdef SUPPORT_PC88_OPN1
+	_T("OPN1 (FM)"), _T("OPN1 (PSG)"),
 #ifdef SUPPORT_PC88_OPNA
-	_T("OPNA (FM)"), _T("OPNA (PSG)"), _T("OPNA (ADPCM)"), _T("OPNA (Rhythm)"),
-#else
-	_T("OPN (FM)"), _T("OPN (PSG)"),
+	_T("OPN1 (ADPCM)"), _T("OPN1 (Rhythm)"),
 #endif
-#ifdef SUPPORT_PC88_SB2
+#endif
+#ifdef SUPPORT_PC88_OPN2
+	_T("OPN2 (FM)"), _T("OPN2 (PSG)"),
 #ifdef SUPPORT_PC88_OPNA
-	_T("SB2 (FM)"), _T("SB2 (PSG)"), _T("SB2 (ADPCM)"), _T("SB2 (Rhythm)"),
-#else
-	_T("SB2 (FM)"), _T("SB2 (PSG)"),
+	_T("OPN2 (ADPCM)"), _T("OPN2 (Rhythm)"),
 #endif
 #endif
 #ifdef SUPPORT_PC88_CDROM
@@ -198,7 +247,9 @@ class I8255;
 class NOISE;
 class PCM1BIT;
 class UPD1990A;
+#if defined(SUPPORT_PC88_OPN1) || defined(SUPPORT_PC88_OPN2)
 class YM2203;
+#endif
 class Z80;
 
 class PC80S31K;
@@ -233,9 +284,11 @@ protected:
 	I8255* pc88pio;
 	PCM1BIT* pc88pcm;
 	UPD1990A* pc88rtc;
-	YM2203* pc88opn;
-#ifdef SUPPORT_PC88_SB2
-	YM2203* pc88sb2;
+#ifdef SUPPORT_PC88_OPN1
+	YM2203* pc88opn1;
+#endif
+#ifdef SUPPORT_PC88_OPN2
+	YM2203* pc88opn2;
 #endif
 	DEVICE* dummycpu;
 	Z80* pc88cpu;

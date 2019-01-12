@@ -1,7 +1,11 @@
 
 /*
-	NEC PC-8801MA Emulator 'ePC-8801MA'
+	NEC PC-8001 Emulator 'ePC-8001'
+	NEC PC-8001mkII Emulator 'ePC-8001mkII'
 	NEC PC-8001mkIISR Emulator 'ePC-8001mkIISR'
+	NEC PC-8801 Emulator 'ePC-8801'
+	NEC PC-8801mkII Emulator 'ePC-8801mkII'
+	NEC PC-8801MA Emulator 'ePC-8801MA'
 
 	Author : Takeda.Toshiya
 	Date   : 2012.02.16-
@@ -20,7 +24,9 @@
 //#include "../pcpr201.h"
 #include "../prnfile.h"
 #include "../upd1990a.h"
+#if defined(SUPPORT_PC88_OPN1) || defined(SUPPORT_PC88_OPN2)
 #include "../ym2203.h"
+#endif
 #include "../z80.h"
 
 #include "../disk.h"
@@ -55,6 +61,23 @@ using PC88DEV::PC88;
 VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// check configs
+#if defined(PC8001_VARIANT)
+#if defined(_PC8001)
+	if(config.boot_mode != MODE_PC80_N) {
+		config.boot_mode = MODE_PC80_N;
+	}
+#elif defined(_PC8001MK2)
+	if(config.boot_mode == MODE_PC80_V2) {
+		config.boot_mode = MODE_PC80_V1;
+	}
+#endif
+#else
+#if !defined(PC8801SR_VARIANT)
+	if(config.boot_mode == MODE_PC88_V1H || config.boot_mode == MODE_PC88_V2) {
+		config.boot_mode = MODE_PC88_V1S;
+	}
+#endif
+#endif
 	boot_mode = config.boot_mode;
 	
 	// create devices
@@ -80,6 +103,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88rtc = new UPD1990A(this, emu);
 //	pc88rtc->set_device_name(_T("uPD1990A RTC (PC-8801)"));
 //	pc88rtc->set_context_event_manager(pc88event);
+#if defined(_PC8801MA)
 	// config.sound_type
 	// 	0: 44h:OPNA A4h:None		PC-8801FH/MH or later
 	// 	1: 44h:OPN  A4h:None		PC-8801mkIISR/TR/FR/MR
@@ -87,39 +111,90 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// 	3: 44h:OPN  A4h:OPN		PC-8801mkIISR/TR/FR/MR + PC-8801-11
 	// 	4: 44h:OPNA A4h:OPNA		PC-8801FH/MH or later  + PC-8801-24
 	// 	5: 44h:OPNA A4h:OPN		PC-8801FH/MH or later  + PC-8801-11
-	pc88opn = new YM2203(this, emu);
-//	pc88opn->set_context_event_manager(pc88event);
-#ifdef USE_SOUND_TYPE
-#ifdef SUPPORT_PC88_OPNA
+	pc88opn1 = new YM2203(this, emu);
+//	pc88opn1->set_context_event_manager(pc88event);
 	if(config.sound_type == 0 || config.sound_type == 4 || config.sound_type == 5) {
-		pc88opn->is_ym2608 = true;
-		pc88opn->set_device_name(_T("YM2608 OPNA"));
+		pc88opn1->is_ym2608 = true;
+		pc88opn1->set_device_name(_T("YM2608 OPNA #1"));
 	} else {
-#endif
-		pc88opn->is_ym2608 = false;
-		pc88opn->set_device_name(_T("YM2203 OPN"));
-#ifdef SUPPORT_PC88_OPNA
+		pc88opn1->is_ym2608 = false;
+		pc88opn1->set_device_name(_T("YM2203 OPN #1"));
 	}
-#endif
-#ifdef SUPPORT_PC88_SB2
 	if(config.sound_type >= 2) {
-		pc88sb2 = new YM2203(this, emu);
-//		pc88sb2->set_context_event_manager(pc88event);
-#ifdef SUPPORT_PC88_OPNA
+		pc88opn2 = new YM2203(this, emu);
+//		pc88opn2->set_context_event_manager(pc88event);
 		if(config.sound_type == 2 || config.sound_type == 4) {
-			pc88sb2->is_ym2608 = true;
-			pc88sb2->set_device_name(_T("YM2608 OPNA (SB2)"));
-		} else {
-#endif
-			pc88sb2->is_ym2608 = false;
-			pc88sb2->set_device_name(_T("YM2203 OPN (SB2)"));
-#ifdef SUPPORT_PC88_OPNA
+			pc88opn2->is_ym2608 = true;
+			pc88opn2->set_device_name(_T("YM2608 OPNA #2"));
+		} else if(config.sound_type == 3 || config.sound_type == 5) {
+			pc88opn2->is_ym2608 = false;
+			pc88opn2->set_device_name(_T("YM2203 OPN #2"));
 		}
-#endif
 	} else {
-		pc88sb2 = NULL;
+		pc88opn2 = NULL;
 	}
-#endif
+#elif defined(_PC8001SR)
+	// config.sound_type
+	// 	0: 44h:OPN  A4h:None		PC-8001mkIISR
+	// 	1: 44h:OPN  A4h:OPN		PC-8001mkIISR + PC-8801-11
+	// 	2: 44h:OPN  A4h:OPNA		PC-8001mkIISR + PC-8801-23
+	pc88opn1 = new YM2203(this, emu);
+//	pc88opn1->set_context_event_manager(pc88event);
+	pc88opn1->is_ym2608 = false;
+	pc88opn1->set_device_name(_T("YM2203 OPN #1"));
+	if(config.sound_type == 1) {
+		pc88opn2 = new YM2203(this, emu);
+//		pc88opn2->set_context_event_manager(pc88event);
+		pc88opn2->is_ym2608 = false;
+		pc88opn2->set_device_name(_T("YM2203 OPN #2"));
+	} else if(config.sound_type == 2) {
+		pc88opn2 = new YM2203(this, emu);
+//		pc88opn2->set_context_event_manager(pc88event);
+		pc88opn2->is_ym2608 = true;
+		pc88opn2->set_device_name(_T("YM2608 OPNA #2"));
+	} else {
+		pc88opn2 = NULL;
+	}
+#elif defined(_PC8001MK2) || defined(_PC8801MK2)
+	// 	0: 44h:None A4h:None		PC-8001/8801mkII
+	// 	1: 44h:None A4h:OPN		PC-8001/8801mkII + PC-8801-11
+	// 	2: 44h:None A4h:OPNA		PC-8001/8801mkII + PC-8801-23
+	if(config.sound_type == 1) {
+		pc88opn2 = new YM2203(this, emu);
+//		pc88opn2->set_context_event_manager(pc88event);
+		pc88opn2->is_ym2608 = false;
+		pc88opn2->set_device_name(_T("YM2203 OPN #2"));
+	} else if(config.sound_type == 2) {
+		pc88opn2 = new YM2203(this, emu);
+//		pc88opn2->set_context_event_manager(pc88event);
+		pc88opn2->is_ym2608 = true;
+		pc88opn2->set_device_name(_T("YM2608 OPNA #2"));
+	} else {
+		pc88opn2 = NULL;
+	}
+#else
+	#if defined(SUPPORT_PC88_OPN1)
+		pc88opn1 = new YM2203(this, emu);
+//		pc88opn1->set_context_event_manager(pc88event);
+		#if defined(SUPPORT_PC88_OPNA)
+			pc88opn1->is_ym2608 = true;
+			pc88opn1->set_device_name(_T("YM2608 OPNA #1"));
+		#else
+			pc88opn1->is_ym2608 = false;
+			pc88opn1->set_device_name(_T("YM2203 OPN #1"));
+		#endif
+	#endif
+	#if defined(SUPPORT_PC88_OPN2)
+		pc88opn2 = new YM2203(this, emu);
+//		pc88opn2->set_context_event_manager(pc88event);
+		#if defined(SUPPORT_PC88_OPNA)
+			pc88opn2->is_ym2608 = true;
+			pc88opn2->set_device_name(_T("YM2608 OPNA #2"));
+		#else
+			pc88opn2->is_ym2608 = false;
+			pc88opn2->set_device_name(_T("YM2203 OPN #2"));
+		#endif
+	#endif
 #endif
 	if(config.printer_type == 0) {
 		pc88prn = new PRNFILE(this, emu);
@@ -186,10 +261,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88event->set_context_cpu(pc88cpu, 3993624);
 #endif
 	pc88event->set_context_cpu(pc88cpu_sub, 3993624);
-	pc88event->set_context_sound(pc88opn);
-#ifdef SUPPORT_PC88_SB2
-	if(pc88sb2 != NULL) {
-		pc88event->set_context_sound(pc88sb2);
+#ifdef SUPPORT_PC88_OPN1
+	if(pc88opn1 != NULL) {
+		pc88event->set_context_sound(pc88opn1);
+	}
+#endif
+#ifdef SUPPORT_PC88_OPN2
+	if(pc88opn2 != NULL) {
+		pc88event->set_context_sound(pc88opn2);
 	}
 #endif
 	pc88event->set_context_sound(pc88pcm);
@@ -209,9 +288,15 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88event->set_context_sound(pc88noise_head_up);
 	
 	pc88->set_context_cpu(pc88cpu);
-	pc88->set_context_opn(pc88opn);
-#ifdef SUPPORT_PC88_SB2
-	pc88->set_context_sb2(pc88sb2);
+#ifdef SUPPORT_PC88_OPN1
+	if(pc88opn1 != NULL) {
+		pc88->set_context_opn1(pc88opn1);
+	}
+#endif
+#ifdef SUPPORT_PC88_OPN2
+	if(pc88opn2 != NULL) {
+		pc88->set_context_opn2(pc88opn2);
+	}
 #endif
 	pc88->set_context_pcm(pc88pcm);
 	pc88->set_context_pio(pc88pio);
@@ -237,10 +322,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	pc88cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	pc88opn->set_context_irq(pc88, SIG_PC88_SOUND_IRQ, 1);
-#ifdef SUPPORT_PC88_SB2
-	if(pc88sb2 != NULL) {
-		pc88sb2->set_context_irq(pc88, SIG_PC88_SB2_IRQ, 1);
+#ifdef SUPPORT_PC88_OPN1
+	if(pc88opn1 != NULL) {
+		pc88opn1->set_context_irq(pc88, SIG_PC88_OPN1_IRQ, 1);
+	}
+#endif
+#ifdef SUPPORT_PC88_OPN2
+	if(pc88opn2 != NULL) {
+		pc88opn2->set_context_irq(pc88, SIG_PC88_OPN2_IRQ, 1);
 	}
 #endif
 	pc88sio->set_context_rxrdy(pc88, SIG_PC88_USART_IRQ, 1);
@@ -327,7 +416,11 @@ void VM::reset()
 	}
 	
 	// initial device settings
-	pc88opn->set_reg(0x29, 3); // for Misty Blue
+#ifdef SUPPORT_PC88_OPN1
+	if(pc88opn1 != NULL) {
+		pc88opn1->set_reg(0x29, 3); // for Misty Blue
+	}
+#endif
 	pc88pio->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 	pc88pio_sub->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 }
@@ -377,17 +470,21 @@ void VM::initialize_sound(int rate, int samples)
 	pc88event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	if(pc88opn->is_ym2608) {
-		pc88opn->initialize_sound(rate, 7987248, samples, 0, 0);
-	} else {
-		pc88opn->initialize_sound(rate, 3993624, samples, 0, 0);
-	}
-#ifdef SUPPORT_PC88_SB2
-	if(pc88sb2 != NULL) {
-		if(pc88sb2->is_ym2608) {
-			pc88sb2->initialize_sound(rate, 7987248, samples, 0, 0);
+#ifdef SUPPORT_PC88_OPN1
+	if(pc88opn1 != NULL) {
+		if(pc88opn1->is_ym2608) {
+			pc88opn1->initialize_sound(rate, 7987248, samples, 0, 0);
 		} else {
-			pc88sb2->initialize_sound(rate, 3993624, samples, 0, 0);
+			pc88opn1->initialize_sound(rate, 3993624, samples, 0, 0);
+		}
+	}
+#endif
+#ifdef SUPPORT_PC88_OPN2
+	if(pc88opn2 != NULL) {
+		if(pc88opn2->is_ym2608) {
+			pc88opn2->initialize_sound(rate, 7987248, samples, 0, 0);
+		} else {
+			pc88opn2->initialize_sound(rate, 3993624, samples, 0, 0);
 		}
 	}
 #endif
@@ -415,56 +512,91 @@ int VM::get_sound_buffer_ptr()
 #ifdef USE_SOUND_VOLUME
 void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 {
+#ifdef SUPPORT_PC88_OPN1
 	if(ch-- == 0) {
-		pc88opn->set_volume(0, decibel_l, decibel_r);
-	} else if(ch-- == 0) {
-		pc88opn->set_volume(1, decibel_l, decibel_r);
+		if(pc88opn1 != NULL) {
+			pc88opn1->set_volume(0, decibel_l, decibel_r);
+		}
+		return;
+	}
+	if(ch-- == 0) {
+		if(pc88opn1 != NULL) {
+			pc88opn1->set_volume(1, decibel_l, decibel_r);
+		}
+		return;
+	}
 #ifdef SUPPORT_PC88_OPNA
-	} else if(ch-- == 0) {
-		pc88opn->set_volume(2, decibel_l, decibel_r);
-	} else if(ch-- == 0) {
-		pc88opn->set_volume(3, decibel_l, decibel_r);
+	if(ch-- == 0) {
+		if(pc88opn1 != NULL && pc88opn1->is_ym2608) {
+			pc88opn1->set_volume(2, decibel_l, decibel_r);
+		}
+		return;
+	}
+	if(ch-- == 0) {
+		if(pc88opn1 != NULL && pc88opn1->is_ym2608) {
+			pc88opn1->set_volume(3, decibel_l, decibel_r);
+		}
+		return;
+	}
 #endif
-#ifdef SUPPORT_PC88_SB2
-	} else if(ch-- == 0) {
-		if(pc88sb2 != NULL) {
-			pc88sb2->set_volume(0, decibel_l, decibel_r);
+#endif
+#ifdef SUPPORT_PC88_OPN2
+	if(ch-- == 0) {
+		if(pc88opn2 != NULL) {
+			pc88opn2->set_volume(0, decibel_l, decibel_r);
 		}
-	} else if(ch-- == 0) {
-		if(pc88sb2 != NULL) {
-			pc88sb2->set_volume(1, decibel_l, decibel_r);
+		return;
+	}
+	if(ch-- == 0) {
+		if(pc88opn2 != NULL) {
+			pc88opn2->set_volume(1, decibel_l, decibel_r);
 		}
+		return;
+	}
 #ifdef SUPPORT_PC88_OPNA
-	} else if(ch-- == 0) {
-		if(pc88sb2 != NULL) {
-			pc88sb2->set_volume(2, decibel_l, decibel_r);
+	if(ch-- == 0) {
+		if(pc88opn2 != NULL && pc88opn2->is_ym2608) {
+			pc88opn2->set_volume(2, decibel_l, decibel_r);
 		}
-	} else if(ch-- == 0) {
-		if(pc88sb2 != NULL) {
-			pc88sb2->set_volume(3, decibel_l, decibel_r);
+		return;
+	}
+	if(ch-- == 0) {
+		if(pc88opn2 != NULL && pc88opn2->is_ym2608) {
+			pc88opn2->set_volume(3, decibel_l, decibel_r);
 		}
+		return;
+	}
 #endif
 #endif
 #ifdef SUPPORT_PC88_CDROM
-	} else if(ch-- == 0) {
+	if(ch-- == 0) {
 		pc88scsi_cdrom->set_volume(0, decibel_l, decibel_r);
+		return;
+	}
 #endif
 #ifdef SUPPORT_PC88_HMB20
-	} else if(ch-- == 0) {
+	if(ch-- == 0) {
 		pc88opm->set_volume(0, decibel_l, decibel_r);
+		return;
+	}
 #endif
 #ifdef SUPPORT_PC88_PCG8100
-	} else if(ch-- == 0) {
+	if(ch-- == 0) {
 		pc88pcm0->set_volume(0, decibel_l, decibel_r);
 		pc88pcm1->set_volume(0, decibel_l, decibel_r);
 		pc88pcm2->set_volume(0, decibel_l, decibel_r);
+		return;
+	}
 #endif
-	} else if(ch-- == 0) {
+	if(ch-- == 0) {
 		pc88pcm->set_volume(0, decibel_l, decibel_r);
-	} else if(ch-- == 0) {
+		return;
+	}
+	if(ch-- == 0) {
 		pc88noise_seek->set_volume(0, decibel_l, decibel_r);
 		pc88noise_head_down->set_volume(0, decibel_l, decibel_r);
 		pc88noise_head_up->set_volume(0, decibel_l, decibel_r);
+		return;
 	}
 }
 #endif
