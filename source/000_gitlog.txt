@@ -1,3 +1,107 @@
+commit c2d34b15d4c1d374e61a3ab8f66e1cca2ac926bd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 13 01:15:44 2019 +0900
+
+    [Build][CMake] Fix FTBFS.
+
+commit c282b0482af200aed190c70818130ecded725e19
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 13 01:14:44 2019 +0900
+
+    [general][Win32] Update cross-build script.
+
+commit 1bd2ef0d39e50c7d1c0b192540e24c5c934abc44
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 13 01:12:16 2019 +0900
+
+    [General] Completely merge upstream 2019-01-11.
+
+commit 2ca526938a8e8b3b9690f304961b024d521e4c93
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 13 00:48:36 2019 +0900
+
+    [VM] Add PC-8001/mk2/8801/mk2.
+    [General] Merge upstream 2019-01-11.
+
+commit 85f50e1199f199526c16d7ba8362ed2820dce57f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 12 22:41:49 2019 +0900
+
+    [VM][I386] Fix FTBFS.
+
+commit 5c2ed532f5698e6b97188043844aad5a44fedbc9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 12 22:41:19 2019 +0900
+
+    [UI][Qt] Implement new feature of upstream 2018-12-28.
+
+commit 2dcf698c6d9647f26b8379a0c2de398de744e544
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 12 18:43:50 2019 +0900
+
+    [General] Apply VMs to Upstream 2018-12-28.
+
+commit 8e87b770d1495e38439682db0df7083b1cbb8a42
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 12 18:39:04 2019 +0900
+
+    [General] Merge Upstream 2018-12-27.
+
+commit 89a913067210d1169704559b0a56b35cc9381c4f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 12 18:22:09 2019 +0900
+
+    [General] Merge Upstream 2018-12-18.
+
+commit 6aa8fb941df05ad33d75529b4c987cd2e4f933a9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 12 17:35:36 2019 +0900
+
+    [BUILD] Separate threads definition for LTO.
+
+commit 25e837f6934b4de94e301e8259348716b5eb91ab
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 12 03:43:35 2019 +0900
+
+    [VM][FMTOWNS][CRTC] Implementing CRTC.
+    [VM][FMTOWNS] Will set wait-parameter to single, towns_memory.cpp.
+
+commit b5b6c6a8e1d3f105bd4e759a64b8fbb95dead3b8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 10 18:00:10 2019 +0900
+
+    [VM][FMTOWNS][VRAM][WIP] Implementing.
+
+commit 4cb5597006aa42de89c761acc5e73b93f822bd2d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 9 21:56:55 2019 +0900
+
+    [VM][FMTOWNS] Add FONT ROMS, MSDOS ROM, SYSTEM ROM and SERIAL ROM.
+
+commit 0a865c130c4dbc8ce814fb9d78fc8df203480800
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 7 17:11:11 2019 +0900
+
+    [VM][FMTOWNS][WIP] Update CmakeLists.
+
+commit b9662289461fdb1e69aa0d71a348a21a01dbf5b4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 7 15:26:23 2019 +0900
+
+    [VM][FMTOWNS] Apply namespace FMTOWNS to some devices.
+
+commit ad3cc0f1503678974b89f890ed56458b56134e05
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 7 15:14:46 2019 +0900
+
+    [VM][FMTOWNS][WIP] Implementing main memory.Still imcomplete.
+
+commit a45afcdeb9ff88fb9851e6bfdd83cb477b9c251e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 18 16:43:17 2018 +0900
+
+    [DOC] Update documents and SOVERSIONs.
+
 commit ee880845ec85aa431df3c7a937611e9c20dd591d
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Dec 18 03:30:41 2018 +0900

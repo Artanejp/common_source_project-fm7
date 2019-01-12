@@ -1,5 +1,18 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT January 13, 2019
+  * Upstream 2019-01-11 .
+  * [UI/Qt] OSD: Joystick-To-Keyboard: Add "1235" feature.Useful for DELPHIS (for FM-8/7) etc.
+  * [UI/Qt] OSD: Apply "Joystick to Keyboard" feature.
+  * [BUILD] Separate threads definition for LTO.
+  * [WIN32] Update DLLS.Now using Qt5.12 and FFMpeg 4.1 and X264 157 API.
+  * [VM/I386][NEWDEV] Update to upsteream.
+  * [VM/PC8001] Load "FONT.ROM" as fallback, if "KANJI1.ROM" don't exists.
+  * [NOTE] Now implementing FM-Towns, but still not buildable.
+  * Built with c2d34b15d4c1d374e61a3ab8f66e1cca2ac926bd (or later).
+  
+-- January 13, 2019 01:55:36 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+  
 * SNAPSHOT December 18, 2018
   * Upstream 2018-12-09 .
   * [VM/PC9801] Add pseudo SASI BIOS for PC-9801.WIP.

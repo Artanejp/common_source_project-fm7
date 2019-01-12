@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                       December 18, 2018
+                                                       January 13, 2019
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -10,7 +10,7 @@ and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
 
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20181218
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20190113
    
 Additional INFO:
 
@@ -162,93 +162,54 @@ Changes:
 
 * To see older changes, read ChangeLog and 000_gitlog.txt.
 
-* SNAPSHOT December 18, 2018
-  * Upstream 2018-12-09 .
-  * [VM/PC9801] Add pseudo SASI (HDD) BIOS for PC-9801.WIP.
-  * [VM/EVENT] Improve error message at cancel_event().
-  * [VM/HUC2680] Improve around timer.Thanks to  Ootake v2.83.
-  * [VM/PCENGINE] Improve process around NEC extended command (0xd*).
-  * [VM/PCENGINE] PCE_ADPCM: Fix not sound data length >= 65536 bytes.This still don't fix some softwares.i.e. Megami-Paradise.
-  * [VM/PCENGINE] Porting from Ootake v2.83.This still WORK-IN-PROGRESS.
-  * [VM/PCENGINE] CDROM: Don't reset ADPCM more than once at CDROM makes "NOT BUSY".
-  * [VM/PCENGINE] Most of CD-ROM^2 softwares maybe work.Excepts LASERSOFT's products and using "ARCADE card".
-  * [VM/SCSI_CDROM] Add write_signal() to control CDDA from MACHINE.
-  * [VM/SCSI_CDROM] Fix CD-DA buffer handling.Reading buffer should be per 2352 bytes.
-  * [VM/SCSI_CDROM] CUE: More correctness cue parsing.
-  * [VM/SCSI_CDROM] CUE: Set default pre-gap to 2Sec (150frames).Fix audio problems of most softwares.Maybe fixed issues on Manhole.
-  * [VM/SCSI_CDROM] More correctness SEEK/Interrupt timing.
-  * [VM/FM7] DISPLAY: Fix for logging "[EVENT] EVENT: device (name=DISPLAY SUBSYSTEM, id=25) tries to cancel event 6 that is not its own (owned by (name=PRINTER I/F id=20))!!!"
-  * [Draw/Qt] OpenGL: Abondon depth test.
-  * [UI/Qt] OOPS: Fix OOPs around mounting virtual D88/D77 image(s).
-  * [UI/MENU] HARDDISK: OOPS: I missed update directory.
-  * [UI/MENU] Fix oops dialog of opening virtual HDD.
-  * Built with ee880845ec85aa431df3c7a937611e9c20dd591d (or later).
+* SNAPSHOT January 13, 2019
+  * Upstream 2019-01-11 .
+  * [UI/Qt] OSD: Joystick-To-Keyboard: Add "1235" feature.Useful for DELPHIS (for FM-8/7) etc.
+  * [UI/Qt] OSD: Apply "Joystick to Keyboard" feature.
+  * [BUILD] Separate threads definition for LTO.
+  * [WIN32] Update DLLS.Now using Qt5.12 and FFMpeg 4.1 and X264 157 API.
+  * [VM/I386][NEWDEV] Update to upsteream.
+  * [VM/PC8001] Load "FONT.ROM" as fallback, if "KANJI1.ROM" don't exists.
+  * [NOTE] Now implementing FM-Towns, but still not buildable.
+  * Built with c2d34b15d4c1d374e61a3ab8f66e1cca2ac926bd (or later).
   
--- December 18, 2018 16:31:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
+-- January 13, 2019 01:55:36 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+  
 Upstream changes:
 * To see older upstream's changes, read history.txt.
 
-12/9/2018
+1/11/2019
 
-[VM/SCSI_CDROM] add vendor specific command for NEC CD-ROM^2
-
-[PC8801/PC88] support CD-ROM drive (thanks M88/cdif)
-[PC8801/PC88] support Video Art Boad (thanks X88000)
-
-
-12/5/2018
-
-[VM/MB8877] improve reset() to finish previous command and reset fdc completely
-[VM/Z80] add read_signal() to read irq status
-
-[PC8801/PC88] improve to render scan line with black if color graphic mode
-[SMC70/MEMORY] support 640x400 and 160x100 graphic mode
-[SMC777/MEMORY] fix issue that text blink is not working
-[SMC777/MEMORY] improve inport 21h to read vsync irq status
-[SMC777/MEMORY] improve inport 51h to read cursor and space keys as joystick #1
-[VM/*] improve tape interfaces for each virtual machine
+[PC8001] support NEC PC-8001
+[PC8001] support NEC PC-8001mkII
+[PC8801] support NEC PC-8801
+[PC8801] support NEC PC-8801mkII
 
 
-12/4/2018
+12/28/2018
 
-[CONFIG] remove fmgen_dll_path and add mame2151_dll_path/mame2608_dll_path
-
-[VM/YM2203] remove HAS_YM2608 and YM2203_PORT_MODE to simplify code
-
-[PC8801] support HMB-20 sound board
+[EMU] support to insert blank 2D/2DD/2HD disk image
 
 
-12/2/2018-2
+12/27/2018
 
-[PC8801/PC88] fix text/graph renderer again (thanks Mr.Bookworm)
-
-
-12/2/2018
-
-[PC8801/PC88] fix not to apply reverse attribute to monochrome graphic screen
+[PC6001/PSUB] improve keyboard irq
+[PC8801/PC88] improve initial memory map when CD BIOS is loaded
+[PC8801/PC88] support CD-DA fade in/out
 
 
-12/1/2018
+12/18/2018
 
-[PC8801] enable/disable drawing scan line when monitor type is hireso/standard
-[PC8801/PC88] improve text attributes/rederer (thanks ePC-8801MA‰ü)
-[PC8801/PC88] fix analog back color
-[PC8801/PC88] improve routine to change palette for each scan line
+[VM/I386] improve i386 core based on MAME 0.204
+[VM/SCSI_CDROM] improve vendor specific command for NEC CD-ROM^2
+[VM/SCSI_DEV] fix to write buffer when current command is not WRITE6/10/12
+[VM/SCSI_DEV] fix Request Sense command to get correct data length
+[VM/SCSI_HDD] fix not to write buffer when current command is not WRITE6/10/12
 
-
-11/28/2018
-
-[WIN32/INPUT] support joystick with multiple axes and hat key
-[WIN32/INPUT] improve joystick to keyboard function for numpad key 5
-
-
-11/27/2018
-
-[WIN32/INPUT] support joystick to keyboard function
-[WIN32/SCREEN] support Window x1.5 mode
-
-[PC8801/PC88] support PC key, that is mapped to F11
+[PC8801/PC88] improve initial memory map when CD BIOS is loaded
+[PC8801/PC88] revert screen renderer fixes in 12/1/2018 except scanline issues
+[PC8801/PC88] fix dmac registers to clear higher 16bits of pair32_t
+[PC8801/PC88] fix dmac to read i/o in verify mode
 
 -----
 

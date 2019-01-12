@@ -80,6 +80,11 @@ PC-98RL
 
 	memo) almost same as np2...
 
+--- Additional information
+	At some VMs (not ALL), enable to use PSEUDO-SASI-BIOS.
+	This enables SASI HDDs without any SASI-ROM code.
+	See sasi_bios.[cpp|h] .
+	-- 2019-01-13 K.Ohta.
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
