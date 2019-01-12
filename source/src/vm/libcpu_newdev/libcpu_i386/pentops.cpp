@@ -15,11 +15,14 @@ void I386_OPS_BASE::PENTIUMOP(rdmsr)()          // Opcode 0x0f 32
 	UINT8 valid_msr = 0;
 
 	data = MSR_READ(REG32(ECX),&valid_msr);
-	REG32(EDX) = data >> 32;
-	REG32(EAX) = data & 0xffffffff;
 
 	if(cpustate->CPL != 0 || valid_msr == 0) // if current privilege level isn't 0 or the register isn't recognized ...
 		FAULT(FAULT_GP,0) // ... throw a general exception fault
+	else
+	{
+		REG32(EDX) = data >> 32;
+		REG32(EAX) = data & 0xffffffff;
+	}
 
 	CYCLES(CYCLES_RDMSR);
 }

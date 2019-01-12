@@ -220,7 +220,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88->set_context_sio(pc88sio);
 #ifdef SUPPORT_PC88_CDROM
 	pc88->set_context_scsi_host(pc88scsi_host);
-//	pc88->set_context_scsi_cdrom(pc88scsi_cdrom);
+	pc88->set_context_scsi_cdrom(pc88scsi_cdrom);
 #endif
 #ifdef SUPPORT_PC88_HMB20
 	pc88->set_context_opm(pc88opm);

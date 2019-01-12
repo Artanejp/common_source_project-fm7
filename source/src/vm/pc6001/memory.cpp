@@ -698,12 +698,12 @@ void MEMORY::event_vline(int v, int clock)
 #ifdef _PC6001
 			if (v < 192) {
 				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-				register_event_by_clock(this, EVENT_HBLANK, (double)CPU_CLOCKS / FRAMES_PER_SEC / LINES_PER_FRAME * 296 / 455, false, NULL);
+				register_event_by_clock(this, EVENT_HBLANK, (uint64_t)((double)CPU_CLOCKS / FRAMES_PER_SEC / LINES_PER_FRAME * 296 / 455), false, NULL);
 			}
 #else
 			if (v < (CRTMode1 ? 200 : 192)) {
 				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-				register_event_by_clock(this, EVENT_HBLANK, (double)CPU_CLOCKS / FRAMES_PER_SEC / LINES_PER_FRAME * (CRTMode1 ? 368 : 304) / 456, false, NULL);
+				register_event_by_clock(this, EVENT_HBLANK, (uint64_t)((double)CPU_CLOCKS / FRAMES_PER_SEC / LINES_PER_FRAME * (CRTMode1 ? 368 : 304) / 456), false, NULL);
 			}
 #endif
 		}

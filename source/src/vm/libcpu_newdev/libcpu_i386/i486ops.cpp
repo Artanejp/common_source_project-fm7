@@ -156,14 +156,16 @@ void I386_OPS_BASE::I486OP(xadd_rm8_r8)()   // Opcode 0x0f c0
 	if( modrm >= 0xc0 ) {
 		UINT8 dst = LOAD_RM8(modrm);
 		UINT8 src = LOAD_REG8(modrm);
+		UINT8 sum = ADD8(cpustate, dst, src);
 		STORE_REG8(modrm, dst);
-		STORE_RM8(modrm, dst + src);
+		STORE_RM8(modrm, sum);
 		CYCLES(CYCLES_XADD_REG_REG);
 	} else {
 		UINT32 ea = GetEA(modrm, 1, 1);
 		UINT8 dst = READ8(ea);
 		UINT8 src = LOAD_REG8(modrm);
-		WRITE8(ea, dst + src);
+		UINT8 sum = ADD8(cpustate, dst, src);
+		WRITE8(ea, sum);
 		STORE_REG8(modrm, dst);
 		CYCLES(CYCLES_XADD_REG_MEM);
 	}
@@ -175,14 +177,16 @@ void I386_OPS_BASE::I486OP(xadd_rm16_r16)() // Opcode 0x0f c1
 	if( modrm >= 0xc0 ) {
 		UINT16 dst = LOAD_RM16(modrm);
 		UINT16 src = LOAD_REG16(modrm);
+		UINT16 sum = ADD16(cpustate, dst, src);
 		STORE_REG16(modrm, dst);
-		STORE_RM16(modrm, dst + src);
+		STORE_RM16(modrm, sum);
 		CYCLES(CYCLES_XADD_REG_REG);
 	} else {
 		UINT32 ea = GetEA(modrm, 1, 2);
 		UINT16 dst = READ16(ea);
 		UINT16 src = LOAD_REG16(modrm);
-		WRITE16(ea, dst + src);
+		UINT16 sum = ADD16(cpustate, dst, src);
+		WRITE16(ea, sum);
 		STORE_REG16(modrm, dst);
 		CYCLES(CYCLES_XADD_REG_MEM);
 	}
@@ -194,14 +198,16 @@ void I386_OPS_BASE::I486OP(xadd_rm32_r32)() // Opcode 0x0f c1
 	if( modrm >= 0xc0 ) {
 		UINT32 dst = LOAD_RM32(modrm);
 		UINT32 src = LOAD_REG32(modrm);
-		STORE_REG32(modrm, dst);
-		STORE_RM32(modrm, dst + src);
+		UINT32 sum = ADD32(cpustate, dst, src);
+ 		STORE_REG32(modrm, dst);
+		STORE_RM32(modrm, sum);
 		CYCLES(CYCLES_XADD_REG_REG);
 	} else {
 		UINT32 ea = GetEA(modrm, 1, 4);
 		UINT32 dst = READ32(ea);
 		UINT32 src = LOAD_REG32(modrm);
-		WRITE32(ea, dst + src);
+		UINT32 sum = ADD32(cpustate, dst, src);
+		WRITE32(ea, sum);
 		STORE_REG32(modrm, dst);
 		CYCLES(CYCLES_XADD_REG_MEM);
 	}
@@ -224,7 +230,7 @@ void I386_OPS_BASE::I486OP(group0F01_16)()      // Opcode 0x0f 01
 					ea = GetEA(modrm, 1, 6);
 				}
 				WRITE16(ea, cpustate->gdtr.limit);
-				WRITE32(ea + 2, cpustate->gdtr.base & 0xffffff);
+				WRITE32(ea + 2, cpustate->gdtr.base);
 				CYCLES(CYCLES_SGDT);
 				break;
 			}
@@ -240,7 +246,7 @@ void I386_OPS_BASE::I486OP(group0F01_16)()      // Opcode 0x0f 01
 					ea = GetEA(modrm, 1, 6);
 				}
 				WRITE16(ea, cpustate->idtr.limit);
-				WRITE32(ea + 2, cpustate->idtr.base & 0xffffff);
+				WRITE32(ea + 2, cpustate->idtr.base);
 				CYCLES(CYCLES_SIDT);
 				break;
 			}
@@ -288,9 +294,9 @@ void I386_OPS_BASE::I486OP(group0F01_16)()      // Opcode 0x0f 01
 			}
 		case 6:         /* LMSW */
 			{
-				UINT16 b;
 				if(PROTECTED_MODE && cpustate->CPL)
 					FAULT(FAULT_GP,0)
+				UINT16 b;		
 				if( modrm >= 0xc0 ) {
 					b = LOAD_RM16(modrm);
 					CYCLES(CYCLES_LMSW_REG);
@@ -505,6 +511,8 @@ void I386_OPS_BASE::I486OP(mov_cr_r32)()        // Opcode 0x0f 22
 			CYCLES(CYCLES_MOV_REG_CR0);
 			if((oldcr ^ cpustate->cr[cr]) & 0x80010000)
 				vtlb_flush_dynamic(cpustate->vtlb);
+//			if (PROTECTED_MODE != BIT(data, 0))
+//				debugger_privilege_hook();
 			break;
 		case 2: CYCLES(CYCLES_MOV_REG_CR2); break;
 		case 3:

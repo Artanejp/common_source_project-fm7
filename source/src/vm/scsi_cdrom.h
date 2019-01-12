@@ -121,6 +121,7 @@ public:
 	int get_command_length(int value);
 	void start_command();
 	bool read_buffer(int length);
+	bool write_buffer(int length);
 	
 	// unique functions
 	void set_context_done(DEVICE* device, int id, uint32_t mask)

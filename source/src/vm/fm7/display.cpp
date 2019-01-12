@@ -960,8 +960,8 @@ void DISPLAY::copy_vram_blank_area(void)
 void DISPLAY::copy_vram_per_line(int begin, int end)
 {
 	uint32_t src_offset;
-	uint32_t yoff_d1;
-	uint32_t yoff_d2;
+	uint32_t yoff_d1 = 0;
+	uint32_t yoff_d2 = 0;
 	uint32_t yoff_d;
 	uint32_t poff = 0;
 	uint32_t src_base;

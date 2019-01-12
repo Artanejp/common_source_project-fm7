@@ -1,5 +1,5 @@
 Based on MAME 0.152.
-Fixes in MAME 0.154 to 0.197 are applied.
+Fixes in MAME 0.154 to 0.204 are applied.
 
 cycle_table_rm/pm are changed from dynamic array to static array.
 

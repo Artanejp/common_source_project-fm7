@@ -1,3 +1,24 @@
+12/27/2018
+
+[PC6001/PSUB] improve keyboard irq
+[PC8801/PC88] improve initial memory map when CD BIOS is loaded
+[PC8801/PC88] support CD-DA fade in/out
+
+
+12/18/2018
+
+[VM/I386] improve i386 core based on MAME 0.204
+[VM/SCSI_CDROM] improve vendor specific command for NEC CD-ROM^2
+[VM/SCSI_DEV] fix to write buffer when current command is not WRITE6/10/12
+[VM/SCSI_DEV] fix Request Sense command to get correct data length
+[VM/SCSI_HDD] fix not to write buffer when current command is not WRITE6/10/12
+
+[PC8801/PC88] improve initial memory map when CD BIOS is loaded
+[PC8801/PC88] revert screen renderer fixes in 12/1/2018 except scanline issues
+[PC8801/PC88] fix dmac registers to clear higher 16bits of pair32_t
+[PC8801/PC88] fix dmac to read i/o in verify mode
+
+
 12/9/2018
 
 [VM/SCSI_CDROM] add vendor specific command for NEC CD-ROM^2

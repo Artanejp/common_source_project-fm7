@@ -40,7 +40,7 @@ class YM2203;
 class Z80;
 #ifdef SUPPORT_PC88_CDROM
 class SCSI_HOST;
-//class SCSI_CDROM;
+class SCSI_CDROM;
 #endif
 
 namespace PC88DEV {
@@ -117,7 +117,7 @@ private:
 	DEVICE *d_pcm, *d_pio, *d_prn, *d_rtc, *d_sio;
 #ifdef SUPPORT_PC88_CDROM
 	SCSI_HOST* d_scsi_host;
-//	SCSI_CDROM* d_scsi_cdrom;
+	SCSI_CDROM* d_scsi_cdrom;
 #endif
 #ifdef SUPPORT_PC88_HMB20
 	DEVICE *d_opm;
@@ -203,7 +203,9 @@ private:
 	bool hireso;
 	
 	uint8_t sg_pattern[0x800];
-	uint8_t text[400][640];
+	uint8_t text[200][640];
+	uint8_t text_color[200][80];
+	bool text_reverse[200][80];
 	uint8_t graph[400][640];
 	
 	palette_t palette_digital[9];
@@ -215,7 +217,6 @@ private:
 	scrntype_t palette_vab_pc[0x10000];
 #endif
 	
-	int get_char_height();
 	void draw_text();
 #if defined(_PC8001SR)
 	bool draw_320x200_color_graph();
@@ -281,6 +282,11 @@ private:
 	uint8_t pcg_pattern[0x800];
 #endif
 	
+#ifdef SUPPORT_PC88_CDROM
+	int cdda_register_id;
+	double cdda_volume;
+#endif
+	
 #ifdef NIPPY_PATCH
 	// dirty patch for NIPPY
 	bool nippy_patch;
@@ -311,6 +317,7 @@ public:
 #endif
 	
 	uint32_t read_dma_data8(uint32_t addr);
+	void write_dma_data8(uint32_t addr, uint32_t data);
 	void write_dma_io8(uint32_t addr, uint32_t data);
 	
 	void write_signal(int id, uint32_t data, uint32_t mask);
@@ -369,10 +376,10 @@ public:
 	{
 		d_scsi_host = device;
 	}
-//	void set_context_scsi_cdrom(SCSI_CDROM* device)
-//	{
-//		d_scsi_cdrom = device;
-//	}
+	void set_context_scsi_cdrom(SCSI_CDROM* device)
+	{
+		d_scsi_cdrom = device;
+	}
 #endif
 #ifdef SUPPORT_PC88_HMB20
 	void set_context_opm(DEVICE* device)

@@ -632,18 +632,18 @@ uint8_t Keys7[256][2] =
   {0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x7f},
 };
 
-void PSUB::update_keyboard()
+void PSUB::update_keyboard(int code)
 {
-	for (int code=0; code < 256; code++) {
-		if (key_stat[code] & 0x80) {
+//	for (int code=0; code < 256; code++) {
+//		if (key_stat[code] & 0x80) {
 			if (code == VK_LSHIFT || code == VK_LCONTROL || code == VK_LMENU ||
-			    code == VK_RSHIFT || code == VK_RCONTROL || code == VK_RMENU) continue;
-			if (code == VK_SHIFT || code == VK_CONTROL) continue;
-			key_stat[code]=0;
-			if (code == 0x75) {kanaMode = -1 * (kanaMode-1);continue;} // VK_F6
-			if (code == 0x76) {katakana = -1 * (katakana-1);continue;} // VK_F7
-			if (code == 0x77) {kbFlagGraph = -1 * (kbFlagGraph-1);continue;} // VK_F8
-			p6key=code;
+			    code == VK_RSHIFT || code == VK_RCONTROL || code == VK_RMENU) return;
+			if (code == VK_SHIFT || code == VK_CONTROL) return;
+//			key_stat[code]=0;
+			if (code == 0x75) {kanaMode = -1 * (kanaMode-1);return;} // VK_F6
+			if (code == 0x76) {katakana = -1 * (katakana-1);return;} // VK_F7
+			if (code == 0x77) {kbFlagGraph = -1 * (kbFlagGraph-1);return;} // VK_F8
+//			p6key=code;
 			uint8_t *Keys;
 			uint8_t ascii=0;
 			if (kbFlagGraph) {
@@ -667,9 +667,13 @@ void PSUB::update_keyboard()
 			if ((kbFlagCtrl == 1) && (code >= 0x41) && (code <= 0x5a)) ascii = code - 0x41 + 1;
 			/* function key */
 			if (!kanaMode && (ascii>0xef && ascii<0xfa)) kbFlagFunc=1;
+			/* send key code and raise irq */
+			if (!ascii) return;
+			p6key = ascii;
 			d_pio->write_signal(SIG_I8255_PORT_A, ascii, 0xff);
-		}
-	}
+			d_timer->write_signal(SIG_TIMER_IRQ_SUB_CPU, 1, 1);
+//		}
+//	}
 }
 
 bool PSUB::play_tape(const _TCHAR* file_path)
@@ -876,8 +880,8 @@ void PSUB::initialize()
 	fio = new FILEIO();
 	play = rec = false;
 	
-//	key_stat = emu->get_key_buffer();
-	memset(key_stat, 0, sizeof(key_stat));
+	key_stat = emu->get_key_buffer();
+//	memset(key_stat, 0, sizeof(key_stat));
 	
 	kbFlagCtrl=0;
 	kbFlagGraph=0;
@@ -928,8 +932,8 @@ void PSUB::event_frame()
 	if (key_stat[VK_UP]) stick0 |= STICK0_UP;
 	if (key_stat[VK_F9]) stick0 |= STICK0_STOP;
 	if (key_stat[VK_SHIFT]) stick0 |= STICK0_SHIFT;
-	update_keyboard();
-	if (p6key) d_timer->write_signal(SIG_TIMER_IRQ_SUB_CPU, 1, 1);
+//	update_keyboard();
+//	if (p6key) d_timer->write_signal(SIG_TIMER_IRQ_SUB_CPU, 1, 1);
 	
 	if(CasSkipFlag != 0) {
 		request_skip_frames();
@@ -1053,12 +1057,13 @@ uint32_t PSUB::read_io8(uint32_t addr)
 
 void PSUB::key_down(int code)
 {
-	key_stat[code] = 0x80;
+//	key_stat[code] = 0x80;
+	update_keyboard(code);
 }
 
 void PSUB::key_up(int code)
 {
-	key_stat[code] = 0x00;
+//	key_stat[code] = 0x00;
 }
 
 #define STATE_VERSION	1

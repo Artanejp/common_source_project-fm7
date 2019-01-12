@@ -318,7 +318,7 @@ static void I386OP(bsr_r32_rm32)(i386_state *cpustate)      // Opcode 0x0f bd
 	} else {
 		cpustate->ZF = 0;
 		dst = temp = 31;
-		while( (src & (1 << temp)) == 0 ) {
+		while( (src & (1U << temp)) == 0 ) {
 			temp--;
 			dst = temp;
 			CYCLES(cpustate,CYCLES_BSR);

@@ -131,8 +131,10 @@ void I386_OPS_BASE::i386_load_segment_descriptor( int segment )
 		if (!V8086_MODE)
 		{
 			i386_load_protected_mode_segment(&cpustate->sreg[segment], NULL );
-			if(cpustate->sreg[segment].selector)
-				i386_set_descriptor_accessed(cpustate->sreg[segment].selector);
+			{
+ 				i386_set_descriptor_accessed(cpustate, cpustate->sreg[segment].selector);
+				cpustate->sreg[segment].flags |= 0x0001;
+			}
 		}
 		else
 		{
@@ -142,6 +144,8 @@ void I386_OPS_BASE::i386_load_segment_descriptor( int segment )
 			cpustate->sreg[segment].d = 0;
 			cpustate->sreg[segment].valid = true;
 		}
+//		if (segment == CS && cpustate->sreg[segment].flags != old_flags)
+//			debugger_privilege_hook();
 	}
 	else
 	{
@@ -215,6 +219,7 @@ UINT32 I386_OPS_BASE::get_flags()
 
 void I386_OPS_BASE::set_flags( UINT32 f )
 {
+	f &= cpustate->eflags_mask;;
 	cpustate->CF = (f & 0x1) ? 1 : 0;
 	cpustate->PF = (f & 0x4) ? 1 : 0;
 	cpustate->AF = (f & 0x10) ? 1 : 0;
@@ -233,7 +238,7 @@ void I386_OPS_BASE::set_flags( UINT32 f )
 	cpustate->VIF = (f & 0x80000) ? 1 : 0;
 	cpustate->VIP = (f & 0x100000) ? 1 : 0;
 	cpustate->ID = (f & 0x200000) ? 1 : 0;
-	cpustate->eflags = f & cpustate->eflags_mask;
+	cpustate->eflags = f;
 }
 
 void I386_OPS_BASE::sib_byte(UINT8 mod, UINT32* out_ea, UINT8* out_segment)
