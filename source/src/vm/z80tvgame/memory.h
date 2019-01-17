@@ -31,7 +31,7 @@ private:
 	
 	bool inserted;
 
-	_bit_trans_table_scrn_t pixel_trans_table;
+	__DECL_ALIGNED(32) _bit_trans_table_scrn_t pixel_trans_table;
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

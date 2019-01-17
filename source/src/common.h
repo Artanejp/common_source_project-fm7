@@ -1082,8 +1082,8 @@ typedef struct {
 
 inline scrntype_vec8_t ConvertByteToMonochromePackedPixel(uint8_t src, _bit_trans_table_t *tbl,scrntype_t on_val, scrntype_t off_val)
 {
-	uint16_vec8_t   tmpd;
-	scrntype_vec8_t tmpdd;
+	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
+	__DECL_ALIGNED(32) scrntype_vec8_t tmpdd;
 	_bit_trans_table_t*  vt = (_bit_trans_table_t*)__builtin_assume_aligned(tbl, sizeof(uint16_vec8_t));
 
 	tmpd.v = vt->plane_table[src].v;
@@ -1104,7 +1104,7 @@ void DLL_PREFIX ConvertByteToSparceUint8(uint8_t *src, uint16_t* dst, int bytes,
 // Table must be (ON_VAL_COLOR : OFF_VAL_COLOR)[256].
 inline scrntype_vec8_t ConvertByteToPackedPixel_PixelTbl(uint8_t src, _bit_trans_table_scrn_t *tbl)
 {
-	scrntype_vec8_t tmpdd;
+	__DECL_ALIGNED(32) scrntype_vec8_t tmpdd;
 	_bit_trans_table_scrn_t*  vt = (_bit_trans_table_scrn_t*)__builtin_assume_aligned(tbl, sizeof(uint16_vec8_t));
 
 	tmpdd.v = vt->plane_table[src].v;
@@ -1114,8 +1114,8 @@ inline scrntype_vec8_t ConvertByteToPackedPixel_PixelTbl(uint8_t src, _bit_trans
 // Table must be (ON_VAL_COLOR : OFF_VAL_COLOR)[256].
 inline scrntype_vec16_t ConvertByteToDoublePackedPixel_PixelTbl(uint8_t src, _bit_trans_table_scrn_t *tbl)
 {
-	scrntype_vec16_t tmpdd;
-	scrntype_vec8_t tmpd;
+	__DECL_ALIGNED(32) scrntype_vec16_t tmpdd;
+	__DECL_ALIGNED(32) scrntype_vec8_t tmpd;
 	_bit_trans_table_scrn_t*  vt = (_bit_trans_table_scrn_t*)__builtin_assume_aligned(tbl, sizeof(uint16_vec8_t));
 	tmpd.v = vt->plane_table[src].v;
 	int j = 0;
@@ -1131,7 +1131,7 @@ __DECL_VECTORIZED_LOOP
 // Table must be initialize ON_COLOR : OFF_COLOR
 inline void ConvertByteToDoubleMonochromeUint8(uint8_t src, uint8_t* dst, _bit_trans_table_t* tbl)
 {
-	uint16_vec8_t   tmpd;
+	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
 	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
 
 	__DECL_ALIGNED(16) uint8_t d[16];
@@ -1151,7 +1151,7 @@ __DECL_VECTORIZED_LOOP
 
 inline void ConvertByteToMonochromeUint8(uint8_t src, uint8_t* dst, _bit_trans_table_t* tbl)
 {
-	uint16_vec8_t   tmpd;
+	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
 	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
 
 	tmpd = vt[src];
@@ -1163,7 +1163,7 @@ __DECL_VECTORIZED_LOOP
 
 inline void ConvertRGBTo8ColorsUint8(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, _bit_trans_table_t* rtbl, _bit_trans_table_t* gtbl, _bit_trans_table_t* btbl, int shift)
 {
-	uint16_vec8_t   tmpd;
+	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
 	uint16_vec8_t*  rvt = (uint16_vec8_t*)__builtin_assume_aligned(&(rtbl->plane_table[0]), sizeof(uint16_vec8_t));
 	uint16_vec8_t*  gvt = (uint16_vec8_t*)__builtin_assume_aligned(&(gtbl->plane_table[0]), sizeof(uint16_vec8_t));
 	uint16_vec8_t*  bvt = (uint16_vec8_t*)__builtin_assume_aligned(&(btbl->plane_table[0]), sizeof(uint16_vec8_t));
@@ -1180,7 +1180,7 @@ __DECL_VECTORIZED_LOOP
 
 inline void ConvertRGBTo8ColorsUint8_Zoom2Left(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, _bit_trans_table_t* rtbl, _bit_trans_table_t* gtbl, _bit_trans_table_t* btbl, int shift)
 {
-	uint16_vec8_t   tmpd;
+	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
 	uint16_vec8_t*  rvt = (uint16_vec8_t*)__builtin_assume_aligned(&(rtbl->plane_table[0]), sizeof(uint16_vec8_t));
 	uint16_vec8_t*  gvt = (uint16_vec8_t*)__builtin_assume_aligned(&(gtbl->plane_table[0]), sizeof(uint16_vec8_t));
 	uint16_vec8_t*  bvt = (uint16_vec8_t*)__builtin_assume_aligned(&(btbl->plane_table[0]), sizeof(uint16_vec8_t));
@@ -1198,7 +1198,7 @@ __DECL_VECTORIZED_LOOP
 
 inline void ConvertRGBTo8ColorsUint8_Zoom2Right(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, _bit_trans_table_t* rtbl, _bit_trans_table_t* gtbl, _bit_trans_table_t* btbl, int shift)
 {
-	uint16_vec8_t   tmpd;
+	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
 	uint16_vec8_t*  rvt = (uint16_vec8_t*)__builtin_assume_aligned(&(rtbl->plane_table[0]), sizeof(uint16_vec8_t));
 	uint16_vec8_t*  gvt = (uint16_vec8_t*)__builtin_assume_aligned(&(gtbl->plane_table[0]), sizeof(uint16_vec8_t));
 	uint16_vec8_t*  bvt = (uint16_vec8_t*)__builtin_assume_aligned(&(btbl->plane_table[0]), sizeof(uint16_vec8_t));
@@ -1216,7 +1216,7 @@ __DECL_VECTORIZED_LOOP
 
 inline void ConvertRGBTo8ColorsUint8_Zoom2Double(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, _bit_trans_table_t* rtbl, _bit_trans_table_t* gtbl, _bit_trans_table_t* btbl, int shift)
 {
-	uint16_vec8_t   tmpd;
+	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
 	uint16_vec8_t*  rvt = (uint16_vec8_t*)__builtin_assume_aligned(&(rtbl->plane_table[0]), sizeof(uint16_vec8_t));
 	uint16_vec8_t*  gvt = (uint16_vec8_t*)__builtin_assume_aligned(&(gtbl->plane_table[0]), sizeof(uint16_vec8_t));
 	uint16_vec8_t*  bvt = (uint16_vec8_t*)__builtin_assume_aligned(&(btbl->plane_table[0]), sizeof(uint16_vec8_t));
@@ -1234,7 +1234,7 @@ __DECL_VECTORIZED_LOOP
 
 inline void ConvertByteToMonochromeUint8Cond_Zoom2(uint8_t src, uint8_t* dst, _bit_trans_table_t* tbl, uint8_t on_color, uint8_t off_color)
 {
-	uint16_vec8_t   tmpd;
+	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
 	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
 
 	__DECL_ALIGNED(16) uint8_t d[16];
@@ -1254,7 +1254,7 @@ __DECL_VECTORIZED_LOOP
 
 inline void ConvertByteToMonochromeUint8Cond(uint8_t src, uint8_t* dst, _bit_trans_table_t* tbl, uint8_t on_color, uint8_t off_color)
 {
-	uint16_vec8_t   tmpd;
+	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
 	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
 
 	tmpd = vt[src];
