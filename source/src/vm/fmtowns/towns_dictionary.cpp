@@ -30,6 +30,7 @@ void DICTIONARY::initialize()
 	if(fio->Fopen(create_local_path(_T("FMT_CMOS.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(dict_ram, sizeof(dict_ram), 1);
 		fio->Fclose();
+		//cmos_dirty = true;
 	} else {
 		cmos_dirty = true;
 	}

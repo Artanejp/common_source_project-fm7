@@ -1,75 +1,102 @@
 /*
-	FUJITSU FMR-50 Emulator 'eFMR-50'
-	FUJITSU FMR-60 Emulator 'eFMR-60'
+	FUJITSU FMR-50 Emulator 'eFMTowns'
 
-	Author : Takeda.Toshiya
-	Date   : 2008.04.28 -
-
+	Author : Kyuma.Ohta <whatisthis.sowhat _at_ gmail.com>
+	Date   : 2019.01.09-
 	[ virtual machine ]
 */
+#pragma once
 
 #ifndef _FMTOWNS_H_
 #define _FMTOWNS_H_
 
-#if defined(_FMR50)
-#if defined(HAS_I286)
-#define DEVICE_NAME		"FUJITSU FMR-50 (i286)"
-#define CONFIG_NAME		"fmr50_i286"
-#elif defined(HAS_I386)
-#define DEVICE_NAME		"FUJITSU FMR-50 (i386)"
-#define CONFIG_NAME		"fmr50_i386"
-#elif defined(HAS_I486)
-#define DEVICE_NAME		"FUJITSU FMR-50 (i486)"
-#define CONFIG_NAME		"fmr50_i486"
-#elif defined(HAS_PENTIUM)
-#define DEVICE_NAME		"FUJITSU FMR-250"
-#define CONFIG_NAME		"fmr250"
-#endif
-#elif defined(_FMR60)
-#if defined(HAS_I286)
-#define DEVICE_NAME		"FUJITSU FMR-60"
-#define CONFIG_NAME		"fmr60"
-#elif defined(HAS_I386)
-#define DEVICE_NAME		"FUJITSU FMR-70"
-#define CONFIG_NAME		"fmr70"
-#elif defined(HAS_I486)
-#define DEVICE_NAME		"FUJITSU FMR-80"
-#define CONFIG_NAME		"fmr80"
-#elif defined(HAS_PENTIUM)
-#define DEVICE_NAME		"FUJITSU FMR-280"
-#define CONFIG_NAME		"fmr280"
-#endif
+#undef WITH_386SX
+#undef WITH_486
+#undef WITH_PENTIUM
+#undef TYPE_TOWNS_X0
+#undef TYPE_TOWNS2_UX
+#undef TYPE_TOWNS2_CX
+
+#if defined(_FMTOWNS2F)
+#define DEVICE_NAME		"FUJITSU FM-Towns 2F"
+#define CONFIG_NAME		"fmtowns_2f"
+#define MAX_DRIVE       2
+#define _HAS_HDD        1
+
+#elif defined(_FMTOWNS2H)
+#define DEVICE_NAME		"FUJITSU FM-Towns 2H"
+#define CONFIG_NAME		"fmtowns_2h"
+#define MAX_DRIVE       2
+#define _HAS_HDD        1
+
+#elif defined(_FMTOWNS20F)
+#define DEVICE_NAME		"FUJITSU FM-Towns 20F"
+#define CONFIG_NAME		"fmtowns_20f"
+#define MAX_DRIVE       2
+#undef  _HAS_HDD
+#define TYPE_TOWNS_X0   1
+
+#elif defined(_FMTOWNS40H)
+#define DEVICE_NAME		"FUJITSU FM-Towns 40H"
+#define CONFIG_NAME		"fmtowns_20h"
+#define MAX_DRIVE       2
+#define _HAS_HDD        1
+#define TYPE_TOWNS_X0   1
+
+#elif defined(_FMTOWNS2UX20)
+#define DEVICE_NAME		"FUJITSU FM-Towns II UX20"
+#define CONFIG_NAME		"fmtowns2_ux20"
+#define MAX_DRIVE       2
+#undef  _HAS_HDD
+#define WITH_386SX      1
+#define TYPE_TOWNS2_UX  1
+
+#elif defined(_FMTOWNS2UX40)
+#define DEVICE_NAME		"FUJITSU FM-Towns II UX40"
+#define CONFIG_NAME		"fmtowns2_ux20"
+#define MAX_DRIVE       2
+#define _HAS_HDD        1
+#define WITH_386SX      1
+#define TYPE_TOWNS2_UX  1
+
+#elif defined(_FMTOWNS2CX20)
+#define DEVICE_NAME		"FUJITSU FM-Towns II CX20"
+#define CONFIG_NAME		"fmtowns2_cx20"
+#define MAX_DRIVE       2
+#undef _HAS_HDD
+#define TYPE_TOWNS2_CX  1
+
+#elif defined(_FMTOWNS2CX40)
+#define DEVICE_NAME		"FUJITSU FM-Towns II CX40"
+#define CONFIG_NAME		"fmtowns2_cx20"
+#define MAX_DRIVE       2
+#define _HAS_HDD        1
+#define TYPE_TOWNS2_CX  1
+
 #endif
 
 // device informations for virtual machine
-#define FRAMES_PER_SEC		55.4
+#define FRAMES_PER_SEC		55.4 // OK?
+#define LINES_PER_FRAME 	784  // OK?
+
+#define CPU_CLOCKS		16000000
+
 #if defined(_FMR60)
-#define LINES_PER_FRAME 	784
-#define CHARS_PER_LINE		98
-#else
-#define LINES_PER_FRAME 	440
-#define CHARS_PER_LINE		54
-#endif
-//#define CPU_CLOCKS		12000000
-#define CPU_CLOCKS		8000000
-#if defined(_FMR60)
-#define SCREEN_WIDTH		1120
-#define SCREEN_HEIGHT		750
+#define SCREEN_WIDTH		1024
+#define SCREEN_HEIGHT		768
 #define WINDOW_HEIGHT_ASPECT	840
 #else
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
 #endif
-#define MAX_DRIVE		4
+#if defined(_HAS_HDD)
 #define MAX_SCSI		8
-#define MAX_MEMCARD		2
-#if defined(HAS_I286)
-#define I86_PSEUDO_BIOS
-#else
-#define I386_PSEUDO_BIOS
 #endif
+
+#define MAX_MEMCARD		2
 #define I8259_MAX_CHIPS		2
+
 #define SINGLE_MODE_DMA
 #define MB8877_NO_BUSY_AFTER_SEEK
 #define IO_ADDR_MAX		0x10000
@@ -118,41 +145,45 @@ class I8259;
 class I386;
 
 class IO;
-class TOWNS_CRTC;
-class TOWNS_VRAM;
-class TOWNS_SPRITE;
-class TOWNS_JOYSTICK; // Mouse and Joystick.
-
-class RF5C68;      // PCM
+class RF5C68;      // DAC
 class YM2612;      // OPNB
 class MB87078;     // VOLUME
-//class AD7820KR;  // A/D Converter.
+class AD7820KR;    // A/D Converter.
+
 class MB8877;      // FDC
 class MSM58321;    // RTC
-class PCM1BIT;     // BUZZER
+class RF5C68;      // ADPCM
 class UPD71071;    // DMAC
-class TOWNS_CDROM; // CDROM Controller
-class TOWNS_SERIALROM; // SERIAL ROM. May be 32 bytes.
-class CMOS;
-class FLOPPY;
-class KEYBOARD;
-class MEMORY;
-//class SERIAL;
-class SCSI;
-class SCSI_HOST;
-class SCSI_HDD;
-class SCSI_CDROM;
-class TIMER;
+
+namespace TOWNS {
+	class ADPCM;
+	class CDC;
+	class FLOPPY;
+	class KEYBOARD;
+	class SERIAL_ROM;
+	class SCSI;
+	class TIMER;
+	
+	class SYSROM;
+	class MSDOSROM;
+	class FONT_ROMS;
+	class DICTIONARY;
+#if defined(HAS_20PIX_FONTS)
+	class FONT_ROM_20PIX;
+#endif
+	class TOWNS_CRTC;
+	class TOWNS_VRAM;
+	class TOWNS_MEMORY;
+
+	class TOWNS_CDROM;
+	class SPRITE;
+	class JOYSTICK; // Mouse and Joystick.
+}
 
 class VM : public VM_TEMPLATE
 {
 protected:
-	//EMU* emu;
-	
 	// devices
-	//EVENT* event;
-	
-	TOWNS_CRTC *crtc;
 	
 	I8251* sio;
 	I8253* pit0;
@@ -163,26 +194,37 @@ protected:
 	
 	I386* cpu; // i386DX/SX/486DX/486SX?/Pentium with FPU?
 
-	IO* io;
-	MB8877* fdc;
+	IO*       io;
+	MB8877*   fdc;
 	MSM58321* rtc;
-	PCM1BIT* pcm;
-	SCSI_HOST* scsi_host;
 	UPD71071* dma;
-
+	RF5C68*   dac;
+	MB87078*  e_volumes;
+	AD7820KR* adc;
 	
-	//BIOS* bios;
-	CMOS* cmos;
-
-	FLOPPY* floppy;
-	KEYBOARD* keyboard;
-	MEMORY* memory;
+	FMTOWNS::ADPCM*          adpcm;
+	FMTOWNS::TOWNS_CRTC*     crtc;
+	FMTOWNS::SPRITE*         sprite;
+	FMTOWNS::FLOPPY*         floppy;
+	FMTOWNS::KEYBOARD*       keyboard;
+	FMTOWNS::TIMER*          timer;
+	FMTOWNS::TOWNS_VRAM*     sprite;
+	FMTOWNS::TOWNS_MEMORY*   memory;
+	FMTOWNS::DICTIONARY*     dictionary;
+	FMTOWNS::SYSROM*         sysrom;
+	FMTOWNS::MSDOSROM*       msdosrom;
+	FMTOWNS::FONT_ROMS*      fontrom;
+#if defined(HAS_20PIX_FONTS)
+	FMTOWNS::FONT_ROM_20PIX* fontrom_20pix;
+#endif
+	FMTOWNS::SERIAL_ROM*     serialrom;
+	FMTOWNS::CDC*            cdc;
+	SCSI_HOST*               cdc_scsi;
+	FMTOWNS::TOWNS_CDROM*    cdrom;
 	
-	SCSI* scsi;
-	SCSI_HDD *hdd[4]; // 
-	SCSI_CDROM *cdrom; // 
-//	SERIAL* serial;
-	TIMER* timer;
+	FMTOWNS::SCSI* scsi;
+	SCSI_HOST*     scsi_host;
+	SCSI_HDD*      hdd[4]; // 
 	
 public:
 	// ----------------------------------------
