@@ -182,6 +182,20 @@ void UPD71071::write_signal(int id, uint32_t data, uint32_t mask)
 
 // note: if SINGLE_MODE_DMA is defined, do_dma() is called in every machine cycle
 
+int UPD71071::read_signal(int ch)
+{
+	if((ch >= (SIG_UPD71071_IS_TRANSFERING + 0)) && (ch < (SIG_UPD71071_IS_TRANSFERING + 4))) {
+		bool _nch = ch - SIG_UPD71071_IS_TRANSFERING;
+		if((cmd & 0x04) != 0) return 0x00; // Not transfering
+		if((dma[_nch].creg == 0)) return 0x00; //
+		return 0xffffffff;
+	} else if((ch >= (SIG_UPD71071_IS_16BITS_TRANSFER + 0)) && (ch < (SIG_UPD71071_IS_16BITS_TRANSFER + 4))) {
+		bool _nch = ch - SIG_UPD71071_IS_16BITS_TRANSFER;
+		return ((dma[_nch].mode & 1) != 0) ? 0xffffffff : 0;
+	}
+	return 0;
+}
+			
 void UPD71071::do_dma()
 {
 	// check DDMA
@@ -195,10 +209,9 @@ void UPD71071::do_dma()
 		if(((req | sreq) & bit) && !(mask & bit)) {
 			// execute dma
 			while((req | sreq) & bit) {
-				// ToDo: Will check WORD transfer mode for FM-Towns.(mode.bit0 = '1).
-/*
+				// Will check WORD transfer mode for FM-Towns.(mode.bit0 = '1).
 				if((dma[c].mode & 0x01) == 1) {
-					// 16bit transfer mode
+					// 8bit transfer mode
 					if((dma[c].mode & 0x0c) == 0x00) {
 						// verify
 						uint32_t val = dma[c].dev->read_dma_io16(0);
@@ -207,18 +220,14 @@ void UPD71071::do_dma()
 					} else if((dma[c].mode & 0x0c) == 0x04) {
 						// io -> memory
 						uint32_t val;
-						if(dma[c].dev != NULL) {
-							val = dma[c].dev->read_dma_io16(0);
-						} else {
-							val = 0xffff;
-						}
+						val = dma[c].dev->read_dma_io16(0);
 						d_mem->write_dma_data16(dma[c].areg, val);
 						// update temporary register
 						tmp = val;
 					} else if((dma[c].mode & 0x0c) == 0x08) {
 						// memory -> io
 						uint32_t val = d_mem->read_dma_data16(dma[c].areg);
-						if(dma[c].dev != NULL) dma[c].dev->write_dma_io16(0, val);
+						dma[c].dev->write_dma_io16(0, val);
 						// update temporary register
 						tmp = val;
 					}
@@ -227,9 +236,27 @@ void UPD71071::do_dma()
 					} else {
 						dma[c].areg = (dma[c].areg + 2) & 0xffffff;
 					}
-				} else
-*/
-				{
+					if(dma[c].creg-- == 0) {  // OK?
+						// TC
+						if(dma[c].mode & 0x10) {
+							// auto initialize
+							dma[c].areg = dma[c].bareg;
+							dma[c].creg = dma[c].bcreg;
+						} else {
+							mask |= bit;
+						}
+						req &= ~bit;
+						sreq &= ~bit;
+						tc |= bit;
+						
+						write_signals(&outputs_tc, 0xffffffff);
+					} else if(_SINGLE_MODE_DMA) {
+						if((dma[c].mode & 0xc0) == 0x40) {
+							// single mode
+							break;
+						}
+					}
+				} else {
 					// 8bit transfer mode
 					if((dma[c].mode & 0x0c) == 0x00) {
 						// verify

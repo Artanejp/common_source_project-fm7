@@ -18,7 +18,8 @@
 #define SIG_UPD71071_CH1	1
 #define SIG_UPD71071_CH2	2
 #define SIG_UPD71071_CH3	3
-
+#define SIG_UPD71071_IS_TRANSFERING 4 /* 4 - 7 */
+#define SIG_UPD71071_IS_16BITS_TRANSFER 8 /* 8 - 11 */
 class UPD71071 : public DEVICE
 {
 private:
@@ -69,6 +70,7 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int id);
 	void do_dma();
 	bool process_state(FILEIO* state_fio, bool loading);
 	// unique functions
