@@ -38,11 +38,141 @@ void TOWNS_CDROM::reset()
 
 void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 {
+	if(id == SIG_TOWNS_CDROM_SET_TRACK) {
+		if(((data < 100) && (data >= 0)) || (data == 0xaa)) {
+			stat_track = data;
+		}
+		return;
+	}
 	SCSI_CDROM::write_signal(id, data, mask);
 }
 
 uint32_t TOWNS_CDROM::read_signal(int id)
 {
+	if(id == SIG_TOWNS_CDROM_IS_MEDIA_INSERTED) {
+		return ((is_device_ready()) ? 0xffffffff : 0x00000000);
+	} else if(id == SIG_TOWNS_CDROM_MAX_TRACK) {
+		if(track_num <= 0) {
+			return (uint32_t)(TO_BCD(0x00));
+		} else {
+			return (uint32_t)(TO_BCD(track_num));
+		}
+	} else if(id == SIG_TOWNS_CDROM_REACHED_MAX_TRACK) {
+		if(track_num <= 0) {
+			return 0xffffffff;
+		} else {
+			if(current_track >= track_num) {
+				return 0xffffffff;
+			} else {
+				return 0x00000000;
+			}
+		}
+	} else if(id == SIG_TOWNS_CDROM_CURRENT_TRACK) {
+		if(current_track > track_num) {
+			return 0x00000000;
+		} else {
+			return TO_BCD(current_track);
+		}
+	} else if(id == SIG_TOWNS_CDROM_START_MSF) {
+		int trk = stat_track;
+		if(trk <= 0) {
+			return 0xffffffff;
+		}
+		if(trk == 0xaa) {
+			trk = track_num;
+		}
+		int index0 = toc_table[trk].index0;
+		int index1 = toc_table[trk].index1
+		int pregap = toc_table[trk].pregap
+		uint32_t lba = (uint32_t)index0;
+		if(pregap > 0) lba = lba - pregap;
+		if(lba < 150) lba = 150;
+		uint32_t msf = lba_to_msf(lba); // Q:lba + 150?
+		stat_track++;
+		return msf;
+	} eise if(id == SIG_TOWNS_CDROM_START_MSF_AA) {
+		trk = track_num;
+		int index0 = toc_table[trk].index0;
+		int index1 = toc_table[trk].index1
+		int pregap = toc_table[trk].pregap
+		uint32_t lba = (uint32_t)index0;
+		if(pregap > 0) lba = lba - pregap;
+		if(lba < 150) lba = 150;
+		uint32_t msf = lba_to_msf(lba); // Q:lba + 150?
+		return msf;
+	} else if(id == SIG_TOWNS_CDROM_RELATIVE_MSF) {
+		if(toc_table[current_track].is_audio) {
+			if(!(is_device_ready())) {
+				return 0;
+			}
+			if(cdda_playing_frame <= cdda_start_frame) {
+				return 0;
+			}
+			uint32_t msf;
+			if(cdda_playing_frame >= cdda_end_frame) {
+				if(cdda_repeat) {
+					return 0;
+				} else {
+					msf = lba_to_msf(cdda_end_frame - cdda_start_frame);
+					return msf;
+				}
+			}
+			msf = lba_to_msf(cdda_playing_frame - cdda_start_frame);
+			return msf;
+		} else {
+			if(!(is_device_ready())) {
+				return 0;
+			}
+			if(fio_img->IsOpened()) {
+				uint32_t cur_position = (uint32_t)fio_img->Ftell();
+				cur_position = cur_position / logical_block_size();
+				if(cur_position >= max_logical_block) {
+					cur_position = max_logical_block;
+				}
+				uint32_t msf = lba_to_msf(cur_position);
+				return msf;
+			}
+			return 0;
+		}
+	}  else if(id == SIG_TOWNS_CDROM_ABSOLUTE_MSF) {
+		if(toc_table[current_track].is_audio) {
+			if(!(is_device_ready())) {
+				return 0;
+			}
+			uint32_t msf;
+			msf = lba_to_msf(cdda_playing_frame);
+			return msf;
+		} else {
+			if(!(is_device_ready())) {
+				return 0;
+			}
+			if(fio_img->IsOpened()) {
+				uint32_t cur_position = (uint32_t)fio_img->Ftell();
+				cur_position = cur_position / logical_block_size();
+				if(cur_position >= max_logical_block) {
+					cur_position = max_logical_block;
+				}
+				uint32_t msf = lba_to_msf(cur_position + toc_table[current_track].lba_offset);
+				return msf;
+			}
+			return 0;
+		}
+	} else if(id == SIG_TOWNS_CDROM_GET_ADR) {
+		int trk = stat_track;
+		if(!(is_device_ready())) {
+			return 0xffffffff; // OK?
+		}
+		if(trk == 0xaa) {
+			return 0x10; // AUDIO SUBQ
+		}
+		if(trk > track_num) {
+			return 0xffffffff; // OK?
+		}
+		if(toc_table[trk].is_audio) {
+			return 0x10;
+		}
+		return 0x14; // return as data
+	} 
 	return SCSI_CDROM::read_signal(id);
 }
 
