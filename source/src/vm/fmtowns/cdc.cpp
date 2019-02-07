@@ -5,7 +5,6 @@ namespace FMTOWNS {
 
 void CDC::reset()
 {
-	dma_fifo->clear();
 	param_fifo->clear();
 	stat_fifo->clear();
 
@@ -19,24 +18,42 @@ void CDC::reset()
 	
 	dma_intr = false;
 	submpu_intr = false;
-
+	
+	dma_transfer = false;
+	pio_transfer = true;
+	d_scsi_host->reset();
 }
 
 void CDC::initialize()
 {
-	dma_fifo->clear();
-	param_fifo->clear();
-	stat_fifo->clear();
+	param_fifo = new FIFO(6); // 
+	stat_fifo = new FIFO(4);
 	
-	subq_fifo->clear();
 	submpu_ready = true;
 
 	submpu_intr_mask = false;
 	dma_intr_mask = false;
 	memset(w_regs, 0x00, sizeof(w_regs));
+
+	dma_transfer = false;
+	pio_transfer = true;
+
+	busy_status = false;
+	cd_status = false;
+	io_status = false;
+	msg_status = false;
+	req_status = false;
 	
 }
 
+void CDC::release()
+{
+	param_fifo->release();
+	stat_fifo->release();
+	
+	delete param_fifo;
+	delete stat_fifo;
+}
 void CDC::write_io8(uint32_t address, uint32_t data)
 {
 	/*
@@ -64,7 +81,7 @@ void CDC::write_io8(uint32_t address, uint32_t data)
 		}
 		break;
 	case 0x02: // Command register
-		{
+		if(submpu_ready) {
 			command_type_play = ((data & 0x80) != 0) ? false : true; // false = status command
 			stat_reply_intr   = ((data & 0x40) != 0) ? true : false;
 			req_status        = ((data & 0x20) != 0) ? true : false;
@@ -77,7 +94,7 @@ void CDC::write_io8(uint32_t address, uint32_t data)
 		}
 		break;
 	case 0x04: // Parameter register
-		{
+		if(submpu_ready) {
 			if(param_fifo->full()) {
 				param_fifo->read(); // Dummy read
 			}
@@ -233,16 +250,14 @@ uint32_t CDC::read_io8(uint32_t address)
 		break;
 	case 0x4: //
 		if(pio_transfer) {
-			val = data_reg;
+			val = d_scsi_host->read_dma_io8(0);
 		}
 		break;
 	case 0xc: // Sub code status register
-		val = 0x00;
-		val = val | (subq_fifo->empty()) ? 0x00 : 0x01;
-		val = val | ((d_cdrom->read_signal(SIG_TOWNS_CDROM_SUBQ_OVERRUN) != 0) ? 0x02 : 0x00);
+		d_cdrom->get_subq_status();
 		break;
 	case 0xd:
-		val = (uint32_t)(subq_fifo->read() & 0xff);
+		val = d_cdrom->read_subq();
 		break;
 	}
 	return val;
@@ -319,9 +334,84 @@ void CDC::read_cdrom(bool req_reply)
 			write_status(0x22, 0x00, 0x00, 0x00);
 		}
 	}
-	dma_fifo->clear(); // OK?
+	submpu_ready = false;
 	d_cdrom->start_command();
 }	
+
+void CDC::stop_cdda(bool req_reply)
+{
+	uint8_t* command = d_cdrom->command;
+	if(!(d_cdrom->is_device_ready())) {
+		if(req_reply) write_status(0x10, 0x00, 0x00, 0x00);
+		return;
+	}
+	command[0] = TOWNS_CDROM_CDDA_STOP;
+	command[1] = 0;
+	command[2] = 0;
+	command[3] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[4] = (uint8_t)(param_fifo->read() & 0xff); 
+    commadn[5] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[6] = 0;
+	command[7] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[8] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[9] = (uint8_t)(param_fifo->read() & 0xff);
+	if(req_reply) {
+		extra_status = 1;
+		write_status(0x00, 0x00, 0x00, 0x00);
+	}
+	submpu_ready = false;
+	d_cdrom->start_command();
+}
+
+void CDC::stop_cdda2(bool req_reply)
+{
+	uint8_t* command = d_cdrom->command;
+	if(!(d_cdrom->is_device_ready())) {
+		if(req_reply) write_status(0x10, 0x00, 0x00, 0x00);
+		return;
+	}
+	command[0] = TOWNS_CDROM_CDDA_STOP;
+	command[1] = 0;
+	command[2] = 0;
+	command[3] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[4] = (uint8_t)(param_fifo->read() & 0xff); 
+    commadn[5] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[6] = 0;
+	command[7] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[8] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[9] = (uint8_t)(param_fifo->read() & 0xff);
+	if(req_reply) {
+		extra_status = 1;
+		write_status(0x00, 0x00, 0x00, 0x00);
+	}
+	submpu_ready = false;
+	d_cdrom->start_command();
+}
+
+void CDC::unpause_cdda2(bool rea_reply)
+{
+	uint8_t* command = d_cdrom->command;
+	if(!(d_cdrom->is_device_ready())) {
+		if(req_reply) write_status(0x10, 0x00, 0x00, 0x00);
+		return;
+	}
+	command[0] = TOWNS_CDROM_CDDA_UNPAUSE;
+	command[1] = 0;
+	command[2] = 0;
+	command[3] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[4] = (uint8_t)(param_fifo->read() & 0xff); 
+    commadn[5] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[6] = 0;
+	command[7] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[8] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[9] = (uint8_t)(param_fifo->read() & 0xff);
+	if(req_reply) {
+		extra_status = 1;
+		write_status(0x00, 0x03, 0x00, 0x00);
+	}
+	submpu_ready = false;
+	d_cdrom->start_command();
+}
 
 void CDC::play_cdda(bool req_reply)
 {
@@ -337,20 +427,20 @@ void CDC::play_cdda(bool req_reply)
 	command[0] = TOWNS_CDROM_CDDA_PLAY;
 	command[1] = 0;
 	command[2] = 0;
-	command[3] = (uint8_t)(command_queue->read() & 0xff); 
-	command[4] = (uint8_t)(command_queue->read() & 0xff); 
-    commadn[5] = (uint8_t)(command_queue->read() & 0xff); 
+	command[3] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[4] = (uint8_t)(param_fifo->read() & 0xff); 
+    commadn[5] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[6] = 0;
-	command[7] = (uint8_t)(command_queue->read() & 0xff); 
-	command[8] = (uint8_t)(command_queue->read() & 0xff); 
-	command[9] = (uint8_t)(command_queue->read() & 0xff);
+	command[7] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[8] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[9] = (uint8_t)(param_fifo->read() & 0xff);
 
 	
 	if(req_reply) {
 		extra_status = 1;
 		write_status(0x00, 0x03, 0x00, 0x00);
 	}
-	dma_fifo->clear(); // OK?
+	submpu_ready = false;
 	d_cdrom->start_command();
 
 }
@@ -368,6 +458,7 @@ void CDC::write_status(uint8_t a, uint8_t b, uint8_t c, uint8_t d)
 			write_signals(&output_submpu_intr, 0xffffffff);
 		}
 		submpu_intr = true;
+		submpu_ready = true;
 	}
 }
 
@@ -454,25 +545,13 @@ void CDC::enqueue_command_status(uint8_t cmd)
 			}
 			break;
 		case 0x04: // STOP CDDA
-			if(req_status) {
-				extra_status = 0;
-				write_status(0x00, 0x00, 0x00, 0x00);
-			}
-			d_cdrom->write_signal(SIG_SCSI_CDROM_CDDA_STOP, 0xffffffff, 0xffffffff);
+			stop_cdda(req_status);
 			break;
 		case 0x05: // STOP CDDA (Difference from $84?)
-			if(req_status) {
-				extra_status = 0;
-				write_status(0x00, 0x00, 0x00, 0x00);
-			}
-			d_cdrom->write_signal(SIG_SCSI_CDROM_CDDA_PAUSE, 0xffffffff, 0xffffffff);
+			stop_cdda2(req_status);
 			break;
 		case 0x07: // UNPAUSE CDDA
-			if(req_status) {
-				extra_status = 0;
-				write_status(0x00, 0x03, 0x00, 0x00);
-			}
-			d_cdrom->write_signal(SIG_SCSI_CDROM_CDDA_PAUSE, 0x00000000, 0xffffffff);
+			unpause_cdda(req_status);
 			break;
 		default: // Illegal command
 			extra_status = 0;
@@ -485,52 +564,111 @@ void CDC::enqueue_command_status(uint8_t cmd)
 void CDC::write_signal(int ch, uint32_t data, uint32_t mask)
 {
 	switch(ch) {
-	case SIG_TOWNS_CDC_SET_DATA:
-		data_reg = data;
-		if(dma_fifo->full()) {
-			dma_fifo->read();
-		}
-		dma_fifo->write(data & 0xff);
-		break;
-	case SIG_TOWNS_CDC_DMA_DONE:
-		dma_intr = (data & mask) != 0) ? true : false;
-		if(!(dma_intr_mask)) {
-			write_signals(&output_dma_intr, (dma_intr) ? 0xffffffff : 0x00000000);
+	case SIG_TOWNS_CDC_DRQ:
+		if((dma_transfer) && ((data & mask) != 0)) {
+			software_transfer_phase = false;
+			write_signals(&outputs_dma_line, 0xffffffff); // Indirect call do_dma().
+		} else if((pio_transfer) && ((data & mask) != 0)) {
+			software_transfer_phase = true;
+		} else if(!((data & mask) != 0)) {
+			software_transfer_phase = false;
 		}
 		break;
-	case SIG_TOWNS_CDC_RESET_FIFO:
-		dma_fifo->reset();
-		break;
-	case SIG_TOWNS_CDC_SET_SUBQ:
-		if(subq_fifo->full()) {
-			subq_fifo->read();
+	case SIG_TOWNS_CDC_IRQ:
+		submpu_intr = ((data & mask) != 0);
+		if((submpu_intr & submpu_intr_mask)) {
+			if(stat_reply_intr) {
+				write_signals(&output_submpu_intr, 0xffffffff);
+			}
+		} else if(!(submpu_intr) && (submpu_intr_mask)) {
+			write_signals(&output_submpu_intr, 0x00000000);
 		}
-		subq_fifo->write(data & 0xff);
 		break;
-	case SIG_TOWNS_CDC_CLEAR_SUBQ:
-		subq_fifo->clear();
+	case SIG_TOWNS_CDC_DMA_IRQ:
+		dma_intr = ((data & mask) != 0);
+		if((dma_intr & dma_intr_mask)) {
+			if(stat_reply_intr) {
+				write_signals(&output_dma_intr, 0xffffffff);
+			}
+		} else if(!(dma_intr) && (dma_intr_mask)) {
+			write_signals(&output_dma_intr, 0x00000000);
+		}
 		break;
+	case SIG_TOWNS_CDC_BSY:
+		busy_status = ((data & mask) != 0);
+		break;
+	case SIG_TOWNS_CDC_CD:
+		cd_status = ((data & mask) != 0);
+		if((cd_status) && !(msg_status)) { // SCSI_PHASE_STATUS or SCSI_PHASE_COMMAND
+			submpu_ready = true;
+		}
+		break;
+	case SIG_TOWNS_CDC_IO:
+		io_status = ((data & mask) != 0);
+		break;
+	case SIG_TOWNS_CDC_MSG:
+		msg_status = ((data & mask) != 0);
+		
+		break;
+	case SIG_TOWNS_CDC_REQ:
+		req_status = ((data & mask) != 0);
+		break;
+		
 	}
 }
 
 uint32_t CDC::read_dma_io8(uint32_t addr)
 {
-	if((addr & 0x01) == 0) {
-		return (uint32_t)(dma_fifo->read() & 0xff);
-	}
-	return 0xff; // Noop
+	return (uint32_t)(d_scsi_host->read_dma_io8(addr));
 }
 
 uint32_t CDC::read_dma_io16(uint32_t addr)
 {
-	if((addr & 0x01) == 0) {
-		pair16_t d;
-		d.b.l = dma_fifo->read() & 0xff;
-		d.b.h = dma_fifo->read() & 0xff;
-		return (uint32_t)(d.u16);
-	}
-	return 0xffff; // Noop
+	pair16_t d;
+	d.b.l = d_scsi_host->read_dma_io8(addr);
+	d.b.h = d_scsi_host->read_dma_io8(addr);
+	return (uint32_t)(d.u16);
 }
 
+#define STATE_VERSION	1
+
+bool CDC::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	if(!(param_fifo->process_state((void *)state_fio, loading))) {
+		return false;
+	}
+	if(!(stat_fifo->process_state((void *)state_fio, loading))) {
+		return false;
+	}
+
+	state_fio->StateValue(has_status);
+	state_fio->StateValue(extra_status);
+	state_fio->StateValue(submpu_ready);
+	state_fio->StateValue(software_transfer_phase);
+	state_fio->StateValue(dma_transfer);
+	state_fio->StateValue(pio_transfer);
+
+	state_fio->StateValue(dma_intr);
+	state_fio->StateValue(submpu_intr);
+	state_fio->StateValue(dma_intr_mask);
+	state_fio->StateValue(submpu_intr_mask);
+
+	state_fio->StateBuffer(w_regs, sizeof(w_regs), 1);
+
+	state_fio->StateValue(busy_status);
+	state_fio->StateValue(cd_status);
+	state_fio->StateValue(io_status);
+	state_fio->StateValue(msg_status);
+	state_fio->StateValue(req_status);
+	
+	return true;
+	
+}
 
 }

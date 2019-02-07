@@ -179,6 +179,12 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 void TOWNS_CDROM::event_callback(int event_id, int err)
 {
 	SCSI_CDROM::event_callback(event_id, err);
+	if(event_id == EVENT_CDDA) {
+		// Post process
+		if(((cdda_buffer_ptr % 2352) == 0) && (cdda_status == CDDA_PLAYING)) {
+			set_subq();
+		}
+	}
 }
 
 int TOWNS_CDROM::get_command_length(int value)
@@ -231,6 +237,7 @@ void TOWNS_CDROM::start_command()
 	case SCSI_CMD_READ10:
 	case SCSI_CMD_READ12:
 		SCSI_CDROM::start_command();
+		set_subq(); // First
 		return;
 		break;
 	case 0xff:
@@ -249,6 +256,30 @@ void TOWNS_CDROM::start_command()
 
 	
 // From MAME 0203's fmtowns.cpp .	
+void TOWNS_CDROM::pause_cdda_from_cmd()
+{
+	if(cdda_status == CDDA_PLAYING) {
+		set_cdda_status(CDDA_PAUSED);
+		//set_subq();
+	}
+}
+
+void TOWNS_CDROM::unpause_cdda_from_cmd()
+{
+	if(cdda_status == CDDA_PAUSED) {
+		set_cdda_status(CDDA_PLAYING);
+		//set_subq();
+	}
+}
+
+void TOWNS_CDROM::stop_cdda_from_cmd()
+{
+	set_cdda_status(CDDA_OFF);
+	set_subq();
+}
+
+
+
 void TOWNS_CDROM::play_cdda_from_cmd()
 {
 	uint8_t m_start = command[3]; 
@@ -281,30 +312,41 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 		register_event(this, EVENT_CDDA_DELAY_PLAY, 10.0, false, &event_cdda_delay_play);
 		
 	}
+	set_subq(); // First
 }
 	
 void TOWNS_CDROM::set_subq(void)
 {
 	if(is_device_ready()) {
 		// create track info
-		uint32_t frame = (cdda_status == CDDA_OFF) ? cdda_start_frame : cdda_playing_frame;
-		uint32_t msf_abs = lba_to_msf_alt(frame);
-		int track;
-		double delay_time = 10.0;
-		track = current_track;
-		if((cdda_status == CDDA_OFF) && (toc_table[track].is_audio)) { // OK? (or force ERROR) 20181120 K.O
-			//set_cdda_status(CDDA_PLAYING);
-			delay_time = get_seek_time(frame);
-			//delay_time = 10.0;
-			if(event_cdda_delay_play >= 0) {
-				cancel_event(this, event_cdda_delay_play);
-				event_cdda_delay_play = -1;
+		int track = current_track;
+		uint32_t frame;
+		uint32_t msf_abs;
+		uint32_t msf_rel;
+		if(toc_table[track].is_audio) { // OK? (or force ERROR) 20181120 K.O
+			frame = (cdda_status == CDDA_OFF) ? cdda_start_frame : cdda_playing_frame;
+			msf_rel = lba_to_msf_alt(frame - toc_table[track].index0);
+		} else { // Data
+			if(fio_img->IsOpened()) {
+				uint32_t cur_position = (uint32_t)(fio_img->Ftell());
+				if(is_cue) {
+					frame = (cur_position / physical_block_size()) + toc_table[track].lba_offset;
+					msf_rel = lba_to_msf_alt(frame - toc_table[track].lba_offset);
+				} else {
+					frame = cur_position / physical_block_size();
+					if(frame > toc_table[track].lba_offset) {
+						msf_rel = lba_to_msf_alt(frame - toc_table[track].lba_offset);
+					} else {
+						msf_rel = lba_to_msf_alt(0);
+					}
+				}
+			} else {
+				frame = toc_table[track].lba_offset;
+				msf_rel = 0;
 			}
-			register_event(this, EVENT_CDDA_DELAY_PLAY, delay_time, false, &event_cdda_delay_play);
 		}
-		uint32_t msf_rel = lba_to_msf_alt(frame - toc_table[track].index0);
-		
-		write_signals(&output_subq_overrun, (subq_buffer->empty()) ? 0x00000000 : 0xffffffff);
+		uint32_t msf_abs = lba_to_msf_alt(frame);
+		subq_overrun = !(subq_buffer->empty());
 		subq_buffer->clear();
 		// http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-130.pdf
 		//subq_buffer->write(0x01 | (toc_table[track].is_audio ? 0x00 : 0x40));
@@ -332,4 +374,24 @@ void TOWNS_CDROM::set_subq(void)
 		set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 	}
 	return;
+}
+
+uint8_t TOWNS_CDROM::get_subq_status()
+{
+	uint8_t val = 0x00;
+	val = val | ((subq_buffer->empty()) ? 0x00 : 0x01);
+	val = val | ((subq_overrun) ? 0x02 : 0x00);
+	return val;
+}
+
+uint8_t TOWNS_CDROM::read_subq()
+{
+	uint8_t val;
+//	if(subq_buffer->empty()) {
+//		set_subq();
+//	}
+	val = (uint8_t)(subq_fifo->read() & 0xff);
+	return val;
+}
+
 }
