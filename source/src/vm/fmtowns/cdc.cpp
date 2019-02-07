@@ -254,7 +254,7 @@ uint32_t CDC::read_io8(uint32_t address)
 		}
 		break;
 	case 0xc: // Sub code status register
-		d_cdrom->get_subq_status();
+		val = d_cdrom->get_subq_status();
 		break;
 	case 0xd:
 		val = d_cdrom->read_subq();
@@ -269,10 +269,6 @@ void CDC::read_cdrom(bool req_reply)
 	extra_status = 0;
 	if(!(d_cdrom->is_device_ready())) {
 		if(req_reply) write_status(0x10, 0x00, 0x00, 0x00);
-		return;
-	}
-	if(param_fifo->count() < 6) {
-		// Error
 		return;
 	}
 
@@ -350,7 +346,7 @@ void CDC::stop_cdda(bool req_reply)
 	command[2] = 0;
 	command[3] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[4] = (uint8_t)(param_fifo->read() & 0xff); 
-    commadn[5] = (uint8_t)(param_fifo->read() & 0xff); 
+	commadn[5] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[6] = 0;
 	command[7] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[8] = (uint8_t)(param_fifo->read() & 0xff); 
@@ -375,7 +371,7 @@ void CDC::stop_cdda2(bool req_reply)
 	command[2] = 0;
 	command[3] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[4] = (uint8_t)(param_fifo->read() & 0xff); 
-    commadn[5] = (uint8_t)(param_fifo->read() & 0xff); 
+	commadn[5] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[6] = 0;
 	command[7] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[8] = (uint8_t)(param_fifo->read() & 0xff); 
@@ -400,7 +396,7 @@ void CDC::unpause_cdda2(bool rea_reply)
 	command[2] = 0;
 	command[3] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[4] = (uint8_t)(param_fifo->read() & 0xff); 
-    commadn[5] = (uint8_t)(param_fifo->read() & 0xff); 
+	commadn[5] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[6] = 0;
 	command[7] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[8] = (uint8_t)(param_fifo->read() & 0xff); 
@@ -420,16 +416,12 @@ void CDC::play_cdda(bool req_reply)
 		if(req_reply) write_status(0x10, 0x00, 0x00, 0x00);
 		return;
 	}
-	if(param_fifo->count() < 6) {
-		// Error
-		return;
-	}
 	command[0] = TOWNS_CDROM_CDDA_PLAY;
 	command[1] = 0;
 	command[2] = 0;
 	command[3] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[4] = (uint8_t)(param_fifo->read() & 0xff); 
-    commadn[5] = (uint8_t)(param_fifo->read() & 0xff); 
+ 	commadn[5] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[6] = 0;
 	command[7] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[8] = (uint8_t)(param_fifo->read() & 0xff); 

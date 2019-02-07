@@ -364,14 +364,14 @@ void TOWNS_CDROM::set_subq(void)
 		remain = subq_buffer->count();
 		// set first data
 		// change to data in phase
-		set_phase_delay(SCSI_PHASE_DATA_IN, 10.0);
+		//set_phase_delay(SCSI_PHASE_DATA_IN, 10.0);
 	} else {
 		//write_signals(&output_subq_overrun, (subq_buffer->empty()) ? 0x00000000 : 0xffffffff); // OK?
 		subq_buffer->clear();
 		// transfer length
 		remain = subq_buffer->count();
 		set_dat(is_device_ready() ? SCSI_STATUS_GOOD : SCSI_STATUS_CHKCOND);
-		set_phase_delay(SCSI_PHASE_STATUS, 10.0);
+		//set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 	}
 	return;
 }
