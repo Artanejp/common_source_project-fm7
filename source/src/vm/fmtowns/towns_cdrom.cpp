@@ -4,16 +4,27 @@
 	Author : Kyuma.Ohta <whatisthis.sowhat _at_ gmail.com>
 	Date   : 2019.01.31 -
 
-	[Towns CDROM]
+	[FM-Towns CD-ROM based on SCSI CDROM]
 */
 
 
-#include "../scsi_cdrom.h"
-#include "../fifo.h"
+#include "./towns_cdrom.h"
+#include "../../fifo.h"
+#include "../../fileio.h"
+#include "../scsi_host.h"
 
+// SAME AS SCSI_CDROM::
 #define CDDA_OFF	0
 #define CDDA_PLAYING	1
 #define CDDA_PAUSED	2
+
+// 0-99 is reserved for SCSI_DEV class
+#define EVENT_CDDA						100
+#define EVENT_CDDA_DELAY_PLAY			101
+#define EVENT_CDROM_SEEK_SCSI			102
+#define EVENT_CDROM_DELAY_INTERRUPT_ON	103
+#define EVENT_CDROM_DELAY_INTERRUPT_OFF	104
+#define EVENT_CDDA_DELAY_STOP			105
 
 #define _SCSI_DEBUG_LOG
 #define _CDROM_DEBUG_LOG
@@ -23,16 +34,24 @@
 namespace FMTOWNS {
 void TOWNS_CDROM::initialize()
 {
+	subq_buffer = new FIFO(32); // OK?
+	subq_overrun = false;
+	stat_track = 0;
 	SCSI_CDROM::initialize();
 }
 
 void TOWNS_CDROM::release()
 {
+	subq_buffer->release();
+	delete subq_buffer;
 	SCSI_CDROM::release();
 }
 
 void TOWNS_CDROM::reset()
 {
+	subq_buffer->clear();
+	subq_overrun = false;
+	stat_track = current_track;
 	SCSI_CDROM::reset();
 }
 
@@ -349,7 +368,7 @@ void TOWNS_CDROM::set_subq(void)
 		subq_overrun = !(subq_buffer->empty());
 		subq_buffer->clear();
 		// http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-130.pdf
-		//subq_buffer->write(0x01 | (toc_table[track].is_audio ? 0x00 : 0x40));
+		subq_buffer->write(0x01 | (toc_table[track].is_audio ? 0x00 : 0x40));
 		
 		subq_buffer->write(TO_BCD(track + 1));		// TNO
 		subq_buffer->write(TO_BCD((cdda_status == CDDA_PLAYING) ? 0x00 : ((cdda_status == CDDA_PAUSED) ? 0x00 : 0x01))); // INDEX
@@ -390,8 +409,28 @@ uint8_t TOWNS_CDROM::read_subq()
 //	if(subq_buffer->empty()) {
 //		set_subq();
 //	}
-	val = (uint8_t)(subq_fifo->read() & 0xff);
+	val = (uint8_t)(subq_buffer->read() & 0xff);
 	return val;
 }
 
+#define STATE_VERSION	1
+
+bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	if(!(subq_buffer->process_state((void *)state_fio, loading))) {
+		return false;
+	}
+	state_fio->StateValue(subq_overrun);
+	state_fio->StateValue(stat_track);
+	
+	return SCSI_CDROM::process_state(state_fio, loading);
+}
+	
+	
 }

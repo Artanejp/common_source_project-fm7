@@ -2,7 +2,7 @@
 	Author : Kyuma.Ohta <whatisthis.sowhat _at_ gmail.com>
 	Date   : 2019.01.29-
 
-	[ADC AD7820KR aith FIFO]
+	[ADC AD7820KR with FIFO]
 */
 #pragma once
 
@@ -44,9 +44,13 @@ public:
 		initialize_output_signals(&output_data);
 		set_device_name(_T("AD7820KR A/D CONVERTER"));
 	}
-	~AD7820KR() {}
+	~AD7820KR()
+	{
+		delete adc_fifo;
+	}
 
 	void initialize();
+	void release();
 	void reset();
 
 	uint32_t read_signal(int ch);

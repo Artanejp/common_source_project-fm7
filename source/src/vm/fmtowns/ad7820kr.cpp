@@ -15,6 +15,12 @@ void AD7820KR::initialize()
 	adc_data = 0x00;
 }
 
+void AD7820KR::release()
+{
+	adc_fifo->release();
+}
+
+
 void AD7820KR::reset()
 {
 	// ToDo: IS CLEAR FIFO?

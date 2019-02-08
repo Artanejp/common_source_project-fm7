@@ -1,7 +1,37 @@
+/*
+	Author : Kyuma.Ohta <whatisthis.sowhat _at_ gmail.com>
+	Date   : 2019.01.29-
 
+	[FM-Towns CD Controller]
+*/
+
+#include "cdc.h"
 #include "towns_cdrom.h"
+#include "../../fifo.h"
+#include "../scsi_host.h"
+#include "../scsi_dev.h"
 
 namespace FMTOWNS {
+
+void CDC::set_context_scsi_host(SCSI_HOST* dev)
+{
+	d_scsi_host = dev;
+	d_scsi_host->set_context_irq(this, SIG_TOWNS_CDC_IRQ, 0xffffffff);
+	d_scsi_host->set_context_drq(this, SIG_TOWNS_CDC_DRQ, 0xffffffff);
+	d_scsi_host->set_context_bsy(this, SIG_TOWNS_CDC_BUSY, 0xffffffff);
+	d_scsi_host->set_context_cd(this, SIG_TOWNS_CDC_CD, 0xffffffff);
+	d_scsi_host->set_context_io(this, SIG_TOWNS_CDC_IO, 0xffffffff);
+	d_scsi_host->set_context_msg(this, SIG_TOWNS_CDC_MSG, 0xffffffff);
+	d_scsi_host->set_context_req(this, SIG_TOWNS_CDC_REQ, 0xffffffff);
+	d_scsi_host->set_context_ack(this, SIG_TOWNS_CDC_ACK, 0xffffffff);
+}
+
+
+void CDC::set_context_cdrom(TOWNS_CDROM* dev)
+{
+	d_cdrom = dev;
+	d_cdrom->set_context_done(this, SIG_TOWNS_CDC_CDROM_DONE, 0xffffffff);
+}
 
 void CDC::reset()
 {
@@ -15,6 +45,7 @@ void CDC::reset()
 
 	write_signals(&output_submpu_intr, 0x00000000);
 	write_signals(&output_dma_intr, 0x00000000);
+	write_signals(&output_dma_line, 0x00000000);
 	
 	dma_intr = false;
 	submpu_intr = false;
@@ -43,7 +74,7 @@ void CDC::initialize()
 	io_status = false;
 	msg_status = false;
 	req_status = false;
-	
+	ack_status = false;
 }
 
 void CDC::release()
@@ -384,7 +415,7 @@ void CDC::stop_cdda2(bool req_reply)
 	d_cdrom->start_command();
 }
 
-void CDC::unpause_cdda2(bool rea_reply)
+void CDC::unpause_cdda(bool rea_reply)
 {
 	uint8_t* command = d_cdrom->command;
 	if(!(d_cdrom->is_device_ready())) {
@@ -446,10 +477,10 @@ void CDC::write_status(uint8_t a, uint8_t b, uint8_t c, uint8_t d)
 	stat_fifo->write(c);
 	stat_fifo->write(d);
 	if(stat_reply_intr) {
+		submpu_intr = true;
 		if(!(submpu_intr_mask)) {
 			write_signals(&output_submpu_intr, 0xffffffff);
 		}
-		submpu_intr = true;
 		submpu_ready = true;
 	}
 }
@@ -559,24 +590,23 @@ void CDC::write_signal(int ch, uint32_t data, uint32_t mask)
 	case SIG_TOWNS_CDC_DRQ:
 		if((dma_transfer) && ((data & mask) != 0)) {
 			software_transfer_phase = false;
-			write_signals(&outputs_dma_line, 0xffffffff); // Indirect call do_dma().
+			write_signals(&output_dma_line, 0xffffffff); // Indirect call do_dma().
 		} else if((pio_transfer) && ((data & mask) != 0)) {
 			software_transfer_phase = true;
 		} else if(!((data & mask) != 0)) {
 			software_transfer_phase = false;
 		}
 		break;
-	case SIG_TOWNS_CDC_IRQ:
-		submpu_intr = ((data & mask) != 0);
-		if((submpu_intr & submpu_intr_mask)) {
-			if(stat_reply_intr) {
+	case SIG_TOWNS_CDC_CDROM_DONE:
+		if((data & mask) != 0) {
+			submpu_intr = true;
+			if(!(submpu_intr_mask)) {
 				write_signals(&output_submpu_intr, 0xffffffff);
 			}
-		} else if(!(submpu_intr) && (submpu_intr_mask)) {
-			write_signals(&output_submpu_intr, 0x00000000);
+			submpu_ready = true;
 		}
 		break;
-	case SIG_TOWNS_CDC_DMA_IRQ:
+	case SIG_TOWNS_CDC_IRQ:
 		dma_intr = ((data & mask) != 0);
 		if((dma_intr & dma_intr_mask)) {
 			if(stat_reply_intr) {
@@ -600,10 +630,12 @@ void CDC::write_signal(int ch, uint32_t data, uint32_t mask)
 		break;
 	case SIG_TOWNS_CDC_MSG:
 		msg_status = ((data & mask) != 0);
-		
 		break;
 	case SIG_TOWNS_CDC_REQ:
 		req_status = ((data & mask) != 0);
+		break;
+	case SIG_TOWNS_CDC_ACK:
+		ack_status = ((data & mask) != 0);
 		break;
 		
 	}
@@ -621,6 +653,21 @@ uint32_t CDC::read_dma_io16(uint32_t addr)
 	d.b.h = d_scsi_host->read_dma_io8(addr);
 	return (uint32_t)(d.u16);
 }
+
+void CDC::write_dma_io8(uint32_t addr, uint32_t data)
+{
+	d_scsi_host->write_dma_io8(addr, data);
+}
+
+void CDC::write_dma_io16(uint32_t addr, uint32_t data)
+{
+	pair32_t _d;
+	_d.d = data;
+	d_scsi_host->write_dma_io8(addr, _d.b.l);
+	d_scsi_host->write_dma_io8(addr, _d.b.h);
+}
+
+
 
 #define STATE_VERSION	1
 
@@ -658,6 +705,7 @@ bool CDC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(io_status);
 	state_fio->StateValue(msg_status);
 	state_fio->StateValue(req_status);
+	state_fio->StateValue(ack_status);
 	
 	return true;
 	
