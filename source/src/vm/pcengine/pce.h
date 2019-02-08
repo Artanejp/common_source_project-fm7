@@ -220,9 +220,12 @@ private:
 	void adpcm_stop(bool do_irq);
 	
 	bool adpcm_play_in_progress;
+	bool adpcm_repeat;
+	bool adpcm_stream;
+	
 	double cdda_volume, adpcm_volume;
 	int event_cdda_fader, event_adpcm_fader;
-	
+	bool check_read6_status_flag;
 	void cdda_fade_in(int time);
 	void cdda_fade_out(int time);
 	void adpcm_fade_in(int time);
