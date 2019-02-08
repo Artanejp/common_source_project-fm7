@@ -90,19 +90,19 @@ public:
 	~SCSI_CDROM() {}
 	
 	// common functions
-	void initialize();
-	void release();
-	void reset();
-	uint32_t read_signal(int id);
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	void event_callback(int event_id, int err);
-	void mix(int32_t* buffer, int cnt);
-	void set_volume(int ch, int decibel_l, int decibel_r);
-	bool process_state(FILEIO* state_fio, bool loading);
+	virtual void initialize();
+	virtual void release();
+	virtual void reset();
+	virtual uint32_t read_signal(int id);
+	virtual void write_signal(int id, uint32_t data, uint32_t mask);
+	virtual void event_callback(int event_id, int err);
+	virtual void mix(int32_t* buffer, int cnt);
+	virtual void set_volume(int ch, int decibel_l, int decibel_r);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
 	
 	// virtual scsi functions
-	void reset_device();
-	bool is_device_ready();
+	virtual void reset_device();
+	virtual bool is_device_ready();
 	uint32_t physical_block_size()
 	{
 		return 2352;
@@ -118,10 +118,10 @@ public:
 		}
 		return 0;
 	}
-	int get_command_length(int value);
-	void start_command();
-	bool read_buffer(int length);
-	bool write_buffer(int length);
+	virtual int get_command_length(int value);
+	virtual void start_command();
+	virtual bool read_buffer(int length);
+	virtual bool write_buffer(int length);
 	
 	// unique functions
 	void set_context_done(DEVICE* device, int id, uint32_t mask)
