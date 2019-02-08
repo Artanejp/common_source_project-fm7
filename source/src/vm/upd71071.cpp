@@ -182,7 +182,7 @@ void UPD71071::write_signal(int id, uint32_t data, uint32_t mask)
 
 // note: if SINGLE_MODE_DMA is defined, do_dma() is called in every machine cycle
 
-int UPD71071::read_signal(int ch)
+uint32_t UPD71071::read_signal(int ch)
 {
 	if((ch >= (SIG_UPD71071_IS_TRANSFERING + 0)) && (ch < (SIG_UPD71071_IS_TRANSFERING + 4))) {
 		bool _nch = ch - SIG_UPD71071_IS_TRANSFERING;
