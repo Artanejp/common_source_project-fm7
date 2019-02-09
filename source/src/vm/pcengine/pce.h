@@ -218,7 +218,8 @@ private:
 	void adpcm_do_dma();
 	void adpcm_play();
 	void adpcm_stop(bool do_irq);
-	
+	void adpcm_pause(bool do_pause);
+		
 	bool adpcm_play_in_progress;
 	bool adpcm_repeat;
 	bool adpcm_stream;
