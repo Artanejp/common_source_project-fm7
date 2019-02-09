@@ -8,7 +8,7 @@
 	Author : Takeda.Toshiya
 	Date   : 2009.03.11-
 
-	[ PC-Eninge ]
+	[ PC-Engine ]
 */
 
 #ifndef _PCE_H_
@@ -18,6 +18,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
+
 #ifdef SUPPORT_CDROM
 #define SIG_PCE_SCSI_IRQ	0
 #define SIG_PCE_SCSI_DRQ	1
@@ -25,6 +26,15 @@
 #define SIG_PCE_CDDA_DONE	3
 #define SIG_PCE_ADPCM_VCLK	4
 #endif
+
+#define SIG_PCE_CDROM_RAW_DATA   10
+#define SIG_PCE_CDROM_DATA_IN    11
+#define SIG_PCE_CDROM_SET_ACK    12
+#define SIG_PCE_CDROM_CLEAR_ACK  13
+#define SIG_PCE_ADPCM_HALF       14
+#define SIG_PCE_ADPCM_FULL       15
+#define SIG_PCE_ADPCM_DMA        16
+
 
 #define VDC_WPF		684	/* width of a line in frame including blanking areas */
 #define VDC_LPF		262	/* number of lines in a single frame */
@@ -41,6 +51,11 @@ class SCSI_HOST;
 class SCSI_CDROM;
 #endif
 
+#ifdef USE_SEPARATED_ADPCM
+namespace PCEDEV {
+	class ADPCM;
+}
+#endif
 namespace PCEDEV {
 
 typedef struct vdc_s {
@@ -107,7 +122,9 @@ private:
 	SCSI_HOST* d_scsi_host;
 	SCSI_CDROM* d_scsi_cdrom;
 #endif
-	
+#ifdef USE_SEPARATED_ADPCM
+	ADPCM* d_adpcm;
+#endif
 	bool support_6btn_pad;
 	bool support_multi_tap;
 #ifdef SUPPORT_SUPER_GFX
@@ -251,6 +268,7 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 #ifdef SUPPORT_CDROM
+	uint32_t read_signal(int id);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 #endif
@@ -275,6 +293,12 @@ public:
 	void set_context_scsi_cdrom(SCSI_CDROM* device)
 	{
 		d_scsi_cdrom = device;
+	}
+#endif
+#ifdef USE_SEPARATED_ADPCM
+	void set_context_adpcm(ADPCM* device)
+	{
+		d_adpcm = device;
 	}
 #endif
 	void initialize_sound(int rate)

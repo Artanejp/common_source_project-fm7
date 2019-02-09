@@ -19,7 +19,9 @@
 #include "../scsi_host.h"
 #include "../scsi_cdrom.h"
 #endif
-
+#ifdef USE_SEPARATED_ADPCM
+#include "./adpcm.h"
+#endif 
 #define STATE_VSW		0
 #define STATE_VDS		1
 #define STATE_VDW		2
@@ -1712,9 +1714,11 @@ void PCE::mix(int32_t* buffer, int cnt)
 	}
 #ifdef SUPPORT_CDROM
 	if(support_cdrom) {
+	#ifndef USE_SEPARATED_ADPCM
 		if(!msm_idle) {
 			d_msm->mix(buffer, cnt);
 		}
+	#endif	
 		d_scsi_cdrom->mix(buffer, cnt);
 	}
 #endif
@@ -1888,7 +1892,8 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 		d_scsi_host->write_signal(SIG_SCSI_SEL, 1, 1);
 		d_scsi_host->write_signal(SIG_SCSI_SEL, 0, 1);
 	#ifdef USE_SEPARATED_ADPCM
-		d_adpcm->write_signal(SIG_PCE_ADPCM_DMA_ENABLED, 0x00, 0xff);
+		adpcm_dma_enabled = false;
+		d_adpcm->write_signal(SIG_ADPCM_DMA_ENABLED, 0x00, 0xff);
 	#else
 		adpcm_dma_enabled = false;
 	#endif
@@ -1929,8 +1934,9 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 			d_scsi_cdrom->write_signal(SIG_SCSI_CDROM_CDDA_STOP, 0xff, 0xff);
 			// Reset ADPCM hardware
 	#ifdef USE_SEPARATED_ADPCM
-			d_adpcm->write_signal(SIG_PCE_ADPCM_RESET, 0xff, 0xff);
-			d_adpcm->write_signal(SIG_PCE_ADPCM_DMA_ENABLED, 0x00, 0xff);
+			adpcm_dma_enabled = false;
+			d_adpcm->write_signal(SIG_ADPCM_DMA_ENABLED, 0x00, 0xff);
+			d_adpcm->write_signal(SIG_ADPCM_RESET, 0xff, 0xff);
 	#else
 			reset_adpcm();
 			adpcm_dma_enabled = false;
@@ -1953,25 +1959,35 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 		break;
 		
 	case 0x08:  /* ADPCM address (LSB) / CD data */
+	#ifdef USE_SEPARATED_ADPCM
+		d_adpcm->write_signal(SIG_ADPCM_ADDR_LO, data, 0xff);
+	#endif
+		break;
 	case 0x09:  /* ADPCM address (MSB) */
+	#ifdef USE_SEPARATED_ADPCM
+		d_adpcm->write_signal(SIG_ADPCM_ADDR_HI, data, 0xff);
+	#endif
 		break;
 		
 	case 0x0a:  /* ADPCM RAM data port */
-		if(adpcm_write_buf > 0) {
-			adpcm_write_buf--;
-		} else {
 	#ifdef USE_SEPARATED_ADPCM
 			d_adpcm->write_signal(SIG_ADPCM_DATA, data, 0xff);
 	#else
+		if(adpcm_write_buf > 0) {
+			adpcm_write_buf--;
+		} else {
 			write_adpcm_ram(data);
-	#endif
 		}
+	#endif
 		break;
 		
 	case 0x0b:  /* ADPCM DMA control */
 		if(data & 3) {
 			/* Start CD to ADPCM transfer */
 			adpcm_dma_enabled = true;
+	#ifdef USE_SEPARATED_ADPCM
+			d_adpcm->write_signal(SIG_ADPCM_DMA_ENABLED, 0xffffffff, 0xffffffff);
+	#else
 			cdrom_regs[0x0c] |= 0x04;
 			if(d_scsi_cdrom->get_cur_command() == SCSI_CMD_READ6 &&
 			   d_scsi_host->read_signal(SIG_SCSI_BSY) != 0 &&
@@ -1986,15 +2002,21 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 			} else {
 				out_debug_log(_T("Start DMA port $0B/WAIT FOR DATA\n"));
 			}
+	#endif
 		} else {
 			//adpcm_dma_enabled = false;
 		}
+
 		break;
 		
 	case 0x0c:  /* ADPCM status */
 		break;
 		
 	case 0x0d:  /* ADPCM address control */
+		out_debug_log(_T("ADPCM CMD=%02x\n"), data);
+	#ifdef USE_SEPARATED_ADPCM
+		d_adpcm->write_signal(SIG_ADPCM_COMMAND, data, 0xff);
+	#else
 		{
 			uint8_t reg_bak = cdrom_regs[0x0d];
 			cdrom_regs[0x0d] = data;
@@ -2086,18 +2108,22 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 						msm_half_addr = (adpcm_read_ptr + (adpcm_length >> 1)) & 0xffff;
 					}
 					out_debug_log(_T("ADPCM UPDATE HALF ADDRESS HALF=%04x\n"), msm_half_addr);
+					adpcm_pause(false);
 				}
+
 			} else {
 				
 				adpcm_stream = false;
 				adpcm_repeat = false;
 				set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
-				out_debug_log(_T("ADPCM STATUS UPDATE PLAY=%s\n"), (adpcm_play_in_progress) ? _T("YES") : _T("NO"));							if(adpcm_play_in_progress) {
-					adpcm_stop(true);
-					d_msm->reset_w(1);
-				} else {
+				out_debug_log(_T("ADPCM STATUS UPDATE PLAY=%s\n"), (adpcm_play_in_progress) ? _T("YES") : _T("NO"));							//if(adpcm_play_in_progress) {
+				//	adpcm_stop(true);
+				//	d_msm->reset_w(1);
+				//} else {
+					//adpcm_pause(true);
+					//d_msm->reset_w(1);
 					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, ASSERT_LINE);
-				}
+					//}
 			}
 			// used by Buster Bros to cancel an in-flight sample
 			// if repeat flag (bit5) is high, ADPCM should be fully played (from Ootake)
@@ -2108,12 +2134,16 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 			  d_msm->reset_w(1);
 			  }*/
 		}
-	
+	#endif	
 		break;
 		
 	case 0x0e:  /* ADPCM playback rate */
+	#ifdef USE_SEPARATED_ADPCM
+		d_adpcm->write_signal(SIG_ADPCM_SET_DIVIDER, data, 0x0f);
+	#else
 		adpcm_clock_divider = 0x10 - (data & 0x0f);
 		d_msm->change_clock_w((ADPCM_CLOCK / 6) / adpcm_clock_divider);
+	#endif
 		break;
 		
 	case 0x0f:  /* ADPCM and CD audio fade timer */
@@ -2121,7 +2151,11 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 			switch(data & 0x0f) {
 			case 0x00: // CD-DA / ADPCM enable (100 msecs)
 				cdda_fade_in(100);
+	#ifdef USE_SEPARATED_ADPCM
+				d_adpcm->write_signal(SIG_ADPCM_FADE_IN, 100, 0xffffffff);
+	#else
 				adpcm_fade_in(100);
+	#endif
 				break;
 			case 0x01: // CD-DA enable (100 msecs)
 				cdda_fade_in(100);
@@ -2129,19 +2163,31 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 			case 0x08: // CD-DA short (1500 msecs) fade out / ADPCM enable
 			case 0x0c: // CD-DA short (1500 msecs) fade out / ADPCM enable
 				cdda_fade_out(1500);
+	#ifdef USE_SEPARATED_ADPCM
+				d_adpcm->write_signal(SIG_ADPCM_FADE_IN, 100, 0xffffffff);
+	#else
 				adpcm_fade_in(100);
+	#endif
 				break;
 			case 0x09: // CD-DA long (5000 msecs) fade out
 				cdda_fade_out(5000);
 				break;
 			case 0x0a: // ADPCM long (5000 msecs) fade out
+	#ifdef USE_SEPARATED_ADPCM
+				d_adpcm->write_signal(SIG_ADPCM_FADE_OUT, 5000, 0xffffffff);
+	#else
 				adpcm_fade_out(5000);
+	#endif
 				break;
 			case 0x0d: // CD-DA short (1500 msecs) fade out
 				cdda_fade_out(1500);
 				break;
 			case 0x0e: // ADPCM short (1500 msecs) fade out
+	#ifdef USE_SEPARATED_ADPCM
+				d_adpcm->write_signal(SIG_ADPCM_FADE_OUT, 1500, 0xffffffff);
+	#else
 				adpcm_fade_out(1500);
+	#endif
 				break;
 			}
 		}
@@ -2313,18 +2359,28 @@ uint8_t PCE::cdrom_read(uint16_t addr)
 		break;
 		
 	case 0x0a:  /* ADPCM RAM data port */
+	#ifdef USE_SEPARATED_ADPCM
+		data = d_adpcm->read_signal(SIG_ADPCM_DATA);
+	#else
 		if(adpcm_read_buf > 0) {
 			adpcm_read_buf--;
 			data = 0x00;
 		} else {
 			data = read_adpcm_ram();
 		}
+	#endif
 		break;
 		
 	case 0x0b:  /* ADPCM DMA control */
+	#ifdef USE_SEPARATED_ADPCM
+		data = d_adpcm->read_signal(SIG_ADPCM_DMACTRL);
+	#endif
 		break;
 		
 	case 0x0c:  /* ADPCM status */
+	#ifdef USE_SEPARATED_ADPCM
+		data = d_adpcm->read_signal(SIG_ADPCM_STATUS_REG);
+	#else
 		// Hack from Ootake v2.83.
 		if((adpcm_play_in_progress) && (msm_idle == 0)){
 			data = data & ~0x85;
@@ -2333,6 +2389,7 @@ uint8_t PCE::cdrom_read(uint16_t addr)
 			data = data | 0x01;
 			data = data & ~0x0c;
 		}
+	#endif
 		cdrom_regs[0x0c] = data;
 		// ToDo: HuVideo
 		//cdrom_regs[0x03] &= ~0x04;
@@ -2520,6 +2577,33 @@ void PCE::adpcm_fade_out(int time)
 	d_msm->set_volume((int)(adpcm_volume = 100.0));
 }
 
+uint32_t PCE::read_signal(int id)
+{
+	uint32_t data = 0;
+#ifdef USE_SEPARATED_ADPCM
+	switch(id) {
+	case SIG_PCE_CDROM_RAW_DATA:
+		data = read_cdrom_data();
+		set_ack();
+		//cdrom_regs[0x0c] &= ~0x04;
+		break;
+	case SIG_PCE_CDROM_DATA_IN:
+		{
+			uint8_t cmd = d_scsi_cdrom->get_cur_command();
+			if(((cmd == SCSI_CMD_READ6) || (cmd == SCSI_CMD_READ10) || (cmd == SCSI_CMD_READ12))  &&
+			   d_scsi_host->read_signal(SIG_SCSI_BSY) != 0 &&
+			   d_scsi_host->read_signal(SIG_SCSI_REQ) != 0 &&
+			   d_scsi_host->read_signal(SIG_SCSI_CD ) == 0 &&
+			   d_scsi_host->read_signal(SIG_SCSI_MSG) == 0 &&
+			   d_scsi_host->read_signal(SIG_SCSI_IO ) != 0) {
+				return 0xffffffff;
+			}
+		}
+		break;
+	}
+#endif
+	return data;
+}
 void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
@@ -2554,7 +2638,14 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 				// clear busreq because next REQ signal is raised
 				d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 				
-				//	out_debug_log(_T("CDROM DRQ(ADPCM)\n"));
+				//out_debug_log(_T("CDROM DRQ(ADPCM)\n"));
+	#ifdef USE_SEPARATED_ADPCM
+				if(adpcm_dma_enabled) {
+					d_adpcm->write_signal(SIG_ADPCM_DMACTRL, cdrom_regs[0x0b], 0xff);
+					d_adpcm->write_signal(SIG_ADPCM_DO_DMA_TRANSFER, 0xff, 0xff);
+					cdrom_regs[0x0b] = d_adpcm->read_signal(SIG_ADPCM_DMACTRL);
+				}
+	#else
 				if(adpcm_dma_enabled) {
 					if(!(msm_idle) && ((adpcm_write_ptr & 0xffff) >= (msm_start_addr & 0xffff))) {
 						// now streaming, wait dma not to overwrite buffer before it is played
@@ -2564,6 +2655,7 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 						adpcm_do_dma();
 					}
 				}
+	#endif
 			}
 		} else {
 			if(drq_status) {
@@ -2588,16 +2680,29 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 			set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_READY, CLEAR_LINE);
 			set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_DONE, CLEAR_LINE);
 			if(/*!(adpcm_play_in_progress) && */(adpcm_dma_enabled)){
+	#ifdef USE_SEPARATED_ADPCM
+				d_adpcm->write_signal(SIG_ADPCM_PAUSE, 0xff, 0xff);
+	#else
 				adpcm_pause(true);
+	#endif
 				//adpcm_dma_enabled = false;
 				out_debug_log(_T("SIG_PCE_SCSI_BSY: PAUSE ADPCM\n"));
 			}
 		} else {
 			if(/*!(adpcm_play_in_progress) && */(adpcm_dma_enabled)){
+	#ifdef USE_SEPARATED_ADPCM
+				{
+					d_adpcm->write_signal(SIG_ADPCM_DMACTRL, cdrom_regs[0x0b], 0xff);
+					d_adpcm->write_signal(SIG_ADPCM_DO_DMA_TRANSFER, 0xff, 0xff);
+					cdrom_regs[0x0b] = d_adpcm->read_signal(SIG_ADPCM_DMACTRL);
+					d_adpcm->write_signal(SIG_ADPCM_PAUSE, 0x00, 0xff);
+				}
+	#else
 				if(adpcm_play_in_progress) {
 					adpcm_do_dma();
 					adpcm_pause(false);
 				}
+	#endif
 				//adpcm_dma_enabled = false;
 				out_debug_log(_T("SIG_PCE_SCSI_BSY: UNPAUSE ADPCM\n"));
 			}
@@ -2612,6 +2717,9 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 		break;
 		
 	case SIG_PCE_ADPCM_VCLK:
+	#ifdef USE_SEPARATED_ADPCM
+		d_adpcm->write_signal(SIG_ADPCM_VCLK, data, mask);
+	#else
 		// Callback for new data from the MSM5205.
 		// The PCE cd unit actually divides the clock signal supplied to
 		// the MSM5205. Currently we can only use static clocks for the
@@ -2648,7 +2756,7 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 						out_debug_log(_T("END ADDRESS(NON-DMA) MSM_ADDR=%08x\n"), msm_start_addr);
 						adpcm_stream = false;
 						adpcm_repeat = false;
-				} else if(((msm_start_addr & 0xffff) == msm_end_addr) && (adpcm_written <= 0) && (adpcm_dma_enabled)) {
+				} else if(((msm_start_addr & 0xffff) == msm_end_addr) && (adpcm_dma_enabled)) {
 					// reached to end address
 					if((adpcm_repeat) &&
 					   (adpcm_length >= 0x8000) && (adpcm_length <= 0x80ff) /* && (IsHuVideo()) */) {
@@ -2656,36 +2764,36 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 						msm_start_addr = msm_start_addr - 1;
 						goto __skip1;
 					}
-					if(adpcm_written == 0) {
+					/*if(adpcm_written == 0) */{
 						// restart streaming
 						set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
-						set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, CLEAR_LINE);
+						set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, ASSERT_LINE);
 						//set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, ASSERT_LINE);
 						out_debug_log(_T("END ADDRESS(DMA) MSM_ADDR=%08x\n"), msm_start_addr);
 						//msm_start_addr = msm_start_addr & 0xffff; // Continue
-#if 0
-						if(!(adpcm_repeat)) {
-							adpcm_stop(true); // true?
-							d_msm->reset_w(1);
-						} else {
-							adpcm_stop(true);
-							d_msm->reset_w(0);
-						}
+#if 1
+						//if(!(adpcm_repeat)) {
+						adpcm_stop(true); // true?
+						d_msm->reset_w(1);
+							//} else {
+							//adpcm_pause(true);
+							//d_msm->reset_w(0);
+							//}
 #endif
 						adpcm_stream = false;
 						adpcm_repeat = false;
 					}					
-			} else if(adpcm_dma_enabled && adpcm_written < 0) {
+				} else if(adpcm_dma_enabled && adpcm_written == 0) {
 					// finish streaming when all samples are played
 					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
-					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, CLEAR_LINE);
+					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, ASSERT_LINE);
 					out_debug_log(_T("ADPCM DMA QUEUE EMPTY MSM_ADDR=%08x\n"), msm_start_addr);
-				    adpcm_stop(false);
-					d_msm->reset_w(1);
-					adpcm_stream = false;
-					adpcm_repeat = false;
-					goto __skip1;
-				} else if((msm_start_addr & 0xffff) == msm_half_addr) {
+					//adpcm_stop(true);
+					//d_msm->reset_w(1);
+					//adpcm_stream = false;
+					//adpcm_repeat = false;
+					//goto __skip1;
+				}  else if((msm_start_addr & 0xffff) == msm_half_addr) {
 					// reached to half address
 					// 20181213 K.O: Porting from Ootake v2.83.Thanks to developers of Ootake.
 					if((adpcm_dma_enabled) && (adpcm_length >= 0x8000) && (adpcm_length <= 0x80ff)) {
@@ -2700,7 +2808,7 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 						   !(adpcm_length < 0x7fff)) &&
 						  (((msm_start_addr & 0xffff) == 0x8000) || ((msm_start_addr & 0xffff) == 0x0000))) {
 					// 20181213 K.O: Porting from Ootake v2.83.Thanks to developers of Ootake.
-					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, CLEAR_LINE);
+					//set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, CLEAR_LINE);
 					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, ASSERT_LINE);
 					out_debug_log(_T("SPECIAL HALF ADDRESS MSM_ADDR=%08x\n"), msm_start_addr);
 				} 
@@ -2708,7 +2816,7 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 				msm_start_addr++;
 			__skip1:
 				if(adpcm_dma_enabled) {
-					if(!(msm_idle) && (adpcm_write_ptr < msm_start_addr)) {
+					if(((adpcm_write_ptr & 0xffff) < (msm_start_addr & 0xffff) )) {
 						if(d_scsi_cdrom->get_cur_command() == SCSI_CMD_READ6 &&
 						   d_scsi_host->read_signal(SIG_SCSI_BSY) != 0 &&
 						   d_scsi_host->read_signal(SIG_SCSI_REQ) != 0 &&
@@ -2739,7 +2847,41 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 			}
 		}
 		}
+	#endif
 		break;
+#ifdef USE_SEPARATED_ADPCM
+	case SIG_PCE_CDROM_SET_ACK:
+		if((data & mask) != 0) {
+			set_ack();
+		}
+		break;
+	case SIG_PCE_CDROM_CLEAR_ACK:
+		if((data & mask) != 0) {
+			clear_ack();
+		}
+		break;
+	case SIG_PCE_ADPCM_HALF:
+		if((data & mask) != 0) {
+			set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, ASSERT_LINE);
+		} else {
+			set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
+		}
+		break;
+	case SIG_PCE_ADPCM_FULL:
+		if((data & mask) != 0) {
+			set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, ASSERT_LINE);
+		} else {
+			set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, CLEAR_LINE);
+		}
+		break;
+	case SIG_PCE_ADPCM_DMA:
+		if((data & mask) != 0) {
+			adpcm_dma_enabled = true;
+		} else {
+			adpcm_dma_enabled = false;
+		}
+		break;
+#endif
 	}
 }
 

@@ -39,6 +39,7 @@
 #define USE_JOY_BUTTON_CAPTIONS
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_SEPARATED_ADPCM
 
 #include "../../common.h"
 #include "../../fileio.h"
@@ -78,6 +79,9 @@ class SCSI_CDROM;
 
 namespace PCEDEV {
 	class PCE;
+#ifdef USE_SEPARATED_ADPCM
+	class ADPCM;
+#endif
 }
 class VM : public VM_TEMPLATE
 {
@@ -93,7 +97,9 @@ protected:
 	SCSI_HOST* scsi_host;
 	SCSI_CDROM* scsi_cdrom;
 	PCEDEV::PCE* pce;
-	
+#ifdef USE_SEPARATED_ADPCM
+	PCEDEV::ADPCM* pce_adpcm;
+#endif
 public:
 	// ----------------------------------------
 	// initialize
