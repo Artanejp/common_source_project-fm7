@@ -1878,7 +1878,9 @@ void PCE::cdrom_reset()
 	event_cdda_fader = event_adpcm_fader = -1;
 	
 	d_scsi_cdrom->set_volume((int)cdda_volume);
+	#ifndef USE_SEPARATED_ADPCM
 	d_msm->set_volume((int)adpcm_volume);
+	#endif
 }
 
 void PCE::cdrom_write(uint16_t addr, uint8_t data)
@@ -2425,7 +2427,9 @@ void PCE::reset_adpcm()
 	msm_start_addr = msm_end_addr = msm_half_addr = 0;
 	msm_nibble = 0;
 	adpcm_stop(false);
+	#ifdef USE_SEPARATED_ADPCM
 	d_msm->reset_w(1);
+	#endif
 	out_debug_log(_T("RESET ADPCM\n"));
 	
 	// stop ADPCM dma
@@ -2572,7 +2576,9 @@ void PCE::adpcm_fade_in(int time)
 		cancel_event(this, event_adpcm_fader);
 	}
 	register_event(this, EVENT_ADPCM_FADE_IN, time, true, &event_adpcm_fader);
+	
 	d_msm->set_volume((int)(adpcm_volume = 0.0));
+	
 }
 
 void PCE::adpcm_fade_out(int time)
