@@ -1892,7 +1892,6 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 		d_scsi_host->write_signal(SIG_SCSI_SEL, 1, 1);
 		d_scsi_host->write_signal(SIG_SCSI_SEL, 0, 1);
 	#ifdef USE_SEPARATED_ADPCM
-		adpcm_dma_enabled = false;
 		d_adpcm->write_signal(SIG_ADPCM_DMA_ENABLED, 0x00, 0xff);
 	#else
 		adpcm_dma_enabled = false;
@@ -1934,14 +1933,13 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 			d_scsi_cdrom->write_signal(SIG_SCSI_CDROM_CDDA_STOP, 0xff, 0xff);
 			// Reset ADPCM hardware
 	#ifdef USE_SEPARATED_ADPCM
-			adpcm_dma_enabled = false;
-			d_adpcm->write_signal(SIG_ADPCM_DMA_ENABLED, 0x00, 0xff);
 			d_adpcm->write_signal(SIG_ADPCM_RESET, 0xff, 0xff);
+			d_adpcm->write_signal(SIG_ADPCM_DMA_ENABLED, 0x00, 0xff);
 	#else
 			reset_adpcm();
 			adpcm_dma_enabled = false;
 	#endif
-			out_debug_log(_T("ADPCM CMD=$04 RESET\n"));
+			out_debug_log(_T("CMD=$04 ADPCM RESET\n"));
 			cdrom_regs[0x03] = 0x00; // Reset IRQ status at al.
 			set_cdrom_irq_line(0x0, 0x0); // Update IRQ
 		}
@@ -1971,7 +1969,7 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 		
 	case 0x0a:  /* ADPCM RAM data port */
 	#ifdef USE_SEPARATED_ADPCM
-			d_adpcm->write_signal(SIG_ADPCM_DATA, data, 0xff);
+		d_adpcm->write_signal(SIG_ADPCM_DATA, data, 0xff);
 	#else
 		if(adpcm_write_buf > 0) {
 			adpcm_write_buf--;
@@ -1982,11 +1980,15 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 		break;
 		
 	case 0x0b:  /* ADPCM DMA control */
+	#ifdef USE_SEPARATED_ADPCM
+		d_adpcm->write_signal(SIG_ADPCM_DMACTRL, data, 0xff);
+	#endif
 		if(data & 3) {
 			/* Start CD to ADPCM transfer */
 			adpcm_dma_enabled = true;
 	#ifdef USE_SEPARATED_ADPCM
 			d_adpcm->write_signal(SIG_ADPCM_DMA_ENABLED, 0xffffffff, 0xffffffff);
+			data = d_adpcm->read_signal(SIG_ADPCM_DMACTRL);
 	#else
 			cdrom_regs[0x0c] |= 0x04;
 			if(d_scsi_cdrom->get_cur_command() == SCSI_CMD_READ6 &&
@@ -2372,9 +2374,9 @@ uint8_t PCE::cdrom_read(uint16_t addr)
 		break;
 		
 	case 0x0b:  /* ADPCM DMA control */
-	#ifdef USE_SEPARATED_ADPCM
-		data = d_adpcm->read_signal(SIG_ADPCM_DMACTRL);
-	#endif
+		//#ifdef USE_SEPARATED_ADPCM
+		//data = d_adpcm->read_signal(SIG_ADPCM_DMACTRL);
+		//#endif
 		break;
 		
 	case 0x0c:  /* ADPCM status */
@@ -2522,7 +2524,12 @@ void PCE::clear_ack()
 {
 	cdrom_regs[0x03] &= ~0x40; // From Ootake v2.38
 	if(d_scsi_host->read_signal(SIG_SCSI_CD) != 0) {
-		cdrom_regs[0x0b] &= 0xfc;
+		//cdrom_regs[0x0b] &= 0xfc;
+		cdrom_regs[0x0b] &= ~1;
+	#ifdef USE_SEPARATED_ADPCM
+		d_adpcm->write_signal(SIG_ADPCM_DMACTRL, cdrom_regs[0x0b], 0xff);
+		d_adpcm->write_signal(SIG_ADPCM_DMA_ENABLED, cdrom_regs[0x0b], 0x03);
+	#endif
 	}
 	d_scsi_host->write_signal(SIG_SCSI_ACK, 0, 0);
 }
@@ -2681,7 +2688,9 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 			set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_DONE, CLEAR_LINE);
 			if(/*!(adpcm_play_in_progress) && */(adpcm_dma_enabled)){
 	#ifdef USE_SEPARATED_ADPCM
-				d_adpcm->write_signal(SIG_ADPCM_PAUSE, 0xff, 0xff);
+				//d_adpcm->write_signal(SIG_ADPCM_DMACTRL, cdrom_regs[0x0b], 0xff);
+				//d_adpcm->write_signal(SIG_ADPCM_PAUSE, 0xff, 0xff);
+				//cdrom_regs[0x0b] = d_adpcm->read_signal(SIG_ADPCM_DMACTRL);
 	#else
 				adpcm_pause(true);
 	#endif
@@ -2695,7 +2704,7 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 					d_adpcm->write_signal(SIG_ADPCM_DMACTRL, cdrom_regs[0x0b], 0xff);
 					d_adpcm->write_signal(SIG_ADPCM_DO_DMA_TRANSFER, 0xff, 0xff);
 					cdrom_regs[0x0b] = d_adpcm->read_signal(SIG_ADPCM_DMACTRL);
-					d_adpcm->write_signal(SIG_ADPCM_PAUSE, 0x00, 0xff);
+					//d_adpcm->write_signal(SIG_ADPCM_PAUSE, 0x00, 0xff);
 				}
 	#else
 				if(adpcm_play_in_progress) {

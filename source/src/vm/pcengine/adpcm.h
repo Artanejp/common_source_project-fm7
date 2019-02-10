@@ -57,8 +57,6 @@ protected:
 	
 	uint32_t msm_ptr;
 	uint32_t msm_nibble;
-	uint32_t msm_length;
-	uint32_t msm_end_addr;
 	uint32_t half_addr;
 	uint32_t adpcm_length;
 	bool adpcm_stream;
@@ -67,6 +65,8 @@ protected:
 	bool dma_enabled;
 	bool adpcm_paused;
 	bool adpcm_repeat;
+	bool adpcm_stopped;
+	
 	bool play_in_progress;
 
 	double adpcm_volume;
@@ -91,6 +91,7 @@ protected:
 	void do_stop(bool do_irq);
 	void set_ack(int clocks);
 	void clear_ack(int clocks);
+	void set_dma_status(bool flag);
 	void fade_in(int usec);
 	void fade_out(int usec);
 	void reset_adpcm();
