@@ -37,6 +37,7 @@
 #define SIG_ADPCM_ADDR_LO          14
 #define SIG_ADPCM_SET_DIVIDER      15
 #define SIG_ADPCM_CMD_REG          16
+#define SIG_ADPCM_CLEAR_ACK        17
 
 class MSM5205;
 
@@ -54,9 +55,11 @@ protected:
 	uint32_t write_ptr;
 	uint32_t read_buf;
 	uint32_t write_buf;
-	
+
+	uint8_t msm_data;
 	uint32_t msm_ptr;
 	uint32_t msm_nibble;
+	uint32_t msm_length;
 	uint32_t half_addr;
 	uint32_t adpcm_length;
 	bool adpcm_stream;

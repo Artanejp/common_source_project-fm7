@@ -39,7 +39,7 @@
 #define USE_JOY_BUTTON_CAPTIONS
 #define USE_DEBUGGER
 #define USE_STATE
-#define USE_SEPARATED_ADPCM
+//#define USE_SEPARATED_ADPCM
 
 #include "../../common.h"
 #include "../../fileio.h"
