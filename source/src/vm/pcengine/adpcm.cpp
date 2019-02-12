@@ -241,7 +241,6 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 		do_cmd(data);
 		break;
 	case SIG_ADPCM_WRITE_DMA_DATA:
-		reg_0c |= ADPCM_REMAIN_WRITE_BUF;
 		do_dma(data);
 		break;
 	case SIG_ADPCM_DO_DMA_TRANSFER:
@@ -253,14 +252,12 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 		//} else {
 		//set_dma_status(true);
 			dma_connected = true;
-			reg_0c |= ADPCM_REMAIN_WRITE_BUF;
 			do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
 		//}
 		break;
 	case SIG_ADPCM_FORCE_DMA_TRANSFER:
 		if(flag) {
 			dma_connected = true;
-			reg_0c |= ADPCM_REMAIN_WRITE_BUF;
 			do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
 		}
 		break;
@@ -301,8 +298,8 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 			//reg_0c &= ~ADPCM_REMAIN_WRITE_BUF;
 			ram[write_ptr & 0xffff] = data;
 			write_ptr = (write_ptr + 1) & 0xffff;
-			//if(msm_length < 0x10000) msm_length++;
-			//written_size++;
+			written_size = written_size + 1;
+			msm_length++;
 		}
 		break;
 	case SIG_ADPCM_FADE_IN:
@@ -324,7 +321,7 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 void ADPCM::update_length()
 {
 	adpcm_length = (uint32_t)(addr_reg.w) & 0xffff; 
-	msm_length = adpcm_length + 1;
+	msm_length = adpcm_length;
 	out_debug_log(_T("ADPCM SET LENGTH TO %04x\n"), adpcm_length);
 }
 
@@ -413,7 +410,7 @@ void ADPCM::do_cmd(uint8_t cmd)
 			if(!(play_in_progress)) written_size = 0; // OK?
 			msm_nibble = 0;
 			play_in_progress = true;
-			msm_length = adpcm_length + 1; // OK?
+			msm_length = adpcm_length; // OK?
 			do_play();
 			d_msm->reset_w(0);
 			out_debug_log(_T("ADPCM START PLAY(%s) START=%04x LENGTH=%04x HALF=%04x STREAM=%s\n"), (dma_enabled) ? _T("DMA") : _T("PIO"), msm_ptr, msm_length, half_addr, (adpcm_stream) ? _T("YES") : _T("NO"));
@@ -463,12 +460,12 @@ void ADPCM::do_vclk(bool flag)
 					// 20181213 K.O: Re-order sequence from Ootake v2.83.Thanks to developers of Ootake.
 					if(((dma_enabled) && !(dma_connected)) || !(dma_enabled)) {
 						if((msm_length == 0) && ((msm_last_cmd & 0x10) == 0)) {
-							//if((adpcm_repeat) && ((adpcm_length >= 0x8000) && (adpcm_length <= 0x80ff))) {
-							//	need_wait = true;
+							if((adpcm_repeat) && ((adpcm_length >= 0x8000) && (adpcm_length <= 0x80ff))) {
+								need_wait = true;
 								msm_length++;
-								//} else
+							} else
 							{
-								d_pce->write_signal(SIG_PCE_ADPCM_HALF, 0x00000000, 0xffffffff);
+								//d_pce->write_signal(SIG_PCE_ADPCM_HALF, 0x00000000, 0xffffffff);
 								d_pce->write_signal(SIG_PCE_ADPCM_FULL, 0xffffffff, 0xffffffff);
 								if((msm_last_cmd & 0x40) != 0) {
 									do_stop(false); // true?
@@ -493,17 +490,14 @@ void ADPCM::do_vclk(bool flag)
 						if((adpcm_repeat) && (adpcm_length >= 0x8000) && (adpcm_length <= 0x80ff)) {
 							if(msm_ptr == (half_addr & 0xffff)) {
 								half_addr = half_addr + 0x85;
-								msm_length = (msm_length + 0x85 + 0x85); // OK?
 								d_pce->write_signal(SIG_PCE_ADPCM_HALF, 0xffffffff, 0xffffffff);
-								//d_pce->write_signal(SIG_PCE_ADPCM_FULL, 0x00000000, 0xffffffff);
+								d_pce->write_signal(SIG_PCE_ADPCM_FULL, 0x00000000, 0xffffffff);
 							}						
 						} else if(adpcm_length < 0x7fff) {
 							if(msm_ptr == (half_addr & 0xffff)) {
 								half_addr = half_addr + ((adpcm_length - 1024) & 0xffff);
-								msm_length = (msm_length + ((adpcm_length - 1024) & 0xffff) * 2);
-								if(msm_length > 0x10000) msm_length = 0x10000;
 								d_pce->write_signal(SIG_PCE_ADPCM_HALF, 0xffffffff, 0xffffffff);
-								//d_pce->write_signal(SIG_PCE_ADPCM_FULL, 0x00000000, 0xffffffff);
+								d_pce->write_signal(SIG_PCE_ADPCM_FULL, 0x00000000, 0xffffffff);
 							}						
 						} else if((msm_ptr == 0x8000) || (msm_ptr == 0x0000)) {
 							d_pce->write_signal(SIG_PCE_ADPCM_HALF, 0xffffffff, 0xffffffff);
@@ -515,7 +509,6 @@ void ADPCM::do_vclk(bool flag)
 					if(dma_enabled) {
 						if(((write_ptr & 0xffff) < (msm_ptr & 0xffff)) ||
 						   (written_size <= 0)) { 
-							reg_0c |= ADPCM_REMAIN_WRITE_BUF;
 							if(d_pce->read_signal(SIG_PCE_CDROM_DATA_IN) != 0) {
 								//do_pause(false); // Unpause if paused && data in.
 								do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
@@ -527,13 +520,13 @@ void ADPCM::do_vclk(bool flag)
 				} else { // nibble = 1
 				}
 			} else {
-				if((dma_enabled) && (play_in_progress)) {
-					reg_0c |= ADPCM_REMAIN_WRITE_BUF;
-					if(d_pce->read_signal(SIG_PCE_CDROM_DATA_IN) != 0) {
-						//do_pause(false); // Unpause if paused && data in.
-						do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
-					}
-				}
+//				if((dma_enabled) && (play_in_progress) && (dma_connected)) {
+//					reg_0c |= ADPCM_REMAIN_WRITE_BUF;
+//					if(d_pce->read_signal(SIG_PCE_CDROM_DATA_IN) != 0) {
+//						//do_pause(false); // Unpause if paused && data in.
+//						do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
+//					}
+//				}
 			}
 		}
 	}
@@ -544,8 +537,8 @@ bool ADPCM::do_dma(uint8_t data)
 	ram[write_ptr & 0xffff] = data;
 	write_ptr = (write_ptr + 1) & 0xffff;
 	if(written_size < 0) written_size = 0;
-	if(written_size < 0xffff) written_size = written_size + 1;
-	if(msm_length < 0x10000) msm_length++;
+	written_size = written_size + 1;
+	msm_length++;
 	set_ack(0);
 
 	reg_0c &= ~ADPCM_REMAIN_WRITE_BUF;
