@@ -246,6 +246,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 									next_req_usec += 1000000.0 / bytes_per_sec;
 									double usec = next_req_usec - get_passed_usec(first_req_clock);
 									set_req_delay(1, (usec > 1.0) ? usec : 1.0);
+									//set_req_delay(1, usec);
 								}
 								break;
 							default:

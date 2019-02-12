@@ -364,6 +364,8 @@ double SCSI_CDROM::get_seek_time(uint32_t lba)
 		}
 		double ratio = ((double)distance / 333000.0) / physical_block_size(); // 333000: sectors in media
 		return max(10, (int)(400000 * 2 * ratio));
+		//double ratio = (double)distance  / 150.0e3; // 150KB/sec sectors in media
+		//return max(10, (int)(400000 * 2 * ratio));
 	} else {
 		return 400000; // 400msec
 	}
@@ -392,7 +394,7 @@ void SCSI_CDROM::start_command()
 {
 	touch_sound();
 	#ifdef _SCSI_DEBUG_LOG
-//	this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: #%02x %02x %02x %02x %02x %02x\n"), scsi_id, command[0], command[1], command[2], command[3], command[4], command[5]);
+	//this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: #%02x %02x %02x %02x %02x %02x\n"), scsi_id, command[0], command[1], command[2], command[3], command[4], command[5]);
 	#endif
 	switch(command[0]) {
 	case SCSI_CMD_READ6:
@@ -404,7 +406,7 @@ void SCSI_CDROM::start_command()
 				cancel_event(this, event_cdda_delay_play);
 				event_cdda_delay_play = -1;
 			}
-			register_event(this, EVENT_CDROM_SEEK_SCSI, seek_time - 10.0, false, &event_cdda_delay_play);
+			register_event(this, EVENT_CDROM_SEEK_SCSI, seek_time, false, &event_cdda_delay_play);
 			return;
 		} else {
 			seek_time = 10.0;
@@ -536,6 +538,7 @@ void SCSI_CDROM::start_command()
 #if 1
 				if(is_cue) {
 					//if(cdda_start_frame > 150) cdda_start_frame = cdda_start_frame - 150;
+					//fio_img->Fseek((cdda_start_frame - toc_table[current_track].index0) * 2352, FILEIO_SEEK_SET);
 					fio_img->Fseek((cdda_start_frame - toc_table[current_track].index0) * 2352, FILEIO_SEEK_SET);
 				} else {
 					fio_img->Fseek(cdda_start_frame * 2352, FILEIO_SEEK_SET);
@@ -812,7 +815,7 @@ bool SCSI_CDROM::read_buffer(int length)
 	if(is_cue) {
 		// ToDo: Need seek wait.
 		#ifdef _CDROM_DEBUG_LOG
-			this->out_debug_log(_T("Seek to LBA %d\n"), position / 2352);
+		this->out_debug_log(_T("Seek to LBA %d LENGTH=%d\n"), position / 2352, length);
 		#endif
 		if(fio_img->Fseek(((long)position - (long)(toc_table[current_track].lba_offset * 2352)), FILEIO_SEEK_SET) != 0) {
 			set_sense_code(SCSI_SENSE_ILLGLBLKADDR); //SCSI_SENSE_SEEKERR
@@ -832,8 +835,8 @@ bool SCSI_CDROM::read_buffer(int length)
 	}
 	while(length > 0) {
 		uint8_t tmp_buffer[2352];
-//		int tmp_length = min(length, (int)sizeof(tmp_buffer));
-		int tmp_length = 2352 - offset;
+		int tmp_length = min(length, (int)sizeof(tmp_buffer));
+//		int tmp_length = 2352 - offset;
 		
 		if(fio_img->Fread(tmp_buffer, tmp_length, 1) != 1) {
 			#ifdef _SCSI_DEBUG_LOG
@@ -1127,15 +1130,16 @@ bool SCSI_CDROM::open_cue_file(const _TCHAR* file_path)
 				if(toc_table[i].index1 != 0) {
 					toc_table[i].index0 = toc_table[i].index0 + max_logical_block;
 					toc_table[i].index1 = toc_table[i].index1 + max_logical_block;
-					if(toc_table[i].index0 != max_logical_block) {
+					//if(toc_table[i].index0 != max_logical_block) {
 						if(toc_table[i].pregap == 0) {
 							toc_table[i].pregap = toc_table[i].index1 - toc_table[i].index0;
 						}
-					}
+					//}
 				} else {
 					toc_table[i].index1 = toc_table[i].index1 + max_logical_block;
 					if(toc_table[i].index0 == 0) {
 						toc_table[i].index0 = toc_table[i].index1 - toc_table[i].pregap;
+						
 					} else {
 						toc_table[i].index0 = toc_table[i].index0 + max_logical_block;
 						if(toc_table[i].pregap == 0) {
@@ -1220,6 +1224,8 @@ void SCSI_CDROM::open(const _TCHAR* file_path)
 				if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 					char line[1024], *ptr;
 					int track = -1;
+					bool index0_found = false;
+					bool index1_found = false;
 					while(fio->Fgets(line, 1024) != NULL) {
 						if(strstr(line, "FILE") != NULL) {
 							// do nothing
@@ -1252,9 +1258,14 @@ void SCSI_CDROM::open(const _TCHAR* file_path)
 								while(*ptr >= '0' && *ptr <= '9') {
 									ptr++;
 								}
+								while(*ptr == ' ' || *ptr == 0x09) {
+									ptr++;
+								}
 								if(num == 0) {
+									index0_found = true;
 									toc_table[track - 1].index0 = get_frames_from_msf(ptr);
 								} else if(num == 1) {
+									index1_found = true;
 									toc_table[track - 1].index1 = get_frames_from_msf(ptr);
 								}
 							}
@@ -1262,7 +1273,7 @@ void SCSI_CDROM::open(const _TCHAR* file_path)
 					}
 					if(track_num != 0) {
 						for(int i = 1; i < track_num; i++) {
-							if(toc_table[i].index0 == 0) {
+							if((toc_table[i].index0 == 0) && !(index0_found)) {
 								toc_table[i].index0 = toc_table[i].index1 - toc_table[i].pregap;
 							} else if(toc_table[i].pregap == 0) {
 								toc_table[i].pregap = toc_table[i].index1 - toc_table[i].index0;
@@ -1351,7 +1362,7 @@ void SCSI_CDROM::open(const _TCHAR* file_path)
 			uint32_t idx0_msf = lba_to_msf(toc_table[i].index0);
 			uint32_t idx1_msf = lba_to_msf(toc_table[i].index1);
 			uint32_t pgap_msf = lba_to_msf(toc_table[i].pregap);
-			this->out_debug_log(_T("Track%02d: Index0=%02x:%02x:%02x Index1=%02x:%02x:%02x PreGpap=%02x:%02x:%02x\n"), i + 1,
+			this->out_debug_log(_T("Track%02d: Index0=%02x:%02x:%02x Index1=%02x:%02x:%02x PreGap=%02x:%02x:%02x\n"), i + 1,
 			(idx0_msf >> 16) & 0xff, (idx0_msf >> 8) & 0xff, idx0_msf & 0xff,
 			(idx1_msf >> 16) & 0xff, (idx1_msf >> 8) & 0xff, idx1_msf & 0xff,
 			(pgap_msf >> 16) & 0xff, (pgap_msf >> 8) & 0xff, pgap_msf & 0xff);

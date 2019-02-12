@@ -311,7 +311,7 @@ void MSM5205::mix(int32_t* buffer, int cnt)
 	/* if this voice is active */
 	if(m_signal)
 	{
-		int32_t val = apply_volume((int32_t)(m_signal) * 16, volume_m);
+		int32_t val = apply_volume((int32_t)(m_signal) * 32, volume_m); // Changed by 20190212 K.O
 		int32_t val_l = apply_volume(val, volume_l);
 		int32_t val_r = apply_volume(val, volume_r);
 		
