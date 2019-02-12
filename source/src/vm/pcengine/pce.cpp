@@ -2298,6 +2298,7 @@ uint8_t PCE::cdrom_read(uint16_t addr)
 				check_read6_status_flag = true;
 				clear_ack();
 				set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_DONE, ASSERT_LINE);
+				d_adpcm->write_signal(SIG_ADPCM_DMA_RELEASED, 0xff, 0xff);
 			}
 		}
 		break;
@@ -2331,6 +2332,7 @@ uint8_t PCE::cdrom_read(uint16_t addr)
 				check_read6_status_flag = true;
 				clear_ack();
 				set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_DONE, ASSERT_LINE);
+				d_adpcm->write_signal(SIG_ADPCM_DMA_RELEASED, 0xff, 0xff);
 			}
 
 		}
@@ -2542,9 +2544,9 @@ void PCE::clear_ack()
 
 void PCE::set_cdrom_irq_line(int num, int state)
 {
-	if(((num & PCE_CD_IRQ_SAMPLE_FULL_PLAY) != 0) || ((num & PCE_CD_IRQ_SAMPLE_HALF_PLAY) != 0)) { // 20190212 K.O from mednafen.
-		cdrom_regs[0x03] &= ~(PCE_CD_IRQ_SAMPLE_FULL_PLAY | PCE_CD_IRQ_SAMPLE_HALF_PLAY);
-	}
+//	if(((num & PCE_CD_IRQ_SAMPLE_FULL_PLAY) != 0) || ((num & PCE_CD_IRQ_SAMPLE_HALF_PLAY) != 0)) { // 20190212 K.O from mednafen.
+//		cdrom_regs[0x03] &= ~(PCE_CD_IRQ_SAMPLE_FULL_PLAY | PCE_CD_IRQ_SAMPLE_HALF_PLAY);
+//	}
 	if (state == ASSERT_LINE) {
 		cdrom_regs[0x03] |= num;
 	} else {
@@ -2601,8 +2603,38 @@ uint32_t PCE::read_signal(int id)
 #ifdef USE_SEPARATED_ADPCM
 	switch(id) {
 	case SIG_PCE_CDROM_RAW_DATA:
-		data = read_cdrom_data();
-		set_ack();
+		{ // MAYBE same as READ_1808().
+			bool read6_data_in = false;
+			if(d_scsi_cdrom->get_cur_command() == SCSI_CMD_READ6 &&
+			   d_scsi_host->read_signal(SIG_SCSI_BSY) != 0 &&
+			   d_scsi_host->read_signal(SIG_SCSI_REQ) != 0 &&
+			   d_scsi_host->read_signal(SIG_SCSI_CD ) == 0 &&
+			   d_scsi_host->read_signal(SIG_SCSI_MSG) == 0 &&
+			   d_scsi_host->read_signal(SIG_SCSI_IO ) != 0) {
+				// read6 command, data in phase
+				read6_data_in = true;
+			}
+			data = read_cdrom_data();
+			if(read6_data_in) {
+				// set ack automatically and immediately for correct transfer speed
+				set_ack();
+				// XXX: Hack to wait until next REQ signal is raised
+				// because PCE does not check REQ signal before reads next byte
+				//d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+				check_read6_status_flag = false;
+			}  else if(!(check_read6_status_flag) &&
+					  (d_scsi_cdrom->get_cur_command() == SCSI_CMD_READ6) &&
+					  (d_scsi_host->read_signal(SIG_SCSI_BSY) == 0) &&
+					  (d_scsi_host->read_signal(SIG_SCSI_REQ) == 0) &&
+					  (d_scsi_host->read_signal(SIG_SCSI_CD ) == 0) &&
+					  (d_scsi_host->read_signal(SIG_SCSI_MSG) == 0) &&
+					  (d_scsi_host->read_signal(SIG_SCSI_IO ) == 0)) { // BUS FREE
+				check_read6_status_flag = true;
+				clear_ack();
+				set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_DONE, ASSERT_LINE);
+				d_adpcm->write_signal(SIG_ADPCM_DMA_RELEASED, 0xff, 0xff);
+			}
+		}
 		//cdrom_regs[0x0c] &= ~0x04;
 		break;
 	case SIG_PCE_CDROM_DATA_IN:
@@ -2697,8 +2729,9 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 			set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_READY, CLEAR_LINE);
 			set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_DONE, CLEAR_LINE);
 			if(/*!(adpcm_play_in_progress) && */(adpcm_dma_enabled)){
+				d_adpcm->write_signal(SIG_ADPCM_DMA_RELEASED, 0xff, 0xff);
 				//adpcm_dma_enabled = false;
-				//out_debug_log(_T("SIG_PCE_SCSI_BSY: DISABLE DMA\n"));
+				out_debug_log(_T("SIG_PCE_SCSI_BSY: FREE DMA BUS\n"));
 			}
 		} else {
 			if(/*!(adpcm_play_in_progress) && */(adpcm_dma_enabled)){
@@ -2707,7 +2740,7 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 	#else
 				adpcm_do_dma();
 	#endif
-				out_debug_log(_T("SIG_PCE_SCSI_BSY: BUS CONNECT\n"));
+				out_debug_log(_T("SIG_PCE_SCSI_BSY: CONNECT DMA BUS\n"));
 			}
 		}			
 		break;

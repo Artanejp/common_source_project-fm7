@@ -39,6 +39,8 @@
 #define SIG_ADPCM_CMD_REG          16
 #define SIG_ADPCM_CLEAR_ACK        17
 #define SIG_ADPCM_FORCE_DMA_TRANSFER 18
+#define SIG_ADPCM_DMA_RELEASED     19
+
 class MSM5205;
 
 namespace PCEDEV {
@@ -66,6 +68,7 @@ protected:
 	int written_size;
 
 	bool dma_enabled;
+	bool dma_connected;
 	bool adpcm_paused;
 	bool adpcm_repeat;
 	
