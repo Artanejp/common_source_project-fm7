@@ -1869,6 +1869,7 @@ void PCE::cdrom_reset()
 	adpcm_written = 0;
 	msm_idle = 1;
 	#ifdef USE_SEPARATED_ADPCM
+	adpcm_dma_enabled = false;
 	d_adpcm->write_signal(SIG_ADPCM_DMA_ENABLED, 0x00, 0x03);
 	#endif
 	if(event_cdda_fader != -1) {
@@ -2031,7 +2032,7 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 		{
 			uint8_t reg_bak = cdrom_regs[0x0d];
 			cdrom_regs[0x0d] = data;
-			if(((reg_bak & 0x80) == 0) && (data & 0x80)) {
+			if(((reg_bak & 0x80) == 0) && ((data & 0x80) != 0)) {
 				// Reset ADPCM hardware
 				reset_adpcm();
 				adpcm_stop(true);
@@ -2073,7 +2074,7 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 						adpcm_stream = true;
 					}
 				}
-				out_debug_log(_T("ADPCM SET WRITE ADDRESS ADDR=%04x STREAM=%s\n"), adpcm_write_ptr, (adpcm_stream) ? _T("YES") : _T("NO"));
+				out_debug_log(_T("ADPCM SET WRITE ADDRESS ADDR=%04x STREAM=%s\n"), write_ptr, (adpcm_stream) ? _T("YES") : _T("NO"));
 			}
 			if(data & 0x10) {
 				if(((adpcm_read_ptr & 0xffff) >= 0x4000) &&
@@ -2702,7 +2703,7 @@ void PCE::write_signal(int id, uint32_t data, uint32_t mask)
 		} else {
 			if(/*!(adpcm_play_in_progress) && */(adpcm_dma_enabled)){
 	#ifdef USE_SEPARATED_ADPCM
-				d_adpcm->write_signal(SIG_ADPCM_DO_DMA_TRANSFER, 0xff, 0xff);
+				d_adpcm->write_signal(SIG_ADPCM_FORCE_DMA_TRANSFER, 0xff, 0xff);
 	#else
 				adpcm_do_dma();
 	#endif

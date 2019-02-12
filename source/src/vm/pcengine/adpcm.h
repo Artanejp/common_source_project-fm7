@@ -38,7 +38,7 @@
 #define SIG_ADPCM_SET_DIVIDER      15
 #define SIG_ADPCM_CMD_REG          16
 #define SIG_ADPCM_CLEAR_ACK        17
-
+#define SIG_ADPCM_FORCE_DMA_TRANSFER 18
 class MSM5205;
 
 namespace PCEDEV {
@@ -68,7 +68,6 @@ protected:
 	bool dma_enabled;
 	bool adpcm_paused;
 	bool adpcm_repeat;
-	bool adpcm_stopped;
 	
 	bool play_in_progress;
 
@@ -91,7 +90,8 @@ protected:
 	void do_cmd(uint8_t cmd);
 	void do_play();
 	void do_pause(bool pause);
-	void do_stop(bool do_irq);
+	void do_stop(bool do_notify);
+	void update_length();
 	void set_ack(int clocks);
 	void clear_ack(int clocks);
 	void set_dma_status(bool flag);
