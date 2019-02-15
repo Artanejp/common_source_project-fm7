@@ -82,7 +82,7 @@ void MSM5205::reset()
 	m_reset   = false;
 	m_signal  = 0;
 	m_step    = 0;
-
+	m_ignore = false;
 	/* initialize clock */
 	change_clock_w(m_mod_clock);
 
@@ -156,16 +156,17 @@ void MSM5205::event_callback(int event_id, int err)
 			if(m_vclk) return; // If MSM6585 Invert level.
 			/* update signal */
 			/* !! MSM5205 has internal 12bit decoding, signal width is 0 to 8191 !! */
-			val = m_data;
-			new_signal = m_signal + m_diff_lookup[m_step * 16 + (val & 15)];
-
-			if (new_signal > 2047) new_signal = 2047;
-			else if (new_signal < -2048) new_signal = -2048;
-
-			m_step += index_shift[val & 7];
-
-			if (m_step > 48) m_step = 48;
-			else if (m_step < 0) m_step = 0;
+			if(!(m_ignore)) {
+				val = m_data;
+				new_signal = m_signal + m_diff_lookup[m_step * 16 + (val & 15)];
+				if (new_signal > 2047) new_signal = 2047;
+				else if (new_signal < -2048) new_signal = -2048;
+				
+				m_step += index_shift[val & 7];
+				
+				if (m_step > 48) m_step = 48;
+				else if (m_step < 0) m_step = 0;
+			}
 		}
 
 		/* update when signal changed */
@@ -274,6 +275,14 @@ void MSM5205::playmode_w(int select)
 	}
 }
 
+/*
+ *    PAUSE playing (hack for PCE).
+ */
+
+void MSM5205::pause_w(int data)
+{
+	m_ignore = (data != 0) ? true : false;
+}
 
 void MSM5205::set_volume(int volume)
 {
@@ -329,7 +338,7 @@ void MSM5205::set_volume(int ch, int decibel_l, int decibel_r)
 	volume_r = decibel_to_volume(decibel_r + 6.0);
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool MSM5205::process_state(FILEIO* state_fio, bool loading)
 {
@@ -349,6 +358,7 @@ bool MSM5205::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(m_signal);
 	state_fio->StateValue(m_step);
 	state_fio->StateValue(m_select);
+	state_fio->StateValue(m_ignore);
 	state_fio->StateValue(volume_m);
  	return true;
 }

@@ -1130,11 +1130,11 @@ bool SCSI_CDROM::open_cue_file(const _TCHAR* file_path)
 				if(toc_table[i].index1 != 0) {
 					toc_table[i].index0 = toc_table[i].index0 + max_logical_block;
 					toc_table[i].index1 = toc_table[i].index1 + max_logical_block;
-					//if(toc_table[i].index0 != max_logical_block) {
+					if(toc_table[i].index0 != max_logical_block) {
 						if(toc_table[i].pregap == 0) {
 							toc_table[i].pregap = toc_table[i].index1 - toc_table[i].index0;
 						}
-					//}
+					}
 				} else {
 					toc_table[i].index1 = toc_table[i].index1 + max_logical_block;
 					if(toc_table[i].index0 == 0) {

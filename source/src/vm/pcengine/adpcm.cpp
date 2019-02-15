@@ -60,14 +60,14 @@ uint32_t ADPCM::read_signal(int ch)
 	case SIG_ADPCM_DATA:
 		if(read_buf > 0) {
 			// Don't need to modify FLAGS 20190212 K.O
-//			reg_0c |= ADPCM_REMAIN_READ_BUF;
+			//reg_0c |= ADPCM_REMAIN_READ_BUF;
 			read_buf--;
 //			if(read_buf == 0) {
 //				reg_0c &= ~ADPCM_REMAIN_READ_BUF;
 //			}
 			return 0x00;
 		} else {
-//			reg_0c &= ~ADPCM_REMAIN_READ_BUF;
+			reg_0c &= ~ADPCM_REMAIN_READ_BUF;
 			uint8_t _d = ram[read_ptr & 0xffff];
 			read_ptr = (read_ptr + 1) & 0xffff;
 			return _d;
@@ -245,16 +245,9 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 		do_dma(data);
 		break;
 	case SIG_ADPCM_DO_DMA_TRANSFER:
-		//if((play_in_progress) && ((write_ptr & 0xffff) >= (msm_ptr & 0xffff))) {
-		//	// now streaming, wait dma not to overwrite buffer before it is played
-		//	reg_0b = 0x00;// From Ootake v2.38.
-		//	dma_connected = false;
-			//set_dma_status(false);  // DON'T MODIFY PCE's DMA STATUS (HACK by K.O 20190212)
-		//} else {
 		//set_dma_status(true);
-			dma_connected = true;
-			do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
-		//}
+		dma_connected = true;
+		do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
 		break;
 	case SIG_ADPCM_FORCE_DMA_TRANSFER:
 		if(flag) {
@@ -298,7 +291,7 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 			//	reg_0c &= ~ADPCM_REMAIN_WRITE_BUF;
 			//}
 		} else {
-			//reg_0c &= ~ADPCM_REMAIN_WRITE_BUF;
+			reg_0c &= ~ADPCM_REMAIN_WRITE_BUF;
 			ram[write_ptr & 0xffff] = data;
 			write_ptr++;
 		}
@@ -357,8 +350,8 @@ void ADPCM::do_cmd(uint8_t cmd)
 		write_ptr = (uint32_t)(addr_reg.w) & 0xffff;
 		write_buf = ((cmd & 0x01) == 0) ? 1 : 0;
 		write_ptr = (write_ptr - write_buf) & 0xffff;
-		//written_size = written_size & 0xffff; // OK?
-		written_size = 0; // OK?
+		written_size = written_size & 0xffff; // OK?
+		//written_size = 0; // OK?
 	}
 	if((cmd & 0x10) != 0) {
 		// It's ugly... (;_;)
@@ -432,12 +425,18 @@ void ADPCM::do_cmd(uint8_t cmd)
 	} else {
 		//set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
 		//	set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, ASSERT_LINE);
-		//d_pce->write_signal(SIG_PCE_ADPCM_HALF, 0x00000000, 0xffffffff);
-		//d_pce->write_signal(SIG_PCE_ADPCM_FULL, 0x00000000, 0xffffffff);
+		if(play_in_progress) {
+			d_pce->write_signal(SIG_PCE_ADPCM_HALF, 0x00000000, 0xffffffff);
+			d_pce->write_signal(SIG_PCE_ADPCM_FULL, 0xffffffff, 0xffffffff);
+			if((msm_last_cmd & 0x40) != 0) {
+				do_stop(true); // true?
+				d_msm->reset_w(1);
+				return;
+			}
+		}
 		adpcm_stream = false;
 		adpcm_repeat = false;
-		do_stop(true); // false?
-		out_debug_log(_T("ADPCM STATUS UPDATE PLAY=%s\n"), (play_in_progress) ? _T("YES") : _T("NO"));
+		out_debug_log(_T("ADPCM STATUS UPDATE / STOP\n"));
 	}
 	msm_last_cmd = cmd;
 }
@@ -454,23 +453,22 @@ void ADPCM::do_vclk(bool flag)
 {
 	bool need_wait =false;
 	if((flag)) {
-		if(((dma_enabled ) && (dma_connected)) &&
-		   ((written_size < 0x10) && (msm_length > 0)
-			/*&& ((write_ptr & 0xffff) <= (msm_ptr & 0xffff))*/)) { // OK?
-			// ToDo: exception
-			need_wait = true;
-			if(msm_nibble != 0) {
-				d_msm->reset_w(1);
-				msm_nibble = 0;
-				return;
-			} else {
+		// 20190216 K.O: Must wait when dma enabled and PCM data will empty, when DMA transferring.
+		if((play_in_progress) && !(adpcm_paused)) {
+			if(((dma_enabled ) && (dma_connected)) &&
+			   ((written_size < 0x10) /*&& (msm_length > 0)*/
+				/*&& ((write_ptr & 0xffff) <= (msm_ptr & 0xffff))*/)) { // OK?
+				// ToDo: exception
+				d_msm->pause_w(1);
+				//d_msm->reset_w(1);
 				return;
 			}
 		}
 		{
 			if((play_in_progress) && !(adpcm_paused)) {
+				d_msm->pause_w(0);
+				//d_msm->reset_w(0);
 				//if(dma_enabled) {
-				d_msm->reset_w(0);
 				msm_data = (msm_nibble != 0) ? (ram[msm_ptr & 0xffff] & 0x0f) : ((ram[msm_ptr & 0xffff] & 0xf0) >> 4);
 				d_msm->data_w(msm_data);
 				msm_nibble ^= 1;
@@ -520,30 +518,21 @@ void ADPCM::do_vclk(bool flag)
 							d_pce->write_signal(SIG_PCE_ADPCM_FULL, 0x00000000, 0xffffffff);
 						}
 					}
-#if 1
-			__skip1:
-					if(dma_enabled && dma_connected) { // Underflow
-						//if(/*(msm_length > 0) &&*/
-						//  (written_size <= 10))
-						{ 
+
+					// 20190216 K.O: DO NOT DMA WITHIN VCLK.MUST DO ONLY BY DRQ.
+#if 0
+					if(written_size <= 0x10) {
+						if((dma_connected) && (dma_enabled)) {
 							if(d_pce->read_signal(SIG_PCE_CDROM_DATA_IN) != 0) {
-								//do_pause(false); // Unpause if paused && data in.
 								do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
 							}
 						}
-					} else {
 					}
 #endif
+//			__skip1:
 				} else { // nibble = 1
 				}
 			} else {
-//				if((dma_enabled) && (play_in_progress) && (dma_connected)) {
-//					reg_0c |= ADPCM_REMAIN_WRITE_BUF;
-//					if(d_pce->read_signal(SIG_PCE_CDROM_DATA_IN) != 0) {
-//						//do_pause(false); // Unpause if paused && data in.
-//						do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
-//					}
-//				}
 			}
 		}
 	}

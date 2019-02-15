@@ -51,6 +51,7 @@ private:
 	int32_t m_bitwidth;           /* bit width selector -3B/4B    */
 	int32_t m_signal;             /* current ADPCM signal         */
 	int32_t m_step;               /* current ADPCM step           */
+	bool m_ignore;				  /* Stop to update data.This may be hack. */	
 	int m_diff_lookup[49*16];
 	int m_select;
 	outputs_t m_vclk_cb;
@@ -91,6 +92,7 @@ public:
 	void reset_w(int reset);
 	void data_w(int data);
 	void vclk_w(int vclk);
+	void pause_w(int stop);
 	void playmode_w(int select);
 	void set_volume(int volume);
 	void change_clock_w(int32_t clock);
