@@ -350,7 +350,7 @@ void ADPCM::do_cmd(uint8_t cmd)
 		write_ptr = (uint32_t)(addr_reg.w) & 0xffff;
 		write_buf = ((cmd & 0x01) == 0) ? 1 : 0;
 		write_ptr = (write_ptr - write_buf) & 0xffff;
-		written_size = written_size & 0xffff; // OK?
+		//written_size = written_size & 0xffff; // OK?
 		//written_size = 0; // OK?
 	}
 	if((cmd & 0x10) != 0) {
@@ -434,6 +434,8 @@ void ADPCM::do_cmd(uint8_t cmd)
 				return;
 			}
 		}
+		//d_pce->write_signal(SIG_PCE_ADPCM_HALF, 0x00000000, 0xffffffff);
+		//d_pce->write_signal(SIG_PCE_ADPCM_FULL, 0x00000000, 0xffffffff);
 		adpcm_stream = false;
 		adpcm_repeat = false;
 		out_debug_log(_T("ADPCM STATUS UPDATE / STOP\n"));

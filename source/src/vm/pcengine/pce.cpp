@@ -1969,7 +1969,7 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 		break;
 		
 	case 0x0d:  /* ADPCM address control */
-		//out_debug_log(_T("ADPCM CMD=%02x\n"), data);
+		out_debug_log(_T("ADPCM CMD=%02x\n"), data);
 		d_adpcm->write_signal(SIG_ADPCM_COMMAND, data, 0xff);
 		break;
 		
