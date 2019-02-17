@@ -433,7 +433,7 @@ void SCSI_CDROM::start_command()
 			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: NEC Read Mode Select 6-byte\n"), scsi_id);
 		#endif
 		// start position
-//		set_cdda_status(CDDA_OFF);
+		set_cdda_status(CDDA_OFF);
 //		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
 //		position *= physical_block_size();
 		position = 0;
@@ -599,9 +599,9 @@ void SCSI_CDROM::start_command()
 //						fio_img->Fseek(cdda_start_frame * 2352, FILEIO_SEEK_SET);
 //					}
 					//read_sectors = fio_img->Fread(cdda_buffer, 2352 * sizeof(uint8_t), array_length(cdda_buffer) / 2352);
-					if(cdda_end_frame < toc_table[track].lba_offset) {
-						cdda_end_frame = toc_table[track + 1].index1;
-					}
+//					if(cdda_end_frame < toc_table[track].lba_offset) {
+//						cdda_end_frame = toc_table[track + 1].index1;
+//					}
 					
 					if(cdda_end_frame > toc_table[track + 1].index1 && (cdda_end_frame - toc_table[track].pregap) <= toc_table[track + 1].index1) {
 						cdda_end_frame = toc_table[track + 1].index1;
@@ -642,27 +642,7 @@ void SCSI_CDROM::start_command()
 				if(event_cdda_delay_play >= 0) cancel_event(this, event_cdda_delay_play);
 				register_event(this, EVENT_CDDA_DELAY_PLAY, 10.0, false, &event_cdda_delay_play);
 				//set_cdda_status(CDDA_PLAYING);
-			} /*else {
-				set_cdda_status(CDDA_OFF);
-				cdda_start_frame = toc_table[track_num].index0;;
-				cdda_end_frame = toc_table[track_num].index1; // end of disc
-				double seek_time = get_seek_time(cdda_start_frame);
-				//double seek_time = 10.0;
-				get_track_by_track_num(track_num); // END OF DISC
-
-				set_dat(is_device_ready() ? SCSI_STATUS_GOOD : SCSI_STATUS_CHKCOND);
-//				if(event_cdda_delay_play >= 0) cancel_event(this, event_cdda_delay_play);
-//				register_event(this, EVENT_CDDA_DELAY_STOP, (seek_time > 10.0) ? seek_time : 10.0, false, &event_cdda_delay_play);
-				if(is_device_ready()) {
-					if(event_delay_interrupt >= 0) {
-						cancel_event(this, event_delay_interrupt);
-						event_delay_interrupt = -1;
-					}
-					register_event(this, EVENT_CDROM_DELAY_INTERRUPT_ON, (seek_time > 10.0) ? (seek_time + 10.0) : (10.0 + 10.0), false, &event_delay_interrupt);
-				}
-				set_phase_delay(SCSI_PHASE_STATUS, (seek_time > 10.0) ? (seek_time + 10.0) : (10.0 + 10.0));
-				return;
-			}*/
+			} 
 		}
 		// change to status phase
 		set_dat(is_device_ready() ? SCSI_STATUS_GOOD : SCSI_STATUS_CHKCOND);
