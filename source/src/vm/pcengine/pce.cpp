@@ -2053,65 +2053,19 @@ uint8_t PCE::cdrom_read(uint16_t addr)
 		data |= d_scsi_host->read_signal(SIG_SCSI_CD ) ? 0x10 : 0;
 		data |= d_scsi_host->read_signal(SIG_SCSI_IO ) ? 0x08 : 0;
 		cdrom_regs[0x00] = data;
-		if(false){
-			// Import from Ootake v2.83 20181211 K.O
-			if(((data & 0x10) != 0) &&
-			   ((data & 0x20) == 0) &&
-			   ((data & 0x08) == 0)){ // Command phase
-				if((data & 0x80) != 0) { // Busy
-					//	data = (data & ~0x40) | 0x08; // (data & ~REQ) | IO
-				} else {
-					//data = data & ~0x40; // (data & ~REQ)
-				}
-			} else if((data & 0x80) != 0) { // BUSY
-				data = (data & ~0x40) | 0x10 | 0x80; // (data & ~REQ) | BUSY | CD
-			} /*else if(_CheckCountAfterRead == 0) && (Status phase) && (cmd == read6)){
-				 data = data & ~0x40;
-			} else  */ /* if(_bCDReqWait) {
-				_bCDReqWait = false;
-				if(data boundary) {
-					 data = data & ~0x40;
-				}
-			}*/
-		}
 		break;
 		
 	case 0x01:  /* CDC command / status / data */
 		{
+			// 20190217 K.O: READ_1801() seems to not reply any signal(s).
 			bool read6_data_in = false;
-			if(d_scsi_cdrom->get_cur_command() == SCSI_CMD_READ6 &&
-			   d_scsi_host->read_signal(SIG_SCSI_BSY) != 0 &&
-			   d_scsi_host->read_signal(SIG_SCSI_REQ) != 0 &&
-			   d_scsi_host->read_signal(SIG_SCSI_CD ) == 0 &&
-			   d_scsi_host->read_signal(SIG_SCSI_MSG) == 0 &&
-			   d_scsi_host->read_signal(SIG_SCSI_IO ) != 0) {
-				// read6 command, data in phase
-				read6_data_in = true;
-			}
 			data = read_cdrom_data();
-			if(read6_data_in) {
-				// set ack automatically and immediately for correct transfer speed
-				set_ack();
-				// XXX: Hack to wait until next REQ signal is raised
-				// because PCE does not check REQ signal before reads next byte
-				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-				check_read6_status_flag = false;
-			} else if(!(check_read6_status_flag) &&
-					  (d_scsi_cdrom->get_cur_command() == SCSI_CMD_READ6) &&
-					  (d_scsi_host->read_signal(SIG_SCSI_BSY) == 0) &&
-					  (d_scsi_host->read_signal(SIG_SCSI_REQ) == 0) &&
-					  (d_scsi_host->read_signal(SIG_SCSI_CD ) == 0) &&
-					  (d_scsi_host->read_signal(SIG_SCSI_MSG) == 0) &&
-					  (d_scsi_host->read_signal(SIG_SCSI_IO ) == 0)) { // BUS FREE
-				check_read6_status_flag = true;
-				clear_ack();
-				set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_DONE, ASSERT_LINE);
-				d_adpcm->write_signal(SIG_ADPCM_DMA_RELEASED, 0xff, 0xff);
-			}
+			check_read6_status_flag = true;
 		}
 		break;
 	case 0x08:  /* ADPCM address (LSB) / CD data */
 		{
+			// READ_1808()
 			bool read6_data_in = false;
 			if(d_scsi_cdrom->get_cur_command() == SCSI_CMD_READ6 &&
 			   d_scsi_host->read_signal(SIG_SCSI_BSY) != 0 &&
