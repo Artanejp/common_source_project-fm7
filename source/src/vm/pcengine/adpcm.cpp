@@ -456,7 +456,7 @@ void ADPCM::do_vclk(bool flag)
 		// 20190216 K.O: Must wait when dma enabled and PCM data will empty, when DMA transferring.
 		if((play_in_progress) && !(adpcm_paused)) {
 			if(((dma_enabled ) && (dma_connected)) &&
-			   ((written_size < 0x10) /*&& (msm_length > 0)*/
+			   ((written_size < 0x40) /*&& (msm_length > 0)*/
 				/*&& ((write_ptr & 0xffff) <= (msm_ptr & 0xffff))*/)) { // OK?
 				// ToDo: exception
 				d_msm->pause_w(1);
@@ -479,7 +479,7 @@ void ADPCM::do_vclk(bool flag)
 					if((msm_length == 0) && ((msm_last_cmd & 0x10) == 0)) {
 						if((adpcm_repeat) && ((adpcm_length >= 0x8000) && (adpcm_length <= 0x80ff))) {
 							need_wait = true;
-							//msm_length++;
+							msm_length++;
 						} else
 						{
 							d_pce->write_signal(SIG_PCE_ADPCM_HALF, 0x00000000, 0xffffffff);

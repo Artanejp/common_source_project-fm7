@@ -22,11 +22,9 @@
 #endif
 
 #include "pce.h"
-#ifdef USE_SEPARATED_ADPCM
 #include "./adpcm.h"
 
 using PCEDEV::ADPCM;
-#endif
 using PCEDEV::PCE;
 // ----------------------------------------------------------------------------
 // initialize
@@ -55,9 +53,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	scsi_cdrom->set_context_event_manager(pceevent);
 	
 	pce = new PCE(this, emu);
-#ifdef USE_SEPARATED_ADPCM
 	pce_adpcm = new ADPCM(this, emu);
-#endif
 //	pce->set_context_event_manager(pceevent);
 #if defined(_USE_QT)
 	pce->set_device_name(_T("PC-ENGINE MAIN"));
@@ -65,11 +61,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	pceevent->set_context_cpu(pcecpu, CPU_CLOCKS);
 	pceevent->set_context_sound(pce);
-#ifdef USE_SEPARATED_ADPCM
 	pceevent->set_context_sound(pce_adpcm);
-#endif
-	// NOTE: adpcm::mix() and scsi_cdrom::mix() will be called in pce::mix()
-//	pceevent->set_context_sound(adpcm);
+	// NOTE: SCSI_CDROM::mix() will be called in pce::mix()
 //	pceevent->set_context_sound(scsi_cdrom);
 	
 	pcecpu->set_context_mem(pce);
@@ -88,15 +81,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	adpcm->set_context_vclk(pce, SIG_PCE_ADPCM_VCLK, 1);
 	
 	pce->set_context_cpu(pcecpu);
-	pce->set_context_adpcm(adpcm);
+	pce->set_context_msm(adpcm);
 	pce->set_context_scsi_host(scsi_host);
 	pce->set_context_scsi_cdrom(scsi_cdrom);
 	
-#ifdef USE_SEPARATED_ADPCM
 	pce->set_context_adpcm(pce_adpcm);
 	pce_adpcm->set_context_msm(adpcm);
 	pce_adpcm->set_context_pce(pce);
-#endif	
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);

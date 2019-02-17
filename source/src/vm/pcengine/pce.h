@@ -51,11 +51,9 @@ class SCSI_HOST;
 class SCSI_CDROM;
 #endif
 
-#ifdef USE_SEPARATED_ADPCM
 namespace PCEDEV {
 	class ADPCM;
 }
-#endif
 namespace PCEDEV {
 
 typedef struct vdc_s {
@@ -121,8 +119,6 @@ private:
 	MSM5205* d_msm;
 	SCSI_HOST* d_scsi_host;
 	SCSI_CDROM* d_scsi_cdrom;
-#endif
-#ifdef USE_SEPARATED_ADPCM
 	ADPCM* d_adpcm;
 #endif
 	bool support_6btn_pad;
@@ -221,33 +217,13 @@ private:
 	void clear_ack();
 	void set_cdrom_irq_line(int num, int state);
 	
-	uint8_t adpcm_ram[0x10000];
-	int adpcm_read_ptr, adpcm_write_ptr, adpcm_written;
-	int adpcm_length, adpcm_clock_divider;
-	uint8_t adpcm_read_buf, adpcm_write_buf;
 	bool adpcm_dma_enabled;
-	int msm_start_addr, msm_end_addr, msm_half_addr;
-	uint8_t msm_nibble, msm_idle;
 	
-	void reset_adpcm();
-	void write_adpcm_ram(uint8_t data);
-	uint8_t read_adpcm_ram();
-	void adpcm_do_dma();
-	void adpcm_play();
-	void adpcm_stop(bool do_irq);
-	void adpcm_pause(bool do_pause);
-		
-	bool adpcm_play_in_progress;
-	bool adpcm_repeat;
-	bool adpcm_stream;
-	
-	double cdda_volume, adpcm_volume;
-	int event_cdda_fader, event_adpcm_fader;
+	double cdda_volume;
+	int event_cdda_fader;
 	bool check_read6_status_flag;
 	void cdda_fade_in(int time);
 	void cdda_fade_out(int time);
-	void adpcm_fade_in(int time);
-	void adpcm_fade_out(int time);
 #endif
 	
 public:
@@ -282,7 +258,7 @@ public:
 		d_cpu = device;
 	}
 #ifdef SUPPORT_CDROM
-	void set_context_adpcm(MSM5205* device)
+	void set_context_msm(MSM5205* device)
 	{
 		d_msm = device;
 	}
@@ -294,8 +270,6 @@ public:
 	{
 		d_scsi_cdrom = device;
 	}
-#endif
-#ifdef USE_SEPARATED_ADPCM
 	void set_context_adpcm(ADPCM* device)
 	{
 		d_adpcm = device;
