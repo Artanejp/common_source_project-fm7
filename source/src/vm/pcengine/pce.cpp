@@ -1940,13 +1940,9 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 		
 	case 0x08:  /* ADPCM address (LSB) / CD data */
 		d_adpcm->write_signal(SIG_ADPCM_ADDR_LO, data, 0xff);
-		//cdrom_regs[addr & 0x0f] = data;
-		//adpcm_length = (cdrom_regs[0x09] << 8) | cdrom_regs[0x08];
 		break;
 	case 0x09:  /* ADPCM address (MSB) */
 		d_adpcm->write_signal(SIG_ADPCM_ADDR_HI, data, 0xff);
-		//cdrom_regs[addr & 0x0f] = data;
-		//adpcm_length = (cdrom_regs[0x09] << 8) | cdrom_regs[0x08];
 		break;
 		
 	case 0x0a:  /* ADPCM RAM data port */
@@ -2043,10 +2039,10 @@ uint8_t PCE::cdrom_read(uint16_t addr)
 			return data & ~0x40; // Clear REQ
 		}				
 		data = 0;
-		if(d_cpu->get_pc() == 0xf34b) {
-			// XXX: Hack to wait the CD-DA will be finished for the Manhole
-			data |= d_scsi_cdrom->read_signal(SIG_SCSI_CDROM_PLAYING) ? 0x80 : 0;
-		}
+//		if(d_cpu->get_pc() == 0xf34b) {
+//			// XXX: Hack to wait the CD-DA will be finished for the Manhole
+//			data |= d_scsi_cdrom->read_signal(SIG_SCSI_CDROM_PLAYING) ? 0x80 : 0;
+//		}
 		data |= d_scsi_host->read_signal(SIG_SCSI_BSY) ? 0x80 : 0;
 		data |= d_scsi_host->read_signal(SIG_SCSI_REQ) ? 0x40 : 0;
 		data |= d_scsi_host->read_signal(SIG_SCSI_MSG) ? 0x20 : 0;
@@ -2057,10 +2053,10 @@ uint8_t PCE::cdrom_read(uint16_t addr)
 		
 	case 0x01:  /* CDC command / status / data */
 		{
-			// 20190217 K.O: READ_1801() seems to not reply any signal(s).
-			bool read6_data_in = false;
+			// 20190217 K.O: READ_1801() seems not to reply any signal(s).
+			bool read6_data_in = true;
 			data = read_cdrom_data();
-			check_read6_status_flag = true;
+			check_read6_status_flag = false;
 		}
 		break;
 	case 0x08:  /* ADPCM address (LSB) / CD data */
@@ -2108,9 +2104,9 @@ uint8_t PCE::cdrom_read(uint16_t addr)
 		backup_locked = true;
 		data |= PCE_CD_IRQ_BRAM;
 		cdrom_regs[3] ^= 0x02;
-		if(cdrom_regs[2] == 0) {
-			cdrom_regs[3] &= 0x02;
-		}
+		//if(cdrom_regs[2] == 0) {
+		//	cdrom_regs[3] &= 0x02;
+		//}
 		set_cdrom_irq_line(0, 0);
 		break;
 		
