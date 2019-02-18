@@ -463,10 +463,10 @@ void SCSI_CDROM::start_command()
 				cdda_start_frame = 0;
 				cdda_end_frame = toc_table[track_num].index0; // end of disc
 				double seek_time = get_seek_time(cdda_end_frame);
-				if(is_cue) {
-					get_track_by_track_num(track_num);
-				}
-				//set_cdda_status(CDDA_OFF);
+				//if(is_cue) {
+					//	get_track_by_track_num(track_num);
+				//}
+				set_cdda_status(CDDA_OFF);
 				if(event_cdda_delay_play >= 0) cancel_event(this, event_cdda_delay_play);
 				register_event(this, EVENT_CDDA_DELAY_STOP, (seek_time > 10.0) ? seek_time : 10.0, false, &event_cdda_delay_play);
 			} else {
