@@ -60,11 +60,10 @@ uint32_t ADPCM::read_signal(int ch)
 	case SIG_ADPCM_DATA:
 		if(read_buf > 0) {
 			// Don't need to modify FLAGS 20190212 K.O
-			//reg_0c |= ADPCM_REMAIN_READ_BUF;
 			read_buf--;
-//			if(read_buf == 0) {
-//				reg_0c &= ~ADPCM_REMAIN_READ_BUF;
-//			}
+			if(read_buf == 0) {
+				reg_0c &= ~ADPCM_REMAIN_READ_BUF;
+			}
 			return 0x00;
 		} else {
 			reg_0c &= ~ADPCM_REMAIN_READ_BUF;
@@ -137,14 +136,14 @@ void ADPCM::reset_adpcm()
 	
 	reg_0c |= ADPCM_STOP_FLAG;
 	reg_0c &= ~ADPCM_PLAY_FLAG;
-	
+	reg_0c &= ~(ADPCM_REMAIN_READ_BUF | ADPCM_REMAIN_WRITE_BUF);
 	do_stop(true);
 	set_dma_status(false);
 	//d_msm->reset();
 	d_msm->reset_w(1);
 	
 	//d_msm->change_clock_w((ADPCM_CLOCK / 6) / adpcm_clock_divider);  // From mednafen 1.22.1
-	//adpcm_volume = 0.0;
+	adpcm_volume = 100.0;
 	d_msm->set_volume((int)adpcm_volume);
 	//memset(ram, 0x00, sizeof(ram));
 	
@@ -285,11 +284,10 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 	case SIG_ADPCM_DATA:
 		// Don't need to modify FLAGS 20190212 K.O
 		if(write_buf > 0) {
-			//reg_0c |= ADPCM_REMAIN_WRITE_BUF;
 			write_buf--;
-			//if(write_buf == 0) {
-			//	reg_0c &= ~ADPCM_REMAIN_WRITE_BUF;
-			//}
+			if(write_buf == 0) {
+				reg_0c &= ~ADPCM_REMAIN_WRITE_BUF;
+			}
 		} else {
 			reg_0c &= ~ADPCM_REMAIN_WRITE_BUF;
 			ram[write_ptr & 0xffff] = data;
@@ -339,6 +337,7 @@ void ADPCM::do_cmd(uint8_t cmd)
 		msm_ptr = read_ptr;
 		msm_ptr = ((cmd & 0x04) == 0) ? ((msm_ptr - 1) & 0xffff) : msm_ptr;
 		out_debug_log(_T("ADPCM SET READ ADDRESS ADDR=%04x BUF=%01x \n"), read_ptr, read_buf);
+		//reg_0c |= ADPCM_REMAIN_READ_BUF;
 		half_addr = (read_ptr + ((adpcm_length + 1) >> 1)) & 0xffff;
 	}
 	if(((cmd & 0x10) != 0) /*&& ((msm_last_cmd & 0x10) == 0)*/){
@@ -350,8 +349,12 @@ void ADPCM::do_cmd(uint8_t cmd)
 		write_ptr = (uint32_t)(addr_reg.w) & 0xffff;
 		write_buf = ((cmd & 0x01) == 0) ? 1 : 0;
 		write_ptr = (write_ptr - write_buf) & 0xffff;
+		if(write_buf != 0) {
+			reg_0c |= ADPCM_REMAIN_WRITE_BUF;
+		}
 		//written_size = written_size & 0xffff; // OK?
 		//written_size = 0; // OK?
+		
 	}
 	if((cmd & 0x10) != 0) {
 		// It's ugly... (;_;)
@@ -380,10 +383,10 @@ void ADPCM::do_cmd(uint8_t cmd)
 	bool req_play = play_in_progress;
 	adpcm_repeat = ((cmd & 0x20) != 0) ? true : false;
 		
-	if((play_in_progress) && !(adpcm_stream) && !(adpcm_repeat)) {
+	if((req_play) && !(adpcm_stream) && !(adpcm_repeat)) {
 		req_play = false;
 	}
-	if(!(play_in_progress) && (adpcm_repeat)) {
+	if(!(req_play) && (adpcm_repeat)) {
 		req_play = true;
 	}
 	if((cmd & 0x40) != 0) {
@@ -400,7 +403,7 @@ void ADPCM::do_cmd(uint8_t cmd)
 	}
 	if(req_play) {
 //				msm_start_addr = (adpcm_read_ptr) & 0xffff;
-		if(((cmd & 0x40) != 0) /*&& !(play_in_progress) */) {
+		if(/*((cmd & 0x40) != 0) && */!(play_in_progress)) {
 			// ADPCM play
 			half_addr = (read_ptr + ((adpcm_length + 1) >> 1)) & 0xffff;
 			write_ptr &= 0xffff;
