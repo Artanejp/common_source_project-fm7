@@ -458,15 +458,13 @@ void SCSI_CDROM::start_command()
 		this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: NEC Set Audio Playback Start Position CMD=%02x ARG=%02x %02x %02x %02x %02x\n"), scsi_id, command[9], command[1], command[2], command[3], command[4], command[5]);
 		#endif
 		if(is_device_ready()) {
+			bool req_play = false;
 			if(command[2] == 0 && command[3] == 0 && command[4] == 0) {
 				// stop cd-da if all params are zero
 				cdda_start_frame = 0;
 				cdda_end_frame = toc_table[track_num].index0; // end of disc
 				double seek_time = get_seek_time(cdda_end_frame);
-				//if(is_cue) {
-					//	get_track_by_track_num(track_num);
-				//}
-				set_cdda_status(CDDA_OFF);
+				req_play = false;
 				if(event_cdda_delay_play >= 0) cancel_event(this, event_cdda_delay_play);
 				register_event(this, EVENT_CDDA_DELAY_STOP, (seek_time > 10.0) ? seek_time : 10.0, false, &event_cdda_delay_play);
 			} else {
@@ -481,74 +479,83 @@ void SCSI_CDROM::start_command()
 						uint8_t s = FROM_BCD(command[3]);
 						uint8_t f = FROM_BCD(command[4]);
 						cdda_start_frame = f + 75 * (s + m * 60);
-						
-						// PCE tries to be clever here and set (start of track + track pregap size) to skip the pregap
-						// (I guess it wants the TOC to have the real start sector for data tracks and the start of the pregap for audio?)
-						int track = get_track(cdda_start_frame);
-						if(cdda_start_frame >= toc_table[track].pregap) {
-							cdda_start_frame -= toc_table[track].pregap;
-						}
-						if(cdda_start_frame < toc_table[track].index0) {
-							cdda_start_frame = toc_table[track].index0; // don't play pregap
-						} else if(cdda_start_frame > max_logical_block) {
-							cdda_start_frame = 0;
-						}
 					}
 					break;
 				case 0x80:
 					{
 						int8_t track = FROM_BCD(command[2] - 1);
 						cdda_start_frame = toc_table[track].index1;
-						if(cdda_start_frame >= toc_table[track].pregap) {
-							cdda_start_frame -= toc_table[track].pregap;
-						}
 					}
 					break;
 				default:
 					cdda_start_frame = 0;
 					break;
 				}
-//				if(cdda_status == CDDA_PAUSED) {
-//					cdda_end_frame = toc_table[track_num].index0; // end of disc
-//					set_cdda_status(CDDA_OFF);
-//				} else
-				double delay_time = get_seek_time(cdda_start_frame);
-				if((command[1] & 3) != 0) {
-					if((is_cue) && (current_track != track_num)){
-						get_track_by_track_num(track_num);
+				{
+					// PCE tries to be clever here and set (start of track + track pregap size) to skip the pregap
+					// (I guess it wants the TOC to have the real start sector for data tracks and the start of the pregap for audio?)
+					int track_bak = current_track;
+					int track = get_track(cdda_start_frame);
+#if 1					
+					if(is_cue) {
+						if(cdda_start_frame >= (toc_table[track].pregap + toc_table[track].index0)) {
+							cdda_start_frame -= toc_table[track].pregap;
+						}
+					} else {
+						if(cdda_start_frame >= toc_table[track].pregap) {
+							cdda_start_frame -= toc_table[track].pregap;
+						}
 					}
-					cdda_end_frame = toc_table[track_num].index0; // end of disc
-					double seek_time = get_seek_time(cdda_start_frame);
-					if(event_cdda_delay_play >= 0) {
-						cancel_event(this, event_cdda_delay_play);
-						event_cdda_delay_play = -1;
+#endif
+					req_play = true;
+					if(cdda_start_frame < toc_table[track].index0) {
+						cdda_start_frame = toc_table[track].index0; // don't play pregap
+					} else if(cdda_start_frame > max_logical_block) {
+						cdda_start_frame = 0;
+						req_play = false;
 					}
-					//set_cdda_status(CDDA_PLAYING);
-					register_event(this, EVENT_CDROM_SEEK_SCSI, seek_time, false, &event_cdda_delay_play);
-				} else {
-					uint32_t _sframe = cdda_start_frame;
-					//cdda_end_frame = toc_table[get_track(_sframe) + 1].index1; // end of this track
-					//cdda_end_frame = toc_table[get_track(_sframe)].index1; // end of this track
-					set_cdda_status(CDDA_PAUSED);
 				}
-				cdda_repeat = false;
-				cdda_interrupt = ((command[1] & 3) == 2);
+				double delay_time = get_seek_time(cdda_start_frame);
 				
-				// read buffer
-				//double delay_time = 10.0;
 #if 1
 				if(is_cue) {
-					//if(cdda_start_frame > 150) cdda_start_frame = cdda_start_frame - 150;
-					//fio_img->Fseek((cdda_start_frame - toc_table[current_track].index0) * 2352, FILEIO_SEEK_SET);
+//							if(cdda_start_frame >= (toc_table[current_track].index0 + toc_table[current_track].pregap)) cdda_start_frame = cdda_start_frame - toc_table[current_track].pregap;
 					fio_img->Fseek((cdda_start_frame - toc_table[current_track].index0) * 2352, FILEIO_SEEK_SET);
+					//fio_img->Fseek((cdda_start_frame - toc_table[current_track].lba_offset) * 2352, FILEIO_SEEK_SET);
 				} else {
 					fio_img->Fseek(cdda_start_frame * 2352, FILEIO_SEEK_SET);
 				}
 #endif
+				//memset(cdda_buffer, 0x00, array_length(cdda_buffer));
 				read_sectors = fio_img->Fread(cdda_buffer, 2352 * sizeof(uint8_t), array_length(cdda_buffer) / 2352);
-				cdda_buffer_ptr = 0;
-				cdda_playing_frame = cdda_start_frame;
-				access = true;
+				if((command[1] & 3) != 0) {
+					// read buffer
+					if(req_play) {
+						cdda_buffer_ptr = 0;
+						cdda_playing_frame = cdda_start_frame;
+						access = true;
+						if(event_cdda_delay_play >= 0) {
+							cancel_event(this, event_cdda_delay_play);
+							event_cdda_delay_play = -1;
+						}
+						register_event(this, EVENT_CDDA_DELAY_PLAY, delay_time, false, &event_cdda_delay_play);
+						//set_cdda_status(CDDA_PLAYING);
+					} else {
+						set_cdda_status(CDDA_OFF);
+					}
+				} else {
+					if(cdda_status == CDDA_PAUSED) {
+						cdda_end_frame = toc_table[track_num].index0; // end of disc
+						cdda_start_frame = toc_table[track_num].index0; // end of disc
+						cdda_playing_frame = 0;
+						set_cdda_status(CDDA_OFF);
+					} else{
+						set_cdda_status(CDDA_PAUSED);
+					}
+				}
+				cdda_repeat = false;
+				cdda_interrupt = ((command[1] & 3) == 2);
+				
 				
 				// change to status phase
 				set_dat(SCSI_STATUS_GOOD);
@@ -1112,28 +1119,25 @@ bool SCSI_CDROM::open_cue_file(const _TCHAR* file_path)
 				if(fio_img->IsOpened()) {
 					fio_img->Fclose();
 				}
+				// Even...
+				//if(toc_table[i].pregap <= 0) {
+				//	toc_table[i].pregap = 150; // Default PREGAP must be 2Sec. From OoTake.(Only with PCE? Not with FM-Towns?)
+				//}
 				if(toc_table[i].index1 != 0) {
 					toc_table[i].index0 = toc_table[i].index0 + max_logical_block;
 					toc_table[i].index1 = toc_table[i].index1 + max_logical_block;
-					if(toc_table[i].index0 != max_logical_block) {
-						if(toc_table[i].pregap == 0) {
-							toc_table[i].pregap = toc_table[i].index1 - toc_table[i].index0;
-						}
+					if(toc_table[i].pregap == 0) {
+						toc_table[i].pregap = toc_table[i].index1 - toc_table[i].index0;
 					}
-				} else {
-					toc_table[i].index1 = toc_table[i].index1 + max_logical_block;
-					if(toc_table[i].index0 == 0) {
-						toc_table[i].index0 = toc_table[i].index1 - toc_table[i].pregap;
-						
-					} else {
-						toc_table[i].index0 = toc_table[i].index0 + max_logical_block;
-						if(toc_table[i].pregap == 0) {
-							toc_table[i].pregap = toc_table[i].index1 - toc_table[i].index0;
-						}
+				} else { // index1 == 0
+					if(toc_table[i].pregap == 0) {
+						toc_table[i].pregap = toc_table[i].index0;
 					}
+					toc_table[i].index1 = toc_table[i].index0 + max_logical_block;
+					toc_table[i].index0 = max_logical_block;
 				}
 				// Even...
-				if(toc_table[i].pregap <= 0) {
+				if(toc_table[i].pregap <= 150) {
 					toc_table[i].pregap = 150; // Default PREGAP must be 2Sec. From OoTake.(Only with PCE? Not with FM-Towns?)
 				}
 
