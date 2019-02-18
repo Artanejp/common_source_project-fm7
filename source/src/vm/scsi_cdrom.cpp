@@ -242,6 +242,7 @@ void SCSI_CDROM::set_cdda_status(uint8_t status)
 				memset(cdda_buffer, 0x00, sizeof(cdda_buffer));
 				cdda_buffer_ptr = 0;
 				read_sectors = 0;
+				cdda_repeat = false; // OK?
 				//if(is_cue) {
 				//	if(fio_img->IsOpened()) fio_img->Fclose();
 				//}
@@ -516,7 +517,12 @@ void SCSI_CDROM::start_command()
 					}
 				}
 				double delay_time = get_seek_time(cdda_start_frame);
-				
+
+				if(cdda_end_frame <= toc_table[current_track].index0) {
+					cdda_end_frame = toc_table[current_track + 1].index0; // don't play pregap
+				} else if(cdda_end_frame > toc_table[current_track + 1].index0) {
+					cdda_end_frame = toc_table[current_track + 1].index0; // don't play pregap
+				}
 #if 1
 				if(is_cue) {
 //							if(cdda_start_frame >= (toc_table[current_track].index0 + toc_table[current_track].pregap)) cdda_start_frame = cdda_start_frame - toc_table[current_track].pregap;
@@ -526,9 +532,15 @@ void SCSI_CDROM::start_command()
 					fio_img->Fseek(cdda_start_frame * 2352, FILEIO_SEEK_SET);
 				}
 #endif
+				if(cdda_end_frame <= toc_table[current_track].index0) {
+					cdda_end_frame = toc_table[current_track + 1].index0; // don't play pregap
+				} else if(cdda_end_frame > toc_table[current_track + 1].index0) {
+					cdda_end_frame = toc_table[current_track + 1].index0; // don't play pregap
+				}
 				//memset(cdda_buffer, 0x00, array_length(cdda_buffer));
 				read_sectors = fio_img->Fread(cdda_buffer, 2352 * sizeof(uint8_t), array_length(cdda_buffer) / 2352);
 				if((command[1] & 3) != 0) {
+					cdda_repeat = ((command[1] & 3) == 1);
 					// read buffer
 					if(req_play) {
 						cdda_buffer_ptr = 0;
@@ -544,6 +556,7 @@ void SCSI_CDROM::start_command()
 						set_cdda_status(CDDA_OFF);
 					}
 				} else {
+					//cdda_repeat = false;
 					if(cdda_status == CDDA_PAUSED) {
 						cdda_end_frame = toc_table[track_num].index0; // end of disc
 						cdda_start_frame = toc_table[track_num].index0; // end of disc
@@ -553,7 +566,6 @@ void SCSI_CDROM::start_command()
 						set_cdda_status(CDDA_PAUSED);
 					}
 				}
-				cdda_repeat = false;
 				cdda_interrupt = ((command[1] & 3) == 2);
 				
 				
