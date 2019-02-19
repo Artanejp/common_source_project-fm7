@@ -182,7 +182,7 @@ public:
 	void initButtons(void);
 	//virtual void initBitmapVertex(void);
 	
-	virtual void uploadMainTexture(QImage *p, bool chromakey);
+	virtual void uploadMainTexture(QImage *p, bool chromakey, bool was_mapped);
 	virtual void drawScreenTexture(void);
 	virtual void do_set_screen_multiply(float mul);
 	virtual void doSetGridsHorizonal(int lines, bool force);

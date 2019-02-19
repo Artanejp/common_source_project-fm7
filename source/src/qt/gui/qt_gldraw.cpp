@@ -25,11 +25,11 @@
 #ifdef USE_OPENMP
 #include <omp.h>
 #endif //_OPENMP
+#include "../osd.h"
 #include "qt_gldraw.h"
 #include "gl2/qt_glutil_gl2_0.h"
 
 #include "csp_logger.h"
-#include "../osd.h"
 #include "./qt_drawitem.h"
 //extern USING_FLAGS *using_flags;
 
@@ -38,17 +38,18 @@ void GLDrawClass::drawGrids(void)
 	if(extfunc != NULL) extfunc->drawGrids();
 }
 
-void GLDrawClass::drawUpdateTexture(bitmap_t *p)
+void GLDrawClass::drawUpdateTexture(void *p, bool was_mapped)
 {
+	bitmap_t* pp = (bitmap_t*)p;
 	if(using_flags->get_osd() == NULL) return;
 	QMutexLocker Locker_S(using_flags->get_osd()->screen_mutex);
-	if((p != NULL)) {
+	if((pp != NULL)) {
 		if(extfunc != NULL) {
 // Will fix at implemenitin PX7.
 			if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
-				extfunc->uploadMainTexture(&(p->pImage), true);
+				extfunc->uploadMainTexture(&(pp->pImage), true, was_mapped);
 			} else {
-				extfunc->uploadMainTexture(&(p->pImage), false);
+				extfunc->uploadMainTexture(&(pp->pImage), false, was_mapped);
 			}
 		}
 	}
@@ -94,6 +95,12 @@ void GLDrawClass::paintGL(void)
 		//extfunc->paintGL();
 	}
 	emit sig_draw_timing();
+}
+
+scrntype_t* GLDrawClass::get_screen_buffer(int y)
+{
+	if(extfunc == NULL) return NULL;
+	return extfunc->get_screen_buffer(y);
 }
 
 void GLDrawClass::do_set_display_osd(bool onoff)
@@ -200,7 +207,7 @@ void GLDrawClass::do_stop_run_vm()
 
 // Note: Mapping vram from draw_thread does'nt work well.
 // This feature might be disable. 20180728 K.Ohta.
-void GLDrawClass::do_map_vram_texture(void)
+scrntype_t *GLDrawClass::do_map_vram_texture(int *r_width, int *r_height)
 {
 	bool stat = false;
 	int w = 0;
@@ -208,7 +215,6 @@ void GLDrawClass::do_map_vram_texture(void)
 	void *p = NULL;
 	if(extfunc != NULL) {
 		if(extfunc->is_ready_to_map_vram_texture()) {
-			this->makeCurrent();
 			stat = extfunc->map_vram_texture();
 			if(stat) {
 				extfunc->get_screen_geometry(&w, &h);
@@ -218,11 +224,14 @@ void GLDrawClass::do_map_vram_texture(void)
 				w = 0;
 				h = 0;
 			}
-			emit sig_map_texture_reply(stat, p, w, h);
-			return;
+			if(r_width != NULL) *r_width = w;
+			if(r_height != NULL) *r_height = h;
+			return (scrntype_t*)p;
 		}
 	}
-	emit sig_map_texture_reply(false, NULL, 0, 0);
+	if(r_width != NULL) *r_width = 0;
+	if(r_height != NULL) *r_height = 0;
+	return NULL;
 }
 
 void GLDrawClass::do_unmap_vram_texture()
@@ -230,12 +239,9 @@ void GLDrawClass::do_unmap_vram_texture()
 	if(extfunc != NULL) {
 		if(extfunc->is_ready_to_map_vram_texture()) {
 			extfunc->unmap_vram_texture();	
-			this->doneCurrent();
-			emit sig_unmap_texture_reply();
 			return;
 		}
 	}
-	emit sig_unmap_texture_reply();
 }
 
 const bool GLDrawClass::is_ready_to_map_vram_texture(void)

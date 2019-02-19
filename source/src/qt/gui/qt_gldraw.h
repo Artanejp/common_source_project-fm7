@@ -8,7 +8,7 @@
 #define _CSP_QT_GLDRAW_H
 
 //#include "emu.h"
-#include "../osd_types.h"
+//#include "../osd_types.h"
 #include "dropdown_keyset.h"
 #include "config.h"
 #include "menu_flags.h"
@@ -100,18 +100,23 @@ public:
 	
 	void InitFBO(void);
 	void closeEvent(QCloseEvent *event);
-	void drawUpdateTexture(bitmap_t *p);
+	void drawUpdateTexture(void *p, bool was_mapped);
 	QString logGLString(bool getExtensions = false);
 	bool emu_launched;
 	quint32 modifier;
 
 	const bool is_ready_to_map_vram_texture(void);
-	
+	scrntype_t *do_map_vram_texture(int *r_width, int *r_height);
+	void do_unmap_vram_texture();
+	bool is_mapped_buffer(void);
+	GLuint get_mapped_buffer_num(int region);
+
+	scrntype_t* get_screen_buffer(int y);
 public slots:
 	void initKeyCode(void);
 	void releaseKeyCode(void);
 	
-	void update_screen(bitmap_t *);
+	void update_screen(void *p, bool was_mapped);
 	void update_osd(void);
 	void resizeGL(int width, int height);
 	void mouseMoveEvent(QMouseEvent *event);
@@ -149,8 +154,6 @@ public slots:
 	void do_update_icon(int icon_type,  int localnum, QPixmap *p);
 	void do_update_icon(int icon_type, int localnum, QString message, QColor bg, QColor fg, QColor fg2, QColor fg3, QColor lg, QColor tg, float pt);
 
-	void do_map_vram_texture(void);
-	void do_unmap_vram_texture();
 signals:
 	void update_screenChanged(int tick);
 	void do_notify_move_mouse(int x, int y);

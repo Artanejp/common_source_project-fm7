@@ -26,6 +26,7 @@
 #include <QObject>
 #include <QThread>
 #include <QMutex>
+#include <QOpenGLContext>
 
 #include "simd_types.h"
 
@@ -56,6 +57,10 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QThread(0)
 	mapped_screen_height = 0;
 	mapped_screen_status = false;
 	SupportedFeatures.clear();
+
+	is_glcontext_shared = false;
+	glContext = NULL;
+	p_glv = NULL;
 }
 
 OSD_BASE::~OSD_BASE()
@@ -66,6 +71,35 @@ OSD_BASE::~OSD_BASE()
 
 extern std::string cpp_homedir;
 extern std::string my_procname;
+
+
+bool OSD_BASE::set_glview(GLDrawClass *glv)
+{
+	if(glv == NULL) return false;
+	if(glContext != NULL) {
+		if(glContext->isValid()) return true;
+		return false;
+	}
+	p_glv = glv;
+
+	glContext = new QOpenGLContext();
+	if(glContext != NULL) {
+		glContext->setShareContext(glv->context());
+		glContext->create();
+	}
+	if(glContext->isValid()) {
+		is_glcontext_shared = true;
+		return true;
+	}
+	return false;
+}
+
+QOpenGLContext *OSD_BASE::get_gl_context()
+{
+	if(glContext == NULL) return NULL;
+	if(!(glContext->isValid())) return NULL;
+	return glContext;
+}
 
 EmuThreadClass *OSD_BASE::get_parent_handler()
 {

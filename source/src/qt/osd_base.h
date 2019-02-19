@@ -48,7 +48,6 @@
 
 //#include "qt_main.h"
 
-class GLDrawClass;
 class EmuThreadClass;
 class DrawThreadClass;
 class Ui_MainWindow;
@@ -59,7 +58,10 @@ class FILEIO;
 class CSP_KeyTables;
 class USING_FLAGS;
 class CSP_logger;
+class GLDrawClass;
+
 class QMutex;
+class QOpenGLContext;
 
 QT_BEGIN_NAMESPACE
 
@@ -85,6 +87,10 @@ protected:
 	USING_FLAGS *using_flags;
 	config_t *p_config;
 	CSP_Logger *p_logger;
+	GLDrawClass *p_glv;
+	
+	QOpenGLContext *glContext;
+	bool is_glcontext_shared;
 
 	QList<supportedlist_t> SupportedFeatures;
 	
@@ -476,6 +482,10 @@ public:
 
 	// Special
 	CSP_Logger *get_logger(void) { return p_logger; }
+	bool set_glview(GLDrawClass *glv);
+	QOpenGLContext *get_gl_context();
+	GLDrawClass *get_gl_view();
+
 	
 public slots:
 	void do_write_inputdata(QString s);
@@ -496,7 +506,7 @@ public slots:
 	void do_set_screen_map_texture_address(scrntype_t *p, int width, int height);
 
 signals:
-	int sig_update_screen(bitmap_t *);
+	int sig_update_screen(void *, bool);
 	int sig_save_screen(const char *);
 	int sig_draw_frames(int);
 	int sig_close_window(void);

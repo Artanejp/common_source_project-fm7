@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.17.1)
+set(THIS_LIB_VERSION 2.18.0)
 #include(cotire)
 #include(PrecompiledHeader)
 
@@ -12,7 +12,7 @@ set(s_qt_gui_headers
 	  gl/qt_glutil_gl_tmpl.h
 	  gl2/qt_glutil_gl2_0.h
 	  gl3/qt_glutil_gl3_0.h
-	  gl4_3/qt_glutil_gl4_3.h
+	  gl4_5/qt_glutil_gl4_5.h
 	  gles2/qt_glutil_gles_2.h
 	  
 	  commonclasses.h
@@ -63,7 +63,7 @@ set(s_qt_gui_srcs
 	  qt_glpack.cpp
 	  gl2/qt_glutil_gl2_0.cpp
 	  gl3/qt_glutil_gl3_0.cpp
-	  gl4_3/qt_glutil_gl4_3.cpp
+	  gl4_5/qt_glutil_gl4_5.cpp
 	  gles2/qt_glutil_gles_2.cpp
 	  qt_glevents.cpp
 	  qt_dialogs.cpp

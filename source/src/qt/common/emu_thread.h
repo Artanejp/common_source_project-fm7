@@ -64,7 +64,7 @@ protected:
 	bool get_power_state(void);
 	
 public:
-	EmuThreadClass(META_MainWindow *rootWindow, USING_FLAGS *p, QObject *parent = 0);
+	EmuThreadClass(Ui_MainWindowBase *rootWindow, USING_FLAGS *p, QObject *parent = 0);
 	~EmuThreadClass();
 	void run() { doWork("");}
 	bool now_debugging();

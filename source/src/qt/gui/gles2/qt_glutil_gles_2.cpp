@@ -7,6 +7,7 @@
  * May 05, 2018 : Copy from GL v3.0.
  */
 
+#include "osd_types.h"
 #include "qt_gldraw.h"
 #include "qt_glpack.h"
 #include "qt_glutil_gles_2.h"
@@ -709,7 +710,7 @@ void GLDraw_ES_2::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 }
 
 
-void GLDraw_ES_2::uploadMainTexture(QImage *p, bool use_chromakey)
+void GLDraw_ES_2::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mapped)
 {
 	// set vertex
 	redraw_required = true;
@@ -1229,11 +1230,11 @@ void GLDraw_ES_2::setBrightness(GLfloat r, GLfloat g, GLfloat b)
 		if(uVramTextureID == NULL) {
 			uVramTextureID = createMainTexture(imgptr);
 		}
-		if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
-			uploadMainTexture(imgptr, true);
-		} else {
-			uploadMainTexture(imgptr, false);
-		}
+		//if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
+		//	uploadMainTexture(imgptr, true);
+		//} else {
+		//	uploadMainTexture(imgptr, false);
+		//}
 		crt_flag = true;
 		p_wid->doneCurrent();
 	}

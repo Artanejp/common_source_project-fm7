@@ -294,7 +294,7 @@ void Ui_MainWindowBase::do_select_render_platform(int num)
 	case RENDER_PLATFORMS_OPENGL_CORE:
 		_type = CONFIG_RENDER_PLATFORM_OPENGL_CORE;
 		_major = 4;
-		_minor = 3;
+		_minor = 5;
 		break;
 	default:
 		break;

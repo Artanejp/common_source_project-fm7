@@ -27,10 +27,12 @@
 #include "commonclasses.h"
 #include "config.h"
 
-class META_MainWindow;
 class EMU;
 class QWaitCondition;
+class QOpenGLContext;
 class USING_FLAGS;
+class Ui_MainWindowBase;
+//class META_MainWindow;
 
 QT_BEGIN_NAMESPACE
 enum {
@@ -57,6 +59,8 @@ protected:
 	int mouse_y;
 	
     FIFO *key_fifo;
+	QOpenGLContext *glContext;
+	bool is_shared_glcontext;
 	
 	uint32_t key_mod;
 
@@ -67,7 +71,8 @@ protected:
 	QWaitCondition *drawCond;
 	QMutex *keyMutex;
 	
-	class META_MainWindow *MainWindow;
+	//class META_MainWindow *MainWindow;
+	Ui_MainWindowBase *MainWindow;
 	QElapsedTimer tick_timer;
 	
 	bool bRunThread;
@@ -180,7 +185,7 @@ protected:
 	};
 
 public:
-	EmuThreadClassBase(META_MainWindow *rootWindow, USING_FLAGS *p, QObject *parent = 0);
+	EmuThreadClassBase(Ui_MainWindowBase *rootWindow, USING_FLAGS *p, QObject *parent = 0);
 	~EmuThreadClassBase();
 	virtual void run() {};
 	void set_tape_play(bool);

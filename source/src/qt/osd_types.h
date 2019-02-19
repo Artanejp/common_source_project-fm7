@@ -29,6 +29,9 @@
 #include "../fileio.h"
 #include "../fifo.h"
 
+class GLDrawClass;
+#include "gui/qt_gldraw.h"
+
 #if !defined(Q_OS_WIN32)
 #include "qt_input.h"
 #endif
@@ -105,7 +108,14 @@ public:
 typedef struct bitmap_s {
 	int width, height;
 	QImage pImage;
+	GLDrawClass *glv;
+	bool is_mapped;
 	scrntype_t *get_buffer(int y) {
+		if((is_mapped) && (glv != NULL)) {
+			scrntype_t *p = NULL;
+			p = glv->get_screen_buffer(y);
+			if(p != NULL) return p;
+		}
 		return (scrntype_t *)pImage.scanLine(y);
 	};
 	scrntype_t* lpBuf;

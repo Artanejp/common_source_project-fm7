@@ -21,6 +21,7 @@
 #include "csp_logger.h"
 #include "menu_flags.h"
 #include "../osd.h"
+#include "mainwidget_base.h"
 
 // buttons
 #ifdef MAX_BUTTONS
@@ -30,7 +31,7 @@
 
 extern EMU *emu;
 extern CSP_Logger *csp_logger;
-EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, USING_FLAGS *p, QObject *parent)
+EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, USING_FLAGS *p, QObject *parent)
 	: EmuThreadClassBase(rootWindow, p, parent)
 {
 	emu = new EMU(rMainWindow, rMainWindow->getGraphicsView(), using_flags);

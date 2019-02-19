@@ -15,6 +15,7 @@
 #include <QRect>
 #include <QOpenGLFunctions_2_0>
 
+#include "osd_types.h"
 #include "qt_gldraw.h"
 #include "qt_glutil_gl2_0.h"
 #include "menu_flags.h"
@@ -949,7 +950,7 @@ void GLDraw_2_0::updateBitmap(QImage *p)
 	uploadBitmapTexture(p);
 }
 
-void GLDraw_2_0::uploadMainTexture(QImage *p, bool use_chromakey)
+void GLDraw_2_0::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mapped)
 {
 	// set vertex
 	redraw_required = true;

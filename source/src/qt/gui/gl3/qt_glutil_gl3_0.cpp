@@ -7,6 +7,7 @@
  * Jan 22, 2016 : Initial.
  */
 
+#include "osd_types.h"
 #include "qt_gldraw.h"
 #include "qt_glpack.h"
 #include "qt_glutil_gl3_0.h"
@@ -755,7 +756,7 @@ void GLDraw_3_0::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 }
 
 
-void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
+void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mapped)
 {
 	// set vertex
 	redraw_required = true;
@@ -1284,11 +1285,11 @@ void GLDraw_3_0::setBrightness(GLfloat r, GLfloat g, GLfloat b)
 		if(uVramTextureID == NULL) {
 			uVramTextureID = new QOpenGLTexture(*imgptr);
 		}
-		if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
-			uploadMainTexture(imgptr, true);
-		} else {
-			uploadMainTexture(imgptr, false);
-		}
+		//if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
+		//	uploadMainTexture(imgptr, true);
+		//} else {
+		//	uploadMainTexture(imgptr, false);
+		//}
 		crt_flag = true;
 		p_wid->doneCurrent();
 	}

@@ -37,19 +37,21 @@ DrawThreadClass::DrawThreadClass(OSD *o, CSP_Logger *logger,QObject *parent) : Q
 	using_flags = NULL;
 	if(p_osd != NULL) using_flags = p_osd->get_config_flags();
 	screen = QGuiApplication::primaryScreen();
-	
+
+
+	is_shared_glcontext = false;
+	glContext = NULL;
 	draw_screen_buffer = NULL;
-	
+	if(p_osd != NULL) {
+		p_osd->set_glview(glv);
+		//printf("OSD/Context sharing succeeded.ADDR=%08x GLES=%s\n", glContext, (glContext->isOpenGLES()) ? "YES" : "NO");
+	}
 	do_change_refresh_rate(screen->refreshRate());
 	connect(screen, SIGNAL(refreshRateChanged(qreal)), this, SLOT(do_change_refresh_rate(qreal)));
-	connect(this, SIGNAL(sig_update_screen(bitmap_t *)), glv, SLOT(update_screen(bitmap_t *)), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_update_screen(void *, bool)), glv, SLOT(update_screen(void *, bool)), Qt::QueuedConnection);
 	
 	connect(this, SIGNAL(sig_update_osd()), glv, SLOT(update_osd()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_push_frames_to_avio(int, int, int)), glv->extfunc, SLOT(paintGL_OffScreen(int, int, int)));
-	connect(this, SIGNAL(sig_map_texture()), glv, SLOT(do_map_vram_texture()));
-	connect(this, SIGNAL(sig_unmap_texture()), glv, SLOT(do_unmap_vram_texture()));
-	connect(glv,  SIGNAL(sig_map_texture_reply(bool, void *, int, int)), this, SLOT(do_recv_texture_map_status(bool, void *, int, int)));
-	connect(glv,  SIGNAL(sig_unmap_texture_reply()), this, SLOT(do_recv_texture_unmap_status()));
 	
 	//connect(this, SIGNAL(sig_call_draw_screen()), p_osd, SLOT(draw_screen()));
 	//connect(this, SIGNAL(sig_call_no_draw_screen()), p_osd, SLOT(no_draw_screen()));
@@ -136,10 +138,8 @@ void DrawThreadClass::doExit(void)
 
 void DrawThreadClass::do_draw_one_turn(bool _req_draw)
 {
-	if((mapped_drawn) && (_req_draw)) {
-		emit sig_update_screen(NULL);
-	} else if((_req_draw) && (draw_screen_buffer != NULL)) {
-		emit sig_update_screen(draw_screen_buffer);
+	if((_req_draw) && (draw_screen_buffer != NULL)) {
+		emit sig_update_screen((void *)draw_screen_buffer, mapped_drawn);
 	} else {
 		if(ncount == 0) emit sig_update_osd();
 	}
@@ -192,10 +192,11 @@ void DrawThreadClass::do_change_refresh_rate(qreal rate)
 	wait_count += (wait_refresh * 1.0);
 }
 
-void DrawThreadClass::do_update_screen(bitmap_t *p)
+void DrawThreadClass::do_update_screen(void *p, bool is_mapped)
 {
-	draw_screen_buffer = p;
+	draw_screen_buffer = (bitmap_t*)p;
 	bDrawReq = true;
+	mapped_drawn = is_mapped;
 }
 	
 void DrawThreadClass::do_req_encueue_video(int count, int width, int height)
@@ -213,7 +214,6 @@ void DrawThreadClass::req_map_screen_texture()
 	mapping_width = 0;
 	mapping_height = 0;
 	if(glv->is_ready_to_map_vram_texture()) {
-		emit sig_map_texture();
 		textureMappingSemaphore->acquire();
 		//mapping_pointer = (scrntype_t *)(glv->do_map_vram_texture(&mapping_width, &mapping_height));
 		//if(mapping_pointer == NULL) {

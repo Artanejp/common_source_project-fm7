@@ -1,14 +1,14 @@
 /*
- * qt_glutil_gl3_0.cpp
+ * qt_glutil_gl4_5.cpp
  * (c) 2016 K.Ohta <whatisthis.sowhat@gmail.com>
  * License: GPLv2.
- * Renderer with OpenGL v3.0 (extend from renderer with OpenGL v2.0).
+ * Renderer with OpenGL v4.5 (extend from renderer with OpenGL v2.0).
  * History:
  * Jan 22, 2016 : Initial.
  */
 
-#ifndef _QT_COMMON_GLUTIL_4_3_H
-#define _QT_COMMON_GLUTIL_4_3_H
+#ifndef _QT_COMMON_GLUTIL_4_5_H
+#define _QT_COMMON_GLUTIL_4_5_H
 
 #include <QString>
 #include "../gl/qt_glutil_gl_tmpl.h"
@@ -16,17 +16,17 @@
 QT_BEGIN_NAMESPACE
 class GLScreenPack;
 class CSP_Logger;
-class QOpenGLFunctions_4_3_Core;
+class QOpenGLFunctions_4_5_Core;
 class QOpenGLBuffer;
 class QOpenGLVertexArrayObject;
 class QOpenGLShaderProgram;
 class QOpenGLPixelTransferOptions;
 
-class DLL_PREFIX GLDraw_4_3 : public GLDraw_Tmpl
+class DLL_PREFIX GLDraw_4_5 : public GLDraw_Tmpl
 {
 	Q_OBJECT
 private:
-	QOpenGLFunctions_4_3_Core *extfunc;
+	QOpenGLFunctions_4_5_Core *extfunc;
 	float ringing_phase;
 protected:
 	const float luma_filter[24 + 1] = {
@@ -94,6 +94,7 @@ protected:
 	int pixel_width;
 	int pixel_height;
 	GLuint main_texture_buffer;
+	GLsync sync_fence;
 	scrntype_t *map_base_address;
 	
 	GLScreenPack *main_pass;
@@ -177,8 +178,8 @@ protected:
 	void updateButtonTexture(void);
 
 public:
-	GLDraw_4_3(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);
-	~GLDraw_4_3();
+	GLDraw_4_5(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);
+	~GLDraw_4_5();
 	void drawButtons(void);
 	virtual void initGLObjects();
 	virtual void initLocalGLObjects(void);
@@ -186,7 +187,7 @@ public:
 	void initButtons(void);
 	//virtual void initBitmapVertex(void);
 	
-	virtual void uploadMainTexture(QImage *p, bool chromakey);
+	virtual void uploadMainTexture(QImage *p, bool chromakey, bool was_mapped);
 	virtual void drawScreenTexture(void);
 	virtual void do_set_screen_multiply(float mul);
 	virtual void doSetGridsHorizonal(int lines, bool force);
@@ -200,6 +201,16 @@ public:
 	bool is_ready_to_map_vram_texture(void);
 	bool map_vram_texture(void);
 	bool unmap_vram_texture(void);
+	virtual bool is_mapped_buffer(void) {
+		if(main_texture_buffer == 0) {
+			return false;
+		}
+		return true;
+	}
+	// ToDo: Double buffer
+	virtual GLuint get_mapped_buffer_num(int region) {
+		return (GLuint)main_texture_buffer;
+	}
 
 public slots:
 	void updateBitmap(QImage *);

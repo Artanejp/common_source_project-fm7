@@ -254,7 +254,7 @@ public:
 	virtual void initLocalGLObjects(void) {}
 	virtual void initOsdObjects(void) {}
 
-	virtual void uploadMainTexture(QImage *p, bool chromakey) {}
+	virtual void uploadMainTexture(QImage *p, bool chromakey, bool was_mapped) {}
 
 	virtual void drawScreenTexture(void) {}
 	virtual void drawGrids(void) { }
@@ -355,7 +355,8 @@ public slots:
 	virtual void do_set_display_osd(bool onoff) { }
 	virtual void do_display_osd_leds(int lednum, bool onoff) { }
 	virtual void do_set_led_width(int bitwidth) { }
-
+	virtual bool is_mapped_buffer(void) { return false; }
+	virtual GLuint get_mapped_buffer_num(int region) { return (GLuint)0; }
 signals:
 	int sig_push_image_to_movie(int, int, int, QImage *);
 };

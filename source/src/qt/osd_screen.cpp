@@ -16,6 +16,7 @@
 #include <QDateTime>
 #include <QImageReader>
 #include <QMutexLocker>
+#include <QOpenGLContext>
 
 #include "qt_gldraw.h"
 #include "osd_base.h"
@@ -123,12 +124,23 @@ int OSD_BASE::draw_screen()
 {
 	// draw screen
 	QMutexLocker Locker_S(screen_mutex);
+	bool mapped = false;
 	//QMutexLocker Locker_VM(vm_mutex);
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
 		//emit sig_movie_set_width(vm_screen_width);
 		//emit sig_movie_set_height(vm_screen_height);
 		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
 	}
+	#if 1
+	if(p_glv->is_ready_to_map_vram_texture()) {
+		vm_screen_buffer.is_mapped = true;
+		mapped = true;
+	} else {
+		vm_screen_buffer.is_mapped = false;
+	}
+	#else
+			vm_screen_buffer.is_mapped = false;
+	#endif
 	this->vm_draw_screen();
 	// screen size was changed in vm->draw_screen()
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
@@ -138,7 +150,7 @@ int OSD_BASE::draw_screen()
 	
 	// calculate screen size
 	// invalidate window
-	emit sig_update_screen(draw_screen_buffer);
+	emit sig_update_screen((void *)draw_screen_buffer, mapped);
 
 	first_draw_screen = self_invalidate = true;
 	
@@ -192,6 +204,8 @@ void OSD_BASE::initialize_screen_buffer(bitmap_t *buffer, int width, int height,
 	QColor fillcolor;
 	fillcolor.setRgb(0, 0, 0, 255);
 	buffer->pImage.fill(fillcolor);
+	buffer->glv = p_glv;
+	buffer->is_mapped = false;
 	//emit sig_movie_set_width(width);
 	//emit sig_movie_set_height(height);
 	emit sig_resize_vm_screen(&(buffer->pImage), width, height);
@@ -204,6 +218,8 @@ void OSD_BASE::release_screen_buffer(bitmap_t *buffer)
 	}
 	buffer->width = 0;
 	buffer->height = 0;
+	buffer->is_mapped = false;
+	buffer->glv = NULL;
 	//memset(buffer, 0, sizeof(bitmap_t));
 }
 

@@ -71,7 +71,7 @@ public:
 	virtual void initLocalGLObjects(void);
 	virtual void initOsdObjects(void);
 
-	virtual void uploadMainTexture(QImage *p, bool chromakey);
+	virtual void uploadMainTexture(QImage *p, bool chromakey, bool was_mapped);
 
 	virtual void drawScreenTexture(void);
 	void drawGrids(void);

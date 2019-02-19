@@ -22,8 +22,10 @@ class OSD;
 class CSP_Logger;
 class QSemaphore;
 class QScreen;
+class QOpenGLContext;
 class USING_FLAGS;
 QT_BEGIN_NAMESPACE
+#include "../osd_types.h"
 
 class DLL_PREFIX DrawThreadClass : public QThread {
 	Q_OBJECT
@@ -31,7 +33,10 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	OSD *p_osd;
 	Ui_MainWindowBase *MainWindow;
 	GLDrawClass *glv;
-
+	
+	QOpenGLContext *glContext;
+	bool is_shared_glcontext;
+	
 	qreal refresh_rate;
 	qreal wait_refresh;
 	qreal wait_count;
@@ -72,7 +77,7 @@ public slots:
 	void doExit(void);
 	void doDraw(bool flag);
 	void do_change_refresh_rate(qreal rate);
-	void do_update_screen(bitmap_t *p);
+	void do_update_screen(void *p, bool is_mapped);
 	void do_req_encueue_video(int count, int width, int height);
 	void do_draw_one_turn(bool _req_draw);
 	void do_set_frames_per_second(double fps);
@@ -81,10 +86,20 @@ public slots:
 
 	void req_map_screen_texture();
 	void req_unmap_screen_texture();
+
+	bool is_glcontext_shared(void)
+	{
+		return is_shared_glcontext;
+	}
+	
+	QOpenGLContext *get_gl_context(void)
+	{
+		return glContext;
+	}
 signals:
 	int sig_draw_frames(int);
 	int message_changed(QString);
-	int sig_update_screen(bitmap_t *);
+	int sig_update_screen(void *, bool);
 	int sig_update_osd(void);
 	int sig_draw_timing(bool);
 	int sig_push_frames_to_avio(int, int, int);

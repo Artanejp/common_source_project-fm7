@@ -14,11 +14,12 @@
 #include <QTextCodec>
 #include <QWaitCondition>
 #include <QWidget>
+#include <QOpenGLContext>
 
 #include <SDL.h>
 
 #include "emu_thread_tmpl.h"
-
+#include "mainwidget_base.h"
 #include "qt_gldraw.h"
 #include "common.h"
 
@@ -27,10 +28,24 @@
 //#include "csp_logger.h"
 #include "menu_flags.h"
 
-EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, USING_FLAGS *p, QObject *parent) : QThread(parent) {
+EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, USING_FLAGS *p, QObject *parent) : QThread(parent) {
 	MainWindow = rootWindow;
 	using_flags = p;
 	p_config = p->get_config_ptr();
+
+
+	is_shared_glcontext = false;
+	glContext = NULL;
+	glContext = new QOpenGLContext(this);
+
+	if(glContext != NULL) {
+		glContext->setShareContext(rootWindow->getGraphicsView()->context());
+		glContext->create();
+	}
+	if(glContext->isValid()) {
+		is_shared_glcontext = true;
+		printf("Context sharing succeeded.ADDR=%08x GLES=%s\n", glContext, (glContext->isOpenGLES()) ? "YES" : "NO");
+	}
 	
 	bRunThread = true;
 	prev_skip = false;
@@ -71,6 +86,7 @@ EmuThreadClassBase::EmuThreadClassBase(META_MainWindow *rootWindow, USING_FLAGS 
 };
 
 EmuThreadClassBase::~EmuThreadClassBase() {
+	
 	delete drawCond;
 
 	key_fifo->release();
