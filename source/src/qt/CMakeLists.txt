@@ -41,6 +41,7 @@ include (GenerateExportHeader)
 
 target_link_libraries(CSPosd PUBLIC
           ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a
+          ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPgui.dll.a
 #          ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libqt_avio.a
 	  Qt5::Core
 	  Qt5::Gui

@@ -149,10 +149,10 @@ cp ./libCSPfmgen/build-win32/vm/fmgen/*.dll ./bin-win32/
 cp ./libCSPfmgen/build-win32/vm/fmgen/*.a   ./bin-win32/
 
 
-build_dll libCSPosd
-cp ./libCSPosd/build-win32/qt/osd/*.h   ./bin-win32/
-cp ./libCSPosd/build-win32/qt/osd/*.dll ./bin-win32/
-cp ./libCSPosd/build-win32/qt/osd/*.a   ./bin-win32/
+#build_dll libCSPosd
+#cp ./libCSPosd/build-win32/qt/osd/*.h   ./bin-win32/
+#cp ./libCSPosd/build-win32/qt/osd/*.dll ./bin-win32/
+#cp ./libCSPosd/build-win32/qt/osd/*.a   ./bin-win32/
 
 build_dll libCSPavio
 cp ./libCSPavio/build-win32/qt/avio/*.h   ./bin-win32/
@@ -175,6 +175,11 @@ build_dll libCSPgui
 cp ./libCSPgui/build-win32/qt/gui/*.h   ./bin-win32/
 cp ./libCSPgui/build-win32/qt/gui/*.dll ./bin-win32/
 cp ./libCSPgui/build-win32/qt/gui/*.a   ./bin-win32/
+
+build_dll libCSPosd
+cp ./libCSPosd/build-win32/qt/osd/*.h   ./bin-win32/
+cp ./libCSPosd/build-win32/qt/osd/*.dll ./bin-win32/
+cp ./libCSPosd/build-win32/qt/osd/*.a   ./bin-win32/
 
 for SRCDATA in $@ ; do\
 
