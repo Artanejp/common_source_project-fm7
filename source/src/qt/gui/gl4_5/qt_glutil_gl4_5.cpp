@@ -36,6 +36,7 @@
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
+#include <QMutex>
 
 #include <QOpenGLFunctions_4_5_Core>
 
@@ -73,6 +74,7 @@ GLDraw_4_5::GLDraw_4_5(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	pixel_height = 0;
 	main_texture_buffer = 0;
 	map_base_address = NULL;
+	main_mutex = new QMutex();
 }
 
 GLDraw_4_5::~GLDraw_4_5()
@@ -126,16 +128,19 @@ QOpenGLTexture *GLDraw_4_5::createMainTexture(QImage *img)
 	//tx->setFormat(QOpenGLTexture::RGBA8_UNorm);
 	
 	if(main_texture_buffer != 0) {
+		main_mutex->lock();
 		this->unmap_vram_texture();
 		map_base_address = NULL;
 		extfunc->glDeleteBuffers(1, &main_texture_buffer);
 		main_texture_buffer = 0;
+		main_mutex->unlock();
 	}
 	{
+		main_mutex->lock();
 		extfunc->glGenBuffers(1, &main_texture_buffer);
 		extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
 		//extfunc->glBufferData(GL_PIXEL_UNPACK_BUFFER, w * h * sizeof(uint32_t), ip->constBits(), GL_DYNAMIC_COPY);
-		extfunc->glBufferStorage(GL_PIXEL_UNPACK_BUFFER, w * h * sizeof(uint32_t), ip->constBits(), GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT | GL_MAP_READ_BIT);
+		extfunc->glBufferStorage(GL_PIXEL_UNPACK_BUFFER, w * h * sizeof(uint32_t), ip->constBits(),  GL_DYNAMIC_STORAGE_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
 		tx = new QOpenGLTexture(QOpenGLTexture::Target2D);
 		tx->setFormat(QOpenGLTexture::RGBA8_UNorm);
 		tx->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Nearest);
@@ -147,6 +152,7 @@ QOpenGLTexture *GLDraw_4_5::createMainTexture(QImage *img)
 		map_vram_texture();
 		pixel_width = w;
 		pixel_height = h;
+		main_mutex->unlock();
 		
 	}
 
@@ -791,7 +797,8 @@ void GLDraw_4_5::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mappe
 #if 1
 			if(map_base_address == NULL) {
 				extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
-				uint32_t *pp = (uint32_t *)(extfunc->glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY));
+				uint32_t* pp = (uint32_t *)(extfunc->glMapNamedBufferRange(main_texture_buffer, 0, pixel_width * pixel_height * sizeof(scrntype_t),  GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT));
+				//uint32_t *pp = (uint32_t *)(extfunc->glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY));
 				if(pp != NULL) {
 					int hh = (pixel_height < p->height()) ? pixel_height : p->height();
 					for(int y = 0; y < hh; y++) {
@@ -809,16 +816,23 @@ void GLDraw_4_5::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mappe
 				extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 			
 			} else {
-				printf("*\n");
-				extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
-				//extfunc->glFlushMappedBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, pixel_width *pixel_height * sizeof(scrntype_t));
-				//extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
+				main_mutex->lock();
+				extfunc->glFlushMappedBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, pixel_width *pixel_height * sizeof(scrntype_t));
+				extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
+				extfunc->glDeleteSync(sync_fence);
+				sync_fence = extfunc->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,  0);
 
+				extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
 				extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID->textureId());
 				//extfunc->glActiveTexture(GL_TEXTURE0);
 				extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pixel_width, pixel_height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 				extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 				extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+			   
+				extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
+				extfunc->glDeleteSync(sync_fence);
+				sync_fence = extfunc->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,  0);
+				main_mutex->unlock();
 			}
 #else
 			uVramTextureID->setData(*p, QOpenGLTexture::DontGenerateMipMaps);
@@ -1050,6 +1064,10 @@ void GLDraw_4_5::drawMain(QOpenGLShaderProgram *prg,
 		prg->release();
 		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 	}
+	
+	//extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
+	//extfunc->glDeleteSync(sync_fence);
+	//sync_fence = extfunc->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,  0);
 }
 
 void GLDraw_4_5::drawMain(GLScreenPack *obj,
@@ -1821,8 +1839,12 @@ scrntype_t *GLDraw_4_5::get_screen_buffer(int y)
 	if(map_base_address == NULL) {
 		return NULL;
 	} else {
+		main_mutex->lock();
+		//extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
 		scrntype_t *p = (scrntype_t *)map_base_address;
 		p = p + (pixel_width * y);
+		//printf("%08x\n", (uintptr_t)p);   
+		main_mutex->unlock();
 		return p;
 	}
 }
@@ -1853,11 +1875,14 @@ bool GLDraw_4_5::map_vram_texture(void)
 	if(gl_minor_version < 4) {
 		return false;
 	}
-#if 1
+#if 0
 	return false;
 #else
-	extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
-	map_base_address = (scrntype_t *)(extfunc->glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, pixel_width * pixel_height * sizeof(scrntype_t), GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT));
+	extfunc->glWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
+	extfunc->glDeleteSync(sync_fence);
+	sync_fence = extfunc->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,  0);
+	//extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
+	map_base_address = (scrntype_t *)(extfunc->glMapNamedBufferRange(main_texture_buffer, 0, pixel_width * pixel_height * sizeof(scrntype_t),  GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT));
 	printf("%08x\n", map_base_address);
 	extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	if(map_base_address == NULL) return false;

@@ -297,7 +297,7 @@ void GLDrawClass::InitFBO(void)
 		QPair<int, int> _glversion = _fmt.version();
 		if(((_glversion.first >= 5) || ((_glversion.first == 4) && (_glversion.second >= 5))) &&
 		   (extfunc == NULL) &&
-		  ((_major_version >= 5) || ((_major_version == 4) && (_minor_version >= 5)))){
+		  ((_major_version >= 5) || ((_major_version == 4) && (_minor_version >= 3)))){
 			extfunc = new GLDraw_4_5(this, using_flags, csp_logger); // ToDo
 			if(extfunc != NULL) {
 				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v4.5(CORE) Renderer");

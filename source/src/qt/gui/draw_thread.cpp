@@ -245,27 +245,3 @@ void DrawThreadClass::req_unmap_screen_texture()
 	}
 }
 
-void DrawThreadClass::do_recv_texture_map_status(bool f, void *p, int width, int height)
-{
-	mapping_status = f;
-	mapping_pointer = (scrntype_t *)p;
-	mapping_width = width;
-	mapping_height = height;
-	p_osd->do_set_screen_map_texture_address(mapping_pointer, mapping_width, mapping_height);
-	//printf("%08x\n", mapping_pointer);
-	if(mapping_status) {
-		mapped_drawn = true;
-	}
-	textureMappingSemaphore->release(1);
-}
-
-void DrawThreadClass::do_recv_texture_unmap_status(void)
-{
-	mapping_status = false;
-	mapping_pointer = NULL;
-	mapping_width = 0;
-	mapping_height = 0;
-	mapped_drawn = false;
-	p_osd->do_set_screen_map_texture_address(mapping_pointer, mapping_width, mapping_height);
-	textureMappingSemaphore->release(1);
-}

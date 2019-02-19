@@ -80,45 +80,22 @@ void OSD_BASE::set_vm_screen_size(int screen_width, int screen_height, int windo
 
 scrntype_t* OSD_BASE::get_vm_screen_buffer(int y)
 {
-	if(mapped_screen_status) {
-		if((mapped_screen_width > 0) && (mapped_screen_pointer != NULL)){
-			if(y < mapped_screen_height) {
-				int offset = y * mapped_screen_width;
-				scrntype_t *p = mapped_screen_pointer;
-				p = p + offset;
-				return p;
-			} else {
-				return NULL;
-			}
-		} else {
-			return NULL;
-		}
-	}
 	return get_buffer(&vm_screen_buffer, y);
 }
 
 scrntype_t* OSD_BASE::get_buffer(bitmap_t *p, int y)
 {
+	if(p_glv->is_ready_to_map_vram_texture()) {
+		if(p == &vm_screen_buffer) {
+			return (scrntype_t *)p->get_buffer(y);
+		}
+	}
 	if((y >= p->pImage.height()) || (y < 0) || (y >= p->height)) {
 		return NULL;
 	}
 	return (scrntype_t *)p->pImage.scanLine(y);
 }
 
-void OSD_BASE::do_set_screen_map_texture_address(scrntype_t *p, int width, int height)
-{
-	if((p != NULL) && (width > 0) && (height > 0)) {
-		mapped_screen_pointer = p;
-		mapped_screen_width = width;
-		mapped_screen_height = height;
-		mapped_screen_status = true;
-	} else {
-		mapped_screen_pointer = NULL;
-		mapped_screen_width = 0;
-		mapped_screen_height = 0;
-		mapped_screen_status = false;
-	}
-}
 
 int OSD_BASE::draw_screen()
 {
@@ -135,6 +112,7 @@ int OSD_BASE::draw_screen()
 	if(p_glv->is_ready_to_map_vram_texture()) {
 		vm_screen_buffer.is_mapped = true;
 		mapped = true;
+		vm_screen_buffer.glv = p_glv;
 	} else {
 		vm_screen_buffer.is_mapped = false;
 	}
@@ -384,7 +362,27 @@ int OSD_BASE::add_video_frames()
 		//int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;
 		rec_image_buffer = QImage(background_image);
-		QImage *video_result = &(vm_screen_buffer.pImage);
+		QImage *video_result;
+		if(p_glv->is_ready_to_map_vram_texture()) {
+			vm_screen_buffer.is_mapped = true;
+			vm_screen_buffer.glv = p_glv;
+			for(int y = 0; y < vm_screen_buffer.pImage.height(); y++) {
+				scrntype_t *p = vm_screen_buffer.get_buffer(y);
+				if(p != NULL) {
+					if(p != vm_screen_buffer.pImage.scanLine(y)) {
+						memcpy(vm_screen_buffer.pImage.scanLine(y), p, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
+					} else {
+						memset(vm_screen_buffer.pImage.scanLine(y), 0x00, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
+					}
+				} else {
+					if(vm_screen_buffer.pImage.scanLine(y) != NULL) {
+						memset(vm_screen_buffer.pImage.scanLine(y), 0x00, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
+					}
+				}
+			}
+		}
+		video_result = &(vm_screen_buffer.pImage);
+
 		QRgb pixel;
 		int ww = video_result->width();
 		int hh = video_result->height();
@@ -413,6 +411,24 @@ int OSD_BASE::add_video_frames()
 	} else {
 		//int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;
+		if(p_glv->is_ready_to_map_vram_texture()) {
+			vm_screen_buffer.is_mapped = true;
+			vm_screen_buffer.glv = p_glv;
+			for(int y = 0; y < vm_screen_buffer.pImage.height(); y++) {
+				scrntype_t *p = vm_screen_buffer.get_buffer(y);
+				if(p != NULL) {
+					if(p != vm_screen_buffer.pImage.scanLine(y)) {
+						memcpy(vm_screen_buffer.pImage.scanLine(y), p, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
+					} else {
+						memset(vm_screen_buffer.pImage.scanLine(y), 0x00, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
+					}
+				} else {
+					if(vm_screen_buffer.pImage.scanLine(y) != NULL) {
+						memset(vm_screen_buffer.pImage.scanLine(y), 0x00, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
+					}
+				}
+			}
+		}
 		QImage video_result = QImage(vm_screen_buffer.pImage);
 		// Rescaling
 		if(i > 0) {

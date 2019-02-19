@@ -21,6 +21,7 @@ class QOpenGLBuffer;
 class QOpenGLVertexArrayObject;
 class QOpenGLShaderProgram;
 class QOpenGLPixelTransferOptions;
+class QMutex;
 
 class DLL_PREFIX GLDraw_4_5 : public GLDraw_Tmpl
 {
@@ -95,6 +96,7 @@ protected:
 	int pixel_height;
 	GLuint main_texture_buffer;
 	GLsync sync_fence;
+	QMutex *main_mutex;
 	scrntype_t *map_base_address;
 	
 	GLScreenPack *main_pass;

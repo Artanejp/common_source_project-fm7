@@ -81,8 +81,6 @@ public slots:
 	void do_req_encueue_video(int count, int width, int height);
 	void do_draw_one_turn(bool _req_draw);
 	void do_set_frames_per_second(double fps);
-	void do_recv_texture_map_status(bool f, void *p, int width, int height);
-	void do_recv_texture_unmap_status(void);
 
 	void req_map_screen_texture();
 	void req_unmap_screen_texture();

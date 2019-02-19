@@ -52,10 +52,6 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QThread(0)
 	max_vm_nodes = 0;
 	p_logger = logger;
 	
-	mapped_screen_pointer = NULL;
-	mapped_screen_width = 0;
-	mapped_screen_height = 0;
-	mapped_screen_status = false;
 	SupportedFeatures.clear();
 
 	is_glcontext_shared = false;
