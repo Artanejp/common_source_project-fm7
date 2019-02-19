@@ -84,8 +84,6 @@ void GLDrawClass::resizeGL(int width, int height)
 
 void GLDrawClass::paintGL(void)
 {
-	SaveToPixmap(); // If save requested, then Save to Pixmap.
-	//qWarning("Test");
 	if(extfunc != NULL) {
 		if(delay_update) {
 			extfunc->setVirtualVramSize(vram_width, vram_height);
@@ -95,6 +93,7 @@ void GLDrawClass::paintGL(void)
 		//extfunc->paintGL();
 	}
 	emit sig_draw_timing();
+	SaveToPixmap(); // If save requested, then Save to Pixmap.
 }
 
 scrntype_t* GLDrawClass::get_screen_buffer(int y)
@@ -115,11 +114,6 @@ void GLDrawClass::do_display_osd_leds(int lednum, bool onoff)
 	}
 }
 
-//void GLDrawClass::paintEvent(QPaintEvent *ev)
-//{
-//	// Do Nothing.
-//	// http://doc.qt.io/qt-5/qopenglwidget.html#Threading
-//}
 
 #ifndef GL_MULTISAMPLE
 #define GL_MULTISAMPLE  0x809D

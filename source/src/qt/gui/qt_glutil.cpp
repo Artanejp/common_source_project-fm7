@@ -343,7 +343,9 @@ void GLDrawClass::SaveToPixmap(void)
 {
 	if(save_pixmap_req) {
 		if(!filename_screen_pixmap.isEmpty()) {
-			QImage snapshot = this->grabFramebuffer();
+			//QImage snapshot = QImage(this->size(), QImage::Format_ARGB32_Premultiplied);
+			//glReadPixels(0, 0, this->width(), this->height(), GL_RGBA, GL_UNSIGNED_BYTE, snapshot.bits());
+			QImage snapshot = this->grabFramebuffer().convertToFormat(QImage::Format_RGB32);
 			snapshot.save(filename_screen_pixmap);
 		}
 		save_pixmap_req = false;

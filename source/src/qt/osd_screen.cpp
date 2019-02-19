@@ -361,8 +361,7 @@ int OSD_BASE::add_video_frames()
 	if(using_flags->is_use_one_board_computer()) {
 		//int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;
-		rec_image_buffer = QImage(background_image);
-		QImage *video_result;
+		rec_image_buffer = background_image.rgbSwapped();
 		if(p_glv->is_ready_to_map_vram_texture()) {
 			vm_screen_buffer.is_mapped = true;
 			vm_screen_buffer.glv = p_glv;
@@ -371,8 +370,6 @@ int OSD_BASE::add_video_frames()
 				if(p != NULL) {
 					if(p != vm_screen_buffer.pImage.scanLine(y)) {
 						memcpy(vm_screen_buffer.pImage.scanLine(y), p, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
-					} else {
-						memset(vm_screen_buffer.pImage.scanLine(y), 0x00, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
 					}
 				} else {
 					if(vm_screen_buffer.pImage.scanLine(y) != NULL) {
@@ -381,15 +378,15 @@ int OSD_BASE::add_video_frames()
 				}
 			}
 		}
-		video_result = &(vm_screen_buffer.pImage);
+		QImage video_result = QImage(vm_screen_buffer.pImage);
 
 		QRgb pixel;
-		int ww = video_result->width();
-		int hh = video_result->height();
+		int ww = video_result.width();
+		int hh = video_result.height();
 		//printf("%d x %d\n", ww, hh);
 		for(int yy = 0; yy < hh; yy++) {
 			for(int xx = 0; xx < ww; xx++) {
-				pixel = video_result->pixel(xx, yy);
+				pixel = video_result.pixel(xx, yy);
 #if defined(__LITTLE_ENDIAN__)
 				pixel |= 0xff000000;
 				if(pixel != 0xff000000) {
@@ -419,8 +416,6 @@ int OSD_BASE::add_video_frames()
 				if(p != NULL) {
 					if(p != vm_screen_buffer.pImage.scanLine(y)) {
 						memcpy(vm_screen_buffer.pImage.scanLine(y), p, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
-					} else {
-						memset(vm_screen_buffer.pImage.scanLine(y), 0x00, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
 					}
 				} else {
 					if(vm_screen_buffer.pImage.scanLine(y) != NULL) {
