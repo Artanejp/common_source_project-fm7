@@ -223,7 +223,7 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 		if((flag)/* && (flag != dma_enabled)*/) {
 			dma_connected = true;
 			reg_0c |= ADPCM_REMAIN_WRITE_BUF;
-			written_size = 0;
+			//written_size = 0;
 			if(d_pce->read_signal(SIG_PCE_CDROM_DATA_IN) != 0) {
 				do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
 				out_debug_log(_T("Start DMA port $0B/ALREADY READ DATA ADPCM_WRITE_PTR=%04x ADPCM_READ_PTR=%04x MSM_START_ADDR=%04x\n"),write_ptr, read_ptr, msm_ptr);
@@ -353,8 +353,7 @@ void ADPCM::do_cmd(uint8_t cmd)
 			reg_0c |= ADPCM_REMAIN_WRITE_BUF;
 		}
 		//written_size = written_size & 0xffff; // OK?
-		//written_size = 0; // OK?
-		
+		written_size = 0; // OK?
 	}
 	if((cmd & 0x10) != 0) {
 		// It's ugly... (;_;)
@@ -394,7 +393,7 @@ void ADPCM::do_cmd(uint8_t cmd)
 	} else {
 		if(adpcm_stream) {
 			if(written_size > 0x8000) {
-				req_play = false;
+				//req_play = false;
 			} else {
 				msm_last_cmd = cmd;
 				return; // Exit from command. 20190212 K.O
@@ -414,6 +413,7 @@ void ADPCM::do_cmd(uint8_t cmd)
 			msm_length  = adpcm_length; // OK?
 			do_play();
 			d_msm->reset_w(0);
+			written_size = 0; // OK?
 			out_debug_log(_T("ADPCM START PLAY(%s) START=%04x LENGTH=%04x HALF=%04x STREAM=%s\n"), (dma_enabled) ? _T("DMA") : _T("PIO"), msm_ptr, msm_length, half_addr, (adpcm_stream) ? _T("YES") : _T("NO"));
 		} else {
 			// 20181213 K.O: Import from Ootake v2.83.Thanks to developers of Ootake.
