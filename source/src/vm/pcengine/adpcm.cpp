@@ -223,7 +223,7 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 		if((flag)/* && (flag != dma_enabled)*/) {
 			dma_connected = true;
 			reg_0c |= ADPCM_REMAIN_WRITE_BUF;
-			//written_size = 0;
+			written_size = 0;
 			if(d_pce->read_signal(SIG_PCE_CDROM_DATA_IN) != 0) {
 				do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
 				out_debug_log(_T("Start DMA port $0B/ALREADY READ DATA ADPCM_WRITE_PTR=%04x ADPCM_READ_PTR=%04x MSM_START_ADDR=%04x\n"),write_ptr, read_ptr, msm_ptr);
@@ -250,6 +250,7 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 		break;
 	case SIG_ADPCM_FORCE_DMA_TRANSFER:
 		if(flag) {
+			if(!(dma_connected)) written_size = 0;
 			dma_connected = true;
 			if(d_pce->read_signal(SIG_PCE_CDROM_DATA_IN) != 0) {
 				do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
@@ -260,6 +261,7 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 		if(flag) {
 			dma_connected = false;
 		}
+		break;
 	case SIG_ADPCM_ADDR_HI: // REG $09
 		if((msm_last_cmd & 0x80) == 0) {
 		addr_reg.b.h = data;
@@ -313,7 +315,7 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 void ADPCM::update_length()
 {
 	adpcm_length = (uint32_t)(addr_reg.w) & 0xffff; 
-	msm_length = adpcm_length;
+	msm_length = adpcm_length + 1;
 	out_debug_log(_T("ADPCM SET LENGTH TO %04x\n"), adpcm_length);
 }
 
@@ -357,6 +359,7 @@ void ADPCM::do_cmd(uint8_t cmd)
 	}
 	if((cmd & 0x10) != 0) {
 		// It's ugly... (;_;)
+#if 1		
 		uint32_t _clk = (ADPCM_CLOCK / 6) / adpcm_clock_divider;
 		if(((read_ptr & 0xffff) >= 0x4000) &&
 		   ((write_ptr & 0xffff) == 0x0000) &&
@@ -365,8 +368,9 @@ void ADPCM::do_cmd(uint8_t cmd)
 		   (_clk < 16000)) {
 			adpcm_length = adpcm_length & 0x7fff;
 		}
+#endif
 		half_addr = (read_ptr + ((adpcm_length + 1) >> 1)) & 0xffff;
-		msm_length = adpcm_length;
+		msm_length = adpcm_length + 1;
 		out_debug_log(_T("ADPCM SET LENGTH LENGTH=%04x\n"), adpcm_length);
 	}
 	if(((cmd & 0x02) != 0) && ((msm_last_cmd & 0x02) == 0)) {
@@ -410,12 +414,15 @@ void ADPCM::do_cmd(uint8_t cmd)
 			msm_ptr = read_ptr;
 			msm_nibble = 0;
 			play_in_progress = true;
-			msm_length  = adpcm_length; // OK?
+			msm_length  = adpcm_length + 1; // OK?
 			do_play();
 			d_msm->reset_w(0);
 			written_size = 0; // OK?
 			out_debug_log(_T("ADPCM START PLAY(%s) START=%04x LENGTH=%04x HALF=%04x STREAM=%s\n"), (dma_enabled) ? _T("DMA") : _T("PIO"), msm_ptr, msm_length, half_addr, (adpcm_stream) ? _T("YES") : _T("NO"));
 		} else {
+			//msm_length = adpcm_length;
+			//write_ptr &= 0xffff;
+			//read_ptr &= 0xffff;
 			// 20181213 K.O: Import from Ootake v2.83.Thanks to developers of Ootake.
 			if(((adpcm_length & 0xffff) >= 0x8000) && ((adpcm_length & 0xffff) <= 0x80ff)) {
 				half_addr = (read_ptr + 0x85) & 0xffff;
@@ -461,7 +468,7 @@ void ADPCM::do_vclk(bool flag)
 		// 20190216 K.O: Must wait when dma enabled and PCM data will empty, when DMA transferring.
 		if((play_in_progress) && !(adpcm_paused)) {
 			if(((dma_enabled ) && (dma_connected)) &&
-			   ((written_size < 0x40) /*&& (msm_length > 0)*/
+			   (/*(written_size < 0x200) && */((msm_ptr & 0x8000) == (write_ptr & 0x8000))
 				/*&& ((write_ptr & 0xffff) <= (msm_ptr & 0xffff))*/)) { // OK?
 				// ToDo: exception
 				d_msm->pause_w(1);
