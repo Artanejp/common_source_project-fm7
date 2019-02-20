@@ -70,8 +70,12 @@
 #if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
 #define USE_FLOPPY_DISK		4
 #endif
+// COLOR GAL 5 - 2019.01.24 Suga
 #if defined(_MZ80K)
-#define USE_MONITOR_TYPE	2
+#define USE_MONITOR_TYPE	8
+#endif
+#if defined(_MZ1200)
+#define USE_MONITOR_TYPE	4
 #endif
 #define USE_CPU_Z80
 

@@ -1180,8 +1180,14 @@ void IO::process_6303()
 			uint8_t ope = cmd6303_buf->read();
 			if(ope == 1) {
 				draw_point(x, y, 0);
-			} else {
+			} else if(ope == 2) {
 				draw_point(x, y, 1);
+			} else if(ope == 3) {
+				if(get_point(x, y)) {
+					draw_point(x, y, 0);
+				} else {
+					draw_point(x, y, 1);
+				}
 			}
 			rsp6303_buf->write(RCD00);
 			psr |= BIT_F1;
@@ -1212,11 +1218,7 @@ void IO::process_6303()
 			uint16_t ope = cmd6303_buf->read() << 8;
 			ope |= cmd6303_buf->read();
 			uint8_t mode = cmd6303_buf->read();
-			if(mode == 1) {
-				draw_line(sx, sy, ex, ey, ~ope);
-			} else {
-				draw_line(sx, sy, ex, ey, ope);
-			}
+			draw_line(sx, sy, ex, ey, ope, mode);
 			rsp6303_buf->write(RCD00);
 			psr |= BIT_F1;
 		}
@@ -1606,7 +1608,7 @@ void IO::draw_point(int x, int y, uint16_t dot)
 	}
 }
 
-void IO::draw_line(int sx, int sy, int ex, int ey, uint16_t ope)
+void IO::draw_line(int sx, int sy, int ex, int ey, uint16_t ope, uint8_t mode)
 {
 	int next_x = sx, next_y = sy;
 	int delta_x = abs(ex - sx) * 2;
@@ -1625,7 +1627,19 @@ void IO::draw_line(int sx, int sy, int ex, int ey, uint16_t ope)
 			}
 			next_x += step_x;
 			frac += delta_y;
-			draw_point(next_x, next_y, ope & 0x8000);
+			if(ope & 0x8000) {
+				if(mode == 1) {
+					draw_point(next_x, next_y, 0);
+				} else if(mode == 2) {
+					draw_point(next_x, next_y, 1);
+				} else if(mode == 3) {
+					if(get_point(next_x, next_y)) {
+						draw_point(next_x, next_y, 0);
+					} else {
+						draw_point(next_x, next_y, 1);
+					}
+				}
+			}
 			ope = (ope << 1) | (ope & 0x8000 ? 1 : 0);
 		}
 	} else {
@@ -1637,7 +1651,19 @@ void IO::draw_line(int sx, int sy, int ex, int ey, uint16_t ope)
 			}
 			next_y += step_y;
 			frac += delta_x;
-			draw_point(next_x, next_y, ope & 0x8000);
+			if(ope & 0x8000) {
+				if(mode == 1) {
+					draw_point(next_x, next_y, 0);
+				} else if(mode == 2) {
+					draw_point(next_x, next_y, 1);
+				} else if(mode == 3) {
+					if(get_point(next_x, next_y)) {
+						draw_point(next_x, next_y, 0);
+					} else {
+						draw_point(next_x, next_y, 1);
+					}
+				}
+			}
 			ope = (ope << 1) | (ope & 0x8000 ? 1 : 0);
 		}
 	}

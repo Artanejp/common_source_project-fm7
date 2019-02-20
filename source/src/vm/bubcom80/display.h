@@ -80,8 +80,8 @@ typedef struct {
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	void start(int c);
-	void finish(int c);
 	void run(int c);
+	void finish(int c);
 } dmac_t;
 
 class DISPLAY : public DEVICE

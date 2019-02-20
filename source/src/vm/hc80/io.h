@@ -62,7 +62,7 @@ private:
 	void process_6303();
 	uint8_t get_point(int x, int y);
 	void draw_point(int x, int y, uint16_t dot);
-	void draw_line(int sx, int sy, int ex, int ey, uint16_t ope);
+	void draw_line(int sx, int sy, int ex, int ey, uint16_t ope, uint8_t mode);
 	uint8_t cmd6303, psr;
 	FIFO *cmd6303_buf, *rsp6303_buf;
 	uint8_t ram[0x10000];

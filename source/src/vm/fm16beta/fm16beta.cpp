@@ -55,6 +55,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I286(this, emu);
 	io = new IO(this, emu);
 	dma = new I8237(this, emu);
+#ifdef USE_DEBUGGER
+	dma->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	sio = new I8251(this, emu);
 	pic = new I8259(this, emu);
 	fdc_2hd = new MB8877(this, emu);
@@ -392,7 +395,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

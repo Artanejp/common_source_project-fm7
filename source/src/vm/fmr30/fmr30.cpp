@@ -69,6 +69,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	dma = new I8237(this, emu);
+#ifdef USE_DEBUGGER
+	dma->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	sio_kb = new I8251(this, emu);	// keyboard
 	sio_kb->set_device_name(_T("8251 SIO (Keyboard)"));
 	sio_sub = new I8251(this, emu);	// sub display
@@ -434,7 +437,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	7
+#define STATE_VERSION	8
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

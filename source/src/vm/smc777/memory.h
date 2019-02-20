@@ -97,14 +97,17 @@ private:
 	scrntype_t palette_pc[16 + 16];	// color generator + palette board
 #if defined(_SMC70)
 	scrntype_t palette_bw_pc[2];
+#else
+	scrntype_t palette_line_text_pc[200][16];
+	scrntype_t palette_line_graph_pc[200][16];
 #endif
 	
-	void draw_text_80x25();
-	void draw_text_40x25();
-	void draw_graph_640x400();
-	void draw_graph_640x200();
-	void draw_graph_320x200();
-	void draw_graph_160x100();
+	void draw_text_80x25(int v);
+	void draw_text_40x25(int v);
+	void draw_graph_640x400(int v);
+	void draw_graph_640x200(int v);
+	void draw_graph_320x200(int v);
+	void draw_graph_160x100(int v);
 	
 	// kanji rom
 	uint8_t kanji[0x23400];
@@ -144,6 +147,7 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	void event_frame();
+	void event_vline(int v, int clock);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

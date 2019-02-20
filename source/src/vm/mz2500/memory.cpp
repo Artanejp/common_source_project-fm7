@@ -170,7 +170,7 @@ void MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 	addr &= 0xffff;
 	int b = addr >> 13;
 	write_data8_tmp(b, addr, data);
-	
+/*
 	if(busreq) {
 		*wait = 0;
 		extra_wait += page_wait[b];
@@ -178,6 +178,8 @@ void MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 		*wait = page_wait[b] + extra_wait;
 		extra_wait = 0;
 	}
+*/
+	*wait = page_wait[b];
 }
 
 uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
@@ -185,7 +187,7 @@ uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
 	addr &= 0xffff;
 	int b = addr >> 13;
 	uint32_t data = read_data8_tmp(b, addr);
-	
+/*
 	if(busreq) {
 		*wait = 0;
 		extra_wait += page_wait[b];
@@ -193,6 +195,8 @@ uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
 		*wait = page_wait[b] + extra_wait;
 		extra_wait = 0;
 	}
+*/
+	*wait = page_wait[b];
 	return data;
 }
 
@@ -313,6 +317,7 @@ void MEMORY::set_map(uint8_t data)
 		}
 		page_type[bank] = PAGE_TYPE_KANJI;
 		page_wait[bank] = 2;
+		is_vram[bank] = true;
 	} else if(data == 0x3a) {
 		// dictionary rom
 		SET_BANK(base,  base + 0x1fff, wdmy, dic + dic_bank * 0x2000);

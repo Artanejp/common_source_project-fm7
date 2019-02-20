@@ -94,6 +94,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #else
 	psg = new AY_3_891X(this, emu);
 #endif
+#ifdef USE_DEBUGGER
+	psg->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	cpu = new Z80(this, emu);
 	
 	if(config.printer_type == 0) {
@@ -728,7 +731,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

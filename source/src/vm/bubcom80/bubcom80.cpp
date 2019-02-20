@@ -122,12 +122,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// i/o bus
 	io->set_iomap_range_rw(0x0000, 0x0008, bubblecasette[0]);
 	io->set_iomap_range_rw(0x000c, 0x000d, membus);
-	io->set_iomap_range_rw(0x0010, 0x0011, display);
+//	io->set_iomap_range_rw(0x0010, 0x0011, display);
+	io->set_iomap_range_rw(0x0010, 0x001f, display); // not full-decoded ?
 	io->set_iomap_single_rw(0x0020, display);
 	io->set_iomap_range_rw(0x0030, 0x0031, sio_cmt);
 	io->set_iomap_range_rw(0x0040, 0x0043, ctc);
 	io->set_iomap_single_rw(0x0050, display);
-	io->set_iomap_range_rw(0x0060, 0x0068, display);
+//	io->set_iomap_range_rw(0x0060, 0x0068, display);
+	io->set_iomap_range_rw(0x0060, 0x006f, display); // not full-decoded ?
 	io->set_iomap_single_w(0x0080, membus);
 	io->set_iomap_range_r(0x0400, 0x047f, keyboard);
 	io->set_iomap_range_rw(0x0800, 0x0fff, display);

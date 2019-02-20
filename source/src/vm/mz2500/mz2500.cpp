@@ -108,6 +108,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	sasi_host->set_context_target(sasi_hdd);
 	w3100a = new W3100A(this, emu);
 	opn = new YM2203(this, emu);
+#ifdef USE_DEBUGGER
+	opn->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	cpu = new Z80(this, emu);
 	pio = new Z80PIO(this, emu);
 	sio = new Z80SIO(this, emu);
@@ -617,7 +620,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	7
+#define STATE_VERSION	8
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

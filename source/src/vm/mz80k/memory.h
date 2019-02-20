@@ -65,6 +65,15 @@ private:
 	
 	uint8_t screen[200][320];
 	uint8_t font[0x800];
+	
+#if defined(_MZ80K) || defined(_MZ1200)
+	// COLOR GAL 5 - 2019.01.24 Suga
+	uint8_t gal5_vram[0x400];		// Color attribute RAM 1KB
+	uint8_t gal5_wdat;		// Color palette data
+	uint8_t gal5_screen[200][320];
+	scrntype_t gal5_palette[8];
+#endif
+	
 #if defined(_MZ1200)
 	uint8_t pcg[0x1000];	// PCG-1200
 #else
@@ -81,6 +90,8 @@ private:
 	uint8_t pcg_data;
 	uint8_t pcg_addr;
 	uint8_t pcg_ctrl;
+	
+	void draw_line(int v);
 	
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)

@@ -56,8 +56,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	rtc = new HD146818P(this, emu);
 	dma0 = new I8237(this, emu);
+#ifdef USE_DEBUGGER
+	dma0->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	dma0->set_device_name(_T("8237 DMAC (FDC/GDC)"));
 	dma1 = new I8237(this, emu);
+#ifdef USE_DEBUGGER
+	dma1->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	dma1->set_device_name(_T("8237 DMAC (User)"));
 	pit0 = new I8253(this, emu);
 	pit0->set_device_name(_T("8253 PIT (Sound/PIC)"));
@@ -348,7 +354,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

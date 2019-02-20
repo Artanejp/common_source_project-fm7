@@ -111,9 +111,8 @@ private:
 	void draw_line_640x200_1bpp(int v);
 	void draw_line_640x200_2bpp(int v);
 	void draw_line_mz700(int v);
-#else
-	void draw_line(int v);
 #endif
+	void draw_line(int v);
 	
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)

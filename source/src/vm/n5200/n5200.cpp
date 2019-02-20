@@ -56,6 +56,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	beep = new BEEP(this, emu);
 	cpu = new I386(this, emu);
 	dma = new I8237(this, emu);
+#ifdef USE_DEBUGGER
+	dma->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	sio_r = new I8251(this, emu);	// for rs232c
 	sio_r->set_device_name(_T("8251 SIO (RS-232C)"));
 	sio_k = new I8251(this, emu);	// for keyboard
@@ -430,7 +433,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

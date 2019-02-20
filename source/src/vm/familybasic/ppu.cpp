@@ -327,7 +327,23 @@ void PPU::event_vline(int v, int clock)
 
 void PPU::draw_screen()
 {
-	
+	if(emu->now_waiting_in_debugger) {
+		// store regs
+		uint16_t tmp_loopy_v = loopy_v;
+		uint8_t tmp_status = regs[2];
+		
+		// drive vlines
+		if(spr_enabled() || bg_enabled()) {
+			loopy_v = loopy_t;
+		}
+		for(int v = 0; v < 240; v++) {
+			render_scanline(v);
+		}
+		
+		// restore regs
+		loopy_v = tmp_loopy_v;
+		regs[2] = tmp_status;
+	}
 	for(int y = 0; y < 240; y++) {
 		scrntype_t* dest = emu->get_screen_buffer(y);
 		uint8_t* src = screen[y];

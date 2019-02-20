@@ -80,8 +80,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	crtc = new HD46505(this, emu);
 	dma = new I8237(this, emu);
+#ifdef USE_DEBUGGER
+	dma->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 #ifndef TYPE_SL
 	dma2 = new I8237(this, emu);
+#ifdef USE_DEBUGGER
+	dma2->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 #endif
 #ifndef TYPE_SL
 	dma->set_device_name(_T("i8237 DMAC #1"));
@@ -433,7 +439,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

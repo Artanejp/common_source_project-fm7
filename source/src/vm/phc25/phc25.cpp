@@ -55,8 +55,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io = new IO(this, emu);
 	vdp = new MC6847(this, emu);
 	not_vsync = new NOT(this, emu);
-//	psg = new YM2203(this, emu);
 	psg = new AY_3_891X(this, emu);
+#ifdef USE_DEBUGGER
+	psg->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	cpu = new Z80(this, emu);
 	not_vsync->set_device_name(_T("NOT GATE(VSYNC)"));
 	
@@ -311,7 +313,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

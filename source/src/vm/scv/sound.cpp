@@ -259,7 +259,7 @@ void SOUND::mix(int32_t* buffer, int cnt)
 		// mix pcm
 		if(pcm.count) {
 			pcm.count -= pcm.diff;
-			while (pcm.count <= 0) {
+			while(pcm.count <= 0) {
 				pcm.count += PCM_PERIOD;
 				// low-pass filter for the next sample
 				if(++pcm.ptr < pcm_len) {
@@ -276,7 +276,7 @@ void SOUND::mix(int32_t* buffer, int cnt)
 			// mix tone
 			if(tone.volume && tone.period) {
 				tone.count -= tone.diff;
-				while (tone.count <= 0) {
+				while(tone.count <= 0) {
 					tone.count  += tone.period;
 					tone.ptr     = (tone.ptr + 1) & 0xff;
 					tone.output  = (timbre_table[tone.timbre][tone.ptr] * tone.volume) >> 8;
@@ -285,7 +285,7 @@ void SOUND::mix(int32_t* buffer, int cnt)
 			}
 			if(noise.volume && noise.period) {
 				noise.count -= noise.diff;
-				while (noise.count <= 0) {
+				while(noise.count <= 0) {
 					noise.count  += noise.period;
 					noise.ptr     = (noise.ptr + 1) & 0xff;
 //					noise.output  = (noise_table[noise.timbre][noise.ptr] * noise.volume) >> 8;
@@ -295,7 +295,7 @@ void SOUND::mix(int32_t* buffer, int cnt)
 			}
 			if(square1.volume && square1.period) {
 				square1.count -= square1.diff;
-				while (square1.count <= 0) {
+				while(square1.count <= 0) {
 					square1.count  += square1.period;
 					square1.ptr     = (square1.ptr + 1) & 0xff;
 					square1.output  = (square_table[square1.ptr] * square1.volume) >> 8;
@@ -304,7 +304,7 @@ void SOUND::mix(int32_t* buffer, int cnt)
 			}
 			if(square2.volume && square2.period) {
 				square2.count -= square2.diff;
-				while (square2.count <= 0) {
+				while(square2.count <= 0) {
 					square2.count  += square2.period;
 					square2.ptr     = (square2.ptr + 1) & 0xff;
 					square2.output  = (square_table[square2.ptr] * square2.volume) >> 8;
@@ -313,7 +313,7 @@ void SOUND::mix(int32_t* buffer, int cnt)
 			}
 			if(square3.volume && square3.period) {
 				square3.count -= square3.diff;
-				while (square3.count <= 0) {
+				while(square3.count <= 0) {
 					square3.count  += square3.period;
 					square3.ptr     = (square3.ptr + 1) & 0xff;
 					square3.output  = (square_table[square3.ptr] * square3.volume) >> 8;

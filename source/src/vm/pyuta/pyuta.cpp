@@ -43,6 +43,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	psg = new SN76489AN(this, emu);
 	vdp = new TMS9918A(this, emu);
+#ifdef USE_DEBUGGER
+	vdp->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	cpu = new TMS9995(this, emu);
 	
 	memory = new MEMORY(this, emu);
@@ -296,7 +299,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

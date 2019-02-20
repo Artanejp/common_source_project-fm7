@@ -1537,7 +1537,7 @@ void DISPLAY::egc_shiftinput_decw()
 			egc_inptr[12] = (uint8_t)value; \
 			egc_shiftinput_byte(addr & 1); \
 		} \
-	} while (0)
+	} while(0)
 
 #define EGC_OPE_SHIFTW(value) \
 	do { \
@@ -1564,7 +1564,7 @@ void DISPLAY::egc_shiftinput_decw()
 				egc_shiftinput_decw(); \
 			}  \
 		} \
-	} while (0)
+	} while(0)
 
 uint64_t DISPLAY::egc_ope_00(uint8_t ope, uint32_t addr)
 {

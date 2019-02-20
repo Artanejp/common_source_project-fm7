@@ -343,6 +343,27 @@ uint32_t PCE::read_io8(uint32_t addr)
 
 void PCE::draw_screen()
 {
+	if(emu->now_waiting_in_debugger) {
+		// store regs
+		vdc_t tmp_vdc_0 = vdc[0];
+#ifdef SUPPORT_SUPER_GFX
+		vdc_t tmp_vdc_1 = vdc[1];
+#endif
+		int tmp_line = vce.current_bitmap_line;
+		
+		// drive vlines
+		for(int v = /*get_cur_vline() + 1*/0; v < get_lines_per_frame(); v++) {
+			event_vline(v, 0);
+		}
+		
+		// restore regs
+		vdc[0] = tmp_vdc_0;
+#ifdef SUPPORT_SUPER_GFX
+		vdc[1] = tmp_vdc_1;
+#endif
+		vce.current_bitmap_line = tmp_line;
+	}
+	
 	int dx = (SCREEN_WIDTH - vdc[0].physical_width) / 2, sx = 0;
 	int dy = (SCREEN_HEIGHT - 240) / 2;
 	
@@ -776,8 +797,11 @@ void PCE::vdc_advance_line(int which)
 		}
 	}
 
-	if (ret)
-		d_cpu->write_signal(INPUT_LINE_IRQ1, HOLD_LINE, 0);
+	if (ret) {
+		if(!emu->now_waiting_in_debugger) {
+			d_cpu->write_signal(INPUT_LINE_IRQ1, HOLD_LINE, 0);
+		}
+	}
 }
 
 void PCE::vdc_reset()
@@ -1222,7 +1246,9 @@ void PCE::pce_refresh_sprites(int which, int line, uint8_t *drawn, scrntype_t *l
 				{
 					/* note: flag is set only if irq is taken, Mizubaku Daibouken relies on this behaviour */
 					vdc[which].status |= VDC_OR;
-					d_cpu->write_signal(INPUT_LINE_IRQ1, ASSERT_LINE, 0);
+					if(!emu->now_waiting_in_debugger) {
+						d_cpu->write_signal(INPUT_LINE_IRQ1, ASSERT_LINE, 0);
+					}
 				}
 				continue;  /* Should cause an interrupt */
 			}
@@ -1264,8 +1290,11 @@ void PCE::pce_refresh_sprites(int which, int line, uint8_t *drawn, scrntype_t *l
 							/* Check for sprite #0 collision */
 							else if (drawn[pixel_x] == 2)
 							{
-								if(vdc[which].vdc_data[CR].w.l & CR_CC)
-									d_cpu->write_signal(INPUT_LINE_IRQ1, ASSERT_LINE, 0);
+								if(vdc[which].vdc_data[CR].w.l & CR_CC) {
+									if(!emu->now_waiting_in_debugger) {
+										d_cpu->write_signal(INPUT_LINE_IRQ1, ASSERT_LINE, 0);
+									}
+								}
 								vdc[which].status |= VDC_CR;
 							}
 						}
@@ -1314,8 +1343,11 @@ void PCE::pce_refresh_sprites(int which, int line, uint8_t *drawn, scrntype_t *l
 							/* Check for sprite #0 collision */
 							else if ( drawn[pixel_x] == 2 )
 							{
-								if(vdc[which].vdc_data[CR].w.l & CR_CC)
-									d_cpu->write_signal(INPUT_LINE_IRQ1, ASSERT_LINE, 0);
+								if(vdc[which].vdc_data[CR].w.l & CR_CC) {
+									if(!emu->now_waiting_in_debugger) {
+										d_cpu->write_signal(INPUT_LINE_IRQ1, ASSERT_LINE, 0);
+									}
+								}
 								vdc[which].status |= VDC_CR;
 							}
 						}
@@ -1340,7 +1372,9 @@ void PCE::pce_refresh_sprites(int which, int line, uint8_t *drawn, scrntype_t *l
 					{
 						/* note: flag is set only if irq is taken, Mizubaku Daibouken relies on this behaviour */
 						vdc[which].status |= VDC_OR;
-						d_cpu->write_signal(INPUT_LINE_IRQ1, ASSERT_LINE, 0);
+						if(!emu->now_waiting_in_debugger) {
+							d_cpu->write_signal(INPUT_LINE_IRQ1, ASSERT_LINE, 0);
+						}
 					}
 				}
 				else
@@ -1373,8 +1407,11 @@ void PCE::pce_refresh_sprites(int which, int line, uint8_t *drawn, scrntype_t *l
 								/* Check for sprite #0 collision */
 								else if ( drawn[pixel_x] == 2 )
 								{
-									if(vdc[which].vdc_data[CR].w.l & CR_CC)
-										d_cpu->write_signal(INPUT_LINE_IRQ1, ASSERT_LINE, 0);
+									if(vdc[which].vdc_data[CR].w.l & CR_CC) {
+										if(!emu->now_waiting_in_debugger) {
+											d_cpu->write_signal(INPUT_LINE_IRQ1, ASSERT_LINE, 0);
+										}
+									}
 									vdc[which].status |= VDC_CR;
 								}
 							}

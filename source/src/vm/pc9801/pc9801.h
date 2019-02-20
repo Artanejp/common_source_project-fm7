@@ -194,6 +194,7 @@
 	#define MODE_PC88_V1H	2
 	#define MODE_PC88_V2	3
 	#define MODE_PC88_N	4
+	#define MODE_PC88_V2CD	5
 	#define SUPPORT_PC88_KANJI1
 	#define SUPPORT_PC88_KANJI2
 	//#define SUPPORT_PC88_DICTIONARY

@@ -9,6 +9,9 @@
 */
 
 #include "psg_stereo.h"
+#ifdef USE_DEBUGGER
+#include "../debugger.h"
+#endif
 
 #define USE_PSG_STEREO_REALLY
 #define DECIBEL_MIN (-120)
@@ -22,6 +25,10 @@ PSG_STEREO::PSG_STEREO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_
 	d_psg[1] = new AY_3_891X(parent_vm, parent_emu);
 //	d_psg[2] = new YM2203(parent_vm, parent_emu);
 	d_psg[2] = new AY_3_891X(parent_vm, parent_emu);
+#ifdef USE_DEBUGGER
+	d_psg[1]->set_context_debugger(new DEBUGGER(vm, emu));
+	d_psg[2]->set_context_debugger(new DEBUGGER(vm, emu));
+#endif
 	m_stereo = -1; // dummy
 #endif
 	set_device_name(_T("Stereo PSG"));

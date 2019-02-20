@@ -46,6 +46,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory = new MEMORY(this, emu);
 	psg = new SN76489AN(this, emu);
 	vdp = new TMS9918A(this, emu);
+#ifdef USE_DEBUGGER
+	vdp->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	cpu = new Z80(this, emu);
 	cmt = new CMT(this, emu);
 	key = new KEYBOARD(this, emu);
@@ -271,7 +274,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

@@ -101,7 +101,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		sasi_hdd[drv >> 1]->set_disk_handler(drv & 1, new HARDDISK(emu));
 	}
 	dma = new UPD71071(this, emu);
+#ifdef USE_DEBUGGER
+	dma->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	opn = new YM2203(this, emu);
+#ifdef USE_DEBUGGER
+	opn->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	pio1 = new Z80PIO(this, emu);
 	sio = new Z80SIO(this, emu);
 	
@@ -467,7 +473,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	8
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

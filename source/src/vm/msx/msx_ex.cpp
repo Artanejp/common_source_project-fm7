@@ -158,14 +158,19 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	ldp = new LD700(this, emu);
 #endif
 	not_remote = new NOT(this, emu);
-//	psg = new YM2203(this, emu);
 	psg = new AY_3_891X(this, emu);
+#ifdef USE_DEBUGGER
+	psg->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	pcm = new PCM1BIT(this, emu);
 #if !defined(_MSX1_VARIANTS)
 	rtc = new RP5C01(this, emu);
 	vdp = new V99X8(this, emu);
 #else
 	vdp = new TMS9918A(this, emu);
+#ifdef USE_DEBUGGER
+	vdp->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 #endif
 	cpu = new Z80(this, emu);
 	
@@ -697,7 +702,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
