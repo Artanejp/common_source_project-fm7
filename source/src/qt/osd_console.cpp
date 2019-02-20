@@ -82,10 +82,33 @@ bool OSD_BASE::is_console_active()
 
 void OSD_BASE::set_console_text_attribute(unsigned short attr)
 {
-	//SetConsoleTextAttribute(hStdOut, attr);
+	QString attr_table[] = {
+//		QString::fromUtf8("<FONT COLOR=black>"), // 0
+		QString::fromUtf8("<FONT COLOR=white>"), // 0 : OK?
+		QString::fromUtf8("<FONT COLOR=blue>"),  // 1
+		QString::fromUtf8("<FONT COLOR=green>"), // 2
+		QString::fromUtf8("<FONT COLOR=aqua>"),  // 3
+		QString::fromUtf8("<FONT COLOR=red>"),   // 4
+		QString::fromUtf8("<FONT COLOR=fuchsia>"),  // 5
+		QString::fromUtf8("<FONT COLOR=yellow>"),   // 6
+//		QString::fromUtf8("<FONT COLOR=gray>"),     // 7
+		QString::fromUtf8("<FONT COLOR=black>"),     // 7
+	};
+	uint32_t new_color = 0;
+	bool is_strong = false;
+	if(attr & OSD_CONSOLE_BLUE)  new_color |= 1;
+	if(attr & OSD_CONSOLE_GREEN) new_color |= 2;
+	if(attr & OSD_CONSOLE_RED)   new_color |= 4;
+
+	QString new_attr = attr_table[new_color];
+	if(attr & OSD_CONSOLE_INTENSITY) {
+		is_strong = true;
+	}
+	emit sig_set_attribute_debugger(new_attr, is_strong);
+	//SetConsoleTextAttribute(hStdOut, new_attr);
 }
 
-void OSD_BASE::write_console(_TCHAR* buffer, unsigned int length)
+void OSD_BASE::write_console(const _TCHAR* buffer, unsigned int length)
 {
 	QString s = QString::fromLocal8Bit((const char *)buffer, length);
 	emit sig_put_string_debugger(s);

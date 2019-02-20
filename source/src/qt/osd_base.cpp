@@ -51,6 +51,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QThread(0)
 	device_node_list.clear();
 	max_vm_nodes = 0;
 	p_logger = logger;
+	debug_mutex = new QMutex(QMutex::Recursive);
 	
 	SupportedFeatures.clear();
 
@@ -518,5 +519,20 @@ uint8_t OSD_BASE::get_feature_uint8_value(const _TCHAR *key)
 	return (uint8_t)(get_feature_uint32_value(key) & 0xff);
 }
 
-		
-		
+void OSD_BASE::start_waiting_in_debugger()
+{
+	// ToDo: Wait for rising up debugger window.
+	debug_mutex->lock(); 
+}
+
+void OSD_BASE::finish_waiting_in_debugger()
+{
+	// ToDo: Wait for closing up debugger window.
+	debug_mutex->unlock(); 
+}
+
+void OSD_BASE::process_waiting_in_debugger()
+{
+	// ToDo: Check sequence
+	this->msleep(10);
+}

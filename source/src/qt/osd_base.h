@@ -42,6 +42,13 @@
 #define WM_SOCKET2 (WM_USER + 4)
 #define WM_SOCKET3 (WM_USER + 5)
 
+// osd common
+
+#define OSD_CONSOLE_BLUE       1 // text color contains blue
+#define OSD_CONSOLE_GREEN      2 // text color contains green
+#define OSD_CONSOLE_RED                4 // text color contains red
+#define OSD_CONSOLE_INTENSITY  8 // text color is intensified
+
 //#ifdef USE_VIDEO_CAPTURE
 #define MAX_CAPTURE_DEVS 8
 //#endif
@@ -275,6 +282,7 @@ public:
 	GLDrawClass *glv;
 	QMutex *screen_mutex;
 	QMutex *vm_mutex;
+	QMutex *debug_mutex;
 	
 	int host_cpus;
 	bool now_auto_key;
@@ -296,7 +304,7 @@ public:
 	unsigned int get_console_code_page();
 	bool is_console_active();
 	void set_console_text_attribute(unsigned short attr);
-	void write_console(_TCHAR* buffer, unsigned int length);
+	void write_console(const _TCHAR* buffer, unsigned int length);
 	int read_console_input(_TCHAR* buffer, int length);
 	bool is_console_key_pressed(uint32_t ch);
 	
@@ -482,7 +490,11 @@ public:
 	QOpenGLContext *get_gl_context();
 	GLDrawClass *get_gl_view();
 
-	
+	// common debugger
+	void start_waiting_in_debugger();
+	void finish_waiting_in_debugger();
+	void process_waiting_in_debugger();
+
 public slots:
 	void do_write_inputdata(QString s);
 	void do_set_input_string(QString s);
@@ -527,7 +539,7 @@ signals:
 	int sig_enable_mouse(void);
 	int sig_disable_mouse(void);
 	int sig_close_console(void);
-
+	int sig_set_attribute_debugger(QString, bool);
 	int sig_move_mouse_to_center(void);
 	
 };

@@ -754,11 +754,17 @@ void OSD::set_features_vm(void)
 #ifdef HD46505_CHAR_CLOCK
 	add_feature(_T("HD46505_CHAR_CLOCK"), (float)HD46505_CHAR_CLOCK);
 #endif
+#ifdef HD46505_HORIZ_FREQ
+	add_feature(_T("HD46505_HORIZ_FREQ"), (float)HD46505_HORIZ_FREQ);
+#endif
 #ifdef _315_5124_LIMIT_SPRITES
 	add_feature(_T("_315_5124_LIMIT_SPRITES"), 1);
 #endif
 #ifdef HAS_AY_3_8910
 	add_feature(_T("HAS_AY_3_8910"));
+#endif
+#ifdef HAS_AY_3_8912
+	add_feature(_T("HAS_AY_3_8912"));
 #endif
 #ifdef HAS_AY_3_8913
 	add_feature(_T("HAS_AY_3_8913"));
@@ -800,6 +806,13 @@ void OSD::set_features_vm(void)
 #ifdef HAS_MB89311
 	add_feature(_T("HAS_MB89311"), 1);
 #endif
+#ifdef MB8877_NO_BUSY_AFTER_SEEK
+	add_feature(_T("MB8877_NO_BUSY_AFTER_SEEK"), 1);
+#endif
+#ifdef MB8877_DELAY_AFTER_SEEK
+	add_feature(_T("MB8877_DELAY_AFTER_SEEK"), (int)MB8877_DELAY_AFTER_SEEK);
+#endif
+	
 #ifdef I8259_MAX_CHIPS
 	add_feature(_T("I8259_MAX_CHIPS"), (uint32_t)I8259_MAX_CHIPS);
 #endif
@@ -912,6 +925,8 @@ void OSD::set_features_vm(void)
 #ifdef UPD7220_HORIZ_FREQ
 	add_feature(_T("UPD7220_HORIZ_FREQ"), (int)UPD7220_HORIZ_FREQ);
 #endif
+
+	
 #ifdef UPD7220_FIXED_PITCH
 	add_feature(_T("UPD7220_FIXED_PITCH"), 1);
 #endif
@@ -1056,6 +1071,9 @@ void OSD::set_features_misc(void)
 #endif
 #ifdef CHARS_PER_LINE
 	add_feature(_T("CHARS_PER_LINE"), (int)CHARS_PER_LINE);
+#endif
+#ifdef LINES_PER_FRAME
+	add_feature(_T("LINES_PER_FRAME"), (int)LINES_PER_FRAME);
 #endif
 #ifdef USE_ALPHA_BLENDING_TO_IMPOSE
 	add_feature(_T("USE_ALPHA_BLENDING_TO_IMPOSE"), 1);
