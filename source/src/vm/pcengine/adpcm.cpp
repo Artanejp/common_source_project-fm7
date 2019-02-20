@@ -498,10 +498,10 @@ void ADPCM::do_vclk(bool flag)
 						}
 					}
 								
-				if((written_size > 0) /*&& !(adpcm_stopped)*/) written_size--;
 			   
 				__skip0:
 					if(!(need_wait)) {
+						if((written_size > 0) /*&& !(adpcm_stopped)*/) written_size--;
 						
 						msm_ptr++;
 						read_ptr = msm_ptr & 0xffff;
