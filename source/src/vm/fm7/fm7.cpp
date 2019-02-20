@@ -164,15 +164,26 @@ VM::VM(EMU* parent_emu): VM_TEMPLATE(parent_emu)
 #  else
 	psg = new YM2203(this, emu);
 #  endif
+#  ifdef USE_DEBUGGER
+	psg->set_context_debugger(new DEBUGGER(this, emu));
+#  endif
 #else	
 	opn[0] = new YM2203(this, emu); // OPN
 	opn[1] = new YM2203(this, emu); // WHG
 	opn[2] = new YM2203(this, emu); // THG
+#  ifdef USE_DEBUGGER
+	opn[0]->set_context_debugger(new DEBUGGER(this, emu));
+	opn[1]->set_context_debugger(new DEBUGGER(this, emu));
+	opn[2]->set_context_debugger(new DEBUGGER(this, emu));
+#  endif
 # if !defined(_FM77AV_VARIANTS)
 #  if defined(USE_AY_3_8910_AS_PSG)
 	psg = new AY_3_891X(this, emu);
 #  else
 	psg = new YM2203(this, emu);
+#  endif
+#  ifdef USE_DEBUGGER
+	psg->set_context_debugger(new DEBUGGER(this, emu));
 #  endif
 # endif	
 #endif

@@ -118,20 +118,28 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
 		sasi_hdd[drv >> 1]->set_disk_handler(drv & 1, new HARDDISK(emu));
 	}
-//	psg = new YM2203(this, emu);
 	psg = new AY_3_891X(this, emu);
+#ifdef USE_DEBUGGER
+	psg->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
 	sio = new Z80SIO(this, emu);
 	if(sound_type >= 1) {
 		opm1 = new YM2151(this, emu);
 		opm1->set_device_name(_T("YM2151 OPM (CZ-8BS1 #1)"));
+#ifdef USE_DEBUGGER
+		opm1->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 		ctc1 = new Z80CTC(this, emu);
 		ctc1->set_device_name(_T("Z80 CTC (CZ-8BS1 #1)"));
 	}
 	if(sound_type == 2) {
 		opm2 = new YM2151(this, emu);
 		opm2->set_device_name(_T("YM2151 OPM (CZ-8BS1 #2)"));
+#ifdef USE_DEBUGGER
+		opm2->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 		ctc2 = new Z80CTC(this, emu);
 		ctc2->set_device_name(_T("Z80 CTC (CZ-8BS1 #2)"));
 	}
@@ -146,6 +154,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	}
 #ifdef _X1TURBO_FEATURE
 	dma = new Z80DMA(this, emu);
+#ifdef USE_DEBUGGER
+	dma->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 #endif
 	
 	display = new DISPLAY(this, emu);
@@ -262,6 +273,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	iobus->set_context_cpu(cpu);
 	iobus->set_context_display(display);
 	iobus->set_context_io(io);
+#ifdef USE_DEBUGGER
+	iobus->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	joy->set_context_psg(psg);
 #ifdef _X1TURBO_FEATURE
 	memory->set_context_pio(pio);
@@ -518,6 +532,17 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
+	
+	// hack to force reset iei/oei
+#if 1
+	for(DEVICE* device = cpu; device; device = device->get_context_child()) {
+		device->reset();
+	}
+#else
+	cpu->get_context_child()->notify_intr_reti();
+	cpu->reset();
+#endif
+	
 	pio->write_signal(SIG_I8255_PORT_B, 0x00, 0x08);	// busy = low
 	psg->set_reg(0x2e, 0);	// set prescaler
 }
@@ -979,7 +1004,7 @@ void VM::update_dipswitch()
 }
 #endif
 
-#define STATE_VERSION	11
+#define STATE_VERSION	12
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

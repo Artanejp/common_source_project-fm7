@@ -16,6 +16,9 @@
 #include "io_wait_hireso.h"
 #endif
 #include "display.h"
+#ifdef USE_DEBUGGER
+#include "../debugger.h"
+#endif
 
 namespace X1 {
 
@@ -29,14 +32,19 @@ void IOBUS::initialize()
 {
 	prev_clock = vram_wait_index = 0;
 	column40 = true;
+#ifdef USE_DEBUGGER
+	d_debugger->set_device_name(_T("Debugger (I/O Bus)"));
+	d_debugger->set_context_mem(this);
+	d_debugger->set_context_io(vm->dummy);
+#endif
 }
 
 void IOBUS::reset()
 {
 	memset(vram, 0, sizeof(vram));
-	vram_b = vram + 0x0000;
-	vram_r = vram + 0x4000;
-	vram_g = vram + 0x8000;
+	vram_ofs_b = 0x0000;
+	vram_ofs_r = 0x4000;
+	vram_ofs_g = 0x8000;
 	vram_mode = signal = false;
 	vdisp = 0;
 #ifdef _X1TURBO_FEATURE
@@ -77,43 +85,107 @@ uint32_t IOBUS::read_dma_io8w(uint32_t addr, int* wait)
 	return read_port8(addr, true, wait);
 }
 
+void IOBUS::write_via_debugger_data8(uint32_t addr, uint32_t data)
+{
+	vram[addr] = data;
+}
+
+uint32_t IOBUS::read_via_debugger_data8(uint32_t addr)
+{
+	return vram[addr];
+}
+
 void IOBUS::write_port8(uint32_t addr, uint32_t data, bool is_dma, int* wait)
 {
 	// vram access
 	switch(addr & 0xc000) {
 	case 0x0000:
 		if(vram_mode) {
-			vram_b[addr & 0x3fff] = data;
-			vram_r[addr & 0x3fff] = data;
-			vram_g[addr & 0x3fff] = data;
+#ifdef USE_DEBUGGER
+			if(d_debugger->now_device_debugging) {
+				d_debugger->write_via_debugger_data8(vram_ofs_b + (addr & 0x3fff), data);
+				d_debugger->write_via_debugger_data8(vram_ofs_r + (addr & 0x3fff), data);
+				d_debugger->write_via_debugger_data8(vram_ofs_g + (addr & 0x3fff), data);
+			} else
+#endif
+			{
+				this->write_via_debugger_data8(vram_ofs_b + (addr & 0x3fff), data);
+				this->write_via_debugger_data8(vram_ofs_r + (addr & 0x3fff), data);
+				this->write_via_debugger_data8(vram_ofs_g + (addr & 0x3fff), data);
+			}
 			*wait = get_vram_wait();
 			return;
 		}
 		break;
 	case 0x4000:
 		if(vram_mode) {
-			vram_r[addr & 0x3fff] = data;
-			vram_g[addr & 0x3fff] = data;
+#ifdef USE_DEBUGGER
+			if(d_debugger->now_device_debugging) {
+				d_debugger->write_via_debugger_data8(vram_ofs_r + (addr & 0x3fff), data);
+				d_debugger->write_via_debugger_data8(vram_ofs_g + (addr & 0x3fff), data);
+			} else
+#endif
+			{
+				this->write_via_debugger_data8(vram_ofs_r + (addr & 0x3fff), data);
+				this->write_via_debugger_data8(vram_ofs_g + (addr & 0x3fff), data);
+			}
 		} else {
-			vram_b[addr & 0x3fff] = data;
+#ifdef USE_DEBUGGER
+			if(d_debugger->now_device_debugging) {
+				d_debugger->write_via_debugger_data8(vram_ofs_b + (addr & 0x3fff), data);
+			} else
+#endif
+			{
+				this->write_via_debugger_data8(vram_ofs_b + (addr & 0x3fff), data);
+			}
 		}
 		*wait = get_vram_wait();
 		return;
 	case 0x8000:
 		if(vram_mode) {
-			vram_b[addr & 0x3fff] = data;
-			vram_g[addr & 0x3fff] = data;
+#ifdef USE_DEBUGGER
+			if(d_debugger->now_device_debugging) {
+				d_debugger->write_via_debugger_data8(vram_ofs_b + (addr & 0x3fff), data);
+				d_debugger->write_via_debugger_data8(vram_ofs_g + (addr & 0x3fff), data);
+			} else
+#endif
+			{
+				this->write_via_debugger_data8(vram_ofs_b + (addr & 0x3fff), data);
+				this->write_via_debugger_data8(vram_ofs_g + (addr & 0x3fff), data);
+			}
 		} else {
-			vram_r[addr & 0x3fff] = data;
+#ifdef USE_DEBUGGER
+			if(d_debugger->now_device_debugging) {
+				d_debugger->write_via_debugger_data8(vram_ofs_r + (addr & 0x3fff), data);
+			} else
+#endif
+			{
+				this->write_via_debugger_data8(vram_ofs_r + (addr & 0x3fff), data);
+			}
 		}
 		*wait = get_vram_wait();
 		return;
 	case 0xc000:
 		if(vram_mode) {
-			vram_b[addr & 0x3fff] = data;
-			vram_r[addr & 0x3fff] = data;
+#ifdef USE_DEBUGGER
+			if(d_debugger->now_device_debugging) {
+				d_debugger->write_via_debugger_data8(vram_ofs_b + (addr & 0x3fff), data);
+				d_debugger->write_via_debugger_data8(vram_ofs_r + (addr & 0x3fff), data);
+			} else
+#endif
+			{
+				this->write_via_debugger_data8(vram_ofs_b + (addr & 0x3fff), data);
+				this->write_via_debugger_data8(vram_ofs_r + (addr & 0x3fff), data);
+			}
 		} else {
-			vram_g[addr & 0x3fff] = data;
+#ifdef USE_DEBUGGER
+			if(d_debugger->now_device_debugging) {
+				d_debugger->write_via_debugger_data8(vram_ofs_g + (addr & 0x3fff), data);
+			} else
+#endif
+			{
+				this->write_via_debugger_data8(vram_ofs_g + (addr & 0x3fff), data);
+			}
 		}
 		*wait = get_vram_wait();
 		return;
@@ -121,9 +193,9 @@ void IOBUS::write_port8(uint32_t addr, uint32_t data, bool is_dma, int* wait)
 #ifdef _X1TURBO_FEATURE
 	if(addr == 0x1fd0) {
 		int ofs = (data & 0x10) ? 0xc000 : 0;
-		vram_b = vram + 0x0000 + ofs;
-		vram_r = vram + 0x4000 + ofs;
-		vram_g = vram + 0x8000 + ofs;
+		vram_ofs_b = 0x0000 + ofs;
+		vram_ofs_r = 0x4000 + ofs;
+		vram_ofs_g = 0x8000 + ofs;
 	} else if((addr & 0xff0f) == 0x1800) {
 		crtc_ch = data;
 	} else if((addr & 0xff0f) == 0x1801 && crtc_ch < 18) {
@@ -178,13 +250,28 @@ uint32_t IOBUS::read_port8(uint32_t addr, bool is_dma, int* wait)
 	switch(addr & 0xc000) {
 	case 0x4000:
 		*wait = get_vram_wait();
-		return vram_b[addr & 0x3fff];
+#ifdef USE_DEBUGGER
+		if(d_debugger->now_device_debugging) {
+			return d_debugger->read_via_debugger_data8(vram_ofs_b + (addr & 0x3fff));
+		}
+#endif
+		return this->read_via_debugger_data8(vram_ofs_b + (addr & 0x3fff));
 	case 0x8000:
 		*wait = get_vram_wait();
-		return vram_r[addr & 0x3fff];
+#ifdef USE_DEBUGGER
+		if(d_debugger->now_device_debugging) {
+			return d_debugger->read_via_debugger_data8(vram_ofs_r + (addr & 0x3fff));
+		}
+#endif
+		return this->read_via_debugger_data8(vram_ofs_r + (addr & 0x3fff));
 	case 0xc000:
 		*wait = get_vram_wait();
-		return vram_g[addr & 0x3fff];
+#ifdef USE_DEBUGGER
+		if(d_debugger->now_device_debugging) {
+			return d_debugger->read_via_debugger_data8(vram_ofs_g + (addr & 0x3fff));
+		}
+#endif
+		return this->read_via_debugger_data8(vram_ofs_g + (addr & 0x3fff));
 	}
 	uint32_t val = is_dma ? d_io->read_dma_io8(addr) : d_io->read_io8(addr);;
 	if((addr & 0xff0f) == 0x1a01) {
@@ -248,21 +335,9 @@ bool IOBUS::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(vram, sizeof(vram), 1);
 	state_fio->StateValue(vram_mode);
 	state_fio->StateValue(signal);
-	if(loading) {
-		intptr_t _v = (intptr_t)vram;
-		vram_b = (uint8_t*)(_v + state_fio->FgetInt32_LE());
-		vram_r = (uint8_t*)(_v + state_fio->FgetInt32_LE());
-		vram_g = (uint8_t*)(_v + state_fio->FgetInt32_LE());
-	} else {
-		intptr_t _v = (intptr_t)vram;
-		intptr_t _b = (intptr_t)vram_b;
-		intptr_t _r = (intptr_t)vram_r;
-		intptr_t _g = (intptr_t)vram_g;
-		
-		state_fio->FputInt32_LE((int)(_b - _v));
-		state_fio->FputInt32_LE((int)(_r - _v));
-		state_fio->FputInt32_LE((int)(_g - _v));
-	}
+	state_fio->StateValue(vram_ofs_b);
+	state_fio->StateValue(vram_ofs_r);
+	state_fio->StateValue(vram_ofs_g);
 	state_fio->StateValue(vdisp);
 	state_fio->StateValue(prev_clock);
 	state_fio->StateValue(vram_wait_index);

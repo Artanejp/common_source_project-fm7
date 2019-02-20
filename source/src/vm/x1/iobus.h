@@ -19,12 +19,19 @@
 
 #define SIG_IOBUS_MODE	0
 
+#ifdef USE_DEBUGGER
+class DEBUGGER;
+#endif
+
 namespace X1 {
 
 class IOBUS : public DEVICE
 {
 private:
 	DEVICE *d_cpu, *d_display, *d_io;
+#ifdef USE_DEBUGGER
+	DEBUGGER *d_debugger;
+#endif
 	
 	// vram
 #ifdef _X1TURBO_FEATURE
@@ -34,13 +41,11 @@ private:
 #endif
 	bool vram_mode, signal;
 	
-	uint8_t* vram_b;
-	uint8_t* vram_r;
-	uint8_t* vram_g;
 
-	int vramptr_b;
-	int vramptr_r;
-	int vramptr_g;
+	int vram_ofs_b;
+	int vram_ofs_r;
+	int vram_ofs_g;
+	
 	uint8_t vdisp;
 	
 	uint32_t prev_clock, vram_wait_index;
@@ -61,7 +66,7 @@ private:
 public:
 	IOBUS(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		set_device_name(_T("I/O Bus"));
+		set_device_name(_T("I/O Bus (VRAM)"));
 	}
 	~IOBUS() {}
 	
@@ -73,6 +78,36 @@ public:
 	uint32_t read_io8w(uint32_t addr, int* wait);
 	void write_dma_io8w(uint32_t addr, uint32_t data, int* wait);
 	uint32_t read_dma_io8w(uint32_t addr, int* wait);
+	// for debugging vram
+	void write_via_debugger_data8(uint32_t addr, uint32_t data);
+	uint32_t read_via_debugger_data8(uint32_t addr);
+#ifdef USE_DEBUGGER
+	bool is_debugger_available()
+	{
+		return true;
+	}
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	uint64_t get_debug_data_addr_space()
+	{
+		return sizeof(vram);
+	}
+	void write_debug_data8(uint32_t addr, uint32_t data)
+	{
+		if(addr < sizeof(vram)) {
+			write_via_debugger_data8(addr, data);
+		}
+	}
+	uint32_t read_debug_data8(uint32_t addr)
+	{
+		if(addr < sizeof(vram)) {
+			return read_via_debugger_data8(addr);
+		}
+		return 0;
+	}
+#endif
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
@@ -92,6 +127,12 @@ public:
 	{
 		return vram;
 	}
+#ifdef USE_DEBUGGER
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
+#endif
 };
 
 }

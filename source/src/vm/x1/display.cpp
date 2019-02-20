@@ -848,6 +848,17 @@ void DISPLAY::draw_line(int v)
 
 void DISPLAY::draw_screen()
 {
+	if(emu->now_waiting_in_debugger) {
+		// draw lines
+#ifdef _X1TURBO_FEATURE
+		for(int v = 0; v < (hireso ? 400 : 200); v++) {
+#else
+		for(int v = 0; v < 200; v++) {
+#endif
+			draw_line(v);
+		}
+	}
+	
 	// copy to real screen
 #ifdef _X1TURBOZ
 	dr_zpalette_pc[8 + 0] = dr_zpalette_pc[16 + 0x000];
@@ -1062,7 +1073,7 @@ void DISPLAY::draw_text(int y)
 				pattern_r = pcg_r[code];
 				pattern_g = pcg_g[code];
 #ifdef _X1TURBO_FEATURE
-				shift = hireso ? 1 : 0;
+				shift = (mode1 & 1) ? 1 : 0;
 			}
 #endif
 #ifdef _X1TURBO_FEATURE
@@ -1072,18 +1083,21 @@ void DISPLAY::draw_text(int y)
 				ofs += 16; // right
 			}
 			pattern_b = pattern_r = pattern_g = &kanji[ofs];
-			shift = hireso ? ((ch_height >= 32) ? 1 : 0) : ((ch_height >= 16) ? 0 : -1);
 			max_line = 16;
-		} else if(hireso || (mode1 & 4)) {
+		} else if((mode1 & 5) != 0) {
 			// ank 8x16 or kanji
 			pattern_b = pattern_r = pattern_g = &kanji[code << 4];
-			shift = hireso ? ((ch_height >= 32) ? 1 : 0) : ((ch_height >= 16) ? 0 : -1);
 			max_line = 16;
 #endif
 		} else {
 			// ank 8x8
 			pattern_b = pattern_r = pattern_g = &font[code << 3];
 		}
+#ifdef _X1TURBO_FEATURE
+		if(max_line == 16) {
+			shift = ((mode1 & 5) == 5) ? 1 : ((mode1 & 5) != 0) ? 0 : -1;
+		}
+#endif
 		
 		// check vertical doubled char
 		if(!(attr & 0x40)) {
@@ -1108,14 +1122,10 @@ void DISPLAY::draw_text(int y)
 				b = prev_pattern_b[line] << 4;
 				r = prev_pattern_r[line] << 4;
 				g = prev_pattern_g[line] << 4;
-			} else if(line >= max_line) {
-				b = prev_pattern_b[line] = 0;
-				r = prev_pattern_r[line] = 0;
-				g = prev_pattern_g[line] = 0;
 			} else {
-				b = prev_pattern_b[line] = pattern_b[line];
-				r = prev_pattern_r[line] = pattern_r[line];
-				g = prev_pattern_g[line] = pattern_g[line];
+				b = prev_pattern_b[line] = pattern_b[line % max_line];
+				r = prev_pattern_r[line] = pattern_r[line % max_line];
+				g = prev_pattern_g[line] = pattern_g[line % max_line];
 			}
 			if(reverse) {
 				b = (!(col & 1)) ? 0xff : ~b;
