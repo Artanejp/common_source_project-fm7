@@ -683,11 +683,14 @@ INTR=[ IRQ FIRQ  NMI HALT][CI CO SI SO TRAP] CC =[EFHINZVC]
 A = 00 B = 00 DP = 00 X = 0000 Y = 0000 U = 0000 S = 0000 EA = 0000
 Clocks = 0 (0)  Since Scanline = 0/0 (0/0)
 */
-void MC6809_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+bool MC6809_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 //#ifdef USE_DEBUGGER
 	my_stprintf_s(buffer, buffer_len,
-		 _T("PC = %04x PPC = %04x\nINTR = [%s %s %s %s][%s %s %s %s %s] CC = [%c%c%c%c%c%c%c%c]\nA = %02x B = %02x DP = %02x X = %04x Y = %04x U = %04x S = %04x EA = %04x\nClocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+		 _T("PC = %04x PPC = %04x\n")
+		 _T("INTR = [%s %s %s %s][%s %s %s %s %s] CC = [%c%c%c%c%c%c%c%c]\n")
+		 _T("A = %02x B = %02x DP = %02x X = %04x Y = %04x U = %04x S = %04x EA = %04x\n")
+		 _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 		 PC,
 		 PPC,
 		 ((int_state & MC6809_IRQ_BIT) == 0)   ? _T("----") : _T(" IRQ"),
@@ -715,6 +718,7 @@ void MC6809_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		);
 	prev_total_icount = total_icount;
 //#endif
+	return true;
 }  
 
 uint32_t MC6809_BASE::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram)

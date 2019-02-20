@@ -20,6 +20,8 @@
 #define SIG_UPD71071_CH3	3
 #define SIG_UPD71071_IS_TRANSFERING 4 /* 4 - 7 */
 #define SIG_UPD71071_IS_16BITS_TRANSFER 8 /* 8 - 11 */
+
+class DEBUGGER;
 class UPD71071 : public DEVICE
 {
 private:
@@ -27,6 +29,7 @@ private:
 //#ifdef SINGLE_MODE_DMA
 	DEVICE* d_dma;
 //#endif
+	DEBUGGER *d_debugger;
 	outputs_t outputs_tc;
 	
 	struct {
@@ -72,6 +75,20 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t read_signal(int id);
 	void do_dma();
+	// for debug
+	void write_via_debugger_data8(uint32_t addr, uint32_t data);
+	uint32_t read_via_debugger_data8(uint32_t addr);
+	void write_via_debugger_data16(uint32_t addr, uint32_t data);
+	uint32_t read_via_debugger_data16(uint32_t addr);
+	bool is_debugger_available()
+	{
+		return true;
+	}
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	bool process_state(FILEIO* state_fio, bool loading);
 	// unique functions
 	void set_context_memory(DEVICE* device)

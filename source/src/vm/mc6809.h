@@ -542,6 +542,14 @@ public:
 	}
 	~MC6809_BASE() {}
 	
+	bool is_cpu()
+	{
+		return true;
+	}
+	bool is_debugger_available()
+	{
+		return true;
+	}
 	void *get_debugger()
 	{
 		return d_debugger;
@@ -603,7 +611,7 @@ public:
 		return val;
 	}
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
-	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 	virtual uint32_t cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram);
 	virtual void debugger_hook(void);

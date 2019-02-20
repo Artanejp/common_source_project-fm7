@@ -74,7 +74,7 @@ private:
 	void cancel_my_event(int event);
 	void register_my_event(int event, double usec);
 	bool register_my_event_with_check(int event, double usec);
-	void register_seek_event();
+	void register_seek_event(bool first);
 	void register_drq_event(int bytes);
 	void register_lost_event(int bytes);
 	
@@ -111,6 +111,7 @@ private:
 	bool type_fmr50;
 	bool type_fmr60;
 	bool mb8877_no_busy_after_seek;
+	int  mb8877_delay_after_seek;
 	int _max_drive;
 	int _drive_mask;
 	
@@ -158,6 +159,7 @@ public:
 		drvreg = sidereg = 0;
 		motor_on = drive_sel = false;
 		//
+		mb8877_delay_after_seek = 0;
 		fdc_debug_log = invert_registers = type_fm77av_2dd = false;
 		type_mb8866 = type_mb89311 = false;
 		type_x1 = type_fm7 = type_fmr50 = type_fmr60 = false;
@@ -188,9 +190,11 @@ public:
 	uint32_t read_signal(int ch);
 	void event_callback(int event_id, int err);
 	void update_config();
-//#ifdef USE_DEBUGGER
-	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-//#endif
+	bool is_debugger_available()
+	{
+		return true;
+	}
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

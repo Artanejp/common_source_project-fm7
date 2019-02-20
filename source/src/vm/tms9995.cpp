@@ -354,11 +354,12 @@ void TMS9995::run_one_opecode()
 	if(now_debugging) {
 		d_debugger->check_break_points(PC);
 		if(d_debugger->now_suspended) {
-			emu->mute_sound();
 			d_debugger->now_waiting = true;
+			emu->start_waiting_in_debugger();
 			while(d_debugger->now_debugging && d_debugger->now_suspended) {
-				emu->sleep(10);
+				emu->process_waiting_in_debugger();
 			}
+			emu->finish_waiting_in_debugger();
 			d_debugger->now_waiting = false;
 		}
 		if(d_debugger->now_debugging) {
@@ -1603,7 +1604,7 @@ bool TMS9995::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	return true;
 }
 
-void TMS9995::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+bool TMS9995::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 /*
 ST = 0000 [LGT:0 AGT:0 EQ:0 C:0 OV:0 OP:0 X:0 OVIE:0 IM:0]
@@ -1613,7 +1614,11 @@ R8 = 0000 R9 = 0000 R10= 0000 R11= 0000 R12= 0000 R13= 0000 R14= 0000 R15= 0000
 Clocks = 0 (0) Since Scanline = 0/0 (0/0)
 */
 	my_stprintf_s(buffer, buffer_len,
-	_T("ST = %04X [LGT:%01X AGT:%01X EQ:%01X C:%01X OV:%01X OP:%01X X:%01X OVIE:%01X IM:%01X]\nPC = %04X WP = %04X\nR0 = %04X R1 = %04X R2 = %04X R3 = %04X R4 = %04X R5 = %04X R6 = %04X R7 = %04X\nR8 = %04X R9 = %04X R10= %04X R11= %04X R12= %04X R13= %04X R14= %04X R15= %04X\nClocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+	_T("ST = %04X [LGT:%01X AGT:%01X EQ:%01X C:%01X OV:%01X OP:%01X X:%01X OVIE:%01X IM:%01X]\n")
+	_T("PC = %04X WP = %04X\n")
+	_T("R0 = %04X R1 = %04X R2 = %04X R3 = %04X R4 = %04X R5 = %04X R6 = %04X R7 = %04X\n")
+	_T("R8 = %04X R9 = %04X R10= %04X R11= %04X R12= %04X R13= %04X R14= %04X R15= %04X\n")
+	_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 	ST,
 	(ST & ST_LGT ) ? 1 : 0,
 	(ST & ST_AGT ) ? 1 : 0,
@@ -1644,6 +1649,7 @@ Clocks = 0 (0) Since Scanline = 0/0 (0/0)
 	total_count, total_count - prev_total_count,
 	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 	prev_total_count = total_count;
+	return true;
 }
 
 // disassembler

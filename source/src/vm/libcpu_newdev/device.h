@@ -451,6 +451,10 @@ public:
 	// z80 daisy chain
 	virtual void set_context_intr(DEVICE* device, uint32_t bit) {}
 	virtual void set_context_child(DEVICE* device) {}
+	virtual DEVICE *get_context_child()
+	{
+		return NULL;
+	}
 	
 	// interrupt device to device
 	virtual void set_intr_iei(bool val) {}
@@ -515,6 +519,8 @@ public:
 		event_manager = device;
 	}
 	virtual int get_event_manager_id();
+	virtual bool is_primary_cpu(DEVICE* device);
+	virtual void update_extra_event(int clock);
 	virtual void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id);
 	virtual void register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id);
 	virtual void cancel_event(DEVICE* device, int register_id);
@@ -561,14 +567,16 @@ public:
 	virtual void mix(int32_t* buffer, int cnt) {}
 	virtual void set_volume(int ch, int decibel_l, int decibel_r) {} // +1 equals +0.5dB (same as fmgen)
 	virtual void set_device_name(const _TCHAR *format, ...);
-	virtual void out_debug_log(const char *fmt, ...);
-	virtual void force_out_debug_log(const char *fmt, ...);
 
 	// debugger
 	// DEBUGGER is enabled by default.
+	virtual bool is_cpu();
+	virtual bool is_debugger();
+	virtual bool is_debugger_available();
 	virtual void *get_debugger();
 	virtual uint32_t get_debug_prog_addr_mask();
 	virtual uint32_t get_debug_data_addr_mask();
+	virtual uint64_t get_debug_data_addr_space();
 	virtual void write_debug_data8(uint32_t addr, uint32_t data);
 	virtual uint32_t read_debug_data8(uint32_t addr);
 	virtual void write_debug_data16(uint32_t addr, uint32_t data);
@@ -582,9 +590,55 @@ public:
 	virtual void write_debug_io32(uint32_t addr, uint32_t data);
 	virtual uint32_t read_debug_io32(uint32_t addr);
 	virtual bool write_debug_reg(const _TCHAR *reg, uint32_t data);
-	virtual void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	virtual uint32_t read_debug_reg(const _TCHAR *reg);
+	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-	
+/*
+	These functions are used for debugging non-cpu device
+	Insert debugger between standard read/write functions and these functions for checking breakpoints
+
+	void DEVICE::write_data8(uint32_t addr, uint32_t data)
+	{
+		if(debugger != NULL && debugger->now_device_debugging) {
+			// debugger->mem = this;
+			// debugger->mem->write_via_debugger_data8(addr, data)
+			debugger->write_via_debugger_data8(addr, data);
+		} else {
+			this->write_via_debugger_data8(addr, data);
+		}
+	}
+	void DEVICE::write_via_debugger_data8(uint32_t addr, uint32_t data)
+	{
+		// write memory
+	}
+*/
+	virtual void write_via_debugger_data8(uint32_t addr, uint32_t data);
+	virtual uint32_t read_via_debugger_data8(uint32_t addr);
+	virtual void write_via_debugger_data16(uint32_t addr, uint32_t data);
+	virtual uint32_t read_via_debugger_data16(uint32_t addr);
+	virtual void write_via_debugger_data32(uint32_t addr, uint32_t data);
+	virtual uint32_t read_via_debugger_data32(uint32_t addr);
+	virtual void write_via_debugger_data8w(uint32_t addr, uint32_t data, int* wait);
+	virtual uint32_t read_via_debugger_data8w(uint32_t addr, int* wait);
+	virtual void write_via_debugger_data16w(uint32_t addr, uint32_t data, int* wait);
+	virtual uint32_t read_via_debugger_data16w(uint32_t addr, int* wait);
+	virtual void write_via_debugger_data32w(uint32_t addr, uint32_t data, int* wait);
+	virtual uint32_t read_via_debugger_data32w(uint32_t addr, int* wait);
+	virtual void write_via_debugger_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t read_via_debugger_io8(uint32_t addr);
+	virtual void write_via_debugger_io16(uint32_t addr, uint32_t data);
+	virtual uint32_t read_via_debugger_io16(uint32_t addr);
+	virtual void write_via_debugger_io32(uint32_t addr, uint32_t data);
+	virtual uint32_t read_via_debugger_io32(uint32_t addr);
+	virtual void write_via_debugger_io8w(uint32_t addr, uint32_t data, int* wait);
+	virtual uint32_t read_via_debugger_io8w(uint32_t addr, int* wait);
+	virtual void write_via_debugger_io16w(uint32_t addr, uint32_t data, int* wait);
+	virtual uint32_t read_via_debugger_io16w(uint32_t addr, int* wait);
+	virtual void write_via_debugger_io32w(uint32_t addr, uint32_t data, int* wait);
+	virtual uint32_t read_via_debugger_io32w(uint32_t addr, int* wait);
+	virtual void out_debug_log(const char *fmt, ...);
+	virtual void force_out_debug_log(const char *fmt, ...);
+
 	// misc
 	const _TCHAR *get_lib_common_vm_version(void);
 

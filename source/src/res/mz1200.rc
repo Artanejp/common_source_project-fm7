@@ -201,6 +201,13 @@ BEGIN
             MENUITEM "Play CMT Noise",          ID_VM_SOUND_NOISE_CMT
             MENUITEM "Play CMT Sound",          ID_VM_SOUND_PLAY_TAPE
         END
+        POPUP "Display"
+        BEGIN
+            MENUITEM "Green",                   ID_VM_MONITOR_TYPE0
+            MENUITEM "Color (COLOR GAL 5)",     ID_VM_MONITOR_TYPE1
+            MENUITEM "Both Green and Color",    ID_VM_MONITOR_TYPE2
+            MENUITEM "Both Color and Green",    ID_VM_MONITOR_TYPE3
+        END
         POPUP "Printer"
         BEGIN
             MENUITEM "Write Printer to File",   ID_VM_PRINTER_TYPE0

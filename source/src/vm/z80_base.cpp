@@ -13,9 +13,9 @@
 //#include "debugger.h"
 //#endif
 
-#ifndef CPU_START_ADDR
-#define CPU_START_ADDR	0
-#endif
+//#ifndef CPU_START_ADDR
+//#define CPU_START_ADDR	0
+//#endif
 
 #define NMI_REQ_BIT	0x80000000
 
@@ -101,6 +101,15 @@
 	} \
 } while(0)
 
+#define UPDATE_EXTRA_EVENT(clock) do { \
+	if(is_primary) { \
+		if(busreq) { \
+			busreq_icount += (clock); \
+		} \
+		update_extra_event(clock); \
+	} \
+} while(0)
+
 Z80_INLINE uint8_t Z80_BASE::RM8(uint32_t addr)
 {
 //#ifdef Z80_MEMORY_WAIT
@@ -108,10 +117,13 @@ Z80_INLINE uint8_t Z80_BASE::RM8(uint32_t addr)
 		int wait;
 		uint8_t val = d_mem->read_data8w(addr, &wait);
 		icount -= wait;
+		UPDATE_EXTRA_EVENT(3 + wait);
 		return val;
 	} else {
 //#else
-		return d_mem->read_data8(addr);
+		uint8_t val = d_mem->read_data8(addr);
+		UPDATE_EXTRA_EVENT(3);
+		return val;
 	}
 //#endif
 }
@@ -123,9 +135,11 @@ Z80_INLINE void Z80_BASE::WM8(uint32_t addr, uint8_t val)
 		int wait;
 		d_mem->write_data8w(addr, val, &wait);
 		icount -= wait;
+		UPDATE_EXTRA_EVENT(3 + wait);
 	} else {
 //#else
 		d_mem->write_data8(addr, val);
+		UPDATE_EXTRA_EVENT(3);
 	}
 //#endif
 }
@@ -152,6 +166,7 @@ Z80_INLINE uint8_t Z80_BASE::FETCHOP()
 	int wait;
 	uint8_t val = d_mem->fetch_op(pctmp, &wait);
 	icount -= wait;
+	UPDATE_EXTRA_EVENT(4 + wait);
 	return val;
 }
 
@@ -172,14 +187,18 @@ Z80_INLINE uint32_t Z80_BASE::FETCH16()
 Z80_INLINE uint8_t Z80_BASE::IN8(uint32_t addr)
 {
 //#ifdef Z80_IO_WAIT
+	UPDATE_EXTRA_EVENT(1);
 	if(has_io_wait) {
 		int wait;
 		uint8_t val = d_io->read_io8w(addr, &wait);
 		icount -= wait;
+		UPDATE_EXTRA_EVENT(3 + wait);
 		return val;
 	} else {
 //#else
-		return d_io->read_io8(addr);
+		uint8_t val = d_io->read_io8(addr);
+		UPDATE_EXTRA_EVENT(3);
+		return val;
 	}
 //#endif
 }
@@ -187,9 +206,11 @@ Z80_INLINE uint8_t Z80_BASE::IN8(uint32_t addr)
 Z80_INLINE void Z80_BASE::OUT8(uint32_t addr, uint8_t val)
 {
 //#ifdef HAS_NSC800
+	UPDATE_EXTRA_EVENT(1);
 	if(has_nsc800) {
 		if((addr & 0xff) == 0xbb) {
 			icr = val;
+			UPDATE_EXTRA_EVENT(3);
 			return;
 		}
 	}
@@ -199,9 +220,11 @@ Z80_INLINE void Z80_BASE::OUT8(uint32_t addr, uint8_t val)
 		int wait;
 		d_io->write_io8w(addr, val, &wait);
 		icount -= wait;
+		UPDATE_EXTRA_EVENT(3 + wait);
 	} else {
 //#else
 		d_io->write_io8(addr, val);
+		UPDATE_EXTRA_EVENT(3);
 	}
 //#endif
 }
@@ -1921,6 +1944,7 @@ void Z80_BASE::initialize()
 		}
 		flags_initialized = true;
 	}
+	is_primary = is_primary_cpu(this);
 
 	// Collecting stateus.
 	cycles_tmp_count = 0;
@@ -2058,8 +2082,14 @@ int Z80_BASE::run(int clock)
 			return passed_icount;
 		} else {
 			// run only one opcode
+			if((extra_icount += busreq_icount) > 0) {
+				if(is_primary) {
+					update_extra_event(extra_icount);
+				}
+				total_icount += extra_icount;
+			}
 			icount = -extra_icount;
-			extra_icount = 0;
+			extra_icount = busreq_icount = 0;
 			run_one_opecode();
 			insns_count++;
 			return -icount;
@@ -2073,9 +2103,9 @@ int Z80_BASE::run(int clock)
 		if(busreq) {
 			// run dma once
 			// run dma once
-			#ifdef USE_DEBUGGER
+			//#ifdef USE_DEBUGGER
 				debugger_hook();
-			#endif
+			//#endif
 			//#ifdef SINGLE_MODE_DMA
 				if(d_dma) {
 					d_dma->do_dma();
@@ -2298,7 +2328,7 @@ bool Z80_BASE::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	return true;
 }
 
-void Z80_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+bool Z80_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 /*
 F = [--------]  A = 00  BC = 0000  DE = 0000  HL = 0000  IX = 0000  IY = 0000
@@ -2308,7 +2338,11 @@ Total CPU Clocks = 0 (0) Since Scanline = 0/0 (0/0)
 */
 	int wait;
 	my_stprintf_s(buffer, buffer_len,
-	_T("F = [%c%c%c%c%c%c%c%c]  A = %02X  BC = %04X  DE = %04X  HL = %04X  IX = %04X  IY = %04X\nF'= [%c%c%c%c%c%c%c%c]  A'= %02X  BC'= %04X  DE'= %04X  HL'= %04X  SP = %04X  PC = %04X\n        I = %02X  R = %02X (BC)= %04X (DE)= %04X (HL)= %04X (SP)= %04X  %cI:IFF2=%d\nTotal CPU Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+	_T("F = [%c%c%c%c%c%c%c%c]  A = %02X  BC = %04X  DE = %04X  HL = %04X  IX = %04X  IY = %04X\n")
+	_T("F'= [%c%c%c%c%c%c%c%c]  A'= %02X  BC'= %04X  DE'= %04X  HL'= %04X  SP = %04X  PC = %04X\n")
+	_T("        I = %02X  R = %02X (BC)= %04X (DE)= %04X (HL)= %04X (SP)= %04X  %cI:IFF2=%d\n")
+	_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+
 	(F & CF) ? _T('C') : _T('-'), (F & NF) ? _T('N') : _T('-'), (F & PF) ? _T('P') : _T('-'), (F & XF) ? _T('X') : _T('-'),
 	(F & HF) ? _T('H') : _T('-'), (F & YF) ? _T('Y') : _T('-'), (F & ZF) ? _T('Z') : _T('-'), (F & SF) ? _T('S') : _T('-'),
 	A, BC, DE, HL, IX, IY,
@@ -2321,6 +2355,7 @@ Total CPU Clocks = 0 (0) Since Scanline = 0/0 (0/0)
 	total_icount, total_icount - prev_total_icount,
 	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 	prev_total_icount = total_icount;
+	return true;
 }
 
 // disassembler
@@ -3724,7 +3759,7 @@ static void dasm_fdcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *
 }
 //#endif
 }
-#define STATE_VERSION 3
+#define STATE_VERSION 4
 
 bool Z80_BASE::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3739,6 +3774,7 @@ bool Z80_BASE::process_state(FILEIO* state_fio, bool loading)
 	
 	state_fio->StateValue(icount);
 	state_fio->StateValue(extra_icount);
+	state_fio->StateValue(busreq_icount);
 	state_fio->StateValue(prevpc);
 	state_fio->StateValue(pc.d);
 	state_fio->StateValue(sp.d);

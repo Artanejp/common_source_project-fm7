@@ -101,6 +101,10 @@ public:
 	{
 		d_child = device;
 	}
+	DEVICE *get_context_child()
+	{
+		return d_child;
+	}
 	void set_intr_iei(bool val);
 	uint32_t get_intr_ack();
 	void notify_intr_reti();

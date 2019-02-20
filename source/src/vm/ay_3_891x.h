@@ -37,14 +37,16 @@
 #endif
 #define SIG_AY_3_891X_MUTE	2
 
+class DEBUGGER;
+
 class AY_3_891X : public DEVICE
 {
 private:
+	DEBUGGER *d_debugger;
 	FM::OPN* opn;
 	int base_decibel_fm, base_decibel_psg;
 	
 	uint8_t ch;
-	uint8_t fnum2;
 	
 #ifdef SUPPORT_AY_3_891X_PORT
 	struct {
@@ -81,6 +83,7 @@ public:
 		}
 #endif
 		base_decibel_fm = base_decibel_psg = 0;
+		d_debugger = NULL;
 #if defined(HAS_AY_3_8910)
 		set_device_name(_T("AY-3-8910 PSG"));
 #elif defined(HAS_AY_3_8912)
@@ -88,7 +91,7 @@ public:
 #elif defined(HAS_AY_3_8913)
 		set_device_name(_T("AY-3-8913 PSG"));
 #else
-		set_device_name(_T("AY_3_891X PSG"));
+		set_device_name(_T("AY-3-891X PSG"));
 #endif
 	}
 	~AY_3_891X() {}
@@ -105,6 +108,34 @@ public:
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
+	// for debugging
+	void write_via_debugger_data8(uint32_t addr, uint32_t data);
+	uint32_t read_via_debugger_data8(uint32_t addr);
+	bool is_debugger_available()
+	{
+		return true;
+	}
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	uint64_t get_debug_data_addr_space()
+	{
+		return 16;
+	}
+	void write_debug_data8(uint32_t addr, uint32_t data)
+	{
+		if(addr < 16) {
+			write_via_debugger_data8(addr, data);
+		}
+	}
+	uint32_t read_debug_data8(uint32_t addr)
+	{
+		if(addr < 16) {
+			return read_via_debugger_data8(addr);
+		}
+		return 0;
+	}
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
@@ -120,6 +151,10 @@ public:
 		register_output_signal(&port[1].outputs, device, id, mask, shift);
 	}
 #endif
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
 	void initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg);
 	void set_reg(uint32_t addr, uint32_t data); // for patch
 };

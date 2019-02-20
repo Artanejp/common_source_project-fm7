@@ -8,6 +8,7 @@
 */
 
 #include "ay_3_891x.h"
+#include "debugger.h"
 
 #define EVENT_FM_TIMER	0
 
@@ -20,6 +21,12 @@ void AY_3_891X::initialize()
 	register_vline_event(this);
 	mute = false;
 	clock_prev = clock_accum = clock_busy = 0;
+	
+	if(d_debugger != NULL) {
+		d_debugger->set_device_name(_T("Debugger (AY-3-891X PSG)"));
+		d_debugger->set_context_mem(this);
+		d_debugger->set_context_io(vm->dummy);
+	}
 }
 
 void AY_3_891X::release()
@@ -32,7 +39,6 @@ void AY_3_891X::reset()
 {
 	touch_sound();
 	opn->Reset();
-	fnum2 = 0;
 	
 	// stop timer
 	timer_event_id = -1;
@@ -57,14 +63,37 @@ void AY_3_891X::write_io8(uint32_t addr, uint32_t data)
 		ch = data & 0x0f;
 		break;
 	case 1:
+		if(d_debugger != NULL && d_debugger->now_device_debugging) {
+			d_debugger->write_via_debugger_data8(ch, data);
+		} else
+		this->write_via_debugger_data8(ch, data);
+		break;
+	}
+}
+
+uint32_t AY_3_891X::read_io8(uint32_t addr)
+{
+	switch(addr & 1) {
+	case 1:
+		if(d_debugger != NULL && d_debugger->now_device_debugging) {
+			return d_debugger->read_via_debugger_data8(ch);
+		} else
+		return this->read_via_debugger_data8(ch);
+	}
+	return 0xff;
+}
+
+void AY_3_891X::write_via_debugger_data8(uint32_t addr, uint32_t data)
+{
+	if(addr < 16) {
 #ifdef SUPPORT_AY_3_891X_PORT
-		if(ch == 7) {
+		if(addr == 7) {
 #ifdef AY_3_891X_PORT_MODE
 			mode = (data & 0x3f) | AY_3_891X_PORT_MODE;
 #else
 			mode = data;
 #endif
-		} else if(ch == 14) {
+		} else if(addr == 14) {
 #ifdef SUPPORT_AY_3_891X_PORT_A
 			if(port[0].wreg != data || port[0].first) {
 				write_signals(&port[0].outputs, data);
@@ -72,7 +101,7 @@ void AY_3_891X::write_io8(uint32_t addr, uint32_t data)
 				port[0].first = false;
 			}
 #endif
-		} else if(ch == 15) {
+		} else if(addr == 15) {
 #ifdef SUPPORT_AY_3_891X_PORT_B
 			if(port[1].wreg != data || port[1].first) {
 				write_signals(&port[1].outputs, data);
@@ -82,44 +111,28 @@ void AY_3_891X::write_io8(uint32_t addr, uint32_t data)
 #endif
 		}
 #endif
-		if(0x2d <= ch && ch <= 0x2f) {
-			// don't write again for prescaler
-		} else if(0xa4 <= ch && ch <= 0xa6) {
-			// XM8 version 1.20
-			fnum2 = data;
-		} else {
-			update_count();
-			// XM8 version 1.20
-			if(0xa0 <= ch && ch <= 0xa2) {
-				this->set_reg(ch + 4, fnum2);
-			}
-			this->set_reg(ch, data);
-			if(ch == 0x27) {
-				update_event();
-			}
-		}
-		break;
+		update_count();
+		this->set_reg(addr, data);
 	}
 }
 
-uint32_t AY_3_891X::read_io8(uint32_t addr)
+uint32_t AY_3_891X::read_via_debugger_data8(uint32_t addr)
 {
-	switch(addr & 1) {
-	case 1:
+	if(addr < 16) {
 #ifdef SUPPORT_AY_3_891X_PORT
-		if(ch == 14) {
+		if(addr == 14) {
 #ifdef SUPPORT_AY_3_891X_PORT_A
 			return (mode & 0x40) ? port[0].wreg : port[0].rreg;
 #endif
-		} else if(ch == 15) {
+		} else if(addr == 15) {
 #ifdef SUPPORT_AY_3_891X_PORT_B
 			return (mode & 0x80) ? port[1].wreg : port[1].rreg;
 #endif
 		}
 #endif
-		return opn->GetReg(ch);
+		return opn->GetReg(addr);
 	}
-	return 0xff;
+	return 0;
 }
 
 void AY_3_891X::write_signal(int id, uint32_t data, uint32_t mask)
@@ -214,7 +227,7 @@ void AY_3_891X::update_timing(int new_clocks, double new_frames_per_sec, int new
 	clock_const = (uint32_t)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool AY_3_891X::process_state(FILEIO* state_fio, bool loading)
 {
@@ -228,7 +241,6 @@ bool AY_3_891X::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
 	state_fio->StateValue(ch);
-	state_fio->StateValue(fnum2);
 #ifdef SUPPORT_AY_3_891X_PORT
  	for(int i = 0; i < 2; i++) {
 		state_fio->StateValue(port[i].wreg);

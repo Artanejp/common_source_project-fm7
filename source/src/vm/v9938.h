@@ -246,7 +246,7 @@ private:
 	// render bitmap
 	//bitmap_ind16 m_bitmap;
 	// Command unit
-	struct {
+	typedef struct mmc_s {
 		int SX,SY;
 		int DX,DY;
 		int TX,TY;
@@ -257,7 +257,8 @@ private:
 		UINT8 LO;
 		UINT8 CM;
 		UINT8 MXS, MXD;
-	} m_mmc;
+	} mmc_t;
+	mmc_t m_mmc;
 	int  m_vdp_ops_count;
 	void (v99x8_device::*m_vdp_engine)();
 

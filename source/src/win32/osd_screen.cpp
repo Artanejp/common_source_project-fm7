@@ -1489,7 +1489,7 @@ bool GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 		return false;
 	}
 	ImageCodecInfo* pImageCodecInfo = (ImageCodecInfo*)malloc(size);
-	if (pImageCodecInfo == NULL) {
+	if(pImageCodecInfo == NULL) {
 		return false;
 	}
 	GetImageEncoders(num, size, pImageCodecInfo);

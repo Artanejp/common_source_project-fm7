@@ -56,6 +56,8 @@ protected:
 	bool flags_initialized;
 	
 	
+	bool is_primary;
+	
 	/* ---------------------------------------------------------------------------
 	registers
 	--------------------------------------------------------------------------- */
@@ -64,6 +66,7 @@ protected:
 	uint64_t prev_total_icount;
 	int icount;
 	int extra_icount;
+	int busreq_icount;
 	uint16_t prevpc;
 	pair32_t pc, sp, af, bc, de, hl, ix, iy, wz;
 	pair32_t af2, bc2, de2, hl2;
@@ -270,6 +273,7 @@ public:
 		has_single_mode_dma = false;
 		total_icount = prev_total_icount = 0;
 		initialize_output_signals(&outputs_busack);
+		is_primary = false;
 		set_device_name(_T("Z80 CPU"));
 
 	}
@@ -309,6 +313,14 @@ public:
 		return pc.w.l;
 	}
 //#ifdef USE_DEBUGGER
+	bool is_cpu()
+	{
+		return true;
+	}
+	bool is_debugger_available()
+	{
+		return true;
+	}
 	void *get_debugger()
 	{
 		return d_debugger;
@@ -322,7 +334,7 @@ public:
 		return 0xffff;
 	}
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
-	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 //#endif
 	// unique functions
@@ -333,6 +345,10 @@ public:
 	void set_context_io(DEVICE* device)
 	{
 		d_io = device;
+	}
+	DEVICE *get_context_child()
+	{
+		return d_pic;
 	}
 	void set_context_intr(DEVICE* device)
 	{

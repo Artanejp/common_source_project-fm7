@@ -348,6 +348,7 @@ __MCS48_OPHANDLER( xrl_a_n )        { cpustate->a ^= argument_fetch(cpustate); r
 void MCS48_BASE::initialize()
 {
 	// Dummy function
+	DEVICE::initialize();
 }
 
 void MCS48_BASE::release()
@@ -499,7 +500,7 @@ bool MCS48_BASE::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	return true;
 }
 
-void MCS48_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+bool MCS48_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 /*
 R0 = 00  R1 = 00  R2 = 00  R3 = 00 (R0)= 00 (R1)= 00 (SP-1)= 0000  PC = 0000
@@ -511,7 +512,9 @@ Clocks = 0 (0)  Since Scanline = 0/0 (0/0)
 	UINT8 prev_sp = 8 + 2 * ((cpustate->psw - 1) & 7);
 	
 	my_stprintf_s(buffer, buffer_len,
-	_T("R0 = %02X  R1 = %02X  R2 = %02X  R3 = %02X (R0)= %02X (R1)= %02X (SP-1)= %04X  PC = %04X\nR4 = %02X  R5 = %02X  R6 = %02X  R7 = %02X  AC = %02X  SP = %02X [%s %s %s %s %s %s]\nClocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+	_T("R0 = %02X  R1 = %02X  R2 = %02X  R3 = %02X (R0)= %02X (R1)= %02X (SP-1)= %04X  PC = %04X\n")
+	_T("R4 = %02X  R5 = %02X  R6 = %02X  R7 = %02X  AC = %02X  SP = %02X [%s %s %s %s %s %s]\n")
+	_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 	__mcs48_reg_r(0), __mcs48_reg_r(1), __mcs48_reg_r(2), __mcs48_reg_r(3), d_mem_stored->read_data8(__mcs48_reg_r(0)), d_mem_stored->read_data8(__mcs48_reg_r(1)),
 	d_mem_stored->read_data8(prev_sp) | (d_mem_stored->read_data8(prev_sp + 1) << 8), cpustate->pc,
 				  __mcs48_reg_r(4), __mcs48_reg_r(5), __mcs48_reg_r(6), __mcs48_reg_r(7), cpustate->a, sp,
@@ -521,6 +524,7 @@ Clocks = 0 (0)  Since Scanline = 0/0 (0/0)
 	total_icount, total_icount - prev_total_icount,
 	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 	prev_total_icount = total_icount;
+	return true;
 }
 
 // license:BSD-3-Clause

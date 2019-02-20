@@ -204,7 +204,12 @@ BEGIN
         POPUP "Display"
         BEGIN
             MENUITEM "White (MZ-80K)",          ID_VM_MONITOR_TYPE0
-            MENUITEM "Green (MZ-80C)",          ID_VM_MONITOR_TYPE1
+            MENUITEM "Green (MZ-80C)",          ID_VM_MONITOR_TYPE4
+            MENUITEM "Color (COLOR GAL 5)",     ID_VM_MONITOR_TYPE1
+            MENUITEM "Both White and Color",    ID_VM_MONITOR_TYPE2
+            MENUITEM "Both Color and White",    ID_VM_MONITOR_TYPE3
+            MENUITEM "Both Green and Color",    ID_VM_MONITOR_TYPE6
+            MENUITEM "Both Color and Green",    ID_VM_MONITOR_TYPE7
         END
         POPUP "Printer"
         BEGIN

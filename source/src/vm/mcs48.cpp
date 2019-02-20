@@ -43,7 +43,7 @@
 
 void MCS48::initialize()
 {
-	DEVICE::initialize();
+	MCS48_BASE::initialize();
 	opaque = calloc(1, sizeof(mcs48_state));
 	
 	mcs48_state *cpustate = (mcs48_state *)opaque;
@@ -156,11 +156,12 @@ int MCS48::run(int icount)
 		if(now_debugging) {
 			d_debugger->check_break_points(cpustate->pc);
 			if(d_debugger->now_suspended) {
-				emu->mute_sound();
 				d_debugger->now_waiting = true;
+				emu->start_waiting_in_debugger();
 				while(d_debugger->now_debugging && d_debugger->now_suspended) {
-					emu->sleep(10);
+					emu->process_waiting_in_debugger();
 				}
+				emu->finish_waiting_in_debugger();
 				d_debugger->now_waiting = false;
 			}
 			if(d_debugger->now_debugging) {

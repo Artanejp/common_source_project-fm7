@@ -58,11 +58,16 @@ void Z80CTC::write_io8(uint32_t addr, uint32_t data)
 		if(data & 1) {
 			// control word
 			counter[ch].prescaler = (data & 0x20) ? 256 : 16;
-			counter[ch].latch = ((data & 4) != 0);
-			counter[ch].freeze = ((data & 2) != 0);
-			counter[ch].start = (counter[ch].freq || !(data & 8));
+			counter[ch].latch = ((data & 0x04) != 0);
+			counter[ch].freeze = ((data & 0x02) != 0);
+			counter[ch].start = (counter[ch].freq || !(data & 0x08));
 			counter[ch].control = data;
 			counter[ch].slope = ((data & 0x10) != 0);
+			if((data & 0x02) && (counter[ch].req_intr || counter[ch].in_service)) {
+				counter[ch].req_intr = false;
+				counter[ch].in_service = false;
+				update_intr();
+			}
 			if(!(data & 0x80) && counter[ch].req_intr) {
 				counter[ch].req_intr = false;
 				update_intr();

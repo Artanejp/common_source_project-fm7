@@ -173,51 +173,56 @@ BEGIN
     BEGIN
         POPUP "Boot"
         BEGIN
-            MENUITEM "N88-V1(S) mode"           ID_VM_BOOT_MODE0
-            MENUITEM "N88-V1(H) mode"           ID_VM_BOOT_MODE1
-            MENUITEM "N88-V2 mode"              ID_VM_BOOT_MODE2
-            MENUITEM "N mode"                   ID_VM_BOOT_MODE3
+            MENUITEM "N88-V1(S) mode"               ID_VM_BOOT_MODE0
+            MENUITEM "N88-V1(H) mode"               ID_VM_BOOT_MODE1
+            MENUITEM "N88-V2 mode"                  ID_VM_BOOT_MODE2
+            MENUITEM "N mode"                       ID_VM_BOOT_MODE3
+            MENUITEM "N88-V2(CD) mode"              ID_VM_BOOT_MODE4
         END
         POPUP "CPU"
         BEGIN
-            MENUITEM "Z80 8MHz",                ID_VM_CPU_TYPE0
-            MENUITEM "Z80 4MHz",                ID_VM_CPU_TYPE1
-            MENUITEM "Z80 8MHz (FE2/MC)",       ID_VM_CPU_TYPE2
+            MENUITEM "Z80 8MHz",                    ID_VM_CPU_TYPE0
+            MENUITEM "Z80 4MHz",                    ID_VM_CPU_TYPE1
+            MENUITEM "Z80 8MHz (FE2/MC)",           ID_VM_CPU_TYPE2
         END
         POPUP "DIP Switch"
         BEGIN
-            MENUITEM "Memory Wait",             ID_VM_DIPSWITCH0
+            MENUITEM "Memory Wait",                 ID_VM_DIPSWITCH0
         END
         POPUP "Joystick"
         BEGIN
-            MENUITEM "Joystick"                 ID_VM_JOYSTICK_TYPE0
-            MENUITEM "Bus Mouse"                ID_VM_JOYSTICK_TYPE1
+            MENUITEM "Joystick"                     ID_VM_JOYSTICK_TYPE0
+            MENUITEM "Bus Mouse"                    ID_VM_JOYSTICK_TYPE1
         END
         POPUP "Sound"
         BEGIN
-            MENUITEM "OPNA",                    ID_VM_SOUND_TYPE0
-            MENUITEM "OPN",                     ID_VM_SOUND_TYPE1
-            MENUITEM "OPN+OPNA",                ID_VM_SOUND_TYPE2
-            MENUITEM "OPN+OPN",                 ID_VM_SOUND_TYPE3
-            MENUITEM "OPNA+OPNA",               ID_VM_SOUND_TYPE4
-            MENUITEM "OPNA+OPN",                ID_VM_SOUND_TYPE5
+            MENUITEM "OPNA",                        ID_VM_SOUND_TYPE0
+            MENUITEM "OPN",                         ID_VM_SOUND_TYPE1
+            MENUITEM "OPN+OPNA",                    ID_VM_SOUND_TYPE2
+            MENUITEM "OPN+OPN",                     ID_VM_SOUND_TYPE3
+            MENUITEM "OPNA+OPNA",                   ID_VM_SOUND_TYPE4
+            MENUITEM "OPNA+OPN",                    ID_VM_SOUND_TYPE5
             MENUITEM SEPARATOR
-            MENUITEM "Play FDD Noise",          ID_VM_SOUND_NOISE_FDD
-            MENUITEM "Play CMT Noise",          ID_VM_SOUND_NOISE_CMT, GRAYED
-            MENUITEM "Play CMT Sound",          ID_VM_SOUND_PLAY_TAPE, GRAYED
+            MENUITEM "HMB-20",                      ID_VM_DIPSWITCH1
+            MENUITEM "GSX-8800",                    ID_VM_DIPSWITCH2
+            MENUITEM "PCG-8100",                    ID_VM_DIPSWITCH3
+            MENUITEM SEPARATOR
+            MENUITEM "Play FDD Noise",              ID_VM_SOUND_NOISE_FDD
+            MENUITEM "Play CMT Noise",              ID_VM_SOUND_NOISE_CMT, GRAYED
+            MENUITEM "Play CMT Sound",              ID_VM_SOUND_PLAY_TAPE, GRAYED
         END
         POPUP "Display"
         BEGIN
-            MENUITEM "High Resolution",         ID_VM_MONITOR_TYPE0
-            MENUITEM "Standard",                ID_VM_MONITOR_TYPE1
+            MENUITEM "High Resolution",             ID_VM_MONITOR_TYPE0
+            MENUITEM "Standard",                    ID_VM_MONITOR_TYPE1
             MENUITEM SEPARATOR
-            MENUITEM "Scanline",                ID_VM_MONITOR_SCANLINE
+            MENUITEM "Scanline",                    ID_VM_MONITOR_SCANLINE
         END
         POPUP "Printer"
         BEGIN
-            MENUITEM "Write Printer to File",   ID_VM_PRINTER_TYPE0
-            MENUITEM "PC-PR201",                ID_VM_PRINTER_TYPE1, GRAYED
-            MENUITEM "None",                    ID_VM_PRINTER_TYPE2
+            MENUITEM "Write Printer to File",       ID_VM_PRINTER_TYPE0
+            MENUITEM "PC-PR201",                    ID_VM_PRINTER_TYPE1, GRAYED
+            MENUITEM "None",                        ID_VM_PRINTER_TYPE2
         END
     END
     POPUP "Host"
@@ -231,54 +236,54 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "Screen"
         BEGIN
-            MENUITEM "Window x1",               ID_SCREEN_WINDOW
-            MENUITEM "Fullscreen 640x400",      ID_SCREEN_FULLSCREEN
+            MENUITEM "Window x1",                   ID_SCREEN_WINDOW
+            MENUITEM "Fullscreen 640x400",          ID_SCREEN_FULLSCREEN
             MENUITEM SEPARATOR
-            MENUITEM "Window Stretch 1",        ID_SCREEN_WINDOW_STRETCH
-            MENUITEM "Window Stretch 2",        ID_SCREEN_WINDOW_ASPECT
+            MENUITEM "Window Stretch 1",            ID_SCREEN_WINDOW_STRETCH
+            MENUITEM "Window Stretch 2",            ID_SCREEN_WINDOW_ASPECT
             MENUITEM SEPARATOR
-            MENUITEM "Fullscreen Stretch 1",    ID_SCREEN_FULLSCREEN_DOTBYDOT
-            MENUITEM "Fullscreen Stretch 2",    ID_SCREEN_FULLSCREEN_STRETCH
-            MENUITEM "Fullscreen Stretch 3",    ID_SCREEN_FULLSCREEN_ASPECT
-            MENUITEM "Fullscreen Stretch 4",    ID_SCREEN_FULLSCREEN_FILL
+            MENUITEM "Fullscreen Stretch 1",        ID_SCREEN_FULLSCREEN_DOTBYDOT
+            MENUITEM "Fullscreen Stretch 2",        ID_SCREEN_FULLSCREEN_STRETCH
+            MENUITEM "Fullscreen Stretch 3",        ID_SCREEN_FULLSCREEN_ASPECT
+            MENUITEM "Fullscreen Stretch 4",        ID_SCREEN_FULLSCREEN_FILL
             MENUITEM SEPARATOR
-            MENUITEM "Rotate 0deg",             ID_SCREEN_ROTATE_0
-            MENUITEM "Rotate +90deg",           ID_SCREEN_ROTATE_90
-            MENUITEM "Rotate 180deg",           ID_SCREEN_ROTATE_180
-            MENUITEM "Rotate -90deg",           ID_SCREEN_ROTATE_270
+            MENUITEM "Rotate 0deg",                 ID_SCREEN_ROTATE_0
+            MENUITEM "Rotate +90deg",               ID_SCREEN_ROTATE_90
+            MENUITEM "Rotate 180deg",               ID_SCREEN_ROTATE_180
+            MENUITEM "Rotate -90deg",               ID_SCREEN_ROTATE_270
         END
         POPUP "Filter"
         BEGIN
-            MENUITEM "RGB Filter",              ID_FILTER_RGB
-            MENUITEM "None",                    ID_FILTER_NONE
+            MENUITEM "RGB Filter",                  ID_FILTER_RGB
+            MENUITEM "None",                        ID_FILTER_NONE
         END
         POPUP "Sound"
         BEGIN
-            MENUITEM "2000Hz",                  ID_SOUND_FREQ0
-            MENUITEM "4000Hz",                  ID_SOUND_FREQ1
-            MENUITEM "8000Hz",                  ID_SOUND_FREQ2
-            MENUITEM "11025Hz",                 ID_SOUND_FREQ3
-            MENUITEM "22050Hz",                 ID_SOUND_FREQ4
-            MENUITEM "44100Hz",                 ID_SOUND_FREQ5
-            MENUITEM "55467Hz",                 ID_SOUND_FREQ6
-            MENUITEM "96000Hz",                 ID_SOUND_FREQ7
+            MENUITEM "2000Hz",                      ID_SOUND_FREQ0
+            MENUITEM "4000Hz",                      ID_SOUND_FREQ1
+            MENUITEM "8000Hz",                      ID_SOUND_FREQ2
+            MENUITEM "11025Hz",                     ID_SOUND_FREQ3
+            MENUITEM "22050Hz",                     ID_SOUND_FREQ4
+            MENUITEM "44100Hz",                     ID_SOUND_FREQ5
+            MENUITEM "55467Hz",                     ID_SOUND_FREQ6
+            MENUITEM "96000Hz",                     ID_SOUND_FREQ7
             MENUITEM SEPARATOR
-            MENUITEM "50msec",                  ID_SOUND_LATE0
-            MENUITEM "100msec",                 ID_SOUND_LATE1
-            MENUITEM "200msec",                 ID_SOUND_LATE2
-            MENUITEM "300msec",                 ID_SOUND_LATE3
-            MENUITEM "400msec",                 ID_SOUND_LATE4
+            MENUITEM "50msec",                      ID_SOUND_LATE0
+            MENUITEM "100msec",                     ID_SOUND_LATE1
+            MENUITEM "200msec",                     ID_SOUND_LATE2
+            MENUITEM "300msec",                     ID_SOUND_LATE3
+            MENUITEM "400msec",                     ID_SOUND_LATE4
             MENUITEM SEPARATOR
-            MENUITEM "Realtime Mix",            ID_SOUND_STRICT_RENDER
-            MENUITEM "Light Weight Mix",        ID_SOUND_LIGHT_RENDER
+            MENUITEM "Realtime Mix",                ID_SOUND_STRICT_RENDER
+            MENUITEM "Light Weight Mix",            ID_SOUND_LIGHT_RENDER
             MENUITEM SEPARATOR
-            MENUITEM "Volume",                  ID_SOUND_VOLUME
+            MENUITEM "Volume",                      ID_SOUND_VOLUME
         END
         POPUP "Input"
         BEGIN
-            MENUITEM "Joystick #1",             ID_INPUT_JOYSTICK0
-            MENUITEM "Joystick #2",             ID_INPUT_JOYSTICK1
-            MENUITEM "Joystick To Keyboard",    ID_INPUT_JOYTOKEY
+            MENUITEM "Joystick #1",                 ID_INPUT_JOYSTICK0
+            MENUITEM "Joystick #2",                 ID_INPUT_JOYSTICK1
+            MENUITEM "Joystick To Keyboard",        ID_INPUT_JOYTOKEY
         END
         MENUITEM SEPARATOR
         MENUITEM "Use Direct3D9",               ID_HOST_USE_D3D9
@@ -316,7 +321,7 @@ IDI_ICON1               ICON    DISCARDABLE     "pc8801ma.ico"
 // Dialog
 //
 
-IDD_VOLUME DIALOG DISCARDABLE  0, 0, 250, 420
+IDD_VOLUME DIALOG DISCARDABLE  0, 0, 250, 450
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Volume"
 FONT 9, "MS PGothic"
@@ -360,8 +365,11 @@ BEGIN
     LTEXT           "Sound Device #13",IDC_VOLUME_CAPTION12,6,366,60,8
     CONTROL         "",IDC_VOLUME_PARAM_L12,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,366,175,12
     CONTROL         "",IDC_VOLUME_PARAM_R12,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,381,175,12
-    DEFPUSHBUTTON   "OK",IDOK,70,400,50,14
-    DEFPUSHBUTTON   "Reset",IDC_VOLUME_RESET,130,400,50,14
+    LTEXT           "Sound Device #14",IDC_VOLUME_CAPTION13,6,396,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L13,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,396,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R13,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,411,175,12
+    DEFPUSHBUTTON   "OK",IDOK,70,430,50,14
+    DEFPUSHBUTTON   "Reset",IDC_VOLUME_RESET,130,430,50,14
 END
 
 IDD_JOYSTICK DIALOG DISCARDABLE  0, 0, 175, 120

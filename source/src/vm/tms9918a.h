@@ -18,9 +18,12 @@
 
 #define SIG_TMS9918A_SUPER_IMPOSE	0
 
+class DEBUGGER;
 class TMS9918A : public DEVICE
 {
 private:
+	DEBUGGER *d_debugger;
+	
 	// output signals
 	outputs_t outputs_irq;
 	
@@ -72,6 +75,7 @@ public:
 		_tms9918a_super_impose = _tms9918a_limit_sprites = false;
 		_VRAM_SIZE = 0x4000;
 		_ADDR_MASK = 0x3fff;
+		d_debugger = NULL;
 		set_device_name(_T("TMS9918A VDP"));
 	}
 	~TMS9918A() {}
@@ -82,24 +86,55 @@ public:
 	void reset();
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
+	// for debugging
+	void write_via_debugger_data8(uint32_t addr, uint32_t data);
+	uint32_t read_via_debugger_data8(uint32_t addr);
+	void write_via_debugger_io8(uint32_t addr, uint32_t data);
+	uint32_t read_via_debugger_io8(uint32_t addr);
 //#ifdef TMS9918A_SUPER_IMPOSE
 	void write_signal(int id, uint32_t data, uint32_t mask);
 //#endif
 	void event_vline(int v, int clock);
 //#ifdef USE_DEBUGGER
-	uint32_t get_debug_data_addr_mask()
+	bool is_debugger_available()
 	{
-		return _VRAM_SIZE - 1;
+		return true;
 	}
+	void *get_debugger()
+ 	{
+		return d_debugger;
+	}
+	uint64_t get_debug_data_addr_space()
+	{
+		return _VRAM_SIZE;
+ 	}
 	void write_debug_data8(uint32_t addr, uint32_t data)
 	{
-		vram[addr & (_VRAM_SIZE - 1)] = data;
+		if(addr < _VRAM_SIZE) {
+			write_via_debugger_data8(addr, data);
+		}
 	}
 	uint32_t read_debug_data8(uint32_t addr)
 	{
-		return vram[addr & (_VRAM_SIZE - 1)];
+		if(addr < _VRAM_SIZE) {
+			return read_via_debugger_data8(addr);
+		}
+		return 0;
 	}
-	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	void write_debug_io8(uint32_t addr, uint32_t data)
+	{
+		if(addr < 8) {
+			write_via_debugger_io8(addr, data);
+		}
+	}
+	uint32_t read_debug_io8(uint32_t addr)
+	{
+		if(addr < 8) {
+			return read_via_debugger_io8(addr);
+		}
+		return 0;
+ 	}
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 //#endif
 	bool process_state(FILEIO* state_fio, bool loading);
 	
@@ -108,6 +143,12 @@ public:
 	{
 		register_output_signal(&outputs_irq, device, id, mask);
 	}
+#ifdef USE_DEBUGGER
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
+#endif
 	void draw_screen();
 };
 

@@ -70,6 +70,9 @@ EMU::EMU()
 #ifdef USE_CPU_TYPE
 	cpu_type = config.cpu_type;
 #endif
+#ifdef USE_DIPSWITCH
+	dipswitch = config.dipswitch;
+#endif
 #ifdef USE_SOUND_TYPE
 	sound_type = config.sound_type;
 #endif
@@ -105,6 +108,7 @@ EMU::EMU()
 #ifdef USE_DEBUGGER
 	initialize_debugger();
 #endif
+	now_waiting_in_debugger = false;
 	initialize_media();
 	vm->initialize_sound(sound_rate, sound_samples);
 #ifdef USE_SOUND_VOLUME
@@ -237,6 +241,10 @@ void EMU::reset()
 #ifdef USE_CPU_TYPE
 	reinitialize |= (cpu_type != config.cpu_type);
 	cpu_type = config.cpu_type;
+#endif
+#ifdef USE_DIPSWITCH
+	reinitialize |= (dipswitch != config.dipswitch);
+	dipswitch = config.dipswitch;
 #endif
 #ifdef USE_SOUND_TYPE
 	reinitialize |= (sound_type != config.sound_type);
@@ -1458,6 +1466,11 @@ bool EMU::is_screen_changed()
 
 int EMU::draw_screen()
 {
+#ifdef ONE_BOARD_MICRO_COMPUTER
+	if(now_waiting_in_debugger) {
+		osd->reload_bitmap();
+	}
+#endif
 	return osd->draw_screen();
 }
 
@@ -2223,6 +2236,33 @@ bool EMU::is_cart_inserted(int drv)
 #endif
 
 #ifdef USE_FLOPPY_DISK
+void EMU::create_bank_floppy_disk(const _TCHAR* file_path, uint8_t type)
+{
+	/*
+		type: 0x00 = 2D, 0x10 = 2DD, 0x20 = 2HD
+	*/
+	struct {
+		char title[17];
+		uint8_t rsrv[9];
+		uint8_t protect;
+		uint8_t type;
+		uint32_t size;
+		uint32_t trkptr[164];
+	} d88_hdr;
+	
+	memset(&d88_hdr, 0, sizeof(d88_hdr));
+	my_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "BLANK");
+	d88_hdr.type = type;
+	d88_hdr.size = sizeof(d88_hdr);
+	
+	FILEIO *fio = new FILEIO();
+	if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
+		fio->Fwrite(&d88_hdr, sizeof(d88_hdr), 1);
+		fio->Fclose();
+	}
+	delete fio;
+}
+
 void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	if(drv < USE_FLOPPY_DISK) {
@@ -2901,6 +2941,10 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 #ifdef USE_CPU_TYPE
 				reinitialize |= (cpu_type != config.cpu_type);
 				cpu_type = config.cpu_type;
+#endif
+#ifdef USE_DIPSWITCH
+				reinitialize |= (dipswitch != config.dipswitch);
+				dipswitch = config.dipswitch;
 #endif
 #ifdef USE_SOUND_TYPE
 				reinitialize |= (sound_type != config.sound_type);

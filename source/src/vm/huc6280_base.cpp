@@ -227,16 +227,18 @@ bool HUC6280_BASE::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	return true;
 }
 
-void HUC6280_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+bool HUC6280_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
 	my_stprintf_s(buffer, buffer_len,
-	_T("PC = %04X SP = %04X ZP = %04X EA = %04X A = %02X X = %02X Y = %02X P = %02X\nClocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+	_T("PC = %04X SP = %04X ZP = %04X EA = %04X A = %02X X = %02X Y = %02X P = %02X\n")
+	_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 	cpustate->pc.w.l, cpustate->sp.w.l, cpustate->zp.w.l, cpustate->ea.w.l, cpustate->a, cpustate->x, cpustate->y, cpustate->p,
 	total_icount, total_icount - prev_total_icount,
 	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 
 	prev_total_icount = total_icount;
+	return true;
 }
 
 // disassembler

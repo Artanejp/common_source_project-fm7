@@ -112,6 +112,7 @@
 #include <stdlib.h>
 #include <string.h>
 #ifdef _MSC_VER
+#include <io.h>
 #include <typeinfo.h>
 #else
 #include <typeinfo>

@@ -170,6 +170,13 @@ public:
 #define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #endif
 
+// osd common
+
+#define OSD_CONSOLE_BLUE	1 // text color contains blue
+#define OSD_CONSOLE_GREEN	2 // text color contains green
+#define OSD_CONSOLE_RED		4 // text color contains red
+#define OSD_CONSOLE_INTENSITY	8 // text color is intensified
+
 typedef struct bitmap_s {
 	// common
 	inline bool initialized()
@@ -451,13 +458,20 @@ public:
 	void force_unlock_vm();
 	void sleep(uint32_t ms);
 	
+	// common debugger
+#ifdef USE_DEBUGGER
+	void start_waiting_in_debugger();
+	void finish_waiting_in_debugger();
+	void process_waiting_in_debugger();
+#endif
+	
 	// common console
 	void open_console(const _TCHAR* title);
 	void close_console();
 	unsigned int get_console_code_page();
 	bool is_console_active();
 	void set_console_text_attribute(unsigned short attr);
-	void write_console(_TCHAR* buffer, unsigned int length);
+	void write_console(const _TCHAR* buffer, unsigned int length);
 	int read_console_input(_TCHAR* buffer, unsigned int length);
 	bool is_console_key_pressed(int vk);
 	void close_debugger_console();

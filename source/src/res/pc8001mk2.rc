@@ -164,13 +164,16 @@ BEGIN
     BEGIN
         POPUP "Boot"
         BEGIN
-            MENUITEM "N80 mode"                 ID_VM_BOOT_MODE0
-            MENUITEM "N mode"                   ID_VM_BOOT_MODE2
+            MENUITEM "N80 mode"                     ID_VM_BOOT_MODE0
+            MENUITEM "N mode"                       ID_VM_BOOT_MODE2
         END
         POPUP "Sound"
         BEGIN
-            MENUITEM "OPN",                     ID_VM_SOUND_TYPE0
-            MENUITEM "OPNA",                    ID_VM_SOUND_TYPE1
+            MENUITEM "None",                        ID_VM_SOUND_TYPE0
+            MENUITEM "OPN",                         ID_VM_SOUND_TYPE1
+            MENUITEM SEPARATOR
+            MENUITEM "GSX-8800",                    ID_VM_DIPSWITCH2
+            MENUITEM "PCG-8100",                    ID_VM_DIPSWITCH3
             MENUITEM SEPARATOR
             MENUITEM "Play FDD Noise",              ID_VM_SOUND_NOISE_FDD
             MENUITEM "Play CMT Noise",              ID_VM_SOUND_NOISE_CMT, GRAYED
@@ -283,7 +286,7 @@ IDI_ICON1               ICON    DISCARDABLE     "pc8001mk2.ico"
 // Dialog
 //
 
-IDD_VOLUME DIALOG DISCARDABLE  0, 0, 250, 240
+IDD_VOLUME DIALOG DISCARDABLE  0, 0, 250, 210
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Volume"
 FONT 9, "MS PGothic"
@@ -306,11 +309,8 @@ BEGIN
     LTEXT           "Sound Device #6",IDC_VOLUME_CAPTION5,6,156,60,8
     CONTROL         "",IDC_VOLUME_PARAM_L5,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,156,175,12
     CONTROL         "",IDC_VOLUME_PARAM_R5,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,171,175,12
-    LTEXT           "Sound Device #7",IDC_VOLUME_CAPTION6,6,186,60,8
-    CONTROL         "",IDC_VOLUME_PARAM_L6,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,186,175,12
-    CONTROL         "",IDC_VOLUME_PARAM_R6,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,201,175,12
-    DEFPUSHBUTTON   "OK",IDOK,70,220,50,14
-    DEFPUSHBUTTON   "Reset",IDC_VOLUME_RESET,130,220,50,14
+    DEFPUSHBUTTON   "OK",IDOK,70,190,50,14
+    DEFPUSHBUTTON   "Reset",IDC_VOLUME_RESET,130,190,50,14
 END
 
 IDD_JOYSTICK DIALOG DISCARDABLE  0, 0, 175, 120

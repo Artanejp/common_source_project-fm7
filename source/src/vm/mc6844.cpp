@@ -8,10 +8,24 @@
 */
 
 #include "mc6844.h"
+//#ifdef USE_DEBUGGER
+#include "debugger.h"
+//#endif
 
 #define STAT_BUSY	0x40
 #define STAT_DEND	0x80
 #define IRQ_FLAG	0x80
+
+void MC6844::initialize()
+{
+//#ifdef USE_DEBUGGER
+	if(d_debugger != NULL) {
+		d_debugger->set_device_name(_T("Debugger (MC6844 DMAC)"));
+		d_debugger->set_context_mem(this);
+		d_debugger->set_context_io(vm->dummy);
+	}
+//#endif
+}
 
 void MC6844::reset()
 {
@@ -129,18 +143,35 @@ void MC6844::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
+void MC6844::write_via_debugger_data8(uint32_t addr, uint32_t data)
+{
+	d_memory->write_dma_data8(addr, data);
+}
+
+uint32_t MC6844::read_via_debugger_data8(uint32_t addr)
+{
+	return d_memory->read_dma_data8(addr);
+}
+
 void MC6844::transfer(int ch)
 {
 	if(priority_ctrl_reg & (1 << ch)) {
 		if(dma[ch].byte_count_reg.w.l != 0) {
 			if(dma[ch].channel_ctrl_reg & 0x01) {
 				uint8_t data;
-				data = d_memory->read_dma_data8(dma[ch].address_reg.w.l);
-				dma[ch].device->write_dma_io8(0, data);
+				if(d_debugger != NULL && d_debugger->now_device_debugging) {
+					data = d_debugger->read_via_debugger_data8(dma[ch].address_reg.w.l);
+				} else {
+					data = this->read_via_debugger_data8(dma[ch].address_reg.w.l);
+				}
+ 				dma[ch].device->write_dma_io8(0, data);
 			} else {
-				uint8_t data;
-				data = dma[ch].device->read_dma_io8(0);
-				d_memory->write_dma_data8(dma[ch].address_reg.w.l, data);
+ 				uint8_t data = dma[ch].device->read_dma_io8(0);
+				if(d_debugger != NULL && d_debugger->now_device_debugging) {
+					d_debugger->write_via_debugger_data8(dma[ch].address_reg.w.l, data);
+				} else {
+					this->write_via_debugger_data8(dma[ch].address_reg.w.l, data);
+				}
 			}
 			if(dma[ch].channel_ctrl_reg & 0x08) {
 				dma[ch].address_reg.d--;
@@ -181,6 +212,29 @@ void MC6844::update_irq()
 		}
 		write_signals(&outputs_irq, new_flag ? 0xffffffff : 0);
 	}
+}
+
+bool MC6844::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+/*
+CH0 ADDR=FFFF COUNT=FFFF CTRL=FF ENABLE=1 MEM->I/O
+CH1 ADDR=FFFF COUNT=FFFF CTRL=FF ENABLE=1 I/O->MEM
+CH2 ADDR=FFFF COUNT=FFFF CTRL=FF ENABLE=1 MEM->I/O
+CH3 ADDR=FFFF COUNT=FFFF CTRL=FF ENABLE=1 I/O->MEM
+*/
+	static const _TCHAR *dir[2] = {
+		_T("MEM->I/O"), _T("I/O->MEM")
+	};
+	my_stprintf_s(buffer, buffer_len,
+	_T("CH0 ADDR=%04X COUNT=%04X CTRL=%02X ENABLE=%d %s\n")
+	_T("CH1 ADDR=%04X COUNT=%04X CTRL=%02X ENABLE=%d %s\n")
+	_T("CH2 ADDR=%04X COUNT=%04X CTRL=%02X ENABLE=%d %s\n")
+	_T("CH3 ADDR=%04X COUNT=%04X CTRL=%02X ENABLE=%d %s"),
+				  dma[0].address_reg.w.l, dma[0].byte_count_reg.w.l, dma[0].channel_ctrl_reg, (priority_ctrl_reg >> 0) & 1, dir[dma[0].channel_ctrl_reg & 1], 
+	dma[1].address_reg.w.l, dma[1].byte_count_reg.w.l, dma[1].channel_ctrl_reg, (priority_ctrl_reg >> 1) & 1, dir[dma[1].channel_ctrl_reg & 1], 
+	dma[2].address_reg.w.l, dma[2].byte_count_reg.w.l, dma[2].channel_ctrl_reg, (priority_ctrl_reg >> 2) & 1, dir[dma[2].channel_ctrl_reg & 1], 
+	dma[3].address_reg.w.l, dma[3].byte_count_reg.w.l, dma[3].channel_ctrl_reg, (priority_ctrl_reg >> 3) & 1, dir[dma[3].channel_ctrl_reg & 1]);
+	return true;
 }
 
 #define STATE_VERSION	1

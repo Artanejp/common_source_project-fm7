@@ -1,3 +1,130 @@
+2/19/2019
+
+[VM/DEVICE] add is_primary_cpu() and update_extra_event()
+[VM/EVENT] support to udpate event while cpu is running one opecode
+[VM/Z80] improve to update event in every read/write cycle
+
+[MZ2500/MEMORY] improve pcgram wait in display timing
+
+
+2/16/2019
+
+[EMU/DEBUGGER] improve to enumerate devices that is debugger available
+[EMU/DEBUGGER] improve to show all breaked reasons
+[EMU/DEBUGGER] support breakpoint of cpu selected by "! device" command
+[EMU/*] simplify code for debugger
+[VM/*] simplify code for debugger
+
+[VM/I8237] support break point for direct memory access
+[VM/MB8877] fix not to wait 60ms to start read/write after seek is finished
+[VM/MC6844] support break point for direct memory access
+[VM/TMS9918A] support break point for registers and vram access
+[VM/UPD71071] support break point for direct memory access
+[VM/Z80DMA] support break point for direct i/o and memory access
+
+
+2/14/2019
+
+[EMU/DEBUGGER] support break point for non-cpu device
+[EMU/DEBUGGER] change command length from 64 to 1024
+
+[VM/AY_3_891X] support break point
+[VM/DEVICE] add get_debug_data_addr_space()
+[VM/DEVICE] change type of get_debug_regs_info() from void to bool
+[VM/MB8877] fix to decrease first seek time by 500us (2D/2DD) or 250us (2HD)
+[VM/TMS9918A] support break point
+[VM/YM2151] support break point
+[VM/YM2203] support break point
+[VM/Z80CTC] fix to reset interrupt req/in service by bit2 of control register
+[VM/Z80DMA] fix to reset interrupt req/in service by reset command
+
+[X1TURBO/EMM] support to access vram as memory space from debugger
+[X1TURBO/IOBUS] support to access vram as memory space from debugger
+[X1TURBO/IOBUS] support break point
+
+
+2/9/2019
+
+[EMU/DEBUGGER] enlarge text buffer size
+
+[VM/DEVICE] add get_context_child() to enumerate daisy-chained devices
+[VM/DISK] add get_sector_info()
+[VM/MB8877] improve debugger to show current head position and disk geometry
+[VM/MB8877] fix not to abort command when eject disk in unselected drive
+[VM/UPD765A] improve debugger to show current head position and disk geometry
+[VM/Z80*] add get_context_child() to enumerate daisy-chained devices
+
+[X1TURBO] fix to force clear iei/oei of z80 family devices when reset vm
+[X1TURBO/DISPLAY] fix to check bit0/2 of port 0x1fd0 in draw_text()
+
+
+2/8/2019
+
+[EMU/*] simplify code to draw screen while debugging cpu
+[OSD/*] simplify code to draw screen while debugging cpu
+[VM/*] simplify code to draw screen while debugging cpu
+
+[BUBCOM80/DISPLAY] improve dmac
+[HC80/IO] fix slave-cpu command 0x27 and 0x29 (thanks Mr.Stefano Bodrato)
+
+
+2/7/2019
+
+[EMU/DEBUGGER] improve to draw screen while debugging cpu
+[EMU] add override/restore/run_wndproc() for debugger
+[EMU] add create_bank_floppy_disk()
+[OSD/WIN32] add override/restore/run_wndproc() for debugger
+
+[VM/315_5124] improve draw_screen() for debugger
+[VM/H6280] improve to run window procedure while suspending for debugger
+[VM/I286] improve to run window procedure while suspending for debugger
+[VM/I386] improve to run window procedure while suspending for debugger
+[VM/I8080] improve to run window procedure while suspending for debugger
+[VM/M6502] improve to run window procedure while suspending for debugger
+[VM/MC6800] improve to run window procedure while suspending for debugger
+[VM/MC6809] improve to run window procedure while suspending for debugger
+[VM/MCS48] improve to run window procedure while suspending for debugger
+[VM/TMS9918A] improve draw_screen() for debugger
+[VM/TMS9995] improve to run window procedure while suspending for debugger
+[VM/UPD7801] improve to run window procedure while suspending for debugger
+[VM/UPD7810] improve to run window procedure while suspending for debugger
+[VM/V9938] improve draw_screen() for debugger
+[VM/V99X8] improve draw_screen() for debugger
+[VM/Z80] improve to run window procedure while suspending for debugger
+
+[BUBCOM80/DISPLAY] improve draw_screen() for debugger
+[FAMILYBASIC/PPU] improve draw_screen() for debugger
+[MZ80K/DISPLAY] improve draw_screen() for debugger
+[MZ1500/MEMORY] improve draw_screen() for debugger
+[PC8801/PC88] improve draw_screen() for debugger
+[PCENGINE/PCE] improve draw_screen() for debugger
+[SMC777/MEMORY] improve draw_screen() for debugger
+[X1/DISPLAY] improve draw_screen() for debugger
+
+
+1/29/2019
+
+[MZ80K/MEMORY] support COLOR GAL 5 (thanks Mr.Suga)
+[PC8001/PC88] fix issue that cursor is mistakenly hidden
+
+
+1/18/2019
+
+[PC8001/PC88] clear ram[0xff33] for DEMPA Galaxian
+[SMC777/MEMORY] improve to render screen in each scan line
+
+
+1/16/2019
+
+[EMU] improve to reinitialize vm in reset when dipswitch is changed
+
+[VM/UPD765A] fix st3 in sence devstat command to set two-side bit (temporary)
+
+[PC8801] support GSX-8800
+[PC8801] support to enable/disable PC-8801-11/GSX-8800/PCG-8100
+[PC8801] fix some degradations
+
+
 1/11/2019
 
 [PC8001] support NEC PC-8001

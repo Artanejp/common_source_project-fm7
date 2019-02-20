@@ -52,10 +52,17 @@ bool OSD::is_console_active()
 
 void OSD::set_console_text_attribute(unsigned short attr)
 {
+	unsigned short new_attr = 0;
+	
+	if(attr & OSD_CONSOLE_BLUE     ) new_attr |= FOREGROUND_BLUE;
+	if(attr & OSD_CONSOLE_GREEN    ) new_attr |= FOREGROUND_GREEN;
+	if(attr & OSD_CONSOLE_RED      ) new_attr |= FOREGROUND_RED;
+	if(attr & OSD_CONSOLE_INTENSITY) new_attr |= FOREGROUND_INTENSITY;
+	
 	SetConsoleTextAttribute(hStdOut, attr);
 }
 
-void OSD::write_console(_TCHAR* buffer, unsigned int length)
+void OSD::write_console(const _TCHAR* buffer, unsigned int length)
 {
 	DWORD dwWritten;
 	WriteConsole(hStdOut, buffer, length, &dwWritten, NULL);

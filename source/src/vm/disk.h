@@ -122,6 +122,7 @@ private:
 	bool get_track_tmp(int trk, int side);
 	bool make_track_tmp(int trk, int side);
 	bool get_sector_tmp(int trk, int side, int index);
+	bool get_sector_info_tmp(int trk, int side, int index, uint8_t *c, uint8_t *h, uint8_t *r, uint8_t *n, int *length);
 	bool format_track_tmp(int trk, int side);
 	
 public:
@@ -174,6 +175,7 @@ public:
 	bool get_track(int trk, int side);
 	bool make_track(int trk, int side);
 	bool get_sector(int trk, int side, int index);
+	bool get_sector_info(int trk, int side, int index, uint8_t *c, uint8_t *h, uint8_t *r, uint8_t *n, int *length);
 	void set_deleted(bool value);
 	void set_data_crc_error(bool value);
 	void set_data_mark_missing();

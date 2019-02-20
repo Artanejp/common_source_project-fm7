@@ -58,9 +58,10 @@ private:
 	
 	int dcount_cpu;
 	
-	int vclocks[MAX_LINES];
+	int frame_clocks;
+	int vline_clocks[MAX_LINES];
 	int power;
-	int event_remain;
+	int event_remain, event_extra;
 	int cpu_remain, cpu_accum, cpu_done;
 	uint64_t event_clocks;
 	
@@ -270,6 +271,11 @@ public:
 	{
 		return next_lines_per_frame;
 	}
+	bool is_primary_cpu(DEVICE* device)
+	{
+		return (d_cpu[0].device == device);
+	}
+	void update_extra_event(int clock);
 	void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id);
 	void register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id);
 	void cancel_event(DEVICE* device, int register_id);
@@ -288,7 +294,7 @@ public:
 	}
 	int get_cur_vline_clocks()
 	{
-		return vclocks[cur_vline];
+		return vline_clocks[cur_vline];
 	}
 	uint32_t get_cpu_pc(int index);
 	void request_skip_frames();

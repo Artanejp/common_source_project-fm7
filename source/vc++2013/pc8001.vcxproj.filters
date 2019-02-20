@@ -17,6 +17,10 @@
       <UniqueIdentifier>{68b590a8-076d-453c-98d4-2eb5c8fe8788}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
+    <Filter Include="Source Files\VM Common Source Files\fmgen Source Files">
+      <UniqueIdentifier>{bed91dbb-7dbc-4385-adf2-5d0fdf2743cf}</UniqueIdentifier>
+      <Extensions>cpp</Extensions>
+    </Filter>
     <Filter Include="Source Files\VM Driver Source Files">
       <UniqueIdentifier>{b2e3df21-9020-4e09-8b26-8b7a8c0a7a73}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
@@ -36,6 +40,9 @@
     <Filter Include="Header Files\VM Common Header Files">
       <UniqueIdentifier>{9f2981f4-53b6-4bf1-bc48-9dc516a72a11}</UniqueIdentifier>
       <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Header Files\VM Common Header Files\fmgen Header Files">
+      <UniqueIdentifier>{4296e2df-942e-4e21-8f4e-c65873cd9947}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\VM Driver Header Files">
       <UniqueIdentifier>{c8e1362e-38fa-4338-82d4-8e75537d2fbe}</UniqueIdentifier>
@@ -83,6 +90,9 @@
     <ClCompile Include="..\src\win32\winmain.cpp">
       <Filter>Source Files\OSD Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\ay_3_891x.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\disk.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
@@ -119,6 +129,18 @@
     <ClCompile Include="..\src\vm\z80.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\fmgen\fmgen.cpp">
+      <Filter>Source Files\VM Common Source Files\fmgen Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\fmgen\fmtimer.cpp">
+      <Filter>Source Files\VM Common Source Files\fmgen Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\fmgen\opna.cpp">
+      <Filter>Source Files\VM Common Source Files\fmgen Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\fmgen\psg.cpp">
+      <Filter>Source Files\VM Common Source Files\fmgen Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\pc8801\pc88.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
@@ -144,6 +166,9 @@
     </ClInclude>
     <ClInclude Include="..\src\win32\osd.h">
       <Filter>Header Files\OSD Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\ay_3_891x.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\debugger.h">
       <Filter>Header Files\VM Common Header Files</Filter>
@@ -192,6 +217,30 @@
     </ClInclude>
     <ClInclude Include="..\src\vm\z80.h">
       <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\fmgen\diag.h">
+      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\fmgen\fmgen.h">
+      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\fmgen\fmgeninl.h">
+      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\fmgen\fmtimer.h">
+      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\fmgen\headers.h">
+      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\fmgen\misc.h">
+      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\fmgen\opna.h">
+      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\fmgen\psg.h">
+      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\pc8801\pc88.h">
       <Filter>Header Files\VM Driver Header Files</Filter>

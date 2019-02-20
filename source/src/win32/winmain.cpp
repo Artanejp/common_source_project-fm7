@@ -109,8 +109,7 @@ void open_dropped_file(HDROP hDrop);
 void open_any_file(const _TCHAR* path);
 #endif
 
-_TCHAR* get_open_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* title, _TCHAR* dir, size_t dir_len);
-_TCHAR* get_save_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* file, const _TCHAR* title, _TCHAR* dir, size_t dir_len);
+_TCHAR* get_open_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* title, const _TCHAR* new_file, _TCHAR* dir, size_t dir_len);
 
 // screen
 int desktop_width;
@@ -1094,12 +1093,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_SELECT_D88_BANK + 56: case ID_SELECT_D88_BANK + 57: case ID_SELECT_D88_BANK + 58: case ID_SELECT_D88_BANK + 59: \
 		case ID_SELECT_D88_BANK + 60: case ID_SELECT_D88_BANK + 61: case ID_SELECT_D88_BANK + 62: case ID_SELECT_D88_BANK + 63: \
 			if(emu) { \
-				select_d88_bank(drv, LOWORD(wParam) - ID_SELECT_D88_BANK) ; \
+				select_d88_bank(drv, LOWORD(wParam) - ID_SELECT_D88_BANK); \
 			} \
 			break; \
 		case ID_EJECT_D88_BANK: \
 			if(emu) { \
-				select_d88_bank(drv, -1) ; \
+				select_d88_bank(drv, -1); \
 			} \
 			break;
 		FD_MENU_ITEMS(0, ID_OPEN_FD1, ID_CLOSE_FD1, ID_OPEN_BLANK_2D_FD1, ID_OPEN_BLANK_2DD_FD1, ID_OPEN_BLANK_2HD_FD1, ID_WRITE_PROTECT_FD1, ID_CORRECT_TIMING_FD1, ID_IGNORE_CRC_FD1, ID_RECENT_FD1, ID_SELECT_D88_BANK1, ID_EJECT_D88_BANK1)
@@ -1412,7 +1411,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	}
-	return DefWindowProc(hWnd, iMsg, wParam, lParam) ;
+	return DefWindowProc(hWnd, iMsg, wParam, lParam);
 }
 
 // ----------------------------------------------------------------------------
@@ -2177,9 +2176,13 @@ void update_menu(HWND hWnd, HMENU hMenu)
 	} else if(id >= ID_VM_JOYSTICK_MENU_START && id <= ID_VM_JOYSTICK_MENU_END) {
 		 update_vm_joystick_menu(hMenu);
 #endif
-#if defined(USE_SOUND_TYPE) || defined(USE_FLOPPY_DISK) || defined(USE_TAPE)
+#if defined(USE_SOUND_TYPE) || defined(USE_FLOPPY_DISK) || defined(USE_TAPE) || defined(USE_DIPSWITCH)
 	} else if(id >= ID_VM_SOUND_MENU_START && id <= ID_VM_SOUND_MENU_END) {
 		 update_vm_sound_menu(hMenu);
+#ifdef USE_DIPSWITCH
+		// dipswitch may be in sound menu
+		 update_vm_dipswitch_menu(hMenu);
+#endif
 #endif
 #if defined(USE_MONITOR_TYPE) || defined(USE_SCANLINE)
 	} else if(id >= ID_VM_MONITOR_MENU_START && id <= ID_VM_MONITOR_MENU_END) {
@@ -2377,7 +2380,7 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 				GetTextExtentPoint32(lpDrawItem->hDC, _T("HD:"), 3, &size);
 				draw_left += size.cx + 4;
 				
-				for (int i = 0; i < USE_HARD_DISK; i++) {
+				for(int i = 0; i < USE_HARD_DISK; i++) {
 					int idx = (hd_status >> i) & 1;
 					SelectObject(hdcMem, hBitmap[idx]);
 					TransparentBlt(lpDrawItem->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
@@ -2390,7 +2393,7 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 				GetTextExtentPoint32(lpDrawItem->hDC, _T("CD:"), 3, &size);
 				draw_left += size.cx + 4;
 				
-				for (int i = 0; i < USE_COMPACT_DISC; i++) {
+				for(int i = 0; i < USE_COMPACT_DISC; i++) {
 					int idx = (cd_status >> i) & 1;
 					SelectObject(hdcMem, hBitmap[idx]);
 					TransparentBlt(lpDrawItem->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
@@ -2403,7 +2406,7 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 				GetTextExtentPoint32(lpDrawItem->hDC, _T("LD:"), 3, &size);
 				draw_left += size.cx + 4;
 				
-				for (int i = 0; i < USE_LASER_DISC; i++) {
+				for(int i = 0; i < USE_LASER_DISC; i++) {
 					int idx = (ld_status >> i) & 1;
 					SelectObject(hdcMem, hBitmap[idx]);
 					TransparentBlt(lpDrawItem->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
@@ -2478,6 +2481,7 @@ void open_cart_dialog(HWND hWnd, int drv)
 		_T("Supported Files (*.rom;*.bin;*.hex)\0*.rom;*.bin;*.hex\0All Files (*.*)\0*.*\0\0"), 
 		_T("Game Cartridge"),
 #endif
+		NULL,
 		config.initial_cart_dir, _MAX_PATH
 	);
 	if(path) {
@@ -2506,6 +2510,7 @@ void open_floppy_disk_dialog(HWND hWnd, int drv)
 		hWnd,
 		_T("Supported Files (*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.nfd;*.fdi;*.hdm;*.hd5;*.hd4;*.hdb;*.dd9;*.dd6;*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd)\0*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.nfd;*.fdi;*.hdm;*.hd5;*.hd4;*.hdb;*.dd9;*.dd6;*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd\0All Files (*.*)\0*.*\0\0"),
 		_T("Floppy Disk"),
+		NULL,
 		config.initial_floppy_disk_dir, _MAX_PATH
 	);
 	if(path) {
@@ -2517,38 +2522,18 @@ void open_floppy_disk_dialog(HWND hWnd, int drv)
 
 void open_blank_floppy_disk_dialog(HWND hWnd, int drv, uint8_t type)
 {
-	_TCHAR* path = get_save_file_name(
+	_TCHAR* path = get_open_file_name(
 		hWnd,
 		_T("Supported Files (*.d88;*.d77)\0*.d88;*.d77\0All Files (*.*)\0*.*\0\0"),
-		create_date_file_name(_T("d88")),
 		_T("Floppy Disk"),
+		create_date_file_name(_T("d88")),
 		config.initial_floppy_disk_dir, _MAX_PATH
 	);
 	if(path) {
 		UPDATE_HISTORY(path, config.recent_floppy_disk_path[drv]);
 		my_tcscpy_s(config.initial_floppy_disk_dir, _MAX_PATH, get_parent_dir(path));
-		
-		struct {
-			char title[17];
-			uint8_t rsrv[9];
-			uint8_t protect;
-			uint8_t type;
-			uint32_t size;
-			uint32_t trkptr[164];
-		} d88_hdr;
-		
-		memset(&d88_hdr, 0, sizeof(d88_hdr));
-		my_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "BLANK");
-		d88_hdr.type = type;
-		d88_hdr.size = sizeof(d88_hdr);
-		
-		FILEIO *fio = new FILEIO();
-		if(fio->Fopen(path, FILEIO_WRITE_BINARY)) {
-			fio->Fwrite(&d88_hdr, sizeof(d88_hdr), 1);
-			fio->Fclose();
-			open_floppy_disk(drv, path, 0);
-		}
-		delete fio;
+		emu->create_bank_floppy_disk(path, type);
+		open_floppy_disk(drv, path, 0);
 	}
 }
 
@@ -2630,6 +2615,7 @@ void open_quick_disk_dialog(HWND hWnd, int drv)
 		hWnd,
 		_T("Supported Files (*.mzt;*.q20;*.qdf)\0*.mzt;*.q20;*.qdf\0All Files (*.*)\0*.*\0\0"),
 		_T("Quick Disk"),
+		NULL,
 		config.initial_quick_disk_dir, _MAX_PATH
 	);
 	if(path) {
@@ -2658,6 +2644,7 @@ void open_hard_disk_dialog(HWND hWnd, int drv)
 		hWnd,
 		_T("Supported Files (*.thd;*.nhd;*.hdi;*.hdd;*.dat)\0*.thd;*.nhd;*.hdi;*.hdd;*.dat\0All Files (*.*)\0*.*\0\0"),
 		_T("Hard Disk"),
+		NULL,
 		config.initial_hard_disk_dir, _MAX_PATH
 	);
 	if(path) {
@@ -2687,7 +2674,7 @@ void open_tape_dialog(HWND hWnd, int drv, bool play)
 #if defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
 		play ? _T("Supported Files (*.wav;*.cas;*.p6;*.p6t;*.gz)\0*.wav;*.cas;*.p6;*.p6t;*.gz\0All Files (*.*)\0*.*\0\0")
 		     : _T("Supported Files (*.wav;*.cas;*.p6;*.p6t)\0*.wav;*.cas;*.p6;*.p6t\0All Files (*.*)\0*.*\0\0"),
-#elif defined(_PC8001SR) || defined(_PC8801MA) || defined(_PC98DO)
+#elif defined(_PC8001) || defined(_PC8001MK2) || defined(_PC8001SR) || defined(_PC8801) || defined(_PC8801MK2) || defined(_PC8801MA) || defined(_PC98DO)
 		play ? _T("Supported Files (*.cas;*.cmt;*.n80;*.t88)\0*.cas;*.cmt;*.n80;*.t88\0All Files (*.*)\0*.*\0\0")
 		     : _T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
 #elif defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
@@ -2716,6 +2703,7 @@ void open_tape_dialog(HWND hWnd, int drv, bool play)
 		_T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
 #endif
 		play ? _T("Data Recorder Tape [Play]") : _T("Data Recorder Tape [Rec]"),
+		NULL,
 		config.initial_tape_dir, _MAX_PATH
 	);
 	if(path) {
@@ -2748,6 +2736,7 @@ void open_compact_disc_dialog(HWND hWnd, int drv)
 		hWnd,
 		_T("Supported Files (*.ccd;*.cue)\0*.ccd;*.cue\0All Files (*.*)\0*.*\0\0"),
 		_T("Compact Disc"),
+		NULL,
 		config.initial_compact_disc_dir, _MAX_PATH
 	);
 	if(path) {
@@ -2776,6 +2765,7 @@ void open_laser_disc_dialog(HWND hWnd, int drv)
 		hWnd,
 		_T("Supported Files (*.avi;*.mpg;*.mpeg;*.mp4;*.wmv;*.ogv)\0*.avi;*.mpg;*.mpeg;*.mp4;*.wmv;*.ogv\0All Files (*.*)\0*.*\0\0"),
 		_T("Laser Disc"),
+		NULL,
 		config.initial_laser_disc_dir, _MAX_PATH
 	);
 	if(path) {
@@ -2808,6 +2798,7 @@ void open_binary_dialog(HWND hWnd, int drv, bool load)
 #else
 		_T("Memory Dump"),
 #endif
+		NULL,
 		config.initial_binary_dir, _MAX_PATH
 	);
 	if(path) {
@@ -2840,6 +2831,7 @@ void open_bubble_casette_dialog(HWND hWnd, int drv)
 		hWnd,
 		_T("Supported Files (*.b77;*.bbl)\0*.b77;*.bbl\0All Files (*.*)\0*.*\0\0"),
 		_T("Bubble Casette"),
+		NULL,
 		config.initial_bubble_casette_dir, _MAX_PATH
 	);
 	if(path) {
@@ -2995,12 +2987,15 @@ void open_any_file(const _TCHAR* path)
 }
 #endif
 
-_TCHAR* get_open_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* title, _TCHAR* dir, size_t dir_len)
+_TCHAR* get_open_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* title, const _TCHAR* new_file, _TCHAR* dir, size_t dir_len)
 {
 	static _TCHAR path[_MAX_PATH];
 	_TCHAR tmp[_MAX_PATH] = _T("");
 	OPENFILENAME OpenFileName;
 	
+	if(new_file != NULL) {
+		my_tcscpy_s(tmp, _MAX_PATH, new_file);
+	}
 	memset(&OpenFileName, 0, sizeof(OpenFileName));
 	OpenFileName.lStructSize = sizeof(OPENFILENAME);
 	OpenFileName.hwndOwner = hWnd;
@@ -3008,7 +3003,6 @@ _TCHAR* get_open_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* title,
 	OpenFileName.lpstrFile = tmp;
 	OpenFileName.nMaxFile = _MAX_PATH;
 	OpenFileName.lpstrTitle = title;
-	OpenFileName.Flags = OFN_FILEMUSTEXIST;
 	if(dir[0]) {
 		OpenFileName.lpstrInitialDir = dir;
 	} else {
@@ -3017,36 +3011,6 @@ _TCHAR* get_open_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* title,
 		OpenFileName.lpstrInitialDir = get_parent_dir(app);
 	}
 	if(GetOpenFileName(&OpenFileName)) {
-		get_long_full_path_name(OpenFileName.lpstrFile, path, _MAX_PATH);
-		my_tcscpy_s(dir, dir_len, get_parent_dir(path));
-		return path;
-	}
-	return NULL;
-}
-
-_TCHAR* get_save_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* file, const _TCHAR* title, _TCHAR* dir, size_t dir_len)
-{
-	static _TCHAR path[_MAX_PATH];
-	_TCHAR tmp[_MAX_PATH] = _T("");
-	OPENFILENAME OpenFileName;
-	
-	my_tcscpy_s(tmp, _MAX_PATH, file);
-	memset(&OpenFileName, 0, sizeof(OpenFileName));
-	OpenFileName.lStructSize = sizeof(OPENFILENAME);
-	OpenFileName.hwndOwner = hWnd;
-	OpenFileName.lpstrFilter = filter;
-	OpenFileName.lpstrFile = tmp;
-	OpenFileName.nMaxFile = _MAX_PATH;
-	OpenFileName.lpstrTitle = title;
-	OpenFileName.Flags = OFN_OVERWRITEPROMPT;
-	if(dir[0]) {
-		OpenFileName.lpstrInitialDir = dir;
-	} else {
-		_TCHAR app[_MAX_PATH];
-		GetModuleFileName(NULL, app, _MAX_PATH);
-		OpenFileName.lpstrInitialDir = get_parent_dir(app);
-	}
-	if(GetSaveFileName(&OpenFileName)) {
 		get_long_full_path_name(OpenFileName.lpstrFile, path, _MAX_PATH);
 		my_tcscpy_s(dir, dir_len, get_parent_dir(path));
 		return path;
@@ -3267,7 +3231,7 @@ BOOL CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			EndDialog(hDlg, IDOK);
 			break;
 		case IDC_VOLUME_RESET:
-			for(int i = 0; i < 10; i++) {
+			for(int i = 0; i < USE_SOUND_VOLUME; i++) {
 				SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETPOS, TRUE, 0);
 				SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETPOS, TRUE, 0);
 			}

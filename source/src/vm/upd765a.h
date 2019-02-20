@@ -179,7 +179,11 @@ public:
 	void event_callback(int event_id, int err);
 	void update_config();
 	//#ifdef USE_DEBUGGER
-	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	bool is_debugger_available()
+	{
+		return true;
+	}
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 //#endif
 	bool process_state(FILEIO* state_fio, bool loading);
 	

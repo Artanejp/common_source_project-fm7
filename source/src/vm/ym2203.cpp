@@ -8,6 +8,7 @@
 */
 
 #include "ym2203.h"
+#include "debugger.h"
 #include <math.h>
 
 #define EVENT_FM_TIMER	0
@@ -60,11 +61,20 @@ void YM2203::initialize()
 	dllchip = NULL;
 #endif
 	register_vline_event(this);
+	left_volume = right_volume = 256;
+	v_left_volume = v_right_volume = 256;
 	mute = false;
 	clock_prev = clock_accum = clock_busy = 0;
 
-	left_volume = right_volume = 256;
-	v_left_volume = v_right_volume = 256;
+	if(d_debugger != NULL) {
+		if(is_ym2608) {
+			d_debugger->set_device_name(_T("Debugger (YM2608 OPNA)"));
+		} else {
+			d_debugger->set_device_name(_T("Debugger (YM2203 OPN)"));
+		}
+		d_debugger->set_context_mem(this);
+		d_debugger->set_context_io(vm->dummy);
+	}
 }
 
 void YM2203::release()
@@ -99,8 +109,8 @@ void YM2203::reset()
 	if(dllchip) {
 		fmdll->Reset(dllchip);
 	}
-	memset(port_log, 0, sizeof(port_log));
 #endif
+	memset(port_log, 0, sizeof(port_log));
 	fnum2 = 0;
 	fnum21 = 0;
 	
@@ -142,75 +152,20 @@ void YM2203::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 1:
-			if(ch == 7) {
-//				if(_IS_YM2203_PORT_MODE) {
-//					mode = (data & 0x3f) | _YM2203_PORT_MODE;
-//				} else {
-					mode = data;
-//				}
-			} else if(ch == 14) {
-//#ifdef SUPPORT_YM2203_PORT_A
-				if(_SUPPORT_YM2203_PORT_A) {
-					if(port[0].wreg != data || port[0].first) {
-						write_signals(&port[0].outputs, data);
-						port[0].wreg = data;
-						port[0].first = false;
-					}
-				}
-//#endif
-			} else if(ch == 15) {
-//#ifdef SUPPORT_YM2203_PORT_B
-				if(_SUPPORT_YM2203_PORT_B) {
-					if(port[1].wreg != data || port[1].first) {
-						write_signals(&port[1].outputs, data);
-						port[1].wreg = data;
-						port[1].first = false;
-					}
-				}
-//#endif
-			}
-		if(0x2d <= ch && ch <= 0x2f) {
-			// don't write again for prescaler
-		} else if(0xa4 <= ch && ch <= 0xa6) {
-			// XM8 version 1.20
-			fnum2 = data;
+		if(d_debugger != NULL && d_debugger->now_device_debugging) {
+			d_debugger->write_via_debugger_data8(ch, data);
 		} else {
-			update_count();
-			// XM8 version 1.20
-			if(0xa0 <= ch && ch <= 0xa2) {
-				this->set_reg(ch + 4, fnum2);
-			}
-			this->set_reg(ch, data);
-			if(ch == 0x27) {
-				update_event();
-			}
-//#ifdef HAS_YM_SERIES
-			if(_HAS_YM_SERIES) {
-				update_interrupt();
-				clock_busy = get_current_clock();
-				busy = true;
-			}
-//#endif
+			this->write_via_debugger_data8(ch, data);
 		}
 		break;
 	case 2:
 		ch1 = data1 = data;
 		break;
 	case 3:
-		if(0xa4 <= ch1 && ch1 <= 0xa6) {
-			// XM8 version 1.20
-			fnum21 = data;
+		if(d_debugger != NULL && d_debugger->now_device_debugging) {
+			d_debugger->write_via_debugger_data8(0x100 | ch1, data);
 		} else {
-			update_count();
-			// XM8 version 1.20
-			if(0xa0 <= ch1 && ch1 <= 0xa2) {
-				this->set_reg(0x100 | (ch1 + 4), fnum21);
-			}
-			this->set_reg(0x100 | ch1, data);
-			data1 = data;
-			update_interrupt();
-			clock_busy = get_current_clock();
-			busy = true;
+			this->write_via_debugger_data8(0x100 | ch1, data);
 		}
 		break;
 	default:
@@ -247,19 +202,10 @@ uint32_t YM2203::read_io8(uint32_t addr)
 //#endif
 		break;
 	case 1:
-		if(ch == 14) {
-			if(_SUPPORT_YM2203_PORT_A) {
-				return (mode & 0x40) ? port[0].wreg : port[0].rreg;
-			}
-		} else if(ch == 15) {
-			if(_SUPPORT_YM2203_PORT_B) {
-				return (mode & 0x80) ? port[1].wreg : port[1].rreg;
-			}
-		}
-		if(is_ym2608) {
-			return opna->GetReg(ch);
+		if(d_debugger != NULL && d_debugger->now_device_debugging) {
+			return d_debugger->read_via_debugger_data8(ch);
 		} else {
-			return opn->GetReg(ch);
+			return this->read_via_debugger_data8(ch);
 		}
 		break;
 	case 2:
@@ -287,6 +233,99 @@ uint32_t YM2203::read_io8(uint32_t addr)
 		break;
 	}
 	return 0xff;
+}
+
+void YM2203::write_via_debugger_data8(uint32_t addr, uint32_t data)
+{
+	if(addr < 0x100) {
+		// YM2203
+		if(addr == 7) {
+//#ifdef YM2203_PORT_MODE
+//			mode = (data & 0x3f) | YM2203_PORT_MODE;
+//#else
+			mode = data;
+//#endif
+		} else if(addr == 14) {
+			if(_SUPPORT_YM2203_PORT_A) {
+				if(port[0].wreg != data || port[0].first) {
+					write_signals(&port[0].outputs, data);
+					port[0].wreg = data;
+					port[0].first = false;
+				}
+			}
+		} else if(addr == 15) {
+			if(_SUPPORT_YM2203_PORT_B) {
+				if(port[1].wreg != data || port[1].first) {
+					write_signals(&port[1].outputs, data);
+					port[1].wreg = data;
+					port[1].first = false;
+				}
+			}
+		}
+		if(0x2d <= addr && addr <= 0x2f) {
+			// don't write again for prescaler
+		} else if(0xa4 <= addr && addr <= 0xa6) {
+			// XM8 version 1.20
+			fnum2 = data;
+		} else {
+			update_count();
+			// XM8 version 1.20
+			if(0xa0 <= addr && addr <= 0xa2) {
+				this->set_reg(addr + 4, fnum2);
+			}
+			this->set_reg(addr, data);
+			if(addr == 0x27) {
+				update_event();
+			}
+			if(_HAS_YM_SERIES) {
+				update_interrupt();
+				clock_busy = get_current_clock();
+				busy = true;
+			}
+		}
+	} else if(addr < 0x200) {
+		// YM2608
+		if(0x1a4 <= addr && addr <= 0x1a6) {
+			// XM8 version 1.20
+			fnum21 = data;
+		} else {
+			update_count();
+			// XM8 version 1.20
+			if(0x1a0 <= addr && addr <= 0x1a2) {
+				this->set_reg(addr + 4, fnum21);
+			}
+			this->set_reg(addr, data);
+			data1 = data;
+			update_interrupt();
+			clock_busy = get_current_clock();
+			busy = true;
+		}
+	}
+}
+
+uint32_t YM2203::read_via_debugger_data8(uint32_t addr)
+{
+	if(addr < 0x100) {
+		// YM2203
+		if(addr == 14) {
+			if(_SUPPORT_YM2203_PORT_A) {
+				return (mode & 0x40) ? port[0].wreg : port[0].rreg;
+			}
+		} else if(addr == 15) {
+			if(_SUPPORT_YM2203_PORT_B) {
+				return (mode & 0x80) ? port[1].wreg : port[1].rreg;
+			}
+		}
+		if(is_ym2608) {
+			return opna->GetReg(addr);
+		} else {
+			return opn->GetReg(addr);
+		}
+	} else if(addr < 0x200) {
+		// YM2608
+		return port_log[addr].data;
+	}
+	return 0;
 }
 
 void YM2203::write_signal(int id, uint32_t data, uint32_t mask)
@@ -576,9 +615,9 @@ void YM2203::set_reg(uint32_t addr, uint32_t data)
 	if(0x2d <= addr && addr <= 0x2f) {
 		port_log[0x2d].written = port_log[0x2e].written = port_log[0x2f].written = false;
 	}
+#endif
 	port_log[addr].written = true;
 	port_log[addr].data = data;
-#endif
 }
 
 void YM2203::update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame)
@@ -590,7 +629,7 @@ void YM2203::update_timing(int new_clocks, double new_frames_per_sec, int new_li
 	}
 }
 
-#define STATE_VERSION	5
+#define STATE_VERSION	7
 
 bool YM2203::process_state(FILEIO* state_fio, bool loading)
 {
@@ -610,12 +649,10 @@ bool YM2203::process_state(FILEIO* state_fio, bool loading)
 			return false;
 		}
 	}
-#ifdef SUPPORT_MAME_FM_DLL
 	for(int i = 0; i < array_length(port_log); i++) {
 		state_fio->StateValue(port_log[i].written);
 		state_fio->StateValue(port_log[i].data);
 	}
-#endif
 	state_fio->StateValue(ch);
 	state_fio->StateValue(fnum2);
 	state_fio->StateValue(ch1);

@@ -72,6 +72,7 @@
 #include "event.h"
 
 #define EVENT_MIX	0
+#define EVENT_VLINE	1
 
 void EVENT::initialize()
 {
@@ -90,9 +91,11 @@ void EVENT::initialize()
 	prev_skip = next_skip = false;
 	sound_changed = false;
 	
+	// temporary
+	frame_clocks = (int)((double)d_cpu[0].cpu_clocks / (double)FRAMES_PER_SEC + 0.5);
 	vline_start_clock = 0;
 	cur_vline = 0;
-	vclocks[0] = (int)((double)d_cpu[0].cpu_clocks / (double)FRAMES_PER_SEC / (double)LINES_PER_FRAME + 0.5); // temporary
+	vline_clocks[0] = (int)((double)d_cpu[0].cpu_clocks / (double)FRAMES_PER_SEC / (double)LINES_PER_FRAME + 0.5);
 }
 
 void EVENT::initialize_sound(int rate, int samples)
@@ -132,7 +135,7 @@ void EVENT::reset()
 		}
 	}
 	
-	event_remain = 0;
+	event_remain = event_extra = 0;
 	cpu_remain = cpu_accum = cpu_done = 0;
 	
 	// reset sound
@@ -262,18 +265,18 @@ void EVENT::drive()
 		frames_per_sec = next_frames_per_sec;
 		lines_per_frame = next_lines_per_frame;
 		
-		int sum = (int)((double)d_cpu[0].cpu_clocks / frames_per_sec + 0.5);
-		int remain = sum;
+		frame_clocks = (int)((double)d_cpu[0].cpu_clocks / frames_per_sec + 0.5);
+		int remain = frame_clocks;
 		
 		for(int i = 0; i < lines_per_frame; i++) {
 			assert(i < MAX_LINES);
-			vclocks[i] = (int)(sum / lines_per_frame);
-			remain -= vclocks[i];
+			vline_clocks[i] = (int)(frame_clocks / lines_per_frame);
+			remain -= vline_clocks[i];
 		}
 		for(int i = 0; i < remain; i++) {
 			int index = (int)((double)lines_per_frame * (double)i / (double)remain);
 			assert(index < MAX_LINES);
-			vclocks[index]++;
+			vline_clocks[index]++;
 		}
 		for(int i = 1; i < dcount_cpu; i++) {
 			d_cpu[i].update_clocks = (int)(1024.0 * (double)d_cpu[i].cpu_clocks / (double)d_cpu[0].cpu_clocks + 0.5);
@@ -290,78 +293,97 @@ void EVENT::drive()
 	for(int i = 0; i < frame_event_count; i++) {
 		frame_event[i]->event_frame();
 	}
-	for(cur_vline = 0; cur_vline < lines_per_frame; cur_vline++) {
-		vline_start_clock = get_current_clock();
-		
-		// run virtual machine per line
-		for(int i = 0; i < vline_event_count; i++) {
-			vline_event[i]->event_vline(cur_vline, vclocks[cur_vline]);
+	
+	cur_vline = 0;
+	vline_start_clock = get_current_clock();
+	
+	for(int i = 0; i < vline_event_count; i++) {
+		vline_event[i]->event_vline(cur_vline, vline_clocks[cur_vline]);
+	}
+	this->register_event_by_clock(this, EVENT_VLINE, vline_clocks[cur_vline], false, NULL);
+	
+	if(event_remain < 0) {
+		if(-event_remain > vline_clocks[cur_vline]) {
+			update_event(vline_clocks[cur_vline]);
+		} else {
+			update_event(-event_remain);
 		}
-		
-		if(event_remain < 0) {
-			if(-event_remain > vclocks[cur_vline]) {
-				update_event(vclocks[cur_vline]);
+	}		
+	event_remain += frame_clocks;
+	cpu_remain += frame_clocks << power;
+	
+	while(event_remain > 0) {
+		int event_done = event_remain;
+		if(cpu_remain > 0) {
+			event_extra = 0;
+			int cpu_done_tmp;
+			if(dcount_cpu == 1) {
+				// run one opecode on primary cpu
+				cpu_done_tmp = d_cpu[0].device->run(-1);
 			} else {
-				update_event(-event_remain);
-			}
-		}
-		event_remain += vclocks[cur_vline];
-		cpu_remain += vclocks[cur_vline] << power;
-		while(event_remain > 0) {
-			int event_done = event_remain;
-			if(cpu_remain > 0) {
-				int cpu_done_tmp;
-				if(dcount_cpu == 1) {
+				// sync to sub cpus
+				if(cpu_done == 0) {
 					// run one opecode on primary cpu
 #if !defined(USE_SUPRESS_VTABLE)
-					cpu_done_tmp = d_cpu[0].device->run(-1);
+					cpu_done = d_cpu[0].device->run(-1);
 #else
-					cpu_done_tmp = run_cpu(0, -1);
+					cpu_done = run_cpu(0, -1);
 #endif
-				} else {
-					// sync to sub cpus
-					if(cpu_done == 0) {
-						// run one opecode on primary cpu
+				}
+				
+				// sub cpu runs continuously and no events will be fired while the given clocks,
+				// so I need to give small enough clocks...
+				cpu_done_tmp = (event_extra > 0 || cpu_done < 4) ? cpu_done : 4;
+				cpu_done -= cpu_done_tmp;
+				
+				for(int i = 1; i < dcount_cpu; i++) {
+					// run sub cpus
+					d_cpu[i].accum_clocks += d_cpu[i].update_clocks * cpu_done_tmp;
+					int sub_clock = d_cpu[i].accum_clocks >> 10;
+					if(sub_clock) {
+						d_cpu[i].accum_clocks -= sub_clock << 10;
 #if !defined(USE_SUPRESS_VTABLE)
-						cpu_done = d_cpu[0].device->run(-1);
+						d_cpu[i].device->run(sub_clock);
 #else
-						cpu_done = run_cpu(0, -1);
+						run_cpu(i, sub_clock);
 #endif
-					}
-					// sub cpu runs continuously and no events will be fired while the given clocks,
-					// so I need to give small enough clocks...
-					cpu_done_tmp = (cpu_done < 4) ? cpu_done : 4;
-					cpu_done -= cpu_done_tmp;
-					
-					for(int i = 1; i < dcount_cpu; i++) {
-						// run sub cpus
-						//d_cpu[i].accum_clocks += d_cpu[i].update_clocks * cpu_done_tmp;
-						d_cpu[i].accum_clocks += cpu_update_clocks[i][cpu_done_tmp];
-						int sub_clock = d_cpu[i].accum_clocks >> 10;
-						if(sub_clock) {
-							d_cpu[i].accum_clocks -= sub_clock << 10;
-#if !defined(USE_SUPRESS_VTABLE)
-							d_cpu[i].device->run(sub_clock);
-#else
-							run_cpu(i, sub_clock);
-#endif
-						}
 					}
 				}
-				cpu_remain -= cpu_done_tmp;
-				cpu_accum += cpu_done_tmp;
-				event_done = cpu_accum >> power;
-				cpu_accum -= event_done << power;
 			}
-			if(event_done > 0) {
+			cpu_remain -= cpu_done_tmp;
+			cpu_accum += cpu_done_tmp;
+			event_done = cpu_accum >> power;
+			cpu_accum -= event_done << power;
+			event_done -= event_extra;
+		}
+		if(event_done > 0) {
+			if(event_remain > 0) {
 				if(event_done > event_remain) {
 					update_event(event_remain);
 				} else {
 					update_event(event_done);
 				}
-				event_remain -= event_done;
+			}
+			event_remain -= event_done;
+		}
+	}
+}
+
+void EVENT::update_extra_event(int clock)
+{
+	// this is called from primary cpu while running one opecode
+	int event_done = clock >> power;
+	
+	if(event_done > 0) {
+		if(event_remain > 0) {
+			if(event_done > event_remain) {
+				update_event(event_remain);
+			} else {
+				update_event(event_done);
 			}
 		}
+		event_remain -= event_done;
+		event_extra += event_done;
 	}
 }
 
@@ -649,34 +671,50 @@ void EVENT::set_realtime_render(DEVICE* device, bool flag)
 
 void EVENT::event_callback(int event_id, int err)
 {
-	// mix sound
-	if(prev_skip && dont_skip_frames == 0 && !sound_changed) {
-		buffer_ptr = 0;
-	}
-	int remain = sound_tmp_samples - buffer_ptr;
-	
-	if(remain > 0) {
-		int samples = mix_counter;
+	if(event_id == EVENT_MIX) {
+		// mix sound
+		if(prev_skip && dont_skip_frames == 0 && !sound_changed) {
+			buffer_ptr = 0;
+		}
+		int remain = sound_tmp_samples - buffer_ptr;
 		
-		if(config.sound_strict_rendering || (need_mix > 0)) {
-			if(samples < 1) {
-				samples = 1;
+		if(remain > 0) {
+			int samples = mix_counter;
+			
+			if(config.sound_strict_rendering || (need_mix > 0)) {
+				if(samples < 1) {
+					samples = 1;
+				}
+			}
+			if(samples >= remain) {
+				samples = remain;
+			}
+			if(config.sound_strict_rendering || (need_mix > 0)) {
+				if(samples > 0) {
+					mix_sound(samples);
+				}
+				mix_counter = 1;
+			} else {
+				if(samples > 0 && mix_counter >= mix_limit) {
+					mix_sound(samples);
+					mix_counter -= samples;
+				}
+				mix_counter++;
 			}
 		}
-		if(samples >= remain) {
-			samples = remain;
-		}
-		if(config.sound_strict_rendering || (need_mix > 0)) {
-			if(samples > 0) {
-				mix_sound(samples);
+	} else if(event_id == EVENT_VLINE) {
+		if(cur_vline + 1 < lines_per_frame) {
+			cur_vline++;
+			vline_start_clock = get_current_clock();
+			
+			for(int i = 0; i < vline_event_count; i++) {
+				vline_event[i]->event_vline(cur_vline, vline_clocks[cur_vline]);
 			}
-			mix_counter = 1;
-		} else {
-			if(samples > 0 && mix_counter >= mix_limit) {
-				mix_sound(samples);
-				mix_counter -= samples;
+			
+			// do not register if next vline is the first vline of next frame
+			if(cur_vline + 1 < lines_per_frame) {
+				this->register_event_by_clock(this, EVENT_VLINE, vline_clocks[cur_vline], false, NULL);
 			}
-			mix_counter++;
 		}
 	}
 }
@@ -791,7 +829,7 @@ void EVENT::update_config()
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool EVENT::process_state(FILEIO* state_fio, bool loading)
 {
@@ -809,8 +847,10 @@ bool EVENT::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateValue(d_cpu[i].update_clocks);
 		state_fio->StateValue(d_cpu[i].accum_clocks);
 	}
-	state_fio->StateArray(vclocks, sizeof(vclocks), 1);
+	state_fio->StateValue(frame_clocks);
+	state_fio->StateArray(vline_clocks, sizeof(vline_clocks), 1);
 	state_fio->StateValue(event_remain);
+	state_fio->StateValue(event_extra);
 	state_fio->StateValue(cpu_remain);
 	state_fio->StateValue(cpu_accum);
 	state_fio->StateValue(cpu_done);

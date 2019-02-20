@@ -71,6 +71,7 @@ class CSP_Debugger;
 class CSP_DebuggerThread;
 #endif
 typedef struct {
+	EMU *emu;
 	OSD *osd;
 	VM_TEMPLATE *vm;
 	int cpu_index;
@@ -105,6 +106,9 @@ private:
 	int sound_rate, sound_samples;
 #ifdef USE_CPU_TYPE
 	int cpu_type;
+#endif
+#ifdef USE_DIPSWITCH
+	uint32_t dipswitch;
 #endif
 #ifdef USE_SOUND_TYPE
 	int sound_type;
@@ -193,10 +197,6 @@ public:
 	// ----------------------------------------
 	// for windows
 	// ----------------------------------------
-#ifdef OSD_QT
-	// qt dependent
-	EmuThreadClass *get_parent_handler();
-	void set_parent_handler(EmuThreadClass *p, DrawThreadClass *q);
 	VM_TEMPLATE *get_vm()
 	{
 		return (VM_TEMPLATE *)vm;
@@ -205,6 +205,10 @@ public:
 	{
 		return osd;
 	}
+#ifdef OSD_QT
+	// qt dependent
+	EmuThreadClass *get_parent_handler();
+	void set_parent_handler(EmuThreadClass *p, DrawThreadClass *q);
 	void set_host_cpus(int v);
 	int get_host_cpus();
 #endif
@@ -388,6 +392,10 @@ public:
 	int debugger_thread_id;
 #endif
 #endif
+	void start_waiting_in_debugger();
+	void finish_waiting_in_debugger();
+	void process_waiting_in_debugger();
+	bool now_waiting_in_debugger;
 	
 	// debug log
 	void out_debug_log(const _TCHAR* format, ...);
@@ -415,6 +423,13 @@ public:
  		int bank_num;
 		int cur_bank;
 	} d88_file[USE_FLOPPY_DISK];
+	void create_bank_floppy_disk(const _TCHAR* file_path, uint8_t type);
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
+	void close_floppy_disk(int drv);
+	bool is_floppy_disk_inserted(int drv);
+	void is_floppy_disk_protected(int drv, bool value);
+	bool is_floppy_disk_protected(int drv);
+	uint32_t is_floppy_disk_accessed();
 #endif
 
 	// user interface
@@ -422,14 +437,6 @@ public:
 	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
 	bool is_cart_inserted(int drv);
-#endif
-#ifdef USE_FLOPPY_DISK
-	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
-	void close_floppy_disk(int drv);
-	bool is_floppy_disk_inserted(int drv);
-	void is_floppy_disk_protected(int drv, bool value);
-	bool is_floppy_disk_protected(int drv);
-	uint32_t is_floppy_disk_accessed();
 #endif
 #ifdef USE_QUICK_DISK
 	void open_quick_disk(int drv, const _TCHAR* file_path);
@@ -506,5 +513,6 @@ public:
 	void free_sound_file(int id, int16_t **data);
 #endif
 };
+
 #endif // _EMU_H_
 

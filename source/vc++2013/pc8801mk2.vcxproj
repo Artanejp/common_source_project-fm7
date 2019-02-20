@@ -166,6 +166,7 @@
     <ClCompile Include="..\src\win32\osd_screen.cpp" />
     <ClCompile Include="..\src\win32\osd_sound.cpp" />
     <ClCompile Include="..\src\win32\winmain.cpp" />
+    <ClCompile Include="..\src\vm\ay_3_891x.cpp" />
     <ClCompile Include="..\src\vm\disk.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
     <ClCompile Include="..\src\vm\i8251.cpp" />
@@ -195,6 +196,7 @@
     <ClInclude Include="..\src\win32\osd.h" />
     <ClInclude Include="..\src\vm\debugger.h" />
     <ClInclude Include="..\src\vm\device.h" />
+    <ClInclude Include="..\src\vm\ay_3_891x.h" />
     <ClInclude Include="..\src\vm\disk.h" />
     <ClInclude Include="..\src\vm\event.h" />
     <ClInclude Include="..\src\vm\i8251.h" />

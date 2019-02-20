@@ -1281,6 +1281,62 @@ void DISK::set_sector_info(uint8_t *t)
 	sector_size.read_2bytes_le_from(t + 14);
 }
 
+bool DISK::get_sector_info(int trk, int side, int index, uint8_t *c, uint8_t *h, uint8_t *r, uint8_t *n, int *length)
+{
+	if(media_type == MEDIA_TYPE_2D && drive_type == DRIVE_TYPE_2DD) {
+		if(trk >= 0) {
+			if(trk & 1) {
+				return false; // unformat
+			}
+			trk >>= 1;
+		}
+	} else if(media_type == MEDIA_TYPE_2DD && drive_type == DRIVE_TYPE_2D) {
+		if(trk >= 0) trk <<= 1;
+	}
+	return get_sector_info_tmp(trk, side, index, c, h, r, n, length);
+}
+
+bool DISK::get_sector_info_tmp(int trk, int side, int index, uint8_t *c, uint8_t *h, uint8_t *r, uint8_t *n, int *length)
+{
+	// search track
+	if(trk == -1 && side == -1) {
+		trk = cur_track;
+		side = cur_side;
+	}
+	int trkside = is_1dd_image ? trk : (trk * 2 + (side & 1));
+	if(!(0 <= trkside && trkside < 164)) {
+		return false;
+	}
+	pair32_t offset;
+	offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
+	
+	if(!IS_VALID_TRACK(offset.d)) {
+		return false;
+	}
+	
+	// track found
+	uint8_t* t = buffer + offset.d;
+	pair32_t num, data_size;
+	num.read_2bytes_le_from(t + 4);
+	
+	if(index >= num.sd) {
+		return false;
+	}
+	
+	// skip sector
+	for(int i = 0; i < index; i++) {
+		data_size.read_2bytes_le_from(t + 14);
+		t += data_size.sd + 0x10;
+	}
+	data_size.read_2bytes_le_from(t + 14);
+	*c = t[0];
+	*h = t[1];
+	*r = t[2];
+	*n = t[3];
+	*length = data_size.sd;
+	return true;
+}
+
 void DISK::set_deleted(bool value)
 {
 	if(sector != NULL) {

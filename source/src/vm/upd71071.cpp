@@ -8,6 +8,7 @@
 */
 
 #include "upd71071.h"
+#include "debugger.h"
 
 void UPD71071::initialize()
 {
@@ -17,6 +18,11 @@ void UPD71071::initialize()
 	for(int i = 0; i < 4; i++) {
 		dma[i].areg = dma[i].bareg = 0;
 		dma[i].creg = dma[i].bcreg = 0;
+	}
+	if(d_debugger != NULL) {
+		d_debugger->set_device_name(_T("Debugger (uPD71071 DMAC)"));
+		d_debugger->set_context_mem(this);
+		d_debugger->set_context_io(vm->dummy);
 	}
 }
 
@@ -180,6 +186,26 @@ void UPD71071::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
+void UPD71071::write_via_debugger_data8(uint32_t addr, uint32_t data)
+{
+	d_mem->write_dma_data8(addr, data);
+}
+
+uint32_t UPD71071::read_via_debugger_data8(uint32_t addr)
+{
+	return d_mem->read_dma_data8(addr);
+}
+
+void UPD71071::write_via_debugger_data16(uint32_t addr, uint32_t data)
+{
+	d_mem->write_dma_data16(addr, data);
+}
+
+uint32_t UPD71071::read_via_debugger_data16(uint32_t addr)
+{
+	return d_mem->read_dma_data16(addr);
+}
+
 // note: if SINGLE_MODE_DMA is defined, do_dma() is called in every machine cycle
 
 uint32_t UPD71071::read_signal(int ch)
@@ -221,12 +247,21 @@ void UPD71071::do_dma()
 						// io -> memory
 						uint32_t val;
 						val = dma[c].dev->read_dma_io16(0);
-						d_mem->write_dma_data16(dma[c].areg, val);
+						if(d_debugger != NULL && d_debugger->now_device_debugging) {
+							d_debugger->write_via_debugger_data16(dma[c].areg, val);
+						} else {
+							this->write_via_debugger_data16(dma[c].areg, val);
+						}
 						// update temporary register
 						tmp = val;
 					} else if((dma[c].mode & 0x0c) == 0x08) {
 						// memory -> io
-						uint32_t val = d_mem->read_dma_data16(dma[c].areg);
+						uint32_t val;
+						if(d_debugger != NULL && d_debugger->now_device_debugging) {
+							val = d_debugger->read_via_debugger_data16(dma[c].areg);
+						} else {
+							val = this->read_via_debugger_data16(dma[c].areg);
+						}
 						dma[c].dev->write_dma_io16(0, val);
 						// update temporary register
 						tmp = val;
@@ -267,12 +302,21 @@ void UPD71071::do_dma()
 						// io -> memory
 						uint32_t val;
 						val = dma[c].dev->read_dma_io8(0);
-						d_mem->write_dma_data8(dma[c].areg, val);
+						if(d_debugger != NULL && d_debugger->now_device_debugging) {
+							d_debugger->write_via_debugger_data8(dma[c].areg, val);
+						} else {
+							this->write_via_debugger_data8(dma[c].areg, val);
+						}
 						// update temporary register
 						tmp = (tmp >> 8) | (val << 8);
 					} else if((dma[c].mode & 0x0c) == 0x08) {
 						// memory -> io
-						uint32_t val = d_mem->read_dma_data8(dma[c].areg);
+						uint32_t val;
+						if(d_debugger != NULL && d_debugger->now_device_debugging) {
+							val = d_debugger->read_via_debugger_data8(dma[c].areg);
+						} else {
+							val = this->read_via_debugger_data8(dma[c].areg);
+						}
 						dma[c].dev->write_dma_io8(0, val);
 						// update temporary register
 						tmp = (tmp >> 8) | (val << 8);
@@ -315,6 +359,29 @@ void UPD71071::do_dma()
 		}
 	}
 //#endif
+}
+
+bool UPD71071::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+/*
+CH0 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF REQ=1 MASK=1 MODE=FF MEM->I/O
+CH1 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF REQ=1 MASK=1 MODE=FF I/O->MEM
+CH2 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF REQ=1 MASK=1 MODE=FF VERIFY
+CH3 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF REQ=1 MASK=1 MODE=FF INVALID
+*/
+	static const _TCHAR *dir[4] = {
+		_T("VERIFY"), _T("I/O->MEM"), _T("MEM->I/O"), _T("INVALID")
+	};
+	my_stprintf_s(buffer, buffer_len,
+	_T("CH0 AREG=%04X CREG=%04X BAREG=%04X BCREG=%04X REQ=%d MASK=%d MODE=%02X %s\n")
+	_T("CH1 AREG=%04X CREG=%04X BAREG=%04X BCREG=%04X REQ=%d MASK=%d MODE=%02X %s\n")
+	_T("CH2 AREG=%04X CREG=%04X BAREG=%04X BCREG=%04X REQ=%d MASK=%d MODE=%02X %s\n")
+	_T("CH3 AREG=%04X CREG=%04X BAREG=%04X BCREG=%04X REQ=%d MASK=%d MODE=%02X %s"),
+	dma[0].areg, dma[0].creg, dma[0].bareg, dma[0].bcreg, ((req | sreq) >> 0) & 1, (mask >> 0) & 1, dma[0].mode, dir[(dma[0].mode >> 2) & 3],
+	dma[1].areg, dma[1].creg, dma[1].bareg, dma[1].bcreg, ((req | sreq) >> 1) & 1, (mask >> 1) & 1, dma[1].mode, dir[(dma[1].mode >> 2) & 3],
+	dma[2].areg, dma[2].creg, dma[2].bareg, dma[2].bcreg, ((req | sreq) >> 2) & 1, (mask >> 2) & 1, dma[2].mode, dir[(dma[2].mode >> 2) & 3],
+	dma[3].areg, dma[3].creg, dma[3].bareg, dma[3].bcreg, ((req | sreq) >> 3) & 1, (mask >> 3) & 1, dma[3].mode, dir[(dma[3].mode >> 2) & 3]);
+	return true;
 }
 
 #define STATE_VERSION	1

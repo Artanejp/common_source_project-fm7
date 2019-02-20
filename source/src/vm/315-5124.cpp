@@ -476,6 +476,27 @@ uint32_t _315_5124::read_io8(uint32_t addr)
 
 void _315_5124::draw_screen()
 {
+	if(emu->now_waiting_in_debugger) {
+		// store regs
+		uint16_t tmp_z80_icount = z80_icount;
+		uint16_t tmp_vcounter = vcounter;
+		uint8_t tmp_status_reg = status_reg;
+		uint16_t tmp_hlatch = hlatch;
+		bool tmp_intstat = intstat;
+		
+		// drive vlines
+		for(int v = /*get_cur_vline() + 1*/0; v < get_lines_per_frame(); v++) {
+			event_vline(v, 0);
+		}
+		
+		// restore regs
+		z80_icount = tmp_z80_icount;
+		vcounter = tmp_vcounter;
+		status_reg = tmp_status_reg;
+		hlatch = tmp_hlatch;
+		intstat = tmp_intstat;
+	}
+	
 	// update screen buffer
 	for(int y = 0; y < 192; y++) {
 		//scrntype_t* dest = emu->get_screen_buffer(y);
@@ -528,7 +549,7 @@ void _315_5124::event_vline(int v, int clock)
 		/* Point to current line in output buffer */
 		linebuf = (uint8_t *)screen[v];
 		
-	    /* Update pattern cache */
+		/* Update pattern cache */
 		update_bg_pattern_cache();
 		
 		/* Blank line (full width) */
@@ -592,7 +613,9 @@ void _315_5124::event_vline(int v, int clock)
 void _315_5124::set_intstat(bool val)
 {
 	if(val != intstat) {
-		write_signals(&outputs_irq, val ? 0xffffffff : 0);
+		if(!emu->now_waiting_in_debugger) {
+			write_signals(&outputs_irq, val ? 0xffffffff : 0);
+		}
 		intstat = val;
 	}
 }

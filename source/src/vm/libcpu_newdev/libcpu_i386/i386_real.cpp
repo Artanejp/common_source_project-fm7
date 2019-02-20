@@ -143,11 +143,12 @@ int I386_OPS::cpu_execute_i386(int cycles)
 		if(now_debugging) {
 			cpustate->debugger->check_break_points(cpustate->pc);
 			if(cpustate->debugger->now_suspended) {
-				cpustate->emu->mute_sound();
 				cpustate->debugger->now_waiting = true;
+				cpustate->emu->start_waiting_in_debugger();
 				while(cpustate->debugger->now_debugging && cpustate->debugger->now_suspended) {
-					cpustate->emu->sleep(10);
+					cpustate->emu->process_waiting_in_debugger();
 				}
+				cpustate->emu->finish_waiting_in_debugger();
 				cpustate->debugger->now_waiting = false;
 			}
 			if(cpustate->debugger->now_debugging) {

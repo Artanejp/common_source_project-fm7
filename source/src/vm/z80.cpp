@@ -168,7 +168,7 @@ void Z80::reset()
 	after_ei = after_ldair = false;
 	intr_req_bit = intr_pend_bit = 0;
 	
-	icount = extra_icount = 0;
+	icount = extra_icount = busreq_icount = 0;
 }
 
 void Z80::debugger_hook(void)
@@ -212,6 +212,7 @@ int Z80::run(int clock)
 		extra_tmp_count += extra_icount;
 	}
 	if(clock == -1) {
+		// this is primary cpu
 		if(busreq) {
 			// run dma once
 			#ifdef SINGLE_MODE_DMA
@@ -230,11 +231,14 @@ int Z80::run(int clock)
 			return passed_icount;
 		} else {
 			// run only one opcode
-			//#ifdef USE_DEBUGGER
+			if((extra_icount += busreq_icount) > 0) {
+				if(is_primary) {
+					update_extra_event(extra_icount);
+				}
 				total_icount += extra_icount;
-			//#endif
+			}
 			icount = -extra_icount;
-			extra_icount = 0;
+			extra_icount = busreq_icount = 0;
 			run_one_opecode();
 			insns_count++;
 			return -icount;
@@ -285,11 +289,12 @@ void Z80::run_one_opecode()
 	if(now_debugging) {
 		d_debugger->check_break_points(PC);
 		if(d_debugger->now_suspended) {
-			emu->mute_sound();
 			d_debugger->now_waiting = true;
+			emu->start_waiting_in_debugger();
 			while(d_debugger->now_debugging && d_debugger->now_suspended) {
-				emu->sleep(10);
+				emu->process_waiting_in_debugger();
 			}
+			emu->finish_waiting_in_debugger();
 			d_debugger->now_waiting = false;
 		}
 		if(d_debugger->now_debugging) {
@@ -360,11 +365,12 @@ void Z80::run_one_opecode()
 		if(now_debugging) {
 			d_debugger->check_break_points(PC);
 			if(d_debugger->now_suspended) {
-				emu->mute_sound();
 				d_debugger->now_waiting = true;
+				emu->start_waiting_in_debugger();
 				while(d_debugger->now_debugging && d_debugger->now_suspended) {
-					emu->sleep(10);
+					emu->process_waiting_in_debugger();
 				}
+				emu->finish_waiting_in_debugger();
 				d_debugger->now_waiting = false;
 			}
 			if(d_debugger->now_debugging) {

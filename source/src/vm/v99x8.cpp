@@ -2782,6 +2782,20 @@ uint32_t V99X8::read_io8(uint32_t addr)
 
 void V99X8::draw_screen()
 {
+	if(emu->now_waiting_in_debugger) {
+		// store regs
+		v99x8_t tmp_v99x8 = v99x8;
+		bool tmp_intstat = intstat;
+		
+		// drive vlines
+		for(int v = /*get_cur_vline() + 1*/0; v < get_lines_per_frame(); v++) {
+			event_vline(v, 0);
+		}
+		
+		// restore regs
+		v99x8 = tmp_v99x8;
+		intstat = tmp_intstat;
+	}
 	md_video_update(0, NULL);
 }
 
@@ -2796,7 +2810,9 @@ void V99X8::event_vline(int v, int clock)
 void V99X8::set_intstat(bool val)
 {
 	if(val != intstat) {
-		write_signals(&outputs_irq, val ? 0xffffffff : 0);
+		if(!emu->now_waiting_in_debugger) {
+			write_signals(&outputs_irq, val ? 0xffffffff : 0);
+		}
 		intstat = val;
 	}
 }

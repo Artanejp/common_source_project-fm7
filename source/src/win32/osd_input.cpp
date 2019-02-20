@@ -198,7 +198,7 @@ void OSD::update_input()
 			key_dik[DIK_RETURN    ] |= key_dik[DIK_NUMPADENTER];
 #endif
 			
-			for (int vk = 0; vk < 256; vk++) {
+			for(int vk = 0; vk < 256; vk++) {
 				int dik = vk_dik[vk];
 				if(dik) {
 					if(key_dik[dik] & 0x80) {

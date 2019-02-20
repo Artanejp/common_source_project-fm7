@@ -499,6 +499,10 @@ public:
 	// z80 daisy chain
 	virtual void set_context_intr(DEVICE* device, uint32_t bit) {}
 	virtual void set_context_child(DEVICE* device) {}
+	virtual DEVICE *get_context_child()
+	{
+		return NULL;
+	}
 	
 	// interrupt device to device
 	virtual void set_intr_iei(bool val) {}
@@ -568,6 +572,20 @@ public:
 			event_manager = vm->first_device->next_device;
 		}
 		return event_manager->this_device_id;
+	}
+	virtual bool is_primary_cpu(DEVICE* device)
+	{
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		return event_manager->is_primary_cpu(device);
+	}
+	virtual void update_extra_event(int clock)
+	{
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		event_manager->update_extra_event(clock);
 	}
 	virtual void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id)
 	{
@@ -756,6 +774,85 @@ public:
 #endif
  		}
  	}
+/*
+	These functions are used for debugging non-cpu device
+	Insert debugger between standard read/write functions and these functions for checking breakpoints
+
+	void DEVICE::write_data8(uint32_t addr, uint32_t data)
+	{
+		if(debugger != NULL && debugger->now_device_debugging) {
+			// debugger->mem = this;
+			// debugger->mem->write_via_debugger_data8(addr, data)
+			debugger->write_via_debugger_data8(addr, data);
+		} else {
+			this->write_via_debugger_data8(addr, data);
+		}
+	}
+	void DEVICE::write_via_debugger_data8(uint32_t addr, uint32_t data)
+	{
+		// write memory
+	}
+*/
+	virtual void write_via_debugger_data8(uint32_t addr, uint32_t data) {}
+	virtual uint32_t read_via_debugger_data8(uint32_t addr)
+	{
+		return 0xff;
+	}
+	virtual void write_via_debugger_data16(uint32_t addr, uint32_t data) {}
+	virtual uint32_t read_via_debugger_data16(uint32_t addr)
+	{
+		return 0xffff;
+	}
+	virtual void write_via_debugger_data32(uint32_t addr, uint32_t data) {}
+	virtual uint32_t read_via_debugger_data32(uint32_t addr)
+	{
+		return 0xffffffff;
+	}
+	virtual void write_via_debugger_data8w(uint32_t addr, uint32_t data, int* wait) {}
+	virtual uint32_t read_via_debugger_data8w(uint32_t addr, int* wait)
+	{
+		return 0xff;
+	}
+	virtual void write_via_debugger_data16w(uint32_t addr, uint32_t data, int* wait) {}
+	virtual uint32_t read_via_debugger_data16w(uint32_t addr, int* wait)
+	{
+		return 0xffff;
+	}
+	virtual void write_via_debugger_data32w(uint32_t addr, uint32_t data, int* wait) {}
+	virtual uint32_t read_via_debugger_data32w(uint32_t addr, int* wait)
+	{
+		return 0xffffffff;
+	}
+	virtual void write_via_debugger_io8(uint32_t addr, uint32_t data) {}
+	virtual uint32_t read_via_debugger_io8(uint32_t addr)
+	{
+		return 0xff;
+	}
+	virtual void write_via_debugger_io16(uint32_t addr, uint32_t data) {}
+	virtual uint32_t read_via_debugger_io16(uint32_t addr)
+	{
+		return 0xffff;
+	}
+	virtual void write_via_debugger_io32(uint32_t addr, uint32_t data) {}
+	virtual uint32_t read_via_debugger_io32(uint32_t addr)
+	{
+		return 0xffffffff;
+	}
+	virtual void write_via_debugger_io8w(uint32_t addr, uint32_t data, int* wait) {}
+	virtual uint32_t read_via_debugger_io8w(uint32_t addr, int* wait)
+	{
+		return 0xff;
+	}
+	virtual void write_via_debugger_io16w(uint32_t addr, uint32_t data, int* wait) {}
+	virtual uint32_t read_via_debugger_io16w(uint32_t addr, int* wait)
+	{
+		return 0xffff;
+	}
+	virtual void write_via_debugger_io32w(uint32_t addr, uint32_t data, int* wait) {}
+	virtual uint32_t read_via_debugger_io32w(uint32_t addr, int* wait)
+	{
+		return 0xffffffff;
+	}
 	virtual void out_debug_log(const char *fmt, ...)
 	{
 		char strbuf[4096];
@@ -779,6 +876,18 @@ public:
 
 #ifdef USE_DEBUGGER
 	// debugger
+	virtual bool is_cpu()
+	{
+		return false;
+	}
+	virtual bool is_debugger()
+	{
+		return false;
+	}
+	virtual bool is_debugger_available()
+	{
+		return false;
+	}
 	virtual void *get_debugger()
 	{
 		return NULL;
@@ -791,9 +900,18 @@ public:
 	{
 		return 0;
 	}
-	virtual void write_debug_data8(uint32_t addr, uint32_t data) {}
+	virtual uint64_t get_debug_data_addr_space()
+	{
+		// override this function when memory space is not (2 << n)
+		return (uint64_t)get_debug_data_addr_mask() + 1;
+	}
+	virtual void write_debug_data8(uint32_t addr, uint32_t data)
+	{
+//		write_data8(addr, data);
+	}
 	virtual uint32_t read_debug_data8(uint32_t addr)
 	{
+//		return read_data8(addr);
 		return 0xff;
 	}
 	virtual void write_debug_data16(uint32_t addr, uint32_t data)
@@ -818,9 +936,13 @@ public:
 		val |= read_debug_data16(addr + 2) << 16;
 		return val;
 	}
-	virtual void write_debug_io8(uint32_t addr, uint32_t data) {}
+	virtual void write_debug_io8(uint32_t addr, uint32_t data)
+	{
+//		write_io8(addr, data);
+	}
 	virtual uint32_t read_debug_io8(uint32_t addr)
 	{
+//		return read_io8(addr);
 		return 0xff;
 	}
 	virtual void write_debug_io16(uint32_t addr, uint32_t data)
@@ -853,7 +975,10 @@ public:
 	{
 		return 0;
 	}
-	virtual void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) {}
+	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+	{
+		return false;
+	}
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	{
 		return 0;

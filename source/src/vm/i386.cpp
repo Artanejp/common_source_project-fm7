@@ -496,11 +496,13 @@ uint32_t I386::read_debug_reg(const _TCHAR *reg)
 	return 0;
 }
 
-void I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	i386_state *cpustate = (i386_state *)opaque;
 	my_stprintf_s(buffer, buffer_len,
-	_T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\nDS=%04X  ES=%04X SS=%04X CS=%04X IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]\nClocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+	_T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
+	_T("DS=%04X  ES=%04X SS=%04X CS=%04X IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]\n")
+	_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 	REG16(AX), REG16(BX), REG16(CX), REG16(DX), REG16(SP), REG16(BP), REG16(SI), REG16(DI),
 	cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->eip,
 	cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
@@ -508,6 +510,7 @@ void I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	cpustate->total_cycles, cpustate->total_cycles - cpustate->prev_total_cycles,
 	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 	cpustate->prev_total_cycles = cpustate->total_cycles;
+	return true;
 }
 
 int I386::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)

@@ -24,21 +24,23 @@
 
 class VM;
 class EMU;
+class DEBUGGER;
 class YM2151 : public DEVICE
 {
 private:
 	// output signals
 	outputs_t outputs_irq;
 	
+	DEBUGGER *d_debugger;
 	FM::OPM* opm;
 #ifdef SUPPORT_MAME_FM_DLL
 //	CFMDLL* fmdll;
 	LPVOID* dllchip;
+#endif
 	struct {
 		bool written;
 		uint8_t data;
 	} port_log[0x100];
-#endif
 	int base_decibel;
 	
 	int chip_clock;
@@ -62,6 +64,9 @@ public:
 	{
 		initialize_output_signals(&outputs_irq);
 		base_decibel = 0;
+#ifdef USE_DEBUGGER
+		d_debugger = NULL;
+#endif
 		set_device_name(_T("YM2151 OPM"));
 	}
 	~YM2151() {}
@@ -78,12 +83,48 @@ public:
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
+	// for debugging
+	void write_via_debugger_data8(uint32_t addr, uint32_t data);
+	uint32_t read_via_debugger_data8(uint32_t addr);
+#ifdef USE_DEBUGGER
+	bool is_debugger_available()
+	{
+		return true;
+	}
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	uint64_t get_debug_data_addr_space()
+	{
+		return 0x100;
+	}
+	void write_debug_data8(uint32_t addr, uint32_t data)
+	{
+		if(addr < 0x100) {
+			write_via_debugger_data8(addr, data);
+		}
+	}
+	uint32_t read_debug_data8(uint32_t addr)
+	{
+		if(addr < 0x100) {
+			return read_via_debugger_data8(addr);
+		}
+		return 0;
+	}
+#endif
 	bool process_state(FILEIO* state_fio, bool loading);
 	// unique functions
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_irq, device, id, mask);
 	}
+#ifdef USE_DEBUGGER
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
+#endif
 	void initialize_sound(int rate, int clock, int samples, int decibel);
 	void set_reg(uint32_t addr, uint32_t data); // for patch
 };

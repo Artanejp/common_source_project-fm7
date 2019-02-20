@@ -1305,7 +1305,7 @@ bool I8080_BASE::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	return true;
 }
 
-void I8080_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+bool I8080_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 /*
 F = [--------]  A = 00  BC = 0000  DE = 0000  HL = 0000  SP = 0000  PC = 0000
@@ -1314,7 +1314,9 @@ Clocks = 0 (0)  Since Scanline = 0/0 (0/0)
 */
 	int wait;
 	my_stprintf_s(buffer, buffer_len,
-	_T("F = [%c%c%c%c%c%c%c%c]  A = %02X  BC = %04X  DE = %04X  HL = %04X  SP = %04X  PC = %04X\nIM= [%c%c%c%c%c%c%c%c]         (BC)= %04X (DE)= %04X (HL)= %04X (SP)= %04X\nClocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+	_T("F = [%c%c%c%c%c%c%c%c]  A = %02X  BC = %04X  DE = %04X  HL = %04X  SP = %04X  PC = %04X\n")
+	_T("IM= [%c%c%c%c%c%c%c%c]         (BC)= %04X (DE)= %04X (HL)= %04X (SP)= %04X\n")
+	_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
  	(_F & CF) ? _T('C') : _T('-'), (_F & NF) ? _T('N') : _T('-'), (_F & VF) ? _T('V') : _T('-'), (_F & XF) ? _T('X') : _T('-'),
  	(_F & HF) ? _T('H') : _T('-'), (_F & YF) ? _T('Y') : _T('-'), (_F & ZF) ? _T('Z') : _T('-'), (_F & SF) ? _T('S') : _T('-'),
  	_A, BC, DE, HL, SP, PC,
@@ -1324,6 +1326,7 @@ Clocks = 0 (0)  Since Scanline = 0/0 (0/0)
 	total_count, total_count - prev_total_count,
 	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 	prev_total_count = total_count;
+	return true;
 }
 
 // disassembler

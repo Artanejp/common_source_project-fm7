@@ -907,9 +907,7 @@ void M6502::OP(uint8_t code)
 
 void M6502::initialize()
 {
-	DEVICE::initialize();
-	A = X = Y = P = 0;
-	SPD = EAD = ZPD = PCD = 0;
+	M6502_BASE::initialize();
 #ifdef USE_DEBUGGER
 	d_mem_stored = d_mem;
 	d_debugger->set_context_mem(d_mem);
@@ -945,11 +943,12 @@ int M6502::run(int clock)
 			if(now_debugging) {
 				d_debugger->check_break_points(PCW);
 				if(d_debugger->now_suspended) {
-					emu->mute_sound();
 					d_debugger->now_waiting = true;
+					emu->start_waiting_in_debugger();
 					while(d_debugger->now_debugging && d_debugger->now_suspended) {
-						emu->sleep(10);
+						emu->process_waiting_in_debugger();
 					}
+					emu->finish_waiting_in_debugger();
 					d_debugger->now_waiting = false;
 				}
 				if(d_debugger->now_debugging) {
@@ -985,11 +984,12 @@ int M6502::run(int clock)
 			if(now_debugging) {
 				d_debugger->check_break_points(PCW);
 				if(d_debugger->now_suspended) {
-					emu->mute_sound();
 					d_debugger->now_waiting = true;
+					emu->start_waiting_in_debugger();
 					while(d_debugger->now_debugging && d_debugger->now_suspended) {
-						emu->sleep(10);
+						emu->process_waiting_in_debugger();
 					}
+					emu->finish_waiting_in_debugger();
 					d_debugger->now_waiting = false;
 				}
 				if(d_debugger->now_debugging) {

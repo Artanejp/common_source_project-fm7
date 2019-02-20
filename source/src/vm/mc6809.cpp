@@ -45,11 +45,12 @@ void MC6809::run_one_opecode()
 		if(now_debugging) {
 			d_debugger->check_break_points(PC);
 			if(d_debugger->now_suspended) {
-				osd->mute_sound();
 				d_debugger->now_waiting = true;
+				emu->start_waiting_in_debugger();
 				while(d_debugger->now_debugging && d_debugger->now_suspended) {
-					osd->sleep(10);
+					emu->process_waiting_in_debugger();
 				}
+				emu->finish_waiting_in_debugger();
 				d_debugger->now_waiting = false;
 			}
 			if(d_debugger->now_debugging) {
@@ -105,11 +106,12 @@ void MC6809::debugger_hook()
 		if(now_debugging) {
 			d_debugger->check_break_points(PC);
 			if(d_debugger->now_suspended) {
-				osd->mute_sound();
 				d_debugger->now_waiting = true;
+				emu->start_waiting_in_debugger();
 				while(d_debugger->now_debugging && d_debugger->now_suspended) {
-					osd->sleep(10);
+					emu->process_waiting_in_debugger();
 				}
+				emu->finish_waiting_in_debugger();
 				d_debugger->now_waiting = false;
 			}
 			if(d_debugger->now_debugging) {

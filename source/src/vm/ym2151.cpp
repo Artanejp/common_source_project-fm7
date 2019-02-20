@@ -8,6 +8,9 @@
 */
 
 #include "ym2151.h"
+#ifdef USE_DEBUGGER
+#include "debugger.h"
+#endif
 
 #define EVENT_FM_TIMER	0
 
@@ -33,6 +36,14 @@ void YM2151::initialize()
 	register_vline_event(this);
 	mute = false;
 	clock_prev = clock_accum = clock_busy = 0;
+	
+#ifdef USE_DEBUGGER
+	if(d_debugger != NULL) {
+		d_debugger->set_device_name(_T("Debugger (YM2151 OPM)"));
+		d_debugger->set_context_mem(this);
+		d_debugger->set_context_io(vm->dummy);
+	}
+#endif
 }
 
 void YM2151::release()
@@ -59,8 +70,8 @@ void YM2151::reset()
 	if(dllchip) {
 		fmdll->Reset(dllchip);
 	}
-	memset(port_log, 0, sizeof(port_log));
 #endif
+	memset(port_log, 0, sizeof(port_log));
 	timer_event_id = -1;
 	irq_prev = busy = false;
 }
@@ -68,14 +79,12 @@ void YM2151::reset()
 void YM2151::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr & 1) {
-		update_count();
-		this->set_reg(ch, data);
-		if(ch == 0x14) {
-			update_event();
-		}
-		update_interrupt();
-		clock_busy = get_current_clock();
-		busy = true;
+#ifdef USE_DEBUGGER
+		if(d_debugger != NULL && d_debugger->now_device_debugging) {
+			d_debugger->write_via_debugger_data8(ch, data);
+		} else
+#endif
+		this->write_via_debugger_data8(ch, data);
 	} else {
 		ch = data;
 	}
@@ -97,6 +106,28 @@ uint32_t YM2151::read_io8(uint32_t addr)
 		return status;
 	}
 	return 0xff;
+}
+
+void YM2151::write_via_debugger_data8(uint32_t addr, uint32_t data)
+{
+	if(addr < 0x100) {
+		update_count();
+		this->set_reg(addr, data);
+		if(addr == 0x14) {
+			update_event();
+		}
+		update_interrupt();
+		clock_busy = get_current_clock();
+		busy = true;
+	}
+}
+
+uint32_t YM2151::read_via_debugger_data8(uint32_t addr)
+{
+	if(addr < 0x100) {
+		return port_log[addr].data;
+	}
+	return 0;
 }
 
 void YM2151::write_signal(int id, uint32_t data, uint32_t mask)
@@ -222,9 +253,9 @@ void YM2151::set_reg(uint32_t addr, uint32_t data)
 	if(dllchip) {
 		fmdll->SetReg(dllchip, addr, data);
 	}
+#endif
 	port_log[addr].written = true;
 	port_log[addr].data = data;
-#endif
 }
 
 void YM2151::update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame)
@@ -232,7 +263,7 @@ void YM2151::update_timing(int new_clocks, double new_frames_per_sec, int new_li
 	clock_const = (uint32_t)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool YM2151::process_state(FILEIO* state_fio, bool loading)
 {
@@ -245,12 +276,10 @@ bool YM2151::process_state(FILEIO* state_fio, bool loading)
 	if(!opm->ProcessState((void *)state_fio, loading)) {
  		return false;
  	}
-#ifdef SUPPORT_MAME_FM_DLL
 	for(int i = 0; i < array_length(port_log); i++) {
 		state_fio->StateValue(port_log[i].written);
 		state_fio->StateValue(port_log[i].data);
 	}
-#endif
 	state_fio->StateValue(chip_clock);
 	state_fio->StateValue(ch);
 	state_fio->StateValue(irq_prev);

@@ -69,6 +69,20 @@ int DEVICE::get_event_manager_id()
 	}
 	return event_manager->this_device_id;
 }
+bool DEVICE::is_primary_cpu(DEVICE* device)
+{
+	if(event_manager == NULL) {
+		event_manager = vm->first_device->next_device;
+	}
+	return event_manager->is_primary_cpu(device);
+}
+void DEVICE::update_extra_event(int clock)
+{
+	if(event_manager == NULL) {
+		event_manager = vm->first_device->next_device;
+	}
+	event_manager->update_extra_event(clock);
+}
 void DEVICE::register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id)
 {
 	if(event_manager == NULL) {
@@ -292,6 +306,18 @@ void DEVICE::force_out_debug_log(const char *fmt, ...)
 }
 
 // debugger
+bool DEVICE::is_cpu()
+{
+	return false;
+}
+bool DEVICE::is_debugger()
+{
+	return false;
+}
+bool DEVICE::is_debugger_available()
+{
+	return false;
+}
 void *DEVICE::get_debugger()
 {
 	return NULL;
@@ -306,47 +332,49 @@ uint32_t DEVICE::get_debug_data_addr_mask()
 	return 0;
 }
 
+uint64_t DEVICE::get_debug_data_addr_space()
+{
+	// override this function when memory space is not (2 << n)
+	return (uint64_t)get_debug_data_addr_mask() + 1;
+}
 void DEVICE::write_debug_data8(uint32_t addr, uint32_t data)
 {
+//		write_data8(addr, data);
 }
-
 uint32_t DEVICE::read_debug_data8(uint32_t addr)
 {
+//		return read_data8(addr);
 	return 0xff;
 }
-
 void DEVICE::write_debug_data16(uint32_t addr, uint32_t data)
 {
 	write_debug_data8(addr, data & 0xff);
 	write_debug_data8(addr + 1, (data >> 8) & 0xff);
 }
-
 uint32_t DEVICE::read_debug_data16(uint32_t addr)
 {
-		uint32_t val = read_debug_data8(addr);
-		val |= read_debug_data8(addr + 1) << 8;
-		return val;
+	uint32_t val = read_debug_data8(addr);
+	val |= read_debug_data8(addr + 1) << 8;
+	return val;
 }
-
 void DEVICE::write_debug_data32(uint32_t addr, uint32_t data)
 {
 	write_debug_data16(addr, data & 0xffff);
 	write_debug_data16(addr + 2, (data >> 16) & 0xffff);
 }
-
 uint32_t DEVICE::read_debug_data32(uint32_t addr)
 {
 	uint32_t val = read_debug_data16(addr);
 	val |= read_debug_data16(addr + 2) << 16;
 	return val;
 }
-
 void DEVICE::write_debug_io8(uint32_t addr, uint32_t data)
 {
+//		write_io8(addr, data);
 }
-
 uint32_t DEVICE::read_debug_io8(uint32_t addr)
 {
+//		return read_io8(addr);
 	return 0xff;
 }
 void DEVICE::write_debug_io16(uint32_t addr, uint32_t data)
@@ -354,40 +382,144 @@ void DEVICE::write_debug_io16(uint32_t addr, uint32_t data)
 	write_debug_io8(addr, data & 0xff);
 	write_debug_io8(addr + 1, (data >> 8) & 0xff);
 }
-
 uint32_t DEVICE::read_debug_io16(uint32_t addr)
 {
 	uint32_t val = read_debug_io8(addr);
 	val |= read_debug_io8(addr + 1) << 8;
 	return val;
 }
-
 void DEVICE::write_debug_io32(uint32_t addr, uint32_t data)
 {
 	write_debug_io16(addr, data & 0xffff);
 	write_debug_io16(addr + 2, (data >> 16) & 0xffff);
 }
-
 uint32_t DEVICE::read_debug_io32(uint32_t addr)
 {
 	uint32_t val = read_debug_io16(addr);
 	val |= read_debug_io16(addr + 2) << 16;
 	return val;
 }
-
 bool DEVICE::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
 	return false;
 }
-
-void DEVICE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+uint32_t DEVICE::read_debug_reg(const _TCHAR *reg)
 {
+	return 0;
 }
-
+bool DEVICE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	return false;
+}
 int DEVICE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 	return 0;
 }
+/*
+	These functions are used for debugging non-cpu device
+	Insert debugger between standard read/write functions and these functions for checking breakpoints
+
+	void DEVICE::write_data8(uint32_t addr, uint32_t data)
+	{
+		if(debugger != NULL && debugger->now_device_debugging) {
+			// debugger->mem = this;
+			// debugger->mem->write_via_debugger_data8(addr, data)
+			debugger->write_via_debugger_data8(addr, data);
+		} else {
+			this->write_via_debugger_data8(addr, data);
+		}
+	}
+	void DEVICE::write_via_debugger_data8(uint32_t addr, uint32_t data)
+	{
+		// write memory
+	}
+*/
+
+void DEVICE::write_via_debugger_data8(uint32_t addr, uint32_t data)
+{
+}
+uint32_t DEVICE::read_via_debugger_data8(uint32_t addr)
+{
+	return 0xff;
+}
+void DEVICE::write_via_debugger_data16(uint32_t addr, uint32_t data)
+{
+}
+uint32_t DEVICE::read_via_debugger_data16(uint32_t addr)
+{
+	return 0xffff;
+}
+void DEVICE::write_via_debugger_data32(uint32_t addr, uint32_t data)
+{
+}
+uint32_t DEVICE::read_via_debugger_data32(uint32_t addr)
+{
+	return 0xffffffff;
+}
+void DEVICE::write_via_debugger_data8w(uint32_t addr, uint32_t data, int* wait)
+{
+}
+uint32_t DEVICE::read_via_debugger_data8w(uint32_t addr, int* wait)
+{
+	return 0xff;
+}
+void DEVICE::write_via_debugger_data16w(uint32_t addr, uint32_t data, int* wait)
+{
+}
+uint32_t DEVICE::read_via_debugger_data16w(uint32_t addr, int* wait)
+{
+	return 0xffff;
+}
+void DEVICE::write_via_debugger_data32w(uint32_t addr, uint32_t data, int* wait)
+{
+}
+uint32_t DEVICE::read_via_debugger_data32w(uint32_t addr, int* wait)
+{
+	return 0xffffffff;
+}
+void DEVICE::write_via_debugger_io8(uint32_t addr, uint32_t data)
+{
+}
+uint32_t DEVICE::read_via_debugger_io8(uint32_t addr)
+{
+	return 0xff;
+}
+void DEVICE::write_via_debugger_io16(uint32_t addr, uint32_t data)
+{
+}
+uint32_t DEVICE::read_via_debugger_io16(uint32_t addr)
+{
+	return 0xffff;
+}
+void DEVICE::write_via_debugger_io32(uint32_t addr, uint32_t data)
+{
+}
+uint32_t DEVICE::read_via_debugger_io32(uint32_t addr)
+{
+	return 0xffffffff;
+}
+void DEVICE::write_via_debugger_io8w(uint32_t addr, uint32_t data, int* wait)
+{
+}
+uint32_t DEVICE::read_via_debugger_io8w(uint32_t addr, int* wait)
+{
+	return 0xff;
+}
+void DEVICE::write_via_debugger_io16w(uint32_t addr, uint32_t data, int* wait)
+{
+}
+uint32_t DEVICE::read_via_debugger_io16w(uint32_t addr, int* wait)
+{
+	return 0xffff;
+}
+void DEVICE::write_via_debugger_io32w(uint32_t addr, uint32_t data, int* wait)
+{
+}
+uint32_t DEVICE::read_via_debugger_io32w(uint32_t addr, int* wait)
+{
+	return 0xffffffff;
+}
+
 
 const _TCHAR *DEVICE::get_lib_common_vm_version(void)
 {

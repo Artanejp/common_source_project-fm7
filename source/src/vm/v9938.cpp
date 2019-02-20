@@ -851,8 +851,10 @@ void v99x8_device::check_int()
 	** called; because of this Mr. Ghost, Xevious and SD Snatcher don't
 	** run. As a patch it's called every scanline
 	*/
-//	m_int_callback(n);
-	write_signals(&outputs_irq, n ? 0xffffffff : 0);
+	if(!emu->now_waiting_in_debugger) {
+//		m_int_callback(n);
+		write_signals(&outputs_irq, n ? 0xffffffff : 0);
+	}
 }
 
 /***************************************************************************
@@ -3115,6 +3117,48 @@ MACHINE_CONFIG_END*/
 /* for common source code project */
 void v99x8_device::draw_screen()
 {
+	if(emu->now_waiting_in_debugger) {
+		// store regs
+//		int tmp_offset_x = m_offset_x;
+		int tmp_offset_y = m_offset_y;
+		int tmp_visible_y = m_visible_y;
+		UINT8 tmp_stat_reg[10];
+		memcpy(tmp_stat_reg, m_stat_reg, sizeof(m_stat_reg));
+		UINT8 tmp_int_state = m_int_state;
+		int tmp_scanline = m_scanline;
+		int tmp_blink = m_blink;
+		int tmp_blink_count = m_blink_count;
+		UINT16 tmp_pal_ind16[16];
+		UINT16 tmp_pal_ind256[256];
+		memcpy(tmp_pal_ind16, m_pal_ind16, sizeof(m_pal_ind16));
+		memcpy(tmp_pal_ind256, m_pal_ind256, sizeof(m_pal_ind256));
+//		mmc_t tmp_mmc = m_mmc;
+		int tmp_vdp_ops_count = m_vdp_ops_count;
+		int tmp_scanline_start = m_scanline_start;
+		int tmp_scanline_max = m_scanline_max;
+		
+		// drive vlines
+		for(int v = /*get_cur_vline() + 1*/0; v < get_lines_per_frame(); v++) {
+			event_vline(v, 0);
+		}
+		
+		// restore regs
+//		m_offset_x = tmp_offset_x;
+		m_offset_y = tmp_offset_y;
+		m_visible_y = tmp_visible_y;
+		memcpy(m_stat_reg, tmp_stat_reg, sizeof(m_stat_reg));
+		m_int_state = tmp_int_state;
+		m_scanline = tmp_scanline;
+		m_blink = tmp_blink;
+		m_blink_count = tmp_blink_count;
+		memcpy(m_pal_ind16, tmp_pal_ind16, sizeof(m_pal_ind16));
+		memcpy(m_pal_ind256, tmp_pal_ind256, sizeof(m_pal_ind256));
+//		m_mmc = tmp_mmc;
+		m_vdp_ops_count = tmp_vdp_ops_count;
+		m_scanline_start = tmp_scanline_start;
+		m_scanline_max = tmp_scanline_max;
+	}
+	
 	scrntype_t *dst;
 	int y;
 	if(osd == NULL) return;

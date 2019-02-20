@@ -37,19 +37,22 @@
 //#endif
 #define SIG_YM2203_MUTE		2
 
+class DEBUGGER;
+
 class YM2203 : public DEVICE
 {
 private:
+	DEBUGGER *d_debugger;
 	FM::OPNA* opna;
 	FM::OPN* opn;
 #ifdef SUPPORT_MAME_FM_DLL
 //	CFMDLL* fmdll;
 	LPVOID* dllchip;
+#endif
 	struct {
 		bool written;
 		uint8_t data;
 	} port_log[0x200];
-#endif
 	int base_decibel_fm, base_decibel_psg;
 	int decibel_vol;
 	
@@ -110,7 +113,9 @@ public:
 			initialize_output_signals(&port[i].outputs);
 			port[i].wreg = port[i].rreg = 0;//0xff;
 		}
+		d_debugger = NULL;
 		initialize_output_signals(&outputs_irq);
+ 		this_device_name[0] = _T('\0');
 	}
 	~YM2203() {}
 	
@@ -127,6 +132,35 @@ public:
 	void mix(int32* buffer, int cnt);
 	void set_volume(int _ch, int decibel_l, int decibel_r);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
+	// for debugging
+	void write_via_debugger_data8(uint32_t addr, uint32_t data);
+	uint32_t read_via_debugger_data8(uint32_t addr);
+	bool is_debugger_available()
+	{
+		return true;
+	}
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	uint64_t get_debug_data_addr_space()
+	{
+		return is_ym2608 ? 0x200 : 0x100;
+	}
+	void write_debug_data8(uint32_t addr, uint32_t data)
+	{
+		if(addr < (uint32_t)(is_ym2608 ? 0x200 : 0x100)) {
+			write_via_debugger_data8(addr, data);
+		}
+	}
+	uint32_t read_debug_data8(uint32_t addr)
+	{
+		if(addr < (uint32_t)(is_ym2608 ? 0x200 : 0x100)) {
+			return read_via_debugger_data8(addr);
+		}
+		return 0;
+	}
+
 	bool process_state(FILEIO* state_fio, bool loading);
 	// unique functions
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)
@@ -140,6 +174,10 @@ public:
 	void set_context_port_b(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[1].outputs, device, id, mask, shift);
+	}
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
 	}
 	void initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg);
 	void set_reg(uint32_t addr, uint32_t data); // for patch

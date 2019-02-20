@@ -28,11 +28,12 @@
 #define SIG_I8237_MASK2	10
 #define SIG_I8237_MASK3	11
 
-
+class DEBUGGER;
 class I8237_BASE : public DEVICE
 {
 protected:
 	DEVICE* d_mem;
+	DEBUGGER *d_debugger;
 	
 	struct {
 		DEVICE* dev;
@@ -73,6 +74,7 @@ public:
 		}
 		mode_word = false;
 		addr_mask = 0xffffffff;
+		d_debugger = NULL;
 		set_device_name(_T("i8237 DMAC"));
 	}
 	~I8237_BASE() {}
@@ -84,6 +86,20 @@ public:
 	uint32_t read_io8(uint32_t addr);
 	virtual void write_signal(int id, uint32_t data, uint32_t mask);
 	virtual void do_dma();
+	// for debug
+	virtual bool is_debugger_available()
+	{
+		return false;
+	}
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	void write_via_debugger_data8(uint32_t addr, uint32_t data);
+	uint32_t read_via_debugger_data8(uint32_t addr);
+	void write_via_debugger_data16(uint32_t addr, uint32_t data);
+	uint32_t read_via_debugger_data16(uint32_t addr);
 	
 	virtual void save_state(FILEIO* state_fio) {};
 	virtual bool load_state(FILEIO* state_fio) { return false;}
@@ -143,17 +159,30 @@ private:
 public:
 	I8237(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 	~I8237();
-
+	
+	void initialize();
 	virtual void write_io8(uint32_t addr, uint32_t data);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t read_signal(int id);
 	void do_dma();
 	bool process_state(FILEIO* state_fio, bool loading);
 	
+#ifdef USE_DEBUGGER
+	bool is_debugger_available()
+	{
+		return true;
+	}
+#endif
 #ifdef SINGLE_MODE_DMA
 	void set_context_child_dma(DEVICE* device)
 	{
 		d_dma = device;
+	}
+#endif
+#ifdef USE_DEBUGGER
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
 	}
 #endif
 };

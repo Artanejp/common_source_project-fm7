@@ -10,6 +10,7 @@
 */
 
 #include "z80dma.h"
+#include "debugger.h"
 
 //#define DMA_DEBUG
 
@@ -114,6 +115,11 @@ void Z80DMA::initialize()
 	DEVICE::initialize();
 	_SINGLE_MODE_DMA = osd->check_feature(_T("SINGLE_MODE_DMA"));
 	_DMA_DEBUG = osd->check_feature(_T("DMA_DEBUG"));
+	if(d_debugger != NULL) {
+		d_debugger->set_device_name(_T("Debugger (Z80DMA)"));
+		d_debugger->set_context_mem(this);
+		d_debugger->set_context_io(this);
+	}
 }
 
 void Z80DMA::reset()
@@ -250,7 +256,7 @@ void Z80DMA::write_io8(uint32_t addr, uint32_t data)
 			case CMD_RESET:
 				enabled = false;
 				force_ready = false;
-				req_intr = false;
+				req_intr = in_service = false;
 				update_intr();
 				status = 0x30;
 				// reset timing
@@ -418,6 +424,62 @@ void Z80DMA::update_read_buffer()
 	}
 }
 
+void Z80DMA::write_via_debugger_data8w(uint32_t addr, uint32_t data, int* wait)
+{
+	d_mem->write_dma_data8w(addr, data, wait);
+}
+
+uint32_t Z80DMA::read_via_debugger_data8w(uint32_t addr, int* wait)
+{
+	return d_mem->read_dma_data8w(addr, wait);
+}
+
+void Z80DMA::write_via_debugger_io8w(uint32_t addr, uint32_t data, int* wait)
+{
+	d_io->write_dma_io8w(addr, data, wait);
+}
+
+uint32_t Z80DMA::read_via_debugger_io8w(uint32_t addr, int* wait)
+{
+	return d_io->read_dma_io8w(addr, wait);
+}
+
+void Z80DMA::write_memory(uint32_t addr, uint32_t data, int* wait)
+{
+	if(d_debugger != NULL && d_debugger->now_device_debugging) {
+		d_debugger->write_via_debugger_data8w(addr, data, wait);
+	} else {
+		this->write_via_debugger_data8w(addr, data, wait);
+	}
+}
+
+uint32_t Z80DMA::read_memory(uint32_t addr, int* wait)
+{
+	if(d_debugger != NULL && d_debugger->now_device_debugging) {
+		return d_debugger->read_via_debugger_data8w(addr, wait);
+	} else {
+		return this->read_via_debugger_data8w(addr, wait);
+	}
+}
+
+void Z80DMA::write_ioport(uint32_t addr, uint32_t data, int* wait)
+{
+	if(d_debugger != NULL && d_debugger->now_device_debugging) {
+		d_debugger->write_via_debugger_io8w(addr, data, wait);
+	} else {
+		this->write_via_debugger_io8w(addr, data, wait);
+	}
+}
+
+uint32_t Z80DMA::read_ioport(uint32_t addr, int* wait)
+{
+	if(d_debugger != NULL && d_debugger->now_device_debugging) {
+		return d_debugger->read_via_debugger_io8w(addr, wait);
+	} else {
+		return this->read_via_debugger_io8w(addr, wait);
+	}
+}
+
 // note: if SINGLE_MODE_DMA is defined, do_dma() is called in every machine cycle
 
 void Z80DMA::do_dma()
@@ -464,12 +526,12 @@ restart:
 		
 		if(PORTA_IS_SOURCE) {
 			if(PORTA_MEMORY) {
-				data = d_mem->read_dma_data8w(addr_a, &wait_r);
+				data = read_memory(addr_a, &wait_r);
 //#ifdef DMA_DEBUG
 				if(_DMA_DEBUG) this->out_debug_log(_T("Z80DMA: RAM[%4x]=%2x -> "), addr_a, data);
 //#endif
 			} else {
-				data = d_io->read_dma_io8w(addr_a, &wait_r);
+				data = read_ioport(addr_a, &wait_r);
 //#ifdef DMA_DEBUG
 				if(_DMA_DEBUG) this->out_debug_log(_T("Z80DMA: INP(%4x)=%2x -> "), addr_a, data);
 //#endif
@@ -483,12 +545,12 @@ restart:
 			}
 		} else {
 			if(PORTB_MEMORY) {
-				data = d_mem->read_dma_data8w(addr_b, &wait_r);
+				data = read_memory(addr_b, &wait_r);
 //#ifdef DMA_DEBUG
 				if(_DMA_DEBUG) this->out_debug_log(_T("Z80DMA: RAM[%4x]=%2x -> "), addr_b, data);
 //#endif
 			} else {
-				data = d_io->read_dma_io8w(addr_b, &wait_r);
+				data = read_ioport(addr_b, &wait_r);
 //#ifdef DMA_DEBUG
 				if(_DMA_DEBUG) this->out_debug_log(_T("Z80DMA: INP(%4x)=%2x -> "), addr_b, data);
 //#endif
@@ -509,12 +571,12 @@ restart:
 //#ifdef DMA_DEBUG
 					if(_DMA_DEBUG) this->out_debug_log(_T("RAM[%4x]\n"), addr_b);
 //#endif
-					d_mem->write_dma_data8w(addr_b, data, &wait_w);
+					write_memory(addr_b, data, &wait_w);
 				} else {
 //#ifdef DMA_DEBUG
 					if(_DMA_DEBUG) this->out_debug_log(_T("OUT(%4x)\n"), addr_b);
 //#endif
-					d_io->write_dma_io8w(addr_b, data, &wait_w);
+					write_ioport(addr_b, data, &wait_w);
 				}
 				if(d_cpu != NULL) {
 					if(CHECK_WAIT_SIGNAL) {
@@ -528,12 +590,12 @@ restart:
 //#ifdef DMA_DEBUG
 					if(_DMA_DEBUG) this->out_debug_log(_T("RAM[%4x]\n"), addr_a);
 //#endif
-					d_mem->write_dma_data8w(addr_a, data, &wait_w);
+					write_memory(addr_a, data, &wait_w);
 				} else {
 //#ifdef DMA_DEBUG
 					if(_DMA_DEBUG) this->out_debug_log(_T("OUT(%4x)\n"), addr_a);
 //#endif
-					d_io->write_dma_io8w(addr_a, data, &wait_w);
+					write_ioport(addr_a, data, &wait_w);
 				}
 				if(d_cpu != NULL) {
 					if(CHECK_WAIT_SIGNAL) {
@@ -758,6 +820,22 @@ void Z80DMA::notify_intr_reti()
 	if(d_child != NULL) {
 		d_child->notify_intr_reti();
 	}
+}
+
+bool Z80DMA::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+/*
+PORT-A(MEM,FFFF)->PORT-B(I/O,FFFF) CNT=65536 BLK=65536 STAT=00 ENABLE=1 READY=1
+*/
+	my_stprintf_s(buffer, buffer_len,
+	_T("PORT-A(%s,%04X)%sPORT-B(%s,%04X) CNT=%d BLK=%d STAT=%02X ENABLE=%d READY=%d"),
+	PORTA_MEMORY ? "MEM" : "I/O", addr_a,
+	PORTA_IS_SOURCE ? "->" : "<-",
+	PORTB_MEMORY ? "MEM" : "I/O", addr_b,
+	upcount, blocklen,
+	status | (now_ready() ? 0 : 2) | (req_intr ? 0 : 8),
+	enabled, now_ready());
+	return true;
 }
 
 #define STATE_VERSION	2

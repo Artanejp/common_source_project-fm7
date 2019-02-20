@@ -216,7 +216,7 @@ void PC6031::FddOut60(unsigned char dat)
 // control input from disk unit (port D2H)
 unsigned char PC6031::FddCntIn60(void)
 {
-	if ((((old_D2H & 0x01) ^ mdisk.DAV) != 0) || (mdisk.RFD != 0) && (mdisk.DAV != 0)) {  // ToDo: Check Logic 20180614 K.O
+	if ((((old_D2H & 0x01) ^ mdisk.DAV) != 0) || ((mdisk.RFD != 0) && (mdisk.DAV != 0))) {  // ToDo: Check Logic 20180614 K.O
 		mdisk.DAC = mdisk.DAV;
 	} else if (mdisk.ATN != 0) {
 		mdisk.RFD = 1;

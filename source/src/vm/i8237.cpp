@@ -11,6 +11,21 @@
 #include "vm.h"
 #include "../emu.h"
 #include "i8237.h"
+#ifdef USE_DEBUGGER
+#include "debugger.h"
+#endif
+
+void I8237::initialize()
+{
+	I8237_BASE::initialize();
+#ifdef USE_DEBUGGER
+	if(d_debugger != NULL) {
+		d_debugger->set_device_name(_T("Debugger (8237 DMAC)"));
+		d_debugger->set_context_mem(this);
+		d_debugger->set_context_io(vm->dummy);
+	}
+#endif
+}
 
 
 I8237::I8237(VM_TEMPLATE* parent_vm, EMU* parent_emu) : I8237_BASE(parent_vm, parent_emu)
@@ -206,6 +221,7 @@ void I8237::do_dma()
 	}
 #endif
 }
+
 
 #define STATE_VERSION	2
 
