@@ -184,12 +184,14 @@ private:
 	// Sound
 	QActionGroup   *actionGroup_Sound_Freq;
 	QActionGroup   *actionGroup_Sound_Latency;
+	QActionGroup   *actionGroup_Sound_HostDevices;
 	//class Action_Control *actionSoundCMT;
 	class Action_Control *action_VolumeDialog;
 	class Action_Control *actionSoundPlayTape;
 	class Action_Control *actionSoundStrictRendering;
 	class Action_Control *action_SoundFilesFDD;
 	class Action_Control *action_SoundFilesRelay;
+	class Action_Control *action_HostSoundDevice[16];
 	//QMenu *menuLogToConsole;
 	//QMenu *menuLogToSyslog;
 	QMenu *menuDevLogToConsole;
@@ -425,6 +427,7 @@ protected:
 	QMenu *menuSound;
 	QMenu *menuOutput_Frequency;
 	QMenu *menuSound_Latency;
+	QMenu *menuSound_HostDevices;
 	QMenu *menuMachine;
 	QMenu *menuRecord;
 	QMenu *menuRecord_sound;
@@ -648,7 +651,8 @@ public slots:
 	void set_sound_device(int);
 	void do_set_sound_strict_rendering(bool f);
 	void do_set_sound_play_tape(bool f);
-	
+	void do_set_host_sound_device(int num);
+	void do_set_host_sound_name(int num, QString sname);	
 	void set_monitor_type(int);
 	void message_status_bar(QString);
 	void resize_statusbar(int w, int h);

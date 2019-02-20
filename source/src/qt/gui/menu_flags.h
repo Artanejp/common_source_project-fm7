@@ -343,6 +343,8 @@ public:
 	EMU *get_emu(void);
 	void set_osd(OSD *p);
 	OSD *get_osd(void);
+	virtual const _TCHAR *get_sound_device_name(int num);
+	virtual int get_sound_device_num();
 	
 	virtual int get_vm_node_size();
 	virtual void set_vm_node_name(int id, const _TCHAR *name);

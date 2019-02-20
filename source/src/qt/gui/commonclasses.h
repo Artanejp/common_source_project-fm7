@@ -66,6 +66,7 @@ protected:
 	void setWriteProtect(bool b) {write_protect = b;}
 
 public slots:
+	void on_set_host_sound_device(void);
 	void set_boot_mode(void);
 	void set_cpu_type(void);
 	void set_cpupower(void);
@@ -173,6 +174,7 @@ signals:
 	int sig_freq(int);
 	int sig_latency(int);
 	int sig_sounddevice(int);
+	int sig_set_host_sound_device(int);
 	int sig_set_dipsw(int, bool);
 	int sig_screen_aspect(int);
 	int sig_screen_size(int, int);

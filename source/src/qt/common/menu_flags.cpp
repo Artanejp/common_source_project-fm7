@@ -513,3 +513,16 @@ _TCHAR *USING_FLAGS_EXT::get_vm_node_name(int id)
 	if(p_emu == NULL) return NULL;
 	return (_TCHAR *)p_emu->get_osd()->get_vm_node_name(id);
 }
+
+const _TCHAR *USING_FLAGS_EXT::get_sound_device_name(int num)
+{
+	if(p_emu == NULL) return NULL;
+	return (const _TCHAR *)(p_emu->get_osd()->get_sound_device_name(num));
+}
+
+int USING_FLAGS_EXT::get_sound_device_num()
+{
+	if(p_emu == NULL) return -1;
+	return p_emu->get_osd()->get_sound_device_num();
+}
+

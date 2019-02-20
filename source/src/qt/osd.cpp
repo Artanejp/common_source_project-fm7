@@ -1113,7 +1113,7 @@ void OSD::set_features(void)
 extern std::string cpp_homedir;
 extern std::string my_procname;
 
-void OSD::initialize(int rate, int samples)
+void OSD::initialize(int rate, int samples, int* presented_rate, int* presented_samples)
 {
 	// get module path
 	QString tmp_path;
@@ -1138,7 +1138,7 @@ void OSD::initialize(int rate, int samples)
 	initialize_input();
 	initialize_printer();
 	initialize_screen();
-	initialize_sound(rate, samples);
+	initialize_sound(rate, samples, presented_rate, presented_samples);
 #if defined(USE_SOUND_FILES)
 	init_sound_files();
 #endif

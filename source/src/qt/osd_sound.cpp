@@ -28,7 +28,7 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 	Uint8 *s;
 	int writepos;
 	int sndlen;
-	
+	//printf("Callback: udata=%08x stream=%08x len=%d\n", udata, stream, len);
 	sdl_snddata_t *pData = (sdl_snddata_t *)udata;
 	if(pData == NULL) return;
 	
@@ -61,7 +61,11 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 			p = (Uint8 *)(*pData->sound_buf_ptr);
 			p = &p[writepos * 2];
 			s = &stream[spos * 2];
+#if defined(USE_SDL2)
+			SDL_MixAudioFormat(s, (Uint8*)p, pData->sound_format, len2 * 2, *(pData->snd_total_volume));
+#else
 			SDL_MixAudio(s, (Uint8 *)p, len2 * 2, *(pData->snd_total_volume));
+#endif
 			*(pData->sound_data_len) -= len2;
 			if(*(pData->sound_data_len) <= 0) *(pData->sound_data_len) = 0;
 			*pData->sound_write_pos += len2;
@@ -79,11 +83,28 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 	} while(spos < len); 
 }
 
-void OSD_BASE::initialize_sound(int rate, int samples)
+const _TCHAR *OSD_BASE::get_sound_device_name(int num)
+{
+	if(num < 0) return NULL;
+	if(num >= sound_device_list.count()) return NULL;
+	QString sdev = sound_device_list.value(num);
+	sdev.truncate(64);
+	return (const _TCHAR*)(sdev.toUtf8().constData());
+}
+
+int OSD_BASE::get_sound_device_num()
+{
+	return sound_device_list.count();
+}
+
+void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
 {
 	std::string devname;
 	int i;
 
+	if(sound_initialized) {
+		release_sound();
+	}
 	sound_rate = rate;
 	sound_samples = samples;
 	rec_sound_buffer_ptr = 0;
@@ -117,17 +138,59 @@ void OSD_BASE::initialize_sound(int rate, int samples)
 	snd_spec_req.samples = samples;
 	snd_spec_req.callback = &(this->audio_callback);
 	snd_spec_req.userdata = (void *)&snddata;
-#if defined(USE_SDL2)      
+#if defined(USE_SDL2)
+	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "Using Sound Driver: %s\n", SDL_GetCurrentAudioDriver());
+	sound_device_list.clear();
 	for(i = 0; i < SDL_GetNumAudioDevices(0); i++) {
-		//devname = SDL_GetAudioDeviceName(i, 0);
 		QString tmps = QString::fromUtf8(SDL_GetAudioDeviceName(i, 0));
 		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
-							  "Audio Device: %s", tmps.toLocal8Bit().constData());
+				  "Audio Device #%d: %s", i, tmps.toLocal8Bit().constData());
+		sound_device_list.append(tmps);
 	}
 #endif   
-	SDL_OpenAudio(&snd_spec_req, &snd_spec_presented);
+#if defined(USE_SDL2)
+	
+	//QString sdev = QString::fromUtf8("\"") + sound_device_list.at(audio_dev_id) + QString::fromUtf8("\"");
+	//audio_dev_id = SDL_OpenAudioDevice(NULL, 0, &snd_spec_req, &snd_spec_presented, SDL_AUDIO_ALLOW_ANY_CHANGE);
+	QString sdev;
+	sdev = sound_device_list.at(p_config->sound_device_num);
+    audio_dev_id = SDL_OpenAudioDevice(sdev.toUtf8().constData(), 0,
+									   &snd_spec_req, &snd_spec_presented,
+									   0);
+	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "Try to openDEVICE #%d: %s -> %s: DEVID=%d\n",
+			  p_config->sound_device_num, sdev.toUtf8().constData(), (audio_dev_id <= 0) ? "FAIL" : "SUCCESS", audio_dev_id);
+#else
 	audio_dev_id = 1;
-   
+	SDL_OpenAudio(&snd_spec_req, &snd_spec_presented);
+#endif
+
+#if defined(USE_SDL2)
+	if(audio_dev_id <= 0) {
+		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,"Failed to initialize sound\n");
+		if(presented_rate != NULL) {
+			*presented_rate = sound_rate;
+		}
+		if(presented_samples != NULL) {
+			*presented_samples = sound_samples;
+		}
+		sound_initialized = false;
+		sound_ok = sound_first_half = false;
+		return;
+	}
+#endif
+	snddata.sound_format = snd_spec_presented.format;
+	if((snd_spec_presented.freq != sound_rate) ||
+	   (snd_spec_presented.samples != sound_samples)) { // DEINI
+		sound_rate = snd_spec_presented.freq;
+		sound_samples = snd_spec_presented.samples;
+	}
+	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,"Sample rate=%d samples=%d\n", sound_rate, sound_samples);
+	if(presented_rate != NULL) {
+		*presented_rate = sound_rate;
+	}
+	if(presented_samples != NULL) {
+		*presented_samples = sound_samples;
+	}
 	// secondary buffer
 	sound_buffer_size = sound_samples * snd_spec_presented.channels * 2;
 	sound_buf_ptr = (Sint16 *)malloc(sound_buffer_size * sizeof(Sint16)); 
@@ -143,11 +206,6 @@ void OSD_BASE::initialize_sound(int rate, int samples)
 	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
 						  "Sound OK: BufSize = %d", sound_buffer_size);
 	memset(sound_buf_ptr, 0x00, sound_buffer_size * sizeof(Sint16));
-//#if defined(USE_SDL2)   
-//	SDL_PauseAudioDevice(audio_dev_id, 0);
-//#else   
-//	SDL_PauseAudio(0);
-//#endif   
 	sound_initialized = true;
 	sound_ok = sound_first_half = true;
 }
@@ -162,13 +220,12 @@ void OSD_BASE::release_sound()
 	//SDL_PauseAudioDevice(audio_dev_id, 1);
 	SDL_CloseAudioDevice(audio_dev_id);
 #else   
-	//SDL_PauseAudio(1);
 	SDL_CloseAudio();
 #endif   
+	stop_record_sound();
 	if(sound_buf_ptr != NULL) free(sound_buf_ptr);
 	sound_buf_ptr = NULL;
 	// stop recording
-	stop_record_sound();
 }
 
 void OSD_BASE::update_sound(int* extra_frames)

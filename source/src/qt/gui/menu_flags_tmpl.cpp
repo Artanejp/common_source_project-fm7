@@ -265,3 +265,13 @@ EMU *USING_FLAGS::get_emu(void)
 {
 	return p_emu;
 }
+
+const _TCHAR *USING_FLAGS::get_sound_device_name(int num)
+{
+	return NULL;
+}
+
+int USING_FLAGS::get_sound_device_num()
+{
+	return -1;
+}

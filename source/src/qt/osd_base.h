@@ -14,6 +14,7 @@
 #include <QList>
 #include <QThread>
 #include <QString>
+#include <QStringList>
 #include <QImage>
 #include <SDL.h>
 //#include "simd_types.h"
@@ -191,12 +192,18 @@ protected:
 	bool self_invalidate;
 	
 	// sound
-	void initialize_sound(int rate, int samples);
+#if defined(USE_SDL2)   
+	SDL_AudioDeviceID audio_dev_id;
+#else
+	int audio_dev_id;
+#endif
+	SDL_AudioSpec snd_spec_req, snd_spec_presented;
 	void release_sound();
 	static void audio_callback(void *udata, Uint8 *stream, int len);
 	int sound_rate, sound_samples;
 	bool sound_ok, sound_started, now_mute;
 	bool sound_first_half;
+	QStringList sound_device_list;
 	
 	_TCHAR sound_file_name[_MAX_PATH];
 	FILEIO* rec_sound_fio;
@@ -212,12 +219,6 @@ protected:
 	bool sound_initialized;
 	Sint16 *sound_buf_ptr;
 	Uint8 snd_total_volume;
-#if defined(USE_SDL2)   
-	SDL_AudioDeviceID audio_dev_id;
-#else
-	int audio_dev_id;
-#endif
-	SDL_AudioSpec snd_spec_req, snd_spec_presented;
 	
 	// video device
 	virtual void initialize_video();
@@ -287,7 +288,9 @@ public:
 	int host_cpus;
 	bool now_auto_key;
 	
-	virtual void initialize(int rate, int samples);
+	virtual void initialize(int rate, int samples, int* presented_rate, int* presented_samples);
+	// sound
+	virtual void initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples);
 	virtual void release();
 	virtual void power_off();
 	void suspend();
@@ -373,6 +376,10 @@ public:
 	void start_record_sound();
 	void stop_record_sound();
 	void restart_record_sound();
+
+	const _TCHAR *get_sound_device_name(int num);
+	int get_sound_device_num();
+	
 	bool now_record_sound;
 	int get_sound_rate();
 	// Wrapper : Sound

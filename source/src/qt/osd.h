@@ -73,7 +73,7 @@ protected:
 public:
 	OSD(USING_FLAGS *p, CSP_Logger *logger);
 	~OSD();
-	void initialize(int rate, int samples);
+	void initialize(int rate, int samples, int* presented_rate, int* presented_samples);
 	void release();
 	void power_off();
 

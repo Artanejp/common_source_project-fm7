@@ -409,6 +409,7 @@ double OSD::get_window_mode_power(int mode)
 	return mode + WINDOW_MODE_BASE;
 }
 
+
 void OSD::initialize_video()
 {
 	movie_loader = NULL;

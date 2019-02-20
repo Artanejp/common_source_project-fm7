@@ -1264,7 +1264,16 @@ int MainLoop(int argc, char *argv[])
 	}
 	csp_logger->set_osd(emu->get_osd());
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "InitInstance() OK.");
-	
+	// ToDo: Update raltime.
+	for(int i = 0; i < 16; i++) {
+		const _TCHAR* sp = emu->get_osd()->get_sound_device_name(i);
+		QString sname;
+		sname.clear();
+		if(sp != NULL) {
+			sname = QString::fromUtf8(sp);
+		}
+		rMainWindow->do_set_host_sound_name(i, sname);
+	}
 	QObject::connect(GuiMain, SIGNAL(lastWindowClosed()),
 					 rMainWindow, SLOT(on_actionExit_triggered()));
 

@@ -128,15 +128,15 @@ QOpenGLTexture *GLDraw_4_5::createMainTexture(QImage *img)
 	//tx->setFormat(QOpenGLTexture::RGBA8_UNorm);
 	
 	if(main_texture_buffer != 0) {
-		main_mutex->lock();
+		//main_mutex->lock();
 		this->unmap_vram_texture();
 		map_base_address = NULL;
 		extfunc->glDeleteBuffers(1, &main_texture_buffer);
 		main_texture_buffer = 0;
-		main_mutex->unlock();
+		//main_mutex->unlock();
 	}
 	{
-		main_mutex->lock();
+		//main_mutex->lock();
 		extfunc->glGenBuffers(1, &main_texture_buffer);
 		extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
 		//extfunc->glBufferData(GL_PIXEL_UNPACK_BUFFER, w * h * sizeof(uint32_t), ip->constBits(), GL_DYNAMIC_COPY);
@@ -152,7 +152,7 @@ QOpenGLTexture *GLDraw_4_5::createMainTexture(QImage *img)
 		map_vram_texture();
 		pixel_width = w;
 		pixel_height = h;
-		main_mutex->unlock();
+		//main_mutex->unlock();
 		
 	}
 
@@ -816,7 +816,7 @@ void GLDraw_4_5::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mappe
 				extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 			
 			} else {
-				main_mutex->lock();
+				//main_mutex->lock();
 				extfunc->glFlushMappedBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, pixel_width *pixel_height * sizeof(scrntype_t));
 				extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
 				extfunc->glDeleteSync(sync_fence);
@@ -832,7 +832,7 @@ void GLDraw_4_5::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mappe
 				extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
 				extfunc->glDeleteSync(sync_fence);
 				sync_fence = extfunc->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,  0);
-				main_mutex->unlock();
+				//main_mutex->unlock();
 			}
 #else
 			uVramTextureID->setData(*p, QOpenGLTexture::DontGenerateMipMaps);
@@ -1839,12 +1839,12 @@ scrntype_t *GLDraw_4_5::get_screen_buffer(int y)
 	if(map_base_address == NULL) {
 		return NULL;
 	} else {
-		main_mutex->lock();
+		//main_mutex->lock();
 		//extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
 		scrntype_t *p = (scrntype_t *)map_base_address;
 		p = p + (pixel_width * y);
 		//printf("%08x\n", (uintptr_t)p);   
-		main_mutex->unlock();
+		//main_mutex->unlock();
 		return p;
 	}
 }

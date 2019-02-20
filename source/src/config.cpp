@@ -127,6 +127,7 @@ void initialize_config()
 	#endif
 		config.sound_latency = 1;	// 100msec
 		config.sound_strict_rendering = true;
+		config.sound_device_num = 0; // Add 20190221
 	#ifdef USE_FLOPPY_DISK
 		config.sound_noise_fdd = true;
 	#endif
@@ -380,7 +381,8 @@ void load_config(const _TCHAR *config_path)
 	// sound
 	config.sound_frequency = MyGetPrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
 	config.sound_latency = MyGetPrivateProfileInt(_T("Sound"), _T("Latency"), config.sound_latency, config_path);
-	config.sound_strict_rendering = MyGetPrivateProfileBool(_T("Sound"), _T("StrictRendering"), config.sound_strict_rendering, config_path);
+	config.sound_strict_rendering = MyGetPrivateProfileInt(_T("Sound"), _T("StrictRendering"), config.sound_strict_rendering, config_path);
+	config.sound_device_num = MyGetPrivateProfileBool(_T("Sound"), _T("DeviceNumber"), config.sound_device_num, config_path);
 	#ifdef USE_FLOPPY_DISK
 		config.sound_noise_fdd = MyGetPrivateProfileBool(_T("Sound"), _T("NoiseFDD"), config.sound_noise_fdd, config_path);;
 	#endif
@@ -755,6 +757,7 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
 		MyWritePrivateProfileInt(_T("Sound"), _T("Latency"), config.sound_latency, config_path);
 		MyWritePrivateProfileBool(_T("Sound"), _T("StrictRendering"), config.sound_strict_rendering, config_path);
+		MyWritePrivateProfileInt(_T("Sound"), _T("DeviceNumber"), config.sound_device_num, config_path);
 	#ifdef USE_FLOPPY_DISK
 		MyWritePrivateProfileBool(_T("Sound"), _T("NoiseFDD"), config.sound_noise_fdd, config_path);
 	#endif

@@ -95,7 +95,10 @@ EMU::EMU()
 	osd->main_window_handle = hwnd;
 	osd->instance_handle = hinst;
 #endif
-	osd->initialize(sound_rate, sound_samples);
+	int presented_rate, presented_samples;
+	osd->initialize(sound_rate, sound_samples, &presented_rate, &presented_samples);
+	sound_rate = presented_rate;
+	sound_samples = presented_samples;
 	// initialize vm
    	vm = new VM(this);
 	osd->vm = vm;
@@ -265,8 +268,16 @@ void EMU::reset()
 #if defined(_USE_QT)
 		osd->reset_vm_node();
 #endif
+		int presented_rate;
+		int presented_samples;
 		sound_rate = sound_frequency_table[config.sound_frequency];
 		sound_samples = (int)(sound_rate * sound_latency_table[config.sound_latency] + 0.5);
+		osd->initialize_sound(sound_rate, sound_samples, &presented_rate, &presented_samples);
+		if((sound_rate != presented_rate) ||
+		   (sound_samples != presented_samples)) {
+			sound_rate = presented_rate;
+			sound_samples = presented_samples;
+		}
 		vm->initialize_sound(sound_rate, sound_samples);
 #ifdef USE_SOUND_VOLUME
 		for(int i = 0; i < USE_SOUND_VOLUME; i++) {

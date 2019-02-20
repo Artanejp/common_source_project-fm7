@@ -28,6 +28,33 @@ void Object_Menu_Control::on_set_latency(void) {
    emit sig_latency(s_num);
 }
 
+void Object_Menu_Control::on_set_host_sound_device(void) {
+   emit sig_set_host_sound_device(s_num);
+}
+
+void Ui_MainWindowBase::do_set_host_sound_device(int num)
+{
+	if(p_config != NULL) {
+		p_config->sound_device_num = num;
+	}
+}
+
+void Ui_MainWindowBase::do_set_host_sound_name(int num, QString s)
+{
+	if(num < 0) return;
+	if(num >= 16) return;
+	
+	if(s.isEmpty()) {
+		if(action_HostSoundDevice[num] != NULL) {
+			action_HostSoundDevice[num]->setVisible(false);
+		}
+	} else {
+		if(action_HostSoundDevice[num] != NULL) {
+			action_HostSoundDevice[num]->setVisible(true);
+			action_HostSoundDevice[num]->setText(s);
+		}
+	}
+}
 
 void Ui_MainWindowBase::do_set_sound_strict_rendering(bool f)
 {
@@ -89,6 +116,21 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 	//connect(actionSoundStrictRendering, SIGNAL(toggled(bool)),
 	//		this, SLOT(do_set_sound_strict_rendering(bool)));
 	//menuSound->addAction(actionSoundStrictRendering);
+
+	menuSound_HostDevices = new QMenu(menuSound);
+	menuSound_HostDevices->setObjectName(QString::fromUtf8("menuSound_HostDevices"));
+	menuSound->addAction(menuSound_HostDevices->menuAction());
+	for(i = 0; i < 16; i++) {
+		if(action_HostSoundDevice[i] != NULL) {
+			menuSound_HostDevices->addAction(action_HostSoundDevice[i]);
+			connect(action_HostSoundDevice[i], SIGNAL(triggered()),
+					action_HostSoundDevice[i]->binds, SLOT(on_set_host_sound_device()));
+			connect(action_HostSoundDevice[i]->binds, SIGNAL(sig_set_host_sound_device(int)),
+					this, SLOT(do_set_host_sound_device(int)));
+		}
+	}
+	
+	menuSound->addSeparator();
 	
 	menuOutput_Frequency = new QMenu(menuSound);
 	menuOutput_Frequency->setObjectName(QString::fromUtf8("menuOutput_Frequency"));
@@ -121,6 +163,23 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 	QString tmps;
 	double dval;
 	//int freq = 48000;
+
+	actionGroup_Sound_HostDevices = new QActionGroup(this);
+	for(i = 0; i < 16; i++) {
+		action_HostSoundDevice[i] = new Action_Control(this, using_flags);
+		tmps.setNum(i);	
+		tmps = QString::fromUtf8("action_HostSoundDevice") + tmps;
+	   
+		action_HostSoundDevice[i]->setObjectName(tmps);
+		action_HostSoundDevice[i]->setCheckable(true);
+		action_HostSoundDevice[i]->binds->setNumber(i);
+		if(i == p_config->sound_device_num) {
+			action_HostSoundDevice[i]->setChecked(true);
+			//freq = using_flags->get_s_freq_table(i);
+		}
+		actionGroup_Sound_HostDevices->addAction(action_HostSoundDevice[i]);
+	}
+	
 	actionGroup_Sound_Freq = new QActionGroup(this);
 	actionGroup_Sound_Freq->setExclusive(true);
 	for(i = 0; i < 8; i++) {
@@ -210,6 +269,9 @@ void Ui_MainWindowBase::retranslateSoundMenu(void)
 		actionSoundPlayTape->setEnabled(false);
 	}
 
+	menuSound_HostDevices->setTitle(QApplication::translate("MenuSound", "Output to:", 0));
+	menuSound_HostDevices->setToolTip(QApplication::translate("MenuSound", "Select sound device to output.\nThis effects after re-start this emulator.", 0));
+	
 	menuSound->setTitle(QApplication::translate("MenuSound", "Sound", 0));
 	menuOutput_Frequency->setTitle(QApplication::translate("MenuSound", "Output Frequency", 0));
 	menuSound_Latency->setTitle(QApplication::translate("MenuSound", "Sound Latency", 0));

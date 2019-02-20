@@ -43,6 +43,7 @@ typedef struct {
 	Uint8 *snd_total_volume;
 	bool *sound_exit;
 	bool *sound_debug;
+	SDL_AudioFormat sound_format;
 	config_t *p_config;
 } sdl_snddata_t;
 

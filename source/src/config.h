@@ -250,6 +250,8 @@ typedef struct {
 	int sound_frequency;
 	int sound_latency;
 	bool sound_strict_rendering;
+	int sound_device_num;
+	
 #if defined(_USE_QT)	
 	int general_sound_level;
 #endif

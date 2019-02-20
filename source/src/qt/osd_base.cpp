@@ -108,7 +108,7 @@ void OSD_BASE::set_parent_thread(EmuThreadClass *parent)
 	parent_thread = parent;
 }
 
-void OSD_BASE::initialize(int rate, int samples)
+void OSD_BASE::initialize(int rate, int samples, int* presented_rate, int* presented_samples)
 {
 }
 
