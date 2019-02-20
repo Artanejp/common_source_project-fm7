@@ -252,7 +252,7 @@ int EVENT::run_cpu(uint32_t num, int cycles)
 	}
 }
 
-#define USE_SUPRESS_VTABLE
+//#define USE_SUPRESS_VTABLE
 void EVENT::drive()
 {
 	// raise pre frame events to update timing settings
@@ -280,7 +280,6 @@ void EVENT::drive()
 		}
 		for(int i = 1; i < dcount_cpu; i++) {
 			d_cpu[i].update_clocks = (int)(1024.0 * (double)d_cpu[i].cpu_clocks / (double)d_cpu[0].cpu_clocks + 0.5);
-			for(int k = 0; k < 6; k++) cpu_update_clocks[i][k] = d_cpu[i].update_clocks * k;
 		}
 		for(DEVICE* device = vm->first_device; device; device = device->next_device) {
 			if(device->get_event_manager_id() == this_device_id) {
@@ -308,7 +307,7 @@ void EVENT::drive()
 		} else {
 			update_event(-event_remain);
 		}
-	}		
+	}
 	event_remain += frame_clocks;
 	cpu_remain += frame_clocks << power;
 	
@@ -728,11 +727,8 @@ void EVENT::mix_sound(int samples)
 			d_sound[i]->mix(buffer, samples);
 		}
 		if(!sound_changed) {
-			int32_t tbuf[2];
 			for(int i = 0; i < samples * 2; i += 2) {
-				tbuf[0] = buffer[i];
-				tbuf[1] = buffer[i + 1];
-				if((tbuf[0] != sound_tmp[0]) || (tbuf[1] != sound_tmp[1])) {
+				if(buffer[i] != sound_tmp[0] || buffer[i + 1] != sound_tmp[1]) {
 					sound_changed = true;
 					break;
 				}
