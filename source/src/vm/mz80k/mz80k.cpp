@@ -194,17 +194,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-}
-
-VM::~VM()
-{
-	// delete all devices
-	for(DEVICE* device = first_device; device;) {
-		DEVICE *next_device = device->next_device;
-		device->release();
-		delete device;
-		device = next_device;
-	}
 #if defined(SUPPORT_MZ80AIF)
 	for(int drv = 0; drv < MAX_DRIVE; drv++) {
 //		if(config.drive_type) {
@@ -219,6 +208,17 @@ VM::~VM()
 //		fdc->set_drive_mfm(drv, false);
 	}
 #endif
+}
+
+VM::~VM()
+{
+	// delete all devices
+	for(DEVICE* device = first_device; device;) {
+		DEVICE *next_device = device->next_device;
+		device->release();
+		delete device;
+		device = next_device;
+	}
 }
 
 DEVICE* VM::get_device(int id)
