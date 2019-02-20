@@ -61,17 +61,8 @@ public slots:
 	void _open_bubble(int drv, const QString fname);
 	void eject_bubble(int drv);
 #endif
-//#if defined(USE_FLOPPY_DISK)
-//	void _open_disk(int drv, const QString fname);
-//	void do_update_recent_disk(int);
-//	int set_d88_slot(int drive, int num);
-//	int set_recent_disk(int, int);
-//#endif
-//#if defined(USE_HARD_DISK)
-//	void _open_hard_disk(int drv, const QString fname);
-//	void do_update_recent_hard_disk(int);
-//	int set_recent_hard_disk(int, int);
-//#endif
+
+	void do_create_d88_media(int drv, quint8 media_type, QString name);
 #if defined(USE_DEBUGGER)
 	void OnOpenDebugger(int n);
 	void OnCloseDebugger(void);

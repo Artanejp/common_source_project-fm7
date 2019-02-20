@@ -45,9 +45,12 @@ void CSP_Debugger::run(void)
 	
 #if defined(USE_DEBUGGER)
 	OSD *osd = debugger_thread_param.osd;
+	text_color = QString::fromUtf8("<FONT COLOR=black>");
+	string_is_strong = false;
 	connect(osd, SIGNAL(sig_close_console()), this, SLOT(do_destroy_thread()));
 	connect(this, SIGNAL(sig_call_debugger(QString)), osd, SLOT(do_set_input_string(QString)));
 	connect(osd, SIGNAL(sig_put_string_debugger(QString)), this, SLOT(put_string(QString)));
+	connect(osd, SIGNAL(sig_set_attribute_debugger(QString, bool)), this, SLOT(set_string_attr(QString, bool)));
 	if(emu != NULL) {
 		emu->open_debugger(debugger_thread_param.cpu_index);
 	} else {

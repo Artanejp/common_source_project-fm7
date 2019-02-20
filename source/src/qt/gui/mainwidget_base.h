@@ -623,6 +623,7 @@ public slots:
 	int write_protect_fd(int drv, bool flag);
 	void eject_fd(int drv);
 	void eject_hard_disk(int drv);
+	virtual void do_create_d88_media(int drv, quint8 media_type, QString name) { }
 	// Bubble Casette
 	int write_protect_bubble(int drv, bool flag);
 

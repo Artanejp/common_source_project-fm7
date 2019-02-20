@@ -33,6 +33,8 @@ public slots:
 	void do_open_dialog_create_fd();
 	void do_create_media(quint8 media_type, QString name);
 	void do_set_create_mask(quint8 type, bool flag);
+signals:
+	int sig_create_d88_media(int, quint8, QString);
 };
 
 QT_END_NAMESPACE

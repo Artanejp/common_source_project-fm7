@@ -38,6 +38,9 @@ class DLL_PREFIX CSP_Debugger_Tmpl : public QWidget
 	QTextEdit *text;
 	QLineEdit *text_command;
 	QVBoxLayout *VBoxWindow;
+
+	bool string_is_strong;
+	QString text_color;
  public:
 	CSP_Debugger_Tmpl(QWidget *parent);
 	~CSP_Debugger_Tmpl();
@@ -47,6 +50,7 @@ public slots:
 	void put_string(QString);
 	void cmd_clear();
 	virtual void run(void);
+	void set_string_attr(QString color, bool is_strong);
 signals:
 	void sig_put_string(QString);
 	void sig_run_command(QString);

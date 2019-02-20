@@ -359,6 +359,19 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	emit sig_movie_set_height(SCREEN_HEIGHT);
 }
 
+void Ui_MainWindow::do_create_d88_media(int drv, quint8 media_type, QString name)
+{
+	if(!(name.isEmpty()) && (drv >= 0)) {
+#if defined(USE_FLOPPY_DISK)
+		if(drv < USE_FLOPPY_DISK) {
+			const _TCHAR* path = (const _TCHAR *)(name.toLocal8Bit().data());
+			emu->create_bank_floppy_disk(path, media_type);
+			emit sig_open_disk(drv, name, 0);
+		}
+#endif
+	}
+}
+
 void Ui_MainWindow::LaunchJoyThread(void)
 {
 #if defined(USE_JOYSTICK)

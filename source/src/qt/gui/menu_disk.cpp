@@ -86,6 +86,7 @@ void Menu_FDClass::do_open_dialog_create_fd()
 	dlg.dlg->setWindowTitle(tmps);
 	
 	QObject::connect(&dlg, SIGNAL(sig_create_disk(quint8, QString)), this, SLOT(do_create_media(quint8, QString)));
+	QObject::connect(this, SIGNAL(sig_create_d88_media(int, quint8, QString)), p_wid, SLOT(do_create_d88_media(int, quint8, QString)));
 
 	dlg.show();
 	dlg.dlg->exec();
@@ -94,31 +95,7 @@ void Menu_FDClass::do_open_dialog_create_fd()
 
 void Menu_FDClass::do_create_media(quint8 media_type, QString name)
 {
-
-	if(!(name.isEmpty())) {
-#pragma pack(1)
-		struct {
-			char title[17];
-			uint8_t rsrv[9];
-			uint8_t protect;
-			uint8_t type;
-			uint32_t size;
-			uint32_t trkptr[164];
-		} d88_hdr;
-#pragma pack()
-		memset(&d88_hdr, 0, sizeof(d88_hdr));
-		my_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "BLANK");
-		d88_hdr.type = media_type;
-		d88_hdr.size = sizeof(d88_hdr);
-		
-		FILEIO *fio = new FILEIO();
-		if(fio->Fopen(name.toUtf8().data(), FILEIO_WRITE_BINARY)) {
-			fio->Fwrite(&d88_hdr, sizeof(d88_hdr), 1);
-			fio->Fclose();
-			emit sig_open_media(media_drive, name);
-		}
-		delete fio;
-	}
+	emit sig_create_d88_media((int)media_drive, media_type, name);
 }
 
 

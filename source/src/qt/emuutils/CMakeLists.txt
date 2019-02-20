@@ -1,5 +1,7 @@
 message("* qt/emuutils")
 
+SET(THIS_LIB_VERSION 2.15.2)
+
 set(s_qt_emuutils_headers
 	../gui/csp_logger.h
 	)
@@ -13,7 +15,6 @@ set(s_qt_emuutils_srcs
 
 QT5_WRAP_CPP(s_qt_emuutils_headers_MOC ${s_qt_emuutils_headers})
 	
-SET(THIS_LIB_VERSION 2.15.1) 
 
 add_definitions(-D__LIBEMU_UTIL_VERSION=\"libCSPemu_utils.${THIS_LIB_VERSION}\")
 
