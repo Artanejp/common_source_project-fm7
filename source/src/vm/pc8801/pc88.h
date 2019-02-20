@@ -30,9 +30,16 @@
 #ifdef SUPPORT_PC88_CDROM
 #define SIG_PC88_SCSI_DRQ	3
 #endif
-#define SIG_PC88_USART_OUT	4
+#ifdef SUPPORT_PC88_GSX8800
+#define SIG_PC88_GSX_IRQ	4
+#endif
+#define SIG_PC88_USART_OUT	5
 
 #define CMT_BUFFER_SIZE		0x40000
+
+#if !defined(_PC8001)
+#define SUPPORT_PC88_GVRAM
+#endif
 
 #if defined(PC8801_VARIANT)
 #define NIPPY_PATCH
@@ -128,8 +135,12 @@ private:
 #ifdef SUPPORT_PC88_HMB20
 	DEVICE *d_opm;
 #endif
+#ifdef SUPPORT_PC88_GSX8800
+//	DEVICE *d_gsx_pit;
+	DEVICE *d_gsx_psg1, *d_gsx_psg2, *d_gsx_psg3, *d_gsx_psg4;
+#endif
 #ifdef SUPPORT_PC88_PCG8100
-	DEVICE *d_pcg_pit, *d_pcg_pcm0, *d_pcg_pcm1, *d_pcg_pcm2;
+	DEVICE *d_pcg_pit, *d_pcg_pcm1, *d_pcg_pcm2, *d_pcg_pcm3;
 #endif
 	
 	uint8_t* rbank[16];
@@ -141,8 +152,10 @@ private:
 #if defined(PC88_EXRAM_BANKS)
 	uint8_t exram[0x8000 * PC88_EXRAM_BANKS];
 #endif
+#if defined(SUPPORT_PC88_GVRAM)
 	uint8_t gvram[0xc000];
 	uint8_t gvram_null[0x4000];
+#endif
 #if defined(PC8801SR_VARIANT)
 	uint8_t tvram[0x1000];
 #endif
@@ -180,7 +193,9 @@ private:
 #if defined(_PC8001SR) || defined(PC8801SR_VARIANT)
 	uint8_t alu_reg[3];
 #endif
+#if defined(SUPPORT_PC88_GVRAM)
 	uint8_t gvram_plane, gvram_sel;
+#endif
 	
 	void update_timing();
 	int get_m1_wait(bool addr_f000);
@@ -188,9 +203,11 @@ private:
 #if defined(PC8801SR_VARIANT)
 	int get_tvram_wait(bool read);
 #endif
+#if defined(SUPPORT_PC88_GVRAM)
 	int get_gvram_wait(bool read);
 	void update_gvram_wait();
 	void update_gvram_sel();
+#endif
 #if defined(PC8001_VARIANT)
 	void update_n80_write();
 	void update_n80_read();
@@ -214,7 +231,9 @@ private:
 #if defined(PC8801SR_VARIANT)
 	int tvram_wait_clocks_r, tvram_wait_clocks_w;
 #endif
+#if defined(SUPPORT_PC88_GVRAM)
 	int gvram_wait_clocks_r, gvram_wait_clocks_w;
+#endif
 	int busreq_clocks;
 	
 	// screen
@@ -241,6 +260,7 @@ private:
 #endif
 	
 	void draw_text();
+#if defined(SUPPORT_PC88_GVRAM)
 #if defined(PC8001_VARIANT)
 #if defined(_PC8001SR)
 	bool draw_320x200_color_graph();
@@ -254,6 +274,7 @@ private:
 #if defined(PC8801SR_VARIANT)
 	void draw_640x400_mono_graph();
 	void draw_640x400_attrib_graph();
+#endif
 #endif
 	
 	// misc
@@ -321,6 +342,28 @@ private:
 public:
 	PC88(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+#ifdef SUPPORT_PC88_OPN1
+		d_opn1 = NULL;
+#endif
+#ifdef SUPPORT_PC88_OPN2
+		d_opn2 = NULL;
+#endif
+#ifdef SUPPORT_PC88_HMB20
+		d_opm = NULL;
+#endif
+#ifdef SUPPORT_PC88_GSX8800
+//		d_gsx_pit = NULL;
+		d_gsx_psg1 = NULL;
+		d_gsx_psg2 = NULL;
+		d_gsx_psg3 = NULL;
+		d_gsx_psg4 = NULL;
+#endif
+#ifdef SUPPORT_PC88_PCG8100
+		d_pcg_pit = NULL;
+		d_pcg_pcm1 = NULL;
+		d_pcg_pcm2 = NULL;
+		d_pcg_pcm3 = NULL;
+#endif
 #if defined(PC8001_VARIANT)
 		set_device_name(_T("PC-8001 Core"));
 #else
@@ -414,14 +457,32 @@ public:
 		d_opm = device;
 	}
 #endif
+#ifdef SUPPORT_PC88_GSX8800
+//	void set_context_gsx_pit(DEVICE* device)
+//	{
+//		d_gsx_pit = device;
+//	}
+	void set_context_gsx_psg1(DEVICE* device)
+	{
+		d_gsx_psg1 = device;
+	}
+	void set_context_gsx_psg2(DEVICE* device)
+	{
+		d_gsx_psg2 = device;
+	}
+	void set_context_gsx_psg3(DEVICE* device)
+	{
+		d_gsx_psg3 = device;
+	}
+	void set_context_gsx_psg4(DEVICE* device)
+	{
+		d_gsx_psg4 = device;
+	}
+#endif
 #ifdef SUPPORT_PC88_PCG8100
 	void set_context_pcg_pit(DEVICE* device)
 	{
 		d_pcg_pit = device;
-	}
-	void set_context_pcg_pcm0(DEVICE* device)
-	{
-		d_pcg_pcm0 = device;
 	}
 	void set_context_pcg_pcm1(DEVICE* device)
 	{
@@ -430,6 +491,10 @@ public:
 	void set_context_pcg_pcm2(DEVICE* device)
 	{
 		d_pcg_pcm2 = device;
+	}
+	void set_context_pcg_pcm3(DEVICE* device)
+	{
+		d_pcg_pcm3 = device;
 	}
 #endif
 	void key_down(int code, bool repeat);

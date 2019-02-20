@@ -37,6 +37,20 @@ void Object_Menu_Control_88::do_set_memory_wait(bool flag)
 	emit sig_set_dipsw(0, flag);
 }
 
+void Object_Menu_Control_88::do_set_hmb20(bool flag)
+{
+	emit sig_set_dipsw(1, flag);
+}
+
+void Object_Menu_Control_88::do_set_gsx8800(bool flag)
+{
+	emit sig_set_dipsw(2, flag);
+}
+
+void Object_Menu_Control_88::do_set_pcg8100(bool flag)
+{
+	emit sig_set_dipsw(3, flag);
+}
 
 Action_Control_88::Action_Control_88(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
 {
@@ -230,8 +244,25 @@ void META_MainWindow::retranslateUi(void)
 	actionPrintDevice[1]->setEnabled(false);
 #endif
 	
+#if defined(USE_DIPSWITCH)
 	actionMemoryWait->setText(QApplication::translate("MenuPC88", "Wait Memory", 0));
 	actionMemoryWait->setToolTip(QApplication::translate("MenuPC88", "Simulate waiting memory.", 0));
+
+	#if defined(SUPPORT_PC88_HMB20)
+	actionHMB20->setText(QApplication::translate("MenuPC88", "Use HMB20(Need RESTART)", 0));
+	actionHMB20->setToolTip(QApplication::translate("MenuPC88", "Using HMB20 OPM sound board.\nRe-start emulator when changed.", 0));
+	#endif
+	#if defined(SUPPORT_PC88_GSX8800)
+	actionGSX8800->setText(QApplication::translate("MenuPC88", "Use GSX8800(Need RESTART)", 0));
+	actionGSX8800->setToolTip(QApplication::translate("MenuPC88", "Using GSX8800 PSGs sound board.\nRe-start emulator when changed.", 0));
+	#endif
+	#if defined(SUPPORT_PC88_PCG8100)
+	actionPCG8100->setText(QApplication::translate("MenuPC88", "Use PCG8100(Need RESTART)", 0));
+	actionPCG8100->setToolTip(QApplication::translate("MenuPC88", "Using PCG8100 programmable character generator board.\nRe-start emulator when changed.", 0));
+	#endif
+	
+
+#endif
 #if defined(USE_MONITOR_TYPE)
 	actionMonitorType[0]->setText(QApplication::translate("MenuPC88", "High Resolution", 0));
 	actionMonitorType[1]->setText(QApplication::translate("MenuPC88", "Standard", 0));
@@ -253,6 +284,7 @@ void META_MainWindow::setupUI_Emu(void)
 #else
 	ConfigCPUBootMode(4);
 #endif
+#if defined(USE_DIPSWITCH)
 	actionMemoryWait = new Action_Control_88(this, using_flags);
 	actionMemoryWait->setCheckable(true);
 	actionMemoryWait->setVisible(true);
@@ -265,6 +297,46 @@ void META_MainWindow::setupUI_Emu(void)
 	connect(actionMemoryWait->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
 			this, SLOT(set_dipsw(int, bool)));
 
+	#ifdef SUPPORT_PC88_HMB20
+	actionHMB20 = new Action_Control_88(this, using_flags);
+	actionHMB20->setCheckable(true);
+	actionHMB20->setVisible(true);
+	actionHMB20->setChecked(false);
+
+	menuMachine->addAction(actionHMB20);
+	if((config.dipswitch & DIPSWITCH_HMB20) != 0) actionHMB20->setChecked(true);
+	connect(actionHMB20, SIGNAL(toggled(bool)),
+			actionHMB20->pc88_binds, SLOT(do_set_hmb20(bool)));
+	connect(actionHMB20->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+	#endif	
+	#ifdef SUPPORT_PC88_GSX8800
+	actionGSX8800 = new Action_Control_88(this, using_flags);
+	actionGSX8800->setCheckable(true);
+	actionGSX8800->setVisible(true);
+	actionGSX8800->setChecked(false);
+
+	menuMachine->addAction(actionGSX8800);
+	if((config.dipswitch & DIPSWITCH_GSX8800) != 0) actionGSX8800->setChecked(true);
+	connect(actionGSX8800, SIGNAL(toggled(bool)),
+			actionGSX8800->pc88_binds, SLOT(do_set_gsx8800(bool)));
+	connect(actionGSX8800->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+	#endif
+	#ifdef SUPPORT_PC88_PCG8100
+	actionPCG8100 = new Action_Control_88(this, using_flags);
+	actionPCG8100->setCheckable(true);
+	actionPCG8100->setVisible(true);
+	actionPCG8100->setChecked(false);
+
+	menuMachine->addAction(actionPCG8100);
+	if((config.dipswitch & DIPSWITCH_PCG8100) != 0) actionPCG8100->setChecked(true);
+	connect(actionPCG8100, SIGNAL(toggled(bool)),
+			actionPCG8100->pc88_binds, SLOT(do_set_pcg8100(bool)));
+	connect(actionPCG8100->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+	#endif
+#endif
 }
 
 

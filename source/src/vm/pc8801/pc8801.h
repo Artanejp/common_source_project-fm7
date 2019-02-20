@@ -53,6 +53,7 @@
 	#define MODE_PC88_V1H	1
 	#define MODE_PC88_V2	2
 	#define MODE_PC88_N	3
+	#define MODE_PC88_V2CD	4
 #endif
 
 #if defined(_PC8801MA)
@@ -79,30 +80,24 @@
 	#define SUPPORT_PC88_KANJI1
 //	#define SUPPORT_PC88_KANJI2
 	#define SUPPORT_PC88_OPN2
-	#define SUPPORT_PC88_OPNA
 #elif defined(_PC8801)
 	#define SUPPORT_PC88_KANJI1
 //	#define SUPPORT_PC88_KANJI2
-//	#define SUPPORT_PC88_OPN2
-//	#define SUPPORT_PC88_OPNA
+	#define SUPPORT_PC88_OPN2
 #elif defined(_PC8001SR)
 	#define SUPPORT_PC88_KANJI1
 //	#define SUPPORT_PC88_KANJI2
 	#define SUPPORT_PC88_OPN1
 	#define SUPPORT_PC88_OPN2
-	#define SUPPORT_PC88_OPNA
 	#define PC88_EXRAM_BANKS	1
 #elif defined(_PC8001MK2)
 	#define SUPPORT_PC88_KANJI1
 //	#define SUPPORT_PC88_KANJI2
 	#define SUPPORT_PC88_OPN2
-	#define SUPPORT_PC88_OPNA
 	#define PC88_EXRAM_BANKS	1
 #elif defined(_PC8001)
 //	#define SUPPORT_PC88_KANJI1
 //	#define SUPPORT_PC88_KANJI2
-//	#define SUPPORT_PC88_OPN2
-//	#define SUPPORT_PC88_OPNA
 #endif
 #define SUPPORT_PC88_PCG8100
 
@@ -115,7 +110,7 @@
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		2
 #define UPD765A_NO_ST1_EN_OR_FOR_RESULT7
-#if defined(PC8801_VARIANT)
+#if defined(_PC8801MA)
 #define PC80S31K_NO_WAIT
 #endif
 #if defined(SUPPORT_PC88_CDROM)
@@ -130,7 +125,7 @@
 #define USE_BOOT_MODE		3
 #define USE_CPU_TYPE		2
 #else
-#define USE_BOOT_MODE		4
+#define USE_BOOT_MODE		5
 #define USE_CPU_TYPE		3
 #endif
 #if defined(_PC8801MA)
@@ -139,6 +134,10 @@
 #define CPU_TYPE_DEFAULT	1
 #endif
 #define USE_DIPSWITCH
+#define DIPSWITCH_HMB20		2
+#define DIPSWITCH_GSX8800	4
+#define DIPSWITCH_PCG8100	8
+#define DIPSWITCH_DEFAULT	(DIPSWITCH_HMB20 + DIPSWITCH_GSX8800 + DIPSWITCH_PCG8100)
 #define USE_JOYSTICK_TYPE	2
 #define USE_FLOPPY_DISK		2
 #define USE_TAPE		1
@@ -158,9 +157,9 @@
 #if defined(_PC8801MA)
 	#define USE_SOUND_TYPE		6	// OPNA,OPN,OPN+OPNA,OPN+OPN,OPNA+OPNA,OPNA+OPN
 #elif defined(_PC8001SR)
-	#define USE_SOUND_TYPE		3	// OPN,OPN+OPN,OPN+OPNA
-#elif defined(_PC8001MK2) || defined(_PC8801MK2)
-	#define USE_SOUND_TYPE		3	// None,OPN,OPNA
+	#define USE_SOUND_TYPE		2	// OPN,OPN+OPN
+#elif defined(_PC8001MK2) || defined(_PC8801) || defined(_PC8801MK2)
+	#define USE_SOUND_TYPE		2	// None,OPN
 #endif
 #if defined(SUPPORT_PC88_OPN1)
 	#if defined(SUPPORT_PC88_OPNA)
@@ -191,12 +190,17 @@
 #else
 	#define SOUND_VOLUME_HMB20	0
 #endif
+#if defined(SUPPORT_PC88_GSX8800)
+	#define SOUND_VOLUME_GSX8800	1
+#else
+	#define SOUND_VOLUME_GSX8800	0
+#endif
 #if defined(SUPPORT_PC88_PCG8100)
 	#define SOUND_VOLUME_PCG8100	1
 #else
 	#define SOUND_VOLUME_PCG8100	0
 #endif
-#define USE_SOUND_VOLUME	(SOUND_VOLUME_OPN1 + SOUND_VOLUME_OPN2 + SOUND_VOLUME_CDROM + SOUND_VOLUME_HMB20 + SOUND_VOLUME_PCG8100 + 1 + 1)
+#define USE_SOUND_VOLUME	(SOUND_VOLUME_OPN1 + SOUND_VOLUME_OPN2 + SOUND_VOLUME_CDROM + SOUND_VOLUME_HMB20 + SOUND_VOLUME_GSX8800 + SOUND_VOLUME_PCG8100 + 1 + 1)
 
 #define SUPPORT_TV_RENDER
 #define USE_JOYSTICK
@@ -214,15 +218,27 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[USE_SOUND_VOLUME] = {
 #ifdef SUPPORT_PC88_OPN1
-	_T("OPN1 (FM)"), _T("OPN1 (PSG)"),
+	#ifdef SUPPORT_PC88_OPN2
+		#define NUM1 " #1 "
+	#else
+		#define NUM1 " "
+	#endif
 #ifdef SUPPORT_PC88_OPNA
-	_T("OPN1 (ADPCM)"), _T("OPN1 (Rhythm)"),
+	_T("OPNA" NUM1 "(FM)"), _T("OPNA" NUM1 "(PSG)"), _T("OPNA" NUM1 "(ADPCM)"), _T("OPNA" NUM1 "(Rhythm)"),
+#else
+	_T("OPN" NUM1 "(FM)"), _T("OPN" NUM1 "(PSG)"),
 #endif
 #endif
 #ifdef SUPPORT_PC88_OPN2
-	_T("OPN2 (FM)"), _T("OPN2 (PSG)"),
+	#ifdef SUPPORT_PC88_OPN1
+		#define NUM2 " #2 "
+	#else
+		#define NUM2 " "
+	#endif
 #ifdef SUPPORT_PC88_OPNA
-	_T("OPN2 (ADPCM)"), _T("OPN2 (Rhythm)"),
+	_T("OPNA" NUM2 "(FM)"), _T("OPNA" NUM2 "(PSG)"), _T("OPNA" NUM2 "(ADPCM)"), _T("OPNA" NUM2 "(Rhythm)"),
+#else
+	_T("OPN" NUM2 "(FM)"), _T("OPN" NUM2 "(PSG)"),
 #endif
 #endif
 #ifdef SUPPORT_PC88_CDROM
@@ -230,6 +246,9 @@ static const _TCHAR *sound_device_caption[USE_SOUND_VOLUME] = {
 #endif
 #ifdef SUPPORT_PC88_HMB20
 	_T("HMB-20"),
+#endif
+#ifdef SUPPORT_PC88_GSX8800
+	_T("GSX-8800"),
 #endif
 #ifdef SUPPORT_PC88_PCG8100
 	_T("PCG-8100"),
@@ -264,7 +283,11 @@ class SCSI_CDROM;
 class YM2151;
 #endif
 
-#ifdef SUPPORT_PC88_PCG8100
+#ifdef SUPPORT_PC88_GSX8800
+class AY_3_891X;
+#endif
+
+#if defined(SUPPORT_PC88_GSX8800) || defined(SUPPORT_PC88_PCG8100)
 class I8253;
 #endif
 namespace PC88DEV {
@@ -310,11 +333,19 @@ protected:
 	YM2151* pc88opm;
 #endif
 	
+#ifdef SUPPORT_PC88_GSX8800
+//	I8253* pc88gsx_pit;
+	AY_3_891X* pc88gsx_psg1;
+	AY_3_891X* pc88gsx_psg2;
+	AY_3_891X* pc88gsx_psg3;
+	AY_3_891X* pc88gsx_psg4;
+#endif
+	
 #ifdef SUPPORT_PC88_PCG8100
-	I8253* pc88pit;
-	PCM1BIT* pc88pcm0;
-	PCM1BIT* pc88pcm1;
-	PCM1BIT* pc88pcm2;
+	I8253* pc88pcg_pit;
+	PCM1BIT* pc88pcg_pcm1;
+	PCM1BIT* pc88pcg_pcm2;
+	PCM1BIT* pc88pcg_pcm3;
 #endif
 	
 	PC88DEV::PC88* pc88;

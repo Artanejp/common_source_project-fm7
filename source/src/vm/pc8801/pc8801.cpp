@@ -47,7 +47,11 @@
 #include "../ym2151.h"
 #endif
 
-#ifdef SUPPORT_PC88_PCG8100
+#ifdef SUPPORT_PC88_GSX8800
+#include "../ay_3_891x.h"
+#endif
+
+#if defined(SUPPORT_PC88_GSX8800) || defined(SUPPORT_PC88_PCG8100)
 #include "../i8253.h"
 #endif
 
@@ -73,7 +77,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 #else
 #if !defined(PC8801SR_VARIANT)
-	if(config.boot_mode == MODE_PC88_V1H || config.boot_mode == MODE_PC88_V2) {
+	if(config.boot_mode == MODE_PC88_V1H || config.boot_mode == MODE_PC88_V2 || config.boot_mode == MODE_PC88_V2CD) {
 		config.boot_mode = MODE_PC88_V1S;
 	}
 #endif
@@ -137,7 +141,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// config.sound_type
 	// 	0: 44h:OPN  A4h:None		PC-8001mkIISR
 	// 	1: 44h:OPN  A4h:OPN		PC-8001mkIISR + PC-8801-11
-	// 	2: 44h:OPN  A4h:OPNA		PC-8001mkIISR + PC-8801-23
 	pc88opn1 = new YM2203(this, emu);
 //	pc88opn1->set_context_event_manager(pc88event);
 	pc88opn1->is_ym2608 = false;
@@ -147,28 +150,17 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //		pc88opn2->set_context_event_manager(pc88event);
 		pc88opn2->is_ym2608 = false;
 		pc88opn2->set_device_name(_T("YM2203 OPN #2"));
-	} else if(config.sound_type == 2) {
-		pc88opn2 = new YM2203(this, emu);
-//		pc88opn2->set_context_event_manager(pc88event);
-		pc88opn2->is_ym2608 = true;
-		pc88opn2->set_device_name(_T("YM2608 OPNA #2"));
 	} else {
 		pc88opn2 = NULL;
 	}
-#elif defined(_PC8001MK2) || defined(_PC8801MK2)
-	// 	0: 44h:None A4h:None		PC-8001/8801mkII
-	// 	1: 44h:None A4h:OPN		PC-8001/8801mkII + PC-8801-11
-	// 	2: 44h:None A4h:OPNA		PC-8001/8801mkII + PC-8801-23
+#elif defined(_PC8001MK2) || defined(_PC8801) || defined(_PC8801MK2)
+	// 	0: 44h:None A4h:None		PC-8001mkII
+	// 	1: 44h:None A4h:OPN		PC-8001mkII + PC-8801-11
 	if(config.sound_type == 1) {
 		pc88opn2 = new YM2203(this, emu);
 //		pc88opn2->set_context_event_manager(pc88event);
 		pc88opn2->is_ym2608 = false;
 		pc88opn2->set_device_name(_T("YM2203 OPN #2"));
-	} else if(config.sound_type == 2) {
-		pc88opn2 = new YM2203(this, emu);
-//		pc88opn2->set_context_event_manager(pc88event);
-		pc88opn2->is_ym2608 = true;
-		pc88opn2->set_device_name(_T("YM2608 OPNA #2"));
 	} else {
 		pc88opn2 = NULL;
 	}
@@ -195,6 +187,18 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 			pc88opn2->set_device_name(_T("YM2203 OPN #2"));
 		#endif
 	#endif
+#endif
+#ifdef USE_DEBUGGER
+#ifdef SUPPORT_PC88_OPN1
+	if(pc88opn1 != NULL) {
+		pc88opn1->set_context_debugger(new DEBUGGER(this, emu));
+	}
+#endif
+#ifdef SUPPORT_PC88_OPN2
+	if(pc88opn2 != NULL) {
+		pc88opn2->set_context_debugger(new DEBUGGER(this, emu));
+	}
+#endif
 #endif
 	if(config.printer_type == 0) {
 		pc88prn = new PRNFILE(this, emu);
@@ -235,24 +239,65 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	
 #ifdef SUPPORT_PC88_HMB20
-	pc88opm = new YM2151(this, emu);
-	pc88opm->set_device_name(_T("YM2151 OPM (HMB20)"));
-//	pc88opm->set_context_event_manager(pc88event);
+	if(config.dipswitch & DIPSWITCH_HMB20) {
+		pc88opm = new YM2151(this, emu);
+#ifdef USE_DEBUGGER
+		pc88opm->set_context_debugger(new DEBUGGER(this, emu));
+#endif
+		pc88opm->set_device_name(_T("YM2151 OPM (HMB-20)"));
+//		pc88opm->set_context_event_manager(pc88event);
+	} else {
+		pc88opm = NULL;
+	}
+#endif
+	
+#ifdef SUPPORT_PC88_GSX8800
+	if(config.dipswitch & DIPSWITCH_GSX8800) {
+//		pc88gsx_pit = new I8253(this, emu);
+//		pc88gsx_pit->set_device_name(_T("8253 PIT (GSX-8800)"));
+//		pc88gsx_pit->set_context_event_manager(pc88event);
+		pc88gsx_psg1 = new AY_3_891X(this, emu);
+		pc88gsx_psg1->set_device_name(_T("AY-3-8910 PSG #1 (GSX-8800)"));
+//		pc88gsx_psg1->set_context_event_manager(pc88event);
+		pc88gsx_psg2 = new AY_3_891X(this, emu);
+		pc88gsx_psg2->set_device_name(_T("AY-3-8910 PSG #2 (GSX-8800)"));
+//		pc88gsx_psg2->set_context_event_manager(pc88event);
+		pc88gsx_psg3 = new AY_3_891X(this, emu);
+		pc88gsx_psg3->set_device_name(_T("AY-3-8910 PSG #3 (GSX-8800)"));
+//		pc88gsx_psg3->set_context_event_manager(pc88event);
+		pc88gsx_psg4 = new AY_3_891X(this, emu);
+		pc88gsx_psg4->set_device_name(_T("AY-3-8910 PSG #4 (GSX-8800)"));
+//		pc88gsx_psg4->set_context_event_manager(pc88event);
+#ifdef USE_DEBUGGER
+		pc88gsx_psg1->set_context_debugger(new DEBUGGER(this, emu));
+		pc88gsx_psg2->set_context_debugger(new DEBUGGER(this, emu));
+		pc88gsx_psg3->set_context_debugger(new DEBUGGER(this, emu));
+		pc88gsx_psg4->set_context_debugger(new DEBUGGER(this, emu));
+#endif
+	} else {
+//		pc88gsx_pit = NULL;
+		pc88gsx_psg1 = pc88gsx_psg2 = pc88gsx_psg3 = pc88gsx_psg4 = NULL;
+	}
 #endif
 	
 #ifdef SUPPORT_PC88_PCG8100
-	pc88pit = new I8253(this, emu);
-	pc88pit->set_device_name(_T("8253 PIT (PCG8100)"));
-//	pc88pit->set_context_event_manager(pc88event);
-	pc88pcm0 = new PCM1BIT(this, emu);
-	pc88pcm0->set_device_name(_T("1-Bit PCM Sound (PCG8100 #1)"));
-//	pc88pcm0->set_context_event_manager(pc88event);
-	pc88pcm1 = new PCM1BIT(this, emu);
-	pc88pcm1->set_device_name(_T("1-Bit PCM Sound (PCG8100 #2)"));
-//	pc88pcm1->set_context_event_manager(pc88event);
-	pc88pcm2 = new PCM1BIT(this, emu);
-	pc88pcm2->set_device_name(_T("1-Bit PCM Sound (PCG8100 #3)"));
-//	pc88pcm2->set_context_event_manager(pc88event);
+	if(config.dipswitch & DIPSWITCH_PCG8100) {
+		pc88pcg_pit = new I8253(this, emu);
+		pc88pcg_pit->set_device_name(_T("8253 PIT (PCG-8100)"));
+//		pc88pcg_pit->set_context_event_manager(pc88event);
+		pc88pcg_pcm1 = new PCM1BIT(this, emu);
+		pc88pcg_pcm1->set_device_name(_T("1-Bit PCM Sound (PCG-8100 #1)"));
+//		pc88pcg_pcm1->set_context_event_manager(pc88event);
+		pc88pcg_pcm2 = new PCM1BIT(this, emu);
+		pc88pcg_pcm2->set_device_name(_T("1-Bit PCM Sound (PCG-8100 #2)"));
+//		pc88pcg_pcm2->set_context_event_manager(pc88event);
+		pc88pcg_pcm3 = new PCM1BIT(this, emu);
+		pc88pcg_pcm3->set_device_name(_T("1-Bit PCM Sound (PCG-8100 #3)"));
+//		pc88pcg_pcm3->set_context_event_manager(pc88event);
+	} else {
+		pc88pcg_pit = NULL;
+		pc88pcg_pcm1 = pc88pcg_pcm2 = pc88pcg_pcm3 = NULL;
+	}
 #endif
 	
 #ifdef SUPPORT_PC88_HIGH_CLOCK
@@ -276,12 +321,24 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88event->set_context_sound(pc88scsi_cdrom);
 #endif
 #ifdef SUPPORT_PC88_HMB20
-	pc88event->set_context_sound(pc88opm);
+	if(config.dipswitch & DIPSWITCH_HMB20) {
+		pc88event->set_context_sound(pc88opm);
+	}
+#endif
+#ifdef SUPPORT_PC88_GSX8800
+	if(config.dipswitch & DIPSWITCH_GSX8800) {
+		pc88event->set_context_sound(pc88gsx_psg1);
+		pc88event->set_context_sound(pc88gsx_psg2);
+		pc88event->set_context_sound(pc88gsx_psg3);
+		pc88event->set_context_sound(pc88gsx_psg4);
+	}
 #endif
 #ifdef SUPPORT_PC88_PCG8100
-	pc88event->set_context_sound(pc88pcm0);
-	pc88event->set_context_sound(pc88pcm1);
-	pc88event->set_context_sound(pc88pcm2);
+	if(config.dipswitch & DIPSWITCH_PCG8100) {
+		pc88event->set_context_sound(pc88pcg_pcm1);
+		pc88event->set_context_sound(pc88pcg_pcm2);
+		pc88event->set_context_sound(pc88pcg_pcm3);
+	}
 #endif
 	pc88event->set_context_sound(pc88noise_seek);
 	pc88event->set_context_sound(pc88noise_head_down);
@@ -308,13 +365,26 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88->set_context_scsi_cdrom(pc88scsi_cdrom);
 #endif
 #ifdef SUPPORT_PC88_HMB20
-	pc88->set_context_opm(pc88opm);
+	if(config.dipswitch & DIPSWITCH_HMB20) {
+		pc88->set_context_opm(pc88opm);
+	}
+#endif
+#ifdef SUPPORT_PC88_GSX8800
+	if(config.dipswitch & DIPSWITCH_GSX8800) {
+//		pc88->set_context_gsx_pit(pc88gsx_pit);
+		pc88->set_context_gsx_psg1(pc88gsx_psg1);
+		pc88->set_context_gsx_psg2(pc88gsx_psg2);
+		pc88->set_context_gsx_psg3(pc88gsx_psg3);
+		pc88->set_context_gsx_psg4(pc88gsx_psg4);
+	}
 #endif
 #ifdef SUPPORT_PC88_PCG8100
-	pc88->set_context_pcg_pit(pc88pit);
-	pc88->set_context_pcg_pcm0(pc88pcm0);
-	pc88->set_context_pcg_pcm1(pc88pcm1);
-	pc88->set_context_pcg_pcm2(pc88pcm2);
+	if(config.dipswitch & DIPSWITCH_PCG8100) {
+		pc88->set_context_pcg_pit(pc88pcg_pit);
+		pc88->set_context_pcg_pcm1(pc88pcg_pcm1);
+		pc88->set_context_pcg_pcm2(pc88pcg_pcm2);
+		pc88->set_context_pcg_pcm3(pc88pcg_pcm3);
+	}
 #endif
 	pc88cpu->set_context_mem(pc88);
 	pc88cpu->set_context_io(pc88);
@@ -365,13 +435,23 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88scsi_host->set_context_target(pc88scsi_cdrom);
 	pc88scsi_host->set_context_drq(pc88, SIG_PC88_SCSI_DRQ, 1);
 #endif
+#ifdef SUPPORT_PC88_GSX8800
+//	if(config.dipswitch & DIPSWITCH_GSX8800) {
+//		pc88gsx_pit->set_context_ch0(pc88, SIG_PC88_GSX_IRQ, 1);
+//		pc88gsx_pit->set_context_ch1(pc88gsx_pit, SIG_I8253_CLOCK_2, 1);
+//		pc88gsx_pit->set_constant_clock(0, 1996800);
+//		pc88gsx_pit->set_constant_clock(1, 1996800);
+//	}
+#endif
 #ifdef SUPPORT_PC88_PCG8100
-	pc88pit->set_context_ch0(pc88pcm0, SIG_PCM1BIT_SIGNAL, 1);
-	pc88pit->set_context_ch1(pc88pcm1, SIG_PCM1BIT_SIGNAL, 1);
-	pc88pit->set_context_ch2(pc88pcm2, SIG_PCM1BIT_SIGNAL, 1);
-	pc88pit->set_constant_clock(0, 3993624);
-	pc88pit->set_constant_clock(1, 3993624);
-	pc88pit->set_constant_clock(2, 3993624);
+	if(config.dipswitch & DIPSWITCH_PCG8100) {
+		pc88pcg_pit->set_context_ch0(pc88pcg_pcm1, SIG_PCM1BIT_SIGNAL, 1);
+		pc88pcg_pit->set_context_ch1(pc88pcg_pcm2, SIG_PCM1BIT_SIGNAL, 1);
+		pc88pcg_pit->set_context_ch2(pc88pcg_pcm3, SIG_PCM1BIT_SIGNAL, 1);
+		pc88pcg_pit->set_constant_clock(0, 3993624);
+		pc88pcg_pit->set_constant_clock(1, 3993624);
+		pc88pcg_pit->set_constant_clock(2, 3993624);
+	}
 #endif
 	
 	// initialize all devices
@@ -490,12 +570,24 @@ void VM::initialize_sound(int rate, int samples)
 #endif
 	pc88pcm->initialize_sound(rate, 8000);
 #ifdef SUPPORT_PC88_HMB20
-	pc88opm->initialize_sound(rate, 4000000, samples, 0);
+	if(config.dipswitch & DIPSWITCH_HMB20) {
+		pc88opm->initialize_sound(rate, 4000000, samples, 0);
+	}
+#endif
+#ifdef SUPPORT_PC88_GSX8800
+	if(config.dipswitch & DIPSWITCH_GSX8800) {
+		pc88gsx_psg1->initialize_sound(rate, 3993624, samples, 0, 0);
+		pc88gsx_psg2->initialize_sound(rate, 3993624, samples, 0, 0);
+		pc88gsx_psg3->initialize_sound(rate, 3993624, samples, 0, 0);
+		pc88gsx_psg4->initialize_sound(rate, 3993624, samples, 0, 0);
+	}
 #endif
 #ifdef SUPPORT_PC88_PCG8100
-	pc88pcm0->initialize_sound(rate, 8000);
-	pc88pcm1->initialize_sound(rate, 8000);
-	pc88pcm2->initialize_sound(rate, 8000);
+	if(config.dipswitch & DIPSWITCH_PCG8100) {
+		pc88pcg_pcm1->initialize_sound(rate, 8000);
+		pc88pcg_pcm2->initialize_sound(rate, 8000);
+		pc88pcg_pcm3->initialize_sound(rate, 8000);
+	}
 #endif
 }
 
@@ -576,15 +668,40 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 #endif
 #ifdef SUPPORT_PC88_HMB20
 	if(ch-- == 0) {
-		pc88opm->set_volume(0, decibel_l, decibel_r);
+		if(pc88opm != NULL) {
+			pc88opm->set_volume(0, decibel_l, decibel_r);
+		}
+		return;
+	}
+#endif
+#ifdef SUPPORT_PC88_GSX8800
+	if(ch-- == 0) {
+		if(pc88gsx_psg1 != NULL) {
+			pc88gsx_psg1->set_volume(0, decibel_l, decibel_r);
+		}
+		if(pc88gsx_psg2 != NULL) {
+			pc88gsx_psg2->set_volume(0, decibel_l, decibel_r);
+		}
+		if(pc88gsx_psg3 != NULL) {
+			pc88gsx_psg3->set_volume(0, decibel_l, decibel_r);
+		}
+		if(pc88gsx_psg4 != NULL) {
+			pc88gsx_psg4->set_volume(0, decibel_l, decibel_r);
+		}
 		return;
 	}
 #endif
 #ifdef SUPPORT_PC88_PCG8100
 	if(ch-- == 0) {
-		pc88pcm0->set_volume(0, decibel_l, decibel_r);
-		pc88pcm1->set_volume(0, decibel_l, decibel_r);
-		pc88pcm2->set_volume(0, decibel_l, decibel_r);
+		if(pc88pcg_pcm1 != NULL) {
+			pc88pcg_pcm1->set_volume(0, decibel_l, decibel_r);
+		}
+		if(pc88pcg_pcm2 != NULL) {
+			pc88pcg_pcm2->set_volume(0, decibel_l, decibel_r);
+		}
+		if(pc88pcg_pcm3 != NULL) {
+			pc88pcg_pcm3->set_volume(0, decibel_l, decibel_r);
+		}
 		return;
 	}
 #endif
@@ -719,7 +836,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	10
+#define STATE_VERSION	11
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

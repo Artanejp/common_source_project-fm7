@@ -18,6 +18,9 @@ class Object_Menu_Control_88: public Object_Menu_Control
 signals:
 public slots:
 	void do_set_memory_wait(bool);
+	void do_set_hmb20(bool);
+	void do_set_gsx8800(bool);
+	void do_set_pcg8100(bool);
 };
 
 class Action_Control_88 : public Action_Control
@@ -39,6 +42,9 @@ class META_MainWindow : public Ui_MainWindow {
 protected:
 	int config_sound_device_type;
 	class Action_Control_88 *actionMemoryWait; //
+	class Action_Control_88 *actionHMB20; //
+	class Action_Control_88 *actionGSX8800; //
+	class Action_Control_88 *actionPCG8100; //
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 public:
