@@ -273,6 +273,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+	for(int drv = 0; drv < MAX_DRIVE; drv++) {
+//		if(config.drive_type) {
+//			fdc->set_drive_type(drv, DRIVE_TYPE_2D);
+//		} else {
+			fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
+//		}
+	}
 }
 
 VM::~VM()
@@ -283,13 +290,6 @@ VM::~VM()
 		device->release();
 		delete device;
 		device = next_device;
-	}
-	for(int drv = 0; drv < MAX_DRIVE; drv++) {
-//		if(config.drive_type) {
-//			fdc->set_drive_type(drv, DRIVE_TYPE_2D);
-//		} else {
-			fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
-//		}
 	}
 }
 

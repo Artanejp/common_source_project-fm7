@@ -8,9 +8,7 @@
 */
 
 #include "ym2151.h"
-#ifdef USE_DEBUGGER
 #include "debugger.h"
-#endif
 
 #define EVENT_FM_TIMER	0
 
@@ -37,13 +35,11 @@ void YM2151::initialize()
 	mute = false;
 	clock_prev = clock_accum = clock_busy = 0;
 	
-#ifdef USE_DEBUGGER
 	if(d_debugger != NULL) {
 		d_debugger->set_device_name(_T("Debugger (YM2151 OPM)"));
 		d_debugger->set_context_mem(this);
 		d_debugger->set_context_io(vm->dummy);
 	}
-#endif
 }
 
 void YM2151::release()
@@ -79,11 +75,11 @@ void YM2151::reset()
 void YM2151::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr & 1) {
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
 			d_debugger->write_via_debugger_data8(ch, data);
 		} else
-#endif
+//#endif
 		this->write_via_debugger_data8(ch, data);
 	} else {
 		ch = data;

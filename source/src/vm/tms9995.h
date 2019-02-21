@@ -120,6 +120,9 @@ public:
 		// init registers
 #ifdef USE_DEBUGGER
 		total_count = prev_total_count = 0;
+		d_debugger = NULL;
+		d_mem_tmp = NULL;
+		d_io_tmp = NULL;
 #endif
 		WP = PC = ST = 0;
 		memset(RAM, 0, sizeof(RAM));

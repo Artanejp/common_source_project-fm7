@@ -81,11 +81,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	ldp = new LD700(this, emu);
 #endif
 	not_remote = new NOT(this, emu);
-//	psg = new YM2203(this, emu);
 	psg = new AY_3_891X(this, emu);
+#ifdef USE_DEBUGGER
+	psg->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	pcm = new PCM1BIT(this, emu);
-	not_remote->set_device_name(_T("NOT Gate (REMOTE)"));
 
+	not_remote->set_device_name(_T("NOT Gate (REMOTE)"));
 #if defined(_MSX2)
 	rtc = new RP5C01(this, emu);
 	vdp = new V99X8(this, emu);

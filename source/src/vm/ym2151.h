@@ -64,9 +64,7 @@ public:
 	{
 		initialize_output_signals(&outputs_irq);
 		base_decibel = 0;
-#ifdef USE_DEBUGGER
 		d_debugger = NULL;
-#endif
 		set_device_name(_T("YM2151 OPM"));
 	}
 	~YM2151() {}
@@ -86,7 +84,6 @@ public:
 	// for debugging
 	void write_via_debugger_data8(uint32_t addr, uint32_t data);
 	uint32_t read_via_debugger_data8(uint32_t addr);
-#ifdef USE_DEBUGGER
 	bool is_debugger_available()
 	{
 		return true;
@@ -112,19 +109,17 @@ public:
 		}
 		return 0;
 	}
-#endif
+
 	bool process_state(FILEIO* state_fio, bool loading);
 	// unique functions
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_irq, device, id, mask);
 	}
-#ifdef USE_DEBUGGER
 	void set_context_debugger(DEBUGGER* device)
 	{
 		d_debugger = device;
 	}
-#endif
 	void initialize_sound(int rate, int clock, int samples, int decibel);
 	void set_reg(uint32_t addr, uint32_t data); // for patch
 };

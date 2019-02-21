@@ -135,12 +135,10 @@ public:
 	{
 		d_io = device;
 	}
-#ifdef USE_DEBUGGER
 	void set_context_debugger(DEBUGGER* device)
 	{
 		d_debugger = device;
 	}
-#endif
 };
 
 #endif

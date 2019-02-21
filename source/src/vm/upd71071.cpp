@@ -14,15 +14,17 @@ void UPD71071::initialize()
 {
 	DEVICE::initialize();
 	_SINGLE_MODE_DMA = osd->check_feature(_T("SINGLE_MODE_DMA"));
-	
+	_USE_DEBUGGER    = osd->check_feature(_T("USE_DEBUGGER"));
 	for(int i = 0; i < 4; i++) {
 		dma[i].areg = dma[i].bareg = 0;
 		dma[i].creg = dma[i].bcreg = 0;
 	}
-	if(d_debugger != NULL) {
-		d_debugger->set_device_name(_T("Debugger (uPD71071 DMAC)"));
-		d_debugger->set_context_mem(this);
-		d_debugger->set_context_io(vm->dummy);
+	if(_USE_DEBUGGER) {
+		if(d_debugger != NULL) {
+			d_debugger->set_device_name(_T("Debugger (uPD71071 DMAC)"));
+			d_debugger->set_context_mem(this);
+			d_debugger->set_context_io(vm->dummy);
+		}
 	}
 }
 
@@ -247,21 +249,30 @@ void UPD71071::do_dma()
 						// io -> memory
 						uint32_t val;
 						val = dma[c].dev->read_dma_io16(0);
-						if(d_debugger != NULL && d_debugger->now_device_debugging) {
-							d_debugger->write_via_debugger_data16(dma[c].areg, val);
+						if(_USE_DEBUGGER) {
+							if(d_debugger != NULL && d_debugger->now_device_debugging) {
+								d_debugger->write_via_debugger_data16(dma[c].areg, val);
+							} else {
+								this->write_via_debugger_data16(dma[c].areg, val);
+							}
 						} else {
-							this->write_via_debugger_data16(dma[c].areg, val);
+								this->write_via_debugger_data16(dma[c].areg, val);
 						}
+							
 						// update temporary register
 						tmp = val;
 					} else if((dma[c].mode & 0x0c) == 0x08) {
 						// memory -> io
 						uint32_t val;
-						if(d_debugger != NULL && d_debugger->now_device_debugging) {
-							val = d_debugger->read_via_debugger_data16(dma[c].areg);
+						if(_USE_DEBUGGER) {
+							if(d_debugger != NULL && d_debugger->now_device_debugging) {
+								val = d_debugger->read_via_debugger_data16(dma[c].areg);
+							} else {
+								val = this->read_via_debugger_data16(dma[c].areg);
+							}
 						} else {
-							val = this->read_via_debugger_data16(dma[c].areg);
-						}
+								val = this->read_via_debugger_data16(dma[c].areg);
+						}							
 						dma[c].dev->write_dma_io16(0, val);
 						// update temporary register
 						tmp = val;
@@ -302,18 +313,26 @@ void UPD71071::do_dma()
 						// io -> memory
 						uint32_t val;
 						val = dma[c].dev->read_dma_io8(0);
-						if(d_debugger != NULL && d_debugger->now_device_debugging) {
-							d_debugger->write_via_debugger_data8(dma[c].areg, val);
+						if(_USE_DEBUGGER) {
+							if(d_debugger != NULL && d_debugger->now_device_debugging) {
+								d_debugger->write_via_debugger_data8(dma[c].areg, val);
+							} else {
+								this->write_via_debugger_data8(dma[c].areg, val);
+							}
 						} else {
 							this->write_via_debugger_data8(dma[c].areg, val);
-						}
+						}							
 						// update temporary register
 						tmp = (tmp >> 8) | (val << 8);
 					} else if((dma[c].mode & 0x0c) == 0x08) {
 						// memory -> io
 						uint32_t val;
-						if(d_debugger != NULL && d_debugger->now_device_debugging) {
-							val = d_debugger->read_via_debugger_data8(dma[c].areg);
+						if(_USE_DEBUGGER) {
+							if(d_debugger != NULL && d_debugger->now_device_debugging) {
+								val = d_debugger->read_via_debugger_data8(dma[c].areg);
+							} else {
+								val = this->read_via_debugger_data8(dma[c].areg);
+							}
 						} else {
 							val = this->read_via_debugger_data8(dma[c].areg);
 						}

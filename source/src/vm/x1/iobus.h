@@ -66,6 +66,9 @@ private:
 public:
 	IOBUS(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+#ifdef USE_DEBUGGER
+		d_debugger = NULL;
+#endif
 		set_device_name(_T("I/O Bus (VRAM)"));
 	}
 	~IOBUS() {}

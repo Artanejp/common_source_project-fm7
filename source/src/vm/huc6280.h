@@ -39,6 +39,7 @@ protected:
 public:
 	HUC6280_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		total_icount = prev_total_icount = 0;
+		d_debugger = NULL;
 		set_device_name(_T("HuC6280 CPU"));
 	}
 	~HUC6280_BASE() {}

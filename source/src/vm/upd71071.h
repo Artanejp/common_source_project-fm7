@@ -44,6 +44,7 @@ private:
 	uint8_t req, sreq, mask, tc;
 
 	bool _SINGLE_MODE_DMA;
+	bool _USE_DEBUGGER;
 public:
 	UPD71071(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -61,7 +62,9 @@ public:
 //#ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
 //#endif
+		d_debugger = NULL;
 		_SINGLE_MODE_DMA = false;
+		_USE_DEBUGGER = false;
 		initialize_output_signals(&outputs_tc);
 		set_device_name(_T("uPD71071 DMAC"));
 	}
@@ -117,6 +120,10 @@ public:
 		d_dma = device;
 	}
 //#endif
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
 	void set_context_tc(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_tc, device, id, mask);

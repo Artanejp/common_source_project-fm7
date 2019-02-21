@@ -252,7 +252,11 @@ int HUC6280_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 		int wait;
 		oprom[i] = d_mem->read_data8w(pc + i, &wait);
 	}
-	return CPU_DISASSEMBLE_CALL(h6280) & DASMFLAG_LENGTHMASK;
+	if(d_debugger != NULL) {
+		return CPU_DISASSEMBLE_CALL(h6280) & DASMFLAG_LENGTHMASK;
+	} else {
+		return 0;
+	}
 }
 //#endif
 

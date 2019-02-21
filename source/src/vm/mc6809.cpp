@@ -21,9 +21,7 @@
 #include "mc6809.h"
 #include "mc6809_consts.h"
 
-#ifdef USE_DEBUGGER
 #include "debugger.h"
-#endif
 #include "config.h"
 
 void MC6809::initialize()
@@ -137,7 +135,7 @@ void MC6809::debugger_hook()
 // from MAME 0.160
 
 
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 
 /*****************************************************************************
 
@@ -532,11 +530,11 @@ static const _TCHAR *const m6809_regs_te[16] =
 	_T("D"), _T("X"),  _T("Y"),  _T("U"),   _T("S"),  _T("PC"), _T("inv"), _T("inv"),
 	_T("A"), _T("B"), _T("CC"), _T("DP"), _T("inv"), _T("inv"), _T("inv"), _T("inv")
 };
-#endif /* USE_DEBUGGER */
+//#endif /* USE_DEBUGGER */
 
 uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram)
 {
-#ifdef USE_DEBUGGER
+	if(_USE_DEBUGGER) {
 	uint8_t opcode, mode, pb, pbm, reg;
 	const uint8_t *operandarray;
 	unsigned int ea;//, flags;
@@ -798,9 +796,9 @@ uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_
 	}
 
 	return p;
-#else
+	} else {
 	return 0;
-#endif
+	}
 }
 
 int MC6809::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)

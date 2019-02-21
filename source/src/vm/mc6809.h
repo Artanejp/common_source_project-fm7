@@ -536,6 +536,7 @@ public:
 		cycles_tmp_count = 0;
 		insns_count = 0;
 		__USE_DEBUGGER = false;
+		d_debugger = NULL;
 		initialize_output_signals(&outputs_bus_ba);
 		initialize_output_signals(&outputs_bus_bs);
 		set_device_name(_T("MC6809 MPU"));

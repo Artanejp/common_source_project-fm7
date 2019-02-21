@@ -51,6 +51,10 @@ public:
 	{
 		total_icount = prev_total_icount = 0;
 		busreq = false;
+		d_debugger = NULL;
+		d_mem = NULL;
+		d_mem_stored = NULL;
+		d_pic = NULL;
 		set_device_name(_T("M6502 CPU"));
 	}
 	~M6502_BASE() {}

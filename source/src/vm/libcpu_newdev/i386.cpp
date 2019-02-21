@@ -190,22 +190,21 @@ uint32_t I386::read_debug_reg(const _TCHAR *reg)
 	return cpucore->read_debug_reg(reg);
 }
 
-void I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	i386_state *cpustate = cpucore->get_cpu_state();
-//#if defined(USE_DEBUGGER)
 	my_stprintf_s(buffer, buffer_len,
-				  _T("Privilege Level=[%02x] MODE=%s V86=%s STACK_32BIT=%08x\nEAX=%08X  EBX=%08X ECX=%08X EDX=%08X \nESP=%08X EBP=%08X  ESI=%08X  EDI=%08X\nDS=%04X  ES=%04X SS=%04X CS=%04X EIP=%08X\nFLAG=[%c%c%c%c%c%c%c%c%c]\nClocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
-  cpustate->CPL, (PROTECTED_MODE == 0) ? _T("REAL") : _T("PROTECTED"), (V8086_MODE) ? _T("YES") : _T("NO"),
-  STACK_32BIT, 
-	REG32(EAX), REG32(EBX), REG32(ECX), REG32(EDX), REG32(ESP), REG32(EBP), REG32(ESI), REG32(EDI),
+	_T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
+	_T("DS=%04X  ES=%04X SS=%04X CS=%04X IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]\n")
+	_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+	REG16(AX), REG16(BX), REG16(CX), REG16(DX), REG16(SP), REG16(BP), REG16(SI), REG16(DI),
 	cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->eip,
 	cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
 	cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'),
 	cpustate->total_cycles, cpustate->total_cycles - cpustate->prev_total_cycles,
-    get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
+	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 	cpustate->prev_total_cycles = cpustate->total_cycles;
-//#endif
+	return true;
 }
 
 int I386::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)

@@ -512,6 +512,7 @@ void I8080_BASE::OP(uint8_t code)
 		RAR();
 		break;
 	case 0x20: // RIM (NOP)
+		RIM();
 //#ifdef HAS_I8085
 //		_A = (IM & 0x7f) | (SID ? 0x80 : 0) | RIM_IEN;
 //		RIM_IEN = 0;
@@ -1335,6 +1336,7 @@ int I8080_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 	uint8_t ops[4];
 	int ptr = 0;
+	if(d_debugger == NULL) return 0;
 	
 	for(int i = 0; i < 4; i++) {
 		int wait;

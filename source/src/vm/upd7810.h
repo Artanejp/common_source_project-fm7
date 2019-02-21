@@ -50,6 +50,7 @@ public:
 	{
 #ifdef USE_DEBUGGER
 		total_icount = prev_total_icount = 0;
+		d_debugger = NULL;
 #endif
 		initialize_output_signals(&outputs_to);
 		initialize_output_signals(&outputs_txd);

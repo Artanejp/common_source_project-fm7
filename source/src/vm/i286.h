@@ -46,6 +46,9 @@ public:
 #ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
 #endif
+#ifdef USE_DEBUGGER
+		d_debugger = NULL;;
+#endif
 #if defined(HAS_I86)
 		set_device_name(_T("8086 CPU"));
 #elif defined(HAS_I88)
