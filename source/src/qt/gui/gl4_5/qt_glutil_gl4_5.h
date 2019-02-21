@@ -121,6 +121,7 @@ protected:
 
 	GLuint uTmpTextureID;
 	bool swap_byteorder;
+	bool main_texture_ready;
 	
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 							  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
