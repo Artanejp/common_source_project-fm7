@@ -534,7 +534,7 @@ static const _TCHAR *const m6809_regs_te[16] =
 
 uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram)
 {
-	if(_USE_DEBUGGER) {
+	if(__USE_DEBUGGER) {
 	uint8_t opcode, mode, pb, pbm, reg;
 	const uint8_t *operandarray;
 	unsigned int ea;//, flags;
