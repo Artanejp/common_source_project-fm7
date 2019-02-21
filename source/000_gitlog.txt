@@ -1,3 +1,349 @@
+commit 2b63380cd185d2d16b05723aaea7b50371ef5d7c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 21 19:56:41 2019 +0900
+
+    [VM][MC6809][OOPS] Fix FTBFS.
+
+commit aca1273d5fb316f2a3958efc2717cde90a2859d6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 21 18:38:18 2019 +0900
+
+    [VM][MZ2800] Fix crash ending of emulation.
+
+commit abc042d99fa609ebc9088312a2b5b0b69acc9f23
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 21 18:33:10 2019 +0900
+
+    [VM][JX][J3100] (Temporally?) stop to use I86:: using insetad of I286::.Fix FTBFS of JX.
+    [VM][J3100][DEBUGGER][EMU] Some functions at debugger.cpp moved (and modified) to emu.cpp. This workaround needed by libCSPcommon .
+
+commit 380e532f0e7da420367df8ca883c1e37d2f97cbb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 21 18:07:03 2019 +0900
+
+    [VM] Fix crash when end of emulation at various(!) VMs.
+    [VM][I8080] I8085: Fix around SID instruction.FP200 works.
+    [VM][I386] Fix crash some VMs using after i386 cpu series.This also fixes FTBFS.
+    [VM] Fix crash when starting with some devices.
+
+commit 37621805de11031c659a4bb991ed1608d2419dcc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 21 04:34:44 2019 +0900
+
+    [VM][PCENGINE][ADPCM] Reset written_size per resuming DMA transfer.
+    [VM][PCENGINE][ADPCM] Halt ADPCM sound same BANK (mask = $8000) both DMA transferring and read from ADPCM.
+
+commit d20281b920a909a622262df57f42bd6dfe872a3f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 21 03:39:38 2019 +0900
+
+    [VM][PCENGINE][ADPCM] Partly remove a Ootake's hack.Expect to improve ADPCM's quality.
+
+commit ef764de9c45da00b5d07f78f0251020a3c75c513
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 21 03:25:29 2019 +0900
+
+    [VM][MZ80K] Update to upstream 2019-02-19.Enable to build and works.
+
+commit 11a2b9d113b2e8a9c129709396466cbc326d6ef4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 21 03:25:08 2019 +0900
+
+    [VM][EVENT] .
+
+commit 1c3c6d3350514a18759292f2e4134af4e524b568
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 21 03:24:27 2019 +0900
+
+    [VM][PCENGINE][ADPCM] Fix around ADPCM (more).
+
+commit 4f9cd2ca0f99e27224c5387e385c4c98e2c75d1c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 21 02:32:43 2019 +0900
+
+    [VM] Pertially commit upstream's changes.May be not buildable or enable to build.
+    [OSD][EMU][PC9801][PC8801] Fix choppy sound with non-regular frequency.
+
+commit 004adfe3bc765ac07986f99f24e6441755dd61b4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 21 02:29:27 2019 +0900
+
+    [Qt][OSD][Sound] Update OSD API, initialize_sound() has 4 args, not 2.
+    [Qt][OSD][Sound] SDL_MixAudioFormat() *MUST* use for SDL2, shouldm't use SDL_MixAudio for SDL2.
+    [Qt][UI] Select sound output devices.
+
+commit 6dd01447f7f921b3a65897ce2a38bf5a75bc4559
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 20 22:06:28 2019 +0900
+
+    [VM][FM7][X1] Buildable with upstream 2019-02-19.
+
+commit 7adaf5381581ec03d0de694fea3b096dd8be6ea2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 20 22:03:58 2019 +0900
+
+    [UI][Qt][VM][PC8801] Update to Upstream.
+
+commit f52183d41261215b20f6d0fd93ed45a3d24c59b6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 20 22:03:25 2019 +0900
+
+    [UI][Qt] Update.
+
+commit 32fbb46978e4a0e0523a5ba66fe1327c452ee4df
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 20 22:02:24 2019 +0900
+
+    [OSD][Qt] Update APIs upstream 2019-02-19.
+
+commit 7ae149676fc56e8ca4d4877080d9973cbbb550fd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 20 22:01:02 2019 +0900
+
+    [VM] Merge Upstream 2019-02-19.Only for DEVICES, not MACHINES YET.
+
+commit 7e2e4683ae79950f89cf8202fafae51bbd618e8f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 20 05:38:39 2019 +0900
+
+    [Qt][OSD][WIN32] Fix FTBFS for MinGW.
+    [Qt][EMUUTIL][WIN32] Temporally disable SSE2.
+
+commit 7ee06737df882878716d8ed8dba1e338055531e8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 20 02:10:43 2019 +0900
+
+    [Qt][OSD][OpenGL][AVIO] Fix wrong color at one-board-computers.
+    [Qt][OpenGL] Fix not save screenshot with OpenGL renderers.(This issue didn't happen with OpenGL ES).
+
+commit 1b1517bda5cbc13b870a0f0264912196023ce2d6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 20 00:55:28 2019 +0900
+
+    [Qt][Draw][OpenGL] Asynchronous pixel transfer with OpenGL 4.5 (and Core profile renderer).
+
+commit 363ca36d791ceb0fb6afc7ed40738e1beb690d14
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 19 23:00:39 2019 +0900
+
+    [Draw][Qt] Now, core profile needs less than OpenGL 4.5.
+    [Draw][Qt] Prepare to immutable texture buffer.
+
+commit fdd910ec85cc746c0c3d41a12f46e3f5a92376e1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Feb 18 18:15:44 2019 +0900
+
+    [VM][SCSI_CDROM] CDDA: Fix around repeat sequence.
+    [VM][SCSI_CDROM] CDDA: Update end_frame ewhen setting start_frame.
+
+commit f561e39546dca1cf807fea8db4f63e9cb824023c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Feb 18 17:38:50 2019 +0900
+
+    [VM][PCENGINE][ADPCM] Don't appear read_buf flag to REG $180C.
+
+commit 91f9a53cb1835b917e7a3ef9fc3abb935543f110
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Feb 18 17:37:41 2019 +0900
+
+    [VM][PCENGINE][SCSI_CD] CDDA: Fix interpreting cue sheet.Lasersoft's brand softwares may works.
+
+commit 0b1f08392a77893a357f3832de0cc99413c7ea21
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Feb 18 15:36:58 2019 +0900
+
+    [VM][PCENGINE] .
+
+commit 4303f03bbce8ec7fa494945d4bee6f383a4d1edd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Feb 18 15:35:07 2019 +0900
+
+    [VM][PCENGINE][SCSI_CDROM] Stop CDDA at NEC Extend command $D8 ARG="xx 00 00 00"(Set Audio Playback Start Position).
+
+commit 3ca95e18901366fb5162190aeb66b6faac3b0037
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 17 23:35:44 2019 +0900
+
+    [VM][HuC6280] Fix debug calling.
+
+commit c542747f3bd514b664eedfa820cbc7e93da1e944
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 17 23:35:28 2019 +0900
+
+    [VM][SCSI_CDROM] .
+
+commit f318d690c145021d153cf03dc7bc01329ceb379b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 17 23:34:18 2019 +0900
+
+    [VM][PCENGINE][CDROM] Fix READ COMMAND $1801().Not reply any signals.
+
+commit 0af5192917187e22e1f8a66c6b827192b08de2b4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 17 20:47:06 2019 +0900
+
+    [VM][PCENGINE][ADPCM] .
+
+commit 8c9c1cb2cd6831a94daa9b58d746eea61172a4e8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 17 20:43:59 2019 +0900
+
+    [VM][SCSI_CDROM][PCENGINE] CDDA:Don't update track when setting end position.
+
+commit 328665d6d75f339bb08866192a1755dda1a46754
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 17 18:49:31 2019 +0900
+
+    [VM][PCENGINE] .
+
+commit a18bc79bcf9cec4cb2ebef827e7c5ebf0b5a37f4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 16 04:04:22 2019 +0900
+
+    [VM][MSM5205] Add new API: pause_w().
+    [VM][PCENGINE][ADPCM] Mostly fixed around playing.(Excepts Gradius II?).
+
+commit be6c19d4bf4478740dc8cdaa96ceccb289a68a8a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 15 09:43:21 2019 +0900
+
+    [VM][PCENGINE][ADPCM] Improve DMA handling.
+
+commit 785161fd7625d03ad263fbdf415c4b3b462fe31d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 12 22:18:36 2019 +0900
+
+    [VM][PCENGINE][ADPCM] Remove unused parts.
+
+commit a05dfe7fe4aa00f9dfdb0fe5488a94ac68d09e3c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 12 22:17:39 2019 +0900
+
+    [VM][MSM5205] Adjust ADPCM's sound level due to be too small sound.
+    [VM][SCSI_CDROM][WIP] .
+
+commit c9125ba37261275e58b94d288e739b56e3a51a07
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 12 21:43:30 2019 +0900
+
+    [VM][PCENGINE][ADPCM] adpcm.cpp : improve around DMA, but still not complete.
+
+commit 37a8482023afcef297b027c569d712cbc287d6a4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 12 19:21:48 2019 +0900
+
+    [VM][PCENGINE][ADPCM] Re-Implement adpcm.[cpp|h] . Partly useful.
+
+commit acabbae71fa23288634e7531a67acfc300016c5d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 12 07:48:32 2019 +0900
+
+    [VM][PCENGINE][ADPCM] pce.cpp : porting logics from mednafen and Ootake.
+
+commit 98618d9f958e032b88a3199a7c1ddedebfc61ca8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Feb 11 04:00:23 2019 +0900
+
+    [VM][PCENGINE][ADPCM][WIP] Porting from mednafen.WIP.
+
+commit 758326a113d01d94b53a9f9204a73201f48f8cf2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Feb 11 02:40:55 2019 +0900
+
+    [VM][PCENGINE][ADPCM] .
+
+commit 64675fff11aa2bfeed70ddbf7bb254daf9873a30
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 10 05:29:04 2019 +0900
+
+    [VM][PCENGINE][ADPCM] Separate around ADPCM to ADPCM:: .
+
+commit 50819a1bb1c25149b1b10215d2065a6895a1f6fd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 9 19:12:22 2019 +0900
+
+    [VM][PCENGINE][ADPCM] .
+
+commit ae635e10427995af8c898754fa9dc78189c15e0a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 9 03:41:02 2019 +0900
+
+    [VM][PCENGINE][ADPCM] Improve around IRQ handling from Ootake.Fix hangup on demo of LINDA^3 (but still incorrect PCM sound).
+
+commit 58908b435eaddf0066a72856db2ac47d379070ba
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 8 16:29:05 2019 +0900
+
+    [VM][UPD71071] Fix OOPs of FTBFS.
+
+commit 0974c71a877389dfe32058fa46e5d8cebd9ef285
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 8 16:22:19 2019 +0900
+
+    [VM][COMMON_VM] Update SOVERSION.
+
+commit 6a2eefe5a5133dcc4d9bd8242b93f04ecae6e5c9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 8 16:20:53 2019 +0900
+
+    [VM][SCSI_CDROM] Make public members to virtual attribute.This is prepare of FM-Towns.
+
+commit 4282570713165a5add65166f209455e1b3f6da59
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 8 16:20:24 2019 +0900
+
+    [VM][FMTOWNS][CDROM] Add headers around CDC/CDROM.
+
+commit 6dcd7266c615b445e807e2ad7df8deb0f6e8b3fb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 8 03:07:10 2019 +0900
+
+    .
+
+commit a4a6f67a2f673e0187f97c2a20b41d65357f6de9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 8 02:57:37 2019 +0900
+
+    [VM][FMTOWNS][CDROM] .
+
+commit 303f8a4716ee48ddd6fba719e31365e04c81d433
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 7 17:18:12 2019 +0900
+
+    [VM][FMTOWNS][WIP] Implementing CDROM.Still not buildable.
+
+commit 7713436f1232161cceab5def39ea84813d0a8915
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 31 19:26:50 2019 +0900
+
+    [VM][FMTOWNS][WIP] Adding CD-ROM/CD controller.This still be not completed.
+    [VM][UPD71071] Add 16bits transfer mode.
+
+commit 2bdfaf5e3b57630ffd595dcdaf999e5ee8fb8463
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 29 21:44:19 2019 +0900
+
+    [VM][FMTOWNS] Add audio ADC and DAC.Please read ad7820kr.h to see proposed new APIs.
+
+commit 825bf2ca6d1fdd3b866e72eaf7e6db32a4a704c4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 17 19:40:18 2019 +0900
+
+    [COMMON] Fix unaligned SIMD variables.Fix crash built with "-msse2" at Win32.
+    [BUILD][Win32] Adjust optimize parameter for MinGW/Win32.
+
+commit b1f6fe01cc089c2eb2045a55b42b7be47f27cc9c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 13 04:38:19 2019 +0900
+
+    [OOPS] Update installer.
+
+commit e03a2d0b831c83a5d0c2ba9935be94f5bd6566e8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 13 02:03:14 2019 +0900
+
+    [DOC] Update to release.
+
 commit c2d34b15d4c1d374e61a3ab8f66e1cca2ac926bd
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Jan 13 01:15:44 2019 +0900

@@ -1,5 +1,28 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT February 22, 2019
+  * Upstream 2019-02-19.
+  * [VM] Fix crash when end of emulation at various(!) VMs.
+  * [DEBUGGER/EMU] Some functions at debugger.cpp moved (and modified) to emu.cpp. This workaround needed by libCSPcommon .
+  * [EMUUTIL/WIN32] Temporally disable SSE2.
+  * [VM/I8080] I8085: Fix around SID instruction.FP200 works.
+  * [VM/MSM5205] Add new API: pause_w().
+  * [VM/MSM5205] Adjust ADPCM's sound level due to be too small sound.
+  * [VM/UPD71071] Add 16bits transfer mode (needs to emulate FM-Towns).
+  * [VM/PCENGINE] Separate around ADPCM from pce.cpp.
+  * [VM/PCENGINE] Mostly works CD-ROM^2 softwares, excepts (at least) Valis2 and R-TYPE. Some softwares still contain wrong working.
+  * [VM/SCSI_CDROM] CDDA: Fix interpreting cue sheet.Lasersoft's brand softwares may works.
+  * [VM/SCSI_CDROM] CDDA:Don't update track when setting end position.
+  * [OSD/Sound] Update OSD API, initialize_sound() has 4 args, not 2.
+  * [OSD/Sound] SDL_MixAudioFormat() *MUST* use for SDL2, shouldn't use SDL_MixAudio for SDL2.
+  * [Qt/OpenGL] Asynchronous pixel transfer with OpenGL 4.5 (and Core profile renderer).
+  * [Qt/OpenGL] Now, core profile needs less than OpenGL 4.5.
+  * [Qt/OpenGL] Fix not save screenshot with OpenGL renderers.(This issue didn't happen with OpenGL ES).
+  * [Qt/AVIO] Fix wrong color at one-board-computers.
+  * Built with WILL-SET (or later).
+  
+-- February 21, 2019 xx:xx:xx +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+  
 * SNAPSHOT January 13, 2019
   * Upstream 2019-01-11 .
   * [UI/Qt] OSD: Joystick-To-Keyboard: Add "1235" feature.Useful for DELPHIS (for FM-8/7) etc.
