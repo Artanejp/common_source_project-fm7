@@ -1,3 +1,45 @@
+commit 7574bd8b47c65e32c4f4a41ec593db71cc375230
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 22 04:39:37 2019 +0900
+
+    [BUILD][WIN32] GCC: change optimize flags to -O3.
+
+commit d96f916374f366fdb3be9a9e00eeace71948d23c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 22 04:37:08 2019 +0900
+
+    [VM][DEVICE] Change logger declaration.
+
+commit 72db6c73800e3dc7be4797d6081a82b02b723e29
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 22 04:35:51 2019 +0900
+
+    [COMMON] TRY: Abondon some functions makes SIMD.This is temporally workaround of Win32.
+
+commit 30fbb976186c7d253a3a6820789d3e30452dc811
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 22 04:35:09 2019 +0900
+
+    [BUILD][Qt] Adjust linkage order.
+
+commit ac0d67749ef73a651cf3d9c06f7f77577b711f77
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 22 04:34:42 2019 +0900
+
+    [Build][WIN32][OSD] Adjust linkage parameter.
+
+commit 2b6064ffdc35539add2e42d7c340bca02d37dbfe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 22 04:33:31 2019 +0900
+
+    [Draw][OpenGL4_5] Sync per command.This improve stability at Win32 binaries with Wine.
+
+commit 4ad023900f4bdb75421c4d6f4d4a6aacb0eb865f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 21 21:36:50 2019 +0900
+
+    [DOC] Update DOCs due to update APIs.
+
 commit b52a6f59c59908523e27e81911d17ba37dd2c1ac
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Feb 21 21:33:54 2019 +0900

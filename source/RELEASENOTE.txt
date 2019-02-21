@@ -181,9 +181,9 @@ Changes:
   * [Qt/OpenGL] Now, core profile needs less than OpenGL 4.5.
   * [Qt/OpenGL] Fix not save screenshot with OpenGL renderers.(This issue didn't happen with OpenGL ES).
   * [Qt/AVIO] Fix wrong color at one-board-computers.
-  * Built with b52a6f59c59908523e27e81911d17ba37dd2c1ac (or later).
+  * Built with 7574bd8b47c65e32c4f4a41ec593db71cc375230 (or later).
   
--- February 21, 2019 21:35:48 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- February 22, 2019 04:44:44 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
 * To see older upstream's changes, read history.txt.
