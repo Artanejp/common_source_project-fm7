@@ -825,7 +825,7 @@ __DECL_VECTORIZED_LOOP
 	const bool is_render[3] = { src->is_render[0], src->is_render[1],  src->is_render[2] };
 	__DECL_ALIGNED(16) uint16_vec8_t tmpd;
 	__DECL_ALIGNED(32) scrntype_vec8_t tmp_dd; 
-	scrntype_vec8_t* vdp = (scrntype_vec8_t*)__builtin_assume_aligned(dst, sizeof(scrntype_vec8_t));
+	//scrntype_vec8_t* vdp = (scrntype_vec8_t*)dst;
 	
 	x = src->begin_pos;
 	uint32_t n = x;
@@ -842,9 +842,11 @@ __DECL_VECTORIZED_LOOP
 			n = (n + 1) & offsetmask;
 	__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
-				tmp_dd.w[i] = palette[tmpd.w[i]];
+				//tmp_dd.w[i] = palette[tmpd.w[i]];
+				dst[i] = palette[tmpd.w[i]];
 			}
-			vdp[xx].v = tmp_dd.v;
+			dst += 8;
+			//vdp[xx].w[i] = tmp_dd.w[i];
 		}
 	} else {
 #if defined(_RGB555) || defined(_RGBA565)
@@ -853,7 +855,7 @@ __DECL_VECTORIZED_LOOP
 		static const int shift_factor = 3;
 #endif
 		__DECL_ALIGNED(32) scrntype_vec8_t sline;
-		scrntype_vec8_t* vdp2 = (scrntype_vec8_t*)__builtin_assume_aligned(dst2, sizeof(scrntype_vec8_t));
+		scrntype_vec8_t* vdp2 = (scrntype_vec8_t*)dst2;
 	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			sline.w[i] = (scrntype_t)RGBA_COLOR(31, 31, 31, 255);
@@ -872,12 +874,21 @@ __DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
 				tmp_dd.w[i] = palette[tmpd.w[i]];
 			}
-			vdp[xx].v = tmp_dd.v;
+			//vdp[xx].v = tmp_dd.v;
+			for(int i = 0; i < 8; i++) {
+				dst[i] = tmp_dd.w[i];
+			}
+			dst += 8;
+
 			if(scan_line) {
 				tmp_dd.v = tmp_dd.v >> shift_factor;
 				tmp_dd.v = tmp_dd.v & sline.v;
 			}
-			vdp2[xx].v = tmp_dd.v;
+			//vdp2[xx].v = tmp_dd.v;
+			for(int i = 0; i < 8; i++) {
+				dst2[i] = tmp_dd.w[i];
+			}
+			dst2 += 8;
 		}
 	}
 }
