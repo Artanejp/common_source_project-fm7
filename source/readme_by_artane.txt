@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         January 13, 2019
+                                         February 22, 2019
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20190113
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20190222
 
    追加情報:
    
@@ -160,54 +160,157 @@ Changes:
 
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
 
-* SNAPSHOT January 13, 2019
-  * Upstream 2019-01-11 .
-  * [UI/Qt] OSD: Joystick-To-Keyboard: Add "1235" feature.Useful for DELPHIS (for FM-8/7) etc.
-  * [UI/Qt] OSD: Apply "Joystick to Keyboard" feature.
-  * [BUILD] Separate threads definition for LTO.
-  * [WIN32] Update DLLS.Now using Qt5.12 and FFMpeg 4.1 and X264 157 API.
-  * [VM/I386][NEWDEV] Update to upsteream.
-  * [VM/PC8001] Load "FONT.ROM" as fallback, if "KANJI1.ROM" don't exists.
-  * [NOTE] Now implementing FM-Towns, but still not buildable.
-  * Built with c2d34b15d4c1d374e61a3ab8f66e1cca2ac926bd (or later).
+* SNAPSHOT February 22, 2019
+  * Upstream 2019-02-19.
+  * [VM] Fix crash when end of emulation at various(!) VMs.
+  * [DEBUGGER/EMU] Some functions at debugger.cpp moved (and modified) to emu.cpp. This workaround needed by libCSPcommon .
+  * [EMUUTIL/WIN32] Temporally disable SSE2.
+  * [VM/I8080] I8085: Fix around SID instruction.FP200 works.
+  * [VM/MSM5205] Add new API: pause_w().
+  * [VM/MSM5205] Adjust ADPCM's sound level due to be too small sound.
+  * [VM/UPD71071] Add 16bits transfer mode (needs to emulate FM-Towns).
+  * [VM/PCENGINE] Separate around ADPCM from pce.cpp.
+  * [VM/PCENGINE] Mostly works CD-ROM^2 softwares, excepts (at least) Valis2 and R-TYPE. Some softwares still contain wrong working.
+  * [VM/SCSI_CDROM] CDDA: Fix interpreting cue sheet.Lasersoft's brand softwares may works.
+  * [VM/SCSI_CDROM] CDDA:Don't update track when setting end position.
+  * [OSD/Sound] Update OSD API, initialize_sound() has 4 args, not 2.
+  * [OSD/Sound] SDL_MixAudioFormat() *MUST* use for SDL2, shouldn't use SDL_MixAudio for SDL2.
+  * [Qt/OpenGL] Asynchronous pixel transfer with OpenGL 4.5 (and Core profile renderer).
+  * [Qt/OpenGL] Now, core profile needs less than OpenGL 4.5.
+  * [Qt/OpenGL] Fix not save screenshot with OpenGL renderers.(This issue didn't happen with OpenGL ES).
+  * [Qt/AVIO] Fix wrong color at one-board-computers.
+  * Built with 8185a8bca547d5cb2ec27d4475228b461bbb11b7 (or later).
   
--- January 13, 2019 01:55:36 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-  
+-- February 21, 2019 20:29:50 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
 
-1/11/2019
+2/19/2019
 
-[PC8001] support NEC PC-8001
-[PC8001] support NEC PC-8001mkII
-[PC8801] support NEC PC-8801
-[PC8801] support NEC PC-8801mkII
+[VM/DEVICE] add is_primary_cpu() and update_extra_event()
+[VM/EVENT] support to udpate event while cpu is running one opecode
+[VM/Z80] improve to update event in every read/write cycle
 
-
-12/28/2018
-
-[EMU] support to insert blank 2D/2DD/2HD disk image
+[MZ2500/MEMORY] improve pcgram wait in display timing
 
 
-12/27/2018
+2/16/2019
 
-[PC6001/PSUB] improve keyboard irq
-[PC8801/PC88] improve initial memory map when CD BIOS is loaded
-[PC8801/PC88] support CD-DA fade in/out
+[EMU/DEBUGGER] improve to enumerate devices that is debugger available
+[EMU/DEBUGGER] improve to show all breaked reasons
+[EMU/DEBUGGER] support breakpoint of cpu selected by "! device" command
+[EMU/*] simplify code for debugger
+[VM/*] simplify code for debugger
+
+[VM/I8237] support break point for direct memory access
+[VM/MB8877] fix not to wait 60ms to start read/write after seek is finished
+[VM/MC6844] support break point for direct memory access
+[VM/TMS9918A] support break point for registers and vram access
+[VM/UPD71071] support break point for direct memory access
+[VM/Z80DMA] support break point for direct i/o and memory access
 
 
-12/18/2018
+2/14/2019
 
-[VM/I386] improve i386 core based on MAME 0.204
-[VM/SCSI_CDROM] improve vendor specific command for NEC CD-ROM^2
-[VM/SCSI_DEV] fix to write buffer when current command is not WRITE6/10/12
-[VM/SCSI_DEV] fix Request Sense command to get correct data length
-[VM/SCSI_HDD] fix not to write buffer when current command is not WRITE6/10/12
+[EMU/DEBUGGER] support break point for non-cpu device
+[EMU/DEBUGGER] change command length from 64 to 1024
 
-[PC8801/PC88] improve initial memory map when CD BIOS is loaded
-[PC8801/PC88] revert screen renderer fixes in 12/1/2018 except scanline issues
-[PC8801/PC88] fix dmac registers to clear higher 16bits of pair32_t
-[PC8801/PC88] fix dmac to read i/o in verify mode
+[VM/AY_3_891X] support break point
+[VM/DEVICE] add get_debug_data_addr_space()
+[VM/DEVICE] change type of get_debug_regs_info() from void to bool
+[VM/MB8877] fix to decrease first seek time by 500us (2D/2DD) or 250us (2HD)
+[VM/TMS9918A] support break point
+[VM/YM2151] support break point
+[VM/YM2203] support break point
+[VM/Z80CTC] fix to reset interrupt req/in service by bit2 of control register
+[VM/Z80DMA] fix to reset interrupt req/in service by reset command
+
+[X1TURBO/EMM] support to access vram as memory space from debugger
+[X1TURBO/IOBUS] support to access vram as memory space from debugger
+[X1TURBO/IOBUS] support break point
+
+
+2/9/2019
+
+[EMU/DEBUGGER] enlarge text buffer size
+
+[VM/DEVICE] add get_context_child() to enumerate daisy-chained devices
+[VM/DISK] add get_sector_info()
+[VM/MB8877] improve debugger to show current head position and disk geometry
+[VM/MB8877] fix not to abort command when eject disk in unselected drive
+[VM/UPD765A] improve debugger to show current head position and disk geometry
+[VM/Z80*] add get_context_child() to enumerate daisy-chained devices
+
+[X1TURBO] fix to force clear iei/oei of z80 family devices when reset vm
+[X1TURBO/DISPLAY] fix to check bit0/2 of port 0x1fd0 in draw_text()
+
+
+2/8/2019
+
+[EMU/*] simplify code to draw screen while debugging cpu
+[OSD/*] simplify code to draw screen while debugging cpu
+[VM/*] simplify code to draw screen while debugging cpu
+
+[BUBCOM80/DISPLAY] improve dmac
+[HC80/IO] fix slave-cpu command 0x27 and 0x29 (thanks Mr.Stefano Bodrato)
+
+
+2/7/2019
+
+[EMU/DEBUGGER] improve to draw screen while debugging cpu
+[EMU] add override/restore/run_wndproc() for debugger
+[EMU] add create_bank_floppy_disk()
+[OSD/WIN32] add override/restore/run_wndproc() for debugger
+
+[VM/315_5124] improve draw_screen() for debugger
+[VM/H6280] improve to run window procedure while suspending for debugger
+[VM/I286] improve to run window procedure while suspending for debugger
+[VM/I386] improve to run window procedure while suspending for debugger
+[VM/I8080] improve to run window procedure while suspending for debugger
+[VM/M6502] improve to run window procedure while suspending for debugger
+[VM/MC6800] improve to run window procedure while suspending for debugger
+[VM/MC6809] improve to run window procedure while suspending for debugger
+[VM/MCS48] improve to run window procedure while suspending for debugger
+[VM/TMS9918A] improve draw_screen() for debugger
+[VM/TMS9995] improve to run window procedure while suspending for debugger
+[VM/UPD7801] improve to run window procedure while suspending for debugger
+[VM/UPD7810] improve to run window procedure while suspending for debugger
+[VM/V9938] improve draw_screen() for debugger
+[VM/V99X8] improve draw_screen() for debugger
+[VM/Z80] improve to run window procedure while suspending for debugger
+
+[BUBCOM80/DISPLAY] improve draw_screen() for debugger
+[FAMILYBASIC/PPU] improve draw_screen() for debugger
+[MZ80K/DISPLAY] improve draw_screen() for debugger
+[MZ1500/MEMORY] improve draw_screen() for debugger
+[PC8801/PC88] improve draw_screen() for debugger
+[PCENGINE/PCE] improve draw_screen() for debugger
+[SMC777/MEMORY] improve draw_screen() for debugger
+[X1/DISPLAY] improve draw_screen() for debugger
+
+
+1/29/2019
+
+[MZ80K/MEMORY] support COLOR GAL 5 (thanks Mr.Suga)
+[PC8001/PC88] fix issue that cursor is mistakenly hidden
+
+
+1/18/2019
+
+[PC8001/PC88] clear ram[0xff33] for DEMPA Galaxian
+[SMC777/MEMORY] improve to render screen in each scan line
+
+
+1/16/2019
+
+[EMU] improve to reinitialize vm in reset when dipswitch is changed
+
+[VM/UPD765A] fix st3 in sence devstat command to set two-side bit (temporary)
+
+[PC8801] support GSX-8800
+[PC8801] support to enable/disable PC-8801-11/GSX-8800/PCG-8100
+[PC8801] fix some degradations
 
 -----
 

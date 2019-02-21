@@ -1,3 +1,15 @@
+commit 8185a8bca547d5cb2ec27d4475228b461bbb11b7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 21 20:28:50 2019 +0900
+
+    [UI][Qt] Update translations.
+
+commit 476cc15de79bd595fccb5436e288fd20fad193d1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 21 20:08:28 2019 +0900
+
+    [DOC] Updated.
+
 commit 2b63380cd185d2d16b05723aaea7b50371ef5d7c
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Feb 21 19:56:41 2019 +0900
