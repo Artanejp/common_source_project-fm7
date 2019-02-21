@@ -316,5 +316,35 @@ PC-8001mk2SR以降のソフトウェアのみが利用できます。</translati
         <source>PC-8801-11 (OPN).</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Use HMB20(Need RESTART)</source>
+        <translation>HMB20を使う(再起動が必要)</translation>
+    </message>
+    <message>
+        <source>Using HMB20 OPM sound board.
+Re-start emulator when changed.</source>
+        <translation>HMB20 OPMサウンドボードを使います。
+変更後はエミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Use GSX8800(Need RESTART)</source>
+        <translation>GSX8800を使う(再起動が必要)</translation>
+    </message>
+    <message>
+        <source>Using GSX8800 PSGs sound board.
+Re-start emulator when changed.</source>
+        <translation>HMB20 PSG搭載サウンドボードを使います。
+変更後はエミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Use PCG8100(Need RESTART)</source>
+        <translation>PCG8100を使う(再起動が必要)</translation>
+    </message>
+    <message>
+        <source>Using PCG8100 programmable character generator board.
+Re-start emulator when changed.</source>
+        <translation>HAL研究所 PCG-8100 PCGボードボードを使います。
+変更後はエミュレータの再起動が必要です。</translation>
+    </message>
 </context>
 </TS>

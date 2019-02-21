@@ -1851,22 +1851,22 @@ CD-ROMやCDなどです。</translation>
         <translation>D88/D77形式の仮想フロッピーを作成する。</translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="186"/>
+        <location filename="menu_disk.cpp" line="163"/>
         <source>Insert virtual floppy disk file.</source>
         <translation>仮想フロッピーディスクファイルを挿入します。</translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="187"/>
+        <location filename="menu_disk.cpp" line="164"/>
         <source>Eject virtual floppy disk.</source>
         <translation>仮想フロッピーディスクを取り出します。</translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="189"/>
+        <location filename="menu_disk.cpp" line="166"/>
         <source>Ignore CRC error</source>
         <translation>CRCエラー無視</translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="190"/>
+        <location filename="menu_disk.cpp" line="167"/>
         <source>Ignore CRC error of virtual floppy.
 Useful for some softwares,
  but causes wrong working with some softwares.</source>
@@ -1875,12 +1875,12 @@ Useful for some softwares,
 他のソフトウェアではバグなどの問題の原因になるかもしれません。</translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="191"/>
+        <location filename="menu_disk.cpp" line="168"/>
         <source>Correct transfer timing</source>
         <translation>転送タイミング調整</translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="192"/>
+        <location filename="menu_disk.cpp" line="169"/>
         <source>Correct transferring timing.
 Useful for some softwares
  needs strict transfer timing.</source>
@@ -1891,24 +1891,24 @@ Useful for some softwares
 </translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="194"/>
+        <location filename="menu_disk.cpp" line="171"/>
         <source>Create Virtual Floppy</source>
         <translation>仮想フロッピーの作成</translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="195"/>
+        <location filename="menu_disk.cpp" line="172"/>
         <source>Create and mount virtual blank-floppy disk.
 This makes only D88/D77 format.</source>
         <translation>仮想ブランクディスクを作成してマウントします。
 D88/D77形式の仮想ディスクのみ作成可能です。</translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="197"/>
+        <location filename="menu_disk.cpp" line="174"/>
         <source>Immediate increment</source>
         <translation>データカウンターを即時加算する</translation>
     </message>
     <message>
-        <location filename="menu_disk.cpp" line="198"/>
+        <location filename="menu_disk.cpp" line="175"/>
         <source>Increment data pointer immediately.
 This is test hack for MB8877.
 Useful for some softwares
@@ -2257,69 +2257,81 @@ OpenGL 2.0では無効です。</translation>
 <context>
     <name>MenuSound</name>
     <message>
-        <location filename="menu_sound.cpp" line="190"/>
+        <location filename="menu_sound.cpp" line="249"/>
         <source>Hz</source>
         <translation>Hz</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="197"/>
+        <location filename="menu_sound.cpp" line="256"/>
         <source>mSec</source>
         <translation>mSec</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="201"/>
+        <location filename="menu_sound.cpp" line="260"/>
         <source>Start Recording Sound</source>
         <translation>録音開始する</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="202"/>
+        <location filename="menu_sound.cpp" line="261"/>
         <source>Record sound as WAV file.</source>
         <translation>音声をWAVファイルとして記録します。</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="204"/>
+        <location filename="menu_sound.cpp" line="263"/>
         <source>Strict Rendering</source>
         <translation>厳密なレンダリング</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="205"/>
+        <location filename="menu_sound.cpp" line="264"/>
         <source>Rendering per a sample.Select to slower, but accurate rendering sound.</source>
         <translation>音声１サンプルごと（サンプルレートが44100Hzならば、1/44100秒ごと)に、
 音のレンダリングをします。これを選択すると動作が重くなる場合がありますが、
 音声のレンダリングが正確になります。</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="206"/>
+        <location filename="menu_sound.cpp" line="265"/>
         <source>Play CMT sound</source>
         <translation>カセットレコーダの音を出す</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="207"/>
+        <location filename="menu_sound.cpp" line="266"/>
         <source>Play sound from CMTs.</source>
         <translation>カセットレコーダの音を鳴らす</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="213"/>
+        <location filename="menu_sound.cpp" line="272"/>
+        <source>Output to:</source>
+        <translation>音の出力先:</translation>
+    </message>
+    <message>
+        <location filename="menu_sound.cpp" line="273"/>
+        <source>Select sound device to output.
+This effects after re-start this emulator.</source>
+        <translation>音を出すデバイスを選択します。
+デバイス選択後はエミュレータを再起動すると有効に出来ます。</translation>
+    </message>
+    <message>
+        <location filename="menu_sound.cpp" line="275"/>
         <source>Sound</source>
         <translation>音</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="214"/>
+        <location filename="menu_sound.cpp" line="276"/>
         <source>Output Frequency</source>
         <translation>出力周波数（サンプルレート）</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="215"/>
+        <location filename="menu_sound.cpp" line="277"/>
         <source>Sound Latency</source>
         <translation>音声（遅延）バッファサイズ</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="217"/>
+        <location filename="menu_sound.cpp" line="279"/>
         <source>Set Volumes</source>
         <translation>音量設定</translation>
     </message>
     <message>
-        <location filename="menu_sound.cpp" line="218"/>
+        <location filename="menu_sound.cpp" line="280"/>
         <source>Open a VOLUME dialog.</source>
         <translation>音量調整ダイアログを開きます。</translation>
     </message>
@@ -2577,7 +2589,7 @@ Larger value is better, but slowly.</source>
 <context>
     <name>Ui_SoundDialog</name>
     <message>
-        <location filename="menu_sound.cpp" line="58"/>
+        <location filename="menu_sound.cpp" line="85"/>
         <location filename="sound_dialog.cpp" line="39"/>
         <source>Set Volume</source>
         <translation>音量設定</translation>
