@@ -71,7 +71,7 @@ elseif(BUILD_J3100SL)
 #               i86.cpp 
 	       rp5c01.cpp
 	       )
-set(FLAG_USE_I86 ON)
+set(FLAG_USE_I86 OFF)
 elseif(BUILD_J3100SS)
   set(EXEC_TARGET emuj3100ss)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/j3100ss.qrc)

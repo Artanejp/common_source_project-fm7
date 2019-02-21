@@ -380,9 +380,9 @@ public:
 #ifdef USE_DEBUGGER
 	void open_debugger(int cpu_index);
 	void close_debugger();
-	bool is_debugger_enabled(int cpu_index);
 	bool now_debugging;
 	debugger_thread_t debugger_thread_param;
+	bool is_debugger_enabled(int cpu_index);
 #if defined(OSD_QT)
 	pthread_t debugger_thread_id;
 	CSP_Debugger *hDebugger;

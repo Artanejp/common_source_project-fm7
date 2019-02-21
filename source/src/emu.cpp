@@ -147,6 +147,8 @@ EMU::~EMU()
 #endif
 }
 
+
+
 #ifdef OSD_QT
 EmuThreadClass *EMU::get_parent_handler()
 {
@@ -1830,6 +1832,38 @@ void EMU::recv_socket_data(int ch)
 	osd->recv_socket_data(ch);
 }
 #endif
+
+// ---------------------------------------------------------------------------
+// debugger (some functions needed by libCSPcommon_vm 20190221 K.O)
+// ---------------------------------------------------------------------------
+
+void EMU::start_waiting_in_debugger()
+{
+#ifdef USE_DEBUGGER
+	now_waiting_in_debugger = true;
+#endif
+	osd->mute_sound();
+#ifdef USE_DEBUGGER
+	osd->start_waiting_in_debugger();
+#endif
+}
+
+void EMU::finish_waiting_in_debugger()
+{
+#ifdef USE_DEBUGGER
+	osd->finish_waiting_in_debugger();
+	now_waiting_in_debugger = false;
+#endif
+}
+
+void EMU::process_waiting_in_debugger()
+{
+#ifdef USE_DEBUGGER
+	osd->process_waiting_in_debugger();
+#else
+	osd->sleep(10);
+#endif
+}
 
 // ----------------------------------------------------------------------------
 // debug log

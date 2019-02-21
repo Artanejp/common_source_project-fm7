@@ -22,7 +22,7 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
-#      i86.cpp
+      i286.cpp
       io.cpp
       memory.cpp
       event.cpp
@@ -41,7 +41,7 @@ set(VMFILES_LIB
       upd765a.cpp
       sn76489an.cpp
 )
-set(FLAG_USE_I86 ON)
+set(FLAG_USE_I86 OFF)
 
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger")
 include(detect_target_cpu)

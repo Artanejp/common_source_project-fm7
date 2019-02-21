@@ -1466,30 +1466,10 @@ void EMU::close_debugger()
 		now_debugging = false;
 	}
 }
-
+// Some functions move to emu.cpp . 20190221 K.O.
 bool EMU::is_debugger_enabled(int cpu_index)
 {
 	return (vm->get_cpu(cpu_index) != NULL && vm->get_cpu(cpu_index)->get_debugger() != NULL);
 }
-
-void EMU::start_waiting_in_debugger()
-{
-	now_waiting_in_debugger = true;
-	osd->mute_sound();
-	osd->start_waiting_in_debugger();
-}
-
-void EMU::finish_waiting_in_debugger()
-{
-	osd->finish_waiting_in_debugger();
-	now_waiting_in_debugger = false;
-}
-
-void EMU::process_waiting_in_debugger()
-{
-	osd->process_waiting_in_debugger();
-	osd->sleep(10);
-}
-
 #endif
 
