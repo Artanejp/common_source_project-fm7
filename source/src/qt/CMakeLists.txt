@@ -1,5 +1,5 @@
 message("* qt/osd")
-SET(THIS_LIB_VERSION 2.18.2)
+SET(THIS_LIB_VERSION 2.19.0)
 
 set(s_qt_osd_headers
 	osd_base.h
@@ -41,7 +41,7 @@ include (GenerateExportHeader)
 
 target_link_libraries(CSPosd PUBLIC
           ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a
-          ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPgui.dll.a
+#          ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPgui.dll.a
 #          ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libqt_avio.a
 	  Qt5::Core
 	  Qt5::Gui

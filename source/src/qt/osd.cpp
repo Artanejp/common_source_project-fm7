@@ -24,6 +24,7 @@ OSD::OSD(USING_FLAGS *p, CSP_Logger *logger) : OSD_BASE(p, logger)
 {
 	//p_config = using_flags->get_config_ptr();
 	p_config = &config;
+	p_glv = NULL;
 	set_features();
 }
 
@@ -1145,8 +1146,6 @@ void OSD::initialize(int rate, int samples, int* presented_rate, int* presented_
 	if(get_use_movie_player() || get_use_video_capture()) initialize_video();
 	if(get_use_socket()) initialize_socket();
 
-	connect(this, SIGNAL(sig_enable_mouse()), glv, SLOT(do_enable_mouse()));
-	connect(this, SIGNAL(sig_disable_mouse()), glv, SLOT(do_disable_mouse()));
 }
 
 void OSD::release()

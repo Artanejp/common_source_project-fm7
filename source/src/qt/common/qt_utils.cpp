@@ -351,6 +351,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hRunEmu, SIGNAL(sig_change_osd(int, int, QString)), driveData, SLOT(updateMessage(int, int, QString)));
 	connect(hRunEmu, SIGNAL(sig_change_access_lamp(int, int, QString)), driveData, SLOT(updateLabel(int, int, QString)));
 	connect(hRunEmu, SIGNAL(sig_set_access_lamp(int, bool)), graphicsView, SLOT(do_display_osd_leds(int, bool)));
+	connect(emu->get_osd(), SIGNAL(sig_enable_mouse()), glv, SLOT(do_enable_mouse()));
+	connect(emu->get_osd(), SIGNAL(sig_disable_mouse()), glv, SLOT(do_disable_mouse()));
 
 	hRunEmu->start();
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Launch done.");

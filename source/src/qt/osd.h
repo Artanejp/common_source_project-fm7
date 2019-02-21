@@ -39,6 +39,8 @@ private:
 	void set_features_misc(void);
 	void set_features_debug(void);
 protected:
+	GLDrawClass *p_glv;
+	
 	void vm_draw_screen(void);
 	Sint16* create_sound(int *extra_frames);
 	bool get_use_socket(void);
@@ -55,7 +57,9 @@ protected:
 	int get_screen_width(void);
 	int get_screen_height(void);
 	int get_vm_buttons_code(int num);
-
+	void initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode);
+	scrntype_t* get_buffer(bitmap_t *p, int y);
+	
 	void set_features(void);
 	void set_device_name(int id, char *name);
 	MOVIE_LOADER *movie_loader;
@@ -102,6 +106,12 @@ public:
 	void close_movie_file();
 	uint32_t get_cur_movie_frame();
 	int get_movie_sound_rate();
+
+	
+	int draw_screen();
+	bool set_glview(GLDrawClass *glv);
+	GLDrawClass *get_gl_view() { return p_glv; }
+	int add_video_frames();
 
 	// Misc
 	void reset_vm_node(void);

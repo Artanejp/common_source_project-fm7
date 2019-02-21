@@ -88,7 +88,7 @@ EMU::EMU()
 #if defined(OSD_QT)
 	osd = new OSD(p, csp_logger);
 	osd->main_window_handle = hwnd;
-	osd->glv = hinst;
+	//osd->p_glv = hinst;
 	osd->host_cpus = 4;
 #elif defined(OSD_WIN32)
 	osd = new OSD();

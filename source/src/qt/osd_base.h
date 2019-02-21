@@ -56,6 +56,7 @@
 
 //#include "qt_main.h"
 
+class GLDrawClass;
 class EmuThreadClass;
 class DrawThreadClass;
 class Ui_MainWindow;
@@ -66,7 +67,6 @@ class FILEIO;
 class CSP_KeyTables;
 class USING_FLAGS;
 class CSP_logger;
-class GLDrawClass;
 
 class QMutex;
 class QOpenGLContext;
@@ -95,7 +95,6 @@ protected:
 	USING_FLAGS *using_flags;
 	config_t *p_config;
 	CSP_Logger *p_logger;
-	GLDrawClass *p_glv;
 	
 	QOpenGLContext *glContext;
 	bool is_glcontext_shared;
@@ -119,7 +118,6 @@ protected:
 	void key_up_sub(int code);
 	CSP_KeyTables *key_table;
 	
-	scrntype_t *get_buffer(bitmap_t *p, int y);
 	bool dinput_key_ok;
 //	bool dinput_joy_ok;
 	
@@ -159,12 +157,13 @@ protected:
 	// screen
 	void initialize_screen();
 	void release_screen();
-	void initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode);
+	virtual void initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode);
 	void release_screen_buffer(bitmap_t *buffer);
 	void rotate_screen_buffer(bitmap_t *source, bitmap_t *dest);
+	virtual scrntype_t *get_buffer(bitmap_t *p, int y);
 	
 	void stretch_screen_buffer(bitmap_t *source, bitmap_t *dest);
-	int add_video_frames();
+	virtual int add_video_frames();
 	
 	bitmap_t vm_screen_buffer;
 	bitmap_t video_screen_buffer;
@@ -280,7 +279,6 @@ public:
 	VM_TEMPLATE* vm;
 	//EMU* emu;
 	class Ui_MainWindow *main_window_handle;
-	GLDrawClass *glv;
 	QMutex *screen_mutex;
 	QMutex *vm_mutex;
 	QMutex *debug_mutex;
@@ -493,9 +491,9 @@ public:
 
 	// Special
 	CSP_Logger *get_logger(void) { return p_logger; }
-	bool set_glview(GLDrawClass *glv);
+	virtual bool set_glview(GLDrawClass *glv) { /* Dummy */ return false;}
 	QOpenGLContext *get_gl_context();
-	GLDrawClass *get_gl_view();
+	virtual GLDrawClass *get_gl_view() { return NULL; }
 
 	// common debugger
 	void start_waiting_in_debugger();
@@ -515,7 +513,7 @@ public slots:
 	void do_video_movie_end(bool flag);
 	void do_video_decoding_error(int num);
 	virtual void do_run_movie_audio_callback(uint8_t *data, long len);
-	int draw_screen();
+	virtual int draw_screen();
 	int no_draw_screen();
 	void do_draw(bool flag);
 

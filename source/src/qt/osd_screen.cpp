@@ -16,7 +16,6 @@
 #include <QDateTime>
 #include <QImageReader>
 #include <QMutexLocker>
-#include <QOpenGLContext>
 
 #include "qt_gldraw.h"
 #include "osd_base.h"
@@ -83,59 +82,9 @@ scrntype_t* OSD_BASE::get_vm_screen_buffer(int y)
 	return get_buffer(&vm_screen_buffer, y);
 }
 
-scrntype_t* OSD_BASE::get_buffer(bitmap_t *p, int y)
-{
-	if(p_glv->is_ready_to_map_vram_texture()) {
-		if(p == &vm_screen_buffer) {
-			return (scrntype_t *)p->get_buffer(y);
-		}
-	}
-	if((y >= p->pImage.height()) || (y < 0) || (y >= p->height)) {
-		return NULL;
-	}
-	return (scrntype_t *)p->pImage.scanLine(y);
-}
-
-
 int OSD_BASE::draw_screen()
 {
-	// draw screen
-	QMutexLocker Locker_S(screen_mutex);
-	bool mapped = false;
-	//QMutexLocker Locker_VM(vm_mutex);
-	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
-		//emit sig_movie_set_width(vm_screen_width);
-		//emit sig_movie_set_height(vm_screen_height);
-		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
-	}
-	#if 1
-	if(p_glv->is_ready_to_map_vram_texture()) {
-		vm_screen_buffer.is_mapped = true;
-		mapped = true;
-		vm_screen_buffer.glv = p_glv;
-	} else {
-		vm_screen_buffer.is_mapped = false;
-	}
-	#else
-			vm_screen_buffer.is_mapped = false;
-	#endif
-	this->vm_draw_screen();
-	// screen size was changed in vm->draw_screen()
-	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
-		return 0;
-	}
-	draw_screen_buffer = &vm_screen_buffer;
-	
-	// calculate screen size
-	// invalidate window
-	emit sig_update_screen((void *)draw_screen_buffer, mapped);
-
-	first_draw_screen = self_invalidate = true;
-	
-	// record avi file
-	if(now_record_video) {
-		add_video_frames();
-	}
+	// Dummy.
 	return 1;
 }
 
@@ -145,6 +94,12 @@ int OSD_BASE::no_draw_screen()
 		add_video_frames();
 	}
 	return 1;
+}
+
+scrntype_t* OSD_BASE::get_buffer(bitmap_t *p, int y)
+{
+	// Dummy
+	return NULL;
 }
 
 void OSD_BASE::do_draw(bool flag)
@@ -170,6 +125,7 @@ void OSD_BASE::update_screen()
 
 void OSD_BASE::initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode)
 {
+	// Dummy
 	release_screen_buffer(buffer);
 	buffer->width = width;
 	buffer->height = height;
@@ -182,13 +138,9 @@ void OSD_BASE::initialize_screen_buffer(bitmap_t *buffer, int width, int height,
 	QColor fillcolor;
 	fillcolor.setRgb(0, 0, 0, 255);
 	buffer->pImage.fill(fillcolor);
-	buffer->glv = p_glv;
 	buffer->is_mapped = false;
-	//emit sig_movie_set_width(width);
-	//emit sig_movie_set_height(height);
-	emit sig_resize_vm_screen(&(buffer->pImage), width, height);
-}
 
+}
 void OSD_BASE::release_screen_buffer(bitmap_t *buffer)
 {
 	if(!(buffer->width == 0 && buffer->height == 0)) {
@@ -327,115 +279,9 @@ void OSD_BASE::set_buttons()
 
 int OSD_BASE::add_video_frames()
 {
-	//static double frames = 0;
-	//static int prev_video_fps = -1;
-	int counter = 0;
-	//static double prev_vm_fps = -1;
-	double vm_fps = vm_frame_rate();
-	int delta_ns = (int)(1.0e9 / vm_fps);
-	//if(rec_video_fps_nsec >= delta_ns) {
-	if(delta_ns == rec_video_fps_nsec) {
-		rec_video_nsec += delta_ns;
-		if(rec_video_nsec > (rec_video_fps_nsec * 2)) {
-			rec_video_nsec -= rec_video_fps_nsec;
-		} else if(rec_video_nsec < (rec_video_fps_nsec * -2)) {
-			rec_video_nsec += rec_video_fps_nsec;
-		}
-		while(rec_video_nsec > rec_video_fps_nsec) {
-			rec_video_nsec -= rec_video_fps_nsec;
-			counter++;
-		}
-	} else { // Will branch whether rec_video_fps_nsec >= delta_ns ?
-		rec_video_nsec += delta_ns;
-		if(rec_video_nsec > (rec_video_fps_nsec * 2)) {
-			rec_video_nsec -= rec_video_fps_nsec;
-		} else if(rec_video_nsec < (rec_video_fps_nsec * -2)) {
-			rec_video_nsec += rec_video_fps_nsec;
-		}
-		while(rec_video_nsec >= rec_video_fps_nsec) {
-			rec_video_nsec -= rec_video_fps_nsec;
-			counter++;
-		}
-	}
-	
-	if(using_flags->is_use_one_board_computer()) {
-		//int size = vm_screen_buffer.pImage.byteCount();
-		int i = counter;
-		rec_image_buffer = background_image.rgbSwapped();
-		if(p_glv->is_ready_to_map_vram_texture()) {
-			vm_screen_buffer.is_mapped = true;
-			vm_screen_buffer.glv = p_glv;
-			for(int y = 0; y < vm_screen_buffer.pImage.height(); y++) {
-				scrntype_t *p = vm_screen_buffer.get_buffer(y);
-				if(p != NULL) {
-					if(p != vm_screen_buffer.pImage.scanLine(y)) {
-						memcpy(vm_screen_buffer.pImage.scanLine(y), p, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
-					}
-				} else {
-					if(vm_screen_buffer.pImage.scanLine(y) != NULL) {
-						memset(vm_screen_buffer.pImage.scanLine(y), 0x00, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
-					}
-				}
-			}
-		}
-		QImage video_result = QImage(vm_screen_buffer.pImage);
-
-		QRgb pixel;
-		int ww = video_result.width();
-		int hh = video_result.height();
-		//printf("%d x %d\n", ww, hh);
-		for(int yy = 0; yy < hh; yy++) {
-			for(int xx = 0; xx < ww; xx++) {
-				pixel = video_result.pixel(xx, yy);
-#if defined(__LITTLE_ENDIAN__)
-				pixel |= 0xff000000;
-				if(pixel != 0xff000000) {
-					rec_image_buffer.setPixel(xx, yy, pixel);
-				}
-#else
-				pixel |= 0x000000ff;
-				if(pixel != 0x000000ff) {
-					rec_image_buffer.setPixel(xx, yy, pixel);
-				}
-#endif				
-			}
-		}
-		if(i > 0) {
-			// Enqueue to frame.
-			emit sig_enqueue_video(i, background_image.width(), background_image.height(), &rec_image_buffer);
-			//i--;
-		}
-	} else {
-		//int size = vm_screen_buffer.pImage.byteCount();
-		int i = counter;
-		if(p_glv->is_ready_to_map_vram_texture()) {
-			vm_screen_buffer.is_mapped = true;
-			vm_screen_buffer.glv = p_glv;
-			for(int y = 0; y < vm_screen_buffer.pImage.height(); y++) {
-				scrntype_t *p = vm_screen_buffer.get_buffer(y);
-				if(p != NULL) {
-					if(p != vm_screen_buffer.pImage.scanLine(y)) {
-						memcpy(vm_screen_buffer.pImage.scanLine(y), p, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
-					}
-				} else {
-					if(vm_screen_buffer.pImage.scanLine(y) != NULL) {
-						memset(vm_screen_buffer.pImage.scanLine(y), 0x00, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
-					}
-				}
-			}
-		}
-		QImage video_result = QImage(vm_screen_buffer.pImage);
-		// Rescaling
-		if(i > 0) {
-			// Enqueue to frame.
-			emit sig_enqueue_video(i, vm_screen_width, vm_screen_height, &video_result);
-			//i--;
-		}
-		debug_log(CSP_LOG_DEBUG2, CSP_LOG_TYPE_SCREEN,  "Push Video %d frames\n", counter);
-	}
-	return counter;
+	// Dummy
+	return 1;
 }
-
 
 //#ifdef USE_PRINTER
 void OSD_BASE::create_bitmap(bitmap_t *bitmap, int width, int height)
