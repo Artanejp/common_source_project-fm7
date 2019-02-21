@@ -71,25 +71,15 @@ endif()
 if(WIN32)
  
 find_package(Qt5Core)  
-  #if(USE_FMGEN)
-   #${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPosd/build-win32/qt/osd/libqt_osd.a
-   #${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a
-   #${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPavio/build-win32/qt/avio/libqt_avio.a
-   # ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPemu_utils/build-win32/qt/emuutils/libemu_utils.a
-   #${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a
-
-   #endif()
  target_link_libraries(${EXEC_TARGET}
  ${LOCAL_LIBS}
- ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a
- ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPosd.dll.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPgui.dll.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPavio.dll.a
-# ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/avio.dll.a
 
- ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPfmgen.dll.a
- ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libvm_common_vm.a
  #${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPcommon_vm.dll.a
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libvm_common_vm.a
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPfmgen.dll.a
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPosd.dll.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a
  ${BUNDLE_LIBS}
  -lpthread
