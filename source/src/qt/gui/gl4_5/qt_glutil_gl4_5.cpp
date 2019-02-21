@@ -1886,9 +1886,9 @@ bool GLDraw_4_5::map_vram_texture(void)
 	if(main_texture_buffer == 0) {
 		return false;
 	}
-	if(!(main_texture_ready)) {
-		return false;
-	}
+//	if(!(main_texture_ready)) {
+//		return false;
+//	}
 
 	if(gl_major_version < 4) {
 		return false;
@@ -1906,7 +1906,7 @@ bool GLDraw_4_5::map_vram_texture(void)
 	
 	//extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
 	map_base_address = (scrntype_t *)(extfunc->glMapNamedBufferRange(main_texture_buffer, 0, pixel_width * pixel_height * sizeof(scrntype_t),  GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT));
-	printf("%08x\n", map_base_address);
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SCREEN, "MAPPED SCREEN TO PHYSICAL ADDRESS:%0llx\n", (uintptr_t)map_base_address);
 	//extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	if(map_base_address == NULL) return false;
 	return true;
