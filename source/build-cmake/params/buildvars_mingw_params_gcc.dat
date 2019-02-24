@@ -86,10 +86,17 @@ case ${USE_STACK_PROTECTION} in
            ;;
 esac	
 
+if [ -n "${LTO_THREADS}" ] ;  then 
+   LTO_FLAGS="-flto=${LTO_THREADS} -flto-compression-level=9 ${LTO_FLAGS}"
+   LTO_FLAGS2="-flto -ffat-lto-objects"
+else
+   LTO_FLAGS=""
+   LTO_FLAGS2=""
+fi
 case ${USE_LTO} in
    "Yes" | "yes" | "YES" )
-       MAKEFLAGS_LINK_BASE="-flto=${LTO_THREADS} ${LTO_FLAGS} ${MAKEFLAGS_BASE2}"
-       MAKEFLAGS_BASE2="-flto -ffat-lto-objects ${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_LINK_BASE="${LTO_FLAGS} ${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_BASE2="${LTO_FLAGS2} ${MAKEFLAGS_BASE2}"
        ;;
    "No" | "no" | "NO" | * )
        MAKEFLAGS_LINK_BASE="${MAKEFLAGS_BASE2}"
