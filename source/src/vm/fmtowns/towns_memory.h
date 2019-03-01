@@ -255,7 +255,7 @@ public:
 	{
 		machine_id = val & 0xfff8;
 	}
-	void set_context_cpu_id(uint16_t val)
+	void set_cpu_id(uint16_t val)
 	{
 		cpu_id = val & 0x07;
 	}

@@ -14,7 +14,6 @@
 #include "../device.h"
 #include "../event.h"
 
-#include "towns_crtc.h"
 //#include "../hd46505.h"
 #include "../i8251.h"
 #include "../i8253.h"
@@ -30,21 +29,21 @@
 #include "../scsi_host.h"
 #include "../upd71071.h"
 
+#include "towns_crtc.h"
 // Electric Volume
 //#include "mb87078.h"
 //YM-2612 "OPN2"
 //#include "../ym2612.h"
 //RF5C68 PCM
-//#include "rp5c68.h"
+#include "rp5c68.h"
 //AD7820 ADC
-//#include "ad7820.h"
+#include "ad7820.h"
 // 80387?
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
 #endif
 
-#include "bios.h"
 #include "cmos.h"
 #include "floppy.h"
 #include "keyboard.h"
@@ -76,36 +75,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	80386SX		0x03
 	80486		0x02
 */
-	static const int cpu_clock[] = {
-#if defined(HAS_I386)
-		16000000, 20000000
-#elif defined(HAS_I486)
-		20000000, 25000000
-#endif
-	};
-	
-#if defined(_FMR60) && (defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM))
-	uint8_t machine_id = 0xf0;	// FMR-70/80
-#else
-	uint8_t machine_id = 0xf8;	// FMR-50/60
-#endif
-	
-	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(create_local_path(_T("MACHINE.ID")), FILEIO_READ_BINARY)) {
-		machine_id = fio->Fgetc();
-		fio->Fclose();
-	}
-	delete fio;
-	
-	machine_id &= ~7;
-#if defined(HAS_I286)
-	machine_id |= 0;	// 286
-#elif defined(HAS_I386)
-//	machine_id |= 1;	// 386DX
-	machine_id |= 3;	// 386SX
-#elif defined(HAS_I486)
-	machine_id |= 2;	// 486SX/DX
-#endif
 	
 	// create devices
 	first_device = last_device = NULL;
@@ -127,33 +96,41 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
   #endif
 #endif	
 
-	crtc = new TOWNS_CRTC(this, emu);
+	io = new IO(this, emu);
 	
-#if defined(_USE_QT)
-	crtc->set_device_name(_T("TOWNS CRTC"));
+	crtc = new TOWNS_CRTC(this, emu);
+	cdc  = new CDC(this, emu);
+	cdc_scsi = new SCSI_HOST(this, emu);
+	cdrom = new TOWNS_CDROM(this, emu);
+
+	memory = new TOWNS_MEMORY(this, emu);
+	vram = new TOWNS_VRAM(this, emu);
+	sprite = new TOWNS_SPRITE(this, emu);
+	sysrom = new SYSROM(this, emu);
+	msdosrom = new MSDOSROM(this, emu);
+	fontrom = new FONT_ROM(this, emu);
+	dictionary = new DICTIONARY(this, emu);
+#if defined(HAS_20PIX_FONTS)
+	fontrom_20pix = new FONT_ROM_20PIX(this, emu);
 #endif
+	serialrom = new SERIAL_ROM(this, emu);
+
+	adc = new AD7820KR(this, emu);
+	adpcm = new RF5C68(this, emu);
+	e_volume[0] = new MB87878(this, emu);
+	e_volume[1] = new MB87878(this, emu);
 	
 	sio = new I8251(this, emu);
 	pit0 = new I8253(this, emu);
 	pit1 = new I8253(this, emu);
 	pic = new I8259(this, emu);
-	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);
 	rtc = new MSM58321(this, emu);
-	pcm = new PCM1BIT(this, emu);
-#if defined(_USE_QT)	
-	sio->set_device_name(_T("i8251 SIO"));
-	pit0->set_device_name(_T("i8253 PIT #0"));
-	pit1->set_device_name(_T("i8253 PIT #1"));
-	pic->set_device_name(_T("i8259 PIC"));
-	rtc->set_device_name(_T("MSM58321 RTC"));
-	pcm->set_device_name(_T("PCM SOUND"));
-#endif
+	beep = new PCM1BIT(this, emu);
+	opn2 = new YM2612(this, emu);
 	
 	scsi_host = new SCSI_HOST(this, emu);
-#if defined(_USE_QT)	
 	scsi_host->set_device_name(_T("SCSI HOST"));
-#endif	
 	for(int i = 0; i < 7; i++) {
 		if(FILEIO::IsFileExisting(create_local_path(_T("SCSI%d.DAT"), i))) {
 			SCSI_HDD* scsi_hdd = new SCSI_HDD(this, emu);
@@ -168,42 +145,84 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		}
 	}
 	dma = new UPD71071(this, emu);
-#if defined(_USE_QT)	
-	dma->set_device_name(_T("uPD71071 DMAC"));
-#endif	
-	if(FILEIO::IsFileExisting(create_local_path(_T("IPL.ROM")))) {
-		bios = NULL;
-	} else {
-		bios = new BIOS(this, emu);
-#if defined(_USE_QT)
-		bios->set_device_name(_T("PSEUDO BIOS"));
-#endif
-	}
-	cmos = new CMOS(this, emu);
+	extra_dma = new UPD71071(this, emu);
+
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new MEMORY(this, emu);
+	memory = new TOWNS_MEMORY(this, emu);
 	scsi = new SCSI(this, emu);
-//	serial = new SERIAL(this, emu);
 	timer = new TIMER(this, emu);
-#if defined(_USE_QT)
-	cmos->set_device_name(_T("CMOS RAM"));
-	floppy->set_device_name(_T("FLOPPY I/F"));
-	keyboard->set_device_name(_T("KEYBOARD"));
-	memory->set_device_name(_T("MEMORY"));
-	scsi->set_device_name(_T("SCSI I/F"));
-	//serial->set_device_name(_T("SERIAL I/F"));
-	timer->set_device_name(_T("TIMER I/F"));
+	
+	uint16_t machine_id = 0x0100; // FM-Towns1
+	uint16_t cpu_id = 0x0001;     // i386DX
+	uint32_t cpu_clock = 16000 * 1000; // 16MHz
+#if defined(_FMTOWNS1_2ND_GEN)
+	machine_id = 0x0200;   // 1F/2F/1H/2H
+#elif defined(_FMTOWNS_UX_VARIANTS)
+	machine_id = 0x0300;   // UX10/20/40
+	cpu_id = 0x0003;       // i386SX
+#elif defined(_FMTOWNS1_3RD_GEN)
+	machine_id = 0x0400;  // 10F/20F.40H/80H
+#elif defined(_FMTOWNS2_CX_VARIANTS)
+	machine_id = 0x0500;  // CX10/20/30/40
+#elif defined(_FMTOWNS_UG_VARIANTS)
+	machine_id = 0x0600;  // UG10/20/40/80
+	cpu_id = 0x0003;      // i386SX
+	cpu_clock = 20000 * 1000; // 20MHz
+#elif defined(_FMTOWNS_HR_VARIANTS)
+	machine_id = 0x0700;
+	cpu_id = 0x0002;      // i486SX
+	cpu_clock = 20000 * 1000; // 20MHz
+#elif defined(_FMTOWNS_HG_VARIANTS)
+	machine_id = 0x0800;
+	cpu_clock = 20000 * 1000; // 20MHz
+#elif defined(_FMTOWNS_SG_VARIANTS)
+	machine_id = 0x0800; // OK?
+#elif defined(_FMTOWNS_SR_VARIANTS)
+	machine_id = 0x0700; // OK?
+	cpu_id = 0x0002;      // i486SX
+	cpu_clock = 20000 * 1000; // 20MHz
+#elif defined(_FMTOWNS_MA_VARIANTS)
+	machine_id = 0x0b00; // OK?
+	cpu_id = 0x0002;      // i486SX
+	cpu_clock = 33000 * 1000; // 33MHz
+#elif defined(_FMTOWNS_ME_VARIANTS)
+	machine_id = 0x0d00; // OK?
+	cpu_id = 0x0002;      // i486SX
+	cpu_clock = 25000 * 1000; // 25MHz
+#elif defined(_FMTOWNS_MF_VARIANTS)
+	machine_id = 0x0f00; // OK?
+	cpu_id = 0x0002;      // i486SX
+	cpu_clock = 33000 * 1000; // 33MHz
+#elif defined(_FMTOWNS_MX_VARIANTS)
+	machine_id = 0x0c00; // OK?
+	cpu_id = 0x0002;      // i486DX (With FPU?)
+	cpu_clock = 66000 * 1000; // 66MHz
+#elif defined(_FMTOWNS_MX_VARIANTS)
+	machine_id = 0x0c00; // OK?
+	cpu_id = 0x0002;      // i486DX (With FPU?)
+	cpu_clock = 66000 * 1000; // 66MHz
+#else
+	// ToDo: Pentium Model (After HB).
+
+
 #endif
+	set_machine_type(machine_id, cpu_id);
 	
 	// set contexts
-	event->set_context_cpu(cpu, cpu_clock[config.cpu_type & 1]);
-	event->set_context_sound(pcm);
-#if defined(USE_SOUND_FILES)
+	event->set_context_cpu(cpu, cpu_clock);
+	event->set_context_sound(beep);
+	event->set_context_sound(opn2);
+	event->set_context_sound(adpcm);
+	event->set_context_sound(cdc);
+	//event->set_context_sound_in(cdc);
+	//event->set_context_sound_in(line_in);
+	//event->set_context_sound_in(mic);
+	//event->set_context_sound_in(modem);
+
 	if(fdc->load_sound_data(MB8877_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
 		event->set_context_sound(fdc);
 	}
-#endif
 	
 /*	pic	0	timer
 		1	keyboard
@@ -214,27 +233,32 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		6	floppy drive or dma ???
 		7	(slave)
 		8	scsi
-		9	(option)
+		9	cd-rom controller
 		10	(option)
-		11	(option)
+		11	crtc vsync
 		12	printer
-		13	(option)
+		13	sound (OPN2 + ADPCM)
 		14	(option)
 		15	(reserve)
-
+	nmi 0   keyboard (RAS)
+        1   extend slot
 	dma	0	floppy drive
 		1	hard drive
-		2	(option)
-		3	(reserve)
+		2	printer
+		3	cd-rom controller
+    dma 4   extend slot
+        5   (reserve)
+        6   (reserve)
+        7   (reserve)
+
+
 */
-	crtc->set_context_disp(memory, SIG_MEMORY_DISP, 1);
-	crtc->set_context_vsync(memory, SIG_MEMORY_VSYNC, 1);
-#ifdef _FMR60
-	acrtc->set_vram_ptr((uint16_t*)memory->get_vram(), 0x80000);
-#endif
+	
+	
+	
 	pit0->set_context_ch0(timer, SIG_TIMER_CH0, 1);
 	pit0->set_context_ch1(timer, SIG_TIMER_CH1, 1);
-	pit0->set_context_ch2(pcm, SIG_PCM1BIT_SIGNAL, 1);
+	pit0->set_context_ch2(beep, SIG_PCM1BIT_SIGNAL, 1);
 	pit0->set_constant_clock(0, 307200);
 	pit0->set_constant_clock(1, 307200);
 	pit0->set_constant_clock(2, 307200);
@@ -249,18 +273,54 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
 	dma->set_context_ch1(scsi_host);
+	//dma->set_context_ch2(printer);
+	dma->set_context_ch3(cdc);
+	dma->set_context_child_dma(extra_dma);
 	
 	floppy->set_context_fdc(fdc);
 	floppy->set_context_pic(pic);
 	keyboard->set_context_pic(pic);
+	
+	sprite->set_context_vram(vram);
+
+	//e_volume[0]->set_context_ch0(line_in, MB87878_VOLUME_LEFT);
+	//e_volume[0]->set_context_ch1(line_in, MB87878_VOLUME_RIGHT);
+	//e_volume[0]->set_context_ch2(NULL, MB87878_VOLUME_LEFT);
+	//e_volume[0]->set_context_ch3(NULL, MB87878_VOLUME_RIGHT);
+	e_volume[1]->set_context_ch0(cdc, MB87878_VOLUME_LEFT);
+	e_volume[1]->set_context_ch1(cdc, MB87878_VOLUME_RIGHT);
+	//e_volume[1]->set_context_ch2(mic, MB87878_VOLUME_LEFT | MB87878_VOLUME_RIGHT);
+	//e_volume[1]->set_context_ch3(modem, MB87878_VOLUME_LEFT | MB87878_VOLUME_RIGHT);
+	
+	memory->set_context_vram(vram);
+	memory->set_context_rom(sys_rom);
+	memory->set_context_msdos(msdos_rom);
+	memory->set_context_dictionary(dict_rom);
+	memory->set_context_beep(beep);
+	memory->set_context_serial_rom(serial_rom);
+	memory->set_context_sprite(sprite);
+	memory->set_context_machine_id(machine_id);
+	memory->set_context_cpu_id(cpu_id);
 	memory->set_context_cpu(cpu);
-	memory->set_machine_id(machine_id);
-	memory->set_context_crtc(crtc);
-	memory->set_chregs_ptr(crtc->get_regs());
+
+	cdc->set_context_cdrom(cdrom);
+	cdc->set_context_scsi_host(cdc_scsi);
+	cdc->set_context_drq(dma, SIG_UPD71071_CH3, 0xff);
+	cdc->set_context_pic(pic, SIG_I8259_CHIP1 | SIG_I8259_IR1);
+	
+	crtc->set_context_vsync(pic, SIG_I8259_CHIP1 | SIG_I8259_IR3); // VSYNC
+	sound->set_context_pic(pic, SIG_I8259_CHIP1 | SIG_I8259_IR5); // ADPCM AND OPN2
+	sound->set_context_opn2(opn2);
+	sound->set_context_adpcm(adpcm);
+	sound->set_context_adc(adc);
+
+	
+	
+	
 	scsi->set_context_dma(dma);
 	scsi->set_context_pic(pic);
 	scsi->set_context_host(scsi_host);
-	timer->set_context_pcm(pcm);
+	timer->set_context_pcm(beep);
 	timer->set_context_pic(pic);
 	timer->set_context_rtc(rtc);
 	
@@ -268,25 +328,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
 	cpu->set_context_intr(pic);
-	if(bios) {
-		bios->set_context_mem(memory);
-		bios->set_context_io(io);
-		bios->set_cmos_ptr(cmos->get_cmos());
-		bios->set_vram_ptr(memory->get_vram());
-		bios->set_cvram_ptr(memory->get_cvram());
-#ifdef _FMR60
-		bios->set_avram_ptr(memory->get_avram());
-#else
-		bios->set_kvram_ptr(memory->get_kvram());
-#endif
-		cpu->set_context_bios(bios);
-	}
-#ifdef SINGLE_MODE_DMA
 	cpu->set_context_dma(dma);
-#endif
+
+
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
+
 	
 	// i/o bus
 	io->set_iomap_alias_rw(0x00, pic, I8259_ADDR_CHIP0 | 0);
@@ -295,11 +343,17 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x12, pic, I8259_ADDR_CHIP1 | 1);
 	io->set_iomap_single_rw(0x20, memory);	// reset
 	io->set_iomap_single_r(0x21, memory);	// cpu misc
-	io->set_iomap_single_w(0x22, memory);	// dma
-	io->set_iomap_single_rw(0x24, memory);	// dma
-	io->set_iomap_single_r(0x26, timer);
-	io->set_iomap_single_r(0x27, timer);
+	io->set_iomap_single_w(0x22, memory);	// power
+	//io->set_iomap_single_rw(0x24, memory);	// dma
+	io->set_iomap_single_r(0x25, memory);	// cpu_misc4 (after Towns2)
+	//io->set_iomap_single_r(0x26, timer);
+	//io->set_iomap_single_r(0x27, timer);
+	io->set_iomap_single_r(0x28, memory);   // NMI MASK (after Towns2)
 	io->set_iomap_single_r(0x30, memory);	// cpu id
+	io->set_iomap_single_r(0x31, memory);	// cpu id
+	
+	io->set_iomap_single_rw(0x32, serial_rom);	// serial rom
+
 	io->set_iomap_alias_rw(0x40, pit0, 0);
 	io->set_iomap_alias_rw(0x42, pit0, 1);
 	io->set_iomap_alias_rw(0x44, pit0, 2);
@@ -308,56 +362,138 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x52, pit1, 1);
 	io->set_iomap_alias_rw(0x54, pit1, 2);
 	io->set_iomap_alias_rw(0x56, pit1, 3);
+	
 	io->set_iomap_single_rw(0x60, timer);
+	io->set_iomap_single_rw(0x68, timer); // Interval timer register2 (after Towns 10F).
+	io->set_iomap_single_rw(0x6a, timer); // Interval timer register2 (after Towns 10F).
+	io->set_iomap_single_rw(0x6b, timer); // Interval timer register2 (after Towns 10F).
+	io->set_iomap_single_rw(0x6c, memory); // 1uS wait register (after Towns 10F).
+	
 	io->set_iomap_single_rw(0x70, timer);
 	io->set_iomap_single_w(0x80, timer);
-#ifdef _FMRCARD
-	io->set_iomap_single_w(0x90, cmos);
-#endif
+	
 	io->set_iomap_range_rw(0xa0, 0xaf, dma);
+	io->set_iomap_range_rw(0xb0, 0xbf, extra_dma);
+	
 	io->set_iomap_alias_rw(0x200, fdc, 0);
 	io->set_iomap_alias_rw(0x202, fdc, 1);
 	io->set_iomap_alias_rw(0x204, fdc, 2);
 	io->set_iomap_alias_rw(0x206, fdc, 3);
 	io->set_iomap_single_rw(0x208, floppy);
 	io->set_iomap_single_rw(0x20c, floppy);
-	io->set_iomap_single_rw(0x400, memory);	// crtc
-	io->set_iomap_single_rw(0x402, memory);	// crtc
-	io->set_iomap_single_rw(0x404, memory);	// crtc
-	io->set_iomap_single_w(0x408, memory);	// crtc
-	io->set_iomap_single_rw(0x40a, memory);	// crtc
-	io->set_iomap_single_rw(0x40c, memory);	// crtc
-	io->set_iomap_single_rw(0x40e, memory);	// crtc
-	io->set_iomap_alias_rw(0x500, crtc, 0);
-	io->set_iomap_alias_rw(0x502, crtc, 1);
-#ifdef _FMR60
-	io->set_iomap_range_rw(0x520, 0x523, acrtc);
-#endif
+	io->set_iomap_single_rw(0x20e, floppy); // Towns drive SW
+	
+	io->set_iomap_single_rw(0x400, memory);	// System Status
+	//io->set_iomap_single_rw(0x402, memory);
+	io->set_iomap_single_rw(0x404, memory);	// System status
+	
+	io->set_iomap_range_rw(0x440, 0x443, crtc); // CRTC
+	io->set_iomap_range_rw(0x448, 0x44c, vram); // 
+	io->set_iomap_single_rw(0x450, sprite); //
+	io->set_iomap_single_rw(0x452, sprite); //
+	
+	io->set_iomap_range_rw(0x458, 0x45f, vram); // CRTC
+	
+	io->set_iomap_single_rw(0x480, memory); //
+	io->set_iomap_single_rw(0x484, memory); // Dictionary
+	//io->set_iomap_alias_r(0x48a, memory_card, 0); //
+	//io->set_iomap_alias_rw(0x490, memory_card); // After Towns2
+	//io->set_iomap_alias_rw(0x491, memory_card); // After Towns2
+	
+	io->set_iomap_range_rw(0x4c0, 0x4cf, cdc); // CDROM
+	// PAD, Sound
+	io->set_iomap_alias_r(0x4d0, pad, 0); // Pad1
+	io->set_iomap_alias_r(0x4d2, pad, 1); // Pad 2
+	io->set_iomap_alias_rw(0x4d5, sound, 0); // mute 
+	io->set_iomap_alias_w(0x4d6, pad, 3); // Pad out
+	
+	// OPN2(YM2612)
+	io->set_iomap_alias_rw(0x4d8, opn2, 0); // STATUS(R)/Addrreg 0(W)
+	io->set_iomap_alias_w(0x4da, opn2, 1);  // Datareg 0(W)
+	io->set_iomap_alias_w(0x4dc, opn2, 2);  // Addrreg 1(W)
+	io->set_iomap_alias_w(0x4de, opn2, 3);  // Datareg 1(W)
+	// Electrical volume
+	io->set_iomap_alias_rw(0x4e0, e_volume[0], 0);
+	io->set_iomap_alias_rw(0x4e1, e_volume[0], 1);
+	io->set_iomap_alias_rw(0x4e2, e_volume[1], 0);
+	io->set_iomap_alias_rw(0x4e3, e_volume[1], 1);
+
+	// ADPCM
+	io->set_iomap_single_w(0x4e7, 0x4ff, adpcm); // 
+
+	io->set_iomap_single_rw(0x5c0, memory); // NMI MASK
+	io->set_iomap_single_r(0x5c2, memory);  // NMI STATUS
+	io->set_iomap_single_r(0x5c8, vram); // TVRAM EMULATION
+	io->set_iomap_single_w(0x5ca, vram); // VSYNC INTERRUPT
+	
+	io->set_iomap_single_r(0x5e8, memory); // RAM capacity register.(later Towns1H/2H/1F/2F).
+	io->set_iomap_single_r(0x5ec, memory); // RAM Wait register , ofcially after Towns2, but exists after Towns1H.
+	
 	io->set_iomap_single_rw(0x600, keyboard);
 	io->set_iomap_single_rw(0x602, keyboard);
 	io->set_iomap_single_rw(0x604, keyboard);
+	//io->set_iomap_single_r(0x606, keyboard); // BufFul (After Towns2)
+
+	//io->set_iomap_single_rw(0x800, printer);
+	//io->set_iomap_single_rw(0x802, printer);
+	//io->set_iomap_single_rw(0x804, printer);
+	
 	io->set_iomap_alias_rw(0xa00, sio, 0);
 	io->set_iomap_alias_rw(0xa02, sio, 1);
 //	io->set_iomap_single_r(0xa04, serial);
 //	io->set_iomap_single_r(0xa06, serial);
 //	io->set_iomap_single_w(0xa08, serial);
+//	io->set_iomap_single_rw(0xa0a, modem);
+	
 	io->set_iomap_single_rw(0xc30, scsi);
 	io->set_iomap_single_rw(0xc32, scsi);
-	io->set_iomap_range_rw(0x3000, 0x3fff, cmos);
-	io->set_iomap_range_rw(0xfd98, 0xfd9f, memory);	// crtc
-	io->set_iomap_single_rw(0xfda0, memory);	// crtc
+
 	
+	io->set_iomap_range_rw(0x3000, 0x3fff, memory); // CMOS
+	io->set_iomap_range_rw(0xfd90, 0xfda0, vram);	// Palette and CRTC
+
+	// Vram allocation may be before initialize().
+	bool alloc_failed = false;
+	for(int bank = 0; bank < 2; bank++) {
+		if(alloc_failed) break;
+		for(int layer = 0; layer < 2; layer++) {
+			d_renderbuffer[bank][layer] = NULL;
+			renderbuffer_size[bank][layer] = 0;
+			
+			uint32_t initial_width = 640;
+			uint32_t initial_height = 480;
+			uint32_t initial_stride = 640;
+			uint32_t __size = initial_stride * initial_height * sizeof(scrntype_t);
+			scrntype_t *p = (scrntype_t*)malloc(__size);
+			if(p == NULL) {
+				alloc_faled = true;
+				break;
+			} else {
+				memset(p, 0x00, __size);
+				renderbuffer_size[bank][layer] = __size;
+				d_renderbuffer[bank][layer] = p;
+				d_vram->set_context_renderbuffer(p, layer, bank, width, height, stride);
+			}
+		}
+	}
+	if(alloc_failed) {
+		for(int bank = 0; bank < 2; bank++) {
+			for(int layer = 0; layer < 2; layer++) {
+				renderbuffer_size[bank][layer] = 0;
+				if(d_renderbuffer[bank][layer] != NULL) {
+					free((void *)(d_renderbuffer[bank][layer]));
+				}
+				d_renderbuffer[bank][layer] = NULL;
+				d_vram->set_context_renderbuffer(NULL, layer, bank, 0, 0, 0);
+			}
+		}
+	}
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
 #endif
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
-	}
-	if(bios) {
-		for(int i = 0; i < MAX_DRIVE; i++) {
-			bios->set_disk_handler(i, fdc->get_disk_handler(i));
-		}
 	}
 }
 
@@ -381,6 +517,58 @@ DEVICE* VM::get_device(int id)
 	}
 	return NULL;
 }
+
+void VM::set_machine_type(uint16_t machine_id, uint16_t cpu_id)
+{
+	if(memory != NULL) {
+		memory->set_cpu_id(cpu_id);
+		memory->set_machine_id(machine_id);
+	}
+	if(vram != NULL) {
+		vram->set_cpu_id(cpu_id);
+		vram->set_machine_id(machine_id);
+	}
+	if(sprite != NULL) {
+		sprite->set_cpu_id(cpu_id);
+		sprite->set_machine_id(machine_id);
+	}
+	if(sys_rom != NULL) {
+		sysrom->set_cpu_id(cpu_id);
+		sysrom->set_machine_id(machine_id);
+	}
+	if(msdos_rom != NULL) {
+		msdosrom->set_cpu_id(cpu_id);
+		msdosrom->set_machine_id(machine_id);
+	}
+	if(dictinoary != NULL) {
+		dictionary->set_cpu_id(cpu_id);
+		dictionary->set_machine_id(machine_id);
+	}
+	if(fontrom != NULL) {
+		fontrom->set_cpu_id(cpu_id);
+		fontrom->set_machine_id(machine_id);
+	}
+	if(serialrom != NULL) {
+		serialrom->set_cpu_id(cpu_id);
+		serialrom->set_machine_id(machine_id);
+	}
+	if(crtc != NULL) {
+		crtc->set_cpu_id(cpu_id);
+		crtc->set_machine_id(machine_id);
+	}
+	if(cdc != NULL) {
+		cdc->set_cpu_id(cpu_id);
+		cdc->set_machine_id(machine_id);
+	}
+#if defined(HAS_20PIX_FONTS)
+	if(fontrom_20pix != NULL) {
+		fontrom_20pix->set_cpu_id(cpu_id);
+		fontrom_20pix->set_machine_id(machine_id);
+	}
+#endif
+	
+}		
+
 
 // ----------------------------------------------------------------------------
 // drive virtual machine
@@ -441,7 +629,7 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	pcm->initialize_sound(rate, 8000);
+	beep->initialize_sound(rate, 8000);
 }
 
 uint16_t* VM::create_sound(int* extra_frames)
@@ -454,17 +642,131 @@ int VM::get_sound_buffer_ptr()
 	return event->get_sound_buffer_ptr();
 }
 
+// ToDo: Sound IN as double buffer.
+bool VM::clear_sound_in()
+{
+	bool f = false;
+	sound_in_buf_bank = !sound_in_buf_bank;
+	lock_soundbuf();
+	
+	sound_in_buf = sound_in_buf_pool[(sound_in_buf_bank) ? 1 : 0];
+	if(sound_in_buf != NULL) {
+		memset(sound_in_buf, 0x00, sound_in_bufsize * 2 * sizeof(int32_t));
+		f = true;
+	} else {
+		f = false;
+	}
+	for(int ch = 0; ch < 4; ch++) {
+		sound_in_bufptr[ch] = 0;
+	}
+	sound_in_outptr = 0;
+	unlock_soundbuf();
+	return f;
+}
+
+void VM::initialize_sample_in_buf(int samples)
+{
+	sound_in_bufsize = 0;
+	sound_in_buf =  NULL;
+	if(samples <= 0) return;
+	
+	sound_in_bufsize = samples;
+	sound_in_buf_pool = (int32_t*)malloc(samples * sizeof(int32_t) * 2);
+
+}
+
+int VM::get_samples_in_buf(int ch, int32* dst, int samples)
+{
+	bool over = false;
+	if(samples <= 0) return 0;
+	if(samples >= sound_in_bufsize) return 0;
+	if((sound_in_outptr + samples) >= sound_in_bufsize) {
+		samples = sound_in_bufsize - sound_in_outptr;
+		over = true;
+	}
+	lock_soundbuf();
+	memcpy(dst, &(sound_in_buf[sound_in_outptr << 1]), samples * sizeof(int32_t) * 2);
+	unlock_soundbuf();
+		
+	return samples;
+}
+
+int VM::get_samples_length_sound_in()
+{
+	return sound_in_bufsize;
+}
+
+int VM::sound_in(int ch, int32* src, int samples)
+{
+	if(ch < 0) return 0;
+	if(ch >= 4) return 0;
+	int left = samples;
+	int np = sound_in_bufptr[ch];
+	int sp = 0;
+	for(;left > 0; left--) {
+		if(np  >= (sound_in_bufsize << 1)) break;
+		lock_soundbuf();
+		sound_in_buf[np + 0] = sound_in_buf[np + 0] + src[sp + 0];
+		sound_in_buf[np + 1] = sound_in_buf[np + 1] + src[sp + 1];
+		if(sound_in_buf[np + 0] > 32767) sound_in_buf[np + 0] = 32767;
+		if(sound_in_buf[np + 0] < -32768) sound_in_buf[np + 0] = -32768;
+		if(sound_in_buf[np + 1] > 32767) sound_in_buf[np + 1] = 32767;
+		if(sound_in_buf[np + 1] < -32768) sound_in_buf[np + 1] = -32768;
+		unlock_soundbuf();
+		np = np + 2;
+		sp = sp + 2;
+	}
+	return left;
+}
+
 #ifdef USE_SOUND_VOLUME
 void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 {
-	if(ch == 0) {
-		pcm->set_volume(0, decibel_l, decibel_r);
+#ifndef HAS_LINEIN_SOUND
+	if(ch >= 4) ch++;
+#endif
+#ifndef HAS_MIC_SOUND
+	if(ch >= 5) ch++;
+#endif
+#ifndef HAS_MODEM_SOUND
+	if(ch >= 6) ch++;
+#endif
+#ifndef HAS_2ND_ADPCM
+	if(ch >= 7) ch++;
+#endif
+	if(ch == 0) { // BEEP
+		beep->set_volume(0, decibel_l, decibel_r);
 	}
-#if defined(USE_SOUND_FILES)
-	else if(ch == 1) {
+	else if(ch == 1) { // CD-ROM
+		e_volume[1]->set_volume(0, decibel_l);
+		e_volume[1]->set_volume(1, decibel_r);
+	}
+	else if(ch == 2) { // OPN2
+		opn2->set_volume(0, decibel_l, decibel_r);
+	}
+	else if(ch == 3) { // ADPCM
+		adpcm->set_volume(0, decibel_l, decibel_r);
+	}
+	else if(ch == 4) { // LINE IN
+		e_volume[0]->set_volume(0, decibel_l);
+		e_volume[0]->set_volume(1, decibel_r);
+	} 
+	else if(ch == 5) { // MIC
+		e_volume[1]->set_volume(2, (decibel_l + decibel_r) / 2);
+	} 
+	else if(ch == 6) { // MODEM
+		e_volume[1]->set_volume(2, (decibel_l + decibel_r) / 2);
+	}
+	else if(ch == 7) { // ADPCM
+		adpcm2->set_volume(0, decibel_l, decibel_r);
+	}
+	else if(ch == 8) { // FDD
 		fdc->set_volume(0, decibel_l, decibel_r);
 	}
-#endif
+	else if(ch == 9) { // HDD(ToDo)
+		fdc->set_volume(0, decibel_l, decibel_r);
+	}	
+
 }
 #endif
 

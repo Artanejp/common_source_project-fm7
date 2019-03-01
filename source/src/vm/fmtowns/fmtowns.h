@@ -198,13 +198,14 @@ protected:
 	MB8877*   fdc;
 	MSM58321* rtc;
 	UPD71071* dma;
+	UPD71071* extra_dma;
 	RF5C68*   dac;
 	MB87078*  e_volumes;
 	AD7820KR* adc;
+	RF5C68*   adpcm;
+	PCM1BIT*  beep;
 	
-	FMTOWNS::ADPCM*          adpcm;
 	FMTOWNS::TOWNS_CRTC*     crtc;
-	FMTOWNS::SPRITE*         sprite;
 	FMTOWNS::FLOPPY*         floppy;
 	FMTOWNS::KEYBOARD*       keyboard;
 	FMTOWNS::TIMER*          timer;
@@ -214,7 +215,7 @@ protected:
 	FMTOWNS::SYSROM*         sysrom;
 	FMTOWNS::MSDOSROM*       msdosrom;
 	FMTOWNS::FONT_ROMS*      fontrom;
-#if defined(HAS_20PIX_FONTS)
+if defined(HAS_20PIX_FONTS)
 	FMTOWNS::FONT_ROM_20PIX* fontrom_20pix;
 #endif
 	FMTOWNS::SERIAL_ROM*     serialrom;
@@ -225,7 +226,9 @@ protected:
 	FMTOWNS::SCSI* scsi;
 	SCSI_HOST*     scsi_host;
 	SCSI_HDD*      hdd[4]; // 
-	
+
+	scrntype_t *d_renderbuffer[2][2]; // [bank][layer]
+	uint32_t renderbuffer_size[2][2];
 public:
 	// ----------------------------------------
 	// initialize

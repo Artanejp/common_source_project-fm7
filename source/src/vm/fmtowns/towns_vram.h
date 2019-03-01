@@ -14,6 +14,9 @@
 #include "../vm.h"
 #include "../emu.h"
 #include "device.h"
+#if defined(_USE_QT)
+#include <QMutex>
+#endif
 
 // Older Towns.
 #define TOWNS_VRAM_ADDR_MASK 0x7ffff
@@ -42,13 +45,19 @@ protected:
 	scrntype_t *framebuffer0[2]; // Frame Buffer Layer 0. Not saved.
 	scrntype_t *framebuffer1[2]; // Frame Buffer Layer 1. Not saved.
 
-	int framebuffer_width[2];
-	int framebuffer_height[2];
+	int framebuffer_width[2][2]; // [Bank][Layer]
+	int framebuffer_height[2][2];
+	int framebuffer_stride[2][2];
+	int framebuffer_size[2][2];
 
 	uint16_t *vram_ptr[2];   // Layer [01] address.
 	uint32_t vram_size[2];   // Layer [01] size [bytes].
 	uint32_t vram_offset[2]; // Layer [01] address offset.
-
+#if defined(_USE_QT)
+	// If you use other framework, place mutex lock.
+	QMutex vram_lock[2][2]; // [bank][layer];
+#endif
+	
 	__DECL_ALIGNED(sizeof(scrntype_t) * 4) scrntype_t table_32768c[65536];
 	__DECL_ALIGNED(sizeof(scrntype_t) * 4) scrntype_t alpha_32768c[65536];
 	__DECL_ALIGNED(sizeof(uint16_t) * 8)   uint16_t   mask_32768c[65536];
@@ -124,11 +133,38 @@ protected:
 	bool has_hardware_rendering;
 	bool has_hardware_blending;
 	// End.
+
+	void lock_framebuffer(int layer, int bank)
+	{
+#if defined(_USE_QT)
+		vram_lock[bank][layer].lock();
+#endif
+	}
+	void unlock_framebuffer(int layer, int bank)
+	{
+#if defined(_USE_QT)
+		vram_lock[bank][layer].unlock();
+#endif
+	}
+
+	
 public:
 	TOWNS_VRAM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		memset(vram, 0x00, sizeof(vram));
-		render_buffer = NULL;
+		for(int bank = 0; bank < 2; bank++) {
+			for(int layer = 0; layer < 2; layer++) {
+				framebuffer_width[bank][layer] = 640;
+				framebuffer_height[bank][layer] = 480;
+				framebuffer_stride[bank][layer] = 640 * sizeof(scrntype_t);
+				framebuffer_size[bank][layer] = 640 * 480 * sizeof(scrntype_t);
+				if(layer == 0) {
+					framebuffer0[bank] = NULL;
+				} else {
+					framebuffer1[bank] = NULL;
+				}
+			}
+		}
 		page_modes[0] = page_modes[1] = page_modes[2] = page_modes[3] = 0;
 		packed_access_mask_hi = packed_access_mask_lo = 0xff;
 		write_plane_mask = 0xffffffff;
@@ -167,8 +203,21 @@ public:
 	void set_render_features(bool blending_from_buffer, bool rendering_framebuffer);
 	// End.
 	
-	void set_context_renderbuffer(scrntype_t *p, uint32_t size){
-		render_buffer = p;
+	void set_context_renderbuffer(scrntype_t *p, int layer, int bank, uint32_t width, uint32_t height, uint32_t stride){
+		if((layer > 1) || (layer < 0)) return;
+		if((bank > 1) || (bank < 0)) return;
+		lock_framebuffer(layer, bank);
+		framebuffer_width[bank][layer] = width;
+		framebuffer_height[bank][layer] = height;
+		framebuffer_stride[bank][layer] = stride * sizeof(scrntype_t);
+		framebuffer_size[bank][layer] = stride * height * sizeof(scrntype_t);
+		if(layer == 0) {
+			framebuffer0[bank] = p;
+		} else {
+			framebuffer1[bank] = p;
+		}
+		unlock_framebuffer(layer, bank);
+	
 	};
 };
 
