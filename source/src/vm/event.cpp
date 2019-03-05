@@ -110,14 +110,88 @@ void EVENT::initialize_sound(int rate, int samples)
 	buffer_ptr = 0;
 	mix_counter = 1;
 	mix_limit = (int)((double)(emu->get_sound_rate() / 2000.0)); // per 0.5ms.
-	
+	// ToDo: Lock Mutex
+	for(int i = 0; i < MAX_SOUND_IN_BUFFERS; i++) {
+		if(sound_in_rate[i] != rate) {
+			release_sound_in_source(i);
+			sound_in_samples[i] = samples;
+		}
+		if((sound_in_samples[i] > 0) && (sound_in_channels[i] > 0)) {
+			if(sound_in_tmp_buffer[i] == NULL) {
+				sound_in_tmp_buffer[i] = (int16_t*)malloc(sound_in_samples[i] * sound_in_channels[i] * sizeof(int16_t));
+				if(sound_in_tmp_buffer[i] != NULL) {
+					clear_sound_in_source(i);
+				}
+			}
+		}
+	}
+	// ToDo: UnLock Mutex
 	// register event
 	this->register_event(this, EVENT_MIX, 1000000.0 / rate, true, NULL);
+}
+
+void EVENT::clear_sound_in_source(int bank)
+{
+	if(bank < 0) return;
+	if(bank >= MAX_SOUND_IN_BUFFERS) return;
+
+	if(sound_in_tmp_buffer[bank] == NULL) return;
+	if(sound_in_samples[bank] <= 0) return;
+	if(sound_in_channels[bank] <= 0) return;
+	memset(sound_in_tmp_buffer[bank], 0x00, sound_in_samples[bank] * sound_in_channels[bank] * sizeof(int16_t));
+}
+
+int EVENT::add_sound_in_source(int rate, int samples, int channels)
+{
+	int banknum;
+	for(banknum = 0; banknum < MAX_SOUND_IN_BUFFERS; banknum++) {
+		if(sound_in_samples[banknum] == 0) break;
+	}
+	if(banknum < MAX_SOUND_IN_BUFFERS) {
+	// ToDo: Lock Mutex
+		if(sound_in_tmp_buffer[banknum] != NULL) free(sound_in_tmp_buffer[banknum]);
+		sound_in_tmp_buffer[banknum] = NULL;
+		if((rate > 0) && (samples > 0)) {
+			sound_in_rate[banknum] = rate;
+			sound_in_samples[banknum] = samples;
+			sound_in_channels[banknum] = channels;
+			sound_in_tmp_buffer[banknum] = (int16_t*)malloc(samples * sizeof(int16_t) * channels);
+		}
+	// ToDo: UnLock Mutex
+		sound_in_writeptr[banknum] = 0;
+		sound_in_readptr[banknum] = 0;
+		sound_in_write_size[banknum] = 0;
+		sound_in_read_size[banknum] = 0;
+		sound_in_read_mod[banknum] = 0;
+		return banknum;
+	}
+	return -1; // error
+}
+
+int EVENT::release_sound_in_source(int bank)
+{
+	if(bank < 0) return -1;
+	if(bank >= MAX_SOUND_IN_BUFFERS) return -1;
+	// ToDo: Lock Mutex
+	if(sound_in_tmp_buffer[bank] != NULL) {
+		free(sound_in_tmp_buffer[bank]);
+		sound_in_tmp_buffer[bank] = NULL;
+	}
+	sound_in_readptr[bank] = 0;
+	sound_in_writeptr[bank] = 0;
+	sound_in_read_size[bank] = 0;
+	sound_in_write_size[bank] = 0;
+	clear_sound_in_source(bank);
+	// ToDo: UnLock Mutex
+	return bank;
 }
 
 void EVENT::release()
 {
 	// release sound
+	for(int i = 0; i < MAX_SOUND_IN_BUFFERS; i++) {
+		release_sound_in_source(i);
+	}
 	if(sound_buffer) {
 		free(sound_buffer);
 	}
@@ -794,6 +868,272 @@ int EVENT::get_sound_buffer_ptr()
 	return buffer_ptr;
 }
 
+bool EVENT::is_sound_in_source_exists(int bank)
+{
+	bool f = true;
+	if(bank < 0) return false;
+	if(bank >= MAX_SOUND_IN_BUFFERS) return false;
+	
+	// ToDo: Lock Mutex
+	if(sound_in_tmp_buffer[bank] == NULL) f = false;
+	// ToDo: UnLock Mutex
+	if(sound_in_samples[bank] <= 0) f = false;
+	if(sound_in_rate[bank] <= 0) f = false;
+	if(sound_in_channels[bank] <= 0) f = false;
+	return f;
+}
+
+int EVENT::get_sound_in_buffers_count()
+{
+	int _n = 0;
+	for(int i = 0; i < MAX_SOUND_IN_BUFFERS; i++) {
+		if(sound_in_samples[i] == 0) break;
+		_n++;
+	}
+	return _n;
+}
+
+int EVENT::get_sound_in_samples(int bank)
+{
+	if(bank < 0) return 0;
+	if(bank >= MAX_SOUND_IN_BUFFERS) return 0;
+	return sound_in_samples[bank];
+}
+
+int EVENT::get_sound_in_rate(int bank)
+{
+	if(bank < 0) return 0;
+	if(bank >= MAX_SOUND_IN_BUFFERS) return 0;
+	return sound_in_rate[bank];
+}
+
+int EVENT::get_sound_in_channels(int bank)
+{
+	if(bank < 0) return 0;
+	if(bank >= MAX_SOUND_IN_BUFFERS) return 0;
+	return sound_in_channels[bank];
+}
+
+int16_t* EVENT::get_sound_in_buf_ptr(int bank)
+{
+	if(bank < 0) return NULL;
+	if(bank >= MAX_SOUND_IN_BUFFERS) return NULL;
+	return &(sound_in_tmp_buffer[bank][sound_in_writeptr[bank]]);
+}
+
+int EVENT::write_sound_in_buffer(int bank, int32_t* src, int samples)
+{
+	if(bank < 0) return 0;
+	if(bank >= MAX_SOUND_IN_BUFFERS) return 0;
+	if(samples <= 0) return 0;
+	if(sound_in_tmp_buffer[bank] == NULL) return 0;
+	if(samples >= sound_in_samples[bank]) samples = sound_in_samples[bank];
+
+	int n_samples = samples;
+	int16_t* dst = &(sound_in_tmp_buffer[bank][sound_in_writeptr[bank] * sound_in_channels[bank]]);
+	// ToDo: Lock Mutex
+	if((sound_in_writeptr[bank] + samples) >= sound_in_samples[bank]) {
+		if((sound_in_samples[bank] - sound_in_writeptr[bank] - 1) > 0) {
+			memcpy(dst, src, (sound_in_samples[bank] - sound_in_writeptr[bank] - 1) * sound_in_channels[bank] * sizeof(int16_t));
+			src =  src + (sound_in_samples[bank] - sound_in_writeptr[bank] - 1) * sound_in_channels[bank];
+			sound_in_writeptr[bank] = 0;
+			n_samples = n_samples - (sound_in_samples[bank] - sound_in_writeptr[bank] - 1);
+		} else {
+			sound_in_writeptr[bank] = 0;
+		}
+		dst = &(sound_in_tmp_buffer[bank][sound_in_writeptr[bank] * sound_in_channels[bank]]);
+	}
+	memcpy(dst, src, n_samples * sound_in_channels[bank] * sizeof(int16_t));
+	// ToDo: UnLock Mutex
+	sound_in_writeptr[bank] = sound_in_writeptr[bank] + n_samples;
+	if(sound_in_writeptr[bank] >= sound_in_samples[bank]) sound_in_writeptr[bank] = 0;
+	return samples;
+}
+
+// Add sampled values to sample buffer;value may be -32768 to +32767.
+int EVENT::get_sound_in_samples(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels)
+{
+	if(bank < 0) return -1;
+	if(bank >= MAX_SOUND_IN_BUFFERS) return -1;
+	if(sound_in_tmp_buffer[bank] == NULL) return -1;
+	if(dst == NULL) return -1;
+
+	int n_samples = 0;
+	int32_t tmpbuf[expect_samples * expect_channels];
+	int gave_samples = 0;
+	int sound_div = 1;
+	int sound_mod = 0;
+	if(sound_in_channels[bank] > expect_channels) {
+		sound_div = sound_in_channels[bank] / expect_channels;
+		sound_mod = sound_in_channels[bank] % expect_channels;
+	} else if(sound_in_channels[bank] < expect_channels) {
+		sound_div = expect_channels / sound_in_channels[bank];
+		sound_mod = expect_channels % sound_in_channels[bank];
+	}
+	// ToDo: Lock Mutex
+	if(sound_in_channels[bank] == expect_channels) {
+		int32_t* p = tmpbuf;
+		for(int i = 0; i < expect_samples; i++) {
+			if(sound_in_write_size[bank] <= 0) break;
+			int16_t* q = &(sound_in_tmp_buffer[bank][sound_in_readptr[bank] * sound_in_channels[bank]]);
+			for(int j = 0; j < expect_channels; j++) {
+				p[j] = q[j];
+					
+			}
+			sound_in_readptr[bank] = sound_in_readptr[bank] + 1;
+			if(sound_in_readptr[bank] >= sound_in_samples[bank]) sound_in_readptr[bank] = 0;
+			n_samples++;
+			sound_in_write_size[bank] = sound_in_write_size[bank] - 1;
+		}
+	} else if(sound_in_channels[bank] > expect_channels) {
+		for(int i = 0; i < expect_samples; i++) {
+			int chp = 0;
+			int chq = 0;
+			int32_t* p = &(tmpbuf[i * expect_channels]);
+			int16_t* q = &(sound_in_tmp_buffer[bank][sound_in_readptr[bank] * sound_in_channels[bank]]);
+			if(sound_in_write_size[bank] <= 0) break;
+					
+			for(int j = 0; j < sound_in_channels[bank]; j++) {
+				*p = *p + q[j];
+				chp++;
+				if(sound_mod == 0) {
+					if(chp >= sound_div) {
+						p++;
+						chp = 0;
+						chq++;
+					}
+				} else {
+					if((chp >= sound_div) && (chq < (expect_channels - 1))){
+						p++;
+						chp = 0;
+						chq++;
+					}	
+				}						
+			}
+			p = &(dst[i * expect_channels]);
+			if(sound_mod != 0) {
+				for(int j = 0; j < (expect_channels - 1); j++) {
+					*p = *p / sound_div;
+					p++;
+				}
+				*p = *p / (sound_div + sound_mod);
+			} else {
+				for(int j = 0; j < expect_channels; j++) {
+					*p = *p / sound_div;
+					p++;
+				}
+			}
+			sound_in_readptr[bank] = sound_in_readptr[bank] + 1;
+			if(sound_in_readptr[bank] >= sound_in_samples[bank]) sound_in_readptr[bank] = 0;
+			n_samples++;
+			sound_in_write_size[bank] = sound_in_write_size[bank] - 1;
+		}
+	} else { // sound_in_channels[bank] < expect_channels
+		int32_t* p = tmpbuf;
+		for(int i = 0; i < expect_samples; i++) {
+			if(sound_in_write_size[bank] <= 0) break;
+			int chp = 0;
+			int chq = 0;
+			int16_t* q = &(sound_in_tmp_buffer[bank][sound_in_readptr[bank] * sound_in_channels[bank]]);
+			for(int j = 0; j < sound_div; j++) {
+				*p++ = *q;
+				chp++;
+			}
+			if(sound_mod == 0) {
+				q++;
+			} else if(chp < (expect_channels - sound_mod - 1)) {
+				q++;
+			} else {
+				for(int j = 0; j < sound_mod; j++) {
+					*p++ = *q;
+				}
+				q++;
+			}
+			sound_in_readptr[bank] = sound_in_readptr[bank] + 1;
+			if(sound_in_readptr[bank] >= sound_in_samples[bank]) sound_in_readptr[bank] = 0;
+			n_samples++;
+			sound_in_write_size[bank] = sound_in_write_size[bank] - 1;
+		}
+				
+	}
+	// ToDo: UnLock Mutex
+	// Got to TMP Buffer
+	if(expect_rate == sound_in_rate[bank]) {
+		int32_t* p = tmpbuf;
+		int32_t* q = dst;
+		int32_t tval;
+		for(int i = 0; i < n_samples; i++) {
+			for(int j = 0; j < expect_channels; j++) {
+				tval = *q;
+				tval = tval + *p;
+				if(tval >= 32768) tval = 32767;
+				if(tval < -32768) tval = -32768;
+				*q = tval;
+				q++;
+				p++;
+			}
+		}
+		return n_samples;
+	} else if(expect_rate > sound_in_rate[bank]) {
+		int32_t* p = tmpbuf;
+		int32_t* q = dst;
+		int32_t tval;
+		// ToDo: Interpollate
+		gave_samples = 0;
+		for(int i = 0; i < n_samples;) {
+			for(int j = 0; j < expect_channels; j++) {
+				tval = *q;
+				tval = tval + p[j];
+				if(tval >= 32768) tval = 32767;
+				if(tval < -32768) tval = -32768;
+				*q = tval;
+				q++;
+			}
+			sound_in_read_mod[bank] = sound_in_read_mod[bank] + sound_in_rate[bank];
+			if(sound_in_read_mod[bank] >= expect_rate) {
+				sound_in_read_mod[bank] = sound_in_read_mod[bank] - expect_rate;
+				p = p + expect_channels;
+				i++;
+				gave_samples++;
+			}
+		}
+		return gave_samples + 1;
+	} else { // expect_rate < sound_in_rate[bank]
+		int32_t* p = tmpbuf;
+		int32_t* q = dst;
+		int32_t tval;
+		// ToDo: Interpollate
+		gave_samples = 0;
+		for(int i = 0; i < n_samples; i++) {
+			if(i == 0) {
+				for(int j = 0; j < expect_channels; j++) {
+					tval = *q;
+					tval = tval + p[j];
+					if(tval >= 32768) tval = 32767;
+					if(tval < -32768) tval = -32768;
+					*q = tval;
+					q++;
+				}
+			}
+			p = p + expect_channels;
+			sound_in_read_mod[bank] = sound_in_read_mod[bank] + expect_rate;
+			if(sound_in_read_mod[bank] >= sound_in_rate[bank]) {
+				sound_in_read_mod[bank] = sound_in_read_mod[bank] - sound_in_rate[bank];
+				for(int j = 0; j < expect_channels; j++) {
+					tval = *q;
+					tval = tval + p[j];
+					if(tval >= 32768) tval = 32767;
+					if(tval < -32768) tval = -32768;
+					*q = tval;
+					q++;
+				}
+				gave_samples++;
+			}
+		}
+		return gave_samples + 1;
+	}
+	return 0;
+}
 void EVENT::request_skip_frames()
 {
 	next_skip = true;

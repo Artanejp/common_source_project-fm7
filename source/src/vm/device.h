@@ -107,6 +107,72 @@ public:
 #else
 	virtual void release() {}
 #endif
+	// Sound input functions
+	virtual void clear_sound_in_source(int bank) {
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		event_manager->clear_sound_in_source(bank);
+	}
+	// this function may be before (or after) initialize().
+	virtual int add_sound_in_source(int rate, int samples, int channels) {
+		if(event_manager == NULL) return -1;
+		return event_manager->add_sound_in_source(rate, samples, channels);
+	}
+	// this function may be before (or after) initialize().
+	virtual int release_sound_in_source(int bank) {
+		if(event_manager == NULL) return -1;
+		return event_manager->release_sound_in_source(bank);
+	}
+	
+	virtual bool is_sound_in_source_exists(int bank) {
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		return event_manager->is_sound_in_source_exists(bank);
+	}
+	virtual int get_sound_in_buffers_count() {
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		return event_manager->get_sound_in_buffers_count();
+	}
+	virtual int get_sound_in_samples(int bank) {
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		return event_manager->get_sound_in_samples(bank);
+	}
+	virtual int get_sound_in_rate(int bank) {
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		return event_manager->get_sound_in_rate(bank);
+	}
+	virtual int get_sound_in_channels(int bank) {
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		return event_manager->get_sound_in_channels(bank);
+	}
+	// this function may be before (or after) initialize().
+	virtual int16_t* get_sound_in_buf_ptr(int bank) {
+		if(event_manager == NULL) return NULL;
+		return event_manager->get_sound_in_buf_ptr(bank);
+	}
+	virtual int write_sound_in_buffer(int bank, int32_t* src, int samples) {
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		return event_manager->write_sound_in_buffer(bank, src, samples);
+		
+	}
+	// Add sampled values to sample buffer;value may be -32768 to +32767.
+	// this function may be before (or after) initialize().
+	virtual int get_sound_in_samples(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels) {
+		if(event_manager == NULL) return -1;
+		return event_manager->get_sound_in_samples(bank, dst, expect_samples, expect_rate, expect_channels);
+	}
 	
 	virtual void update_config() {}
 	virtual void save_state(FILEIO* state_fio) {}

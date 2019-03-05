@@ -288,7 +288,7 @@ void RF5C68::mix(int32_t* buffer, int cnt)
 	}
 }
 
-void PCM1BIT::initialize_sound(int sample_rate, int samples)
+void RF5C68::initialize_sound(int sample_rate, int samples)
 {
 	if((sample_rate > 0) && (samples > 0)) {
 		mix_rate = sample_rate;

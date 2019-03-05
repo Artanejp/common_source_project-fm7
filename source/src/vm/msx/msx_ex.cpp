@@ -471,7 +471,7 @@ void VM::initialize_sound(int rate, int samples)
 #else
 	psg->initialize_sound(rate, 3579545, samples, 0, 0);
 #endif
-	pcm->initialize_sound(rate, 8000);
+	pcm->initialize_sound(rate, 8000, rate);
 #if defined(LDC_SLOT)
 	ldp->initialize_sound(rate, samples);
 #endif

@@ -353,7 +353,7 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	pcm->initialize_sound(rate, 8000);
+	pcm->initialize_sound(rate, 8000, rate);
 }
 
 uint16_t* VM::create_sound(int* extra_frames)

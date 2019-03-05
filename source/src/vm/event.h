@@ -22,6 +22,13 @@
 #define MAX_LINES	1024
 #define MAX_EVENT	64
 #define NO_EVENT	-1
+#if !defined(MAX_SOUND_IN_BUFFERS)
+	#define MAX_SOUND_IN_BUFFERS 8
+#else
+	#if (MAX_SOUND_IN_BUFFERS <= 0)
+	#define MAX_SOUND_IN_BUFFERS 8
+	#endif
+#endif
 
 enum {
 	EVENT_CPUTYPE_GENERIC = 0,
@@ -41,6 +48,8 @@ enum {
 	EVENT_CPUTYPE_UPD7801,
 	EVENT_CPUTYPE_Z80
 };
+
+
 class EVENT : public DEVICE
 {
 private:
@@ -101,6 +110,16 @@ private:
 	int buffer_ptr;
 	int sound_samples;
 	int sound_tmp_samples;
+
+	int16_t* sound_in_tmp_buffer[MAX_SOUND_IN_BUFFERS]; // This is buffer from recording devices.
+	int sound_in_rate[MAX_SOUND_IN_BUFFERS];
+	int sound_in_samples[MAX_SOUND_IN_BUFFERS];
+	int sound_in_channels[MAX_SOUND_IN_BUFFERS];
+	int sound_in_writeptr[MAX_SOUND_IN_BUFFERS];
+	int sound_in_readptr[MAX_SOUND_IN_BUFFERS];
+	int sound_in_write_size[MAX_SOUND_IN_BUFFERS];
+	int sound_in_read_size[MAX_SOUND_IN_BUFFERS];
+	int sound_in_read_mod[MAX_SOUND_IN_BUFFERS];
 	
 	int dont_skip_frames;
 	bool prev_skip, next_skip;
@@ -234,6 +253,17 @@ public:
 		memset(dev_need_mix, 0, sizeof(dev_need_mix));
 		need_mix = 0;
 		
+		for(int i = 0; i < MAX_SOUND_IN_BUFFERS; i++) {
+			sound_in_tmp_buffer[i] = NULL;
+			sound_in_rate[i] = 0;
+			sound_in_samples[i] = 0;
+			sound_in_channels[i] = 0;
+			sound_in_readptr[i] = 0;
+			sound_in_writeptr[i] = 0;
+			sound_in_read_size[i] = 0;
+			sound_in_write_size[i] = 0;
+			sound_in_read_mod[i] = 0;
+		}
 #ifdef _DEBUG_LOG
 		initialize_done = false;
 #endif
@@ -311,6 +341,21 @@ public:
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
+	// Sound input functions
+	void clear_sound_in_source(int bank);
+	int add_sound_in_source(int rate, int samples, int channels);
+	int release_sound_in_source(int bank);
+	
+	bool is_sound_in_source_exists(int bank);
+	int get_sound_in_buffers_count();
+	int get_sound_in_samples(int bank);
+	int get_sound_in_rate(int bank);
+	int get_sound_in_channels(int bank);
+	int16_t* get_sound_in_buf_ptr(int bank);
+	int write_sound_in_buffer(int bank, int32_t* src, int samples);
+	// Add sampled values to sample buffer;value may be -32768 to +32767.
+	int get_sound_in_samples(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
+	
 	template <class T>
 		void set_context_cpu(T* device, uint32_t clocks = CPU_CLOCKS)
 	{

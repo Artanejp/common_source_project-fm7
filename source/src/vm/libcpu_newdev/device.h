@@ -65,6 +65,24 @@ public:
 
 	virtual void initialize() { }
 	virtual void release();
+
+	virtual void clear_sound_in_source(int bank);
+	// this function may be before (or after) initialize().
+	virtual int add_sound_in_source(int rate, int samples, int channels);
+	// this function may be before (or after) initialize().
+	virtual int release_sound_in_source(int bank);
+	virtual bool is_sound_in_source_exists(int bank);
+	virtual int get_sound_in_buffers_count();
+	virtual int get_sound_in_samples(int bank);
+	virtual int get_sound_in_rate(int bank);
+	virtual int get_sound_in_channels(int bank);
+	// this function may be before (or after) initialize().
+	virtual int16_t* get_sound_in_buf_ptr(int bank);
+
+	virtual int write_sound_in_buffer(int bank, int32_t* src, int samples);
+	// Add sampled values to sample buffer;value may be -32768 to +32767.
+	// this function may be before (or after) initialize().
+	virtual int get_sound_in_samples(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
 	
 	virtual void update_config() {}
 	virtual void save_state(FILEIO* state_fio) {}

@@ -260,7 +260,7 @@ void VM::initialize_sound(int rate, int samples)
 	
 	// init sound gen
 	psg->initialize_sound(rate, 3579545, samples, 0, 0);
-	pcm->initialize_sound(rate, 8000);
+	pcm->initialize_sound(rate, 8000, rate);
 #if defined(_PX7)
 	ldp->initialize_sound(rate, samples);
 #endif

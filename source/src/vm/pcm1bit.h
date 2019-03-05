@@ -30,6 +30,15 @@ private:
 	int max_vol, last_vol_l, last_vol_r;
 	int volume_l, volume_r;
 	bool realtime;
+
+	bool use_lpf;
+	int sample_rate;
+	int lpf_src_freq;
+	int lpf_skip_factor;
+	int lpf_mod_factor;
+	int lpf_skip_val;
+	int lpf_mod_val;
+	int sample_old;
 	
 public:
 	PCM1BIT(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -49,7 +58,7 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
-	void initialize_sound(int rate, int volume);
+	void initialize_sound(int rate, int volume, int lpf_freq = -1);
 };
 
 #endif

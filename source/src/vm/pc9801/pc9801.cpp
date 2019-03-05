@@ -1260,7 +1260,7 @@ void VM::initialize_sound(int rate, int samples)
 	} else {
 		pc88opn1->initialize_sound(rate, 3993624, samples, 0, 0);
 	}
-	pc88pcm->initialize_sound(rate, 8000);
+	pc88pcm->initialize_sound(rate, 8000, rate);
 #endif
 }
 

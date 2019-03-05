@@ -69,6 +69,16 @@ private:
 	
 	uint32_t clock_busy;
 	bool busy;
+
+	bool use_lpf;
+	int lpf_src_freq;
+	int lpf_skip_factor;
+	int lpf_mod_factor;
+	int lpf_skip_val;
+	int lpf_mod_val;
+
+	int32_t lastval_l;
+	int32_t lastval_r;
 	
 	void update_count();
 	void update_event();
@@ -84,6 +94,7 @@ public:
 #endif
 		base_decibel_fm = base_decibel_psg = 0;
 		d_debugger = NULL;
+		use_lpf = false;
 #if defined(HAS_AY_3_8910)
 		set_device_name(_T("AY-3-8910 PSG"));
 #elif defined(HAS_AY_3_8912)
@@ -155,7 +166,7 @@ public:
 	{
 		d_debugger = device;
 	}
-	void initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg);
+	void initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg, int lpf_freq = -1);
 	void set_reg(uint32_t addr, uint32_t data); // for patch
 };
 

@@ -21,6 +21,15 @@ void AY_3_891X::initialize()
 	register_vline_event(this);
 	mute = false;
 	clock_prev = clock_accum = clock_busy = 0;
+
+	use_lpf = false;
+	lpf_skip_factor = 0;
+	lpf_mod_factor = 0;
+	lpf_skip_val = 0;
+	lpf_mod_val = 0;
+	lpf_src_freq = 0;
+	lastval_l = 0;
+	lastval_r = 0;
 	
 	if(d_debugger != NULL) {
 		d_debugger->set_device_name(_T("Debugger (AY-3-891X PSG)"));
@@ -43,6 +52,11 @@ void AY_3_891X::reset()
 	// stop timer
 	timer_event_id = -1;
 	this->set_reg(0x27, 0);
+	
+	lpf_skip_val = lpf_skip_factor;
+	lpf_mod_val = 0;
+	lastval_l = 0;
+	lastval_r = 0;
 	
 #ifdef SUPPORT_AY_3_891X_PORT
 	port[0].first = port[1].first = true;
@@ -191,7 +205,35 @@ void AY_3_891X::update_event()
 void AY_3_891X::mix(int32_t* buffer, int cnt)
 {
 	if(cnt > 0 && !mute) {
-		opn->Mix(buffer, cnt);
+		if(use_lpf) {
+			int32_t p[cnt * 2] = {0};
+			opn->Mix(p, cnt);
+			int nptr = 0;
+			for(int i = 0; i < cnt; i++) {
+				lpf_skip_val--;
+				if(lpf_mod_factor != 0) {
+					lpf_mod_val = lpf_mod_val + lpf_mod_factor;
+					if(lpf_mod_val >= lpf_src_freq) {
+						lpf_mod_val = lpf_mod_val - lpf_src_freq;
+						lpf_skip_val++;
+					}
+				}
+				if(lpf_skip_val <= 0) {
+					lastval_l = p[nptr + 0];
+					lastval_r = p[nptr + 1];
+					lpf_skip_val = lpf_skip_factor;
+				}
+				int32_t lval = (lastval_l * 8 + p[nptr + 0] * 24) / 32;
+				int32_t rval = (lastval_r * 8 + p[nptr + 1] * 24) / 32;
+				//int32_t lval = lastval_l;
+				//int32_t rval = lastval_r;
+				buffer[nptr + 0] = buffer[nptr + 0] + lval;
+				buffer[nptr + 1] = buffer[nptr + 1] + rval;
+				nptr = nptr + 2;
+			}
+		} else {
+			opn->Mix(buffer, cnt);
+		}			
 	}
 }
 
@@ -204,8 +246,23 @@ void AY_3_891X::set_volume(int ch, int decibel_l, int decibel_r)
 	}
 }
 
-void AY_3_891X::initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg)
+void AY_3_891X::initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg, int lpf_freq)
 {
+	if((lpf_freq > 0) && (lpf_freq < (rate / 2))) {
+		use_lpf = true;
+		lpf_src_freq = lpf_freq;
+		lpf_skip_factor = rate / lpf_freq;
+		lpf_mod_factor = rate % lpf_freq;
+		lpf_skip_val = lpf_skip_factor;
+		lpf_mod_val = 0;
+	} else {
+		use_lpf = false;
+		lpf_src_freq = rate;
+		lpf_skip_factor = 1;
+		lpf_mod_factor = 0;
+		lpf_skip_val = lpf_skip_factor;
+		lpf_mod_val = 0;
+	}
 	opn->Init(clock, rate, false, NULL);
 	opn->SetVolumeFM(decibel_fm, decibel_fm);
 	opn->SetVolumePSG(decibel_psg, decibel_psg);
@@ -227,7 +284,7 @@ void AY_3_891X::update_timing(int new_clocks, double new_frames_per_sec, int new
 	clock_const = (uint32_t)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool AY_3_891X::process_state(FILEIO* state_fio, bool loading)
 {
@@ -258,5 +315,15 @@ bool AY_3_891X::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(clock_busy);
 	state_fio->StateValue(timer_event_id);
 	state_fio->StateValue(busy);
+
+	//state_fio->StateValue(use_lpf);
+	//state_fio->StateValue(lpf_src_freq);
+	//state_fio->StateValue(lpf_skip_factor);
+	//state_fio->StateValue(lpf_mod_factor);
+	//state_fio->StateValue(lpf_skip_val);
+	//state_fio->StateValue(lpf_mod_val);
+	state_fio->StateValue(lastval_l);
+	state_fio->StateValue(lastval_r);
+	
  	return true;
 }
