@@ -282,7 +282,7 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	pcm->initialize_sound(rate, 3600, rate);
+	pcm->initialize_sound(rate, 3600);
 	psg0->initialize_sound(rate, 1996800, 3600);
 	psg1->initialize_sound(rate, 1996800, 3600);
 }

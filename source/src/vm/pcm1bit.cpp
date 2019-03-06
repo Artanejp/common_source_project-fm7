@@ -18,24 +18,23 @@ void PCM1BIT::initialize()
 	realtime = false;
 	changed = 0;
 	last_vol_l = last_vol_r = 0;
-	
+	hpf_freq = 1;
+	lpf_freq = 48000;
+	use_hpf = false;
+	use_lpf = false;
 	register_frame_event(this);
-	
-	sample_old = 0;
+	before_on = false;
+	before_filter_l = (float)0.0f;
+	before_filter_r = (float)0.0f;
 }
 
 void PCM1BIT::reset()
 {
 	prev_clock = get_current_clock();
 	positive_clocks = negative_clocks = 0;
-	lpf_mod_val = 0;
-	lpf_skip_val = lpf_skip_factor;
-	
-	int clocks = positive_clocks + negative_clocks;
-	int sample = clocks ? (max_vol * positive_clocks - max_vol * negative_clocks) / clocks : signal ? max_vol : -max_vol;
-	last_vol_l = apply_volume(sample, volume_l);
-	last_vol_r = apply_volume(sample, volume_r);
-	sample_old = sample;
+	before_on = false;
+	before_filter_l = (float)0.0f;
+	before_filter_r = (float)0.0f;
 }
 
 void PCM1BIT::write_signal(int id, uint32_t data, uint32_t mask)
@@ -74,9 +73,16 @@ void PCM1BIT::event_frame()
 
 void PCM1BIT::mix(int32_t* buffer, int cnt)
 {
-	int32_t* p;
-	p = buffer;
+	int32_t p[cnt * 2];
+	int32_t p_h[cnt * 2];
+	int32_t p_l[cnt * 2];
+	int32_t* pp = p;
 	if(on && !mute && changed) {
+		if(!(before_on)) {
+			before_filter_l = (float)last_vol_l;
+			before_filter_r = (float)last_vol_r;
+			before_on = true;
+		}
 		if(signal) {
 			positive_clocks += get_passed_clock(prev_clock);
 		} else {
@@ -89,45 +95,27 @@ void PCM1BIT::mix(int32_t* buffer, int cnt)
 		int inc_l = 0;
 		int inc_r = 0;
 		int sval = 0;;
-		if(use_lpf) {
-			if(lpf_skip_val < 0) {
-				lpf_skip_val = lpf_skip_factor;
-				sample_old = sample;
-				sval = sample_old;
-			} else {
-				sval = (sample_old * 3 + 1 * ((sample_old * lpf_skip_val) + (sample) * (lpf_skip_factor - lpf_skip_val)) / lpf_skip_factor + sample * 28) / 32;
-				//sval = (sample_old * 3 + sample * 29) / 32;
-			}
-			last_vol_l = apply_volume(sval, volume_l);
-			last_vol_r = apply_volume(sval, volume_r);
-		} else {
-			sval = 0;
-			last_vol_l = apply_volume(sample, volume_l);
-			last_vol_r = apply_volume(sample, volume_r);
-			sample_old = sample;
-		}
+		last_vol_l = apply_volume(sample, volume_l);
+		last_vol_r = apply_volume(sample, volume_r);
 		for(int i = 0; i < cnt; i++) {
-			p[nptr + 0] += last_vol_l; // L
-			p[nptr + 1] += last_vol_r; // R
+			p[nptr + 0] = last_vol_l; // L
+			p[nptr + 1] = last_vol_r; // R
 			nptr += 2;
-			if(use_lpf) {
-				lpf_skip_val--;
-				if(lpf_mod_factor != 0) {
-					lpf_mod_val = lpf_mod_val + lpf_mod_factor;
-					if(lpf_mod_val >= lpf_src_freq) {
-						lpf_mod_val = lpf_mod_val - lpf_src_freq;
-						lpf_skip_val++;
-					}	
-				}
-			}
+		}
+		if(use_lpf) {
+			this->calc_low_pass_filter(p_l, pp, cnt, (use_hpf) ? false : true);
+			pp = p_l;
+		}
+		if(use_hpf) {
+			this->calc_high_pass_filter(p_h, pp, cnt, true);
+			pp = p_h;
 		}
 	} else {
 		// suppress petite noise when go to mute
-		//sample_old = 0;
 		int nptr = 0;
 		for(int i = 0; i < cnt; i++) {
-			p[nptr + 0] += last_vol_l; // L
-			p[nptr + 1] += last_vol_r; // R
+			p[nptr + 0] = last_vol_l; // L
+			p[nptr + 1] = last_vol_r; // R
 			nptr += 2;
 			
 			if(last_vol_l > 0) {
@@ -140,47 +128,149 @@ void PCM1BIT::mix(int32_t* buffer, int cnt)
 			} else if(last_vol_r < 0) {
 				last_vol_r++;
 			}
-			if(use_lpf) {
-				lpf_skip_val--;
-				if(lpf_mod_factor != 0) {
-					lpf_mod_val = lpf_mod_val + lpf_mod_factor;
-					if(lpf_mod_val >= lpf_src_freq) {
-						lpf_mod_val = lpf_mod_val - lpf_src_freq;
-						lpf_skip_val++;
-					}
-				}
-			}
 		}
+		before_on = false;
+	}
+	for(int i = 0; i < (cnt * 2); i++) {
+		buffer[i] = buffer[i] + pp[i];
+		if(buffer[i] >  32767) buffer[i] = 32767;
+		if(buffer[i] < -32768) buffer[i] = -32768;
 	}
 	prev_clock = get_current_clock();
 	positive_clocks = negative_clocks = 0;
 }
-
 void PCM1BIT::set_volume(int ch, int decibel_l, int decibel_r)
 {
 	volume_l = decibel_to_volume(decibel_l);
 	volume_r = decibel_to_volume(decibel_r);
 }
 
-void PCM1BIT::initialize_sound(int rate, int volume, int lpf_freq)
+void PCM1BIT::set_low_pass_filter_freq(int freq, double quality)
+{
+	if((freq <= 0) || (freq >= (sample_rate / 2))) {
+		lpf_freq = sample_rate;
+		use_lpf = false;
+	} else {
+		lpf_freq = freq;
+		double isample = 1.0 / (double)sample_rate;
+		double ifreq   = 1.0 / ((double)lpf_freq * 2.0 * M_PI);
+		lpf_alpha = (float)(isample * quality / ((ifreq + isample)));
+		if(lpf_alpha >= 1.0f) lpf_alpha = 1.0f;
+		lpf_ialpha = 1.0f - lpf_alpha;
+		before_filter_l = (float)last_vol_l;
+		before_filter_r = (float)last_vol_r;
+		use_lpf = true;
+		//printf("LPF_ALPHA=%f\n", lpf_alpha);
+	}
+}
+
+void PCM1BIT::calc_low_pass_filter(int32_t* dst, int32_t* src, int samples, int is_set_val)
+{
+	if(samples <= 0) return;
+	if(dst == NULL) return;
+	if(src == NULL) {
+		memset(dst, 0x00, sizeof(int32_t) * samples * 2);
+		return;
+	}
+	__DECL_ALIGNED(16) float tval[(samples + 1) * 2];
+	__DECL_ALIGNED(16) float oval[(samples + 1) * 2];
+	int __begin = 0;
+	
+	tval[0] = before_filter_l;
+	tval[1] = before_filter_r;
+	oval[0] = tval[0];
+	oval[1] = tval[1];
+	for(int i = 2; i < ((samples + 1) * 2); i++) {
+		tval[i] = (float)(src[i - 2]);
+	}
+	
+	for(int i = 2; i < ((samples + 1) * 2); i += 2) {
+		oval[i + 0] = tval[i + 0] * lpf_alpha + oval[i - 2 + 0] * lpf_ialpha;
+		oval[i + 1] = tval[i + 1] * lpf_alpha + oval[i - 2 + 1] * lpf_ialpha;
+	}
+	// copy
+	for(int i = 2; i < ((samples + 1) * 2) ; i += 2) {
+		dst[i - 2 + 0] = (int32_t)(oval[i + 0]);
+		dst[i - 2 + 1] = (int32_t)(oval[i + 1]);
+	}
+	if(is_set_val) {
+		before_filter_l = oval[samples * 2 + 0];
+		before_filter_r = oval[samples * 2 + 1];
+	} else {
+		before_filter_l = oval[2 + 0];
+		before_filter_r = oval[2 + 1];
+	}		
+}
+	
+void PCM1BIT::set_high_pass_filter_freq(int freq, double quality)
+{
+	if((freq < 0) || (freq >= (sample_rate / 2))) {
+		hpf_freq = 1;
+		use_hpf = false;
+	} else {
+		hpf_freq = freq;
+		double isample = 1.0 / (double)sample_rate;
+		double ifreq   = 1.0 / ((double)hpf_freq * 2.0 * M_PI);
+		//hpf_alpha = (float)(ifreq / ((ifreq + isample) * quality));
+		hpf_alpha = (float)(isample * quality / ((ifreq + isample)));
+		if(hpf_alpha >= 1.0f) hpf_alpha = 1.0f;
+		hpf_ialpha = 1.0f - hpf_alpha;
+		before_filter_l = (float)last_vol_l;
+		before_filter_r = (float)last_vol_r;
+		//printf("HPF_ALPHA=%f\n", hpf_alpha);
+		use_hpf = true;
+	}
+}
+
+void PCM1BIT::calc_high_pass_filter(int32_t* dst, int32_t* src, int samples, int is_set_val)
+{
+	if(samples <= 0) return;
+	if(dst == NULL) return;
+	if(src == NULL) {
+		memset(dst, 0x00, sizeof(int32_t) * samples * 2);
+		return;
+	}
+	__DECL_ALIGNED(16) float tval[(samples + 1) * 2];
+	__DECL_ALIGNED(16) float oval[(samples + 1) * 2];
+	int __begin = 0;
+
+	tval[0] = before_filter_l;
+	tval[1] = before_filter_r;
+	oval[0] = tval[0];
+	oval[1] = tval[1];
+	for(int i = 2; i < ((samples + 1) * 2); i++) {
+		tval[i] = (float)(src[i - 2]);
+	}
+	for(int i = 2; i < ((samples + 1) * 2); i++) {
+		oval[i + 0] = tval[i + 0] * hpf_alpha + oval[i - 2 + 0] * hpf_alpha;
+		oval[i + 1] = tval[i + 1] * hpf_alpha + oval[i - 2 + 1] * hpf_alpha;
+		oval[i + 0] = tval[i + 0] - oval[i + 0];
+		oval[i + 1] = tval[i + 1] - oval[i + 1];
+	}		
+	// copy
+	for(int i = 2; i < ((samples + 1) * 2) ; i += 2) {
+		dst[i - 2 + 0] = (int32_t)(oval[i + 0]);
+		dst[i - 2 + 1] = (int32_t)(oval[i + 1]);
+	}
+	if(is_set_val) {
+		before_filter_l = oval[samples * 2 + 0];
+		before_filter_r = oval[samples * 2 + 1];
+	} else {
+		before_filter_l = oval[2 + 0];
+		before_filter_r = oval[2 + 1];
+	}
+}
+	
+void PCM1BIT::initialize_sound(int rate, int volume)
 {
 	sample_rate = rate;
-	if((lpf_freq < (rate / 2)) && (lpf_freq > 0)) {
-		use_lpf = true;
-		lpf_src_freq = lpf_freq;
-		lpf_skip_factor = rate / lpf_freq;
-		lpf_mod_factor = rate % lpf_freq;
-		lpf_mod_val = 0;
-		lpf_skip_val = lpf_skip_factor;
-	} else {
-		use_lpf = false;
-		lpf_src_freq = rate;
-		lpf_skip_factor = 0;
-		lpf_mod_factor = 0;
-		lpf_mod_val = 0;
-		lpf_skip_val = lpf_skip_factor;
-	}
 	max_vol = volume;
+	if(use_hpf) {
+		set_high_pass_filter_freq(hpf_freq);
+	}
+	if(use_lpf) {
+		set_low_pass_filter_freq(lpf_freq);
+	}
 }
 
 #define STATE_VERSION	4
@@ -202,20 +292,23 @@ bool PCM1BIT::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(positive_clocks);
 	state_fio->StateValue(negative_clocks);
 
-	//state_fio->StateValue(use_lpf);
-	//state_fio->StateValue(sample_rate);
-	//state_fio->StateValue(lpf_src_freq);
-	//state_fio->StateValue(lpf_skip_factor);
-	//state_fio->StateValue(lpf_skip_val);
-	//state_fio->StateValue(lpf_mod_factor);
-	//state_fio->StateValue(lpf_mod_val);
-	state_fio->StateValue(sample_old);
+	state_fio->StateValue(use_hpf);
+	state_fio->StateValue(use_lpf);
+	state_fio->StateValue(hpf_freq);
+	state_fio->StateValue(lpf_freq);
+	state_fio->StateValue(before_on);
 	
  	// post process
 	if(loading) {
 		last_vol_l = last_vol_r = 0;
 		set_realtime_render(this, on & !mute);
 		//touch_sound();
+		if(use_hpf) {
+			set_high_pass_filter_freq(hpf_freq);
+		}
+		if(use_lpf) {
+			set_low_pass_filter_freq(lpf_freq);
+		}
 	}
  	return true;
 }

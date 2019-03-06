@@ -83,6 +83,8 @@ public:
 	// Add sampled values to sample buffer;value may be -32768 to +32767.
 	// this function may be before (or after) initialize().
 	virtual int get_sound_in_samples(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
+	virtual void set_high_pass_filter_freq(int freq, double quality) { } // If freq < 0 disable HPF.
+	virtual void set_low_pass_filter_freq(int freq, double quality) { }  // If freq <= 0 disable LPF.
 	
 	virtual void update_config() {}
 	virtual void save_state(FILEIO* state_fio) {}

@@ -66,7 +66,6 @@ protected:
 #if defined(_USE_QT)
 	CSP_Logger *p_logger;
 #endif
-
 public:
 	DEVICE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
 	{
@@ -90,7 +89,6 @@ public:
 			this_device_id = vm->last_device->this_device_id + 1;
 		}
 		vm->last_device = this;
-		
 		// primary event manager
 		event_manager = NULL;
 	}
@@ -173,7 +171,10 @@ public:
 		if(event_manager == NULL) return -1;
 		return event_manager->get_sound_in_samples(bank, dst, expect_samples, expect_rate, expect_channels);
 	}
-	
+
+	virtual void set_high_pass_filter_freq(int freq, double quality) { } // If freq < 0 disable HPF.
+	virtual void set_low_pass_filter_freq(int freq, double quality) { }  // If freq <= 0 disable LPF.
+
 	virtual void update_config() {}
 	virtual void save_state(FILEIO* state_fio) {}
 	virtual bool load_state(FILEIO* state_fio)

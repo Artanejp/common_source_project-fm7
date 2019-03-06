@@ -23,13 +23,11 @@ void AY_3_891X::initialize()
 	clock_prev = clock_accum = clock_busy = 0;
 
 	use_lpf = false;
-	lpf_skip_factor = 0;
-	lpf_mod_factor = 0;
-	lpf_skip_val = 0;
-	lpf_mod_val = 0;
-	lpf_src_freq = 0;
-	lastval_l = 0;
-	lastval_r = 0;
+	use_hpf = false;
+	lpf_freq = 1;
+	hpf_freq = 1;
+	lpf_quality = 1.0;
+	hpf_quality = 1.0;
 	
 	if(d_debugger != NULL) {
 		d_debugger->set_device_name(_T("Debugger (AY-3-891X PSG)"));
@@ -52,11 +50,6 @@ void AY_3_891X::reset()
 	// stop timer
 	timer_event_id = -1;
 	this->set_reg(0x27, 0);
-	
-	lpf_skip_val = lpf_skip_factor;
-	lpf_mod_val = 0;
-	lastval_l = 0;
-	lastval_r = 0;
 	
 #ifdef SUPPORT_AY_3_891X_PORT
 	port[0].first = port[1].first = true;
@@ -205,35 +198,26 @@ void AY_3_891X::update_event()
 void AY_3_891X::mix(int32_t* buffer, int cnt)
 {
 	if(cnt > 0 && !mute) {
-		if(use_lpf) {
-			int32_t p[cnt * 2] = {0};
+		if((use_lpf) || (use_hpf)) {
+			int32_t* p;
+			int32_t p_h[cnt * 2];
+			int32_t p_l[cnt * 2] = {0};
+			p = p_l;
 			opn->Mix(p, cnt);
-			int nptr = 0;
-			for(int i = 0; i < cnt; i++) {
-				lpf_skip_val--;
-				if(lpf_mod_factor != 0) {
-					lpf_mod_val = lpf_mod_val + lpf_mod_factor;
-					if(lpf_mod_val >= lpf_src_freq) {
-						lpf_mod_val = lpf_mod_val - lpf_src_freq;
-						lpf_skip_val++;
-					}
-				}
-				if(lpf_skip_val <= 0) {
-					lastval_l = p[nptr + 0];
-					lastval_r = p[nptr + 1];
-					lpf_skip_val = lpf_skip_factor;
-				}
-				int32_t lval = (lastval_l * 8 + p[nptr + 0] * 24) / 32;
-				int32_t rval = (lastval_r * 8 + p[nptr + 1] * 24) / 32;
-				//int32_t lval = lastval_l;
-				//int32_t rval = lastval_r;
-				buffer[nptr + 0] = buffer[nptr + 0] + lval;
-				buffer[nptr + 1] = buffer[nptr + 1] + rval;
-				nptr = nptr + 2;
+			if(use_lpf) {
+				if(use_hpf) {
+					calc_low_pass_filter(p_h, p, sample_rate, lpf_freq, cnt, lpf_quality, false);
+					p = p_h;
+				} else {
+					calc_low_pass_filter(buffer, p, sample_rate, lpf_freq, cnt, lpf_quality, true);
+				}					
+			}
+			if(use_hpf) {
+				calc_high_pass_filter(buffer, p, sample_rate, hpf_freq, cnt, hpf_quality, true);
 			}
 		} else {
 			opn->Mix(buffer, cnt);
-		}			
+		}
 	}
 }
 
@@ -246,23 +230,35 @@ void AY_3_891X::set_volume(int ch, int decibel_l, int decibel_r)
 	}
 }
 
-void AY_3_891X::initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg, int lpf_freq)
+void AY_3_891X::set_high_pass_filter_freq(int freq, double quality)
 {
-	if((lpf_freq > 0) && (lpf_freq < (rate / 2))) {
-		use_lpf = true;
-		lpf_src_freq = lpf_freq;
-		lpf_skip_factor = rate / lpf_freq;
-		lpf_mod_factor = rate % lpf_freq;
-		lpf_skip_val = lpf_skip_factor;
-		lpf_mod_val = 0;
+	if((freq < 0) || (freq >= (sample_rate / 2))) {
+		hpf_freq = 1;
+		use_hpf = false;
+		hpf_quality = 1.0;
 	} else {
-		use_lpf = false;
-		lpf_src_freq = rate;
-		lpf_skip_factor = 1;
-		lpf_mod_factor = 0;
-		lpf_skip_val = lpf_skip_factor;
-		lpf_mod_val = 0;
+		hpf_freq = freq;
+		use_hpf = true;
+		hpf_quality = quality;
 	}
+}
+
+void AY_3_891X::set_low_pass_filter_freq(int freq, double quality)
+{
+	if((freq < 0) || (freq >= (sample_rate / 2))) {
+		lpf_freq = 1;
+		use_lpf = false;
+		lpf_quality = 1.0;
+	} else {
+		lpf_freq = freq;
+		use_lpf = true;
+		lpf_quality = quality;
+	}
+}
+
+void AY_3_891X::initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg)
+{
+	sample_rate = rate;
 	opn->Init(clock, rate, false, NULL);
 	opn->SetVolumeFM(decibel_fm, decibel_fm);
 	opn->SetVolumePSG(decibel_psg, decibel_psg);
@@ -316,14 +312,12 @@ bool AY_3_891X::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(timer_event_id);
 	state_fio->StateValue(busy);
 
-	//state_fio->StateValue(use_lpf);
-	//state_fio->StateValue(lpf_src_freq);
-	//state_fio->StateValue(lpf_skip_factor);
-	//state_fio->StateValue(lpf_mod_factor);
-	//state_fio->StateValue(lpf_skip_val);
-	//state_fio->StateValue(lpf_mod_val);
-	state_fio->StateValue(lastval_l);
-	state_fio->StateValue(lastval_r);
+	state_fio->StateValue(use_lpf);
+	state_fio->StateValue(use_hpf);
+	state_fio->StateValue(lpf_freq);
+	state_fio->StateValue(hpf_freq);
+	state_fio->StateValue(lpf_quality);
+	state_fio->StateValue(hpf_quality);
 	
  	return true;
 }

@@ -31,14 +31,21 @@ private:
 	int volume_l, volume_r;
 	bool realtime;
 
+	bool before_on;
 	bool use_lpf;
+	bool use_hpf;
+	int32_t lpf_freq;
+	int32_t hpf_freq;
+	float before_filter_l;
+	float before_filter_r;
+	float hpf_alpha;
+	float hpf_ialpha;
+	float lpf_alpha;
+	float lpf_ialpha;
+	
 	int sample_rate;
-	int lpf_src_freq;
-	int lpf_skip_factor;
-	int lpf_mod_factor;
-	int lpf_skip_val;
-	int lpf_mod_val;
-	int sample_old;
+	void calc_low_pass_filter(int32_t* dst, int32_t* src, int samples, int is_set_val);
+	void calc_high_pass_filter(int32_t* dst, int32_t* src, int samples, int is_set_val);
 	
 public:
 	PCM1BIT(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -55,10 +62,14 @@ public:
 	void event_frame();
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
+	void set_high_pass_filter_freq(int freq, double quality = 1.0);
+	void set_low_pass_filter_freq(int freq, double quality = 1.0);
+	
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
-	void initialize_sound(int rate, int volume, int lpf_freq = -1);
+	void initialize_sound(int rate, int volume);
+	
 };
 
 #endif

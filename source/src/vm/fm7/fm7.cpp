@@ -860,13 +860,18 @@ void VM::initialize_sound(int rate, int samples)
 	opn[1]->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
 	opn[2]->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
 # if !defined(_FM77AV_VARIANTS)   
-	psg->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0, 24000);
+	psg->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
+	psg->set_low_pass_filter_freq(4500);
+	psg->set_high_pass_filter_freq(50);
 # endif
 # if defined(_FM77AV_VARIANTS)
 	keyboard_beep->initialize_sound(rate, 2400.0, 512);
 # endif
 #endif	
-	pcm1bit->initialize_sound(rate, 6000, 3000);
+	pcm1bit->initialize_sound(rate, 8000);
+	pcm1bit->set_high_pass_filter_freq(10);
+	pcm1bit->set_low_pass_filter_freq(1500);
+	
 
 	//drec->initialize_sound(rate, 0);
 }

@@ -568,7 +568,7 @@ void VM::initialize_sound(int rate, int samples)
 		}
 	}
 #endif
-	pc88pcm->initialize_sound(rate, 8000, rate);
+	pc88pcm->initialize_sound(rate, 8000);
 #ifdef SUPPORT_PC88_HMB20
 	if(config.dipswitch & DIPSWITCH_HMB20) {
 		pc88opm->initialize_sound(rate, 4000000, samples, 0);

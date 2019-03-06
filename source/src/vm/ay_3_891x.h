@@ -71,14 +71,13 @@ private:
 	bool busy;
 
 	bool use_lpf;
-	int lpf_src_freq;
-	int lpf_skip_factor;
-	int lpf_mod_factor;
-	int lpf_skip_val;
-	int lpf_mod_val;
-
-	int32_t lastval_l;
-	int32_t lastval_r;
+	bool use_hpf;
+	int hpf_freq;
+	int lpf_freq;
+	double lpf_quality;
+	double hpf_quality;
+	
+	int sample_rate;
 	
 	void update_count();
 	void update_event();
@@ -95,6 +94,8 @@ public:
 		base_decibel_fm = base_decibel_psg = 0;
 		d_debugger = NULL;
 		use_lpf = false;
+		use_hpf = false;
+		sample_rate = 0;
 #if defined(HAS_AY_3_8910)
 		set_device_name(_T("AY-3-8910 PSG"));
 #elif defined(HAS_AY_3_8912)
@@ -118,6 +119,9 @@ public:
 	void event_callback(int event_id, int error);
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
+	void set_low_pass_filter_freq(int freq, double quality = 1.0);
+	void set_high_pass_filter_freq(int freq, double quality = 1.0);
+	
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	// for debugging
 	void write_via_debugger_data8(uint32_t addr, uint32_t data);
@@ -166,7 +170,7 @@ public:
 	{
 		d_debugger = device;
 	}
-	void initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg, int lpf_freq = -1);
+	void initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg);
 	void set_reg(uint32_t addr, uint32_t data); // for patch
 };
 
