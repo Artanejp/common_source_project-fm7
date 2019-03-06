@@ -1433,6 +1433,11 @@ uint16_t DLL_PREFIX jis_to_sjis(uint16_t jis);
 int DLL_PREFIX decibel_to_volume(int decibel);
 int32_t DLL_PREFIX apply_volume(int32_t sample, int volume);
 
+// High pass filter and Low pass filter.
+void DLL_PREFIX calc_high_pass_filter(int32_t* dst, int32_t* src, int sample_freq, int hpf_freq, int samples, double quality = 1.0, bool is_add = true);
+void DLL_PREFIX calc_low_pass_filter(int32_t* dst, int32_t* src, int sample_freq, int lpf_freq, int samples, double quality = 1.0, bool is_add = true);
+
+
 #define array_length(array) (sizeof(array) / sizeof(array[0]))
 
 #define FROM_BCD(v)	(((v) & 0x0f) + (((v) >> 4) & 0x0f) * 10)

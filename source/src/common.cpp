@@ -2298,6 +2298,80 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 	return true;
 }
 
+// From https://en.wikipedia.org/wiki/High-pass_filter
+void DLL_PREFIX calc_high_pass_filter(int32_t* dst, int32_t* src, int sample_freq, int hpf_freq, int samples, double quality, bool is_add)
+{
+	if(src == NULL) return;
+	if(dst == NULL) return;
+	double ifreq = 1.0 / ((double)hpf_freq * 2.0 * M_PI);
+	double isample = 1.0 / (double)sample_freq;
+	float alpha = (float)(isample * quality / (ifreq + isample));
+
+	if(alpha >= 1.0f) alpha = 1.0f;
+	if(alpha <= 0.0f) alpha = 0.0f;
+	float ialpha = 1.0f - alpha;
+	
+	__DECL_ALIGNED(16) float tmp_v[samples * 2]; // 2ch stereo
+	__DECL_ALIGNED(16) float tmp_h[samples * 2];
+	for(int i = 0; i < (samples * 2); i ++) {
+		tmp_h[i] = (float)(src[i]);
+	}
+	tmp_v[0] = tmp_h[0];
+	tmp_v[1] = tmp_h[1];
+	for(int i = 2; i < (samples * 2); i += 2) {
+		tmp_v[i + 0] = tmp_h[i + 0] * alpha + tmp_v[i - 2 + 0] * ialpha;
+		tmp_v[i + 1] = tmp_h[i + 1] * alpha + tmp_v[i - 2 + 1] * ialpha;
+		tmp_v[i + 0] = tmp_h[i + 0] - tmp_v[i + 0];
+		tmp_v[i + 1] = tmp_h[i + 1] - tmp_v[i + 1];
+	}
+	if(is_add) {
+		for(int i = 0; i < (samples * 2); i++) {
+			dst[i] = dst[i] + (int32_t)(tmp_v[i]);
+		}
+	} else {
+		for(int i = 0; i < (samples * 2); i++) {
+			dst[i] = (int32_t)(tmp_v[i]);
+		}
+	}			
+}
+
+// From https://en.wikipedia.org/wiki/Low-pass_filter
+void DLL_PREFIX calc_low_pass_filter(int32_t* dst, int32_t* src, int sample_freq, int lpf_freq, int samples, double quality, bool is_add)
+{
+	if(dst == NULL) return;
+	if(src == NULL) return;
+		
+	double ifreq = 1.0 / ((double)lpf_freq * (2.0 * M_PI));
+	double isample = 1.0 / (double)sample_freq;
+	float alpha = (float)(isample * quality / (ifreq + isample));
+	if(alpha >= 1.0f) alpha = 1.0f;
+	if(alpha <= 0.0f) alpha = 0.0f;
+	float ialpha = 1.0f - alpha;
+	
+	__DECL_ALIGNED(16) float tmp_v[samples * 2]; // 2ch stereo
+	__DECL_ALIGNED(16) float tmp_h[samples * 2];
+	
+	for(int i = 0; i < (samples * 2); i++) {
+		tmp_h[i] = (float)(src[i]);
+	}
+	tmp_v[0] = tmp_h[0];
+	tmp_v[1] = tmp_h[1];
+	for(int i = 2; i < (samples * 2); i += 2) {
+		tmp_v[i + 0] = tmp_h[i + 0] + alpha * tmp_v[i - 2 + 0] * ialpha; 
+		tmp_v[i + 1] = tmp_h[i + 1] + alpha * tmp_v[i - 2 + 1] * ialpha; 
+	}
+	if(is_add) {
+		for(int i = 0; i < (samples * 2); i++) {
+			dst[i] = dst[i] + (int32_t)(tmp_v[i]);
+		}
+	} else {
+		for(int i = 0; i < (samples * 2); i++) {
+			dst[i] = (int32_t)(tmp_v[i]);
+		}
+	}			
+}
+
+
 DLL_PREFIX const _TCHAR *get_lib_common_version()
 {
 #if defined(__LIBEMU_UTIL_VERSION)
