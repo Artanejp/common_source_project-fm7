@@ -114,9 +114,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	fontrom_20pix = new FONT_ROM_20PIX(this, emu);
 #endif
 	serialrom = new SERIAL_ROM(this, emu);
-
+	adpcm = new ADPCM(this, emu);
+	mixer = new MIXER(this, emu); // Pseudo mixer.
+	
+	
 	adc = new AD7820KR(this, emu);
-	adpcm = new RF5C68(this, emu);
+	rf5c68 = new RF5C68(this, emu);
 	e_volume[0] = new MB87878(this, emu);
 	e_volume[1] = new MB87878(this, emu);
 	
@@ -208,18 +211,29 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 
 #endif
 	set_machine_type(machine_id, cpu_id);
-	
 	// set contexts
 	event->set_context_cpu(cpu, cpu_clock);
-	event->set_context_sound(beep);
-	event->set_context_sound(opn2);
-	event->set_context_sound(adpcm);
-	event->set_context_sound(cdc);
-	//event->set_context_sound_in(cdc);
-	//event->set_context_sound_in(line_in);
-	//event->set_context_sound_in(mic);
-	//event->set_context_sound_in(modem);
 
+	adc_in_ch = -1;
+	line_in_ch = -1;
+	modem_in_ch = -1;
+	mic_in_ch = -1;
+
+	// Use pseudo mixer instead of event.Due to using ADC.
+	line_mix_ch = -1;
+	modem_mix_ch = -1;
+	mic_mix_ch = -1;
+	//line_mix_ch = mixer->set_context_sound(line_in);
+	//modem_mix_ch = mixer->set_context_sound(modem_in);
+	//mic_mix_ch = mixer->set_context_sound(mic_in);
+	beep_mix_ch = mixer->set_context_sound(beep);
+	pcm_mix_ch  = mixer->set_context_sound(rf5c68);
+	opn2_mix_ch = mixer->set_context_sound(opn2);
+	cdc_mix_ch = mixer->set_context_sound(cdc);
+	mixer->set_interpolate_filter_freq(pcm_mix_ch, 4000); // channel, freq; disable if freq <= 0.
+	
+	event->set_context_sound(mixer);
+	
 	if(fdc->load_sound_data(MB8877_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
 		event->set_context_sound(fdc);
 	}
@@ -309,13 +323,17 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cdc->set_context_pic(pic, SIG_I8259_CHIP1 | SIG_I8259_IR1);
 	
 	crtc->set_context_vsync(pic, SIG_I8259_CHIP1 | SIG_I8259_IR3); // VSYNC
-	sound->set_context_pic(pic, SIG_I8259_CHIP1 | SIG_I8259_IR5); // ADPCM AND OPN2
-	sound->set_context_opn2(opn2);
-	sound->set_context_adpcm(adpcm);
-	sound->set_context_adc(adc);
+	adpcm->set_context_pic(pic, SIG_I8259_CHIP1 | SIG_I8259_IR5); // ADPCM AND OPN2
+	adpcm->set_context_opn2(opn2);
+	adpcm->set_context_adpcm(rf5c68);
+	adpcm->set_context_adc(adc);
 
+	rf5c68->set_context_interrupt_boundary(adpcm, SIG_ADPCM_WRITE_INTERRUPT, 0xffffffff);
+	opn2->set_context_interrupt(adpcm, SIG_ADPCM_OPX_INTR, 0xffffffff);
 	
-	
+	adc->set_sample_rate(19200);
+	adc->set_sound_bank(-1);
+	adc->set_context_interrupt(adpcm, SIG_ADPCM_ADC_INTR, 0xffffffff); 
 	
 	scsi->set_context_dma(dma);
 	scsi->set_context_pic(pic);
@@ -334,7 +352,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-
 	
 	// i/o bus
 	io->set_iomap_alias_rw(0x00, pic, I8259_ADDR_CHIP0 | 0);
@@ -625,11 +642,27 @@ uint32_t VM::is_floppy_disk_accessed()
 
 void VM::initialize_sound(int rate, int samples)
 {
+	emu->lock_vm();
 	// init sound manager
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
 	beep->initialize_sound(rate, 8000);
+
+	// add_sound_in_source() must add after per initialize_sound().
+	adc_in_ch = event->add_sound_in_source(rate, samples, 2);
+	mixer->set_context_out_line(adc_in_ch);
+	adc->set_sample_rate(19200);
+	adc->set_sound_bank(adc_in_ch);
+	mixer->set_context_sample_out(adc_in_ch, rate, samples); // Must be 2ch.
+
+	// ToDo: Check recording sample rate & channels.
+	mic_in_ch = event->add_sound_in_source(rate, samples, 2);
+	mixer->set_context_mic_in(mic_in_ch, rate, samples);
+
+	line_in_ch = event->add_sound_in_source(rate, samples, 2);
+	mixer->set_context_line_in(line_in_ch, rate, samples);
+	emu->unlock_vm();
 }
 
 uint16_t* VM::create_sound(int* extra_frames)
@@ -642,81 +675,61 @@ int VM::get_sound_buffer_ptr()
 	return event->get_sound_buffer_ptr();
 }
 
-// ToDo: Sound IN as double buffer.
-bool VM::clear_sound_in()
+void VM::clear_sound_in()
 {
-	bool f = false;
-	sound_in_buf_bank = !sound_in_buf_bank;
-	lock_soundbuf();
-	
-	sound_in_buf = sound_in_buf_pool[(sound_in_buf_bank) ? 1 : 0];
-	if(sound_in_buf != NULL) {
-		memset(sound_in_buf, 0x00, sound_in_bufsize * 2 * sizeof(int32_t));
-		f = true;
-	} else {
-		f = false;
-	}
-	for(int ch = 0; ch < 4; ch++) {
-		sound_in_bufptr[ch] = 0;
-	}
-	sound_in_outptr = 0;
-	unlock_soundbuf();
-	return f;
+	event->clear_sound_in_source(adc_in_ch);
+	event->clear_sound_in_source(mic_in_ch);
+	event->clear_sound_in_source(line_in_ch);
+	return;
 }
 
-void VM::initialize_sample_in_buf(int samples)
+int VM::get_sound_in_data(int ch, int32_t* dst, int expect_samples, int expect_rate, int expect_channels)
 {
-	sound_in_bufsize = 0;
-	sound_in_buf =  NULL;
-	if(samples <= 0) return;
-	
-	sound_in_bufsize = samples;
-	sound_in_buf_pool = (int32_t*)malloc(samples * sizeof(int32_t) * 2);
-
-}
-
-int VM::get_samples_in_buf(int ch, int32* dst, int samples)
-{
-	bool over = false;
+	if(dst == NULL) return 0;
 	if(samples <= 0) return 0;
-	if(samples >= sound_in_bufsize) return 0;
-	if((sound_in_outptr + samples) >= sound_in_bufsize) {
-		samples = sound_in_bufsize - sound_in_outptr;
-		over = true;
+	int n_ch = -1;
+	switch(ch) {
+	case 0x00:
+		n_ch = line_in_ch;
+		break;
+	case 0x01:
+		n_ch = mic_in_ch;
+		break;
+	case 0x100:
+		n_ch = adc_in_ch;
+		break;
 	}
-	lock_soundbuf();
-	memcpy(dst, &(sound_in_buf[sound_in_outptr << 1]), samples * sizeof(int32_t) * 2);
-	unlock_soundbuf();
-		
+	if(n_ch < 0) return 0;
+	samples = event->get_sound_in_data(n_ch, dst, expect_samples, expect_rate, expect_channels);
 	return samples;
 }
 
-int VM::get_samples_length_sound_in()
-{
-	return sound_in_bufsize;
-}
-
-int VM::sound_in(int ch, int32* src, int samples)
+// Write to event's buffer
+int VM::sound_in(int ch, int32_t* src, int samples)
 {
 	if(ch < 0) return 0;
-	if(ch >= 4) return 0;
-	int left = samples;
-	int np = sound_in_bufptr[ch];
-	int sp = 0;
-	for(;left > 0; left--) {
-		if(np  >= (sound_in_bufsize << 1)) break;
-		lock_soundbuf();
-		sound_in_buf[np + 0] = sound_in_buf[np + 0] + src[sp + 0];
-		sound_in_buf[np + 1] = sound_in_buf[np + 1] + src[sp + 1];
-		if(sound_in_buf[np + 0] > 32767) sound_in_buf[np + 0] = 32767;
-		if(sound_in_buf[np + 0] < -32768) sound_in_buf[np + 0] = -32768;
-		if(sound_in_buf[np + 1] > 32767) sound_in_buf[np + 1] = 32767;
-		if(sound_in_buf[np + 1] < -32768) sound_in_buf[np + 1] = -32768;
-		unlock_soundbuf();
-		np = np + 2;
-		sp = sp + 2;
+	if(ch >= 2) return 0;
+	int n_ch = -1;
+	switch(ch) {
+	case 0x100:  // ADC in from MIXER, not connected.
+		break;
+	case 0x00: // LINE
+		n_ch = line_in_ch;
+		break;
+	case 0x01: // MIC
+		n_ch = mic_in_ch;
+		break;
 	}
-	return left;
+	if(n_ch < 0) return 0;
+
+	int ss = 0;
+	{
+		emu->lock_vm();
+		ss =  event->write_sound_in_buffer(n_ch, src, samples);
+		emu->unlock_vm();
+
+	}
+	return ss;
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -735,31 +748,33 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	if(ch >= 7) ch++;
 #endif
 	if(ch == 0) { // BEEP
-		beep->set_volume(0, decibel_l, decibel_r);
+		mixer->set_volume(beep_mix_ch, decibel_l, decibel_r);
 	}
 	else if(ch == 1) { // CD-ROM
-		e_volume[1]->set_volume(0, decibel_l);
-		e_volume[1]->set_volume(1, decibel_r);
+		//e_volume[1]->set_volume(0, decibel_l);
+		//e_volume[1]->set_volume(1, decibel_r);
+		mixer->set_volume(cdc_mix_ch, decibel_l, decibel_r);
 	}
 	else if(ch == 2) { // OPN2
-		opn2->set_volume(0, decibel_l, decibel_r);
+		mixer->set_volume(opn2_mix_ch, decibel_l, decibel_r);
 	}
 	else if(ch == 3) { // ADPCM
-		adpcm->set_volume(0, decibel_l, decibel_r);
+		mixer->set_volume(pcm_mix_ch, decibel_l, decibel_r);
 	}
 	else if(ch == 4) { // LINE IN
-		e_volume[0]->set_volume(0, decibel_l);
-		e_volume[0]->set_volume(1, decibel_r);
+		//mixer->set_volume(line_mix_ch, decibel_l, decibel_r);
 	} 
 	else if(ch == 5) { // MIC
-		e_volume[1]->set_volume(2, (decibel_l + decibel_r) / 2);
+		//mic->set_volume(0, (decibel_l + decibel_r) / 2);
 	} 
 	else if(ch == 6) { // MODEM
-		e_volume[1]->set_volume(2, (decibel_l + decibel_r) / 2);
+		//modem->set_volume(0, (decibel_l + decibel_r) / 2);
 	}
+#ifdef HAS_2ND_ADPCM
 	else if(ch == 7) { // ADPCM
 		adpcm2->set_volume(0, decibel_l, decibel_r);
 	}
+#endif
 	else if(ch == 8) { // FDD
 		fdc->set_volume(0, decibel_l, decibel_r);
 	}
@@ -828,25 +843,38 @@ void VM::update_config()
 
 #define STATE_VERSION	3
 
-void VM::save_state(FILEIO* state_fio)
+bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->save_state(state_fio);
-	}
-}
-
-bool VM::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
-	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(!device->load_state(state_fio)) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+ 	for(DEVICE* device = first_device; device; device = device->next_device) {
+		// Note: typeid(foo).name is fixed by recent ABI.Not decr. 6.
+ 		// const char *name = typeid(*device).name();
+		//       But, using get_device_name() instead of typeid(foo).name() 20181008 K.O
+		const char *name = device->get_device_name();
+		int len = strlen(name);
+		if(!state_fio->StateCheckInt32(len)) {
 			return false;
 		}
-	}
+		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+ 			return false;
+ 		}
+		if(!device->process_state(state_fio, loading)) {
+			if(loading) {
+				printf("Data loading Error: DEVID=%d\n", device->this_device_id);
+			}
+ 			return false;
+ 		}
+ 	}
+	// Machine specified.
+	state_fio->StateValue(line_mix_ch);
+	state_fio->StateValue(modem_mix_ch);
+	state_fio->StateValue(mic_mix_ch);
+	state_fio->StateValue(beep_mix_ch);
+	state_fio->StateValue(pcm_mix_ch);
+	state_fio->StateValue(opn2_mix_ch);
+	state_fio->StateValue(cdc_mix_ch);
 	return true;
 }
 

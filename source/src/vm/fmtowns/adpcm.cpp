@@ -12,19 +12,68 @@
 #include "ad7820kr.h"
 
 namespace FMTOWNS {
+
+#define EVENT_ADC_CLOCK   1
+#define EVENT_ADPCM_CLOCK 2
+	
 void ADPCM::initialize()
 {
+	adc_fifo = new FIFO(64); // OK?
 	for(int i = 0; i < 8; i++) {
 		dac_int_mask[i] = true; // true = enable intrrupt.
 		dac_intr[i] = false;
 	}
 	intr_opx = false;
+	event_adc_clock = -1;
+	initialize_adc_clock(-1);
+	event_adpcm_clock = -1;
 }
 
+void ADPCM::release()
+{
+	adc_fifo->release();
+	delete adc_fifo;
+}
+	
 void ADPCM::reset()
 {
 	// Is clear FIFO?
+	adc_fifo->clear();
+	initialize_adc_clock(-1);
+	if(event_adpcm_clock >= 0) {
+		cancel_event(this, event_adpcm_clock);
+	}
+	register_event(this, EVENT_ADPCM_CLOCK, 16.0e6 / (384.0 * 2.0), true, &event_adpcm_clock); // Is this true?
 }
+
+void ADPCM::initialize_adc_clock(int freq)
+{
+	if(freq <= 0) {
+		freq = (int)d_adc->read_signal(SIG_AD7820_SAMPLE_RATE);
+	}
+	if(event_adc_clock >= 0) {
+		cancel_event(this, event_adc_clock);
+	}
+	d_adc->write_signal(SIG_AD7820_DATA_REG, 0x00, 0x00);
+	d_adc->write_signal(SIG_AD7820_CS, 0xffffffff, 0xffffffff);
+	d_adc->write_signal(SIG_AD7820_WR_CONVERSION_MODE, 0, 0xffffffff); // READ MODE..
+	register_event(this, EVENT_ADC_CLOCK, 1.0e6 / (double)freq, true, &event_adc_clock);
+}		
+
+void ADPCM::event_callback(int id, int err)
+{
+	switch(id) {
+	case EVENT_ADC_CLOCK:
+		d_adc->write_signal(SIG_AD7820_WR_CONVERSION_MODE, 0, 0xffffffff); // READ MODE
+		d_adc->write_signal(SIG_AD7820_CS, 0xffffffff, 0xffffffff);
+		d_adc->read_data8(SIG_AD7820_DATA_REG); // Dummy read, start to  sample.
+		break;
+	case EVENT_ADPCM_CLOCK:
+		d_rf5c68->write_signal(SIG_RF5C68_DAC_PERIOD, 1, 1);
+		break;
+	}
+}
+	
 uint32_t ADPCM::read_io8(uint32_t addr)
 {
 	/*
@@ -149,11 +198,14 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 	} else if(ch == SIG_ADPCM_OPX_INTR) { // SET/RESET INT13
 		intr_opx = ((data & mask) != 0); 
 		write_signals(&output_intr, (intr_opx) ? 0xffffffff : 0x00000000);
-	} else if(ch == SIG_ADPCM_PUSH_FIFO) { // Push data to FIFO from ADC.
-		if(adc_fifo->full()) {
-			adc_fifo->read(); // Dummy read
+	} else if(ch == SIG_ADPCM_ADC_INTR) { // Push data to FIFO from ADC.
+		if((data & mask) != 0) {
+			uint32_t n_data = d_adc->read_signal(SIG_AD7820_DATA_REG);
+			d_adc->write_signal(SIG_AD7820_CS, 0, 0xffffffff);
+			if(!(adc_fifo->full())) {
+				adc_fifo->write((int)(n_data & 0xff));
+			}
 		}
-		adc_fifo->write((int)(data & 0xff));
 	}
 }
 

@@ -15,117 +15,81 @@
 #include "../../common.h"
 #include "../../fifo.h"
 
-#define SIG_AD7820_RESET         1
-#define SIG_AD7820_DO_SAMPLE     2  // SET A DATA (from any internal device)
-#define SIG_AD7820_PERIOD_OUT    3  // TICK A CLOCK
-#define SIG_AD7820_POP_FIFO      4
-#define SIG_AD7820_PEEK_FIFO     5
+#define SIG_AD7820_DATA_REG           1  // READ/SET A DATA
+#define SIG_AD7820_RESET              2  // REEST DEVICE (not implemented at real machine)
+#define SIG_AD7820_SET_SAMPLE_MODE    3  // NOT 0 = WR_RD_MODE, 0 = RD_MODE.
+#define SIG_AD7820_CS                 4  // CS (Positive logic: differ from real hardware).
+#define SIG_AD7820_WR_CONVERSION_MODE 5  // Automatic conversion mode: MUST SET SAMPLE_MODE = WR_RD_MODE (not 0).
+#define SIG_AD7820_SAMPLE_RATE        6  // READ/SET SAMPLE RATE
 
 // ToDo: Adjust sample rate.
 class AD7820KR : public DEVICE {
 	// ADC
-	outputs_t output_data;
-	FIFO* in_fifo;
-	uint32_t adc_data;
-
-	int in_rate;
-	int out_rate;
+	// Note: AD7820KR controls/outputs *INT and *OFL as NEGATIVE logic, but this outputs POSITIVE logic 20190307 K.O
+	outputs_t outputs_intr;
+	outputs_t outputs_overflow;
+	outputs_t outputs_ready;
 	
-	int in_mod;
-	int out_count;
-	int out_mod;
-	
-	void push_fifo(uint32_t data);
+	uint8_t adc_data;
+	uint8_t adc_msb;
+	uint32_t prev_clock;
 
+	bool req_convert;
+	bool wr_rd_mode;
+	int this_bank;
+	int this_sample_rate;
+	int event_sample;
+
+	void srart_sample(double usec);
 public:
 	AD7820KR(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		adc_fifo = new FIFO(96000 * 2); // DEPTH OK?
-		initialize_output_signals(&output_data);
-		set_device_name(_T("AD7820KR A/D CONVERTER"));
+		initialize_output_signals(&outputs_intr);
+		initialize_output_signals(&outputs_overflow);
+		initialize_output_signals(&outputs_ready);
+		this_sample_rate = 19200; // ToDo.
+		this_bank = 0; // ToDo.
+		wr_rd_mode = false;
+		req_convert = false;
+		adc_data = 0x00;
+		adc_msb = 0x00;
+		prev_clock = 0;
 	}
 	~AD7820KR()
 	{
-		delete adc_fifo;
 	}
 
 	void initialize();
 	void release();
 	void reset();
 
+	void event_callback(int event_id, int err);
+	
 	uint32_t read_signal(int ch);
-
-	// Note: To sample:
-	// 1. Set input rate (maybe host AUDIO_INPUT) and output rate (maybe emulated devices's rate).
-	// 2. Get nSamples from HOST.
-	// 3. Convert (adjust) sampled datas width to this device (maybe signed int or float -> unsigned 8bits).
-	// 4. Push a data to this device's FIFO via write_signal(SIG_AD7820_DO_SAMPLE, converted_data) or set_data().
-	// 5. Repeat 4. nSamples times.
-	// 6. Go to 2.
-	// Note2: To get sampled data (from emulated devices):
-	// 1. Use set_context_output_data() to set target device(s).
-	// 2. Transfer data within target's write_signal().
-	// 3. Trigger to this device by AD7820KR::write_signal(SIG_AD7820_PERIOD_OUT,...).
-	// See, vm/fmtowns/adpcm.[cpp|h] .
 	void write_signal(int ch, uint32_t data, uint32_t mask);
 
-	void set_data(uint8_t data)
-	{
-		push_fifo(data);
-	}
-	void set_data(int8_t data)
-	{
-		uint8_t _n;
-		if(data < 0) {
-			_n = (uint8_t)(-data);
-			_n = 128 - _n;
-		} else {
-			_n = (uint8_t)data;
-			_n = _n + 128;
-		}
-		push_fifo(_n);
-	}
-	void set_data(int32_t data)
-	{
-		uint8_t _n;
-		data >>= 24;
-		_n = (uint8_t)(data + 128);
-		push_fifo(_n);
-	}
-	void set_data(uint32_t data)
-	{
-		uint8_t _n;
-		data >>= 24;
-		_n = (uint8_t)data;
-		push_fifo(_n);
-	}
-	void set_data(int16_t data)
-	{
-		uint8_t _n;
-		data >>= 8;
-		_n = (uint8_t)(data + 128);
-		push_fifo(_n);
-	}
-	void set_data(uint16_t data)
-	{
-		uint8_t _n;
-		data >>= 8;
-		_n = (uint8_t)data;
-		push_fifo(_n);
-	}
-	// Note: These functions are to set sample rate both in/out.
-	void initialize_sampler(uint32_t irate, uint32_t orate);
-	void change_in_rate(int rate);
-	void change_in_period(double us);
-	void change_out_rate(int rate);
-	void change_out_period(double us);
-	
 	bool process_state(FILEIO* state_fio, bool loading);
 
-	void set_context_output_data(DEVICE* device, int id, uint32_t mask)
+	// unique functions
+	void set_sample_rate(int val)
 	{
-		register_output_signal(&output_data, device, id, mask);
+		this_sample_rate = val;
 	}
-
+	void set_sound_bank(int val)
+	{
+		this_bank = val;
+	}
+	void set_context_ready(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&output_ready, device, id, mask);
+	}
+	void set_context_interrupt(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&output_intr, device, id, mask);
+	}
+	void set_context_overflow(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&output_overflow, device, id, mask);
+	}
 };
 
