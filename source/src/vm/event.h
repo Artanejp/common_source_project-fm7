@@ -347,6 +347,7 @@ public:
 	int release_sound_in_source(int bank);
 	
 	bool is_sound_in_source_exists(int bank);
+	int increment_sound_in_passed_data(int bank, double passed_usec);
 	int get_sound_in_buffers_count();
 	int get_sound_in_samples(int bank);
 	int get_sound_in_rate(int bank);
@@ -354,7 +355,9 @@ public:
 	int16_t* get_sound_in_buf_ptr(int bank);
 	int write_sound_in_buffer(int bank, int32_t* src, int samples);
 	// Add sampled values to sample buffer;value may be -32768 to +32767.
-	int get_sound_in_samples(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
+	int get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels);
+	int get_sound_in_data(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
+	int rechannel_sound_in_data(int32_t*dst, int16_t* src, int dst_channels, int src_channels, int samples);
 	
 	template <class T>
 		void set_context_cpu(T* device, uint32_t clocks = CPU_CLOCKS)

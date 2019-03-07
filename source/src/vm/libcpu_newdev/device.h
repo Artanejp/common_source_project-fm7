@@ -72,6 +72,7 @@ public:
 	// this function may be before (or after) initialize().
 	virtual int release_sound_in_source(int bank);
 	virtual bool is_sound_in_source_exists(int bank);
+	virtual int increment_sound_in_passed_data(int bank, double passed_usec);
 	virtual int get_sound_in_buffers_count();
 	virtual int get_sound_in_samples(int bank);
 	virtual int get_sound_in_rate(int bank);
@@ -82,7 +83,8 @@ public:
 	virtual int write_sound_in_buffer(int bank, int32_t* src, int samples);
 	// Add sampled values to sample buffer;value may be -32768 to +32767.
 	// this function may be before (or after) initialize().
-	virtual int get_sound_in_samples(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
+	virtual int get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels);
+	virtual int get_sound_in_data(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
 	virtual void set_high_pass_filter_freq(int freq, double quality) { } // If freq < 0 disable HPF.
 	virtual void set_low_pass_filter_freq(int freq, double quality) { }  // If freq <= 0 disable LPF.
 	

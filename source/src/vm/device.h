@@ -129,6 +129,12 @@ public:
 		}
 		return event_manager->is_sound_in_source_exists(bank);
 	}
+	virtual int increment_sound_in_passed_data(int bank, double passed_usec) {
+		if(event_manager == NULL) {
+			return 0;
+		}
+		return event_manager->increment_sound_in_passed_data(bank, passed_usec);
+	}
 	virtual int get_sound_in_buffers_count() {
 		if(event_manager == NULL) {
 			event_manager = vm->first_device->next_device;
@@ -167,9 +173,13 @@ public:
 	}
 	// Add sampled values to sample buffer;value may be -32768 to +32767.
 	// this function may be before (or after) initialize().
-	virtual int get_sound_in_samples(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels) {
+	virtual int get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels) {
+		if(event_manager == NULL) return 0;
+		return event_manager->get_sound_in_latest_data(bank, dst, expect_channels);
+	}
+	virtual int get_sound_in_data(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels) {
 		if(event_manager == NULL) return -1;
-		return event_manager->get_sound_in_samples(bank, dst, expect_samples, expect_rate, expect_channels);
+		return event_manager->get_sound_in_data(bank, dst, expect_samples, expect_rate, expect_channels);
 	}
 
 	virtual void set_high_pass_filter_freq(int freq, double quality) { } // If freq < 0 disable HPF.

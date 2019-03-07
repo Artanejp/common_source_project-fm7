@@ -947,190 +947,261 @@ int EVENT::write_sound_in_buffer(int bank, int32_t* src, int samples)
 	// ToDo: UnLock Mutex
 	sound_in_writeptr[bank] = sound_in_writeptr[bank] + n_samples;
 	if(sound_in_writeptr[bank] >= sound_in_samples[bank]) sound_in_writeptr[bank] = 0;
+	sound_in_write_size[bank] += samples;
+	if(sound_in_write_size[bank] >= sound_in_samples[bank]) sound_in_write_size[bank] = sound_in_samples[bank];
 	return samples;
 }
 
 // Add sampled values to sample buffer;value may be -32768 to +32767.
-int EVENT::get_sound_in_samples(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels)
+int EVENT::rechannel_sound_in_data(int32_t*dst, int16_t* src, int dst_channels, int src_channels, int samples)
+{
+	if(dst == NULL) return 0;
+	if(src == NULL) return 0;
+	if(dst_channels <= 0) return 0;
+	if(src_channels <= 0) return 0;
+
+	int cvt_bytes = 0;
+	memset(dst, 0x00, sizeof(int32_t) * samples * dst_channels);
+	if(dst_channels == src_channels) {
+		for(int i = 0; i < (src_channels * samples) ; i++) {
+			dst[i] = (int32_t)(src[i]);
+		}
+	} else if(dst_channels < src_channels) {
+		for(int x = 0; x < samples; x++) {
+			int mp = 0;
+			int div_ch = src_channels / dst_channels;
+			int mod_ch = src_channels % dst_channels;
+			for(int i = 0; i < dst_channels; i++) {
+				for(int j = 0; j < div_ch; j++) {
+					dst[i] = dst[i] + (int32_t)(src[mp]);
+					mp++;
+				}
+			}
+			if(mod_ch != 0) {
+				for(int j = 0; j < mod_ch; j++) {
+					dst[dst_channels - 1] = dst[dst_channels - 1] + (int32_t)(src[mp]);
+					mp++;
+				}
+				for(int i = 0; i < (dst_channels - 1); i++) {
+					dst[i] = dst[i] / div_ch;
+				}
+				dst[dst_channels - 1] = dst[dst_channels - 1] / (div_ch + mod_ch);
+			} else {
+				for(int i = 0; i < dst_channels; i++) {
+					dst[i] = dst[i] / div_ch;
+				}
+			}
+			src = src + src_channels;
+			dst = dst + dst_channels;
+		}
+	} else if(dst_channels > src_channels) {
+		for(int x = 0; x < samples; x++) {
+			int mp = 0;
+			int div_ch = dst_channels / src_channels;
+			int _n = div_ch;
+			for(int i = 0; i < dst_channels; i++) {
+				dst[i] = (int32_t)(src[mp]);
+				_n--;
+				if(_n <= 0) {
+					_n = div_ch;
+					mp++;
+					if(mp >= src_channels) {
+						mp = src_channels - 1;
+					}
+				}
+			}
+			src = src + src_channels;
+			dst = dst + dst_channels;
+		}
+	}
+	return samples;
+}
+
+int EVENT::increment_sound_in_passed_data(int bank, double passed_usec)
+{
+
+	if(bank < 0) return 0;
+	if(bank >= MAX_SOUND_IN_BUFFERS) return 0;
+	if(sound_in_rate[bank] <= 0) return 0;
+	if(sound_in_samples[bank] <= 0) return 0;
+	if(passed_usec <= 0.0) return 0;
+	
+	double freq = 1.0e6 / sound_in_rate[bank];
+	int inc_ptr = (int)(nearbyint(passed_usec / freq));
+	int readptr = sound_in_readptr[bank];
+	int _ni = inc_ptr;
+	
+	if(_ni >= sound_in_samples[bank]) {
+		_ni = _ni % sound_in_samples[bank];
+	}
+	readptr += _ni;
+	if(readptr < 0) readptr = 0;
+	readptr = readptr % sound_in_samples[bank];
+
+	sound_in_readptr[bank] = readptr;
+	sound_in_write_size[bank] = sound_in_write_size[bank] - _ni;
+	if(sound_in_write_size[bank] <= 0) {
+		sound_in_write_size[bank] = 1;
+		sound_in_readptr[bank] = sound_in_readptr[bank] - 1;
+		if(sound_in_readptr[bank] < 0) sound_in_readptr[bank] = sound_in_samples[bank] - 1;
+	}
+	return inc_ptr;
+}
+	
+int EVENT::get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels)
+{
+	int gave_samples = 0;
+	int sound_div = 1;
+	int sound_mod = 0;
+
+	if(bank < 0) return 0;
+	if(bank >= MAX_SOUND_IN_BUFFERS) return 0;
+	if(sound_in_channels[bank] <= 0) return 0;
+	if(sound_in_rate[bank] <= 0) return 0;
+	if(sound_in_samples[bank] <= 0) return 0;
+	if(expect_channels <= 0) return 0;
+	if(dst == NULL) return 0;
+
+	int readptr = sound_in_writeptr[bank] - 1;
+	if(readptr < 0) {
+		readptr = sound_in_samples[bank] - 1;
+	}
+	if(readptr >= sound_in_samples[bank]) {
+		readptr = 0;
+	}
+	int16_t tmpbuf[sound_in_channels[bank] + 1];
+	int16_t* p = sound_in_tmp_buffer[bank];
+	if(p == NULL) return 0;
+	p =&(p[readptr * sound_in_channels[bank]]);
+	
+	for(int i = 0; i < sound_in_channels[bank]; i++) {
+		tmpbuf[i] = p[i];
+	}
+
+	readptr++;
+	if(readptr >= sound_in_samples[bank]) {
+		readptr = 0;
+	}
+	sound_in_readptr[bank] = readptr;
+	sound_in_write_size[bank] = 0;
+	return rechannel_sound_in_data(dst, tmpbuf, expect_channels, sound_in_channels[bank], 1); 
+}
+
+int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels)
 {
 	if(bank < 0) return -1;
 	if(bank >= MAX_SOUND_IN_BUFFERS) return -1;
 	if(sound_in_tmp_buffer[bank] == NULL) return -1;
 	if(dst == NULL) return -1;
 
-	int n_samples = 0;
-	int32_t tmpbuf[expect_samples * expect_channels];
+	int16_t* src = sound_in_tmp_buffer[bank];
+	int readptr = sound_in_readptr[bank];
+	if(readptr < 0) readptr = 0;
+	if(readptr >= sound_in_samples[bank]) readptr = 0;
+	
 	int gave_samples = 0;
-	int sound_div = 1;
-	int sound_mod = 0;
-	if(sound_in_channels[bank] > expect_channels) {
-		sound_div = sound_in_channels[bank] / expect_channels;
-		sound_mod = sound_in_channels[bank] % expect_channels;
-	} else if(sound_in_channels[bank] < expect_channels) {
-		sound_div = expect_channels / sound_in_channels[bank];
-		sound_mod = expect_channels % sound_in_channels[bank];
-	}
 	// ToDo: Lock Mutex
-	if(sound_in_channels[bank] == expect_channels) {
-		int32_t* p = tmpbuf;
-		for(int i = 0; i < expect_samples; i++) {
-			if(sound_in_write_size[bank] <= 0) break;
-			int16_t* q = &(sound_in_tmp_buffer[bank][sound_in_readptr[bank] * sound_in_channels[bank]]);
-			for(int j = 0; j < expect_channels; j++) {
-				p[j] = q[j];
-					
-			}
-			sound_in_readptr[bank] = sound_in_readptr[bank] + 1;
-			if(sound_in_readptr[bank] >= sound_in_samples[bank]) sound_in_readptr[bank] = 0;
-			n_samples++;
-			sound_in_write_size[bank] = sound_in_write_size[bank] - 1;
+	int in_count;
+	in_count = (int)(nearbyint((double)(sound_in_rate[bank]) / (double)expect_rate) * (double)expect_samples);
+	if(in_count >= sound_in_samples[bank]) in_count = sound_in_samples[bank];
+	if(in_count >= sound_in_write_size[bank]) in_count = sound_in_write_size[bank];
+	if(in_count <= 0) return 0;
+
+	int16_t tmpbuf_in[(in_count + 1) * sound_in_channels[bank]];
+	int32_t tmpbuf[(in_count + 1) * expect_channels] = {0};
+
+	int mp = 0;
+	for(int i = 0; i < in_count; i++) {
+		int tmpr = readptr * sound_in_channels[bank];
+		for(int j = 0; j < sound_in_channels[bank]; j++) {
+			tmpbuf_in[mp] = src[tmpr + j];
+			mp++;
 		}
-	} else if(sound_in_channels[bank] > expect_channels) {
-		for(int i = 0; i < expect_samples; i++) {
-			int chp = 0;
-			int chq = 0;
-			int32_t* p = &(tmpbuf[i * expect_channels]);
-			int16_t* q = &(sound_in_tmp_buffer[bank][sound_in_readptr[bank] * sound_in_channels[bank]]);
-			if(sound_in_write_size[bank] <= 0) break;
-					
-			for(int j = 0; j < sound_in_channels[bank]; j++) {
-				*p = *p + q[j];
-				chp++;
-				if(sound_mod == 0) {
-					if(chp >= sound_div) {
-						p++;
-						chp = 0;
-						chq++;
-					}
-				} else {
-					if((chp >= sound_div) && (chq < (expect_channels - 1))){
-						p++;
-						chp = 0;
-						chq++;
-					}	
-				}						
-			}
-			p = &(dst[i * expect_channels]);
-			if(sound_mod != 0) {
-				for(int j = 0; j < (expect_channels - 1); j++) {
-					*p = *p / sound_div;
-					p++;
-				}
-				*p = *p / (sound_div + sound_mod);
-			} else {
-				for(int j = 0; j < expect_channels; j++) {
-					*p = *p / sound_div;
-					p++;
-				}
-			}
-			sound_in_readptr[bank] = sound_in_readptr[bank] + 1;
-			if(sound_in_readptr[bank] >= sound_in_samples[bank]) sound_in_readptr[bank] = 0;
-			n_samples++;
-			sound_in_write_size[bank] = sound_in_write_size[bank] - 1;
-		}
-	} else { // sound_in_channels[bank] < expect_channels
-		int32_t* p = tmpbuf;
-		for(int i = 0; i < expect_samples; i++) {
-			if(sound_in_write_size[bank] <= 0) break;
-			int chp = 0;
-			int chq = 0;
-			int16_t* q = &(sound_in_tmp_buffer[bank][sound_in_readptr[bank] * sound_in_channels[bank]]);
-			for(int j = 0; j < sound_div; j++) {
-				*p++ = *q;
-				chp++;
-			}
-			if(sound_mod == 0) {
-				q++;
-			} else if(chp < (expect_channels - sound_mod - 1)) {
-				q++;
-			} else {
-				for(int j = 0; j < sound_mod; j++) {
-					*p++ = *q;
-				}
-				q++;
-			}
-			sound_in_readptr[bank] = sound_in_readptr[bank] + 1;
-			if(sound_in_readptr[bank] >= sound_in_samples[bank]) sound_in_readptr[bank] = 0;
-			n_samples++;
-			sound_in_write_size[bank] = sound_in_write_size[bank] - 1;
-		}
-				
+		readptr++;
+		if(readptr >= sound_in_samples[bank]) readptr = 0;
 	}
+	sound_in_readptr[bank] = readptr;
+	sound_in_write_size[bank] -= in_count;
+	if(sound_in_write_size[bank] <= 0) sound_in_write_size[bank] = 0;
+	
+	gave_samples = rechannel_sound_in_data(tmpbuf, tmpbuf_in, expect_channels, sound_in_channels[bank], in_count);
+	
 	// ToDo: UnLock Mutex
 	// Got to TMP Buffer
 	if(expect_rate == sound_in_rate[bank]) {
 		int32_t* p = tmpbuf;
 		int32_t* q = dst;
-		int32_t tval;
-		for(int i = 0; i < n_samples; i++) {
-			for(int j = 0; j < expect_channels; j++) {
-				tval = *q;
-				tval = tval + *p;
-				if(tval >= 32768) tval = 32767;
-				if(tval < -32768) tval = -32768;
-				*q = tval;
-				q++;
-				p++;
-			}
+		
+		for(int i = 0; i < (gave_samples * expect_channels); i++) {
+			q[i] = p[i];
 		}
-		return n_samples;
+		return gave_samples;
 	} else if(expect_rate > sound_in_rate[bank]) {
 		int32_t* p = tmpbuf;
 		int32_t* q = dst;
 		int32_t tval;
+		int s_div = expect_rate / sound_in_rate[bank];
+		int s_mod = expect_rate % sound_in_rate[bank];
+		int mod_count = 0;
 		// ToDo: Interpollate
-		gave_samples = 0;
-		for(int i = 0; i < n_samples;) {
-			for(int j = 0; j < expect_channels; j++) {
-				tval = *q;
-				tval = tval + p[j];
-				if(tval >= 32768) tval = 32767;
-				if(tval < -32768) tval = -32768;
-				*q = tval;
-				q++;
+		int n_samples = (int)((double)gave_samples * ((double)expect_rate / (double)sound_in_rate[bank]));
+		int32_t tmpdata[expect_channels];
+		for(int i = 0; i < n_samples; i++) {
+			for(int ch = 0; ch < expect_channels; ch++) {
+				tmpdata[ch] = p[ch];
 			}
-			sound_in_read_mod[bank] = sound_in_read_mod[bank] + sound_in_rate[bank];
-			if(sound_in_read_mod[bank] >= expect_rate) {
-				sound_in_read_mod[bank] = sound_in_read_mod[bank] - expect_rate;
-				p = p + expect_channels;
-				i++;
-				gave_samples++;
+			for(int n = 0; n < s_div; n++) {
+				for(int ch = 0; ch < expect_channels; ch++) {
+					dst[ch] = tmpdata[ch];
+				}
+				dst = dst + expect_channels;
 			}
+			mod_count += s_mod;
+			if(mod_count >= sound_in_rate[bank]) {
+				mod_count = mod_count - sound_in_rate[bank];
+				for(int ch = 0; ch < expect_channels; ch++) {
+					q[ch] = tmpdata[ch];
+				}
+				q = q + expect_channels;
+			}
+			p = p + expect_channels;
 		}
-		return gave_samples + 1;
+		return n_samples;
 	} else { // expect_rate < sound_in_rate[bank]
+		// ToDo: Interpollate
 		int32_t* p = tmpbuf;
 		int32_t* q = dst;
 		int32_t tval;
+		int s_div = sound_in_rate[bank] / expect_rate;
+		int s_mod = sound_in_rate[bank] % expect_rate;
+		int mod_count = 0;
+		int div_count = s_div;
+		int s_count = 0;
 		// ToDo: Interpollate
-		gave_samples = 0;
-		for(int i = 0; i < n_samples; i++) {
-			if(i == 0) {
-				for(int j = 0; j < expect_channels; j++) {
-					tval = *q;
-					tval = tval + p[j];
-					if(tval >= 32768) tval = 32767;
-					if(tval < -32768) tval = -32768;
-					*q = tval;
-					q++;
+		int n_samples = (int)((double)gave_samples * ((double)expect_rate / (double)sound_in_rate[bank]));
+		int32_t tmpdata[expect_channels] = {0};
+		for(int i = 0; i < gave_samples; i++) {
+			for(int ch = 0; ch < expect_channels; ch++) {
+				tmpdata[ch] += p[ch];
+			}
+			mod_count += s_mod;
+			if(mod_count >= expect_rate) {
+				mod_count = mod_count - expect_rate;
+				div_count++;
+			}
+			div_count--;
+			s_count++;
+			if(div_count <= 0) {
+				div_count = s_div;
+				for(int ch = 0; ch < expect_channels; ch++) {
+					q[ch] = tmpdata[ch] / s_count;
 				}
+				s_count = 0;
+				q = q + expect_channels;
 			}
 			p = p + expect_channels;
-			sound_in_read_mod[bank] = sound_in_read_mod[bank] + expect_rate;
-			if(sound_in_read_mod[bank] >= sound_in_rate[bank]) {
-				sound_in_read_mod[bank] = sound_in_read_mod[bank] - sound_in_rate[bank];
-				for(int j = 0; j < expect_channels; j++) {
-					tval = *q;
-					tval = tval + p[j];
-					if(tval >= 32768) tval = 32767;
-					if(tval < -32768) tval = -32768;
-					*q = tval;
-					q++;
-				}
-				gave_samples++;
-			}
 		}
-		return gave_samples + 1;
+		return n_samples;
 	}
 	return 0;
 }

@@ -129,7 +129,7 @@ public:
 	uint32_t read_signal(int id);
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int error);
-	void mix(int32* buffer, int cnt);
+	void mix(int32_t* buffer, int cnt);
 	void set_volume(int _ch, int decibel_l, int decibel_r);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	// for debugging
