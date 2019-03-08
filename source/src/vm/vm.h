@@ -125,6 +125,26 @@
 #include "fmr50/fmr50.h"
 #endif
 
+#if defined(_FMTOWNS_1) || defined(_FMTOWNS_2)
+#include "fmtowns/fmtowns.h"
+#endif
+
+#if defined(_FMTOWNS_1F) || defined(_FMTOWNS_2F) || defined(_FMTOWNS_1H) || defined(_FMTOWNS_2H)
+#include "fmtowns/fmtowns.h"
+#endif
+
+#if defined(_FMTOWNS_10F) || defined(_FMTOWNS_20F) || defined(_FMTOWNS_40H) || defined(_FMTOWNS_80H)
+#include "fmtowns/fmtowns.h"
+#endif
+
+#if defined(_FMTOWNS2_UX10) || defined(_FMTOWNS2_UX20) || defined(_FMTOWNS2_UX40)
+#include "fmtowns/fmtowns.h"
+#endif
+
+#if defined(_FMTOWNS2_CX10) || defined(_FMTOWNS2_CX20) || defined(_FMTOWNS2_CX40) || defined(_FMTOWNS2_CX100)
+#include "fmtowns/fmtowns.h"
+#endif
+
 // CASIO FP-200
 #ifdef _FP200
 #include "fp200/fp200.h"
