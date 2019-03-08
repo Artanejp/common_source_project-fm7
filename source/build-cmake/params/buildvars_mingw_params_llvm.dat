@@ -138,8 +138,8 @@ esac
 
 CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON -DUSE_MOVIE_LOADER=ON \
                    -DUSE_MOVIE_SAVER=ON \
-                   -DCMAKE_AR:STRING=llvm-ar-3.9 \
+                   -DCMAKE_AR:STRING=llvm-ar \
                    -DCMAKE_LD:STRING=i686-w64-mingw32-ld \
-		   -DCMAKE_NM:STRING=llvm-nm-3.9 \
-		   -DCMAKE_RANLIB:STRING=llvm-ranlib-3.9 \
+		   -DCMAKE_NM:STRING=llvm-nm \
+		   -DCMAKE_RANLIB:STRING=llvm-ranlib \
 		   "

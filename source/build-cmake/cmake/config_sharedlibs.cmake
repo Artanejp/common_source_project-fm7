@@ -153,8 +153,10 @@ endif()
 set(SRC_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../src)
 
 if(USE_QT_5)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+  if(NOT WIN32)
+     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+  endif()
 endif()
 
 if(LIBAV_FOUND)
@@ -193,10 +195,6 @@ endif(HAVE_NANOSLEEP OR LIB_RT_HAS_NANOSLEEP)
 
 set(SRC_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../src)
 
-if(USE_QT_5)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-endif()
 
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common)

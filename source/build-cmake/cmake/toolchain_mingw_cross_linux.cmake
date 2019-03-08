@@ -7,6 +7,11 @@ SET(CMAKE_CXX_COMPILER i686-w64-mingw32-g++)
 SET(CMAKE_RC_COMPILER i686-w64-mingw32-windres)
 SET(CMAKE_AR  i686-w64-mingw32-gcc-ar)
 
+#SET(CMAKE_C_COMPILER i686-w64-mingw32-clang)
+#SET(CMAKE_CXX_COMPILER i686-w64-mingw32-clang++)
+#SET(CMAKE_RC_COMPILER i686-w64-mingw32-windres)
+#SET(CMAKE_AR  i686-w64-mingw32-gcc-ar)
+
 #set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 #set(CMAKE_EXE_LINKER_FLAGS "-static-libstdc++")
 #set(CMAKE_EXE_LINKER_FLAGS "-flto=12 -fwhole-program")

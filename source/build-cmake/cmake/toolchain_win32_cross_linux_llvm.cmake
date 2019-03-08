@@ -3,17 +3,17 @@ SET(CMAKE_SYSTEM_NAME Windows)
 
 # which compilers to use for C and C++
 SET(CMAKE_SYSTEM_NAME Windows)
-SET(CMAKE_C_COMPILER clang)
-SET(CMAKE_CXX_COMPILER clang++)
+SET(CMAKE_C_COMPILER i686-w64-mingw32-clang)
+SET(CMAKE_CXX_COMPILER i686-w64-mingw32-clang++)
 SET(CMAKE_RC_COMPILER i686-w64-mingw32-windres)
-SET(CMAKE_AR  llvm-ar-3.9)
-SET(CMAKE_LD  llvm-link-3.9)
+SET(CMAKE_AR  llvm-ar)
+SET(CMAKE_LD  llvm-link)
 SET(CMAKE_LINKSE  /usr/bin/i686-w64-mingw32-ld)
-SET(CMAKE_NM  llvm-nm-3.9)
+SET(CMAKE_NM  llvm-nm)
 
 set(CMAKE_CXX_FLAGS "-target i686-w64-mingw32")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -nostdinc -nostdinc++")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/lib/clang/3.9.0/include")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -nostdinc -nostdinc++")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/lib/clang/3.9.0/include")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/i686-w64-mingw32/include/../../../usr/lib/gcc/i686-w64-mingw32/8.2-win32/include/c++")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/i686-w64-mingw32/include/../../../usr/lib/gcc/i686-w64-mingw32/8.2-win32/include/c++/i686-w64-mingw32")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/i686-w64-mingw32/include")
@@ -21,7 +21,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/i686-w64-mingw32/include")
 set(CMAKE_EXE_LINKER_FLAGS "-L/usr/lib/gcc/i686-w64-mingw32/8.2-win32 -target i686-w64-mingw32 ")
 #set(CMAKE_EXE_LINKER_FLAGS "")
 
-set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-4.0")
+set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-4.1")
 
 
 # here is the target environment located
@@ -30,13 +30,13 @@ if(USE_SDL2)
    SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
                           /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32
-			  /usr/local/i586-mingw-msvc/5.11.1/mingw_82x
+			  /usr/local/i586-mingw-msvc/5.12/mingw_82x
 			  )
 else()
    SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
                           /usr/local/i586-mingw-msvc/SDL1/
-			  /usr/local/i586-mingw-msvc/5.11.1/mingw_82x
+			  /usr/local/i586-mingw-msvc/5.12/mingw_82x
 			  )
 endif()
 SET(CSP_CROSS_BUILD 1)
