@@ -40,6 +40,7 @@ void RF5C68::initialize()
 
 void RF5C68::reset()
 {
+	is_mute = true; // OK?
 	for(int i = 0; i < 8; i++) {
 		dac_addr_st[i].d = 0x00;
 		dac_env[i] = 0x0000000;
@@ -71,6 +72,56 @@ void RF5C68::reset()
 
 uint32_t RF5C68::read_signal(int ch)
 {
+	if(ch >= SIG_RF5C68_REG_ADDR_ST) {
+		if(ch >= 0x100) return 0x00;
+		int major_num = ch & 0xf8;
+		int local_ch = ch & 0x07;
+		switch(major_num) {
+		case SIG_RF5C68_REG_ADDR_ST:
+			return dac_addr_st[local_ch].d;
+			break;
+		case SIG_RF5C68_REG_ADDR:
+			return dac_addr[local_ch];
+			break;
+		case SIG_RF5C68_REG_ENV:
+			return dac_env[local_ch];
+			break;
+		case SIG_RF5C68_REG_LPAN:
+			return dac_lpan[local_ch];
+			break;
+		case SIG_RF5C68_REG_RPAN:
+			return dac_rpan[local_ch];
+			break;
+		case SIG_RF5C68_REG_LS:
+			return dac_ls[local_ch].d;
+			break;
+		case SIG_RF5C68_REG_FD:
+			return dac_fd[local_ch].d;
+			break;
+		case SIG_RF5C68_FORCE_LOAD:
+			return ((dac_force_load[local_ch]) ? 0xffffffff : 0x00000000);
+			break;
+		default:
+			break;
+		}
+	} else {
+		switch(ch) {
+		case SIG_RF5C68_MUTE:
+			return ((is_mute) ? 0xffffffff : 0x00000000);
+			break;
+		case SIG_RF5C68_REG_ON:
+			return ((dac_on) ? 0xffffffff : 0x00000000);
+			break;
+		case SIG_RF5C68_REG_BANK:
+			return dac_bank;
+			break;
+		case SIG_RF5C68_REG_CH:
+			return dac_ch;
+			break;
+		default:
+			break;
+		}
+	}
 	return 0x00;
 }
 
@@ -106,12 +157,11 @@ void RF5C68::write_signal(int ch, uint32_t data, uint32_t mask)
 							// Skip
 							dac_force_load[ch] = true;
 							// Q: Is clear data reg?
-							dac_data[ch] = 0;
 							dac_tmpval_l[ch] = 0;
 							dac_tmpval_r[ch] = 0;
 						} else { // Normal OP
-							uint32_t sign = tmpval[ch].d & 0x80;
-							uint32_t val = tmpval[ch].d & 0x7f;
+							uint32_t sign = tmpval.d & 0x80;
+							uint32_t val = tmpval.d & 0x7f;
 							uint32_t lval, rval;
 							val = val * dac_env[ch];
 							lval = val * dac_lpan[ch];
@@ -126,12 +176,12 @@ void RF5C68::write_signal(int ch, uint32_t data, uint32_t mask)
 							// Limiter
 							if(dac_tmpval_l[ch] >= (127 << 6)) {
 								dac_tmpval_l[ch] = 127 << 6;
-							} else if(dacval_tmpval_l[ch] < -(127 << 6)) {
+							} else if(dac_tmpval_l[ch] < -(127 << 6)) {
 								dac_tmpval_l[ch] = -(127 << 6);
 							} 
 							if(dac_tmpval_r[ch] >= (127 << 6)) {
 								dac_tmpval_r[ch] = 127 << 6;
-							} else if(dacval_tmpval_r[ch] < -(127 << 6)) {
+							} else if(dac_tmpval_r[ch] < -(127 << 6)) {
 								dac_tmpval_r[ch] = -(127 << 6);
 							}
 						}
@@ -148,6 +198,9 @@ void RF5C68::write_signal(int ch, uint32_t data, uint32_t mask)
 		break;
 	case SIG_RF5C68_SET_ALL_INTR:
 		write_signals(&interrupt_boundary, 0x80000008);
+		break;
+	case SIG_RF5C68_MUTE:
+		is_mute = ((data & mask) != 0) ? true : false;
 		break;
 	default:
 		break;
@@ -180,7 +233,7 @@ void RF5C68::write_io8(uint32_t addr, uint32_t data)
 	case 0x06: // ST
 		dac_addr_st[dac_ch].d = 0;
 		dac_addr_st[dac_ch].b.h = data & 0xff;
-		break
+		break;
 	case 0x07: // Control
 		dac_on = ((data & 0x80) != 0) ? true : false;
 		if((data & 0x40) != 0) { // CB2-0
@@ -270,6 +323,7 @@ void RF5C68::mix(int32_t* buffer, int cnt)
 	if(sample_length < cnt) cnt = sample_length;
 	if(sample_length < sample_count) sample_count = sample_length;
 	if(cnt <= 0) return;
+	if(is_mute) return;
 	
 	if(sample_buffer != NULL) {
 		for(int i = 0; i < (cnt << 1); i += 2) {
@@ -302,10 +356,12 @@ void RF5C68::initialize_sound(int sample_rate, int samples)
 		}
 		if(event_dac_sample != -1) {
 			cancel_event(this, event_dac_sample);
-			event_sample = -1;
+			event_dac_sample = -1;
 		}
-		sample_tick_us = 1.0e6 / ((double)mix_rate);
-		register_event(this, EVENT_DAC_SAMPLE, sample_tick_us, true, &event_dac_sample);
+		if(mix_rate > 0) {
+			sample_tick_us = 1.0e6 / ((double)mix_rate);
+			register_event(this, EVENT_DAC_SAMPLE, sample_tick_us, true, &event_dac_sample);
+		}
 	} else {
 		if(sample_buffer != NULL) {
 			free(sample_buffer);
@@ -335,7 +391,8 @@ bool RF5C68::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(dac_on);
 	state_fio->StateValue(dac_bank);
 	state_fio->StateValue(dac_ch);
-	state_fio->StateArray(dac_on);
+	state_fio->StateValue(dac_on);
+	state_fio->StateValue(is_mute);
 	state_fio->StateArray(dac_onoff, sizeof(dac_onoff), 1);
 	state_fio->StateArray(dac_addr_st, sizeof(dac_addr_st), 1);	
 	state_fio->StateArray(dac_addr, sizeof(dac_addr), 1);
@@ -349,25 +406,21 @@ bool RF5C68::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(dac_tmpval_r, sizeof(dac_tmpval_r), 1);
 	
 	state_fio->StateArray(wave_memory, sizeof(wave_memory), 1);
-
-	// ToDo: OLD_mix_rate != mix_rate.
-	state_fio->StateValue(mix_rate);
-	// ToDo: OLD_sample_length != sample_length.
-	state_fio->StateValue(sample_length);
 	state_fio->StateValue(event_dac_sample);
+
 	// Post Process
 	if(loading) {
-		if((sample_buffer != NULL) && (sample_length > 0)) {
-			memset(sample_buffer, 0x00, sample_length * sizeof(int32_t) * 2);
-		} else {
-			sample_length = 0;
+		if(event_dac_sample != -1) {
+			cancel_event(this, event_dac_sample);
+			event_dac_sample = -1;
 		}
-		sample_count = 0;
 		if(mix_rate > 0) {
 			sample_tick_us = 1.0e6 / ((double)mix_rate);
+			register_event(this, EVENT_DAC_SAMPLE, sample_tick_us, true, &event_dac_sample);
 		} else {
 			sample_tick_us = 0;
 		}
+		sample_count = 0;
 	}
 	return true;
 }

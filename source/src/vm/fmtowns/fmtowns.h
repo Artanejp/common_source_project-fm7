@@ -7,8 +7,6 @@
 */
 #pragma once
 
-#ifndef _FMTOWNS_H_
-#define _FMTOWNS_H_
 
 #undef WITH_386SX
 #undef WITH_486
@@ -17,33 +15,44 @@
 #undef TYPE_TOWNS2_UX
 #undef TYPE_TOWNS2_CX
 
-#if defined(_FMTOWNS2F)
+#if defined(_FMTOWNS_1)
+#define DEVICE_NAME		"FUJITSU FM-Towns Model 1"
+#define CONFIG_NAME		"fmtowns_1"
+#define MAX_DRIVE       1
+#define _HAS_HDD        1
+
+#elif defined(_FMTOWNS_2)
+#define DEVICE_NAME		"FUJITSU FM-Towns Model 2"
+#define CONFIG_NAME		"fmtowns_2"
+#define MAX_DRIVE       2
+#define _HAS_HDD        1
+#elif defined(_FMTOWNS_2F)
 #define DEVICE_NAME		"FUJITSU FM-Towns 2F"
 #define CONFIG_NAME		"fmtowns_2f"
 #define MAX_DRIVE       2
-#define _HAS_HDD        1
+#undef  _HAS_HDD
 
-#elif defined(_FMTOWNS2H)
+#elif defined(_FMTOWNS_2H)
 #define DEVICE_NAME		"FUJITSU FM-Towns 2H"
 #define CONFIG_NAME		"fmtowns_2h"
 #define MAX_DRIVE       2
-#define _HAS_HDD        1
+#define _HAS_HDD        2
 
-#elif defined(_FMTOWNS20F)
+#elif defined(_FMTOWNS_20F)
 #define DEVICE_NAME		"FUJITSU FM-Towns 20F"
 #define CONFIG_NAME		"fmtowns_20f"
 #define MAX_DRIVE       2
 #undef  _HAS_HDD
 #define TYPE_TOWNS_X0   1
 
-#elif defined(_FMTOWNS40H)
+#elif defined(_FMTOWNS_40H)
 #define DEVICE_NAME		"FUJITSU FM-Towns 40H"
 #define CONFIG_NAME		"fmtowns_20h"
 #define MAX_DRIVE       2
-#define _HAS_HDD        1
+#define _HAS_HDD        2
 #define TYPE_TOWNS_X0   1
 
-#elif defined(_FMTOWNS2UX20)
+#elif defined(_FMTOWNS2_UX20)
 #define DEVICE_NAME		"FUJITSU FM-Towns II UX20"
 #define CONFIG_NAME		"fmtowns2_ux20"
 #define MAX_DRIVE       2
@@ -51,7 +60,7 @@
 #define WITH_386SX      1
 #define TYPE_TOWNS2_UX  1
 
-#elif defined(_FMTOWNS2UX40)
+#elif defined(_FMTOWNS2_UX40)
 #define DEVICE_NAME		"FUJITSU FM-Towns II UX40"
 #define CONFIG_NAME		"fmtowns2_ux20"
 #define MAX_DRIVE       2
@@ -59,20 +68,26 @@
 #define WITH_386SX      1
 #define TYPE_TOWNS2_UX  1
 
-#elif defined(_FMTOWNS2CX20)
+#elif defined(_FMTOWNS2_CX20)
 #define DEVICE_NAME		"FUJITSU FM-Towns II CX20"
 #define CONFIG_NAME		"fmtowns2_cx20"
 #define MAX_DRIVE       2
 #undef _HAS_HDD
 #define TYPE_TOWNS2_CX  1
 
-#elif defined(_FMTOWNS2CX40)
+#elif defined(_FMTOWNS2_CX40)
 #define DEVICE_NAME		"FUJITSU FM-Towns II CX40"
-#define CONFIG_NAME		"fmtowns2_cx20"
+#define CONFIG_NAME		"fmtowns2_cx40"
 #define MAX_DRIVE       2
-#define _HAS_HDD        1
+#define _HAS_HDD        4
 #define TYPE_TOWNS2_CX  1
 
+#elif defined(_FMTOWNS2_CX100)
+#define DEVICE_NAME		"FUJITSU FM-Towns II CX40"
+#define CONFIG_NAME		"fmtowns2_cx100"
+#define MAX_DRIVE       2
+#define _HAS_HDD        4
+#define TYPE_TOWNS2_CX  1
 #endif
 
 // device informations for virtual machine
@@ -90,6 +105,7 @@
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
 #endif
+
 #if defined(_HAS_HDD)
 #define MAX_SCSI		8
 #endif
@@ -113,11 +129,13 @@
 #define USE_CRT_FILTER
 #define USE_SOUND_FILES		1
 #define USE_SOUND_FILES_FDD
+
 #if defined(USE_SOUND_FILES)
 #define USE_SOUND_VOLUME	5
 #else
 #define USE_SOUND_VOLUME	6
 #endif
+
 #define USE_DEBUGGER
 #define USE_STATE
 #define USE_CPU_I386
@@ -149,13 +167,19 @@ class RF5C68;      // DAC
 class YM2612;      // OPNB
 class MB87078;     // VOLUME
 class AD7820KR;    // A/D Converter.
+class PCM1BIT;
 
 class MB8877;      // FDC
 class MSM58321;    // RTC
 class RF5C68;      // ADPCM
 class UPD71071;    // DMAC
 
-namespace TOWNS {
+class SCSI_HOST;
+class SCSI_DEV;
+class SCSI_HDD;
+class SCSI_CDROM;
+
+namespace FMTOWNS {
 	class ADPCM;
 	class CDC;
 	class FLOPPY;
@@ -215,7 +239,7 @@ protected:
 	FMTOWNS::SYSROM*         sysrom;
 	FMTOWNS::MSDOSROM*       msdosrom;
 	FMTOWNS::FONT_ROMS*      fontrom;
-if defined(HAS_20PIX_FONTS)
+#if defined(HAS_20PIX_FONTS)
 	FMTOWNS::FONT_ROM_20PIX* fontrom_20pix;
 #endif
 	FMTOWNS::SERIAL_ROM*     serialrom;
@@ -288,4 +312,3 @@ public:
 	//DEVICE* last_device;
 };
 
-#endif

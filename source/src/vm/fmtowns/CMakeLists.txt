@@ -14,8 +14,8 @@ add_library(vm_fmtowns
 	timer.cpp
 
 	serialrom.cpp
-	sysrom.cpp
-	dictionary.cpp
+	towns_sysrom.cpp
+	towns_dictionary.cpp
 	msdosrom.cpp
 	
 	fontroms.cpp

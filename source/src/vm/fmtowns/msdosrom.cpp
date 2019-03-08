@@ -7,7 +7,6 @@
 	[MSDOS ROM]
 */
 
-#include "./towns_common.h"
 #include "./msdosrom.h"
 
 namespace FMTOWNS {

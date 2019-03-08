@@ -75,7 +75,7 @@ void AD7820KR::event_callback(int event_id, int err)
 				increment_sound_in_passed_data(this_bank, passed_usec);
 				int gotsize = get_sound_in_data(this_bank, buffer, 1, this_sample_rate, 1);
 				if(gotsize > 0) {
-					int32_t _n = tmpbuf[gotsize - 1];
+					int32_t _n = buffer[gotsize - 1];
 					if(_n >= 16383) { // OVERFLOW
 						overflow = true;
 						_n = 16383;
@@ -180,6 +180,7 @@ bool AD7820KR::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(adc_data);
 	state_fio->StateValue(adc_msb);
 	state_fio->StateValue(prev_clock);
+	state_fio->StateValue(cs_enabled);
 	state_fio->StateValue(wr_rd_mode);
 	state_fio->StateValue(req_convert);
 	state_fio->StateValue(this_sample_rate);

@@ -141,6 +141,7 @@ private:
 	// output signals
 	outputs_t outputs_int_vsync;  // Connect to int 11.
 	uint16_t regs[32];      // I/O 0442H, 0443H
+	bool regs_written[32];
 	uint8_t ch;         // I/O 0440H
 	bool timing_changed[2];
 	bool address_changed[2];
@@ -290,7 +291,7 @@ public:
 	// unique function
 	void set_context_vsync(DEVICE* device, int id, uint32_t mask)
 	{
-		register_output_signal(&outputs_vsync, device, id, mask);
+		register_output_signal(&outputs_int_vsync, device, id, mask);
 	}
 	uint16_t* get_regs_ptr()
 	{

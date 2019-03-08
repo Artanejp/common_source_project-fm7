@@ -35,9 +35,9 @@
 //YM-2612 "OPN2"
 //#include "../ym2612.h"
 //RF5C68 PCM
-#include "rp5c68.h"
+#include "rf5c68.h"
 //AD7820 ADC
-#include "ad7820.h"
+#include "ad7820kr.h"
 // 80387?
 
 #ifdef USE_DEBUGGER
@@ -421,7 +421,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// PAD, Sound
 	io->set_iomap_alias_r(0x4d0, pad, 0); // Pad1
 	io->set_iomap_alias_r(0x4d2, pad, 1); // Pad 2
-	io->set_iomap_alias_rw(0x4d5, sound, 0); // mute 
+	io->set_iomap_single_rw(0x4d5, adpcm, 0); // mute 
 	io->set_iomap_alias_w(0x4d6, pad, 3); // Pad out
 	
 	// OPN2(YM2612)
@@ -436,7 +436,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x4e3, e_volume[1], 1);
 
 	// ADPCM
-	io->set_iomap_single_w(0x4e7, 0x4ff, adpcm); // 
+	io->set_iomap_range_w(0x4e7, 0x4ff, adpcm); // 
 
 	io->set_iomap_single_rw(0x5c0, memory); // NMI MASK
 	io->set_iomap_single_r(0x5c2, memory);  // NMI STATUS

@@ -34,6 +34,10 @@ protected:
 public:
 	DICTIONARY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		bankd0_dict = false;
+		dict_bank = 0x00;
+		cmos_dirty = false;
+		d_sysrom = NULL;
 		set_device_name("FM-Towns Dictionary ROM/RAM 0x000d0000 - 0x000effff with CMOS RAM");
 	}
 	~DICTIONARY() {}
@@ -50,7 +54,7 @@ public:
 	void write_data32(uint32_t addr, uint32_t data);
 
 	void write_io8(uint32_t addr, uint32_t data);
-	void read_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 
 	void write_signal(int ch, uint32_t data, uint32_t mask);
 	uint32_t read_signal(int ch);

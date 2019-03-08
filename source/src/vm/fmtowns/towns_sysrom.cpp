@@ -7,15 +7,12 @@
 	[ system rom & RAM area 0x000f0000 - 0x000fffff]
 */
 
-#include "./towns_common.h"
 #include "./towns_sysrom.h"
 #include "../../fileio.h"
 
 namespace FMTOWNS {
 void SYSROM::initialize()
 {
-	cmos_dirty = false;
-	
 	memset(rom, 0xff, sizeof(rom));
 	memset(ram, 0x00, sizeof(ram));
 	

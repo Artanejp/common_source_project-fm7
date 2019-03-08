@@ -23,13 +23,13 @@ void SERIAL_ROM::initialize()
 	rom_addr = 0;
 	
 	memset(rom, 0xff, sizeof(rom));
-	FILEIO *fio = new FULEIO();
+	FILEIO *fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("MYTOWNS.ROM")), FILEIO_READ_BINARY)) { // FONT
 		fio->Fread(rom, sizeof(rom), 1);
-		fio->Fcolose();
+		fio->Fclose();
 	} else if(fio->Fopen(create_local_path(_T("SERIAL.ROM")), FILEIO_READ_BINARY)) { // FONT
 		fio->Fread(rom, sizeof(rom), 1);
-		fio->Fcolose();
+		fio->Fclose();
 	} else {
 		// Header
 		const _TCHAR *id = _T("FUJITSU");
@@ -96,7 +96,7 @@ void SERIAL_ROM::reset()
 void SERIAL_ROM::write_signal(int ch, uint32_t data, uint32_t mask)
 {
 	switch(ch) {
-	case SIG_SERIAL_ROM_CLK:
+	case SIG_SERIALROM_CLK:
 		{
 			bool oldclk = clk;
 			bool newclk = clk;
@@ -112,10 +112,10 @@ void SERIAL_ROM::write_signal(int ch, uint32_t data, uint32_t mask)
 			}
 		}
 		break;
-	case SIG_SERIAL_ROM_CS:
+	case SIG_SERIALROM_CS:
 		cs = ((data & mask) == 0);
 		break;
-	case SIG_SERIAL_ROM_RESET:
+	case SIG_SERIALROM_RESET:
 		reset_reg = ((data & mask) != 0);
 		if((cs) && (clk)) {
 			switch(reset_state) {

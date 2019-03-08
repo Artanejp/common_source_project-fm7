@@ -7,16 +7,13 @@
 	[ dictionary rom/ram & cmos & RAM area 0x000d0000 - 0x000effff]
 */
 
-#include "./towns_common.h"
-#include "./towns_dictrom.h"
+#include "./towns_dictionary.h"
 #include "./towns_sysrom.h"
 #include "../../fileio.h"
 
 namespace FMTOWNS {
 void DICTIONARY::initialize()
 {
-	cmos_dirty = false;
-	
 	memset(dict_rom, 0xff, sizeof(dict_rom));
 	memset(dict_ram, 0x00, sizeof(dict_ram));
 	memset(ram_0d0, 0x00, sizeof(ram_0d0));
@@ -35,9 +32,6 @@ void DICTIONARY::initialize()
 		cmos_dirty = true;
 	}
 	delete fio;
-
-	dict_bank = 0;
-	bankd0_dict = false;
 }
 
 void DICTIONARY::release()
@@ -103,8 +97,8 @@ uint32_t DICTIONARY::read_data16(uint32_t addr)
 {
 	pair16_t n;
 	addr = addr & 0xfffffffe;
-	n.l = (uint8_t)read_data8(addr + 0);
-	n.h = (uint8_t)read_data8(addr + 1);
+	n.b.l = (uint8_t)read_data8(addr + 0);
+	n.b.h = (uint8_t)read_data8(addr + 1);
 	return (uint32_t)(n.u16);
 }
 
@@ -112,11 +106,11 @@ uint32_t DICTIONARY::read_data32(uint32_t addr)
 {
 	pair32_t n;
 	addr = addr & 0xfffffffc;
-	n.l  = (uint8_t)read_data8(addr + 0);
-	n.h  = (uint8_t)read_data8(addr + 1);
-	n.h2 = (uint8_t)read_data8(addr + 2);
-	n.h3 = (uint8_t)read_data8(addr + 3);
-	return n.u32;
+	n.b.l  = (uint8_t)read_data8(addr + 0);
+	n.b.h  = (uint8_t)read_data8(addr + 1);
+	n.b.h2 = (uint8_t)read_data8(addr + 2);
+	n.b.h3 = (uint8_t)read_data8(addr + 3);
+	return n.d;
 }
 
 void DICTIONARY::write_data16(uint32_t addr, uint32_t data)
@@ -124,19 +118,19 @@ void DICTIONARY::write_data16(uint32_t addr, uint32_t data)
 	pair16_t n;
 	addr = addr & 0xfffffffe;
 	n.u16 = (uint16_t)data;
-	write_data8(addr + 0, n.l);
-	write_data8(addr + 1, n.h);
+	write_data8(addr + 0, n.b.l);
+	write_data8(addr + 1, n.b.h);
 }
 
 void DICTIONARY::write_data32(uint32_t addr, uint32_t data)
 {
 	pair32_t n;
 	addr = addr & 0xfffffffc;
-	n.u32 = data;
-	write_data8(addr + 0, n.l);
-	write_data8(addr + 1, n.h);
-	write_data8(addr + 2, n.h2);
-	write_data8(addr + 3, n.h3);
+	n.d = data;
+	write_data8(addr + 0, n.b.l);
+	write_data8(addr + 1, n.b.h);
+	write_data8(addr + 2, n.b.h2);
+	write_data8(addr + 3, n.b.h3);
 }
 
 
@@ -144,7 +138,7 @@ void DICTIONARY::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr == 0x0480) {
 		bankd0_dict = ((data & 0x01) != 0);
-		d_sysrom->write_signal(SIG_FMTONWS_SYSROMSEL, data, 0x02);
+		d_sysrom->write_signal(SIG_FMTOWNS_SYSROMSEL, data, 0x02);
 	} else if(addr == 0x0484) {
 		dict_bank = data & 0x0f;
 	} else if((addr >= 0x3000) && (addr < 0x4000)) {
@@ -160,7 +154,7 @@ uint32_t DICTIONARY::read_io8(uint32_t addr)
 {
 	uint32_t data;
 	if(addr == 0x0480) {
-		data = ((bank0_dict) ? 0x01 : 0x00) | ((d_sysrom->read_signal(SIG_FMTOWNS_SYSROMSEL) == 0) ? 0x02 : 0x00);
+		data = ((bankd0_dict) ? 0x01 : 0x00) | ((d_sysrom->read_signal(SIG_FMTOWNS_SYSROMSEL) == 0) ? 0x02 : 0x00);
 	} else if(addr == 0x0484) {
 		data = dict_bank & 0x0f;
 	} else if((addr >= 0x3000) && (addr < 0x4000)) {

@@ -9,6 +9,7 @@
 
 #include "../../fileio.h"
 #include "./towns_memory.h"
+#include "./towns_vram.h"
 #include "../i386.h"
 
 namespace FMTOWNS {

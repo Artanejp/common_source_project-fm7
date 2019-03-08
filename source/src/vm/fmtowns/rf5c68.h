@@ -14,8 +14,21 @@
 #include "../device.h"
 #include "../../common.h"
 
-#define SIG_RF5C68_DAC_PERIOD     0x10
-#define SIG_RF5C68_CLEAR_INTR     0x11
+#define SIG_RF5C68_DAC_PERIOD     0x01
+#define SIG_RF5C68_CLEAR_INTR     0x02
+#define SIG_RF5C68_MUTE           0x03
+#define SIG_RF5C68_REG_ON         0x04
+#define SIG_RF5C68_REG_BANK       0x05
+#define SIG_RF5C68_REG_CH         0x06
+#define SIG_RF5C68_SET_ALL_INTR   0x07
+#define SIG_RF5C68_REG_ADDR_ST    0x20
+#define SIG_RF5C68_REG_ADDR       0x30
+#define SIG_RF5C68_REG_ENV        0x38
+#define SIG_RF5C68_REG_LPAN       0x40
+#define SIG_RF5C68_REG_RPAN       0x48
+#define SIG_RF5C68_REG_LS         0x50
+#define SIG_RF5C68_REG_FD         0x58
+#define SIG_RF5C68_FORCE_LOAD     0x60
 
 class RF5C68 : public DEVICE {
 protected:
@@ -27,6 +40,8 @@ protected:
 	bool dac_on;
 	uint8_t dac_bank;
 	uint8_t dac_ch;
+	bool is_mute;
+	
 	bool dac_onoff[8];
 	pair32_t dac_addr_st[8];
 	uint32_t dac_addr[8];
@@ -59,8 +74,9 @@ public:
 		sample_length = 0;
 		sample_count = 0;
 		mix_rate = 0;
-		event_sample = -1;
+		event_dac_sample = -1;
 		sample_tick_us = 0.0;
+		is_mute = true;
 		initialize_output_signals(&interrupt_boundary);
 		set_device_name(_T("ADPCM RF5C68"));
 	}

@@ -33,14 +33,16 @@ class AD7820KR : public DEVICE {
 	uint8_t adc_data;
 	uint8_t adc_msb;
 	uint32_t prev_clock;
-
+	
+	bool cs_enabled;
 	bool req_convert;
 	bool wr_rd_mode;
+	
 	int this_bank;
 	int this_sample_rate;
 	int event_sample;
-
-	void srart_sample(double usec);
+	
+	void start_sample(double usec);
 public:
 	AD7820KR(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -53,7 +55,10 @@ public:
 		req_convert = false;
 		adc_data = 0x00;
 		adc_msb = 0x00;
+		cs_enabled = false;
 		prev_clock = 0;
+		set_device_name(_T("A/D Converter AD7820KR"));
+	
 	}
 	~AD7820KR()
 	{
@@ -81,15 +86,15 @@ public:
 	}
 	void set_context_ready(DEVICE* device, int id, uint32_t mask)
 	{
-		register_output_signal(&output_ready, device, id, mask);
+		register_output_signal(&outputs_ready, device, id, mask);
 	}
 	void set_context_interrupt(DEVICE* device, int id, uint32_t mask)
 	{
-		register_output_signal(&output_intr, device, id, mask);
+		register_output_signal(&outputs_intr, device, id, mask);
 	}
 	void set_context_overflow(DEVICE* device, int id, uint32_t mask)
 	{
-		register_output_signal(&output_overflow, device, id, mask);
+		register_output_signal(&outputs_overflow, device, id, mask);
 	}
 };
 

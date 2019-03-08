@@ -14,6 +14,8 @@
 #include "../vm.h"
 #include "../emu.h"
 #include "device.h"
+#include "../../common.h"
+
 #if defined(_USE_QT)
 #include <QMutex>
 #endif
