@@ -344,6 +344,18 @@ union XMM_REG {
 	double  f64[2];
 };
 
+enum {
+	N_CPU_TYPE_I386 = 0,
+	N_CPU_TYPE_I486,
+	N_CPU_TYPE_PENTIUM,
+	N_CPU_TYPE_MEDIAGX,
+	N_CPU_TYPE_PENTIUM_PRO,
+	N_CPU_TYPE_PENTIUM_MMX,
+	N_CPU_TYPE_PENTIUM2,
+	N_CPU_TYPE_PENTIUM3,
+	N_CPU_TYPE_PENTIUM4
+};
+
 struct i386_state
 {
 	I386_GPR reg;
@@ -402,10 +414,10 @@ struct i386_state
 	int segment_prefix;
 	int segment_override;
 
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	uint64_t total_cycles;
 	uint64_t prev_total_cycles;
-#endif
+//#endif
 	int cycles;
 	int extra_cycles;
 	int base_cycles;
@@ -415,18 +427,20 @@ struct i386_state
 	DEVICE *pic;
 	DEVICE *program;
 	DEVICE *io;
-#ifdef I386_PSEUDO_BIOS
+//#ifdef I386_PSEUDO_BIOS
 	DEVICE *bios;
-#endif
-#ifdef SINGLE_MODE_DMA
+//#endif
+//#ifdef SINGLE_MODE_DMA
 	DEVICE *dma;
-#endif
-#ifdef USE_DEBUGGER
+//#endif
+//#ifdef USE_DEBUGGER
 	EMU *emu;
 	DEBUGGER *debugger;
 	DEVICE *program_stored;
 	DEVICE *io_stored;
-#endif
+//#endif
+	DEVICE *parent_device;
+	UINT32 cpu_type;
 	UINT32 a20_mask;
 
 	int cpuid_max_input_value_eax;

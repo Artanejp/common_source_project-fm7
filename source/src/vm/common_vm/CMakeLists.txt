@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 2.8.3)
+SET(THIS_LIB_VERSION 2.9.0)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
@@ -19,7 +19,7 @@ set(s_vm_common_vm_srcs
 	../hd63484.cpp
 	../huc6280_base.cpp
 #	../i286.cpp
-#	../i386.cpp
+	../i386.cpp
 	../i8080_base.cpp
 
 	../i8155.cpp
@@ -99,17 +99,17 @@ set(s_vm_common_vm_srcs
 
 #	../libcpu_newdev/i86_base.cpp
 
-	../libcpu_newdev/libcpu_i386/i386_opdef.cpp
-	../libcpu_newdev/libcpu_i386/i386_base_ext.cpp
-	../libcpu_newdev/libcpu_i386/i386op16.cpp
-	../libcpu_newdev/libcpu_i386/i386op32.cpp
-	../libcpu_newdev/libcpu_i386/i386ops.cpp
-	../libcpu_newdev/libcpu_i386/i486ops.cpp
-	../libcpu_newdev/libcpu_i386/pentops.cpp
-	../libcpu_newdev/libcpu_i386/x87ops.cpp
-	../libcpu_newdev/libcpu_i386/vtlb.cpp
+#	../libcpu_newdev/libcpu_i386/i386_opdef.cpp
+#	../libcpu_newdev/libcpu_i386/i386_base_ext.cpp
+#	../libcpu_newdev/libcpu_i386/i386op16.cpp
+#	../libcpu_newdev/libcpu_i386/i386op32.cpp
+#	../libcpu_newdev/libcpu_i386/i386ops.cpp
+#	../libcpu_newdev/libcpu_i386/i486ops.cpp
+#	../libcpu_newdev/libcpu_i386/pentops.cpp
+#	../libcpu_newdev/libcpu_i386/x87ops.cpp
+#	../libcpu_newdev/libcpu_i386/vtlb.cpp
 
-	../libcpu_newdev/i386_base.cpp
+#	../libcpu_newdev/i386_base.cpp
 	
 	# FM-7/77/AV
 	../fm7/hd6844.cpp

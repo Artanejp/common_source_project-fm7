@@ -63,7 +63,6 @@ if(BUILD_PC9801)
        not.cpp
 	   ${VMFILES_LIB}
 	   )
-  set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
 #   set(FLAG_USE_I86 ON)
    set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801.qrc)
@@ -78,7 +77,6 @@ elseif(BUILD_PC9801E)
        not.cpp
 	   ${VMFILES_LIB}
    )
-  set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
 #  set(FLAG_USE_I86 ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801e.qrc)
@@ -94,7 +92,6 @@ elseif(BUILD_PC9801U)
        pcm1bit.cpp
 	   ${VMFILES_LIB}
    )
-  set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
 #    set(FLAG_USE_I86 ON)
  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801u.qrc)
@@ -108,7 +105,6 @@ elseif(BUILD_PC9801VM)
        pcm1bit.cpp
 	   ${VMFILES_LIB}
    )
-  set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
 #   set(FLAG_USE_I86 ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801vm.qrc)
@@ -125,7 +121,6 @@ elseif(BUILD_PC9801VX)
        pcm1bit.cpp
 	   ${VMFILES_LIB}
    )
-  set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
 #   set(FLAG_USE_I86 ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801vx.qrc)
@@ -142,7 +137,6 @@ elseif(BUILD_PC98XA)
        pcm1bit.cpp
 	   ${VMFILES_LIB}
    )
-  set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
 #   set(FLAG_USE_I86 ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc98xa.qrc)
@@ -159,7 +153,6 @@ elseif(BUILD_PC98XL)
        pcm1bit.cpp
 	   ${VMFILES_LIB}
    )
-  set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
 #   set(FLAG_USE_I86 ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc98xl.qrc)
@@ -173,7 +166,6 @@ elseif(BUILD_PC9801VF)
        pcm1bit.cpp
 	   ${VMFILES_LIB}
    )
-  set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
 #    set(FLAG_USE_I86 ON)
  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801vf.qrc)
@@ -190,7 +182,6 @@ elseif(BUILD_PC9801RA)
        pcm1bit.cpp
 	   ${VMFILES_LIB}
    )
-  set(FLAG_USE_I386_VARIANTS ON)
   set(FLAG_USE_I286 OFF)
 #    set(FLAG_USE_I86 ON)
  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801ra.qrc)
@@ -207,7 +198,6 @@ elseif(BUILD_PC98RL)
        pcm1bit.cpp
 	   ${VMFILES_LIB}
    )
-  set(FLAG_USE_I386_VARIANTS ON)
   set(FLAG_USE_I286 OFF)
 #    set(FLAG_USE_I86 ON)
  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc98rl.qrc)
@@ -224,7 +214,6 @@ elseif(BUILD_PC98DO)
        pcm1bit.cpp
        upd4991a.cpp
    )
-  set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
 #   set(FLAG_USE_I86 ON)
    set(VM_APPEND_LIBS vm_pc8801)
@@ -245,7 +234,6 @@ elseif(BUILD_PC98DOP)
        pcm1bit.cpp
        upd4991a.cpp
    )
-  set(FLAG_USE_I386_VARIANTS OFF)
   set(FLAG_USE_I286 ON)
 #   set(FLAG_USE_I86 ON)
    set(VM_APPEND_LIBS vm_pc8801)

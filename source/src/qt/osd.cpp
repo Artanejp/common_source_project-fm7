@@ -614,6 +614,25 @@ void OSD::set_features_cpu(void)
 #ifdef HAS_PENTIUM
 	add_feature(_T("HAS_PENTIUM"), 1);
 #endif
+#ifdef HAS_MEDIAGX
+	add_feature(_T("HAS_MEDIAGX"), 1);
+#endif
+#ifdef HAS_PENTIUM_PRO
+	add_feature(_T("HAS_PENTIUM_PRO"), 1);
+#endif
+#ifdef HAS_PENTIUM_MMX
+	add_feature(_T("HAS_PENTIUM_MMX"), 1);
+#endif
+#ifdef HAS_PENTIUM2
+	add_feature(_T("HAS_PENTIUM2"), 1);
+#endif
+#ifdef HAS_PENTIUM2
+	add_feature(_T("HAS_PENTIUM3"), 1);
+#endif
+#ifdef HAS_PENTIUM2
+	add_feature(_T("HAS_PENTIUM4"), 1);
+#endif
+	
 #ifdef HAS_V30
 	add_feature(_T("HAS_V30"), 1);
 #endif

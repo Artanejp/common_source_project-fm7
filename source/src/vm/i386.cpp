@@ -9,9 +9,9 @@
 */
 
 #include "i386.h"
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 #include "debugger.h"
-#endif
+//#endif
 
 /* ----------------------------------------------------------------------------
 	MAME i386
@@ -30,6 +30,7 @@
 #pragma warning( disable : 4996 )
 #endif
 
+#if 0
 #if defined(HAS_I386)
 	#define CPU_MODEL i386
 #elif defined(HAS_I486)
@@ -48,6 +49,7 @@
 	#define CPU_MODEL pentium3
 #elif defined(HAS_PENTIUM4)
 	#define CPU_MODEL pentium4
+#endif
 #endif
 
 #ifndef __BIG_ENDIAN__
@@ -193,7 +195,7 @@ typedef UINT32	offs_t;
 /* Highly useful macro for compile-time knowledge of an array size */
 #define ARRAY_LENGTH(x)     (sizeof(x) / sizeof(x[0]))
 
-#ifdef I386_PSEUDO_BIOS
+//#ifdef I386_PSEUDO_BIOS
 #define BIOS_INT(num) if(cpustate->bios != NULL) { \
 	uint16_t regs[10], sregs[4]; \
 	regs[0] = REG16(AX); regs[1] = REG16(CX); regs[2] = REG16(DX); regs[3] = REG16(BX); \
@@ -238,7 +240,7 @@ typedef UINT32	offs_t;
 		return; \
 	} \
 }
-#endif
+//#endif
 
 static CPU_TRANSLATE(i386);
 
@@ -246,26 +248,87 @@ static CPU_TRANSLATE(i386);
 #include "mame/lib/softfloat/fsincos.c"
 #include "mame/emu/cpu/vtlb.c"
 #include "mame/emu/cpu/i386/i386.c"
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 #include "mame/emu/cpu/i386/i386dasm.c"
-#endif
+//#endif
 
 void I386::initialize()
 {
 	DEVICE::initialize();
-	opaque = CPU_INIT_CALL(CPU_MODEL);
+	uint32_t n_cpu_type = N_CPU_TYPE_I386;
+	if(osd->check_feature("HAS_I386")) {
+		n_cpu_type = N_CPU_TYPE_I386;
+	} else if(osd->check_feature("HAS_I486")) {
+		n_cpu_type = N_CPU_TYPE_I486;
+	} else if(osd->check_feature("HAS_PENTIUM")) {
+		n_cpu_type = N_CPU_TYPE_PENTIUM;
+	} else if(osd->check_feature("HAS_MEDIAGX")) {
+		n_cpu_type = N_CPU_TYPE_MEDIAGX;
+	} else if(osd->check_feature("HAS_PENTIUM_PRO")) {
+		n_cpu_type = N_CPU_TYPE_PENTIUM_PRO;
+	} else if(osd->check_feature("HAS_PENTIUM_MMX")) {
+		n_cpu_type = N_CPU_TYPE_PENTIUM_MMX;
+	} else if(osd->check_feature("HAS_PENTIUM2")) {
+		n_cpu_type = N_CPU_TYPE_PENTIUM2;
+	} else if(osd->check_feature("HAS_PENTIUM3")) {
+		n_cpu_type = N_CPU_TYPE_PENTIUM3;
+	} else if(osd->check_feature("HAS_PENTIUM4")) {
+		n_cpu_type = N_CPU_TYPE_PENTIUM4;
+	}
+	switch(n_cpu_type) {
+	case N_CPU_TYPE_I386:
+		set_device_name(_T("i80386 CPU"));
+		opaque = CPU_INIT_CALL( i386 );
+		break;
+	case N_CPU_TYPE_I486:
+		set_device_name(_T("i80486 CPU"));
+		opaque = CPU_INIT_CALL( i486 );
+		break;
+	case N_CPU_TYPE_PENTIUM:
+		set_device_name(_T("Pentium CPU"));
+		opaque = CPU_INIT_CALL( pentium );
+		break;
+	case N_CPU_TYPE_MEDIAGX:
+		set_device_name(_T("Media GX CPU"));
+		opaque = CPU_INIT_CALL( mediagx );
+		break;
+	case N_CPU_TYPE_PENTIUM_PRO:
+		set_device_name(_T("Pentium PRO CPU"));
+		opaque = CPU_INIT_CALL( pentium_pro );
+		break;
+	case N_CPU_TYPE_PENTIUM_MMX:
+		set_device_name(_T("Pentium MMX CPU"));
+		opaque = CPU_INIT_CALL( pentium_mmx );
+		break;
+	case N_CPU_TYPE_PENTIUM2:
+		set_device_name(_T("Pentium2 CPU"));
+		opaque = CPU_INIT_CALL( pentium2 );
+		break;
+	case N_CPU_TYPE_PENTIUM3:
+		set_device_name(_T("Pentium3 CPU"));
+		opaque = CPU_INIT_CALL( pentium3 );
+		break;
+	case N_CPU_TYPE_PENTIUM4:
+		set_device_name(_T("Pentium4 CPU"));
+		opaque = CPU_INIT_CALL( pentium4 );
+		break;
+	default: // ???
+		set_device_name(_T("i80386 CPU"));
+		opaque = CPU_INIT_CALL( i386 );
+		break;
+	}
 	
 	i386_state *cpustate = (i386_state *)opaque;
 	cpustate->pic = d_pic;
 	cpustate->program = d_mem;
 	cpustate->io = d_io;
-#ifdef I386_PSEUDO_BIOS
+//#ifdef I386_PSEUDO_BIOS
 	cpustate->bios = d_bios;
-#endif
-#ifdef SINGLE_MODE_DMA
+//#endif
+//#ifdef SINGLE_MODE_DMA
 	cpustate->dma = d_dma;
-#endif
-#ifdef USE_DEBUGGER
+//#endif
+//#ifdef USE_DEBUGGER
 	cpustate->emu = emu;
 	cpustate->debugger = d_debugger;
 	cpustate->program_stored = d_mem;
@@ -273,7 +336,9 @@ void I386::initialize()
 	
 	d_debugger->set_context_mem(d_mem);
 	d_debugger->set_context_io(d_io);
-#endif
+//#endif
+	cpustate->parent_device = this; // This aims to log.
+	cpustate->cpu_type = n_cpu_type; // check cpu type
 	cpustate->shutdown = 0;
 }
 
@@ -287,13 +352,13 @@ void I386::release()
 void I386::reset()
 {
 	i386_state *cpustate = (i386_state *)opaque;
-	CPU_RESET_CALL(CPU_MODEL);
+	cpu_reset_generic(cpustate);
 }
 
 int I386::run(int cycles)
 {
 	i386_state *cpustate = (i386_state *)opaque;
-	return CPU_EXECUTE_CALL(i386);
+	return CPU_EXECUTE_CALL(i386); // OK?
 }
 
 void I386::write_signal(int id, uint32_t data, uint32_t mask)
@@ -341,7 +406,7 @@ uint32_t I386::get_next_pc()
 	return cpustate->pc;
 }
 
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 void I386::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
@@ -530,7 +595,7 @@ int I386::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 		return CPU_DISASSEMBLE_CALL(x86_16) & DASMFLAG_LENGTHMASK;
 	}
 }
-#endif
+//#endif
 
 void I386::set_address_mask(uint32_t mask)
 {
@@ -559,7 +624,7 @@ int I386::get_shutdown_flag()
 	return cpustate->shutdown;
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 void process_state_SREG(I386_SREG* val, FILEIO* state_fio)
 {
@@ -690,9 +755,9 @@ bool I386::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->address_prefix);
 	state_fio->StateValue(cpustate->segment_prefix);
 	state_fio->StateValue(cpustate->segment_override);
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	state_fio->StateValue(cpustate->total_cycles);
-#endif
+//#endif
 	state_fio->StateValue(cpustate->cycles);
 	state_fio->StateValue(cpustate->extra_cycles);
 	state_fio->StateValue(cpustate->base_cycles);
@@ -738,12 +803,12 @@ bool I386::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->opcode_bytes_length);
 #endif
 	
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	// post process
 	if(loading) {
 		cpustate->prev_total_cycles = cpustate->total_cycles;
 	}
-#endif
+//#endif
 	return true;
 }
 

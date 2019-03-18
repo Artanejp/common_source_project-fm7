@@ -10,82 +10,64 @@
 
 #ifndef _I386_H_ 
 #define _I386_H_
-#if defined(USE_SHARED_DLL)
+//#if defined(USE_SHARED_DLL)
 //#if 0
-#include "libcpu_newdev/i386.h"
-#else
-#include "vm.h"
+//#include "libcpu_newdev/i386.h"
+//#else
+//#include "vm.h"
 #include "../emu.h"
 #include "device.h"
 
 #define SIG_I386_A20	1
 
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 class DEBUGGER;
-#endif
+//#endif
 
 class I386 : public DEVICE
 {
 private:
 	DEVICE *d_mem, *d_io, *d_pic;
-#ifdef I386_PSEUDO_BIOS
+//#ifdef I386_PSEUDO_BIOS
 	DEVICE *d_bios;
-#endif
-#ifdef SINGLE_MODE_DMA
+//#endif
+//#ifdef SINGLE_MODE_DMA
 	DEVICE *d_dma;
-#endif
-#ifdef USE_DEBUGGER
+//#endif
+//#ifdef USE_DEBUGGER
 	DEBUGGER *d_debugger;
-#endif
+//#endif
 	void *opaque;
 	
 public:
 	I386(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-#ifdef I386_PSEUDO_BIOS
+//#ifdef I386_PSEUDO_BIOS
 		d_bios = NULL;
-#endif
-#ifdef SINGLE_MODE_DMA
+//#endif
+//#ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
-#endif
-#if defined(HAS_I386)
-		set_device_name(_T("i80386 CPU"));
-#elif defined(HAS_I486)
-		set_device_name(_T("i80486 CPU"));
-#elif defined(HAS_PENTIUM)
-		set_device_name(_T("Pentium CPU"));
-#elif defined(HAS_MEDIAGX)
-		set_device_name(_T("Media GX CPU"));
-#elif defined(HAS_PENTIUM_PRO)
-		set_device_name(_T("Pentium Pro CPU"));
-#elif defined(HAS_PENTIUM_MMX)
-		set_device_name(_T("Pentium MMX CPU"));
-#elif defined(HAS_PENTIUM2)
-		set_device_name(_T("Pentium2 CPU"));
-#elif defined(HAS_PENTIUM3)
-		set_device_name(_T("Pentium3 CPU"));
-#elif defined(HAS_PENTIUM4)
-		set_device_name(_T("Pentium4 CPU"));
-#endif
-#if defined(HAS_I386)
-		set_device_name(_T("80386 CPU"));
-#elif defined(HAS_I486)
-		set_device_name(_T("80486 CPU"));
-#elif defined(HAS_PENTIUM)
-		set_device_name(_T("Pentium CPU"));
-#elif defined(HAS_MEDIAGX)
-		set_device_name(_T("Media GX CPU"));
-#elif defined(HAS_PENTIUM_PRO)
-		set_device_name(_T("Pentium Pro CPU"));
-#elif defined(HAS_PENTIUM_MMX)
-		set_device_name(_T("Pentium MMX CPU"));
-#elif defined(HAS_PENTIUM2)
-		set_device_name(_T("Pentium2 CPU"));
-#elif defined(HAS_PENTIUM3)
-		set_device_name(_T("Pentium3 CPU"));
-#elif defined(HAS_PENTIUM4)
-		set_device_name(_T("Pentium4 CPU"));
-#endif
+//#endif
+//#if defined(HAS_I386)
+//		set_device_name(_T("i80386 CPU"));
+//#elif defined(HAS_I486)
+//		set_device_name(_T("i80486 CPU"));
+//#elif defined(HAS_PENTIUM)
+//		set_device_name(_T("Pentium CPU"));
+//#elif defined(HAS_MEDIAGX)
+//		set_device_name(_T("Media GX CPU"));
+//#elif defined(HAS_PENTIUM_PRO)
+//		set_device_name(_T("Pentium Pro CPU"));
+//#elif defined(HAS_PENTIUM_MMX)
+//		set_device_name(_T("Pentium MMX CPU"));
+//#elif defined(HAS_PENTIUM2)
+//		set_device_name(_T("Pentium2 CPU"));
+//#elif defined(HAS_PENTIUM3)
+//		set_device_name(_T("Pentium3 CPU"));
+//#elif defined(HAS_PENTIUM4)
+//		set_device_name(_T("Pentium4 CPU"));
+//#endif
+		set_device_name(_T("Intel i80x86 CPU"));
 	}
 	~I386() {}
 	
@@ -100,7 +82,7 @@ public:
 	int get_extra_clock();
 	uint32_t get_pc();
 	uint32_t get_next_pc();
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	bool is_cpu()
 	{
 		return true;
@@ -137,7 +119,7 @@ public:
 	uint32_t read_debug_reg(const _TCHAR *reg);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
-#endif
+//#endif
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
@@ -153,28 +135,28 @@ public:
 	{
 		d_pic = device;
 	}
-#ifdef I386_PSEUDO_BIOS
+//#ifdef I386_PSEUDO_BIOS
 	void set_context_bios(DEVICE* device)
 	{
 		d_bios = device;
 	}
-#endif
-#ifdef SINGLE_MODE_DMA
+//#endif
+//#ifdef SINGLE_MODE_DMA
 	void set_context_dma(DEVICE* device)
 	{
 		d_dma = device;
 	}
-#endif
-#ifdef USE_DEBUGGER
+//#endif
+//#ifdef USE_DEBUGGER
 	void set_context_debugger(DEBUGGER* device)
 	{
 		d_debugger = device;
 	}
-#endif
+//#endif
 	void set_address_mask(uint32_t mask);
 	uint32_t get_address_mask();
 	void set_shutdown_flag(int shutdown);
 	int get_shutdown_flag();
 };
-#endif // USE_SHARED_DLL
+//#endif // USE_SHARED_DLL
 #endif

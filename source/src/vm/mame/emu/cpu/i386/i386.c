@@ -27,7 +27,17 @@
 /* seems to be defined on mingw-gcc */
 #undef i386
 
-static CPU_RESET( CPU_MODEL );
+static CPU_RESET( i386 );
+static CPU_RESET( i486 );
+static CPU_RESET( pentium );
+static CPU_RESET( mediagx );
+static CPU_RESET( pentium_pro );
+static CPU_RESET( pentium_mmx );
+static CPU_RESET( pentium2 );
+static CPU_RESET( pentium3 );
+static CPU_RESET( pentium4 );
+
+static void cpu_reset_generic(i386_state *cpustate);
 
 int i386_parity_table[256];
 MODRM_TABLE i386_MODRM_table[256];
@@ -41,6 +51,43 @@ static void pentium_smi(i386_state* cpustate);
 
 #define FAULT(fault,error) {cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,0,error); return;}
 #define FAULT_EXP(fault,error) {cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,trap_level+1,error); return;}
+
+static void cpu_reset_generic(i386_state* cpustate)
+{
+	switch(cpustate->cpu_type) {
+	case N_CPU_TYPE_I386:
+		CPU_RESET_CALL( i386 );
+		break;
+	case N_CPU_TYPE_I486:
+		CPU_RESET_CALL( i486 );
+		break;
+	case N_CPU_TYPE_PENTIUM:
+		CPU_RESET_CALL( pentium );
+		break;
+	case N_CPU_TYPE_MEDIAGX:
+		CPU_RESET_CALL( mediagx );
+		break;
+	case N_CPU_TYPE_PENTIUM_PRO:
+		CPU_RESET_CALL( pentium_pro );
+		break;
+	case N_CPU_TYPE_PENTIUM_MMX:
+		CPU_RESET_CALL( pentium_mmx );
+		break;
+	case N_CPU_TYPE_PENTIUM2:
+		CPU_RESET_CALL( pentium2 );
+		break;
+	case N_CPU_TYPE_PENTIUM3:
+		CPU_RESET_CALL( pentium3 );
+		break;
+	case N_CPU_TYPE_PENTIUM4:
+		CPU_RESET_CALL( pentium4 );
+		break;
+	default: // ??
+		CPU_RESET_CALL( i386 );
+		break;
+	}
+}
+
 
 /*************************************************************************/
 
@@ -676,7 +723,8 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 		if(trap_level >= 3)
 		{
 			logerror("IRQ: Triple fault. CPU reset.\n");
-			CPU_RESET_CALL(CPU_MODEL);
+			//CPU_RESET_CALL(CPU_MODEL);
+			cpu_reset_generic(cpustate);
 			cpustate->shutdown = 1;
 			return;
 		}
@@ -3379,19 +3427,19 @@ static CPU_EXECUTE( i386 )
 
 	if (cpustate->halted || cpustate->busreq)
 	{
-#ifdef SINGLE_MODE_DMA
+//#ifdef SINGLE_MODE_DMA
 		if(cpustate->dma != NULL) {
 			cpustate->dma->do_dma();
 		}
-#endif
+//#endif
 		if (cycles == -1) {
 			int passed_cycles = max(1, cpustate->extra_cycles);
 			// this is main cpu, cpustate->cycles is not used
 			/*cpustate->cycles = */cpustate->extra_cycles = 0;
 			cpustate->tsc += passed_cycles;
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 			cpustate->total_cycles += passed_cycles;
-#endif
+//#endif
 			return passed_cycles;
 		} else {
 			cpustate->cycles += cycles;
@@ -3407,9 +3455,9 @@ static CPU_EXECUTE( i386 )
 			}
 			int passed_cycles = cpustate->base_cycles - cpustate->cycles;
 			cpustate->tsc += passed_cycles;
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 			cpustate->total_cycles += passed_cycles;
-#endif
+//#endif
 			return passed_cycles;
 		}
 	}
@@ -3422,15 +3470,15 @@ static CPU_EXECUTE( i386 )
 	cpustate->base_cycles = cpustate->cycles;
 
 	/* adjust for any interrupts that came in */
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	cpustate->total_cycles += cpustate->extra_cycles;
-#endif
+//#endif
 	cpustate->cycles -= cpustate->extra_cycles;
 	cpustate->extra_cycles = 0;
 
 	while( cpustate->cycles > 0 && !cpustate->busreq )
 	{
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 		bool now_debugging = cpustate->debugger->now_debugging;
 		if(now_debugging) {
 			cpustate->debugger->check_break_points(cpustate->pc);
@@ -3490,11 +3538,11 @@ static CPU_EXECUTE( i386 )
 				cpustate->ext = 1;
 				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32);
 			}
-#ifdef SINGLE_MODE_DMA
+//#ifdef SINGLE_MODE_DMA
 			if(cpustate->dma != NULL) {
 				cpustate->dma->do_dma();
 			}
-#endif
+//#endif
 			/* adjust for any interrupts that came in */
 			cpustate->cycles -= cpustate->extra_cycles;
 			cpustate->extra_cycles = 0;
@@ -3509,7 +3557,7 @@ static CPU_EXECUTE( i386 )
 			}
 		} else {
 			int first_cycles = cpustate->cycles;
-#endif
+//#endif
 			i386_check_irq_line(cpustate);
 			cpustate->operand_size = cpustate->sreg[CS].d;
 			cpustate->xmm_operand_size = 0;
@@ -3520,9 +3568,9 @@ static CPU_EXECUTE( i386 )
 			cpustate->ext = 1;
 			int old_tf = cpustate->TF;
 
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 			cpustate->debugger->add_cpu_trace(cpustate->pc);
-#endif
+//#endif
 			cpustate->segment_prefix = 0;
 			cpustate->prev_eip = cpustate->eip;
 			cpustate->prev_pc = cpustate->pc;
@@ -3553,25 +3601,25 @@ static CPU_EXECUTE( i386 )
 				cpustate->ext = 1;
 				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32);
 			}
-#ifdef SINGLE_MODE_DMA
+//#ifdef SINGLE_MODE_DMA
 			if(cpustate->dma != NULL) {
 				cpustate->dma->do_dma();
 			}
-#endif
+//#endif
 			/* adjust for any interrupts that came in */
 			cpustate->cycles -= cpustate->extra_cycles;
 			cpustate->extra_cycles = 0;
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 			cpustate->total_cycles += first_cycles - cpustate->cycles;
 		}
-#endif
+//#endif
 	}
 
 	/* if busreq is raised, spin cpu while remained clock */
 	if (cpustate->cycles > 0 && cpustate->busreq) {
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 		cpustate->total_cycles += cpustate->cycles;
-#endif
+//#endif
 		cpustate->cycles = 0;
 	}
 	int passed_cycles = cpustate->base_cycles - cpustate->cycles;
