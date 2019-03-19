@@ -668,6 +668,11 @@ void BIOS::sasi_command_format(uint32_t PC, uint16_t regs[], uint16_t sregs[], i
 		*CarryFlag = 1;
 		return;
 	} else {
+		if(DL != 0) {
+			AH = 0x30;
+			*CarryFlag = 1;
+			return;
+		}
 		HARDDISK* harddisk = d_hdd->get_disk_handler(drive);
 //#ifdef _PSEUDO_BIOS_DEBUG
 		out_debug_log(_T("SASI CMD: FORMAT DL=%02x DH=%02x CX=%04x BX=%04x\n"), DL, DH, CX, BX);
@@ -681,14 +686,10 @@ void BIOS::sasi_command_format(uint32_t PC, uint16_t regs[], uint16_t sregs[], i
 			AH = 0x80;
 			*CarryFlag = 1;
 			return;
-		}
-		if(DL != 0) {
-			AH = 0x30;
-			*CarryFlag = 1;
-			return;
 		} else {
 			long npos = sasi_get_position(PC, regs, sregs, ZeroFlag, CarryFlag);
-			const uint32_t sectors = (uint32_t)harddisk->get_sector_num();
+			//const uint32_t sectors = (uint32_t)harddisk->get_sector_num();
+			const int sectors = (uint32_t)harddisk->get_sectors_per_cylinder();
 			const int block_size = (int)harddisk->get_sector_size();
 
 			if(block_size > 1024) {
@@ -696,20 +697,15 @@ void BIOS::sasi_command_format(uint32_t PC, uint16_t regs[], uint16_t sregs[], i
 				*CarryFlag = 1;
 				return;
 			}
-			if(npos < 0) {
-				AH = 0xd0;
-				*CarryFlag = 1;
-				return;
-			}
-			if(harddisk == NULL) {
-				AH = 0x80;
+			if((npos < 0) || (npos >= sectors)) {
+				AH = 0x40;
 				*CarryFlag = 1;
 				return;
 			}
 			int64_t position = ((int64_t)npos) * ((int64_t)block_size);
 			
 			uint8_t work[block_size];
-			for(int64_t i = 0; i < sectors; i++) {
+			for(int i = 0; i < sectors; i++) {
 				memset(work, 0xe5, block_size);
 				if(harddisk->write_buffer((long)position, block_size, work)) {
 					position += block_size;
