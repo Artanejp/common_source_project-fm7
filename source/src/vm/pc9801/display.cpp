@@ -388,6 +388,11 @@ void DISPLAY::reset()
 	egc_srcmask.w = 0xffff;
 #endif
 	
+	if((config.dipswitch & (1 << DIPSW_POSITION_NOINIT_MEMSW)) == 0) {
+		for(int i = 0; i < 16; i++) {
+			tvram[0x3fe0 + (i << 1)] = memsw_default[i];
+		}
+	}
 	font_code = 0;
 	font_line = 0;
 //	font_lr = 0;

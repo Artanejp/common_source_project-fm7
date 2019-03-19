@@ -21,6 +21,12 @@ signals:
 	int sig_device_type(int);
 public slots:
 	void do_set_memory_wait(bool);
+	void do_set_egc(bool);
+	void do_set_gdc_fast(bool);
+	void do_set_ram_512k(bool);	
+	void do_set_init_memsw(bool);
+signals:
+	int sig_emu_update_config();
 };
 
 class Action_Control_98 : public Action_Control
@@ -41,6 +47,12 @@ class META_MainWindow : public Ui_MainWindow {
 protected:
 	QActionGroup   *actionGroup_SoundDevice;
 	QMenu *menu_Emu_SoundDevice;
+	Action_Control_98 *actionRAM_512K;
+	Action_Control_98 *actionINIT_MEMSW;
+	Action_Control_98 *actionGDC_FAST;
+#if defined(SUPPORT_EGC)
+	Action_Control_98 *actionEGC;
+#endif
 #if defined(_PC98DO)
 	Action_Control_98 *actionMemoryWait;
 #endif   

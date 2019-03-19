@@ -1070,7 +1070,7 @@ void VM::reset()
 	pio_mouse->write_signal(SIG_I8255_PORT_C, port_c, 0xff);
 	
 	port_a  = 0x00;
-	port_a |= 0x80; // DIP SW 2-8, 1 = GDC 2.5MHz, 0 = GDC 5MHz
+//	port_a |= 0x80; // DIP SW 2-8, 1 = GDC 2.5MHz, 0 = GDC 5MHz
 	port_a |= 0x40; // DIP SW 2-7, 1 = Do not control FD motor
 	port_a |= 0x20; // DIP SW 2-6, 1 = Enable internal HD
 //	port_a |= 0x10; // DIP SW 2-5, 1 = Initialize emory switch
@@ -1078,6 +1078,13 @@ void VM::reset()
 //	port_a |= 0x04; // DIP SW 2-3, 1 = 40 columns, 0 = 80 columns
 	port_a |= 0x02; // DIP SW 2-2, 1 = BASIC mode, 0 = Terminal mode
 	port_a |= 0x01; // DIP SW 2-1, 1 = Normal mode, 0 = LT mode
+	if((config.dipswitch & (1 << DIPSW_POSITION_GDC_FAST)) != 0) {
+		port_a = port_a | 0x80;
+	}
+	if((config.dipswitch & (1 << DIPSW_POSITION_NOINIT_MEMSW)) != 0) {
+		port_a = port_a | 0x10;
+	}
+	
 	port_b  = 0x00;
 	port_b |= 0x80; // RS-232C CI#, 1 = OFF
 	port_b |= 0x40; // RS-232C CS#, 1 = OFF
@@ -1120,8 +1127,14 @@ void VM::reset()
 		port_b |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
 	}
 	port_b |= 0x10; // DIP SW 1-3, 1 = Don't use LCD
-#if !defined(SUPPORT_16_COLORS)
+#if !defined(SUPPORT_16_COLORS) || defined(SUPPORT_EGC)
+	#if defined(SUPPORT_EGC)
+	if((config.dipswitch & (1 << DIPSW_POSITION_EGC)) == 0) {
+		port_b = port_b | 0x08;
+	}
+	#else
 	port_b |= 0x08; // DIP SW 1-8, 1 = Standard graphic mode, 0 = Enhanced graphic mode
+	#endif
 #endif
 	port_b |= 0x04; // Printer BUSY#, 1 = Inactive, 0 = Active (BUSY)
 #if defined(HAS_V30) || defined(HAS_V33)
@@ -1616,6 +1629,37 @@ bool VM::is_frame_skippable()
 
 void VM::update_config()
 {
+	{
+		uint8_t mouse_port_b = pio_mouse->read_signal(SIG_I8255_PORT_B);
+		mouse_port_b = mouse_port_b & ~0x40;
+		if((config.dipswitch & (1 << DIPSW_POSITION_RAM512K)) != 0) {
+			mouse_port_b = mouse_port_b | 0x40;
+		}
+		pio_mouse->write_signal(SIG_I8255_PORT_B, mouse_port_b, 0xff);
+	}
+	{
+		uint8_t sys_port_a = pio_sys->read_signal(SIG_I8255_PORT_A);
+		sys_port_a = sys_port_a & ~0x80;
+		if((config.dipswitch & (1 << DIPSW_POSITION_GDC_FAST)) != 0) {
+			sys_port_a = sys_port_a | 0x80;
+		}
+		sys_port_a = sys_port_a & ~0x10;
+		if((config.dipswitch & (1 << DIPSW_POSITION_NOINIT_MEMSW)) != 0) {
+			sys_port_a = sys_port_a | 0x10;
+		}
+		pio_sys->write_signal(SIG_I8255_PORT_A, sys_port_a, 0xff);
+	}
+#if defined(SUPPORT_EGC)
+	{
+		uint8_t prn_port_b = pio_prn->read_signal(SIG_I8255_PORT_B);
+		prn_port_b = prn_port_b & ~0x08;
+		if((config.dipswitch & (1 << DIPSW_POSITION_EGC)) == 0) {
+			prn_port_b = prn_port_b | 0x08;
+		}
+		pio_prn->write_signal(SIG_I8255_PORT_B, prn_port_b, 0xff);
+	}
+#endif
+	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != config.boot_mode) {
 		// boot mode is changed !!!

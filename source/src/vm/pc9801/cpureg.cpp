@@ -40,18 +40,18 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 		d_cpu->set_address_mask(0x000fffff);
 		break;
 	case 0x00f2:
-//#if defined(SUPPORT_32BIT_ADDRESS)
-//		d_cpu->set_address_mask(0xffffffff);
-//#else
+#if defined(SUPPORT_32BIT_ADDRESS)
+		d_cpu->set_address_mask(0xffffffff);
+#else
 		d_cpu->set_address_mask(0x00ffffff);
-//#endif
+#endif
 		break;
 #if defined(SUPPORT_32BIT_ADDRESS)
 	case 0x00f6:
 		switch(data) {
 		case 0x02:
-//			d_cpu->set_address_mask(0xffffffff);
-			d_cpu->set_address_mask(0x00ffffff);
+			d_cpu->set_address_mask(0xffffffff);
+//			d_cpu->set_address_mask(0x00ffffff);
 			break;
 		case 0x03:
 			d_cpu->set_address_mask(0x000fffff);
