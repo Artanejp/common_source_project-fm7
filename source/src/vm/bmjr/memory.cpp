@@ -366,7 +366,7 @@ void MEMORY::draw_screen()
 					dest[6] = (pat & 0x02) ? fore : back;
 					dest[7] = (pat & 0x01) ? fore : back;
 #else
-					scrntype_vec8_t* vdest = (scrntype_vec8_t*)__builtin_assume_aligned(dest, sizeof(scrntype_vec8_t));
+					scrntype_vec8_t* vdest = (scrntype_vec8_t*)dest;
 					*vdest = ConvertByteToMonochromePackedPixel(pat, &bit_table, fore, back);
 #endif
 				}
@@ -403,7 +403,7 @@ void MEMORY::draw_screen()
 					dest[6] = (pat & 0x02) ? fore : back;
 					dest[7] = (pat & 0x01) ? fore : back;
 #else
-					scrntype_vec8_t* vdest = (scrntype_vec8_t*)__builtin_assume_aligned(dest, sizeof(scrntype_vec8_t));
+					scrntype_vec8_t* vdest = (scrntype_vec8_t*)dest;
 					*vdest = ConvertByteToMonochromePackedPixel(pat, &bit_table, fore, back);
 #endif
 				}

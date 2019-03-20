@@ -593,13 +593,13 @@ void DLL_PREFIX ConvertByteToPackedPixelByColorTable2(uint8_t *src, scrntype_t* 
     __DECL_ALIGNED(32) scrntype_vec8_t tmpd;
 	__DECL_ALIGNED(32) scrntype_vec8_t tmpdd;
 	__DECL_ALIGNED(32) scrntype_vec8_t colors;
-	scrntype_vec8_t* vt = (scrntype_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(scrntype_vec8_t));
+	scrntype_vec8_t* vt = (scrntype_vec8_t*)(&(tbl->plane_table[0]));
 	
 	uintptr_t disalign = (uintptr_t)dst;
 	disalign = disalign & (sizeof(scrntype_vec8_t) - 1); //Is align by 128bits or 256bytes?
 	if(disalign == 0) {
 		// Yes.
-		scrntype_vec8_t *vdst = (scrntype_vec8_t*)__builtin_assume_aligned(dst, sizeof(scrntype_vec8_t));
+		scrntype_vec8_t *vdst = (scrntype_vec8_t*)dst;
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < bytes; i++) {
 			tmpd.v = vt[src[i]].v;
@@ -657,7 +657,7 @@ void DLL_PREFIX ConvertByteToSparceUint16(uint8_t *src, uint16_t* dst, int bytes
 {
 	
 	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
-	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  vt = (uint16_vec8_t*)(&(tbl->plane_table[0]));
 
 	__DECL_ALIGNED(16) uint16_vec8_t __masks;
 
@@ -669,7 +669,7 @@ __DECL_VECTORIZED_LOOP
 	disalign = disalign & 0x0f; //Is align by 128bits?
 	if(disalign == 0) {
 		// Yes.
-		uint16_vec8_t *vdst = (uint16_vec8_t*)__builtin_assume_aligned(dst, sizeof(uint16_vec8_t));
+		uint16_vec8_t *vdst = (uint16_vec8_t*)dst;
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < bytes; i++) {
 			tmpd.v = vt[src[i]].v;
@@ -699,7 +699,7 @@ void DLL_PREFIX ConvertByteToSparceUint8(uint8_t *src, uint16_t* dst, int bytes,
 {
 	
 	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
-	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  vt = (uint16_vec8_t*)(&(tbl->plane_table[0]));
 
 	__DECL_ALIGNED(16) uint16_vec8_t __masks;
 	__DECL_ALIGNED(16) uint8_vec8_t tmpdd;
@@ -712,7 +712,7 @@ __DECL_VECTORIZED_LOOP
 	disalign = disalign & 0x07; //Is align by 128bits?
 	if(disalign == 0) {
 		// Yes.
-		uint8_vec8_t *vdst = (uint8_vec8_t*)__builtin_assume_aligned(dst, sizeof(uint8_vec8_t));
+		uint8_vec8_t *vdst = (uint8_vec8_t*)dst;
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < bytes; i++) {
 			tmpd.v = vt[src[i]].v;
@@ -745,13 +745,13 @@ void DLL_PREFIX ConvertByteToPackedPixelByColorTable(uint8_t *src, scrntype_t* d
 	
 	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
 	__DECL_ALIGNED(32) scrntype_vec8_t tmpdd;
-	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  vt = (uint16_vec8_t*)(&(tbl->plane_table[0]));
 	
 	uintptr_t disalign = (uintptr_t)dst;
 	disalign = disalign & 0x0f; //Is align by 128bits?
 	if(disalign == 0) {
 		// Yes.
-		scrntype_vec8_t *vdst = (scrntype_vec8_t*)__builtin_assume_aligned(dst, sizeof(scrntype_vec8_t));
+		scrntype_vec8_t *vdst = (scrntype_vec8_t*)dst;
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < bytes; i++) {
 			tmpd.v = vt[src[i]].v;
@@ -940,7 +940,7 @@ __DECL_VECTORIZED_LOOP
 	const bool is_render[4] = { src->is_render[0], src->is_render[1],  src->is_render[2], src->is_render[3] };
 	__DECL_ALIGNED(16) uint16_vec8_t tmpd;
 	__DECL_ALIGNED(32) scrntype_vec8_t tmp_dd; 
-	scrntype_vec8_t* vdp = (scrntype_vec8_t*)__builtin_assume_aligned(dst, sizeof(scrntype_vec8_t));
+	scrntype_vec8_t* vdp = (scrntype_vec8_t*)dst;
 	
 	x = src->begin_pos;
 	uint32_t xn = x;
@@ -970,7 +970,7 @@ __DECL_VECTORIZED_LOOP
 		static const int shift_factor = 3;
 #endif
 		__DECL_ALIGNED(32) scrntype_vec8_t sline;
-		scrntype_vec8_t* vdp2 = (scrntype_vec8_t*)__builtin_assume_aligned(dst2, sizeof(scrntype_vec8_t));
+		scrntype_vec8_t* vdp2 = (scrntype_vec8_t*)dst2;
 	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			sline.w[i] = (scrntype_t)RGBA_COLOR(31, 31, 31, 255);
@@ -1040,7 +1040,7 @@ __DECL_VECTORIZED_LOOP
 	const bool is_render[4] = { src->is_render[0], src->is_render[1],  src->is_render[2], src->is_render[3] };
 	__DECL_ALIGNED(16) uint16_vec8_t tmpd;
 	__DECL_ALIGNED(32) scrntype_vec8_t tmp_dd; 
-	scrntype_vec8_t* vdp = (scrntype_vec8_t*)__builtin_assume_aligned(dst, sizeof(scrntype_vec8_t));
+	scrntype_vec8_t* vdp = (scrntype_vec8_t*)dst;
 	
 	x = src->begin_pos;
 	if(dst2 == NULL) {
@@ -1069,7 +1069,7 @@ __DECL_VECTORIZED_LOOP
 		static const int shift_factor = 3;
 #endif
 		__DECL_ALIGNED(32) scrntype_vec8_t sline;
-		scrntype_vec8_t* vdp2 = (scrntype_vec8_t*)__builtin_assume_aligned(dst2, sizeof(scrntype_vec8_t));
+		scrntype_vec8_t* vdp2 = (scrntype_vec8_t*)dst2;
 	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			sline.w[i] = (scrntype_t)RGBA_COLOR(31, 31, 31, 255);

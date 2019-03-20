@@ -537,7 +537,7 @@ void TOWNS_CRTC::render_line_256_boundary(int layer, scrntype_t *framebuffer, ui
 	int nwords = (int)words / 8;
 	int ip;
 	__DECL_ALIGNED(16) uint8_t src[8];
-	scrntype_t *pdst  = __builtin_assume_aligned(framebuffer, sizeof(scrntype_t));
+	scrntype_t *pdst  = framebuffer;
 	uint8_t *pp = (uint8_t *)vramptr;
 	
 	if(framebuffer == NULL) return;
