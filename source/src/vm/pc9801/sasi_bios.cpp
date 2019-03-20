@@ -49,6 +49,7 @@ namespace PC9801 {
 #define IP_L regs[8]
 #define IP_H regs[9]
 
+#if defined(__LITTLE_ENDIAN__)	
 #define AL	regs8[0]
 #define AH	regs8[1]
 #define CL	regs8[2]
@@ -65,7 +66,25 @@ namespace PC9801 {
 #define SIH	regs8[13]
 #define DIL	regs8[14]
 #define DIH	regs8[15]
-
+#else
+#define AL	regs8[1]
+#define AH	regs8[0]
+#define CL	regs8[3]
+#define CH	regs8[2]
+#define DL	regs8[5]
+#define DH	regs8[4]
+#define BL	regs8[7]
+#define BH	regs8[6]
+#define SPL	regs8[9]
+#define SPH	regs8[8]
+#define BPL	regs8[11]
+#define BPH	regs8[10]
+#define SIL	regs8[13]
+#define SIH	regs8[12]
+#define DIL	regs8[15]
+#define DIH	regs8[14]
+#endif
+	
 // sregs
 #define ES	sregs[0]
 #define CS	sregs[1]
@@ -96,14 +115,14 @@ void BIOS::reset()
 	event_irq = -1;
 }
 
-bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	uint8_t *regs8 = (uint8_t *)regs;
 	// SASI
 	switch(intnum) {
 	case 0x1b: // SASI BIOS (INT3)
 		if(d_mem->is_sasi_bios_load()) return false;
-		return bios_call_far_i86(0xfffc4, regs, sregs, ZeroFlag, CarryFlag);
+		return bios_call_far_i86(0xfffc4, regs, sregs, ZeroFlag, CarryFlag, cycles, total_cycles);
 		break;
 	default:
 		break;
@@ -111,7 +130,7 @@ bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* 
 	return false;
 }
 
-bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	uint8_t *regs8 = (uint8_t *)regs;
 	bool need_retcall = false;
@@ -124,6 +143,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 	// Check ADDRESS: This pseudo-bios acts only $fffc4 ($1B) : 
 	if(PC != 0xfffc4) return false; // INT 1Bh
 #if 1		
+	static const int elapsed_cycle = 200; // From NP2 0.86+trunk/ OK?
 	/*	if((((AL & 0xf0) != 0x00) && ((AL & 0xf0) != 0x80))) */	{
 			uint8_t seg = d_mem->read_data8(0x004b0 + (AL >> 4));
 			uint32_t sp, ss;
@@ -163,6 +183,12 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				CS = ((uint16_t)seg) << 8;
 				IP_L = 0x0018;
 				IP_H = 0x0000;
+				if(cycles != NULL) {
+					*cycles -= elapsed_cycle;
+				}
+				if(total_cycles != NULL) {
+					*total_cycles += (uint64_t)elapsed_cycle;
+				}
 #ifdef _PSEUDO_BIOS_DEBUG
 				out_debug_log("To AX=%04x BX=%04x %02x:%02x:%02x:%02x ES=%04x BP=%04x",
 							AX, BX, CL, DH, DL, CH,
@@ -207,6 +233,12 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			flag++;
 		}
 		d_mem->write_data8((SS << 4) | ((SP + 4) & 0xffff), flag);
+		if(cycles != NULL) {
+			*cycles -= elapsed_cycle;
+		}
+		if(total_cycles != NULL) {
+			*total_cycles += (uint64_t)elapsed_cycle;
+		}
 		return true;
 	}
 	return false;
@@ -357,6 +389,7 @@ long BIOS::sasi_get_position(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				} else {
 					long npos;
 					long apos;
+					
 					npos = (DL << 16) | CX;
 					//apos = hdd->get_cur_position();
 					//if(npos >= 0x100000) {

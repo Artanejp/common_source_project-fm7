@@ -117,7 +117,7 @@ bool i86_call_pseudo_bios(i8086_state *cpustate, uint32_t PC)
 	if(cpustate->bios != NULL) {
 		cpustate->regs.w[8] = 0x0000;
 		cpustate->regs.w[9] = 0x0000;
-		if(cpustate->bios->bios_call_far_i86(PC, cpustate->regs.w, cpustate->sregs, &cpustate->ZeroVal, &cpustate->CarryVal)) {
+		if(cpustate->bios->bios_call_far_i86(PC, cpustate->regs.w, cpustate->sregs, &cpustate->ZeroVal, &cpustate->CarryVal, &(cpustate->icount), &(cpustate->total_icount))) {
 #if 0			
 			if((cpustate->regs.w[8] != 0x0000) || (cpustate->regs.w[9] != 0x0000)) {
 				UINT32 hi = cpustate->regs.w[9];

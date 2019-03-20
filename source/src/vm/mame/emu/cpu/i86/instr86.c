@@ -2428,7 +2428,7 @@ static void PREFIX86(_int)(i8086_state *cpustate)    /* Opcode 0xcd */
 #ifdef I86_PSEUDO_BIOS
 	cpustate->regs.w[8] = 0x0000;
 	cpustate->regs.w[9] = 0x0000;
-	if(cpustate->bios != NULL && cpustate->bios->bios_int_i86(int_num, cpustate->regs.w, cpustate->sregs, &cpustate->ZeroVal, &cpustate->CarryVal)) {
+	if(cpustate->bios != NULL && cpustate->bios->bios_int_i86(int_num, cpustate->regs.w, cpustate->sregs, &cpustate->ZeroVal, &cpustate->CarryVal, &(cpustate->icount), &(cpustate->total_icount))) {
 		ICOUNT -= timing.iret;
 #if 1		
 		if((cpustate->regs.w[8] != 0x0000) || (cpustate->regs.w[9] != 0x0000)) {

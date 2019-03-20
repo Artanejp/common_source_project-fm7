@@ -23,6 +23,7 @@
 #define SI	regs[6]
 #define DI	regs[7]
 
+#if defined(__LITTLE_ENDIAN__)	
 #define AL	regs8[0]
 #define AH	regs8[1]
 #define CL	regs8[2]
@@ -39,6 +40,24 @@
 #define SIH	regs8[13]
 #define DIL	regs8[14]
 #define DIH	regs8[15]
+#else
+#define AL	regs8[1]
+#define AH	regs8[0]
+#define CL	regs8[3]
+#define CH	regs8[2]
+#define DL	regs8[5]
+#define DH	regs8[4]
+#define BL	regs8[7]
+#define BH	regs8[6]
+#define SPL	regs8[9]
+#define SPH	regs8[8]
+#define BPL	regs8[11]
+#define BPH	regs8[10]
+#define SIL	regs8[13]
+#define SIH	regs8[12]
+#define DIL	regs8[15]
+#define DIH	regs8[14]
+#endif
 
 // sregs
 #define ES	sregs[0]
@@ -290,12 +309,22 @@ void BIOS::event_frame()
 	timeout++;
 }
 
-bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+#define CALC_CYCLES(a,b,e)									  \
+	{														  \
+		if(a != NULL) {										  \
+			*a -= e;										  \
+		}													  \
+		if(b != NULL) {										  \
+			*b += (uint64_t)e;								  \
+		}													  \
+	}
+
+bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	uint8_t *regs8 = (uint8_t *)regs;
 	int drv = AL & 0xf;
 	uint8_t buffer[BLOCK_SIZE * 4];
-	
+	int elapsed_cycles = 200; // ToDo: Adjust value.
 	if(PC == 0xfffc4) {
 		// disk bios
 #ifdef _DEBUG_LOG
@@ -306,6 +335,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			if(!(drv < MAX_DRIVE)) {
 				AH = 2;
 				*CarryFlag = 1;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			AH = 0;
@@ -318,18 +348,21 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			case 0x20: disk[drv]->drive_type = DRIVE_TYPE_2D ; break;
 			}
 			*CarryFlag = 0;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		} else if(AH == 1) {
 			// get drive mode
 			if(!(drv < MAX_DRIVE)) {
 				AH = 2;
 				*CarryFlag = 1;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			AH = 0;
 			DL = drive_mode1[drv];
 			BX = drive_mode2[drv];
 			*CarryFlag = 0;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		} else if(AH == 2) {
 			// drive status
@@ -340,6 +373,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					AH = 0x80;
 					CX = ERR_FDD_NOTREADY;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 0;
@@ -364,6 +398,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				}
 				CX = 0;
 				*CarryFlag = 0;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			if((AL & 0xf0) == 0xb0) {
@@ -372,6 +407,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					AH = 0x80;
 					CX = ERR_SCSI_NOTCONNECTED;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 0;
@@ -380,10 +416,12 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				DX = scsi_blocks[drv] & 0xffff;
 				CX = 0;
 				*CarryFlag = 0;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			AH = 2;
 			*CarryFlag = 1;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		} else if(AH == 3 || AH == 4) {
 			// restore/seek
@@ -394,11 +432,13 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					AH = 0x80;
 					CX = ERR_FDD_NOTREADY;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 0;
 				CX = 0;
 				*CarryFlag = 0;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			if((AL & 0xf0) == 0xb0) {
@@ -407,15 +447,18 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					AH = 0x80;
 					CX = ERR_SCSI_NOTCONNECTED;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 0;
 				CX = 0;
 				*CarryFlag = 0;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			AH = 2;
 			*CarryFlag = 1;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		} else if(AH == 5) {
 			// read sectors
@@ -426,6 +469,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					AH = 0x80;
 					CX = ERR_FDD_NOTREADY;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				// get initial c/h/r
@@ -440,6 +484,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 						AH = 0x80;
 						CX = ERR_FDD_NOTFOUND;
 						*CarryFlag = 1;
+						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
 					}
 					access_fdd[drv] = true;
@@ -448,6 +493,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 						AH = 0x80;
 						CX = ERR_FDD_NOTFOUND;
 						*CarryFlag = 1;
+						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
 					}
 					// check id crc error
@@ -455,6 +501,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 						AH = 0x80;
 						CX = ERR_FDD_NOTFOUND | ERR_FDD_CRCERROR;
 						*CarryFlag = 1;
+						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
 					}
 					// check deleted mark
@@ -462,6 +509,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 						AH = 0x80;
 						CX = ERR_FDD_DELETED;
 						*CarryFlag = 1;
+						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
 					}
 					// data transfer
@@ -474,6 +522,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 						AH = 0x80;
 						CX = ERR_FDD_CRCERROR;
 						*CarryFlag = 1;
+						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
 					}
 					// update c/h/r
@@ -496,12 +545,14 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					AH = 0x80;
 					CX = ERR_SCSI_NOTCONNECTED;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				if(!(harddisk[drv] != NULL && harddisk[drv]->mounted())) {
 					AH = 0x80;
 					CX = ERR_SCSI_NOTREADY;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				// get params
@@ -514,6 +565,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 						AH = 0x80;
 						CX = ERR_SCSI_PARAMERROR;
 						*CarryFlag = 1;
+						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
 					}
 					// data transfer
@@ -527,10 +579,12 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				AH = 0;
 				CX = 0;
 				*CarryFlag = 0;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			AH = 2;
 			*CarryFlag = 1;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		} else if(AH == 6) {
 			// write sectors
@@ -540,12 +594,14 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					AH = 0x80;
 					CX = ERR_FDD_NOTREADY;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				if(disk[drv]->write_protected) {
 					AH = 0x80;
 					CX = ERR_FDD_PROTECTED;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				// get initial c/h/r
@@ -560,6 +616,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 						AH = 0x80;
 						CX = ERR_FDD_NOTFOUND;
 						*CarryFlag = 1;
+						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
 					}
 					access_fdd[drv] = true;
@@ -568,6 +625,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 						AH = 0x80;
 						CX = ERR_FDD_NOTFOUND;
 						*CarryFlag = 1;
+						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
 					}
 					// check id crc error
@@ -575,6 +633,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 						AH = 0x80;
 						CX = ERR_FDD_NOTFOUND | ERR_FDD_CRCERROR;
 						*CarryFlag = 1;
+						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
 					}
 					// data transfer
@@ -597,6 +656,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				AH = 0;
 				CX = 0;
 				*CarryFlag = 0;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			if((AL & 0xf0) == 0xb0) {
@@ -605,12 +665,14 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					AH = 0x80;
 					CX = ERR_SCSI_NOTCONNECTED;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				if(!(harddisk[drv] != NULL && harddisk[drv]->mounted())) {
 					AH = 0x80;
 					CX = ERR_SCSI_NOTREADY;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				// get params
@@ -623,6 +685,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 						AH = 0x80;
 						CX = ERR_SCSI_PARAMERROR;
 						*CarryFlag = 1;
+						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
 					}
 					// data transfer
@@ -636,10 +699,12 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				AH = 0;
 				CX = 0;
 				*CarryFlag = 0;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			AH = 2;
 			*CarryFlag = 1;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		} else if(AH == 7) {
 			// verify sectors
@@ -649,6 +714,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					AH = 0x80;
 					CX = ERR_FDD_NOTREADY;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				// get initial c/h/r
@@ -662,6 +728,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 						AH = 0x80;
 						CX = ERR_FDD_NOTFOUND;
 						*CarryFlag = 1;
+						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
 					}
 					access_fdd[drv] = true;
@@ -670,6 +737,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 						AH = 0x80;
 						CX = ERR_FDD_NOTFOUND;
 						*CarryFlag = 1;
+						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
 					}
 					// check id crc error
@@ -677,6 +745,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 						AH = 0x80;
 						CX = ERR_FDD_NOTFOUND | ERR_FDD_CRCERROR;
 						*CarryFlag = 1;
+						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
 					}
 					// FIXME: verify
@@ -686,6 +755,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 						AH = 0x80;
 						CX = ERR_FDD_CRCERROR;
 						*CarryFlag = 1;
+						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
 					}
 					// update c/h/r
@@ -700,6 +770,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				AH = 0;
 				CX = 0;
 				*CarryFlag = 0;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			if((AL & 0xf0) == 0xb0) {
@@ -708,6 +779,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					AH = 0x80;
 					CX = ERR_SCSI_NOTCONNECTED;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				// get params
@@ -718,6 +790,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 						AH = 0x80;
 						CX = ERR_SCSI_PARAMERROR;
 						*CarryFlag = 1;
+						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
 					}
 					BX--;
@@ -725,16 +798,19 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				AH = 0;
 				CX = 0;
 				*CarryFlag = 0;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			AH = 2;
 			*CarryFlag = 1;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		} else if(AH == 8) {
 			// reset hard drive controller
 			AH = 0;
 			CX = 0;
 			*CarryFlag = 0;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		} else if(AH == 9) {
 			// read id
@@ -745,6 +821,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					AH = 0x80;
 					CX = ERR_FDD_NOTREADY;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				// get initial c/h
@@ -756,6 +833,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					AH = 0x80;
 					CX = ERR_FDD_NOTFOUND;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				access_fdd[drv] = true;
@@ -766,6 +844,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					AH = 0x80;
 					CX = ERR_FDD_NOTFOUND;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				// data transfer
@@ -777,15 +856,18 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					AH = 0x80;
 					CX = ERR_FDD_CRCERROR;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 0;
 				CX = 0;
 				*CarryFlag = 0;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			AH = 2;
 			*CarryFlag = 1;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		} else if(AH == 0xa) {
 			// format track
@@ -796,6 +878,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					AH = 0x80;
 					CX = ERR_FDD_NOTREADY;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				// get initial c/h
@@ -859,16 +942,19 @@ write_id:
 				AH = 0;
 				CX = 0;
 				*CarryFlag = 0;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			AH = 2;
 			*CarryFlag = 1;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		} else if(AH == 0xd) {
 			// read error
 			AH = 0;
 			CX = 0;
 			*CarryFlag = 0;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		} else if(AH == 0xe) {
 			// disk change ???
@@ -880,6 +966,7 @@ write_id:
 					CX = 0;
 					DL = 1;
 					*CarryFlag = 0;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 0;
@@ -887,6 +974,7 @@ write_id:
 				DL = disk[drv]->changed ? 1 : 0;
 				disk[drv]->changed = false;
 				*CarryFlag = 0;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			if((AL & 0xf0) == 0xb0) {
@@ -895,16 +983,19 @@ write_id:
 					AH = 3;	// ???
 					CX = 0;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 0;
 				CX = 0;
 				*CarryFlag = 0;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			AH = 2;
 			CX = 0;
 			*CarryFlag = 1;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		} else if(AH == 0xfa) {
 			// unknown
@@ -913,6 +1004,7 @@ write_id:
 				AH = 1;
 				CX = 0;
 				*CarryFlag = 1;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			if((AL & 0xf0) == 0xb0) {
@@ -921,15 +1013,18 @@ write_id:
 					AH = 0x80;
 					CX = ERR_SCSI_NOTCONNECTED;
 					*CarryFlag = 1;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 0;
 				CX = 0;
 				*CarryFlag = 0;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			AH = 2;
 			*CarryFlag = 1;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		} else if(AH == 0xfd) {
 			// unknown
@@ -938,6 +1033,7 @@ write_id:
 				AH = 1;
 				CX = 0;
 				*CarryFlag = 1;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			if((AL & 0xf0) == 0xb0) {
@@ -946,16 +1042,19 @@ write_id:
 					AH = 0;
 					CX = 0x200;	// ???
 					*CarryFlag = 0;
+					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 2;
 				CX = 0;
 				*CarryFlag = 1;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			AH = 2;
 			CX = 0;
 			*CarryFlag = 1;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		} else if(AH == 0x80) {
 			// pseudo bios: init i/o
@@ -988,6 +1087,7 @@ write_id:
 			memcpy(kvram + 0xf00, msg_k, sizeof(msg_k));
 #endif
 			*CarryFlag = 0;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		} else if(AH == 0x81) {
 			// pseudo bios: boot from fdd #0
@@ -995,16 +1095,19 @@ write_id:
 			*ZeroFlag = (timeout > (int)(FRAMES_PER_SEC * 4));
 			if(!disk[0]->inserted) {
 				*CarryFlag = 1;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			// load ipl
 			if(!disk[0]->get_track(0, 0)) {
 				*CarryFlag = 1;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			access_fdd[0] = true;
 			if(!disk[0]->get_sector(0, 0, 0)) {
 				*CarryFlag = 1;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			for(int i = 0; i < disk[0]->sector_size.sd; i++) {
@@ -1013,6 +1116,7 @@ write_id:
 			// check ipl
 			if(!(buffer[0] == 'I' && buffer[1] == 'P' && buffer[2] == 'L' && buffer[3] == IPL_ID)) {
 				*CarryFlag = 1;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			// data transfer
@@ -1033,16 +1137,19 @@ write_id:
 			BX = 2;
 			*ZeroFlag = 1;
 			*CarryFlag = 0;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		} else if(AH == 0x82) {
 			// pseudo bios: boot from scsi-hdd #0
 			timeout = 0;
 			if(!scsi_blocks[0]) {
 				*CarryFlag = 1;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			if(!(harddisk[drv] != NULL && harddisk[drv]->mounted())) {
 				*CarryFlag = 1;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			// load ipl
@@ -1050,6 +1157,7 @@ write_id:
 			// check ipl
 			if(!(buffer[0] == 'I' && buffer[1] == 'P' && buffer[2] == 'L' && buffer[3] == IPL_ID)) {
 				*CarryFlag = 1;
+				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			// data transfer
@@ -1070,6 +1178,7 @@ write_id:
 			BX = 1;
 			*ZeroFlag = 1;
 			*CarryFlag = 0;
+			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
 		}
 	} else if(PC == 0xfffc9) {
@@ -1108,6 +1217,7 @@ write_id:
 		}
 		AH = 0;
 		*CarryFlag = 0;
+		CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 		return true;
 	} else if(PC == 0xfffd3) {
 		// wait
@@ -1115,18 +1225,20 @@ write_id:
 		this->out_debug_log(_T("%6x\tWAIT BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
 #endif
 		*CarryFlag = 0;
+		// ToDo:Implement wait uS.
+		CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 		return true;
 	}
 	return false;
 }
 
-bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	uint8_t *regs8 = (uint8_t *)regs;
 	
 	if(intnum == 0x93) {
 		// disk bios
-		return bios_call_far_i86(0xfffc4, regs, sregs, ZeroFlag, CarryFlag);
+		return bios_call_far_i86(0xfffc4, regs, sregs, ZeroFlag, CarryFlag, cycles, total_cycles);
 	}
 	return false;
 }
