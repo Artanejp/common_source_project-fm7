@@ -978,6 +978,16 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 	#define _RGB888
 #endif
 
+inline uint16_t swap_endian_u16(uint16_t n)
+{
+	pair16_t r1, r2;
+	r1.w = n;
+	r2.b.h = r1.b.l;
+	r2.b.l = r1.b.h;
+	n = r2.w;
+	return n;
+}
+
 #if defined(_RGB555) || defined(_RGB565)
 	typedef uint16_t scrntype_t;
 	scrntype_t DLL_PREFIX RGB_COLOR(uint32_t r, uint32_t g, uint32_t b);
@@ -986,6 +996,51 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 	uint8_t DLL_PREFIX G_OF_COLOR(scrntype_t c);
 	uint8_t DLL_PREFIX B_OF_COLOR(scrntype_t c);
 	uint8_t DLL_PREFIX A_OF_COLOR(scrntype_t c);
+	#if defined(_RGB565)
+inline scrntype_t rgb555le_to_scrntype_t(uint16_t n)
+{
+	#if !defined(__LITTLE_ENDIAN__)
+	n = swap_endian_u16(n);
+	#endif
+	scrntype r;
+	r = n & 0x7c00; // r
+	r = r | (n & 0x03e0); // g
+	r <<= 1;
+	r = r | (n & 0x001f); // b
+	return r;
+}
+	#else // RGB555
+inline scrntype_t rgb555le_to_scrntype_t(uint16_t n)
+{
+	#if !defined(__LITTLE_ENDIAN__)
+	n = swap_endian_u16(n);
+	#endif
+	return n;
+}
+	#endif
+
+inline scrntype_t msb_to_mask_u16le(uint16_t n)
+{
+	// bit15: '0' = NOT TRANSPARENT
+	//        '1' = TRANSPARENT
+	#if !defined(__LITTLE_ENDIAN__)
+	n = swap_endian_u16(n);
+	#endif
+	scrntype_t _n = ((n & 0x8000) != 0) ? 0x0000 : 0xffff;
+	return _n;
+}
+
+inline scrntype_t msb_to_alpha_mask_u16le(uint16_t n)
+{
+	// bit15: '0' = NOT TRANSPARENT
+	//        '1' = TRANSPARENT
+	#if !defined(__LITTLE_ENDIAN__)
+	n = swap_endian_u16(n);
+	#endif
+	scrntype_t _n = ((n & 0x8000) != 0) ? 0x0000 : 0xffff;
+	return _n; // Not ALPHA
+}
+
 #elif defined(_RGB888)
 	typedef uint32_t scrntype_t;
 #if defined(__LITTLE_ENDIAN__)
@@ -1003,10 +1058,55 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 	#define B_OF_COLOR(c)		(((c)      ) & 0xff)
 	#define A_OF_COLOR(c)		(((c) >> 24) & 0xff)
 #endif
+
+inline scrntype_t rgb555le_to_scrntype_t(uint16_t n)
+{
+	scrntype_t r, g, b;
+	#if defined(__LITTLE_ENDIAN__)
+	r = (n & 0x7c00) << (16 + 1);
+	g = (n & 0x03e0) << (8 + 4 + 2);
+	b = (n & 0x001f) << (8 + 3);
+	return (r | g | b | 0x000000ff);
+	#else
+	scrntype_t g2;
+	r = (n & 0x007c) << (16 + 1 + 8);
+	g = (n & 0x0e00) << (8 + 2)
+	g2= (n & 0x0030) << (8 + 4 + 2);
+	b = (n & 0x1f00) << 3;
+	return (r | g | g2 | b | 0x000000ff);
+	#endif
+}
+
+inline scrntype_t msb_to_mask_u16le(uint16_t n)
+{
+	// bit15: '0' = NOT TRANSPARENT
+	//        '1' = TRANSPARENT
+	scrntype_t _n;
+	#if defined(__LITTLE_ENDIAN__)
+	_n = ((n & 0x8000) != 0) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
+	#else
+	_n = ((n & 0x0080) != 0) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
+	#endif
+	return _n;
+}
+
+inline scrntype_t msb_to_alpha_mask_u16le(uint16_t n)
+{
+	// bit15: '0' = NOT TRANSPARENT
+	//        '1' = TRANSPARENT
+	scrntype_t _n;
+	#if defined(__LITTLE_ENDIAN__)
+	_n = ((n & 0x8000) != 0) ? RGBA_COLOR(255, 255, 255, 0) : RGBA_COLOR(255, 255, 255, 255);
+	#else
+	_n = ((n & 0x0080) != 0) ? RGBA_COLOR(255, 255, 255, 0) : RGBA_COLOR(255, 255, 255, 255);
+	#endif
+	return _n;
+}
+
 #endif
 
 // 20181104 K.O:
-// Below routines aims to render common routine.
+// Below routines aim to render common routine.
 
 #ifdef _MSC_VER
 	#define __DECL_ALIGNED(foo) __declspec(align(foo))
