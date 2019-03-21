@@ -38,10 +38,12 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 	case 0x00f0:
 		d_cpu->reset();
 		d_cpu->set_address_mask(0x000fffff);
+		//d_mem->reset();
 		break;
 	case 0x00f2:
 #if defined(SUPPORT_32BIT_ADDRESS)
 		d_cpu->set_address_mask(0xffffffff);
+		//d_cpu->set_address_mask(0x00ffffff);
 #else
 		d_cpu->set_address_mask(0x00ffffff);
 #endif

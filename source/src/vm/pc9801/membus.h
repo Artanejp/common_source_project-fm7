@@ -43,7 +43,9 @@ private:
 //	csp_state_utils *state_entry;
 	// RAM
 	uint8_t ram[RAM_SIZE];
-	
+ #if defined(SUPPORT_32BIT_ADDRESS)
+	uint8_t shadow_bank_i386_80000h[0x40000];
+ #endif
 	// BIOS/ITF
 #if !defined(SUPPORT_HIRESO)
 	uint8_t bios[0x18000];
@@ -58,6 +60,13 @@ private:
 #endif
 //	uint8_t bios_ram[sizeof(bios)];
 	bool bios_ram_selected;
+	bool shadow_ram_selected;
+//#if defined(_PC9801RA)
+//	uint8_t shadow_ram[0x8000]; // 0xe0000 - 0xe8000
+#if defined(SUPPORT_32BIT_ADDRESS)
+	uint8_t shadow_ram[0x28000]; // 0xc0000 - 0xe8000
+#endif
+	
 #endif
 #if defined(SUPPORT_ITF_ROM)
 	uint8_t itf[0x8000];
@@ -98,7 +107,11 @@ private:
 //	bool ide_bios_ram_selected;
 	void update_ide_bios();
 #endif
-	
+#if defined(SUPPORT_32BIT_ADDRESS)
+	bool is_shadow_bank_80000h;
+	bool is_shadow_bank_a0000h;
+#endif
+	bool page08_intram_selected;
 	// EMS
 #if defined(SUPPORT_NEC_EMS)
 	uint8_t nec_ems[0x10000];

@@ -202,7 +202,7 @@
 #elif defined(HAS_I386) || defined(HAS_I486)
 	#define SUPPORT_32BIT_ADDRESS
 	#if !defined(SUPPORT_HIRESO)
-		#define SUPPORT_BIOS_RAM
+	#define SUPPORT_BIOS_RAM
 	#endif
 	// PC-9801-86
 	#define SUPPORT_PC98_OPNA

@@ -34,6 +34,7 @@ private:
 #else
 	I286 *d_cpu;
 #endif
+	DEVICE* d_mem;
 	bool nmi_enabled;
 	
 public:
@@ -57,6 +58,10 @@ public:
 #endif
 	{
 		d_cpu = device;
+	}
+	void set_context_membus(DEVICE* device)
+	{
+		d_mem = device;
 	}
 };
 

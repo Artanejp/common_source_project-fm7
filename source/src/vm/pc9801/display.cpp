@@ -123,6 +123,28 @@ static const uint16_t egc_maskword[16][4] = {
 };
 #endif
 
+void DISPLAY::save_memsw()
+{
+	FILEIO *fio = new FILEIO();
+	if(fio == NULL) return;
+	if(fio->Fopen(create_local_path(_T("MEMSW.BIN")), FILEIO_WRITE_BINARY)) {
+		if(fio->IsOpened()) {
+			for(int i = 0; i < 16; i++) {
+				fio->FputUint8(tvram[0x3fe0 + (i << 1)]);
+			}
+			fio->Fclose();
+		}
+	}
+	delete fio;
+}
+	
+void DISPLAY::init_memsw()
+{
+	for(int i = 0; i < 16; i++) {
+		tvram[0x3fe0 + (i << 1)] = memsw_default[i];
+	}
+}
+
 void DISPLAY::initialize()
 {
 	// load font data
@@ -241,19 +263,19 @@ void DISPLAY::initialize()
 	
 // WIP: MEMSW
 	bool memsw_stat = false;
-	if(fio->Fopen(create_local_path(_T("MEMSW.BIN")), FILEIO_READ_BINARY)) {
-		if(fio->IsOpened()) {
-			for(int i = 0; i < 16; i++) {
-				tvram[0x3fe0 + (i << 1)] = fio->FgetUint8();
-				if(i == 15) memsw_stat = true;
+	if((config.dipswitch & (1 << DIPSW_POSITION_NOINIT_MEMSW)) != 0) {
+		if(fio->Fopen(create_local_path(_T("MEMSW.BIN")), FILEIO_READ_BINARY)) {
+			if(fio->IsOpened()) {
+				for(int i = 0; i < 16; i++) {
+					tvram[0x3fe0 + (i << 1)] = fio->FgetUint8();
+					if(i == 15) memsw_stat = true;
+				}
+				fio->Fclose();
 			}
-			fio->Fclose();
 		}
 	}
 	if(!memsw_stat) {
-		for(int i = 0; i < 16; i++) {
-			tvram[0x3fe0 + (i << 1)] = memsw_default[i];
-		}
+		init_memsw();
 	}
 	delete fio;
 
@@ -275,17 +297,10 @@ void DISPLAY::initialize()
 
 void DISPLAY::release()
 {
-	FILEIO *fio = new FILEIO();
-	if(fio == NULL) return;
-	if(fio->Fopen(create_local_path(_T("MEMSW.BIN")), FILEIO_WRITE_BINARY)) {
-		if(fio->IsOpened()) {
-			for(int i = 0; i < 16; i++) {
-				fio->FputUint8(tvram[0x3fe0 + (i << 1)]);
-			}
-			fio->Fclose();
-		}
+	if((config.dipswitch & (1 << DIPSW_POSITION_NOINIT_MEMSW)) == 0) {
+		init_memsw();
 	}
-	delete fio;
+	save_memsw();
 }
 
 #if !defined(SUPPORT_HIRESO)
@@ -389,10 +404,9 @@ void DISPLAY::reset()
 #endif
 	
 	if((config.dipswitch & (1 << DIPSW_POSITION_NOINIT_MEMSW)) == 0) {
-		for(int i = 0; i < 16; i++) {
-			tvram[0x3fe0 + (i << 1)] = memsw_default[i];
-		}
+		init_memsw();
 	}
+	save_memsw();
 	font_code = 0;
 	font_line = 0;
 //	font_lr = 0;
