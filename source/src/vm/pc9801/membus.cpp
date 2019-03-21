@@ -809,6 +809,7 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 	#endif
  #endif
 	state_fio->StateValue(last_access_is_interam);
+	
 	if(!MEMORY::process_state(state_fio, loading)) {
  		return false;
  	}

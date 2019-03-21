@@ -68,9 +68,9 @@ private:
 #if defined(SUPPORT_32BIT_ADDRESS)
 	uint8_t shadow_ram[0x28000]; // 0xc0000 - 0xe8000
 #endif
-	bool last_access_is_interam;
 	
 #endif
+	bool last_access_is_interam;
 #if defined(SUPPORT_ITF_ROM)
 	uint8_t itf[0x8000];
 	bool itf_selected;
@@ -83,11 +83,19 @@ private:
 	uint8_t fd_bios_2hd[0x1000];
 	uint8_t fd_bios_2dd[0x1000];
 #endif
+#endif
 	uint8_t sound_bios[0x4000];
 //	uint8_t sound_bios_ram[0x4000];
 	bool sound_bios_selected;
 //	bool sound_bios_ram_selected;
 	void update_sound_bios();
+#if defined(SUPPORT_SCSI_IF)
+	uint8_t scsi_bios[0x1000];
+	uint8_t scsi_bios_ram[0x1000];
+	bool scsi_bios_selected;
+	bool scsi_bios_ram_selected;
+	void update_scsi_bios();
+#endif
 #if defined(SUPPORT_SASI_IF)
 	uint8_t sasi_bios[0x1000];
 	uint8_t sasi_bios_ram[0x1000];
@@ -96,13 +104,6 @@ private:
 	bool sasi_bios_load;
 	void update_sasi_bios();
 #endif
-#if defined(SUPPORT_SCSI_IF)
-	uint8_t scsi_bios[0x1000];
-	uint8_t scsi_bios_ram[0x1000];
-	bool scsi_bios_selected;
-	bool scsi_bios_ram_selected;
-	void update_scsi_bios();
-#endif
 #if defined(SUPPORT_IDE_IF)
 	uint8_t ide_bios[0x4000];
 //	uint8_t ide_bios_ram[0x4000];
@@ -110,18 +111,18 @@ private:
 //	bool ide_bios_ram_selected;
 	void update_ide_bios();
 #endif
-#if defined(SUPPORT_32BIT_ADDRESS)
-	bool is_shadow_bank_80000h;
-	bool is_shadow_bank_a0000h;
-#endif
-	bool page08_intram_selected;
 	// EMS
 #if defined(SUPPORT_NEC_EMS)
 	uint8_t nec_ems[0x10000];
 	bool nec_ems_selected;
 	void update_nec_ems();
 #endif
+
+#if defined(SUPPORT_32BIT_ADDRESS)
+	bool is_shadow_bank_80000h;
+	bool is_shadow_bank_a0000h;
 #endif
+	bool page08_intram_selected;
 	
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	uint8_t dma_access_ctrl;
