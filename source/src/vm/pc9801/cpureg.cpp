@@ -12,6 +12,7 @@
 */
 
 #include "cpureg.h"
+#include "membus.h"
 #if defined(SUPPORT_32BIT_ADDRESS)
 #include "../i386.h"
 #else
@@ -28,6 +29,7 @@ void CPUREG::reset()
 
 void CPUREG::write_io8(uint32_t addr, uint32_t data)
 {
+	//out_debug_log(_T("I/O WRITE: %04x %04x\n"), addr, data);
 	switch(addr) {
 	case 0x0050:
 		nmi_enabled = false;
@@ -67,6 +69,7 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 uint32_t CPUREG::read_io8(uint32_t addr)
 {
 	uint32_t value;
+	//out_debug_log(_T("I/O READ: %04x \n"), addr);
 	
 	switch(addr) {
 	case 0x00f0:
@@ -84,7 +87,7 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 //		value |= 0x20; // Internal 27-type SASI-HDD, 0 = Existing
 #endif
 //		value |= 0x10; // Unknown
-		value |= 0x08; // RAM access, 1 = Internal-standard/External-enhanced RAM, 0 = Internal-enhanced RAM
+		value |= ((d_mem->read_signal(SIG_LAST_ACCESS_INTERAM) != 0) ? 0x00: 0x08); // RAM access, 1 = Internal-standard/External-enhanced RAM, 0 = Internal-enhanced RAM
 //		value |= 0x04; // Refresh mode, 1 = Standard, 0 = High speed
 #if defined(HAS_I86) || defined(HAS_V30)
 		value |= 0x02; // CPU mode, 1 = V30, 0 = 80286/80386

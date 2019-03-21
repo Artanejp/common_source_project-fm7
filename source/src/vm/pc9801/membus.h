@@ -35,6 +35,8 @@ namespace PC9801 {
 
 namespace PC9801 {
 
+#define SIG_LAST_ACCESS_INTERAM 1
+
 class MEMBUS : public MEMORY
 {
 private:
@@ -66,6 +68,7 @@ private:
 #if defined(SUPPORT_32BIT_ADDRESS)
 	uint8_t shadow_ram[0x28000]; // 0xc0000 - 0xe8000
 #endif
+	bool last_access_is_interam;
 	
 #endif
 #if defined(SUPPORT_ITF_ROM)
@@ -136,6 +139,7 @@ public:
 	// common functions
 	void initialize();
 	void reset();
+	uint32_t read_signal(int ch);
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)

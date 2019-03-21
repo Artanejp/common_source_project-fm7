@@ -185,6 +185,7 @@ void MEMBUS::initialize()
 	memset(nec_ems, 0, sizeof(nec_ems));
 #endif
 #endif
+	last_access_is_interam = false;
 }
 
 void MEMBUS::reset()
@@ -496,25 +497,34 @@ uint32_t MEMBUS::read_io8(uint32_t addr)
 uint32_t MEMBUS::read_data8(uint32_t addr)
 {
 	if(addr < 0x80000) {
+		last_access_is_interam = false;
 		return MEMORY::read_data8(addr);
 	} else if(addr < 0xa0000) {
 #if defined(SUPPORT_32BIT_ADDRESS)
 		if(is_shadow_bank_80000h) {
+			last_access_is_interam = true;
 			return (uint32_t)shadow_bank_i386_80000h[addr & 0x1ffff];
 		}
 #endif
 		// ToDo: Correctness extra ram emulation.
 		if(!page08_intram_selected) {
+			last_access_is_interam = false;
 			return 0xff;
 		}
 		addr = (addr & 0x1ffff) | window_80000h;
 	} else if(addr < 0xc0000) {
 #if defined(SUPPORT_32BIT_ADDRESS)
 		if(is_shadow_bank_a0000h) {
+			last_access_is_interam = true;
 			return (uint32_t)shadow_bank_i386_80000h[(addr & 0x1ffff) + 0x20000];
 		}
 #endif
 		addr = (addr & 0x1ffff) | window_a0000h;
+	}
+	if(addr < 0x10000) {
+		last_access_is_interam = false;
+	} else {
+		last_access_is_interam = true;
 	}
 	if(addr < UPPER_MEMORY_24BIT) {
 		return MEMORY::read_data8(addr);
@@ -531,28 +541,37 @@ uint32_t MEMBUS::read_data8(uint32_t addr)
 void MEMBUS::write_data8(uint32_t addr, uint32_t data)
 {
 	if(addr < 0x80000) {
+		last_access_is_interam = false;
 		MEMORY::write_data8(addr, data);
 		return;
 	} else if(addr < 0xa0000) {
 #if defined(SUPPORT_32BIT_ADDRESS)
 		if(is_shadow_bank_80000h) {
+			last_access_is_interam = true;
 			shadow_bank_i386_80000h[addr & 0x1ffff] = data;
 			return;
 		}
 #endif
 		// ToDo: Correctness extra ram emulation.
 		if(!page08_intram_selected) {
+			last_access_is_interam = false;
 			return;
 		}
 		addr = (addr & 0x1ffff) | window_80000h;
 	} else if(addr < 0xc0000) {
 #if defined(SUPPORT_32BIT_ADDRESS)
 		if(is_shadow_bank_a0000h) {
+			last_access_is_interam = true;
 			shadow_bank_i386_80000h[(addr & 0x1ffff) + 0x20000] = data;
 			return;
 		}
 #endif
 		addr = (addr & 0x1ffff) | window_a0000h;
+	}
+	if(addr < 0x10000) {
+		last_access_is_interam = false;
+	} else {
+		last_access_is_interam = true;
 	}
 	if(addr < UPPER_MEMORY_24BIT) {
 		MEMORY::write_data8(addr, data);
@@ -581,6 +600,16 @@ void MEMBUS::write_dma_data8(uint32_t addr, uint32_t data)
 	MEMBUS::write_data8(addr, data);
 }
 #endif
+
+uint32_t MEMBUS::read_signal(int ch)
+{
+	switch(ch) {
+	case SIG_LAST_ACCESS_INTERAM:
+		return ((last_access_is_interam) ? 0xffffffff : 0x00000000);
+		break;
+	}
+	return 0;
+}
 
 void MEMBUS::update_bios()
 {
@@ -779,6 +808,7 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(shadow_ram, sizeof(shadow_ram), 1);
 	#endif
  #endif
+	state_fio->StateValue(last_access_is_interam);
 	if(!MEMORY::process_state(state_fio, loading)) {
  		return false;
  	}

@@ -191,7 +191,7 @@
 		#define SUPPORT_EGC
 		#define HAS_UPD4990A
 	#endif
-	#if !defined(SUPPORT_HIRESO)
+	#if !defined(SUPPORT_HIRESO) && !defined(SUPPORT_32BIT_ADDRESS)
 		#define SUPPORT_NEC_EMS
 	#endif
 	#define SUPPORT_SASI_IF
