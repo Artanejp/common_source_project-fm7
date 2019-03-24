@@ -503,7 +503,7 @@ uint32_t MEMBUS::read_data8(uint32_t addr)
 #if defined(SUPPORT_32BIT_ADDRESS)
 		if(is_shadow_bank_80000h) {
 			last_access_is_interam = true;
-			return (uint32_t)shadow_bank_i386_80000h[addr & 0x1ffff];
+			//return (uint32_t)shadow_bank_i386_80000h[addr & 0x1ffff];
 		}
 #endif
 		// ToDo: Correctness extra ram emulation.
@@ -516,7 +516,7 @@ uint32_t MEMBUS::read_data8(uint32_t addr)
 #if defined(SUPPORT_32BIT_ADDRESS)
 		if(is_shadow_bank_a0000h) {
 			last_access_is_interam = true;
-			return (uint32_t)shadow_bank_i386_80000h[(addr & 0x1ffff) + 0x20000];
+			//return (uint32_t)shadow_bank_i386_80000h[(addr & 0x1ffff) + 0x20000];
 		}
 #endif
 		addr = (addr & 0x1ffff) | window_a0000h;
@@ -530,11 +530,17 @@ uint32_t MEMBUS::read_data8(uint32_t addr)
 		return MEMORY::read_data8(addr);
 #if defined(SUPPORT_24BIT_ADDRESS)
 	} else {
-#else
-	} else if(addr < 0x1000000 || addr >= UPPER_MEMORY_32BIT) {
-#endif
 		return MEMORY::read_data8(addr & 0xfffff);
 	}
+#else
+	} else if(addr < 0x100000) {
+		return MEMORY::read_data8(addr & 0xfffff);
+	} else if(addr < 0x1000000) {
+		return MEMORY::read_data8(addr);
+	} else if(addr >= UPPER_MEMORY_32BIT) {
+		return MEMORY::read_data8(addr & 0x000fffff);
+	}
+#endif
 	return 0xff;
 }
 
@@ -548,8 +554,8 @@ void MEMBUS::write_data8(uint32_t addr, uint32_t data)
 #if defined(SUPPORT_32BIT_ADDRESS)
 		if(is_shadow_bank_80000h) {
 			last_access_is_interam = true;
-			shadow_bank_i386_80000h[addr & 0x1ffff] = data;
-			return;
+			//	shadow_bank_i386_80000h[addr & 0x1ffff] = data;
+			//return;
 		}
 #endif
 		// ToDo: Correctness extra ram emulation.
@@ -562,8 +568,8 @@ void MEMBUS::write_data8(uint32_t addr, uint32_t data)
 #if defined(SUPPORT_32BIT_ADDRESS)
 		if(is_shadow_bank_a0000h) {
 			last_access_is_interam = true;
-			shadow_bank_i386_80000h[(addr & 0x1ffff) + 0x20000] = data;
-			return;
+			//shadow_bank_i386_80000h[(addr & 0x1ffff) + 0x20000] = data;
+			//return;
 		}
 #endif
 		addr = (addr & 0x1ffff) | window_a0000h;
@@ -577,11 +583,17 @@ void MEMBUS::write_data8(uint32_t addr, uint32_t data)
 		MEMORY::write_data8(addr, data);
 #if defined(SUPPORT_24BIT_ADDRESS)
 	} else {
-#else
-	} else if(addr < 0x1000000 || addr >= UPPER_MEMORY_32BIT) {
-#endif
 		MEMORY::write_data8(addr & 0xfffff, data);
 	}
+#else
+	} else if(addr < 0x100000) {
+		MEMORY::write_data8(addr & 0x000fffff, data);
+	} else if(addr < 0x1000000) {
+		MEMORY::write_data8(addr, data);
+	} else if(addr >= UPPER_MEMORY_32BIT) {
+		MEMORY::write_data8(addr & 0x000fffff, data);
+	}
+#endif
 }
 
 uint32_t MEMBUS::read_dma_data8(uint32_t addr)
@@ -653,7 +665,6 @@ void MEMBUS::update_bios()
 	} else {
 #endif
 #if defined(SUPPORT_BIOS_RAM)
-
 		if(bios_ram_selected) {
 			set_memory_rw(0x100000 - sizeof(bios_ram), 0xfffff, bios_ram);
 		} else {
@@ -686,8 +697,8 @@ void MEMBUS::update_sound_bios()
 #if defined(SUPPORT_SASI_IF)
 void MEMBUS::update_sasi_bios()
 {
-	//out_debug_log(_T("SASI BIOS SELECTED: %s RAM=%s\n"), (sasi_bios_selected) ? _T("YES") : _T("NO"),
-	//			  (sasi_bios_ram_selected) ? _T("YES") : _T("NO"));
+	out_debug_log(_T("SASI BIOS SELECTED: %s RAM=%s\n"), (sasi_bios_selected) ? _T("YES") : _T("NO"),
+				  (sasi_bios_ram_selected) ? _T("YES") : _T("NO"));
 	if(sasi_bios_selected) {
 		if(sasi_bios_ram_selected) {
 			set_memory_rw(0xd7000, 0xd7fff, sasi_bios_ram);

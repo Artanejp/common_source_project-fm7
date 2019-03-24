@@ -238,7 +238,7 @@ static const X86_OPCODE x86_opcode_table[] =
 	{ 0xCA,     OP_I386,                    I386OP(retf_i16),               I386OP(retf_i32),           false},
 	{ 0xCB,     OP_I386,                    I386OP(retf16),                 I386OP(retf32),             false},
 	{ 0xCC,     OP_I386,                    I386OP(int3),                   I386OP(int3),               false},
-	{ 0xCD,     OP_I386,                    I386OP(int),                    I386OP(int),                false},
+	{ 0xCD,     OP_I386,                    I386OP(int_16),                 I386OP(int_32),             false},
 	{ 0xCE,     OP_I386,                    I386OP(into),                   I386OP(into),               false},
 	{ 0xCF,     OP_I386,                    I386OP(iret16),                 I386OP(iret32),             false},
 	{ 0xD0,     OP_I386,                    I386OP(groupD0_8),              I386OP(groupD0_8),          false},

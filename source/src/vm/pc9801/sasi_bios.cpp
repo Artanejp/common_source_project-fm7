@@ -214,11 +214,11 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			if(sasi_bios(PC, regs, sregs, ZeroFlag, CarryFlag)) {
 				need_retcall = true;
 #ifdef _PSEUDO_BIOS_DEBUG
-				out_debug_log(_T("SASI BIOS CALL SUCCESS:\n From AX=%04x BX=%04x CX=%04x DX=%04x\n ToAX=%04x BX=%04x CX=%04x DX=%04x\n"), backup_ax, backup_bx, backup_cx, backup_dx, AX, BX, CX, DX);
+				out_debug_log(_T("SASI BIOS CALL SUCCESS:\n From AX=%04x BX=%04x CX=%04x DX=%04x\n To AX=%04x BX=%04x CX=%04x DX=%04x\n"), backup_ax, backup_bx, backup_cx, backup_dx, AX, BX, CX, DX);
 #endif
 			} else {
 #ifdef _PSEUDO_BIOS_DEBUG
-				out_debug_log(_T("SASI BIOS CALL FAILED:\n From AX=%04x BX=%04x CX=%04x DX=%04x\n ToAX=%04x BX=%04x CX=%04x DX=%04x\n"), backup_ax, backup_bx, backup_cx, backup_dx, AX, BX, CX, DX);
+				out_debug_log(_T("SASI BIOS CALL FAILED:\n From AX=%04x BX=%04x CX=%04x DX=%04x\n To AX=%04x BX=%04x CX=%04x DX=%04x\n"), backup_ax, backup_bx, backup_cx, backup_dx, AX, BX, CX, DX);
 #endif
 				need_retcall = true;
 			}

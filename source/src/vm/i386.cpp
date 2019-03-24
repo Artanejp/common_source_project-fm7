@@ -63,7 +63,20 @@
 #define U64(v) UINT64(v)
 
 #define fatalerror(...) exit(1)
+#if 0
 #define logerror(...)
+#else
+
+#define logerror(...)						\
+	{ \
+	  if(cpustate != NULL) {									  \
+		  if(cpustate->parent_device != NULL) {							\
+			  cpustate->parent_device->out_debug_log(__VA_ARGS__); \
+		  }																\
+	  }																	\
+	}
+
+#endif
 #define popmessage(...)
 
 /*****************************************************************************/
@@ -352,6 +365,7 @@ void I386::release()
 void I386::reset()
 {
 	i386_state *cpustate = (i386_state *)opaque;
+	logerror(_T("I386::reset()"));
 	cpu_reset_generic(cpustate);
 }
 
@@ -564,17 +578,63 @@ uint32_t I386::read_debug_reg(const _TCHAR *reg)
 bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	i386_state *cpustate = (i386_state *)opaque;
-	my_stprintf_s(buffer, buffer_len,
-	_T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
-	_T("DS=%04X  ES=%04X SS=%04X CS=%04X IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]\n")
-	_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
-	REG16(AX), REG16(BX), REG16(CX), REG16(DX), REG16(SP), REG16(BP), REG16(SI), REG16(DI),
-	cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->eip,
-	cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
-	cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'),
-	cpustate->total_cycles, cpustate->total_cycles - cpustate->prev_total_cycles,
-	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
-	cpustate->prev_total_cycles = cpustate->total_cycles;
+
+	if(cpustate->operand_size) {
+		my_stprintf_s(buffer, buffer_len,
+					  _T("MODE=%s\n")
+					  _T("EAX=%08X  EBX=%08X ECX=%08X EDX=%08X ESP=%08X  EBP=%08X  ESI=%08X  EDI=%08X\n")
+					  _T("DS=%04X  ES=%04X SS=%04X CS=%04X \n")
+					  _T("A20_MASK=%08X EIP=%08X  EFLAGS=%08X FLAG=[%c%c%c%c%c%c%c%c%c]\n")
+					  _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+					  (V8086_MODE) ? _T("V8086(32bit)") : _T("32bit"),
+					  REG32(AX), REG32(BX), REG32(CX), REG32(DX), REG32(SP), REG32(BP), REG32(SI), REG32(DI),
+					  cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->a20_mask, cpustate->eip, cpustate->eflags,
+					  cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
+					  cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'),
+					  cpustate->total_cycles, cpustate->total_cycles - cpustate->prev_total_cycles,
+					  get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
+	} else {
+		if((PROTECTED_MODE) != 0) {
+			if((V8086_MODE)) {
+				my_stprintf_s(buffer, buffer_len,
+					  _T("MODE=V8086 (PROTECTED)\n")
+					  _T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
+					  _T("DS=%04X  ES=%04X SS=%04X CS=%04X A20_MASK=%08X IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]\n")
+					  _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+					  REG16(AX), REG16(BX), REG16(CX), REG16(DX), REG16(SP), REG16(BP), REG16(SI), REG16(DI),
+							  cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->a20_mask, cpustate->eip,
+					  cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
+					  cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'),
+					  cpustate->total_cycles, cpustate->total_cycles - cpustate->prev_total_cycles,
+					  get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
+			} else {
+				my_stprintf_s(buffer, buffer_len,
+			  _T("MODE=PROTECTED 16bit\n")
+			  _T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
+			  _T("DS=%04X  ES=%04X SS=%04X CS=%04X A20_MASK=%08X IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]\n")
+			  _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+			  REG16(AX), REG16(BX), REG16(CX), REG16(DX), REG16(SP), REG16(BP), REG16(SI), REG16(DI),
+			  cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->a20_mask, cpustate->eip,
+			  cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
+			  cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'),
+			  cpustate->total_cycles, cpustate->total_cycles - cpustate->prev_total_cycles,
+			  get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
+			}
+		} else {
+				my_stprintf_s(buffer, buffer_len,
+			  _T("MODE=16bit\n")
+			  _T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
+			  _T("DS=%04X  ES=%04X SS=%04X CS=%04X A20_MASK=%08X IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]\n")
+			  _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+			  REG16(AX), REG16(BX), REG16(CX), REG16(DX), REG16(SP), REG16(BP), REG16(SI), REG16(DI),
+			  cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->a20_mask, cpustate->eip,
+			  cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
+			  cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'),
+			  cpustate->total_cycles, cpustate->total_cycles - cpustate->prev_total_cycles,
+			  get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
+		}			
+	}
+		cpustate->prev_total_cycles = cpustate->total_cycles;
 	return true;
 }
 

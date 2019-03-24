@@ -205,7 +205,7 @@
 	#define SUPPORT_BIOS_RAM
 	#endif
 	// PC-9801-86
-	#define SUPPORT_PC98_OPNA
+	//#define SUPPORT_PC98_OPNA
 #endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	#define MEMORY_ADDR_MAX		0x1000000	// 16MB
