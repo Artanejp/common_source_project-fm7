@@ -254,15 +254,25 @@ enum smram_intel_p5
 };
 
 /* Protected mode exceptions */
-#define FAULT_UD 6   // Invalid Opcode
-#define FAULT_NM 7   // Coprocessor not available
-#define FAULT_DF 8   // Double Fault
-#define FAULT_TS 10  // Invalid TSS
-#define FAULT_NP 11  // Segment or Gate not present
-#define FAULT_SS 12  // Stack fault
-#define FAULT_GP 13  // General Protection Fault
-#define FAULT_PF 14  // Page Fault
-#define FAULT_MF 16  // Match (Coprocessor) Fault
+#define FAULT_DE  0   // F
+#define FAULT_DB  1   // DEBUG
+#define FAULT_NMI 2   // NMI
+#define FAULT_BP  3   // 
+#define FAULT_OF  4   // 
+#define FAULT_BR  5   // 
+#define FAULT_UD  6   // Invalid Opcode
+#define FAULT_NM  7   // Coprocessor not available
+#define FAULT_DF  8   // Double Fault
+#define FAULT_TS  10  // Invalid TSS
+#define FAULT_NP  11  // Segment or Gate not present
+#define FAULT_SS  12  // Stack fault
+#define FAULT_GP  13  // General Protection Fault
+#define FAULT_PF  14  // Page Fault
+#define FAULT_RSV 15  // *Reserved*
+#define FAULT_MF  16  // Match (Coprocessor) Fault
+#define FAULT_AC  17  //
+#define FAULT_MC  18  //
+#define FAULT_XF  19  //
 
 /* MXCSR Control and Status Register */
 #define MXCSR_IE  (1<<0)  // Invalid Operation Flag
@@ -525,9 +535,38 @@ struct i386_state
 extern int i386_parity_table[256];
 static int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32 size);
 
-#define FAULT_THROW(fault,error) { throw (UINT64)(fault | (UINT64)error << 32); }
-#define PF_THROW(error) { cpustate->cr[2] = address; FAULT_THROW(FAULT_PF,error); }
+#define FAULT_THROW(fault,error) {									\
+		/*logerror("FAULT_THROW(%s , %s)\n", #fault , #error );*/	\
+		throw (UINT64)(fault | (UINT64)error << 32);				\
+	}
 
+#if 0
+#include <execinfo.h>
+static void pf_throw_sub(i386_state* cpustate, uint32_t address, uint64_t error)
+{
+	void *np[32]; 														
+	int nptrs =backtrace(np, 32);										
+	char **ss = backtrace_symbols(np, nptrs);							
+	logerror("Backtrace: \n");	\
+	for(int __i = 0; __i < nptrs; __i++) {								
+		logerror("%s\n", ss[__i]);										
+	}										
+}
+
+#define PF_THROW(error) {												\
+		logerror("PF_THROW(%s) at %08x from function %s\n", #error, address, __func__); \
+		pf_throw_sub(cpustate, address, error);							\
+		cpustate->cr[2] = address;										\
+		FAULT_THROW(FAULT_PF,error);									\
+	}
+
+#else
+#define PF_THROW(error) {												\
+		/*logerror("PF_THROW(%s) at %08x from function %s\n", #error, address, __func__);*/ \
+		cpustate->cr[2] = address;										\
+		FAULT_THROW(FAULT_PF,error);									\
+	}
+#endif
 #define PROTECTED_MODE      (cpustate->cr[0] & 0x1)
 #define STACK_32BIT         (cpustate->sreg[SS].d)
 #define V8086_MODE          (cpustate->VM)

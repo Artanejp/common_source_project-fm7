@@ -49,8 +49,8 @@ static void build_opcode_table(i386_state *cpustate, UINT32 features);
 static void zero_state(i386_state *cpustate);
 static void pentium_smi(i386_state* cpustate);
 
-#define FAULT(fault,error) {cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,0,error); return;}
-#define FAULT_EXP(fault,error) {cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,trap_level+1,error); return;}
+#define FAULT(fault,error) {logerror("FAULT(%s , %s) PC=%08x V8086=%s PROTECTED=%s\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO"); cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,0,error); return;}
+#define FAULT_EXP(fault,error) {logerror("FAULT_EXP(%s , %s) PC=%08x V8086=%s PROTECTED=%s\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO"); cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,trap_level+1,error); return;}
 
 static void cpu_reset_generic(i386_state* cpustate)
 {
@@ -687,18 +687,26 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 	if( !(PROTECTED_MODE) )
 	{
 		/* 16-bit */
-		PUSH16(cpustate, oldflags & 0xffff );
-		PUSH16(cpustate, cpustate->sreg[CS].selector );
-		if(irq == 3 || irq == 4 || irq == 9 || irq_gate == 1)
-			PUSH16(cpustate, cpustate->eip );
-		else
-			PUSH16(cpustate, cpustate->prev_eip );
-
-		cpustate->sreg[CS].selector = READ16(cpustate, cpustate->idtr.base + entry + 2 );
-		cpustate->eip = READ16(cpustate, cpustate->idtr.base + entry );
-
-		cpustate->TF = 0;
-		cpustate->IF = 0;
+		try {
+			PUSH16(cpustate, oldflags & 0xffff );
+			PUSH16(cpustate, cpustate->sreg[CS].selector );
+			if(irq == 3 || irq == 4 || irq == 9 || irq_gate == 1)
+				PUSH16(cpustate, cpustate->eip );
+			else
+				PUSH16(cpustate, cpustate->prev_eip );
+			
+			cpustate->sreg[CS].selector = READ16(cpustate, cpustate->idtr.base + entry + 2 );
+			cpustate->eip = READ16(cpustate, cpustate->idtr.base + entry );
+			
+			cpustate->TF = 0;
+			cpustate->IF = 0;
+		} catch(UINT64 e) {
+			logerror("Irregular exception happened %08x for 16bit.\n", e);
+			return;
+		} catch(UINT32 e) {
+			logerror("Irregular exception happened %08x for 16bit.\n", e);
+			return;
+		}
 	}
 	else
 	{
@@ -708,8 +716,14 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 		UINT8 CPL = cpustate->CPL, DPL = 0; //, RPL = 0;
 
 		/* 32-bit */
-		v1 = READ32PL0(cpustate, cpustate->idtr.base + entry );
-		v2 = READ32PL0(cpustate, cpustate->idtr.base + entry + 4 );
+		//try {
+			v1 = READ32PL0(cpustate, cpustate->idtr.base + entry );
+			v2 = READ32PL0(cpustate, cpustate->idtr.base + entry + 4 );
+		//} catch(UINT64 e) {
+		//	logerror("Irregular exception happened %08x for protected mode.\n", e);
+		//} catch(UINT32 e) {
+		//	logerror("Irregular exception happened %08x for protected mode.\n", e);
+		//}
 		offset = (v2 & 0xffff0000) | (v1 & 0xffff);
 		segment = (v1 >> 16) & 0xffff;
 		type = (v2>>8) & 0x1F;
@@ -1039,6 +1053,7 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 		catch(UINT64 e)
 		{
 			REG32(ESP) = tempSP;
+			logerror("THROWN at i386_trap() IRQ=%02x EIP=%08x V8086_MODE=%s line %d\n", irq, cpustate->eip, (V8086_MODE) ? "Yes" : "No", __LINE__);
 			throw e;
 		}
 		if(SetRPL != 0)
@@ -1066,23 +1081,36 @@ static void i386_trap_with_error(i386_state *cpustate,int irq, int irq_gate, int
 		// no error code is pushed for software interrupts, either.
 		if(PROTECTED_MODE)
 		{
-			UINT32 entry = irq * 8;
-			UINT32 v2,type;
-			v2 = READ32PL0(cpustate, cpustate->idtr.base + entry + 4 );
-			type = (v2>>8) & 0x1F;
-			if(type == 5)
-			{
-				v2 = READ32PL0(cpustate, cpustate->idtr.base + entry);
-				v2 = READ32PL0(cpustate, cpustate->gdtr.base + ((v2 >> 16) & 0xfff8) + 4);
+			try {
+				UINT32 entry = irq * 8;
+				UINT32 v2,type;
+				v2 = READ32PL0(cpustate, cpustate->idtr.base + entry + 4 );
 				type = (v2>>8) & 0x1F;
+				if(type == 5)
+				{
+					v2 = READ32PL0(cpustate, cpustate->idtr.base + entry);
+					v2 = READ32PL0(cpustate, cpustate->gdtr.base + ((v2 >> 16) & 0xfff8) + 4);
+					type = (v2>>8) & 0x1F;
+				}
+				if(type >= 9)
+					PUSH32(cpustate,error);
+				else
+					PUSH16(cpustate,error);
+			} catch(UINT64 e) {
+				logerror("Irregular exception happened %08x for protected mode in trap_with_error()_.\n", e);
+			} catch(UINT32 e) {
+				logerror("Irregular exception happened %08x for protected mode in trap_with_error()_.\n", e);
 			}
-			if(type >= 9)
-				PUSH32(cpustate,error);
-			else
-				PUSH16(cpustate,error);
 		}
-		else
-			PUSH16(cpustate,error);
+		else {
+			try {
+				PUSH16(cpustate,error);
+			} catch(UINT64 e) {
+				logerror("Irregular exception happened %08x for 16bit mode in trap_with_error()_.\n", e);
+			} catch(UINT32 e) {
+				logerror("Irregular exception happened %08x for 16bit mode in trap_with_error()_.\n", e);
+			}
+		}
 	}
 }
 
@@ -2051,6 +2079,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 	catch(UINT64 e)
 	{
 		REG32(ESP) = tempSP;
+		logerror("THROWN at I386_OP(i386_protected_mode_call)() line %d\n",  __LINE__);
 		throw e;
 	}
 
@@ -3536,6 +3565,7 @@ static CPU_EXECUTE( i386 )
 			catch(UINT64 e)
 			{
 				cpustate->ext = 1;
+				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
 				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32);
 			}
 //#ifdef SINGLE_MODE_DMA
@@ -3599,6 +3629,7 @@ static CPU_EXECUTE( i386 )
 			catch(UINT64 e)
 			{
 				cpustate->ext = 1;
+				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
 				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32);
 			}
 //#ifdef SINGLE_MODE_DMA

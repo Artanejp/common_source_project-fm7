@@ -1112,7 +1112,7 @@ static void I386OP(mov_rm32_r32)(i386_state *cpustate)      // Opcode 0x89
 	} else {
 		UINT32 ea = GetEA(cpustate,modrm,1,4);
 		src = LOAD_REG32(modrm);
-		WRITE32(cpustate,ea, src);
+		WRITE32(cpustate,ea, src);									  
 		CYCLES(cpustate,CYCLES_MOV_REG_MEM);
 	}
 }
@@ -1471,6 +1471,7 @@ static bool I386OP(pop_seg32)(i386_state *cpustate, int segment)
 	else
 	{
 		cpustate->ext = 1;
+		logerror("Illegal address(pop_seg32) EIP=%08x VM8086=%s exception FAULT_SS irq=0 irq_gate=0 trap_level=0 ERROR=0\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO"); 
 		i386_trap_with_error(cpustate,FAULT_SS,0,0,0);
 		return false;
 	}
@@ -1532,6 +1533,7 @@ static void I386OP(pop_rm32)(i386_state *cpustate)          // Opcode 0x8f
 			catch(UINT64 e)
 			{
 				REG32(ESP) = temp_sp;
+				logerror("THROWN at I386_OP(pop_rm32)() line %d\n", __LINE__);
 				throw e;
 			}
 		}

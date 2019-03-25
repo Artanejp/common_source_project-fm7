@@ -495,7 +495,9 @@ static void I386OP(call_abs16)(i386_state *cpustate)        // Opcode 0x9a
 	CYCLES(cpustate,CYCLES_CALL_INTERSEG);      /* TODO: Timing = 17 + m */
 
 //#ifdef I386_PSEUDO_BIOS
-	BIOS_CALL_FAR(((ptr << 4) + offset) & cpustate->a20_mask)
+	//if(!(V8086_MODE)) {
+		BIOS_CALL_FAR(((ptr << 4) + offset) & cpustate->a20_mask);
+	//}
 //#endif
 
 	if( PROTECTED_MODE && !V8086_MODE)
@@ -1531,8 +1533,10 @@ static void I386OP(pop_ax)(i386_state *cpustate)            // Opcode 0x58
 	UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
 	if(i386_limit_check(cpustate,SS,offset,2) == 0)
 		REG16(AX) = POP16(cpustate);
-	else
+	else {
+		logerror("pop_ax() EXCEPTION(stack address fault)\n");
 		FAULT(FAULT_SS,0)
+	}
 	CYCLES(cpustate,CYCLES_POP_REG_SHORT);
 }
 
@@ -1541,8 +1545,10 @@ static void I386OP(pop_cx)(i386_state *cpustate)            // Opcode 0x59
 	UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
 	if(i386_limit_check(cpustate,SS,offset,2) == 0)
 		REG16(CX) = POP16(cpustate);
-	else
+	else {
+		logerror("pop_cx() EXCEPTION(stack address fault)\n");
 		FAULT(FAULT_SS,0)
+	}
 	CYCLES(cpustate,CYCLES_POP_REG_SHORT);
 }
 
@@ -1551,8 +1557,10 @@ static void I386OP(pop_dx)(i386_state *cpustate)            // Opcode 0x5a
 	UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
 	if(i386_limit_check(cpustate,SS,offset,2) == 0)
 		REG16(DX) = POP16(cpustate);
-	else
+	else {
+		logerror("pop_dx() EXCEPTION(stack address fault)\n");
 		FAULT(FAULT_SS,0)
+	}
 	CYCLES(cpustate,CYCLES_POP_REG_SHORT);
 }
 
@@ -1561,8 +1569,10 @@ static void I386OP(pop_bx)(i386_state *cpustate)            // Opcode 0x5b
 	UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
 	if(i386_limit_check(cpustate,SS,offset,2) == 0)
 		REG16(BX) = POP16(cpustate);
-	else
+	else {
+		logerror("pop_bx() EXCEPTION(stack address fault)\n");
 		FAULT(FAULT_SS,0)
+	}
 	CYCLES(cpustate,CYCLES_POP_REG_SHORT);
 }
 
@@ -1571,8 +1581,10 @@ static void I386OP(pop_sp)(i386_state *cpustate)            // Opcode 0x5c
 	UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
 	if(i386_limit_check(cpustate,SS,offset,2) == 0)
 		REG16(SP) = POP16(cpustate);
-	else
+	else {
+		logerror("pop_sp() EXCEPTION(stack address fault)\n");
 		FAULT(FAULT_SS,0)
+	}
 	CYCLES(cpustate,CYCLES_POP_REG_SHORT);
 }
 
@@ -1581,8 +1593,10 @@ static void I386OP(pop_bp)(i386_state *cpustate)            // Opcode 0x5d
 	UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
 	if(i386_limit_check(cpustate,SS,offset,2) == 0)
 		REG16(BP) = POP16(cpustate);
-	else
+	else {
+		logerror("pop_bp() EXCEPTION(stack address fault)\n");
 		FAULT(FAULT_SS,0)
+	}
 	CYCLES(cpustate,CYCLES_POP_REG_SHORT);
 }
 
@@ -1591,8 +1605,10 @@ static void I386OP(pop_si)(i386_state *cpustate)            // Opcode 0x5e
 	UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
 	if(i386_limit_check(cpustate,SS,offset,2) == 0)
 		REG16(SI) = POP16(cpustate);
-	else
+	else {
+		logerror("pop_si() EXCEPTION(stack address fault)\n");
 		FAULT(FAULT_SS,0)
+	}
 	CYCLES(cpustate,CYCLES_POP_REG_SHORT);
 }
 
@@ -1601,8 +1617,10 @@ static void I386OP(pop_di)(i386_state *cpustate)            // Opcode 0x5f
 	UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
 	if(i386_limit_check(cpustate,SS,offset,2) == 0)
 		REG16(DI) = POP16(cpustate);
-	else
+	else {
+		logerror("pop_di() EXCEPTION(stack address fault)\n");
 		FAULT(FAULT_SS,0)
+	}
 	CYCLES(cpustate,CYCLES_POP_REG_SHORT);
 }
 
@@ -1625,6 +1643,7 @@ static bool I386OP(pop_seg16)(i386_state *cpustate, int segment)
 	else
 	{
 		cpustate->ext = 1;
+		logerror("Illegal address(pop_seg16) EIP=%08x VM8086=%s exception FAULT_SS irq=0 irq_gate=0 trap_level=0 ERROR=0\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO"); 
 		i386_trap_with_error(cpustate,FAULT_SS,0,0,0);
 		return false;
 	}
@@ -1684,6 +1703,7 @@ static void I386OP(pop_rm16)(i386_state *cpustate)          // Opcode 0x8f
 			catch(UINT64 e)
 			{
 				REG32(ESP) = temp_sp;
+				logerror("THROWN at I386_OP(pop_rm16)() line %d\n", __LINE__);
 				throw e;
 			}
 		}
@@ -3039,7 +3059,9 @@ static void I386OP(groupFF_16)(i386_state *cpustate)        // Opcode 0xff
 					selector = READ16(cpustate,ea + 2);
 					CYCLES(cpustate,CYCLES_CALL_MEM_INTERSEG);      /* TODO: Timing = 10 + m */
 //#ifdef I386_PSEUDO_BIOS
-					BIOS_CALL_FAR(((selector << 4) + address) & cpustate->a20_mask)
+					//if(!(V8086_MODE)) {
+						BIOS_CALL_FAR(((selector << 4) + address) & cpustate->a20_mask);
+					//}
 //#endif
 					if(PROTECTED_MODE && !V8086_MODE)
 					{
@@ -3121,6 +3143,9 @@ static void I386OP(groupFF_16)(i386_state *cpustate)        // Opcode 0xff
 	}
 }
 
+extern void i386_change_protect_mode(i386_state *cpustate, int val);
+extern void i386_change_paging_mode(i386_state *cpustate, int val);
+
 static void I386OP(group0F00_16)(i386_state *cpustate)          // Opcode 0x0f 00
 {
 	UINT32 address, ea;
@@ -3167,8 +3192,10 @@ static void I386OP(group0F00_16)(i386_state *cpustate)          // Opcode 0x0f 0
 		case 2:         /* LLDT */
 			if ( PROTECTED_MODE && !V8086_MODE )
 			{
-				if(cpustate->CPL)
+				if(cpustate->CPL) {
+					logerror("group0F00_16: LLDT() EXCEPTION(PROTECTED_MODE && !V8086_MODE) / CPL set.\n");
 					FAULT(FAULT_GP,0)
+				}
 				if( modrm >= 0xc0 ) {
 					address = LOAD_RM16(modrm);
 					cpustate->ldtr.segment = address;
@@ -3194,8 +3221,10 @@ static void I386OP(group0F00_16)(i386_state *cpustate)          // Opcode 0x0f 0
 		case 3:         /* LTR */
 			if ( PROTECTED_MODE && !V8086_MODE )
 			{
-				if(cpustate->CPL)
+				if(cpustate->CPL) {
+					logerror("group0F00_16: LTR() EXCEPTION(PROTECTED_MODE && !V8086_MODE) / CPL set.\n");
 					FAULT(FAULT_GP,0)
+				}
 				if( modrm >= 0xc0 ) {
 					address = LOAD_RM16(modrm);
 					cpustate->task.segment = address;
@@ -3359,8 +3388,10 @@ static void I386OP(group0F01_16)(i386_state *cpustate)      // Opcode 0x0f 01
 			}
 		case 2:         /* LGDT */
 			{
-				if(PROTECTED_MODE && cpustate->CPL)
+				if(PROTECTED_MODE && cpustate->CPL) {
+					logerror("group0F01_16: LGDT() EXCEPTION(PROTECTED_MODE) / CPL set.\n");
 					FAULT(FAULT_GP,0)
+				}
 				if( modrm >= 0xc0 ) {
 					address = LOAD_RM16(modrm);
 					ea = i386_translate(cpustate, CS, address, 0, 6 );
@@ -3374,8 +3405,10 @@ static void I386OP(group0F01_16)(i386_state *cpustate)      // Opcode 0x0f 01
 			}
 		case 3:         /* LIDT */
 			{
-				if(PROTECTED_MODE && cpustate->CPL)
+				if(PROTECTED_MODE && cpustate->CPL) {
+					logerror("group0F01_16: LLDT() EXCEPTION(PROTECTED_MODE) / CPL set.\n");
 					FAULT(FAULT_GP,0)
+				}
 				if( modrm >= 0xc0 ) {
 					address = LOAD_RM16(modrm);
 					ea = i386_translate(cpustate, CS, address, 0, 6 );
@@ -3401,8 +3434,10 @@ static void I386OP(group0F01_16)(i386_state *cpustate)      // Opcode 0x0f 01
 			}
 		case 6:         /* LMSW */
 			{
-				if(PROTECTED_MODE && cpustate->CPL)
+				if(PROTECTED_MODE && cpustate->CPL) {
+					logerror("group0F01_16: LMSW() EXCEPTION(PROTECTED_MODE) / CPL set.\n");
 					FAULT(FAULT_GP,0)
+				}
 				UINT16 b;
 				if( modrm >= 0xc0 ) {
 					b = LOAD_RM16(modrm);
@@ -3410,12 +3445,15 @@ static void I386OP(group0F01_16)(i386_state *cpustate)      // Opcode 0x0f 01
 				} else {
 					ea = GetEA(cpustate,modrm,0,2);
 					CYCLES(cpustate,CYCLES_LMSW_MEM);
-				b = READ16(cpustate,ea);
+					b = READ16(cpustate,ea);
 				}
 				if(PROTECTED_MODE)
 					b |= 0x0001;  // cannot return to real mode using this instruction.
-				cpustate->cr[0] &= ~0x0000000f;
+				cpustate->cr[0] &= ~0x0000000e;
 				cpustate->cr[0] |= b & 0x0000000f;
+				if(!(cpustate->cr[0] & CPU_CRx_PE) && (b & CPU_CRx_PE)) {
+					i386_change_protect_mode(cpustate, 1);
+				}
 				break;
 			}
 		default:

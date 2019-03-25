@@ -256,6 +256,10 @@ typedef UINT32	offs_t;
 //#endif
 
 static CPU_TRANSLATE(i386);
+void terminate()
+{
+	printf("WARN: unexpected exception\n");
+}
 
 #include "mame/lib/softfloat/softfloat.c"
 #include "mame/lib/softfloat/fsincos.c"
