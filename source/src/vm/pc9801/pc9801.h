@@ -204,6 +204,7 @@
 	#if !defined(SUPPORT_HIRESO)
 	#define SUPPORT_BIOS_RAM
 	#endif
+	#define SUPPORT_EGC
 	// PC-9801-86
 	//#define SUPPORT_PC98_OPNA
 #endif
