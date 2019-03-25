@@ -529,6 +529,7 @@ void BIOS::sasi_command_read(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 	int size = (int)(BX & 0xffff);
 	if(size == 0) size = 0x10000;
 	uint32_t addr = (((uint32_t)ES) << 4) + BP;
+	//out_debug_log(_T("SASI CMD: READ ADDR=%08x\n"), addr);
 
 	int drive = sxsi_get_drive(AL);
 	if(drive < 0) { // ToDo: Multi SASI
