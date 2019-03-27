@@ -214,14 +214,14 @@ uint32_t YM2203::read_io8(uint32_t addr)
 		update_interrupt();
 		uint32_t status = opna->ReadStatusEx() & ~0x80;
 		if(busy) {
-			// FIXME: we need to investigate the correct busy period
-			if(get_passed_usec(clock_busy) < 8) {
+			// from PC-88 machine language master bible (XM8 version 1.00)
+			if(get_passed_usec(clock_busy) < (is_ym2608 ? 4.25 : 2.13)) {
 				status |= 0x80;
 			} else {
 				busy = false;
 			}
-				return status;
 		}
+		return status;
 		break;
 	case 3:
 		if(ch1 == 8) {
