@@ -453,7 +453,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		opn->set_context_irq(pic, SIG_I8259_CHIP1 | SIG_I8259_IR4, 1);
 		opn->set_context_port_b(joystick, SIG_JOYSTICK_SELECT, 0xc0, 0);
 		fmsound->set_context_opn(opn);
+		fmsound->set_context_pcm_int(pic, SIG_I8259_CHIP1 | SIG_I8259_IR4, 1); // OK?
 		joystick->set_context_opn(opn);
+
 	} else if(sound_type == 2 || sound_type == 3) {
 		pio_14->set_context_port_a(tms3631, SIG_TMS3631_ENVELOP1, 0xff, 0);
 		pio_14->set_context_port_b(tms3631, SIG_TMS3631_ENVELOP2, 0xff, 0);
@@ -653,7 +655,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x0055, pio_fdd, 2);
 	io->set_iomap_alias_w (0x0057, pio_fdd, 3);
 #endif
-	
+
 	io->set_iomap_alias_rw(0x0060, gdc_chr, 0);
 	io->set_iomap_alias_rw(0x0062, gdc_chr, 1);
 	
@@ -773,6 +775,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		io->set_iomap_single_rw(0x018c, fmsound);
 		io->set_iomap_single_rw(0x018e, fmsound);
 		io->set_iomap_single_rw(0xa460, fmsound);
+		io->set_iomap_single_rw(0xa460, fmsound);
+		io->set_iomap_single_rw(0xa466, fmsound);
+		io->set_iomap_single_rw(0xa468, fmsound);
+		io->set_iomap_single_rw(0xa46a, fmsound);
+		io->set_iomap_single_rw(0xa46c, fmsound);
+		//io->set_iomap_single_rw(0xa46e, fmsound);
 #endif
 	} else if(sound_type == 2 || sound_type == 3) {
 		io->set_iomap_alias_rw(0x0088, pio_14, 0);

@@ -24,19 +24,58 @@
 #include "../../emu.h"
 #include "../device.h"
 
+#if defined(_PC98DOPLUS) || defined(_PC98GS) || defined(SUPPORT_PC98_OPNA)
+#define _PC98_SUPPORT_EXTRA_SOUND
+#define _PC98_HAVE_86PCM
+#endif
+
+#ifdef _PC98_HAVE_86PCM
+class FIFO;
+#endif
 namespace PC9801 {
 
 class FMSOUND : public DEVICE
 {
 private:
 	DEVICE* d_opn;
-#ifdef SUPPORT_PC98_OPNA
+
+	outputs_t outputs_int_pcm;
 	uint8_t mask;
-#endif
+#ifdef _PC98_HAVE_86PCM
+	FIFO* pcm_fifo;
+
+	// ToDo: Implement volumes
+	uint8_t pcm_volume_reg;
+	uint8_t pcm_ctrl_reg;
+	uint8_t pcm_da_reg;
+	pair32_t pcm_data;
 	
+	bool fifo_enabled;
+	bool fifo_direction;
+	bool fifo_int_flag;
+	bool fifo_int_status;
+	bool fifo_reset_req;
+
+	uint32_t pcm_freq;
+	bool lrclock;
+	bool pcm_is_16bit;
+	bool pcm_l_enabled;
+	bool pcm_r_enabled;
+	int  pcm_da_intleft;
+
+	int play_bufsize;
+	int play_w_remain;
+	int play_rptr;
+	int play_wptr;
+	int32_t play_pool[65536]; // Internal buffer
+	
+	int event_pcm;
+#endif
+	void check_fifo_position();
 public:
 	FMSOUND(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		initialize_output_signals(&outputs_int_pcm);
 #ifdef SUPPORT_PC98_OPNA
 		set_device_name(_T("PC-9801-86 (FM Sound)"));
 #else
@@ -46,19 +85,23 @@ public:
 	~FMSOUND() {}
 	
 	// common functions
-#ifdef SUPPORT_PC98_OPNA
+	void initialize();
+	void release();
 	void reset();
-#endif
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
-#ifdef SUPPORT_PC98_OPNA
 	bool process_state(FILEIO* state_fio, bool loading);
-#endif
+	void mix(int32_t* buffer, int cnt);
+	void event_callback(int id, int err);
 	
 	// unique function
 	void set_context_opn(DEVICE* device)
 	{
 		d_opn = device;
+	}
+	void set_context_pcm_int(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_int_pcm, device, id, mask); 
 	}
 };
 
