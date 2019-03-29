@@ -371,6 +371,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(beep);
 	if(sound_type == 0 || sound_type == 1) {
 		event->set_context_sound(opn);
+		event->set_context_sound(fmsound);
 	} else if(sound_type == 2 || sound_type == 3) {
 		event->set_context_sound(tms3631);
 	}
@@ -1268,6 +1269,7 @@ void VM::initialize_sound(int rate, int samples)
 		} else {
 			opn->initialize_sound(rate, 3993624, samples, 0, 0);
 		}
+		fmsound->initialize_sound(rate, samples);
 	} else if(sound_type == 2 || sound_type == 3) {
 		tms3631->initialize_sound(rate, 8000);
 	}
@@ -1325,6 +1327,10 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	} else if(ch-- == 0) {
 		if(sound_type == 0 || sound_type == 1) {
 			opn->set_volume(3, decibel_l, decibel_r);
+		}
+	} else if(ch-- == 0) {
+		if(sound_type == 0 || sound_type == 1) {
+			fmsound->set_volume(0, decibel_l, decibel_r);
 		}
 #endif
 	} else if(ch-- == 0) {

@@ -63,6 +63,8 @@ private:
 	bool pcm_r_enabled;
 	int  pcm_da_intleft;
 
+	int mix_mod;
+
 	int play_bufsize;
 	int play_w_remain;
 	int play_rptr;
@@ -71,6 +73,12 @@ private:
 	
 	int event_pcm;
 #endif
+
+	int sample_rate;
+	int sample_samples;
+	int volume_r;
+	int volume_l;
+	
 	void check_fifo_position();
 public:
 	FMSOUND(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -93,6 +101,8 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 	void mix(int32_t* buffer, int cnt);
 	void event_callback(int id, int err);
+	void set_volume(int ch, int decibel_l, int decibel_r);
+	void initialize_sound(int rate, int samples);
 	
 	// unique function
 	void set_context_opn(DEVICE* device)

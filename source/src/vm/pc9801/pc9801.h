@@ -307,17 +307,17 @@
 #define USE_SOUND_TYPE		5
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 #if    defined(SUPPORT_PC98_OPNA) &&  defined(SUPPORT_PC88_OPNA)
-#define USE_SOUND_VOLUME	(4 + 1 + 1 + 4 + 1 + 1)
+#define USE_SOUND_VOLUME	(4 + 1 + 1 + 1 + 4 + 1 + 1)
 #elif  defined(SUPPORT_PC98_OPNA) && !defined(SUPPORT_PC88_OPNA)
-#define USE_SOUND_VOLUME	(4 + 1 + 1 + 2 + 1 + 1)
+#define USE_SOUND_VOLUME	(4 + 1 + 1 + 1 + 2 + 1 + 1)
 #elif !defined(SUPPORT_PC98_OPNA) &&  defined(SUPPORT_PC88_OPNA)
-#define USE_SOUND_VOLUME	(2 + 1 + 1 + 4 + 1 + 1)
+#define USE_SOUND_VOLUME	(2 + 1 + 1 + 1 + 4 + 1 + 1)
 #elif !defined(SUPPORT_PC98_OPNA) && !defined(SUPPORT_PC88_OPNA)
-#define USE_SOUND_VOLUME	(2 + 1 + 1 + 2 + 1 + 1)
+#define USE_SOUND_VOLUME	(2 + 1 + 1 + 1 + 2 + 1 + 1)
 #endif
 #else
 #if defined(SUPPORT_PC98_OPNA)
-#define USE_SOUND_VOLUME	(4 + 1 + 1 + 1)
+#define USE_SOUND_VOLUME	(4 + 1 + 1 + 1 + 1)
 #else
 #define USE_SOUND_VOLUME	(2 + 1 + 1 + 1)
 #endif
@@ -346,7 +346,7 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 #if defined(SUPPORT_PC98_OPNA)
-	_T("OPNA (FM)"), _T("OPNA (PSG)"), _T("OPNA (ADPCM)"), _T("OPNA (Rhythm)"),
+	_T("OPNA (FM)"), _T("OPNA (PSG)"), _T("OPNA (ADPCM)"), _T("OPNA (Rhythm)"), _T("PCM(PC-9801-86)"),
 #else
 	_T("OPN (FM)"), _T("OPN (PSG)"),
 #endif
