@@ -1742,12 +1742,16 @@ static void I386OP(popf)(i386_state *cpustate)              // Opcode 0x9d
 	UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
 
 	// IOPL can only change if CPL is 0
-	if(cpustate->CPL != 0)
-		mask &= ~0x00003000;
+	if(cpustate->CPL != 0) {
+		//mask &= ~0x00003000;
+		mask &= ~I386_EFLAGS_IOPL;
+	}
 
 	// IF can only change if CPL is at least as privileged as IOPL
-	if(cpustate->CPL > IOPL)
-		mask &= ~0x00000200;
+	if(cpustate->CPL > IOPL) {
+		//mask &= ~0x00000200;
+		mask &= ~I386_EFLAGS_IF;
+	}
 
 	if(V8086_MODE)
 	{
@@ -1756,7 +1760,8 @@ static void I386OP(popf)(i386_state *cpustate)              // Opcode 0x9d
 			logerror("POPFD(%08x): IOPL < 3 while in V86 mode.\n",cpustate->pc);
 			FAULT(FAULT_GP,0)  // #GP(0)
 		}
-		mask &= ~0x00003000;  // IOPL cannot be changed while in V8086 mode
+		//mask &= ~0x00003000;  // IOPL cannot be changed while in V8086 mode
+		mask &= ~I386_EFLAGS_IOPL; // IOPL cannot be changed while in V8086 mode
 	}
 
 	if(i386_limit_check(cpustate,SS,offset,2) == 0)
@@ -2011,10 +2016,14 @@ static void I386OP(pushf)(i386_state *cpustate)             // Opcode 0x9c
 		offset = REG32(ESP) - 2;
 	else
 		offset = (REG16(SP) - 2) & 0xffff;
-	if(i386_limit_check(cpustate,SS,offset,2) == 0)
-		PUSH16(cpustate, get_flags(cpustate) & 0xffff );
-	else
-		FAULT(FAULT_SS,0)
+	//if(!PROTECTED_MODE || !V8086_MODE || ((cpustate->IOP1) && (cpustate->IOP2))) { 
+		if(i386_limit_check(cpustate,SS,offset,2) == 0)
+			PUSH16(cpustate, get_flags(cpustate) & 0xffff );
+		else
+			FAULT(FAULT_SS,0)
+	//} else {
+	//	FAULT(FAULT_GP, 0)
+	//}
 	CYCLES(cpustate,CYCLES_PUSHF);
 }
 
@@ -3388,6 +3397,7 @@ static void I386OP(group0F01_16)(i386_state *cpustate)      // Opcode 0x0f 01
 			}
 		case 2:         /* LGDT */
 			{
+				//printf("LGDT %08x\n", modrm);
 				if(PROTECTED_MODE && cpustate->CPL) {
 					logerror("group0F01_16: LGDT() EXCEPTION(PROTECTED_MODE) / CPL set.\n");
 					FAULT(FAULT_GP,0)
@@ -3447,11 +3457,11 @@ static void I386OP(group0F01_16)(i386_state *cpustate)      // Opcode 0x0f 01
 					CYCLES(cpustate,CYCLES_LMSW_MEM);
 					b = READ16(cpustate,ea);
 				}
-				if(PROTECTED_MODE)
-					b |= 0x0001;  // cannot return to real mode using this instruction.
-				cpustate->cr[0] &= ~0x0000000e;
-				cpustate->cr[0] |= b & 0x0000000f;
-				if(!(cpustate->cr[0] & CPU_CRx_PE) && (b & CPU_CRx_PE)) {
+				//logerror("LMSW16 %02x <- VAL=%04x \n", modrm, b);
+				uint32_t cr0_bak = cpustate->cr[0];
+				cpustate->cr[0] &= ~(CPU_CRx_MP | CPU_CRx_EM | CPU_CRx_TS);
+				cpustate->cr[0] |= (b & (CPU_CRx_PE | CPU_CRx_MP | CPU_CRx_EM | CPU_CRx_TS));
+				if(!(cr0_bak & CPU_CRx_PE) && (b & CPU_CRx_PE)) {
 					i386_change_protect_mode(cpustate, 1);
 				}
 				break;

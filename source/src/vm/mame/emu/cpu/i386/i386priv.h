@@ -366,6 +366,34 @@ enum {
 	N_CPU_TYPE_PENTIUM4
 };
 
+#define I386_EFLAGS_C      (1 << 0)
+#define I386_EFLAGS_P      (1 << 2)
+#define I386_EFLAGS_A      (1 << 4)
+#define I386_EFLAGS_Z      (1 << 6)
+#define I386_EFLAGS_S      (1 << 7)
+#define I386_EFLAGS_T      (1 << 8)
+#define I386_EFLAGS_IF     (1 << 9)
+#define I386_EFLAGS_D      (1 << 10)
+#define I386_EFLAGS_O      (1 << 11)
+#define I386_EFLAGS_IOPL   (3 << 12)
+#define I386_EFLAGS_IOP1   (1 << 12)
+#define I386_EFLAGS_IOP2   (1 << 13)
+#define I386_EFLAGS_NT     (1 << 14)
+#define I386_EFLAGS_RF     (1 << 16)
+#define I386_EFLAGS_VM     (1 << 17)
+#define I386_EFLAGS_AC     (1 << 18)
+#define I386_EFLAGS_VIF    (1 << 19)
+#define I386_EFLAGS_VIP    (1 << 20)
+#define I386_EFLAGS_ID     (1 << 21)
+
+#define I386_EFLAGS_SZAP   (I386_EFLAGS_S | I386_EFLAGS_Z | I386_EFLAGS_A | I386_EFLAGS_P)
+#define I386_EFLAGS_SZPC   (I386_EFLAGS_S | I386_EFLAGS_Z | I386_EFLAGS_P | I386_EFLAGS_C)
+#define I386_EFLAGS_SZAPC  (I386_EFLAGS_S | I386_EFLAGS_Z | I386_EFLAGS_A | I386_EFLAGS_P | I386_EFLAGS_C)
+
+#define I386_EFLAGS_ALL16  (I386_EFLAGS_SZAPC | I386_EFLAGS_T | I386_EFLAGS_I | I386_EFLAGS_D | I386_EFLAGS_O | I386_EFLAGS_IOPL | I386_EFLAGS_NT)
+#define I386_EFLAGS_ALL32  (I386_EFLAGS_ALL16 | I386_EFLAGS_RF |  I386_EFLAGS_VM |  I386_EFLAGS_AC | I386_EFLAGS_VIF | I386_EFLAGS_VIP | I386_EFLAGS_ID)
+
+	
 struct i386_state
 {
 	I386_GPR reg;

@@ -284,6 +284,7 @@ static UINT32 get_flags(i386_state *cpustate)
 
 static void set_flags(i386_state *cpustate, UINT32 f )
 {
+	UINT8 old_vm = cpustate->VM;
 	f &= cpustate->eflags_mask;;
 	cpustate->CF = (f & 0x1) ? 1 : 0;
 	cpustate->PF = (f & 0x4) ? 1 : 0;
@@ -298,12 +299,31 @@ static void set_flags(i386_state *cpustate, UINT32 f )
 	cpustate->IOP2 = (f & 0x2000) ? 1 : 0;
 	cpustate->NT = (f & 0x4000) ? 1 : 0;
 	cpustate->RF = (f & 0x10000) ? 1 : 0;
-	cpustate->VM = (f & 0x20000) ? 1 : 0;
+	if(PROTECTED_MODE) {
+		cpustate->VM = (f & 0x20000) ? 1 : 0;
+	}
 	cpustate->AC = (f & 0x40000) ? 1 : 0;
 	cpustate->VIF = (f & 0x80000) ? 1 : 0;
 	cpustate->VIP = (f & 0x100000) ? 1 : 0;
 	cpustate->ID = (f & 0x200000) ? 1 : 0;
-	cpustate->eflags = f;
+	if(PROTECTED_MODE) {
+		cpustate->eflags = f;
+	} else {
+		UINT32 o_e = cpustate->eflags & 0x20000;
+		cpustate->eflags = (f & ~0x00020000) | o_e;
+	}
+	if(old_vm != cpustate->VM) {
+		if(cpustate->VM) {
+			// LOAD ES CS SS DS FS GS
+			i386_load_segment_descriptor(cpustate, ES);
+			i386_load_segment_descriptor(cpustate, CS);
+			i386_load_segment_descriptor(cpustate, SS);
+			i386_load_segment_descriptor(cpustate, DS);
+			i386_load_segment_descriptor(cpustate, FS);
+			i386_load_segment_descriptor(cpustate, GS);
+			cpustate->CPL = 3;
+		}
+	}
 }
 
 static void sib_byte(i386_state *cpustate,UINT8 mod, UINT32* out_ea, UINT8* out_segment)
@@ -683,11 +703,10 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 	int entry = irq * (PROTECTED_MODE ? 8 : 4);
 	int SetRPL = 0;
 	cpustate->lock = false;
-
-	if( !(PROTECTED_MODE) )
+	if( !PROTECTED_MODE /*|| (V8086_MODE)*/)
 	{
 		/* 16-bit */
-		try {
+		//try {
 			PUSH16(cpustate, oldflags & 0xffff );
 			PUSH16(cpustate, cpustate->sreg[CS].selector );
 			if(irq == 3 || irq == 4 || irq == 9 || irq_gate == 1)
@@ -700,13 +719,14 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 			
 			cpustate->TF = 0;
 			cpustate->IF = 0;
-		} catch(UINT64 e) {
-			logerror("Irregular exception happened %08x for 16bit.\n", e);
-			return;
-		} catch(UINT32 e) {
-			logerror("Irregular exception happened %08x for 16bit.\n", e);
-			return;
-		}
+			cpustate->eflags = get_flags(cpustate);
+			//} catch(UINT64 e) {
+			//logerror("Irregular exception happened %08x for 16bit.\n", e);
+			//return;
+			//} catch(UINT32 e) {
+			//logerror("Irregular exception happened %08x for 16bit.\n", e);
+			//return;
+			//}
 	}
 	else
 	{
@@ -953,6 +973,7 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 				REG32(ESP) = newESP;
 				if(V8086_MODE)
 				{
+					// ***
 					//logerror("IRQ (%08x): Interrupt during V8086 task\n",cpustate->pc);
 					if(type & 0x08)
 					{
@@ -972,7 +993,8 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 					cpustate->sreg[FS].selector = 0;
 					cpustate->sreg[DS].selector = 0;
 					cpustate->sreg[ES].selector = 0;
-					cpustate->VM = 0;
+					//cpustate->VM = 0;
+					//cpustate->eflags &= ~I386_EFLAGS_VM; // Clear VM flag
 					i386_load_segment_descriptor(cpustate,GS);
 					i386_load_segment_descriptor(cpustate,FS);
 					i386_load_segment_descriptor(cpustate,DS);
@@ -1056,15 +1078,22 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 			logerror("THROWN at i386_trap() IRQ=%02x EIP=%08x V8086_MODE=%s line %d\n", irq, cpustate->eip, (V8086_MODE) ? "Yes" : "No", __LINE__);
 			throw e;
 		}
+		UINT16 o_selector = cpustate->sreg[CS].selector;
 		if(SetRPL != 0)
 			segment = (segment & ~0x03) | cpustate->CPL;
 		cpustate->sreg[CS].selector = segment;
+		//if(segment != o_selector) {
+		//	i386_load_segment_descriptor(cpustate,CS);
+		//}			
 		cpustate->eip = offset;
 
 		if(type == 0x0e || type == 0x06)
 			cpustate->IF = 0;
 		cpustate->TF = 0;
 		cpustate->NT = 0;
+		//cpustate->eflags &= ~0xffc00002;
+		cpustate->eflags = get_flags(cpustate);
+		set_flags(cpustate, cpustate->eflags);
 	}
 
 	i386_load_segment_descriptor(cpustate,CS);
@@ -1074,14 +1103,24 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 
 static void i386_trap_with_error(i386_state *cpustate,int irq, int irq_gate, int trap_level, UINT32 error)
 {
-	i386_trap(cpustate,irq,irq_gate,trap_level);
-	if(irq == 8 || irq == 10 || irq == 11 || irq == 12 || irq == 13 || irq == 14)
+//	try {
+		i386_trap(cpustate,irq,irq_gate,trap_level);
+//	} catch(UINT64 e) {
+//		logerror("Irregular exception happened %08x for 16bit.\n", e);
+//		return;
+//	} catch(UINT32 e) {
+//		logerror("Irregular exception happened %08x for 16bit.\n", e);
+//		return;
+//	}
+		
+	if(irq == FAULT_DF || irq == FAULT_TS || irq == FAULT_NP || irq == FAULT_SS || irq == FAULT_GP || irq == FAULT_GP || irq == FAULT_AC)
 	{
+		if((irq == FAULT_AC) || (irq == FAULT_DF)) error = 0;
 		// for these exceptions, an error code is pushed onto the stack by the processor.
 		// no error code is pushed for software interrupts, either.
 		if(PROTECTED_MODE)
 		{
-			try {
+//			try {
 				UINT32 entry = irq * 8;
 				UINT32 v2,type;
 				v2 = READ32PL0(cpustate, cpustate->idtr.base + entry + 4 );
@@ -1096,20 +1135,20 @@ static void i386_trap_with_error(i386_state *cpustate,int irq, int irq_gate, int
 					PUSH32(cpustate,error);
 				else
 					PUSH16(cpustate,error);
-			} catch(UINT64 e) {
-				logerror("Irregular exception happened %08x for protected mode in trap_with_error()_.\n", e);
-			} catch(UINT32 e) {
-				logerror("Irregular exception happened %08x for protected mode in trap_with_error()_.\n", e);
-			}
+//			} catch(UINT64 e) {
+//				logerror("Irregular exception happened %08x for protected mode in trap_with_error()_.\n", e);
+//			} catch(UINT32 e) {
+//				logerror("Irregular exception happened %08x for protected mode in trap_with_error()_.\n", e);
+//			}
 		}
 		else {
-			try {
+//			try {
 				PUSH16(cpustate,error);
-			} catch(UINT64 e) {
-				logerror("Irregular exception happened %08x for 16bit mode in trap_with_error()_.\n", e);
-			} catch(UINT32 e) {
-				logerror("Irregular exception happened %08x for 16bit mode in trap_with_error()_.\n", e);
-			}
+//			} catch(UINT64 e) {
+//				logerror("Irregular exception happened %08x for 16bit mode in trap_with_error()_.\n", e);
+//			} catch(UINT32 e) {
+//				logerror("Irregular exception happened %08x for 16bit mode in trap_with_error()_.\n", e);
+//			}
 		}
 	}
 }
@@ -1219,7 +1258,7 @@ static void i286_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested
 	CHANGE_PC(cpustate,cpustate->eip);
 
 	cpustate->CPL = (cpustate->sreg[SS].flags >> 5) & 3;
-//  printf("286 Task Switch from selector %04x to %04x\n",old_task,selector);
+	logerror("80286 Task Switch from selector %04x to %04x\n",old_task,selector);
 }
 
 static void i386_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested)
@@ -1337,7 +1376,7 @@ static void i386_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested
 	CHANGE_PC(cpustate,cpustate->eip);
 
 	cpustate->CPL = (cpustate->sreg[SS].flags >> 5) & 3;
-//  printf("386 Task Switch from selector %04x to %04x\n",old_task,selector);
+   printf("i386 Task Switch from selector %04x to %04x\n",old_task,selector);
 }
 
 static void i386_check_irq_line(i386_state *cpustate)
@@ -1398,13 +1437,16 @@ static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 of
 	CPL = cpustate->CPL;  // current privilege level
 	DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 	RPL = segment & 0x03;  // requested privilege level
+	
+	//logerror("JMP: protected mode SEG=%04x OFFSET=%08x VALID=%s BASE=%08x LIMIT=%08x FLAGS=%08x INDIRECT=%s OP32=%s V8086=%s\n", seg, off,  (desc.valid) ? "YES" : "NO", desc.base, desc.limit, desc.flags, (indirect != 0) ? "YES" : "NO", (operand32 != 0) ? "YES" : "NO" ,(V8086_MODE) ? "YES" : "NO");
+
 	if((desc.flags & 0x0018) == 0x0018)
 	{
 		/* code segment */
 		if((desc.flags & 0x0004) == 0)
 		{
 			/* non-conforming */
-			if(RPL > CPL)
+			if(RPL < CPL)
 			{
 				logerror("JMP: RPL %i is less than CPL %i\n",RPL,CPL);
 				FAULT(FAULT_GP,segment & 0xfffc)
@@ -1418,7 +1460,7 @@ static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 of
 		else
 		{
 			/* conforming */
-			if(DPL > CPL)
+			if(DPL < CPL)
 			{
 				logerror("JMP: DPL %i is less than CPL %i\n",DPL,CPL);
 				FAULT(FAULT_GP,segment & 0xfffc)
@@ -1668,6 +1710,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 	CPL = cpustate->CPL;  // current privilege level
 	DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 	RPL = selector & 0x03;  // requested privilege level
+	logerror("CALL: protected mode SEG=%04x OFFSET=%08x VALID=%s BASE=%08x LIMIT=%08x FLAGS=%08x INDIRECT=%s OP32=%s V8086=%s\n", seg, off,  (desc.valid) ? "YES" : "NO", desc.base, desc.limit, desc.flags, (indirect != 0) ? "YES" : "NO", (operand32 != 0) ? "YES" : "NO" ,(V8086_MODE) ? "YES" : "NO");
 	if((desc.flags & 0x0018) == 0x18)  // is a code segment
 	{
 		if(desc.flags & 0x0004)
@@ -2391,22 +2434,43 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 		}
 		if(operand32 == 0)
 		{
-			cpustate->eip = newEIP & 0xffff;
 			cpustate->sreg[CS].selector = newCS & 0xffff;
-			newflags &= ~(3<<12);
-			newflags |= (((oldflags>>12)&3)<<12);  // IOPL cannot be changed in V86 mode
+			i386_load_segment_descriptor(cpustate,CS);
+			if((newEIP & 0xffff) > cpustate->sreg[CS].limit) {
+				FAULT(FAULT_GP, 0);
+			}
+			cpustate->eip = newEIP & 0xffff;
+			//newflags &= ~(3<<12);
+			//newflags |= (((oldflags>>12)&3)<<12);  // IOPL cannot be changed in V86 mode
+			newflags &= ~I386_EFLAGS_IOPL;  // IOPL cannot be changed in V86 mode
+			newflags |= (oldflags & I386_EFLAGS_IOPL);
 			set_flags(cpustate,(newflags & 0xffff) | (oldflags & ~0xffff));
-			REG16(SP) += 6;
+			if(STACK_32BIT) {
+				REG32(ESP) += 6;
+			} else {
+				REG16(SP) += 6;
+			}
 		}
 		else
 		{
-			cpustate->eip = newEIP;
 			cpustate->sreg[CS].selector = newCS & 0xffff;
-			newflags &= ~(3<<12);
-			newflags |= 0x20000 | (((oldflags>>12)&3)<<12);  // IOPL and VM cannot be changed in V86 mode
+			i386_load_segment_descriptor(cpustate,CS);
+			if(newEIP > cpustate->sreg[CS].limit) {
+				FAULT(FAULT_GP, 0);
+			}
+			cpustate->eip = newEIP;
+			//newflags &= ~(3<<12);
+			//newflags |= 0x20000 | (((oldflags>>12)&3)<<12);  // IOPL and VM cannot be changed in V86 mode
+			newflags &= ~I386_EFLAGS_IOPL;  // IOPL and VM cannot be changed in V86 mode
+			newflags |= (oldflags & I386_EFLAGS_IOPL) | I386_EFLAGS_VM;
 			set_flags(cpustate,newflags);
-			REG32(ESP) += 12;
+			if(STACK_32BIT) {
+				REG32(ESP) += 12;
+			} else {
+				REG16(SP) += 12;
+			}
 		}
+		
 	}
 	else if(NESTED_TASK)
 	{
@@ -2455,9 +2519,12 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 			if(CPL != 0)
 			{
 				UINT32 oldflags = get_flags(cpustate);
-				newflags = (newflags & ~0x00003000) | (oldflags & 0x00003000);
-				if(CPL > IOPL)
-					newflags = (newflags & ~0x200 ) | (oldflags & 0x200);
+				//newflags = (newflags & ~0x00003000) | (oldflags & 0x00003000);
+				newflags = (newflags & ~I386_EFLAGS_IOPL) | (oldflags & I386_EFLAGS_IOPL);
+				if(CPL > IOPL) {
+					//newflags = (newflags & ~0x200 ) | (oldflags & 0x200);
+					newflags = (newflags & ~I386_EFLAGS_IF ) | (oldflags & I386_EFLAGS_IF);
+				}
 			}
 			set_flags(cpustate,newflags);
 			cpustate->eip = POP32(cpustate) & 0xffff;  // high 16 bits are ignored
@@ -2586,9 +2653,12 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 				if(CPL != 0)
 				{
 					UINT32 oldflags = get_flags(cpustate);
-					newflags = (newflags & ~0x00003000) | (oldflags & 0x00003000);
-					if(CPL > IOPL)
-						newflags = (newflags & ~0x200 ) | (oldflags & 0x200);
+					//newflags = (newflags & ~0x00003000) | (oldflags & 0x00003000);
+					newflags = (newflags & ~I386_EFLAGS_IOPL ) | (oldflags & I386_EFLAGS_IOPL);
+					if(CPL > IOPL) {
+						newflags = (newflags & ~I386_EFLAGS_IF ) | (oldflags & I386_EFLAGS_IF);
+						//newflags = (newflags & ~0x200 ) | (oldflags & 0x200);
+					}
 				}
 
 				if(operand32 == 0)
@@ -2757,9 +2827,12 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 				if(CPL != 0)
 				{
 					UINT32 oldflags = get_flags(cpustate);
-					newflags = (newflags & ~0x00003000) | (oldflags & 0x00003000);
-					if(CPL > IOPL)
-						newflags = (newflags & ~0x200 ) | (oldflags & 0x200);
+					//newflags = (newflags & ~0x00003000) | (oldflags & 0x00003000);
+					newflags = (newflags & ~I386_EFLAGS_IOPL ) | (oldflags & I386_EFLAGS_IOPL);
+					if(CPL > IOPL) {
+						newflags = (newflags & ~I386_EFLAGS_IF ) | (oldflags & I386_EFLAGS_IF);
+						//newflags = (newflags & ~0x200 ) | (oldflags & 0x200);
+					}
 				}
 
 				if(operand32 == 0)
@@ -3070,7 +3143,7 @@ static i386_state *i386_common_init(int tlbsize)
 		i386_MODRM_table[i].reg.b = regs8[(i >> 3) & 0x7];
 		i386_MODRM_table[i].reg.w = regs16[(i >> 3) & 0x7];
 		i386_MODRM_table[i].reg.d = regs32[(i >> 3) & 0x7];
-
+		
 		i386_MODRM_table[i].rm.b = regs8[i & 0x7];
 		i386_MODRM_table[i].rm.w = regs16[i & 0x7];
 		i386_MODRM_table[i].rm.d = regs32[i & 0x7];
@@ -3201,7 +3274,8 @@ static void zero_state(i386_state *cpustate)
 	cpustate->eip = 0;
 	cpustate->pc = 0;
 	cpustate->prev_eip = 0;
-	cpustate->eflags = 0;
+	cpustate->eflags = 2; // From NP2 : ia32_initreg(), interface.c
+	//cpustate->eflags = 0;
 	cpustate->eflags_mask = 0;
 	cpustate->CF = 0;
 	cpustate->DF = 0;
@@ -3231,6 +3305,28 @@ static void zero_state(i386_state *cpustate)
 	memset( &cpustate->idtr, 0, sizeof(cpustate->idtr) );
 	memset( &cpustate->task, 0, sizeof(cpustate->task) );
 	memset( &cpustate->ldtr, 0, sizeof(cpustate->ldtr) );
+
+	// Init CR0
+	// From ia32_initreg() of np2, i386c/ia32/interface.c
+	cpustate->cr[0] = CPU_CRx_CD | CPU_CRx_NW;
+	// ToDo: FPU
+	//cpustate->cr[0] &= ~CPU_CRx_EM;
+	//cpustate->cr[0] |= CPU_CRx_ET;
+	cpustate->cr[0] |= (CPU_CRx_EM | CPU_CRx_NE);
+	cpustate->cr[0] &= (CPU_CRx_MP | CPU_CRx_ET);
+	// Init GDTR/IDTR
+	cpustate->gdtr.base  = 0x0000;
+	cpustate->gdtr.limit = 0xffff;
+	cpustate->idtr.base  = 0x0000;
+	cpustate->idtr.limit = 0xffff;
+	// Init LDTR/TASK(TR)
+	cpustate->ldtr.base  = 0x0000;
+	cpustate->ldtr.limit = 0xffff;
+	cpustate->task.base  = 0x0000;
+	cpustate->task.limit = 0xffff;
+	// INIT DR6
+	cpustate->dr[6] = 0xffff1ff0;
+	
 	cpustate->ext = 0;
 	cpustate->halted = 0;
 	cpustate->busreq = 0;
@@ -3301,12 +3397,12 @@ static CPU_RESET( i386 )
 	cpustate->nmi_latched = false;
 
 	cpustate->a20_mask = ~0;
-
-	cpustate->cr[0] = 0x7fffffe0; // reserved bits set to 1
-	cpustate->eflags = 0;
+	// Move to zero_state().
+	//cpustate->cr[0] = 0x7fffffe0; // reserved bits set to 1
+	//cpustate->eflags = 2; // From NP2 : ia32_initreg(), interface.c
 	cpustate->eflags_mask = 0x00037fd7;
 	cpustate->eip = 0xfff0;
-
+	
 	// [11:8] Family
 	// [ 7:4] Model
 	// [ 3:0] Stepping ID
@@ -3704,7 +3800,7 @@ static CPU_RESET( i486 )
 	cpustate->a20_mask = ~0;
 
 	cpustate->cr[0] = 0x00000010;
-	cpustate->eflags = 0;
+	//cpustate->eflags = 0;
 	cpustate->eflags_mask = 0x00077fd7;
 	cpustate->eip = 0xfff0;
 	cpustate->smm = false;

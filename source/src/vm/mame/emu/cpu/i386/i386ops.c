@@ -719,15 +719,28 @@ static void I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode 0x0f 20
 #define	CPU_DR7_RW(r)		(3 << ((r) * 4 + 16))
 #define	CPU_DR7_LEN(r)		(3 << ((r) * 4 + 16 + 2))
 
+
+#if 0
+#include <execinfo.h>
+#endif
 void i386_change_protect_mode(i386_state *cpustate, int val)
 {
-	//
+//	printf("Change protect mode to %s\n", (val == 0) ? "NO" : "YES");
+#if 0
+	void *np[32]; 														
+	int nptrs =backtrace(np, 32);										
+	char **ss = backtrace_symbols(np, nptrs);							
+	printf("Backtrace: \n");	\
+	for(int __i = 0; __i < nptrs; __i++) {								
+		printf("%s\n", ss[__i]);										
+	}										
+#endif
 	cpustate->sreg[SS].d = 0;	
 	cpustate->CPL = 0;
 	if(val == 0) {
 		cpustate->cr[0] = cpustate->cr[0] & ~0x1;
 	} else {
-		cpustate->cr[0] = cpustate->cr[0] | ~0x1;
+		cpustate->cr[0] = cpustate->cr[0] | 0x1;
 	}		
 }
 
@@ -799,39 +812,43 @@ static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 			CYCLES(cpustate,CYCLES_MOV_REG_CR0);
 //			if (PROTECTED_MODE != BIT(data, 0))
 //				debugger_privilege_hook();
-			if((data & (CPU_CRx_PE | CPU_CRx_PG)) == CPU_CRx_PG) {
+			if((data & (CPU_CRx_PE | CPU_CRx_PG)) == (UINT32)CPU_CRx_PG) {
 				FAULT(FAULT_GP, 0);
 			}
 			if((data & (CPU_CRx_NW | CPU_CRx_CD)) == CPU_CRx_NW) {
 				FAULT(FAULT_GP, 0);
 			}
-			data_bak = cpustate->cr[cr];
+			data_bak = cpustate->cr[0];
+			data &= CPU_CRx_ALL;
+			data &= ~CPU_CRx_WP; // wp not supported on 386
+			//printf("MOV CR0,xxxxh %08x -> %08x \n", data_bak, data);
 			// ToDo: FPU
-			data &= CPU_CRx_ALL; // wp not supported on 386
-			data &= ~CPU_CRx_WP;
-			if(((data_bak ^ data) & (CPU_CRx_PE | CPU_CRx_PG)) != 0) {
+			//data |= CPU_CRx_ET;	/* FPU present */
+			//data &= ~CPU_CRx_EM;
+			data |= CPU_CRx_EM | CPU_CRx_NE;
+			data &= ~(CPU_CRx_MP | CPU_CRx_ET);
+			cpustate->cr[0] = data & ~(CPU_CRx_PE | CPU_CRx_PG);
+			if((data_bak & (CPU_CRx_PE | CPU_CRx_PG)) != (data & (CPU_CRx_PE | CPU_CRx_PG))) {
 				// ToDo: TLB flush (paging)
 				vtlb_flush_dynamic(cpustate->vtlb);
 			}
-			if(((data_bak ^ data) & (CPU_CRx_PE)) != 0) {
+			if((data_bak & CPU_CRx_PE) != (data & CPU_CRx_PE)) {
 				if((data & CPU_CRx_PE) != 0) {
 					i386_change_protect_mode(cpustate, 1);
 				}
 			}
-			if(((data_bak ^ data) & (CPU_CRx_PG)) != 0) {
+			if((data_bak & CPU_CRx_PG) != (data & CPU_CRx_PG)) {
 				if((data & CPU_CRx_PG) != 0) {
-					// ToDo: change pg(1)
+					cpustate->cr[0] |= CPU_CRx_PG;
 				} else {
-					// ToDo: change pg(0)
+					cpustate->cr[0] &= ~CPU_CRx_PG;
 				}
 			}
-			if(((data_bak ^ data) & (CPU_CRx_PE)) != 0) {
+			if((data_bak & CPU_CRx_PE) != (data & CPU_CRx_PE)) {
 				if((data & CPU_CRx_PE) == 0) {
 					i386_change_protect_mode(cpustate, 0);
 				}
 			}
-			cpustate->cr[cr] |= (data & ~CPU_CRx_PE);
-			// ToDo: WP = (cr[0] & CPU_CRx_WP) ? 0x10 : 0;
 			return;
 			break;
 		case 2: CYCLES(cpustate,CYCLES_MOV_REG_CR2); break;
@@ -2535,9 +2552,9 @@ static void I386OP(int_32)(i386_state *cpustate)               // Opcode 0xcd
 {
 	int interrupt = FETCH(cpustate);
 	CYCLES(cpustate,CYCLES_INT);
-#if 0	
+#if 1
 	if(V8086_MODE) {
-		logerror("INT %02xh @V8086(32) mode\n", interrupt);
+		//logerror("INT %02xh @V8086(32) mode\n", interrupt);
 		if((!cpustate->IOP1 || !cpustate->IOP2))
 		{
 			//logerror("IRQ (%08x): Is in Virtual 8086 mode and IOPL != 3.\n",cpustate->pc);
@@ -2547,7 +2564,7 @@ static void I386OP(int_32)(i386_state *cpustate)               // Opcode 0xcd
 			BIOS_INT(interrupt);
 		}
 	} else {
-		logerror("INT %02xh @32bit mode\n", interrupt);
+		//logerror("INT %02xh @32bit mode\n", interrupt);
 		BIOS_INT(interrupt);
 	}
 #endif
