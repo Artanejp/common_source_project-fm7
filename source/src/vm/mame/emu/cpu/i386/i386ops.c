@@ -311,7 +311,7 @@ static void I386OP(cli)(i386_state *cpustate)               // Opcode 0xfa
 	{
 		UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
 		if(cpustate->CPL > IOPL) {
-			logerror("Privilege error: I386OP(cli) CPL=%d IOPL=%d\n", cpustate->CPL, IOPL); 
+			logerror("Privilege error: I386OP(cli) CPL=%d IOPL=%d PC=%08X\n", cpustate->CPL, IOPL, cpustate->pc); 
 			FAULT(FAULT_GP,0);
 		}
 	}
@@ -2751,6 +2751,7 @@ static void I386OP(loadall)(i386_state *cpustate)       // Opcode 0x0f 0x07 (0x0
 		logerror("Call from non-supervisor privilege: I386OP(loadall)"); 
 		FAULT(FAULT_GP,0)
 	}
+	logerror("LOADALL CS=%04X EIP=%08X PC=%08X\n", cpustate->sreg[CS].selector, cpustate->eip, cpustate->pc);
 	UINT32 ea = i386_translate(cpustate, ES, REG32(EDI), 0, 204);
 	cpustate->cr[0] = READ32(cpustate, ea) & 0xfffeffff; // wp not supported on 386
 	set_flags(cpustate, READ32(cpustate, ea + 0x04));

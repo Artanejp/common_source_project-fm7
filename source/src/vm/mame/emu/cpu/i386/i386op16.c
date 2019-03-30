@@ -2016,14 +2016,14 @@ static void I386OP(pushf)(i386_state *cpustate)             // Opcode 0x9c
 		offset = REG32(ESP) - 2;
 	else
 		offset = (REG16(SP) - 2) & 0xffff;
-	//if(!PROTECTED_MODE || !V8086_MODE || ((cpustate->IOP1) && (cpustate->IOP2))) { 
+	if(!PROTECTED_MODE || !V8086_MODE || ((cpustate->IOP1) && (cpustate->IOP2))) { 
 		if(i386_limit_check(cpustate,SS,offset,2) == 0)
 			PUSH16(cpustate, get_flags(cpustate) & 0xffff );
 		else
 			FAULT(FAULT_SS,0)
-	//} else {
-	//	FAULT(FAULT_GP, 0)
-	//}
+	} else {
+		FAULT(FAULT_GP, 0)
+	}
 	CYCLES(cpustate,CYCLES_PUSHF);
 }
 

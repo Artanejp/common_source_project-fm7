@@ -306,14 +306,17 @@ static void set_flags(i386_state *cpustate, UINT32 f )
 	cpustate->VIF = (f & 0x80000) ? 1 : 0;
 	cpustate->VIP = (f & 0x100000) ? 1 : 0;
 	cpustate->ID = (f & 0x200000) ? 1 : 0;
+	if(((cpustate->eflags & 0x3000) != (f & 0x3000)) && ((f & 0x3000) == 0)) logerror("SET IOPL to 0 PC=%08X\n", cpustate->pc);
 	if(PROTECTED_MODE) {
 		cpustate->eflags = f;
 	} else {
 		UINT32 o_e = cpustate->eflags & 0x20000;
 		cpustate->eflags = (f & ~0x00020000) | o_e;
+		//cpustate->eflags = f;
 	}
+#if 0
 	if(old_vm != cpustate->VM) {
-		if(cpustate->VM) {
+		if((cpustate->VM) && (PROTECTED_MODE)){
 			// LOAD ES CS SS DS FS GS
 			i386_load_segment_descriptor(cpustate, ES);
 			i386_load_segment_descriptor(cpustate, CS);
@@ -324,6 +327,7 @@ static void set_flags(i386_state *cpustate, UINT32 f )
 			cpustate->CPL = 3;
 		}
 	}
+#endif
 }
 
 static void sib_byte(i386_state *cpustate,UINT8 mod, UINT32* out_ea, UINT8* out_segment)
@@ -527,7 +531,7 @@ static int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32
 		if((cpustate->sreg[seg].flags & 0x0018) == 0x0010 && cpustate->sreg[seg].flags & 0x0004) // if expand-down data segment
 		{
 			// compare if greater then 0xffffffff when we're passed the access size
-			if((offset <= cpustate->sreg[seg].limit) || ((cpustate->sreg[seg].d)?0:((offset + size - 1) > 0xffff)))
+			if(((offset + size - 1) <= cpustate->sreg[seg].limit) || ((cpustate->sreg[seg].d)?0:((offset + size - 1) > 0xffff)))
 			{
 				logerror("Limit check at 0x%08x failed. Segment %04x, limit %08x, offset %08x (expand-down)\n",cpustate->pc,cpustate->sreg[seg].selector,cpustate->sreg[seg].limit,offset);
 				return 1;
@@ -733,7 +737,7 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 		int type;
 		UINT16 flags;
 		I386_SREG desc;
-		UINT8 CPL = cpustate->CPL, DPL = 0; //, RPL = 0;
+		UINT8 CPL = cpustate->CPL, DPL; //, RPL = 0;
 
 		/* 32-bit */
 		//try {
@@ -994,7 +998,9 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 					cpustate->sreg[DS].selector = 0;
 					cpustate->sreg[ES].selector = 0;
 					//cpustate->VM = 0;
-					//cpustate->eflags &= ~I386_EFLAGS_VM; // Clear VM flag
+					//cpustate->eflags = get_flags(cpustate);
+					cpustate->eflags &= ~I386_EFLAGS_VM; // Clear VM flag
+					set_flags(cpustate, cpustate->eflags);
 					i386_load_segment_descriptor(cpustate,GS);
 					i386_load_segment_descriptor(cpustate,FS);
 					i386_load_segment_descriptor(cpustate,DS);
@@ -1082,9 +1088,9 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 		if(SetRPL != 0)
 			segment = (segment & ~0x03) | cpustate->CPL;
 		cpustate->sreg[CS].selector = segment;
-		//if(segment != o_selector) {
-		//	i386_load_segment_descriptor(cpustate,CS);
-		//}			
+		if(segment != o_selector) {
+			i386_load_segment_descriptor(cpustate,CS);
+		}			
 		cpustate->eip = offset;
 
 		if(type == 0x0e || type == 0x06)
@@ -2373,6 +2379,7 @@ static void i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 op
 			logerror("RETF: SS segment is not present.\n");
 			FAULT(FAULT_GP,newSS & ~0x03)
 		}
+		if(cpustate->CPL != (newCS & 0x03)) logerror("RETF: Change CPL from %d to %d PC=%08X\n", cpustate->CPL, newCS & 0x03, cpustate->pc);
 		cpustate->CPL = newCS & 0x03;
 
 		/* Load new SS:(E)SP */
@@ -2543,6 +2550,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 			i386_load_segment_descriptor(cpustate,FS);
 			i386_load_segment_descriptor(cpustate,GS);
 			i386_load_segment_descriptor(cpustate,SS);
+			logerror("Return to V8086 MODE: old CPL=%d new CPL=3 PC=%08X\n", cpustate->CPL, cpustate->pc);
 			cpustate->CPL = 3;  // Virtual 8086 tasks are always run at CPL 3
 		}
 		else
@@ -2851,6 +2859,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 					REG32(ESP) = newESP;
 					cpustate->sreg[SS].selector = newSS & 0xffff;
 				}
+				if(cpustate->CPL != (newCS & 0x03)) logerror("IRET: Change CPL from %d to %d PC=%08X\n", cpustate->CPL, newCS & 0x03, cpustate->pc);
 				cpustate->CPL = newCS & 0x03;
 				i386_load_segment_descriptor(cpustate,SS);
 
