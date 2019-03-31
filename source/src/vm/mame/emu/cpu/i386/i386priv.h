@@ -11,7 +11,7 @@
 #include "../vtlb.h"
 
 #include <math.h>
-
+#include "./i386ctrlregdefs.h"
 //#define DEBUG_MISSING_OPCODE
 
 #define I386OP(XX)      i386_##XX
@@ -597,9 +597,9 @@ static void pf_throw_sub(i386_state* cpustate, uint32_t address, uint64_t error)
 #endif
 #define PROTECTED_MODE      (cpustate->cr[0] & 0x1)
 #define STACK_32BIT         (cpustate->sreg[SS].d)
-#define V8086_MODE          (cpustate->VM)
+#define V8086_MODE          ((cpustate->VM) && (cpustate->cr[4] & I386_CR4_VME))
 #define NESTED_TASK         (cpustate->NT)
-#define WP                  (cpustate->cr[0] & 0x10000)
+#define WP                  (cpustate->cr[0] & I386_CR0_WP)
 
 #define SetOF_Add32(r,s,d)  (cpustate->OF = (((r) ^ (s)) & ((r) ^ (d)) & 0x80000000) ? 1: 0)
 #define SetOF_Add16(r,s,d)  (cpustate->OF = (((r) ^ (s)) & ((r) ^ (d)) & 0x8000) ? 1 : 0)
@@ -696,7 +696,7 @@ INLINE vtlb_entry get_permissions(UINT32 pte, int wp)
 static int i386_translate_address(i386_state *cpustate, int intention, offs_t *address, vtlb_entry *entry)
 {
 	UINT32 a = *address;
-	UINT32 pdbr = cpustate->cr[3] & 0xfffff000;
+	UINT32 pdbr = cpustate->cr[3] & 0xfffff000;// I386_CR3_PD_MASK
 	UINT32 directory = (a >> 22) & 0x3ff;
 	UINT32 table = (a >> 12) & 0x3ff;
 	vtlb_entry perm = 0;
@@ -705,17 +705,17 @@ static int i386_translate_address(i386_state *cpustate, int intention, offs_t *a
 	bool write = (intention & TRANSLATE_WRITE) ? true : false;
 	bool debug = (intention & TRANSLATE_DEBUG_MASK) ? true : false;
 
-	if(!(cpustate->cr[0] & 0x80000000))
+	if(!(cpustate->cr[0] & I386_CR0_PG)) // paging is disabled
 	{
 		if(entry)
 			*entry = 0x77;
 		return TRUE;
 	}
-
+	// Paging is enabled
 	UINT32 page_dir = cpustate->program->read_data32(pdbr + directory * 4);
 	if(page_dir & 1)
 	{
-		if ((page_dir & 0x80) && (cpustate->cr[4] & 0x10))
+		if ((page_dir & 0x80) && (cpustate->cr[4] & I386_CR4_PSE))
 		{
 			a = (page_dir & 0xffc00000) | (a & 0x003fffff);
 			if(debug)
@@ -785,7 +785,7 @@ static int i386_translate_address(i386_state *cpustate, int intention, offs_t *a
 
 INLINE int translate_address(i386_state *cpustate, int pl, int type, UINT32 *address, UINT32 *error)
 {
-	if(!(cpustate->cr[0] & 0x80000000)) // Some (very few) old OS's won't work with this
+	if(!(cpustate->cr[0] & I386_CR0_PG)) // Some (very few) old OS's won't work with this
 		return TRUE;
 
 	const vtlb_entry *table = vtlb_table(cpustate->vtlb);

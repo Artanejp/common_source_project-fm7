@@ -1644,7 +1644,7 @@ static bool I386OP(pop_seg16)(i386_state *cpustate, int segment)
 	{
 		cpustate->ext = 1;
 		logerror("Illegal address(pop_seg16) EIP=%08x VM8086=%s exception FAULT_SS irq=0 irq_gate=0 trap_level=0 ERROR=0\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO"); 
-		i386_trap_with_error(cpustate,FAULT_SS,0,0,0);
+		i386_trap_with_error(cpustate,FAULT_SS,0,0,0, 0);
 		return false;
 	}
 	CYCLES(cpustate,CYCLES_POP_SREG);
@@ -3217,9 +3217,11 @@ static void I386OP(group0F00_16)(i386_state *cpustate)          // Opcode 0x0f 0
 				memset(&seg, 0, sizeof(seg));
 				seg.selector = cpustate->ldtr.segment;
 				i386_load_protected_mode_segment(cpustate,&seg,NULL);
-				cpustate->ldtr.limit = seg.limit;
-				cpustate->ldtr.base = seg.base;
-				cpustate->ldtr.flags = seg.flags;
+				{
+					cpustate->ldtr.limit = seg.limit;
+					cpustate->ldtr.base = seg.base;
+					cpustate->ldtr.flags = seg.flags;
+				}
 			}
 			else
 			{
@@ -3459,11 +3461,11 @@ static void I386OP(group0F01_16)(i386_state *cpustate)      // Opcode 0x0f 01
 				}
 				//logerror("LMSW16 %02x <- VAL=%04x \n", modrm, b);
 				uint32_t cr0_bak = cpustate->cr[0];
-				cpustate->cr[0] &= ~(CPU_CRx_MP | CPU_CRx_EM | CPU_CRx_TS);
-				cpustate->cr[0] |= (b & (CPU_CRx_PE | CPU_CRx_MP | CPU_CRx_EM | CPU_CRx_TS));
-				if(!(cr0_bak & CPU_CRx_PE) && (b & CPU_CRx_PE)) {
-					i386_change_protect_mode(cpustate, 1);
-				}
+				cpustate->cr[0] &= ~(I386_CR0_MP | I386_CR0_EM | I386_CR0_TS);
+				cpustate->cr[0] |= (b & (I386_CR0_PE | I386_CR0_MP | I386_CR0_EM | I386_CR0_TS));
+				//if(!(cr0_bak & I386_CR0_PE) && (b & I386_CR0_PE)) {
+				//	i386_change_protect_mode(cpustate, 1);
+				//}
 				break;
 			}
 		default:

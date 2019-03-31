@@ -42,15 +42,15 @@ static void cpu_reset_generic(i386_state *cpustate);
 int i386_parity_table[256];
 MODRM_TABLE i386_MODRM_table[256];
 
-static void i386_trap_with_error(i386_state* cpustate, int irq, int irq_gate, int trap_level, UINT32 err);
+static void i386_trap_with_error(i386_state* cpustate, int irq, int irq_gate, int trap_level, UINT32 err, int is_top);
 static void i286_task_switch(i386_state* cpustate, UINT16 selector, UINT8 nested);
 static void i386_task_switch(i386_state* cpustate, UINT16 selector, UINT8 nested);
 static void build_opcode_table(i386_state *cpustate, UINT32 features);
 static void zero_state(i386_state *cpustate);
 static void pentium_smi(i386_state* cpustate);
 
-#define FAULT(fault,error) {logerror("FAULT(%s , %s) PC=%08x V8086=%s PROTECTED=%s\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO"); cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,0,error); return;}
-#define FAULT_EXP(fault,error) {logerror("FAULT_EXP(%s , %s) PC=%08x V8086=%s PROTECTED=%s\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO"); cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,trap_level+1,error); return;}
+#define FAULT(fault,error) {logerror("FAULT(%s , %s) PC=%08x V8086=%s PROTECTED=%s\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO"); cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,0,error, 0); return;}
+#define FAULT_EXP(fault,error) {logerror("FAULT_EXP(%s , %s) PC=%08x V8086=%s PROTECTED=%s\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO"); cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,trap_level+1,error, 0); return;}
 
 static void cpu_reset_generic(i386_state* cpustate)
 {
@@ -316,7 +316,7 @@ static void set_flags(i386_state *cpustate, UINT32 f )
 	}
 #if 0
 	if(old_vm != cpustate->VM) {
-		if((cpustate->VM) && (PROTECTED_MODE)){
+		if((V8086_MODE) && (PROTECTED_MODE)){
 			// LOAD ES CS SS DS FS GS
 			i386_load_segment_descriptor(cpustate, ES);
 			i386_load_segment_descriptor(cpustate, CS);
@@ -574,7 +574,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 		stack.selector = selector;
 		i386_load_protected_mode_segment(cpustate,&stack,NULL);
 		DPL = (stack.flags >> 5) & 0x03;
-
+		logdebug("SReg load: SELECTOR=%04X FLAGS=%04X BASE=%08X LIMIT=%08X VALID=%s %s\n", stack.selector, stack.flags, stack.base, stack.limit, (stack.valid) ? "YES" : "NO", (stack.d == 0) ? "16bit SP" : "32bit ESP");
 		if((selector & ~0x0003) == 0)
 		{
 			logerror("SReg Load (%08x): Selector is null.\n",cpustate->pc);
@@ -584,7 +584,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 		{
 			if((selector & ~0x0007) > cpustate->ldtr.limit)
 			{
-				logerror("SReg Load (%08x): Selector is out of LDT bounds.\n",cpustate->pc);
+				logerror("SReg Load (%08x): Selector is out of LDT bounds.LDTR.limit=%4X : selector=%04X\n",cpustate->pc, cpustate->ldtr.limit, selector);
 				FAULT(FAULT_GP,selector & ~0x03)
 			}
 		}
@@ -592,7 +592,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 		{
 			if((selector & ~0x0007) > cpustate->gdtr.limit)
 			{
-				logerror("SReg Load (%08x): Selector is out of GDT bounds.\n",cpustate->pc);
+				logerror("SReg Load (%08x): Selector is out of bounds. GDT GDTR.limit=%04X : %04X\n",cpustate->pc, cpustate->gdtr.limit, selector);
 				FAULT(FAULT_GP,selector & ~0x03)
 			}
 		}
@@ -638,7 +638,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 		{
 			if((selector & ~0x0007) > cpustate->ldtr.limit)
 			{
-				logerror("SReg Load (%08x): Selector is out of LDT bounds.\n",cpustate->pc);
+				logerror("SReg Load (%08x): Selector is out of LDT bounds.LDTR.limit=%04X : %04X\n",cpustate->pc, cpustate->ldtr.limit, selector);
 				FAULT(FAULT_GP,selector & ~0x03)
 			}
 		}
@@ -755,12 +755,12 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 
 		if(trap_level == 2)
 		{
-			logerror("IRQ: Double fault.\n");
+			logdebug("IRQ: Double fault. IRQ%02Xh GATE=%d PC=%08X\n", irq, irq_gate, cpustate->pc);
 			FAULT_EXP(FAULT_DF,0);
 		}
 		if(trap_level >= 3)
 		{
-			logerror("IRQ: Triple fault. CPU reset.\n");
+			logdebug("IRQ: Triple fault. CPU reset. IRQ%02Xh GATE=%d PC=%08X\n", irq, irq_gate, cpustate->pc);
 			//CPU_RESET_CALL(CPU_MODEL);
 			cpu_reset_generic(cpustate);
 			cpustate->shutdown = 1;
@@ -967,6 +967,8 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 					FAULT_EXP(FAULT_GP,0)
 				}
 				/* change CPL before accessing the stack */
+				UINT32 _oldCPL = cpustate->CPL;
+				if(_oldCPL != DPL) logerror("TRAP/INT GATE: Privilege changed from %d to %d at %08X, INT# %d, GATE %d TYPE %d\n", _oldCPL, DPL, cpustate->pc, irq, irq_gate, type);
 				cpustate->CPL = DPL;
 				/* check for page fault at new stack TODO: check if stack frame crosses page boundary */
 				WRITE_TEST(cpustate, stack.base+newESP-1);
@@ -1081,8 +1083,17 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 		catch(UINT64 e)
 		{
 			REG32(ESP) = tempSP;
-			logerror("THROWN at i386_trap() IRQ=%02x EIP=%08x V8086_MODE=%s line %d\n", irq, cpustate->eip, (V8086_MODE) ? "Yes" : "No", __LINE__);
+			logerror("THROWN EXCEPTION %08X at i386_trap() IRQ=%02x EIP=%08x V8086_MODE=%s line %d\n", e, irq, cpustate->eip, (V8086_MODE) ? "Yes" : "No", __LINE__);
 			throw e;
+		} catch(UINT32 e)
+		{
+			REG32(ESP) = tempSP;
+			logerror("THROWN EXCEPTION %08X at i386_trap() IRQ=%02x EIP=%08x V8086_MODE=%s line %d\n", e, irq, cpustate->eip, (V8086_MODE) ? "Yes" : "No", __LINE__);
+			throw (UINT64)e;
+		} catch(...) {
+			REG32(ESP) = tempSP;
+			logerror("THROWN EXCEPTION (UNKNOWN) at i386_trap() IRQ=%02x EIP=%08x V8086_MODE=%s line %d\n", irq, cpustate->eip, (V8086_MODE) ? "Yes" : "No", __LINE__);
+			throw 0; // Unknown
 		}
 		UINT16 o_selector = cpustate->sreg[CS].selector;
 		if(SetRPL != 0)
@@ -1107,17 +1118,22 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 
 }
 
-static void i386_trap_with_error(i386_state *cpustate,int irq, int irq_gate, int trap_level, UINT32 error)
+static void i386_trap_with_error(i386_state *cpustate,int irq, int irq_gate, int trap_level, UINT32 error, int is_top)
 {
-//	try {
+	// buffering direct call from trap.
+	if(is_top != 0) {
+		try {
+			i386_trap(cpustate,irq,irq_gate,trap_level);
+		} catch(UINT64 e) {
+			logerror("Irregular exception happened %08x for 16bit.\n", e);
+			return;
+		} catch(UINT32 e) {
+			logerror("Irregular exception happened %08x for 16bit.\n", e);
+			return;
+		}
+	} else {
 		i386_trap(cpustate,irq,irq_gate,trap_level);
-//	} catch(UINT64 e) {
-//		logerror("Irregular exception happened %08x for 16bit.\n", e);
-//		return;
-//	} catch(UINT32 e) {
-//		logerror("Irregular exception happened %08x for 16bit.\n", e);
-//		return;
-//	}
+	}		
 		
 	if(irq == FAULT_DF || irq == FAULT_TS || irq == FAULT_NP || irq == FAULT_SS || irq == FAULT_GP || irq == FAULT_GP || irq == FAULT_AC)
 	{
@@ -1213,7 +1229,7 @@ static void i286_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested
 	cpustate->task.flags = seg.flags;
 
 	/* Set TS bit in CR0 */
-	cpustate->cr[0] |= 0x08;
+	cpustate->cr[0] |= I386_CR0_TS;
 
 	/* Load incoming task state from the new task's TSS */
 	tss = cpustate->task.base;
@@ -1261,9 +1277,14 @@ static void i286_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested
 		WRITE16(cpustate,tss+0,old_task);
 		cpustate->NT = 1;
 	}
-	CHANGE_PC(cpustate,cpustate->eip);
+	UINT32 _oldCPL = cpustate->CPL;
+	UINT32 _oldPC = cpustate->pc;
 
+	CHANGE_PC(cpustate,cpustate->eip);
 	cpustate->CPL = (cpustate->sreg[SS].flags >> 5) & 3;
+	UINT32 _newCPL = cpustate->CPL;
+	if(_oldCPL != _newCPL) logerror("I286 TASK SWITCH: Privilege changed from %d to %d at ADDR %08X to %08X\n", _oldCPL, _newCPL, _oldPC, cpustate->pc);
+	
 	logerror("80286 Task Switch from selector %04x to %04x\n",old_task,selector);
 }
 
@@ -1324,7 +1345,7 @@ static void i386_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested
 	cpustate->task.flags = seg.flags;
 
 	/* Set TS bit in CR0 */
-	cpustate->cr[0] |= 0x08;
+	cpustate->cr[0] |= I386_CR0_TS;
 
 	/* Load incoming task state from the new task's TSS */
 	tss = cpustate->task.base;
@@ -1379,9 +1400,14 @@ static void i386_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested
 		WRITE8(cpustate,cpustate->gdtr.base + (selector & ~0x0007) + 5,ar_byte | 0x02);
 	}
 
+	UINT32 _oldCPL = cpustate->CPL;
+	UINT32 _oldPC = cpustate->pc;
+
 	CHANGE_PC(cpustate,cpustate->eip);
 
 	cpustate->CPL = (cpustate->sreg[SS].flags >> 5) & 3;
+	UINT32 _newCPL = cpustate->CPL;
+	if(_oldCPL != _newCPL) logerror("I80386 TASK SWITCH: Privilege changed from %d to %d at ADDR %08X to %08X\n", _oldCPL, _newCPL, _oldPC, cpustate->pc);
    printf("i386 Task Switch from selector %04x to %04x\n",old_task,selector);
 }
 
@@ -1397,7 +1423,16 @@ static void i386_check_irq_line(i386_state *cpustate)
 	if ( (cpustate->irq_state) && cpustate->IF )
 	{
 		cpustate->cycles -= 2;
-		i386_trap(cpustate, cpustate->pic->get_intr_ack(), 1, 0);
+		int irqnum = cpustate->pic->get_intr_ack();
+		try {
+			i386_trap(cpustate, irqnum, 1, 0);
+		} catch(UINT64 e) {
+			logdebug("EXCEPTION %08X VIA INTERRUPT/TRAP HANDLING IRQ=%02Xh(%d) ADDR=%08X\n", e, irqnum, irqnum, cpustate->pc);
+		} catch(UINT32 e) {
+			logdebug("EXCEPTION %08X VIA INTERRUPT/TRAP HANDLING IRQ=%02Xh(%d) ADDR=%08X\n", e, irqnum, irqnum, cpustate->pc);
+		} catch (...) {
+			logdebug("EXCEPTION (UNKNOWN) VIA INTERRUPT/TRAP HANDLING IRQ=%02Xh(%d) ADDR=%08X\n", irqnum, irqnum, cpustate->pc);
+		}			
 		cpustate->irq_state = 0;
 	}
 }
@@ -1962,7 +1997,10 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 					selector = gate.selector;
 					offset = gate.offset;
 
+					UINT32 _oldCPL = cpustate->CPL;
 					cpustate->CPL = (stack.flags >> 5) & 0x03;
+					UINT32 _newCPL = cpustate->CPL;
+					if(_oldCPL != _newCPL) logerror("Privilege changed by protected mode call from %d to %d ADDR %08X\n", _oldCPL, _newCPL, cpustate->pc);
 					/* check for page fault at new stack */
 					WRITE_TEST(cpustate, stack.base+newESP-1);
 					/* switch to new stack */
@@ -2128,9 +2166,18 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 	catch(UINT64 e)
 	{
 		REG32(ESP) = tempSP;
-		logerror("THROWN at I386_OP(i386_protected_mode_call)() line %d\n",  __LINE__);
+		logerror("THROWN %08X at I386_OP(i386_protected_mode_call)() at %08X\n",  e, cpustate->pc);
 		throw e;
-	}
+	} catch(UINT32 e)
+	{
+		REG32(ESP) = tempSP;
+		logerror("THROWN %08X at I386_OP(i386_protected_mode_call)() at %08X\n", e, cpustate->pc);
+		throw (UINT64)e;
+	} catch(...) {
+		REG32(ESP) = tempSP;
+		logerror("THROWN (UNKNOWN) at I386_OP(i386_protected_mode_call)() at %08X\n",  cpustate->pc);
+		throw (UINT64)0;
+	}		
 
 	CHANGE_PC(cpustate,cpustate->eip);
 }
@@ -2550,7 +2597,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 			i386_load_segment_descriptor(cpustate,FS);
 			i386_load_segment_descriptor(cpustate,GS);
 			i386_load_segment_descriptor(cpustate,SS);
-			logerror("Return to V8086 MODE: old CPL=%d new CPL=3 PC=%08X\n", cpustate->CPL, cpustate->pc);
+			logerror("IRET: Return to V8086 MODE: old CPL=%d new CPL=3 PC=%08X\n", cpustate->CPL, cpustate->pc);
 			cpustate->CPL = 3;  // Virtual 8086 tasks are always run at CPL 3
 		}
 		else
@@ -3317,12 +3364,12 @@ static void zero_state(i386_state *cpustate)
 
 	// Init CR0
 	// From ia32_initreg() of np2, i386c/ia32/interface.c
-	cpustate->cr[0] = CPU_CRx_CD | CPU_CRx_NW;
+	cpustate->cr[0] = I386_CR0_CD | I386_CR0_NW;
 	// ToDo: FPU
-	//cpustate->cr[0] &= ~CPU_CRx_EM;
-	//cpustate->cr[0] |= CPU_CRx_ET;
-	cpustate->cr[0] |= (CPU_CRx_EM | CPU_CRx_NE);
-	cpustate->cr[0] &= (CPU_CRx_MP | CPU_CRx_ET);
+	//cpustate->cr[0] &= ~I386_CR0_EM;
+	//cpustate->cr[0] |= I386_CR0_ET;
+	cpustate->cr[0] |= (I386_CR0_EM | I386_CR0_NE);
+	cpustate->cr[0] &= ~(I386_CR0_MP | I386_CR0_ET);
 	// Init GDTR/IDTR
 	cpustate->gdtr.base  = 0x0000;
 	cpustate->gdtr.limit = 0xffff;
@@ -3407,7 +3454,7 @@ static CPU_RESET( i386 )
 
 	cpustate->a20_mask = ~0;
 	// Move to zero_state().
-	//cpustate->cr[0] = 0x7fffffe0; // reserved bits set to 1
+	cpustate->cr[0] = 0x7fffffe0; // reserved bits set to 1
 	//cpustate->eflags = 2; // From NP2 : ia32_initreg(), interface.c
 	cpustate->eflags_mask = 0x00037fd7;
 	cpustate->eip = 0xfff0;
@@ -3420,6 +3467,7 @@ static CPU_RESET( i386 )
 	REG32(EDX) = (3 << 8) | (0 << 4) | (8);
 
 	cpustate->CPL = 0;
+	logerror("RESET CPL to 0 by resetting\n", cpustate->CPL);
 
 	CHANGE_PC(cpustate,cpustate->eip);
 }
@@ -3433,7 +3481,7 @@ static void pentium_smi(i386_state *cpustate)
 	if(cpustate->smm)
 		return;
 
-	cpustate->cr[0] &= ~(0x8000000d);
+	cpustate->cr[0] &= ~(0x8000000d);// !(PG | TS | EM | PE)
 	set_flags(cpustate, 2);
 //	if(!cpustate->smiact.isnull())
 //		cpustate->smiact(true);
@@ -3530,9 +3578,19 @@ static void i386_set_irq_line(i386_state *cpustate,int irqline, int state)
 			cpustate->nmi_latched = true;
 			return;
 		}
-		if ( state )
-			i386_trap(cpustate,2, 1, 0);
+		if ( state ) {
+			try {
+				i386_trap(cpustate,2, 1, 0);
+			} catch(UINT64 e) {
+				logdebug("EXCEPTION %08X VIA making INT02h at i386_set_irq_line() ADDR=%08X\n", e, cpustate->pc);
+			} catch(UINT32 e) {
+				logdebug("EXCEPTION %08X VIA making INT02h at i386_set_irq_line() ADDR=%08X\n", e, cpustate->pc);
+			} catch(...) {
+				logdebug("EXCEPTION (UNKNOWN) VIA making INT02h at i386_set_irq_line() ADDR=%08X\n", cpustate->pc);
+			}				
+		}
 	}
+			
 	else
 	{
 		cpustate->irq_state = state;
@@ -3671,8 +3729,18 @@ static CPU_EXECUTE( i386 )
 			{
 				cpustate->ext = 1;
 				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
-				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32);
+				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32, 1);
+			} catch(UINT32 e)
+			{
+				cpustate->ext = 1;
+				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
+				i386_trap_with_error(cpustate,e&0xffffffff,0,0,0, 1);
+			} catch(...) {
+				cpustate->ext = 1;
+				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=UNKNOWN\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO"); 
+				i386_trap_with_error(cpustate,0,0,0,0, 1);
 			}
+			
 //#ifdef SINGLE_MODE_DMA
 			if(cpustate->dma != NULL) {
 				cpustate->dma->do_dma();
@@ -3735,7 +3803,19 @@ static CPU_EXECUTE( i386 )
 			{
 				cpustate->ext = 1;
 				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
-				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32);
+				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32, 1);
+			}
+			catch(UINT32 e)
+			{
+				cpustate->ext = 1;
+				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, 0); 
+				i386_trap_with_error(cpustate,e,0,0,0, 1);
+			}
+			catch(...)
+			{
+				cpustate->ext = 1;
+				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", 0, 0); 
+				i386_trap_with_error(cpustate,0,0,0,0, 1);
 			}
 //#ifdef SINGLE_MODE_DMA
 			if(cpustate->dma != NULL) {
@@ -3808,7 +3888,7 @@ static CPU_RESET( i486 )
 
 	cpustate->a20_mask = ~0;
 
-	cpustate->cr[0] = 0x00000010;
+	cpustate->cr[0] = 0x00000010; // ET
 	//cpustate->eflags = 0;
 	cpustate->eflags_mask = 0x00077fd7;
 	cpustate->eip = 0xfff0;

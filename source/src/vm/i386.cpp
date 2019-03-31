@@ -63,6 +63,25 @@
 #define U64(v) UINT64(v)
 
 #define fatalerror(...) exit(1)
+
+#define logdebug(...)						\
+	{ \
+	  if(cpustate != NULL) {									  \
+		  if(cpustate->parent_device != NULL) {							\
+			  cpustate->parent_device->out_debug_log(__VA_ARGS__); \
+		  }																\
+	  }																	\
+	}
+
+#define loginfo(...)						\
+	{ \
+	  if(cpustate != NULL) {									  \
+		  if(cpustate->parent_device != NULL) {							\
+			  cpustate->parent_device->out_debug_log(__VA_ARGS__); \
+		  }																\
+	  }																	\
+	}
+
 #if 0
 #define logerror(...)
 #else

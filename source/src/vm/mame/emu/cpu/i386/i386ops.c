@@ -652,52 +652,21 @@ static void I386OP(mov_rm8_i8)(i386_state *cpustate)        // Opcode 0xc6
 		CYCLES(cpustate,CYCLES_MOV_IMM_MEM);
 	}
 }
-
-// From np2,, ia32/system_inst.c
-// Descriptions of CRx:
-/*
- * 0 = PE (protect enable)
- * 1 = MP (monitor coprocesser)
- * 2 = EM (emulation)
- * 3 = TS (task switch)
- * 4 = ET (extend type, FPU present = 1)
- * 5 = NE (numeric error)
- * 16 = WP (write protect)
- * 18 = AM (alignment mask)
- * 29 = NW (not write-through)
- * 30 = CD (cache diable)
- * 31 = PG (pageing)
- */
-#define CPU_CRx_PE (1 << 0)
-#define CPU_CRx_MP (1 << 1)
-#define CPU_CRx_EM (1 << 2)
-#define CPU_CRx_TS (1 << 3)
-#define CPU_CRx_ET (1 << 4)
-#define CPU_CRx_NE (1 << 5)
-#define CPU_CRx_WP (1 << 16)
-#define CPU_CRx_AM (1 << 18)
-#define CPU_CRx_NW (1 << 29)
-#define CPU_CRx_CD (1 << 30)
-#define CPU_CRx_PG (1 << 31)
-#define	CPU_CRx_ALL		(CPU_CRx_PE|CPU_CRx_MP|CPU_CRx_EM|CPU_CRx_TS|CPU_CRx_ET|CPU_CRx_NE|CPU_CRx_WP|CPU_CRx_AM|CPU_CRx_NW|CPU_CRx_CD|CPU_CRx_PG)
-
-#define	CPU_CR3_PD_MASK		0xfffff000
-#define	CPU_CR3_PWT		(1 << 3)
-#define	CPU_CR3_PCD		(1 << 4)
-#define	CPU_CR3_MASK		(CPU_CR3_PD_MASK|CPU_CR3_PWT|CPU_CR3_PCD)
+//#include "./i386ctrlregdefs.h"
 
 static void I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode 0x0f 20
 {
-	UINT8 modrm = FETCH(cpustate);
-	if(modrm < 0xc0) {
-		FAULT(FAULT_UD, 0);
-		return;
-	}
-	if((PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)))) {
+	//if(modrm < 0xc0) {
+	//	FAULT(FAULT_UD, 0);
+	//	return;
+	//}
+	if((PROTECTED_MODE && (/*(V8086_MODE) || */(cpustate->CPL != 0)))) {
 		logerror("Call from non-supervisor privilege: I386OP(mov_r32_cr)"); 
 		FAULT(FAULT_GP, 0);
 	}
+	UINT8 modrm = FETCH(cpustate);
 	UINT8 cr = (modrm >> 3) & 0x7;
+	logdebug("MOV r32 CR%d VAL=(%08X)\n", cr, cpustate->cr[cr]);
 	if(cr < 5) {
 		STORE_RM32(modrm, cpustate->cr[cr]);
 		CYCLES(cpustate,CYCLES_MOV_CR_REG);
@@ -706,18 +675,6 @@ static void I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode 0x0f 20
 	}
 }
 
-#define	CPU_DR6_B(r)		(1 << (r))
-#define	CPU_DR6_BD		(1 << 13)
-#define	CPU_DR6_BS		(1 << 14)
-#define	CPU_DR6_BT		(1 << 15)
-
-#define	CPU_DR7_L(r)		(1 << ((r) * 2))
-#define	CPU_DR7_G(r)		(1 << ((r) * 2 + 1))
-#define	CPU_DR7_LE		(1 << 8)
-#define	CPU_DR7_GE		(1 << 9)
-#define	CPU_DR7_GD		(1 << 13)
-#define	CPU_DR7_RW(r)		(3 << ((r) * 4 + 16))
-#define	CPU_DR7_LEN(r)		(3 << ((r) * 4 + 16 + 2))
 
 
 #if 0
@@ -725,14 +682,14 @@ static void I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode 0x0f 20
 #endif
 void i386_change_protect_mode(i386_state *cpustate, int val)
 {
-//	printf("Change protect mode to %s\n", (val == 0) ? "NO" : "YES");
+//	logdebug("Change protect mode to %s\n", (val == 0) ? "NO" : "YES");
 #if 0
 	void *np[32]; 														
 	int nptrs =backtrace(np, 32);										
 	char **ss = backtrace_symbols(np, nptrs);							
-	printf("Backtrace: \n");	\
+	logdebug("Backtrace: \n");	\
 	for(int __i = 0; __i < nptrs; __i++) {								
-		printf("%s\n", ss[__i]);										
+		logdebug("%s\n", ss[__i]);										
 	}										
 #endif
 	cpustate->sreg[SS].d = 0;	
@@ -751,21 +708,22 @@ void i386_change_paging_mode(i386_state *cpustate, int val)
 
 static void I386OP(mov_r32_dr)(i386_state *cpustate)        // Opcode 0x0f 21
 {
-	UINT8 modrm = FETCH(cpustate);
-	if(modrm < 0xc0) {
-		FAULT(FAULT_UD, 0);
-		return;
-	}
-	if((PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)))) {
+	//if(modrm < 0xc0) {
+	//	FAULT(FAULT_UD, 0);
+	//	return;
+	//}
+	if((PROTECTED_MODE && (/*(V8086_MODE) || */(cpustate->CPL != 0)))) {
 		logerror("Call from non-supervisor privilege: I386OP(mov_r32_dr)"); 
 		FAULT(FAULT_GP, 0);
 	}
-	if((cpustate->dr[7] & CPU_DR7_GD) != 0) {
-		cpustate->dr[6] |= CPU_DR6_BD;
-		cpustate->dr[7] &= ~CPU_DR7_GD;
+	if((cpustate->dr[7] & I386_DR7_GD) != 0) {
+		cpustate->dr[6] |= I386_DR6_BD;
+		cpustate->dr[7] &= ~I386_DR7_GD;
 		FAULT(FAULT_DB, 0);
 	}
+	UINT8 modrm = FETCH(cpustate);
 	UINT8 dr = (modrm >> 3) & 0x7;
+	logdebug("MOV r32 DR%d VAL=(%08X)\n", dr, cpustate->dr[dr]);
 
 	switch(dr)
 	{
@@ -786,6 +744,7 @@ static void I386OP(mov_r32_dr)(i386_state *cpustate)        // Opcode 0x0f 21
 			CYCLES(cpustate,CYCLES_MOV_REG_DR6_7);
 			break;
 		default:
+			STORE_RM32(modrm, cpustate->dr[dr]);
 			logerror("i386: mov_r32_dr illegal index \n", dr);
 			return;
 			break;
@@ -794,61 +753,67 @@ static void I386OP(mov_r32_dr)(i386_state *cpustate)        // Opcode 0x0f 21
 
 static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 {
-	UINT8 modrm = FETCH(cpustate);
-	UINT8 cr = (modrm >> 3) & 0x7;
-	if(modrm < 0xc0) {
-		FAULT(FAULT_UD, 0);
-		return;
-	}
-	if((PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)))) {
+	//if(modrm < 0xc0) {
+	//	FAULT(FAULT_UD, 0);
+	//	return;
+	//}
+	if((PROTECTED_MODE && (/*(V8086_MODE) || */(cpustate->CPL != 0)))) {
 		logerror("Call from non-supervisor privilege: I386OP(mov_cr_r32)"); 
 		FAULT(FAULT_GP, 0);
 	}
+	UINT8 modrm = FETCH(cpustate);
+	UINT8 cr = (modrm >> 3) & 0x7;
 	UINT32 data = LOAD_RM32(modrm);
 	UINT32 data_bak;
+	logdebug("MOV CR%d r32 VAL=(%08X)\n", cr, data);
 	switch(cr)
 	{
 		case 0:
 			CYCLES(cpustate,CYCLES_MOV_REG_CR0);
 //			if (PROTECTED_MODE != BIT(data, 0))
 //				debugger_privilege_hook();
-			if((data & (CPU_CRx_PE | CPU_CRx_PG)) == (UINT32)CPU_CRx_PG) {
+			if((data & (I386_CR0_PE | I386_CR0_PG)) == (UINT32)I386_CR0_PG) {
 				FAULT(FAULT_GP, 0);
 			}
-			if((data & (CPU_CRx_NW | CPU_CRx_CD)) == CPU_CRx_NW) {
+			if((data & (I386_CR0_NW | I386_CR0_CD)) == I386_CR0_NW) {
 				FAULT(FAULT_GP, 0);
 			}
+#if 0
 			data_bak = cpustate->cr[0];
-			data &= CPU_CRx_ALL;
-			data &= ~CPU_CRx_WP; // wp not supported on 386
-			//printf("MOV CR0,xxxxh %08x -> %08x \n", data_bak, data);
+			data &= I386_CR0_ALL;
+			data &= ~I386_CR0_WP; // wp not supported on 386
+			//logdebug("MOV CR0,xxxxh %08x -> %08x \n", data_bak, data);
 			// ToDo: FPU
-			//data |= CPU_CRx_ET;	/* FPU present */
-			//data &= ~CPU_CRx_EM;
-			data |= CPU_CRx_EM | CPU_CRx_NE;
-			data &= ~(CPU_CRx_MP | CPU_CRx_ET);
-			cpustate->cr[0] = data & ~(CPU_CRx_PE | CPU_CRx_PG);
-			if((data_bak & (CPU_CRx_PE | CPU_CRx_PG)) != (data & (CPU_CRx_PE | CPU_CRx_PG))) {
+			//data |= I386_CR0_ET;	/* FPU present */
+			//data &= ~I386_CR0_EM;
+			data |= I386_CR0_EM | I386_CR0_NE;
+			data &= ~(I386_CR0_MP | I386_CR0_ET);
+			cpustate->cr[0] = data & ~(I386_CR0_PE | I386_CR0_PG);
+#endif			
+			cpustate->cr[0] = data;
+#if 0
+			if((data_bak & (I386_CR0_PE | I386_CR0_PG)) != (data & (I386_CR0_PE | I386_CR0_PG))) {
 				// ToDo: TLB flush (paging)
 				vtlb_flush_dynamic(cpustate->vtlb);
 			}
-			if((data_bak & CPU_CRx_PE) != (data & CPU_CRx_PE)) {
-				if((data & CPU_CRx_PE) != 0) {
+			if((data_bak & I386_CR0_PE) != (data & I386_CR0_PE)) {
+				if((data & I386_CR0_PE) != 0) {
 					i386_change_protect_mode(cpustate, 1);
 				}
 			}
-			if((data_bak & CPU_CRx_PG) != (data & CPU_CRx_PG)) {
-				if((data & CPU_CRx_PG) != 0) {
-					cpustate->cr[0] |= CPU_CRx_PG;
+			if((data_bak & I386_CR0_PG) != (data & I386_CR0_PG)) {
+				if((data & I386_CR0_PG) != 0) {
+					cpustate->cr[0] |= I386_CR0_PG;
 				} else {
-					cpustate->cr[0] &= ~CPU_CRx_PG;
+					cpustate->cr[0] &= ~I386_CR0_PG;
 				}
 			}
-			if((data_bak & CPU_CRx_PE) != (data & CPU_CRx_PE)) {
-				if((data & CPU_CRx_PE) == 0) {
+			if((data_bak & I386_CR0_PE) != (data & I386_CR0_PE)) {
+				if((data & I386_CR0_PE) == 0) {
 					i386_change_protect_mode(cpustate, 0);
 				}
 			}
+#endif
 			return;
 			break;
 		case 2: CYCLES(cpustate,CYCLES_MOV_REG_CR2); break;
@@ -872,14 +837,14 @@ static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 			 */
 			data_bak = 0x00000000; // ToDo: PGE
 			if((data & ~data_bak) != 0) {
-				if((data & 0xfffffc00) != 0) {
+				if((data & I386_CR4_SET_MASK1) != 0) {
 					FAULT(FAULT_GP, 0);
 				}
 				logerror("mov cr4 r32 : set 0x%08x\n", data);
 			}
 			data_bak = cpustate->cr[4];
-			cpustate->cr[cr] = data;
-			if(((data ^ data_bak) & ((1 << 4) | (1 << 7) | (1 << 4))) != 0) { // PSE | PGE | PAE
+			cpustate->cr[4] = data;
+			if(((data ^ data_bak) & (I386_CR4_PSE | I386_CR4_PGE | I386_CR4_PAE)) != 0) { // PSE | PGE | PAE
 				vtlb_flush_dynamic(cpustate->vtlb);
 			}
 			CYCLES(cpustate,1);
@@ -894,21 +859,23 @@ static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 
 static void I386OP(mov_dr_r32)(i386_state *cpustate)        // Opcode 0x0f 23
 {
-	UINT8 modrm = FETCH(cpustate);
-	if(modrm < 0xc0) {
-		FAULT(FAULT_UD, 0);
-		return;
-	}
+	//if(modrm < 0xc0) {
+	//	FAULT(FAULT_UD, 0);
+	//	return;
+	//}
 	if((PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)))) {
 		logerror("Call from non-supervisor privilege: I386OP(mov_dr_r32)"); 
 		FAULT(FAULT_GP, 0);
 	}
-	if ((cpustate->dr[7] & CPU_DR7_GD) != 0){
-		cpustate->dr[6] |= CPU_DR6_BD;
-		cpustate->dr[7] &= ~CPU_DR7_GD;
+	if ((cpustate->dr[7] & I386_DR7_GD) != 0){
+		cpustate->dr[6] |= I386_DR6_BD;
+		cpustate->dr[7] &= ~I386_DR7_GD;
 		FAULT(FAULT_DB, 0);
 	}
+	UINT8 modrm = FETCH(cpustate);
 	UINT8 dr = (modrm >> 3) & 0x7;
+	UINT32 data =  LOAD_RM32(modrm);
+	logdebug("MOV DR%d r32 (VAL=%08X)\n", dr, data);
 
 	switch(dr)
 	{
@@ -916,19 +883,20 @@ static void I386OP(mov_dr_r32)(i386_state *cpustate)        // Opcode 0x0f 23
 		case 1:
 		case 2:
 		case 3:
-			cpustate->dr[dr] = LOAD_RM32(modrm);
+			cpustate->dr[dr] = data;
 			CYCLES(cpustate,CYCLES_MOV_DR0_3_REG);
 			break;
 		case 6:
-			cpustate->dr[dr] = LOAD_RM32(modrm);
+			cpustate->dr[dr] =data;
 			CYCLES(cpustate,CYCLES_MOV_DR6_7_REG);
 			break;
 		case 7:
-			cpustate->dr[dr] = LOAD_RM32(modrm);
+			cpustate->dr[dr] = data;
 			cpustate->reg.d[EBP] = 0;
 			CYCLES(cpustate,CYCLES_MOV_DR6_7_REG);
 			break;
 		default:
+			cpustate->dr[dr] = data;
 			logerror("i386: mov_dr_r32 DR%d!\n", dr);
 			return;
 	}
