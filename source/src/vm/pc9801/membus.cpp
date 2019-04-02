@@ -369,12 +369,11 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 		// ToDo: Cache flush for i486 or later.
 #if defined(SUPPORT_32BIT_ADDRESS)
 		is_shadow_bank_80000h = ((data & 0xfe) == 0x08) ? true : false;
+#endif
 		//if(!is_shadow_bank_80000h) {
 			window_80000h = (data & 0xfe) << 16;
 		//}
-#else
 		window_80000h = (data & 0xfe) << 16;
-#endif
 		break;
 #if defined(SUPPORT_HIRESO)
 	case 0x0093:
@@ -387,14 +386,8 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 		}
 #endif
 		// http://www.webtech.co.jp/company/doc/undocumented_mem/io_mem.txt
-#if defined(SUPPORT_32BIT_ADDRESS)
-		is_shadow_bank_a0000h = ((data & 0xfe) == 0x0a) ? true : false;
-		//if(!is_shadow_bank_a0000h) {
 			window_a0000h = (data & 0xfe) << 16;
 		//}
-#else
-		window_a0000h = (data & 0xfe) << 16;
-#endif
 		break;
 #endif
 	case 0x0463:
@@ -636,13 +629,19 @@ void MEMBUS::update_bios()
 	//	#endif
 	//}
 	#if defined(SUPPORT_32BIT_ADDRESS)
+	#if !defined(SUPPORT_HIRESO)
+	unset_memory_rw(0xa0000, 0xbffff);
+	set_memory_mapped_io_rw(0xa0000, 0xbffff, d_display);
+	#else
 	unset_memory_rw(0xc0000, 0xe7fff);
+	#endif
 	if(shadow_ram_selected) {
 		set_memory_rw(0xc0000, 0xe7fff, shadow_ram);
 	} else {
 		#if defined(SUPPORT_HIRESO)
 		set_memory_mapped_io_rw(0xe0000, 0xe4fff, d_display);
 		#else		
+		unset_memory_rw(0xc0000, 0xe7fff);
 		#if defined(SUPPORT_16_COLORS)
 		set_memory_mapped_io_rw(0xe0000, 0xe7fff, d_display);
 		#endif

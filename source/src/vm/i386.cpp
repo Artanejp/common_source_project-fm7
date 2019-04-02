@@ -237,7 +237,7 @@ typedef UINT32	offs_t;
 			sregs[0] = cpustate->sreg[ES].selector; sregs[1] = cpustate->sreg[CS].selector; \
 			sregs[2] = cpustate->sreg[SS].selector; sregs[3] = cpustate->sreg[DS].selector; \
 			int32_t ZeroFlag = cpustate->ZF, CarryFlag = cpustate->CF;	\
-			if(cpustate->bios->bios_int_i86(num, regs, sregs, &ZeroFlag, &CarryFlag, &(cpustate->cycles), &(cpustate->total_cycles))) { \
+if(cpustate->bios->bios_int_i86(num, regs, sregs, &ZeroFlag, &CarryFlag, &(cpustate->cycles), &(cpustate->total_cycles))) { \
 				REG16(AX) = regs[0]; REG16(CX) = regs[1]; REG16(DX) = regs[2]; REG16(BX) = regs[3]; \
 				REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; \
 				cpustate->ZF = (UINT8)ZeroFlag; cpustate->CF = (UINT8)CarryFlag; \
@@ -455,6 +455,12 @@ void I386::write_debug_data8(uint32_t addr, uint32_t data)
 	d_mem->write_data8w(addr, data, &wait);
 }
 
+uint32_t I386::translate_address(int segment, uint32_t offset)
+{
+	i386_state *cpustate = (i386_state *)opaque;
+	return i386_translate(cpustate, segment, offset, -1, 1); 
+}
+
 uint32_t I386::read_debug_data8(uint32_t addr)
 {
 	int wait;
@@ -646,14 +652,14 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 
 	if(cpustate->operand_size) {
 		my_stprintf_s(buffer, buffer_len,
-					  _T("MODE=%s PC=%08X PREV_PC=%08X\n")
+					  _T("MODE=%s PC=%08X PREV_PC=%08X SP(REAL)=%08X\n")
 					  _T("CR[0-4]=%08X %08X %08X %08X %08X IOPL=%d CPL=%d\n")	  
 					  _T("EAX=%08X  EBX=%08X ECX=%08X EDX=%08X ESP=%08X  EBP=%08X  ESI=%08X  EDI=%08X\n")
 					  _T("DS=%04X  ES=%04X SS=%04X CS=%04X FS=%04X GS=%04X\n")
 					  _T("A20_MASK=%08X EIP=%08X  EFLAGS=%08X FLAG=[%c%c%c%c%c%c%c%c%c]\n")
 					  _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 					  (PROTECTED_MODE != 0) ? ((V8086_MODE) ? _T("PROTECTED V8086(32bit)") : _T("PROTECTED 32bit")) : ((V8086_MODE) ? _T("V8086(32bit)") : _T("32bit")),
-					  cpustate->pc, cpustate->prev_pc,
+					  cpustate->pc, cpustate->prev_pc, cpustate->sreg[SS].base + ((uint32_t)REG32(ESP)),
 					  cpustate->cr[0] ,cpustate->cr[1], cpustate->cr[2], cpustate->cr[3], cpustate->cr[4], (cpustate->IOP1) | (cpustate->IOP2 << 1), cpustate->CPL,
 					  REG32(EAX), REG32(EBX), REG32(ECX), REG32(EDX), REG32(ESP), REG32(EBP), REG32(ESI), REG32(EDI),
 					  cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->sreg[FS].selector, cpustate->sreg[GS].selector, cpustate->a20_mask, cpustate->eip, cpustate->eflags,
@@ -665,12 +671,12 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		if((PROTECTED_MODE) != 0) {
 			if((V8086_MODE)) {
 				my_stprintf_s(buffer, buffer_len,
-					  _T("MODE=V8086 (PROTECTED) PC=%08X PREV_PC=%08X\n")
+					  _T("MODE=V8086 (PROTECTED) PC=%08X PREV_PC=%08X SP(REAL)=%08X\n")
 					  _T("CR[0-4]=%08X %08X %08X %08X %08X IOP=%d CPL=%d\n")	  
 					  _T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
 					  _T("DS=%04X  ES=%04X SS=%04X CS=%04X FS=%04X GS=%04X A20_MASK=%08X IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]\n")
 					  _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
-					  cpustate->pc, cpustate->prev_pc,
+					  cpustate->pc, cpustate->prev_pc, cpustate->sreg[SS].base + ((uint32_t)REG32(ESP) & 0xffff),
 					  cpustate->cr[0] ,cpustate->cr[1], cpustate->cr[2], cpustate->cr[3], cpustate->cr[4], (cpustate->IOP1) | (cpustate->IOP2 << 1), cpustate->CPL,
 					  REG16(AX), REG16(BX), REG16(CX), REG16(DX), REG16(SP), REG16(BP), REG16(SI), REG16(DI),
 							  cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->sreg[FS].selector, cpustate->sreg[GS].selector, cpustate->a20_mask, cpustate->eip,
@@ -680,12 +686,12 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 					  get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 			} else {
 				my_stprintf_s(buffer, buffer_len,
-			  _T("MODE=PROTECTED 16bit PC=%08X PREV_PC=%08X\n")
+			  _T("MODE=PROTECTED 16bit PC=%08X PREV_PC=%08X SP(REAL)=%08X\n")
 			  _T("CR[0-4]=%08X %08X %08X %08X %08X IOP=%d CPL=%d\n")	  
 			  _T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
 			  _T("DS=%04X  ES=%04X SS=%04X CS=%04X FS=%04X GS=%04X A20_MASK=%08X IP=%04X  EFLAGS=%08X FLAG=[%c%c%c%c%c%c%c%c%c]\n")
 			  _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
-			  cpustate->pc, cpustate->prev_pc,
+							  cpustate->pc, cpustate->prev_pc, cpustate->sreg[SS].base + ((uint32_t)REG32(ESP)),
 			  cpustate->cr[0] ,cpustate->cr[1], cpustate->cr[2], cpustate->cr[3], cpustate->cr[4], (cpustate->IOP1) | (cpustate->IOP2 << 1), cpustate->CPL,
 			  REG16(AX), REG16(BX), REG16(CX), REG16(DX), REG16(SP), REG16(BP), REG16(SI), REG16(DI),
 			  cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->sreg[FS].selector, cpustate->sreg[GS].selector, cpustate->a20_mask, cpustate->eip, cpustate->eflags,
@@ -696,12 +702,12 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 			}
 		} else {
 				my_stprintf_s(buffer, buffer_len,
-			  _T("MODE=16bit PC=%08X PREV_PC=%08X\n")
+			  _T("MODE=16bit PC=%08X PREV_PC=%08X SP(REAL)=%08X\n")
 			  _T("CR[0-4]=%08X %08X %08X %08X %08X IOP=%d CPL=%d\n")	  
 			  _T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
 			  _T("DS=%04X  ES=%04X SS=%04X CS=%04X FS=%04X GS=%04X A20_MASK=%08X IP=%04X EFLAGS=%08X FLAG=[%c%c%c%c%c%c%c%c%c]\n")
 			  _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
-			  cpustate->pc, cpustate->prev_pc,
+							  cpustate->pc, cpustate->prev_pc, cpustate->sreg[SS].base + ((uint32_t)REG16(SP) & 0xffff),
 			  cpustate->cr[0] ,cpustate->cr[1], cpustate->cr[2], cpustate->cr[3], cpustate->cr[4], (cpustate->IOP1) | (cpustate->IOP2 << 1), cpustate->CPL,
 			  REG16(AX), REG16(BX), REG16(CX), REG16(DX), REG16(SP), REG16(BP), REG16(SI), REG16(DI),
 			  cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->sreg[FS].selector, cpustate->sreg[GS].selector, cpustate->a20_mask, cpustate->eip, cpustate->eflags,

@@ -267,6 +267,12 @@ uint32_t I286::get_next_pc()
 	return cpustate->pc;
 }
 
+uint32_t I286::translate_address(int segment, uint32_t offset)
+{
+	i386_state *cpustate = (i386_state *)opaque;
+	return cpustate->base[segment] + offset;
+}
+
 #ifdef USE_DEBUGGER
 void I286::write_debug_data8(uint32_t addr, uint32_t data)
 {

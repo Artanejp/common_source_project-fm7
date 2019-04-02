@@ -82,6 +82,8 @@ public:
 	int get_extra_clock();
 	uint32_t get_pc();
 	uint32_t get_next_pc();
+
+	uint32_t translate_address(int segment, uint32_t offset);
 //#ifdef USE_DEBUGGER
 	bool is_cpu()
 	{

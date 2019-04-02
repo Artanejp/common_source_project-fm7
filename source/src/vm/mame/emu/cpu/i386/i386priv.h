@@ -597,7 +597,7 @@ static void pf_throw_sub(i386_state* cpustate, uint32_t address, uint64_t error)
 #endif
 #define PROTECTED_MODE      (cpustate->cr[0] & 0x1)
 #define STACK_32BIT         (cpustate->sreg[SS].d)
-#define V8086_MODE          ((cpustate->VM) && (cpustate->cr[4] & I386_CR4_VME))
+#define V8086_MODE          ((cpustate->VM) /*&& (cpustate->cr[4] & I386_CR4_VME)*/)
 #define NESTED_TASK         (cpustate->NT)
 #define WP                  (cpustate->cr[0] & I386_CR0_WP)
 

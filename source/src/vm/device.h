@@ -209,6 +209,7 @@ public:
 	
 	// NOTE: the virtual bus interface functions for 16/32bit access invite the cpu is little endian.
 	// if the cpu is big endian, you need to implement them in the virtual machine memory/io classes.
+	virtual uint32_t translate_address(int segment, uint32_t offset) { /* offset must be numeric, not value */ return offset; }
 	
 	// memory bus
 	virtual void write_data8(uint32_t addr, uint32_t data) {}

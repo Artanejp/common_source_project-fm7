@@ -115,13 +115,14 @@ void BIOS::reset()
 	event_irq = -1;
 }
 
-bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+	bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	uint8_t *regs8 = (uint8_t *)regs;
 	// SASI
 	switch(intnum) {
 	case 0x1b: // SASI BIOS (INT3)
 		if(d_mem->is_sasi_bios_load()) return false;
+		//out_debug_log("INT 1Bh\n");
 		return bios_call_far_i86(0xfffc4, regs, sregs, ZeroFlag, CarryFlag, cycles, total_cycles);
 		break;
 	default:
@@ -130,7 +131,7 @@ bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* 
 	return false;
 }
 
-bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+	bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	uint8_t *regs8 = (uint8_t *)regs;
 	bool need_retcall = false;
@@ -252,6 +253,7 @@ bool BIOS::sasi_bios(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* Ze
 		// ToDo: Multi SASI
 		if(d_sasi->get_hdd(0) != NULL) {
 			if(sxsi_get_drive(AL) >= 0) {
+				out_debug_log("SASI BIOS CALL AH=%02X\n", AH);
 				switch(AH & 0x0f) {
 				case 0x01:
 					// Verify
@@ -436,8 +438,8 @@ void BIOS::sasi_command_initialize(uint32_t PC, uint16_t regs[], uint16_t sregs[
 	}
 	_d.u16 = disk_equip;
 	d_mem->write_io8(0x043f, 0xc2); // Enable to write ram
-	d_mem->write_data8(0x055c + 0, _d.b.l);
-	d_mem->write_data8(0x055c + 1, _d.b.h);
+	d_mem->write_dma_data8(0x055c + 0, _d.b.l);
+	d_mem->write_dma_data8(0x055c + 1, _d.b.h);
 	d_mem->write_io8(0x043f, 0xc0); // Disable to write ram
 #ifdef _PSEUDO_BIOS_DEBUG
 	out_debug_log(_T("SASI CMD: INITIALIZE STAT=%04x"), disk_equip);
@@ -528,7 +530,13 @@ void BIOS::sasi_command_read(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 	uint8_t *regs8 = (uint8_t *)regs;
 	int size = (int)(BX & 0xffff);
 	if(size == 0) size = 0x10000;
-	uint32_t addr = (((uint32_t)ES) << 4) + BP;
+	uint32_t addr;
+	//addr = (((uint32_t)ES) << 4) + BP;
+	try {
+		addr = d_cpu->translate_address(0, (uint32_t)BP); // ES:BP
+	} catch(...) {
+		out_debug_log("Access vioration ES:%04x\n", BP);
+	}
 	//out_debug_log(_T("SASI CMD: READ ADDR=%08x\n"), addr);
 
 	int drive = sxsi_get_drive(AL);
@@ -589,7 +597,7 @@ void BIOS::sasi_command_read(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				if(harddisk->read_buffer((long)position, block_size, buffer)) {
 					position += block_size;
 					for(int i = 0; i < block_size; i++) {
-						d_mem->write_data8(addr++, buffer[i]);
+						d_mem->write_dma_data8(addr++, buffer[i]);
 					}
 					size -= block_size;
 				} else {
@@ -612,7 +620,13 @@ void BIOS::sasi_command_write(uint32_t PC, uint16_t regs[], uint16_t sregs[], in
 	int size = (int)(BX & 0xffff);
 	if(size == 0) size = 0x10000;
 	uint8_t *regs8 = (uint8_t *)regs;
-	uint32_t addr = (((uint32_t)ES) << 4) + BP;
+	uint32_t addr;
+	try {
+		addr = d_cpu->translate_address(0, (uint32_t)BP); // ES:BP
+	} catch(...) {
+		out_debug_log("Access vioration ES:%04x\n", BP);
+	}
+	//addr = (((uint32_t)ES) << 4) + BP;
 	int drive = sxsi_get_drive(AL);
 	if(drive < 0) { // ToDo: Multi SASI
 		AH = 0x80;
@@ -662,7 +676,7 @@ void BIOS::sasi_command_write(uint32_t PC, uint16_t regs[], uint16_t sregs[], in
 				}
 				// data transfer
 				for(int i = 0; i < block_size; i++) {
-					buffer[i] = d_mem->read_data8(addr++);
+					buffer[i] = d_mem->read_dma_data8(addr++);
 				}
 				if(harddisk->write_buffer((long)position, block_size, buffer)) {
 					position += block_size;
@@ -708,9 +722,9 @@ void BIOS::sasi_command_format(uint32_t PC, uint16_t regs[], uint16_t sregs[], i
 			return;
 		}
 		HARDDISK* harddisk = d_hdd->get_disk_handler(drive);
-//#ifdef _PSEUDO_BIOS_DEBUG
+#ifdef _PSEUDO_BIOS_DEBUG
 		out_debug_log(_T("SASI CMD: FORMAT DL=%02x DH=%02x CX=%04x BX=%04x\n"), DL, DH, CX, BX);
-//#endif
+#endif
 		if(harddisk == NULL) {
 			AH = 0x60;
 			*CarryFlag = 1;

@@ -660,13 +660,14 @@ static void I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode 0x0f 20
 	//	FAULT(FAULT_UD, 0);
 	//	return;
 	//}
+	UINT32 oldpc = cpustate->pc;
 	if((PROTECTED_MODE && (/*(V8086_MODE) || */(cpustate->CPL != 0)))) {
 		logerror("Call from non-supervisor privilege: I386OP(mov_r32_cr)"); 
 		FAULT(FAULT_GP, 0);
 	}
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 cr = (modrm >> 3) & 0x7;
-	logdebug("MOV r32 CR%d VAL=(%08X)\n", cr, cpustate->cr[cr]);
+	logdebug("MOV r32 CR%d VAL=(%08X)\n", cr, cpustate->cr[cr], oldpc);
 	if(cr < 5) {
 		STORE_RM32(modrm, cpustate->cr[cr]);
 		CYCLES(cpustate,CYCLES_MOV_CR_REG);
@@ -757,6 +758,7 @@ static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 	//	FAULT(FAULT_UD, 0);
 	//	return;
 	//}
+	UINT32 oldpc = cpustate->pc;
 	if((PROTECTED_MODE && (/*(V8086_MODE) || */(cpustate->CPL != 0)))) {
 		logerror("Call from non-supervisor privilege: I386OP(mov_cr_r32)"); 
 		FAULT(FAULT_GP, 0);
@@ -765,7 +767,7 @@ static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 	UINT8 cr = (modrm >> 3) & 0x7;
 	UINT32 data = LOAD_RM32(modrm);
 	UINT32 data_bak;
-	logdebug("MOV CR%d r32 VAL=(%08X)\n", cr, data);
+	logdebug("MOV CR%d r32 VAL=(%08X) at %08X\n", cr, data, oldpc);
 	switch(cr)
 	{
 		case 0:
@@ -778,20 +780,20 @@ static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 			if((data & (I386_CR0_NW | I386_CR0_CD)) == I386_CR0_NW) {
 				FAULT(FAULT_GP, 0);
 			}
-#if 0
+#if 1
 			data_bak = cpustate->cr[0];
 			data &= I386_CR0_ALL;
 			data &= ~I386_CR0_WP; // wp not supported on 386
 			//logdebug("MOV CR0,xxxxh %08x -> %08x \n", data_bak, data);
 			// ToDo: FPU
-			//data |= I386_CR0_ET;	/* FPU present */
-			//data &= ~I386_CR0_EM;
-			data |= I386_CR0_EM | I386_CR0_NE;
-			data &= ~(I386_CR0_MP | I386_CR0_ET);
-			cpustate->cr[0] = data & ~(I386_CR0_PE | I386_CR0_PG);
+			data |= I386_CR0_ET;	/* FPU present */
+			data &= ~I386_CR0_EM;
+			//data |= I386_CR0_EM | I386_CR0_NE;
+			//data &= ~(I386_CR0_MP | I386_CR0_ET);
+//			//cpustate->cr[0] = data & ~(I386_CR0_PE | I386_CR0_PG);
 #endif			
 			cpustate->cr[0] = data;
-#if 0
+#if 1
 			if((data_bak & (I386_CR0_PE | I386_CR0_PG)) != (data & (I386_CR0_PE | I386_CR0_PG))) {
 				// ToDo: TLB flush (paging)
 				vtlb_flush_dynamic(cpustate->vtlb);
@@ -1123,7 +1125,7 @@ static void I386OP(arpl)(i386_state *cpustate)           // Opcode 0x63
 
 	if(PROTECTED_MODE && !V8086_MODE)
 	{
-			if( modrm >= 0xc0 ) {
+		if( modrm >= 0xc0 ) {
 			src = LOAD_REG16(modrm);
 			dst = LOAD_RM16(modrm);
 			if( (dst&0x3) < (src&0x3) ) {
@@ -2489,6 +2491,7 @@ static void I386OP(nop)(i386_state *cpustate)               // Opcode 0x90
 static void I386OP(int3)(i386_state *cpustate)              // Opcode 0xcc
 {
 	CYCLES(cpustate,CYCLES_INT3);
+	logerror("INT3 at %08X\n", cpustate->pc - 1);
 	cpustate->ext = 0; // not an external interrupt
 	i386_trap(cpustate,3, 1, 0);
 	cpustate->ext = 1;
@@ -2499,17 +2502,20 @@ static void I386OP(int_16)(i386_state *cpustate)               // Opcode 0xcd
 	int interrupt = FETCH(cpustate);
 	CYCLES(cpustate,CYCLES_INT);
 	if(V8086_MODE) {
-		//logerror("INT %02xh @V8086(16) mode\n", interrupt);
+		//logerror("INT %02xh @V8086(16bit) mode PC=%08X\n", interrupt, cpustate->pc - 1);
 		if((!cpustate->IOP1 || !cpustate->IOP2))
 		{
 			logerror("IRQ (%08x): Is in Virtual 8086 mode and IOPL != 3.\n",cpustate->pc);
-			//FAULT(FAULT_GP,0);
+			FAULT(FAULT_GP,0);
 		} else {
-			BIOS_INT(interrupt);
+			//BIOS_INT(interrupt);
 		}
 	} else {
-		//logerror("INT %02xh @16bit mode\n", interrupt);
-		BIOS_INT(interrupt);
+		//logerror("INT %02xh @16bit mode PC=%08X\n", interrupt, cpustate->pc - 1);
+		UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+		if(!(PROTECTED_MODE && (cpustate->CPL > IOPL))) {
+			BIOS_INT(interrupt);
+		}
 	}		
 	cpustate->ext = 0; // not an external interrupt
 	i386_trap(cpustate,interrupt, 1, 0);
@@ -2522,18 +2528,20 @@ static void I386OP(int_32)(i386_state *cpustate)               // Opcode 0xcd
 	CYCLES(cpustate,CYCLES_INT);
 #if 1
 	if(V8086_MODE) {
-		//logerror("INT %02xh @V8086(32) mode\n", interrupt);
+		//logerror("INT %02xh @V8086(32bit) mode PC=%08X\n", interrupt, cpustate->pc - 1);
 		if((!cpustate->IOP1 || !cpustate->IOP2))
 		{
-			//logerror("IRQ (%08x): Is in Virtual 8086 mode and IOPL != 3.\n",cpustate->pc);
-			//FAULT(FAULT_GP,0);
+			logerror("IRQ (%08x): Is in Virtual 8086 mode and IOPL != 3.\n",cpustate->pc);
+			FAULT(FAULT_GP,0);
 		} else {
-			
-			BIOS_INT(interrupt);
+			//BIOS_INT(interrupt);
 		}
 	} else {
-		//logerror("INT %02xh @32bit mode\n", interrupt);
-		BIOS_INT(interrupt);
+		//logerror("INT %02xh @32bit mode PC=%08X\n", interrupt, cpustate->pc - 1);
+		UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+		if(!(PROTECTED_MODE && (cpustate->CPL > IOPL))) {
+			BIOS_INT(interrupt);
+		}
 	}
 #endif
 	cpustate->ext = 0; // not an external interrupt

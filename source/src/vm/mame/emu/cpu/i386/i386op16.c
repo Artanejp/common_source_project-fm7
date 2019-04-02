@@ -495,9 +495,10 @@ static void I386OP(call_abs16)(i386_state *cpustate)        // Opcode 0x9a
 	CYCLES(cpustate,CYCLES_CALL_INTERSEG);      /* TODO: Timing = 17 + m */
 
 //#ifdef I386_PSEUDO_BIOS
-	//if(!(V8086_MODE)) {
+	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+	if(!(V8086_MODE) && !(PROTECTED_MODE && (cpustate->CPL > IOPL))) {
 		BIOS_CALL_FAR(((ptr << 4) + offset) & cpustate->a20_mask);
-	//}
+	}
 //#endif
 
 	if( PROTECTED_MODE && !V8086_MODE)
@@ -3068,9 +3069,10 @@ static void I386OP(groupFF_16)(i386_state *cpustate)        // Opcode 0xff
 					selector = READ16(cpustate,ea + 2);
 					CYCLES(cpustate,CYCLES_CALL_MEM_INTERSEG);      /* TODO: Timing = 10 + m */
 //#ifdef I386_PSEUDO_BIOS
-					//if(!(V8086_MODE)) {
+					UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+					if(!(V8086_MODE) && !((PROTECTED_MODE) && (cpustate->CPL > IOPL))) {
 						BIOS_CALL_FAR(((selector << 4) + address) & cpustate->a20_mask);
-					//}
+					}
 //#endif
 					if(PROTECTED_MODE && !V8086_MODE)
 					{
