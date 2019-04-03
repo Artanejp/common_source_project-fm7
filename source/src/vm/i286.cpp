@@ -265,7 +265,7 @@ uint32_t I286::get_next_pc()
 
 uint32_t I286::translate_address(int segment, uint32_t offset)
 {
-	i386_state *cpustate = (i386_state *)opaque;
+	cpu_state *cpustate = (cpu_state *)opaque;
 	return cpustate->base[segment] + offset;
 }
 
