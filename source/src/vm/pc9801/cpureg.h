@@ -35,6 +35,7 @@ private:
 	I286 *d_cpu;
 #endif
 	DEVICE* d_mem;
+	DEVICE* d_pio;
 	bool nmi_enabled;
 	
 public:
@@ -62,6 +63,10 @@ public:
 	void set_context_membus(DEVICE* device)
 	{
 		d_mem = device;
+	}
+	void set_context_piosys(DEVICE* device)
+	{
+		d_pio = device;
 	}
 };
 

@@ -150,8 +150,6 @@ public:
 	void event_callback(int event_id, int err);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	
-	virtual void save_state(FILEIO* state_fio) {}
-	virtual bool load_state(FILEIO* state_fio) { return false; }
 	
 	// unique functions
 	void set_context_drq(DEVICE* device, int id, uint32_t mask)

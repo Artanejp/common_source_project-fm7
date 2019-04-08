@@ -469,6 +469,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	cpureg->set_context_cpu(cpu);
 	cpureg->set_context_membus(memory);
+	cpureg->set_context_piosys(pio_sys);
 #endif
 	display->set_context_pic(pic);
 	display->set_context_gdc_chr(gdc_chr, gdc_chr->get_ra());
@@ -620,6 +621,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	io->set_iomap_single_w(0x0029, dmareg);
 #endif
+	
 #if defined(SUPPORT_32BIT_ADDRESS)
 	io->set_iomap_single_w(0x0e05, dmareg);
 	io->set_iomap_single_w(0x0e07, dmareg);
@@ -694,6 +696,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x0cc4, scsi);
 #endif
 #if defined(SUPPORT_IDE_IF)
+	//Q: MAME MAPPING has 0430h and 0432h as IDE control registers.20190408 K.O
 	io->set_iomap_single_rw(0x0640, ide);
 	io->set_iomap_single_rw(0x0642, ide);
 	io->set_iomap_single_rw(0x0644, ide);
@@ -726,7 +729,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0xa5, display);
 	io->set_iomap_single_rw(0xa9, display);
 #if defined(SUPPORT_EGC)
-	io->set_iomap_range_rw(0x04a0, 0x04af, display);
+	io->set_iomap_range_rw(0x04a0, 0x04af, display); // EGC REGS
 #endif
 	
 	io->set_iomap_alias_rw(0x0071, pit, 0);
@@ -808,7 +811,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_w(0x043d, memory);
 #endif
 #if !defined(SUPPORT_HIRESO)
-	io->set_iomap_single_w(0x043f, memory);
+	io->set_iomap_single_w(0x043f, memory); // ITF
 #endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 #if !defined(_PC98XA)
@@ -846,6 +849,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x0065, pio_mouse, 2);
 	io->set_iomap_alias_rw(0x0067, pio_mouse, 3);
 #endif
+	// ToDo: MIDI@0xe0d0 - e0d3
 	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	pc88event = new EVENT(this, emu);
@@ -1687,7 +1691,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	16
+#define STATE_VERSION	17
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

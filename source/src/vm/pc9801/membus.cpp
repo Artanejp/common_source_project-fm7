@@ -628,7 +628,11 @@ void MEMBUS::update_bios()
 	//	set_memory_mapped_io_rw(0xe0000, 0xe7fff, d_display);
 	//	#endif
 	//}
-	#if defined(SUPPORT_32BIT_ADDRESS)
+	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
+	// ToDo: PC9821
+	unset_memory_rw(0x00f00000, 0x00f9ffff);
+	#endif
+	#if defined(SUPPORT_32BIT_ADDRESS) /*|| defined(SUPPORT_24BIT_ADDRESS)*/
 	#if !defined(SUPPORT_HIRESO)
 	unset_memory_rw(0xa0000, 0xbffff);
 	set_memory_mapped_io_rw(0xa0000, 0xbffff, d_display);
@@ -654,23 +658,38 @@ void MEMBUS::update_bios()
 		update_ide_bios();
 		#endif
 	}
-	
 	#endif
 #endif
 	unset_memory_rw(0x100000 - sizeof(bios), 0xfffff);
+#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
+	// ToDo: PC9821
+	unset_memory_rw(0x01000000 - sizeof(bios), 0x00ffffff);
+#endif
 #if defined(SUPPORT_ITF_ROM)
 	if(itf_selected) {
 		set_memory_r(0x100000 - sizeof(itf), 0xfffff, itf);
+	#if defined(SUPPORT_32BIT_ADDRESS)
+		set_memory_r(0x01000000 - sizeof(itf), 0x00ffffff, itf);
+	#endif
 	} else {
 #endif
 #if defined(SUPPORT_BIOS_RAM)
 		if(bios_ram_selected) {
 			set_memory_rw(0x100000 - sizeof(bios_ram), 0xfffff, bios_ram);
+	#if defined(SUPPORT_32BIT_ADDRESS)
+			set_memory_rw(0x01000000 - sizeof(bios_ram), 0x00ffffff, bios_ram);
+	#endif
 		} else {
 #endif
 			set_memory_r(0x100000 - sizeof(bios), 0xfffff, bios);
+#if defined(SUPPORT_32BIT_ADDRESS)
+			set_memory_r(0x01000000 - sizeof(bios), 0x00ffffff, bios);
+#endif
 #if defined(SUPPORT_BIOS_RAM)
 			set_memory_w(0x100000 - sizeof(bios_ram), 0xfffff, bios_ram);
+	#if defined(SUPPORT_32BIT_ADDRESS)
+			set_memory_w(0x01000000 - sizeof(bios_ram), 0x00ffffff, bios_ram);
+	#endif
 		}
 #endif
 #if defined(SUPPORT_ITF_ROM)
@@ -687,9 +706,16 @@ void MEMBUS::update_sound_bios()
 //		} else {
 			set_memory_r(0xcc000, 0xcffff, sound_bios);
 			unset_memory_w(0xcc000, 0xcffff);
+	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
+			set_memory_r(0x00fcc000, 0x00fcffff, sound_bios);
+			unset_memory_w(0x00fcc000, 0x00fcffff);
+	#endif
 //		}
 	} else {
 		unset_memory_rw(0xcc000, 0xcffff);
+	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
+		unset_memory_rw(0x00fcc000, 0x00fcffff);
+	#endif		
 	}
 }
 
@@ -701,12 +727,22 @@ void MEMBUS::update_sasi_bios()
 	if(sasi_bios_selected) {
 		if(sasi_bios_ram_selected) {
 			set_memory_rw(0xd7000, 0xd7fff, sasi_bios_ram);
+	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
+			set_memory_rw(0x00fd7000, 0x00fd7fff, sasi_bios_ram);
+	#endif
 		} else {
 			set_memory_r(0xd7000, 0xd7fff, sasi_bios);
 			unset_memory_w(0xd7000, 0xd7fff);
+	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
+			set_memory_r(0x00fd7000, 0x00fd7fff, sasi_bios);
+			unset_memory_w(0x00fd7000, 0x00fd7fff);
+	#endif
 		}
 	} else {
 		unset_memory_rw(0xd7000, 0xd7fff);
+	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
+		unset_memory_rw(0x00fd7000, 0x00fd7fff);
+	#endif
 	}
 }
 #endif
@@ -717,12 +753,22 @@ void MEMBUS::update_scsi_bios()
 	if(scsi_bios_selected) {
 		if(scsi_bios_ram_selected) {
 			set_memory_rw(0xdc000, 0xdcfff, scsi_bios_ram);
+	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
+			set_memory_rw(0x00fdc000, 0x00fdcfff, scsi_bios_ram);
+	#endif
 		} else {
 			set_memory_r(0xdc000, 0xdcfff, scsi_bios);
 			unset_memory_w(0xdc000, 0xdcfff);
+	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
+			set_memory_r(0x00fdc000, 0x00fdcfff, scsi_bios);
+			unset_memory_w(0x00fdc000, 0x00fdcfff);
+	#endif
 		}
 	} else {
 		unset_memory_rw(0xdc000, 0xdcfff);
+	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
+		unset_memory_rw(0x00fdc000, 0x00fdcfff);
+	#endif
 	}
 }
 #endif
@@ -736,9 +782,16 @@ void MEMBUS::update_ide_bios()
 //		} else {
 			set_memory_r(0xd8000, 0xdbfff, ide_bios);
 			unset_memory_w(0xd8000, 0xdbfff);
+	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
+			set_memory_r(0x00fd8000, 0x00fdbfff, ide_bios);
+			unset_memory_w(0x00fd8000, 0x00fdbfff);
+	#endif
 //		}
 	} else {
 		unset_memory_rw(0xd8000, 0xdbfff);
+	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
+		unset_memory_rw(0x00fd8000, 0x00fdbfff);
+	#endif
 	}
 }
 #endif

@@ -151,7 +151,7 @@ void DISPLAY::initialize()
 	memset(font, 0xff, sizeof(font));
 	
 	FILEIO* fio = new FILEIO();
-	
+	b_gfx_ff = false; // Q: Is latched beyond resetting?
 #if !defined(SUPPORT_HIRESO)
 	uint8_t *p = font + 0x81000;
 	uint8_t *q = font + 0x83000;
@@ -430,7 +430,29 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		crtv = 1;
 		break;
 	case 0x68:
-		modereg1[(data >> 1) & 7] = data & 1;
+		switch((data >> 1) & 7) { // From MAME 0.208
+			// Related information:
+			/*
+			  TODO: this is my best bet so far. Register 4 is annoying, the pattern seems to be:
+			  Write to video FF register Graphic -> 00
+			  Write to video FF register 200 lines -> 0x
+			  Write to video FF register 200 lines -> 00
+			  
+			  where x is the current mode.
+			*/
+		case 1:
+			b_gfx_ff = true;
+			break;
+		case 4:
+			if(b_gfx_ff) {
+				modereg1[(data >> 1) & 7] = data & 1;
+				b_gfx_ff = false;
+			}
+			break;
+		default:
+			modereg1[(data >> 1) & 7] = data & 1;
+			break;
+		}
 		break;
 #if defined(SUPPORT_16_COLORS)
 	case 0x6a:
@@ -2595,7 +2617,7 @@ void DISPLAY::draw_gfx_screen()
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2669,6 +2691,7 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(font_code);
 	state_fio->StateValue(font_line);
 //	state_fio->StateValue(font_lr);
+	state_fio->StateValue(b_gfx_ff);
  	
  	// post process
 #if defined(SUPPORT_2ND_VRAM) && !defined(SUPPORT_HIRESO)

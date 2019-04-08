@@ -137,6 +137,7 @@ private:
 	uint16_t font_code;
 	uint8_t font_line;
 //	uint16_t font_lr;
+	bool b_gfx_ff;
 	
 	uint8_t screen_chr[SCREEN_HEIGHT][SCREEN_WIDTH + 1];
 	uint8_t screen_gfx[SCREEN_HEIGHT][SCREEN_WIDTH];

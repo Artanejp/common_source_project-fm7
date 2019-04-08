@@ -18,6 +18,7 @@
 #else
 #include "../i286.h"
 #endif
+#include "../i8255.h"
 
 namespace PC9801 {
 
@@ -38,14 +39,17 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 		nmi_enabled = true;
 		break;
 	case 0x00f0:
-		d_cpu->reset();
-		d_cpu->set_address_mask(0x000fffff);
-		//d_mem->reset();
+		{
+			uint8_t reset_reg = d_pio->read_signal(SIG_I8255_PORT_C);
+			reset_reg = reset_reg & (uint8_t)(~0x20); // Reset SHUT1
+			d_pio->write_signal(SIG_I8255_PORT_C, reset_reg, 0xff);
+			d_cpu->set_address_mask(0x000fffff);
+			d_cpu->reset();
+		}
 		break;
 	case 0x00f2:
 #if defined(SUPPORT_32BIT_ADDRESS)
 		d_cpu->set_address_mask(0xffffffff);
-		//d_cpu->set_address_mask(0x00ffffff);
 #else
 		d_cpu->set_address_mask(0x00ffffff);
 #endif
@@ -80,12 +84,13 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 //		value |= 0x80; // 1 = PC-9821Xt, 0 = PC-9821Xa
 //		value |= 0x80; // CPU MODE, 1 = High/Low, 0 = Middle (PC-9821Ap/As/Ae/Af)
 //		value |= 0x40; // ODP, 1 = Existing (PC-9821Ts)
-#if defined(SUPPORT_SCSI_IF)
-//		value |= 0x40; // Internal 55-type SCSI-HDD, 0 = Existing
+#if !defined(SUPPORT_SCSI_IF)
+		value |= 0x40; // Internal 55-type SCSI-HDD, 0 = Existing
 #endif
-#if defined(SUPPORT_SASI_IF)
-//		value |= 0x20; // Internal 27-type SASI-HDD, 0 = Existing
+#if !defined(SUPPORT_SASI_IF)
+		value |= 0x20; // Internal 27-type SASI-HDD, 0 = Existing
 #endif
+		// ToDo: AMD98
 //		value |= 0x10; // Unknown
 		value |= ((d_mem->read_signal(SIG_LAST_ACCESS_INTERAM) != 0) ? 0x00: 0x08); // RAM access, 1 = Internal-standard/External-enhanced RAM, 0 = Internal-enhanced RAM
 //		value |= 0x04; // Refresh mode, 1 = Standard, 0 = High speed

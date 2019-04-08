@@ -131,7 +131,7 @@ void BIOS::reset()
 	return false;
 }
 
-	bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	uint8_t *regs8 = (uint8_t *)regs;
 	bool need_retcall = false;
@@ -141,8 +141,8 @@ void BIOS::reset()
 	// ToDo: Check ITF BANK for EPSON :
 	// IF (ITF_ENABLED) && ((0xf8000 <= PC < 0x10000)) NOT CALL BIOS
 	if(d_mem->is_sasi_bios_load()) return false;
-	// Check ADDRESS: This pseudo-bios acts only $fffc4 ($1B) : 
-	if(PC != 0xfffc4) return false; // INT 1Bh
+	// Check ADDRESS: This pseudo-bios acts only $fffc4 ($1B) or $00ffffc4: 
+	if((PC != 0xfffc4) && (PC != 0x00ffffc4)) return false; // INT 1Bh
 #if 1		
 	static const int elapsed_cycle = 200; // From NP2 0.86+trunk/ OK?
 	/*	if((((AL & 0xf0) != 0x00) && ((AL & 0xf0) != 0x80))) */	{
