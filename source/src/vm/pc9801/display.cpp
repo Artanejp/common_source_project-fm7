@@ -768,6 +768,7 @@ uint32_t DISPLAY::read_io8(uint32_t addr)
 
 void DISPLAY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
+	addr = addr & 0x000fffff; // For 32bit
 	if(TVRAM_ADDRESS <= addr && addr < (TVRAM_ADDRESS + 0x3fe2)) {
 		tvram[addr - TVRAM_ADDRESS] = data;
 	} else if((TVRAM_ADDRESS + 0x3fe2) <= addr && addr < (TVRAM_ADDRESS + 0x4000)) {
@@ -823,6 +824,7 @@ void DISPLAY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 
 void DISPLAY::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 {
+	addr = addr & 0x000fffff; // For 32bit
 	if(TVRAM_ADDRESS <= addr && addr < (TVRAM_ADDRESS + 0x3fe2)) {
 		*(uint16_t *)(&tvram[addr - TVRAM_ADDRESS]) = data;
 	} else if((TVRAM_ADDRESS + 0x3fe2) <= addr && addr < (TVRAM_ADDRESS + 0x4000)) {

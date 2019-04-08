@@ -103,14 +103,14 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 		return ((d_cpu->get_address_mask() & (1 << 20)) ? 0x00 : 0x01) | 0xfe;
 #if defined(SUPPORT_32BIT_ADDRESS)
 	case 0x00f6:
-		value  = 0x00;
+		value  = ((d_cpu->get_address_mask() & (1 << 20)) != 0) ? 0x00 : 0x01;
 #if defined(SUPPORT_HIRESO) && !defined(_PC98RL)
 		value |= 0x10; // SASI-HDD, 1 = DMA ch0, 0 = DMA ch1
 #endif
 		if(nmi_enabled) {
 			value |= 0x02; // NMI, 1 = Enabled
 		}
-		return ((d_cpu->get_address_mask() & (1 << 20)) ? 0x00 : 0x01) | value;
+		return value;
 #endif
 	}
 	return 0xff;
