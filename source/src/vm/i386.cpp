@@ -458,7 +458,15 @@ void I386::write_debug_data8(uint32_t addr, uint32_t data)
 uint32_t I386::translate_address(int segment, uint32_t offset)
 {
 	i386_state *cpustate = (i386_state *)opaque;
-	return i386_translate(cpustate, segment, offset, -1, 1); 
+	uint32_t addr = 0;
+	if((segment >= 0) && (segment <= GS)) {
+		//if(PROTECTED_MODE || V8086_MODE) {
+		//	addr = cpustate->sreg[segment].base + offset;
+		//} else {
+			addr = (((uint32_t)(cpustate->sreg[segment].selector)) << 4) + offset;
+		//}
+	}
+	return addr;
 }
 
 uint32_t I386::read_debug_data8(uint32_t addr)
