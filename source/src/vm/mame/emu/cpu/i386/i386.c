@@ -299,9 +299,9 @@ static void set_flags(i386_state *cpustate, UINT32 f )
 	cpustate->IOP2 = (f & 0x2000) ? 1 : 0;
 	cpustate->NT = (f & 0x4000) ? 1 : 0;
 	cpustate->RF = (f & 0x10000) ? 1 : 0;
-	if(PROTECTED_MODE) {
+//	if(PROTECTED_MODE) {
 		cpustate->VM = (f & 0x20000) ? 1 : 0;
-	}
+//	}
 	cpustate->AC = (f & 0x40000) ? 1 : 0;
 	cpustate->VIF = (f & 0x80000) ? 1 : 0;
 	cpustate->VIP = (f & 0x100000) ? 1 : 0;
@@ -969,7 +969,7 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 				}
 				/* change CPL before accessing the stack */
 				UINT32 _oldCPL = cpustate->CPL;
-				//if(_oldCPL != DPL) logerror("TRAP/INT GATE: Privilege changed from %d to %d at %08X, INT# %d, GATE %d TYPE %d\n", _oldCPL, DPL, cpustate->prev_pc, irq, irq_gate, type);
+				if(_oldCPL != DPL) logerror("TRAP/INT GATE: Privilege changed from %d to %d at %08X, INT# %d, GATE %d TYPE %d\n", _oldCPL, DPL, cpustate->prev_pc, irq, irq_gate, type);
 				cpustate->CPL = DPL;
 				/* check for page fault at new stack TODO: check if stack frame crosses page boundary */
 				WRITE_TEST(cpustate, stack.base+newESP-1);
@@ -1989,7 +1989,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 					UINT32 _oldCPL = cpustate->CPL;
 					cpustate->CPL = (stack.flags >> 5) & 0x03;
 					UINT32 _newCPL = cpustate->CPL;
-					//if(_oldCPL != _newCPL) logerror("Privilege changed by protected mode call from %d to %d ADDR %08X\n", _oldCPL, _newCPL, cpustate->pc);
+					if(_oldCPL != _newCPL) logerror("Privilege changed by protected mode call from %d to %d ADDR %08X\n", _oldCPL, _newCPL, cpustate->pc);
 					/* check for page fault at new stack */
 					WRITE_TEST(cpustate, stack.base+newESP-1);
 					/* switch to new stack */
@@ -2415,7 +2415,7 @@ static void i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 op
 			logerror("RETF: SS segment is not present.\n");
 			FAULT(FAULT_GP,newSS & ~0x03)
 		}
-		if(cpustate->CPL != (newCS & 0x03)) logerror("RETF: Change CPL from %d to %d PC=%08X\n", cpustate->CPL, newCS & 0x03, cpustate->pc);
+		if(cpustate->CPL != (newCS & 0x03)) logerror("RETF: Change CPL from %d to %d CS=%04X PC=%08X\n", cpustate->CPL, newCS & 0x03, newCS, cpustate->pc);
 		cpustate->CPL = newCS & 0x03;
 
 		/* Load new SS:(E)SP */
@@ -3355,10 +3355,10 @@ static void zero_state(i386_state *cpustate)
 	// From ia32_initreg() of np2, i386c/ia32/interface.c
 	cpustate->cr[0] = I386_CR0_CD | I386_CR0_NW;
 	// ToDo: FPU
-	cpustate->cr[0] &= ~I386_CR0_EM;
-	cpustate->cr[0] |= I386_CR0_ET;
-	//cpustate->cr[0] |= (I386_CR0_EM | I386_CR0_NE);
-	//cpustate->cr[0] &= ~(I386_CR0_MP | I386_CR0_ET);
+	//cpustate->cr[0] &= ~I386_CR0_EM;
+	//cpustate->cr[0] |= I386_CR0_ET;
+	cpustate->cr[0] |= (I386_CR0_EM | I386_CR0_NE);
+	cpustate->cr[0] &= ~(I386_CR0_MP | I386_CR0_ET);
 	// Init GDTR/IDTR
 	cpustate->gdtr.base  = 0x0000;
 	cpustate->gdtr.limit = 0xffff;
@@ -3556,7 +3556,10 @@ static void i386_set_irq_line(i386_state *cpustate,int irqline, int state)
 
 	if (state != CLEAR_LINE && cpustate->halted)
 	{
+		cpustate->prev_pc = cpustate->pc;
 		cpustate->halted = 0;
+		cpustate->eip++;
+		cpustate->pc++;
 	}
 
 	if ( irqline == INPUT_LINE_NMI )

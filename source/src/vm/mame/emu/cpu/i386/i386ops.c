@@ -313,6 +313,7 @@ static void I386OP(cli)(i386_state *cpustate)               // Opcode 0xfa
 		if(cpustate->CPL > IOPL) {
 			logerror("Privilege error: I386OP(cli) CPL=%d IOPL=%d PC=%08X\n", cpustate->CPL, IOPL, cpustate->pc); 
 			FAULT(FAULT_GP,0);
+			return;
 		}
 	}
 	cpustate->IF = 0;
@@ -656,19 +657,24 @@ static void I386OP(mov_rm8_i8)(i386_state *cpustate)        // Opcode 0xc6
 
 static void I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode 0x0f 20
 {
-	//if(modrm < 0xc0) {
-	//	FAULT(FAULT_UD, 0);
-	//	return;
-	//}
 	UINT32 oldpc = cpustate->pc;
-	if((PROTECTED_MODE && (/*(V8086_MODE) || */(cpustate->CPL != 0)))) {
-		logerror("Call from non-supervisor privilege: I386OP(mov_r32_cr)"); 
-		FAULT(FAULT_GP, 0);
-	}
 	UINT8 modrm = FETCH(cpustate);
+	if(modrm < 0xc0) {
+		FAULT(FAULT_UD, 0);
+		return;
+	}
+	if((PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)))) {
+		logerror("Call from non-supervisor privilege: I386OP(mov_r32_cr) at %08X", oldpc); 
+		FAULT(FAULT_GP, 0);
+		return;
+	}
 	UINT8 cr = (modrm >> 3) & 0x7;
 	logdebug("MOV r32 CR%d VAL=(%08X)\n", cr, cpustate->cr[cr], oldpc);
 	if(cr < 5) {
+		if(cr == 1) {
+			FAULT(FAULT_UD, 0);
+			return;
+		}
 		STORE_RM32(modrm, cpustate->cr[cr]);
 		CYCLES(cpustate,CYCLES_MOV_CR_REG);
 	} else {
@@ -709,20 +715,21 @@ void i386_change_paging_mode(i386_state *cpustate, int val)
 
 static void I386OP(mov_r32_dr)(i386_state *cpustate)        // Opcode 0x0f 21
 {
-	//if(modrm < 0xc0) {
-	//	FAULT(FAULT_UD, 0);
-	//	return;
-	//}
-	if((PROTECTED_MODE && (/*(V8086_MODE) || */(cpustate->CPL != 0)))) {
+	UINT8 modrm = FETCH(cpustate);
+	if(modrm < 0xc0) {
+		FAULT(FAULT_UD, 0);
+		return;
+	}
+	if((PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)))) {
 		logerror("Call from non-supervisor privilege: I386OP(mov_r32_dr)"); 
 		FAULT(FAULT_GP, 0);
+		return;
 	}
 	if((cpustate->dr[7] & I386_DR7_GD) != 0) {
 		cpustate->dr[6] |= I386_DR6_BD;
 		cpustate->dr[7] &= ~I386_DR7_GD;
 		FAULT(FAULT_DB, 0);
 	}
-	UINT8 modrm = FETCH(cpustate);
 	UINT8 dr = (modrm >> 3) & 0x7;
 	logdebug("MOV r32 DR%d VAL=(%08X)\n", dr, cpustate->dr[dr]);
 
@@ -754,16 +761,18 @@ static void I386OP(mov_r32_dr)(i386_state *cpustate)        // Opcode 0x0f 21
 
 static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 {
-	//if(modrm < 0xc0) {
-	//	FAULT(FAULT_UD, 0);
-	//	return;
-	//}
 	UINT32 oldpc = cpustate->pc;
-	if((PROTECTED_MODE && (/*(V8086_MODE) || */(cpustate->CPL != 0)))) {
-		logerror("Call from non-supervisor privilege: I386OP(mov_cr_r32)"); 
-		FAULT(FAULT_GP, 0);
-	}
 	UINT8 modrm = FETCH(cpustate);
+	if(modrm < 0xc0) {
+		FAULT(FAULT_UD, 0);
+		return;
+	}
+	if(PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0))) {
+		logerror("Call from non-supervisor privilege: I386OP(mov_cr_r32) at %08X", oldpc); 
+		FAULT(FAULT_GP, 0);
+		return;
+	}
+
 	UINT8 cr = (modrm >> 3) & 0x7;
 	UINT32 data = LOAD_RM32(modrm);
 	UINT32 data_bak;
@@ -786,10 +795,10 @@ static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 			data &= ~I386_CR0_WP; // wp not supported on 386
 			//logdebug("MOV CR0,xxxxh %08x -> %08x \n", data_bak, data);
 			// ToDo: FPU
-			data |= I386_CR0_ET;	/* FPU present */
-			data &= ~I386_CR0_EM;
-			//data |= I386_CR0_EM | I386_CR0_NE;
-			//data &= ~(I386_CR0_MP | I386_CR0_ET);
+			//data |= I386_CR0_ET;	/* FPU present */
+			//data &= ~I386_CR0_EM;
+			data |= I386_CR0_EM | I386_CR0_NE;
+			data &= ~(I386_CR0_MP | I386_CR0_ET);
 //			//cpustate->cr[0] = data & ~(I386_CR0_PE | I386_CR0_PG);
 #endif			
 			cpustate->cr[0] = data;
@@ -818,6 +827,11 @@ static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 #endif
 			return;
 			break;
+		case 1:
+			FAULT(FAULT_UD, 0);
+			return;
+			break;
+
 		case 2: CYCLES(cpustate,CYCLES_MOV_REG_CR2); break;
 		case 3:
 			CYCLES(cpustate,CYCLES_MOV_REG_CR3);
@@ -861,20 +875,21 @@ static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 
 static void I386OP(mov_dr_r32)(i386_state *cpustate)        // Opcode 0x0f 23
 {
-	//if(modrm < 0xc0) {
-	//	FAULT(FAULT_UD, 0);
-	//	return;
-	//}
+	UINT8 modrm = FETCH(cpustate);
+	if(modrm < 0xc0) {
+		FAULT(FAULT_UD, 0);
+		return;
+	}
 	if((PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)))) {
 		logerror("Call from non-supervisor privilege: I386OP(mov_dr_r32)"); 
 		FAULT(FAULT_GP, 0);
+		return;
 	}
 	if ((cpustate->dr[7] & I386_DR7_GD) != 0){
 		cpustate->dr[6] |= I386_DR6_BD;
 		cpustate->dr[7] &= ~I386_DR7_GD;
 		FAULT(FAULT_DB, 0);
 	}
-	UINT8 modrm = FETCH(cpustate);
 	UINT8 dr = (modrm >> 3) & 0x7;
 	UINT32 data =  LOAD_RM32(modrm);
 	logdebug("MOV DR%d r32 (VAL=%08X)\n", dr, data);
@@ -1145,8 +1160,10 @@ static void I386OP(arpl)(i386_state *cpustate)           // Opcode 0x63
 		}
 		SetZF(flag);
 	}
-	else
+	else {
+		report_invalid_opcode(cpustate);
 		i386_trap(cpustate, 6, 0, 0);  // invalid opcode in real mode or v8086 mode
+	}
 }
 
 static void I386OP(push_i8)(i386_state *cpustate)           // Opcode 0x6a
@@ -1824,6 +1841,7 @@ static void I386OP(sti)(i386_state *cpustate)               // Opcode 0xfb
 		if(cpustate->CPL > IOPL) {
 			logerror("Privilege error: I386OP(sti) CPL=%d IOPL=%d\n", cpustate->CPL, IOPL); 
 			FAULT(FAULT_GP,0);
+			return;
 		}
 	}
 	cpustate->delayed_interrupt_enable = 1;  // IF is set after the next instruction.
@@ -2307,7 +2325,8 @@ static void I386OP(groupF6_8)(i386_state *cpustate)         // Opcode 0xf6
 							cpustate->CF = 1;
 					}
 				} else {
-					i386_trap(cpustate, 0, 0, 0);
+					//i386_trap(cpustate, 0, 0, 0);
+					FAULT(FAULT_DE, 0);
 				}
 			}
 			break;
@@ -2339,7 +2358,8 @@ static void I386OP(groupF6_8)(i386_state *cpustate)         // Opcode 0xf6
 							cpustate->CF = 1;
 					}
 				} else {
-					i386_trap(cpustate, 0, 0, 0);
+					FAULT(FAULT_DE, 0);
+					//i386_trap(cpustate, 0, 0, 0);
 				}
 			}
 			break;
@@ -2580,6 +2600,9 @@ static void I386OP(hlt)(i386_state *cpustate)               // Opcode 0xf4
 	if(PROTECTED_MODE && cpustate->CPL != 0) {
 		logerror("Call from no-supervisor privilege: I386OP(hlt)");
 		FAULT(FAULT_GP,0);
+		//cpustate->eip++;
+		//cpustate->pc++;
+		//return;
 	}
 	cpustate->halted = 1;
 	CYCLES(cpustate,CYCLES_HLT);
@@ -2676,7 +2699,8 @@ static void I386OP(aam)(i386_state *cpustate)               // Opcode 0xd4
 
 	if(!i)
 	{
-		i386_trap(cpustate, 0, 0, 0);
+		FAULT(FAULT_DE, 0);
+		//i386_trap(cpustate, 0, 0, 0);
 		return;
 	}
 	REG8(AH) = tempAL / i;
@@ -2691,6 +2715,7 @@ static void I386OP(clts)(i386_state *cpustate)              // Opcode 0x0f 0x06
 	if(PROTECTED_MODE && cpustate->CPL != 0) {
 		logerror("Call from non-supervisor privilege: I386OP(clts)"); 
 		FAULT(FAULT_GP,0)
+		return;
 	}
 	cpustate->cr[0] &= ~0x08;   /* clear TS bit */
 	CYCLES(cpustate,CYCLES_CLTS);
@@ -2726,6 +2751,7 @@ static void I386OP(loadall)(i386_state *cpustate)       // Opcode 0x0f 0x07 (0x0
 	if(PROTECTED_MODE && (cpustate->CPL != 0)) {
 		logerror("Call from non-supervisor privilege: I386OP(loadall)"); 
 		FAULT(FAULT_GP,0)
+		return;
 	}
 	logerror("LOADALL CS=%04X EIP=%08X PC=%08X\n", cpustate->sreg[CS].selector, cpustate->eip, cpustate->pc);
 	UINT32 ea = i386_translate(cpustate, ES, REG32(EDI), 0, 204);

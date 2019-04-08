@@ -2756,7 +2756,8 @@ static void I386OP(groupF7_32)(i386_state *cpustate)        // Opcode 0xf7
 						REG32(EAX) = (UINT32)result;
 					}
 				} else {
-					i386_trap(cpustate, 0, 0, 0);
+					FAULT(FAULT_DE, 0);
+					//i386_trap(cpustate, 0, 0, 0);
 				}
 			}
 			break;
@@ -2784,7 +2785,8 @@ static void I386OP(groupF7_32)(i386_state *cpustate)        // Opcode 0xf7
 						REG32(EAX) = (UINT32)result;
 					}
 				} else {
-					i386_trap(cpustate, 0, 0, 0);
+					FAULT(FAULT_DE, 0);
+					//i386_trap(cpustate, 0, 0, 0);
 				}
 			}
 			break;
@@ -2960,6 +2962,7 @@ static void I386OP(group0F00_32)(i386_state *cpustate)          // Opcode 0x0f 0
 			}
 			else
 			{
+				logerror("i386: SLDT: Exception - Running in real mode or virtual 8086 mode.\n");
 				i386_trap(cpustate,6, 0, 0);
 			}
 			break;
@@ -2977,6 +2980,7 @@ static void I386OP(group0F00_32)(i386_state *cpustate)          // Opcode 0x0f 0
 			}
 			else
 			{
+				logerror("i386: STR: Exception - Running in real mode or virtual 8086 mode.\n");
 				i386_trap(cpustate,6, 0, 0);
 			}
 			break;
@@ -3005,6 +3009,7 @@ static void I386OP(group0F00_32)(i386_state *cpustate)          // Opcode 0x0f 0
 			}
 			else
 			{
+				logerror("i386: LLDT: Exception - Running in real mode or virtual 8086 mode.\n");
 				i386_trap(cpustate,6, 0, 0);
 			}
 			break;
@@ -3037,6 +3042,7 @@ static void I386OP(group0F00_32)(i386_state *cpustate)          // Opcode 0x0f 0
 			}
 			else
 			{
+				logerror("i386: LTR: Exception - Running in real mode or virtual 8086 mode.\n");
 				i386_trap(cpustate,6, 0, 0);
 			}
 			break;
@@ -3490,8 +3496,10 @@ static void I386OP(lsl_r32_rm32)(i386_state *cpustate)  // Opcode 0x0f 0x03
 			}
 		}
 	}
-	else
+	else {
+		logerror("i386: LSL: Exception - Running in real mode or virtual 8086 mode.\n");
 		i386_trap(cpustate,6, 0, 0);
+	}
 }
 
 static void I386OP(bound_r32_m32_m32)(i386_state *cpustate) // Opcode 0x62
