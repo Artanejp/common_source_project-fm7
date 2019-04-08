@@ -360,6 +360,40 @@ void MEMORY::unset_memory_w(uint32_t start, uint32_t end)
 	}
 }
 
+void MEMORY::copy_table_w(uint32_t to, uint32_t start, uint32_t end)
+{
+	MEMORY::initialize();
+
+	uint32_t to_bank = to >> addr_shift;
+	uint32_t start_bank = start >> addr_shift;
+	uint32_t end_bank = end >> addr_shift;
+
+	for(uint32_t i = start_bank; i <= end_bank; i++) {
+		if(to_bank >= bank_size) break;
+		if(i >= bank_size) break;
+		wr_table[to_bank].dev = wr_table[i].dev;
+		wr_table[to_bank].memory = wr_table[i].memory;
+		to_bank++;
+	}
+}
+
+void MEMORY::copy_table_r(uint32_t to, uint32_t start, uint32_t end)
+{
+	MEMORY::initialize();
+
+	uint32_t to_bank = to >> addr_shift;
+	uint32_t start_bank = start >> addr_shift;
+	uint32_t end_bank = end >> addr_shift;
+
+	for(uint32_t i = start_bank; i <= end_bank; i++) {
+		if(to_bank >= bank_size) break;
+		if(i >= bank_size) break;
+		rd_table[to_bank].dev = rd_table[i].dev;
+		rd_table[to_bank].memory = rd_table[i].memory;
+		to_bank++;
+	}
+}
+
 // load/save image
 
 int MEMORY::read_bios(const _TCHAR *file_name, uint8_t *buffer, int size)

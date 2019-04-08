@@ -106,6 +106,12 @@ public:
 		unset_memory_r(start, end);
 		unset_memory_w(start, end);
 	}
+	void copy_table_r(uint32_t to, uint32_t start, uint32_t end);
+	void copy_table_w(uint32_t to, uint32_t start, uint32_t end);
+	void copy_table_rw(uint32_t to, uint32_t start, uint32_t end) {
+		copy_table_r(to, start, end);
+		copy_table_w(to, start, end);
+	}
 	int read_bios(const _TCHAR *file_name, uint8_t *buffer, int size);
 	bool write_bios(const _TCHAR *file_name, uint8_t *buffer, int size);
 	bool read_image(const _TCHAR *file_path, uint8_t *buffer, int size);
