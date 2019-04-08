@@ -260,6 +260,7 @@ void DISPLAY::initialize()
 	
 //	memset(tvram, 0, sizeof(tvram));
 	memset(vram, 0, sizeof(vram));
+	vram_draw   = vram + 0x00000;
 	
 // WIP: MEMSW
 	bool memsw_stat = false;
@@ -497,6 +498,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 	case 0x00a6:
 #endif
 		grcg_tile[grcg_tile_ptr] = data;
+		grcg_tile_word[grcg_tile_ptr] = grcg_tile[grcg_tile_ptr] | ((uint16_t)(grcg_tile[grcg_tile_ptr]) << 8);
 		grcg_tile_ptr = (grcg_tile_ptr + 1) & 3;
 		break;
 #endif
@@ -769,15 +771,173 @@ uint32_t DISPLAY::read_io8(uint32_t addr)
 void DISPLAY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	addr = addr & 0x000fffff; // For 32bit
-	if(TVRAM_ADDRESS <= addr && addr < (TVRAM_ADDRESS + 0x3fe2)) {
-		tvram[addr - TVRAM_ADDRESS] = data;
-	} else if((TVRAM_ADDRESS + 0x3fe2) <= addr && addr < (TVRAM_ADDRESS + 0x4000)) {
-		// memory switch
-		if(modereg1[MODE1_MEMSW]) {
+	uint32_t naddr = (addr & 0xf8000) >> 12;
+	bool is_tvram = false;
+	switch(naddr) {
+#if !defined(SUPPORT_HIRESO)
+	case 0xa0: // TVRAM_ADDRESS >> 12
+		is_tvram = true;
+		break;
+	case 0xa8:
+	case 0xb0:
+	case 0xb8:
+		write_dma_io8(addr - 0xa0000, data);
+		return;
+		break;
+	#if defined(SUPPORT_16_COLORS)
+	case 0xe0:
+		write_dma_io8(addr - 0xe0000, data);
+		return;
+		break;
+	#endif
+#else
+	case 0xc0:
+	case 0xc8:
+	case 0xd0:
+	case 0xd8:
+		write_dma_io8(addr - 0xc0000, data);
+		return;
+		break;
+	case 0xe0:
+		is_tvram = true;
+		break;
+#endif
+	}
+	if(is_tvram) {
+		if(TVRAM_ADDRESS <= addr && addr < (TVRAM_ADDRESS + 0x3fe2)) {
 			tvram[addr - TVRAM_ADDRESS] = data;
+		} else if((TVRAM_ADDRESS + 0x3fe2) <= addr && addr < (TVRAM_ADDRESS + 0x4000)) {
+			// memory switch
+			if(modereg1[MODE1_MEMSW]) {
+				tvram[addr - TVRAM_ADDRESS] = data;
+			}
+		} else if((TVRAM_ADDRESS + 0x4000) <= addr && addr < (TVRAM_ADDRESS + 0x5000)) {
+			if((font_code & 0x7e) == 0x56) {
+				/* FIXME: need to fix for hireso */
+				uint32_t low = 0x7fff0, high;
+				uint8_t code = font_code & 0x7f;
+				uint16_t lr = ((~font_line) & 0x20) << 6;
+				if(!(font_code & 0xff00)) {
+					high = 0x80000 + (font_code << 4);
+					if(!modereg1[MODE1_FONTSEL]) {
+						high += 0x2000;
+					}
+				} else {
+					high = (font_code & 0x7f7f) << 4;
+					if(code >= 0x56 && code < 0x58) {
+						high += lr;
+					} else if(code >= 0x09 && code < 0x0c) {
+						if(lr) {
+							high = low;
+						}
+					} else if((code >= 0x0c && code < 0x10) || (code >= 0x58 && code < 0x60)) {
+						high += lr;
+					} else {
+						low = high;
+						high += 0x800;
+					}
+				}
+				if(addr & 1) {
+					font[high + ((addr >> 1) & 0x0f)] = data;
+				} else {
+					font[low  + ((addr >> 1) & 0x0f)] = data;
+				}
+			}
 		}
-	} else if((TVRAM_ADDRESS + 0x4000) <= addr && addr < (TVRAM_ADDRESS + 0x5000)) {
-		if((font_code & 0x7e) == 0x56) {
+	}
+}
+
+void DISPLAY::write_memory_mapped_io16(uint32_t addr, uint32_t data)
+{
+	addr = addr & 0x000fffff; // For 32bit
+	uint32_t naddr = (addr & 0xf8000) >> 12;
+	bool is_tvram = false;
+	switch(naddr) {
+#if !defined(SUPPORT_HIRESO)
+	case 0xa0: // TVRAM_ADDRESS >> 12
+		is_tvram = true;
+		break;
+	case 0xa8:
+	case 0xb0:
+	case 0xb8:
+		write_dma_io16(addr - 0xa0000, data);
+		return;
+		break;
+	#if defined(SUPPORT_16_COLORS)
+	case 0xe0:
+		write_dma_io16(addr - 0xe0000, data);
+		return;
+		break;
+	#endif
+#else
+	case 0xc0:
+	case 0xc8:
+	case 0xd0:
+	case 0xd8:
+		write_dma_io16(addr - 0xc0000, data);
+		return;
+		break;
+	case 0xe0:
+		is_tvram = true;
+		break;
+#endif
+	}
+	if(is_tvram) {
+		if(TVRAM_ADDRESS <= addr && addr < (TVRAM_ADDRESS + 0x3fe2)) {
+			*(uint16_t *)(&tvram[addr - TVRAM_ADDRESS]) = data;
+		} else if((TVRAM_ADDRESS + 0x3fe2) <= addr && addr < (TVRAM_ADDRESS + 0x4000)) {
+			// memory switch
+			if(modereg1[MODE1_MEMSW]) {
+				*(uint16_t *)(&tvram[addr - TVRAM_ADDRESS]) = data;
+			}
+		} else if((TVRAM_ADDRESS + 0x4000) <= addr && addr < (TVRAM_ADDRESS + 0x5000)) {
+			write_memory_mapped_io8(addr + 0, (data >> 0) & 0xff);
+			write_memory_mapped_io8(addr + 1, (data >> 8) & 0xff);
+		}
+	}
+}
+
+uint32_t DISPLAY::read_memory_mapped_io8(uint32_t addr)
+{
+	addr = addr & 0x000fffff; // For 32bit
+	uint32_t naddr = (addr & 0xf8000) >> 12;
+	bool is_tvram = false;
+	switch(naddr) {
+#if !defined(SUPPORT_HIRESO)
+	case 0xa0: // TVRAM_ADDRESS >> 12
+		is_tvram = true;
+		break;
+	case 0xa8:
+	case 0xb0:
+	case 0xb8:
+		return read_dma_io8(addr - 0xa0000);
+		break;
+	#if defined(SUPPORT_16_COLORS)
+	case 0xe0:
+		return read_dma_io8(addr - 0xe0000);
+		break;
+	#endif
+#else
+	case 0xc0:
+	case 0xc8:
+	case 0xd0:
+	case 0xd8:
+		return read_dma_io8(addr - 0xc0000);
+		break;
+	case 0xe0:
+		is_tvram = true;
+		break;
+#endif
+	}
+	if(is_tvram) {
+		if(TVRAM_ADDRESS <= addr && addr < (TVRAM_ADDRESS + 0x2000)) {
+			return tvram[addr - TVRAM_ADDRESS];
+		} else if((TVRAM_ADDRESS + 0x2000) <= addr && addr < (TVRAM_ADDRESS + 0x4000)) {
+			if(addr & 1) {
+				return 0xff;
+			}
+			return tvram[addr - TVRAM_ADDRESS];
+		} else if((TVRAM_ADDRESS + 0x4000) <= addr && addr < (TVRAM_ADDRESS + 0x5000)) {
 			/* FIXME: need to fix for hireso */
 			uint32_t low = 0x7fff0, high;
 			uint8_t code = font_code & 0x7f;
@@ -803,128 +963,58 @@ void DISPLAY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 				}
 			}
 			if(addr & 1) {
-				font[high + ((addr >> 1) & 0x0f)] = data;
+				return font[high + ((addr >> 1) & 0x0f)];
 			} else {
-				font[low  + ((addr >> 1) & 0x0f)] = data;
+				return font[low  + ((addr >> 1) & 0x0f)];
 			}
 		}
-#if !defined(SUPPORT_HIRESO)
-	} else if(0xa8000 <= addr && addr < 0xc0000) {
-		write_dma_io8(addr - 0xa0000, data);
-#if defined(SUPPORT_16_COLORS)
-	} else if(0xe0000 <= addr && addr < 0xe8000) {
-		write_dma_io8(addr - 0xe0000, data);
-#endif
-#else
-	} else if(0xc0000 <= addr && addr < 0xe0000) {
-		write_dma_io8(addr - 0xc0000, data);
-#endif
-	}
-}
-
-void DISPLAY::write_memory_mapped_io16(uint32_t addr, uint32_t data)
-{
-	addr = addr & 0x000fffff; // For 32bit
-	if(TVRAM_ADDRESS <= addr && addr < (TVRAM_ADDRESS + 0x3fe2)) {
-		*(uint16_t *)(&tvram[addr - TVRAM_ADDRESS]) = data;
-	} else if((TVRAM_ADDRESS + 0x3fe2) <= addr && addr < (TVRAM_ADDRESS + 0x4000)) {
-		// memory switch
-		if(modereg1[MODE1_MEMSW]) {
-			*(uint16_t *)(&tvram[addr - TVRAM_ADDRESS]) = data;
-		}
-	} else if((TVRAM_ADDRESS + 0x4000) <= addr && addr < (TVRAM_ADDRESS + 0x5000)) {
-		write_memory_mapped_io8(addr + 0, (data >> 0) & 0xff);
-		write_memory_mapped_io8(addr + 1, (data >> 8) & 0xff);
-#if !defined(SUPPORT_HIRESO)
-	} else if(0xa8000 <= addr && addr < 0xc0000) {
-		write_dma_io16(addr - 0xa0000, data);
-#if defined(SUPPORT_16_COLORS)
-	} else if(0xe0000 <= addr && addr < 0xe8000) {
-		write_dma_io16(addr - 0xe0000, data);
-#endif
-#else
-	} else if(0xc0000 <= addr && addr < 0xe0000) {
-		write_dma_io16(addr - 0xc0000, data);
-#endif
-	}
-}
-
-uint32_t DISPLAY::read_memory_mapped_io8(uint32_t addr)
-{
-	if(TVRAM_ADDRESS <= addr && addr < (TVRAM_ADDRESS + 0x2000)) {
-		return tvram[addr - TVRAM_ADDRESS];
-	} else if((TVRAM_ADDRESS + 0x2000) <= addr && addr < (TVRAM_ADDRESS + 0x4000)) {
-		if(addr & 1) {
-			return 0xff;
-		}
-		return tvram[addr - TVRAM_ADDRESS];
-	} else if((TVRAM_ADDRESS + 0x4000) <= addr && addr < (TVRAM_ADDRESS + 0x5000)) {
-		/* FIXME: need to fix for hireso */
-		uint32_t low = 0x7fff0, high;
-		uint8_t code = font_code & 0x7f;
-		uint16_t lr = ((~font_line) & 0x20) << 6;
-		if(!(font_code & 0xff00)) {
-			high = 0x80000 + (font_code << 4);
-			if(!modereg1[MODE1_FONTSEL]) {
-				high += 0x2000;
-			}
-		} else {
-			high = (font_code & 0x7f7f) << 4;
-			if(code >= 0x56 && code < 0x58) {
-				high += lr;
-			} else if(code >= 0x09 && code < 0x0c) {
-				if(lr) {
-					high = low;
-				}
-			} else if((code >= 0x0c && code < 0x10) || (code >= 0x58 && code < 0x60)) {
-				high += lr;
-			} else {
-				low = high;
-				high += 0x800;
-			}
-		}
-		if(addr & 1) {
-			return font[high + ((addr >> 1) & 0x0f)];
-		} else {
-			return font[low  + ((addr >> 1) & 0x0f)];
-		}
-#if !defined(SUPPORT_HIRESO)
-	} else if(0xa8000 <= addr && addr < 0xc0000) {
-		return read_dma_io8(addr - 0xa0000);
-#if defined(SUPPORT_16_COLORS)
-	} else if(0xe0000 <= addr && addr < 0xe8000) {
-		return read_dma_io8(addr - 0xe0000);
-#endif
-#else
-	} else if(0xc0000 <= addr && addr < 0xe0000) {
-		return read_dma_io8(addr - 0xc0000);
-#endif
 	}
 	return 0xff;
 }
 
 uint32_t DISPLAY::read_memory_mapped_io16(uint32_t addr)
 {
-	if(TVRAM_ADDRESS <= addr && addr < (TVRAM_ADDRESS + 0x2000)) {
-		return *(uint16_t *)(&tvram[addr - TVRAM_ADDRESS]);
-	} else if((TVRAM_ADDRESS + 0x2000) <= addr && addr < (TVRAM_ADDRESS + 0x4000)) {
-		if(addr & 1) {
-			return 0xffff;
-		}
-		return *(uint16_t *)(&tvram[addr - TVRAM_ADDRESS]);
-	} else if((TVRAM_ADDRESS + 0x4000) <= addr && addr < (TVRAM_ADDRESS + 0x5000)) {
-		return read_memory_mapped_io8(addr) | (read_memory_mapped_io8(addr + 1) << 8);
+	addr = addr & 0x000fffff; // For 32bit
+	uint32_t naddr = (addr & 0xf8000) >> 12;
+	bool is_tvram = false;
+	switch(naddr) {
 #if !defined(SUPPORT_HIRESO)
-	} else if(0xa8000 <= addr && addr < 0xc0000) {
+	case 0xa0: // TVRAM_ADDRESS >> 12
+		is_tvram = true;
+		break;
+	case 0xa8:
+	case 0xb0:
+	case 0xb8:
 		return read_dma_io16(addr - 0xa0000);
-#if defined(SUPPORT_16_COLORS)
-	} else if(0xe0000 <= addr && addr < 0xe8000) {
+		break;
+	#if defined(SUPPORT_16_COLORS)
+	case 0xe0:
 		return read_dma_io16(addr - 0xe0000);
-#endif
+		break;
+	#endif
 #else
-	} else if(0xc0000 <= addr && addr < 0xe0000) {
+	case 0xc0:
+	case 0xc8:
+	case 0xd0:
+	case 0xd8:
 		return read_dma_io16(addr - 0xc0000);
+		break;
+	case 0xe0:
+		is_tvram = true;
+		break;
 #endif
+	}
+	if(is_tvram) {
+		if(TVRAM_ADDRESS <= addr && addr < (TVRAM_ADDRESS + 0x2000)) {
+			return *(uint16_t *)(&tvram[addr - TVRAM_ADDRESS]);
+		} else if((TVRAM_ADDRESS + 0x2000) <= addr && addr < (TVRAM_ADDRESS + 0x4000)) {
+			if(addr & 1) {
+				return 0xffff;
+			}
+			return *(uint16_t *)(&tvram[addr - TVRAM_ADDRESS]);
+		} else if((TVRAM_ADDRESS + 0x4000) <= addr && addr < (TVRAM_ADDRESS + 0x5000)) {
+			return read_memory_mapped_io8(addr) | (read_memory_mapped_io8(addr + 1) << 8);
+		}
 	}
 	return 0xffff;
 }
@@ -958,7 +1048,16 @@ void DISPLAY::write_dma_io16(uint32_t addr, uint32_t data)
 		grcg_writew(addr, data);
 	} else
 #endif
-	*(uint16_t *)(&vram_draw[addr & 0x1ffff]) = data;
+	{
+		if((addr & 0x1ffff) == 0x1ffff) { // OK?
+			pair16_t d;
+			d.w = (uint16_t)data;
+			vram_draw[0x1ffff] = d.b.l;
+			vram_draw[0x00000] = d.b.h;
+		} else {
+			*(uint16_t *)(&vram_draw[addr & 0x1ffff]) = data;
+		}
+	}
 }
 
 uint32_t DISPLAY::read_dma_io8(uint32_t addr)
@@ -988,7 +1087,16 @@ uint32_t DISPLAY::read_dma_io16(uint32_t addr)
 		return grcg_readw(addr);
 	}
 #endif
-	return *(uint16_t *)(&vram_draw[addr & 0x1ffff]);
+	{
+		if((addr & 0x1ffff) == 0x1ffff) {
+			pair16_t d;
+			d.w = 0;
+			d.b.l = vram_draw[0x1ffff];
+			d.b.h = vram_draw[0x00000];
+			return (uint32_t)(d.w);
+		}
+		return *(uint16_t *)(&vram_draw[addr & 0x1ffff]);
+	}
 }
 
 // GRCG
@@ -1000,6 +1108,38 @@ void DISPLAY::grcg_writeb(uint32_t addr1, uint32_t data)
 	
 	if(grcg_mode & GRCG_RW_MODE) {
 		// RMW
+#if 1
+		const uint32_t plane_offset[4] = {addr | VRAM_PLANE_ADDR_0, addr | VRAM_PLANE_ADDR_1, addr | VRAM_PLANE_ADDR_2, addr | VRAM_PLANE_ADDR_3};
+		__DECL_ALIGNED(4) uint8_t plane_data[4] = {0};
+		__DECL_ALIGNED(4) uint8_t mask_data[4];
+		__DECL_ALIGNED(4) uint8_t bit_data[4];
+		uint8_t mask_bit = 1;
+		uint8_t* p = vram_draw;
+		for(int i = 0; i < 4; i++) {
+			plane_data[i] = p[plane_offset[i]];
+		}
+		
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			mask_data[i] =  ((grcg_mode & mask_bit) == 0) ? ~data : 0xff;
+			bit_data[i] = ((grcg_mode & mask_bit) == 0) ? grcg_tile[i] & data : 0x00;
+			mask_bit <<= 1;
+		}
+		
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			plane_data[i] = plane_data[i] & mask_data[i];
+			plane_data[i] = plane_data[i] | bit_data[i];
+		}
+		mask_bit = 1;
+		for(int i = 0; i < 4; i++) {
+			if((grcg_mode & mask_bit) == 0) {
+				p[plane_offset[i]] = plane_data[i];
+			}
+			mask_bit <<= 1;
+		}
+#else
+		
 		if(!(grcg_mode & GRCG_PLANE_0)) {
 			vram_draw[addr | VRAM_PLANE_ADDR_0] &= ~data;
 			vram_draw[addr | VRAM_PLANE_ADDR_0] |= grcg_tile[0] & data;
@@ -1016,8 +1156,21 @@ void DISPLAY::grcg_writeb(uint32_t addr1, uint32_t data)
 			vram_draw[addr | VRAM_PLANE_ADDR_3] &= ~data;
 			vram_draw[addr | VRAM_PLANE_ADDR_3] |= grcg_tile[3] & data;
 		}
+#endif		
 	} else {
 		// TDW
+		const uint32_t plane_offset[4] = {addr | VRAM_PLANE_ADDR_0, addr | VRAM_PLANE_ADDR_1, addr | VRAM_PLANE_ADDR_2, addr | VRAM_PLANE_ADDR_3};
+#if 1
+		uint8_t mask_bit = 1;
+		uint8_t* p = vram_draw;
+		for(int i = 0; i < 4; i++) {
+			if((grcg_mode & mask_bit) == 0) {
+				p[plane_offset[i]] = grcg_tile[i];
+			}
+			mask_bit <<= 1;
+		}
+#else
+		
 		if(!(grcg_mode & GRCG_PLANE_0)) {
 			vram_draw[addr | VRAM_PLANE_ADDR_0] = grcg_tile[0];
 		}
@@ -1030,13 +1183,62 @@ void DISPLAY::grcg_writeb(uint32_t addr1, uint32_t data)
 		if(!(grcg_mode & GRCG_PLANE_3)) {
 			vram_draw[addr | VRAM_PLANE_ADDR_3] = grcg_tile[3];
 		}
+#endif
 	}
 }
 
 void DISPLAY::grcg_writew(uint32_t addr1, uint32_t data)
 {
-	grcg_writeb(addr1 + 0, (data >> 0) & 0xff);
-	grcg_writeb(addr1 + 1, (data >> 8) & 0xff);
+	if((addr1 & 1) != 0) {
+		grcg_writeb(addr1 + 0, (data >> 0) & 0xff);
+		grcg_writeb(addr1 + 1, (data >> 8) & 0xff);
+	} else {
+		uint32_t addr = addr1 & VRAM_PLANE_ADDR_MASK;
+		if(grcg_mode & GRCG_RW_MODE) {
+			// RMW
+			const uint32_t plane_offset[4] = {(addr | VRAM_PLANE_ADDR_0) / 2, (addr | VRAM_PLANE_ADDR_1) / 2, (addr | VRAM_PLANE_ADDR_2) / 2, (addr | VRAM_PLANE_ADDR_3) / 2};
+			__DECL_ALIGNED(8) uint16_t plane_data[4] = {0};
+			__DECL_ALIGNED(8) uint16_t mask_data[4];
+			__DECL_ALIGNED(8) uint16_t bit_data[4];
+			uint8_t mask_bit = 1;
+			uint16_t* p = (uint16_t*)vram_draw;
+			for(int i = 0; i < 4; i++) {
+				plane_data[i] = p[plane_offset[i]];
+			}
+		
+		__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < 4; i++) {
+				mask_data[i] =  ((grcg_mode & mask_bit) == 0) ? ~data : 0xffff;
+				bit_data[i] = ((grcg_mode & mask_bit) == 0) ? grcg_tile_word[i] & data : 0x0000;
+				mask_bit <<= 1;
+			}
+		
+		__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < 4; i++) {
+				plane_data[i] = plane_data[i] & mask_data[i];
+				plane_data[i] = plane_data[i] | bit_data[i];
+			}
+			mask_bit = 1;
+			for(int i = 0; i < 4; i++) {
+				if((grcg_mode & mask_bit) == 0) {
+					p[plane_offset[i]] = plane_data[i];
+				}
+				mask_bit <<= 1;
+			}
+		} else {
+			// TDW
+			const uint32_t plane_offset[4] = {(addr | VRAM_PLANE_ADDR_0) / 2, (addr | VRAM_PLANE_ADDR_1) / 2, (addr | VRAM_PLANE_ADDR_2) / 2, (addr | VRAM_PLANE_ADDR_3) / 2};
+			uint16_t* p = (uint16_t*)vram_draw;
+			uint8_t mask_bit = 1;
+			for(int i = 0; i < 4; i++) {
+				if((grcg_mode & mask_bit) == 0) {
+					p[plane_offset[i]] = grcg_tile_word[i];
+				}
+				mask_bit <<= 1;
+			}
+		}
+	
+	}
 }
 
 uint32_t DISPLAY::grcg_readb(uint32_t addr1)
@@ -1052,8 +1254,32 @@ uint32_t DISPLAY::grcg_readb(uint32_t addr1)
 	} else {
 		// TCR
 		uint32_t addr = addr1 & VRAM_PLANE_ADDR_MASK;
+		const uint32_t plane_offset[4] = {addr | VRAM_PLANE_ADDR_0, addr | VRAM_PLANE_ADDR_1, addr | VRAM_PLANE_ADDR_2, addr | VRAM_PLANE_ADDR_3};
 		uint8_t data = 0;
-		
+		__DECL_ALIGNED(4) uint8_t dsum[4] = {0};
+		uint8_t* p = vram_draw;
+		uint8_t bit = 1;
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			if((grcg_mode & bit) == 0) {
+				dsum[i] = p[plane_offset[i]];
+			}
+			bit <<= 1;
+		}
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			dsum[i] ^= grcg_tile[i];
+		}
+
+		bit = 1;
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			if((grcg_mode & bit) == 0) {
+				data |= dsum[i];
+			}
+			bit <<= 1;
+		}
+	/*
 		if(!(grcg_mode & GRCG_PLANE_0)) {
 			data |= vram_draw[addr | VRAM_PLANE_ADDR_0] ^ grcg_tile[0];
 		}
@@ -1066,13 +1292,56 @@ uint32_t DISPLAY::grcg_readb(uint32_t addr1)
 		if(!(grcg_mode & GRCG_PLANE_3)) {
 			data |= vram_draw[addr | VRAM_PLANE_ADDR_3] ^ grcg_tile[3];
 		}
+	*/
 		return data ^ 0xff;
 	}
 }
 
 uint32_t DISPLAY::grcg_readw(uint32_t addr1)
 {
-	return grcg_readb(addr1) | (grcg_readb(addr1 + 1) << 8);
+	if((addr1 & 1) != 0) {
+		return grcg_readb(addr1) | (grcg_readb(addr1 + 1) << 8);
+	} else {
+		if(grcg_mode & GRCG_RW_MODE) {
+		// VRAM
+			uint16_t* p = (uint16_t*)(&(vram[addr1 & 0x1ffff]));
+#if !defined(SUPPORT_HIRESO)
+			return *p;
+#else
+			int plane = (grcg_mode >> 4) & 3;
+			return p[(0x10000 * plane)];
+#endif
+		} else {
+			// TCR
+			uint32_t addr = addr1 & VRAM_PLANE_ADDR_MASK;
+			const uint32_t plane_offset[4] = {(addr | VRAM_PLANE_ADDR_0) / 2, (addr | VRAM_PLANE_ADDR_1) / 2, (addr | VRAM_PLANE_ADDR_2) / 2, (addr | VRAM_PLANE_ADDR_3) / 2};
+			uint16_t data = 0;
+			__DECL_ALIGNED(8) uint16_t dsum[4] = {0};
+			uint16_t* p = (uint16_t*)vram_draw;
+			uint8_t bit = 1;
+		__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < 4; i++) {
+				if((grcg_mode & bit) == 0) {
+					dsum[i] = p[plane_offset[i]];
+				}
+				bit <<= 1;
+			}
+		__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < 4; i++) {
+				dsum[i] ^= grcg_tile_word[i];
+			}
+
+			bit = 1;
+		__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < 4; i++) {
+				if((grcg_mode & bit) == 0) {
+					data |= dsum[i];
+				}
+				bit <<= 1;
+			}
+			return data ^ 0xffff;
+		}
+	}
 }
 #endif
 
@@ -2718,6 +2987,11 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 		} else {
 			vram_draw = vram + 0x00000;
 		}
+	#if defined(SUPPORT_GRCG)
+		for(int i = 0; i < 4; i++) {
+			grcg_tile_word[i] = ((uint16_t)(grcg_tile[i]) << 8) | grcg_tile[i];
+		}
+	#endif
  	}
 #endif
  	return true;

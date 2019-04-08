@@ -486,144 +486,87 @@ uint32_t MEMBUS::read_io8(uint32_t addr)
 
 uint32_t MEMBUS::read_data8(uint32_t addr)
 {
-#if defined(SUPPORT_32BIT_ADDRESS)
-	if((addr >= 0x00f00000) && (addr < 0x01000000)) {
-		if(addr < 0x00fa0000) return 0xff;
-		addr = addr - 0x00f00000;
-	}
-#endif
-	if(addr < 0x80000) {
-		last_access_is_interam = false;
-		return MEMORY::read_data8(addr);
-	} else if(addr < 0xa0000) {
-#if defined(SUPPORT_32BIT_ADDRESS)
-		if(is_shadow_bank_80000h) {
-			last_access_is_interam = true;
-			//return (uint32_t)shadow_bank_i386_80000h[addr & 0x1ffff];
+	if((addr >= 0x80000) && (addr < 0xc0000)) {
+		if(addr < 0xa0000) {
+			// ToDo: Correctness extra ram emulation.
+			if(!page08_intram_selected) {
+				last_access_is_interam = false;
+				return 0xff;
+			}
+			addr = (addr & 0x1ffff) | window_80000h;
+		} else { // a0000 - bffff
+			addr = (addr & 0x1ffff) | window_a0000h;
 		}
-#endif
-		// ToDo: Correctness extra ram emulation.
-		if(!page08_intram_selected) {
-			last_access_is_interam = false;
-			return 0xff;
-		}
-		addr = (addr & 0x1ffff) | window_80000h;
-#if defined(SUPPORT_32BIT_ADDRESS)
-		if((addr >= 0x00f00000) && (addr < 0x01000000)) {
-			if(addr < 0x00fa0000) return 0xff;
-			addr = addr - 0x00f00000;
-		}
-#endif
-	} else if(addr < 0xc0000) {
-#if defined(SUPPORT_32BIT_ADDRESS)
-		if(is_shadow_bank_a0000h) {
-			last_access_is_interam = true;
-			//return (uint32_t)shadow_bank_i386_80000h[(addr & 0x1ffff) + 0x20000];
-		}
-#endif
-		addr = (addr & 0x1ffff) | window_a0000h;
-#if defined(SUPPORT_32BIT_ADDRESS)
-		if((addr >= 0x00f00000) && (addr < 0x01000000)) {
-			if(addr < 0x00fa0000) return 0xff;
-			addr = addr - 0x00f00000;
-		}
-#endif
 	}
 	if(addr < 0x10000) {
 		last_access_is_interam = false;
-	} else {
-		last_access_is_interam = true;
 	}
 #if defined(SUPPORT_24BIT_ADDRESS)
 	if(addr < UPPER_MEMORY_24BIT) {
+		last_access_is_interam = true;
+		if(addr >= sizeof(ram)) {
+			return 0xff;
+		}
 		return MEMORY::read_data8(addr);
-	} else {
-		return MEMORY::read_data8(addr & 0xfffff);
 	}
 #elif defined(SUPPORT_32BIT_ADDRESS)
 	if(addr < UPPER_MEMORY_32BIT) {
+		last_access_is_interam = true;
+		if(addr >= sizeof(ram)) {
+			if((addr < 0x01000000) && (addr >= 0x00fa0000)) { // ToDo: PC9821
+				return MEMORY::read_data8(addr);
+			}
+			// ToDo: external RAM.
+			return 0xff;
+		}
 		return MEMORY::read_data8(addr);
-	} else {
-		return MEMORY::read_data8(addr & 0xfffff);
-	}
-#else
-	} else  {
-		return MEMORY::read_data8(addr & 0xfffff);
 	}
 #endif
-	return 0xff;
+	return MEMORY::read_data8(addr & 0xfffff);
 }
 
 void MEMBUS::write_data8(uint32_t addr, uint32_t data)
 {
-#if defined(SUPPORT_32BIT_ADDRESS)
-	if((addr >= 0x00f00000) && (addr < 0x01000000)) {
-		if(addr < 0x00fa0000) return;
-		addr = addr - 0x00f00000;
-	}
-#endif
-	if(addr < 0x80000) {
-		last_access_is_interam = false;
-		MEMORY::write_data8(addr, data);
-		return;
-	} else if(addr < 0xa0000) {
-#if defined(SUPPORT_32BIT_ADDRESS)
-		if(is_shadow_bank_80000h) {
-			last_access_is_interam = true;
-			//	shadow_bank_i386_80000h[addr & 0x1ffff] = data;
-			//return;
+	if((addr >= 0x80000) && (addr < 0xc0000)) {
+		if(addr < 0xa0000) {
+			// ToDo: Correctness extra ram emulation.
+			if(!page08_intram_selected) {
+				last_access_is_interam = false;
+				return;
+			}
+			addr = (addr & 0x1ffff) | window_80000h;
+		} else { // a0000 - bffff
+			addr = (addr & 0x1ffff) | window_a0000h;
 		}
-#endif
-		// ToDo: Correctness extra ram emulation.
-		if(!page08_intram_selected) {
-			last_access_is_interam = false;
-			return;
-		}
-		addr = (addr & 0x1ffff) | window_80000h;
-#if defined(SUPPORT_32BIT_ADDRESS)
-		if((addr >= 0x00f00000) && (addr < 0x01000000)) {
-			if(addr < 0x00fa0000) return;
-			addr = addr - 0x00f00000;
-		}
-#endif
-	} else if(addr < 0xc0000) {
-#if defined(SUPPORT_32BIT_ADDRESS)
-		if(is_shadow_bank_a0000h) {
-			last_access_is_interam = true;
-			//shadow_bank_i386_80000h[(addr & 0x1ffff) + 0x20000] = data;
-			//return;
-		}
-#endif
-		addr = (addr & 0x1ffff) | window_a0000h;
-#if defined(SUPPORT_32BIT_ADDRESS)
-		if((addr >= 0x00f00000) && (addr < 0x01000000)) {
-			if(addr < 0x00fa0000) return;
-			addr = addr - 0x00f00000;
-		}
-#endif
 	}
 	if(addr < 0x10000) {
 		last_access_is_interam = false;
-	} else {
-		last_access_is_interam = true;
 	}
 #if defined(SUPPORT_24BIT_ADDRESS)
 	if(addr < UPPER_MEMORY_24BIT) {
+		last_access_is_interam = true;
+		if(addr >= sizeof(ram)) {
+			return;
+		}
 		MEMORY::write_data8(addr, data);
-	} else {
-		MEMORY::write_data8(addr & 0xfffff, data);
+		return;
 	}
 #elif defined(SUPPORT_32BIT_ADDRESS)
 	if(addr < UPPER_MEMORY_32BIT) {
+		last_access_is_interam = true;
+		if(addr >= sizeof(ram)) {
+			if((addr < 0x01000000) && (addr >= 0x00fa0000)) { // ToDo: PC9821
+				MEMORY::write_data8(addr, data);
+				return;
+			}
+			// ToDo: external RAM.
+			return;
+		}
 		MEMORY::write_data8(addr, data);
-	} else {
-		MEMORY::write_data8(addr & 0xfffff, data);
-	}
-#else
-	} else if(addr < 0x100000) {
-		MEMORY::write_data8(addr & 0x000fffff, data);
+		return;
 	}
 #endif
+	MEMORY::write_data8(addr & 0xfffff, data);
 }
 
 uint32_t MEMBUS::read_dma_data8(uint32_t addr)
@@ -656,10 +599,6 @@ uint32_t MEMBUS::read_signal(int ch)
 void MEMBUS::update_bios()
 {
 #if defined(SUPPORT_BIOS_RAM)
-	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
-	// ToDo: PC9821
-	unset_memory_rw(0x00f00000, 0x00f9ffff);
-	#endif
 	#if defined(SUPPORT_32BIT_ADDRESS)
 	if(is_shadow_bank_80000h) {
 		set_memory_rw(0x80000, 0x9ffff, &(shadow_bank_i386_80000h[0x00000]));
@@ -669,7 +608,6 @@ void MEMBUS::update_bios()
 	#endif
 	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
 	#if !defined(SUPPORT_HIRESO)
-	unset_memory_rw(0xa0000, 0xbffff);
 	if(is_shadow_bank_a0000h) {
 		set_memory_rw(0xa0000, 0xbffff, &(shadow_bank_i386_80000h[0x20000]));
 	} else {
@@ -685,9 +623,9 @@ void MEMBUS::update_bios()
 		set_memory_mapped_io_rw(0xe0000, 0xe4fff, d_display);
 		#else		
 		unset_memory_rw(0xc0000, 0xe7fff);
-		#if defined(SUPPORT_16_COLORS)
+			#if defined(SUPPORT_16_COLORS)
 		set_memory_mapped_io_rw(0xe0000, 0xe7fff, d_display);
-		#endif
+			#endif
 		update_sound_bios();
 		#endif
 		#if defined(SUPPORT_SASI_IF)
@@ -699,41 +637,34 @@ void MEMBUS::update_bios()
 	}
 	#endif
 #endif
-	unset_memory_rw(0x100000 - sizeof(bios), 0xfffff);
-#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
-	// ToDo: PC9821
-	unset_memory_rw(0x01000000 - sizeof(bios), 0x00ffffff);
-#endif
+	
 #if defined(SUPPORT_ITF_ROM)
 	if(itf_selected) {
-		set_memory_r(0x100000 - sizeof(itf), 0xfffff, itf);
+		unset_memory_rw(0x00100000 - sizeof(bios), 0x000fffff);
+		set_memory_r(0x00100000 - sizeof(itf), 0x000fffff, itf);
 	#if defined(SUPPORT_32BIT_ADDRESS)
-		set_memory_r(0x01000000 - sizeof(itf), 0x00ffffff, itf);
+		// ToDo: PC9821
+		MEMORY::copy_table_rw(0x00ffa000, 0x000fa000, 0x000fffff);
 	#endif
-	} else {
-#endif
-#if defined(SUPPORT_BIOS_RAM)
-		if(bios_ram_selected) {
-			set_memory_rw(0x100000 - sizeof(bios_ram), 0xfffff, bios_ram);
-	#if defined(SUPPORT_32BIT_ADDRESS)
-			set_memory_rw(0x01000000 - sizeof(bios_ram), 0x00ffffff, bios_ram);
-	#endif
-		} else {
-#endif
-			set_memory_r(0x100000 - sizeof(bios), 0xfffff, bios);
-#if defined(SUPPORT_32BIT_ADDRESS)
-			set_memory_r(0x01000000 - sizeof(bios), 0x00ffffff, bios);
-#endif
-#if defined(SUPPORT_BIOS_RAM)
-			set_memory_w(0x100000 - sizeof(bios_ram), 0xfffff, bios_ram);
-	#if defined(SUPPORT_32BIT_ADDRESS)
-			set_memory_w(0x01000000 - sizeof(bios_ram), 0x00ffffff, bios_ram);
-	#endif
-		}
-#endif
-#if defined(SUPPORT_ITF_ROM)
+		return;
 	}
 #endif
+#if defined(SUPPORT_BIOS_RAM)
+	if(bios_ram_selected) {
+		set_memory_rw(0x00100000 - sizeof(bios_ram), 0x000fffff, bios_ram);
+	} else
+#endif
+	{
+		set_memory_r(0x00100000 - sizeof(bios), 0x000fffff, bios);
+#if defined(SUPPORT_BIOS_RAM)
+		set_memory_w(0x00100000 - sizeof(bios_ram), 0x000fffff, bios_ram);
+#endif
+	}
+#if defined(SUPPORT_32BIT_ADDRESS)
+	// ToDo: PC9821
+	MEMORY::copy_table_rw(0x00ffa000, 0x000fa000, 0x000fffff);
+#endif
+
 }
 
 #if !defined(SUPPORT_HIRESO)
