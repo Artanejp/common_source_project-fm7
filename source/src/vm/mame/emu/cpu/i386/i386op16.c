@@ -507,12 +507,17 @@ static void I386OP(call_abs16)(i386_state *cpustate)        // Opcode 0x9a
 	}
 	else
 	{
-		PUSH16(cpustate, cpustate->sreg[CS].selector );
-		PUSH16(cpustate, cpustate->eip );
+		UINT16 prev_sel = cpustate->sreg[CS].selector;
+		UINT16 prev_ip  = cpustate->eip;
 		cpustate->sreg[CS].selector = ptr;
+		i386_load_segment_descriptor(cpustate,CS);
+		if(i386_limit_check(cpustate, CS, offset, 1) != 0) {
+			FAULT(FAULT_GP, 0);
+		}
+		PUSH16(cpustate, prev_sel );
+		PUSH16(cpustate, prev_ip );
 		cpustate->performed_intersegment_jump = 1;
 		cpustate->eip = offset;
-		i386_load_segment_descriptor(cpustate,CS);
 	}
 	CHANGE_PC(cpustate,cpustate->eip);
 }
