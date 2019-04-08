@@ -508,6 +508,12 @@ uint32_t MEMBUS::read_data8(uint32_t addr)
 			return 0xff;
 		}
 		addr = (addr & 0x1ffff) | window_80000h;
+#if defined(SUPPORT_32BIT_ADDRESS)
+		if((addr >= 0x00f00000) && (addr < 0x01000000)) {
+			if(addr < 0x00fa0000) return 0xff;
+			addr = addr - 0x00f00000;
+		}
+#endif
 	} else if(addr < 0xc0000) {
 #if defined(SUPPORT_32BIT_ADDRESS)
 		if(is_shadow_bank_a0000h) {
@@ -516,6 +522,12 @@ uint32_t MEMBUS::read_data8(uint32_t addr)
 		}
 #endif
 		addr = (addr & 0x1ffff) | window_a0000h;
+#if defined(SUPPORT_32BIT_ADDRESS)
+		if((addr >= 0x00f00000) && (addr < 0x01000000)) {
+			if(addr < 0x00fa0000) return 0xff;
+			addr = addr - 0x00f00000;
+		}
+#endif
 	}
 	if(addr < 0x10000) {
 		last_access_is_interam = false;
@@ -568,6 +580,12 @@ void MEMBUS::write_data8(uint32_t addr, uint32_t data)
 			return;
 		}
 		addr = (addr & 0x1ffff) | window_80000h;
+#if defined(SUPPORT_32BIT_ADDRESS)
+		if((addr >= 0x00f00000) && (addr < 0x01000000)) {
+			if(addr < 0x00fa0000) return;
+			addr = addr - 0x00f00000;
+		}
+#endif
 	} else if(addr < 0xc0000) {
 #if defined(SUPPORT_32BIT_ADDRESS)
 		if(is_shadow_bank_a0000h) {
@@ -577,6 +595,12 @@ void MEMBUS::write_data8(uint32_t addr, uint32_t data)
 		}
 #endif
 		addr = (addr & 0x1ffff) | window_a0000h;
+#if defined(SUPPORT_32BIT_ADDRESS)
+		if((addr >= 0x00f00000) && (addr < 0x01000000)) {
+			if(addr < 0x00fa0000) return;
+			addr = addr - 0x00f00000;
+		}
+#endif
 	}
 	if(addr < 0x10000) {
 		last_access_is_interam = false;
