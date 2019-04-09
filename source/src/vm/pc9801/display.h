@@ -72,10 +72,14 @@ private:
 	uint8_t modereg1[8];
 #if defined(SUPPORT_16_COLORS)
 	uint8_t modereg2[128];
+	bool is_use_egc;
+	bool enable_egc;
 #endif
 #if defined(SUPPORT_GRCG)
 	uint8_t grcg_mode, grcg_tile_ptr, grcg_tile[4];
 	__DECL_ALIGNED(8) uint16_t grcg_tile_word[4];
+	__DECL_ALIGNED(8) bool grcg_plane_enabled[4];
+	bool grcg_cg_mode, grcg_rw_mode;
 #endif
 #if defined(SUPPORT_EGC)
 	typedef union {

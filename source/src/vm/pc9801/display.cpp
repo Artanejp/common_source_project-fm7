@@ -20,6 +20,7 @@
 #include "display.h"
 #include "../i8259.h"
 #include "../upd7220.h"
+#include "../../config.h"
 
 #if !defined(SUPPORT_HIRESO)
 	#define TVRAM_ADDRESS		0xa0000
@@ -152,6 +153,9 @@ void DISPLAY::initialize()
 	
 	FILEIO* fio = new FILEIO();
 	b_gfx_ff = false; // Q: Is latched beyond resetting?
+#if defined(SUPPORT_EGC)
+	is_use_egc = ((config.dipswitch & (1 << DIPSW_POSITION_EGC)) != 0) ? true : false;
+#endif
 #if !defined(SUPPORT_HIRESO)
 	uint8_t *p = font + 0x81000;
 	uint8_t *q = font + 0x83000;
@@ -369,11 +373,19 @@ void DISPLAY::reset()
 	memset(modereg1, 0, sizeof(modereg1));
 #if defined(SUPPORT_16_COLORS)
 	memset(modereg2, 0, sizeof(modereg2));
+	enable_egc = false;
 #endif
 #if defined(SUPPORT_GRCG)
 	grcg_mode = grcg_tile_ptr = 0;
+	grcg_cg_mode = false;
+	grcg_rw_mode = false;
+	for(int i = 0; i < 4; i++) {
+		grcg_plane_enabled[i] = true;
+	}
 #endif
 #if defined(SUPPORT_EGC)
+	is_use_egc = ((config.dipswitch & (1 << DIPSW_POSITION_EGC)) != 0) ? true : false;
+	enable_egc = false;
 	egc_access = 0xfff0;
 	egc_fgbg = 0x00ff;
 	egc_ope = 0;
@@ -458,6 +470,12 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 #if defined(SUPPORT_16_COLORS)
 	case 0x6a:
 		modereg2[(data >> 1) & 127] = data & 1;
+		if(is_use_egc) {
+			enable_egc = (modereg2[MODE2_EGC]) ? true : false;
+		} else {
+			enable_egc = false;
+			modereg2[MODE2_EGC] = 0;
+		}
 		break;
 #endif
 	case 0x6c:
@@ -490,6 +508,11 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 	case 0x00a4:
 #endif
 		grcg_mode = data;
+		grcg_cg_mode = ((grcg_mode & GRCG_CG_MODE) != 0) ? true : false;
+		grcg_rw_mode = ((grcg_mode & GRCG_RW_MODE) != 0) ? true : false;
+		for(int i = 0; i < 4; i++) {
+			grcg_plane_enabled[i] = ((grcg_mode & (1 << i)) == 0) ? true : false;
+		}
 		grcg_tile_ptr = 0;
 		break;
 #if !defined(SUPPORT_HIRESO)
@@ -604,43 +627,43 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 #if defined(SUPPORT_EGC)
 	// egc
 	case 0x04a0:
-		if((grcg_mode & GRCG_CG_MODE) && modereg2[MODE2_EGC]) {
+		if((grcg_cg_mode) && enable_egc) {
 			egc_access &= 0xff00;
 			egc_access |= data;
 		}
 		break;
 	case 0x04a1:
-		if((grcg_mode & GRCG_CG_MODE) && modereg2[MODE2_EGC]) {
+		if((grcg_cg_mode) && enable_egc) {
 			egc_access &= 0x00ff;
 			egc_access |= data << 8;
 		}
 		break;
 	case 0x04a2:
-		if((grcg_mode & GRCG_CG_MODE) && modereg2[MODE2_EGC]) {
+		if((grcg_cg_mode) && enable_egc) {
 			egc_fgbg &= 0xff00;
 			egc_fgbg |= data;
 		}
 		break;
 	case 0x04a3:
-		if((grcg_mode & GRCG_CG_MODE) && modereg2[MODE2_EGC]) {
+		if((grcg_cg_mode) && enable_egc) {
 			egc_fgbg &= 0x00ff;
 			egc_fgbg |= data << 8;
 		}
 		break;
 	case 0x04a4:
-		if((grcg_mode & GRCG_CG_MODE) && modereg2[MODE2_EGC]) {
+		if((grcg_cg_mode) && enable_egc) {
 			egc_ope &= 0xff00;
 			egc_ope |= data;
 		}
 		break;
 	case 0x04a5:
-		if((grcg_mode & GRCG_CG_MODE) && modereg2[MODE2_EGC]) {
+		if((grcg_cg_mode) && enable_egc) {
 			egc_ope &= 0x00ff;
 			egc_ope |= data << 8;
 		}
 		break;
 	case 0x04a6:
-		if((grcg_mode & GRCG_CG_MODE) && modereg2[MODE2_EGC]) {
+		if((grcg_cg_mode) && enable_egc) {
 			egc_fg &= 0xff00;
 			egc_fg |= data;
 			egc_fgc.d[0] = *(uint32_t *)(egc_maskword[data & 0x0f] + 0);
@@ -648,27 +671,27 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x04a7:
-		if((grcg_mode & GRCG_CG_MODE) && modereg2[MODE2_EGC]) {
+		if((grcg_cg_mode) && enable_egc) {
 			egc_fg &= 0x00ff;
 			egc_fg |= data << 8;
 		}
 		break;
 	case 0x04a8:
-		if((grcg_mode & GRCG_CG_MODE) && modereg2[MODE2_EGC]) {
+		if((grcg_cg_mode) && enable_egc) {
 			if(!(egc_fgbg & 0x6000)) {
 				egc_mask.b[0] = data;
 			}
 		}
 		break;
 	case 0x04a9:
-		if((grcg_mode & GRCG_CG_MODE) && modereg2[MODE2_EGC]) {
+		if((grcg_cg_mode) && enable_egc) {
 			if(!(egc_fgbg & 0x6000)) {
 				egc_mask.b[1] = data;
 			}
 		}
 		break;
 	case 0x04aa:
-		if((grcg_mode & GRCG_CG_MODE) && modereg2[MODE2_EGC]) {
+		if((grcg_cg_mode) && enable_egc) {
 			egc_bg &= 0xff00;
 			egc_bg |= data;
 			egc_bgc.d[0] = *(uint32_t *)(egc_maskword[data & 0x0f] + 0);
@@ -676,13 +699,13 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x04ab:
-		if((grcg_mode & GRCG_CG_MODE) && modereg2[MODE2_EGC]) {
+		if((grcg_cg_mode) && enable_egc) {
 			egc_bg &= 0x00ff;
 			egc_bg |= data << 8;
 		}
 		break;
 	case 0x04ac:
-		if((grcg_mode & GRCG_CG_MODE) && modereg2[MODE2_EGC]) {
+		if((grcg_cg_mode) && enable_egc) {
 			egc_sft &= 0xff00;
 			egc_sft |= data;
 			egc_shift();
@@ -690,7 +713,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x04ad:
-		if((grcg_mode & GRCG_CG_MODE) && modereg2[MODE2_EGC]) {
+		if((grcg_cg_mode) && enable_egc) {
 			egc_sft &= 0x00ff;
 			egc_sft |= data << 8;
 			egc_shift();
@@ -698,7 +721,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x04ae:
-		if((grcg_mode & GRCG_CG_MODE) && modereg2[MODE2_EGC]) {
+		if((grcg_cg_mode) && enable_egc) {
 			egc_leng &= 0xff00;
 			egc_leng |= data;
 			egc_shift();
@@ -706,7 +729,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x04af:
-		if((grcg_mode & GRCG_CG_MODE) && modereg2[MODE2_EGC]) {
+		if((grcg_cg_mode) && enable_egc) {
 			egc_leng &= 0x00ff;
 			egc_leng |= data << 8;
 			egc_shift();
@@ -1024,9 +1047,9 @@ uint32_t DISPLAY::read_memory_mapped_io16(uint32_t addr)
 void DISPLAY::write_dma_io8(uint32_t addr, uint32_t data)
 {
 #if defined(SUPPORT_GRCG)
-	if(grcg_mode & GRCG_CG_MODE) {
+	if(grcg_cg_mode) {
 #if defined(SUPPORT_EGC)
-		if(modereg2[MODE2_EGC]) {
+		if(enable_egc) {
 			egc_writeb(addr, data);
 		} else
 #endif
@@ -1039,9 +1062,9 @@ void DISPLAY::write_dma_io8(uint32_t addr, uint32_t data)
 void DISPLAY::write_dma_io16(uint32_t addr, uint32_t data)
 {
 #if defined(SUPPORT_GRCG)
-	if(grcg_mode & GRCG_CG_MODE) {
+	if(grcg_cg_mode) {
 #if defined(SUPPORT_EGC)
-		if(modereg2[MODE2_EGC]) {
+		if(enable_egc) {
 			egc_writew(addr, data);
 		} else
 #endif
@@ -1063,9 +1086,9 @@ void DISPLAY::write_dma_io16(uint32_t addr, uint32_t data)
 uint32_t DISPLAY::read_dma_io8(uint32_t addr)
 {
 #if defined(SUPPORT_GRCG)
-	if(grcg_mode & GRCG_CG_MODE) {
+	if(grcg_cg_mode) {
 #if defined(SUPPORT_EGC)
-		if(modereg2[MODE2_EGC]) {
+		if(enable_egc) {
 			return egc_readb(addr);
 		}
 #endif
@@ -1078,9 +1101,9 @@ uint32_t DISPLAY::read_dma_io8(uint32_t addr)
 uint32_t DISPLAY::read_dma_io16(uint32_t addr)
 {
 #if defined(SUPPORT_GRCG)
-	if(grcg_mode & GRCG_CG_MODE) {
+	if(grcg_cg_mode) {
 #if defined(SUPPORT_EGC)
-		if(modereg2[MODE2_EGC]) {
+		if(enable_egc) {
 			return egc_readw(addr);
 		}
 #endif
@@ -1106,24 +1129,24 @@ void DISPLAY::grcg_writeb(uint32_t addr1, uint32_t data)
 {
 	uint32_t addr = addr1 & VRAM_PLANE_ADDR_MASK;
 	
-	if(grcg_mode & GRCG_RW_MODE) {
+	if(grcg_rw_mode) {
 		// RMW
 #if 1
 		const uint32_t plane_offset[4] = {addr | VRAM_PLANE_ADDR_0, addr | VRAM_PLANE_ADDR_1, addr | VRAM_PLANE_ADDR_2, addr | VRAM_PLANE_ADDR_3};
 		__DECL_ALIGNED(4) uint8_t plane_data[4] = {0};
 		__DECL_ALIGNED(4) uint8_t mask_data[4];
 		__DECL_ALIGNED(4) uint8_t bit_data[4];
-		uint8_t mask_bit = 1;
 		uint8_t* p = vram_draw;
 		for(int i = 0; i < 4; i++) {
-			plane_data[i] = p[plane_offset[i]];
+			//if(grcg_plane_enabled[i]) {
+				plane_data[i] = p[plane_offset[i]];
+			//}
 		}
 		
 	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 4; i++) {
-			mask_data[i] =  ((grcg_mode & mask_bit) == 0) ? ~data : 0xff;
-			bit_data[i] = ((grcg_mode & mask_bit) == 0) ? grcg_tile[i] & data : 0x00;
-			mask_bit <<= 1;
+			mask_data[i] =  (grcg_plane_enabled[i]) ? ~data : 0xff;
+			bit_data[i] = (grcg_plane_enabled[i]) ? grcg_tile[i] & data : 0x00;
 		}
 		
 	__DECL_VECTORIZED_LOOP
@@ -1131,12 +1154,10 @@ void DISPLAY::grcg_writeb(uint32_t addr1, uint32_t data)
 			plane_data[i] = plane_data[i] & mask_data[i];
 			plane_data[i] = plane_data[i] | bit_data[i];
 		}
-		mask_bit = 1;
 		for(int i = 0; i < 4; i++) {
-			if((grcg_mode & mask_bit) == 0) {
+			if(grcg_plane_enabled[i]) {
 				p[plane_offset[i]] = plane_data[i];
 			}
-			mask_bit <<= 1;
 		}
 #else
 		
@@ -1161,13 +1182,11 @@ void DISPLAY::grcg_writeb(uint32_t addr1, uint32_t data)
 		// TDW
 		const uint32_t plane_offset[4] = {addr | VRAM_PLANE_ADDR_0, addr | VRAM_PLANE_ADDR_1, addr | VRAM_PLANE_ADDR_2, addr | VRAM_PLANE_ADDR_3};
 #if 1
-		uint8_t mask_bit = 1;
 		uint8_t* p = vram_draw;
 		for(int i = 0; i < 4; i++) {
-			if((grcg_mode & mask_bit) == 0) {
+			if(grcg_plane_enabled[i]) {
 				p[plane_offset[i]] = grcg_tile[i];
 			}
-			mask_bit <<= 1;
 		}
 #else
 		
@@ -1194,13 +1213,12 @@ void DISPLAY::grcg_writew(uint32_t addr1, uint32_t data)
 		grcg_writeb(addr1 + 1, (data >> 8) & 0xff);
 	} else {
 		uint32_t addr = addr1 & VRAM_PLANE_ADDR_MASK;
-		if(grcg_mode & GRCG_RW_MODE) {
+		if(grcg_rw_mode) {
 			// RMW
 			const uint32_t plane_offset[4] = {(addr | VRAM_PLANE_ADDR_0) / 2, (addr | VRAM_PLANE_ADDR_1) / 2, (addr | VRAM_PLANE_ADDR_2) / 2, (addr | VRAM_PLANE_ADDR_3) / 2};
 			__DECL_ALIGNED(8) uint16_t plane_data[4] = {0};
 			__DECL_ALIGNED(8) uint16_t mask_data[4];
 			__DECL_ALIGNED(8) uint16_t bit_data[4];
-			uint8_t mask_bit = 1;
 			uint16_t* p = (uint16_t*)vram_draw;
 			for(int i = 0; i < 4; i++) {
 				plane_data[i] = p[plane_offset[i]];
@@ -1208,9 +1226,8 @@ void DISPLAY::grcg_writew(uint32_t addr1, uint32_t data)
 		
 		__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 4; i++) {
-				mask_data[i] =  ((grcg_mode & mask_bit) == 0) ? ~data : 0xffff;
-				bit_data[i] = ((grcg_mode & mask_bit) == 0) ? grcg_tile_word[i] & data : 0x0000;
-				mask_bit <<= 1;
+				mask_data[i] =  (grcg_plane_enabled[i]) ? ~data : 0xffff;
+				bit_data[i] = (grcg_plane_enabled[i]) ? grcg_tile_word[i] & data : 0x0000;
 			}
 		
 		__DECL_VECTORIZED_LOOP
@@ -1218,23 +1235,19 @@ void DISPLAY::grcg_writew(uint32_t addr1, uint32_t data)
 				plane_data[i] = plane_data[i] & mask_data[i];
 				plane_data[i] = plane_data[i] | bit_data[i];
 			}
-			mask_bit = 1;
 			for(int i = 0; i < 4; i++) {
-				if((grcg_mode & mask_bit) == 0) {
+				if(grcg_plane_enabled[i]) {
 					p[plane_offset[i]] = plane_data[i];
 				}
-				mask_bit <<= 1;
 			}
 		} else {
 			// TDW
 			const uint32_t plane_offset[4] = {(addr | VRAM_PLANE_ADDR_0) / 2, (addr | VRAM_PLANE_ADDR_1) / 2, (addr | VRAM_PLANE_ADDR_2) / 2, (addr | VRAM_PLANE_ADDR_3) / 2};
 			uint16_t* p = (uint16_t*)vram_draw;
-			uint8_t mask_bit = 1;
 			for(int i = 0; i < 4; i++) {
-				if((grcg_mode & mask_bit) == 0) {
+				if(grcg_plane_enabled[i]) {
 					p[plane_offset[i]] = grcg_tile_word[i];
 				}
-				mask_bit <<= 1;
 			}
 		}
 	
@@ -1243,7 +1256,7 @@ void DISPLAY::grcg_writew(uint32_t addr1, uint32_t data)
 
 uint32_t DISPLAY::grcg_readb(uint32_t addr1)
 {
-	if(grcg_mode & GRCG_RW_MODE) {
+	if(grcg_rw_mode) {
 		// VRAM
 #if !defined(SUPPORT_HIRESO)
 		return vram_draw[addr1 & 0x1ffff];
@@ -1258,26 +1271,22 @@ uint32_t DISPLAY::grcg_readb(uint32_t addr1)
 		uint8_t data = 0;
 		__DECL_ALIGNED(4) uint8_t dsum[4] = {0};
 		uint8_t* p = vram_draw;
-		uint8_t bit = 1;
 	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 4; i++) {
-			if((grcg_mode & bit) == 0) {
+			if(grcg_plane_enabled[i]) {
 				dsum[i] = p[plane_offset[i]];
 			}
-			bit <<= 1;
 		}
 	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 4; i++) {
 			dsum[i] ^= grcg_tile[i];
 		}
 
-		bit = 1;
 	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 4; i++) {
-			if((grcg_mode & bit) == 0) {
+			if(grcg_plane_enabled[i]) {
 				data |= dsum[i];
 			}
-			bit <<= 1;
 		}
 	/*
 		if(!(grcg_mode & GRCG_PLANE_0)) {
@@ -1302,7 +1311,7 @@ uint32_t DISPLAY::grcg_readw(uint32_t addr1)
 	if((addr1 & 1) != 0) {
 		return grcg_readb(addr1) | (grcg_readb(addr1 + 1) << 8);
 	} else {
-		if(grcg_mode & GRCG_RW_MODE) {
+		if(grcg_rw_mode) {
 		// VRAM
 			uint16_t* p = (uint16_t*)(&(vram[addr1 & 0x1ffff]));
 #if !defined(SUPPORT_HIRESO)
@@ -1318,26 +1327,22 @@ uint32_t DISPLAY::grcg_readw(uint32_t addr1)
 			uint16_t data = 0;
 			__DECL_ALIGNED(8) uint16_t dsum[4] = {0};
 			uint16_t* p = (uint16_t*)vram_draw;
-			uint8_t bit = 1;
 		__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 4; i++) {
-				if((grcg_mode & bit) == 0) {
+				if(grcg_plane_enabled[i]) {
 					dsum[i] = p[plane_offset[i]];
 				}
-				bit <<= 1;
 			}
 		__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 4; i++) {
 				dsum[i] ^= grcg_tile_word[i];
 			}
 
-			bit = 1;
 		__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 4; i++) {
-				if((grcg_mode & bit) == 0) {
+				if(grcg_plane_enabled[i]) {
 					data |= dsum[i];
 				}
-				bit <<= 1;
 			}
 			return data ^ 0xffff;
 		}
@@ -2337,6 +2342,7 @@ uint64_t DISPLAY::egc_opefn(uint32_t func, uint8_t ope, uint32_t addr)
 uint64_t DISPLAY::egc_opeb(uint32_t addr, uint8_t value)
 {
 	uint32_t tmp;
+	if(!(enable_egc)) return 0;
 	
 	egc_mask2.w = egc_mask.w;
 	switch(egc_ope & 0x1800) {
@@ -2371,6 +2377,7 @@ uint64_t DISPLAY::egc_opeb(uint32_t addr, uint8_t value)
 uint64_t DISPLAY::egc_opew(uint32_t addr, uint16_t value)
 {
 	uint32_t tmp;
+	if(!(enable_egc)) return 0;
 
 	egc_mask2.w = egc_mask.w;
 	switch(egc_ope & 0x1800) {
@@ -2407,6 +2414,7 @@ uint32_t DISPLAY::egc_readb(uint32_t addr1)
 {
 	uint32_t addr = addr1 & VRAM_PLANE_ADDR_MASK;
 	uint32_t ext = addr1 & 1;
+	if(!(enable_egc)) return 0;
 	
 	egc_lastvram.b[0][ext] = vram_draw[addr | VRAM_PLANE_ADDR_0];
 	egc_lastvram.b[1][ext] = vram_draw[addr | VRAM_PLANE_ADDR_1];
@@ -2440,6 +2448,7 @@ uint32_t DISPLAY::egc_readb(uint32_t addr1)
 uint32_t DISPLAY::egc_readw(uint32_t addr1)
 {
 	uint32_t addr = addr1 & VRAM_PLANE_ADDR_MASK;
+	if(!(enable_egc)) return 0;
 	
 	if(!(addr & 1)) {
 		egc_lastvram.w[0] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_0]);
@@ -2499,6 +2508,7 @@ void DISPLAY::egc_writeb(uint32_t addr1, uint8_t value)
 	uint32_t addr = addr1 & VRAM_PLANE_ADDR_MASK;
 	uint32_t ext = addr1 & 1;
 	egcquad_t data;
+	if(!(enable_egc)) return 0;
 	
 	if((egc_ope & 0x0300) == 0x0200) {
 		egc_patreg.b[0][ext] = vram_draw[addr | VRAM_PLANE_ADDR_0];
@@ -2531,6 +2541,7 @@ void DISPLAY::egc_writew(uint32_t addr1, uint16_t value)
 {
 	uint32_t addr = addr1 & VRAM_PLANE_ADDR_MASK;
 	egcquad_t data;
+	if(!(enable_egc)) return 0;
 	
 	if(!(addr & 1)) {
 		if((egc_ope & 0x0300) == 0x0200) {
@@ -2888,7 +2899,7 @@ void DISPLAY::draw_gfx_screen()
 	}
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2958,6 +2969,8 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(egc_buf, sizeof(egc_buf), 1);
 	state_fio->StateValue(egc_vram_src.q);
 	state_fio->StateValue(egc_vram_data.q);
+
+	state_fio->StateValue(is_use_egc);
 #endif
 	state_fio->StateValue(font_code);
 	state_fio->StateValue(font_line);
@@ -2988,9 +3001,18 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 			vram_draw = vram + 0x00000;
 		}
 	#if defined(SUPPORT_GRCG)
+		grcg_cg_mode = ((grcg_mode & GRCG_CG_MODE) != 0) ? true : false;
+		grcg_rw_mode = ((grcg_mode & GRCG_RW_MODE) != 0) ? true : false;
+		for(int i = 0; i < 4; i++) {
+			grcg_plane_enabled[i] = ((grcg_mode & (1 << i)) == 0) ? true : false;;
+		}
 		for(int i = 0; i < 4; i++) {
 			grcg_tile_word[i] = ((uint16_t)(grcg_tile[i]) << 8) | grcg_tile[i];
 		}
+	#endif
+	#if defined(SUPPORT_16_COLORS)
+		//is_use_egc = ((config.dipswitch & (1 << DIPSW_POSITION_EGC)) != 0) ? true : false;
+		enable_egc = ((is_use_egc) && (modereg2[MODE2_EGC] != 0)) ? true : false;
 	#endif
  	}
 #endif
