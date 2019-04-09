@@ -1572,19 +1572,20 @@ static void I386OP(popfd)(i386_state *cpustate)             // Opcode 0x9d
 {
 	UINT32 value;
 	UINT32 current = get_flags(cpustate);
+	UINT32 expect_flags = 0xffffffff;
 	UINT8 IOPL = (current >> 12) & 0x03;
+	//UINT32 mask = I386_EFLAGS_SZAPC | I386_EFLAGS_T | I386_EFLAGS_D | I386_EFLAGS_O | I386_EFLAGS_NT | I386_EFLAGS_AC | I386_EFLAGS_ID;
 	UINT32 mask = 0x00257fd5;  // VM, VIP and VIF cannot be set by POPF/POPFD
 	UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
 
 	// IOPL can only change if CPL is 0
+#if 1	
 	if(cpustate->CPL != 0) {
-		//mask &= ~0x00003000;
 		mask &= ~I386_EFLAGS_IOPL;
 	}
 	// IF can only change if CPL is at least as privileged as IOPL
 	if(cpustate->CPL > IOPL) {
 		mask &= ~I386_EFLAGS_IF;
-		//mask &= ~0x00000200;
 	}
 
 	if(V8086_MODE)
@@ -1596,19 +1597,34 @@ static void I386OP(popfd)(i386_state *cpustate)             // Opcode 0x9d
 			//set_flags(cpustate,0 );  // EXCEPTION
 		}
 		mask &= ~I386_EFLAGS_IOPL;   // IOPL cannot be changed while in V8086 mode
-		//mask &= ~0x00003000;  // IOPL cannot be changed while in V8086 mode
 	}
-	
+#else
+	if(!(PROTECTED_MODE)) {
+		expect_flags = ~(I386_EFLAGS_RF | I386_EFLAGS_VIF | I386_EFLAGS_VIP);
+		mask |= I386_EFLAGS_IF | I386_EFLAGS_IOP1 | I386_EFLAGS_IOP2 | I386_EFLAGS_RF | I386_EFLAGS_VIP | I386_EFLAGS_VIF; 
+	} else if(!(V8086_MODE)) {
+		expect_flags = ~(I386_EFLAGS_RF);
+		if(cpustate->CPL == 0) {
+			expect_flags &= ~(I386_EFLAGS_VIP | I386_EFLAGS_VIF);
+			mask |= I386_EFLAGS_IF | I386_EFLAGS_IOP1 | I386_EFLAGS_IOP2 | I386_EFLAGS_RF | I386_EFLAGS_VIP | I386_EFLAGS_VIF; 
+		} else if(cpustate->CPL <= IOPL) {
+			expect_flags &= ~(I386_EFLAGS_VIP | I386_EFLAGS_VIF);
+			mask |= I386_EFLAGS_IF | I386_EFLAGS_RF | I386_EFLAGS_VIP | I386_EFLAGS_VIF; 
+		} else {
+			mask |= I386_EFLAGS_RF;
+		}
+	} else if(IOPL == 3) {
+		mask |= I386_EFLAGS_IF;
+	} else {
+		FAULT(FAULT_GP, 0);
+		set_flags(cpustate,current);  // mask out reserved bits
+		return;
+	}
+#endif
 	if(i386_limit_check(cpustate,SS,offset,4) == 0)
 	{
 		value = POP32(cpustate);
-		//value &= ~0x00010000;  // RF will always return zero
-		if(!V8086_MODE) { // RF maybe clear only not V86 mode
-			value &= ~I386_EFLAGS_RF;
-			if((cpustate->CPL == 0) || (cpustate->CPL <= IOPL)) {
-				value &= ~(I386_EFLAGS_VIF | I386_EFLAGS_VIP);  // RF will always return zero
-			}
-		}
+		value = value & expect_flags;
 		set_flags(cpustate,(current & ~mask) | (value & mask));  // mask out reserved bits
 	}
 	else
@@ -1862,7 +1878,7 @@ static void I386OP(pushfd)(i386_state *cpustate)            // Opcode 0x9c
 		offset = (REG16(SP) - 4) & 0xffff;
 	if(!PROTECTED_MODE || !V8086_MODE || ((cpustate->IOP1) && (cpustate->IOP2))) { 
 		if(i386_limit_check(cpustate,SS,offset,4) == 0)
-			PUSH32(cpustate, get_flags(cpustate) & 0x00fcffff );
+			PUSH32(cpustate, (get_flags(cpustate) & 0x00fcffff) | 0x00000002 );
 		else
 			FAULT(FAULT_SS,0)
 	} else {

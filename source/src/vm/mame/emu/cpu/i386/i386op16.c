@@ -1744,18 +1744,18 @@ static void I386OP(popf)(i386_state *cpustate)              // Opcode 0x9d
 	UINT32 value;
 	UINT32 current = get_flags(cpustate);
 	UINT8 IOPL = (current >> 12) & 0x03;
-	UINT32 mask = 0x7fd5;
+	//UINT32 mask = 0x7fd5;
+	UINT32 mask = I386_EFLAGS_IF | I386_EFLAGS_IOPL | I386_EFLAGS_SZAPC | I386_EFLAGS_T | I386_EFLAGS_D | I386_EFLAGS_O | I386_EFLAGS_NT /*| I386_EFLAGS_AC | I386_EFLAGS_ID*/;
 	UINT32 offset = (STACK_32BIT ? REG32(ESP) : REG16(SP));
 
+#if 1
 	// IOPL can only change if CPL is 0
 	if(cpustate->CPL != 0) {
-		//mask &= ~0x00003000;
 		mask &= ~I386_EFLAGS_IOPL;
 	}
 
 	// IF can only change if CPL is at least as privileged as IOPL
 	if(cpustate->CPL > IOPL) {
-		//mask &= ~0x00000200;
 		mask &= ~I386_EFLAGS_IF;
 	}
 
@@ -1766,10 +1766,30 @@ static void I386OP(popf)(i386_state *cpustate)              // Opcode 0x9d
 			logerror("POPFD(%08x): IOPL < 3 while in V86 mode.\n",cpustate->pc);
 			FAULT(FAULT_GP,0)  // #GP(0)
 		}
-		//mask &= ~0x00003000;  // IOPL cannot be changed while in V8086 mode
 		mask &= ~I386_EFLAGS_IOPL; // IOPL cannot be changed while in V8086 mode
 	}
-
+#else	
+	// Port from NP2
+	if(!(PROTECTED_MODE)) {
+		mask |= (I386_EFLAGS_IF | I386_EFLAGS_IOPL);
+	} else if(!(V8086_MODE)) {
+		
+		if(cpustate->CPL == 0) {
+			mask |= (I386_EFLAGS_IF | I386_EFLAGS_IOPL);
+		} else if(cpustate->CPL <= IOPL) {
+			mask |= I386_EFLAGS_IF;
+		}
+	} else if(IOPL == 3) {
+		mask |= I386_EFLAGS_IF;
+	} else {
+		mask = 0;
+		logerror("POPF(%08x): Wrong mode and IOPL.PC=%08X\n",cpustate->pc);
+		FAULT(FAULT_GP,0);  // #GP(0)
+		set_flags(cpustate,current);  // mask out reserved bits
+		return;
+	}
+#endif		
+			
 	if(i386_limit_check(cpustate,SS,offset,2) == 0)
 	{
 		value = POP16(cpustate);
@@ -2024,7 +2044,7 @@ static void I386OP(pushf)(i386_state *cpustate)             // Opcode 0x9c
 		offset = (REG16(SP) - 2) & 0xffff;
 	if(!PROTECTED_MODE || !V8086_MODE || ((cpustate->IOP1) && (cpustate->IOP2))) { 
 		if(i386_limit_check(cpustate,SS,offset,2) == 0)
-			PUSH16(cpustate, get_flags(cpustate) & 0xffff );
+			PUSH16(cpustate, (get_flags(cpustate) & 0xffff) | 0x0002 );
 		else
 			FAULT(FAULT_SS,0)
 	} else {

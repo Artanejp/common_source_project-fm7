@@ -2451,7 +2451,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 	UINT8 CPL, RPL, DPL;
 	UINT32 newflags;
 	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
-
+	UINT32 stack_size = 6;
 	CPL = cpustate->CPL;
 	UINT32 ea = i386_translate(cpustate, SS, (STACK_32BIT)?REG32(ESP):REG16(SP), 0, (operand32)?12:6);
 	if(operand32 == 0)
@@ -2459,12 +2459,14 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 		newEIP = READ16(cpustate, ea) & 0xffff;
 		newCS = READ16(cpustate, ea+2) & 0xffff;
 		newflags = READ16(cpustate, ea+4) & 0xffff;
+		stack_size = 6;
 	}
 	else
 	{
 		newEIP = READ32(cpustate, ea);
 		newCS = READ32(cpustate, ea+4) & 0xffff;
 		newflags = READ32(cpustate, ea+8);
+		stack_size = 12;
 	}
 
 	if(V8086_MODE)
@@ -2489,9 +2491,9 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 			newflags |= (oldflags & I386_EFLAGS_IOPL);
 			set_flags(cpustate,(newflags & 0xffff) | (oldflags & ~0xffff));
 			if(STACK_32BIT) {
-				REG32(ESP) += 6;
+				REG32(ESP) += stack_size;
 			} else {
-				REG16(SP) += 6;
+				REG16(SP) += stack_size;
 			}
 		}
 		else
@@ -2508,9 +2510,9 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 			newflags |= (oldflags & I386_EFLAGS_IOPL) | I386_EFLAGS_VM;
 			set_flags(cpustate,newflags);
 			if(STACK_32BIT) {
-				REG32(ESP) += 12;
+				REG32(ESP) += stack_size;
 			} else {
-				REG16(SP) += 12;
+				REG16(SP) += stack_size;
 			}
 		}
 		
@@ -2552,7 +2554,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 	}
 	else
 	{
-		if(newflags & 0x00020000) // if returning to virtual 8086 mode
+		if((newflags & 0x00020000) && (cpustate->CPL == 0)) // if returning to virtual 8086 mode
 		{
 			// 16-bit iret can't reach here
 			newESP = READ32(cpustate, ea+12);
