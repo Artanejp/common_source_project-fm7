@@ -253,7 +253,7 @@ bool BIOS::sasi_bios(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* Ze
 		// ToDo: Multi SASI
 		if(d_sasi->get_hdd(0) != NULL) {
 			if(sxsi_get_drive(AL) >= 0) {
-				out_debug_log("SASI BIOS CALL AH=%02X\n", AH);
+				//out_debug_log("SASI BIOS CALL AH=%02X\n", AH);
 				switch(AH & 0x0f) {
 				case 0x01:
 					// Verify
@@ -269,10 +269,12 @@ bool BIOS::sasi_bios(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* Ze
 					break;
 				case 0x05:
 					// WRITE DATA
+					//out_debug_log(_T("WRITE DATA ES:BP=%04X:%04X SIZE=%d\n"), ES, BP, (BX == 0) ? 0x10000 : BX);
 					sasi_command_write(PC, regs, sregs, ZeroFlag, CarryFlag);
 					break;
 				case 0x06:
 					// READ DATA
+					//out_debug_log(_T("READ DATA ES:BP=%04X:%04X SIZE=%d\n"), ES, BP, (BX == 0) ? 0x10000 : BX);
 					sasi_command_read(PC, regs, sregs, ZeroFlag, CarryFlag);
 					break;
 				case 0x07:
@@ -531,17 +533,17 @@ void BIOS::sasi_command_read(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 	int size = (int)(BX & 0xffff);
 	if(size == 0) size = 0x10000;
 	uint32_t addr;
-	//addr = (((uint32_t)ES) << 4) + BP;
-	try {
-		addr = d_cpu->translate_address(0, (uint32_t)BP); // ES:BP
-	} catch(...) {
-		out_debug_log("Access vioration ES:%04x\n", BP);
-	}
+	addr = (((uint32_t)ES) << 4) + BP;
+	//try {
+	//	addr = d_cpu->translate_address(0, BP); // ES:BP
+	//} catch(...) {
+	//	out_debug_log("Access vioration ES:%04x\n", BP);
+	//}
 	//out_debug_log(_T("SASI CMD: READ ADDR=%08x\n"), addr);
 
 	int drive = sxsi_get_drive(AL);
 	if(drive < 0) { // ToDo: Multi SASI
-		AH = 0x80;
+		AH = 0x60;
 		*CarryFlag = 1;
 #ifdef _PSEUDO_BIOS_DEBUG
 		out_debug_log(_T("SASI CMD: READ AH=%02x\n"), AH);
@@ -551,7 +553,7 @@ void BIOS::sasi_command_read(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 		SASI_HDD*  d_hdd = d_sasi->get_hdd(drive); // OK?
 		if(d_hdd == NULL) {
 			// Not Connected
-			AH = 0x80;
+			AH = 0x60;
 			*CarryFlag = 1;
 #ifdef _PSEUDO_BIOS_DEBUG
 			out_debug_log(_T("SASI CMD: READ AH=%02x\n"), AH);
@@ -565,18 +567,18 @@ void BIOS::sasi_command_read(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 #ifdef _PSEUDO_BIOS_DEBUG
 			out_debug_log(_T("SASI CMD: READ: DRIVE=%d POS=%d DL=%02x DH=%02x CX=%04x BX=%04x\n"), drive, npos, DL, DH, CX, BX);
 #endif
-			if(npos < 0) {
-				AH = 0xd0;
+			if((npos < 0) || (npos >= (int)sectors)) {
+				AH = 0x40;
 				*CarryFlag = 1;
 				return;
 			}
 			if(harddisk == NULL) {
-				AH = 0x80;
+				AH = 0x60;
 				*CarryFlag = 1;
 				return;
 			} else if(!(harddisk->mounted())) {
 			// Not Connected
-				AH = 0x80;
+				AH = 0x60;
 				*CarryFlag = 1;
 				return;
 			}
@@ -602,7 +604,7 @@ void BIOS::sasi_command_read(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					size -= block_size;
 				} else {
 					// READ ERROR
-					AH = 0x60;
+					AH = 0xd0;
 					*CarryFlag = 1;
 					return;
 				}
@@ -621,22 +623,22 @@ void BIOS::sasi_command_write(uint32_t PC, uint16_t regs[], uint16_t sregs[], in
 	if(size == 0) size = 0x10000;
 	uint8_t *regs8 = (uint8_t *)regs;
 	uint32_t addr;
-	try {
-		addr = d_cpu->translate_address(0, (uint32_t)BP); // ES:BP
-	} catch(...) {
-		out_debug_log("Access vioration ES:%04x\n", BP);
-	}
-	//addr = (((uint32_t)ES) << 4) + BP;
+	addr = (((uint32_t)ES) << 4) + BP;
+	//try {
+	//	addr = d_cpu->translate_address(0, BP); // ES:BP
+	//} catch(...) {
+	//	out_debug_log("Access vioration ES:%04x\n", BP);
+	//}
 	int drive = sxsi_get_drive(AL);
 	if(drive < 0) { // ToDo: Multi SASI
-		AH = 0x80;
+		AH = 0x60;
 		*CarryFlag = 1;
 		return;
 	} else {
 		SASI_HDD*  d_hdd = d_sasi->get_hdd(drive); // OK?
 		if(d_hdd == NULL) {
 			// Not Connected
-			AH = 0x80;
+			AH = 0x60;
 			*CarryFlag = 1;
 			return;
 		} else {
@@ -647,18 +649,18 @@ void BIOS::sasi_command_write(uint32_t PC, uint16_t regs[], uint16_t sregs[], in
 #ifdef _PSEUDO_BIOS_DEBUG
 			out_debug_log(_T("SASI CMD: WRITE DL=%02x DH=%02x CX=%04x BX=%04x\n"), DL, DH, CX, BX);
 #endif			
-			if(npos < 0) {
-				AH = 0xd0;
+			if((npos < 0) || (npos >= (int)sectors)) {
+				AH = 0x40;
 				*CarryFlag = 1;
 				return;
 			}
 			if(harddisk == NULL) {
-				AH = 0x80;
+				AH = 0x60;
 				*CarryFlag = 1;
 				return;
 			} else if(!(harddisk->mounted())) {
 			// Not Connected
-				AH = 0x80;
+				AH = 0x60;
 				*CarryFlag = 1;
 				return;
 			}
@@ -683,7 +685,7 @@ void BIOS::sasi_command_write(uint32_t PC, uint16_t regs[], uint16_t sregs[], in
 					size -= block_size;
 				} else {
 					// READ ERROR
-					AH = 0x60;
+					AH = 0xd0;
 					*CarryFlag = 1;
 					return;
 				}
@@ -705,7 +707,7 @@ void BIOS::sasi_command_format(uint32_t PC, uint16_t regs[], uint16_t sregs[], i
 
 	if(d_hdd == NULL) {
 		// Not Connected
-		AH = 0x80;
+		AH = 0x60;
 		*CarryFlag = 1;
 		return;
 	}
@@ -731,7 +733,7 @@ void BIOS::sasi_command_format(uint32_t PC, uint16_t regs[], uint16_t sregs[], i
 			return;
 		} else if(!(harddisk->mounted())) {
 			// Not Connected
-			AH = 0x80;
+			AH = 0x60;
 			*CarryFlag = 1;
 			return;
 		} else {

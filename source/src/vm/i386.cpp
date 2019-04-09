@@ -460,11 +460,8 @@ uint32_t I386::translate_address(int segment, uint32_t offset)
 	i386_state *cpustate = (i386_state *)opaque;
 	uint32_t addr = 0;
 	if((segment >= 0) && (segment <= GS)) {
-		//if(PROTECTED_MODE || V8086_MODE) {
-		//	addr = cpustate->sreg[segment].base + offset;
-		//} else {
-			addr = (((uint32_t)(cpustate->sreg[segment].selector)) << 4) + offset;
-		//}
+		addr = cpustate->sreg[segment].base + offset;
+		// addr = (((uint32_t)(cpustate->sreg[segment].selector)) << 4) + offset;
 	}
 	return addr;
 }
