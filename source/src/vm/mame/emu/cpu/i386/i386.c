@@ -1397,7 +1397,7 @@ static void i386_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested
 	cpustate->CPL = (cpustate->sreg[SS].flags >> 5) & 3;
 	UINT32 _newCPL = cpustate->CPL;
 	if(_oldCPL != _newCPL) logerror("I80386 TASK SWITCH: Privilege changed from %d to %d at ADDR %08X to %08X\n", _oldCPL, _newCPL, _oldPC, cpustate->pc);
-	logerrpr("i386 Task Switch from selector %04x to %04x\n",old_task,selector);
+	logerror("i386 Task Switch from selector %04x to %04x\n",old_task,selector);
 }
 
 static void i386_check_irq_line(i386_state *cpustate)
