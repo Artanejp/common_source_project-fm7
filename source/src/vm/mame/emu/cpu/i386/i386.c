@@ -969,7 +969,7 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 				}
 				/* change CPL before accessing the stack */
 				UINT32 _oldCPL = cpustate->CPL;
-				if(_oldCPL != DPL) logerror("TRAP/INT GATE: Privilege changed from %d to %d at %08X, INT# %d, GATE %d TYPE %d\n", _oldCPL, DPL, cpustate->prev_pc, irq, irq_gate, type);
+				//if(_oldCPL != DPL) logerror("TRAP/INT GATE: Privilege changed from %d to %d at %08X, INT# %d, GATE %d TYPE %d\n", _oldCPL, DPL, cpustate->prev_pc, irq, irq_gate, type);
 				cpustate->CPL = DPL;
 				/* check for page fault at new stack TODO: check if stack frame crosses page boundary */
 				WRITE_TEST(cpustate, stack.base+newESP-1);
@@ -1272,7 +1272,7 @@ static void i286_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested
 	CHANGE_PC(cpustate,cpustate->eip);
 	cpustate->CPL = (cpustate->sreg[SS].flags >> 5) & 3;
 	UINT32 _newCPL = cpustate->CPL;
-	if(_oldCPL != _newCPL) logerror("I286 TASK SWITCH: Privilege changed from %d to %d at ADDR %08X to %08X\n", _oldCPL, _newCPL, _oldPC, cpustate->pc);
+	//if(_oldCPL != _newCPL) logerror("I286 TASK SWITCH: Privilege changed from %d to %d at ADDR %08X to %08X\n", _oldCPL, _newCPL, _oldPC, cpustate->pc);
 	
 	logerror("80286 Task Switch from selector %04x to %04x\n",old_task,selector);
 }
@@ -1397,7 +1397,7 @@ static void i386_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested
 	cpustate->CPL = (cpustate->sreg[SS].flags >> 5) & 3;
 	UINT32 _newCPL = cpustate->CPL;
 	if(_oldCPL != _newCPL) logerror("I80386 TASK SWITCH: Privilege changed from %d to %d at ADDR %08X to %08X\n", _oldCPL, _newCPL, _oldPC, cpustate->pc);
-   printf("i386 Task Switch from selector %04x to %04x\n",old_task,selector);
+	logerrpr("i386 Task Switch from selector %04x to %04x\n",old_task,selector);
 }
 
 static void i386_check_irq_line(i386_state *cpustate)

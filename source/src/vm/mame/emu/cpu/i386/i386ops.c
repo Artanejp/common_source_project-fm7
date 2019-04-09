@@ -669,7 +669,7 @@ static void I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode 0x0f 20
 		return;
 	}
 	UINT8 cr = (modrm >> 3) & 0x7;
-	logdebug("MOV r32 CR%d VAL=(%08X)\n", cr, cpustate->cr[cr], oldpc);
+	//logdebug("MOV r32 CR%d VAL=(%08X)\n", cr, cpustate->cr[cr], oldpc);
 	if(cr < 5) {
 		if(cr == 1) {
 			FAULT(FAULT_UD, 0);
@@ -776,7 +776,7 @@ static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 	UINT8 cr = (modrm >> 3) & 0x7;
 	UINT32 data = LOAD_RM32(modrm);
 	UINT32 data_bak;
-	logdebug("MOV CR%d r32 VAL=(%08X) at %08X\n", cr, data, oldpc);
+	//logdebug("MOV CR%d r32 VAL=(%08X) at %08X\n", cr, data, oldpc);
 	switch(cr)
 	{
 		case 0:
@@ -892,7 +892,7 @@ static void I386OP(mov_dr_r32)(i386_state *cpustate)        // Opcode 0x0f 23
 	}
 	UINT8 dr = (modrm >> 3) & 0x7;
 	UINT32 data =  LOAD_RM32(modrm);
-	logdebug("MOV DR%d r32 (VAL=%08X)\n", dr, data);
+	//logdebug("MOV DR%d r32 (VAL=%08X)\n", dr, data);
 
 	switch(dr)
 	{
@@ -914,7 +914,7 @@ static void I386OP(mov_dr_r32)(i386_state *cpustate)        // Opcode 0x0f 23
 			break;
 		default:
 			cpustate->dr[dr] = data;
-			logerror("i386: mov_dr_r32 DR%d!\n", dr);
+			//logerror("i386: mov_dr_r32 DR%d!\n", dr);
 			return;
 	}
 }
@@ -2528,7 +2528,7 @@ static void I386OP(int_16)(i386_state *cpustate)               // Opcode 0xcd
 			logerror("IRQ (%08x): Is in Virtual 8086 mode and IOPL != 3.\n",cpustate->pc);
 			FAULT(FAULT_GP,0);
 		} else {
-			//BIOS_INT(interrupt);
+			BIOS_INT(interrupt);
 		}
 	} else {
 		//logerror("INT %02xh @16bit mode PC=%08X\n", interrupt, cpustate->pc - 1);
@@ -2554,7 +2554,7 @@ static void I386OP(int_32)(i386_state *cpustate)               // Opcode 0xcd
 			logerror("IRQ (%08x): Is in Virtual 8086 mode and IOPL != 3.\n",cpustate->pc);
 			FAULT(FAULT_GP,0);
 		} else {
-			//BIOS_INT(interrupt);
+			BIOS_INT(interrupt);
 		}
 	} else {
 		//logerror("INT %02xh @32bit mode PC=%08X\n", interrupt, cpustate->pc - 1);
