@@ -37,7 +37,7 @@ void UPD7220_BASE::initialize()
 		rt[i] = (int)((double)(1 << RT_MULBIT) * (1 - sqrt(1 - pow((0.70710678118654 * i) / RT_TABLEMAX, 2))));
 	}
 	fo = new FIFO(0x10000);
-	//cmd_fifo = new FIFO(16);
+	cmd_fifo = new FIFO(64); // OK?
 	
 	vsync = vblank = false;
 	hsync = hblank = false;
@@ -54,8 +54,8 @@ void UPD7220_BASE::release()
 {
 	fo->release();
 	delete fo;
-	//cmd_fifo->release();
-	//delete cmd_fifo;
+	cmd_fifo->release();
+	delete cmd_fifo;
 }
 
 void UPD7220_BASE::reset()
@@ -134,15 +134,15 @@ uint32_t UPD7220_BASE::read_io8(uint32_t addr)
 			val |= hblank ? STAT_BLANK : 0;
 		}
 		val |= vsync ? STAT_VSYNC : 0;
-//		val |= (params_count == 0) ? STAT_EMPTY : 0;
-		val |= STAT_EMPTY;
-		val |= (params_count == 16) ? STAT_FULL : 0;
-		val |= fo->count() ? STAT_DRDY : 0;
+		val |= (cmd_fifo->empty()) ? STAT_EMPTY : 0;
+		//val |= STAT_EMPTY;
+		val |= (cmd_fifo->full()) ? STAT_FULL : 0;
+		val |= (!(fo->empty())) ? STAT_DRDY : 0;
 		// clear busy stat
 		statreg &= ~(STAT_DMA | STAT_DRAW);
 		return val;
 	case 1: // data
-		if(fo->count()) {
+		if(!(fo->empty())) {
 			return fo->read();
 		}
 		return 0xff;
@@ -226,10 +226,14 @@ void UPD7220_BASE::register_event_wait_cmd(uint32_t bytes)
 {
 	if(event_cmdready >= 0) cancel_event(this, event_cmdready);
 	event_cmdready = -1;
-	double usec = (1.0e6 * (double)bytes) / (double)clock_freq;
+	if(bytes < 2) {
+		cmd_ready = true;
+		return;
+	}
+	// BY uPD7220 GDC Design manual; Clock divided by 2 at internal logic.
+	double usec = (1.0e6  * 2.0 * (double)bytes) / (double)clock_freq;
 	if(usec < 1.0) {
 		cmd_ready = true;
-		params_count = 0;
 	} else {
 		register_event(this, EVENT_CMD_READY, usec, false, &event_cmdready);
 	}
@@ -247,7 +251,6 @@ void UPD7220_BASE::event_callback(int event_id, int err)
 	} else if(event_id == EVENT_CMD_READY) {
 		event_cmdready = -1;
 		cmd_ready = true;
-		params_count = 0;
 	}
 }
 
@@ -288,9 +291,9 @@ void UPD7220_BASE::cmd_reset()
 	blink_rate = 16;
 	
 	// init fifo
-	params_count = 0;
 	cmd_ready = true;
 	fo->clear();
+	cmd_fifo->clear();
 	
 	// stop display and drawing
 	start = false;
@@ -302,9 +305,12 @@ void UPD7220_BASE::cmd_reset()
 void UPD7220_BASE::cmd_sync()
 {
 	start = ((cmdreg & 1) != 0);
-	for(int i = 0; i < 8 && i < params_count; i++) {
-		if(sync[i] != params[i]) {
-			sync[i] = params[i];
+	int len = cmd_fifo->count();
+	wrote_bytes = (len >= 8) ? 8 : len;
+	for(int i = 0; i < 8 && i < len; i++) {
+		uint8_t dat = (uint8_t)(cmd_fifo->read() & 0xff); 
+		if(sync[i] != dat) {
+			sync[i] = dat;
 			sync_changed = true;
 		}
 	}
@@ -337,8 +343,10 @@ void UPD7220_BASE::cmd_stop()
 
 void UPD7220_BASE::cmd_zoom()
 {
-	if(params_count > 0) {
-		uint8_t tmp = params[0];
+	wrote_bytes = 0;
+	if(!(cmd_fifo->empty())) {
+		wrote_bytes = 1;
+		uint8_t tmp = (uint8_t)(cmd_fifo->read() & 0xff);
 		zr = tmp >> 4;
 		zw = tmp & 0x0f;
 		cmdreg = -1;
@@ -347,11 +355,13 @@ void UPD7220_BASE::cmd_zoom()
 
 void UPD7220_BASE::cmd_scroll()
 {
-	if(params_count > 0) {
-		ra[cmdreg & 0x0f] = params[0];
+	wrote_bytes = 0;
+	if(!(cmd_fifo->empty())) {
+		ra[cmdreg & 0x0f] = (uint8_t)(cmd_fifo->read() & 0xff);
+		wrote_bytes = 1;
 		if(cmdreg < 0x7f) {
 			cmdreg++;
-			params_count = 0;
+			//cmd_fifo->clear(); // OK?
 		} else {
 			cmdreg = -1;
 		}
@@ -360,10 +370,13 @@ void UPD7220_BASE::cmd_scroll()
 
 void UPD7220_BASE::cmd_csrform()
 {
-	for(int i = 0; i < params_count; i++) {
-		cs[i] = params[i];
+	int len = cmd_fifo->count();
+	if(len > 3) len = 3;
+	wrote_bytes = len;
+	for(int i = 0; i < len; i++) {
+		cs[i] = (uint8_t)(cmd_fifo->read() & 0xff);
 	}
-	if(params_count > 2) {
+	if(len > 2) {
 		cmdreg = -1;
 	}
 	blink_rate = (cs[1] >> 6) | ((cs[2] & 7) << 2);
@@ -371,16 +384,23 @@ void UPD7220_BASE::cmd_csrform()
 
 void UPD7220_BASE::cmd_lpen()
 {
+	wrote_bytes = 3;
+	if(fo->full()) fo->read();
 	fo->write(lad & 0xff);
+	if(fo->full()) fo->read();
 	fo->write((lad >> 8) & 0xff);
+	if(fo->full()) fo->read();
 	fo->write((lad >> 16) & 0xff);
 	cmdreg = -1;
 }
 
 void UPD7220_BASE::cmd_vectw()
 {
-	for(int i = 0; i < 11 && i < params_count; i++) {
-		vect[i] = params[i];
+	int len = cmd_fifo->count();
+	if(len > 11) len = 11;
+	wrote_bytes = len;
+	for(int i = 0; i < 11 && i < len; i++) {
+		vect[i] = (uint8_t)(cmd_fifo->read() & 0xff);
 //		this->out_debug_log(_T("\tVECT[%d] = %2x\n"), i, vect[i]);
 	}
 	update_vect();
@@ -390,12 +410,15 @@ void UPD7220_BASE::cmd_vectw()
 
 void UPD7220_BASE::cmd_csrw()
 {
-	if(params_count > 0) {
-		ead = params[0];
-		if(params_count > 1) {
-			ead |= params[1] << 8;
-			if(params_count > 2) {
-				ead |= params[2] << 16;
+	if(!(cmd_fifo->empty())) {
+		ead = cmd_fifo->read() & 0xff;
+		wrote_bytes = 1;
+		if(!(cmd_fifo->empty())) {
+			ead |= (cmd_fifo->read() & 0xff) << 8;
+			wrote_bytes = 2;
+			if(!(cmd_fifo->empty())) {
+				ead |= (cmd_fifo->read() & 0xff) << 16;
+				wrote_bytes = 3;
 				cmdreg = -1;
 			}
 		}
@@ -406,19 +429,27 @@ void UPD7220_BASE::cmd_csrw()
 
 void UPD7220_BASE::cmd_csrr()
 {
+	wrote_bytes = 5;
+	if(fo->full()) fo->read();
 	fo->write(ead & 0xff);
+	if(fo->full()) fo->read();
 	fo->write((ead >> 8) & 0xff);
+	if(fo->full()) fo->read();
 	fo->write((ead >> 16) & 0x03);
+	if(fo->full()) fo->read();
 	fo->write(dad & 0xff);
+	if(fo->full()) fo->read();
 	fo->write((dad >> 8) & 0xff);
 	cmdreg = -1;
 }
 
 void UPD7220_BASE::cmd_mask()
 {
-	if(params_count > 1) {
-		maskl = params[0];
-		maskh = params[1];
+	wrote_bytes = 0;
+	if(cmd_fifo->count() > 1) {
+		wrote_bytes = 2;
+		maskl = (cmd_fifo->read() & 0xff);
+		maskh = (cmd_fifo->read() & 0xff);
 		cmdreg = -1;
 	}
 }
@@ -429,41 +460,44 @@ void UPD7220_BASE::cmd_write()
 	wrote_bytes = 0;
 	switch(cmdreg & 0x18) {
 	case 0x00: // low and high
-		if(params_count > 1) {
-			uint8_t l = params[0] & maskl;
-			uint8_t h = params[1] & maskh;
+		if(cmd_fifo->count() > 1) {
+			uint8_t l = (uint8_t)(cmd_fifo->read()) & maskl;
+			uint8_t h = (uint8_t)(cmd_fifo->read()) & maskh;
+			wrote_bytes = 2;
 			for(int i = 0; i < dc + 1; i++) {
 				cmd_write_sub(ead * 2 + 0, l);
 				cmd_write_sub(ead * 2 + 1, h);
 				ead += dif;
 			}
-			wrote_bytes = (dc + 1) * 2;
+			wrote_bytes += ((dc + 1) * 2 * 2);
 			cmd_write_done = true;
-			params_count = 0;
+			//cmd_fifo->clear(); // OK?
 		}
 		break;
 	case 0x10: // low byte
-		if(params_count > 0) {
-			uint8_t l = params[0] & maskl;
+		if(cmd_fifo->count() > 0) {
+			wrote_bytes = 1;
+			uint8_t l = (uint8_t)(cmd_fifo->read()) & maskl;
 			for(int i = 0; i < dc + 1; i++) {
 				cmd_write_sub(ead * 2 + 0, l);
 				ead += dif;
 			}
-			wrote_bytes = dc + 1;
+			wrote_bytes += ((dc + 1) * 2);
 			cmd_write_done = true;
-			params_count = 0;
+			//cmd_fifo->clear(); // OK?
 		}
 		break;
 	case 0x18: // high byte
-		if(params_count > 0) {
-			uint8_t h = params[0] & maskh;
+		if(cmd_fifo->count() > 0) {
+			wrote_bytes = 1;
+			uint8_t h = (uint8_t)(cmd_fifo->read()) & maskh;
 			for(int i = 0; i < dc + 1; i++) {
 				cmd_write_sub(ead * 2 + 1, h);
 				ead += dif;
 			}
-			wrote_bytes = dc + 1;
+			wrote_bytes += ((dc + 1) * 2);
 			cmd_write_done = true;
-			params_count = 0;
+			//cmd_fifo->clear(); // OK?
 		}
 		break;
 	default: // invalid
@@ -479,25 +513,29 @@ void UPD7220_BASE::cmd_read()
 	switch(cmdreg & 0x18) {
 	case 0x00: // low and high
 		for(int i = 0; i < dc; i++) {
+			if(fo->full()) fo->read();
 			fo->write(read_vram(ead * 2 + 0));
+			if(fo->full()) fo->read();
 			fo->write(read_vram(ead * 2 + 1));
 			ead += dif;
 		}
-		wrote_bytes = (dc + 1) * 2;
+		wrote_bytes = dc * 2 * 2;
 		break;
 	case 0x10: // low byte
 		for(int i = 0; i < dc; i++) {
+			if(fo->full()) fo->read();
 			fo->write(read_vram(ead * 2 + 0));
 			ead += dif;
 		}
-		wrote_bytes = dc + 1;
+		wrote_bytes = dc * 2;
 		break;
 	case 0x18: // high byte
 		for(int i = 0; i < dc; i++) {
+			if(fo->full()) fo->read();
 			fo->write(read_vram(ead * 2 + 1));
 			ead += dif;
 		}
-		wrote_bytes = dc + 1;
+		wrote_bytes = dc * 2;
 		break;
 	default: // invalid
 		break;
@@ -528,7 +566,7 @@ void UPD7220_BASE::cmd_dmar()
 
 void UPD7220_BASE::cmd_unk_5a()
 {
-	if(params_count > 2) {
+	if(cmd_fifo->count() > 2) {
 		cmdreg = -1;
 	}
 }

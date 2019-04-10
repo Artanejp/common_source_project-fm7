@@ -75,9 +75,8 @@ protected:
 	int lines_per_frame;
 	
 	// fifo buffers
-	uint8_t params[16];
-	int params_count;
 	FIFO *fo;
+	FIFO *cmd_fifo;
 
 	// waiting
 	int event_cmdready;

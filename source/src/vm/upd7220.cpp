@@ -119,39 +119,47 @@ void UPD7220::check_cmd()
 	// check fifo buffer and process command if enough params in fifo
 	switch(cmdreg) {
 	case CMD_RESET:
+		cmd_ready = false;
 		cmd_reset();
-		register_event_wait_cmd(0);
+		register_event_wait_cmd(1);
 		break;
 	case CMD_SYNC + 0:
 	case CMD_SYNC + 1:
-		if(params_count > 7) {
+		if(cmd_fifo->count() > 7) {
+			cmd_ready = false;
 			cmd_sync();
-			register_event_wait_cmd(0); // OK?
+			register_event_wait_cmd(wrote_bytes); // OK?
 		}
 		break;
 	case CMD_MASTER:
+		cmd_ready = false;
 		cmd_master();
-			register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(1); // OK?
 		break;
 	case CMD_SLAVE:
+		cmd_ready = false;
 		cmd_slave();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(1); // OK?
 		break;
 	case CMD_START:
+		cmd_ready = false;
 		cmd_start();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(1); // OK?
 		break;
 	case CMD_BCTRL + 0:
+		cmd_ready = false;
 		cmd_stop();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(1); // OK?
 		break;
 	case CMD_BCTRL + 1:
+		cmd_ready = false;
 		cmd_start();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(1); // OK?
 		break;
 	case CMD_ZOOM:
+		cmd_ready = false;
 		cmd_zoom();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_SCROLL + 0:
 	case CMD_SCROLL + 1:
@@ -169,46 +177,56 @@ void UPD7220::check_cmd()
 	case CMD_TEXTW + 5:
 	case CMD_TEXTW + 6:
 	case CMD_TEXTW + 7:
+		cmd_ready = false;
 		cmd_scroll();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_CSRFORM:
+		cmd_ready = false;
 		cmd_csrform();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_PITCH:
+		cmd_ready = false;
 		cmd_pitch();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_LPEN:
+		cmd_ready = false;
 		cmd_lpen();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_VECTW:
-		if(params_count > 10) {
+		if(cmd_fifo->count() > 10) {
+			cmd_ready = false;
 			cmd_vectw();
-			register_event_wait_cmd(0); // OK?
+			register_event_wait_cmd(wrote_bytes); // OK?
 		}
 		break;
 	case CMD_VECTE:
+		cmd_ready = false;
 		cmd_vecte();
 		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_TEXTE:
+		cmd_ready = false;
 		cmd_texte();
 		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_CSRW:
+		cmd_ready = false;
 		cmd_csrw();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_CSRR:
+		cmd_ready = false;
 		cmd_csrr();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_MASK:
+		cmd_ready = false;
 		cmd_mask();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_WRITE + 0x00:
 	case CMD_WRITE + 0x01:
@@ -226,6 +244,7 @@ void UPD7220::check_cmd()
 	case CMD_WRITE + 0x19:
 	case CMD_WRITE + 0x1a:
 	case CMD_WRITE + 0x1b:
+		cmd_ready = false;
 		cmd_write();
 		register_event_wait_cmd(wrote_bytes);
 		break;
@@ -245,6 +264,7 @@ void UPD7220::check_cmd()
 	case CMD_READ + 0x19:
 	case CMD_READ + 0x1a:
 	case CMD_READ + 0x1b:
+		cmd_ready = false;
 		cmd_read();
 		register_event_wait_cmd(wrote_bytes);
 		break;
@@ -264,8 +284,9 @@ void UPD7220::check_cmd()
 	case CMD_DMAW + 0x19:
 	case CMD_DMAW + 0x1a:
 	case CMD_DMAW + 0x1b:
+		cmd_ready = false;
 		cmd_dmaw();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(1); // OK?
 		break;
 	case CMD_DMAR + 0x00:
 	case CMD_DMAR + 0x01:
@@ -283,12 +304,14 @@ void UPD7220::check_cmd()
 	case CMD_DMAR + 0x19:
 	case CMD_DMAR + 0x1a:
 	case CMD_DMAR + 0x1b:
+		cmd_ready = false;
 		cmd_dmar();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(1); // OK?
 		break;
 	case CMD_UNK_5A:
+		cmd_ready = false;
 		cmd_unk_5a();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	}
 }
@@ -297,13 +320,15 @@ void UPD7220::process_cmd()
 {
 	switch(cmdreg) {
 	case CMD_RESET:
+		cmd_ready = false;
 		cmd_reset();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(1); // OK?
 		break;
 	case CMD_SYNC + 0:
-	case CMD_SYNC + 1:
+	case CMD_SYNC + 1:	
+		cmd_ready = false;
 		cmd_sync();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_SCROLL + 0:
 	case CMD_SCROLL + 1:
@@ -321,16 +346,19 @@ void UPD7220::process_cmd()
 	case CMD_TEXTW + 5:
 	case CMD_TEXTW + 6:
 	case CMD_TEXTW + 7:
+		cmd_ready = false;
 		cmd_scroll();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_VECTW:
+		cmd_ready = false;
 		cmd_vectw();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_CSRW:
+		cmd_ready = false;
 		cmd_csrw();
-		register_event_wait_cmd(0); // OK?
+		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_WRITE + 0x00:
 	case CMD_WRITE + 0x01:
@@ -349,7 +377,9 @@ void UPD7220::process_cmd()
 	case CMD_WRITE + 0x1a:
 	case CMD_WRITE + 0x1b:
 		if(cmd_write_done) {
+			cmd_ready = false;
 			reset_vect();
+			register_event_wait_cmd(1); // OK?
 		}
 		cmdreg = -1;
 		cmd_write_done = false;
@@ -415,9 +445,10 @@ void UPD7220::cmd_texte()
 
 void UPD7220::cmd_pitch()
 {
-	if(params_count > 0) {
+	if(!(cmd_fifo->empty())) {
+		wrote_bytes = 1;
 #ifndef UPD7220_FIXED_PITCH
-		pitch = params[0];
+		pitch = (uint8_t)(cmd_fifo->read() & 0xff);
 #endif
 		cmdreg = -1;
 	}
@@ -499,17 +530,18 @@ void UPD7220::write_io8(uint32_t addr, uint32_t data)
 	switch(addr & 3) {
 	case 0: // set parameter
 //		this->out_debug_log(_T("\tPARAM = %2x\n"), data);
-		if(cmd_ready) {
-		//if(cmdreg != -1) {
-			if(params_count < 16) {
-				params[params_count++] = (uint8_t)(data & 0xff);
+		//if(cmd_ready) { // OK?
+			if(cmdreg != -1) {
+				if((cmd_fifo->full())) {
+					cmd_fifo->read(); // Design manual p.104 "because FIFO is implemented as a ring buffer".
+				}
+				cmd_fifo->write(data & 0xff);
+				check_cmd();
+				//if(cmdreg == -1) {
+				//	cmd_fifo->clear(); // OK?
+				//}
 			}
-			check_cmd();
-			//if(cmdreg == -1) {
-			//	params_count = 0;
-			//}
 		//}
-		}
 		break;
 	case 1: // process prev command if not finished
 		if(cmd_ready) {
@@ -517,7 +549,8 @@ void UPD7220::write_io8(uint32_t addr, uint32_t data)
 				process_cmd();
 			}
 			// set new command
-			cmdreg = (uint8_t)(data & 0xff);
+			//cmdreg = (uint8_t)(data & 0xff);
+			cmdreg = (int)(data & 0xff);
 //		this->out_debug_log(_T("CMDREG = %2x\n"), cmdreg);
 //		params_count = 0;
 			check_cmd();
@@ -560,7 +593,7 @@ void UPD7220::draw_vectl()
 				if(x >= nwidth) break;
 				draw_pset(x++, y + step);
 				if((x & 7) == 0) wrote_bytes++;
-				if((ybak & 0xff8) != ((y + step) & 0xff8)) wrote_bytes++;
+				if((ybak & 0x3ff8) != ((y + step) & 0x3ff8)) wrote_bytes++;
 				ybak = y + step;
 			}
 			break;
@@ -571,7 +604,7 @@ void UPD7220::draw_vectl()
 				if(x >= nwidth) break;
 				draw_pset(x++, y - step);
 				if((x & 7) == 0) wrote_bytes++;
-				if((ybak & 0xff8) != ((y - step) & 0xff8)) wrote_bytes++;
+				if((ybak & 0x3ff8) != ((y - step) & 0x3ff8)) wrote_bytes++;
 				ybak = y - step;
 			}
 			break;
@@ -600,7 +633,7 @@ void UPD7220::draw_vectl()
 				if(x < 0) break;
 				draw_pset(x--, y - step);
 				if((x & 7) == 7) wrote_bytes++;
-				if((ybak & 0xff8) != ((y - step) & 0xff8)) wrote_bytes++;
+				if((ybak & 0x3ff8) != ((y - step) & 0x3ff8)) wrote_bytes++;
 				ybak = y - step;
 			}
 			break;
@@ -611,7 +644,7 @@ void UPD7220::draw_vectl()
 				if(x < 0) break;
 				draw_pset(x--, y + step);
 				if((x & 7) == 7) wrote_bytes++;
-				if((ybak & 0xff8) != ((y + step) & 0xff8)) wrote_bytes++;
+				if((ybak & 0x3ff8) != ((y + step) & 0x3ff8)) wrote_bytes++;
 				ybak = y + step;
 			}
 			break;
@@ -672,7 +705,7 @@ void UPD7220::draw_vectt()
 					if(cy < 0) goto _abort;
 					cx += vx1;
 					cy += vy1;
-					if((cx & 0xff8) != (xbak & 0xff8)) wrote_bytes++;
+					if((cx & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
 					if(cy != ybak) wrote_bytes++;
 					xbak = cx;
 					ybak = cy;
@@ -686,7 +719,7 @@ void UPD7220::draw_vectt()
 					if(cy < 0) goto _abort;
 					cx += vx1;
 					cy += vy1;
-					if((cx & 0xff8) != (xbak & 0xff8)) wrote_bytes++;
+					if((cx & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
 					if(cy != ybak) wrote_bytes++;
 					xbak = cx;
 					ybak = cy;
@@ -723,7 +756,7 @@ void UPD7220::draw_vectc()
 				
 				draw_pset((dx + s), (dy + i));
 				
-				if(((dx + s) & 0xff8) != (xbak & 0xff8)) wrote_bytes++;
+				if(((dx + s) & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
 				if((dy + i) != ybak) wrote_bytes++;
 				xbak = dx + s;
 				ybak = dy + i;
@@ -741,7 +774,7 @@ void UPD7220::draw_vectc()
 				
 				draw_pset((dx + i), (dy + s));
 				
-				if(((dx + i) & 0xff8) != (xbak & 0xff8)) wrote_bytes++;
+				if(((dx + i) & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
 				if((dy + s) != ybak) wrote_bytes++;
 				xbak = dx + i;
 				ybak = dy + s;
@@ -759,7 +792,7 @@ void UPD7220::draw_vectc()
 				
 				draw_pset((dx + i), (dy - s));
 
-				if(((dx + i) & 0xff8) != (xbak & 0xff8)) wrote_bytes++;
+				if(((dx + i) & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
 				if((dy - s) != ybak) wrote_bytes++;
 				xbak = dx + i;
 				ybak = dy - s;
@@ -777,7 +810,7 @@ void UPD7220::draw_vectc()
 				
 				draw_pset((dx + s), (dy - i));
 
-				if(((dx + s) & 0xff8) != (xbak & 0xff8)) wrote_bytes++;
+				if(((dx + s) & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
 				if((dy - i) != ybak) wrote_bytes++;
 				xbak = dx + s;
 				ybak = dy - i;
@@ -795,7 +828,7 @@ void UPD7220::draw_vectc()
 				
 				draw_pset((dx - s), (dy - i));
 				
-				if(((dx - s) & 0xff8) != (xbak & 0xff8)) wrote_bytes++;
+				if(((dx - s) & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
 				if((dy - i) != ybak) wrote_bytes++;
 				xbak = dx - s;
 				ybak = dy - i;
@@ -813,7 +846,7 @@ void UPD7220::draw_vectc()
 				
 				draw_pset((dx - i), (dy - s));
 				
-				if(((dx - i) & 0xff8) != (xbak & 0xff8)) wrote_bytes++;
+				if(((dx - i) & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
 				if((dy - s) != ybak) wrote_bytes++;
 				xbak = dx - i;
 				ybak = dy - s;
@@ -831,7 +864,7 @@ void UPD7220::draw_vectc()
 				
 				draw_pset((dx - i), (dy + s));
 
-				if(((dx - i) & 0xff8) != (xbak & 0xff8)) wrote_bytes++;
+				if(((dx - i) & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
 				if((dy + s) != ybak) wrote_bytes++;
 				xbak = dx - i;
 				ybak = dy + s;
@@ -849,7 +882,7 @@ void UPD7220::draw_vectc()
 				
 				draw_pset((dx - s), (dy + i));
 				
-				if(((dx - s) & 0xff8) != (xbak & 0xff8)) wrote_bytes++;
+				if(((dx - s) & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
 				if((dy + i) != ybak) wrote_bytes++;
 				xbak = dx - s;
 				ybak = dy + i;
@@ -885,7 +918,7 @@ void UPD7220::draw_vectr()
 		dx += vx1;
 		dy += vy1;
 
-		if((xbak & 0xff8) != (dx & 0xff8)) wrote_bytes++;
+		if((xbak & 0x3ff8) != (dx & 0x3ff8)) wrote_bytes++;
 		if(ybak != dy) wrote_bytes++;
 		xbak = dx;
 		ybak = dy;
@@ -900,7 +933,7 @@ void UPD7220::draw_vectr()
 		dx += vx2;
 		dy += vy2;
 		
-		if((xbak & 0xff8) != (dx & 0xff8)) wrote_bytes++;
+		if((xbak & 0x3ff8) != (dx & 0x3ff8)) wrote_bytes++;
 		if(ybak != dy) wrote_bytes++;
 		xbak = dx;
 		ybak = dy;
@@ -915,7 +948,7 @@ void UPD7220::draw_vectr()
 		dx -= vx1;
 		dy -= vy1;
 		
-		if((xbak & 0xff8) != (dx & 0xff8)) wrote_bytes++;
+		if((xbak & 0x3ff8) != (dx & 0x3ff8)) wrote_bytes++;
 		if(ybak != dy) wrote_bytes++;
 		xbak = dx;
 		ybak = dy;
@@ -930,7 +963,7 @@ void UPD7220::draw_vectr()
 		dx -= vx2;
 		dy -= vy2;
 		
-		if((xbak & 0xff8) != (dx & 0xff8)) wrote_bytes++;
+		if((xbak & 0x3ff8) != (dx & 0x3ff8)) wrote_bytes++;
 		if(ybak != dy) wrote_bytes++;
 		xbak = dx;
 		ybak = dy;
@@ -939,7 +972,7 @@ void UPD7220::draw_vectr()
 	dad = dx & 0x0f;
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 {
@@ -999,8 +1032,6 @@ bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 #endif
 	state_fio->StateValue(frames_per_sec);
 	state_fio->StateValue(lines_per_frame);
-	state_fio->StateArray(params, sizeof(params), 1);
-	state_fio->StateValue(params_count);
 	if(!fo->process_state((void *)state_fio, loading)) {
  		return false;
  	}
@@ -1021,6 +1052,9 @@ bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(wrote_bytes);
 	state_fio->StateValue(cmd_ready);
 	state_fio->StateValue(event_cmdready);
+	if(!cmd_fifo->process_state((void *)state_fio, loading)) {
+ 		return false;
+ 	}
 
  	// post process
 	if(loading && master) {
