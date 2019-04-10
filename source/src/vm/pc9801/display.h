@@ -32,6 +32,9 @@ class DISPLAY : public DEVICE
 {
 private:
 	DEVICE *d_pic;
+	DEVICE *d_pio_sys;
+	outputs_t output_gdc_freq;
+	
 	UPD7220 *d_gdc_chr, *d_gdc_gfx;
 	uint8_t *ra_chr;
 	uint8_t *ra_gfx, *cs_gfx;
@@ -208,6 +211,7 @@ private:
 public:
 	DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		initialize_output_signals(&output_gdc_freq);
 		memset(tvram, 0, sizeof(tvram));
 		set_device_name(_T("Display"));
 	}
@@ -239,6 +243,10 @@ public:
 	{
 		d_gdc_chr = device;
 		ra_chr = ra;
+	}
+	void set_context_gdc_freq(DEVICE *device, int id, int mask)
+	{
+		register_output_signal(&output_gdc_freq, device, id, mask);
 	}
 	void set_context_gdc_gfx(UPD7220 *device, uint8_t *ra, uint8_t *cs)
 	{

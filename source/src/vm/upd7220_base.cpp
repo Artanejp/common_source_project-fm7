@@ -16,6 +16,7 @@
 #define EVENT_HSYNC_HFP	0
 #define EVENT_HSYNC_HS	1
 #define EVENT_HSYNC_HBP	2
+#define EVENT_CMD_READY 3
 
 enum {
 	STAT_DRDY	= 0x01,
@@ -36,12 +37,16 @@ void UPD7220_BASE::initialize()
 		rt[i] = (int)((double)(1 << RT_MULBIT) * (1 - sqrt(1 - pow((0.70710678118654 * i) / RT_TABLEMAX, 2))));
 	}
 	fo = new FIFO(0x10000);
+	//cmd_fifo = new FIFO(16);
 	
 	vsync = vblank = false;
 	hsync = hblank = false;
 	master = false;
 	pitch = 40;	// 640dot
-	
+
+	event_cmdready = -1;
+	wrote_bytes = 0;
+	cmd_ready = true;
 	// -> upd7220.cpp
 }
 
@@ -49,10 +54,14 @@ void UPD7220_BASE::release()
 {
 	fo->release();
 	delete fo;
+	//cmd_fifo->release();
+	//delete cmd_fifo;
 }
 
 void UPD7220_BASE::reset()
 {
+	if(event_cmdready >= 0) cancel_event(this, event_cmdready);
+	event_cmdready = -1;
 	cmd_reset();
 }
 
@@ -174,6 +183,26 @@ void UPD7220_BASE::event_frame()
 	}
 }
 
+void UPD7220_BASE::write_signal(int ch, uint32_t data, uint32_t mask)
+{
+	switch(ch) {
+	case SIG_UPD7220_CLOCK_FREQ:
+		clock_freq = data; // Must be Hz.
+		break;
+	}
+}
+
+uint32_t UPD7220_BASE::read_signal(int ch)
+{
+	switch(ch) {
+	case SIG_UPD7220_CLOCK_FREQ:
+		return clock_freq;
+		break;
+	}
+	return 0;
+}
+		
+
 void UPD7220_BASE::event_vline(int v, int clock)
 {
 	if(v == 0) {
@@ -193,6 +222,20 @@ void UPD7220_BASE::event_vline(int v, int clock)
 	register_event_by_clock(this, EVENT_HSYNC_HBP, hbp, false, NULL);
 }
 
+void UPD7220_BASE::register_event_wait_cmd(uint32_t bytes)
+{
+	if(event_cmdready >= 0) cancel_event(this, event_cmdready);
+	event_cmdready = -1;
+	double usec = (1.0e6 * (double)bytes) / (double)clock_freq;
+	if(usec < 1.0) {
+		cmd_ready = true;
+		params_count = 0;
+	} else {
+		register_event(this, EVENT_CMD_READY, usec, false, &event_cmdready);
+	}
+}
+
+				   
 void UPD7220_BASE::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_HSYNC_HFP) {
@@ -201,6 +244,10 @@ void UPD7220_BASE::event_callback(int event_id, int err)
 		hsync = false;
 	} else if(event_id == EVENT_HSYNC_HBP) {
 		hblank = false;
+	} else if(event_id == EVENT_CMD_READY) {
+		event_cmdready = -1;
+		cmd_ready = true;
+		params_count = 0;
 	}
 }
 
@@ -242,6 +289,7 @@ void UPD7220_BASE::cmd_reset()
 	
 	// init fifo
 	params_count = 0;
+	cmd_ready = true;
 	fo->clear();
 	
 	// stop display and drawing
@@ -378,6 +426,7 @@ void UPD7220_BASE::cmd_mask()
 void UPD7220_BASE::cmd_write()
 {
 	mod = cmdreg & 3;
+	wrote_bytes = 0;
 	switch(cmdreg & 0x18) {
 	case 0x00: // low and high
 		if(params_count > 1) {
@@ -388,6 +437,7 @@ void UPD7220_BASE::cmd_write()
 				cmd_write_sub(ead * 2 + 1, h);
 				ead += dif;
 			}
+			wrote_bytes = (dc + 1) * 2;
 			cmd_write_done = true;
 			params_count = 0;
 		}
@@ -399,6 +449,7 @@ void UPD7220_BASE::cmd_write()
 				cmd_write_sub(ead * 2 + 0, l);
 				ead += dif;
 			}
+			wrote_bytes = dc + 1;
 			cmd_write_done = true;
 			params_count = 0;
 		}
@@ -410,6 +461,7 @@ void UPD7220_BASE::cmd_write()
 				cmd_write_sub(ead * 2 + 1, h);
 				ead += dif;
 			}
+			wrote_bytes = dc + 1;
 			cmd_write_done = true;
 			params_count = 0;
 		}
@@ -423,6 +475,7 @@ void UPD7220_BASE::cmd_write()
 void UPD7220_BASE::cmd_read()
 {
 	mod = cmdreg & 3;
+	wrote_bytes = 0;
 	switch(cmdreg & 0x18) {
 	case 0x00: // low and high
 		for(int i = 0; i < dc; i++) {
@@ -430,18 +483,21 @@ void UPD7220_BASE::cmd_read()
 			fo->write(read_vram(ead * 2 + 1));
 			ead += dif;
 		}
+		wrote_bytes = (dc + 1) * 2;
 		break;
 	case 0x10: // low byte
 		for(int i = 0; i < dc; i++) {
 			fo->write(read_vram(ead * 2 + 0));
 			ead += dif;
 		}
+		wrote_bytes = dc + 1;
 		break;
 	case 0x18: // high byte
 		for(int i = 0; i < dc; i++) {
 			fo->write(read_vram(ead * 2 + 1));
 			ead += dif;
 		}
+		wrote_bytes = dc + 1;
 		break;
 	default: // invalid
 		break;

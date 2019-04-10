@@ -293,8 +293,10 @@ void DISPLAY::initialize()
 	// set vram pointer to gdc
 	d_gdc_chr->set_vram_ptr(tvram, 0x2000);
 	d_gdc_chr->set_screen_width(80);
+	d_gdc_chr->set_screen_height(25);
 	d_gdc_gfx->set_vram_bus_ptr(this, 0x20000);
 	d_gdc_gfx->set_screen_width(SCREEN_WIDTH >> 3);
+	d_gdc_gfx->set_screen_height(SCREEN_HEIGHT); // ToDo: 200 lines mode.
 	
 	// register event
 	register_frame_event(this);
@@ -438,6 +440,7 @@ void DISPLAY::event_frame()
 
 void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 {
+	uint8_t m_bak;
 	switch(addr) {
 	case 0x64:
 		crtv = 1;
@@ -469,12 +472,34 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		break;
 #if defined(SUPPORT_16_COLORS)
 	case 0x6a:
+		m_bak = modereg2[(data >> 1) & 127];
 		modereg2[(data >> 1) & 127] = data & 1;
-		if(is_use_egc) {
-			enable_egc = (modereg2[MODE2_EGC]) ? true : false;
-		} else {
-			enable_egc = false;
-			modereg2[MODE2_EGC] = 0;
+		//if(is_use_egc) {
+		enable_egc = (modereg2[MODE2_EGC]) ? true : false;
+		//} else {
+		//	enable_egc = false;
+		//modereg2[MODE2_EGC] = 0;
+		//}
+		if(m_bak != modereg2[(data >> 1) & 127]) {
+			if((data & 0xfe) == 0x82) {
+				// ToDo: 006Eh: CMD=0000001nb
+				if((modereg2[0x84 >> 1] != 0) && (modereg2[0x82 >> 1] != 0)) {
+					d_gdc_chr->set_clock_freq(5000 * 1000);
+					d_gdc_gfx->set_clock_freq(5000 * 1000);
+					write_signals(&output_gdc_freq, 0x00);
+				} else if(modereg2[0x82 >> 1] == 0) {
+					// ToDo: 006Eh: CMD=0000001nb
+					d_gdc_chr->set_clock_freq(2500 * 1000);
+					d_gdc_gfx->set_clock_freq(2500 * 1000);
+					write_signals(&output_gdc_freq, 0xff);
+				}
+			} else if((data & 0xfe) == 0x84) {
+				if((data & 0x01) == 0) {
+					d_gdc_chr->set_clock_freq(2500 * 1000);
+					d_gdc_gfx->set_clock_freq(2500 * 1000);
+					write_signals(&output_gdc_freq, 0xff);
+				}
+			}
 		}
 		break;
 #endif

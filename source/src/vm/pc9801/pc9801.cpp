@@ -474,6 +474,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	display->set_context_pic(pic);
 	display->set_context_gdc_chr(gdc_chr, gdc_chr->get_ra());
 	display->set_context_gdc_gfx(gdc_gfx, gdc_gfx->get_ra(), gdc_gfx->get_cs());
+	display->set_context_gdc_freq(pio_sys, SIG_I8255_PORT_A, 0x80);
 	dmareg->set_context_dma(dma);
 	keyboard->set_context_sio(sio_kbd);
 	memory->set_context_display(display);
@@ -1092,12 +1093,14 @@ void VM::reset()
 //	port_a |= 0x04; // DIP SW 2-3, 1 = 40 columns, 0 = 80 columns
 	port_a |= 0x02; // DIP SW 2-2, 1 = BASIC mode, 0 = Terminal mode
 	port_a |= 0x01; // DIP SW 2-1, 1 = Normal mode, 0 = LT mode
-	if((config.dipswitch & (1 << DIPSW_POSITION_GDC_FAST)) != 0) {
+	if((config.dipswitch & (1 << DIPSW_POSITION_GDC_FAST)) == 0) {
 		port_a = port_a | 0x80;
 	}
 	if((config.dipswitch & (1 << DIPSW_POSITION_NOINIT_MEMSW)) != 0) {
 		port_a = port_a | 0x10;
 	}
+	gdc_gfx->set_clock_freq(((port_a & 0x80) != 0) ? (2500 * 1000) : (5000 * 1000));
+	gdc_chr->set_clock_freq(((port_a & 0x80) != 0) ? (2500 * 1000) : (5000 * 1000));
 	
 	port_b  = 0x00;
 	port_b |= 0x80; // RS-232C CI#, 1 = OFF
@@ -1658,10 +1661,10 @@ void VM::update_config()
 	}
 	{
 		uint8_t sys_port_a = pio_sys->read_signal(SIG_I8255_PORT_A);
-		sys_port_a = sys_port_a & ~0x80;
-		if((config.dipswitch & (1 << DIPSW_POSITION_GDC_FAST)) != 0) {
-			sys_port_a = sys_port_a | 0x80;
-		}
+		//sys_port_a = sys_port_a & ~0x80;
+		//if((config.dipswitch & (1 << DIPSW_POSITION_GDC_FAST)) != 0) {
+		//	sys_port_a = sys_port_a | 0x80;
+		//}
 		sys_port_a = sys_port_a & ~0x10;
 		if((config.dipswitch & (1 << DIPSW_POSITION_NOINIT_MEMSW)) != 0) {
 			sys_port_a = sys_port_a | 0x10;

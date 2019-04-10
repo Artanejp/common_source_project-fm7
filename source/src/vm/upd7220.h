@@ -23,6 +23,8 @@
 #define RT_TABLEBIT	12
 #define RT_TABLEMAX	(1 << RT_TABLEBIT)
 
+#define SIG_UPD7220_CLOCK_FREQ 1
+
 class FIFO;
 
 class UPD7220_BASE : public DEVICE
@@ -66,6 +68,7 @@ protected:
 	bool low_high;
 	bool cmd_write_done;
 	int width;
+	int height;
 	
 	int cpu_clocks;
 	double frames_per_sec;
@@ -75,7 +78,12 @@ protected:
 	uint8_t params[16];
 	int params_count;
 	FIFO *fo;
-	
+
+	// waiting
+	int event_cmdready;
+	uint32_t wrote_bytes;
+	bool cmd_ready;
+	uint32_t clock_freq;
 	// draw
 	int rt[RT_TABLEMAX + 1];
 	int dx, dy;	// from ead, dad
@@ -121,6 +129,7 @@ protected:
 	void update_vect();
 	void reset_vect();
 	
+	void register_event_wait_cmd(uint32_t bytes);
 	//virtual void draw_text();
 	//virtual void draw_pset(int x, int y);
 public:
@@ -132,6 +141,8 @@ public:
 		vram = NULL;
 		vram_data_mask = 0xffff;
 		width = 80;
+		height = 25; // ToDo
+		clock_freq = 2500 * 1000; // Hz
 		set_device_name(_T("uPD7220 GDC"));
 	}
 	~UPD7220_BASE() {}
@@ -149,7 +160,8 @@ public:
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
-	
+	uint32_t read_signal(int ch);
+	void write_signal(int ch, uint32_t data, uint32_t mask);
 	
 	// unique functions
 	void set_context_drq(DEVICE* device, int id, uint32_t mask)
@@ -183,6 +195,14 @@ public:
 	void set_screen_width(int value)
 	{
 		width = value;
+	}
+	void set_screen_height(int value)
+	{
+		height = value;
+	}
+	void set_clock_freq(uint32_t hz)
+	{
+		clock_freq = hz;
 	}
 	uint8_t* get_sync()
 	{
