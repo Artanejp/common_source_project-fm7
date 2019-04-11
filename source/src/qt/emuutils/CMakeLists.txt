@@ -1,6 +1,6 @@
 message("* qt/emuutils")
 
-SET(THIS_LIB_VERSION 2.15.4)
+SET(THIS_LIB_VERSION 2.16.0)
 
 set(s_qt_emuutils_headers
 	../gui/csp_logger.h
@@ -10,6 +10,7 @@ set(s_qt_emuutils_srcs
 	  ../../common.cpp
 	  ../../fifo.cpp
 	  ../../fileio.cpp
+	  ../../ringbuffer.cpp
 	  ../gui/csp_logger.cpp
 	  )
 

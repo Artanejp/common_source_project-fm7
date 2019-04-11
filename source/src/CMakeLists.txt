@@ -17,5 +17,6 @@ else()
 	debugger.cpp
 	fileio.cpp
 	fifo.cpp
+	ringbuffer.cpp
 	)
 endif()

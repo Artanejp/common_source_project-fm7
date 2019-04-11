@@ -19,10 +19,6 @@ set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-#	   z80.cpp
-	   
-	   upd7220.cpp
-   
 	   mz1p17.cpp
 	   event.cpp
 	   io.cpp
@@ -38,7 +34,7 @@ set(VMFILES_LIB
 	   pcm1bit.cpp
 	   upd1990a.cpp
 	   upd765a.cpp
-	   upd7220_base.cpp
+	   upd7220.cpp
 	   
 	   prnfile.cpp
 	   

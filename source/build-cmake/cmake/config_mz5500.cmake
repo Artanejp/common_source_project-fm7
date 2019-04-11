@@ -11,8 +11,6 @@ set(VMFILES
 		   i8237.cpp
 		   mz1p17.cpp
 		   
-		   upd7220.cpp
-		   
 		   event.cpp
 		   io.cpp
 )
@@ -28,8 +26,8 @@ set(VMFILES_LIB
 		   noise.cpp
 		   prnfile.cpp
 		   rp5c01.cpp
-		   upd7220_base.cpp
 		   upd765a.cpp
+		   upd7220.cpp
 		   z80ctc.cpp
 		   z80sio.cpp
 )

@@ -24,7 +24,6 @@ set(WITH_MOUSE ON)
 set(VMFILES_BASE
 #                  i386.cpp
 		   i8237.cpp
-		   upd7220.cpp
 		   
 		   io.cpp
 		   event.cpp
@@ -38,7 +37,7 @@ set(VMFILES_LIB
 		   i8259.cpp
 		   noise.cpp
 		   upd1990a.cpp
-		   upd7220_base.cpp
+		   upd7220.cpp
 		   upd765a.cpp
 		   disk.cpp
 )
