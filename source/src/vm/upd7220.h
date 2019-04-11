@@ -314,7 +314,7 @@ inline void UPD7220::finish_pset()
 {
 	if(!first_load) {
 		write_vram(before_addr, cache_val);
-		wrote_bytes++;
+		//wrote_bytes++;
 	}
 	first_load = true;
 	before_addr = 0xffffffff;
@@ -342,7 +342,7 @@ inline bool UPD7220::draw_pset_diff(int x, int y)
 	if((first_load) || (addr != before_addr)) {
 		if(!(first_load)) {
 			write_vram(before_addr, cache_val);
-			wrote_bytes++;
+			//wrote_bytes++;
 		}
 		cache_val = read_vram(addr);
 	} else if((x < 0) || (y < 0) || (x >= (width << 3)) || (y >= height)) {
@@ -358,6 +358,7 @@ inline bool UPD7220::draw_pset_diff(int x, int y)
 		bit = 1 << (x & 7);
 	}
 	uint8_t cur = cache_val;
+	wrote_bytes++; // OK?
 
 	switch(mod) {
 	case 0: // replace
