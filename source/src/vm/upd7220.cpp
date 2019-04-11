@@ -103,7 +103,10 @@ void UPD7220::initialize()
 	event_cmdready = -1;
 	wrote_bytes = 0;
 	cmd_ready = true;
-	// -> upd7220.cpp
+
+	first_load = true;
+	before_addr = 0xffffffff;
+	cache_val = 0;
 	// register events
 	register_frame_event(this);
 	register_vline_event(this);
@@ -532,11 +535,13 @@ void UPD7220::draw_text()
 				pattern = (bit & 1) ? 0xffff : 0;
 				bit = (bit >> 1) | ((bit & 1) ? 0x80 : 0);
 				int mulx = zw + 1;
+				start_pset();
 				while(mulx--) {
-					draw_pset(cx, cy);
+					if(!(draw_pset_diff(cx, cy))) break;
 					cx += vx1;
 					cy += vy1;
 				}
+				finish_pset();
 			}
 			dx += vx2;
 			dy += vy2;
@@ -547,34 +552,6 @@ void UPD7220::draw_text()
 	dad = dx & 0x0f;
 }
 
-void UPD7220::draw_pset(int x, int y)
-{
-	uint16_t dot = pattern & 1;
-	pattern = (pattern >> 1) | (dot << 15);
-	uint32_t addr = y * width + (x >> 3);
-	uint8_t bit;
-	if(_UPD7220_MSB_FIRST) {
-		bit = 0x80 >> (x & 7);
-	} else {
-		bit = 1 << (x & 7);
-	}
-	uint8_t cur = read_vram(addr);
-	
-	switch(mod) {
-	case 0: // replace
-		write_vram(addr, (cur & ~bit) | (dot ? bit : 0));
-		break;
-	case 1: // complement
-		write_vram(addr, (cur & ~bit) | ((cur ^ (dot ? 0xff : 0)) & bit));
-		break;
-	case 2: // reset
-		write_vram(addr, cur & (dot ? ~bit : 0xff));
-		break;
-	case 3: // set
-		write_vram(addr, cur | (dot ? bit : 0));
-		break;
-	}
-}
 
 void UPD7220::write_dma_io8(uint32_t addr, uint32_t data)
 {
@@ -633,15 +610,14 @@ void UPD7220::write_io8(uint32_t addr, uint32_t data)
 	case 0: // set parameter
 //		this->out_debug_log(_T("\tPARAM = %2x\n"), data);
 		//if(cmd_ready) { // OK?
-			if(cmdreg != -1) {
-
+		if(cmdreg != -1) {
 				cmd_fifo->write(data & 0xff);
 				check_cmd();
 				//if(cmdreg == -1) {
 				//	cmd_fifo->clear(); // OK?
 				//}
-			}
-		//}
+				//	}
+		}
 		break;
 	case 1: // process prev command if not finished
 		if(cmd_ready) {
@@ -649,8 +625,7 @@ void UPD7220::write_io8(uint32_t addr, uint32_t data)
 				process_cmd();
 			}
 			// set new command
-			//cmdreg = (uint8_t)(data & 0xff);
-			cmdreg = (int)(data & 0xff);
+			cmdreg = (int)data & 0xff;
 //		this->out_debug_log(_T("CMDREG = %2x\n"), cmdreg);
 //		params_count = 0;
 			check_cmd();
@@ -677,8 +652,8 @@ uint32_t UPD7220::read_io8(uint32_t addr)
 			val |= hblank ? STAT_BLANK : 0;
 		}
 		val |= vsync ? STAT_VSYNC : 0;
-		val |= (cmd_fifo->empty()) ? STAT_EMPTY : 0;
-		//val |= STAT_EMPTY;
+		//val |= (cmd_fifo->empty()) ? STAT_EMPTY : 0;
+		val |= STAT_EMPTY;
 		val |= (cmd_fifo->full()) ? STAT_FULL : 0;
 		val |= (!(fo->empty())) ? STAT_DRDY : 0;
 		// clear busy stat
@@ -814,6 +789,7 @@ int UPD7220::cursor_bottom()
 
 void UPD7220::cmd_reset()
 {
+	finish_pset();
 	// init gdc params
 	sync[6] = 0x90;
 	sync[7] = 0x01;
@@ -882,7 +858,7 @@ void UPD7220::cmd_stop()
 void UPD7220::cmd_zoom()
 {
 	wrote_bytes = 0;
-	if(!(cmd_fifo->empty())) {
+	if(cmd_fifo->count() >= 1) {
 		wrote_bytes = 1;
 		uint8_t tmp = (uint8_t)(cmd_fifo->read() & 0xff);
 		zr = tmp >> 4;
@@ -894,7 +870,7 @@ void UPD7220::cmd_zoom()
 void UPD7220::cmd_scroll()
 {
 	wrote_bytes = 0;
-	if(!(cmd_fifo->empty())) {
+	if(cmd_fifo->count() >= 1) {
 		ra[cmdreg & 0x0f] = (uint8_t)(cmd_fifo->read() & 0xff);
 		wrote_bytes = 1;
 		if(cmdreg < 0x7f) {
@@ -1170,6 +1146,56 @@ void UPD7220::reset_vect()
 
 
 // draw
+void UPD7220::draw_hline_diff(int xstart, int y, int xend)
+{
+	int nshift = 0;
+	int lwidth;
+	int nwidth = width << 3;
+	uint16_t dot;
+	int begin = 0;
+	int end = 0;
+	int dir = ((xstart == xend) ? 0 : ((xstart < xend) ? 1 : -1));
+
+	// Out of range, dummy shift.
+	if((y >= height) || (y < 0) || ((xstart < 0) && (xend < 0)) || ((xstart >= nwidth) && (xend >= nwidth))) {
+		int bits = xstart - xend;
+		if(bits < 0) bits = -bits;
+		bits++;
+		shift_pattern(bits);
+		return;
+	}
+	
+	// ToDo: WORD write
+	if(dir == 0) {
+		draw_pset_diff(xstart, y);
+	} else if(dir < 0) {
+		if(xstart >= nwidth) {
+			int rshift = ((xstart - nwidth) + 1) & 15;
+			shift_pattern(rshift);
+			xstart = nwidth - 1;
+		}
+		for(int x = xstart; x >= ((xend < 0) ? 0 : xend); x--) {
+			draw_pset_diff(x, y);
+		}
+		if(xend < 0) {
+			int lshift = (0 - xend) & 15;
+			shift_pattern(lshift);
+		}
+	} else { // dir > 0
+		if(xstart < 0) {
+			int rshift = ((0 - xstart)) & 15;
+			shift_pattern(rshift);
+			xstart = 0;
+		}
+		for(int x = xstart; x <= ((xend >= nwidth) ? (nwidth - 1) : xend); x++) {
+			draw_pset_diff(x, y);
+		}
+		if(xend >= nwidth) {
+			int lshift = ((xend - nwidth) + 1) & 15;
+			shift_pattern(lshift);
+		}
+	}
+}
 
 void UPD7220::draw_vectl()
 {
@@ -1178,89 +1204,116 @@ void UPD7220::draw_vectl()
 	if(dc) {
 		int x = dx;
 		int y = dy;
-		int xbak = dy;
-		int ybak = dy;
-		int nwidth = width << 3;
+		int step;
+		int stepx = 0;
+		int stepy = 0;
+		int stepn = 0;
+		int stepn2 = 0;
 		switch(dir) {
 		case 0:
+			step = (((d1 << 14) / dc) + (1 << 14)) >> 1;
+			start_pset();
 			for(int i = 0; i <= dc; i++) {
-				int step = (int)((((d1 * i) / dc) + 1) >> 1);
-				if((x + step) >= nwidth) break; // ToDo: High RESO.
-				if(y >= height) break;
-				draw_pset(x + step, y++);
-				wrote_bytes++;
+				//int step = (int)((((d1 * i) / dc) + 1) >> 1);
+				stepx += (step >> 14);
+				stepn2 = stepn;
+				stepn += step;
+				if((stepn2 >> 14) != (stepn >> 14)) stepx++;
+				if(!(draw_pset_diff(x + stepx, y++))) break;
 			}
+			finish_pset();
 			break;
 		case 1:
+			start_pset();
+			step = ((((d1 << 14) / dc) + (1 << 14)) >> 1);
+
 			for(int i = 0; i <= dc; i++) {
-				int step = (int)((((d1 * i) / dc) + 1) >> 1);
-				if((y + step) >= height) break; // ToDo: High RESO.
-				if(x >= nwidth) break;
-				draw_pset(x++, y + step);
-				if((x & 7) == 0) wrote_bytes++;
-				if((ybak & 0x3ff8) != ((y + step) & 0x3ff8)) wrote_bytes++;
-				ybak = y + step;
+				//int step = (int)((((d1 * i) / dc) + 1) >> 1);
+				stepy += (step >> 14);
+				stepn2 = stepn;
+				stepn += step;
+				if((stepn2 >> 14) != (stepn >> 14)) stepy++;
+				if(!(draw_pset_diff(x++, y + stepy))) break;
 			}
+			finish_pset();
 			break;
 		case 2:
+			start_pset();
+			step = ((((d1 << 14) / dc) + (1 << 14)) >> 1);
 			for(int i = 0; i <= dc; i++) {
-				int step = (int)((((d1 * i) / dc) + 1) >> 1);
-				if((y - step) < 0) break; // ToDo: High RESO.
-				if(x >= nwidth) break;
-				draw_pset(x++, y - step);
-				if((x & 7) == 0) wrote_bytes++;
-				if((ybak & 0x3ff8) != ((y - step) & 0x3ff8)) wrote_bytes++;
-				ybak = y - step;
+				//int step = (int)((((d1 * i) / dc) + 1) >> 1);
+				stepy += (step >> 14);
+				stepn2 = stepn;
+				stepn += step;
+				if((stepn2 >> 14) != (stepn >> 14)) stepy++;
+				if(!(draw_pset_diff(x++, y - stepy))) break;
 			}
+			finish_pset();
 			break;
 		case 3:
+			start_pset();
+			step = (int)((((d1 << 14) / dc) + (1 << 14)) >> 1);
 			for(int i = 0; i <= dc; i++) {
-				int step = (int)((((d1 * i) / dc) + 1) >> 1);
-				if((x + step) >= nwidth) break; // ToDo: High RESO.
-				if(y < 0) break;
-				draw_pset(x + step, y--);
-				wrote_bytes++;
+				//int step = (int)((((d1 * i) / dc) + 1) >> 1);
+				stepx += (step >> 14);
+				stepn2 = stepn;
+				stepn += step;
+				if((stepn2 >> 14) != (stepn >> 14)) stepx++;
+				if(!(draw_pset_diff(x + stepx, y--))) break;
 			}
+			finish_pset();
 			break;
 		case 4:
+			start_pset();
+			step = (int)((((d1 << 14) / dc) + (1 << 14)) >> 1);
 			for(int i = 0; i <= dc; i++) {
-				int step = (int)((((d1 * i) / dc) + 1) >> 1);
-				if((x - step) < 0) break; // ToDo: High RESO.
-				if(y < 0) break;
-				draw_pset(x - step, y--);
-				wrote_bytes++;
+				//int step = (int)((((d1 * i) / dc) + 1) >> 1);
+				stepx += (step >> 14);
+				stepn2 = stepn;
+				stepn += step;
+				if((stepn2 >> 14) != (stepn >> 14)) stepx++;
+				if(!(draw_pset_diff(x - stepx, y--))) break;
 			}
+			finish_pset();
 			break;
 		case 5:
+			start_pset();
+			step = (int)((((d1 << 14) / dc) + (1 << 14)) >> 1);
 			for(int i = 0; i <= dc; i++) {
-				int step = (int)((((d1 * i) / dc) + 1) >> 1);
-				if((y - step) < 0) break; // ToDo: High RESO.
-				if(x < 0) break;
-				draw_pset(x--, y - step);
-				if((x & 7) == 7) wrote_bytes++;
-				if((ybak & 0x3ff8) != ((y - step) & 0x3ff8)) wrote_bytes++;
-				ybak = y - step;
+				//int step = (int)((((d1 * i) / dc) + 1) >> 1);
+				stepy += (step >> 14);
+				stepn2 = stepn;
+				stepn += step;
+				if((stepn2 >> 14) != (stepn >> 14)) stepy++;
+				if(!(draw_pset_diff(x--, y - stepy))) break;
 			}
+			finish_pset();
 			break;
 		case 6:
+			start_pset();
+			step = (int)((((d1 << 14) / dc) + (1 << 14)) >> 1);
 			for(int i = 0; i <= dc; i++) {
-				int step = (int)((((d1 * i) / dc) + 1) >> 1);
-				if((y + step) >= height) break; // ToDo: High RESO.
-				if(x < 0) break;
-				draw_pset(x--, y + step);
-				if((x & 7) == 7) wrote_bytes++;
-				if((ybak & 0x3ff8) != ((y + step) & 0x3ff8)) wrote_bytes++;
-				ybak = y + step;
+				//int step = (int)((((d1 * i) / dc) + 1) >> 1);
+				stepy += (step >> 14);
+				stepn2 = stepn;
+				stepn += step;
+				if((stepn2 >> 14) != (stepn >> 14)) stepy++;
+				if(!(draw_pset_diff(x--, y + stepy))) break;
 			}
+			finish_pset();
 			break;
 		case 7:
+			start_pset();
+			step = (int)((((d1 << 14) / dc) + (1 << 14)) >> 1);
 			for(int i = 0; i <= dc; i++) {
-				int step = (int)((((d1 * i) / dc) + 1) >> 1);
-				if((x - step) < 0) break; // ToDo: High RESO.
-				if(y >= height) break;
-				draw_pset(x - step, y++);
-				wrote_bytes++;
+				//int step = (int)((((d1 * i) / dc) + 1) >> 1);
+				stepx += (step >> 14);
+				stepn2 = stepn;
+				stepn += step;
+				if((stepn2 >> 14) != (stepn >> 14)) stepx++;
+				if(!(draw_pset_diff(x - stepx, y++))) break;;
 			}
+			finish_pset();
 			break;
 		}
 	} else {
@@ -1295,40 +1348,30 @@ void UPD7220::draw_vectt()
 		int cx = dx;
 		int cy = dy;
 		int xrem = d;
-		int xbak = cx;
-		int ybak = cy;
 		while(xrem--) {
 			int mulx = zw + 1;
 			if(draw & 1) {
 				draw >>= 1;
 				draw |= 0x8000;
+				start_pset();
 				while(mulx--) {
-					draw_pset(cx, cy);
-					if(cx >= nwidth) goto _abort;
-					if(cy >= height) goto _abort;
-					if(cx < 0) goto _abort;
-					if(cy < 0) goto _abort;
+					if(!(draw_pset_diff(cx, cy))) break;
 					cx += vx1;
 					cy += vy1;
-					if((cx & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
-					if(cy != ybak) wrote_bytes++;
-					xbak = cx;
-					ybak = cy;
 				}
+				cx += (vx1 * mulx);
+				cy += (vy1 * mulx);
+				mulx = 0;
+				finish_pset();
 			} else {
 				draw >>= 1;
-				while(mulx--) {
-					if(cx >= nwidth) goto _abort;
-					if(cy >= height) goto _abort;
-					if(cx < 0) goto _abort;
-					if(cy < 0) goto _abort;
-					cx += vx1;
-					cy += vy1;
-					if((cx & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
-					if(cy != ybak) wrote_bytes++;
-					xbak = cx;
-					ybak = cy;
-				}
+				//while(mulx--) {
+				//	cx += vx1;
+				//	cy += vy1;
+				//}
+				cx += (vx1 * mulx);
+				cy += (vy1 * mulx);
+				mulx = 0;
 			}
 		}
 	_abort:
@@ -1346,152 +1389,80 @@ void UPD7220::draw_vectc()
 	pattern = ra[8] | (ra[9] << 8);
 	int xbak = dx;
 	int ybak = dy;
-	int nwidth = width << 3;
 	if(m) {
 		switch(dir) {
 		case 0:
+			start_pset();
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-
-				if((dx + s) >= nwidth) break;
-				if((dy + i) >= height) break;
-				if((dx + s) < 0) break;
-				if((dy + i) < 0) break;
-				
-				draw_pset((dx + s), (dy + i));
-				
-				if(((dx + s) & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
-				if((dy + i) != ybak) wrote_bytes++;
-				xbak = dx + s;
-				ybak = dy + i;
+				if(!(draw_pset_diff((dx + s), (dy + i)))) break;
 			}
+			finish_pset();
 			break;
 		case 1:
+			start_pset();
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-
-				if((dx + i) >= nwidth) break;
-				if((dy + s) >= height) break;
-				if((dx + i) < 0) break;
-				if((dy + s) < 0) break;
-				
-				draw_pset((dx + i), (dy + s));
-				
-				if(((dx + i) & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
-				if((dy + s) != ybak) wrote_bytes++;
-				xbak = dx + i;
-				ybak = dy + s;
+				if(!(draw_pset_diff((dx + i), (dy + s)))) break;
 			}
+			finish_pset();
 			break;
 		case 2:
+			start_pset();
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-
-				if((dx + i) >= nwidth) break;
-				if((dy - s) >= height) break;
-				if((dx + i) < 0) break;
-				if((dy - s) < 0) break;
-				
-				draw_pset((dx + i), (dy - s));
-
-				if(((dx + i) & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
-				if((dy - s) != ybak) wrote_bytes++;
-				xbak = dx + i;
-				ybak = dy - s;
+				if(!(draw_pset_diff((dx + i), (dy - s)))) break;
 			}
+			finish_pset();
 			break;
 		case 3:
+			start_pset();
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-
-				if((dx + s) >= nwidth) break;
-				if((dy - i) >= height) break;
-				if((dx + s) < 0) break;
-				if((dy - i) < 0) break;
-				
-				draw_pset((dx + s), (dy - i));
-
-				if(((dx + s) & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
-				if((dy - i) != ybak) wrote_bytes++;
-				xbak = dx + s;
-				ybak = dy - i;
+				if(!(draw_pset_diff((dx + s), (dy - i)))) break;
 			}
+			finish_pset();
 			break;
 		case 4:
+			start_pset();
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				
-				if((dx - s) >= nwidth) break;
-				if((dy - i) >= height) break;
-				if((dx - s) < 0) break;
-				if((dy - i) < 0) break;
-				
-				draw_pset((dx - s), (dy - i));
-				
-				if(((dx - s) & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
-				if((dy - i) != ybak) wrote_bytes++;
-				xbak = dx - s;
-				ybak = dy - i;
+				if(!(draw_pset_diff((dx - s), (dy - i)))) break;
 			}
+			finish_pset();
 			break;
 		case 5:
+			start_pset();
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
 
-				if((dx - i) >= nwidth) break;
-				if((dy - s) >= height) break;
-				if((dx - i) < 0) break;
-				if((dy - s) < 0) break;
-				
-				draw_pset((dx - i), (dy - s));
-				
-				if(((dx - i) & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
-				if((dy - s) != ybak) wrote_bytes++;
-				xbak = dx - i;
-				ybak = dy - s;
+				if(!(draw_pset_diff((dx - i), (dy - s)))) break;
 			}
+			finish_pset();
 			break;
 		case 6:
+			start_pset();
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-
-				if((dx - i) >= nwidth) break;
-				if((dy + s) >= height) break;
-				if((dx - i) < 0) break;
-				if((dy + s) < 0) break;
-				
-				draw_pset((dx - i), (dy + s));
-
-				if(((dx - i) & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
-				if((dy + s) != ybak) wrote_bytes++;
-				xbak = dx - i;
-				ybak = dy + s;
+				if(!(draw_pset_diff((dx - i), (dy + s)))) break;
 			}
+			finish_pset();
 			break;
 		case 7:
+			start_pset();
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-
-				if((dx - s) >= nwidth) break;
-				if((dy + i) >= height) break;
-				if((dx - s) < 0) break;
-				if((dy + i) < 0) break;
-				
-				draw_pset((dx - s), (dy + i));
-				
-				if(((dx - s) & 0x3ff8) != (xbak & 0x3ff8)) wrote_bytes++;
-				if((dy + i) != ybak) wrote_bytes++;
-				xbak = dx - s;
-				ybak = dy + i;
+				if(!(draw_pset_diff((dx - s), (dy + i)))) break;
 			}
+			finish_pset();
 			break;
 		}
 	} else {
@@ -1511,73 +1482,89 @@ void UPD7220::draw_vectr()
 	int xbak = dx;
 	int ybak = dy;
 	pattern = ra[8] | (ra[9] << 8);
-	
-	for(int i = 0; i < d; i++) {
-		if(dx >= nwidth) break;
-		if(dy >= height) break;
-		if(dx < 0) break;
-		if(dy < 0) break;
-		
-		draw_pset(dx, dy);
-		
-		dx += vx1;
-		dy += vy1;
 
-		if((xbak & 0x3ff8) != (dx & 0x3ff8)) wrote_bytes++;
-		if(ybak != dy) wrote_bytes++;
-		xbak = dx;
-		ybak = dy;
+	
+	start_pset();
+	if(vy1 == 0) {
+		if(vx1 == 0) {
+			draw_pset(dx, dy);
+		} else {
+			draw_hline_diff(dx, dy, (vx1 < 0) ? (dx - d) : (dx + d));
+		}
+	} else {
+		for(int i = 0; i < d; i++) {
+			if(!(draw_pset_diff(dx, dy))) break;
+			dx += vx1;
+			dy += vy1;
+		}
 	}
-	for(int i = 0; i < d2; i++) {
-		if(dx >= nwidth) break;
-		if(dy >= height) break;
-		if(dx < 0) break;
-		if(dy < 0) break;
-		
-		draw_pset(dx, dy);
-		dx += vx2;
-		dy += vy2;
-		
-		if((xbak & 0x3ff8) != (dx & 0x3ff8)) wrote_bytes++;
-		if(ybak != dy) wrote_bytes++;
-		xbak = dx;
-		ybak = dy;
+	xbak += (vx1 * d);
+	ybak += (vy1 * d);
+	finish_pset();
+	dx = xbak;
+	dy = ybak;
+	start_pset();
+	if(vy2 == 0) {
+		if(vx2 == 0) {
+			draw_pset(dx, dy);
+		} else {
+			draw_hline_diff(dx, dy, (vx2 < 0) ? (dx - d2) : (dx + d2));
+		}
+	} else {
+		for(int i = 0; i < d2; i++) {
+			if(!(draw_pset_diff(dx, dy))) break;
+			dx += vx2;
+			dy += vy2;
+		}
 	}
-	for(int i = 0; i < d; i++) {
-		if(dx >= nwidth) break;
-		if(dy >= height) break;
-		if(dx < 0) break;
-		if(dy < 0) break;
-		
-		draw_pset(dx, dy);
-		dx -= vx1;
-		dy -= vy1;
-		
-		if((xbak & 0x3ff8) != (dx & 0x3ff8)) wrote_bytes++;
-		if(ybak != dy) wrote_bytes++;
-		xbak = dx;
-		ybak = dy;
+	xbak += (vx2 * d2);
+	ybak += (vy2 * d2);
+	finish_pset();
+	dx = xbak;
+	dy = ybak;
+	start_pset();
+	if(vy1 == 0) {
+		if(vx1 == 0) {
+			draw_pset(dx, dy);
+		} else {
+			draw_hline_diff(dx, dy, (vx1 < 0) ? (dx - d) : (dx + d));
+		}
+	} else {
+		for(int i = 0; i < d; i++) {
+			if(!(draw_pset_diff(dx, dy))) break;
+			dx -= vx1;
+			dy -= vy1;
+		}
 	}
-	for(int i = 0; i < d2; i++) {
-		if(dx >= nwidth) break;
-		if(dy >= height) break;
-		if(dx < 0) break;
-		if(dy < 0) break;
-		
-		draw_pset(dx, dy);
-		dx -= vx2;
-		dy -= vy2;
-		
-		if((xbak & 0x3ff8) != (dx & 0x3ff8)) wrote_bytes++;
-		if(ybak != dy) wrote_bytes++;
-		xbak = dx;
-		ybak = dy;
+	xbak -= (vx1 * d);
+	ybak -= (vy1 * d);
+	finish_pset();
+	dx = xbak;
+	dy = ybak;
+	start_pset();
+	if(vy2 == 0) {
+		if(vx2 == 0) {
+			draw_pset(dx, dy);
+		} else {
+			draw_hline_diff(dx, dy, (vx2 < 0) ? (dx - d2) : (dx + d2));
+		}
+	} else {
+		for(int i = 0; i < d2; i++) {
+			if(!(draw_pset_diff(dx, dy))) break;
+			dx -= vx2;
+			dy -= vy2;
+		}
 	}
+	xbak -= (vx2 * d2);
+	ybak -= (vy2 * d2);
+	finish_pset();
+	dx = xbak;
+	dy = ybak;
 	ead = (dx >> 4) + dy * pitch;
 	dad = dx & 0x0f;
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1660,7 +1647,9 @@ bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 	if(!cmd_fifo->process_state((void *)state_fio, loading)) {
  		return false;
  	}
-	
+	state_fio->StateValue(first_load);
+	state_fio->StateValue(before_addr);
+	state_fio->StateValue(cache_val);
  	// post process
 	if(loading && master) {
  		// force update timing

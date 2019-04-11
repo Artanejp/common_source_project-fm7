@@ -104,6 +104,9 @@ protected:
 	// command
 	//void check_cmd();
 	//void process_cmd();
+	uint32_t before_addr;
+	uint8_t cache_val;
+	bool first_load;
 	
 	void cmd_reset();
 	void cmd_sync();
@@ -149,7 +152,13 @@ protected:
 	void cmd_pitch();
 	
 	void draw_text();
-	void draw_pset(int x, int y);
+	inline void draw_pset(int x, int y);
+	inline void start_pset();
+	inline void finish_pset();
+	inline bool draw_pset_diff(int x, int y);
+	void draw_hline_diff(int xstart, int y, int xend);
+	inline void shift_pattern(int shift);
+	
 public:
 	UPD7220(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -264,6 +273,108 @@ public:
 };
 
 
+inline void  UPD7220::draw_pset(int x, int y)
+{
+	if((x < 0) || (y < 0) || (x >= (width << 3)) || (y >= height)) return;
+	uint16_t dot = pattern & 1;
+	pattern = (pattern >> 1) | (dot << 15);
+	uint32_t addr = y * width + (x >> 3);
+	uint8_t bit;
+	if(_UPD7220_MSB_FIRST) {
+		bit = 0x80 >> (x & 7);
+	} else {
+		bit = 1 << (x & 7);
+	}
+	uint8_t cur = read_vram(addr);
+	
+	switch(mod) {
+	case 0: // replace
+		write_vram(addr, (cur & ~bit) | (dot ? bit : 0));
+		break;
+	case 1: // complement
+		write_vram(addr, (cur & ~bit) | ((cur ^ (dot ? 0xff : 0)) & bit));
+		break;
+	case 2: // reset
+		write_vram(addr, cur & (dot ? ~bit : 0xff));
+		break;
+	case 3: // set
+		write_vram(addr, cur | (dot ? bit : 0));
+		break;
+	}
+}
+
+inline void UPD7220::start_pset()
+{
+	before_addr = 0xffffffff;
+	first_load = true;
+	cache_val = 0;
+}
+
+inline void UPD7220::finish_pset()
+{
+	if(!first_load) {
+		write_vram(before_addr, cache_val);
+		wrote_bytes++;
+	}
+	first_load = true;
+	before_addr = 0xffffffff;
+	cache_val = 0;
+}
+
+inline void UPD7220::shift_pattern(int shift)
+{
+	int bits = shift & 15;
+	uint16_t dot;
+	if(bits != 0) {
+		dot = pattern & ((1 << bits) - 1);
+		pattern = (pattern >> bits) | (dot << (16 - bits));
+	}
+}
+	
+
+inline bool UPD7220::draw_pset_diff(int x, int y)
+{
+	uint16_t dot = pattern & 1;
+	pattern = (pattern >> 1) | (dot << 15);
+	uint32_t addr = y * width + (x >> 3);
+	uint8_t bit;
+
+	if((first_load) || (addr != before_addr)) {
+		if(!(first_load)) {
+			write_vram(before_addr, cache_val);
+			wrote_bytes++;
+		}
+		cache_val = read_vram(addr);
+	} else if((x < 0) || (y < 0) || (x >= (width << 3)) || (y >= height)) {
+		finish_pset();
+		return false;
+	}
+	first_load = false;
+	before_addr = addr;
+		
+	if(_UPD7220_MSB_FIRST) {
+		bit = 0x80 >> (x & 7);
+	} else {
+		bit = 1 << (x & 7);
+	}
+	uint8_t cur = cache_val;
+
+	switch(mod) {
+	case 0: // replace
+		cache_val = (cur & ~bit) | (dot ? bit : 0);
+		break;
+	case 1: // complement
+		cache_val = (cur & ~bit) | ((cur ^ (dot ? 0xff : 0)) & bit);
+		break;
+	case 2: // reset
+		cache_val = cur & (dot ? ~bit : 0xff);
+		break;
+	case 3: // set
+		cache_val = cur | (dot ? bit : 0);
+		break;
+	}
+	return true;
+}
 
 #endif
 
