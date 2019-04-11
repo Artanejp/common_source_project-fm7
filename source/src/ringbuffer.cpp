@@ -22,7 +22,11 @@ void RINGBUFFER::write(int val, bool *p_fill_warn)
 		wpt = 0;
 	}
 	cnt++;
-	if(cnt >= size) cnt = size;
+	if(cnt >= size) {
+		cnt = size;
+		rpt = wpt - 1;
+		if(rpt < 0) rpt = size - 1;
+	}
 	if(fill_warn_val < cnt) {
 		fill_warn_flag = true;
 	} else {
@@ -36,13 +40,16 @@ void RINGBUFFER::write(int val, bool *p_fill_warn)
 int RINGBUFFER::read(bool *p_empty_warn)
 {
 	int val = 0;
-	if(cnt > 0) {
+	if(cnt) {
 		val = buf[rpt++];
 		if(rpt >= size) {
 			rpt = 0;
 		}
 		cnt--;
-		if(cnt < 0) cnt = 0;
+		if(cnt <= 0) {
+			cnt = 0;
+			wpt = rpt;
+		}
 		if(empty_warn_val > cnt) {
 			empty_warn_flag = true;
 		} else {

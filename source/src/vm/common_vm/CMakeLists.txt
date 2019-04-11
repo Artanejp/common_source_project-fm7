@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 2.11.0)
+SET(THIS_LIB_VERSION 2.11.1)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
@@ -97,20 +97,6 @@ set(s_vm_common_vm_srcs
 	../z80pio.cpp
 	../z80sio.cpp
 
-#	../libcpu_newdev/i86_base.cpp
-
-#	../libcpu_newdev/libcpu_i386/i386_opdef.cpp
-#	../libcpu_newdev/libcpu_i386/i386_base_ext.cpp
-#	../libcpu_newdev/libcpu_i386/i386op16.cpp
-#	../libcpu_newdev/libcpu_i386/i386op32.cpp
-#	../libcpu_newdev/libcpu_i386/i386ops.cpp
-#	../libcpu_newdev/libcpu_i386/i486ops.cpp
-#	../libcpu_newdev/libcpu_i386/pentops.cpp
-#	../libcpu_newdev/libcpu_i386/x87ops.cpp
-#	../libcpu_newdev/libcpu_i386/vtlb.cpp
-
-#	../libcpu_newdev/i386_base.cpp
-	
 	# FM-7/77/AV
 	../fm7/hd6844.cpp
 	../fm7/mb61vh010.cpp
