@@ -25,9 +25,8 @@
 
 #define SIG_UPD7220_CLOCK_FREQ 1
 
-class FIFO;
-
-class UPD7220_BASE : public DEVICE
+class RINGBUFFER;
+class UPD7220 : public DEVICE
 {
 protected:
 	// output signals
@@ -39,6 +38,13 @@ protected:
 	uint8_t* vram;
 	uint32_t vram_size;
 	uint16_t vram_data_mask;
+
+	// feature flags
+	bool __QC10;
+	bool _UPD7220_MSB_FIRST;
+	int  _UPD7220_FIXED_PITCH;
+	int  _UPD7220_HORIZ_FREQ;
+	int  _LINES_PER_FRAME;
 	
 	// regs
 	int cmdreg;
@@ -74,9 +80,9 @@ protected:
 	double frames_per_sec;
 	int lines_per_frame;
 	
-	// fifo buffers
-	FIFO *fo;
-	FIFO *cmd_fifo;
+	// ring buffers
+	RINGBUFFER *fo;
+	RINGBUFFER *cmd_fifo;
 
 	// waiting
 	int event_cmdready;
@@ -94,7 +100,7 @@ protected:
 		{ 0, 1, 1, 1}, { 1, 1, 1, 0}, { 1, 0, 1,-1}, { 1,-1, 0,-1},
 		{ 0,-1,-1,-1}, {-1,-1,-1, 0}, {-1, 0,-1, 1}, {-1, 1, 0, 1}
 	};
-	
+	int horiz_freq, next_horiz_freq;	
 	// command
 	//void check_cmd();
 	//void process_cmd();
@@ -129,10 +135,23 @@ protected:
 	void reset_vect();
 	
 	void register_event_wait_cmd(uint32_t bytes);
-	//virtual void draw_text();
-	//virtual void draw_pset(int x, int y);
+
+	void check_cmd();
+	void process_cmd();
+	
+	void draw_vectl();
+	void draw_vectt();
+	void draw_vectc();
+	void draw_vectr();
+	
+	void cmd_vecte();
+	void cmd_texte();
+	void cmd_pitch();
+	
+	void draw_text();
+	void draw_pset(int x, int y);
 public:
-	UPD7220_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	UPD7220(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_drq);
 		initialize_output_signals(&outputs_vsync);
@@ -144,23 +163,27 @@ public:
 		clock_freq = 2500 * 1000; // Hz
 		set_device_name(_T("uPD7220 GDC"));
 	}
-	~UPD7220_BASE() {}
+	~UPD7220() {}
 	
 	// common functions
-	virtual void initialize();
+	void initialize();
 	void release();
 	void reset();
 	void write_dma_io8(uint32_t addr, uint32_t data);
 	uint32_t read_dma_io8(uint32_t addr);
-	virtual void write_io8(uint32_t addr, uint32_t data);
+	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
-	virtual void event_pre_frame();
+	void event_pre_frame();
 	void event_frame();
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
+	
 	uint32_t read_signal(int ch);
 	void write_signal(int ch, uint32_t data, uint32_t mask);
+
+	bool process_state(FILEIO* state_fio, bool loading);
+
 	
 	// unique functions
 	void set_context_drq(DEVICE* device, int id, uint32_t mask)
@@ -234,48 +257,13 @@ public:
 	{
 		return (blink_attr < (blink_rate * 3 / 4));
 	}
-};
-
-
-class UPD7220 : public UPD7220_BASE
-{
-private:
-#ifdef UPD7220_HORIZ_FREQ
-	int horiz_freq, next_horiz_freq;
-#endif
-private:
-	void check_cmd();
-	void process_cmd();
-	
-	void draw_vectl();
-	void draw_vectt();
-	void draw_vectc();
-	void draw_vectr();
-	
-	void cmd_vecte();
-	void cmd_texte();
-	void cmd_pitch();
-	
-	void draw_text();
-	void draw_pset(int x, int y);
-public:
-	UPD7220(VM_TEMPLATE* parent_vm, EMU* parent_emu) : UPD7220_BASE(parent_vm, parent_emu)
-	{
-	}
-	~UPD7220() {}
-	void initialize();
-	void event_pre_frame();
-	virtual void write_io8(uint32_t addr, uint32_t data);
-
-	bool process_state(FILEIO* state_fio, bool loading);
-
-#ifdef UPD7220_HORIZ_FREQ
 	void set_horiz_freq(int freq)
 	{
 		next_horiz_freq = freq;
 	}
-#endif
 };
+
+
 
 #endif
 
