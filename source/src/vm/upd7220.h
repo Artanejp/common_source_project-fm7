@@ -26,6 +26,7 @@
 #define SIG_UPD7220_CLOCK_FREQ 1
 
 class RINGBUFFER;
+class FIFO;
 class UPD7220 : public DEVICE
 {
 protected:
@@ -59,10 +60,13 @@ protected:
 	uint8_t zoom, zr, zw;
 	uint8_t ra[16];
 	uint8_t cs[3];
+	uint8_t cs_ptr;
 	uint8_t pitch;
 	uint32_t lad;
 	uint8_t vect[11];
 	int ead, dad;
+	uint8_t ead_ptr;
+	
 	uint8_t maskl, maskh;
 	uint8_t mod;
 	bool hsync, hblank;

@@ -93,7 +93,7 @@ void UPD7220::initialize()
 	}
 	// Design manual p.104 "because FIFO is implemented as a ring buffer".
 	fo = new RINGBUFFER(0x10000);
-	cmd_fifo = new RINGBUFFER(64); // OK?
+	cmd_fifo = new RINGBUFFER(32); // OK?
 	
 	vsync = vblank = false;
 	hsync = hblank = false;
@@ -266,9 +266,11 @@ void UPD7220::check_cmd()
 		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_CSRW:
-		cmd_ready = false;
-		cmd_csrw();
-		register_event_wait_cmd(wrote_bytes); // OK?
+		if(cmd_fifo->count() > 2) {
+			cmd_ready = false;
+			cmd_csrw();
+			register_event_wait_cmd(wrote_bytes); // OK?
+		}
 		break;
 	case CMD_CSRR:
 		cmd_ready = false;
@@ -380,6 +382,11 @@ void UPD7220::process_cmd()
 	case CMD_SYNC + 1:	
 		cmd_ready = false;
 		cmd_sync();
+		register_event_wait_cmd(wrote_bytes); // OK?
+		break;
+	case CMD_CSRFORM:
+		cmd_ready = false;
+		cmd_csrform();
 		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_SCROLL + 0:
@@ -608,28 +615,30 @@ void UPD7220::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 3) {
 	case 0: // set parameter
-//		this->out_debug_log(_T("\tPARAM = %2x\n"), data);
+		this->out_debug_log(_T("\tPARAM = %2x\n"), data);
 		//if(cmd_ready) { // OK?
 		if(cmdreg != -1) {
-				cmd_fifo->write(data & 0xff);
-				check_cmd();
-				//if(cmdreg == -1) {
-				//	cmd_fifo->clear(); // OK?
-				//}
-				//	}
+			cmd_fifo->write(data & 0xff);
+			check_cmd();
+			//if(cmdreg == -1) {
+			//	cmd_fifo->clear(); // OK?
+			//}
+			//	}
 		}
 		break;
 	case 1: // process prev command if not finished
-		if(cmd_ready) {
+		//if(cmd_ready) {
 			if(cmdreg != -1) {
 				process_cmd();
+				cmd_fifo->clear(); // OK?
 			}
 			// set new command
+			cs_ptr = 0;
 			cmdreg = (int)data & 0xff;
-//		this->out_debug_log(_T("CMDREG = %2x\n"), cmdreg);
+		this->out_debug_log(_T("CMDREG = %2x\n"), cmdreg);
 //		params_count = 0;
 			check_cmd();
-		}
+//		}
 		break;
 	case 2: // set zoom
 		zoom = data;
@@ -652,6 +661,7 @@ uint32_t UPD7220::read_io8(uint32_t addr)
 			val |= hblank ? STAT_BLANK : 0;
 		}
 		val |= vsync ? STAT_VSYNC : 0;
+		val |= (cmd_ready) ? 0 : STAT_DRAW;
 		//val |= (cmd_fifo->empty()) ? STAT_EMPTY : 0;
 		val |= STAT_EMPTY;
 		//val |= ((cmd_ready) ? STAT_EMPTY : 0);
@@ -798,6 +808,7 @@ void UPD7220::cmd_reset()
 	ra[0] = ra[1] = ra[2] = 0;
 	ra[3] = 0x1e; /*0x19;*/
 	cs[0] = cs[1] = cs[2] = 0;
+	cs_ptr = 0;
 	ead = dad = 0;
 	maskl = maskh = 0xff;
 	mod = 0;
@@ -888,11 +899,13 @@ void UPD7220::cmd_csrform()
 	int len = cmd_fifo->count();
 	if(len > 3) len = 3;
 	wrote_bytes = len;
+	cs_ptr = cs_ptr % 3;
 	for(int i = 0; i < len; i++) {
-		cs[i] = (uint8_t)(cmd_fifo->read() & 0xff);
-	}
-	if(len > 2) {
-		cmdreg = -1;
+		cs[cs_ptr++] = (uint8_t)(cmd_fifo->read() & 0xff);
+		if(cs_ptr > 2) {
+			cmdreg = -1;
+			cs_ptr = 0;
+		}
 	}
 	blink_rate = (cs[1] >> 6) | ((cs[2] & 7) << 2);
 }
@@ -1565,7 +1578,7 @@ void UPD7220::draw_vectr()
 	dad = dx & 0x0f;
 }
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 
 bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1651,6 +1664,7 @@ bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(first_load);
 	state_fio->StateValue(before_addr);
 	state_fio->StateValue(cache_val);
+	state_fio->StateValue(cs_ptr);
  	// post process
 	if(loading && master) {
  		// force update timing
