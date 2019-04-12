@@ -61,11 +61,13 @@ protected:
 	uint8_t ra[16];
 	uint8_t cs[3];
 	uint8_t cs_ptr;
+	uint8_t csrw_ptr;
+	uint8_t sync_ptr;
 	uint8_t pitch;
 	uint32_t lad;
 	uint8_t vect[11];
+	uint8_t vectw_ptr;
 	int ead, dad;
-	uint8_t ead_ptr;
 	
 	uint8_t maskl, maskh;
 	uint8_t mod;
@@ -91,7 +93,7 @@ protected:
 	// waiting
 	int event_cmdready;
 	uint32_t wrote_bytes;
-	bool cmd_ready;
+	bool cmd_drawing;
 	uint32_t clock_freq;
 	// draw
 	int rt[RT_TABLEMAX + 1];

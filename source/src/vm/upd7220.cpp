@@ -102,7 +102,7 @@ void UPD7220::initialize()
 
 	event_cmdready = -1;
 	wrote_bytes = 0;
-	cmd_ready = true;
+	cmd_drawing = false;
 
 	first_load = true;
 	before_addr = 0xffffffff;
@@ -171,47 +171,31 @@ void UPD7220::check_cmd()
 	// check fifo buffer and process command if enough params in fifo
 	switch(cmdreg) {
 	case CMD_RESET:
-		cmd_ready = false;
 		cmd_reset();
-		register_event_wait_cmd(1);
 		break;
 	case CMD_SYNC + 0:
 	case CMD_SYNC + 1:
-		if(cmd_fifo->count() > 7) {
-			cmd_ready = false;
+		//if(cmd_fifo->count() > 7) {
 			cmd_sync();
-			register_event_wait_cmd(wrote_bytes); // OK?
-		}
+		//}
 		break;
 	case CMD_MASTER:
-		cmd_ready = false;
 		cmd_master();
-		register_event_wait_cmd(1); // OK?
 		break;
 	case CMD_SLAVE:
-		cmd_ready = false;
 		cmd_slave();
-		register_event_wait_cmd(1); // OK?
 		break;
 	case CMD_START:
-		cmd_ready = false;
 		cmd_start();
-		register_event_wait_cmd(1); // OK?
 		break;
 	case CMD_BCTRL + 0:
-		cmd_ready = false;
 		cmd_stop();
-		register_event_wait_cmd(1); // OK?
 		break;
 	case CMD_BCTRL + 1:
-		cmd_ready = false;
 		cmd_start();
-		register_event_wait_cmd(1); // OK?
 		break;
 	case CMD_ZOOM:
-		cmd_ready = false;
 		cmd_zoom();
-		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_SCROLL + 0:
 	case CMD_SCROLL + 1:
@@ -229,58 +213,44 @@ void UPD7220::check_cmd()
 	case CMD_TEXTW + 5:
 	case CMD_TEXTW + 6:
 	case CMD_TEXTW + 7:
-		cmd_ready = false;
 		cmd_scroll();
-		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_CSRFORM:
-		cmd_ready = false;
 		cmd_csrform();
-		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_PITCH:
-		cmd_ready = false;
 		cmd_pitch();
-		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_LPEN:
-		cmd_ready = false;
 		cmd_lpen();
-		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_VECTW:
-		if(cmd_fifo->count() > 10) {
-			cmd_ready = false;
+		//if(cmd_fifo->count() > 10) {
 			cmd_vectw();
-			register_event_wait_cmd(wrote_bytes); // OK?
-		}
+		//}
 		break;
 	case CMD_VECTE:
-		cmd_ready = false;
+		cmd_drawing = true;
 		cmd_vecte();
-		register_event_wait_cmd(wrote_bytes); // OK?
+		if(cmdreg < 0) register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_TEXTE:
-		cmd_ready = false;
+		cmd_drawing = true;
 		cmd_texte();
-		register_event_wait_cmd(wrote_bytes); // OK?
+		if(cmdreg < 0) register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_CSRW:
-		if(cmd_fifo->count() > 2) {
-			cmd_ready = false;
+		//if(cmd_fifo->count() > 2) {
 			cmd_csrw();
-			register_event_wait_cmd(wrote_bytes); // OK?
-		}
+		//}
 		break;
 	case CMD_CSRR:
-		cmd_ready = false;
+		cmd_drawing = true;
 		cmd_csrr();
 		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_MASK:
-		cmd_ready = false;
 		cmd_mask();
-		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_WRITE + 0x00:
 	case CMD_WRITE + 0x01:
@@ -298,7 +268,7 @@ void UPD7220::check_cmd()
 	case CMD_WRITE + 0x19:
 	case CMD_WRITE + 0x1a:
 	case CMD_WRITE + 0x1b:
-		cmd_ready = false;
+		cmd_drawing = true;
 		cmd_write();
 		register_event_wait_cmd(wrote_bytes);
 		break;
@@ -318,7 +288,7 @@ void UPD7220::check_cmd()
 	case CMD_READ + 0x19:
 	case CMD_READ + 0x1a:
 	case CMD_READ + 0x1b:
-		cmd_ready = false;
+		cmd_drawing = true;
 		cmd_read();
 		register_event_wait_cmd(wrote_bytes);
 		break;
@@ -338,9 +308,8 @@ void UPD7220::check_cmd()
 	case CMD_DMAW + 0x19:
 	case CMD_DMAW + 0x1a:
 	case CMD_DMAW + 0x1b:
-		cmd_ready = false;
+		// ToDo: Wait for DMA cycle
 		cmd_dmaw();
-		register_event_wait_cmd(1); // OK?
 		break;
 	case CMD_DMAR + 0x00:
 	case CMD_DMAR + 0x01:
@@ -358,12 +327,10 @@ void UPD7220::check_cmd()
 	case CMD_DMAR + 0x19:
 	case CMD_DMAR + 0x1a:
 	case CMD_DMAR + 0x1b:
-		cmd_ready = false;
 		cmd_dmar();
-		register_event_wait_cmd(1); // OK?
 		break;
 	case CMD_UNK_5A:
-		cmd_ready = false;
+		cmd_drawing = true;
 		cmd_unk_5a();
 		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
@@ -374,20 +341,14 @@ void UPD7220::process_cmd()
 {
 	switch(cmdreg) {
 	case CMD_RESET:
-		cmd_ready = false;
 		cmd_reset();
-		register_event_wait_cmd(1); // OK?
 		break;
 	case CMD_SYNC + 0:
 	case CMD_SYNC + 1:	
-		cmd_ready = false;
 		cmd_sync();
-		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_CSRFORM:
-		cmd_ready = false;
 		cmd_csrform();
-		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_SCROLL + 0:
 	case CMD_SCROLL + 1:
@@ -405,19 +366,13 @@ void UPD7220::process_cmd()
 	case CMD_TEXTW + 5:
 	case CMD_TEXTW + 6:
 	case CMD_TEXTW + 7:
-		cmd_ready = false;
 		cmd_scroll();
-		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_VECTW:
-		cmd_ready = false;
 		cmd_vectw();
-		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_CSRW:
-		cmd_ready = false;
 		cmd_csrw();
-		register_event_wait_cmd(wrote_bytes); // OK?
 		break;
 	case CMD_WRITE + 0x00:
 	case CMD_WRITE + 0x01:
@@ -436,9 +391,7 @@ void UPD7220::process_cmd()
 	case CMD_WRITE + 0x1a:
 	case CMD_WRITE + 0x1b:
 		if(cmd_write_done) {
-			cmd_ready = false;
 			reset_vect();
-			register_event_wait_cmd(1); // OK?
 		}
 		cmdreg = -1;
 		cmd_write_done = false;
@@ -620,24 +573,31 @@ void UPD7220::write_io8(uint32_t addr, uint32_t data)
 		if(cmdreg != -1) {
 			cmd_fifo->write(data & 0xff);
 			check_cmd();
-			//if(cmdreg == -1) {
-			//	cmd_fifo->clear(); // OK?
-			//}
+			if(cmdreg == -1) {
+				cmd_fifo->clear(); // OK?
+			}
 			//	}
 		}
 		break;
 	case 1: // process prev command if not finished
 		//if(cmd_ready) {
-			if(cmdreg != -1) {
-				process_cmd();
-				cmd_fifo->clear(); // OK?
-			}
+		if(cmdreg != -1) {
+			process_cmd();
+		}
 			// set new command
-			cs_ptr = 0;
-			cmdreg = (int)data & 0xff;
+			// reset pointers, then enqueue command.
+		cs_ptr = 0;
+		sync_ptr = 0;
+		vectw_ptr = 0;
+		csrw_ptr = 0;
+		cmdreg = (int)data & 0xff;
 		this->out_debug_log(_T("CMDREG = %2x\n"), cmdreg);
 //		params_count = 0;
-			check_cmd();
+		cmd_fifo->clear(); // OK?
+		check_cmd();
+		//if(cmdreg == -1) {
+		//	cmd_fifo->clear(); // OK?
+		//}
 //		}
 		break;
 	case 2: // set zoom
@@ -661,10 +621,9 @@ uint32_t UPD7220::read_io8(uint32_t addr)
 			val |= hblank ? STAT_BLANK : 0;
 		}
 		val |= vsync ? STAT_VSYNC : 0;
-		val |= (cmd_ready) ? 0 : STAT_DRAW;
-		//val |= (cmd_fifo->empty()) ? STAT_EMPTY : 0;
-		val |= STAT_EMPTY;
-		//val |= ((cmd_ready) ? STAT_EMPTY : 0);
+		val |= (cmd_drawing) ? STAT_DRAW : 0;
+		val |= (cmd_fifo->empty()) ? STAT_EMPTY : 0;
+		//val |= STAT_EMPTY;
 		val |= (cmd_fifo->full()) ? STAT_FULL : 0;
 		val |= (!(fo->empty())) ? STAT_DRDY : 0;
 		// clear busy stat
@@ -750,14 +709,10 @@ void UPD7220::register_event_wait_cmd(uint32_t bytes)
 {
 	if(event_cmdready >= 0) cancel_event(this, event_cmdready);
 	event_cmdready = -1;
-	if(bytes < 2) {
-		cmd_ready = true;
-		return;
-	}
 	// BY uPD7220 GDC Design manual; Clock divided by 2 at internal logic.
 	double usec = (1.0e6  * 2.0 * (double)bytes) / (double)clock_freq;
 	if(usec < 1.0) {
-		cmd_ready = true;
+	    cmd_drawing = false;
 	} else {
 		register_event(this, EVENT_CMD_READY, usec, false, &event_cmdready);
 	}
@@ -774,7 +729,7 @@ void UPD7220::event_callback(int event_id, int err)
 		hblank = false;
 	} else if(event_id == EVENT_CMD_READY) {
 		event_cmdready = -1;
-		cmd_ready = true;
+		cmd_drawing = false;
 	}
 }
 
@@ -804,6 +759,7 @@ void UPD7220::cmd_reset()
 	// init gdc params
 	sync[6] = 0x90;
 	sync[7] = 0x01;
+	sync_ptr = 0;
 	zoom = zr = zw = 0;
 	ra[0] = ra[1] = ra[2] = 0;
 	ra[3] = 0x1e; /*0x19;*/
@@ -817,7 +773,7 @@ void UPD7220::cmd_reset()
 	blink_rate = 16;
 	
 	// init fifo
-	cmd_ready = true;
+	cmd_drawing = false;
 	fo->clear();
 	cmd_fifo->clear();
 	
@@ -826,6 +782,7 @@ void UPD7220::cmd_reset()
 	statreg = 0;
 	cmdreg = -1;
 	cmd_write_done = false;
+	cmd_drawing = false;
 }
 
 void UPD7220::cmd_sync()
@@ -833,14 +790,20 @@ void UPD7220::cmd_sync()
 	start = ((cmdreg & 1) != 0);
 	int len = cmd_fifo->count();
 	wrote_bytes = (len >= 8) ? 8 : len;
+	if(sync_ptr >= 8) sync_ptr = 0;
 	for(int i = 0; i < 8 && i < len; i++) {
 		uint8_t dat = (uint8_t)(cmd_fifo->read() & 0xff); 
-		if(sync[i] != dat) {
-			sync[i] = dat;
+		if(sync[sync_ptr] != dat) {
+			sync[sync_ptr] = dat;
 			sync_changed = true;
 		}
+		sync_ptr++;
+		if(sync_ptr >= 8) {
+			sync_ptr = 0;
+			cmdreg = -1;
+		}
 	}
-	cmdreg = -1;
+	//cmdreg = -1;
 }
 
 void UPD7220::cmd_master()
@@ -881,7 +844,6 @@ void UPD7220::cmd_zoom()
 
 void UPD7220::cmd_scroll()
 {
-	wrote_bytes = 0;
 	if(cmd_fifo->count() >= 1) {
 		ra[cmdreg & 0x0f] = (uint8_t)(cmd_fifo->read() & 0xff);
 		wrote_bytes = 1;
@@ -923,19 +885,25 @@ void UPD7220::cmd_vectw()
 {
 	int len = cmd_fifo->count();
 	if(len > 11) len = 11;
-	wrote_bytes = len;
+	wrote_bytes += len;
 	for(int i = 0; i < 11 && i < len; i++) {
-		vect[i] = (uint8_t)(cmd_fifo->read() & 0xff);
+		vect[vectw_ptr++] = (uint8_t)(cmd_fifo->read() & 0xff);
+		if(vectw_ptr >= 11) {
+			vectw_ptr = 0;
+			cmdreg = -1;
+		}
 //		this->out_debug_log(_T("\tVECT[%d] = %2x\n"), i, vect[i]);
 	}
 	update_vect();
-	cmdreg = -1;
+//	cmdreg = -1;
 }
 
 
 void UPD7220::cmd_csrw()
 {
+#if 0
 	if(!(cmd_fifo->empty())) {
+
 		ead = cmd_fifo->read() & 0xff;
 		wrote_bytes = 1;
 		if(!(cmd_fifo->empty())) {
@@ -950,6 +918,31 @@ void UPD7220::cmd_csrw()
 		dad = (ead >> 20) & 0x0f;
 		ead &= 0x3ffff;
 	}
+#else
+	csrw_ptr = csrw_ptr % 3;
+	if(!(cmd_fifo->empty())) {
+		if(csrw_ptr == 0) {
+			ead = 0;
+			dad = 0;
+		}
+		int len = cmd_fifo->count();
+		if(len > 3) len = 3;
+		for(int i = 0; i < len; i++) {
+			int nmask = ~(0xff << (csrw_ptr * 8));
+			int val = (cmd_fifo->read() & 0xff) << (csrw_ptr * 8);
+			ead = ead & nmask;
+			ead = ead | val;
+			csrw_ptr++;
+			if(csrw_ptr >= 3) {
+				csrw_ptr = 0;
+				cmdreg = -1;
+				break;
+			}
+		}
+		dad = (ead >> 20) & 0x0f;
+		ead &= 0x3ffff;
+	}
+#endif
 }
 
 void UPD7220::cmd_csrr()
@@ -965,9 +958,7 @@ void UPD7220::cmd_csrr()
 
 void UPD7220::cmd_mask()
 {
-	wrote_bytes = 0;
 	if(cmd_fifo->count() > 1) {
-		wrote_bytes = 2;
 		maskl = (cmd_fifo->read() & 0xff);
 		maskh = (cmd_fifo->read() & 0xff);
 		cmdreg = -1;
@@ -1082,8 +1073,12 @@ void UPD7220::cmd_dmar()
 
 void UPD7220::cmd_unk_5a()
 {
-	if(cmd_fifo->count() > 2) {
+	wrote_bytes = 0;
+	int len = cmd_fifo->count();
+	if(len > 2) {
+		wrote_bytes = len;
 		cmdreg = -1;
+		cmd_fifo->clear();
 	}
 }
 
@@ -1656,7 +1651,7 @@ bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 
 	state_fio->StateValue(clock_freq);
 	state_fio->StateValue(wrote_bytes);
-	state_fio->StateValue(cmd_ready);
+	state_fio->StateValue(cmd_drawing);
 	state_fio->StateValue(event_cmdready);
 	if(!cmd_fifo->process_state((void *)state_fio, loading)) {
  		return false;
@@ -1665,6 +1660,9 @@ bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(before_addr);
 	state_fio->StateValue(cache_val);
 	state_fio->StateValue(cs_ptr);
+	state_fio->StateValue(sync_ptr);
+	state_fio->StateValue(vectw_ptr);
+	state_fio->StateValue(csrw_ptr);
  	// post process
 	if(loading && master) {
  		// force update timing
