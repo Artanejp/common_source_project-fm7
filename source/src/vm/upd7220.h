@@ -43,6 +43,7 @@ protected:
 	// feature flags
 	bool __QC10;
 	bool _UPD7220_MSB_FIRST;
+	bool _UPD7220_UGLY_PC98_HACK;
 	int  _UPD7220_FIXED_PITCH;
 	int  _UPD7220_HORIZ_FREQ;
 	int  _LINES_PER_FRAME;
@@ -281,7 +282,13 @@ public:
 
 inline void  UPD7220::draw_pset(int x, int y)
 {
-	if((x < 0) || (y < 0) || (x >= (width << 3)) || (y >= height)) return;
+	if(_UPD7220_UGLY_PC98_HACK) {
+		if((y == 409) && (x >= 384)) return;
+		if(y > 409) return;
+		if((x < 0) || (y < 0) || (x >= (width << 3))) return;
+	} else {
+		if((x < 0) || (y < 0) || (x >= (width << 3)) || (y >= height)) return;
+	}
 	uint16_t dot = pattern & 1;
 	pattern = (pattern >> 1) | (dot << 15);
 	uint32_t addr = y * width + (x >> 3);
@@ -345,16 +352,27 @@ inline bool UPD7220::draw_pset_diff(int x, int y)
 	uint32_t addr = y * width + (x >> 3);
 	uint8_t bit;
 
+	if(_UPD7220_UGLY_PC98_HACK) {
+		if((y > 409) || ((y == 409) && x >= 384)){
+			finish_pset();
+			return false;
+		}
+		else if((x < 0) || (y < 0) || (x >= (width << 3))) {
+			finish_pset();
+			return false;
+		}
+	} else if((x < 0) || (y < 0) || (x >= (width << 3)) || (y >= height)) {
+		finish_pset();
+		return false;
+	}
 	if((first_load) || (addr != before_addr)) {
 		if(!(first_load)) {
 			write_vram(before_addr, cache_val);
 			//wrote_bytes++;
 		}
 		cache_val = read_vram(addr);
-	} else if((x < 0) || (y < 0) || (x >= (width << 3)) || (y >= height)) {
-		finish_pset();
-		return false;
 	}
+	
 	first_load = false;
 	before_addr = addr;
 		

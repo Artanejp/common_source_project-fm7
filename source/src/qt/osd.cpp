@@ -945,8 +945,9 @@ void OSD::set_features_vm(void)
 #ifdef UPD7220_HORIZ_FREQ
 	add_feature(_T("UPD7220_HORIZ_FREQ"), (int)UPD7220_HORIZ_FREQ);
 #endif
-
-	
+#ifdef UPD7220_UGLY_PC98_HACK
+	add_feature(_T("UPD7220_UGLY_PC98_HACK"), 1);
+#endif
 #ifdef UPD7220_FIXED_PITCH
 	add_feature(_T("UPD7220_FIXED_PITCH"), 1);
 #endif
