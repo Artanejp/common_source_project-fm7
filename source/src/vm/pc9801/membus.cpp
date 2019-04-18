@@ -525,6 +525,164 @@ uint32_t MEMBUS::read_data8(uint32_t addr)
 	return MEMORY::read_data8(addr & 0xfffff);
 }
 
+uint32_t MEMBUS::read_data16(uint32_t addr)
+{
+	bool sameas = true;
+	if(((addr & 1) != 0) &&
+	   (((addr >= 0x80000) && (addr < 0xc0000)) ||
+		(((addr + 1) >= 0x80000) && ((addr + 1) < 0xc0000)))){
+		uint32_t val = read_data8(addr + 0);
+		val = val | (read_data8(addr + 1) << 8);
+		return val;
+	}
+	if((addr >= 0x80000) && (addr < 0xc0000)) {
+		if(addr < 0xa0000) {
+			// ToDo: Correctness extra ram emulation.
+			if(!page08_intram_selected) {
+				last_access_is_interam = false;
+				return 0xffff;
+			}
+			addr = (addr & 0x1ffff) | window_80000h;
+		} else { // a0000 - bffff
+			addr = (addr & 0x1ffff) | window_a0000h;
+		}
+	}
+	if(addr < 0x10000) {
+		last_access_is_interam = false;
+	}
+#if defined(SUPPORT_24BIT_ADDRESS)
+	if((addr + 1) < UPPER_MEMORY_24BIT) {
+		last_access_is_interam = true;
+		if(addr >= sizeof(ram)) {
+			return 0xffff;
+		} else if((addr + 1) >= sizeof(ram)) {
+			uint32_t val = read_data8(addr);
+			val = val | 0xff00;
+			return val;
+		}
+		return MEMORY::read_data16(addr);
+	} else if(addr < UPPER_MEMORY_24BIT) {
+		last_access_is_interam = true;
+		if(addr >= sizeof(ram)) {
+			return 0xffff;
+		} else if((addr + 1) >= sizeof(ram)) {
+			uint32_t val = read_data8(addr);
+			val = val | 0xff00;
+			return val;
+		}
+		return (MEMORY::read_data8(addr) | 0xff00);
+	}		
+#elif defined(SUPPORT_32BIT_ADDRESS)
+	if(addr < UPPER_MEMORY_32BIT) {
+		last_access_is_interam = true;
+		if(addr >= sizeof(ram)) {
+			if((addr < 0x01000000) && (addr >= 0x00fa0000)) { // ToDo: PC9821
+				if((addr + 1) >= 0x01000000) {
+					uint32_t val = read_data8(addr);
+					return val | 0xff00;
+				}
+				return MEMORY::read_data16(addr);
+			}
+			// ToDo: external RAM.
+			return 0xffff;
+		} else if((addr + 1) >= sizeof(ram)) {
+			uint32_t val = read_data8(addr);
+			val = val | 0xff00;
+			return val;
+		}
+		return MEMORY::read_data16(addr);
+	}
+#endif
+	return MEMORY::read_data16(addr & 0xfffff);
+}
+
+uint32_t MEMBUS::read_data32(uint32_t addr)
+{
+	bool sameas = true;
+	if(((addr & 3) != 0) &&
+	   (((addr >= 0x80000) && (addr < 0xc0000)) ||
+		(((addr + 3) >= 0x80000) && ((addr + 3) < 0xc0000)))){
+		uint32_t val = read_data8(addr + 0);
+		val = val | (read_data8(addr + 1) << 8);
+		val = val | (read_data8(addr + 2) << 16);
+		val = val | (read_data8(addr + 3) << 24);
+		return val;
+	}
+	if((addr >= 0x80000) && (addr < 0xc0000)) {
+		if(addr < 0xa0000) {
+			// ToDo: Correctness extra ram emulation.
+			if(!page08_intram_selected) {
+				last_access_is_interam = false;
+				return 0xffffffff;
+			}
+			addr = (addr & 0x1ffff) | window_80000h;
+		} else { // a0000 - bffff
+			addr = (addr & 0x1ffff) | window_a0000h;
+		}
+	}
+	if(addr < 0x10000) {
+		last_access_is_interam = false;
+	}
+#if defined(SUPPORT_24BIT_ADDRESS)
+	if((addr + 3) < UPPER_MEMORY_24BIT) {
+		last_access_is_interam = true;
+		if(addr >= sizeof(ram)) {
+			return 0xffffffff;
+		} else if((addr + 3) >= sizeof(ram)) {
+			uint32_t val = read_data8(addr);
+			
+			if((addr + 1) >= sizeof(ram)) {
+				val = val | 0xffffff00;
+			} else if((addr + 2) >= sizeof(ram)) {
+				val = val | (read_data8(addr + 1) << 8);
+				val = val | 0xffff0000;
+			} else { // (addr + 3) >= sizeof(ram)
+				val = val | (read_data8(addr + 1) << 8);
+				val = val | (read_data8(addr + 2) << 16);
+				val = val | 0xff000000;
+			}				
+			return val;
+		}
+		return MEMORY::read_data32(addr);
+	} else if(addr < UPPER_MEMORY_24BIT) {
+		last_access_is_interam = true;
+		int n = UPPER_MEMORY_24BIT - addr;
+		uint32_t val = 0xffffffff;
+		for(int i = 0; i < n; i++) {
+			val = (val << 8) & 0xffffff00;
+			val = val | read_data8(addr + i);
+		}
+		return val;
+	}		
+#elif defined(SUPPORT_32BIT_ADDRESS)
+	if(addr < UPPER_MEMORY_32BIT) {
+		last_access_is_interam = true;
+		if(addr >= sizeof(ram)) {
+			if((addr < 0x01000000) && (addr >= 0x00fa0000)) { // ToDo: PC9821
+				if((addr + 3) >= 0x01000000) {
+					uint32_t val = read_data8(addr);
+					val = val | (read_data8(addr + 1) << 8);
+					val = val | (read_data8(addr + 2) << 16);
+					val = val | (read_data8(addr + 3) << 24);
+					return val;
+				}
+				return MEMORY::read_data32(addr);
+			}
+			// ToDo: external RAM.
+			return 0xffffffff;
+		} else if((addr + 3) >= sizeof(ram)) {
+			uint32_t val = read_data8(addr);
+			val = val | (read_data8(addr + 1) << 8);
+			val = val | (read_data8(addr + 2) << 16);
+			val = val | (read_data8(addr + 3) << 24);
+			return val;
+		}
+		return MEMORY::read_data32(addr);
+	}
+#endif
+	return MEMORY::read_data32(addr & 0xfffff);
+}
+
 void MEMBUS::write_data8(uint32_t addr, uint32_t data)
 {
 	if((addr >= 0x80000) && (addr < 0xc0000)) {
@@ -567,6 +725,140 @@ void MEMBUS::write_data8(uint32_t addr, uint32_t data)
 	}
 #endif
 	MEMORY::write_data8(addr & 0xfffff, data);
+}
+
+void MEMBUS::write_data16(uint32_t addr, uint32_t data)
+{
+	if(((addr & 0x1) != 0) &&
+		(((addr >= 0x80000) && (addr < 0xc0000)) ||
+		 (((addr + 1) >= 0x80000) && ((addr + 1) < 0xc0000)))) {
+		write_data8(addr + 0, data & 0xff);
+		write_data8(addr + 1, (data & 0xff00) >> 8);
+		return;
+	}
+	if((addr >= 0x80000) && (addr < 0xc0000)) {
+		if(addr < 0xa0000) {
+			// ToDo: Correctness extra ram emulation.
+			if(!page08_intram_selected) {
+				last_access_is_interam = false;
+				return;
+			}
+			addr = (addr & 0x1ffff) | window_80000h;
+		} else { // a0000 - bffff
+			addr = (addr & 0x1ffff) | window_a0000h;
+		}
+	}
+	if(addr < 0x10000) {
+		last_access_is_interam = false;
+	}
+#if defined(SUPPORT_24BIT_ADDRESS)
+	if(addr < UPPER_MEMORY_24BIT) {
+		last_access_is_interam = true;
+		if(addr >= sizeof(ram)) {
+			return;
+		} else if((addr + 1) >= sizeof(ram)) {
+			write_data8(addr, data & 0xff);
+			return;
+		}
+		MEMORY::write_data16(addr, data);
+		return;
+	}
+#elif defined(SUPPORT_32BIT_ADDRESS)
+	if(addr < UPPER_MEMORY_32BIT) {
+		last_access_is_interam = true;
+		if(addr >= sizeof(ram)) {
+			if((addr < 0x01000000) && (addr >= 0x00fa0000)) { // ToDo: PC9821
+				if((addr + 1) >= 0x01000000) {
+					MEMORY::write_data8(addr, data);
+				} else {
+					MEMORY::write_data16(addr, data);
+				}					
+				return;
+			}
+			// ToDo: external RAM.
+			return;
+		}
+		MEMORY::write_data16(addr, data);
+		return;
+	}
+#endif
+	MEMORY::write_data16(addr & 0xfffff, data);
+}
+
+void MEMBUS::write_data32(uint32_t addr, uint32_t data)
+{
+	if(((addr & 0x3) != 0) &&
+		(((addr >= 0x80000) && (addr < 0xc0000)) ||
+		 (((addr + 3) >= 0x80000) && ((addr + 3) < 0xc0000)))) {
+		write_data8(addr + 0, data & 0xff);
+		write_data8(addr + 1, (data & 0xff00) >> 8);
+		write_data8(addr + 2, (data & 0xff00) >> 16);
+		write_data8(addr + 3, (data & 0xff00) >> 24);
+		return;
+	}
+	if((addr >= 0x80000) && (addr < 0xc0000)) {
+		if(addr < 0xa0000) {
+			// ToDo: Correctness extra ram emulation.
+			if(!page08_intram_selected) {
+				last_access_is_interam = false;
+				return;
+			}
+			addr = (addr & 0x1ffff) | window_80000h;
+		} else { // a0000 - bffff
+			addr = (addr & 0x1ffff) | window_a0000h;
+		}
+	}
+	if(addr < 0x10000) {
+		last_access_is_interam = false;
+	}
+#if defined(SUPPORT_24BIT_ADDRESS)
+	if(addr < UPPER_MEMORY_24BIT) {
+		last_access_is_interam = true;
+		if(addr >= sizeof(ram)) {
+			return;
+		} else if((addr + 1) >= sizeof(ram)) {
+			write_data8(addr, data & 0xff);
+			return;
+		} else if((addr + 2) >= sizeof(ram)) {
+			write_data8(addr, data & 0xff);
+			write_data8(addr + 1, (data & 0xff00) >> 8);
+			return;
+		} else if((addr + 3) >= sizeof(ram)) {
+			write_data8(addr, data & 0xff);
+			write_data8(addr + 1, (data & 0xff00) >> 8);
+			write_data8(addr + 2, (data & 0xff0000) >> 16);
+			return;
+		}
+		MEMORY::write_data32(addr, data);
+		return;
+	}
+#elif defined(SUPPORT_32BIT_ADDRESS)
+	if(addr < UPPER_MEMORY_32BIT) {
+		last_access_is_interam = true;
+		if(addr >= sizeof(ram)) {
+			if((addr < 0x01000000) && (addr >= 0x00fa0000)) { // ToDo: PC9821
+				if((addr + 1) >= 0x01000000) {
+					MEMORY::write_data8(addr, data);
+				} else if((addr + 2) >= 0x01000000) {
+					MEMORY::write_data8(addr, data & 0xff);
+					MEMORY::write_data8(addr + 1, (data & 0xff00) >> 8);
+				} else if((addr + 3) >= 0x01000000) {
+					MEMORY::write_data8(addr, data & 0xff);
+					MEMORY::write_data8(addr + 1, (data & 0xff00) >> 8);
+					MEMORY::write_data8(addr + 2, (data & 0xff0000) >> 16);
+				} else {
+					MEMORY::write_data32(addr, data);
+				}					
+				return;
+			}
+			// ToDo: external RAM.
+			return;
+		}
+		MEMORY::write_data32(addr, data);
+		return;
+	}
+#endif
+	MEMORY::write_data32(addr & 0xfffff, data);
 }
 
 uint32_t MEMBUS::read_dma_data8(uint32_t addr)

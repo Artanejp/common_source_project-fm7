@@ -146,6 +146,10 @@ public:
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	uint32_t read_data8(uint32_t addr);
 	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data16(uint32_t addr);
+	void write_data16(uint32_t addr, uint32_t data);
+	uint32_t read_data32(uint32_t addr);
+	void write_data32(uint32_t addr, uint32_t data);
 	uint32_t read_dma_data8(uint32_t addr);
 	void write_dma_data8(uint32_t addr, uint32_t data);
 #endif
