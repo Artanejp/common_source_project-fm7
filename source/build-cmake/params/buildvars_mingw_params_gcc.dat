@@ -5,16 +5,16 @@
 #
 case ${LOCAL_ARCH_TYPE} in 
    "SSE2" | "sse2" )
-      ARCH_FLAGS="-march=pentium4 -mfpmath=sse"
+      ARCH_FLAGS="-march=i686 -mtune=generic -msse -msse2"
       ;;
    "SSE3" | "sse3" )
-      ARCH_FLAGS="-march=prescott  -mfpmath=sse"
+      ARCH_FLAGS="-march=prescott"
       ;;
    "AVX" | "avx" )
-      ARCH_FLAGS="-march=pentium4 -msse3  -mssse3 -msse4.1 -msse4.2 -mavx -mfpmath=sse"
+      ARCH_FLAGS="-march=pentium4 -msse3  -mssse3 -msse4.1 -msse4.2 -mavx"
       ;;
    "SSE1" | "sse1" | "pentium3" | "PENTIUM3" )
-      ARCH_FLAGS="-march=pentium3 -mfpmath=sse"
+      ARCH_FLAGS="-march=pentium3"
       ;;
    "No" | "no" | "686" )
       ARCH_FLAGS="-march=i686"
@@ -24,6 +24,7 @@ case ${LOCAL_ARCH_TYPE} in
       ;;
  esac
 
+MAKEFLAGS_BASE2="${MAKEFLAGS_BASE} -mthread=posix -pthread -mthreads"
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
      MAKEFLAGS_BASE2="-g  ${ARCH_FLAGS} ${MAKEFLAGS_BASE} ${ADDITIONAL_CFLAGS} -DNDEBUG"
