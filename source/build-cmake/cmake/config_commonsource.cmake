@@ -6,6 +6,8 @@
 include(CheckFunctionExists)
 #include(cotire)
 
+#set(ADDITIONAL_MAKE_CLEAN_FILES *.dwo *.obj)
+
 if(USE_DEVICES_SHARED_LIB)
   add_definitions(-DUSE_SHARED_DLL)
   add_definitions(-DUSE_SHARED_UI_DLL)
