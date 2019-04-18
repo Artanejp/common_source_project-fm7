@@ -80,9 +80,23 @@ uint32_t MEMORY::read_data16(uint32_t addr)
 	if(rd_table[bank].dev != NULL) {
 		return rd_table[bank].dev->read_memory_mapped_io16(addr);
 	} else {
-		uint32_t val = read_data8(addr);
-		val |= read_data8(addr + 1) << 8;
-		return val;
+		int bank1 = ((addr + 1) & ADDR_MASK) >> addr_shift;
+		if(bank != bank1) {
+			uint32_t val = read_data8(addr);
+			val |= read_data8(addr + 1) << 8;
+			return val;
+		} else {
+			uint8_t* p = (uint8_t*)(&(rd_table[bank].memory[addr & BANK_MASK]));
+			uint32_t val;
+#if defined(__LITTLE_ENDIAN__)
+			uint16_t* pp = (uint16_t*)p;
+			val = (uint32_t)(*pp);
+#else			
+			val = p[0];
+			val =  (val << 8) | ((uint32_t)(p[1]));
+#endif
+			return val;
+		}
 	}
 }
 
@@ -93,8 +107,20 @@ void MEMORY::write_data16(uint32_t addr, uint32_t data)
 	if(wr_table[bank].dev != NULL) {
 		wr_table[bank].dev->write_memory_mapped_io16(addr, data);
 	} else {
-		write_data8(addr, data & 0xff);
-		write_data8(addr + 1, (data >> 8) & 0xff);
+		int bank1 = ((addr + 1) & ADDR_MASK) >> addr_shift;
+		if(bank != bank1) {
+			write_data8(addr, data & 0xff);
+			write_data8(addr + 1, (data >> 8) & 0xff);
+		} else {
+			uint8_t* p = (uint8_t*)(&(wr_table[bank].memory[addr & BANK_MASK]));
+#if defined(__LITTLE_ENDIAN__)
+			uint16_t* pp = (uint16_t*)p;
+			*pp = (uint16_t)data;
+#else
+			p[0] = data & 0xff;
+			p[1] = (data >> 8) & 0xff;
+#endif
+		}			
 	}
 }
 
@@ -105,9 +131,22 @@ uint32_t MEMORY::read_data32(uint32_t addr)
 	if(rd_table[bank].dev != NULL) {
 		return rd_table[bank].dev->read_memory_mapped_io32(addr);
 	} else {
-		uint32_t val = read_data16(addr);
-		val |= read_data16(addr + 2) << 16;
-		return val;
+		int bank1 = ((addr + 3) & ADDR_MASK) >> addr_shift;
+		if(bank != bank1) {
+			uint32_t val = read_data16(addr);
+			val |= read_data16(addr + 2) << 16;
+			return val;
+		} else {
+			uint8_t* p = (uint8_t*)(&(rd_table[bank].memory[addr & BANK_MASK]));
+			uint32_t val;
+#if defined(__LITTLE_ENDIAN__)
+			uint32_t* pp = (uint32_t*)p;
+			val = *pp;
+#else
+			val = ((uint32_t)p[0]) | (((uint32_t)p[1]) << 8) | (((uint32_t)p[2]) << 16) |(((uint32_t)p[3]) << 24);
+#endif
+			return val;
+		}
 	}
 }
 
@@ -118,8 +157,22 @@ void MEMORY::write_data32(uint32_t addr, uint32_t data)
 	if(wr_table[bank].dev != NULL) {
 		wr_table[bank].dev->write_memory_mapped_io32(addr, data);
 	} else {
-		write_data16(addr, data & 0xffff);
-		write_data16(addr + 2, (data >> 16) & 0xffff);
+		int bank1 = ((addr + 3) & ADDR_MASK) >> addr_shift;
+		if(bank != bank1) {
+			write_data16(addr, data & 0xffff);
+			write_data16(addr + 2, (data >> 16) & 0xffff);
+		} else {
+			uint8_t* p = (uint8_t*)(&(wr_table[bank].memory[addr & BANK_MASK]));
+#if defined(__LITTLE_ENDIAN__)
+			uint32_t* pp = (uint32_t*)p;
+			*pp = data;
+#else
+			p[0] = data & 0xff;
+			p[1] = (data >> 8) & 0xff;
+			p[2] = (data >> 16) & 0xff;
+			p[3] = (data >> 24) & 0xff;
+#endif
+		}
 	}
 }
 
