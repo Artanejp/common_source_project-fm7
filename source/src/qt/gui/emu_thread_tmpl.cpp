@@ -49,9 +49,9 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, USING_FLAG
 	
 	bRunThread = true;
 	prev_skip = false;
-	tick_timer.start();
-	update_fps_time = tick_timer.elapsed();
-	next_time = update_fps_time;
+	//tick_timer.start();
+	//update_fps_time = tick_timer.elapsed();
+	//next_time = update_fps_time;
 	total_frames = 0;
 	draw_frames = 0;
 	skip_frames = 0;
@@ -261,7 +261,7 @@ void EmuThreadClassBase::do_special_reset()
 
 void EmuThreadClassBase::do_load_state(QString s)
 {
-	sStateFile = s;
+	lStateFile = s;
 	bLoadStateReq = true;
 }
 
@@ -406,6 +406,8 @@ void EmuThreadClassBase::print_framerate(int frames)
 	if(frames >= 0) draw_frames += frames;
 	if(calc_message) {
 		qint64 current_time = tick_timer.elapsed();
+		//qint64	current_time = SDL_GetTicks();
+
 		if(update_fps_time <= current_time && update_fps_time != 0) {
 			_TCHAR buf[256];
 			QString message;

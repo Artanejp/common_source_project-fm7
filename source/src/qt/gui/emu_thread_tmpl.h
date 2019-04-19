@@ -85,6 +85,7 @@ protected:
 	bool bStopRecordSoundReq;
 	bool bStartRecordMovieReq;
 	QString sStateFile;
+	QString lStateFile;
 
 //	bool draw_timing;
 	bool doing_debug_command;
@@ -129,7 +130,12 @@ protected:
 	virtual void dec_message_count(void);
 	virtual const _TCHAR *get_device_name(void);
 	virtual bool get_power_state(void);
-	
+
+	virtual void resetEmu() { }
+	virtual void specialResetEmu() { }
+	virtual void loadState() { }
+	virtual void saveState() { }
+
 	void enqueue_key_up(key_queue_t s) {
 		keyMutex->lock();
 		key_fifo->write(KEY_QUEUE_UP);

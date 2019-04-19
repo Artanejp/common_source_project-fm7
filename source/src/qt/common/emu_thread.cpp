@@ -305,9 +305,43 @@ void EmuThreadClass::get_bubble_string(void)
 
 extern QStringList virtualMediaList; // {TYPE, POSITION}
 
+void EmuThreadClass::resetEmu()
+{
+	clear_key_queue();
+	p_emu->reset();
+}
+
+void EmuThreadClass::specialResetEmu()
+{
+#ifdef USE_SPECIAL_RESET
+	p_emu->special_reset();
+#endif
+}
+
+void EmuThreadClass::loadState()
+{
+#ifdef USE_STATE
+	if(!lStateFile.isEmpty()) {
+		p_emu->load_state(lStateFile.toLocal8Bit().constData());
+		lStateFile.clear();
+	}
+#endif
+}
+
+void EmuThreadClass::saveState()
+{
+#ifdef USE_STATE
+	if(!sStateFile.isEmpty()) {
+		p_emu->save_state(sStateFile.toLocal8Bit().constData());
+		sStateFile.clear();
+	}
+#endif
+}
+
 void EmuThreadClass::doWork(const QString &params)
 {
-	int interval = 0, sleep_period = 0;
+	int interval = 0;
+	int64_t sleep_period = 0;
 	int run_frames;
 	qint64 current_time;
 	bool first = true;
@@ -343,8 +377,12 @@ void EmuThreadClass::doWork(const QString &params)
 	bStopRecordSoundReq = false;
 	bStartRecordMovieReq = false;
 	sStateFile.clear();
+	lStateFile.clear();
 	record_fps = -1;
 
+	tick_timer.start();
+	update_fps_time = tick_timer.elapsed();
+	//update_fps_time = SDL_GetTicks();
 	next_time = 0;
 	mouse_flag = false;
 
@@ -374,6 +412,8 @@ void EmuThreadClass::doWork(const QString &params)
 	for(int i = 0; i < using_flags->get_max_bubble(); i++) bubble_text[i].clear();
 
 	_queue_begin = parse_command_queue(virtualMediaList, 0);
+	//SDL_SetHint(SDL_HINT_TIMER_RESOLUTION, "2");
+	
 	do {
 		//p_emu->SetHostCpus(this->idealThreadCount());
    		if(MainWindow == NULL) {
@@ -381,6 +421,7 @@ void EmuThreadClass::doWork(const QString &params)
 				goto _exit;
 			}
 			msleep(10);
+			//SDL_Delay(10);
 			continue;
 		}
 		if(first) {
@@ -394,48 +435,37 @@ void EmuThreadClass::doWork(const QString &params)
 		sleep_period = 0;
 		if(p_emu) {
 			// drive machine
-#ifdef USE_STATE
 			if(bLoadStateReq != false) {
-				if(!sStateFile.isEmpty()) {
-					p_emu->load_state(sStateFile.toLocal8Bit().constData());
-					sStateFile.clear();
-				}
+				loadState();
 				bLoadStateReq = false;
 				req_draw = true;
 			}
-#endif			
+
 			if(bResetReq != false) {
-				clear_key_queue();
-				p_emu->reset();
+				resetEmu();
 				bResetReq = false;
 				req_draw = true;
 			}
-#ifdef USE_SPECIAL_RESET
 			if(bSpecialResetReq != false) {
-				p_emu->special_reset();
+				specialResetEmu();
 				bSpecialResetReq = false;
 			}
-#endif
-
-#ifdef USE_STATE
 			if(bSaveStateReq != false) {
-				if(!sStateFile.isEmpty()) {
-					p_emu->save_state(sStateFile.toLocal8Bit().constData());
-					sStateFile.clear();
-				}
+				saveState();
 				bSaveStateReq = false;
 			}
-#endif
-#if defined(USE_MINIMUM_RENDERING)
-			if((vert_line_bak != config.opengl_scanline_vert) ||
-			   (horiz_line_bak != config.opengl_scanline_horiz) ||
-			   (gl_crt_filter_bak != config.use_opengl_filters) ||
-			   (opengl_filter_num_bak != config.opengl_filter_num)) req_draw = true;
-			vert_line_bak = config.opengl_scanline_vert;
-			horiz_line_bak = config.opengl_scanline_horiz;
-			gl_crt_filter_bak = config.use_opengl_filters;
-			opengl_filter_num_bak = config.opengl_filter_num;
-#endif
+
+			if(using_flags->is_use_minimum_rendering()) {
+				if((vert_line_bak != config.opengl_scanline_vert) ||
+				   (horiz_line_bak != config.opengl_scanline_horiz) ||
+				   (gl_crt_filter_bak != config.use_opengl_filters) ||
+				   (opengl_filter_num_bak != config.opengl_filter_num)) req_draw = true;
+				vert_line_bak = config.opengl_scanline_vert;
+				horiz_line_bak = config.opengl_scanline_horiz;
+				gl_crt_filter_bak = config.use_opengl_filters;
+				opengl_filter_num_bak = config.opengl_filter_num;
+			}
+
 			if(bStartRecordSoundReq != false) {
 				p_emu->start_record_sound();
 				bStartRecordSoundReq = false;
@@ -525,11 +555,16 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 			run_frames = p_emu->run();
 			total_frames += run_frames;
+			if(using_flags->is_use_minimum_rendering()) {
 #if defined(USE_MINIMUM_RENDERING)
-			req_draw |= p_emu->is_screen_changed();
+				req_draw |= p_emu->is_screen_changed();
 #else
-			req_draw = true;
+				req_draw = true;
 #endif
+			} else {
+				req_draw = true;
+			}
+
 #if defined(USE_KEY_LOCKED) && !defined(INDEPENDENT_CAPS_KANA_LED)
 			led_data = p_emu->get_caps_locked() ? 0x01 : 0x00;
 			led_data |= (p_emu->get_kana_locked() ? 0x02 : 0x00);
@@ -550,19 +585,39 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 #endif
 			sample_access_drv();
-
-			interval += get_interval();
 			now_skip = p_emu->is_frame_skippable() && !p_emu->is_video_recording();
-			if(config.full_speed) interval = 1; 
+			if(config.full_speed) {
+				interval = 1;
+			} else {
+				interval = get_interval();
+			}
 			if((prev_skip && !now_skip) || next_time == 0) {
 				next_time = tick_timer.elapsed();
+				//next_time = SDL_GetTicks();
 			}
 			if(!now_skip) {
 				next_time += interval;
 			}
 			prev_skip = now_skip;
-			//printf("p_emu::RUN Frames = %d SKIP=%d Interval = %d NextTime = %d\n", run_frames, now_skip, interval, next_time);
+#if 0
+			{
+				struct tm *timedat;
+				time_t nowtime;
+				char strbuf2[256];
+				char strbuf3[24];
+				struct timeval tv;
+				nowtime = time(NULL);
+				gettimeofday(&tv, NULL);
+				memset(strbuf2, 0x00, sizeof(strbuf2));
+				memset(strbuf3, 0x00, sizeof(strbuf3));
+				timedat = localtime(&nowtime);
+				strftime(strbuf2, 255, "%Y-%m-%d %H:%M:%S", timedat);
+				snprintf(strbuf3, 23, ".%06ld", tv.tv_usec);
+				printf("%s%s[EMU]::RUN Frames = %d SKIP=%d Interval = %d NextTime = %d SRC = %d\n", strbuf2, strbuf3, run_frames, now_skip, interval, next_time, tick_timer.clockType());
+			}
+#endif			
 			if(next_time > tick_timer.elapsed()) {
+				//if(next_time > SDL_GetTicks()) {
 				//  update window if enough time
 				if(!req_draw) {
 					no_draw_count++;
@@ -596,8 +651,12 @@ void EmuThreadClass::doWork(const QString &params)
 			
 				// sleep 1 frame priod if need
 				current_time = tick_timer.elapsed();
-				if((int)(next_time - current_time) >= 10) {
-					sleep_period = next_time - current_time;
+				//current_time = SDL_GetTicks();
+				sleep_period = 0;
+				if(next_time > current_time) {
+					if((int)(next_time - current_time) >= 1) {
+						sleep_period = next_time - current_time;
+					}
 				}
 			} else if(++skip_frames > MAX_SKIP_FRAMES) {
 				// update window at least once per 10 frames
@@ -616,20 +675,31 @@ void EmuThreadClass::doWork(const QString &params)
 				no_draw_count = 0;
 				skip_frames = 0;
 				qint64 tt = tick_timer.elapsed();
+				//quint32 tt = SDL_GetTicks();
+				if(next_time > tt) {
+					sleep_period = next_time - tt;
+				} else {
+					sleep_period = 0;
+				}
 				if(config.full_speed) {
 					next_time = tt + 1;
 				} else {
-					next_time = tt + get_interval();
+					next_time = tt;// + get_interval();
+					next_time = next_time + get_interval();
 				}
-				sleep_period = next_time - tt;
+				sleep_period = 0;
 			}
 		}
 		req_draw = false;
 		if(bRunThread == false){
 			goto _exit;
 		}
-		if(sleep_period <= 0) sleep_period = 1;
-		msleep(sleep_period);
+		if(sleep_period > 0) {
+			//sleep_period = 1;
+			msleep(sleep_period);
+			//SDL_Delay(sleep_period);
+		}
+		//SDL_Delay(sleep_period);
 	} while(1);
 _exit:
 	//emit quit_draw_thread();

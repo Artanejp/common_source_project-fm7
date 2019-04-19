@@ -62,6 +62,10 @@ protected:
 	void dec_message_count(void);
 	const _TCHAR *get_device_name(void);
 	bool get_power_state(void);
+	void resetEmu();
+	void specialResetEmu();
+	void loadState();
+	void saveState();
 	
 public:
 	EmuThreadClass(Ui_MainWindowBase *rootWindow, USING_FLAGS *p, QObject *parent = 0);

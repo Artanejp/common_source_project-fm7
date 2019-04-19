@@ -257,7 +257,7 @@ public:
 
 	int get_max_memcard() { return max_memcard; }
 	
-	bool is_use_minimum_rendaring() { return use_minimum_rendering; }
+	bool is_use_minimum_rendering() { return use_minimum_rendering; }
 	bool is_use_dig_resolution() { return use_dig_resolution; }
 
 	int get_use_monitor_type() { return use_monitor_type; }

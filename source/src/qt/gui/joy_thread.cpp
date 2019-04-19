@@ -34,6 +34,9 @@ JoyThreadClass::JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, config_t *cf
 	
 	if(using_flags->is_use_joystick()) {
 # if defined(USE_SDL2)
+		int result = SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK);
+		//int result = 0;
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "Joystick/Game controller subsystem was %s.", (result == 0) ? "initialized" : "not initialized");
 		for(i = 0; i < 16; i++) {
 			controller_table[i] = NULL;
 		}
@@ -55,7 +58,7 @@ JoyThreadClass::JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, config_t *cf
 		} else {
 			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : Any joysticks were not connected.");
 		}
-		bRunThread = true;
+		bRunThread = (result == 0) ? true : false;
 	} else {
 		for(i = 0; i < 16; i++) {
 			joyhandle[i] = NULL;
@@ -76,14 +79,13 @@ JoyThreadClass::~JoyThreadClass()
 			SDL_GameControllerClose(controller_table[i]);
 			controller_table[i] = NULL;
 		}
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : EXIT");
 # else
 		for(i = 0; i < 16; i++) {
 			SDL_JoystickClose(joyhandle[i]);
 			joyhandle[i] = NULL;
 		}
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : EXIT");
 # endif
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : EXIT");
 	}
 }
  
@@ -99,7 +101,7 @@ void JoyThreadClass::joystick_plugged(int num)
 		joyhandle[num] = SDL_GameControllerGetJoystick(controller_table[num]);
 		if(controller_table[num] != NULL) {
 			names[num] = QString::fromUtf8(SDL_GameControllerNameForIndex(num));
-			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : Controller %d : %s : is plugged.", num, names[num].toUtf8().constData());
+			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "JoyThread : Controller %d : %s : is plugged.", num, names[num].toUtf8().constData());
 			strncpy(p_config->assigned_joystick_name[num], names[num].toUtf8().constData(),
 					(sizeof(p_config->assigned_joystick_name)  / sizeof(char)) - 1);
 			joy_num[num] = num;
@@ -115,7 +117,7 @@ void JoyThreadClass::joystick_plugged(int num)
 					joyhandle[i] = SDL_JoystickOpen(num);
 					joy_num[i] = SDL_JoystickInstanceID(joyhandle[i]);
 					names[i] = QString::fromUtf8(SDL_JoystickNameForIndex(num));
-					csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : Joystick %d : %s : is plugged.", num, names[i].toUtf8().data());
+					csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "JoyThread : Joystick %d : %s : is plugged.", num, names[i].toUtf8().data());
 					strncpy(p_config->assigned_joystick_name[num], names[num].toUtf8().constData(),
 							(sizeof(p_config->assigned_joystick_name)  / sizeof(char)) - 1);
 					break;
@@ -134,7 +136,7 @@ void JoyThreadClass::joystick_unplugged(int num)
 		if(controller_table[num] != NULL) {
 			SDL_GameControllerClose(controller_table[num]);
 			controller_table[num] = NULL;
-			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : Controller %d : %s : is removed.", num, names[num].toUtf8().data());
+			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "JoyThread : Controller %d : %s : is removed.", num, names[num].toUtf8().data());
 			joy_num[num] = -1;
 		}
 		joyhandle[num] = NULL;
@@ -144,7 +146,7 @@ void JoyThreadClass::joystick_unplugged(int num)
 		if(joyhandle[num] != NULL) {
 			SDL_JoystickClose(joyhandle[num]);
 			joyhandle[num] = NULL;
-			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : Joystick %d : %s : is removed.", num, names[num].toUtf8().data());
+			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "JoyThread : Joystick %d : %s : is removed.", num, names[num].toUtf8().data());
 			joy_num[num] = -1;
 		}
 	}

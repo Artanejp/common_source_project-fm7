@@ -147,8 +147,6 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 				  "Audio Device #%d: %s", i, tmps.toLocal8Bit().constData());
 		sound_device_list.append(tmps);
 	}
-#endif   
-#if defined(USE_SDL2)
 	
 	//QString sdev = QString::fromUtf8("\"") + sound_device_list.at(audio_dev_id) + QString::fromUtf8("\"");
 	//audio_dev_id = SDL_OpenAudioDevice(NULL, 0, &snd_spec_req, &snd_spec_presented, SDL_AUDIO_ALLOW_ANY_CHANGE);
@@ -157,7 +155,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
     audio_dev_id = SDL_OpenAudioDevice(sdev.toUtf8().constData(), 0,
 									   &snd_spec_req, &snd_spec_presented,
 									   0);
-	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "Try to openDEVICE #%d: %s -> %s: DEVID=%d\n",
+	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "Try to open DEVICE #%d: %s -> %s: DEVID=%d\n",
 			  p_config->sound_device_num, sdev.toUtf8().constData(), (audio_dev_id <= 0) ? "FAIL" : "SUCCESS", audio_dev_id);
 #else
 	audio_dev_id = 1;
