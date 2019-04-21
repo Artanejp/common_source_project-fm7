@@ -34,7 +34,7 @@ JoyThreadClass::JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, config_t *cf
 	
 	if(using_flags->is_use_joystick()) {
 # if defined(USE_SDL2)
-		int result = SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK);
+		int result = SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK | SDL_INIT_EVENTS);
 		//int result = 0;
 		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "Joystick/Game controller subsystem was %s.", (result == 0) ? "initialized" : "not initialized");
 		for(i = 0; i < 16; i++) {
