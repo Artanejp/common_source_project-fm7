@@ -524,7 +524,7 @@ static void i386_check_sreg_validity(i386_state* cpustate, int reg)
 		i386_load_segment_descriptor(cpustate,reg);
 	}
 }
-
+#if 0
 static int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32 size)
 {
 	if(PROTECTED_MODE && !V8086_MODE)
@@ -549,7 +549,7 @@ static int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32
 	}
 	return 0;
 }
-
+#endif
 static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, bool *fault)
 {
 	// Checks done when MOV changes a segment register in protected mode
@@ -1112,6 +1112,50 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 		//cpustate->eflags &= ~0xffc00002;
 		cpustate->eflags = get_flags(cpustate);
 		set_flags(cpustate, cpustate->eflags);
+#if 1		
+		if((irq >= 0x10) && (irq_gate == 1) && (cpustate->ext == 0)) {
+			// Try to call pseudo bios
+			i386_load_segment_descriptor(cpustate,CS);
+			UINT32 tmp_pc = i386_translate(cpustate, CS, cpustate->eip, -1, 1 );
+			int stat = 0;
+			BIOS_TRAP(tmp_pc, stat);
+			if(stat != 0) { // HIT
+				try
+				{
+					// this is ugly but the alternative is worse
+					if(/*type != 0x0e && type != 0x0f*/ (type & 0x08) == 0)  // if not 386 interrupt or trap gate
+					{
+						cpustate->eip = POP16(cpustate);
+						cpustate->sreg[CS].selector = POP16(cpustate);
+						UINT32 __flags = POP16(cpustate);
+						cpustate->eflags = (get_flags(cpustate) & 0xffff0000) | (__flags & 0x0000ffff);
+						set_flags(cpustate, cpustate->eflags);
+					}
+					else
+					{
+						cpustate->eip = POP32(cpustate);
+						UINT32 sel;
+						sel = POP32(cpustate);
+						cpustate->sreg[CS].selector = sel; // ToDo: POP32SEG()
+						UINT32 __flags = POP32(cpustate);
+						cpustate->eflags = (get_flags(cpustate) & 0xff000000) | (__flags & 0x00ffffff);
+						set_flags(cpustate, cpustate->eflags);
+					}
+				}
+				catch(UINT64 e)
+				{
+					REG32(ESP) = tempSP;
+					logerror("THROWN EXCEPTION %08X at i386_trap() IRQ=%02x EIP=%08x V8086_MODE=%s line %d\n", e, irq, cpustate->eip, (V8086_MODE) ? "Yes" : "No", __LINE__);
+					throw e;
+				}
+				return;
+			}
+			// Not HIT
+			CHANGE_PC(cpustate,cpustate->eip);
+			return;
+		}
+#endif				
+
 	}
 
 	i386_load_segment_descriptor(cpustate,CS);
@@ -3665,7 +3709,10 @@ static CPU_EXECUTE( i386 )
 	while( cpustate->cycles > 0 && !cpustate->busreq )
 	{
 //#ifdef USE_DEBUGGER
-		bool now_debugging = cpustate->debugger->now_debugging;
+		bool now_debugging = false;
+		if(cpustate->debugger != NULL) {
+			now_debugging = cpustate->debugger->now_debugging;
+		}
 		if(now_debugging) {
 			cpustate->debugger->check_break_points(cpustate->pc);
 			if(cpustate->debugger->now_suspended) {
@@ -3766,7 +3813,7 @@ static CPU_EXECUTE( i386 )
 			int old_tf = cpustate->TF;
 
 //#ifdef USE_DEBUGGER
-			cpustate->debugger->add_cpu_trace(cpustate->pc);
+			if(cpustate->debugger != NULL) cpustate->debugger->add_cpu_trace(cpustate->pc);
 //#endif
 			cpustate->segment_prefix = 0;
 			cpustate->prev_eip = cpustate->eip;

@@ -582,7 +582,7 @@ void UPD7220::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 3) {
 	case 0: // set parameter
-		this->out_debug_log(_T("\tPARAM = %2x\n"), data);
+		//this->out_debug_log(_T("\tPARAM = %2x\n"), data);
 		//if(cmd_ready) { // OK?
 		if(cmdreg != -1) {
 			cmd_fifo->write(data & 0xff);
@@ -605,7 +605,7 @@ void UPD7220::write_io8(uint32_t addr, uint32_t data)
 		vectw_ptr = 0;
 		csrw_ptr = 0;
 		cmdreg = (int)data & 0xff;
-		this->out_debug_log(_T("CMDREG = %2x\n"), cmdreg);
+		//this->out_debug_log(_T("CMDREG = %2x\n"), cmdreg);
 //		params_count = 0;
 		cmd_fifo->clear(); // OK?
 		check_cmd();
@@ -1252,7 +1252,7 @@ void UPD7220::draw_vectl()
 {
 	pattern = ra[8] | (ra[9] << 8);
 	
-	out_debug_log(_T("DRAW VECTL: X=%d Y=%d to DC=%d DIR=%d PATTERN=%04x MODE=%d\n"), dx, dy, dc, dir, pattern, mod); 
+	//out_debug_log(_T("DRAW VECTL: X=%d Y=%d to DC=%d DIR=%d PATTERN=%04x MODE=%d\n"), dx, dy, dc, dir, pattern, mod); 
 	if(dc) {
 		int x = dx;
 		int y = dy;

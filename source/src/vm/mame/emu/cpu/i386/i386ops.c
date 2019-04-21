@@ -2523,19 +2523,19 @@ static void I386OP(int_16)(i386_state *cpustate)               // Opcode 0xcd
 	CYCLES(cpustate,CYCLES_INT);
 	if(V8086_MODE) {
 		//logerror("INT %02xh @V8086(16bit) mode PC=%08X\n", interrupt, cpustate->pc - 1);
-		if((!cpustate->IOP1 || !cpustate->IOP2))
-		{
-			logerror("IRQ (%08x): Is in Virtual 8086 mode and IOPL != 3.\n",cpustate->pc);
-			FAULT(FAULT_GP,0);
-		} else {
+//		if((!cpustate->IOP1 || !cpustate->IOP2))
+//		{
+//			logerror("IRQ (%08x): Is in Virtual 8086 mode and IOPL != 3.\n",cpustate->pc);
+//			FAULT(FAULT_GP,0);
+//		} else {
 			BIOS_INT(interrupt);
-		}
+//		}
 	} else {
 		//logerror("INT %02xh @16bit mode PC=%08X\n", interrupt, cpustate->pc - 1);
-		UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
-		if(!(PROTECTED_MODE && (cpustate->CPL > IOPL))) {
+//		UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+//		if(!(PROTECTED_MODE && (cpustate->CPL > IOPL))) {
 			BIOS_INT(interrupt);
-		}
+//		}
 	}		
 	cpustate->ext = 0; // not an external interrupt
 	i386_trap(cpustate,interrupt, 1, 0);
@@ -2549,19 +2549,19 @@ static void I386OP(int_32)(i386_state *cpustate)               // Opcode 0xcd
 #if 1
 	if(V8086_MODE) {
 		//logerror("INT %02xh @V8086(32bit) mode PC=%08X\n", interrupt, cpustate->pc - 1);
-		if((!cpustate->IOP1 || !cpustate->IOP2))
-		{
-			logerror("IRQ (%08x): Is in Virtual 8086 mode and IOPL != 3.\n",cpustate->pc);
-			FAULT(FAULT_GP,0);
-		} else {
+//		if((!cpustate->IOP1 || !cpustate->IOP2))
+//		{
+//			logerror("IRQ (%08x): Is in Virtual 8086 mode and IOPL != 3.\n",cpustate->pc);
+//			FAULT(FAULT_GP,0);
+//		} else {
 			BIOS_INT(interrupt);
-		}
+//		}
 	} else {
 		//logerror("INT %02xh @32bit mode PC=%08X\n", interrupt, cpustate->pc - 1);
-		UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
-		if(!(PROTECTED_MODE && (cpustate->CPL > IOPL))) {
+//		UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+//		if(!(PROTECTED_MODE && (cpustate->CPL > IOPL))) {
 			BIOS_INT(interrupt);
-		}
+//		}
 	}
 #endif
 	cpustate->ext = 0; // not an external interrupt
