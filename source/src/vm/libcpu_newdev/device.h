@@ -532,6 +532,7 @@ public:
 	{
 		return (const _TCHAR *)this_device_name;
 	}
+	virtual bool address_translate(int space, int intention, uint64_t &taddress);
    
 	// event manager
 	DEVICE* event_manager;
@@ -663,7 +664,6 @@ public:
 
 	// misc
 	const _TCHAR *get_lib_common_vm_version(void);
-
 	_TCHAR this_device_name[128];
 	
 	// device node using with iterator.

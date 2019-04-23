@@ -631,3 +631,8 @@ const _TCHAR *DEVICE::get_lib_common_vm_version(void)
 	return (const _TCHAR *)"\0";
 #endif	
 }
+
+bool DEVICE::address_translate(int space, int intention, uint64_t &taddress)
+{
+	return true; // If don't present address translation, translation succeed.
+}

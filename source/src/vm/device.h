@@ -631,6 +631,7 @@ public:
 	virtual bool bios_ret_z80(uint16_t PC, pair32_t* af, pair32_t* bc, pair32_t* de, pair32_t* hl, pair32_t* ix, pair32_t* iy, uint8_t* iff1)	{
 		return false;
 	}
+	virtual bool address_translate(int space, int intention, uint64_t &taddress) { return true; /* If not present, always succeeded.*/ }
 	// misc
 	const _TCHAR *get_device_name(void)
 	{
