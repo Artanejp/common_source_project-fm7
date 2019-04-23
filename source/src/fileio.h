@@ -11,6 +11,7 @@
 #define _FILEIO_H_
 
 #include <stdio.h>
+#include <vector>
 #include "common.h"
 
 #define FILEIO_READ_BINARY		1
@@ -186,6 +187,23 @@ public:
 	void StateArray(_TCHAR *buffer, size_t size, size_t count);
 	void StateArrayScrnType_t(scrntype_t *buffer, size_t size, size_t count);
 	
+	void StateVector(std::vector<int8_t> datas);
+	void StateVector(std::vector<int16_t> datas);
+	void StateVector(std::vector<int32_t> datas);
+	void StateVector(std::vector<int64_t> datas);
+	void StateVector(std::vector<uint8_t> datas);
+	void StateVector(std::vector<uint16_t> datas);
+	void StateVector(std::vector<uint32_t> datas);
+	void StateVector(std::vector<uint64_t> datas);
+	void StateVector(std::vector<bool> datas);
+	void StateVector(std::vector<float> datas);
+	void StateVector(std::vector<double> datas);
+	void StateVector(std::vector<pair16_t> datas);
+	void StateVector(std::vector<pair32_t> datas);
+	void StateVector(std::vector<pair64_t> datas);
+	void StateVector(std::vector<_TCHAR> datas);
+	void StateVector(std::vector<int> datas);
+
 	// obsolete function
 	void StateBuffer(void *buffer, size_t size, size_t count);
 };

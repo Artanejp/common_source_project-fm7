@@ -1159,6 +1159,138 @@ void FILEIO::StateValueScrnType_t(scrntype_t &val)
 }
 
 
+void FILEIO::StateVector(std::vector<int8_t> datas)
+{
+	int memb = datas.size();
+	for(int i = 0; i < memb; i++) {
+		StateValue(datas[i]);
+	}
+}
+
+void FILEIO::StateVector(std::vector<int16_t> datas)
+{
+	int memb = datas.size();
+	for(int i = 0; i < memb; i++) {
+		StateValue(datas[i]);
+	}
+}
+
+void FILEIO::StateVector(std::vector<int32_t> datas)
+{
+	int memb = datas.size();
+	for(int i = 0; i < memb; i++) {
+		StateValue(datas[i]);
+	}
+}
+
+void FILEIO::StateVector(std::vector<int64_t> datas)
+{
+	int memb = datas.size();
+	for(int i = 0; i < memb; i++) {
+		StateValue(datas[i]);
+	}
+}
+
+void FILEIO::StateVector(std::vector<uint8_t> datas)
+{
+	int memb = datas.size();
+	for(int i = 0; i < memb; i++) {
+		StateValue(datas[i]);
+	}
+}
+
+void FILEIO::StateVector(std::vector<uint16_t> datas)
+{
+	int memb = datas.size();
+	for(int i = 0; i < memb; i++) {
+		StateValue(datas[i]);
+	}
+}
+
+void FILEIO::StateVector(std::vector<uint32_t> datas)
+{
+	int memb = datas.size();
+	for(int i = 0; i < memb; i++) {
+		StateValue(datas[i]);
+	}
+}
+
+void FILEIO::StateVector(std::vector<uint64_t> datas)
+{
+	int memb = datas.size();
+	for(int i = 0; i < memb; i++) {
+		StateValue(datas[i]);
+	}
+}
+
+void FILEIO::StateVector(std::vector<bool> datas)
+{
+	int memb = datas.size();
+	for(int i = 0; i < memb; i++) {
+		if(open_mode == FILEIO_READ_BINARY) {
+			datas[i] = FgetBool();
+		} else {
+			FputBool(datas[i]);
+		}
+	}
+}
+
+void FILEIO::StateVector(std::vector<float> datas)
+{
+	int memb = datas.size();
+	for(int i = 0; i < memb; i++) {
+		StateValue(datas[i]);
+	}
+}
+
+void FILEIO::StateVector(std::vector<double> datas)
+{
+	int memb = datas.size();
+	for(int i = 0; i < memb; i++) {
+		StateValue(datas[i]);
+	}
+}
+
+void FILEIO::StateVector(std::vector<_TCHAR> datas)
+{
+	int memb = datas.size();
+	for(int i = 0; i < memb; i++) {
+		StateValue(datas[i]);
+	}
+}
+
+void FILEIO::StateVector(std::vector<pair16_t> datas)
+{
+	int memb = datas.size();
+	for(int i = 0; i < memb; i++) {
+		StateValue(datas[i]);
+	}
+}
+
+void FILEIO::StateVector(std::vector<pair32_t> datas)
+{
+	int memb = datas.size();
+	for(int i = 0; i < memb; i++) {
+		StateValue(datas[i]);
+	}
+}
+
+void FILEIO::StateVector(std::vector<pair64_t> datas)
+{
+	int memb = datas.size();
+	for(int i = 0; i < memb; i++) {
+		StateValue(datas[i]);
+	}
+}
+
+void FILEIO::StateVector(std::vector<int> datas)
+{
+	int memb = datas.size();
+	for(int i = 0; i < memb; i++) {
+		StateValue(datas[i]);
+	}
+}
+
 void FILEIO::StateArray(bool *buffer, size_t size, size_t count)
 {
 	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
