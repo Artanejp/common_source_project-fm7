@@ -254,25 +254,30 @@ enum smram_intel_p5
 };
 
 /* Protected mode exceptions */
-#define FAULT_DE  0   // F
-#define FAULT_DB  1   // DEBUG
-#define FAULT_NMI 2   // NMI
-#define FAULT_BP  3   // 
-#define FAULT_OF  4   // 
-#define FAULT_BR  5   // 
-#define FAULT_UD  6   // Invalid Opcode
-#define FAULT_NM  7   // Coprocessor not available
-#define FAULT_DF  8   // Double Fault
-#define FAULT_TS  10  // Invalid TSS
-#define FAULT_NP  11  // Segment or Gate not present
-#define FAULT_SS  12  // Stack fault
-#define FAULT_GP  13  // General Protection Fault
-#define FAULT_PF  14  // Page Fault
-#define FAULT_RSV 15  // *Reserved*
-#define FAULT_MF  16  // Match (Coprocessor) Fault
-#define FAULT_AC  17  //
-#define FAULT_MC  18  //
-#define FAULT_XF  19  //
+// https://wiki.osdev.org/Exceptions
+#define FAULT_DE   0   // F
+#define FAULT_DB   1   // DEBUG
+#define FAULT_NMI  2   // NMI
+#define FAULT_BP   3   // Break Point
+#define FAULT_OF   4   // OverFlow
+#define FAULT_BR   5   // Bound Range Exceeded
+#define FAULT_UD   6   // Invalid Opcode
+#define FAULT_NM   7   // Coprocessor not available
+#define FAULT_DF   8   // Double Fault
+#define FAULT_TS   10  // Invalid TSS
+#define FAULT_NP   11  // Segment or Gate not present
+#define FAULT_SS   12  // Stack fault
+#define FAULT_GP   13  // General Protection Fault
+#define FAULT_PF   14  // Page Fault
+#define FAULT_RSV  15  // *Reserved*
+#define FAULT_MF   16  // Match (Coprocessor) Fault
+#define FAULT_AC   17  // Alignment Check
+#define FAULT_MC   18  // Machine Check
+#define FAULT_XF   19  // SIMD Floating point eXception
+#define FAULT_VE   20  // Virtualization Exception
+#define FAULT_SX   30  // Security eXception
+#define FAULT_RSV2 31  // Reserved
+
 
 /* MXCSR Control and Status Register */
 #define MXCSR_IE  (1<<0)  // Invalid Operation Flag

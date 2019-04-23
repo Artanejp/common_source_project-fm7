@@ -91,7 +91,7 @@ static void cpu_reset_generic(i386_state* cpustate)
 
 /*************************************************************************/
 
-static UINT32 i386_load_protected_mode_segment(i386_state *cpustate, I386_SREG *seg, UINT64 *desc )
+/*static*/INLINE UINT32 i386_load_protected_mode_segment(i386_state *cpustate, I386_SREG *seg, UINT64 *desc )
 {
 	UINT32 v1,v2;
 	UINT32 base, limit;
@@ -136,7 +136,7 @@ static UINT32 i386_load_protected_mode_segment(i386_state *cpustate, I386_SREG *
 	return 1;
 }
 
-static void i386_load_call_gate(i386_state* cpustate, I386_CALL_GATE *gate)
+/*static*/INLINE void i386_load_call_gate(i386_state* cpustate, I386_CALL_GATE *gate)
 {
 	UINT32 v1,v2;
 	UINT32 base,limit;
@@ -167,7 +167,7 @@ static void i386_load_call_gate(i386_state* cpustate, I386_CALL_GATE *gate)
 	gate->dpl = (gate->ar >> 5) & 0x03;
 }
 
-static void i386_set_descriptor_accessed(i386_state *cpustate, UINT16 selector)
+/*static*/INLINE void i386_set_descriptor_accessed(i386_state *cpustate, UINT16 selector)
 {
 	// assume the selector is valid, we don't need to check it again
 	UINT32 base, addr;
@@ -187,7 +187,7 @@ static void i386_set_descriptor_accessed(i386_state *cpustate, UINT16 selector)
 	cpustate->program->write_data8(addr, rights | 1);
 }
 
-static void i386_load_segment_descriptor(i386_state *cpustate, int segment )
+/*static*/INLINE void i386_load_segment_descriptor(i386_state *cpustate, int segment )
 {
 	if (PROTECTED_MODE)
 	{
@@ -258,7 +258,7 @@ static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 	return ret;
 }
 
-static UINT32 get_flags(i386_state *cpustate)
+/*static*/INLINE UINT32 get_flags(i386_state *cpustate)
 {
 	UINT32 f = 0x2;
 	f |= cpustate->CF;
@@ -282,7 +282,7 @@ static UINT32 get_flags(i386_state *cpustate)
 	return (cpustate->eflags & ~cpustate->eflags_mask) | (f & cpustate->eflags_mask);
 }
 
-static void set_flags(i386_state *cpustate, UINT32 f )
+/*static*/INLINE void set_flags(i386_state *cpustate, UINT32 f )
 {
 	UINT8 old_vm = cpustate->VM;
 	f &= cpustate->eflags_mask;;
@@ -331,7 +331,7 @@ static void set_flags(i386_state *cpustate, UINT32 f )
 #endif
 }
 
-static void sib_byte(i386_state *cpustate,UINT8 mod, UINT32* out_ea, UINT8* out_segment)
+/*static*/INLINE void sib_byte(i386_state *cpustate,UINT8 mod, UINT32* out_ea, UINT8* out_segment)
 {
 	UINT32 ea = 0;
 	UINT8 segment = 0;
@@ -378,7 +378,7 @@ static void sib_byte(i386_state *cpustate,UINT8 mod, UINT32* out_ea, UINT8* out_
 	*out_segment = segment;
 }
 
-static void modrm_to_EA(i386_state *cpustate,UINT8 mod_rm, UINT32* out_ea, UINT8* out_segment)
+/*static*/INLINE void modrm_to_EA(i386_state *cpustate,UINT8 mod_rm, UINT32* out_ea, UINT8* out_segment)
 {
 	INT8 disp8;
 	INT16 disp16;
@@ -460,7 +460,7 @@ static void modrm_to_EA(i386_state *cpustate,UINT8 mod_rm, UINT32* out_ea, UINT8
 	}
 }
 
-static UINT32 GetNonTranslatedEA(i386_state *cpustate,UINT8 modrm,UINT8 *seg)
+/*static*/INLINE UINT32 GetNonTranslatedEA(i386_state *cpustate,UINT8 modrm,UINT8 *seg)
 {
 	UINT8 segment;
 	UINT32 ea;
@@ -469,7 +469,7 @@ static UINT32 GetNonTranslatedEA(i386_state *cpustate,UINT8 modrm,UINT8 *seg)
 	return ea;
 }
 
-static UINT32 GetEA(i386_state *cpustate,UINT8 modrm, int rwn, UINT32 size)
+/*static*/INLINE UINT32 GetEA(i386_state *cpustate,UINT8 modrm, int rwn, UINT32 size)
 {
 	UINT8 segment;
 	UINT32 ea;
@@ -478,7 +478,7 @@ static UINT32 GetEA(i386_state *cpustate,UINT8 modrm, int rwn, UINT32 size)
 }
 
 /* Check segment register for validity when changing privilege level after an RETF */
-static void i386_check_sreg_validity(i386_state* cpustate, int reg)
+/*static*/ INLINE void i386_check_sreg_validity(i386_state* cpustate, int reg)
 {
 	UINT16 selector = cpustate->sreg[reg].selector;
 	UINT8 CPL = cpustate->CPL;
@@ -680,7 +680,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 	if(fault) *fault = false;
 }
 
-static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level)
+/*static*/INLINE void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level)
 {
 	/*  I386 Interrupts/Traps/Faults:
 	 *
