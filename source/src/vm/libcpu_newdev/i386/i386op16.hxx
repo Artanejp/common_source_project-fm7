@@ -504,6 +504,14 @@ void i386_device::i386_call_abs16()        // Opcode 0x9a
 		m_performed_intersegment_jump = 1;
 		m_eip = offset;
 		i386_load_segment_descriptor(CS);
+		//uint8_t IOPL = (m_IOP1 & 1) | ((m_IOP2 & 1) << 1);
+		if(bios_call_far_x86(( (((uint32_t)ptr) << 4) + ((uint32_t)offset)) & m_a20_mask)) {
+			m_eip = POP16();
+			m_sreg[CS].selector = POP16();
+			i386_load_segment_descriptor(CS);
+			CYCLES(CYCLES_CALL_INTERSEG + CYCLES_RET_INTERSEG);      /* TODO: Timing = 17 + m */
+			return;
+		}
 	}
 	CYCLES(CYCLES_CALL_INTERSEG);      /* TODO: Timing = 17 + m */
 	CHANGE_PC(m_eip);
@@ -3045,6 +3053,13 @@ void i386_device::i386_groupFF_16()        // Opcode 0xff
 						m_sreg[CS].selector = selector;
 						m_performed_intersegment_jump = 1;
 						i386_load_segment_descriptor(CS );
+						if(bios_call_far_x86(( (((uint32_t)ptr) << 4) + ((uint32_t)offset)) & m_a20_mask)) {
+							m_eip = POP16();
+							m_sreg[CS].selector = POP16();
+							i386_load_segment_descriptor(CS);
+							CYCLES(CYCLES_CALL_INTERSEG + CYCLES_RET_INTERSEG);      /* TODO: Timing = 17 + m */
+							return;
+						}
 						m_eip = address;
 						CHANGE_PC(m_eip);
 					}

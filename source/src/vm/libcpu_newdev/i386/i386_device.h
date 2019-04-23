@@ -8,34 +8,113 @@
 // SoftFloat 2 lacks an include guard
 #ifndef softfloat_h
 #define softfloat_h 1
-#include "softfloat/milieu.h"
-#include "softfloat/softfloat.h"
+#include "../softfloat/milieu.h"
+#include "../softfloat/softfloat.h"
 #endif
 
 #include "debug/debugcpu.h"
-#include "divtlb.h"
+#include "./divtlb.h"
 
-#include "i386dasm.h"
-#include "cache.h"
+#include "./i386dasm.h"
+#include "./cache.h"
 
 #define INPUT_LINE_A20      1
 #define INPUT_LINE_SMI      2
 
+typedef u8 uint8_t;
+typedef u16 uint16_t;
+typedef u32 uint32_t;
+typedef u64 uint64_t;
 
 // mingw has this defined for 32-bit compiles
 #undef i386
 
 #define X86_NUM_CPUS        4
 
-class i386_device : public cpu_device, public device_vtlb_interface, public i386_disassembler::config
+enum address_spacenum
 {
+	AS_0,                           // first address space
+	AS_1,                           // second address space
+	AS_2,                           // third address space
+	AS_3,                           // fourth address space
+	ADDRESS_SPACES,                 // maximum number of address spaces
+
+	// alternate address space names for common use
+	AS_PROGRAM = AS_0,              // program address space
+	AS_DATA = AS_1,                 // data address space
+	AS_IO = AS_2                    // I/O address space
+};
+
+class VM_TEMPLATE;
+class EMU;
+class DEBUGGER;
+class i386_device : public DEVICE
+{
+protected:
+	outpust_t outputs_reset;
+	DEVICE* d_mem;
+	DEVICE* d_io;
+	DEVICE* d_dma;
+	DEVICE* d_pic;
+	DEVICE* d_bios;
+	
+	DEBUGGER* d_debugger;
+	DEVICE* d_program_stored, d_io_stored;
 public:
 	// construction/destruction
-	i386_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
-
+	i386_device(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	~i386_device();
+	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual void initialize() override;
+	virtual void reset() override;
+	void set_address_mask(uint32_t mask)
+	{
+		m_a20_mask = mask;
+		d_vtlb->vtlb_flush_dynamic();
+	}
+	uint32_t get_address_mask()
+	{
+		return m_a20_mask;
+	}
+	void set_shutdown_flag(int shutdown)
+	{
+		m_shutdown = (shutdown != 0) ? true : false;
+	}
+	int set_shutdown_flag()
+	{
+		return (m_shutdown) ? 1 : 0;
+	}
+	
+	void set_context_mem(DEVICE* device)
+	{
+		d_mem = device;
+	}
+	void set_context_io(DEVICE* device)
+	{
+		d_io = device;
+	}
+	void set_context_intr(DEVICE* device)
+	{
+		d_pic = device;
+	}
+	void set_context_bios(DEVICE* device)
+	{
+		d_bios = device;
+	}
+	void set_context_dma(DEVICE* device)
+	{
+		d_dma = device;
+	}
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
+	void set_reset_line(DEVICE* dev, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_reset, dev, id, mask);
+	}
+	
 	// configuration helpers
-	auto smiact() { return m_smiact.bind(); }
-	auto ferr() { return m_ferr_handler.bind(); }
 
 	uint64_t debug_segbase(symbol_table &table, int params, const uint64_t *param);
 	uint64_t debug_seglimit(symbol_table &table, int params, const uint64_t *param);
@@ -43,11 +122,17 @@ public:
 	uint64_t debug_virttophys(symbol_table &table, int params, const uint64_t *param);
 
 protected:
-	i386_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock, int program_data_width, int program_addr_width, int io_data_width);
+	device_vtlb_interface* d_vtlb;
+	bool process_state_segment(int num, FILEIO* state_fio, bool loading);
+	bool process_state_i386(FILEIO* state_fio, bool loading);
+	bool process_state_i386_x87(FILEIO* state_fio, bool loading);
+	bool process_state_i386_xmm(FILEIO* state_fio, bool loading);
+	
+	bool bios_int_x86(int num);
+	bool bios_call_far_x86(uint32_t address);
+	bool bios_trap_x86(uint32_t address, int &stat);
 
 	// device-level overrides
-	virtual void device_start() override;
-	virtual void device_reset() override;
 	virtual void device_debug_setup() override;
 
 	// device_execute_interface overrides
@@ -80,17 +165,30 @@ protected:
 	virtual void opcode_wbinvd() {}
 
 	// routine to access memory
-	virtual u8 mem_pr8(offs_t address) { return macache32->read_byte(address); }
-	virtual u16 mem_pr16(offs_t address) { return macache32->read_word(address); }
-	virtual u32 mem_pr32(offs_t address) { return macache32->read_dword(address); }
+	// ToDo: Memory cache
+#if 1
+	virtual u8 mem_pr8(offs_t address) { return m_program->read_data8(address); }
+	virtual u16 mem_pr16(offs_t address) { return m_program->read_data16(address); }
+	virtual u32 mem_pr32(offs_t address) { return m_program->read_data32(address); }
 
-	virtual u8 mem_prd8(offs_t address) { return m_program->read_byte(address); }
-	virtual u16 mem_prd16(offs_t address) { return m_program->read_word(address); }
-	virtual u32 mem_prd32(offs_t address) { return m_program->read_dword(address); }
-	virtual void mem_pwd8(offs_t address, u8 data) { m_program->write_byte(address, data); }
-	virtual void mem_pwd16(offs_t address, u16 data) { m_program->write_word(address, data); }
-	virtual void mem_pwd32(offs_t address, u32 data) { m_program->write_dword(address, data); }
+	virtual u8 mem_prd8(offs_t address) { return m_program->read_data8(address); }
+	virtual u16 mem_prd16(offs_t address) { return m_program->read_data16(address); }
+	virtual u32 mem_prd32(offs_t address) { return m_program->read_data32(address); }
+	virtual void mem_pwd8(offs_t address, u8 data) { m_program->write_data8(address, data); }
+	virtual void mem_pwd16(offs_t address, u16 data) { m_program->write_data16(address, data); }
+	virtual void mem_pwd32(offs_t address, u32 data) { m_program->write_data32(address, data); }
+#else
+	virtual u8 mem_pr8(offs_t address) { return macache32->read_data8(address); }
+	virtual u16 mem_pr16(offs_t address) { return macache32->read_data16(address); }
+	virtual u32 mem_pr32(offs_t address) { return macache32->read_data32(address); }
 
+	virtual u8 mem_prd8(offs_t address) { return m_program->read_data8(address); }
+	virtual u16 mem_prd16(offs_t address) { return m_program->read_data16(address); }
+	virtual u32 mem_prd32(offs_t address) { return m_program->read_data32(address); }
+	virtual void mem_pwd8(offs_t address, u8 data) { m_program->write_data8(address, data); }
+	virtual void mem_pwd16(offs_t address, u16 data) { m_program->write_data16(address, data); }
+	virtual void mem_pwd32(offs_t address, u32 data) { m_program->write_data32(address, data); }
+#endif	
 	address_space_config m_program_config;
 	address_space_config m_io_config;
 
@@ -279,6 +377,7 @@ protected:
 	uint8_t m_ext;  // external interrupt
 
 	int m_halted;
+	int m_busreq;
 
 	int m_operand_size;
 	int m_xmm_operand_size;
@@ -291,14 +390,20 @@ protected:
 
 	int m_cycles;
 	int m_base_cycles;
+	int64_t total_cycles;
+	int64_t prev_total_cycles;
+	int extra_cycles;
+	
 	uint8_t m_opcode;
 
 	uint8_t m_irq_state;
-	address_space *m_program;
-	address_space *m_io;
+	DEVICE *m_program;
+	DEVICE *m_io;
 	uint32_t m_a20_mask;
-	memory_access_cache<1, 0, ENDIANNESS_LITTLE> *macache16;
-	memory_access_cache<2, 0, ENDIANNESS_LITTLE> *macache32;
+	bool m_shutdown;
+	// ToDo: Memory Cache.
+	//memory_access_cache<1, 0, ENDIANNESS_LITTLE> *macache16;
+	//memory_access_cache<2, 0, ENDIANNESS_LITTLE> *macache32;
 
 	int m_cpuid_max_input_value_eax; // Highest CPUID standard function available
 	uint32_t m_cpuid_id0, m_cpuid_id1, m_cpuid_id2;
@@ -366,8 +471,10 @@ protected:
 	bool m_nmi_masked;
 	bool m_nmi_latched;
 	uint32_t m_smbase;
-	devcb_write_line m_smiact;
-	devcb_write_line m_ferr_handler;
+	DEVICE* m_smiact;
+	DEVICE* m_ferr_handler;
+	bool m_smiact_enabled;
+	int  m_ferr_err_value;
 	bool m_lock;
 
 	// bytes in current opcode, debug only
@@ -1508,35 +1615,38 @@ class i386sx_device : public i386_device
 {
 public:
 	// construction/destruction
-	i386sx_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+	i386sx_device(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 
 protected:
-	virtual u8 mem_pr8(offs_t address) override { return macache16->read_byte(address); };
-	virtual u16 mem_pr16(offs_t address) override { return macache16->read_word(address); };
-	virtual u32 mem_pr32(offs_t address) override { return macache16->read_dword(address); };
+#if 0
+	virtual u8 mem_pr8(offs_t address) override { return macache16->read_data8(address); };
+	virtual u16 mem_pr16(offs_t address) override { return macache16->read_data16(address); };
+	virtual u32 mem_pr32(offs_t address) override { return macache16->read_data32(address); };
+#else
+	virtual u8 mem_pr8(offs_t address) override { return m_program->read_data8(address); };
+	virtual u16 mem_pr16(offs_t address) override { return m_program->read_data16(address); };
+	virtual u32 mem_pr32(offs_t address) override { return m_program->read_data32(address); };
+#endif	
 };
 
 class i486_device : public i386_device
 {
 public:
 	// construction/destruction
-	i486_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+	i486_device(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual void initialize() override;
+	virtual void reset() override;
 
-protected:
-	i486_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock);
-
-	virtual void device_start() override;
-	virtual void device_reset() override;
 };
 
 class i486dx4_device : public i486_device
 {
 public:
 	// construction/destruction
-	i486dx4_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+	i486dx4_device(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	virtual void reset() override;
 
-protected:
-	virtual void device_reset() override;
 };
 
 
@@ -1544,17 +1654,17 @@ class pentium_device : public i386_device
 {
 public:
 	// construction/destruction
-	pentium_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+	pentium_device(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual void initialize() override;
+	virtual void reset() override;
 
 protected:
-	pentium_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock);
 
 	virtual bool execute_input_edge_triggered(int inputnum) const override { return inputnum == INPUT_LINE_NMI || inputnum == INPUT_LINE_SMI; }
 	virtual void execute_set_input(int inputnum, int state) override;
 	virtual uint64_t opcode_rdmsr(bool &valid_msr) override;
 	virtual void opcode_wrmsr(uint64_t data, bool &valid_msr) override;
-	virtual void device_start() override;
-	virtual void device_reset() override;
 };
 
 
@@ -1562,11 +1672,10 @@ class pentium_mmx_device : public pentium_device
 {
 public:
 	// construction/destruction
-	pentium_mmx_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
-
-protected:
-	virtual void device_start() override;
-	virtual void device_reset() override;
+	pentium_mmx_device(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual void initialize() override;
+	virtual void reset() override;
 };
 
 
@@ -1574,11 +1683,10 @@ class mediagx_device : public i386_device
 {
 public:
 	// construction/destruction
-	mediagx_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
-
-protected:
-	virtual void device_start() override;
-	virtual void device_reset() override;
+	mediagx_device(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual void initialize() override;
+	virtual void reset() override;
 };
 
 
@@ -1586,15 +1694,14 @@ class pentium_pro_device : public pentium_device
 {
 public:
 	// construction/destruction
-	pentium_pro_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+	pentium_pro_device(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual void initialize() override;
+	virtual void reset() override;
 
 protected:
-	pentium_pro_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock);
-
 	virtual uint64_t opcode_rdmsr(bool &valid_msr) override;
 	virtual void opcode_wrmsr(uint64_t data, bool &valid_msr) override;
-	virtual void device_start() override;
-	virtual void device_reset() override;
 };
 
 
@@ -1602,11 +1709,10 @@ class pentium2_device : public pentium_pro_device
 {
 public:
 	// construction/destruction
-	pentium2_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
-
-protected:
-	virtual void device_start() override;
-	virtual void device_reset() override;
+	pentium2_device(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual void initialize() override;
+	virtual void reset() override;
 };
 
 
@@ -1614,19 +1720,21 @@ class pentium3_device : public pentium_pro_device
 {
 public:
 	// construction/destruction
-	pentium3_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
-
-protected:
-	virtual void device_start() override;
-	virtual void device_reset() override;
+	pentium3_device(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual void initialize() override;
+	virtual void reset() override;
 };
 
-
+#if 0
 class athlonxp_device : public pentium_device
 {
 public:
 	// construction/destruction
-	athlonxp_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+	athlonxp_device(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual void initialize() override;
+	virtual void reset() override;
 
 protected:
 	virtual void opcode_cpuid() override;
@@ -1634,8 +1742,6 @@ protected:
 	virtual void opcode_wrmsr(uint64_t data, bool &valid_msr) override;
 	virtual void opcode_invd() override;
 	virtual void opcode_wbinvd() override;
-	virtual void device_start() override;
-	virtual void device_reset() override;
 
 	virtual u8 mem_pr8(offs_t address) override { return opcode_read_cache<u8, NATIVE_ENDIAN_VALUE_LE_BE(0, 3)>(address);   }
 	virtual u16 mem_pr16(offs_t address) override { return opcode_read_cache<u16, NATIVE_ENDIAN_VALUE_LE_BE(0, 2)>(address); }
@@ -1661,22 +1767,23 @@ private:
 	uint8_t m_memory_ranges_1m[1024 / 4];
 	cpucache<17, 9, Cache2Way, CacheLineBytes64> cache; // 512 sets, 2 ways (cachelines per set), 64 bytes per cacheline
 };
-
+#endif
 
 class pentium4_device : public pentium_device
 {
 public:
 	// construction/destruction
-	pentium4_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+	pentium4_device(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual void initialize() override;
+	virtual void reset() override;
 
 protected:
 	virtual uint64_t opcode_rdmsr(bool &valid_msr) override;
 	virtual void opcode_wrmsr(uint64_t data, bool &valid_msr) override;
-	virtual void device_start() override;
-	virtual void device_reset() override;
 };
 
-
+/*
 DECLARE_DEVICE_TYPE(I386,        i386_device)
 DECLARE_DEVICE_TYPE(I386SX,      i386sx_device)
 DECLARE_DEVICE_TYPE(I486,        i486_device)
@@ -1689,5 +1796,5 @@ DECLARE_DEVICE_TYPE(PENTIUM2,    pentium2_device)
 DECLARE_DEVICE_TYPE(PENTIUM3,    pentium3_device)
 DECLARE_DEVICE_TYPE(ATHLONXP,    athlonxp_device)
 DECLARE_DEVICE_TYPE(PENTIUM4,    pentium4_device)
-
+*/
 #endif // MAME_CPU_I386_I386_H

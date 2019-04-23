@@ -703,7 +703,7 @@ void i386_device::i386_mov_cr_r32()        // Opcode 0x0f 22
 		case 2: CYCLES(CYCLES_MOV_REG_CR2); break;
 		case 3:
 			CYCLES(CYCLES_MOV_REG_CR3);
-			vtlb_flush_dynamic();
+			d_vtlb->vtlb_flush_dynamic();
 			break;
 		case 4: CYCLES(1); break; // TODO
 		default:
@@ -2333,6 +2333,10 @@ void i386_device::i386_int()               // Opcode 0xcd
 	int interrupt = FETCH();
 	CYCLES(CYCLES_INT);
 	m_ext = 0; // not an external interrupt
+	if(bios_int_x86(interrupt)) {
+		m_ext = 1;
+		return;
+	}
 	i386_trap(interrupt, 1, 0);
 	m_ext = 1;
 }

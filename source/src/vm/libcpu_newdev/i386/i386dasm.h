@@ -18,7 +18,7 @@ public:
 	i386_disassembler(config *conf);
 
 	virtual u32 opcode_alignment() const override;
-	virtual offs_t disassemble(std::ostream &stream, offs_t pc, const data_buffer &opcodes, const data_buffer &params) override;
+	virtual offs_t disassemble(uint32_t pc, const data_buffer &opcodes, const data_buffer &params) override;
 
 private:
 	enum

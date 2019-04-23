@@ -42,35 +42,35 @@ public:
 	// Reset the cache
 	void reset();
 	// Find the cacheline containing data at address
-	template <int ReadWrite> u8* search(u32 address);
+	template <int ReadWrite> uint8_t* search(uint32_t address);
 	// Allocate a cacheline for data at address
-	template <int ReadWrite> bool allocate(u32 address, u8 **data);
+	template <int ReadWrite> bool allocate(uint32_t address, uint8_t **data);
 	// Get the address where the cacheline data should be written back to
-	u32 old();
+	uint32_t old();
 	// Get the address of the first byte of the cacheline that contains data at address
-	u32 base(u32 address);
+	uint32_t base(uint32_t address);
 	// Compose the cacheline parameters into an address
-	u32 address(u32 tag, u32 set, u32 offset);
+	uint32_t address(uint32_t tag, uint32_t set, uint32_t offset);
 	// Get the data of the first cacheline marked as dirty
-	u8* first_dirty(u32 &base, bool clean);
+	uint8_t* first_dirty(uint32_t &base, bool clean);
 	// Get the data of the next cacheline marked as dirty
-	u8* next_dirty(u32 &base, bool clean);
+	uint8_t* next_dirty(uint32_t &base, bool clean);
 
 private:
 	static const int Ways = 1 << WayBits;
 	static const int LineBytes = 1 << LineBits;
 	static const int Sets = 1 << SetBits;
-	static const u32 LineMask = (1 << LineBits) - 1;
-	static const u32 SetMask = ((1 << SetBits) - 1) << LineBits;
-	static const u32 WayMask = (1 << WayBits) - 1;
+	static const uint32_t LineMask = (1 << LineBits) - 1;
+	static const uint32_t SetMask = ((1 << SetBits) - 1) << LineBits;
+	static const uint32_t WayMask = (1 << WayBits) - 1;
 	static const int TagShift = LineBits + SetBits;
 
 	struct cacheline {
-		u8 data[LineBytes];
+		uint8_t data[LineBytes];
 		bool allocated;
 		bool dirty;
-		u32 tag;
-		u32 debug_address;
+		uint32_t tag;
+		uint32_t debug_address;
 	};
 
 	struct cacheset {
@@ -79,7 +79,7 @@ private:
 	};
 
 	cacheset sets[Sets];
-	u32 writeback_base;
+	uint32_t writeback_base;
 	int last_set;
 	int last_way;
 };
@@ -107,7 +107,7 @@ void cpucache<TagBits, SetBits, WayBits, LineBits>::reset()
 
 template<int TagBits, int SetBits, int WayBits, int LineBits>
 template<int ReadWrite>
-u8* cpucache<TagBits, SetBits, WayBits, LineBits>::search(u32 address)
+uint8_t* cpucache<TagBits, SetBits, WayBits, LineBits>::search(uint32_t address)
 {
 	const int addresset = (address & SetMask) >> LineBits;
 	const int addrestag = address >> TagShift;
@@ -124,7 +124,7 @@ u8* cpucache<TagBits, SetBits, WayBits, LineBits>::search(u32 address)
 
 template<int TagBits, int SetBits, int WayBits, int LineBits>
 template<int ReadWrite>
-bool cpucache<TagBits, SetBits, WayBits, LineBits>::allocate(u32 address, u8 **data)
+bool cpucache<TagBits, SetBits, WayBits, LineBits>::allocate(uint32_t address, uint8_t **data)
 {
 	const int addresset = (address & SetMask) >> LineBits;
 	const int addrestag = address >> TagShift;
@@ -151,25 +151,25 @@ bool cpucache<TagBits, SetBits, WayBits, LineBits>::allocate(u32 address, u8 **d
 }
 
 template<int TagBits, int SetBits, int WayBits, int LineBits>
-u32 cpucache<TagBits, SetBits, WayBits, LineBits>::old()
+uint32_t cpucache<TagBits, SetBits, WayBits, LineBits>::old()
 {
 	return writeback_base;
 }
 
 template<int TagBits, int SetBits, int WayBits, int LineBits>
-u32 cpucache<TagBits, SetBits, WayBits, LineBits>::base(u32 address)
+uint32_t cpucache<TagBits, SetBits, WayBits, LineBits>::base(uint32_t address)
 {
 	return address & ~LineMask;
 }
 
 template<int TagBits, int SetBits, int WayBits, int LineBits>
-u32 cpucache<TagBits, SetBits, WayBits, LineBits>::address(u32 tag, u32 set, u32 offset)
+uint32_t cpucache<TagBits, SetBits, WayBits, LineBits>::address(uint32_t tag, uint32_t set, uint32_t offset)
 {
 	return (tag << TagShift) | (set << LineBits) | offset;
 }
 
 template<int TagBits, int SetBits, int WayBits, int LineBits>
-u8* cpucache<TagBits, SetBits, WayBits, LineBits>::first_dirty(u32 &base, bool clean)
+uint8_t* cpucache<TagBits, SetBits, WayBits, LineBits>::first_dirty(uint32_t &base, bool clean)
 {
 	for (int s = 0; s < Sets; s++)
 		for (int w = 0; w < Ways; w++)
@@ -186,7 +186,7 @@ u8* cpucache<TagBits, SetBits, WayBits, LineBits>::first_dirty(u32 &base, bool c
 }
 
 template<int TagBits, int SetBits, int WayBits, int LineBits>
-u8* cpucache<TagBits, SetBits, WayBits, LineBits>::next_dirty(u32 &base, bool clean)
+uint8_t* cpucache<TagBits, SetBits, WayBits, LineBits>::next_dirty(uint32_t &base, bool clean)
 {
 	if (last_set < 0)
 		return nullptr;
@@ -218,15 +218,15 @@ u8* cpucache<TagBits, SetBits, WayBits, LineBits>::next_dirty(u32 &base, bool cl
 
 /* To test it outside of Mame
 const int memorysize = 256 * 1024;
-u8 memory[memorysize];
+uint8_t memory[memorysize];
 
-void readline(u8 *data, u32 address)
+void readline(uint8_t *data, uint32_t address)
 {
     for (int n = 0; n < 64; n++)
         data[n] = memory[address + n];
 }
 
-void writeline(u8 *data, u32 address)
+void writeline(uint8_t *data, uint32_t address)
 {
     for (int n = 0; n < 64; n++)
         memory[address + n] = data[n];
@@ -236,9 +236,9 @@ void cache_tester()
 {
     cpucache<18, 8, 6, 2> cache;
     bool r;
-    u8 *data;
+    uint8_t *data;
     int address;
-    u8 value;
+    uint8_t value;
 
     for (int n = 0; n < memorysize; n++)
         memory[n] = 0xaa ^ n;

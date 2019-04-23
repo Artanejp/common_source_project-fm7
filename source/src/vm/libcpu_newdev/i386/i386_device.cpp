@@ -19,11 +19,12 @@
 */
 
 #include "emu.h"
-#include "i386.h"
-#include "i386priv.h"
-#include "x87priv.h"
-#include "cycles.h"
-#include "i386ops.h"
+#include "vm_template.h"
+#include "./i386_device.h"
+#include "./i386priv.h"
+#include "./x87priv.h"
+#include "./cycles.h"
+#include "./i386ops.h"
 
 #include "debugger.h"
 #include "debug/debugcpu.h"
@@ -31,6 +32,7 @@
 /* seems to be defined on mingw-gcc */
 #undef i386
 
+/*
 DEFINE_DEVICE_TYPE(I386,        i386_device,        "i386",        "Intel I386")
 DEFINE_DEVICE_TYPE(I386SX,      i386sx_device,      "i386sx",      "Intel I386SX")
 DEFINE_DEVICE_TYPE(I486,        i486_device,        "i486",        "Intel I486")
@@ -43,106 +45,124 @@ DEFINE_DEVICE_TYPE(PENTIUM2,    pentium2_device,    "pentium2",    "Intel Pentiu
 DEFINE_DEVICE_TYPE(PENTIUM3,    pentium3_device,    "pentium3",    "Intel Pentium III")
 DEFINE_DEVICE_TYPE(ATHLONXP,    athlonxp_device,    "athlonxp",    "Amd Athlon XP")
 DEFINE_DEVICE_TYPE(PENTIUM4,    pentium4_device,    "pentium4",    "Intel Pentium 4")
+*/
 
-
-i386_device::i386_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: i386_device(mconfig, I386, tag, owner, clock, 32, 32, 32)
-{
-}
-
-
-i386_device::i386_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock, int program_data_width, int program_addr_width, int io_data_width)
-	: cpu_device(mconfig, type, tag, owner, clock)
-	, device_vtlb_interface(mconfig, *this, AS_PROGRAM)
-	, m_program_config("program", ENDIANNESS_LITTLE, program_data_width, program_addr_width, 0, 32, 12)
-	, m_io_config("io", ENDIANNESS_LITTLE, io_data_width, 16, 0)
-	, m_smiact(*this)
-	, m_ferr_handler(*this)
+i386_device::i386_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
+	: DEVICE(parent_vm, parent_emu)
 {
 	// 32 unified
-	set_vtlb_dynamic_entries(32);
+	d_vtlb = new device_vtlb_interface(parent_vm, parent_emu, this, AS_PROGRAM);
+	m_smiact = this;
+	m_ferr_handler = this;
+	m_smiact_enabled = false;
+
+	initialize_output_signals(&outputs_reset);
+	d_debugger = NULL;
+	d_dma = NULL;
+	d_mem = NULL;
+	d_io = NULL;
+	d_bios = NULL;
+	d_pic = NULL;
+	d_program_stored = NULL;
+	d_io_stored = NULL;
+	
+	d_vtlb->set_vtlb_dynamic_entries(32);
+	d_vtlb->set_vtlb_page_shift(12);
+	d_vtlb->set_vtlb_addr_width(32);
+
+	m_ferr_err_value = 0;
+	data_width = 32;
+	set_device_name(_T("i386 DX CPU"));
+
+	
 }
 
-i386sx_device::i386sx_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: i386_device(mconfig, I386SX, tag, owner, clock, 16, 24, 16)
+i386_device::~i386_device()
 {
+	if(d_vtlb != NULL) delete d_vtlb;
 }
 
-i486_device::i486_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: i486_device(mconfig, I486, tag, owner, clock)
+i386sx_device::i386sx_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
+	: i386_device(parent_vm, parent_emu)
 {
+	data_width = 16;
+	set_device_name(_T("i386 SX CPU"));
 }
 
-i486_device::i486_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock)
-	: i386_device(mconfig, type, tag, owner, clock, 32, 32, 32)
+i486_device::i486_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
+	: i386_device(parent_vm, parent_emu)
 {
+	set_device_name(_T("Intel i486"));
 }
 
-i486dx4_device::i486dx4_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: i486_device(mconfig, I486DX4, tag, owner, clock)
+i486dx4_device::i486dx4_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
+	: i486_device(parent_vm, parent_emu)
 {
+	set_device_name(_T("Intel i486 DX4"));
 }
 
-pentium_device::pentium_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: pentium_device(mconfig, PENTIUM, tag, owner, clock)
-{
-}
-
-pentium_device::pentium_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock)
-	: i386_device(mconfig, type, tag, owner, clock, 32, 32, 32)
+pentium_device::pentium_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
+	: i386_device(parent_vm, parent_emu)
 {
 	// 64 dtlb small, 8 dtlb large, 32 itlb
-	set_vtlb_dynamic_entries(96);
+	d_vtlb->set_vtlb_dynamic_entries(96);
+	set_device_name(_T("Intel Pentium(i586)"));
 }
 
-mediagx_device::mediagx_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: i386_device(mconfig, MEDIAGX, tag, owner, clock, 32, 32, 32)
+mediagx_device::mediagx_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
+	: i386_device(parent_vm, parent_emu)
 {
+	set_device_name(_T("Cyrix MediaGX"));
 }
 
-pentium_pro_device::pentium_pro_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: pentium_pro_device(mconfig, PENTIUM_PRO, tag, owner, clock)
+
+pentium_pro_device::pentium_pro_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
+	: pentium_device(parent_vm, parent_emu)
 {
+	set_device_name(_T("Intel Pentium Pro(i686)"));
 }
 
-pentium_pro_device::pentium_pro_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock)
-	: pentium_device(mconfig, type, tag, owner, clock)
-{
-}
-
-pentium_mmx_device::pentium_mmx_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: pentium_device(mconfig, PENTIUM_MMX, tag, owner, clock)
-{
-	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
-	set_vtlb_dynamic_entries(96);
-}
-
-pentium2_device::pentium2_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: pentium_pro_device(mconfig, PENTIUM2, tag, owner, clock)
+pentium_mmx_device::pentium_mmx_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
+	: pentium_device(parent_vm, parent_emu)
 {
 	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
-	set_vtlb_dynamic_entries(96);
+	d_vtlb->set_vtlb_dynamic_entries(96);
+	set_device_name(_T("Intel Pentium MMX"));
 }
 
-pentium3_device::pentium3_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: pentium_pro_device(mconfig, PENTIUM3, tag, owner, clock)
+pentium2_device::pentium2_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
+	: pentium_pro_device(parent_vm, parent_emu)
 {
 	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
-	set_vtlb_dynamic_entries(96);
+	d_vtlb->set_vtlb_dynamic_entries(96);
+	set_device_name(_T("Intel Pentium2"));
 }
 
-athlonxp_device::athlonxp_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: pentium_device(mconfig, ATHLONXP, tag, owner, clock)
+pentium3_device::pentium3_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
+	: pentium_pro_device(parent_vm, parent_emu)
+{
+	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
+	d_vtlb->set_vtlb_dynamic_entries(96);
+	set_device_name(_T("Intel Pentium3"));
+}
+
+// ToDo: AthlonXP
+#if 0
+athlonxp_device::athlonxp_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
+	: pentium_device(parent_vm, parent_emu)
 {
 	// TODO: put correct value
-	set_vtlb_dynamic_entries(256);
+	d_vtlb->set_vtlb_dynamic_entries(256);
+	set_device_name(_T("AMD AthlonXP"));
 }
+#endif
 
-pentium4_device::pentium4_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: pentium_device(mconfig, PENTIUM4, tag, owner, clock)
+pentium4_device::pentium4_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
+	: pentium_device(parent_vm, parent_emu)
 {
 	// 128 dtlb, 64 itlb
-	set_vtlb_dynamic_entries(196);
+	d_vtlb->set_vtlb_dynamic_entries(196);
+	set_device_name(_T("Intel Pentium4"));
 }
 
 device_memory_interface::space_config_vector i386_device::memory_space_config() const
@@ -280,7 +300,7 @@ bool i386_device::translate_address(int pl, int type, uint32_t *address, uint32_
 	if (!(m_cr[0] & 0x80000000)) // Some (very few) old OS's won't work with this
 		return true;
 
-	const vtlb_entry *table = vtlb_table();
+	const vtlb_entry *table = d_vtlb->vtlb_table();
 	uint32_t index = *address >> 12;
 	vtlb_entry entry = table[index];
 	if (type == TRANSLATE_FETCH)
@@ -300,7 +320,7 @@ bool i386_device::translate_address(int pl, int type, uint32_t *address, uint32_
 				*error |= 1;
 			return false;
 		}
-		vtlb_dynload(index, *address, entry);
+		d_vtlb->vtlb_dynload(index, *address, entry);
 		return true;
 	}
 	if (!(entry & (1 << type)))
@@ -949,7 +969,10 @@ void i386_device::i386_trap(int irq, int irq_gate, int trap_level)
 		if(trap_level >= 3)
 		{
 			logerror("IRQ: Triple fault. CPU reset.\n");
-			pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+			//pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+			m_shutdown = true;
+			write_signals(&outputs_reset, 0xffffffff);
+			reset();
 			return;
 		}
 
@@ -1274,11 +1297,51 @@ void i386_device::i386_trap(int irq, int irq_gate, int trap_level)
 			m_IF = 0;
 		m_TF = 0;
 		m_NT = 0;
+		m_eflags = get_flags();
+#if 0
+		if((irq >= 0x10) && (irq_gate == 1) && (m_ext == 0)) {
+			// Try to call pseudo bios
+			i386_load_segment_descriptor(CS);
+			uint32_t tmp_pc = i386_translate(CS, m_eip, -1, 1 );
+			int stat = 0;
+			bios_trap_x86(tmp_pc, stat);
+			if(stat != 0) { // HIT
+				try	{
+					// this is ugly but the alternative is worse
+					if(/*type != 0x0e && type != 0x0f*/ (type & 0x08) == 0)  // if not 386 interrupt or trap gate
+					{
+						m_eip = POP16();
+						m_sreg[CS].selector = POP16();
+						UINT32 __flags = POP16();
+						m_eflags = (get_flags() & 0xffff0000) | (__flags & 0x0000ffff);
+						set_flags(m_eflags);
+					}
+					else
+					{
+						m_eip = POP32();
+						UINT32 sel;
+						sel = POP32();
+						m_sreg[CS].selector = sel; // ToDo: POP32SEG()
+						UINT32 __flags = POP32();
+						m_eflags = (get_flags() & 0xff000000) | (__flags & 0x00ffffff);
+						set_flags(m_eflags);
+					}
+				}
+				catch(UINT64 e)
+				{
+					REG32(ESP) = tempSP;
+					//logerror("THROWN EXCEPTION %08X at i386_trap() IRQ=%02x EIP=%08x V8086_MODE=%s line %d\n", e, irq, cpustate->eip, (V8086_MODE) ? "Yes" : "No", __LINE__);
+					throw e;
+				}
+				return;
+			}
+			CHANGE_PC(m_eip);
+			return;
+		}
+#endif
 	}
-
 	i386_load_segment_descriptor(CS);
 	CHANGE_PC(m_eip);
-
 }
 
 void i386_device::i386_trap_with_error(int irq, int irq_gate, int trap_level, uint32_t error)
@@ -1516,7 +1579,7 @@ void i386_device::i386_task_switch(uint16_t selector, uint8_t nested)
 	}
 	m_cr[3] = READ32(tss+0x1c);  // CR3 (PDBR)
 	if(oldcr3 != m_cr[3])
-		vtlb_flush_dynamic();
+		d_vtlb->vtlb_flush_dynamic();
 
 	/* Set the busy bit in the new task's descriptor */
 	if(selector & 0x0004)
@@ -1548,9 +1611,100 @@ void i386_device::i386_check_irq_line()
 	if ( (m_irq_state) && m_IF )
 	{
 		m_cycles -= 2;
-		i386_trap(standard_irq_callback(0), 1, 0);
+		int irqnum = d_pic->get_intr_ack();
+		try {
+			i386_trap(irqnum, 1, 0);
+		} catch(uint64_t e) {
+			//logdebug("EXCEPTION %08X VIA INTERRUPT/TRAP HANDLING IRQ=%02Xh(%d) ADDR=%08X\n", e, irqnum, irqnum, m_pc);
+		}
+		m_irq_state = 0;
 	}
 }
+
+bool i386_device::bios_int_x86(int num)
+{
+	if(d_bios == NULL) return false;
+	uint16_t regs[10], sregs[4]; // ToDo: Full calling
+	regs[0] = REG16(AX); regs[1] = REG16(CX); regs[2] = REG16(DX); regs[3] = REG16(BX); 
+	regs[4] = REG16(SP); regs[5] = REG16(BP); regs[6] = REG16(SI); regs[7] = REG16(DI);
+	regs[8] = 0x0000; regs[9] = 0x0000;							
+	sregs[0] = m_sreg[ES].selector; sregs[1] = m_sreg[CS].selector;
+	sregs[2] = m_sreg[SS].selector; sregs[3] = m_sreg[DS].selector;
+	int32_t ZeroFlag = m_ZF, CarryFlag = m_CF;
+	if(d_bios->bios_int_i86(num, regs, sregs, &ZeroFlag, &CarryFlag, &m_cycles, &total_cycles)) { 
+		REG16(AX) = regs[0]; REG16(CX) = regs[1]; REG16(DX) = regs[2]; REG16(BX) = regs[3]; 
+		REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; 
+		m_ZF = (UINT8)ZeroFlag; m_CF = (UINT8)CarryFlag; 
+		CYCLES(CYCLES_IRET);							
+		if((regs[8] != 0x0000) || (regs[9] != 0x0000)) {		
+			uint32_t hi = regs[9];								
+			uint32_t lo = regs[8];								
+			uint32_t addr = (hi << 16) | lo;					
+			m_eip = addr;								
+		}														
+		return true;													
+	}
+	return false;
+}		
+
+
+bool i386_device::bios_call_far_x86(uint32_t address)
+{
+	if(d_bios == NULL) return false;
+	if(((m_cr[0] & 0x0001) != 0) && (m_VM == 0)) return false; // Return if (!(VM8086) && (Protected))
+	
+	uint16_t regs[10], sregs[4]; // ToDo: Full calling
+	regs[0] = REG16(AX); regs[1] = REG16(CX); regs[2] = REG16(DX); regs[3] = REG16(BX); 
+	regs[4] = REG16(SP); regs[5] = REG16(BP); regs[6] = REG16(SI); regs[7] = REG16(DI);
+	regs[8] = 0x0000; regs[9] = 0x0000;							
+	sregs[0] = m_sreg[ES].selector; sregs[1] = m_sreg[CS].selector;
+	sregs[2] = m_sreg[SS].selector; sregs[3] = m_sreg[DS].selector;
+	int32_t ZeroFlag = m_ZF, CarryFlag = m_CF;
+	if(d_bios->bios_call_far_i86(address, regs, sregs, &ZeroFlag, &CarryFlag, &m_cycles, &total_cycles)) { 
+		REG16(AX) = regs[0]; REG16(CX) = regs[1]; REG16(DX) = regs[2]; REG16(BX) = regs[3]; 
+		REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; 
+		m_ZF = (UINT8)ZeroFlag; m_CF = (UINT8)CarryFlag; 
+		CYCLES(CYCLES_RET_INTERSEG);							
+		if((regs[8] != 0x0000) || (regs[9] != 0x0000)) {		
+			uint32_t hi = regs[9];								
+			uint32_t lo = regs[8];								
+			uint32_t addr = (hi << 16) | lo;					
+			m_eip = addr;								
+		}														
+		return true;													
+	}
+	return false;
+}		
+
+bool i386_device::bios_trap_x86(uint32_t address, int &stat)
+{
+	if(d_bios == NULL) return false;
+	if(((m_cr[0] & 0x0001) != 0) && (m_VM == 0)) return false; // Return if (!(VM8086) && (Protected))
+	
+	uint16_t regs[10], sregs[4]; // ToDo: Full calling
+	regs[0] = REG16(AX); regs[1] = REG16(CX); regs[2] = REG16(DX); regs[3] = REG16(BX); 
+	regs[4] = REG16(SP); regs[5] = REG16(BP); regs[6] = REG16(SI); regs[7] = REG16(DI);
+	regs[8] = 0x0000; regs[9] = 0x0000;							
+	sregs[0] = m_sreg[ES].selector; sregs[1] = m_sreg[CS].selector;
+	sregs[2] = m_sreg[SS].selector; sregs[3] = m_sreg[DS].selector;
+	int32_t ZeroFlag = m_ZF, CarryFlag = m_CF;
+	stat = 0;
+	if(d_bios->bios_call_far_i86(address, regs, sregs, &ZeroFlag, &CarryFlag, &m_cycles, &total_cycles)) { 
+		REG16(AX) = regs[0]; REG16(CX) = regs[1]; REG16(DX) = regs[2]; REG16(BX) = regs[3]; 
+		REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; 
+		m_ZF = (UINT8)ZeroFlag; m_CF = (UINT8)CarryFlag; 
+		CYCLES(CYCLES_RET_INTERSEG);							
+		if((regs[8] != 0x0000) || (regs[9] != 0x0000)) {		
+			uint32_t hi = regs[9];								
+			uint32_t lo = regs[8];								
+			uint32_t addr = (hi << 16) | lo;					
+			m_eip = addr;								
+		}
+		stat = 1;
+		return true;													
+	}
+	return false;
+}		
 
 void i386_device::i386_protected_mode_jump(uint16_t seg, uint32_t off, int indirect, int operand32)
 {
@@ -3337,6 +3491,7 @@ void i386_device::i386_postload()
 
 void i386_device::i386_common_init()
 {
+	DEVICE::initialize();
 	int i, j;
 	static const int regs8[8] = {AL,CL,DL,BL,AH,CH,DH,BH};
 	static const int regs16[8] = {AX,CX,DX,BX,SP,BP,SI,DI};
@@ -3366,7 +3521,7 @@ void i386_device::i386_common_init()
 	}
 
 	m_program = &space(AS_PROGRAM);
-	if(m_program->data_width() == 16) {
+	if(data_width == 16) {
 		// for the 386sx
 		macache16 = m_program->cache<1, 0, ENDIANNESS_LITTLE>();
 	} else {
@@ -3380,104 +3535,21 @@ void i386_device::i386_common_init()
 
 	zero_state();
 
-	save_item(NAME(m_reg.d));
-	save_item(NAME(m_sreg[ES].selector));
-	save_item(NAME(m_sreg[ES].base));
-	save_item(NAME(m_sreg[ES].limit));
-	save_item(NAME(m_sreg[ES].flags));
-	save_item(NAME(m_sreg[ES].d));
-	save_item(NAME(m_sreg[CS].selector));
-	save_item(NAME(m_sreg[CS].base));
-	save_item(NAME(m_sreg[CS].limit));
-	save_item(NAME(m_sreg[CS].flags));
-	save_item(NAME(m_sreg[CS].d));
-	save_item(NAME(m_sreg[SS].selector));
-	save_item(NAME(m_sreg[SS].base));
-	save_item(NAME(m_sreg[SS].limit));
-	save_item(NAME(m_sreg[SS].flags));
-	save_item(NAME(m_sreg[SS].d));
-	save_item(NAME(m_sreg[DS].selector));
-	save_item(NAME(m_sreg[DS].base));
-	save_item(NAME(m_sreg[DS].limit));
-	save_item(NAME(m_sreg[DS].flags));
-	save_item(NAME(m_sreg[DS].d));
-	save_item(NAME(m_sreg[FS].selector));
-	save_item(NAME(m_sreg[FS].base));
-	save_item(NAME(m_sreg[FS].limit));
-	save_item(NAME(m_sreg[FS].flags));
-	save_item(NAME(m_sreg[FS].d));
-	save_item(NAME(m_sreg[GS].selector));
-	save_item(NAME(m_sreg[GS].base));
-	save_item(NAME(m_sreg[GS].limit));
-	save_item(NAME(m_sreg[GS].flags));
-	save_item(NAME(m_sreg[GS].d));
-	save_item(NAME(m_eip));
-	save_item(NAME(m_prev_eip));
 
-	save_item(NAME(m_CF));
-	save_item(NAME(m_DF));
-	save_item(NAME(m_SF));
-	save_item(NAME(m_OF));
-	save_item(NAME(m_ZF));
-	save_item(NAME(m_PF));
-	save_item(NAME(m_AF));
-	save_item(NAME(m_IF));
-	save_item(NAME(m_TF));
-	save_item(NAME(m_IOP1));
-	save_item(NAME(m_IOP2));
-	save_item(NAME(m_NT));
-	save_item(NAME(m_RF));
-	save_item(NAME(m_VM));
-	save_item(NAME(m_AC));
-	save_item(NAME(m_VIF));
-	save_item(NAME(m_VIP));
-	save_item(NAME(m_ID));
+	//m_smiact.resolve_safe();
+	//m_ferr_handler.resolve_safe();
+	m_ferr_err_value =0;
 
-	save_item(NAME(m_CPL));
-
-	save_item(NAME(m_performed_intersegment_jump));
-
-	save_item(NAME(m_cr));
-	save_item(NAME(m_dr));
-	save_item(NAME(m_tr));
-
-	save_item(NAME(m_idtr.base));
-	save_item(NAME(m_idtr.limit));
-	save_item(NAME(m_gdtr.base));
-	save_item(NAME(m_gdtr.limit));
-	save_item(NAME(m_task.base));
-	save_item(NAME(m_task.segment));
-	save_item(NAME(m_task.limit));
-	save_item(NAME(m_task.flags));
-	save_item(NAME(m_ldtr.base));
-	save_item(NAME(m_ldtr.segment));
-	save_item(NAME(m_ldtr.limit));
-	save_item(NAME(m_ldtr.flags));
-
-	save_item(NAME(m_segment_override));
-
-	save_item(NAME(m_irq_state));
-	save_item(NAME(m_a20_mask));
-
-	save_item(NAME(m_mxcsr));
-
-	save_item(NAME(m_smm));
-	save_item(NAME(m_smi));
-	save_item(NAME(m_smi_latched));
-	save_item(NAME(m_nmi_masked));
-	save_item(NAME(m_nmi_latched));
-	save_item(NAME(m_smbase));
-	save_item(NAME(m_lock));
-	machine().save().register_postload(save_prepost_delegate(FUNC(i386_device::i386_postload), this));
-
-	m_smiact.resolve_safe();
-	m_ferr_handler.resolve_safe();
-	m_ferr_handler(0);
-
+	if((d_debugger != NULL) && (osd->check_feature(USE_DEBUGGER))) {
+		d_program_stored = d_mem;
+		d_io_stored = d_io;
+	} else {
+		d_debugger = NULL;
+	}
 	set_icountptr(m_cycles);
 }
 
-void i386_device::device_start()
+void i386_device::initialize()
 {
 	i386_common_init();
 
@@ -3485,133 +3557,275 @@ void i386_device::device_start()
 	m_cycle_table_rm = cycle_table_rm[CPU_CYCLES_I386].get();
 	m_cycle_table_pm = cycle_table_pm[CPU_CYCLES_I386].get();
 
-	register_state_i386();
+//	register_state_i386();
 }
 
-void i386_device::register_state_i386()
-{
-	state_add( I386_PC,         "PC", m_pc).formatstr("%08X");
-	state_add( I386_EIP,        "EIP", m_eip).callimport().formatstr("%08X");
-	state_add( I386_AL,         "~AL", REG8(AL)).formatstr("%02X");
-	state_add( I386_AH,         "~AH", REG8(AH)).formatstr("%02X");
-	state_add( I386_BL,         "~BL", REG8(BL)).formatstr("%02X");
-	state_add( I386_BH,         "~BH", REG8(BH)).formatstr("%02X");
-	state_add( I386_CL,         "~CL", REG8(CL)).formatstr("%02X");
-	state_add( I386_CH,         "~CH", REG8(CH)).formatstr("%02X");
-	state_add( I386_DL,         "~DL", REG8(DL)).formatstr("%02X");
-	state_add( I386_DH,         "~DH", REG8(DH)).formatstr("%02X");
-	state_add( I386_AX,         "~AX", REG16(AX)).formatstr("%04X");
-	state_add( I386_BX,         "~BX", REG16(BX)).formatstr("%04X");
-	state_add( I386_CX,         "~CX", REG16(CX)).formatstr("%04X");
-	state_add( I386_DX,         "~DX", REG16(DX)).formatstr("%04X");
-	state_add( I386_SI,         "~SI", REG16(SI)).formatstr("%04X");
-	state_add( I386_DI,         "~DI", REG16(DI)).formatstr("%04X");
-	state_add( I386_BP,         "~BP", REG16(BP)).formatstr("%04X");
-	state_add( I386_SP,         "~SP", REG16(SP)).formatstr("%04X");
-	state_add( I386_IP,         "~IP", m_debugger_temp).mask(0xffff).callimport().callexport().formatstr("%04X");
-	state_add( I386_EAX,        "EAX", m_reg.d[EAX]).formatstr("%08X");
-	state_add( I386_EBX,        "EBX", m_reg.d[EBX]).formatstr("%08X");
-	state_add( I386_ECX,        "ECX", m_reg.d[ECX]).formatstr("%08X");
-	state_add( I386_EDX,        "EDX", m_reg.d[EDX]).formatstr("%08X");
-	state_add( I386_EBP,        "EBP", m_reg.d[EBP]).formatstr("%08X");
-	state_add( I386_ESP,        "ESP", m_reg.d[ESP]).formatstr("%08X");
-	state_add( I386_ESI,        "ESI", m_reg.d[ESI]).formatstr("%08X");
-	state_add( I386_EDI,        "EDI", m_reg.d[EDI]).formatstr("%08X");
-	state_add( I386_EFLAGS,     "EFLAGS", m_eflags).formatstr("%08X");
-	state_add( I386_CS,         "CS", m_sreg[CS].selector).callimport().formatstr("%04X");
-	state_add( I386_CS_BASE,    "CSBASE", m_sreg[CS].base).formatstr("%08X");
-	state_add( I386_CS_LIMIT,   "CSLIMIT", m_sreg[CS].limit).formatstr("%08X");
-	state_add( I386_CS_FLAGS,   "CSFLAGS", m_sreg[CS].flags).mask(0xf0ff).formatstr("%04X");
-	state_add( I386_SS,         "SS", m_sreg[SS].selector).callimport().formatstr("%04X");
-	state_add( I386_SS_BASE,    "SSBASE", m_sreg[SS].base).formatstr("%08X");
-	state_add( I386_SS_LIMIT,   "SSLIMIT", m_sreg[SS].limit).formatstr("%08X");
-	state_add( I386_SS_FLAGS,   "SSFLAGS", m_sreg[SS].flags).mask(0xf0ff).formatstr("%04X");
-	state_add( I386_DS,         "DS", m_sreg[DS].selector).callimport().formatstr("%04X");
-	state_add( I386_DS_BASE,    "DSBASE", m_sreg[DS].base).formatstr("%08X");
-	state_add( I386_DS_LIMIT,   "DSLIMIT", m_sreg[DS].limit).formatstr("%08X");
-	state_add( I386_DS_FLAGS,   "DSFLAGS", m_sreg[DS].flags).mask(0xf0ff).formatstr("%04X");
-	state_add( I386_ES,         "ES", m_sreg[ES].selector).callimport().formatstr("%04X");
-	state_add( I386_ES_BASE,    "ESBASE", m_sreg[ES].base).formatstr("%08X");
-	state_add( I386_ES_LIMIT,   "ESLIMIT", m_sreg[ES].limit).formatstr("%08X");
-	state_add( I386_ES_FLAGS,   "ESFLAGS", m_sreg[ES].flags).mask(0xf0ff).formatstr("%04X");
-	state_add( I386_FS,         "FS", m_sreg[FS].selector).callimport().formatstr("%04X");
-	state_add( I386_FS_BASE,    "FSBASE", m_sreg[FS].base).formatstr("%08X");
-	state_add( I386_FS_LIMIT,   "FSLIMIT", m_sreg[FS].limit).formatstr("%08X");
-	state_add( I386_FS_FLAGS,   "FSFLAGS", m_sreg[FS].flags).mask(0xf0ff).formatstr("%04X");
-	state_add( I386_GS,         "GS", m_sreg[GS].selector).callimport().formatstr("%04X");
-	state_add( I386_GS_BASE,    "GSBASE", m_sreg[GS].base).formatstr("%08X");
-	state_add( I386_GS_LIMIT,   "GSLIMIT", m_sreg[GS].limit).formatstr("%08X");
-	state_add( I386_GS_FLAGS,   "GSFLAGS", m_sreg[GS].flags).mask(0xf0ff).formatstr("%04X");
-	state_add( I386_CR0,        "CR0", m_cr[0]).formatstr("%08X");
-	state_add( I386_CR1,        "CR1", m_cr[1]).formatstr("%08X");
-	state_add( I386_CR2,        "CR2", m_cr[2]).formatstr("%08X");
-	state_add( I386_CR3,        "CR3", m_cr[3]).formatstr("%08X");
-	state_add( I386_CR4,        "CR4", m_cr[4]).formatstr("%08X");
-	state_add( I386_DR0,        "DR0", m_dr[0]).formatstr("%08X");
-	state_add( I386_DR1,        "DR1", m_dr[1]).formatstr("%08X");
-	state_add( I386_DR2,        "DR2", m_dr[2]).formatstr("%08X");
-	state_add( I386_DR3,        "DR3", m_dr[3]).formatstr("%08X");
-	state_add( I386_DR4,        "DR4", m_dr[4]).formatstr("%08X");
-	state_add( I386_DR5,        "DR5", m_dr[5]).formatstr("%08X");
-	state_add( I386_DR6,        "DR6", m_dr[6]).formatstr("%08X");
-	state_add( I386_DR7,        "DR7", m_dr[7]).formatstr("%08X");
-	state_add( I386_TR6,        "TR6", m_tr[6]).formatstr("%08X");
-	state_add( I386_TR7,        "TR7", m_tr[7]).formatstr("%08X");
-	state_add( I386_GDTR_BASE,  "GDTRBASE", m_gdtr.base).formatstr("%08X");
-	state_add( I386_GDTR_LIMIT, "GDTRLIMIT", m_gdtr.limit).formatstr("%04X");
-	state_add( I386_IDTR_BASE,  "IDTRBASE", m_idtr.base).formatstr("%08X");
-	state_add( I386_IDTR_LIMIT, "IDTRLIMIT", m_idtr.limit).formatstr("%04X");
-	state_add( I386_LDTR,       "LDTR", m_ldtr.segment).formatstr("%04X");
-	state_add( I386_LDTR_BASE,  "LDTRBASE", m_ldtr.base).formatstr("%08X");
-	state_add( I386_LDTR_LIMIT, "LDTRLIMIT", m_ldtr.limit).formatstr("%08X");
-	state_add( I386_LDTR_FLAGS, "LDTRFLAGS", m_ldtr.flags).mask(0xf0ff).formatstr("%04X");
-	state_add( I386_TR,         "TR", m_task.segment).formatstr("%04X");
-	state_add( I386_TR_BASE,    "TRBASE", m_task.base).formatstr("%08X");
-	state_add( I386_TR_LIMIT,   "TRLIMIT", m_task.limit).formatstr("%08X");
-	state_add( I386_TR_FLAGS,   "TRFLAGS", m_task.flags).mask(0xf0ff).formatstr("%04X");
-	state_add( I386_CPL,        "CPL", m_CPL).formatstr("%01X");
+#define STATE_VERSION 6
 
-	state_add( STATE_GENPC, "GENPC", m_pc).noshow();
-	state_add( STATE_GENPCBASE, "CURPC", m_pc).noshow();
-	state_add( STATE_GENFLAGS, "GENFLAGS", m_debugger_temp).formatstr("%8s").noshow();
-	state_add( STATE_GENSP, "GENSP", REG32(ESP)).noshow();
+bool i386_device::process_state_segment(int num, FILEIO* state_fio, bool loading)
+{
+	state_fio->StateValue(m_sreg[num].selector);
+	state_fio->StateValue(m_sreg[num].base);
+	state_fio->StateValue(m_sreg[num].limit);
+	state_fio->StateValue(m_sreg[num].flags);
+
+	return true;
 }
 
-void i386_device::register_state_i386_x87()
+bool i386_device::process_state_i386(FILEIO* state_fio, bool loading)
 {
-	register_state_i386();
+	state_fio->StateValue(m_pc);
+	state_fio->StateValue(m_eip);
+	state_fio->StateValue(m_prev_eip);
+	state_fio->StateValue(m_reg.d[EAX]); 
+	state_fio->StateValue(m_reg.d[EBX]); 
+	state_fio->StateValue(m_reg.d[ECX]); 
+	state_fio->StateValue(m_reg.d[EDX]); 
+	state_fio->StateValue(m_reg.d[EBP]); 
+	state_fio->StateValue(m_reg.d[ESP]); 
+	state_fio->StateValue(m_reg.d[ESI]); 
+	state_fio->StateValue(m_reg.d[EDI]);
+	
+	state_fio->StateValue(m_eflags);
+	state_fio->StateValue(m_eflags_mask);
+	
+	process_state_segment(CS, state_fio, loading); 
+	process_state_segment(SS, state_fio, loading); 
+	process_state_segment(DS, state_fio, loading); 
+	process_state_segment(ES, state_fio, loading); 
+	process_state_segment(FS, state_fio, loading); 
+	process_state_segment(GS, state_fio, loading);
+	state_fio->StateArray(m_cr, sizeof(m_cr), 1);
+	state_fio->StateArray(m_dr, sizeof(m_dr), 1);
+	state_fio->StateArray(m_tr, sizeof(m_tr), 1);
 
-	state_add( X87_CTRL,   "x87_CW", m_x87_cw).formatstr("%04X");
-	state_add( X87_STATUS, "x87_SW", m_x87_sw).formatstr("%04X");
-	state_add( X87_TAG,    "x87_TAG", m_x87_tw).formatstr("%04X");
-	state_add( X87_ST0,    "ST0", m_debugger_temp ).formatstr("%15s");
-	state_add( X87_ST1,    "ST1", m_debugger_temp ).formatstr("%15s");
-	state_add( X87_ST2,    "ST2", m_debugger_temp ).formatstr("%15s");
-	state_add( X87_ST3,    "ST3", m_debugger_temp ).formatstr("%15s");
-	state_add( X87_ST4,    "ST4", m_debugger_temp ).formatstr("%15s");
-	state_add( X87_ST5,    "ST5", m_debugger_temp ).formatstr("%15s");
-	state_add( X87_ST6,    "ST6", m_debugger_temp ).formatstr("%15s");
-	state_add( X87_ST7,    "ST7", m_debugger_temp ).formatstr("%15s");
+	state_fio->StateValue(m_gdtr.base);
+	state_fio->StateValue(m_gdtr.limit);
+	
+	state_fio->StateValue(m_idtr.base);
+	state_fio->StateValue(m_idtr.limit);
+	
+	state_fio->StateValue(m_ldtr.segment);
+	state_fio->StateValue(m_ldtr.base);
+	state_fio->StateValue(m_ldtr.limit);
+	state_fio->StateValue(m_ldtr.flags);
+	
+	state_fio->StateValue(m_task.segment);
+	state_fio->StateValue(m_task.base);
+	state_fio->StateValue(m_task.limit);
+	state_fio->StateValue(m_task.flags);
+
+	state_fio->StateValue(m_CF);
+	state_fio->StateValue(m_DF);
+	state_fio->StateValue(m_SF);
+	state_fio->StateValue(m_OF);
+	state_fio->StateValue(m_ZF);
+	state_fio->StateValue(m_PF);
+	state_fio->StateValue(m_AF);
+	state_fio->StateValue(m_IF);
+	state_fio->StateValue(m_TF);
+	state_fio->StateValue(m_IOP1);
+	state_fio->StateValue(m_IOP2);
+	state_fio->StateValue(m_NT);
+	state_fio->StateValue(m_RF);
+	state_fio->StateValue(m_VM);
+	state_fio->StateValue(m_AC);
+	state_fio->StateValue(m_VIF);
+	state_fio->StateValue(m_VIP);
+	state_fio->StateValue(m_ID);
+	
+	state_fio->StateValue(m_CPL);
+	
+	state_fio->StateValue(m_performed_intersegment_jump);
+	
+	state_fio->StateValue(m_segment_override);
+	state_fio->StateValue(m_irq_state);
+	state_fio->StateValue(m_a20_mask);
+	state_fio->StateValue(m_shutdown);
+	state_fio->StateValue(m_halted);
+	state_fio->StateValue(m_busreq);
+	
+	state_fio->StateValue(m_cycles);
+	state_fio->StateValue(extra_cycles);
+	state_fio->StateValue(total_cycles);
+	state_fio->StateValue(m_tsc);
+						  
+	state_fio->StateValue(m_mxcsr);
+	state_fio->StateValue(m_smm);
+	state_fio->StateValue(m_smi);
+	state_fio->StateValue(m_smi_latched);
+	state_fio->StateValue(m_nmi_masked);
+	state_fio->StateValue(m_nmi_latched);
+	state_fio->StateValue(m_smbase);
+	state_fio->StateValue(m_lock);
+	state_fio->StateValue(m_ferr_err_value);
+	state_fio->StateValue(m_smiact_enabled);
+	
+	state_fio->StateValue(m_operand_size);
+
+	state_fio->StateValue(icount);
+	if(loading) {
+		i386_postload();
+		prev_total_cycles = total_cycles;
+	}
+
+	//m_smiact.resolve_safe();
+	//m_ferr_handler.resolve_safe();
+
+//	state_add( STATE_GENPC, "GENPC", m_pc).noshow();
+//	state_add( STATE_GENPCBASE, "CURPC", m_pc).noshow();
+//	state_add( STATE_GENFLAGS, "GENFLAGS", m_debugger_temp).formatstr("%8s").noshow();
+//	state_add( STATE_GENSP, "GENSP", REG32(ESP)).noshow();
+	return true;
 }
 
-void i386_device::register_state_i386_x87_xmm()
+bool i386_device::process_state_i386_x87(FILEIO* state_fio, bool loading)
 {
-	register_state_i386_x87();
-
-	state_add( SSE_XMM0, "XMM0", m_debugger_temp ).formatstr("%32s");
-	state_add( SSE_XMM1, "XMM1", m_debugger_temp ).formatstr("%32s");
-	state_add( SSE_XMM2, "XMM2", m_debugger_temp ).formatstr("%32s");
-	state_add( SSE_XMM3, "XMM3", m_debugger_temp ).formatstr("%32s");
-	state_add( SSE_XMM4, "XMM4", m_debugger_temp ).formatstr("%32s");
-	state_add( SSE_XMM5, "XMM5", m_debugger_temp ).formatstr("%32s");
-	state_add( SSE_XMM6, "XMM6", m_debugger_temp ).formatstr("%32s");
-	state_add( SSE_XMM7, "XMM7", m_debugger_temp ).formatstr("%32s");
-
+	if(!process_state_i386(state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(m_x87_cw);
+	state_fio->StateValue(m_x87_sw);
+	state_fio->StateValue(m_x87_tw);
+	state_fio->StateValue(m_x87_data_ptr);
+	state_fio->StateValue(m_x87_inst_ptr);
+	state_fio->StateValue(m_x87_opcode);
+	state_fio->StateValue(m_x87_operand_size);
+	for(int i = 0; i < 8; i++) {
+		state_fio->StateValue(m_x87_reg[i].high);
+		state_fio->StateValue(m_x87_reg[i].low);
+	}
+	return true;
 }
 
-void i386_device::state_import(const device_state_entry &entry)
+bool i386_device::process_state_i386_x87_xmm(FILEIO* state_fio, bool loading)
 {
-	switch (entry.index())
+	if(!process_state_i386_x87(state_fio, loading)) {
+		return false;
+	}
+	for(int i = 0; i < 8; i++) {
+		for(int j = 0; j < 4; j++) {
+			state_fio->StateValue(m_sse_reg[i].d[j]);
+		}
+	}
+	state_fio->StateValue(m_xmm_operand_size);
+	return true;
+}
+
+bool i386_device::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	return process_state_i386(state_fio, loading);
+}
+
+bool i486_device::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	return process_state_i386_x87(state_fio, loading);
+}
+
+bool pentium_device::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	return process_state_i386_x87(state_fio, loading);
+}
+
+bool mediagx_device::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	return process_state_i386_x87(state_fio, loading);
+}
+
+bool pentium_pro_device::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	return process_state_i386_x87(state_fio, loading);
+}
+
+bool pentium_mmx_device::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	return process_state_i386_x87(state_fio, loading);
+}
+
+bool pentium2_device::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	return process_state_i386_x87(state_fio, loading);
+}
+
+bool pentium3_device::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	return process_state_i386_x87_xmm(state_fio, loading);
+}
+
+bool pentium4_device::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	return process_state_i386_x87_xmm(state_fio, loading);
+}
+
+#if 0
+bool athlonxp_device::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	return process_state_i386_x87_xmm(state_fio, loading);
+}
+#endif
+void i386_device::state_import(int index)
+{
+	switch (index)
 	{
 		case I386_EIP:
 			CHANGE_PC(m_eip);
@@ -3641,73 +3855,14 @@ void i386_device::state_import(const device_state_entry &entry)
 	}
 }
 
-void i386_device::state_export(const device_state_entry &entry)
+void i386_device::state_export(int index)
 {
-	switch (entry.index())
+	switch (index())
 	{
 		case I386_IP:
 			m_debugger_temp = m_eip & 0xffff;
 			break;
 	}
-}
-
-void i386_device::state_string_export(const device_state_entry &entry, std::string &str) const
-{
-	switch (entry.index())
-	{
-		case STATE_GENFLAGS:
-			str = string_format("%08X", get_flags());
-			break;
-		case X87_ST0:
-			str = string_format("%f", fx80_to_double(ST(0)));
-			break;
-		case X87_ST1:
-			str = string_format("%f", fx80_to_double(ST(1)));
-			break;
-		case X87_ST2:
-			str = string_format("%f", fx80_to_double(ST(2)));
-			break;
-		case X87_ST3:
-			str = string_format("%f", fx80_to_double(ST(3)));
-			break;
-		case X87_ST4:
-			str = string_format("%f", fx80_to_double(ST(4)));
-			break;
-		case X87_ST5:
-			str = string_format("%f", fx80_to_double(ST(5)));
-			break;
-		case X87_ST6:
-			str = string_format("%f", fx80_to_double(ST(6)));
-			break;
-		case X87_ST7:
-			str = string_format("%f", fx80_to_double(ST(7)));
-			break;
-		case SSE_XMM0:
-			str = string_format("%08x%08x%08x%08x", XMM(0).d[3], XMM(0).d[2], XMM(0).d[1], XMM(0).d[0]);
-			break;
-		case SSE_XMM1:
-			str = string_format("%08x%08x%08x%08x", XMM(1).d[3], XMM(1).d[2], XMM(1).d[1], XMM(1).d[0]);
-			break;
-		case SSE_XMM2:
-			str = string_format("%08x%08x%08x%08x", XMM(2).d[3], XMM(2).d[2], XMM(2).d[1], XMM(2).d[0]);
-			break;
-		case SSE_XMM3:
-			str = string_format("%08x%08x%08x%08x", XMM(3).d[3], XMM(3).d[2], XMM(3).d[1], XMM(3).d[0]);
-			break;
-		case SSE_XMM4:
-			str = string_format("%08x%08x%08x%08x", XMM(4).d[3], XMM(4).d[2], XMM(4).d[1], XMM(4).d[0]);
-			break;
-		case SSE_XMM5:
-			str = string_format("%08x%08x%08x%08x", XMM(5).d[3], XMM(5).d[2], XMM(5).d[1], XMM(5).d[0]);
-			break;
-		case SSE_XMM6:
-			str = string_format("%08x%08x%08x%08x", XMM(6).d[3], XMM(6).d[2], XMM(6).d[1], XMM(6).d[0]);
-			break;
-		case SSE_XMM7:
-			str = string_format("%08x%08x%08x%08x", XMM(7).d[3], XMM(7).d[2], XMM(7).d[1], XMM(7).d[0]);
-			break;
-	}
-	float_exception_flags = 0; // kill any float exceptions that occur here
 }
 
 void i386_device::build_opcode_table(uint32_t features)
@@ -3842,6 +3997,7 @@ void i386_device::zero_state()
 	memset( &m_ldtr, 0, sizeof(m_ldtr) );
 	m_ext = 0;
 	m_halted = 0;
+	m_busreq = 0;
 	m_operand_size = 0;
 	m_xmm_operand_size = 0;
 	m_address_size = 0;
@@ -3854,6 +4010,7 @@ void i386_device::zero_state()
 	m_opcode = 0;
 	m_irq_state = 0;
 	m_a20_mask = 0;
+	m_shutdown = false;
 	m_cpuid_max_input_value_eax = 0;
 	m_cpuid_id0 = 0;
 	m_cpuid_id1 = 0;
@@ -3861,6 +4018,9 @@ void i386_device::zero_state()
 	m_cpu_version = 0;
 	m_feature_flags = 0;
 	m_tsc = 0;
+	total_cycles = 0;
+	prev_total_cycles = 0;
+	extra_cycles = 0;
 	m_perfctr[0] = m_perfctr[1] = 0;
 	memset( m_x87_reg, 0, sizeof(m_x87_reg) );
 	m_x87_cw = 0;
@@ -3882,7 +4042,7 @@ void i386_device::zero_state()
 	m_opcode_bytes_length = 0;
 }
 
-void i386_device::device_reset()
+void i386_device::reset()
 {
 	zero_state();
 
@@ -3935,8 +4095,8 @@ void i386_device::pentium_smi()
 
 	m_cr[0] &= ~(0x8000000d);
 	set_flags(2);
-	if(!m_smiact.isnull())
-		m_smiact(true);
+	if(m_smiact != NULL) 
+		m_smiact_enabled = true;
 	m_smm = true;
 	m_smi_latched = false;
 
@@ -4078,67 +4238,205 @@ void i386_device::i386_set_a20_line(int state)
 		m_a20_mask = ~(1 << 20);
 	}
 	// TODO: how does A20M and the tlb interact
-	vtlb_flush_dynamic();
+	d_vtlb->vtlb_flush_dynamic();
 }
 
-void i386_device::execute_run()
+void i386_device::write_signal(int id, uint32_t data, uint32_t mask)
+{
+	if(id == SIG_CPU_NMI) {
+		i386_set_irq_line(INPUT_LINE_NMI, (data & mask) ? HOLD_LINE : CLEAR_LINE);
+	} else if(id == SIG_CPU_IRQ) {
+		i386_set_irq_line(INPUT_LINE_IRQ, (data & mask) ? HOLD_LINE : CLEAR_LINE);
+	} else if(id == SIG_CPU_BUSREQ) {
+		m_busreq = (data & mask) ? 1 : 0;
+	} else if(id == SIG_I386_A20) {
+		i386_set_a20_line(data & mask);
+	}
+}
+
+int i386_device::run(int clocks)
 {
 	int cycles = m_cycles;
 	m_base_cycles = cycles;
 	CHANGE_PC(m_eip);
 
-	if (m_halted)
+	if ((m_halted) || (m_busreq))
 	{
-		m_tsc += cycles;
-		m_cycles = 0;
-		return;
-	}
-
-	while( m_cycles > 0 )
-	{
-		i386_check_irq_line();
-		m_operand_size = m_sreg[CS].d;
-		m_xmm_operand_size = 0;
-		m_address_size = m_sreg[CS].d;
-		m_operand_prefix = 0;
-		m_address_prefix = 0;
-
-		m_ext = 1;
-		int old_tf = m_TF;
-
-		m_segment_prefix = 0;
-		m_prev_eip = m_eip;
-
-		debugger_instruction_hook(m_pc);
-
-		if(m_delayed_interrupt_enable != 0)
-		{
-			m_IF = 1;
-			m_delayed_interrupt_enable = 0;
+		if(d_dma != NULL) {
+			d_dma->do_dma();
 		}
-#ifdef DEBUG_MISSING_OPCODE
-		m_opcode_bytes_length = 0;
-		m_opcode_pc = m_pc;
-#endif
-		try
-		{
-			i386_decode_opcode();
-			if(m_TF && old_tf)
-			{
-				m_prev_eip = m_eip;
-				m_ext = 1;
-				i386_trap(1,0,0);
+		if(clocks < 0) {
+			int passed_cycles = max(1, extra_cycles);
+			extra_cycles = 0;
+			tsc += passed_cycles;
+			total_cycles += passed_cycles;
+			return passed_cycles;
+		} else {
+			m_cycles += clocks;
+			m_cycles -= extra_cycles;
+			extra_cycles = 0;
+			/* if busreq is raised, spin cpu while remained clock */
+			if(m_cycles > 0) {
+				m_cycles = 0;
 			}
-			if(m_lock && (m_opcode != 0xf0))
-				m_lock = false;
-		}
-		catch(uint64_t e)
-		{
-			m_ext = 1;
-			i386_trap_with_error(e&0xffffffff,0,0,e>>32);
+			int passed_cycles = m_base_cycles - m_cycles;
+			tsc += passed_cycles;
+//#ifdef USE_DEBUGGER
+			total_cycles += passed_cycles;
+//#endif
+			return passed_cycles;
 		}
 	}
-	m_tsc += (cycles - m_cycles);
+
+	if(clocks < 0) {
+		m_cycles = 1;
+	} else {
+		m_cycles += clocks;
+	}
+	m_base_cycles = m_cycles;
+	total_cycles += extra_cycles;
+	m_cycles -= extra_cycles;
+	extra_cycles - 0;
+	
+	while( (m_cycles > 0) && !(m_busreq) )
+	{
+		bool now_debugging = false;
+		if((d_debugger != NULL) && (d_emu != NULL)){
+			now_debugging = d_debugger->now_debugging;
+		}
+		if(now_debugging) {
+			d_debugger->check_break_points(m_pc);
+			if(d_debugger->now_suspended) {
+				d_debugger->now_waiting = true;
+				emu->start_waiting_in_debugger();
+				while(d_debugger->now_debugging && d_debugger->now_suspended) {
+					emu->process_waiting_in_debugger();
+				}
+				emu->finish_waiting_in_debugger();
+				d_debugger->now_waiting = false;
+			}
+			if(d_debugger->now_debugging) {
+				d_mem = d_io = d_debugger;
+			} else {
+				now_debugging = false;
+			}
+			int first_cycles = m_cycles;
+			i386_check_irq_line();
+			m_operand_size = m_sreg[CS].d;
+			m_xmm_operand_size = 0;
+			m_address_size = m_sreg[CS].d;
+			m_operand_prefix = 0;
+			m_address_prefix = 0;
+
+			m_ext = 1;
+			int old_tf = m_TF;
+
+			d_debugger->add_cpu_trace(m_pc);
+			m_segment_prefix = 0;
+			m_prev_eip = m_eip;
+			m_prev_pc = m_pc;
+
+			if(m_delayed_interrupt_enable != 0)
+			{
+				m_IF = 1;
+				m_delayed_interrupt_enable = 0;
+			}
+#ifdef DEBUG_MISSING_OPCODE
+			m_opcode_bytes_length = 0;
+			m_opcode_pc = m_pc;
+#endif
+			try
+			{
+				i386_decode_opcode();
+				if(m_TF && old_tf)
+				{
+					m_prev_eip = m_eip;
+					m_ext = 1;
+					i386_trap(1,0,0);
+				}
+				if(m_lock && (m_opcode != 0xf0))
+					m_lock = false;
+			}
+			catch(uint64_t e)
+			{
+				m_ext = 1;
+				//logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
+				i386_trap_with_error(e&0xffffffff,0,0,e>>32, 1);
+			}
+			
+//#ifdef SINGLE_MODE_DMA
+			if(d_dma != NULL) {
+				d_dma->do_dma();
+			}
+//#endif
+			/* adjust for any interrupts that came in */
+			m_cycles -= extra_cycles;
+			extra_cycles = 0;
+			total_cycles += first_cycles - m_cycles;
+			
+			if(now_debugging) {
+				if(!d_debugger->now_going) {
+					d_debugger->now_suspended = true;
+				}
+				d_mem = d_program_stored;
+				d_io = d_io_stored;
+			}
+		} else {
+			int first_cycles = m_cycles;
+
+			i386_check_irq_line();
+			m_operand_size = m_sreg[CS].d;
+			m_xmm_operand_size = 0;
+			m_address_size = m_sreg[CS].d;
+			m_operand_prefix = 0;
+			m_address_prefix = 0;
+
+			m_ext = 1;
+			int old_tf = m_TF;
+
+			m_segment_prefix = 0;
+			m_prev_eip = m_eip;
+
+			debugger_instruction_hook(m_pc);
+
+			if(m_delayed_interrupt_enable != 0)
+			{
+				m_IF = 1;
+				m_delayed_interrupt_enable = 0;
+			}
+#ifdef DEBUG_MISSING_OPCODE
+			m_opcode_bytes_length = 0;
+			m_opcode_pc = m_pc;
+#endif
+			try
+			{
+				i386_decode_opcode();
+				if(m_TF && old_tf)
+				{
+					m_prev_eip = m_eip;
+					m_ext = 1;
+					i386_trap(1,0,0);
+				}
+				if(m_lock && (m_opcode != 0xf0))
+					m_lock = false;
+			}
+			catch(uint64_t e)
+			{
+				m_ext = 1;
+				i386_trap_with_error(e&0xffffffff,0,0,e>>32);
+			}
+			if(d_dma != NULL) {
+				d_dma->do_dma();
+			}
+		}
+		if ((m_cycles > 0) && (m_busreq)) {
+			total_cycles += m_cycles;
+			m_cycles = 0;
+		}
+	}
+	int passed_cycles = m_base_cycles - m_cycles;
+	m_tsc += passed_cycles;
+	return passed_cycles;
 }
 
 /*************************************************************************/
@@ -4150,6 +4448,100 @@ bool i386_device::memory_translate(int spacenum, int intention, offs_t &address)
 		ret = i386_translate_address(intention, &address, nullptr);
 	address &= m_a20_mask;
 	return ret;
+}
+
+void i386_device::set_intr_line(bool line, bool pending, uint32_t bit)
+{
+	i386_set_irq_line(INPUT_LINE_IRQ, line ? HOLD_LINE : CLEAR_LINE);
+}
+
+void i386_device::set_extra_clock(int cycles)
+{
+	extra_cycles += cycles;
+}
+
+int i386_device::get_extra_clock()
+{
+	return extra_cycles;
+}
+
+uint32_t i386_device::get_pc()
+{
+	return m_prev_pc;
+}
+
+uint32_t i386_device::get_next_pc()
+{
+	return m_pc;
+}
+
+void i386_device::write_debug_data8(uint32_t addr, uint32_t data)
+{
+	int wait;
+	d_mem->write_data8w(addr, data, &wait);
+}
+
+void i386_device::write_debug_data16(uint32_t addr, uint32_t data)
+{
+	int wait;
+	d_mem->write_data16w(addr, data, &wait);
+}
+
+void i386_device::write_debug_data32(uint32_t addr, uint32_t data)
+{
+	int wait;
+	d_mem->write_data32w(addr, data, &wait);
+}
+
+uint32_t i386_device::read_debug_data8(uint32_t addr)
+{
+	int wait;
+	return d_mem->read_data8w(addr, &wait);
+}
+
+uint32_t i386_device::read_debug_data16(uint32_t addr)
+{
+	int wait;
+	return d_mem->read_data16w(addr, &wait);
+}
+
+uint32_t i386_device::read_debug_data32(uint32_t addr)
+{
+	int wait;
+	return d_mem->read_data32w(addr, &wait);
+}
+
+void i386_device::write_debug_io8(uint32_t addr, uint32_t data)
+{
+	int wait;
+	d_io->write_io8w(addr, data, &wait);
+}
+
+uint32_t i386_device::read_debug_io8(uint32_t addr) {
+	int wait;
+	return d_io->read_io8w(addr, &wait);
+}
+
+void i386_device::write_debug_io16(uint32_t addr, uint32_t data)
+{
+	int wait;
+	d_io->write_io16w(addr, data, &wait);
+}
+
+uint32_t i386_device::read_debug_io16(uint32_t addr) {
+	int wait;
+	return d_io->read_io16w(addr, &wait);
+}
+
+void i386_device::write_debug_io32(uint32_t addr, uint32_t data)
+{
+	int wait;
+	d_io->write_io32w(addr, data, &wait);
+}
+
+uint32_t i386_device::read_debug_io32(uint32_t addr) {
+	int wait;
+	return d_io->read_io32w(addr, &wait);
 }
 
 int i386_device::get_mode() const
@@ -4184,7 +4576,7 @@ void i386_device::opcode_wrmsr(uint64_t data, bool &valid_msr)
 /* Intel 486 */
 
 
-void i486_device::device_start()
+void i486_device::initialize()
 {
 	i386_common_init();
 
@@ -4193,10 +4585,10 @@ void i486_device::device_start()
 	m_cycle_table_rm = cycle_table_rm[CPU_CYCLES_I486].get();
 	m_cycle_table_pm = cycle_table_pm[CPU_CYCLES_I486].get();
 
-	register_state_i386_x87();
+//	register_state_i386_x87();
 }
 
-void i486_device::device_reset()
+void i486_device::reset()
 {
 	zero_state();
 
@@ -4236,9 +4628,9 @@ void i486_device::device_reset()
 	CHANGE_PC(m_eip);
 }
 
-void i486dx4_device::device_reset()
+void i486dx4_device::reset()
 {
-	i486_device::device_reset();
+	i486_device::reset();
 	m_cpuid_id0 = 0x756e6547;   // Genu
 	m_cpuid_id1 = 0x49656e69;   // ineI
 	m_cpuid_id2 = 0x6c65746e;   // ntel
@@ -4251,10 +4643,10 @@ void i486dx4_device::device_reset()
 /* Pentium */
 
 
-void pentium_device::device_start()
+void pentium_device::initialize()
 {
 	i386_common_init();
-	register_state_i386_x87();
+//	register_state_i386_x87();
 
 	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM);
 	build_x87_opcode_table();
@@ -4262,7 +4654,7 @@ void pentium_device::device_start()
 	m_cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM].get();
 }
 
-void pentium_device::device_reset()
+void pentium_device::reset()
 {
 	zero_state();
 
@@ -4323,10 +4715,10 @@ void pentium_device::device_reset()
 /* Cyrix MediaGX */
 
 
-void mediagx_device::device_start()
+void mediagx_device::initialize()
 {
 	i386_common_init();
-	register_state_i386_x87();
+//	register_state_i386_x87();
 
 	build_x87_opcode_table();
 	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_CYRIX);
@@ -4334,7 +4726,7 @@ void mediagx_device::device_start()
 	m_cycle_table_pm = cycle_table_pm[CPU_CYCLES_MEDIAGX].get();
 }
 
-void mediagx_device::device_reset()
+void mediagx_device::reset()
 {
 	zero_state();
 
@@ -4386,10 +4778,10 @@ void mediagx_device::device_reset()
 /*****************************************************************************/
 /* Intel Pentium Pro */
 
-void pentium_pro_device::device_start()
+void pentium_pro_device::initialize()
 {
 	i386_common_init();
-	register_state_i386_x87();
+//	register_state_i386_x87();
 
 	build_x87_opcode_table();
 	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO);
@@ -4397,7 +4789,7 @@ void pentium_pro_device::device_start()
 	m_cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM].get();  // TODO: generate own cycle tables
 }
 
-void pentium_pro_device::device_reset()
+void pentium_pro_device::reset()
 {
 	zero_state();
 
@@ -4459,10 +4851,10 @@ void pentium_pro_device::device_reset()
 /*****************************************************************************/
 /* Intel Pentium MMX */
 
-void pentium_mmx_device::device_start()
+void pentium_mmx_device::initialize()
 {
 	i386_common_init();
-	register_state_i386_x87();
+//	register_state_i386_x87();
 
 	build_x87_opcode_table();
 	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_MMX);
@@ -4470,7 +4862,7 @@ void pentium_mmx_device::device_start()
 	m_cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM].get();  // TODO: generate own cycle tables
 }
 
-void pentium_mmx_device::device_reset()
+void pentium_mmx_device::reset()
 {
 	zero_state();
 
@@ -4530,10 +4922,10 @@ void pentium_mmx_device::device_reset()
 /*****************************************************************************/
 /* Intel Pentium II */
 
-void pentium2_device::device_start()
+void pentium2_device::initialize()
 {
 	i386_common_init();
-	register_state_i386_x87();
+//	register_state_i386_x87();
 
 	build_x87_opcode_table();
 	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX);
@@ -4541,7 +4933,7 @@ void pentium2_device::device_start()
 	m_cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM].get();  // TODO: generate own cycle tables
 }
 
-void pentium2_device::device_reset()
+void pentium2_device::reset()
 {
 	zero_state();
 
@@ -4595,10 +4987,10 @@ void pentium2_device::device_reset()
 /*****************************************************************************/
 /* Intel Pentium III */
 
-void pentium3_device::device_start()
+void pentium3_device::initialize()
 {
 	i386_common_init();
-	register_state_i386_x87_xmm();
+//	register_state_i386_x87_xmm();
 
 	build_x87_opcode_table();
 	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE);
@@ -4606,7 +4998,7 @@ void pentium3_device::device_start()
 	m_cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM].get();  // TODO: generate own cycle tables
 }
 
-void pentium3_device::device_reset()
+void pentium3_device::reset()
 {
 	zero_state();
 
@@ -4658,7 +5050,7 @@ void pentium3_device::device_reset()
 
 	CHANGE_PC(m_eip);
 }
-
+#if 0
 /*****************************************************************************/
 /* AMD Athlon XP
    Model: Athlon XP 2400+
@@ -4667,10 +5059,10 @@ void pentium3_device::device_reset()
    Date code: 0240MPMW
 */
 
-void athlonxp_device::device_start()
+void athlonxp_device::initialize()
 {
 	i386_common_init();
-	register_state_i386_x87_xmm();
+//	register_state_i386_x87_xmm();
 
 	build_x87_opcode_table();
 	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE);
@@ -4678,7 +5070,7 @@ void athlonxp_device::device_start()
 	m_cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM].get();  // TODO: generate own cycle tables
 }
 
-void athlonxp_device::device_reset()
+void athlonxp_device::reset()
 {
 	zero_state();
 
@@ -4793,30 +5185,30 @@ dt athlonxp_device::opcode_read_cache(offs_t address)
 				offs_t old_address = cache.old();
 
 				for (int w = 0; w < 64; w += 4)
-					macache32->write_dword(old_address + w, *(u32 *)(data + w));
+					macache32->write_data32(old_address + w, *(u32 *)(data + w));
 			}
 			for (int r = 0; r < 64; r += 4)
-				*(u32 *)(data + r) = macache32->read_dword(address + r);
+				*(u32 *)(data + r) = macache32->read_data32(address + r);
 			return *(dt *)(data + offset);
 		}
 		else
 		{
 			if (sizeof(dt) == 1)
-				return macache32->read_byte(address);
+				return macache32->read_data8(address);
 			else if (sizeof(dt) == 2)
-				return macache32->read_word(address);
+				return macache32->read_data16(address);
 			else
-				return macache32->read_dword(address);
+				return macache32->read_data32(address);
 		}
 	}
 	else
 	{
 		if (sizeof(dt) == 1)
-			return macache32->read_byte(address);
+			return macache32->read_data8(address);
 		else if (sizeof(dt) == 2)
-			return macache32->read_word(address);
+			return macache32->read_data16(address);
 		else
-			return macache32->read_dword(address);
+			return macache32->read_data32(address);
 	}
 }
 
@@ -4954,15 +5346,15 @@ void athlonxp_device::opcode_wbinvd()
 {
 	invalidate_cache(true);
 }
-
+#endif
 
 /*****************************************************************************/
 /* Intel Pentium 4 */
 
-void pentium4_device::device_start()
+void pentium4_device::initialize()
 {
 	i386_common_init();
-	register_state_i386_x87_xmm();
+//	register_state_i386_x87_xmm();
 
 	build_x87_opcode_table();
 	build_opcode_table(OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE | OP_SSE2);
@@ -4970,7 +5362,7 @@ void pentium4_device::device_start()
 	m_cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM].get();  // TODO: generate own cycle tables
 }
 
-void pentium4_device::device_reset()
+void pentium4_device::reset()
 {
 	zero_state();
 
@@ -5022,4 +5414,202 @@ void pentium4_device::device_reset()
 	m_feature_flags = 0x00000001;       // TODO: enable relevant flags here
 
 	CHANGE_PC(m_eip);
+}
+
+bool i386_device::write_debug_reg(const _TCHAR *reg, uint32_t data)
+{
+	if(_tcsicmp(reg, _T("IP")) == 0) {
+		m_eip = data & 0xffff;
+		CHANGE_PC(m_eip);
+	} else if(_tcsicmp(reg, _T("EIP")) == 0) {
+		m_eip = data;
+		CHANGE_PC(m_eip);
+	} else if(_tcsicmp(reg, _T("EAX")) == 0) {
+		REG32(EAX) = data;
+	} else if(_tcsicmp(reg, _T("EBX")) == 0) {
+		REG32(EBX) = data;
+	} else if(_tcsicmp(reg, _T("ECX")) == 0) {
+		REG32(ECX) = data;
+	} else if(_tcsicmp(reg, _T("EDX")) == 0) {
+		REG32(EDX) = data;
+	} else if(_tcsicmp(reg, _T("ESP")) == 0) {
+		REG32(ESP) = data;
+	} else if(_tcsicmp(reg, _T("EBP")) == 0) {
+		REG32(EBP) = data;
+	} else if(_tcsicmp(reg, _T("ESI")) == 0) {
+		REG32(ESI) = data;
+	} else if(_tcsicmp(reg, _T("EDI")) == 0) {
+		REG32(EDI) = data;
+	} else if(_tcsicmp(reg, _T("AX")) == 0) {
+		REG16(AX) = data;
+	} else if(_tcsicmp(reg, _T("BX")) == 0) {
+		REG16(BX) = data;
+	} else if(_tcsicmp(reg, _T("CX")) == 0) {
+		REG16(CX) = data;
+	} else if(_tcsicmp(reg, _T("DX")) == 0) {
+		REG16(DX) = data;
+	} else if(_tcsicmp(reg, _T("SP")) == 0) {
+		REG16(SP) = data;
+	} else if(_tcsicmp(reg, _T("BP")) == 0) {
+		REG16(BP) = data;
+	} else if(_tcsicmp(reg, _T("SI")) == 0) {
+		REG16(SI) = data;
+	} else if(_tcsicmp(reg, _T("DI")) == 0) {
+		REG16(DI) = data;
+	} else if(_tcsicmp(reg, _T("AL")) == 0) {
+		REG8(AL) = data;
+	} else if(_tcsicmp(reg, _T("AH")) == 0) {
+		REG8(AH) = data;
+	} else if(_tcsicmp(reg, _T("BL")) == 0) {
+		REG8(BL) = data;
+	} else if(_tcsicmp(reg, _T("BH")) == 0) {
+		REG8(BH) = data;
+	} else if(_tcsicmp(reg, _T("CL")) == 0) {
+		REG8(CL) = data;
+	} else if(_tcsicmp(reg, _T("CH")) == 0) {
+		REG8(CH) = data;
+	} else if(_tcsicmp(reg, _T("DL")) == 0) {
+		REG8(DL) = data;
+	} else if(_tcsicmp(reg, _T("DH")) == 0) {
+		REG8(DH) = data;
+	} else {
+		return false;
+	}
+	return true;
+}
+
+uint32_t i386_device::read_debug_reg(const _TCHAR *reg)
+{
+	if(_tcsicmp(reg, _T("EIP")) == 0) {
+		return m_eip;
+	} else if(_tcsicmp(reg, _T("IP")) == 0) {
+		return m_eip & 0xffff;
+	}  else if(_tcsicmp(reg, _T("EAX")) == 0) {
+		return REG32(EAX);
+	} else if(_tcsicmp(reg, _T("EBX")) == 0) {
+		return REG32(EBX);
+	} else if(_tcsicmp(reg, _T("ECX")) == 0) {
+		return REG32(ECX);
+	} else if(_tcsicmp(reg, _T("EDX")) == 0) {
+		return REG32(EDX);
+	} else if(_tcsicmp(reg, _T("ESP")) == 0) {
+		return REG32(ESP);
+	} else if(_tcsicmp(reg, _T("EBP")) == 0) {
+		return REG32(EBP);
+	} else if(_tcsicmp(reg, _T("ESI")) == 0) {
+		return REG32(ESI);
+	} else if(_tcsicmp(reg, _T("EDI")) == 0) {
+		return REG32(EDI);
+	} else if(_tcsicmp(reg, _T("AX")) == 0) {
+		return REG16(AX);
+	} else if(_tcsicmp(reg, _T("BX")) == 0) {
+		return REG16(BX);
+	} else if(_tcsicmp(reg, _T("CX")) == 0) {
+		return REG16(CX);
+	} else if(_tcsicmp(reg, _T("DX")) == 0) {
+		return REG16(DX);
+	} else if(_tcsicmp(reg, _T("SP")) == 0) {
+		return REG16(SP);
+	} else if(_tcsicmp(reg, _T("BP")) == 0) {
+		return REG16(BP);
+	} else if(_tcsicmp(reg, _T("SI")) == 0) {
+		return REG16(SI);
+	} else if(_tcsicmp(reg, _T("DI")) == 0) {
+		return REG16(DI);
+	} else if(_tcsicmp(reg, _T("AL")) == 0) {
+		return REG8(AL);
+	} else if(_tcsicmp(reg, _T("AH")) == 0) {
+		return REG8(AH);
+	} else if(_tcsicmp(reg, _T("BL")) == 0) {
+		return REG8(BL);
+	} else if(_tcsicmp(reg, _T("BH")) == 0) {
+		return REG8(BH);
+	} else if(_tcsicmp(reg, _T("CL")) == 0) {
+		return REG8(CL);
+	} else if(_tcsicmp(reg, _T("CH")) == 0) {
+		return REG8(CH);
+	} else if(_tcsicmp(reg, _T("DL")) == 0) {
+		return REG8(DL);
+	} else if(_tcsicmp(reg, _T("DH")) == 0) {
+		return REG8(DH);
+	}
+	return 0;
+}
+
+void i386_device::dump_segs(_TCHAR *buffer, _TCHAR* label, int segnum, size_t len)
+{
+	if((segnum < 0) || (segnum >= 6)) {
+		memset(buffer, 0x00, len);
+		return;
+	}
+	snprintf_s(buffer, len, "%s:%04X BASE=%08X LIMIT=%08X D=%d FLAGS=%04X VALID=%s\n",
+			   label,
+			   m_sreg[segnum].selector, m_sreg[segnum].base, m_sreg[segnum].limit,
+			   m_sreg[segnum].d, m_sreg[segnum].flags, (m_sreg[segnum].valid) ? "YES" : "NO");
+}
+	
+void i386_device::dump_regs(_TCHAR *buffer, size_t len)
+{
+	_TCHAR minibuffer[512];
+	snprintf(minibuffer, 512, "PC=%08X EIP=%08X ", m_pc, m_eip);
+	strncat(buffer, minibuffer, len); 
+	snprintf(minibuffer, 512, "PREV_PC=%08X PREV_EIP=%08X \n", m_prev_pc, m_prev_eip);
+	strncat(buffer, minibuffer, len);
+	dump_segs(minibuffer, "CS", CS, 512);
+	strncat(buffer, minibuffer, len);
+	dump_segs(minibuffer, "SS", SS, 512);
+	strncat(buffer, minibuffer, len);
+	dump_segs(minibuffer, "DS", DS, 512);
+	strncat(buffer, minibuffer, len);
+	dump_segs(minibuffer, "ES", ES, 512);
+	strncat(buffer, minibuffer, len);
+	dump_segs(minibuffer, "FS", FS, 512);
+	strncat(buffer, minibuffer, len);
+	dump_segs(minibuffer, "GS", GS, 512);
+	strncat(buffer, minibuffer, len);
+	
+	snprintf(minibuffer, 512, "IOPL=%d CPL=%d EFLAGS=%08X EFLAGS_MASK=%08X\n", ((m_IOP1) | (m_IOP2 << 1)), m_CPL, m_eflags, m_eflags_mask); 
+	strncat(buffer, minibuffer, len);
+	snprintf(minibuffer, 512, "FLAGS: %s%s%s%s %s%s%s%s\n      %s%s%s%s %s%s%s%s\n",
+			 (m_CF == 0) ? "--" : "CF", (m_DF == 0) ? "--" : "CF", (m_SF == 0) ? "--" : "SF", (m_OF == 0) ? "--" : "OF",
+			 (m_ZF == 0) ? "-- " : "ZF ", (m_PF == 0) ? "-- " : "PF ", (m_AF == 0) ? "-- " : "AF ", (m_IF == 0) ? "-- " : "IF ",
+			 (m_TF == 0) ? "--" : "TF", (m_NT == 0) ? "--" : "NT", (m_RF == 0) ? "--" : "RF", (m_VM == 0) ? "--" : "VM",
+			 (m_AC == 0) ? "-- " : "AC ",
+			 (m_VIF == 0) ? "---" : "VIF", (m_VIP == 0) ? "---" : "VIP", (m_ID == 0) ? "-- " : "ID ");
+	strncat(buffer, minibuffer, len);
+
+	snprintf(minibuffer, 512, "EAX=%08X ECX=%08X EDX=%08X EBX=%08X\n", REG32(EAX), REG32(ECX), REG32(EDX), REG32(EBX));
+	strncat(buffer, minibuffer, len);
+	
+	snprintf(minibuffer, 512, "ESP=%08X EBP=%08X ESI=%08X EDI=%08X\n", REG32(ESP), REG32(EBP), REG32(ESI), REG32(EDI));
+	strncat(buffer, minibuffer, len);
+}
+
+bool i386_device::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	if(buffer == NULL) return false;
+	if(buffer_len <= 0) return false;
+	memset(buffer, 0x00, buffer_len * sizeof(_TCHAR));
+	// ToDo: XMM, x87
+	dump_regs(buffer, buffer_len);
+	if(buffer[buffer_len - 1] != '\0') return false;
+	return true;
+}
+
+const UINT32 DASMFLAG_LENGTHMASK    = 0x0000ffff;   // the low 16-bits contain the actual length
+
+int I386::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+{
+//	UINT64 eip = pc - sreg[CS].base;
+//	UINT8 ops[16];
+//	for(int i = 0; i < 16; i++) {
+//		int wait;
+//		ops[i] = d_mem->read_data8w(pc + i, &wait);
+//	}
+//	UINT8 *oprom = ops;
+	if(d_dasm == NULL) return 0;
+	if((buffer == NULL) || (buffer_len <= 0)) return 0;
+	int reply =  d_dasm->disassemble(pc, buffer, buffer_len, this);
+	reply = reply & DASMFLAG_LENGTHMASK;
+	return reply;
 }
