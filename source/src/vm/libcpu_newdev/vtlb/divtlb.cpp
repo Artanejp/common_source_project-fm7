@@ -1,3 +1,11 @@
+/*
+	Virtual TLB interfaces(universal)
+
+	Origin : MAME 0.208
+	Author : Kyuma.Ohta <whatisthis.sowhat _at_ gmail.com>
+	Date   : 2019.04.23-
+
+*/
 // license:BSD-3-Clause
 // copyright-holders:Aaron Giles
 /***************************************************************************
@@ -8,9 +16,9 @@
 
 ***************************************************************************/
 
-#include "emu.h"
-#include "divtlb.h"
-
+#include "../../vm_template.h"
+#include "../../../emu.h"
+#include "./divtlb.h"
 
 
 //**************************************************************************
@@ -29,16 +37,18 @@
 //  device_vtlb_interface - constructor
 //-------------------------------------------------
 
-device_vtlb_interface::device_vtlb_interface(const machine_config &mconfig, device_t &device, int space)
-	: device_interface(device, "vtlb"),
-		m_space(space),
-		m_dynamic(0),
-		m_fixed(0),
-		m_dynindex(0),
-		m_pageshift(0),
-		m_addrwidth(0),
-		m_table_base(nullptr)
+device_vtlb_interface::device_vtlb_interface(VM_TEMPLATE* parent_vm, EMU* parent_emu, DEVICE* parent_device, int space, int fixed_entries, int dynamic_entries)
+	: DEVICE(parent_vm, parent_emu),
+	  m_space(space),
+	  m_dynamic(dynamic_entries),
+	  m_fixed(fixed_entries),
+	  m_dynindex(0),
+	  m_pageshift(12),
+	  m_addrwidth(32),
+	  m_table_base(nullptr)
 {
+	m_device = parent_device;
+	set_device_name(_T("VTLB DEVICE"));
 }
 
 
@@ -57,6 +67,10 @@ device_vtlb_interface::~device_vtlb_interface()
 //  constructed
 //-------------------------------------------------
 
+//
+// 2019-04-23 K.O: Temporally disable interface_varidity_check().
+//
+/*
 void device_vtlb_interface::interface_validity_check(validity_checker &valid) const
 {
 	const device_memory_interface *intf;
@@ -72,6 +86,7 @@ void device_vtlb_interface::interface_validity_check(validity_checker &valid) co
 			osd_printf_error("Invalid page shift %d for VTLB\n", spaceconfig->page_shift());
 	}
 }
+*/
 
 
 //-------------------------------------------------
@@ -79,13 +94,13 @@ void device_vtlb_interface::interface_validity_check(validity_checker &valid) co
 //  actually starting a device
 //-------------------------------------------------
 
-void device_vtlb_interface::interface_pre_start()
+void device_vtlb_interface::initialize()
 {
 	// fill in CPU information
-	const address_space_config *spaceconfig = device().memory().space_config(m_space);
-	m_pageshift = spaceconfig->page_shift();
-	m_addrwidth = spaceconfig->logaddr_width();
-
+	//const address_space_config *spaceconfig = device().memory().space_config(m_space);
+	//m_pageshift = spaceconfig->page_shift();
+	//m_addrwidth = spaceconfig->logaddr_width();
+	// -> You must call set_page_shift() and set_addr_width() before initialize.
 	// allocate the entry array
 	m_live.resize(m_fixed + m_dynamic);
 	memset(&m_live[0], 0, m_live.size()*sizeof(m_live[0]));
@@ -106,28 +121,11 @@ void device_vtlb_interface::interface_pre_start()
 	}
 }
 
-
-//-------------------------------------------------
-//  interface_post_start - work to be done after
-//  actually starting a device
-//-------------------------------------------------
-
-void device_vtlb_interface::interface_post_start()
+void device_vtlb_interface::release()
 {
-	device().save_item(NAME(m_live));
-	device().save_item(NAME(m_table));
-	device().save_item(NAME(m_refcnt));
-	if (m_fixed > 0)
-		device().save_item(NAME(m_fixedpages));
 }
 
-
-//-------------------------------------------------
-//  interface_pre_reset - work to be done prior to
-//  actually resetting a device
-//-------------------------------------------------
-
-void device_vtlb_interface::interface_pre_reset()
+void device_vtlb_interface::reset()
 {
 	vtlb_flush_dynamic();
 }
@@ -146,10 +144,10 @@ bool device_vtlb_interface::vtlb_fill(offs_t address, int intention)
 {
 	offs_t tableindex = address >> m_pageshift;
 	vtlb_entry entry = m_table[tableindex];
-	offs_t taddress;
+	uint64_t taddress;
 
 #if PRINTF_TLB
-	osd_printf_debug("vtlb_fill: %08X(%X) ... ", address, intention);
+	out_debug_log("vtlb_fill: %08X(%X) ... ", address, intention);
 #endif
 
 	// should not be called here if the entry is in the table already
@@ -159,17 +157,17 @@ bool device_vtlb_interface::vtlb_fill(offs_t address, int intention)
 	if (m_dynamic == 0)
 	{
 #if PRINTF_TLB
-		osd_printf_debug("failed: no dynamic entries\n");
+		out_debug_log("failed: no dynamic entries\n");
 #endif
 		return false;
 	}
 
 	// ask the CPU core to translate for us
 	taddress = address;
-	if (!device().memory().translate(m_space, intention, taddress))
+	if (!m_device->address_translate(m_space, intention, taddress))
 	{
 #if PRINTF_TLB
-		osd_printf_debug("failed: no translation\n");
+		out_debug_log("failed: no translation\n");
 #endif
 		return false;
 	}
@@ -198,7 +196,7 @@ bool device_vtlb_interface::vtlb_fill(offs_t address, int intention)
 		entry |= VTLB_FLAG_VALID;
 
 #if PRINTF_TLB
-		osd_printf_debug("success (%08X), new entry\n", taddress);
+		out_debug_log("success (%08X), new entry\n", taddress);
 #endif
 	}
 
@@ -209,7 +207,7 @@ bool device_vtlb_interface::vtlb_fill(offs_t address, int intention)
 		assert(entry & VTLB_FLAG_VALID);
 
 #if PRINTF_TLB
-		osd_printf_debug("success (%08X), existing entry\n", taddress);
+		out_debug_log("success (%08X), existing entry\n", taddress);
 #endif
 	}
 
@@ -234,7 +232,7 @@ void device_vtlb_interface::vtlb_load(int entrynum, int numpages, offs_t address
 	assert(entrynum >= 0 && entrynum < m_fixed);
 
 #if PRINTF_TLB
-	osd_printf_debug("vtlb_load %d for %d pages at %08X == %08X\n", entrynum, numpages, address, value);
+	out_debug_log("vtlb_load %d for %d pages at %08X == %08X\n", entrynum, numpages, address, value);
 #endif
 
 	// if an entry already exists at this index, free it
@@ -272,7 +270,7 @@ void device_vtlb_interface::vtlb_dynload(u32 index, offs_t address, vtlb_entry v
 	if (m_dynamic == 0)
 	{
 #if PRINTF_TLB
-		osd_printf_debug("failed: no dynamic entries\n");
+		out_debug_log("failed: no dynamic entries\n");
 #endif
 		return;
 	}
@@ -293,7 +291,7 @@ void device_vtlb_interface::vtlb_dynload(u32 index, offs_t address, vtlb_entry v
 	entry |= VTLB_FLAG_VALID | value;
 
 #if PRINTF_TLB
-	osd_printf_debug("success (%08X), new entry\n", address);
+	out_debug_log("success (%08X), new entry\n", address);
 #endif
 	m_table[index] = entry;
 }
@@ -310,7 +308,7 @@ void device_vtlb_interface::vtlb_dynload(u32 index, offs_t address, vtlb_entry v
 void device_vtlb_interface::vtlb_flush_dynamic()
 {
 #if PRINTF_TLB
-	osd_printf_debug("vtlb_flush_dynamic\n");
+	out_debug_log("vtlb_flush_dynamic\n");
 #endif
 
 	// loop over live entries and release them from the table
@@ -334,7 +332,7 @@ void device_vtlb_interface::vtlb_flush_address(offs_t address)
 	offs_t tableindex = address >> m_pageshift;
 
 #if PRINTF_TLB
-	osd_printf_debug("vtlb_flush_address %08X\n", address);
+	out_debug_log("vtlb_flush_address %08X\n", address);
 #endif
 
 	// free the entry in the table; for speed, we leave the entry in the live array
@@ -355,4 +353,30 @@ void device_vtlb_interface::vtlb_flush_address(offs_t address)
 const vtlb_entry *device_vtlb_interface::vtlb_table() const
 {
 	return m_table_base;
+}
+
+#define STATE_VERSION 1
+
+bool device_vtlb_device::process_state(FILEIO* fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(m_space);
+	state_fio->StateValue(m_dynamic);
+	state_fio->StateValue(m_fixed);
+	state_fio->StateValue(m_dynindex);
+	state_fio->StateValue(m_pageshift);
+	state_fio->StateValue(m_addrwidth);
+	
+	state_fio->StateVector(m_live);
+	state_fio->StateVector(m_table);
+	state_fio->StateVector(m_refpages);
+	if(m_fixed > 0) {
+		state_fio->StateVector(m_fixedpages);
+	}
+	return true;
 }
