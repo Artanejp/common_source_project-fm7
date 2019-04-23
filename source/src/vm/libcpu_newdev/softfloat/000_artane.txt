@@ -1,0 +1,1 @@
+This source code from 3rdparty/softfloat, MAME 0.208.
