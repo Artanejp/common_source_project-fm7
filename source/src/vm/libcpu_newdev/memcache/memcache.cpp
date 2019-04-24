@@ -1,6 +1,152 @@
 
 
 //**************************************************************************
+//  DEBUGGING
+//**************************************************************************
+
+#define VERBOSE         (0)
+
+#define VPRINTF(x)  do { if (VERBOSE) printf x; } while (0)
+
+#define VALIDATE_REFCOUNTS 1
+
+void handler_entry::dump_map(std::vector<memory_entry> &map) const
+{
+	fatalerror("dump_map called on non-dispatching class\n");
+}
+
+void handler_entry::reflist::add(const handler_entry *entry)
+{
+	refcounts[entry]++;
+	if(seen.find(entry) == seen.end()) {
+		seen.insert(entry);
+		todo.insert(entry);
+	}
+}
+
+void handler_entry::reflist::propagate()
+{
+	while(!todo.empty()) {
+		const handler_entry *entry = *todo.begin();
+		todo.erase(todo.begin());
+		entry->enumerate_references(*this);
+	}
+}
+
+void handler_entry::reflist::check()
+{
+	bool bad = false;
+	for(const auto &i : refcounts) {
+		if(i.first->get_refcount() != i.second) {
+			fprintf(stderr, "Reference count error on handler \"%s\" stored %u real %u.\n",
+					i.first->name().c_str(), i.first->get_refcount(), i.second);
+			bad = true;
+		}
+	}
+	if(bad)
+		abort();
+}
+
+
+// default handler methods
+
+void handler_entry::enumerate_references(handler_entry::reflist &refs) const
+{
+}
+
+template<int Width, int AddrShift, int Endian> void handler_entry_read<Width, AddrShift, Endian>::populate_nomirror(offs_t start, offs_t end, offs_t ostart, offs_t oend, handler_entry_read<Width, AddrShift, Endian> *handler)
+{
+	fatalerror("populate called on non-dispatching class\n");
+}
+
+template<int Width, int AddrShift, int Endian> void handler_entry_read<Width, AddrShift, Endian>::populate_mirror(offs_t start, offs_t end, offs_t ostart, offs_t oend, offs_t mirror, handler_entry_read<Width, AddrShift, Endian> *handler)
+{
+	fatalerror("populate called on non-dispatching class\n");
+}
+
+template<int Width, int AddrShift, int Endian> void handler_entry_read<Width, AddrShift, Endian>::populate_mismatched_nomirror(offs_t start, offs_t end, offs_t ostart, offs_t oend, const memory_units_descriptor<Width, AddrShift, Endian> &descriptor, u8 rkey, std::vector<mapping> &mappings)
+{
+	fatalerror("populate_mismatched called on non-dispatching class\n");
+}
+
+template<int Width, int AddrShift, int Endian> void handler_entry_read<Width, AddrShift, Endian>::populate_mismatched_mirror(offs_t start, offs_t end, offs_t ostart, offs_t oend, offs_t mirror, const memory_units_descriptor<Width, AddrShift, Endian> &descriptor, std::vector<mapping> &mappings)
+{
+	fatalerror("populate_mismatched called on non-dispatching class\n");
+}
+
+template<int Width, int AddrShift, int Endian> void handler_entry_read<Width, AddrShift, Endian>::populate_passthrough_nomirror(offs_t start, offs_t end, offs_t ostart, offs_t oend, handler_entry_read_passthrough<Width, AddrShift, Endian> *handler, std::vector<mapping> &mappings)
+{
+	fatalerror("populate_passthrough called on non-dispatching class\n");
+}
+
+template<int Width, int AddrShift, int Endian> void handler_entry_read<Width, AddrShift, Endian>::populate_passthrough_mirror(offs_t start, offs_t end, offs_t ostart, offs_t oend, offs_t mirror, handler_entry_read_passthrough<Width, AddrShift, Endian> *handler, std::vector<mapping> &mappings)
+{
+	fatalerror("populate_passthrough called on non-dispatching class\n");
+}
+
+template<int Width, int AddrShift, int Endian> void handler_entry_read<Width, AddrShift, Endian>::lookup(offs_t address, offs_t &start, offs_t &end, handler_entry_read<Width, AddrShift, Endian> *&handler) const
+{
+	fatalerror("lookup called on non-dispatching class\n");
+}
+
+template<int Width, int AddrShift, int Endian> void *handler_entry_read<Width, AddrShift, Endian>::get_ptr(offs_t offset) const
+{
+	return nullptr;
+}
+
+template<int Width, int AddrShift, int Endian> void handler_entry_read<Width, AddrShift, Endian>::detach(const std::unordered_set<handler_entry *> &handlers)
+{
+	fatalerror("detach called on non-dispatching class\n");
+}
+
+
+template<int Width, int AddrShift, int Endian> void handler_entry_write<Width, AddrShift, Endian>::populate_nomirror(offs_t start, offs_t end, offs_t ostart, offs_t oend, handler_entry_write<Width, AddrShift, Endian> *handler)
+{
+	fatalerror("populate called on non-dispatching class\n");
+}
+
+template<int Width, int AddrShift, int Endian> void handler_entry_write<Width, AddrShift, Endian>::populate_mirror(offs_t start, offs_t end, offs_t ostart, offs_t oend, offs_t mirror, handler_entry_write<Width, AddrShift, Endian> *handler)
+{
+	fatalerror("populate called on non-dispatching class\n");
+}
+
+template<int Width, int AddrShift, int Endian> void handler_entry_write<Width, AddrShift, Endian>::populate_mismatched_nomirror(offs_t start, offs_t end, offs_t ostart, offs_t oend, const memory_units_descriptor<Width, AddrShift, Endian> &descriptor, u8 rkey, std::vector<mapping> &mappings)
+{
+	fatalerror("populate_mismatched called on non-dispatching class\n");
+}
+
+template<int Width, int AddrShift, int Endian> void handler_entry_write<Width, AddrShift, Endian>::populate_mismatched_mirror(offs_t start, offs_t end, offs_t ostart, offs_t oend, offs_t mirror, const memory_units_descriptor<Width, AddrShift, Endian> &descriptor, std::vector<mapping> &mappings)
+{
+	fatalerror("populate_mismatched called on non-dispatching class\n");
+}
+
+template<int Width, int AddrShift, int Endian> void handler_entry_write<Width, AddrShift, Endian>::populate_passthrough_nomirror(offs_t start, offs_t end, offs_t ostart, offs_t oend, handler_entry_write_passthrough<Width, AddrShift, Endian> *handler, std::vector<mapping> &mappings)
+{
+	fatalerror("populate_passthrough called on non-dispatching class\n");
+}
+
+template<int Width, int AddrShift, int Endian> void handler_entry_write<Width, AddrShift, Endian>::populate_passthrough_mirror(offs_t start, offs_t end, offs_t ostart, offs_t oend, offs_t mirror, handler_entry_write_passthrough<Width, AddrShift, Endian> *handler, std::vector<mapping> &mappings)
+{
+	fatalerror("populate_passthrough called on non-dispatching class\n");
+}
+
+template<int Width, int AddrShift, int Endian> void handler_entry_write<Width, AddrShift, Endian>::lookup(offs_t address, offs_t &start, offs_t &end, handler_entry_write<Width, AddrShift, Endian> *&handler) const
+{
+	fatalerror("lookup called on non-dispatching class\n");
+}
+
+template<int Width, int AddrShift, int Endian> void *handler_entry_write<Width, AddrShift, Endian>::get_ptr(offs_t offset) const
+{
+	return nullptr;
+}
+
+template<int Width, int AddrShift, int Endian> void handler_entry_write<Width, AddrShift, Endian>::detach(const std::unordered_set<handler_entry *> &handlers)
+{
+	fatalerror("detach called on non-dispatching class\n");
+}
+
+
+//**************************************************************************
 //  CACHE MEMORY RANGES
 //**************************************************************************
 
