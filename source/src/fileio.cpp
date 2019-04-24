@@ -1283,13 +1283,6 @@ void FILEIO::StateVector(std::vector<pair64_t> datas)
 	}
 }
 
-void FILEIO::StateVector(std::vector<int> datas)
-{
-	int memb = datas.size();
-	for(int i = 0; i < memb; i++) {
-		StateValue(datas[i]);
-	}
-}
 
 void FILEIO::StateArray(bool *buffer, size_t size, size_t count)
 {

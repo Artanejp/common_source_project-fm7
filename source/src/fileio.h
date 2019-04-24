@@ -202,7 +202,6 @@ public:
 	void StateVector(std::vector<pair32_t> datas);
 	void StateVector(std::vector<pair64_t> datas);
 	void StateVector(std::vector<_TCHAR> datas);
-	void StateVector(std::vector<int> datas);
 
 	// obsolete function
 	void StateBuffer(void *buffer, size_t size, size_t count);
