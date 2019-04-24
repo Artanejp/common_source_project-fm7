@@ -22,11 +22,13 @@
 #define MAX_OUTPUT	16
 
 // common signal id
-#define SIG_CPU_IRQ		101
-#define SIG_CPU_FIRQ		102
-#define SIG_CPU_NMI		103
-#define SIG_CPU_BUSREQ		104
-#define SIG_CPU_DEBUG		105
+#define SIG_CPU_IRQ				101
+#define SIG_CPU_FIRQ			102
+#define SIG_CPU_NMI				103
+#define SIG_CPU_BUSREQ			104
+#define SIG_CPU_HALTREQ			105
+#define SIG_CPU_DEBUG			106
+#define SIG_CPU_ADDRESS_DIRTY	107
 
 #define SIG_PRINTER_DATA	201
 #define SIG_PRINTER_STROBE	202
