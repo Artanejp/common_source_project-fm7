@@ -571,6 +571,7 @@ restart:
 //#ifdef DMA_DEBUG
 					if(_DMA_DEBUG) this->out_debug_log(_T("RAM[%4x]\n"), addr_b);
 //#endif
+					write_signals(&outputs_wrote_mem, addr_b);
 					write_memory(addr_b, data, &wait_w);
 				} else {
 //#ifdef DMA_DEBUG
@@ -590,6 +591,7 @@ restart:
 //#ifdef DMA_DEBUG
 					if(_DMA_DEBUG) this->out_debug_log(_T("RAM[%4x]\n"), addr_a);
 //#endif
+					write_signals(&outputs_wrote_mem, addr_a);
 					write_memory(addr_a, data, &wait_w);
 				} else {
 //#ifdef DMA_DEBUG

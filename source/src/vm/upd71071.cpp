@@ -249,6 +249,7 @@ void UPD71071::do_dma()
 						// io -> memory
 						uint32_t val;
 						val = dma[c].dev->read_dma_io16(0);
+						write_signals(&outputs_wrote_mem_word, dma[c].areg);
 						if(_USE_DEBUGGER) {
 							if(d_debugger != NULL && d_debugger->now_device_debugging) {
 								d_debugger->write_via_debugger_data16(dma[c].areg, val);
@@ -313,6 +314,7 @@ void UPD71071::do_dma()
 						// io -> memory
 						uint32_t val;
 						val = dma[c].dev->read_dma_io8(0);
+						write_signals(&outputs_wrote_mem_byte, dma[c].areg);
 						if(_USE_DEBUGGER) {
 							if(d_debugger != NULL && d_debugger->now_device_debugging) {
 								d_debugger->write_via_debugger_data8(dma[c].areg, val);

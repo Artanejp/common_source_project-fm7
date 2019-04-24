@@ -31,6 +31,8 @@ private:
 //#endif
 	DEBUGGER *d_debugger;
 	outputs_t outputs_tc;
+	outputs_t outputs_wrote_mem_byte;
+	outputs_t outputs_wrote_mem_word;
 	
 	struct {
 		DEVICE* dev;
@@ -66,6 +68,8 @@ public:
 		_SINGLE_MODE_DMA = false;
 		_USE_DEBUGGER = false;
 		initialize_output_signals(&outputs_tc);
+		initialize_output_signals(&outputs_wrote_mem_word);
+		initialize_output_signals(&outputs_wrote_mem_byte);
 		set_device_name(_T("uPD71071 DMAC"));
 	}
 	~UPD71071() {}
@@ -127,6 +131,11 @@ public:
 	void set_context_tc(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_tc, device, id, mask);
+	}
+	void set_context_wrote_mem(DEVICE* device, int id)
+	{
+		register_output_signal(&outputs_wrote_mem_byte, device, id, 1);
+		register_output_signal(&outputs_wrote_mem_word, device, id, 2);
 	}
 };
 

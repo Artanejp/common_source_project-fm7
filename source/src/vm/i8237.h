@@ -48,6 +48,7 @@ protected:
 		// output tc signals
 		outputs_t outputs_tc;
 	} dma[4];
+	outputs_t outputs_wrote_mem;
 	
 	bool low_high;
 	uint8_t cmd;
@@ -72,6 +73,7 @@ public:
 			dma[i].bankreg = dma[i].incmask = 0;
 			initialize_output_signals(&dma[i].outputs_tc);
 		}
+		initialize_output_signals(&outputs_wrote_mem);
 		mode_word = false;
 		addr_mask = 0xffffffff;
 		d_debugger = NULL;
@@ -140,6 +142,10 @@ public:
 	void set_context_tc3(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&dma[3].outputs_tc, device, id, mask);
+	}
+	void set_context_wrote_mem(DEVICE* device, int id)
+	{
+		register_output_signal(&outputs_wrote_mem, device, id, 1);
 	}
 	void set_mode_word(bool val)
 	{

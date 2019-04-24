@@ -355,6 +355,7 @@ void HD6844::do_transfer(int ch)
 	}
 	if((channel_control[ch] & 0x01) == 0) {
 		data_reg[ch] = src[ch]->read_io8(fixed_addr[ch]) & 0xff;
+		// ToDo: Dirty Memory.
 		dest[ch]->write_dma_io8((uint32_t)addr_reg[ch] + addr_offset, data_reg[ch]);
 	} else {
 		data_reg[ch] = dest[ch]->read_dma_io8((uint32_t)addr_reg[ch] + addr_offset) & 0xff;

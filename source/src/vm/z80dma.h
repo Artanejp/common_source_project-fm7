@@ -24,7 +24,7 @@ class Z80DMA : public DEVICE
 private:
 	DEVICE *d_mem, *d_io;
 	DEBUGGER *d_debugger;
-	
+	outputs_t outputs_wrote_mem;
 	typedef union {
 		uint16_t m[7][8];
 		uint16_t t[6*8+1+1];
@@ -82,6 +82,7 @@ public:
 		_SINGLE_MODE_DMA = _DMA_DEBUG = false;
 		d_cpu = d_child = NULL;
 		d_debugger = NULL;
+		initialize_output_signals(&outputs_wrote_mem);
 		set_device_name(_T("Z80 DMA"));
 	}
 	~Z80DMA() {}
@@ -138,6 +139,10 @@ public:
 	void set_context_debugger(DEBUGGER* device)
 	{
 		d_debugger = device;
+	}
+	void set_context_wrote_mem(DEVICE* device, int id)
+	{
+		register_output_signal(&outputs_wrote_mem, device, id, 1);
 	}
 };
 

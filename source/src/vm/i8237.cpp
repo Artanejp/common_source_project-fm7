@@ -174,6 +174,7 @@ void I8237::do_dma()
 					// io -> memory
 					tmp = read_io(ch);
 					write_mem(dma[ch].areg | (dma[ch].bankreg << 16), tmp);
+					write_signals(&outputs_wrote_mem, dma[ch].areg | (dma[ch].bankreg << 16)); 
 					break;
 				case 0x08:
 					// memory -> io
