@@ -72,6 +72,8 @@ i386_device::i386_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
 
 	m_ferr_err_value = 0;
 	data_width = 32;
+
+	cache_data.clear();
 	set_device_name(_T("i386 DX CPU"));
 
 	
@@ -163,14 +165,6 @@ pentium4_device::pentium4_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
 	// 128 dtlb, 64 itlb
 	d_vtlb->set_vtlb_dynamic_entries(196);
 	set_device_name(_T("Intel Pentium4"));
-}
-
-device_memory_interface::space_config_vector i386_device::memory_space_config() const
-{
-	return space_config_vector {
-		std::make_pair(AS_PROGRAM, &m_program_config),
-		std::make_pair(AS_IO,      &m_io_config)
-	};
 }
 
 int i386_parity_table[256];
@@ -3334,10 +3328,10 @@ uint8_t i386_device::read8_debug(uint32_t ea, uint8_t *data)
 		return 0;
 
 	address &= m_a20_mask;
-	*data = m_program->read_byte(address);
+	*data = this->read_debug_data8(address);
 	return 1;
 }
-
+#if 0
 uint32_t i386_device::i386_get_debug_desc(I386_SREG *seg)
 {
 	uint32_t base, limit, address;
@@ -3478,7 +3472,7 @@ void i386_device::device_debug_setup()
 	debug()->symtable().add("segofftovirt", 2, 2, std::bind(&i386_device::debug_segofftovirt, this, _1, _2, _3));
 	debug()->symtable().add("virttophys", 1, 1, std::bind(&i386_device::debug_virttophys, this, _1, _2, _3));
 }
-
+#endif
 /*************************************************************************/
 
 void i386_device::i386_postload()
@@ -3520,14 +3514,14 @@ void i386_device::i386_common_init()
 		i386_MODRM_table[i].rm.d = regs32[i & 0x7];
 	}
 
-	m_program = &space(AS_PROGRAM);
-	if(data_width == 16) {
-		// for the 386sx
-		macache16 = m_program->cache<1, 0, ENDIANNESS_LITTLE>();
-	} else {
-		macache32 = m_program->cache<2, 0, ENDIANNESS_LITTLE>();
-	}
-
+//	m_program = &space(AS_PROGRAM);
+//	if(data_width == 16) {
+//		// for the 386sx
+//		macache16 = m_program->cache<1, 0, ENDIANNESS_LITTLE>();
+//	} else {
+//		macache32 = m_program->cache<2, 0, ENDIANNESS_LITTLE>();
+//	}
+	cache_mem.clear();
 	m_io = &space(AS_IO);
 	m_smi = false;
 	m_debugger_temp = 0;
@@ -3823,6 +3817,7 @@ bool athlonxp_device::process_state(FILEIO* state_fio, bool loading)
 	return process_state_i386_x87_xmm(state_fio, loading);
 }
 #endif
+#if 0
 void i386_device::state_import(int index)
 {
 	switch (index)
@@ -3864,6 +3859,7 @@ void i386_device::state_export(int index)
 			break;
 	}
 }
+#endif
 
 void i386_device::build_opcode_table(uint32_t features)
 {
@@ -4174,46 +4170,11 @@ void i386_device::pentium_smi()
 	CHANGE_PC(m_eip);
 }
 
-void i386_device::execute_set_input(int irqline, int state)
+
+void pentium_device::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	if ( irqline == INPUT_LINE_A20 )
-	{
-		i386_set_a20_line( state );
-		return;
-	}
-	if ( irqline == INPUT_LINE_NMI )
-	{
-		if ( state != CLEAR_LINE && m_halted)
-		{
-			m_halted = 0;
-		}
-
-		/* NMI (I do not think that this is 100% right) */
-		if(m_nmi_masked)
-		{
-			m_nmi_latched = true;
-			return;
-		}
-		if ( state )
-			i386_trap(2, 1, 0);
-	}
-	else
-	{
-		if (irqline >= 0 && irqline <= MAX_INPUT_LINES)
-		{
-			if ( state != CLEAR_LINE && m_halted )
-			{
-				m_halted = 0;
-			}
-
-			m_irq_state = state;
-		}
-	}
-}
-
-void pentium_device::execute_set_input(int irqline, int state)
-{
-	if ( irqline == INPUT_LINE_SMI )
+	bool state = ((data & mask) != 0);
+	if ( id == SIG_I386_SMI )
 	{
 		if ( !m_smi && state && m_smm )
 		{
@@ -4223,7 +4184,7 @@ void pentium_device::execute_set_input(int irqline, int state)
 	}
 	else
 	{
-		i386_device::execute_set_input(irqline, state);
+		i386_device::write_signal(id, data, mask);
 	}
 }
 
@@ -4251,6 +4212,10 @@ void i386_device::write_signal(int id, uint32_t data, uint32_t mask)
 		m_busreq = (data & mask) ? 1 : 0;
 	} else if(id == SIG_I386_A20) {
 		i386_set_a20_line(data & mask);
+	} else if(id == SIG_CPU_ADDRESS_DIRTY) {
+		// ToDo: clear cache.
+		uint32_t target_address = data;
+		uint32_t target_bytes = mask;
 	}
 }
 
@@ -4478,30 +4443,35 @@ uint32_t i386_device::get_next_pc()
 void i386_device::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
+	// ToDo: cache
 	d_mem->write_data8w(addr, data, &wait);
 }
 
 void i386_device::write_debug_data16(uint32_t addr, uint32_t data)
 {
 	int wait;
+	// ToDo: cache
 	d_mem->write_data16w(addr, data, &wait);
 }
 
 void i386_device::write_debug_data32(uint32_t addr, uint32_t data)
 {
 	int wait;
+	// ToDo: cache
 	d_mem->write_data32w(addr, data, &wait);
 }
 
 uint32_t i386_device::read_debug_data8(uint32_t addr)
 {
 	int wait;
+	// ToDo: cache
 	return d_mem->read_data8w(addr, &wait);
 }
 
 uint32_t i386_device::read_debug_data16(uint32_t addr)
 {
 	int wait;
+	// ToDo: cache
 	return d_mem->read_data16w(addr, &wait);
 }
 
@@ -4548,11 +4518,12 @@ int i386_device::get_mode() const
 {
 	return m_sreg[CS].d ? 32 : 16;
 }
-
+#if 0
 std::unique_ptr<util::disasm_interface> i386_device::create_disassembler()
 {
 	return std::make_unique<i386_disassembler>(this);
 }
+#endif
 
 void i386_device::opcode_cpuid()
 {

@@ -178,7 +178,7 @@ void pentium4_device::opcode_wrmsr(uint64_t data, bool &valid_msr)
 		break;
 	}
 }
-
+#if 0
 void athlonxp_device::opcode_cpuid()
 {
 	switch (REG32(EAX))
@@ -449,3 +449,4 @@ void athlonxp_device::opcode_wrmsr(uint64_t data, bool &valid_msr)
 	}
 	valid_msr = true;
 }
+#endif

@@ -2542,6 +2542,8 @@ void i386_device::i386_loadall()       // Opcode 0x0f 0x07 (0x0f 0x05 on 80286),
 	m_idtr.limit = READ32(ea + 0x68);
 	m_gdtr.base = READ32(ea + 0x70);
 	m_gdtr.limit = READ32(ea + 0x74);
+	logerror("LOADALL PC=%08X GDTR:BASE=%08X GDTR:LIMIT=%04X\n", cpustate->prev_pc, cpustate->gdtr.base, cpustate->gdtr.limit);
+
 	m_ldtr.flags = READ32(ea + 0x78) >> 8;
 	m_ldtr.base = READ32(ea + 0x7c);
 	m_ldtr.limit = READ32(ea + 0x80);

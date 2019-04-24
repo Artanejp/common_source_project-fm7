@@ -18,8 +18,13 @@
 #include "./i386dasm.h"
 #include "./cache.h"
 
-#define INPUT_LINE_A20      1
-#define INPUT_LINE_SMI      2
+#define SIG_I386_A20	1
+#define SIG_I386_SMI	2
+enum
+{
+	INPUT_LINE_IRQ = 0,
+	INPUT_LINE_NMI
+};
 
 typedef u8 uint8_t;
 typedef u16 uint16_t;
@@ -60,6 +65,8 @@ protected:
 	
 	DEBUGGER* d_debugger;
 	DEVICE* d_program_stored, d_io_stored;
+
+	int m_wait;
 public:
 	// construction/destruction
 	i386_device(VM_TEMPLATE* parent_vm, EMU* parent_emu);
@@ -67,6 +74,26 @@ public:
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 	virtual void initialize() override;
 	virtual void reset() override;
+	virtual int run(int clocks);
+	
+	virtual void write_signal(int ch, uint32_t data, uint32_t mask);
+	virtual void set_intr_line(bool line, bool pending, uint32_t bit);
+	virtual void set_extra_clock(int cycles);
+	virtual int get_extra_clock();
+	uint32_t get_pc();
+	uint32_t get_next_pc();
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	void write_debug_data16(uint32_t addr, uint32_t data);
+	void write_debug_data32(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
+	uint32_t read_debug_data16(uint32_t addr);
+	uint32_t read_debug_data32(uint32_t addr);
+	void write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io8(uint32_t addr);
+	void write_debug_io16(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io16(uint32_t addr);
+	void write_debug_io32(uint32_t addr, uint32_t data);
+	
 	void set_address_mask(uint32_t mask)
 	{
 		m_a20_mask = mask;
@@ -113,14 +140,48 @@ public:
 	{
 		register_output_signal(&outputs_reset, dev, id, mask);
 	}
-	
+	void set_cachable_region(uint32_t start, uint32_t end, DEVICE* dev = NULL, int type = CACHE_LINE_READ_WRITE)
+	{
+		cache_line *p;
+		if(dev == NULL) {
+			p = new cache_line(start, end, d_device, type);
+		} else {
+			p = new cache_line(start, end, dev, type);
+		}
+		if(p != NULL) {
+			cache_mem.push_back(p);
+		}
+	}
+	void delete_cachable_region(uint32_t start, uint32_t end)
+	{
+		for(auto pp = cache_mem.begin(); pp != cache_mem.end(); ++pp) {
+			cache_line* p = *pp;
+			if(p != NULL) {
+				if((p->get_start_address() == start) && (p->get_end_address() == end)) {
+					delete p;
+					pcache_mem.erace(pp);
+				}
+			}
+		}
+	}
+	void change_cache_type(uint32_t start, uint32_t end, int new_mode)
+	{
+		for(auto pp = cache_mem.begin(); pp != cache_mem.end(); ++pp) {
+			cache_line* p = *pp;
+			if(p != NULL) {
+				if((p->get_start_address() == start) && (p->get_end_address() == end)) {
+					p->change_access_mode(new_mode);
+				}
+			}
+		}
+	}
 	// configuration helpers
-
+#if 0
 	uint64_t debug_segbase(symbol_table &table, int params, const uint64_t *param);
 	uint64_t debug_seglimit(symbol_table &table, int params, const uint64_t *param);
 	uint64_t debug_segofftovirt(symbol_table &table, int params, const uint64_t *param);
 	uint64_t debug_virttophys(symbol_table &table, int params, const uint64_t *param);
-
+#endif
 protected:
 	device_vtlb_interface* d_vtlb;
 	bool process_state_segment(int num, FILEIO* state_fio, bool loading);
@@ -133,27 +194,23 @@ protected:
 	bool bios_trap_x86(uint32_t address, int &stat);
 
 	// device-level overrides
-	virtual void device_debug_setup() override;
+	//virtual void device_debug_setup() override;
 
 	// device_execute_interface overrides
 	virtual uint32_t execute_min_cycles() const override { return 1; }
 	virtual uint32_t execute_max_cycles() const override { return 40; }
 	virtual uint32_t execute_input_lines() const override { return 32; }
-	virtual bool execute_input_edge_triggered(int inputnum) const override { return inputnum == INPUT_LINE_NMI; }
-	virtual void execute_run() override;
-	virtual void execute_set_input(int inputnum, int state) override;
 
 	// device_memory_interface overrides
-	virtual space_config_vector memory_space_config() const override;
 	virtual bool memory_translate(int spacenum, int intention, offs_t &address) override;
 
 	// device_state_interface overrides
-	virtual void state_import(const device_state_entry &entry) override;
-	virtual void state_export(const device_state_entry &entry) override;
-	virtual void state_string_export(const device_state_entry &entry, std::string &str) const override;
+	//virtual void state_import(const device_state_entry &entry) override;
+	//virtual void state_export(const device_state_entry &entry) override;
+	//virtual void state_string_export(const device_state_entry &entry, std::string &str) const override;
 
 	// device_disasm_interface overrides
-	virtual std::unique_ptr<util::disasm_interface> create_disassembler() override;
+	//virtual std::unique_ptr<util::disasm_interface> create_disassembler() override;
 	virtual int get_mode() const override;
 
 	// routines for opcodes whose operation can vary between cpu models
@@ -167,30 +224,63 @@ protected:
 	// routine to access memory
 	// ToDo: Memory cache
 #if 1
-	virtual u8 mem_pr8(offs_t address) { return m_program->read_data8(address); }
-	virtual u16 mem_pr16(offs_t address) { return m_program->read_data16(address); }
-	virtual u32 mem_pr32(offs_t address) { return m_program->read_data32(address); }
+	virtual u8 mem_pr8(offs_t address) { return d_mem->read_data8(address); }
+	virtual u16 mem_pr16(offs_t address) { return d_mem->read_data16(address); }
+	virtual u32 mem_pr32(offs_t address) { return d_mem->read_data32(address); }
 
-	virtual u8 mem_prd8(offs_t address) { return m_program->read_data8(address); }
-	virtual u16 mem_prd16(offs_t address) { return m_program->read_data16(address); }
-	virtual u32 mem_prd32(offs_t address) { return m_program->read_data32(address); }
-	virtual void mem_pwd8(offs_t address, u8 data) { m_program->write_data8(address, data); }
-	virtual void mem_pwd16(offs_t address, u16 data) { m_program->write_data16(address, data); }
-	virtual void mem_pwd32(offs_t address, u32 data) { m_program->write_data32(address, data); }
+	virtual u8 mem_prd8(offs_t address) { return d_mem->read_data8(address); }
+	virtual u16 mem_prd16(offs_t address) { return d_mem->read_data16(address); }
+	virtual u32 mem_prd32(offs_t address) { return d_mem->read_data32(address); }
+	virtual void mem_pwd8(offs_t address, u8 data) { d_mem->write_data8(address, data); }
+	virtual void mem_pwd16(offs_t address, u16 data) { d_mem->write_data16(address, data); }
+	virtual void mem_pwd32(offs_t address, u32 data) { d_mem->write_data32(address, data); }
 #else
-	virtual u8 mem_pr8(offs_t address) { return macache32->read_data8(address); }
-	virtual u16 mem_pr16(offs_t address) { return macache32->read_data16(address); }
-	virtual u32 mem_pr32(offs_t address) { return macache32->read_data32(address); }
+	virtual u8 mem_pr8(offs_t address) {
+		int n = cache_mem.size();
+		for(int i = 0; i < n; i++) {
+			cache_line* p = cache_mem[i];
+			if(p != NULL) {
+				if(p->region_check(address)) {
+					return p->read_data8w(addr, &m_wait);
+				}
+			}
+		}
+		return d_device->read_data8w(address, &m_wait);
+	}
+	virtual u16 mem_pr16(offs_t address) {
+		int n = cache_mem.size();
+		for(int i = 0; i < n; i++) {
+			cache_line* p = cache_mem[i];
+			if(p != NULL) {
+				if(p->region_check_range(address, 2)) {
+					return p->read_data16w(addr, &m_wait);
+				}
+			}
+		}
+		return d_device->read_data16w(address, &m_wait);
+	}
+	virtual u32 mem_pr32(offs_t address) {
+		int n = cache_mem.size();
+		for(int i = 0; i < n; i++) {
+			cache_line* p = cache_mem[i];
+			if(p != NULL) {
+				if(p->region_check_range(address, 4)) {
+					return p->read_data32w(addr, &m_wait);
+				}
+			}
+		}
+		return d_device->read_data32w(address, &m_wait);
+	}
 
-	virtual u8 mem_prd8(offs_t address) { return m_program->read_data8(address); }
-	virtual u16 mem_prd16(offs_t address) { return m_program->read_data16(address); }
-	virtual u32 mem_prd32(offs_t address) { return m_program->read_data32(address); }
-	virtual void mem_pwd8(offs_t address, u8 data) { m_program->write_data8(address, data); }
-	virtual void mem_pwd16(offs_t address, u16 data) { m_program->write_data16(address, data); }
-	virtual void mem_pwd32(offs_t address, u32 data) { m_program->write_data32(address, data); }
+	virtual u8 mem_prd8(offs_t address) { return d_mem->read_data8(address); }
+	virtual u16 mem_prd16(offs_t address) { return d_mem->read_data16(address); }
+	virtual u32 mem_prd32(offs_t address) { return d_mem->read_data32(address); }
+	virtual void mem_pwd8(offs_t address, u8 data) { d_mem->write_data8(address, data); }
+	virtual void mem_pwd16(offs_t address, u16 data) { d_mem->write_data16(address, data); }
+	virtual void mem_pwd32(offs_t address, u32 data) { d_mem->write_data32(address, data); }
 #endif	
-	address_space_config m_program_config;
-	address_space_config m_io_config;
+	//address_space_config m_mem_config;
+	//address_space_config m_io_config;
 
 	std::unique_ptr<uint8_t[]> cycle_table_rm[X86_NUM_CPUS];
 	std::unique_ptr<uint8_t[]> cycle_table_pm[X86_NUM_CPUS];
@@ -397,13 +487,12 @@ protected:
 	uint8_t m_opcode;
 
 	uint8_t m_irq_state;
-	DEVICE *m_program;
-	DEVICE *m_io;
 	uint32_t m_a20_mask;
 	bool m_shutdown;
 	// ToDo: Memory Cache.
 	//memory_access_cache<1, 0, ENDIANNESS_LITTLE> *macache16;
 	//memory_access_cache<2, 0, ENDIANNESS_LITTLE> *macache32;
+	std::vector<cache_line *>cache_data; 
 
 	int m_cpuid_max_input_value_eax; // Highest CPUID standard function available
 	uint32_t m_cpuid_id0, m_cpuid_id1, m_cpuid_id2;
@@ -585,7 +674,7 @@ protected:
 	void i386_decode_four_byte3af2();
 	void i386_decode_four_byte38f3();
 	uint8_t read8_debug(uint32_t ea, uint8_t *data);
-	uint32_t i386_get_debug_desc(I386_SREG *seg);
+	//uint32_t i386_get_debug_desc(I386_SREG *seg);
 	inline void CYCLES(int x);
 	inline void CYCLES_RM(int modrm, int r, int m);
 	uint8_t i386_shift_rotate8(uint8_t modrm, uint32_t value, uint8_t shift);
@@ -1623,9 +1712,9 @@ protected:
 	virtual u16 mem_pr16(offs_t address) override { return macache16->read_data16(address); };
 	virtual u32 mem_pr32(offs_t address) override { return macache16->read_data32(address); };
 #else
-	virtual u8 mem_pr8(offs_t address) override { return m_program->read_data8(address); };
-	virtual u16 mem_pr16(offs_t address) override { return m_program->read_data16(address); };
-	virtual u32 mem_pr32(offs_t address) override { return m_program->read_data32(address); };
+	virtual u8 mem_pr8(offs_t address) override { return d_mem->read_data8(address); };
+	virtual u16 mem_pr16(offs_t address) override { return d_mem->read_data16(address); };
+	virtual u32 mem_pr32(offs_t address) override { return d_mem->read_data32(address); };
 #endif	
 };
 
@@ -1661,8 +1750,8 @@ public:
 
 protected:
 
-	virtual bool execute_input_edge_triggered(int inputnum) const override { return inputnum == INPUT_LINE_NMI || inputnum == INPUT_LINE_SMI; }
-	virtual void execute_set_input(int inputnum, int state) override;
+	virtual bool execute_input_edge_triggered(int inputnum) const override { return inputnum == SIG_CPU_NMI || inputnum == SIG_CPU_SMI; }
+	virtual void write_signal(int ch, uint32_t data, uint32_t mask) override;
 	virtual uint64_t opcode_rdmsr(bool &valid_msr) override;
 	virtual void opcode_wrmsr(uint64_t data, bool &valid_msr) override;
 };
