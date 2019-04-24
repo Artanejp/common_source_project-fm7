@@ -1002,8 +1002,8 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 					cpustate->sreg[ES].selector = 0;
 					cpustate->VM = 0;
 					//cpustate->eflags = get_flags(cpustate);
-					cpustate->eflags &= ~I386_EFLAGS_VM; // Clear VM flag
-					set_flags(cpustate, cpustate->eflags);
+					//cpustate->eflags &= ~I386_EFLAGS_VM; // Clear VM flag
+					//set_flags(cpustate, cpustate->eflags);
 					i386_load_segment_descriptor(cpustate,GS);
 					i386_load_segment_descriptor(cpustate,FS);
 					i386_load_segment_descriptor(cpustate,DS);
@@ -2497,7 +2497,8 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
 	UINT32 stack_size = 6;
 	CPL = cpustate->CPL;
-	UINT32 ea = i386_translate(cpustate, SS, (STACK_32BIT)?REG32(ESP):REG16(SP), 0, (operand32)?12:6);
+	//UINT32 ea = i386_translate(cpustate, SS, (STACK_32BIT)?REG32(ESP):REG16(SP), 0, (operand32)?12:6);
+	UINT32 ea = i386_translate(cpustate, SS, (STACK_32BIT)?REG32(ESP):REG16(SP), 0, 1);
 	if(operand32 == 0)
 	{
 		newEIP = READ16(cpustate, ea) & 0xffff;
@@ -2523,41 +2524,44 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 		}
 		if(operand32 == 0)
 		{
-			cpustate->sreg[CS].selector = newCS & 0xffff;
-			i386_load_segment_descriptor(cpustate,CS);
-			if((newEIP & 0xffff) > cpustate->sreg[CS].limit) {
-				FAULT(FAULT_GP, 0);
-			}
+			//if((newEIP & 0xffff) > cpustate->sreg[CS].limit) {
+			//	FAULT(FAULT_GP, 0);
+			//}
 			cpustate->eip = newEIP & 0xffff;
+			cpustate->sreg[CS].selector = newCS & 0xffff;
+			//i386_load_segment_descriptor(cpustate,CS);
 			//newflags &= ~(3<<12);
 			//newflags |= (((oldflags>>12)&3)<<12);  // IOPL cannot be changed in V86 mode
 			newflags &= ~I386_EFLAGS_IOPL;  // IOPL cannot be changed in V86 mode
 			newflags |= (oldflags & I386_EFLAGS_IOPL);
 			set_flags(cpustate,(newflags & 0xffff) | (oldflags & ~0xffff));
-			if(STACK_32BIT) {
-				REG32(ESP) += stack_size;
-			} else {
-				REG16(SP) += stack_size;
-			}
+			//if(STACK_32BIT) {
+			//REG32(ESP) += stack_size;
+				//} else {
+			//		REG16(SP) += stack_size;
+			REG16(SP) += 6;
+				//}
 		}
 		else
 		{
 			cpustate->sreg[CS].selector = newCS & 0xffff;
-			i386_load_segment_descriptor(cpustate,CS);
-			if(newEIP > cpustate->sreg[CS].limit) {
-				FAULT(FAULT_GP, 0);
-			}
+			//i386_load_segment_descriptor(cpustate,CS);
+			//if(newEIP > cpustate->sreg[CS].limit) {
+			//	FAULT(FAULT_GP, 0);
+			//}
 			cpustate->eip = newEIP;
 			//newflags &= ~(3<<12);
 			//newflags |= 0x20000 | (((oldflags>>12)&3)<<12);  // IOPL and VM cannot be changed in V86 mode
 			newflags &= ~I386_EFLAGS_IOPL;  // IOPL and VM cannot be changed in V86 mode
 			newflags |= (oldflags & I386_EFLAGS_IOPL) | I386_EFLAGS_VM;
 			set_flags(cpustate,newflags);
-			if(STACK_32BIT) {
-				REG32(ESP) += stack_size;
-			} else {
-				REG16(SP) += stack_size;
-			}
+			//if(STACK_32BIT) {
+			//REG32(ESP) += stack_size;
+			//} else {
+			//	REG16(SP) += stack_size;
+			//}
+			REG32(ESP) += 12;
+			
 		}
 		
 	}
@@ -2689,7 +2693,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 				}
 				if(newCS & 0x04)
 				{
-					if((newCS & ~0x07) >= cpustate->ldtr.limit)
+					if((newCS & ~0x07) >= (cpustate->ldtr.limit & ~0x07))
 					{
 						logerror("IRET: Return CS selector (%04x) is past LDT limit.\n",newCS);
 						FAULT(FAULT_GP,newCS & ~0x03)
@@ -2697,9 +2701,9 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 				}
 				else
 				{
-					if((newCS & ~0x07) >= cpustate->gdtr.limit)
+					if((newCS & ~0x07) >= (cpustate->gdtr.limit & ~0x07))
 					{
-						logerror("IRET: Return CS selector is past GDT limit.\n");
+						logerror("IRET: Return CS selector is past GDT limit.GDTR:LIMIT=%04X CS=%04X\n",cpustate->gdtr.limit, newCS);
 						FAULT(FAULT_GP,newCS & ~0x03)
 					}
 				}

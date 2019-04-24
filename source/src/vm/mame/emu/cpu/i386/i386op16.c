@@ -2042,14 +2042,14 @@ static void I386OP(pushf)(i386_state *cpustate)             // Opcode 0x9c
 		offset = REG32(ESP) - 2;
 	else
 		offset = (REG16(SP) - 2) & 0xffff;
-	if(!PROTECTED_MODE || !V8086_MODE || ((cpustate->IOP1) && (cpustate->IOP2))) { 
+	//if(!PROTECTED_MODE || !V8086_MODE || ((cpustate->IOP1) && (cpustate->IOP2))) { 
 		if(i386_limit_check(cpustate,SS,offset,2) == 0)
-			PUSH16(cpustate, (get_flags(cpustate) & 0xffff) | 0x0002 );
+			PUSH16(cpustate, (get_flags(cpustate) & 0xffff));
 		else
 			FAULT(FAULT_SS,0)
-	} else {
-		FAULT(FAULT_GP, 0)
-	}
+				//} else {
+				//	FAULT(FAULT_GP, 0)
+				//}
 	CYCLES(cpustate,CYCLES_PUSHF);
 }
 
@@ -3432,7 +3432,6 @@ static void I386OP(group0F01_16)(i386_state *cpustate)      // Opcode 0x0f 01
 			}
 		case 2:         /* LGDT */
 			{
-				//printf("LGDT %08x\n", modrm);
 				if(PROTECTED_MODE && cpustate->CPL) {
 					logerror("group0F01_16: LGDT() EXCEPTION(PROTECTED_MODE) / CPL set.\n");
 					FAULT(FAULT_GP,0)
@@ -3445,6 +3444,7 @@ static void I386OP(group0F01_16)(i386_state *cpustate)      // Opcode 0x0f 01
 				}
 				cpustate->gdtr.limit = READ16(cpustate,ea);
 				cpustate->gdtr.base = READ32(cpustate,ea + 2) & 0xffffff;
+				logerror("LGDT(16) PC=%08X MODRM=%02X BASE=%08X LIMIT=%04X\n", cpustate->prev_pc, modrm, cpustate->gdtr.base, cpustate->gdtr.limit);
 				CYCLES(cpustate,CYCLES_LGDT);
 				break;
 			}

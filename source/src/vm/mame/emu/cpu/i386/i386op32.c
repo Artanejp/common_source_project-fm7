@@ -1624,7 +1624,7 @@ static void I386OP(popfd)(i386_state *cpustate)             // Opcode 0x9d
 	if(i386_limit_check(cpustate,SS,offset,4) == 0)
 	{
 		value = POP32(cpustate);
-		value = value & expect_flags;
+		value = /*value & expect_flags;*/ value & ~0x00010000; // RF will always return zero
 		set_flags(cpustate,(current & ~mask) | (value & mask));  // mask out reserved bits
 	}
 	else
@@ -3212,6 +3212,7 @@ static void I386OP(group0F01_32)(i386_state *cpustate)      // Opcode 0x0f 01
 				}
 				cpustate->gdtr.limit = READ16(cpustate,ea);
 				cpustate->gdtr.base = READ32(cpustate,ea + 2);
+				logerror("LGDT(32) PC=%08X MODRM=%02X BASE=%08X LIMIT=%04X\n", cpustate->prev_pc, modrm, cpustate->gdtr.base, cpustate->gdtr.limit);
 				CYCLES(cpustate,CYCLES_LGDT);
 				break;
 			}

@@ -313,7 +313,7 @@ static void I386OP(cli)(i386_state *cpustate)               // Opcode 0xfa
 		if(cpustate->CPL > IOPL) {
 			logerror("Privilege error: I386OP(cli) CPL=%d IOPL=%d PC=%08X\n", cpustate->CPL, IOPL, cpustate->pc); 
 			FAULT(FAULT_GP,0);
-			return;
+			//return;
 		}
 	}
 	cpustate->IF = 0;
@@ -659,27 +659,27 @@ static void I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode 0x0f 20
 {
 	UINT32 oldpc = cpustate->pc;
 	UINT8 modrm = FETCH(cpustate);
-	if(modrm < 0xc0) {
-		FAULT(FAULT_UD, 0);
-		return;
-	}
-	if((PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)))) {
+	//if(modrm < 0xc0) {
+	//	FAULT(FAULT_UD, 0);
+	//	return;
+	//}
+	if((PROTECTED_MODE && (/*(V8086_MODE) ||*/ (cpustate->CPL != 0)))) {
 		logerror("Call from non-supervisor privilege: I386OP(mov_r32_cr) at %08X", oldpc); 
 		FAULT(FAULT_GP, 0);
-		return;
+		//return;
 	}
 	UINT8 cr = (modrm >> 3) & 0x7;
 	//logdebug("MOV r32 CR%d VAL=(%08X)\n", cr, cpustate->cr[cr], oldpc);
-	if(cr < 5) {
-		if(cr == 1) {
-			FAULT(FAULT_UD, 0);
-			return;
-		}
+//	if(cr < 5) {
+//		if(cr == 1) {
+//			FAULT(FAULT_UD, 0);
+//			return;
+//		}
 		STORE_RM32(modrm, cpustate->cr[cr]);
 		CYCLES(cpustate,CYCLES_MOV_CR_REG);
-	} else {
-		logerror("Index error");
-	}
+//	} else {
+//		logerror("Index error");
+//	}
 }
 
 
@@ -1841,7 +1841,7 @@ static void I386OP(sti)(i386_state *cpustate)               // Opcode 0xfb
 		if(cpustate->CPL > IOPL) {
 			logerror("Privilege error: I386OP(sti) CPL=%d IOPL=%d\n", cpustate->CPL, IOPL); 
 			FAULT(FAULT_GP,0);
-			return;
+			//return;
 		}
 	}
 	cpustate->delayed_interrupt_enable = 1;  // IF is set after the next instruction.
