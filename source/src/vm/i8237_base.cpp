@@ -140,23 +140,23 @@ void I8237_BASE::write_io(int ch, uint32_t data)
 bool I8237_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 /*
-CH0 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF REQ=1 MASK=1 MODE=FF MEM->I/O
-CH1 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF REQ=1 MASK=1 MODE=FF I/O->MEM
-CH2 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF REQ=1 MASK=1 MODE=FF VERIFY
-CH3 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF REQ=1 MASK=1 MODE=FF INVALID
+CH0 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF BANK=FFFF REQ=1 MASK=1 MODE=FF MEM->I/O
+CH1 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF BANK=FFFF REQ=1 MASK=1 MODE=FF I/O->MEM
+CH2 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF BANK=FFFF REQ=1 MASK=1 MODE=FF VERIFY
+CH3 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF BANK=FFFF REQ=1 MASK=1 MODE=FF INVALID
 */
 	static const _TCHAR *dir[4] = {
 		_T("VERIFY"), _T("I/O->MEM"), _T("MEM->I/O"), _T("INVALID")
 	};
 	my_stprintf_s(buffer, buffer_len,
-	_T("CH0 AREG=%04X CREG=%04X BAREG=%04X BCREG=%04X REQ=%d MASK=%d MODE=%02X %s\n")
-	_T("CH1 AREG=%04X CREG=%04X BAREG=%04X BCREG=%04X REQ=%d MASK=%d MODE=%02X %s\n")
-	_T("CH2 AREG=%04X CREG=%04X BAREG=%04X BCREG=%04X REQ=%d MASK=%d MODE=%02X %s\n")
-	_T("CH3 AREG=%04X CREG=%04X BAREG=%04X BCREG=%04X REQ=%d MASK=%d MODE=%02X %s"),
-	dma[0].areg, dma[0].creg, dma[0].bareg, dma[0].bcreg, (req >> 0) & 1, (mask >> 0) & 1, dma[0].mode, dir[(dma[0].mode >> 2) & 3],
-	dma[1].areg, dma[1].creg, dma[1].bareg, dma[1].bcreg, (req >> 1) & 1, (mask >> 1) & 1, dma[1].mode, dir[(dma[1].mode >> 2) & 3],
-	dma[2].areg, dma[2].creg, dma[2].bareg, dma[2].bcreg, (req >> 2) & 1, (mask >> 2) & 1, dma[2].mode, dir[(dma[2].mode >> 2) & 3],
-	dma[3].areg, dma[3].creg, dma[3].bareg, dma[3].bcreg, (req >> 3) & 1, (mask >> 3) & 1, dma[3].mode, dir[(dma[3].mode >> 2) & 3]);
+	_T("CH0 AREG=%04X CREG=%04X BAREG=%04X BCREG=%04X BANK=%04X REQ=%d MASK=%d MODE=%02X %s\n")
+	_T("CH1 AREG=%04X CREG=%04X BAREG=%04X BCREG=%04X BANK=%04X REQ=%d MASK=%d MODE=%02X %s\n")
+	_T("CH2 AREG=%04X CREG=%04X BAREG=%04X BCREG=%04X BANK=%04X REQ=%d MASK=%d MODE=%02X %s\n")
+	_T("CH3 AREG=%04X CREG=%04X BAREG=%04X BCREG=%04X BANK=%04X REQ=%d MASK=%d MODE=%02X %s"),
+	dma[0].areg, dma[0].creg, dma[0].bareg, dma[0].bcreg, dma[0].bankreg, (req >> 0) & 1, (mask >> 0) & 1, dma[0].mode, dir[(dma[0].mode >> 2) & 3],
+	dma[1].areg, dma[1].creg, dma[1].bareg, dma[1].bcreg, dma[1].bankreg, (req >> 1) & 1, (mask >> 1) & 1, dma[1].mode, dir[(dma[1].mode >> 2) & 3],
+	dma[2].areg, dma[2].creg, dma[2].bareg, dma[2].bcreg, dma[2].bankreg, (req >> 2) & 1, (mask >> 2) & 1, dma[2].mode, dir[(dma[2].mode >> 2) & 3],
+	dma[3].areg, dma[3].creg, dma[3].bareg, dma[3].bcreg, dma[3].bankreg, (req >> 3) & 1, (mask >> 3) & 1, dma[3].mode, dir[(dma[3].mode >> 2) & 3]);
 	return true;
 }
 
