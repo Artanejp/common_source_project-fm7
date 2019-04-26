@@ -16,7 +16,7 @@ void MEMORY::initialize()
 {
 	// allocate tables here to support multiple instances with different address range
 	if(rd_table == NULL) {
-		int bank_num = addr_max / bank_size;
+		int64_t bank_num = addr_max / bank_size;
 		
 		rd_dummy = (uint8_t *)malloc(bank_size);
 		wr_dummy = (uint8_t *)malloc(bank_size);
@@ -34,7 +34,7 @@ void MEMORY::initialize()
 			rd_table[i].wait = 0;
 		}
 		for(int i = 0;; i++) {
-			if(bank_size == (1 << i)) {
+			if(bank_size == (int64_t)(1 << i)) {
 				addr_shift = i;
 				break;
 			}

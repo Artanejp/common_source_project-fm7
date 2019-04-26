@@ -183,7 +183,7 @@ void MEMBUS::reset()
 
 	// SASI
 #if defined(SUPPORT_SASI_IF)
-	sasi_bios_selected = false;
+	sasi_bios_selected = true;
 	sasi_bios_ram_selected = false; // OK?
 #endif
 	// SASI
@@ -756,7 +756,7 @@ void MEMBUS::update_bios()
 	#if defined(SUPPORT_16_COLORS)
 	set_memory_mapped_io_rw(0xe0000, 0xe7fff, d_display);
 	#endif
-	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
+	#if defined(SUPPORT_32BIT_ADDRESS)
 	if(is_shadow_bank_a0000h) {
 		set_memory_rw(0xa0000, 0xbffff, &(shadow_bank_i386_80000h[0x20000]));
 	}// else {
@@ -770,13 +770,13 @@ void MEMBUS::update_bios()
 	set_memory_r(0xd6000, 0xd6fff, fd_bios_2dd);
 	set_memory_r(0xd7000, 0xd7fff, fd_bios_2hd);
 #endif
-#if defined(SUPPORT_BIOS_RAM)
+//#if defined(SUPPORT_BIOS_RAM)
 	#if defined(SUPPORT_32BIT_ADDRESS)
 	if(is_shadow_bank_80000h) {
 		set_memory_rw(0x80000, 0x9ffff, &(shadow_bank_i386_80000h[0x00000]));
-	}// else {
-	//	set_memory_rw(0x80000, 0x9ffff, &(ram[0x80000]));
-	//}		
+	} else {
+		set_memory_rw(0x80000, 0x9ffff, &(ram[0x80000]));
+	}		
 	#endif
 	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
 	#if !defined(SUPPORT_HIRESO)
@@ -788,9 +788,12 @@ void MEMBUS::update_bios()
 	#else
 	unset_memory_rw(0xc0000, 0xe7fff);
 	#endif
+	#if defined(SUPPORT_BIOS_RAM)
 	if(shadow_ram_selected) {
 		set_memory_rw(0xc0000, 0xe7fff, shadow_ram);
-	} else {
+	} else
+	#endif
+	{
 		#if defined(SUPPORT_HIRESO)
 		set_memory_mapped_io_rw(0xe0000, 0xe4fff, d_display);
 		#else		
@@ -808,7 +811,7 @@ void MEMBUS::update_bios()
 		#endif
 	}
 	#endif
-#endif
+//#endif
 	
 #if defined(SUPPORT_ITF_ROM)
 	if(itf_selected) {

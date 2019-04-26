@@ -117,8 +117,8 @@ public:
 	bool read_image(const _TCHAR *file_path, uint8_t *buffer, int size);
 	bool write_image(const _TCHAR *file_path, uint8_t *buffer, int size);
 	
-	int addr_max;
-	int bank_size;
+	int64_t addr_max;
+	int64_t bank_size;
 };
 
 #endif
