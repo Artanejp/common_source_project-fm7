@@ -657,13 +657,14 @@ static void I386OP(mov_rm8_i8)(i386_state *cpustate)        // Opcode 0xc6
 
 static void I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode 0x0f 20
 {
+#if 0
 	UINT32 oldpc = cpustate->pc;
 	UINT8 modrm = FETCH(cpustate);
 	//if(modrm < 0xc0) {
 	//	FAULT(FAULT_UD, 0);
 	//	return;
 	//}
-	if((PROTECTED_MODE && (/*(V8086_MODE) ||*/ (cpustate->CPL != 0)))) {
+	if((PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)))) {
 		logerror("Call from non-supervisor privilege: I386OP(mov_r32_cr) at %08X", oldpc); 
 		FAULT(FAULT_GP, 0);
 		//return;
@@ -680,6 +681,15 @@ static void I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode 0x0f 20
 //	} else {
 //		logerror("Index error");
 //	}
+#else
+	if(PROTECTED_MODE && cpustate->CPL)
+		FAULT(FAULT_GP, 0);
+	uint8_t modrm = FETCH(cpustate);
+	uint8_t cr = (modrm >> 3) & 0x7;
+
+	STORE_RM32(modrm, cpustate->cr[cr]);
+	CYCLES(cpustate, CYCLES_MOV_CR_REG);
+#endif
 }
 
 
@@ -761,6 +771,7 @@ static void I386OP(mov_r32_dr)(i386_state *cpustate)        // Opcode 0x0f 21
 
 static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 {
+#if 0
 	UINT32 oldpc = cpustate->pc;
 	UINT8 modrm = FETCH(cpustate);
 	if(modrm < 0xc0) {
@@ -871,6 +882,32 @@ static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 			return;
 	}
 	cpustate->cr[cr] = data;
+#else
+	if((PROTECTED_MODE) && cpustate->CPL)
+		FAULT(FAULT_GP, 0);
+	uint8_t modrm = FETCH(cpustate);
+	uint8_t cr = (modrm >> 3) & 0x7;
+	uint32_t data = LOAD_RM32(modrm);
+	switch(cr)
+	{
+		case 0:
+			data &= 0xfffeffff; // wp not supported on 386
+			CYCLES(cpustate, CYCLES_MOV_REG_CR0);
+			//if (PROTECTED_MODE != BIT(data, 0))
+			//	debugger_privilege_hook();
+			break;
+		case 2: CYCLES(cpustate, CYCLES_MOV_REG_CR2); break;
+		case 3:
+			CYCLES(cpustate, CYCLES_MOV_REG_CR3);
+			vtlb_flush_dynamic(cpustate->vtlb);
+			break;
+	case 4: CYCLES(cpustate, 1); break; // TODO
+		default:
+			logerror("i386: mov_cr_r32 CR%d!\n", cr);
+			return;
+	}
+	cpustate->cr[cr] = data;
+#endif
 }
 
 static void I386OP(mov_dr_r32)(i386_state *cpustate)        // Opcode 0x0f 23

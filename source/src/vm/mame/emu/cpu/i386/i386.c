@@ -981,7 +981,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 				if(V8086_MODE)
 				{
 					// ***
-					//logerror("IRQ (%08x): Interrupt during V8086 task\n",cpustate->pc);
+					//logerror("IRQ (%08x): Interrupt during V8086 task TYPE=%08X IRQ=%08X GATE=%d\n",cpustate->pc, type, irq, irq_gate);
 					if(type & 0x08)
 					{
 						PUSH32SEG(cpustate,cpustate->sreg[GS].selector & 0xffff);
@@ -1062,7 +1062,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 		try
 		{
 			// this is ugly but the alternative is worse
-			if(/*type != 0x0e && type != 0x0f*/ (type & 0x08) == 0)  // if not 386 interrupt or trap gate
+			if(/*type != 0x0e && type != 0x0f */(type & 0x08) == 0)  // if not 386 interrupt or trap gate
 			{
 				PUSH16(cpustate, oldflags & 0xffff );
 				PUSH16(cpustate, cpustate->sreg[CS].selector );
@@ -1073,7 +1073,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 			}
 			else
 			{
-				PUSH32(cpustate, oldflags & 0x00ffffff );
+				PUSH32(cpustate, oldflags /*& 0x00ffffff */);
 				PUSH32SEG(cpustate, cpustate->sreg[CS].selector );
 				if(irq == 3 || irq == 4 || irq == 9 || irq_gate == 1)
 					PUSH32(cpustate, cpustate->eip );
@@ -1112,7 +1112,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 		//cpustate->eflags &= ~0xffc00002;
 		cpustate->eflags = get_flags(cpustate);
 		set_flags(cpustate, cpustate->eflags);
-#if 1		
+#if 0		
 		if((irq >= 0x10) && (irq_gate == 1) && (cpustate->ext == 0)) {
 			// Try to call pseudo bios
 			i386_load_segment_descriptor(cpustate,CS);
@@ -1512,7 +1512,7 @@ static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 of
 	DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 	RPL = segment & 0x03;  // requested privilege level
 	
-	//logerror("JMP: protected mode SEG=%04x OFFSET=%08x VALID=%s BASE=%08x LIMIT=%08x FLAGS=%08x INDIRECT=%s OP32=%s V8086=%s\n", seg, off,  (desc.valid) ? "YES" : "NO", desc.base, desc.limit, desc.flags, (indirect != 0) ? "YES" : "NO", (operand32 != 0) ? "YES" : "NO" ,(V8086_MODE) ? "YES" : "NO");
+	//logerror("JMP: protected mode PC=%08X SEG=%04x OFFSET=%08x VALID=%s BASE=%08x LIMIT=%08x FLAGS=%08x INDIRECT=%s OP32=%s V8086=%s CPL=%d DPL=%d RPL=%d\n", cpustate->prev_pc, seg, off,  (desc.valid) ? "YES" : "NO", desc.base, desc.limit, desc.flags, (indirect != 0) ? "YES" : "NO", (operand32 != 0) ? "YES" : "NO" ,(V8086_MODE) ? "YES" : "NO", CPL, DPL, RPL);
 
 	if((desc.flags & 0x0018) == 0x0018)
 	{
@@ -1784,7 +1784,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 	CPL = cpustate->CPL;  // current privilege level
 	DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 	RPL = selector & 0x03;  // requested privilege level
-	logerror("CALL: protected mode SEG=%04x OFFSET=%08x VALID=%s BASE=%08x LIMIT=%08x FLAGS=%08x INDIRECT=%s OP32=%s V8086=%s\n", seg, off,  (desc.valid) ? "YES" : "NO", desc.base, desc.limit, desc.flags, (indirect != 0) ? "YES" : "NO", (operand32 != 0) ? "YES" : "NO" ,(V8086_MODE) ? "YES" : "NO");
+	logerror("CALL: protected mode PC=%08X SEG=%04x OFFSET=%08x VALID=%s BASE=%08x LIMIT=%08x FLAGS=%08x INDIRECT=%s OP32=%s V8086=%s CPL=%d DPL=%d RPL=%d\n", cpustate->prev_pc, seg, off,  (desc.valid) ? "YES" : "NO", desc.base, desc.limit, desc.flags, (indirect != 0) ? "YES" : "NO", (operand32 != 0) ? "YES" : "NO" ,(V8086_MODE) ? "YES" : "NO", CPL, DPL, RPL);
 	if((desc.flags & 0x0018) == 0x18)  // is a code segment
 	{
 		if(desc.flags & 0x0004)
@@ -2240,6 +2240,7 @@ static void i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 op
 	CPL = cpustate->CPL;  // current privilege level
 	DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 	RPL = newCS & 0x03;
+	//logerror("RETF: protected mode PC=%08X SEG=%04x VALID=%s BASE=%08x LIMIT=%08x FLAGS=%08x OP32=%s V8086=%s CPL=%d DPL=%d RPL=%d\n", cpustate->prev_pc, newCS,   (desc.valid) ? "YES" : "NO", desc.base, desc.limit, desc.flags, (operand32 != 0) ? "YES" : "NO" ,(V8086_MODE) ? "YES" : "NO", CPL, DPL, RPL);
 
 	if(RPL < CPL)
 	{
@@ -2602,7 +2603,8 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 	}
 	else
 	{
-		if((newflags & 0x00020000) && (cpustate->CPL == 0)) // if returning to virtual 8086 mode
+		UINT32 oldflags = get_flags(cpustate);
+		if((newflags & 0x00020000) /* && (cpustate->CPL == 0)*/) // if returning to virtual 8086 mode
 		{
 			// 16-bit iret can't reach here
 			newESP = READ32(cpustate, ea+12);
@@ -2625,6 +2627,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 			POP32(cpustate);  // already set flags
 			newESP = POP32(cpustate);
 			newSS = POP32(cpustate) & 0xffff;
+			//logerror("IRET: Return to V8086 MODE: old CPL=%d new CPL=3 PC=%08X FLAGS:%08X -> %08X SS:ESP = %04X:%08X -> %04X:%08X\n", cpustate->CPL, cpustate->pc, oldflags, newflags, cpustate->sreg[SS].selector, REG32(ESP), newSS, newESP);
 			cpustate->sreg[ES].selector = POP32(cpustate) & 0xffff;
 			cpustate->sreg[DS].selector = POP32(cpustate) & 0xffff;
 			cpustate->sreg[FS].selector = POP32(cpustate) & 0xffff;
@@ -2636,7 +2639,6 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 			i386_load_segment_descriptor(cpustate,FS);
 			i386_load_segment_descriptor(cpustate,GS);
 			i386_load_segment_descriptor(cpustate,SS);
-			//logerror("IRET: Return to V8086 MODE: old CPL=%d new CPL=3 PC=%08X\n", cpustate->CPL, cpustate->pc);
 			cpustate->CPL = 3;  // Virtual 8086 tasks are always run at CPL 3
 		}
 		else
