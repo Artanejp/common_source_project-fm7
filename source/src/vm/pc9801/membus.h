@@ -62,9 +62,9 @@ private:
 	bool shadow_ram_selected;
 //#if defined(_PC9801RA)
 //	uint8_t shadow_ram[0x8000]; // 0xe0000 - 0xe8000
-#if defined(SUPPORT_32BIT_ADDRESS)
-	uint8_t shadow_ram[0x28000]; // 0xc0000 - 0xe7fff
-#endif
+//#if defined(SUPPORT_32BIT_ADDRESS)
+//	uint8_t shadow_ram[0x28000]; // 0xc0000 - 0xe7fff
+//#endif
 	
 #endif
 	bool last_access_is_interam;
