@@ -765,7 +765,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 			//CPU_RESET_CALL(CPU_MODEL);
 			cpu_reset_generic(cpustate);
 			cpustate->shutdown = 1;
-			cpustate->parent_device->write_signal(SIG_I386_FORCE_RESET, 0xfffffff, 0xffffffff);
+			cpustate->parent_device->write_signal(SIG_I386_NOTIFY_RESET, 0xfffffff, 0xffffffff);
 			return;
 		}
 

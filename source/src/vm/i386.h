@@ -19,7 +19,7 @@
 #include "device.h"
 
 #define SIG_I386_A20			1
-#define SIG_I386_FORCE_RESET	2
+#define SIG_I386_NOTIFY_RESET	2
 //#ifdef USE_DEBUGGER
 class DEBUGGER;
 //#endif

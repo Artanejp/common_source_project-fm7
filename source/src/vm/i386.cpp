@@ -444,7 +444,7 @@ void I386::write_signal(int id, uint32_t data, uint32_t mask)
 		cpustate->busreq = (data & mask) ? 1 : 0;
 	} else if(id == SIG_I386_A20) {
 		i386_set_a20_line(cpustate, data & mask);
-	} else if(id == SIG_I386_FORCE_RESET) {
+	} else if(id == SIG_I386_NOTIFY_RESET) {
 		write_signals(&outputs_extreset, ((data & mask == 0) ? 0x00000000 : 0xffffffff));
 	}
 }
