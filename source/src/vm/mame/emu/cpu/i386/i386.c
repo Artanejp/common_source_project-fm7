@@ -49,7 +49,7 @@ static void build_opcode_table(i386_state *cpustate, UINT32 features);
 static void zero_state(i386_state *cpustate);
 static void pentium_smi(i386_state* cpustate);
 
-#define FAULT(fault,error) {logerror("FAULT(%s , %s) PC=%08x V8086=%s PROTECTED=%s\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO"); cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,0,error, 0); return;}
+#define FAULT(fault,error) {logerror("FAULT(%s , %s) PC=%08x V8086=%s PROTECTED=%s SP=%08X:%08X\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO", (PROTECTED_MODE) ? cpustate->sreg[SS].base : (cpustate->sreg[SS].selector << 4), REG32(ESP)); cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,0,error, 0); return;}
 #define FAULT_EXP(fault,error) {logerror("FAULT_EXP(%s , %s) PC=%08x V8086=%s PROTECTED=%s\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO"); cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,trap_level+1,error, 0); return;}
 
 static void cpu_reset_generic(i386_state* cpustate)
@@ -575,7 +575,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 		stack.selector = selector;
 		i386_load_protected_mode_segment(cpustate,&stack,NULL);
 		DPL = (stack.flags >> 5) & 0x03;
-		logdebug("SReg load: SELECTOR=%04X FLAGS=%04X BASE=%08X LIMIT=%08X VALID=%s %s\n", stack.selector, stack.flags, stack.base, stack.limit, (stack.valid) ? "YES" : "NO", (stack.d == 0) ? "16bit SP" : "32bit ESP");
+		//logdebug("SReg load: SELECTOR=%04X FLAGS=%04X BASE=%08X LIMIT=%08X VALID=%s %s\n", stack.selector, stack.flags, stack.base, stack.limit, (stack.valid) ? "YES" : "NO", (stack.d == 0) ? "16bit SP" : "32bit ESP");
 		if((selector & ~0x0003) == 0)
 		{
 			logerror("SReg Load (%08x): Selector is null.\n",cpustate->pc);
@@ -765,6 +765,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 			//CPU_RESET_CALL(CPU_MODEL);
 			cpu_reset_generic(cpustate);
 			cpustate->shutdown = 1;
+			cpustate->parent_device->write_signal(SIG_I386_FORCE_RESET, 0xfffffff, 0xffffffff);
 			return;
 		}
 
@@ -1784,7 +1785,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 	CPL = cpustate->CPL;  // current privilege level
 	DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 	RPL = selector & 0x03;  // requested privilege level
-	logerror("CALL: protected mode PC=%08X SEG=%04x OFFSET=%08x VALID=%s BASE=%08x LIMIT=%08x FLAGS=%08x INDIRECT=%s OP32=%s V8086=%s CPL=%d DPL=%d RPL=%d\n", cpustate->prev_pc, seg, off,  (desc.valid) ? "YES" : "NO", desc.base, desc.limit, desc.flags, (indirect != 0) ? "YES" : "NO", (operand32 != 0) ? "YES" : "NO" ,(V8086_MODE) ? "YES" : "NO", CPL, DPL, RPL);
+	//logerror("CALL: protected mode PC=%08X SEG=%04x OFFSET=%08x VALID=%s BASE=%08x LIMIT=%08x FLAGS=%08x INDIRECT=%s OP32=%s V8086=%s CPL=%d DPL=%d RPL=%d\n", cpustate->prev_pc, seg, off,  (desc.valid) ? "YES" : "NO", desc.base, desc.limit, desc.flags, (indirect != 0) ? "YES" : "NO", (operand32 != 0) ? "YES" : "NO" ,(V8086_MODE) ? "YES" : "NO", CPL, DPL, RPL);
 	if((desc.flags & 0x0018) == 0x18)  // is a code segment
 	{
 		if(desc.flags & 0x0004)
@@ -2460,7 +2461,7 @@ static void i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 op
 			logerror("RETF: SS segment is not present.\n");
 			FAULT(FAULT_GP,newSS & ~0x03)
 		}
-		if(cpustate->CPL != (newCS & 0x03)) logerror("RETF: Change CPL from %d to %d CS=%04X PC=%08X\n", cpustate->CPL, newCS & 0x03, newCS, cpustate->pc);
+		//if(cpustate->CPL != (newCS & 0x03)) logerror("RETF: Change CPL from %d to %d CS=%04X PC=%08X\n", cpustate->CPL, newCS & 0x03, newCS, cpustate->pc);
 		cpustate->CPL = newCS & 0x03;
 
 		/* Load new SS:(E)SP */
@@ -2947,7 +2948,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 					REG32(ESP) = newESP;
 					cpustate->sreg[SS].selector = newSS & 0xffff;
 				}
-				if(cpustate->CPL != (newCS & 0x03)) logerror("IRET: Change CPL from %d to %d PC=%08X\n", cpustate->CPL, newCS & 0x03, cpustate->pc);
+				//if(cpustate->CPL != (newCS & 0x03)) logerror("IRET: Change CPL from %d to %d PC=%08X\n", cpustate->CPL, newCS & 0x03, cpustate->pc);
 				cpustate->CPL = newCS & 0x03;
 				i386_load_segment_descriptor(cpustate,SS);
 

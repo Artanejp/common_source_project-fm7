@@ -169,7 +169,7 @@ void MEMBUS::reset()
 	shadow_ram_selected = true;
 #endif
 #if defined(SUPPORT_ITF_ROM)
-	itf_selected = true;
+//	itf_selected = true;
 #endif
 	update_bios();
 	
@@ -822,6 +822,9 @@ void MEMBUS::update_bios()
 		MEMORY::copy_table_rw(0x00ffa000, 0x000fa000, 0x000fffff);
 		MEMORY::copy_table_rw(0x00ee8000, 0x000e8000, 0x000fffff);
 	#endif
+#if defined(SUPPORT_BIOS_RAM)
+//		set_memory_w(0x00100000 - sizeof(bios_ram), 0x000fffff, bios_ram);
+#endif
 		return;
 	}
 #endif
@@ -844,7 +847,7 @@ void MEMBUS::update_bios()
 
 }
 
-#if !defined(SUPPORT_HIRESO)
+
 void MEMBUS::update_sound_bios()
 {
 	if(sound_bios_selected) {
@@ -921,7 +924,7 @@ void MEMBUS::update_nec_ems()
 	}
 }
 #endif
-#endif
+
 
 #define STATE_VERSION	6
 

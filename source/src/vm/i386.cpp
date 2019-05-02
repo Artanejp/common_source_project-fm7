@@ -423,6 +423,7 @@ void I386::reset()
 	i386_state *cpustate = (i386_state *)opaque;
 	logerror(_T("I386::reset()"));
 	cpu_reset_generic(cpustate);
+	write_signals(&outputs_extreset, 0xffffffff);
 }
 
 int I386::run(int cycles)
@@ -443,6 +444,8 @@ void I386::write_signal(int id, uint32_t data, uint32_t mask)
 		cpustate->busreq = (data & mask) ? 1 : 0;
 	} else if(id == SIG_I386_A20) {
 		i386_set_a20_line(cpustate, data & mask);
+	} else if(id == SIG_I386_FORCE_RESET) {
+		write_signals(&outputs_extreset, ((data & mask == 0) ? 0x00000000 : 0xffffffff));
 	}
 }
 

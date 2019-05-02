@@ -18,8 +18,8 @@
 #include "../emu.h"
 #include "device.h"
 
-#define SIG_I386_A20	1
-
+#define SIG_I386_A20			1
+#define SIG_I386_FORCE_RESET	2
 //#ifdef USE_DEBUGGER
 class DEBUGGER;
 //#endif
@@ -38,7 +38,7 @@ private:
 	DEBUGGER *d_debugger;
 //#endif
 	void *opaque;
-	
+	outputs_t outputs_extreset;
 public:
 	I386(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -67,6 +67,7 @@ public:
 //#elif defined(HAS_PENTIUM4)
 //		set_device_name(_T("Pentium4 CPU"));
 //#endif
+		initialize_output_signals(&outputs_extreset);
 		set_device_name(_T("Intel i80x86 CPU"));
 	}
 	~I386() {}
@@ -125,6 +126,10 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
+	void set_context_extreset(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_extreset, device, id, mask);
+	}
 	void set_context_mem(DEVICE* device)
 	{
 		d_mem = device;

@@ -28,6 +28,23 @@ void CPUREG::reset()
 	nmi_enabled = false;
 }
 
+void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
+{
+	if(ch == SIG_CPU_NMI) {
+		out_debug_log("NMI\n");
+		//if(nmi_enabled) {
+			write_signals(&outputs_nmi, data);
+		//}
+	} else if(ch == SIG_CPUREG_RESET) {
+		out_debug_log("RESET FROM CPU!!!\n");
+		uint8_t reset_reg = d_pio->read_signal(SIG_I8255_PORT_C);
+		reset_reg = reset_reg & (uint8_t)(~0x20); // Reset SHUT1
+		d_pio->write_signal(SIG_I8255_PORT_C, reset_reg, 0xff);
+		d_cpu->set_address_mask(0x000fffff);
+		//d_cpu->reset();
+	}		
+}
+	
 void CPUREG::write_io8(uint32_t addr, uint32_t data)
 {
 	//out_debug_log(_T("I/O WRITE: %04x %04x\n"), addr, data);

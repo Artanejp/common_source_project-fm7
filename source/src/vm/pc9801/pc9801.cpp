@@ -364,6 +364,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	*/
 	
 	// set contexts
+	
+#if defined(HAS_I386) || defined(HAS_I486)
+	cpu->set_context_extreset(cpureg, SIG_CPUREG_RESET, 0xffffffff);
+#endif
 	event->set_context_cpu(cpu, cpu_clocks);
 #if defined(SUPPORT_320KB_FDD_IF)
 	event->set_context_cpu(cpu_sub, 4000000);

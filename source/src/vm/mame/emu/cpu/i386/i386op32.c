@@ -3212,7 +3212,7 @@ static void I386OP(group0F01_32)(i386_state *cpustate)      // Opcode 0x0f 01
 				}
 				cpustate->gdtr.limit = READ16(cpustate,ea);
 				cpustate->gdtr.base = READ32(cpustate,ea + 2);
-				logerror("LGDT(32) PC=%08X MODRM=%02X BASE=%08X LIMIT=%04X\n", cpustate->prev_pc, modrm, cpustate->gdtr.base, cpustate->gdtr.limit);
+				//logerror("LGDT(32) PC=%08X MODRM=%02X BASE=%08X LIMIT=%04X\n", cpustate->prev_pc, modrm, cpustate->gdtr.base, cpustate->gdtr.limit);
 				CYCLES(cpustate,CYCLES_LGDT);
 				break;
 			}

@@ -18,11 +18,12 @@
 #include "../../emu.h"
 #include "../device.h"
 
+#define SIG_CPUREG_RESET 1
 #if defined(SUPPORT_32BIT_ADDRESS)
-class I386;
-#else
-class I286;
+#include "../i386.h"
 #endif
+//#include "../i286.h"
+class I286;
 
 namespace PC9801 {
 
@@ -34,13 +35,16 @@ private:
 #else
 	I286 *d_cpu;
 #endif
+	I286 *d_v30;
 	DEVICE* d_mem;
 	DEVICE* d_pio;
 	bool nmi_enabled;
+	outputs_t outputs_nmi; // NMI must route via CPUREG::
 	
 public:
 	CPUREG(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		initialize_output_signals(&outputs_nmi);
 		set_device_name(_T("CPU I/O"));
 	}
 	~CPUREG() {}
@@ -49,6 +53,8 @@ public:
 	void reset();
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
+	// NOTE: NMI must route CPUREG::, should not connect directly.20190502 K.O 
+	void write_signal(int ch, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
@@ -59,7 +65,16 @@ public:
 #endif
 	{
 		d_cpu = device;
+		register_output_signal(&outputs_nmi, device, SIG_CPU_NMI, 0xffffffff, 0);
 	}
+	// This will be feature developing, still not implement V30 feature.20190502 K.O
+#if 0
+	void set_context_v30(I286* device)
+	{
+		d_v30 = device;
+		register_output_signal(&outputs_nmi, device, SIG_CPU_NMI, 0xffffffff);
+	}
+#endif
 	void set_context_membus(DEVICE* device)
 	{
 		d_mem = device;
