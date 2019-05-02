@@ -424,6 +424,26 @@ void DISPLAY::reset()
 	save_memsw();
 	font_code = 0;
 	font_line = 0;
+	for(int i = 0x00; i < 0x08; i++) {
+		bank_table[i] = 0x80000000; // Disable
+	}
+	for(int i = 0x08; i < 0x0a; i++) {
+		bank_table[i] = 0x80000000; // Disable(Enable to Modify)
+	}
+	for(int i = 0x0a; i < 0x0c; i++) {
+		bank_table[i] = i * 0x10000; // Enable(Enable to Modify)
+	}
+#if defined(SUPPORT_16_COLORS)
+	for(int i = 0x0c; i < 0x0f; i++) {
+		bank_table[i] = i * 0x10000; // Enable (Unable to Modify)
+	}
+#else
+	for(int i = 0x0c; i < 0x0e; i++) {
+		bank_table[i] = i * 0x10000; // Disable
+	}
+	bank_table[0x0e] = 0x80000000; // ToDo: Hi Reso
+#endif
+	bank_table[0x0f] = 0x80000000; // ToDo: Hi Reso
 //	font_lr = 0;
 }
 
@@ -435,6 +455,21 @@ void DISPLAY::event_frame()
 	} else if(crtv == 1) {
 		d_pic->write_signal(SIG_I8259_CHIP0 | SIG_I8259_IR2, 1, 1);
 		crtv = 0;
+	}
+}
+
+void DISPLAY::write_signal(int ch, uint32_t data, uint32_t mask)
+{
+	if(ch == SIG_DISPLAY98_SET_PAGE_A0) {
+		data = data & 0x000e0000; // ToDo: Hi RESO
+		if((data < 0x000a0000) || (data >= 0x000f0000)) data = 0x80000000;
+		bank_table[0x0a] = data;
+		bank_table[0x0b] = data + 0x00010000;
+	} else if(ch == SIG_DISPLAY98_SET_PAGE_80) {
+		data = data & 0x000e0000; // ToDo: Hi RESO
+		if((data < 0x000a0000) || (data >= 0x000f0000)) data = 0x80000000;
+		bank_table[0x08] = data;
+		bank_table[0x09] = data + 0x00010000;
 	}
 }
 
@@ -818,6 +853,10 @@ uint32_t DISPLAY::read_io8(uint32_t addr)
 
 void DISPLAY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
+	uint32_t idx = (addr & 0x000f0000) >> 16;
+	if(bank_table[idx] >= 0x80000000) return;
+	addr = bank_table[idx] | (addr & 0x0000ffff);
+	
 	addr = addr & 0x000fffff; // For 32bit
 	uint32_t naddr = (addr & 0xf8000) >> 12;
 	bool is_tvram = false;
@@ -897,6 +936,10 @@ void DISPLAY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 
 void DISPLAY::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 {
+	uint32_t idx = (addr & 0x000f0000) >> 16;
+	if(bank_table[idx] >= 0x80000000) return;
+	addr = bank_table[idx] | (addr & 0x0000ffff);
+	
 	addr = addr & 0x000fffff; // For 32bit
 	uint32_t naddr = (addr & 0xf8000) >> 12;
 	bool is_tvram = false;
@@ -947,6 +990,10 @@ void DISPLAY::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 
 uint32_t DISPLAY::read_memory_mapped_io8(uint32_t addr)
 {
+	uint32_t idx = (addr & 0x000f0000) >> 16;
+	if(bank_table[idx] >= 0x80000000) return;
+	addr = bank_table[idx] | (addr & 0x0000ffff);
+	
 	addr = addr & 0x000fffff; // For 32bit
 	uint32_t naddr = (addr & 0xf8000) >> 12;
 	bool is_tvram = false;
@@ -1022,6 +1069,10 @@ uint32_t DISPLAY::read_memory_mapped_io8(uint32_t addr)
 
 uint32_t DISPLAY::read_memory_mapped_io16(uint32_t addr)
 {
+	uint32_t idx = (addr & 0x000f0000) >> 16;
+	if(bank_table[idx] >= 0x80000000) return;
+	addr = bank_table[idx] | (addr & 0x0000ffff);
+	
 	addr = addr & 0x000fffff; // For 32bit
 	uint32_t naddr = (addr & 0xf8000) >> 12;
 	bool is_tvram = false;
@@ -2924,7 +2975,7 @@ void DISPLAY::draw_gfx_screen()
 	}
 }
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 
 bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3001,7 +3052,8 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(font_line);
 //	state_fio->StateValue(font_lr);
 	state_fio->StateValue(b_gfx_ff);
- 	
+	state_fio->StateArray(bank_table, sizeof(bank_table), 1);
+	
  	// post process
 #if defined(SUPPORT_2ND_VRAM) && !defined(SUPPORT_HIRESO)
 	if(loading) {

@@ -24,6 +24,9 @@
 #include "../../emu.h"
 #include "../device.h"
 
+#define SIG_DISPLAY98_SET_PAGE_80 1
+#define SIG_DISPLAY98_SET_PAGE_A0 2
+
 class UPD7220;
 
 namespace PC9801 {
@@ -149,7 +152,8 @@ private:
 	
 	uint8_t screen_chr[SCREEN_HEIGHT][SCREEN_WIDTH + 1];
 	uint8_t screen_gfx[SCREEN_HEIGHT][SCREEN_WIDTH];
-	
+
+	uint32_t bank_table[0x10];
 #if !defined(SUPPORT_HIRESO)
 	void kanji_copy(uint8_t *dst, uint8_t *src, int from, int to);
 #else
@@ -232,6 +236,7 @@ public:
 	void write_dma_io16(uint32_t addr, uint32_t data);
 	uint32_t read_dma_io8(uint32_t addr);
 	uint32_t read_dma_io16(uint32_t addr);
+	void write_signal(int ch, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
