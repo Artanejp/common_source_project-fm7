@@ -26,7 +26,7 @@ namespace PC9801 {
 	class DISPLAY;
 }
 #if defined(SUPPORT_32BIT_ADDRESS)
-	#define RAM_SIZE	0x800000	// 8MB
+	#define RAM_SIZE	0xe00000	// 14MB
 #elif defined(SUPPORT_24BIT_ADDRESS)
 	#define RAM_SIZE	0x400000	// 4MB
 #else
@@ -63,7 +63,7 @@ private:
 //#if defined(_PC9801RA)
 //	uint8_t shadow_ram[0x8000]; // 0xe0000 - 0xe8000
 #if defined(SUPPORT_32BIT_ADDRESS)
-	uint8_t shadow_ram[0x40000]; // 0xc0000 - 0xfffff
+	uint8_t shadow_ram[0x28000]; // 0xc0000 - 0xe7fff
 #endif
 	
 #endif
@@ -142,14 +142,6 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-#if 0
-	uint32_t read_data8(uint32_t addr);
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data16(uint32_t addr);
-	void write_data16(uint32_t addr, uint32_t data);
-	uint32_t read_data32(uint32_t addr);
-	void write_data32(uint32_t addr, uint32_t data);
-#endif
 	uint32_t read_dma_data8(uint32_t addr);
 	void write_dma_data8(uint32_t addr, uint32_t data);
 #endif

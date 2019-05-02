@@ -155,6 +155,7 @@ void MEMBUS::initialize()
 //	ide_bios_ram_selected = false;
 #endif
 	page08_intram_selected = false;	
+	page08_intram_selected = true;	
 	// EMS
 #if defined(SUPPORT_NEC_EMS)
 	memset(nec_ems, 0, sizeof(nec_ems));
@@ -175,7 +176,7 @@ void MEMBUS::reset()
 	shadow_ram_selected = false;
 #endif
 #if defined(SUPPORT_ITF_ROM)
-//	itf_selected = true;
+	//itf_selected = true;
 #endif
 	
 #if !defined(SUPPORT_HIRESO)
@@ -210,7 +211,7 @@ void MEMBUS::reset()
 	window_a0000h = 0x120000;
 #endif
 #endif
-	page08_intram_selected = false;	
+
 
 	update_bios();
 	copy_region_outer_upper_memory(0x00000, 0xfffff);
@@ -482,185 +483,6 @@ uint32_t MEMBUS::read_io8(uint32_t addr)
 }
 
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-#if 0
-uint32_t MEMBUS::read_data8(uint32_t addr)
-{
-	bool n_hit = true;
-	//addr = translate_address_with_window(addr, n_hit);
-	if(!n_hit) {
-		return 0xff;
-	}
-	if(addr < 0x10000) {
-		last_access_is_interam = false;
-	}
-#if defined(SUPPORT_24BIT_ADDRESS)
-	if(addr < UPPER_MEMORY_24BIT) {
-		last_access_is_interam = true;
-		return MEMORY::read_data8(addr);
-	}
-#elif defined(SUPPORT_32BIT_ADDRESS)
-	if(addr < UPPER_MEMORY_32BIT) {
-		last_access_is_interam = true;
-		return MEMORY::read_data8(addr);
-	}
-#endif
-	return MEMORY::read_data8(addr & 0xfffff);
-}
-
-uint32_t MEMBUS::read_data16(uint32_t addr)
-{
-	if(((addr & 1) != 0) &&
-	   (((addr >= 0x80000) && (addr < 0xc0000)) ||
-		(((addr + 1) >= 0x80000) && ((addr + 1) < 0xc0000)))){
-		uint32_t val = read_data8(addr + 0);
-		val = val | (read_data8(addr + 1) << 8);
-		return val;
-	}
-	bool n_hit = true;
-	//addr = translate_address_with_window(addr, n_hit);
-	if(!n_hit) return 0xffff;
-	
-	if(addr < 0x10000) {
-		last_access_is_interam = false;
-	}
-#if defined(SUPPORT_24BIT_ADDRESS)
-	if(addr < UPPER_MEMORY_24BIT) {
-		last_access_is_interam = true;
-		return MEMORY::read_data16(addr);
-	}		
-#elif defined(SUPPORT_32BIT_ADDRESS)
-	if(addr < UPPER_MEMORY_32BIT) {
-		last_access_is_interam = true;
-		return MEMORY::read_data16(addr);
-	}
-#endif
-	return MEMORY::read_data16(addr & 0xfffff);
-}
-
-uint32_t MEMBUS::read_data32(uint32_t addr)
-{
-	bool sameas = true;
-	if(((addr & 3) != 0) &&
-	   (((addr >= 0x80000) && (addr < 0xc0000)) ||
-		(((addr + 3) >= 0x80000) && ((addr + 3) < 0xc0000)))){
-		uint32_t val = read_data8(addr + 0);
-		val = val | (read_data8(addr + 1) << 8);
-		val = val | (read_data8(addr + 2) << 16);
-		val = val | (read_data8(addr + 3) << 24);
-		return val;
-	}
-	bool n_hit = true;
-	//addr = translate_address_with_window(addr, n_hit);
-	if(!n_hit) return 0xffffffff;
-	
-	if(addr < 0x10000) {
-		last_access_is_interam = false;
-	}
-#if defined(SUPPORT_24BIT_ADDRESS)
-	if(addr < UPPER_MEMORY_24BIT) {
-		last_access_is_interam = true;
-		return MEMORY::read_data32(addr);
-	}		
-#elif defined(SUPPORT_32BIT_ADDRESS)
-	if(addr < UPPER_MEMORY_32BIT) {
-		last_access_is_interam = true;
-		return MEMORY::read_data32(addr);
-	}		
-#endif
-	return MEMORY::read_data32(addr & 0xfffff);
-}
-
-void MEMBUS::write_data8(uint32_t addr, uint32_t data)
-{
-	bool n_hit = true;
-	//addr = translate_address_with_window(addr, n_hit);
-	if(!n_hit) return;
-	
-	if(addr < 0x10000) {
-		last_access_is_interam = false;
-	}
-#if defined(SUPPORT_24BIT_ADDRESS)
-	if(addr < UPPER_MEMORY_24BIT) {
-		last_access_is_interam = true;
-		MEMORY::write_data8(addr, data);
-		return;
-	}
-#elif defined(SUPPORT_32BIT_ADDRESS)
-	if(addr < UPPER_MEMORY_32BIT) {
-		last_access_is_interam = true;
-		MEMORY::write_data8(addr, data);
-		return;
-	}
-#endif
-	MEMORY::write_data8(addr & 0xfffff, data);
-}
-
-void MEMBUS::write_data16(uint32_t addr, uint32_t data)
-{
-	if(((addr & 0x1) != 0) &&
-		(((addr >= 0x80000) && (addr < 0xc0000)) ||
-		 (((addr + 1) >= 0x80000) && ((addr + 1) < 0xc0000)))) {
-		write_data8(addr + 0, data & 0xff);
-		write_data8(addr + 1, (data & 0xff00) >> 8);
-		return;
-	}
-	bool n_hit = true;
-	//addr = translate_address_with_window(addr, n_hit);
-	if(!n_hit) return;
-	
-	if(addr < 0x10000) {
-		last_access_is_interam = false;
-	}
-#if defined(SUPPORT_24BIT_ADDRESS)
-	if(addr < UPPER_MEMORY_24BIT) {
-		last_access_is_interam = true;
-		MEMORY::write_data16(addr, data);
-		return;
-	}
-#elif defined(SUPPORT_32BIT_ADDRESS)
-	if(addr < UPPER_MEMORY_32BIT) {
-		last_access_is_interam = true;
-		MEMORY::write_data16(addr, data);
-		return;
-	}
-#endif
-	MEMORY::write_data16(addr & 0xfffff, data);
-}
-
-void MEMBUS::write_data32(uint32_t addr, uint32_t data)
-{
-	if(((addr & 0x3) != 0) &&
-		(((addr >= 0x80000) && (addr < 0xc0000)) ||
-		 (((addr + 3) >= 0x80000) && ((addr + 3) < 0xc0000)))) {
-		write_data8(addr + 0, data & 0xff);
-		write_data8(addr + 1, (data & 0xff00) >> 8);
-		write_data8(addr + 2, (data & 0xff00) >> 16);
-		write_data8(addr + 3, (data & 0xff00) >> 24);
-		return;
-	}
-	bool n_hit = true;
-	//addr = translate_address_with_window(addr, n_hit);
-	if(!n_hit) return;
-	
-	if(addr < 0x10000) {
-		last_access_is_interam = false;
-	}
-#if defined(SUPPORT_24BIT_ADDRESS)
-	if(addr < UPPER_MEMORY_24BIT) {
-		last_access_is_interam = true;
-		MEMORY::write_data32(addr, data);
-		return;
-	}
-#elif defined(SUPPORT_32BIT_ADDRESS)
-	if(addr < UPPER_MEMORY_32BIT) {
-		last_access_is_interam = true;
-		MEMORY::write_data32(addr, data);
-		return;
-	}
-#endif
-	MEMORY::write_data32(addr & 0xfffff, data);
-}
-#endif
 uint32_t MEMBUS::read_dma_data8(uint32_t addr)
 {
 	if(!(dma_access_a20)) {
@@ -692,12 +514,20 @@ void MEMBUS::config_intram()
 {
 #if !defined(SUPPORT_HIRESO)
 	#if defined(SUPPORT_32BIT_ADDRESS)
-	set_memory_rw(0x00000, (sizeof(ram) >= 0x80000) ? 0x7ffff :  sizeof(ram - 1), ram);
+	set_memory_rw(0x00000, (sizeof(ram) >= 0x80000) ? 0x7ffff :  (sizeof(ram) - 1), ram);
+	#elif defined(SUPPORT_24BIT_ADDRESS)
+	//set_memory_rw(0x00000, (sizeof(ram) >= 0xa0000) ? 0x9ffff :  sizeof(ram - 1), ram);
+	set_memory_rw(0x00000, (sizeof(ram) >= 0x80000) ? 0x7ffff :  (sizeof(ram) - 1), ram);
 	#else
-	set_memory_rw(0x00000, (sizeof(ram) >= 0xa0000) ? 0x9ffff :  sizeof(ram - 1), ram);
+	set_memory_rw(0x00000, (sizeof(ram) >= 0xc0000) ? 0xbffff :  (sizeof(ram) - 1), ram);
 	#endif	
 #else
 	set_memory_rw(0x00000, 0xbffff, ram);
+#endif
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+	if(sizeof(ram) > 0x100000) {
+		set_memory_rw(0x100000, (sizeof(ram) >= 0xe00000) ? 0xdfffff : (sizeof(ram) - 1), ram + 0x100000);
+	}
 #endif
 }
 
@@ -705,13 +535,12 @@ void MEMBUS::copy_region_outer_upper_memory(uint32_t head, uint32_t tail)
 {
 	uint32_t _begin;
 	uint32_t _end = MEMORY_ADDR_MAX;
-#if defined(UPPER_MEMORY_24BIT) && defined(SUPPORT_24BIT_ADDRESS)
+#if defined(SUPPORT_24BIT_ADDRESS)
 	_begin = UPPER_MEMORY_24BIT;
-#elif defined(UPPER_MEMORY_32BIT) && defined(SUPPORT_32BIT_ADDRESS)
+#elif defined(SUPPORT_32BIT_ADDRESS)
 	_begin = UPPER_MEMORY_32BIT;
 #else
-	_begin = sizeof(ram);
-	if(_begin > 0xfffff) return;
+	return;
 #endif
 	for(uint32_t ad = _begin; ad < _end; ad += MEMORY_BANK_SIZE) {
 		if(((ad & 0xfffff) >= (head & 0xfffff)) &&
@@ -723,101 +552,98 @@ void MEMBUS::copy_region_outer_upper_memory(uint32_t head, uint32_t tail)
 void MEMBUS::update_bios()
 {
 #if !defined(SUPPORT_HIRESO)
-	#if defined(SUPPORT_32BIT_ADDRESS)
+	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
 	unset_memory_rw(0x80000, 0xbffff);
 	#endif
-#endif
-#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-	if(sizeof(ram) > 0x100000) {
-		set_memory_rw(0x100000, sizeof(ram) - 1, ram + 0x100000);
-	}
-#endif
-#if !defined(SUPPORT_HIRESO)
 	set_memory_mapped_io_rw(0xa0000, 0xa4fff, d_display);
 	set_memory_mapped_io_rw(0xa8000, 0xbffff, d_display);
-	#if defined(SUPPORT_16_COLORS)
-	set_memory_mapped_io_rw(0xe0000, 0xe7fff, d_display);
-	#endif
-	#if !defined(SUPPORT_32BIT_ADDRESS)
+#else
 	set_memory_mapped_io_rw(0xc0000, 0xe4fff, d_display);
-	#endif
 #endif
 
-#if defined(_PC9801) || defined(_PC9801E)
-	set_memory_r(0xd6000, 0xd6fff, fd_bios_2dd);
-	set_memory_r(0xd7000, 0xd7fff, fd_bios_2hd);
-#endif
 //#if defined(SUPPORT_BIOS_RAM)
-	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
-	#else
-	unset_memory_rw(0xc0000, 0xe7fff);
-	#endif
+	//#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
+	//#if defined(SUPPORT_HIRESO)
+	//unset_memory_rw(0xc0000, 0xe7fff);
+	//#endif
+	//#endif
 	#if defined(SUPPORT_BIOS_RAM)
+	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
 	if(shadow_ram_selected) {
-		set_memory_rw(0xc0000, 0xfffff, shadow_ram);
-	}// else
+		//set_memory_rw(0xc0000, 0xe7fff, shadow_ram);
+		set_memory_rw(0xc0000, 0xe7fff, &(ram[0xc0000]));
+	} else
+	#endif
 	#endif
 	{
 		#if defined(SUPPORT_HIRESO)
 		set_memory_mapped_io_rw(0xe0000, 0xe4fff, d_display);
 		#else		
+		//#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
 		unset_memory_rw(0xc0000, 0xe7fff);
-			#if defined(SUPPORT_16_COLORS)
+		//#endif
+		#if defined(_PC9801) || defined(_PC9801E)
+		set_memory_r(0xd6000, 0xd6fff, fd_bios_2dd);
+		set_memory_r(0xd7000, 0xd7fff, fd_bios_2hd);
+		#endif
+		#if defined(SUPPORT_16_COLORS)
 		set_memory_mapped_io_rw(0xe0000, 0xe7fff, d_display);
-			#endif
+		#endif
 		update_sound_bios();
 		#endif
+
 		#if defined(SUPPORT_SASI_IF)
 		update_sasi_bios();
+		#endif
+		#if defined(SUPPORT_SCSI_IF)
+		update_scsi_bios();
 		#endif
 		#if defined(SUPPORT_IDE_IF)
 		update_ide_bios();
 		#endif
 	}
+	
 //	#endif
 //#endif
-	
+	{	
 #if defined(SUPPORT_ITF_ROM)
-	if(itf_selected) {
-		unset_memory_rw(0x00100000 - sizeof(bios), 0x000fffff);
-		set_memory_r(0x00100000 - sizeof(itf), 0x000fffff, itf);
-	#if defined(SUPPORT_32BIT_ADDRESS)
-		// ToDo: PC9821
-		MEMORY::copy_table_rw(0x00ffa000, 0x000fa000, 0x000fffff);
-		MEMORY::copy_table_rw(0x00ee8000, 0x000e8000, 0x000fffff);
-	#endif
-		goto _l0;
-	}
+		if(itf_selected) {
+			unset_memory_rw(0x00100000 - sizeof(bios), 0x000fffff);
+			set_memory_r(0x00100000 - sizeof(itf), 0x000fffff, itf);
+			// ToDo: PC9821
+			//goto _l0;
+		} else
 #endif
 #if defined(SUPPORT_BIOS_RAM)
-	if(bios_ram_selected) {
-		set_memory_rw(0x00100000 - sizeof(bios_ram), 0x000fffff, bios_ram);
-	} else
+		if(bios_ram_selected) {
+			set_memory_rw(0x00100000 - sizeof(bios_ram), 0x000fffff, bios_ram);
+		} else
 #endif
-	{
-		set_memory_r(0x00100000 - sizeof(bios), 0x000fffff, bios);
+		{
+			set_memory_r(0x00100000 - sizeof(bios), 0x000fffff, bios);
 #if defined(SUPPORT_BIOS_RAM)
-		set_memory_w(0x00100000 - sizeof(bios_ram), 0x000fffff, bios_ram);
+			set_memory_w(0x00100000 - sizeof(bios_ram), 0x000fffff, bios_ram);
 #endif
+		}
 	}
-_l0:
-#if defined(SUPPORT_32BIT_ADDRESS)
 	// ToDo: PC9821
+	#if defined(SUPPORT_32BIT_ADDRESS)
 	MEMORY::copy_table_rw(0x00ffa000, 0x000fa000, 0x000fffff);
 	MEMORY::copy_table_rw(0x00ee8000, 0x000e8000, 0x000fffff);
-#endif
+	#endif
 #if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
 	if((page08_intram_selected) /*&& (shadow_ram_selected)*/){
-		//set_memory_rw(0xa0000, 0xbffff, &(shadow_bank_i386_80000h[0x20000]));
 		if((window_80000h == 0x80000) || (((window_80000h + 0x1ffff) < sizeof(ram)) && !((window_80000h >= 0xa0000) && (window_80000h <= 0xfffff)))) { // ToDo: Extra RAM
 			set_memory_rw(0x80000, 0x9ffff, &(ram[window_80000h]));
-		} else {
+		} else if(window_80000h >= 0x80000) {
 			MEMORY::copy_table_rw(0x00080000, window_80000h, window_80000h + 0x1ffff);
 		}
 		if((window_a0000h >= 0x80000) && ((window_a0000h + 0x1ffff) < sizeof(ram)) && !((window_a0000h >= 0xa0000) && (window_a0000h <= 0xfffff))) {
 			set_memory_rw(0xa0000, 0xbffff, &(ram[window_a0000h]));
 		} else {
-			MEMORY::copy_table_rw(0x000a0000, window_a0000h, window_a0000h + 0x1ffff);
+			if(window_a0000h >= 0x80000) {
+				MEMORY::copy_table_rw(0x000a0000, window_a0000h, window_a0000h + 0x1ffff);
+			}
 		}
 	} else {
 		MEMORY::copy_table_rw(0x00080000, window_80000h, window_80000h + 0x1ffff);
@@ -918,7 +744,7 @@ void MEMBUS::update_nec_ems()
 #endif
 
 
-#define STATE_VERSION	7
+#define STATE_VERSION	8
 
 bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 {
@@ -969,10 +795,10 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
  #endif
 	state_fio->StateValue(page08_intram_selected);
  #if defined(SUPPORT_BIOS_RAM)
-	#if defined(SUPPORT_32BIT_ADDRESS) || defined(_PC9801RA)
 	state_fio->StateValue(shadow_ram_selected);
-	state_fio->StateArray(shadow_ram, sizeof(shadow_ram), 1);
-	#endif
+	//#if defined(SUPPORT_32BIT_ADDRESS) || defined(_PC9801RA)
+	//state_fio->StateArray(shadow_ram, sizeof(shadow_ram), 1);
+	//#endif
  #endif
 	state_fio->StateValue(last_access_is_interam);
 	

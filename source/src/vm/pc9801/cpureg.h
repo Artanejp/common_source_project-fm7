@@ -21,8 +21,10 @@
 #define SIG_CPUREG_RESET 1
 #if defined(SUPPORT_32BIT_ADDRESS)
 #include "../i386.h"
+#else
+#include "../i286.h"
 #endif
-//#include "../i286.h"
+
 class I286;
 
 namespace PC9801 {
