@@ -26,7 +26,7 @@ namespace PC9801 {
 	class DISPLAY;
 }
 #if defined(SUPPORT_32BIT_ADDRESS)
-	#define RAM_SIZE	0xe00000	// 14MB
+	#define RAM_SIZE	0x800000	// 8MB
 #elif defined(SUPPORT_24BIT_ADDRESS)
 	#define RAM_SIZE	0x400000	// 4MB
 #else
@@ -57,16 +57,9 @@ private:
 #else
 	uint8_t bios_ram[0x10000];
 #endif
-//	uint8_t bios_ram[sizeof(bios)];
 	bool bios_ram_selected;
-	bool shadow_ram_selected;
-//#if defined(_PC9801RA)
-//	uint8_t shadow_ram[0x8000]; // 0xe0000 - 0xe8000
-//#if defined(SUPPORT_32BIT_ADDRESS)
-//	uint8_t shadow_ram[0x28000]; // 0xc0000 - 0xe7fff
-//#endif
-	
 #endif
+	bool shadow_ram_selected;
 	bool last_access_is_interam;
 #if defined(SUPPORT_ITF_ROM)
 	uint8_t itf[0x8000];
@@ -122,11 +115,8 @@ private:
 	bool dma_access_a20;
 	uint32_t window_80000h;
 	uint32_t window_a0000h;
-	inline uint32_t translate_address_with_window(uint32_t addr, bool &n_hit);
 #endif
 	void config_intram();
-	void copy_region_outer_upper_memory(uint32_t head, uint32_t tail);
-
 	
 public:
 	MEMBUS(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
@@ -141,6 +131,11 @@ public:
 	uint32_t read_signal(int ch);
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
+// WIP: Temporally re-add read_data8() and write_data8() for SUPPORT_24BIT_ADDRESS.20190510 K.O
+#if defined(SUPPORT_24BIT_ADDRESS)
+	uint32_t read_data8(uint32_t addr);
+	void write_data8(uint32_t addr, uint32_t data);
+#endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	uint32_t read_dma_data8(uint32_t addr);
 	void write_dma_data8(uint32_t addr, uint32_t data);
@@ -162,43 +157,6 @@ public:
 	}
 };
 
-#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-inline uint32_t MEMBUS::translate_address_with_window(uint32_t addr, bool &n_hit)
-{
-	n_hit = true;
-	if((addr >= 0x80000) && (addr < 0xc0000)) {
-		if(addr < 0xa0000) {
-			if(!page08_intram_selected) {
-				//if(window_80000h >= 0xa0000) {
-					// Unable to access lower than 07ffffh via WINDOW.20190425 K.O 
-					addr = (addr & 0x1ffff) | window_80000h;
-					//} else {
-					// ToDo: Correctness extra ram emulation.
-					//last_access_is_interam = false;
-					//n_hit = false;
-					//}
-			} else {
-				addr = (addr & 0x1ffff) | window_80000h;
-				//if((addr >= 0xd7000) && (addr < 0xe0000)) { // ToDo: Correct address of Extension SLOT
-				//	n_hit = false;
-				//}
-			}				
-		} else { // a0000 - bffff
-			//if(window_a0000h >= 0x80000) { // a0000 - bffff
-				uint32_t addr_bak = addr;
-				addr = (addr & 0x1ffff) | window_a0000h;
-				//	if(!(page08_intram_selected) && ((addr >= 0xa0000) && (addr < 0xc0000))) {
-				//	//n_hit = false;
-				//	addr = addr_bak;
-				//}
-				//} else {
-				//n_hit = false;
-				//}
-		}
-	}
-	return addr;
-}
-#endif
 	
 }
 #endif
