@@ -657,7 +657,7 @@ static void I386OP(mov_rm8_i8)(i386_state *cpustate)        // Opcode 0xc6
 
 static void I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode 0x0f 20
 {
-#if 0
+#if 1
 	UINT32 oldpc = cpustate->pc;
 	UINT8 modrm = FETCH(cpustate);
 	//if(modrm < 0xc0) {
@@ -771,7 +771,7 @@ static void I386OP(mov_r32_dr)(i386_state *cpustate)        // Opcode 0x0f 21
 
 static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 {
-#if 0
+#if 1
 	UINT32 oldpc = cpustate->pc;
 	UINT8 modrm = FETCH(cpustate);
 	if(modrm < 0xc0) {

@@ -680,7 +680,7 @@ INLINE int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32
 			if(offset < size) size = offset;
 			if(/*(cpustate->sreg[seg].limit != 0) && */(((offset - size) <= cpustate->sreg[seg].limit) || ((cpustate->sreg[seg].d)?0:((offset + size - 1) > 0xffff))))
 			{
-				logerror("Limit check at 0x%08x failed. Segment %04x, limit %08x, offset %08x (expand-down)\n",cpustate->pc,cpustate->sreg[seg].selector,cpustate->sreg[seg].limit,offset);
+				logerror("Limit check at 0x%08x failed. Segment %04x, limit %08x, offset %08x (expand-down)\n",cpustate->prev_pc,cpustate->sreg[seg].selector,cpustate->sreg[seg].limit,offset);
 				return 1;
 			}
 		}
@@ -688,7 +688,7 @@ INLINE int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32
 		{
 			if(((offset + size - 1) > cpustate->sreg[seg].limit) /*&& (cpustate->sreg[seg].limit != 0)*/)
 			{
-				logerror("Limit check at 0x%08x failed. Segment %04x, limit %08x, offset %08x\n",cpustate->pc,cpustate->sreg[seg].selector,cpustate->sreg[seg].limit,offset);
+				logerror("Limit check at 0x%08x failed. Segment %04x, limit %08x, offset %08x\n",cpustate->prev_pc,cpustate->sreg[seg].selector,cpustate->sreg[seg].limit,offset);
 				return 1;
 			}
 		}
