@@ -43,6 +43,29 @@
 	std::string DLL_PREFIX sRssDir;
 #endif
 
+
+// for disassedmbler
+uint32_t DLL_PREFIX get_relative_address_8bit(uint32_t base, uint32_t mask, int8_t offset)
+{
+	uint32_t addr = base & mask;
+	int32_t off2 = (int32_t)offset;
+	return (uint32_t)(addr + off2) & mask;
+}
+
+uint32_t DLL_PREFIX get_relative_address_16bit(uint32_t base, uint32_t mask, int16_t offset)
+{
+	uint32_t addr = base & mask;
+	int32_t off2 = (int32_t)offset;
+	return (uint32_t)(addr + off2) & mask;
+}
+
+
+uint32_t DLL_PREFIX get_relative_address_32bit(uint32_t base, uint32_t mask, int32_t offset)
+{
+	uint32_t addr = base & mask;
+	return (uint32_t)(addr + offset) & mask;
+}
+
 void DLL_PREFIX common_initialize()
 {
 	// get the initial current path when the software starts

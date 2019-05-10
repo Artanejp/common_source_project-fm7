@@ -1519,7 +1519,10 @@ const char *DLL_PREFIX tchar_to_char(const _TCHAR *ts);
 const _TCHAR *DLL_PREFIX wchar_to_tchar(const wchar_t *ws);
 const wchar_t *DLL_PREFIX tchar_to_wchar(const _TCHAR *ts);
 
-
+// for disassedmbler
+uint32_t DLL_PREFIX get_relative_address_8bit(uint32_t base, uint32_t mask, int8_t offset);
+uint32_t DLL_PREFIX get_relative_address_16bit(uint32_t base, uint32_t mask, int16_t offset);
+uint32_t DLL_PREFIX get_relative_address_32bit(uint32_t base, uint32_t mask, int32_t offset);
 // misc
 void DLL_PREFIX common_initialize();
 

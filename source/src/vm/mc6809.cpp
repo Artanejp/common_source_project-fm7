@@ -632,7 +632,7 @@ uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_
 
 	case DIR:
 		ea = operandarray[0];
-		buffer += _stprintf(buffer, _T("$%02X"), ea);
+		buffer += _stprintf(buffer, _T("<$%02X"), ea);
 		break;
 
 	case REL:
@@ -657,16 +657,16 @@ uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_
 		indirect = ((pb & 0x90) == 0x90 )? true : false;
 
 		// open brackets if indirect
-		if (indirect && pbm != 0x80 && pbm != 0x82)
+		if (indirect /*&& pbm != 0x80 && pbm != 0x82*/)
 			buffer += _stprintf(buffer, _T("["));
 
 		switch (pbm)
 		{
 		case 0x80:  // ,R+
-			if (indirect)
-				_tcscpy(buffer, _T("Illegal Postbyte"));
-			else
-				buffer += _stprintf(buffer, _T(",%s+"), m6809_regs[reg]);
+			//if (indirect)
+			//	_tcscpy(buffer, _T("Illegal Postbyte"));
+			//else
+			buffer += _stprintf(buffer, _T(",%s+"), m6809_regs[reg]); // Legal even INDIRECT
 			break;
 
 		case 0x81:  // ,R++
@@ -677,7 +677,7 @@ uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_
 		  //if (indirect)
 		  //	_tcscpy(buffer, _T("Illegal Postbyte"));
 		  //	else
-				buffer += _stprintf(buffer, _T(",-%s"), m6809_regs[reg]);
+				buffer += _stprintf(buffer, _T(",-%s"), m6809_regs[reg]); // Legal even INDIRECT
 			break;
 
 		case 0x83:  // ,--R
@@ -719,7 +719,15 @@ uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_
 			break;
 
 		case 0x8a:
-			_tcscpy(buffer, _T("Illegal Postbyte"));
+			//_tcscpy(buffer, _T("Illegal Postbyte"));
+			{
+				pair16_t __ea;
+				__ea.w = pc & 0xffff;
+				__ea.w++;
+				__ea.b.l = 0xff;
+				buffer += _stprintf(buffer, _T("%s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%04X"), __ea.w));
+			}
+				
 			break;
 
 		case 0x8b:  // (+/- D),R
@@ -728,26 +736,27 @@ uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_
 
 		case 0x8c:  // (+/- 7 bit offset),PC
 			offset = (int8_t)opram[p++];
-			if((name = get_symbol(d_debugger->first_symbol, (p - 1 + offset) & 0xffff)) != NULL) {
+			if((name = get_symbol(d_debugger->first_symbol, (pc + 1 + offset) & 0xffff)) != NULL) {
 				buffer += _stprintf(buffer, _T("%s,PCR"), name);
 			} else {
-				buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
-				buffer += _stprintf(buffer, _T("$%02X,PC"), (offset < 0) ? -offset : offset);
+				//buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
+				//buffer += _stprintf(buffer, _T("$%02X,PC"), (offset < 0) ? -offset : offset);
+				buffer += _stprintf(buffer, _T("$%04X,PCR"), get_relative_address_8bit(pc + 1, 0xffff, (int8_t)offset));
 			}
 			break;
 
 		case 0x8d:  // (+/- 15 bit offset),PC
 			offset = (int16_t)((opram[p+0] << 8) + opram[p+1]);
 			p += 2;
-			if((name = get_symbol(d_debugger->first_symbol, (p - 2 + offset) & 0xffff)) != NULL) {
+			if((name = get_symbol(d_debugger->first_symbol, (pc + 2 + offset) & 0xffff)) != NULL) {
 				buffer += _stprintf(buffer, _T("%s,PCR"), name);
 			} else {
-				buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
-				buffer += _stprintf(buffer, _T("$%04X,PC"), (offset < 0) ? -offset : offset);
+				//buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
+				buffer += _stprintf(buffer, _T("$%04X,PCR"), get_relative_address_16bit(pc + 2, 0xffff, (int16_t)offset));
 			}
 			break;
 
-		case 0x8e: // $FFFFF
+		case 0x8e: // $FFFF
 		  //_tcscpy(buffer, _T("Illegal Postbyte"));
 			offset = (int16_t)0xffff;
 			//p += 2;
