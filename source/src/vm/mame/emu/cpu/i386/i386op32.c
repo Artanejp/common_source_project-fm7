@@ -469,6 +469,8 @@ static void I386OP(call_abs32)(i386_state *cpustate)        // Opcode 0x9a
 	UINT32 offset = FETCH32(cpustate);
 	UINT16 ptr = FETCH16(cpustate);
 
+	// ToDo: PROTECTED MODE CALL and PSEUDO-BIOS.
+	// Q: In V8086_MODE, is enabled call far (foo)?
 	if(PROTECTED_MODE && !V8086_MODE)
 	{
 		i386_protected_mode_call(cpustate,ptr,offset,0,1);
@@ -3212,7 +3214,7 @@ static void I386OP(group0F01_32)(i386_state *cpustate)      // Opcode 0x0f 01
 				}
 				cpustate->gdtr.limit = READ16(cpustate,ea);
 				cpustate->gdtr.base = READ32(cpustate,ea + 2);
-				//logerror("LGDT(32) PC=%08X MODRM=%02X BASE=%08X LIMIT=%04X\n", cpustate->prev_pc, modrm, cpustate->gdtr.base, cpustate->gdtr.limit);
+				logerror("LGDT(32) PC=%08X MODRM=%02X BASE=%08X LIMIT=%04X\n", cpustate->prev_pc, modrm, cpustate->gdtr.base, cpustate->gdtr.limit);
 				CYCLES(cpustate,CYCLES_LGDT);
 				break;
 			}

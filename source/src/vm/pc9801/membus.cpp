@@ -154,9 +154,9 @@ void MEMBUS::initialize()
 #endif
 #if defined(SUPPORT_IDE_IF)
 	memset(ide_bios, 0xff, sizeof(ide_bios));
-//	memset(ide_bios_ram, 0x00, sizeof(ide_bios_ram));
+	memset(ide_bios_ram, 0x00, sizeof(ide_bios_ram));
 	ide_bios_selected = (read_bios(_T("IDE.ROM"), ide_bios, sizeof(ide_bios)) != 0);
-//	ide_bios_ram_selected = false;
+	ide_bios_ram_selected = false;
 #endif
 //	page08_intram_selected = false;	
 	page08_intram_selected = true;	
@@ -191,7 +191,8 @@ void MEMBUS::reset()
 
 	// SASI
 #if defined(SUPPORT_SASI_IF)
-	sasi_bios_selected = true;
+//	sasi_bios_selected = true;
+	sasi_bios_selected = false;
 	sasi_bios_ram_selected = false; // OK?
 #endif
 	// SASI
@@ -688,20 +689,35 @@ void MEMBUS::update_bios()
 			}				
 		} else if((window_80000h == 0x80000) || (((window_80000h + 0x1ffff) < sizeof(ram)) && !((window_80000h >= 0xa0000) && (window_80000h <= 0xfffff)))) { // ToDo: Extra RAM
 			set_memory_rw(0x80000, 0x9ffff, &(ram[window_80000h]));
-		} else if(window_80000h >= 0x800000) {
+		}
+		else if(window_80000h >= 0x800000) {
 			MEMORY::copy_table_rw(0x00080000, window_80000h, window_80000h + 0x1ffff);
 		} else {
 			#if defined(SUPPORT_24BIT_ADDRESS)
 			set_memory_rw(0x80000, 0x9ffff, &(ram[0x80000]));
 			#else
-			unset_memory_rw(0x80000, 0x9ffff);
+			set_memory_rw(0x80000, 0x9ffff, &(ram[0x80000]));
+			//unset_memory_rw(0x80000, 0x9ffff);
 			#endif
 		}
 	} else {
-		MEMORY::copy_table_rw(0x00080000, window_80000h, window_80000h + 0x1ffff);
+		// ToDo: Hi reso
+		if(window_80000h < 0x80000) {
+		#if defined(SUPPORT_BIOS_RAM)
+			if(!(bios_ram_selected)) {
+				unset_memory_rw(0x00080000, 0x0009ffff);
+			} else
+		#endif				
+			set_memory_rw(0x80000, 0x9ffff, &(ram[window_80000h]));
+		} else if(window_80000h == 0x80000) {
+			// ToDo: External BUS
+			unset_memory_rw(0x00080000, 0x0009ffff);
+		} else {
+			MEMORY::copy_table_rw(0x00080000, window_80000h, window_80000h + 0x1ffff);
+		}
 	}
 
-	if((page08_intram_selected) /*&& (shadow_ram_selected)*/){
+	/*if((page08_intram_selected) )*/{
 		if((window_a0000h == 0xc0000)) {
 			if(shadow_ram_selected) {
 				set_memory_rw(0xa0000, 0xbffff, &(ram[window_a0000h]));
@@ -730,14 +746,14 @@ void MEMBUS::update_bios()
 		} else {
 			if(window_a0000h >= 0x80000) {
 				MEMORY::copy_table_rw(0x000a0000, window_a0000h, window_a0000h + 0x1ffff);
-			}// else {
-			//	unset_memory_rw(0xa0000, 0xbffff);
-			//}
+			} else {
+				unset_memory_rw(0xa0000, 0xbffff);
+			}
 			
 		}
-	} else {
-		// NOOP
-	}
+	} //else {
+	//	// NOOP
+	//}
 	if((window_80000h >= 0xa0000) && (window_80000h <= 0xeffff)) {
 		d_display->write_signal(SIG_DISPLAY98_SET_PAGE_80, window_80000h, 0xffffffff);
 	}
@@ -813,12 +829,12 @@ void MEMBUS::update_scsi_bios()
 void MEMBUS::update_ide_bios()
 {
 	if(ide_bios_selected) {
-//		if(ide_bios_selected) {
-//			set_memory_r(0xd8000, 0xdbfff, ide_bios_ram);
-//		} else {
+		if(ide_bios_selected) {
+			set_memory_r(0xd8000, 0xdbfff, ide_bios_ram);
+		} else {
 			set_memory_r(0xd8000, 0xdbfff, ide_bios);
 			unset_memory_w(0xd8000, 0xdbfff);
-//		}
+		}
 	} else {
 		unset_memory_rw(0xd8000, 0xdbfff);
 	}
@@ -873,10 +889,9 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(scsi_bios_ram_selected);
  #endif
  #if defined(SUPPORT_IDE_IF)
-//	state_fio->StateBool(ide_bios_ram_selected);
-//	state_fio->StateArray(ide_bios_ram, sizeof(ide_bios_ram), 1);
+	state_fio->StateBool(ide_bios_ram_selected);
+	state_fio->StateArray(ide_bios_ram, sizeof(ide_bios_ram), 1);
 	state_fio->StateValue(ide_bios_selected);
-//	state_fio->StateValue(ide_bios_ram_selected);
  #endif
  #if defined(SUPPORT_NEC_EMS)
 	state_fio->StateArray(nec_ems, sizeof(nec_ems), 1);

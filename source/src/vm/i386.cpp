@@ -253,6 +253,31 @@ if(cpustate->bios->bios_int_i86(num, regs, sregs, &ZeroFlag, &CarryFlag, &(cpust
 		}																\
 	}
 
+#define BIOS_INT32(num) if(cpustate->bios != NULL) { \
+		/*if(((cpustate->cr[0] & 0x0001) == 0) || (cpustate->VM != 0)) */{	/* VM8086 or Not Protected */ \
+			uint32_t regs[10];											\
+			uint16_t sregs[4];												\
+			regs[0] = REG32(EAX); regs[1] = REG32(ECX); regs[2] = REG32(EDX); regs[3] = REG32(EBX); \
+			regs[4] = REG32(ESP); regs[5] = REG32(EBP); regs[6] = REG32(ESI); regs[7] = REG32(EDI); \
+			regs[8] = 0x0000; regs[9] = 0x0000;							\
+			sregs[0] = cpustate->sreg[ES].selector; sregs[1] = cpustate->sreg[CS].selector; \
+			sregs[2] = cpustate->sreg[SS].selector; sregs[3] = cpustate->sreg[DS].selector; \
+			int32_t ZeroFlag = cpustate->ZF, CarryFlag = cpustate->CF;	\
+if(cpustate->bios->bios_int_ia32(num, regs, sregs, &ZeroFlag, &CarryFlag, &(cpustate->cycles), &(cpustate->total_cycles))) { \
+				REG32(EAX) = regs[0]; REG32(ECX) = regs[1]; REG32(EDX) = regs[2]; REG32(EBX) = regs[3]; \
+				REG32(ESP) = regs[4]; REG32(EBP) = regs[5]; REG32(ESI) = regs[6]; REG32(EDI) = regs[7]; \
+				cpustate->ZF = (UINT8)ZeroFlag; cpustate->CF = (UINT8)CarryFlag; \
+				CYCLES(cpustate,CYCLES_IRET);							\
+				if((regs[8] != 0x0000) || (regs[9] != 0x0000)) {		\
+					uint32_t hi = regs[9];								\
+					uint32_t lo = regs[8];								\
+					uint32_t addr = (hi << 16) | lo;					\
+					cpustate->eip = addr;								\
+				}														\
+				return;													\
+			}															\
+		}																\
+	}
 
 #define BIOS_CALL_FAR(address) if(cpustate->bios != NULL) {				\
 		if(((cpustate->cr[0] & 0x0001) == 0) || (cpustate->VM != 0)) {	/* VM8086 or Not Protected */ \
@@ -279,32 +304,32 @@ if(cpustate->bios->bios_int_i86(num, regs, sregs, &ZeroFlag, &CarryFlag, &(cpust
 		}																\
 	}
 
-
-#define BIOS_TRAP(address,stat) if(cpustate->bios != NULL) {				\
+#define BIOS_CALL_FAR32(address) if(cpustate->bios != NULL) {				\
 		if(((cpustate->cr[0] & 0x0001) == 0) || (cpustate->VM != 0)) {	/* VM8086 or Not Protected */ \
-			uint16_t regs[10], sregs[4];								\
-			regs[0] = REG16(AX); regs[1] = REG16(CX); regs[2] = REG16(DX); regs[3] = REG16(BX); \
-			regs[4] = REG16(SP); regs[5] = REG16(BP); regs[6] = REG16(SI); regs[7] = REG16(DI); \
+			uint32_t regs[10];											\
+			uint16_t sregs[4];													\
+			regs[0] = REG32(EAX); regs[1] = REG32(ECX); regs[2] = REG32(EDX); regs[3] = REG32(EBX); \
+			regs[4] = REG32(ESP); regs[5] = REG32(EBP); regs[6] = REG32(ESI); regs[7] = REG32(EDI); \
 			regs[8] = 0x0000; regs[9] = 0x0000;							\
 			sregs[0] = cpustate->sreg[ES].selector; sregs[1] = cpustate->sreg[CS].selector; \
 			sregs[2] = cpustate->sreg[SS].selector; sregs[3] = cpustate->sreg[DS].selector; \
 			int32_t ZeroFlag = cpustate->ZF, CarryFlag = cpustate->CF;	\
-			stat = 0;													\
-			if(cpustate->bios->bios_call_far_i86(address, regs, sregs, &ZeroFlag, &CarryFlag, &(cpustate->cycles), &(cpustate->total_cycles))) { \
-				REG16(AX) = regs[0]; REG16(CX) = regs[1]; REG16(DX) = regs[2]; REG16(BX) = regs[3]; \
-				REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; \
+			if(cpustate->bios->bios_call_far_ia32(address, regs, sregs, &ZeroFlag, &CarryFlag, &(cpustate->cycles), &(cpustate->total_cycles))) { \
+				REG32(EAX) = regs[0]; REG32(ECX) = regs[1]; REG32(EDX) = regs[2]; REG32(EBX) = regs[3]; \
+				REG32(ESP) = regs[4]; REG32(EBP) = regs[5]; REG32(ESI) = regs[6]; REG32(EDI) = regs[7]; \
 				cpustate->ZF = (UINT8)ZeroFlag; cpustate->CF = (UINT8)CarryFlag; \
-				/*CYCLES(cpustate,CYCLES_RET_INTERSEG);*/				\
+				CYCLES(cpustate,CYCLES_RET_INTERSEG);					\
 				if((regs[8] != 0x0000) || (regs[9] != 0x0000)) {		\
 					uint32_t hi = regs[9];								\
 					uint32_t lo = regs[8];								\
 					uint32_t addr = (hi << 16) | lo;					\
 					cpustate->eip = addr;								\
 				}														\
-				stat = 1;												\
+				return;													\
 			}															\
 		}																\
 	}
+
 //#endif
 
 static CPU_TRANSLATE(i386);

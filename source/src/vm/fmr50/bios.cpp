@@ -14,50 +14,49 @@
 #include "../harddisk.h"
 
 // regs
-#define AX	regs[0]
-#define CX	regs[1]
-#define DX	regs[2]
-#define BX	regs[3]
-#define SP	regs[4]
-#define BP	regs[5]
-#define SI	regs[6]
-#define DI	regs[7]
+#define EAX	regs[0]
+#define ECX	regs[1]
+#define EDX	regs[2]
+#define EBX	regs[3]
+#define ESP	regs[4]
+#define EBP	regs[5]
+#define ESI	regs[6]
+#define EDI	regs[7]
 
-#if defined(__LITTLE_ENDIAN__)	
-#define AL	regs8[0]
-#define AH	regs8[1]
-#define CL	regs8[2]
-#define CH	regs8[3]
-#define DL	regs8[4]
-#define DH	regs8[5]
-#define BL	regs8[6]
-#define BH	regs8[7]
-#define SPL	regs8[8]
-#define SPH	regs8[9]
-#define BPL	regs8[10]
-#define BPH	regs8[11]
-#define SIL	regs8[12]
-#define SIH	regs8[13]
-#define DIL	regs8[14]
-#define DIH	regs8[15]
-#else
-#define AL	regs8[1]
-#define AH	regs8[0]
-#define CL	regs8[3]
-#define CH	regs8[2]
-#define DL	regs8[5]
-#define DH	regs8[4]
-#define BL	regs8[7]
-#define BH	regs8[6]
-#define SPL	regs8[9]
-#define SPH	regs8[8]
-#define BPL	regs8[11]
-#define BPH	regs8[10]
-#define SIL	regs8[13]
-#define SIH	regs8[12]
-#define DIL	regs8[15]
-#define DIH	regs8[14]
-#endif
+#define AX regpair[0].w.l
+#define CX regpair[1].w.l
+#define DX regpair[2].w.l
+#define BX regpair[3].w.l
+#define SP regpair[4].w.l
+#define BP regpair[5].w.l
+#define SI regpair[6].w.l
+#define DI regpair[7].w.l
+
+#define LOAD_AX(val) { regpair[0].w.h = 0; regpair[0].w.l = val; }
+#define LOAD_CX(val) { regpair[1].w.h = 0; regpair[1].w.l = val; }
+#define LOAD_DX(val) { regpair[2].w.h = 0; regpair[2].w.l = val; }
+#define LOAD_BX(val) { regpair[3].w.h = 0; regpair[3].w.l = val; }
+#define LOAD_SP(val) { regpair[4].w.h = 0; regpair[4].w.l = val; }
+#define LOAD_BP(val) { regpair[5].w.h = 0; regpair[5].w.l = val; }
+#define LOAD_SI(val) { regpair[6].w.h = 0; regpair[6].w.l = val; }
+#define LOAD_DI(val) { regpair[7].w.h = 0; regpair[7].w.l = val; }
+
+#define AL	regpair[0].b.l
+#define AH	regpair[0].b.h
+#define CL	regpair[1].b.l
+#define CH	regpair[1].b.h
+#define DL	regpair[2].b.l
+#define DH	regpair[2].b.h
+#define BL	regpair[3].b.l
+#define BH	regpair[3].b.h
+#define SPL	regpair[4].b.l
+#define SPH	regpair[4].b.h
+#define BPL	regpair[5].b.l
+#define BPH	regpair[5].b.h
+#define SIL	regpair[6].b.l
+#define SIH	regpair[6].b.h
+#define DIL	regpair[7].b.l
+#define DIH	regpair[7].b.l
 
 // sregs
 #define ES	sregs[0]
@@ -321,7 +320,25 @@ void BIOS::event_frame()
 
 bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
-	uint8_t *regs8 = (uint8_t *)regs;
+	if((PC == 0xfffc4) || (PC == 0xfffc9) || (PC == 0xfffd3)) {
+		uint32_t regs32[8];
+		for(int i = 0; i < 8; i++) {
+			regs32[i] = regs[i];
+		}
+		if(bios_call_far_ia32(PC, regs32, sregs, ZeroFlag, CarryFlag, cycles total_cycles)) {
+			for(int i = 0; i < 8; i++) {
+				regs[i] = regs32[i];
+			}
+			return true;
+		}
+		return false;
+	}
+	return false;
+}
+
+bool BIOS::bios_call_far_ia32(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+{
+	pair32_t *regpair = (pair32_t *)regs;
 	int drv = AL & 0xf;
 	uint8_t buffer[BLOCK_SIZE * 4];
 	int elapsed_cycles = 200; // ToDo: Adjust value.
@@ -360,7 +377,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 			}
 			AH = 0;
 			DL = drive_mode1[drv];
-			BX = drive_mode2[drv];
+			LOAD_BX(drive_mode2[drv]);
 			*CarryFlag = 0;
 			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
@@ -371,7 +388,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				// ToDo: Trap when not resiztered disk[drv].
 				if(!(drv < MAX_DRIVE && disk[drv]->inserted)) {
 					AH = 0x80;
-					CX = ERR_FDD_NOTREADY;
+					LOAD_CX(ERR_FDD_NOTREADY);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
@@ -396,7 +413,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				if(disk[drv]->media_type == MEDIA_TYPE_2D || disk[drv]->media_type == MEDIA_TYPE_2DD) {
 					DL |= 0x10;
 				}
-				CX = 0;
+				LOAD_CX(0);
 				*CarryFlag = 0;
 				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
@@ -405,16 +422,16 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				// scsi
 				if(!(drv < USE_HARD_DISK && scsi_blocks[drv])) {
 					AH = 0x80;
-					CX = ERR_SCSI_NOTCONNECTED;
+					LOAD_CX(ERR_SCSI_NOTCONNECTED);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 0;
 				AL = (BLOCK_SIZE == 128) ? 0 : (BLOCK_SIZE == 256) ? 1 : (BLOCK_SIZE == 512) ? 2 : 3;
-				BX = scsi_blocks[drv] >> 16;
-				DX = scsi_blocks[drv] & 0xffff;
-				CX = 0;
+				LOAD_BX(scsi_blocks[drv] >> 16);
+				LOAD_DX(scsi_blocks[drv] & 0xffff);
+				LOAD_CX(0);
 				*CarryFlag = 0;
 				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
@@ -430,13 +447,13 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				// ToDo: Trap when not resiztered disk[drv].
 				if(!(drv < MAX_DRIVE && disk[drv]->inserted)) {
 					AH = 0x80;
-					CX = ERR_FDD_NOTREADY;
+					LOAD_CX(ERR_FDD_NOTREADY);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 0;
-				CX = 0;
+				LOAD_CX(0);
 				*CarryFlag = 0;
 				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
@@ -445,13 +462,13 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				// scsi
 				if(!(drv < USE_HARD_DISK && scsi_blocks[drv])) {
 					AH = 0x80;
-					CX = ERR_SCSI_NOTCONNECTED;
+					LOAD_CX(ERR_SCSI_NOTCONNECTED);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 0;
-				CX = 0;
+				LOAD_CX(0);
 				*CarryFlag = 0;
 				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
@@ -467,7 +484,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				// ToDo: Trap when not resiztered disk[drv].
 				if(!(drv < MAX_DRIVE && disk[drv]->inserted)) {
 					AH = 0x80;
-					CX = ERR_FDD_NOTREADY;
+					LOAD_CX(ERR_FDD_NOTREADY);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
@@ -482,7 +499,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					// ToDo: Trap when not resiztered disk[drv].
 					if(!disk[drv]->get_track(trk, hed)) {
 						AH = 0x80;
-						CX = ERR_FDD_NOTFOUND;
+						LOAD_CX(ERR_FDD_NOTFOUND);
 						*CarryFlag = 1;
 						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
@@ -491,7 +508,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					secnum = sct;
 					if(!disk[drv]->get_sector(trk, hed, sct - 1)) {
 						AH = 0x80;
-						CX = ERR_FDD_NOTFOUND;
+						LOAD_CX(ERR_FDD_NOTFOUND);
 						*CarryFlag = 1;
 						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
@@ -499,7 +516,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					// check id crc error
 					if(disk[drv]->addr_crc_error && !disk[drv]->ignore_crc()) {
 						AH = 0x80;
-						CX = ERR_FDD_NOTFOUND | ERR_FDD_CRCERROR;
+						LOAD_CX(ERR_FDD_NOTFOUND | ERR_FDD_CRCERROR);
 						*CarryFlag = 1;
 						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
@@ -507,7 +524,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					// check deleted mark
 					if(disk[drv]->deleted) {
 						AH = 0x80;
-						CX = ERR_FDD_DELETED;
+						LOAD_CX(ERR_FDD_DELETED);
 						*CarryFlag = 1;
 						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
@@ -520,7 +537,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					// check data crc error
 					if(disk[drv]->data_crc_error && !disk[drv]->ignore_crc()) {
 						AH = 0x80;
-						CX = ERR_FDD_CRCERROR;
+						LOAD_CX(ERR_FDD_CRCERROR);
 						*CarryFlag = 1;
 						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
@@ -535,7 +552,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					}
 				}
 				AH = 0;
-				CX = 0;
+				LOAD_CX(0);
 				*CarryFlag = 0;
 				return true;
 			}
@@ -543,14 +560,14 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				// scsi
 				if(!(drv < USE_HARD_DISK && scsi_blocks[drv])) {
 					AH = 0x80;
-					CX = ERR_SCSI_NOTCONNECTED;
+					LOAD_CX(ERR_SCSI_NOTCONNECTED);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				if(!(harddisk[drv] != NULL && harddisk[drv]->mounted())) {
 					AH = 0x80;
-					CX = ERR_SCSI_NOTREADY;
+					LOAD_CX(ERR_SCSI_NOTREADY);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
@@ -563,7 +580,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					// check block
 					if(!(block++ < scsi_blocks[drv])) {
 						AH = 0x80;
-						CX = ERR_SCSI_PARAMERROR;
+						LOAD_CX(ERR_SCSI_PARAMERROR);
 						*CarryFlag = 1;
 						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
@@ -577,7 +594,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					BX--;
 				}
 				AH = 0;
-				CX = 0;
+				LOAD_CX(0);
 				*CarryFlag = 0;
 				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
@@ -592,14 +609,14 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				// floppy
 				if(!(drv < MAX_DRIVE && disk[drv]->inserted)) {
 					AH = 0x80;
-					CX = ERR_FDD_NOTREADY;
+					LOAD_CX(ERR_FDD_NOTREADY);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				if(disk[drv]->write_protected) {
 					AH = 0x80;
-					CX = ERR_FDD_PROTECTED;
+					LOAD_CX(ERR_FDD_PROTECTED);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
@@ -614,7 +631,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					// search sector
 					if(!disk[drv]->get_track(trk, hed)) {
 						AH = 0x80;
-						CX = ERR_FDD_NOTFOUND;
+						LOAD_CX(ERR_FDD_NOTFOUND);
 						*CarryFlag = 1;
 						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
@@ -623,7 +640,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					secnum = sct;
 					if(!disk[drv]->get_sector(trk, hed, sct - 1)) {
 						AH = 0x80;
-						CX = ERR_FDD_NOTFOUND;
+						LOAD_CX(ERR_FDD_NOTFOUND);
 						*CarryFlag = 1;
 						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
@@ -631,7 +648,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					// check id crc error
 					if(disk[drv]->addr_crc_error && !disk[drv]->ignore_crc()) {
 						AH = 0x80;
-						CX = ERR_FDD_NOTFOUND | ERR_FDD_CRCERROR;
+						LOAD_CX(ERR_FDD_NOTFOUND | ERR_FDD_CRCERROR);
 						*CarryFlag = 1;
 						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
@@ -654,7 +671,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					}
 				}
 				AH = 0;
-				CX = 0;
+				LOAD_CX(0);
 				*CarryFlag = 0;
 				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
@@ -663,14 +680,14 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				// scsi
 				if(!(drv < USE_HARD_DISK && scsi_blocks[drv])) {
 					AH = 0x80;
-					CX = ERR_SCSI_NOTCONNECTED;
+					LOAD_CX(ERR_SCSI_NOTCONNECTED);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				if(!(harddisk[drv] != NULL && harddisk[drv]->mounted())) {
 					AH = 0x80;
-					CX = ERR_SCSI_NOTREADY;
+					LOAD_CX(ERR_SCSI_NOTREADY);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
@@ -683,7 +700,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					// check block
 					if(!(block++ < scsi_blocks[drv])) {
 						AH = 0x80;
-						CX = ERR_SCSI_PARAMERROR;
+						LOAD_CX(ERR_SCSI_PARAMERROR);
 						*CarryFlag = 1;
 						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
@@ -697,7 +714,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					BX--;
 				}
 				AH = 0;
-				CX = 0;
+				LOAD_CX(0);
 				*CarryFlag = 0;
 				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
@@ -712,7 +729,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				// floppy
 				if(!(drv < MAX_DRIVE && disk[drv]->inserted)) {
 					AH = 0x80;
-					CX = ERR_FDD_NOTREADY;
+					LOAD_CX(ERR_FDD_NOTREADY);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
@@ -726,7 +743,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					// ToDo: Trap when not resiztered disk[drv].
 					if(!disk[drv]->get_track(trk, hed)) {
 						AH = 0x80;
-						CX = ERR_FDD_NOTFOUND;
+						LOAD_CX(ERR_FDD_NOTFOUND);
 						*CarryFlag = 1;
 						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
@@ -735,7 +752,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					secnum = sct;
 					if(!disk[drv]->get_sector(trk, hed, sct - 1)) {
 						AH = 0x80;
-						CX = ERR_FDD_NOTFOUND;
+						LOAD_CX(ERR_FDD_NOTFOUND);
 						*CarryFlag = 1;
 						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
@@ -743,7 +760,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					// check id crc error
 					if(disk[drv]->addr_crc_error && !disk[drv]->ignore_crc()) {
 						AH = 0x80;
-						CX = ERR_FDD_NOTFOUND | ERR_FDD_CRCERROR;
+						LOAD_CX(ERR_FDD_NOTFOUND | ERR_FDD_CRCERROR);
 						*CarryFlag = 1;
 						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
@@ -753,7 +770,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					// check data crc error
 					if(disk[drv]->data_crc_error && !disk[drv]->ignore_crc()) {
 						AH = 0x80;
-						CX = ERR_FDD_CRCERROR;
+						LOAD_CX(ERR_FDD_CRCERROR);
 						*CarryFlag = 1;
 						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
@@ -768,7 +785,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					}
 				}
 				AH = 0;
-				CX = 0;
+				LOAD_CX(0);
 				*CarryFlag = 0;
 				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
@@ -777,7 +794,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				// scsi
 				if(!(drv < USE_HARD_DISK && scsi_blocks[drv])) {
 					AH = 0x80;
-					CX = ERR_SCSI_NOTCONNECTED;
+					LOAD_CX(ERR_SCSI_NOTCONNECTED);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
@@ -788,7 +805,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					// check block
 					if(!(block++ < scsi_blocks[drv])) {
 						AH = 0x80;
-						CX = ERR_SCSI_PARAMERROR;
+						LOAD_CX(ERR_SCSI_PARAMERROR);
 						*CarryFlag = 1;
 						CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 						return true;
@@ -796,7 +813,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 					BX--;
 				}
 				AH = 0;
-				CX = 0;
+				LOAD_CX(0);
 				*CarryFlag = 0;
 				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
@@ -808,7 +825,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 		} else if(AH == 8) {
 			// reset hard drive controller
 			AH = 0;
-			CX = 0;
+			LOAD_CX(0);
 			*CarryFlag = 0;
 			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
@@ -819,7 +836,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				// ToDo: Trap when not resiztered disk[drv].
 				if(!(drv < MAX_DRIVE && disk[drv]->inserted)) {
 					AH = 0x80;
-					CX = ERR_FDD_NOTREADY;
+					LOAD_CX(ERR_FDD_NOTREADY);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
@@ -831,7 +848,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				// search sector
 				if(!disk[drv]->get_track(trk, hed)) {
 					AH = 0x80;
-					CX = ERR_FDD_NOTFOUND;
+					LOAD_CX(ERR_FDD_NOTFOUND);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
@@ -842,7 +859,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				}
 				if(!disk[drv]->get_sector(trk, hed, secnum - 1)) {
 					AH = 0x80;
-					CX = ERR_FDD_NOTFOUND;
+					LOAD_CX(ERR_FDD_NOTFOUND);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
@@ -854,13 +871,13 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				// check id crc error
 				if(disk[drv]->addr_crc_error && !disk[drv]->ignore_crc()) {
 					AH = 0x80;
-					CX = ERR_FDD_CRCERROR;
+					LOAD_CX(ERR_FDD_CRCERROR);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 0;
-				CX = 0;
+				LOAD_CX(0);
 				*CarryFlag = 0;
 				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
@@ -876,7 +893,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				// ToDo: Trap when not resiztered disk[drv].
 				if(!(drv < MAX_DRIVE && disk[drv]->inserted)) {
 					AH = 0x80;
-					CX = ERR_FDD_NOTREADY;
+					LOAD_CX(ERR_FDD_NOTREADY);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
@@ -940,7 +957,7 @@ write_id:
 					disk[drv]->track[index] = datareg;
 				}
 				AH = 0;
-				CX = 0;
+				LOAD_CX(0);
 				*CarryFlag = 0;
 				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
@@ -952,7 +969,7 @@ write_id:
 		} else if(AH == 0xd) {
 			// read error
 			AH = 0;
-			CX = 0;
+			LOAD_CX(0);
 			*CarryFlag = 0;
 			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
@@ -963,14 +980,14 @@ write_id:
 				// ToDo: Trap when not resiztered disk[drv].
 				if(!(drv < MAX_DRIVE && disk[drv]->inserted)) {
 					AH = 0;
-					CX = 0;
+					LOAD_CX(0);
 					DL = 1;
 					*CarryFlag = 0;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 0;
-				CX = 0;
+				LOAD_CX(0);
 				DL = disk[drv]->changed ? 1 : 0;
 				disk[drv]->changed = false;
 				*CarryFlag = 0;
@@ -981,19 +998,19 @@ write_id:
 				// scsi
 				if(!(drv < USE_HARD_DISK && scsi_blocks[drv])) {
 					AH = 3;	// ???
-					CX = 0;
+					LOAD_CX(0);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 0;
-				CX = 0;
+				LOAD_CX(0);
 				*CarryFlag = 0;
 				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			AH = 2;
-			CX = 0;
+			LOAD_CX(0);
 			*CarryFlag = 1;
 			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
@@ -1002,7 +1019,7 @@ write_id:
 			if((AL & 0xf0) == 0x20) {
 				// floppy
 				AH = 1;
-				CX = 0;
+				LOAD_CX(0);
 				*CarryFlag = 1;
 				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
@@ -1011,13 +1028,13 @@ write_id:
 				// scsi
 				if(!(drv < USE_HARD_DISK && scsi_blocks[drv])) {
 					AH = 0x80;
-					CX = ERR_SCSI_NOTCONNECTED;
+					LOAD_CX(ERR_SCSI_NOTCONNECTED);
 					*CarryFlag = 1;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 0;
-				CX = 0;
+				LOAD_CX(0);
 				*CarryFlag = 0;
 				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
@@ -1031,7 +1048,7 @@ write_id:
 			if((AL & 0xf0) == 0x20) {
 				// floppy
 				AH = 1;
-				CX = 0;
+				LOAD_CX(0);
 				*CarryFlag = 1;
 				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
@@ -1040,19 +1057,19 @@ write_id:
 				// scsi
 				if(!(drv < USE_HARD_DISK && scsi_blocks[drv])) {
 					AH = 0;
-					CX = 0x200;	// ???
+					LOAD_CX(0x200); // ???
 					*CarryFlag = 0;
 					CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 					return true;
 				}
 				AH = 2;
-				CX = 0;
+				LOAD_CX(0);
 				*CarryFlag = 1;
 				CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 				return true;
 			}
 			AH = 2;
-			CX = 0;
+			LOAD_CX(0);
 			*CarryFlag = 1;
 			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
 			return true;
@@ -1132,9 +1149,9 @@ write_id:
 			memset(kvram, 0, 0x1000);
 #endif
 			// set result
-			AX = 0xff;
-			CX = 0;
-			BX = 2;
+			LOAD_AX(0xff);
+			LOAD_CX(0);
+			LOAD_BX(2);
 			*ZeroFlag = 1;
 			*CarryFlag = 0;
 			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
@@ -1173,9 +1190,9 @@ write_id:
 			memset(kvram, 0, 0x1000);
 #endif
 			// set result
-			AX = 0xffff;
-			CX = 0;
-			BX = 1;
+			LOAD_AX(0xffff);
+			LOAD_CX(0);
+			LOAD_BX(1);
 			*ZeroFlag = 1;
 			*CarryFlag = 0;
 			CALC_CYCLES(cycles, total_cycles, elapsed_cycles);
@@ -1192,7 +1209,7 @@ write_id:
 			memcpy(cmos + CMOS_SIZE - sizeof(cmos_b), cmos_b, sizeof(cmos_b));
 		} else if(AH == 5) {
 			// get $a2
-			BX = cmos[0xa2] | (cmos[0xa3] << 8);
+			LOAD_BX(cmos[0xa2] | (cmos[0xa3] << 8));
 		} else if(AH == 10) {
 			// memory to cmos
 			int block = AL * 10;
@@ -1213,7 +1230,7 @@ write_id:
 			}
 		} else if(AH == 20) {
 			// check block header
-			BX = 0;
+			LOAD_BX(0);
 		}
 		AH = 0;
 		*CarryFlag = 0;
@@ -1232,10 +1249,17 @@ write_id:
 	return false;
 }
 
+bool BIOS::bios_int_ia32(int intnum, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+{
+	if(intnum == 0x93) {
+		// disk bios
+		return bios_call_far_ia32(0xfffc4, regs, sregs, ZeroFlag, CarryFlag, cycles, total_cycles);
+	}
+	return false;
+}
+
 bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
-	uint8_t *regs8 = (uint8_t *)regs;
-	
 	if(intnum == 0x93) {
 		// disk bios
 		return bios_call_far_i86(0xfffc4, regs, sregs, ZeroFlag, CarryFlag, cycles, total_cycles);

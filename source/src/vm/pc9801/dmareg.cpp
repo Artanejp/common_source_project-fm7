@@ -45,6 +45,7 @@ void DMAREG::write_io8(uint32_t addr, uint32_t data)
 		break;
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	case 0x0029:
+		if((data & 0xf0) != 0) return;
 		switch(data & 0x0c) {
 		case 0x00:
 			d_dma->write_signal(mask_id[data & 3], 0x0000, 0xffff); // 64KB

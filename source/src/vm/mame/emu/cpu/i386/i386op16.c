@@ -496,9 +496,11 @@ static void I386OP(call_abs16)(i386_state *cpustate)        // Opcode 0x9a
 
 //#ifdef I386_PSEUDO_BIOS
 	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
-	//if(!(V8086_MODE) && !(PROTECTED_MODE && (cpustate->CPL > IOPL))) {
-		BIOS_CALL_FAR(((ptr << 4) + offset) & cpustate->a20_mask);
-	//}
+	// ToDo: PROTECTED MODE CALL and PSEUDO-BIOS.
+	// Q: In V8086_MODE, is enabled call far (foo)?
+	if(!(PROTECTED_MODE)/* || (cpustate->CPL > IOPL)*/) {
+		BIOS_CALL_FAR32(((ptr << 4) + offset) & cpustate->a20_mask);
+	}
 //#endif
 
 	if( PROTECTED_MODE && !V8086_MODE)
@@ -3097,9 +3099,11 @@ static void I386OP(groupFF_16)(i386_state *cpustate)        // Opcode 0xff
 					CYCLES(cpustate,CYCLES_CALL_MEM_INTERSEG);      /* TODO: Timing = 10 + m */
 //#ifdef I386_PSEUDO_BIOS
 					UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
-					//if(!(V8086_MODE) && !((PROTECTED_MODE) && (cpustate->CPL > IOPL))) {
-						BIOS_CALL_FAR(((selector << 4) + address) & cpustate->a20_mask);
-					//}
+					// ToDo: PROTECTED MODE CALL and PSEUDO-BIOS.
+					// Q: In V8086_MODE, is enabled call far (foo)?
+					if(!(PROTECTED_MODE)/* || (cpustate->CPL > IOPL)*/) {
+						BIOS_CALL_FAR32(((selector << 4) + address) & cpustate->a20_mask);
+					}
 //#endif
 					if(PROTECTED_MODE && !V8086_MODE)
 					{
@@ -3444,7 +3448,7 @@ static void I386OP(group0F01_16)(i386_state *cpustate)      // Opcode 0x0f 01
 				}
 				cpustate->gdtr.limit = READ16(cpustate,ea);
 				cpustate->gdtr.base = READ32(cpustate,ea + 2) & 0xffffff;
-				//logerror("LGDT(16) PC=%08X MODRM=%02X BASE=%08X LIMIT=%04X\n", cpustate->prev_pc, modrm, cpustate->gdtr.base, cpustate->gdtr.limit);
+				logerror("LGDT(16) PC=%08X MODRM=%02X BASE=%08X LIMIT=%04X\n", cpustate->prev_pc, modrm, cpustate->gdtr.base, cpustate->gdtr.limit);
 				CYCLES(cpustate,CYCLES_LGDT);
 				break;
 			}

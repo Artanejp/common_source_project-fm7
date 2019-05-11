@@ -37,9 +37,9 @@ void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
 		//}
 	} else if(ch == SIG_CPUREG_RESET) {
 		out_debug_log("RESET FROM CPU!!!\n");
-		uint8_t reset_reg = d_pio->read_signal(SIG_I8255_PORT_C);
-		reset_reg = reset_reg & (uint8_t)(~0x20); // Reset SHUT1
-		d_pio->write_signal(SIG_I8255_PORT_C, reset_reg, 0xff);
+//		uint8_t reset_reg = d_pio->read_signal(SIG_I8255_PORT_C);
+//		reset_reg = reset_reg & (uint8_t)(~0x20); // Reset SHUT1
+//		d_pio->write_signal(SIG_I8255_PORT_C, reset_reg, 0xff);
 		d_cpu->set_address_mask(0x000fffff);
 		//d_cpu->reset();
 	}		
@@ -57,9 +57,9 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x00f0:
 		{
-			uint8_t reset_reg = d_pio->read_signal(SIG_I8255_PORT_C);
-			reset_reg = reset_reg & (uint8_t)(~0x20); // Reset SHUT1
-			d_pio->write_signal(SIG_I8255_PORT_C, reset_reg, 0xff);
+//			uint8_t reset_reg = d_pio->read_signal(SIG_I8255_PORT_C);
+//			reset_reg = reset_reg & (uint8_t)(~0x20); // Reset SHUT1
+//			d_pio->write_signal(SIG_I8255_PORT_C, reset_reg, 0xff);
 			d_cpu->set_address_mask(0x000fffff);
 			d_cpu->reset();
 		}

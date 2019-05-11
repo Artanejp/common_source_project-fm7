@@ -38,52 +38,51 @@
 namespace PC9801 {
 
 // regs
-#define AX	regs[0]
-#define CX	regs[1]
-#define DX	regs[2]
-#define BX	regs[3]
-#define SP	regs[4]
-#define BP	regs[5]
-#define SI	regs[6]
-#define DI	regs[7]
+#define EAX	 regs[0]
+#define ECX	 regs[1]
+#define EDX	 regs[2]
+#define EBX	 regs[3]
+#define ESP	 regs[4]
+#define EBP	 regs[5]
+#define ESI	 regs[6]
+#define EDI	 regs[7]
 #define IP_L regs[8]
 #define IP_H regs[9]
 
-#if defined(__LITTLE_ENDIAN__)	
-#define AL	regs8[0]
-#define AH	regs8[1]
-#define CL	regs8[2]
-#define CH	regs8[3]
-#define DL	regs8[4]
-#define DH	regs8[5]
-#define BL	regs8[6]
-#define BH	regs8[7]
-#define SPL	regs8[8]
-#define SPH	regs8[9]
-#define BPL	regs8[10]
-#define BPH	regs8[11]
-#define SIL	regs8[12]
-#define SIH	regs8[13]
-#define DIL	regs8[14]
-#define DIH	regs8[15]
-#else
-#define AL	regs8[1]
-#define AH	regs8[0]
-#define CL	regs8[3]
-#define CH	regs8[2]
-#define DL	regs8[5]
-#define DH	regs8[4]
-#define BL	regs8[7]
-#define BH	regs8[6]
-#define SPL	regs8[9]
-#define SPH	regs8[8]
-#define BPL	regs8[11]
-#define BPH	regs8[10]
-#define SIL	regs8[13]
-#define SIH	regs8[12]
-#define DIL	regs8[15]
-#define DIH	regs8[14]
-#endif
+#define AX regpair[0].w.l
+#define CX regpair[1].w.l
+#define DX regpair[2].w.l
+#define BX regpair[3].w.l
+#define SP regpair[4].w.l
+#define BP regpair[5].w.l
+#define SI regpair[6].w.l
+#define DI regpair[7].w.l
+
+#define LOAD_AX(val) { regpair[0].w.h = 0; regpair[0].w.l = val; }
+#define LOAD_CX(val) { regpair[1].w.h = 0; regpair[1].w.l = val; }
+#define LOAD_DX(val) { regpair[2].w.h = 0; regpair[2].w.l = val; }
+#define LOAD_BX(val) { regpair[3].w.h = 0; regpair[3].w.l = val; }
+#define LOAD_SP(val) { regpair[4].w.h = 0; regpair[4].w.l = val; }
+#define LOAD_BP(val) { regpair[5].w.h = 0; regpair[5].w.l = val; }
+#define LOAD_SI(val) { regpair[6].w.h = 0; regpair[6].w.l = val; }
+#define LOAD_DI(val) { regpair[7].w.h = 0; regpair[7].w.l = val; }
+
+#define AL	regpair[0].b.l
+#define AH	regpair[0].b.h
+#define CL	regpair[1].b.l
+#define CH	regpair[1].b.h
+#define DL	regpair[2].b.l
+#define DH	regpair[2].b.h
+#define BL	regpair[3].b.l
+#define BH	regpair[3].b.h
+#define SPL	regpair[4].b.l
+#define SPH	regpair[4].b.h
+#define BPL	regpair[5].b.l
+#define BPH	regpair[5].b.h
+#define SIL	regpair[6].b.l
+#define SIH	regpair[6].b.h
+#define DIL	regpair[7].b.l
+#define DIH	regpair[7].b.l
 	
 // sregs
 #define ES	sregs[0]
@@ -115,9 +114,8 @@ void BIOS::reset()
 	event_irq = -1;
 }
 
-	bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
-	uint8_t *regs8 = (uint8_t *)regs;
 	// SASI
 	switch(intnum) {
 	case 0x1b: // SASI BIOS (INT3)
@@ -131,9 +129,38 @@ void BIOS::reset()
 	return false;
 }
 
+bool BIOS::bios_int_ia32(int intnum, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+{
+	// SASI
+	switch(intnum) {
+	case 0x1b: // SASI BIOS (INT3)
+		if(d_mem->is_sasi_bios_load()) return false;
+		//out_debug_log("INT 1Bh\n");
+		return bios_call_far_ia32(0xfffc4, regs, sregs, ZeroFlag, CarryFlag, cycles, total_cycles);
+		break;
+	default:
+		break;
+	}
+	return false;
+}
+
 bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
-	uint8_t *regs8 = (uint8_t *)regs;
+	uint32_t reg32[10];
+	for(int i = 0; i < 10; i++) {
+		reg32[i] = regs[i];
+	}
+	if(bios_call_far_ia32(PC, reg32, sregs, ZeroFlag, CarryFlag, cycles, total_cycles)) {
+		for(int i = 0; i < 10; i++) {
+			regs[i] = reg32[i];
+		}
+		return true;
+	}
+	return false;
+}
+bool BIOS::bios_call_far_ia32(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+{
+	pair32_t *regpair = (pair32_t *)regs;
 	bool need_retcall = false;
 #ifdef _PSEUDO_BIOS_DEBUG
 	this->out_debug_log(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
@@ -146,13 +173,13 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 #if 1		
 	static const int elapsed_cycle = 200; // From NP2 0.86+trunk/ OK?
 	/*	if((((AL & 0xf0) != 0x00) && ((AL & 0xf0) != 0x80))) */	{
-			uint8_t seg = d_mem->read_data8(0x004b0 + (AL >> 4));
-			uint32_t sp, ss;
-			if ((seg != 0) && ((seg >= 0xd8) && (seg < 0xd7))) {
+	uint8_t seg = d_mem->read_data8(0x004b0 + (AL >> 4));
+	uint32_t sp, ss;
+	if ((seg != 0) && ((seg >= 0xd8) && (seg < 0xd7))) {
 #ifdef _PSEUDO_BIOS_DEBUG
-				this->out_debug_log(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
+	this->out_debug_log(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
 #endif
-				sp = (uint32_t)SP;
+				sp = ESP;
 				ss = (uint32_t)SS;
 				ss = ss << 4;
 				ss = ss & 0xfffff0;
@@ -176,11 +203,11 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 				d_mem->write_data16(ss + sp - 18, AX);
 				
 				sp = sp - 18;
-				SP = sp;
-				BP = sp;
+				ESP = sp;
+				EBP = sp;
 				DS = 0x0000;
-				BX = 0x04b0;
-				AX = ((uint16_t)seg) << 8;
+				LOAD_BX(0x04b0);
+				LOAD_AX(((uint16_t)seg) << 8);
 				CS = ((uint16_t)seg) << 8;
 				IP_L = 0x0018;
 				IP_H = 0x0000;
@@ -245,9 +272,9 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 	return false;
 }
 
-bool BIOS::sasi_bios(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+bool BIOS::sasi_bios(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 {
-	uint8_t *regs8 = (uint8_t *)regs;
+	pair32_t *regpair = (pair32_t *)regs;
 #if defined(SUPPORT_SASI_IF)
 	if(d_sasi != NULL) {
 		// ToDo: Multi SASI
@@ -324,9 +351,10 @@ int BIOS::sxsi_get_drive(uint8_t al)
 }
 
 // Command $x1	
-void BIOS::sasi_command_verify(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+void BIOS::sasi_command_verify(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 {
-	uint8_t *regs8 = (uint8_t *)regs;
+	pair32_t *regpair = (pair32_t *)regs;
+	regpair[0].w.h = 0; // HIGH WORD OF EAX
 	// Assume success
 	AH = 0x00;
 	*CarryFlag = 0;
@@ -334,15 +362,17 @@ void BIOS::sasi_command_verify(uint32_t PC, uint16_t regs[], uint16_t sregs[], i
 }
 
 // Command $x7, $xf	
-void BIOS::sasi_command_retract(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+void BIOS::sasi_command_retract(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 {
-	uint8_t *regs8 = (uint8_t *)regs;
+	pair32_t *regpair = (pair32_t *)regs;
+	regpair[0].w.h = 0; // HIGH WORD OF EAX
 	// Assume success
 	int drive = sxsi_get_drive(AL);
 	//halt_host_cpu(20.0 * 1000.0); // Seek time
 	if (drive < 0) {
 		AH = 0x60;
 		*CarryFlag = 1;
+		return;
 	}
 	interrupt_to_host(15.0 * 1000.0);
 	AH = 0x00;
@@ -351,23 +381,26 @@ void BIOS::sasi_command_retract(uint32_t PC, uint16_t regs[], uint16_t sregs[], 
 }
 
 // Command (ILLEGAL)
-void BIOS::sasi_command_illegal(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+void BIOS::sasi_command_illegal(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 {
-	uint8_t *regs8 = (uint8_t *)regs;
+	pair32_t *regpair = (pair32_t *)regs;
 	int drive = sxsi_get_drive(AL);
+	regpair[0].w.h = 0; // HIGH WORD OF EAX
 	if (drive < 0) {
 		AH = 0x60;
 		*CarryFlag = 1;
+		return;
 	}
 	AH = 0x40;
 	*CarryFlag = 1;
 	return;
 }
 
-long BIOS::sasi_get_position(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+long BIOS::sasi_get_position(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 {
-	uint8_t *regs8 = (uint8_t *)regs;
+	pair32_t *regpair = (pair32_t *)regs;
 	int drive = sxsi_get_drive(AL);
+	regpair[0].w.h = 0; // HIGH WORD OF EAX
 	SASI_HDD*  d_hdd = d_sasi->get_hdd(drive);
 	if(d_hdd == NULL) {
 		return -1;
@@ -413,9 +446,10 @@ long BIOS::sasi_get_position(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 	return -1;
 }
 
-void BIOS::sasi_command_initialize(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+void BIOS::sasi_command_initialize(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 {
-	uint8_t *regs8 = (uint8_t *)regs;
+	pair32_t *regpair = (pair32_t *)regs;
+	regpair[0].w.h = 0; // HIGH WORD OF EAX
 	
 	uint16_t disk_equip;
 	uint32_t _bit = 0x0100;
@@ -450,9 +484,11 @@ void BIOS::sasi_command_initialize(uint32_t PC, uint16_t regs[], uint16_t sregs[
 	*CarryFlag = 0;
 }
 
-void BIOS::sasi_command_sense(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+void BIOS::sasi_command_sense(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 {
-	uint8_t *regs8 = (uint8_t *)regs;
+	pair32_t *regpair = (pair32_t *)regs;
+	regpair[0].w.h = 0; // HIGH WORD OF EAX
+
 	uint16_t disk_equip;
 	uint32_t _bit = 0x0100;
 	pair16_t _d;
@@ -504,7 +540,10 @@ void BIOS::sasi_command_sense(uint32_t PC, uint16_t regs[], uint16_t sregs[], in
 							int cylinders = hdd->get_cylinders();
 							int head = hdd->get_headers();
 							int sectors = hdd->get_sectors_per_cylinder();
-							
+
+							regpair[1].w.h = 0; // HIGH WORD OF ECX
+							regpair[2].w.h = 0; // HIGH WORD OF EDX
+							regpair[3].w.h = 0; // HIGH WORD OF EBX
 							DL = (uint8_t)sectors;                // Sectors
 							DH = (uint8_t)head;         // Heads
 							CX = (uint16_t)cylinders; // Cylinders
@@ -527,9 +566,11 @@ void BIOS::sasi_command_sense(uint32_t PC, uint16_t regs[], uint16_t sregs[], in
 	}
 }
 
-void BIOS::sasi_command_read(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+void BIOS::sasi_command_read(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 {
-	uint8_t *regs8 = (uint8_t *)regs;
+	pair32_t *regpair = (pair32_t *)regs;
+	regpair[0].w.h = 0; // HIGH WORD OF EAX
+
 	int size = (int)(BX & 0xffff);
 	if(size == 0) size = 0x10000;
 	uint32_t addr;
@@ -617,11 +658,14 @@ void BIOS::sasi_command_read(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 	return;
 }
 
-void BIOS::sasi_command_write(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+void BIOS::sasi_command_write(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 {
+	pair32_t *regpair = (pair32_t *)regs;
 	int size = (int)(BX & 0xffff);
 	if(size == 0) size = 0x10000;
-	uint8_t *regs8 = (uint8_t *)regs;
+
+	regpair[0].w.h = 0; // HIGH WORD OF EAX
+
 	uint32_t addr;
 	addr = (((uint32_t)ES) << 4) + BP;
 	//try {
@@ -698,9 +742,11 @@ void BIOS::sasi_command_write(uint32_t PC, uint16_t regs[], uint16_t sregs[], in
 	return;
 }
 
-void BIOS::sasi_command_format(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+void BIOS::sasi_command_format(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 {
-	uint8_t *regs8 = (uint8_t *)regs;
+	pair32_t *regpair = (pair32_t *)regs;
+	regpair[0].w.h = 0; // HIGH WORD OF EAX
+
 	
 	int drive = sxsi_get_drive(AL);
 	SASI_HDD*  d_hdd = d_sasi->get_hdd(drive); // OK?

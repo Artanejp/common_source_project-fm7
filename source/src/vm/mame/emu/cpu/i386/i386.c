@@ -2461,7 +2461,7 @@ static void i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 op
 			logerror("RETF: SS segment is not present.\n");
 			FAULT(FAULT_GP,newSS & ~0x03)
 		}
-		//if(cpustate->CPL != (newCS & 0x03)) logerror("RETF: Change CPL from %d to %d CS=%04X PC=%08X\n", cpustate->CPL, newCS & 0x03, newCS, cpustate->pc);
+		if(cpustate->CPL != (newCS & 0x03)) logerror("RETF: Change CPL from %d to %d CS=%04X PC=%08X\n", cpustate->CPL, newCS & 0x03, newCS, cpustate->pc);
 		cpustate->CPL = newCS & 0x03;
 
 		/* Load new SS:(E)SP */
@@ -2704,9 +2704,9 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 				}
 				else
 				{
-					if((newCS & ~0x07) >= (cpustate->gdtr.limit & ~0x07))
+					if((newCS & ~0x07) >= cpustate->gdtr.limit)
 					{
-						logerror("IRET: Return CS selector is past GDT limit.GDTR:LIMIT=%04X CS=%04X\n",cpustate->gdtr.limit, newCS);
+						logerror("IRET: Return CS selector (RPL==CPL) is past GDT limit.GDTR:LIMIT=%04X CS=%04X\n",cpustate->gdtr.limit, newCS);
 						FAULT(FAULT_GP,newCS & ~0x03)
 					}
 				}
@@ -2817,7 +2817,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 				{
 					if((newCS & ~0x07) >= cpustate->gdtr.limit)
 					{
-						logerror("IRET: Return CS selector is past GDT limit.\n");
+						logerror("IRET: Return CS selector (RPL > CPL) is past GDT limit.GDTR:LIMIT=%04X CS=%04X\n",cpustate->gdtr.limit, newCS);
 						FAULT(FAULT_GP,newCS & ~0x03);
 					}
 				}
@@ -2880,7 +2880,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 				{
 					if((newSS & ~0x07) >= cpustate->gdtr.limit)
 					{
-						logerror("IRET: Return SS selector is past GDT limit.\n");
+						logerror("IRET: Return SS selector (RPL > CPL) is past GDT limit.\n");
 						FAULT(FAULT_GP,newSS & ~0x03);
 					}
 				}
@@ -2948,7 +2948,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 					REG32(ESP) = newESP;
 					cpustate->sreg[SS].selector = newSS & 0xffff;
 				}
-				//if(cpustate->CPL != (newCS & 0x03)) logerror("IRET: Change CPL from %d to %d PC=%08X\n", cpustate->CPL, newCS & 0x03, cpustate->pc);
+				if(cpustate->CPL != (newCS & 0x03)) logerror("IRET: Change CPL from %d to %d PC=%08X\n", cpustate->CPL, newCS & 0x03, cpustate->pc);
 				cpustate->CPL = newCS & 0x03;
 				i386_load_segment_descriptor(cpustate,SS);
 
