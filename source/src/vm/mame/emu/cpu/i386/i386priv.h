@@ -556,6 +556,8 @@ struct i386_state
 	UINT32 smbase;
 //	devcb_resolved_write_line smiact;
 	bool lock;
+	UINT32 waitfactor;
+	UINT64 waitcount;
 
 	// bytes in current opcode, debug only
 #ifdef DEBUG_MISSING_OPCODE
@@ -677,8 +679,8 @@ INLINE int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32
 		if((cpustate->sreg[seg].flags & 0x0018) == 0x0010 && cpustate->sreg[seg].flags & 0x0004) // if expand-down data segment
 		{
 			// compare if greater then 0xffffffff when we're passed the access size
-			if(offset < size) size = offset;
-			if(/*(cpustate->sreg[seg].limit != 0) && */(((offset - size) <= cpustate->sreg[seg].limit) || ((cpustate->sreg[seg].d)?0:((offset + size - 1) > 0xffff))))
+			//if(offset < size) size = offset;
+			if(/*(cpustate->sreg[seg].limit != 0) && */(((offset - (size - 1)) <= cpustate->sreg[seg].limit) || ((cpustate->sreg[seg].d)?0:((offset - (size - 1)) > 0xffff))))
 			{
 				logerror("Limit check at 0x%08x failed. Segment %04x, limit %08x, offset %08x (expand-down)\n",cpustate->prev_pc,cpustate->sreg[seg].selector,cpustate->sreg[seg].limit,offset);
 				return 1;

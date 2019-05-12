@@ -708,7 +708,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 	int entry = irq * (PROTECTED_MODE ? 8 : 4);
 	int SetRPL = 0;
 	cpustate->lock = false;
-	if( !PROTECTED_MODE /*|| (V8086_MODE)*/)
+	if( !(PROTECTED_MODE) /*|| (V8086_MODE)*/)
 	{
 		/* 16-bit */
 		//try {
@@ -741,14 +741,8 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 		UINT8 CPL = cpustate->CPL, DPL; //, RPL = 0;
 
 		/* 32-bit */
-		//try {
-			v1 = READ32PL0(cpustate, cpustate->idtr.base + entry );
-			v2 = READ32PL0(cpustate, cpustate->idtr.base + entry + 4 );
-		//} catch(UINT64 e) {
-		//	logerror("Irregular exception happened %08x for protected mode.\n", e);
-		//} catch(UINT32 e) {
-		//	logerror("Irregular exception happened %08x for protected mode.\n", e);
-		//}
+		v1 = READ32PL0(cpustate, cpustate->idtr.base + entry );
+		v2 = READ32PL0(cpustate, cpustate->idtr.base + entry + 4 );
 		offset = (v2 & 0xffff0000) | (v1 & 0xffff);
 		segment = (v1 >> 16) & 0xffff;
 		type = (v2>>8) & 0x1F;
@@ -1002,9 +996,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 					cpustate->sreg[DS].selector = 0;
 					cpustate->sreg[ES].selector = 0;
 					cpustate->VM = 0;
-					//cpustate->eflags = get_flags(cpustate);
-					//cpustate->eflags &= ~I386_EFLAGS_VM; // Clear VM flag
-					//set_flags(cpustate, cpustate->eflags);
+					cpustate->eflags = get_flags(cpustate);
 					i386_load_segment_descriptor(cpustate,GS);
 					i386_load_segment_descriptor(cpustate,FS);
 					i386_load_segment_descriptor(cpustate,DS);
@@ -1063,7 +1055,8 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 		try
 		{
 			// this is ugly but the alternative is worse
-			if(/*type != 0x0e && type != 0x0f */(type & 0x08) == 0)  // if not 386 interrupt or trap gate
+			//if(/*type != 0x0e && type != 0x0f */(type & 0x08) == 0)  // if not 386 interrupt or trap gate
+			if(type != 0x0e && type != 0x0f)  // if not 386 interrupt or trap gate
 			{
 				PUSH16(cpustate, oldflags & 0xffff );
 				PUSH16(cpustate, cpustate->sreg[CS].selector );
@@ -1074,7 +1067,8 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 			}
 			else
 			{
-				PUSH32(cpustate, oldflags /*& 0x00ffffff */);
+				//PUSH32(cpustate, oldflags /*& 0x00ffffff */);
+				PUSH32(cpustate, oldflags & 0x00ffffff);
 				PUSH32SEG(cpustate, cpustate->sreg[CS].selector );
 				if(irq == 3 || irq == 4 || irq == 9 || irq_gate == 1)
 					PUSH32(cpustate, cpustate->eip );
@@ -1317,7 +1311,7 @@ static void i286_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested
 	CHANGE_PC(cpustate,cpustate->eip);
 	cpustate->CPL = (cpustate->sreg[SS].flags >> 5) & 3;
 	UINT32 _newCPL = cpustate->CPL;
-	//if(_oldCPL != _newCPL) logerror("I286 TASK SWITCH: Privilege changed from %d to %d at ADDR %08X to %08X\n", _oldCPL, _newCPL, _oldPC, cpustate->pc);
+	//if(_oldCPL != _newCPL) logerror("I286 TASK SWITCH: Privilege changed from %d to %d at ADDR %08X to %08X\n", _oldCPL, _newCPL, _oldPC, cpustate->prev_pc);
 	
 	logerror("80286 Task Switch from selector %04x to %04x\n",old_task,selector);
 }
@@ -1441,7 +1435,7 @@ static void i386_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested
 
 	cpustate->CPL = (cpustate->sreg[SS].flags >> 5) & 3;
 	UINT32 _newCPL = cpustate->CPL;
-	if(_oldCPL != _newCPL) logerror("I80386 TASK SWITCH: Privilege changed from %d to %d at ADDR %08X to %08X\n", _oldCPL, _newCPL, _oldPC, cpustate->pc);
+	//if(_oldCPL != _newCPL) logerror("I80386 TASK SWITCH: Privilege changed from %d to %d at ADDR %08X to %08X\n", _oldCPL, _newCPL, _oldPC, cpustate->prev_pc);
 	logerror("i386 Task Switch from selector %04x to %04x\n",old_task,selector);
 }
 
@@ -2034,7 +2028,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 					UINT32 _oldCPL = cpustate->CPL;
 					cpustate->CPL = (stack.flags >> 5) & 0x03;
 					UINT32 _newCPL = cpustate->CPL;
-					if(_oldCPL != _newCPL) logerror("Privilege changed by protected mode call from %d to %d ADDR %08X\n", _oldCPL, _newCPL, cpustate->pc);
+					//if(_oldCPL != _newCPL) logerror("Privilege changed by protected mode call from %d to %d ADDR %08X\n", _oldCPL, _newCPL, cpustate->pc);
 					/* check for page fault at new stack */
 					WRITE_TEST(cpustate, stack.base+newESP-1);
 					/* switch to new stack */
@@ -2499,8 +2493,8 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
 	UINT32 stack_size = 6;
 	CPL = cpustate->CPL;
-	//UINT32 ea = i386_translate(cpustate, SS, (STACK_32BIT)?REG32(ESP):REG16(SP), 0, (operand32)?12:6);
-	UINT32 ea = i386_translate(cpustate, SS, (STACK_32BIT)?REG32(ESP):REG16(SP), 0, 1);
+	UINT32 ea = i386_translate(cpustate, SS, (STACK_32BIT)?REG32(ESP):REG16(SP), 0, (operand32)?12:6);
+	//UINT32 ea = i386_translate(cpustate, SS, (STACK_32BIT)?REG32(ESP):REG16(SP), 0, 1);
 	if(operand32 == 0)
 	{
 		newEIP = READ16(cpustate, ea) & 0xffff;
@@ -2526,9 +2520,6 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 		}
 		if(operand32 == 0)
 		{
-			//if((newEIP & 0xffff) > cpustate->sreg[CS].limit) {
-			//	FAULT(FAULT_GP, 0);
-			//}
 			cpustate->eip = newEIP & 0xffff;
 			cpustate->sreg[CS].selector = newCS & 0xffff;
 			//i386_load_segment_descriptor(cpustate,CS);
@@ -2537,35 +2528,19 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 			newflags &= ~I386_EFLAGS_IOPL;  // IOPL cannot be changed in V86 mode
 			newflags |= (oldflags & I386_EFLAGS_IOPL);
 			set_flags(cpustate,(newflags & 0xffff) | (oldflags & ~0xffff));
-			//if(STACK_32BIT) {
-			//REG32(ESP) += stack_size;
-				//} else {
-			//		REG16(SP) += stack_size;
 			REG16(SP) += 6;
-				//}
 		}
 		else
 		{
-			cpustate->sreg[CS].selector = newCS & 0xffff;
-			//i386_load_segment_descriptor(cpustate,CS);
-			//if(newEIP > cpustate->sreg[CS].limit) {
-			//	FAULT(FAULT_GP, 0);
-			//}
 			cpustate->eip = newEIP;
+			cpustate->sreg[CS].selector = newCS & 0xffff;
 			//newflags &= ~(3<<12);
 			//newflags |= 0x20000 | (((oldflags>>12)&3)<<12);  // IOPL and VM cannot be changed in V86 mode
 			newflags &= ~I386_EFLAGS_IOPL;  // IOPL and VM cannot be changed in V86 mode
 			newflags |= (oldflags & I386_EFLAGS_IOPL) | I386_EFLAGS_VM;
 			set_flags(cpustate,newflags);
-			//if(STACK_32BIT) {
-			//REG32(ESP) += stack_size;
-			//} else {
-			//	REG16(SP) += stack_size;
-			//}
 			REG32(ESP) += 12;
-			
 		}
-		
 	}
 	else if(NESTED_TASK)
 	{
@@ -2614,7 +2589,6 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 			//logerror("IRET (%08x): Returning to Virtual 8086 mode.\n",cpustate->pc);
 			if(CPL != 0)
 			{
-				UINT32 oldflags = get_flags(cpustate);
 				//newflags = (newflags & ~0x00003000) | (oldflags & 0x00003000);
 				newflags = (newflags & ~I386_EFLAGS_IOPL) | (oldflags & I386_EFLAGS_IOPL);
 				if(CPL > IOPL) {
@@ -2633,6 +2607,9 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 			cpustate->sreg[DS].selector = POP32(cpustate) & 0xffff;
 			cpustate->sreg[FS].selector = POP32(cpustate) & 0xffff;
 			cpustate->sreg[GS].selector = POP32(cpustate) & 0xffff;
+			UINT32 __oldESP = REG32(ESP);
+			UINT32 __oldSS  =	cpustate->sreg[SS].selector ;
+
 			REG32(ESP) = newESP;  // all 32 bits are loaded
 			cpustate->sreg[SS].selector = newSS;
 			i386_load_segment_descriptor(cpustate,ES);
@@ -2640,7 +2617,18 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 			i386_load_segment_descriptor(cpustate,FS);
 			i386_load_segment_descriptor(cpustate,GS);
 			i386_load_segment_descriptor(cpustate,SS);
+			UINT8 oldCPL = cpustate->CPL;
 			cpustate->CPL = 3;  // Virtual 8086 tasks are always run at CPL 3
+//			if(oldCPL != 3) {
+//				I386_SREG desc2, stack2;
+//				memset(&desc2, 0x00, sizeof(desc2));
+//				memset(&stack2, 0x00, sizeof(stack2));
+//				desc2.selector = newCS & 0xffff;
+//				i386_load_protected_mode_segment(cpustate,&desc2,NULL);
+//				stack2.selector = __oldSS;
+//				i386_load_protected_mode_segment(cpustate,&stack2,NULL);
+//				logerror("Enter to V8086 mode via IRET() at %08X to %08X NEWFLAGS=%08X FLAGS(CS)%08X SP=%08X:%08X\n", cpustate->prev_pc, cpustate->sreg[CS].base + cpustate->eip, newflags, desc2.flags, stack2.base , __oldESP);
+//			}
 		}
 		else
 		{
@@ -3469,6 +3457,8 @@ static void zero_state(i386_state *cpustate)
 	cpustate->opcode_pc = 0;
 	cpustate->opcode_bytes_length = 0;
 #endif
+	cpustate->waitcount = 0;
+
 }
 
 static CPU_RESET( i386 )
@@ -3658,6 +3648,21 @@ static void i386_set_a20_line(i386_state *cpustate,int state)
 	vtlb_flush_dynamic(cpustate->vtlb);
 }
 
+static INLINE void cpu_wait_i386(i386_state *cpustate,int clocks)
+{
+	uint64_t ncount = 0;
+	if(clocks <= 0) return;
+	if(cpustate->waitfactor == 0) return;
+	uint64_t wcount = cpustate->waitcount;
+	wcount += (uint64_t)(cpustate->waitfactor * (uint32_t)clocks);
+	if(wcount >= 65536) {
+		ncount = wcount >> 16;
+		wcount = wcount - (ncount << 16);
+	}
+	cpustate->extra_cycles += (int)ncount;
+	cpustate->waitcount = wcount;
+}
+
 static CPU_EXECUTE( i386 )
 {
 	CHANGE_PC(cpustate,cpustate->eip);
@@ -3677,6 +3682,7 @@ static CPU_EXECUTE( i386 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_cycles += passed_cycles;
 //#endif
+			cpu_wait_i386(cpustate, passed_cycles);
 			return passed_cycles;
 		} else {
 			cpustate->cycles += cycles;
@@ -3695,6 +3701,7 @@ static CPU_EXECUTE( i386 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_cycles += passed_cycles;
 //#endif
+			cpu_wait_i386(cpustate, passed_cycles);
 			return passed_cycles;
 		}
 	}
@@ -3888,6 +3895,7 @@ static CPU_EXECUTE( i386 )
 	}
 	int passed_cycles = cpustate->base_cycles - cpustate->cycles;
 	cpustate->tsc += passed_cycles;
+	cpu_wait_i386(cpustate, passed_cycles);
 	return passed_cycles;
 }
 

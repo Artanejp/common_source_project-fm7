@@ -417,15 +417,16 @@ void MEMORY::copy_table_w(uint32_t to, uint32_t start, uint32_t end)
 {
 	MEMORY::initialize();
 
-	uint32_t to_bank = to >> addr_shift;
 	uint32_t start_bank = start >> addr_shift;
 	uint32_t end_bank = end >> addr_shift;
-
+	uint32_t to_bank = to >> addr_shift;
+	int blocks = (int)(addr_max / bank_size);
+	
 	for(uint32_t i = start_bank; i <= end_bank; i++) {
-		if(to_bank >= bank_size) break;
-		if(i >= bank_size) break;
+		if(to_bank >= blocks) break;
 		wr_table[to_bank].dev = wr_table[i].dev;
 		wr_table[to_bank].memory = wr_table[i].memory;
+		wr_table[to_bank].wait = wr_table[i].wait;
 		to_bank++;
 	}
 }
@@ -434,15 +435,16 @@ void MEMORY::copy_table_r(uint32_t to, uint32_t start, uint32_t end)
 {
 	MEMORY::initialize();
 
-	uint32_t to_bank = to >> addr_shift;
 	uint32_t start_bank = start >> addr_shift;
 	uint32_t end_bank = end >> addr_shift;
+	uint32_t to_bank = to >> addr_shift;
+	int blocks = (int)(addr_max / bank_size);
 
 	for(uint32_t i = start_bank; i <= end_bank; i++) {
-		if(to_bank >= bank_size) break;
-		if(i >= bank_size) break;
+		if(to_bank >= blocks) break;
 		rd_table[to_bank].dev = rd_table[i].dev;
 		rd_table[to_bank].memory = rd_table[i].memory;
+		rd_table[to_bank].wait = rd_table[i].wait;
 		to_bank++;
 	}
 }

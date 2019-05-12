@@ -96,9 +96,9 @@ private:
 #endif
 #if defined(SUPPORT_IDE_IF)
 	uint8_t ide_bios[0x4000];
-//	uint8_t ide_bios_ram[0x4000];
+	uint8_t ide_bios_ram[0x2000];
 	bool ide_bios_selected;
-//	bool ide_bios_ram_selected;
+	bool ide_bios_bank;
 	void update_ide_bios();
 #endif
 	// EMS
@@ -131,11 +131,6 @@ public:
 	uint32_t read_signal(int ch);
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
-// WIP: Temporally re-add read_data8() and write_data8() for SUPPORT_24BIT_ADDRESS.20190510 K.O
-#if defined(SUPPORT_24BIT_ADDRESS)
-	uint32_t read_data8(uint32_t addr);
-	void write_data8(uint32_t addr, uint32_t data);
-#endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	uint32_t read_dma_data8(uint32_t addr);
 	void write_dma_data8(uint32_t addr, uint32_t data);

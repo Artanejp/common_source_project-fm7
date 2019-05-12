@@ -658,18 +658,18 @@ static void I386OP(mov_rm8_i8)(i386_state *cpustate)        // Opcode 0xc6
 static void I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode 0x0f 20
 {
 #if 1
-	UINT32 oldpc = cpustate->pc;
+	UINT32 oldpc = cpustate->prev_pc;
+	if((PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)))) {
+		logerror("Call from non-supervisor privilege: I386OP(mov_r32_cr) at %08X", oldpc); 
+		FAULT(FAULT_GP, 0);
+		//return;
+	}
 	UINT8 modrm = FETCH(cpustate);
 	//if(modrm < 0xc0) {
 	//	FAULT(FAULT_UD, 0);
 	//	return;
 	//}
 	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
-	if((PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)))) {
-		logerror("Call from non-supervisor privilege: I386OP(mov_r32_cr) at %08X", oldpc); 
-		FAULT(FAULT_GP, 0);
-		//return;
-	}
 	UINT8 cr = (modrm >> 3) & 0x7;
 	//logdebug("MOV r32 CR%d VAL=(%08X)\n", cr, cpustate->cr[cr], oldpc);
 //	if(cr < 5) {
@@ -773,18 +773,18 @@ static void I386OP(mov_r32_dr)(i386_state *cpustate)        // Opcode 0x0f 21
 static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 {
 #if 1
-	UINT32 oldpc = cpustate->pc;
+	UINT32 oldpc = cpustate->prev_pc;
+	if(PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0))) {
+		logerror("Call from non-supervisor privilege: I386OP(mov_cr_r32) at %08X", oldpc); 
+		FAULT(FAULT_GP, 0);
+		return;
+	}
 	UINT8 modrm = FETCH(cpustate);
 	if(modrm < 0xc0) {
 		FAULT(FAULT_UD, 0);
 		return;
 	}
 	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
-	if(PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0))) {
-		logerror("Call from non-supervisor privilege: I386OP(mov_cr_r32) at %08X", oldpc); 
-		FAULT(FAULT_GP, 0);
-		return;
-	}
 
 	UINT8 cr = (modrm >> 3) & 0x7;
 	UINT32 data = LOAD_RM32(modrm);
@@ -794,8 +794,8 @@ static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 	{
 		case 0:
 			CYCLES(cpustate,CYCLES_MOV_REG_CR0);
-//			if (PROTECTED_MODE != BIT(data, 0))
-//				debugger_privilege_hook();
+			//if (PROTECTED_MODE != BIT(data, 0))
+			//	debugger_privilege_hook();
 			if((data & (I386_CR0_PE | I386_CR0_PG)) == (UINT32)I386_CR0_PG) {
 				FAULT(FAULT_GP, 0);
 			}

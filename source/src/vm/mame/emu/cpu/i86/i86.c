@@ -72,6 +72,8 @@ struct i8086_state
 	uint64_t prev_total_icount;
 #endif
 	int icount;
+	uint32_t waitfactor;
+	uint32_t waitcount;
 
 	//char seg_prefix;                   /* prefix segment indicator */
 	UINT8 seg_prefix;                   /* prefix segment indicator */
@@ -204,6 +206,7 @@ static CPU_RESET( i8086 )
 	cpustate->total_icount = total_icount;
 	cpustate->prev_total_icount = prev_total_icount;
 #endif
+	cpustate->waitcount = 0;
 	cpustate->icount = icount;
 	cpustate->extra_cycles = extra_cycles;
 	cpustate->halted = 0;
@@ -279,6 +282,21 @@ static void set_test_line(i8086_state *cpustate, int state)
 	cpustate->test_state = !state;
 }
 
+static void cpu_wait_i86(i8086_state *cpustate,int clocks)
+{
+	uint32_t ncount = 0;
+	if(clocks < 0) return;
+	if(cpustate->waitfactor == 0) return;
+	uint32_t wcount = cpustate->waitcount;
+	wcount += (cpustate->waitfactor * (uint32_t)clocks);
+	if(wcount >= 65536) {
+		ncount = wcount >> 16;
+		wcount = wcount - (ncount << 16);
+	}
+	cpustate->extra_cycles += ncount;
+	cpustate->waitcount = wcount;
+}
+
 CPU_EXECUTE( i8086 )
 {
 	if (cpustate->halted || cpustate->busreq)
@@ -295,6 +313,7 @@ CPU_EXECUTE( i8086 )
 #ifdef USE_DEBUGGER
 			cpustate->total_icount += passed_icount;
 #endif
+			cpu_wait_i86(cpustate, passed_icount);
 			return passed_icount;
 		} else {
 			cpustate->icount += icount;
@@ -311,6 +330,7 @@ CPU_EXECUTE( i8086 )
 #ifdef USE_DEBUGGER
 			cpustate->total_icount += base_icount - cpustate->icount;
 #endif
+			cpu_wait_i86(cpustate, base_icount - cpustate->icount);
 			return base_icount - cpustate->icount;
 		}
 	}
@@ -405,6 +425,7 @@ CPU_EXECUTE( i8086 )
 #endif
 		cpustate->icount = 0;
 	}
+	cpu_wait_i86(cpustate, base_icount - cpustate->icount);
 	return base_icount - cpustate->icount;
 }
 
@@ -427,6 +448,21 @@ CPU_EXECUTE( i8088 )
 #include "instr186.c"
 #undef I80186
 
+static void cpu_wait_i186(cpu_state *cpustate,int clocks)
+{
+	uint32_t ncount = 0;
+	if(clocks < 0) return;
+	if(cpustate->waitfactor == 0) return;
+	uint32_t wcount = cpustate->waitcount;
+	wcount += (cpustate->waitfactor * (uint32_t)clocks);
+	if(wcount >= 65536) {
+		ncount = wcount >> 16;
+		wcount = wcount - (ncount << 16);
+	}
+	cpustate->extra_cycles += ncount;
+	cpustate->waitcount = wcount;
+}
+
 CPU_EXECUTE( i80186 )
 {
 	if (cpustate->halted || cpustate->busreq)
@@ -443,6 +479,7 @@ CPU_EXECUTE( i80186 )
 #ifdef USE_DEBUGGER
 			cpustate->total_icount += passed_icount;
 #endif
+			cpu_wait_i186(cpustate, passed_icount);
 			return passed_icount;
 		} else {
 			cpustate->icount += icount;
@@ -459,6 +496,7 @@ CPU_EXECUTE( i80186 )
 #ifdef USE_DEBUGGER
 			cpustate->total_icount += base_icount - cpustate->icount;
 #endif
+			cpu_wait_i186(cpustate, base_icount - cpustate->icount);
 			return base_icount - cpustate->icount;
 		}
 	}
@@ -553,6 +591,7 @@ CPU_EXECUTE( i80186 )
 #endif
 		cpustate->icount = 0;
 	}
+	cpu_wait_i186(cpustate, base_icount - cpustate->icount);
 	return base_icount - cpustate->icount;
 }
 
@@ -570,6 +609,21 @@ CPU_EXECUTE( i80186 )
 #include "instrv30.c"
 #undef I80186
 
+static void cpu_wait_v30(cpu_state *cpustate,int clocks)
+{
+	uint32_t ncount = 0;
+	if(clocks < 0) return;
+	if(cpustate->waitfactor == 0) return;
+	uint32_t wcount = cpustate->waitcount;
+	wcount += (cpustate->waitfactor * (uint32_t)clocks);
+	if(wcount >= 65536) {
+		ncount = wcount >> 16;
+		wcount = wcount - (ncount << 16);
+	}
+	cpustate->extra_cycles += ncount;
+	cpustate->waitcount = wcount;
+}
+
 CPU_EXECUTE( v30 )
 {
 	if (cpustate->halted || cpustate->busreq)
@@ -586,6 +640,7 @@ CPU_EXECUTE( v30 )
 #ifdef USE_DEBUGGER
 			cpustate->total_icount += passed_icount;
 #endif
+			cpu_wait_v30(cpustate, passed_icount);
 			return passed_icount;
 		} else {
 			cpustate->icount += icount;
@@ -602,6 +657,7 @@ CPU_EXECUTE( v30 )
 #ifdef USE_DEBUGGER
 			cpustate->total_icount += base_icount - cpustate->icount;
 #endif
+			cpu_wait_v30(cpustate, base_icount - cpustate->icount);
 			return base_icount - cpustate->icount;
 		}
 	}
@@ -696,5 +752,6 @@ CPU_EXECUTE( v30 )
 #endif
 		cpustate->icount = 0;
 	}
+	cpu_wait_v30(cpustate, base_icount - cpustate->icount);
 	return base_icount - cpustate->icount;
 }

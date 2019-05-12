@@ -151,6 +151,7 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 //#endif
 		}
 		break;
+	case 0x00bc: // OK?
 	case 0x00be:
 #if !defined(SUPPORT_HIRESO)
 		if(!(modereg & 2) && (data & 2)) {
@@ -236,8 +237,10 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 #endif
 		break;
 #if !defined(SUPPORT_HIRESO)
+	case 0x00bc: // OK?
 	case 0x00be:
-		return 0xf8 | (modereg & 3);
+		//return 0xf8 | (modereg & 3);
+		return 0xfc | (modereg & 3);
 	case 0x00cc:
 	case 0x00ce:
 		if(!(modereg & 1)) {

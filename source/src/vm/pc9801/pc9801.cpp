@@ -145,25 +145,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #else
 	pit_clock_8mhz = false;
 #endif
-#if defined(_PC9801E)
-	if(config.cpu_type != 0) {
-		// 8MHz -> 5MHz
-		cpu_clocks = 4992030;
-		pit_clock_8mhz = false;
-	}
-#elif defined(_PC9801VM) || defined(_PC98DO) || defined(_PC98DOPLUS) || defined(_PC9801VX) || defined(_PC98XL)
-	if(config.cpu_type != 0) {
-		// 10MHz/16MHz -> 8MHz
-		cpu_clocks = 7987248;
-		pit_clock_8mhz = true;
-	}
-#elif defined(_PC9801RA) || defined(_PC98RL)
-	if(config.cpu_type != 0) {
-		// 20MHz -> 16MHz
-		cpu_clocks = 15974496;
-		pit_clock_8mhz = true;
-	}
-#endif
 	int pit_clocks = pit_clock_8mhz ? 1996812 : 2457600;
 	
 	sound_type = config.sound_type;
@@ -663,7 +644,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x0055, pio_fdd, 2);
 	io->set_iomap_alias_w (0x0057, pio_fdd, 3);
 #endif
-
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+	io->set_iomap_range_r(0x005c, 0x005f, cpureg); // TimeStamp
+#endif
+	
 	io->set_iomap_alias_rw(0x0060, gdc_chr, 0);
 	io->set_iomap_alias_rw(0x0062, gdc_chr, 1);
 	
@@ -748,6 +732,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x0096, floppy);
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
 #if !defined(SUPPORT_HIRESO)
+	io->set_iomap_single_rw(0x00bc, floppy);
 	io->set_iomap_single_rw(0x00be, floppy);
 #else
 //#if !defined(_PC98XA) && !defined(_PC98XL)
@@ -978,7 +963,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	
+	setclock();
+
 #if defined(_PC9801) || defined(_PC9801E)
 	fdc_2hd->get_disk_handler(0)->drive_num = 0;
 	fdc_2hd->get_disk_handler(1)->drive_num = 1;
@@ -1039,6 +1025,56 @@ DEVICE* VM::get_device(int id)
 // ----------------------------------------------------------------------------
 // drive virtual machine
 // ----------------------------------------------------------------------------
+void VM::setclock()
+{
+	uint32_t cpu_clocks = CPU_CLOCKS;
+#if defined(_PC9801E)
+	if(config.cpu_type != 0) {
+		// 8MHz -> 5MHz
+		cpu_clocks = 4992030;
+		pit_clock_8mhz = false;
+	} else {
+		pit_clock_8mhz = true;
+	}
+#elif defined(_PC9801VM) || defined(_PC98DO) || defined(_PC98DOPLUS) || defined(_PC9801VX) || defined(_PC98XL)
+	if(config.cpu_type != 0) {
+		// 10MHz/16MHz -> 8MHz
+		cpu_clocks = 7987248;
+		pit_clock_8mhz = true;
+	} else {
+		pit_clock_8mhz = false;
+	}
+#elif defined(_PC9801RA) || defined(_PC98RL)
+	if(config.cpu_type != 0) {
+		// 20MHz -> 16MHz
+		cpu_clocks = 15974496;
+		pit_clock_8mhz = true;
+	} else {
+		pit_clock_8mhz = false;
+	}		
+#endif
+	uint32_t waitfactor;
+	if(CPU_CLOCKS > cpu_clocks) {
+		waitfactor = (uint32_t)(65536.0 * ((1.0 - (double)cpu_clocks / (double)CPU_CLOCKS)));
+		//out_debug_log(_T("CLOCK=%d WAIT FACTOR=%d"), cpu_clocks, waitfactor);
+	} else {
+		waitfactor = 0;
+		//out_debug_log(_T("CLOCK=%d WAIT FACTOR=%d"), cpu_clocks, waitfactor);
+	}
+	cpu->write_signal(SIG_CPU_WAIT_FACTOR, waitfactor, 0xffffffff);
+	
+	uint8_t prn_port_b = pio_prn->read_signal(SIG_I8255_PORT_B);
+	prn_port_b &= (uint8_t)(~0x20);
+	if(pit_clock_8mhz) {
+		prn_port_b |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
+	}
+	pio_prn->write_signal(SIG_I8255_PORT_B, prn_port_b, 0xff);
+	int pit_clocks = pit_clock_8mhz ? 1996812 : 2457600;
+	// pit ch.2: rs-232c
+	pit->set_constant_clock(0, pit_clocks);
+	pit->set_constant_clock(1, pit_clocks);
+	pit->set_constant_clock(2, pit_clocks);
+}
 
 void VM::reset()
 {
@@ -1051,6 +1087,7 @@ void VM::reset()
 		device->reset();
 	}
 #endif
+	setclock();
 	
 	// initial device settings
 	uint8_t port_a, port_b, port_c;
@@ -1195,6 +1232,7 @@ void VM::reset()
 	pc88pio->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 	pc88pio_sub->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 #endif
+
 }
 
 void VM::run()
@@ -1655,6 +1693,7 @@ bool VM::is_frame_skippable()
 
 void VM::update_config()
 {
+	setclock();
 	{
 		uint8_t mouse_port_b = pio_mouse->read_signal(SIG_I8255_PORT_B);
 		mouse_port_b = mouse_port_b & ~0x40;
@@ -1675,16 +1714,17 @@ void VM::update_config()
 		}
 		pio_sys->write_signal(SIG_I8255_PORT_A, sys_port_a, 0xff);
 	}
-#if defined(SUPPORT_EGC)
+
 	{
 		uint8_t prn_port_b = pio_prn->read_signal(SIG_I8255_PORT_B);
+#if defined(SUPPORT_EGC)
 		prn_port_b = prn_port_b & ~0x08;
 		if((config.dipswitch & (1 << DIPSW_POSITION_EGC)) == 0) {
 			prn_port_b = prn_port_b | 0x08;
 		}
+#endif
 		pio_prn->write_signal(SIG_I8255_PORT_B, prn_port_b, 0xff);
 	}
-#endif
 	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != config.boot_mode) {

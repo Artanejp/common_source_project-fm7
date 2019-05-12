@@ -33,7 +33,6 @@ enum {
 
 #define SIG_CPU_HALTREQ 0x8000 + SIG_CPU_BUSREQ
 // Note: Below is ugly hack cause of CPU#0 cannot modify clock.
-#define SIG_CPU_WAIT_FACTOR 0x8001 + SIG_CPU_BUSREQ
 class VM;
 class EMU;
 class DEBUGGER;

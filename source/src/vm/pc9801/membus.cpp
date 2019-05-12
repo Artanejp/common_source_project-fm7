@@ -156,7 +156,7 @@ void MEMBUS::initialize()
 	memset(ide_bios, 0xff, sizeof(ide_bios));
 	memset(ide_bios_ram, 0x00, sizeof(ide_bios_ram));
 	ide_bios_selected = (read_bios(_T("IDE.ROM"), ide_bios, sizeof(ide_bios)) != 0);
-	ide_bios_ram_selected = false;
+	ide_bios_bank = 0;
 #endif
 //	page08_intram_selected = false;	
 	page08_intram_selected = true;	
@@ -191,8 +191,8 @@ void MEMBUS::reset()
 
 	// SASI
 #if defined(SUPPORT_SASI_IF)
-//	sasi_bios_selected = true;
-	sasi_bios_selected = false;
+	sasi_bios_selected = true;
+//	sasi_bios_selected = false;
 	sasi_bios_ram_selected = false; // OK?
 #endif
 	// SASI
@@ -201,6 +201,9 @@ void MEMBUS::reset()
 	scsi_bios_ram_selected = false; // OK?
 #endif
 	// ToDo: IDE
+#if defined(SUPPORT_IDE_IF)
+	ide_bios_bank = 0; // ToDo: BANK
+#endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 #if !defined(SUPPORT_HIRESO)
 	dma_access_ctrl = 0xfe; // bit2 = 1, bit0 = 0
@@ -349,6 +352,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 #endif
+#if 1
 	case 0x0461:
 		// http://www.webtech.co.jp/company/doc/undocumented_mem/io_mem.txt
 		// ToDo: Cache flush for i486 or later.
@@ -360,6 +364,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 			}
 		}
 		break;
+#endif
 #if defined(SUPPORT_HIRESO)
 	case 0x0093:
 #if defined(_PC98XA)
@@ -377,6 +382,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 #endif
+#if 1
 	case 0x0463:
 		// http://www.webtech.co.jp/company/doc/undocumented_mem/io_mem.txt
 		// ToDo: Cache flush for i486 or later.
@@ -388,6 +394,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 			}
 		}
 		break;
+#endif
 #endif
 #if defined(SUPPORT_32BIT_ADDRESS)
 	case 0x053d:
@@ -475,85 +482,7 @@ uint32_t MEMBUS::read_io8(uint32_t addr)
 	}
 	return 0xff;
 }
-#if defined(SUPPORT_24BIT_ADDRESS)
-// WIP: Temporally re-add read_data8() and write_data8() for SUPPORT_24BIT_ADDRESS.20190510 K.O
-uint32_t MEMBUS::read_data8(uint32_t addr)
-{
-	if((addr >= 0x80000) && (addr < 0xc0000)) {
-		// ToDo: External banked memory.
-		if(addr < 0xa0000){
-			// ToDo: Correctness extra ram emulation.
-			if(!page08_intram_selected) {
-				last_access_is_interam = false;
-				return 0xff;
-			}
-			// Unable to access lower than 07ffffh via WINDOW.20190425 K.O 
-			if(window_80000h >= 0x80000) {
-				addr = (addr & 0x1ffff) | window_80000h;
-			}
-		} else {
-			// Unable to access lower than 07ffffh via WINDOW.20190425 K.O 
-			if(window_a0000h >= 0x80000) { // a0000 - bffff
-				addr = (addr & 0x1ffff) | window_a0000h;
-			}
-		}
-	}
-	if(addr < 0x10000) {
-		last_access_is_interam = false;
-	}
-	if(addr < UPPER_MEMORY_24BIT) {
-		last_access_is_interam = true;
-		return MEMORY::read_data8(addr);
-	}
-	return MEMORY::read_data8(addr & 0xfffff);
-}
-
-void MEMBUS::write_data8(uint32_t addr, uint32_t data)
-{
-	if((addr >= 0x80000) && (addr < 0xc0000)) {
-		if(addr < 0xa0000) {
-			// ToDo: Correctness extra ram emulation.
-			if(!page08_intram_selected) {
-				last_access_is_interam = false;
-				return;
-			}
-			if(window_80000h >= 0x80000) {
-				addr = (addr & 0x1ffff) | window_80000h;
-			}
-		} else { // a0000 - bffff
-			if(window_a0000h >= 0x80000) { // a0000 - bffff
-				addr = (addr & 0x1ffff) | window_a0000h;
-			}
-		}
-	}
-	if(addr < 0x10000) {
-		last_access_is_interam = false;
-	}
-	if(addr < UPPER_MEMORY_24BIT) {
-		last_access_is_interam = true;
-		MEMORY::write_data8(addr, data);
-		return;
-	}
-	MEMORY::write_data8(addr & 0xfffff, data);
-}
-
-
-uint32_t MEMBUS::read_dma_data8(uint32_t addr)
-{
-	if(!(dma_access_a20)) {
-		addr &= 0x000fffff;
-	}
-	return read_data8(addr);
-}
-
-void MEMBUS::write_dma_data8(uint32_t addr, uint32_t data)
-{
-	if(!(dma_access_a20)) {
-		addr &= 0x000fffff;
-	}
-	write_data8(addr, data);
-}
-#elif defined(SUPPORT_32BIT_ADDRESS)
+#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
 uint32_t MEMBUS::read_dma_data8(uint32_t addr)
 {
 	if(!(dma_access_a20)) {
@@ -587,7 +516,7 @@ void MEMBUS::config_intram()
 	#if defined(SUPPORT_32BIT_ADDRESS)
 	set_memory_rw(0x00000, (sizeof(ram) >= 0x80000) ? 0x7ffff :  (sizeof(ram) - 1), ram);
 	#elif defined(SUPPORT_24BIT_ADDRESS)
-	set_memory_rw(0x00000, 0x9ffff, ram);
+	set_memory_rw(0x00000, (sizeof(ram) >= 0x80000) ? 0x7ffff :  (sizeof(ram) - 1), ram);
 	#else
 	set_memory_rw(0x00000, (sizeof(ram) >= 0xc0000) ? 0xbffff :  (sizeof(ram) - 1), ram);
 	#endif	
@@ -605,7 +534,7 @@ void MEMBUS::config_intram()
 void MEMBUS::update_bios()
 {
 #if !defined(SUPPORT_HIRESO)
-	#if defined(SUPPORT_32BIT_ADDRESS)/* || defined(SUPPORT_24BIT_ADDRESS)*/
+	#if defined(SUPPORT_32BIT_ADDRESS)|| defined(SUPPORT_24BIT_ADDRESS)
 	unset_memory_rw(0x80000, 0xbffff);
 	#endif
 	set_memory_mapped_io_rw(0xa0000, 0xa4fff, d_display);
@@ -638,7 +567,7 @@ void MEMBUS::update_bios()
 	}
 #else // HIRESO
 	set_memory_mapped_io_rw(0xc0000, 0xe4fff, d_display);
-	#if defined(SUPPORT_BIOS_RAM)
+	#if defined(SUPPORT_BIOS_RAM) && defined(SUPPORT_32BIT_ADDRESS)
 	if(shadow_ram_selected) {
 		set_memory_rw(0xc0000, 0xe7fff, &(ram[0xc0000])); // OK?
 	}
@@ -663,35 +592,40 @@ void MEMBUS::update_bios()
 	} //else
 #endif
 			
-#if defined(SUPPORT_32BIT_ADDRESS) /*|| defined(SUPPORT_24BIT_ADDRESS)*/
+#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
 	if((page08_intram_selected) /*&& (shadow_ram_selected)*/){
 		if((window_80000h == 0xc0000)) {
+#if defined(SUPPORT_32BIT_ADDRESS) && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
 				set_memory_rw(0x80000, 0x9ffff, &(ram[window_80000h]));
 			} else {
 				copy_table_rw(0x80000, 0xc0000, 0xdffff);
 			}
+#else
+			copy_table_rw(0x80000, 0xc0000, 0xdffff);
+#endif
 		} else 	if(window_80000h == 0xe0000) {
+#if defined(SUPPORT_32BIT_ADDRESS) && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
-#if defined(SUPPORT_BIOS_RAM)
 	#if !defined(SUPPORT_HIRESO)
+				//copy_table_rw(0x80000, 0xe0000, 0xe7fff);
 				set_memory_rw(0x80000, 0x87fff, &(ram[window_80000h]));
 				set_memory_rw(0x88000, 0x9ffff, bios_ram);
 	#else
+				//copy_table_rw(0x80000, 0xe0000, 0xeffff);
 				set_memory_rw(0x80000, 0x8ffff, &(ram[window_80000h]));
 				set_memory_rw(0x90000, 0x9ffff, bios_ram);
 	#endif
-#else
-				set_memory_rw(0x80000, 0x9ffff, &(ram[window_80000h]));
-#endif
 			} else {
 				copy_table_rw(0x80000, 0xe0000, 0xfffff);
-			}				
+			}
+#else
+				copy_table_rw(0x80000, 0xe0000, 0xfffff);
+#endif
 		} else if((window_80000h == 0x80000) || (((window_80000h + 0x1ffff) < sizeof(ram)) && !((window_80000h >= 0xa0000) && (window_80000h <= 0xfffff)))) { // ToDo: Extra RAM
 			set_memory_rw(0x80000, 0x9ffff, &(ram[window_80000h]));
-		}
-		else if(window_80000h >= 0x800000) {
-			MEMORY::copy_table_rw(0x00080000, window_80000h, window_80000h + 0x1ffff);
+		} else if(window_80000h >= 0xa0000) {
+			copy_table_rw(0x00080000, window_80000h, window_80000h + 0x1ffff);
 		} else {
 			#if defined(SUPPORT_24BIT_ADDRESS)
 			set_memory_rw(0x80000, 0x9ffff, &(ram[0x80000]));
@@ -713,39 +647,45 @@ void MEMBUS::update_bios()
 			// ToDo: External BUS
 			unset_memory_rw(0x00080000, 0x0009ffff);
 		} else {
-			MEMORY::copy_table_rw(0x00080000, window_80000h, window_80000h + 0x1ffff);
+			copy_table_rw(0x00080000, window_80000h, window_80000h + 0x1ffff);
 		}
 	}
 
 	/*if((page08_intram_selected) )*/{
 		if((window_a0000h == 0xc0000)) {
+#if defined(SUPPORT_32BIT_ADDRESS) && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
+				//copy_table_rw(0xa0000, 0xc0000, 0xdffff); 
 				set_memory_rw(0xa0000, 0xbffff, &(ram[window_a0000h]));
 			} else {
 				copy_table_rw(0xa0000, 0xc0000, 0xdffff); 
-				//unset_memory_rw(0xa0000, 0xbffff);
 			}
+#else
+			copy_table_rw(0xa0000, 0xc0000, 0xdffff);
+#endif
 		} else 	if(window_a0000h == 0xe0000) {
+#if defined(SUPPORT_32BIT_ADDRESS) && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
-#if defined(SUPPORT_BIOS_RAM)
 	#if !defined(SUPPORT_HIRESO)
+				//copy_table_rw(0xa0000, 0xe0000, 0xe7fff); 
 				set_memory_rw(0xa0000, 0xa7fff, &(ram[window_a0000h]));
 				set_memory_rw(0xa8000, 0xbffff, bios_ram);
 	#else
+				//copy_table_rw(0xa0000, 0xe0000, 0xeffff); 
 				set_memory_rw(0xa0000, 0xaffff, &(ram[window_a0000h]));
 				set_memory_rw(0xb0000, 0xbffff, bios_ram);
 	#endif
-#else
-				set_memory_rw(0xa0000, 0xbffff, &(ram[window_a0000h]));
-#endif
 			} else {
 				copy_table_rw(0xa0000, 0xe0000, 0xfffff); 
 			}
+#else
+			copy_table_rw(0xa0000, 0xe0000, 0xfffff); 
+#endif
 		} else if((window_a0000h >= 0x80000) && ((window_a0000h + 0x1ffff) < sizeof(ram)) && !((window_a0000h >= 0xa0000) && (window_a0000h <= 0xfffff))) {
 			set_memory_rw(0xa0000, 0xbffff, &(ram[window_a0000h]));
 		} else {
 			if(window_a0000h >= 0x80000) {
-				MEMORY::copy_table_rw(0x000a0000, window_a0000h, window_a0000h + 0x1ffff);
+				copy_table_rw(0x000a0000, window_a0000h, window_a0000h + 0x1ffff);
 			} else {
 				unset_memory_rw(0xa0000, 0xbffff);
 			}
@@ -763,15 +703,16 @@ void MEMBUS::update_bios()
 
 	// ToDo: PC9821
 	#if defined(SUPPORT_32BIT_ADDRESS)
-	//MEMORY::unset_memory_rw(0x00f00000, 0x00fbffff);
-	//MEMORY::copy_table_rw(0x00fc0000, 0x000c0000, 0x000fffff);
-	MEMORY::unset_memory_rw(0x00f00000, (UPPER_MEMORY_32BIT & 0x00ffffff) - 1);
-	MEMORY::copy_table_rw((UPPER_MEMORY_32BIT & 0x00ffffff), (UPPER_MEMORY_32BIT & 0x000fffff), 0x000fffff);
+	unset_memory_rw(0x00f00000, (UPPER_MEMORY_32BIT & 0x00ffffff) - 1);
+	#if !defined(SUPPORT_HIRESO)
+	copy_table_rw(0x00ee8000, 0x000e8000, 0x000fffff);
+	copy_table_rw(0x00fe8000, 0x000e8000, 0x000fffff);
+	#endif
+	copy_table_rw(UPPER_MEMORY_32BIT, (UPPER_MEMORY_32BIT & 0x000fffff), 0x000fffff);
+	copy_table_rw((UPPER_MEMORY_32BIT & 0x00ffffff), (UPPER_MEMORY_32BIT & 0x000fffff), 0x000fffff);
 	#elif defined(SUPPORT_24BIT_ADDRESS)
-	MEMORY::unset_memory_rw(0x00f00000, UPPER_MEMORY_24BIT - 1);
-	MEMORY::copy_table_rw(UPPER_MEMORY_24BIT, UPPER_MEMORY_24BIT & 0xfffff, 0x000fffff);
-//	MEMORY::copy_table_rw(0x00ee8000, 0x000e8000, 0x000fffff);
-//	MEMORY::copy_table_rw(0x00fc0000, 0x000c0000, 0x000fffff);
+	unset_memory_rw(0x00f00000, UPPER_MEMORY_24BIT - 1);
+	copy_table_rw(UPPER_MEMORY_24BIT, UPPER_MEMORY_24BIT & 0x000fffff, 0x000fffff);
 	#endif
 #endif
 }
@@ -829,12 +770,10 @@ void MEMBUS::update_scsi_bios()
 void MEMBUS::update_ide_bios()
 {
 	if(ide_bios_selected) {
-		if(ide_bios_selected) {
-			set_memory_r(0xd8000, 0xdbfff, ide_bios_ram);
-		} else {
-			set_memory_r(0xd8000, 0xdbfff, ide_bios);
-			unset_memory_w(0xd8000, 0xdbfff);
-		}
+		set_memory_r(0xd8000, 0xd9fff, &(ide_bios[ide_bios_bank * 0x2000]));
+		unset_memory_w(0xd8000, 0xdbfff);
+		set_memory_rw(0xda000, 0xdbfff, ide_bios_ram);
+//		}
 	} else {
 		unset_memory_rw(0xd8000, 0xdbfff);
 	}
@@ -855,7 +794,7 @@ void MEMBUS::update_nec_ems()
 #endif
 
 
-#define STATE_VERSION	9
+#define STATE_VERSION	10
 
 bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 {
@@ -889,7 +828,7 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(scsi_bios_ram_selected);
  #endif
  #if defined(SUPPORT_IDE_IF)
-	state_fio->StateBool(ide_bios_ram_selected);
+	state_fio->StateValue(ide_bios_bank);
 	state_fio->StateArray(ide_bios_ram, sizeof(ide_bios_ram), 1);
 	state_fio->StateValue(ide_bios_selected);
  #endif

@@ -77,6 +77,7 @@ public:
 	void release();
 	void reset();
 	int run(int cycles);
+	uint32_t read_signal(int id);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void set_intr_line(bool line, bool pending, uint32_t bit);
 	void set_extra_clock(int cycles);

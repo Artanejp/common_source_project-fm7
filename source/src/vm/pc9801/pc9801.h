@@ -209,11 +209,11 @@
 	#define SUPPORT_PC98_OPNA
 #endif
 #if defined(SUPPORT_24BIT_ADDRESS)
-	#define MEMORY_ADDR_MAX		0x1000000	// 16MB
+	#define MEMORY_ADDR_MAX		0x01000000	// 16MB
 #elif defined(SUPPORT_32BIT_ADDRESS)
-	#define MEMORY_ADDR_MAX		0x10000000	// 256MB
+	#define MEMORY_ADDR_MAX		0x100000000	// 4GiB
 #else
-	#define MEMORY_ADDR_MAX		0x100000	// 1MB
+	#define MEMORY_ADDR_MAX		0x000100000	// 1MB
 #endif
 //#if defined(SUPPORT_32BIT_ADDRESS)
 //	#define SUPPORT_SYSTEM_16MB
@@ -587,6 +587,7 @@ protected:
 	
 	int boot_mode;
 #endif
+	void setclock();
 	
 	// drives
 	UPD765A *get_floppy_disk_controller(int drv);

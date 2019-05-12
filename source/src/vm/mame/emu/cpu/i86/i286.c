@@ -85,6 +85,8 @@ struct i80286_state
 	int busreq;
 	int trap_level;
 	int shutdown;
+	uint32_t waitfactor;
+	uint32_t waitcount;
 
 #ifdef USE_DEBUGGER
 	uint64_t total_icount;
@@ -213,6 +215,7 @@ static CPU_RESET( i80286 )
 	cpustate->ldtr.sel=cpustate->tr.sel=0;
 	cpustate->rep_in_progress = FALSE;
 	cpustate->seg_prefix = FALSE;
+	cpustate->waitcount = 0;
 
 	CHANGE_PC(cpustate->pc);
 
@@ -265,6 +268,21 @@ static void set_irq_line(i80286_state *cpustate, int irqline, int state)
 	cpustate->icount = first_icount;
 }
 
+static void cpu_wait_i286(cpu_state *cpustate,int clocks)
+{
+	uint32_t ncount = 0;
+	if(clocks < 0) return;
+	if(cpustate->waitfactor == 0) return;
+	uint32_t wcount = cpustate->waitcount;
+	wcount += (cpustate->waitfactor * (uint32_t)clocks);
+	if(wcount >= 65536) {
+		ncount = wcount >> 16;
+		wcount = wcount - (ncount << 16);
+	}
+	cpustate->extra_cycles += ncount;
+	cpustate->waitcount = wcount;
+}
+
 static CPU_EXECUTE( i80286 )
 {
 	if (cpustate->halted || cpustate->busreq)
@@ -281,6 +299,7 @@ static CPU_EXECUTE( i80286 )
 #ifdef USE_DEBUGGER
 			cpustate->total_icount += passed_icount;
 #endif
+			cpu_wait_i286(cpustate,passed_icount);
 			return passed_icount;
 		} else {
 			cpustate->icount += icount;
@@ -297,6 +316,7 @@ static CPU_EXECUTE( i80286 )
 #ifdef USE_DEBUGGER
 			cpustate->total_icount += base_icount - cpustate->icount;
 #endif
+			cpu_wait_i286(cpustate, base_icount - cpustate->icount);
 			return base_icount - cpustate->icount;
 		}
 	}
@@ -411,6 +431,7 @@ static CPU_EXECUTE( i80286 )
 #endif
 		cpustate->icount = 0;
 	}
+	cpu_wait_i286(cpustate, base_icount - cpustate->icount);
 	return base_icount - cpustate->icount;
 }
 

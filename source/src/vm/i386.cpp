@@ -434,6 +434,8 @@ void I386::initialize()
 	cpustate->parent_device = this; // This aims to log.
 	cpustate->cpu_type = n_cpu_type; // check cpu type
 	cpustate->shutdown = 0;
+	cpustate->waitcount = 0;
+	cpustate->waitfactor = 0;
 }
 
 void I386::release()
@@ -452,9 +454,27 @@ void I386::reset()
 }
 
 int I386::run(int cycles)
-{
-	i386_state *cpustate = (i386_state *)opaque;
+{	i386_state *cpustate = (i386_state *)opaque;
 	return CPU_EXECUTE_CALL(i386); // OK?
+}
+
+uint32_t I386::read_signal(int id)
+{
+	if((id == SIG_CPU_TOTAL_CYCLE_HI) || (id == SIG_CPU_TOTAL_CYCLE_LO)) {
+		i386_state *cpustate = (i386_state *)opaque;
+		pair64_t n;
+		if(cpustate != NULL) {
+			n.q = cpustate->total_cycles;
+		} else {
+			n.q = 0;
+		}
+		if(id == SIG_CPU_TOTAL_CYCLE_HI) {
+			return n.d.h;
+		} else {
+			return n.d.l;
+		}
+	}
+	return 0;
 }
 
 void I386::write_signal(int id, uint32_t data, uint32_t mask)
@@ -471,6 +491,9 @@ void I386::write_signal(int id, uint32_t data, uint32_t mask)
 		i386_set_a20_line(cpustate, data & mask);
 	} else if(id == SIG_I386_NOTIFY_RESET) {
 		write_signals(&outputs_extreset, ((data & mask == 0) ? 0x00000000 : 0xffffffff));
+	} else if(id == SIG_CPU_WAIT_FACTOR) {
+		cpustate->waitfactor = data; // 65536.
+		cpustate->waitcount = 0; // 65536.
 	}
 }
 
@@ -828,7 +851,7 @@ int I386::get_shutdown_flag()
 	return cpustate->shutdown;
 }
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 
 void process_state_SREG(I386_SREG* val, FILEIO* state_fio)
 {
@@ -1001,6 +1024,9 @@ bool I386::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->smbase);
 //	state_fio->StateValue(cpustate->smiact);
 	state_fio->StateValue(cpustate->lock);
+	
+	state_fio->StateValue(cpustate->waitcount);
+	state_fio->StateValue(cpustate->waitfactor);
 #ifdef DEBUG_MISSING_OPCODE
 	state_fio->StateArray(cpustate->opcode_bytes, sizeof(cpustate->opcode_bytes), 1);
 	state_fio->StateValue(cpustate->opcode_pc);

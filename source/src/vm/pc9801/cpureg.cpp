@@ -93,6 +93,32 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 	//out_debug_log(_T("I/O READ: %04x \n"), addr);
 	
 	switch(addr) {
+	case 0x005c:
+	case 0x005d:
+	case 0x005e:
+	case 0x005f:
+		{
+			// Timestamp register (from MAME 0.208)
+			pair32_t n;
+			uint8_t nn;
+			n.d = d_cpu->read_signal(SIG_CPU_TOTAL_CYCLE_LO);
+			switch(addr & 0x03) {
+			case 0:
+				nn = n.b.l;
+				break;
+			case 1:
+				nn = n.b.h;
+				break;
+			case 2:
+				nn = n.b.h2;
+				break;
+			case 3:
+				nn = n.b.h3;
+				break;
+			}
+			return (uint32_t)nn;
+		}
+		break;
 	case 0x00f0:
 		value  = 0x00;
 //		value |= 0x80; // 1 = PC-9801NA, 0 = PC-9801NA/C
