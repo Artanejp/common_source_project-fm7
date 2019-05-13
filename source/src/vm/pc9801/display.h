@@ -103,14 +103,14 @@ private:
 	uint16_t egc_fgbg;
 	uint16_t egc_ope;
 	uint16_t egc_fg;
-	egcword_t egc_mask;
+	__DECL_ALIGNED(16) egcword_t egc_mask;
 	uint16_t egc_bg;
 	uint16_t egc_sft;
 	uint16_t egc_leng;
-	egcquad_t egc_lastvram;
-	egcquad_t egc_patreg;
-	egcquad_t egc_fgc;
-	egcquad_t egc_bgc;
+	__DECL_ALIGNED(16) egcquad_t egc_lastvram;
+	__DECL_ALIGNED(16) egcquad_t egc_patreg;
+	__DECL_ALIGNED(16) egcquad_t egc_fgc;
+	__DECL_ALIGNED(16) egcquad_t egc_bgc;
 	int egc_func;
 	uint32_t egc_remain;
 	uint32_t egc_stack;
@@ -120,15 +120,21 @@ private:
 	int tmp_inptr_ofs;
 	int tmp_outptr_ofs;
 	
-	egcword_t egc_mask2;
-	egcword_t egc_srcmask;
+	__DECL_ALIGNED(16) egcword_t egc_mask2;
+	__DECL_ALIGNED(16) egcword_t egc_srcmask;
 	uint8_t egc_srcbit;
 	uint8_t egc_dstbit;
 	uint8_t egc_sft8bitl;
 	uint8_t egc_sft8bitr;
-	uint8_t egc_buf[528];	/* 4096/8 + 4*4 */
-	egcquad_t egc_vram_src;
-	egcquad_t egc_vram_data;
+	__DECL_ALIGNED(16) uint8_t egc_buf[528];	/* 4096/8 + 4*4 */
+	__DECL_ALIGNED(16) egcquad_t egc_vram_src;
+	__DECL_ALIGNED(16) egcquad_t egc_vram_data;
+
+	__DECL_ALIGNED(16) static const uint8_t  egc_bytemask_u0[64];
+	__DECL_ALIGNED(16) static const uint8_t  egc_bytemask_u1[8];
+	__DECL_ALIGNED(16) static const uint8_t  egc_bytemask_d0[64];
+	__DECL_ALIGNED(16) static const uint8_t  egc_bytemask_d1[8];
+	__DECL_ALIGNED(16) static const uint16_t egc_maskword[16][4];
 #endif
 	
 #if !defined(SUPPORT_HIRESO)
@@ -154,6 +160,8 @@ private:
 	uint8_t screen_gfx[SCREEN_HEIGHT][SCREEN_WIDTH];
 
 	uint32_t bank_table[0x10];
+
+	
 #if !defined(SUPPORT_HIRESO)
 	void kanji_copy(uint8_t *dst, uint8_t *src, int from, int to);
 #else
@@ -167,13 +175,13 @@ private:
 	uint32_t grcg_readw(uint32_t addr1);
 #endif
 #if defined(SUPPORT_EGC)
-	void egc_shift();
-	void egc_sftb_upn_sub(uint32_t ext);
-	void egc_sftb_dnn_sub(uint32_t ext);
-	void egc_sftb_upr_sub(uint32_t ext);
-	void egc_sftb_dnr_sub(uint32_t ext);
-	void egc_sftb_upl_sub(uint32_t ext);
-	void egc_sftb_dnl_sub(uint32_t ext);
+	inline void egc_shift();
+	inline void egc_sftb_upn_sub(uint32_t ext);
+	inline void egc_sftb_dnn_sub(uint32_t ext);
+	inline void egc_sftb_upr_sub(uint32_t ext);
+	inline void egc_sftb_dnr_sub(uint32_t ext);
+	inline void egc_sftb_upl_sub(uint32_t ext);
+	inline void egc_sftb_dnl_sub(uint32_t ext);
 	void egc_sftb_upn0(uint32_t ext);
 	void egc_sftw_upn0();
 	void egc_sftb_dnn0(uint32_t ext);
@@ -265,6 +273,237 @@ public:
 	void draw_screen();
 };
 
+#if defined(SUPPORT_EGC)
+
+inline void DISPLAY::egc_shift()
+{
+	uint8_t src8, dst8;
+	
+	egc_remain = (egc_leng & 0xfff) + 1;
+	egc_func = (egc_sft >> 12) & 1;
+	if(!egc_func) {
+		egc_inptr = egc_buf;
+		egc_outptr = egc_buf;
+	} else {
+		egc_inptr = egc_buf + 4096 / 8 + 3;
+		egc_outptr = egc_buf + 4096 / 8 + 3;
+	}
+	egc_srcbit = egc_sft & 0x0f;
+	egc_dstbit = (egc_sft >> 4) & 0x0f;
+	
+	src8 = egc_srcbit & 0x07;
+	dst8 = egc_dstbit & 0x07;
+	if(src8 < dst8) {
+		egc_func += 2;
+		egc_sft8bitr = dst8 - src8;
+		egc_sft8bitl = 8 - egc_sft8bitr;
+	}
+	else if(src8 > dst8) {
+		egc_func += 4;
+		egc_sft8bitl = src8 - dst8;
+		egc_sft8bitr = 8 - egc_sft8bitl;
+	}
+	egc_stack = 0;
+}
+
+inline void DISPLAY::egc_sftb_upn_sub(uint32_t ext)
+{
+	if(egc_dstbit >= 8) {
+		egc_dstbit -= 8;
+		egc_srcmask.b[ext] = 0;
+		return;
+	}
+	if(egc_dstbit) {
+		if((egc_dstbit + egc_remain) >= 8) {
+			egc_srcmask.b[ext] = egc_bytemask_u0[egc_dstbit + (7 * 8)];
+			egc_remain -= (8 - egc_dstbit);
+			egc_dstbit = 0;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_u0[egc_dstbit + (egc_remain - 1) * 8];
+			egc_remain = 0;
+			egc_dstbit = 0;
+		}
+	} else {
+		if(egc_remain >= 8) {
+			egc_remain -= 8;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_u1[egc_remain - 1];
+			egc_remain = 0;
+		}
+	}
+	egc_vram_src.b[0][ext] = egc_outptr[0];
+	egc_vram_src.b[1][ext] = egc_outptr[4];
+	egc_vram_src.b[2][ext] = egc_outptr[8];
+	egc_vram_src.b[3][ext] = egc_outptr[12];
+	egc_outptr++;
+}
+
+inline void DISPLAY::egc_sftb_dnn_sub(uint32_t ext)
+{
+	if(egc_dstbit >= 8) {
+		egc_dstbit -= 8;
+		egc_srcmask.b[ext] = 0;
+		return;
+	}
+	if(egc_dstbit) {
+		if((egc_dstbit + egc_remain) >= 8) {
+			egc_srcmask.b[ext] = egc_bytemask_d0[egc_dstbit + (7 * 8)];
+			egc_remain -= (8 - egc_dstbit);
+			egc_dstbit = 0;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_d0[egc_dstbit + (egc_remain - 1) * 8];
+			egc_remain = 0;
+			egc_dstbit = 0;
+		}
+	} else {
+		if(egc_remain >= 8) {
+			egc_remain -= 8;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_d1[egc_remain - 1];
+			egc_remain = 0;
+		}
+	}
+	egc_vram_src.b[0][ext] = egc_outptr[0];
+	egc_vram_src.b[1][ext] = egc_outptr[4];
+	egc_vram_src.b[2][ext] = egc_outptr[8];
+	egc_vram_src.b[3][ext] = egc_outptr[12];
+	egc_outptr--;
+}
+
+inline void DISPLAY::egc_sftb_upr_sub(uint32_t ext)
+{
+	if(egc_dstbit >= 8) {
+		egc_dstbit -= 8;
+		egc_srcmask.b[ext] = 0;
+		return;
+	}
+	if(egc_dstbit) {
+		if((egc_dstbit + egc_remain) >= 8) {
+			egc_srcmask.b[ext] = egc_bytemask_u0[egc_dstbit + (7 * 8)];
+			egc_remain -= (8 - egc_dstbit);
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_u0[egc_dstbit + (egc_remain - 1) * 8];
+			egc_remain = 0;
+		}
+		egc_dstbit = 0;
+		egc_vram_src.b[0][ext] = (egc_outptr[0] >> egc_sft8bitr);
+		egc_vram_src.b[1][ext] = (egc_outptr[4] >> egc_sft8bitr);
+		egc_vram_src.b[2][ext] = (egc_outptr[8] >> egc_sft8bitr);
+		egc_vram_src.b[3][ext] = (egc_outptr[12] >> egc_sft8bitr);
+	} else {
+		if(egc_remain >= 8) {
+			egc_remain -= 8;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_u1[egc_remain - 1];
+			egc_remain = 0;
+		}
+		egc_vram_src.b[0][ext] = (egc_outptr[0] << egc_sft8bitl) | (egc_outptr[1] >> egc_sft8bitr);
+		egc_vram_src.b[1][ext] = (egc_outptr[4] << egc_sft8bitl) | (egc_outptr[5] >> egc_sft8bitr);
+		egc_vram_src.b[2][ext] = (egc_outptr[8] << egc_sft8bitl) | (egc_outptr[9] >> egc_sft8bitr);
+		egc_vram_src.b[3][ext] = (egc_outptr[12] << egc_sft8bitl) | (egc_outptr[13] >> egc_sft8bitr);
+		egc_outptr++;
+	}
+}
+
+inline void DISPLAY::egc_sftb_dnr_sub(uint32_t ext)
+{
+	if(egc_dstbit >= 8) {
+		egc_dstbit -= 8;
+		egc_srcmask.b[ext] = 0;
+		return;
+	}
+	if(egc_dstbit) {
+		if((egc_dstbit + egc_remain) >= 8) {
+			egc_srcmask.b[ext] = egc_bytemask_d0[egc_dstbit + (7 * 8)];
+			egc_remain -= (8 - egc_dstbit);
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_d0[egc_dstbit + (egc_remain - 1) * 8];
+			egc_remain = 0;
+		}
+		egc_dstbit = 0;
+		egc_vram_src.b[0][ext] = (egc_outptr[0] << egc_sft8bitr);
+		egc_vram_src.b[1][ext] = (egc_outptr[4] << egc_sft8bitr);
+		egc_vram_src.b[2][ext] = (egc_outptr[8] << egc_sft8bitr);
+		egc_vram_src.b[3][ext] = (egc_outptr[12] << egc_sft8bitr);
+	} else {
+		if(egc_remain >= 8) {
+			egc_remain -= 8;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_d1[egc_remain - 1];
+			egc_remain = 0;
+		}
+		egc_outptr--;
+		egc_vram_src.b[0][ext] = (egc_outptr[1] >> egc_sft8bitl) | (egc_outptr[0] << egc_sft8bitr);
+		egc_vram_src.b[1][ext] = (egc_outptr[5] >> egc_sft8bitl) | (egc_outptr[4] << egc_sft8bitr);
+		egc_vram_src.b[2][ext] = (egc_outptr[9] >> egc_sft8bitl) | (egc_outptr[8] << egc_sft8bitr);
+		egc_vram_src.b[3][ext] = (egc_outptr[13] >> egc_sft8bitl) | (egc_outptr[12] << egc_sft8bitr);
+	}
+}
+
+inline void DISPLAY::egc_sftb_upl_sub(uint32_t ext)
+{
+	if(egc_dstbit >= 8) {
+		egc_dstbit -= 8;
+		egc_srcmask.b[ext] = 0;
+		return;
+	}
+	if(egc_dstbit) {
+		if((egc_dstbit + egc_remain) >= 8) {
+			egc_srcmask.b[ext] = egc_bytemask_u0[egc_dstbit + (7 * 8)];
+			egc_remain -= (8 - egc_dstbit);
+			egc_dstbit = 0;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_u0[egc_dstbit + (egc_remain - 1) * 8];
+			egc_remain = 0;
+			egc_dstbit = 0;
+		}
+	} else {
+		if(egc_remain >= 8) {
+			egc_remain -= 8;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_u1[egc_remain - 1];
+			egc_remain = 0;
+		}
+	}
+	egc_vram_src.b[0][ext] = (egc_outptr[0] << egc_sft8bitl) | (egc_outptr[1] >> egc_sft8bitr);
+	egc_vram_src.b[1][ext] = (egc_outptr[4] << egc_sft8bitl) | (egc_outptr[5] >> egc_sft8bitr);
+	egc_vram_src.b[2][ext] = (egc_outptr[8] << egc_sft8bitl) | (egc_outptr[9] >> egc_sft8bitr);
+	egc_vram_src.b[3][ext] = (egc_outptr[12] << egc_sft8bitl) | (egc_outptr[13] >> egc_sft8bitr);
+	egc_outptr++;
+}
+
+inline void DISPLAY::egc_sftb_dnl_sub(uint32_t ext)
+{
+	if(egc_dstbit >= 8) {
+		egc_dstbit -= 8;
+		egc_srcmask.b[ext] = 0;
+		return;
+	}
+	if(egc_dstbit) {
+		if((egc_dstbit + egc_remain) >= 8) {
+			egc_srcmask.b[ext] = egc_bytemask_d0[egc_dstbit + (7 * 8)];
+			egc_remain -= (8 - egc_dstbit);
+			egc_dstbit = 0;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_d0[egc_dstbit + (egc_remain - 1) * 8];
+			egc_remain = 0;
+			egc_dstbit = 0;
+		}
+	} else {
+		if(egc_remain >= 8) {
+			egc_remain -= 8;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_d1[egc_remain - 1];
+			egc_remain = 0;
+		}
+	}
+	egc_outptr--;
+	egc_vram_src.b[0][ext] = (egc_outptr[1] >> egc_sft8bitl) | (egc_outptr[0] << egc_sft8bitr);
+	egc_vram_src.b[1][ext] = (egc_outptr[5] >> egc_sft8bitl) | (egc_outptr[4] << egc_sft8bitr);
+	egc_vram_src.b[2][ext] = (egc_outptr[9] >> egc_sft8bitl) | (egc_outptr[8] << egc_sft8bitr);
+	egc_vram_src.b[3][ext] = (egc_outptr[13] >> egc_sft8bitl) | (egc_outptr[12] << egc_sft8bitr);
+}
+#endif	
 }
 #endif
 
