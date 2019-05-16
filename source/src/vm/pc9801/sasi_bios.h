@@ -37,6 +37,7 @@ protected:
 	SASI   *d_sasi;
 	DEVICE *d_cpu;
 	DEVICE *d_pic;
+	DEVICE *d_cpureg;
 	
 	int event_halt;
 	int event_irq;
@@ -91,6 +92,10 @@ public:
 	void set_context_pic(DEVICE* device)
 	{
 		d_pic = device;
+	}
+	void set_context_cpureg(DEVICE* device)
+	{
+		d_cpureg = device;
 	}
 };
 

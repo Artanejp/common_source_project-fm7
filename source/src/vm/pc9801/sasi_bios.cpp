@@ -14,6 +14,7 @@
 #include "./sasi_bios.h"
 #include "./membus.h"
 #include "./sasi.h"
+#include "./cpureg.h"
 
 #include "../harddisk.h"
 #include "../scsi_host.h"
@@ -258,6 +259,7 @@ bool BIOS::bios_call_far_ia32(uint32_t PC, uint32_t regs[], uint16_t sregs[], in
 	}
 	if(need_retcall) {
 		uint8_t flag = d_mem->read_data8((SS << 4) | ((SP + 4) & 0xffff)) & 0xfe;
+
 		if(AH >= 0x20) {
 			flag++;
 		}
@@ -277,10 +279,12 @@ bool BIOS::sasi_bios(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* Ze
 {
 	pair32_t *regpair = (pair32_t *)regs;
 #if defined(SUPPORT_SASI_IF)
+	int drv = 0;
 	if(d_sasi != NULL) {
 		// ToDo: Multi SASI
-		if(d_sasi->get_hdd(0) != NULL) {
-			if(sxsi_get_drive(AL) >= 0) {
+		drv = sxsi_get_drive(AL);
+		if(d_sasi->get_hdd(drv) != NULL) {
+			if(drv >= 0) {
 				//out_debug_log("SASI BIOS CALL AH=%02X\n", AH);
 				switch(AH & 0x0f) {
 				case 0x01:
@@ -297,7 +301,6 @@ bool BIOS::sasi_bios(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* Ze
 					break;
 				case 0x05:
 					// WRITE DATA
-					//out_debug_log(_T("WRITE DATA ES:BP=%04X:%04X SIZE=%d\n"), ES, BP, (BX == 0) ? 0x10000 : BX);
 					sasi_command_write(PC, regs, sregs, ZeroFlag, CarryFlag);
 					break;
 				case 0x06:
@@ -321,21 +324,28 @@ bool BIOS::sasi_bios(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* Ze
 					sasi_command_illegal(PC, regs, sregs, ZeroFlag, CarryFlag);
 					break;
 				}
+				d_mem->write_io8(0x043f, 0xc2); // Enable to write ram
+				if(*CarryFlag != 0) {
+					d_mem->write_data8(0x0585, ((drv & 7) << 5) | 0x1c | 0x02);
+				} else {
+					d_mem->write_data8(0x0585, ((drv & 7) << 5) | 0x1c | 0x00);
+				}
+				d_mem->write_io8(0x043f, 0xc0); // Disable to write ram
 				return true;
 			}
-		} else {
-			// Not REAADY
-			AH = 0x60;
-			return true;
 		}
-	} else {
-		AH = 0x60; // SASI NOT SET
-		return true;
 	}
-#endif
+	AH = 0x60; // SASI NOT SET
+	*CarryFlag = 1;
+	d_mem->write_io8(0x043f, 0xc2); // Enable to write ram
+	d_mem->write_data8(0x0585, ((drv & 7) << 5) | 0x1c | 0x02);
+	d_mem->write_io8(0x043f, 0xc0); // Disable to write ram
+	return true;
+#else
 
 // FALLBACK
 	return false;
+#endif
 }
 
 int BIOS::sxsi_get_drive(uint8_t al)
@@ -376,7 +386,7 @@ void BIOS::sasi_command_retract(uint32_t PC, uint32_t regs[], uint16_t sregs[], 
 		return;
 	}
 	interrupt_to_host(15.0 * 1000.0);
-	AH = 0x00;
+	AH = 0x00 | (drive & 0x07);
 	*CarryFlag = 0;
 	return;
 }
@@ -463,7 +473,7 @@ void BIOS::sasi_command_initialize(uint32_t PC, uint32_t regs[], uint16_t sregs[
 	
 	disk_equip = _d.u16;
 	disk_equip = disk_equip & 0xf0ff;
-	for(uint32_t i = 0; i < 2; i++) {
+	for(uint32_t i = 0; i < 4; i++) {
 		// ToDo: Multi SASI
 		if(d_sasi != NULL) {
 			SASI_HDD*  d_hdd = d_sasi->get_hdd(i);
@@ -536,7 +546,7 @@ void BIOS::sasi_command_sense(uint32_t PC, uint32_t regs[], uint16_t sregs[], in
 						AH = drive & 7; // OK?
 						*CarryFlag = 0;
 						HARDDISK *hdd = d_hdd->get_disk_handler(drive);
-						if(cmd == 0x84) {
+						if((cmd == 0x84) || (cmd == 0x04)) {
 							int sectsize = hdd->get_sector_size();
 							int cylinders = hdd->get_cylinders();
 							int head = hdd->get_headers();
@@ -545,10 +555,36 @@ void BIOS::sasi_command_sense(uint32_t PC, uint32_t regs[], uint16_t sregs[], in
 							regpair[1].w.h = 0; // HIGH WORD OF ECX
 							regpair[2].w.h = 0; // HIGH WORD OF EDX
 							regpair[3].w.h = 0; // HIGH WORD OF EBX
-							DL = (uint8_t)sectors;                // Sectors
-							DH = (uint8_t)head;         // Heads
-							CX = (uint16_t)cylinders; // Cylinders
-							BX = (uint16_t)(sectsize); // logical block
+							if(cmd == 0x84) {
+								DL = (uint8_t)sectors;                // Sectors
+								DH = (uint8_t)head;         // Heads
+								CX = (uint16_t)cylinders; // Cylinders
+								BX = (uint16_t)(sectsize); // logical block
+							}
+							int total_size = (sectors * head * cylinders * sectsize);
+							uint8_t sense_size = 0x04;
+							if(total_size <= 0) {
+								AH = (sense_size | 0x40);
+								*CarryFlag = 1;
+								return;
+							}
+							d_mem->write_io8(0x043f, 0xc2); // Enable to write ram
+							d_mem->write_io8(0x043f, 0xc2); // Disable to write ram
+							
+
+							// ToDo: Support Larger drive.
+							if(total_size < (10 * 1024 * 1024)) {
+								sense_size = 0x00;
+							} else if(total_size < (20 * 1024 * 1024)) {
+								sense_size = 0x01;
+							} else if(total_size < (40 * 1024 * 1024)) {
+								sense_size = 0x03;
+							} else {
+								sense_size = 0x04;
+							}
+							AH = (sense_size | 0x00);
+							//AH = 0x00;
+							*CarryFlag = 0;
 						}
 #ifdef _PSEUDO_BIOS_DEBUG
 						out_debug_log(_T("SASI CMD: CMD#=%02x SENSE DL=%02x DH=%02x CX=%04x BX=%04x\n"), cmd, DL, DH, CX, BX);
@@ -829,7 +865,10 @@ void BIOS::event_callback(int event_id, int err)
 {
 	switch(event_id) {
 	case EVENT_HALT_HOST:
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 0x00000000, 0xffffffff);
+	// ToDo: Before V30 model.
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+		d_cpureg->write_signal(SIG_CPUREG_HALT, 0x00000000, 0xffffffff);
+#endif
 		event_halt = -1;
 		break;
 	case EVENT_IRQ_HOST:
@@ -851,7 +890,10 @@ void BIOS::halt_host_cpu(double usec)
 	if(event_halt >= 0) {
 		cancel_event(this, event_halt);
 	}
-	d_cpu->write_signal(SIG_CPU_BUSREQ, 0xffffffff, 0xffffffff);
+	// ToDo: Before V30 model.
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+	d_cpureg->write_signal(SIG_CPUREG_HALT, 0xffffffff, 0xffffffff);
+#endif
 	register_event(this, EVENT_HALT_HOST, usec, false, &event_halt);
 }
 
