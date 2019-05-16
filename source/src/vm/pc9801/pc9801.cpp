@@ -460,6 +460,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	display->set_context_gdc_chr(gdc_chr, gdc_chr->get_ra());
 	display->set_context_gdc_gfx(gdc_gfx, gdc_gfx->get_ra(), gdc_gfx->get_cs());
 	display->set_context_gdc_freq(pio_sys, SIG_I8255_PORT_A, 0x80);
+	//display->set_context_pio_sys(pio_sys);
+	//display->set_context_pio_prn(pio_prn);
+	
 	dmareg->set_context_dma(dma);
 	keyboard->set_context_sio(sio_kbd);
 	memory->set_context_display(display);
@@ -518,6 +521,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	sasi_bios->set_context_memory(memory);
 	sasi_bios->set_context_cpu(cpu);
 	sasi_bios->set_context_pic(pic);
+	sasi_bios->set_context_cpureg(cpureg);
+	
 	cpu->set_context_bios(sasi_bios);
 #endif
 #endif
@@ -636,6 +641,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	io->set_iomap_single_w(0x0050, cpureg);
 	io->set_iomap_single_w(0x0052, cpureg);
+
+	// ToDo: Before PC9801VM.
+	io->set_iomap_single_r(0x005c, cpureg);
+	io->set_iomap_single_r(0x005d, cpureg);
+	io->set_iomap_single_r(0x005e, cpureg);
+	io->set_iomap_single_rw(0x005f, cpureg);
+
 #endif
 	
 #if defined(SUPPORT_320KB_FDD_IF)
@@ -651,20 +663,20 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x0060, gdc_chr, 0);
 	io->set_iomap_alias_rw(0x0062, gdc_chr, 1);
 	
-	io->set_iomap_single_w(0x64, display);
-	io->set_iomap_single_w(0x68, display);
+	io->set_iomap_single_w(0x0064, display);
+	io->set_iomap_single_w(0x0068, display);
 #if defined(SUPPORT_16_COLORS)
-	io->set_iomap_single_w(0x6a, display);
+	io->set_iomap_single_w(0x006a, display);
 #endif
-	io->set_iomap_single_w(0x6c, display);
-	io->set_iomap_single_w(0x6e, display);
+	io->set_iomap_single_w(0x006c, display);
+	io->set_iomap_single_w(0x006e, display);
 	
-	io->set_iomap_single_w(0x70, display);
-	io->set_iomap_single_w(0x72, display);
-	io->set_iomap_single_w(0x74, display);
-	io->set_iomap_single_w(0x76, display);
-	io->set_iomap_single_w(0x78, display);
-	io->set_iomap_single_w(0x7a, display);
+	io->set_iomap_single_w(0x0070, display);
+	io->set_iomap_single_w(0x0072, display);
+	io->set_iomap_single_w(0x0074, display);
+	io->set_iomap_single_w(0x0076, display);
+	io->set_iomap_single_w(0x0078, display);
+	io->set_iomap_single_w(0x007a, display);
 #if defined(SUPPORT_GRCG)
 #if !defined(SUPPORT_HIRESO)
 	io->set_iomap_single_w(0x007c, display);
@@ -686,6 +698,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 #if defined(SUPPORT_IDE_IF)
 	//Q: MAME MAPPING has 0430h and 0432h as IDE control registers.20190408 K.O
+	//Q: MAME MAPPING has 0740h to 074fh as IDE control registers.2019516 K.O
 	io->set_iomap_single_rw(0x0640, ide);
 	io->set_iomap_single_rw(0x0642, ide);
 	io->set_iomap_single_rw(0x0644, ide);
@@ -705,18 +718,15 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x00a4, display);
 	io->set_iomap_single_rw(0x00a6, display);
 #endif
-	io->set_iomap_single_rw(0xa8, display);
-	io->set_iomap_single_rw(0xaa, display);
-	io->set_iomap_single_rw(0xac, display);
-	io->set_iomap_single_rw(0xae, display);
+	io->set_iomap_single_rw(0x00a8, display);
+	io->set_iomap_single_rw(0x00aa, display);
+	io->set_iomap_single_rw(0x00ac, display);
+	io->set_iomap_single_rw(0x00ae, display);
 	
-//	io->set_iomap_single_w(0xa1, display);
-//	io->set_iomap_single_w(0xa3, display);
-//	io->set_iomap_single_w(0xa5, display);
-	io->set_iomap_single_rw(0xa1, display);
-	io->set_iomap_single_rw(0xa3, display);
-	io->set_iomap_single_rw(0xa5, display);
-	io->set_iomap_single_rw(0xa9, display);
+	io->set_iomap_single_rw(0x00a1, display);
+	io->set_iomap_single_rw(0x00a3, display);
+	io->set_iomap_single_rw(0x00a5, display);
+	io->set_iomap_single_rw(0x00a9, display);
 #if defined(SUPPORT_EGC)
 	io->set_iomap_range_rw(0x04a0, 0x04af, display); // EGC REGS
 #endif
@@ -744,7 +754,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x00c8, floppy);
 	io->set_iomap_single_rw(0x00ca, floppy);
 	io->set_iomap_single_rw(0x00cc, floppy);
-	io->set_iomap_single_rw(0x00ce, floppy);
+//	io->set_iomap_single_rw(0x00ce, floppy); // OK? 20190516 K.O
 #endif
 	
 #if defined(SUPPORT_CMT_IF)
@@ -792,11 +802,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //		io->set_iovalue_single_r(0x018e, 0xc0); // INT6
 	}
 	
-//#if !defined(SUPPORT_HIRESO)
-//	io->set_iovalue_single_r(0x0431, 0x04); // bit2: 1 = Normal mode, 0 = Hireso mode
-//#else
-//	io->set_iovalue_single_r(0x0431, 0x00);
-//#endif
 #if defined(SUPPORT_ITF_ROM)
 	io->set_iomap_single_w(0x043d, memory);
 #endif
@@ -963,7 +968,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	setclock();
+	set_cpu_clock_with_switch((config.cpu_type != 0) ? 1 : 0);
 
 #if defined(_PC9801) || defined(_PC9801E)
 	fdc_2hd->get_disk_handler(0)->drive_num = 0;
@@ -1025,11 +1030,11 @@ DEVICE* VM::get_device(int id)
 // ----------------------------------------------------------------------------
 // drive virtual machine
 // ----------------------------------------------------------------------------
-void VM::setclock()
+void VM::set_cpu_clock_with_switch(int speed_type)
 {
 	uint32_t cpu_clocks = CPU_CLOCKS;
 #if defined(_PC9801E)
-	if(config.cpu_type != 0) {
+	if(speed_type != 0) {
 		// 8MHz -> 5MHz
 		cpu_clocks = 4992030;
 		pit_clock_8mhz = false;
@@ -1037,7 +1042,7 @@ void VM::setclock()
 		pit_clock_8mhz = true;
 	}
 #elif defined(_PC9801VM) || defined(_PC98DO) || defined(_PC98DOPLUS) || defined(_PC9801VX) || defined(_PC98XL)
-	if(config.cpu_type != 0) {
+	if(speed_type != 0) {
 		// 10MHz/16MHz -> 8MHz
 		cpu_clocks = 7987248;
 		pit_clock_8mhz = true;
@@ -1045,7 +1050,7 @@ void VM::setclock()
 		pit_clock_8mhz = false;
 	}
 #elif defined(_PC9801RA) || defined(_PC98RL)
-	if(config.cpu_type != 0) {
+	if(speed_type != 0) {
 		// 20MHz -> 16MHz
 		cpu_clocks = 15974496;
 		pit_clock_8mhz = true;
@@ -1078,6 +1083,22 @@ void VM::setclock()
 
 void VM::reset()
 {
+	// Set resolution before resetting.
+	// initial device settings
+	uint8_t port_a, port_b, port_c, port_b2;
+#if defined(USE_MONITOR_TYPE) /*&& defined(SUPPORT_HIRESO)*/
+	if(config.monitor_type == 0) {
+		io->set_iovalue_single_r(0x0431, 0x00);
+		gdc_gfx->set_horiz_freq(24830);
+		gdc_chr->set_horiz_freq(24830);
+	} else { // WIP
+		io->set_iovalue_single_r(0x0431, 0x04); // bit2: 1 = Normal mode, 0 = Hireso mode
+		gdc_gfx->set_horiz_freq(15750);
+		gdc_chr->set_horiz_freq(15750);
+	}
+#else
+	io->set_iovalue_single_r(0x0431, 0x00);
+#endif
 	// reset all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
@@ -1087,43 +1108,7 @@ void VM::reset()
 		device->reset();
 	}
 #endif
-	setclock();
-	
-	// initial device settings
-	uint8_t port_a, port_b, port_c;
-	
-	port_a  = 0xf0; // Clear mouse buttons and counters
-	port_b  = 0x00;
-#if defined(_PC98XA)
-	port_b |= (uint8_t)((RAM_SIZE - 0x100000) / 0x40000);
-#else
-#if defined(SUPPORT_HIRESO)
-	port_b |= 0x80; // DIP SW 1-4, 1 = External FDD #3/#4, 0 = #1/#2
-#endif
-	port_b |= 0x40; // DIP SW 3-6, 1 = Enable internal RAM 80000h-9FFFFh
-#if defined(_PC98RL)
-	port_b |= 0x10; // DIP SW 3-3, 1 = DMA ch.0 for SASI-HDD
-#endif
-#if defined(USE_CPU_TYPE)
-	if(config.cpu_type != 0) {
-#if !defined(SUPPORT_HIRESO)
-		port_b |= 0x02; // SPDSW, 1 = 10MHz, 0 = 12MHz
-#else
-		port_b |= 0x01; // SPDSW, 1 = 8/16MHz, 0 = 10/20MHz
-#endif
-	}
-#endif
-#endif
-	port_c  = 0x00;
-#if defined(SUPPORT_HIRESO)
-//	port_c |= 0x08; // MODSW, 1 = Normal Mode, 0 = Hirezo Mode
-#endif
-#if defined(HAS_V30) || defined(HAS_V33)
-	port_c |= 0x04; // DIP SW 3-8, 1 = V30, 0 = 80x86
-#endif
-	pio_mouse->write_signal(SIG_I8255_PORT_A, port_a, 0xff);
-	pio_mouse->write_signal(SIG_I8255_PORT_B, port_b, 0xff);
-	pio_mouse->write_signal(SIG_I8255_PORT_C, port_c, 0xff);
+	set_cpu_clock_with_switch((config.cpu_type != 0) ? 1 : 0);
 	
 	port_a  = 0x00;
 //	port_a |= 0x80; // DIP SW 2-8, 1 = GDC 2.5MHz, 0 = GDC 5MHz
@@ -1149,7 +1134,7 @@ void VM::reset()
 	port_b |= 0x20; // RS-232C CD#, 1 = OFF
 #if !defined(SUPPORT_HIRESO)
 //	port_b |= 0x10; // INT3, 1 = Active, 0 = Inactive
-	port_b |= 0x08; // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
+	port_b |= (config.monitor_type == 0) ? 0x08 : 0x00; // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
 #else
 	port_b |= 0x10; // SHUT0
 	port_b |= 0x08; // SHUT1
@@ -1157,6 +1142,7 @@ void VM::reset()
 //	port_b |= 0x04; // IMCK, 1 = Parity error occurs in internal RAM
 //	port_b |= 0x02; // EMCK, 1 = Parity error occurs in external RAM
 //	port_b |= 0x01; // CDAT
+	
 	port_c  = 0x00;
 	port_c |= 0x80; // SHUT0
 	port_c |= 0x40; // PSTBM, 1 = Mask printer's PSTB#
@@ -1170,39 +1156,73 @@ void VM::reset()
 	pio_sys->write_signal(SIG_I8255_PORT_B, port_b, 0xff);
 	pio_sys->write_signal(SIG_I8255_PORT_C, port_c, 0xff);
 	
-	port_b  = 0x00;
+	port_b2  = 0x00;
 #if defined(_PC9801)
 //	port_b |= 0x80; // TYP1, 0 = PC-9801 (first)
 //	port_b |= 0x40; // TYP0, 0
 #elif defined(_PC9801U)
-	port_b |= 0x80; // TYP1, 1 = PC-9801U
-	port_b |= 0x40; // TYP0, 1
+	port_b2 |= 0x80; // TYP1, 1 = PC-9801U
+	port_b2 |= 0x40; // TYP0, 1
 #else
-	port_b |= 0x80; // TYP1, 1 = Other PC-9801 series
-//	port_b |= 0x40; // TYP0, 0
+	port_b2 |= 0x80; // TYP1, 1 = Other PC-9801 series
+//	port_b2 |= 0x40; // TYP0, 0
 #endif
 	if(pit_clock_8mhz) {
-		port_b |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
+		port_b2 |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
 	}
-	port_b |= 0x10; // DIP SW 1-3, 1 = Don't use LCD
+	port_b2 |= 0x10; // DIP SW 1-3, 1 = Don't use LCD
 #if !defined(SUPPORT_16_COLORS) || defined(SUPPORT_EGC)
 	#if defined(SUPPORT_EGC)
 	if((config.dipswitch & (1 << DIPSW_POSITION_EGC)) == 0) {
-		port_b = port_b | 0x08;
+		port_b2 = port_b2 | 0x08;
 	}
 	#else
-	port_b |= 0x08; // DIP SW 1-8, 1 = Standard graphic mode, 0 = Enhanced graphic mode
+	port_b2 |= 0x08; // DIP SW 1-8, 1 = Standard graphic mode, 0 = Enhanced graphic mode
 	#endif
 #endif
-	port_b |= 0x04; // Printer BUSY#, 1 = Inactive, 0 = Active (BUSY)
+	port_b2 |= 0x04; // Printer BUSY#, 1 = Inactive, 0 = Active (BUSY)
 #if defined(HAS_V30) || defined(HAS_V33)
-	port_b |= 0x02; // CPUT, 1 = V30/V33, 0 = 80x86
+	port_b2 |= 0x02; // CPUT, 1 = V30/V33, 0 = 80x86
 #endif
 #if defined(_PC9801VF) || defined(_PC9801U)
-	port_b |= 0x01; // VF, 1 = PC-9801VF/U
+	port_b2 |= 0x01; // VF, 1 = PC-9801VF/U
 #endif
-	pio_prn->write_signal(SIG_I8255_PORT_B, port_b, 0xff);
+	pio_prn->write_signal(SIG_I8255_PORT_B, port_b2, 0xff);
 	
+	port_a  = 0xf0; // Clear mouse buttons and counters
+	port_b  = 0x00;
+#if defined(_PC98XA)
+	port_b |= (uint8_t)((RAM_SIZE - 0x100000) / 0x40000);
+#else
+#if defined(SUPPORT_HIRESO)
+	port_b |= 0x80; // DIP SW 1-4, 1 = External FDD #3/#4, 0 = #1/#2
+#endif
+	port_b |= ((config.dipswitch & (1 << DIPSW_POSITION_RAM512K)) == 0) ? 0x40 : 0x00; // DIP SW 3-6, 1 = Enable internal RAM 80000h-9FFFFh
+#if defined(_PC98RL)
+	port_b |= 0x10; // DIP SW 3-3, 1 = DMA ch.0 for SASI-HDD
+#endif
+#if defined(USE_CPU_TYPE)
+	if(config.cpu_type != 0) {
+#if !defined(SUPPORT_HIRESO)
+		port_b |= 0x02; // SPDSW, 1 = 10MHz, 0 = 12MHz
+#else
+		port_b |= 0x01; // SPDSW, 1 = 8/16MHz, 0 = 10/20MHz
+#endif
+	}
+#endif
+#endif
+	port_c  = 0x00;
+#if defined(SUPPORT_HIRESO)
+	port_c |= (config.monitor_type == 0) ? 0x08 : 0x00; // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
+//	port_c |= 0x08; // MODSW, 1 = Normal Mode, 0 = Hirezo Mode
+#endif
+#if defined(HAS_V30) || defined(HAS_V33)
+	port_c |= 0x04; // DIP SW 3-8, 1 = V30, 0 = 80x86
+#endif
+	pio_mouse->write_signal(SIG_I8255_PORT_A, port_a, 0xff);
+	pio_mouse->write_signal(SIG_I8255_PORT_B, port_b, 0xff);
+	pio_mouse->write_signal(SIG_I8255_PORT_C, port_c, 0xff);
+
 #if defined(SUPPORT_320KB_FDD_IF)
 	pio_fdd->write_signal(SIG_I8255_PORT_A, 0xff, 0xff);
 	pio_fdd->write_signal(SIG_I8255_PORT_B, 0xff, 0xff);
@@ -1693,11 +1713,11 @@ bool VM::is_frame_skippable()
 
 void VM::update_config()
 {
-	setclock();
+	set_cpu_clock_with_switch((config.cpu_type != 0) ? 1 : 0);
 	{
 		uint8_t mouse_port_b = pio_mouse->read_signal(SIG_I8255_PORT_B);
 		mouse_port_b = mouse_port_b & ~0x40;
-		if((config.dipswitch & (1 << DIPSW_POSITION_RAM512K)) != 0) {
+		if((config.dipswitch & (1 << DIPSW_POSITION_RAM512K)) == 0) {
 			mouse_port_b = mouse_port_b | 0x40;
 		}
 		pio_mouse->write_signal(SIG_I8255_PORT_B, mouse_port_b, 0xff);
@@ -1775,5 +1795,8 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(boot_mode);
 #endif
 	state_fio->StateValue(sound_type);
+	if(loading) {
+		set_cpu_clock_with_switch((config.cpu_type != 0) ? 1 : 0);
+	}
  	return true;
 }

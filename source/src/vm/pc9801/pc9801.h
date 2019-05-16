@@ -263,8 +263,10 @@
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 #define PC80S31K_NO_WAIT
 #endif
+
 #define UPD7220_MSB_FIRST
 #define UPD7220_HORIZ_FREQ	24830
+#define UPD7220_A_VERSION 3
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 #define Z80_MEMORY_WAIT
 #endif
@@ -587,7 +589,6 @@ protected:
 	
 	int boot_mode;
 #endif
-	void setclock();
 	
 	// drives
 	UPD765A *get_floppy_disk_controller(int drv);
@@ -659,6 +660,7 @@ public:
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
+	void set_cpu_clock_with_switch(int speed_type); // 0 = High / 1 = Low / Others = (WIP)
 	
 	// devices
 	DEVICE* get_device(int id);
