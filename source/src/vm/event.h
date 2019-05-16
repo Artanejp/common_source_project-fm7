@@ -330,7 +330,8 @@ public:
 	void request_skip_frames();
 	void touch_sound();
 	void set_realtime_render(DEVICE* device, bool flag);
-	
+	uint64_t get_current_clock_uint64();
+	uint32_t get_cpu_clock(int index);
 	// unique functions
 	double get_frame_rate()
 	{

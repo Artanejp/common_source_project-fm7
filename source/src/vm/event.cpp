@@ -494,6 +494,17 @@ uint32_t EVENT::get_current_clock()
 	return (uint32_t)(event_clocks & 0xffffffff);
 }
 
+uint64_t EVENT::get_current_clock_uint64()
+{
+	return event_clocks;
+}
+
+uint32_t EVENT::get_cpu_clock(int index)
+{
+	if((index < 0) || (index >= MAX_CPU)) return 0;
+	return d_cpu[index].cpu_clocks;
+}
+
 uint32_t EVENT::get_passed_clock(uint32_t prev)
 {
 	uint32_t current = get_current_clock();

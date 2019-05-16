@@ -572,6 +572,9 @@ public:
 	virtual int get_cur_vline();
 	virtual int get_cur_vline_clocks();
 	virtual uint32_t get_cpu_pc(int index);
+	virtual uint64_t get_current_clock_uint64();
+	virtual uint32_t get_cpu_clock(int index);
+	
 	virtual void request_skip_frames();
 	virtual void set_frames_per_sec(double frames);
 	virtual void set_lines_per_frame(int lines);

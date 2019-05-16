@@ -302,6 +302,22 @@ uint32_t DEVICE::get_cpu_pc(int index)
 	return event_manager->get_cpu_pc(index);
 }
 
+uint64_t DEVICE::get_current_clock_uint64()
+{ 
+	if(event_manager == NULL) {
+		event_manager = vm->first_device->next_device;
+	}
+	return event_manager->get_current_clock_uint64();
+}
+
+uint32_t DEVICE::get_cpu_clock(int index)
+{
+	if(event_manager == NULL) {
+		event_manager = vm->first_device->next_device;
+	}
+	return event_manager->get_cpu_clock(index);
+}
+
 void DEVICE::request_skip_frames()
 {
 	if(event_manager == NULL) {
