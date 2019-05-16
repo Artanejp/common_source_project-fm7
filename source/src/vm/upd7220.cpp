@@ -18,28 +18,39 @@
 #define EVENT_CMD_READY 3
 
 enum {
-	CMD_RESET	= 0x00,
-	CMD_SYNC	= 0x0e,
+	CMD_RESET1	= 0x00,
+	CMD_RESET2	= 0x01,
+//	CMD_STOP2	= 0x05, // Define later
+//	CMD_START2	= 0x04,
+	CMD_RESET3	= 0x09,
+	
+	CMD_BCTRL	= 0x0c, // 0C/0D
+	CMD_SYNC	= 0x0e, // 0E/0F
+	
+	CMD_WRITE	= 0x20, // 20-3F
+	CMD_DMAW	= 0x24,
+	
+	CMD_ZOOM	= 0x46,
+	CMD_PITCH	= 0x47,
+	CMD_CSRW	= 0x49,
+	CMD_MASK	= 0x4a,
+	CMD_CSRFORM	= 0x4b,
+	CMD_VECTW	= 0x4c,
+	
+	CMD_TEXTE	= 0x68,
+	CMD_START	= 0x6b,
+	CMD_VECTE	= 0x6c,
 	CMD_SLAVE	= 0x6e,
 	CMD_MASTER	= 0x6f,
-	CMD_START	= 0x6b,
-	CMD_BCTRL	= 0x0c,
-	CMD_ZOOM	= 0x46,
-	CMD_SCROLL	= 0x70,
-	CMD_CSRFORM	= 0x4b,
-	CMD_PITCH	= 0x47,
-	CMD_LPEN	= 0xc0,
-	CMD_VECTW	= 0x4c,
-	CMD_VECTE	= 0x6c,
+	
+	CMD_SCROLL	= 0x70, // 70-7F
 	CMD_TEXTW	= 0x78,
-	CMD_TEXTE	= 0x68,
-	CMD_CSRW	= 0x49,
-	CMD_CSRR	= 0xe0,
-	CMD_MASK	= 0x4a,
-	CMD_WRITE	= 0x20,
-	CMD_READ	= 0xa0,
+	
+	CMD_READ	= 0xa0, // A9-BF
 	CMD_DMAR	= 0xa4,
-	CMD_DMAW	= 0x24,
+	
+	CMD_LPEN	= 0xc0,
+	CMD_CSRR	= 0xe0,
 	/* unknown command (3 params) */
 	CMD_UNK_5A	= 0x5a,
 	CMD_STOP2	= 0x05,
@@ -87,10 +98,16 @@ void UPD7220::initialize()
 	} else {
 		_UPD7220_FIXED_PITCH = 0;
 	}
+	if(osd->check_feature(_T("UPD7220_A_VERSION"))) {
+		_UPD7220_A_VERSION = (int)(osd->get_feature_int_value(_T("UPD7220_A_VERSION")));
+	} else {
+		_UPD7220_A_VERSION = 0;
+	}
 	__QC10 = osd->check_feature(_T("_QC10"));
 	_UPD7220_MSB_FIRST = osd->check_feature(_T("UPD7220_MSB_FIRST"));
 	
 	sync_changed = false;
+	sync_mask = false;
 	vs = hs = 0;
 	for(int i = 0; i <= RT_TABLEMAX; i++) {
 		rt[i] = (int)((double)(1 << RT_MULBIT) * (1 - sqrt(1 - pow((0.70710678118654 * i) / RT_TABLEMAX, 2))));
@@ -149,7 +166,7 @@ void UPD7220::event_pre_frame()
 		}
 
 	}
-	if(master) {
+	if((master) || (sync_mask)) {
 		if(vtotal != v1 + v2 + v3 + v4) {
 			vtotal = v1 + v2 + v3 + v4;
 			set_lines_per_frame(vtotal);
@@ -157,6 +174,7 @@ void UPD7220::event_pre_frame()
 		if(_UPD7220_HORIZ_FREQ != 0) {
 			if(horiz_freq != next_horiz_freq && vtotal != 0) {
 				horiz_freq = next_horiz_freq;
+				out_debug_log("Set lines to %d ,freq to %f \n", vtotal, (double)horiz_freq / (double)vtotal);
 				set_frames_per_sec((double)horiz_freq / (double)vtotal);
 			}
 		}
@@ -174,8 +192,14 @@ void UPD7220::check_cmd()
 {
 	// check fifo buffer and process command if enough params in fifo
 	switch(cmdreg) {
-	case CMD_RESET:
+	case CMD_RESET1:
 		cmd_reset();
+		break;
+	case CMD_RESET2:
+		cmd_reset2();
+		break;
+	case CMD_RESET3:
+		cmd_reset3();
 		break;
 	case CMD_SYNC + 0:
 	case CMD_SYNC + 1:
@@ -193,12 +217,17 @@ void UPD7220::check_cmd()
 		cmd_start();
 		break;
 	case CMD_STOP2:
+		cmd_stop();
+		sync_mask = true;
+		break;
 	case CMD_BCTRL + 0:
 		cmd_stop();
+		sync_mask = false;
 		break;
 	case CMD_START2:
 	case CMD_BCTRL + 1:
 		cmd_start();
+		sync_mask = true;
 		break;
 	case CMD_ZOOM:
 		cmd_zoom();
@@ -346,8 +375,14 @@ void UPD7220::check_cmd()
 void UPD7220::process_cmd()
 {
 	switch(cmdreg) {
-	case CMD_RESET:
+	case CMD_RESET1:
 		cmd_reset();
+		break;
+	case CMD_RESET2:
+		cmd_reset2();
+		break;
+	case CMD_RESET3:
+		cmd_reset3();
 		break;
 	case CMD_SYNC + 0:
 	case CMD_SYNC + 1:	
@@ -398,7 +433,7 @@ void UPD7220::process_cmd()
 	case CMD_WRITE + 0x1a:
 	case CMD_WRITE + 0x1b:
 		if(cmd_write_done) {
-			reset_vect();
+			//reset_vect();
 		}
 		cmdreg = -1;
 		cmd_write_done = false;
@@ -411,7 +446,10 @@ void UPD7220::cmd_vecte()
 	//dx = ((ead % pitch) << 4) | (dad & 0x0f);
 	//dy = ead / pitch;
 	if(_UPD7220_UGLY_PC98_HACK) {
-		dx = (((ead & 0x3fff)% pitch) << 4) + (dad & 0x0f);
+//		if(ead >= 0x20000) { // Negative
+//			ead = -(ead & 0x1ffff);
+//		}
+		dx = (((ead & 0x3fff)% pitch) << 4) | (dad & 0x0f);
 		dy = (ead & 0x3fff) / pitch;
 	} else {
 		dx = ((ead % pitch) << 4) | (dad & 0x0f);
@@ -420,6 +458,7 @@ void UPD7220::cmd_vecte()
 	wrote_bytes = 1;
 
 	// execute command
+//	pattern = ra[8] | (ra[9] << 8);
 	if(!(vect[0] & 0x78)) {
 		pattern = ra[8] | (ra[9] << 8);
 		draw_pset(dx, dy);
@@ -443,8 +482,18 @@ void UPD7220::cmd_vecte()
 
 void UPD7220::cmd_texte()
 {
-	dx = ((ead % pitch) << 4) | (dad & 0x0f);
-	dy = ead / pitch;
+	if(_UPD7220_UGLY_PC98_HACK) {
+//		if(ead >= 0x20000) { // Negative
+//			ead = -(ead & 0x1ffff);
+//		}
+		dx = (((ead & 0x3fff)% pitch) << 4) | (dad & 0x0f);
+		dy = (ead & 0x3fff) / pitch;
+	} else {
+		dx = ((ead % pitch) << 4) | (dad & 0x0f);
+		dy = ead / pitch;
+	}
+//	dx = ((ead % pitch) << 4) | (dad & 0x0f);
+//	dy = ead / pitch;
 
 	wrote_bytes = 1;
 	// execute command
@@ -475,7 +524,7 @@ void UPD7220::cmd_pitch()
 		wrote_bytes = 1;
 		uint8_t tmp = (uint8_t)(cmd_fifo->read() & 0xff);
 		if(_UPD7220_FIXED_PITCH == 0) {
-			pitch = tmp;
+			pitch = ((sync[4] & 0x40) != 0) ? tmp + 256 : tmp;
 		}
 		cmdreg = -1;
 	}
@@ -497,6 +546,8 @@ void UPD7220::draw_text()
 	}
 //	this->out_debug_log(_T("\tTEXT: dx=%d,dy=%d,sx=%d,sy=%d\n"), dx, dy, sx, sy);
 	int index = 15;
+	int ead_bak = ead;
+	int dad_bak = dad;
 	
 	while(sy--) {
 		int muly = zw + 1;
@@ -511,7 +562,7 @@ void UPD7220::draw_text()
 				int mulx = zw + 1;
 				start_pset();
 				while(mulx--) {
-					draw_pset_diff(cx, cy);
+					draw_pset(cx, cy);
 					cx += vx1;
 					cy += vy1;
 				}
@@ -522,8 +573,10 @@ void UPD7220::draw_text()
 		}
 		index = ((index - 1) & 7) | 8;
 	}
-	ead = (dx >> 4) + dy * pitch;
-	dad = dx & 0x0f;
+//	ead = ead_bak;
+//	dad = dad_bak;
+//	ead = (dx >> 4) + dy * pitch;
+//	dad = dx & 0x0f;
 }
 
 
@@ -609,9 +662,9 @@ void UPD7220::write_io8(uint32_t addr, uint32_t data)
 //		params_count = 0;
 		cmd_fifo->clear(); // OK?
 		check_cmd();
-		//if(cmdreg == -1) {
-		//	cmd_fifo->clear(); // OK?
-		//}
+		if(cmdreg == -1) {
+//			cmd_fifo->clear(); // OK?
+		}
 //		}
 		break;
 	case 2: // set zoom
@@ -686,6 +739,9 @@ void UPD7220::write_signal(int ch, uint32_t data, uint32_t mask)
 	case SIG_UPD7220_CLOCK_FREQ:
 		clock_freq = data; // Must be Hz.
 		break;
+	case SIG_UPD7220_EXT_VSYNC:
+		//ToDo:Implement this."0" makes reset some paramaters.
+		break;
 	}
 }
 
@@ -704,6 +760,7 @@ void UPD7220::event_vline(int v, int clock)
 {
 	if(v == 0) {
 		vblank = true;
+		write_signals(&outputs_vblank, 0xffffffff);
 	} else if(v == vfp) {
 		write_signals(&outputs_vsync, 0xffffffff);
 		vsync = true;
@@ -712,6 +769,7 @@ void UPD7220::event_vline(int v, int clock)
 		vsync = false;
 	} else if(v == vbp) {
 		vblank = false;
+		write_signals(&outputs_vblank, 0x00000000);
  	}
 	hblank = true;
 	register_event_by_clock(this, EVENT_HSYNC_HFP, hfp, false, NULL);
@@ -780,6 +838,7 @@ void UPD7220::cmd_reset()
 	cs[0] = cs[1] = cs[2] = 0;
 	cs_ptr = 0;
 	ead = dad = 0;
+	wg = false;
 	maskl = maskh = 0xff;
 	mod = 0;
 	blink_cursor = 0;
@@ -797,6 +856,25 @@ void UPD7220::cmd_reset()
 	cmdreg = -1;
 	cmd_write_done = false;
 	cmd_drawing = false;
+	sync_mask = false;
+	write_signals(&outputs_vsync, 0x00000000);
+	write_signals(&outputs_vblank, 0xffffffff);
+}
+void UPD7220::cmd_reset2()
+{
+	cmd_reset();
+	if(_UPD7220_A_VERSION > 0) {
+		sync_mask = true;
+	}
+}
+
+void UPD7220::cmd_reset3()
+{
+	cmd_reset();
+	if(_UPD7220_A_VERSION > 0) {
+		sync_mask = true;
+		start = true;
+	}
 }
 
 void UPD7220::cmd_sync()
@@ -835,6 +913,7 @@ void UPD7220::cmd_slave()
 void UPD7220::cmd_start()
 {
 	start = true;
+	sync_mask = true;
 	cmdreg = -1;
 }
 
@@ -910,6 +989,7 @@ void UPD7220::cmd_vectw()
 		}
 //		this->out_debug_log(_T("\tVECT[%d] = %2x\n"), i, vect[i]);
 	}
+	update_vect();
 
 //	cmdreg = -1;
 }
@@ -940,12 +1020,15 @@ void UPD7220::cmd_csrw()
 		if(csrw_ptr == 0) {
 			ead = 0;
 			dad = 0;
+			wg = false;
 		}
 		int len = cmd_fifo->count();
 		if(len > 3) len = 3;
 		for(int i = 0; i < len; i++) {
 			int nmask = ~(0xff << (csrw_ptr * 8));
-			int val = (cmd_fifo->read() & 0xff) << (csrw_ptr * 8);
+			int val = cmd_fifo->read() & 0xff;
+			val = val << (csrw_ptr * 8);
+			
 			ead = ead & nmask;
 			ead = ead | val;
 			csrw_ptr++;
@@ -956,6 +1039,7 @@ void UPD7220::cmd_csrw()
 			}
 		}
 		dad = (ead >> 20) & 0x0f;
+		wg = ((ead & 0x080000) != 0) ? true : false;
 		ead &= 0x3ffff;
 	}
 #endif
@@ -974,7 +1058,7 @@ void UPD7220::cmd_csrr()
 
 void UPD7220::cmd_mask()
 {
-	if(cmd_fifo->count() > 1) {
+	if(cmd_fifo->count() > 2) {
 		maskl = (cmd_fifo->read() & 0xff);
 		maskh = (cmd_fifo->read() & 0xff);
 		cmdreg = -1;
@@ -995,6 +1079,10 @@ void UPD7220::cmd_write()
 				cmd_write_sub(ead * 2 + 0, l);
 				cmd_write_sub(ead * 2 + 1, h);
 				ead += dif;
+				if(!(cmd_fifo->empty())) {
+					l = (uint8_t)(cmd_fifo->read()) & maskl;
+					h = (uint8_t)(cmd_fifo->read()) & maskh;
+				}
 			}
 			wrote_bytes += ((dc + 1) * 2 * 2);
 			cmd_write_done = true;
@@ -1008,6 +1096,9 @@ void UPD7220::cmd_write()
 			for(int i = 0; i < dc + 1; i++) {
 				cmd_write_sub(ead * 2 + 0, l);
 				ead += dif;
+				if(!(cmd_fifo->empty())) {
+					l = (uint8_t)(cmd_fifo->read()) & maskl;
+				}
 			}
 			wrote_bytes += ((dc + 1) * 2);
 			cmd_write_done = true;
@@ -1020,6 +1111,9 @@ void UPD7220::cmd_write()
 			uint8_t h = (uint8_t)(cmd_fifo->read()) & maskh;
 			for(int i = 0; i < dc + 1; i++) {
 				cmd_write_sub(ead * 2 + 1, h);
+				if(!(cmd_fifo->empty())) {
+					h = (uint8_t)(cmd_fifo->read()) & maskh;
+				}
 				ead += dif;
 			}
 			wrote_bytes += ((dc + 1) * 2);
@@ -1063,7 +1157,7 @@ void UPD7220::cmd_read()
 	default: // invalid
 		break;
 	}
-	reset_vect();
+//	reset_vect();
 	cmdreg = -1;
 }
 
@@ -1072,8 +1166,8 @@ void UPD7220::cmd_dmaw()
 	mod = cmdreg & 3;
 	low_high = false;
 	write_signals(&outputs_drq, 0xffffffff);
-	reset_vect();
-//	statreg |= STAT_DMA;
+//	reset_vect();
+	statreg |= STAT_DMA;
 	cmdreg = -1;
 }
 
@@ -1082,8 +1176,8 @@ void UPD7220::cmd_dmar()
 	mod = cmdreg & 3;
 	low_high = false;
 	write_signals(&outputs_drq, 0xffffffff);
-	reset_vect();
-//	statreg |= STAT_DMA;
+//	reset_vect();
+	statreg |= STAT_DMA;
 	cmdreg = -1;
 }
 
@@ -1132,7 +1226,8 @@ void UPD7220::write_vram(uint32_t addr, uint8_t data)
 uint8_t UPD7220::read_vram(uint32_t addr)
 {
 	if(addr < vram_size) {
- 		uint8_t mask = (addr & 1) ? (vram_data_mask >> 8) : (vram_data_mask & 0xff);
+// 		uint8_t mask = (addr & 1) ? (vram_data_mask >> 8) : (vram_data_mask & 0xff);
+		uint8_t mask = 0xff;
 		if(vram != NULL) {
 			return (vram[addr] & mask) | ~mask;
 		} else if(d_vram_bus != NULL) {
@@ -1152,6 +1247,12 @@ void UPD7220::update_vect()
 	d2 = (vect[5] | (vect[ 6] << 8)) & 0x3fff;
 	d1 = (vect[7] | (vect[ 8] << 8)) & 0x3fff;
 	dm = (vect[9] | (vect[10] << 8)) & 0x3fff;
+//	if(dc & 0x2000) dc = -(dc & 0x1fff);
+//	if(d & 0x2000)  d = -(d & 0x1fff); 
+//	if(d2 & 0x2000) d2 = -(d2 & 0x1fff);
+//	if(d1 & 0x2000) d1 = -(d1 & 0x1fff);
+//	if(dc & 0x2000) dc = -(dc & 0x1fff);
+//	if(dm & 0x2000) dm = -(dm & 0x1fff);
 }
 
 void UPD7220::reset_vect()
@@ -1162,10 +1263,10 @@ void UPD7220::reset_vect()
 	vect[ 4] = 0x00;
 	vect[ 5] = 0x08;
 	vect[ 6] = 0x00;
-	vect[ 7] = 0x00;
-	vect[ 8] = 0x00;
-	vect[ 9] = 0x00;
-	vect[10] = 0x00;
+	vect[ 7] = 0xff;
+	vect[ 8] = 0xff;
+	vect[ 9] = 0xff;
+	vect[10] = 0xff;
 	vectw_ptr = 0;
 	update_vect();
 }
@@ -1200,50 +1301,48 @@ void UPD7220::draw_hline_diff(int xstart, int y, int xend)
 	}
 	if(req_outbound) {
 		int bits = xstart - xend;
-		if(bits < 0) bits = -bits;
-		bits++;
-		shift_pattern(bits);
+//		shift_pattern(bits);
 		return;
 	}
 	
 	// ToDo: WORD write
 	if(dir == 0) {
 		start_pset();
-		draw_pset_diff(xstart, y);
+		draw_pset(xstart, y);
 		finish_pset();
 	} else if(dir < 0) {
 		int xstart2 = xstart;
 		if((_UPD7220_UGLY_PC98_HACK) && ((y == 409) && (xstart >= 384))) xstart2 = 383;
+		int rshift = xstart2 - nwidth;
+//		shift_pattern(rshift);
 		if(xstart >= nwidth) {
-			int rshift = ((xstart2 - nwidth) + 1) & 15;
-			shift_pattern(rshift);
 			xstart = nwidth - 1;
 		}
 		start_pset();
 		for(int x = xstart2; x >= ((xend < 0) ? 0 : xend); x--) {
-			draw_pset_diff(x, y);
+			draw_pset(x, y);
 		}
 		finish_pset();
 		if(xend < 0) {
-			int lshift = (0 - xend) & 15;
-			shift_pattern(lshift);
+			int lshift = xend;
+//			shift_pattern(lshift);
 		}
 	} else { // dir > 0
 		int xend2 = xend;
 		if((_UPD7220_UGLY_PC98_HACK) && ((y == 409) && (xend >= 384))) xend2 = 383;
 		if(xstart < 0) {
-			int rshift = ((0 - xstart)) & 15;
-			shift_pattern(rshift);
+			int rshift = 0 - xstart;
+//			shift_pattern(rshift);
 			xstart = 0;
 		}
 		start_pset();
 		for(int x = xstart; x <= ((xend2 >= nwidth) ? (nwidth - 1) : xend2); x++) {
-			draw_pset_diff(x, y);
+			draw_pset(x, y);
 		}
 		finish_pset();
 		if(xend >= nwidth) {
-			int lshift = ((xend2 - nwidth) + 1) & 15;
-			shift_pattern(lshift);
+			int lshift = xend2 - nwidth;
+//			shift_pattern(lshift);
 		}
 	}
 }
@@ -1252,7 +1351,8 @@ void UPD7220::draw_vectl()
 {
 	pattern = ra[8] | (ra[9] << 8);
 	
-	//out_debug_log(_T("DRAW VECTL: X=%d Y=%d to DC=%d DIR=%d PATTERN=%04x MODE=%d\n"), dx, dy, dc, dir, pattern, mod); 
+//	out_debug_log(_T("DRAW VECTL: X=%d Y=%d to DC=%d DIR=%d PATTERN=%04x MODE=%d\n"), dx, dy, dc, dir, pattern, mod);
+	dc = dc & 0x3fff;
 	if(dc) {
 		int x = dx;
 		int y = dy;
@@ -1260,6 +1360,7 @@ void UPD7220::draw_vectl()
 		int stepx = 0;
 		int stepy = 0;
 		int stepn = 0;
+		
 		//step = (((d1 << 14) / dc) + (1 << 14)) >> 1;
 		//stepn = step & ((1 << 14) - 1);
 		switch(dir) {
@@ -1273,7 +1374,7 @@ void UPD7220::draw_vectl()
 				//	stepn = stepn - (1 << 14);
 				//	stepx++;
 				//}
-				draw_pset_diff(x + stepx, y++);
+				draw_pset(x + stepx, y++);
 			}
 			finish_pset();
 			break;
@@ -1287,7 +1388,7 @@ void UPD7220::draw_vectl()
 				//	stepn = stepn - (1 << 14);
 				//	stepy++;
 				//}
-				draw_pset_diff(x++, y + stepy);
+				draw_pset(x++, y + stepy);
 			}
 			finish_pset();
 			break;
@@ -1301,7 +1402,7 @@ void UPD7220::draw_vectl()
 				//	stepn = stepn - (1 << 14);
 				//	stepy++;
 				//}
-				draw_pset_diff(x++, y - stepy);
+				draw_pset(x++, y - stepy);
 				//draw_pset(x++, y - step);
 			}
 			finish_pset();
@@ -1316,7 +1417,7 @@ void UPD7220::draw_vectl()
 				//	stepn = stepn - (1 << 14);
 				//	stepx++;
 				//}
-				draw_pset_diff(x + stepx, y--);
+				draw_pset(x + stepx, y--);
 			}
 			finish_pset();
 			break;
@@ -1330,7 +1431,7 @@ void UPD7220::draw_vectl()
 				//	stepn = stepn - (1 << 14);
 				//	stepx++;
 				//}
-				draw_pset_diff(x - stepx, y--);
+				draw_pset(x - stepx, y--);
 			}
 			finish_pset();
 			break;
@@ -1344,7 +1445,7 @@ void UPD7220::draw_vectl()
 				//	stepn = stepn - (1 << 14);
 				//	stepy++;
 				//}
-				draw_pset_diff(x--, y - stepy);
+				draw_pset(x--, y - stepy);
 			}
 			finish_pset();
 			break;
@@ -1358,7 +1459,7 @@ void UPD7220::draw_vectl()
 				//	stepn = stepn - (1 << 14);
 				//	stepy++;
 				//}
-				draw_pset_diff(x--, y + stepy);
+				draw_pset(x--, y + stepy);
 			}
 			finish_pset();
 			break;
@@ -1373,14 +1474,14 @@ void UPD7220::draw_vectl()
 				//	stepn = stepn - (1 << 14);
 				//	stepx++;
 				//}
-				draw_pset_diff(x - stepx, y++);
+				draw_pset(x - stepx, y++);
 			}
 			finish_pset();
 			break;
 		}
 	} else {
 		start_pset();
-		draw_pset_diff(dx, dy);
+		draw_pset(dx, dy);
 		finish_pset();
 		wrote_bytes++;
 	}
@@ -1408,6 +1509,8 @@ void UPD7220::draw_vectt()
 	int nwidth = width << 3;
 	pattern = 0xffff;
 	
+	int ead_bak = ead;
+	int dad_bak = dad;
 	while(muly--) {
 		int cx = dx;
 		int cy = dy;
@@ -1419,7 +1522,7 @@ void UPD7220::draw_vectt()
 				draw |= 0x8000;
 				start_pset();
 				while(mulx--) {
-					draw_pset_diff(cx, cy);
+					draw_pset(cx, cy);
 					cx += vx1;
 					cy += vy1;
 				}
@@ -1442,8 +1545,8 @@ void UPD7220::draw_vectt()
 		dx += vx2;
 		dy += vy2;
 	}
-	ead = (dx >> 4) + dy * pitch;
-	dad = dx & 0x0f;
+//	ead = (dx >> 4) + dy * pitch;
+//	dad = dx & 0x0f;
 }
 
 void UPD7220::draw_vectc()
@@ -1460,7 +1563,7 @@ void UPD7220::draw_vectc()
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset_diff((dx + s), (dy + i));
+				draw_pset((dx + s), (dy + i));
 			}
 			finish_pset();
 			break;
@@ -1469,7 +1572,7 @@ void UPD7220::draw_vectc()
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset_diff((dx + i), (dy + s));
+				draw_pset((dx + i), (dy + s));
 			}
 			finish_pset();
 			break;
@@ -1478,7 +1581,7 @@ void UPD7220::draw_vectc()
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset_diff((dx + i), (dy - s));
+				draw_pset((dx + i), (dy - s));
 			}
 			finish_pset();
 			break;
@@ -1487,7 +1590,7 @@ void UPD7220::draw_vectc()
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset_diff((dx + s), (dy - i));
+				draw_pset((dx + s), (dy - i));
 			}
 			finish_pset();
 			break;
@@ -1496,7 +1599,7 @@ void UPD7220::draw_vectc()
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset_diff((dx - s), (dy - i));
+				draw_pset((dx - s), (dy - i));
 			}
 			finish_pset();
 			break;
@@ -1506,7 +1609,7 @@ void UPD7220::draw_vectc()
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
 
-				draw_pset_diff((dx - i), (dy - s));
+				draw_pset((dx - i), (dy - s));
 			}
 			finish_pset();
 			break;
@@ -1515,7 +1618,7 @@ void UPD7220::draw_vectc()
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset_diff((dx - i), (dy + s));
+				draw_pset((dx - i), (dy + s));
 			}
 			finish_pset();
 			break;
@@ -1524,14 +1627,14 @@ void UPD7220::draw_vectc()
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset_diff((dx - s), (dy + i));
+				draw_pset((dx - s), (dy + i));
 			}
 			finish_pset();
 			break;
 		}
 	} else {
 		draw_pset(dx, dy);
-		wrote_bytes++;
+		//wrote_bytes++;
 	}
 }
 
@@ -1558,7 +1661,7 @@ void UPD7220::draw_vectr()
 	} else {
 		start_pset();
 		for(int i = 0; i < d; i++) {
-			draw_pset_diff(dx, dy);
+			draw_pset(dx, dy);
 			dx += vx1;
 			dy += vy1;
 		}
@@ -1579,7 +1682,7 @@ void UPD7220::draw_vectr()
 	} else {
 		start_pset();
 		for(int i = 0; i < d2; i++) {
-			draw_pset_diff(dx, dy);
+			draw_pset(dx, dy);
 			dx += vx2;
 			dy += vy2;
 		}
@@ -1600,7 +1703,7 @@ void UPD7220::draw_vectr()
 	} else {
 		start_pset();
 		for(int i = 0; i < d; i++) {
-			draw_pset_diff(dx, dy);
+			draw_pset(dx, dy);
 			dx -= vx1;
 			dy -= vy1;
 		}
@@ -1620,7 +1723,7 @@ void UPD7220::draw_vectr()
 		}
 	} else {
 		for(int i = 0; i < d2; i++) {
-			draw_pset_diff(dx, dy);
+			draw_pset(dx, dy);
 			dx -= vx2;
 			dy -= vy2;
 		}
@@ -1630,11 +1733,11 @@ void UPD7220::draw_vectr()
 
 	dx = xbak;
 	dy = ybak;
-	ead = (dx >> 4) + dy * pitch;
-	dad = dx & 0x0f;
+//	ead = (dx >> 4) + dy * pitch;
+//	dad = dx & 0x0f;
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	8
 
 bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1674,6 +1777,8 @@ bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(vect, sizeof(vect), 1);
 	state_fio->StateValue(ead);
 	state_fio->StateValue(dad);
+	state_fio->StateValue(wg);
+	
 	state_fio->StateValue(maskl);
 	state_fio->StateValue(maskh);
 	state_fio->StateValue(mod);
@@ -1682,6 +1787,8 @@ bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(vsync);
 	state_fio->StateValue(vblank);
 	state_fio->StateValue(start);
+	state_fio->StateValue(sync_mask);
+
 	state_fio->StateValue(blink_cursor);
 	state_fio->StateValue(blink_attr);
 	state_fio->StateValue(blink_rate);

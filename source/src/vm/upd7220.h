@@ -24,6 +24,7 @@
 #define RT_TABLEMAX	(1 << RT_TABLEBIT)
 
 #define SIG_UPD7220_CLOCK_FREQ 1
+#define SIG_UPD7220_EXT_VSYNC  2
 
 class RINGBUFFER;
 class FIFO;
@@ -33,6 +34,7 @@ protected:
 	// output signals
 	outputs_t outputs_drq;
 	outputs_t outputs_vsync;
+	outputs_t outputs_vblank;
 	
 	// vram
 	DEVICE* d_vram_bus;
@@ -46,6 +48,7 @@ protected:
 	bool _UPD7220_UGLY_PC98_HACK;
 	int  _UPD7220_FIXED_PITCH;
 	int  _UPD7220_HORIZ_FREQ;
+	int  _UPD7220_A_VERSION;
 	int  _LINES_PER_FRAME;
 	
 	// regs
@@ -69,6 +72,7 @@ protected:
 	uint8_t vect[11];
 	uint8_t vectw_ptr;
 	int ead, dad;
+	bool wg;
 	
 	uint8_t maskl, maskh;
 	uint8_t mod;
@@ -114,8 +118,11 @@ protected:
 	uint32_t before_addr;
 	uint8_t cache_val;
 	bool first_load;
+	bool sync_mask;
 	
 	void cmd_reset();
+	void cmd_reset2();
+	void cmd_reset3();
 	void cmd_sync();
 	void cmd_master();
 	void cmd_slave();
@@ -171,6 +178,7 @@ public:
 	{
 		initialize_output_signals(&outputs_drq);
 		initialize_output_signals(&outputs_vsync);
+		initialize_output_signals(&outputs_vblank);
 		d_vram_bus = NULL;
 		vram = NULL;
 		vram_data_mask = 0xffff;
@@ -209,6 +217,10 @@ public:
 	void set_context_vsync(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_vsync, device, id, mask);
+	}
+	void set_context_vblank(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_vblank, device, id, mask);
 	}
     void set_vram_ptr(uint8_t* ptr, uint32_t size)
 	{
@@ -299,6 +311,8 @@ inline void  UPD7220::draw_pset(int x, int y)
 		bit = 1 << (x & 7);
 	}
 	uint8_t cur = read_vram(addr);
+//	ead = addr;
+//	dad = x & 0x0f;
 	
 	switch(mod) {
 	case 0: // replace
@@ -336,11 +350,26 @@ inline void UPD7220::finish_pset()
 
 inline void UPD7220::shift_pattern(int shift)
 {
-	int bits = shift & 15;
+	int bits;
 	uint16_t dot;
-	if(bits != 0) {
-		dot = pattern & ((1 << bits) - 1);
-		pattern = (pattern >> bits) | (dot << (16 - bits));
+	if(shift == 0) {
+		return;
+	} else if(shift < 0) {
+		// Left shift
+		bits = (-shift) % 16;
+		if(bits == 0) return;
+		dot = pattern;
+		dot <<= bits;
+		pattern >>= (16 - bits);
+		pattern = (pattern | dot) & 0xffff;
+	} else if(shift > 0) {
+		// Right shift
+		bits = shift % 16;
+		if(bits == 0) return;
+		dot = pattern;
+		dot >>= bits;
+		pattern <<= (16 - bits);
+		pattern = (pattern | dot) & 0xffff;
 	}
 }
 	
@@ -375,7 +404,9 @@ inline bool UPD7220::draw_pset_diff(int x, int y)
 	
 	first_load = false;
 	before_addr = addr;
-		
+//	ead = addr;
+//	dad = x & 0x0f;
+	
 	if(_UPD7220_MSB_FIRST) {
 		bit = 0x80 >> (x & 7);
 	} else {
