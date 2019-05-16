@@ -954,6 +954,9 @@ void OSD::set_features_vm(void)
 #ifdef UPD7220_MSB_FIRST
 	add_feature(_T("UPD7220_MSB_FIRST"), 1);
 #endif
+#ifdef UPD7220_A_VERSION	
+	add_feature(_T("UPD7220_A_VERSION"), (int)UPD7220_A_VERSION);
+#endif
 #ifdef UPD765A_DMA_MODE
 	add_feature(_T("UPD765A_DMA_MODE"), 1);
 #endif
