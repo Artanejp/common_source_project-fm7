@@ -42,6 +42,12 @@ void MOUSE::reset()
 {
 	dx = dy = 0;
 	lx = ly = -1;
+	if(register_id >= 0) {
+		cancel_event(this, register_id);
+	}
+	register_event(this, EVENT_TIMER, 1000000.0 / 120.0, true, &register_id);
+	cur_freq = 0;
+	freq = 0;
 }
 
 #if !defined(SUPPORT_HIRESO)
