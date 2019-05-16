@@ -137,6 +137,10 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 				d_fdc->set_drive_type(1, DRIVE_TYPE_2DD);
 			}
 #endif
+			// ToDo: DMAE  (0094h/00CCh bit4)
+			// ToDo: MOTOR (0094h/00CCh bit3)
+			// ToDo: TMSK  (0094h/00CCh bit2)
+			
 //#if !defined(_PC98XA) && !defined(_PC98XL)
 //			if(modereg & 0x04) {
 //				d_fdc->write_signal(SIG_UPD765A_MOTOR, data, 0x08);
@@ -154,12 +158,17 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 	case 0x00bc: // OK?
 	case 0x00be:
 #if !defined(SUPPORT_HIRESO)
-		if(!(modereg & 2) && (data & 2)) {
-			d_fdc->set_drive_type(0, DRIVE_TYPE_2HD);
-			d_fdc->set_drive_type(1, DRIVE_TYPE_2HD);
-		} else if((modereg & 2) && !(data & 2)) {
-			d_fdc->set_drive_type(0, DRIVE_TYPE_2DD);
-			d_fdc->set_drive_type(1, DRIVE_TYPE_2DD);
+		if((data & 0xf8) == 0) {
+			// ToDo: EMTON (bit2)
+			if(!(modereg & 2) && (data & 2)) {
+				d_fdc->set_drive_type(0, DRIVE_TYPE_2HD);
+				d_fdc->set_drive_type(1, DRIVE_TYPE_2HD);
+			} else if((modereg & 2) && !(data & 2)) {
+				d_fdc->set_drive_type(0, DRIVE_TYPE_2DD);
+				d_fdc->set_drive_type(1, DRIVE_TYPE_2DD);
+			}
+			// ToDo: PORT EXC (bit0)
+			// ToDo: Three mode FDD.
 		}
 #endif
 		modereg = data;
@@ -240,6 +249,8 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 	case 0x00bc: // OK?
 	case 0x00be:
 		//return 0xf8 | (modereg & 3);
+		// ToDo: DIPSW 3-2 and 3-1
+		// ToDo: Three mode FDD.
 		return 0xfc | (modereg & 3);
 	case 0x00cc:
 	case 0x00ce:
