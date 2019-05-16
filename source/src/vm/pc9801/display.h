@@ -26,6 +26,7 @@
 
 #define SIG_DISPLAY98_SET_PAGE_80 1
 #define SIG_DISPLAY98_SET_PAGE_A0 2
+#define SIG_DISPLAY98_SET_BANK    3
 
 class UPD7220;
 
@@ -36,6 +37,7 @@ class DISPLAY : public DEVICE
 private:
 	DEVICE *d_pic;
 	DEVICE *d_pio_sys;
+	DEVICE *d_pio_prn;
 	outputs_t output_gdc_freq;
 	
 	UPD7220 *d_gdc_chr, *d_gdc_gfx;
@@ -43,6 +45,7 @@ private:
 	uint8_t *ra_gfx, *cs_gfx;
 	
 	uint8_t tvram[0x4000];
+	uint32_t vram_bank;
 #if !defined(SUPPORT_HIRESO)
 #if defined(SUPPORT_2ND_VRAM)
 	__DECL_ALIGNED(4) uint8_t vram[0x40000];
@@ -76,6 +79,7 @@ private:
 	uint8_t crtv;
 	uint8_t scroll[6];
 	uint8_t modereg1[8];
+	uint8_t border; // ToDo; OVER SCAN.
 #if defined(SUPPORT_16_COLORS)
 	uint8_t modereg2[128];
 	bool is_use_egc;
@@ -265,6 +269,14 @@ public:
 	{
 		d_gdc_gfx = device;
 		ra_gfx = ra; cs_gfx = cs;
+	}
+	void set_context_pio_sys(DEVICE* device)
+	{
+		d_pio_sys = device;
+	}
+	void set_context_pio_prn(DEVICE* device)
+	{
+		d_pio_prn = device;
 	}
 	void sound_bios_ok()
 	{

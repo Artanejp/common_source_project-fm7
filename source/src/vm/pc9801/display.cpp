@@ -19,6 +19,7 @@
 
 #include "display.h"
 #include "../i8259.h"
+#include "../i8255.h"
 #include "../upd7220.h"
 #include "../../config.h"
 
@@ -57,7 +58,8 @@
 #define MODE1_DISP	7
 
 #define MODE2_16COLOR	0x00
-#define MODE2_EGC	0x02
+#define MODE2_EGC		0x02
+#define MODE2_EGC_WP	0x03
 #define MDOE2_TXTSHIFT	0x20
 
 #define GRCG_PLANE_0	0x01
@@ -112,7 +114,7 @@ void DISPLAY::initialize()
 	FILEIO* fio = new FILEIO();
 	b_gfx_ff = false; // Q: Is latched beyond resetting?
 #if defined(SUPPORT_EGC)
-	is_use_egc = ((config.dipswitch & (1 << DIPSW_POSITION_EGC)) != 0) ? true : false;
+	is_use_egc = true;
 #endif
 #if !defined(SUPPORT_HIRESO)
 	uint8_t *p = font + 0x81000;
@@ -320,6 +322,7 @@ void DISPLAY::reset()
 	vram_disp_e = vram + VRAM_PLANE_ADDR_3;
 #endif
 	vram_draw   = vram + 0x00000;
+	vram_bank = 0x00000;
 	
 	crtv = 2;
 	
@@ -344,8 +347,14 @@ void DISPLAY::reset()
 	}
 #endif
 #if defined(SUPPORT_EGC)
-	is_use_egc = ((config.dipswitch & (1 << DIPSW_POSITION_EGC)) != 0) ? true : false;
+	is_use_egc = ((config.dipswitch & (1 << DIPSW_POSITION_EGC)) != 0);
+
+	#if defined(SUPPORT_EGC)
 	enable_egc = false;
+//	if(modereg2[MODE2_EGC_WP] != 0) {
+	//		enable_egc = ((is_use_egc) && (modereg2[MODE2_EGC] != 0)) ? true : false;
+//	}
+	#endif
 	egc_access = 0xfff0;
 	egc_fgbg = 0x00ff;
 	egc_ope = 0;
@@ -428,6 +437,9 @@ void DISPLAY::write_signal(int ch, uint32_t data, uint32_t mask)
 		if((data < 0x000a0000) || (data >= 0x000f0000)) data = 0x80000000;
 		bank_table[0x08] = data;
 		bank_table[0x09] = data + 0x00010000;
+	} else if(ch == SIG_DISPLAY98_SET_BANK) {
+		// WIP: Still dummy.
+		vram_bank = ((data & mask) != 0) ? 0x10000 : 0x00000;
 	}
 }
 
@@ -465,13 +477,25 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		break;
 #if defined(SUPPORT_16_COLORS)
 	case 0x6a:
+#if !defined(PC9821_VARIANTS)
+		if((data & 0xf0) != 0) { // From MAME 0.208. Disable pages .
+			m_bak = 0;
+			modereg2[(data >> 1) & 127] = 0;
+		} else { 
+			m_bak = modereg2[(data >> 1) & 127];
+			modereg2[(data >> 1) & 127] = data & 1;
+		}
+#else
 		m_bak = modereg2[(data >> 1) & 127];
 		modereg2[(data >> 1) & 127] = data & 1;
-		if(is_use_egc) {
-			enable_egc = (modereg2[MODE2_EGC]) ? true : false;
-		} else {
-			enable_egc = false;
-			//modereg2[MODE2_EGC] = 0;
+#endif
+		if(modereg2[MODE2_EGC_WP] != 0) {
+			if(is_use_egc) {
+				enable_egc = (modereg2[MODE2_EGC]) ? true : false;
+			} else {
+				enable_egc = false;
+				modereg2[MODE2_EGC] = 0;
+			}
 		}
 		if(m_bak != modereg2[(data >> 1) & 127]) {
 			if((data & 0xfe) == 0x82) {
@@ -497,11 +521,12 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		break;
 #endif
 	case 0x6c:
-//		border = (data >> 3) & 7;
+		border = (data >> 3) & 7;
 		break;
 	case 0x6e:
-//		border = (data >> 3) & 7;
-#if !defined(_PC9801)
+#if defined(_PC9801)
+		border = (data >> 3) & 7;
+#else
 		if(data & 1) {
 			d_gdc_chr->set_horiz_freq(24830);
 			d_gdc_gfx->set_horiz_freq(24830);
@@ -1433,6 +1458,7 @@ __DECL_ALIGNED(16) static const uint16_t DISPLAY::egc_maskword[16][4] = {
 	{0x0000, 0x0000, 0xffff, 0xffff}, {0xffff, 0x0000, 0xffff, 0xffff},
 	{0x0000, 0xffff, 0xffff, 0xffff}, {0xffff, 0xffff, 0xffff, 0xffff}
 };
+
 // SUBROUTINES are moved to display,h due to making inline. 20190514 K.O
 void DISPLAY::egc_sftb_upn0(uint32_t ext)
 {
@@ -2904,7 +2930,7 @@ void DISPLAY::draw_gfx_screen()
 	}
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 
 bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2930,6 +2956,7 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(crtv);
 	state_fio->StateArray(scroll, sizeof(scroll), 1);
 	state_fio->StateArray(modereg1, sizeof(modereg1), 1);
+	state_fio->StateValue(border);
  #if defined(SUPPORT_16_COLORS)
 	state_fio->StateArray(modereg2, sizeof(modereg2), 1);
  #endif
@@ -2976,11 +3003,13 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(egc_vram_data.q);
 
 	state_fio->StateValue(is_use_egc);
+	state_fio->StateValue(enable_egc);
 #endif
 	state_fio->StateValue(font_code);
 	state_fio->StateValue(font_line);
 //	state_fio->StateValue(font_lr);
 	state_fio->StateValue(b_gfx_ff);
+//	state_fio->StateValue(vram_bank);
 	state_fio->StateArray(bank_table, sizeof(bank_table), 1);
 	
  	// post process
@@ -3015,10 +3044,6 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 		for(int i = 0; i < 4; i++) {
 			grcg_tile_word[i] = ((uint16_t)(grcg_tile[i]) << 8) | grcg_tile[i];
 		}
-	#endif
-	#if defined(SUPPORT_16_COLORS) && defined(SUPPORT_EGC)
-		//is_use_egc = ((config.dipswitch & (1 << DIPSW_POSITION_EGC)) != 0) ? true : false;
-		enable_egc = ((is_use_egc) && (modereg2[MODE2_EGC] != 0)) ? true : false;
 	#endif
  	}
 #endif
