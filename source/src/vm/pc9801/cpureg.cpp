@@ -20,12 +20,23 @@
 #endif
 #include "../i8255.h"
 
+#define EVENT_WAIT 1
+
 namespace PC9801 {
 
 void CPUREG::reset()
 {
 	d_cpu->set_address_mask(0x000fffff);
+	init_clock = get_current_clock_uint64() & 0x000000ffffffffff;
 	nmi_enabled = false;
+	stat_wait = false;
+	stat_exthalt = false;
+	reg_0f0 = 0;
+	if(event_wait >= 0) {
+		cancel_event(this, event_wait);
+		event_wait = -1;
+	}
+	d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 }
 
 void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
@@ -42,7 +53,14 @@ void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
 //		d_pio->write_signal(SIG_I8255_PORT_C, reset_reg, 0xff);
 		d_cpu->set_address_mask(0x000fffff);
 		//d_cpu->reset();
-	}		
+	} else if(ch == SIG_CPUREG_HALT) {
+		stat_exthalt = ((data & mask) != 0);
+		if(stat_exthalt) {
+			d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+		} else if(!(stat_wait)) {
+			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+		}
+	}
 }
 	
 void CPUREG::write_io8(uint32_t addr, uint32_t data)
@@ -55,11 +73,23 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 	case 0x0052:
 		nmi_enabled = true;
 		break;
+	case 0x005f:
+		// ToDo: Both Pseudo BIOS.
+		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+		stat_wait = true;
+		if(event_wait >= 0) {
+			cancel_event(this, event_wait);
+			event_wait = -1;
+		}
+		register_event(this, EVENT_WAIT, 0.6, false, &event_wait);
+		break;
 	case 0x00f0:
 		{
 //			uint8_t reset_reg = d_pio->read_signal(SIG_I8255_PORT_C);
 //			reset_reg = reset_reg & (uint8_t)(~0x20); // Reset SHUT1
 //			d_pio->write_signal(SIG_I8255_PORT_C, reset_reg, 0xff);
+			// ToDo: Reflesh
+			reg_0f0 = data;
 			d_cpu->set_address_mask(0x000fffff);
 			d_cpu->reset();
 		}
@@ -81,6 +111,10 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 		case 0x03:
 			d_cpu->set_address_mask(0x000fffff);
 			break;
+			// ToDo: Software DIPSWITCH.
+		case 0xa0:
+		case 0xe0:
+			break;
 		}
 		break;
 #endif
@@ -99,9 +133,20 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 	case 0x005f:
 		{
 			// Timestamp register (from MAME 0.208)
+			// 307.2KHz
 			pair32_t n;
+			uint64_t c;
+			uint64_t elapsed;
 			uint8_t nn;
-			n.d = d_cpu->read_signal(SIG_CPU_TOTAL_CYCLE_LO);
+		    c = get_current_clock_uint64() & 0x000000ffffffffff;
+			if(c < init_clock) {
+				elapsed = c + 0x0000010000000000 - init_clock;
+			} else {
+				elapsed = c - init_clock;
+			}
+			uint64_t ticks = (elapsed * 307200) / get_cpu_clock(0);
+			n.d = (uint32_t)ticks;
+			n.b.h3 = 0;
 			switch(addr & 0x03) {
 			case 0:
 				nn = n.b.l;
@@ -113,7 +158,7 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 				nn = n.b.h2;
 				break;
 			case 3:
-				nn = n.b.h3;
+				nn = 0;
 				break;
 			}
 			return (uint32_t)nn;
@@ -137,13 +182,18 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 //		value |= 0x10; // Unknown
 		value |= ((d_mem->read_signal(SIG_LAST_ACCESS_INTERAM) != 0) ? 0x00: 0x08); // RAM access, 1 = Internal-standard/External-enhanced RAM, 0 = Internal-enhanced RAM
 //		value |= 0x04; // Refresh mode, 1 = Standard, 0 = High speed
-#if defined(HAS_I86) || defined(HAS_V30)
-		value |= 0x02; // CPU mode, 1 = V30, 0 = 80286/80386
-#endif
+//#if defined(HAS_I86) || defined(HAS_V30)
+		// ToDo: Older VMs.
+		value |= ((reg_0f0 & 0x01) == 0) ? 0x00 : 0x02; // CPU mode, 1 = V30, 0 = 80286/80386
+		//value |= 0x00; // CPU mode, 1 = V30, 0 = 80286/80386
+//#endif
 		value |= 0x01; // RAM access, 1 = Internal RAM, 0 = External-enhanced RAM
 		return value;
 	case 0x00f2:
 		return ((d_cpu->get_address_mask() & (1 << 20)) ? 0x00 : 0x01) | 0xfe;
+		break;
+	case 0x00f4: // ToDo: DMA SPEED (after 9801DA)
+		break;
 #if defined(SUPPORT_32BIT_ADDRESS)
 	case 0x00f6:
 		value  = ((d_cpu->get_address_mask() & (1 << 20)) != 0) ? 0x00 : 0x01;
@@ -159,7 +209,20 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-#define STATE_VERSION	1
+
+void CPUREG::event_callback(int id, int err)
+{
+	if(id == EVENT_WAIT) {
+		// ToDo: Both Pseudo BIOS.
+		if(!(stat_exthalt)) {
+			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+		}
+		stat_wait = false;
+		event_wait = -1;
+	}
+}
+	
+#define STATE_VERSION	2
 
 bool CPUREG::process_state(FILEIO* state_fio, bool loading)
 {
@@ -170,6 +233,12 @@ bool CPUREG::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
 	state_fio->StateValue(nmi_enabled);
+	state_fio->StateValue(init_clock);
+	state_fio->StateValue(stat_wait);
+	state_fio->StateValue(stat_exthalt);
+	state_fio->StateValue(reg_0f0);	
+	state_fio->StateValue(event_wait);
+	
  	return true;
 }
 

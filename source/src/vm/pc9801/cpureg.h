@@ -19,6 +19,8 @@
 #include "../device.h"
 
 #define SIG_CPUREG_RESET 1
+#define SIG_CPUREG_HALT  2
+
 #if defined(SUPPORT_32BIT_ADDRESS)
 #include "../i386.h"
 #else
@@ -40,12 +42,19 @@ private:
 	I286 *d_v30;
 	DEVICE* d_mem;
 	DEVICE* d_pio;
+	uint8_t reg_0f0;
 	bool nmi_enabled;
+	int event_wait;
+	bool stat_wait;
+	bool stat_exthalt;
+	uint64_t init_clock;
+	
 	outputs_t outputs_nmi; // NMI must route via CPUREG::
 	
 public:
 	CPUREG(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		event_wait = -1;
 		initialize_output_signals(&outputs_nmi);
 		set_device_name(_T("CPU I/O"));
 	}
@@ -57,6 +66,7 @@ public:
 	uint32_t read_io8(uint32_t addr);
 	// NOTE: NMI must route CPUREG::, should not connect directly.20190502 K.O 
 	void write_signal(int ch, uint32_t data, uint32_t mask);
+	void event_callback(int id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
