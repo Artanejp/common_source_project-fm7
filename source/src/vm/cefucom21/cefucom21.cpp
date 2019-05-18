@@ -190,8 +190,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	mcu_io->set_iomap_alias_r  (0xc0, mcu_psg, 1);
 	mcu_io->set_iomap_alias_r  (0xc1, mcu_psg, 1);	// PSG data
 	mcu_io->set_iomap_range_rw (0xe0, 0xe3, mcu_pio);
-	
+#ifdef _IO_DEBUG_LOG
 	pcu_io->cpu_index = 1;
+#endif
 	pcu_io->set_iomap_range_rw (0x00, 0x03, pcu_ctc1);
 	pcu_io->set_iomap_range_rw (0x08, 0x0b, pcu_ctc2);
 	pcu_io->set_iomap_alias_rw (0x10, pcu_pio, 0);
