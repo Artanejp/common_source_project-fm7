@@ -129,12 +129,12 @@ void SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 			if(!prev_status && req_status) {
 				// L -> H
 //				if(bsy_status) {
-					if(!cd_status) {
+					if(!cd_status && !msg_status) {
 						// data phase
 						set_drq(true);
 						access = true;
-					} else if(!msg_status && io_status) {
-						// status phase
+					} else if(cd_status) {
+						// command/status/message phase
 						set_irq(true);
 					}
 //				}

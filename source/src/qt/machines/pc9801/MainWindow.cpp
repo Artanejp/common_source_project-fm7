@@ -37,25 +37,25 @@ void Object_Menu_Control_98::do_set_memory_wait(bool flag)
 
 void Object_Menu_Control_98::do_set_egc(bool flag)
 {
-	emit sig_set_dipsw(DIPSW_POSITION_EGC, flag);
+	emit sig_set_dipsw(DIPSWITCH_POSITION_EGC, flag);
 	emit sig_emu_update_config();
 }
 
 void Object_Menu_Control_98::do_set_gdc_fast(bool flag)
 {
-	emit sig_set_dipsw(DIPSW_POSITION_GDC_FAST, flag);
+	emit sig_set_dipsw(DIPSWITCH_POSITION_GDC_FAST, flag);
 	emit sig_emu_update_config();
 }
 
 void Object_Menu_Control_98::do_set_ram_512k(bool flag)
 {
-	emit sig_set_dipsw(DIPSW_POSITION_RAM512K, flag);
+	emit sig_set_dipsw(DIPSWITCH_POSITION_RAM512K, flag);
 	emit sig_emu_update_config();
 }
 
 void Object_Menu_Control_98::do_set_init_memsw(bool flag)
 {
-	emit sig_set_dipsw(DIPSW_POSITION_NOINIT_MEMSW, !flag);
+	emit sig_set_dipsw(DIPSWITCH_POSITION_NOINIT_MEMSW, !flag);
 	emit sig_emu_update_config();
 }
 
@@ -213,7 +213,7 @@ void META_MainWindow::setupUI_Emu(void)
 	actionRAM_512K->setCheckable(true);
 	actionRAM_512K->setVisible(true);
 	menuMachine->addAction(actionRAM_512K);
-	if((config.dipswitch & ((0x1) << DIPSW_POSITION_RAM512K)) != 0) actionRAM_512K->setChecked(true); // DipSW 1-8
+	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_RAM512K)) != 0) actionRAM_512K->setChecked(true); // DipSW 1-8
 	connect(actionRAM_512K, SIGNAL(toggled(bool)),
 			actionRAM_512K->pc98_binds, SLOT(do_set_ram_512k(bool)));
 	connect(actionRAM_512K->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
@@ -225,7 +225,7 @@ void META_MainWindow::setupUI_Emu(void)
 	actionINIT_MEMSW->setCheckable(true);
 	actionINIT_MEMSW->setVisible(true);
 	menuMachine->addAction(actionINIT_MEMSW);
-	if((config.dipswitch & ((0x1) << DIPSW_POSITION_NOINIT_MEMSW)) == 0) actionINIT_MEMSW->setChecked(true); // DipSW 1-8
+	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_NOINIT_MEMSW)) == 0) actionINIT_MEMSW->setChecked(true); // DipSW 1-8
 	connect(actionINIT_MEMSW, SIGNAL(toggled(bool)),
 			actionINIT_MEMSW->pc98_binds, SLOT(do_set_init_memsw(bool)));
 	connect(actionINIT_MEMSW->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
@@ -237,7 +237,7 @@ void META_MainWindow::setupUI_Emu(void)
 	actionGDC_FAST->setCheckable(true);
 	actionGDC_FAST->setVisible(true);
 	menuMachine->addAction(actionGDC_FAST);
-	if((config.dipswitch & ((0x1) << DIPSW_POSITION_GDC_FAST)) != 0) actionGDC_FAST->setChecked(true); // DipSW 1-8
+	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_GDC_FAST)) != 0) actionGDC_FAST->setChecked(true); // DipSW 1-8
 	connect(actionGDC_FAST, SIGNAL(toggled(bool)),
 			actionGDC_FAST->pc98_binds, SLOT(do_set_gdc_fast(bool)));
 	connect(actionGDC_FAST->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
@@ -250,7 +250,7 @@ void META_MainWindow::setupUI_Emu(void)
 	actionEGC->setCheckable(true);
 	actionEGC->setVisible(true);
 	menuMachine->addAction(actionEGC);
-	if((config.dipswitch & ((0x1) << DIPSW_POSITION_EGC)) != 0) actionEGC->setChecked(true); // DipSW 1-8
+	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_EGC)) != 0) actionEGC->setChecked(true); // DipSW 1-8
 	connect(actionEGC, SIGNAL(toggled(bool)),
 			actionEGC->pc98_binds, SLOT(do_set_egc(bool)));
 	connect(actionEGC->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),

@@ -144,7 +144,7 @@ uint32_t Z80PIO::read_io8(uint32_t addr)
 			port[ch].input_empty = true;
 			update_ready();
 		}
-		return (port[ch].rreg & port[ch].dir) | (port[ch].wreg & ~port[ch].dir);break;
+		return (port[ch].rreg & port[ch].dir) | (port[ch].wreg & ~port[ch].dir);
 	case 1:
 	case 3:
 		// status (sharp z-80pio special function)

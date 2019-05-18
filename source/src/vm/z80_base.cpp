@@ -113,16 +113,17 @@
 Z80_INLINE uint8_t Z80_BASE::RM8(uint32_t addr)
 {
 //#ifdef Z80_MEMORY_WAIT
+	UPDATE_EXTRA_EVENT(1);
 	if(has_memory_wait) {
 		int wait;
 		uint8_t val = d_mem->read_data8w(addr, &wait);
 		icount -= wait;
-		UPDATE_EXTRA_EVENT(3 + wait);
+		UPDATE_EXTRA_EVENT(2 + wait);
 		return val;
 	} else {
 //#else
 		uint8_t val = d_mem->read_data8(addr);
-		UPDATE_EXTRA_EVENT(3);
+		UPDATE_EXTRA_EVENT(2);
 		return val;
 	}
 //#endif
@@ -131,15 +132,16 @@ Z80_INLINE uint8_t Z80_BASE::RM8(uint32_t addr)
 Z80_INLINE void Z80_BASE::WM8(uint32_t addr, uint8_t val)
 {
 //#ifdef Z80_MEMORY_WAIT
+	UPDATE_EXTRA_EVENT(1);
 	if(has_memory_wait) {
 		int wait;
 		d_mem->write_data8w(addr, val, &wait);
 		icount -= wait;
-		UPDATE_EXTRA_EVENT(3 + wait);
+		UPDATE_EXTRA_EVENT(2 + wait);
 	} else {
 //#else
 		d_mem->write_data8(addr, val);
-		UPDATE_EXTRA_EVENT(3);
+		UPDATE_EXTRA_EVENT(2);
 	}
 //#endif
 }
@@ -163,10 +165,11 @@ Z80_INLINE uint8_t Z80_BASE::FETCHOP()
 	R++;
 	
 	// consider m1 cycle wait
+	UPDATE_EXTRA_EVENT(1);
 	int wait;
 	uint8_t val = d_mem->fetch_op(pctmp, &wait);
 	icount -= wait;
-	UPDATE_EXTRA_EVENT(4 + wait);
+	UPDATE_EXTRA_EVENT(3 + wait);
 	return val;
 }
 
@@ -187,17 +190,17 @@ Z80_INLINE uint32_t Z80_BASE::FETCH16()
 Z80_INLINE uint8_t Z80_BASE::IN8(uint32_t addr)
 {
 //#ifdef Z80_IO_WAIT
-	UPDATE_EXTRA_EVENT(1);
+	UPDATE_EXTRA_EVENT(2);
 	if(has_io_wait) {
 		int wait;
 		uint8_t val = d_io->read_io8w(addr, &wait);
 		icount -= wait;
-		UPDATE_EXTRA_EVENT(3 + wait);
+		UPDATE_EXTRA_EVENT(2 + wait);
 		return val;
 	} else {
 //#else
 		uint8_t val = d_io->read_io8(addr);
-		UPDATE_EXTRA_EVENT(3);
+		UPDATE_EXTRA_EVENT(2);
 		return val;
 	}
 //#endif
@@ -206,11 +209,11 @@ Z80_INLINE uint8_t Z80_BASE::IN8(uint32_t addr)
 Z80_INLINE void Z80_BASE::OUT8(uint32_t addr, uint8_t val)
 {
 //#ifdef HAS_NSC800
-	UPDATE_EXTRA_EVENT(1);
+	UPDATE_EXTRA_EVENT(2);
 	if(has_nsc800) {
 		if((addr & 0xff) == 0xbb) {
 			icr = val;
-			UPDATE_EXTRA_EVENT(3);
+			UPDATE_EXTRA_EVENT(2);
 			return;
 		}
 	}
@@ -220,11 +223,11 @@ Z80_INLINE void Z80_BASE::OUT8(uint32_t addr, uint8_t val)
 		int wait;
 		d_io->write_io8w(addr, val, &wait);
 		icount -= wait;
-		UPDATE_EXTRA_EVENT(3 + wait);
+		UPDATE_EXTRA_EVENT(2 + wait);
 	} else {
 //#else
 		d_io->write_io8(addr, val);
-		UPDATE_EXTRA_EVENT(3);
+		UPDATE_EXTRA_EVENT(2);
 	}
 //#endif
 }
@@ -2018,7 +2021,7 @@ void Z80_BASE::reset()
 	after_ei = after_ldair = false;
 	intr_req_bit = intr_pend_bit = 0;
 	
-	icount = extra_icount = 0;
+	icount = extra_icount = busreq_icount = 0;
 }
 
 void Z80_BASE::write_signal(int id, uint32_t data, uint32_t mask)
@@ -2068,6 +2071,7 @@ int Z80_BASE::run(int clock)
 		extra_tmp_count += extra_icount;
 	}
 	if(clock == -1) {
+		// this is primary cpu
 		if(busreq) {
 			// run dma once
 			//#ifdef SINGLE_MODE_DMA

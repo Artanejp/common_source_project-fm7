@@ -137,6 +137,9 @@ void IO::write_port8(uint32_t addr, uint32_t data, bool is_dma)
 	if(!wr_table[laddr].dev->this_device_id && !wr_table[laddr].is_flipflop) {
 		this->out_debug_log(_T("UNKNOWN:\t"));
 	}
+	if(cpu_index != 0) {
+		this->out_debug_log(_T("CPU=%d\t"), cpu_index);
+	}
 	this->out_debug_log(_T("%06x\tOUT8\t%04x,%02x\n"), get_cpu_pc(cpu_index), addr, data & 0xff);
 #endif
 	if(wr_table[laddr].is_flipflop) {
@@ -157,6 +160,9 @@ uint32_t IO::read_port8(uint32_t addr, bool is_dma)
 	if(!rd_table[laddr].dev->this_device_id && !rd_table[laddr].value_registered) {
 		this->out_debug_log(_T("UNKNOWN:\t"));
 	}
+	if(cpu_index != 0) {
+		this->out_debug_log(_T("CPU=%d\t"), cpu_index);
+	}
 	this->out_debug_log(_T("%06x\tIN8\t%04x = %02x\n"), get_cpu_pc(cpu_index), addr, val & 0xff);
 #endif
 	return val & 0xff;
@@ -169,6 +175,9 @@ void IO::write_port16(uint32_t addr, uint32_t data, bool is_dma)
 #ifdef _IO_DEBUG_LOG
 	if(!wr_table[laddr].dev->this_device_id && !wr_table[laddr].is_flipflop) {
 		this->out_debug_log(_T("UNKNOWN:\t"));
+	}
+	if(cpu_index != 0) {
+		this->out_debug_log(_T("CPU=%d\t"), cpu_index);
 	}
 	this->out_debug_log(_T("%06x\tOUT16\t%04x,%04x\n"), get_cpu_pc(cpu_index), addr, data & 0xffff);
 #endif
@@ -190,6 +199,9 @@ uint32_t IO::read_port16(uint32_t addr, bool is_dma)
 	if(!rd_table[laddr].dev->this_device_id && !rd_table[laddr].value_registered) {
 		this->out_debug_log(_T("UNKNOWN:\t"));
 	}
+	if(cpu_index != 0) {
+		this->out_debug_log(_T("CPU=%d\t"), cpu_index);
+	}
 	this->out_debug_log(_T("%06x\tIN16\t%04x = %04x\n"), get_cpu_pc(cpu_index), addr, val & 0xffff);
 #endif
 	return val & 0xffff;
@@ -202,6 +214,9 @@ void IO::write_port32(uint32_t addr, uint32_t data, bool is_dma)
 #ifdef _IO_DEBUG_LOG
 	if(!wr_table[laddr].dev->this_device_id && !wr_table[laddr].is_flipflop) {
 		this->out_debug_log(_T("UNKNOWN:\t"));
+	}
+	if(cpu_index != 0) {
+		this->out_debug_log(_T("CPU=%d\t"), cpu_index);
 	}
 	this->out_debug_log(_T("%06x\tOUT32\t%04x,%08x\n"), get_cpu_pc(cpu_index), addr, data);
 #endif
@@ -222,6 +237,9 @@ uint32_t IO::read_port32(uint32_t addr, bool is_dma)
 #ifdef _IO_DEBUG_LOG
 	if(!rd_table[laddr].dev->this_device_id && !rd_table[laddr].value_registered) {
 		this->out_debug_log(_T("UNKNOWN:\t"));
+	}
+	if(cpu_index != 0) {
+		this->out_debug_log(_T("CPU=%d\t"), cpu_index);
 	}
 	this->out_debug_log(_T("%06x\tIN32\t%04x = %08x\n"), get_cpu_pc(cpu_index), laddr | haddr, val);
 #endif

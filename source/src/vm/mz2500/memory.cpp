@@ -240,6 +240,8 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	}
+*/
+	*wait = page_wait[b];
 }
 
 uint32_t MEMORY::read_io8(uint32_t addr)

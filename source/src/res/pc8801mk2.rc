@@ -174,6 +174,7 @@ BEGIN
             MENUITEM SEPARATOR
             MENUITEM "GSX-8800",                    ID_VM_DIPSWITCH2
             MENUITEM "PCG-8100",                    ID_VM_DIPSWITCH3
+            MENUITEM "CMD SING",                    ID_VM_DIPSWITCH4
             MENUITEM SEPARATOR
             MENUITEM "Play FDD Noise",              ID_VM_SOUND_NOISE_FDD
             MENUITEM "Play CMT Noise",              ID_VM_SOUND_NOISE_CMT, GRAYED
@@ -182,6 +183,7 @@ BEGIN
         POPUP "Display"
         BEGIN
             MENUITEM "Scanline",                    ID_VM_MONITOR_SCANLINE
+            MENUITEM "Real Palettes",               ID_VM_DIPSWITCH5
         END
         POPUP "Printer"
         BEGIN

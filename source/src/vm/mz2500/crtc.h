@@ -84,7 +84,7 @@ private:
 	// draw cg
 	void draw_cg();
 	void draw_320x200x16screen(uint8_t pl);
-	void draw_320x200x256screen(uint8_t pl);
+	void draw_320x200x256screen(int ymax);
 	void draw_640x200x16screen(uint8_t pl);
 	void draw_640x400x4screen();
 	void draw_640x400x16screen();

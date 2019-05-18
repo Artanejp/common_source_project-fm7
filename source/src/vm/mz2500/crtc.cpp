@@ -18,6 +18,7 @@
 #define SCRN_640x400	1
 #define SCRN_640x200	2
 #define SCRN_320x200	3
+#define SCRN_320x400	4
 
 namespace MZ2500 {
 
@@ -83,17 +84,19 @@ void CRTC::initialize()
 	
 	// set 256 palette
 	for(int i = 0; i < 256; i++) {
-		palette256[i] = RGB_COLOR(((i & 0x20) ? 128 : 0) | ((i & 2) ? 64 : 0) | ((i & 0x80) ? 32 : 0),
-		                          ((i & 0x40) ? 128 : 0) | ((i & 4) ? 64 : 0) | ((i & 0x80) ? 32 : 0),
-		                          ((i & 0x10) ? 128 : 0) | ((i & 1) ? 64 : 0) | ((i & 0x80) ? 32 : 0));
+		uint16_t b = ((i & 0x20) ? 128 : 0) | ((i & 2) ? 64 : 0) | ((i & 0x80) ? 32 : 0);
+		uint16_t r = ((i & 0x40) ? 128 : 0) | ((i & 4) ? 64 : 0) | ((i & 0x80) ? 32 : 0);
+		uint16_t g = ((i & 0x10) ? 128 : 0) | ((i & 1) ? 64 : 0) | ((i & 0x80) ? 32 : 0);
+		b |= (b >> 3) | (b >> 6);
+		r |= (r >> 3) | (r >> 6);
+		g |= (g >> 3) | (g >> 6);
+		palette256[i] = RGB_COLOR(b,r,g);
 	}
 	for(int i = 0; i < 8; i++) {
 		palette256[i + 256] = RGB_COLOR(((i & 2) ? 255 : 0), ((i & 4) ? 255 : 0), ((i & 1) ? 255 : 0));
 	}
 	for(int i = 0; i < 64; i++) {
-		palette256[i + 256 + 16] = RGB_COLOR(((i & 2) ? 64 : 0) | ((i & 0x10) ? 128 : 0), 
-		                                     ((i & 4) ? 64 : 0) | ((i & 0x20) ? 128 : 0), 
-		                                     ((i & 1) ? 64 : 0) | ((i & 0x08) ? 128 : 0));
+		palette256[i + 256 + 16] = palette256[((i & 0x38) << 1) | (i & 0x07)];
 	}
 	for(int i = 0; i < 256; i++) {
 		for(int j = 1; j < 16 + 64; j++) {
@@ -395,6 +398,10 @@ void CRTC::write_io8(uint32_t addr, uint32_t data)
 				map_init |= (scrn_size != SCRN_640x400);
 				scrn_size = SCRN_640x400;
 				break;
+			case 0x19: case 0x99:
+				map_init |= (scrn_size != SCRN_320x400);
+				scrn_size = SCRN_320x400;
+				break;
 			}
 			break;
 		// scroll
@@ -439,6 +446,9 @@ void CRTC::write_io8(uint32_t addr, uint32_t data)
 						uint16_t b = ((i & 0x10) ? 128 : 0) | ((i & 1) ? 64 : 0) | ((b0 == 0 && (i & 0x80)) || (b0 == 1 && (i & 8)) || (b0 == 2) ? 32 : 0);
 						uint16_t r = ((i & 0x20) ? 128 : 0) | ((i & 2) ? 64 : 0) | ((r0 == 0 && (i & 0x80)) || (r0 == 1 && (i & 8)) || (r0 == 2) ? 32 : 0);
 						uint16_t g = ((i & 0x40) ? 128 : 0) | ((i & 4) ? 64 : 0) | ((g0 == 0 && (i & 0x80)) || (g0 == 1 && (i & 8)) || (g0 == 2) ? 32 : 0);
+						b |= (b >> 3) | (b >> 6);
+						r |= (r >> 3) | (r >> 6);
+						g |= (g >> 3) | (g >> 6);
 						palette256[i] = RGB_COLOR(r, g, b);
 					}
 					update256 = true;
@@ -583,16 +593,12 @@ void CRTC::event_vline(int v, int clock)
 		clear_flag = 0;
 	}
 	// register hsync events
-	if(!GDEHS) {
-		set_hsync(0);
-	} else if(GDEHS < chars_per_line) {
-		register_event_by_clock(this, GDEHS, GDEHSC, false, NULL);
+	int clocks_per_line = (int)(CPU_CLOCKS / frames_per_sec / lines_per_frame);
+	if(GDEHSC < GDEHEC && (GDEHEC + 10) < clocks_per_line) {
+		register_event_by_clock(this, GDEHS, GDEHSC + 10, false, NULL);
+		register_event_by_clock(this, GDEHE, GDEHEC + 10, false, NULL);
 	}
-	if(!GDEHE) {
-		set_hsync(0);
-	} else if(GDEHE < chars_per_line) {
-		register_event_by_clock(this, GDEHE, GDEHEC, false, NULL);
-	}
+	set_hsync(0);
 }
 
 void CRTC::set_hsync(int h)
@@ -705,8 +711,8 @@ void CRTC::draw_screen()
 	draw_text();
 	
 	// view port
-	int vs = (GDEVS <= GDEVE) ? GDEVS * (scrn_size == SCRN_640x400 ? 1 : 2) : 0;
-	int ve = (GDEVS <= GDEVE) ? GDEVE * (scrn_size == SCRN_640x400 ? 1 : 2) : 400;
+	int vs = (GDEVS <= GDEVE) ? GDEVS * ((scrn_size == SCRN_640x400 || scrn_size == SCRN_320x400) ? 1 : 2) : 0;
+	int ve = (GDEVS <= GDEVE) ? GDEVE * ((scrn_size == SCRN_640x400 || scrn_size == SCRN_320x400) ? 1 : 2) : 400;
 	int hs = (GDEHS <= GDEHE && GDEHS < 80) ? (GDEHS << 3) : 0;
 	int he = (GDEHS <= GDEHE && GDEHE < 80) ? (GDEHE << 3) : 640;
 
@@ -721,7 +727,8 @@ void CRTC::draw_screen()
 			scrntype_t *dest = emu->get_screen_buffer(y);
 			memset(dest, 0, sizeof(scrntype_t) * 640);
 		}
-	} else if(cgreg[0x0e] == 0x1d || cgreg[0x0e] == 0x9d) {
+	} else if(cgreg[0x0e] == 0x1d || cgreg[0x0e] == 0x9d ||
+	          cgreg[0x0e] == 0x19 || cgreg[0x0e] == 0x99) {
 		// 256 colors
 		for(int y = 0; y < vs && y < 400; y++) {
 			scrntype_t *dest = emu->get_screen_buffer(y);
@@ -917,6 +924,19 @@ void CRTC::draw_80column_screen()
 			dest += 8;
 		}
 	}
+	
+	//
+	// if in 256 color mode but 40-column function is not set as 64 color mode,
+	// convert its color as the bottom plane is forced to 0.
+	//
+	if ((textreg[0] & 0x01) == 0x00) {
+		for(int y = line; y < 400; y++) {
+			uint8_t* tdest = &text[y * 640];
+			for(int x = 0; x < 640; x++) {
+			        if (!(tdest[x] & 8)) tdest[x] = ((tdest[x] & 7) << 3) + 16;
+			}
+		}
+	}
 }
 
 void CRTC::draw_40column_screen()
@@ -1003,6 +1023,19 @@ void CRTC::draw_40column_screen()
 			}
 		}
 		break;
+	}
+	
+	//
+	// if in 256 color mode but 40-column function is not set as 64 color mode,
+	// convert its color as the bottom plane is forced to 0.
+	//
+	if ((textreg[0] & 0x0c) != 0x00 && (textreg[0] & 0x01) == 0x00) {
+		for(int y = line; y < 400; y++) {
+			uint8_t* tdest = &text[y * 640];
+			for(int x = 0; x < 640; x++) {
+			        if (!(tdest[x] & 8)) tdest[x] = ((tdest[x] & 7) << 3) + 16;
+			}
+		}
 	}
 }
 
@@ -1455,7 +1488,8 @@ void CRTC::draw_cg()
 		draw_640x200x16screen(0);
 		break;
 	case 0x1d:
-		draw_320x200x256screen(0);
+	case 0x9d:
+		draw_320x200x256screen(200);
 		break;
 	case 0x93:
 		draw_640x400x16screen();
@@ -1471,13 +1505,14 @@ void CRTC::draw_cg()
 	case 0x97:
 		draw_640x200x16screen(1);
 		break;
-	case 0x9d:
-		draw_320x200x256screen(1);
+	case 0x19:
+	case 0x99:
+		draw_320x200x256screen(400);
 		break;
 	}
 	
 	// fill scan line
-	if(!scan_line && !(cgreg[0x0e] == 0x03 || cgreg[0x0e] == 0x93)) {
+	if(!scan_line && (cgreg[0x0e] & 0x04) != 0) {
 		for(int y = 0; y < 400; y += 2) {
 			memcpy(cg + (y + 1) * 640, cg + y * 640, 640);
 		}
@@ -1488,13 +1523,17 @@ void CRTC::draw_320x200x16screen(uint8_t pl)
 {
 	uint8_t B, R, G, I, col;
 	uint32_t dest = 0;
+	uint16_t ex;
+	uint16_t subplane;
 	
 	if(map_init) {
 		create_addr_map(40, 200);
 	}
+	ex = (cgreg[0x0e] & 0x80) << 7;
+	subplane = (pl & 1) ? 0x2000 : 0x0000;
 	for(int y = 0; y < 200; y++) {
 		for(int x = 0; x < 40; x++) {
-			uint16_t src = (map_addr[y][x] + (0x2000 * pl)) & 0x7fff;
+			uint16_t src = (map_addr[y][x] ^ subplane) | ex;
 			uint32_t dest2 = dest + map_hdsc[y][x];
 			dest += 16;
 			
@@ -1523,13 +1562,14 @@ void CRTC::draw_320x200x16screen(uint8_t pl)
 	}
 }
 
-void CRTC::draw_320x200x256screen(uint8_t pl)
+void CRTC::draw_320x200x256screen(int ymax)
 {
 	uint8_t B0, B1, R0, R1, G0, G1, I0, I1;
-	uint32_t dest = 0;
+	uint32_t dest = 0, to_nextline;
+	uint16_t ex;
 	
 	if(map_init) {
-		create_addr_map(40, 200);
+		create_addr_map(40, ymax);
 	}
 	if(cg_mask256_init) {
 		cg_mask256 = cgreg[0x18];
@@ -1544,10 +1584,12 @@ void CRTC::draw_320x200x256screen(uint8_t pl)
 		}
 		cg_mask256_init = false;
 	}
-	for(int y = 0; y < 200; y++) {
+	to_nextline = (ymax == 200) ? 640 : 0;
+	ex = (cgreg[0x0e] & 0x80) << 7;
+	for(int y = 0; y < ymax; y++) {
 		for(int x = 0; x < 40; x++) {
-			uint16_t src1 = (map_addr[y][x] + (0x4000 * pl)) & 0x7fff;
-			uint16_t src2 = (src1 + 0x2000) & 0x7fff;
+			uint16_t src1 = (map_addr[y][x]         ) | ex;
+			uint16_t src2 = (map_addr[y][x] ^ 0x2000) | ex;
 			uint32_t dest2 = dest + map_hdsc[y][x];
 			dest += 16;
 			
@@ -1569,7 +1611,7 @@ void CRTC::draw_320x200x256screen(uint8_t pl)
 			cg[dest2 + 12] = cg[dest2 + 13] = cg_matrix0[B0][R0][6] | cg_matrix1[G0][I0][6] | cg_matrix2[B1][R1][6] | cg_matrix3[G1][I1][6];
 			cg[dest2 + 14] = cg[dest2 + 15] = cg_matrix0[B0][R0][7] | cg_matrix1[G0][I0][7] | cg_matrix2[B1][R1][7] | cg_matrix3[G1][I1][7];
 		}
-		dest += 640;
+		dest += to_nextline;
 	}
 }
 
@@ -1577,13 +1619,17 @@ void CRTC::draw_640x200x16screen(uint8_t pl)
 {
 	uint8_t B, R, G, I;
 	uint32_t dest = 0;
+	uint16_t ex;
+	uint16_t subplane;
 	
 	if(map_init) {
 		create_addr_map(80, 200);
 	}
+	ex = (cgreg[0x0e] & 0x80) << 7;
+	subplane = (pl & 1) ? 0x2000 : 0x0000;
 	for(int y = 0; y < 200; y++) {
 		for(int x = 0; x < 80; x++) {
-			uint16_t src = (map_addr[y][x] + (0x4000 * pl)) & 0x7fff;
+			uint16_t src = (map_addr[y][x] ^ subplane) | ex;
 			uint32_t dest2 = dest + map_hdsc[y][x];
 			dest += 8;
 			
@@ -1686,7 +1732,8 @@ void CRTC::create_addr_map(int xmax, int ymax)
 	for(int y = SLN1; y < ymax; y++) {
 		for(int x = 0; x < xmax; x++) {
 			map_hdsc[y][x] = 0;
-			map_addr[y][x] = (SAD2++) & 0x7fff;
+			map_addr[y][x] = SAD2;
+			SAD2 = (SAD2 == SAD1) ? 0 : ((SAD2 + 1) & 0x7fff);
 		}
 	}
 	map_init = false;

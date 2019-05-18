@@ -528,7 +528,7 @@ void PC88::reset()
 	
 	// memory wait
 #if defined(_PC8001SR) || defined(PC8801SR_VARIANT)
-	mem_wait_on = ((config.dipswitch & 1) != 0);
+	mem_wait_on = ((config.dipswitch & DIPSWITCH_MEMWAIT) != 0);
 #else
 	mem_wait_on = true;
 #endif
@@ -1045,8 +1045,12 @@ void PC88::write_io8(uint32_t addr, uint32_t data)
 			mouse_strobe_clock = get_current_clock();
 		}
 #endif
-		sing_signal = ((data & 0x80) != 0);
-		d_pcm->write_signal(SIG_PCM1BIT_SIGNAL, ((beep_on && beep_signal) || sing_signal) ? 1 : 0, 1);
+#if defined(PC8801_VARIANT)
+		if(config.dipswitch & DIPSWITCH_CMDSING) {
+			sing_signal = ((data & 0x80) != 0);
+			d_pcm->write_signal(SIG_PCM1BIT_SIGNAL, ((beep_on && beep_signal) || sing_signal) ? 1 : 0, 1);
+		}
+#endif
 		break;
 #ifdef SUPPORT_PC88_OPN1
 	case 0x44:
@@ -2676,6 +2680,9 @@ void PC88::draw_screen()
 #endif
 			}
 		}
+		if(y == 0 && (config.dipswitch & DIPSWITCH_PALETTE) != 0) {
+			break;
+		}
 	}
 	
 	// copy to screen buffer
@@ -2711,17 +2718,18 @@ void PC88::draw_screen()
 			uint8_t* src_g = graph[y];
 			scrntype_t* pal_t;
 			scrntype_t* pal_g;
+			int yy = ((config.dipswitch & DIPSWITCH_PALETTE) != 0) ? 0 : y;
 			
 //			if(Port31_HCOLOR) {
-//				pal_t = palette_line_digital_text_pc [y];
-//				pal_g = palette_line_analog_graph_pc [y];
+//				pal_t = palette_line_digital_text_pc [yy];
+//				pal_g = palette_line_analog_graph_pc [yy];
 //			} else
 			if(Port32_PMODE) {
-				pal_t = palette_line_analog_text_pc  [y];
-				pal_g = palette_line_analog_graph_pc [y];
+				pal_t = palette_line_analog_text_pc  [yy];
+				pal_g = palette_line_analog_graph_pc [yy];
 			} else {
-				pal_t = palette_line_digital_text_pc [y];
-				pal_g = palette_line_digital_graph_pc[y];
+				pal_t = palette_line_digital_text_pc [yy];
+				pal_g = palette_line_digital_graph_pc[yy];
 			}
 			for(int x = 0; x < 640; x++) {
 				uint32_t t = src_t[x];
@@ -2738,9 +2746,11 @@ void PC88::draw_screen()
 			uint8_t* src_g = graph[y];
 			scrntype_t* pal_t;
 			scrntype_t* pal_g;
+			int yy = ((config.dipswitch & DIPSWITCH_PALETTE) != 0) ? 0 : y;
+			
 #if defined(PC8001_VARIANT)
-			pal_t = palette_line_digital_text_pc[y];
-			pal_g = palette_line_analog_graph_pc[y];
+			pal_t = palette_line_digital_text_pc[yy];
+			pal_g = palette_line_analog_graph_pc[yy];
 			
 #if defined(_PC8001SR)
 			if(Port33_PR2) {
@@ -2759,14 +2769,14 @@ void PC88::draw_screen()
 			}
 #else
 			if(Port31_HCOLOR) {
-				pal_t = palette_line_digital_text_pc [y];
-				pal_g = palette_line_analog_graph_pc [y];
+				pal_t = palette_line_digital_text_pc [yy];
+				pal_g = palette_line_analog_graph_pc [yy];
 			} else if(Port32_PMODE) {
-				pal_t = palette_line_analog_text_pc  [y];
-				pal_g = palette_line_analog_graph_pc [y];
+				pal_t = palette_line_analog_text_pc  [yy];
+				pal_g = palette_line_analog_graph_pc [yy];
 			} else {
-				pal_t = palette_line_digital_text_pc [y];
-				pal_g = palette_line_digital_graph_pc[y];
+				pal_t = palette_line_digital_text_pc [yy];
+				pal_g = palette_line_digital_graph_pc[yy];
 			}
 			for(int x = 0; x < 640; x++) {
 				uint32_t t = src_t[x];
@@ -2925,11 +2935,13 @@ void PC88::draw_text()
 				}
 			}
 			uint8_t code = secret ? 0 : code_expand;//crtc.text.expand[cy][cx];
+			uint8_t *pattern;
 #ifdef SUPPORT_PC88_PCG8100
-			uint8_t *pattern = ((attrib & 0x10) ? sg_pattern : pcg_pattern) + code * 8;
-#else
-			uint8_t *pattern = ((attrib & 0x10) ? sg_pattern : kanji1 + 0x1000) + code * 8;
+			if(config.dipswitch & DIPSWITCH_PCG8100) {
+				pattern = ((attrib & 0x10) ? sg_pattern : pcg_pattern) + code * 8;
+			} else
 #endif
+			pattern = ((attrib & 0x10) ? sg_pattern : kanji1 + 0x1000) + code * 8;
 			
 			for(int l = 0, y = ytop; l < char_height / 2 && y < 400; l++, y += 2) {
 				uint8_t pat = (l < 8) ? pattern[l] : 0;

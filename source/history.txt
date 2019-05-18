@@ -1,3 +1,17 @@
+4/30/2019
+
+[VM/DEVICE] add is_primary_cpu() and update_extra_event()
+[VM/EVENT] support to udpate event while cpu is running one opecode
+[VM/I8259] fix reading isr register (thanks Mr.rednow)
+[VM/SCSI_HOST] fix to raise irq at command/message phase
+[VM/Z80] improve to update event in every read/write cycle
+
+[CEFUCOM21] support Hino Electronics CEFUCOM-21 (not work)
+[MZ2500/CRTC] apply crtc patch (thanks Mr.Koucha-Youkan)
+[PC8801MA] improve to enable/disable cmdsing and pcg
+[PC8801MA] improve to enable/disable changing palette for each scan line
+
+
 2/19/2019
 
 [VM/DEVICE] add is_primary_cpu() and update_extra_event()

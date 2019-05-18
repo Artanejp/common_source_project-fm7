@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								1/11/2019
+								4/30/2019
 
 --- What's this ?
 
@@ -46,6 +46,8 @@ This archive includes the binaries of the emulators listed below:
 		eBabbage-2nd	Babbage-2nd
 	HITACHI
 		eBASICMasterJr	BASIC Master Jr
+	Hino Electronics
+		eCEFUCOM-21	CEFUCOM-21
 	Homebrew
 		eZ80TVGAME	Homebrew Z80 TV GAME SYSTEM
 	IBM Japan Ltd

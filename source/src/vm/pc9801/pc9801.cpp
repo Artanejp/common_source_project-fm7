@@ -1119,10 +1119,10 @@ void VM::reset()
 //	port_a |= 0x04; // DIP SW 2-3, 1 = 40 columns, 0 = 80 columns
 	port_a |= 0x02; // DIP SW 2-2, 1 = BASIC mode, 0 = Terminal mode
 	port_a |= 0x01; // DIP SW 2-1, 1 = Normal mode, 0 = LT mode
-	if((config.dipswitch & (1 << DIPSW_POSITION_GDC_FAST)) == 0) {
+	if((config.dipswitch & (1 << DIPSWITCH_POSITION_GDC_FAST)) == 0) {
 		port_a = port_a | 0x80;
 	}
-	if((config.dipswitch & (1 << DIPSW_POSITION_NOINIT_MEMSW)) != 0) {
+	if((config.dipswitch & (1 << DIPSWITCH_POSITION_NOINIT_MEMSW)) != 0) {
 		port_a = port_a | 0x10;
 	}
 	gdc_gfx->set_clock_freq(((port_a & 0x80) != 0) ? (2500 * 1000) : (5000 * 1000));
@@ -1173,7 +1173,7 @@ void VM::reset()
 	port_b2 |= 0x10; // DIP SW 1-3, 1 = Don't use LCD
 #if !defined(SUPPORT_16_COLORS) || defined(SUPPORT_EGC)
 	#if defined(SUPPORT_EGC)
-	if((config.dipswitch & (1 << DIPSW_POSITION_EGC)) == 0) {
+	if((config.dipswitch & (1 << DIPSWITCH_POSITION_EGC)) == 0) {
 		port_b2 = port_b2 | 0x08;
 	}
 	#else
@@ -1197,7 +1197,7 @@ void VM::reset()
 #if defined(SUPPORT_HIRESO)
 	port_b |= 0x80; // DIP SW 1-4, 1 = External FDD #3/#4, 0 = #1/#2
 #endif
-	port_b |= ((config.dipswitch & (1 << DIPSW_POSITION_RAM512K)) == 0) ? 0x40 : 0x00; // DIP SW 3-6, 1 = Enable internal RAM 80000h-9FFFFh
+	port_b |= ((config.dipswitch & (1 << DIPSWITCH_POSITION_RAM512K)) == 0) ? 0x40 : 0x00; // DIP SW 3-6, 1 = Enable internal RAM 80000h-9FFFFh
 #if defined(_PC98RL)
 	port_b |= 0x10; // DIP SW 3-3, 1 = DMA ch.0 for SASI-HDD
 #endif
@@ -1717,7 +1717,7 @@ void VM::update_config()
 	{
 		uint8_t mouse_port_b = pio_mouse->read_signal(SIG_I8255_PORT_B);
 		mouse_port_b = mouse_port_b & ~0x40;
-		if((config.dipswitch & (1 << DIPSW_POSITION_RAM512K)) == 0) {
+		if((config.dipswitch & (1 << DIPSWITCH_POSITION_RAM512K)) == 0) {
 			mouse_port_b = mouse_port_b | 0x40;
 		}
 		pio_mouse->write_signal(SIG_I8255_PORT_B, mouse_port_b, 0xff);
@@ -1725,11 +1725,11 @@ void VM::update_config()
 	{
 		uint8_t sys_port_a = pio_sys->read_signal(SIG_I8255_PORT_A);
 		//sys_port_a = sys_port_a & ~0x80;
-		//if((config.dipswitch & (1 << DIPSW_POSITION_GDC_FAST)) != 0) {
+		//if((config.dipswitch & (1 << DIPSWITCH_POSITION_GDC_FAST)) != 0) {
 		//	sys_port_a = sys_port_a | 0x80;
 		//}
 		sys_port_a = sys_port_a & ~0x10;
-		if((config.dipswitch & (1 << DIPSW_POSITION_NOINIT_MEMSW)) != 0) {
+		if((config.dipswitch & (1 << DIPSWITCH_POSITION_NOINIT_MEMSW)) != 0) {
 			sys_port_a = sys_port_a | 0x10;
 		}
 		pio_sys->write_signal(SIG_I8255_PORT_A, sys_port_a, 0xff);
@@ -1739,7 +1739,7 @@ void VM::update_config()
 		uint8_t prn_port_b = pio_prn->read_signal(SIG_I8255_PORT_B);
 #if defined(SUPPORT_EGC)
 		prn_port_b = prn_port_b & ~0x08;
-		if((config.dipswitch & (1 << DIPSW_POSITION_EGC)) == 0) {
+		if((config.dipswitch & (1 << DIPSWITCH_POSITION_EGC)) == 0) {
 			prn_port_b = prn_port_b | 0x08;
 		}
 #endif

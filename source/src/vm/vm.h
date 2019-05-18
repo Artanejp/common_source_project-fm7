@@ -25,6 +25,11 @@
 #include "bubcom80/bubcom80.h"
 #endif
 
+// Hino Electronics CEFUCOM-21
+#ifdef _CEFUCOM21
+#include "cefucom21/cefucom21.h"
+#endif
+
 // COLECO ColecoVision
 #ifdef _COLECOVISION
 #include "colecovision/colecovision.h"

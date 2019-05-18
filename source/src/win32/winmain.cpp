@@ -1438,7 +1438,7 @@ void update_control_menu(HMENU hMenu)
 	for(int i = 0; i < 8; i++) {
 		EnableMenuItem(hMenu, ID_OPEN_DEBUGGER0 + i, emu && !emu->now_debugging && emu->is_debugger_enabled(i) ? MF_ENABLED : MF_GRAYED);
 	}
-	EnableMenuItem(hMenu, ID_CLOSE_DEBUGGER, emu &&  emu->now_debugging                                ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, ID_CLOSE_DEBUGGER, emu && emu->now_debugging ? MF_ENABLED : MF_GRAYED);
 #endif
 }
 
@@ -2178,15 +2178,23 @@ void update_menu(HWND hWnd, HMENU hMenu)
 #endif
 #if defined(USE_SOUND_TYPE) || defined(USE_FLOPPY_DISK) || defined(USE_TAPE) || defined(USE_DIPSWITCH)
 	} else if(id >= ID_VM_SOUND_MENU_START && id <= ID_VM_SOUND_MENU_END) {
-		 update_vm_sound_menu(hMenu);
+#if defined(USE_SOUND_TYPE) || defined(USE_FLOPPY_DISK) || defined(USE_TAPE)
+		update_vm_sound_menu(hMenu);
+#endif
 #ifdef USE_DIPSWITCH
 		// dipswitch may be in sound menu
 		 update_vm_dipswitch_menu(hMenu);
 #endif
 #endif
-#if defined(USE_MONITOR_TYPE) || defined(USE_SCANLINE)
+#if defined(USE_MONITOR_TYPE) || defined(USE_SCANLINE) || defined(USE_DIPSWITCH)
 	} else if(id >= ID_VM_MONITOR_MENU_START && id <= ID_VM_MONITOR_MENU_END) {
-		 update_vm_monitor_menu(hMenu);
+#if defined(USE_MONITOR_TYPE) || defined(USE_SCANLINE)
+		update_vm_monitor_menu(hMenu);
+#endif
+#ifdef USE_DIPSWITCH
+		// dipswitch may be in monitor menu
+		 update_vm_dipswitch_menu(hMenu);
+#endif
 #endif
 #ifdef USE_PRINTER_TYPE
 	} else if(id >= ID_VM_PRINTER_MENU_START && id <= ID_VM_PRINTER_MENU_START) {

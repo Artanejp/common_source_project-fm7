@@ -228,7 +228,7 @@ void DISPLAY::initialize()
 	
 // WIP: MEMSW
 	bool memsw_stat = false;
-	if((config.dipswitch & (1 << DIPSW_POSITION_NOINIT_MEMSW)) != 0) {
+	if((config.dipswitch & (1 << DIPSWITCH_POSITION_NOINIT_MEMSW)) != 0) {
 		if(fio->Fopen(create_local_path(_T("MEMSW.BIN")), FILEIO_READ_BINARY)) {
 			if(fio->IsOpened()) {
 				for(int i = 0; i < 16; i++) {
@@ -264,7 +264,7 @@ void DISPLAY::initialize()
 
 void DISPLAY::release()
 {
-	if((config.dipswitch & (1 << DIPSW_POSITION_NOINIT_MEMSW)) == 0) {
+	if((config.dipswitch & (1 << DIPSWITCH_POSITION_NOINIT_MEMSW)) == 0) {
 		init_memsw();
 	}
 	save_memsw();
@@ -347,7 +347,7 @@ void DISPLAY::reset()
 	}
 #endif
 #if defined(SUPPORT_EGC)
-	is_use_egc = ((config.dipswitch & (1 << DIPSW_POSITION_EGC)) != 0);
+	is_use_egc = ((config.dipswitch & (1 << DIPSWITCH_POSITION_EGC)) != 0);
 
 	#if defined(SUPPORT_EGC)
 	enable_egc = false;
@@ -385,7 +385,7 @@ void DISPLAY::reset()
 	egc_srcmask.w = 0xffff;
 #endif
 	
-	if((config.dipswitch & (1 << DIPSW_POSITION_NOINIT_MEMSW)) == 0) {
+	if((config.dipswitch & (1 << DIPSWITCH_POSITION_NOINIT_MEMSW)) == 0) {
 		init_memsw();
 	}
 	save_memsw();

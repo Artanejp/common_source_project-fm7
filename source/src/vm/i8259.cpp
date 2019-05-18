@@ -162,7 +162,7 @@ uint32_t I8259::read_io8(uint32_t addr)
 		} else if((pic[c].ocw3 & 3) == 2) {
 			return pic[c].irr;
 		} else if((pic[c].ocw3 & 3) == 3) {
-			return pic[c].isr & ~pic[c].imr;
+			return pic[c].isr;// & ~pic[c].imr;
 		}
 		return 0;
 	}
