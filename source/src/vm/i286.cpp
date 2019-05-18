@@ -526,9 +526,9 @@ bool I286::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->busreq);
 	state_fio->StateValue(cpustate->ip);
 	state_fio->StateValue(cpustate->sp);
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	state_fio->StateValue(cpustate->total_icount);
-#endif
+//#endif
 	state_fio->StateValue(cpustate->icount);
 	state_fio->StateValue(cpustate->seg_prefix);
 	state_fio->StateValue(cpustate->prefix_seg);

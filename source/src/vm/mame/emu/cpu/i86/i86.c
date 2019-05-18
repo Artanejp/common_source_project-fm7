@@ -68,9 +68,10 @@ struct i8086_state
 	DEBUGGER *debugger;
 	DEVICE *program_stored;
 	DEVICE *io_stored;
+#endif
 	uint64_t total_icount;
 	uint64_t prev_total_icount;
-#endif
+
 	int icount;
 	uint32_t waitfactor;
 	uint32_t waitcount;

@@ -88,10 +88,10 @@ struct i80286_state
 	uint32_t waitfactor;
 	uint32_t waitcount;
 
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	uint64_t total_icount;
 	uint64_t prev_total_icount;
-#endif
+//#endif
 	int icount;
 	//char seg_prefix;
 	UINT8 seg_prefix;

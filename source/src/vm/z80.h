@@ -55,9 +55,6 @@ protected:
 	bool has_single_mode_dma;
 	bool flags_initialized;
 	
-	
-	bool is_primary;
-	
 	bool is_primary;
 	
 	/* ---------------------------------------------------------------------------

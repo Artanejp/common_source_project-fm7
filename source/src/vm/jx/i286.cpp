@@ -169,6 +169,8 @@ void I286::initialize()
 	d_debugger->set_context_mem(d_mem);
 	d_debugger->set_context_io(d_io);
 #endif
+	cpustate->waitfactor = 0;
+	cpustate->waitcount = 0;
 }
 
 void I286::release()
@@ -218,6 +220,25 @@ int I286::run(int icount)
 	return CPU_EXECUTE_CALL(CPU_MODEL);
 }
 
+uint32_t I286::read_signal(int id)
+{
+	if((id == SIG_CPU_TOTAL_CYCLE_HI) || (id == SIG_CPU_TOTAL_CYCLE_LO)) {
+		cpu_state *cpustate = (cpu_state *)opaque;
+		pair64_t n;
+		if(cpustate != NULL) {
+			n.q = cpustate->total_icount;
+		} else {
+			n.q = 0;
+		}
+		if(id == SIG_CPU_TOTAL_CYCLE_HI) {
+			return n.d.h;
+		} else {
+			return n.d.l;
+		}
+	}
+	return 0;
+}
+
 void I286::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
@@ -234,6 +255,9 @@ void I286::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_I286_A20) {
 		i80286_set_a20_line(cpustate, data & mask);
 #endif
+	} else if(id == SIG_CPU_WAIT_FACTOR) {
+		cpustate->waitfactor = data; // 65536.
+		cpustate->waitcount = 0; // 65536.
 	}
 }
 
@@ -426,7 +450,7 @@ int I286::get_shutdown_flag()
 }
 #endif
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 
 bool I286::process_state(FILEIO* state_fio, bool loading)
 {
@@ -464,22 +488,24 @@ bool I286::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->busreq);
 	state_fio->StateValue(cpustate->ip);
 	state_fio->StateValue(cpustate->sp);
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	state_fio->StateValue(cpustate->total_icount);
-#endif
+//#endif
 	state_fio->StateValue(cpustate->icount);
 	state_fio->StateValue(cpustate->seg_prefix);
 	state_fio->StateValue(cpustate->prefix_seg);
 	state_fio->StateValue(cpustate->ea);
 	state_fio->StateValue(cpustate->eo);
 	state_fio->StateValue(cpustate->ea_seg);
+	state_fio->StateValue(cpustate->waitfactor);
+	state_fio->StateValue(cpustate->waitcount);
  	
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	// post process
 	if(loading) {
 		cpustate->prev_total_icount = cpustate->total_icount;
 	}
-#endif
+//#endif
 	return true;
 }
 
