@@ -321,12 +321,12 @@ void BIOS::event_frame()
 bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	if((PC == 0xfffc4) || (PC == 0xfffc9) || (PC == 0xfffd3)) {
-		uint32_t regs32[8];
-		for(int i = 0; i < 8; i++) {
+		uint32_t regs32[10] = {0};
+		for(int i = 0; i < 10; i++) {
 			regs32[i] = regs[i];
 		}
-		if(bios_call_far_ia32(PC, regs32, sregs, ZeroFlag, CarryFlag, cycles total_cycles)) {
-			for(int i = 0; i < 8; i++) {
+		if(bios_call_far_ia32(PC, regs32, sregs, ZeroFlag, CarryFlag, cycles, total_cycles)) {
+			for(int i = 0; i < 10; i++) {
 				regs[i] = regs32[i];
 			}
 			return true;
