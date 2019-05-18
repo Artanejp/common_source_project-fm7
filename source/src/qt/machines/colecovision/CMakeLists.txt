@@ -1,4 +1,4 @@
-message("* qt/scv")
+message("* qt/colecovision")
 
 set(s_qt_colecovision_headers
 	  menuclasses.h
