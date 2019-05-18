@@ -1,3 +1,716 @@
+commit 88b18e84a6e8049da97d15ddc96d5acf30b1fcb5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 18 22:38:25 2019 +0900
+
+    .
+
+commit d48355eb73dc673a7f9a41a53b683fedfb0bb1b5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 18 22:35:58 2019 +0900
+
+    .
+
+commit 1a2a04e6e02ec681b93eba4740d7366d0738de40
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 18 22:35:00 2019 +0900
+
+    [General] Add Hino Electronics CEFUCOM-21.
+
+commit 3179e8270ba2e8d8c022e07548dec6e2fc162bb8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 18 19:18:26 2019 +0900
+
+    [VM][I286][I86][Z80][JX][MZ2500] Fix FTBFS by before commit.
+
+commit ef9482f03da41a80909863f0f3aec889b7289692
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 18 16:47:05 2019 +0900
+
+    [VM][General] Apply Upstream 2019-04-30.
+
+commit 65a7b9d8e3d7a618b3e813c7a3b2ff689ee12aa6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 18 16:20:01 2019 +0900
+
+    [General] Update revisions.
+
+commit 3caf40ccbbc5d66164c19d09dbb568285da98fa7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 18 16:17:25 2019 +0900
+
+    [VM][FMR][BIOS] Fix FTBFS.
+
+commit 1c086e574d16bda15828a77e4d737d31bec54e61
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 17 05:37:23 2019 +0900
+
+    [VM][PC9801] Support low resolution monitor.
+
+commit ae3dc8ed3906dfd14f96b54db6a9580c1a81befa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 17 05:36:51 2019 +0900
+
+    [VM][PC9801][MOUSE] Set clock to 120Hz when resetting.
+
+commit 048fbfbb1fd80dbb33e3e4e9dc35811009cfed33
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 17 05:34:32 2019 +0900
+
+    [VM][PC9801][FLOPPY] Improve drive setting via 2DD <-> 2HD.
+
+commit 3281f32df5f4960b396107ba155594810270de8e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 17 05:33:32 2019 +0900
+
+    [VM][PC9801][DISPLAY] EGC: Add write protect register (03h).
+
+commit 60fc34ad46c890831beeb59c00d96be509920ab6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 17 05:32:27 2019 +0900
+
+    [VM][PC9801][MEMBUS] Comment out debug message for SASI_BIOS.
+
+commit 22a65552ed23fbb6fc9a12679851ebac5253e66b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 17 05:30:57 2019 +0900
+
+    [VM][PC9801][SASI_BIOS] Improve SENSE command.Write results to 0000:0585h at INITIALIZE.
+
+commit be8a2eb56c70afac3d814950beb0f436838a26e2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 17 05:30:37 2019 +0900
+
+    [DEVICE] .
+
+commit 243001162f9d8406c90f2a3f0103ef8aa4d88068
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 17 05:30:00 2019 +0900
+
+    [VM][PC9801][CPUREG] Add ARCTIC (a.k.a Timestamp) and 0.6uS? Wait.
+
+commit bc2c78c0047636e88a0bb7fd3cdfc9ccf47b27d1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 17 05:29:11 2019 +0900
+
+    [OSD] Update values for UPD7220.Support uPD7220-A-[2|3].
+
+commit 65646537bc565a10314fcbfb9a2755e65640688e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 17 05:27:58 2019 +0900
+
+    [VM][DEVICE] Update new APIs for PC9801's ARCTIC.
+
+commit fc5c69507384ac7fceae300c289f6ba9bb3b12c1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 17 05:26:42 2019 +0900
+
+    [VM][UPD7220] Update around SYNC and drawing(WIP).
+
+commit c08ccceb6c883f59d9deb4cb3d8a14ae8b87a46d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 14 03:20:17 2019 +0900
+
+    [VM][PC9801][EGC] Make EGC faster (maybe...).
+
+commit 57762ff02b26173622aac88cd56a6cf3bca96ecc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 13 04:03:29 2019 +0900
+
+    [VM][DEVICE] Add CPU pseudo SIGNALS, 108 to 110.
+    [VM][DEVICE][I386][I286] Add total_icount via read_signal().To implement PC-9801's clock counter.
+    [VM][PC9801][I386][I286] Add variable (main) CPU clock via CPU's write_signal().Add cpu_wait_foo() with CPU_EXECUTE(foo) .
+    [VM][PC9801][MEMORY] Fix wrong copy_table_[r|w]().
+    [VM][PC9801][SASI_BIOS] Remove redirection.
+    [VM][PC9801][MEMBUS] Remove read_data8() and write_data8() for i286 VMs.
+
+commit b483615c9aca2148d04aaa224a907302bb1afbb3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 11 20:07:13 2019 +0900
+
+    [VM][DEVICE][I386] Add bios_call_far_ia32() and bios_int_ia32() because BIOS calling from 32bit program (mostly via INT xxh) may break some registers.
+
+commit 84b530b5adfde64d2beb64e6c5b3aa324747eafa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 11 01:58:51 2019 +0900
+
+    [VM][MC6809][COMMON] Improve disassembler.Thanks to HASERIN-San.
+    [VM][MC6809][DISASM] Fix offset address around INDEX addressing.
+
+commit ecc00ae5ce15db672a459144b004632779b09e3a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 11 00:09:30 2019 +0900
+
+    [VM][I386] .
+
+commit 200f74027d25bc82aa731854379bba0b5b722c61
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 11 00:07:10 2019 +0900
+
+    [VM][PC9801][MEMBUS] Maybe complete to set mapping bus to 32bit VMs except Hi-Reso.
+    [VM][PC9801][MEMBUS] Temporally re-enable read_data8() and write_data8() for 24bit address VMs(i.e. PC9801VX).
+
+commit 4e9a0045328a3af1f15b9b64befa706818cd7e6e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 3 01:36:37 2019 +0900
+
+    [VM][PC9801][MEMBUS] Remove shadow_memory, this includes ram[0xc0000]-ram[0xe7fff].
+
+commit 8644f83fbb490e111ccb984700f389bdfd23e19a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 3 01:33:17 2019 +0900
+
+    [VM][PC9801][MEMBUS] Fix FTBFS.Still not works PC-9801VX etc (Built with SUPPORT_24BIT_ADDRESS).
+
+commit 4949ad7a80f93ef6eb98a84d82748f8b5f86e7f4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 2 22:15:43 2019 +0900
+
+    [VM][PC98][MEMBUS] Move checking bank status from [read|write]_data*() to update_bank() (and some routines).
+
+commit ef89c5edc2a6ff44761ffe6427b179cbcc9304f6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 2 18:08:47 2019 +0900
+
+    [VM][I386] ReName "SIG_I386_FORCE_RESET" to "SIG_I386_NOTIFY_RESET".
+
+commit 20bfd023b45cce5217daa1d5c6d093b204f3742c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 2 18:02:55 2019 +0900
+
+    [VM][I286][PC9801] Add SIG_I386_FORCE_RESET to notify resetting to external devices.Fix "A20 ERROR" at rebooting PC-9801(32BIT MODELS) with rebooting from program.
+
+commit a80e6a8574265e0a4783c0eade788cf41b86b711
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 26 13:17:23 2019 +0900
+
+    [VM][I386] TRY: Update around MOVE [CRx,r32|r32,CRx].
+
+commit 2725fe8a9564c8ffb637f34a0cfa0859b4e6659b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 26 13:10:58 2019 +0900
+
+    [VM][PC9801] Fix FTBFS with PC9801V*.
+    [VM][PC9801] Enable SASI BIOS at reset.
+
+commit c9f6ecbf3daf5545b48edae894a0a0e702eae61d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 25 01:51:29 2019 +0900
+
+    [VM][PC9801][MEMBUF][WIP] Re-Adjusting around memory.
+
+commit 529abcde6eed8356d6c99a3e9a2c6b92f1338f47
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 25 01:50:30 2019 +0900
+
+    [VM][I8237] Debug register dump: Add "BANK" registers.
+
+commit eec190d816523be6d9dbcbe95e53994974f74f7a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 24 19:04:11 2019 +0900
+
+    [FILEIO] Fix FTBFS.
+
+commit bd40bc32b3954cc4687603d76e630762f5069cc4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 24 19:03:53 2019 +0900
+
+    [VM][NEWDEV] .
+
+commit 38a4a030ca411b4f959568bdb45b147fb96175c2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 24 19:03:33 2019 +0900
+
+    [VM][NEWDEV][I386] .
+
+commit 7014dc3b306a48cdc61786cde4f954ec2ebe9bf5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 24 19:02:49 2019 +0900
+
+    [VM][DMA] Add NEW signal, notify to write-changed address.
+
+commit 33cee6d57490aced44652b783e1d683f676dce6b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 24 19:01:39 2019 +0900
+
+    [VM][I386] .
+
+commit 71cae30a0db49d7b6276f62f760aeff564b87116
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 24 09:01:50 2019 +0900
+
+    [MEMCACHE] Try to implement.
+
+commit 5544252fb1e7cf93ddfba1269c1f6963da434d2f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 24 05:45:19 2019 +0900
+
+    [VM][I386][NEWDEV][WIP] .
+
+commit e71776fc44723081906cc3be364b1e411563c079
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 24 05:42:08 2019 +0900
+
+    [VM][I386][NEWDEV][WIP] Fitting to CSP from MAME 0.208.
+
+commit 7d480b2795bb335ef0b0a5ad083e416da2a8e779
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Apr 23 23:41:48 2019 +0900
+
+    [VM][DEVICE] Add address_translate() API to generic devices.
+
+commit 09284aa9c163f2d7c97b00a6e9c57d4ff38ddd92
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Apr 23 23:41:08 2019 +0900
+
+    [FILEIO] Add StateVector() classes.
+
+commit b26622c1f6dd65023e6cd44592e566c3b4fb9b67
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Apr 23 23:40:19 2019 +0900
+
+    [VM][VTLB] Apply universal vtlb as child of DEVICE::.
+
+commit a38d1d2d300f62626496d0b099146af7467ae47f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Apr 23 23:39:31 2019 +0900
+
+    [VM][I386] Import software-float routines from MAME 0.208.
+
+commit 9ba9021f1c4c7d545018415528d195522d18ec76
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Apr 23 22:02:58 2019 +0900
+
+    [VM][I386] Change EOL code to UNIX.
+
+commit d2df1fd682d5fdc7f6aef7ca1b77aa889a8c1a03
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Apr 23 22:00:08 2019 +0900
+
+    [VM][I386] Try: Start to import I386 devices from MAME 0.208.
+
+commit 4ffba45b7743cafb2fc257f3bd69e3bf8644db83
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Apr 23 21:55:31 2019 +0900
+
+    [VM][I386] Add some exceptions.
+
+commit c91e965dadcf9dc4c837c391c53054c699344e58
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 22 05:44:12 2019 +0900
+
+    [VM][I386] Make some functions around address translation INLINE.
+    [VM][I386] Fix unexpected page fault when accessing memories.
+    [VM][I386] Try to call pseudo-bios even within protected mode (inside of i386_trap()).
+    [VM][UPD7220] Temporally disable some debug messages.
+
+commit 9d6db916c07cfdff9d34c31a311e81a9874a4ffa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 22 01:31:04 2019 +0900
+
+    [WIP][WIN32] MINGW:Fixing not detecting joystick with SDL 2.0.9.
+
+commit bb8e67834048025a55c0a042e457b369f6fd59c4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 19 19:29:50 2019 +0900
+
+    [QT][EMU][OSD] Adjust emulation sequence.
+    [QT][MENU_FLAGS] Fix TYPO.
+
+commit f95b07163636c6b25bb005b348c9cff8d0446a92
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 19 04:16:14 2019 +0900
+
+    [BUILD][WIN32] Adjust GCC option for MinGW.
+
+commit a4c1cc486892a87541067c13ec9571d9fbcd4695
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 19 04:15:56 2019 +0900
+
+    .
+
+commit 5baf1e69343162f65d390bc7e35e4786c226d675
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 19 04:14:56 2019 +0900
+
+    [VM][PC9801][MEMBUS] Add [READ|WRITE][16|32]() to expect to be faster memory access.
+
+commit 8b6f640ccb62836644f2b039222da37b18e90469
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 19 04:14:36 2019 +0900
+
+    [VM][MEMORY] Faster memory access.
+
+commit e28023448a2ac803f2933b90357228afc4791826
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 19 04:13:55 2019 +0900
+
+    [VM][I386] Faster FETCH/READ.
+
+commit 056f1e84e92aa302e26d8f3874c3d9732ba35ff2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 13 19:21:49 2019 +0900
+
+    [VM][UPD7220][PC9801][WIP] Add UGLY PC98 HACK to UPD7220:: from NP2.
+
+commit 4a17d20f30aaa943f3d4fe59b24b76af4e23e1f6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 13 06:34:19 2019 +0900
+
+    [VM][UPD7220] Improve around command interpret.This makes apply *real* command-queue-empty to IO 00h:BIT2.
+
+commit b971cfb33f224830c084201fac8f5b6cc2257f87
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 13 04:43:36 2019 +0900
+
+    [VM][UPD7220] Fix not blink cursor.
+
+commit 65ba2046bcc3eb36af707c5cacff3d4f21e533ec
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 12 04:08:30 2019 +0900
+
+    [VM][UPD7220] .
+
+commit b040d6dc5a712be22a66efcf5a29c4a18af548b7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 12 03:43:08 2019 +0900
+
+    [RINGBUFFER] Fix bugs of empty / full.
+    [VM][COMMON_VM] Update SOVERSION.
+
+commit 570d749cb6565378f1f9616bf6bfb8e024a347e9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 12 03:42:39 2019 +0900
+
+    [VM][UPD7220] .
+
+commit 9ea49cf4f13aa67ba544ab4c31bd19a17e631fdd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 11 21:41:05 2019 +0900
+
+    [VM] Update DLLs.
+    [COMMON] Add RINGBUFFER:: class, extend of FIFO::.
+    [FIFO] Add [fill|empty] warning feature.This may be useful for some devices. i.e. 16550 UART, variants of i8251.
+
+commit 69de11e6baa24dd18c6ac73c1b192d61548a56ce
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 11 21:38:57 2019 +0900
+
+    [VM][UPD7220][COMMON_VM] Integrate UPD7220_BASE:: and UPD7220:: to UPD7220:: .
+
+commit 84634f63e200cd856502c92596ad74680570cc10
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 11 02:15:22 2019 +0900
+
+    [VM][UPD7220] Apply "uPD7220 Design manual".make FIFO as ring buffer.
+    [VM][UPD7220] More precition emulation.
+
+commit 98c25355be7a97c62c468f41e5c36a44ff6d90e2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 10 23:08:27 2019 +0900
+
+    [VM][UPD7220][PC9801] Add GDC clock feature. UPD7220::set_clock_freq().
+    [VM][UPD7220] Implement position limiter for drawing (line etc).You may set gdc_foo->set_screen_width() and gdc_foo->set_screen_height().
+    [PC9801] Improve map drawing at "BATTLE".
+
+commit db4096fb55046741f1750d749b7a10d08bf05070
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 10 01:34:46 2019 +0900
+
+    [VM][I386][OOPS] Fix FTBFS (゜∀゜)・∵．グハッ！！
+
+commit 0adff9544dcd1a7a31cabee57bdec326ef181e17
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 10 01:26:13 2019 +0900
+
+    [VM][I386] Call PSEUDO-BIOS even VM86 mode, EMM386.EXE for FreeDOS(98) and VEM486 (at MS-DOS 6.2) may work(still unstable a bit).
+    Some games, i.e. Touhou-KaikiDan work now.
+
+commit b4fa03bb94a9af4b7438d04da689067c93c7c652
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Apr 9 20:07:44 2019 +0900
+
+    [VM][I386][WIP] FLAGS around IRET/POPF/POPFD.This is WIP.
+
+commit 792e777bab583ae8125dc3d2db1fbbccd8cc42a2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Apr 9 20:07:02 2019 +0900
+
+    [VM][PC9801][SASI_BIOS] Fix status values of SASI commsn.
+
+commit 42b250931283156fcbb6ee373c542d8f53b2e39d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Apr 9 15:46:57 2019 +0900
+
+    [VM][PC9801][DISPLAY] More faster VRAM access (via EGC/GRCG).
+
+commit ce4597df0c794fb536594a3a9241f6f65a9a4e96
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Apr 9 04:51:47 2019 +0900
+
+    [VM][PC9801][MEMORY] Add new API at copy_table_[r|w|rw](to, start, end).
+
+commit 8c2a44d7a924ccf46824da255c9e70363bc7aaaa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Apr 9 04:51:16 2019 +0900
+
+    [VM][PC9801][DISPLAY] Faster accessable GRDC.
+
+commit f60684e995bd52ae518aea38ee92b656be211050
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 8 23:52:16 2019 +0900
+
+    [VM][I386] .
+
+commit 9a4179b1c0dca2b4621c3f206b1b0e023df20baf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 8 23:51:38 2019 +0900
+
+    [VM][PC9801][MEMBUS] (Maybe) improve address translation.
+
+commit 6dbc5b23697dcb41a3aa73a19180dae6095c13e7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 8 22:34:17 2019 +0900
+
+    [VM][I386] Improve CALL ABS SELECTOR:OFFSET.
+
+commit bea7c5cc8e50773079cd47231f6a033398f11a3f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 8 22:05:12 2019 +0900
+
+    [VM][PC9801][WIP] .
+
+commit f18bf0ffbc7638bc3ea8e16b295be2bd38ac450c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 8 22:04:49 2019 +0900
+
+    [VM][I386][WIP] .
+
+commit 901e48e0899a1a6178c8bcb01090a7f9de9cc1a1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 8 17:42:20 2019 +0900
+
+    [VM][PC9801] Improve some registers.
+
+commit dabb6a9f16f73fa3679072b1f73632658bc0dfab
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 3 13:41:39 2019 +0900
+
+    [VM][I286] Fix FTBFS.
+
+commit e2196c9e578e3a93fb06c6d80aa578c57d27aa30
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 3 01:30:57 2019 +0900
+
+    [VM][PC9801][FMR50][FMR30][SASI_BIOS] Add translate_address(segment,offset) to DEVICE:: .
+    [VM][I386][WIP] Effects trap on EMM386.EXE, but not working ;_;
+
+commit 03c0701f7885587296930fb01a26e5578c941066
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 1 00:50:14 2019 +0900
+
+    [VM][I386] Add some debug logs.
+    [VM][I386][WIP] Around V8086 mode.
+
+commit 9d7426f25920cccdcf384c09b2603dc74085a41f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 31 08:12:10 2019 +0900
+
+    [VM][I386] Improve debugger.
+    [VM][I386][WIP] around VM/CPL/IOPx flags.
+
+commit 0a88854650fc9e7aa9ce922bcd6dc8df77babac6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 31 02:53:57 2019 +0900
+
+    [VM][I386][WIP] Improving around VM86 mode.
+
+commit 69aa499d736a0fbbaa6539129792717759aefca1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 29 20:44:25 2019 +0900
+
+    [VM][PC9801][SOUND] Playable PCM of PC-9801-86.
+
+commit 4aa61a2fccd07a4247546c4afd5d15eba47f0db0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 27 20:48:30 2019 +0900
+
+    [VM][PC9801][PC-9801-86] Mostly implement PC-9801-86 sound board (excepts PCM playing).Touhou-Huumaroku (partly) works.
+
+commit d4fedb218583da0e93825845169c93fa81acf8b8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 27 20:47:51 2019 +0900
+
+    [VM][YM2203] Fix wrong status reply at address #3.
+
+commit afb478c12d24d353d09275f11caac3e1e16b798a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 25 20:31:07 2019 +0900
+
+    [VM][PC9801RA] Enable EGC.
+
+commit f453ff1a210fcb58a682e5196cb90c4c97f72231
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 25 20:16:16 2019 +0900
+
+    [VM][LIBCPU_NEWDEV] Remove deprecated classes.
+
+commit 0c999b2c1aec4f6997b42c5d86818e304f5ea72b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 25 18:38:34 2019 +0900
+
+    [].
+
+commit 9ab3df7229d11501398cd4d7c5c293e1dfeba40e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 25 18:36:44 2019 +0900
+
+    [VM][I386] Enable debug log (logerror()).
+    [VM][I386][WIP] Porting features around virtual-8086 mode from NP2.
+
+commit 995bd2119862774b323717dd5e9c3273ac7b194d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 25 03:21:35 2019 +0900
+
+    [VM][I386] Separate I386_OP(int) to I386_OP(int_16) and I386_OP(int_32) because pseudo bios int call (maybe 1Bh) should be in 16bit mode.
+    [VM][PC9801][MEMBUS] Improve address handling, still not work EMM386.EXE of MS-DOS 5.0 or later.
+    [VM][PC9801] Temporally disable PC9801-86, enable PC9801-26, temporally works TouHou series with sound.
+
+commit d2c3335f39cbe2924d7ed8827ec373350d80ac08
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 22 00:15:33 2019 +0900
+
+    [VM][PC9801] Fix FTBFS with some VMs.
+
+commit 56cb0fa7d629527ea87731d2a1c5b6ef4d375844
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 21 23:31:13 2019 +0900
+
+    [VM][PC9801][MEMBUS] Truely bootable MS-DOS 6.20,excepts EMM386.EXE.
+
+commit 84c4e1a5fce73ca9aaf315702d234fd5699140b7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 21 17:30:51 2019 +0900
+
+    [VM][PC9801][PC9801RA] Enable to boot contains i386 CPU with (about) correctness ITF and IPL.
+
+commit 7bf0059283729e9d86f143789f3a9ab6ac88556d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 21 02:05:35 2019 +0900
+
+    [VM][FMTOWNS][COMMON] Add inline functions around pixels; 32768colors mode (RGB555 + transparent bit).
+
+commit 6bac8c8702faeb01c49e65a1d677ae4351e975fd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 21 02:03:58 2019 +0900
+
+    [VM][I286][I386][PC9801][FMR50] Add pseudo-cycles args to  pseudo-bios for i86/286/386.
+
+commit 6e6f0a63f552ff529e5123b898977636bcfda6b9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 20 22:25:03 2019 +0900
+
+    [VM][COMMON] Delete unneeded __builtin_assume_aligned().MinGW32 build works built with "-msse2 -O3".
+
+commit 2cbc397504cbcea96a2ceb9ca259ba4e4cb4e497
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 19 21:53:05 2019 +0900
+
+    [VM][PC9801] Add some DIPSWITCH features.
+
+commit dd78ecbd89305e6684a162e76e1ac3742df00c0f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 19 18:57:40 2019 +0900
+
+    [VM][PC9801][SASI_BIOS] Fix wrong sectors at FORMAT command.Fix run out at DOS installation.
+
+commit a717e66197d76070982d58bd6d0774e1fa8138f9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 19 04:19:53 2019 +0900
+
+    [VM][I386][COMMON_VM] Integrate to upstream.Use vm/i386.[cpp|h] instead of libcpu_newdev/*.cpp.
+
+commit 7b29731595f9a97c455e75430477b85a0560f8dd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 8 18:27:01 2019 +0900
+
+    [BUILD][WIN32] Try: Cross build with LLVM CLANG(still be failed).
+
+commit e94f5d40486050e9d546727834997fc9b676398d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 8 18:26:22 2019 +0900
+
+    [VM] .
+
+commit fb7586a5fadd93df3528c027b15ffc3ea8df873e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 8 18:24:36 2019 +0900
+
+    [VM][FMTOWNS] Some devices are enabled to compile.
+    [BUILD][CMAKE][FMTOWNS] Add skelton.
+    [UI][Qt][FMTOWNS] Add *DUMMY* UI.Resources also still be dummy.
+
+commit 4558ed9b898b78563054062811f15cef3c6f782f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 8 02:47:37 2019 +0900
+
+    [VM][FMTOWNS][AD7820KR] Improve around sound recording.
+    [VM][FMTOWNS][TODO] Will add TONWS::MIXER() class.
+
+commit 919a9593271fb5ec8471bebef90ad5faf541e4a6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 8 02:47:00 2019 +0900
+
+    [VM][EVENT][DEVICE] Add new APIs for recording sound.
+
+commit d65be0aad73cb3ebbbb24e1e2f6fffc2f5b2412e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 7 00:08:11 2019 +0900
+
+    [SOUND][VM][PCM1BIT][AY_3_891X] Re-implement low pass filter and high pass filter to some devices.See initialize_sound at vm/fm7/fm7.cpp for usage.
+
+commit d4eda6c3bca1f8ff98534197e0704e9558a5fae5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 7 00:05:54 2019 +0900
+
+    [COMMON] Add high pass/low pass filter function.
+
+commit 5a31dabf4e949e32d8daba605c7aed7937b1c5e6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 5 23:32:31 2019 +0900
+
+    [VM][PCM1BIT][AY3_891x] Add LPF feature.See initialize_sound().
+    [VM][EVENT] Add sound sampling (from host machine) feature framework.
+
+commit a4d499f124c5893755b218a9dbfc0e78a9223577
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 1 21:21:55 2019 +0900
+
+    [VM][FMTOWNS] Hardware abstract.
+
+commit f18c7b5f919dd5ba6051345fa67ec50b3200e81a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 28 00:20:48 2019 +0900
+
+    [Build][Linux] buildvars.dat: Add "USE_SHRINK_DEBUG_SYMBOL" flag to save disk space.
+
+commit b6327e0fab4b0135b8377719856a7322b59165ef
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 24 20:12:27 2019 +0900
+
+    [Build][GCC] Fix FTBFS without setting LTO_THREADS value and selecting USE_LTO.
+
+commit 97fa3bbfd4ce905c504f207440be62c47aeef47b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 22 05:07:59 2019 +0900
+
+    [UINX] Update installer script.
+
+commit 5de5578231103c9aad66f9698fd8931f751f2ad3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 22 04:59:42 2019 +0900
+
+    [DOC] .
+
 commit 571b580422297e570f6a1a0296f42d2a24f12004
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Feb 22 04:58:38 2019 +0900

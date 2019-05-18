@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         February 22, 2019
+                                         May 18, 2019
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20190222
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20190518
 
    追加情報:
    
@@ -160,157 +160,95 @@ Changes:
 
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
 
-* SNAPSHOT February 22, 2019
-  * Upstream 2019-02-19.
-  * [VM] Fix crash when end of emulation at various(!) VMs.
-  * [DEBUGGER/EMU] Some functions at debugger.cpp moved (and modified) to emu.cpp. This workaround needed by libCSPcommon .
-  * [EMUUTIL/WIN32] Temporally disable SSE2.
-  * [VM/I8080] I8085: Fix around SID instruction.FP200 works.
-  * [VM/MSM5205] Add new API: pause_w().
-  * [VM/MSM5205] Adjust ADPCM's sound level due to be too small sound.
-  * [VM/UPD71071] Add 16bits transfer mode (needs to emulate FM-Towns).
-  * [VM/PCENGINE] Separate around ADPCM from pce.cpp.
-  * [VM/PCENGINE] Mostly works CD-ROM^2 softwares, excepts (at least) Valis2 and R-TYPE. Some softwares still contain wrong working.
-  * [VM/SCSI_CDROM] CDDA: Fix interpreting cue sheet.Lasersoft's brand softwares may works.
-  * [VM/SCSI_CDROM] CDDA:Don't update track when setting end position.
-  * [OSD/Sound] Update OSD API, initialize_sound() has 4 args, not 2.
-  * [OSD/Sound] SDL_MixAudioFormat() *MUST* use for SDL2, shouldn't use SDL_MixAudio for SDL2.
-  * [Qt/OpenGL] Asynchronous pixel transfer with OpenGL 4.5 (and Core profile renderer).
-  * [Qt/OpenGL] Now, core profile needs less than OpenGL 4.5.
-  * [Qt/OpenGL] Fix not save screenshot with OpenGL renderers.(This issue didn't happen with OpenGL ES).
-  * [Qt/AVIO] Fix wrong color at one-board-computers.
-  * Built with 7574bd8b47c65e32c4f4a41ec593db71cc375230 (or later).
-  
--- February 22, 2019 04:44:44 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+* SNAPSHOT May 18, 2019
+  * Upstream 2019-04-30.
+  * [General] Add Hino Electronics CEFUCOM-21.
+  * [Build/GCC] Fix FTBFS without setting LTO_THREADS value and selecting USE_LTO.
+  * [Build/Linux] buildvars.dat: Add "USE_SHRINK_DEBUG_SYMBOL" flag to save disk space.
+  * [COMMON] Add high pass/low pass filter function.
+  * [VM/PCM1BIT,AY3_891x] Add LPF feature.See initialize_sound().
+  * [VM/EVENT] Add sound sampling (from host machine) feature framework.
+  * [COMMON] Add RINGBUFFER:: class, extend of FIFO::.
+  * [FIFO] Add [fill|empty] warning feature.This may be useful for some devices. i.e. 16550 UART, variants of i8251.
+  * [FILEIO] Add StateVector() classes.
+  * [VM/DEVICE] Add CPU pseudo SIGNALS, 108 to 110.
+  * [VM/COMMON] Delete unneeded __builtin_assume_aligned().MinGW32 build works built with "-msse2 -O3".
+  * [VM/DMA] Add NEW signal, notify to write-changed address.
+  * [VM/EVENT] Add new APIs for recording sound.
+  * [VM/PC9801RA] Note: Still not running Microsoft's EMM386.EXE and FreeBSD(98).Will fix.
+  * [VM/PC9801] [SASI_BIOS] Fix wrong sectors at FORMAT command.Fix run out at DOS installation.
+  * [VM/PC9801] Add some DIPSWITCH features.
+  * [VM/PC9801,FMR50,FMR30][SASI_BIOS] Add translate_address(segment,offset) to DEVICE:: .
+  * [VM/PC9801,FMR50] Add pseudo-cycles args to  pseudo-bios for i86/286/386.
+  * [VM/PC9801] Truely bootable MS-DOS 6.20,excepts EMM386.EXE.
+  * [VM/PC9801][SOUND] Playable PCM of PC-9801-86.
+  * [VM/PC9801][PC-9801-86] Mostly implement PC-9801-86 sound board.Touhou-Huumaroku (partly) works.
+  * [VM/PC9801][MEMBUS] Remove shadow_memory, this includes ram[0xc0000]-ram[0xe7fff].
+  * [VM/PC9801][MEMBUS] Maybe complete to set mapping bus to 32bit VMs except Hi-Reso.
+  * [VM/PC9801][MEMBUS] Faster memory access.
+  * [VM/PC9801][EGC] Make EGC faster (maybe...).
+  * [VM/PC9801][CPUREG] Add ARCTIC (a.k.a Timestamp) and 0.6uS? Wait.
+  * [VM/PC9801][SASI_BIOS] Improve SENSE command.Write results to 0000:0585h at INITIALIZE.
+  * [VM/PC9801][DISPLAY] EGC: Add write protect register (03h).
+  * [VM/PC9801][FLOPPY] Improve drive setting via 2DD <-> 2HD.
+  * [VM/PC9801][MOUSE] Set clock to 120Hz when resetting.
+  * [VM/PC9801] Support low resolution monitor.This is WIP.
+  * [VM/PC9801][VM/I386,I286] Add variable (main) CPU clock via CPU's write_signal().Add cpu_wait_foo() with CPU_EXECUTE(foo) .
+  * [VM/PC9801RA] Enable to boot contains i386 CPU with (about) correctness ITF and IPL.
+  * [VM/PC9801RA] Enable EGC.
+  * [VM/I386] Separate I386_OP(int) to I386_OP(int_16) and I386_OP(int_32) because pseudo bios int call (maybe 1Bh) should be in 16bit mode.
+  * [VM/I386] Enable debug log (logerror()).
+  * [VM/I386] Improve CALL ABS SELECTOR:OFFSET.
+  * [VM/I386] Call PSEUDO-BIOS even VM86 mode, EMM386.EXE for FreeDOS(98) and VEM486 (at MS-DOS 6.2) may work(still unstable a bit).
+              Some games, i.e. Touhou-KaikiDan work now.
+  * [VM/I386] Faster FETCH/READ.
+  * [VM/I386] Make some functions around address translation INLINE.
+  * [VM/I386] Fix unexpected page fault when accessing memories.
+  * [VM/I386] Try to call pseudo-bios even within protected mode (inside of i386_trap()).
+  * [VM/DEVICE,I386,I286] Add total_icount via read_signal().To implement PC-9801's clock counter.
+  * [VM/DEVICE] Add address_translate() API to generic devices.
+  * [VM/I8237] Debug register dump: Add "BANK" registers.
+  * [VM/I286][PC9801] Add SIG_I386_FORCE_RESET to notify resetting to external devices.Fix "A20 ERROR" at rebooting PC-9801(32BIT MODELS) with rebooting from program.
+  * [VM/UPD7220][PC9801] Add GDC clock feature. UPD7220::set_clock_freq().
+  * [VM/UPD7220] Implement position limiter for drawing (line etc).You may set gdc_foo->set_screen_width() and gdc_foo->set_screen_height().
+  * [VM/UPD7220] Apply "uPD7220 Design manual".make FIFO as ring buffer.
+  * [VM/UPD7220] More precision emulation.
+  * [VM/UPD7220][COMMON_VM] Integrate UPD7220_BASE:: and UPD7220:: to UPD7220:: .
+  * [VM/UPD7220] Fix not blink cursor.
+  * [VM/UPD7220] Improve around command interpret.This makes apply *real* command-queue-empty to IO 00h:BIT2.
+  * [VM/UPD7220][PC9801] Add UGLY PC98 HACK to UPD7220:: from NP2.
+  * [VM/UPD7220] Update around SYNC and drawing(WIP).
+  * [VM/YM2203] Fix wrong status reply at address #3.
+  * [VM/MEMORY] Faster memory access.
+  * [VM/MC6809][COMMON] Improve disassembler.Thanks to HASERIN-San.
+  * [VM/MC6809][DISASM] Fix offset address around INDEX addressing.
+  * [VM/PC9801][MEMORY] Add new API at copy_table_[r|w|rw](to, start, end).
+  * [VM/PC9801][DISPLAY] Faster accessable GDC.
+  * [VM/PC9801][DISPLAY] More faster VRAM access (via EGC/GRCG).
+  * [VM/PC9801][SASI_BIOS] Fix status values of SASI commands.
+  * [VM/LIBCPU_NEWDEV] Remove deprecated classes.
+  * [BUILD/WIN32] Adjust GCC option for MinGW.
+  * [QT/MENU_FLAGS] Fix TYPO.
+  * [QT/EMU,OSD] Adjust emulation sequence.
+  * Built with 88b18e84a6e8049da97d15ddc96d5acf30b1fcb5 (or later).
+
+-- May 18, 2019 23:00:59 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
 
-2/19/2019
+4/30/2019
 
 [VM/DEVICE] add is_primary_cpu() and update_extra_event()
 [VM/EVENT] support to udpate event while cpu is running one opecode
+[VM/I8259] fix reading isr register (thanks Mr.rednow)
+[VM/SCSI_HOST] fix to raise irq at command/message phase
 [VM/Z80] improve to update event in every read/write cycle
 
-[MZ2500/MEMORY] improve pcgram wait in display timing
-
-
-2/16/2019
-
-[EMU/DEBUGGER] improve to enumerate devices that is debugger available
-[EMU/DEBUGGER] improve to show all breaked reasons
-[EMU/DEBUGGER] support breakpoint of cpu selected by "! device" command
-[EMU/*] simplify code for debugger
-[VM/*] simplify code for debugger
-
-[VM/I8237] support break point for direct memory access
-[VM/MB8877] fix not to wait 60ms to start read/write after seek is finished
-[VM/MC6844] support break point for direct memory access
-[VM/TMS9918A] support break point for registers and vram access
-[VM/UPD71071] support break point for direct memory access
-[VM/Z80DMA] support break point for direct i/o and memory access
-
-
-2/14/2019
-
-[EMU/DEBUGGER] support break point for non-cpu device
-[EMU/DEBUGGER] change command length from 64 to 1024
-
-[VM/AY_3_891X] support break point
-[VM/DEVICE] add get_debug_data_addr_space()
-[VM/DEVICE] change type of get_debug_regs_info() from void to bool
-[VM/MB8877] fix to decrease first seek time by 500us (2D/2DD) or 250us (2HD)
-[VM/TMS9918A] support break point
-[VM/YM2151] support break point
-[VM/YM2203] support break point
-[VM/Z80CTC] fix to reset interrupt req/in service by bit2 of control register
-[VM/Z80DMA] fix to reset interrupt req/in service by reset command
-
-[X1TURBO/EMM] support to access vram as memory space from debugger
-[X1TURBO/IOBUS] support to access vram as memory space from debugger
-[X1TURBO/IOBUS] support break point
-
-
-2/9/2019
-
-[EMU/DEBUGGER] enlarge text buffer size
-
-[VM/DEVICE] add get_context_child() to enumerate daisy-chained devices
-[VM/DISK] add get_sector_info()
-[VM/MB8877] improve debugger to show current head position and disk geometry
-[VM/MB8877] fix not to abort command when eject disk in unselected drive
-[VM/UPD765A] improve debugger to show current head position and disk geometry
-[VM/Z80*] add get_context_child() to enumerate daisy-chained devices
-
-[X1TURBO] fix to force clear iei/oei of z80 family devices when reset vm
-[X1TURBO/DISPLAY] fix to check bit0/2 of port 0x1fd0 in draw_text()
-
-
-2/8/2019
-
-[EMU/*] simplify code to draw screen while debugging cpu
-[OSD/*] simplify code to draw screen while debugging cpu
-[VM/*] simplify code to draw screen while debugging cpu
-
-[BUBCOM80/DISPLAY] improve dmac
-[HC80/IO] fix slave-cpu command 0x27 and 0x29 (thanks Mr.Stefano Bodrato)
-
-
-2/7/2019
-
-[EMU/DEBUGGER] improve to draw screen while debugging cpu
-[EMU] add override/restore/run_wndproc() for debugger
-[EMU] add create_bank_floppy_disk()
-[OSD/WIN32] add override/restore/run_wndproc() for debugger
-
-[VM/315_5124] improve draw_screen() for debugger
-[VM/H6280] improve to run window procedure while suspending for debugger
-[VM/I286] improve to run window procedure while suspending for debugger
-[VM/I386] improve to run window procedure while suspending for debugger
-[VM/I8080] improve to run window procedure while suspending for debugger
-[VM/M6502] improve to run window procedure while suspending for debugger
-[VM/MC6800] improve to run window procedure while suspending for debugger
-[VM/MC6809] improve to run window procedure while suspending for debugger
-[VM/MCS48] improve to run window procedure while suspending for debugger
-[VM/TMS9918A] improve draw_screen() for debugger
-[VM/TMS9995] improve to run window procedure while suspending for debugger
-[VM/UPD7801] improve to run window procedure while suspending for debugger
-[VM/UPD7810] improve to run window procedure while suspending for debugger
-[VM/V9938] improve draw_screen() for debugger
-[VM/V99X8] improve draw_screen() for debugger
-[VM/Z80] improve to run window procedure while suspending for debugger
-
-[BUBCOM80/DISPLAY] improve draw_screen() for debugger
-[FAMILYBASIC/PPU] improve draw_screen() for debugger
-[MZ80K/DISPLAY] improve draw_screen() for debugger
-[MZ1500/MEMORY] improve draw_screen() for debugger
-[PC8801/PC88] improve draw_screen() for debugger
-[PCENGINE/PCE] improve draw_screen() for debugger
-[SMC777/MEMORY] improve draw_screen() for debugger
-[X1/DISPLAY] improve draw_screen() for debugger
-
-
-1/29/2019
-
-[MZ80K/MEMORY] support COLOR GAL 5 (thanks Mr.Suga)
-[PC8001/PC88] fix issue that cursor is mistakenly hidden
-
-
-1/18/2019
-
-[PC8001/PC88] clear ram[0xff33] for DEMPA Galaxian
-[SMC777/MEMORY] improve to render screen in each scan line
-
-
-1/16/2019
-
-[EMU] improve to reinitialize vm in reset when dipswitch is changed
-
-[VM/UPD765A] fix st3 in sence devstat command to set two-side bit (temporary)
-
-[PC8801] support GSX-8800
-[PC8801] support to enable/disable PC-8801-11/GSX-8800/PCG-8100
-[PC8801] fix some degradations
+[CEFUCOM21] support Hino Electronics CEFUCOM-21 (not work)
+[MZ2500/CRTC] apply crtc patch (thanks Mr.Koucha-Youkan)
+[PC8801MA] improve to enable/disable cmdsing and pcg
+[PC8801MA] improve to enable/disable changing palette for each scan line
 
 -----
 
