@@ -2627,6 +2627,10 @@ void DISPLAY::draw_screen()
 		} else {
 			memset(screen_gfx, 0, sizeof(screen_gfx));
 		}
+		int _width = d_gdc_gfx->read_signal(SIG_UPD7220_PITCH);
+		_width <<= 4;
+//		_width -= 16;
+		if(_width > SCREEN_WIDTH) _width = SCREEN_WIDTH;
 		for(int y = 0; y < SCREEN_HEIGHT; y++) {
 			scrntype_t *dest = emu->get_screen_buffer(y);
 			uint8_t *src_chr = screen_chr[y];
@@ -2640,15 +2644,25 @@ void DISPLAY::draw_screen()
 #if defined(SUPPORT_16_COLORS)
 			if(!modereg2[MODE2_16COLOR]) {
 #endif
-				for(int x = 0; x < SCREEN_WIDTH; x++) {
+				for(int x = 0; x < _width; x++) {
 					uint8_t chr = src_chr[x];
 					dest[x] = chr ? palette_chr[chr & 7] : palette_gfx8[src_gfx[x] & 7];
 				}
+				// ToDo: Variable width
+				for(int x = _width; x < SCREEN_WIDTH; x++) {
+					uint8_t chr = src_chr[x];
+					dest[x] = (chr) ? palette_chr[chr & 7] : 0x00;
+				}
 #if defined(SUPPORT_16_COLORS)
 			} else {
-				for(int x = 0; x < SCREEN_WIDTH; x++) {
+				for(int x = 0; x < _width; x++) {
 					uint8_t chr = src_chr[x];
 					dest[x] = chr ? palette_chr[chr & 7] : palette_gfx16[src_gfx[x]];
+				}
+				// ToDo: Variable width
+				for(int x = _width; x < SCREEN_WIDTH; x++) {
+					uint8_t chr = src_chr[x];
+					dest[x] = (chr) ? palette_chr[chr & 7] : 0x00;
 				}
 			}
 #endif
@@ -2685,7 +2699,7 @@ void DISPLAY::draw_chr_screen()
 	
 	// address from gdc
 	uint32_t gdc_addr[25][80] = {0};
-	
+	// ToDo: Will Support 30lines project.
 	for(int i = 0, ytop = 0; i < 4; i++) {
 		uint32_t ra = ra_chr[i * 4];
 		ra |= ra_chr[i * 4 + 1] << 8;
@@ -2724,20 +2738,30 @@ void DISPLAY::draw_chr_screen()
 	
 	memset(screen_chr, 0, sizeof(screen_chr));
 	
-	for(int y = 0, cy = 0, ytop = 0; y < SCREEN_HEIGHT && cy < 25; y += bl, cy++) {
+	int _height = d_gdc_chr->read_signal(SIG_UPD7220_HEIGHT);
+	int _width  = d_gdc_chr->read_signal(SIG_UPD7220_PITCH);
+//	if(_height < 0) _height = 0;
+//	if(_height > 480) _height = 480;
+	_height = SCREEN_HEIGHT;
+	_width <<= 3;
+	if(_width  < 0) _width = 0;
+	static const uint32_t __vramsize = SCREEN_HEIGHT * SCREEN_WIDTH;
+	uint32_t of = 0;
+	
+	for(int y = 0, cy = 0, ytop = 0; y < _height && cy < 25; y += bl, cy++) {
 		uint32_t gaiji1st = 0, last = 0, offset;
 		int kanji2nd = 0;
 		if(y == ysur) {
 			ytop = y;
 			y -= ssl;
-			ysur = SCREEN_HEIGHT;
+			ysur = _height;
 		}
 		if(y >= ysdr) {
 			y = ytop = ysdr;
 			addr = addr2;
-			ysdr = SCREEN_HEIGHT;
+			ysdr = _height;
 		}
-		for(int x = 0, cx = 0; x < SCREEN_WIDTH && cx < 80; x += xofs, cx++) {
+		for(int x = 0, cx = 0; x < _width && cx < 80; x += xofs, cx++) {
 			uint16_t code = *(uint16_t *)(tvram + (*addr));
 			uint8_t attr = tvram[(*addr) | 0x2000];
 			uint8_t color = (attr & ATTR_COL) ? (attr >> 5) : 8;
@@ -2776,7 +2800,7 @@ void DISPLAY::draw_chr_screen()
 			
 			for(int l = 0; l < bl; l++) {
 				int yy = y + l + pl;
-				if(yy >= ytop && yy < SCREEN_HEIGHT) {
+				if(yy >= ytop && yy < _height) {
 					uint8_t *dest = &screen_chr[yy][x];
 #if !defined(SUPPORT_HIRESO)
 					uint8_t pattern = (l < cl && l < FONT_HEIGHT) ? font[offset + l] : 0;
@@ -2860,14 +2884,25 @@ void DISPLAY::draw_chr_screen()
 					}
 				}
 			}
+//			of++;
+//			if(of >= __vramsize) break;
 		}
+//		if(of >= __vramsize) break;
 	}
 }
 
 void DISPLAY::draw_gfx_screen()
 {
 	// address from gdc
-	uint32_t gdc_addr[SCREEN_HEIGHT][SCREEN_WIDTH >> 3] = {0};
+	int _height = d_gdc_gfx->read_signal(SIG_UPD7220_HEIGHT);
+	int _width  = d_gdc_gfx->read_signal(SIG_UPD7220_PITCH) * 2;
+	
+	uint32_t gdc_addr[480][SCREEN_WIDTH >> 3] = {0}; // Dragon Buster.
+	
+	if(_height < 0) _height = 0;
+	if(_height > 480) _height = 480;
+	_width <<= 3;
+	if(_width  < 0) _width = 0;
 	
 	for(int i = 0, ytop = 0; i < 4; i++) {
 		uint32_t ra = ra_gfx[i * 4];
@@ -2879,19 +2914,21 @@ void DISPLAY::draw_gfx_screen()
 		
 		if(!len) len = SCREEN_HEIGHT; // Madou Monogatari 1-2-3
 		
-		for(int y = ytop; y < (ytop + len) && y < SCREEN_HEIGHT; y++) {
-			for(int x = 0; x < (SCREEN_WIDTH >> 3); x++) {
+		for(int y = ytop; y < (ytop + len) && y < _height; y++) {
+			for(int x = 0; x < (_width >> 3); x++) {
 				gdc_addr[y][x] = sad;
 				sad = (sad + 1) & VRAM_PLANE_ADDR_MASK;
 			}
 		}
-		if((ytop += len) >= SCREEN_HEIGHT) break;
+		if((ytop += len) >= _height) break;
 	}
 	uint32_t *addr = &gdc_addr[0][0];
 	uint8_t *dest = &screen_gfx[0][0];
-	
-	for(int y = 0; y < SCREEN_HEIGHT; y++) {
-		for(int x = 0; x < SCREEN_WIDTH; x += 8) {
+	//if(_width  > SCREEN_WIDTH) _width = SCRREEN_WIDTH; // OK?
+	static const uint32_t __vramsize = SCREEN_HEIGHT * SCREEN_WIDTH;
+	uint32_t of = 0;
+	for(int y = 0; y < _height; y++) {
+		for(int x = 0; x < _width; x += 8) {
 			uint8_t b = vram_disp_b[(*addr)];
 			uint8_t r = vram_disp_r[(*addr)];
 			uint8_t g = vram_disp_g[(*addr)];
@@ -2910,6 +2947,8 @@ void DISPLAY::draw_gfx_screen()
 			*dest++ = ((b & 0x04) >> 2) | ((r & 0x04) >> 1) | ((g & 0x04)     ) | ((e & 0x04) << 1);
 			*dest++ = ((b & 0x02) >> 1) | ((r & 0x02)     ) | ((g & 0x02) << 1) | ((e & 0x02) << 2);
 			*dest++ = ((b & 0x01)     ) | ((r & 0x01) << 1) | ((g & 0x01) << 2) | ((e & 0x01) << 3);
+			of++;
+			if(of >= __vramsize) break;
 		}
 		if((cs_gfx[0] & 0x1f) == 1) {
 			// 200 line
@@ -2925,7 +2964,9 @@ void DISPLAY::draw_gfx_screen()
 				my_memcpy(dest, dest - SCREEN_WIDTH, SCREEN_WIDTH);
 			}
 			dest += 640;
+			if(of >= __vramsize) break;
 			y++;
+			if(y >= SCREEN_HEIGHT) break; // Temp: Dragon Buster.
 		}
 	}
 }

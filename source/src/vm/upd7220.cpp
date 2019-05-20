@@ -751,6 +751,15 @@ uint32_t UPD7220::read_signal(int ch)
 	case SIG_UPD7220_CLOCK_FREQ:
 		return clock_freq;
 		break;
+	case SIG_UPD7220_WIDTH_BYTES:
+		return (width < 0) ? 0 : width;
+		break;
+	case SIG_UPD7220_HEIGHT:
+		return (height < 0) ? 0 : height;
+		break;
+	case SIG_UPD7220_PITCH:
+		return (pitch < 0) ? 0 : pitch;
+		break;
 	}
 	return 0;
 }

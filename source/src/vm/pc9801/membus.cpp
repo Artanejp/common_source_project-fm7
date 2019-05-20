@@ -238,10 +238,10 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 	case 0x043d:
 		switch(data & 0xff) {
 	#if defined(SUPPORT_HIRESO)
-		case 0x00:
-		case 0x18:
+		case 0x00: // HIRESO
+		case 0x18: // H98S
 	#endif
-		case 0x10:
+		case 0x10: // Normally BIOS, but, MENU ROM will be selected at H98S.
 			if(!itf_selected) {
 				itf_selected = true;
 				update_bios();
@@ -250,7 +250,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 	#if defined(SUPPORT_HIRESO)
 		case 0x02:
 	#endif
-		case 0x12:
+		case 0x12: // BIOS ROM
 			if(itf_selected) {
 				itf_selected = false;
 				update_bios();
@@ -302,12 +302,12 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 #endif
 #if defined(SUPPORT_SCSI_IF)
 			// Changing ROM/RAM maybe select SCSI I/F board.(Still not tested)20190321 K.O 
-			if(scsi_bios_selected) {
+			//if(scsi_bios_selected) {
 				if(scsi_bios_ram_selected) {
 					scsi_bios_ram_selected = false;
 					update_scsi_bios();
 				}
-			}
+			//}
 #endif
 			break;
 		case 0xc2:
@@ -685,6 +685,7 @@ void MEMBUS::update_bios()
 			#endif
 		}
 	} else {
+		// Internal RAM is not selected.
 		// ToDo: Hi reso
 		if(window_80000h < 0x80000) {
 		#if defined(SUPPORT_BIOS_RAM)
@@ -692,11 +693,13 @@ void MEMBUS::update_bios()
 				unset_memory_rw(0x00080000, 0x0009ffff);
 			} else
 		#endif				
-			set_memory_rw(0x80000, 0x9ffff, &(ram[window_80000h]));
+			unset_memory_rw(0x00080000, 0x0009ffff);
+			//set_memory_rw(0x80000, 0x9ffff, &(ram[window_80000h]));
 		} else if(window_80000h == 0x80000) {
 			// ToDo: External BUS
 			unset_memory_rw(0x00080000, 0x0009ffff);
 		} else {
+			//unset_memory_rw(0x00080000, 0x0009ffff);
 			copy_table_rw(0x00080000, window_80000h, window_80000h + 0x1ffff);
 		}
 	}
