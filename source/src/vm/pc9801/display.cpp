@@ -225,7 +225,6 @@ void DISPLAY::initialize()
 //	memset(tvram, 0, sizeof(tvram));
 	memset(vram, 0, sizeof(vram));
 	vram_draw   = vram + 0x00000;
-	
 // WIP: MEMSW
 	bool memsw_stat = false;
 	if((config.dipswitch & (1 << DIPSWITCH_POSITION_NOINIT_MEMSW)) != 0) {
@@ -323,7 +322,11 @@ void DISPLAY::reset()
 #endif
 	vram_draw   = vram + 0x00000;
 	vram_bank = 0x00000;
-	
+#if defined(USE_MONITOR_TYPE)
+	display_high = (config.monitor_type == 0) ? true : false; // OK?
+#else
+	display_high = false;
+#endif
 	crtv = 2;
 	
 	scroll[SCROLL_PL ] = 0;
@@ -440,7 +443,10 @@ void DISPLAY::write_signal(int ch, uint32_t data, uint32_t mask)
 	} else if(ch == SIG_DISPLAY98_SET_BANK) {
 		// WIP: Still dummy.
 		vram_bank = ((data & mask) != 0) ? 0x10000 : 0x00000;
-	}
+	} /*else if(ch == SIG_DISPLAY98_HIGH_RESOLUTION) {
+		display_high = ((data & mask) != 0);
+		printf("DISP MODE=%d\n", display_high);
+	}*/
 }
 
 void DISPLAY::write_io8(uint32_t addr, uint32_t data)
@@ -2633,7 +2639,16 @@ void DISPLAY::draw_screen()
 		if(_width > SCREEN_WIDTH) _width = SCREEN_WIDTH;
 		for(int y = 0; y < SCREEN_HEIGHT; y++) {
 			scrntype_t *dest = emu->get_screen_buffer(y);
-			uint8_t *src_chr = screen_chr[y];
+			uint8_t *src_chr;
+#if defined(USE_MONITOR_TYPE) && !defined(SUPPORT_HIRESO)
+			if(display_high) {
+				src_chr = screen_chr[y];
+			} else {
+				src_chr = screen_chr[y >> 1];
+			}
+#else
+			src_chr = screen_chr[y];
+#endif
 #if defined(SUPPORT_16_COLORS)
 			if(!modereg2[MDOE2_TXTSHIFT]) {
 				src_chr++;
@@ -2686,10 +2701,6 @@ void DISPLAY::draw_chr_screen()
 	}
 	int bl = scroll[SCROLL_BL] + pl + 1;
 	int cl = scroll[SCROLL_CL];
-#if defined(SUPPORT_HIRESO)
-	bl <<= 1;
-	cl <<= 1;
-#endif
 	int ssl = scroll[SCROLL_SSL];
 	int sur = scroll[SCROLL_SUR] & 31;
 	if(sur) {
@@ -2797,15 +2808,22 @@ void DISPLAY::draw_chr_screen()
 				gaiji1st = 0;
 			}
 			last = offset;
-			
 			for(int l = 0; l < bl; l++) {
-				int yy = y + l + pl;
+				int yy;
+				yy =  y + l + pl;
 				if(yy >= ytop && yy < _height) {
 					uint8_t *dest = &screen_chr[yy][x];
 #if !defined(SUPPORT_HIRESO)
-					uint8_t pattern = (l < cl && l < FONT_HEIGHT) ? font[offset + l] : 0;
+					uint8_t pattern;
+#if defined(USE_MONITOR_TYPE) && !defined(SUPPORT_HIRESO)
+					if(!(display_high) && ((code >= 0x100) || (kanji2nd))) {
+						pattern = (l < cl && l < (FONT_HEIGHT >> 1)) ? (font[offset + (l << 1)] | font[offset + (l << 1) + 1]) : 0;
+					} else 
+#endif
+					pattern  = (l < cl && l < FONT_HEIGHT) ? font[offset + l] : 0;
 #else
-					uint16_t pattern = (l < cl && l < FONT_HEIGHT) ? *(uint16_t *)(&font[offset + l * 2]) : 0;
+					uint16_t pattern;
+					pattern  = (l < cl && l < FONT_HEIGHT) ? *(uint16_t *)(&font[offset + l * 2]) : 0;
 #endif
 					if(!(attr & ATTR_ST)) {
 						pattern = 0;
@@ -2950,7 +2968,7 @@ void DISPLAY::draw_gfx_screen()
 			of++;
 			if(of >= __vramsize) break;
 		}
-		if((cs_gfx[0] & 0x1f) == 1) {
+		if(((cs_gfx[0] & 0x1f) == 1) || !(display_high)){
 			// 200 line
 			if(modereg1[MODE1_200LINE]) {
 				//memset(dest, 0, 640);

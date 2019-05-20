@@ -24,10 +24,10 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_DISPLAY98_SET_PAGE_80 1
-#define SIG_DISPLAY98_SET_PAGE_A0 2
-#define SIG_DISPLAY98_SET_BANK    3
-
+#define SIG_DISPLAY98_SET_PAGE_80		1
+#define SIG_DISPLAY98_SET_PAGE_A0		2
+#define SIG_DISPLAY98_SET_BANK			3
+//#define SIG_DISPLAY98_HIGH_RESOLUTION	4
 class UPD7220;
 
 namespace PC9801 {
@@ -36,7 +36,6 @@ class DISPLAY : public DEVICE
 {
 private:
 	DEVICE *d_pic;
-	DEVICE *d_pio_sys;
 	DEVICE *d_pio_prn;
 	outputs_t output_gdc_freq;
 	
@@ -140,7 +139,7 @@ private:
 	__DECL_ALIGNED(16) static const uint8_t  egc_bytemask_d1[8];
 	__DECL_ALIGNED(16) static const uint16_t egc_maskword[16][4];
 #endif
-	
+	bool display_high;
 #if !defined(SUPPORT_HIRESO)
 	#define FONT_SIZE	16
 	#define FONT_WIDTH	8
@@ -269,10 +268,6 @@ public:
 	{
 		d_gdc_gfx = device;
 		ra_gfx = ra; cs_gfx = cs;
-	}
-	void set_context_pio_sys(DEVICE* device)
-	{
-		d_pio_sys = device;
 	}
 	void set_context_pio_prn(DEVICE* device)
 	{
