@@ -25,11 +25,24 @@ void UPD1990A::initialize()
 	
 	// register events
 	register_event(this, EVENT_1SEC, 1000000.0, true, &register_id_1sec);
+	tp_usec = 1.0e6 / 128.0; // 64Hz
 	register_id_tp = -1;
 }
 
 void UPD1990A::write_signal(int id, uint32_t data, uint32_t mask)
 {
+	static const double tbl[] = {
+		1000000.0 / 128.0,	// 64Hz
+		1000000.0 / 512.0,	// 256Hz
+		1000000.0 / 2048.0,	// 2048Hz
+//#ifdef HAS_UPD4990A
+		1000000.0 / 4096.0,	// 4096Hz
+		1000000.0,		// 1sec
+		1000000.0 * 10,		// 10sec
+		1000000.0 * 30,		// 30sec
+		1000000.0 * 60		// 60sec
+//#endif
+	};
 	if(id == SIG_UPD1990A_CLK) {
 		bool next = ((data & mask) != 0);
 		if(!clk && next) {
@@ -73,16 +86,17 @@ void UPD1990A::write_signal(int id, uint32_t data, uint32_t mask)
 					mode = shift_cmd | 0x80;
 				} else {
 //#endif
-					mode = cmd;
+					mode = cmd & 0x07;
 //#ifdef HAS_UPD4990A
 				}
 			} else {
-				mode = cmd;
+				mode = cmd & 7;
 			}
 //#endif
 			switch(mode & 0x0f) {
 			case 0x02:
 				{
+					// Time set
 					uint64_t tmp = shift_data;
 					cur_time.second = FROM_BCD(tmp);
 					tmp >>= 8;
@@ -110,8 +124,7 @@ void UPD1990A::write_signal(int id, uint32_t data, uint32_t mask)
 				break;
 			case 0x03:
 				// after all bits are read, lsb of second data can be read
-				shift_data = TO_BCD(cur_time.second);
-				//shift_data = 0;
+			   shift_data = 0;
 //#ifdef HAS_UPD4990A
 				if(__HAS_UPD4990A) {
 					if(mode & 0x80) {
@@ -147,30 +160,43 @@ void UPD1990A::write_signal(int id, uint32_t data, uint32_t mask)
 			case 0x0a:
 			case 0x0b:
 //#endif
-				if(!__HAS_UPD4990A && ((mode & 0x0f) > 0x06)) break;
-
+				if(!(__HAS_UPD4990A) && ((mode & 0x07) == 0x07)) break;
 				if(tpmode != (mode & 0x0f)) {
 					if(outputs_tp.count != 0) {
-						static const double tbl[] = {
-							1000000.0 / 128.0,	// 64Hz
-							1000000.0 / 512.0,	// 256Hz
-							1000000.0 / 2048.0,	// 2048Hz
-//#ifdef HAS_UPD4990A
-							1000000.0 / 4098.0,	// 4096Hz
-							1000000.0,		// 1sec
-							1000000.0 * 10,		// 10sec
-							1000000.0 * 30,		// 30sec
-							1000000.0 * 60		// 60sec
-//#endif
-						};
 						if(register_id_tp != -1) {
 							cancel_event(this, register_id_tp);
 							register_id_tp = -1;
 						}
-						register_event(this, EVENT_TP, tbl[(mode & 0x0f) - 4], true, &register_id_tp);
+						if(!(__HAS_UPD4990A) || ((mode & 0x80) == 0)) {
+							tp_usec = tbl[(mode & 0x07) - 4];
+						} else { // uPD4990A
+							tp_usec = tbl[(mode & 0x0f) - 4];
+						}							
+						register_event(this, EVENT_TP, tp_usec, true, &register_id_tp);
 					}
 					tpmode = mode & 0x0f;
 				}
+				break;
+				// Below are extra commands.
+			case 0x0c: // Int reset
+				tp = false;
+				write_signals(&outputs_tp, 0);
+				break;
+			case 0x0d: // Int Start
+				if(register_id_tp == -1) {
+					tp = false;
+					register_event(this, EVENT_TP, tp_usec, true, &register_id_tp);
+				}
+				break;
+			case 0x0e: // Int Stop
+				if(register_id_tp != -1) {
+					cancel_event(this, register_id_tp);
+					register_id_tp = -1;
+					tp = false;
+				}
+				break;
+			case 0x0f:
+				// TEST: ToDo
 				break;
 			default:
 				break;
@@ -230,7 +256,7 @@ void UPD1990A::event_callback(int event_id, int err)
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool UPD1990A::process_state(FILEIO* state_fio, bool loading)
 {
@@ -259,5 +285,6 @@ bool UPD1990A::process_state(FILEIO* state_fio, bool loading)
 	if(__HAS_UPD4990A) {
 		state_fio->StateValue(shift_cmd);
 	}
+	state_fio->StateValue(tp_usec);
  	return true;
 }

@@ -38,7 +38,7 @@ private:
 	uint32_t dout;
 	bool dout_changed;
 	int register_id_tp;
-	
+	double tp_usec;
 //#ifdef HAS_UPD4990A
 	uint8_t shift_cmd;
 //#endif
