@@ -76,6 +76,10 @@ static const uint8_t pseudo_sasi_bios[] = {
 			0x00,0x58,0xcf,0x73,0x61,0x73,0x69,0x62,0x69,0x6f,0x73,
 };
 
+
+#if defined(HAS_I386) || defined(HAS_I386) || defined(HAS_PENTIUM)
+#define UPPER_I386 1
+#endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 #if !defined(SUPPORT_HIRESO)
 	#define UPPER_MEMORY_24BIT	0x00fa0000
@@ -109,6 +113,8 @@ void MEMBUS::initialize()
 #if defined(SUPPORT_ITF_ROM)
 	memset(itf, 0xff, sizeof(itf));
 	read_bios(_T("ITF.ROM"), itf, sizeof(itf));
+//	memcpy(itf, pseudo_itfrom, (sizeof(itf) > sizeof(pseudo_itfrom)) ? sizeof(pseudo_itfrom) : sizeof(itf));
+	
 	itf_selected = true;
 #endif
 	
@@ -186,6 +192,8 @@ void MEMBUS::reset()
 #if defined(SUPPORT_NEC_EMS)
 	nec_ems_selected = false;
 	update_nec_ems();
+	use_ems_as_protected = false; // OK?
+	ems_protected_base = 0x00;
 #endif
 #endif
 
@@ -260,6 +268,12 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 				nec_ems_selected = false;
 				update_nec_ems();
 			}
+#else
+//	#if !defined(SUPPORT_HIRESO)
+//			unset_memory_rw(0xb0000, 0xbffff);
+//			set_memory_mapped_io_rw(0xb0000, 0xbffff, d_display);
+//			update_bios();
+//	#endif		
 #endif
 			break;
 		case 0x22:
@@ -268,6 +282,12 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 				nec_ems_selected = true;
 				update_nec_ems();
 			}
+#else
+//	#if !defined(SUPPORT_HIRESO)
+//			unset_memory_rw(0xb0000, 0xbffff);
+//			set_memory_rw(0xb0000, 0xbffff, &(ram[0xb0000]));
+//			update_bios();
+//	#endif		
 #endif
 			break;
 		case 0xc0:
@@ -338,6 +358,13 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 		dma_access_a20 = ((data & 0x04) != 0) ? false : true;
 		break;
 #endif
+#if defined(SUPPORT_NEC_EMS)
+	case 0x08e9:
+		use_ems_as_protected = (data != 0) ? true: false;
+		ems_protected_base = (uint32_t)(data & 0x0f) << 20;
+		update_bios();
+		break;
+#endif		
 #if defined(SUPPORT_HIRESO)
 	case 0x0091:
 		{
@@ -400,7 +427,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 		break;
 #endif
 #endif
-#if defined(SUPPORT_32BIT_ADDRESS)
+#if defined(UPPER_I386) // ToDo: Upper type
 	case 0x053d:
 		{
 			bool result = false;
@@ -530,6 +557,8 @@ void MEMBUS::config_intram()
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	if(sizeof(ram) > 0x100000) {
 		set_memory_rw(0x100000, (sizeof(ram) >= 0xe00000) ? 0xdfffff : (sizeof(ram) - 1), ram + 0x100000);
+	} else {
+		unset_memory_rw(0x00100000, 0x00efffff); 
 	}
 	unset_memory_rw((sizeof(ram) >= 0x00e00000) ? 0x00e00000 : sizeof(ram), 0x00efffff); 
 #endif
@@ -595,11 +624,28 @@ void MEMBUS::update_bios()
 		unset_memory_w(0x00100000 - sizeof(itf), 0x000fffff);
 	} //else
 #endif
-			
+
+
 #if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
+	#if defined(SUPPORT_NEC_EMS)
+	// Is It right?
+	if((use_ems_as_protected) && ((ems_protected_base & 0xf00000) != 0)) {
+		set_memory_rw(ems_protected_base, ems_protected_base + ((sizeof(nec_ems) >= 0x10000) ? 0xffff : (sizeof(nec_ems) - 1)), &(nec_ems[0]));
+		if(sizeof(nec_ems) < 0x10000) {
+			unset_memory_rw(ems_protected_base + sizeof(nec_ems), ems_protected_base + 0xffff);
+		}
+	} else {
+		if(sizeof(ram) > 0x100000) {
+			set_memory_rw(0x100000, (sizeof(ram) >= 0xe00000) ? 0xdfffff : (sizeof(ram) - 1), ram + 0x100000);
+			unset_memory_rw((sizeof(ram) >= 0x00e00000) ? 0x00e00000 : sizeof(ram), 0x00efffff);
+		} else {
+			unset_memory_rw(0x00100000, 0x00efffff);
+		}
+	}
+	#endif
 	if((page08_intram_selected) /*&& (shadow_ram_selected)*/){
 		if((window_80000h == 0xc0000)) {
-#if defined(SUPPORT_32BIT_ADDRESS) && defined(SUPPORT_BIOS_RAM)
+#if defined(UPPER_I386)  && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
 				set_memory_rw(0x80000, 0x9ffff, &(ram[window_80000h]));
 			} else {
@@ -609,7 +655,7 @@ void MEMBUS::update_bios()
 			copy_table_rw(0x80000, 0xc0000, 0xdffff);
 #endif
 		} else 	if(window_80000h == 0xe0000) {
-#if defined(SUPPORT_32BIT_ADDRESS) && defined(SUPPORT_BIOS_RAM)
+#if defined(UPPER_I386) && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
 	#if !defined(SUPPORT_HIRESO)
 				//copy_table_rw(0x80000, 0xe0000, 0xe7fff);
@@ -657,7 +703,7 @@ void MEMBUS::update_bios()
 
 	/*if((page08_intram_selected) )*/{
 		if((window_a0000h == 0xc0000)) {
-#if defined(SUPPORT_32BIT_ADDRESS) && defined(SUPPORT_BIOS_RAM)
+#if defined(UPPER_I386) && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
 				//copy_table_rw(0xa0000, 0xc0000, 0xdffff); 
 				set_memory_rw(0xa0000, 0xbffff, &(ram[window_a0000h]));
@@ -668,7 +714,7 @@ void MEMBUS::update_bios()
 			copy_table_rw(0xa0000, 0xc0000, 0xdffff);
 #endif
 		} else 	if(window_a0000h == 0xe0000) {
-#if defined(SUPPORT_32BIT_ADDRESS) && defined(SUPPORT_BIOS_RAM)
+#if defined(UPPER_I386) && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
 	#if !defined(SUPPORT_HIRESO)
 				//copy_table_rw(0xa0000, 0xe0000, 0xe7fff); 
@@ -704,7 +750,6 @@ void MEMBUS::update_bios()
 	if((window_a0000h >= 0xa0000) && (window_a0000h <= 0xeffff)) {
 		d_display->write_signal(SIG_DISPLAY98_SET_PAGE_A0, window_a0000h, 0xffffffff);
 	}
-
 	// ToDo: PC9821
 	#if defined(SUPPORT_32BIT_ADDRESS)
 	unset_memory_rw(0x00f00000, (UPPER_MEMORY_32BIT & 0x00ffffff) - 1);
@@ -717,6 +762,10 @@ void MEMBUS::update_bios()
 	#elif defined(SUPPORT_24BIT_ADDRESS)
 	unset_memory_rw(0x00f00000, UPPER_MEMORY_24BIT - 1);
 	copy_table_rw(UPPER_MEMORY_24BIT, UPPER_MEMORY_24BIT & 0x000fffff, 0x000fffff);
+	#if !defined(SUPPORT_HIRESO)
+	copy_table_rw(0x00ee8000, 0x000e8000, 0x000fffff);
+	copy_table_rw(0x00fe8000, 0x000e8000, 0x000fffff);
+	#endif
 	#endif
 #endif
 }
@@ -798,7 +847,7 @@ void MEMBUS::update_nec_ems()
 #endif
 
 
-#define STATE_VERSION	10
+#define STATE_VERSION	11
 
 bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 {
@@ -839,6 +888,8 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
  #if defined(SUPPORT_NEC_EMS)
 	state_fio->StateArray(nec_ems, sizeof(nec_ems), 1);
 	state_fio->StateValue(nec_ems_selected);
+	state_fio->StateValue(use_ems_as_protected);
+	state_fio->StateValue(ems_protected_base);
  #endif
  #endif
  #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)

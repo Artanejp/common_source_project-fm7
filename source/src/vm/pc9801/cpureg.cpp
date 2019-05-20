@@ -13,16 +13,14 @@
 
 #include "cpureg.h"
 #include "membus.h"
-#if defined(SUPPORT_32BIT_ADDRESS)
-#include "../i386.h"
-#else
-#include "../i286.h"
-#endif
 #include "../i8255.h"
 
 #define EVENT_WAIT 1
 
 namespace PC9801 {
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+#define UPPER_I386 1
+#endif
 
 void CPUREG::reset()
 {
@@ -101,12 +99,15 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 		d_cpu->set_address_mask(0x00ffffff);
 #endif
 		break;
-#if defined(SUPPORT_32BIT_ADDRESS)
+#if defined(UPPER_I386)
 	case 0x00f6:
 		switch(data) {
 		case 0x02:
+#if defined(SUPPORT_32BIT_ADDRESS)
 			d_cpu->set_address_mask(0xffffffff);
-//			d_cpu->set_address_mask(0x00ffffff);
+#else
+			d_cpu->set_address_mask(0x00ffffff);
+#endif
 			break;
 		case 0x03:
 			d_cpu->set_address_mask(0x000fffff);
@@ -194,7 +195,7 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 		break;
 	case 0x00f4: // ToDo: DMA SPEED (after 9801DA)
 		break;
-#if defined(SUPPORT_32BIT_ADDRESS)
+#if defined(UPPER_I386)
 	case 0x00f6:
 		value  = ((d_cpu->get_address_mask() & (1 << 20)) != 0) ? 0x00 : 0x01;
 #if defined(SUPPORT_HIRESO) && !defined(_PC98RL)

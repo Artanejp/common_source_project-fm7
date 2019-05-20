@@ -172,62 +172,65 @@ bool BIOS::bios_call_far_ia32(uint32_t PC, uint32_t regs[], uint16_t sregs[], in
 	// Check ADDRESS: This pseudo-bios acts only $fffc4 ($1B) or $00ffffc4: 
 	if((PC != 0xfffc4) && (PC != 0x00ffffc4)) return false; // INT 1Bh
 	static const int elapsed_cycle = 200; // From NP2 0.86+trunk/ OK?
-#if 0		
+#if 1		
 
 	/*	if((((AL & 0xf0) != 0x00) && ((AL & 0xf0) != 0x80))) */	{
-	uint8_t seg = d_mem->read_data8(0x004b0 + (AL >> 4));
-	uint32_t sp, ss;	
-	if ((seg != 0) && ((seg >= 0xd8) && (seg < 0xd7))) {
+		uint8_t seg = d_mem->read_data8(0x004b0 + (AL >> 4));
+		uint32_t sp, ss;	
+		if ((seg != 0)) {
+			if(seg == 0xd7) goto __next; // To Pseudo SASI BIOS.
 #ifdef _PSEUDO_BIOS_DEBUG
-	this->out_debug_log(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
+			this->out_debug_log(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
 #endif
-				sp = ESP;
-				ss = (uint32_t)SS;
-				ss = ss << 4;
-				ss = ss & 0xfffff0;
-//#ifdef _PSEUDO_BIOS_DEBUG
-				out_debug_log("call by %.4x:%.4x",
-							   d_mem->read_data16(ss + sp + 2),
-							   d_mem->read_data16(ss + sp + 0));
-				out_debug_log("bypass to %.4x:0018", seg << 8);
-				out_debug_log("From AX=%04x BX=%04x %02x:%02x:%02x:%02x ES=%04x BP=%04x",
-							AX, BX, CL, DH, DL, CH,
-							ES, BP);
-//#endif
-				d_mem->write_data16(ss + sp - 2, DS);
-				d_mem->write_data16(ss + sp - 4, SI);
-				d_mem->write_data16(ss + sp - 6, DI);
-				d_mem->write_data16(ss + sp - 8, ES);
-				d_mem->write_data16(ss + sp - 10, BP);
-				d_mem->write_data16(ss + sp - 12, DX);
-				d_mem->write_data16(ss + sp - 14, CX);
-				d_mem->write_data16(ss + sp - 16, BX);
-				d_mem->write_data16(ss + sp - 18, AX);
-				
-				sp = sp - 18;
-				ESP = sp;
-				EBP = sp;
-				DS = 0x0000;
-				LOAD_BX(0x04b0);
-				LOAD_AX(((uint16_t)seg) << 8);
-				CS = ((uint16_t)seg) << 8;
-				IP_L = 0x0018;
-				IP_H = 0x0000;
-				if(cycles != NULL) {
-					*cycles -= elapsed_cycle;
-				}
-				if(total_cycles != NULL) {
-					*total_cycles += (uint64_t)elapsed_cycle;
-				}
+			// ToDo: 32bit protected mode.
+			sp = SP;
+			ss = (uint32_t)SS;
+			ss = ss << 4;
+			ss = ss & 0xfffff0;
 #ifdef _PSEUDO_BIOS_DEBUG
-				out_debug_log("To AX=%04x BX=%04x %02x:%02x:%02x:%02x ES=%04x BP=%04x",
-							AX, BX, CL, DH, DL, CH,
-							ES, BP);
+			out_debug_log("call by %.4x:%.4x",
+						  d_mem->read_data16(ss + sp + 2),
+						  d_mem->read_data16(ss + sp + 0));
+			out_debug_log("bypass to %.4x:0018", seg << 8);
+			out_debug_log("From AX=%04x BX=%04x %02x:%02x:%02x:%02x ES=%04x BP=%04x",
+						  AX, BX, CL, DH, DL, CH,
+						  ES, BP);
 #endif
-				return true;
+			d_mem->write_data16(ss + sp - 2, DS);
+			d_mem->write_data16(ss + sp - 4, SI);
+			d_mem->write_data16(ss + sp - 6, DI);
+			d_mem->write_data16(ss + sp - 8, ES);
+			d_mem->write_data16(ss + sp - 10, BP);
+			d_mem->write_data16(ss + sp - 12, DX);
+			d_mem->write_data16(ss + sp - 14, CX);
+			d_mem->write_data16(ss + sp - 16, BX);
+			d_mem->write_data16(ss + sp - 18, AX);
+			
+			sp = sp - 18;
+			LOAD_SP(sp);
+			LOAD_BP(sp);
+			DS = 0x0000;
+			LOAD_BX(0x04b0);
+			LOAD_AX(((uint16_t)seg) << 8);
+			CS = ((uint16_t)seg) << 8;
+			IP_L = 0x0018;
+			IP_H = 0x0000;
+			if(cycles != NULL) {
+				*cycles -= elapsed_cycle;
 			}
-		}
+			if(total_cycles != NULL) {
+				*total_cycles += (uint64_t)elapsed_cycle;
+			}
+#ifdef _PSEUDO_BIOS_DEBUG
+			out_debug_log("To AX=%04x BX=%04x %02x:%02x:%02x:%02x ES=%04x BP=%04x",
+						  AX, BX, CL, DH, DL, CH,
+						  ES, BP);
 #endif
+			return true;
+		}
+	}
+#endif
+__next:
 	// FUNC $1B: If FLOPPY, return (MAY USE STANDARD IPL).
 	uint16_t backup_ax = AX;
 	uint16_t backup_bx = BX;

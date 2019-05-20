@@ -125,6 +125,7 @@
 //	#define CPU_CLOCKS		15974496
 //	#define PIT_CLOCK_8MHZ
 	#define USE_CPU_TYPE		2
+	#define SUPPORT_24BIT_ADDRESS
 #else
 	// unknown machines
 #endif
@@ -191,7 +192,7 @@
 		#define SUPPORT_EGC
 		#define HAS_UPD4990A
 	#endif
-	#if !defined(SUPPORT_HIRESO) && !defined(SUPPORT_32BIT_ADDRESS)
+	#if !defined(SUPPORT_HIRESO) /*&& !(defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)) *//*&& !defined(SUPPORT_32BIT_ADDRESS)*/
 		#define SUPPORT_NEC_EMS
 	#endif
 	#define SUPPORT_SASI_IF
@@ -200,7 +201,7 @@
 #if defined(HAS_I286)
 	#define SUPPORT_24BIT_ADDRESS
 #elif defined(HAS_I386) || defined(HAS_I486)
-	#define SUPPORT_32BIT_ADDRESS
+//	#define SUPPORT_32BIT_ADDRESS
 	#if !defined(SUPPORT_HIRESO)
 	#define SUPPORT_BIOS_RAM
 	#endif

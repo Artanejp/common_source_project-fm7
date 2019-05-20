@@ -768,7 +768,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x00f0, cpureg);
 	io->set_iomap_single_rw(0x00f2, cpureg);
 #endif
-#if defined(SUPPORT_32BIT_ADDRESS)
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
 	io->set_iomap_single_rw(0x00f6, cpureg);
 #endif
 	
@@ -821,9 +821,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	io->set_iomap_single_r(0x0567, memory);
 #endif
-#if defined(SUPPORT_32BIT_ADDRESS)
+
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
 	io->set_iomap_single_w(0x053d, memory);
 #endif
+#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && defined(SUPPORT_NEC_EMS)
+	io->set_iomap_single_w(0x08e9, memory);
+#endif	
 	
 #if !(defined(_PC9801) || defined(_PC9801E) || defined(SUPPORT_HIRESO))
 	io->set_iomap_alias_rw(0x3fd9, pit, 0);

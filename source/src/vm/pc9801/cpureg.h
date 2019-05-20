@@ -21,7 +21,7 @@
 #define SIG_CPUREG_RESET 1
 #define SIG_CPUREG_HALT  2
 
-#if defined(SUPPORT_32BIT_ADDRESS)
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
 #include "../i386.h"
 #else
 #include "../i286.h"
@@ -34,7 +34,7 @@ namespace PC9801 {
 class CPUREG : public DEVICE
 {
 private:
-#if defined(SUPPORT_32BIT_ADDRESS)
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
 	I386 *d_cpu;
 #else
 	I286 *d_cpu;
@@ -70,7 +70,7 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
-#if defined(SUPPORT_32BIT_ADDRESS)
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
 	void set_context_cpu(I386* device)
 #else
 	void set_context_cpu(I286* device)

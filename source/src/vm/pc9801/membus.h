@@ -25,8 +25,12 @@
 namespace PC9801 {
 	class DISPLAY;
 }
-#if defined(SUPPORT_32BIT_ADDRESS)
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+	#if defined(SUPPORT_32BIT_ADDRESS)
+	#define RAM_SIZE	0x1000000	// 16MB
+	#elif defined(SUPPORT_24BIT_ADDRESS)
 	#define RAM_SIZE	0x800000	// 8MB
+	#endif
 #elif defined(SUPPORT_24BIT_ADDRESS)
 	#define RAM_SIZE	0x400000	// 4MB
 #else
@@ -106,6 +110,8 @@ private:
 	uint8_t nec_ems[0x10000];
 	bool nec_ems_selected;
 	void update_nec_ems();
+	bool use_ems_as_protected;
+	uint32_t ems_protected_base;
 #endif
 
 	bool page08_intram_selected;

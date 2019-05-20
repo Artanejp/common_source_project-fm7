@@ -59,7 +59,7 @@ void DMAREG::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 #endif
-#if defined(SUPPORT_32BIT_ADDRESS)
+#if defined(SUPPORT_32BIT_ADDRESS) 
 	case 0x0e05:
 	case 0x0e07:
 	case 0x0e09:
