@@ -19,9 +19,7 @@
 #ifndef DOSBOX_MEM_H
 #define DOSBOX_MEM_H
 
-#ifndef DOSBOX_DOSBOX_H
-#include "dosbox.h"
-#endif
+#include "../types_compat.h"
 
 typedef Bit32u PhysPt;
 typedef Bit8u * HostPt;
@@ -30,6 +28,8 @@ typedef Bit32u RealPt;
 typedef Bit32s MemHandle;
 
 #define MEM_PAGESIZE 4096
+
+namespace DOSBOX_I386 {
 
 extern HostPt MemBase;
 HostPt GetMemBase(void);
@@ -60,6 +60,7 @@ MemHandle MEM_NextHandleAt(MemHandle handle,Bitu where);
 #if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)
 
 static INLINE Bit8u host_readb(HostPt off) {
+	
 	return off[0];
 }
 static INLINE Bit16u host_readw(HostPt off) {
@@ -214,6 +215,7 @@ static INLINE void RealSetVec(Bit8u vec,RealPt pt,RealPt &old) {
 static INLINE RealPt RealGetVec(Bit8u vec) {
 	return mem_readd(vec<<2);
 }	
+};
 
 #endif
 

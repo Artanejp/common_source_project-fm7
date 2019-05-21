@@ -31,6 +31,62 @@
 #include "lazyflags.h"
 #include "support.h"
 
+
+
+Bitu TaskStateSegment::Get_back(void) {
+	d_cpu->cpu.mpl=0;
+	Bit16u backlink = d_cpu->mem_readw(base);
+	d_cpu->cpu.mpl=3;
+	return backlink;
+}
+void TaskStateSegment::SaveSelector(void)
+{
+	d_cpu->gdt.SetDescriptor(selector,desc);
+}
+
+void TaskStateSegment::Get_SSx_ESPx(Bitu level,Bitu & _ss,Bitu & _esp) {
+	d_cpu->cpu.mpl=0;
+	if (is386) {
+		PhysPt where = base+ offsetof(TSS_32,esp0)+level*8;
+		_esp = d_cpu->mem_readd(where);
+		_ss = d_cpu->mem_readw(where+4);
+	} else {
+		PhysPt where=base+offsetof(TSS_16,sp0)+level*4;
+		_esp = d_cpu->mem_readw(where);
+		_ss = d_cpu->mem_readw(where+2);
+	}
+	d_cpu->cpu.mpl=3;
+}
+
+bool TaskStateSegment::SetSelector(Bitu new_sel)
+{
+	valid=false;
+	if ((new_sel & 0xfffc)==0) {
+		selector=0;
+		base=0;
+		limit=0;
+		is386=1;
+		return true;
+	}
+	if (new_sel&4) return false;
+	if (!d_cpu->cpu.gdt.GetDescriptor(new_sel,desc)) return false;
+	switch (desc.Type()) {
+	case DESC_286_TSS_A:		case DESC_286_TSS_B:
+	case DESC_386_TSS_A:		case DESC_386_TSS_B:
+		break;
+	default:
+		return false;
+	}
+	if (!desc.saved.seg.p) return false;
+	selector = new_sel;
+	valid=true;
+	base = desc.GetBase();
+	limit = desc.GetLimit();
+	is386 = desc.Is386();
+	return true;
+}
+
+namespace I386_DOSBOX {
 Bitu DEBUG_EnableDebugger(void);
 extern void GFX_SetTitle(Bit32s cycles ,Bits frameskip,bool paused);
 
@@ -44,43 +100,7 @@ extern void GFX_SetTitle(Bit32s cycles ,Bits frameskip,bool paused);
 #endif
 #endif
 
-CPU_Regs cpu_regs;
-CPUBlock cpu;
-Segments Segs;
 
-Bit32s CPU_Cycles = 0;
-Bit32s CPU_CycleLeft = 3000;
-Bit32s CPU_CycleMax = 3000;
-Bit32s CPU_OldCycleMax = 3000;
-Bit32s CPU_CyclePercUsed = 100;
-Bit32s CPU_CycleLimit = -1;
-Bit32s CPU_CycleUp = 0;
-Bit32s CPU_CycleDown = 0;
-Bit64s CPU_IODelayRemoved = 0;
-CPU_Decoder * cpudecoder;
-bool CPU_CycleAutoAdjust = false;
-bool CPU_SkipCycleAutoAdjust = false;
-Bitu CPU_AutoDetermineMode = 0;
-
-Bitu CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
-
-Bitu CPU_extflags_toggle=0;	// ID and AC flags may be toggled depending on emulated CPU architecture
-
-Bitu CPU_PrefetchQueueSize=0;
-
-void CPU_Core_Full_Init(void);
-void CPU_Core_Normal_Init(void);
-void CPU_Core_Simple_Init(void);
-#if (C_DYNAMIC_X86)
-void CPU_Core_Dyn_X86_Init(void);
-void CPU_Core_Dyn_X86_Cache_Init(bool enable_cache);
-void CPU_Core_Dyn_X86_Cache_Close(void);
-void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
-#elif (C_DYNREC)
-void CPU_Core_Dynrec_Init(void);
-void CPU_Core_Dynrec_Cache_Init(bool enable_cache);
-void CPU_Core_Dynrec_Cache_Close(void);
-#endif
 
 /* In debug mode exceptions are tested and dosbox exits when 
  * a unhandled exception state is detected. 
@@ -270,73 +290,6 @@ void CPU_CheckSegments(void) {
 	if (needs_invalidation) CPU_SetSegGeneral(gs,0);
 }
 
-
-class TaskStateSegment {
-public:
-	TaskStateSegment() {
-		valid=false;
-	}
-	bool IsValid(void) {
-		return valid;
-	}
-	Bitu Get_back(void) {
-		cpu.mpl=0;
-		Bit16u backlink=mem_readw(base);
-		cpu.mpl=3;
-		return backlink;
-	}
-	void SaveSelector(void) {
-		cpu.gdt.SetDescriptor(selector,desc);
-	}
-	void Get_SSx_ESPx(Bitu level,Bitu & _ss,Bitu & _esp) {
-		cpu.mpl=0;
-		if (is386) {
-			PhysPt where=base+offsetof(TSS_32,esp0)+level*8;
-			_esp=mem_readd(where);
-			_ss=mem_readw(where+4);
-		} else {
-			PhysPt where=base+offsetof(TSS_16,sp0)+level*4;
-			_esp=mem_readw(where);
-			_ss=mem_readw(where+2);
-		}
-		cpu.mpl=3;
-	}
-	bool SetSelector(Bitu new_sel) {
-		valid=false;
-		if ((new_sel & 0xfffc)==0) {
-			selector=0;
-			base=0;
-			limit=0;
-			is386=1;
-			return true;
-		}
-		if (new_sel&4) return false;
-		if (!cpu.gdt.GetDescriptor(new_sel,desc)) return false;
-		switch (desc.Type()) {
-			case DESC_286_TSS_A:		case DESC_286_TSS_B:
-			case DESC_386_TSS_A:		case DESC_386_TSS_B:
-				break;
-			default:
-				return false;
-		}
-		if (!desc.saved.seg.p) return false;
-		selector=new_sel;
-		valid=true;
-		base=desc.GetBase();
-		limit=desc.GetLimit();
-		is386=desc.Is386();
-		return true;
-	}
-	TSS_Descriptor desc;
-	Bitu selector;
-	PhysPt base;
-	Bitu limit;
-	Bitu is386;
-	bool valid;
-};
-
-TaskStateSegment cpu_tss;
-
 enum TSwitchType {
 	TSwitch_JMP,TSwitch_CALL_INT,TSwitch_IRET
 };
@@ -344,6 +297,7 @@ enum TSwitchType {
 bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip) {
 	FillFlags();
 	TaskStateSegment new_tss;
+	new_tss.SetCpuDomain(this);
 	if (!new_tss.SetSelector(new_tss_selector)) 
 		E_Exit("Illegal TSS for switch, selector=%x, switchtype=%x",new_tss_selector,tstype);
 	if (tstype==TSwitch_IRET) {
@@ -2163,15 +2117,13 @@ void CPU_Disable_SkipAutoAdjust(void) {
 }
 
 
-extern Bit32s ticksDone;
-extern Bit32u ticksScheduled;
 
 void CPU_Reset_AutoAdjust(void) {
 	CPU_IODelayRemoved = 0;
 	ticksDone = 0;
 	ticksScheduled = 0;
 }
-
+#if 0
 class CPU: public Module_base {
 private:
 	static bool inited;
@@ -2407,21 +2359,21 @@ public:
 	}
 	~CPU(){ /* empty */};
 };
-	
-static CPU * test;
+#endif	
+//static CPU * test;
 
-void CPU_ShutDown(Section* sec) {
-#if (C_DYNAMIC_X86)
-	CPU_Core_Dyn_X86_Cache_Close();
-#elif (C_DYNREC)
-	CPU_Core_Dynrec_Cache_Close();
-#endif
-	delete test;
-}
+//void CPU_ShutDown(Section* sec) {
+//#if (C_DYNAMIC_X86)
+//	CPU_Core_Dyn_X86_Cache_Close();
+//#elif (C_DYNREC)
+//	CPU_Core_Dynrec_Cache_Close();
+//#endif
+//	delete test;
+//}
 
-void CPU_Init(Section* sec) {
-	test = new CPU(sec);
-	sec->AddDestroyFunction(&CPU_ShutDown,true);
+//void CPU_Init(Section* sec) {
+//	test = new CPU(sec);
+//	sec->AddDestroyFunction(&CPU_ShutDown,true);
+//}
+
 }
-//initialize static members
-bool CPU::inited=false;

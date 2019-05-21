@@ -15,9 +15,9 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-
+#pragma once
 /* Jumps */
-
+namespace I386_DOSBOX {
 /* All Byte general instructions */
 #define ADDB(op1,op2,load,save)								\
 	lf_var1b=load(op1);lf_var2b=op2;					\
@@ -961,3 +961,5 @@
 
 #define BSWAPD(op1)														\
 	op1 = (op1>>24)|((op1>>8)&0xFF00)|((op1<<8)&0xFF0000)|((op1<<24)&0xFF000000);
+
+};

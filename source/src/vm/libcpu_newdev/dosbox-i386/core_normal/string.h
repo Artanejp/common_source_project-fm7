@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+namespace I386_DOSBOX {
 enum STRING_OP {
 	R_OUTSB,R_OUTSW,R_OUTSD,
 	R_INSB,R_INSW,R_INSD,
@@ -255,3 +256,5 @@ static void DoString(STRING_OP type) {
 		reg_ecx|=(count & add_mask);
 	}
 }
+
+};

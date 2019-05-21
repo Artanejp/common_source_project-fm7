@@ -19,31 +19,7 @@
 #ifndef DOSBOX_LAZYFLAGS_H
 #define DOSBOX_LAZYFLAGS_H
 
-//Flag Handling
-Bit32u get_CF(void);
-Bit32u get_AF(void);
-Bit32u get_ZF(void);
-Bit32u get_SF(void);
-Bit32u get_OF(void);
-Bit32u get_PF(void);
-
-Bitu FillFlags(void);
-void FillFlagsNoCFOF(void);
-void DestroyConditionFlags(void);
-
-#ifndef DOSBOX_REGS_H
-#include "regs.h"
-#endif
-
-struct LazyFlags {
-    GenReg32 var1,var2,res;
-	Bitu type;
-	Bitu prev_type;
-	Bitu oldcf;
-};
-
-extern LazyFlags lfags;
-
+namespace I386_DOSBOX {
 #define lf_var1b lflags.var1.byte[BL_INDEX]
 #define lf_var2b lflags.var2.byte[BL_INDEX]
 #define lf_resb lflags.res.byte[BL_INDEX]
@@ -56,8 +32,6 @@ extern LazyFlags lfags;
 #define lf_var2d lflags.var2.dword[DW_INDEX]
 #define lf_resd lflags.res.dword[DW_INDEX]
 
-
-extern LazyFlags lflags;
 
 #define SETFLAGSb(FLAGB)													\
 {																			\
@@ -131,4 +105,5 @@ enum {
 	t_LASTFLAG
 };
 
+};
 #endif

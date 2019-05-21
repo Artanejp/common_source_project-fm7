@@ -475,14 +475,14 @@ struct CPUBlock {
 	Bit32u trx[8];
 };
 
-extern CPUBlock cpu;
+//extern CPUBlock cpu;
 
-static INLINE void CPU_SetFlagsd(Bitu word) {
+INLINE void I386_DOSBOX::CPU_SetFlagsd(Bitu word) {
 	Bitu mask=cpu.cpl ? FMASK_NORMAL : FMASK_ALL;
 	CPU_SetFlags(word,mask);
 }
 
-static INLINE void CPU_SetFlagsw(Bitu word) {
+INLINE void I386_DOSBOX::CPU_SetFlagsw(Bitu word) {
 	Bitu mask=(cpu.cpl ? FMASK_NORMAL : FMASK_ALL) & 0xffff;
 	CPU_SetFlags(word,mask);
 }

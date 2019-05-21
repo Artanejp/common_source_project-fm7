@@ -16,21 +16,23 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include <stdio.h>
+#include "device.h"
+#include "./types_compat.h"
+//#include <stdio.h>
 
-#include "dosbox.h"
-#include "mem.h"
+//#include "dosbox.h"
+//#include "mem.h"
 #include "cpu.h"
 #include "lazyflags.h"
-#include "inout.h"
-#include "callback.h"
-#include "pic.h"
+//#include "inout.h"
+//#include "callback.h"
+//#include "pic.h"
 #include "fpu.h"
 #include "paging.h"
 
-#if C_DEBUG
-#include "debug.h"
-#endif
+//#if C_DEBUG
+//#include "debug.h"
+//#endif
 
 #if (!C_CORE_INLINE)
 #define LoadMb(off) mem_readb(off)

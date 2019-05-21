@@ -21,12 +21,12 @@
 	Probably still some bugs left in here.
 */
 
-#include "dosbox.h"
+//#include "dosbox.h"
 #include "cpu.h"
-#include "lazyflags.h"
+#include "./lazyflags.h"
 #include "pic.h"
 
-LazyFlags lflags;
+namespace I386_DOSBOX {
 
 /* CF     Carry Flag -- Set on high-order bit carry or borrow; cleared
           otherwise.
@@ -1186,3 +1186,4 @@ void DestroyConditionFlags(void) {
 }
 
 #endif
+};

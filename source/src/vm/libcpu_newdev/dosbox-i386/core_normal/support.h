@@ -15,7 +15,8 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-
+#pragma once
+namespace I386_DOSBOX {
 
 #define LoadMbs(off) (Bit8s)(LoadMb(off))
 #define LoadMws(off) (Bit16s)(LoadMw(off))
@@ -88,6 +89,7 @@ static INLINE Bit32s Fetchds() {
 		if (rm >= 0xc0 ) {GetEArb;*earb=(cc) ? 1 : 0;}		\
 		else {GetEAa;SaveMb(eaa,(cc) ? 1 : 0);}				\
 	}
+};
 
 #include "helpers.h"
 #include "table_ea.h"

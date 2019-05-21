@@ -23,18 +23,14 @@
 
 #include "dosbox.h"
 #include "mem.h"
-#include "paging.h"
-#include "regs.h"
-#include "lazyflags.h"
-#include "cpu.h"
-#include "debug.h"
-#include "setup.h"
+#include "./include/paging.h"
+#include "./include/regs.h"
+#include "./lazyflags.h"
+#include "./include/cpu.h"
+//#include "debug.h"
+//#include "setup.h"
 
-#define LINK_TOTAL		(64*1024)
-
-#define USERWRITE_PROHIBITED			((cpu.cpl&cpu.mpl)==3)
-
-
+namespace I386_DOSBOX {
 PagingBlock paging;
 
 
@@ -98,32 +94,18 @@ bool PageHandler::writed_checked(PhysPt addr,Bitu val) {
 }
 
 
-
-struct PF_Entry {
-	Bitu cs;
-	Bitu eip;
-	Bitu page_addr;
-	Bitu mpl;
-};
-
-#define PF_QUEUESIZE 16
-static struct {
-	Bitu used;
-	PF_Entry entries[PF_QUEUESIZE];
-} pf_queue;
-
-static Bits PageFaultCore(void) {
-	CPU_CycleLeft+=CPU_Cycles;
-	CPU_Cycles=1;
-	Bits ret=CPU_Core_Full_Run();
-	CPU_CycleLeft+=CPU_Cycles;
+Bits PageHandler::PageFaultCore(void) {
+	d_parent->CPU_CycleLeft += d_parent->CPU_Cycles;
+	d_parent->CPU_Cycles=1;
+	Bits ret= d_parent->CPU_Core_Full_Run();
+	d_parent->CPU_CycleLeft += d_parent->CPU_Cycles;
 	if (ret<0) E_Exit("Got a dosbox close machine in pagefault core?");
 	if (ret) 
 		return ret;
 	if (!pf_queue.used) E_Exit("PF Core without PF");
-	PF_Entry * entry=&pf_queue.entries[pf_queue.used-1];
+	PF_Entry * entry=&(d_parent->pf_queue.entries[pf_queue.used-1]);
 	X86PageEntry pentry;
-	pentry.load=phys_readd(entry->page_addr);
+	pentry.load = phys_readd(entry->page_addr);
 	if (pentry.block.p && entry->cs == SegValue(cs) && entry->eip==reg_eip) {
 		cpu.mpl=entry->mpl;
 		return -1;
@@ -136,7 +118,7 @@ Bitu DEBUG_EnableDebugger(void);
 
 bool first=false;
 
-void PAGING_PageFault(PhysPt lin_addr,Bitu page_addr,Bitu faultcode) {
+void PageHandler::PAGING_PageFault(PhysPt lin_addr,Bitu page_addr,Bitu faultcode) {
 	/* Save the state of the cpu cores */
 	LazyFlags old_lflags;
 	memcpy(&old_lflags,&lflags,sizeof(LazyFlags));
@@ -166,7 +148,7 @@ void PAGING_PageFault(PhysPt lin_addr,Bitu page_addr,Bitu faultcode) {
 //	LOG_MSG("SS:%04x SP:%08X",SegValue(ss),reg_esp);
 }
 
-static INLINE void InitPageUpdateLink(Bitu relink,PhysPt addr) {
+INLINE void PageHandler::InitPageUpdateLink(Bitu relink,PhysPt addr) {
 	if (relink==0) return;
 	if (paging.links.used) {
 		if (paging.links.entries[paging.links.used-1]==(addr>>12)) {
@@ -177,7 +159,7 @@ static INLINE void InitPageUpdateLink(Bitu relink,PhysPt addr) {
 	if (relink>1) PAGING_LinkPage_ReadOnly(addr>>12,relink);
 }
 
-static INLINE void InitPageCheckPresence(PhysPt lin_addr,bool writing,X86PageEntry& table,X86PageEntry& entry) {
+INLINE void PageHandler::InitPageCheckPresence(PhysPt lin_addr,bool writing,X86PageEntry& table,X86PageEntry& entry) {
 	Bitu lin_page=lin_addr >> 12;
 	Bitu d_index=lin_page >> 10;
 	Bitu t_index=lin_page & 0x3ff;
@@ -203,7 +185,7 @@ static INLINE void InitPageCheckPresence(PhysPt lin_addr,bool writing,X86PageEnt
 	}
 }
 			
-static INLINE bool InitPageCheckPresence_CheckOnly(PhysPt lin_addr,bool writing,X86PageEntry& table,X86PageEntry& entry) {
+INLINE bool PageHandler::InitPageCheckPresence_CheckOnly(PhysPt lin_addr,bool writing,X86PageEntry& table,X86PageEntry& entry) {
 	Bitu lin_page=lin_addr >> 12;
 	Bitu d_index=lin_page >> 10;
 	Bitu t_index=lin_page & 0x3ff;
@@ -227,7 +209,7 @@ static INLINE bool InitPageCheckPresence_CheckOnly(PhysPt lin_addr,bool writing,
 }
 
 // check if a user-level memory access would trigger a privilege page fault
-static INLINE bool InitPage_CheckUseraccess(Bitu u1,Bitu u2) {
+INLINE bool PageHandler::InitPage_CheckUseraccess(Bitu u1,Bitu u2) {
 	switch (CPU_ArchitectureType) {
 	case CPU_ARCHTYPE_MIXED:
 	case CPU_ARCHTYPE_386SLOW:
@@ -244,75 +226,76 @@ static INLINE bool InitPage_CheckUseraccess(Bitu u1,Bitu u2) {
 
 class InitPageHandler : public PageHandler {
 public:
-	InitPageHandler() {
+	InitPageHandler(DEVICE* parent) : PageHandler(parent)
+	{
 		flags=PFLAG_INIT|PFLAG_NOCODE;
 	}
 	Bitu readb(PhysPt addr) {
 		Bitu needs_reset=InitPage(addr,false);
-		Bit8u val=mem_readb(addr);
+		Bit8u val=d_dev->read_data8(addr);
 		InitPageUpdateLink(needs_reset,addr);
 		return val;
 	}
 	Bitu readw(PhysPt addr) {
 		Bitu needs_reset=InitPage(addr,false);
-		Bit16u val=mem_readw(addr);
+		Bit16u val=d_dev->read_data16(addr);
 		InitPageUpdateLink(needs_reset,addr);
 		return val;
 	}
 	Bitu readd(PhysPt addr) {
 		Bitu needs_reset=InitPage(addr,false);
-		Bit32u val=mem_readd(addr);
+		Bit32u val=d_dev->read_data32(addr);
 		InitPageUpdateLink(needs_reset,addr);
 		return val;
 	}
 	void writeb(PhysPt addr,Bitu val) {
 		Bitu needs_reset=InitPage(addr,true);
-		mem_writeb(addr,val);
+		d_dev->write_data8(addr, val);
 		InitPageUpdateLink(needs_reset,addr);
 	}
 	void writew(PhysPt addr,Bitu val) {
 		Bitu needs_reset=InitPage(addr,true);
-		mem_writew(addr,val);
+		d_dev->write_data16(addr, val);
 		InitPageUpdateLink(needs_reset,addr);
 	}
 	void writed(PhysPt addr,Bitu val) {
 		Bitu needs_reset=InitPage(addr,true);
-		mem_writed(addr,val);
+		d_dev->write_data32(addr, val);
 		InitPageUpdateLink(needs_reset,addr);
 	}
 	bool readb_checked(PhysPt addr, Bit8u * val) {
 		if (InitPageCheckOnly(addr,false)) {
-			*val=mem_readb(addr);
+			*val=d_dev->read_data8(addr);
 			return false;
 		} else return true;
 	}
 	bool readw_checked(PhysPt addr, Bit16u * val) {
 		if (InitPageCheckOnly(addr,false)){
-			*val=mem_readw(addr);
+			*val=d_dev->read_data16(addr);
 			return false;
 		} else return true;
 	}
 	bool readd_checked(PhysPt addr, Bit32u * val) {
 		if (InitPageCheckOnly(addr,false)) {
-			*val=mem_readd(addr);
+			*val=d_dev->read_data32(addr);
 			return false;
 		} else return true;
 	}
 	bool writeb_checked(PhysPt addr,Bitu val) {
 		if (InitPageCheckOnly(addr,true)) {
-			mem_writeb(addr,val);
+			d_dev->write_data8(addr, val);
 			return false;
 		} else return true;
 	}
 	bool writew_checked(PhysPt addr,Bitu val) {
 		if (InitPageCheckOnly(addr,true)) {
-			mem_writew(addr,val);
+			d_dev->write_data16(addr, val);
 			return false;
 		} else return true;
 	}
 	bool writed_checked(PhysPt addr,Bitu val) {
 		if (InitPageCheckOnly(addr,true)) {
-			mem_writed(addr,val);
+			d_dev->write_data32(addr, val);
 			return false;
 		} else return true;
 	}
@@ -473,20 +456,21 @@ public:
 
 class InitPageUserROHandler : public PageHandler {
 public:
-	InitPageUserROHandler() {
+	InitPageUserROHandler(DEVICE* parent) : PageHandler(parent)
+	{
 		flags=PFLAG_INIT|PFLAG_NOCODE;
 	}
 	void writeb(PhysPt addr,Bitu val) {
 		InitPage(addr,(Bit8u)(val&0xff));
-		host_writeb(get_tlb_read(addr)+addr,(Bit8u)(val&0xff));
+		d_dev->write_data8(get_tlb_read(addr)+addr,(Bit8u)(val&0xff));
 	}
 	void writew(PhysPt addr,Bitu val) {
 		InitPage(addr,(Bit16u)(val&0xffff));
-		host_writew(get_tlb_read(addr)+addr,(Bit16u)(val&0xffff));
+		d_dev->write_data16(get_tlb_read(addr)+addr,(Bit16u)(val&0xffff));
 	}
 	void writed(PhysPt addr,Bitu val) {
 		InitPage(addr,(Bit32u)val);
-		host_writed(get_tlb_read(addr)+addr,(Bit32u)val);
+		d_dev->write_data32(get_tlb_read(addr)+addr,(Bit32u)val);
 	}
 	bool writeb_checked(PhysPt addr,Bitu val) {
 		Bitu writecode=InitPageCheckOnly(addr,(Bit8u)(val&0xff));
@@ -494,7 +478,7 @@ public:
 			HostPt tlb_addr;
 			if (writecode>1) tlb_addr=get_tlb_read(addr);
 			else tlb_addr=get_tlb_write(addr);
-			host_writeb(tlb_addr+addr,(Bit8u)(val&0xff));
+			d_dev->write_data8(tlb_addr+addr,(Bit8u)(val&0xff));
 			return false;
 		}
 		return true;
@@ -505,7 +489,7 @@ public:
 			HostPt tlb_addr;
 			if (writecode>1) tlb_addr=get_tlb_read(addr);
 			else tlb_addr=get_tlb_write(addr);
-			host_writew(tlb_addr+addr,(Bit16u)(val&0xffff));
+			d_dev->write_data16(tlb_addr+addr,(Bit16u)(val&0xffff));
 			return false;
 		}
 		return true;
@@ -516,7 +500,7 @@ public:
 			HostPt tlb_addr;
 			if (writecode>1) tlb_addr=get_tlb_read(addr);
 			else tlb_addr=get_tlb_write(addr);
-			host_writed(tlb_addr+addr,(Bit32u)val);
+			d_dev->write_data32(tlb_addr+addr,(Bit32u)val);
 			return false;
 		}
 		return true;
@@ -644,6 +628,9 @@ bool PAGING_ForcePageInit(Bitu lin_addr) {
 }
 
 #if defined(USE_FULL_TLB)
+INLINE void InitTLBInt(tlb_entry *bank) {
+}
+
 void PAGING_InitTLB(void) {
 	for (Bitu i=0;i<TLB_SIZE;i++) {
 		paging.tlb.read[i]=0;
@@ -733,7 +720,7 @@ void PAGING_LinkPage_ReadOnly(Bitu lin_page,Bitu phys_page) {
 
 #else
 
-static INLINE void InitTLBInt(tlb_entry *bank) {
+INLINE void InitTLBInt(tlb_entry *bank) {
  	for (Bitu i=0;i<TLB_SIZE;i++) {
 		bank[i].read=0;
 		bank[i].write=0;
@@ -869,22 +856,28 @@ bool PAGING_Enabled(void) {
 	return paging.enabled;
 }
 
-class PAGING:public Module_base{
+class PAGING:public MinimumSkelton{
+	I386_DOSBOX *d_parent;
 public:
-	PAGING(Section* configuration):Module_base(configuration){
+	PAGING(DEVICE* parent): MinimumSkelton(parent){
 		/* Setup default Page Directory, force it to update */
-		paging.enabled=false;
-		PAGING_InitTLB();
+		d_parent = static_cast<I386_DOSBOX *>(parent);
+		
+		d_parent->paging.enabled=false;
+		d_parent->PAGING_InitTLB();
 		Bitu i;
 		for (i=0;i<LINK_START;i++) {
-			paging.firstmb[i]=i;
+			d_parent->paging.firstmb[i]=i;
 		}
-		pf_queue.used=0;
+		d_parent->pf_queue.used=0;
+		
 	}
 	~PAGING(){}
 };
 
 static PAGING* test;
+	
 void PAGING_Init(Section * sec) {
-	test = new PAGING(sec);
+	test = new PAGING(this, sec);
 }
+};
