@@ -2755,6 +2755,7 @@ void DISPLAY::draw_chr_screen()
 //	if(_height > 480) _height = 480;
 	_height = SCREEN_HEIGHT;
 	_width <<= 4;
+	if(_width > SCREEN_WIDTH) _width = SCREEN_WIDTH;
 	//out_debug_log("WxH: %dx%d", _width, _height);
 	if(_width  < 0) _width = 0;
 	static const uint32_t __vramsize = SCREEN_HEIGHT * (SCREEN_WIDTH >> 3);
@@ -2922,7 +2923,8 @@ void DISPLAY::draw_gfx_screen()
 	if(_height > 480) _height = 480;
 	_width <<= 4;
 	if(_width  < 0) _width = 0;
-	//out_debug_log("WxH: %dx%d", _width, _height);
+	if(_width > SCREEN_WIDTH) _width = SCREEN_WIDTH;
+	out_debug_log("WxH: %dx%d", _width, _height);
 	for(int i = 0, ytop = 0; i < 4; i++) {
 		uint32_t ra = ra_gfx[i * 4];
 		ra |= ra_gfx[i * 4 + 1] << 8;
