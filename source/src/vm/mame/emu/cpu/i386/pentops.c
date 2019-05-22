@@ -173,11 +173,24 @@ static void PENTIUMOP(rsm)(i386_state* cpustate)
 	{
 		if(PROTECTED_MODE && !V8086_MODE)
 		{
-			cpustate->sreg[i].valid = cpustate->sreg[i].selector ? true : false;
-			cpustate->sreg[i].d = (cpustate->sreg[i].flags & 0x4000) ? 1 : 0;
+			cpustate->sreg[i].valid			= cpustate->sreg[i].selector ? true : false;
+			cpustate->sreg[i].d				= (cpustate->sreg[i].flags & SREG_FLAGS_SZ) ? 1 : 0;
+			cpustate->sreg[i].whole_address = false; // From NP2 v0.83
+			cpustate->sreg[i].is_system     = ((cpustate->sreg[i].flags & SREG_FLAGS_NS) == 0) ? true : false; // From NP2 v0.83
+			cpustate->sreg[i].executable	= (cpustate->sreg[i].flags & SREG_FLAGS_EX) ? true : false; // From NP2 v0.83
+			cpustate->sreg[i].expand_down	= (cpustate->sreg[i].flags & SREG_FLAGS_DC) ? true : false; // From NP2 v0.83
+			cpustate->sreg[i].rwn			= (cpustate->sreg[i].flags & SREG_FLAGS_RW) ? true : false; // From NP2 v0.83
+			cpustate->sreg[i].priv			= (cpustate->sreg[i].flags & 0x60) >> 5;
 		}
-		else
+		else {
 			cpustate->sreg[i].valid = true;
+			cpustate->sreg[i].whole_address = false;
+			cpustate->sreg[i].is_system = true;
+			cpustate->sreg[i].executable = true;
+			cpustate->sreg[i].expand_down = false;
+			cpustate->sreg[i].rwn = true;
+			cpustate->sreg[i].priv			= 3;  // OK?
+		}
 	}
 
 //	if(!cpustate->smiact.isnull())
@@ -2033,7 +2046,7 @@ static void I386OP(cyrix_svdc)(i386_state* cpustate) // Opcode 0f 78
 
 		limit = cpustate->sreg[index].limit;
 
-		if (cpustate->sreg[index].flags & 0x8000) //G bit
+		if (cpustate->sreg[index].flags & SREG_FLAGS_GR) //G bit
 		{
 			limit >>= 12;
 		}
@@ -2101,7 +2114,7 @@ static void I386OP(cyrix_rsdc)(i386_state* cpustate) // Opcode 0f 79
 		flags = READ16(cpustate,ea + 5);
 		limit = READ16(cpustate,ea + 0) | ((flags & 3) << 16);
 
-		if (flags & 0x8000) //G bit
+		if (flags & SREG_FLAGS_GR) //G bit
 		{
 			limit = (limit << 12) | 0xfff;
 		}
@@ -2110,6 +2123,14 @@ static void I386OP(cyrix_rsdc)(i386_state* cpustate) // Opcode 0f 79
 		cpustate->sreg[index].flags = flags;
 		cpustate->sreg[index].base = base;
 		cpustate->sreg[index].limit = limit;
+		cpustate->sreg[index].whole_address = 0;
+		cpustate->sreg[index].rwn         = (cpustate->sreg[index].flags & SREG_FLAGS_RW) ? true : false;
+		cpustate->sreg[index].expand_down = (cpustate->sreg[index].flags & SREG_FLAGS_DC) ? true : false;
+		cpustate->sreg[index].executable  = (cpustate->sreg[index].flags & SREG_FLAGS_EX) ? true : false;
+		cpustate->sreg[index].is_system   = ((cpustate->sreg[index].flags & SREG_FLAGS_NS) == 0) ? true : false;
+		cpustate->sreg[index].valid		  = true; // OK?
+		cpustate->sreg[index].priv        = (cpustate->sreg[index].flags & 0x60) >> 5;
+		
 	} else {
 		i386_trap(cpustate, 6, 0, 0);
 	}
@@ -2126,7 +2147,7 @@ static void I386OP(cyrix_svldt)(i386_state* cpustate) // Opcode 0f 7a
 			UINT32 ea = GetEA(cpustate,modrm,0,10);
 			UINT32 limit = cpustate->ldtr.limit;
 
-			if (cpustate->ldtr.flags & 0x8000) //G bit
+			if (cpustate->ldtr.flags & SREG_FLAGS_GR) //G bit
 			{
 				limit >>= 12;
 			}
@@ -2161,7 +2182,7 @@ static void I386OP(cyrix_rsldt)(i386_state* cpustate) // Opcode 0f 7b
 			UINT32 limit = READ16(cpustate,ea + 0) | ((flags & 3) << 16);
 			I386_SREG seg;
 
-			if (flags & 0x8000) //G bit
+			if (flags & SREG_FLAGS_GR) //G bit
 			{
 				limit = (limit << 12) | 0xfff;
 			}
@@ -2191,7 +2212,7 @@ static void I386OP(cyrix_svts)(i386_state* cpustate) // Opcode 0f 7c
 			UINT32 ea = GetEA(cpustate,modrm,0,10);
 			UINT32 limit = cpustate->task.limit;
 
-			if (cpustate->task.flags & 0x8000) //G bit
+			if (cpustate->task.flags & SREG_FLAGS_GR) //G bit
 			{
 				limit >>= 12;
 			}
@@ -2224,7 +2245,7 @@ static void I386OP(cyrix_rsts)(i386_state* cpustate) // Opcode 0f 7d
 			UINT32 base = (READ32(cpustate,ea + 2) | 0x00ffffff) | (READ8(cpustate,ea + 7) << 24);
 			UINT32 limit = READ16(cpustate,ea + 0) | ((flags & 3) << 16);
 
-			if (flags & 0x8000) //G bit
+			if (flags & SREG_FLAGS_GR) //G bit
 			{
 				limit = (limit << 12) | 0xfff;
 			}
