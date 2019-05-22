@@ -277,6 +277,10 @@ public:
 	{
 		tvram[0x3fee] = 8;
 	}
+	void sound_bios_off()
+	{
+		tvram[0x3fee] = 0;
+	}
 	void draw_screen();
 };
 

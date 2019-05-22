@@ -2754,9 +2754,10 @@ void DISPLAY::draw_chr_screen()
 //	if(_height < 0) _height = 0;
 //	if(_height > 480) _height = 480;
 	_height = SCREEN_HEIGHT;
-	_width <<= 3;
+	_width <<= 4;
+	//out_debug_log("WxH: %dx%d", _width, _height);
 	if(_width  < 0) _width = 0;
-	static const uint32_t __vramsize = SCREEN_HEIGHT * SCREEN_WIDTH;
+	static const uint32_t __vramsize = SCREEN_HEIGHT * (SCREEN_WIDTH >> 3);
 	uint32_t of = 0;
 	
 	for(int y = 0, cy = 0, ytop = 0; y < _height && cy < 25; y += bl, cy++) {
@@ -2902,10 +2903,10 @@ void DISPLAY::draw_chr_screen()
 					}
 				}
 			}
-//			of++;
-//			if(of >= __vramsize) break;
+			of++;
+			if(of >= __vramsize) break;
 		}
-//		if(of >= __vramsize) break;
+		if(of >= __vramsize) break;
 	}
 }
 
@@ -2913,15 +2914,15 @@ void DISPLAY::draw_gfx_screen()
 {
 	// address from gdc
 	int _height = d_gdc_gfx->read_signal(SIG_UPD7220_HEIGHT);
-	int _width  = d_gdc_gfx->read_signal(SIG_UPD7220_PITCH) * 2;
+	int _width  = d_gdc_gfx->read_signal(SIG_UPD7220_PITCH);
 	
 	uint32_t gdc_addr[480][SCREEN_WIDTH >> 3] = {0}; // Dragon Buster.
 	
 	if(_height < 0) _height = 0;
 	if(_height > 480) _height = 480;
-	_width <<= 3;
+	_width <<= 4;
 	if(_width  < 0) _width = 0;
-	
+	//out_debug_log("WxH: %dx%d", _width, _height);
 	for(int i = 0, ytop = 0; i < 4; i++) {
 		uint32_t ra = ra_gfx[i * 4];
 		ra |= ra_gfx[i * 4 + 1] << 8;
@@ -2943,7 +2944,7 @@ void DISPLAY::draw_gfx_screen()
 	uint32_t *addr = &gdc_addr[0][0];
 	uint8_t *dest = &screen_gfx[0][0];
 	//if(_width  > SCREEN_WIDTH) _width = SCRREEN_WIDTH; // OK?
-	static const uint32_t __vramsize = SCREEN_HEIGHT * SCREEN_WIDTH;
+	static const uint32_t __vramsize = SCREEN_HEIGHT * (SCREEN_WIDTH >> 3);
 	uint32_t of = 0;
 	for(int y = 0; y < _height; y++) {
 		for(int x = 0; x < _width; x += 8) {
@@ -2982,10 +2983,13 @@ void DISPLAY::draw_gfx_screen()
 				my_memcpy(dest, dest - SCREEN_WIDTH, SCREEN_WIDTH);
 			}
 			dest += 640;
-			if(of >= __vramsize) break;
+			of += 80;
 			y++;
 			if(y >= SCREEN_HEIGHT) break; // Temp: Dragon Buster.
+			if(of >= __vramsize) break;
 		}
+		if(of >= __vramsize) break;
+		if(y >= SCREEN_HEIGHT) break; // Temp: Dragon Buster.
 	}
 }
 
