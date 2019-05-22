@@ -81,7 +81,8 @@ private:
 	uint8_t sound_bios[0x4000];
 //	uint8_t sound_bios_ram[0x4000];
 	bool sound_bios_selected;
-//	bool sound_bios_ram_selected;
+	bool sound_bios_load;
+	bool using_sound_bios;
 	void update_sound_bios();
 #if defined(SUPPORT_SCSI_IF)
 	uint8_t scsi_bios[0x1000];

@@ -129,27 +129,30 @@ void MEMBUS::initialize()
 	memset(sound_bios, 0xff, sizeof(sound_bios));
 //	memset(sound_bios_ram, 0x00, sizeof(sound_bios_ram));
 	sound_bios_selected = false;
-//	sound_bios_ram_selected = false;
-	if(config.sound_type == 0) {
-		sound_bios_selected = (read_bios(_T("SOUND.ROM"), sound_bios, sizeof(sound_bios)) != 0);
-	} else if(config.sound_type == 2) {
-		sound_bios_selected = (read_bios(_T("MUSIC.ROM"), sound_bios, sizeof(sound_bios)) != 0);
+	sound_bios_load = false;
+
+	if((config.sound_type == 0) || (config.sound_type == 1)) {
+		sound_bios_load = (read_bios(_T("SOUND.ROM"), sound_bios, sizeof(sound_bios)) != 0) ? true : false;
+	} else if((config.sound_type == 2) || (config.sound_type == 3)) {
+		sound_bios_load = (read_bios(_T("MUSIC.ROM"), sound_bios, sizeof(sound_bios)) != 0) ? true : false;
 	}
-	if(sound_bios_selected) {
+	if(sound_bios_load) out_debug_log(_T("SUCCESS"));
+	if((sound_bios_load) && ((config.sound_type & 1) == 0)){
 		d_display->sound_bios_ok();
-	}
+		sound_bios_selected = true;
+	} else {
+		//d_display->sound_bios_off();
+		sound_bios_selected = false;
+	}		
 #if defined(SUPPORT_SASI_IF)
 	sasi_bios_load = false;
 	memset(sasi_bios, 0xff, sizeof(sasi_bios));
 	memset(sasi_bios_ram, 0x00, sizeof(sasi_bios_ram));
-	sasi_bios_selected = (read_bios(_T("SASI.ROM"), sasi_bios, sizeof(sasi_bios)) != 0);
-	if(sasi_bios_selected) {
-		sasi_bios_load = true;
-	} else {
+	sasi_bios_load = (read_bios(_T("SASI.ROM"), sasi_bios, sizeof(sasi_bios)) != 0);
+	if(!(sasi_bios_load)) {
 		memcpy(sasi_bios, pseudo_sasi_bios, sizeof(pseudo_sasi_bios));
-		sasi_bios_selected = true;
 	}
-
+	sasi_bios_selected = true;
 	sasi_bios_ram_selected = false;
 #endif
 #if defined(SUPPORT_SCSI_IF)
@@ -188,6 +191,22 @@ void MEMBUS::reset()
 #endif
 	
 #if !defined(SUPPORT_HIRESO)
+	if((sound_bios_load)  && ((config.sound_type & 1) == 0)){
+		using_sound_bios = true;
+		//d_display->sound_bios_ok();
+		sound_bios_selected = true;
+	} else {
+		using_sound_bios = false;
+		//d_display->sound_bios_off();
+		sound_bios_selected = false;
+	}
+#if defined(USE_SOUND_TYPE)
+	if(config.sound_type == (USE_SOUND_TYPE - 1)) {
+		sound_bios_selected = false;
+		using_sound_bios = false;
+	}
+#endif
+	//out_debug_log("SOUND BIOS=%s", (sound_bios_selected) ? "YES" : "NO");
 	// EMS
 #if defined(SUPPORT_NEC_EMS)
 	nec_ems_selected = false;
@@ -432,14 +451,17 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 		{
 			bool result = false;
 			bool _bak;
-#if !defined(SUPPORT_HIRESO)
-			{
+
+  //Note: THIS is disabled due to enable bios at startup.
+#if !defined(SUPPORT_HIRESO) // 20190521 K.O 
+			if(sound_bios_load && (using_sound_bios)) {
 				_bak = sound_bios_selected;
 				sound_bios_selected = ((data & 0x80) != 0);
 				if(_bak != sound_bios_selected) result = true;
+				out_debug_log("SOUND BIOS=%s (053Dh)", (sound_bios_selected) ? "YES" : "NO");
 			}
 #endif
-		
+
 #if defined(SUPPORT_SASI_IF)
 			{
 				_bak = sasi_bios_selected;
@@ -619,9 +641,9 @@ void MEMBUS::update_bios()
 	}
 #if defined(SUPPORT_ITF_ROM)
 	if(itf_selected) {
-//			unset_memory_rw(0x00100000 - sizeof(bios), 0x000fffff);
+		unset_memory_rw(0x00100000 - sizeof(bios), 0x000fffff);
 		set_memory_r(0x00100000 - sizeof(itf), 0x000fffff, itf);
-		unset_memory_w(0x00100000 - sizeof(itf), 0x000fffff);
+//		unset_memory_w(0x00100000 - sizeof(itf), 0x000fffff);
 	} //else
 #endif
 
@@ -776,7 +798,7 @@ void MEMBUS::update_bios()
 
 void MEMBUS::update_sound_bios()
 {
-	if(sound_bios_selected) {
+	if((sound_bios_selected) && (sound_bios_load) && (using_sound_bios)){
 //		if(sound_bios_selected) {
 //			set_memory_r(0xcc000, 0xcffff, sound_bios_ram);
 //		} else {
@@ -850,7 +872,7 @@ void MEMBUS::update_nec_ems()
 #endif
 
 
-#define STATE_VERSION	11
+#define STATE_VERSION	12
 
 bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 {
@@ -871,7 +893,7 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
  #if !defined(SUPPORT_HIRESO)
 //	state_fio->StateArray(sound_bios_ram, sizeof(sound_bios_ram), 1);
 	state_fio->StateValue(sound_bios_selected);
-//	state_fio->StateValue(sound_bios_ram_selected);
+	state_fio->StateValue(sound_bios_load);
  #if defined(SUPPORT_SASI_IF)
 	state_fio->StateArray(sasi_bios_ram, sizeof(sasi_bios_ram), 1);
 	state_fio->StateValue(sasi_bios_selected);
@@ -912,6 +934,9 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 	if(loading) {
 		config_intram();
 		update_bios();
+#if !defined(SUPPORT_HIRESO)
+		using_sound_bios = ((config.sound_type & 1) == 0) ? true : false;
+#endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 		dma_access_a20 = ((dma_access_ctrl & 0x04) != 0) ? false : true;
 #endif
