@@ -43,6 +43,7 @@ void I8259::write_io8(uint32_t addr, uint32_t data)
 			// icw2
 			pic[c].icw2 = data;
 			pic[c].icw2_r = 0;
+			out_debug_log("Set ICW2 to %02X\n", data);
 		} else if(pic[c].icw3_r) {
 			// icw3
 			pic[c].icw3 = data;
