@@ -296,35 +296,12 @@ enum smram_intel_p5
 #define MXCSR_RC  (3<<13) // Rounding Control
 #define MXCSR_FZ  (1<<15) // Flush to Zero
 
-// IN SEGMENT DESCRIPTOR TABLE
-// ACCESS BYTE BITFIELDS (bit40-47) 
-#define SREG_FLAGS_AC		0x0001 /* '1' is before accessed */
-#define SREG_FLAGS_RW		0x0002 /* READABLE for CODE SEGMENT/WRITABLE for DATA SEGMENT*/
-#define SREG_FLAGS_DC		0x0004 /* '1' to expand down, '0' to expand up */
-#define SREG_FLAGS_EX		0x0008 /* '1' to executable */
-#define SREG_FLAGS_NS		0x0010 /* '0' to system-segment */ 
-#define SREG_FLAGS_PRIV_LO	0x0020 /* PRIVILEGE (0 to 3) */
-#define SREG_FLAGS_PRIV_HI	0x0040
-#define SREG_FLAGS_PR		0x0080 /* '1' = valid segment */
-
-// FLAGS (bit52-55)
-#define SREG_FLAGS_RESV1	0x1000
-#define SREG_FLAGS_RESV2	0x2000
-#define SREG_FLAGS_SZ		0x4000 /* '1' at 32bit protected mode */
-#define SREG_FLAGS_GR		0x8000 /* '1' at limit multiplies to $1000 */
-
 struct I386_SREG {
 	UINT16 selector;
 	UINT16 flags;
 	UINT32 base;
 	UINT32 limit;
 	int d;      // Operand size
-	uint8_t priv;
-	bool whole_address;
-	bool expand_down;
-	bool is_system;
-	bool executable;
-	bool rwn;
 	bool valid;
 };
 
@@ -697,72 +674,26 @@ extern MODRM_TABLE i386_MODRM_table[256];
 INLINE int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32 size)
 {
 //	size = 1; // TBD
-	// Re-Implement From NP2 v0.83
 	if(PROTECTED_MODE && !V8086_MODE)
 	{
-		UINT32 limit = cpustate->sreg[seg].limit;
-		bool is_32bit = (cpustate->sreg[seg].d != 0) ? true : false;
-		UINT32 seg_limit = (is_32bit) ? 0xffffffff : 0x0000ffff;
-		bool do_exception = false;
-		bool is_system = cpustate->sreg[seg].is_system;
-		bool executable = cpustate->sreg[seg].executable;
-		bool expand_down = cpustate->sreg[seg].expand_down;
-		if((is_32bit) && (cpustate->sreg[seg].whole_address)) return 0; // OK?
-		if(!(is_system) && !(executable) && (expand_down)) // if expand-down data segment
+		if((cpustate->sreg[seg].flags & 0x0018) == 0x0010 && cpustate->sreg[seg].flags & 0x0004) // if expand-down data segment
 		{
-			if(limit == 0) {
-				if(!(is_32bit)) { // 16bit
-					if((offset + size - 1) > 0x0000ffff) {
-						do_exception = true;
-					}
-				} else {
-					cpustate->sreg[seg].whole_address = true;
-					// SET WHOLE ADDRESS BIT.
-				}
-			} else { // limit != 0
-//				if((((offset - (size - 1)) <= limit) || ((is_32bit)?0:((offset - (size - 1)) > 0xffff)))) {
-				if((offset < limit) || ((offset + size - 1) > seg_limit) || ((offset + size - 1) < offset) ||
-				   (seg_limit < (limit + size - 1))) {
-					do_exception = true;
-				}
-			}
-			if(do_exception) {
-				logerror("Limit check at 0x%08X failed. Segment %04X, base %08X, limit %08X, offset %08X size=%d(expand-down)\n",cpustate->prev_pc,cpustate->sreg[seg].selector,cpustate->sreg[seg].base,cpustate->sreg[seg].limit,offset, size);
-				return 1;
-			}
-		} else { // Expand up
-			if((is_32bit) && ((limit == 0x00000000) || (limit == 0xffffffff))) {
-				cpustate->sreg[seg].whole_address = true;
-				// SET WHOLE ADDRESS BIT.
-			} //else if((limit > seg_limit) || ((size - 1) > limit) || ((offset + size - 1) > (limit + 1)) || ((offset + size - 1) < offset)) {
-			else if(((offset + size - 1) > limit)){
-				do_exception = true;
-			}
-			if(do_exception) {
-				logerror("Limit check at 0x%08X failed. Segment %04X, base %08X, limit %08X, offset %08X size=%d\n",cpustate->prev_pc,cpustate->sreg[seg].selector,cpustate->sreg[seg].base,cpustate->sreg[seg].limit,offset, size);
-				return 1;
-			}
-		}			
-
-		/*
 			// compare if greater then 0xffffffff when we're passed the access size
 			//if(offset < size) size = offset;
-		if(((cpustate->sreg[seg].flags & 0x18) == 0x0010) && (cpustate->sreg[seg].expand_down)) { 
-			if((((offset - (size - 1)) <= cpustate->sreg[seg].limit) || ((cpustate->sreg[seg].d)?0:((offset - (size - 1)) > 0xffff))))
+			if(/*(cpustate->sreg[seg].limit != 0) && */(((offset - (size - 1)) <= cpustate->sreg[seg].limit) || ((cpustate->sreg[seg].d)?0:((offset - (size - 1)) > 0xffff))))
 			{
-				logerror("Limit check at 0x%08X failed. Segment %04X, base %08X, limit %08X, offset %08X size=%d(expand-down)\n",cpustate->prev_pc,cpustate->sreg[seg].selector,cpustate->sreg[seg].base,cpustate->sreg[seg].limit,offset, size);
+				logerror("Limit check at 0x%08x failed. Segment %04x, limit %08x, offset %08x (expand-down)\n",cpustate->prev_pc,cpustate->sreg[seg].selector,cpustate->sreg[seg].limit,offset);
 				return 1;
 			}
 		}
 		else
 		{
-			if(((offset + size - 1) > cpustate->sreg[seg].limit))
+			if(((offset + size - 1) > cpustate->sreg[seg].limit) /*&& (cpustate->sreg[seg].limit != 0)*/)
 			{
-				logerror("Limit check at 0x%08X failed. Segment %04X, base %08X limit %08X, offset %08X size=%d\n",cpustate->prev_pc,cpustate->sreg[seg].selector,cpustate->sreg[seg].base,cpustate->sreg[seg].limit,offset, size);
+				logerror("Limit check at 0x%08x failed. Segment %04x, limit %08x, offset %08x\n",cpustate->prev_pc,cpustate->sreg[seg].selector,cpustate->sreg[seg].limit,offset);
 				return 1;
 			}
 		}
-		*/
 	}
 	return 0;
 }
@@ -772,26 +703,14 @@ INLINE UINT32 i386_translate(i386_state *cpustate, int segment, UINT32 ip, int r
 	// TODO: segment limit access size, execution permission, handle exception thrown from exception handler
 	if(PROTECTED_MODE && !V8086_MODE && (rwn != -1))
 	{
-		/*
 		if(!(cpustate->sreg[segment].valid))
 			FAULT_THROW((segment==SS)?FAULT_SS:FAULT_GP, 0);
 		if(i386_limit_check(cpustate, segment, ip, size))
 			FAULT_THROW((segment==SS)?FAULT_SS:FAULT_GP, 0);
-		if((rwn == 0) && ((cpustate->sreg[segment].flags& 8) && !(cpustate->sreg[segment].flags & 2)))
+		if((rwn == 0) && ((cpustate->sreg[segment].flags & 8) && !(cpustate->sreg[segment].flags & 2)))
 			FAULT_THROW(FAULT_GP, 0);
 		if((rwn == 1) && ((cpustate->sreg[segment].flags & 8) || !(cpustate->sreg[segment].flags & 2)))
 			FAULT_THROW(FAULT_GP, 0);
-		*/
-		
-		if(!(cpustate->sreg[segment].valid))
-			FAULT_THROW((segment==SS)?FAULT_SS:FAULT_GP, 0);
-		if(i386_limit_check(cpustate, segment, ip, size))
-			FAULT_THROW((segment==SS)?FAULT_SS:FAULT_GP, 0);
-		if((rwn == 0) && ((cpustate->sreg[segment].executable) && !(cpustate->sreg[segment].rwn)))
-			FAULT_THROW(FAULT_GP, 0);
-		if((rwn == 1) && ((cpustate->sreg[segment].executable) || !(cpustate->sreg[segment].rwn)))
-			FAULT_THROW(FAULT_GP, 0);
-		
 	}
 	return cpustate->sreg[segment].base + ip;
 }

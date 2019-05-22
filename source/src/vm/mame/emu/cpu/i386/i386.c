@@ -104,12 +104,6 @@ static void cpu_reset_generic(i386_state* cpustate)
 		seg->limit = 0;
 		seg->d = 0;
 		seg->valid = false;
-		seg->whole_address = false;
-		seg->expand_down = false;
-		seg->is_system = true;
-		seg->executable = false;
-		seg->rwn = false;
-		seg->priv = 0;
 		return 0;
 	}
 
@@ -123,17 +117,8 @@ static void cpu_reset_generic(i386_state* cpustate)
 	}
 
 	entry = seg->selector & ~0x7;
-	if (limit == 0 || entry + 7 > limit) {
-		seg->whole_address = false;
-		seg->valid       = false;
-		seg->whole_address = false;
-		seg->expand_down = (seg->flags & SREG_FLAGS_DC) ? true : false;
-		seg->is_system	 = ((seg->flags & SREG_FLAGS_NS) == 0) ? true : false;
-		seg->executable  = (seg->flags & SREG_FLAGS_EX) ? true : false;
-		seg->rwn		 = (seg->flags & SREG_FLAGS_RW) ? true : false;
-		seg->priv = (seg->flags & 0x60) >> 5;
+	if (limit == 0 || entry + 7 > limit)
 		return 0;
-	}
 
 	v1 = READ32PL0(cpustate, base + entry );
 	v2 = READ32PL0(cpustate, base + entry + 4 );
@@ -141,16 +126,10 @@ static void cpu_reset_generic(i386_state* cpustate)
 	seg->flags = (v2 >> 8) & 0xf0ff;
 	seg->base = (v2 & 0xff000000) | ((v2 & 0xff) << 16) | ((v1 >> 16) & 0xffff);
 	seg->limit = (v2 & 0xf0000) | (v1 & 0xffff);
-	if (seg->flags & SREG_FLAGS_GR)
+	if (seg->flags & 0x8000)
 		seg->limit = (seg->limit << 12) | 0xfff;
-	seg->d = (seg->flags & SREG_FLAGS_SZ) ? 1 : 0;
+	seg->d = (seg->flags & 0x4000) ? 1 : 0;
 	seg->valid = true;
-	seg->whole_address = false;
-	seg->expand_down = (seg->flags & SREG_FLAGS_DC) ? true : false;
-	seg->is_system	 = ((seg->flags & SREG_FLAGS_NS) == 0) ? true : false;
-	seg->executable  = (seg->flags & SREG_FLAGS_EX) ? true : false;
-	seg->rwn		 = (seg->flags & SREG_FLAGS_RW) ? true : false;
-	seg->priv = (seg->flags & 0x60) >> 5;
 
 	if(desc)
 		*desc = ((UINT64)v2<<32)|v1;
@@ -219,7 +198,7 @@ static void cpu_reset_generic(i386_state* cpustate)
 			if(cpustate->sreg[segment].selector)
 			{
 				i386_set_descriptor_accessed(cpustate, cpustate->sreg[segment].selector);
-				cpustate->sreg[segment].flags |= SREG_FLAGS_AC;
+				cpustate->sreg[segment].flags |= 0x0001;
 			}
 		}
 		else
@@ -228,12 +207,6 @@ static void cpu_reset_generic(i386_state* cpustate)
 			cpustate->sreg[segment].limit = 0xffff;
 			cpustate->sreg[segment].flags = (segment == CS) ? 0x00fb : 0x00f3;
 			cpustate->sreg[segment].d = 0;
-			cpustate->sreg[segment].expand_down = (cpustate->sreg[segment].flags & SREG_FLAGS_DC) ? true : false;
-			cpustate->sreg[segment].is_system	 = ((cpustate->sreg[segment].flags & SREG_FLAGS_NS) == 0) ? true : false;
-			cpustate->sreg[segment].executable  = (cpustate->sreg[segment].flags & SREG_FLAGS_EX) ? true : false;
-			cpustate->sreg[segment].rwn		 = (cpustate->sreg[segment].flags & SREG_FLAGS_RW) ? true : false;
-			cpustate->sreg[segment].priv = (cpustate->sreg[segment].flags & 0x60) >> 5;
-			cpustate->sreg[segment].whole_address	= false;
 			cpustate->sreg[segment].valid = true;
 		}
 //		if (segment == CS && cpustate->sreg[segment].flags != old_flags)
@@ -244,26 +217,13 @@ static void cpu_reset_generic(i386_state* cpustate)
 		cpustate->sreg[segment].base = cpustate->sreg[segment].selector << 4;
 		cpustate->sreg[segment].d = 0;
 		cpustate->sreg[segment].valid = true;
-		cpustate->sreg[segment].expand_down = (cpustate->sreg[segment].flags & SREG_FLAGS_DC) ? true : false;
-		cpustate->sreg[segment].is_system	 = ((cpustate->sreg[segment].flags & SREG_FLAGS_NS) == 0) ? true : false;
-		cpustate->sreg[segment].executable  = (cpustate->sreg[segment].flags & SREG_FLAGS_EX) ? true : false;
-		cpustate->sreg[segment].rwn		 = (cpustate->sreg[segment].flags & SREG_FLAGS_RW) ? true : false;
-		cpustate->sreg[segment].priv = (cpustate->sreg[segment].flags & 0x60) >> 5;
-		cpustate->sreg[segment].whole_address	= false;
-		cpustate->sreg[segment].valid = true;
 
 		if( segment == CS )
 		{
 			if( !cpustate->performed_intersegment_jump )
 				cpustate->sreg[segment].base |= 0xfff00000;
-			if(cpustate->cpu_version < 0x5000) {
+			if(cpustate->cpu_version < 0x5000)
 				cpustate->sreg[segment].flags = 0x93;
-				cpustate->sreg[segment].expand_down = (cpustate->sreg[segment].flags & SREG_FLAGS_DC) ? true : false;
-				cpustate->sreg[segment].is_system	 = ((cpustate->sreg[segment].flags & SREG_FLAGS_NS) == 0) ? true : false;
-				cpustate->sreg[segment].executable  = (cpustate->sreg[segment].flags & SREG_FLAGS_EX) ? true : false;
-				cpustate->sreg[segment].rwn		 = (cpustate->sreg[segment].flags & SREG_FLAGS_RW) ? true : false;
-				cpustate->sreg[segment].priv = (cpustate->sreg[segment].flags & 0x60) >> 5;
-			}
 		}
 	}
 }
@@ -346,8 +306,8 @@ static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 	cpustate->VIF = (f & 0x80000) ? 1 : 0;
 	cpustate->VIP = (f & 0x100000) ? 1 : 0;
 	cpustate->ID = (f & 0x200000) ? 1 : 0;
-	if(((cpustate->eflags & 0x3000) != (f & 0x3000)) && ((f & 0x3000) == 0)) logerror("SET IOPL to 0 PC=%08X\n", cpustate->pc);
-//	if(old_vm != cpustate->VM) logerror("Change VM flag to %d at %08X\n", cpustate->VM, cpustate->prev_pc);
+	//if(((cpustate->eflags & 0x3000) != (f & 0x3000)) && ((f & 0x3000) == 0)) logerror("SET IOPL to 0 PC=%08X\n", cpustate->pc);
+	//if(old_vm != cpustate->VM) logerror("Change VM flag to %d at %08X\n", cpustate->VM, cpustate->pc);
 	//if(PROTECTED_MODE) {
 	cpustate->eflags = f;
 	//} else {
@@ -545,15 +505,13 @@ static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 	}
 
 	/* Must be either a data or readable code segment */
-//	if(((desc.flags & 0x0018) == 0x0018 && (desc.flags & 0x0002)) || (desc.flags & 0x0018) == 0x0010)
-	if(((!(desc.is_system) && (desc.executable)) && (desc.rwn)) || (!(desc.is_system) && !(desc.executable)))
+	if(((desc.flags & 0x0018) == 0x0018 && (desc.flags & 0x0002)) || (desc.flags & 0x0018) == 0x0010)
 		invalid = 0;
 	else
 		invalid = 1;
 
 	/* If a data segment or non-conforming code segment, then either DPL >= CPL or DPL >= RPL */
-//	if(((desc.flags & 0x0018) == 0x0018 && (desc.flags & 0x0004) == 0) || (desc.flags & 0x0018) == 0x0010)
-	if(((!(desc.is_system) && (desc.executable)) && !(desc.expand_down)) || (!(desc.is_system) && !(desc.executable)))
+	if(((desc.flags & 0x0018) == 0x0018 && (desc.flags & 0x0004) == 0) || (desc.flags & 0x0018) == 0x0010)
 	{
 		if((DPL < CPL) || (DPL < RPL))
 			invalid = 1;
@@ -645,7 +603,6 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 			FAULT(FAULT_GP,selector & ~0x03)
 		}
 		if(((stack.flags & 0x0018) != 0x10) && (stack.flags & 0x0002) != 0)
-		//if(!(!(stack.is_system) && (stack.executable)) && (stack.rwn))
 		{
 			logerror("SReg Load (%08x): Segment is not a writable data segment.\n",cpustate->pc);
 			FAULT(FAULT_GP,selector & ~0x03)
@@ -655,7 +612,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 			logerror("SReg Load (%08x): Segment DPL does not equal CPL.\n",cpustate->pc);
 			FAULT(FAULT_GP,selector & ~0x03)
 		}
-		if(!(stack.flags & SREG_FLAGS_PR))
+		if(!(stack.flags & 0x0080))
 		{
 			logerror("SReg Load (%08x): Segment is not present.\n",cpustate->pc);
 			FAULT(FAULT_SS,selector & ~0x03)
@@ -694,18 +651,15 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 				FAULT(FAULT_GP,selector & ~0x03)
 			}
 		}
-//		if(!(!(desc.is_system) && !(desc.executable)))
 		if((desc.flags & 0x0018) != 0x10)
 		{
-//			if((((desc.flags & 0x0002) != 0) && ((desc.flags & 0x0018) != 0x18)) || !(desc.flags & 0x10))
-			if(((desc.rwn) && !(!(desc.is_system) && (desc.executable))) || (desc.is_system))
+			if((((desc.flags & 0x0002) != 0) && ((desc.flags & 0x0018) != 0x18)) || !(desc.flags & 0x10))
 			{
 				logerror("SReg Load (%08x): Segment is not a data segment or readable code segment.\n",cpustate->pc);
 				FAULT(FAULT_GP,selector & ~0x03)
 			}
 		}
-//		if(((desc.flags & 0x0018) == 0x10) || ((!(desc.flags & 0x0004)) && ((desc.flags & 0x0018) == 0x18)))
-		if((!(desc.is_system) && !(desc.executable)) || (!(desc.expand_down) && (!(desc.is_system) && (desc.executable))))
+		if(((desc.flags & 0x0018) == 0x10) || ((!(desc.flags & 0x0004)) && ((desc.flags & 0x0018) == 0x18)))
 		{
 			// if data or non-conforming code segment
 			if((RPL > DPL) || (CPL > DPL))
@@ -840,7 +794,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 			}
 		}
 
-		if((flags & SREG_FLAGS_PR) == 0)
+		if((flags & 0x0080) == 0)
 		{
 			logerror("IRQ: Vector segment is not present.\n");
 			FAULT_EXP(FAULT_NP,entry+2)
@@ -865,20 +819,19 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 					FAULT_EXP(FAULT_TS,segment & ~0x03);
 				}
 			}
-			UINT16 tmpflag = desc.flags & (SREG_FLAGS_AC | SREG_FLAGS_RW | SREG_FLAGS_DC | SREG_FLAGS_EX);
-			if(tmpflag != (SREG_FLAGS_AC | SREG_FLAGS_EX)  && tmpflag != SREG_FLAGS_AC)
+			if((desc.flags & 0x000f) != 0x09 && (desc.flags & 0x000f) != 0x01)
 			{
 				logerror("IRQ: Task gate: TSS is not an available TSS.\n");
 				FAULT_EXP(FAULT_TS,segment & ~0x03);
 			}
-			if((desc.flags & SREG_FLAGS_PR) == 0)
+			if((desc.flags & 0x0080) == 0)
 			{
 				logerror("IRQ: Task gate: TSS is not present.\n");
 				FAULT_EXP(FAULT_NP,segment & ~0x03);
 			}
 			if(!(irq == 3 || irq == 4 || irq == 9 || irq_gate == 1))
 				cpustate->eip = cpustate->prev_eip;
-			if(desc.flags & SREG_FLAGS_EX)
+			if(desc.flags & 0x08)
 				i386_task_switch(cpustate,desc.selector,1);
 			else
 				i286_task_switch(cpustate,desc.selector,1);
@@ -915,17 +868,17 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 					FAULT_EXP(FAULT_GP,(segment & 0x03)+cpustate->ext)
 				}
 			}
-			if((desc.flags & (SREG_FLAGS_NS | SREG_FLAGS_EX)) != (SREG_FLAGS_NS | SREG_FLAGS_EX))
+			if((desc.flags & 0x0018) != 0x18)
 			{
 				logerror("IRQ: Gate descriptor is not a code segment.\n");
 				FAULT_EXP(FAULT_GP,(segment & 0x03)+cpustate->ext)
 			}
-			if((desc.flags & SREG_FLAGS_PR) == 0)
+			if((desc.flags & 0x0080) == 0)
 			{
 				logerror("IRQ: Gate segment is not present.\n");
 				FAULT_EXP(FAULT_NP,(segment & 0x03)+cpustate->ext)
 			}
-			if((desc.flags & SREG_FLAGS_DC) == 0 && (DPL < CPL))
+			if((desc.flags & 0x0004) == 0 && (DPL < CPL))
 			{
 				/* IRQ to inner privilege */
 				I386_SREG stack;
@@ -976,12 +929,12 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 					logerror("IRQ: New stack segment DPL is not equal to code segment DPL.\n");
 					FAULT_EXP(FAULT_TS,(stack.selector & ~0x03)+cpustate->ext)
 				}
-				if(((stack.flags & (SREG_FLAGS_NS | SREG_FLAGS_EX)) != SREG_FLAGS_NS) && (stack.flags & SREG_FLAGS_RW) != 0)
+				if(((stack.flags & 0x0018) != 0x10) && (stack.flags & 0x0002) != 0)
 				{
 					logerror("IRQ: New stack segment is not a writable data segment.\n");
 					FAULT_EXP(FAULT_TS,(stack.selector & ~0x03)+cpustate->ext) // #TS(stack selector + EXT)
 				}
-				if((stack.flags & SREG_FLAGS_PR) == 0)
+				if((stack.flags & 0x0080) == 0)
 				{
 					logerror("IRQ: New stack segment is not present.\n");
 					FAULT_EXP(FAULT_SS,(stack.selector & ~0x03)+cpustate->ext) // #TS(stack selector + EXT)
@@ -989,7 +942,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 				newESP = i386_get_stack_ptr(cpustate,DPL);
 				if(type & 0x08) // 32-bit gate
 				{
-					if(((newESP < (V8086_MODE?36:20)) && !(stack.flags & SREG_FLAGS_DC)) || ((~stack.limit < (~(newESP - 1) + (V8086_MODE?36:20))) && (stack.flags & SREG_FLAGS_DC)))
+					if(((newESP < (V8086_MODE?36:20)) && !(stack.flags & 0x4)) || ((~stack.limit < (~(newESP - 1) + (V8086_MODE?36:20))) && (stack.flags & 0x4)))
 					{
 						logerror("IRQ: New stack has no space for return addresses.\n");
 						FAULT_EXP(FAULT_SS,0)
@@ -998,7 +951,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 				else // 16-bit gate
 				{
 					newESP &= 0xffff;
-					if(((newESP < (V8086_MODE?18:10)) && !(stack.flags & SREG_FLAGS_DC)) || ((~stack.limit < (~(newESP - 1) + (V8086_MODE?18:10))) && (stack.flags & SREG_FLAGS_DC)))
+					if(((newESP < (V8086_MODE?18:10)) && !(stack.flags & 0x4)) || ((~stack.limit < (~(newESP - 1) + (V8086_MODE?18:10))) && (stack.flags & 0x4)))
 					{
 						logerror("IRQ: New stack has no space for return addresses.\n");
 						FAULT_EXP(FAULT_SS,0)
@@ -1066,7 +1019,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 			else
 			{
 				int stack_limit;
-				if((desc.flags & SREG_FLAGS_DC) || (DPL == CPL))
+				if((desc.flags & 0x0004) || (DPL == CPL))
 				{
 					/* IRQ to same privilege */
 					if(V8086_MODE && !cpustate->ext)
@@ -1102,8 +1055,8 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 		try
 		{
 			// this is ugly but the alternative is worse
-			if((type & 0x08) == 0)  // if not 386 interrupt or trap gate
-				//if(type != 0x0e && type != 0x0f)  // if not 386 interrupt or trap gate
+			//if(/*type != 0x0e && type != 0x0f */(type & 0x08) == 0)  // if not 386 interrupt or trap gate
+			if(type != 0x0e && type != 0x0f)  // if not 386 interrupt or trap gate
 			{
 				PUSH16(cpustate, oldflags & 0xffff );
 				PUSH16(cpustate, cpustate->sreg[CS].selector );
@@ -1208,34 +1161,23 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 static void i386_trap_with_error(i386_state *cpustate,int irq, int irq_gate, int trap_level, UINT32 error, int is_top)
 {
 	// buffering direct call from trap.
-	UINT32 nowESP;/* = REG32(ESP)*/;
-	if((irq_gate == 0) &&
-	   ((irq == FAULT_DE) || (irq == FAULT_DB) ||  (irq == FAULT_BR) || (irq == FAULT_UD) || (irq == FAULT_NM) || (irq == FAULT_NM)))  {
-//		if(cpustate->backout_sp != 0) {
-//			REG32(ESP) = cpustate->old_esp;
-//		}
-	}
 	if(is_top != 0) {
 		try {
 			i386_trap(cpustate,irq,irq_gate,trap_level);
 		} catch(UINT64 e) {
 			logerror("Irregular exception happened %08x for 16bit.\n", e);
-//			return;
+			return;
 		} catch(UINT32 e) {
 			logerror("Irregular exception happened %08x for 16bit.\n", e);
-//			return;
+			return;
 		}
 	} else {
 		i386_trap(cpustate,irq,irq_gate,trap_level);
 	}		
 		
-	if(irq == FAULT_DF || irq == FAULT_TS || irq == FAULT_NP || irq == FAULT_SS || irq == FAULT_GP || irq == FAULT_PF || irq == FAULT_AC)
+	if(irq == FAULT_DF || irq == FAULT_TS || irq == FAULT_NP || irq == FAULT_SS || irq == FAULT_GP || irq == FAULT_PF /*|| irq == FAULT_AC */)
 	{
-//		nowESP = REG32(ESP);
-//		if(cpustate->backout_sp != 0) {
-//			REG32(ESP) = cpustate->old_esp;
-//		}
-		if((irq == FAULT_AC) || (irq == FAULT_DF)) error = 0;
+		//if((irq == FAULT_AC) || (irq == FAULT_DF)) error = 0;
 		// for these exceptions, an error code is pushed onto the stack by the processor.
 		// no error code is pushed for software interrupts, either.
 		if(PROTECTED_MODE)
@@ -1250,13 +1192,13 @@ static void i386_trap_with_error(i386_state *cpustate,int irq, int irq_gate, int
 					v2 = READ32PL0(cpustate, cpustate->gdtr.base + ((v2 >> 16) & 0xfff8) + 4);
 					type = (v2>>8) & 0x1F;
 				}
-				if(type == 9)
+				if(type >= 9)
 					PUSH32(cpustate,error);
 				else
 					PUSH16(cpustate,error);
 		}
 		else {
-			PUSH16(cpustate,error);
+				PUSH16(cpustate,error);
 		}
 	}
 }
@@ -1567,11 +1509,10 @@ static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 of
 	
 	//logerror("JMP: protected mode PC=%08X SEG=%04x OFFSET=%08x VALID=%s BASE=%08x LIMIT=%08x FLAGS=%08x INDIRECT=%s OP32=%s V8086=%s CPL=%d DPL=%d RPL=%d\n", cpustate->prev_pc, seg, off,  (desc.valid) ? "YES" : "NO", desc.base, desc.limit, desc.flags, (indirect != 0) ? "YES" : "NO", (operand32 != 0) ? "YES" : "NO" ,(V8086_MODE) ? "YES" : "NO", CPL, DPL, RPL);
 
-//	if((desc.flags & (SREG_FLAGS_NS | SREG_FLAGS_EX)) == (SREG_FLAGS_NS | SREG_FLAGS_EX))
-	if(!(desc.is_system) && (desc.executable))
+	if((desc.flags & 0x0018) == 0x0018)
 	{
 		/* code segment */
-		if(!(desc.expand_down))
+		if((desc.flags & 0x0004) == 0)
 		{
 			/* non-conforming */
 			if(RPL < CPL)
@@ -1595,7 +1536,7 @@ static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 of
 			}
 		}
 		SetRPL = 1;
-		if((desc.flags & SREG_FLAGS_PR) == 0)
+		if((desc.flags & 0x0080) == 0)
 		{
 			logerror("JMP: Segment is not present\n");
 			FAULT(FAULT_NP,segment & 0xfffc)
@@ -1608,8 +1549,7 @@ static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 of
 	}
 	else
 	{
-//		if(!(desc.executable))
-		if(!(desc.is_system))
+		if((desc.flags & 0x0010) != 0)
 		{
 			logerror("JMP: Segment is a data segment\n");
 			FAULT(FAULT_GP,segment & 0xfffc)  // #GP (cannot execute code in a data segment)
@@ -1635,16 +1575,15 @@ static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 of
 					logerror("JMP: TSS: DPL %i is less than TSS RPL %i\n",DPL,RPL);
 					FAULT(FAULT_GP,segment & 0xfffc)
 				}
-				if((desc.flags & SREG_FLAGS_PR) == 0)
+				if((desc.flags & 0x0080) == 0)
 				{
 					logerror("JMP: TSS: Segment is not present\n");
 					FAULT(FAULT_GP,segment & 0xfffc)
 				}
-				if(desc.flags & SREG_FLAGS_EX)
+				if(desc.flags & 0x0008)
 					i386_task_switch(cpustate,desc.selector,0);
 				else
 					i286_task_switch(cpustate,desc.selector,0);
-				
 				return;
 			case 0x04:  // 286 Call Gate
 			case 0x0c:  // 386 Call Gate
@@ -1664,7 +1603,7 @@ static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 of
 					logerror("JMP: Call Gate: DPL %i is less than RPL %i\n",DPL,RPL);
 					FAULT(FAULT_GP,segment & 0xfffc)
 				}
-				if((desc.flags & SREG_FLAGS_PR) == 0)
+				if((desc.flags & 0x0080) == 0)
 				{
 					logerror("JMP: Call Gate: Segment is not present\n");
 					FAULT(FAULT_NP,segment & 0xfffc)
@@ -1694,7 +1633,7 @@ static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 of
 				desc.selector = call_gate.selector;
 				i386_load_protected_mode_segment(cpustate,&desc,NULL);
 				DPL = (desc.flags >> 5) & 0x03;
-				if((desc.flags & (SREG_FLAGS_NS | SREG_FLAGS_EX)) != (SREG_FLAGS_NS | SREG_FLAGS_EX))
+				if((desc.flags & 0x0018) != 0x18)
 				{
 					logerror("JMP: Call Gate: Gate does not point to a code segment\n");
 					FAULT(FAULT_GP,call_gate.selector & 0xfffc)
@@ -1715,7 +1654,7 @@ static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 of
 						FAULT(FAULT_GP,call_gate.selector & 0xfffc)
 					}
 				}
-				if((desc.flags & SREG_FLAGS_PR) == 0)
+				if((desc.flags & 0x0080) == 0)
 				{
 					logerror("JMP: Call Gate: Gate Segment is not present\n");
 					FAULT(FAULT_NP,call_gate.selector & 0xfffc)
@@ -1781,7 +1720,6 @@ static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 of
 					i386_task_switch(cpustate,call_gate.selector,0);
 				else
 					i286_task_switch(cpustate,call_gate.selector,0);
-				// CPU_SET_PREV_ESP();
 				return;
 			default:  // invalid segment type
 				logerror("JMP: Invalid segment type (%i) to jump to.\n",desc.flags & 0x000f);
@@ -1842,7 +1780,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 	DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 	RPL = selector & 0x03;  // requested privilege level
 	//logerror("CALL: protected mode PC=%08X SEG=%04x OFFSET=%08x VALID=%s BASE=%08x LIMIT=%08x FLAGS=%08x INDIRECT=%s OP32=%s V8086=%s CPL=%d DPL=%d RPL=%d\n", cpustate->prev_pc, seg, off,  (desc.valid) ? "YES" : "NO", desc.base, desc.limit, desc.flags, (indirect != 0) ? "YES" : "NO", (operand32 != 0) ? "YES" : "NO" ,(V8086_MODE) ? "YES" : "NO", CPL, DPL, RPL);
-	if((desc.flags & (SREG_FLAGS_NS | SREG_FLAGS_EX)) == (SREG_FLAGS_NS | SREG_FLAGS_EX))  // is a code segment
+	if((desc.flags & 0x0018) == 0x18)  // is a code segment
 	{
 		if(desc.flags & 0x0004)
 		{
@@ -1868,7 +1806,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 			}
 		}
 		SetRPL = 1;
-		if((desc.flags & SREG_FLAGS_PR) == 0)
+		if((desc.flags & 0x0080) == 0)
 		{
 			logerror("CALL (%08x): Code segment is not present.\n",cpustate->pc);
 			FAULT(FAULT_NP,selector & ~0x03)  // #NP(selector)
@@ -1900,7 +1838,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 	else
 	{
 		/* special segment type */
-		if(desc.flags & SREG_FLAGS_NS)
+		if(desc.flags & 0x0010)
 		{
 			logerror("CALL: Segment is a data segment.\n");
 			FAULT(FAULT_GP,desc.selector & ~0x03)  // #GP(selector)
@@ -1986,7 +1924,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 					}
 				}
 				i386_load_protected_mode_segment(cpustate,&desc,NULL);
-				if((desc.flags & (SREG_FLAGS_NS | SREG_FLAGS_EX)) != (SREG_FLAGS_NS | SREG_FLAGS_EX))
+				if((desc.flags & 0x0018) != 0x18)
 				{
 					logerror("CALL: Call gate: Segment is not a code segment.\n");
 					FAULT(FAULT_GP,desc.selector & ~0x03)  // #GP(selector)
@@ -1997,7 +1935,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 					logerror("CALL: Call gate: Segment DPL %i is greater than CPL %i.\n",DPL,CPL);
 					FAULT(FAULT_GP,desc.selector & ~0x03)  // #GP(selector)
 				}
-				if((desc.flags & SREG_FLAGS_PR) == 0)
+				if((desc.flags & 0x0080) == 0)
 				{
 					logerror("CALL (%08x): Code segment is not present.\n",cpustate->pc);
 					FAULT(FAULT_NP,desc.selector & ~0x03)  // #NP(selector)
@@ -2043,12 +1981,12 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 						logerror("CALL: Call gate: Stack DPL does not equal code segment DPL %i\n",DPL);
 						FAULT(FAULT_TS,stack.selector)  // #TS(SS selector)
 					}
-					if((stack.flags & (SREG_FLAGS_NS | SREG_FLAGS_EX)) != SREG_FLAGS_NS && (stack.rwn))
+					if((stack.flags & 0x0018) != 0x10 && (stack.flags & 0x0002))
 					{
 						logerror("CALL: Call gate: Stack segment is not a writable data segment\n");
 						FAULT(FAULT_TS,stack.selector)  // #TS(SS selector)
 					}
-					if((stack.flags & SREG_FLAGS_PR) == 0)
+					if((stack.flags & 0x0080) == 0)
 					{
 						logerror("CALL: Call gate: Stack segment is not present\n");
 						FAULT(FAULT_SS,stack.selector)  // #SS(SS selector)
@@ -2208,7 +2146,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 					logerror("CALL: Task Gate: TSS is busy.\n");
 					FAULT(FAULT_TS,gate.selector & ~0x03) // #TS(selector)
 				}
-				if((desc.flags & SREG_FLAGS_PR) == 0)
+				if((desc.flags & 0x0080) == 0)
 				{
 					logerror("CALL: Task Gate: TSS is not present.\n");
 					FAULT(FAULT_NP,gate.selector & ~0x03) // #TS(selector)
@@ -2329,7 +2267,7 @@ static void i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 op
 				FAULT(FAULT_GP,newCS & ~0x03)
 			}
 		}
-		if((desc.flags & (SREG_FLAGS_NS | SREG_FLAGS_EX)) != (SREG_FLAGS_NS | SREG_FLAGS_EX))
+		if((desc.flags & 0x0018) != 0x0018)
 		{
 			logerror("RETF: Return segment is not a code segment.\n");
 			FAULT(FAULT_GP,newCS & ~0x03)
@@ -2350,7 +2288,7 @@ static void i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 op
 				FAULT(FAULT_GP,newCS & ~0x03)
 			}
 		}
-		if((desc.flags & SREG_FLAGS_PR) == 0)
+		if((desc.flags & 0x0080) == 0)
 		{
 			logerror("RETF (%08x): Code segment is not present.\n",cpustate->pc);
 			FAULT(FAULT_NP,newCS & ~0x03)
@@ -2427,7 +2365,7 @@ static void i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 op
 				FAULT(FAULT_GP,newCS & ~0x03)
 			}
 		}
-		if((desc.flags & (SREG_FLAGS_NS | SREG_FLAGS_EX)) != (SREG_FLAGS_NS | SREG_FLAGS_EX))
+		if((desc.flags & 0x0018) != 0x0018)
 		{
 			logerror("RETF: CS segment is not a code segment.\n");
 			FAULT(FAULT_GP,newCS & ~0x03)
@@ -2448,7 +2386,7 @@ static void i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 op
 				FAULT(FAULT_GP,newCS & ~0x03)
 			}
 		}
-		if((desc.flags & SREG_FLAGS_PR) == 0)
+		if((desc.flags & 0x0080) == 0)
 		{
 			logerror("RETF: CS segment is not present.\n");
 			FAULT(FAULT_NP,newCS & ~0x03)
@@ -2502,7 +2440,7 @@ static void i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 op
 			logerror("RETF: SS segment RPL is not equal to CS segment RPL.\n");
 			FAULT(FAULT_GP,newSS & ~0x03)
 		}
-		if((desc.flags & (SREG_FLAGS_NS | SREG_FLAGS_EX)) != SREG_FLAGS_NS || !(desc.rwn))
+		if((desc.flags & 0x0018) != 0x0010 || (desc.flags & 0x0002) == 0)
 		{
 			logerror("RETF: SS segment is not a writable data segment.\n");
 			FAULT(FAULT_GP,newSS & ~0x03)
@@ -2512,7 +2450,7 @@ static void i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 op
 			logerror("RETF: SS DPL is not equal to CS segment RPL.\n");
 			FAULT(FAULT_GP,newSS & ~0x03)
 		}
-		if((desc.flags & SREG_FLAGS_PR) == 0)
+		if((desc.flags & 0x0080) == 0)
 		{
 			logerror("RETF: SS segment is not present.\n");
 			FAULT(FAULT_GP,newSS & ~0x03)
@@ -2628,7 +2566,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 			logerror("IRET (%08x): Task return: Back-linked TSS is not a busy TSS.\n",cpustate->pc);
 			FAULT(FAULT_TS,task & ~0x03)
 		}
-		if((desc.flags & SREG_FLAGS_PR) == 0)
+		if((desc.flags & 0x0080) == 0)
 		{
 			logerror("IRET: Task return: Back-linked TSS is not present.\n");
 			FAULT(FAULT_NP,task & ~0x03)
@@ -2765,7 +2703,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 				i386_load_protected_mode_segment(cpustate,&desc,NULL);
 				DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 				RPL = newCS & 0x03;
-				if((desc.flags & (SREG_FLAGS_NS | SREG_FLAGS_EX)) != (SREG_FLAGS_NS | SREG_FLAGS_EX))
+				if((desc.flags & 0x0018) != 0x0018)
 				{
 					logerror("IRET (%08x): Return CS segment is not a code segment.\n",cpustate->pc);
 					FAULT(FAULT_GP,newCS & ~0x07)
@@ -2786,7 +2724,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 						FAULT(FAULT_GP,newCS & ~0x03)
 					}
 				}
-				if((desc.flags & SREG_FLAGS_PR) == 0)
+				if((desc.flags & 0x0080) == 0)
 				{
 					logerror("IRET: (%08x) Return CS segment is not present.\n", cpustate->pc);
 					FAULT(FAULT_NP,newCS & ~0x03)
@@ -2871,7 +2809,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 						FAULT(FAULT_GP,newCS & ~0x03);
 					}
 				}
-				if((desc.flags & (SREG_FLAGS_NS | SREG_FLAGS_EX)) != (SREG_FLAGS_NS | SREG_FLAGS_EX))
+				if((desc.flags & 0x0018) != 0x0018)
 				{
 					logerror("IRET: Return CS segment is not a code segment.\n");
 					FAULT(FAULT_GP,newCS & ~0x03)
@@ -2892,7 +2830,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 						FAULT(FAULT_GP,newCS & ~0x03)
 					}
 				}
-				if((desc.flags & SREG_FLAGS_PR) == 0)
+				if((desc.flags & 0x0080) == 0)
 				{
 					logerror("IRET: Return CS segment is not present.\n");
 					FAULT(FAULT_NP,newCS & ~0x03)
@@ -2939,12 +2877,12 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 					logerror("IRET: Return SS RPL is not equal to return CS RPL.\n");
 					FAULT(FAULT_GP,newSS & ~0x03)
 				}
-				if((stack.flags & (SREG_FLAGS_NS | SREG_FLAGS_EX)) != SREG_FLAGS_NS)
+				if((stack.flags & 0x0018) != 0x0010)
 				{
 					logerror("IRET: Return SS segment is not a data segment.\n");
 					FAULT(FAULT_GP,newSS & ~0x03)
 				}
-				if(!(stack.rwn))
+				if((stack.flags & 0x0002) == 0)
 				{
 					logerror("IRET: Return SS segment is not writable.\n");
 					FAULT(FAULT_GP,newSS & ~0x03)
@@ -2954,7 +2892,7 @@ static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
 					logerror("IRET: Return SS DPL does not equal SS RPL.\n");
 					FAULT(FAULT_GP,newSS & ~0x03)
 				}
-				if((stack.flags & SREG_FLAGS_PR) == 0)
+				if((stack.flags & 0x0080) == 0)
 				{
 					logerror("IRET: Return SS segment is not present.\n");
 					FAULT(FAULT_NP,newSS & ~0x03)
@@ -3539,16 +3477,6 @@ static CPU_RESET( i386 )
 	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
 	cpustate->sreg[DS].valid = cpustate->sreg[ES].valid = cpustate->sreg[FS].valid = cpustate->sreg[GS].valid = cpustate->sreg[SS].valid =true;
 
-	for(int i = 0; i <= GS; i++) {
-		cpustate->sreg[i].valid = true;
-		cpustate->sreg[i].priv = 0;
-		cpustate->sreg[i].d = 0; // OK?
-		cpustate->sreg[i].whole_address = false;
-		cpustate->sreg[i].rwn         = (cpustate->sreg[i].flags & SREG_FLAGS_RW) ? true : false;;
-		cpustate->sreg[i].expand_down = (cpustate->sreg[i].flags & SREG_FLAGS_DC) ? true : false;
-		cpustate->sreg[i].executable  = (cpustate->sreg[i].flags & SREG_FLAGS_EX) ? true : false;
-		cpustate->sreg[i].is_system   = ((cpustate->sreg[i].flags & SREG_FLAGS_NS) == 0) ? true : false;;
-	}		
 	cpustate->idtr.base = 0;
 	cpustate->idtr.limit = 0x3ff;
 	cpustate->smm = false;
@@ -3855,16 +3783,16 @@ static CPU_EXECUTE( i386 )
 			catch(UINT64 e)
 			{
 				cpustate->ext = 1;
-				logerror("Illegal instruction PC=%08X EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->prev_pc, cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
+				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
 				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32, 1);
 			} catch(UINT32 e)
 			{
 				cpustate->ext = 1;
-				logerror("Illegal instruction PC=%08X EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->prev_pc, cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
+				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
 				i386_trap_with_error(cpustate,e&0xffffffff,0,0,0, 1);
 			} catch(...) {
 				cpustate->ext = 1;
-				logerror("Illegal instruction PC=%08X EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=UNKNOWN\n", cpustate->prev_pc, cpustate->eip, (cpustate->VM) ? "YES" : "NO"); 
+				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=UNKNOWN\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO"); 
 				i386_trap_with_error(cpustate,0,0,0,0, 1);
 			}
 			
@@ -3929,19 +3857,19 @@ static CPU_EXECUTE( i386 )
 			catch(UINT64 e)
 			{
 				cpustate->ext = 1;
-				logerror("Illegal instruction PC=%08X EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->prev_pc, cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
+				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
 				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32, 1);
 			}
 			catch(UINT32 e)
 			{
 				cpustate->ext = 1;
-				logerror("Illegal instruction PC=%08X EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n",cpustate->prev_pc, cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, 0); 
+				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, 0); 
 				i386_trap_with_error(cpustate,e,0,0,0, 1);
 			}
 			catch(...)
 			{
 				cpustate->ext = 1;
-				logerror("Illegal instruction PC=%08X EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n",cpustate->prev_pc, cpustate->eip, (cpustate->VM) ? "YES" : "NO", 0, 0); 
+				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", 0, 0); 
 				i386_trap_with_error(cpustate,0,0,0,0, 1);
 			}
 //#ifdef SINGLE_MODE_DMA
@@ -4011,16 +3939,6 @@ static CPU_RESET( i486 )
 	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
 	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
 
-	for(int i = 0; i <= GS; i++) {
-		cpustate->sreg[i].valid = true;
-		cpustate->sreg[i].priv = 0;
-		cpustate->sreg[i].d = 0; // OK?
-		cpustate->sreg[i].whole_address = false;
-		cpustate->sreg[i].rwn         = (cpustate->sreg[i].flags & SREG_FLAGS_RW) ? true : false;
-		cpustate->sreg[i].expand_down = (cpustate->sreg[i].flags & SREG_FLAGS_DC) ? true : false;
-		cpustate->sreg[i].executable  = (cpustate->sreg[i].flags & SREG_FLAGS_EX) ? true : false;
-		cpustate->sreg[i].is_system   = ((cpustate->sreg[i].flags & SREG_FLAGS_NS) == 0) ? true : false;
-	}		
 	cpustate->idtr.base = 0;
 	cpustate->idtr.limit = 0x3ff;
 
@@ -4076,16 +3994,6 @@ static CPU_RESET( pentium )
 	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
 	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
 
-	for(int i = 0; i <= GS; i++) {
-		cpustate->sreg[i].valid = true;
-		cpustate->sreg[i].priv = 0;
-		cpustate->sreg[i].d = 0; // OK?
-		cpustate->sreg[i].whole_address = false;
-		cpustate->sreg[i].rwn         = (cpustate->sreg[i].flags & SREG_FLAGS_RW) ? true : false;
-		cpustate->sreg[i].expand_down = (cpustate->sreg[i].flags & SREG_FLAGS_DC) ? true : false;
-		cpustate->sreg[i].executable  = (cpustate->sreg[i].flags & SREG_FLAGS_EX) ? true : false;
-		cpustate->sreg[i].is_system   = ((cpustate->sreg[i].flags & SREG_FLAGS_NS) == 0) ? true : false;
-	}		
 	cpustate->idtr.base = 0;
 	cpustate->idtr.limit = 0x3ff;
 
@@ -4157,16 +4065,6 @@ static CPU_RESET( mediagx )
 	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
 	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
 	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
-	for(int i = 0; i <= GS; i++) {
-		cpustate->sreg[i].valid = true;
-		cpustate->sreg[i].priv = 0;
-		cpustate->sreg[i].d = 0; // OK?
-		cpustate->sreg[i].whole_address = false;
-		cpustate->sreg[i].rwn         = (cpustate->sreg[i].flags & SREG_FLAGS_RW) ? true : false;
-		cpustate->sreg[i].expand_down = (cpustate->sreg[i].flags & SREG_FLAGS_DC) ? true : false;
-		cpustate->sreg[i].executable  = (cpustate->sreg[i].flags & SREG_FLAGS_EX) ? true : false;
-		cpustate->sreg[i].is_system   = ((cpustate->sreg[i].flags & SREG_FLAGS_NS) == 0) ? true : false;
-	}		
 
 	cpustate->idtr.base = 0;
 	cpustate->idtr.limit = 0x3ff;
@@ -4231,16 +4129,6 @@ static CPU_RESET( pentium_pro )
 	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
 	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
 	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
-	for(int i = 0; i <= GS; i++) {
-		cpustate->sreg[i].valid = true;
-		cpustate->sreg[i].priv = 0;
-		cpustate->sreg[i].d = 0; // OK?
-		cpustate->sreg[i].whole_address = false;
-		cpustate->sreg[i].rwn         = (cpustate->sreg[i].flags & SREG_FLAGS_RW) ? true : false;;
-		cpustate->sreg[i].expand_down = (cpustate->sreg[i].flags & SREG_FLAGS_DC) ? true : false;
-		cpustate->sreg[i].executable  = (cpustate->sreg[i].flags & SREG_FLAGS_EX) ? true : false;
-		cpustate->sreg[i].is_system   = ((cpustate->sreg[i].flags & SREG_FLAGS_NS) == 0) ? true : false;;
-	}		
 
 	cpustate->idtr.base = 0;
 	cpustate->idtr.limit = 0x3ff;
@@ -4314,16 +4202,6 @@ static CPU_RESET( pentium_mmx )
 	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
 	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
 	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
-	for(int i = 0; i <= GS; i++) {
-		cpustate->sreg[i].valid = true;
-		cpustate->sreg[i].priv = 0;
-		cpustate->sreg[i].d = 0; // OK?
-		cpustate->sreg[i].whole_address = false;
-		cpustate->sreg[i].rwn         = (cpustate->sreg[i].flags & SREG_FLAGS_RW) ? true : false;;
-		cpustate->sreg[i].expand_down = (cpustate->sreg[i].flags & SREG_FLAGS_DC) ? true : false;
-		cpustate->sreg[i].executable  = (cpustate->sreg[i].flags & SREG_FLAGS_EX) ? true : false;
-		cpustate->sreg[i].is_system   = ((cpustate->sreg[i].flags & SREG_FLAGS_NS) == 0) ? true : false;;
-	}		
 
 	cpustate->idtr.base = 0;
 	cpustate->idtr.limit = 0x3ff;
@@ -4396,16 +4274,6 @@ static CPU_RESET( pentium2 )
 	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
 	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
 	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
-	for(int i = 0; i <= GS; i++) {
-		cpustate->sreg[i].priv = 0;
-		cpustate->sreg[i].valid = true; // OK?
-		cpustate->sreg[i].d = 0; // OK?
-		cpustate->sreg[i].whole_address = false;
-		cpustate->sreg[i].rwn         = (cpustate->sreg[i].flags & SREG_FLAGS_RW) ? true : false;;
-		cpustate->sreg[i].expand_down = (cpustate->sreg[i].flags & SREG_FLAGS_DC) ? true : false;
-		cpustate->sreg[i].executable  = (cpustate->sreg[i].flags & SREG_FLAGS_EX) ? true : false;
-		cpustate->sreg[i].is_system   = ((cpustate->sreg[i].flags & SREG_FLAGS_NS) == 0) ? true : false;;
-	}		
 
 	cpustate->idtr.base = 0;
 	cpustate->idtr.limit = 0x3ff;
@@ -4472,16 +4340,6 @@ static CPU_RESET( pentium3 )
 	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
 	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
 	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
-	for(int i = 0; i <= GS; i++) {
-		cpustate->sreg[i].priv = 0;
-		cpustate->sreg[i].valid = true; // OK?
-		cpustate->sreg[i].d = 0; // OK?
-		cpustate->sreg[i].whole_address = false;
-		cpustate->sreg[i].rwn         = (cpustate->sreg[i].flags & SREG_FLAGS_RW) ? true : false;;
-		cpustate->sreg[i].expand_down = (cpustate->sreg[i].flags & SREG_FLAGS_DC) ? true : false;
-		cpustate->sreg[i].executable  = (cpustate->sreg[i].flags & SREG_FLAGS_EX) ? true : false;
-		cpustate->sreg[i].is_system   = ((cpustate->sreg[i].flags & SREG_FLAGS_NS) == 0) ? true : false;;
-	}		
 
 	cpustate->idtr.base = 0;
 	cpustate->idtr.limit = 0x3ff;
@@ -4546,28 +4404,11 @@ static CPU_RESET( pentium4 )
 	cpustate->sreg[CS].base     = 0xffff0000;
 	cpustate->sreg[CS].limit    = 0xffff;
 	cpustate->sreg[CS].flags    = 0x0093;
-	cpustate->sreg[CS].d	    = 0;
-	cpustate->sreg[CS].whole_address    = false;
-	cpustate->sreg[CS].expand_down		= false;
-	cpustate->sreg[CS].rwn				= true;
-	cpustate->sreg[CS].is_system		= false;
-	cpustate->sreg[CS].executable		= true;
-	cpustate->sreg[CS].priv				= 0;
-	
+
 	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
 	cpustate->sreg[DS].limit = cpustate->sreg[ES].limit = cpustate->sreg[FS].limit = cpustate->sreg[GS].limit = cpustate->sreg[SS].limit = 0xffff;
 	cpustate->sreg[DS].flags = cpustate->sreg[ES].flags = cpustate->sreg[FS].flags = cpustate->sreg[GS].flags = cpustate->sreg[SS].flags = 0x0093;
-	for(int i = 0; i <= GS; i++) {
-		cpustate->sreg[i].priv = 0;
-		cpustate->sreg[i].valid = true; // OK?
-		cpustate->sreg[i].d = 0; // OK?
-		cpustate->sreg[i].whole_address = false;
-		cpustate->sreg[i].rwn         = (cpustate->sreg[i].flags & SREG_FLAGS_RW) ? true : false;;
-		cpustate->sreg[i].expand_down = (cpustate->sreg[i].flags & SREG_FLAGS_DC) ? true : false;
-		cpustate->sreg[i].executable  = (cpustate->sreg[i].flags & SREG_FLAGS_EX) ? true : false;
-		cpustate->sreg[i].is_system   = ((cpustate->sreg[i].flags & SREG_FLAGS_NS) == 0) ? true : false;;
-	}		
-	
+
 	cpustate->idtr.base = 0;
 	cpustate->idtr.limit = 0x3ff;
 

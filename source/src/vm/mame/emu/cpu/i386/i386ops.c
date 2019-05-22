@@ -310,11 +310,6 @@ static void I386OP(cli)(i386_state *cpustate)               // Opcode 0xfa
 	if(PROTECTED_MODE)
 	{
 		UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
-		if(V8086_MODE) {
-			if(IOPL < 3) {
-				FAULT(FAULT_GP,0);
-			}
-		} else
 		if(cpustate->CPL > IOPL) {
 			logerror("Privilege error: I386OP(cli) CPL=%d IOPL=%d PC=%08X\n", cpustate->CPL, IOPL, cpustate->pc); 
 			FAULT(FAULT_GP,0);
@@ -665,7 +660,7 @@ static void I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode 0x0f 20
 #if 1
 	UINT32 oldpc = cpustate->prev_pc;
 	if((PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)))) {
-		logerror("Call from non-supervisor privilege: I386OP(mov_r32_cr) at %08X V8086=%s CPL=%d", oldpc, (V8086_MODE) ? "YES" : "NO", cpustate->CPL); 
+		logerror("Call from non-supervisor privilege: I386OP(mov_r32_cr) at %08X", oldpc); 
 		FAULT(FAULT_GP, 0);
 		//return;
 	}
@@ -1882,11 +1877,6 @@ static void I386OP(sti)(i386_state *cpustate)               // Opcode 0xfb
 	if(PROTECTED_MODE)
 	{
 		UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
-		if(V8086_MODE) {
-			if(IOPL < 3) {
-				FAULT(FAULT_GP,0);
-			}
-		} else 
 		if(cpustate->CPL > IOPL) {
 			logerror("Privilege error: I386OP(sti) CPL=%d IOPL=%d\n", cpustate->CPL, IOPL); 
 			FAULT(FAULT_GP,0);
@@ -2826,16 +2816,11 @@ static void I386OP(loadall)(i386_state *cpustate)       // Opcode 0x0f 0x07 (0x0
 	cpustate->sreg[ES].base = READ32(cpustate, ea + 0xc4);
 	cpustate->sreg[ES].limit = READ32(cpustate, ea + 0xc8);
 	cpustate->CPL = (cpustate->sreg[SS].flags >> 5) & 3; // cpl == dpl of ss
-	
+
 	for(int i = 0; i <= GS; i++)
 	{
-		cpustate->sreg[i].valid			= (cpustate->sreg[i].flags & SREG_FLAGS_PR) ? true : false;
-		cpustate->sreg[i].d				= (cpustate->sreg[i].flags & SREG_FLAGS_SZ) ? 1 : 0;
-		cpustate->sreg[i].whole_address = false; // From NP2 v0.83
-		cpustate->sreg[i].is_system     = ((cpustate->sreg[i].flags & SREG_FLAGS_NS) == 0) ? true : false; // From NP2 v0.83
-		cpustate->sreg[i].executable	= (cpustate->sreg[i].flags & SREG_FLAGS_EX) ? true : false; // From NP2 v0.83
-		cpustate->sreg[i].expand_down	= (cpustate->sreg[i].flags & SREG_FLAGS_DC) ? true : false; // From NP2 v0.83
-		cpustate->sreg[i].rwn			= (cpustate->sreg[i].flags & SREG_FLAGS_RW) ? true : false; // From NP2 v0.83
+		cpustate->sreg[i].valid = (cpustate->sreg[i].flags & 0x80) ? true : false;
+		cpustate->sreg[i].d = (cpustate->sreg[i].flags & 0x4000) ? 1 : 0;
 	}
 	CHANGE_PC(cpustate, cpustate->eip);
 }

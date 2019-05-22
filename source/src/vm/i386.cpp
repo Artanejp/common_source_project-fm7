@@ -851,7 +851,7 @@ int I386::get_shutdown_flag()
 	return cpustate->shutdown;
 }
 
-#define STATE_VERSION	7
+#define STATE_VERSION	6
 
 void process_state_SREG(I386_SREG* val, FILEIO* state_fio)
 {
@@ -860,13 +860,7 @@ void process_state_SREG(I386_SREG* val, FILEIO* state_fio)
 	state_fio->StateValue(val->base);
 	state_fio->StateValue(val->limit);
 	state_fio->StateValue(val->d);
-	state_fio->StateValue(val->priv);
-	state_fio->StateValue(val->whole_address);
-	state_fio->StateValue(val->expand_down);
-	state_fio->StateValue(val->executable);
-	state_fio->StateValue(val->rwn);
 	state_fio->StateValue(val->valid);
-	
 }
 
 void process_state_SYS_TABLE(I386_SYS_TABLE* val, FILEIO* state_fio)

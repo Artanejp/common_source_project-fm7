@@ -3441,9 +3441,8 @@ static void I386OP(group0F01_16)(i386_state *cpustate)      // Opcode 0x0f 01
 					FAULT(FAULT_GP,0)
 				}
 				if( modrm >= 0xc0 ) {
-					//address = LOAD_RM16(modrm);
-					//ea = i386_translate(cpustate, CS, address, 0, 6 );
-					FAULT(FAULT_UD,0)
+					address = LOAD_RM16(modrm);
+					ea = i386_translate(cpustate, CS, address, 0, 6 );
 				} else {
 					ea = GetEA(cpustate,modrm,0,6);
 				}

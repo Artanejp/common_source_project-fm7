@@ -3207,9 +3207,8 @@ static void I386OP(group0F01_32)(i386_state *cpustate)      // Opcode 0x0f 01
 				if(PROTECTED_MODE && cpustate->CPL)
 					FAULT(FAULT_GP,0)
 				if( modrm >= 0xc0 ) {
-					//	address = LOAD_RM32(modrm);
-					//	ea = i386_translate(cpustate, CS, address, 0, 6 );
-					FAULT(FAULT_UD,0)
+					address = LOAD_RM32(modrm);
+					ea = i386_translate(cpustate, CS, address, 0, 6 );
 				} else {
 					ea = GetEA(cpustate,modrm,0,6);
 				}
