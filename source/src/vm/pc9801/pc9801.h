@@ -192,7 +192,7 @@
 		#define SUPPORT_EGC
 		#define HAS_UPD4990A
 	#endif
-	#if !defined(SUPPORT_HIRESO) /*&& !(defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)) *//*&& !defined(SUPPORT_32BIT_ADDRESS)*/
+	#if !defined(SUPPORT_HIRESO) /*&& !(defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM))*/ /*&& !defined(SUPPORT_32BIT_ADDRESS)*/
 		#define SUPPORT_NEC_EMS
 	#endif
 	#define SUPPORT_SASI_IF

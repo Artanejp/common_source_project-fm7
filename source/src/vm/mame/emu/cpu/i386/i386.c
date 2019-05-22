@@ -346,7 +346,7 @@ static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 	cpustate->VIF = (f & 0x80000) ? 1 : 0;
 	cpustate->VIP = (f & 0x100000) ? 1 : 0;
 	cpustate->ID = (f & 0x200000) ? 1 : 0;
-	//if(((cpustate->eflags & 0x3000) != (f & 0x3000)) && ((f & 0x3000) == 0)) logerror("SET IOPL to 0 PC=%08X\n", cpustate->pc);
+	if(((cpustate->eflags & 0x3000) != (f & 0x3000)) && ((f & 0x3000) == 0)) logerror("SET IOPL to 0 PC=%08X\n", cpustate->pc);
 //	if(old_vm != cpustate->VM) logerror("Change VM flag to %d at %08X\n", cpustate->VM, cpustate->prev_pc);
 	//if(PROTECTED_MODE) {
 	cpustate->eflags = f;

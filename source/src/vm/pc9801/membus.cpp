@@ -286,6 +286,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 			if(nec_ems_selected) {
 				nec_ems_selected = false;
 				update_nec_ems();
+				//update_bios();
 			}
 #else
 //	#if !defined(SUPPORT_HIRESO)
@@ -300,6 +301,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 			if(!nec_ems_selected) {
 				nec_ems_selected = true;
 				update_nec_ems();
+//				update_bios();
 			}
 #else
 //	#if !defined(SUPPORT_HIRESO)
@@ -316,6 +318,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 				if(sasi_bios_ram_selected) {
 					sasi_bios_ram_selected = false;
 					update_sasi_bios();
+					//update_bios();
 				}
 			}
 #endif
@@ -325,6 +328,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 				if(scsi_bios_ram_selected) {
 					scsi_bios_ram_selected = false;
 					update_scsi_bios();
+					//update_bios();
 				}
 			//}
 #endif
@@ -336,6 +340,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 				if(!sasi_bios_ram_selected) {
 					sasi_bios_ram_selected = true;
 					update_sasi_bios();
+					//update_bios();
 				}
 			}
 #endif
@@ -347,6 +352,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 				if(!scsi_bios_ram_selected) {
 					scsi_bios_ram_selected = true;
 					update_scsi_bios();
+					//update_bios();
 				}
 			}
 #endif
