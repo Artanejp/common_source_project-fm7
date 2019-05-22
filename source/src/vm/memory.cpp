@@ -455,12 +455,12 @@ int MEMORY::read_bios(const _TCHAR *file_name, uint8_t *buffer, int size)
 {
 	FILEIO* fio = new FILEIO();
 	int length = 0;
-	
 	if(fio->Fopen(create_local_path(file_name), FILEIO_READ_BINARY)) {
 		fio->Fread(buffer, size, 1);
 		length = fio->Ftell();
 		fio->Fclose();
 	}
+	out_debug_log("LOADING ROM %s REQ_SIZE=%d PRESENTED_SIZE=%d", create_local_path(file_name), size, length);
 	delete fio;
 	return length;
 }
