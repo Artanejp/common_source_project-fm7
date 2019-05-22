@@ -3207,15 +3207,15 @@ static void I386OP(group0F01_32)(i386_state *cpustate)      // Opcode 0x0f 01
 				if(PROTECTED_MODE && cpustate->CPL)
 					FAULT(FAULT_GP,0)
 				if( modrm >= 0xc0 ) {
-					address = LOAD_RM32(modrm);
-					ea = i386_translate(cpustate, CS, address, 0, 6 );
-					//FAULT(FAULT_UD,0)
+					//	address = LOAD_RM32(modrm);
+					//	ea = i386_translate(cpustate, CS, address, 0, 6 );
+					FAULT(FAULT_UD,0)
 				} else {
 					ea = GetEA(cpustate,modrm,0,6);
 				}
 				cpustate->gdtr.limit = READ16(cpustate,ea);
 				cpustate->gdtr.base = READ32(cpustate,ea + 2);
-				//logerror("LGDT(32) PC=%08X MODRM=%02X BASE=%08X LIMIT=%04X\n", cpustate->prev_pc, modrm, cpustate->gdtr.base, cpustate->gdtr.limit);
+				logerror("LGDT(32) PC=%08X MODRM=%02X BASE=%08X LIMIT=%04X\n", cpustate->prev_pc, modrm, cpustate->gdtr.base, cpustate->gdtr.limit);
 				CYCLES(cpustate,CYCLES_LGDT);
 				break;
 			}
@@ -3232,7 +3232,6 @@ static void I386OP(group0F01_32)(i386_state *cpustate)      // Opcode 0x0f 01
 				cpustate->idtr.limit = READ16(cpustate,ea);
 				cpustate->idtr.base = READ32(cpustate,ea + 2);
 				CYCLES(cpustate,CYCLES_LIDT);
-				logerror("LIDT(32) PC=%08X BASE=%08X LIMIT=%04X\n", cpustate->prev_pc, cpustate->ldtr.base, cpustate->ldtr.limit);
 				break;
 			}
 		case 4:         /* SMSW */
