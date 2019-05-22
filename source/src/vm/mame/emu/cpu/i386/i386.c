@@ -91,7 +91,7 @@ static void cpu_reset_generic(i386_state* cpustate)
 
 /*************************************************************************/
 
-/*static*/INLINE UINT32 i386_load_protected_mode_segment(i386_state *cpustate, I386_SREG *seg, UINT64 *desc )
+static UINT32 i386_load_protected_mode_segment(i386_state *cpustate, I386_SREG *seg, UINT64 *desc )
 {
 	UINT32 v1,v2;
 	UINT32 base, limit;
@@ -244,13 +244,13 @@ static void cpu_reset_generic(i386_state* cpustate)
 		cpustate->sreg[segment].base = cpustate->sreg[segment].selector << 4;
 		cpustate->sreg[segment].d = 0;
 		cpustate->sreg[segment].valid = true;
-		cpustate->sreg[segment].expand_down = (cpustate->sreg[segment].flags & SREG_FLAGS_DC) ? true : false;
-		cpustate->sreg[segment].is_system	 = ((cpustate->sreg[segment].flags & SREG_FLAGS_NS) == 0) ? true : false;
-		cpustate->sreg[segment].executable  = (cpustate->sreg[segment].flags & SREG_FLAGS_EX) ? true : false;
-		cpustate->sreg[segment].rwn		 = (cpustate->sreg[segment].flags & SREG_FLAGS_RW) ? true : false;
-		cpustate->sreg[segment].priv = (cpustate->sreg[segment].flags & 0x60) >> 5;
+//		cpustate->sreg[segment].expand_down = (cpustate->sreg[segment].flags & SREG_FLAGS_DC) ? true : false;
+//		cpustate->sreg[segment].is_system	 = ((cpustate->sreg[segment].flags & SREG_FLAGS_NS) == 0) ? true : false;
+//		cpustate->sreg[segment].executable  = (cpustate->sreg[segment].flags & SREG_FLAGS_EX) ? true : false;
+////	cpustate->sreg[segment].executable  = (segment == CS) ? true : false;
+//		cpustate->sreg[segment].rwn		 = (cpustate->sreg[segment].flags & SREG_FLAGS_RW) ? true : false;
+//		cpustate->sreg[segment].priv = (cpustate->sreg[segment].flags & 0x60) >> 5;
 		cpustate->sreg[segment].whole_address	= false;
-		cpustate->sreg[segment].valid = true;
 
 		if( segment == CS )
 		{
@@ -340,7 +340,7 @@ static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 	cpustate->NT = (f & 0x4000) ? 1 : 0;
 	cpustate->RF = (f & 0x10000) ? 1 : 0;
 //	if(PROTECTED_MODE) {
-		cpustate->VM = (f & 0x20000) ? 1 : 0;
+	cpustate->VM = (f & 0x20000) ? 1 : 0;
 //	}
 	cpustate->AC = (f & 0x40000) ? 1 : 0;
 	cpustate->VIF = (f & 0x80000) ? 1 : 0;
@@ -518,7 +518,7 @@ static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 }
 
 /* Check segment register for validity when changing privilege level after an RETF */
-/*static*/ INLINE void i386_check_sreg_validity(i386_state* cpustate, int reg)
+static void i386_check_sreg_validity(i386_state* cpustate, int reg)
 {
 	UINT16 selector = cpustate->sreg[reg].selector;
 	UINT8 CPL = cpustate->CPL;
@@ -754,6 +754,9 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 	int entry = irq * (PROTECTED_MODE ? 8 : 4);
 	int SetRPL = 0;
 	cpustate->lock = false;
+	if(irq >= 0x30) {
+		logerror("IRQ %02Xh at %08X\n", irq, cpustate->prev_pc);
+	}
 	if( !(PROTECTED_MODE) /*|| (V8086_MODE)*/)
 	{
 		/* 16-bit */
@@ -878,7 +881,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 			}
 			if(!(irq == 3 || irq == 4 || irq == 9 || irq_gate == 1))
 				cpustate->eip = cpustate->prev_eip;
-			if(desc.flags & SREG_FLAGS_EX)
+			if(desc.flags & 0x08)
 				i386_task_switch(cpustate,desc.selector,1);
 			else
 				i286_task_switch(cpustate,desc.selector,1);
@@ -1220,10 +1223,10 @@ static void i386_trap_with_error(i386_state *cpustate,int irq, int irq_gate, int
 			i386_trap(cpustate,irq,irq_gate,trap_level);
 		} catch(UINT64 e) {
 			logerror("Irregular exception happened %08x for 16bit.\n", e);
-//			return;
+			return;
 		} catch(UINT32 e) {
 			logerror("Irregular exception happened %08x for 16bit.\n", e);
-//			return;
+			return;
 		}
 	} else {
 		i386_trap(cpustate,irq,irq_gate,trap_level);
@@ -1567,8 +1570,8 @@ static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 of
 	
 	//logerror("JMP: protected mode PC=%08X SEG=%04x OFFSET=%08x VALID=%s BASE=%08x LIMIT=%08x FLAGS=%08x INDIRECT=%s OP32=%s V8086=%s CPL=%d DPL=%d RPL=%d\n", cpustate->prev_pc, seg, off,  (desc.valid) ? "YES" : "NO", desc.base, desc.limit, desc.flags, (indirect != 0) ? "YES" : "NO", (operand32 != 0) ? "YES" : "NO" ,(V8086_MODE) ? "YES" : "NO", CPL, DPL, RPL);
 
-//	if((desc.flags & (SREG_FLAGS_NS | SREG_FLAGS_EX)) == (SREG_FLAGS_NS | SREG_FLAGS_EX))
-	if(!(desc.is_system) && (desc.executable))
+	if((desc.flags & (SREG_FLAGS_NS | SREG_FLAGS_EX)) == (SREG_FLAGS_NS | SREG_FLAGS_EX))
+//	if(!(desc.is_system) && (desc.executable))
 	{
 		/* code segment */
 		if(!(desc.expand_down))
@@ -1640,7 +1643,7 @@ static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 of
 					logerror("JMP: TSS: Segment is not present\n");
 					FAULT(FAULT_GP,segment & 0xfffc)
 				}
-				if(desc.flags & SREG_FLAGS_EX)
+				if(desc.flags & 0x08)
 					i386_task_switch(cpustate,desc.selector,0);
 				else
 					i286_task_switch(cpustate,desc.selector,0);
@@ -3854,17 +3857,17 @@ static CPU_EXECUTE( i386 )
 			}
 			catch(UINT64 e)
 			{
-				cpustate->ext = 1;
-				logerror("Illegal instruction PC=%08X EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->prev_pc, cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
+//				cpustate->ext = 1;
+				logerror("Illegal instruction PC=%08X EIP=%08x OPCODE=%02X VM8086=%s PROTECTED=%s exception %08x irq=0 irq_gate=0 ERROR=%08x \n", cpustate->prev_pc, cpustate->eip, cpustate->opcode, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO",e & 0xffffffff, e >> 32);				
 				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32, 1);
 			} catch(UINT32 e)
 			{
-				cpustate->ext = 1;
-				logerror("Illegal instruction PC=%08X EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->prev_pc, cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
+//				cpustate->ext = 1;
+				logerror("Illegal instruction PC=%08X EIP=%08x OPCODE=%02X VM8086=%s PROTECTED=%s exception %08x irq=0 irq_gate=0 ERROR=%08x \n", cpustate->prev_pc, cpustate->eip, cpustate->opcode, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO",e & 0xffffffff, e >> 32);				
 				i386_trap_with_error(cpustate,e&0xffffffff,0,0,0, 1);
 			} catch(...) {
-				cpustate->ext = 1;
-				logerror("Illegal instruction PC=%08X EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=UNKNOWN\n", cpustate->prev_pc, cpustate->eip, (cpustate->VM) ? "YES" : "NO"); 
+//				cpustate->ext = 1;
+				logerror("Illegal instruction PC=%08X EIP=%08x OPCODE=%02X VM8086=%s PROTECTED=%s exception ??? irq=0 irq_gate=0 ERROR=??? \n", cpustate->prev_pc, cpustate->eip, cpustate->opcode, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO");				
 				i386_trap_with_error(cpustate,0,0,0,0, 1);
 			}
 			
@@ -3928,20 +3931,19 @@ static CPU_EXECUTE( i386 )
 			}
 			catch(UINT64 e)
 			{
-				cpustate->ext = 1;
-				logerror("Illegal instruction PC=%08X EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->prev_pc, cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
-				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32, 1);
+//				cpustate->ext = 1;
+				logerror("Illegal instruction PC=%08X EIP=%08x OPCODE=%02X VM8086=%s PROTECTED=%s exception %08x irq=0 irq_gate=0 ERROR=%08x \n", cpustate->prev_pc, cpustate->eip, cpustate->opcode, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO",e & 0xffffffff, e >> 32);				
 			}
 			catch(UINT32 e)
 			{
-				cpustate->ext = 1;
-				logerror("Illegal instruction PC=%08X EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n",cpustate->prev_pc, cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, 0); 
+//				cpustate->ext = 1;
+				logerror("Illegal instruction PC=%08X EIP=%08x OPCODE=%02X VM8086=%s PROTECTED=%s exception %08x irq=0 irq_gate=0 ERROR=%08x \n", cpustate->prev_pc, cpustate->eip, cpustate->opcode, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO",e & 0xffffffff, e >> 32);				
 				i386_trap_with_error(cpustate,e,0,0,0, 1);
 			}
 			catch(...)
 			{
-				cpustate->ext = 1;
-				logerror("Illegal instruction PC=%08X EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n",cpustate->prev_pc, cpustate->eip, (cpustate->VM) ? "YES" : "NO", 0, 0); 
+//				cpustate->ext = 1;
+				logerror("Illegal instruction PC=%08X EIP=%08x OPCODE=%02X VM8086=%s PROTECTED=%s exception ??? irq=0 irq_gate=0 ERROR=??? \n", cpustate->prev_pc, cpustate->eip, cpustate->opcode, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO");				
 				i386_trap_with_error(cpustate,0,0,0,0, 1);
 			}
 //#ifdef SINGLE_MODE_DMA
