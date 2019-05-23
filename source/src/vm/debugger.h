@@ -19,7 +19,7 @@
 #define MAX_BREAK_POINTS	16
 #define MAX_COMMAND_LENGTH	1024
 #define MAX_COMMAND_HISTORY	32
-#define MAX_CPU_TRACE		1024
+#define MAX_CPU_TRACE		0x01000000 /* 16Msteps */
 
 typedef struct {
 	struct {
@@ -48,6 +48,9 @@ private:
 					break;
 				}
 			}
+		}
+		if(exception_happened && stop_on_exception) {
+			now_suspended = true;
 		}
 		if(!now_suspended && d_child != NULL) {
 			if(d_child->is_cpu()) {
@@ -92,8 +95,13 @@ public:
 		memset(history, 0, sizeof(history));
 		history_ptr = 0;
 		memset(cpu_trace, 0xff, sizeof(cpu_trace));
+		memset(cpu_trace_exp, 0x00, sizeof(cpu_trace_exp));
+		memset(cpu_trace_exp_map, 0x00, sizeof(cpu_trace_exp_map));
+		exception_happened = false;
+		stop_on_exception = true;
 		prev_cpu_trace = 0xffffffff;
 		cpu_trace_ptr = 0;
+		cpu_trace_overwrap = false;
 		set_device_name(_T("Debugger"));
 	}
 	~DEBUGGER() {}
@@ -488,22 +496,36 @@ public:
 		}
 		first_symbol = last_symbol = NULL;
 	}
+	void add_cpu_trace_exception(uint64_t exception_code)
+	{
+		cpu_trace_exp[(cpu_trace_ptr - 1) & (MAX_CPU_TRACE - 1)] = exception_code; 
+		cpu_trace_exp_map[(cpu_trace_ptr - 1) & (MAX_CPU_TRACE - 1)] = true; 
+	}
 	void add_cpu_trace(uint32_t pc)
 	{
 		if(prev_cpu_trace != pc) {
+			cpu_trace_exp_map[cpu_trace_ptr] = false; 
+			cpu_trace_exp[cpu_trace_ptr] = 0; 
 			cpu_trace[cpu_trace_ptr++] = prev_cpu_trace = pc;
+			if(cpu_trace_ptr >= MAX_CPU_TRACE) cpu_trace_overwrap = true;
 			cpu_trace_ptr &= (MAX_CPU_TRACE - 1);
 		}
 	}
 	break_point_t bp, rbp, wbp, ibp, obp;
 	symbol_t *first_symbol, *last_symbol;
 	_TCHAR file_path[_MAX_PATH];
-	bool now_debugging, now_going, now_suspended, now_waiting;
+	bool now_debugging, now_going, now_suspended, now_waiting, exception_happened;
+	uint64_t exception_code;
+	uint32_t exception_pc;
+	bool stop_on_exception;
 	bool now_device_debugging; // for non-cpu devices
 	_TCHAR history[MAX_COMMAND_HISTORY][MAX_COMMAND_LENGTH + 1];
 	int history_ptr;
 	uint32_t cpu_trace[MAX_CPU_TRACE], prev_cpu_trace;
+	uint64_t cpu_trace_exp[MAX_CPU_TRACE];
+	bool cpu_trace_exp_map[MAX_CPU_TRACE];
 	int cpu_trace_ptr;
+	bool cpu_trace_overwrap;
 };
 
 //#endif

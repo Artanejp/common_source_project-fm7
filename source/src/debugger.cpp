@@ -18,7 +18,8 @@
 #include "vm/vm.h"
 #include "fileio.h"
 #include <pthread.h>
-
+#include <time.h>
+#include <sys/time.h>
 #ifdef USE_DEBUGGER
 
 static FILEIO* logfile = NULL;
@@ -269,6 +270,7 @@ void* debugger_thread(void *lpx)
 	DEBUGGER *cpu_debugger = (DEBUGGER *)cpu->get_debugger();
 	DEVICE *target = cpu;
 	DEBUGGER *target_debugger = cpu_debugger;
+	//cpu_debugger->stop_on_exception = true;
 	
 	cpu_debugger->set_context_child(NULL);
 	cpu_debugger->now_going = false;
@@ -306,7 +308,7 @@ void* debugger_thread(void *lpx)
 	_TCHAR prev_command[MAX_COMMAND_LENGTH + 1];
 	
 	memset(prev_command, 0, sizeof(prev_command));
-	
+
 	while(!p->request_terminate) {
 		p->emu->draw_screen();
 		
@@ -410,7 +412,9 @@ void* debugger_thread(void *lpx)
 		if(!p->request_terminate && enter_done) {
 			_TCHAR *params[32], *token = NULL, *context = NULL;
 			int num = 0;
-			
+			for(int i = 0; i < ((sizeof(params) / sizeof(_TCHAR *))); i++) {
+				params[i] = _T("");
+			}
 			if((token = my_tcstok_s(command, _T(" "), &context)) != NULL) {
 				params[num++] = token;
 				while(num < 32 && (token = my_tcstok_s(NULL, _T(" "), &context)) != NULL) {
@@ -637,32 +641,141 @@ void* debugger_thread(void *lpx)
 			} else if(_tcsicmp(params[0], _T("UT")) == 0) {
 				if(target_debugger == NULL) {
 					my_printf(p->osd, _T("debugger is not attached to target device %s\n"), target->this_device_name);
-				} else if(num <= 3) {
+				} else if(num <= 4) {
 					int steps = 128;
+					int xnum = 1;
+					bool logging = false;
+					
 					if(num >= 2) {
-						steps = min((int)my_hexatoi(target, params[1]), MAX_CPU_TRACE);
+						if((strcasecmp(params[xnum], "0") == 0)) {
+							steps = MAX_CPU_TRACE; // TBD
+							xnum++;
+						} else {
+							steps = min((int)my_hexatoi(target, params[xnum]), MAX_CPU_TRACE);
+							if(steps > 0) xnum++;
+						}
 					}
-					for(int i = MAX_CPU_TRACE - steps; i < MAX_CPU_TRACE; i++) {
+					_TCHAR log_path[_MAX_PATH];
+					if(xnum < num) {
+						my_tcscpy_s(log_path, _MAX_PATH, my_absolute_path(params[xnum]));
+						logging = true;
+					}
+					FILEIO* log_fio = NULL;
+					if(logging) {
+						log_fio = new FILEIO();
+						if(!(log_fio->Fopen((const _TCHAR*)log_path, FILEIO_WRITE_APPEND_ASCII))) { // Failed to open 
+							delete log_fio;
+							log_fio = NULL;
+							logging = false;
+							my_printf(p->osd, "ERROR: Logging trace was failed for %s\n", log_path);
+						} else {
+							my_printf(p->osd, "Start logging trace for %s\n", log_path);
+							{
+								_TCHAR timestr[512] = {0};
+								struct tm *timedat;
+								time_t nowtime;
+								struct timeval tv;
+								
+								nowtime = time(NULL);
+								gettimeofday(&tv, NULL);
+								timedat = localtime(&nowtime);
+								strftime(timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", timedat);
+								log_fio->Fprintf("**** Start of logging BACKTRACE %d steps for %s at %s.%06ld ****\n\n", steps, target->this_device_name, timestr, tv.tv_usec);
+							}
+						}
+					}
+					int steps_left = steps;
+					int max_steps = MAX_CPU_TRACE;
+					int begin_step = (MAX_CPU_TRACE - steps) & (MAX_CPU_TRACE - 1);
+					if(!(target_debugger->cpu_trace_overwrap)) {
+						max_steps = target_debugger->cpu_trace_ptr;
+						begin_step = 0;
+						steps_left = (max_steps > steps_left) ? steps_left : max_steps;
+					}
+					if(steps_left > 1024) {
+						if(logging) {
+							my_printf(p->osd, "** NOTE: Trace %d steps, but display only 1024 steps,more are only logging.", steps_left);
+						} else {
+							my_printf(p->osd, "** NOTE: Request to trace %d steps, but display only 1024 steps.", steps_left);
+							begin_step = max_steps - 1024;
+							if(begin_step < 0) begin_step = 0;
+							steps_left = 1024;
+						}
+					}
+					for(int i = begin_step; i < max_steps; i++) {
+						if(logging) {
+							if((log_fio != NULL)) {
+								if(!(log_fio->IsOpened())) {
+									logging = false;
+								}
+							} else {
+								logging = false;
+							}
+						}
 						int index = (target_debugger->cpu_trace_ptr + i) & (MAX_CPU_TRACE - 1);
+
 						if(!(target_debugger->cpu_trace[index] & ~target->get_debug_prog_addr_mask())) {
 							const _TCHAR *name = my_get_symbol(target, target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask());
 							int len = target->debug_dasm(target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask(), buffer, array_length(buffer));
+							_TCHAR tmps[8192];
+							_TCHAR tmps2[512];
+							memset(tmps, 0x00, sizeof(tmps));
 							if(name != NULL) {
-								my_printf(p->osd, _T("%08X                  "), target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask());
+								my_sprintf_s(tmps2, sizeof(tmps2),_T("%08X                  "), target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask());
+								strncat(tmps, tmps2, sizeof(tmps) - 1);
 								p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_INTENSITY);
-								my_printf(p->osd, _T("%s:\n"), name);
+								my_sprintf_s(tmps2, sizeof(tmps2), _T("%s:\n"), name);
+								strncat(tmps, tmps2, sizeof(tmps) - 1);
 								p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
 							}
-							my_printf(p->osd, _T("%08X  "), target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask());
+							my_sprintf_s(tmps2, sizeof(tmps2), _T("%08X  "), target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask());
+							strncat(tmps, tmps2, sizeof(tmps) - 1);
 							for(int i = 0; i < len; i++) {
-								my_printf(p->osd, _T("%02X"), target->read_debug_data8((target_debugger->cpu_trace[index] + i) & target->get_debug_prog_addr_mask()));
+								my_sprintf_s(tmps2, sizeof(tmps2), _T("%02X"), target->read_debug_data8((target_debugger->cpu_trace[index] + i) & target->get_debug_prog_addr_mask()));
+								strncat(tmps, tmps2, sizeof(tmps) - 1);
 							}
+							my_sprintf_s(tmps2, sizeof(tmps2), _T("  "));
 							for(int i = len; i < 8; i++) {
-								my_printf(p->osd, _T("  "));
+								strncat(tmps, tmps2, sizeof(tmps) - 1);
 							}
-							my_printf(p->osd, _T("  %s\n"), buffer);
+							my_sprintf_s(tmps2, sizeof(tmps2), _T("  %s"), buffer);
+							strncat(tmps, tmps2, sizeof(tmps) - 1);
+							
+							if(target_debugger->cpu_trace_exp_map[index]) {
+								my_sprintf_s(tmps2, sizeof(tmps2), _T("  <== EXCEPTION 0x%08X\n"), target_debugger->cpu_trace_exp[index]);
+							} else {
+								my_sprintf_s(tmps2, sizeof(tmps2), _T("\n"));
+							}
+							strncat(tmps, tmps2, sizeof(tmps) - 1);
+							if(logging) {
+								log_fio->Fprintf("%s", tmps);
+							}
+							if(steps_left <= 1024) {
+								my_printf(p->osd, "%s", tmps);
+							}
+							steps_left--;
 						}
 					}
+//					if(logging) {
+						if(log_fio != NULL) {
+							if(log_fio->IsOpened()) {
+								{
+									_TCHAR timestr[512] = {0};
+									struct tm *timedat;
+									time_t nowtime;
+									struct timeval tv;
+
+									nowtime = time(NULL);
+									gettimeofday(&tv, NULL);
+									timedat = localtime(&nowtime);
+									strftime(timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", timedat);
+									log_fio->Fprintf("\n**** End of logging BACKTRACE %d steps for %s at %s.%06ld ****\n", steps, target->this_device_name, timestr, tv.tv_usec);
+								}
+								log_fio->Fclose();
+							}
+							delete log_fio;
+						}
+//					}
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
@@ -830,6 +943,15 @@ void* debugger_thread(void *lpx)
 					}
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
+				}
+			} else if(_tcsicmp(params[0], _T( "BX")) == 0) {
+				if(num > 1) {
+					if(_tcsicmp(params[1], _T( "ON")) == 0) {
+						cpu_debugger->stop_on_exception = true;
+					} else if(_tcsicmp(params[1], _T( "OFF")) == 0) {
+						cpu_debugger->stop_on_exception = false;
+					}
+					my_printf(p->osd, _T("%s\n"), (cpu_debugger->stop_on_exception) ? _T("STOP ON EXCEPTION") : _T("NOT STOP ON EXCEPTION"));
 				}
 			} else if(_tcsicmp(params[0], _T( "BP")) == 0 ||
 			          _tcsicmp(params[0], _T( "CP")) == 0) {
@@ -1014,17 +1136,20 @@ void* debugger_thread(void *lpx)
 						break_points_stored = true;
 					}
 RESTART_GO:
+					cpu_debugger->exception_happened = false;
+					cpu_debugger->exception_code = 0;
+					cpu_debugger->exception_pc = cpu->get_pc();
 					cpu_debugger->now_going = true;
 					cpu_debugger->now_suspended = false;
 #if defined(_MSC_VER)					   
-					while(!p->request_terminate && !cpu_debugger->now_suspended) {
+					while(!p->request_terminate && !cpu_debugger->now_suspended && !(cpu_debugger->exception_happened && cpu_debugger->stop_on_exception)) {
 						if(p->osd->is_console_key_pressed(VK_ESCAPE) && p->osd->is_console_active()) {
 							break;
 						}
 						p->osd->sleep(10);
 					}
 #elif defined(OSD_QT)
-					while(!p->request_terminate && !cpu_debugger->now_suspended) {
+					while(!p->request_terminate && !cpu_debugger->now_suspended && !(cpu_debugger->exception_happened && cpu_debugger->stop_on_exception)) {
 						if(p->osd->console_input_string() != NULL && p->osd->is_console_active()) {
 							p->osd->clear_console_input_string();
 							break;
@@ -1048,6 +1173,12 @@ RESTART_GO:
 					
 					p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
 					cpu->debug_dasm(cpu->get_pc(), buffer, array_length(buffer));
+					if(cpu_debugger->exception_happened) {
+						my_printf(p->osd, _T("**EXCEPTION #%08X happened at %08X\n"), cpu_debugger->exception_code, cpu_debugger->exception_pc);
+					}
+					cpu_debugger->exception_happened = false;
+					cpu_debugger->exception_code = 0;
+						
 					my_printf(p->osd, _T("done\t%s  %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()), buffer);
 					
 					p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
@@ -1093,6 +1224,10 @@ RESTART_GO:
 					for(int i = 0; i < steps; i++) {
 						cpu_debugger->now_going = false;
 						cpu_debugger->now_suspended = false;
+						cpu_debugger->exception_happened = false;
+						cpu_debugger->exception_code = 0;
+						cpu_debugger->exception_pc = cpu->get_pc();
+
 						wait_count = 0;
 						while(!p->request_terminate && !(cpu_debugger->now_suspended && cpu_debugger->now_waiting)) {
 							if((wait_count++) == 100) {
@@ -1105,6 +1240,9 @@ RESTART_GO:
 							dasm_addr = cpu->get_next_pc();
 						}
 						
+						if(cpu_debugger->exception_happened) {
+							my_printf(p->osd, _T("**EXCEPTION #%08X happened at %08X\n"), cpu_debugger->exception_code, cpu_debugger->exception_pc);
+						}
 						p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
 						cpu->debug_dasm(cpu->get_pc(), buffer, array_length(buffer));
 						my_printf(p->osd, _T("done\t%s  %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()), buffer);
@@ -1325,16 +1463,14 @@ RESTART_GO:
 				my_printf(p->osd, _T("R <reg> <value> - edit register\n"));
 				my_printf(p->osd, _T("S <range> <list> - search\n"));
 				my_printf(p->osd, _T("U [<range>] - unassemble\n"));
-				my_printf(p->osd, _T("UT [<steps>] - unassemble trace\n"));
-				
+				my_printf(p->osd, _T("UT [<steps> | <steps> <logging_file>] - unassemble back trace\n"));
 				my_printf(p->osd, _T("H <value> <value> - hexadd\n"));
 				my_printf(p->osd, _T("N <filename> - name\n"));
 				my_printf(p->osd, _T("L [<range>] - load binary/hex/symbol file\n"));
 				my_printf(p->osd, _T("W <range> - write binary/hex file\n"));
-				
 				my_printf(p->osd, _T("SC - clear symbol(s)\n"));
 				my_printf(p->osd, _T("SL - list symbol(s)\n"));
-				
+				my_printf(p->osd, _T("BX [ON|OFF] - ON/OFF to STOP ON EXCEPTION\n"));
 				my_printf(p->osd, _T("BP <address> - set breakpoint\n"));
 				my_printf(p->osd, _T("{R,W}BP <address> - set breakpoint (break at memory access)\n"));
 				my_printf(p->osd, _T("{I,O}BP <port> [<mask>] - set breakpoint (break at i/o access)\n"));

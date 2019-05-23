@@ -558,7 +558,13 @@ struct i386_state
 	bool lock;
 	UINT32 waitfactor;
 	UINT64 waitcount;
-
+	// Below is only for debugging, no need to save/load state.
+	UINT64 exception_code;
+	UINT32 exception_pc;
+	int    is_report_exception;
+	int    exception_caused;
+	// End.
+	
 	// bytes in current opcode, debug only
 #ifdef DEBUG_MISSING_OPCODE
 	UINT8 opcode_bytes[16];
@@ -570,9 +576,14 @@ struct i386_state
 extern int i386_parity_table[256];
 //static int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32 size);
 
-#define FAULT_THROW(fault,error) {									\
-		/*logerror("FAULT_THROW(%s , %s)\n", #fault , #error );*/	\
-		throw (UINT64)(fault | (UINT64)error << 32);				\
+#define FAULT_THROW(fault,error) {										\
+		if(cpustate->is_report_exception) {									\
+			cpustate->exception_code = (UINT64)(fault | (UINT64)error << 32); \
+			cpustate->exception_pc = cpustate->prev_pc;					\
+			cpustate->exception_caused = 1;								\
+		}																\
+		/*logerror("FAULT_THROW(%s , %s)\n", #fault , #error );*/		\
+		throw (UINT64)(fault | (UINT64)error << 32);					\
 	}
 
 #if 0

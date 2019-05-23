@@ -49,8 +49,30 @@ static void build_opcode_table(i386_state *cpustate, UINT32 features);
 static void zero_state(i386_state *cpustate);
 static void pentium_smi(i386_state* cpustate);
 
-#define FAULT(fault,error) {logerror("FAULT(%s , %s) PC=%08x V8086=%s PROTECTED=%s SP=%08X:%08X\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO", (PROTECTED_MODE) ? cpustate->sreg[SS].base : (cpustate->sreg[SS].selector << 4), REG32(ESP)); cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,0,error, 0); return;}
-#define FAULT_EXP(fault,error) {logerror("FAULT_EXP(%s , %s) PC=%08x V8086=%s PROTECTED=%s\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO"); cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,trap_level+1,error, 0); return;}
+#define FAULT(fault,error) {\
+		logerror("FAULT(%s , %s) PC=%08x V8086=%s PROTECTED=%s SP=%08X:%08X\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO", (PROTECTED_MODE) ? cpustate->sreg[SS].base : (cpustate->sreg[SS].selector << 4), REG32(ESP)); \
+		if(cpustate->is_report_exception) {								\
+			cpustate->exception_code = ((UINT64)error << 32) | (UINT64)fault; \
+			cpustate->exception_pc = cpustate->prev_pc;					\
+			cpustate->exception_caused = 1;								\
+			cpustate->ext = 1;											\
+		}																\
+		i386_trap_with_error(cpustate,fault,0,0,error, 0);				\
+		return;															\
+	}
+
+#define FAULT_EXP(fault,error) {										\
+		logerror("FAULT_EXP(%s , %s) PC=%08x V8086=%s PROTECTED=%s\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO"); \
+		if(cpustate->is_report_exception) {								\
+			cpustate->exception_code = ((UINT64)error << 32) | (UINT64)fault; \
+			cpustate->exception_pc = cpustate->prev_pc;					\
+			cpustate->exception_caused = 1;								\
+			cpustate->ext = 1;											\
+		}																\
+		cpustate->ext = 1;												\
+		i386_trap_with_error(cpustate,fault,0,trap_level+1,error, 0);	\
+		return;															\
+	}
 
 static void cpu_reset_generic(i386_state* cpustate)
 {
@@ -3719,7 +3741,11 @@ static CPU_EXECUTE( i386 )
 //#endif
 	cpustate->cycles -= cpustate->extra_cycles;
 	cpustate->extra_cycles = 0;
-
+	cpustate->exception_caused = 0;
+	cpustate->is_report_exception = 1; // ToDo
+	bool exception_caused = false;
+	UINT32 exception_pc = 0;
+	UINT64 exception_code = 0;
 	while( cpustate->cycles > 0 && !cpustate->busreq )
 	{
 //#ifdef USE_DEBUGGER
@@ -3728,6 +3754,14 @@ static CPU_EXECUTE( i386 )
 			now_debugging = cpustate->debugger->now_debugging;
 		}
 		if(now_debugging) {
+			if(exception_caused) {
+				cpustate->debugger->exception_pc = exception_pc;
+				cpustate->debugger->exception_code = exception_code;
+				cpustate->debugger->exception_happened = true;
+				exception_caused = false;
+				exception_code = 0;
+				printf("EXCEPTION HIT PC=%08X CODE=%X\n", exception_pc, exception_code);
+			}
 			cpustate->debugger->check_break_points(cpustate->pc);
 			if(cpustate->debugger->now_suspended) {
 				cpustate->debugger->now_waiting = true;
@@ -3771,6 +3805,13 @@ static CPU_EXECUTE( i386 )
 			try
 			{
 				I386OP(decode_opcode)(cpustate);
+				if(cpustate->exception_caused != 0) {
+					exception_pc = cpustate->exception_pc;
+					exception_code = cpustate->exception_code;
+					exception_caused = true;
+					cpustate->exception_caused = 0;
+					cpustate->debugger->add_cpu_trace_exception(exception_code);
+				}
 				if(cpustate->TF && old_tf)
 				{
 					cpustate->prev_eip = cpustate->eip;
@@ -3783,18 +3824,19 @@ static CPU_EXECUTE( i386 )
 			catch(UINT64 e)
 			{
 				cpustate->ext = 1;
-				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
+				logerror("Illegal instruction at PC=%08X EIP=%08x VM8086=%s exception %08X irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32);
+				exception_caused = true;
+				exception_pc = cpustate->prev_pc;
+				exception_code = e;
 				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32, 1);
-			} catch(UINT32 e)
-			{
-				cpustate->ext = 1;
-				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
-				i386_trap_with_error(cpustate,e&0xffffffff,0,0,0, 1);
 			} catch(...) {
 				cpustate->ext = 1;
-				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=UNKNOWN\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO"); 
-				i386_trap_with_error(cpustate,0,0,0,0, 1);
+				logerror("UNKNOWN EXCEPTION HAPPEND AT PC=%08X EIP=%08X VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->prev_pc,  cpustate->eip, (cpustate->VM) ? "YES" : "NO");
+				exception_caused = true;
+				exception_pc = cpustate->prev_pc;
+				exception_code = 0;
 			}
+			
 			
 //#ifdef SINGLE_MODE_DMA
 			if(cpustate->dma != NULL) {
@@ -3853,24 +3895,21 @@ static CPU_EXECUTE( i386 )
 				}
 				if(cpustate->lock && (cpustate->opcode != 0xf0))
 					cpustate->lock = false;
-			}
-			catch(UINT64 e)
+			} catch(UINT64 e)
 			{
 				cpustate->ext = 1;
-				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32); 
+				logerror("Illegal instruction at PC=%08X EIP=%08x VM8086=%s exception %08X irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, e >> 32);
+				exception_caused = true;
+				exception_pc = cpustate->prev_pc;
+				exception_code = e;
+				cpustate->debugger->add_cpu_trace_exception(exception_code);
 				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32, 1);
-			}
-			catch(UINT32 e)
-			{
+			} catch(...) {
 				cpustate->ext = 1;
-				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", e & 0xffffffff, 0); 
-				i386_trap_with_error(cpustate,e,0,0,0, 1);
-			}
-			catch(...)
-			{
-				cpustate->ext = 1;
-				logerror("Illegal instruction EIP=%08x VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->eip, (cpustate->VM) ? "YES" : "NO", 0, 0); 
-				i386_trap_with_error(cpustate,0,0,0,0, 1);
+				logerror("UNKNOWN EXCEPTION HAPPEND AT PC=%08X EIP=%08X VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->prev_pc,  cpustate->eip, (cpustate->VM) ? "YES" : "NO");
+				exception_caused = true;
+				exception_pc = cpustate->prev_pc;
+				exception_code = 0;
 			}
 //#ifdef SINGLE_MODE_DMA
 			if(cpustate->dma != NULL) {
