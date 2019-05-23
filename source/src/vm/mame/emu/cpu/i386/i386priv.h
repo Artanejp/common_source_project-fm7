@@ -296,6 +296,123 @@ enum smram_intel_p5
 #define MXCSR_RC  (3<<13) // Rounding Control
 #define MXCSR_FZ  (1<<15) // Flush to Zero
 
+// https://wiki.osdev.org/Global_Descriptor_Table
+#define SREG_BITPOS_LIMIT_LOW 0
+#define SREG_BITPOS_LIMIT_HIGH  48
+#define SREG_BITSIZE_LIMIT_LOW  16
+#define SREG_BITSIZE_LIMIT_HIGH  4
+#define SREG_BITPOS_BASE_POS_LOW 16
+#define SREG_BITPOS_BASE_POS_MID 32
+#define SREG_BITPOS_BASE_POS_HIGH 56
+#define SREG_BITSIZE_BASE_LOW  16
+#define SREG_BITSIZE_BASE_MID  8
+#define SREG_BITSIZE_BASE_HIGH  8
+#define SREG_BITPOS_ACCESS_BYTE  40
+#define SREG_BITSIZE_ACCESS_BYTE  8
+#define SREG_BITPOS_FLAGS  52
+#define SREG_BITSIZE_FLAGS  4
+
+// ARGS are pair32_t
+INLINE UINT32 sreg_get_base(UINT32 high, UINT32 low)
+{
+	pair32_t ret;
+	pair32_t phigh;
+	pair32_t plow;
+	phigh.d = high;
+	plow.d = low;
+	ret.b.h3 = phigh.b.h3; /* high */
+	ret.b.h2 = phigh.b.l;  /* mid */
+	ret.b.h  = plow.b.h3;  /* high of low */
+	ret.b.l  = plow.b.h2;  /* low of low */
+	return ret.d;
+}
+	
+INLINE UINT32 sreg_get_base_from_u64(UINT64 src)
+{
+	pair32_t ret;
+	pair64_t pa;
+
+	pa.q = src;
+	ret.w.l = pa.w.h;
+	ret.b.h2 = pa.b.h4;  
+	ret.b.h3 = pa.b.h7;  
+	return ret.d;
+}
+
+INLINE UINT32 sreg_get_limit(UINT32 high, UINT32 low)
+{
+	pair32_t ret;
+	pair32_t phigh;
+	pair32_t plow;
+	phigh.d = high;
+	plow.d = low;
+
+	ret.w.l = plow.w.l; /* low */
+	ret.b.h2 = phigh.b.h2 & 0x0f;
+	return ret.d;
+}
+
+INLINE UINT32 sreg_get_limit_from_u64(UINT64 src)
+{
+	pair32_t ret;
+	pair64_t pa;
+
+	pa.q = src;
+	ret.w.l = pa.w.l;
+	ret.b.h2 = pa.b.h6 & 0x0f;
+	return ret.d;
+}
+
+INLINE UINT8 sreg_get_flags(UINT32 high)
+{
+	pair32_t phigh;
+	phigh.d = high;
+	return ((phigh.b.h2 & 0xf0) >> 4);
+}
+
+INLINE UINT8 sreg_get_flags_from_u64(UINT64 src)
+{
+	pair32_t ret;
+	pair64_t pa;
+
+	pa.q = src;
+	return ((pa.b.h6 & 0xf0) >> 4);
+}
+
+INLINE UINT8 sreg_get_access_byte(UINT32 high)
+{
+	pair32_t phigh;
+	phigh.d = high;
+	return phigh.b.h;
+}
+
+INLINE UINT8 sreg_get_access_byte_from_u64(UINT64 src)
+{
+	pair64_t pa;
+
+	pa.q = src;
+	return pa.b.h5;
+}
+
+
+// IN SEGMENT DESCRIPTOR TABLE
+// ACCESS BYTE BITFIELDS (bit40-47) 
+#define SREG_FLAGS_AC		0x0001 /* '1' is before accessed */
+#define SREG_FLAGS_RW		0x0002 /* READABLE for CODE SEGMENT/WRITABLE for DATA SEGMENT*/
+#define SREG_FLAGS_DC		0x0004 /* '1' to expand down, '0' to expand up */
+#define SREG_FLAGS_EX		0x0008 /* '1' to executable */
+#define SREG_FLAGS_NS		0x0010 /* '0' to system-segment */ 
+#define SREG_FLAGS_PRIV_LO	0x0020 /* PRIVILEGE (0 to 3) */
+#define SREG_FLAGS_PRIV_HI	0x0040
+#define SREG_FLAGS_PR		0x0080 /* '1' = valid segment */
+
+// FLAGS (bit52-55)
+#define SREG_FLAGS_RESV1	0x1000
+#define SREG_FLAGS_RESV2	0x2000
+#define SREG_FLAGS_SZ		0x4000 /* '1' at 32bit protected mode */
+#define SREG_FLAGS_GR		0x8000 /* '1' at limit multiplies to $1000 */
+
+
 struct I386_SREG {
 	UINT16 selector;
 	UINT16 flags;
@@ -728,7 +845,7 @@ INLINE UINT32 i386_translate(i386_state *cpustate, int segment, UINT32 ip, int r
 
 #define VTLB_FLAG_DIRTY 0x100
 
-INLINE vtlb_entry get_permissions(UINT32 pte, int wp)
+vtlb_entry get_permissions(UINT32 pte, int wp)
 {
 	vtlb_entry ret = VTLB_READ_ALLOWED | ((pte & 4) ? VTLB_USER_READ_ALLOWED : 0);
 	if(!wp)

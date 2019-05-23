@@ -589,112 +589,123 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 	}
 
 	if(fault) *fault = true;
-	if(reg == SS)
-	{
-		I386_SREG stack;
+//	if(reg == SS)
+	switch(reg) {
+	case SS:
+		{
+			I386_SREG stack;
 
-		memset(&stack, 0, sizeof(stack));
-		stack.selector = selector;
-		i386_load_protected_mode_segment(cpustate,&stack,NULL);
-		DPL = (stack.flags >> 5) & 0x03;
-		//logdebug("SReg load: SELECTOR=%04X FLAGS=%04X BASE=%08X LIMIT=%08X VALID=%s %s\n", stack.selector, stack.flags, stack.base, stack.limit, (stack.valid) ? "YES" : "NO", (stack.d == 0) ? "16bit SP" : "32bit ESP");
-		if((selector & ~0x0003) == 0)
-		{
-			logerror("SReg Load (%08x): Selector is null.\n",cpustate->pc);
-			FAULT(FAULT_GP,0)
-		}
-		if(selector & 0x0004)  // LDT
-		{
-			if((selector & ~0x0007) > cpustate->ldtr.limit)
+			memset(&stack, 0, sizeof(stack));
+			stack.selector = selector;
+			i386_load_protected_mode_segment(cpustate,&stack,NULL);
+			DPL = (stack.flags >> 5) & 0x03;
+			//logdebug("SReg load: SELECTOR=%04X FLAGS=%04X BASE=%08X LIMIT=%08X VALID=%s %s\n", stack.selector, stack.flags, stack.base, stack.limit, (stack.valid) ? "YES" : "NO", (stack.d == 0) ? "16bit SP" : "32bit ESP");
+			if((selector & ~0x0003) == 0)
 			{
-				logerror("SReg Load (SS)(%08x): Selector is out of LDT bounds.LDTR.limit=%4X : selector=%04X\n",cpustate->pc, cpustate->ldtr.limit, selector);
-				FAULT(FAULT_GP,selector & ~0x03)
-			}
-		}
-		else  // GDT
-		{
-			if((selector & ~0x0007) > cpustate->gdtr.limit)
+				logerror("SReg Load (%08x): Selector is null.\n",cpustate->pc);
+				FAULT(FAULT_GP,0)
+					}
+			if(selector & 0x0004)  // LDT
 			{
-				logerror("SReg Load (%08x): Selector is out of bounds. GDT GDTR.limit=%04X : %04X\n",cpustate->pc, cpustate->gdtr.limit, selector);
-				FAULT(FAULT_GP,selector & ~0x03)
+				if((selector & ~0x0007) > cpustate->ldtr.limit)
+				{
+					logerror("SReg Load (SS)(%08x): Selector is out of LDT bounds.LDTR.limit=%4X : selector=%04X\n",cpustate->pc, cpustate->ldtr.limit, selector);
+					FAULT(FAULT_GP,selector & ~0x03)
+						}
 			}
+			else  // GDT
+			{
+				if((selector & ~0x0007) > cpustate->gdtr.limit)
+				{
+					logerror("SReg Load (%08x): Selector is out of bounds. GDT GDTR.limit=%04X : %04X\n",cpustate->pc, cpustate->gdtr.limit, selector);
+					FAULT(FAULT_GP,selector & ~0x03)
+						}
+			}
+			if (RPL != CPL)
+			{
+				logerror("SReg Load (%08x): Selector RPL does not equal CPL.\n",cpustate->pc);
+				FAULT(FAULT_GP,selector & ~0x03)
+					}
+			if(((stack.flags & 0x0018) != 0x10) && (stack.flags & 0x0002) != 0)
+			{
+				logerror("SReg Load (%08x): Segment is not a writable data segment.\n",cpustate->pc);
+				FAULT(FAULT_GP,selector & ~0x03)
+					}
+			if(DPL != CPL)
+			{
+				logerror("SReg Load (%08x): Segment DPL does not equal CPL.\n",cpustate->pc);
+				FAULT(FAULT_GP,selector & ~0x03)
+					}
+			if(!(stack.flags & 0x0080))
+			{
+				logerror("SReg Load (%08x): Segment is not present.\n",cpustate->pc);
+				FAULT(FAULT_SS,selector & ~0x03)
+					}
 		}
-		if (RPL != CPL)
+		break;
+	case DS:
+	case ES:
+	case FS:
+	case GS:
+		//if(reg == DS || reg == ES || reg == FS || reg == GS)
 		{
-			logerror("SReg Load (%08x): Selector RPL does not equal CPL.\n",cpustate->pc);
-			FAULT(FAULT_GP,selector & ~0x03)
-		}
-		if(((stack.flags & 0x0018) != 0x10) && (stack.flags & 0x0002) != 0)
-		{
-			logerror("SReg Load (%08x): Segment is not a writable data segment.\n",cpustate->pc);
-			FAULT(FAULT_GP,selector & ~0x03)
-		}
-		if(DPL != CPL)
-		{
-			logerror("SReg Load (%08x): Segment DPL does not equal CPL.\n",cpustate->pc);
-			FAULT(FAULT_GP,selector & ~0x03)
-		}
-		if(!(stack.flags & 0x0080))
-		{
-			logerror("SReg Load (%08x): Segment is not present.\n",cpustate->pc);
-			FAULT(FAULT_SS,selector & ~0x03)
-		}
-	}
-	if(reg == DS || reg == ES || reg == FS || reg == GS)
-	{
-		I386_SREG desc;
+			I386_SREG desc;
 
-		if((selector & ~0x0003) == 0)
-		{
-			cpustate->sreg[reg].selector = selector;
-			i386_load_segment_descriptor(cpustate, reg );
-			if(fault) *fault = false;
-			return;
-		}
+			if((selector & ~0x0003) == 0)
+			{
+				cpustate->sreg[reg].selector = selector;
+				i386_load_segment_descriptor(cpustate, reg );
+				if(fault) *fault = false;
+				return;
+			}
 
-		memset(&desc, 0, sizeof(desc));
-		desc.selector = selector;
-		i386_load_protected_mode_segment(cpustate,&desc,NULL);
-		DPL = (desc.flags >> 5) & 0x03;
+			memset(&desc, 0, sizeof(desc));
+			desc.selector = selector;
+			i386_load_protected_mode_segment(cpustate,&desc,NULL);
+			DPL = (desc.flags >> 5) & 0x03;
 
-		if(selector & 0x0004)  // LDT
-		{
-			if((selector & ~0x0007) > cpustate->ldtr.limit)
+			if(selector & 0x0004)  // LDT
 			{
-				logerror("SReg Load (other SS)(%08x): Selector is out of LDT bounds.LDTR.limit=%04X : %04X\n",cpustate->pc, cpustate->ldtr.limit, selector);
-				FAULT(FAULT_GP,selector & ~0x03)
+				if((selector & ~0x0007) > cpustate->ldtr.limit)
+				{
+					logerror("SReg Load (other SS)(%08x): Selector is out of LDT bounds.LDTR.limit=%04X : %04X\n",cpustate->pc, cpustate->ldtr.limit, selector);
+					FAULT(FAULT_GP,selector & ~0x03)
+				}
 			}
-		}
-		else  // GDT
-		{
-			if((selector & ~0x0007) > cpustate->gdtr.limit)
+			else  // GDT
 			{
-				logerror("SReg Load (%08x): Selector is out of GDT bounds.\n",cpustate->pc);
-				FAULT(FAULT_GP,selector & ~0x03)
+				if((selector & ~0x0007) > cpustate->gdtr.limit)
+				{
+					logerror("SReg Load (%08x): Selector is out of GDT bounds.\n",cpustate->pc);
+					FAULT(FAULT_GP,selector & ~0x03)
+				}
 			}
-		}
-		if((desc.flags & 0x0018) != 0x10)
-		{
-			if((((desc.flags & 0x0002) != 0) && ((desc.flags & 0x0018) != 0x18)) || !(desc.flags & 0x10))
+			if((desc.flags & 0x0018) != 0x10)
 			{
-				logerror("SReg Load (%08x): Segment is not a data segment or readable code segment.\n",cpustate->pc);
-				FAULT(FAULT_GP,selector & ~0x03)
+				if((((desc.flags & 0x0002) != 0) && ((desc.flags & 0x0018) != 0x18)) || !(desc.flags & 0x10))
+				{
+					logerror("SReg Load (%08x): Segment is not a data segment or readable code segment.\n",cpustate->pc);
+					FAULT(FAULT_GP,selector & ~0x03)
+				}
 			}
-		}
-		if(((desc.flags & 0x0018) == 0x10) || ((!(desc.flags & 0x0004)) && ((desc.flags & 0x0018) == 0x18)))
-		{
-			// if data or non-conforming code segment
-			if((RPL > DPL) || (CPL > DPL))
+			if(((desc.flags & 0x0018) == 0x10) || ((!(desc.flags & 0x0004)) && ((desc.flags & 0x0018) == 0x18)))
 			{
-				logerror("SReg Load (%08x): Selector RPL or CPL is not less or equal to segment DPL.\n",cpustate->pc);
-				FAULT(FAULT_GP,selector & ~0x03)
+				// if data or non-conforming code segment
+				if((RPL > DPL) || (CPL > DPL))
+				{
+					logerror("SReg Load (%08x): Selector RPL or CPL is not less or equal to segment DPL.\n",cpustate->pc);
+					FAULT(FAULT_GP,selector & ~0x03)
+				}
 			}
+			if(!(desc.flags & 0x0080))
+			{
+				logerror("SReg Load (%08x): Segment is not present.\n",cpustate->pc);
+				FAULT(FAULT_NP,selector & ~0x03)
+					}
 		}
-		if(!(desc.flags & 0x0080))
-		{
-			logerror("SReg Load (%08x): Segment is not present.\n",cpustate->pc);
-			FAULT(FAULT_NP,selector & ~0x03)
-		}
+	break;
+	default:
+		break;
 	}
 
 	cpustate->sreg[reg].selector = selector;
@@ -702,7 +713,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 	if(fault) *fault = false;
 }
 
-/*static*/INLINE void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level)
+static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level)
 {
 	/*  I386 Interrupts/Traps/Faults:
 	 *
