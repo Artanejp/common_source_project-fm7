@@ -366,7 +366,7 @@ public:
 	uint32_t read_debug_data32(uint32_t addr);
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+	virtual int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
 //#endif
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 	

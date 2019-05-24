@@ -20,7 +20,7 @@
 #include "mc6800_consts.h"
 
 
-int MB8861::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int MB8861::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata )
 {
 	uint8_t ops[4];
 	if(d_mem_stored != NULL) {

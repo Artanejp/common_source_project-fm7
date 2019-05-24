@@ -538,7 +538,7 @@ Clocks = 0 (0)  Since Scanline = 0/0 (0/0)
 
 ***************************************************************************/
 
-int MCS48_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int MCS48_BASE::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 	mcs48_state *cpustate = (mcs48_state *)opaque;
 	uint32_t ptr = pc;

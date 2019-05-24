@@ -356,7 +356,7 @@ Clocks = 0 (0)  Since Scanline = 0/0 (0/0)
 
 // disassembler
 
-int UPD7810::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int UPD7810::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 	uint8_t oprom[8];
 	uint8_t *opram = oprom;

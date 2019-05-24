@@ -1433,7 +1433,7 @@ uint8_t getwa()
 	return getb();
 }
 
-int UPD7801::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int UPD7801::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 	if(d_debugger == NULL) return 0;
 	for(int i = 0; i < 4; i++) {

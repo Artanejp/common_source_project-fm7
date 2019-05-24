@@ -3816,6 +3816,9 @@ static CPU_EXECUTE( i386 )
 			try
 			{
 				I386OP(decode_opcode)(cpustate);
+				UINT32 _ops = (cpustate->operand_size) ? (I386_TRACE_DATA_BIT_USERDATA_SET | I386_TRACE_DATA_BIT_OP32) : (I386_TRACE_DATA_BIT_USERDATA_SET);
+				cpustate->debugger->add_cpu_trace_userdata(_ops, (I386_TRACE_DATA_BIT_USERDATA_SET | I386_TRACE_DATA_BIT_OP32));
+
 				if(cpustate->exception_caused != 0) {
 					exception_pc = cpustate->exception_pc;
 					exception_code = cpustate->exception_code;
@@ -3898,6 +3901,8 @@ static CPU_EXECUTE( i386 )
 			try
 			{
 				I386OP(decode_opcode)(cpustate);
+				UINT32 _ops = (cpustate->operand_size) ? (I386_TRACE_DATA_BIT_USERDATA_SET | I386_TRACE_DATA_BIT_OP32) : (I386_TRACE_DATA_BIT_USERDATA_SET);
+				cpustate->debugger->add_cpu_trace_userdata(_ops, (I386_TRACE_DATA_BIT_USERDATA_SET | I386_TRACE_DATA_BIT_OP32));
 				if(cpustate->TF && old_tf)
 				{
 					cpustate->prev_eip = cpustate->eip;

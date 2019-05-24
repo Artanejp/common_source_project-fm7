@@ -61,7 +61,7 @@ public:
 	~HD6301() {}
 	bool process_state(FILEIO* state_fio, bool loading);
 
-	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len) override;
+	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0) override;
 
 };
 #endif

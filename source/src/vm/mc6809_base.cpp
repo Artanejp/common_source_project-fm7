@@ -726,7 +726,7 @@ uint32_t MC6809_BASE::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const u
 	return 0;
 }
 
-int MC6809_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int MC6809_BASE::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 	return 0;
 }

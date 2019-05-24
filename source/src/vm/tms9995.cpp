@@ -1691,7 +1691,7 @@ enum
 
 #include "mame/emu/cpu/tms9900/9900dasm.c"
 
-int TMS9995::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int TMS9995::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 	UINT8 oprom[16], opram[16];
 	for(int i = 0; i < 16; i++) {

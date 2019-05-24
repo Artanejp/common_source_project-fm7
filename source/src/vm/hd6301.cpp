@@ -583,7 +583,7 @@ void HD6301::tim_di()
 	SET_NZ8(r);
 }
 
-int HD6301::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int HD6301::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 	uint8_t ops[4];
 	for(int i = 0; i < 4; i++) {

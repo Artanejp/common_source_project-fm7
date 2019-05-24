@@ -97,6 +97,7 @@ public:
 		memset(cpu_trace, 0xff, sizeof(cpu_trace));
 		memset(cpu_trace_exp, 0x00, sizeof(cpu_trace_exp));
 		memset(cpu_trace_exp_map, 0x00, sizeof(cpu_trace_exp_map));
+		memset(cpu_trace_userdata, 0x00, sizeof(cpu_trace_userdata));
 		exception_happened = false;
 		stop_on_exception = true;
 		prev_cpu_trace = 0xffffffff;
@@ -501,14 +502,23 @@ public:
 		cpu_trace_exp[(cpu_trace_ptr - 1) & (MAX_CPU_TRACE - 1)] = exception_code; 
 		cpu_trace_exp_map[(cpu_trace_ptr - 1) & (MAX_CPU_TRACE - 1)] = true; 
 	}
+	// Userdata should after executing instruction.
+	void add_cpu_trace_userdata(uint32_t data, uint32_t mask)
+	{
+		cpu_trace_userdata[(cpu_trace_ptr - 1) & (MAX_CPU_TRACE - 1)] &= ~mask;
+		cpu_trace_userdata[(cpu_trace_ptr - 1) & (MAX_CPU_TRACE - 1)] |= (data & mask);
+	}
 	void add_cpu_trace(uint32_t pc)
 	{
 		if(prev_cpu_trace != pc) {
 			cpu_trace_exp_map[cpu_trace_ptr] = false; 
+			cpu_trace_userdata[cpu_trace_ptr] = 0; 
 			cpu_trace_exp[cpu_trace_ptr] = 0; 
 			cpu_trace[cpu_trace_ptr++] = prev_cpu_trace = pc;
-			if(cpu_trace_ptr >= MAX_CPU_TRACE) cpu_trace_overwrap = true;
-			cpu_trace_ptr &= (MAX_CPU_TRACE - 1);
+			if(cpu_trace_ptr >= MAX_CPU_TRACE) {
+				cpu_trace_overwrap = true;
+				cpu_trace_ptr = 0;
+			}
 		}
 	}
 	break_point_t bp, rbp, wbp, ibp, obp;
@@ -523,6 +533,8 @@ public:
 	int history_ptr;
 	uint32_t cpu_trace[MAX_CPU_TRACE], prev_cpu_trace;
 	uint64_t cpu_trace_exp[MAX_CPU_TRACE];
+	uint32_t cpu_trace_userdata[MAX_CPU_TRACE]; // ToDo: Is need larger userdata?
+	
 	bool cpu_trace_exp_map[MAX_CPU_TRACE];
 	int cpu_trace_ptr;
 	bool cpu_trace_overwrap;

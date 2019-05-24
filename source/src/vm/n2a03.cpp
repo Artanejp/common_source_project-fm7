@@ -958,7 +958,7 @@ const UINT32 DASMFLAG_LENGTHMASK    = 0x0000ffff;   // the low 16-bits contain t
 
 extern CPU_DISASSEMBLE(m6502);
 	
-int N2A03::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int N2A03::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 #ifdef USE_DEBUGGER
 	uint8_t oprom[4];

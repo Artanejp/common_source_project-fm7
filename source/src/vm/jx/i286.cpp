@@ -405,7 +405,7 @@ bool I286::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	return true;
 }
 
-int I286::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int I286::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	UINT64 eip = pc - cpustate->base[CS];

@@ -561,7 +561,7 @@ void MC6801::run_one_opecode()
 	}
 }
 
-int MC6801::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int MC6801::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 	uint8_t ops[4];
 	for(int i = 0; i < 4; i++) {

@@ -57,7 +57,7 @@ void MC6809::run_one_opecode()
 				now_debugging = false;
 			}
 		
-			d_debugger->add_cpu_trace(PC);
+			d_debugger->add_cpu_trace(PC & 0xffff);
 			int first_icount = icount;
 			pPPC = pPC;
 			uint8_t ireg = ROP(PCD);
@@ -75,7 +75,7 @@ void MC6809::run_one_opecode()
 				d_mem = d_mem_stored;
 			}
 		} else {
-			d_debugger->add_cpu_trace(PC);
+			d_debugger->add_cpu_trace(PC & 0xffff);
 			int first_icount = icount;
 			pPPC = pPC;
 			uint8_t ireg = ROP(PCD);
@@ -88,6 +88,7 @@ void MC6809::run_one_opecode()
 		}
 	} else {
 		pPPC = pPC;
+		d_debugger->add_cpu_trace(PC & 0xffff);
 		uint8_t ireg = ROP(PCD);
 		PC++;
 		icount -= cycles1[ireg];
@@ -810,7 +811,7 @@ uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_
 	}
 }
 
-int MC6809::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int MC6809::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 	if(__USE_DEBUGGER) {
 		_TCHAR buffer_tmp[1024]; // enough ???

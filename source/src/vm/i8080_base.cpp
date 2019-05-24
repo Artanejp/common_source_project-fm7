@@ -1332,7 +1332,7 @@ Clocks = 0 (0)  Since Scanline = 0/0 (0/0)
 
 // disassembler
 
-int I8080_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int I8080_BASE::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 	uint8_t ops[4];
 	int ptr = 0;

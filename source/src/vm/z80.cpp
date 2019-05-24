@@ -574,7 +574,7 @@ extern uint8_t z80_dasm_ops[4];
 extern int z80_dasm_ptr;
 }
 
-int Z80::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int Z80::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata )
 {
 	for(int i = 0; i < 4; i++) {
 		int wait;

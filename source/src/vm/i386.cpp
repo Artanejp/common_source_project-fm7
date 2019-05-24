@@ -804,8 +804,7 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	cpustate->prev_total_cycles = cpustate->total_cycles;
 	return true;
 }
-
-int I386::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int I386::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 	i386_state *cpustate = (i386_state *)opaque;
 	UINT64 eip = pc - cpustate->sreg[CS].base;
@@ -815,8 +814,8 @@ int I386::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 		ops[i] = d_mem->read_data8w(pc + i, &wait);
 	}
 	UINT8 *oprom = ops;
-	
-	if(cpustate->operand_size) {
+	bool __op32 = (userdata & I386_TRACE_DATA_BIT_USERDATA_SET) ? ((userdata & I386_TRACE_DATA_BIT_OP32) ? true : false) : ((cpustate->operand_size != 0) ? true : false);
+	if(__op32) {
 		return CPU_DISASSEMBLE_CALL(x86_32) & DASMFLAG_LENGTHMASK;
 	} else {
 		return CPU_DISASSEMBLE_CALL(x86_16) & DASMFLAG_LENGTHMASK;

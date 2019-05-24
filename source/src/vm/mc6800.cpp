@@ -576,7 +576,7 @@ unsigned MC6800::Dasm680x(int subtype, _TCHAR *buf, unsigned pc, const UINT8 *op
 	}
 }
 
-int MC6800::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int MC6800::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 	uint8_t ops[4];
 	if(d_mem_stored != NULL) {

@@ -334,7 +334,7 @@ public:
 	}
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+	virtual int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
 //#endif
 	// unique functions
 	void set_context_mem(DEVICE* device)
@@ -380,7 +380,7 @@ public:
 	void reset();
 	int run(int clock) override;
 
-	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
 #ifdef USE_DEBUGGER
 	void write_debug_data8(uint32_t addr, uint32_t data);
 	uint32_t read_debug_data8(uint32_t addr);

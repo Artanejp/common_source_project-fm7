@@ -1035,7 +1035,7 @@ int M6502::run(int clock)
 const UINT32 DASMFLAG_LENGTHMASK    = 0x0000ffff;   // the low 16-bits contain the actual length
 extern CPU_DISASSEMBLE(m6502);
 
-int M6502::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int M6502::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 #ifdef USE_DEBUGGER
 	uint8_t oprom[4];

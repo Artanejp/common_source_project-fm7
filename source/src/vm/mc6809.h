@@ -612,7 +612,7 @@ public:
 	}
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+	virtual int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
 	virtual uint32_t cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram);
 	virtual void debugger_hook(void);
 	// common functions
@@ -704,7 +704,7 @@ class MC6809 : public MC6809_BASE
 	void initialize();
 	void run_one_opecode();
 	uint32_t cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram);
-	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+	virtual int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
 	void debugger_hook(void);
 };
 #endif

@@ -2364,7 +2364,7 @@ Total CPU Clocks = 0 (0) Since Scanline = 0/0 (0/0)
 
 // disassembler
 
-int Z80_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int Z80_BASE::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata )
 {
 	return -1;
 }

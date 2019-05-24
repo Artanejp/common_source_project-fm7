@@ -1086,6 +1086,10 @@ public:
 	}
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	{
+		return debug_dasm_with_userdata(pc, buffer, buffer_len, 0);
+	}
+	virtual int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0)
+	{
 		return 0;
 	}
 #endif

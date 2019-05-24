@@ -262,7 +262,7 @@ const UINT32 DASMFLAG_OVERINSTSHIFT = 27;           // bits to shift after maski
 
 #include "mame/emu/cpu/m6502/6502dasm.c"
 
-int M6502_BASE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+int M6502_BASE::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
    return 0;
 }

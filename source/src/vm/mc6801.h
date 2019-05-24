@@ -154,7 +154,7 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 
 
-	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len) override;
+	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0) override;
 //#if defined(HAS_MC6801) || defined(HAS_HD6301)
 	void set_context_port1(DEVICE* device, int id, uint32_t mask, int shift)
 	{

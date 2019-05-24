@@ -648,11 +648,12 @@ void* debugger_thread(void *lpx)
 					
 					if(num >= 2) {
 						if((strcasecmp(params[xnum], "0") == 0)) {
-							steps = MAX_CPU_TRACE; // TBD
+							steps = MAX_CPU_TRACE - 1; // TBD
 							xnum++;
 						} else {
-							steps = min((int)my_hexatoi(target, params[xnum]), MAX_CPU_TRACE);
+							steps = min((int)atoi(params[xnum]), MAX_CPU_TRACE - 1);
 							if(steps > 0) xnum++;
+							if(steps <= 0) goto _ut_finish;
 						}
 					}
 					_TCHAR log_path[_MAX_PATH];
@@ -685,24 +686,26 @@ void* debugger_thread(void *lpx)
 						}
 					}
 					int steps_left = steps;
-					int max_steps = MAX_CPU_TRACE;
-					int begin_step = (MAX_CPU_TRACE - steps) & (MAX_CPU_TRACE - 1);
+					int max_step = target_debugger->cpu_trace_ptr & (MAX_CPU_TRACE - 1);
+					int begin_step = (target_debugger->cpu_trace_ptr - steps) & (MAX_CPU_TRACE - 1);
 					if(!(target_debugger->cpu_trace_overwrap)) {
-						max_steps = target_debugger->cpu_trace_ptr;
-						begin_step = 0;
-						steps_left = (max_steps > steps_left) ? steps_left : max_steps;
+						if(steps_left > max_step) {
+							begin_step = 0;
+							steps_left = max_step;
+							steps = max_step;
+						}
 					}
 					if(steps_left > 1024) {
 						if(logging) {
 							my_printf(p->osd, "** NOTE: Trace %d steps, but display only 1024 steps,more are only logging.", steps_left);
 						} else {
 							my_printf(p->osd, "** NOTE: Request to trace %d steps, but display only 1024 steps.", steps_left);
-							begin_step = max_steps - 1024;
-							if(begin_step < 0) begin_step = 0;
+							begin_step = (max_step - 1024) & (MAX_CPU_TRACE - 1);
 							steps_left = 1024;
 						}
 					}
-					for(int i = begin_step; i < max_steps; i++) {
+
+					for(int i = begin_step; i != max_step; i = ((i + 1) & (MAX_CPU_TRACE - 1)) ) {
 						if(logging) {
 							if((log_fio != NULL)) {
 								if(!(log_fio->IsOpened())) {
@@ -712,11 +715,11 @@ void* debugger_thread(void *lpx)
 								logging = false;
 							}
 						}
-						int index = (target_debugger->cpu_trace_ptr + i) & (MAX_CPU_TRACE - 1);
+						int index = i;
 
 						if(!(target_debugger->cpu_trace[index] & ~target->get_debug_prog_addr_mask())) {
 							const _TCHAR *name = my_get_symbol(target, target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask());
-							int len = target->debug_dasm(target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask(), buffer, array_length(buffer));
+							int len = target->debug_dasm_with_userdata(target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask(), buffer, array_length(buffer), target_debugger->cpu_trace_userdata[index]);
 							_TCHAR tmps[8192];
 							_TCHAR tmps2[512];
 							memset(tmps, 0x00, sizeof(tmps));
@@ -754,9 +757,11 @@ void* debugger_thread(void *lpx)
 								my_printf(p->osd, "%s", tmps);
 							}
 							steps_left--;
+							if(steps_left <= 0) break;
 						}
 					}
 //					if(logging) {
+				_ut_finish:
 						if(log_fio != NULL) {
 							if(log_fio->IsOpened()) {
 								{

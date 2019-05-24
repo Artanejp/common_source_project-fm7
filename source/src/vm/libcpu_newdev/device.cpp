@@ -531,6 +531,11 @@ bool DEVICE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 }
 int DEVICE::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
+	return debug_dasm_with_userdata(pc, buffer, buffer_len, 0);
+}
+
+int DEVICE::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
+{
 	return 0;
 }
 /*

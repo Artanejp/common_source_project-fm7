@@ -20,6 +20,9 @@
 
 #define SIG_I386_A20			1
 #define SIG_I386_NOTIFY_RESET	2
+
+#define I386_TRACE_DATA_BIT_USERDATA_SET	0x80000000
+#define I386_TRACE_DATA_BIT_OP32			0x00000001
 //#ifdef USE_DEBUGGER
 class DEBUGGER;
 //#endif
@@ -122,7 +125,7 @@ public:
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	uint32_t read_debug_reg(const _TCHAR *reg);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
 //#endif
 	bool process_state(FILEIO* state_fio, bool loading);
 	
