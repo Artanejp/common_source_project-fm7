@@ -21,6 +21,7 @@
 #define MAX_COMMAND_HISTORY	32
 #define MAX_CPU_TRACE		0x01000000 /* 16Msteps */
 
+
 typedef struct {
 	struct {
 		uint32_t addr, mask;
