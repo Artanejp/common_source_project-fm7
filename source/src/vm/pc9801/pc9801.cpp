@@ -1085,6 +1085,180 @@ void VM::set_cpu_clock_with_switch(int speed_type)
 	pit->set_constant_clock(2, pit_clocks);
 }
 
+void VM::set_wait(int dispmode, int clock)
+{
+	// by PC-9800 Technical Data Book (HARDWARE), ASCII, 1993.
+	int io_wait       = 8;  // I/O
+	int slotmem_wait  = 4;  // Extra RAM on extra bus.
+	int exmem_wait    = 1;  // Extra RAM on extra memory slot.
+	int exboards_wait = 8; // BANK 0C, 0D
+	int introm_wait   = 0;  // INTERNAL ROM (BIOS, ITF)
+	int bank08_wait   = 2/*8*/;
+	int intram_wait   = 0;
+	int cpuclock      = 8000000;
+	// TODO: INTA
+#if defined(_PC9801RA) || defined(_PC9801RL)
+	// PC-9801RA21
+	intram_wait = 0;
+	if(clock == 0) { // FAST CLOCK (20MHz)
+		cpuclock = 20000000;
+#if defined(_SUPPORT_HIRESO)		
+		if(dispmode != 0) { // Low RESO
+			exboards_wait = 12;
+		} else {
+			introm_wait = 6;
+		}
+#else
+		exboards_wait = 12;
+#endif
+		io_wait = 10;
+	} else {
+		cpuclock = 16000000;
+#if defined(_SUPPORT_HIRESO)		
+		if(dispmode != 0) { // Low RESO
+			exboards_wait = 10;
+		} else {
+			introm_wait = 4;
+		}
+#else
+		exboards_wait = 10;
+#endif
+		io_wait = 8;
+	}
+	
+#elif defined(_PC98XL2)
+	// ToDo: V30
+	cpuclock = 16000000;
+	if(dispmode == 0) {
+		intram_wait = 1;
+		bank08_wait = 1;
+		io_wait = 10;
+		introm_wait = 6;
+		slotmem_wait  = 6;
+		exmem_wait    = 1;
+		exboards_wait = 4;
+		// inta_wait = 14;
+	} else { // Normal
+		intram_wait = 1;
+		bank08_wait = 1;
+		io_wait = 10;
+		introm_wait = 1;
+		slotmem_wait  = 6;
+		exmem_wait    = 1;
+		exboards_wait = 12;
+		// inta_wait = 14;
+	}
+	
+#elif defined(_PC98XL)
+	if(dispmode == 0) {
+		intram_wait = 1;
+		bank08_wait = 1;
+		io_wait = 3;
+		introm_wait = 1;
+		slotmem_wait  = 1;
+		exmem_wait    = 1;
+		exboards_wait = 4;
+		cpuclock = 8000000;
+		if(clock == 0) { // FAST CLOCK (10MHz)
+			io_wait += 1;
+			exboards_wait = 1;
+			cpuclock = 10000000;
+		}
+		// inta_wait = 5;
+	} else { // Normal
+		intram_wait = 0;
+		bank08_wait = 0;
+		io_wait = 3;
+		introm_wait = 0;
+		slotmem_wait  = 0;
+		exmem_wait    = 1;
+		exboards_wait = 4;
+		cpuclock = (clock == 0) ? 10000000 : 8000000;
+	}
+	
+#elif defined(_PC9801VM21) || defined(_PC9801VX)
+	// ToDo: V30
+	// They are for 80286.
+	if(clock == 0) { // FAST CLOCK (10MHz)
+		cpuclock = 10000000;
+		intram_wait = 0;
+		bank08_wait = 5;
+		io_wait = 4;
+		introm_wait = 0;
+		slotmem_wait  = 1;
+		exmem_wait    = 1;
+		exboards_wait = 5;
+	} else { // SLOW (8MHz)
+		cpuclock = 8000000;
+		intram_wait = 0;
+		io_wait = 3;
+		bank08_wait = 4;
+		introm_wait = 0;
+		slotmem_wait  = 1;
+		exmem_wait    = 1;
+		exboards_wait = 4;
+		// inta_wait = 5;
+	}		
+#elif defined(_PC9801U) || defined(_PC9801VF) || defined(_PC9801VM) || defined(_PC9801UV)
+	if(clock == 0) { // FAST CLOCK (10MHz)
+		cpuclock = 10000000;
+		intram_wait = 1;
+		io_wait = 3;
+	} else { // SLOW (8MHz)
+		cpuclock = 8000000;
+		intram_wait = 0;
+		io_wait = 2;
+	}		
+	slotmem_wait  = intram_wait;
+	exmem_wait    = intram_wait;
+	exboards_wait = intram_wait;
+	introm_wait   = intram_wait;
+	bank08_wait   = intram_wait;
+#elif defined(_PC98XA)
+	cpuclock = 8000000;
+	intram_wait = 1;
+	io_wait = 3;
+	// inta_wait = 2;
+	slotmem_wait  = intram_wait;
+	exmem_wait    = intram_wait;
+	exboards_wait = intram_wait;
+	introm_wait   = intram_wait;
+	bank08_wait   = intram_wait;
+#elif defined(_PC9801E) || defined(_PC9801F) || defined(_PC9801M) || defined(_PC9801)
+	// ToDo: Others.
+	if(clock == 0) { // FAST CLOCK (8MHz)
+		cpuclock = 8000000;
+		intram_wait = 1;
+		io_wait = 2;
+	} else {
+		cpuclock = 5000000;
+		intram_wait = 0;
+		io_wait = 1;
+	}		
+	slotmem_wait  = intram_wait;
+	exmem_wait    = intram_wait;
+	exboards_wait = intram_wait;
+	introm_wait   = intram_wait;
+	bank08_wait   = intram_wait;
+#endif
+	memory->write_signal(SIG_INTRAM_WAIT, intram_wait, 0xff);
+	memory->write_signal(SIG_BANK08_WAIT, bank08_wait, 0xff);
+	memory->write_signal(SIG_EXMEM_WAIT, exmem_wait, 0xff);
+	memory->write_signal(SIG_SLOTMEM_WAIT, slotmem_wait, 0xff);
+	memory->write_signal(SIG_EXBOARDS_WAIT, exboards_wait, 0xff);
+	memory->write_signal(SIG_INTROM_WAIT, introm_wait, 0xff);
+	// IO
+	io->set_iowait_range_r(0x0000, 0xffff, io_wait);
+	io->set_iowait_range_w(0x0000, 0xffff, io_wait);
+	// ToDo: Wait factor
+	int waitval;
+	waitval = (int)round(((double)cpuclock) / (1.0e6 / 1.6));
+	if(waitval < 1) waitval = 0;
+	memory->write_signal(SIG_TVRAM_WAIT, waitval, 0xfffff); // OK?
+	memory->write_signal(SIG_GVRAM_WAIT, intram_wait, 0xfffff); // OK?
+//	memory->write_signal(SIG_GVRAM_WAIT, waitval, 0xfffff); // OK?
+}	
+
 void VM::reset()
 {
 	// Set resolution before resetting.
@@ -1095,6 +1269,7 @@ void VM::reset()
 		io->set_iovalue_single_r(0x0431, 0x00);
 		gdc_gfx->set_horiz_freq(24830);
 		gdc_chr->set_horiz_freq(24830);
+		
 	} else { // WIP
 		io->set_iovalue_single_r(0x0431, 0x04); // bit2: 1 = Normal mode, 0 = Hireso mode
 		gdc_gfx->set_horiz_freq(15750);
@@ -1114,6 +1289,11 @@ void VM::reset()
 #endif
 	set_cpu_clock_with_switch((config.cpu_type != 0) ? 1 : 0);
 	
+#if defined(USE_MONITOR_TYPE)
+	set_wait(config.monitor_type, config.cpu_type);
+#else
+	set_wait(0, config.cpu_type);
+#endif	
 	port_a  = 0x00;
 //	port_a |= 0x80; // DIP SW 2-8, 1 = GDC 2.5MHz, 0 = GDC 5MHz
 	port_a |= 0x40; // DIP SW 2-7, 1 = Do not control FD motor
@@ -1715,9 +1895,15 @@ bool VM::is_frame_skippable()
 	return event->is_frame_skippable();
 }
 
+
 void VM::update_config()
 {
 	set_cpu_clock_with_switch((config.cpu_type != 0) ? 1 : 0);
+#if defined(USE_MONITOR_TYPE)
+	set_wait(config.monitor_type, config.cpu_type);
+#else
+	set_wait(0, config.cpu_type);
+#endif	
 	{
 		uint8_t mouse_port_b = pio_mouse->read_signal(SIG_I8255_PORT_B);
 		mouse_port_b = mouse_port_b & ~0x40;
@@ -1801,6 +1987,11 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(sound_type);
 	if(loading) {
 		set_cpu_clock_with_switch((config.cpu_type != 0) ? 1 : 0);
+#if defined(USE_MONITOR_TYPE)
+		set_wait(config.monitor_type, config.cpu_type);
+#else
+		set_wait(0, config.cpu_type);
+#endif	
 	}
  	return true;
 }

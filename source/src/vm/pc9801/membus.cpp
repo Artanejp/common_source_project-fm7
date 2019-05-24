@@ -97,6 +97,8 @@ void MEMBUS::initialize()
 	// RAM
 	memset(ram, 0x00, sizeof(ram));
 	// VRAM
+	gvram_wait_val = 1;
+	tvram_wait_val = 4;
 	
 	// BIOS
 	memset(bios, 0xff, sizeof(bios));
@@ -176,6 +178,13 @@ void MEMBUS::initialize()
 	last_access_is_interam = false;
 	config_intram();
 	update_bios();
+
+	intram_wait = 1;
+	bank08_wait = 10;
+	exmem_wait = 2;
+	slotmem_wait = 2;
+	exboards_wait = 4;
+	introm_wait = 1;
 }
 
 void MEMBUS::reset()
@@ -559,6 +568,47 @@ void MEMBUS::write_dma_data8(uint32_t addr, uint32_t data)
 }
 #endif
 
+void MEMBUS::write_signal(int ch, uint32_t data, uint32_t mask)
+{
+	switch(ch) {
+	case SIG_INTRAM_WAIT:
+		intram_wait = (int)(data & 0xff);
+		update_bios();
+		break;
+	case SIG_BANK08_WAIT:
+		bank08_wait = (int)(data & 0xff);
+		update_bios();
+		break;
+	case SIG_EXMEM_WAIT:
+		exmem_wait = (int)(data & 0xff);
+		update_bios();
+		break;
+	case SIG_SLOTMEM_WAIT:
+		slotmem_wait = (int)(data & 0xff);
+		update_bios();
+		break;
+	case SIG_EXBOARDS_WAIT:
+		exboards_wait = (int)(data & 0xff);
+		update_bios();
+		break;
+	case SIG_INTROM_WAIT:
+		introm_wait = (int)(data & 0xff);
+		update_bios();
+		break;
+	case SIG_GVRAM_WAIT:
+		gvram_wait_val = (int)(data & 0xff);
+		update_bios();
+		break;
+	case SIG_TVRAM_WAIT:
+		tvram_wait_val = (int)(data & 0xff);
+		update_bios();
+		break;
+	default:
+		break;
+	}
+}
+
+		
 uint32_t MEMBUS::read_signal(int ch)
 {
 	switch(ch) {
@@ -600,8 +650,12 @@ void MEMBUS::update_bios()
 	#endif
 	set_memory_mapped_io_rw(0xa0000, 0xa4fff, d_display);
 	set_memory_mapped_io_rw(0xa8000, 0xbffff, d_display);
+	set_wait_rw(0xa0000, 0xbffff, gvram_wait_val); // OK?
+	set_wait_r(0xa0000, 0xa4fff, tvram_wait_val);
+	set_wait_w(0xa0000, 0xa4fff, tvram_wait_val);
 #else
 	unset_memory_rw(0xc0000, 0xe4fff);
+	set_wait_rw(0xc0000, 0xe4fff, intram_wait);
 #endif
 #if !defined(SUPPORT_HIRESO)
 	{
@@ -613,6 +667,7 @@ void MEMBUS::update_bios()
 		#endif
 		#if defined(SUPPORT_16_COLORS)
 		set_memory_mapped_io_rw(0xe0000, 0xe7fff, d_display);
+		set_wait_rw(0xe0000, 0xe7fff, gvram_wait_val); // OK?
 		#endif
 		update_sound_bios();
 
@@ -631,9 +686,11 @@ void MEMBUS::update_bios()
 	#if defined(SUPPORT_BIOS_RAM) && defined(SUPPORT_32BIT_ADDRESS)
 	if(shadow_ram_selected) {
 		set_memory_rw(0xc0000, 0xe7fff, &(ram[0xc0000])); // OK?
+		set_wait_rw(0xc0000, 0xe7fff, intram_wait);
 	}
 	#endif
 #endif
+	set_wait_rw(0x00100000 - sizeof(bios), 0xfffff, introm_wait);
 	{	
 #if defined(SUPPORT_BIOS_RAM)
 		if(bios_ram_selected) {
@@ -671,7 +728,11 @@ void MEMBUS::update_bios()
 		}
 	}
 	#endif
+	if(sizeof(ram) > 0x10000) {
+		set_wait_rw(0x00100000, (sizeof(ram) >= 0x00e00000) ? 0x00dfffff : (sizeof(ram) - 1), exmem_wait);
+	}
 	if((page08_intram_selected) /*&& (shadow_ram_selected)*/){
+		set_wait_rw(0x80000, 0x9ffff, bank08_wait);
 		if((window_80000h == 0xc0000)) {
 #if defined(UPPER_I386)  && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
@@ -715,6 +776,7 @@ void MEMBUS::update_bios()
 	} else {
 		// Internal RAM is not selected.
 		// ToDo: Hi reso
+		set_wait_rw(0x80000, 0x9ffff, bank08_wait);
 		if(window_80000h < 0x80000) {
 		#if defined(SUPPORT_BIOS_RAM)
 			if(!(bios_ram_selected)) {
@@ -731,7 +793,12 @@ void MEMBUS::update_bios()
 			copy_table_rw(0x00080000, window_80000h, window_80000h + 0x1ffff);
 		}
 	}
-
+	if(shadow_ram_selected) {
+//		set_wait_rw(0xa0000, 0xbffff, bank08_wait);
+		set_wait_rw(0xa0000, 0xbffff, intram_wait);
+	} else {
+		set_wait_rw(0xa0000, 0xbffff, intram_wait);
+	}
 	/*if((page08_intram_selected) )*/{
 		if((window_a0000h == 0xc0000)) {
 #if defined(UPPER_I386) && defined(SUPPORT_BIOS_RAM)
@@ -814,6 +881,7 @@ void MEMBUS::update_sound_bios()
 	} else {
 		unset_memory_rw(0xcc000, 0xcffff);
 	}
+	set_wait_rw(0xcc000, 0xcffff, exboards_wait);
 }
 
 #if defined(SUPPORT_SASI_IF)
@@ -831,6 +899,7 @@ void MEMBUS::update_sasi_bios()
 	} else {
 		unset_memory_rw(0xd7000, 0xd7fff);
 	}
+	set_wait_rw(0xd7000, 0xd7fff, exboards_wait);
 }
 #endif
 
@@ -847,6 +916,7 @@ void MEMBUS::update_scsi_bios()
 	} else {
 		unset_memory_rw(0xdc000, 0xdcfff);
 	}
+	set_wait_rw(0xdc000, 0xdcfff, exboards_wait);
 }
 #endif
 
@@ -861,6 +931,7 @@ void MEMBUS::update_ide_bios()
 	} else {
 		unset_memory_rw(0xd8000, 0xdbfff);
 	}
+	set_wait_rw(0xd8000, 0xdbfff, exboards_wait);
 }
 #endif
 
@@ -874,11 +945,12 @@ void MEMBUS::update_nec_ems()
 		unset_memory_rw(0xb0000, 0xbffff);
 		set_memory_mapped_io_rw(0xb0000, 0xbffff, d_display);
 	}
+	set_wait_rw(0xb0000, 0xbffff, slotmem_wait);
 }
 #endif
 
 
-#define STATE_VERSION	12
+#define STATE_VERSION	13
 
 bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 {
@@ -931,7 +1003,16 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(page08_intram_selected);
 	state_fio->StateValue(shadow_ram_selected);
 	state_fio->StateValue(last_access_is_interam);
-	
+
+	state_fio->StateValue(intram_wait);
+	state_fio->StateValue(bank08_wait);
+	state_fio->StateValue(exmem_wait);
+	state_fio->StateValue(slotmem_wait);
+	state_fio->StateValue(exboards_wait);
+	state_fio->StateValue(introm_wait);
+	state_fio->StateValue(gvram_wait_val);
+	state_fio->StateValue(tvram_wait_val);
+
 	if(!MEMORY::process_state(state_fio, loading)) {
  		return false;
  	}

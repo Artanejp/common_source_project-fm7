@@ -3194,7 +3194,7 @@ static void I386OP(group0F00_16)(i386_state *cpustate)          // Opcode 0x0f 0
 	UINT8 modrm = FETCH(cpustate);
 	I386_SREG seg;
 	UINT8 result;
-
+	int wait;
 	switch( (modrm >> 3) & 0x7 )
 	{
 		case 0:         /* SLDT */
@@ -3287,8 +3287,9 @@ static void I386OP(group0F00_16)(i386_state *cpustate)          // Opcode 0x0f 0
 
 				UINT32 addr = ((seg.selector & 4) ? cpustate->ldtr.base : cpustate->gdtr.base) + (seg.selector & ~7) + 5;
 				i386_translate_address(cpustate, TRANSLATE_READ, &addr, NULL);
-				cpustate->program->write_data16(addr, (seg.flags & 0xff) | 2);
-
+				
+				cpustate->program->write_data16w(addr, (seg.flags & 0xff) | 2, &wait);
+				cpustate->memory_wait += wait;
 				cpustate->task.limit = seg.limit;
 				cpustate->task.base = seg.base;
 				cpustate->task.flags = seg.flags | 2;

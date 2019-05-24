@@ -28,6 +28,7 @@
 #define SIG_DISPLAY98_SET_PAGE_A0		2
 #define SIG_DISPLAY98_SET_BANK			3
 //#define SIG_DISPLAY98_HIGH_RESOLUTION	4
+
 class UPD7220;
 
 namespace PC9801 {
@@ -219,6 +220,7 @@ private:
 	void egc_writeb(uint32_t addr1, uint8_t value);
 	void egc_writew(uint32_t addr1, uint16_t value);
 #endif
+
 	void draw_chr_screen();
 	void draw_gfx_screen();
 	void init_memsw();
@@ -239,6 +241,10 @@ public:
 	void event_frame();
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
+//	void write_memory_mapped_io8w(uint32_t addr, uint32_t data, int* wait);
+//	void write_memory_mapped_io16w(uint32_t addr, uint32_t data, int* wait);
+//	uint32_t read_memory_mapped_io8w(uint32_t addr, int* wait);
+//	uint32_t read_memory_mapped_io16w(uint32_t addr, int* wait);
 	void write_memory_mapped_io8(uint32_t addr, uint32_t data);
 	void write_memory_mapped_io16(uint32_t addr, uint32_t data);
 	uint32_t read_memory_mapped_io8(uint32_t addr);

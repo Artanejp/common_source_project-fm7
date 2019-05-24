@@ -665,6 +665,7 @@ public:
 	// for each device
 	// ----------------------------------------
 	void set_cpu_clock_with_switch(int speed_type); // 0 = High / 1 = Low / Others = (WIP)
+	void set_wait(int dispmode, int clock); // Set waitfor memories and IOs.
 	
 	// devices
 	DEVICE* get_device(int id);

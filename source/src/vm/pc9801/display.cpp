@@ -430,23 +430,37 @@ void DISPLAY::event_frame()
 
 void DISPLAY::write_signal(int ch, uint32_t data, uint32_t mask)
 {
-	if(ch == SIG_DISPLAY98_SET_PAGE_A0) {
-		data = data & 0x000e0000; // ToDo: Hi RESO
-		if((data < 0x000a0000) || (data >= 0x000f0000)) data = 0x80000000;
-		bank_table[0x0a] = data;
-		bank_table[0x0b] = data + 0x00010000;
-	} else if(ch == SIG_DISPLAY98_SET_PAGE_80) {
-		data = data & 0x000e0000; // ToDo: Hi RESO
-		if((data < 0x000a0000) || (data >= 0x000f0000)) data = 0x80000000;
-		bank_table[0x08] = data;
-		bank_table[0x09] = data + 0x00010000;
-	} else if(ch == SIG_DISPLAY98_SET_BANK) {
+	switch(ch) {
+	case SIG_DISPLAY98_SET_PAGE_A0:
+		{
+			data = data & 0x000e0000; // ToDo: Hi RESO
+			if((data < 0x000a0000) || (data >= 0x000f0000)) data = 0x80000000;
+			bank_table[0x0a] = data;
+			bank_table[0x0b] = data + 0x00010000;
+		}
+		break;
+	case SIG_DISPLAY98_SET_PAGE_80:
+		{
+			data = data & 0x000e0000; // ToDo: Hi RESO
+			if((data < 0x000a0000) || (data >= 0x000f0000)) data = 0x80000000;
+			bank_table[0x08] = data;
+			bank_table[0x09] = data + 0x00010000;
+		}
+		break;
+	case SIG_DISPLAY98_SET_BANK:
 		// WIP: Still dummy.
 		vram_bank = ((data & mask) != 0) ? 0x10000 : 0x00000;
-	} /*else if(ch == SIG_DISPLAY98_HIGH_RESOLUTION) {
-		display_high = ((data & mask) != 0);
-		printf("DISP MODE=%d\n", display_high);
-	}*/
+		break;
+	/*case SIG_DISPLAY98_HIGH_RESOLUTION:
+		  {
+		  display_high = ((data & mask) != 0);
+		  printf("DISP MODE=%d\n", display_high);
+		  }
+		  break;
+	*/
+	default:
+		break;
+	}
 }
 
 void DISPLAY::write_io8(uint32_t addr, uint32_t data)
@@ -980,7 +994,7 @@ void DISPLAY::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 uint32_t DISPLAY::read_memory_mapped_io8(uint32_t addr)
 {
 	uint32_t idx = (addr & 0x000f0000) >> 16;
-	if(bank_table[idx] >= 0x80000000) return;
+	if(bank_table[idx] >= 0x80000000) return 0xff;
 	addr = bank_table[idx] | (addr & 0x0000ffff);
 	
 	addr = addr & 0x000fffff; // For 32bit
@@ -1059,7 +1073,7 @@ uint32_t DISPLAY::read_memory_mapped_io8(uint32_t addr)
 uint32_t DISPLAY::read_memory_mapped_io16(uint32_t addr)
 {
 	uint32_t idx = (addr & 0x000f0000) >> 16;
-	if(bank_table[idx] >= 0x80000000) return;
+	if(bank_table[idx] >= 0x80000000) return 0xffff;
 	addr = bank_table[idx] | (addr & 0x0000ffff);
 	
 	addr = addr & 0x000fffff; // For 32bit
@@ -2995,7 +3009,7 @@ void DISPLAY::draw_gfx_screen()
 	}
 }
 
-#define STATE_VERSION	7
+#define STATE_VERSION	8
 
 bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3075,11 +3089,12 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 //	state_fio->StateValue(font_lr);
 	state_fio->StateValue(b_gfx_ff);
 //	state_fio->StateValue(vram_bank);
+
 	state_fio->StateArray(bank_table, sizeof(bank_table), 1);
 	
  	// post process
-#if defined(SUPPORT_2ND_VRAM) && !defined(SUPPORT_HIRESO)
 	if(loading) {
+#if defined(SUPPORT_2ND_VRAM) && !defined(SUPPORT_HIRESO)
 		if(vram_disp_sel & 1) {
 			vram_disp_b = vram + 0x28000;
 			vram_disp_r = vram + 0x30000;
@@ -3110,8 +3125,8 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 			grcg_tile_word[i] = ((uint16_t)(grcg_tile[i]) << 8) | grcg_tile[i];
 		}
 	#endif
- 	}
 #endif
+ 	}
  	return true;
 }
 

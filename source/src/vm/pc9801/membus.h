@@ -40,7 +40,15 @@ namespace PC9801 {
 namespace PC9801 {
 
 #define SIG_LAST_ACCESS_INTERAM 1
-
+#define SIG_INTRAM_WAIT			2
+#define SIG_BANK08_WAIT			3
+#define SIG_EXMEM_WAIT			4
+#define SIG_SLOTMEM_WAIT		5
+#define SIG_EXBOARDS_WAIT		6
+#define SIG_INTROM_WAIT			7
+#define SIG_TVRAM_WAIT			8
+#define SIG_GVRAM_WAIT			9
+	
 class MEMBUS : public MEMORY
 {
 private:
@@ -69,6 +77,15 @@ private:
 	uint8_t itf[0x8000];
 	bool itf_selected;
 #endif
+
+	int intram_wait;
+	int bank08_wait;
+	int exmem_wait;
+	int slotmem_wait;
+	int exboards_wait;
+	int introm_wait;
+	int gvram_wait_val;
+	int tvram_wait_val;
 	void update_bios();
 	
 #if !defined(SUPPORT_HIRESO)
@@ -136,6 +153,7 @@ public:
 	void initialize();
 	void reset();
 	uint32_t read_signal(int ch);
+	void write_signal(int ch, uint32_t data, uint32_t mask);
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)

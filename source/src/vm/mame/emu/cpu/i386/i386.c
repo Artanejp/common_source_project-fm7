@@ -52,7 +52,7 @@ static void pentium_smi(i386_state* cpustate);
 #define FAULT(fault,error) {\
 		logerror("FAULT(%s , %s) PC=%08x V8086=%s PROTECTED=%s SP=%08X:%08X\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO", (PROTECTED_MODE) ? cpustate->sreg[SS].base : (cpustate->sreg[SS].selector << 4), REG32(ESP)); \
 		if(cpustate->is_report_exception) {								\
-			cpustate->exception_code = ((UINT64)error << 32) | (UINT64)fault; \
+			cpustate->exception_code = (((UINT64)error) << 32) | (UINT64)fault; \
 			cpustate->exception_pc = cpustate->prev_pc;					\
 			cpustate->exception_caused = 1;								\
 			cpustate->ext = 1;											\
@@ -204,9 +204,14 @@ static void cpu_reset_generic(i386_state* cpustate)
 
 	addr = base + (selector & ~7) + 5;
 	i386_translate_address(cpustate, TRANSLATE_READ, &addr, NULL);
-	rights = cpustate->program->read_data8(addr);
+	int wait0 = cpustate->memory_wait;
+	int wait;
+	rights = cpustate->program->read_data8w(addr, &wait);
+	wait0 += wait;
 	// Should a fault be thrown if the table is read only?
-	cpustate->program->write_data8(addr, rights | 1);
+	cpustate->program->write_data8w(addr, rights | 1, &wait);
+	wait0 += wait;
+	cpustate->memory_wait += wait0;
 }
 
 /*static*/INLINE void i386_load_segment_descriptor(i386_state *cpustate, int segment )
@@ -3648,7 +3653,7 @@ static void i386_set_irq_line(i386_state *cpustate,int irqline, int state)
 		}
 		if ( state ) {
 			try {
-				i386_trap(cpustate,2, 1, 0);
+				i386_trap(cpustate,2, 1, 0); // OK?
 			} catch(UINT64 e) {
 				logdebug("EXCEPTION %08X VIA making INT02h at i386_set_irq_line() ADDR=%08X\n", e, cpustate->pc);
 			} catch(UINT32 e) {
@@ -3716,6 +3721,8 @@ static CPU_EXECUTE( i386 )
 			cpustate->total_cycles += passed_cycles;
 //#endif
 			cpu_wait_i386(cpustate, passed_cycles);
+			cpustate->extra_cycles += cpustate->memory_wait;
+			cpustate->memory_wait = 0;
 			return passed_cycles;
 		} else {
 			cpustate->cycles += cycles;
@@ -3735,6 +3742,8 @@ static CPU_EXECUTE( i386 )
 			cpustate->total_cycles += passed_cycles;
 //#endif
 			cpu_wait_i386(cpustate, passed_cycles);
+			cpustate->extra_cycles += cpustate->memory_wait;
+			cpustate->memory_wait = 0;
 			return passed_cycles;
 		}
 	}
@@ -3748,7 +3757,7 @@ static CPU_EXECUTE( i386 )
 
 	/* adjust for any interrupts that came in */
 //#ifdef USE_DEBUGGER
-	cpustate->total_cycles += cpustate->extra_cycles;
+	cpustate->total_cycles -= cpustate->extra_cycles;
 //#endif
 	cpustate->cycles -= cpustate->extra_cycles;
 	cpustate->extra_cycles = 0;
@@ -3951,6 +3960,8 @@ static CPU_EXECUTE( i386 )
 	int passed_cycles = cpustate->base_cycles - cpustate->cycles;
 	cpustate->tsc += passed_cycles;
 	cpu_wait_i386(cpustate, passed_cycles);
+	cpustate->extra_cycles += cpustate->memory_wait;
+	cpustate->memory_wait = 0;
 	return passed_cycles;
 }
 
