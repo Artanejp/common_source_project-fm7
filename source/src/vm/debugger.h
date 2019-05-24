@@ -19,7 +19,8 @@
 #define MAX_BREAK_POINTS	16
 #define MAX_COMMAND_LENGTH	1024
 #define MAX_COMMAND_HISTORY	32
-#define MAX_CPU_TRACE		0x01000000 /* 16Msteps */
+//#define MAX_CPU_TRACE		0x01000000 /* 16Msteps */
+#define MAX_CPU_TRACE		0x00100000 /* 1Msteps */
 
 
 typedef struct {
