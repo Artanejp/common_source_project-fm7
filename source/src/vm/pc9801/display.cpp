@@ -2744,7 +2744,8 @@ void DISPLAY::draw_chr_screen()
 		if((ytop += len) >= 25) break;
 	}
 	uint32_t *addr = &gdc_addr[0][0];
-	uint32_t *addr2 = addr + 160 * (sur + sdr);
+//	uint32_t *addr2 = addr + 160 * (sur + sdr);
+	uint32_t *addr2 = addr + 80 * (sur + sdr);
 	
 	uint32_t cursor_addr = d_gdc_chr->cursor_addr(0x1fff);
 	int cursor_top = d_gdc_chr->cursor_top();

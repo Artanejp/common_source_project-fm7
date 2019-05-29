@@ -466,7 +466,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 		{
 			bool result = false;
 			bool _bak;
-
+/*
   //Note: THIS is disabled due to enable bios at startup.
 #if !defined(SUPPORT_HIRESO) // 20190521 K.O 
 			if(sound_bios_load && (using_sound_bios)) {
@@ -476,7 +476,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 				out_debug_log("SOUND BIOS=%s (053Dh)", (sound_bios_selected) ? "YES" : "NO");
 			}
 #endif
-
+*/
 #if defined(SUPPORT_SASI_IF)
 			{
 				_bak = sasi_bios_selected;
