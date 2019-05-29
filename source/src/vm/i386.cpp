@@ -445,6 +445,7 @@ void I386::release()
 	free(opaque);
 }
 
+
 void I386::reset()
 {
 	i386_state *cpustate = (i386_state *)opaque;

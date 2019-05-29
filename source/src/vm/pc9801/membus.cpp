@@ -530,13 +530,17 @@ uint32_t MEMBUS::read_io8(uint32_t addr)
 		return dma_access_ctrl;
 #endif
 #if !defined(SUPPORT_HIRESO)
-	case 0x0461:
+	case 0x0461: // ToDo: Some VMs enable to read value.
+		return 0xff;
+		break;
 #else
 	case 0x0091:
 #endif
 		return window_80000h >> 16;
 #if !defined(SUPPORT_HIRESO)
-	case 0x0463:
+	case 0x0463: // ToDo: Some VMs enable to read value.
+		return 0xff;
+		break;
 #else
 	case 0x0093:
 #endif
@@ -622,10 +626,9 @@ uint32_t MEMBUS::read_signal(int ch)
 void MEMBUS::config_intram()
 {
 #if !defined(SUPPORT_HIRESO)
-	#if defined(SUPPORT_32BIT_ADDRESS)
+	#if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
 	set_memory_rw(0x00000, (sizeof(ram) >= 0x80000) ? 0x7ffff :  (sizeof(ram) - 1), ram);
-	#elif defined(SUPPORT_24BIT_ADDRESS)
-	set_memory_rw(0x00000, (sizeof(ram) >= 0x80000) ? 0x7ffff :  (sizeof(ram) - 1), ram);
+//	set_memory_rw(0x00000, (sizeof(ram) >= 0xa0000) ? 0x9ffff :  (sizeof(ram) - 1), ram);
 	#else
 	set_memory_rw(0x00000, (sizeof(ram) >= 0xc0000) ? 0xbffff :  (sizeof(ram) - 1), ram);
 	#endif	
@@ -646,7 +649,8 @@ void MEMBUS::update_bios()
 {
 #if !defined(SUPPORT_HIRESO)
 	#if defined(SUPPORT_32BIT_ADDRESS)|| defined(SUPPORT_24BIT_ADDRESS)
-	unset_memory_rw(0x80000, 0xbffff);
+//	unset_memory_rw(0x80000, 0xbffff);
+	unset_memory_rw(0xa0000, 0xbffff);
 	#endif
 	set_memory_mapped_io_rw(0xa0000, 0xa4fff, d_display);
 	set_memory_mapped_io_rw(0xa8000, 0xbffff, d_display);
@@ -848,6 +852,7 @@ void MEMBUS::update_bios()
 	if((window_a0000h >= 0xa0000) && (window_a0000h <= 0xeffff)) {
 		d_display->write_signal(SIG_DISPLAY98_SET_PAGE_A0, window_a0000h, 0xffffffff);
 	}
+	
 	// ToDo: PC9821
 	#if defined(SUPPORT_32BIT_ADDRESS)
 	unset_memory_rw(0x00f00000, (UPPER_MEMORY_32BIT & 0x00ffffff) - 1);

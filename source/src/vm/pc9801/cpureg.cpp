@@ -180,10 +180,10 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 		value |= 0x20; // Internal 27-type SASI-HDD, 0 = Existing
 #endif
 		// ToDo: AMD98
-//		value |= 0x10; // Unknown
+		value |= 0x10; // Unknown
 		value |= 0x08;
 //		value |= ((d_mem->read_signal(SIG_LAST_ACCESS_INTERAM) != 0) ? 0x00: 0x08); // RAM access, 1 = Internal-standard/External-enhanced RAM, 0 = Internal-enhanced RAM
-//		value |= 0x04; // Refresh mode, 1 = Standard, 0 = High speed
+		value |= 0x04; // Refresh mode, 1 = Standard, 0 = High speed
 //#if defined(HAS_I86) || defined(HAS_V30)
 		// ToDo: Older VMs.
 		value |= ((reg_0f0 & 0x01) == 0) ? 0x00 : 0x02; // CPU mode, 1 = V30, 0 = 80286/80386

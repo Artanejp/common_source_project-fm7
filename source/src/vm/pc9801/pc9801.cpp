@@ -625,8 +625,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x0030, sio_rs, 0);
 	io->set_iomap_alias_rw(0x0032, sio_rs, 1);
 	
+#if !(defined(_PC9821AP) || defined(_PC9821AS) || defined(_PC9821AE) || defined(_PC98H) || defined(_PC98LT_VARIANTS))
+	io->set_iomap_alias_r(0x0031, pio_sys, 0);
+#else
 	io->set_iomap_alias_rw(0x0031, pio_sys, 0);
-	io->set_iomap_alias_rw(0x0033, pio_sys, 1);
+#endif
+//	io->set_iomap_alias_rw(0x0033, pio_sys, 1);
+	io->set_iomap_alias_r(0x0033, pio_sys, 1); // PORTB should be read only.
 	io->set_iomap_alias_rw(0x0035, pio_sys, 2);
 	io->set_iomap_alias_w (0x0037, pio_sys, 3);
 	
@@ -1265,8 +1270,16 @@ void VM::reset()
 	// initial device settings
 	uint8_t port_a, port_b, port_c, port_b2;
 #if defined(USE_MONITOR_TYPE) /*&& defined(SUPPORT_HIRESO)*/
+#if !defined(SUPPORT_HIRESO)
+	io->set_iovalue_single_r(0x0467, 0xfe); // Detect high-reso.
+	io->set_iovalue_single_r(0x0ca0, 0xff); // Detect high-reso.
+#endif
 	if(config.monitor_type == 0) {
+#if defined(SUPPORT_HIRESO)
 		io->set_iovalue_single_r(0x0431, 0x00);
+#else
+		io->set_iovalue_single_r(0x0431, 0x04);
+#endif
 		gdc_gfx->set_horiz_freq(24830);
 		gdc_chr->set_horiz_freq(24830);
 		
@@ -1276,7 +1289,7 @@ void VM::reset()
 		gdc_chr->set_horiz_freq(15750);
 	}
 #else
-	io->set_iovalue_single_r(0x0431, 0x00);
+	io->set_iovalue_single_r(0x0431, 0x04);
 #endif
 	// reset all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
