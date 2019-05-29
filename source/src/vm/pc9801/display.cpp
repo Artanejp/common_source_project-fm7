@@ -2709,6 +2709,13 @@ void DISPLAY::draw_screen()
 void DISPLAY::draw_chr_screen()
 {
 	// scroll registers
+	int _height = d_gdc_chr->read_signal(SIG_UPD7220_HEIGHT);
+	int _width  = d_gdc_chr->read_signal(SIG_UPD7220_PITCH);
+	int _width2  = d_gdc_gfx->read_signal(SIG_UPD7220_PITCH);
+	int _height2 = d_gdc_gfx->read_signal(SIG_UPD7220_HEIGHT) >> 4;
+//	if(_width > _width2) _width = _width2;
+//	if(_height > _height2) _height = _height2;
+	if(_height > (SCREEN_HEIGHT >> 4)) _height = SCREEN_HEIGHT >> 4;
 	int pl = scroll[SCROLL_PL] & 31;
 	if(pl) {
 		pl = 32 - pl;
@@ -2723,8 +2730,9 @@ void DISPLAY::draw_chr_screen()
 	int sdr = scroll[SCROLL_SDR] + 1;
 	
 	// address from gdc
-	uint32_t gdc_addr[25][80] = {0};
+	uint32_t gdc_addr[30][80] = {0};
 	// ToDo: Will Support 30lines project.
+//	printf("PITCH=%d HEIGHT=%d\n", _width, _height);
 	for(int i = 0, ytop = 0; i < 4; i++) {
 		uint32_t ra = ra_chr[i * 4];
 		ra |= ra_chr[i * 4 + 1] << 8;
@@ -2732,17 +2740,21 @@ void DISPLAY::draw_chr_screen()
 		ra |= ra_chr[i * 4 + 3] << 24;
 		uint32_t sad = (ra << 1) & 0x1fff;
 		int len = (ra >> 20) & 0x3ff;
-		
-		if(!len) len = 25;
-		
-		for(int y = ytop; y < (ytop + len) && y < 25; y++) {
-			for(int x = 0; x < 80; x++) {
-				gdc_addr[y][x] = sad;
+//		if(!len) len = 1024;
+//		printf("#%d: %04X %d\n", i, sad, len);
+		int lcount = ytop / bl;
+		for(int y = ytop; y < (ytop + len) && (lcount < (_height  > 30) ? 30 : _height); y += bl, lcount++) {
+//		for(int y = ytop; (y < (ytop + len)) && (y < 30); y++) {
+			if(lcount >= (_height )) break;
+			for(int x = 0; x < ((_width > 80) ? 80 : _width); x++) {
+				gdc_addr[lcount][x] = sad;
 				sad = (sad + 2) & 0x1fff;
 			}
 		}
-		if((ytop += len) >= 25) break;
+		ytop += len;
+//		if(ytop >= (_height << 4)) break;
 	}
+	
 	uint32_t *addr = &gdc_addr[0][0];
 //	uint32_t *addr2 = addr + 160 * (sur + sdr);
 	uint32_t *addr2 = addr + 80 * (sur + sdr);
@@ -2764,12 +2776,8 @@ void DISPLAY::draw_chr_screen()
 	
 	memset(screen_chr, 0, sizeof(screen_chr));
 	
-	int _height = d_gdc_chr->read_signal(SIG_UPD7220_HEIGHT);
-	int _width  = d_gdc_chr->read_signal(SIG_UPD7220_PITCH);
-//	if(_height < 0) _height = 0;
-//	if(_height > 480) _height = 480;
-	_height = SCREEN_HEIGHT;
 	_width <<= 4;
+	_height <<= 4;
 	if(_width > SCREEN_WIDTH) _width = SCREEN_WIDTH;
 	//out_debug_log("WxH: %dx%d", _width, _height);
 	if(_width  < 0) _width = 0;
