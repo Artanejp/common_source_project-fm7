@@ -191,7 +191,7 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 	case 0x0096:
 //		value |= 0x80; // FINT1 (DIP SW 1-7), 1 = OFF, 0 = ON
 		value |= 0x40; // FINT0 (DIP SW 1-6), 1 = OFF, 0 = ON
-//		value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
+		value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
 		return value;
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)

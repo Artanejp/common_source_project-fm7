@@ -266,6 +266,7 @@
 #endif
 #define MAX_DRIVE		2
 #define UPD765A_NO_ST1_EN_OR_FOR_RESULT7
+
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 #define PC80S31K_NO_WAIT
 #endif
@@ -342,6 +343,7 @@
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	3
 #define USE_DEBUGGER
+
 #define USE_STATE
 #if defined(HAS_I86) || defined(HAS_V30)
 #define USE_CPU_I286
