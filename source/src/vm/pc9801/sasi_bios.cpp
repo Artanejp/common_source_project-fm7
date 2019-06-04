@@ -167,10 +167,9 @@ bool BIOS::bios_call_far_ia32(uint32_t PC, uint32_t regs[], uint16_t sregs[], in
 	this->out_debug_log(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
 #endif
 	// ToDo: Check ITF BANK for EPSON :
-	// IF (ITF_ENABLED) && ((0xf8000 <= PC < 0x10000)) NOT CALL BIOS
-	if(d_mem->is_sasi_bios_load()) return false;
 	// Check ADDRESS: This pseudo-bios acts only $fffc4 ($1B) or $00ffffc4: 
 	if((PC != 0xfffc4) && (PC != 0x00ffffc4)) return false; // INT 1Bh
+	
 	static const int elapsed_cycle = 200; // From NP2 0.86+trunk/ OK?
 #if 1		
 
@@ -178,7 +177,9 @@ bool BIOS::bios_call_far_ia32(uint32_t PC, uint32_t regs[], uint16_t sregs[], in
 		uint8_t seg = d_mem->read_data8(0x004b0 + (AL >> 4));
 		uint32_t sp, ss;	
 		if ((seg != 0)) {
+#if !defined(_PC9801) && !defined(_PC9801E) && !defined(_PC9801F) && !defined(_PC9801M)
 			if(seg == 0xd7) goto __next; // To Pseudo SASI BIOS.
+#endif
 #ifdef _PSEUDO_BIOS_DEBUG
 			this->out_debug_log(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
 #endif
@@ -240,24 +241,25 @@ __next:
 	switch(AL & 0xf0) {
 		case 0xc0:
 			// ToDo: SCSI BIOS
-			return false;
+//			return false;
 			break;
 		case 0x00:
 		case 0x80:
-			if(sasi_bios(PC, regs, sregs, ZeroFlag, CarryFlag)) {
-				need_retcall = true;
+			if(!(d_mem->is_sasi_bios_load())) {
+				if(sasi_bios(PC, regs, sregs, ZeroFlag, CarryFlag)) {
 #ifdef _PSEUDO_BIOS_DEBUG
-				out_debug_log(_T("SASI BIOS CALL SUCCESS:\n From AX=%04x BX=%04x CX=%04x DX=%04x\n To AX=%04x BX=%04x CX=%04x DX=%04x\n"), backup_ax, backup_bx, backup_cx, backup_dx, AX, BX, CX, DX);
+					out_debug_log(_T("SASI BIOS CALL SUCCESS:\n From AX=%04x BX=%04x CX=%04x DX=%04x\n To AX=%04x BX=%04x CX=%04x DX=%04x\n"), backup_ax, backup_bx, backup_cx, backup_dx, AX, BX, CX, DX);
 #endif
-			} else {
+				} else {
 #ifdef _PSEUDO_BIOS_DEBUG
-				out_debug_log(_T("SASI BIOS CALL FAILED:\n From AX=%04x BX=%04x CX=%04x DX=%04x\n To AX=%04x BX=%04x CX=%04x DX=%04x\n"), backup_ax, backup_bx, backup_cx, backup_dx, AX, BX, CX, DX);
+					out_debug_log(_T("SASI BIOS CALL FAILED:\n From AX=%04x BX=%04x CX=%04x DX=%04x\n To AX=%04x BX=%04x CX=%04x DX=%04x\n"), backup_ax, backup_bx, backup_cx, backup_dx, AX, BX, CX, DX);
 #endif
+				}
 				need_retcall = true;
 			}
 			break;
 		default:
-			return false;
+//			return false;
 			break;
 	}
 	if(need_retcall) {

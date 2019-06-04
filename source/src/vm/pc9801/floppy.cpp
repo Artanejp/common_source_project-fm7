@@ -116,8 +116,8 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 #if !defined(SUPPORT_HIRESO)
 	case 0x00cc:
 	case 0x00ce:
-		if(((addr >> 4) & 1) == (modereg & 1))
 #endif
+		if(((((addr >> 4) & 0xff) ^ modereg) & 1) != 0) return;
 		{
 			if(!(ctrlreg & 0x80) && (data & 0x80)) {
 				d_fdc->reset();
@@ -211,62 +211,58 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 #endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
 	case 0x0090:
-#if !defined(SUPPORT_HIRESO)
+	#if !defined(SUPPORT_HIRESO)
 	case 0x00c8:
 		if(((addr >> 4) & 1) == (modereg & 1))
-#endif
+	#endif
 		{
 			return d_fdc->read_io8(0);
 		}
 		break;
 	case 0x0092:
-#if !defined(SUPPORT_HIRESO)
+	#if !defined(SUPPORT_HIRESO)
 	case 0x00ca:
 		if(((addr >> 4) & 1) == (modereg & 1))
-#endif
+	#endif
 		{
 			return d_fdc->read_io8(1);
 		}
 		break;
 	case 0x0094:
 	case 0x0096:
-#if !defined(SUPPORT_HIRESO)
-		if(modereg & 1) {
+	#if !defined(SUPPORT_HIRESO)
+	case 0x00cc:
+	case 0x00ce:
+	#endif
+		if(((((addr >> 4) & 0xff) ^ modereg) & 1) != 0) return 0xff; // From NP2
+	#if !defined(SUPPORT_HIRESO)
+		{
 //			value |= 0x80; // FINT1 (DIP SW 1-7), 1 = OFF, 0 = ON
 			value |= 0x40; // FINT0 (DIP SW 1-6), 1 = OFF, 0 = ON
 //			value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
 //			value |= 0x08; // TYP1,0 (DIP SW 1-4), 1,0 = ON  Internal FDD: #3,#4, External FDD: #1,#2
 			value |= 0x04; // TYP1,0 (DIP SW 1-4), 0,1 = OFF Internal FDD: #1,#2, External FDD: #3,#4
-			return value;
-		}
-#else
-//		value |= 0x80; // MODE, 0 = Internal FDD existing
-		value |= ctrlreg & 0x20; // High Density, 1 = 640KB, 0 = 1MB
-		return value;
-#endif
-		break;
-#if !defined(SUPPORT_HIRESO)
-	case 0x00bc: // OK?
-	case 0x00be:
-		//return 0xf8 | (modereg & 3);
-		// ToDo: DIPSW 3-2 and 3-1
-		// ToDo: Three mode FDD.
-		return 0xfc | (modereg & 3);
-	case 0x00cc:
-	case 0x00ce:
-		if(!(modereg & 1)) {
-//			value |= 0x80; // FINT1 (DIP SW 1-7), 1 = OFF, 0 = ON
-			value |= 0x40; // FINT0 (DIP SW 1-6), 1 = OFF, 0 = ON
-			value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
-//			value |= 0x08; // TYP1,0 (DIP SW 1-4), 1,0 = ON  Internal FDD: #3,#4, External FDD: #1,#2
-			value |= 0x04; // TYP1,0 (DIP SW 1-4), 0,1 = OFF Internal FDD: #1,#2, External FDD: #3,#4
-			if(d_fdc->is_disk_inserted()) {
-				value |= 0x10; // RDY
+			if((addr & 0x10) == 0) {
+				value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
+				value |= 0x10; // READY
 			}
 			return value;
 		}
+	#else
+//		value |= 0x80; // MODE, 0 = Internal FDD existing
+		value |= ctrlreg & 0x20; // High Density, 1 = 640KB, 0 = 1MB
+		return value;
+	#endif
 		break;
-#endif
+	#if !defined(SUPPORT_HIRESO)
+	case 0x00bc: // OK?
+	case 0x00be:
+		return 0x08 | (modereg & 3);
+		// ToDo: DIPSW 3-2 and 3-1
+		// ToDo: Three mode FDD.
+//		return 0xfc | (modereg & 3);
+		break;
+	#endif
 #endif
 	}
 	return 0xff;//addr & 0xff;

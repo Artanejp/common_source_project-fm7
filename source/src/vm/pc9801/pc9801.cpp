@@ -636,7 +636,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_w (0x0037, pio_sys, 3);
 	
 	io->set_iomap_alias_rw(0x0040, pio_prn, 0);
-	io->set_iomap_alias_rw(0x0042, pio_prn, 1);
+	io->set_iomap_alias_r (0x0042, pio_prn, 1);
 	io->set_iomap_alias_rw(0x0044, pio_prn, 2);
 	io->set_iomap_alias_w (0x0046, pio_prn, 3);
 	
@@ -1271,25 +1271,25 @@ void VM::reset()
 	uint8_t port_a, port_b, port_c, port_b2;
 #if defined(USE_MONITOR_TYPE) /*&& defined(SUPPORT_HIRESO)*/
 #if !defined(SUPPORT_HIRESO)
-	io->set_iovalue_single_r(0x0467, 0xfe); // Detect high-reso.
-	io->set_iovalue_single_r(0x0ca0, 0xff); // Detect high-reso.
+	io->set_iovalue_single_r(0x0467, 0xfd); // Detect high-reso.
+//	io->set_iovalue_single_r(0x0ca0, 0xff); // Detect high-reso.
 #endif
 	if(config.monitor_type == 0) {
 #if defined(SUPPORT_HIRESO)
-		io->set_iovalue_single_r(0x0431, 0x00);
+//		io->set_iovalue_single_r(0x0431, 0x00);
 #else
-		io->set_iovalue_single_r(0x0431, 0x04);
+//		io->set_iovalue_single_r(0x0431, 0x04);
 #endif
 		gdc_gfx->set_horiz_freq(24830);
 		gdc_chr->set_horiz_freq(24830);
 		
 	} else { // WIP
-		io->set_iovalue_single_r(0x0431, 0x04); // bit2: 1 = Normal mode, 0 = Hireso mode
+//		io->set_iovalue_single_r(0x0431, 0x04); // bit2: 1 = Normal mode, 0 = Hireso mode
 		gdc_gfx->set_horiz_freq(15750);
 		gdc_chr->set_horiz_freq(15750);
 	}
 #else
-	io->set_iovalue_single_r(0x0431, 0x04);
+//	io->set_iovalue_single_r(0x0431, 0x04);
 #endif
 	// reset all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
