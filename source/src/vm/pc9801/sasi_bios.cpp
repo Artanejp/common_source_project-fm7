@@ -178,7 +178,9 @@ bool BIOS::bios_call_far_ia32(uint32_t PC, uint32_t regs[], uint16_t sregs[], in
 		uint32_t sp, ss;	
 		if ((seg != 0)) {
 #if !defined(_PC9801) && !defined(_PC9801E) && !defined(_PC9801F) && !defined(_PC9801M)
-			if(seg == 0xd7) goto __next; // To Pseudo SASI BIOS.
+			if(!(d_mem->is_sasi_bios_load())) {
+				if(seg == 0xd7) goto __next; // To Pseudo SASI BIOS.
+			}
 #endif
 #ifdef _PSEUDO_BIOS_DEBUG
 			this->out_debug_log(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
