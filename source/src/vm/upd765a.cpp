@@ -300,7 +300,7 @@ void UPD765A::write_io8(uint32_t addr, uint32_t data)
 			case PHASE_IDLE:
 //#ifdef _FDC_DEBUG_LOG
 				if(_fdc_debug_log) {
-					this->out_debug_log(_T("FDC: CMD=%2x %s\n"), data, get_command_name(data));
+					this->out_debug_log(_T("FDC: CMD=%2X %s C H R N = %02X %02X %02X %02X\n"), data, get_command_name(data), id[0], id[1], id[2], id[3]);
 				}
 //#endif
 				command = data;
@@ -563,6 +563,7 @@ void UPD765A::set_irq(bool val)
 //	if(_fdc_debug_log) this->out_debug_log(_T("FDC: IRQ=%d\n"), val ? 1 : 0);
 //#endif
 	write_signals(&outputs_irq, (val && !irq_masked) ? 0xffffffff : 0);
+	interrupt_on = val;
 }
 
 void UPD765A::set_drq(bool val)
@@ -597,6 +598,7 @@ void UPD765A::set_drq(bool val)
 	}
 	if(no_dma_mode) {
 		write_signals(&outputs_irq, (val && !irq_masked) ? 0xffffffff : 0);
+		interrupt_on = (val && !irq_masked) ? true: false;
 	} else {
 		write_signals(&outputs_drq, (val && !drq_masked) ? 0xffffffff : 0);
 //#ifdef UPD765A_DMA_MODE
@@ -688,20 +690,43 @@ void UPD765A::cmd_sence_devstat()
 		set_hdu(buffer[0]);
 		buffer[0] = get_devstat(buffer[0] & DRIVE_MASK);
 		shift_to_result(1);
+		status = S_RQM | S_CB | S_DIO;
+		break;
+	default:
+		status = S_RQM;
 		break;
 	}
 }
 
 void UPD765A::cmd_sence_intstat()
 {
-	for(int i = 0; i < 4; i++) {
-		if(fdc[i].result) {
-			buffer[0] = (uint8_t)fdc[i].result;
-			buffer[1] = (uint8_t)fdc[i].track;
-			fdc[i].result = 0;
+	status = S_RQM | S_CB | S_DIO;
+	if(interrupt_on) {
+		if(fdc[hdu & DRIVE_MASK].result != 0) {
+			buffer[0] = (uint8_t)fdc[hdu & DRIVE_MASK].result;
+			buffer[1] = (uint8_t)fdc[hdu & DRIVE_MASK].track;
+			fdc[hdu & DRIVE_MASK].result = 0;
 			shift_to_result(2);
-			return;
+		} else {
+			for(int i = 0; i < 4; i++) {
+				if(fdc[i].result != 0) {
+					buffer[0] = (uint8_t)fdc[i].result;
+					buffer[1] = (uint8_t)fdc[i].track;
+					fdc[i].result = 0;
+					shift_to_result(2);
+					break;
+				}
+			}
 		}
+		bool result = false;
+		for(int i = 0; i < 4; i++) {
+			result |= (fdc[i].result != 0);
+		}
+		if(!(result)) {
+			set_irq(false);
+		}
+//		status &= ~S_CB;
+		return;
 	}
 //#ifdef UPD765A_SENCE_INTSTAT_RESULT
 	// IBM PC/JX
@@ -841,6 +866,7 @@ void UPD765A::cmd_read_data()
 			break;
 		}
 		read_data((command & 0x1f) == 12, false);
+		if(_fdc_debug_log) this->out_debug_log(_T("READ DATA EXEC RESULT=%02X\n"), result);
 		break;
 	case PHASE_READ:
 		if(result) {
@@ -1021,10 +1047,12 @@ void UPD765A::read_data(bool deleted, bool scan)
 {
 	result = check_cond(false);
 	if(result & ST1_MA) {
+		if(_fdc_debug_log) this->out_debug_log(_T("RESULT=%02X MA=1\n"), result);
 		REGISTER_PHASE_EVENT(PHASE_EXEC, 10000);
 		return;
 	}
 	if(result) {
+		if(_fdc_debug_log) this->out_debug_log(_T("RESULT=%02X\n"), result);
 		shift_to_result7();
 		return;
 	}
@@ -1041,6 +1069,7 @@ void UPD765A::read_data(bool deleted, bool scan)
 		return;
 	}
 	int length = (id[3] & 7) ? (0x80 << (id[3] & 7)) : (min(dtl, 0x80));
+	//int length = 0x80 << (id[3] & 7);
 	if(!scan) {
 		shift_to_read(length);
 	} else {
@@ -1119,9 +1148,10 @@ uint32_t UPD765A::read_sector()
 //#endif
 		return ST0_AT | ST1_MA;
 	}
-	if((command & 0x40) != (disk[drv]->track_mfm ? 0x40 : 0)) {
-		return ST0_AT | ST1_MA;
-	}
+	// Note: Temporally disable below check.RELICS (for PC-9801) works. 20190604 K.O
+//	if((command & 0x40) != (disk[drv]->track_mfm ? 0x40 : 0)) {
+//		return ST0_AT | ST1_MA;
+//	}
 	int secnum = disk[drv]->sector_num.sd;
 	if(!secnum) {
 //#ifdef _FDC_DEBUG_LOG
@@ -1135,7 +1165,7 @@ uint32_t UPD765A::read_sector()
 			continue;
 		}
 		cy = disk[drv]->id[0];
-#if 0
+#if 1
 		if(disk[drv]->id[0] != id[0] || disk[drv]->id[1] != id[1] || disk[drv]->id[2] != id[2] /*|| disk[drv]->id[3] != id[3]*/) {
 #else
 		if(disk[drv]->id[0] != id[0] || disk[drv]->id[1] != id[1] || disk[drv]->id[2] != id[2] || disk[drv]->id[3] != id[3]) {
@@ -1143,7 +1173,7 @@ uint32_t UPD765A::read_sector()
 			continue;
 		}
 //#ifdef _FDC_DEBUG_LOG
-		if(_fdc_debug_log) this->out_debug_log(_T("FDC: SECTOR FOUND (TRK=%d SIDE=%d ID=%2x,%2x,%2x,%2x)\n"), trk, side, id[0], id[1], id[2], id[3]);
+		if(_fdc_debug_log) this->out_debug_log(_T("FDC: SECTOR FOUND (TRK=%d SIDE=%d ID=%2x,%2x,%2x,%2x CRC=%02X%02X %s)\n"), trk, side, disk[drv]->id[0], disk[drv]->id[1], disk[drv]->id[2], disk[drv]->id[3], disk[drv]->id[4], disk[drv]->id[5], (disk[drv]->deleted) ? _T("DELETED"): _T(""));
 //#endif
 		if(disk[drv]->sector_size.sd == 0) {
 			continue;
@@ -1291,6 +1321,7 @@ void UPD765A::get_sector_params()
 	eot = buffer[5];
 	gpl = buffer[6];
 	dtl = buffer[7];
+	if(_fdc_debug_log) this->out_debug_log(_T("get_sector_params() CHRN=%02X %02X %02X %02X EOT=%02X GPL=%02X DTL=%02X\n"), id[0], id[1], id[2], id[3], eot, gpl, dtl);
 }
 
 bool UPD765A::id_incr()
@@ -1309,6 +1340,9 @@ bool UPD765A::id_incr()
 		set_hdu(hdu ^ 4);
 		id[1] ^= 1;
 		if(id[1] & 1) {
+			return true;
+		} else {
+			id[0]++;
 			return true;
 		}
 	}
@@ -1333,8 +1367,8 @@ void UPD765A::cmd_read_id()
 			break;
 		}
 		if(check_cond(false) & ST1_MA) {
-//			REGISTER_PHASE_EVENT(PHASE_EXEC, 1000000);
-//			break;
+			REGISTER_PHASE_EVENT(PHASE_EXEC, 1000000);
+			break;
 		}
 		if((result = read_id()) == 0) {
 			int drv = hdu & DRIVE_MASK;
@@ -1469,7 +1503,10 @@ void UPD765A::cmd_specify()
 		head_unload_time = buffer[1] >> 1;
 		no_dma_mode = ((buffer[1] & 1) != 0);
 		shift_to_idle();
-		status = 0x80;//0xff;
+		status = S_RQM;//0xff;
+		break;
+	default:
+		status = S_RQM;
 		break;
 	}
 }
@@ -1834,7 +1871,7 @@ bool UPD765A::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 }
 //#endif
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool UPD765A::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1900,6 +1937,7 @@ bool UPD765A::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(reset_signal);
 	state_fio->StateValue(prev_index);
 	state_fio->StateValue(prev_drq_clock);
+	state_fio->StateValue(interrupt_on);
  	return true;
 }
 

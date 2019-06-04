@@ -1264,6 +1264,8 @@ void DISK::set_sector_info(uint8_t *t)
 	crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[3]]);
 	id[4] = (crc >> 8) & 0xff;
 	id[5] = (crc >> 0) & 0xff;
+	//id[4] = t[4];
+	//id[5] = t[5];
 	// http://www.gnu-darwin.or.jp/www001/src/ports/emulators/quasi88/work/quasi88-0.6.3/document/FORMAT.TXT
 	// t[6]: 0x00 = double-density, 0x40 = single-density
 	// t[7]: 0x00 = normal, 0x10 = deleted mark
@@ -1277,6 +1279,10 @@ void DISK::set_sector_info(uint8_t *t)
 		addr_crc_error = ((t[8] & 0xf0) == 0xa0);
 		data_crc_error = ((t[8] & 0xf0) == 0xb0);
 //	}
+	if(addr_crc_error || data_crc_error) {
+		id[4] = t[4];
+		id[5] = t[5];
+	}
 	sector = t + 0x10;
 	sector_size.read_2bytes_le_from(t + 14);
 }
