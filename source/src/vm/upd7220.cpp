@@ -443,18 +443,8 @@ void UPD7220::process_cmd()
 
 void UPD7220::cmd_vecte()
 {
-	//dx = ((ead % pitch) << 4) | (dad & 0x0f);
-	//dy = ead / pitch;
-	if(_UPD7220_UGLY_PC98_HACK) {
-//		if(ead >= 0x20000) { // Negative
-//			ead = -(ead & 0x1ffff);
-//		}
-		dx = (((ead & 0x3fff)% pitch) << 4) | (dad & 0x0f);
-		dy = (ead & 0x3fff) / pitch;
-	} else {
-		dx = ((ead % pitch) << 4) | (dad & 0x0f);
-		dy = ead / pitch;
-	}
+	dx = ((ead % pitch) << 4) | (dad & 0x0f);
+	dy = ead / pitch;
 	wrote_bytes = 1;
 
 	// execute command
@@ -483,17 +473,12 @@ void UPD7220::cmd_vecte()
 void UPD7220::cmd_texte()
 {
 	if(_UPD7220_UGLY_PC98_HACK) {
-//		if(ead >= 0x20000) { // Negative
-//			ead = -(ead & 0x1ffff);
-//		}
 		dx = (((ead & 0x3fff)% pitch) << 4) | (dad & 0x0f);
 		dy = (ead & 0x3fff) / pitch;
 	} else {
 		dx = ((ead % pitch) << 4) | (dad & 0x0f);
 		dy = ead / pitch;
 	}
-//	dx = ((ead % pitch) << 4) | (dad & 0x0f);
-//	dy = ead / pitch;
 
 	wrote_bytes = 1;
 	// execute command
@@ -1256,6 +1241,7 @@ void UPD7220::update_vect()
 	d2 = (vect[5] | (vect[ 6] << 8)) & 0x3fff;
 	d1 = (vect[7] | (vect[ 8] << 8)) & 0x3fff;
 	dm = (vect[9] | (vect[10] << 8)) & 0x3fff;
+	dgd = ((vect[2] & 0x40) != 0) ? true : false;
 //	if(dc & 0x2000) dc = -(dc & 0x1fff);
 //	if(d & 0x2000)  d = -(d & 0x1fff); 
 //	if(d2 & 0x2000) d2 = -(d2 & 0x1fff);
@@ -1281,86 +1267,12 @@ void UPD7220::reset_vect()
 }
 
 
-// draw
-void UPD7220::draw_hline_diff(int xstart, int y, int xend)
-{
-	int nshift = 0;
-	int lwidth;
-	int nwidth = width << 3;
-	uint16_t dot;
-	int begin = 0;
-	int end = 0;
-	int dir = ((xstart == xend) ? 0 : ((xstart < xend) ? 1 : -1));
-
-	// Out of range, dummy shift.
-	bool req_outbound = false;
-	if(_UPD7220_UGLY_PC98_HACK) {
-		if(((xstart < 0) && (xend < 0)) ||
-		   ((xstart >= nwidth) && (xend >= nwidth)) ||
-		   ((y > 409) || ((y == 409) && ((xstart >= 384) && (xend >= 384)))) ||
-		   (y < 0)) {
-			req_outbound = true;
-		}
-	} else {
-		if((y >= height) || (y < 0) ||
-		   ((xstart < 0) && (xend < 0)) ||
-		   ((xstart >= nwidth) && (xend >= nwidth))) {
-			req_outbound = true;
-		}
-	}
-	if(req_outbound) {
-		int bits = xstart - xend;
-//		shift_pattern(bits);
-		return;
-	}
-	
-	// ToDo: WORD write
-	if(dir == 0) {
-		start_pset();
-		draw_pset(xstart, y);
-		finish_pset();
-	} else if(dir < 0) {
-		int xstart2 = xstart;
-		if((_UPD7220_UGLY_PC98_HACK) && ((y == 409) && (xstart >= 384))) xstart2 = 383;
-		int rshift = xstart2 - nwidth;
-//		shift_pattern(rshift);
-		if(xstart >= nwidth) {
-			xstart = nwidth - 1;
-		}
-		start_pset();
-		for(int x = xstart2; x >= ((xend < 0) ? 0 : xend); x--) {
-			draw_pset(x, y);
-		}
-		finish_pset();
-		if(xend < 0) {
-			int lshift = xend;
-//			shift_pattern(lshift);
-		}
-	} else { // dir > 0
-		int xend2 = xend;
-		if((_UPD7220_UGLY_PC98_HACK) && ((y == 409) && (xend >= 384))) xend2 = 383;
-		if(xstart < 0) {
-			int rshift = 0 - xstart;
-//			shift_pattern(rshift);
-			xstart = 0;
-		}
-		start_pset();
-		for(int x = xstart; x <= ((xend2 >= nwidth) ? (nwidth - 1) : xend2); x++) {
-			draw_pset(x, y);
-		}
-		finish_pset();
-		if(xend >= nwidth) {
-			int lshift = xend2 - nwidth;
-//			shift_pattern(lshift);
-		}
-	}
-}
 
 void UPD7220::draw_vectl()
 {
 	pattern = ra[8] | (ra[9] << 8);
 	
-//	out_debug_log(_T("DRAW VECTL: X=%d Y=%d to DC=%d DIR=%d PATTERN=%04x MODE=%d\n"), dx, dy, dc, dir, pattern, mod);
+	//out_debug_log(_T("DRAW VECTL: X=%d Y=%d to DC=%d D1=%d DIR=%d PATTERN=%04x MODE=%d\n"), dx, dy, dc, d1, dir, pattern, mod);
 	dc = dc & 0x3fff;
 	if(dc) {
 		int x = dx;
@@ -1370,127 +1282,72 @@ void UPD7220::draw_vectl()
 		int stepy = 0;
 		int stepn = 0;
 		
-		//step = (((d1 << 14) / dc) + (1 << 14)) >> 1;
+		step = (((d1 << 12) / dc)) >> 1;
 		//stepn = step & ((1 << 14) - 1);
+		start_pset();
 		switch(dir) {
 		case 0:
-			start_pset();
 			for(int i = 0; i <= dc; i++) {
-				stepx = (int)((((d1 * i) / dc) + 1) >> 1);
-				//stepx += (step >> 14);
-				//stepn += stepn;
-				//if(stepn >= (1 << 14)) {
-				//	stepn = stepn - (1 << 14);
-				//	stepx++;
-				//}
-				draw_pset(x + stepx, y++);
+				//stepx = (int)((((d1 * i) / dc) + 1) >> 1);
+				stepx += step;
+				draw_pset_diff(x + (stepx >> 12), y++);
 			}
-			finish_pset();
 			break;
 		case 1:
-			start_pset();
 			for(int i = 0; i <= dc; i++) {
-				stepy = (int)((((d1 * i) / dc) + 1) >> 1);
-				//stepy += (step >> 14);
-				//stepn += stepn;
-				//if(stepn >= (1 << 14)) {
-				//	stepn = stepn - (1 << 14);
-				//	stepy++;
-				//}
-				draw_pset(x++, y + stepy);
+				//stepy = (int)((((d1 * i) / dc) + 1) >> 1);
+				stepy += step;
+				draw_pset_diff(x++, y + (stepy >> 12));
 			}
-			finish_pset();
 			break;
 		case 2:
-			start_pset();
 			for(int i = 0; i <= dc; i++) {
-				stepy = (int)((((d1 * i) / dc) + 1) >> 1);
-				//stepy += (step >> 14);
-				//stepn += stepn;
-				//if(stepn >= (1 << 14)) {
-				//	stepn = stepn - (1 << 14);
-				//	stepy++;
-				//}
-				draw_pset(x++, y - stepy);
-				//draw_pset(x++, y - step);
+				//stepy = (int)((((d1 * i) / dc) + 1) >> 1);
+				stepy += step;
+				draw_pset_diff(x++, y - (stepy >> 12));
+				//draw_pset_diff(x++, y - step);
 			}
-			finish_pset();
 			break;
 		case 3:
-			start_pset();
 			for(int i = 0; i <= dc; i++) {
-				stepx = (int)((((d1 * i) / dc) + 1) >> 1);
-				//stepx += (step >> 14);
-				//stepn += stepn;
-				//if(stepn >= (1 << 14)) {
-				//	stepn = stepn - (1 << 14);
-				//	stepx++;
-				//}
-				draw_pset(x + stepx, y--);
+				//stepx = (int)((((d1 * i) / dc) + 1) >> 1);
+				stepx += step;
+				draw_pset_diff(x + (stepx >> 12), y--);
 			}
-			finish_pset();
 			break;
 		case 4:
-			start_pset();
 			for(int i = 0; i <= dc; i++) {
-				stepx = (int)((((d1 * i) / dc) + 1) >> 1);
-				//stepx += (step >> 14);
-				//stepn += stepn;
-				//if(stepn >= (1 << 14)) {
-				//	stepn = stepn - (1 << 14);
-				//	stepx++;
-				//}
-				draw_pset(x - stepx, y--);
+				//stepx = (int)((((d1 * i) / dc) + 1) >> 1);
+				stepx += step;
+				draw_pset_diff(x - (stepx >> 12), y--);
 			}
-			finish_pset();
 			break;
 		case 5:
-			start_pset();
 			for(int i = 0; i <= dc; i++) {
-				stepy = (int)((((d1 * i) / dc) + 1) >> 1);
-				//stepy += (step >> 14);
-				//stepn += stepn;
-				//if(stepn >= (1 << 14)) {
-				//	stepn = stepn - (1 << 14);
-				//	stepy++;
-				//}
-				draw_pset(x--, y - stepy);
+//				stepy = (int)((((d1 * i) / dc) + 1) >> 1);
+				stepy += step;
+				draw_pset_diff(x--, y - (stepy >> 12));
 			}
-			finish_pset();
 			break;
 		case 6:
-			start_pset();
 			for(int i = 0; i <= dc; i++) {
-				stepy = (int)((((d1 * i) / dc) + 1) >> 1);
-				//stepy += (step >> 14);
-				//stepn += stepn;
-				//if(stepn >= (1 << 14)) {
-				//	stepn = stepn - (1 << 14);
-				//	stepy++;
-				//}
-				draw_pset(x--, y + stepy);
+//				stepy = (int)((((d1 * i) / dc) + 1) >> 1);
+				stepy += step;
+				draw_pset_diff(x--, y + (stepy >> 12));
 			}
-			finish_pset();
 			break;
 		case 7:
-			start_pset();
-			//step = (int)((((d1 << 14) / dc) + (1 << 14)) >> 1);
 			for(int i = 0; i <= dc; i++) {
-				stepx = (int)((((d1 * i) / dc) + 1) >> 1);
-				//stepx += (step >> 14);
-				//stepn += stepn;
-				//if(stepn >= (1 << 14)) {
-				//	stepn = stepn - (1 << 14);
-				//	stepx++;
-				//}
-				draw_pset(x - stepx, y++);
+				//stepx = (int)((((d1 * i) / dc) + 1) >> 1);
+				stepx += step;
+				draw_pset_diff(x - (stepx >> 12), y++);
 			}
-			finish_pset();
 			break;
 		}
+		finish_pset();
 	} else {
 		start_pset();
-		draw_pset(dx, dy);
+		draw_pset_diff(dx, dy);
 		finish_pset();
 		wrote_bytes++;
 	}
@@ -1566,83 +1423,72 @@ void UPD7220::draw_vectc()
 	int xbak = dx;
 	int ybak = dy;
 	if(m) {
+		start_pset();
 		switch(dir) {
 		case 0:
-			start_pset();
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset((dx + s), (dy + i));
+				draw_pset_diff((dx + s), (dy + i));
 			}
-			finish_pset();
 			break;
 		case 1:
-			start_pset();
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset((dx + i), (dy + s));
+				draw_pset_diff((dx + i), (dy + s));
 			}
-			finish_pset();
 			break;
 		case 2:
-			start_pset();
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset((dx + i), (dy - s));
+				draw_pset_diff((dx + i), (dy - s));
 			}
-			finish_pset();
 			break;
 		case 3:
-			start_pset();
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset((dx + s), (dy - i));
+				draw_pset_diff((dx + s), (dy - i));
 			}
-			finish_pset();
 			break;
 		case 4:
-			start_pset();
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset((dx - s), (dy - i));
+				draw_pset_diff((dx - s), (dy - i));
 			}
-			finish_pset();
 			break;
 		case 5:
-			start_pset();
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
 
-				draw_pset((dx - i), (dy - s));
+				draw_pset_diff((dx - i), (dy - s));
 			}
-			finish_pset();
 			break;
 		case 6:
 			start_pset();
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset((dx - i), (dy + s));
+				draw_pset_diff((dx - i), (dy + s));
 			}
-			finish_pset();
 			break;
 		case 7:
-			start_pset();
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset((dx - s), (dy + i));
+				draw_pset_diff((dx - s), (dy + i));
 			}
-			finish_pset();
 			break;
 		}
+		finish_pset();
 	} else {
-		draw_pset(dx, dy);
+		start_pset();
+		draw_pset_diff(dx, dy);
+		finish_pset();
 		//wrote_bytes++;
 	}
 }
@@ -1654,99 +1500,41 @@ void UPD7220::draw_vectr()
 	int vx2 = vectdir[dir][2];
 	int vy2 = vectdir[dir][3];
 	int nwidth = width <<3;
-
 	int xbak = dx;
 	int ybak = dy;
 	pattern = ra[8] | (ra[9] << 8);
-
+//	out_debug_log(_T("DRAW VECTR: X=%d Y=%d to DC=%d DIR=%d PATTERN=%04x MODE=%d VX1=%d VY1=%d VX2=%d VY2=%d\n"), dx, dy, dc, dir, pattern, mod, vx1, vy1, vx2, vy2);
+	start_pset();
+	for(int c = 0; c < d; c++) {
+		draw_pset_diff(dx, dy);
+		dx += vx1;
+		dy += vy1;
+	}
+	for(int c = 0; c < d2; c++) {
+		draw_pset_diff(dx, dy);
+		dx += vx2;
+		dy += vy2;
+	}
+	for(int c = 0; c < d; c++) {
+		draw_pset_diff(dx, dy);
+		dx -= vx1;
+		dy -= vy1;
+	}
+	for(int c = 0; c < d2; c++) {
+		draw_pset_diff(dx, dy);
+		dx -= vx2;
+		dy -= vy2;
+	}
 	
-	start_pset();
-	if(vy1 == 0) {
-		if(vx1 == 0) {
-			draw_pset(dx, dy);
-		} else {
-			draw_hline_diff(dx, dy, (vx1 < 0) ? (dx - d) : (dx + d));
-		}
-	} else {
-		start_pset();
-		for(int i = 0; i < d; i++) {
-			draw_pset(dx, dy);
-			dx += vx1;
-			dy += vy1;
-		}
-		finish_pset();
-	}
-	xbak += (vx1 * d);
-	ybak += (vy1 * d);
 	finish_pset();
-	dx = xbak;
-	dy = ybak;
-	start_pset();
-	if(vy2 == 0) {
-		if(vx2 == 0) {
-			draw_pset(dx, dy);
-		} else {
-			draw_hline_diff(dx, dy, (vx2 < 0) ? (dx - d2) : (dx + d2));
-		}
-	} else {
-		start_pset();
-		for(int i = 0; i < d2; i++) {
-			draw_pset(dx, dy);
-			dx += vx2;
-			dy += vy2;
-		}
-		finish_pset();
-	}
-	xbak += (vx2 * d2);
-	ybak += (vy2 * d2);
-	finish_pset();
-	dx = xbak;
-	dy = ybak;
-	start_pset();
-	if(vy1 == 0) {
-		if(vx1 == 0) {
-			draw_pset(dx, dy);
-		} else {
-			draw_hline_diff(dx, dy, (vx1 < 0) ? (dx - d) : (dx + d));
-		}
-	} else {
-		start_pset();
-		for(int i = 0; i < d; i++) {
-			draw_pset(dx, dy);
-			dx -= vx1;
-			dy -= vy1;
-		}
-		finish_pset();
-	}
-	xbak -= (vx1 * d);
-	ybak -= (vy1 * d);
-	finish_pset();
-	dx = xbak;
-	dy = ybak;
+//	dx = xbak;
+//	dy = ybak;
 
-	if(vy2 == 0) {
-		if(vx2 == 0) {
-			draw_pset(dx, dy);
-		} else {
-			draw_hline_diff(dx, dy, (vx2 < 0) ? (dx - d2) : (dx + d2));
-		}
-	} else {
-		for(int i = 0; i < d2; i++) {
-			draw_pset(dx, dy);
-			dx -= vx2;
-			dy -= vy2;
-		}
-	}
-	xbak -= (vx2 * d2);
-	ybak -= (vy2 * d2);
-
-	dx = xbak;
-	dy = ybak;
 //	ead = (dx >> 4) + dy * pitch;
 //	dad = dx & 0x0f;
 }
 
-#define STATE_VERSION	8
+#define STATE_VERSION	9
 
 bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1825,6 +1613,7 @@ bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(d1);
 	state_fio->StateValue(dm);
 	state_fio->StateValue(pattern);
+	state_fio->StateValue(dgd);
 
 	state_fio->StateValue(clock_freq);
 	state_fio->StateValue(wrote_bytes);

@@ -107,6 +107,7 @@ protected:
 	int rt[RT_TABLEMAX + 1];
 	int dx, dy;	// from ead, dad
 	int dir, dif, sl, dc, d, d2, d1, dm;
+	bool dgd;
 	uint16_t pattern;
 	const int vectdir[16][4] = {
 		{ 0, 1, 1, 0}, { 1, 1, 1,-1}, { 1, 0, 0,-1}, { 1,-1,-1,-1},
@@ -173,7 +174,6 @@ protected:
 	inline void start_pset();
 	inline void finish_pset();
 	inline bool draw_pset_diff(int x, int y);
-	void draw_hline_diff(int xstart, int y, int xend);
 	inline void shift_pattern(int shift);
 	
 public:
@@ -297,16 +297,18 @@ public:
 
 inline void  UPD7220::draw_pset(int x, int y)
 {
+	uint32_t addr = y * width + (x >> 3);
 	if(_UPD7220_UGLY_PC98_HACK) {
-		if((y == 409) && (x >= 384)) return;
-		if(y > 409) return;
-		if((x < 0) || (y < 0) || (x >= (width << 3))) return;
+//		if(addr >= 0x8000) return;
+//		if((y == 409) && (x >= 384)) return;
+//		if(y > 409) return;
+//		if((x < 0) || (y < 0) || (x >= (width << 3))) return;
+//		addr = addr & 0x7fff;
 	} else {
 		if((x < 0) || (y < 0) || (x >= (width << 3)) || (y >= height)) return;
 	}
 	uint16_t dot = pattern & 1;
 	pattern = (pattern >> 1) | (dot << 15);
-	uint32_t addr = y * width + (x >> 3);
 	uint8_t bit;
 	if(_UPD7220_MSB_FIRST) {
 		bit = 0x80 >> (x & 7);
@@ -384,19 +386,20 @@ inline bool UPD7220::draw_pset_diff(int x, int y)
 	uint32_t addr = y * width + (x >> 3);
 	uint8_t bit;
 
-	if(_UPD7220_UGLY_PC98_HACK) {
-		if((y > 409) || ((y == 409) && x >= 384)){
-			finish_pset();
-			return false;
-		}
-		else if((x < 0) || (y < 0) || (x >= (width << 3))) {
-			finish_pset();
-			return false;
-		}
-	} else if((x < 0) || (y < 0) || (x >= (width << 3)) || (y >= height)) {
-		finish_pset();
-		return false;
-	}
+//	if(_UPD7220_UGLY_PC98_HACK) {
+//		if(addr >= 0x8000) {
+//		if((y > 409) || ((y == 409) && x >= 384)){
+//			finish_pset();
+//			return false;
+//		}
+//		else if((x < 0) || (y < 0) || (x >= (width << 3))) {
+//			finish_pset();
+//			return false;
+//		}
+//	} else if((x < 0) || (y < 0) || (x >= (width << 3)) || (y >= height)) {
+//		finish_pset();
+//		return false;
+//	}
 	if((first_load) || (addr != before_addr)) {
 		if(!(first_load)) {
 			write_vram(before_addr, cache_val);

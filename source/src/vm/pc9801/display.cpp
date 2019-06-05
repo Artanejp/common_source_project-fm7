@@ -354,9 +354,9 @@ void DISPLAY::reset()
 
 	#if defined(SUPPORT_EGC)
 	enable_egc = false;
-//	if(modereg2[MODE2_EGC_WP] != 0) {
-	//		enable_egc = ((is_use_egc) && (modereg2[MODE2_EGC] != 0)) ? true : false;
-//	}
+	//if(modereg2[MODE2_EGC_WP] != 0) {
+	//enable_egc = ((is_use_egc) && (modereg2[MODE2_EGC] != 0)) ? true : false;
+	//	}
 	#endif
 	egc_access = 0xfff0;
 	egc_fgbg = 0x00ff;
@@ -577,14 +577,16 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 			grcg_plane_enabled[i] = ((grcg_mode & (1 << i)) == 0) ? true : false;
 		}
 		grcg_tile_ptr = 0;
+		//out_debug_log("GRCG MODEREG=%02x CG_MODE=%s RW_MODE=%s PLANE=%s%s%s%s\n", data, (grcg_cg_mode) ? "Yes" : "No", (grcg_rw_mode) ? "Yes" : "No", (grcg_plane_enabled[0]) ? "B" : " ", (grcg_plane_enabled[1]) ? "R" : " ", (grcg_plane_enabled[2]) ? "G" : " ", (grcg_plane_enabled[3]) ? "W" : " ");
 		break;
 #if !defined(SUPPORT_HIRESO)
 	case 0x007e:
 #else
 	case 0x00a6:
 #endif
+		//out_debug_log("SET TILE #%d to %02X\n", grcg_tile_ptr, data);
 		grcg_tile[grcg_tile_ptr] = data;
-		grcg_tile_word[grcg_tile_ptr] = grcg_tile[grcg_tile_ptr] | ((uint16_t)(grcg_tile[grcg_tile_ptr]) << 8);
+		grcg_tile_word[grcg_tile_ptr] = ((uint16_t)grcg_tile[grcg_tile_ptr]) | ((uint16_t)grcg_tile[grcg_tile_ptr] << 8);
 		grcg_tile_ptr = (grcg_tile_ptr + 1) & 3;
 		break;
 #endif
@@ -607,6 +609,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 #endif
 		}
 		vram_disp_sel = data;
+		//out_debug_log("SET DISPLAY PAGE=%d\n", (data & 1));
 		break;
 	case 0x00a6:
 		if(data & 1) {
@@ -615,6 +618,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 			vram_draw = vram + 0x00000;
 		}
 		vram_draw_sel = data;
+		//out_debug_log("SET DRAW PAGE=%d\n", (data & 1));
 		break;
 #endif
 	// palette
@@ -629,6 +633,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		palette_gfx8[7] = RGB_COLOR((data & 2) ? 0xff : 0, (data & 4) ? 0xff : 0, (data & 1) ? 0xff : 0);
 		data >>= 4;
 		palette_gfx8[3] = RGB_COLOR((data & 2) ? 0xff : 0, (data & 4) ? 0xff : 0, (data & 1) ? 0xff : 0);
+		//out_debug_log("SET DIGITAL PALETTE #3 %d %d\n", data & 7, (data >> 4) & 7);
 		break;
 	case 0xaa:
 #if defined(SUPPORT_16_COLORS)
@@ -642,6 +647,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		palette_gfx8[5] = RGB_COLOR((data & 2) ? 0xff : 0, (data & 4) ? 0xff : 0, (data & 1) ? 0xff : 0);
 		data >>= 4;
 		palette_gfx8[1] = RGB_COLOR((data & 2) ? 0xff : 0, (data & 4) ? 0xff : 0, (data & 1) ? 0xff : 0);
+		//out_debug_log("SET DIGITAL PALETTE #1 %d %d\n", data & 7, (data >> 4) & 7);
 		break;
 	case 0xac:
 #if defined(SUPPORT_16_COLORS)
@@ -655,6 +661,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		palette_gfx8[6] = RGB_COLOR((data & 2) ? 0xff : 0, (data & 4) ? 0xff : 0, (data & 1) ? 0xff : 0);
 		data >>= 4;
 		palette_gfx8[2] = RGB_COLOR((data & 2) ? 0xff : 0, (data & 4) ? 0xff : 0, (data & 1) ? 0xff : 0);
+		//out_debug_log("SET DIGITAL PALETTE #2 %d %d\n", data & 7, (data >> 4) & 7);
 		break;
 	case 0xae:
 #if defined(SUPPORT_16_COLORS)
@@ -668,6 +675,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		palette_gfx8[4] = RGB_COLOR((data & 2) ? 0xff : 0, (data & 4) ? 0xff : 0, (data & 1) ? 0xff : 0);
 		data >>= 4;
 		palette_gfx8[0] = RGB_COLOR((data & 2) ? 0xff : 0, (data & 4) ? 0xff : 0, (data & 1) ? 0xff : 0);
+		//out_debug_log("SET DIGITAL PALETTE #0 %d %d\n", data & 7, (data >> 4) & 7);
 		break;
 	// cg window
 	case 0xa1:
@@ -1157,7 +1165,7 @@ void DISPLAY::write_dma_io16(uint32_t addr, uint32_t data)
 			vram_draw[0x1ffff] = d.b.l;
 			vram_draw[0x00000] = d.b.h;
 		} else {
-			*(uint16_t *)(&vram_draw[addr & 0x1ffff]) = data;
+			*(uint16_t *)(&vram_draw[addr & 0x1fffe]) = data;
 		}
 	}
 }
@@ -1197,7 +1205,7 @@ uint32_t DISPLAY::read_dma_io16(uint32_t addr)
 			d.b.h = vram_draw[0x00000];
 			return (uint32_t)(d.w);
 		}
-		return *(uint16_t *)(&vram_draw[addr & 0x1ffff]);
+		return *(uint16_t *)(&vram_draw[addr & 0x1fffe]);
 	}
 }
 
@@ -1217,9 +1225,7 @@ void DISPLAY::grcg_writeb(uint32_t addr1, uint32_t data)
 		__DECL_ALIGNED(4) uint8_t bit_data[4];
 		uint8_t* p = vram_draw;
 		for(int i = 0; i < 4; i++) {
-			//if(grcg_plane_enabled[i]) {
-				plane_data[i] = p[plane_offset[i]];
-			//}
+			plane_data[i] = p[plane_offset[i]];
 		}
 		
 	__DECL_VECTORIZED_LOOP
@@ -1365,9 +1371,7 @@ uint32_t DISPLAY::grcg_readb(uint32_t addr1)
 	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 4; i++) {
 			data |= (grcg_plane_enabled[i]) ? dsum[i] : 0;
-			//	if(grcg_plane_enabled[i]) {
-			//	data |= dsum[i];
-			//	}
+			//data |= dsum[i];
 		}
 	/*
 		if(!(grcg_mode & GRCG_PLANE_0)) {
@@ -3131,7 +3135,7 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 			grcg_plane_enabled[i] = ((grcg_mode & (1 << i)) == 0) ? true : false;;
 		}
 		for(int i = 0; i < 4; i++) {
-			grcg_tile_word[i] = ((uint16_t)(grcg_tile[i]) << 8) | grcg_tile[i];
+			grcg_tile_word[i] = ((uint16_t)grcg_tile[i]) | ((uint16_t)grcg_tile[i] << 8);
 		}
 	#endif
 #endif
