@@ -78,8 +78,7 @@ private:
 	bool force_ready;
 	bool reset_signal;
 	bool prev_index;
-	bool interrupt_on;
-	
+
 	int _max_drive;
 	bool _fdc_debug_log;
 	bool _upd765a_dma_mode;
