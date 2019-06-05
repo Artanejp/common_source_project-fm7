@@ -116,8 +116,8 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 #if !defined(SUPPORT_HIRESO)
 	case 0x00cc:
 	case 0x00ce:
+		if(((addr >> 4) & 1) == (modereg & 1))
 #endif
-		if(((((addr >> 4) & 0xff) ^ modereg) & 1) != 0) return;
 		{
 			if(!(ctrlreg & 0x80) && (data & 0x80)) {
 				d_fdc->reset();
@@ -191,7 +191,7 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 	case 0x0096:
 //		value |= 0x80; // FINT1 (DIP SW 1-7), 1 = OFF, 0 = ON
 		value |= 0x40; // FINT0 (DIP SW 1-6), 1 = OFF, 0 = ON
-		value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
+//		value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
 		return value;
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
@@ -230,22 +230,23 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 		break;
 	case 0x0094:
 	case 0x0096:
+//	#if !defined(SUPPORT_HIRESO)
+//	case 0x00cc:
+//	case 0x00ce:
+//	#endif
+//		if(((((addr >> 4) & 0xff) ^ modereg) & 1) != 0) return 0xff; // From NP2
 	#if !defined(SUPPORT_HIRESO)
-	case 0x00cc:
-	case 0x00ce:
-	#endif
-		if(((((addr >> 4) & 0xff) ^ modereg) & 1) != 0) return 0xff; // From NP2
-	#if !defined(SUPPORT_HIRESO)
+		if(modereg & 1)
 		{
 //			value |= 0x80; // FINT1 (DIP SW 1-7), 1 = OFF, 0 = ON
 			value |= 0x40; // FINT0 (DIP SW 1-6), 1 = OFF, 0 = ON
 //			value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
 //			value |= 0x08; // TYP1,0 (DIP SW 1-4), 1,0 = ON  Internal FDD: #3,#4, External FDD: #1,#2
 			value |= 0x04; // TYP1,0 (DIP SW 1-4), 0,1 = OFF Internal FDD: #1,#2, External FDD: #3,#4
-			if((addr & 0x10) == 0) {
-				value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
-				value |= 0x10; // READY
-			}
+//			if((addr & 0x10) == 0) { // 0xCC,0xCE
+//				value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
+//				value |= 0x10; // READY
+//			}
 			return value;
 		}
 	#else
@@ -262,6 +263,20 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 		// ToDo: Three mode FDD.
 //		return 0xfc | (modereg & 3);
 		break;
+      case 0x00cc:
+      case 0x00ce:
+		  if(!(modereg & 1)) {
+//			  value |= 0x80; // FINT1 (DIP SW 1-7), 1 = OFF, 0 = ON
+			  value |= 0x40; // FINT0 (DIP SW 1-6), 1 = OFF, 0 = ON
+			  value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
+//			  value |= 0x08; // TYP1,0 (DIP SW 1-4), 1,0 = ON  Internal FDD: #3,#4, External FDD: #1,#2
+			  value |= 0x04; // TYP1,0 (DIP SW 1-4), 0,1 = OFF Internal FDD: #1,#2, External FDD: #3,#4
+			  if(d_fdc->is_disk_inserted()) {
+				  value |= 0x10; // RDY
+			  }
+			  return value;
+		  }
+		  break;
 	#endif
 #endif
 	}
