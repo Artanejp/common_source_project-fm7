@@ -164,7 +164,8 @@ void UPD7220::event_pre_frame()
 		if(_UPD7220_HORIZ_FREQ != 0) {
 			horiz_freq = 0;
 		}
-
+		out_debug_log("HTOTAL=%d HFP=%d HS=%d HBP=%d C/R=%d\n", h1 + h2 + h3 + h4, h1, h2, h3, h4);
+		out_debug_log("VTOTAL=%d VFP=%d VS=%d VBP=%d L/F=%d\n", v1 + v2 + v3 + v4, v1, v2, v3, v4);
 	}
 	if((master) || (sync_mask)) {
 		if(vtotal != v1 + v2 + v3 + v4) {
