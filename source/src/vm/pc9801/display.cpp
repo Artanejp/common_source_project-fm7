@@ -2641,7 +2641,7 @@ void DISPLAY::draw_screen()
 	// render screen
 	bool gdc_chr_start = d_gdc_chr->get_start();
 	bool gdc_gfx_start = d_gdc_gfx->get_start();
-	int _height = d_gdc_chr->read_signal(SIG_UPD7220_HEIGHT) << 4;
+	int _height = d_gdc_chr->read_signal(SIG_UPD7220_DISP_HEIGHT) << 4;
 	int _height2 = d_gdc_gfx->read_signal(SIG_UPD7220_DISP_HEIGHT);
 	if(_height < _height2) _height = _height2;
 	if(modereg1[MODE1_DISP] && (gdc_chr_start || gdc_gfx_start)) {
