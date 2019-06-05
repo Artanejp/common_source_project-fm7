@@ -542,10 +542,12 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 #endif
 	case 0x6c:
 		border = (data >> 3) & 7;
+		border_color = RGB_COLOR((border & 2) ? 0xff : 0, (border & 4) ? 0xff : 0, (border & 1) ? 0xff : 0);
 		break;
 	case 0x6e:
 #if defined(_PC9801)
 		border = (data >> 3) & 7;
+		border_color = RGB_COLOR((border & 2) ? 0xff : 0, (border & 4) ? 0xff : 0, (border & 1) ? 0xff : 0);
 #else
 		if(data & 1) {
 			d_gdc_chr->set_horiz_freq(24830);
@@ -2639,7 +2641,9 @@ void DISPLAY::draw_screen()
 	// render screen
 	bool gdc_chr_start = d_gdc_chr->get_start();
 	bool gdc_gfx_start = d_gdc_gfx->get_start();
-	
+	int _height = d_gdc_chr->read_signal(SIG_UPD7220_HEIGHT) << 4;
+	int _height2 = d_gdc_gfx->read_signal(SIG_UPD7220_DISP_HEIGHT);
+	if(_height < _height2) _height = _height2;
 	if(modereg1[MODE1_DISP] && (gdc_chr_start || gdc_gfx_start)) {
 		if(gdc_chr_start) {
 			draw_chr_screen();
@@ -2651,7 +2655,7 @@ void DISPLAY::draw_screen()
 		} else {
 			memset(screen_gfx, 0, sizeof(screen_gfx));
 		}
-		int _width = d_gdc_gfx->read_signal(SIG_UPD7220_PITCH);
+		int _width = d_gdc_gfx->read_signal(SIG_UPD7220_DISP_WIDTH);
 		_width <<= 4;
 //		_width -= 16;
 		if(_width > SCREEN_WIDTH) _width = SCREEN_WIDTH;
@@ -2672,6 +2676,12 @@ void DISPLAY::draw_screen()
 				src_chr++;
 			}
 #endif
+			if(y >= _height) {
+				for(int x = _width; x < SCREEN_WIDTH; x++) {
+					dest[x] = border_color;
+				}
+				continue;
+			}
 			uint8_t *src_gfx = screen_gfx[y];
 			
 #if defined(SUPPORT_16_COLORS)
@@ -2684,7 +2694,7 @@ void DISPLAY::draw_screen()
 				// ToDo: Variable width
 				for(int x = _width; x < SCREEN_WIDTH; x++) {
 					uint8_t chr = src_chr[x];
-					dest[x] = (chr) ? palette_chr[chr & 7] : 0x00;
+					dest[x] = (chr) ? palette_chr[chr & 7] : border_color;
 				}
 #if defined(SUPPORT_16_COLORS)
 			} else {
@@ -2695,7 +2705,7 @@ void DISPLAY::draw_screen()
 				// ToDo: Variable width
 				for(int x = _width; x < SCREEN_WIDTH; x++) {
 					uint8_t chr = src_chr[x];
-					dest[x] = (chr) ? palette_chr[chr & 7] : 0x00;
+					dest[x] = (chr) ? palette_chr[chr & 7] : border_color;
 				}
 			}
 #endif
@@ -2949,8 +2959,10 @@ void DISPLAY::draw_gfx_screen()
 	if(_height < 0) _height = 0;
 	if(_height > 480) _height = 480;
 	_width <<= 4;
+	int _width2 = SCREEN_WIDTH - _width;;
 	if(_width  < 0) _width = 0;
 	if(_width > SCREEN_WIDTH) _width = SCREEN_WIDTH;
+	if(_width2 < 0) _width2 = 0;
 	//out_debug_log("WxH: %dx%d", _width, _height);
 	for(int i = 0, ytop = 0; i < 4; i++) {
 		uint32_t ra = ra_gfx[i * 4];
@@ -2967,12 +2979,15 @@ void DISPLAY::draw_gfx_screen()
 				gdc_addr[y][x] = sad;
 				sad = (sad + 1) & VRAM_PLANE_ADDR_MASK;
 			}
+//			for(int x = (_width >> 3); x < (SCREEN_WIDTH >> 3); x++) {	
+//				gdc_addr[y][x] = 0;
+//			}
 		}
 		if((ytop += len) >= _height) break;
 	}
 	uint32_t *addr = &gdc_addr[0][0];
 	uint8_t *dest = &screen_gfx[0][0];
-	//if(_width  > SCREEN_WIDTH) _width = SCRREEN_WIDTH; // OK?
+
 	static const uint32_t __vramsize = SCREEN_HEIGHT * (SCREEN_WIDTH >> 3);
 	uint32_t of = 0;
 	for(int y = 0; y < _height; y++) {
@@ -2995,6 +3010,19 @@ void DISPLAY::draw_gfx_screen()
 			*dest++ = ((b & 0x04) >> 2) | ((r & 0x04) >> 1) | ((g & 0x04)     ) | ((e & 0x04) << 1);
 			*dest++ = ((b & 0x02) >> 1) | ((r & 0x02)     ) | ((g & 0x02) << 1) | ((e & 0x02) << 2);
 			*dest++ = ((b & 0x01)     ) | ((r & 0x01) << 1) | ((g & 0x01) << 2) | ((e & 0x01) << 3);
+			of++;
+			if(of >= __vramsize) break;
+		}
+		for(int x = 0; x < _width2; x += 8) {
+			*dest++ = 0;
+			*dest++ = 0;
+			*dest++ = 0;
+			*dest++ = 0;
+			*dest++ = 0;
+			*dest++ = 0;
+			*dest++ = 0;
+			*dest++ = 0;
+			addr++;
 			of++;
 			if(of >= __vramsize) break;
 		}
@@ -3107,6 +3135,7 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	
  	// post process
 	if(loading) {
+		border_color = RGB_COLOR((border & 2) ? 0xff : 0, (border & 4) ? 0xff : 0, (border & 1) ? 0xff : 0);
 #if defined(SUPPORT_2ND_VRAM) && !defined(SUPPORT_HIRESO)
 		if(vram_disp_sel & 1) {
 			vram_disp_b = vram + 0x28000;

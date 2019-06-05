@@ -745,6 +745,12 @@ uint32_t UPD7220::read_signal(int ch)
 	case SIG_UPD7220_PITCH:
 		return (pitch < 0) ? 0 : pitch;
 		break;
+	case SIG_UPD7220_DISP_WIDTH:
+		return (h4 < 0) ? 0 : h4;
+		break;
+	case SIG_UPD7220_DISP_HEIGHT:
+		return (v4 < 0) ? 0 : v4;
+		break;
 	}
 	return 0;
 }

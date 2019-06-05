@@ -80,6 +80,7 @@ private:
 	uint8_t scroll[6];
 	uint8_t modereg1[8];
 	uint8_t border; // ToDo; OVER SCAN.
+	scrntype_t border_color;
 #if defined(SUPPORT_16_COLORS)
 	uint8_t modereg2[128];
 	bool is_use_egc;
