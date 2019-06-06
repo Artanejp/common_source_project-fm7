@@ -156,7 +156,7 @@ void EmuThreadClass::get_fd_string(void)
 			if(p_emu->is_floppy_disk_inserted(i)) {
 				if(i == (access_drv - 1)) {
 					lamp_stat = true;
-					alamp = QString::fromUtf8("<FONT COLOR=RED>●</FONT>"); // 💾U+1F4BE Floppy Disk
+					alamp = QString::fromUtf8("<FONT COLOR=FIREBRICK>●</FONT>"); // 💾U+1F4BE Floppy Disk
 				} else {
 					alamp = QString::fromUtf8("<FONT COLOR=BLUE>○</FONT>"); // 💾U+1F4BE Floppy Disk
 				}
@@ -201,7 +201,7 @@ void EmuThreadClass::get_qd_string(void)
 		lamp_stat = false;
 		if(p_emu->is_quick_disk_inserted(i)) {
 			if(i == (access_drv - 1)) {
-				alamp = QString::fromUtf8("<FONT COLOR=RED>●</FONT>"); // 💽　U+1F4BD MiniDisc
+				alamp = QString::fromUtf8("<FONT COLOR=MAGENTA>●</FONT>"); // 💽　U+1F4BD MiniDisc
 				lamp_stat = true;
 			} else {
 				alamp = QString::fromUtf8("<FONT COLOR=BLUE>○</FONT>"); // 💽U+1F4BD MiniDisc
@@ -267,7 +267,7 @@ void EmuThreadClass::get_hdd_string(void)
 	for(int i = 0; i < (int)using_flags->get_max_hdd(); i++) {
 		if(p_emu->is_hard_disk_inserted(i)) {
 			if((access_drv & (1 << i)) != 0) {
-				alamp = QString::fromUtf8("<FONT COLOR=GREEN>■</FONT>");  // 
+				alamp = QString::fromUtf8("<FONT COLOR=LIME>■</FONT>");  // 
 				lamp_stat = true;
 			} else {
 				alamp = QString::fromUtf8("<FONT COLOR=BLUE>□</FONT>");  // 
@@ -297,7 +297,7 @@ void EmuThreadClass::get_cd_string(void)
 	for(int i = 0; i < (int)using_flags->get_max_cd(); i++) {
 		if(p_emu->is_compact_disc_inserted(i)) {
 			if((access_drv & (1 << i)) != 0) {
-				tmpstr = QString::fromUtf8("<FONT COLOR=RED>●</FONT>");  // U+1F4BF OPTICAL DISC
+				tmpstr = QString::fromUtf8("<FONT COLOR=DEEPSKYBLUE>●</FONT>");  // U+1F4BF OPTICAL DISC
 			} else {
 				tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>○</FONT>");  // U+1F4BF OPTICAL DISC
 			}				

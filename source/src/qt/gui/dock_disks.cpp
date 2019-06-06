@@ -264,33 +264,6 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 	_wlots = 0;
 	_wmod = 0;
 	two_rows = false;
-	
-	if(using_flags->is_use_hdd()) {
-		if(using_flags->get_max_hdd() > 4) {
-			_wlots = 4;
-			_wmod = using_flags->get_max_hdd() - 4;
-			two_rows = true;
-		} else {
-			_wlots = using_flags->get_max_hdd();
-			_wmod = 0;
-		}
-		for(int i = 0; i < using_flags->get_max_hdd(); i++) {
-			pHardDisk[i] = new CSP_LabelVirtualDevice(this, 12, font_pt, QString::fromUtf8("HD"), i);
-			pHardDisk[i]->setVisible(true);
-		}
-		int _xtmp = _x;
-		for(int i = 0; i < _wlots; i++) {
-			HVBox->addWidget(pHardDisk[i], 0, _x);
-			_x++;
-		}
-		for(int i = 0; i < _wmod; i++) {
-			HVBox->addWidget(pHardDisk[i + 4], 1, _xtmp);
-			_xtmp++;
-		}
-	}
-	_wlots = 0;
-	_wmod = 0;
-	two_rows = false;
 	if(using_flags->is_use_fd()) {
 		if(using_flags->get_max_drive() > 4) {
 			_wlots = 4;
@@ -329,6 +302,33 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 			HVBox->addWidget(pCMT[i], 0, _x);
 			pCMT[i]->setVisible(true);
 			_x++;
+		}
+	}
+	_wlots = 0;
+	_wmod = 0;
+	two_rows = false;
+	
+	if(using_flags->is_use_hdd()) {
+		if(using_flags->get_max_hdd() > 4) {
+			_wlots = 4;
+			_wmod = using_flags->get_max_hdd() - 4;
+			two_rows = true;
+		} else {
+			_wlots = using_flags->get_max_hdd();
+			_wmod = 0;
+		}
+		for(int i = 0; i < using_flags->get_max_hdd(); i++) {
+			pHardDisk[i] = new CSP_LabelVirtualDevice(this, 12, font_pt, QString::fromUtf8("HD"), i);
+			pHardDisk[i]->setVisible(true);
+		}
+		int _xtmp = _x;
+		for(int i = 0; i < _wlots; i++) {
+			HVBox->addWidget(pHardDisk[i], 0, _x);
+			_x++;
+		}
+		for(int i = 0; i < _wmod; i++) {
+			HVBox->addWidget(pHardDisk[i + 4], 1, _xtmp);
+			_xtmp++;
 		}
 	}
 	{
