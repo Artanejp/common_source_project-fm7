@@ -53,7 +53,11 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QThread(0)
 	debug_mutex = new QMutex(QMutex::Recursive);
 	
 	SupportedFeatures.clear();
-
+	midi_receivers.clear();
+	midi_senders.clear();
+	sio_receivers.clear();
+	sio_senders.clear();
+	
 	is_glcontext_shared = false;
 	glContext = NULL;
 }
