@@ -378,6 +378,7 @@ void EmuThreadClass::doWork(const QString &params)
 	bStartRecordMovieReq = false;
 	sStateFile.clear();
 	lStateFile.clear();
+	thread_id = this->currentThreadId();
 	record_fps = -1;
 
 	tick_timer.start();
@@ -423,6 +424,10 @@ void EmuThreadClass::doWork(const QString &params)
 			msleep(10);
 			//SDL_Delay(10);
 			continue;
+		}
+		if(queue_fixed_cpu >= 0) {
+			set_emu_thread_to_fixed_cpu(queue_fixed_cpu);
+			queue_fixed_cpu = -1;
 		}
 		if(first) {
 			if((using_flags->get_use_led_devices() > 0) || (using_flags->get_use_key_locked())) emit sig_send_data_led((quint32)led_data);

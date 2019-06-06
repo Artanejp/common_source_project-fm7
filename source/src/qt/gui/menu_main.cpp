@@ -854,7 +854,22 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	menuDevLogToSyslog->setTitle(QApplication::translate("MenuEmulator", "Per Device", 0));
 #endif
 	menu_SetRenderPlatform->setTitle(QApplication::translate("MenuEmulator", "Video Platform(need restart)", 0));
-	
+	if(menu_SetFixedCpu != NULL) {
+		menu_SetFixedCpu->setTitle(QApplication::translate("MenuEmulator", "Occupy Fixed CPU", 0));
+		
+		if(action_ResetFixedCpu != NULL) {
+			action_ResetFixedCpu->setText(QApplication::translate("MenuEmulator", "Using all CPU", 0));
+			action_ResetFixedCpu->setToolTip(QApplication::translate("MenuEmulator", "Using all CPU to emulation.\nReset cpu usings.", 0));
+		}
+		for(int ii = 0; ii < 128; ii++) {
+			if(action_SetFixedCpu[ii] != NULL) {
+				QString numname = QString::number(ii);
+				QString numtip = QApplication::translate("MenuEmulator", "Set Fixed logical CPU #%1 to be occupied by emulation thread.\nMay useful for heavy VM (i.e. using i386 CPU).\nStill implement LINUX host only, not another operating systems.", 0).arg(numname);
+				action_SetFixedCpu[ii]->setText(QString::fromUtf8("CPU #") + numname);
+				action_SetFixedCpu[ii]->setToolTip(numtip);
+			}
+		}
+	}
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_ES_2]->setText(QApplication::translate("MenuEmulator", "OpenGL ES v2.0", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL3_MAIN]->setText(QApplication::translate("MenuEmulator", "OpenGLv3.0", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL2_MAIN]->setText(QApplication::translate("MenuEmulator", "OpenGLv2.0", 0));
@@ -921,6 +936,9 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	menuEmulator->addAction(action_NumPadEnterAsFullkey);
 	menuEmulator->addSeparator();
 	menuEmulator->addAction(actionSpeed_FULL);
+	if(menu_SetFixedCpu != NULL) {
+		menuEmulator->addAction(menu_SetFixedCpu->menuAction());
+	}
 	menuEmulator->addSeparator();
 	menuEmulator->addAction(menu_EmulateCursorAs->menuAction());
 	if(action_Logging_FDC != NULL) {
@@ -979,6 +997,11 @@ void Ui_MainWindowBase::ConfigMonitorType(void)
 		}
 	}
 }
+#if defined(Q_OS_LINUX)
+//#define _GNU_SOURCE
+#include <unistd.h>
+#include <sched.h>
+#endif
 
 void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 {
@@ -1148,6 +1171,48 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	connect(action_LogView, SIGNAL(triggered()),
 			this, SLOT(rise_log_viewer()));
 	
+	long cpus = -1;
+#if defined(Q_OS_LINUX)
+	{
+		cpus = sysconf(_SC_NPROCESSORS_ONLN);
+	}
+#endif
+	menu_SetFixedCpu = NULL;
+	action_ResetFixedCpu = NULL;
+	for(i = 0; i < 128; i++) {
+		action_SetFixedCpu[i] = NULL;
+	}
+	if(cpus > 0) {
+		menu_SetFixedCpu = new QMenu(this);
+		menu_SetFixedCpu->setToolTipsVisible(true);
+		actionGroup_SetFixedCpu = new QActionGroup(this);
+		actionGroup_SetFixedCpu->setExclusive(true);
+		if(cpus >= 128) cpus = 128;
+		action_ResetFixedCpu = new Action_Control(this, using_flags);
+		action_ResetFixedCpu->setObjectName(QString::fromUtf8("action_SetFixedCpu", -1) + tmps);
+		action_ResetFixedCpu->setCheckable(true);
+		action_ResetFixedCpu->binds->setValue1(-1);
+		actionGroup_SetFixedCpu->addAction(action_ResetFixedCpu);
+		menu_SetFixedCpu->addAction(action_ResetFixedCpu);
+		connect(action_ResetFixedCpu, SIGNAL(triggered()),
+				action_ResetFixedCpu->binds, SLOT(do_select_fixed_cpu(void)));
+		connect(action_ResetFixedCpu->binds, SIGNAL(sig_set_fixed_cpu(int)),
+				this, SLOT(do_select_fixed_cpu(int)));
+		
+		for(i = 0; i < cpus; i++) {
+			tmps = QString::number(i);
+			action_SetFixedCpu[i] = new Action_Control(this, using_flags);
+			action_SetFixedCpu[i]->setObjectName(QString::fromUtf8("action_SetFixedCpu", -1) + tmps);
+			action_SetFixedCpu[i]->setCheckable(true);
+			action_SetFixedCpu[i]->binds->setValue1(i);
+			actionGroup_SetFixedCpu->addAction(action_SetFixedCpu[i]);
+			menu_SetFixedCpu->addAction(action_SetFixedCpu[i]);
+			connect(action_SetFixedCpu[i], SIGNAL(triggered()),
+					action_SetFixedCpu[i]->binds, SLOT(do_select_fixed_cpu(void)));
+			connect(action_SetFixedCpu[i]->binds, SIGNAL(sig_set_fixed_cpu(int)),
+					this, SLOT(do_select_fixed_cpu(int)));
+		}
+	}
 	menu_SetRenderPlatform = new QMenu(this);
 	menu_SetRenderPlatform->setToolTipsVisible(true);
 	actionGroup_SetRenderPlatform = new QActionGroup(this);
@@ -1198,6 +1263,9 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	action_SetupMovie = new Action_Control(this, using_flags);
   
 }
+#if defined(Q_OS_LINUX)
+//#undef _GNU_SOURCE
+#endif
 
 #include "display_log.h"
 
@@ -1338,7 +1406,7 @@ void Ui_MainWindowBase::retranslateMachineMenu(void)
 		actionPrintDevice[i]->setToolTip(QApplication::translate("MenuMachine", "None devices connect to printer port.", 0));
 	}
 	if(using_flags->get_use_monitor_type() > 0) {
-		menuMonitorType->setTitle("Monitor Type");
+		menuMonitorType->setTitle(QApplication::translate("MenuMachine", "Monitor Type", 0));
 		menuMonitorType->setToolTipsVisible(true);
 		for(int ii = 0; ii < using_flags->get_use_monitor_type(); ii++) {
 			tmps = QString::fromUtf8("Monitor %1").arg(ii + 1);
@@ -1606,10 +1674,16 @@ void Ui_MainWindowBase::do_set_window_title(QString s)
 	}
 	tmps = tmps + QString::fromUtf8(")");
 	MainWindow->setWindowTitle(tmps);
+	
 }
 
 void Ui_MainWindowBase::do_set_mouse_enable(bool flag)
 {
+}
+
+void Ui_MainWindowBase::do_select_fixed_cpu(int num)
+{
+	emit sig_emu_thread_to_fixed_cpu(num);
 }
 
 void Ui_MainWindowBase::do_toggle_mouse(void)

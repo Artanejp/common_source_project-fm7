@@ -14,6 +14,11 @@
 #include "menu_flags.h"
 
 //extern USING_FLAGS *using_flags;
+void Object_Menu_Control::do_select_fixed_cpu(void)
+{
+	emit sig_set_fixed_cpu(getValue1());
+}
+
 void Object_Menu_Control::do_set_monitor_type()
 {
 	emit sig_monitor_type(getValue1());

@@ -57,6 +57,8 @@ protected:
 	bool mouse_flag;
 	int mouse_x;
 	int mouse_y;
+	Qt::HANDLE thread_id;
+	int queue_fixed_cpu;
 	
     FIFO *key_fifo;
 	QOpenGLContext *glContext;
@@ -226,6 +228,7 @@ public slots:
 	void do_key_down(uint32_t vk, uint32_t mod, bool repeat);
 	void do_key_up(uint32_t vk, uint32_t mod);
 	void print_framerate(int frames);
+	void set_emu_thread_to_fixed_cpu(int cpunum);
 
 signals:
 	int message_changed(QString);

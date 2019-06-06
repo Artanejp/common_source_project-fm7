@@ -145,6 +145,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(this, SIGNAL(sig_emu_start_rec_sound()), hRunEmu, SLOT(do_start_record_sound()));
 	connect(this, SIGNAL(sig_emu_stop_rec_sound()), hRunEmu, SLOT(do_stop_record_sound()));
 	connect(this, SIGNAL(sig_emu_set_display_size(int, int, int, int)), hRunEmu, SLOT(do_set_display_size(int, int, int, int)));
+	connect(this, SIGNAL(sig_emu_thread_to_fixed_cpu(int)), hRunEmu, SLOT(set_emu_thread_to_fixed_cpu(int)));
 	
 	if(using_flags->is_use_state()) {
 		for(int i = 0; i < 10; i++) {
@@ -354,7 +355,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(emu->get_osd(), SIGNAL(sig_enable_mouse()), glv, SLOT(do_enable_mouse()));
 	connect(emu->get_osd(), SIGNAL(sig_disable_mouse()), glv, SLOT(do_disable_mouse()));
 
-	hRunEmu->start();
+	hRunEmu->start(QThread::HighestPriority);
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Launch done.");
 	this->set_screen_aspect(config.window_stretch_type);
 	emit sig_movie_set_width(SCREEN_WIDTH);

@@ -48,6 +48,8 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, USING_FLAG
 	}
 	
 	bRunThread = true;
+	thread_id = (Qt::HANDLE)0;
+	queue_fixed_cpu = -1;
 	prev_skip = false;
 	//tick_timer.start();
 	//update_fps_time = tick_timer.elapsed();
@@ -478,3 +480,41 @@ QString EmuThreadClassBase::get_d88_file_path(int drive)
 {
 	return QString::fromUtf8("");
 }
+#if defined(Q_OS_LINUX)
+//#define _GNU_SOURCE
+#include <unistd.h>
+#include <sched.h>
+#include <pthread.h>
+#endif
+
+void EmuThreadClassBase::set_emu_thread_to_fixed_cpu(int cpunum)
+{
+#if defined(Q_OS_LINUX)
+	if(thread_id <= 0) {
+		queue_fixed_cpu = cpunum;
+		return;
+	}
+
+	long cpus = sysconf(_SC_NPROCESSORS_ONLN);
+	cpu_set_t *mask;
+	mask = CPU_ALLOC(cpus);
+	CPU_ZERO_S(CPU_ALLOC_SIZE(cpus), mask);
+	if((cpunum < 0) || (cpunum >= cpus)) {
+		for(int i = 0; i < cpus; i++ ) {
+			CPU_SET(i, mask);
+		}
+	} else {
+		CPU_SET(cpunum, mask);
+	}
+//	sched_setaffinity((pid_t)thread_id, CPU_ALLOC_SIZE(cpus), (const cpu_set_t*)mask);
+	pthread_setaffinity_np(*((pthread_t*)thread_id), CPU_ALLOC_SIZE(cpus),(const cpu_set_t *)mask);
+	CPU_FREE(mask);
+#else
+	return;
+#endif
+	return;
+}
+
+#if defined(Q_OS_LINUX)
+//#undef _GNU_SOURCE
+#endif

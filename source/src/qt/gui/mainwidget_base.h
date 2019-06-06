@@ -368,6 +368,8 @@ protected:
 	class Action_Control *actionAbout;
 	class Action_Control *actionMouseEnable;
 	class Action_Control *actionHelp_AboutQt;
+	class Action_Control *action_ResetFixedCpu;
+	class Action_Control *action_SetFixedCpu[128];
 
 	// Screen
 	class Action_Control *actionCapture_Screen;
@@ -386,6 +388,7 @@ protected:
 	QActionGroup *actionGroup_DriveType;
 	QActionGroup *actionGroup_SoundDevice;
 	QActionGroup *actionGroup_PrintDevice;
+	QActionGroup *actionGroup_SetFixedCpu;
 	QMenu *menuDeviceType;
 	QMenu *menuKeyboardType;
 	QMenu *menuJoystickType;
@@ -393,6 +396,8 @@ protected:
 	QMenu *menuDriveType;
 	QMenu *menuSoundDevice;
 	QMenu *menuPrintDevice;
+	QMenu *menu_SetFixedCpu;
+	
 	class Action_Control *actionDeviceType[16];
 	class Action_Control *actionKeyboardType[16];
 	class Action_Control *actionJoystickType[16];
@@ -701,6 +706,7 @@ public slots:
 	void do_set_state_log_to_console(bool f);
 	void do_set_state_log_to_syslog(bool f);
 	void do_set_joy_to_key(bool flag);
+	void do_select_fixed_cpu(int num);
 
 signals:
 	int message_changed(QString);
@@ -778,7 +784,7 @@ signals:
 
 	int sig_load_state(QString);
 	int sig_save_state(QString);
-	
+	int sig_emu_thread_to_fixed_cpu(int);
 };
 QT_END_NAMESPACE
 
