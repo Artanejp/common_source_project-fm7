@@ -255,9 +255,10 @@ void GLDraw_2_0::drawOsdIcons()
 				major = 4 + (ii / 8) - 2;
 				minor = ii % 8;
 			} else {
-				major = 6;
-				minor = ii;
+				major = 0;
+				minor = 0;
 			}
+			// ToDo: CD,LD and HDD.
 			if(checkf) {
 				drawMain(osd_shader, vertex_osd[ii],
 						 buffer_osd[ii],
@@ -928,7 +929,7 @@ void GLDraw_2_0::uploadBitmapTexture(QImage *p)
 
 void GLDraw_2_0::uploadIconTexture(QPixmap *p, int icon_type, int localnum)
 {
-	if((icon_type >  7) || (icon_type < 0)) return;
+	if((icon_type >  8) || (icon_type < 0)) return;
 	if((localnum  >= 9) || (localnum  <  0)) return;
 	if(p == NULL) return;
 	p_wid->makeCurrent();

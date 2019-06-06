@@ -231,6 +231,7 @@ void EmuThreadClassBase::sample_access_drv(void)
 {
 	if(using_flags->is_use_qd()) get_qd_string();
 	if(using_flags->is_use_fd()) get_fd_string();
+	if(using_flags->is_use_hdd()) get_hdd_string();	
 	if(using_flags->is_use_tape() && !using_flags->is_tape_binary_only()) get_tape_string();
 	if(using_flags->is_use_compact_disc()) get_cd_string();
 	if(using_flags->is_use_bubble()) get_bubble_string();

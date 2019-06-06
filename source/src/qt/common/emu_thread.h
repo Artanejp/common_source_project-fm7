@@ -52,6 +52,7 @@ protected:
 	void button_released_mouse_sub(Qt::MouseButton button);
 	void get_qd_string(void);
 	void get_fd_string(void);
+	void get_hdd_string(void);
 	void get_tape_string(void);
 	void get_cd_string(void);
 	void get_bubble_string(void);

@@ -240,7 +240,9 @@ bool VM::is_compact_disc_inserted(int drv)
 
 uint32_t VM::is_compact_disc_accessed()
 {
-	return scsi_cdrom->accessed();
+	uint32_t n;
+	n = (scsi_cdrom->accessed()) ? 1 : 0;
+	return n;
 }
 
 void VM::update_config()

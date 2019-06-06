@@ -139,6 +139,16 @@ void GLDrawClass::initializeGL(void)
 	if(using_flags->is_use_compact_disc()) {
 		do_update_icon(6, 0, QString::fromUtf8("CD"), BG, FG, FG2, FG3, LG, TG, 12.0f);
 	}
+	if(using_flags->is_use_hdd()) {
+		int drvs = using_flags->get_max_hdd();
+		QString ts, tmps;
+		for(int i = 0; i < drvs; i++) {
+			tmps = QString::fromUtf8("");
+			ts.setNum(i);
+			tmps = tmps + ts + QString::fromUtf8(":");
+			//do_update_icon(8, i, tmps, BG, FG, FG2, FG3, LG, TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
+		}
+	}
 	if(using_flags->is_use_fd()) {
 		int drvs = using_flags->get_max_drive();
 		QString ts, tmps;

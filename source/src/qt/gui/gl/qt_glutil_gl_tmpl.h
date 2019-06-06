@@ -63,7 +63,7 @@ protected:
 	int screen_texture_height;
 	int screen_texture_height_old;
 
-	QOpenGLTexture *icon_texid[9][8];
+	QOpenGLTexture *icon_texid[10][10];
 
 	int rec_count;
 	int rec_width;
@@ -188,8 +188,8 @@ public:
 			} // end of will fix.
 		}
 		
-		for(int i = 0; i < 8; i++) {
-			for(int j = 0; j < 8; j++) {
+		for(int i = 0; i < 10; i++) {
+			for(int j = 0; j < 10; j++) {
 				icon_texid[i][j] = NULL;
 			}
 		}

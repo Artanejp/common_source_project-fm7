@@ -175,6 +175,7 @@ void SCSI_CDROM::event_callback(int event_id, int err)
 					//if(event_cdda_delay_play >= 0) cancel_event(this, event_cdda_delay_play);
 					set_cdda_status(CDDA_OFF);
 					//register_event(this, EVENT_CDDA_DELAY_STOP, 1000.0, false, &event_cdda_delay_play);
+					access = false;
 				}
 			} else if((cdda_buffer_ptr % 2352) == 0) {
 				// refresh buffer
@@ -182,7 +183,7 @@ void SCSI_CDROM::event_callback(int event_id, int err)
 				if(read_sectors <= 0) {
 					read_sectors = fio_img->Fread(cdda_buffer, 2352 * sizeof(uint8_t), array_length(cdda_buffer) / 2352);
 					cdda_buffer_ptr = 0;
-					access = true;
+					access = false;
 				} else {
 				}
 			}
@@ -218,6 +219,7 @@ void SCSI_CDROM::set_cdda_status(uint8_t status)
 				cdda_playing_frame = cdda_start_frame;
 				get_track(cdda_playing_frame);
 				cdda_buffer_ptr = 0;
+				access = false;
 			} else if(cdda_status == CDDA_PAUSED) {
 				// Unpause
 				access = true;
@@ -1196,101 +1198,12 @@ void SCSI_CDROM::open(const _TCHAR* file_path)
 	_TCHAR img_file_path[_MAX_PATH];
 	
 	close();
+	access = false;
 	
 	if(check_file_extension(file_path, _T(".cue"))) {
-#if 1
 		is_cue = false;
 		current_track = 0;
 		open_cue_file(file_path);
-#else
-		// get image file name
-		my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.img"), get_file_path_without_extensiton(file_path));
-		if(!FILEIO::IsFileExisting(img_file_path)) {
-			my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.bin"), get_file_path_without_extensiton(file_path));
-			if(!FILEIO::IsFileExisting(img_file_path)) {
-				my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.gz"), get_file_path_without_extensiton(file_path));
-				if(!FILEIO::IsFileExisting(img_file_path)) {
-					my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.img.gz"), get_file_path_without_extensiton(file_path));
-					if(!FILEIO::IsFileExisting(img_file_path)) {
-						my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.bin.gz"), get_file_path_without_extensiton(file_path));
-					}
-				}
-			}
-		}
-		if(fio_img->Fopen(img_file_path, FILEIO_READ_BINARY)) {
-			// get image file size
-			if((max_logical_block = fio_img->FileLength() / 2352) > 0) {
-				// read cue file
-				FILEIO* fio = new FILEIO();
-				if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
-					char line[1024], *ptr;
-					int track = -1;
-					bool index0_found = false;
-					bool index1_found = false;
-					while(fio->Fgets(line, 1024) != NULL) {
-						if(strstr(line, "FILE") != NULL) {
-							// do nothing
-						} else if((ptr = strstr(line, "TRACK")) != NULL) {
-							// "TRACK 01 AUDIO"
-							// "TRACK 02 MODE1/2352"
-							ptr += 6;
-							while(*ptr == ' ' || *ptr == 0x09) {
-								ptr++;
-							}
-							if((track = atoi(ptr)) > 0) {
-								if(track > track_num) {
-									track_num = track;
-								}
-								toc_table[track - 1].is_audio = (strstr(line, "AUDIO") != NULL);
-							}
-						} else if((ptr = strstr(line, "PREGAP")) != NULL) {
-							// "PREGAP 00:02:00"
-							if(track > 0) {
-								toc_table[track - 1].pregap = get_frames_from_msf(ptr + 7);
-							}
-						} else if((ptr = strstr(line, "INDEX")) != NULL) {
-							// "INDEX 01 00:00:00"
-							if(track > 0) {
-								ptr += 6;
-								while(*ptr == ' ' || *ptr == 0x09) {
-									ptr++;
-								}
-								int num = atoi(ptr);
-								while(*ptr >= '0' && *ptr <= '9') {
-									ptr++;
-								}
-								while(*ptr == ' ' || *ptr == 0x09) {
-									ptr++;
-								}
-								if(num == 0) {
-									index0_found = true;
-									toc_table[track - 1].index0 = get_frames_from_msf(ptr);
-								} else if(num == 1) {
-									index1_found = true;
-									toc_table[track - 1].index1 = get_frames_from_msf(ptr);
-								}
-							}
-						}
-					}
-					if(track_num != 0) {
-						for(int i = 1; i < track_num; i++) {
-							if((toc_table[i].index0 == 0) && !(index0_found)) {
-								toc_table[i].index0 = toc_table[i].index1 - toc_table[i].pregap;
-							} else if(toc_table[i].pregap == 0) {
-								toc_table[i].pregap = toc_table[i].index1 - toc_table[i].index0;
-							}
-						}
-						toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
-						toc_table[track_num].index0 = toc_table[track_num].index1 = max_logical_block;
-					} else {
-						fio_img->Fclose();
-					}
-					fio->Fclose();
-				}
-				delete fio;
-			}
-		}
-#endif
 	} else if(check_file_extension(file_path, _T(".ccd"))) {
 		// get image file name
 		my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.img"), get_file_path_without_extensiton(file_path));

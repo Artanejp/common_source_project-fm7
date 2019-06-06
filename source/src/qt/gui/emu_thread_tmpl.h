@@ -122,6 +122,7 @@ protected:
 	virtual void button_released_mouse_sub(Qt::MouseButton button) {};
 	virtual void get_qd_string(void) {};
 	virtual void get_fd_string(void) {};
+	virtual void get_hdd_string(void) {};
 	virtual void get_tape_string(void) {};
 	virtual void get_cd_string(void) {};
 	virtual void get_bubble_string(void) {};

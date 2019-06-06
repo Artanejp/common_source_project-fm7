@@ -1212,6 +1212,7 @@ void GLDraw_3_0::drawOsdIcons()
 					major = 0;
 					minor = 0;
 				}
+				// ToDo: CD(6),LD(7) and HDD(8).
 				if((major != 0) && (icon_texid[major][minor] != NULL)) {
 					drawMain(osd_pass->getShader(), osd_pass_vao[i], osd_pass_vbuffer[i],
 							 icon_texid[major][minor]->textureId(),
