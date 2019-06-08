@@ -69,10 +69,9 @@ protected:
 								 QVector4D color = QVector4D(0.0, 0.0, 0.0, 1.0));
 	virtual void resizeGL_Screen(void);
 	virtual void initPackedGLObject(GLScreenPack **p,
-								int _width, int _height,
-								const QString vertex_shader, const QString fragment_shader,
-								const QString _name);
-
+									int _width, int _height,
+									const QString vertex_shader, const QString fragment_shader,
+									const QString _name, bool req_float = false, bool req_highp = false);
 	virtual void drawGridsHorizonal(void);
 	virtual void drawGridsVertical(void);
 

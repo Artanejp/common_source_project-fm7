@@ -57,7 +57,9 @@ protected:
 
 	bool init_status;
 	bool shader_status;
-
+	bool texture_is_float;
+	bool texture_is_high_presicion;
+	
 	bool has_extension_texture_float;
 	bool has_extension_texture_half_float;
 	bool has_extension_fragment_high_precision;
@@ -68,7 +70,8 @@ protected:
 	void push_log(QString s) { log_str.append(s); }
 	void push_log(const char *s) { log_str.append(QString::fromUtf8(s)); }
 public:
-	GLScreenPack(int _width, int _height, QString _name = QString::fromUtf8(""), QObject *parent = NULL);
+	GLScreenPack(int _width, int _height, QString _name = QString::fromUtf8(""), QObject *parent = NULL,
+				 bool is_float = false, bool req_high_presicion = false);
 	~GLScreenPack();
 	virtual bool initialize(int total_width, int total_height,
 							const QString &vertex_shader_file, const QString &fragment_shader_file,

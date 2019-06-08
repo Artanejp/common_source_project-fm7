@@ -308,12 +308,12 @@ void GLDraw_3_0::initGLObjects()
 void GLDraw_3_0::initPackedGLObject(GLScreenPack **p,
 									int _width, int _height,
 									const QString vertex_shader, const QString fragment_shader,
-									const QString _name)
+									const QString _name, bool req_float, bool req_highp)
 {
 	QString s;
 	GLScreenPack *pp;
 	if(p != NULL) {
-		pp = new GLScreenPack(_width, _height, _name, p_wid);
+		pp = new GLScreenPack(_width, _height, _name, p_wid, req_float, req_highp);
 		*p = pp;
 		if(pp != NULL) {
 			pp->initialize(_width, _height, vertex_shader, fragment_shader);
@@ -427,12 +427,12 @@ void GLDraw_3_0::initLocalGLObjects(void)
 		initPackedGLObject(&main_pass,
 						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
 						   ":/gl3/vertex_shader.glsl" , ":/gl3/chromakey_fragment_shader2.glsl",
-						   "Main Shader");
+						   "Main Shader", false, false);
 	} else {
 		initPackedGLObject(&main_pass,
 						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
 						   ":/gl3/vertex_shader.glsl" , ":/gl3/fragment_shader.glsl",
-						   "Main Shader");
+						   "Main Shader", false, false);
 	}		
 	if(main_pass != NULL) {
 		setNormalVAO(main_pass->getShader(), main_pass->getVAO(),
@@ -442,11 +442,11 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	initPackedGLObject(&std_pass,
 					   using_flags->get_screen_width(), using_flags->get_screen_height(),
 					   ":/gl3/vertex_shader.glsl" , ":/gl3/chromakey_fragment_shader.glsl",
-					   "Standard Shader");
+					   "Standard Shader", false, false);
 	initPackedGLObject(&led_pass,
 					   10, 10,
 					   ":/gl3/led_vertex_shader.glsl" , ":/gl3/led_fragment_shader.glsl",
-					   "LED Shader");
+					   "LED Shader", false, false);
 	for(int i = 0; i < 32; i++) {
 		led_pass_vao[i] = new QOpenGLVertexArrayObject;
 		led_pass_vbuffer[i] = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
@@ -465,7 +465,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	initPackedGLObject(&osd_pass,
 					   48.0, 48.0,
 					   ":/gl3/vertex_shader.glsl" , ":/gl3/icon_fragment_shader.glsl",
-					   "OSD Shader");
+					   "OSD Shader", false, false);
 	for(int i = 0; i < 32; i++) {
 		osd_pass_vao[i] = new QOpenGLVertexArrayObject;
 		osd_pass_vbuffer[i] = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
@@ -485,11 +485,11 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	initPackedGLObject(&ntsc_pass1,
 					   _width, _height,
 					   ":/gl3/vertex_shader.glsl" , ":/gl3/ntsc_pass1.glsl",
-					   "NTSC Shader Pass1");
+					   "NTSC Shader Pass1", true, true);
 	initPackedGLObject(&ntsc_pass2,
 					   _width / 2, _height,
 					   ":/gl3/vertex_shader.glsl" , ":/gl3/ntsc_pass2.glsl",
-					   "NTSC Shader Pass2");
+					   "NTSC Shader Pass2", true, true);
 	{
 		int ii;
 		QOpenGLShaderProgram *shader = ntsc_pass2->getShader();
@@ -510,7 +510,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 		initPackedGLObject(&bitmap_block,
 						   _width * 2, _height * 2,
 						   ":/gl3/vertex_shader.glsl", ":/gl3/normal_fragment_shader.glsl",
-						   "Background Bitmap Shader");
+						   "Background Bitmap Shader", false, false);
 		if(bitmap_block != NULL) {
 			setNormalVAO(bitmap_block->getShader(), bitmap_block->getVAO(),
 						 bitmap_block->getVertexBuffer(),
