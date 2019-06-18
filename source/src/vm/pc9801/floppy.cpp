@@ -93,10 +93,12 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 		break;
 #endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
-	case 0x0090:
+//	case 0x0090:
 #if !defined(SUPPORT_HIRESO)
 	case 0x00c8:
 		if(((addr >> 4) & 1) == (modereg & 1))
+#else
+	case 0x0090:
 #endif
 		{
 			d_fdc->write_io8(0, data);
