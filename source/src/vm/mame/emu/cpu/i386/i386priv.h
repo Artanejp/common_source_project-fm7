@@ -799,7 +799,7 @@ extern MODRM_TABLE i386_MODRM_table[256];
 
 /***********************************************************************************/
 
-INLINE int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32 size)
+/*INLINE*/static int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32 size)
 {
 //	size = 1; // TBD
 	offset = offset & cpustate->a20_mask;
@@ -846,7 +846,7 @@ INLINE UINT32 i386_translate(i386_state *cpustate, int segment, UINT32 ip, int r
 
 #define VTLB_FLAG_DIRTY 0x100
 
-vtlb_entry get_permissions(UINT32 pte, int wp)
+static INLINE vtlb_entry get_permissions(UINT32 pte, int wp)
 {
 	vtlb_entry ret = VTLB_READ_ALLOWED | ((pte & 4) ? VTLB_USER_READ_ALLOWED : 0);
 	if(!wp)
@@ -856,7 +856,7 @@ vtlb_entry get_permissions(UINT32 pte, int wp)
 	return ret;
 }
 
-INLINE int i386_translate_address(i386_state *cpustate, int intention, offs_t *address, vtlb_entry *entry)
+INLINE  int i386_translate_address(i386_state *cpustate, int intention, offs_t *address, vtlb_entry *entry)
 {
 	UINT32 a = *address;
 	UINT32 pdbr = cpustate->cr[3] & 0xfffff000;// I386_CR3_PD_MASK
@@ -1067,7 +1067,7 @@ INLINE int i386_translate_address_with_width(i386_state *cpustate, int intention
 
 //#define TEST_TLB
 
-INLINE int translate_address(i386_state *cpustate, int pl, int type, UINT32 *address, UINT32 *error)
+/*INLINE*/ static int translate_address(i386_state *cpustate, int pl, int type, UINT32 *address, UINT32 *error)
 {
 	if(!(cpustate->cr[0] & I386_CR0_PG)) // Some (very few) old OS's won't work with this
 		return TRUE;
@@ -1112,7 +1112,7 @@ INLINE int translate_address(i386_state *cpustate, int pl, int type, UINT32 *add
 }
 
 
-INLINE int translate_address_with_width(i386_state *cpustate, int pl, int type, UINT32 width, UINT32 *address, UINT32 *error)
+/*INLINE*/ static int translate_address_with_width(i386_state *cpustate, int pl, int type, UINT32 width, UINT32 *address, UINT32 *error)
 {
 	if(!(cpustate->cr[0] & I386_CR0_PG)) // Some (very few) old OS's won't work with this
 		return TRUE;
@@ -1175,7 +1175,7 @@ INLINE void NEAR_BRANCH(i386_state *cpustate, INT32 offs)
 //	cpustate->pc = i386_translate(cpustate, CS, cpustate->pc + offs, -1, 1 );
 }
 
-INLINE UINT8 FETCH(i386_state *cpustate)
+/*INLINE*/static UINT8 FETCH(i386_state *cpustate)
 {
 	UINT8 value;
 	UINT32 address = cpustate->pc, error;
@@ -1194,7 +1194,7 @@ INLINE UINT8 FETCH(i386_state *cpustate)
 	cpustate->pc++;
 	return value;
 }
-INLINE UINT16 FETCH16(i386_state *cpustate)
+/*INLINE*/static UINT16 FETCH16(i386_state *cpustate)
 {
 	UINT16 value;
 	UINT32 address = cpustate->pc, error;
@@ -1223,7 +1223,7 @@ INLINE UINT16 FETCH16(i386_state *cpustate)
 	}
 	return value;
 }
-INLINE UINT32 FETCH32(i386_state *cpustate)
+/*INLINE*/static UINT32 FETCH32(i386_state *cpustate)
 {
 	UINT32 value;
 	UINT32 address = cpustate->pc, error;
@@ -1268,7 +1268,7 @@ INLINE UINT32 FETCH32(i386_state *cpustate)
 	return value;
 }
 
-INLINE UINT8 READ8(i386_state *cpustate,UINT32 ea)
+static INLINE UINT8 READ8(i386_state *cpustate,UINT32 ea)
 {
 	UINT32 address = ea, error;
 	int wait;
@@ -1281,7 +1281,7 @@ INLINE UINT8 READ8(i386_state *cpustate,UINT32 ea)
 	cpustate->memory_wait += wait;
 	return val;
 }
-INLINE UINT16 READ16(i386_state *cpustate,UINT32 ea)
+static /*INLINE*/ UINT16 READ16(i386_state *cpustate,UINT32 ea)
 {
 	UINT16 value;
 	UINT32 address = ea, error;
@@ -1308,7 +1308,7 @@ INLINE UINT16 READ16(i386_state *cpustate,UINT32 ea)
 	}
 	return value;
 }
-INLINE UINT32 READ32(i386_state *cpustate,UINT32 ea)
+static /*INLINE*/ UINT32 READ32(i386_state *cpustate,UINT32 ea)
 {
 	UINT32 value;
 	UINT32 address = ea, error;
@@ -1348,7 +1348,7 @@ INLINE UINT32 READ32(i386_state *cpustate,UINT32 ea)
 	return value;
 }
 
-INLINE UINT64 READ64(i386_state *cpustate,UINT32 ea)
+static /*INLINE*/ UINT64 READ64(i386_state *cpustate,UINT32 ea)
 {
 	UINT64 value;
 	UINT32 address = ea, error;
@@ -1413,6 +1413,7 @@ INLINE UINT64 READ64(i386_state *cpustate,UINT32 ea)
 	}
 	return value;
 }
+
 INLINE UINT8 READ8PL0(i386_state *cpustate,UINT32 ea)
 {
 	UINT32 address = ea, error;
@@ -1500,7 +1501,7 @@ INLINE void WRITE_TEST(i386_state *cpustate,UINT32 ea)
 		PF_THROW(error);
 }
 
-INLINE void WRITE8(i386_state *cpustate,UINT32 ea, UINT8 value)
+static INLINE void WRITE8(i386_state *cpustate,UINT32 ea, UINT8 value)
 {
 	UINT32 address = ea, error;
 
@@ -1512,7 +1513,7 @@ INLINE void WRITE8(i386_state *cpustate,UINT32 ea, UINT8 value)
 	cpustate->memory_wait += wait;
 }
 
-INLINE void WRITE16(i386_state *cpustate,UINT32 ea, UINT16 value)
+static /*INLINE*/ void WRITE16(i386_state *cpustate,UINT32 ea, UINT16 value)
 {
 	UINT32 address = ea, error;
 
@@ -1539,7 +1540,7 @@ INLINE void WRITE16(i386_state *cpustate,UINT32 ea, UINT16 value)
 		cpustate->memory_wait += wait;
 	}
 }
-INLINE void WRITE32(i386_state *cpustate,UINT32 ea, UINT32 value)
+static /*INLINE*/ void WRITE32(i386_state *cpustate,UINT32 ea, UINT32 value)
 {
 	UINT32 address = ea, error;
 
@@ -1891,7 +1892,7 @@ INLINE void PUSH8(i386_state *cpustate,UINT8 value)
 	}
 }
 
-INLINE UINT8 POP8(i386_state *cpustate)
+static /*INLINE*/ UINT8 POP8(i386_state *cpustate)
 {
 	UINT8 value;
 	UINT32 ea, new_esp;
@@ -1908,7 +1909,7 @@ INLINE UINT8 POP8(i386_state *cpustate)
 	}
 	return value;
 }
-INLINE UINT16 POP16(i386_state *cpustate)
+static /*INLINE*/ UINT16 POP16(i386_state *cpustate)
 {
 	UINT16 value;
 	UINT32 ea, new_esp;
@@ -1925,7 +1926,7 @@ INLINE UINT16 POP16(i386_state *cpustate)
 	}
 	return value;
 }
-INLINE UINT32 POP32(i386_state *cpustate)
+static /*INLINE*/ UINT32 POP32(i386_state *cpustate)
 {
 	UINT32 value;
 	UINT32 ea, new_esp;
