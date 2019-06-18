@@ -684,10 +684,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_w(0x007a, display);
 #if defined(SUPPORT_GRCG)
 #if !defined(SUPPORT_HIRESO)
-	io->set_iomap_single_w(0x007c, display);
+	io->set_iomap_single_rw(0x007c, display);
 	io->set_iomap_single_w(0x007e, display);
 #else
-	io->set_iomap_single_w(0x00a4, display);
+	io->set_iomap_single_rw(0x00a4, display);
 	io->set_iomap_single_w(0x00a6, display);
 #endif
 #endif

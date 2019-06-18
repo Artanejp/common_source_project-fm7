@@ -153,14 +153,15 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 				nn = n.b.l;
 				break;
 			case 1:
+			case 2: // OK? From NP2 v0.83 20190619
 				nn = n.b.h;
 				break;
-			case 2:
+			case 3: // OK? From NP2 v0.83 20190619
 				nn = n.b.h2;
 				break;
-			case 3:
-				nn = 0;
-				break;
+//			case 3:
+//				nn = 0;
+//				break;
 			}
 			return (uint32_t)nn;
 		}
@@ -186,8 +187,8 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 		value |= 0x04; // Refresh mode, 1 = Standard, 0 = High speed
 //#if defined(HAS_I86) || defined(HAS_V30)
 		// ToDo: Older VMs.
-		value |= ((reg_0f0 & 0x01) == 0) ? 0x00 : 0x02; // CPU mode, 1 = V30, 0 = 80286/80386
-		//value |= 0x00; // CPU mode, 1 = V30, 0 = 80286/80386
+		//value |= ((reg_0f0 & 0x01) == 0) ? 0x00 : 0x02; // CPU mode, 1 = V30, 0 = 80286/80386
+		value |= 0x00; // CPU mode, 1 = V30, 0 = 80286/80386
 //#endif
 		value |= 0x01; // RAM access, 1 = Internal RAM, 0 = External-enhanced RAM
 		return value;

@@ -467,10 +467,10 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 {
 	uint8_t m_bak;
 	switch(addr) {
-	case 0x64:
+	case 0x0064:
 		crtv = 1;
 		break;
-	case 0x68:
+	case 0x0068:
 		switch((data >> 1) & 7) { // From MAME 0.208
 			// Related information:
 			/*
@@ -496,7 +496,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 #if defined(SUPPORT_16_COLORS)
-	case 0x6a:
+	case 0x006a:
 #if !defined(PC9821_VARIANTS)
 		if((data & 0xf0) != 0) { // From MAME 0.208. Disable pages .
 			m_bak = 0;
@@ -540,11 +540,11 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 #endif
-	case 0x6c:
+	case 0x006c:
 		border = (data >> 3) & 7;
 		border_color = RGB_COLOR((border & 2) ? 0xff : 0, (border & 4) ? 0xff : 0, (border & 1) ? 0xff : 0);
 		break;
-	case 0x6e:
+	case 0x006e:
 #if defined(_PC9801)
 		border = (data >> 3) & 7;
 		border_color = RGB_COLOR((border & 2) ? 0xff : 0, (border & 4) ? 0xff : 0, (border & 1) ? 0xff : 0);
@@ -558,14 +558,15 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		}
 #endif
 		break;
-	case 0x70:
-	case 0x72:
-	case 0x74:
-	case 0x76:
-	case 0x78:
-	case 0x7a:
+	case 0x0070:
+	case 0x0072:
+	case 0x0074:
+	case 0x0076:
+	case 0x0078:
+	case 0x007a:
 		scroll[(addr >> 1) & 7] = data;
 		break;
+		// ToDo: Modify value by DIPSW.
 #if defined(SUPPORT_GRCG)
 #if !defined(SUPPORT_HIRESO)
 	case 0x007c:
@@ -816,6 +817,15 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 uint32_t DISPLAY::read_io8(uint32_t addr)
 {
 	switch(addr) {
+#if defined(SUPPORT_GRCG)
+#if !defined(SUPPORT_HIRESO)
+	case 0x007c:
+#else
+	case 0x00a4:
+#endif
+		return grcg_mode; // From NP2 v0.83
+		break;
+#endif
 #if defined(SUPPORT_2ND_VRAM) && !defined(SUPPORT_HIRESO)
 	// vram select
 	case 0x00a4:
@@ -824,22 +834,22 @@ uint32_t DISPLAY::read_io8(uint32_t addr)
 		return vram_draw_sel;
 #endif
 	// palette
-	case 0xa8:
+	case 0x00a8:
 		return digipal[0];
-	case 0xaa:
+	case 0x00aa:
 		return digipal[1];
-	case 0xac:
+	case 0x00ac:
 		return digipal[2];
-	case 0xae:
+	case 0x00ae:
 		return digipal[3];
 	// cg window
-	case 0xa1:
+	case 0x00a1:
 		return (font_code >> 8) & 0xff;
-	case 0xa3:
+	case 0x00a3:
 		return (font_code >> 0) & 0xff;
-	case 0xa5:
+	case 0x00a5:
 		return font_line;
-	case 0xa9:
+	case 0x00a9:
 		if((font_code & 0xff) >= 0x09 && (font_code & 0xff) < 0x0c) {
 			uint16_t font_lr = ((~font_line) & 0x20) << 6;
 			if(!font_lr) {
