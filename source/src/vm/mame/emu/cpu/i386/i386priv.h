@@ -802,6 +802,7 @@ extern MODRM_TABLE i386_MODRM_table[256];
 INLINE int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32 size)
 {
 //	size = 1; // TBD
+	offset = offset & cpustate->a20_mask;
 	if(PROTECTED_MODE && !V8086_MODE)
 	{
 		if((cpustate->sreg[seg].flags & 0x0018) == 0x0010 && cpustate->sreg[seg].flags & 0x0004) // if expand-down data segment
@@ -1092,6 +1093,7 @@ INLINE int translate_address(i386_state *cpustate, int pl, int type, UINT32 *add
 			return FALSE;
 		}
 		vtlb_dynload(cpustate->vtlb, index, *address, entry);
+//		*address = *address & cpustate->a20_mask;
 		return TRUE;
 	}
 	if(!(entry & (1 << type)))
@@ -1100,6 +1102,7 @@ INLINE int translate_address(i386_state *cpustate, int pl, int type, UINT32 *add
 		return FALSE;
 	}
 	*address = (entry & 0xfffff000) | (*address & 0xfff);
+//	*address = *address & cpustate->a20_mask;
 #ifdef TEST_TLB
 	int test_ret = i386_translate_address(cpustate, type | TRANSLATE_DEBUG_MASK, &test_addr, NULL);
 	if(!test_ret || (test_addr != *address))
@@ -1135,6 +1138,7 @@ INLINE int translate_address_with_width(i386_state *cpustate, int pl, int type, 
 			return FALSE;
 		}
 		vtlb_dynload(cpustate->vtlb, index, *address, entry);
+//		*address = *address & cpustate->a20_mask;
 		return TRUE;
 	}
 	if(!(entry & (1 << type)))
@@ -1143,6 +1147,7 @@ INLINE int translate_address_with_width(i386_state *cpustate, int pl, int type, 
 		return FALSE;
 	}
 	*address = (entry & 0xfffff000) | (*address & 0xfff);
+//	*address = *address & cpustate->a20_mask;
 #ifdef TEST_TLB
 	int test_ret = i386_translate_address_with_width(cpustate, type | TRANSLATE_DEBUG_MASK, width, &test_addr, NULL);
 	if(!test_ret || (test_addr != *address))
@@ -1194,7 +1199,7 @@ INLINE UINT16 FETCH16(i386_state *cpustate)
 	UINT16 value;
 	UINT32 address = cpustate->pc, error;
 	int wait;
-	if( !WORD_ALIGNED(address) ) {       /* Unaligned read */
+	if( !WORD_ALIGNED(address)) {       /* Unaligned read */
 		if(!translate_address_with_width(cpustate,cpustate->CPL,TRANSLATE_FETCH,2,&address,&error)) {
 			value = (FETCH(cpustate) << 0);
 			value |= (FETCH(cpustate) << 8);
@@ -1223,7 +1228,7 @@ INLINE UINT32 FETCH32(i386_state *cpustate)
 	UINT32 value;
 	UINT32 address = cpustate->pc, error;
 	int wait;
-	if( !DWORD_ALIGNED(cpustate->pc) ) {      /* Unaligned read */
+	if( !DWORD_ALIGNED(cpustate->pc)) {      /* Unaligned read */
 		if(!translate_address_with_width(cpustate,cpustate->CPL,TRANSLATE_FETCH,4,&address,&error)) {
 			value = (FETCH(cpustate) << 0);
 			value |= (FETCH(cpustate) << 8);
@@ -1232,7 +1237,7 @@ INLINE UINT32 FETCH32(i386_state *cpustate)
 			//	PF_THROW(error);
 		} else {
 			UINT32 mask = cpustate->a20_mask;
-			if(WORD_ALIGNED(cpustate->pc)) {
+			if(WORD_ALIGNED(cpustate->pc) && (cpustate->pc < (cpustate->a20_mask - 1))) {
 				value  = (cpustate->program->read_data16w((address + 0) & mask, &wait) << 0);
 				cpustate->memory_wait += wait;
 				value |= (cpustate->program->read_data16w((address + 2) & mask, &wait) << 16);

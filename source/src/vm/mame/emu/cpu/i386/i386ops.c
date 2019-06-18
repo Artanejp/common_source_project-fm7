@@ -659,29 +659,31 @@ static void I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode 0x0f 20
 {
 #if 1
 	UINT32 oldpc = cpustate->prev_pc;
+	UINT8 modrm = FETCH(cpustate);
+	if(modrm < 0xc0) {
+		FAULT(FAULT_UD, 0);
+		return;
+	}
 	if((PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)))) {
 		logerror("Call from non-supervisor privilege: I386OP(mov_r32_cr) at %08X", oldpc); 
 		FAULT(FAULT_GP, 0);
 		//return;
 	}
-	UINT8 modrm = FETCH(cpustate);
-	//if(modrm < 0xc0) {
-	//	FAULT(FAULT_UD, 0);
-	//	return;
-	//}
-	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+//	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
 	UINT8 cr = (modrm >> 3) & 0x7;
 	//logdebug("MOV r32 CR%d VAL=(%08X)\n", cr, cpustate->cr[cr], oldpc);
-//	if(cr < 5) {
-//		if(cr == 1) {
-//			FAULT(FAULT_UD, 0);
-//			return;
-//		}
+	if(cr < 5) {
+		if(cr == 1) {
+			logerror("Index error");
+			FAULT(FAULT_UD, 0);
+			return;
+		}
 		STORE_RM32(modrm, cpustate->cr[cr]);
 		CYCLES(cpustate,CYCLES_MOV_CR_REG);
-//	} else {
-//		logerror("Index error");
-//	}
+	} else {
+		logerror("Index error");
+		FAULT(FAULT_UD, 0);
+	}
 #else
 	if(PROTECTED_MODE && cpustate->CPL)
 		FAULT(FAULT_GP, 0);
@@ -773,15 +775,15 @@ static void I386OP(mov_r32_dr)(i386_state *cpustate)        // Opcode 0x0f 21
 static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 {
 #if 1
+	UINT8 modrm = FETCH(cpustate);
+	if(modrm < 0xc0) {
+		FAULT(FAULT_UD, 0);
+		return;
+	}
 	UINT32 oldpc = cpustate->prev_pc;
 	if(PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0))) {
 		logerror("Call from non-supervisor privilege: I386OP(mov_cr_r32) at %08X", oldpc); 
 		FAULT(FAULT_GP, 0);
-		return;
-	}
-	UINT8 modrm = FETCH(cpustate);
-	if(modrm < 0xc0) {
-		FAULT(FAULT_UD, 0);
 		return;
 	}
 	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
@@ -2558,6 +2560,12 @@ static void I386OP(int3)(i386_state *cpustate)              // Opcode 0xcc
 
 static void I386OP(int_16)(i386_state *cpustate)               // Opcode 0xcd
 {
+	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+	if((PROTECTED_MODE) && (V8086_MODE) && (IOPL != 3)) {
+		logerror("INT_16: VM86 && IOPL < 3 && INT");
+		FAULT(FAULT_GP,0);
+		return;
+	}
 	int interrupt = FETCH(cpustate);
 	CYCLES(cpustate,CYCLES_INT);
 	//BIOS_INT(interrupt);
@@ -2570,6 +2578,12 @@ static void I386OP(int_16)(i386_state *cpustate)               // Opcode 0xcd
 
 static void I386OP(int_32)(i386_state *cpustate)               // Opcode 0xcd
 {
+	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+	if((PROTECTED_MODE) && (V8086_MODE) && (IOPL != 3)) {
+		logerror("INT_32: VM86 && IOPL < 3 && INT");
+		FAULT(FAULT_GP,0);
+		return;
+	}
 	int interrupt = FETCH(cpustate);
 	CYCLES(cpustate,CYCLES_INT);
 #if 1
