@@ -105,6 +105,21 @@ void MEMBUS::initialize()
 	if(!read_bios(_T("IPL.ROM"), bios, sizeof(bios))) {
 		read_bios(_T("BIOS.ROM"), bios, sizeof(bios));
 	}
+	// Check PnP Bios and disable. From NP2 v0.83.
+#if !defined(SUPPORT_HIRESO) //&& defined(UPPER_I386)
+	for(int ad = 0; ad < 0x10000; ad += 0x10) {
+		pair32_t magic;
+		magic.b.l  = bios[0x8000 + ad + 0];
+		magic.b.h  = bios[0x8000 + ad + 1];
+		magic.b.h2 = bios[0x8000 + ad + 2];
+		magic.b.h3 = bios[0x8000 + ad + 3];
+		if(magic.d == 0x506e5024) {
+			out_debug_log(_T("Found PNP BIOS at %05X.Disable this.\n"), ad + 0xf0000);
+			bios[0x8000 + ad + 0] = 0x6e;
+			bios[0x8000 + ad + 2] = 0x24;
+		}
+	}
+#endif
 #if defined(SUPPORT_BIOS_RAM)
 	memset(bios_ram, 0x00, sizeof(bios_ram));
 	shadow_ram_selected = true;
@@ -244,6 +259,8 @@ void MEMBUS::reset()
 #if !defined(SUPPORT_HIRESO)
 	dma_access_ctrl = 0xfe; // bit2 = 1, bit0 = 0
 	dma_access_a20 = false;
+//	dma_access_ctrl = 0xff; // bit2 = 1, bit0 = 0
+//	dma_access_a20 = true;
 	window_80000h = 0x80000;
 	window_a0000h = 0xa0000;
 #else
@@ -531,20 +548,24 @@ uint32_t MEMBUS::read_io8(uint32_t addr)
 #endif
 #if !defined(SUPPORT_HIRESO)
 	case 0x0461: // ToDo: Some VMs enable to read value.
-		return 0xff;
+		return window_80000h >> 16;
+//		return 0xff;
 		break;
 #else
 	case 0x0091:
-#endif
 		return window_80000h >> 16;
+		break;
+#endif
 #if !defined(SUPPORT_HIRESO)
 	case 0x0463: // ToDo: Some VMs enable to read value.
-		return 0xff;
+		return window_a0000h >> 16;
+//		return 0xff;
 		break;
 #else
 	case 0x0093:
-#endif
 		return window_a0000h >> 16;
+		break;
+#endif
 	case 0x0567:
 		return (uint8_t)(sizeof(ram) >> 17);
 #endif
