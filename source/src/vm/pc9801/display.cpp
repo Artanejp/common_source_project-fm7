@@ -102,7 +102,8 @@ void DISPLAY::save_memsw()
 void DISPLAY::init_memsw()
 {
 	for(int i = 0; i < 16; i++) {
-		tvram[0x3fe0 + (i << 1)] = memsw_default[i];
+//		tvram[0x3fe0 + (i << 1)] = memsw_default[i];
+		tvram[0x3fe0 + (i << 1)] = 0x00;
 	}
 }
 
@@ -388,9 +389,9 @@ void DISPLAY::reset()
 	egc_srcmask.w = 0xffff;
 #endif
 	
-	if((config.dipswitch & (1 << DIPSWITCH_POSITION_NOINIT_MEMSW)) == 0) {
-		init_memsw();
-	}
+//	if((config.dipswitch & (1 << DIPSWITCH_POSITION_NOINIT_MEMSW)) == 0) {
+//		init_memsw();
+//	}
 	save_memsw();
 	font_code = 0;
 	font_line = 0;

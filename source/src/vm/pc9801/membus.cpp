@@ -708,6 +708,7 @@ void MEMBUS::update_bios()
 	}
 #else // HIRESO
 	set_memory_mapped_io_rw(0xc0000, 0xe4fff, d_display);
+	set_wait_rw(0xc0000, 0xe4fff, gvram_wait_val); // OK?
 	#if defined(SUPPORT_BIOS_RAM) && defined(SUPPORT_32BIT_ADDRESS)
 	if(shadow_ram_selected) {
 		set_memory_rw(0xc0000, 0xe7fff, &(ram[0xc0000])); // OK?
@@ -715,7 +716,6 @@ void MEMBUS::update_bios()
 	}
 	#endif
 #endif
-	set_wait_rw(0x00100000 - sizeof(bios), 0xfffff, introm_wait);
 	{	
 #if defined(SUPPORT_BIOS_RAM)
 		if(bios_ram_selected) {
@@ -734,8 +734,8 @@ void MEMBUS::update_bios()
 //		unset_memory_w(0x00100000 - sizeof(itf), 0x000fffff);
 	} //else
 #endif
-
-
+	set_wait_rw(0x00100000 - sizeof(bios), 0xfffff, introm_wait);
+	
 #if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
 	#if defined(SUPPORT_NEC_EMS)
 	// Is It right?
@@ -967,11 +967,12 @@ void MEMBUS::update_nec_ems()
 	if(nec_ems_selected) {
 		unset_memory_rw(0xb0000, 0xbffff);
 		set_memory_rw(0xb0000, 0xbffff, nec_ems);
+		set_wait_rw(0xb0000, 0xbffff, slotmem_wait);
 	} else {
 		unset_memory_rw(0xb0000, 0xbffff);
 		set_memory_mapped_io_rw(0xb0000, 0xbffff, d_display);
+		set_wait_rw(0xb0000, 0xbffff, gvram_wait_val);
 	}
-	set_wait_rw(0xb0000, 0xbffff, slotmem_wait);
 }
 #endif
 

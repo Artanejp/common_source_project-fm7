@@ -1100,6 +1100,7 @@ void VM::set_wait(int dispmode, int clock)
 	int introm_wait   = 0;  // INTERNAL ROM (BIOS, ITF)
 	int bank08_wait   = 2/*8*/;
 	int intram_wait   = 0;
+	int gvram_wait    = intram_wait;
 	int cpuclock      = 8000000;
 	// TODO: INTA
 #if defined(_PC9801RA) || defined(_PC9801RL)
@@ -1130,6 +1131,7 @@ void VM::set_wait(int dispmode, int clock)
 #endif
 		io_wait = 8;
 	}
+	gvram_wait = intram_wait + 1; // OK?
 	
 #elif defined(_PC98XL2)
 	// ToDo: V30
@@ -1153,6 +1155,7 @@ void VM::set_wait(int dispmode, int clock)
 		exboards_wait = 12;
 		// inta_wait = 14;
 	}
+	gvram_wait = intram_wait + 1; // OK?
 	
 #elif defined(_PC98XL)
 	if(dispmode == 0) {
@@ -1180,6 +1183,7 @@ void VM::set_wait(int dispmode, int clock)
 		exboards_wait = 4;
 		cpuclock = (clock == 0) ? 10000000 : 8000000;
 	}
+	gvram_wait = intram_wait + 1; // OK?
 	
 #elif defined(_PC9801VM21) || defined(_PC9801VX)
 	// ToDo: V30
@@ -1204,6 +1208,7 @@ void VM::set_wait(int dispmode, int clock)
 		exboards_wait = 4;
 		// inta_wait = 5;
 	}		
+	gvram_wait = intram_wait + 1; // OK?
 #elif defined(_PC9801U) || defined(_PC9801VF) || defined(_PC9801VM) || defined(_PC9801UV)
 	if(clock == 0) { // FAST CLOCK (10MHz)
 		cpuclock = 10000000;
@@ -1219,6 +1224,7 @@ void VM::set_wait(int dispmode, int clock)
 	exboards_wait = intram_wait;
 	introm_wait   = intram_wait;
 	bank08_wait   = intram_wait;
+	gvram_wait    = intram_wait; // OK?
 #elif defined(_PC98XA)
 	cpuclock = 8000000;
 	intram_wait = 1;
@@ -1229,6 +1235,7 @@ void VM::set_wait(int dispmode, int clock)
 	exboards_wait = intram_wait;
 	introm_wait   = intram_wait;
 	bank08_wait   = intram_wait;
+	gvram_wait    = intram_wait; // OK?
 #elif defined(_PC9801E) || defined(_PC9801F) || defined(_PC9801M) || defined(_PC9801)
 	// ToDo: Others.
 	if(clock == 0) { // FAST CLOCK (8MHz)
@@ -1245,6 +1252,7 @@ void VM::set_wait(int dispmode, int clock)
 	exboards_wait = intram_wait;
 	introm_wait   = intram_wait;
 	bank08_wait   = intram_wait;
+	gvram_wait    = intram_wait; // OK?
 #endif
 	memory->write_signal(SIG_INTRAM_WAIT, intram_wait, 0xff);
 	memory->write_signal(SIG_BANK08_WAIT, bank08_wait, 0xff);
@@ -1260,7 +1268,7 @@ void VM::set_wait(int dispmode, int clock)
 	waitval = (int)round(((double)cpuclock) / (1.0e6 / 1.6));
 	if(waitval < 1) waitval = 0;
 	memory->write_signal(SIG_TVRAM_WAIT, waitval, 0xfffff); // OK?
-	memory->write_signal(SIG_GVRAM_WAIT, intram_wait, 0xfffff); // OK?
+	memory->write_signal(SIG_GVRAM_WAIT, gvram_wait, 0xfffff); // OK?
 //	memory->write_signal(SIG_GVRAM_WAIT, waitval, 0xfffff); // OK?
 }	
 
