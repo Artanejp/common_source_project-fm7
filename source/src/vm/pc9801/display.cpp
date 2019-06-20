@@ -23,23 +23,6 @@
 #include "../upd7220.h"
 #include "../../config.h"
 
-#if !defined(SUPPORT_HIRESO)
-	#define TVRAM_ADDRESS		0xa0000
-	#define VRAM_PLANE_SIZE		0x08000
-	#define VRAM_PLANE_ADDR_MASK	0x07fff
-	#define VRAM_PLANE_ADDR_0	0x08000
-	#define VRAM_PLANE_ADDR_1	0x10000
-	#define VRAM_PLANE_ADDR_2	0x18000
-	#define VRAM_PLANE_ADDR_3	0x00000
-#else
-	#define TVRAM_ADDRESS		0xe0000
-	#define VRAM_PLANE_SIZE		0x20000
-	#define VRAM_PLANE_ADDR_MASK	0x1ffff
-	#define VRAM_PLANE_ADDR_0	0x00000
-	#define VRAM_PLANE_ADDR_1	0x20000
-	#define VRAM_PLANE_ADDR_2	0x40000
-	#define VRAM_PLANE_ADDR_3	0x60000
-#endif
 
 #define SCROLL_PL	0
 #define SCROLL_BL	1
@@ -1497,465 +1480,401 @@ __DECL_ALIGNED(16) static const uint16_t DISPLAY::egc_maskword[16][4] = {
 };
 
 // SUBROUTINES are moved to display,h due to making inline. 20190514 K.O
-void DISPLAY::egc_sftb_upn0(uint32_t ext)
+void DISPLAY::egc_sftb_upn_sub(uint32_t ext)
 {
-	if(egc_stack < (uint32_t)(8 - egc_dstbit)) {
+	if(egc_dstbit >= 8) {
+		egc_dstbit -= 8;
 		egc_srcmask.b[ext] = 0;
 		return;
 	}
-	egc_stack -= (8 - egc_dstbit);
-	egc_sftb_upn_sub(ext);
-	if(!egc_remain) {
-		egc_shift();
-	}
-}
-
-void DISPLAY::egc_sftw_upn0()
-{
-	if(egc_stack < (uint32_t)(16 - egc_dstbit)) {
-		egc_srcmask.w = 0;
-		return;
-	}
-	egc_stack -= (16 - egc_dstbit);
-	egc_sftb_upn_sub(0);
-	if(egc_remain) {
-		egc_sftb_upn_sub(1);
-		if(egc_remain) {
-			return;
-		}
-	} else {
-		egc_srcmask.b[1] = 0;
-	}
-	egc_shift();
-}
-
-void DISPLAY::egc_sftb_dnn0(uint32_t ext)
-{
-	if(egc_stack < (uint32_t)(8 - egc_dstbit)) {
-		egc_srcmask.b[ext] = 0;
-		return;
-	}
-	egc_stack -= (8 - egc_dstbit);
-	egc_sftb_dnn_sub(ext);
-	if(!egc_remain) {
-		egc_shift();
-	}
-}
-
-void DISPLAY::egc_sftw_dnn0()
-{
-	if(egc_stack < (uint32_t)(16 - egc_dstbit)) {
-		egc_srcmask.w = 0;
-		return;
-	}
-	egc_stack -= (16 - egc_dstbit);
-	egc_sftb_dnn_sub(1);
-	if(egc_remain) {
-		egc_sftb_dnn_sub(0);
-		if(egc_remain) {
-			return;
-		}
-	} else {
-		egc_srcmask.b[0] = 0;
-	}
-	egc_shift();
-}
-
-void DISPLAY::egc_sftb_upr0(uint32_t ext)
-{
-	if(egc_stack < (uint32_t)(8 - egc_dstbit)) {
-		egc_srcmask.b[ext] = 0;
-		return;
-	}
-	egc_stack -= (8 - egc_dstbit);
-	egc_sftb_upr_sub(ext);
-	if(!egc_remain) {
-		egc_shift();
-	}
-}
-
-void DISPLAY::egc_sftw_upr0()
-{
-	if(egc_stack < (uint32_t)(16 - egc_dstbit)) {
-		egc_srcmask.w = 0;
-		return;
-	}
-	egc_stack -= (16 - egc_dstbit);
-	egc_sftb_upr_sub(0);
-	if(egc_remain) {
-		egc_sftb_upr_sub(1);
-		if(egc_remain) {
-			return;
-		}
-	} else {
-		egc_srcmask.b[1] = 0;
-	}
-	egc_shift();
-}
-
-void DISPLAY::egc_sftb_dnr0(uint32_t ext)
-{
-	if(egc_stack < (uint32_t)(8 - egc_dstbit)) {
-		egc_srcmask.b[ext] = 0;
-		return;
-	}
-	egc_stack -= (8 - egc_dstbit);
-	egc_sftb_dnr_sub(ext);
-	if(!egc_remain) {
-		egc_shift();
-	}
-}
-
-void DISPLAY::egc_sftw_dnr0()
-{
-	if(egc_stack < (uint32_t)(16 - egc_dstbit)) {
-		egc_srcmask.w = 0;
-		return;
-	}
-	egc_stack -= (16 - egc_dstbit);
-	egc_sftb_dnr_sub(1);
-	if(egc_remain) {
-		egc_sftb_dnr_sub(0);
-		if(egc_remain) {
-			return;
-		}
-	} else {
-		egc_srcmask.b[0] = 0;
-	}
-	egc_shift();
-}
-
-void DISPLAY::egc_sftb_upl0(uint32_t ext)
-{
-	if(egc_stack < (uint32_t)(8 - egc_dstbit)) {
-		egc_srcmask.b[ext] = 0;
-		return;
-	}
-	egc_stack -= (8 - egc_dstbit);
-	egc_sftb_upl_sub(ext);
-	if(!egc_remain) {
-		egc_shift();
-	}
-}
-
-void DISPLAY::egc_sftw_upl0()
-{
-	if(egc_stack < (uint32_t)(16 - egc_dstbit)) {
-		egc_srcmask.w = 0;
-		return;
-	}
-	egc_stack -= (16 - egc_dstbit);
-	egc_sftb_upl_sub(0);
-	if(egc_remain) {
-		egc_sftb_upl_sub(1);
-		if(egc_remain) {
-			return;
-		}
-	} else {
-		egc_srcmask.b[1] = 0;
-	}
-	egc_shift();
-}
-
-void DISPLAY::egc_sftb_dnl0(uint32_t ext)
-{
-	if(egc_stack < (uint32_t)(8 - egc_dstbit)) {
-		egc_srcmask.b[ext] = 0;
-		return;
-	}
-	egc_stack -= (8 - egc_dstbit);
-	egc_sftb_dnl_sub(ext);
-	if(!egc_remain) {
-		egc_shift();
-	}
-}
-
-void DISPLAY::egc_sftw_dnl0()
-{
-	if(egc_stack < (uint32_t)(16 - egc_dstbit)) {
-		egc_srcmask.w = 0;
-		return;
-	}
-	egc_stack -= (16 - egc_dstbit);
-	egc_sftb_dnl_sub(1);
-	if(egc_remain) {
-		egc_sftb_dnl_sub(0);
-		if(egc_remain) {
-			return;
-		}
-	} else {
-		egc_srcmask.b[0] = 0;
-	}
-	egc_shift();
-}
-
-void DISPLAY::egc_sftb(int func, uint32_t ext)
-{
-	switch(func) {
-	case 0: egc_sftb_upn0(ext); break;
-	case 1: egc_sftb_dnn0(ext); break;
-	case 2: egc_sftb_upr0(ext); break;
-	case 3: egc_sftb_dnr0(ext); break;
-	case 4: egc_sftb_upl0(ext); break;
-	case 5: egc_sftb_dnl0(ext); break;
-	}
-}
-
-void DISPLAY::egc_sftw(int func)
-{
-	switch(func) {
-	case 0: egc_sftw_upn0(); break;
-	case 1: egc_sftw_dnn0(); break;
-	case 2: egc_sftw_upr0(); break;
-	case 3: egc_sftw_dnr0(); break;
-	case 4: egc_sftw_upl0(); break;
-	case 5: egc_sftw_dnl0(); break;
-	}
-}
-
-void DISPLAY::egc_shiftinput_byte(uint32_t ext)
-{
-	if(egc_stack <= 16) {
-		if(egc_srcbit >= 8) {
-			egc_srcbit -= 8;
+	if(egc_dstbit) {
+		if((egc_dstbit + egc_remain) >= 8) {
+			egc_srcmask.b[ext] = egc_bytemask_u0[egc_dstbit + (7 * 8)];
+			egc_remain -= (8 - egc_dstbit);
+			egc_dstbit = 0;
 		} else {
-			egc_stack += (8 - egc_srcbit);
-			egc_srcbit = 0;
+			egc_srcmask.b[ext] = egc_bytemask_u0[egc_dstbit + (egc_remain - 1) * 8];
+			egc_remain = 0;
+			egc_dstbit = 0;
 		}
-		if(!(egc_sft & 0x1000)) {
-			egc_inptr++;
+	} else {
+		if(egc_remain >= 8) {
+			egc_remain -= 8;
 		} else {
-			egc_inptr--;
+			egc_srcmask.b[ext] = egc_bytemask_u1[egc_remain - 1];
+			egc_remain = 0;
 		}
 	}
-	egc_srcmask.b[ext] = 0xff;
-	egc_sftb(egc_func, ext);
+//	__DECL_ALIGNED(16) uint8_t tmp[4];
+//__DECL_VECTORIZED_LOOP
+//		for(int i = 0; i < 4; i++) {
+//			tmp[i] = egc_outptr[i << 2];
+//		}
+//	if(ext == 0) {
+//	__DECL_VECTORIZED_LOOP
+//		for(int i = 0; i < 4; i++) {
+//			egc_vram_src.b[i][0] = tmp[i];
+//		}
+//	} else {
+//	__DECL_VECTORIZED_LOOP
+//		for(int i = 0; i < 4; i++) {
+//			egc_vram_src.b[i][1] = tmp[i];
+//		}
+//	}
+	egc_vram_src.b[0][ext] = egc_outptr[0];
+	egc_vram_src.b[1][ext] = egc_outptr[4];
+	egc_vram_src.b[2][ext] = egc_outptr[8];
+	egc_vram_src.b[3][ext] = egc_outptr[12];
+	egc_outptr++;
 }
 
-void DISPLAY::egc_shiftinput_incw()
+void DISPLAY::egc_sftb_dnn_sub(uint32_t ext)
 {
-	if(egc_stack <= 16) {
-		egc_inptr += 2;
-		if(egc_srcbit >= 8) {
-			egc_outptr++;
-		}
-		egc_stack += (16 - egc_srcbit);
-		egc_srcbit = 0;
+	if(egc_dstbit >= 8) {
+		egc_dstbit -= 8;
+		egc_srcmask.b[ext] = 0;
+		return;
 	}
-	egc_srcmask.w = 0xffff;
-	egc_sftw(egc_func);
+	if(egc_dstbit) {
+		if((egc_dstbit + egc_remain) >= 8) {
+			egc_srcmask.b[ext] = egc_bytemask_d0[egc_dstbit + (7 * 8)];
+			egc_remain -= (8 - egc_dstbit);
+			egc_dstbit = 0;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_d0[egc_dstbit + (egc_remain - 1) * 8];
+			egc_remain = 0;
+			egc_dstbit = 0;
+		}
+	} else {
+		if(egc_remain >= 8) {
+			egc_remain -= 8;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_d1[egc_remain - 1];
+			egc_remain = 0;
+		}
+	}
+//	__DECL_ALIGNED(16) uint8_t tmp[4];
+//__DECL_VECTORIZED_LOOP
+//		for(int i = 0; i < 4; i++) {
+//			tmp[i] = egc_outptr[i << 2];
+//		}
+//	if(ext == 0) {
+//	__DECL_VECTORIZED_LOOP
+//		for(int i = 0; i < 4; i++) {
+//			egc_vram_src.b[i][0] = tmp[i];
+//		}
+//	} else {
+//	__DECL_VECTORIZED_LOOP
+//		for(int i = 0; i < 4; i++) {
+//			egc_vram_src.b[i][1] = tmp[i];
+//		}
+//	}
+	egc_vram_src.b[0][ext] = egc_outptr[0];
+	egc_vram_src.b[1][ext] = egc_outptr[4];
+	egc_vram_src.b[2][ext] = egc_outptr[8];
+	egc_vram_src.b[3][ext] = egc_outptr[12];
+	egc_outptr--;
 }
 
-void DISPLAY::egc_shiftinput_decw()
+void DISPLAY::egc_sftb_upr_sub(uint32_t ext)
 {
-	if(egc_stack <= 16) {
-		egc_inptr -= 2;
-		if(egc_srcbit >= 8) {
-			egc_outptr--;
-		}
-		egc_stack += (16 - egc_srcbit);
-		egc_srcbit = 0;
+	if(egc_dstbit >= 8) {
+		egc_dstbit -= 8;
+		egc_srcmask.b[ext] = 0;
+		return;
 	}
-	egc_srcmask.w = 0xffff;
-	egc_sftw(egc_func);
+	if(egc_dstbit) {
+		if((egc_dstbit + egc_remain) >= 8) {
+			egc_srcmask.b[ext] = egc_bytemask_u0[egc_dstbit + (7 * 8)];
+			egc_remain -= (8 - egc_dstbit);
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_u0[egc_dstbit + (egc_remain - 1) * 8];
+			egc_remain = 0;
+		}
+		egc_dstbit = 0;
+	__DECL_ALIGNED(4) uint8_t tmp[4];
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			tmp[i] = egc_outptr[i << 2];
+		}
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			tmp[i] >>= egc_sft8bitr;
+		}
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			egc_vram_src.b[i][ext] = tmp[i];
+		}
+//		egc_vram_src.b[0][ext] = (egc_outptr[0] >> egc_sft8bitr);
+//		egc_vram_src.b[1][ext] = (egc_outptr[4] >> egc_sft8bitr);
+//		egc_vram_src.b[2][ext] = (egc_outptr[8] >> egc_sft8bitr);
+//		egc_vram_src.b[3][ext] = (egc_outptr[12] >> egc_sft8bitr);
+	} else {
+		if(egc_remain >= 8) {
+			egc_remain -= 8;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_u1[egc_remain - 1];
+			egc_remain = 0;
+		}
+		__DECL_ALIGNED(16) uint8_t tmp[8];
+		__DECL_ALIGNED(4) uint8_t tmp2[4];
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			tmp[(i << 1) + 0] = egc_outptr[(i << 2) + 0];
+			tmp[(i << 1) + 1] = egc_outptr[(i << 2) + 1];
+		}
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			tmp[(i << 1) + 0] <<= egc_sft8bitl;
+			tmp[(i << 1) + 1] >>= egc_sft8bitr;
+		}
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			tmp2[i] = tmp[(i << 1) + 0] | tmp[(i << 1) + 1];
+		}
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			egc_vram_src.b[i][ext] = tmp2[i];
+		}
+//		egc_vram_src.b[0][ext] = (egc_outptr[0] << egc_sft8bitl) | (egc_outptr[1] >> egc_sft8bitr);
+//		egc_vram_src.b[1][ext] = (egc_outptr[4] << egc_sft8bitl) | (egc_outptr[5] >> egc_sft8bitr);
+//		egc_vram_src.b[2][ext] = (egc_outptr[8] << egc_sft8bitl) | (egc_outptr[9] >> egc_sft8bitr);
+//		egc_vram_src.b[3][ext] = (egc_outptr[12] << egc_sft8bitl) | (egc_outptr[13] >> egc_sft8bitr);
+		egc_outptr++;
+	}
 }
 
-#define EGC_OPE_SHIFTB(addr, value) \
-	__DECL_VECTORIZED_LOOP			\
-	do {						  \
-		if(egc_ope & 0x400) { \
-			egc_inptr[ 0] = (uint8_t)value; \
-			egc_inptr[ 4] = (uint8_t)value; \
-			egc_inptr[ 8] = (uint8_t)value; \
-			egc_inptr[12] = (uint8_t)value; \
-			egc_shiftinput_byte(addr & 1); \
-		} \
-	} while(0)
+void DISPLAY::egc_sftb_dnr_sub(uint32_t ext)
+{
+	if(egc_dstbit >= 8) {
+		egc_dstbit -= 8;
+		egc_srcmask.b[ext] = 0;
+		return;
+	}
+	if(egc_dstbit) {
+		if((egc_dstbit + egc_remain) >= 8) {
+			egc_srcmask.b[ext] = egc_bytemask_d0[egc_dstbit + (7 * 8)];
+			egc_remain -= (8 - egc_dstbit);
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_d0[egc_dstbit + (egc_remain - 1) * 8];
+			egc_remain = 0;
+		}
+		egc_dstbit = 0;
+		__DECL_ALIGNED(4) uint8_t tmp[4];
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			tmp[i] = egc_outptr[i << 2];
+		}
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			tmp[i] <<= egc_sft8bitr;
+		}
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			egc_vram_src.b[i][ext] = tmp[i];
+		}
+//		egc_vram_src.b[0][ext] = (egc_outptr[0] << egc_sft8bitr);
+//		egc_vram_src.b[1][ext] = (egc_outptr[4] << egc_sft8bitr);
+//		egc_vram_src.b[2][ext] = (egc_outptr[8] << egc_sft8bitr);
+//		egc_vram_src.b[3][ext] = (egc_outptr[12] << egc_sft8bitr);
+	} else {
+		if(egc_remain >= 8) {
+			egc_remain -= 8;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_d1[egc_remain - 1];
+			egc_remain = 0;
+		}
+		egc_outptr--;
+		
+		__DECL_ALIGNED(16) uint8_t tmp[8];
+		__DECL_ALIGNED(4) uint8_t tmp2[4];
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			tmp[(i << 1) + 0] = egc_outptr[(i << 2) + 0];
+			tmp[(i << 1) + 1] = egc_outptr[(i << 2) + 1];
+		}
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			tmp[(i << 1) + 0] <<= egc_sft8bitr;
+			tmp[(i << 1) + 1] >>= egc_sft8bitl;
+		}
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			tmp2[i] = tmp[(i << 1) + 0] | tmp[(i << 1) + 1];
+		}
+	__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 4; i++) {
+			egc_vram_src.b[i][ext] = tmp2[i];
+		}
+//		egc_vram_src.b[0][ext] = (egc_outptr[1] >> egc_sft8bitl) | (egc_outptr[0] << egc_sft8bitr);
+//		egc_vram_src.b[1][ext] = (egc_outptr[5] >> egc_sft8bitl) | (egc_outptr[4] << egc_sft8bitr);
+//		egc_vram_src.b[2][ext] = (egc_outptr[9] >> egc_sft8bitl) | (egc_outptr[8] << egc_sft8bitr);
+//		egc_vram_src.b[3][ext] = (egc_outptr[13] >> egc_sft8bitl) | (egc_outptr[12] << egc_sft8bitr);
+	}
+}
 
-#define EGC_OPE_SHIFTW(value) \
-	__DECL_VECTORIZED_LOOP			\
-	do { \
-		if(egc_ope & 0x400) { \
-			if(!(egc_sft & 0x1000)) { \
-				egc_inptr[ 0] = (uint8_t)value; \
-				egc_inptr[ 1] = (uint8_t)(value >> 8); \
-				egc_inptr[ 4] = (uint8_t)value; \
-				egc_inptr[ 5] = (uint8_t)(value >> 8); \
-				egc_inptr[ 8] = (uint8_t)value; \
-				egc_inptr[ 9] = (uint8_t)(value >> 8); \
-				egc_inptr[12] = (uint8_t)value; \
-				egc_inptr[13] = (uint8_t)(value >> 8); \
-				egc_shiftinput_incw(); \
-			} else { \
-				egc_inptr[-1] = (uint8_t)value; \
-				egc_inptr[ 0] = (uint8_t)(value >> 8); \
-				egc_inptr[ 3] = (uint8_t)value; \
-				egc_inptr[ 4] = (uint8_t)(value >> 8); \
-				egc_inptr[ 7] = (uint8_t)value; \
-				egc_inptr[ 8] = (uint8_t)(value >> 8); \
-				egc_inptr[11] = (uint8_t)value; \
-				egc_inptr[12] = (uint8_t)(value >> 8); \
+void DISPLAY::egc_sftb_upl_sub(uint32_t ext)
+{
+	if(egc_dstbit >= 8) {
+		egc_dstbit -= 8;
+		egc_srcmask.b[ext] = 0;
+		return;
+	}
+	if(egc_dstbit) {
+		if((egc_dstbit + egc_remain) >= 8) {
+			egc_srcmask.b[ext] = egc_bytemask_u0[egc_dstbit + (7 * 8)];
+			egc_remain -= (8 - egc_dstbit);
+			egc_dstbit = 0;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_u0[egc_dstbit + (egc_remain - 1) * 8];
+			egc_remain = 0;
+			egc_dstbit = 0;
+		}
+	} else {
+		if(egc_remain >= 8) {
+			egc_remain -= 8;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_u1[egc_remain - 1];
+			egc_remain = 0;
+		}
+	}
+	__DECL_ALIGNED(16) uint8_t tmp[16];
+	__DECL_ALIGNED(4) uint8_t tmp2[4];
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 4; i++) {
+		tmp[(i << 1) + 0] = egc_outptr[(i << 2) + 0];
+		tmp[(i << 1) + 1] = egc_outptr[(i << 2) + 1];
+	}
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 4; i++) {
+		tmp[(i << 1) + 0] <<= egc_sft8bitl;
+		tmp[(i << 1) + 1] >>= egc_sft8bitr;
+	}
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 4; i++) {
+		tmp2[i] = tmp[(i << 1) + 0] | tmp[(i << 1) + 1];
+	}
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 4; i++) {
+		egc_vram_src.b[i][ext] = tmp2[i];
+	}
+//	egc_vram_src.b[0][ext] = (egc_outptr[0] << egc_sft8bitl) | (egc_outptr[1] >> egc_sft8bitr);
+//	egc_vram_src.b[1][ext] = (egc_outptr[4] << egc_sft8bitl) | (egc_outptr[5] >> egc_sft8bitr);
+//	egc_vram_src.b[2][ext] = (egc_outptr[8] << egc_sft8bitl) | (egc_outptr[9] >> egc_sft8bitr);
+//	egc_vram_src.b[3][ext] = (egc_outptr[12] << egc_sft8bitl) | (egc_outptr[13] >> egc_sft8bitr);
+	egc_outptr++;
+}
+
+void DISPLAY::egc_sftb_dnl_sub(uint32_t ext)
+{
+	if(egc_dstbit >= 8) {
+		egc_dstbit -= 8;
+		egc_srcmask.b[ext] = 0;
+		return;
+	}
+	if(egc_dstbit) {
+		if((egc_dstbit + egc_remain) >= 8) {
+			egc_srcmask.b[ext] = egc_bytemask_d0[egc_dstbit + (7 * 8)];
+			egc_remain -= (8 - egc_dstbit);
+			egc_dstbit = 0;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_d0[egc_dstbit + (egc_remain - 1) * 8];
+			egc_remain = 0;
+			egc_dstbit = 0;
+		}
+	} else {
+		if(egc_remain >= 8) {
+			egc_remain -= 8;
+		} else {
+			egc_srcmask.b[ext] = egc_bytemask_d1[egc_remain - 1];
+			egc_remain = 0;
+		}
+	}
+	egc_outptr--;
+	__DECL_ALIGNED(16) uint8_t tmp[8];
+	__DECL_ALIGNED(4) uint8_t tmp2[4];
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 4; i++) {
+		tmp[(i << 1) + 0] = egc_outptr[(i << 2) + 0];
+		tmp[(i << 1) + 1] = egc_outptr[(i << 2) + 1];
+	}
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 4; i++) {
+		tmp[(i << 1) + 0] >>= egc_sft8bitr;
+		tmp[(i << 1) + 1] <<= egc_sft8bitl;
+	}
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 4; i++) {
+		tmp2[i] = tmp[(i << 1) + 0] | tmp[(i << 1) + 1];
+	}
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 4; i++) {
+		egc_vram_src.b[i][ext] = tmp2[i];
+	}
+//	egc_vram_src.b[0][ext] = (egc_outptr[1] >> egc_sft8bitl) | (egc_outptr[0] << egc_sft8bitr);
+//	egc_vram_src.b[1][ext] = (egc_outptr[5] >> egc_sft8bitl) | (egc_outptr[4] << egc_sft8bitr);
+//	egc_vram_src.b[2][ext] = (egc_outptr[9] >> egc_sft8bitl) | (egc_outptr[8] << egc_sft8bitr);
+//	egc_vram_src.b[3][ext] = (egc_outptr[13] >> egc_sft8bitl) | (egc_outptr[12] << egc_sft8bitr);
+}
+
+
+#define EGC_OPE_SHIFTB(addr, value)					\
+	{												\
+		register uint8_t* __p = &(egc_inptr[0]);	\
+		register uint8_t __tmp = (uint8_t)value;	\
+		if(egc_ope & 0x400) {						\
+			__p[ 0] = __tmp;						\
+			__p[ 4] = __tmp;						\
+			__p[ 8] = __tmp;						\
+			__p[12] = __tmp;						\
+			egc_shiftinput_byte(addr & 1);			\
+		}											\
+	}
+
+#define EGC_OPE_SHIFTW(value)							\
+	{													\
+		pair16_t  __tmp;								\
+		register pair16_t* __tmpp;						\
+		__tmp.b.l = value;								\
+		__tmp.b.h = value >> 8;							\
+		if(egc_ope & 0x400) {							\
+			if(!(egc_sft & 0x1000)) {					\
+				__tmpp = (pair16_t*)(&(egc_inptr[0]));	\
+				__tmpp[0].w = __tmp.w;					\
+				__tmpp[2].w = __tmp.w;					\
+				__tmpp[4].w = __tmp.w;					\
+				__tmpp[6].w = __tmp.w;					\
+				egc_shiftinput_incw();					\
+			} else {									\
+				__tmpp = (pair16_t*)(&(egc_inptr[-1]));	\
+				__tmpp[0].w = __tmp.w;					\
+				__tmpp[2].w = __tmp.w;					\
+				__tmpp[4].w = __tmp.w;					\
+				__tmpp[6].w = __tmp.w;					\
 				egc_shiftinput_decw(); \
-			}  \
-		} \
-	} while(0)
-
-uint64_t DISPLAY::egc_ope_00(uint8_t ope, uint32_t addr)
-{
-	return 0;
-}
-
-uint64_t DISPLAY::egc_ope_0f(uint8_t ope, uint32_t addr)
-{
-	egc_vram_data.d[0] = ~egc_vram_src.d[0];
-	egc_vram_data.d[1] = ~egc_vram_src.d[1];
-	return egc_vram_data.q;
-}
-
-uint64_t DISPLAY::egc_ope_c0(uint8_t ope, uint32_t addr)
-{
-	__DECL_ALIGNED(16) egcquad_t dst;
-	
-	dst.w[0] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_0]);
-	dst.w[1] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_1]);
-	dst.w[2] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_2]);
-	dst.w[3] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_3]);
-	egc_vram_data.d[0] = (egc_vram_src.d[0] & dst.d[0]);
-	egc_vram_data.d[1] = (egc_vram_src.d[1] & dst.d[1]);
-	return egc_vram_data.q;
-}
-
-uint64_t DISPLAY::egc_ope_f0(uint8_t ope, uint32_t addr)
-{
-	return egc_vram_src.q;
-}
-
-uint64_t DISPLAY::egc_ope_fc(uint8_t ope, uint32_t addr)
-{
-	__DECL_ALIGNED(16) egcquad_t dst;
-
-	dst.w[0] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_0]);
-	dst.w[1] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_1]);
-	dst.w[2] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_2]);
-	dst.w[3] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_3]);
-	egc_vram_data.d[0] = egc_vram_src.d[0];
-	egc_vram_data.d[0] |= ((~egc_vram_src.d[0]) & dst.d[0]);
-	egc_vram_data.d[1] = egc_vram_src.d[1];
-	egc_vram_data.d[1] |= ((~egc_vram_src.d[1]) & dst.d[1]);
-	return egc_vram_data.q;
-}
-
-uint64_t DISPLAY::egc_ope_ff(uint8_t ope, uint32_t addr)
-{
-	return ~0;
-}
-
-uint64_t DISPLAY::egc_ope_nd(uint8_t ope, uint32_t addr)
-{
-	__DECL_ALIGNED(16) egcquad_t pat;
-
-	switch(egc_fgbg & 0x6000) {
-	case 0x2000:
-		pat.d[0] = egc_bgc.d[0];
-		pat.d[1] = egc_bgc.d[1];
-		break;
-	case 0x4000:
-		pat.d[0] = egc_fgc.d[0];
-		pat.d[1] = egc_fgc.d[1];
-		break;
-	default:
-		if((egc_ope & 0x0300) == 0x0100) {
-			pat.d[0] = egc_vram_src.d[0];
-			pat.d[1] = egc_vram_src.d[1];
-		} else {
-			pat.d[0] = egc_patreg.d[0];
-			pat.d[1] = egc_patreg.d[1];
-		}
-		break;
+			}						   \
+		}							   \
 	}
-//	egc_vram_data.d[0] = 0;
-//	egc_vram_data.d[1] = 0;
-	
-	egc_vram_data.q =  (ope & 0x80) ? (pat.q & egc_vram_src.q) : 0;
-	egc_vram_data.q |= (ope & 0x40) ? ((~pat.q) & egc_vram_src.q) : 0;
-	egc_vram_data.q |= (ope & 0x08) ? (pat.q & (~egc_vram_src.q)) : 0;
-	egc_vram_data.q |= (ope & 0x04) ? ((~pat.q) & (~egc_vram_src.q)) : 0;
 
-
-//	if(ope & 0x80) {
-//		egc_vram_data.d[0] |= (pat.d[0] & egc_vram_src.d[0]);
-//		egc_vram_data.d[1] |= (pat.d[1] & egc_vram_src.d[1]);
-//	}
-//	if(ope & 0x40) {
-//		egc_vram_data.d[0] |= ((~pat.d[0]) & egc_vram_src.d[0]);
-//		egc_vram_data.d[1] |= ((~pat.d[1]) & egc_vram_src.d[1]);
-//	}
-//	if(ope & 0x08) {
-//		egc_vram_data.d[0] |= (pat.d[0] & (~egc_vram_src.d[0]));
-//		egc_vram_data.d[1] |= (pat.d[1] & (~egc_vram_src.d[1]));
-//	}
-//	if(ope & 0x04) {
-//		egc_vram_data.d[0] |= ((~pat.d[0]) & (~egc_vram_src.d[0]));
-//		egc_vram_data.d[1] |= ((~pat.d[1]) & (~egc_vram_src.d[1]));
-//	}
-	return egc_vram_data.q;
-}
-
-uint64_t DISPLAY::egc_ope_np(uint8_t ope, uint32_t addr)
-{
-	__DECL_ALIGNED(16) egcquad_t dst;
-	
-	dst.w[0] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_0]);
-	dst.w[1] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_1]);
-	dst.w[2] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_2]);
-	dst.w[3] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_3]);
-	
-	//egc_vram_data.d[0] = 0;
-	//egc_vram_data.d[1] = 0;
-	egc_vram_data.q =  (ope & 0x80) ? (egc_vram_src.q & dst.q) : 0;
-	egc_vram_data.q |= (ope & 0x20) ? (egc_vram_src.q & (~dst.q)) : 0;
-	egc_vram_data.q |= (ope & 0x08) ? ((~egc_vram_src.q) & dst.q) : 0;
-	egc_vram_data.q |= (ope & 0x08) ? ((~egc_vram_src.q) & (~dst.q)) : 0;
-//	if(ope & 0x80) {
-//		egc_vram_data.d[0] |= (egc_vram_src.d[0] & dst.d[0]);
-//		egc_vram_data.d[1] |= (egc_vram_src.d[1] & dst.d[1]);
-//	}
-//	if(ope & 0x20) {
-//		egc_vram_data.d[0] |= (egc_vram_src.d[0] & (~dst.d[0]));
-//		egc_vram_data.d[1] |= (egc_vram_src.d[1] & (~dst.d[1]));
-//	}
-//	if(ope & 0x08) {
-//		egc_vram_data.d[0] |= ((~egc_vram_src.d[0]) & dst.d[0]);
-//		egc_vram_data.d[1] |= ((~egc_vram_src.d[1]) & dst.d[1]);
-//	}
-//	if(ope & 0x02) {
-//		egc_vram_data.d[0] |= ((~egc_vram_src.d[0]) & (~dst.d[0]));
-//		egc_vram_data.d[1] |= ((~egc_vram_src.d[1]) & (~dst.d[1]));
-//	}
-	return egc_vram_data.q;
-}
 
 uint64_t DISPLAY::egc_ope_xx(uint8_t ope, uint32_t addr)
 {
 	__DECL_ALIGNED(16) egcquad_t pat;
 	__DECL_ALIGNED(16) egcquad_t dst;
+	__DECL_ALIGNED(16) egcquad_t tmp;
 	
 	switch(egc_fgbg & 0x6000) {
 	case 0x2000:
-		pat.d[0] = egc_bgc.d[0];
-		pat.d[1] = egc_bgc.d[1];
+		pat.q = egc_bgc.q;
 		break;
 	case 0x4000:
-		pat.d[0] = egc_fgc.d[0];
-		pat.d[1] = egc_fgc.d[1];
+		pat.q = egc_fgc.q;
 		break;
 	default:
 		if((egc_ope & 0x0300) == 0x0100) {
-			pat.d[0] = egc_vram_src.d[0];
-			pat.d[1] = egc_vram_src.d[1];
+			pat.q = egc_vram_src.q;
 		} else {
-			pat.d[0] = egc_patreg.d[0];
-			pat.d[1] = egc_patreg.d[1];
+			pat.q = egc_patreg.q;
 		}
 		break;
 	}
@@ -1966,48 +1885,42 @@ uint64_t DISPLAY::egc_ope_xx(uint8_t ope, uint32_t addr)
 	
 	//egc_vram_data.d[0] = 0;
 	//egc_vram_data.d[1] = 0;
-	egc_vram_data.q  = (ope & 0x80) ? (pat.q & egc_vram_src.q & dst.q) : 0;
-	egc_vram_data.q |= (ope & 0x40) ? ((~pat.q) & egc_vram_src.q & dst.q) : 0;
-	egc_vram_data.q |= (ope & 0x20) ? (pat.q & egc_vram_src.q & (~dst.q)) : 0;
-	egc_vram_data.q |= (ope & 0x10) ? ((~pat.q) & egc_vram_src.q & (~dst.q)) : 0;
-	egc_vram_data.q |= (ope & 0x08) ? (pat.q & (~egc_vram_src.q) & dst.q) : 0;
-	egc_vram_data.q |= (ope & 0x04) ? ((~pat.q) & (~egc_vram_src.q) & dst.q) : 0;
-	egc_vram_data.q |= (ope & 0x02) ? (pat.q & (~egc_vram_src.q) & (~dst.q)) : 0;
-	egc_vram_data.q |= (ope & 0x01) ? ((~pat.q) & (~egc_vram_src.q) & (~dst.q)) : 0;
+//	tmp.q = 0;
+	tmp.q =  (ope & 0x80) ? (pat.q & egc_vram_src.q & dst.q) : 0;
+	tmp.q |= (ope & 0x40) ? ((~pat.q) & egc_vram_src.q & dst.q) : 0;
+	tmp.q |= (ope & 0x20) ? (pat.q & egc_vram_src.q & (~dst.q)) : 0;
+	tmp.q |= (ope & 0x10) ? ((~pat.q) & egc_vram_src.q & (~dst.q)) : 0;
+	tmp.q |= (ope & 0x08) ? (pat.q & (~egc_vram_src.q) & dst.q) : 0;
+	tmp.q |= (ope & 0x04) ? ((~pat.q) & (~egc_vram_src.q) & dst.q) : 0;
+	tmp.q |= (ope & 0x02) ? (pat.q & (~egc_vram_src.q) & (~dst.q)) : 0;
+	tmp.q |= (ope & 0x01) ? ((~pat.q) & (~egc_vram_src.q) & (~dst.q)) : 0;
 	
 //	if(ope & 0x80) {
-//		egc_vram_data.d[0] |= (pat.d[0] & egc_vram_src.d[0] & dst.d[0]);
-//		egc_vram_data.d[1] |= (pat.d[1] & egc_vram_src.d[1] & dst.d[1]);
+//		tmp.q |= (pat.q & egc_vram_src.q & dst.q);
 //	}
 //	if(ope & 0x40) {
-//		egc_vram_data.d[0] |= ((~pat.d[0]) & egc_vram_src.d[0] & dst.d[0]);
-//		egc_vram_data.d[1] |= ((~pat.d[1]) & egc_vram_src.d[1] & dst.d[1]);
+//		tmp.q |= ((~pat.q) & egc_vram_src.q & dst.q);
 //	}
 //	if(ope & 0x20) {
-//		egc_vram_data.d[0] |= (pat.d[0] & egc_vram_src.d[0] & (~dst.d[0]));
-//		egc_vram_data.d[1] |= (pat.d[1] & egc_vram_src.d[1] & (~dst.d[1]));
+//		tmp.q |= (pat.q & egc_vram_src.q & (~dst.q));
 //	}
 //	if(ope & 0x10) {
-//		egc_vram_data.d[0] |= ((~pat.d[0]) & egc_vram_src.d[0] & (~dst.d[0]));
-//		egc_vram_data.d[1] |= ((~pat.d[1]) & egc_vram_src.d[1] & (~dst.d[1]));
+//		tmp.q |= ((~pat.q) & egc_vram_src.q & (~dst.q));
 //	}
 //	if(ope & 0x08) {
-//		egc_vram_data.d[0] |= (pat.d[0] & (~egc_vram_src.d[0]) & dst.d[0]);
-//		egc_vram_data.d[1] |= (pat.d[1] & (~egc_vram_src.d[1]) & dst.d[1]);
+//		tmp.q |= (pat.q & (~egc_vram_src.q) & dst.q);
 //	}
 //	if(ope & 0x04) {
-//		egc_vram_data.d[0] |= ((~pat.d[0]) & (~egc_vram_src.d[0]) & dst.d[0]);
-//		egc_vram_data.d[1] |= ((~pat.d[1]) & (~egc_vram_src.d[1]) & dst.d[1]);
+//		tmp.q |= ((~pat.q) & (~egc_vram_src.q) & dst.q);
 //	}
 //	if(ope & 0x02) {
-//		egc_vram_data.d[0] |= (pat.d[0] & (~egc_vram_src.d[0]) & (~dst.d[0]));
-//		egc_vram_data.d[1] |= (pat.d[1] & (~egc_vram_src.d[1]) & (~dst.d[1]));
+//		tmp.q |= (pat.q & (~egc_vram_src.q) & (~dst.q));
 //	}
 //	if(ope & 0x01) {
-//		egc_vram_data.d[0] |= ((~pat.d[0]) & (~egc_vram_src.d[0]) & (~dst.d[0]));
-//		egc_vram_data.d[1] |= ((~pat.d[1]) & (~egc_vram_src.d[1]) & (~dst.d[1]));
+//		tmp.q |= ((~pat.q) & (~egc_vram_src.q) & (~dst.q));
 //	}
-	return egc_vram_data.q;
+	egc_vram_data.q = tmp.q;
+	return tmp.q;
 }
 
 uint64_t DISPLAY::egc_opefn(uint32_t func, uint8_t ope, uint32_t addr)
@@ -2294,7 +2207,7 @@ uint64_t DISPLAY::egc_opeb(uint32_t addr, uint8_t value)
 			return egc_bgc.q;
 		case 0x4000:
 			return egc_fgc.q;
-		default:
+		default: // 0x0000, 0x6000
 			EGC_OPE_SHIFTB(addr, value);
 			egc_mask2.w &= egc_srcmask.w;
 			return egc_vram_src.q;
