@@ -192,52 +192,52 @@ private:
 	void kanji_copy(int first, int second, uint8_t *pattern);
 #endif
 #if defined(SUPPORT_GRCG)
-	void grcg_writeb(uint32_t addr1, uint32_t data);
-	void grcg_writew(uint32_t addr1, uint32_t data);
-	uint32_t grcg_readb(uint32_t addr1);
-	uint32_t grcg_readw(uint32_t addr1);
+	void __FASTCALL grcg_writeb(uint32_t addr1, uint32_t data);
+	void __FASTCALL grcg_writew(uint32_t addr1, uint32_t data);
+	uint32_t __FASTCALL grcg_readb(uint32_t addr1);
+	uint32_t __FASTCALL grcg_readw(uint32_t addr1);
 #endif
 #if defined(SUPPORT_EGC)
-	inline void egc_shift();
-	void egc_sftb_upn_sub(uint32_t ext);
-	void egc_sftb_dnn_sub(uint32_t ext);
-	void egc_sftb_upr_sub(uint32_t ext);
-	void egc_sftb_dnr_sub(uint32_t ext);
-	void egc_sftb_upl_sub(uint32_t ext);
-	void egc_sftb_dnl_sub(uint32_t ext);
-	inline void egc_sftb_upn0(uint32_t ext);
-	inline void egc_sftw_upn0();
-	inline void egc_sftb_dnn0(uint32_t ext);
-	inline void egc_sftw_dnn0();
-	inline void egc_sftb_upr0(uint32_t ext);
-	inline void egc_sftw_upr0();
-	inline void egc_sftb_dnr0(uint32_t ext);
-	inline void egc_sftw_dnr0();
-	inline void egc_sftb_upl0(uint32_t ext);
-	inline void egc_sftw_upl0();
-	inline void egc_sftb_dnl0(uint32_t ext);
-	inline void egc_sftw_dnl0();
-	inline void egc_sftb(int func, uint32_t ext);
-	inline void egc_sftw(int func);
-	inline void egc_shiftinput_byte(uint32_t ext);
-	inline void egc_shiftinput_incw();
-	inline void egc_shiftinput_decw();
-	inline uint64_t egc_ope_00(uint8_t ope, uint32_t addr);
-	inline uint64_t egc_ope_0f(uint8_t ope, uint32_t addr);
-    inline uint64_t egc_ope_c0(uint8_t ope, uint32_t addr);
-	inline uint64_t egc_ope_f0(uint8_t ope, uint32_t addr);
-	inline uint64_t egc_ope_fc(uint8_t ope, uint32_t addr);
-	inline uint64_t egc_ope_ff(uint8_t ope, uint32_t addr);
-	inline uint64_t egc_ope_nd(uint8_t ope, uint32_t addr);
-	inline uint64_t egc_ope_np(uint8_t ope, uint32_t addr);
-	uint64_t egc_ope_xx(uint8_t ope, uint32_t addr);
-	uint64_t egc_opefn(uint32_t func, uint8_t ope, uint32_t addr);
-	uint64_t egc_opeb(uint32_t addr, uint8_t value);
-	uint64_t egc_opew(uint32_t addr, uint16_t value);
-	uint32_t egc_readb(uint32_t addr1);
-	uint32_t egc_readw(uint32_t addr1);
-	void egc_writeb(uint32_t addr1, uint8_t value);
-	void egc_writew(uint32_t addr1, uint16_t value);
+	inline void __FASTCALL egc_shift();
+	void __FASTCALL egc_sftb_upn_sub(uint32_t ext);
+	void __FASTCALL egc_sftb_dnn_sub(uint32_t ext);
+	void __FASTCALL egc_sftb_upr_sub(uint32_t ext);
+	void __FASTCALL egc_sftb_dnr_sub(uint32_t ext);
+	void __FASTCALL egc_sftb_upl_sub(uint32_t ext);
+	void __FASTCALL egc_sftb_dnl_sub(uint32_t ext);
+	inline void __FASTCALL egc_sftb_upn0(uint32_t ext);
+	inline void __FASTCALL egc_sftw_upn0();
+	inline void __FASTCALL egc_sftb_dnn0(uint32_t ext);
+	inline void __FASTCALL egc_sftw_dnn0();
+	inline void __FASTCALL egc_sftb_upr0(uint32_t ext);
+	inline void __FASTCALL egc_sftw_upr0();
+	inline void __FASTCALL egc_sftb_dnr0(uint32_t ext);
+	inline void __FASTCALL egc_sftw_dnr0();
+	inline void __FASTCALL egc_sftb_upl0(uint32_t ext);
+	inline void __FASTCALL egc_sftw_upl0();
+	inline void __FASTCALL egc_sftb_dnl0(uint32_t ext);
+	inline void __FASTCALL egc_sftw_dnl0();
+	inline void __FASTCALL egc_sftb(int func, uint32_t ext);
+	inline void __FASTCALL egc_sftw(int func);
+	inline void __FASTCALL egc_shiftinput_byte(uint32_t ext);
+	inline void __FASTCALL egc_shiftinput_incw();
+	inline void __FASTCALL egc_shiftinput_decw();
+	inline uint64_t __FASTCALL egc_ope_00(uint8_t ope, uint32_t addr);
+	inline uint64_t __FASTCALL egc_ope_0f(uint8_t ope, uint32_t addr);
+    inline uint64_t __FASTCALL egc_ope_c0(uint8_t ope, uint32_t addr);
+	inline uint64_t __FASTCALL egc_ope_f0(uint8_t ope, uint32_t addr);
+	inline uint64_t __FASTCALL egc_ope_fc(uint8_t ope, uint32_t addr);
+	inline uint64_t __FASTCALL egc_ope_ff(uint8_t ope, uint32_t addr);
+	inline uint64_t __FASTCALL egc_ope_nd(uint8_t ope, uint32_t addr);
+	inline uint64_t __FASTCALL egc_ope_np(uint8_t ope, uint32_t addr);
+	uint64_t __FASTCALL egc_ope_xx(uint8_t ope, uint32_t addr);
+	uint64_t __FASTCALL egc_opefn(uint32_t func, uint8_t ope, uint32_t addr);
+	uint64_t __FASTCALL egc_opeb(uint32_t addr, uint8_t value);
+	uint64_t __FASTCALL egc_opew(uint32_t addr, uint16_t value);
+	uint32_t __FASTCALL egc_readb(uint32_t addr1);
+	uint32_t __FASTCALL egc_readw(uint32_t addr1);
+	void __FASTCALL egc_writeb(uint32_t addr1, uint8_t value);
+	void __FASTCALL egc_writew(uint32_t addr1, uint16_t value);
 #endif
 
 	void draw_chr_screen();
@@ -311,7 +311,7 @@ public:
 
 #if defined(SUPPORT_EGC)
 
-inline void DISPLAY::egc_shift()
+inline void __FASTCALL DISPLAY::egc_shift()
 {
 	uint8_t src8, dst8;
 	
@@ -343,7 +343,7 @@ inline void DISPLAY::egc_shift()
 }
 
 
-inline void DISPLAY::egc_sftb_upn0(uint32_t ext)
+inline void __FASTCALL DISPLAY::egc_sftb_upn0(uint32_t ext)
 {
 	if(egc_stack < (uint32_t)(8 - egc_dstbit)) {
 		egc_srcmask.b[ext] = 0;
@@ -356,7 +356,7 @@ inline void DISPLAY::egc_sftb_upn0(uint32_t ext)
 	}
 }
 
-inline void DISPLAY::egc_sftw_upn0()
+inline void __FASTCALL DISPLAY::egc_sftw_upn0()
 {
 	if(egc_stack < (uint32_t)(16 - egc_dstbit)) {
 		egc_srcmask.w = 0;
@@ -375,7 +375,7 @@ inline void DISPLAY::egc_sftw_upn0()
 	egc_shift();
 }
 
-inline void DISPLAY::egc_sftb_dnn0(uint32_t ext)
+inline void __FASTCALL DISPLAY::egc_sftb_dnn0(uint32_t ext)
 {
 	if(egc_stack < (uint32_t)(8 - egc_dstbit)) {
 		egc_srcmask.b[ext] = 0;
@@ -388,7 +388,7 @@ inline void DISPLAY::egc_sftb_dnn0(uint32_t ext)
 	}
 }
 
-inline void DISPLAY::egc_sftw_dnn0()
+inline void __FASTCALL DISPLAY::egc_sftw_dnn0()
 {
 	if(egc_stack < (uint32_t)(16 - egc_dstbit)) {
 		egc_srcmask.w = 0;
@@ -407,7 +407,7 @@ inline void DISPLAY::egc_sftw_dnn0()
 	egc_shift();
 }
 
-inline void DISPLAY::egc_sftb_upr0(uint32_t ext)
+inline void __FASTCALL DISPLAY::egc_sftb_upr0(uint32_t ext)
 {
 	if(egc_stack < (uint32_t)(8 - egc_dstbit)) {
 		egc_srcmask.b[ext] = 0;
@@ -420,7 +420,7 @@ inline void DISPLAY::egc_sftb_upr0(uint32_t ext)
 	}
 }
 
-inline void DISPLAY::egc_sftw_upr0()
+inline void __FASTCALL DISPLAY::egc_sftw_upr0()
 {
 	if(egc_stack < (uint32_t)(16 - egc_dstbit)) {
 		egc_srcmask.w = 0;
@@ -439,7 +439,7 @@ inline void DISPLAY::egc_sftw_upr0()
 	egc_shift();
 }
 
-inline void DISPLAY::egc_sftb_dnr0(uint32_t ext)
+inline void __FASTCALL DISPLAY::egc_sftb_dnr0(uint32_t ext)
 {
 	if(egc_stack < (uint32_t)(8 - egc_dstbit)) {
 		egc_srcmask.b[ext] = 0;
@@ -452,7 +452,7 @@ inline void DISPLAY::egc_sftb_dnr0(uint32_t ext)
 	}
 }
 
-inline void DISPLAY::egc_sftw_dnr0()
+inline void __FASTCALL DISPLAY::egc_sftw_dnr0()
 {
 	if(egc_stack < (uint32_t)(16 - egc_dstbit)) {
 		egc_srcmask.w = 0;
@@ -471,7 +471,7 @@ inline void DISPLAY::egc_sftw_dnr0()
 	egc_shift();
 }
 
-inline void DISPLAY::egc_sftb_upl0(uint32_t ext)
+inline void __FASTCALL DISPLAY::egc_sftb_upl0(uint32_t ext)
 {
 	if(egc_stack < (uint32_t)(8 - egc_dstbit)) {
 		egc_srcmask.b[ext] = 0;
@@ -484,7 +484,7 @@ inline void DISPLAY::egc_sftb_upl0(uint32_t ext)
 	}
 }
 
-inline void DISPLAY::egc_sftw_upl0()
+inline void __FASTCALL DISPLAY::egc_sftw_upl0()
 {
 	if(egc_stack < (uint32_t)(16 - egc_dstbit)) {
 		egc_srcmask.w = 0;
@@ -503,7 +503,7 @@ inline void DISPLAY::egc_sftw_upl0()
 	egc_shift();
 }
 
-inline void DISPLAY::egc_sftb_dnl0(uint32_t ext)
+inline void __FASTCALL DISPLAY::egc_sftb_dnl0(uint32_t ext)
 {
 	if(egc_stack < (uint32_t)(8 - egc_dstbit)) {
 		egc_srcmask.b[ext] = 0;
@@ -516,7 +516,7 @@ inline void DISPLAY::egc_sftb_dnl0(uint32_t ext)
 	}
 }
 
-inline void DISPLAY::egc_sftw_dnl0()
+inline void __FASTCALL DISPLAY::egc_sftw_dnl0()
 {
 	if(egc_stack < (uint32_t)(16 - egc_dstbit)) {
 		egc_srcmask.w = 0;
@@ -535,7 +535,7 @@ inline void DISPLAY::egc_sftw_dnl0()
 	egc_shift();
 }
 
-inline void DISPLAY::egc_sftb(int func, uint32_t ext)
+inline void __FASTCALL DISPLAY::egc_sftb(int func, uint32_t ext)
 {
 	switch(func) {
 	case 0: egc_sftb_upn0(ext); break;
@@ -547,7 +547,7 @@ inline void DISPLAY::egc_sftb(int func, uint32_t ext)
 	}
 }
 
-inline void DISPLAY::egc_sftw(int func)
+inline void __FASTCALL DISPLAY::egc_sftw(int func)
 {
 	switch(func) {
 	case 0: egc_sftw_upn0(); break;
@@ -559,7 +559,7 @@ inline void DISPLAY::egc_sftw(int func)
 	}
 }
 
-inline void DISPLAY::egc_shiftinput_byte(uint32_t ext)
+inline void __FASTCALL DISPLAY::egc_shiftinput_byte(uint32_t ext)
 {
 	if(egc_stack <= 16) {
 		if(egc_srcbit >= 8) {
@@ -578,7 +578,7 @@ inline void DISPLAY::egc_shiftinput_byte(uint32_t ext)
 	egc_sftb(egc_func, ext);
 }
 
-inline void DISPLAY::egc_shiftinput_incw()
+inline void __FASTCALL DISPLAY::egc_shiftinput_incw()
 {
 	if(egc_stack <= 16) {
 		egc_inptr += 2;
@@ -592,7 +592,7 @@ inline void DISPLAY::egc_shiftinput_incw()
 	egc_sftw(egc_func);
 }
 
-inline void DISPLAY::egc_shiftinput_decw()
+inline void __FASTCALL DISPLAY::egc_shiftinput_decw()
 {
 	if(egc_stack <= 16) {
 		egc_inptr -= 2;
@@ -609,12 +609,12 @@ inline void DISPLAY::egc_shiftinput_decw()
 
 
 
-inline uint64_t DISPLAY::egc_ope_00(uint8_t ope, uint32_t addr)
+inline uint64_t __FASTCALL DISPLAY::egc_ope_00(uint8_t ope, uint32_t addr)
 {
 	return 0;
 }
 
-inline uint64_t DISPLAY::egc_ope_0f(uint8_t ope, uint32_t addr)
+inline uint64_t __FASTCALL DISPLAY::egc_ope_0f(uint8_t ope, uint32_t addr)
 {
 	egc_vram_data.q = ~egc_vram_src.q;
 //	egc_vram_data.d[0] = ~egc_vram_src.d[0];
@@ -622,7 +622,7 @@ inline uint64_t DISPLAY::egc_ope_0f(uint8_t ope, uint32_t addr)
 	return egc_vram_data.q;
 }
 
-inline uint64_t DISPLAY::egc_ope_c0(uint8_t ope, uint32_t addr)
+inline uint64_t __FASTCALL DISPLAY::egc_ope_c0(uint8_t ope, uint32_t addr)
 {
 	__DECL_ALIGNED(16) egcquad_t dst;
 	
@@ -636,13 +636,13 @@ inline uint64_t DISPLAY::egc_ope_c0(uint8_t ope, uint32_t addr)
 	return egc_vram_data.q;
 }
 
-inline uint64_t DISPLAY::egc_ope_f0(uint8_t ope, uint32_t addr)
+inline uint64_t __FASTCALL DISPLAY::egc_ope_f0(uint8_t ope, uint32_t addr)
 {
 	return egc_vram_src.q;
 }
 
 
-inline uint64_t DISPLAY::egc_ope_fc(uint8_t ope, uint32_t addr)
+inline uint64_t __FASTCALL DISPLAY::egc_ope_fc(uint8_t ope, uint32_t addr)
 {
 	__DECL_ALIGNED(16) egcquad_t dst;
 
@@ -655,13 +655,13 @@ inline uint64_t DISPLAY::egc_ope_fc(uint8_t ope, uint32_t addr)
 	return egc_vram_data.q;
 }
 
-inline uint64_t DISPLAY::egc_ope_ff(uint8_t ope, uint32_t addr)
+inline uint64_t __FASTCALL DISPLAY::egc_ope_ff(uint8_t ope, uint32_t addr)
 {
 	return ~0;
 }
 
 
-inline uint64_t DISPLAY::egc_ope_nd(uint8_t ope, uint32_t addr)
+inline uint64_t __FASTCALL DISPLAY::egc_ope_nd(uint8_t ope, uint32_t addr)
 {
 	__DECL_ALIGNED(16) egcquad_t pat;
 	__DECL_ALIGNED(16) egcquad_t tmp;
@@ -719,7 +719,7 @@ inline uint64_t DISPLAY::egc_ope_nd(uint8_t ope, uint32_t addr)
 	return tmp.q;
 }
 
-inline uint64_t DISPLAY::egc_ope_np(uint8_t ope, uint32_t addr)
+inline uint64_t __FASTCALL DISPLAY::egc_ope_np(uint8_t ope, uint32_t addr)
 {
 	__DECL_ALIGNED(16) egcquad_t dst;
 	__DECL_ALIGNED(16) egcquad_t tmp;

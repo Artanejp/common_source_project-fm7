@@ -1208,7 +1208,7 @@ uint32_t DISPLAY::read_dma_io16(uint32_t addr)
 // GRCG
 
 #if defined(SUPPORT_GRCG)
-void DISPLAY::grcg_writeb(uint32_t addr1, uint32_t data)
+void __FASTCALL DISPLAY::grcg_writeb(uint32_t addr1, uint32_t data)
 {
 	uint32_t addr = addr1 & VRAM_PLANE_ADDR_MASK;
 	
@@ -1287,7 +1287,7 @@ void DISPLAY::grcg_writeb(uint32_t addr1, uint32_t data)
 	}
 }
 
-void DISPLAY::grcg_writew(uint32_t addr1, uint32_t data)
+void __FASTCALL DISPLAY::grcg_writew(uint32_t addr1, uint32_t data)
 {
 	if((addr1 & 1) != 0) {
 		grcg_writeb(addr1 + 0, (data >> 0) & 0xff);
@@ -1335,7 +1335,7 @@ void DISPLAY::grcg_writew(uint32_t addr1, uint32_t data)
 	}
 }
 
-uint32_t DISPLAY::grcg_readb(uint32_t addr1)
+uint32_t __FASTCALL DISPLAY::grcg_readb(uint32_t addr1)
 {
 	if(grcg_rw_mode) {
 		// VRAM
@@ -1387,7 +1387,7 @@ uint32_t DISPLAY::grcg_readb(uint32_t addr1)
 	}
 }
 
-uint32_t DISPLAY::grcg_readw(uint32_t addr1)
+uint32_t __FASTCALL DISPLAY::grcg_readw(uint32_t addr1)
 {
 	if((addr1 & 1) != 0) {
 		return grcg_readb(addr1) | (grcg_readb(addr1 + 1) << 8);
@@ -1480,7 +1480,7 @@ __DECL_ALIGNED(16) static const uint16_t DISPLAY::egc_maskword[16][4] = {
 };
 
 // SUBROUTINES are moved to display,h due to making inline. 20190514 K.O
-void DISPLAY::egc_sftb_upn_sub(uint32_t ext)
+void __FASTCALL DISPLAY::egc_sftb_upn_sub(uint32_t ext)
 {
 	if(egc_dstbit >= 8) {
 		egc_dstbit -= 8;
@@ -1528,7 +1528,7 @@ void DISPLAY::egc_sftb_upn_sub(uint32_t ext)
 	egc_outptr++;
 }
 
-void DISPLAY::egc_sftb_dnn_sub(uint32_t ext)
+void __FASTCALL DISPLAY::egc_sftb_dnn_sub(uint32_t ext)
 {
 	if(egc_dstbit >= 8) {
 		egc_dstbit -= 8;
@@ -1576,7 +1576,7 @@ void DISPLAY::egc_sftb_dnn_sub(uint32_t ext)
 	egc_outptr--;
 }
 
-void DISPLAY::egc_sftb_upr_sub(uint32_t ext)
+void __FASTCALL DISPLAY::egc_sftb_upr_sub(uint32_t ext)
 {
 	if(egc_dstbit >= 8) {
 		egc_dstbit -= 8;
@@ -1644,7 +1644,7 @@ void DISPLAY::egc_sftb_upr_sub(uint32_t ext)
 	}
 }
 
-void DISPLAY::egc_sftb_dnr_sub(uint32_t ext)
+void __FASTCALL DISPLAY::egc_sftb_dnr_sub(uint32_t ext)
 {
 	if(egc_dstbit >= 8) {
 		egc_dstbit -= 8;
@@ -1713,7 +1713,7 @@ void DISPLAY::egc_sftb_dnr_sub(uint32_t ext)
 	}
 }
 
-void DISPLAY::egc_sftb_upl_sub(uint32_t ext)
+void __FASTCALL DISPLAY::egc_sftb_upl_sub(uint32_t ext)
 {
 	if(egc_dstbit >= 8) {
 		egc_dstbit -= 8;
@@ -1765,7 +1765,7 @@ __DECL_VECTORIZED_LOOP
 	egc_outptr++;
 }
 
-void DISPLAY::egc_sftb_dnl_sub(uint32_t ext)
+void __FASTCALL DISPLAY::egc_sftb_dnl_sub(uint32_t ext)
 {
 	if(egc_dstbit >= 8) {
 		egc_dstbit -= 8;
@@ -1857,7 +1857,7 @@ __DECL_VECTORIZED_LOOP
 	}
 
 
-uint64_t DISPLAY::egc_ope_xx(uint8_t ope, uint32_t addr)
+uint64_t __FASTCALL DISPLAY::egc_ope_xx(uint8_t ope, uint32_t addr)
 {
 	__DECL_ALIGNED(16) egcquad_t pat;
 	__DECL_ALIGNED(16) egcquad_t dst;
@@ -1923,7 +1923,7 @@ uint64_t DISPLAY::egc_ope_xx(uint8_t ope, uint32_t addr)
 	return tmp.q;
 }
 
-uint64_t DISPLAY::egc_opefn(uint32_t func, uint8_t ope, uint32_t addr)
+uint64_t __FASTCALL DISPLAY::egc_opefn(uint32_t func, uint8_t ope, uint32_t addr)
 {
 	switch(func & 0xff) {
 	case 0x00: return egc_ope_00(ope, addr);
@@ -2189,7 +2189,7 @@ uint64_t DISPLAY::egc_opefn(uint32_t func, uint8_t ope, uint32_t addr)
 	return 0;
 }
 
-uint64_t DISPLAY::egc_opeb(uint32_t addr, uint8_t value)
+uint64_t __FASTCALL DISPLAY::egc_opeb(uint32_t addr, uint8_t value)
 {
 	uint32_t tmp;
 	if(!(enable_egc)) return 0;
@@ -2224,7 +2224,7 @@ uint64_t DISPLAY::egc_opeb(uint32_t addr, uint8_t value)
 	}
 }
 
-uint64_t DISPLAY::egc_opew(uint32_t addr, uint16_t value)
+uint64_t __FASTCALL DISPLAY::egc_opew(uint32_t addr, uint16_t value)
 {
 	uint32_t tmp;
 	if(!(enable_egc)) return 0;
@@ -2260,7 +2260,7 @@ uint64_t DISPLAY::egc_opew(uint32_t addr, uint16_t value)
 	}
 }
 
-uint32_t DISPLAY::egc_readb(uint32_t addr1)
+uint32_t __FASTCALL DISPLAY::egc_readb(uint32_t addr1)
 {
 	uint32_t addr = addr1 & VRAM_PLANE_ADDR_MASK;
 	uint32_t ext = addr1 & 1;
@@ -2317,7 +2317,7 @@ __DECL_VECTORIZED_LOOP
 	return vram_draw[addr1];
 }
 
-uint32_t DISPLAY::egc_readw(uint32_t addr1)
+uint32_t __FASTCALL DISPLAY::egc_readw(uint32_t addr1)
 {
 	uint32_t addr = addr1 & VRAM_PLANE_ADDR_MASK;
 	static const uint32_t vram_base[4] = {VRAM_PLANE_ADDR_0,
@@ -2400,7 +2400,7 @@ __DECL_VECTORIZED_LOOP
 	}
 }
 
-void DISPLAY::egc_writeb(uint32_t addr1, uint8_t value)
+void __FASTCALL DISPLAY::egc_writeb(uint32_t addr1, uint8_t value)
 {
 	uint32_t addr = addr1 & VRAM_PLANE_ADDR_MASK;
 	uint32_t ext = addr1 & 1;
@@ -2477,7 +2477,7 @@ __DECL_VECTORIZED_LOOP
 	}
 }
 
-void DISPLAY::egc_writew(uint32_t addr1, uint16_t value)
+void __FASTCALL DISPLAY::egc_writew(uint32_t addr1, uint16_t value)
 {
 	uint32_t addr = addr1 & VRAM_PLANE_ADDR_MASK;
 	static const uint32_t vram_base[4] = {VRAM_PLANE_ADDR_0,
