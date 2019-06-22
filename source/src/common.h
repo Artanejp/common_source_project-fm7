@@ -51,6 +51,7 @@
 			#define SUPPORT_CPLUSPLUS_11
 		#endif
 		#define CSP_OS_WINDOWS
+		#define __FASTCALL __fastcall
 	#else
 		// Win32, but not Microsoft Visual C++
 		#define SUPPORT_TCHAR_TYPE
@@ -73,6 +74,11 @@
 		#define CSP_OS_GENERIC
 		#define DLL_PREFIX
 		#define DLL_PREFIX_I
+	#endif
+	#if defined(__i386__)
+		#define __FASTCALL __fastcall
+	#else
+		#define __FASTCALL
 	#endif
 	#if defined(__clang__)
 		#define __CSP_COMPILER_CLANG

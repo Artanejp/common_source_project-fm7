@@ -1,6 +1,6 @@
 // license:BSD-3-Clause
 // copyright-holders:Ville Linde, Barry Rodewald, Carl, Philip Bennett
-static UINT8 I386OP(shift_rotate8)(i386_state *cpustate, UINT8 modrm, UINT32 value, UINT8 shift)
+static UINT8 __FASTCALL I386OP(shift_rotate8)(i386_state *cpustate, UINT8 modrm, UINT32 value, UINT8 shift)
 {
 	UINT32 src = value & 0xff;
 	UINT8 dst = value;
@@ -143,7 +143,7 @@ static UINT8 I386OP(shift_rotate8)(i386_state *cpustate, UINT8 modrm, UINT32 val
 
 
 
-static void I386OP(adc_rm8_r8)(i386_state *cpustate)        // Opcode 0x10
+static void __FASTCALL I386OP(adc_rm8_r8)(i386_state *cpustate)        // Opcode 0x10
 {
 	UINT8 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -163,7 +163,7 @@ static void I386OP(adc_rm8_r8)(i386_state *cpustate)        // Opcode 0x10
 	}
 }
 
-static void I386OP(adc_r8_rm8)(i386_state *cpustate)        // Opcode 0x12
+static void __FASTCALL I386OP(adc_r8_rm8)(i386_state *cpustate)        // Opcode 0x12
 {
 	UINT8 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -183,7 +183,7 @@ static void I386OP(adc_r8_rm8)(i386_state *cpustate)        // Opcode 0x12
 	}
 }
 
-static void I386OP(adc_al_i8)(i386_state *cpustate)     // Opcode 0x14
+static void __FASTCALL I386OP(adc_al_i8)(i386_state *cpustate)     // Opcode 0x14
 {
 	UINT8 src, dst;
 	src = FETCH(cpustate);
@@ -193,7 +193,7 @@ static void I386OP(adc_al_i8)(i386_state *cpustate)     // Opcode 0x14
 	CYCLES(cpustate,CYCLES_ALU_IMM_ACC);
 }
 
-static void I386OP(add_rm8_r8)(i386_state *cpustate)        // Opcode 0x00
+static void __FASTCALL I386OP(add_rm8_r8)(i386_state *cpustate)        // Opcode 0x00
 {
 	UINT8 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -213,7 +213,7 @@ static void I386OP(add_rm8_r8)(i386_state *cpustate)        // Opcode 0x00
 	}
 }
 
-static void I386OP(add_r8_rm8)(i386_state *cpustate)        // Opcode 0x02
+static void __FASTCALL I386OP(add_r8_rm8)(i386_state *cpustate)        // Opcode 0x02
 {
 	UINT8 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -233,7 +233,7 @@ static void I386OP(add_r8_rm8)(i386_state *cpustate)        // Opcode 0x02
 	}
 }
 
-static void I386OP(add_al_i8)(i386_state *cpustate)     // Opcode 0x04
+static void __FASTCALL I386OP(add_al_i8)(i386_state *cpustate)     // Opcode 0x04
 {
 	UINT8 src, dst;
 	src = FETCH(cpustate);
@@ -243,7 +243,7 @@ static void I386OP(add_al_i8)(i386_state *cpustate)     // Opcode 0x04
 	CYCLES(cpustate,CYCLES_ALU_IMM_ACC);
 }
 
-static void I386OP(and_rm8_r8)(i386_state *cpustate)        // Opcode 0x20
+static void __FASTCALL I386OP(and_rm8_r8)(i386_state *cpustate)        // Opcode 0x20
 {
 	UINT8 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -263,7 +263,7 @@ static void I386OP(and_rm8_r8)(i386_state *cpustate)        // Opcode 0x20
 	}
 }
 
-static void I386OP(and_r8_rm8)(i386_state *cpustate)        // Opcode 0x22
+static void __FASTCALL I386OP(and_r8_rm8)(i386_state *cpustate)        // Opcode 0x22
 {
 	UINT8 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -283,7 +283,7 @@ static void I386OP(and_r8_rm8)(i386_state *cpustate)        // Opcode 0x22
 	}
 }
 
-static void I386OP(and_al_i8)(i386_state *cpustate)         // Opcode 0x24
+static void __FASTCALL I386OP(and_al_i8)(i386_state *cpustate)         // Opcode 0x24
 {
 	UINT8 src, dst;
 	src = FETCH(cpustate);
@@ -293,19 +293,19 @@ static void I386OP(and_al_i8)(i386_state *cpustate)         // Opcode 0x24
 	CYCLES(cpustate,CYCLES_ALU_IMM_ACC);
 }
 
-static void I386OP(clc)(i386_state *cpustate)               // Opcode 0xf8
+static void __FASTCALL I386OP(clc)(i386_state *cpustate)               // Opcode 0xf8
 {
 	cpustate->CF = 0;
 	CYCLES(cpustate,CYCLES_CLC);
 }
 
-static void I386OP(cld)(i386_state *cpustate)               // Opcode 0xfc
+static void __FASTCALL I386OP(cld)(i386_state *cpustate)               // Opcode 0xfc
 {
 	cpustate->DF = 0;
 	CYCLES(cpustate,CYCLES_CLD);
 }
 
-static void I386OP(cli)(i386_state *cpustate)               // Opcode 0xfa
+static void __FASTCALL I386OP(cli)(i386_state *cpustate)               // Opcode 0xfa
 {
 	if(PROTECTED_MODE)
 	{
@@ -320,13 +320,13 @@ static void I386OP(cli)(i386_state *cpustate)               // Opcode 0xfa
 	CYCLES(cpustate,CYCLES_CLI);
 }
 
-static void I386OP(cmc)(i386_state *cpustate)               // Opcode 0xf5
+static void __FASTCALL I386OP(cmc)(i386_state *cpustate)               // Opcode 0xf5
 {
 	cpustate->CF ^= 1;
 	CYCLES(cpustate,CYCLES_CMC);
 }
 
-static void I386OP(cmp_rm8_r8)(i386_state *cpustate)        // Opcode 0x38
+static void __FASTCALL I386OP(cmp_rm8_r8)(i386_state *cpustate)        // Opcode 0x38
 {
 	UINT8 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -344,7 +344,7 @@ static void I386OP(cmp_rm8_r8)(i386_state *cpustate)        // Opcode 0x38
 	}
 }
 
-static void I386OP(cmp_r8_rm8)(i386_state *cpustate)        // Opcode 0x3a
+static void __FASTCALL I386OP(cmp_r8_rm8)(i386_state *cpustate)        // Opcode 0x3a
 {
 	UINT8 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -362,7 +362,7 @@ static void I386OP(cmp_r8_rm8)(i386_state *cpustate)        // Opcode 0x3a
 	}
 }
 
-static void I386OP(cmp_al_i8)(i386_state *cpustate)         // Opcode 0x3c
+static void __FASTCALL I386OP(cmp_al_i8)(i386_state *cpustate)         // Opcode 0x3c
 {
 	UINT8 src, dst;
 	src = FETCH(cpustate);
@@ -371,7 +371,7 @@ static void I386OP(cmp_al_i8)(i386_state *cpustate)         // Opcode 0x3c
 	CYCLES(cpustate,CYCLES_CMP_IMM_ACC);
 }
 
-static void I386OP(cmpsb)(i386_state *cpustate)             // Opcode 0xa6
+static void __FASTCALL I386OP(cmpsb)(i386_state *cpustate)             // Opcode 0xa6
 {
 	UINT32 eas, ead;
 	UINT8 src, dst;
@@ -389,7 +389,7 @@ static void I386OP(cmpsb)(i386_state *cpustate)             // Opcode 0xa6
 	CYCLES(cpustate,CYCLES_CMPS);
 }
 
-static void I386OP(in_al_i8)(i386_state *cpustate)          // Opcode 0xe4
+static void __FASTCALL I386OP(in_al_i8)(i386_state *cpustate)          // Opcode 0xe4
 {
 	UINT16 port = FETCH(cpustate);
 	UINT8 data = READPORT8(cpustate, port);
@@ -397,7 +397,7 @@ static void I386OP(in_al_i8)(i386_state *cpustate)          // Opcode 0xe4
 	CYCLES(cpustate,CYCLES_IN_VAR);
 }
 
-static void I386OP(in_al_dx)(i386_state *cpustate)          // Opcode 0xec
+static void __FASTCALL I386OP(in_al_dx)(i386_state *cpustate)          // Opcode 0xec
 {
 	UINT16 port = REG16(DX);
 	UINT8 data = READPORT8(cpustate, port);
@@ -405,7 +405,7 @@ static void I386OP(in_al_dx)(i386_state *cpustate)          // Opcode 0xec
 	CYCLES(cpustate,CYCLES_IN);
 }
 
-static void I386OP(ja_rel8)(i386_state *cpustate)           // Opcode 0x77
+static void __FASTCALL I386OP(ja_rel8)(i386_state *cpustate)           // Opcode 0x77
 {
 	INT8 disp = FETCH(cpustate);
 	if( cpustate->CF == 0 && cpustate->ZF == 0 ) {
@@ -416,7 +416,7 @@ static void I386OP(ja_rel8)(i386_state *cpustate)           // Opcode 0x77
 	}
 }
 
-static void I386OP(jbe_rel8)(i386_state *cpustate)          // Opcode 0x76
+static void __FASTCALL I386OP(jbe_rel8)(i386_state *cpustate)          // Opcode 0x76
 {
 	INT8 disp = FETCH(cpustate);
 	if( cpustate->CF != 0 || cpustate->ZF != 0 ) {
@@ -427,7 +427,7 @@ static void I386OP(jbe_rel8)(i386_state *cpustate)          // Opcode 0x76
 	}
 }
 
-static void I386OP(jc_rel8)(i386_state *cpustate)           // Opcode 0x72
+static void __FASTCALL I386OP(jc_rel8)(i386_state *cpustate)           // Opcode 0x72
 {
 	INT8 disp = FETCH(cpustate);
 	if( cpustate->CF != 0 ) {
@@ -438,7 +438,7 @@ static void I386OP(jc_rel8)(i386_state *cpustate)           // Opcode 0x72
 	}
 }
 
-static void I386OP(jg_rel8)(i386_state *cpustate)           // Opcode 0x7f
+static void __FASTCALL I386OP(jg_rel8)(i386_state *cpustate)           // Opcode 0x7f
 {
 	INT8 disp = FETCH(cpustate);
 	if( cpustate->ZF == 0 && (cpustate->SF == cpustate->OF) ) {
@@ -449,7 +449,7 @@ static void I386OP(jg_rel8)(i386_state *cpustate)           // Opcode 0x7f
 	}
 }
 
-static void I386OP(jge_rel8)(i386_state *cpustate)          // Opcode 0x7d
+static void __FASTCALL I386OP(jge_rel8)(i386_state *cpustate)          // Opcode 0x7d
 {
 	INT8 disp = FETCH(cpustate);
 	if(cpustate->SF == cpustate->OF) {
@@ -460,7 +460,7 @@ static void I386OP(jge_rel8)(i386_state *cpustate)          // Opcode 0x7d
 	}
 }
 
-static void I386OP(jl_rel8)(i386_state *cpustate)           // Opcode 0x7c
+static void __FASTCALL I386OP(jl_rel8)(i386_state *cpustate)           // Opcode 0x7c
 {
 	INT8 disp = FETCH(cpustate);
 	if( (cpustate->SF != cpustate->OF) ) {
@@ -471,7 +471,7 @@ static void I386OP(jl_rel8)(i386_state *cpustate)           // Opcode 0x7c
 	}
 }
 
-static void I386OP(jle_rel8)(i386_state *cpustate)      // Opcode 0x7e
+static void __FASTCALL I386OP(jle_rel8)(i386_state *cpustate)      // Opcode 0x7e
 {
 	INT8 disp = FETCH(cpustate);
 	if( cpustate->ZF != 0 || (cpustate->SF != cpustate->OF) ) {
@@ -482,7 +482,7 @@ static void I386OP(jle_rel8)(i386_state *cpustate)      // Opcode 0x7e
 	}
 }
 
-static void I386OP(jnc_rel8)(i386_state *cpustate)          // Opcode 0x73
+static void __FASTCALL I386OP(jnc_rel8)(i386_state *cpustate)          // Opcode 0x73
 {
 	INT8 disp = FETCH(cpustate);
 	if( cpustate->CF == 0 ) {
@@ -493,7 +493,7 @@ static void I386OP(jnc_rel8)(i386_state *cpustate)          // Opcode 0x73
 	}
 }
 
-static void I386OP(jno_rel8)(i386_state *cpustate)          // Opcode 0x71
+static void __FASTCALL I386OP(jno_rel8)(i386_state *cpustate)          // Opcode 0x71
 {
 	INT8 disp = FETCH(cpustate);
 	if( cpustate->OF == 0 ) {
@@ -504,7 +504,7 @@ static void I386OP(jno_rel8)(i386_state *cpustate)          // Opcode 0x71
 	}
 }
 
-static void I386OP(jnp_rel8)(i386_state *cpustate)          // Opcode 0x7b
+static void __FASTCALL I386OP(jnp_rel8)(i386_state *cpustate)          // Opcode 0x7b
 {
 	INT8 disp = FETCH(cpustate);
 	if( cpustate->PF == 0 ) {
@@ -515,7 +515,7 @@ static void I386OP(jnp_rel8)(i386_state *cpustate)          // Opcode 0x7b
 	}
 }
 
-static void I386OP(jns_rel8)(i386_state *cpustate)          // Opcode 0x79
+static void __FASTCALL I386OP(jns_rel8)(i386_state *cpustate)          // Opcode 0x79
 {
 	INT8 disp = FETCH(cpustate);
 	if( cpustate->SF == 0 ) {
@@ -526,7 +526,7 @@ static void I386OP(jns_rel8)(i386_state *cpustate)          // Opcode 0x79
 	}
 }
 
-static void I386OP(jnz_rel8)(i386_state *cpustate)          // Opcode 0x75
+static void __FASTCALL I386OP(jnz_rel8)(i386_state *cpustate)          // Opcode 0x75
 {
 	INT8 disp = FETCH(cpustate);
 	if( cpustate->ZF == 0 ) {
@@ -537,7 +537,7 @@ static void I386OP(jnz_rel8)(i386_state *cpustate)          // Opcode 0x75
 	}
 }
 
-static void I386OP(jo_rel8)(i386_state *cpustate)           // Opcode 0x70
+static void __FASTCALL I386OP(jo_rel8)(i386_state *cpustate)           // Opcode 0x70
 {
 	INT8 disp = FETCH(cpustate);
 	if( cpustate->OF != 0 ) {
@@ -548,7 +548,7 @@ static void I386OP(jo_rel8)(i386_state *cpustate)           // Opcode 0x70
 	}
 }
 
-static void I386OP(jp_rel8)(i386_state *cpustate)           // Opcode 0x7a
+static void __FASTCALL I386OP(jp_rel8)(i386_state *cpustate)           // Opcode 0x7a
 {
 	INT8 disp = FETCH(cpustate);
 	if( cpustate->PF != 0 ) {
@@ -559,7 +559,7 @@ static void I386OP(jp_rel8)(i386_state *cpustate)           // Opcode 0x7a
 	}
 }
 
-static void I386OP(js_rel8)(i386_state *cpustate)           // Opcode 0x78
+static void __FASTCALL I386OP(js_rel8)(i386_state *cpustate)           // Opcode 0x78
 {
 	INT8 disp = FETCH(cpustate);
 	if( cpustate->SF != 0 ) {
@@ -570,7 +570,7 @@ static void I386OP(js_rel8)(i386_state *cpustate)           // Opcode 0x78
 	}
 }
 
-static void I386OP(jz_rel8)(i386_state *cpustate)           // Opcode 0x74
+static void __FASTCALL I386OP(jz_rel8)(i386_state *cpustate)           // Opcode 0x74
 {
 	INT8 disp = FETCH(cpustate);
 	if( cpustate->ZF != 0 ) {
@@ -581,20 +581,20 @@ static void I386OP(jz_rel8)(i386_state *cpustate)           // Opcode 0x74
 	}
 }
 
-static void I386OP(jmp_rel8)(i386_state *cpustate)          // Opcode 0xeb
+static void __FASTCALL I386OP(jmp_rel8)(i386_state *cpustate)          // Opcode 0xeb
 {
 	INT8 disp = FETCH(cpustate);
 	NEAR_BRANCH(cpustate,disp);
 	CYCLES(cpustate,CYCLES_JMP_SHORT);      /* TODO: Timing = 7 + m */
 }
 
-static void I386OP(lahf)(i386_state *cpustate)              // Opcode 0x9f
+static void __FASTCALL I386OP(lahf)(i386_state *cpustate)              // Opcode 0x9f
 {
 	REG8(AH) = get_flags(cpustate) & 0xd7;
 	CYCLES(cpustate,CYCLES_LAHF);
 }
 
-static void I386OP(lodsb)(i386_state *cpustate)             // Opcode 0xac
+static void __FASTCALL I386OP(lodsb)(i386_state *cpustate)             // Opcode 0xac
 {
 	UINT32 eas;
 	if( cpustate->segment_prefix ) {
@@ -607,7 +607,7 @@ static void I386OP(lodsb)(i386_state *cpustate)             // Opcode 0xac
 	CYCLES(cpustate,CYCLES_LODS);
 }
 
-static void I386OP(mov_rm8_r8)(i386_state *cpustate)        // Opcode 0x88
+static void __FASTCALL I386OP(mov_rm8_r8)(i386_state *cpustate)        // Opcode 0x88
 {
 	UINT8 src;
 	UINT8 modrm = FETCH(cpustate);
@@ -623,7 +623,7 @@ static void I386OP(mov_rm8_r8)(i386_state *cpustate)        // Opcode 0x88
 	}
 }
 
-static void I386OP(mov_r8_rm8)(i386_state *cpustate)        // Opcode 0x8a
+static void __FASTCALL I386OP(mov_r8_rm8)(i386_state *cpustate)        // Opcode 0x8a
 {
 	UINT8 src;
 	UINT8 modrm = FETCH(cpustate);
@@ -639,7 +639,7 @@ static void I386OP(mov_r8_rm8)(i386_state *cpustate)        // Opcode 0x8a
 	}
 }
 
-static void I386OP(mov_rm8_i8)(i386_state *cpustate)        // Opcode 0xc6
+static void __FASTCALL I386OP(mov_rm8_i8)(i386_state *cpustate)        // Opcode 0xc6
 {
 	UINT8 modrm = FETCH(cpustate);
 	if( modrm >= 0xc0 ) {
@@ -655,7 +655,7 @@ static void I386OP(mov_rm8_i8)(i386_state *cpustate)        // Opcode 0xc6
 }
 //#include "./i386ctrlregdefs.h"
 
-static void I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode 0x0f 20
+static void __FASTCALL I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode 0x0f 20
 {
 #if 1
 	UINT32 oldpc = cpustate->prev_pc;
@@ -726,7 +726,7 @@ void i386_change_paging_mode(i386_state *cpustate, int val)
 	// ToDo: Implement paging bit.
 }
 
-static void I386OP(mov_r32_dr)(i386_state *cpustate)        // Opcode 0x0f 21
+static void __FASTCALL I386OP(mov_r32_dr)(i386_state *cpustate)        // Opcode 0x0f 21
 {
 	UINT8 modrm = FETCH(cpustate);
 	if(modrm < 0xc0) {
@@ -772,7 +772,7 @@ static void I386OP(mov_r32_dr)(i386_state *cpustate)        // Opcode 0x0f 21
 	}
 }
 
-static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
+static void __FASTCALL I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 {
 #if 1
 	UINT8 modrm = FETCH(cpustate);
@@ -914,7 +914,7 @@ static void I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 #endif
 }
 
-static void I386OP(mov_dr_r32)(i386_state *cpustate)        // Opcode 0x0f 23
+static void __FASTCALL I386OP(mov_dr_r32)(i386_state *cpustate)        // Opcode 0x0f 23
 {
 	UINT8 modrm = FETCH(cpustate);
 	if(modrm < 0xc0) {
@@ -960,7 +960,7 @@ static void I386OP(mov_dr_r32)(i386_state *cpustate)        // Opcode 0x0f 23
 	}
 }
 
-static void I386OP(mov_al_m8)(i386_state *cpustate)         // Opcode 0xa0
+static void __FASTCALL I386OP(mov_al_m8)(i386_state *cpustate)         // Opcode 0xa0
 {
 	UINT32 offset, ea;
 	if( cpustate->address_size ) {
@@ -978,7 +978,7 @@ static void I386OP(mov_al_m8)(i386_state *cpustate)         // Opcode 0xa0
 	CYCLES(cpustate,CYCLES_MOV_IMM_MEM);
 }
 
-static void I386OP(mov_m8_al)(i386_state *cpustate)         // Opcode 0xa2
+static void __FASTCALL I386OP(mov_m8_al)(i386_state *cpustate)         // Opcode 0xa2
 {
 	UINT32 offset, ea;
 	if( cpustate->address_size ) {
@@ -996,7 +996,7 @@ static void I386OP(mov_m8_al)(i386_state *cpustate)         // Opcode 0xa2
 	CYCLES(cpustate,CYCLES_MOV_MEM_ACC);
 }
 
-static void I386OP(mov_rm16_sreg)(i386_state *cpustate)     // Opcode 0x8c
+static void __FASTCALL I386OP(mov_rm16_sreg)(i386_state *cpustate)     // Opcode 0x8c
 {
 	UINT8 modrm = FETCH(cpustate);
 	int s = (modrm >> 3) & 0x7;
@@ -1014,7 +1014,7 @@ static void I386OP(mov_rm16_sreg)(i386_state *cpustate)     // Opcode 0x8c
 	}
 }
 
-static void I386OP(mov_sreg_rm16)(i386_state *cpustate)     // Opcode 0x8e
+static void __FASTCALL I386OP(mov_sreg_rm16)(i386_state *cpustate)     // Opcode 0x8e
 {
 	UINT16 selector;
 	UINT8 modrm = FETCH(cpustate);
@@ -1041,55 +1041,55 @@ static void I386OP(mov_sreg_rm16)(i386_state *cpustate)     // Opcode 0x8e
 	}
 }
 
-static void I386OP(mov_al_i8)(i386_state *cpustate)         // Opcode 0xb0
+static void __FASTCALL I386OP(mov_al_i8)(i386_state *cpustate)         // Opcode 0xb0
 {
 	REG8(AL) = FETCH(cpustate);
 	CYCLES(cpustate,CYCLES_MOV_IMM_REG);
 }
 
-static void I386OP(mov_cl_i8)(i386_state *cpustate)         // Opcode 0xb1
+static void __FASTCALL I386OP(mov_cl_i8)(i386_state *cpustate)         // Opcode 0xb1
 {
 	REG8(CL) = FETCH(cpustate);
 	CYCLES(cpustate,CYCLES_MOV_IMM_REG);
 }
 
-static void I386OP(mov_dl_i8)(i386_state *cpustate)         // Opcode 0xb2
+static void __FASTCALL I386OP(mov_dl_i8)(i386_state *cpustate)         // Opcode 0xb2
 {
 	REG8(DL) = FETCH(cpustate);
 	CYCLES(cpustate,CYCLES_MOV_IMM_REG);
 }
 
-static void I386OP(mov_bl_i8)(i386_state *cpustate)         // Opcode 0xb3
+static void __FASTCALL I386OP(mov_bl_i8)(i386_state *cpustate)         // Opcode 0xb3
 {
 	REG8(BL) = FETCH(cpustate);
 	CYCLES(cpustate,CYCLES_MOV_IMM_REG);
 }
 
-static void I386OP(mov_ah_i8)(i386_state *cpustate)         // Opcode 0xb4
+static void __FASTCALL I386OP(mov_ah_i8)(i386_state *cpustate)         // Opcode 0xb4
 {
 	REG8(AH) = FETCH(cpustate);
 	CYCLES(cpustate,CYCLES_MOV_IMM_REG);
 }
 
-static void I386OP(mov_ch_i8)(i386_state *cpustate)         // Opcode 0xb5
+static void __FASTCALL I386OP(mov_ch_i8)(i386_state *cpustate)         // Opcode 0xb5
 {
 	REG8(CH) = FETCH(cpustate);
 	CYCLES(cpustate,CYCLES_MOV_IMM_REG);
 }
 
-static void I386OP(mov_dh_i8)(i386_state *cpustate)         // Opcode 0xb6
+static void __FASTCALL I386OP(mov_dh_i8)(i386_state *cpustate)         // Opcode 0xb6
 {
 	REG8(DH) = FETCH(cpustate);
 	CYCLES(cpustate,CYCLES_MOV_IMM_REG);
 }
 
-static void I386OP(mov_bh_i8)(i386_state *cpustate)         // Opcode 0xb7
+static void __FASTCALL I386OP(mov_bh_i8)(i386_state *cpustate)         // Opcode 0xb7
 {
 	REG8(BH) = FETCH(cpustate);
 	CYCLES(cpustate,CYCLES_MOV_IMM_REG);
 }
 
-static void I386OP(movsb)(i386_state *cpustate)             // Opcode 0xa4
+static void __FASTCALL I386OP(movsb)(i386_state *cpustate)             // Opcode 0xa4
 {
 	UINT32 eas, ead;
 	UINT8 v;
@@ -1106,7 +1106,7 @@ static void I386OP(movsb)(i386_state *cpustate)             // Opcode 0xa4
 	CYCLES(cpustate,CYCLES_MOVS);
 }
 
-static void I386OP(or_rm8_r8)(i386_state *cpustate)         // Opcode 0x08
+static void __FASTCALL I386OP(or_rm8_r8)(i386_state *cpustate)         // Opcode 0x08
 {
 	UINT8 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -1126,7 +1126,7 @@ static void I386OP(or_rm8_r8)(i386_state *cpustate)         // Opcode 0x08
 	}
 }
 
-static void I386OP(or_r8_rm8)(i386_state *cpustate)         // Opcode 0x0a
+static void __FASTCALL I386OP(or_r8_rm8)(i386_state *cpustate)         // Opcode 0x0a
 {
 	UINT8 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -1146,7 +1146,7 @@ static void I386OP(or_r8_rm8)(i386_state *cpustate)         // Opcode 0x0a
 	}
 }
 
-static void I386OP(or_al_i8)(i386_state *cpustate)          // Opcode 0x0c
+static void __FASTCALL I386OP(or_al_i8)(i386_state *cpustate)          // Opcode 0x0c
 {
 	UINT8 src, dst;
 	src = FETCH(cpustate);
@@ -1156,7 +1156,7 @@ static void I386OP(or_al_i8)(i386_state *cpustate)          // Opcode 0x0c
 	CYCLES(cpustate,CYCLES_ALU_IMM_ACC);
 }
 
-static void I386OP(out_al_i8)(i386_state *cpustate)         // Opcode 0xe6
+static void __FASTCALL I386OP(out_al_i8)(i386_state *cpustate)         // Opcode 0xe6
 {
 	UINT16 port = FETCH(cpustate);
 	UINT8 data = REG8(AL);
@@ -1164,7 +1164,7 @@ static void I386OP(out_al_i8)(i386_state *cpustate)         // Opcode 0xe6
 	CYCLES(cpustate,CYCLES_OUT_VAR);
 }
 
-static void I386OP(out_al_dx)(i386_state *cpustate)         // Opcode 0xee
+static void __FASTCALL I386OP(out_al_dx)(i386_state *cpustate)         // Opcode 0xee
 {
 	UINT16 port = REG16(DX);
 	UINT8 data = REG8(AL);
@@ -1173,7 +1173,7 @@ static void I386OP(out_al_dx)(i386_state *cpustate)         // Opcode 0xee
 }
 
 
-static void I386OP(arpl)(i386_state *cpustate)           // Opcode 0x63
+static void __FASTCALL I386OP(arpl)(i386_state *cpustate)           // Opcode 0x63
 {
 	UINT16 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -1207,14 +1207,14 @@ static void I386OP(arpl)(i386_state *cpustate)           // Opcode 0x63
 	}
 }
 
-static void I386OP(push_i8)(i386_state *cpustate)           // Opcode 0x6a
+static void __FASTCALL I386OP(push_i8)(i386_state *cpustate)           // Opcode 0x6a
 {
 	UINT8 value = FETCH(cpustate);
 	PUSH8(cpustate,value);
 	CYCLES(cpustate,CYCLES_PUSH_IMM);
 }
 
-static void I386OP(ins_generic)(i386_state *cpustate, int size)
+static void __FASTCALL I386OP(ins_generic)(i386_state *cpustate, int size)
 {
 	UINT32 ead;
 	UINT8 vb;
@@ -1245,22 +1245,22 @@ static void I386OP(ins_generic)(i386_state *cpustate, int size)
 	CYCLES(cpustate,CYCLES_INS);    // TODO: Confirm this value
 }
 
-static void I386OP(insb)(i386_state *cpustate)              // Opcode 0x6c
+static void __FASTCALL I386OP(insb)(i386_state *cpustate)              // Opcode 0x6c
 {
 	I386OP(ins_generic)(cpustate, 1);
 }
 
-static void I386OP(insw)(i386_state *cpustate)              // Opcode 0x6d
+static void __FASTCALL I386OP(insw)(i386_state *cpustate)              // Opcode 0x6d
 {
 	I386OP(ins_generic)(cpustate, 2);
 }
 
-static void I386OP(insd)(i386_state *cpustate)              // Opcode 0x6d
+static void __FASTCALL I386OP(insd)(i386_state *cpustate)              // Opcode 0x6d
 {
 	I386OP(ins_generic)(cpustate, 4);
 }
 
-static void I386OP(outs_generic)(i386_state *cpustate, int size)
+static void __FASTCALL I386OP(outs_generic)(i386_state *cpustate, int size)
 {
 	UINT32 eas;
 	UINT8 vb;
@@ -1295,22 +1295,22 @@ static void I386OP(outs_generic)(i386_state *cpustate, int size)
 	CYCLES(cpustate,CYCLES_OUTS);   // TODO: Confirm this value
 }
 
-static void I386OP(outsb)(i386_state *cpustate)             // Opcode 0x6e
+static void __FASTCALL I386OP(outsb)(i386_state *cpustate)             // Opcode 0x6e
 {
 	I386OP(outs_generic)(cpustate, 1);
 }
 
-static void I386OP(outsw)(i386_state *cpustate)             // Opcode 0x6f
+static void __FASTCALL I386OP(outsw)(i386_state *cpustate)             // Opcode 0x6f
 {
 	I386OP(outs_generic)(cpustate, 2);
 }
 
-static void I386OP(outsd)(i386_state *cpustate)             // Opcode 0x6f
+static void __FASTCALL I386OP(outsd)(i386_state *cpustate)             // Opcode 0x6f
 {
 	I386OP(outs_generic)(cpustate, 4);
 }
 
-static void I386OP(repeat)(i386_state *cpustate, int invert_flag)
+static void __FASTCALL I386OP(repeat)(i386_state *cpustate, int invert_flag)
 {
 	UINT32 repeated_eip = cpustate->eip;
 	UINT32 repeated_pc = cpustate->pc;
@@ -1502,23 +1502,23 @@ outofcycles:
 	CYCLES_NUM(-cycle_base);
 }
 
-static void I386OP(rep)(i386_state *cpustate)               // Opcode 0xf3
+static void __FASTCALL I386OP(rep)(i386_state *cpustate)               // Opcode 0xf3
 {
 	I386OP(repeat)(cpustate, 0);
 }
 
-static void I386OP(repne)(i386_state *cpustate)             // Opcode 0xf2
+static void __FASTCALL I386OP(repne)(i386_state *cpustate)             // Opcode 0xf2
 {
 	I386OP(repeat)(cpustate, 1);
 }
 
-static void I386OP(sahf)(i386_state *cpustate)              // Opcode 0x9e
+static void __FASTCALL I386OP(sahf)(i386_state *cpustate)              // Opcode 0x9e
 {
 	set_flags(cpustate, (get_flags(cpustate) & 0xffffff00) | (REG8(AH) & 0xd7) );
 	CYCLES(cpustate,CYCLES_SAHF);
 }
 
-static void I386OP(sbb_rm8_r8)(i386_state *cpustate)        // Opcode 0x18
+static void __FASTCALL I386OP(sbb_rm8_r8)(i386_state *cpustate)        // Opcode 0x18
 {
 	UINT8 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -1538,7 +1538,7 @@ static void I386OP(sbb_rm8_r8)(i386_state *cpustate)        // Opcode 0x18
 	}
 }
 
-static void I386OP(sbb_r8_rm8)(i386_state *cpustate)        // Opcode 0x1a
+static void __FASTCALL I386OP(sbb_r8_rm8)(i386_state *cpustate)        // Opcode 0x1a
 {
 	UINT8 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -1558,7 +1558,7 @@ static void I386OP(sbb_r8_rm8)(i386_state *cpustate)        // Opcode 0x1a
 	}
 }
 
-static void I386OP(sbb_al_i8)(i386_state *cpustate)         // Opcode 0x1c
+static void __FASTCALL I386OP(sbb_al_i8)(i386_state *cpustate)         // Opcode 0x1c
 {
 	UINT8 src, dst;
 	src = FETCH(cpustate);
@@ -1568,7 +1568,7 @@ static void I386OP(sbb_al_i8)(i386_state *cpustate)         // Opcode 0x1c
 	CYCLES(cpustate,CYCLES_ALU_IMM_ACC);
 }
 
-static void I386OP(scasb)(i386_state *cpustate)             // Opcode 0xae
+static void __FASTCALL I386OP(scasb)(i386_state *cpustate)             // Opcode 0xae
 {
 	UINT32 eas;
 	UINT8 src, dst;
@@ -1580,7 +1580,7 @@ static void I386OP(scasb)(i386_state *cpustate)             // Opcode 0xae
 	CYCLES(cpustate,CYCLES_SCAS);
 }
 
-static void I386OP(setalc)(i386_state *cpustate)            // Opcode 0xd6 (undocumented)
+static void __FASTCALL I386OP(setalc)(i386_state *cpustate)            // Opcode 0xd6 (undocumented)
 {
 	if( cpustate->CF ) {
 		REG8(AL) = 0xff;
@@ -1590,7 +1590,7 @@ static void I386OP(setalc)(i386_state *cpustate)            // Opcode 0xd6 (undo
 	CYCLES(cpustate,3);
 }
 
-static void I386OP(seta_rm8)(i386_state *cpustate)          // Opcode 0x0f 97
+static void __FASTCALL I386OP(seta_rm8)(i386_state *cpustate)          // Opcode 0x0f 97
 {
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 value = 0;
@@ -1607,7 +1607,7 @@ static void I386OP(seta_rm8)(i386_state *cpustate)          // Opcode 0x0f 97
 	}
 }
 
-static void I386OP(setbe_rm8)(i386_state *cpustate)         // Opcode 0x0f 96
+static void __FASTCALL I386OP(setbe_rm8)(i386_state *cpustate)         // Opcode 0x0f 96
 {
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 value = 0;
@@ -1624,7 +1624,7 @@ static void I386OP(setbe_rm8)(i386_state *cpustate)         // Opcode 0x0f 96
 	}
 }
 
-static void I386OP(setc_rm8)(i386_state *cpustate)          // Opcode 0x0f 92
+static void __FASTCALL I386OP(setc_rm8)(i386_state *cpustate)          // Opcode 0x0f 92
 {
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 value = 0;
@@ -1641,7 +1641,7 @@ static void I386OP(setc_rm8)(i386_state *cpustate)          // Opcode 0x0f 92
 	}
 }
 
-static void I386OP(setg_rm8)(i386_state *cpustate)          // Opcode 0x0f 9f
+static void __FASTCALL I386OP(setg_rm8)(i386_state *cpustate)          // Opcode 0x0f 9f
 {
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 value = 0;
@@ -1658,7 +1658,7 @@ static void I386OP(setg_rm8)(i386_state *cpustate)          // Opcode 0x0f 9f
 	}
 }
 
-static void I386OP(setge_rm8)(i386_state *cpustate)         // Opcode 0x0f 9d
+static void __FASTCALL I386OP(setge_rm8)(i386_state *cpustate)         // Opcode 0x0f 9d
 {
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 value = 0;
@@ -1675,7 +1675,7 @@ static void I386OP(setge_rm8)(i386_state *cpustate)         // Opcode 0x0f 9d
 	}
 }
 
-static void I386OP(setl_rm8)(i386_state *cpustate)          // Opcode 0x0f 9c
+static void __FASTCALL I386OP(setl_rm8)(i386_state *cpustate)          // Opcode 0x0f 9c
 {
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 value = 0;
@@ -1692,7 +1692,7 @@ static void I386OP(setl_rm8)(i386_state *cpustate)          // Opcode 0x0f 9c
 	}
 }
 
-static void I386OP(setle_rm8)(i386_state *cpustate)         // Opcode 0x0f 9e
+static void __FASTCALL I386OP(setle_rm8)(i386_state *cpustate)         // Opcode 0x0f 9e
 {
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 value = 0;
@@ -1709,7 +1709,7 @@ static void I386OP(setle_rm8)(i386_state *cpustate)         // Opcode 0x0f 9e
 	}
 }
 
-static void I386OP(setnc_rm8)(i386_state *cpustate)         // Opcode 0x0f 93
+static void __FASTCALL I386OP(setnc_rm8)(i386_state *cpustate)         // Opcode 0x0f 93
 {
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 value = 0;
@@ -1726,7 +1726,7 @@ static void I386OP(setnc_rm8)(i386_state *cpustate)         // Opcode 0x0f 93
 	}
 }
 
-static void I386OP(setno_rm8)(i386_state *cpustate)         // Opcode 0x0f 91
+static void __FASTCALL I386OP(setno_rm8)(i386_state *cpustate)         // Opcode 0x0f 91
 {
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 value = 0;
@@ -1743,7 +1743,7 @@ static void I386OP(setno_rm8)(i386_state *cpustate)         // Opcode 0x0f 91
 	}
 }
 
-static void I386OP(setnp_rm8)(i386_state *cpustate)         // Opcode 0x0f 9b
+static void __FASTCALL I386OP(setnp_rm8)(i386_state *cpustate)         // Opcode 0x0f 9b
 {
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 value = 0;
@@ -1760,7 +1760,7 @@ static void I386OP(setnp_rm8)(i386_state *cpustate)         // Opcode 0x0f 9b
 	}
 }
 
-static void I386OP(setns_rm8)(i386_state *cpustate)         // Opcode 0x0f 99
+static void __FASTCALL I386OP(setns_rm8)(i386_state *cpustate)         // Opcode 0x0f 99
 {
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 value = 0;
@@ -1777,7 +1777,7 @@ static void I386OP(setns_rm8)(i386_state *cpustate)         // Opcode 0x0f 99
 	}
 }
 
-static void I386OP(setnz_rm8)(i386_state *cpustate)         // Opcode 0x0f 95
+static void __FASTCALL I386OP(setnz_rm8)(i386_state *cpustate)         // Opcode 0x0f 95
 {
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 value = 0;
@@ -1794,7 +1794,7 @@ static void I386OP(setnz_rm8)(i386_state *cpustate)         // Opcode 0x0f 95
 	}
 }
 
-static void I386OP(seto_rm8)(i386_state *cpustate)          // Opcode 0x0f 90
+static void __FASTCALL I386OP(seto_rm8)(i386_state *cpustate)          // Opcode 0x0f 90
 {
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 value = 0;
@@ -1811,7 +1811,7 @@ static void I386OP(seto_rm8)(i386_state *cpustate)          // Opcode 0x0f 90
 	}
 }
 
-static void I386OP(setp_rm8)(i386_state *cpustate)          // Opcode 0x0f 9a
+static void __FASTCALL I386OP(setp_rm8)(i386_state *cpustate)          // Opcode 0x0f 9a
 {
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 value = 0;
@@ -1828,7 +1828,7 @@ static void I386OP(setp_rm8)(i386_state *cpustate)          // Opcode 0x0f 9a
 	}
 }
 
-static void I386OP(sets_rm8)(i386_state *cpustate)          // Opcode 0x0f 98
+static void __FASTCALL I386OP(sets_rm8)(i386_state *cpustate)          // Opcode 0x0f 98
 {
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 value = 0;
@@ -1845,7 +1845,7 @@ static void I386OP(sets_rm8)(i386_state *cpustate)          // Opcode 0x0f 98
 	}
 }
 
-static void I386OP(setz_rm8)(i386_state *cpustate)          // Opcode 0x0f 94
+static void __FASTCALL I386OP(setz_rm8)(i386_state *cpustate)          // Opcode 0x0f 94
 {
 	UINT8 modrm = FETCH(cpustate);
 	UINT8 value = 0;
@@ -1862,19 +1862,19 @@ static void I386OP(setz_rm8)(i386_state *cpustate)          // Opcode 0x0f 94
 	}
 }
 
-static void I386OP(stc)(i386_state *cpustate)               // Opcode 0xf9
+static void __FASTCALL I386OP(stc)(i386_state *cpustate)               // Opcode 0xf9
 {
 	cpustate->CF = 1;
 	CYCLES(cpustate,CYCLES_STC);
 }
 
-static void I386OP(std)(i386_state *cpustate)               // Opcode 0xfd
+static void __FASTCALL I386OP(std)(i386_state *cpustate)               // Opcode 0xfd
 {
 	cpustate->DF = 1;
 	CYCLES(cpustate,CYCLES_STD);
 }
 
-static void I386OP(sti)(i386_state *cpustate)               // Opcode 0xfb
+static void __FASTCALL I386OP(sti)(i386_state *cpustate)               // Opcode 0xfb
 {
 	if(PROTECTED_MODE)
 	{
@@ -1889,7 +1889,7 @@ static void I386OP(sti)(i386_state *cpustate)               // Opcode 0xfb
 	CYCLES(cpustate,CYCLES_STI);
 }
 
-static void I386OP(stosb)(i386_state *cpustate)             // Opcode 0xaa
+static void __FASTCALL I386OP(stosb)(i386_state *cpustate)             // Opcode 0xaa
 {
 	UINT32 ead;
 	ead = i386_translate(cpustate, ES, cpustate->address_size ? REG32(EDI) : REG16(DI), 1, 1 );
@@ -1898,7 +1898,7 @@ static void I386OP(stosb)(i386_state *cpustate)             // Opcode 0xaa
 	CYCLES(cpustate,CYCLES_STOS);
 }
 
-static void I386OP(sub_rm8_r8)(i386_state *cpustate)        // Opcode 0x28
+static void __FASTCALL I386OP(sub_rm8_r8)(i386_state *cpustate)        // Opcode 0x28
 {
 	UINT8 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -1918,7 +1918,7 @@ static void I386OP(sub_rm8_r8)(i386_state *cpustate)        // Opcode 0x28
 	}
 }
 
-static void I386OP(sub_r8_rm8)(i386_state *cpustate)        // Opcode 0x2a
+static void __FASTCALL I386OP(sub_r8_rm8)(i386_state *cpustate)        // Opcode 0x2a
 {
 	UINT8 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -1938,7 +1938,7 @@ static void I386OP(sub_r8_rm8)(i386_state *cpustate)        // Opcode 0x2a
 	}
 }
 
-static void I386OP(sub_al_i8)(i386_state *cpustate)         // Opcode 0x2c
+static void __FASTCALL I386OP(sub_al_i8)(i386_state *cpustate)         // Opcode 0x2c
 {
 	UINT8 src, dst;
 	src = FETCH(cpustate);
@@ -1948,7 +1948,7 @@ static void I386OP(sub_al_i8)(i386_state *cpustate)         // Opcode 0x2c
 	CYCLES(cpustate,CYCLES_ALU_IMM_ACC);
 }
 
-static void I386OP(test_al_i8)(i386_state *cpustate)        // Opcode 0xa8
+static void __FASTCALL I386OP(test_al_i8)(i386_state *cpustate)        // Opcode 0xa8
 {
 	UINT8 src = FETCH(cpustate);
 	UINT8 dst = REG8(AL);
@@ -1959,7 +1959,7 @@ static void I386OP(test_al_i8)(i386_state *cpustate)        // Opcode 0xa8
 	CYCLES(cpustate,CYCLES_ALU_IMM_ACC);
 }
 
-static void I386OP(test_rm8_r8)(i386_state *cpustate)       // Opcode 0x84
+static void __FASTCALL I386OP(test_rm8_r8)(i386_state *cpustate)       // Opcode 0x84
 {
 	UINT8 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -1983,7 +1983,7 @@ static void I386OP(test_rm8_r8)(i386_state *cpustate)       // Opcode 0x84
 	}
 }
 
-static void I386OP(xchg_r8_rm8)(i386_state *cpustate)       // Opcode 0x86
+static void __FASTCALL I386OP(xchg_r8_rm8)(i386_state *cpustate)       // Opcode 0x86
 {
 	UINT8 modrm = FETCH(cpustate);
 	if( modrm >= 0xc0 ) {
@@ -2002,7 +2002,7 @@ static void I386OP(xchg_r8_rm8)(i386_state *cpustate)       // Opcode 0x86
 	}
 }
 
-static void I386OP(xor_rm8_r8)(i386_state *cpustate)        // Opcode 0x30
+static void __FASTCALL I386OP(xor_rm8_r8)(i386_state *cpustate)        // Opcode 0x30
 {
 	UINT8 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -2022,7 +2022,7 @@ static void I386OP(xor_rm8_r8)(i386_state *cpustate)        // Opcode 0x30
 	}
 }
 
-static void I386OP(xor_r8_rm8)(i386_state *cpustate)        // Opcode 0x32
+static void __FASTCALL I386OP(xor_r8_rm8)(i386_state *cpustate)        // Opcode 0x32
 {
 	UINT32 src, dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -2042,7 +2042,7 @@ static void I386OP(xor_r8_rm8)(i386_state *cpustate)        // Opcode 0x32
 	}
 }
 
-static void I386OP(xor_al_i8)(i386_state *cpustate)         // Opcode 0x34
+static void __FASTCALL I386OP(xor_al_i8)(i386_state *cpustate)         // Opcode 0x34
 {
 	UINT8 src, dst;
 	src = FETCH(cpustate);
@@ -2054,7 +2054,7 @@ static void I386OP(xor_al_i8)(i386_state *cpustate)         // Opcode 0x34
 
 
 
-static void I386OP(group80_8)(i386_state *cpustate)         // Opcode 0x80
+static void __FASTCALL I386OP(group80_8)(i386_state *cpustate)         // Opcode 0x80
 {
 	UINT32 ea;
 	UINT8 src, dst;
@@ -2191,7 +2191,7 @@ static void I386OP(group80_8)(i386_state *cpustate)         // Opcode 0x80
 	}
 }
 
-static void I386OP(groupC0_8)(i386_state *cpustate)         // Opcode 0xc0
+static void __FASTCALL I386OP(groupC0_8)(i386_state *cpustate)         // Opcode 0xc0
 {
 	UINT8 dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -2211,7 +2211,7 @@ static void I386OP(groupC0_8)(i386_state *cpustate)         // Opcode 0xc0
 	}
 }
 
-static void I386OP(groupD0_8)(i386_state *cpustate)         // Opcode 0xd0
+static void __FASTCALL I386OP(groupD0_8)(i386_state *cpustate)         // Opcode 0xd0
 {
 	UINT8 dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -2228,7 +2228,7 @@ static void I386OP(groupD0_8)(i386_state *cpustate)         // Opcode 0xd0
 	}
 }
 
-static void I386OP(groupD2_8)(i386_state *cpustate)         // Opcode 0xd2
+static void __FASTCALL I386OP(groupD2_8)(i386_state *cpustate)         // Opcode 0xd2
 {
 	UINT8 dst;
 	UINT8 modrm = FETCH(cpustate);
@@ -2245,7 +2245,7 @@ static void I386OP(groupD2_8)(i386_state *cpustate)         // Opcode 0xd2
 	}
 }
 
-static void I386OP(groupF6_8)(i386_state *cpustate)         // Opcode 0xf6
+static void __FASTCALL I386OP(groupF6_8)(i386_state *cpustate)         // Opcode 0xf6
 {
 	UINT8 modrm = FETCH(cpustate);
 
@@ -2407,7 +2407,7 @@ static void I386OP(groupF6_8)(i386_state *cpustate)         // Opcode 0xf6
 	}
 }
 
-static void I386OP(groupFE_8)(i386_state *cpustate)         // Opcode 0xfe
+static void __FASTCALL I386OP(groupFE_8)(i386_state *cpustate)         // Opcode 0xfe
 {
 	UINT8 modrm = FETCH(cpustate);
 
@@ -2466,7 +2466,7 @@ static void I386OP(groupFE_8)(i386_state *cpustate)         // Opcode 0xfe
 
 
 
-static void I386OP(segment_CS)(i386_state *cpustate)        // Opcode 0x2e
+static void __FASTCALL I386OP(segment_CS)(i386_state *cpustate)        // Opcode 0x2e
 {
 	cpustate->segment_prefix = 1;
 	cpustate->segment_override = CS;
@@ -2474,7 +2474,7 @@ static void I386OP(segment_CS)(i386_state *cpustate)        // Opcode 0x2e
 	I386OP(decode_opcode)(cpustate);
 }
 
-static void I386OP(segment_DS)(i386_state *cpustate)        // Opcode 0x3e
+static void __FASTCALL I386OP(segment_DS)(i386_state *cpustate)        // Opcode 0x3e
 {
 	cpustate->segment_prefix = 1;
 	cpustate->segment_override = DS;
@@ -2482,7 +2482,7 @@ static void I386OP(segment_DS)(i386_state *cpustate)        // Opcode 0x3e
 	I386OP(decode_opcode)(cpustate);
 }
 
-static void I386OP(segment_ES)(i386_state *cpustate)        // Opcode 0x26
+static void __FASTCALL I386OP(segment_ES)(i386_state *cpustate)        // Opcode 0x26
 {
 	cpustate->segment_prefix = 1;
 	cpustate->segment_override = ES;
@@ -2490,7 +2490,7 @@ static void I386OP(segment_ES)(i386_state *cpustate)        // Opcode 0x26
 	I386OP(decode_opcode)(cpustate);
 }
 
-static void I386OP(segment_FS)(i386_state *cpustate)        // Opcode 0x64
+static void __FASTCALL I386OP(segment_FS)(i386_state *cpustate)        // Opcode 0x64
 {
 	cpustate->segment_prefix = 1;
 	cpustate->segment_override = FS;
@@ -2498,7 +2498,7 @@ static void I386OP(segment_FS)(i386_state *cpustate)        // Opcode 0x64
 	I386OP(decode_opcode)(cpustate);
 }
 
-static void I386OP(segment_GS)(i386_state *cpustate)        // Opcode 0x65
+static void __FASTCALL I386OP(segment_GS)(i386_state *cpustate)        // Opcode 0x65
 {
 	cpustate->segment_prefix = 1;
 	cpustate->segment_override = GS;
@@ -2506,7 +2506,7 @@ static void I386OP(segment_GS)(i386_state *cpustate)        // Opcode 0x65
 	I386OP(decode_opcode)(cpustate);
 }
 
-static void I386OP(segment_SS)(i386_state *cpustate)        // Opcode 0x36
+static void __FASTCALL I386OP(segment_SS)(i386_state *cpustate)        // Opcode 0x36
 {
 	cpustate->segment_prefix = 1;
 	cpustate->segment_override = SS;
@@ -2514,7 +2514,7 @@ static void I386OP(segment_SS)(i386_state *cpustate)        // Opcode 0x36
 	I386OP(decode_opcode)(cpustate);
 }
 
-static void I386OP(operand_size)(i386_state *cpustate)      // Opcode prefix 0x66
+static void __FASTCALL I386OP(operand_size)(i386_state *cpustate)      // Opcode prefix 0x66
 {
 	if(cpustate->operand_prefix == 0)
 	{
@@ -2534,7 +2534,7 @@ static void I386OP(operand_size)(i386_state *cpustate)      // Opcode prefix 0x6
 	}
 }
 
-static void I386OP(address_size)(i386_state *cpustate)      // Opcode 0x67
+static void __FASTCALL I386OP(address_size)(i386_state *cpustate)      // Opcode 0x67
 {
 	if(cpustate->address_prefix == 0)
 	{
@@ -2544,12 +2544,12 @@ static void I386OP(address_size)(i386_state *cpustate)      // Opcode 0x67
 	I386OP(decode_opcode)(cpustate);
 }
 
-static void I386OP(nop)(i386_state *cpustate)               // Opcode 0x90
+static void __FASTCALL I386OP(nop)(i386_state *cpustate)               // Opcode 0x90
 {
 	CYCLES(cpustate,CYCLES_NOP);
 }
 
-static void I386OP(int3)(i386_state *cpustate)              // Opcode 0xcc
+static void __FASTCALL I386OP(int3)(i386_state *cpustate)              // Opcode 0xcc
 {
 	CYCLES(cpustate,CYCLES_INT3);
 	logerror("INT3 at %08X\n", cpustate->pc - 1);
@@ -2558,7 +2558,7 @@ static void I386OP(int3)(i386_state *cpustate)              // Opcode 0xcc
 	cpustate->ext = 1;
 }
 
-static void I386OP(int_16)(i386_state *cpustate)               // Opcode 0xcd
+static void __FASTCALL I386OP(int_16)(i386_state *cpustate)               // Opcode 0xcd
 {
 	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
 	if((PROTECTED_MODE) && (V8086_MODE) && (IOPL != 3)) {
@@ -2576,7 +2576,7 @@ static void I386OP(int_16)(i386_state *cpustate)               // Opcode 0xcd
 	cpustate->ext = 1;
 }
 
-static void I386OP(int_32)(i386_state *cpustate)               // Opcode 0xcd
+static void __FASTCALL I386OP(int_32)(i386_state *cpustate)               // Opcode 0xcd
 {
 	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
 	if((PROTECTED_MODE) && (V8086_MODE) && (IOPL != 3)) {
@@ -2594,7 +2594,7 @@ static void I386OP(int_32)(i386_state *cpustate)               // Opcode 0xcd
 	cpustate->ext = 1;
 }
 
-static void I386OP(into)(i386_state *cpustate)              // Opcode 0xce
+static void __FASTCALL I386OP(into)(i386_state *cpustate)              // Opcode 0xce
 {
 	if( cpustate->OF ) {
 		cpustate->ext = 0;
@@ -2609,7 +2609,7 @@ static void I386OP(into)(i386_state *cpustate)              // Opcode 0xce
 }
 
 static UINT32 i386_escape_ea;   // hack around GCC 4.6 error because we need the side effects of GetEA()
-static void I386OP(escape)(i386_state *cpustate)            // Opcodes 0xd8 - 0xdf
+static void __FASTCALL I386OP(escape)(i386_state *cpustate)            // Opcodes 0xd8 - 0xdf
 {
 	UINT8 modrm = FETCH(cpustate);
 	if(modrm < 0xc0)
@@ -2620,7 +2620,7 @@ static void I386OP(escape)(i386_state *cpustate)            // Opcodes 0xd8 - 0x
 	(void) LOAD_RM8(modrm);
 }
 
-static void I386OP(hlt)(i386_state *cpustate)               // Opcode 0xf4
+static void __FASTCALL I386OP(hlt)(i386_state *cpustate)               // Opcode 0xf4
 {
 	if(PROTECTED_MODE && cpustate->CPL != 0) {
 		logerror("Call from no-supervisor privilege: I386OP(hlt)");
@@ -2635,7 +2635,7 @@ static void I386OP(hlt)(i386_state *cpustate)               // Opcode 0xf4
 		cpustate->cycles = 0;
 }
 
-static void I386OP(decimal_adjust)(i386_state *cpustate, int direction)
+static void __FASTCALL I386OP(decimal_adjust)(i386_state *cpustate, int direction)
 {
 	UINT8 tmpAL = REG8(AL);
 	UINT8 tmpCF = cpustate->CF;
@@ -2660,19 +2660,19 @@ static void I386OP(decimal_adjust)(i386_state *cpustate, int direction)
 	SetSZPF8(REG8(AL));
 }
 
-static void I386OP(daa)(i386_state *cpustate)               // Opcode 0x27
+static void __FASTCALL I386OP(daa)(i386_state *cpustate)               // Opcode 0x27
 {
 	I386OP(decimal_adjust)(cpustate, +1);
 	CYCLES(cpustate,CYCLES_DAA);
 }
 
-static void I386OP(das)(i386_state *cpustate)               // Opcode 0x2f
+static void __FASTCALL I386OP(das)(i386_state *cpustate)               // Opcode 0x2f
 {
 	I386OP(decimal_adjust)(cpustate, -1);
 	CYCLES(cpustate,CYCLES_DAS);
 }
 
-static void I386OP(aaa)(i386_state *cpustate)               // Opcode 0x37
+static void __FASTCALL I386OP(aaa)(i386_state *cpustate)               // Opcode 0x37
 {
 	if( ( (REG8(AL) & 0x0f) > 9) || (cpustate->AF != 0) ) {
 		REG16(AX) = REG16(AX) + 6;
@@ -2687,7 +2687,7 @@ static void I386OP(aaa)(i386_state *cpustate)               // Opcode 0x37
 	CYCLES(cpustate,CYCLES_AAA);
 }
 
-static void I386OP(aas)(i386_state *cpustate)               // Opcode 0x3f
+static void __FASTCALL I386OP(aas)(i386_state *cpustate)               // Opcode 0x3f
 {
 	if (cpustate->AF || ((REG8(AL) & 0xf) > 9))
 	{
@@ -2705,7 +2705,7 @@ static void I386OP(aas)(i386_state *cpustate)               // Opcode 0x3f
 	CYCLES(cpustate,CYCLES_AAS);
 }
 
-static void I386OP(aad)(i386_state *cpustate)               // Opcode 0xd5
+static void __FASTCALL I386OP(aad)(i386_state *cpustate)               // Opcode 0xd5
 {
 	UINT8 tempAL = REG8(AL);
 	UINT8 tempAH = REG8(AH);
@@ -2717,7 +2717,7 @@ static void I386OP(aad)(i386_state *cpustate)               // Opcode 0xd5
 	CYCLES(cpustate,CYCLES_AAD);
 }
 
-static void I386OP(aam)(i386_state *cpustate)               // Opcode 0xd4
+static void __FASTCALL I386OP(aam)(i386_state *cpustate)               // Opcode 0xd4
 {
 	UINT8 tempAL = REG8(AL);
 	UINT8 i = FETCH(cpustate);
@@ -2734,7 +2734,7 @@ static void I386OP(aam)(i386_state *cpustate)               // Opcode 0xd4
 	CYCLES(cpustate,CYCLES_AAM);
 }
 
-static void I386OP(clts)(i386_state *cpustate)              // Opcode 0x0f 0x06
+static void __FASTCALL I386OP(clts)(i386_state *cpustate)              // Opcode 0x0f 0x06
 {
 	// Privileged instruction, CPL must be zero.  Can be used in real or v86 mode.
 	if(PROTECTED_MODE && cpustate->CPL != 0) {
@@ -2746,12 +2746,12 @@ static void I386OP(clts)(i386_state *cpustate)              // Opcode 0x0f 0x06
 	CYCLES(cpustate,CYCLES_CLTS);
 }
 
-static void I386OP(wait)(i386_state *cpustate)              // Opcode 0x9B
+static void __FASTCALL I386OP(wait)(i386_state *cpustate)              // Opcode 0x9B
 {
 	// TODO
 }
 
-static void I386OP(lock)(i386_state *cpustate)              // Opcode 0xf0
+static void __FASTCALL I386OP(lock)(i386_state *cpustate)              // Opcode 0xf0
 {
 	// lock doesn't depend on iopl on 386
 	cpustate->lock = true;
@@ -2759,19 +2759,19 @@ static void I386OP(lock)(i386_state *cpustate)              // Opcode 0xf0
 	I386OP(decode_opcode)(cpustate);
 }
 
-static void I386OP(mov_r32_tr)(i386_state *cpustate)        // Opcode 0x0f 24
+static void __FASTCALL I386OP(mov_r32_tr)(i386_state *cpustate)        // Opcode 0x0f 24
 {
 	FETCH(cpustate);
 	CYCLES(cpustate,1);     // TODO: correct cycle count
 }
 
-static void I386OP(mov_tr_r32)(i386_state *cpustate)        // Opcode 0x0f 26
+static void __FASTCALL I386OP(mov_tr_r32)(i386_state *cpustate)        // Opcode 0x0f 26
 {
 	FETCH(cpustate);
 	CYCLES(cpustate,1);     // TODO: correct cycle count
 }
 
-static void I386OP(loadall)(i386_state *cpustate)       // Opcode 0x0f 0x07 (0x0f 0x05 on 80286), undocumented
+static void __FASTCALL I386OP(loadall)(i386_state *cpustate)       // Opcode 0x0f 0x07 (0x0f 0x05 on 80286), undocumented
 {
 	if(PROTECTED_MODE && (cpustate->CPL != 0)) {
 		logerror("Call from non-supervisor privilege: I386OP(loadall)"); 
@@ -2839,13 +2839,13 @@ static void I386OP(loadall)(i386_state *cpustate)       // Opcode 0x0f 0x07 (0x0
 	CHANGE_PC(cpustate, cpustate->eip);
 }
 
-static void I386OP(invalid)(i386_state *cpustate)
+static void __FASTCALL I386OP(invalid)(i386_state *cpustate)
 {
 	report_invalid_opcode(cpustate);
 	i386_trap(cpustate, 6, 0, 0);
 }
 
-static void I386OP(xlat)(i386_state *cpustate)          // Opcode 0xd7
+static void __FASTCALL I386OP(xlat)(i386_state *cpustate)          // Opcode 0xd7
 {
 	UINT32 ea;
 	if( cpustate->segment_prefix ) {

@@ -214,7 +214,7 @@ static void cpu_reset_generic(i386_state* cpustate)
 	cpustate->memory_wait += wait0;
 }
 
-/*static*/INLINE void i386_load_segment_descriptor(i386_state *cpustate, int segment )
+/*static*/INLINE void __FASTCALL i386_load_segment_descriptor(i386_state *cpustate, int segment )
 {
 	if (PROTECTED_MODE)
 	{
@@ -256,7 +256,7 @@ static void cpu_reset_generic(i386_state* cpustate)
 }
 
 /* Retrieves the stack selector located in the current TSS */
-static UINT32 i386_get_stack_segment(i386_state* cpustate, UINT8 privilege)
+static UINT32 __FASTCALL i386_get_stack_segment(i386_state* cpustate, UINT8 privilege)
 {
 	UINT32 ret;
 	if(privilege >= 3)
@@ -271,7 +271,7 @@ static UINT32 i386_get_stack_segment(i386_state* cpustate, UINT8 privilege)
 }
 
 /* Retrieves the stack pointer located in the current TSS */
-static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
+static UINT32 __FASTCALL i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 {
 	UINT32 ret;
 	if(privilege >= 3)
@@ -285,7 +285,7 @@ static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 	return ret;
 }
 
-/*static*/INLINE UINT32 get_flags(i386_state *cpustate)
+/*static*/INLINE __FASTCALL UINT32 get_flags(i386_state *cpustate)
 {
 	UINT32 f = 0x2;
 	f |= cpustate->CF;
@@ -309,7 +309,7 @@ static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 	return (cpustate->eflags & ~cpustate->eflags_mask) | (f & cpustate->eflags_mask);
 }
 
-/*static*/INLINE void set_flags(i386_state *cpustate, UINT32 f )
+/*static*/INLINE void __FASTCALL set_flags(i386_state *cpustate, UINT32 f )
 {
 	UINT8 old_vm = cpustate->VM;
 	f &= cpustate->eflags_mask;;
@@ -358,7 +358,7 @@ static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 #endif
 }
 
-/*static*/INLINE void sib_byte(i386_state *cpustate,UINT8 mod, UINT32* out_ea, UINT8* out_segment)
+/*static*/INLINE void __FASTCALL sib_byte(i386_state *cpustate,UINT8 mod, UINT32* out_ea, UINT8* out_segment)
 {
 	UINT32 ea = 0;
 	UINT8 segment = 0;
@@ -405,7 +405,7 @@ static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 	*out_segment = segment;
 }
 
-/*static*/INLINE void modrm_to_EA(i386_state *cpustate,UINT8 mod_rm, UINT32* out_ea, UINT8* out_segment)
+/*static*/INLINE void __FASTCALL modrm_to_EA(i386_state *cpustate,UINT8 mod_rm, UINT32* out_ea, UINT8* out_segment)
 {
 	INT8 disp8;
 	INT16 disp16;
@@ -487,7 +487,7 @@ static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 	}
 }
 
-/*static*/INLINE UINT32 GetNonTranslatedEA(i386_state *cpustate,UINT8 modrm,UINT8 *seg)
+/*static*/INLINE UINT32 __FASTCALL GetNonTranslatedEA(i386_state *cpustate,UINT8 modrm,UINT8 *seg)
 {
 	UINT8 segment;
 	UINT32 ea;
@@ -496,7 +496,7 @@ static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 	return ea;
 }
 
-/*static*/INLINE UINT32 GetEA(i386_state *cpustate,UINT8 modrm, int rwn, UINT32 size)
+/*static*/INLINE UINT32 __FASTCALL GetEA(i386_state *cpustate,UINT8 modrm, int rwn, UINT32 size)
 {
 	UINT8 segment;
 	UINT32 ea;
@@ -505,7 +505,7 @@ static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 }
 
 /* Check segment register for validity when changing privilege level after an RETF */
-/*static*/ INLINE void i386_check_sreg_validity(i386_state* cpustate, int reg)
+/*static*/ INLINE void __FASTCALL i386_check_sreg_validity(i386_state* cpustate, int reg)
 {
 	UINT16 selector = cpustate->sreg[reg].selector;
 	UINT8 CPL = cpustate->CPL;
@@ -577,7 +577,7 @@ static int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32
 	return 0;
 }
 #endif
-static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, bool *fault)
+static void __FASTCALL i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, bool *fault)
 {
 	// Checks done when MOV changes a segment register in protected mode
 	UINT8 CPL,RPL,DPL;
@@ -718,7 +718,7 @@ static void i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, boo
 	if(fault) *fault = false;
 }
 
-static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level)
+static void __FASTCALL i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level)
 {
 	/*  I386 Interrupts/Traps/Faults:
 	 *
@@ -1503,7 +1503,7 @@ static void i386_check_irq_line(i386_state *cpustate)
 	}
 }
 
-static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 off, int indirect, int operand32)
+static void __FASTCALL i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 off, int indirect, int operand32)
 {
 	I386_SREG desc;
 	I386_CALL_GATE call_gate;
@@ -1778,7 +1778,7 @@ static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 of
 	CHANGE_PC(cpustate,cpustate->eip);
 }
 
-static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 off, int indirect, int operand32)
+static void __FASTCALL i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 off, int indirect, int operand32)
 {
 	I386_SREG desc;
 	I386_CALL_GATE gate;
@@ -2248,7 +2248,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 	CHANGE_PC(cpustate,cpustate->eip);
 }
 
-static void i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 operand32)
+static void __FASTCALL i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 operand32)
 {
 	UINT32 newCS, newEIP;
 	I386_SREG desc;
@@ -2521,7 +2521,7 @@ static void i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 op
 	CHANGE_PC(cpustate,cpustate->eip);
 }
 
-static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
+static void __FASTCALL i386_protected_mode_iret(i386_state* cpustate, int operand32)
 {
 	UINT32 newCS, newEIP;
 	UINT32 newSS, newESP;  // when changing privilege
@@ -3079,18 +3079,18 @@ static void report_invalid_modrm(i386_state *cpustate, const char* opcode, UINT8
 }
 
 /* Forward declarations */
-static void I386OP(decode_opcode)(i386_state *cpustate);
-static void I386OP(decode_two_byte)(i386_state *cpustate);
-static void I386OP(decode_three_byte38)(i386_state *cpustate);
-static void I386OP(decode_three_byte3a)(i386_state *cpustate);
-static void I386OP(decode_three_byte66)(i386_state *cpustate);
-static void I386OP(decode_three_bytef2)(i386_state *cpustate);
-static void I386OP(decode_three_bytef3)(i386_state *cpustate);
-static void I386OP(decode_four_byte3866)(i386_state *cpustate);
-static void I386OP(decode_four_byte3a66)(i386_state *cpustate);
-static void I386OP(decode_four_byte38f2)(i386_state *cpustate);
-static void I386OP(decode_four_byte3af2)(i386_state *cpustate);
-static void I386OP(decode_four_byte38f3)(i386_state *cpustate);
+static void __FASTCALL I386OP(decode_opcode)(i386_state *cpustate);
+static void __FASTCALL I386OP(decode_two_byte)(i386_state *cpustate);
+static void __FASTCALL I386OP(decode_three_byte38)(i386_state *cpustate);
+static void __FASTCALL I386OP(decode_three_byte3a)(i386_state *cpustate);
+static void __FASTCALL I386OP(decode_three_byte66)(i386_state *cpustate);
+static void __FASTCALL I386OP(decode_three_bytef2)(i386_state *cpustate);
+static void __FASTCALL I386OP(decode_three_bytef3)(i386_state *cpustate);
+static void __FASTCALL I386OP(decode_four_byte3866)(i386_state *cpustate);
+static void __FASTCALL I386OP(decode_four_byte3a66)(i386_state *cpustate);
+static void __FASTCALL I386OP(decode_four_byte38f2)(i386_state *cpustate);
+static void __FASTCALL I386OP(decode_four_byte3af2)(i386_state *cpustate);
+static void __FASTCALL I386OP(decode_four_byte38f3)(i386_state *cpustate);
 
 
 
@@ -3102,7 +3102,7 @@ static void I386OP(decode_four_byte38f3)(i386_state *cpustate);
 #include "x87ops.c"
 #include "i386ops.h"
 
-static void I386OP(decode_opcode)(i386_state *cpustate)
+static void __FASTCALL I386OP(decode_opcode)(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 
@@ -3116,7 +3116,7 @@ static void I386OP(decode_opcode)(i386_state *cpustate)
 }
 
 /* Two-byte opcode 0f xx */
-static void I386OP(decode_two_byte)(i386_state *cpustate)
+static void __FASTCALL I386OP(decode_two_byte)(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 
@@ -3130,7 +3130,7 @@ static void I386OP(decode_two_byte)(i386_state *cpustate)
 }
 
 /* Three-byte opcode 0f 38 xx */
-static void I386OP(decode_three_byte38)(i386_state *cpustate)
+static void __FASTCALL I386OP(decode_three_byte38)(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 
@@ -3141,7 +3141,7 @@ static void I386OP(decode_three_byte38)(i386_state *cpustate)
 }
 
 /* Three-byte opcode 0f 3a xx */
-static void I386OP(decode_three_byte3a)(i386_state *cpustate)
+static void __FASTCALL I386OP(decode_three_byte3a)(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 
@@ -3152,7 +3152,7 @@ static void I386OP(decode_three_byte3a)(i386_state *cpustate)
 }
 
 /* Three-byte opcode prefix 66 0f xx */
-static void I386OP(decode_three_byte66)(i386_state *cpustate)
+static void __FASTCALL I386OP(decode_three_byte66)(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 	if( cpustate->operand_size )
@@ -3162,7 +3162,7 @@ static void I386OP(decode_three_byte66)(i386_state *cpustate)
 }
 
 /* Three-byte opcode prefix f2 0f xx */
-static void I386OP(decode_three_bytef2)(i386_state *cpustate)
+static void __FASTCALL I386OP(decode_three_bytef2)(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 	if( cpustate->operand_size )
@@ -3172,7 +3172,7 @@ static void I386OP(decode_three_bytef2)(i386_state *cpustate)
 }
 
 /* Three-byte opcode prefix f3 0f */
-static void I386OP(decode_three_bytef3)(i386_state *cpustate)
+static void __FASTCALL I386OP(decode_three_bytef3)(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 	if( cpustate->operand_size )
@@ -3182,7 +3182,7 @@ static void I386OP(decode_three_bytef3)(i386_state *cpustate)
 }
 
 /* Four-byte opcode prefix 66 0f 38 xx */
-static void I386OP(decode_four_byte3866)(i386_state *cpustate)
+static void __FASTCALL I386OP(decode_four_byte3866)(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 	if (cpustate->operand_size)
@@ -3192,7 +3192,7 @@ static void I386OP(decode_four_byte3866)(i386_state *cpustate)
 }
 
 /* Four-byte opcode prefix 66 0f 3a xx */
-static void I386OP(decode_four_byte3a66)(i386_state *cpustate)
+static void __FASTCALL I386OP(decode_four_byte3a66)(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 	if (cpustate->operand_size)
@@ -3202,7 +3202,7 @@ static void I386OP(decode_four_byte3a66)(i386_state *cpustate)
 }
 
 /* Four-byte opcode prefix f2 0f 38 xx */
-static void I386OP(decode_four_byte38f2)(i386_state *cpustate)
+static void __FASTCALL I386OP(decode_four_byte38f2)(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 	if (cpustate->operand_size)
@@ -3212,7 +3212,7 @@ static void I386OP(decode_four_byte38f2)(i386_state *cpustate)
 }
 
 /* Four-byte opcode prefix f2 0f 3a xx */
-static void I386OP(decode_four_byte3af2)(i386_state *cpustate)
+static void __FASTCALL I386OP(decode_four_byte3af2)(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 	if (cpustate->operand_size)
@@ -3222,7 +3222,7 @@ static void I386OP(decode_four_byte3af2)(i386_state *cpustate)
 }
 
 /* Four-byte opcode prefix f3 0f 38 xx */
-static void I386OP(decode_four_byte38f3)(i386_state *cpustate)
+static void __FASTCALL I386OP(decode_four_byte38f3)(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
 	if (cpustate->operand_size)
