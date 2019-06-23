@@ -91,7 +91,7 @@ public:
 	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
 	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
-	bool __FASTCALL write_debug_reg(const _TCHAR *reg, uint32_t data);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
 #endif

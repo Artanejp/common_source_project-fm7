@@ -145,7 +145,7 @@ protected:
 	}
 	
 	// interrupt
-	uint32_t ACK_INTR()  override
+	uint32_t __FASTCALL ACK_INTR()  override
 	{
 		return d_pic->get_intr_ack();
 	}
