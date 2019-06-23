@@ -137,16 +137,14 @@ private:
 		return kana_pressed;
 	}
 	void event_callback(int event_id, int err);
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int id);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int id);
 
-	uint32_t read_data8(uint32_t addr);
-	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
 	void reset(void);
 	void release(void);
-	bool decl_state(FILEIO *state_fio, bool loading);
-	void save_state(FILEIO *f);
-	bool load_state(FILEIO *f);
+	bool process_state(FILEIO *state_fio, bool loading);
 	void set_context_rxrdy(DEVICE *p, int id, uint32_t mask) {
 #if defined(_FM77AV_VARIANTS)  
 		register_output_signal(&rxrdy, p, id, mask);

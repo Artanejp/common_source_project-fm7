@@ -178,7 +178,7 @@ INLINE floatx80 READ80(i386_state *cpustate, UINT32 ea)
 	return t;
 }
 
-INLINE void WRITE80(i386_state *cpustate, UINT32 ea, floatx80 t)
+INLINE void __FASTCALL WRITE80(i386_state *cpustate, UINT32 ea, floatx80 t)
 {
 	WRITE64(cpustate, ea, t.low);
 	WRITE16(cpustate, ea + 8, t.high);
@@ -191,13 +191,13 @@ INLINE void WRITE80(i386_state *cpustate, UINT32 ea, floatx80 t)
  *
  *************************************/
 
-INLINE void x87_set_stack_top(i386_state *cpustate, int top)
+INLINE void __FASTCALL x87_set_stack_top(i386_state *cpustate, int top)
 {
 	cpustate->x87_sw &= ~(X87_SW_TOP_MASK << X87_SW_TOP_SHIFT);
 	cpustate->x87_sw |= (top << X87_SW_TOP_SHIFT);
 }
 
-INLINE void x87_set_tag(i386_state *cpustate, int reg, int tag)
+INLINE void __FASTCALL x87_set_tag(i386_state *cpustate, int reg, int tag)
 {
 	int shift = X87_TW_FIELD_SHIFT(reg);
 
@@ -205,7 +205,7 @@ INLINE void x87_set_tag(i386_state *cpustate, int reg, int tag)
 	cpustate->x87_tw |= (tag << shift);
 }
 
-void x87_write_stack(i386_state *cpustate, int i, floatx80 value, int update_tag)
+void __FASTCALL x87_write_stack(i386_state *cpustate, int i, floatx80 value, int update_tag)
 {
 	ST(i) = value;
 
@@ -230,13 +230,13 @@ void x87_write_stack(i386_state *cpustate, int i, floatx80 value, int update_tag
 	}
 }
 
-INLINE void x87_set_stack_underflow(i386_state *cpustate)
+INLINE void __FASTCALL x87_set_stack_underflow(i386_state *cpustate)
 {
 	cpustate->x87_sw &= ~X87_SW_C1;
 	cpustate->x87_sw |= X87_SW_IE | X87_SW_SF;
 }
 
-INLINE void x87_set_stack_overflow(i386_state *cpustate)
+INLINE void __FASTCALL x87_set_stack_overflow(i386_state *cpustate)
 {
 	cpustate->x87_sw |= X87_SW_C1 | X87_SW_IE | X87_SW_SF;
 }
@@ -329,7 +329,7 @@ int x87_check_exceptions(i386_state *cpustate)
 	return 1;
 }
 
-INLINE void x87_write_cw(i386_state *cpustate, UINT16 cw)
+INLINE void __FASTCALL x87_write_cw(i386_state *cpustate, UINT16 cw)
 {
 	cpustate->x87_cw = cw;
 
@@ -337,7 +337,7 @@ INLINE void x87_write_cw(i386_state *cpustate, UINT16 cw)
 	float_rounding_mode = x87_to_sf_rc[(cpustate->x87_cw >> X87_CW_RC_SHIFT) & X87_CW_RC_MASK];
 }
 
-void x87_reset(i386_state *cpustate)
+void __FASTCALL x87_reset(i386_state *cpustate)
 {
 	x87_write_cw(cpustate, 0x0037f);
 
@@ -492,7 +492,7 @@ static floatx80 x87_div(i386_state *cpustate, floatx80 a, floatx80 b)
  *
  *************************************/
 
-void x87_fadd_m32real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fadd_m32real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -527,7 +527,7 @@ void x87_fadd_m32real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fadd_m64real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fadd_m64real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -562,7 +562,7 @@ void x87_fadd_m64real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fadd_st_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fadd_st_sti(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -595,7 +595,7 @@ void x87_fadd_st_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fadd_sti_st(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fadd_sti_st(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -628,7 +628,7 @@ void x87_fadd_sti_st(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_faddp(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_faddp(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -664,7 +664,7 @@ void x87_faddp(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fiadd_m32int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fiadd_m32int(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -699,7 +699,7 @@ void x87_fiadd_m32int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 19);
 }
 
-void x87_fiadd_m16int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fiadd_m16int(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -741,7 +741,7 @@ void x87_fiadd_m16int(i386_state *cpustate, UINT8 modrm)
  *
  *************************************/
 
-void x87_fsub_m32real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fsub_m32real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -776,7 +776,7 @@ void x87_fsub_m32real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fsub_m64real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fsub_m64real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -811,7 +811,7 @@ void x87_fsub_m64real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fsub_st_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fsub_st_sti(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -844,7 +844,7 @@ void x87_fsub_st_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fsub_sti_st(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fsub_sti_st(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -877,7 +877,7 @@ void x87_fsub_sti_st(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fsubp(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fsubp(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -913,7 +913,7 @@ void x87_fsubp(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fisub_m32int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fisub_m32int(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -948,7 +948,7 @@ void x87_fisub_m32int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 19);
 }
 
-void x87_fisub_m16int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fisub_m16int(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -990,7 +990,7 @@ void x87_fisub_m16int(i386_state *cpustate, UINT8 modrm)
  *
  *************************************/
 
-void x87_fsubr_m32real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fsubr_m32real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -1025,7 +1025,7 @@ void x87_fsubr_m32real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fsubr_m64real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fsubr_m64real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -1060,7 +1060,7 @@ void x87_fsubr_m64real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fsubr_st_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fsubr_st_sti(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -1093,7 +1093,7 @@ void x87_fsubr_st_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fsubr_sti_st(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fsubr_sti_st(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -1126,7 +1126,7 @@ void x87_fsubr_sti_st(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fsubrp(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fsubrp(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -1162,7 +1162,7 @@ void x87_fsubrp(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fisubr_m32int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fisubr_m32int(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -1197,7 +1197,7 @@ void x87_fisubr_m32int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 19);
 }
 
-void x87_fisubr_m16int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fisubr_m16int(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -1239,7 +1239,7 @@ void x87_fisubr_m16int(i386_state *cpustate, UINT8 modrm)
  *
  *************************************/
 
-void x87_fdiv_m32real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fdiv_m32real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -1274,7 +1274,7 @@ void x87_fdiv_m32real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 73);
 }
 
-void x87_fdiv_m64real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fdiv_m64real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -1309,7 +1309,7 @@ void x87_fdiv_m64real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 73);
 }
 
-void x87_fdiv_st_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fdiv_st_sti(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 	floatx80 result;
@@ -1344,7 +1344,7 @@ void x87_fdiv_st_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 73);
 }
 
-void x87_fdiv_sti_st(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fdiv_sti_st(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 	floatx80 result;
@@ -1379,7 +1379,7 @@ void x87_fdiv_sti_st(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 73);
 }
 
-void x87_fdivp(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fdivp(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 	floatx80 result;
@@ -1415,7 +1415,7 @@ void x87_fdivp(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 73);
 }
 
-void x87_fidiv_m32int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fidiv_m32int(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -1450,7 +1450,7 @@ void x87_fidiv_m32int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 73);
 }
 
-void x87_fidiv_m16int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fidiv_m16int(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -1492,7 +1492,7 @@ void x87_fidiv_m16int(i386_state *cpustate, UINT8 modrm)
  *
  *************************************/
 
-void x87_fdivr_m32real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fdivr_m32real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -1527,7 +1527,7 @@ void x87_fdivr_m32real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 73);
 }
 
-void x87_fdivr_m64real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fdivr_m64real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -1562,7 +1562,7 @@ void x87_fdivr_m64real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 73);
 }
 
-void x87_fdivr_st_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fdivr_st_sti(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 	floatx80 result;
@@ -1597,7 +1597,7 @@ void x87_fdivr_st_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 73);
 }
 
-void x87_fdivr_sti_st(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fdivr_sti_st(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 	floatx80 result;
@@ -1632,7 +1632,7 @@ void x87_fdivr_sti_st(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 73);
 }
 
-void x87_fdivrp(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fdivrp(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 	floatx80 result;
@@ -1669,7 +1669,7 @@ void x87_fdivrp(i386_state *cpustate, UINT8 modrm)
 }
 
 
-void x87_fidivr_m32int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fidivr_m32int(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -1704,7 +1704,7 @@ void x87_fidivr_m32int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 73);
 }
 
-void x87_fidivr_m16int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fidivr_m16int(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -1746,7 +1746,7 @@ void x87_fidivr_m16int(i386_state *cpustate, UINT8 modrm)
  *
  *************************************/
 
-void x87_fmul_m32real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fmul_m32real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -1780,7 +1780,7 @@ void x87_fmul_m32real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 11);
 }
 
-void x87_fmul_m64real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fmul_m64real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -1814,7 +1814,7 @@ void x87_fmul_m64real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 14);
 }
 
-void x87_fmul_st_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fmul_st_sti(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -1846,7 +1846,7 @@ void x87_fmul_st_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 16);
 }
 
-void x87_fmul_sti_st(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fmul_sti_st(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -1878,7 +1878,7 @@ void x87_fmul_sti_st(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 16);
 }
 
-void x87_fmulp(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fmulp(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -1913,7 +1913,7 @@ void x87_fmulp(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 16);
 }
 
-void x87_fimul_m32int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fimul_m32int(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -1947,7 +1947,7 @@ void x87_fimul_m32int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 22);
 }
 
-void x87_fimul_m16int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fimul_m16int(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -1988,7 +1988,7 @@ void x87_fimul_m16int(i386_state *cpustate, UINT8 modrm)
 *
 *************************************/
 
-void x87_fcmovb_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcmovb_sti(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -2012,7 +2012,7 @@ void x87_fcmovb_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fcmove_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcmove_sti(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -2036,7 +2036,7 @@ void x87_fcmove_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fcmovbe_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcmovbe_sti(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -2060,7 +2060,7 @@ void x87_fcmovbe_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fcmovu_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcmovu_sti(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -2084,7 +2084,7 @@ void x87_fcmovu_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fcmovnb_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcmovnb_sti(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -2108,7 +2108,7 @@ void x87_fcmovnb_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fcmovne_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcmovne_sti(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -2132,7 +2132,7 @@ void x87_fcmovne_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fcmovnbe_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcmovnbe_sti(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -2156,7 +2156,7 @@ void x87_fcmovnbe_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fcmovnu_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcmovnu_sti(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 	int i = modrm & 7;
@@ -2186,7 +2186,7 @@ void x87_fcmovnu_sti(i386_state *cpustate, UINT8 modrm)
  *
  *************************************/
 /* D9 F8 */
-void x87_fprem(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fprem(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -2243,7 +2243,7 @@ void x87_fprem(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 84);
 }
 
-void x87_fprem1(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fprem1(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -2269,7 +2269,7 @@ void x87_fprem1(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 94);
 }
 
-void x87_fsqrt(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fsqrt(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -2306,7 +2306,7 @@ void x87_fsqrt(i386_state *cpustate, UINT8 modrm)
  *
  *************************************/
 
-void x87_f2xm1(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_f2xm1(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -2331,7 +2331,7 @@ void x87_f2xm1(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 242);
 }
 
-void x87_fyl2x(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fyl2x(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -2368,7 +2368,7 @@ void x87_fyl2x(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 250);
 }
 
-void x87_fyl2xp1(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fyl2xp1(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -2397,7 +2397,7 @@ void x87_fyl2xp1(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 313);
 }
 /* D9 F2 if 8087   0 < angle < pi/4 */
-void x87_fptan(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fptan(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result1, result2;
 
@@ -2442,7 +2442,7 @@ void x87_fptan(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 244);
 }
 /* D9 F3 */
-void x87_fpatan(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fpatan(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -2467,7 +2467,7 @@ void x87_fpatan(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 289);
 }
 /* D9 FE  387 only */
-void x87_fsin(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fsin(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -2500,7 +2500,7 @@ void x87_fsin(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 241);
 }
 /* D9 FF 387 only */
-void x87_fcos(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcos(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -2533,7 +2533,7 @@ void x87_fcos(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 241);
 }
 /* D9 FB  387 only */
-void x87_fsincos(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fsincos(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 s_result, c_result;
 
@@ -2588,7 +2588,7 @@ void x87_fsincos(i386_state *cpustate, UINT8 modrm)
  *
  *************************************/
 
-void x87_fld_m32real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fld_m32real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -2618,7 +2618,7 @@ void x87_fld_m32real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 3);
 }
 
-void x87_fld_m64real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fld_m64real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -2648,7 +2648,7 @@ void x87_fld_m64real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 3);
 }
 
-void x87_fld_m80real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fld_m80real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -2669,7 +2669,7 @@ void x87_fld_m80real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 6);
 }
 
-void x87_fld_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fld_sti(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -2689,7 +2689,7 @@ void x87_fld_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fild_m16int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fild_m16int(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -2712,7 +2712,7 @@ void x87_fild_m16int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 13);
 }
 
-void x87_fild_m32int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fild_m32int(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -2735,7 +2735,7 @@ void x87_fild_m32int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 9);
 }
 
-void x87_fild_m64int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fild_m64int(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -2758,7 +2758,7 @@ void x87_fild_m64int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 10);
 }
 
-void x87_fbld(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fbld(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -2803,7 +2803,7 @@ void x87_fbld(i386_state *cpustate, UINT8 modrm)
  *
  *************************************/
 
-void x87_fst_m32real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fst_m32real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -2828,7 +2828,7 @@ void x87_fst_m32real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 7);
 }
 
-void x87_fst_m64real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fst_m64real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -2853,7 +2853,7 @@ void x87_fst_m64real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fst_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fst_sti(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 	floatx80 value;
@@ -2875,7 +2875,7 @@ void x87_fst_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 3);
 }
 
-void x87_fstp_m32real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fstp_m32real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -2901,7 +2901,7 @@ void x87_fstp_m32real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 7);
 }
 
-void x87_fstp_m64real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fstp_m64real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -2928,7 +2928,7 @@ void x87_fstp_m64real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fstp_m80real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fstp_m80real(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -2953,7 +2953,7 @@ void x87_fstp_m80real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 6);
 }
 
-void x87_fstp_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fstp_sti(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 	floatx80 value;
@@ -2978,7 +2978,7 @@ void x87_fstp_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 3);
 }
 
-void x87_fist_m16int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fist_m16int(i386_state *cpustate, UINT8 modrm)
 {
 	INT16 m16int;
 
@@ -3011,7 +3011,7 @@ void x87_fist_m16int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 29);
 }
 
-void x87_fist_m32int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fist_m32int(i386_state *cpustate, UINT8 modrm)
 {
 	INT32 m32int;
 
@@ -3044,7 +3044,7 @@ void x87_fist_m32int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 28);
 }
 
-void x87_fistp_m16int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fistp_m16int(i386_state *cpustate, UINT8 modrm)
 {
 	INT16 m16int;
 
@@ -3078,7 +3078,7 @@ void x87_fistp_m16int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 29);
 }
 
-void x87_fistp_m32int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fistp_m32int(i386_state *cpustate, UINT8 modrm)
 {
 	INT32 m32int;
 
@@ -3112,7 +3112,7 @@ void x87_fistp_m32int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 29);
 }
 
-void x87_fistp_m64int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fistp_m64int(i386_state *cpustate, UINT8 modrm)
 {
 	INT64 m64int;
 
@@ -3146,7 +3146,7 @@ void x87_fistp_m64int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 29);
 }
 
-void x87_fbstp(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fbstp(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 result;
 
@@ -3188,7 +3188,7 @@ void x87_fbstp(i386_state *cpustate, UINT8 modrm)
  *
  *************************************/
 
-void x87_fld1(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fld1(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 	int tag;
@@ -3214,7 +3214,7 @@ void x87_fld1(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fldl2t(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fldl2t(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 	int tag;
@@ -3246,7 +3246,7 @@ void x87_fldl2t(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fldl2e(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fldl2e(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 	int tag;
@@ -3279,7 +3279,7 @@ void x87_fldl2e(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fldpi(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fldpi(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 	int tag;
@@ -3312,7 +3312,7 @@ void x87_fldpi(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fldlg2(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fldlg2(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 	int tag;
@@ -3345,7 +3345,7 @@ void x87_fldlg2(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fldln2(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fldln2(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 	int tag;
@@ -3378,7 +3378,7 @@ void x87_fldln2(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_fldz(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fldz(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 	int tag;
@@ -3411,12 +3411,12 @@ void x87_fldz(i386_state *cpustate, UINT8 modrm)
  *
  *************************************/
 
-void x87_fnop(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fnop(i386_state *cpustate, UINT8 modrm)
 {
 	CYCLES(cpustate, 3);
 }
 
-void x87_fchs(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fchs(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -3439,7 +3439,7 @@ void x87_fchs(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 6);
 }
 
-void x87_fabs(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fabs(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -3462,7 +3462,7 @@ void x87_fabs(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 6);
 }
 
-void x87_fscale(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fscale(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -3503,7 +3503,7 @@ void x87_fscale(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 31);
 }
 
-void x87_frndint(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_frndint(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value;
 
@@ -3525,7 +3525,7 @@ void x87_frndint(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 21);
 }
 
-void x87_fxtract(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fxtract(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 sig80, exp80;
 
@@ -3578,7 +3578,7 @@ void x87_fxtract(i386_state *cpustate, UINT8 modrm)
  *
  *************************************/
 
-void x87_ftst(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_ftst(i386_state *cpustate, UINT8 modrm)
 {
 	if (X87_IS_ST_EMPTY(0))
 	{
@@ -3609,7 +3609,7 @@ void x87_ftst(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fxam(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fxam(i386_state *cpustate, UINT8 modrm)
 {
 	floatx80 value = ST(0);
 
@@ -3643,7 +3643,7 @@ void x87_fxam(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 8);
 }
 
-void x87_ficom_m16int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_ficom_m16int(i386_state *cpustate, UINT8 modrm)
 {
 	UINT32 ea = GetEA(cpustate, modrm, 0, 2);
 	if (X87_IS_ST_EMPTY(0))
@@ -3680,7 +3680,7 @@ void x87_ficom_m16int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 16);
 }
 
-void x87_ficom_m32int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_ficom_m32int(i386_state *cpustate, UINT8 modrm)
 {
 	UINT32 ea = GetEA(cpustate, modrm, 0, 4);
 	if (X87_IS_ST_EMPTY(0))
@@ -3717,7 +3717,7 @@ void x87_ficom_m32int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 15);
 }
 
-void x87_ficomp_m16int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_ficomp_m16int(i386_state *cpustate, UINT8 modrm)
 {
 	UINT32 ea = GetEA(cpustate, modrm, 0, 2);
 	if (X87_IS_ST_EMPTY(0))
@@ -3755,7 +3755,7 @@ void x87_ficomp_m16int(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 16);
 }
 
-void x87_ficomp_m32int(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_ficomp_m32int(i386_state *cpustate, UINT8 modrm)
 {
 	UINT32 ea = GetEA(cpustate, modrm, 0, 4);
 	if (X87_IS_ST_EMPTY(0))
@@ -3794,7 +3794,7 @@ void x87_ficomp_m32int(i386_state *cpustate, UINT8 modrm)
 }
 
 
-void x87_fcom_m32real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcom_m32real(i386_state *cpustate, UINT8 modrm)
 {
 	UINT32 ea = GetEA(cpustate, modrm, 0, 4);
 	if (X87_IS_ST_EMPTY(0))
@@ -3831,7 +3831,7 @@ void x87_fcom_m32real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fcom_m64real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcom_m64real(i386_state *cpustate, UINT8 modrm)
 {
 	UINT32 ea = GetEA(cpustate, modrm, 0, 8);
 	if (X87_IS_ST_EMPTY(0))
@@ -3868,7 +3868,7 @@ void x87_fcom_m64real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fcom_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcom_sti(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 
@@ -3904,7 +3904,7 @@ void x87_fcom_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fcomp_m32real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcomp_m32real(i386_state *cpustate, UINT8 modrm)
 {
 	UINT32 ea = GetEA(cpustate, modrm, 0, 4);
 	if (X87_IS_ST_EMPTY(0))
@@ -3942,7 +3942,7 @@ void x87_fcomp_m32real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fcomp_m64real(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcomp_m64real(i386_state *cpustate, UINT8 modrm)
 {
 	UINT32 ea = GetEA(cpustate, modrm, 0, 8);
 	if (X87_IS_ST_EMPTY(0))
@@ -3980,7 +3980,7 @@ void x87_fcomp_m64real(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fcomp_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcomp_sti(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 
@@ -4017,7 +4017,7 @@ void x87_fcomp_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fcomi_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcomi_sti(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 
@@ -4061,7 +4061,7 @@ void x87_fcomi_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4); // TODO: correct cycle count
 }
 
-void x87_fcomip_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcomip_sti(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 
@@ -4106,7 +4106,7 @@ void x87_fcomip_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4); // TODO: correct cycle count
 }
 
-void x87_fucomi_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fucomi_sti(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 
@@ -4156,7 +4156,7 @@ void x87_fucomi_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4); // TODO: correct cycle count
 }
 
-void x87_fucomip_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fucomip_sti(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 
@@ -4207,7 +4207,7 @@ void x87_fucomip_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4); // TODO: correct cycle count
 }
 
-void x87_fcompp(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fcompp(i386_state *cpustate, UINT8 modrm)
 {
 	if (X87_IS_ST_EMPTY(0) || X87_IS_ST_EMPTY(1))
 	{
@@ -4252,7 +4252,7 @@ void x87_fcompp(i386_state *cpustate, UINT8 modrm)
  *
  *************************************/
 
-void x87_fucom_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fucom_sti(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 
@@ -4290,7 +4290,7 @@ void x87_fucom_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fucomp_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fucomp_sti(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 
@@ -4329,7 +4329,7 @@ void x87_fucomp_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fucompp(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fucompp(i386_state *cpustate, UINT8 modrm)
 {
 	if (X87_IS_ST_EMPTY(0) || X87_IS_ST_EMPTY(1))
 	{
@@ -4376,7 +4376,7 @@ void x87_fucompp(i386_state *cpustate, UINT8 modrm)
  *
  *************************************/
 
-void x87_fdecstp(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fdecstp(i386_state *cpustate, UINT8 modrm)
 {
 	cpustate->x87_sw &= ~X87_SW_C1;
 
@@ -4385,7 +4385,7 @@ void x87_fdecstp(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 3);
 }
 
-void x87_fincstp(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fincstp(i386_state *cpustate, UINT8 modrm)
 {
 	cpustate->x87_sw &= ~X87_SW_C1;
 
@@ -4394,14 +4394,14 @@ void x87_fincstp(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 3);
 }
 
-void x87_fclex(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fclex(i386_state *cpustate, UINT8 modrm)
 {
 	cpustate->x87_sw &= ~0x80ff;
 //	ferr_handler(cpustate, 0);
 	CYCLES(cpustate, 7);
 }
 
-void x87_feni(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_feni(i386_state *cpustate, UINT8 modrm)
 {
 	cpustate->x87_cw &= ~X87_CW_IEM;
 	x87_check_exceptions(cpustate);
@@ -4409,28 +4409,28 @@ void x87_feni(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 5);
 }
 
-void x87_fdisi(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fdisi(i386_state *cpustate, UINT8 modrm)
 {
 	cpustate->x87_cw |= X87_CW_IEM;
 
 	CYCLES(cpustate, 5);
 }
 
-void x87_ffree(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_ffree(i386_state *cpustate, UINT8 modrm)
 {
 	x87_set_tag(cpustate, ST_TO_PHYS(modrm & 7), X87_TW_EMPTY);
 
 	CYCLES(cpustate, 3);
 }
 
-void x87_finit(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_finit(i386_state *cpustate, UINT8 modrm)
 {
 	x87_reset(cpustate);
 
 	CYCLES(cpustate, 17);
 }
 
-void x87_fldcw(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fldcw(i386_state *cpustate, UINT8 modrm)
 {
 	UINT32 ea = GetEA(cpustate, modrm, 0, 2);
 	UINT16 cw = READ16(cpustate, ea);
@@ -4442,7 +4442,7 @@ void x87_fldcw(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fstcw(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fstcw(i386_state *cpustate, UINT8 modrm)
 {
 	UINT32 ea = GetEA(cpustate, modrm, 1, 2);
 	WRITE16(cpustate, ea, cpustate->x87_cw);
@@ -4450,7 +4450,7 @@ void x87_fstcw(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 3);
 }
 
-void x87_fldenv(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fldenv(i386_state *cpustate, UINT8 modrm)
 {
 	// TODO: Pointers and selectors
 	if (cpustate->operand_size)
@@ -4475,7 +4475,7 @@ void x87_fldenv(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate,(cpustate->cr[0] & 1) ? 34 : 44);
 }
 
-void x87_fstenv(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fstenv(i386_state *cpustate, UINT8 modrm)
 {
 	UINT32 ea;
 
@@ -4529,7 +4529,7 @@ void x87_fstenv(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate,(cpustate->cr[0] & 1) ? 56 : 67);
 }
 
-void x87_fsave(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fsave(i386_state *cpustate, UINT8 modrm)
 {
 	UINT32 ea = GetEA(cpustate, modrm, 1, 80);
 
@@ -4585,7 +4585,7 @@ void x87_fsave(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate,(cpustate->cr[0] & 1) ? 56 : 67);
 }
 
-void x87_frstor(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_frstor(i386_state *cpustate, UINT8 modrm)
 {
 	UINT32 ea = GetEA(cpustate, modrm, 0, 80);
 
@@ -4641,7 +4641,7 @@ void x87_frstor(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate,(cpustate->cr[0] & 1) ? 34 : 44);
 }
 
-void x87_fxch(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fxch(i386_state *cpustate, UINT8 modrm)
 {
 	if (X87_IS_ST_EMPTY(0) || X87_IS_ST_EMPTY(1))
 		x87_set_stack_underflow(cpustate);
@@ -4661,7 +4661,7 @@ void x87_fxch(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fxch_sti(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fxch_sti(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
 
@@ -4693,14 +4693,14 @@ void x87_fxch_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
-void x87_fstsw_ax(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fstsw_ax(i386_state *cpustate, UINT8 modrm)
 {
 	REG16(AX) = cpustate->x87_sw;
 
 	CYCLES(cpustate, 3);
 }
 
-void x87_fstsw_m2byte(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL x87_fstsw_m2byte(i386_state *cpustate, UINT8 modrm)
 {
 	UINT32 ea = GetEA(cpustate, modrm, 1, 2);
 
@@ -4709,7 +4709,7 @@ void x87_fstsw_m2byte(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 3);
 }
 
-void x87_invalid(i386_state *cpustate, UINT8 modrm)
+void __FASTCALL __FASTCALL x87_invalid(i386_state *cpustate, UINT8 modrm)
 {
 	// TODO
 	report_invalid_opcode(cpustate);
@@ -4724,49 +4724,49 @@ void x87_invalid(i386_state *cpustate, UINT8 modrm)
  *
  *************************************/
 
-static void I386OP(x87_group_d8)(i386_state *cpustate)
+static void __FASTCALL I386OP(x87_group_d8)(i386_state *cpustate)
 {
 	UINT8 modrm = FETCH(cpustate);
 	cpustate->opcode_table_x87_d8[modrm](cpustate, modrm);
 }
 
-static void I386OP(x87_group_d9)(i386_state *cpustate)
+static void __FASTCALL I386OP(x87_group_d9)(i386_state *cpustate)
 {
 	UINT8 modrm = FETCH(cpustate);
 	cpustate->opcode_table_x87_d9[modrm](cpustate, modrm);
 }
 
-static void I386OP(x87_group_da)(i386_state *cpustate)
+static void __FASTCALL I386OP(x87_group_da)(i386_state *cpustate)
 {
 	UINT8 modrm = FETCH(cpustate);
 	cpustate->opcode_table_x87_da[modrm](cpustate, modrm);
 }
 
-static void I386OP(x87_group_db)(i386_state *cpustate)
+static void __FASTCALL I386OP(x87_group_db)(i386_state *cpustate)
 {
 	UINT8 modrm = FETCH(cpustate);
 	cpustate->opcode_table_x87_db[modrm](cpustate, modrm);
 }
 
-static void I386OP(x87_group_dc)(i386_state *cpustate)
+static void __FASTCALL I386OP(x87_group_dc)(i386_state *cpustate)
 {
 	UINT8 modrm = FETCH(cpustate);
 	cpustate->opcode_table_x87_dc[modrm](cpustate, modrm);
 }
 
-static void I386OP(x87_group_dd)(i386_state *cpustate)
+static void __FASTCALL I386OP(x87_group_dd)(i386_state *cpustate)
 {
 	UINT8 modrm = FETCH(cpustate);
 	cpustate->opcode_table_x87_dd[modrm](cpustate, modrm);
 }
 
-static void I386OP(x87_group_de)(i386_state *cpustate)
+static void __FASTCALL I386OP(x87_group_de)(i386_state *cpustate)
 {
 	UINT8 modrm = FETCH(cpustate);
 	cpustate->opcode_table_x87_de[modrm](cpustate, modrm);
 }
 
-static void I386OP(x87_group_df)(i386_state *cpustate)
+static void __FASTCALL I386OP(x87_group_df)(i386_state *cpustate)
 {
 	UINT8 modrm = FETCH(cpustate);
 	cpustate->opcode_table_x87_df[modrm](cpustate, modrm);
@@ -4785,7 +4785,7 @@ void build_x87_opcode_table_d8(i386_state *cpustate)
 
 	for (modrm = 0; modrm < 0x100; ++modrm)
 	{
-		void (*ptr)(i386_state *cpustate, UINT8 modrm) = x87_invalid;
+		void (__FASTCALL *ptr)(i386_state *cpustate, UINT8 modrm) = x87_invalid;
 
 		if (modrm < 0xc0)
 		{
@@ -4827,7 +4827,7 @@ void build_x87_opcode_table_d9(i386_state *cpustate)
 
 	for (modrm = 0; modrm < 0x100; ++modrm)
 	{
-		void (*ptr)(i386_state *cpustate, UINT8 modrm) = x87_invalid;
+		void (__FASTCALL *ptr)(i386_state *cpustate, UINT8 modrm) = x87_invalid;
 
 		if (modrm < 0xc0)
 		{
@@ -4905,7 +4905,7 @@ void build_x87_opcode_table_da(i386_state *cpustate)
 
 	for (modrm = 0; modrm < 0x100; ++modrm)
 	{
-		void (*ptr)(i386_state *cpustate, UINT8 modrm) = x87_invalid;
+		void (__FASTCALL *ptr)(i386_state *cpustate, UINT8 modrm) = x87_invalid;
 
 		if (modrm < 0xc0)
 		{
@@ -4944,7 +4944,7 @@ void build_x87_opcode_table_db(i386_state *cpustate)
 
 	for (modrm = 0; modrm < 0x100; ++modrm)
 	{
-		void (*ptr)(i386_state *cpustate, UINT8 modrm) = x87_invalid;
+		void (__FASTCALL *ptr)(i386_state *cpustate, UINT8 modrm) = x87_invalid;
 
 		if (modrm < 0xc0)
 		{
@@ -4986,7 +4986,7 @@ void build_x87_opcode_table_dc(i386_state *cpustate)
 
 	for (modrm = 0; modrm < 0x100; ++modrm)
 	{
-		void (*ptr)(i386_state *cpustate, UINT8 modrm) = x87_invalid;
+		void (__FASTCALL *ptr)(i386_state *cpustate, UINT8 modrm) = x87_invalid;
 
 		if (modrm < 0xc0)
 		{
@@ -5026,7 +5026,7 @@ void build_x87_opcode_table_dd(i386_state *cpustate)
 
 	for (modrm = 0; modrm < 0x100; ++modrm)
 	{
-		void (*ptr)(i386_state *cpustate, UINT8 modrm) = x87_invalid;
+		void (__FASTCALL *ptr)(i386_state *cpustate, UINT8 modrm) = x87_invalid;
 
 		if (modrm < 0xc0)
 		{
@@ -5064,7 +5064,7 @@ void build_x87_opcode_table_de(i386_state *cpustate)
 
 	for (modrm = 0; modrm < 0x100; ++modrm)
 	{
-		void (*ptr)(i386_state *cpustate, UINT8 modrm) = x87_invalid;
+		void (__FASTCALL *ptr)(i386_state *cpustate, UINT8 modrm) = x87_invalid;
 
 		if (modrm < 0xc0)
 		{
@@ -5105,7 +5105,7 @@ void build_x87_opcode_table_df(i386_state *cpustate)
 
 	for (modrm = 0; modrm < 0x100; ++modrm)
 	{
-		void (*ptr)(i386_state *cpustate, UINT8 modrm) = x87_invalid;
+		void (__FASTCALL *ptr)(i386_state *cpustate, UINT8 modrm) = x87_invalid;
 
 		if (modrm < 0xc0)
 		{

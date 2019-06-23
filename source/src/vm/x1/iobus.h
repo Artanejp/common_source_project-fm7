@@ -59,8 +59,8 @@ private:
 	uint8_t zmode2;
 #endif
 #endif
-	void write_port8(uint32_t addr, uint32_t data, bool is_dma, int* wait);
-	uint32_t read_port8(uint32_t addr, bool is_dma, int* wait);
+	void __FASTCALL write_port8(uint32_t addr, uint32_t data, bool is_dma, int* wait);
+	uint32_t __FASTCALL read_port8(uint32_t addr, bool is_dma, int* wait);
 	int get_vram_wait();
 	
 public:
@@ -76,14 +76,14 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	void write_io8w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t read_io8w(uint32_t addr, int* wait);
-	void write_dma_io8w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t read_dma_io8w(uint32_t addr, int* wait);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_io8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_io8w(uint32_t addr, int* wait);
+	void __FASTCALL write_dma_io8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_dma_io8w(uint32_t addr, int* wait);
 	// for debugging vram
-	void write_via_debugger_data8(uint32_t addr, uint32_t data);
-	uint32_t read_via_debugger_data8(uint32_t addr);
+	void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr);
 #ifdef USE_DEBUGGER
 	bool is_debugger_available()
 	{
@@ -97,13 +97,13 @@ public:
 	{
 		return sizeof(vram);
 	}
-	void write_debug_data8(uint32_t addr, uint32_t data)
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data)
 	{
 		if(addr < sizeof(vram)) {
 			write_via_debugger_data8(addr, data);
 		}
 	}
-	uint32_t read_debug_data8(uint32_t addr)
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr)
 	{
 		if(addr < sizeof(vram)) {
 			return read_via_debugger_data8(addr);

@@ -51,13 +51,13 @@ private:
 	} port[2];
 	
 	void update_ready();
-	void check_mode3_intr(int ch);
+	void __FASTCALL check_mode3_intr(int ch);
 	
 	// daisy chain
 	DEVICE *d_cpu, *d_child;
 	bool iei, oei;
 	uint32_t intr_bit;
-	void update_intr();
+	void __FASTCALL update_intr();
 	
 public:
 	Z80PIO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -76,9 +76,9 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
 	// interrupt common functions
 	void set_context_intr(DEVICE* device, uint32_t bit)

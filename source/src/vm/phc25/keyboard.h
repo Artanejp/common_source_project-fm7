@@ -38,7 +38,7 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	uint32_t read_io8(uint32_t addr);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void event_frame();
 	bool process_state(FILEIO* state_fio, bool loading);
 };

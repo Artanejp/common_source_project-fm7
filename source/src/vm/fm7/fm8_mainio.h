@@ -34,8 +34,8 @@ class FM8_MAINIO : public FM7_MAINIO {
 	void set_irq_printer(bool flag) override;
 	void set_irq_mfd(bool flag) override;
 	void do_irq(void) override;
-	void write_fd0f(void) override;
-	uint8_t read_fd0f(void) override;
+	void __FASTCALL write_fd0f(void) override;
+	uint8_t __FASTCALL read_fd0f(void) override;
 
 	void reset_sound(void) override;
 	void set_psg(uint8_t val) override;
@@ -51,17 +51,15 @@ public:
 	FM8_MAINIO(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 	~FM8_MAINIO();
 	
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 
 	void event_callback(int event_id, int err);
 	void reset() override;
 	void initialize();
 	void update_config();
-	void save_state(FILEIO *state_fio) override;
-	bool load_state(FILEIO *state_fio) override;
-	bool decl_state(FILEIO *state_fio, bool loading) override;
+	bool process_state(FILEIO *state_fio, bool loading) override;
 
 	void set_context_kanjirom_class2(DEVICE *p)
 	{

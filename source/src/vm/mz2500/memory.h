@@ -47,9 +47,9 @@ private:
 	bool blank, hblank, vblank, busreq;
 	int extra_wait;
 	
-	void write_data8_tmp(int b, uint32_t addr, uint32_t data);
-	uint32_t read_data8_tmp(int b, uint32_t addr);
-	void set_map(uint8_t data);
+	void __FASTCALL write_data8_tmp(int b, uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8_tmp(int b, uint32_t addr);
+	void __FASTCALL set_map(uint8_t data);
 	
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -62,14 +62,14 @@ public:
 	void initialize();
 	void reset();
 	void special_reset();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
-	void write_data8w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t read_data8w(uint32_t addr, int* wait);
-	uint32_t fetch_op(uint32_t addr, int* wait);
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait);
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int* wait);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

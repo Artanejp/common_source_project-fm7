@@ -56,13 +56,13 @@ private:
 
 	bool __HAS_I8254;
 	
-	void input_clock(int ch, int clock);
-	void input_gate(int ch, bool signal);
-	void start_count(int ch);
-	void stop_count(int ch);
-	void latch_count(int ch);
-	void set_signal(int ch, bool signal);
-	int get_next_count(int ch);
+	void __FASTCALL input_clock(int ch, int clock);
+	void __FASTCALL input_gate(int ch, bool signal);
+	void __FASTCALL start_count(int ch);
+	void __FASTCALL stop_count(int ch);
+	void __FASTCALL latch_count(int ch);
+	void __FASTCALL set_signal(int ch, bool signal);
+	int __FASTCALL get_next_count(int ch);
 	
 public:
 	I8253(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -79,10 +79,10 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void event_callback(int event_id, int err);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame)
 	{
 		cpu_clocks = new_clocks;

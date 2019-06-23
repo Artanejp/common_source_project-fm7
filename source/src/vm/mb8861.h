@@ -31,14 +31,14 @@ private:
 	};
 #undef XX // invalid opcode unknown cc
 protected:
-	void insn(uint8_t code) override;
+	void __FASTCALL insn(uint8_t code) override;
 
-	void nim_ix();
-	void oim_ix_mb8861();
-	void xim_ix();
-	void tmm_ix();
-	void adx_im();
-	void adx_ex();
+	void __FASTCALL nim_ix();
+	void __FASTCALL oim_ix_mb8861();
+	void __FASTCALL xim_ix();
+	void __FASTCALL tmm_ix();
+	void __FASTCALL adx_im();
+	void __FASTCALL adx_ex();
 
 public:
 	MB8861(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MC6800(parent_vm, parent_emu)

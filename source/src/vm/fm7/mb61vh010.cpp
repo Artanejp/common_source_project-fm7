@@ -930,7 +930,7 @@ void MB61VH010::reset(void)
 
 #define STATE_VERSION 2
 
-bool MB61VH010::decl_state(FILEIO *state_fio, bool loading)
+bool MB61VH010::process_state(FILEIO *state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -971,29 +971,16 @@ bool MB61VH010::decl_state(FILEIO *state_fio, bool loading)
  
 	state_fio->StateValue(eventid_busy);
 
+	if(loading) {
+		line_style.w.h = 0;
+		// Update
+		for(int i = 0; i < 4; i++) {
+			disable_flags[i] = ((bank_disable_reg & (1 << i)) != 0) ? true : false;
+		}
+		for(int i = 0; i < 4; i++) {
+			multi_flags[i] = (((1 << i) & multi_page) != 0) ? true : false;
+		}
+	}
 	return true;
 }
 
-void MB61VH010::save_state(FILEIO *state_fio)
-{
-	decl_state(state_fio, false);
-	out_debug_log(_T("Save State: MB61VH010 : id=%d ver=%d\n"), this_device_id, STATE_VERSION);
-}
-
-bool MB61VH010::load_state(FILEIO *state_fio)
-{
-	bool mb = decl_state(state_fio, true);
-	out_debug_log(_T("Load State: MB61VH010 : id=%d stat=%s"), this_device_id, (mb) ? _T("OK") : _T("NG"));
-	if(!mb) return false;
-	
-	line_style.w.h = 0;
-	// Update
-	for(int i = 0; i < 4; i++) {
-		disable_flags[i] = ((bank_disable_reg & (1 << i)) != 0) ? true : false;
-	}
-	for(int i = 0; i < 4; i++) {
-		multi_flags[i] = (((1 << i) & multi_page) != 0) ? true : false;
- 	}
-
- 	return true;
-}

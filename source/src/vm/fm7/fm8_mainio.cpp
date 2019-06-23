@@ -457,9 +457,9 @@ void FM8_MAINIO::update_config()
 	mainmem->write_signal(FM7_MAINIO_BOOTMODE, bootmode, 0xffffffff);
 }
 
-bool FM8_MAINIO::decl_state(FILEIO *state_fio, bool loading)
+bool FM8_MAINIO::process_state(FILEIO *state_fio, bool loading)
 {
-	if(!FM7_MAINIO::decl_state(state_fio, loading)) {
+	if(!FM7_MAINIO::process_state(state_fio, loading)) {
 		return false;
 	}
 	state_fio->StateValue(connect_psg);
@@ -467,15 +467,5 @@ bool FM8_MAINIO::decl_state(FILEIO *state_fio, bool loading)
 	return true;
 }
 
-void FM8_MAINIO::save_state(FILEIO *state_fio)
-{
-	decl_state(state_fio, false);
-}
- 
-bool FM8_MAINIO::load_state(FILEIO *state_fio)
-{
-	bool mb = decl_state(state_fio, true);
-	return mb;
-}
 
 }

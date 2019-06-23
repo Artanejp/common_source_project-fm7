@@ -426,7 +426,7 @@ void FM7_MAINIO::event_beep_cycle(void)
 	}
 }
 
-bool FM7_MAINIO::decl_state_opn(FILEIO *state_fio, bool loading)
+bool FM7_MAINIO::load_state_opn(FILEIO *state_fio, bool loading)
 {
 	state_fio->StateValue(connect_opn);
 	state_fio->StateValue(connect_whg);

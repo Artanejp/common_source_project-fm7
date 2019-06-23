@@ -28,7 +28,7 @@ private:
 	uint8_t bank_reg[16];
 	uint8_t cur_bank[15];
 	
-	void update_bank(int num);
+	void __FASTCALL update_bank(int num);
 	
 public:
 	MAPPER(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -40,8 +40,8 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function

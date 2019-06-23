@@ -59,10 +59,10 @@ protected:
 	bool mode_word;
 	uint32_t addr_mask;
 
-	void write_mem(uint32_t addr, uint32_t data);
-	uint32_t read_mem(uint32_t addr);
-	void write_io(int ch, uint32_t data);
-	uint32_t read_io(int ch);
+	void __FASTCALL write_mem(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_mem(uint32_t addr);
+	void __FASTCALL write_io(int ch, uint32_t data);
+	uint32_t __FASTCALL read_io(int ch);
 	
 public:
 	I8237_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -84,10 +84,10 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	virtual void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	virtual void write_signal(int id, uint32_t data, uint32_t mask);
-	virtual void do_dma();
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	virtual void __FASTCALL do_dma();
 	// for debug
 	virtual bool is_debugger_available()
 	{
@@ -98,13 +98,10 @@ public:
 		return d_debugger;
 	}
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	void write_via_debugger_data8(uint32_t addr, uint32_t data);
-	uint32_t read_via_debugger_data8(uint32_t addr);
-	void write_via_debugger_data16(uint32_t addr, uint32_t data);
-	uint32_t read_via_debugger_data16(uint32_t addr);
-	
-	virtual void save_state(FILEIO* state_fio) {};
-	virtual bool load_state(FILEIO* state_fio) { return false;}
+	void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr);
+	void __FASTCALL write_via_debugger_data16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_via_debugger_data16(uint32_t addr);
 	
 	// unique functions
 	void set_context_memory(DEVICE* device)
@@ -167,10 +164,10 @@ public:
 	~I8237();
 	
 	void initialize();
-	virtual void write_io8(uint32_t addr, uint32_t data);
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int id);
-	void do_dma();
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int id);
+	void __FASTCALL do_dma();
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 #ifdef USE_DEBUGGER

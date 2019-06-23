@@ -27,10 +27,10 @@ private:
 	uint16_t rtcmr, rtdsr, rtadr, rtobr, rtibr;
 	uint8_t regs[40];
 	
-	void read_from_cur_time();
-	void write_to_cur_time();
-	void update_checksum();
-	void update_intr();
+	void  __FASTCALL read_from_cur_time();
+	void  __FASTCALL write_to_cur_time();
+	void  __FASTCALL update_checksum();
+	void  __FASTCALL update_intr();
 public:
 	RTC(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -41,16 +41,16 @@ public:
 	// common functions
 	void initialize();
 	void release();
-	void write_io8(uint32_t addr, uint32_t data)
+	void  __FASTCALL write_io8(uint32_t addr, uint32_t data)
 	{
 		write_io16(addr, data);
 	}
-	uint32_t read_io8(uint32_t addr)
+	uint32_t  __FASTCALL read_io8(uint32_t addr)
 	{
 		return (uint8_t)read_io16(addr);
 	}
-	void write_io16(uint32_t addr, uint32_t data);
-	uint32_t read_io16(uint32_t addr);
+	void  __FASTCALL write_io16(uint32_t addr, uint32_t data);
+	uint32_t  __FASTCALL read_io16(uint32_t addr);
 	void event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	

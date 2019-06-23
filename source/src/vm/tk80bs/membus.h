@@ -38,9 +38,9 @@ public:
 	
 	// common functions
 	void reset();
-	uint32_t fetch_op(uint32_t addr, int *wait);
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait);
 #if defined(_TK85)
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 #endif
 	bool process_state(FILEIO* state_fio, bool loading);
 	

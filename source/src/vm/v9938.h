@@ -290,8 +290,8 @@ private:
 	uint8_t vram[0x20000];
 	scrntype_t screen[(512 + 32)*246*2]; // (LONG_WIDTH) * (m_vblank_start*2)
 	/* for m_vram_space of MAME/MESS */
-	inline int read_byte(int address){if (address<m_vram_size) return vram[address];else return 0xff;}
-	inline void write_byte(int address, int val){if (address<m_vram_size) vram[address]=val;}
+	inline int __FASTCALL read_byte(int address){if (address<m_vram_size) return vram[address];else return 0xff;}
+	inline void __FASTCALL write_byte(int address, int val){if (address<m_vram_size) vram[address]=val;}
 	/* for m_palette and palette of MAME/MESS */
 	scrntype_t pens[19780];
 	void save_load_state(FILEIO* state_fio, bool is_save);
@@ -305,10 +305,10 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void event_vline(int v, int clock);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
 	const _TCHAR *get_device_name()
 	{

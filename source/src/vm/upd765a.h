@@ -96,9 +96,9 @@ private:
 	double get_usec_to_exec_phase();
 	
 	// update status
-	void set_irq(bool val);
-	void set_drq(bool val);
-	void set_hdu(uint8_t val);
+	void __FASTCALL set_irq(bool val);
+	void __FASTCALL set_drq(bool val);
+	void __FASTCALL set_hdu(uint8_t val);
 	
 	// phase shift
 	void shift_to_idle();
@@ -170,12 +170,12 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_dma_io8(uint32_t addr, uint32_t data);
-	uint32_t read_dma_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int ch);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int ch);
 	void event_callback(int event_id, int err);
 	void update_config();
 	//#ifdef USE_DEBUGGER

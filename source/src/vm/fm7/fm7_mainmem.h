@@ -36,9 +36,9 @@ class FM7_MAINMEM : public DEVICE
  private:
 	typedef struct {
 		uint8_t *read_data;
-		uint8_t (FM7_MAINMEM::*read_func)(uint32_t, bool);
+		uint8_t (__FASTCALL FM7_MAINMEM::*read_func)(uint32_t, bool);
 		uint8_t *write_data;
-		void (FM7_MAINMEM::*write_func)(uint32_t, uint32_t, bool);
+		void (__FASTCALL FM7_MAINMEM::*write_func)(uint32_t, uint32_t, bool);
 	} data_func_table_t;
 	
 	data_func_table_t data_table[ADDRESS_SPACE / 0x80];
@@ -166,37 +166,37 @@ class FM7_MAINMEM : public DEVICE
 	uint32_t write_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size);
 	void setclock(int mode);
 	
-	uint8_t read_shared_ram(uint32_t realaddr, bool dmamode);
-	void write_shared_ram(uint32_t realaddr, uint32_t data, bool dmamode);
-	uint8_t read_direct_access(uint32_t realaddr, bool dmamode);
-	void write_direct_access(uint32_t realaddr, uint32_t data, bool dmamode);
-	uint8_t read_kanjirom_level1(uint32_t realaddr, bool dmamode);
-	uint8_t read_kanji_dummyaddr(uint32_t realaddr, bool dmamode);
-	uint8_t read_ura_basicrom(uint32_t addr, bool dmamode);
-	void write_ura_basicrom(uint32_t addr, uint32_t data, bool dmamode);
-	uint8_t read_mmio(uint32_t addr, bool dmamode);
-	void write_mmio(uint32_t addr, uint32_t data, bool dmamode);
-	uint8_t read_bootrom(uint32_t addr, bool dmamode);
-	void write_bootrom(uint32_t addr, uint32_t data, bool dmamode);
-	uint8_t read_page2(uint32_t addr, bool dmamode);
-	void write_page2(uint32_t addr, uint32_t data, bool dmamode);
-	int check_page2(uint32_t addr, uint32_t *realaddr, bool write_state, bool dmamode);
+	uint8_t __FASTCALL read_shared_ram(uint32_t realaddr, bool dmamode);
+	void __FASTCALL write_shared_ram(uint32_t realaddr, uint32_t data, bool dmamode);
+	uint8_t __FASTCALL read_direct_access(uint32_t realaddr, bool dmamode);
+	void __FASTCALL write_direct_access(uint32_t realaddr, uint32_t data, bool dmamode);
+	uint8_t __FASTCALL read_kanjirom_level1(uint32_t realaddr, bool dmamode);
+	uint8_t __FASTCALL read_kanji_dummyaddr(uint32_t realaddr, bool dmamode);
+	uint8_t __FASTCALL read_ura_basicrom(uint32_t addr, bool dmamode);
+	void __FASTCALL write_ura_basicrom(uint32_t addr, uint32_t data, bool dmamode);
+	uint8_t __FASTCALL read_mmio(uint32_t addr, bool dmamode);
+	void __FASTCALL write_mmio(uint32_t addr, uint32_t data, bool dmamode);
+	uint8_t __FASTCALL read_bootrom(uint32_t addr, bool dmamode);
+	void __FASTCALL write_bootrom(uint32_t addr, uint32_t data, bool dmamode);
+	uint8_t __FASTCALL read_page2(uint32_t addr, bool dmamode);
+	void __FASTCALL write_page2(uint32_t addr, uint32_t data, bool dmamode);
+	int __FASTCALL check_page2(uint32_t addr, uint32_t *realaddr, bool write_state, bool dmamode);
 	
 	void init_data_table(void);
-	uint8_t read_data(uint32_t addr, bool dmamode);
-	void write_data(uint32_t addr, uint32_t data, bool dmamode);
-	uint8_t read_data_tbl(uint32_t addr, bool dmamode);
-	void write_data_tbl(uint32_t addr, uint32_t data, bool dmamode);
+	uint8_t __FASTCALL read_data(uint32_t addr, bool dmamode);
+	void __FASTCALL write_data(uint32_t addr, uint32_t data, bool dmamode);
+	uint8_t __FASTCALL read_data_tbl(uint32_t addr, bool dmamode);
+	void __FASTCALL write_data_tbl(uint32_t addr, uint32_t data, bool dmamode);
 
-	void update_mmr_jumptable(uint32_t pos);
-	void update_all_mmr_jumptable(void);
-	uint8_t read_segment_3f(uint32_t addr, bool dmamode);
-	void write_segment_3f(uint32_t addr, uint32_t data, bool dmamode);
-	uint8_t read_with_mmr(uint32_t addr, uint32_t segment, uint32_t dmamode);
-	void write_with_mmr(uint32_t addr, uint32_t segment, uint32_t data, uint32_t dmamode);
+	void __FASTCALL update_mmr_jumptable(uint32_t pos);
+	void __FASTCALL update_all_mmr_jumptable(void);
+	uint8_t __FASTCALL read_segment_3f(uint32_t addr, bool dmamode);
+	void __FASTCALL write_segment_3f(uint32_t addr, uint32_t data, bool dmamode);
+	uint8_t __FASTCALL read_with_mmr(uint32_t addr, uint32_t segment, uint32_t dmamode);
+	void __FASTCALL write_with_mmr(uint32_t addr, uint32_t segment, uint32_t data, uint32_t dmamode);
 
 	template <class T>
-	void call_write_signal(T *np, int id, uint32_t data, uint32_t mask)
+	void __FASTCALL call_write_signal(T *np, int id, uint32_t data, uint32_t mask)
 	{
 		//T *nnp = static_cast<T *>(np);
 		static_cast<T *>(np)->write_signal(id, data, mask);
@@ -228,25 +228,25 @@ class FM7_MAINMEM : public DEVICE
  public:
 	FM7_MAINMEM(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 	~FM7_MAINMEM();
-	uint32_t read_data8(uint32_t addr);
-	uint32_t read_dma_data8(uint32_t addr);
-	uint32_t read_dma_io8(uint32_t addr);
-	uint32_t read_data8_main(uint32_t addr, bool dmamode);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	uint32_t __FASTCALL read_dma_data8(uint32_t addr);
+	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
+	uint32_t __FASTCALL read_data8_main(uint32_t addr, bool dmamode);
 
-	void write_data8(uint32_t addr, uint32_t data);
-	void write_dma_data8(uint32_t addr, uint32_t data);
-	void write_dma_io8(uint32_t addr, uint32_t data);
-	void write_data8_main(uint32_t addr, uint32_t data, bool dmamode);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_data8_main(uint32_t addr, uint32_t data, bool dmamode);
    
-	virtual uint32_t read_data16(uint32_t addr);
-	virtual void write_data16(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_data16(uint32_t addr);
+	virtual void __FASTCALL write_data16(uint32_t addr, uint32_t data);
    
-	virtual uint32_t read_data32(uint32_t addr);
-	virtual void write_data32(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_data32(uint32_t addr);
+	virtual void __FASTCALL write_data32(uint32_t addr, uint32_t data);
    
 	void initialize(void);
-	void iowait(void);
-	void dram_refresh(void);
+	void __FASTCALL iowait(void);
+	void __FASTCALL dram_refresh(void);
 	void reset(void);
 	void release(void);
 
@@ -255,9 +255,7 @@ class FM7_MAINMEM : public DEVICE
 	bool get_loadstat_bootrom_dos(void);
 	void update_config();
 	
-	void save_state(FILEIO *state_fio);
-	bool load_state(FILEIO *state_fio);
-	bool decl_state(FILEIO *state_fio, bool loading);
+	bool process_state(FILEIO *state_fio, bool loading);
 
 	void set_context_display(DEVICE *p){
 		display = (FM7::DISPLAY *)p;
@@ -273,10 +271,10 @@ class FM7_MAINMEM : public DEVICE
 		kanjiclass1 = (FM7::KANJIROM *)p;
 	}
 #endif	
-	void write_signal(int sigid, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int sigid);
-	uint32_t read_io8(uint32_t addr);
-	void write_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_signal(int sigid, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int sigid);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 };
 }
 

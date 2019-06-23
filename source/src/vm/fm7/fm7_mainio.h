@@ -329,9 +329,9 @@ class FM7_MAINIO : public DEVICE {
 	// FD0E
 	virtual void set_psg_cmd(uint8_t cmd);
 	
-	virtual void write_fd0f(void);
-	virtual uint8_t read_fd0f(void);
-	bool get_rommode_fd0f(void);
+	virtual void __FASTCALL write_fd0f(void);
+	virtual uint8_t __FASTCALL read_fd0f(void);
+	bool __FASTCALL get_rommode_fd0f(void);
 #if defined(_FM77AV_VARIANTS)
 	// FD12
 	uint8_t subsystem_read_status(void);
@@ -499,7 +499,7 @@ class FM7_MAINIO : public DEVICE {
 		return static_cast<T *>(np)->read_dma_data8(addr);
 	}
 
-	bool decl_state_opn(FILEIO *state_fio, bool loading);
+	bool load_state_opn(FILEIO *state_fio, bool loading);
 
 public:
 	FM7_MAINIO(VM_TEMPLATE* parent_vm, EMU* parent_emu);
@@ -507,27 +507,25 @@ public:
 	void event_vline(int v, int clock);
 
 	uint8_t  opn_regs[4][0x100];
-	uint32_t read_io8(uint32_t addr); // This is only for debug.
+	uint32_t __FASTCALL read_io8(uint32_t addr); // This is only for debug.
   
 	virtual void initialize();
 
-	virtual void write_data8(uint32_t addr, uint32_t data);
-	void write_dma_data8(uint32_t addr, uint32_t data);
-	void write_dma_io8(uint32_t addr, uint32_t data);
+	virtual void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
    
-	virtual uint32_t read_data8(uint32_t addr);
-	uint32_t read_dma_data8(uint32_t addr);
-	uint32_t read_dma_io8(uint32_t addr);
+	virtual uint32_t __FASTCALL read_data8(uint32_t addr);
+	uint32_t __FASTCALL read_dma_data8(uint32_t addr);
+	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
 
-	virtual void write_signal(int id, uint32_t data, uint32_t mask);
-	virtual uint32_t read_signal(int id);
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	virtual uint32_t __FASTCALL read_signal(int id);
 	
 	virtual void event_callback(int event_id, int err);
 	virtual void reset();
 	virtual void update_config();
-	virtual void save_state(FILEIO *state_fio);
-	virtual bool load_state(FILEIO *state_fio);
-	virtual bool decl_state(FILEIO *state_fio, bool loading);
+	virtual bool process_state(FILEIO *state_fio, bool loading);
 	
 	void set_context_printer(DEVICE *p)
 	{

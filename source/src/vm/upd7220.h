@@ -151,13 +151,13 @@ protected:
 	void cmd_dmar();
 	void cmd_unk_5a();
 	
-	void cmd_write_sub(uint32_t addr, uint8_t data);
-	void write_vram(uint32_t addr, uint8_t data);
-	uint8_t read_vram(uint32_t addr);
+	void __FASTCALL cmd_write_sub(uint32_t addr, uint8_t data);
+	void __FASTCALL write_vram(uint32_t addr, uint8_t data);
+	uint8_t __FASTCALL read_vram(uint32_t addr);
 	void update_vect();
 	void reset_vect();
 	
-	void register_event_wait_cmd(uint32_t bytes);
+	void __FASTCALL register_event_wait_cmd(uint32_t bytes);
 
 	void check_cmd();
 	void process_cmd();
@@ -172,11 +172,11 @@ protected:
 	void cmd_pitch();
 	
 	void draw_text();
-	inline void draw_pset(int x, int y);
-	inline void start_pset();
-	inline void finish_pset();
-	inline bool draw_pset_diff(int x, int y);
-	inline void shift_pattern(int shift);
+	inline void __FASTCALL draw_pset(int x, int y);
+	inline void __FASTCALL start_pset();
+	inline void __FASTCALL finish_pset();
+	inline bool __FASTCALL draw_pset_diff(int x, int y);
+	inline void __FASTCALL shift_pattern(int shift);
 	
 public:
 	UPD7220(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -198,18 +198,18 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_dma_io8(uint32_t addr, uint32_t data);
-	uint32_t read_dma_io8(uint32_t addr);
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void event_pre_frame();
 	void event_frame();
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	
-	uint32_t read_signal(int ch);
-	void write_signal(int ch, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int ch);
+	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
 
 	bool process_state(FILEIO* state_fio, bool loading);
 
@@ -283,14 +283,14 @@ public:
 	{
 		return start;
 	}
-	uint32_t cursor_addr(uint32_t mask);
-	int cursor_top();
-	int cursor_bottom();
-	bool attr_blink()
+	uint32_t __FASTCALL cursor_addr(uint32_t mask);
+	int __FASTCALL cursor_top();
+	int __FASTCALL cursor_bottom();
+	bool __FASTCALL attr_blink()
 	{
 		return (blink_attr < (blink_rate * 3 / 4));
 	}
-	void set_horiz_freq(int freq)
+	void __FASTCALL set_horiz_freq(int freq)
 	{
 		next_horiz_freq = freq;
 	}

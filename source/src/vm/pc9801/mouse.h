@@ -51,12 +51,12 @@ public:
 	void initialize();
 	void reset();
 #if !defined(SUPPORT_HIRESO)
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 #endif
 	void event_callback(int event_id, int err);
 	void event_frame();
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

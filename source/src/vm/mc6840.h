@@ -69,14 +69,14 @@ private:
 	UINT16 m_latch[3];
 	UINT16 m_counter[3];
 	
-	void subtract_from_counter(int counter, int count);
-	void tick(int counter, int count);
-	void update_interrupts();
-	UINT16 compute_counter( int counter );
-	void reload_count(int idx);
-	void timeout(int idx);
-	void set_gate(int idx, int state);
-	void set_clock(int idx, int state);
+	void __FASTCALL subtract_from_counter(int counter, int count);
+	void __FASTCALL tick(int counter, int count);
+	void __FASTCALL update_interrupts();
+	UINT16 __FASTCALL compute_counter( int counter );
+	void __FASTCALL reload_count(int idx);
+	void __FASTCALL timeout(int idx);
+	void __FASTCALL set_gate(int idx, int state);
+	void __FASTCALL set_clock(int idx, int state);
 	
 public:
 	MC6840(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -94,10 +94,10 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32_t offset, uint32_t data);
-	uint32_t read_io8(uint32_t offset);
+	void __FASTCALL write_io8(uint32_t offset, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t offset);
 	void event_callback(int id, int err);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

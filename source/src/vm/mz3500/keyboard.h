@@ -53,7 +53,7 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	void event_frame();
 	bool process_state(FILEIO* state_fio, bool loading);

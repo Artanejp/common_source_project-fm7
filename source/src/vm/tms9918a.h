@@ -84,15 +84,15 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	// for debugging
-	void write_via_debugger_data8(uint32_t addr, uint32_t data);
-	uint32_t read_via_debugger_data8(uint32_t addr);
-	void write_via_debugger_io8(uint32_t addr, uint32_t data);
-	uint32_t read_via_debugger_io8(uint32_t addr);
+	void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr);
+	void __FASTCALL write_via_debugger_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_via_debugger_io8(uint32_t addr);
 //#ifdef TMS9918A_SUPER_IMPOSE
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 //#endif
 	void event_vline(int v, int clock);
 //#ifdef USE_DEBUGGER
@@ -108,26 +108,26 @@ public:
 	{
 		return _VRAM_SIZE;
  	}
-	void write_debug_data8(uint32_t addr, uint32_t data)
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data)
 	{
 		if(addr < _VRAM_SIZE) {
 			write_via_debugger_data8(addr, data);
 		}
 	}
-	uint32_t read_debug_data8(uint32_t addr)
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr)
 	{
 		if(addr < _VRAM_SIZE) {
 			return read_via_debugger_data8(addr);
 		}
 		return 0;
 	}
-	void write_debug_io8(uint32_t addr, uint32_t data)
+	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data)
 	{
 		if(addr < 8) {
 			write_via_debugger_io8(addr, data);
 		}
 	}
-	uint32_t read_debug_io8(uint32_t addr)
+	uint32_t __FASTCALL read_debug_io8(uint32_t addr)
 	{
 		if(addr < 8) {
 			return read_via_debugger_io8(addr);

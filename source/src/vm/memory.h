@@ -56,25 +56,25 @@ public:
 	// common functions
 	void initialize();
 	void release();
-	uint32_t read_data8(uint32_t addr);
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data16(uint32_t addr);
-	void write_data16(uint32_t addr, uint32_t data);
-	uint32_t read_data32(uint32_t addr);
-	void write_data32(uint32_t addr, uint32_t data);
-	uint32_t read_data8w(uint32_t addr, int* wait);
-	void write_data8w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t read_data16w(uint32_t addr, int* wait);
-	void write_data16w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t read_data32w(uint32_t addr, int* wait);
-	void write_data32w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data16(uint32_t addr);
+	void __FASTCALL write_data16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data32(uint32_t addr);
+	void __FASTCALL write_data32(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait);
+	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_data16w(uint32_t addr, int* wait);
+	void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_data32w(uint32_t addr, int* wait);
+	void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int* wait);
 #ifdef MEMORY_DISABLE_DMA_MMIO
-	uint32_t read_dma_data8(uint32_t addr);
-	void write_dma_data8(uint32_t addr, uint32_t data);
-	uint32_t read_dma_data16(uint32_t addr);
-	void write_dma_data16(uint32_t addr, uint32_t data);
-	uint32_t read_dma_data32(uint32_t addr);
-	void write_dma_data32(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_data8(uint32_t addr);
+	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_data16(uint32_t addr);
+	void __FASTCALL write_dma_data16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_data32(uint32_t addr);
+	void __FASTCALL write_dma_data32(uint32_t addr, uint32_t data);
 #endif
 	
 	// unique functions

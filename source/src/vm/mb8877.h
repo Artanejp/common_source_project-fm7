@@ -115,10 +115,10 @@ private:
 	int _max_drive;
 	int _drive_mask;
 	
-	int get_cur_position();
-	double get_usec_to_start_trans(bool first_sector);
-	double get_usec_to_next_trans_pos(bool delay);
-	double get_usec_to_detect_index_hole(int count, bool delay);
+	int __FASTCALL get_cur_position();
+	double __FASTCALL  get_usec_to_start_trans(bool first_sector);
+	double __FASTCALL get_usec_to_next_trans_pos(bool delay);
+	double __FASTCALL get_usec_to_detect_index_hole(int count, bool delay);
 	
 	// image handler
 	uint8_t search_track();
@@ -144,8 +144,8 @@ private:
 	void update_head_flag(int drv, bool head_load);
 	
 	// irq/dma
-	void set_irq(bool val);
-	void set_drq(bool val);
+	void __FASTCALL set_irq(bool val);
+	void __FASTCALL set_drq(bool val);
 
 public:
 	MB8877(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -182,12 +182,12 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_dma_io8(uint32_t addr, uint32_t data);
-	uint32_t read_dma_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int ch);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int ch);
 	void event_callback(int event_id, int err);
 	void update_config();
 	bool is_debugger_available()

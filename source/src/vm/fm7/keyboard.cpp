@@ -1236,7 +1236,7 @@ KEYBOARD::~KEYBOARD()
 //DLL_PREFIX_I struct cur_time_s cur_time;
 //#endif
 
-bool KEYBOARD::decl_state(FILEIO *state_fio, bool loading)
+bool KEYBOARD::process_state(FILEIO *state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -1317,24 +1317,5 @@ bool KEYBOARD::decl_state(FILEIO *state_fio, bool loading)
 	return true;
 }
 
-void KEYBOARD::save_state(FILEIO *state_fio)
-{
-	decl_state(state_fio, false);
-	//state_fio->FputUint32_BE(STATE_VERSION);
-	//state_fio->FputInt32_BE(this_device_id);
-	//this->out_debug_log(_T("Save State: KEYBOARD: id=%d ver=%d\n"), this_device_id, STATE_VERSION);
-}
- 
-bool KEYBOARD::load_state(FILEIO *state_fio)
-{
- 	uint32_t version;
- 	
-	//version = state_fio->FgetUint32_BE();
-	//if(this_device_id != state_fio->FgetInt32_BE()) return false;
-	//this->out_debug_log(_T("Load State: KEYBOARD: id=%d ver=%d\n"), this_device_id, version);
-	bool mb = decl_state(state_fio, true);
-	if(!mb) return false;
-	return true;
-}
 
 }   

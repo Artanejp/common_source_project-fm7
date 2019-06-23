@@ -37,7 +37,7 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	bool process_state(FILEIO* state_fio, bool loading);

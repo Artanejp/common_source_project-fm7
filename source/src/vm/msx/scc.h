@@ -89,8 +89,8 @@ public:
 	~SCC() {}
 	
 	// common functions
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
 	void initialize();
 	void release();
 	void reset();

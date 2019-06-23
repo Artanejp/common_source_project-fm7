@@ -56,7 +56,7 @@ private:
 	int m_select;
 	outputs_t m_vclk_cb;
 	
-	void compute_tables();
+	void __FASTCALL compute_tables();
 	
 	int volume_m;
 	int volume_l, volume_r;
@@ -89,13 +89,13 @@ public:
 	{
 		register_output_signal(&m_vclk_cb, device, id, mask);
 	}
-	void reset_w(int reset);
-	void data_w(int data);
-	void vclk_w(int vclk);
-	void pause_w(int stop);
-	void playmode_w(int select);
-	void set_volume(int volume);
-	void change_clock_w(int32_t clock);
+	void __FASTCALL reset_w(int reset);
+	void __FASTCALL data_w(int data);
+	void __FASTCALL vclk_w(int vclk);
+	void __FASTCALL pause_w(int stop);
+	void __FASTCALL playmode_w(int select);
+	void __FASTCALL set_volume(int volume);
+	void __FASTCALL change_clock_w(int32_t clock);
 };
 
 #endif

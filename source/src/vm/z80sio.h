@@ -87,8 +87,8 @@ private:
 		outputs_t outputs_rxdone;
 	} port[2];
 	
-	void update_tx_timing(int ch);
-	void update_rx_timing(int ch);
+	void __FASTCALL update_tx_timing(int ch);
+	void __FASTCALL update_rx_timing(int ch);
 	
 	// daisy chain
 	DEVICE *d_cpu, *d_child;
@@ -97,7 +97,7 @@ private:
 
 	bool __HAS_UPD7201;
 	bool __SIO_DEBUG;
-	void update_intr();
+	void __FASTCALL update_intr();
 	
 public:
 	Z80SIO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -126,9 +126,9 @@ public:
 	void initialize();
 	void reset();
 	void release();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	// interrupt common functions

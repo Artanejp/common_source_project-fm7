@@ -22,7 +22,7 @@
 
 #define OP_HANDLER(_name) void MC6809_BASE::_name (void)
 
-static void (MC6809_BASE::*m6809_main[0x100]) (void) = {
+static void (__FASTCALL  MC6809_BASE::*m6809_main[0x100]) (void) = {
 /*          0xX0,   0xX1,     0xX2,    0xX3,    0xX4,    0xX5,    0xX6,    0xX7,
             0xX8,   0xX9,     0xXA,    0xXB,    0xXC,    0xXD,    0xXE,    0xXF   */
 

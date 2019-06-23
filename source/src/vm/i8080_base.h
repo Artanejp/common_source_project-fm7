@@ -62,50 +62,50 @@ protected:
 	static const uint8_t ZSP[256];
 	static const uint16_t DAA[2048];
 
-	virtual void dec_count(uint8_t code) {}
-	virtual void check_reg_c(uint8_t val) {}
-	virtual void check_reg_e(uint8_t val) {}
-	virtual void check_reg_l(uint8_t val) {}
-	virtual void check_reg_sp(uint8_t val) {}
-	virtual void INSN_0x08(void) {}
-	virtual void INSN_0x10(void) {}
-	virtual void RLDE(void) {}
-	virtual void RIM(void) {}
-	virtual void _DAA(void) {}
-	virtual void LDEH(void) {}
-	virtual void CMA(void) {}
-	virtual void SIM(void) {}
-	virtual void LDES(void) {}
-	virtual void INSN_0xcb(void) {}
-	virtual void INSN_0xd9(void) {}
-	virtual void INSN_0xdd(void) {}
-	virtual void INSN_0xed(void) {}
-	virtual void INSN_0xfd(void) {}
+	virtual void __FASTCALL dec_count(uint8_t code) {}
+	virtual void __FASTCALL check_reg_c(uint8_t val) {}
+	virtual void __FASTCALL check_reg_e(uint8_t val) {}
+	virtual void __FASTCALL check_reg_l(uint8_t val) {}
+	virtual void __FASTCALL check_reg_sp(uint8_t val) {}
+	virtual void __FASTCALL INSN_0x08(void) {}
+	virtual void __FASTCALL INSN_0x10(void) {}
+	virtual void __FASTCALL RLDE(void) {}
+	virtual void __FASTCALL RIM(void) {}
+	virtual void __FASTCALL _DAA(void) {}
+	virtual void __FASTCALL LDEH(void) {}
+	virtual void __FASTCALL CMA(void) {}
+	virtual void __FASTCALL SIM(void) {}
+	virtual void __FASTCALL LDES(void) {}
+	virtual void __FASTCALL INSN_0xcb(void) {}
+	virtual void __FASTCALL INSN_0xd9(void) {}
+	virtual void __FASTCALL INSN_0xdd(void) {}
+	virtual void __FASTCALL INSN_0xed(void) {}
+	virtual void __FASTCALL INSN_0xfd(void) {}
 
 
-	virtual void JMP(uint8_t c);
-	virtual void CALL(uint8_t c);
-	virtual void ANA(uint8_t n);
+	virtual void __FASTCALL JMP(uint8_t c);
+	virtual void __FASTCALL CALL(uint8_t c);
+	virtual void __FASTCALL ANA(uint8_t n);
 
-	virtual uint8_t RM8(uint16_t addr) { return 0xff;}
-	virtual void WM8(uint16_t addr, uint8_t val) {}
-	virtual uint16_t RM16(uint16_t addr) { return 0xffff;}
-	virtual void WM16(uint16_t addr, uint16_t val) {}
-	virtual uint8_t IN8(uint8_t addr) { return 0xff; }
-	virtual void OUT8(uint8_t addr, uint8_t val) {}
-	virtual uint8_t FETCHOP() { return 0xff;}
-	virtual uint8_t FETCH8() { return 0xff;}
-	virtual uint16_t FETCH16()  { return 0xffff; }
-	virtual uint16_t POP16() { return 0xff;}
-	virtual void PUSH16(uint16_t val) {}
-	virtual uint32_t ACK_INTR() {return 0xffffffff; }
+	virtual uint8_t __FASTCALL RM8(uint16_t addr) { return 0xff;}
+	virtual void __FASTCALL WM8(uint16_t addr, uint8_t val) {}
+	virtual uint16_t __FASTCALL RM16(uint16_t addr) { return 0xffff;}
+	virtual void __FASTCALL WM16(uint16_t addr, uint16_t val) {}
+	virtual uint8_t __FASTCALL IN8(uint8_t addr) { return 0xff; }
+	virtual void __FASTCALL OUT8(uint8_t addr, uint8_t val) {}
+	virtual uint8_t __FASTCALL FETCHOP() { return 0xff;}
+	virtual uint8_t __FASTCALL FETCH8() { return 0xff;}
+	virtual uint16_t __FASTCALL FETCH16()  { return 0xffff; }
+	virtual uint16_t __FASTCALL POP16() { return 0xff;}
+	virtual void __FASTCALL PUSH16(uint16_t val) {}
+	virtual uint32_t __FASTCALL ACK_INTR() {return 0xffffffff; }
 	
-	void DSUB();
+	void __FASTCALL DSUB();
 
-	inline void INT(uint16_t v);
-	inline void RST(uint16_t n);
+	inline void __FASTCALL INT(uint16_t v);
+	inline void __FASTCALL RST(uint16_t n);
 
-	void OP(uint8_t code);
+	void __FASTCALL OP(uint8_t code);
 
 	uint64_t total_count;
 	uint64_t prev_total_count;
@@ -126,8 +126,8 @@ public:
 	virtual void initialize();
 	virtual void reset();
 	virtual int run(int clock);
-	virtual void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int ch);
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int ch);
 	void set_intr_line(bool line, bool pending, uint32_t bit);
 	uint32_t get_pc()
 	{
@@ -158,10 +158,10 @@ public:
 	{
 		return 0xffff;
 	}
-	void write_debug_data8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data8(uint32_t addr);
-	void write_debug_io8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_io8(uint32_t addr);
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
+	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);

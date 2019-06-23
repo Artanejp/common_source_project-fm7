@@ -105,9 +105,9 @@ public:
 	void reset();
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 #if defined(_MZ80K)
 	void update_config();
 #endif

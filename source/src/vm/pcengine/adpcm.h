@@ -87,9 +87,9 @@ protected:
 
 	uint8_t ram[0x10000];
 	
-	void do_vclk(bool flag);
+	void __FASTCALL do_vclk(bool flag);
 	void msm_init();
-	bool do_dma(uint8_t data);
+	bool __FASTCALL do_dma(uint8_t data);
 	void do_cmd(uint8_t cmd);
 	void do_play();
 	void do_pause(bool pause);
@@ -111,8 +111,8 @@ public:
 	void initialize();
 	void reset();
 	
-	uint32_t read_signal(int ch);
-	void write_signal(int ch, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int ch);
+	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
 	
 	void event_callback(int id, int err);
 	void mix(int32_t* buffer, int cnt);

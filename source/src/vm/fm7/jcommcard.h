@@ -42,7 +42,7 @@ public:
 	void release(void);
 	
 	void reset(void);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	/* 
 	 *  I/O port:
      * Read:   $FD28 : SYNC Flag (JSUB HALTED = 0x7F)
@@ -55,10 +55,10 @@ public:
      *         $FD2A : Bit7: "0" = HALTREQ. Clear address.
      *         $FD2B : Write Data to RCB.
      */
-	uint32_t read_io8(uint32_t address);
-	void write_io8(uint32_t address, uint32_t data);
-	uint32_t read_data8(uint32_t address);
-	void write_data8(uint32_t address, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t address);
+	void __FASTCALL write_io8(uint32_t address, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t address);
+	void __FASTCALL write_data8(uint32_t address, uint32_t data);
 
 	void set_context_cpu(MC6809 *p)	{
 		cpu = p;

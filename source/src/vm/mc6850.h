@@ -34,7 +34,7 @@ private:
 	FIFO *send_buffer;
 	int recv_id, send_id;
 	
-	void update_irq();
+	void __FASTCALL update_irq();
 	
 public:
 	MC6850(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -50,9 +50,9 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	

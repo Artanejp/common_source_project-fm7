@@ -110,7 +110,7 @@
 	} \
 } while(0)
 
-Z80_INLINE uint8_t Z80_BASE::RM8(uint32_t addr)
+Z80_INLINE uint8_t __FASTCALL Z80_BASE::RM8(uint32_t addr)
 {
 //#ifdef Z80_MEMORY_WAIT
 	UPDATE_EXTRA_EVENT(1);
@@ -129,7 +129,7 @@ Z80_INLINE uint8_t Z80_BASE::RM8(uint32_t addr)
 //#endif
 }
 
-Z80_INLINE void Z80_BASE::WM8(uint32_t addr, uint8_t val)
+Z80_INLINE void __FASTCALL Z80_BASE::WM8(uint32_t addr, uint8_t val)
 {
 //#ifdef Z80_MEMORY_WAIT
 	UPDATE_EXTRA_EVENT(1);
@@ -146,19 +146,19 @@ Z80_INLINE void Z80_BASE::WM8(uint32_t addr, uint8_t val)
 //#endif
 }
 
-Z80_INLINE void Z80_BASE::RM16(uint32_t addr, pair32_t *r)
+Z80_INLINE void __FASTCALL Z80_BASE::RM16(uint32_t addr, pair32_t *r)
 {
 	r->b.l = RM8(addr);
 	r->b.h = RM8((addr + 1) & 0xffff);
 }
 
-Z80_INLINE void Z80_BASE::WM16(uint32_t addr, pair32_t *r)
+Z80_INLINE void __FASTCALL Z80_BASE::WM16(uint32_t addr, pair32_t *r)
 {
 	WM8(addr, r->b.l);
 	WM8((addr + 1) & 0xffff, r->b.h);
 }
 
-Z80_INLINE uint8_t Z80_BASE::FETCHOP()
+Z80_INLINE uint8_t __FASTCALL Z80_BASE::FETCHOP()
 {
 	unsigned pctmp = PCD;
 	PC++;
@@ -173,21 +173,21 @@ Z80_INLINE uint8_t Z80_BASE::FETCHOP()
 	return val;
 }
 
-Z80_INLINE uint8_t Z80_BASE::FETCH8()
+Z80_INLINE uint8_t __FASTCALL Z80_BASE::FETCH8()
 {
 	unsigned pctmp = PCD;
 	PC++;
 	return RM8(pctmp);
 }
 
-Z80_INLINE uint32_t Z80_BASE::FETCH16()
+Z80_INLINE uint32_t __FASTCALL Z80_BASE::FETCH16()
 {
 	unsigned pctmp = PCD;
 	PC += 2;
 	return RM8(pctmp) | ((uint32_t)RM8((pctmp + 1) & 0xffff) << 8);
 }
 
-Z80_INLINE uint8_t Z80_BASE::IN8(uint32_t addr)
+Z80_INLINE uint8_t __FASTCALL Z80_BASE::IN8(uint32_t addr)
 {
 //#ifdef Z80_IO_WAIT
 	UPDATE_EXTRA_EVENT(2);
@@ -206,7 +206,7 @@ Z80_INLINE uint8_t Z80_BASE::IN8(uint32_t addr)
 //#endif
 }
 
-Z80_INLINE void Z80_BASE::OUT8(uint32_t addr, uint8_t val)
+Z80_INLINE void __FASTCALL Z80_BASE::OUT8(uint32_t addr, uint8_t val)
 {
 //#ifdef HAS_NSC800
 	UPDATE_EXTRA_EVENT(2);
@@ -346,7 +346,7 @@ Z80_INLINE void Z80_BASE::OUT8(uint32_t addr, uint8_t val)
 	WZ = PC; \
 } while(0)
 
-Z80_INLINE uint8_t Z80_BASE::INC(uint8_t value)
+Z80_INLINE uint8_t __FASTCALL Z80_BASE::INC(uint8_t value)
 {
 	uint8_t res = value + 1;
 	F = (F & CF) | SZHV_inc[res];
@@ -517,7 +517,7 @@ Z80_INLINE uint8_t Z80_BASE::DEC(uint8_t value)
 	HL = (uint16_t)res; \
 } while(0)
 
-Z80_INLINE uint8_t Z80_BASE::RLC(uint8_t value)
+Z80_INLINE uint8_t __FASTCALL Z80_BASE::RLC(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x80) ? CF : 0;
@@ -526,7 +526,7 @@ Z80_INLINE uint8_t Z80_BASE::RLC(uint8_t value)
 	return res;
 }
 
-Z80_INLINE uint8_t Z80_BASE::RRC(uint8_t value)
+Z80_INLINE uint8_t __FASTCALL Z80_BASE::RRC(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x01) ? CF : 0;
@@ -535,7 +535,7 @@ Z80_INLINE uint8_t Z80_BASE::RRC(uint8_t value)
 	return res;
 }
 
-Z80_INLINE uint8_t Z80_BASE::RL(uint8_t value)
+Z80_INLINE uint8_t __FASTCALL Z80_BASE::RL(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x80) ? CF : 0;
@@ -544,7 +544,7 @@ Z80_INLINE uint8_t Z80_BASE::RL(uint8_t value)
 	return res;
 }
 
-Z80_INLINE uint8_t Z80_BASE::RR(uint8_t value)
+Z80_INLINE uint8_t __FASTCALL Z80_BASE::RR(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x01) ? CF : 0;
@@ -553,7 +553,7 @@ Z80_INLINE uint8_t Z80_BASE::RR(uint8_t value)
 	return res;
 }
 
-Z80_INLINE uint8_t Z80_BASE::SLA(uint8_t value)
+Z80_INLINE uint8_t __FASTCALL Z80_BASE::SLA(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x80) ? CF : 0;
@@ -562,7 +562,7 @@ Z80_INLINE uint8_t Z80_BASE::SLA(uint8_t value)
 	return res;
 }
 
-Z80_INLINE uint8_t Z80_BASE::SRA(uint8_t value)
+Z80_INLINE uint8_t __FASTCALL Z80_BASE::SRA(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x01) ? CF : 0;
@@ -571,7 +571,7 @@ Z80_INLINE uint8_t Z80_BASE::SRA(uint8_t value)
 	return res;
 }
 
-Z80_INLINE uint8_t Z80_BASE::SLL(uint8_t value)
+Z80_INLINE uint8_t __FASTCALL Z80_BASE::SLL(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x80) ? CF : 0;
@@ -580,7 +580,7 @@ Z80_INLINE uint8_t Z80_BASE::SLL(uint8_t value)
 	return res;
 }
 
-Z80_INLINE uint8_t Z80_BASE::SRL(uint8_t value)
+Z80_INLINE uint8_t __FASTCALL Z80_BASE::SRL(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x01) ? CF : 0;
@@ -601,12 +601,12 @@ Z80_INLINE uint8_t Z80_BASE::SRL(uint8_t value)
 	F = (F & CF) | HF | (SZ_BIT[reg & (1 << bit)] & ~(YF | XF)) | ((ea >> 8) & (YF | XF)); \
 } while(0)
 
-Z80_INLINE uint8_t Z80_BASE::RES(uint8_t bit, uint8_t value)
+Z80_INLINE uint8_t __FASTCALL Z80_BASE::RES(uint8_t bit, uint8_t value)
 {
 	return value & ~(1 << bit);
 }
 
-Z80_INLINE uint8_t Z80_BASE::SET(uint8_t bit, uint8_t value)
+Z80_INLINE uint8_t __FASTCALL Z80_BASE::SET(uint8_t bit, uint8_t value)
 {
 	return value | (1 << bit);
 }
@@ -2024,7 +2024,7 @@ void Z80_BASE::reset()
 	icount = extra_icount = busreq_icount = 0;
 }
 
-void Z80_BASE::write_signal(int id, uint32_t data, uint32_t mask)
+void __FASTCALL Z80_BASE::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_CPU_IRQ) {
 		intr_req_bit = (intr_req_bit & ~mask) | (data & mask);
@@ -2056,7 +2056,7 @@ void Z80_BASE::write_signal(int id, uint32_t data, uint32_t mask)
 //#endif
 }
 
-uint32_t Z80_BASE::read_signal(int id)
+uint32_t __FASTCALL Z80_BASE::read_signal(int id)
 {
 	if(id == SIG_CPU_IRQ) {
 		return intr_req_bit;
@@ -2130,11 +2130,11 @@ int Z80_BASE::run(int clock)
 	}
 }
 
-void Z80_BASE::debugger_hook(void)
+void __FASTCALL Z80_BASE::debugger_hook(void)
 {
 }
 
-void Z80_BASE::run_one_opecode()
+void __FASTCALL Z80_BASE::run_one_opecode()
 {
 	// rune one opecode
 	after_ei = after_ldair = false;

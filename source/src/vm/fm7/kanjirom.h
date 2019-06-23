@@ -28,8 +28,8 @@ private:
 public:
 	KANJIROM(VM_TEMPLATE* parent_vm, EMU* parent_emu, bool type_2std);
 	~KANJIROM();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
 	void release();
 	void reset(void);
 	bool get_readstat(void);

@@ -85,17 +85,17 @@ typedef struct {
 	bool vblank;
 	
 	void reset(bool hireso);
-	void write_cmd(uint8_t data);
-	void write_param(uint8_t data);
+	void __FASTCALL write_cmd(uint8_t data);
+	void __FASTCALL write_param(uint8_t data);
 	uint32_t read_param();
 	uint32_t read_status();
 	void start();
 	void finish();
-	void write_buffer(uint8_t data);
-	uint8_t read_buffer(int ofs);
+	void __FASTCALL write_buffer(uint8_t data);
+	uint8_t __FASTCALL read_buffer(int ofs);
 	void update_blink();
-	void expand_buffer(bool hireso, bool line400);
-	void set_attrib(uint8_t code);
+	void __FASTCALL expand_buffer(bool hireso, bool line400);
+	void __FASTCALL set_attrib(uint8_t code);
 } pc88_crtc_t;
 
 typedef struct {
@@ -110,8 +110,8 @@ typedef struct {
 	bool high_low;
 	DEVICE *mem;
 	
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void  __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t  __FASTCALL read_io8(uint32_t addr);
 	void start(int c);
 	void run(int c, int nbytes);
 	void finish(int c);
@@ -377,20 +377,20 @@ public:
 	void release();
 	void reset();
 	
-	void write_data8w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t read_data8w(uint32_t addr, int* wait);
-	uint32_t fetch_op(uint32_t addr, int *wait);
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait);
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 #ifdef _IO_DEBUG_LOG
-	uint32_t read_io8_debug(uint32_t addr);
+	uint32_t __FASTCALL read_io8_debug(uint32_t addr);
 #endif
 	
-	uint32_t read_dma_data8(uint32_t addr);
-	void write_dma_data8(uint32_t addr, uint32_t data);
-	void write_dma_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_data8(uint32_t addr);
+	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
 	
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	void event_frame();
 	void event_vline(int v, int clock);
@@ -400,7 +400,7 @@ public:
 	
 	// unique functions
 #ifdef PC8801SR_VARIANT
-	bool is_sr_mr()
+	bool __FASTCALL is_sr_mr()
 	{
 		return (n88rom[0x79d7] < 0x38);
 	}

@@ -143,7 +143,7 @@ public:
 	void initialize();
 	void reset();
 	int run(int clock);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t get_pc()
 	{
 		return prevPC;
@@ -173,18 +173,18 @@ public:
 	{
 		return 0xffff;
 	}
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
-	void write_data16(uint32_t addr, uint32_t data);
-	uint32_t read_data16(uint32_t addr);
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_debug_data8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data8(uint32_t addr);
-	void write_debug_data16(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data16(uint32_t addr);
-	void write_debug_io8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_io8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void __FASTCALL write_data16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data16(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
+	void __FASTCALL write_debug_data16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data16(uint32_t addr);
+	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);

@@ -84,8 +84,8 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void event_pre_frame();
 	void event_frame();
 	void event_vline(int v, int clock);

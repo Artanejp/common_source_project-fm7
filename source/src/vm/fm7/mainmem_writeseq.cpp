@@ -21,7 +21,7 @@ void FM7_MAINMEM::write_data_tbl(uint32_t addr, uint32_t data, bool dmamode)
 		data_table[paddr].write_data[addr & 0x7f] = (uint8_t)data;
 		return;
 	} else if(data_table[paddr].write_func != NULL) {
-		void (FM7_MAINMEM::*write_func)(uint32_t, uint32_t, bool);
+		void (__FASTCALL FM7_MAINMEM::*write_func)(uint32_t, uint32_t, bool);
 		write_func = this->data_table[paddr].write_func;
 		(this->*write_func)(addr, data, dmamode);
 	}

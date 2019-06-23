@@ -60,24 +60,24 @@ private:
 	int blink;
 	
 	void process_cmd();
-	void put_code(uint8_t data);
-	uint8_t get_code();
+	void __FASTCALL put_code(uint8_t data);
+	uint8_t __FASTCALL get_code();
 	void scroll();
 	void draw_text();
 	
-	void transform(double world_x, double world_y, double *x, double *y);
-	void world_to_view(double world_x, double world_y, double *x, double *y);
-	void view_to_vram(double view_x, double view_y, int *x, int *y);
-	void transform_to_vram(double world_x, double world_y, int *x, int *y);
+	void __FASTCALL transform(double world_x, double world_y, double *x, double *y);
+	void __FASTCALL world_to_view(double world_x, double world_y, double *x, double *y);
+	void __FASTCALL view_to_vram(double view_x, double view_y, int *x, int *y);
+	void __FASTCALL transform_to_vram(double world_x, double world_y, int *x, int *y);
 	
-	void draw_solid_pixel(int x, int y);
-	void draw_texture_pixel(int x, int y);
-	void draw_pattern_pixel(int x, int y);
-	void draw_solid_line(int x0, int y0, int x1, int y1);
-	void draw_solid_cont_line(int x0, int y0, int x1, int y1);
-	void draw_texture_line(int x0, int y0, int x1, int y1);
-	void draw_texture_cont_line(int x0, int y0, int x1, int y1);
-	void draw_char(int x, int y, int pow, int rot, int code);
+	void __FASTCALL draw_solid_pixel(int x, int y);
+	void __FASTCALL draw_texture_pixel(int x, int y);
+	void __FASTCALL draw_pattern_pixel(int x, int y);
+	void __FASTCALL draw_solid_line(int x0, int y0, int x1, int y1);
+	void __FASTCALL draw_solid_cont_line(int x0, int y0, int x1, int y1);
+	void __FASTCALL draw_texture_line(int x0, int y0, int x1, int y1);
+	void __FASTCALL draw_texture_cont_line(int x0, int y0, int x1, int y1);
+	void __FASTCALL draw_char(int x, int y, int pow, int rot, int code);
 	
 public:
 	DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -90,8 +90,8 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void event_frame();
 	bool process_state(FILEIO* state_fio, bool loading);
 	

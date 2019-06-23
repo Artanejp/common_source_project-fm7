@@ -77,30 +77,30 @@ protected:
 	bool after_ei, after_ldair;
 	uint32_t intr_req_bit, intr_pend_bit;
 	
-	Z80_INLINE uint8_t RM8(uint32_t addr);
-	Z80_INLINE void WM8(uint32_t addr, uint8_t val);
-	Z80_INLINE void RM16(uint32_t addr, pair32_t *r);
-	Z80_INLINE void WM16(uint32_t addr, pair32_t *r);
-	Z80_INLINE uint8_t FETCHOP();
-	Z80_INLINE uint8_t FETCH8();
-	Z80_INLINE uint32_t FETCH16();
-	Z80_INLINE uint8_t IN8(uint32_t addr);
-	Z80_INLINE void OUT8(uint32_t addr, uint8_t val);
+	Z80_INLINE uint8_t __FASTCALL RM8(uint32_t addr);
+	Z80_INLINE void __FASTCALL WM8(uint32_t addr, uint8_t val);
+	Z80_INLINE void __FASTCALL RM16(uint32_t addr, pair32_t *r);
+	Z80_INLINE void __FASTCALL WM16(uint32_t addr, pair32_t *r);
+	Z80_INLINE uint8_t __FASTCALL FETCHOP();
+	Z80_INLINE uint8_t __FASTCALL FETCH8();
+	Z80_INLINE uint32_t __FASTCALL FETCH16();
+	Z80_INLINE uint8_t __FASTCALL IN8(uint32_t addr);
+	Z80_INLINE void __FASTCALL OUT8(uint32_t addr, uint8_t val);
 	
-	Z80_INLINE uint8_t INC(uint8_t value);
-	Z80_INLINE uint8_t DEC(uint8_t value);
+	Z80_INLINE uint8_t __FASTCALL INC(uint8_t value);
+	Z80_INLINE uint8_t __FASTCALL DEC(uint8_t value);
 	
-	Z80_INLINE uint8_t RLC(uint8_t value);
-	Z80_INLINE uint8_t RRC(uint8_t value);
-	Z80_INLINE uint8_t RL(uint8_t value);
-	Z80_INLINE uint8_t RR(uint8_t value);
-	Z80_INLINE uint8_t SLA(uint8_t value);
-	Z80_INLINE uint8_t SRA(uint8_t value);
-	Z80_INLINE uint8_t SLL(uint8_t value);
-	Z80_INLINE uint8_t SRL(uint8_t value);
+	Z80_INLINE uint8_t __FASTCALL RLC(uint8_t value);
+	Z80_INLINE uint8_t __FASTCALL RRC(uint8_t value);
+	Z80_INLINE uint8_t __FASTCALL RL(uint8_t value);
+	Z80_INLINE uint8_t __FASTCALL RR(uint8_t value);
+	Z80_INLINE uint8_t __FASTCALL SLA(uint8_t value);
+	Z80_INLINE uint8_t __FASTCALL SRA(uint8_t value);
+	Z80_INLINE uint8_t __FASTCALL SLL(uint8_t value);
+	Z80_INLINE uint8_t __FASTCALL SRL(uint8_t value);
 	
-	Z80_INLINE uint8_t RES(uint8_t bit, uint8_t value);
-	Z80_INLINE uint8_t SET(uint8_t bit, uint8_t value);
+	Z80_INLINE uint8_t __FASTCALL RES(uint8_t bit, uint8_t value);
+	Z80_INLINE uint8_t __FASTCALL SET(uint8_t bit, uint8_t value);
 	
 	void OP_CB(uint8_t code);
 	void OP_XY(uint8_t code);
@@ -108,8 +108,8 @@ protected:
 	void OP_FD(uint8_t code);
 	void OP_ED(uint8_t code);
 	void OP(uint8_t code);
-	virtual void run_one_opecode();
-	virtual void debugger_hook(void);
+	virtual void __FASTCALL run_one_opecode();
+	virtual void __FASTCALL debugger_hook(void);
 	
 	uint8_t SZ[256];		/* zero and sign flags */
 	uint8_t SZ_BIT[256];	/* zero, sign and parity/overflow (=zero) flags for BIT opcode */
@@ -286,8 +286,8 @@ public:
 
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 	
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int id);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int id);
 	void set_intr_line(bool line, bool pending, uint32_t bit)
 	{
 		uint32_t mask = 1 << bit;
@@ -371,8 +371,8 @@ class Z80 : public Z80_BASE
 {
 protected:
 	void check_interrupt();
-	void run_one_opecode() override;
-	void debugger_hook(void) override;
+	void __FASTCALL run_one_opecode() override;
+	void __FASTCALL debugger_hook(void) override;
 public:
 	Z80(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 	~Z80();
@@ -382,10 +382,10 @@ public:
 
 	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
 #ifdef USE_DEBUGGER
-	void write_debug_data8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data8(uint32_t addr);
-	void write_debug_io8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_io8(uint32_t addr);
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
+	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
 #endif
 #ifdef Z80_PSEUDO_BIOS
 	void set_context_bios(DEVICE* device)

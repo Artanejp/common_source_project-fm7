@@ -28,7 +28,7 @@ private:
 	bool loop;
 	bool mute;
 	
-	void get_sample();
+	void __FASTCALL get_sample();
 	
 public:
 	NOISE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)

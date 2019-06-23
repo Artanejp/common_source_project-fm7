@@ -104,11 +104,11 @@ protected:
 	}
 	~HD6844(){}
 	void event_callback(int event_id, int err);
-	void write_data8(uint32_t id, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t id, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
 	
-	uint32_t read_signal(int id); 
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int id); 
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void initialize(void);
 	void reset(void);
 	//void update_config(void);

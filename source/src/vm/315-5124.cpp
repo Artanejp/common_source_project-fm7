@@ -308,7 +308,7 @@ void _315_5124::vdp_reg_w(uint8_t r, uint8_t d)
 	}
 }
 
-void _315_5124::write_io8(uint32_t addr, uint32_t data)
+void __FASTCALL _315_5124::write_io8(uint32_t addr, uint32_t data)
 {
 	int index;
 	if ((addr & 0x000000ff)==0x7f) {
@@ -443,7 +443,7 @@ void _315_5124::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t _315_5124::read_io8(uint32_t addr)
+uint32_t __FASTCALL _315_5124::read_io8(uint32_t addr)
 {
 	uint8_t temp;
 	if ((addr & 0x000000ff) == 0x7e) {

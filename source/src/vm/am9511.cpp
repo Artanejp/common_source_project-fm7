@@ -635,7 +635,7 @@ void AM9511::reset()
 	register_id = -1;
 }
 
-void AM9511::write_io8(uint32_t addr, uint32_t data)
+void __FASTCALL AM9511::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr & 1) {
 //		if(!(_apu_status & _APU_F_BUSY)) {
@@ -648,7 +648,7 @@ void AM9511::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t AM9511::read_io8(uint32_t addr)
+uint32_t __FASTCALL AM9511::read_io8(uint32_t addr)
 {
 	if(addr & 1) {
 		return apu_read_status();

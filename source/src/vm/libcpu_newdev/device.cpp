@@ -53,7 +53,7 @@ void DEVICE::release()
 {
 }
 
-uint32_t DEVICE::read_io8(uint32_t addr)
+uint32_t __FASTCALL DEVICE::read_io8(uint32_t addr)
 {
 #ifdef IOBUS_RETURN_ADDR
 		return (addr & 1 ? addr >> 8 : addr) & 0xff;
@@ -455,63 +455,63 @@ uint64_t DEVICE::get_debug_data_addr_space()
 	// override this function when memory space is not (2 << n)
 	return (uint64_t)get_debug_data_addr_mask() + 1;
 }
-void DEVICE::write_debug_data8(uint32_t addr, uint32_t data)
+void __FASTCALL DEVICE::write_debug_data8(uint32_t addr, uint32_t data)
 {
 //		write_data8(addr, data);
 }
-uint32_t DEVICE::read_debug_data8(uint32_t addr)
+uint32_t __FASTCALL DEVICE::read_debug_data8(uint32_t addr)
 {
 //		return read_data8(addr);
 	return 0xff;
 }
-void DEVICE::write_debug_data16(uint32_t addr, uint32_t data)
+void __FASTCALL DEVICE::write_debug_data16(uint32_t addr, uint32_t data)
 {
 	write_debug_data8(addr, data & 0xff);
 	write_debug_data8(addr + 1, (data >> 8) & 0xff);
 }
-uint32_t DEVICE::read_debug_data16(uint32_t addr)
+uint32_t __FASTCALL DEVICE::read_debug_data16(uint32_t addr)
 {
 	uint32_t val = read_debug_data8(addr);
 	val |= read_debug_data8(addr + 1) << 8;
 	return val;
 }
-void DEVICE::write_debug_data32(uint32_t addr, uint32_t data)
+void __FASTCALL DEVICE::write_debug_data32(uint32_t addr, uint32_t data)
 {
 	write_debug_data16(addr, data & 0xffff);
 	write_debug_data16(addr + 2, (data >> 16) & 0xffff);
 }
-uint32_t DEVICE::read_debug_data32(uint32_t addr)
+uint32_t __FASTCALL DEVICE::read_debug_data32(uint32_t addr)
 {
 	uint32_t val = read_debug_data16(addr);
 	val |= read_debug_data16(addr + 2) << 16;
 	return val;
 }
-void DEVICE::write_debug_io8(uint32_t addr, uint32_t data)
+void __FASTCALL DEVICE::write_debug_io8(uint32_t addr, uint32_t data)
 {
 //		write_io8(addr, data);
 }
-uint32_t DEVICE::read_debug_io8(uint32_t addr)
+uint32_t __FASTCALL DEVICE::read_debug_io8(uint32_t addr)
 {
 //		return read_io8(addr);
 	return 0xff;
 }
-void DEVICE::write_debug_io16(uint32_t addr, uint32_t data)
+void __FASTCALL DEVICE::write_debug_io16(uint32_t addr, uint32_t data)
 {
 	write_debug_io8(addr, data & 0xff);
 	write_debug_io8(addr + 1, (data >> 8) & 0xff);
 }
-uint32_t DEVICE::read_debug_io16(uint32_t addr)
+uint32_t __FASTCALL DEVICE::read_debug_io16(uint32_t addr)
 {
 	uint32_t val = read_debug_io8(addr);
 	val |= read_debug_io8(addr + 1) << 8;
 	return val;
 }
-void DEVICE::write_debug_io32(uint32_t addr, uint32_t data)
+void __FASTCALL DEVICE::write_debug_io32(uint32_t addr, uint32_t data)
 {
 	write_debug_io16(addr, data & 0xffff);
 	write_debug_io16(addr + 2, (data >> 16) & 0xffff);
 }
-uint32_t DEVICE::read_debug_io32(uint32_t addr)
+uint32_t __FASTCALL DEVICE::read_debug_io32(uint32_t addr)
 {
 	uint32_t val = read_debug_io16(addr);
 	val |= read_debug_io16(addr + 2) << 16;
@@ -521,7 +521,7 @@ bool DEVICE::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
 	return false;
 }
-uint32_t DEVICE::read_debug_reg(const _TCHAR *reg)
+uint32_t __FASTCALL DEVICE::read_debug_reg(const _TCHAR *reg)
 {
 	return 0;
 }
@@ -542,7 +542,7 @@ int DEVICE::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_
 	These functions are used for debugging non-cpu device
 	Insert debugger between standard read/write functions and these functions for checking breakpoints
 
-	void DEVICE::write_data8(uint32_t addr, uint32_t data)
+	void __FASTCALL DEVICE::write_data8(uint32_t addr, uint32_t data)
 	{
 		if(debugger != NULL && debugger->now_device_debugging) {
 			// debugger->mem = this;
@@ -552,93 +552,93 @@ int DEVICE::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_
 			this->write_via_debugger_data8(addr, data);
 		}
 	}
-	void DEVICE::write_via_debugger_data8(uint32_t addr, uint32_t data)
+	void __FASTCALL DEVICE::write_via_debugger_data8(uint32_t addr, uint32_t data)
 	{
 		// write memory
 	}
 */
 
-void DEVICE::write_via_debugger_data8(uint32_t addr, uint32_t data)
+void __FASTCALL DEVICE::write_via_debugger_data8(uint32_t addr, uint32_t data)
 {
 }
-uint32_t DEVICE::read_via_debugger_data8(uint32_t addr)
+uint32_t __FASTCALL DEVICE::read_via_debugger_data8(uint32_t addr)
 {
 	return 0xff;
 }
-void DEVICE::write_via_debugger_data16(uint32_t addr, uint32_t data)
+void __FASTCALL DEVICE::write_via_debugger_data16(uint32_t addr, uint32_t data)
 {
 }
-uint32_t DEVICE::read_via_debugger_data16(uint32_t addr)
+uint32_t __FASTCALL DEVICE::read_via_debugger_data16(uint32_t addr)
 {
 	return 0xffff;
 }
-void DEVICE::write_via_debugger_data32(uint32_t addr, uint32_t data)
+void __FASTCALL DEVICE::write_via_debugger_data32(uint32_t addr, uint32_t data)
 {
 }
-uint32_t DEVICE::read_via_debugger_data32(uint32_t addr)
+uint32_t __FASTCALL DEVICE::read_via_debugger_data32(uint32_t addr)
 {
 	return 0xffffffff;
 }
-void DEVICE::write_via_debugger_data8w(uint32_t addr, uint32_t data, int* wait)
+void __FASTCALL DEVICE::write_via_debugger_data8w(uint32_t addr, uint32_t data, int* wait)
 {
 }
-uint32_t DEVICE::read_via_debugger_data8w(uint32_t addr, int* wait)
+uint32_t __FASTCALL DEVICE::read_via_debugger_data8w(uint32_t addr, int* wait)
 {
 	return 0xff;
 }
-void DEVICE::write_via_debugger_data16w(uint32_t addr, uint32_t data, int* wait)
+void __FASTCALL DEVICE::write_via_debugger_data16w(uint32_t addr, uint32_t data, int* wait)
 {
 }
-uint32_t DEVICE::read_via_debugger_data16w(uint32_t addr, int* wait)
+uint32_t __FASTCALL DEVICE::read_via_debugger_data16w(uint32_t addr, int* wait)
 {
 	return 0xffff;
 }
-void DEVICE::write_via_debugger_data32w(uint32_t addr, uint32_t data, int* wait)
+void __FASTCALL DEVICE::write_via_debugger_data32w(uint32_t addr, uint32_t data, int* wait)
 {
 }
-uint32_t DEVICE::read_via_debugger_data32w(uint32_t addr, int* wait)
+uint32_t __FASTCALL DEVICE::read_via_debugger_data32w(uint32_t addr, int* wait)
 {
 	return 0xffffffff;
 }
-void DEVICE::write_via_debugger_io8(uint32_t addr, uint32_t data)
+void __FASTCALL DEVICE::write_via_debugger_io8(uint32_t addr, uint32_t data)
 {
 }
-uint32_t DEVICE::read_via_debugger_io8(uint32_t addr)
+uint32_t __FASTCALL DEVICE::read_via_debugger_io8(uint32_t addr)
 {
 	return 0xff;
 }
-void DEVICE::write_via_debugger_io16(uint32_t addr, uint32_t data)
+void __FASTCALL DEVICE::write_via_debugger_io16(uint32_t addr, uint32_t data)
 {
 }
-uint32_t DEVICE::read_via_debugger_io16(uint32_t addr)
+uint32_t __FASTCALL DEVICE::read_via_debugger_io16(uint32_t addr)
 {
 	return 0xffff;
 }
-void DEVICE::write_via_debugger_io32(uint32_t addr, uint32_t data)
+void __FASTCALL DEVICE::write_via_debugger_io32(uint32_t addr, uint32_t data)
 {
 }
-uint32_t DEVICE::read_via_debugger_io32(uint32_t addr)
+uint32_t __FASTCALL DEVICE::read_via_debugger_io32(uint32_t addr)
 {
 	return 0xffffffff;
 }
-void DEVICE::write_via_debugger_io8w(uint32_t addr, uint32_t data, int* wait)
+void __FASTCALL DEVICE::write_via_debugger_io8w(uint32_t addr, uint32_t data, int* wait)
 {
 }
-uint32_t DEVICE::read_via_debugger_io8w(uint32_t addr, int* wait)
+uint32_t __FASTCALL DEVICE::read_via_debugger_io8w(uint32_t addr, int* wait)
 {
 	return 0xff;
 }
-void DEVICE::write_via_debugger_io16w(uint32_t addr, uint32_t data, int* wait)
+void __FASTCALL DEVICE::write_via_debugger_io16w(uint32_t addr, uint32_t data, int* wait)
 {
 }
-uint32_t DEVICE::read_via_debugger_io16w(uint32_t addr, int* wait)
+uint32_t __FASTCALL DEVICE::read_via_debugger_io16w(uint32_t addr, int* wait)
 {
 	return 0xffff;
 }
-void DEVICE::write_via_debugger_io32w(uint32_t addr, uint32_t data, int* wait)
+void __FASTCALL DEVICE::write_via_debugger_io32w(uint32_t addr, uint32_t data, int* wait)
 {
 }
-uint32_t DEVICE::read_via_debugger_io32w(uint32_t addr, int* wait)
+uint32_t __FASTCALL DEVICE::read_via_debugger_io32w(uint32_t addr, int* wait)
 {
 	return 0xffffffff;
 }

@@ -123,30 +123,30 @@ private:
 	
 	void update_crtc();
 	void update_pal();
-	uint8_t get_cur_font(uint32_t addr);
-	void get_cur_pcg(uint32_t addr);
-	void get_cur_code_line();
+	uint8_t __FASTCALL get_cur_font(uint32_t addr);
+	void __FASTCALL get_cur_pcg(uint32_t addr);
+	void __FASTCALL get_cur_code_line();
 	
 	void draw_line(int v);
 	void draw_text(int y);
 	void draw_cg(int line, int plane);
 	
 #ifdef _X1TURBOZ
-	int get_zpal_num(uint32_t addr, uint32_t data);
-	scrntype_t get_zpriority(uint8_t text, uint16_t cg0, uint16_t cg1);
+	int __FASTCALL get_zpal_num(uint32_t addr, uint32_t data);
+	scrntype_t __FASTCALL get_zpriority(uint8_t text, uint16_t cg0, uint16_t cg1);
 #endif
 	
 	// kanji rom (from X1EMU by KM)
-	void write_kanji(uint32_t addr, uint32_t data);
-	uint32_t read_kanji(uint32_t addr);
+	void __FASTCALL write_kanji(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_kanji(uint32_t addr);
 	
-	uint16_t jis2adr_x1(uint16_t jis);
-	uint32_t adr2knj_x1(uint16_t adr);
+	uint16_t __FASTCALL jis2adr_x1(uint16_t jis);
+	uint32_t __FASTCALL adr2knj_x1(uint16_t adr);
 #ifdef _X1TURBO_FEATURE
-	uint32_t adr2knj_x1t(uint16_t adr);
+	uint32_t __FASTCALL adr2knj_x1t(uint16_t adr);
 #endif
-	uint32_t jis2knj(uint16_t jis);
-	uint16_t jis2sjis(uint16_t jis);
+	uint32_t __FASTCALL jis2knj(uint16_t jis);
+	uint16_t __FASTCALL jis2sjis(uint16_t jis);
 
 	int tmp_kanji_ptr;
 
@@ -163,9 +163,9 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	void event_vline(int v, int clock);
 #ifdef _X1TURBO_FEATURE

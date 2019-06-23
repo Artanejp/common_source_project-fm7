@@ -93,23 +93,23 @@ class MB61VH010: public DEVICE {
 	bool disable_flags[4];
 	bool multi_flags[4];
 	// ALU COMMANDS
-	inline uint8_t do_read(uint32_t addr,  uint32_t bank);
-	inline void do_write(uint32_t addr, uint32_t bank, uint8_t data);
-	void do_pset(uint32_t addr);
-	void do_blank(uint32_t addr);
-	void do_or(uint32_t addr);
-	void do_and(uint32_t addr);
-	void do_xor(uint32_t addr);
-	void do_not(uint32_t addr);
-	void do_tilepaint(uint32_t addr);
-	void do_compare(uint32_t addr);
-	void do_alucmds(uint32_t addr);
-	void do_alucmds_dmyread(uint32_t addr);
-	inline void put_dot(int x, int y);
-	inline void put_dot8(int x, int y);
+	inline uint8_t __FASTCALL do_read(uint32_t addr,  uint32_t bank);
+	inline void __FASTCALL do_write(uint32_t addr, uint32_t bank, uint8_t data);
+	void __FASTCALL do_pset(uint32_t addr);
+	void __FASTCALL do_blank(uint32_t addr);
+	void __FASTCALL do_or(uint32_t addr);
+	void __FASTCALL do_and(uint32_t addr);
+	void __FASTCALL do_xor(uint32_t addr);
+	void __FASTCALL do_not(uint32_t addr);
+	void __FASTCALL do_tilepaint(uint32_t addr);
+	void __FASTCALL do_compare(uint32_t addr);
+	void __FASTCALL do_alucmds(uint32_t addr);
+	void __FASTCALL do_alucmds_dmyread(uint32_t addr);
+	inline void __FASTCALL put_dot(int x, int y);
+	inline void __FASTCALL put_dot8(int x, int y);
 
 	// LINE
-	void do_line(void);
+	void __FASTCALL do_line(void);
  public:
 	MB61VH010(VM_TEMPLATE* parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -119,15 +119,13 @@ class MB61VH010: public DEVICE {
 	}
 	~MB61VH010() {}
 
-	void save_state(FILEIO *state_fio);
-	bool load_state(FILEIO *state_fio);
-	bool decl_state(FILEIO *state_fio, bool loading);
+	bool process_state(FILEIO *state_fio, bool loading);
 	
 	void event_callback(int event_id, int err);
-	void write_data8(uint32_t id, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
-	uint32_t read_signal(int id); 
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_data8(uint32_t id, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	uint32_t __FASTCALL read_signal(int id); 
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void initialize(void);
 	void reset(void);
 	//void update_config(void);

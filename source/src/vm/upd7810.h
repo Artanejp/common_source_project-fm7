@@ -42,7 +42,7 @@ private:
 	int icount;
 	bool busreq, rxd_status;
 	
-	int run_one_opecode();
+	int __FASTCALL run_one_opecode();
 
 	void process_state_cpustate(FILEIO* state_fio, bool loading);
 public:
@@ -63,7 +63,7 @@ public:
 	void release();
 	void reset();
 	int run(int clock);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t get_pc();
 	uint32_t get_next_pc();
 #ifdef USE_DEBUGGER
@@ -87,11 +87,11 @@ public:
 	{
 		return 0xffff;
 	}
-	void write_debug_data8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data8(uint32_t addr);
-	void write_debug_io8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_io8(uint32_t addr);
-	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
+	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
+	bool __FASTCALL write_debug_reg(const _TCHAR *reg, uint32_t data);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
 #endif

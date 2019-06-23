@@ -34,24 +34,24 @@ protected:
 #undef XX	
 	uint16_t latch09;
 
-	void mc6801_io_w(uint32_t offset, uint32_t data) override;
-	void insn(uint8_t code) override;
+	void __FASTCALL mc6801_io_w(uint32_t offset, uint32_t data) override;
+	void __FASTCALL insn(uint8_t code) override;
 	
-	void undoc1();
-	void undoc2();
-	void xgdx();
+	void __FASTCALL undoc1();
+	void __FASTCALL undoc2();
+	void __FASTCALL xgdx();
 
-	void slp();
-	void aim_ix();
-	void oim_ix();
-	void eim_ix();
-	void tim_ix();
-	void aim_di();
-	void oim_di();
-	void eim_di();
-	void tim_di();
+	void __FASTCALL slp();
+	void __FASTCALL aim_ix();
+	void __FASTCALL oim_ix();
+	void __FASTCALL eim_ix();
+	void __FASTCALL tim_ix();
+	void __FASTCALL aim_di();
+	void __FASTCALL oim_di();
+	void __FASTCALL eim_di();
+	void __FASTCALL tim_di();
 
-	void illegal() override;
+	void __FASTCALL illegal() override;
 		
 public:
 	HD6301(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MC6801(parent_vm, parent_emu)

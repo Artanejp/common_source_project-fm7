@@ -33,7 +33,7 @@ public:
 	~DMAREG() {}
 	
 	// common function
-	void write_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	
 	// unique functions
 	void set_context_dma(DEVICE* device)

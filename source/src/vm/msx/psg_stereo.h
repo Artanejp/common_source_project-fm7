@@ -27,7 +27,7 @@ private:
 	AY_3_891X* d_psg[3];
 	uint8_t rreg[14];
 	uint8_t ch;
-	void sound(int dev, int reg, int val);
+	void __FASTCALL sound(int dev, int reg, int val);
 	int m_stereo;
 	int m_decibel_l;
 	int m_decibel_r;
@@ -37,8 +37,8 @@ public:
 	~PSG_STEREO() {}
 	
 	// common functions
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void initialize();
 	void release();
 	void reset();

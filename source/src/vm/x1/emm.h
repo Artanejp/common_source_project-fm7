@@ -37,8 +37,8 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 #ifdef USE_DEBUGGER
 	bool is_debugger_available()
 	{
@@ -48,13 +48,13 @@ public:
 	{
 		return EMM_BUFFER_SIZE;
 	}
-	void write_debug_data8(uint32_t addr, uint32_t data)
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data)
 	{
 		if(addr < EMM_BUFFER_SIZE) {
 			data_buffer[addr] = data;
 		}
 	}
-	uint32_t read_debug_data8(uint32_t addr)
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr)
 	{
 		if(addr < EMM_BUFFER_SIZE) {
 			return data_buffer[addr];

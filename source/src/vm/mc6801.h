@@ -97,42 +97,42 @@ protected:
 	uint8_t ram[128];
 	
 
-	uint32_t mc6801_io_r(uint32_t offset);
-	virtual void mc6801_io_w(uint32_t offset, uint32_t data);
-	void increment_counter(int amount);
+	uint32_t __FASTCALL mc6801_io_r(uint32_t offset);
+	virtual void __FASTCALL mc6801_io_w(uint32_t offset, uint32_t data);
+	void __FASTCALL increment_counter(int amount);
 
-	uint32_t RM(uint32_t Addr) override;
-	void WM(uint32_t Addr, uint32_t Value) override;
+	uint32_t __FASTCALL RM(uint32_t Addr) override;
+	void __FASTCALL WM(uint32_t Addr, uint32_t Value) override;
 
-	void run_one_opecode() override;
+	void __FASTCALL run_one_opecode() override;
 
-	void insn(uint8_t code) override;
-	void abx();
-	void addd_di();
-	void addd_ex();
-	void addd_im();
-	void addd_ix();
-	void asld();
-	void ldd_di();
-	void ldd_ex();
-	void ldd_im();
-	void ldd_ix();
-	void lsrd();
-	void mul();
-	void pshx();
-	void pulx();
-	void std_di();
-	void std_ex();
-	void std_im();
-	void std_ix();
-	void subd_di();
-	void subd_ex();
-	void subd_im();
-	void subd_ix();
-	void cpx_di();
-	void cpx_ex();
-	void cpx_im();
-	void cpx_ix();
+	void __FASTCALL insn(uint8_t code) override;
+	void __FASTCALL abx();
+	void __FASTCALL addd_di();
+	void __FASTCALL addd_ex();
+	void __FASTCALL addd_im();
+	void __FASTCALL addd_ix();
+	void __FASTCALL asld();
+	void __FASTCALL ldd_di();
+	void __FASTCALL ldd_ex();
+	void __FASTCALL ldd_im();
+	void __FASTCALL ldd_ix();
+	void __FASTCALL lsrd();
+	void __FASTCALL mul();
+	void __FASTCALL pshx();
+	void __FASTCALL pulx();
+	void __FASTCALL std_di();
+	void __FASTCALL std_ex();
+	void __FASTCALL std_im();
+	void __FASTCALL std_ix();
+	void __FASTCALL subd_di();
+	void __FASTCALL subd_ex();
+	void __FASTCALL subd_im();
+	void __FASTCALL subd_ix();
+	void __FASTCALL cpx_di();
+	void __FASTCALL cpx_ex();
+	void __FASTCALL cpx_im();
+	void __FASTCALL cpx_ix();
 
 //#endif
 public:
@@ -150,7 +150,7 @@ public:
 	void release();
 	void reset() override;
 	int run(int clock) override;
-	void write_signal(int id, uint32_t data, uint32_t mask) override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
 	bool process_state(FILEIO* state_fio, bool loading);
 
 

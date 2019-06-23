@@ -124,271 +124,271 @@ public:
 	{
 		release_symbols();
 	}
-	void write_data8(uint32_t addr, uint32_t data)
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data)
 	{
 		d_mem->write_data8(addr, data);
 		check_mem_break_points(&wbp, addr, 1);
 	}
-	uint32_t read_data8(uint32_t addr)
+	uint32_t __FASTCALL read_data8(uint32_t addr)
 	{
 		uint32_t val = d_mem->read_data8(addr);
 		check_mem_break_points(&rbp, addr, 1);
 		return val;
 	}
-	void write_data16(uint32_t addr, uint32_t data)
+	void __FASTCALL write_data16(uint32_t addr, uint32_t data)
 	{
 		d_mem->write_data16(addr, data);
 		check_mem_break_points(&wbp, addr, 2);
 	}
-	uint32_t read_data16(uint32_t addr)
+	uint32_t __FASTCALL read_data16(uint32_t addr)
 	{
 		uint32_t val = d_mem->read_data16(addr);
 		check_mem_break_points(&rbp, addr, 2);
 		return val;
 	}
-	void write_data32(uint32_t addr, uint32_t data)
+	void __FASTCALL write_data32(uint32_t addr, uint32_t data)
 	{
 		d_mem->write_data32(addr, data);
 		check_mem_break_points(&wbp, addr, 4);
 	}
-	uint32_t read_data32(uint32_t addr)
+	uint32_t __FASTCALL read_data32(uint32_t addr)
 	{
 		uint32_t val = d_mem->read_data32(addr);
 		check_mem_break_points(&rbp, addr, 4);
 		return val;
 	}
-	void write_data8w(uint32_t addr, uint32_t data, int* wait)
+	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait)
 	{
 		d_mem->write_data8w(addr, data, wait);
 		check_mem_break_points(&wbp, addr, 1);
 	}
-	uint32_t read_data8w(uint32_t addr, int* wait)
+	uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait)
 	{
 		uint32_t val = d_mem->read_data8w(addr, wait);
 		check_mem_break_points(&rbp, addr, 1);
 		return val;
 	}
-	void write_data16w(uint32_t addr, uint32_t data, int* wait)
+	void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int* wait)
 	{
 		d_mem->write_data16w(addr, data, wait);
 		check_mem_break_points(&wbp, addr, 2);
 	}
-	uint32_t read_data16w(uint32_t addr, int* wait)
+	uint32_t __FASTCALL read_data16w(uint32_t addr, int* wait)
 	{
 		uint32_t val = d_mem->read_data16w(addr, wait);
 		check_mem_break_points(&rbp, addr, 2);
 		return val;
 	}
-	void write_data32w(uint32_t addr, uint32_t data, int* wait)
+	void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int* wait)
 	{
 		d_mem->write_data32w(addr, data, wait);
 		check_mem_break_points(&wbp, addr, 4);
 	}
-	uint32_t read_data32w(uint32_t addr, int* wait)
+	uint32_t __FASTCALL read_data32w(uint32_t addr, int* wait)
 	{
 		uint32_t val = d_mem->read_data32w(addr, wait);
 		check_mem_break_points(&rbp, addr, 4);
 		return val;
 	}
-	uint32_t fetch_op(uint32_t addr, int *wait)
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait)
 	{
 		uint32_t val = d_mem->fetch_op(addr, wait);
 		check_mem_break_points(&rbp, addr, 1);
 		return val;
 	}
-	void write_io8(uint32_t addr, uint32_t data)
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data)
 	{
 		d_io->write_io8(addr, data);
 		check_io_break_points(&obp, addr);
 	}
-	uint32_t read_io8(uint32_t addr)
+	uint32_t __FASTCALL read_io8(uint32_t addr)
 	{
 		uint32_t val = d_io->read_io8(addr);
 		check_io_break_points(&ibp, addr);
 		return val;
 	}
-	void write_io16(uint32_t addr, uint32_t data)
+	void __FASTCALL write_io16(uint32_t addr, uint32_t data)
 	{
 		d_io->write_io16(addr, data);
 		check_io_break_points(&obp, addr);
 	}
-	uint32_t read_io16(uint32_t addr)
+	uint32_t __FASTCALL read_io16(uint32_t addr)
 	{
 		uint32_t val = d_io->read_io16(addr);
 		check_io_break_points(&ibp, addr);
 		return val;
 	}
-	void write_io32(uint32_t addr, uint32_t data)
+	void __FASTCALL write_io32(uint32_t addr, uint32_t data)
 	{
 		d_io->write_io32(addr, data);
 		check_io_break_points(&obp, addr);
 	}
-	uint32_t read_io32(uint32_t addr)
+	uint32_t __FASTCALL read_io32(uint32_t addr)
 	{
 		uint32_t val = d_io->read_io32(addr);
 		check_io_break_points(&ibp, addr);
 		return val;
 	}
-	void write_io8w(uint32_t addr, uint32_t data, int* wait)
+	void __FASTCALL write_io8w(uint32_t addr, uint32_t data, int* wait)
 	{
 		d_io->write_io8w(addr, data, wait);
 		check_io_break_points(&obp, addr);
 	}
-	uint32_t read_io8w(uint32_t addr, int* wait)
+	uint32_t __FASTCALL read_io8w(uint32_t addr, int* wait)
 	{
 		uint32_t val = d_io->read_io8w(addr, wait);
 		check_io_break_points(&ibp, addr);
 		return val;
 	}
-	void write_io16w(uint32_t addr, uint32_t data, int* wait)
+	void __FASTCALL write_io16w(uint32_t addr, uint32_t data, int* wait)
 	{
 		d_io->write_io16w(addr, data, wait);
 		check_io_break_points(&obp, addr);
 	}
-	uint32_t read_io16w(uint32_t addr, int* wait)
+	uint32_t __FASTCALL read_io16w(uint32_t addr, int* wait)
 	{
 		uint32_t val = d_io->read_io16w(addr, wait);
 		check_io_break_points(&ibp, addr);
 		return val;
 	}
-	void write_io32w(uint32_t addr, uint32_t data, int* wait)
+	void __FASTCALL write_io32w(uint32_t addr, uint32_t data, int* wait)
 	{
 		d_io->write_io32w(addr, data, wait);
 		check_io_break_points(&obp, addr);
 	}
-	uint32_t read_io32w(uint32_t addr, int* wait)
+	uint32_t __FASTCALL read_io32w(uint32_t addr, int* wait)
 	{
 		uint32_t val = d_io->read_io32w(addr, wait);
 		check_io_break_points(&ibp, addr);
 		return val;
 	}
-	void write_via_debugger_data8(uint32_t addr, uint32_t data)
+	void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data)
 	{
 		d_mem->write_via_debugger_data8(addr, data);
 		check_mem_break_points(&wbp, addr, 1);
 	}
-	uint32_t read_via_debugger_data8(uint32_t addr)
+	uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr)
 	{
 		uint32_t val = d_mem->read_via_debugger_data8(addr);
 		check_mem_break_points(&rbp, addr, 1);
 		return val;
 	}
-	void write_via_debugger_data16(uint32_t addr, uint32_t data)
+	void __FASTCALL write_via_debugger_data16(uint32_t addr, uint32_t data)
 	{
 		d_mem->write_via_debugger_data16(addr, data);
 		check_mem_break_points(&wbp, addr, 2);
 	}
-	uint32_t read_via_debugger_data16(uint32_t addr)
+	uint32_t __FASTCALL read_via_debugger_data16(uint32_t addr)
 	{
 		uint32_t val = d_mem->read_via_debugger_data16(addr);
 		check_mem_break_points(&rbp, addr, 2);
 		return val;
 	}
-	void write_via_debugger_data32(uint32_t addr, uint32_t data)
+	void __FASTCALL write_via_debugger_data32(uint32_t addr, uint32_t data)
 	{
 		d_mem->write_via_debugger_data32(addr, data);
 		check_mem_break_points(&wbp, addr, 4);
 	}
-	uint32_t read_via_debugger_data32(uint32_t addr)
+	uint32_t __FASTCALL read_via_debugger_data32(uint32_t addr)
 	{
 		uint32_t val = d_mem->read_via_debugger_data32(addr);
 		check_mem_break_points(&rbp, addr, 4);
 		return val;
 	}
-	void write_via_debugger_data8w(uint32_t addr, uint32_t data, int* wait)
+	void __FASTCALL write_via_debugger_data8w(uint32_t addr, uint32_t data, int* wait)
 	{
 		d_mem->write_via_debugger_data8w(addr, data, wait);
 		check_mem_break_points(&wbp, addr, 1);
 	}
-	uint32_t read_via_debugger_data8w(uint32_t addr, int* wait)
+	uint32_t __FASTCALL read_via_debugger_data8w(uint32_t addr, int* wait)
 	{
 		uint32_t val = d_mem->read_via_debugger_data8w(addr, wait);
 		check_mem_break_points(&rbp, addr, 1);
 		return val;
 	}
-	void write_via_debugger_data16w(uint32_t addr, uint32_t data, int* wait)
+	void __FASTCALL write_via_debugger_data16w(uint32_t addr, uint32_t data, int* wait)
 	{
 		d_mem->write_via_debugger_data16w(addr, data, wait);
 		check_mem_break_points(&wbp, addr, 2);
 	}
-	uint32_t read_via_debugger_data16w(uint32_t addr, int* wait)
+	uint32_t __FASTCALL read_via_debugger_data16w(uint32_t addr, int* wait)
 	{
 		uint32_t val = d_mem->read_via_debugger_data16w(addr, wait);
 		check_mem_break_points(&rbp, addr, 2);
 		return val;
 	}
-	void write_via_debugger_data32w(uint32_t addr, uint32_t data, int* wait)
+	void __FASTCALL write_via_debugger_data32w(uint32_t addr, uint32_t data, int* wait)
 	{
 		d_mem->write_via_debugger_data32w(addr, data, wait);
 		check_mem_break_points(&wbp, addr, 4);
 	}
-	uint32_t read_via_debugger_data32w(uint32_t addr, int* wait)
+	uint32_t __FASTCALL read_via_debugger_data32w(uint32_t addr, int* wait)
 	{
 		uint32_t val = d_mem->read_via_debugger_data32w(addr, wait);
 		check_mem_break_points(&rbp, addr, 4);
 		return val;
 	}
-	void write_via_debugger_io8(uint32_t addr, uint32_t data)
+	void __FASTCALL write_via_debugger_io8(uint32_t addr, uint32_t data)
 	{
 		d_io->write_via_debugger_io8(addr, data);
 		check_io_break_points(&obp, addr);
 	}
-	uint32_t read_via_debugger_io8(uint32_t addr)
+	uint32_t __FASTCALL read_via_debugger_io8(uint32_t addr)
 	{
 		uint32_t val = d_io->read_via_debugger_io8(addr);
 		check_io_break_points(&ibp, addr);
 		return val;
 	}
-	void write_via_debugger_io16(uint32_t addr, uint32_t data)
+	void __FASTCALL write_via_debugger_io16(uint32_t addr, uint32_t data)
 	{
 		d_io->write_via_debugger_io16(addr, data);
 		check_io_break_points(&obp, addr);
 	}
-	uint32_t read_via_debugger_io16(uint32_t addr)
+	uint32_t __FASTCALL read_via_debugger_io16(uint32_t addr)
 	{
 		uint32_t val = d_io->read_via_debugger_io16(addr);
 		check_io_break_points(&ibp, addr);
 		return val;
 	}
-	void write_via_debugger_io32(uint32_t addr, uint32_t data)
+	void __FASTCALL write_via_debugger_io32(uint32_t addr, uint32_t data)
 	{
 		d_io->write_via_debugger_io32(addr, data);
 		check_io_break_points(&obp, addr);
 	}
-	uint32_t read_via_debugger_io32(uint32_t addr)
+	uint32_t __FASTCALL read_via_debugger_io32(uint32_t addr)
 	{
 		uint32_t val = d_io->read_via_debugger_io32(addr);
 		check_io_break_points(&ibp, addr);
 		return val;
 	}
-	void write_via_debugger_io8w(uint32_t addr, uint32_t data, int* wait)
+	void __FASTCALL write_via_debugger_io8w(uint32_t addr, uint32_t data, int* wait)
 	{
 		d_io->write_via_debugger_io8w(addr, data, wait);
 		check_io_break_points(&obp, addr);
 	}
-	uint32_t read_via_debugger_io8w(uint32_t addr, int* wait)
+	uint32_t __FASTCALL read_via_debugger_io8w(uint32_t addr, int* wait)
 	{
 		uint32_t val = d_io->read_via_debugger_io8w(addr, wait);
 		check_io_break_points(&ibp, addr);
 		return val;
 	}
-	void write_via_debugger_io16w(uint32_t addr, uint32_t data, int* wait)
+	void __FASTCALL write_via_debugger_io16w(uint32_t addr, uint32_t data, int* wait)
 	{
 		d_io->write_via_debugger_io16w(addr, data, wait);
 		check_io_break_points(&obp, addr);
 	}
-	uint32_t read_via_debugger_io16w(uint32_t addr, int* wait)
+	uint32_t __FASTCALL read_via_debugger_io16w(uint32_t addr, int* wait)
 	{
 		uint32_t val = d_io->read_via_debugger_io16w(addr, wait);
 		check_io_break_points(&ibp, addr);
 		return val;
 	}
-	void write_via_debugger_io32w(uint32_t addr, uint32_t data, int* wait)
+	void __FASTCALL write_via_debugger_io32w(uint32_t addr, uint32_t data, int* wait)
 	{
 		d_io->write_via_debugger_io32w(addr, data, wait);
 		check_io_break_points(&obp, addr);
 	}
-	uint32_t read_via_debugger_io32w(uint32_t addr, int* wait)
+	uint32_t __FASTCALL read_via_debugger_io32w(uint32_t addr, int* wait)
 	{
 		uint32_t val = d_io->read_via_debugger_io32w(addr, wait);
 		check_io_break_points(&ibp, addr);

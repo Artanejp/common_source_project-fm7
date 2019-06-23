@@ -42,11 +42,11 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_dma_io8(uint32_t addr, uint32_t data);
-	uint32_t read_dma_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

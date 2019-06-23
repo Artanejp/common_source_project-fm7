@@ -43,11 +43,11 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	uint32_t read_data8(uint32_t addr);
-	uint32_t fetch_op(uint32_t addr, int *wait);
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t get_intr_ack();
 	bool process_state(FILEIO* state_fio, bool loading);
 	

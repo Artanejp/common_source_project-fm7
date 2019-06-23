@@ -1944,7 +1944,7 @@ void FM7_MAINIO::event_vline(int v, int clock)
 
 #define STATE_VERSION 17
 
-bool FM7_MAINIO::decl_state(FILEIO *state_fio, bool loading)
+bool FM7_MAINIO::process_state(FILEIO *state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -2099,60 +2099,17 @@ bool FM7_MAINIO::decl_state(FILEIO *state_fio, bool loading)
 	state_fio->StateValue(drqstat_fdc_2hd);
 #endif
 	
-	if(!decl_state_opn(state_fio, loading)) {
+	if(!load_state_opn(state_fio, loading)) {
 		return false;
  	}
-	
-	return true;
-}
-
-void FM7_MAINIO::save_state(FILEIO *state_fio)
-{
-	decl_state(state_fio, false);
-#if 0
-	// Debug
-	for(int i = 0; i < 3; i++) {
-		out_debug_log("OPN#%d registers (to Save)", i);
-		out_debug_log("ADDR: +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +a +b +c +d +e +f");
-		for(int ladr = 0; ladr < 0x100; ladr += 0x10) {
-			out_debug_log("+%02x: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
-						  ladr,
-						  opn_regs[i][ladr + 0],  opn_regs[i][ladr + 1],  opn_regs[i][ladr + 2],  opn_regs[i][ladr + 3],
-						  opn_regs[i][ladr + 4],  opn_regs[i][ladr + 5],  opn_regs[i][ladr + 6],  opn_regs[i][ladr + 7],
-						  opn_regs[i][ladr + 8],  opn_regs[i][ladr + 9],  opn_regs[i][ladr + 10], opn_regs[i][ladr + 11],
-						  opn_regs[i][ladr + 12], opn_regs[i][ladr + 13], opn_regs[i][ladr + 14], opn_regs[i][ladr + 15]);
-		}
- 	}
-#endif	
-}
- 
-bool FM7_MAINIO::load_state(FILEIO *state_fio)
-{
-	int addr;
-	//bool stat = false;
-	uint32_t version;
-	bool mb = decl_state(state_fio, true);
-	if(mb) {
+	if(loading) {
 #if defined(HAS_DMA)
 		dma_addr = dma_addr & 0x1f;
 #endif
 	}
-#if 0
-	for(int i = 0; i < 3; i++) {
-		out_debug_log("OPN#%d registers (Loaded)", i);
-		out_debug_log("ADDR: +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +a +b +c +d +e +f");
-		for(int ladr = 0; ladr < 0x100; ladr += 0x10) {
-			out_debug_log("+%02x: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
-						  ladr,
-						  opn_regs[i][ladr + 0],  opn_regs[i][ladr + 1],  opn_regs[i][ladr + 2],  opn_regs[i][ladr + 3],
-						  opn_regs[i][ladr + 4],  opn_regs[i][ladr + 5],  opn_regs[i][ladr + 6],  opn_regs[i][ladr + 7],
-						  opn_regs[i][ladr + 8],  opn_regs[i][ladr + 9],  opn_regs[i][ladr + 10], opn_regs[i][ladr + 11],
-						  opn_regs[i][ladr + 12], opn_regs[i][ladr + 13], opn_regs[i][ladr + 14], opn_regs[i][ladr + 15]);
-		}
- 	}
-#endif
-	this->out_debug_log(_T("Load State: MAINIO: id=%d stat=%s\n"), this_device_id, (mb) ? _T("OK") : _T("NG"));
-	return mb;
+	
+	return true;
 }
+
  	  
 }

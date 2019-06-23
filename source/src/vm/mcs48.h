@@ -105,7 +105,7 @@ struct mcs48_state
 
 
 #define __MCS48_OPHANDLER(_name) int MCS48_BASE::_name(mcs48_state *cpustate)
-#define __MCS48_OPHANDLER_D(_name) int _name(mcs48_state *cpustate)
+#define __MCS48_OPHANDLER_D(_name) int __FASTCALL _name(mcs48_state *cpustate)
 
 class MCS48MEM : public DEVICE
 {
@@ -119,11 +119,11 @@ public:
 	}
 	~MCS48MEM() {}
 	
-	uint32_t read_data8(uint32_t addr)
+	uint32_t __FASTCALL read_data8(uint32_t addr)
 	{
 		return ram[addr & 0xff];
 	}
-	void write_data8(uint32_t addr, uint32_t data)
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data)
 	{
 		ram[addr & 0xff] = data;
 	}
@@ -133,14 +133,14 @@ public:
 class MCS48_BASE : public DEVICE
 {
 protected:
-	inline UINT8 argument_fetch(mcs48_state *cpustate);
-	inline void pull_pc(mcs48_state *cpustate);
-	inline void execute_add(mcs48_state *cpustate, UINT8 dat);
-	inline void execute_addc(mcs48_state *cpustate, UINT8 dat);
-	inline void execute_jmp(mcs48_state *cpustate, UINT16 address);
-	inline void execute_call(mcs48_state *cpustate, UINT16 address);
-	inline void execute_jcc(mcs48_state *cpustate, UINT8 result);
-	inline void expander_operation(mcs48_state *cpustate, UINT8 operation, UINT8 port);
+	inline UINT8 __FASTCALL argument_fetch(mcs48_state *cpustate);
+	inline void __FASTCALL pull_pc(mcs48_state *cpustate);
+	inline void __FASTCALL execute_add(mcs48_state *cpustate, UINT8 dat);
+	inline void __FASTCALL execute_addc(mcs48_state *cpustate, UINT8 dat);
+	inline void __FASTCALL execute_jmp(mcs48_state *cpustate, UINT16 address);
+	inline void __FASTCALL execute_call(mcs48_state *cpustate, UINT16 address);
+	inline void __FASTCALL execute_jcc(mcs48_state *cpustate, UINT8 result);
+	inline void __FASTCALL expander_operation(mcs48_state *cpustate, UINT8 operation, UINT8 port);
 
 	uint64_t total_icount;
 	uint64_t prev_total_icount;
@@ -425,7 +425,7 @@ protected:
 //#endif
 	void *opaque;
 	/* opcode table entry */
-	typedef int (MCS48_BASE::*mcs48_ophandler)(mcs48_state *state);
+	typedef int (__FASTCALL  MCS48_BASE::*mcs48_ophandler)(mcs48_state *state);
 
 	const mcs48_ophandler opcode_table[256] =
 	{
@@ -463,12 +463,12 @@ protected:
 		&MCS48_BASE::mov_a_r0,   &MCS48_BASE::mov_a_r1,    &MCS48_BASE::mov_a_r2,   &MCS48_BASE::mov_a_r3,  &MCS48_BASE::mov_a_r4,  &MCS48_BASE::mov_a_r5,  &MCS48_BASE::mov_a_r6,  &MCS48_BASE::mov_a_r7
 	};
 	
-	inline void update_regptr(mcs48_state *cpustate);
-	inline void push_pc_psw(mcs48_state *cpustate);
-	inline void pull_pc_psw(mcs48_state *cpustate);
-	inline int check_irqs(mcs48_state *cpustate);
-	inline UINT8 opcode_fetch(mcs48_state *cpustate);
-	int op_call(mcs48_state *);
+	inline void __FASTCALL update_regptr(mcs48_state *cpustate);
+	inline void __FASTCALL push_pc_psw(mcs48_state *cpustate);
+	inline void __FASTCALL pull_pc_psw(mcs48_state *cpustate);
+	inline int __FASTCALL check_irqs(mcs48_state *cpustate);
+	inline UINT8 __FASTCALL opcode_fetch(mcs48_state *cpustate);
+	int __FASTCALL op_call(mcs48_state *);
 public:
 	MCS48_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -485,14 +485,14 @@ public:
 	virtual void release();
 	void reset();
 	virtual int run(int icount);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t get_pc();
 	uint32_t get_next_pc();
 //#ifdef USE_DEBUGGER
-	void write_debug_data8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data8(uint32_t addr);
-	void write_debug_io8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_io8(uint32_t addr);
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
+	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
@@ -727,7 +727,7 @@ inline void MCS48_BASE::expander_operation(mcs48_state *cpustate, UINT8 operatio
 class MCS48 : public MCS48_BASE
 {
 private:
-	void burn_cycles(mcs48_state *cpustate, int count);
+	void __FASTCALL burn_cycles(mcs48_state *cpustate, int count);
 	/* ---------------------------------------------------------------------------
 	registers
 	--------------------------------------------------------------------------- */

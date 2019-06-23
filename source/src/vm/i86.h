@@ -356,7 +356,7 @@ public:
 	void initialize();
 	void reset();
 	int run(int clock);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void set_intr_line(bool line, bool pending, uint32_t bit);
 	void set_extra_clock(int clock)
 	{
@@ -387,20 +387,18 @@ public:
 	{
 		return 0xfffff;
 	}
-	void write_debug_data8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data8(uint32_t addr);
-	void write_debug_data16(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data16(uint32_t addr);
-	void write_debug_io8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_io8(uint32_t addr);
-	void write_debug_io16(uint32_t addr, uint32_t data);
-	uint32_t read_debug_io16(uint32_t addr);
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
+	void __FASTCALL write_debug_data16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data16(uint32_t addr);
+	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
+	void __FASTCALL write_debug_io16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io16(uint32_t addr);
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
 	
 	// unique function
 	void set_context_mem(DEVICE* device)

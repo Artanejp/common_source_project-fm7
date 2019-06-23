@@ -20,7 +20,7 @@ uint8_t FM7_MAINMEM::read_data_tbl(uint32_t addr, bool dmamode)
 	if(data_table[paddr].read_data != NULL) {
 		return data_table[paddr].read_data[addr & 0x7f];
 	} else if(data_table[paddr].read_func != NULL) {
-		uint8_t (FM7_MAINMEM::*read_func)(uint32_t, bool);
+		uint8_t (__FASTCALL FM7_MAINMEM::*read_func)(uint32_t, bool);
 		read_func = this->data_table[paddr].read_func;
 		return (this->*read_func)(addr, dmamode);
 	}

@@ -32,7 +32,7 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	
 	// unique function
 	void set_context_fdc(MB8877* device)

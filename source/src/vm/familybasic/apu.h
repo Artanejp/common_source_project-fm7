@@ -147,15 +147,15 @@ private:
 	uint32_t elapsed_cycles;
 	double ave, max, min;
 	
-	int32_t create_rectangle(rectangle_t *chan);
-	int32_t create_triangle(triangle_t *chan);
-	int32_t create_noise(noise_t *chan);
-	inline void dmc_reload(dmc_t *chan);
-	int32_t create_dmc(dmc_t *chan);
-	void enqueue(queue_t *d);
-	queue_t* dequeue();
-	void write_data_sync(uint32_t addr, uint32_t data);
-	void write_data_cur(uint32_t addr, uint32_t data);
+	int32_t __FASTCALL create_rectangle(rectangle_t *chan);
+	int32_t __FASTCALL create_triangle(triangle_t *chan);
+	int32_t __FASTCALL create_noise(noise_t *chan);
+	inline void __FASTCALL dmc_reload(dmc_t *chan);
+	int32_t __FASTCALL create_dmc(dmc_t *chan);
+	void __FASTCALL enqueue(queue_t *d);
+	queue_t* __FASTCALL dequeue();
+	void __FASTCALL write_data_sync(uint32_t addr, uint32_t data);
+	void __FASTCALL write_data_cur(uint32_t addr, uint32_t data);
 	
 	int volume_l, volume_r;
 
@@ -170,8 +170,8 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
 	void event_frame();
 	void event_vline(int v, int clock);
 	void mix(int32_t* buffer, int cnt);

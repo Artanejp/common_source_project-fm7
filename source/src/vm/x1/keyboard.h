@@ -36,8 +36,8 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

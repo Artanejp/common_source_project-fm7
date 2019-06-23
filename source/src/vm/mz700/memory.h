@@ -129,13 +129,13 @@ public:
 #endif
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
-	void write_data8w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t read_data8w(uint32_t addr, int* wait);
-	void write_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 #if defined(_MZ800)
-	uint32_t read_io8(uint32_t addr);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 #endif
 	bool process_state(FILEIO* state_fio, bool loading);
 	

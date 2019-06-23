@@ -77,16 +77,16 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int id);
-	void do_dma();
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int id);
+	void __FASTCALL do_dma();
 	// for debug
-	void write_via_debugger_data8(uint32_t addr, uint32_t data);
-	uint32_t read_via_debugger_data8(uint32_t addr);
-	void write_via_debugger_data16(uint32_t addr, uint32_t data);
-	uint32_t read_via_debugger_data16(uint32_t addr);
+	void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr);
+	void __FASTCALL write_via_debugger_data16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_via_debugger_data16(uint32_t addr);
 	bool is_debugger_available()
 	{
 		return true;

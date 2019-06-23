@@ -42,9 +42,9 @@ protected:
 	int icount;
 	bool busreq;
 	
-	void run_one_opecode();
-	virtual void OP(uint8_t code);
-	void update_irq();
+	void __FASTCALL run_one_opecode();
+	virtual void __FASTCALL OP(uint8_t code);
+	void __FASTCALL update_irq();
 
 public:
 	M6502_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -64,7 +64,7 @@ public:
 	virtual void reset();
 	virtual int run(int clock);
 	
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void set_intr_line(bool line, bool pending, uint32_t bit)
 	{
 		write_signal(SIG_CPU_IRQ, line ? 1 : 0, 1);
@@ -90,8 +90,8 @@ public:
 	{
 		return 0xffff;
 	}
-	void write_debug_data8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data8(uint32_t addr);
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	virtual int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
@@ -117,7 +117,7 @@ public:
 class M6502 : public M6502_BASE
 {
 protected:
-	void OP(uint8_t code);
+	void __FASTCALL OP(uint8_t code);
 public:
 	M6502(VM_TEMPLATE* parent_vm, EMU* parent_emu) : M6502_BASE(parent_vm, parent_emu)
 	{
@@ -133,7 +133,7 @@ public:
 class N2A03 : public M6502_BASE
 {
 protected:
-	void OP(uint8_t code);
+	void __FASTCALL OP(uint8_t code);
 public:
 	N2A03(VM_TEMPLATE* parent_vm, EMU* parent_emu) : M6502_BASE(parent_vm, parent_emu)
 	{

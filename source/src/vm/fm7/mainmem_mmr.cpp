@@ -206,7 +206,7 @@ uint8_t FM7_MAINMEM::read_with_mmr(uint32_t addr, uint32_t segment, uint32_t dma
 		if(mmr_update_table_nor[n_pos].read_data != NULL) {
 			return mmr_update_table_nor[n_pos].read_data[addr & 0x7f];
 		} else if(mmr_update_table_nor[n_pos].read_func != NULL) {
-			uint8_t (FM7_MAINMEM::*read_func)(uint32_t, bool);
+			uint8_t (__FASTCALL FM7_MAINMEM::*read_func)(uint32_t, bool);
 			read_func = this->mmr_update_table_nor[n_pos].read_func;
 			raddr = mmr_baseaddr_table_nor[n_pos] | (addr & 0xfff);
 			return (this->*read_func)(raddr, dmamode);
@@ -218,7 +218,7 @@ uint8_t FM7_MAINMEM::read_with_mmr(uint32_t addr, uint32_t segment, uint32_t dma
 		if(mmr_update_table_ext[n_pos].read_data != NULL) {
 			return mmr_update_table_ext[n_pos].read_data[addr & 0x7f];
 		} else if(mmr_update_table_ext[n_pos].read_func != NULL) {
-			uint8_t (FM7_MAINMEM::*read_func)(uint32_t, bool);
+			uint8_t (__FASTCALL FM7_MAINMEM::*read_func)(uint32_t, bool);
 			raddr = mmr_baseaddr_table_ext[n_pos] | (addr & 0xfff);
 			read_func = this->mmr_update_table_ext[n_pos].read_func;
 			return (this->*read_func)(raddr, dmamode);
@@ -234,7 +234,7 @@ uint8_t FM7_MAINMEM::read_with_mmr(uint32_t addr, uint32_t segment, uint32_t dma
 	if(mmr_update_table_nor[n_pos].read_data != NULL) {
 		return mmr_update_table_nor[n_pos].read_data[addr & 0x7f];
 	} else if(mmr_update_table_nor[n_pos].read_func != NULL) {
-		uint8_t (FM7_MAINMEM::*read_func)(uint32_t, bool);
+		uint8_t (__FASTCALL FM7_MAINMEM::*read_func)(uint32_t, bool);
 		read_func = this->mmr_update_table_nor[n_pos].read_func;
 		raddr = mmr_baseaddr_table_nor[n_pos] | (addr & 0xfff);
 		return (this->*read_func)(raddr, dmamode);
@@ -258,7 +258,7 @@ void FM7_MAINMEM::write_with_mmr(uint32_t addr, uint32_t segment, uint32_t data,
 		if(mmr_update_table_nor[n_pos].write_data != NULL) {
 			mmr_update_table_nor[n_pos].write_data[addr & 0x7f] = (uint8_t)data;
 		} else if(mmr_update_table_nor[n_pos].write_func != NULL) {
-			void (FM7_MAINMEM::*write_func)(uint32_t, uint32_t, bool);
+			void (__FASTCALL FM7_MAINMEM::*write_func)(uint32_t, uint32_t, bool);
 			write_func = this->mmr_update_table_nor[n_pos].write_func;
 			raddr = mmr_baseaddr_table_nor[n_pos] | (addr & 0xfff);
 			(this->*write_func)(raddr, data, dmamode);
@@ -270,7 +270,7 @@ void FM7_MAINMEM::write_with_mmr(uint32_t addr, uint32_t segment, uint32_t data,
 		if(mmr_update_table_ext[n_pos].write_data != NULL) {
 			mmr_update_table_ext[n_pos].write_data[addr & 0x7f] = (uint8_t)data;
 		} else if(mmr_update_table_ext[n_pos].write_func != NULL) {
-			void (FM7_MAINMEM::*write_func)(uint32_t, uint32_t, bool);
+			void (__FASTCALL FM7_MAINMEM::*write_func)(uint32_t, uint32_t, bool);
 			write_func = this->mmr_update_table_ext[n_pos].write_func;
 			raddr = mmr_baseaddr_table_ext[n_pos] | (addr & 0xfff);
 			(this->*write_func)(raddr, data, dmamode);
@@ -286,7 +286,7 @@ void FM7_MAINMEM::write_with_mmr(uint32_t addr, uint32_t segment, uint32_t data,
 	if(mmr_update_table_nor[n_pos].write_data != NULL) {
 		mmr_update_table_nor[n_pos].write_data[addr & 0x7f] = (uint8_t)data;
 	} else if(mmr_update_table_nor[n_pos].write_func != NULL) {
-		void (FM7_MAINMEM::*write_func)(uint32_t, uint32_t, bool);
+		void (__FASTCALL FM7_MAINMEM::*write_func)(uint32_t, uint32_t, bool);
 		write_func = this->mmr_update_table_nor[n_pos].write_func;
 		raddr = mmr_baseaddr_table_nor[n_pos] | (addr & 0xfff);
 		//printf("%08x %08x %08x\n", addr, raddr, n_pos);

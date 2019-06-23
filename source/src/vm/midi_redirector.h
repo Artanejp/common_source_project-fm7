@@ -97,15 +97,15 @@ public:
 	virtual void reset();
 	virtual void initialize();
 	virtual void release();
-	virtual uint32_t read_signal(int id);
-	virtual void write_signal(int id, uint32_t data, uint32_t mask);
+	virtual uint32_t __FASTCALL read_signal(int id);
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 
 	// Unique functions
 	// API for OSD.
-	virtual bool push_receive_data(int port_num, uint32_t data); // Push receive data by OSD.
-	virtual int bind_receive_port(void); // Request bind port from OSD to DEVICE or VM.
-	virtual int bind_send_port(void);    // Request bind port from DEVICE or VM to OSD.
+	virtual bool __FASTCALL push_receive_data(int port_num, uint32_t data); // Push receive data by OSD.
+	virtual int __FASTCALL bind_receive_port(void); // Request bind port from OSD to DEVICE or VM.
+	virtual int __FASTCALL bind_send_port(void);    // Request bind port from DEVICE or VM to OSD.
 	// *Don't have to use only* before initialize().Sometimes enable to change.
 	void set_context_receiver(DEVICE* dev, int id, uint32_t mask = 0xff)
 	{

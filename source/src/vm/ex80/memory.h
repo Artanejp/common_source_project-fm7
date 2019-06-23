@@ -39,9 +39,9 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
-	uint32_t fetch_op(uint32_t addr, int *wait);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait);
 	uint32_t get_intr_ack()
 	{
 		// RST 7

@@ -62,6 +62,7 @@ uint32_t SIO_REDIRECTOR::read_signal(int id)
 	default:
 		return 0;
 	}
+	return 0;
 }
 void SIO_REDIRECTOR::write_signal(int id, uint32_t data, uint32_t mask)
 {

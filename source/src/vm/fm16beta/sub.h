@@ -87,8 +87,8 @@ private:
 	void draw_text80();
 	void draw_cg();
 	
-	void write_memory(uint32_t addr, uint32_t data);
-	uint32_t read_memory(uint32_t addr);
+	void __FASTCALL write_memory(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_memory(uint32_t addr);
 	
 public:
 	SUB(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
@@ -101,13 +101,13 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
-	void write_memory_mapped_io8(uint32_t addr, uint32_t data);
-	uint32_t read_memory_mapped_io8(uint32_t addr);
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

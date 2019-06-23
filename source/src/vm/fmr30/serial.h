@@ -39,7 +39,7 @@ private:
 		uint8_t intstat;
 	} sioctrl[4];
 	
-	void update_intr(int ch);
+	void __FASTCALL update_intr(int ch);
 	
 public:
 	SERIAL(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -50,9 +50,9 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

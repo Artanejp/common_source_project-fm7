@@ -37,8 +37,8 @@ private:
 	uint32_t bsy_status, cd_status, io_status, msg_status, req_status, ack_status;
 	bool access;
 	
-	void set_irq(bool value);
-	void set_drq(bool value);
+	void __FASTCALL set_irq(bool value);
+	void __FASTCALL set_drq(bool value);
 	
 public:
 	SCSI_HOST(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -64,14 +64,14 @@ public:
 	// common functions
 	void reset();
 #ifdef SCSI_HOST_WIDE
-	void write_dma_io16(uint32_t addr, uint32_t data);
-	uint32_t read_dma_io16(uint32_t addr);
+	void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_io16(uint32_t addr);
 #else
-	void write_dma_io8(uint32_t addr, uint32_t data);
-	uint32_t read_dma_io8(uint32_t addr);
+	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
 #endif
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int id);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int id);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

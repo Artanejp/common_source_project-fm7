@@ -93,8 +93,8 @@ public:
 	virtual void initialize();
 	virtual void release();
 	virtual void reset();
-	virtual uint32_t read_signal(int id);
-	virtual void write_signal(int id, uint32_t data, uint32_t mask);
+	virtual uint32_t __FASTCALL read_signal(int id);
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	virtual void event_callback(int event_id, int err);
 	virtual void mix(int32_t* buffer, int cnt);
 	virtual void set_volume(int ch, int decibel_l, int decibel_r);

@@ -125,10 +125,10 @@ public:
 	~PORT_F4() {}
 	
 	// common functions
-	void write_io8(uint32_t addr, uint32_t data) {
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) {
 		port = data & 0xFF;
 	}
-	uint32_t read_io8(uint32_t addr) {
+	uint32_t __FASTCALL read_io8(uint32_t addr) {
 		return port&0xFF;
 	}
 	void reset() {

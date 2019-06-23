@@ -30,7 +30,7 @@ public:
 	~TIMER() {}
 	
 	// common function
-	void write_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	
 	// unique function
 	void set_context_pit(DEVICE* device)

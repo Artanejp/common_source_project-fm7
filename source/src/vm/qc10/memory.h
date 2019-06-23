@@ -37,10 +37,10 @@ private:
 	uint8_t cmos[0x800];
 	uint32_t cmos_crc32;
 	uint8_t bank, psel, csel;
-	void update_map();
+	void __FASTCALL update_map();
 	
 	bool pcm_on, pcm_cont, pcm_pit;
-	void update_pcm();
+	void __FASTCALL update_pcm();
 	
 	bool fdc_irq, motor;
 	
@@ -55,11 +55,11 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

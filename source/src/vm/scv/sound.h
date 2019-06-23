@@ -67,7 +67,7 @@ private:
 	int param_cnt, param_ptr, register_id;
 	uint8_t params[MAX_PARAM];
 	
-	void process_pcm(uint8_t data);
+	void __FASTCALL process_pcm(uint8_t data);
 	void process_cmd();
 	
 public:
@@ -79,8 +79,8 @@ public:
 	
 	// common functions
 	void reset();
-	void write_data8(uint32_t addr, uint32_t data);
-	void write_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	void event_callback(int event_id, int err);
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);

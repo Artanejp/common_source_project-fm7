@@ -40,12 +40,12 @@ private:
 	wr_bank_t *wr_table;
 	rd_bank_t *rd_table;
 	
-	void write_port8(uint32_t addr, uint32_t data, bool is_dma);
-	uint32_t read_port8(uint32_t addr, bool is_dma);
-	void write_port16(uint32_t addr, uint32_t data, bool is_dma);
-	uint32_t read_port16(uint32_t addr, bool is_dma);
-	void write_port32(uint32_t addr, uint32_t data, bool is_dma);
-	uint32_t read_port32(uint32_t addr, bool is_dma);
+	void __FASTCALL write_port8(uint32_t addr, uint32_t data, bool is_dma);
+	uint32_t __FASTCALL read_port8(uint32_t addr, bool is_dma);
+	void __FASTCALL write_port16(uint32_t addr, uint32_t data, bool is_dma);
+	uint32_t __FASTCALL read_port16(uint32_t addr, bool is_dma);
+	void __FASTCALL write_port32(uint32_t addr, uint32_t data, bool is_dma);
+	uint32_t __FASTCALL read_port32(uint32_t addr, bool is_dma);
 	
 public:
 	IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -65,24 +65,24 @@ public:
 	// common functions
 	void initialize();
 	void release();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_io16(uint32_t addr, uint32_t data);
-	uint32_t read_io16(uint32_t addr);
-	void write_io32(uint32_t addr, uint32_t data);
-	uint32_t read_io32(uint32_t addr);
-	void write_io8w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t read_io8w(uint32_t addr, int* wait);
-	void write_io16w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t read_io16w(uint32_t addr, int* wait);
-	void write_io32w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t read_io32w(uint32_t addr, int* wait);
-	void write_dma_io8(uint32_t addr, uint32_t data);
-	uint32_t read_dma_io8(uint32_t addr);
-	void write_dma_io16(uint32_t addr, uint32_t data);
-	uint32_t read_dma_io16(uint32_t addr);
-	void write_dma_io32(uint32_t addr, uint32_t data);
-	uint32_t read_dma_io32(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_io16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io16(uint32_t addr);
+	void __FASTCALL write_io32(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io32(uint32_t addr);
+	void __FASTCALL write_io8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_io8w(uint32_t addr, int* wait);
+	void __FASTCALL write_io16w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_io16w(uint32_t addr, int* wait);
+	void __FASTCALL write_io32w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_io32w(uint32_t addr, int* wait);
+	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
+	void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_io16(uint32_t addr);
+	void __FASTCALL write_dma_io32(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_io32(uint32_t addr);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

@@ -523,7 +523,7 @@ void FM7_MAINMEM::update_config()
 
 #define STATE_VERSION 8
 
-bool FM7_MAINMEM::decl_state(FILEIO *state_fio, bool loading)
+bool FM7_MAINMEM::process_state(FILEIO *state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -641,39 +641,20 @@ bool FM7_MAINMEM::decl_state(FILEIO *state_fio, bool loading)
 	state_fio->StateValue(mem_waitcount); // OK?
 
 	state_fio->StateValue(cpu_clocks); // OK?
- 
+
+#if defined(HAS_MMR)
+#  if defined(_FM77_VARIANTS)
+		if(extram_pages > 3) extram_pages = 3;
+#  elif defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) 
+		if(extram_pages > 12) extram_pages = 12;
+#  endif
+#endif
+	if(loading) {
+	//extram_size = extram_pages * 0x10000;
+		init_data_table();
+		update_all_mmr_jumptable();
+	}		
 	return true;
 }
 
-void FM7_MAINMEM::save_state(FILEIO *state_fio)
-{
-	decl_state(state_fio, false);
-#if defined(HAS_MMR)
-#  if defined(_FM77_VARIANTS)
-	if(extram_pages > 3) extram_pages = 3;
-#  elif defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) 
-	if(extram_pages > 12) extram_pages = 12;
-#  endif
-#endif
-	//extram_size = extram_pages * 0x10000;
-}
-
-bool FM7_MAINMEM::load_state(FILEIO *state_fio)
-{
-	bool mb = decl_state(state_fio, true);
-	this->out_debug_log(_T("Load State: MAINMEM: id=%d stat=%s\n"), this_device_id, (mb) ? _T("OK") : _T("NG"));
-	if(!mb) return false;
- 	
-#if defined(HAS_MMR)
-#  if defined(_FM77_VARIANTS)
-	if(extram_pages > 3) extram_pages = 3;
-#  elif defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) 
-	if(extram_pages > 12) extram_pages = 12;
-#  endif
-#endif
-	//extram_size = extram_pages * 0x10000;
- 	init_data_table();
- 	update_all_mmr_jumptable();
- 	return true;
-}
 }

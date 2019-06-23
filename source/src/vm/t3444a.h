@@ -94,10 +94,10 @@ private:
 	bool _has_t3444m;
 	bool _fdc_debug_log;
 	
-	int get_cur_position();
-	double get_usec_to_start_trans();
-	double get_usec_to_next_trans_pos();
-	double get_usec_to_detect_index_hole(int count);
+	int __FASTCALL get_cur_position();
+	double __FASTCALL get_usec_to_start_trans();
+	double __FASTCALL get_usec_to_next_trans_pos();
+	double __FASTCALL get_usec_to_detect_index_hole(int count);
 	
 	// image handler
 	uint8_t search_sector();
@@ -134,12 +134,12 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_dma_io8(uint32_t addr, uint32_t data);
-	uint32_t read_dma_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int ch);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int ch);
 	void event_callback(int event_id, int err);
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);

@@ -136,29 +136,29 @@ private:
 	int _SCREEN_WIDTH;
 	int _SCREEN_HEIGHT;
 	
-	void set_intstat(bool val);
+	void __FASTCALL set_intstat(bool val);
 
-	int hsync(int v/*void*/);
-	void z80_intreq(int a);
-	int md_video_pitch(void);
-	uint8_t *md_video_lockline(int x, int y, int w, int h);
-	void md_video_update(int n, /*md_video_rect_t*/void *rp);
-	void md_video_fill(int x, int y, int w, int h, uint32_t c);
-	void v99x8_refresh_screen(void);
-	void v99x8_refresh_clear(void);
-	uint8_t *v99x8_refresh_start(int x, int w, int h);
-	void v99x8_refresh_sc0(int y, int h);
-	void v99x8_refresh_sc1(int y, int h);
-	void v99x8_refresh_sc2(int y, int h);
-	void v99x8_refresh_sc3(int y, int h);
-	void v99x8_refresh_sc4(int y, int h);
-	void v99x8_refresh_sc5(int y, int h);
-	void v99x8_refresh_sc6(int y, int h);
-	void v99x8_refresh_sc7(int y, int h);
-	void v99x8_refresh_sc8(int y, int h);
-	void v99x8_refresh_sca(int y, int h);
-	void v99x8_refresh_scc(int y, int h);
-	void v99x8_refresh_scx(int y, int h);
+	int __FASTCALL hsync(int v/*void*/);
+	void __FASTCALL z80_intreq(int a);
+	int __FASTCALL md_video_pitch(void);
+	uint8_t __FASTCALL *md_video_lockline(int x, int y, int w, int h);
+	void __FASTCALL md_video_update(int n, /*md_video_rect_t*/void *rp);
+	void __FASTCALL md_video_fill(int x, int y, int w, int h, uint32_t c);
+	void __FASTCALL v99x8_refresh_screen(void);
+	void __FASTCALL v99x8_refresh_clear(void);
+	uint8_t __FASTCALL *v99x8_refresh_start(int x, int w, int h);
+	void __FASTCALL v99x8_refresh_sc0(int y, int h);
+	void __FASTCALL v99x8_refresh_sc1(int y, int h);
+	void __FASTCALL v99x8_refresh_sc2(int y, int h);
+	void __FASTCALL v99x8_refresh_sc3(int y, int h);
+	void __FASTCALL v99x8_refresh_sc4(int y, int h);
+	void __FASTCALL v99x8_refresh_sc5(int y, int h);
+	void __FASTCALL v99x8_refresh_sc6(int y, int h);
+	void __FASTCALL v99x8_refresh_sc7(int y, int h);
+	void __FASTCALL v99x8_refresh_sc8(int y, int h);
+	void __FASTCALL v99x8_refresh_sca(int y, int h);
+	void __FASTCALL v99x8_refresh_scc(int y, int h);
+	void __FASTCALL v99x8_refresh_scx(int y, int h);
 	
 public:
 	V99X8(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -172,8 +172,8 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void event_vline(int v, int clock);
 	bool process_state(FILEIO* state_fio, bool loading);
 	// unique functions

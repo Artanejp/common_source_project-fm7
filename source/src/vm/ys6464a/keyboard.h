@@ -33,7 +33,7 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	
 	// unique function
 	void set_context_pio(DEVICE* device)

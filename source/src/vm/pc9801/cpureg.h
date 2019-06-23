@@ -62,10 +62,10 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void  __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t  __FASTCALL read_io8(uint32_t addr);
 	// NOTE: NMI must route CPUREG::, should not connect directly.20190502 K.O 
-	void write_signal(int ch, uint32_t data, uint32_t mask);
+	void  __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
 	void event_callback(int id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	

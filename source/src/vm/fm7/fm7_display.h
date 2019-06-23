@@ -53,10 +53,10 @@ private:
 	__DECL_ALIGNED(16) uint16_t bit_trans_table_5[256][8];
 #endif
 protected:
-	uint32_t (DISPLAY::*read_cpu_func_table[512])(uint32_t);
-	uint32_t (DISPLAY::*read_dma_func_table[512])(uint32_t);
-	void (DISPLAY::*write_cpu_func_table[512])(uint32_t, uint8_t);
-	void (DISPLAY::*write_dma_func_table[512])(uint32_t, uint8_t);
+	uint32_t (__FASTCALL DISPLAY::*read_cpu_func_table[512])(uint32_t);
+	uint32_t (__FASTCALL DISPLAY::*read_dma_func_table[512])(uint32_t);
+	void (__FASTCALL DISPLAY::*write_cpu_func_table[512])(uint32_t, uint8_t);
+	void (__FASTCALL DISPLAY::*write_dma_func_table[512])(uint32_t, uint8_t);
 	
 	bool delay_busy;
 	bool screen_update_flag;
@@ -346,38 +346,38 @@ protected:
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	void GETVRAM_256k(int yoff, scrntype_t *p, scrntype_t *px, bool scan_line = false);
 #endif   
-	uint32_t read_mmio(uint32_t addr);
+	uint32_t __FASTCALL read_mmio(uint32_t addr);
 	
 	void init_read_table(void);
 	void init_write_table(void);
 	
-	uint32_t read_vram_data8(uint32_t addr);
-	uint32_t read_cpu_vram_data8(uint32_t addr);
-	uint32_t read_dma_vram_data8(uint32_t addr);
-	uint32_t read_console_ram(uint32_t addr);
-	uint32_t read_work_ram(uint32_t addr);
-	uint32_t read_shared_ram(uint32_t addr);
+	uint32_t __FASTCALL read_vram_data8(uint32_t addr);
+	uint32_t __FASTCALL read_cpu_vram_data8(uint32_t addr);
+	uint32_t __FASTCALL read_dma_vram_data8(uint32_t addr);
+	uint32_t __FASTCALL read_console_ram(uint32_t addr);
+	uint32_t __FASTCALL read_work_ram(uint32_t addr);
+	uint32_t __FASTCALL read_shared_ram(uint32_t addr);
 #if defined(_FM77AV_VARIANTS)
-	uint32_t read_hidden_ram(uint32_t addr);
+	uint32_t __FASTCALL read_hidden_ram(uint32_t addr);
 #endif
-	uint32_t read_cgrom(uint32_t addr);
-	uint32_t read_subsys_monitor(uint32_t addr);
+	uint32_t __FASTCALL read_cgrom(uint32_t addr);
+	uint32_t __FASTCALL read_subsys_monitor(uint32_t addr);
 	
-	void write_vram_data8(uint32_t addr, uint8_t data);
-	void write_cpu_vram_data8(uint32_t addr, uint8_t data);
-	void write_dma_vram_data8(uint32_t addr, uint8_t data);
-	void write_console_ram(uint32_t addr, uint8_t data);
-	void write_work_ram(uint32_t addr, uint8_t data);
-	void write_shared_ram(uint32_t addr, uint8_t data);
+	void __FASTCALL write_vram_data8(uint32_t addr, uint8_t data);
+	void __FASTCALL write_cpu_vram_data8(uint32_t addr, uint8_t data);
+	void __FASTCALL write_dma_vram_data8(uint32_t addr, uint8_t data);
+	void __FASTCALL write_console_ram(uint32_t addr, uint8_t data);
+	void __FASTCALL write_work_ram(uint32_t addr, uint8_t data);
+	void __FASTCALL write_shared_ram(uint32_t addr, uint8_t data);
 #if defined(_FM77AV_VARIANTS)
-	void write_hidden_ram(uint32_t addr, uint8_t data);
+	void __FASTCALL write_hidden_ram(uint32_t addr, uint8_t data);
 #endif
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
-	void write_subsys_cgram(uint32_t addr, uint8_t data);
-	void write_subsys_ram(uint32_t addr, uint8_t data);
+	void __FASTCALL write_subsys_cgram(uint32_t addr, uint8_t data);
+	void __FASTCALL write_subsys_ram(uint32_t addr, uint8_t data);
 #endif
-	void write_mmio(uint32_t addr, uint8_t data);
-	void write_dummy(uint32_t addr, uint8_t data);
+	void __FASTCALL write_mmio(uint32_t addr, uint8_t data);
+	void __FASTCALL write_dummy(uint32_t addr, uint8_t data);
    
 	uint32_t read_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size);
 	void draw_screen2();
@@ -394,25 +394,25 @@ protected:
 		static_cast<T *>(np)->write_signal(id, data, mask);
 	}
 	template <class T>
-		void call_write_data8(T *np, uint32_t addr, uint32_t data)
+		void __FASTCALL call_write_data8(T *np, uint32_t addr, uint32_t data)
 	{
 		//T *nnp = static_cast<T *>(np);
 		static_cast<T *>(np)->write_data8(addr, data);
 	}
 	template <class T>
-		uint32_t call_read_data8(T *np, uint32_t addr)
+		uint32_t __FASTCALL call_read_data8(T *np, uint32_t addr)
 	{
 		//T *nnp = static_cast<T *>(np);
 		return static_cast<T *>(np)->read_data8(addr);
 	}
 	template <class T>
-		void call_write_dma_data8(T *np, uint32_t addr, uint32_t data)
+		void __FASTCALL call_write_dma_data8(T *np, uint32_t addr, uint32_t data)
 	{
 		//T *nnp = static_cast<T *>(np);
 		static_cast<T *>(np)->write_dma_data8(addr, data);
 	}
 	template <class T>
-		uint32_t call_read_dma_data8(T *np, uint32_t addr)
+		uint32_t __FASTCALL call_read_dma_data8(T *np, uint32_t addr)
 	{
 		//T *nnp = static_cast<T *>(np);
 		return static_cast<T *>(np)->read_dma_data8(addr);
@@ -422,14 +422,14 @@ public:
 	DISPLAY(VM_TEMPLATE* parent_vm, EMU *parent_emu);
 	~DISPLAY();
 	void event_callback(int event_id, int err);
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int id);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int id);
 	
-	uint32_t read_data8(uint32_t addr);
-	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
 	
-	uint32_t read_dma_data8(uint32_t addr);
-	void write_dma_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_data8(uint32_t addr);
+	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data);
 	
 	void initialize();
 	void release();
@@ -444,7 +444,7 @@ public:
 	int get_screen_mode(void) {
 		return display_mode;
 	}
-	uint32_t read_io8(uint32_t addr) { // This is only for debug.
+	uint32_t __FASTCALL read_io8(uint32_t addr) { // This is only for debug.
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		return io_w_latch[addr & 0xff];
 #elif defined(_FM77AV_VARIANTS) // Really?

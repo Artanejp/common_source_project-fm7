@@ -40,10 +40,10 @@ protected:
 	bool cs, rd, wr, addr_wr, busy, hold;
 	int count_1024hz, count_1s, count_1m, count_1h;
 	
-	virtual void read_from_cur_time();
-	virtual void write_to_cur_time();
-	void output_data();
-	virtual void set_busy(bool val);
+	virtual void __FASTCALL read_from_cur_time();
+	virtual void __FASTCALL write_to_cur_time();
+	void __FASTCALL output_data();
+	virtual void __FASTCALL set_busy(bool val);
 	int start_day;
 	int start_year;
 public:
@@ -59,8 +59,8 @@ public:
 	// common functions
 	virtual void initialize();
 	void event_callback(int event_id, int err);
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int ch);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int ch);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
@@ -74,9 +74,9 @@ class MSM58321: public MSM58321_BASE
 {
 protected:
 	outputs_t outputs_busy;
-	void read_from_cur_time();
-	void write_to_cur_time();
-	void set_busy(bool val);
+	void __FASTCALL read_from_cur_time();
+	void __FASTCALL write_to_cur_time();
+	void __FASTCALL set_busy(bool val);
 public:
 	MSM58321(VM_TEMPLATE* parent_vm, EMU* parent_emu);
 	~MSM58321() {}
@@ -91,9 +91,9 @@ public:
 class MSM5832: public MSM58321_BASE
 {
 protected:
-	void read_from_cur_time();
-	void write_to_cur_time();
-	void set_busy(bool val);
+	void __FASTCALL read_from_cur_time();
+	void __FASTCALL write_to_cur_time();
+	void __FASTCALL set_busy(bool val);
 
 public:
 	MSM5832(VM_TEMPLATE* parent_vm, EMU* parent_emu);

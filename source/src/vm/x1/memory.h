@@ -38,7 +38,7 @@ private:
 #else
 	int m1_cycle;
 #endif
-	void update_map();
+	void __FASTCALL update_map();
 	
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -50,13 +50,13 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
 #ifndef _X1TURBO_FEATURE
-	uint32_t fetch_op(uint32_t addr, int *wait);
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait);
 #endif
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function

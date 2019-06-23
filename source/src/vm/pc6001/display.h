@@ -40,7 +40,7 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

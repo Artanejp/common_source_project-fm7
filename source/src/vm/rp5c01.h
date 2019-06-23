@@ -37,9 +37,9 @@ private:
 
 	bool __HAS_RP5C15;
 	
-	void update_pulse();
-	void read_from_cur_time();
-	void write_to_cur_time();
+	void __FASTCALL update_pulse();
+	void __FASTCALL read_from_cur_time();
+	void __FASTCALL write_to_cur_time();
 	
 public:
 	RP5C01(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -53,8 +53,8 @@ public:
 	// common functions
 	void initialize();
 	void release();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	

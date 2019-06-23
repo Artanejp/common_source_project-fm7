@@ -102,10 +102,10 @@ private:
 	uint8_t extcr;
 	
 	// intelligent ram disk
-	void iramdisk_write_data(uint8_t val);
-	void iramdisk_write_cmd(uint8_t val);
-	uint8_t iramdisk_read_data();
-	uint8_t iramdisk_read_stat();
+	void __FASTCALL iramdisk_write_data(uint8_t val);
+	void __FASTCALL iramdisk_write_cmd(uint8_t val);
+	uint8_t __FASTCALL iramdisk_read_data();
+	uint8_t __FASTCALL iramdisk_read_stat();
 	uint8_t iramdisk_sectors[15][64][128];
 	uint8_t iramdisk_cmd;
 	int iramdisk_count,iramdisk_dest;
@@ -124,11 +124,11 @@ public:
 	void release();
 	void reset();
 	void sysreset();
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	void event_callback(int event_id, int err);
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	uint32_t get_intr_ack();
 	bool process_state(FILEIO* state_fio, bool loading);
 	

@@ -56,7 +56,7 @@ private:
 	bool kb_out;
 	uint8_t kb_scan;
 	
-	void set_rom_bank(uint8_t bank, uint32_t bank_num);
+	void __FASTCALL set_rom_bank(uint8_t bank, uint32_t bank_num);
 	
 	// mmc5
 //	DEVICE *d_mmc5;
@@ -76,15 +76,15 @@ private:
 	uint32_t mmc5_irq_line;
 	
 	void mmc5_reset();
-	uint32_t mmc5_lo_read(uint32_t addr);
-	void mmc5_lo_write(uint32_t addr, uint32_t data);
-//	uint32_t mmc5_save_read(uint32_t addr);
-	void mmc5_save_write(uint32_t addr, uint32_t data);
-	void mmc5_hi_write(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL mmc5_lo_read(uint32_t addr);
+	void __FASTCALL mmc5_lo_write(uint32_t addr, uint32_t data);
+//	uint32_t __FASTCALL mmc5_save_read(uint32_t addr);
+	void __FASTCALL mmc5_save_write(uint32_t addr, uint32_t data);
+	void __FASTCALL mmc5_hi_write(uint32_t addr, uint32_t data);
 	void mmc5_hsync(int v);
-	void mmc5_set_cpu_bank(uint8_t bank, uint32_t bank_num);
-	void mmc5_set_wram_bank(uint8_t bank, uint32_t bank_num);
-	void mmc5_set_ppu_bank(uint8_t mode);
+	void __FASTCALL mmc5_set_cpu_bank(uint8_t bank, uint32_t bank_num);
+	void __FASTCALL mmc5_set_wram_bank(uint8_t bank, uint32_t bank_num);
+	void __FASTCALL mmc5_set_ppu_bank(uint8_t mode);
 	
 	// vrc7
 	uint8_t vrc7_irq_enabled;
@@ -92,12 +92,12 @@ private:
 	uint8_t vrc7_irq_latch;
 	
 	void vrc7_reset();
-	uint32_t vrc7_lo_read(uint32_t addr);
-	void vrc7_lo_write(uint32_t addr, uint32_t data);
-//	uint32_t vrc7_save_read(uint32_t addr);
-//	void vrc7_save_write(uint32_t addr, uint32_t data);
-	void vrc7_hi_write(uint32_t addr, uint32_t data);
-	void vrc7_hsync(int v);
+	uint32_t __FASTCALL vrc7_lo_read(uint32_t addr);
+	void __FASTCALL vrc7_lo_write(uint32_t addr, uint32_t data);
+//	uint32_t __FASTCALL vrc7_save_read(uint32_t addr);
+//	void __FASTCALL vrc7_save_write(uint32_t addr, uint32_t data);
+	void __FASTCALL vrc7_hi_write(uint32_t addr, uint32_t data);
+	void __FASTCALL vrc7_hsync(int v);
 	
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -110,8 +110,8 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);

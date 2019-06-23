@@ -58,8 +58,8 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
 	bool process_state(FILEIO* state_fio, bool loading);
 };
 
@@ -96,8 +96,8 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
 	bool process_state(FILEIO* state_fio, bool loading);
 #ifdef USE_MEGAROM
 	void event_callback(int event_id, int err);
@@ -142,8 +142,8 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
 	bool process_state(FILEIO* state_fio, bool loading);
 };
 #endif
@@ -178,9 +178,9 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
@@ -225,8 +225,8 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
 };
 #endif
 
@@ -251,8 +251,8 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
 };
 #endif
 
@@ -278,9 +278,9 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
-	void write_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	bool process_state(FILEIO* state_fio, bool loading);
 };
 #endif
@@ -302,8 +302,8 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
 	bool process_state(FILEIO* state_fio, bool loading);
 };
 #endif
@@ -330,8 +330,8 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
 
 	// unique function
 	void set_context_filename(const _TCHAR* filename)
@@ -362,8 +362,8 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
 };
 #endif
 
@@ -406,13 +406,13 @@ public:
 	void release();
 #endif
 	void reset();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
-	uint32_t fetch_op(uint32_t addr, int* wait);
-	void write_io8(uint32_t addr, uint32_t data);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int* wait);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 #if defined(FDD_PATCH_SLOT)
-	uint32_t read_signal(int id);
+	uint32_t __FASTCALL read_signal(int id);
 	bool bios_ret_z80(uint16_t PC, pair32_t* af, pair32_t* bc, pair32_t* de, pair32_t* hl, pair32_t* ix, pair32_t* iy, uint8_t* iff1);
 #endif
 	bool process_state(FILEIO* state_fio, bool loading);

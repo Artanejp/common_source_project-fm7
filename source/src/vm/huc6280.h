@@ -34,7 +34,7 @@ protected:
 	uint64_t total_icount;
 	uint64_t prev_total_icount;
 
-	virtual int run_one_opecode();
+	virtual int __FASTCALL run_one_opecode();
 	
 public:
 	HUC6280_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
@@ -49,7 +49,7 @@ public:
 	virtual void release();
 	virtual void reset();
 	virtual int run(int clock);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t get_pc();
 	uint32_t get_next_pc();
 //#ifdef USE_DEBUGGER
@@ -73,10 +73,10 @@ public:
 	{
 		return 0x1fffff;
 	}
-	void write_debug_data8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data8(uint32_t addr);
-	void write_debug_io8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_io8(uint32_t addr);
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
+	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0) override;
@@ -101,7 +101,7 @@ class HUC6280 : public HUC6280_BASE
 {
 private:
 protected:
-	int run_one_opecode() override;
+	int __FASTCALL run_one_opecode() override;
 public:
 	HUC6280(VM_TEMPLATE* parent_vm, EMU* parent_emu) : HUC6280_BASE(parent_vm, parent_emu) {
 		set_device_name(_T("HuC6280 CPU"));

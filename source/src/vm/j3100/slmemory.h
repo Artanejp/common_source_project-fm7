@@ -45,7 +45,7 @@ private:
 	uint32_t ems_crc32;
 	uint32_t backup_crc32;
 	
-	void update_ems(int page);
+	void __FASTCALL update_ems(int page);
 	
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -58,10 +58,10 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	
 	// unique function
 	uint8_t* get_vram()

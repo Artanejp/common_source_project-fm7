@@ -48,10 +48,10 @@ private:
 	bool dma_stop;
 	bool bus_master;
 	
-	void write_memory(uint32_t addr, uint32_t data, int* wait);
-	uint32_t read_memory(uint32_t addr, int* wait);
-	void write_ioport(uint32_t addr, uint32_t data, int* wait);
-	uint32_t read_ioport(uint32_t addr, int* wait);
+	void __FASTCALL write_memory(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_memory(uint32_t addr, int* wait);
+	void __FASTCALL write_ioport(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_ioport(uint32_t addr, int* wait);
 	
 	// interrupt
 	bool req_intr;
@@ -64,14 +64,14 @@ private:
 	bool now_ready();
 	void request_bus();
 	void release_bus();
-	void update_read_buffer();
-	void request_intr(int level);
+	void __FASTCALL update_read_buffer();
+	void __FASTCALL request_intr(int level);
 	
 	// daisy chain
 	DEVICE *d_cpu, *d_child;
 	bool iei, oei;
 	uint32_t intr_bit;
-	void update_intr();
+	void __FASTCALL update_intr();
 	
 public:
 	Z80DMA(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -90,15 +90,15 @@ public:
 	// common functions
 	void reset();
 	void initialize();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	void do_dma();
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL do_dma();
 	// for debug
-	void write_via_debugger_data8w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t read_via_debugger_data8w(uint32_t addr, int* wait);
-	void write_via_debugger_io8w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t read_via_debugger_io8w(uint32_t addr, int* wait);
+	void __FASTCALL write_via_debugger_data8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_via_debugger_data8w(uint32_t addr, int* wait);
+	void __FASTCALL write_via_debugger_io8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_via_debugger_io8w(uint32_t addr, int* wait);
 	bool is_debugger_available()
 	{
 		return true;

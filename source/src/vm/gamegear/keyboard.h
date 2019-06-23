@@ -41,7 +41,7 @@ public:
 	void initialize();
 	void reset();
 	void event_frame();
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)

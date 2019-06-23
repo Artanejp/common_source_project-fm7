@@ -38,8 +38,8 @@ public:
 	void initialize(int id);
 	void release();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void open_file(const _TCHAR* file_path);
 	bool process_state(FILEIO* state_fio, bool loading);
 };

@@ -38,12 +38,12 @@ private:
 	int16_t cpx, cpy;
 	
 	void process_cmd();
-	void doclr16(int opcode, uint16_t fill, int *dst, int _ax, int _ay);
-	void docpy16(int opcode, int src, int *dst, int _ax, int _ay);
-	int org_first_pixel(int _org_dpd);
-	void dot(int x, int y, int opm, uint16_t color);
-	int get_pixel(int x, int y);
-	int get_pixel_ptn(int x, int y);
+	void __FASTCALL doclr16(int opcode, uint16_t fill, int *dst, int _ax, int _ay);
+	void __FASTCALL docpy16(int opcode, int src, int *dst, int _ax, int _ay);
+	int __FASTCALL org_first_pixel(int _org_dpd);
+	void __FASTCALL dot(int x, int y, int opm, uint16_t color);
+	int __FASTCALL get_pixel(int x, int y);
+	int __FASTCALL get_pixel_ptn(int x, int y);
 	void agcpy(int opcode, int src_x, int src_y, int dst_x, int dst_y, int16_t _ax, int16_t _ay);
 	void ptn(int opcode, int src_x, int src_y, int16_t _ax, int16_t _ay);
 	void line(int16_t sx, int16_t sy, int16_t ex, int16_t ey, int16_t col);
@@ -58,10 +58,10 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_io16(uint32_t addr, uint32_t data);
-	uint32_t read_io16(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_io16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io16(uint32_t addr);
 	void event_vline(int v, int clock);
 	
 	// unique functions

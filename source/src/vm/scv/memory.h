@@ -48,7 +48,7 @@ private:
 	uint8_t rdmy[0x80];
 	
 	uint8_t cur_bank;
-	void set_bank(uint8_t bank);
+	void __FASTCALL set_bank(uint8_t bank);
 	
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -61,11 +61,11 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
-	void write_data8w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t read_data8w(uint32_t addr, int* wait);
-	void write_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

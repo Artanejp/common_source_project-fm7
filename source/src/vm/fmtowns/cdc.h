@@ -85,15 +85,15 @@ public:
 	virtual void release();
 	virtual void reset();
 
-	virtual void write_signal(int ch, uint32_t data, uint32_t mask);
+	virtual void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
 
-	virtual void write_io8(uint32_t address, uint32_t data);
-	virtual uint32_t read_io8(uint32_t address);
+	virtual void __FASTCALL write_io8(uint32_t address, uint32_t data);
+	virtual uint32_t __FASTCALL read_io8(uint32_t address);
 
-	virtual uint32_t read_dma_io8(uint32_t addr);
-	virtual uint32_t read_dma_io16(uint32_t addr);
-	virtual void write_dma_io8(uint32_t addr, uint32_t data);
-	virtual void write_dma_io16(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_dma_io8(uint32_t addr);
+	virtual uint32_t __FASTCALL read_dma_io16(uint32_t addr);
+	virtual void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	virtual void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data);
 	
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 	

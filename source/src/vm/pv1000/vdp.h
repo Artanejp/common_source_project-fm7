@@ -45,7 +45,7 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	void event_callback(int event_id, int err);
 	void event_vline(int v, int clock);
 	bool process_state(FILEIO* state_fio, bool loading);

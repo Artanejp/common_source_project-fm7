@@ -258,21 +258,17 @@ public:
 	void release();
 	void reset();
 	void event_frame();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-//	void write_memory_mapped_io8w(uint32_t addr, uint32_t data, int* wait);
-//	void write_memory_mapped_io16w(uint32_t addr, uint32_t data, int* wait);
-//	uint32_t read_memory_mapped_io8w(uint32_t addr, int* wait);
-//	uint32_t read_memory_mapped_io16w(uint32_t addr, int* wait);
-	void write_memory_mapped_io8(uint32_t addr, uint32_t data);
-	void write_memory_mapped_io16(uint32_t addr, uint32_t data);
-	uint32_t read_memory_mapped_io8(uint32_t addr);
-	uint32_t read_memory_mapped_io16(uint32_t addr);
-	void write_dma_io8(uint32_t addr, uint32_t data);
-	void write_dma_io16(uint32_t addr, uint32_t data);
-	uint32_t read_dma_io8(uint32_t addr);
-	uint32_t read_dma_io16(uint32_t addr);
-	void write_signal(int ch, uint32_t data, uint32_t mask);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
+	uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
+	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
+	uint32_t __FASTCALL read_dma_io16(uint32_t addr);
+	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

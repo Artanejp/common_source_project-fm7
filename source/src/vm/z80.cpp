@@ -171,7 +171,7 @@ void Z80::reset()
 	icount = extra_icount = busreq_icount = 0;
 }
 
-void Z80::debugger_hook(void)
+void __FASTCALL Z80::debugger_hook(void)
 {
 #ifdef USE_DEBUGGER
 	bool now_debugging = d_debugger->now_debugging;
@@ -281,7 +281,7 @@ int Z80::run(int clock)
 }
 
 
-void Z80::run_one_opecode()
+void __FASTCALL Z80::run_one_opecode()
 {
 	// rune one opecode
 #ifdef USE_DEBUGGER
@@ -542,25 +542,25 @@ void Z80::check_interrupt()
 }
 
 #ifdef USE_DEBUGGER
-void Z80::write_debug_data8(uint32_t addr, uint32_t data)
+void __FASTCALL Z80::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_mem_stored->write_data8w(addr, data, &wait);
 }
 
-uint32_t Z80::read_debug_data8(uint32_t addr)
+uint32_t __FASTCALL Z80::read_debug_data8(uint32_t addr)
 {
 	int wait;
 	return d_mem_stored->read_data8w(addr, &wait);
 }
 
-void Z80::write_debug_io8(uint32_t addr, uint32_t data)
+void __FASTCALL Z80::write_debug_io8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_io_stored->write_io8w(addr, data, &wait);
 }
 
-uint32_t Z80::read_debug_io8(uint32_t addr)
+uint32_t __FASTCALL Z80::read_debug_io8(uint32_t addr)
 {
 	int wait;
 	return d_io_stored->read_io8w(addr, &wait);

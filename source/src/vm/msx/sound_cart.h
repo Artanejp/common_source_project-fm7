@@ -42,11 +42,11 @@ public:
 	// unique functions
 	void initialize_sound(int rate, int clock, int samples);
 	void disable_all();
-	void enable_c(int chip, bool enable);
-	void write_io8_c(int chip, uint32_t addr, uint32_t data);
-	uint32_t read_io8_c(int chip, uint32_t addr);
-	void write_data8_c(int chip, uint32_t addr, uint32_t data);
-	uint32_t read_data8_c(int chip, uint32_t addr);
+	void __FASTCALL enable_c(int chip, bool enable);
+	void __FASTCALL write_io8_c(int chip, uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8_c(int chip, uint32_t addr);
+	void __FASTCALL write_data8_c(int chip, uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8_c(int chip, uint32_t addr);
 };
 
 }

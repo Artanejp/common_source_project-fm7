@@ -38,7 +38,7 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);

@@ -49,12 +49,12 @@ protected:
 	int tWHS;
 	bool disabled;
 	
-	void set_vsync(bool val);
-	void set_hsync(bool val);
-	void set_disp(bool val);
-	void draw_cg(int xofs, int yofs);
-	void draw_rg(int xofs, int yofs);
-	virtual void draw_alpha();
+	void __FASTCALL set_vsync(bool val);
+	void __FASTCALL set_hsync(bool val);
+	void __FASTCALL set_disp(bool val);
+	void __FASTCALL draw_cg(int xofs, int yofs);
+	void __FASTCALL draw_rg(int xofs, int yofs);
+	virtual void __FASTCALL draw_alpha();
 	
 public:
 	MC6847_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -71,7 +71,7 @@ public:
 	// common functions
 	virtual void initialize();
 	void reset();
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
@@ -101,7 +101,7 @@ public:
 class MC6847 : public MC6847_BASE
 {
 protected:
-	void draw_alpha();
+	void __FASTCALL draw_alpha();
 public:
 	MC6847(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MC6847_BASE(parent_vm, parent_emu)
 	{

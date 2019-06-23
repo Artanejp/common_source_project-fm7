@@ -151,33 +151,33 @@ private:
 	vce_t vce;
 	vpc_t vpc;
 	
-	void pce_interrupt();
+	void __FASTCALL pce_interrupt();
 #ifdef SUPPORT_SUPER_GFX
 	void sgx_interrupt();
 #endif
 	void vdc_reset();
-	void vdc_advance_line(int which);
-	void draw_black_line(int line);
-	void draw_overscan_line(int line);
+	void __FASTCALL vdc_advance_line(int which);
+	void __FASTCALL draw_black_line(int line);
+	void __FASTCALL draw_overscan_line(int line);
 #ifdef SUPPORT_SUPER_GFX
 	void draw_sgx_overscan_line(int line);
 #endif
-	void vram_write(int which, uint32_t offset, uint8_t data);
-	uint8_t vram_read(int which, uint32_t offset);
-	void vdc_w(int which, uint16_t offset, uint8_t data);
-	uint8_t vdc_r(int which, uint16_t offset);
-	void vce_w(uint16_t offset, uint8_t data);
-	uint8_t vce_r(uint16_t offset);
+	void __FASTCALL vram_write(int which, uint32_t offset, uint8_t data);
+	uint8_t __FASTCALL vram_read(int which, uint32_t offset);
+	void __FASTCALL vdc_w(int which, uint16_t offset, uint8_t data);
+	uint8_t __FASTCALL vdc_r(int which, uint16_t offset);
+	void __FASTCALL vce_w(uint16_t offset, uint8_t data);
+	uint8_t __FASTCALL vce_r(uint16_t offset);
 	void pce_refresh_line(int which, int line, int external_input, uint8_t *drawn, scrntype_t *line_buffer);
 	void conv_obj(int which, int i, int l, int hf, int vf, char *buf);
 	void pce_refresh_sprites(int which, int line, uint8_t *drawn, scrntype_t *line_buffer);
-	void vdc_do_dma(int which);
-	void vpc_update_prio_map();
-	void vpc_w(uint16_t offset, uint8_t data);
-	uint8_t vpc_r(uint16_t offset);
+	void __FASTCALL vdc_do_dma(int which);
+	void __FASTCALL vpc_update_prio_map();
+	void __FASTCALL vpc_w(uint16_t offset, uint8_t data);
+	uint8_t __FASTCALL vpc_r(uint16_t offset);
 #ifdef SUPPORT_SUPER_GFX
-	void sgx_vdc_w(uint16_t offset, uint8_t data);
-	uint8_t sgx_vdc_r(uint16_t offset);
+	void __FASTCALL sgx_vdc_w(uint16_t offset, uint8_t data);
+	uint8_t __FASTCALL sgx_vdc_r(uint16_t offset);
 #endif
 	
 	// psg
@@ -186,8 +186,8 @@ private:
 	int sample_rate;
 	int volume_l, volume_r;
 	void psg_reset();
-	void psg_write(uint16_t addr, uint8_t data);
-	uint8_t psg_read(uint16_t addr);
+	void __FASTCALL psg_write(uint16_t addr, uint8_t data);
+	uint8_t __FASTCALL psg_read(uint16_t addr);
 	
 	// joypad
 	const uint32_t *joy_stat;
@@ -211,8 +211,8 @@ private:
 	void cdrom_reset();
 	void cdrom_write(uint16_t addr, uint8_t data);
 	uint8_t cdrom_read(uint16_t addr);
-	void write_cdrom_data(uint8_t data);
-	uint8_t read_cdrom_data();
+	void __FASTCALL write_cdrom_data(uint8_t data);
+	uint8_t __FASTCALL read_cdrom_data();
 	void set_ack();
 	void clear_ack();
 	void set_cdrom_irq_line(int num, int state);
@@ -239,13 +239,13 @@ public:
 	void release();
 	void reset();
 	void event_vline(int v, int clock);
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 #ifdef SUPPORT_CDROM
-	uint32_t read_signal(int id);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int id);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 #endif
 	void mix(int32_t* buffer, int cnt);

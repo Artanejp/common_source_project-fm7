@@ -48,10 +48,10 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t get_intr_ack();
 #if defined(_TK80BS)
-	uint32_t read_signal(int ch)
+	uint32_t __FASTCALL read_signal(int ch)
 	{
 		return kb_type & 3;
 	}
