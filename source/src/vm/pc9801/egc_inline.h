@@ -374,11 +374,14 @@ inline uint64_t __FASTCALL DISPLAY::egc_ope_nd(uint8_t ope, uint32_t addr)
 //		pat.d[0] = egc_fgc.d[0];
 //		pat.d[1] = egc_fgc.d[1];
 		break;
-	default:
+//	default:
+	case 0x0000:
 		if((egc_ope & 0x0300) == 0x0100) {
 			pat.q = egc_vram_src.q;
 //			pat.d[0] = egc_vram_src.d[0];
 //			pat.d[1] = egc_vram_src.d[1];
+		} else if((egc_ope & 0x0300) == 0x0200) {
+			pat.q = egc_lastvram.q;
 		} else {
 			pat.q = egc_patreg.q;
 //			pat.d[0] = egc_patreg.d[0];

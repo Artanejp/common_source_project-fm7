@@ -184,7 +184,7 @@ void __FASTCALL DISPLAY::egc_sftb_upr_sub(uint32_t ext)
 			egc_remain = 0;
 		}
 		egc_dstbit = 0;
-#if 0
+#if 1
 	__DECL_ALIGNED(4) uint8_t tmp[4];
 	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 4; i++) {
@@ -211,7 +211,8 @@ void __FASTCALL DISPLAY::egc_sftb_upr_sub(uint32_t ext)
 			egc_srcmask.b[ext] = egc_bytemask_u1[egc_remain - 1];
 			egc_remain = 0;
 		}
-#if 0
+//		egc_outptr++;
+#if 1
 		__DECL_ALIGNED(16) uint8_t tmp[8];
 		__DECL_ALIGNED(4) uint8_t tmp2[4];
 	__DECL_VECTORIZED_LOOP
@@ -258,7 +259,7 @@ void __FASTCALL DISPLAY::egc_sftb_dnr_sub(uint32_t ext)
 			egc_remain = 0;
 		}
 		egc_dstbit = 0;
-#if 0
+#if 1
 		__DECL_ALIGNED(4) uint8_t tmp[4];
 	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 4; i++) {
@@ -285,8 +286,8 @@ void __FASTCALL DISPLAY::egc_sftb_dnr_sub(uint32_t ext)
 			egc_srcmask.b[ext] = egc_bytemask_d1[egc_remain - 1];
 			egc_remain = 0;
 		}
-		egc_outptr--;
-#if 0		
+//		egc_outptr--;
+#if 1		
 		__DECL_ALIGNED(16) uint8_t tmp[8];
 		__DECL_ALIGNED(4) uint8_t tmp2[4];
 	__DECL_VECTORIZED_LOOP
@@ -313,6 +314,7 @@ void __FASTCALL DISPLAY::egc_sftb_dnr_sub(uint32_t ext)
 		egc_vram_src.b[2][ext] = (egc_outptr[9] >> egc_sft8bitl) | (egc_outptr[8] << egc_sft8bitr);
 		egc_vram_src.b[3][ext] = (egc_outptr[13] >> egc_sft8bitl) | (egc_outptr[12] << egc_sft8bitr);
 #endif
+		egc_outptr--;
 	}
 }
 
@@ -341,7 +343,8 @@ void __FASTCALL DISPLAY::egc_sftb_upl_sub(uint32_t ext)
 			egc_remain = 0;
 		}
 	}
-#if 0
+//	egc_outptr++;
+#if 1
 	__DECL_ALIGNED(16) uint8_t tmp[16];
 	__DECL_ALIGNED(4) uint8_t tmp2[4];
 __DECL_VECTORIZED_LOOP
@@ -367,8 +370,8 @@ __DECL_VECTORIZED_LOOP
 	egc_vram_src.b[1][ext] = (egc_outptr[4] << egc_sft8bitl) | (egc_outptr[5] >> egc_sft8bitr);
 	egc_vram_src.b[2][ext] = (egc_outptr[8] << egc_sft8bitl) | (egc_outptr[9] >> egc_sft8bitr);
 	egc_vram_src.b[3][ext] = (egc_outptr[12] << egc_sft8bitl) | (egc_outptr[13] >> egc_sft8bitr);
-	egc_outptr++;
 #endif
+	egc_outptr++;
 }
 
 void __FASTCALL DISPLAY::egc_sftb_dnl_sub(uint32_t ext)
@@ -396,23 +399,24 @@ void __FASTCALL DISPLAY::egc_sftb_dnl_sub(uint32_t ext)
 			egc_remain = 0;
 		}
 	}
-	egc_outptr--;
-#if 0
-	__DECL_ALIGNED(16) uint8_t tmp[8];
+//	egc_outptr--;
+#if 1
+	__DECL_ALIGNED(4) uint8_t tmp0[4];
+	__DECL_ALIGNED(4) uint8_t tmp1[4];
 	__DECL_ALIGNED(4) uint8_t tmp2[4];
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 4; i++) {
-		tmp[(i << 1) + 0] = egc_outptr[(i << 2) + 0];
-		tmp[(i << 1) + 1] = egc_outptr[(i << 2) + 1];
+		tmp0[i] = egc_outptr[(i << 2) + 0];
+		tmp1[i] = egc_outptr[(i << 2) + 1];
 	}
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 4; i++) {
-		tmp[(i << 1) + 0] <<= egc_sft8bitr;
-		tmp[(i << 1) + 1] >>= egc_sft8bitl;
+		tmp0[i] <<= egc_sft8bitr;
+		tmp1[i] >>= egc_sft8bitl;
 	}
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 4; i++) {
-		tmp2[i] = tmp[(i << 1) + 0] | tmp[(i << 1) + 1];
+		tmp2[i] = tmp0[i] | tmp1[i];
 	}
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 4; i++) {
@@ -424,6 +428,7 @@ __DECL_VECTORIZED_LOOP
 	egc_vram_src.b[2][ext] = (egc_outptr[9] >> egc_sft8bitl) | (egc_outptr[8] << egc_sft8bitr);
 	egc_vram_src.b[3][ext] = (egc_outptr[13] >> egc_sft8bitl) | (egc_outptr[12] << egc_sft8bitr);
 #endif
+	egc_outptr--;
 }
 
 #if 1
@@ -529,9 +534,12 @@ uint64_t __FASTCALL DISPLAY::egc_ope_xx(uint8_t ope, uint32_t addr)
 	case 0x4000:
 		pat.q = egc_fgc.q;
 		break;
-	default:
+//	default:
+	case 0x0000:
 		if((egc_ope & 0x0300) == 0x0100) {
 			pat.q = egc_vram_src.q;
+		} else if((egc_ope & 0x0300) == 0x0200) {
+			pat.q = egc_lastvram.q;
 		} else {
 			pat.q = egc_patreg.q;
 		}
@@ -866,9 +874,12 @@ uint64_t __FASTCALL DISPLAY::egc_opeb(uint32_t addr, uint8_t value)
 			return egc_bgc.q;
 		case 0x4000:
 			return egc_fgc.q;
-		default: // 0x0000, 0x6000
+//		default: // 0x0000, 0x6000
+		case 0x0000:
 			EGC_OPE_SHIFTB(addr, value);
 			egc_mask2.w &= egc_srcmask.w;
+			return egc_vram_src.q;
+		default:
 			return egc_vram_src.q;
 		}
 		break;
@@ -901,9 +912,12 @@ uint64_t __FASTCALL DISPLAY::egc_opew(uint32_t addr, uint16_t value)
 			return egc_bgc.q;
 		case 0x4000:
 			return egc_fgc.q;
-		default:
+//		default:
+		case 0x0000:
 			EGC_OPE_SHIFTW(value);
 			egc_mask2.w &= egc_srcmask.w;
+			return egc_vram_src.q;
+		default:
 			return egc_vram_src.q;
 		}
 		break;

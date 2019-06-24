@@ -753,7 +753,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 	case 0x04af:
 		if((grcg_cg_mode) && enable_egc) {
 			egc_leng &= 0x00ff;
-			egc_leng |= data << 8;
+			egc_leng |= (data & 0x0f) << 8;
 			egc_shift();
 			egc_srcmask.w = 0xffff;
 		}
