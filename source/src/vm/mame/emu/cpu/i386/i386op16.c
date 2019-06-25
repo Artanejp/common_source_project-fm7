@@ -3287,7 +3287,7 @@ static void I386OP(group0F00_16)(i386_state *cpustate)          // Opcode 0x0f 0
 
 				UINT32 addr = ((seg.selector & 4) ? cpustate->ldtr.base : cpustate->gdtr.base) + (seg.selector & ~7) + 5;
 				i386_translate_address(cpustate, TRANSLATE_READ, &addr, NULL);
-				cpustate->program->write_data16(addr, (seg.flags & 0xff) | 2);
+				write_data16_with_wait(cpustate, addr, (seg.flags & 0xff) | 2);
 
 				cpustate->task.limit = seg.limit;
 				cpustate->task.base = seg.base;

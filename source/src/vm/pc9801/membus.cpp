@@ -97,8 +97,8 @@ void MEMBUS::initialize()
 	// RAM
 	memset(ram, 0x00, sizeof(ram));
 	// VRAM
-	gvram_wait_val = 1;
-	tvram_wait_val = 4;
+	gvram_wait_val = 0;
+	tvram_wait_val = 0;
 	
 	// BIOS
 	memset(bios, 0xff, sizeof(bios));
@@ -194,12 +194,12 @@ void MEMBUS::initialize()
 	config_intram();
 	update_bios();
 
-	intram_wait = 1;
-	bank08_wait = 10;
-	exmem_wait = 2;
-	slotmem_wait = 2;
-	exboards_wait = 4;
-	introm_wait = 1;
+	intram_wait = 0;
+	bank08_wait = 0;
+	exmem_wait = 0;
+	slotmem_wait = 0;
+	exboards_wait = 0;
+	introm_wait = 0;
 }
 
 void MEMBUS::reset()

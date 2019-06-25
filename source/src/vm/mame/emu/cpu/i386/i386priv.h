@@ -693,6 +693,56 @@ struct i386_state
 
 extern int i386_parity_table[256];
 //static int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32 size);
+INLINE UINT8 __FASTCALL read_data8_with_wait(i386_state* cpustate, UINT32 addr)
+{
+//	int wait = 0;
+//	UINT8 val = cpustate->program->read_data8w(addr, &wait);
+//	if(wait > 0) cpustate->memory_wait += wait;
+	UINT8 val = cpustate->program->read_data8(addr);
+	return val;
+}
+
+INLINE UINT16 __FASTCALL read_data16_with_wait(i386_state* cpustate, UINT32 addr)
+{
+//	int wait = 0;
+//	UINT16 val = cpustate->program->read_data16w(addr, &wait);
+//	if(wait > 0) cpustate->memory_wait += wait;
+	UINT16 val = cpustate->program->read_data16(addr);
+	return val;
+}
+
+INLINE UINT32 __FASTCALL read_data32_with_wait(i386_state* cpustate, UINT32 addr)
+{
+//	int wait = 0;
+//	UINT32 val = cpustate->program->read_data32w(addr, &wait);
+//	if(wait > 0) cpustate->memory_wait += wait;
+	UINT32 val = cpustate->program->read_data32(addr);
+	return val;
+}
+
+INLINE void __FASTCALL write_data8_with_wait(i386_state* cpustate, UINT32 addr, UINT32 data)
+{
+//	int wait = 0;
+//	cpustate->program->write_data8w(addr, data, &wait);
+//	if(wait > 0) cpustate->memory_wait += wait;
+	cpustate->program->write_data8(addr, data);
+}
+
+INLINE void __FASTCALL write_data16_with_wait(i386_state* cpustate, UINT32 addr, UINT32 data)
+{
+//	int wait = 0;
+//	cpustate->program->write_data16w(addr, data, &wait);
+//	if(wait > 0) cpustate->memory_wait += wait;
+	cpustate->program->write_data16(addr, data);
+}
+
+INLINE void __FASTCALL write_data32_with_wait(i386_state* cpustate, UINT32 addr, UINT32 data)
+{
+//	int wait = 0;
+//	cpustate->program->write_data32w(addr, data, &wait);
+//	if(wait > 0) cpustate->memory_wait += wait;
+	cpustate->program->write_data32(addr, data);
+}
 
 #define FAULT_THROW(fault,error) {										\
 		if(cpustate->is_report_exception) {									\
@@ -875,7 +925,7 @@ INLINE int i386_translate_address(i386_state *cpustate, int intention, offs_t *a
 		return TRUE;
 	}
 	// Paging is enabled
-	UINT32 page_dir = cpustate->program->read_data32(pdbr + directory * 4);
+	UINT32 page_dir = read_data32_with_wait(cpustate, pdbr + directory * 4);
 	if(page_dir & 1)
 	{
 		if ((page_dir & 0x80) && (cpustate->cr[4] & I386_CR4_PSE))
@@ -896,15 +946,15 @@ INLINE int i386_translate_address(i386_state *cpustate, int intention, offs_t *a
 				if(write)
 					perm |= VTLB_FLAG_DIRTY;
 				if(!(page_dir & 0x40) && write)
-					cpustate->program->write_data32(pdbr + directory * 4, page_dir | 0x60);
+					write_data32_with_wait(cpustate, pdbr + directory * 4, page_dir | 0x60);
 				else if(!(page_dir & 0x20))
-					cpustate->program->write_data32(pdbr + directory * 4, page_dir | 0x20);
+					write_data32_with_wait(cpustate, pdbr + directory * 4, page_dir | 0x20);
 				ret = TRUE;
 			}
 		}
 		else
 		{
-			UINT32 page_entry = cpustate->program->read_data32((page_dir & 0xfffff000) + (table * 4));
+			UINT32 page_entry = read_data32_with_wait(cpustate, (page_dir & 0xfffff000) + (table * 4));
 			if(!(page_entry & 1))
 				ret = FALSE;
 			else
@@ -925,11 +975,11 @@ INLINE int i386_translate_address(i386_state *cpustate, int intention, offs_t *a
 					if(write)
 						perm |= VTLB_FLAG_DIRTY;
 					if(!(page_dir & 0x20))
-						cpustate->program->write_data32(pdbr + directory * 4, page_dir | 0x20);
+						write_data32_with_wait(cpustate, pdbr + directory * 4, page_dir | 0x20);
 					if(!(page_entry & 0x40) && write)
-						cpustate->program->write_data32((page_dir & 0xfffff000) + (table * 4), page_entry | 0x60);
+						write_data32_with_wait(cpustate, (page_dir & 0xfffff000) + (table * 4), page_entry | 0x60);
 					else if(!(page_entry & 0x20))
-						cpustate->program->write_data32((page_dir & 0xfffff000) + (table * 4), page_entry | 0x20);
+						write_data32_with_wait(cpustate, (page_dir & 0xfffff000) + (table * 4), page_entry | 0x20);
 					ret = TRUE;
 				}
 			}
@@ -963,7 +1013,7 @@ INLINE int i386_translate_address_with_width(i386_state *cpustate, int intention
 		return TRUE;
 	}
 	// Paging is enabled
-	UINT32 page_dir = cpustate->program->read_data32(pdbr + directory * 4);
+	UINT32 page_dir = read_data32_with_wait(cpustate, pdbr + directory * 4);
 	if(page_dir & 1)
 	{
 		if ((page_dir & 0x80) && (cpustate->cr[4] & I386_CR4_PSE))
@@ -987,15 +1037,15 @@ INLINE int i386_translate_address_with_width(i386_state *cpustate, int intention
 				if(write)
 					perm |= VTLB_FLAG_DIRTY;
 				if(!(page_dir & 0x40) && write)
-					cpustate->program->write_data32(pdbr + directory * 4, page_dir | 0x60);
+					write_data32_with_wait(cpustate, pdbr + directory * 4, page_dir | 0x60);
 				else if(!(page_dir & 0x20))
-					cpustate->program->write_data32(pdbr + directory * 4, page_dir | 0x20);
+					write_data32_with_wait(cpustate, pdbr + directory * 4, page_dir | 0x20);
 				ret = TRUE;
 			}
 		}
 		else
 		{
-			UINT32 page_entry = cpustate->program->read_data32((page_dir & 0xfffff000) + (table * 4));
+			UINT32 page_entry = read_data32_with_wait(cpustate, (page_dir & 0xfffff000) + (table * 4));
 			if(!(page_entry & 1))
 				ret = FALSE;
 			else
@@ -1020,11 +1070,11 @@ INLINE int i386_translate_address_with_width(i386_state *cpustate, int intention
 					if(write)
 						perm |= VTLB_FLAG_DIRTY;
 					if(!(page_dir & 0x20))
-						cpustate->program->write_data32(pdbr + directory * 4, page_dir | 0x20);
+						write_data32_with_wait(cpustate, pdbr + directory * 4, page_dir | 0x20);
 					if(!(page_entry & 0x40) && write)
-						cpustate->program->write_data32((page_dir & 0xfffff000) + (table * 4), page_entry | 0x60);
+						write_data32_with_wait(cpustate, (page_dir & 0xfffff000) + (table * 4), page_entry | 0x60);
 					else if(!(page_entry & 0x20))
-						cpustate->program->write_data32((page_dir & 0xfffff000) + (table * 4), page_entry | 0x20);
+						write_data32_with_wait(cpustate, (page_dir & 0xfffff000) + (table * 4), page_entry | 0x20);
 					ret = TRUE;
 				}
 			}
@@ -1153,7 +1203,7 @@ INLINE UINT8 FETCH(i386_state *cpustate)
 	if(!translate_address(cpustate,cpustate->CPL,TRANSLATE_FETCH,&address,&error))
 		PF_THROW(error);
 
-	value = cpustate->program->read_data8(address & cpustate->a20_mask);
+	value = read_data8_with_wait(cpustate, address & cpustate->a20_mask);
 #ifdef DEBUG_MISSING_OPCODE
 	cpustate->opcode_bytes[cpustate->opcode_bytes_length] = value;
 	cpustate->opcode_bytes_length = (cpustate->opcode_bytes_length + 1) & 15;
@@ -1173,8 +1223,8 @@ INLINE UINT16 FETCH16(i386_state *cpustate)
 			value |= (FETCH(cpustate) << 8);
 		} else {
 			UINT32 mask = cpustate->a20_mask;
-			value  = ((cpustate->program->read_data8((address + 0) & mask)) << 0);
-			value |= ((cpustate->program->read_data8((address + 1) & mask)) << 8);
+			value  = ((read_data8_with_wait(cpustate, (address + 0) & mask)) << 0);
+			value |= ((read_data8_with_wait(cpustate, (address + 1) & mask)) << 8);
 			cpustate->eip += 2;
 			cpustate->pc += 2;
 		}
@@ -1182,7 +1232,7 @@ INLINE UINT16 FETCH16(i386_state *cpustate)
 		if(!translate_address(cpustate,cpustate->CPL,TRANSLATE_FETCH,&address,&error))
 			PF_THROW(error);
 		address &= cpustate->a20_mask;
-		value = cpustate->program->read_data16(address);
+		value = read_data16_with_wait(cpustate, address);
 		cpustate->eip += 2;
 		cpustate->pc += 2;
 	}
@@ -1203,13 +1253,13 @@ INLINE UINT32 FETCH32(i386_state *cpustate)
 		} else {
 			UINT32 mask = cpustate->a20_mask;
 			if(WORD_ALIGNED(cpustate->pc)) {
-				value  = ((cpustate->program->read_data16((address + 0) & mask)) << 0);
-				value |= ((cpustate->program->read_data16((address + 2) & mask)) << 16);
+				value  = ((read_data16_with_wait(cpustate, (address + 0) & mask)) << 0);
+				value |= ((read_data16_with_wait(cpustate, (address + 2) & mask)) << 16);
 			} else {
-				value  = ((cpustate->program->read_data8((address + 0) & mask)) << 0);
-				value |= ((cpustate->program->read_data8((address + 1) & mask)) << 8);
-				value |= ((cpustate->program->read_data8((address + 2) & mask)) << 16);
-				value |= ((cpustate->program->read_data8((address + 3) & mask)) << 24);
+				value  = ((read_data8_with_wait(cpustate, (address + 0) & mask)) << 0);
+				value |= ((read_data8_with_wait(cpustate, (address + 1) & mask)) << 8);
+				value |= ((read_data8_with_wait(cpustate, (address + 2) & mask)) << 16);
+				value |= ((read_data8_with_wait(cpustate, (address + 3) & mask)) << 24);
 			}
 			cpustate->eip += 4;
 			cpustate->pc += 4;
@@ -1219,7 +1269,7 @@ INLINE UINT32 FETCH32(i386_state *cpustate)
 			PF_THROW(error);
 
 		address &= cpustate->a20_mask;
-		value = cpustate->program->read_data32(address);
+		value = read_data32_with_wait(cpustate, address);
 		cpustate->eip += 4;
 		cpustate->pc += 4;
 	}
@@ -1234,7 +1284,7 @@ INLINE UINT8 READ8(i386_state *cpustate,UINT32 ea)
 		PF_THROW(error);
 
 	address &= cpustate->a20_mask;
-	return cpustate->program->read_data8(address);
+	return read_data8_with_wait(cpustate, address);
 }
 INLINE UINT16 READ16(i386_state *cpustate,UINT32 ea)
 {
@@ -1248,15 +1298,15 @@ INLINE UINT16 READ16(i386_state *cpustate,UINT32 ea)
 			value |= (READ8( cpustate, address+1 ) << 8);
 		} else {
 			UINT32 mask = cpustate->a20_mask;
-			value  = ((cpustate->program->read_data8((address + 0) & mask)) << 0);
-			value |= ((cpustate->program->read_data8((address + 1) & mask)) << 8);
+			value  = ((read_data8_with_wait(cpustate, (address + 0) & mask)) << 0);
+			value |= ((read_data8_with_wait(cpustate, (address + 1) & mask)) << 8);
 		}
 	} else {
 		if(!translate_address(cpustate,cpustate->CPL,TRANSLATE_READ,&address,&error))
 			PF_THROW(error);
 
 		address &= cpustate->a20_mask;
-		value = cpustate->program->read_data16( address );
+		value = read_data16_with_wait(cpustate,  address );
 	}
 	return value;
 }
@@ -1274,13 +1324,13 @@ INLINE UINT32 READ32(i386_state *cpustate,UINT32 ea)
 		} else {
 			UINT32 mask = cpustate->a20_mask;
 			if(WORD_ALIGNED(ea)) {
-				value  = ((cpustate->program->read_data16((address + 0) & mask)) << 0);
-				value |= ((cpustate->program->read_data16((address + 2) & mask)) << 16);
+				value  = ((read_data16_with_wait(cpustate, (address + 0) & mask)) << 0);
+				value |= ((read_data16_with_wait(cpustate, (address + 2) & mask)) << 16);
 			} else {
-				value  = ((cpustate->program->read_data8((address + 0) & mask)) << 0);
-				value |= ((cpustate->program->read_data8((address + 1) & mask)) << 8);
-				value |= ((cpustate->program->read_data8((address + 2) & mask)) << 16);
-				value |= ((cpustate->program->read_data8((address + 3) & mask)) << 24);
+				value  = ((read_data8_with_wait(cpustate, (address + 0) & mask)) << 0);
+				value |= ((read_data8_with_wait(cpustate, (address + 1) & mask)) << 8);
+				value |= ((read_data8_with_wait(cpustate, (address + 2) & mask)) << 16);
+				value |= ((read_data8_with_wait(cpustate, (address + 3) & mask)) << 24);
 			}
 		}
 	} else {
@@ -1288,7 +1338,7 @@ INLINE UINT32 READ32(i386_state *cpustate,UINT32 ea)
 			PF_THROW(error);
 
 		address &= cpustate->a20_mask;
-		value = cpustate->program->read_data32( address );
+		value = read_data32_with_wait(cpustate,  address );
 	}
 	return value;
 }
@@ -1313,23 +1363,23 @@ INLINE UINT64 READ64(i386_state *cpustate,UINT32 ea)
 			UINT32 mask = cpustate->a20_mask;
 			if(!DWORD_ALIGNED(ea)) {
 				if(WORD_ALIGNED(ea)) { // Aligned by 2
-					value  = (((UINT64)cpustate->program->read_data16((address + 0) & mask)) << 0);
-					value |= (((UINT64)cpustate->program->read_data16((address + 2) & mask)) << 16);
-					value |= (((UINT64)cpustate->program->read_data16((address + 4) & mask)) << 32);
-					value |= (((UINT64)cpustate->program->read_data16((address + 6) & mask)) << 48);
+					value  = (((UINT64)read_data16_with_wait(cpustate, (address + 0) & mask)) << 0);
+					value |= (((UINT64)read_data16_with_wait(cpustate, (address + 2) & mask)) << 16);
+					value |= (((UINT64)read_data16_with_wait(cpustate, (address + 4) & mask)) << 32);
+					value |= (((UINT64)read_data16_with_wait(cpustate, (address + 6) & mask)) << 48);
 				} else { // never aligned
-					value  = (((UINT64)cpustate->program->read_data8((address + 0) & mask)) << 0);
-					value |= (((UINT64)cpustate->program->read_data8((address + 1) & mask)) << 8);
-					value |= (((UINT64)cpustate->program->read_data8((address + 2) & mask)) << 16);
-					value |= (((UINT64)cpustate->program->read_data8((address + 3) & mask)) << 24);
-					value |= (((UINT64)cpustate->program->read_data8((address + 4) & mask)) << 32);
-					value |= (((UINT64)cpustate->program->read_data8((address + 5) & mask)) << 40);
-					value |= (((UINT64)cpustate->program->read_data8((address + 6) & mask)) << 48);
-					value |= (((UINT64)cpustate->program->read_data8((address + 7) & mask)) << 56);
+					value  = (((UINT64)read_data8_with_wait(cpustate, (address + 0) & mask)) << 0);
+					value |= (((UINT64)read_data8_with_wait(cpustate, (address + 1) & mask)) << 8);
+					value |= (((UINT64)read_data8_with_wait(cpustate, (address + 2) & mask)) << 16);
+					value |= (((UINT64)read_data8_with_wait(cpustate, (address + 3) & mask)) << 24);
+					value |= (((UINT64)read_data8_with_wait(cpustate, (address + 4) & mask)) << 32);
+					value |= (((UINT64)read_data8_with_wait(cpustate, (address + 5) & mask)) << 40);
+					value |= (((UINT64)read_data8_with_wait(cpustate, (address + 6) & mask)) << 48);
+					value |= (((UINT64)read_data8_with_wait(cpustate, (address + 7) & mask)) << 56);
 				}
 			} else { // Align of 4
-				value = (((UINT64) cpustate->program->read_data32( (address+0) & mask )) << 0);
-				value |= (((UINT64) cpustate->program->read_data32( (address+4) & mask )) << 32);
+				value = (((UINT64) read_data32_with_wait(cpustate,  (address+0) & mask )) << 0);
+				value |= (((UINT64) read_data32_with_wait(cpustate,  (address+4) & mask )) << 32);
 			}
 		}
 	} else {
@@ -1337,8 +1387,8 @@ INLINE UINT64 READ64(i386_state *cpustate,UINT32 ea)
 			PF_THROW(error);
 
 		address &= cpustate->a20_mask;
-		value = (((UINT64) cpustate->program->read_data32( address+0 )) << 0);
-		value |= (((UINT64) cpustate->program->read_data32( address+4 )) << 32);
+		value = (((UINT64) read_data32_with_wait(cpustate,  address+0 )) << 0);
+		value |= (((UINT64) read_data32_with_wait(cpustate,  address+4 )) << 32);
 	}
 	return value;
 }
@@ -1350,7 +1400,7 @@ INLINE UINT8 READ8PL0(i386_state *cpustate,UINT32 ea)
 		PF_THROW(error);
 
 	address &= cpustate->a20_mask;
-	return cpustate->program->read_data8(address);
+	return read_data8_with_wait(cpustate, address);
 }
 INLINE UINT16 READ16PL0(i386_state *cpustate,UINT32 ea)
 {
@@ -1363,15 +1413,15 @@ INLINE UINT16 READ16PL0(i386_state *cpustate,UINT32 ea)
 			value  =  READ8PL0(cpustate, ea + 0);
 			value |= (READ8PL0(cpustate, ea + 1) << 8);
 		} else {			
-			value  = cpustate->program->read_data8((address + 0) & mask);
-			value |= (cpustate->program->read_data8((address + 1) & mask) << 8);
+			value  = read_data8_with_wait(cpustate, (address + 0) & mask);
+			value |= (read_data8_with_wait(cpustate, (address + 1) & mask) << 8);
 		}
 	} else {
 		if(!translate_address(cpustate,0,TRANSLATE_READ,&address,&error))
 			PF_THROW(error);
 
 		address &= cpustate->a20_mask;
-		value = cpustate->program->read_data16( address );
+		value = read_data16_with_wait(cpustate,  address );
 	}
 	return value;
 }
@@ -1390,13 +1440,13 @@ INLINE UINT32 READ32PL0(i386_state *cpustate,UINT32 ea)
 			value |= (READ8PL0(cpustate, ea + 3) << 24);
 		} else {
 			if(WORD_ALIGNED(ea)) {
-				value  = cpustate->program->read_data16((address + 0) & mask);
-				value |= (cpustate->program->read_data16((address + 2) & mask) << 16);
+				value  = read_data16_with_wait(cpustate, (address + 0) & mask);
+				value |= (read_data16_with_wait(cpustate, (address + 2) & mask) << 16);
 			} else {
-				value  = cpustate->program->read_data8((address + 0) & mask);
-				value |= (cpustate->program->read_data8((address + 1) & mask) << 8);
-				value |= (cpustate->program->read_data8((address + 2) & mask) << 16);
-				value |= (cpustate->program->read_data8((address + 3) & mask) << 24);
+				value  = read_data8_with_wait(cpustate, (address + 0) & mask);
+				value |= (read_data8_with_wait(cpustate, (address + 1) & mask) << 8);
+				value |= (read_data8_with_wait(cpustate, (address + 2) & mask) << 16);
+				value |= (read_data8_with_wait(cpustate, (address + 3) & mask) << 24);
 			}
 		}
 	} else {
@@ -1404,7 +1454,7 @@ INLINE UINT32 READ32PL0(i386_state *cpustate,UINT32 ea)
 			PF_THROW(error);
 
 		address &= cpustate->a20_mask;
-		value = cpustate->program->read_data32( address );
+		value = read_data32_with_wait(cpustate,  address );
 	}
 	return value;
 }
@@ -1424,7 +1474,7 @@ INLINE void WRITE8(i386_state *cpustate,UINT32 ea, UINT8 value)
 		PF_THROW(error);
 
 	address &= cpustate->a20_mask;
-	cpustate->program->write_data8(address, value);
+	write_data8_with_wait(cpustate, address, value);
 }
 INLINE void WRITE16(i386_state *cpustate,UINT32 ea, UINT16 value)
 {
@@ -1436,15 +1486,15 @@ INLINE void WRITE16(i386_state *cpustate,UINT32 ea, UINT16 value)
 			WRITE8( cpustate, address+1, (value >> 8) & 0xff );
 		} else {
 			uint32_t mask = cpustate->a20_mask;
-			cpustate->program->write_data8((address + 0) & mask, value & 0xff);
-			cpustate->program->write_data8((address + 1) & mask, (value >> 8) & 0xff);
+			write_data8_with_wait(cpustate, (address + 0) & mask, value & 0xff);
+			write_data8_with_wait(cpustate, (address + 1) & mask, (value >> 8) & 0xff);
 		}
 	} else {
 		if(!translate_address(cpustate,cpustate->CPL,TRANSLATE_WRITE,&address,&error))
 			PF_THROW(error);
 
 		address &= cpustate->a20_mask;
-		cpustate->program->write_data16(address, value);
+		write_data16_with_wait(cpustate, address, value);
 	}
 }
 INLINE void WRITE32(i386_state *cpustate,UINT32 ea, UINT32 value)
@@ -1460,13 +1510,13 @@ INLINE void WRITE32(i386_state *cpustate,UINT32 ea, UINT32 value)
 		} else {
 			uint32_t mask = cpustate->a20_mask;
 			if(!WORD_ALIGNED(ea)) {
-				cpustate->program->write_data8((address + 0) & mask, value & 0xff);
-				cpustate->program->write_data8((address + 1) & mask, (value >> 8) & 0xff);
-				cpustate->program->write_data8((address + 2) & mask, (value >> 16) & 0xff);
-				cpustate->program->write_data8((address + 3) & mask, (value >> 24) & 0xff);
+				write_data8_with_wait(cpustate, (address + 0) & mask, value & 0xff);
+				write_data8_with_wait(cpustate, (address + 1) & mask, (value >> 8) & 0xff);
+				write_data8_with_wait(cpustate, (address + 2) & mask, (value >> 16) & 0xff);
+				write_data8_with_wait(cpustate, (address + 3) & mask, (value >> 24) & 0xff);
 			} else { // Aligned by 2
-				cpustate->program->write_data16((address + 0) & mask, value & 0xffff);
-				cpustate->program->write_data16((address + 2) & mask, (value >> 16) & 0xffff);
+				write_data16_with_wait(cpustate, (address + 0) & mask, value & 0xffff);
+				write_data16_with_wait(cpustate, (address + 2) & mask, (value >> 16) & 0xffff);
 			}
 		}
 	} else {
@@ -1474,7 +1524,7 @@ INLINE void WRITE32(i386_state *cpustate,UINT32 ea, UINT32 value)
 			PF_THROW(error);
 
 		address &= cpustate->a20_mask;
-		cpustate->program->write_data32(address, value);
+		write_data32_with_wait(cpustate, address, value);
 	}
 }
 
@@ -1495,22 +1545,22 @@ INLINE void WRITE64(i386_state *cpustate,UINT32 ea, UINT64 value)
 		} else {
 			uint32_t mask = cpustate->a20_mask;
 			if(DWORD_ALIGNED(ea)) { // Aligned by 4
-				cpustate->program->write_data32((address + 0) & mask, value & 0xffffffff);
-				cpustate->program->write_data32((address + 4) & mask, (value >> 32) & 0xffffffff);
+				write_data32_with_wait(cpustate, (address + 0) & mask, value & 0xffffffff);
+				write_data32_with_wait(cpustate, (address + 4) & mask, (value >> 32) & 0xffffffff);
 			} else if(!WORD_ALIGNED(ea)) { // Never aligned
-				cpustate->program->write_data8((address + 0) & mask, value & 0xff);
-				cpustate->program->write_data8((address + 1) & mask, (value >> 8) & 0xff);
-				cpustate->program->write_data8((address + 2) & mask, (value >> 16) & 0xff);
-				cpustate->program->write_data8((address + 3) & mask, (value >> 24) & 0xff);
-				cpustate->program->write_data8((address + 4) & mask, (value >> 32) & 0xff);
-				cpustate->program->write_data8((address + 5) & mask, (value >> 40) & 0xff);
-				cpustate->program->write_data8((address + 6) & mask, (value >> 48) & 0xff);
-				cpustate->program->write_data8((address + 7) & mask, (value >> 56) & 0xff);
+				write_data8_with_wait(cpustate, (address + 0) & mask, value & 0xff);
+				write_data8_with_wait(cpustate, (address + 1) & mask, (value >> 8) & 0xff);
+				write_data8_with_wait(cpustate, (address + 2) & mask, (value >> 16) & 0xff);
+				write_data8_with_wait(cpustate, (address + 3) & mask, (value >> 24) & 0xff);
+				write_data8_with_wait(cpustate, (address + 4) & mask, (value >> 32) & 0xff);
+				write_data8_with_wait(cpustate, (address + 5) & mask, (value >> 40) & 0xff);
+				write_data8_with_wait(cpustate, (address + 6) & mask, (value >> 48) & 0xff);
+				write_data8_with_wait(cpustate, (address + 7) & mask, (value >> 56) & 0xff);
 			} else { // Aligned by 2
-				cpustate->program->write_data16((address + 0) & mask, value & 0xffff);
-				cpustate->program->write_data16((address + 2) & mask, (value >> 16) & 0xffff);
-				cpustate->program->write_data16((address + 4) & mask, (value >> 32) & 0xffff);
-				cpustate->program->write_data16((address + 6) & mask, (value >> 48) & 0xffff);
+				write_data16_with_wait(cpustate, (address + 0) & mask, value & 0xffff);
+				write_data16_with_wait(cpustate, (address + 2) & mask, (value >> 16) & 0xffff);
+				write_data16_with_wait(cpustate, (address + 4) & mask, (value >> 32) & 0xffff);
+				write_data16_with_wait(cpustate, (address + 6) & mask, (value >> 48) & 0xffff);
 			}
 		}
 	} else {
@@ -1518,8 +1568,8 @@ INLINE void WRITE64(i386_state *cpustate,UINT32 ea, UINT64 value)
 			PF_THROW(error);
 
 		address &= cpustate->a20_mask;
-		cpustate->program->write_data32(address+0, value & 0xffffffff);
-		cpustate->program->write_data32(address+4, (value >> 32) & 0xffffffff);
+		write_data32_with_wait(cpustate, address+0, value & 0xffffffff);
+		write_data32_with_wait(cpustate, address+4, (value >> 32) & 0xffffffff);
 	}
 }
 

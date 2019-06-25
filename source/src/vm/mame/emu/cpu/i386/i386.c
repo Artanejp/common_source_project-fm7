@@ -49,6 +49,8 @@ static void build_opcode_table(i386_state *cpustate, UINT32 features);
 static void zero_state(i386_state *cpustate);
 static void pentium_smi(i386_state* cpustate);
 
+
+
 #define FAULT(fault,error) {\
 		logerror("FAULT(%s , %s) PC=%08x V8086=%s PROTECTED=%s SP=%08X:%08X\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO", (PROTECTED_MODE) ? cpustate->sreg[SS].base : (cpustate->sreg[SS].selector << 4), REG32(ESP)); \
 		if(cpustate->is_report_exception) {								\
@@ -204,9 +206,9 @@ static void cpu_reset_generic(i386_state* cpustate)
 
 	addr = base + (selector & ~7) + 5;
 	i386_translate_address(cpustate, TRANSLATE_READ, &addr, NULL);
-	rights = cpustate->program->read_data8(addr);
+	rights = read_data8_with_wait(cpustate, addr);
 	// Should a fault be thrown if the table is read only?
-	cpustate->program->write_data8(addr, rights | 1);
+	write_data8_with_wait(cpustate, addr, rights | 1);
 }
 
 /*static*/INLINE void i386_load_segment_descriptor(i386_state *cpustate, int segment )
