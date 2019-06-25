@@ -851,7 +851,7 @@ int I386::get_shutdown_flag()
 	return cpustate->shutdown;
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 
 void process_state_SREG(I386_SREG* val, FILEIO* state_fio)
 {
@@ -1027,6 +1027,7 @@ bool I386::process_state(FILEIO* state_fio, bool loading)
 	
 	state_fio->StateValue(cpustate->waitcount);
 	state_fio->StateValue(cpustate->waitfactor);
+	state_fio->StateValue(cpustate->memory_wait);
 #ifdef DEBUG_MISSING_OPCODE
 	state_fio->StateArray(cpustate->opcode_bytes, sizeof(cpustate->opcode_bytes), 1);
 	state_fio->StateValue(cpustate->opcode_pc);

@@ -2,8 +2,8 @@
 // copyright-holders:Ville Linde, Barry Rodewald, Carl, Philip Bennett
 #pragma once
 
-#ifndef __I386_PRIV_H__
-#define __I386_PRIV_H__
+#ifndef __I386_H__
+#define __I386_H__
 
 //#include "i386.h"
 #include "../../../lib/softfloat/milieu.h"
@@ -372,6 +372,7 @@ INLINE UINT8 sreg_get_flags(UINT32 high)
 
 INLINE UINT8 sreg_get_flags_from_u64(UINT64 src)
 {
+	pair32_t ret;
 	pair64_t pa;
 
 	pa.q = src;
@@ -619,43 +620,43 @@ struct i386_state
 	UINT64 x87_inst_ptr;
 	UINT16 x87_opcode;
 
-	void (__FASTCALL *opcode_table_x87_d8[256])(i386_state *cpustate, UINT8 modrm);
-	void (__FASTCALL *opcode_table_x87_d9[256])(i386_state *cpustate, UINT8 modrm);
-	void (__FASTCALL *opcode_table_x87_da[256])(i386_state *cpustate, UINT8 modrm);
-	void (__FASTCALL *opcode_table_x87_db[256])(i386_state *cpustate, UINT8 modrm);
-	void (__FASTCALL *opcode_table_x87_dc[256])(i386_state *cpustate, UINT8 modrm);
-	void (__FASTCALL *opcode_table_x87_dd[256])(i386_state *cpustate, UINT8 modrm);
-	void (__FASTCALL *opcode_table_x87_de[256])(i386_state *cpustate, UINT8 modrm);
-	void (__FASTCALL *opcode_table_x87_df[256])(i386_state *cpustate, UINT8 modrm);
+	void (*opcode_table_x87_d8[256])(i386_state *cpustate, UINT8 modrm);
+	void (*opcode_table_x87_d9[256])(i386_state *cpustate, UINT8 modrm);
+	void (*opcode_table_x87_da[256])(i386_state *cpustate, UINT8 modrm);
+	void (*opcode_table_x87_db[256])(i386_state *cpustate, UINT8 modrm);
+	void (*opcode_table_x87_dc[256])(i386_state *cpustate, UINT8 modrm);
+	void (*opcode_table_x87_dd[256])(i386_state *cpustate, UINT8 modrm);
+	void (*opcode_table_x87_de[256])(i386_state *cpustate, UINT8 modrm);
+	void (*opcode_table_x87_df[256])(i386_state *cpustate, UINT8 modrm);
 
 	// SSE
 	XMM_REG sse_reg[8];
 	UINT32 mxcsr;
 
-	void (__FASTCALL *opcode_table1_16[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table1_32[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table2_16[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table2_32[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table338_16[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table338_32[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table33a_16[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table33a_32[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table366_16[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table366_32[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table3f2_16[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table3f2_32[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table3f3_16[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table3f3_32[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table46638_16[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table46638_32[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table4f238_16[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table4f238_32[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table4f338_16[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table4f338_32[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table4663a_16[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table4663a_32[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table4f23a_16[256])(i386_state *cpustate);
-	void (__FASTCALL *opcode_table4f23a_32[256])(i386_state *cpustate);
+	void (*opcode_table1_16[256])(i386_state *cpustate);
+	void (*opcode_table1_32[256])(i386_state *cpustate);
+	void (*opcode_table2_16[256])(i386_state *cpustate);
+	void (*opcode_table2_32[256])(i386_state *cpustate);
+	void (*opcode_table338_16[256])(i386_state *cpustate);
+	void (*opcode_table338_32[256])(i386_state *cpustate);
+	void (*opcode_table33a_16[256])(i386_state *cpustate);
+	void (*opcode_table33a_32[256])(i386_state *cpustate);
+	void (*opcode_table366_16[256])(i386_state *cpustate);
+	void (*opcode_table366_32[256])(i386_state *cpustate);
+	void (*opcode_table3f2_16[256])(i386_state *cpustate);
+	void (*opcode_table3f2_32[256])(i386_state *cpustate);
+	void (*opcode_table3f3_16[256])(i386_state *cpustate);
+	void (*opcode_table3f3_32[256])(i386_state *cpustate);
+	void (*opcode_table46638_16[256])(i386_state *cpustate);
+	void (*opcode_table46638_32[256])(i386_state *cpustate);
+	void (*opcode_table4f238_16[256])(i386_state *cpustate);
+	void (*opcode_table4f238_32[256])(i386_state *cpustate);
+	void (*opcode_table4f338_16[256])(i386_state *cpustate);
+	void (*opcode_table4f338_32[256])(i386_state *cpustate);
+	void (*opcode_table4663a_16[256])(i386_state *cpustate);
+	void (*opcode_table4663a_32[256])(i386_state *cpustate);
+	void (*opcode_table4f23a_16[256])(i386_state *cpustate);
+	void (*opcode_table4f23a_32[256])(i386_state *cpustate);
 
 	bool lock_table[2][256];
 
@@ -674,7 +675,7 @@ struct i386_state
 	bool lock;
 	UINT32 waitfactor;
 	UINT64 waitcount;
-	int memory_wait;
+	INT32  memory_wait;
 	// Below is only for debugging, no need to save/load state.
 	UINT64 exception_code;
 	UINT32 exception_pc;
@@ -799,10 +800,9 @@ extern MODRM_TABLE i386_MODRM_table[256];
 
 /***********************************************************************************/
 
-/*INLINE*/static int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32 size)
+INLINE int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32 size)
 {
 //	size = 1; // TBD
-	offset = offset & cpustate->a20_mask;
 	if(PROTECTED_MODE && !V8086_MODE)
 	{
 		if((cpustate->sreg[seg].flags & 0x0018) == 0x0010 && cpustate->sreg[seg].flags & 0x0004) // if expand-down data segment
@@ -846,7 +846,7 @@ INLINE UINT32 i386_translate(i386_state *cpustate, int segment, UINT32 ip, int r
 
 #define VTLB_FLAG_DIRTY 0x100
 
-static INLINE vtlb_entry get_permissions(UINT32 pte, int wp)
+vtlb_entry get_permissions(UINT32 pte, int wp)
 {
 	vtlb_entry ret = VTLB_READ_ALLOWED | ((pte & 4) ? VTLB_USER_READ_ALLOWED : 0);
 	if(!wp)
@@ -856,7 +856,7 @@ static INLINE vtlb_entry get_permissions(UINT32 pte, int wp)
 	return ret;
 }
 
-INLINE  int i386_translate_address(i386_state *cpustate, int intention, offs_t *address, vtlb_entry *entry)
+INLINE int i386_translate_address(i386_state *cpustate, int intention, offs_t *address, vtlb_entry *entry)
 {
 	UINT32 a = *address;
 	UINT32 pdbr = cpustate->cr[3] & 0xfffff000;// I386_CR3_PD_MASK
@@ -867,7 +867,6 @@ INLINE  int i386_translate_address(i386_state *cpustate, int intention, offs_t *
 	bool user = (intention & TRANSLATE_USER_MASK) ? true : false;
 	bool write = (intention & TRANSLATE_WRITE) ? true : false;
 	bool debug = (intention & TRANSLATE_DEBUG_MASK) ? true : false;
-	int wait;
 
 	if(!(cpustate->cr[0] & I386_CR0_PG)) // paging is disabled
 	{
@@ -876,8 +875,7 @@ INLINE  int i386_translate_address(i386_state *cpustate, int intention, offs_t *
 		return TRUE;
 	}
 	// Paging is enabled
-	UINT32 page_dir = cpustate->program->read_data32w(pdbr + directory * 4, &wait);
-	cpustate->memory_wait += wait;
+	UINT32 page_dir = cpustate->program->read_data32(pdbr + directory * 4);
 	if(page_dir & 1)
 	{
 		if ((page_dir & 0x80) && (cpustate->cr[4] & I386_CR4_PSE))
@@ -897,21 +895,16 @@ INLINE  int i386_translate_address(i386_state *cpustate, int intention, offs_t *
 			{
 				if(write)
 					perm |= VTLB_FLAG_DIRTY;
-				if(!(page_dir & 0x40) && write) {
-					cpustate->program->write_data32w(pdbr + directory * 4, page_dir | 0x60, &wait);
-					cpustate->memory_wait += wait;
-				}
-				else if(!(page_dir & 0x20)) {					
-					cpustate->program->write_data32w(pdbr + directory * 4, page_dir | 0x20, &wait);
-					cpustate->memory_wait += wait;
-				}
+				if(!(page_dir & 0x40) && write)
+					cpustate->program->write_data32(pdbr + directory * 4, page_dir | 0x60);
+				else if(!(page_dir & 0x20))
+					cpustate->program->write_data32(pdbr + directory * 4, page_dir | 0x20);
 				ret = TRUE;
 			}
 		}
 		else
 		{
-			UINT32 page_entry = cpustate->program->read_data32w((page_dir & 0xfffff000) + (table * 4), &wait);
-			cpustate->memory_wait += wait;
+			UINT32 page_entry = cpustate->program->read_data32((page_dir & 0xfffff000) + (table * 4));
 			if(!(page_entry & 1))
 				ret = FALSE;
 			else
@@ -931,18 +924,12 @@ INLINE  int i386_translate_address(i386_state *cpustate, int intention, offs_t *
 				{
 					if(write)
 						perm |= VTLB_FLAG_DIRTY;
-					if(!(page_dir & 0x20)) {
-						cpustate->program->write_data32w(pdbr + directory * 4, page_dir | 0x20, &wait);
-						cpustate->memory_wait += wait;
-					}
-					if(!(page_entry & 0x40) && write) {
-						cpustate->program->write_data32w((page_dir & 0xfffff000) + (table * 4), page_entry | 0x60, &wait);
-						cpustate->memory_wait += wait;
-					}
-					else if(!(page_entry & 0x20)) {
-						cpustate->program->write_data32w((page_dir & 0xfffff000) + (table * 4), page_entry | 0x20, &wait);
-						cpustate->memory_wait += wait;
-					}
+					if(!(page_dir & 0x20))
+						cpustate->program->write_data32(pdbr + directory * 4, page_dir | 0x20);
+					if(!(page_entry & 0x40) && write)
+						cpustate->program->write_data32((page_dir & 0xfffff000) + (table * 4), page_entry | 0x60);
+					else if(!(page_entry & 0x20))
+						cpustate->program->write_data32((page_dir & 0xfffff000) + (table * 4), page_entry | 0x20);
 					ret = TRUE;
 				}
 			}
@@ -968,7 +955,6 @@ INLINE int i386_translate_address_with_width(i386_state *cpustate, int intention
 	bool user = (intention & TRANSLATE_USER_MASK) ? true : false;
 	bool write = (intention & TRANSLATE_WRITE) ? true : false;
 	bool debug = (intention & TRANSLATE_DEBUG_MASK) ? true : false;
-	int wait = 0;
 
 	if(!(cpustate->cr[0] & I386_CR0_PG)) // paging is disabled
 	{
@@ -977,8 +963,7 @@ INLINE int i386_translate_address_with_width(i386_state *cpustate, int intention
 		return TRUE;
 	}
 	// Paging is enabled
-	UINT32 page_dir = cpustate->program->read_data32w(pdbr + directory * 4, &wait);
-	cpustate->memory_wait += wait;
+	UINT32 page_dir = cpustate->program->read_data32(pdbr + directory * 4);
 	if(page_dir & 1)
 	{
 		if ((page_dir & 0x80) && (cpustate->cr[4] & I386_CR4_PSE))
@@ -1001,21 +986,16 @@ INLINE int i386_translate_address_with_width(i386_state *cpustate, int intention
 			{
 				if(write)
 					perm |= VTLB_FLAG_DIRTY;
-				if(!(page_dir & 0x40) && write) {
-					cpustate->program->write_data32w(pdbr + directory * 4, page_dir | 0x60, &wait);
-					cpustate->memory_wait += wait;
-				}
-				else if(!(page_dir & 0x20)) {
-					cpustate->program->write_data32w(pdbr + directory * 4, page_dir | 0x20, &wait);
-					cpustate->memory_wait += wait;
-				}
+				if(!(page_dir & 0x40) && write)
+					cpustate->program->write_data32(pdbr + directory * 4, page_dir | 0x60);
+				else if(!(page_dir & 0x20))
+					cpustate->program->write_data32(pdbr + directory * 4, page_dir | 0x20);
 				ret = TRUE;
 			}
 		}
 		else
 		{
-			UINT32 page_entry = cpustate->program->read_data32w((page_dir & 0xfffff000) + (table * 4), &wait);
-			cpustate->memory_wait += wait;
+			UINT32 page_entry = cpustate->program->read_data32((page_dir & 0xfffff000) + (table * 4));
 			if(!(page_entry & 1))
 				ret = FALSE;
 			else
@@ -1039,18 +1019,12 @@ INLINE int i386_translate_address_with_width(i386_state *cpustate, int intention
 				{
 					if(write)
 						perm |= VTLB_FLAG_DIRTY;
-					if(!(page_dir & 0x20)) {
-						cpustate->program->write_data32w(pdbr + directory * 4, page_dir | 0x20, &wait);
-						cpustate->memory_wait += wait;
-					}
-					if(!(page_entry & 0x40) && write) {
-						cpustate->program->write_data32w((page_dir & 0xfffff000) + (table * 4), page_entry | 0x60, &wait);
-						cpustate->memory_wait += wait;
-					}
-					else if(!(page_entry & 0x20)) {
-						cpustate->program->write_data32w((page_dir & 0xfffff000) + (table * 4), page_entry | 0x20, &wait);
-						cpustate->memory_wait += wait;
-					}
+					if(!(page_dir & 0x20))
+						cpustate->program->write_data32(pdbr + directory * 4, page_dir | 0x20);
+					if(!(page_entry & 0x40) && write)
+						cpustate->program->write_data32((page_dir & 0xfffff000) + (table * 4), page_entry | 0x60);
+					else if(!(page_entry & 0x20))
+						cpustate->program->write_data32((page_dir & 0xfffff000) + (table * 4), page_entry | 0x20);
 					ret = TRUE;
 				}
 			}
@@ -1067,7 +1041,7 @@ INLINE int i386_translate_address_with_width(i386_state *cpustate, int intention
 
 //#define TEST_TLB
 
-/*INLINE*/ static int translate_address(i386_state *cpustate, int pl, int type, UINT32 *address, UINT32 *error)
+INLINE int translate_address(i386_state *cpustate, int pl, int type, UINT32 *address, UINT32 *error)
 {
 	if(!(cpustate->cr[0] & I386_CR0_PG)) // Some (very few) old OS's won't work with this
 		return TRUE;
@@ -1093,7 +1067,6 @@ INLINE int i386_translate_address_with_width(i386_state *cpustate, int intention
 			return FALSE;
 		}
 		vtlb_dynload(cpustate->vtlb, index, *address, entry);
-//		*address = *address & cpustate->a20_mask;
 		return TRUE;
 	}
 	if(!(entry & (1 << type)))
@@ -1102,7 +1075,6 @@ INLINE int i386_translate_address_with_width(i386_state *cpustate, int intention
 		return FALSE;
 	}
 	*address = (entry & 0xfffff000) | (*address & 0xfff);
-//	*address = *address & cpustate->a20_mask;
 #ifdef TEST_TLB
 	int test_ret = i386_translate_address(cpustate, type | TRANSLATE_DEBUG_MASK, &test_addr, NULL);
 	if(!test_ret || (test_addr != *address))
@@ -1112,7 +1084,7 @@ INLINE int i386_translate_address_with_width(i386_state *cpustate, int intention
 }
 
 
-/*INLINE*/ static int translate_address_with_width(i386_state *cpustate, int pl, int type, UINT32 width, UINT32 *address, UINT32 *error)
+INLINE int translate_address_with_width(i386_state *cpustate, int pl, int type, UINT32 width, UINT32 *address, UINT32 *error)
 {
 	if(!(cpustate->cr[0] & I386_CR0_PG)) // Some (very few) old OS's won't work with this
 		return TRUE;
@@ -1138,7 +1110,6 @@ INLINE int i386_translate_address_with_width(i386_state *cpustate, int intention
 			return FALSE;
 		}
 		vtlb_dynload(cpustate->vtlb, index, *address, entry);
-//		*address = *address & cpustate->a20_mask;
 		return TRUE;
 	}
 	if(!(entry & (1 << type)))
@@ -1147,7 +1118,6 @@ INLINE int i386_translate_address_with_width(i386_state *cpustate, int intention
 		return FALSE;
 	}
 	*address = (entry & 0xfffff000) | (*address & 0xfff);
-//	*address = *address & cpustate->a20_mask;
 #ifdef TEST_TLB
 	int test_ret = i386_translate_address_with_width(cpustate, type | TRANSLATE_DEBUG_MASK, width, &test_addr, NULL);
 	if(!test_ret || (test_addr != *address))
@@ -1156,12 +1126,12 @@ INLINE int i386_translate_address_with_width(i386_state *cpustate, int intention
 	return TRUE;
 }
 
-INLINE void __FASTCALL CHANGE_PC(i386_state *cpustate, UINT32 pc)
+INLINE void CHANGE_PC(i386_state *cpustate, UINT32 pc)
 {
 	cpustate->pc = i386_translate(cpustate, CS, pc, -1, 1 );
 }
 
-INLINE void __FASTCALL NEAR_BRANCH(i386_state *cpustate, INT32 offs)
+INLINE void NEAR_BRANCH(i386_state *cpustate, INT32 offs)
 {
 	/* TODO: limit */
 //	if(i386_limit_check(cpustate, CS, cpustate->eip + offs, 1) != 0) {
@@ -1175,17 +1145,15 @@ INLINE void __FASTCALL NEAR_BRANCH(i386_state *cpustate, INT32 offs)
 //	cpustate->pc = i386_translate(cpustate, CS, cpustate->pc + offs, -1, 1 );
 }
 
-/*INLINE*/static UINT8 __FASTCALL FETCH(i386_state *cpustate)
+INLINE UINT8 FETCH(i386_state *cpustate)
 {
 	UINT8 value;
 	UINT32 address = cpustate->pc, error;
-	int wait;
+
 	if(!translate_address(cpustate,cpustate->CPL,TRANSLATE_FETCH,&address,&error))
 		PF_THROW(error);
 
-	value = cpustate->program->read_data8w(address & cpustate->a20_mask, &wait);
-	cpustate->memory_wait += wait;
-
+	value = cpustate->program->read_data8(address & cpustate->a20_mask);
 #ifdef DEBUG_MISSING_OPCODE
 	cpustate->opcode_bytes[cpustate->opcode_bytes_length] = value;
 	cpustate->opcode_bytes_length = (cpustate->opcode_bytes_length + 1) & 15;
@@ -1194,21 +1162,19 @@ INLINE void __FASTCALL NEAR_BRANCH(i386_state *cpustate, INT32 offs)
 	cpustate->pc++;
 	return value;
 }
-/*INLINE*/static UINT16 __FASTCALL FETCH16(i386_state *cpustate)
+INLINE UINT16 FETCH16(i386_state *cpustate)
 {
 	UINT16 value;
 	UINT32 address = cpustate->pc, error;
-	int wait;
-	if( !WORD_ALIGNED(address)) {       /* Unaligned read */
+
+	if( !WORD_ALIGNED(address) ) {       /* Unaligned read */
 		if(!translate_address_with_width(cpustate,cpustate->CPL,TRANSLATE_FETCH,2,&address,&error)) {
 			value = (FETCH(cpustate) << 0);
 			value |= (FETCH(cpustate) << 8);
 		} else {
 			UINT32 mask = cpustate->a20_mask;
-			value  = ((cpustate->program->read_data8w((address + 0) & mask, &wait)) << 0);
-			cpustate->memory_wait += wait;
-			value |= ((cpustate->program->read_data8w((address + 1) & mask, &wait)) << 8);
-			cpustate->memory_wait += wait;
+			value  = ((cpustate->program->read_data8((address + 0) & mask)) << 0);
+			value |= ((cpustate->program->read_data8((address + 1) & mask)) << 8);
 			cpustate->eip += 2;
 			cpustate->pc += 2;
 		}
@@ -1216,19 +1182,18 @@ INLINE void __FASTCALL NEAR_BRANCH(i386_state *cpustate, INT32 offs)
 		if(!translate_address(cpustate,cpustate->CPL,TRANSLATE_FETCH,&address,&error))
 			PF_THROW(error);
 		address &= cpustate->a20_mask;
-		value = cpustate->program->read_data16w(address, &wait);
-		cpustate->memory_wait += wait;
+		value = cpustate->program->read_data16(address);
 		cpustate->eip += 2;
 		cpustate->pc += 2;
 	}
 	return value;
 }
-/*INLINE*/static UINT32 __FASTCALL FETCH32(i386_state *cpustate)
+INLINE UINT32 FETCH32(i386_state *cpustate)
 {
 	UINT32 value;
 	UINT32 address = cpustate->pc, error;
-	int wait;
-	if( !DWORD_ALIGNED(cpustate->pc)) {      /* Unaligned read */
+
+	if( !DWORD_ALIGNED(cpustate->pc) ) {      /* Unaligned read */
 		if(!translate_address_with_width(cpustate,cpustate->CPL,TRANSLATE_FETCH,4,&address,&error)) {
 			value = (FETCH(cpustate) << 0);
 			value |= (FETCH(cpustate) << 8);
@@ -1237,20 +1202,14 @@ INLINE void __FASTCALL NEAR_BRANCH(i386_state *cpustate, INT32 offs)
 			//	PF_THROW(error);
 		} else {
 			UINT32 mask = cpustate->a20_mask;
-			if(WORD_ALIGNED(cpustate->pc) && (cpustate->pc < (cpustate->a20_mask - 1))) {
-				value  = (cpustate->program->read_data16w((address + 0) & mask, &wait) << 0);
-				cpustate->memory_wait += wait;
-				value |= (cpustate->program->read_data16w((address + 2) & mask, &wait) << 16);
-				cpustate->memory_wait += wait;
+			if(WORD_ALIGNED(cpustate->pc)) {
+				value  = ((cpustate->program->read_data16((address + 0) & mask)) << 0);
+				value |= ((cpustate->program->read_data16((address + 2) & mask)) << 16);
 			} else {
-				value  = ((cpustate->program->read_data8w((address + 0) & mask, &wait)) << 0);
-				cpustate->memory_wait += wait;
-				value |= ((cpustate->program->read_data8w((address + 1) & mask, &wait)) << 8);
-				cpustate->memory_wait += wait;
-				value |= ((cpustate->program->read_data8w((address + 2) & mask, &wait)) << 16);
-				cpustate->memory_wait += wait;
-				value |= ((cpustate->program->read_data8w((address + 3) & mask, &wait)) << 24);
-				cpustate->memory_wait += wait;
+				value  = ((cpustate->program->read_data8((address + 0) & mask)) << 0);
+				value |= ((cpustate->program->read_data8((address + 1) & mask)) << 8);
+				value |= ((cpustate->program->read_data8((address + 2) & mask)) << 16);
+				value |= ((cpustate->program->read_data8((address + 3) & mask)) << 24);
 			}
 			cpustate->eip += 4;
 			cpustate->pc += 4;
@@ -1260,32 +1219,28 @@ INLINE void __FASTCALL NEAR_BRANCH(i386_state *cpustate, INT32 offs)
 			PF_THROW(error);
 
 		address &= cpustate->a20_mask;
-		value = cpustate->program->read_data32w(address, &wait);
-		cpustate->memory_wait += wait;
+		value = cpustate->program->read_data32(address);
 		cpustate->eip += 4;
 		cpustate->pc += 4;
 	}
 	return value;
 }
 
-static INLINE UINT8 __FASTCALL READ8(i386_state *cpustate,UINT32 ea)
+INLINE UINT8 READ8(i386_state *cpustate,UINT32 ea)
 {
 	UINT32 address = ea, error;
-	int wait;
 
 	if(!translate_address(cpustate,cpustate->CPL,TRANSLATE_READ,&address, &error))
 		PF_THROW(error);
 
 	address &= cpustate->a20_mask;
-	uint32_t val = cpustate->program->read_data8w(address, &wait);
-	cpustate->memory_wait += wait;
-	return val;
+	return cpustate->program->read_data8(address);
 }
-static /*INLINE*/ UINT16 READ16(i386_state *cpustate,UINT32 ea)
+INLINE UINT16 READ16(i386_state *cpustate,UINT32 ea)
 {
 	UINT16 value;
 	UINT32 address = ea, error;
-	int wait;
+
 	if( !WORD_ALIGNED(ea) ) {        /* Unaligned read */
 		if(!translate_address_with_width(cpustate,cpustate->CPL,TRANSLATE_READ,2,&address,&error)) {
 		//	PF_THROW(error);
@@ -1293,26 +1248,23 @@ static /*INLINE*/ UINT16 READ16(i386_state *cpustate,UINT32 ea)
 			value |= (READ8( cpustate, address+1 ) << 8);
 		} else {
 			UINT32 mask = cpustate->a20_mask;
-			value  = ((cpustate->program->read_data8w((address + 0) & mask, &wait)) << 0);
-			cpustate->memory_wait += wait;
-			value |= ((cpustate->program->read_data8w((address + 1) & mask, &wait)) << 8);
-			cpustate->memory_wait += wait;
+			value  = ((cpustate->program->read_data8((address + 0) & mask)) << 0);
+			value |= ((cpustate->program->read_data8((address + 1) & mask)) << 8);
 		}
 	} else {
 		if(!translate_address(cpustate,cpustate->CPL,TRANSLATE_READ,&address,&error))
 			PF_THROW(error);
 
 		address &= cpustate->a20_mask;
-		value = cpustate->program->read_data16w( address , &wait);
-		cpustate->memory_wait += wait;
+		value = cpustate->program->read_data16( address );
 	}
 	return value;
 }
-static /*INLINE*/ UINT32 __FASTCALL READ32(i386_state *cpustate,UINT32 ea)
+INLINE UINT32 READ32(i386_state *cpustate,UINT32 ea)
 {
 	UINT32 value;
 	UINT32 address = ea, error;
-	int wait;
+
 	if( !DWORD_ALIGNED(ea) ) {        /* Unaligned read */
 		if(!translate_address_with_width(cpustate,cpustate->CPL,TRANSLATE_READ,4,&address,&error)) {
 			value  = (READ8( cpustate, address+0 ) << 0);
@@ -1322,19 +1274,13 @@ static /*INLINE*/ UINT32 __FASTCALL READ32(i386_state *cpustate,UINT32 ea)
 		} else {
 			UINT32 mask = cpustate->a20_mask;
 			if(WORD_ALIGNED(ea)) {
-				value  = ((cpustate->program->read_data16w((address + 0) & mask, &wait)) << 0);
-				cpustate->memory_wait += wait;
-				value |= ((cpustate->program->read_data16w((address + 2) & mask, &wait)) << 16);
-				cpustate->memory_wait += wait;
+				value  = ((cpustate->program->read_data16((address + 0) & mask)) << 0);
+				value |= ((cpustate->program->read_data16((address + 2) & mask)) << 16);
 			} else {
-				value  = ((cpustate->program->read_data8w((address + 0) & mask, &wait)) << 0);
-				cpustate->memory_wait += wait;
-				value |= ((cpustate->program->read_data8w((address + 1) & mask, &wait)) << 8);
-				cpustate->memory_wait += wait;
-				value |= ((cpustate->program->read_data8w((address + 2) & mask, &wait)) << 16);
-				cpustate->memory_wait += wait;
-				value |= ((cpustate->program->read_data8w((address + 3) & mask, &wait)) << 24);
-				cpustate->memory_wait += wait;
+				value  = ((cpustate->program->read_data8((address + 0) & mask)) << 0);
+				value |= ((cpustate->program->read_data8((address + 1) & mask)) << 8);
+				value |= ((cpustate->program->read_data8((address + 2) & mask)) << 16);
+				value |= ((cpustate->program->read_data8((address + 3) & mask)) << 24);
 			}
 		}
 	} else {
@@ -1342,17 +1288,16 @@ static /*INLINE*/ UINT32 __FASTCALL READ32(i386_state *cpustate,UINT32 ea)
 			PF_THROW(error);
 
 		address &= cpustate->a20_mask;
-		value = cpustate->program->read_data32w( address , &wait);
-		cpustate->memory_wait += wait;
+		value = cpustate->program->read_data32( address );
 	}
 	return value;
 }
 
-static /*INLINE*/ UINT64 __FASTCALL READ64(i386_state *cpustate,UINT32 ea)
+INLINE UINT64 READ64(i386_state *cpustate,UINT32 ea)
 {
 	UINT64 value;
 	UINT32 address = ea, error;
-	int wait;
+
 	if( !QWORD_ALIGNED(ea) ) {        /* Unaligned read */
 		if(!translate_address_with_width(cpustate,cpustate->CPL,TRANSLATE_READ,8,&address,&error)) {
 			value = (((UINT64) READ8( cpustate, address+0 )) << 0);
@@ -1368,37 +1313,23 @@ static /*INLINE*/ UINT64 __FASTCALL READ64(i386_state *cpustate,UINT32 ea)
 			UINT32 mask = cpustate->a20_mask;
 			if(!DWORD_ALIGNED(ea)) {
 				if(WORD_ALIGNED(ea)) { // Aligned by 2
-					value  = (((UINT64)cpustate->program->read_data16w((address + 0) & mask, &wait)) << 0);
-					cpustate->memory_wait += wait;
-					value |= (((UINT64)cpustate->program->read_data16w((address + 2) & mask, &wait)) << 16);
-					cpustate->memory_wait += wait;
-					value |= (((UINT64)cpustate->program->read_data16w((address + 4) & mask, &wait)) << 32);
-					cpustate->memory_wait += wait;
-					value |= (((UINT64)cpustate->program->read_data16w((address + 6) & mask, &wait)) << 48);
-					cpustate->memory_wait += wait;
+					value  = (((UINT64)cpustate->program->read_data16((address + 0) & mask)) << 0);
+					value |= (((UINT64)cpustate->program->read_data16((address + 2) & mask)) << 16);
+					value |= (((UINT64)cpustate->program->read_data16((address + 4) & mask)) << 32);
+					value |= (((UINT64)cpustate->program->read_data16((address + 6) & mask)) << 48);
 				} else { // never aligned
-					value  = (((UINT64)cpustate->program->read_data8w((address + 0) & mask, &wait)) << 0);
-					cpustate->memory_wait += wait;
-					value |= (((UINT64)cpustate->program->read_data8w((address + 1) & mask, &wait)) << 8);
-					cpustate->memory_wait += wait;
-					value |= (((UINT64)cpustate->program->read_data8w((address + 2) & mask, &wait)) << 16);
-					cpustate->memory_wait += wait;
-					value |= (((UINT64)cpustate->program->read_data8w((address + 3) & mask, &wait)) << 24);
-					cpustate->memory_wait += wait;
-					value |= (((UINT64)cpustate->program->read_data8w((address + 4) & mask, &wait)) << 32);
-					cpustate->memory_wait += wait;
-					value |= (((UINT64)cpustate->program->read_data8w((address + 5) & mask, &wait)) << 40);
-					cpustate->memory_wait += wait;
-					value |= (((UINT64)cpustate->program->read_data8w((address + 6) & mask, &wait)) << 48);
-					cpustate->memory_wait += wait;
-					value |= (((UINT64)cpustate->program->read_data8w((address + 7) & mask, &wait)) << 56);
-					cpustate->memory_wait += wait;
+					value  = (((UINT64)cpustate->program->read_data8((address + 0) & mask)) << 0);
+					value |= (((UINT64)cpustate->program->read_data8((address + 1) & mask)) << 8);
+					value |= (((UINT64)cpustate->program->read_data8((address + 2) & mask)) << 16);
+					value |= (((UINT64)cpustate->program->read_data8((address + 3) & mask)) << 24);
+					value |= (((UINT64)cpustate->program->read_data8((address + 4) & mask)) << 32);
+					value |= (((UINT64)cpustate->program->read_data8((address + 5) & mask)) << 40);
+					value |= (((UINT64)cpustate->program->read_data8((address + 6) & mask)) << 48);
+					value |= (((UINT64)cpustate->program->read_data8((address + 7) & mask)) << 56);
 				}
 			} else { // Align of 4
-				value = (((UINT64) cpustate->program->read_data32w( (address+0) & mask, &wait )) << 0);
-				cpustate->memory_wait += wait;
-				value |= (((UINT64) cpustate->program->read_data32w( (address+4) & mask, &wait )) << 32);
-				cpustate->memory_wait += wait;
+				value = (((UINT64) cpustate->program->read_data32( (address+0) & mask )) << 0);
+				value |= (((UINT64) cpustate->program->read_data32( (address+4) & mask )) << 32);
 			}
 		}
 	} else {
@@ -1406,59 +1337,50 @@ static /*INLINE*/ UINT64 __FASTCALL READ64(i386_state *cpustate,UINT32 ea)
 			PF_THROW(error);
 
 		address &= cpustate->a20_mask;
-		value = (((UINT64) cpustate->program->read_data32w( address+0, &wait )) << 0);
-		cpustate->memory_wait += wait;
-		value |= (((UINT64) cpustate->program->read_data32w( address+4, &wait )) << 32);
-		cpustate->memory_wait += wait;
+		value = (((UINT64) cpustate->program->read_data32( address+0 )) << 0);
+		value |= (((UINT64) cpustate->program->read_data32( address+4 )) << 32);
 	}
 	return value;
 }
-
-INLINE UINT8 __FASTCALL READ8PL0(i386_state *cpustate,UINT32 ea)
+INLINE UINT8 READ8PL0(i386_state *cpustate,UINT32 ea)
 {
 	UINT32 address = ea, error;
-	int wait;
+
 	if(!translate_address(cpustate,0,TRANSLATE_READ,&address,&error))
 		PF_THROW(error);
 
 	address &= cpustate->a20_mask;
-	uint32_t val = cpustate->program->read_data8w(address, &wait);
-	cpustate->memory_wait += wait;
-	return val;
+	return cpustate->program->read_data8(address);
 }
-INLINE UINT16 __FASTCALL READ16PL0(i386_state *cpustate,UINT32 ea)
+INLINE UINT16 READ16PL0(i386_state *cpustate,UINT32 ea)
 {
 	UINT16 value;
 	UINT32 address = ea, error;
-	int wait;
+
 	if( !WORD_ALIGNED(ea) ) {        /* Unaligned read */
 		UINT32 mask = cpustate->a20_mask;
 		if(!translate_address_with_width(cpustate,0,TRANSLATE_READ,2,&address,&error)) {
 			value  =  READ8PL0(cpustate, ea + 0);
 			value |= (READ8PL0(cpustate, ea + 1) << 8);
 		} else {			
-			value  = cpustate->program->read_data8w((address + 0) & mask, &wait);
-			cpustate->memory_wait += wait;
-			value |= (cpustate->program->read_data8w((address + 1) & mask, &wait) << 8);
-			cpustate->memory_wait += wait;
+			value  = cpustate->program->read_data8((address + 0) & mask);
+			value |= (cpustate->program->read_data8((address + 1) & mask) << 8);
 		}
 	} else {
 		if(!translate_address(cpustate,0,TRANSLATE_READ,&address,&error))
 			PF_THROW(error);
 
 		address &= cpustate->a20_mask;
-		value = cpustate->program->read_data16w( address, &wait );
-		cpustate->memory_wait += wait;
+		value = cpustate->program->read_data16( address );
 	}
 	return value;
 }
 
-INLINE UINT32 __FASTCALL READ32PL0(i386_state *cpustate,UINT32 ea)
+INLINE UINT32 READ32PL0(i386_state *cpustate,UINT32 ea)
 {
 	UINT32 value;
 	UINT32 address = ea, error;
-	int wait;
-	
+
 	if( !DWORD_ALIGNED(ea) ) {        /* Unaligned read */
 		UINT32 mask = cpustate->a20_mask;
 		if(!translate_address_with_width(cpustate,0,TRANSLATE_READ,4,&address,&error)) {
@@ -1468,19 +1390,13 @@ INLINE UINT32 __FASTCALL READ32PL0(i386_state *cpustate,UINT32 ea)
 			value |= (READ8PL0(cpustate, ea + 3) << 24);
 		} else {
 			if(WORD_ALIGNED(ea)) {
-				value  = cpustate->program->read_data16w((address + 0) & mask, &wait);
-				cpustate->memory_wait += wait;
-				value |= (cpustate->program->read_data16w((address + 2) & mask, &wait) << 16);
-				cpustate->memory_wait += wait;
+				value  = cpustate->program->read_data16((address + 0) & mask);
+				value |= (cpustate->program->read_data16((address + 2) & mask) << 16);
 			} else {
-				value  = cpustate->program->read_data8w((address + 0) & mask, &wait);
-				cpustate->memory_wait += wait;
-				value |= (cpustate->program->read_data8w((address + 1) & mask, &wait) << 8);
-				cpustate->memory_wait += wait;
-				value |= (cpustate->program->read_data8w((address + 2) & mask, &wait) << 16);
-				cpustate->memory_wait += wait;
-				value |= (cpustate->program->read_data8w((address + 3) & mask, &wait) << 24);
-				cpustate->memory_wait += wait;
+				value  = cpustate->program->read_data8((address + 0) & mask);
+				value |= (cpustate->program->read_data8((address + 1) & mask) << 8);
+				value |= (cpustate->program->read_data8((address + 2) & mask) << 16);
+				value |= (cpustate->program->read_data8((address + 3) & mask) << 24);
 			}
 		}
 	} else {
@@ -1488,32 +1404,29 @@ INLINE UINT32 __FASTCALL READ32PL0(i386_state *cpustate,UINT32 ea)
 			PF_THROW(error);
 
 		address &= cpustate->a20_mask;
-		value = cpustate->program->read_data32w( address, &wait);
-		cpustate->memory_wait += wait;
+		value = cpustate->program->read_data32( address );
 	}
 	return value;
 }
 
-INLINE void __FASTCALL WRITE_TEST(i386_state *cpustate,UINT32 ea)
+INLINE void WRITE_TEST(i386_state *cpustate,UINT32 ea)
 {
 	UINT32 address = ea, error;
 	if(!translate_address(cpustate,cpustate->CPL,TRANSLATE_WRITE,&address,&error))
 		PF_THROW(error);
 }
 
-static INLINE void __FASTCALL WRITE8(i386_state *cpustate,UINT32 ea, UINT8 value)
+INLINE void WRITE8(i386_state *cpustate,UINT32 ea, UINT8 value)
 {
 	UINT32 address = ea, error;
 
 	if(!translate_address(cpustate,cpustate->CPL,TRANSLATE_WRITE,&address,&error))
 		PF_THROW(error);
-	int wait = 0;
+
 	address &= cpustate->a20_mask;
-	cpustate->program->write_data8w(address, value, &wait);
-	cpustate->memory_wait += wait;
+	cpustate->program->write_data8(address, value);
 }
-
-static /*INLINE*/ void __FASTCALL WRITE16(i386_state *cpustate,UINT32 ea, UINT16 value)
+INLINE void WRITE16(i386_state *cpustate,UINT32 ea, UINT16 value)
 {
 	UINT32 address = ea, error;
 
@@ -1523,24 +1436,18 @@ static /*INLINE*/ void __FASTCALL WRITE16(i386_state *cpustate,UINT32 ea, UINT16
 			WRITE8( cpustate, address+1, (value >> 8) & 0xff );
 		} else {
 			uint32_t mask = cpustate->a20_mask;
-			int wait;
-			cpustate->program->write_data8w((address + 0) & mask, value & 0xff, &wait);
-			cpustate->memory_wait += wait;
-
-			cpustate->program->write_data8w((address + 1) & mask, (value >> 8) & 0xff, &wait);
-			cpustate->memory_wait += wait;
-
+			cpustate->program->write_data8((address + 0) & mask, value & 0xff);
+			cpustate->program->write_data8((address + 1) & mask, (value >> 8) & 0xff);
 		}
 	} else {
 		if(!translate_address(cpustate,cpustate->CPL,TRANSLATE_WRITE,&address,&error))
 			PF_THROW(error);
-		int wait;
+
 		address &= cpustate->a20_mask;
-		cpustate->program->write_data16w(address, value, &wait);
-		cpustate->memory_wait += wait;
+		cpustate->program->write_data16(address, value);
 	}
 }
-static /*INLINE*/ void __FASTCALL WRITE32(i386_state *cpustate,UINT32 ea, UINT32 value)
+INLINE void WRITE32(i386_state *cpustate,UINT32 ea, UINT32 value)
 {
 	UINT32 address = ea, error;
 
@@ -1551,38 +1458,30 @@ static /*INLINE*/ void __FASTCALL WRITE32(i386_state *cpustate,UINT32 ea, UINT32
 			WRITE8( cpustate, address+2, (value >> 16) & 0xff );
 			WRITE8( cpustate, address+3, (value >> 24) & 0xff );
 		} else {
-			int wait;
 			uint32_t mask = cpustate->a20_mask;
 			if(!WORD_ALIGNED(ea)) {
-				cpustate->program->write_data8w((address + 0) & mask, value & 0xff, &wait);
-				cpustate->memory_wait += wait;
-				cpustate->program->write_data8w((address + 1) & mask, (value >> 8) & 0xff, &wait);
-				cpustate->memory_wait += wait;
-				cpustate->program->write_data8w((address + 2) & mask, (value >> 16) & 0xff, &wait);
-				cpustate->memory_wait += wait;
-				cpustate->program->write_data8w((address + 3) & mask, (value >> 24) & 0xff, &wait);
-				cpustate->memory_wait += wait;
+				cpustate->program->write_data8((address + 0) & mask, value & 0xff);
+				cpustate->program->write_data8((address + 1) & mask, (value >> 8) & 0xff);
+				cpustate->program->write_data8((address + 2) & mask, (value >> 16) & 0xff);
+				cpustate->program->write_data8((address + 3) & mask, (value >> 24) & 0xff);
 			} else { // Aligned by 2
-				cpustate->program->write_data16w((address + 0) & mask, value & 0xffff, &wait);
-				cpustate->memory_wait += wait;
-				cpustate->program->write_data16w((address + 2) & mask, (value >> 16) & 0xffff, &wait);
-				cpustate->memory_wait += wait;
+				cpustate->program->write_data16((address + 0) & mask, value & 0xffff);
+				cpustate->program->write_data16((address + 2) & mask, (value >> 16) & 0xffff);
 			}
 		}
 	} else {
 		if(!translate_address(cpustate,cpustate->CPL,TRANSLATE_WRITE,&address,&error))
 			PF_THROW(error);
-		int wait;
+
 		address &= cpustate->a20_mask;
-		cpustate->program->write_data32w(address, value, &wait);
-		cpustate->memory_wait += wait;
+		cpustate->program->write_data32(address, value);
 	}
 }
 
-INLINE void __FASTCALL WRITE64(i386_state *cpustate,UINT32 ea, UINT64 value)
+INLINE void WRITE64(i386_state *cpustate,UINT32 ea, UINT64 value)
 {
 	UINT32 address = ea, error;
-	int wait;
+
 	if( !QWORD_ALIGNED(ea) ) {        /* Unaligned write */
 		if(!translate_address_with_width(cpustate,cpustate->CPL,TRANSLATE_WRITE,8,&address,&error)) {
 			WRITE8( cpustate, address+0, value & 0xff );
@@ -1596,36 +1495,22 @@ INLINE void __FASTCALL WRITE64(i386_state *cpustate,UINT32 ea, UINT64 value)
 		} else {
 			uint32_t mask = cpustate->a20_mask;
 			if(DWORD_ALIGNED(ea)) { // Aligned by 4
-				cpustate->program->write_data32w((address + 0) & mask, value & 0xffffffff, &wait);
-				cpustate->memory_wait += wait;
-				cpustate->program->write_data32w((address + 4) & mask, (value >> 32) & 0xffffffff, &wait);
-				cpustate->memory_wait += wait;
+				cpustate->program->write_data32((address + 0) & mask, value & 0xffffffff);
+				cpustate->program->write_data32((address + 4) & mask, (value >> 32) & 0xffffffff);
 			} else if(!WORD_ALIGNED(ea)) { // Never aligned
-				cpustate->program->write_data8w((address + 0) & mask, value & 0xff, &wait);
-				cpustate->memory_wait += wait;
-				cpustate->program->write_data8w((address + 1) & mask, (value >> 8) & 0xff, &wait);
-				cpustate->memory_wait += wait;
-				cpustate->program->write_data8w((address + 2) & mask, (value >> 16) & 0xff, &wait);
-				cpustate->memory_wait += wait;
-				cpustate->program->write_data8w((address + 3) & mask, (value >> 24) & 0xff, &wait);
-				cpustate->memory_wait += wait;
-				cpustate->program->write_data8w((address + 4) & mask, (value >> 32) & 0xff, &wait);
-				cpustate->memory_wait += wait;
-				cpustate->program->write_data8w((address + 5) & mask, (value >> 40) & 0xff, &wait);
-				cpustate->memory_wait += wait;
-				cpustate->program->write_data8w((address + 6) & mask, (value >> 48) & 0xff, &wait);
-				cpustate->memory_wait += wait;
-				cpustate->program->write_data8w((address + 7) & mask, (value >> 56) & 0xff, &wait);
-				cpustate->memory_wait += wait;
+				cpustate->program->write_data8((address + 0) & mask, value & 0xff);
+				cpustate->program->write_data8((address + 1) & mask, (value >> 8) & 0xff);
+				cpustate->program->write_data8((address + 2) & mask, (value >> 16) & 0xff);
+				cpustate->program->write_data8((address + 3) & mask, (value >> 24) & 0xff);
+				cpustate->program->write_data8((address + 4) & mask, (value >> 32) & 0xff);
+				cpustate->program->write_data8((address + 5) & mask, (value >> 40) & 0xff);
+				cpustate->program->write_data8((address + 6) & mask, (value >> 48) & 0xff);
+				cpustate->program->write_data8((address + 7) & mask, (value >> 56) & 0xff);
 			} else { // Aligned by 2
-				cpustate->program->write_data16w((address + 0) & mask, value & 0xffff, &wait);
-				cpustate->memory_wait += wait;
-				cpustate->program->write_data16w((address + 2) & mask, (value >> 16) & 0xffff, &wait);
-				cpustate->memory_wait += wait;
-				cpustate->program->write_data16w((address + 4) & mask, (value >> 32) & 0xffff, &wait);
-				cpustate->memory_wait += wait;
-				cpustate->program->write_data16w((address + 6) & mask, (value >> 48) & 0xffff, &wait);
-				cpustate->memory_wait += wait;
+				cpustate->program->write_data16((address + 0) & mask, value & 0xffff);
+				cpustate->program->write_data16((address + 2) & mask, (value >> 16) & 0xffff);
+				cpustate->program->write_data16((address + 4) & mask, (value >> 32) & 0xffff);
+				cpustate->program->write_data16((address + 6) & mask, (value >> 48) & 0xffff);
 			}
 		}
 	} else {
@@ -1633,30 +1518,28 @@ INLINE void __FASTCALL WRITE64(i386_state *cpustate,UINT32 ea, UINT64 value)
 			PF_THROW(error);
 
 		address &= cpustate->a20_mask;
-		cpustate->program->write_data32w(address+0, value & 0xffffffff, &wait);
-		cpustate->memory_wait += wait;
-		cpustate->program->write_data32w(address+4, (value >> 32) & 0xffffffff, &wait);
-		cpustate->memory_wait += wait;
+		cpustate->program->write_data32(address+0, value & 0xffffffff);
+		cpustate->program->write_data32(address+4, (value >> 32) & 0xffffffff);
 	}
 }
 
 /***********************************************************************************/
 
-INLINE UINT8 __FASTCALL OR8(i386_state *cpustate,UINT8 dst, UINT8 src)
+INLINE UINT8 OR8(i386_state *cpustate,UINT8 dst, UINT8 src)
 {
 	UINT8 res = dst | src;
 	cpustate->CF = cpustate->OF = 0;
 	SetSZPF8(res);
 	return res;
 }
-INLINE UINT16 __FASTCALL OR16(i386_state *cpustate,UINT16 dst, UINT16 src)
+INLINE UINT16 OR16(i386_state *cpustate,UINT16 dst, UINT16 src)
 {
 	UINT16 res = dst | src;
 	cpustate->CF = cpustate->OF = 0;
 	SetSZPF16(res);
 	return res;
 }
-INLINE UINT32 __FASTCALL OR32(i386_state *cpustate,UINT32 dst, UINT32 src)
+INLINE UINT32 OR32(i386_state *cpustate,UINT32 dst, UINT32 src)
 {
 	UINT32 res = dst | src;
 	cpustate->CF = cpustate->OF = 0;
@@ -1664,21 +1547,21 @@ INLINE UINT32 __FASTCALL OR32(i386_state *cpustate,UINT32 dst, UINT32 src)
 	return res;
 }
 
-INLINE UINT8 __FASTCALL AND8(i386_state *cpustate,UINT8 dst, UINT8 src)
+INLINE UINT8 AND8(i386_state *cpustate,UINT8 dst, UINT8 src)
 {
 	UINT8 res = dst & src;
 	cpustate->CF = cpustate->OF = 0;
 	SetSZPF8(res);
 	return res;
 }
-INLINE UINT16 __FASTCALL AND16(i386_state *cpustate,UINT16 dst, UINT16 src)
+INLINE UINT16 AND16(i386_state *cpustate,UINT16 dst, UINT16 src)
 {
 	UINT16 res = dst & src;
 	cpustate->CF = cpustate->OF = 0;
 	SetSZPF16(res);
 	return res;
 }
-INLINE UINT32 __FASTCALL AND32(i386_state *cpustate,UINT32 dst, UINT32 src)
+INLINE UINT32 AND32(i386_state *cpustate,UINT32 dst, UINT32 src)
 {
 	UINT32 res = dst & src;
 	cpustate->CF = cpustate->OF = 0;
@@ -1686,21 +1569,21 @@ INLINE UINT32 __FASTCALL AND32(i386_state *cpustate,UINT32 dst, UINT32 src)
 	return res;
 }
 
-INLINE UINT8 __FASTCALL XOR8(i386_state *cpustate,UINT8 dst, UINT8 src)
+INLINE UINT8 XOR8(i386_state *cpustate,UINT8 dst, UINT8 src)
 {
 	UINT8 res = dst ^ src;
 	cpustate->CF = cpustate->OF = 0;
 	SetSZPF8(res);
 	return res;
 }
-INLINE UINT16 __FASTCALL XOR16(i386_state *cpustate,UINT16 dst, UINT16 src)
+INLINE UINT16 XOR16(i386_state *cpustate,UINT16 dst, UINT16 src)
 {
 	UINT16 res = dst ^ src;
 	cpustate->CF = cpustate->OF = 0;
 	SetSZPF16(res);
 	return res;
 }
-INLINE UINT32 __FASTCALL XOR32(i386_state *cpustate,UINT32 dst, UINT32 src)
+INLINE UINT32 XOR32(i386_state *cpustate,UINT32 dst, UINT32 src)
 {
 	UINT32 res = dst ^ src;
 	cpustate->CF = cpustate->OF = 0;
@@ -1709,7 +1592,7 @@ INLINE UINT32 __FASTCALL XOR32(i386_state *cpustate,UINT32 dst, UINT32 src)
 }
 
 #define SUB8(cpu, dst, src) SBB8(cpu, dst, src, 0)
-INLINE UINT8 __FASTCALL SBB8(i386_state *cpustate,UINT8 dst, UINT8 src, UINT8 b)
+INLINE UINT8 SBB8(i386_state *cpustate,UINT8 dst, UINT8 src, UINT8 b)
 {
 	UINT16 res = (UINT16)dst - (UINT16)src - (UINT8)b;
 	SetCF8(res);
@@ -1720,7 +1603,7 @@ INLINE UINT8 __FASTCALL SBB8(i386_state *cpustate,UINT8 dst, UINT8 src, UINT8 b)
 }
 
 #define SUB16(cpu, dst, src) SBB16(cpu, dst, src, 0)
-INLINE UINT16 __FASTCALL SBB16(i386_state *cpustate,UINT16 dst, UINT16 src, UINT16 b)
+INLINE UINT16 SBB16(i386_state *cpustate,UINT16 dst, UINT16 src, UINT16 b)
 {
 	UINT32 res = (UINT32)dst - (UINT32)src - (UINT32)b;
 	SetCF16(res);
@@ -1731,7 +1614,7 @@ INLINE UINT16 __FASTCALL SBB16(i386_state *cpustate,UINT16 dst, UINT16 src, UINT
 }
 
 #define SUB32(cpu, dst, src) SBB32(cpu, dst, src, 0)
-INLINE UINT32 __FASTCALL SBB32(i386_state *cpustate,UINT32 dst, UINT32 src, UINT32 b)
+INLINE UINT32 SBB32(i386_state *cpustate,UINT32 dst, UINT32 src, UINT32 b)
 {
 	UINT64 res = (UINT64)dst - (UINT64)src - (UINT64) b;
 	SetCF32(res);
@@ -1742,7 +1625,7 @@ INLINE UINT32 __FASTCALL SBB32(i386_state *cpustate,UINT32 dst, UINT32 src, UINT
 }
 
 #define ADD8(cpu, dst, src) ADC8(cpu, dst, src, 0)
-INLINE UINT8 __FASTCALL ADC8(i386_state *cpustate,UINT8 dst, UINT8 src, UINT8 c)
+INLINE UINT8 ADC8(i386_state *cpustate,UINT8 dst, UINT8 src, UINT8 c)
 {
 	UINT16 res = (UINT16)dst + (UINT16)src + (UINT16)c;
 	SetCF8(res);
@@ -1753,7 +1636,7 @@ INLINE UINT8 __FASTCALL ADC8(i386_state *cpustate,UINT8 dst, UINT8 src, UINT8 c)
 }
 
 #define ADD16(cpu, dst, src) ADC16(cpu, dst, src, 0)
-INLINE UINT16 __FASTCALL ADC16(i386_state *cpustate,UINT16 dst, UINT16 src, UINT8 c)
+INLINE UINT16 ADC16(i386_state *cpustate,UINT16 dst, UINT16 src, UINT8 c)
 {
 	UINT32 res = (UINT32)dst + (UINT32)src + (UINT32)c;
 	SetCF16(res);
@@ -1764,7 +1647,7 @@ INLINE UINT16 __FASTCALL ADC16(i386_state *cpustate,UINT16 dst, UINT16 src, UINT
 }
 
 #define ADD32(cpu, dst, src) ADC32(cpu, dst, src, 0)
-INLINE UINT32 __FASTCALL ADC32(i386_state *cpustate,UINT32 dst, UINT32 src, UINT32 c)
+INLINE UINT32 ADC32(i386_state *cpustate,UINT32 dst, UINT32 src, UINT32 c)
 {
 	UINT64 res = (UINT64)dst + (UINT64)src + (UINT64) c;
 	SetCF32(res);
@@ -1774,7 +1657,7 @@ INLINE UINT32 __FASTCALL ADC32(i386_state *cpustate,UINT32 dst, UINT32 src, UINT
 	return (UINT32)res;
 }
 
-INLINE UINT8 __FASTCALL INC8(i386_state *cpustate,UINT8 dst)
+INLINE UINT8 INC8(i386_state *cpustate,UINT8 dst)
 {
 	UINT16 res = (UINT16)dst + 1;
 	SetOF_Add8(res,1,dst);
@@ -1782,7 +1665,7 @@ INLINE UINT8 __FASTCALL INC8(i386_state *cpustate,UINT8 dst)
 	SetSZPF8(res);
 	return (UINT8)res;
 }
-INLINE UINT16 __FASTCALL INC16(i386_state *cpustate,UINT16 dst)
+INLINE UINT16 INC16(i386_state *cpustate,UINT16 dst)
 {
 	UINT32 res = (UINT32)dst + 1;
 	SetOF_Add16(res,1,dst);
@@ -1790,7 +1673,7 @@ INLINE UINT16 __FASTCALL INC16(i386_state *cpustate,UINT16 dst)
 	SetSZPF16(res);
 	return (UINT16)res;
 }
-INLINE UINT32 __FASTCALL INC32(i386_state *cpustate,UINT32 dst)
+INLINE UINT32 INC32(i386_state *cpustate,UINT32 dst)
 {
 	UINT64 res = (UINT64)dst + 1;
 	SetOF_Add32(res,1,dst);
@@ -1799,7 +1682,7 @@ INLINE UINT32 __FASTCALL INC32(i386_state *cpustate,UINT32 dst)
 	return (UINT32)res;
 }
 
-INLINE UINT8 __FASTCALL DEC8(i386_state *cpustate,UINT8 dst)
+INLINE UINT8 DEC8(i386_state *cpustate,UINT8 dst)
 {
 	UINT16 res = (UINT16)dst - 1;
 	SetOF_Sub8(res,1,dst);
@@ -1807,7 +1690,7 @@ INLINE UINT8 __FASTCALL DEC8(i386_state *cpustate,UINT8 dst)
 	SetSZPF8(res);
 	return (UINT8)res;
 }
-INLINE UINT16 __FASTCALL DEC16(i386_state *cpustate,UINT16 dst)
+INLINE UINT16 DEC16(i386_state *cpustate,UINT16 dst)
 {
 	UINT32 res = (UINT32)dst - 1;
 	SetOF_Sub16(res,1,dst);
@@ -1815,7 +1698,7 @@ INLINE UINT16 __FASTCALL DEC16(i386_state *cpustate,UINT16 dst)
 	SetSZPF16(res);
 	return (UINT16)res;
 }
-INLINE UINT32 __FASTCALL DEC32(i386_state *cpustate,UINT32 dst)
+INLINE UINT32 DEC32(i386_state *cpustate,UINT32 dst)
 {
 	UINT64 res = (UINT64)dst - 1;
 	SetOF_Sub32(res,1,dst);
@@ -1826,7 +1709,7 @@ INLINE UINT32 __FASTCALL DEC32(i386_state *cpustate,UINT32 dst)
 
 
 
-INLINE void __FASTCALL PUSH16(i386_state *cpustate,UINT16 value)
+INLINE void PUSH16(i386_state *cpustate,UINT16 value)
 {
 	UINT32 ea, new_esp;
 	if( STACK_32BIT ) {
@@ -1841,7 +1724,7 @@ INLINE void __FASTCALL PUSH16(i386_state *cpustate,UINT16 value)
 		REG16(SP) = new_esp;
 	}
 }
-INLINE void __FASTCALL PUSH32(i386_state *cpustate,UINT32 value)
+INLINE void PUSH32(i386_state *cpustate,UINT32 value)
 {
 	UINT32 ea, new_esp;
 	if( STACK_32BIT ) {
@@ -1857,7 +1740,7 @@ INLINE void __FASTCALL PUSH32(i386_state *cpustate,UINT32 value)
 	}
 }
 
-INLINE void __FASTCALL PUSH32SEG(i386_state *cpustate,UINT32 value)
+INLINE void PUSH32SEG(i386_state *cpustate,UINT32 value)
 {
 	UINT32 ea, new_esp;
 	if( STACK_32BIT ) {
@@ -1883,7 +1766,7 @@ INLINE void __FASTCALL PUSH32SEG(i386_state *cpustate,UINT32 value)
 	}
 }
 
-INLINE void __FASTCALL PUSH8(i386_state *cpustate,UINT8 value)
+INLINE void PUSH8(i386_state *cpustate,UINT8 value)
 {
 	if( cpustate->operand_size ) {
 		PUSH32(cpustate,(INT32)(INT8)value);
@@ -1892,7 +1775,7 @@ INLINE void __FASTCALL PUSH8(i386_state *cpustate,UINT8 value)
 	}
 }
 
-static /*INLINE*/ UINT8 __FASTCALL POP8(i386_state *cpustate)
+INLINE UINT8 POP8(i386_state *cpustate)
 {
 	UINT8 value;
 	UINT32 ea, new_esp;
@@ -1909,7 +1792,7 @@ static /*INLINE*/ UINT8 __FASTCALL POP8(i386_state *cpustate)
 	}
 	return value;
 }
-static /*INLINE*/ UINT16 __FASTCALL POP16(i386_state *cpustate)
+INLINE UINT16 POP16(i386_state *cpustate)
 {
 	UINT16 value;
 	UINT32 ea, new_esp;
@@ -1926,7 +1809,7 @@ static /*INLINE*/ UINT16 __FASTCALL POP16(i386_state *cpustate)
 	}
 	return value;
 }
-static /*INLINE*/ UINT32 __FASTCALL POP32(i386_state *cpustate)
+INLINE UINT32 POP32(i386_state *cpustate)
 {
 	UINT32 value;
 	UINT32 ea, new_esp;
@@ -1944,7 +1827,7 @@ static /*INLINE*/ UINT32 __FASTCALL POP32(i386_state *cpustate)
 	return value;
 }
 
-INLINE void __FASTCALL BUMP_SI(i386_state *cpustate,int adjustment)
+INLINE void BUMP_SI(i386_state *cpustate,int adjustment)
 {
 	if ( cpustate->address_size )
 		REG32(ESI) += ((cpustate->DF) ? -adjustment : +adjustment);
@@ -1952,7 +1835,7 @@ INLINE void __FASTCALL BUMP_SI(i386_state *cpustate,int adjustment)
 		REG16(SI) += ((cpustate->DF) ? -adjustment : +adjustment);
 }
 
-INLINE void __FASTCALL BUMP_DI(i386_state *cpustate,int adjustment)
+INLINE void BUMP_DI(i386_state *cpustate,int adjustment)
 {
 	if ( cpustate->address_size )
 		REG32(EDI) += ((cpustate->DF) ? -adjustment : +adjustment);
@@ -1966,7 +1849,7 @@ INLINE void __FASTCALL BUMP_DI(i386_state *cpustate,int adjustment)
     I/O ACCESS
 ***********************************************************************************/
 
-INLINE void __FASTCALL check_ioperm(i386_state *cpustate, offs_t port, UINT8 mask)
+INLINE void check_ioperm(i386_state *cpustate, offs_t port, UINT8 mask)
 {
 	UINT8 IOPL, map;
 	UINT16 IOPB;
@@ -1993,24 +1876,19 @@ INLINE void __FASTCALL check_ioperm(i386_state *cpustate, offs_t port, UINT8 mas
 		FAULT_THROW(FAULT_GP,0);
 }
 
-INLINE UINT8 __FASTCALL READPORT8(i386_state *cpustate, offs_t port)
+INLINE UINT8 READPORT8(i386_state *cpustate, offs_t port)
 {
 	check_ioperm(cpustate, port, 1);
-	int wait;
-    UINT8 val = cpustate->io->read_io8w(port, &wait);
-	cpustate->memory_wait += wait;
-	return val;
+	return cpustate->io->read_io8(port);
 }
 
-INLINE void __FASTCALL WRITEPORT8(i386_state *cpustate, offs_t port, UINT8 value)
+INLINE void WRITEPORT8(i386_state *cpustate, offs_t port, UINT8 value)
 {
 	check_ioperm(cpustate, port, 1);
-	int wait;
-	cpustate->io->write_io8w(port, value, &wait);
-	cpustate->memory_wait += wait;
+	cpustate->io->write_io8(port, value);
 }
 
-INLINE UINT16 __FASTCALL READPORT16(i386_state *cpustate, offs_t port)
+INLINE UINT16 READPORT16(i386_state *cpustate, offs_t port)
 {
 	if (port & 1)
 	{
@@ -2020,15 +1898,12 @@ INLINE UINT16 __FASTCALL READPORT16(i386_state *cpustate, offs_t port)
 	}
 	else
 	{
-		int wait;
 		check_ioperm(cpustate, port, 3);
-		UINT16 val = cpustate->io->read_io16w(port, &wait);
-		cpustate->memory_wait += wait;
-		return val;
+		return cpustate->io->read_io16(port);
 	}
 }
 
-INLINE void __FASTCALL WRITEPORT16(i386_state *cpustate, offs_t port, UINT16 value)
+INLINE void WRITEPORT16(i386_state *cpustate, offs_t port, UINT16 value)
 {
 	if (port & 1)
 	{
@@ -2038,13 +1913,11 @@ INLINE void __FASTCALL WRITEPORT16(i386_state *cpustate, offs_t port, UINT16 val
 	else
 	{
 		check_ioperm(cpustate, port, 3);
-		int wait;
-		cpustate->io->write_io16w(port, value, &wait);
-		cpustate->memory_wait += wait;
+		cpustate->io->write_io16(port, value);
 	}
 }
 
-INLINE UINT32 __FASTCALL READPORT32(i386_state *cpustate, offs_t port)
+INLINE UINT32 READPORT32(i386_state *cpustate, offs_t port)
 {
 	if (port & 3)
 	{
@@ -2057,14 +1930,11 @@ INLINE UINT32 __FASTCALL READPORT32(i386_state *cpustate, offs_t port)
 	else
 	{
 		check_ioperm(cpustate, port, 0xf);
-		int wait;
-		UINT32 val = cpustate->io->read_io32w(port, &wait);
-		cpustate->memory_wait += wait;
-		return val;
+		return cpustate->io->read_io32(port);
 	}
 }
 
-INLINE void __FASTCALL WRITEPORT32(i386_state *cpustate, offs_t port, UINT32 value)
+INLINE void WRITEPORT32(i386_state *cpustate, offs_t port, UINT32 value)
 {
 	if (port & 3)
 	{
@@ -2076,9 +1946,7 @@ INLINE void __FASTCALL WRITEPORT32(i386_state *cpustate, offs_t port, UINT32 val
 	else
 	{
 		check_ioperm(cpustate, port, 0xf);
-		int wait;
-		cpustate->io->write_io32w(port, value, &wait);
-		cpustate->memory_wait += wait;
+		cpustate->io->write_io32(port, value);
 	}
 }
 
@@ -2087,7 +1955,7 @@ INLINE void __FASTCALL WRITEPORT32(i386_state *cpustate, offs_t port, UINT32 val
 ***********************************************************************************/
 
 // Pentium MSR handling
-UINT64 __FASTCALL pentium_msr_read(i386_state *cpustate, UINT32 offset,UINT8 *valid_msr)
+UINT64 pentium_msr_read(i386_state *cpustate, UINT32 offset,UINT8 *valid_msr)
 {
 	switch(offset)
 	{
@@ -2130,7 +1998,7 @@ UINT64 __FASTCALL pentium_msr_read(i386_state *cpustate, UINT32 offset,UINT8 *va
 	return -1;
 }
 
-void __FASTCALL pentium_msr_write(i386_state *cpustate, UINT32 offset, UINT64 data, UINT8 *valid_msr)
+void pentium_msr_write(i386_state *cpustate, UINT32 offset, UINT64 data, UINT8 *valid_msr)
 {
 	switch(offset)
 	{
@@ -2176,7 +2044,7 @@ void __FASTCALL pentium_msr_write(i386_state *cpustate, UINT32 offset, UINT64 da
 }
 
 // P6 (Pentium Pro, Pentium II, Pentium III) MSR handling
-UINT64 __FASTCALL p6_msr_read(i386_state *cpustate, UINT32 offset,UINT8 *valid_msr)
+UINT64 p6_msr_read(i386_state *cpustate, UINT32 offset,UINT8 *valid_msr)
 {
 	switch(offset)
 	{
@@ -2209,7 +2077,7 @@ UINT64 __FASTCALL p6_msr_read(i386_state *cpustate, UINT32 offset,UINT8 *valid_m
 	return -1;
 }
 
-void __FASTCALL p6_msr_write(i386_state *cpustate, UINT32 offset, UINT64 data, UINT8 *valid_msr)
+void p6_msr_write(i386_state *cpustate, UINT32 offset, UINT64 data, UINT8 *valid_msr)
 {
 	switch(offset)
 	{
@@ -2236,7 +2104,7 @@ void __FASTCALL p6_msr_write(i386_state *cpustate, UINT32 offset, UINT64 data, U
 }
 
 // PIV (Pentium 4+)
-UINT64 __FASTCALL piv_msr_read(i386_state *cpustate, UINT32 offset,UINT8 *valid_msr)
+UINT64 piv_msr_read(i386_state *cpustate, UINT32 offset,UINT8 *valid_msr)
 {
 	switch(offset)
 	{
@@ -2248,7 +2116,7 @@ UINT64 __FASTCALL piv_msr_read(i386_state *cpustate, UINT32 offset,UINT8 *valid_
 	return -1;
 }
 
-void __FASTCALL piv_msr_write(i386_state *cpustate, UINT32 offset, UINT64 data, UINT8 *valid_msr)
+void piv_msr_write(i386_state *cpustate, UINT32 offset, UINT64 data, UINT8 *valid_msr)
 {
 	switch(offset)
 	{
@@ -2259,7 +2127,7 @@ void __FASTCALL piv_msr_write(i386_state *cpustate, UINT32 offset, UINT64 data, 
 	}
 }
 
-INLINE UINT64 __FASTCALL MSR_READ(i386_state *cpustate, UINT32 offset,UINT8 *valid_msr)
+INLINE UINT64 MSR_READ(i386_state *cpustate, UINT32 offset,UINT8 *valid_msr)
 {
 	UINT64 res;
 	UINT8 cpu_type = (cpustate->cpu_version >> 8) & 0x0f;
@@ -2285,7 +2153,7 @@ INLINE UINT64 __FASTCALL MSR_READ(i386_state *cpustate, UINT32 offset,UINT8 *val
 	return res;
 }
 
-INLINE void __FASTCALL MSR_WRITE(i386_state *cpustate, UINT32 offset, UINT64 data, UINT8 *valid_msr)
+INLINE void MSR_WRITE(i386_state *cpustate, UINT32 offset, UINT64 data, UINT8 *valid_msr)
 {
 	*valid_msr = 0;
 	UINT8 cpu_type = (cpustate->cpu_version >> 8) & 0x0f;
@@ -2304,4 +2172,4 @@ INLINE void __FASTCALL MSR_WRITE(i386_state *cpustate, UINT32 offset, UINT64 dat
 	}
 }
 
-#endif /* __I386_PRIV_H__ */
+#endif /* __I386_H__ */

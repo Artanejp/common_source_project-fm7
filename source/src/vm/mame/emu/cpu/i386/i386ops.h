@@ -3,8 +3,8 @@
 struct X86_OPCODE {
 	UINT8 opcode;
 	UINT32 flags;
-	void (__FASTCALL *handler16)(i386_state *cpustate);
-	void (__FASTCALL *handler32)(i386_state *cpustate);
+	void (*handler16)(i386_state *cpustate);
+	void (*handler32)(i386_state *cpustate);
 	bool lockable;
 };
 
