@@ -339,20 +339,6 @@ static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 	//cpustate->eflags = (f & ~0x00020000) | o_e;
 	//cpustate->eflags = f;
 	//}
-#if 0
-	if(old_vm != cpustate->VM) {
-		if((V8086_MODE) && (PROTECTED_MODE)){
-			// LOAD ES CS SS DS FS GS
-			i386_load_segment_descriptor(cpustate, ES);
-			i386_load_segment_descriptor(cpustate, CS);
-			i386_load_segment_descriptor(cpustate, SS);
-			i386_load_segment_descriptor(cpustate, DS);
-			i386_load_segment_descriptor(cpustate, FS);
-			i386_load_segment_descriptor(cpustate, GS);
-			cpustate->CPL = 3;
-		}
-	}
-#endif
 }
 
 /*static*/INLINE void sib_byte(i386_state *cpustate,UINT8 mod, UINT32* out_ea, UINT8* out_segment)
@@ -1474,7 +1460,7 @@ static void i386_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested
 	logerror("i386 Task Switch from selector %04x to %04x\n",old_task,selector);
 }
 
-static void i386_check_irq_line(i386_state *cpustate)
+INLINE void __FASTCALL i386_check_irq_line(i386_state *cpustate)
 {
 	if(!cpustate->smm && cpustate->smi)
 	{
@@ -1500,7 +1486,7 @@ static void i386_check_irq_line(i386_state *cpustate)
 	}
 }
 
-static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 off, int indirect, int operand32)
+static void __FASTCALL i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 off, int indirect, int operand32)
 {
 	I386_SREG desc;
 	I386_CALL_GATE call_gate;
@@ -1775,7 +1761,7 @@ static void i386_protected_mode_jump(i386_state *cpustate, UINT16 seg, UINT32 of
 	CHANGE_PC(cpustate,cpustate->eip);
 }
 
-static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 off, int indirect, int operand32)
+static void __FASTCALL i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 off, int indirect, int operand32)
 {
 	I386_SREG desc;
 	I386_CALL_GATE gate;
@@ -2245,7 +2231,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 	CHANGE_PC(cpustate,cpustate->eip);
 }
 
-static void i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 operand32)
+static  void __FASTCALL i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 operand32)
 {
 	UINT32 newCS, newEIP;
 	I386_SREG desc;
@@ -2518,7 +2504,7 @@ static void i386_protected_mode_retf(i386_state* cpustate, UINT8 count, UINT8 op
 	CHANGE_PC(cpustate,cpustate->eip);
 }
 
-static void i386_protected_mode_iret(i386_state* cpustate, int operand32)
+static void __FASTCALL i386_protected_mode_iret(i386_state* cpustate, int operand32)
 {
 	UINT32 newCS, newEIP;
 	UINT32 newSS, newESP;  // when changing privilege
@@ -2995,7 +2981,7 @@ static UINT8 cycle_table_pm[X86_NUM_CPUS][CYCLES_NUM_OPCODES];
 
 #define CYCLES_NUM(x)   (cpustate->cycles -= (x))
 
-INLINE void CYCLES(i386_state *cpustate,int x)
+INLINE void __FASTCALL CYCLES(i386_state *cpustate,int x)
 {
 	if (PROTECTED_MODE)
 	{
@@ -3007,7 +2993,7 @@ INLINE void CYCLES(i386_state *cpustate,int x)
 	}
 }
 
-INLINE void CYCLES_RM(i386_state *cpustate,int modrm, int r, int m)
+INLINE void __FASTCALL CYCLES_RM(i386_state *cpustate,int modrm, int r, int m)
 {
 	if (modrm >= 0xc0)
 	{
@@ -3050,7 +3036,7 @@ static void build_cycle_table()
 	}
 }
 
-static void report_invalid_opcode(i386_state *cpustate)
+static void __FASTCALL report_invalid_opcode(i386_state *cpustate)
 {
 #ifndef DEBUG_MISSING_OPCODE
 	logerror("i386: Invalid opcode %02X at %08X %s\n", cpustate->opcode, cpustate->pc - 1, cpustate->lock ? "with lock" : "");
@@ -3062,7 +3048,7 @@ static void report_invalid_opcode(i386_state *cpustate)
 #endif
 }
 
-static void report_invalid_modrm(i386_state *cpustate, const char* opcode, UINT8 modrm)
+static void __FASTCALL report_invalid_modrm(i386_state *cpustate, const char* opcode, UINT8 modrm)
 {
 #ifndef DEBUG_MISSING_OPCODE
 	logerror("i386: Invalid %s modrm %01X at %08X\n", opcode, modrm, cpustate->pc - 2);
