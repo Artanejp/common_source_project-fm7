@@ -17,7 +17,11 @@
 #include "../i8237.h"
 #include "../i8251.h"
 #include "../i8259.h"
+#ifdef HAS_I286
 #include "../i286.h"
+#else
+#include "../i86.h"
+#endif
 #include "../io.h"
 #include "../mb8877.h"
 #include "../mc6809.h"
@@ -52,7 +56,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	crtc = new HD46505(this, emu);
-	cpu = new I286(this, emu);
+#if defined(HAS_I286)	
+	cpu = new I80286(this, emu);
+#else
+	cpu = new I8086(this, emu);
+#endif	
 	io = new IO(this, emu);
 	dma = new I8237(this, emu);
 #ifdef USE_DEBUGGER

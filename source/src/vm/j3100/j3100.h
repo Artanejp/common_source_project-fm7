@@ -55,7 +55,11 @@
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NUMPAD
 #define USE_SOUND_VOLUME	2
+#if defined(HAS_I286)
 #define USE_CPU_I286
+#else
+#define USE_CPU_I86
+#endif
 
 #include "../../common.h"
 #include "../../fileio.h"
@@ -76,11 +80,11 @@ class I8237;
 //class I8250;
 class I8253;
 class I8259;
-//#if defined(HAS_I286)
-class I286;
-//#else
-//class I86;
-//#endif
+#if defined(HAS_I286)
+class I80286;
+#else
+class I8086;
+#endif
 class IO;
 class PCM1BIT;
 class UPD765A;
@@ -123,11 +127,11 @@ protected:
 //	I8250* sio;
 	I8253* pit;
 	I8259* pic;
-//#if defined(HAS_I286)
-	I286* cpu;
-//#else
-//	I86* cpu;
-//#endif
+#if defined(HAS_I286)
+	I80286* cpu;
+#else
+	I8086* cpu;
+#endif
 	IO* io;
 	PCM1BIT* pcm;
 	UPD765A* fdc;

@@ -29,7 +29,7 @@ private:
 	uint8_t wdmy[0x1000];
 	uint8_t rdmy[0x1000];
 	
-#if defined(HAS_I86)
+#if defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
 	uint8_t ram[0x100000];	// RAM 1MB
 #elif defined(HAS_I286)
 	uint8_t ram[0x400000];	// RAM 1+3MB

@@ -16,11 +16,11 @@
 #include "../i8237.h"
 #include "../i8255.h"
 #include "../i8259.h"
-//#if defined(HAS_I286) || defined(HAS_I186)
+#if defined(HAS_I286)
 #include "../i286.h"
-//#else
-//#include "../i86.h"
-//#endif
+#else
+#include "../i86.h"
+#endif
 #include "../io.h"
 #include "../ls393.h"
 #include "../mz1p17.h"
@@ -74,11 +74,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	pio = new I8255(this, emu);
 	pic = new I8259(this, emu);
-//#if defined(HAS_I286) || defined(HAS_I186)
-	cpu = new I286(this, emu);
-//#else
-//	cpu = new I86(this, emu);
-//#endif
+#if defined(HAS_I286)
+	cpu = new I80286(this, emu);
+#else
+	cpu = new I8086(this, emu);
+#endif
 	io = new IO(this, emu);
 	div = new LS393(this, emu);
 	not_data0 = new NOT(this, emu);

@@ -62,7 +62,7 @@ class EVENT;
 class I8253;
 class I8255;
 class I8259;
-class I286;
+class I80286;
 class IO;
 class MB8877;
 class NOT;
@@ -101,7 +101,7 @@ protected:
 	I8253* pit;
 	I8255* pio0;
 	I8259* pic;
-	I286* cpu;
+	I80286* cpu;
 	IO* io;
 	MB8877* fdc;
 	NOT* not_busy;

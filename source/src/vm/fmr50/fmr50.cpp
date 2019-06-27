@@ -119,7 +119,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy->set_device_name(_T("1st Dummy"));
 
 #if defined(HAS_I286)
-	cpu = new I286(this, emu);
+	cpu = new I80286(this, emu);
 #else
 	cpu = new I386(this, emu);
 #endif

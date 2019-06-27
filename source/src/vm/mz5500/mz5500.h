@@ -61,7 +61,11 @@
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
+#ifdef HAS_I286
 #define USE_CPU_I286
+#else
+#define USE_CPU_I86
+#endif
 
 #include "../../common.h"
 #include "../../fileio.h"
@@ -80,11 +84,11 @@ class EVENT;
 class I8237;
 class I8255;
 class I8259;
-//#if defined(HAS_I286) || defined(HAS_I186)
-class I286;
-//#else
-//class I86;
-//#endif
+#if defined(HAS_I286)
+class I80286;
+#else
+class I8086;
+#endif
 class IO;
 class LS393;
 class NOT;
@@ -116,11 +120,11 @@ protected:
 	I8237* dma;
 	I8255* pio;
 	I8259* pic;	// includes 2chips
-//#if defined(HAS_I286) || defined(HAS_I186)
-	I286* cpu;
-//#else
-//	I86* cpu;
-//#endif
+#if defined(HAS_I286)
+	I80286* cpu;
+#else
+	I8086* cpu;
+#endif
 	IO* io;
 	LS393* div;
 	NOT* not_data0;

@@ -31,6 +31,8 @@
 #define SCREEN_HEIGHT		400
 #define MAX_DRIVE		1
 #define HAS_V30
+#define USE_CPU_V30
+
 #define I86_PSEUDO_BIOS
 #define I8259_MAX_CHIPS		1
 //#define UPD765A_DMA_MODE
@@ -52,7 +54,6 @@
 #define USE_PRINTER_TYPE	3
 #define USE_DEBUGGER
 #define USE_STATE
-#define USE_CPU_I286
 
 #include "../../common.h"
 #include "../../fileio.h"
@@ -73,11 +74,13 @@ class I8251;
 class I8253;
 class I8255;
 class I8259;
-//#if defined(HAS_V30) || defined(HAS_I86)
-//class I86;
-//#else
-class I286;
-//#endif
+#if defined(HAS_I86)
+class I8086;
+#elif defined(HAS_V30)
+class V30;
+#else
+class I80286;
+#endif
 class IO;
 class NOT;
 #ifdef _PC98HA
@@ -114,11 +117,13 @@ protected:
 	I8255* pio_sys;
 	I8255* pio_prn;
 	I8259* pic;
-//#if defined(HAS_V30) || defined(HAS_I86)
-//	I86* cpu;
-//#else
-	I286* cpu;
-//#endif
+#if defined(HAS_V30)
+	V30* cpu;
+#elif defined(HAS_I86)
+	I8086* cpu;
+#else
+	I80286* cpu;
+#endif
 	IO* io;
 	NOT* not_busy;
 #ifdef _PC98HA

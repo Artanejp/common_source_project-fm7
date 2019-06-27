@@ -44,7 +44,11 @@
 #define USE_SOUND_VOLUME	2
 #define USE_DEBUGGER
 #define USE_STATE
+#if defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
+#define USE_CPU_I86
+#else
 #define USE_CPU_I286
+#endif
 
 #include "../../common.h"
 #include "../../fileio.h"
@@ -63,11 +67,11 @@ class I8237;
 class I8251;
 class I8253;
 class I8259;
-//#if defined(HAS_I86)
-//class I86;
-//#else
-class I286;
-//#endif
+#if defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
+class I8086;
+#else
+class I80286;
+#endif
 class IO;
 class MB8877;
 class SCSI_HDD;
@@ -104,11 +108,11 @@ protected:
 	I8251* sio_ch2;
 	I8253* pit;
 	I8259* pic;
-//#if defined(HAS_I86)
-//	I86* cpu;
-//#else
-	I286* cpu;
-//#endif
+#if defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
+	I8086* cpu;
+#else
+	I80286* cpu;
+#endif
 	IO* io;
 	MB8877* fdc;
 	SCSI_HDD* scsi_hdd[7];

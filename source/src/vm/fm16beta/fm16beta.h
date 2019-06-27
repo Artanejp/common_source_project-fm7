@@ -14,6 +14,9 @@
 #define DEVICE_NAME		"FUJITSU FM16beta (i286)"
 #define CONFIG_NAME		"fm16beta_i286"
 #else
+#ifndef HAS_I186
+#define HAS_I186
+#endif
 #define DEVICE_NAME		"FUJITSU FM16beta (i186)"
 #define CONFIG_NAME		"fm16beta_i186"
 #endif
@@ -53,7 +56,11 @@
 #define USE_SOUND_VOLUME	2
 #define USE_DEBUGGER
 #define USE_STATE
+#if defined(HAS_I286)
 #define USE_CPU_I286
+#else
+#define USE_CPU_I186
+#endif
 #define USE_CPU_MC6809
 
 #include "../../common.h"
@@ -74,7 +81,8 @@ class HD46505;
 class I8237;
 class I8251;
 class I8259;
-class I286;
+class I80286;
+class I8086;
 class IO;
 class MB8877;
 class MC6809;
@@ -102,7 +110,11 @@ protected:
 	I8237* dma;
 	I8251* sio;
 	I8259* pic;
-	I286* cpu;
+#ifdef HAS_I286
+	I80286* cpu;
+#else
+	I8086* cpu;
+#endif	
 	IO* io;
 	MB8877* fdc_2hd;
 	MB8877* fdc_2d;

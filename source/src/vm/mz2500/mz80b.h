@@ -104,7 +104,7 @@ namespace MZ700 {
 }
 #endif
 #ifdef SUPPORT_16BIT_BOARD
-	class I286;
+	class I8086;
 	class I8259;
 #endif
 namespace MZ2500 {
@@ -157,7 +157,7 @@ protected:
 	
 #ifdef SUPPORT_16BIT_BOARD
 	Z80PIO* pio_to16;
-	I286* cpu_16;
+	I8086* cpu_16;
 	I8259* pic_16;
 	MZ80B::MZ1M01* mz1m01;
 #endif

@@ -57,7 +57,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio1 = new I8255(this, emu);
 	pio1->set_device_name(_T("8255 PIO (CRTC)"));
 	pic = new I8259(this, emu);
-	cpu = new I286(this, emu);
+	cpu = new I80286(this, emu);
 	io = new IO(this, emu);
 	memory = new MEMORY(this, emu);
 	rtc = new MSM58321(this, emu);

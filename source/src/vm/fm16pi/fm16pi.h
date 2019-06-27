@@ -41,7 +41,8 @@
 #include "../../fileio.h"
 #include "../vm_template.h"
 
-#define USE_CPU_I286
+#define HAS_I186
+#define USE_CPU_I186
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
@@ -57,7 +58,7 @@ class I8251;
 class I8253;
 class I8255;
 class I8259;
-class I286;
+class I8086;
 class IO;
 class MB8877;
 class MEMORY;
@@ -82,7 +83,7 @@ protected:
 	I8253* pit;
 	I8255* pio;
 	I8259* pic;
-	I286* cpu;
+	I8086* cpu;
 	IO* io;
 	MB8877* fdc;
 	MEMORY* memory;

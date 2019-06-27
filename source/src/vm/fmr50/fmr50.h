@@ -112,7 +112,7 @@ class I8251;
 class I8253;
 class I8259;
 #if defined(HAS_I286)
-class I286;
+class I80286;
 #else
 class I386;
 #endif
@@ -153,7 +153,7 @@ protected:
 	I8253* pit1;
 	I8259* pic;
 #if defined(HAS_I286)
-	I286* cpu;
+	I80286* cpu;
 #else
 	I386* cpu;
 #endif

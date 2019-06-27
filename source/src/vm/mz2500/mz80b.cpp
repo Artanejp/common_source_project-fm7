@@ -45,7 +45,7 @@
 #endif
 
 #ifdef SUPPORT_16BIT_BOARD
-#include "../i286.h"
+#include "../i86.h"
 #include "../i8259.h"
 #include "mz1m01.h"
 #endif
@@ -111,11 +111,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 #ifdef SUPPORT_16BIT_BOARD
 	pio_to16 = new Z80PIO(this, emu);
-	cpu_16 = new I286(this, emu);	// 8088
+	cpu_16 = new I8086(this, emu);	// 8088
 	pic_16 = new I8259(this, emu);
 	mz1m01 = new MZ1M01(this, emu);
 	pio_to16->set_device_name(_T("Z80 PIO(16BIT BOARD)"));
-	cpu_16->set_device_name(_T("CPU i286(16BIT BOARD)"));
+	cpu_16->set_device_name(_T("CPU i8088(16BIT BOARD)"));
 	pic_16->set_device_name(_T("i8259 PIC(16BIT BOARD)"));
 #endif
 	

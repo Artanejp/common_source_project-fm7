@@ -18,11 +18,13 @@
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../i8259.h"
-//#if defined(HAS_V30) || defined(HAS_I86)
-//# include "../i86.h"
-//#else
+#if defined(HAS_V30)
+# include "../v30.h"
+#elif defined(HAS_I86) || defined(HAS_I88) || defined(HAS_I186)
+# include "../i86.h"
+#else
 # include "../i286.h"
-//#endif
+#endif
 #include "../io.h"
 #include "../noise.h"
 #include "../not.h"
@@ -77,11 +79,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio_prn = new I8255(this, emu);	// for printer
 	pio_prn->set_device_name(_T("8251 PIO (Printer)"));
 	pic = new I8259(this, emu);	// V50 internal
-//#if defined(HAS_V30) || defined(HAS_I86)
-//	cpu = new I86(this, emu);	// V50
-//#else
-	cpu = new I286(this, emu);	// V50
-//#endif
+#if defined(HAS_V30)
+	cpu = new V30(this, emu);	// V50
+#elif defined(HAS_I86) || defined(HAS_I88) || defined(HAS_I186)
+	cpu = new I8086(this, emu);	// V50
+#else
+	cpu = new I80286(this, emu);	// V50
+#endif
 	io = new IO(this, emu);
 	not_busy = new NOT(this, emu);
 #ifdef _PC98HA

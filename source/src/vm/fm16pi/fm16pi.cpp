@@ -17,7 +17,7 @@
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../i8259.h"
-#include "../i286.h"
+#include "../i86.h"
 #include "../io.h"
 #include "../mb8877.h"
 #include "../memory.h"
@@ -49,7 +49,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit = new I8253(this, emu);
 	pio = new I8255(this, emu);	// for system port
 	pic = new I8259(this, emu);
-	cpu = new I286(this, emu);
+	cpu = new I8086(this, emu);
 	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
