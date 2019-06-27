@@ -330,7 +330,10 @@ CPU_EXECUTE( i8086 )
 	while (cpustate->icount > 0 && !cpustate->busreq)
 	{
 //#ifdef USE_DEBUGGER
-		bool now_debugging = cpustate->debugger->now_debugging;
+		bool now_debugging = false;
+		if(cpustate->debugger != NULL) {
+			now_debugging = cpustate->debugger->now_debugging;
+		}
 		if(now_debugging) {
 			cpustate->debugger->check_break_points(cpustate->pc);
 			if(cpustate->debugger->now_suspended) {
@@ -366,7 +369,9 @@ CPU_EXECUTE( i8086 )
 				cpustate->io = cpustate->io_stored;
 			}
 		} else {
-			cpustate->debugger->add_cpu_trace(cpustate->pc);
+			if(cpustate->debugger != NULL) {
+				cpustate->debugger->add_cpu_trace(cpustate->pc);
+			}
 			int first_icount = cpustate->icount;
 //#endif
 			cpustate->seg_prefix = FALSE;
@@ -491,7 +496,10 @@ CPU_EXECUTE( i80186 )
 	while (cpustate->icount > 0 && !cpustate->busreq)
 	{
 //#ifdef USE_DEBUGGER
-		bool now_debugging = cpustate->debugger->now_debugging;
+		bool now_debugging = false;
+		if(cpustate->debugger != NULL) {
+			now_debugging = cpustate->debugger->now_debugging;
+		}
 		if(now_debugging) {
 			cpustate->debugger->check_break_points(cpustate->pc);
 			if(cpustate->debugger->now_suspended) {
@@ -527,7 +535,9 @@ CPU_EXECUTE( i80186 )
 				cpustate->io = cpustate->io_stored;
 			}
 		} else {
-			cpustate->debugger->add_cpu_trace(cpustate->pc);
+			if(cpustate->debugger != NULL) {
+				cpustate->debugger->add_cpu_trace(cpustate->pc);
+			}
 			int first_icount = cpustate->icount;
 //#endif
 			cpustate->seg_prefix = FALSE;

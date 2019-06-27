@@ -45,7 +45,7 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 if(BUILD_MZ5500)
   add_definitions(-D_MZ5500)
   set(EXEC_TARGET emumz5500)
-  set(FLAG_USE_I86 OFF)
+#  set(FLAG_USE_I86 OFF)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz5500.qrc)
 elseif(BUILD_MZ6500)
   add_definitions(-D_MZ6500)

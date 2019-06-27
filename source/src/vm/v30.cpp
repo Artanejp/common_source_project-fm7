@@ -46,15 +46,15 @@ void V30::initialize()
 //#ifdef SINGLE_MODE_DMA
 	cpustate->dma = d_dma;
 //#endif
-//#ifdef USE_DEBUGGER
 	cpustate->emu = emu;
 	cpustate->debugger = d_debugger;
 	cpustate->program_stored = d_mem;
 	cpustate->io_stored = d_io;
 	
-	d_debugger->set_context_mem(d_mem);
-	d_debugger->set_context_io(d_io);
-//#endif
+	if(d_debugger != NULL) {
+		d_debugger->set_context_mem(d_mem);
+		d_debugger->set_context_io(d_io);
+	}
 	cpustate->waitfactor = 0;
 	cpustate->waitcount = 0;
 }
