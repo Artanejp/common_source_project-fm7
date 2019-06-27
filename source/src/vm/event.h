@@ -46,7 +46,9 @@ enum {
 	EVENT_CPUTYPE_MCS48,
 	EVENT_CPUTYPE_TMS9995,
 	EVENT_CPUTYPE_UPD7801,
-	EVENT_CPUTYPE_Z80
+	EVENT_CPUTYPE_Z80,
+	EVENT_CPUTYPE_I86,
+	EVENT_CPUTYPE_V30,
 };
 
 
@@ -151,13 +153,24 @@ private:
 			cpu_type[num] = EVENT_CPUTYPE_HUC6280;
 		} else
 #endif
-#if defined(USE_CPU_I86) || defined(USE_CPU_I286) || defined(USE_CPU_I186) || defined(USE_CPU_V30)
+#if defined(USE_CPU_I86) || defined(USE_CPU_I186) || defined(USE_CPU_I88)
+		if(typeid(T) == typeid(I8086)) {
+			cpu_type[num] = EVENT_CPUTYPE_I86;
+		} else
+#endif
+#if defined(USE_CPU_V30)
+		if(typeid(T) == typeid(V30)) {
+			cpu_type[num] = EVENT_CPUTYPE_V30;
+		} else
+#endif
+			
+#if defined(USE_CPU_I286)
   #if defined(_JX)
-			if(typeid(T) == typeid(JX::I286)) {
+		if(typeid(T) == typeid(JX::I286)) {
 			cpu_type[num] = EVENT_CPUTYPE_I286;
 		} else
   #else
-		if(typeid(T) == typeid(I286)) {
+		if(typeid(T) == typeid(I80286)) {
 			cpu_type[num] = EVENT_CPUTYPE_I286;
 		} else
   #endif

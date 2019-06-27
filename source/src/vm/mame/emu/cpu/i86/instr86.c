@@ -35,7 +35,7 @@
 	extern bool i286_call_pseudo_bios(i80286_state *cpustate, uint32_t PC);
 #else
 #define BIOS_CALL_86(s,p) i86_call_pseudo_bios(s,p)
-	extern bool i86_call_pseudo_bios(i8086_state *cpustate, uint32_t PC);
+	static bool i86_call_pseudo_bios(i8086_state *cpustate, uint32_t PC);
 #endif
 
 #if !defined(I80186)
@@ -2425,7 +2425,7 @@ static void PREFIX86(_int)(i8086_state *cpustate)    /* Opcode 0xcd */
 	unsigned int_num = FETCH;
 	ICOUNT -= timing.int_imm;
 
-#ifdef I86_PSEUDO_BIOS
+//#ifdef I86_PSEUDO_BIOS
 	cpustate->regs.w[8] = 0x0000;
 	cpustate->regs.w[9] = 0x0000;
 	if(cpustate->bios != NULL && cpustate->bios->bios_int_i86(int_num, cpustate->regs.w, cpustate->sregs, &cpustate->ZeroVal, &cpustate->CarryVal, &(cpustate->icount), &(cpustate->total_icount))) {
@@ -2446,7 +2446,7 @@ static void PREFIX86(_int)(i8086_state *cpustate)    /* Opcode 0xcd */
 #endif
 		return;
 	}
-#endif
+//#endif
 	PREFIX(_interrupt)(cpustate, int_num);
 }
 

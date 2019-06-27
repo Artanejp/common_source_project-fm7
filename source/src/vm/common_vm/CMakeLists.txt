@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 2.17.0)
+SET(THIS_LIB_VERSION 2.18.0)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
@@ -18,7 +18,7 @@ set(s_vm_common_vm_srcs
 	../hd46505.cpp
 	../hd63484.cpp
 	../huc6280_base.cpp
-#	../i286.cpp
+	../i286.cpp
 	../i386.cpp
 	../i8080_base.cpp
 
@@ -28,7 +28,7 @@ set(s_vm_common_vm_srcs
 	../i8253.cpp
 	../i8255.cpp
 	../i8259.cpp
-#	../i86.cpp
+	../i86.cpp
 #	../io.cpp
 #	../ld700.cpp
 	../ls244.cpp
@@ -88,6 +88,7 @@ set(s_vm_common_vm_srcs
 	../upd7801.cpp
 # 20170527 UPD7180 will not add to lbCSP_common_vm.
 ##	../upd7810.cpp
+	../v30.cpp
 # 20170518/MSX: Use v9938.cpp and define "-D_MSX_VDP_MESS" instead of v99x8.cpp .
 	../v9938.cpp
 ##	../v99x8.cpp

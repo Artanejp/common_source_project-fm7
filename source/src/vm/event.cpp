@@ -21,7 +21,15 @@
 #include "huc6280.h"
 #endif
 
-#if defined(USE_CPU_I86) || defined(USE_CPU_I286) || defined(USE_CPU_I186) || defined(USE_CPU_V30)
+#if defined(USE_CPU_I86) || defined(USE_CPU_I186) || defined(USE_CPU_I88)
+#include "i86.h"
+#endif
+
+#if defined(USE_CPU_V30)
+#include "v30.h"
+#endif
+
+#if defined(USE_CPU_I286)
 #include "i286.h"
 #endif
 
@@ -248,9 +256,23 @@ int EVENT::run_cpu(uint32_t num, int cycles)
 			RUN_CPU_N(num, HUC6280, cycles);
 			break;
 #endif
+#if defined(USE_CPU_V30)
+		case EVENT_CPUTYPE_V30:
+			RUN_CPU_N(num, V30, cycles);
+			break;
+#endif
 #if defined(USE_CPU_I286)
 		case EVENT_CPUTYPE_I286:
-			RUN_CPU_N(num, I286, cycles);
+	#if defined(_JX)
+			RUN_CPU_N(num, JX::I286, cycles);
+    #else
+			RUN_CPU_N(num, I80286, cycles);
+	#endif
+			break;
+#endif
+#if defined(USE_CPU_I86) || defined(USE_CPU_I186) || defined(USE_CPU_I88)
+		case EVENT_CPUTYPE_I86:
+			RUN_CPU_N(num, I8086, cycles);
 			break;
 #endif
 #if defined(USE_CPU_I386)

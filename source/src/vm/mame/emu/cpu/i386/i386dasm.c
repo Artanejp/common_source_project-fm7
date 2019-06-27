@@ -3060,7 +3060,7 @@ handle_unknown:
 	_stprintf(s, _T("???"));
 }
 
-int i386_dasm_one_ex(_TCHAR *buffer, UINT64 eip, const UINT8 *oprom, int mode)
+static int i386_dasm_one_ex(_TCHAR *buffer, UINT64 eip, const UINT8 *oprom, int mode)
 {
 	UINT8 op;
 
@@ -3108,22 +3108,22 @@ int i386_dasm_one_ex(_TCHAR *buffer, UINT64 eip, const UINT8 *oprom, int mode)
 	return (pc-eip) | dasm_flags | DASMFLAG_SUPPORTED;
 }
 
-int i386_dasm_one(_TCHAR *buffer, offs_t eip, const UINT8 *oprom, int mode)
+static int i386_dasm_one(_TCHAR *buffer, offs_t eip, const UINT8 *oprom, int mode)
 {
 	return i386_dasm_one_ex(buffer, eip, oprom, mode);
 }
 
-CPU_DISASSEMBLE( x86_16 )
+static CPU_DISASSEMBLE( x86_16 )
 {
 	return i386_dasm_one_ex(buffer, eip, oprom, 16);
 }
 
-CPU_DISASSEMBLE( x86_32 )
+static CPU_DISASSEMBLE( x86_32 )
 {
 	return i386_dasm_one_ex(buffer, eip, oprom, 32);
 }
 
-CPU_DISASSEMBLE( x86_64 )
+static CPU_DISASSEMBLE( x86_64 )
 {
 	return i386_dasm_one_ex(buffer, eip, oprom, 64);
 }

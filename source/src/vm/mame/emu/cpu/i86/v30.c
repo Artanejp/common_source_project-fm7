@@ -10,7 +10,7 @@
 //#include "host.h"
 #include "i86priv.h"
 #include "i86.h"
-//#include "i86basic.h"
+
 static int i386_dasm_one(_TCHAR *buffer, UINT32 eip, const UINT8 *oprom, int mode);
 
 #define VERBOSE 0
@@ -27,6 +27,7 @@ union i8086basicregs
        UINT16 w[10];                       /* viewed as 16 bits registers */
        UINT8 b[20];                       /* or as 8 bit registers */
 };
+
 struct i8086_state
 {
        i8086basicregs regs;
@@ -96,7 +97,8 @@ static UINT8 parity_table[256];
 /* The interrupt number of a pending external interrupt pending NMI is 2.   */
 /* For INTR interrupts, the level is caught on the bus during an INTA cycle */
 
-#define PREFIX(name) i8086##name
+
+#define PREFIX(name)   i8086##name
 #define PREFIX86(name) i8086##name
 
 #define I8086
@@ -107,6 +109,37 @@ static UINT8 parity_table[256];
 
 #include "instr86.c"
 #undef I8086
+
+#include "i86.h"
+
+#undef PREFIX
+#define PREFIX(name) i80186##name
+#define PREFIX186(name) i80186##name
+
+#define I80186
+#include "instr186.h"
+#include "table186.h"
+
+#include "instr86.c"
+#include "instr186.c"
+#undef I80186
+
+#undef PREFIX
+#define PREFIX(name) v30##name
+#define PREFIXV30(name) v30##name
+
+static void PREFIX(_interrupt)(i8086_state *cpustate, unsigned int_num)
+{
+	PREFIX86(_interrupt)(cpustate, int_num);
+}
+
+#define I80186
+#include "instrv30.h"
+#include "tablev30.h"
+
+#include "instr86.c"
+#include "instrv30.c"
+#undef I80186
 
 
 static bool i86_call_pseudo_bios(i8086_state *cpustate, uint32_t PC)
@@ -152,13 +185,7 @@ static CPU_INIT( i8086 )
 	return cpustate;
 }
 
-static CPU_INIT( i8088 )
-{
-	void *ret = CPU_INIT_CALL(i8086);
-	return ret;
-}
-
-static CPU_INIT( i80186 )
+static CPU_INIT( v30 )
 {
 	void *ret = CPU_INIT_CALL(i8086);
 	return ret;
@@ -190,16 +217,11 @@ static CPU_RESET( i8086 )
 	cpustate->halted = 0;
 }
 
-static CPU_RESET( i8088 )
+static CPU_RESET( v30 )
 {
 	CPU_RESET_CALL(i8086);
+	SetMD(1);
 }
-
-static CPU_RESET( i80186 )
-{
-	CPU_RESET_CALL(i8086);
-}
-
 
 /* ASG 971222 -- added these interface functions */
 
@@ -255,7 +277,7 @@ static void set_test_line(i8086_state *cpustate, int state)
 	cpustate->test_state = !state;
 }
 
-static void cpu_wait_i86(i8086_state *cpustate,int clocks)
+static void cpu_wait_v30(cpu_state *cpustate,int clocks)
 {
 	uint32_t ncount = 0;
 	if(clocks < 0) return;
@@ -270,168 +292,7 @@ static void cpu_wait_i86(i8086_state *cpustate,int clocks)
 	cpustate->waitcount = wcount;
 }
 
-CPU_EXECUTE( i8086 )
-{
-	if (cpustate->halted || cpustate->busreq)
-	{
-//#ifdef SINGLE_MODE_DMA
-		if(cpustate->dma != NULL) {
-			cpustate->dma->do_dma();
-		}
-//#endif
-		if (icount == -1) {
-			int passed_icount = max(1, cpustate->extra_cycles);
-			// this is main cpu, cpustate->icount is not used
-			/*cpustate->icount = */cpustate->extra_cycles = 0;
-//#ifdef USE_DEBUGGER
-			cpustate->total_icount += passed_icount;
-//#endif
-			cpu_wait_i86(cpustate, passed_icount);
-			return passed_icount;
-		} else {
-			cpustate->icount += icount;
-			int base_icount = cpustate->icount;
-
-			/* adjust for any interrupts that came in */
-			cpustate->icount -= cpustate->extra_cycles;
-			cpustate->extra_cycles = 0;
-
-			/* if busreq is raised, spin cpu while remained clock */
-			if (cpustate->icount > 0) {
-				cpustate->icount = 0;
-			}
-//#ifdef USE_DEBUGGER
-			cpustate->total_icount += base_icount - cpustate->icount;
-//#endif
-			cpu_wait_i86(cpustate, base_icount - cpustate->icount);
-			return base_icount - cpustate->icount;
-		}
-	}
-
-	if (icount == -1) {
-		cpustate->icount = 1;
-	} else {
-		cpustate->icount += icount;
-	}
-	int base_icount = cpustate->icount;
-
-	/* copy over the cycle counts if they're not correct */
-	if (timing.id != 8086)
-		timing = i8086_cycles;
-
-	/* adjust for any interrupts that came in */
-//#ifdef USE_DEBUGGER
-	cpustate->total_icount += cpustate->extra_cycles;
-//#endif
-	cpustate->icount -= cpustate->extra_cycles;
-	cpustate->extra_cycles = 0;
-
-	/* run until we're out */
-	while (cpustate->icount > 0 && !cpustate->busreq)
-	{
-//#ifdef USE_DEBUGGER
-		bool now_debugging = cpustate->debugger->now_debugging;
-		if(now_debugging) {
-			cpustate->debugger->check_break_points(cpustate->pc);
-			if(cpustate->debugger->now_suspended) {
-				cpustate->debugger->now_waiting = true;
-				cpustate->emu->start_waiting_in_debugger();
-				while(cpustate->debugger->now_debugging && cpustate->debugger->now_suspended) {
-					cpustate->emu->process_waiting_in_debugger();
-				}
-				cpustate->emu->finish_waiting_in_debugger();
-				cpustate->debugger->now_waiting = false;
-			}
-			if(cpustate->debugger->now_debugging) {
-				cpustate->program = cpustate->io = cpustate->debugger;
-			} else {
-				now_debugging = false;
-			}
-			cpustate->debugger->add_cpu_trace(cpustate->pc);
-			int first_icount = cpustate->icount;
-			cpustate->seg_prefix = FALSE;
-			cpustate->prevpc = cpustate->pc;
-			TABLE86;
-			cpustate->total_icount += first_icount - cpustate->icount;
-//#ifdef SINGLE_MODE_DMA
-			if(cpustate->dma != NULL) {
-				cpustate->dma->do_dma();
-			}
-//#endif
-			if(now_debugging) {
-				if(!cpustate->debugger->now_going) {
-					cpustate->debugger->now_suspended = true;
-				}
-				cpustate->program = cpustate->program_stored;
-				cpustate->io = cpustate->io_stored;
-			}
-		} else {
-			cpustate->debugger->add_cpu_trace(cpustate->pc);
-			int first_icount = cpustate->icount;
-//#endif
-			cpustate->seg_prefix = FALSE;
-			cpustate->prevpc = cpustate->pc;
-			TABLE86;
-//#ifdef USE_DEBUGGER
-			cpustate->total_icount += first_icount - cpustate->icount;
-//#endif
-//#ifdef SINGLE_MODE_DMA
-			if(cpustate->dma != NULL) {
-				cpustate->dma->do_dma();
-			}
-//#endif
-//#ifdef USE_DEBUGGER
-		}
-//#endif
-		/* adjust for any interrupts that came in */
-//#ifdef USE_DEBUGGER
-		cpustate->total_icount += cpustate->extra_cycles;
-//#endif
-		cpustate->icount -= cpustate->extra_cycles;
-		cpustate->extra_cycles = 0;
-	}
-
-	/* if busreq is raised, spin cpu while remained clock */
-	if (cpustate->icount > 0 && cpustate->busreq) {
-//#ifdef USE_DEBUGGER
-		cpustate->total_icount += cpustate->icount;
-//#endif
-		cpustate->icount = 0;
-	}
-	cpu_wait_i86(cpustate, base_icount - cpustate->icount);
-	return base_icount - cpustate->icount;
-}
-
-#include "i86.h"
-
-#undef PREFIX
-#define PREFIX(name) i80186##name
-#define PREFIX186(name) i80186##name
-
-#define I80186
-#include "instr186.h"
-#include "table186.h"
-
-#include "instr86.c"
-#include "instr186.c"
-#undef I80186
-
-static void cpu_wait_i186(cpu_state *cpustate,int clocks)
-{
-	uint32_t ncount = 0;
-	if(clocks < 0) return;
-	if(cpustate->waitfactor == 0) return;
-	uint32_t wcount = cpustate->waitcount;
-	wcount += (cpustate->waitfactor * (uint32_t)clocks);
-	if(wcount >= 65536) {
-		ncount = wcount >> 16;
-		wcount = wcount - (ncount << 16);
-	}
-	cpustate->extra_cycles += ncount;
-	cpustate->waitcount = wcount;
-}
-
-CPU_EXECUTE( i80186 )
+CPU_EXECUTE( v30 )
 {
 	if (cpustate->halted || cpustate->busreq)
 	{
@@ -447,7 +308,7 @@ CPU_EXECUTE( i80186 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_icount += passed_icount;
 //#endif
-			cpu_wait_i186(cpustate, passed_icount);
+			cpu_wait_v30(cpustate, passed_icount);
 			return passed_icount;
 		} else {
 			cpustate->icount += icount;
@@ -464,7 +325,7 @@ CPU_EXECUTE( i80186 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_icount += base_icount - cpustate->icount;
 //#endif
-			cpu_wait_i186(cpustate, base_icount - cpustate->icount);
+			cpu_wait_v30(cpustate, base_icount - cpustate->icount);
 			return base_icount - cpustate->icount;
 		}
 	}
@@ -512,7 +373,7 @@ CPU_EXECUTE( i80186 )
 			int first_icount = cpustate->icount;
 			cpustate->seg_prefix = FALSE;
 			cpustate->prevpc = cpustate->pc;
-			TABLE186;
+			TABLEV30;
 			cpustate->total_icount += first_icount - cpustate->icount;
 //#ifdef SINGLE_MODE_DMA
 			if (cpustate->dma != NULL) {
@@ -532,7 +393,7 @@ CPU_EXECUTE( i80186 )
 //#endif
 			cpustate->seg_prefix = FALSE;
 			cpustate->prevpc = cpustate->pc;
-			TABLE186;
+			TABLEV30;
 //#ifdef USE_DEBUGGER
 			cpustate->total_icount += first_icount - cpustate->icount;
 //#endif
@@ -559,7 +420,6 @@ CPU_EXECUTE( i80186 )
 //#endif
 		cpustate->icount = 0;
 	}
-	cpu_wait_i186(cpustate, base_icount - cpustate->icount);
+	cpu_wait_v30(cpustate, base_icount - cpustate->icount);
 	return base_icount - cpustate->icount;
 }
-

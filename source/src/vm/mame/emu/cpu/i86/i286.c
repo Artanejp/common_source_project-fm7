@@ -19,6 +19,11 @@
 
 #include "i286.h"
 
+static int i386_dasm_one(_TCHAR *buffer, UINT32 eip, const UINT8 *oprom, int mode);
+
+#define VERBOSE 0
+#define LOG(x) do { if (VERBOSE) mame_printf_debug x; } while (0)
+
 
 #include "i86time.c"
 
@@ -59,18 +64,18 @@ struct i80286_state
 	DEVICE *pic;
 	DEVICE *program;
 	DEVICE *io;
-#ifdef I86_PSEUDO_BIOS
+//#ifdef I86_PSEUDO_BIOS
 	DEVICE *bios;
-#endif
-#ifdef SINGLE_MODE_DMA
+//#endif
+//#ifdef SINGLE_MODE_DMA
 	DEVICE *dma;
-#endif
-#ifdef USE_DEBUGGER
+//#endif
+//#ifdef USE_DEBUGGER
 	EMU *emu;
 	DEBUGGER *debugger;
 	DEVICE *program_stored;
 	DEVICE *io_stored;
-#endif
+//#endif
 	INT32   AuxVal, OverVal, SignVal, ZeroVal, CarryVal, DirVal; /* 0 or non-0 valued flags */
 	UINT8   ParityVal;
 	UINT8   TF, IF;     /* 0 or 1 valued flags */
@@ -113,30 +118,16 @@ extern void i80286_code_descriptor(i80286_state *cpustate, UINT16 selector, UINT
 #endif
 bool i286_call_pseudo_bios(i80286_state *cpustate, uint32_t PC)
 {
-#ifdef I86_PSEUDO_BIOS
+//#ifdef I86_PSEUDO_BIOS
 	if(cpustate->bios != NULL) {
 		cpustate->regs.w[8] = 0x0000;
 		cpustate->regs.w[9] = 0x0000;
 		if(cpustate->bios->bios_call_far_i86(PC & AMASK, cpustate->regs.w, cpustate->sregs, &cpustate->ZeroVal, &cpustate->CarryVal, &(cpustate->icount), &(cpustate->total_icount))) {
-#if 0
-		   
-			if((cpustate->regs.w[8] != 0x0000) || (cpustate->regs.w[9] != 0x0000)) {
-				UINT32 hi = cpustate->regs.w[9];
-				UINT32 lo = cpustate->regs.w[8];
-				UINT32 addr = (hi << 16) | lo;
-#ifdef I80286
-				i80286_code_descriptor(cpustate, cpustate->sregs[1],lo, 1);
-#else
-				cpustate->base[1] = (cpustate->sregs[1] << 4);
-				cpustate->pc = (cpustate->base[1] + addr) & AMASK;
-#endif
-			}
-#endif
 			return true;
 			
 		}
 	}
-#endif
+//#endif
 	return false;
 }
 /***************************************************************************/
@@ -287,18 +278,18 @@ static CPU_EXECUTE( i80286 )
 {
 	if (cpustate->halted || cpustate->busreq)
 	{
-#ifdef SINGLE_MODE_DMA
+//#ifdef SINGLE_MODE_DMA
 		if (cpustate->dma != NULL) {
 			cpustate->dma->do_dma();
 		}
-#endif
+//#endif
 		if (icount == -1) {
 			int passed_icount = max(1, cpustate->extra_cycles);
 			// this is main cpu, cpustate->icount is not used
 			/*cpustate->icount = */cpustate->extra_cycles = 0;
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 			cpustate->total_icount += passed_icount;
-#endif
+//#endif
 			cpu_wait_i286(cpustate,passed_icount);
 			return passed_icount;
 		} else {
@@ -313,9 +304,9 @@ static CPU_EXECUTE( i80286 )
 			if (cpustate->icount > 0) {
 				cpustate->icount = 0;
 			}
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 			cpustate->total_icount += base_icount - cpustate->icount;
-#endif
+//#endif
 			cpu_wait_i286(cpustate, base_icount - cpustate->icount);
 			return base_icount - cpustate->icount;
 		}
@@ -333,16 +324,16 @@ static CPU_EXECUTE( i80286 )
 		timing = i80286_cycles;
 
 	/* adjust for any interrupts that came in */
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	cpustate->total_icount += cpustate->extra_cycles;
-#endif
+//#endif
 	cpustate->icount -= cpustate->extra_cycles;
 	cpustate->extra_cycles = 0;
 
 	/* run until we're out */
 	while(cpustate->icount > 0 && !cpustate->busreq)
 	{
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 		bool now_debugging = cpustate->debugger->now_debugging;
 		if(now_debugging) {
 			cpustate->debugger->check_break_points(cpustate->pc);
@@ -376,11 +367,11 @@ static CPU_EXECUTE( i80286 )
 				i80286_trap2(cpustate,e);
 			}
 			cpustate->total_icount += first_icount - cpustate->icount;
-#ifdef SINGLE_MODE_DMA
+//#ifdef SINGLE_MODE_DMA
 			if (cpustate->dma != NULL) {
 				cpustate->dma->do_dma();
 			}
-#endif
+//#endif
 			if(now_debugging) {
 				if(!cpustate->debugger->now_going) {
 					cpustate->debugger->now_suspended = true;
@@ -391,7 +382,7 @@ static CPU_EXECUTE( i80286 )
 		} else {
 			cpustate->debugger->add_cpu_trace(cpustate->pc);
 			int first_icount = cpustate->icount;
-#endif
+//#endif
 			cpustate->seg_prefix=FALSE;
 			try
 			{
@@ -405,30 +396,30 @@ static CPU_EXECUTE( i80286 )
 			{
 				i80286_trap2(cpustate,e);
 			}
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 			cpustate->total_icount += first_icount - cpustate->icount;
-#endif
-#ifdef SINGLE_MODE_DMA
+//#endif
+//#ifdef SINGLE_MODE_DMA
 			if (cpustate->dma != NULL) {
 				cpustate->dma->do_dma();
 			}
-#endif
-#ifdef USE_DEBUGGER
+//#endif
+//#ifdef USE_DEBUGGER
 		}
-#endif
+//#endif
 		/* adjust for any interrupts that came in */
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 		cpustate->total_icount += cpustate->extra_cycles;
-#endif
+//#endif
 		cpustate->icount -= cpustate->extra_cycles;
 		cpustate->extra_cycles = 0;
 	}
 
 	/* if busreq is raised, spin cpu while remained clock */
 	if (cpustate->icount > 0 && cpustate->busreq) {
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 		cpustate->total_icount += cpustate->icount;
-#endif
+//#endif
 		cpustate->icount = 0;
 	}
 	cpu_wait_i286(cpustate, base_icount - cpustate->icount);

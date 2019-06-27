@@ -8,33 +8,154 @@
 	[ i286 ]
 */
 
-#include "i286.h"
-//#ifdef USE_DEBUGGER
+#include "i80286.h"
 #include "debugger.h"
+
+/* ----------------------------------------------------------------------------
+	MAME i86
+---------------------------------------------------------------------------- */
+
+// Note:
+// API of bios_int_i86() / bios_caii_i86() has changed.
+// regs[8] regs[9] are added.These entries set redirect-address by PSEUDO-BIOS.
+// If need, will add more entries for cycle#.
+// - 20181126 K.O
+
+
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+#pragma warning( disable : 4018 )
+#pragma warning( disable : 4146 )
+#pragma warning( disable : 4244 )
+#pragma warning( disable : 4996 )
+#endif
+
+
+#ifndef __BIG_ENDIAN__
+#define LSB_FIRST
+#endif
+
+#ifndef INLINE
+#define INLINE inline
+#endif
+
+#define logerror(...)
+
+/*****************************************************************************/
+/* src/emu/devcpu.h */
+
+// CPU interface functions
+#define CPU_INIT_NAME(name)			cpu_init_##name
+#define CPU_INIT(name)				void* CPU_INIT_NAME(name)()
+#define CPU_INIT_CALL(name)			CPU_INIT_NAME(name)()
+
+#define CPU_RESET_NAME(name)			cpu_reset_##name
+#define CPU_RESET(name)				void CPU_RESET_NAME(name)(cpu_state *cpustate)
+#define CPU_RESET_CALL(name)			CPU_RESET_NAME(name)(cpustate)
+
+#define CPU_EXECUTE_NAME(name)			cpu_execute_##name
+#define CPU_EXECUTE(name)			int CPU_EXECUTE_NAME(name)(cpu_state *cpustate, int icount)
+#define CPU_EXECUTE_CALL(name)			CPU_EXECUTE_NAME(name)(cpustate, icount)
+
+#define CPU_DISASSEMBLE_NAME(name)		cpu_disassemble_##name
+#define CPU_DISASSEMBLE(name)			int CPU_DISASSEMBLE_NAME(name)(_TCHAR *buffer, offs_t eip, const UINT8 *oprom)
+#define CPU_DISASSEMBLE_CALL(name)		CPU_DISASSEMBLE_NAME(name)(buffer, eip, oprom)
+
+/*****************************************************************************/
+/* src/emu/didisasm.h */
+
+// Disassembler constants
+const UINT32 DASMFLAG_SUPPORTED     = 0x80000000;   // are disassembly flags supported?
+const UINT32 DASMFLAG_STEP_OUT      = 0x40000000;   // this instruction should be the end of a step out sequence
+const UINT32 DASMFLAG_STEP_OVER     = 0x20000000;   // this instruction should be stepped over by setting a breakpoint afterwards
+const UINT32 DASMFLAG_OVERINSTMASK  = 0x18000000;   // number of extra instructions to skip when stepping over
+const UINT32 DASMFLAG_OVERINSTSHIFT = 27;           // bits to shift after masking to get the value
+const UINT32 DASMFLAG_LENGTHMASK    = 0x0000ffff;   // the low 16-bits contain the actual length
+
+/*****************************************************************************/
+/* src/emu/diexec.h */
+
+// I/O line states
+enum line_state
+{
+	CLEAR_LINE = 0,				// clear (a fired or held) line
+	ASSERT_LINE,				// assert an interrupt immediately
+	HOLD_LINE,				// hold interrupt line until acknowledged
+	PULSE_LINE				// pulse interrupt line instantaneously (only for NMI, RESET)
+};
+
+enum
+{
+	INPUT_LINE_IRQ = 0,
+	INPUT_LINE_NMI
+};
+
+/*****************************************************************************/
+/* src/emu/emucore.h */
+
+// constants for expression endianness
+enum endianness_t
+{
+	ENDIANNESS_LITTLE,
+	ENDIANNESS_BIG
+};
+
+// declare native endianness to be one or the other
+#ifdef LSB_FIRST
+const endianness_t ENDIANNESS_NATIVE = ENDIANNESS_LITTLE;
+#else
+const endianness_t ENDIANNESS_NATIVE = ENDIANNESS_BIG;
+#endif
+// endian-based value: first value is if 'endian' is little-endian, second is if 'endian' is big-endian
+#define ENDIAN_VALUE_LE_BE(endian,leval,beval)	(((endian) == ENDIANNESS_LITTLE) ? (leval) : (beval))
+// endian-based value: first value is if native endianness is little-endian, second is if native is big-endian
+#define NATIVE_ENDIAN_VALUE_LE_BE(leval,beval)	ENDIAN_VALUE_LE_BE(ENDIANNESS_NATIVE, leval, beval)
+// endian-based value: first value is if 'endian' matches native, second is if 'endian' doesn't match native
+#define ENDIAN_VALUE_NE_NNE(endian,leval,beval)	(((endian) == ENDIANNESS_NATIVE) ? (neval) : (nneval))
+
+/*****************************************************************************/
+/* src/emu/memory.h */
+
+// offsets and addresses are 32-bit (for now...)
+typedef UINT32	offs_t;
+
+/*****************************************************************************/
+/* src/osd/osdcomm.h */
+
+/* Highly useful macro for compile-time knowledge of an array size */
+#define ARRAY_LENGTH(x)     (sizeof(x) / sizeof(x[0]))
+
+//#if defined(HAS_I86) || defined(HAS_I88) || defined(HAS_I186) || defined(HAS_V30)
+//#define cpu_state i8086_state
+//#include "mame/emu/cpu/i86/i86.c"
+//#elif defined(HAS_I286)
+#define cpu_state i80286_state
+#include "mame/emu/cpu/i86/i286.c"
 //#endif
-#include "i80x86_commondefs.h"
+//#ifdef USE_DEBUGGER
+//#ifdef HAS_V30
+//#include "mame/emu/cpu/nec/necdasm.c"
+//#else
+#include "mame/emu/cpu/i386/i386dasm.c"
+//#endif
+//#endif
 
-//namespace __I80286 {
-	#define cpu_state i80286_state
-	#define CPU_MODEL i80286
-	#include "mame/emu/cpu/i86/i286.c"
-	#include "mame/emu/cpu/i386/i386dasm.c"
-//}
-
-void I80286::initialize()
+void I8086::initialize()
 {
 	DEVICE::initialize();
-	_HAS_i80286 = false;
-	_HAS_v30 = true;
 	n_cpu_type = N_CPU_TYPE_I80286;
-	
-	opaque = CPU_INIT_CALL(i80286);
+	set_device_name(_T("i80286 CPU"));
+	opaque = CPU_INIT_CALL( i80286 );
 	cpu_state *cpustate = (cpu_state *)opaque;
 	cpustate->pic = d_pic;
 	cpustate->program = d_mem;
 	cpustate->io = d_io;
+//#ifdef I86_PSEUDO_BIOS
 	cpustate->bios = d_bios;
+//#endif
+//#ifdef SINGLE_MODE_DMA
 	cpustate->dma = d_dma;
+//#endif
+//#ifdef USE_DEBUGGER
 	cpustate->emu = emu;
 	cpustate->debugger = d_debugger;
 	cpustate->program_stored = d_mem;
@@ -42,6 +163,7 @@ void I80286::initialize()
 	
 	d_debugger->set_context_mem(d_mem);
 	d_debugger->set_context_io(d_io);
+//#endif
 	cpustate->waitfactor = 0;
 	cpustate->waitcount = 0;
 }
@@ -50,30 +172,43 @@ void I80286::release()
 {
 	free(opaque);
 }
+void I80286::cpu_reset_generic()
+{
+	CPU_RESET_CALL( i80286 );
+}
 
 void I80286::reset()
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	int busreq = cpustate->busreq;
-	
-	CPU_RESET_CALL(i80286);
+
+	cpu_reset_generic();
+	CPU_RESET_CALL(CPU_MODEL);
 	
 	cpustate->pic = d_pic;
 	cpustate->program = d_mem;
 	cpustate->io = d_io;
+//#ifdef I86_PSEUDO_BIOS
 	cpustate->bios = d_bios;
+//#endif
+//#ifdef SINGLE_MODE_DMA
 	cpustate->dma = d_dma;
+//#endif
+//#ifdef USE_DEBUGGER
 	cpustate->emu = emu;
 	cpustate->debugger = d_debugger;
 	cpustate->program_stored = d_mem;
 	cpustate->io_stored = d_io;
+//#endif
 	cpustate->busreq = busreq;
 }
 
 int I80286::run(int icount)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
-	return CPU_EXECUTE_CALL( i80286 );
+	int ret = 0;
+	ret = CPU_EXECUTE_CALL( i80286 );
+	return ret;
 }
 
 uint32_t I80286::read_signal(int id)
@@ -108,7 +243,9 @@ void I80286::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_I86_TEST) {
 		cpustate->test_state = (data & mask) ? 1 : 0;
 	} else if(id == SIG_I286_A20) {
-		i80286_set_a20_line(cpustate, data & mask);
+		if(_HAS_I80286) {
+			i80286_set_a20_line(cpustate, data & mask);
+		}
 	} else if(id == SIG_CPU_WAIT_FACTOR) {
 		cpustate->waitfactor = data; // 65536.
 		cpustate->waitcount = 0; // 65536.
@@ -151,6 +288,7 @@ uint32_t I80286::translate_address(int segment, uint32_t offset)
 	return cpustate->base[segment] + offset;
 }
 
+#ifdef USE_DEBUGGER
 void I80286::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
@@ -310,9 +448,13 @@ int I80286::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_
 	}
 	UINT8 *oprom = ops;
 	
-	return CPU_DISASSEMBLE_CALL(x86_16) & DASMFLAG_LENGTHMASK;
+	if(_HAS_V30) {
+		return CPU_DISASSEMBLE_CALL(nec_generic) & DASMFLAG_LENGTHMASK;
+	} else {
+		return CPU_DISASSEMBLE_CALL(x86_16) & DASMFLAG_LENGTHMASK;
+	}
 }
-
+#endif
 
 void I80286::set_address_mask(uint32_t mask)
 {
@@ -338,7 +480,7 @@ int I80286::get_shutdown_flag()
 	return cpustate->shutdown;
 }
 
-#define STATE_VERSION	7
+#define STATE_VERSION	6
 
 bool I80286::process_state(FILEIO* state_fio, bool loading)
 {
@@ -392,7 +534,9 @@ bool I80286::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->busreq);
 	state_fio->StateValue(cpustate->trap_level);
 	state_fio->StateValue(cpustate->shutdown);
+
 	state_fio->StateValue(cpustate->total_icount);
+
 	state_fio->StateValue(cpustate->icount);
 	state_fio->StateValue(cpustate->seg_prefix);
 	state_fio->StateValue(cpustate->prefix_seg);
@@ -401,7 +545,6 @@ bool I80286::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->ea_seg);
 	state_fio->StateValue(cpustate->waitfactor);
 	state_fio->StateValue(cpustate->waitcount);
- 	
  	// post process
 	if(loading) {
 		cpustate->prev_total_icount = cpustate->total_icount;
