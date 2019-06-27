@@ -55,10 +55,11 @@ set(VMFILES_LIB_QD
 		   z80sio.cpp
 )
 
-set(VMFILES_16BIT
-		   i286.cpp
-		   )
+#set(VMFILES_16BIT
+#		   i286.cpp
+#		   )
 set(VMFILES_LIB_16BIT
+		   i86.cpp
 		   i8259.cpp
 )
 
@@ -90,7 +91,7 @@ set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz2500.qrc)
 set(USE_FMGEN ON)
 
 elseif(BUILD_MZ2000)
-set(VMFILES ${VMFILES_BASE} ${VMFILES_QD} ${VMFILES_16BIT})
+set(VMFILES ${VMFILES_BASE} ${VMFILES_QD} )
 set(VMFILES_LIB ${VMFILES_LIB} ${VMFILES_LIB_QD} ${VMFILES_LIB_16BIT})
 add_definitions(-D_MZ2000)
 set(EXEC_TARGET emumz2000)
@@ -98,7 +99,7 @@ set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz2000.qrc)
 set(USE_FMGEN OFF)
 
 elseif(BUILD_MZ2200)
-set(VMFILES ${VMFILES_BASE} ${VMFILES_QD} ${VMFILES_16BIT})
+set(VMFILES ${VMFILES_BASE} ${VMFILES_QD} )
 set(VMFILES_LIB ${VMFILES_LIB} ${VMFILES_LIB_QD} ${VMFILES_LIB_16BIT})
 set(LOCAL_LIBS ${LOCAL_LIBS})
 add_definitions(-D_MZ2200)

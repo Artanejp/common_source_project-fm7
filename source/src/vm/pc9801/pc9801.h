@@ -345,12 +345,16 @@
 #define USE_DEBUGGER
 
 #define USE_STATE
-#if defined(HAS_I86) || defined(HAS_V30)
-#define USE_CPU_I286
+#if defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88) 
+#define USE_CPU_I86
+#elif defined(HAS_V30)
+#define USE_CPU_V30
 #elif defined(HAS_I386) || defined(HAS_I486)
 #define USE_CPU_I386
+#define USE_CPU_V30
 #else
 #define USE_CPU_I286
+#define USE_CPU_V30
 #endif
 #if defined(SUPPORT_320KB_FDD_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
 #define USE_CPU_Z80
@@ -396,12 +400,19 @@ class I8251;
 class I8253;
 class I8255;
 class I8259;
-#if defined(HAS_I86) || defined(HAS_V30)
-class I286;
+#if defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
+class I8086;
+#elif defined(HAS_V30)
+class V30;
+#elif defined(HAS_I286)
+class I80286;
+class V30;
 #elif defined(HAS_I386) || defined(HAS_I486)
 class I386;
+class V30;
 #else
 class I286;
+class V30;
 #endif
 class IO;
 class LS244;
@@ -498,10 +509,14 @@ protected:
 	I8259* pic;
 #if defined(HAS_I386) || defined(HAS_I486)
 	I386* cpu;
-#elif defined(HAS_I86) || defined(HAS_V30)
-	I286 *cpu;
+	V30*    v30cpu;
+#elif  defined(HAS_V30)
+	V30*  cpu;
+#elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
+	I8086 *cpu;
 #else
-	I286* cpu;
+	I80286* cpu;
+	V30*    v30cpu;
 #endif
 	IO* io;
 	LS244* rtcreg;

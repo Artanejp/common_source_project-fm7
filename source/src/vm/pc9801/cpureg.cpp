@@ -35,6 +35,9 @@ void CPUREG::reset()
 		event_wait = -1;
 	}
 	d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+	d_v30cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+#endif
 }
 
 void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
@@ -50,6 +53,9 @@ void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
 //		reset_reg = reset_reg & (uint8_t)(~0x20); // Reset SHUT1
 //		d_pio->write_signal(SIG_I8255_PORT_C, reset_reg, 0xff);
 		d_cpu->set_address_mask(0x000fffff);
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 1, 1); // ToDo: Change To SubCPU
+#endif
 		//d_cpu->reset();
 	} else if(ch == SIG_CPUREG_HALT) {
 		stat_exthalt = ((data & mask) != 0);
@@ -58,6 +64,9 @@ void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
 		} else if(!(stat_wait)) {
 			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 		}
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 1, 1); // ToDo: Change To SubCPU
+#endif
 	}
 }
 	

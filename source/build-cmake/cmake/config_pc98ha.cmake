@@ -5,7 +5,7 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-		   i286.cpp
+#		   i286.cpp
 		   event.cpp
 		   io.cpp
 		   memory.cpp

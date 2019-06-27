@@ -23,7 +23,6 @@ set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-		   i286.cpp
 		   msm58321.cpp
 		   event.cpp
 		   io.cpp

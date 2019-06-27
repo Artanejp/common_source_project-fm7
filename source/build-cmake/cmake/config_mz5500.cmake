@@ -7,7 +7,7 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-		   i286.cpp
+#		   i286.cpp
 		   i8237.cpp
 		   mz1p17.cpp
 		   
@@ -50,12 +50,12 @@ if(BUILD_MZ5500)
 elseif(BUILD_MZ6500)
   add_definitions(-D_MZ6500)
   set(EXEC_TARGET emumz6500)
-  set(FLAG_USE_I86 OFF)
+#  set(FLAG_USE_I86 OFF)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz6500.qrc)
 else()
   add_definitions(-D_MZ6550)
   set(EXEC_TARGET emumz6550)
-  set(FLAG_USE_I286 ON)
+#  set(FLAG_USE_I286 ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz6550.qrc)
 endif()
 

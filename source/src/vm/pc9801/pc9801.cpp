@@ -36,10 +36,14 @@
 #include "../i8259.h"
 #if defined(HAS_I386) || defined(HAS_I486)
 #include "../i386.h"
-#elif defined(HAS_I86) || defined(HAS_V30)
-#include "../i286.h"
+#include "../v30.h"
+#elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
+#include "../i86.h"
+#elif  defined(HAS_V30)
+#include "../v30.h"
 #else
 #include "../i286.h"
+#include "../v30.h"
 #endif
 #include "../io.h"
 #include "../ls244.h"
@@ -185,10 +189,16 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pic = new I8259(this, emu);
 #if defined(HAS_I386) || defined(HAS_I486)
 	cpu = new I386(this, emu); // 80386, 80486
-#elif defined(HAS_I86) || defined(HAS_V30)
-	cpu = new I286(this, emu);// 8086, V30, 80286
+	v30cpu = new V30(this, emu); // Secondary CPU
+#elif defined(HAS_V30)
+	cpu = new V30(this, emu); // Secondary CPU
+//	subcpu = NULL;
+#elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
+	cpu = new I8086(this, emu);// 8086, V30, 80286
+//	subcpu = NULL;
 #else
-	cpu = new I286(this, emu);
+	cpu = new I80286(this, emu);
+	v30cpu = new V30(this, emu); // Secondary CPU
 #endif	
 #if defined(HAS_I86)
 	cpu->set_device_name(_T("CPU(i8086)"));
@@ -350,6 +360,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_extreset(cpureg, SIG_CPUREG_RESET, 0xffffffff);
 #endif
 	event->set_context_cpu(cpu, cpu_clocks);
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_I286)
+	//event->set_context_cpu(v30cpu, 8000 * 1000); // ToDo
+#endif	
 #if defined(SUPPORT_320KB_FDD_IF)
 	event->set_context_cpu(cpu_sub, 4000000);
 #endif
@@ -455,6 +468,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpureg->set_context_cpu(cpu);
 	cpureg->set_context_membus(memory);
 	cpureg->set_context_piosys(pio_sys);
+	#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_I286)
+	cpureg->set_context_v30(v30cpu);
+	#endif
 #endif
 	display->set_context_pic(pic);
 	display->set_context_gdc_chr(gdc_chr, gdc_chr->get_ra());
@@ -516,16 +532,19 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	sasi->set_context_hdd(sasi_hdd);
 	sasi->set_context_dma(dma);
 	sasi->set_context_pic(pic);
-#if 1
 	sasi_bios->set_context_sasi(sasi);
 	sasi_bios->set_context_memory(memory);
 	sasi_bios->set_context_cpu(cpu);
+	sasi_bios->set_context_v30cpu(v30cpu);
 	sasi_bios->set_context_pic(pic);
 	sasi_bios->set_context_cpureg(cpureg);
 	
 	cpu->set_context_bios(sasi_bios);
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_I286)
+	v30cpu->set_context_bios(sasi_bios);
 #endif
 #endif
+
 #if defined(SUPPORT_SCSI_IF)
 	dma->set_context_ch0(scsi);
 	scsi->set_context_dma(dma);
@@ -554,6 +573,19 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
+#endif
+
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_I286)
+	// cpu bus
+	v30cpu->set_context_mem(memory);
+	v30cpu->set_context_io(io);
+	v30cpu->set_context_intr(pic);
+#ifdef SINGLE_MODE_DMA
+	v30cpu->set_context_dma(dma);
+#endif
+#ifdef USE_DEBUGGER
+	v30cpu->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 #endif
 	
 #if defined(SUPPORT_320KB_FDD_IF)
@@ -1307,6 +1339,9 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
+#endif
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+	v30cpu->write_signal(SIG_CPU_BUSREQ, 1, 1); // ToDo: Change To SubCPU
 #endif
 	set_cpu_clock_with_switch((config.cpu_type != 0) ? 1 : 0);
 	
