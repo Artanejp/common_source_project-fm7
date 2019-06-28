@@ -983,7 +983,22 @@ void OSD::set_features_vm(void)
 	add_feature(_T("UPD7801_MEMORY_WAIT") , 1);
 #endif
 #ifdef HAS_UPD7810
-	add_feature(T("HAS_UPD7810"), 1);
+	add_feature(_T("HAS_UPD7810"), 1);
+#endif
+#ifdef HAS_UPD7807
+	add_feature(_T("HAS_UPD7807"), 1);
+#endif
+#ifdef HAS_UPD7801
+	add_feature(_T("HAS_UPD7801"), 1);
+#endif
+#ifdef HAS_UPD78C05
+	add_feature(_T("HAS_UPD78C05"), 1);
+#endif
+#ifdef HAS_UPD78C06
+	add_feature(_T("HAS_UPD78C06"), 1);
+#endif
+#ifdef HAS_UPD7907
+	add_feature(_T("HAS_UPD7907"), 1);
 #endif
 
 #ifdef HAS_YM2608

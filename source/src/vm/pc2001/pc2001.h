@@ -35,7 +35,7 @@
 #define USE_SOUND_VOLUME	3
 #define USE_DEBUGGER
 #define USE_STATE
-#define USE_CPU_UPD7810
+#define USE_CPU_UPD7907
 
 #include "../../common.h"
 #include "../../fileio.h"
@@ -56,7 +56,7 @@ class MEMORY;
 class PCM1BIT;
 class UPD16434;
 class UPD1990A;
-class UPD7810;
+class UPD7907;
 
 namespace PC2001 {
 	class IO;
@@ -75,7 +75,7 @@ protected:
 	PCM1BIT* pcm;
 	UPD16434* lcd[4];
 	UPD1990A* rtc;
-	UPD7810* cpu;
+	UPD7907* cpu;
 	
 	PC2001::IO* io;
 	

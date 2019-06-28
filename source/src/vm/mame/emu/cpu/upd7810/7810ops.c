@@ -7,12 +7,12 @@
  *
  *****************************************************************************/
 
-static void illegal(upd7810_state *cpustate)
+static void __FASTCALL illegal(upd7810_state *cpustate)
 {
 //	logerror("uPD7810 '%s': illegal opcode %02x at PC:%04x\n", cpustate->device->tag(), OP, PC);
 }
 
-static void illegal2(upd7810_state *cpustate)
+static void __FASTCALL illegal2(upd7810_state *cpustate)
 {
 //	logerror("uPD7810 '%s': illegal opcode %02x %02x at PC:%04x\n", cpustate->device->tag(), OP, OP2, PC);
 }
@@ -20,7 +20,7 @@ static void illegal2(upd7810_state *cpustate)
 /* prefix 48 */
 
 /* 48 01: 0100 1000 0000 0001 */
-static void SLRC_A(upd7810_state *cpustate)
+static void __FASTCALL SLRC_A(upd7810_state *cpustate)
 {
 	PSW = (PSW & ~CY) | (A & CY);
 	A >>= 1;
@@ -28,7 +28,7 @@ static void SLRC_A(upd7810_state *cpustate)
 }
 
 /* 48 02: 0100 1000 0000 0010 */
-static void SLRC_B(upd7810_state *cpustate)
+static void __FASTCALL SLRC_B(upd7810_state *cpustate)
 {
 	PSW = (PSW & ~CY) | (B & CY);
 	B >>= 1;
@@ -36,7 +36,7 @@ static void SLRC_B(upd7810_state *cpustate)
 }
 
 /* 48 03: 0100 1000 0000 0011 */
-static void SLRC_C(upd7810_state *cpustate)
+static void __FASTCALL SLRC_C(upd7810_state *cpustate)
 {
 	PSW = (PSW & ~CY) | (C & CY);
 	C >>= 1;
@@ -45,7 +45,7 @@ static void SLRC_C(upd7810_state *cpustate)
 
 
 /* 48 05: 0100 1000 0000 0101 */
-static void SLLC_A(upd7810_state *cpustate)
+static void __FASTCALL SLLC_A(upd7810_state *cpustate)
 {
 	PSW = (PSW & ~CY) | ((A >> 7) & CY);
 	A <<= 1;
@@ -53,7 +53,7 @@ static void SLLC_A(upd7810_state *cpustate)
 }
 
 /* 48 06: 0100 1000 0000 0110 */
-static void SLLC_B(upd7810_state *cpustate)
+static void __FASTCALL SLLC_B(upd7810_state *cpustate)
 {
 	PSW = (PSW & ~CY) | ((B >> 7) & CY);
 	B <<= 1;
@@ -61,7 +61,7 @@ static void SLLC_B(upd7810_state *cpustate)
 }
 
 /* 48 07: 0100 1000 0000 0111 */
-static void SLLC_C(upd7810_state *cpustate)
+static void __FASTCALL SLLC_C(upd7810_state *cpustate)
 {
 	PSW = (PSW & ~CY) | ((C >> 7) & CY);
 	C <<= 1;
@@ -69,110 +69,110 @@ static void SLLC_C(upd7810_state *cpustate)
 }
 
 /* 48 08: 0100 1000 0000 1000 */
-static void SK_NV(upd7810_state *cpustate)
+static void __FASTCALL SK_NV(upd7810_state *cpustate)
 {
 	/* 48 skip never */
 }
 
 /* 48 0a: 0100 1000 0000 1010 */
-static void SK_CY(upd7810_state *cpustate)
+static void __FASTCALL SK_CY(upd7810_state *cpustate)
 {
 	if (CY == (PSW & CY))
 		PSW |= SK;
 }
 
 /* 48 0b: 0100 1000 0000 1011 */
-static void SK_HC(upd7810_state *cpustate)
+static void __FASTCALL SK_HC(upd7810_state *cpustate)
 {
 	if (HC == (PSW & HC))
 		PSW |= SK;
 }
 
 /* 48 0c: 0100 1000 0000 1100 */
-static void SK_Z(upd7810_state *cpustate)
+static void __FASTCALL SK_Z(upd7810_state *cpustate)
 {
 	if (Z == (PSW & Z))
 		PSW |= SK;
 }
 
 /* 48 18: 0100 1000 0001 1000 */
-static void SKN_NV(upd7810_state *cpustate)
+static void __FASTCALL SKN_NV(upd7810_state *cpustate)
 {
 	/* skip not never -> skip always ;-) */
 	PSW |= SK;
 }
 
 /* 48 1a: 0100 1000 0001 1010 */
-static void SKN_CY(upd7810_state *cpustate)
+static void __FASTCALL SKN_CY(upd7810_state *cpustate)
 {
 	if (0 == (PSW & CY))
 		PSW |= SK;
 }
 
 /* 48 1b: 0100 1000 0001 1011 */
-static void SKN_HC(upd7810_state *cpustate)
+static void __FASTCALL SKN_HC(upd7810_state *cpustate)
 {
 	if (0 == (PSW & HC))
 		PSW |= SK;
 }
 
 /* 48 1c: 0100 1000 0001 1100 */
-static void SKN_Z(upd7810_state *cpustate)
+static void __FASTCALL SKN_Z(upd7810_state *cpustate)
 {
 	if (0 == (PSW & Z))
 		PSW |= SK;
 }
 
 /* 48 21: 0100 1000 0010 0001 */
-static void SLR_A(upd7810_state *cpustate)
+static void __FASTCALL SLR_A(upd7810_state *cpustate)
 {
 	PSW = (PSW & ~CY) | (A & CY);
 	A >>= 1;
 }
 
 /* 48 22: 0100 1000 0010 0010 */
-static void SLR_B(upd7810_state *cpustate)
+static void __FASTCALL SLR_B(upd7810_state *cpustate)
 {
 	PSW = (PSW & ~CY) | (B & CY);
 	B >>= 1;
 }
 
 /* 48 23: 0100 1000 0010 0011 */
-static void SLR_C(upd7810_state *cpustate)
+static void __FASTCALL SLR_C(upd7810_state *cpustate)
 {
 	PSW = (PSW & ~CY) | (C & CY);
 	C >>= 1;
 }
 
 /* 48 25: 0100 1000 0010 0101 */
-static void SLL_A(upd7810_state *cpustate)
+static void __FASTCALL SLL_A(upd7810_state *cpustate)
 {
 	PSW = (PSW & ~CY) | ((A >> 7) & CY);
 	A <<= 1;
 }
 
 /* 48 26: 0100 1000 0010 0110 */
-static void SLL_B(upd7810_state *cpustate)
+static void __FASTCALL SLL_B(upd7810_state *cpustate)
 {
 	PSW = (PSW & ~CY) | ((B >> 7) & CY);
 	B <<= 1;
 }
 
 /* 48 27: 0100 1000 0010 0111 */
-static void SLL_C(upd7810_state *cpustate)
+static void __FASTCALL SLL_C(upd7810_state *cpustate)
 {
 	PSW = (PSW & ~CY) | ((C >> 7) & CY);
 	C <<= 1;
 }
 
 /* 48 28: 0100 1000 0010 1000 */
-static void JEA(upd7810_state *cpustate)
+static void __FASTCALL JEA(upd7810_state *cpustate)
 {
 	PC = EA;
 }
 
 /* 48 29: 0100 1000 0010 1001 */
-static void CALB(upd7810_state *cpustate)
+static void __FASTCALL CALB(upd7810_state *cpustate)
 {
 	SP--;
 	WM( SPD, PCH );
@@ -183,37 +183,37 @@ static void CALB(upd7810_state *cpustate)
 }
 
 /* 48 2a: 0100 1000 0010 1010 */
-static void CLC(upd7810_state *cpustate)
+static void __FASTCALL CLC(upd7810_state *cpustate)
 {
 	PSW &= ~CY;
 }
 
 /* 48 2b: 0100 1000 0010 1011 */
-static void STC(upd7810_state *cpustate)
+static void __FASTCALL STC(upd7810_state *cpustate)
 {
 	PSW |= CY;
 }
 
 /* 48 2d: 0100 1000 0010 1101 */
-static void MUL_A(upd7810_state *cpustate)
+static void __FASTCALL MUL_A(upd7810_state *cpustate)
 {
 	EA = A * A;
 }
 
 /* 48 2e: 0100 1000 0010 1110 */
-static void MUL_B(upd7810_state *cpustate)
+static void __FASTCALL MUL_B(upd7810_state *cpustate)
 {
 	EA = A * B;
 }
 
 /* 48 2f: 0100 1000 0010 1111 */
-static void MUL_C(upd7810_state *cpustate)
+static void __FASTCALL MUL_C(upd7810_state *cpustate)
 {
 	EA = A * C;
 }
 
 /* 48 31: 0100 1000 0011 0001 */
-static void RLR_A(upd7810_state *cpustate)
+static void __FASTCALL RLR_A(upd7810_state *cpustate)
 {
 	UINT8 carry=(PSW&CY)<<7;
 	PSW = (PSW & ~CY) | (A & CY);
@@ -221,7 +221,7 @@ static void RLR_A(upd7810_state *cpustate)
 }
 
 /* 48 32: 0100 1000 0011 0010 */
-static void RLR_B(upd7810_state *cpustate)
+static void __FASTCALL RLR_B(upd7810_state *cpustate)
 {
 	UINT8 carry=(PSW&CY)<<7;
 	PSW = (PSW & ~CY) | (B & CY);
@@ -229,7 +229,7 @@ static void RLR_B(upd7810_state *cpustate)
 }
 
 /* 48 33: 0100 1000 0011 0011 */
-static void RLR_C(upd7810_state *cpustate)
+static void __FASTCALL RLR_C(upd7810_state *cpustate)
 {
 	UINT8 carry=(PSW&CY)<<7;
 	PSW = (PSW & ~CY) | (C & CY);
@@ -237,7 +237,7 @@ static void RLR_C(upd7810_state *cpustate)
 }
 
 /* 48 35: 0100 1000 0011 0101 */
-static void RLL_A(upd7810_state *cpustate)
+static void __FASTCALL RLL_A(upd7810_state *cpustate)
 {
 	UINT8 carry=PSW&CY;
 	PSW = (PSW & ~CY) | ((A >> 7) & CY);
@@ -245,7 +245,7 @@ static void RLL_A(upd7810_state *cpustate)
 }
 
 /* 48 36: 0100 1000 0011 0110 */
-static void RLL_B(upd7810_state *cpustate)
+static void __FASTCALL RLL_B(upd7810_state *cpustate)
 {
 	UINT8 carry=PSW&CY;
 	PSW = (PSW & ~CY) | ((B >> 7) & CY);
@@ -253,7 +253,7 @@ static void RLL_B(upd7810_state *cpustate)
 }
 
 /* 48 37: 0100 1000 0011 0111 */
-static void RLL_C(upd7810_state *cpustate)
+static void __FASTCALL RLL_C(upd7810_state *cpustate)
 {
 	UINT8 carry=PSW&CY;
 	PSW = (PSW & ~CY) | ((C >> 7) & CY);
@@ -261,7 +261,7 @@ static void RLL_C(upd7810_state *cpustate)
 }
 
 /* 48 38: 0100 1000 0011 1000 */
-static void RLD(upd7810_state *cpustate)
+static void __FASTCALL RLD(upd7810_state *cpustate)
 {
 	UINT8 m = RM( HL ), tmp;
 	tmp = (m << 4) | (A & 0x0f);
@@ -270,7 +270,7 @@ static void RLD(upd7810_state *cpustate)
 }
 
 /* 48 39: 0100 1000 0011 1001 */
-static void RRD(upd7810_state *cpustate)
+static void __FASTCALL RRD(upd7810_state *cpustate)
 {
 	UINT8 m = RM( HL ), tmp;
 	tmp = (A << 4) | (m >> 4);
@@ -279,13 +279,13 @@ static void RRD(upd7810_state *cpustate)
 }
 
 /* 48 3a: 0100 1000 0011 1010 */
-static void NEGA(upd7810_state *cpustate)
+static void __FASTCALL NEGA(upd7810_state *cpustate)
 {
 	A = ~A + 1;
 }
 
 /* 48 3b: 0100 1000 0011 1011 */
-static void HALT(upd7810_state *cpustate)
+static void __FASTCALL HALT(upd7810_state *cpustate)
 {
 	int cycles = (cpustate->icount / 4) * 4;
 	cpustate->icount -= cycles;
@@ -294,7 +294,7 @@ static void HALT(upd7810_state *cpustate)
 }
 
 /* 48 3d: 0100 1000 0011 1101 */
-static void DIV_A(upd7810_state *cpustate)
+static void __FASTCALL DIV_A(upd7810_state *cpustate)
 {
 	if (A)
 	{
@@ -308,7 +308,7 @@ static void DIV_A(upd7810_state *cpustate)
 }
 
 /* 48 3e: 0100 1000 0011 1110 */
-static void DIV_B(upd7810_state *cpustate)
+static void __FASTCALL DIV_B(upd7810_state *cpustate)
 {
 	if (B)
 	{
@@ -322,7 +322,7 @@ static void DIV_B(upd7810_state *cpustate)
 }
 
 /* 48 3f: 0100 1000 0011 1111 */
-static void DIV_C(upd7810_state *cpustate)
+static void __FASTCALL DIV_C(upd7810_state *cpustate)
 {
 	if (C)
 	{
@@ -336,7 +336,7 @@ static void DIV_C(upd7810_state *cpustate)
 }
 
 /* 48 40: 0100 1000 0100 0000 */
-static void SKIT_NMI(upd7810_state *cpustate)
+static void __FASTCALL SKIT_NMI(upd7810_state *cpustate)
 {
 	if (IRR & INTNMI)
 		PSW |= SK;
@@ -344,7 +344,7 @@ static void SKIT_NMI(upd7810_state *cpustate)
 }
 
 /* 48 41: 0100 1000 0100 0001 */
-static void SKIT_FT0(upd7810_state *cpustate)
+static void __FASTCALL SKIT_FT0(upd7810_state *cpustate)
 {
 	if (IRR & INTFT0)
 		PSW |= SK;
@@ -352,7 +352,7 @@ static void SKIT_FT0(upd7810_state *cpustate)
 }
 
 /* 48 42: 0100 1000 0100 0010 */
-static void SKIT_FT1(upd7810_state *cpustate)
+static void __FASTCALL SKIT_FT1(upd7810_state *cpustate)
 {
 	if (IRR & INTFT1)
 		PSW |= SK;
@@ -360,7 +360,7 @@ static void SKIT_FT1(upd7810_state *cpustate)
 }
 
 /* 48 43: 0100 1000 0100 0011 */
-static void SKIT_F1(upd7810_state *cpustate)
+static void __FASTCALL SKIT_F1(upd7810_state *cpustate)
 {
 	if (IRR & INTF1)
 		PSW |= SK;
@@ -368,7 +368,7 @@ static void SKIT_F1(upd7810_state *cpustate)
 }
 
 /* 48 44: 0100 1000 0100 0100 */
-static void SKIT_F2(upd7810_state *cpustate)
+static void __FASTCALL SKIT_F2(upd7810_state *cpustate)
 {
 	if (IRR & INTF2)
 		PSW |= SK;
@@ -376,7 +376,7 @@ static void SKIT_F2(upd7810_state *cpustate)
 }
 
 /* 48 45: 0100 1000 0100 0101 */
-static void SKIT_FE0(upd7810_state *cpustate)
+static void __FASTCALL SKIT_FE0(upd7810_state *cpustate)
 {
 	if (IRR & INTFE0)
 		PSW |= SK;
@@ -384,7 +384,7 @@ static void SKIT_FE0(upd7810_state *cpustate)
 }
 
 /* 48 46: 0100 1000 0100 0110 */
-static void SKIT_FE1(upd7810_state *cpustate)
+static void __FASTCALL SKIT_FE1(upd7810_state *cpustate)
 {
 	if (IRR & INTFE1)
 		PSW |= SK;
@@ -392,7 +392,7 @@ static void SKIT_FE1(upd7810_state *cpustate)
 }
 
 /* 48 47: 0100 1000 0100 0111 */
-static void SKIT_FEIN(upd7810_state *cpustate)
+static void __FASTCALL SKIT_FEIN(upd7810_state *cpustate)
 {
 	if (IRR & INTFEIN)
 		PSW |= SK;
@@ -400,7 +400,7 @@ static void SKIT_FEIN(upd7810_state *cpustate)
 }
 
 /* 48 48: 0100 1000 0100 1000 */
-static void SKIT_FAD(upd7810_state *cpustate)
+static void __FASTCALL SKIT_FAD(upd7810_state *cpustate)
 {
 	if (IRR & INTFAD)
 		PSW |= SK;
@@ -408,7 +408,7 @@ static void SKIT_FAD(upd7810_state *cpustate)
 }
 
 /* 48 49: 0100 1000 0100 1001 */
-static void SKIT_FSR(upd7810_state *cpustate)
+static void __FASTCALL SKIT_FSR(upd7810_state *cpustate)
 {
 	if (IRR & INTFSR)
 		PSW |= SK;
@@ -416,7 +416,7 @@ static void SKIT_FSR(upd7810_state *cpustate)
 }
 
 /* 48 4a: 0100 1000 0100 1010 */
-static void SKIT_FST(upd7810_state *cpustate)
+static void __FASTCALL SKIT_FST(upd7810_state *cpustate)
 {
 	if (IRR & INTFST)
 		PSW |= SK;
@@ -424,7 +424,7 @@ static void SKIT_FST(upd7810_state *cpustate)
 }
 
 /* 48 4b: 0100 1000 0100 1011 */
-static void SKIT_ER(upd7810_state *cpustate)
+static void __FASTCALL SKIT_ER(upd7810_state *cpustate)
 {
 	if (IRR & INTER)
 		PSW |= SK;
@@ -432,7 +432,7 @@ static void SKIT_ER(upd7810_state *cpustate)
 }
 
 /* 48 4c: 0100 1000 0100 1100 */
-static void SKIT_OV(upd7810_state *cpustate)
+static void __FASTCALL SKIT_OV(upd7810_state *cpustate)
 {
 	if (IRR & INTOV)
 		PSW |= SK;
@@ -440,7 +440,7 @@ static void SKIT_OV(upd7810_state *cpustate)
 }
 
 /* 48 50: 0100 1000 0101 0000 */
-static void SKIT_AN4(upd7810_state *cpustate)
+static void __FASTCALL SKIT_AN4(upd7810_state *cpustate)
 {
 	if (ITF & INTAN4)
 		PSW |= SK;
@@ -448,7 +448,7 @@ static void SKIT_AN4(upd7810_state *cpustate)
 }
 
 /* 48 51: 0100 1000 0101 0001 */
-static void SKIT_AN5(upd7810_state *cpustate)
+static void __FASTCALL SKIT_AN5(upd7810_state *cpustate)
 {
 	if (ITF & INTAN5)
 		PSW |= SK;
@@ -456,7 +456,7 @@ static void SKIT_AN5(upd7810_state *cpustate)
 }
 
 /* 48 52: 0100 1000 0101 0010 */
-static void SKIT_AN6(upd7810_state *cpustate)
+static void __FASTCALL SKIT_AN6(upd7810_state *cpustate)
 {
 	if (ITF & INTAN6)
 		PSW |= SK;
@@ -464,7 +464,7 @@ static void SKIT_AN6(upd7810_state *cpustate)
 }
 
 /* 48 53: 0100 1000 0101 0011 */
-static void SKIT_AN7(upd7810_state *cpustate)
+static void __FASTCALL SKIT_AN7(upd7810_state *cpustate)
 {
 	if (ITF & INTAN7)
 		PSW |= SK;
@@ -472,7 +472,7 @@ static void SKIT_AN7(upd7810_state *cpustate)
 }
 
 /* 48 54: 0100 1000 0101 0100 */
-static void SKIT_SB(upd7810_state *cpustate)
+static void __FASTCALL SKIT_SB(upd7810_state *cpustate)
 {
 	if (ITF & INTSB)
 		PSW |= SK;
@@ -480,7 +480,7 @@ static void SKIT_SB(upd7810_state *cpustate)
 }
 
 /* 48 60: 0100 1000 0110 0000 */
-static void SKNIT_NMI(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_NMI(upd7810_state *cpustate)
 {
 	if (0 == (IRR & INTNMI))
 		PSW |= SK;
@@ -488,7 +488,7 @@ static void SKNIT_NMI(upd7810_state *cpustate)
 }
 
 /* 48 61: 0100 1000 0110 0001 */
-static void SKNIT_FT0(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_FT0(upd7810_state *cpustate)
 {
 	if (0 == (IRR & INTFT0))
 		PSW |= SK;
@@ -496,7 +496,7 @@ static void SKNIT_FT0(upd7810_state *cpustate)
 }
 
 /* 48 62: 0100 1000 0110 0010 */
-static void SKNIT_FT1(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_FT1(upd7810_state *cpustate)
 {
 	if (0 == (IRR & INTFT1))
 		PSW |= SK;
@@ -504,7 +504,7 @@ static void SKNIT_FT1(upd7810_state *cpustate)
 }
 
 /* 48 63: 0100 1000 0110 0011 */
-static void SKNIT_F1(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_F1(upd7810_state *cpustate)
 {
 	if (0 == (IRR & INTF1))
 		PSW |= SK;
@@ -512,7 +512,7 @@ static void SKNIT_F1(upd7810_state *cpustate)
 }
 
 /* 48 64: 0100 1000 0110 0100 */
-static void SKNIT_F2(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_F2(upd7810_state *cpustate)
 {
 	if (0 == (IRR & INTF2))
 		PSW |= SK;
@@ -520,7 +520,7 @@ static void SKNIT_F2(upd7810_state *cpustate)
 }
 
 /* 48 65: 0100 1000 0110 0101 */
-static void SKNIT_FE0(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_FE0(upd7810_state *cpustate)
 {
 	if (0 == (IRR & INTFE0))
 		PSW |= SK;
@@ -528,7 +528,7 @@ static void SKNIT_FE0(upd7810_state *cpustate)
 }
 
 /* 48 66: 0100 1000 0110 0110 */
-static void SKNIT_FE1(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_FE1(upd7810_state *cpustate)
 {
 	if (0 == (IRR & INTFE1))
 		PSW |= SK;
@@ -536,7 +536,7 @@ static void SKNIT_FE1(upd7810_state *cpustate)
 }
 
 /* 48 67: 0100 1000 0110 0111 */
-static void SKNIT_FEIN(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_FEIN(upd7810_state *cpustate)
 {
 	if (0 == (IRR & INTFEIN))
 		PSW |= SK;
@@ -544,7 +544,7 @@ static void SKNIT_FEIN(upd7810_state *cpustate)
 }
 
 /* 48 68: 0100 1000 0110 1000 */
-static void SKNIT_FAD(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_FAD(upd7810_state *cpustate)
 {
 	if (0 == (IRR & INTFAD))
 		PSW |= SK;
@@ -552,7 +552,7 @@ static void SKNIT_FAD(upd7810_state *cpustate)
 }
 
 /* 48 69: 0100 1000 0110 1001 */
-static void SKNIT_FSR(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_FSR(upd7810_state *cpustate)
 {
 	if (0 == (IRR & INTFSR))
 		PSW |= SK;
@@ -560,7 +560,7 @@ static void SKNIT_FSR(upd7810_state *cpustate)
 }
 
 /* 48 6a: 0100 1000 0110 1010 */
-static void SKNIT_FST(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_FST(upd7810_state *cpustate)
 {
 	if (0 == (IRR & INTFST))
 		PSW |= SK;
@@ -568,7 +568,7 @@ static void SKNIT_FST(upd7810_state *cpustate)
 }
 
 /* 48 6b: 0100 1000 0110 1011 */
-static void SKNIT_ER(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_ER(upd7810_state *cpustate)
 {
 	if (0 == (IRR & INTER))
 		PSW |= SK;
@@ -576,7 +576,7 @@ static void SKNIT_ER(upd7810_state *cpustate)
 }
 
 /* 48 6c: 0100 1000 0110 1100 */
-static void SKNIT_OV(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_OV(upd7810_state *cpustate)
 {
 	if (0 == (IRR & INTOV))
 		PSW |= SK;
@@ -584,7 +584,7 @@ static void SKNIT_OV(upd7810_state *cpustate)
 }
 
 /* 48 70: 0100 1000 0111 0000 */
-static void SKNIT_AN4(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_AN4(upd7810_state *cpustate)
 {
 	if (0 == (ITF & INTAN4))
 		PSW |= SK;
@@ -592,7 +592,7 @@ static void SKNIT_AN4(upd7810_state *cpustate)
 }
 
 /* 48 71: 0100 1000 0111 0001 */
-static void SKNIT_AN5(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_AN5(upd7810_state *cpustate)
 {
 	if (0 == (ITF & INTAN5))
 		PSW |= SK;
@@ -600,7 +600,7 @@ static void SKNIT_AN5(upd7810_state *cpustate)
 }
 
 /* 48 72: 0100 1000 0111 0010 */
-static void SKNIT_AN6(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_AN6(upd7810_state *cpustate)
 {
 	if (0 == (ITF & INTAN6))
 		PSW |= SK;
@@ -608,7 +608,7 @@ static void SKNIT_AN6(upd7810_state *cpustate)
 }
 
 /* 48 73: 0100 1000 0111 0011 */
-static void SKNIT_AN7(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_AN7(upd7810_state *cpustate)
 {
 	if (0 == (ITF & INTAN7))
 		PSW |= SK;
@@ -616,7 +616,7 @@ static void SKNIT_AN7(upd7810_state *cpustate)
 }
 
 /* 48 74: 0100 1000 0111 0100 */
-static void SKNIT_SB(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_SB(upd7810_state *cpustate)
 {
 	if (0 == (ITF & INTSB))
 		PSW |= SK;
@@ -624,21 +624,21 @@ static void SKNIT_SB(upd7810_state *cpustate)
 }
 
 /* 48 82: 0100 1000 1000 0010 */
-static void LDEAX_D(upd7810_state *cpustate)
+static void __FASTCALL LDEAX_D(upd7810_state *cpustate)
 {
 	EAL = RM( DE );
 	EAH = RM( DE + 1 );
 }
 
 /* 48 83: 0100 1000 1000 0011 */
-static void LDEAX_H(upd7810_state *cpustate)
+static void __FASTCALL LDEAX_H(upd7810_state *cpustate)
 {
 	EAL = RM( HL );
 	EAH = RM( HL + 1 );
 }
 
 /* 48 84: 0100 1000 1000 0100 */
-static void LDEAX_Dp(upd7810_state *cpustate)
+static void __FASTCALL LDEAX_Dp(upd7810_state *cpustate)
 {
 	EAL = RM( DE );
 	EAH = RM( DE + 1 );
@@ -646,7 +646,7 @@ static void LDEAX_Dp(upd7810_state *cpustate)
 }
 
 /* 48 85: 0100 1000 1000 0101 */
-static void LDEAX_Hp(upd7810_state *cpustate)
+static void __FASTCALL LDEAX_Hp(upd7810_state *cpustate)
 {
 	EAL = RM( HL );
 	EAH = RM( HL + 1 );
@@ -654,7 +654,7 @@ static void LDEAX_Hp(upd7810_state *cpustate)
 }
 
 /* 48 8b: 0100 1000 1000 1011 xxxx xxxx */
-static void LDEAX_D_xx(upd7810_state *cpustate)
+static void __FASTCALL LDEAX_D_xx(upd7810_state *cpustate)
 {
 	UINT16 ea;
 	RDOPARG( ea );
@@ -664,7 +664,7 @@ static void LDEAX_D_xx(upd7810_state *cpustate)
 }
 
 /* 48 8c: 0100 1000 1000 1100 */
-static void LDEAX_H_A(upd7810_state *cpustate)
+static void __FASTCALL LDEAX_H_A(upd7810_state *cpustate)
 {
 	UINT16 ea = HL + A;
 	EAL = RM( ea );
@@ -672,7 +672,7 @@ static void LDEAX_H_A(upd7810_state *cpustate)
 }
 
 /* 48 8d: 0100 1000 1000 1101 */
-static void LDEAX_H_B(upd7810_state *cpustate)
+static void __FASTCALL LDEAX_H_B(upd7810_state *cpustate)
 {
 	UINT16 ea = HL + B;
 	EAL = RM( ea );
@@ -680,7 +680,7 @@ static void LDEAX_H_B(upd7810_state *cpustate)
 }
 
 /* 48 8e: 0100 1000 1000 1110 */
-static void LDEAX_H_EA(upd7810_state *cpustate)
+static void __FASTCALL LDEAX_H_EA(upd7810_state *cpustate)
 {
 	UINT16 ea = HL + EA;
 	EAL = RM( ea );
@@ -688,7 +688,7 @@ static void LDEAX_H_EA(upd7810_state *cpustate)
 }
 
 /* 48 8f: 0100 1000 1000 1111 xxxx xxxx */
-static void LDEAX_H_xx(upd7810_state *cpustate)
+static void __FASTCALL LDEAX_H_xx(upd7810_state *cpustate)
 {
 	UINT16 ea;
 	RDOPARG( ea );
@@ -698,21 +698,21 @@ static void LDEAX_H_xx(upd7810_state *cpustate)
 }
 
 /* 48 92: 0100 1000 1000 0010 */
-static void STEAX_D(upd7810_state *cpustate)
+static void __FASTCALL STEAX_D(upd7810_state *cpustate)
 {
 	WM( DE, EAL );
 	WM( DE + 1, EAH );
 }
 
 /* 48 93: 0100 1000 1000 0011 */
-static void STEAX_H(upd7810_state *cpustate)
+static void __FASTCALL STEAX_H(upd7810_state *cpustate)
 {
 	WM( HL, EAL );
 	WM( HL + 1, EAH );
 }
 
 /* 48 94: 0100 1000 1000 0100 */
-static void STEAX_Dp(upd7810_state *cpustate)
+static void __FASTCALL STEAX_Dp(upd7810_state *cpustate)
 {
 	WM( DE, EAL );
 	WM( DE + 1, EAH );
@@ -720,7 +720,7 @@ static void STEAX_Dp(upd7810_state *cpustate)
 }
 
 /* 48 95: 0100 1000 1000 0101 */
-static void STEAX_Hp(upd7810_state *cpustate)
+static void __FASTCALL STEAX_Hp(upd7810_state *cpustate)
 {
 	WM( HL, EAL );
 	WM( HL + 1, EAH );
@@ -728,7 +728,7 @@ static void STEAX_Hp(upd7810_state *cpustate)
 }
 
 /* 48 9b: 0100 1000 1000 1011 xxxx xxxx */
-static void STEAX_D_xx(upd7810_state *cpustate)
+static void __FASTCALL STEAX_D_xx(upd7810_state *cpustate)
 {
 	UINT16 ea;
 	RDOPARG( ea );
@@ -738,7 +738,7 @@ static void STEAX_D_xx(upd7810_state *cpustate)
 }
 
 /* 48 9c: 0100 1000 1000 1100 */
-static void STEAX_H_A(upd7810_state *cpustate)
+static void __FASTCALL STEAX_H_A(upd7810_state *cpustate)
 {
 	UINT16 ea = HL + A;
 	WM( ea, EAL );
@@ -746,7 +746,7 @@ static void STEAX_H_A(upd7810_state *cpustate)
 }
 
 /* 48 9d: 0100 1000 1000 1101 */
-static void STEAX_H_B(upd7810_state *cpustate)
+static void __FASTCALL STEAX_H_B(upd7810_state *cpustate)
 {
 	UINT16 ea = HL + B;
 	WM( ea, EAL );
@@ -754,7 +754,7 @@ static void STEAX_H_B(upd7810_state *cpustate)
 }
 
 /* 48 9e: 0100 1000 1000 1110 */
-static void STEAX_H_EA(upd7810_state *cpustate)
+static void __FASTCALL STEAX_H_EA(upd7810_state *cpustate)
 {
 	UINT16 ea = HL + EA;
 	WM( ea, EAL );
@@ -762,7 +762,7 @@ static void STEAX_H_EA(upd7810_state *cpustate)
 }
 
 /* 48 9f: 0100 1000 1000 1111 xxxx xxxx */
-static void STEAX_H_xx(upd7810_state *cpustate)
+static void __FASTCALL STEAX_H_xx(upd7810_state *cpustate)
 {
 	UINT16 ea;
 	RDOPARG( ea );
@@ -772,21 +772,21 @@ static void STEAX_H_xx(upd7810_state *cpustate)
 }
 
 /* 48 a0: 0100 1000 1010 0000 */
-static void DSLR_EA(upd7810_state *cpustate)
+static void __FASTCALL DSLR_EA(upd7810_state *cpustate)
 {
 	PSW = (PSW & ~CY) | (EA & CY);
 	EA >>= 1;
 }
 
 /* 48 a4: 0100 1000 1010 0100 */
-static void DSLL_EA(upd7810_state *cpustate)
+static void __FASTCALL DSLL_EA(upd7810_state *cpustate)
 {
 	PSW = (PSW & ~CY) | ((EA >> 15) & CY);
 	EA <<= 1;
 }
 
 /* 48 a8: 0100 1000 1010 1000 */
-static void TABLE(upd7810_state *cpustate)
+static void __FASTCALL TABLE(upd7810_state *cpustate)
 {
 	UINT16 ea = PC + A + 1;
 	C = RM( ea );
@@ -794,7 +794,7 @@ static void TABLE(upd7810_state *cpustate)
 }
 
 /* 48 b0: 0100 1000 1011 0000 */
-static void DRLR_EA(upd7810_state *cpustate)
+static void __FASTCALL DRLR_EA(upd7810_state *cpustate)
 {
 	UINT8 carry=PSW&CY;
 	PSW = (PSW & ~CY) | (EA & CY);
@@ -802,7 +802,7 @@ static void DRLR_EA(upd7810_state *cpustate)
 }
 
 /* 48 b4: 0100 1000 1011 0100 */
-static void DRLL_EA(upd7810_state *cpustate)
+static void __FASTCALL DRLL_EA(upd7810_state *cpustate)
 {
 	UINT8 carry=PSW&CY;
 	PSW = (PSW & ~CY) | ((EA >> 15) & CY);
@@ -810,7 +810,7 @@ static void DRLL_EA(upd7810_state *cpustate)
 }
 
 /* 48 bb: 0100 1000 1011 1011 */
-static void STOP(upd7810_state *cpustate)
+static void __FASTCALL STOP(upd7810_state *cpustate)
 {
 	int cycles = (cpustate->icount / 4) * 4;
 	cpustate->icount -= cycles;
@@ -819,86 +819,86 @@ static void STOP(upd7810_state *cpustate)
 }
 
 /* 48 c0: 0100 1000 1100 0000 */
-static void DMOV_EA_ECNT(upd7810_state *cpustate)
+static void __FASTCALL DMOV_EA_ECNT(upd7810_state *cpustate)
 {
 	EA = ECNT;
 }
 
 /* 48 c1: 0100 1000 1100 0001 */
-static void DMOV_EA_ECPT(upd7810_state *cpustate)
+static void __FASTCALL DMOV_EA_ECPT(upd7810_state *cpustate)
 {
 	EA = ECPT;
 }
 
 /* 48 d2: 0100 1000 1101 0010 */
-static void DMOV_ETM0_EA(upd7810_state *cpustate)
+static void __FASTCALL DMOV_ETM0_EA(upd7810_state *cpustate)
 {
 	ETM0 = EA;
 }
 
 /* 48 d3: 0100 1000 1101 0011 */
-static void DMOV_ETM1_EA(upd7810_state *cpustate)
+static void __FASTCALL DMOV_ETM1_EA(upd7810_state *cpustate)
 {
 	ETM1 = EA;
 }
 
 /* prefix 4C */
 /* 4c c0: 0100 1100 1100 0000 */
-static void MOV_A_PA(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_PA(upd7810_state *cpustate)
 {
 	A = RP( cpustate, UPD7810_PORTA );
 }
 
 /* 4c c1: 0100 1100 1100 0001 */
-static void MOV_A_PB(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_PB(upd7810_state *cpustate)
 {
 	A = RP( cpustate, UPD7810_PORTB );
 }
 
 /* 4c c2: 0100 1100 1100 0010 */
-static void MOV_A_PC(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_PC(upd7810_state *cpustate)
 {
 	A = RP( cpustate, UPD7810_PORTC );
 }
 
 /* 4c c3: 0100 1100 1100 0011 */
-static void MOV_A_PD(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_PD(upd7810_state *cpustate)
 {
 	A = RP( cpustate, UPD7810_PORTD );
 }
 
 /* 4c c5: 0100 1100 1100 0101 */
-static void MOV_A_PF(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_PF(upd7810_state *cpustate)
 {
 	A = RP( cpustate, UPD7810_PORTF );
 }
 
 /* 4c c6: 0100 1100 1100 0110 */
-static void MOV_A_MKH(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_MKH(upd7810_state *cpustate)
 {
 	A = MKH;
 }
 
 /* 4c c7: 0100 1100 1100 0111 */
-static void MOV_A_MKL(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_MKL(upd7810_state *cpustate)
 {
 	A = MKL;
 }
 
 /* 4c c8: 0100 1100 1100 1000 */
-static void MOV_A_ANM(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_ANM(upd7810_state *cpustate)
 {
 	A = ANM;
 }
 
 /* 4c c9: 0100 1100 1100 1001 */
-static void MOV_A_SMH(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_SMH(upd7810_state *cpustate)
 {
 	A = SMH;
 }
 
 /* 4c cb: 0100 1100 1100 1011 */
-static void MOV_A_EOM(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_EOM(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
 #ifdef HAS_UPD7907
@@ -910,359 +910,359 @@ static void MOV_A_EOM(upd7810_state *cpustate)
 }
 
 /* 4c cd: 0100 1100 1100 1101 */
-static void MOV_A_TMM(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_TMM(upd7810_state *cpustate)
 {
 	A = TMM;
 }
 
 /* 4c ce: 0100 1100 1110 0000 (7807 only) */
-static void MOV_A_PT(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_PT(upd7810_state *cpustate)
 {
 	A = RP( cpustate, UPD7807_PORTT );
 }
 
 /* 4c d9: 0100 1100 1101 1001 */
-static void MOV_A_RXB(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_RXB(upd7810_state *cpustate)
 {
 	A = RXB;
 }
 
 /* 4c e0: 0100 1100 1110 0000 */
-static void MOV_A_CR0(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_CR0(upd7810_state *cpustate)
 {
 	A = CR0;
 }
 
 /* 4c e1: 0100 1100 1110 0001 */
-static void MOV_A_CR1(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_CR1(upd7810_state *cpustate)
 {
 	A = CR1;
 }
 
 /* 4c e2: 0100 1100 1110 0010 */
-static void MOV_A_CR2(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_CR2(upd7810_state *cpustate)
 {
 	A = CR2;
 }
 
 /* 4c e3: 0100 1100 1110 0011 */
-static void MOV_A_CR3(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_CR3(upd7810_state *cpustate)
 {
 	A = CR3;
 }
 
 /* prefix 4D */
 /* 4d c0: 0100 1101 1100 0000 */
-static void MOV_PA_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_PA_A(upd7810_state *cpustate)
 {
 	WP( cpustate, UPD7810_PORTA, A );
 }
 
 /* 4d c1: 0100 1101 1100 0001 */
-static void MOV_PB_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_PB_A(upd7810_state *cpustate)
 {
 	WP( cpustate, UPD7810_PORTB, A );
 }
 
 /* 4d c2: 0100 1101 1100 0010 */
-static void MOV_PC_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_PC_A(upd7810_state *cpustate)
 {
 	WP( cpustate, UPD7810_PORTC, A );
 }
 
 /* 4d c3: 0100 1101 1100 0011 */
-static void MOV_PD_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_PD_A(upd7810_state *cpustate)
 {
 	WP( cpustate, UPD7810_PORTD, A );
 }
 
 /* 4d c5: 0100 1101 1100 0101 */
-static void MOV_PF_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_PF_A(upd7810_state *cpustate)
 {
 	WP( cpustate, UPD7810_PORTF, A );
 }
 
 /* 4d c6: 0100 1101 1100 0110 */
-static void MOV_MKH_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_MKH_A(upd7810_state *cpustate)
 {
 	MKH = A;
 }
 
 /* 4d c7: 0100 1101 1100 0111 */
-static void MOV_MKL_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_MKL_A(upd7810_state *cpustate)
 {
 	MKL = A;
 }
 
 /* 4d c8: 0100 1101 1100 1000 */
-static void MOV_ANM_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_ANM_A(upd7810_state *cpustate)
 {
 	ANM = A;
 }
 
 /* 4d c9: 0100 1101 1100 1001 */
-static void MOV_SMH_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_SMH_A(upd7810_state *cpustate)
 {
 	SMH = A;
 }
 
 /* 4d ca: 0100 1101 1100 1010 */
-static void MOV_SML_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_SML_A(upd7810_state *cpustate)
 {
 	SML = A;
 }
 
 /* 4d cb: 0100 1101 1100 1011 */
-static void MOV_EOM_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_EOM_A(upd7810_state *cpustate)
 {
 	EOM = A;
 	upd7810_write_EOM(cpustate);
 }
 
 /* 4d cc: 0100 1101 1100 1100 */
-static void MOV_ETMM_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_ETMM_A(upd7810_state *cpustate)
 {
 	ETMM = A;
 }
 
 /* 4d cd: 0100 1101 1100 1101 */
-static void MOV_TMM_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_TMM_A(upd7810_state *cpustate)
 {
 	TMM = A;
 }
 
 /* 4d d0: 0100 1101 1101 0000 */
-static void MOV_MM_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_MM_A(upd7810_state *cpustate)
 {
 	MM = A;
 }
 
 /* 4d d1: 0100 1101 1101 0001 */
-static void MOV_MCC_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_MCC_A(upd7810_state *cpustate)
 {
 	MCC = A;
 }
 
 /* 4d d2: 0100 1101 1101 0010 */
-static void MOV_MA_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_MA_A(upd7810_state *cpustate)
 {
 	MA = A;
 }
 
 /* 4d d3: 0100 1101 1101 0011 */
-static void MOV_MB_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_MB_A(upd7810_state *cpustate)
 {
 	MB = A;
 }
 
 /* 4d d4: 0100 1101 1101 0100 */
-static void MOV_MC_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_MC_A(upd7810_state *cpustate)
 {
 	MC = A;
 }
 
 /* 4d d7: 0100 1101 1101 0111 */
-static void MOV_MF_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_MF_A(upd7810_state *cpustate)
 {
 	MF = A;
 }
 
 /* 4d d8: 0100 1101 1101 1000 */
-static void MOV_TXB_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_TXB_A(upd7810_state *cpustate)
 {
 	TXB = A;
 	upd7810_write_TXB(cpustate);
 }
 
 /* 4d da: 0100 1101 1101 1010 */
-static void MOV_TM0_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_TM0_A(upd7810_state *cpustate)
 {
 	TM0 = A;
 }
 
 /* 4d db: 0100 1101 1101 1011 */
-static void MOV_TM1_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_TM1_A(upd7810_state *cpustate)
 {
 	TM1 = A;
 }
 
 /* 4d e8: 0100 1101 1110 1000 */
-static void MOV_ZCM_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_ZCM_A(upd7810_state *cpustate)
 {
 	ZCM = A;
 }
 
 /* prefix 60 */
 /* 60 08: 0110 0000 0000 1000 */
-static void ANA_V_A(upd7810_state *cpustate)
+static void __FASTCALL ANA_V_A(upd7810_state *cpustate)
 {
 	V &= A;
 	SET_Z(V);
 }
 
 /* 60 09: 0110 0000 0000 1001 */
-static void ANA_A_A(upd7810_state *cpustate)
+static void __FASTCALL ANA_A_A(upd7810_state *cpustate)
 {
 	A &= A;
 	SET_Z(A);
 }
 
 /* 60 0a: 0110 0000 0000 1010 */
-static void ANA_B_A(upd7810_state *cpustate)
+static void __FASTCALL ANA_B_A(upd7810_state *cpustate)
 {
 	B &= A;
 	SET_Z(B);
 }
 
 /* 60 0b: 0110 0000 0000 1011 */
-static void ANA_C_A(upd7810_state *cpustate)
+static void __FASTCALL ANA_C_A(upd7810_state *cpustate)
 {
 	C &= A;
 	SET_Z(C);
 }
 
 /* 60 0c: 0110 0000 0000 1100 */
-static void ANA_D_A(upd7810_state *cpustate)
+static void __FASTCALL ANA_D_A(upd7810_state *cpustate)
 {
 	D &= A;
 	SET_Z(D);
 }
 
 /* 60 0d: 0110 0000 0000 1101 */
-static void ANA_E_A(upd7810_state *cpustate)
+static void __FASTCALL ANA_E_A(upd7810_state *cpustate)
 {
 	E &= A;
 	SET_Z(E);
 }
 
 /* 60 0e: 0110 0000 0000 1110 */
-static void ANA_H_A(upd7810_state *cpustate)
+static void __FASTCALL ANA_H_A(upd7810_state *cpustate)
 {
 	H &= A;
 	SET_Z(H);
 }
 
 /* 60 0f: 0110 0000 0000 1111 */
-static void ANA_L_A(upd7810_state *cpustate)
+static void __FASTCALL ANA_L_A(upd7810_state *cpustate)
 {
 	L &= A;
 	SET_Z(L);
 }
 
 /* 60 10: 0110 0000 0001 0000 */
-static void XRA_V_A(upd7810_state *cpustate)
+static void __FASTCALL XRA_V_A(upd7810_state *cpustate)
 {
 	V ^= A;
 	SET_Z(V);
 }
 
 /* 60 11: 0110 0000 0001 0001 */
-static void XRA_A_A(upd7810_state *cpustate)
+static void __FASTCALL XRA_A_A(upd7810_state *cpustate)
 {
 	A ^= A;
 	SET_Z(A);
 }
 
 /* 60 12: 0110 0000 0001 0010 */
-static void XRA_B_A(upd7810_state *cpustate)
+static void __FASTCALL XRA_B_A(upd7810_state *cpustate)
 {
 	B ^= A;
 	SET_Z(B);
 }
 
 /* 60 13: 0110 0000 0001 0011 */
-static void XRA_C_A(upd7810_state *cpustate)
+static void __FASTCALL XRA_C_A(upd7810_state *cpustate)
 {
 	C ^= A;
 	SET_Z(C);
 }
 
 /* 60 14: 0110 0000 0001 0100 */
-static void XRA_D_A(upd7810_state *cpustate)
+static void __FASTCALL XRA_D_A(upd7810_state *cpustate)
 {
 	D ^= A;
 	SET_Z(D);
 }
 
 /* 60 15: 0110 0000 0001 0101 */
-static void XRA_E_A(upd7810_state *cpustate)
+static void __FASTCALL XRA_E_A(upd7810_state *cpustate)
 {
 	E ^= A;
 	SET_Z(E);
 }
 
 /* 60 16: 0110 0000 0001 0110 */
-static void XRA_H_A(upd7810_state *cpustate)
+static void __FASTCALL XRA_H_A(upd7810_state *cpustate)
 {
 	H ^= A;
 	SET_Z(H);
 }
 
 /* 60 17: 0110 0000 0001 0111 */
-static void XRA_L_A(upd7810_state *cpustate)
+static void __FASTCALL XRA_L_A(upd7810_state *cpustate)
 {
 	L ^= A;
 	SET_Z(L);
 }
 
 /* 60 18: 0110 0000 0001 1000 */
-static void ORA_V_A(upd7810_state *cpustate)
+static void __FASTCALL ORA_V_A(upd7810_state *cpustate)
 {
 	V |= A;
 	SET_Z(V);
 }
 
 /* 60 19: 0110 0000 0001 1001 */
-static void ORA_A_A(upd7810_state *cpustate)
+static void __FASTCALL ORA_A_A(upd7810_state *cpustate)
 {
 	A |= A;
 	SET_Z(A);
 }
 
 /* 60 1a: 0110 0000 0001 1010 */
-static void ORA_B_A(upd7810_state *cpustate)
+static void __FASTCALL ORA_B_A(upd7810_state *cpustate)
 {
 	B |= A;
 	SET_Z(B);
 }
 
 /* 60 1b: 0110 0000 0001 1011 */
-static void ORA_C_A(upd7810_state *cpustate)
+static void __FASTCALL ORA_C_A(upd7810_state *cpustate)
 {
 	C |= A;
 	SET_Z(C);
 }
 
 /* 60 1c: 0110 0000 0001 1100 */
-static void ORA_D_A(upd7810_state *cpustate)
+static void __FASTCALL ORA_D_A(upd7810_state *cpustate)
 {
 	D |= A;
 	SET_Z(D);
 }
 
 /* 60 1d: 0110 0000 0001 1101 */
-static void ORA_E_A(upd7810_state *cpustate)
+static void __FASTCALL ORA_E_A(upd7810_state *cpustate)
 {
 	E |= A;
 	SET_Z(E);
 }
 
 /* 60 1e: 0110 0000 0001 1110 */
-static void ORA_H_A(upd7810_state *cpustate)
+static void __FASTCALL ORA_H_A(upd7810_state *cpustate)
 {
 	H |= A;
 	SET_Z(H);
 }
 
 /* 60 1f: 0110 0000 0001 1111 */
-static void ORA_L_A(upd7810_state *cpustate)
+static void __FASTCALL ORA_L_A(upd7810_state *cpustate)
 {
 	L |= A;
 	SET_Z(L);
 }
 
 /* 60 20: 0110 0000 0010 0000 */
-static void ADDNC_V_A(upd7810_state *cpustate)
+static void __FASTCALL ADDNC_V_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = V + A;
 	ZHC_ADD( tmp, V, 0 );
@@ -1271,7 +1271,7 @@ static void ADDNC_V_A(upd7810_state *cpustate)
 }
 
 /* 60 21: 0110 0000 0010 0001 */
-static void ADDNC_A_A(upd7810_state *cpustate)
+static void __FASTCALL ADDNC_A_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + A;
 	ZHC_ADD( tmp, A, 0 );
@@ -1280,7 +1280,7 @@ static void ADDNC_A_A(upd7810_state *cpustate)
 }
 
 /* 60 22: 0110 0000 0010 0010 */
-static void ADDNC_B_A(upd7810_state *cpustate)
+static void __FASTCALL ADDNC_B_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = B + A;
 	ZHC_ADD( tmp, B, 0 );
@@ -1289,7 +1289,7 @@ static void ADDNC_B_A(upd7810_state *cpustate)
 }
 
 /* 60 23: 0110 0000 0010 0011 */
-static void ADDNC_C_A(upd7810_state *cpustate)
+static void __FASTCALL ADDNC_C_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = C + A;
 	ZHC_ADD( tmp, C, 0 );
@@ -1298,7 +1298,7 @@ static void ADDNC_C_A(upd7810_state *cpustate)
 }
 
 /* 60 24: 0110 0000 0010 0100 */
-static void ADDNC_D_A(upd7810_state *cpustate)
+static void __FASTCALL ADDNC_D_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = D + A;
 	ZHC_ADD( tmp, D, 0 );
@@ -1307,7 +1307,7 @@ static void ADDNC_D_A(upd7810_state *cpustate)
 }
 
 /* 60 25: 0110 0000 0010 0101 */
-static void ADDNC_E_A(upd7810_state *cpustate)
+static void __FASTCALL ADDNC_E_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = E + A;
 	ZHC_ADD( tmp, E, 0 );
@@ -1316,7 +1316,7 @@ static void ADDNC_E_A(upd7810_state *cpustate)
 }
 
 /* 60 26: 0110 0000 0010 0110 */
-static void ADDNC_H_A(upd7810_state *cpustate)
+static void __FASTCALL ADDNC_H_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = H + A;
 	ZHC_ADD( tmp, H, 0 );
@@ -1325,7 +1325,7 @@ static void ADDNC_H_A(upd7810_state *cpustate)
 }
 
 /* 60 27: 0110 0000 0010 0111 */
-static void ADDNC_L_A(upd7810_state *cpustate)
+static void __FASTCALL ADDNC_L_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = L + A;
 	ZHC_ADD( tmp, L, 0 );
@@ -1334,7 +1334,7 @@ static void ADDNC_L_A(upd7810_state *cpustate)
 }
 
 /* 60 28: 0110 0000 0010 1000 */
-static void GTA_V_A(upd7810_state *cpustate)
+static void __FASTCALL GTA_V_A(upd7810_state *cpustate)
 {
 	UINT16 tmp = V - A - 1;
 	ZHC_SUB( tmp, V, 0 );
@@ -1342,7 +1342,7 @@ static void GTA_V_A(upd7810_state *cpustate)
 }
 
 /* 60 29: 0110 0000 0010 1001 */
-static void GTA_A_A(upd7810_state *cpustate)
+static void __FASTCALL GTA_A_A(upd7810_state *cpustate)
 {
 	UINT16 tmp = A - A - 1;
 	ZHC_SUB( tmp, A, 0 );
@@ -1350,7 +1350,7 @@ static void GTA_A_A(upd7810_state *cpustate)
 }
 
 /* 60 2a: 0110 0000 0010 1010 */
-static void GTA_B_A(upd7810_state *cpustate)
+static void __FASTCALL GTA_B_A(upd7810_state *cpustate)
 {
 	UINT16 tmp = B - A - 1;
 	ZHC_SUB( tmp, B, 0 );
@@ -1358,7 +1358,7 @@ static void GTA_B_A(upd7810_state *cpustate)
 }
 
 /* 60 2b: 0110 0000 0010 1011 */
-static void GTA_C_A(upd7810_state *cpustate)
+static void __FASTCALL GTA_C_A(upd7810_state *cpustate)
 {
 	UINT16 tmp = C - A - 1;
 	ZHC_SUB( tmp, C, 0 );
@@ -1366,7 +1366,7 @@ static void GTA_C_A(upd7810_state *cpustate)
 }
 
 /* 60 2c: 0110 0000 0010 1100 */
-static void GTA_D_A(upd7810_state *cpustate)
+static void __FASTCALL GTA_D_A(upd7810_state *cpustate)
 {
 	UINT16 tmp = D - A - 1;
 	ZHC_SUB( tmp, D, 0 );
@@ -1374,7 +1374,7 @@ static void GTA_D_A(upd7810_state *cpustate)
 }
 
 /* 60 2d: 0110 0000 0010 1101 */
-static void GTA_E_A(upd7810_state *cpustate)
+static void __FASTCALL GTA_E_A(upd7810_state *cpustate)
 {
 	UINT16 tmp = E - A - 1;
 	ZHC_SUB( tmp, E, 0 );
@@ -1382,7 +1382,7 @@ static void GTA_E_A(upd7810_state *cpustate)
 }
 
 /* 60 2e: 0110 0000 0010 1110 */
-static void GTA_H_A(upd7810_state *cpustate)
+static void __FASTCALL GTA_H_A(upd7810_state *cpustate)
 {
 	UINT16 tmp = H - A - 1;
 	ZHC_SUB( tmp, H, 0 );
@@ -1390,7 +1390,7 @@ static void GTA_H_A(upd7810_state *cpustate)
 }
 
 /* 60 2f: 0110 0000 0010 1111 */
-static void GTA_L_A(upd7810_state *cpustate)
+static void __FASTCALL GTA_L_A(upd7810_state *cpustate)
 {
 	UINT16 tmp = L - A - 1;
 	ZHC_SUB( tmp, L, 0 );
@@ -1398,7 +1398,7 @@ static void GTA_L_A(upd7810_state *cpustate)
 }
 
 /* 60 30: 0110 0000 0011 0000 */
-static void SUBNB_V_A(upd7810_state *cpustate)
+static void __FASTCALL SUBNB_V_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = V - A;
 	ZHC_SUB( tmp, V, 0 );
@@ -1407,7 +1407,7 @@ static void SUBNB_V_A(upd7810_state *cpustate)
 }
 
 /* 60 31: 0110 0000 0011 0001 */
-static void SUBNB_A_A(upd7810_state *cpustate)
+static void __FASTCALL SUBNB_A_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - A;
 	ZHC_SUB( tmp, A, 0 );
@@ -1416,7 +1416,7 @@ static void SUBNB_A_A(upd7810_state *cpustate)
 }
 
 /* 60 32: 0110 0000 0011 0010 */
-static void SUBNB_B_A(upd7810_state *cpustate)
+static void __FASTCALL SUBNB_B_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = B - A;
 	ZHC_SUB( tmp, B, 0 );
@@ -1425,7 +1425,7 @@ static void SUBNB_B_A(upd7810_state *cpustate)
 }
 
 /* 60 33: 0110 0000 0011 0011 */
-static void SUBNB_C_A(upd7810_state *cpustate)
+static void __FASTCALL SUBNB_C_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = C - A;
 	ZHC_SUB( tmp, C, 0 );
@@ -1434,7 +1434,7 @@ static void SUBNB_C_A(upd7810_state *cpustate)
 }
 
 /* 60 34: 0110 0000 0011 0100 */
-static void SUBNB_D_A(upd7810_state *cpustate)
+static void __FASTCALL SUBNB_D_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = D - A;
 	ZHC_SUB( tmp, D, 0 );
@@ -1443,7 +1443,7 @@ static void SUBNB_D_A(upd7810_state *cpustate)
 }
 
 /* 60 35: 0110 0000 0011 0101 */
-static void SUBNB_E_A(upd7810_state *cpustate)
+static void __FASTCALL SUBNB_E_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = E - A;
 	ZHC_SUB( tmp, E, 0 );
@@ -1452,7 +1452,7 @@ static void SUBNB_E_A(upd7810_state *cpustate)
 }
 
 /* 60 36: 0110 0000 0011 0110 */
-static void SUBNB_H_A(upd7810_state *cpustate)
+static void __FASTCALL SUBNB_H_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = H - A;
 	ZHC_SUB( tmp, H, 0 );
@@ -1461,7 +1461,7 @@ static void SUBNB_H_A(upd7810_state *cpustate)
 }
 
 /* 60 37: 0110 0000 0011 0111 */
-static void SUBNB_L_A(upd7810_state *cpustate)
+static void __FASTCALL SUBNB_L_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = L - A;
 	ZHC_SUB( tmp, L, 0 );
@@ -1470,7 +1470,7 @@ static void SUBNB_L_A(upd7810_state *cpustate)
 }
 
 /* 60 38: 0110 0000 0011 1000 */
-static void LTA_V_A(upd7810_state *cpustate)
+static void __FASTCALL LTA_V_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = V - A;
 	ZHC_SUB( tmp, V, 0 );
@@ -1478,7 +1478,7 @@ static void LTA_V_A(upd7810_state *cpustate)
 }
 
 /* 60 39: 0110 0000 0011 1001 */
-static void LTA_A_A(upd7810_state *cpustate)
+static void __FASTCALL LTA_A_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - A;
 	ZHC_SUB( tmp, A, 0 );
@@ -1486,7 +1486,7 @@ static void LTA_A_A(upd7810_state *cpustate)
 }
 
 /* 60 3a: 0110 0000 0011 1010 */
-static void LTA_B_A(upd7810_state *cpustate)
+static void __FASTCALL LTA_B_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = B - A;
 	ZHC_SUB( tmp, B, 0 );
@@ -1494,7 +1494,7 @@ static void LTA_B_A(upd7810_state *cpustate)
 }
 
 /* 60 3b: 0110 0000 0011 1011 */
-static void LTA_C_A(upd7810_state *cpustate)
+static void __FASTCALL LTA_C_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = C - A;
 	ZHC_SUB( tmp, C, 0 );
@@ -1502,7 +1502,7 @@ static void LTA_C_A(upd7810_state *cpustate)
 }
 
 /* 60 3c: 0110 0000 0011 1100 */
-static void LTA_D_A(upd7810_state *cpustate)
+static void __FASTCALL LTA_D_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = D - A;
 	ZHC_SUB( tmp, D, 0 );
@@ -1510,7 +1510,7 @@ static void LTA_D_A(upd7810_state *cpustate)
 }
 
 /* 60 3d: 0110 0000 0011 1101 */
-static void LTA_E_A(upd7810_state *cpustate)
+static void __FASTCALL LTA_E_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = E - A;
 	ZHC_SUB( tmp, E, 0 );
@@ -1518,7 +1518,7 @@ static void LTA_E_A(upd7810_state *cpustate)
 }
 
 /* 60 3e: 0110 0000 0011 1110 */
-static void LTA_H_A(upd7810_state *cpustate)
+static void __FASTCALL LTA_H_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = H - A;
 	ZHC_SUB( tmp, H, 0 );
@@ -1526,7 +1526,7 @@ static void LTA_H_A(upd7810_state *cpustate)
 }
 
 /* 60 3f: 0110 0000 0011 1111 */
-static void LTA_L_A(upd7810_state *cpustate)
+static void __FASTCALL LTA_L_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = L - A;
 	ZHC_SUB( tmp, L, 0 );
@@ -1534,7 +1534,7 @@ static void LTA_L_A(upd7810_state *cpustate)
 }
 
 /* 60 40: 0110 0000 0100 0000 */
-static void ADD_V_A(upd7810_state *cpustate)
+static void __FASTCALL ADD_V_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = V + A;
 	ZHC_ADD( tmp, V, 0 );
@@ -1542,7 +1542,7 @@ static void ADD_V_A(upd7810_state *cpustate)
 }
 
 /* 60 41: 0110 0000 0100 0001 */
-static void ADD_A_A(upd7810_state *cpustate)
+static void __FASTCALL ADD_A_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + A;
 	ZHC_ADD( tmp, A, 0 );
@@ -1550,7 +1550,7 @@ static void ADD_A_A(upd7810_state *cpustate)
 }
 
 /* 60 42: 0110 0000 0100 0010 */
-static void ADD_B_A(upd7810_state *cpustate)
+static void __FASTCALL ADD_B_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = B + A;
 	ZHC_ADD( tmp, B, 0 );
@@ -1558,7 +1558,7 @@ static void ADD_B_A(upd7810_state *cpustate)
 }
 
 /* 60 43: 0110 0000 0100 0011 */
-static void ADD_C_A(upd7810_state *cpustate)
+static void __FASTCALL ADD_C_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = C + A;
 	ZHC_ADD( tmp, C, 0 );
@@ -1566,7 +1566,7 @@ static void ADD_C_A(upd7810_state *cpustate)
 }
 
 /* 60 44: 0110 0000 0100 0100 */
-static void ADD_D_A(upd7810_state *cpustate)
+static void __FASTCALL ADD_D_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = D + A;
 	ZHC_ADD( tmp, D, 0 );
@@ -1574,7 +1574,7 @@ static void ADD_D_A(upd7810_state *cpustate)
 }
 
 /* 60 45: 0110 0000 0100 0101 */
-static void ADD_E_A(upd7810_state *cpustate)
+static void __FASTCALL ADD_E_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = E + A;
 	ZHC_ADD( tmp, E, 0 );
@@ -1582,7 +1582,7 @@ static void ADD_E_A(upd7810_state *cpustate)
 }
 
 /* 60 46: 0110 0000 0100 0110 */
-static void ADD_H_A(upd7810_state *cpustate)
+static void __FASTCALL ADD_H_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = H + A;
 	ZHC_ADD( tmp, H, 0 );
@@ -1590,7 +1590,7 @@ static void ADD_H_A(upd7810_state *cpustate)
 }
 
 /* 60 47: 0110 0000 0100 0111 */
-static void ADD_L_A(upd7810_state *cpustate)
+static void __FASTCALL ADD_L_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = L + A;
 	ZHC_ADD( tmp, L, 0 );
@@ -1598,7 +1598,7 @@ static void ADD_L_A(upd7810_state *cpustate)
 }
 
 /* 60 50: 0110 0000 0101 0000 */
-static void ADC_V_A(upd7810_state *cpustate)
+static void __FASTCALL ADC_V_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = V + A + (PSW & CY);
 	ZHC_ADD( tmp, V, (PSW & CY) );
@@ -1606,7 +1606,7 @@ static void ADC_V_A(upd7810_state *cpustate)
 }
 
 /* 60 51: 0110 0000 0101 0001 */
-static void ADC_A_A(upd7810_state *cpustate)
+static void __FASTCALL ADC_A_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + A + (PSW & CY);
 	ZHC_ADD( tmp, A, (PSW & CY) );
@@ -1614,7 +1614,7 @@ static void ADC_A_A(upd7810_state *cpustate)
 }
 
 /* 60 52: 0110 0000 0101 0010 */
-static void ADC_B_A(upd7810_state *cpustate)
+static void __FASTCALL ADC_B_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = B + A + (PSW & CY);
 	ZHC_ADD( tmp, B, (PSW & CY) );
@@ -1622,7 +1622,7 @@ static void ADC_B_A(upd7810_state *cpustate)
 }
 
 /* 60 53: 0110 0000 0101 0011 */
-static void ADC_C_A(upd7810_state *cpustate)
+static void __FASTCALL ADC_C_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = C + A + (PSW & CY);
 	ZHC_ADD( tmp, C, (PSW & CY) );
@@ -1630,7 +1630,7 @@ static void ADC_C_A(upd7810_state *cpustate)
 }
 
 /* 60 54: 0110 0000 0101 0100 */
-static void ADC_D_A(upd7810_state *cpustate)
+static void __FASTCALL ADC_D_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = D + A + (PSW & CY);
 	ZHC_ADD( tmp, D, (PSW & CY) );
@@ -1638,7 +1638,7 @@ static void ADC_D_A(upd7810_state *cpustate)
 }
 
 /* 60 55: 0110 0000 0101 0101 */
-static void ADC_E_A(upd7810_state *cpustate)
+static void __FASTCALL ADC_E_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = E + A + (PSW & CY);
 	ZHC_ADD( tmp, E, (PSW & CY) );
@@ -1646,7 +1646,7 @@ static void ADC_E_A(upd7810_state *cpustate)
 }
 
 /* 60 56: 0110 0000 0101 0110 */
-static void ADC_H_A(upd7810_state *cpustate)
+static void __FASTCALL ADC_H_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = H + A + (PSW & CY);
 	ZHC_ADD( tmp, H, (PSW & CY) );
@@ -1654,7 +1654,7 @@ static void ADC_H_A(upd7810_state *cpustate)
 }
 
 /* 60 57: 0110 0000 0101 0111 */
-static void ADC_L_A(upd7810_state *cpustate)
+static void __FASTCALL ADC_L_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = L + A + (PSW & CY);
 	ZHC_ADD( tmp, L, (PSW & CY) );
@@ -1662,7 +1662,7 @@ static void ADC_L_A(upd7810_state *cpustate)
 }
 
 /* 60 60: 0110 0000 0110 0000 */
-static void SUB_V_A(upd7810_state *cpustate)
+static void __FASTCALL SUB_V_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = V - A;
 	ZHC_SUB( tmp, V, 0 );
@@ -1670,7 +1670,7 @@ static void SUB_V_A(upd7810_state *cpustate)
 }
 
 /* 60 61: 0110 0000 0110 0001 */
-static void SUB_A_A(upd7810_state *cpustate)
+static void __FASTCALL SUB_A_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - A;
 	ZHC_SUB( tmp, A, 0 );
@@ -1678,7 +1678,7 @@ static void SUB_A_A(upd7810_state *cpustate)
 }
 
 /* 60 62: 0110 0000 0110 0010 */
-static void SUB_B_A(upd7810_state *cpustate)
+static void __FASTCALL SUB_B_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = B - A;
 	ZHC_SUB( tmp, B, 0 );
@@ -1686,7 +1686,7 @@ static void SUB_B_A(upd7810_state *cpustate)
 }
 
 /* 60 63: 0110 0000 0110 0011 */
-static void SUB_C_A(upd7810_state *cpustate)
+static void __FASTCALL SUB_C_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = C - A;
 	ZHC_SUB( tmp, C, 0 );
@@ -1694,7 +1694,7 @@ static void SUB_C_A(upd7810_state *cpustate)
 }
 
 /* 60 64: 0110 0000 0110 0100 */
-static void SUB_D_A(upd7810_state *cpustate)
+static void __FASTCALL SUB_D_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = D - A;
 	ZHC_SUB( tmp, D, 0 );
@@ -1702,7 +1702,7 @@ static void SUB_D_A(upd7810_state *cpustate)
 }
 
 /* 60 65: 0110 0000 0110 0101 */
-static void SUB_E_A(upd7810_state *cpustate)
+static void __FASTCALL SUB_E_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = E - A;
 	ZHC_SUB( tmp, E, 0 );
@@ -1710,7 +1710,7 @@ static void SUB_E_A(upd7810_state *cpustate)
 }
 
 /* 60 66: 0110 0000 0110 0110 */
-static void SUB_H_A(upd7810_state *cpustate)
+static void __FASTCALL SUB_H_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = H - A;
 	ZHC_SUB( tmp, H, 0 );
@@ -1718,7 +1718,7 @@ static void SUB_H_A(upd7810_state *cpustate)
 }
 
 /* 60 67: 0110 0000 0110 0111 */
-static void SUB_L_A(upd7810_state *cpustate)
+static void __FASTCALL SUB_L_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = L - A;
 	ZHC_SUB( tmp, L, 0 );
@@ -1726,7 +1726,7 @@ static void SUB_L_A(upd7810_state *cpustate)
 }
 
 /* 60 68: 0110 0000 0110 1000 */
-static void NEA_V_A(upd7810_state *cpustate)
+static void __FASTCALL NEA_V_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = V - A;
 	ZHC_SUB( tmp, V, 0 );
@@ -1734,7 +1734,7 @@ static void NEA_V_A(upd7810_state *cpustate)
 }
 
 /* 60 69: 0110 0000 0110 1001 */
-static void NEA_A_A(upd7810_state *cpustate)
+static void __FASTCALL NEA_A_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - A;
 	ZHC_SUB( tmp, A, 0 );
@@ -1742,7 +1742,7 @@ static void NEA_A_A(upd7810_state *cpustate)
 }
 
 /* 60 6a: 0110 0000 0110 1010 */
-static void NEA_B_A(upd7810_state *cpustate)
+static void __FASTCALL NEA_B_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = B - A;
 	ZHC_SUB( tmp, B, 0 );
@@ -1750,7 +1750,7 @@ static void NEA_B_A(upd7810_state *cpustate)
 }
 
 /* 60 6b: 0110 0000 0110 1011 */
-static void NEA_C_A(upd7810_state *cpustate)
+static void __FASTCALL NEA_C_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = C - A;
 	ZHC_SUB( tmp, C, 0 );
@@ -1758,7 +1758,7 @@ static void NEA_C_A(upd7810_state *cpustate)
 }
 
 /* 60 6c: 0110 0000 0110 1100 */
-static void NEA_D_A(upd7810_state *cpustate)
+static void __FASTCALL NEA_D_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = D - A;
 	ZHC_SUB( tmp, D, 0 );
@@ -1766,7 +1766,7 @@ static void NEA_D_A(upd7810_state *cpustate)
 }
 
 /* 60 6d: 0110 0000 0110 1101 */
-static void NEA_E_A(upd7810_state *cpustate)
+static void __FASTCALL NEA_E_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = E - A;
 	ZHC_SUB( tmp, E, 0 );
@@ -1774,7 +1774,7 @@ static void NEA_E_A(upd7810_state *cpustate)
 }
 
 /* 60 6e: 0110 0000 0110 1110 */
-static void NEA_H_A(upd7810_state *cpustate)
+static void __FASTCALL NEA_H_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = H - A;
 	ZHC_SUB( tmp, H, 0 );
@@ -1782,7 +1782,7 @@ static void NEA_H_A(upd7810_state *cpustate)
 }
 
 /* 60 6f: 0110 0000 0110 1111 */
-static void NEA_L_A(upd7810_state *cpustate)
+static void __FASTCALL NEA_L_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = L - A;
 	ZHC_SUB( tmp, L, 0 );
@@ -1790,7 +1790,7 @@ static void NEA_L_A(upd7810_state *cpustate)
 }
 
 /* 60 70: 0110 0000 0111 0000 */
-static void SBB_V_A(upd7810_state *cpustate)
+static void __FASTCALL SBB_V_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = V - A - (PSW & CY);
 	ZHC_SUB( tmp, V, (PSW & CY) );
@@ -1798,7 +1798,7 @@ static void SBB_V_A(upd7810_state *cpustate)
 }
 
 /* 60 71: 0110 0000 0111 0001 */
-static void SBB_A_A(upd7810_state *cpustate)
+static void __FASTCALL SBB_A_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - A - (PSW & CY);
 	ZHC_SUB( tmp, A, (PSW & CY) );
@@ -1806,7 +1806,7 @@ static void SBB_A_A(upd7810_state *cpustate)
 }
 
 /* 60 72: 0110 0000 0111 0010 */
-static void SBB_B_A(upd7810_state *cpustate)
+static void __FASTCALL SBB_B_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = B - A - (PSW & CY);
 	ZHC_SUB( tmp, B, (PSW & CY) );
@@ -1814,7 +1814,7 @@ static void SBB_B_A(upd7810_state *cpustate)
 }
 
 /* 60 73: 0110 0000 0111 0011 */
-static void SBB_C_A(upd7810_state *cpustate)
+static void __FASTCALL SBB_C_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = C - A - (PSW & CY);
 	ZHC_SUB( tmp, C, (PSW & CY) );
@@ -1822,7 +1822,7 @@ static void SBB_C_A(upd7810_state *cpustate)
 }
 
 /* 60 74: 0110 0000 0111 0100 */
-static void SBB_D_A(upd7810_state *cpustate)
+static void __FASTCALL SBB_D_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = D - A - (PSW & CY);
 	ZHC_SUB( tmp, D, (PSW & CY) );
@@ -1830,7 +1830,7 @@ static void SBB_D_A(upd7810_state *cpustate)
 }
 
 /* 60 75: 0110 0000 0111 0101 */
-static void SBB_E_A(upd7810_state *cpustate)
+static void __FASTCALL SBB_E_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = E - A - (PSW & CY);
 	ZHC_SUB( tmp, E, (PSW & CY) );
@@ -1838,7 +1838,7 @@ static void SBB_E_A(upd7810_state *cpustate)
 }
 
 /* 60 76: 0110 0000 0111 0110 */
-static void SBB_H_A(upd7810_state *cpustate)
+static void __FASTCALL SBB_H_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = H - A - (PSW & CY);
 	ZHC_SUB( tmp, H, (PSW & CY) );
@@ -1846,7 +1846,7 @@ static void SBB_H_A(upd7810_state *cpustate)
 }
 
 /* 60 77: 0110 0000 0111 0111 */
-static void SBB_L_A(upd7810_state *cpustate)
+static void __FASTCALL SBB_L_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = L - A - (PSW & CY);
 	ZHC_SUB( tmp, L, (PSW & CY) );
@@ -1854,7 +1854,7 @@ static void SBB_L_A(upd7810_state *cpustate)
 }
 
 /* 60 78: 0110 0000 0111 1000 */
-static void EQA_V_A(upd7810_state *cpustate)
+static void __FASTCALL EQA_V_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = V - A;
 	ZHC_SUB( tmp, V, 0 );
@@ -1862,7 +1862,7 @@ static void EQA_V_A(upd7810_state *cpustate)
 }
 
 /* 60 79: 0110 0000 0111 1001 */
-static void EQA_A_A(upd7810_state *cpustate)
+static void __FASTCALL EQA_A_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - A;
 	ZHC_SUB( tmp, A, 0 );
@@ -1870,7 +1870,7 @@ static void EQA_A_A(upd7810_state *cpustate)
 }
 
 /* 60 7a: 0110 0000 0111 1010 */
-static void EQA_B_A(upd7810_state *cpustate)
+static void __FASTCALL EQA_B_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = B - A;
 	ZHC_SUB( tmp, B, 0 );
@@ -1878,7 +1878,7 @@ static void EQA_B_A(upd7810_state *cpustate)
 }
 
 /* 60 7b: 0110 0000 0111 1011 */
-static void EQA_C_A(upd7810_state *cpustate)
+static void __FASTCALL EQA_C_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = C - A;
 	ZHC_SUB( tmp, C, 0 );
@@ -1886,7 +1886,7 @@ static void EQA_C_A(upd7810_state *cpustate)
 }
 
 /* 60 7c: 0110 0000 0111 1100 */
-static void EQA_D_A(upd7810_state *cpustate)
+static void __FASTCALL EQA_D_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = D - A;
 	ZHC_SUB( tmp, D, 0 );
@@ -1894,7 +1894,7 @@ static void EQA_D_A(upd7810_state *cpustate)
 }
 
 /* 60 7d: 0110 0000 0111 1101 */
-static void EQA_E_A(upd7810_state *cpustate)
+static void __FASTCALL EQA_E_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = E - A;
 	ZHC_SUB( tmp, E, 0 );
@@ -1902,7 +1902,7 @@ static void EQA_E_A(upd7810_state *cpustate)
 }
 
 /* 60 7e: 0110 0000 0111 1110 */
-static void EQA_H_A(upd7810_state *cpustate)
+static void __FASTCALL EQA_H_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = H - A;
 	ZHC_SUB( tmp, H, 0 );
@@ -1910,7 +1910,7 @@ static void EQA_H_A(upd7810_state *cpustate)
 }
 
 /* 60 7f: 0110 0000 0111 1111 */
-static void EQA_L_A(upd7810_state *cpustate)
+static void __FASTCALL EQA_L_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = L - A;
 	ZHC_SUB( tmp, L, 0 );
@@ -1918,7 +1918,7 @@ static void EQA_L_A(upd7810_state *cpustate)
 }
 
 /* 60 88: 0110 0000 1000 1000 */
-static void ANA_A_V(upd7810_state *cpustate)
+static void __FASTCALL ANA_A_V(upd7810_state *cpustate)
 {
 	A &= V;
 	SET_Z(A);
@@ -1928,49 +1928,49 @@ static void ANA_A_V(upd7810_state *cpustate)
 /* ANA_A_A already defined */
 
 /* 60 8a: 0110 0000 1000 1010 */
-static void ANA_A_B(upd7810_state *cpustate)
+static void __FASTCALL ANA_A_B(upd7810_state *cpustate)
 {
 	A &= B;
 	SET_Z(A);
 }
 
 /* 60 8b: 0110 0000 1000 1011 */
-static void ANA_A_C(upd7810_state *cpustate)
+static void __FASTCALL ANA_A_C(upd7810_state *cpustate)
 {
 	A &= C;
 	SET_Z(A);
 }
 
 /* 60 8c: 0110 0000 1000 1100 */
-static void ANA_A_D(upd7810_state *cpustate)
+static void __FASTCALL ANA_A_D(upd7810_state *cpustate)
 {
 	A &= D;
 	SET_Z(A);
 }
 
 /* 60 8d: 0110 0000 1000 1101 */
-static void ANA_A_E(upd7810_state *cpustate)
+static void __FASTCALL ANA_A_E(upd7810_state *cpustate)
 {
 	A &= E;
 	SET_Z(A);
 }
 
 /* 60 8e: 0110 0000 1000 1110 */
-static void ANA_A_H(upd7810_state *cpustate)
+static void __FASTCALL ANA_A_H(upd7810_state *cpustate)
 {
 	A &= H;
 	SET_Z(A);
 }
 
 /* 60 8f: 0110 0000 1000 1111 */
-static void ANA_A_L(upd7810_state *cpustate)
+static void __FASTCALL ANA_A_L(upd7810_state *cpustate)
 {
 	A &= L;
 	SET_Z(A);
 }
 
 /* 60 90: 0110 0000 1001 0000 */
-static void XRA_A_V(upd7810_state *cpustate)
+static void __FASTCALL XRA_A_V(upd7810_state *cpustate)
 {
 	A ^= V;
 	SET_Z(A);
@@ -1980,49 +1980,49 @@ static void XRA_A_V(upd7810_state *cpustate)
 /* XRA_A_A already defined */
 
 /* 60 92: 0110 0000 1001 0010 */
-static void XRA_A_B(upd7810_state *cpustate)
+static void __FASTCALL XRA_A_B(upd7810_state *cpustate)
 {
 	A ^= B;
 	SET_Z(A);
 }
 
 /* 60 93: 0110 0000 1001 0011 */
-static void XRA_A_C(upd7810_state *cpustate)
+static void __FASTCALL XRA_A_C(upd7810_state *cpustate)
 {
 	A ^= C;
 	SET_Z(A);
 }
 
 /* 60 94: 0110 0000 1001 0100 */
-static void XRA_A_D(upd7810_state *cpustate)
+static void __FASTCALL XRA_A_D(upd7810_state *cpustate)
 {
 	A ^= D;
 	SET_Z(A);
 }
 
 /* 60 95: 0110 0000 1001 0101 */
-static void XRA_A_E(upd7810_state *cpustate)
+static void __FASTCALL XRA_A_E(upd7810_state *cpustate)
 {
 	A ^= E;
 	SET_Z(A);
 }
 
 /* 60 96: 0110 0000 1001 0110 */
-static void XRA_A_H(upd7810_state *cpustate)
+static void __FASTCALL XRA_A_H(upd7810_state *cpustate)
 {
 	A ^= H;
 	SET_Z(A);
 }
 
 /* 60 97: 0110 0000 1001 0111 */
-static void XRA_A_L(upd7810_state *cpustate)
+static void __FASTCALL XRA_A_L(upd7810_state *cpustate)
 {
 	A ^= L;
 	SET_Z(A);
 }
 
 /* 60 98: 0110 0000 1001 1000 */
-static void ORA_A_V(upd7810_state *cpustate)
+static void __FASTCALL ORA_A_V(upd7810_state *cpustate)
 {
 	A |= V;
 	SET_Z(A);
@@ -2032,49 +2032,49 @@ static void ORA_A_V(upd7810_state *cpustate)
 /* ORA_A_A already defined */
 
 /* 60 9a: 0110 0000 1001 1010 */
-static void ORA_A_B(upd7810_state *cpustate)
+static void __FASTCALL ORA_A_B(upd7810_state *cpustate)
 {
 	A |= B;
 	SET_Z(A);
 }
 
 /* 60 9b: 0110 0000 1001 1011 */
-static void ORA_A_C(upd7810_state *cpustate)
+static void __FASTCALL ORA_A_C(upd7810_state *cpustate)
 {
 	A |= C;
 	SET_Z(A);
 }
 
 /* 60 9c: 0110 0000 1001 1100 */
-static void ORA_A_D(upd7810_state *cpustate)
+static void __FASTCALL ORA_A_D(upd7810_state *cpustate)
 {
 	A |= D;
 	SET_Z(A);
 }
 
 /* 60 9d: 0110 0000 1001 1101 */
-static void ORA_A_E(upd7810_state *cpustate)
+static void __FASTCALL ORA_A_E(upd7810_state *cpustate)
 {
 	A |= E;
 	SET_Z(A);
 }
 
 /* 60 9e: 0110 0000 1001 1110 */
-static void ORA_A_H(upd7810_state *cpustate)
+static void __FASTCALL ORA_A_H(upd7810_state *cpustate)
 {
 	A |= H;
 	SET_Z(A);
 }
 
 /* 60 9f: 0110 0000 1001 1111 */
-static void ORA_A_L(upd7810_state *cpustate)
+static void __FASTCALL ORA_A_L(upd7810_state *cpustate)
 {
 	A |= L;
 	SET_Z(A);
 }
 
 /* 60 a0: 0110 0000 1010 0000 */
-static void ADDNC_A_V(upd7810_state *cpustate)
+static void __FASTCALL ADDNC_A_V(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + V;
 	ZHC_ADD( tmp, A, 0 );
@@ -2086,7 +2086,7 @@ static void ADDNC_A_V(upd7810_state *cpustate)
 /* ADDNC_A_A already defined */
 
 /* 60 a2: 0110 0000 1010 0010 */
-static void ADDNC_A_B(upd7810_state *cpustate)
+static void __FASTCALL ADDNC_A_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + B;
 	ZHC_ADD( tmp, A, 0 );
@@ -2095,7 +2095,7 @@ static void ADDNC_A_B(upd7810_state *cpustate)
 }
 
 /* 60 a3: 0110 0000 1010 0011 */
-static void ADDNC_A_C(upd7810_state *cpustate)
+static void __FASTCALL ADDNC_A_C(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + C;
 	ZHC_ADD( tmp, A, 0 );
@@ -2104,7 +2104,7 @@ static void ADDNC_A_C(upd7810_state *cpustate)
 }
 
 /* 60 a4: 0110 0000 1010 0100 */
-static void ADDNC_A_D(upd7810_state *cpustate)
+static void __FASTCALL ADDNC_A_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + D;
 	ZHC_ADD( tmp, A, 0 );
@@ -2113,7 +2113,7 @@ static void ADDNC_A_D(upd7810_state *cpustate)
 }
 
 /* 60 a5: 0110 0000 1010 0101 */
-static void ADDNC_A_E(upd7810_state *cpustate)
+static void __FASTCALL ADDNC_A_E(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + E;
 	ZHC_ADD( tmp, A, 0 );
@@ -2122,7 +2122,7 @@ static void ADDNC_A_E(upd7810_state *cpustate)
 }
 
 /* 60 a6: 0110 0000 1010 0110 */
-static void ADDNC_A_H(upd7810_state *cpustate)
+static void __FASTCALL ADDNC_A_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + H;
 	ZHC_ADD( tmp, A, 0 );
@@ -2131,7 +2131,7 @@ static void ADDNC_A_H(upd7810_state *cpustate)
 }
 
 /* 60 a7: 0110 0000 1010 0111 */
-static void ADDNC_A_L(upd7810_state *cpustate)
+static void __FASTCALL ADDNC_A_L(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + L;
 	ZHC_ADD( tmp, A, 0 );
@@ -2140,7 +2140,7 @@ static void ADDNC_A_L(upd7810_state *cpustate)
 }
 
 /* 60 a8: 0110 0000 1010 1000 */
-static void GTA_A_V(upd7810_state *cpustate)
+static void __FASTCALL GTA_A_V(upd7810_state *cpustate)
 {
 	UINT16 tmp = A - V - 1;
 	ZHC_SUB( tmp, A, 0 );
@@ -2151,7 +2151,7 @@ static void GTA_A_V(upd7810_state *cpustate)
 /* GTA_A_A already defined */
 
 /* 60 aa: 0110 0000 1010 1010 */
-static void GTA_A_B(upd7810_state *cpustate)
+static void __FASTCALL GTA_A_B(upd7810_state *cpustate)
 {
 	UINT16 tmp = A - B - 1;
 	ZHC_SUB( tmp, A, 0 );
@@ -2159,7 +2159,7 @@ static void GTA_A_B(upd7810_state *cpustate)
 }
 
 /* 60 ab: 0110 0000 1010 1011 */
-static void GTA_A_C(upd7810_state *cpustate)
+static void __FASTCALL GTA_A_C(upd7810_state *cpustate)
 {
 	UINT16 tmp = A - C - 1;
 	ZHC_SUB( tmp, A, 0 );
@@ -2167,7 +2167,7 @@ static void GTA_A_C(upd7810_state *cpustate)
 }
 
 /* 60 ac: 0110 0000 1010 1100 */
-static void GTA_A_D(upd7810_state *cpustate)
+static void __FASTCALL GTA_A_D(upd7810_state *cpustate)
 {
 	UINT16 tmp = A - D - 1;
 	ZHC_SUB( tmp, A, 0 );
@@ -2175,7 +2175,7 @@ static void GTA_A_D(upd7810_state *cpustate)
 }
 
 /* 60 ad: 0110 0000 1010 1101 */
-static void GTA_A_E(upd7810_state *cpustate)
+static void __FASTCALL GTA_A_E(upd7810_state *cpustate)
 {
 	UINT16 tmp = A - E - 1;
 	ZHC_SUB( tmp, A, 0 );
@@ -2183,7 +2183,7 @@ static void GTA_A_E(upd7810_state *cpustate)
 }
 
 /* 60 ae: 0110 0000 1010 1110 */
-static void GTA_A_H(upd7810_state *cpustate)
+static void __FASTCALL GTA_A_H(upd7810_state *cpustate)
 {
 	UINT16 tmp = A - H - 1;
 	ZHC_SUB( tmp, A, 0 );
@@ -2191,7 +2191,7 @@ static void GTA_A_H(upd7810_state *cpustate)
 }
 
 /* 60 af: 0110 0000 1010 1111 */
-static void GTA_A_L(upd7810_state *cpustate)
+static void __FASTCALL GTA_A_L(upd7810_state *cpustate)
 {
 	UINT16 tmp = A - L - 1;
 	ZHC_SUB( tmp, A, 0 );
@@ -2199,7 +2199,7 @@ static void GTA_A_L(upd7810_state *cpustate)
 }
 
 /* 60 b0: 0110 0000 1011 0000 */
-static void SUBNB_A_V(upd7810_state *cpustate)
+static void __FASTCALL SUBNB_A_V(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - V;
 	ZHC_SUB( tmp, A, 0 );
@@ -2211,7 +2211,7 @@ static void SUBNB_A_V(upd7810_state *cpustate)
 /* SUBNB_A_A already defined */
 
 /* 60 b2: 0110 0000 1011 0010 */
-static void SUBNB_A_B(upd7810_state *cpustate)
+static void __FASTCALL SUBNB_A_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - B;
 	ZHC_SUB( tmp, A, 0 );
@@ -2220,7 +2220,7 @@ static void SUBNB_A_B(upd7810_state *cpustate)
 }
 
 /* 60 b3: 0110 0000 1011 0011 */
-static void SUBNB_A_C(upd7810_state *cpustate)
+static void __FASTCALL SUBNB_A_C(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - C;
 	ZHC_SUB( tmp, A, 0 );
@@ -2229,7 +2229,7 @@ static void SUBNB_A_C(upd7810_state *cpustate)
 }
 
 /* 60 b4: 0110 0000 1011 0100 */
-static void SUBNB_A_D(upd7810_state *cpustate)
+static void __FASTCALL SUBNB_A_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - D;
 	ZHC_SUB( tmp, A, 0 );
@@ -2238,7 +2238,7 @@ static void SUBNB_A_D(upd7810_state *cpustate)
 }
 
 /* 60 b5: 0110 0000 1011 0101 */
-static void SUBNB_A_E(upd7810_state *cpustate)
+static void __FASTCALL SUBNB_A_E(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - E;
 	ZHC_SUB( tmp, A, 0 );
@@ -2247,7 +2247,7 @@ static void SUBNB_A_E(upd7810_state *cpustate)
 }
 
 /* 60 b6: 0110 0000 1011 0110 */
-static void SUBNB_A_H(upd7810_state *cpustate)
+static void __FASTCALL SUBNB_A_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - H;
 	ZHC_SUB( tmp, A, 0 );
@@ -2256,7 +2256,7 @@ static void SUBNB_A_H(upd7810_state *cpustate)
 }
 
 /* 60 b7: 0110 0000 1011 0111 */
-static void SUBNB_A_L(upd7810_state *cpustate)
+static void __FASTCALL SUBNB_A_L(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - L;
 	ZHC_SUB( tmp, A, 0 );
@@ -2265,7 +2265,7 @@ static void SUBNB_A_L(upd7810_state *cpustate)
 }
 
 /* 60 b8: 0110 0000 1011 1000 */
-static void LTA_A_V(upd7810_state *cpustate)
+static void __FASTCALL LTA_A_V(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - V;
 	ZHC_SUB( tmp, A, 0 );
@@ -2276,7 +2276,7 @@ static void LTA_A_V(upd7810_state *cpustate)
 /* LTA_A_A already defined */
 
 /* 60 ba: 0110 0000 1011 1010 */
-static void LTA_A_B(upd7810_state *cpustate)
+static void __FASTCALL LTA_A_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - B;
 	ZHC_SUB( tmp, A, 0 );
@@ -2284,7 +2284,7 @@ static void LTA_A_B(upd7810_state *cpustate)
 }
 
 /* 60 bb: 0110 0000 1011 1011 */
-static void LTA_A_C(upd7810_state *cpustate)
+static void __FASTCALL LTA_A_C(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - C;
 	ZHC_SUB( tmp, A, 0 );
@@ -2292,7 +2292,7 @@ static void LTA_A_C(upd7810_state *cpustate)
 }
 
 /* 60 bc: 0110 0000 1011 1100 */
-static void LTA_A_D(upd7810_state *cpustate)
+static void __FASTCALL LTA_A_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - D;
 	ZHC_SUB( tmp, A, 0 );
@@ -2300,7 +2300,7 @@ static void LTA_A_D(upd7810_state *cpustate)
 }
 
 /* 60 bd: 0110 0000 1011 1101 */
-static void LTA_A_E(upd7810_state *cpustate)
+static void __FASTCALL LTA_A_E(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - E;
 	ZHC_SUB( tmp, A, 0 );
@@ -2308,7 +2308,7 @@ static void LTA_A_E(upd7810_state *cpustate)
 }
 
 /* 60 be: 0110 0000 1011 1110 */
-static void LTA_A_H(upd7810_state *cpustate)
+static void __FASTCALL LTA_A_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - H;
 	ZHC_SUB( tmp, A, 0 );
@@ -2316,7 +2316,7 @@ static void LTA_A_H(upd7810_state *cpustate)
 }
 
 /* 60 bf: 0110 0000 1011 1111 */
-static void LTA_A_L(upd7810_state *cpustate)
+static void __FASTCALL LTA_A_L(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - L;
 	ZHC_SUB( tmp, A, 0 );
@@ -2324,7 +2324,7 @@ static void LTA_A_L(upd7810_state *cpustate)
 }
 
 /* 60 c0: 0110 0000 1100 0000 */
-static void ADD_A_V(upd7810_state *cpustate)
+static void __FASTCALL ADD_A_V(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + V;
 	ZHC_ADD( tmp, A, 0 );
@@ -2335,7 +2335,7 @@ static void ADD_A_V(upd7810_state *cpustate)
 /* ADD_A_A already defined */
 
 /* 60 c2: 0110 0000 1100 0010 */
-static void ADD_A_B(upd7810_state *cpustate)
+static void __FASTCALL ADD_A_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + B;
 	ZHC_ADD( tmp, A, 0 );
@@ -2343,7 +2343,7 @@ static void ADD_A_B(upd7810_state *cpustate)
 }
 
 /* 60 c3: 0110 0000 1100 0011 */
-static void ADD_A_C(upd7810_state *cpustate)
+static void __FASTCALL ADD_A_C(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + C;
 	ZHC_ADD( tmp, A, 0 );
@@ -2351,7 +2351,7 @@ static void ADD_A_C(upd7810_state *cpustate)
 }
 
 /* 60 c4: 0110 0000 1100 0100 */
-static void ADD_A_D(upd7810_state *cpustate)
+static void __FASTCALL ADD_A_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + D;
 	ZHC_ADD( tmp, A, 0 );
@@ -2359,7 +2359,7 @@ static void ADD_A_D(upd7810_state *cpustate)
 }
 
 /* 60 c5: 0110 0000 1100 0101 */
-static void ADD_A_E(upd7810_state *cpustate)
+static void __FASTCALL ADD_A_E(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + E;
 	ZHC_ADD( tmp, A, 0 );
@@ -2367,7 +2367,7 @@ static void ADD_A_E(upd7810_state *cpustate)
 }
 
 /* 60 c6: 0110 0000 1100 0110 */
-static void ADD_A_H(upd7810_state *cpustate)
+static void __FASTCALL ADD_A_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + H;
 	ZHC_ADD( tmp, A, 0 );
@@ -2375,7 +2375,7 @@ static void ADD_A_H(upd7810_state *cpustate)
 }
 
 /* 60 c7: 0110 0000 1100 0111 */
-static void ADD_A_L(upd7810_state *cpustate)
+static void __FASTCALL ADD_A_L(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + L;
 	ZHC_ADD( tmp, A, 0 );
@@ -2383,7 +2383,7 @@ static void ADD_A_L(upd7810_state *cpustate)
 }
 
 /* 60 c8: 0110 0000 1100 1000 */
-static void ONA_A_V(upd7810_state *cpustate)
+static void __FASTCALL ONA_A_V(upd7810_state *cpustate)
 {
 	if (A & V)
 		PSW = (PSW & ~Z) | SK;
@@ -2392,7 +2392,7 @@ static void ONA_A_V(upd7810_state *cpustate)
 }
 
 /* 60 c9: 0110 0000 1100 1001 */
-static void ONA_A_A(upd7810_state *cpustate)
+static void __FASTCALL ONA_A_A(upd7810_state *cpustate)
 {
 	if (A & A)
 		PSW = (PSW & ~Z) | SK;
@@ -2401,7 +2401,7 @@ static void ONA_A_A(upd7810_state *cpustate)
 }
 
 /* 60 ca: 0110 0000 1100 1010 */
-static void ONA_A_B(upd7810_state *cpustate)
+static void __FASTCALL ONA_A_B(upd7810_state *cpustate)
 {
 	if (A & B)
 		PSW = (PSW & ~Z) | SK;
@@ -2410,7 +2410,7 @@ static void ONA_A_B(upd7810_state *cpustate)
 }
 
 /* 60 cb: 0110 0000 1100 1011 */
-static void ONA_A_C(upd7810_state *cpustate)
+static void __FASTCALL ONA_A_C(upd7810_state *cpustate)
 {
 	if (A & C)
 		PSW = (PSW & ~Z) | SK;
@@ -2419,7 +2419,7 @@ static void ONA_A_C(upd7810_state *cpustate)
 }
 
 /* 60 cc: 0110 0000 1100 1100 */
-static void ONA_A_D(upd7810_state *cpustate)
+static void __FASTCALL ONA_A_D(upd7810_state *cpustate)
 {
 	if (A & D)
 		PSW = (PSW & ~Z) | SK;
@@ -2428,7 +2428,7 @@ static void ONA_A_D(upd7810_state *cpustate)
 }
 
 /* 60 cd: 0110 0000 1100 1101 */
-static void ONA_A_E(upd7810_state *cpustate)
+static void __FASTCALL ONA_A_E(upd7810_state *cpustate)
 {
 	if (A & E)
 		PSW = (PSW & ~Z) | SK;
@@ -2437,7 +2437,7 @@ static void ONA_A_E(upd7810_state *cpustate)
 }
 
 /* 60 ce: 0110 0000 1100 1110 */
-static void ONA_A_H(upd7810_state *cpustate)
+static void __FASTCALL ONA_A_H(upd7810_state *cpustate)
 {
 	if (A & H)
 		PSW = (PSW & ~Z) | SK;
@@ -2446,7 +2446,7 @@ static void ONA_A_H(upd7810_state *cpustate)
 }
 
 /* 60 cf: 0110 0000 1100 1111 */
-static void ONA_A_L(upd7810_state *cpustate)
+static void __FASTCALL ONA_A_L(upd7810_state *cpustate)
 {
 	if (A & L)
 		PSW = (PSW & ~Z) | SK;
@@ -2455,7 +2455,7 @@ static void ONA_A_L(upd7810_state *cpustate)
 }
 
 /* 60 d0: 0110 0000 1101 0000 */
-static void ADC_A_V(upd7810_state *cpustate)
+static void __FASTCALL ADC_A_V(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + V + (PSW & CY);
 	ZHC_ADD( tmp, A, (PSW & CY) );
@@ -2466,7 +2466,7 @@ static void ADC_A_V(upd7810_state *cpustate)
 /* ADC_A_A already defined */
 
 /* 60 d2: 0110 0000 1101 0010 */
-static void ADC_A_B(upd7810_state *cpustate)
+static void __FASTCALL ADC_A_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + B + (PSW & CY);
 	ZHC_ADD( tmp, A, (PSW & CY) );
@@ -2474,7 +2474,7 @@ static void ADC_A_B(upd7810_state *cpustate)
 }
 
 /* 60 d3: 0110 0000 1101 0011 */
-static void ADC_A_C(upd7810_state *cpustate)
+static void __FASTCALL ADC_A_C(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + C + (PSW & CY);
 	ZHC_ADD( tmp, A, (PSW & CY) );
@@ -2482,7 +2482,7 @@ static void ADC_A_C(upd7810_state *cpustate)
 }
 
 /* 60 d4: 0110 0000 1101 0100 */
-static void ADC_A_D(upd7810_state *cpustate)
+static void __FASTCALL ADC_A_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + D + (PSW & CY);
 	ZHC_ADD( tmp, A, (PSW & CY) );
@@ -2490,7 +2490,7 @@ static void ADC_A_D(upd7810_state *cpustate)
 }
 
 /* 60 d5: 0110 0000 1101 0101 */
-static void ADC_A_E(upd7810_state *cpustate)
+static void __FASTCALL ADC_A_E(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + E + (PSW & CY);
 	ZHC_ADD( tmp, A, (PSW & CY) );
@@ -2498,7 +2498,7 @@ static void ADC_A_E(upd7810_state *cpustate)
 }
 
 /* 60 d6: 0110 0000 1101 0110 */
-static void ADC_A_H(upd7810_state *cpustate)
+static void __FASTCALL ADC_A_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + H + (PSW & CY);
 	ZHC_ADD( tmp, A, (PSW & CY) );
@@ -2506,7 +2506,7 @@ static void ADC_A_H(upd7810_state *cpustate)
 }
 
 /* 60 d7: 0110 0000 1101 0111 */
-static void ADC_A_L(upd7810_state *cpustate)
+static void __FASTCALL ADC_A_L(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + L + (PSW & CY);
 	ZHC_ADD( tmp, A, (PSW & CY) );
@@ -2514,7 +2514,7 @@ static void ADC_A_L(upd7810_state *cpustate)
 }
 
 /* 60 d8: 0110 0000 1101 1000 */
-static void OFFA_A_V(upd7810_state *cpustate)
+static void __FASTCALL OFFA_A_V(upd7810_state *cpustate)
 {
 	if ( A & V )
 		PSW &= ~Z;
@@ -2523,7 +2523,7 @@ static void OFFA_A_V(upd7810_state *cpustate)
 }
 
 /* 60 d9: 0110 0000 1101 1001 */
-static void OFFA_A_A(upd7810_state *cpustate)
+static void __FASTCALL OFFA_A_A(upd7810_state *cpustate)
 {
 	if ( A & A )
 		PSW &= ~Z;
@@ -2532,7 +2532,7 @@ static void OFFA_A_A(upd7810_state *cpustate)
 }
 
 /* 60 da: 0110 0000 1101 1010 */
-static void OFFA_A_B(upd7810_state *cpustate)
+static void __FASTCALL OFFA_A_B(upd7810_state *cpustate)
 {
 	if ( A & B )
 		PSW &= ~Z;
@@ -2541,7 +2541,7 @@ static void OFFA_A_B(upd7810_state *cpustate)
 }
 
 /* 60 db: 0110 0000 1101 1011 */
-static void OFFA_A_C(upd7810_state *cpustate)
+static void __FASTCALL OFFA_A_C(upd7810_state *cpustate)
 {
 	if ( A & C )
 		PSW &= ~Z;
@@ -2550,7 +2550,7 @@ static void OFFA_A_C(upd7810_state *cpustate)
 }
 
 /* 60 dc: 0110 0000 1101 1100 */
-static void OFFA_A_D(upd7810_state *cpustate)
+static void __FASTCALL OFFA_A_D(upd7810_state *cpustate)
 {
 	if ( A & D )
 		PSW &= ~Z;
@@ -2559,7 +2559,7 @@ static void OFFA_A_D(upd7810_state *cpustate)
 }
 
 /* 60 dd: 0110 0000 1101 1101 */
-static void OFFA_A_E(upd7810_state *cpustate)
+static void __FASTCALL OFFA_A_E(upd7810_state *cpustate)
 {
 	if ( A & E )
 		PSW &= ~Z;
@@ -2568,7 +2568,7 @@ static void OFFA_A_E(upd7810_state *cpustate)
 }
 
 /* 60 de: 0110 0000 1101 1110 */
-static void OFFA_A_H(upd7810_state *cpustate)
+static void __FASTCALL OFFA_A_H(upd7810_state *cpustate)
 {
 	if ( A & H )
 		PSW &= ~Z;
@@ -2577,7 +2577,7 @@ static void OFFA_A_H(upd7810_state *cpustate)
 }
 
 /* 60 df: 0110 0000 1101 1111 */
-static void OFFA_A_L(upd7810_state *cpustate)
+static void __FASTCALL OFFA_A_L(upd7810_state *cpustate)
 {
 	if ( A & L )
 		PSW &= ~Z;
@@ -2586,7 +2586,7 @@ static void OFFA_A_L(upd7810_state *cpustate)
 }
 
 /* 60 e0: 0110 0000 1110 0000 */
-static void SUB_A_V(upd7810_state *cpustate)
+static void __FASTCALL SUB_A_V(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - V;
 	ZHC_SUB( tmp, A, 0 );
@@ -2597,7 +2597,7 @@ static void SUB_A_V(upd7810_state *cpustate)
 /* SUB_A_A already defined */
 
 /* 60 e2: 0110 0000 1110 0010 */
-static void SUB_A_B(upd7810_state *cpustate)
+static void __FASTCALL SUB_A_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - B;
 	ZHC_SUB( tmp, A, 0 );
@@ -2605,7 +2605,7 @@ static void SUB_A_B(upd7810_state *cpustate)
 }
 
 /* 60 e3: 0110 0000 1110 0011 */
-static void SUB_A_C(upd7810_state *cpustate)
+static void __FASTCALL SUB_A_C(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - C;
 	ZHC_SUB( tmp, A, 0 );
@@ -2613,7 +2613,7 @@ static void SUB_A_C(upd7810_state *cpustate)
 }
 
 /* 60 e4: 0110 0000 1110 0100 */
-static void SUB_A_D(upd7810_state *cpustate)
+static void __FASTCALL SUB_A_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - D;
 	ZHC_SUB( tmp, A, 0 );
@@ -2621,7 +2621,7 @@ static void SUB_A_D(upd7810_state *cpustate)
 }
 
 /* 60 e5: 0110 0000 1110 0101 */
-static void SUB_A_E(upd7810_state *cpustate)
+static void __FASTCALL SUB_A_E(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - E;
 	ZHC_SUB( tmp, A, 0 );
@@ -2629,7 +2629,7 @@ static void SUB_A_E(upd7810_state *cpustate)
 }
 
 /* 60 e6: 0110 0000 1110 0110 */
-static void SUB_A_H(upd7810_state *cpustate)
+static void __FASTCALL SUB_A_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - H;
 	ZHC_SUB( tmp, A, 0 );
@@ -2637,7 +2637,7 @@ static void SUB_A_H(upd7810_state *cpustate)
 }
 
 /* 60 e7: 0110 0000 1110 0111 */
-static void SUB_A_L(upd7810_state *cpustate)
+static void __FASTCALL SUB_A_L(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - L;
 	ZHC_SUB( tmp, A, 0 );
@@ -2645,7 +2645,7 @@ static void SUB_A_L(upd7810_state *cpustate)
 }
 
 /* 60 e8: 0110 0000 1110 1000 */
-static void NEA_A_V(upd7810_state *cpustate)
+static void __FASTCALL NEA_A_V(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - V;
 	ZHC_SUB( tmp, A, 0 );
@@ -2656,7 +2656,7 @@ static void NEA_A_V(upd7810_state *cpustate)
 /* NEA_A_A already defined */
 
 /* 60 ea: 0110 0000 1110 1010 */
-static void NEA_A_B(upd7810_state *cpustate)
+static void __FASTCALL NEA_A_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - B;
 	ZHC_SUB( tmp, A, 0 );
@@ -2664,7 +2664,7 @@ static void NEA_A_B(upd7810_state *cpustate)
 }
 
 /* 60 eb: 0110 0000 1110 1011 */
-static void NEA_A_C(upd7810_state *cpustate)
+static void __FASTCALL NEA_A_C(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - C;
 	ZHC_SUB( tmp, A, 0 );
@@ -2672,7 +2672,7 @@ static void NEA_A_C(upd7810_state *cpustate)
 }
 
 /* 60 ec: 0110 0000 1110 1100 */
-static void NEA_A_D(upd7810_state *cpustate)
+static void __FASTCALL NEA_A_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - D;
 	ZHC_SUB( tmp, A, 0 );
@@ -2680,7 +2680,7 @@ static void NEA_A_D(upd7810_state *cpustate)
 }
 
 /* 60 ed: 0110 0000 1110 1101 */
-static void NEA_A_E(upd7810_state *cpustate)
+static void __FASTCALL NEA_A_E(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - E;
 	ZHC_SUB( tmp, A, 0 );
@@ -2688,7 +2688,7 @@ static void NEA_A_E(upd7810_state *cpustate)
 }
 
 /* 60 ee: 0110 0000 1110 1110 */
-static void NEA_A_H(upd7810_state *cpustate)
+static void __FASTCALL NEA_A_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - H;
 	ZHC_SUB( tmp, A, 0 );
@@ -2696,7 +2696,7 @@ static void NEA_A_H(upd7810_state *cpustate)
 }
 
 /* 60 ef: 0110 0000 1110 1111 */
-static void NEA_A_L(upd7810_state *cpustate)
+static void __FASTCALL NEA_A_L(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - L;
 	ZHC_SUB( tmp, A, 0 );
@@ -2704,7 +2704,7 @@ static void NEA_A_L(upd7810_state *cpustate)
 }
 
 /* 60 f0: 0110 0000 1111 0000 */
-static void SBB_A_V(upd7810_state *cpustate)
+static void __FASTCALL SBB_A_V(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - V - (PSW & CY);
 	ZHC_SUB( tmp, A, (PSW & CY) );
@@ -2715,7 +2715,7 @@ static void SBB_A_V(upd7810_state *cpustate)
 /* SBB_A_A already defined */
 
 /* 60 f2: 0110 0000 1111 0010 */
-static void SBB_A_B(upd7810_state *cpustate)
+static void __FASTCALL SBB_A_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - B - (PSW & CY);
 	ZHC_SUB( tmp, A, (PSW & CY) );
@@ -2723,7 +2723,7 @@ static void SBB_A_B(upd7810_state *cpustate)
 }
 
 /* 60 f3: 0110 0000 1111 0011 */
-static void SBB_A_C(upd7810_state *cpustate)
+static void __FASTCALL SBB_A_C(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - C - (PSW & CY);
 	ZHC_SUB( tmp, A, (PSW & CY) );
@@ -2731,7 +2731,7 @@ static void SBB_A_C(upd7810_state *cpustate)
 }
 
 /* 60 f4: 0110 0000 1111 0100 */
-static void SBB_A_D(upd7810_state *cpustate)
+static void __FASTCALL SBB_A_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - D - (PSW & CY);
 	ZHC_SUB( tmp, A, (PSW & CY) );
@@ -2739,7 +2739,7 @@ static void SBB_A_D(upd7810_state *cpustate)
 }
 
 /* 60 f5: 0110 0000 1111 0101 */
-static void SBB_A_E(upd7810_state *cpustate)
+static void __FASTCALL SBB_A_E(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - E - (PSW & CY);
 	ZHC_SUB( tmp, A, (PSW & CY) );
@@ -2747,7 +2747,7 @@ static void SBB_A_E(upd7810_state *cpustate)
 }
 
 /* 60 f6: 0110 0000 1111 0110 */
-static void SBB_A_H(upd7810_state *cpustate)
+static void __FASTCALL SBB_A_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - H - (PSW & CY);
 	ZHC_SUB( tmp, A, (PSW & CY) );
@@ -2755,7 +2755,7 @@ static void SBB_A_H(upd7810_state *cpustate)
 }
 
 /* 60 f7: 0110 0000 1111 0111 */
-static void SBB_A_L(upd7810_state *cpustate)
+static void __FASTCALL SBB_A_L(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - L - (PSW & CY);
 	ZHC_SUB( tmp, A, (PSW & CY) );
@@ -2763,7 +2763,7 @@ static void SBB_A_L(upd7810_state *cpustate)
 }
 
 /* 60 f8: 0110 0000 1111 1000 */
-static void EQA_A_V(upd7810_state *cpustate)
+static void __FASTCALL EQA_A_V(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - V;
 	ZHC_SUB( tmp, A, 0 );
@@ -2774,7 +2774,7 @@ static void EQA_A_V(upd7810_state *cpustate)
 /* EQA_A_A already defined */
 
 /* 60 fa: 0110 0000 1111 1010 */
-static void EQA_A_B(upd7810_state *cpustate)
+static void __FASTCALL EQA_A_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - B;
 	ZHC_SUB( tmp, A, 0 );
@@ -2782,7 +2782,7 @@ static void EQA_A_B(upd7810_state *cpustate)
 }
 
 /* 60 fb: 0110 0000 1111 1011 */
-static void EQA_A_C(upd7810_state *cpustate)
+static void __FASTCALL EQA_A_C(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - C;
 	ZHC_SUB( tmp, A, 0 );
@@ -2790,7 +2790,7 @@ static void EQA_A_C(upd7810_state *cpustate)
 }
 
 /* 60 fc: 0110 0000 1111 1100 */
-static void EQA_A_D(upd7810_state *cpustate)
+static void __FASTCALL EQA_A_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - D;
 	ZHC_SUB( tmp, A, 0 );
@@ -2798,7 +2798,7 @@ static void EQA_A_D(upd7810_state *cpustate)
 }
 
 /* 60 fd: 0110 0000 1111 1101 */
-static void EQA_A_E(upd7810_state *cpustate)
+static void __FASTCALL EQA_A_E(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - E;
 	ZHC_SUB( tmp, A, 0 );
@@ -2806,7 +2806,7 @@ static void EQA_A_E(upd7810_state *cpustate)
 }
 
 /* 60 fe: 0110 0000 1111 1110 */
-static void EQA_A_H(upd7810_state *cpustate)
+static void __FASTCALL EQA_A_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - H;
 	ZHC_SUB( tmp, A, 0 );
@@ -2814,7 +2814,7 @@ static void EQA_A_H(upd7810_state *cpustate)
 }
 
 /* 60 ff: 0110 0000 1111 1111 */
-static void EQA_A_L(upd7810_state *cpustate)
+static void __FASTCALL EQA_A_L(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - L;
 	ZHC_SUB( tmp, A, 0 );
@@ -2823,7 +2823,7 @@ static void EQA_A_L(upd7810_state *cpustate)
 
 /* prefix 64 */
 /* 64 00: 0110 0100 0000 0000 xxxx xxxx */
-static void MVI_PA_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_PA_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -2831,7 +2831,7 @@ static void MVI_PA_xx(upd7810_state *cpustate)
 }
 
 /* 64 01: 0110 0100 0000 0001 xxxx xxxx */
-static void MVI_PB_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_PB_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -2839,7 +2839,7 @@ static void MVI_PB_xx(upd7810_state *cpustate)
 }
 
 /* 64 02: 0110 0100 0000 0010 xxxx xxxx */
-static void MVI_PC_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_PC_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -2847,7 +2847,7 @@ static void MVI_PC_xx(upd7810_state *cpustate)
 }
 
 /* 64 03: 0110 0100 0000 0011 xxxx xxxx */
-static void MVI_PD_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_PD_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -2855,7 +2855,7 @@ static void MVI_PD_xx(upd7810_state *cpustate)
 }
 
 /* 64 05: 0110 0100 0000 0101 xxxx xxxx */
-static void MVI_PF_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_PF_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -2863,19 +2863,19 @@ static void MVI_PF_xx(upd7810_state *cpustate)
 }
 
 /* 64 06: 0110 0100 0000 0110 xxxx xxxx */
-static void MVI_MKH_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_MKH_xx(upd7810_state *cpustate)
 {
 	RDOPARG( MKH );
 }
 
 /* 64 07: 0110 0100 0000 0111 xxxx xxxx */
-static void MVI_MKL_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_MKL_xx(upd7810_state *cpustate)
 {
 	RDOPARG( MKL );
 }
 
 /* 64 08: 0110 0100 0000 1000 xxxx xxxx */
-static void ANI_PA_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_PA_xx(upd7810_state *cpustate)
 {
 	UINT8 pa = RP( cpustate, UPD7810_PORTA), imm;
 	RDOPARG( imm );
@@ -2885,7 +2885,7 @@ static void ANI_PA_xx(upd7810_state *cpustate)
 }
 
 /* 64 09: 0110 0100 0000 1001 xxxx xxxx */
-static void ANI_PB_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_PB_xx(upd7810_state *cpustate)
 {
 	UINT8 pb = RP( cpustate, UPD7810_PORTB), imm;
 	RDOPARG( imm );
@@ -2895,7 +2895,7 @@ static void ANI_PB_xx(upd7810_state *cpustate)
 }
 
 /* 64 0a: 0110 0100 0000 1010 xxxx xxxx */
-static void ANI_PC_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_PC_xx(upd7810_state *cpustate)
 {
 	UINT8 pc = RP( cpustate, UPD7810_PORTC), imm;
 	RDOPARG( imm );
@@ -2905,7 +2905,7 @@ static void ANI_PC_xx(upd7810_state *cpustate)
 }
 
 /* 64 0b: 0110 0100 0000 1011 xxxx xxxx */
-static void ANI_PD_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_PD_xx(upd7810_state *cpustate)
 {
 	UINT8 pd = RP( cpustate, UPD7810_PORTD ), imm;
 	RDOPARG( imm );
@@ -2915,7 +2915,7 @@ static void ANI_PD_xx(upd7810_state *cpustate)
 }
 
 /* 64 0d: 0110 0100 0000 1101 xxxx xxxx */
-static void ANI_PF_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_PF_xx(upd7810_state *cpustate)
 {
 	UINT8 pf = RP( cpustate, UPD7810_PORTF ), imm;
 	RDOPARG( imm );
@@ -2925,7 +2925,7 @@ static void ANI_PF_xx(upd7810_state *cpustate)
 }
 
 /* 64 0e: 0110 0100 0000 1110 xxxx xxxx */
-static void ANI_MKH_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_MKH_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -2934,7 +2934,7 @@ static void ANI_MKH_xx(upd7810_state *cpustate)
 }
 
 /* 64 0f: 0110 0100 0000 1111 xxxx xxxx */
-static void ANI_MKL_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_MKL_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -2943,7 +2943,7 @@ static void ANI_MKL_xx(upd7810_state *cpustate)
 }
 
 /* 64 10: 0110 0100 0001 0000 xxxx xxxx */
-static void XRI_PA_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_PA_xx(upd7810_state *cpustate)
 {
 	UINT8 pa = RP( cpustate, UPD7810_PORTA ), imm;
 	RDOPARG( imm );
@@ -2953,7 +2953,7 @@ static void XRI_PA_xx(upd7810_state *cpustate)
 }
 
 /* 64 11: 0110 0100 0001 0001 xxxx xxxx */
-static void XRI_PB_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_PB_xx(upd7810_state *cpustate)
 {
 	UINT8 pb = RP( cpustate, UPD7810_PORTB ), imm;
 	RDOPARG( imm );
@@ -2963,7 +2963,7 @@ static void XRI_PB_xx(upd7810_state *cpustate)
 }
 
 /* 64 12: 0110 0100 0001 0010 xxxx xxxx */
-static void XRI_PC_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_PC_xx(upd7810_state *cpustate)
 {
 	UINT8 pc = RP( cpustate, UPD7810_PORTC ), imm;
 	RDOPARG( imm );
@@ -2973,7 +2973,7 @@ static void XRI_PC_xx(upd7810_state *cpustate)
 }
 
 /* 64 13: 0110 0100 0001 0011 xxxx xxxx */
-static void XRI_PD_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_PD_xx(upd7810_state *cpustate)
 {
 	UINT8 pd = RP( cpustate, UPD7810_PORTD ), imm;
 	RDOPARG( imm );
@@ -2983,7 +2983,7 @@ static void XRI_PD_xx(upd7810_state *cpustate)
 }
 
 /* 64 15: 0110 0100 0001 0101 xxxx xxxx */
-static void XRI_PF_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_PF_xx(upd7810_state *cpustate)
 {
 	UINT8 pf = RP( cpustate, UPD7810_PORTF ), imm;
 	RDOPARG( imm );
@@ -2993,7 +2993,7 @@ static void XRI_PF_xx(upd7810_state *cpustate)
 }
 
 /* 64 16: 0110 0100 0001 0110 xxxx xxxx */
-static void XRI_MKH_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_MKH_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -3002,7 +3002,7 @@ static void XRI_MKH_xx(upd7810_state *cpustate)
 }
 
 /* 64 17: 0110 0100 0001 0111 xxxx xxxx */
-static void XRI_MKL_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_MKL_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -3011,7 +3011,7 @@ static void XRI_MKL_xx(upd7810_state *cpustate)
 }
 
 /* 64 18: 0110 0100 0001 1000 xxxx xxxx */
-static void ORI_PA_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_PA_xx(upd7810_state *cpustate)
 {
 	UINT8 pa = RP( cpustate, UPD7810_PORTA ), imm;
 	RDOPARG( imm );
@@ -3021,7 +3021,7 @@ static void ORI_PA_xx(upd7810_state *cpustate)
 }
 
 /* 64 19: 0110 0100 0001 1001 xxxx xxxx */
-static void ORI_PB_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_PB_xx(upd7810_state *cpustate)
 {
 	UINT8 pb = RP( cpustate, UPD7810_PORTB ), imm;
 	RDOPARG( imm );
@@ -3031,7 +3031,7 @@ static void ORI_PB_xx(upd7810_state *cpustate)
 }
 
 /* 64 1a: 0110 0100 0001 1010 xxxx xxxx */
-static void ORI_PC_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_PC_xx(upd7810_state *cpustate)
 {
 	UINT8 pc = RP( cpustate, UPD7810_PORTC ), imm;
 	RDOPARG( imm );
@@ -3041,7 +3041,7 @@ static void ORI_PC_xx(upd7810_state *cpustate)
 }
 
 /* 64 1b: 0110 0100 0001 1011 xxxx xxxx */
-static void ORI_PD_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_PD_xx(upd7810_state *cpustate)
 {
 	UINT8 pd = RP( cpustate, UPD7810_PORTD ), imm;
 	RDOPARG( imm );
@@ -3051,7 +3051,7 @@ static void ORI_PD_xx(upd7810_state *cpustate)
 }
 
 /* 64 1d: 0110 0100 0001 1101 xxxx xxxx */
-static void ORI_PF_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_PF_xx(upd7810_state *cpustate)
 {
 	UINT8 pf = RP( cpustate, UPD7810_PORTF ), imm;
 	RDOPARG( imm );
@@ -3061,7 +3061,7 @@ static void ORI_PF_xx(upd7810_state *cpustate)
 }
 
 /* 64 1e: 0110 0100 0001 1110 xxxx xxxx */
-static void ORI_MKH_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_MKH_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -3070,7 +3070,7 @@ static void ORI_MKH_xx(upd7810_state *cpustate)
 }
 
 /* 64 1f: 0110 0100 0001 1111 xxxx xxxx */
-static void ORI_MKL_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_MKL_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -3079,7 +3079,7 @@ static void ORI_MKL_xx(upd7810_state *cpustate)
 }
 
 /* 64 20: 0110 0100 0010 0000 xxxx xxxx */
-static void ADINC_PA_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_PA_xx(upd7810_state *cpustate)
 {
 	UINT8 pa = RP( cpustate, UPD7810_PORTA );
 	UINT8 tmp, imm;
@@ -3093,7 +3093,7 @@ static void ADINC_PA_xx(upd7810_state *cpustate)
 }
 
 /* 64 21: 0110 0100 0010 0001 xxxx xxxx */
-static void ADINC_PB_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_PB_xx(upd7810_state *cpustate)
 {
 	UINT8 pb = RP( cpustate, UPD7810_PORTB );
 	UINT8 tmp, imm;
@@ -3107,7 +3107,7 @@ static void ADINC_PB_xx(upd7810_state *cpustate)
 }
 
 /* 64 22: 0110 0100 0010 0010 xxxx xxxx */
-static void ADINC_PC_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_PC_xx(upd7810_state *cpustate)
 {
 	UINT8 pc = RP( cpustate, UPD7810_PORTC );
 	UINT8 tmp, imm;
@@ -3121,7 +3121,7 @@ static void ADINC_PC_xx(upd7810_state *cpustate)
 }
 
 /* 64 23: 0110 0100 0010 0011 xxxx xxxx */
-static void ADINC_PD_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_PD_xx(upd7810_state *cpustate)
 {
 	UINT8 pd = RP( cpustate, UPD7810_PORTD );
 	UINT8 tmp, imm;
@@ -3135,7 +3135,7 @@ static void ADINC_PD_xx(upd7810_state *cpustate)
 }
 
 /* 64 25: 0110 0100 0010 0101 xxxx xxxx */
-static void ADINC_PF_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_PF_xx(upd7810_state *cpustate)
 {
 	UINT8 pf = RP( cpustate, UPD7810_PORTF );
 	UINT8 tmp, imm;
@@ -3149,7 +3149,7 @@ static void ADINC_PF_xx(upd7810_state *cpustate)
 }
 
 /* 64 26: 0110 0100 0010 0110 xxxx xxxx */
-static void ADINC_MKH_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_MKH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -3162,7 +3162,7 @@ static void ADINC_MKH_xx(upd7810_state *cpustate)
 }
 
 /* 64 27: 0110 0100 0010 0111 xxxx xxxx */
-static void ADINC_MKL_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_MKL_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -3175,7 +3175,7 @@ static void ADINC_MKL_xx(upd7810_state *cpustate)
 }
 
 /* 64 28: 0110 0100 0010 1000 xxxx xxxx */
-static void GTI_PA_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_PA_xx(upd7810_state *cpustate)
 {
 	UINT8 pa = RP( cpustate, UPD7810_PORTA ), imm;
 	UINT16 tmp;
@@ -3188,7 +3188,7 @@ static void GTI_PA_xx(upd7810_state *cpustate)
 }
 
 /* 64 29: 0110 0100 0010 1001 xxxx xxxx */
-static void GTI_PB_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_PB_xx(upd7810_state *cpustate)
 {
 	UINT8 pb = RP( cpustate, UPD7810_PORTB ), imm;
 	UINT16 tmp;
@@ -3201,7 +3201,7 @@ static void GTI_PB_xx(upd7810_state *cpustate)
 }
 
 /* 64 2a: 0110 0100 0010 1010 xxxx xxxx */
-static void GTI_PC_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_PC_xx(upd7810_state *cpustate)
 {
 	UINT8 pc = RP( cpustate, UPD7810_PORTC ), imm;
 	UINT16 tmp;
@@ -3214,7 +3214,7 @@ static void GTI_PC_xx(upd7810_state *cpustate)
 }
 
 /* 64 2b: 0110 0100 0010 1011 xxxx xxxx */
-static void GTI_PD_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_PD_xx(upd7810_state *cpustate)
 {
 	UINT8 pd = RP( cpustate, UPD7810_PORTD ), imm;
 	UINT16 tmp;
@@ -3227,7 +3227,7 @@ static void GTI_PD_xx(upd7810_state *cpustate)
 }
 
 /* 64 2d: 0110 0100 0010 1101 xxxx xxxx */
-static void GTI_PF_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_PF_xx(upd7810_state *cpustate)
 {
 	UINT8 pf = RP( cpustate, UPD7810_PORTF ), imm;
 	UINT16 tmp;
@@ -3240,7 +3240,7 @@ static void GTI_PF_xx(upd7810_state *cpustate)
 }
 
 /* 64 2e: 0110 0100 0010 1110 xxxx xxxx */
-static void GTI_MKH_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_MKH_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	UINT16 tmp;
@@ -3253,7 +3253,7 @@ static void GTI_MKH_xx(upd7810_state *cpustate)
 }
 
 /* 64 2f: 0110 0100 0010 1111 xxxx xxxx */
-static void GTI_MKL_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_MKL_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	UINT16 tmp;
@@ -3266,7 +3266,7 @@ static void GTI_MKL_xx(upd7810_state *cpustate)
 }
 
 /* 64 30: 0110 0100 0011 0000 xxxx xxxx */
-static void SUINB_PA_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_PA_xx(upd7810_state *cpustate)
 {
 	UINT8 pa = RP( cpustate, UPD7810_PORTA ), tmp, imm;
 
@@ -3279,7 +3279,7 @@ static void SUINB_PA_xx(upd7810_state *cpustate)
 }
 
 /* 64 31: 0110 0100 0011 0001 xxxx xxxx */
-static void SUINB_PB_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_PB_xx(upd7810_state *cpustate)
 {
 	UINT8 pb = RP( cpustate, UPD7810_PORTB ), tmp, imm;
 
@@ -3292,7 +3292,7 @@ static void SUINB_PB_xx(upd7810_state *cpustate)
 }
 
 /* 64 32: 0110 0100 0011 0010 xxxx xxxx */
-static void SUINB_PC_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_PC_xx(upd7810_state *cpustate)
 {
 	UINT8 pc = RP( cpustate, UPD7810_PORTC ), tmp, imm;
 
@@ -3305,7 +3305,7 @@ static void SUINB_PC_xx(upd7810_state *cpustate)
 }
 
 /* 64 33: 0110 0100 0011 0011 xxxx xxxx */
-static void SUINB_PD_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_PD_xx(upd7810_state *cpustate)
 {
 	UINT8 pd = RP( cpustate, UPD7810_PORTD ), tmp, imm;
 
@@ -3318,7 +3318,7 @@ static void SUINB_PD_xx(upd7810_state *cpustate)
 }
 
 /* 64 35: 0110 0100 0011 0101 xxxx xxxx */
-static void SUINB_PF_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_PF_xx(upd7810_state *cpustate)
 {
 	UINT8 pf = RP( cpustate, UPD7810_PORTF ), tmp, imm;
 
@@ -3331,7 +3331,7 @@ static void SUINB_PF_xx(upd7810_state *cpustate)
 }
 
 /* 64 36: 0110 0100 0011 0110 xxxx xxxx */
-static void SUINB_MKH_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_MKH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -3343,7 +3343,7 @@ static void SUINB_MKH_xx(upd7810_state *cpustate)
 }
 
 /* 64 37: 0110 0100 0011 0111 xxxx xxxx */
-static void SUINB_MKL_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_MKL_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -3355,7 +3355,7 @@ static void SUINB_MKL_xx(upd7810_state *cpustate)
 }
 
 /* 64 38: 0110 0100 0011 1000 xxxx xxxx */
-static void LTI_PA_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_PA_xx(upd7810_state *cpustate)
 {
 	UINT8 pa = RP( cpustate, UPD7810_PORTA ), tmp, imm;
 	RDOPARG( imm );
@@ -3365,7 +3365,7 @@ static void LTI_PA_xx(upd7810_state *cpustate)
 }
 
 /* 64 39: 0110 0100 0011 1001 xxxx xxxx */
-static void LTI_PB_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_PB_xx(upd7810_state *cpustate)
 {
 	UINT8 pb = RP( cpustate, UPD7810_PORTB ), tmp, imm;
 	RDOPARG( imm );
@@ -3375,7 +3375,7 @@ static void LTI_PB_xx(upd7810_state *cpustate)
 }
 
 /* 64 3a: 0110 0100 0011 1010 xxxx xxxx */
-static void LTI_PC_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_PC_xx(upd7810_state *cpustate)
 {
 	UINT8 pc = RP( cpustate, UPD7810_PORTC ), tmp, imm;
 	RDOPARG( imm );
@@ -3385,7 +3385,7 @@ static void LTI_PC_xx(upd7810_state *cpustate)
 }
 
 /* 64 3b: 0110 0100 0011 1011 xxxx xxxx */
-static void LTI_PD_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_PD_xx(upd7810_state *cpustate)
 {
 	UINT8 pd = RP( cpustate, UPD7810_PORTD ), tmp, imm;
 	RDOPARG( imm );
@@ -3395,7 +3395,7 @@ static void LTI_PD_xx(upd7810_state *cpustate)
 }
 
 /* 64 3d: 0110 0100 0011 1101 xxxx xxxx */
-static void LTI_PF_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_PF_xx(upd7810_state *cpustate)
 {
 	UINT8 pf = RP( cpustate, UPD7810_PORTF ), tmp, imm;
 	RDOPARG( imm );
@@ -3405,7 +3405,7 @@ static void LTI_PF_xx(upd7810_state *cpustate)
 }
 
 /* 64 3e: 0110 0100 0011 1110 xxxx xxxx */
-static void LTI_MKH_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_MKH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -3416,7 +3416,7 @@ static void LTI_MKH_xx(upd7810_state *cpustate)
 }
 
 /* 64 3f: 0110 0100 0011 1111 xxxx xxxx */
-static void LTI_MKL_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_MKL_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -3427,7 +3427,7 @@ static void LTI_MKL_xx(upd7810_state *cpustate)
 }
 
 /* 64 40: 0110 0100 0100 0000 xxxx xxxx */
-static void ADI_PA_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_PA_xx(upd7810_state *cpustate)
 {
 	UINT8 pa = RP( cpustate, UPD7810_PORTA ), tmp, imm;
 
@@ -3439,7 +3439,7 @@ static void ADI_PA_xx(upd7810_state *cpustate)
 }
 
 /* 64 41: 0110 0100 0100 0001 xxxx xxxx */
-static void ADI_PB_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_PB_xx(upd7810_state *cpustate)
 {
 	UINT8 pb = RP( cpustate, UPD7810_PORTB ), tmp, imm;
 
@@ -3451,7 +3451,7 @@ static void ADI_PB_xx(upd7810_state *cpustate)
 }
 
 /* 64 42: 0110 0100 0100 0010 xxxx xxxx */
-static void ADI_PC_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_PC_xx(upd7810_state *cpustate)
 {
 	UINT8 pc = RP( cpustate, UPD7810_PORTC ), tmp, imm;
 
@@ -3463,7 +3463,7 @@ static void ADI_PC_xx(upd7810_state *cpustate)
 }
 
 /* 64 43: 0110 0100 0100 0011 xxxx xxxx */
-static void ADI_PD_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_PD_xx(upd7810_state *cpustate)
 {
 	UINT8 pd = RP( cpustate, UPD7810_PORTD ), tmp, imm;
 
@@ -3475,7 +3475,7 @@ static void ADI_PD_xx(upd7810_state *cpustate)
 }
 
 /* 64 45: 0110 0100 0100 0101 xxxx xxxx */
-static void ADI_PF_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_PF_xx(upd7810_state *cpustate)
 {
 	UINT8 pf = RP( cpustate, UPD7810_PORTF ), tmp, imm;
 
@@ -3487,7 +3487,7 @@ static void ADI_PF_xx(upd7810_state *cpustate)
 }
 
 /* 64 46: 0110 0100 0100 0110 xxxx xxxx */
-static void ADI_MKH_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_MKH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -3498,7 +3498,7 @@ static void ADI_MKH_xx(upd7810_state *cpustate)
 }
 
 /* 64 47: 0110 0100 0100 0111 xxxx xxxx */
-static void ADI_MKL_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_MKL_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -3509,7 +3509,7 @@ static void ADI_MKL_xx(upd7810_state *cpustate)
 }
 
 /* 64 48: 0110 0100 0100 1000 xxxx xxxx */
-static void ONI_PA_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_PA_xx(upd7810_state *cpustate)
 {
 	UINT8 pa = RP( cpustate, UPD7810_PORTA ), imm;
 
@@ -3519,7 +3519,7 @@ static void ONI_PA_xx(upd7810_state *cpustate)
 }
 
 /* 64 49: 0110 0100 0100 1001 xxxx xxxx */
-static void ONI_PB_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_PB_xx(upd7810_state *cpustate)
 {
 	UINT8 pb = RP( cpustate, UPD7810_PORTB ), imm;
 
@@ -3529,7 +3529,7 @@ static void ONI_PB_xx(upd7810_state *cpustate)
 }
 
 /* 64 4a: 0110 0100 0100 1010 xxxx xxxx */
-static void ONI_PC_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_PC_xx(upd7810_state *cpustate)
 {
 	UINT8 pc = RP( cpustate, UPD7810_PORTC ), imm;
 
@@ -3539,7 +3539,7 @@ static void ONI_PC_xx(upd7810_state *cpustate)
 }
 
 /* 64 4b: 0110 0100 0100 1011 xxxx xxxx */
-static void ONI_PD_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_PD_xx(upd7810_state *cpustate)
 {
 	UINT8 pd = RP( cpustate, UPD7810_PORTD ), imm;
 
@@ -3549,7 +3549,7 @@ static void ONI_PD_xx(upd7810_state *cpustate)
 }
 
 /* 64 4d: 0110 0100 0100 1101 xxxx xxxx */
-static void ONI_PF_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_PF_xx(upd7810_state *cpustate)
 {
 	UINT8 pf = RP( cpustate, UPD7810_PORTF ), imm;
 
@@ -3559,7 +3559,7 @@ static void ONI_PF_xx(upd7810_state *cpustate)
 }
 
 /* 64 4e: 0110 0100 0100 1110 xxxx xxxx */
-static void ONI_MKH_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_MKH_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -3569,7 +3569,7 @@ static void ONI_MKH_xx(upd7810_state *cpustate)
 }
 
 /* 64 4f: 0110 0100 0100 1111 xxxx xxxx */
-static void ONI_MKL_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_MKL_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -3579,7 +3579,7 @@ static void ONI_MKL_xx(upd7810_state *cpustate)
 }
 
 /* 64 50: 0110 0100 0101 0000 xxxx xxxx */
-static void ACI_PA_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_PA_xx(upd7810_state *cpustate)
 {
 	UINT8 pa = RP( cpustate, UPD7810_PORTA ), tmp, imm;
 
@@ -3591,7 +3591,7 @@ static void ACI_PA_xx(upd7810_state *cpustate)
 }
 
 /* 64 51: 0110 0100 0101 0001 xxxx xxxx */
-static void ACI_PB_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_PB_xx(upd7810_state *cpustate)
 {
 	UINT8 pb = RP( cpustate, UPD7810_PORTB ), tmp, imm;
 
@@ -3603,7 +3603,7 @@ static void ACI_PB_xx(upd7810_state *cpustate)
 }
 
 /* 64 52: 0110 0100 0101 0010 xxxx xxxx */
-static void ACI_PC_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_PC_xx(upd7810_state *cpustate)
 {
 	UINT8 pc = RP( cpustate, UPD7810_PORTC ), tmp, imm;
 
@@ -3615,7 +3615,7 @@ static void ACI_PC_xx(upd7810_state *cpustate)
 }
 
 /* 64 53: 0110 0100 0101 0011 xxxx xxxx */
-static void ACI_PD_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_PD_xx(upd7810_state *cpustate)
 {
 	UINT8 pd = RP( cpustate, UPD7810_PORTD ), tmp, imm;
 
@@ -3627,7 +3627,7 @@ static void ACI_PD_xx(upd7810_state *cpustate)
 }
 
 /* 64 55: 0110 0100 0101 0101 xxxx xxxx */
-static void ACI_PF_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_PF_xx(upd7810_state *cpustate)
 {
 	UINT8 pf = RP( cpustate, UPD7810_PORTF ), tmp, imm;
 
@@ -3639,7 +3639,7 @@ static void ACI_PF_xx(upd7810_state *cpustate)
 }
 
 /* 64 56: 0110 0100 0101 0110 xxxx xxxx */
-static void ACI_MKH_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_MKH_xx(upd7810_state *cpustate)
 {
 	UINT8 imm, tmp;
 
@@ -3650,7 +3650,7 @@ static void ACI_MKH_xx(upd7810_state *cpustate)
 }
 
 /* 64 57: 0110 0100 0101 0111 xxxx xxxx */
-static void ACI_MKL_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_MKL_xx(upd7810_state *cpustate)
 {
 	UINT8 imm, tmp;
 
@@ -3661,7 +3661,7 @@ static void ACI_MKL_xx(upd7810_state *cpustate)
 }
 
 /* 64 58: 0110 0100 0101 1000 xxxx xxxx */
-static void OFFI_PA_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_PA_xx(upd7810_state *cpustate)
 {
 	UINT8 pa = RP( cpustate, UPD7810_PORTA ), imm;
 
@@ -3671,7 +3671,7 @@ static void OFFI_PA_xx(upd7810_state *cpustate)
 }
 
 /* 64 59: 0110 0100 0101 1001 xxxx xxxx */
-static void OFFI_PB_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_PB_xx(upd7810_state *cpustate)
 {
 	UINT8 pb = RP( cpustate, UPD7810_PORTB ), imm;
 
@@ -3681,7 +3681,7 @@ static void OFFI_PB_xx(upd7810_state *cpustate)
 }
 
 /* 64 5a: 0110 0100 0101 1010 xxxx xxxx */
-static void OFFI_PC_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_PC_xx(upd7810_state *cpustate)
 {
 	UINT8 pc = RP( cpustate, UPD7810_PORTC ), imm;
 
@@ -3691,7 +3691,7 @@ static void OFFI_PC_xx(upd7810_state *cpustate)
 }
 
 /* 64 5b: 0110 0100 0101 1011 xxxx xxxx */
-static void OFFI_PD_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_PD_xx(upd7810_state *cpustate)
 {
 	UINT8 pd = RP( cpustate, UPD7810_PORTD ), imm;
 
@@ -3701,7 +3701,7 @@ static void OFFI_PD_xx(upd7810_state *cpustate)
 }
 
 /* 64 5d: 0110 0100 0101 1101 xxxx xxxx */
-static void OFFI_PF_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_PF_xx(upd7810_state *cpustate)
 {
 	UINT8 pf = RP( cpustate, UPD7810_PORTF ), imm;
 
@@ -3711,7 +3711,7 @@ static void OFFI_PF_xx(upd7810_state *cpustate)
 }
 
 /* 64 5e: 0110 0100 0101 1110 xxxx xxxx */
-static void OFFI_MKH_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_MKH_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -3721,7 +3721,7 @@ static void OFFI_MKH_xx(upd7810_state *cpustate)
 }
 
 /* 64 5f: 0110 0100 0101 1111 xxxx xxxx */
-static void OFFI_MKL_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_MKL_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -3731,7 +3731,7 @@ static void OFFI_MKL_xx(upd7810_state *cpustate)
 }
 
 /* 64 60: 0110 0100 0110 0000 xxxx xxxx */
-static void SUI_PA_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_PA_xx(upd7810_state *cpustate)
 {
 	UINT8 pa = RP( cpustate, UPD7810_PORTA ), tmp, imm;
 
@@ -3743,7 +3743,7 @@ static void SUI_PA_xx(upd7810_state *cpustate)
 }
 
 /* 64 61: 0110 0100 0110 0001 xxxx xxxx */
-static void SUI_PB_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_PB_xx(upd7810_state *cpustate)
 {
 	UINT8 pb = RP( cpustate, UPD7810_PORTB ), tmp, imm;
 
@@ -3755,7 +3755,7 @@ static void SUI_PB_xx(upd7810_state *cpustate)
 }
 
 /* 64 62: 0110 0100 0110 0010 xxxx xxxx */
-static void SUI_PC_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_PC_xx(upd7810_state *cpustate)
 {
 	UINT8 pc = RP( cpustate, UPD7810_PORTC ), tmp, imm;
 
@@ -3767,7 +3767,7 @@ static void SUI_PC_xx(upd7810_state *cpustate)
 }
 
 /* 64 63: 0110 0100 0110 0011 xxxx xxxx */
-static void SUI_PD_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_PD_xx(upd7810_state *cpustate)
 {
 	UINT8 pd = RP( cpustate, UPD7810_PORTD ), tmp, imm;
 
@@ -3779,7 +3779,7 @@ static void SUI_PD_xx(upd7810_state *cpustate)
 }
 
 /* 64 65: 0110 0100 0110 0101 xxxx xxxx */
-static void SUI_PF_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_PF_xx(upd7810_state *cpustate)
 {
 	UINT8 pf = RP( cpustate, UPD7810_PORTF ), tmp, imm;
 
@@ -3791,7 +3791,7 @@ static void SUI_PF_xx(upd7810_state *cpustate)
 }
 
 /* 64 66: 0110 0100 0110 0110 xxxx xxxx */
-static void SUI_MKH_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_MKH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -3802,7 +3802,7 @@ static void SUI_MKH_xx(upd7810_state *cpustate)
 }
 
 /* 64 67: 0110 0100 0110 0111 xxxx xxxx */
-static void SUI_MKL_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_MKL_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -3813,7 +3813,7 @@ static void SUI_MKL_xx(upd7810_state *cpustate)
 }
 
 /* 64 68: 0110 0100 0110 1000 xxxx xxxx */
-static void NEI_PA_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_PA_xx(upd7810_state *cpustate)
 {
 	UINT8 pa = RP( cpustate, UPD7810_PORTA ), tmp, imm;
 
@@ -3824,7 +3824,7 @@ static void NEI_PA_xx(upd7810_state *cpustate)
 }
 
 /* 64 69: 0110 0100 0110 1001 xxxx xxxx */
-static void NEI_PB_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_PB_xx(upd7810_state *cpustate)
 {
 	UINT8 pb = RP( cpustate, UPD7810_PORTB ), tmp, imm;
 
@@ -3835,7 +3835,7 @@ static void NEI_PB_xx(upd7810_state *cpustate)
 }
 
 /* 64 6a: 0110 0100 0110 1010 xxxx xxxx */
-static void NEI_PC_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_PC_xx(upd7810_state *cpustate)
 {
 	UINT8 pc = RP( cpustate, UPD7810_PORTC ), tmp, imm;
 
@@ -3846,7 +3846,7 @@ static void NEI_PC_xx(upd7810_state *cpustate)
 }
 
 /* 64 6b: 0110 0100 0110 1011 xxxx xxxx */
-static void NEI_PD_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_PD_xx(upd7810_state *cpustate)
 {
 	UINT8 pd = RP( cpustate, UPD7810_PORTD ), tmp, imm;
 
@@ -3857,7 +3857,7 @@ static void NEI_PD_xx(upd7810_state *cpustate)
 }
 
 /* 64 6d: 0110 0100 0110 1101 xxxx xxxx */
-static void NEI_PF_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_PF_xx(upd7810_state *cpustate)
 {
 	UINT8 pf = RP( cpustate, UPD7810_PORTF ), tmp, imm;
 
@@ -3868,7 +3868,7 @@ static void NEI_PF_xx(upd7810_state *cpustate)
 }
 
 /* 64 6e: 0110 0100 0110 1110 xxxx xxxx */
-static void NEI_MKH_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_MKH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -3879,7 +3879,7 @@ static void NEI_MKH_xx(upd7810_state *cpustate)
 }
 
 /* 64 6f: 0110 0100 0110 1111 xxxx xxxx */
-static void NEI_MKL_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_MKL_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -3890,7 +3890,7 @@ static void NEI_MKL_xx(upd7810_state *cpustate)
 }
 
 /* 64 70: 0110 0100 0111 0000 xxxx xxxx */
-static void SBI_PA_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_PA_xx(upd7810_state *cpustate)
 {
 	UINT8 pa = RP( cpustate, UPD7810_PORTA ), tmp, imm;
 
@@ -3902,7 +3902,7 @@ static void SBI_PA_xx(upd7810_state *cpustate)
 }
 
 /* 64 71: 0110 0100 0111 0001 xxxx xxxx */
-static void SBI_PB_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_PB_xx(upd7810_state *cpustate)
 {
 	UINT8 pb = RP( cpustate, UPD7810_PORTB ), tmp, imm;
 
@@ -3914,7 +3914,7 @@ static void SBI_PB_xx(upd7810_state *cpustate)
 }
 
 /* 64 72: 0110 0100 0111 0010 xxxx xxxx */
-static void SBI_PC_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_PC_xx(upd7810_state *cpustate)
 {
 	UINT8 pc = RP( cpustate, UPD7810_PORTC ), tmp, imm;
 
@@ -3926,7 +3926,7 @@ static void SBI_PC_xx(upd7810_state *cpustate)
 }
 
 /* 64 73: 0110 0100 0111 0011 xxxx xxxx */
-static void SBI_PD_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_PD_xx(upd7810_state *cpustate)
 {
 	UINT8 pd = RP( cpustate, UPD7810_PORTD ), tmp, imm;
 
@@ -3938,7 +3938,7 @@ static void SBI_PD_xx(upd7810_state *cpustate)
 }
 
 /* 64 75: 0110 0100 0111 0101 xxxx xxxx */
-static void SBI_PF_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_PF_xx(upd7810_state *cpustate)
 {
 	UINT8 pf = RP( cpustate, UPD7810_PORTF ), tmp, imm;
 
@@ -3950,7 +3950,7 @@ static void SBI_PF_xx(upd7810_state *cpustate)
 }
 
 /* 64 76: 0110 0100 0111 0110 xxxx xxxx */
-static void SBI_MKH_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_MKH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -3961,7 +3961,7 @@ static void SBI_MKH_xx(upd7810_state *cpustate)
 }
 
 /* 64 77: 0110 0100 0111 0111 xxxx xxxx */
-static void SBI_MKL_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_MKL_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -3972,7 +3972,7 @@ static void SBI_MKL_xx(upd7810_state *cpustate)
 }
 
 /* 64 78: 0110 0100 0111 1000 xxxx xxxx */
-static void EQI_PA_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_PA_xx(upd7810_state *cpustate)
 {
 	UINT8 pa = RP( cpustate, UPD7810_PORTA ), tmp, imm;
 
@@ -3983,7 +3983,7 @@ static void EQI_PA_xx(upd7810_state *cpustate)
 }
 
 /* 64 79: 0110 0100 0111 1001 xxxx xxxx */
-static void EQI_PB_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_PB_xx(upd7810_state *cpustate)
 {
 	UINT8 pb = RP( cpustate, UPD7810_PORTB ), tmp, imm;
 
@@ -3994,7 +3994,7 @@ static void EQI_PB_xx(upd7810_state *cpustate)
 }
 
 /* 64 7a: 0110 0100 0111 1010 xxxx xxxx */
-static void EQI_PC_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_PC_xx(upd7810_state *cpustate)
 {
 	UINT8 pc = RP( cpustate, UPD7810_PORTC ), tmp, imm;
 
@@ -4005,7 +4005,7 @@ static void EQI_PC_xx(upd7810_state *cpustate)
 }
 
 /* 64 7b: 0110 0100 0111 1011 xxxx xxxx */
-static void EQI_PD_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_PD_xx(upd7810_state *cpustate)
 {
 	UINT8 pd = RP( cpustate, UPD7810_PORTD ), tmp, imm;
 
@@ -4016,7 +4016,7 @@ static void EQI_PD_xx(upd7810_state *cpustate)
 }
 
 /* 64 7d: 0110 0100 0111 1101 xxxx xxxx */
-static void EQI_PF_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_PF_xx(upd7810_state *cpustate)
 {
 	UINT8 pf = RP( cpustate, UPD7810_PORTF ), tmp, imm;
 
@@ -4027,7 +4027,7 @@ static void EQI_PF_xx(upd7810_state *cpustate)
 }
 
 /* 64 7e: 0110 0100 0111 1110 xxxx xxxx */
-static void EQI_MKH_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_MKH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4038,7 +4038,7 @@ static void EQI_MKH_xx(upd7810_state *cpustate)
 }
 
 /* 64 7f: 0110 0100 0111 1111 xxxx xxxx */
-static void EQI_MKL_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_MKL_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4049,32 +4049,32 @@ static void EQI_MKL_xx(upd7810_state *cpustate)
 }
 
 /* 64 80: 0110 0100 1000 0000 xxxx xxxx */
-static void MVI_ANM_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_ANM_xx(upd7810_state *cpustate)
 {
 	RDOPARG( ANM );
 }
 
 /* 64 81: 0110 0100 1000 0001 xxxx xxxx */
-static void MVI_SMH_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_SMH_xx(upd7810_state *cpustate)
 {
 	RDOPARG( SMH );
 }
 
 /* 64 83: 0110 0100 1000 0011 xxxx xxxx */
-static void MVI_EOM_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_EOM_xx(upd7810_state *cpustate)
 {
 	RDOPARG( EOM );
 	upd7810_write_EOM(cpustate);
 }
 
 /* 64 85: 0110 0100 1000 0101 xxxx xxxx */
-static void MVI_TMM_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_TMM_xx(upd7810_state *cpustate)
 {
 	RDOPARG( TMM );
 }
 
 /* 64 88: 0110 0100 1000 1000 xxxx xxxx */
-static void ANI_ANM_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_ANM_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -4084,7 +4084,7 @@ static void ANI_ANM_xx(upd7810_state *cpustate)
 }
 
 /* 64 89: 0110 0100 1000 1001 xxxx xxxx */
-static void ANI_SMH_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_SMH_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -4094,7 +4094,7 @@ static void ANI_SMH_xx(upd7810_state *cpustate)
 }
 
 /* 64 8b: 0110 0100 1000 1011 xxxx xxxx */
-static void ANI_EOM_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_EOM_xx(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
 	UINT8 eom = EOM & 0x22;
@@ -4108,7 +4108,7 @@ static void ANI_EOM_xx(upd7810_state *cpustate)
 }
 
 /* 64 8d: 0110 0100 1000 1101 xxxx xxxx */
-static void ANI_TMM_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_TMM_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -4118,7 +4118,7 @@ static void ANI_TMM_xx(upd7810_state *cpustate)
 }
 
 /* 64 90: 0110 0100 1001 0000 xxxx xxxx */
-static void XRI_ANM_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_ANM_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -4128,7 +4128,7 @@ static void XRI_ANM_xx(upd7810_state *cpustate)
 }
 
 /* 64 91: 0110 0100 1001 0001 xxxx xxxx */
-static void XRI_SMH_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_SMH_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -4138,7 +4138,7 @@ static void XRI_SMH_xx(upd7810_state *cpustate)
 }
 
 /* 64 93: 0110 0100 1001 0011 xxxx xxxx */
-static void XRI_EOM_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_EOM_xx(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
 	UINT8 eom = EOM & 0x22;
@@ -4152,7 +4152,7 @@ static void XRI_EOM_xx(upd7810_state *cpustate)
 }
 
 /* 64 95: 0110 0100 1001 0101 xxxx xxxx */
-static void XRI_TMM_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_TMM_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -4162,7 +4162,7 @@ static void XRI_TMM_xx(upd7810_state *cpustate)
 }
 
 /* 64 98: 0110 0100 1001 1000 xxxx xxxx */
-static void ORI_ANM_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_ANM_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -4172,7 +4172,7 @@ static void ORI_ANM_xx(upd7810_state *cpustate)
 }
 
 /* 64 99: 0110 0100 1001 1001 xxxx xxxx */
-static void ORI_SMH_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_SMH_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -4182,7 +4182,7 @@ static void ORI_SMH_xx(upd7810_state *cpustate)
 }
 
 /* 64 9b: 0110 0100 1001 1011 xxxx xxxx */
-static void ORI_EOM_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_EOM_xx(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
 	UINT8 eom = EOM & 0x22;
@@ -4196,7 +4196,7 @@ static void ORI_EOM_xx(upd7810_state *cpustate)
 }
 
 /* 64 9d: 0110 0100 1001 1101 xxxx xxxx */
-static void ORI_TMM_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_TMM_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -4206,7 +4206,7 @@ static void ORI_TMM_xx(upd7810_state *cpustate)
 }
 
 /* 64 a0: 0110 0100 1010 0000 xxxx xxxx */
-static void ADINC_ANM_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_ANM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4219,7 +4219,7 @@ static void ADINC_ANM_xx(upd7810_state *cpustate)
 }
 
 /* 64 a1: 0110 0100 1010 0001 xxxx xxxx */
-static void ADINC_SMH_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_SMH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4232,7 +4232,7 @@ static void ADINC_SMH_xx(upd7810_state *cpustate)
 }
 
 /* 64 a3: 0110 0100 1010 0011 xxxx xxxx */
-static void ADINC_EOM_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_EOM_xx(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
 	UINT8 eom = EOM & 0x22;
@@ -4249,7 +4249,7 @@ static void ADINC_EOM_xx(upd7810_state *cpustate)
 }
 
 /* 64 a5: 0110 0100 1010 0101 xxxx xxxx */
-static void ADINC_TMM_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_TMM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4262,7 +4262,7 @@ static void ADINC_TMM_xx(upd7810_state *cpustate)
 }
 
 /* 64 a8: 0110 0100 1010 1000 xxxx xxxx */
-static void GTI_ANM_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_ANM_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	UINT16 tmp;
@@ -4275,7 +4275,7 @@ static void GTI_ANM_xx(upd7810_state *cpustate)
 }
 
 /* 64 a9: 0110 0100 1010 1001 xxxx xxxx */
-static void GTI_SMH_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_SMH_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	UINT16 tmp;
@@ -4288,7 +4288,7 @@ static void GTI_SMH_xx(upd7810_state *cpustate)
 }
 
 /* 64 ab: 0110 0100 1010 1011 xxxx xxxx */
-static void GTI_EOM_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_EOM_xx(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
 	UINT8 eom = EOM & 0x22;
@@ -4303,7 +4303,7 @@ static void GTI_EOM_xx(upd7810_state *cpustate)
 }
 
 /* 64 ad: 0110 0100 1010 1101 xxxx xxxx */
-static void GTI_TMM_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_TMM_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	UINT16 tmp;
@@ -4316,7 +4316,7 @@ static void GTI_TMM_xx(upd7810_state *cpustate)
 }
 
 /* 64 b0: 0110 0100 1011 0000 xxxx xxxx */
-static void SUINB_ANM_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_ANM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4328,7 +4328,7 @@ static void SUINB_ANM_xx(upd7810_state *cpustate)
 }
 
 /* 64 b1: 0110 0100 1011 0001 xxxx xxxx */
-static void SUINB_SMH_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_SMH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4340,7 +4340,7 @@ static void SUINB_SMH_xx(upd7810_state *cpustate)
 }
 
 /* 64 b3: 0110 0100 1011 0011 xxxx xxxx */
-static void SUINB_EOM_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_EOM_xx(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
 	UINT8 eom = EOM & 0x22;
@@ -4355,7 +4355,7 @@ static void SUINB_EOM_xx(upd7810_state *cpustate)
 }
 
 /* 64 b5: 0110 0100 1011 0101 xxxx xxxx */
-static void SUINB_TMM_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_TMM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4367,7 +4367,7 @@ static void SUINB_TMM_xx(upd7810_state *cpustate)
 }
 
 /* 64 b8: 0110 0100 1011 1000 xxxx xxxx */
-static void LTI_ANM_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_ANM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4378,7 +4378,7 @@ static void LTI_ANM_xx(upd7810_state *cpustate)
 }
 
 /* 64 b9: 0110 0100 1011 1001 xxxx xxxx */
-static void LTI_SMH_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_SMH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4389,7 +4389,7 @@ static void LTI_SMH_xx(upd7810_state *cpustate)
 }
 
 /* 64 bb: 0110 0100 1011 1011 xxxx xxxx */
-static void LTI_EOM_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_EOM_xx(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
 	UINT8 eom = EOM & 0x22;
@@ -4402,7 +4402,7 @@ static void LTI_EOM_xx(upd7810_state *cpustate)
 }
 
 /* 64 bd: 0110 0100 1011 1101 xxxx xxxx */
-static void LTI_TMM_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_TMM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4413,7 +4413,7 @@ static void LTI_TMM_xx(upd7810_state *cpustate)
 }
 
 /* 64 c0: 0110 0100 1100 0000 xxxx xxxx */
-static void ADI_ANM_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_ANM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4425,7 +4425,7 @@ static void ADI_ANM_xx(upd7810_state *cpustate)
 }
 
 /* 64 c1: 0110 0100 1100 0001 xxxx xxxx */
-static void ADI_SMH_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_SMH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4437,7 +4437,7 @@ static void ADI_SMH_xx(upd7810_state *cpustate)
 }
 
 /* 64 c3: 0110 0100 1100 0011 xxxx xxxx */
-static void ADI_EOM_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_EOM_xx(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
 	UINT8 eom = EOM & 0x22;
@@ -4452,7 +4452,7 @@ static void ADI_EOM_xx(upd7810_state *cpustate)
 }
 
 /* 64 c5: 0110 0100 1100 0101 xxxx xxxx */
-static void ADI_TMM_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_TMM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4464,7 +4464,7 @@ static void ADI_TMM_xx(upd7810_state *cpustate)
 }
 
 /* 64 c8: 0110 0100 1100 1000 xxxx xxxx */
-static void ONI_ANM_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_ANM_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -4474,7 +4474,7 @@ static void ONI_ANM_xx(upd7810_state *cpustate)
 }
 
 /* 64 c9: 0110 0100 1100 1001 xxxx xxxx */
-static void ONI_SMH_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_SMH_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -4484,7 +4484,7 @@ static void ONI_SMH_xx(upd7810_state *cpustate)
 }
 
 /* 64 cb: 0110 0100 1100 1011 xxxx xxxx */
-static void ONI_EOM_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_EOM_xx(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
 	UINT8 eom = EOM & 0x22;
@@ -4496,7 +4496,7 @@ static void ONI_EOM_xx(upd7810_state *cpustate)
 }
 
 /* 64 cd: 0110 0100 1100 1101 xxxx xxxx */
-static void ONI_TMM_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_TMM_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -4506,7 +4506,7 @@ static void ONI_TMM_xx(upd7810_state *cpustate)
 }
 
 /* 64 d0: 0110 0100 1101 0000 xxxx xxxx */
-static void ACI_ANM_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_ANM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4518,7 +4518,7 @@ static void ACI_ANM_xx(upd7810_state *cpustate)
 }
 
 /* 64 d1: 0110 0100 1101 0001 xxxx xxxx */
-static void ACI_SMH_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_SMH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4530,7 +4530,7 @@ static void ACI_SMH_xx(upd7810_state *cpustate)
 }
 
 /* 64 d3: 0110 0100 1101 0011 xxxx xxxx */
-static void ACI_EOM_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_EOM_xx(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
 	UINT8 eom = EOM & 0x22;
@@ -4545,7 +4545,7 @@ static void ACI_EOM_xx(upd7810_state *cpustate)
 }
 
 /* 64 d5: 0110 0100 1101 0101 xxxx xxxx */
-static void ACI_TMM_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_TMM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4557,7 +4557,7 @@ static void ACI_TMM_xx(upd7810_state *cpustate)
 }
 
 /* 64 d8: 0110 0100 1101 1000 xxxx xxxx */
-static void OFFI_ANM_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_ANM_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -4567,7 +4567,7 @@ static void OFFI_ANM_xx(upd7810_state *cpustate)
 }
 
 /* 64 d9: 0110 0100 1101 1001 xxxx xxxx */
-static void OFFI_SMH_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_SMH_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -4577,7 +4577,7 @@ static void OFFI_SMH_xx(upd7810_state *cpustate)
 }
 
 /* 64 db: 0110 0100 1101 1011 xxxx xxxx */
-static void OFFI_EOM_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_EOM_xx(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
 	UINT8 eom = EOM & 0x22;
@@ -4589,7 +4589,7 @@ static void OFFI_EOM_xx(upd7810_state *cpustate)
 }
 
 /* 64 dd: 0110 0100 1101 1101 xxxx xxxx */
-static void OFFI_TMM_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_TMM_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -4599,7 +4599,7 @@ static void OFFI_TMM_xx(upd7810_state *cpustate)
 }
 
 /* 64 e0: 0110 0100 1110 0000 xxxx xxxx */
-static void SUI_ANM_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_ANM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4610,7 +4610,7 @@ static void SUI_ANM_xx(upd7810_state *cpustate)
 }
 
 /* 64 e1: 0110 0100 1110 0001 xxxx xxxx */
-static void SUI_SMH_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_SMH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4621,7 +4621,7 @@ static void SUI_SMH_xx(upd7810_state *cpustate)
 }
 
 /* 64 e3: 0110 0100 1110 0011 xxxx xxxx */
-static void SUI_EOM_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_EOM_xx(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
 	UINT8 eom = EOM & 0x22;
@@ -4635,7 +4635,7 @@ static void SUI_EOM_xx(upd7810_state *cpustate)
 }
 
 /* 64 e5: 0110 0100 1110 0101 xxxx xxxx */
-static void SUI_TMM_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_TMM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4646,7 +4646,7 @@ static void SUI_TMM_xx(upd7810_state *cpustate)
 }
 
 /* 64 e8: 0110 0100 1110 1000 xxxx xxxx */
-static void NEI_ANM_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_ANM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4657,7 +4657,7 @@ static void NEI_ANM_xx(upd7810_state *cpustate)
 }
 
 /* 64 e9: 0110 0100 1110 1001 xxxx xxxx */
-static void NEI_SMH_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_SMH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4668,7 +4668,7 @@ static void NEI_SMH_xx(upd7810_state *cpustate)
 }
 
 /* 64 eb: 0110 0100 1110 1011 xxxx xxxx */
-static void NEI_EOM_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_EOM_xx(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
 	UINT8 eom = EOM & 0x22;
@@ -4681,7 +4681,7 @@ static void NEI_EOM_xx(upd7810_state *cpustate)
 }
 
 /* 64 ed: 0110 0100 1110 1101 xxxx xxxx */
-static void NEI_TMM_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_TMM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4692,7 +4692,7 @@ static void NEI_TMM_xx(upd7810_state *cpustate)
 }
 
 /* 64 f0: 0110 0100 1111 0000 xxxx xxxx */
-static void SBI_ANM_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_ANM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4703,7 +4703,7 @@ static void SBI_ANM_xx(upd7810_state *cpustate)
 }
 
 /* 64 f1: 0110 0100 1111 0001 xxxx xxxx */
-static void SBI_SMH_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_SMH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4714,7 +4714,7 @@ static void SBI_SMH_xx(upd7810_state *cpustate)
 }
 
 /* 64 f3: 0110 0100 1111 0011 xxxx xxxx */
-static void SBI_EOM_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_EOM_xx(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
 	UINT8 eom = EOM & 0x22;
@@ -4728,7 +4728,7 @@ static void SBI_EOM_xx(upd7810_state *cpustate)
 }
 
 /* 64 f5: 0110 0100 1111 0101 xxxx xxxx */
-static void SBI_TMM_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_TMM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4739,7 +4739,7 @@ static void SBI_TMM_xx(upd7810_state *cpustate)
 }
 
 /* 64 f8: 0110 0100 1111 1000 xxxx xxxx */
-static void EQI_ANM_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_ANM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4750,7 +4750,7 @@ static void EQI_ANM_xx(upd7810_state *cpustate)
 }
 
 /* 64 f9: 0110 0100 1111 1001 xxxx xxxx */
-static void EQI_SMH_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_SMH_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4761,7 +4761,7 @@ static void EQI_SMH_xx(upd7810_state *cpustate)
 }
 
 /* 64 fb: 0110 0100 1111 1011 xxxx xxxx */
-static void EQI_EOM_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_EOM_xx(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
 	UINT8 eom = EOM & 0x22;
@@ -4774,7 +4774,7 @@ static void EQI_EOM_xx(upd7810_state *cpustate)
 }
 
 /* 64 fd: 0110 0100 1111 1101 xxxx xxxx */
-static void EQI_TMM_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_TMM_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -4786,7 +4786,7 @@ static void EQI_TMM_xx(upd7810_state *cpustate)
 
 /* prefix 70 */
 /* 70 0e: 0111 0000 0000 1110 llll llll hhhh hhhh */
-static void SSPD_w(upd7810_state *cpustate)
+static void __FASTCALL SSPD_w(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -4798,7 +4798,7 @@ static void SSPD_w(upd7810_state *cpustate)
 }
 
 /* 70 0f: 0111 0000 0000 1111 llll llll hhhh hhhh */
-static void LSPD_w(upd7810_state *cpustate)
+static void __FASTCALL LSPD_w(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -4810,7 +4810,7 @@ static void LSPD_w(upd7810_state *cpustate)
 }
 
 /* 70 1e: 0111 0000 0001 1110 llll llll hhhh hhhh */
-static void SBCD_w(upd7810_state *cpustate)
+static void __FASTCALL SBCD_w(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -4822,7 +4822,7 @@ static void SBCD_w(upd7810_state *cpustate)
 }
 
 /* 70 1f: 0111 0000 0001 1111 llll llll hhhh hhhh */
-static void LBCD_w(upd7810_state *cpustate)
+static void __FASTCALL LBCD_w(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -4834,7 +4834,7 @@ static void LBCD_w(upd7810_state *cpustate)
 }
 
 /* 70 2e: 0111 0000 0010 1110 llll llll hhhh hhhh */
-static void SDED_w(upd7810_state *cpustate)
+static void __FASTCALL SDED_w(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -4846,7 +4846,7 @@ static void SDED_w(upd7810_state *cpustate)
 }
 
 /* 70 2f: 0111 0000 0010 1111 llll llll hhhh hhhh */
-static void LDED_w(upd7810_state *cpustate)
+static void __FASTCALL LDED_w(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -4858,7 +4858,7 @@ static void LDED_w(upd7810_state *cpustate)
 }
 
 /* 70 3e: 0111 0000 0011 1110 llll llll hhhh hhhh */
-static void SHLD_w(upd7810_state *cpustate)
+static void __FASTCALL SHLD_w(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -4870,7 +4870,7 @@ static void SHLD_w(upd7810_state *cpustate)
 }
 
 /* 70 3f: 0111 0000 0011 1111 llll llll hhhh hhhh */
-static void LHLD_w(upd7810_state *cpustate)
+static void __FASTCALL LHLD_w(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -4882,7 +4882,7 @@ static void LHLD_w(upd7810_state *cpustate)
 }
 
 /* 70 41: 0111 0000 0100 0001 */
-static void EADD_EA_A(upd7810_state *cpustate)
+static void __FASTCALL EADD_EA_A(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 	tmp = EA + A;
@@ -4891,7 +4891,7 @@ static void EADD_EA_A(upd7810_state *cpustate)
 }
 
 /* 70 42: 0111 0000 0100 0010 */
-static void EADD_EA_B(upd7810_state *cpustate)
+static void __FASTCALL EADD_EA_B(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 	tmp = EA + B;
@@ -4900,7 +4900,7 @@ static void EADD_EA_B(upd7810_state *cpustate)
 }
 
 /* 70 43: 0111 0000 0100 0011 */
-static void EADD_EA_C(upd7810_state *cpustate)
+static void __FASTCALL EADD_EA_C(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 	tmp = EA + C;
@@ -4909,7 +4909,7 @@ static void EADD_EA_C(upd7810_state *cpustate)
 }
 
 /* 70 61: 0111 0000 0110 0001 */
-static void ESUB_EA_A(upd7810_state *cpustate)
+static void __FASTCALL ESUB_EA_A(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 	tmp = EA - A;
@@ -4918,7 +4918,7 @@ static void ESUB_EA_A(upd7810_state *cpustate)
 }
 
 /* 70 62: 0111 0000 0110 0010 */
-static void ESUB_EA_B(upd7810_state *cpustate)
+static void __FASTCALL ESUB_EA_B(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 	tmp = EA - B;
@@ -4927,7 +4927,7 @@ static void ESUB_EA_B(upd7810_state *cpustate)
 }
 
 /* 70 63: 0111 0000 0110 0011 */
-static void ESUB_EA_C(upd7810_state *cpustate)
+static void __FASTCALL ESUB_EA_C(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 	tmp = EA - C;
@@ -4936,7 +4936,7 @@ static void ESUB_EA_C(upd7810_state *cpustate)
 }
 
 /* 70 68: 0111 0000 0110 1000 llll llll hhhh hhhh */
-static void MOV_V_w(upd7810_state *cpustate)
+static void __FASTCALL MOV_V_w(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -4947,7 +4947,7 @@ static void MOV_V_w(upd7810_state *cpustate)
 }
 
 /* 70 69: 0111 0000 0110 1001 llll llll hhhh hhhh */
-static void MOV_A_w(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_w(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -4958,7 +4958,7 @@ static void MOV_A_w(upd7810_state *cpustate)
 }
 
 /* 70 6a: 0111 0000 0110 1010 llll llll hhhh hhhh */
-static void MOV_B_w(upd7810_state *cpustate)
+static void __FASTCALL MOV_B_w(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -4969,7 +4969,7 @@ static void MOV_B_w(upd7810_state *cpustate)
 }
 
 /* 70 6b: 0111 0000 0110 1011 llll llll hhhh hhhh */
-static void MOV_C_w(upd7810_state *cpustate)
+static void __FASTCALL MOV_C_w(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -4980,7 +4980,7 @@ static void MOV_C_w(upd7810_state *cpustate)
 }
 
 /* 70 6c: 0111 0000 0110 1100 llll llll hhhh hhhh */
-static void MOV_D_w(upd7810_state *cpustate)
+static void __FASTCALL MOV_D_w(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -4991,7 +4991,7 @@ static void MOV_D_w(upd7810_state *cpustate)
 }
 
 /* 70 6d: 0111 0000 0110 1101 llll llll hhhh hhhh */
-static void MOV_E_w(upd7810_state *cpustate)
+static void __FASTCALL MOV_E_w(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -5002,7 +5002,7 @@ static void MOV_E_w(upd7810_state *cpustate)
 }
 
 /* 70 6e: 0111 0000 0110 1110 llll llll hhhh hhhh */
-static void MOV_H_w(upd7810_state *cpustate)
+static void __FASTCALL MOV_H_w(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -5013,7 +5013,7 @@ static void MOV_H_w(upd7810_state *cpustate)
 }
 
 /* 70 6f: 0111 0000 0110 1111 llll llll hhhh hhhh */
-static void MOV_L_w(upd7810_state *cpustate)
+static void __FASTCALL MOV_L_w(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -5024,7 +5024,7 @@ static void MOV_L_w(upd7810_state *cpustate)
 }
 
 /* 70 78: 0111 0000 0111 1000 llll llll hhhh hhhh */
-static void MOV_w_V(upd7810_state *cpustate)
+static void __FASTCALL MOV_w_V(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -5035,7 +5035,7 @@ static void MOV_w_V(upd7810_state *cpustate)
 }
 
 /* 70 79: 0111 0000 0111 1001 llll llll hhhh hhhh */
-static void MOV_w_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_w_A(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -5046,7 +5046,7 @@ static void MOV_w_A(upd7810_state *cpustate)
 }
 
 /* 70 7a: 0111 0000 0111 1010 llll llll hhhh hhhh */
-static void MOV_w_B(upd7810_state *cpustate)
+static void __FASTCALL MOV_w_B(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -5057,7 +5057,7 @@ static void MOV_w_B(upd7810_state *cpustate)
 }
 
 /* 70 7b: 0111 0000 0111 1011 llll llll hhhh hhhh */
-static void MOV_w_C(upd7810_state *cpustate)
+static void __FASTCALL MOV_w_C(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -5068,7 +5068,7 @@ static void MOV_w_C(upd7810_state *cpustate)
 }
 
 /* 70 7c: 0111 0000 0111 1100 llll llll hhhh hhhh */
-static void MOV_w_D(upd7810_state *cpustate)
+static void __FASTCALL MOV_w_D(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -5079,7 +5079,7 @@ static void MOV_w_D(upd7810_state *cpustate)
 }
 
 /* 70 7d: 0111 0000 0111 1101 llll llll hhhh hhhh */
-static void MOV_w_E(upd7810_state *cpustate)
+static void __FASTCALL MOV_w_E(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -5090,7 +5090,7 @@ static void MOV_w_E(upd7810_state *cpustate)
 }
 
 /* 70 7e: 0111 0000 0111 1110 llll llll hhhh hhhh */
-static void MOV_w_H(upd7810_state *cpustate)
+static void __FASTCALL MOV_w_H(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -5101,7 +5101,7 @@ static void MOV_w_H(upd7810_state *cpustate)
 }
 
 /* 70 7f: 0111 0000 0111 1111 llll llll hhhh hhhh */
-static void MOV_w_L(upd7810_state *cpustate)
+static void __FASTCALL MOV_w_L(upd7810_state *cpustate)
 {
 	PAIR ea;
 	ea.d = 0;
@@ -5112,28 +5112,28 @@ static void MOV_w_L(upd7810_state *cpustate)
 }
 
 /* 70 89: 0111 0000 1000 1001 */
-static void ANAX_B(upd7810_state *cpustate)
+static void __FASTCALL ANAX_B(upd7810_state *cpustate)
 {
 	A &= RM( BC );
 	SET_Z(A);
 }
 
 /* 70 8a: 0111 0000 1000 1010 */
-static void ANAX_D(upd7810_state *cpustate)
+static void __FASTCALL ANAX_D(upd7810_state *cpustate)
 {
 	A &= RM( DE );
 	SET_Z(A);
 }
 
 /* 70 8b: 0111 0000 1000 1011 */
-static void ANAX_H(upd7810_state *cpustate)
+static void __FASTCALL ANAX_H(upd7810_state *cpustate)
 {
 	A &= RM( HL );
 	SET_Z(A);
 }
 
 /* 70 8c: 0111 0000 1000 1100 */
-static void ANAX_Dp(upd7810_state *cpustate)
+static void __FASTCALL ANAX_Dp(upd7810_state *cpustate)
 {
 	A &= RM( DE );
 	DE++;
@@ -5141,7 +5141,7 @@ static void ANAX_Dp(upd7810_state *cpustate)
 }
 
 /* 70 8d: 0111 0000 1000 1101 */
-static void ANAX_Hp(upd7810_state *cpustate)
+static void __FASTCALL ANAX_Hp(upd7810_state *cpustate)
 {
 	A &= RM( HL );
 	HL++;
@@ -5149,7 +5149,7 @@ static void ANAX_Hp(upd7810_state *cpustate)
 }
 
 /* 70 8e: 0111 0000 1000 1110 */
-static void ANAX_Dm(upd7810_state *cpustate)
+static void __FASTCALL ANAX_Dm(upd7810_state *cpustate)
 {
 	A &= RM( DE );
 	DE--;
@@ -5157,7 +5157,7 @@ static void ANAX_Dm(upd7810_state *cpustate)
 }
 
 /* 70 8f: 0111 0000 1000 1111 */
-static void ANAX_Hm(upd7810_state *cpustate)
+static void __FASTCALL ANAX_Hm(upd7810_state *cpustate)
 {
 	A &= RM( HL );
 	HL--;
@@ -5165,28 +5165,28 @@ static void ANAX_Hm(upd7810_state *cpustate)
 }
 
 /* 70 91: 0111 0000 1001 0001 */
-static void XRAX_B(upd7810_state *cpustate)
+static void __FASTCALL XRAX_B(upd7810_state *cpustate)
 {
 	A ^= RM( BC );
 	SET_Z(A);
 }
 
 /* 70 92: 0111 0000 1001 0010 */
-static void XRAX_D(upd7810_state *cpustate)
+static void __FASTCALL XRAX_D(upd7810_state *cpustate)
 {
 	A ^= RM( DE );
 	SET_Z(A);
 }
 
 /* 70 93: 0111 0000 1001 0011 */
-static void XRAX_H(upd7810_state *cpustate)
+static void __FASTCALL XRAX_H(upd7810_state *cpustate)
 {
 	A ^= RM( HL );
 	SET_Z(A);
 }
 
 /* 70 94: 0111 0000 1001 0100 */
-static void XRAX_Dp(upd7810_state *cpustate)
+static void __FASTCALL XRAX_Dp(upd7810_state *cpustate)
 {
 	A ^= RM( DE );
 	DE++;
@@ -5194,7 +5194,7 @@ static void XRAX_Dp(upd7810_state *cpustate)
 }
 
 /* 70 95: 0111 0000 1001 0101 */
-static void XRAX_Hp(upd7810_state *cpustate)
+static void __FASTCALL XRAX_Hp(upd7810_state *cpustate)
 {
 	A ^= RM( HL );
 	HL++;
@@ -5202,7 +5202,7 @@ static void XRAX_Hp(upd7810_state *cpustate)
 }
 
 /* 70 96: 0111 0000 1001 0110 */
-static void XRAX_Dm(upd7810_state *cpustate)
+static void __FASTCALL XRAX_Dm(upd7810_state *cpustate)
 {
 	A ^= RM( DE );
 	DE--;
@@ -5210,7 +5210,7 @@ static void XRAX_Dm(upd7810_state *cpustate)
 }
 
 /* 70 97: 0111 0000 1001 0111 */
-static void XRAX_Hm(upd7810_state *cpustate)
+static void __FASTCALL XRAX_Hm(upd7810_state *cpustate)
 {
 	A ^= RM( HL );
 	HL--;
@@ -5218,28 +5218,28 @@ static void XRAX_Hm(upd7810_state *cpustate)
 }
 
 /* 70 99: 0111 0000 1001 1001 */
-static void ORAX_B(upd7810_state *cpustate)
+static void __FASTCALL ORAX_B(upd7810_state *cpustate)
 {
 	A |= RM( BC );
 	SET_Z(A);
 }
 
 /* 70 9a: 0111 0000 1001 1010 */
-static void ORAX_D(upd7810_state *cpustate)
+static void __FASTCALL ORAX_D(upd7810_state *cpustate)
 {
 	A |= RM( DE );
 	SET_Z(A);
 }
 
 /* 70 9b: 0111 0000 1001 1011 */
-static void ORAX_H(upd7810_state *cpustate)
+static void __FASTCALL ORAX_H(upd7810_state *cpustate)
 {
 	A |= RM( HL );
 	SET_Z(A);
 }
 
 /* 70 9c: 0111 0000 1001 0100 */
-static void ORAX_Dp(upd7810_state *cpustate)
+static void __FASTCALL ORAX_Dp(upd7810_state *cpustate)
 {
 	A |= RM( DE );
 	DE++;
@@ -5247,7 +5247,7 @@ static void ORAX_Dp(upd7810_state *cpustate)
 }
 
 /* 70 9d: 0111 0000 1001 1101 */
-static void ORAX_Hp(upd7810_state *cpustate)
+static void __FASTCALL ORAX_Hp(upd7810_state *cpustate)
 {
 	A |= RM( HL );
 	HL++;
@@ -5255,7 +5255,7 @@ static void ORAX_Hp(upd7810_state *cpustate)
 }
 
 /* 70 9e: 0111 0000 1001 1110 */
-static void ORAX_Dm(upd7810_state *cpustate)
+static void __FASTCALL ORAX_Dm(upd7810_state *cpustate)
 {
 	A |= RM( DE );
 	DE--;
@@ -5263,7 +5263,7 @@ static void ORAX_Dm(upd7810_state *cpustate)
 }
 
 /* 70 9f: 0111 0000 1001 1111 */
-static void ORAX_Hm(upd7810_state *cpustate)
+static void __FASTCALL ORAX_Hm(upd7810_state *cpustate)
 {
 	A |= RM( HL );
 	HL--;
@@ -5271,7 +5271,7 @@ static void ORAX_Hm(upd7810_state *cpustate)
 }
 
 /* 70 a1: 0111 0000 1010 0001 */
-static void ADDNCX_B(upd7810_state *cpustate)
+static void __FASTCALL ADDNCX_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( BC );
 	ZHC_ADD( tmp, A, 0 );
@@ -5280,7 +5280,7 @@ static void ADDNCX_B(upd7810_state *cpustate)
 }
 
 /* 70 a2: 0111 0000 1010 0010 */
-static void ADDNCX_D(upd7810_state *cpustate)
+static void __FASTCALL ADDNCX_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( DE );
 	ZHC_ADD( tmp, A, 0 );
@@ -5289,7 +5289,7 @@ static void ADDNCX_D(upd7810_state *cpustate)
 }
 
 /* 70 a3: 0111 0000 1010 0011 */
-static void ADDNCX_H(upd7810_state *cpustate)
+static void __FASTCALL ADDNCX_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( HL );
 	ZHC_ADD( tmp, A, 0 );
@@ -5298,7 +5298,7 @@ static void ADDNCX_H(upd7810_state *cpustate)
 }
 
 /* 70 a4: 0111 0000 1010 0100 */
-static void ADDNCX_Dp(upd7810_state *cpustate)
+static void __FASTCALL ADDNCX_Dp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( DE );
 	DE++;
@@ -5308,7 +5308,7 @@ static void ADDNCX_Dp(upd7810_state *cpustate)
 }
 
 /* 70 a5: 0111 0000 1010 0101 */
-static void ADDNCX_Hp(upd7810_state *cpustate)
+static void __FASTCALL ADDNCX_Hp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( HL );
 	HL++;
@@ -5318,7 +5318,7 @@ static void ADDNCX_Hp(upd7810_state *cpustate)
 }
 
 /* 70 a6: 0111 0000 1010 0110 */
-static void ADDNCX_Dm(upd7810_state *cpustate)
+static void __FASTCALL ADDNCX_Dm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( DE );
 	DE--;
@@ -5328,7 +5328,7 @@ static void ADDNCX_Dm(upd7810_state *cpustate)
 }
 
 /* 70 a7: 0111 0000 1010 0111 */
-static void ADDNCX_Hm(upd7810_state *cpustate)
+static void __FASTCALL ADDNCX_Hm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( HL );
 	HL--;
@@ -5338,7 +5338,7 @@ static void ADDNCX_Hm(upd7810_state *cpustate)
 }
 
 /* 70 a9: 0111 0000 1010 1001 */
-static void GTAX_B(upd7810_state *cpustate)
+static void __FASTCALL GTAX_B(upd7810_state *cpustate)
 {
 	UINT16 tmp = A - RM( BC ) - 1;
 	ZHC_SUB( tmp, A, 0 );
@@ -5346,7 +5346,7 @@ static void GTAX_B(upd7810_state *cpustate)
 }
 
 /* 70 aa: 0111 0000 1010 1010 */
-static void GTAX_D(upd7810_state *cpustate)
+static void __FASTCALL GTAX_D(upd7810_state *cpustate)
 {
 	UINT16 tmp = A - RM( DE ) - 1;
 	ZHC_SUB( tmp, A, 0 );
@@ -5354,7 +5354,7 @@ static void GTAX_D(upd7810_state *cpustate)
 }
 
 /* 70 ab: 0111 0000 1010 1011 */
-static void GTAX_H(upd7810_state *cpustate)
+static void __FASTCALL GTAX_H(upd7810_state *cpustate)
 {
 	UINT16 tmp = A - RM( HL ) - 1;
 	ZHC_SUB( tmp, A, 0 );
@@ -5362,7 +5362,7 @@ static void GTAX_H(upd7810_state *cpustate)
 }
 
 /* 70 ac: 0111 0000 1010 1100 */
-static void GTAX_Dp(upd7810_state *cpustate)
+static void __FASTCALL GTAX_Dp(upd7810_state *cpustate)
 {
 	UINT16 tmp = A - RM( DE ) - 1;
 	DE++;
@@ -5371,7 +5371,7 @@ static void GTAX_Dp(upd7810_state *cpustate)
 }
 
 /* 70 ad: 0111 0000 1010 1101 */
-static void GTAX_Hp(upd7810_state *cpustate)
+static void __FASTCALL GTAX_Hp(upd7810_state *cpustate)
 {
 	UINT16 tmp = A - RM( HL ) - 1;
 	HL++;
@@ -5380,7 +5380,7 @@ static void GTAX_Hp(upd7810_state *cpustate)
 }
 
 /* 70 ae: 0111 0000 1010 1110 */
-static void GTAX_Dm(upd7810_state *cpustate)
+static void __FASTCALL GTAX_Dm(upd7810_state *cpustate)
 {
 	UINT16 tmp = A - RM( DE ) - 1;
 	DE--;
@@ -5389,7 +5389,7 @@ static void GTAX_Dm(upd7810_state *cpustate)
 }
 
 /* 70 af: 0111 0000 1010 1111 */
-static void GTAX_Hm(upd7810_state *cpustate)
+static void __FASTCALL GTAX_Hm(upd7810_state *cpustate)
 {
 	UINT16 tmp = A - RM( HL ) - 1;
 	HL--;
@@ -5398,7 +5398,7 @@ static void GTAX_Hm(upd7810_state *cpustate)
 }
 
 /* 70 b1: 0111 0000 1011 0001 */
-static void SUBNBX_B(upd7810_state *cpustate)
+static void __FASTCALL SUBNBX_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( BC );
 	ZHC_SUB( tmp, A, 0 );
@@ -5407,7 +5407,7 @@ static void SUBNBX_B(upd7810_state *cpustate)
 }
 
 /* 70 b2: 0111 0000 1011 0010 */
-static void SUBNBX_D(upd7810_state *cpustate)
+static void __FASTCALL SUBNBX_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE );
 	ZHC_SUB( tmp, A, 0 );
@@ -5416,7 +5416,7 @@ static void SUBNBX_D(upd7810_state *cpustate)
 }
 
 /* 70 b3: 0111 0000 1011 0011 */
-static void SUBNBX_H(upd7810_state *cpustate)
+static void __FASTCALL SUBNBX_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL );
 	ZHC_SUB( tmp, A, 0 );
@@ -5425,7 +5425,7 @@ static void SUBNBX_H(upd7810_state *cpustate)
 }
 
 /* 70 b4: 0111 0000 1011 0100 */
-static void SUBNBX_Dp(upd7810_state *cpustate)
+static void __FASTCALL SUBNBX_Dp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE );
 	DE++;
@@ -5435,7 +5435,7 @@ static void SUBNBX_Dp(upd7810_state *cpustate)
 }
 
 /* 70 b5: 0111 0000 1011 0101 */
-static void SUBNBX_Hp(upd7810_state *cpustate)
+static void __FASTCALL SUBNBX_Hp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL );
 	HL++;
@@ -5445,7 +5445,7 @@ static void SUBNBX_Hp(upd7810_state *cpustate)
 }
 
 /* 70 b6: 0111 0000 1011 0110 */
-static void SUBNBX_Dm(upd7810_state *cpustate)
+static void __FASTCALL SUBNBX_Dm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE );
 	DE--;
@@ -5455,7 +5455,7 @@ static void SUBNBX_Dm(upd7810_state *cpustate)
 }
 
 /* 70 b7: 0111 0000 1011 0111 */
-static void SUBNBX_Hm(upd7810_state *cpustate)
+static void __FASTCALL SUBNBX_Hm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL );
 	HL--;
@@ -5465,7 +5465,7 @@ static void SUBNBX_Hm(upd7810_state *cpustate)
 }
 
 /* 70 b9: 0111 0000 1011 1001 */
-static void LTAX_B(upd7810_state *cpustate)
+static void __FASTCALL LTAX_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( BC );
 	ZHC_SUB( tmp, A, 0 );
@@ -5473,7 +5473,7 @@ static void LTAX_B(upd7810_state *cpustate)
 }
 
 /* 70 ba: 0111 0000 1011 1010 */
-static void LTAX_D(upd7810_state *cpustate)
+static void __FASTCALL LTAX_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE );
 	ZHC_SUB( tmp, A, 0 );
@@ -5481,7 +5481,7 @@ static void LTAX_D(upd7810_state *cpustate)
 }
 
 /* 70 bb: 0111 0000 1011 1011 */
-static void LTAX_H(upd7810_state *cpustate)
+static void __FASTCALL LTAX_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL );
 	ZHC_SUB( tmp, A, 0 );
@@ -5489,7 +5489,7 @@ static void LTAX_H(upd7810_state *cpustate)
 }
 
 /* 70 bc: 0111 0000 1011 1100 */
-static void LTAX_Dp(upd7810_state *cpustate)
+static void __FASTCALL LTAX_Dp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE );
 	DE++;
@@ -5498,7 +5498,7 @@ static void LTAX_Dp(upd7810_state *cpustate)
 }
 
 /* 70 bd: 0111 0000 1011 1101 */
-static void LTAX_Hp(upd7810_state *cpustate)
+static void __FASTCALL LTAX_Hp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL );
 	HL++;
@@ -5507,7 +5507,7 @@ static void LTAX_Hp(upd7810_state *cpustate)
 }
 
 /* 70 be: 0111 0000 1011 1110 */
-static void LTAX_Dm(upd7810_state *cpustate)
+static void __FASTCALL LTAX_Dm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE );
 	DE--;
@@ -5516,7 +5516,7 @@ static void LTAX_Dm(upd7810_state *cpustate)
 }
 
 /* 70 bf: 0111 0000 1011 1111 */
-static void LTAX_Hm(upd7810_state *cpustate)
+static void __FASTCALL LTAX_Hm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL );
 	HL--;
@@ -5525,7 +5525,7 @@ static void LTAX_Hm(upd7810_state *cpustate)
 }
 
 /* 70 c1: 0111 0000 1100 0001 */
-static void ADDX_B(upd7810_state *cpustate)
+static void __FASTCALL ADDX_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( BC );
 	ZHC_ADD( tmp, A, 0 );
@@ -5533,7 +5533,7 @@ static void ADDX_B(upd7810_state *cpustate)
 }
 
 /* 70 c2: 0111 0000 1100 0010 */
-static void ADDX_D(upd7810_state *cpustate)
+static void __FASTCALL ADDX_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( DE );
 	ZHC_ADD( tmp, A, 0 );
@@ -5541,7 +5541,7 @@ static void ADDX_D(upd7810_state *cpustate)
 }
 
 /* 70 c3: 0111 0000 1100 0011 */
-static void ADDX_H(upd7810_state *cpustate)
+static void __FASTCALL ADDX_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( HL );
 	ZHC_ADD( tmp, A, 0 );
@@ -5549,7 +5549,7 @@ static void ADDX_H(upd7810_state *cpustate)
 }
 
 /* 70 c4: 0111 0000 1100 0100 */
-static void ADDX_Dp(upd7810_state *cpustate)
+static void __FASTCALL ADDX_Dp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( DE );
 	DE++;
@@ -5558,7 +5558,7 @@ static void ADDX_Dp(upd7810_state *cpustate)
 }
 
 /* 70 c5: 0111 0000 1100 0101 */
-static void ADDX_Hp(upd7810_state *cpustate)
+static void __FASTCALL ADDX_Hp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( HL );
 	HL++;
@@ -5567,7 +5567,7 @@ static void ADDX_Hp(upd7810_state *cpustate)
 }
 
 /* 70 c6: 0111 0000 1100 0110 */
-static void ADDX_Dm(upd7810_state *cpustate)
+static void __FASTCALL ADDX_Dm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( DE );
 	DE--;
@@ -5576,7 +5576,7 @@ static void ADDX_Dm(upd7810_state *cpustate)
 }
 
 /* 70 c7: 0111 0000 1100 0111 */
-static void ADDX_Hm(upd7810_state *cpustate)
+static void __FASTCALL ADDX_Hm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( HL );
 	HL--;
@@ -5585,7 +5585,7 @@ static void ADDX_Hm(upd7810_state *cpustate)
 }
 
 /* 70 c9: 0111 0000 1100 1001 */
-static void ONAX_B(upd7810_state *cpustate)
+static void __FASTCALL ONAX_B(upd7810_state *cpustate)
 {
 	if (A & RM( BC ))
 		PSW = (PSW & ~Z) | SK;
@@ -5594,7 +5594,7 @@ static void ONAX_B(upd7810_state *cpustate)
 }
 
 /* 70 ca: 0111 0000 1100 1010 */
-static void ONAX_D(upd7810_state *cpustate)
+static void __FASTCALL ONAX_D(upd7810_state *cpustate)
 {
 	if (A & RM( DE ))
 		PSW = (PSW & ~Z) | SK;
@@ -5603,7 +5603,7 @@ static void ONAX_D(upd7810_state *cpustate)
 }
 
 /* 70 cb: 0111 0000 1100 1011 */
-static void ONAX_H(upd7810_state *cpustate)
+static void __FASTCALL ONAX_H(upd7810_state *cpustate)
 {
 	if (A & RM( HL ))
 		PSW = (PSW & ~Z) | SK;
@@ -5612,7 +5612,7 @@ static void ONAX_H(upd7810_state *cpustate)
 }
 
 /* 70 cc: 0111 0000 1100 1100 */
-static void ONAX_Dp(upd7810_state *cpustate)
+static void __FASTCALL ONAX_Dp(upd7810_state *cpustate)
 {
 	if (A & RM( DE ))
 		PSW = (PSW & ~Z) | SK;
@@ -5622,7 +5622,7 @@ static void ONAX_Dp(upd7810_state *cpustate)
 }
 
 /* 70 cd: 0111 0000 1100 1101 */
-static void ONAX_Hp(upd7810_state *cpustate)
+static void __FASTCALL ONAX_Hp(upd7810_state *cpustate)
 {
 	if (A & RM( HL ))
 		PSW = (PSW & ~Z) | SK;
@@ -5632,7 +5632,7 @@ static void ONAX_Hp(upd7810_state *cpustate)
 }
 
 /* 70 ce: 0111 0000 1100 1110 */
-static void ONAX_Dm(upd7810_state *cpustate)
+static void __FASTCALL ONAX_Dm(upd7810_state *cpustate)
 {
 	if (A & RM( DE ))
 		PSW = (PSW & ~Z) | SK;
@@ -5642,7 +5642,7 @@ static void ONAX_Dm(upd7810_state *cpustate)
 }
 
 /* 70 cf: 0111 0000 1100 1111 */
-static void ONAX_Hm(upd7810_state *cpustate)
+static void __FASTCALL ONAX_Hm(upd7810_state *cpustate)
 {
 	if (A & RM( HL ))
 		PSW = (PSW & ~Z) | SK;
@@ -5652,7 +5652,7 @@ static void ONAX_Hm(upd7810_state *cpustate)
 }
 
 /* 70 d1: 0111 0000 1101 0001 */
-static void ADCX_B(upd7810_state *cpustate)
+static void __FASTCALL ADCX_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( BC ) + (PSW & CY);
 	ZHC_ADD( tmp, A, 0 );
@@ -5660,7 +5660,7 @@ static void ADCX_B(upd7810_state *cpustate)
 }
 
 /* 70 d2: 0111 0000 1101 0010 */
-static void ADCX_D(upd7810_state *cpustate)
+static void __FASTCALL ADCX_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( DE ) + (PSW & CY);
 	ZHC_ADD( tmp, A, 0 );
@@ -5668,7 +5668,7 @@ static void ADCX_D(upd7810_state *cpustate)
 }
 
 /* 70 d3: 0111 0000 1101 0011 */
-static void ADCX_H(upd7810_state *cpustate)
+static void __FASTCALL ADCX_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( HL ) + (PSW & CY);
 	ZHC_ADD( tmp, A, 0 );
@@ -5676,7 +5676,7 @@ static void ADCX_H(upd7810_state *cpustate)
 }
 
 /* 70 d4: 0111 0000 1101 0100 */
-static void ADCX_Dp(upd7810_state *cpustate)
+static void __FASTCALL ADCX_Dp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( DE ) + (PSW & CY);
 	DE++;
@@ -5685,7 +5685,7 @@ static void ADCX_Dp(upd7810_state *cpustate)
 }
 
 /* 70 d5: 0111 0000 1101 0101 */
-static void ADCX_Hp(upd7810_state *cpustate)
+static void __FASTCALL ADCX_Hp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( HL ) + (PSW & CY);
 	HL++;
@@ -5694,7 +5694,7 @@ static void ADCX_Hp(upd7810_state *cpustate)
 }
 
 /* 70 d6: 0111 0000 1101 0110 */
-static void ADCX_Dm(upd7810_state *cpustate)
+static void __FASTCALL ADCX_Dm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( DE ) + (PSW & CY);
 	DE--;
@@ -5703,7 +5703,7 @@ static void ADCX_Dm(upd7810_state *cpustate)
 }
 
 /* 70 d7: 0111 0000 1101 0111 */
-static void ADCX_Hm(upd7810_state *cpustate)
+static void __FASTCALL ADCX_Hm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + RM( HL ) + (PSW & CY);
 	HL--;
@@ -5712,7 +5712,7 @@ static void ADCX_Hm(upd7810_state *cpustate)
 }
 
 /* 70 d9: 0111 0000 1101 1001 */
-static void OFFAX_B(upd7810_state *cpustate)
+static void __FASTCALL OFFAX_B(upd7810_state *cpustate)
 {
 	if ( A & RM( BC ) )
 		PSW &= ~Z;
@@ -5721,7 +5721,7 @@ static void OFFAX_B(upd7810_state *cpustate)
 }
 
 /* 70 da: 0111 0000 1101 1010 */
-static void OFFAX_D(upd7810_state *cpustate)
+static void __FASTCALL OFFAX_D(upd7810_state *cpustate)
 {
 	if ( A & RM( DE ) )
 		PSW &= ~Z;
@@ -5730,7 +5730,7 @@ static void OFFAX_D(upd7810_state *cpustate)
 }
 
 /* 70 db: 0111 0000 1101 1011 */
-static void OFFAX_H(upd7810_state *cpustate)
+static void __FASTCALL OFFAX_H(upd7810_state *cpustate)
 {
 	if ( A & RM( HL ) )
 		PSW &= ~Z;
@@ -5739,7 +5739,7 @@ static void OFFAX_H(upd7810_state *cpustate)
 }
 
 /* 70 dc: 0111 0000 1101 1100 */
-static void OFFAX_Dp(upd7810_state *cpustate)
+static void __FASTCALL OFFAX_Dp(upd7810_state *cpustate)
 {
 	if ( A & RM( DE ) )
 		PSW &= ~Z;
@@ -5749,7 +5749,7 @@ static void OFFAX_Dp(upd7810_state *cpustate)
 }
 
 /* 70 dd: 0111 0000 1101 1101 */
-static void OFFAX_Hp(upd7810_state *cpustate)
+static void __FASTCALL OFFAX_Hp(upd7810_state *cpustate)
 {
 	if ( A & RM( HL ) )
 		PSW &= ~Z;
@@ -5759,7 +5759,7 @@ static void OFFAX_Hp(upd7810_state *cpustate)
 }
 
 /* 70 de: 0111 0000 1101 1110 */
-static void OFFAX_Dm(upd7810_state *cpustate)
+static void __FASTCALL OFFAX_Dm(upd7810_state *cpustate)
 {
 	if ( A & RM( DE ) )
 		PSW &= ~Z;
@@ -5769,7 +5769,7 @@ static void OFFAX_Dm(upd7810_state *cpustate)
 }
 
 /* 70 df: 0111 0000 1101 1111 */
-static void OFFAX_Hm(upd7810_state *cpustate)
+static void __FASTCALL OFFAX_Hm(upd7810_state *cpustate)
 {
 	if ( A & RM( HL ) )
 		PSW &= ~Z;
@@ -5779,7 +5779,7 @@ static void OFFAX_Hm(upd7810_state *cpustate)
 }
 
 /* 70 e1: 0111 0000 1110 0001 */
-static void SUBX_B(upd7810_state *cpustate)
+static void __FASTCALL SUBX_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( BC );
 	ZHC_SUB( tmp, A, 0 );
@@ -5787,7 +5787,7 @@ static void SUBX_B(upd7810_state *cpustate)
 }
 
 /* 70 e2: 0111 0000 1110 0010 */
-static void SUBX_D(upd7810_state *cpustate)
+static void __FASTCALL SUBX_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE );
 	ZHC_SUB( tmp, A, 0 );
@@ -5795,7 +5795,7 @@ static void SUBX_D(upd7810_state *cpustate)
 }
 
 /* 70 e3: 0111 0000 1110 0011 */
-static void SUBX_H(upd7810_state *cpustate)
+static void __FASTCALL SUBX_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL );
 	ZHC_SUB( tmp, A, 0 );
@@ -5803,7 +5803,7 @@ static void SUBX_H(upd7810_state *cpustate)
 }
 
 /* 70 e4: 0111 0000 1110 0100 */
-static void SUBX_Dp(upd7810_state *cpustate)
+static void __FASTCALL SUBX_Dp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE );
 	ZHC_SUB( tmp, A, 0 );
@@ -5812,7 +5812,7 @@ static void SUBX_Dp(upd7810_state *cpustate)
 }
 
 /* 70 e5: 0111 0000 1110 0101 */
-static void SUBX_Hp(upd7810_state *cpustate)
+static void __FASTCALL SUBX_Hp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL );
 	ZHC_SUB( tmp, A, 0 );
@@ -5821,7 +5821,7 @@ static void SUBX_Hp(upd7810_state *cpustate)
 }
 
 /* 70 e6: 0111 0000 1110 0110 */
-static void SUBX_Dm(upd7810_state *cpustate)
+static void __FASTCALL SUBX_Dm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE );
 	ZHC_SUB( tmp, A, 0 );
@@ -5830,7 +5830,7 @@ static void SUBX_Dm(upd7810_state *cpustate)
 }
 
 /* 70 e7: 0111 0000 1110 0111 */
-static void SUBX_Hm(upd7810_state *cpustate)
+static void __FASTCALL SUBX_Hm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL );
 	ZHC_SUB( tmp, A, 0 );
@@ -5839,7 +5839,7 @@ static void SUBX_Hm(upd7810_state *cpustate)
 }
 
 /* 70 e9: 0111 0000 1110 1001 */
-static void NEAX_B(upd7810_state *cpustate)
+static void __FASTCALL NEAX_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( BC );
 	ZHC_SUB( tmp, A, 0 );
@@ -5847,7 +5847,7 @@ static void NEAX_B(upd7810_state *cpustate)
 }
 
 /* 70 ea: 0111 0000 1110 1010 */
-static void NEAX_D(upd7810_state *cpustate)
+static void __FASTCALL NEAX_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE );
 	ZHC_SUB( tmp, A, 0 );
@@ -5855,7 +5855,7 @@ static void NEAX_D(upd7810_state *cpustate)
 }
 
 /* 70 eb: 0111 0000 1110 1011 */
-static void NEAX_H(upd7810_state *cpustate)
+static void __FASTCALL NEAX_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL );
 	ZHC_SUB( tmp, A, 0 );
@@ -5863,7 +5863,7 @@ static void NEAX_H(upd7810_state *cpustate)
 }
 
 /* 70 ec: 0111 0000 1110 1100 */
-static void NEAX_Dp(upd7810_state *cpustate)
+static void __FASTCALL NEAX_Dp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE );
 	DE++;
@@ -5872,7 +5872,7 @@ static void NEAX_Dp(upd7810_state *cpustate)
 }
 
 /* 70 ed: 0111 0000 1110 1101 */
-static void NEAX_Hp(upd7810_state *cpustate)
+static void __FASTCALL NEAX_Hp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL );
 	HL++;
@@ -5881,7 +5881,7 @@ static void NEAX_Hp(upd7810_state *cpustate)
 }
 
 /* 70 ee: 0111 0000 1110 1110 */
-static void NEAX_Dm(upd7810_state *cpustate)
+static void __FASTCALL NEAX_Dm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE );
 	DE--;
@@ -5890,7 +5890,7 @@ static void NEAX_Dm(upd7810_state *cpustate)
 }
 
 /* 70 ef: 0111 0000 1110 1111 */
-static void NEAX_Hm(upd7810_state *cpustate)
+static void __FASTCALL NEAX_Hm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL );
 	HL--;
@@ -5899,7 +5899,7 @@ static void NEAX_Hm(upd7810_state *cpustate)
 }
 
 /* 70 f1: 0111 0000 1111 0001 */
-static void SBBX_B(upd7810_state *cpustate)
+static void __FASTCALL SBBX_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( BC ) - (PSW & CY);
 	ZHC_SUB( tmp, A, (PSW & CY) );
@@ -5907,7 +5907,7 @@ static void SBBX_B(upd7810_state *cpustate)
 }
 
 /* 70 f2: 0111 0000 1111 0010 */
-static void SBBX_D(upd7810_state *cpustate)
+static void __FASTCALL SBBX_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE ) - (PSW & CY);
 	ZHC_SUB( tmp, A, (PSW & CY) );
@@ -5915,7 +5915,7 @@ static void SBBX_D(upd7810_state *cpustate)
 }
 
 /* 70 f3: 0111 0000 1111 0011 */
-static void SBBX_H(upd7810_state *cpustate)
+static void __FASTCALL SBBX_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL ) - (PSW & CY);
 	ZHC_SUB( tmp, A, (PSW & CY) );
@@ -5923,7 +5923,7 @@ static void SBBX_H(upd7810_state *cpustate)
 }
 
 /* 70 f4: 0111 0000 1111 0100 */
-static void SBBX_Dp(upd7810_state *cpustate)
+static void __FASTCALL SBBX_Dp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE ) - (PSW & CY);
 	DE++;
@@ -5932,7 +5932,7 @@ static void SBBX_Dp(upd7810_state *cpustate)
 }
 
 /* 70 f5: 0111 0000 1111 0101 */
-static void SBBX_Hp(upd7810_state *cpustate)
+static void __FASTCALL SBBX_Hp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL ) - (PSW & CY);
 	HL++;
@@ -5941,7 +5941,7 @@ static void SBBX_Hp(upd7810_state *cpustate)
 }
 
 /* 70 f6: 0111 0000 1111 0110 */
-static void SBBX_Dm(upd7810_state *cpustate)
+static void __FASTCALL SBBX_Dm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE ) - (PSW & CY);
 	DE--;
@@ -5950,7 +5950,7 @@ static void SBBX_Dm(upd7810_state *cpustate)
 }
 
 /* 70 f7: 0111 0000 1111 0111 */
-static void SBBX_Hm(upd7810_state *cpustate)
+static void __FASTCALL SBBX_Hm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL ) - (PSW & CY);
 	HL--;
@@ -5959,7 +5959,7 @@ static void SBBX_Hm(upd7810_state *cpustate)
 }
 
 /* 70 f9: 0111 0000 1111 1001 */
-static void EQAX_B(upd7810_state *cpustate)
+static void __FASTCALL EQAX_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( BC );
 	ZHC_SUB( tmp, A, 0 );
@@ -5967,7 +5967,7 @@ static void EQAX_B(upd7810_state *cpustate)
 }
 
 /* 70 fa: 0111 0000 1111 1010 */
-static void EQAX_D(upd7810_state *cpustate)
+static void __FASTCALL EQAX_D(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE );
 	ZHC_SUB( tmp, A, 0 );
@@ -5975,7 +5975,7 @@ static void EQAX_D(upd7810_state *cpustate)
 }
 
 /* 70 fb: 0111 0000 1111 1011 */
-static void EQAX_H(upd7810_state *cpustate)
+static void __FASTCALL EQAX_H(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL );
 	ZHC_SUB( tmp, A, 0 );
@@ -5983,7 +5983,7 @@ static void EQAX_H(upd7810_state *cpustate)
 }
 
 /* 70 fc: 0111 0000 1111 1100 */
-static void EQAX_Dp(upd7810_state *cpustate)
+static void __FASTCALL EQAX_Dp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE );
 	DE++;
@@ -5992,7 +5992,7 @@ static void EQAX_Dp(upd7810_state *cpustate)
 }
 
 /* 70 fd: 0111 0000 1111 1101 */
-static void EQAX_Hp(upd7810_state *cpustate)
+static void __FASTCALL EQAX_Hp(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL );
 	HL++;
@@ -6001,7 +6001,7 @@ static void EQAX_Hp(upd7810_state *cpustate)
 }
 
 /* 70 fe: 0111 0000 1111 1110 */
-static void EQAX_Dm(upd7810_state *cpustate)
+static void __FASTCALL EQAX_Dm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( DE );
 	DE--;
@@ -6010,7 +6010,7 @@ static void EQAX_Dm(upd7810_state *cpustate)
 }
 
 /* 70 ff: 0111 0000 1111 1111 */
-static void EQAX_Hm(upd7810_state *cpustate)
+static void __FASTCALL EQAX_Hm(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - RM( HL );
 	HL--;
@@ -6020,7 +6020,7 @@ static void EQAX_Hm(upd7810_state *cpustate)
 
 /* prefix 74 */
 /* 74 08: 0111 0100 0000 1000 xxxx xxxx */
-static void ANI_V_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_V_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6029,7 +6029,7 @@ static void ANI_V_xx(upd7810_state *cpustate)
 }
 
 /* 74 09: 0111 0100 0000 1001 xxxx xxxx */
-static void ANI_A_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_A_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6038,7 +6038,7 @@ static void ANI_A_xx(upd7810_state *cpustate)
 }
 
 /* 74 0a: 0111 0100 0000 1010 xxxx xxxx */
-static void ANI_B_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_B_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6047,7 +6047,7 @@ static void ANI_B_xx(upd7810_state *cpustate)
 }
 
 /* 74 0b: 0111 0100 0000 1011 xxxx xxxx */
-static void ANI_C_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_C_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6056,7 +6056,7 @@ static void ANI_C_xx(upd7810_state *cpustate)
 }
 
 /* 74 0c: 0111 0100 0000 1100 xxxx xxxx */
-static void ANI_D_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_D_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6065,7 +6065,7 @@ static void ANI_D_xx(upd7810_state *cpustate)
 }
 
 /* 74 0d: 0111 0100 0000 1101 xxxx xxxx */
-static void ANI_E_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_E_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6074,7 +6074,7 @@ static void ANI_E_xx(upd7810_state *cpustate)
 }
 
 /* 74 0e: 0111 0100 0000 1110 xxxx xxxx */
-static void ANI_H_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_H_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6083,7 +6083,7 @@ static void ANI_H_xx(upd7810_state *cpustate)
 }
 
 /* 74 0f: 0111 0100 0000 1111 xxxx xxxx */
-static void ANI_L_xx(upd7810_state *cpustate)
+static void __FASTCALL ANI_L_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6092,7 +6092,7 @@ static void ANI_L_xx(upd7810_state *cpustate)
 }
 
 /* 74 10: 0111 0100 0001 0000 xxxx xxxx */
-static void XRI_V_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_V_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6101,7 +6101,7 @@ static void XRI_V_xx(upd7810_state *cpustate)
 }
 
 /* 74 11: 0111 0100 0001 0001 xxxx xxxx */
-static void XRI_A_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_A_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6110,7 +6110,7 @@ static void XRI_A_xx(upd7810_state *cpustate)
 }
 
 /* 74 12: 0111 0100 0001 0010 xxxx xxxx */
-static void XRI_B_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_B_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6119,7 +6119,7 @@ static void XRI_B_xx(upd7810_state *cpustate)
 }
 
 /* 74 13: 0111 0100 0001 0011 xxxx xxxx */
-static void XRI_C_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_C_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6128,7 +6128,7 @@ static void XRI_C_xx(upd7810_state *cpustate)
 }
 
 /* 74 14: 0111 0100 0001 0100 xxxx xxxx */
-static void XRI_D_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_D_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6137,7 +6137,7 @@ static void XRI_D_xx(upd7810_state *cpustate)
 }
 
 /* 74 15: 0111 0100 0001 0101 xxxx xxxx */
-static void XRI_E_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_E_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6146,7 +6146,7 @@ static void XRI_E_xx(upd7810_state *cpustate)
 }
 
 /* 74 16: 0111 0100 0001 0110 xxxx xxxx */
-static void XRI_H_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_H_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6155,7 +6155,7 @@ static void XRI_H_xx(upd7810_state *cpustate)
 }
 
 /* 74 17: 0111 0100 0001 0111 xxxx xxxx */
-static void XRI_L_xx(upd7810_state *cpustate)
+static void __FASTCALL XRI_L_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6164,7 +6164,7 @@ static void XRI_L_xx(upd7810_state *cpustate)
 }
 
 /* 74 18: 0111 0100 0001 1000 xxxx xxxx */
-static void ORI_V_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_V_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6173,7 +6173,7 @@ static void ORI_V_xx(upd7810_state *cpustate)
 }
 
 /* 74 19: 0111 0100 0001 1001 xxxx xxxx */
-static void ORI_A_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_A_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6182,7 +6182,7 @@ static void ORI_A_xx(upd7810_state *cpustate)
 }
 
 /* 74 1a: 0111 0100 0001 1010 xxxx xxxx */
-static void ORI_B_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_B_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6191,7 +6191,7 @@ static void ORI_B_xx(upd7810_state *cpustate)
 }
 
 /* 74 1b: 0111 0100 0001 1011 xxxx xxxx */
-static void ORI_C_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_C_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6200,7 +6200,7 @@ static void ORI_C_xx(upd7810_state *cpustate)
 }
 
 /* 74 1c: 0111 0100 0001 1100 xxxx xxxx */
-static void ORI_D_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_D_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6209,7 +6209,7 @@ static void ORI_D_xx(upd7810_state *cpustate)
 }
 
 /* 74 1d: 0111 0100 0001 1101 xxxx xxxx */
-static void ORI_E_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_E_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6218,7 +6218,7 @@ static void ORI_E_xx(upd7810_state *cpustate)
 }
 
 /* 74 1e: 0111 0100 0001 1110 xxxx xxxx */
-static void ORI_H_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_H_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6227,7 +6227,7 @@ static void ORI_H_xx(upd7810_state *cpustate)
 }
 
 /* 74 1f: 0111 0100 0001 1111 xxxx xxxx */
-static void ORI_L_xx(upd7810_state *cpustate)
+static void __FASTCALL ORI_L_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -6236,7 +6236,7 @@ static void ORI_L_xx(upd7810_state *cpustate)
 }
 
 /* 74 20: 0111 0100 0010 0000 xxxx xxxx */
-static void ADINC_V_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_V_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6249,7 +6249,7 @@ static void ADINC_V_xx(upd7810_state *cpustate)
 }
 
 /* 74 21: 0111 0100 0010 0001 xxxx xxxx */
-static void ADINC_A_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_A_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6262,7 +6262,7 @@ static void ADINC_A_xx(upd7810_state *cpustate)
 }
 
 /* 74 22: 0111 0100 0010 0010 xxxx xxxx */
-static void ADINC_B_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_B_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6275,7 +6275,7 @@ static void ADINC_B_xx(upd7810_state *cpustate)
 }
 
 /* 74 23: 0111 0100 0010 0011 xxxx xxxx */
-static void ADINC_C_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_C_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6288,7 +6288,7 @@ static void ADINC_C_xx(upd7810_state *cpustate)
 }
 
 /* 74 24: 0111 0100 0010 0100 xxxx xxxx */
-static void ADINC_D_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_D_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6301,7 +6301,7 @@ static void ADINC_D_xx(upd7810_state *cpustate)
 }
 
 /* 74 25: 0111 0100 0010 0101 xxxx xxxx */
-static void ADINC_E_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_E_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6314,7 +6314,7 @@ static void ADINC_E_xx(upd7810_state *cpustate)
 }
 
 /* 74 26: 0111 0100 0010 0110 xxxx xxxx */
-static void ADINC_H_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_H_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6327,7 +6327,7 @@ static void ADINC_H_xx(upd7810_state *cpustate)
 }
 
 /* 74 27: 0111 0100 0010 0111 xxxx xxxx */
-static void ADINC_L_xx(upd7810_state *cpustate)
+static void __FASTCALL ADINC_L_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6340,7 +6340,7 @@ static void ADINC_L_xx(upd7810_state *cpustate)
 }
 
 /* 74 28: 0111 0100 0010 1000 xxxx xxxx */
-static void GTI_V_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_V_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	UINT16 tmp;
@@ -6353,7 +6353,7 @@ static void GTI_V_xx(upd7810_state *cpustate)
 }
 
 /* 74 29: 0111 0100 0010 1001 xxxx xxxx */
-static void GTI_A_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_A_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	UINT16 tmp;
@@ -6366,7 +6366,7 @@ static void GTI_A_xx(upd7810_state *cpustate)
 }
 
 /* 74 2a: 0111 0100 0010 1010 xxxx xxxx */
-static void GTI_B_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_B_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	UINT16 tmp;
@@ -6379,7 +6379,7 @@ static void GTI_B_xx(upd7810_state *cpustate)
 }
 
 /* 74 2b: 0111 0100 0010 1011 xxxx xxxx */
-static void GTI_C_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_C_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	UINT16 tmp;
@@ -6392,7 +6392,7 @@ static void GTI_C_xx(upd7810_state *cpustate)
 }
 
 /* 74 2c: 0111 0100 0010 1100 xxxx xxxx */
-static void GTI_D_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_D_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	UINT16 tmp;
@@ -6405,7 +6405,7 @@ static void GTI_D_xx(upd7810_state *cpustate)
 }
 
 /* 74 2d: 0111 0100 0010 1101 xxxx xxxx */
-static void GTI_E_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_E_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	UINT16 tmp;
@@ -6418,7 +6418,7 @@ static void GTI_E_xx(upd7810_state *cpustate)
 }
 
 /* 74 2e: 0111 0100 0010 1110 xxxx xxxx */
-static void GTI_H_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_H_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	UINT16 tmp;
@@ -6431,7 +6431,7 @@ static void GTI_H_xx(upd7810_state *cpustate)
 }
 
 /* 74 2f: 0111 0100 0010 1111 xxxx xxxx */
-static void GTI_L_xx(upd7810_state *cpustate)
+static void __FASTCALL GTI_L_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	UINT16 tmp;
@@ -6444,7 +6444,7 @@ static void GTI_L_xx(upd7810_state *cpustate)
 }
 
 /* 74 30: 0111 0100 0011 0000 xxxx xxxx */
-static void SUINB_V_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_V_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6456,7 +6456,7 @@ static void SUINB_V_xx(upd7810_state *cpustate)
 }
 
 /* 74 31: 0111 0100 0011 0001 xxxx xxxx */
-static void SUINB_A_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_A_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6468,7 +6468,7 @@ static void SUINB_A_xx(upd7810_state *cpustate)
 }
 
 /* 74 32: 0111 0100 0011 0010 xxxx xxxx */
-static void SUINB_B_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_B_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6480,7 +6480,7 @@ static void SUINB_B_xx(upd7810_state *cpustate)
 }
 
 /* 74 33: 0111 0100 0011 0011 xxxx xxxx */
-static void SUINB_C_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_C_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6492,7 +6492,7 @@ static void SUINB_C_xx(upd7810_state *cpustate)
 }
 
 /* 74 34: 0111 0100 0011 0100 xxxx xxxx */
-static void SUINB_D_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_D_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6504,7 +6504,7 @@ static void SUINB_D_xx(upd7810_state *cpustate)
 }
 
 /* 74 35: 0111 0100 0011 0101 xxxx xxxx */
-static void SUINB_E_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_E_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6516,7 +6516,7 @@ static void SUINB_E_xx(upd7810_state *cpustate)
 }
 
 /* 74 36: 0111 0100 0011 0110 xxxx xxxx */
-static void SUINB_H_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_H_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6528,7 +6528,7 @@ static void SUINB_H_xx(upd7810_state *cpustate)
 }
 
 /* 74 37: 0111 0100 0011 0111 xxxx xxxx */
-static void SUINB_L_xx(upd7810_state *cpustate)
+static void __FASTCALL SUINB_L_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6540,7 +6540,7 @@ static void SUINB_L_xx(upd7810_state *cpustate)
 }
 
 /* 74 38: 0111 0100 0011 1000 xxxx xxxx */
-static void LTI_V_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_V_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6551,7 +6551,7 @@ static void LTI_V_xx(upd7810_state *cpustate)
 }
 
 /* 74 39: 0111 0100 0011 1001 xxxx xxxx */
-static void LTI_A_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_A_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6562,7 +6562,7 @@ static void LTI_A_xx(upd7810_state *cpustate)
 }
 
 /* 74 3a: 0111 0100 0011 1010 xxxx xxxx */
-static void LTI_B_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_B_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6573,7 +6573,7 @@ static void LTI_B_xx(upd7810_state *cpustate)
 }
 
 /* 74 3b: 0111 0100 0011 1011 xxxx xxxx */
-static void LTI_C_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_C_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6584,7 +6584,7 @@ static void LTI_C_xx(upd7810_state *cpustate)
 }
 
 /* 74 3c: 0111 0100 0011 1100 xxxx xxxx */
-static void LTI_D_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_D_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6595,7 +6595,7 @@ static void LTI_D_xx(upd7810_state *cpustate)
 }
 
 /* 74 3d: 0111 0100 0011 1101 xxxx xxxx */
-static void LTI_E_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_E_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6606,7 +6606,7 @@ static void LTI_E_xx(upd7810_state *cpustate)
 }
 
 /* 74 3e: 0111 0100 0011 1110 xxxx xxxx */
-static void LTI_H_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_H_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6617,7 +6617,7 @@ static void LTI_H_xx(upd7810_state *cpustate)
 }
 
 /* 74 3f: 0111 0100 0011 1111 xxxx xxxx */
-static void LTI_L_xx(upd7810_state *cpustate)
+static void __FASTCALL LTI_L_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6628,7 +6628,7 @@ static void LTI_L_xx(upd7810_state *cpustate)
 }
 
 /* 74 40: 0111 0100 0100 0000 xxxx xxxx */
-static void ADI_V_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_V_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6640,7 +6640,7 @@ static void ADI_V_xx(upd7810_state *cpustate)
 }
 
 /* 74 41: 0111 0100 0100 0001 xxxx xxxx */
-static void ADI_A_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_A_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6652,7 +6652,7 @@ static void ADI_A_xx(upd7810_state *cpustate)
 }
 
 /* 74 42: 0111 0100 0100 0010 xxxx xxxx */
-static void ADI_B_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_B_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6664,7 +6664,7 @@ static void ADI_B_xx(upd7810_state *cpustate)
 }
 
 /* 74 43: 0111 0100 0100 0011 xxxx xxxx */
-static void ADI_C_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_C_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6676,7 +6676,7 @@ static void ADI_C_xx(upd7810_state *cpustate)
 }
 
 /* 74 44: 0111 0100 0100 0100 xxxx xxxx */
-static void ADI_D_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_D_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6688,7 +6688,7 @@ static void ADI_D_xx(upd7810_state *cpustate)
 }
 
 /* 74 45: 0111 0100 0100 0101 xxxx xxxx */
-static void ADI_E_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_E_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6700,7 +6700,7 @@ static void ADI_E_xx(upd7810_state *cpustate)
 }
 
 /* 74 46: 0111 0100 0100 0110 xxxx xxxx */
-static void ADI_H_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_H_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6712,7 +6712,7 @@ static void ADI_H_xx(upd7810_state *cpustate)
 }
 
 /* 74 47: 0111 0100 0100 0111 xxxx xxxx */
-static void ADI_L_xx(upd7810_state *cpustate)
+static void __FASTCALL ADI_L_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6724,7 +6724,7 @@ static void ADI_L_xx(upd7810_state *cpustate)
 }
 
 /* 74 48: 0111 0100 0100 1000 xxxx xxxx */
-static void ONI_V_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_V_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -6734,7 +6734,7 @@ static void ONI_V_xx(upd7810_state *cpustate)
 }
 
 /* 74 49: 0111 0100 0100 1001 xxxx xxxx */
-static void ONI_A_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_A_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -6744,7 +6744,7 @@ static void ONI_A_xx(upd7810_state *cpustate)
 }
 
 /* 74 4a: 0111 0100 0100 1010 xxxx xxxx */
-static void ONI_B_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_B_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -6754,7 +6754,7 @@ static void ONI_B_xx(upd7810_state *cpustate)
 }
 
 /* 74 4b: 0111 0100 0100 1011 xxxx xxxx */
-static void ONI_C_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_C_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -6764,7 +6764,7 @@ static void ONI_C_xx(upd7810_state *cpustate)
 }
 
 /* 74 4c: 0111 0100 0100 1100 xxxx xxxx */
-static void ONI_D_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_D_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -6774,7 +6774,7 @@ static void ONI_D_xx(upd7810_state *cpustate)
 }
 
 /* 74 4d: 0111 0100 0100 1101 xxxx xxxx */
-static void ONI_E_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_E_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -6784,7 +6784,7 @@ static void ONI_E_xx(upd7810_state *cpustate)
 }
 
 /* 74 4e: 0111 0100 0100 1110 xxxx xxxx */
-static void ONI_H_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_H_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -6794,7 +6794,7 @@ static void ONI_H_xx(upd7810_state *cpustate)
 }
 
 /* 74 4f: 0111 0100 0100 1111 xxxx xxxx */
-static void ONI_L_xx(upd7810_state *cpustate)
+static void __FASTCALL ONI_L_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -6804,7 +6804,7 @@ static void ONI_L_xx(upd7810_state *cpustate)
 }
 
 /* 74 50: 0111 0100 0101 0000 xxxx xxxx */
-static void ACI_V_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_V_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6819,7 +6819,7 @@ static void ACI_V_xx(upd7810_state *cpustate)
 }
 
 /* 74 51: 0111 0100 0101 0001 xxxx xxxx */
-static void ACI_A_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_A_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6834,7 +6834,7 @@ static void ACI_A_xx(upd7810_state *cpustate)
 }
 
 /* 74 52: 0111 0100 0101 0010 xxxx xxxx */
-static void ACI_B_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_B_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6849,7 +6849,7 @@ static void ACI_B_xx(upd7810_state *cpustate)
 }
 
 /* 74 53: 0111 0100 0101 0011 xxxx xxxx */
-static void ACI_C_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_C_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6864,7 +6864,7 @@ static void ACI_C_xx(upd7810_state *cpustate)
 }
 
 /* 74 54: 0111 0100 0101 0100 xxxx xxxx */
-static void ACI_D_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_D_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6879,7 +6879,7 @@ static void ACI_D_xx(upd7810_state *cpustate)
 }
 
 /* 74 55: 0111 0100 0101 0101 xxxx xxxx */
-static void ACI_E_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_E_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6894,7 +6894,7 @@ static void ACI_E_xx(upd7810_state *cpustate)
 }
 
 /* 74 56: 0111 0100 0101 0110 xxxx xxxx */
-static void ACI_H_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_H_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6909,7 +6909,7 @@ static void ACI_H_xx(upd7810_state *cpustate)
 }
 
 /* 74 57: 0111 0100 0101 0111 xxxx xxxx */
-static void ACI_L_xx(upd7810_state *cpustate)
+static void __FASTCALL ACI_L_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -6924,7 +6924,7 @@ static void ACI_L_xx(upd7810_state *cpustate)
 }
 
 /* 74 58: 0111 0100 0101 1000 xxxx xxxx */
-static void OFFI_V_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_V_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -6934,7 +6934,7 @@ static void OFFI_V_xx(upd7810_state *cpustate)
 }
 
 /* 74 59: 0111 0100 0101 1001 xxxx xxxx */
-static void OFFI_A_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_A_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -6944,7 +6944,7 @@ static void OFFI_A_xx(upd7810_state *cpustate)
 }
 
 /* 74 5a: 0111 0100 0101 1010 xxxx xxxx */
-static void OFFI_B_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_B_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -6954,7 +6954,7 @@ static void OFFI_B_xx(upd7810_state *cpustate)
 }
 
 /* 74 5b: 0111 0100 0101 1011 xxxx xxxx */
-static void OFFI_C_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_C_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -6964,7 +6964,7 @@ static void OFFI_C_xx(upd7810_state *cpustate)
 }
 
 /* 74 5c: 0111 0100 0101 1100 xxxx xxxx */
-static void OFFI_D_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_D_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -6974,7 +6974,7 @@ static void OFFI_D_xx(upd7810_state *cpustate)
 }
 
 /* 74 5d: 0111 0100 0101 1101 xxxx xxxx */
-static void OFFI_E_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_E_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -6984,7 +6984,7 @@ static void OFFI_E_xx(upd7810_state *cpustate)
 }
 
 /* 74 5e: 0111 0100 0101 1110 xxxx xxxx */
-static void OFFI_H_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_H_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -6994,7 +6994,7 @@ static void OFFI_H_xx(upd7810_state *cpustate)
 }
 
 /* 74 5f: 0111 0100 0101 1111 xxxx xxxx */
-static void OFFI_L_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFI_L_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 
@@ -7004,7 +7004,7 @@ static void OFFI_L_xx(upd7810_state *cpustate)
 }
 
 /* 74 60: 0111 0100 0110 0000 xxxx xxxx */
-static void SUI_V_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_V_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7015,7 +7015,7 @@ static void SUI_V_xx(upd7810_state *cpustate)
 }
 
 /* 74 61: 0111 0100 0110 0001 xxxx xxxx */
-static void SUI_A_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_A_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7026,7 +7026,7 @@ static void SUI_A_xx(upd7810_state *cpustate)
 }
 
 /* 74 62: 0111 0100 0110 0010 xxxx xxxx */
-static void SUI_B_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_B_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7037,7 +7037,7 @@ static void SUI_B_xx(upd7810_state *cpustate)
 }
 
 /* 74 63: 0111 0100 0110 0011 xxxx xxxx */
-static void SUI_C_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_C_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7048,7 +7048,7 @@ static void SUI_C_xx(upd7810_state *cpustate)
 }
 
 /* 74 64: 0111 0100 0110 0100 xxxx xxxx */
-static void SUI_D_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_D_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7059,7 +7059,7 @@ static void SUI_D_xx(upd7810_state *cpustate)
 }
 
 /* 74 65: 0111 0100 0110 0101 xxxx xxxx */
-static void SUI_E_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_E_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7070,7 +7070,7 @@ static void SUI_E_xx(upd7810_state *cpustate)
 }
 
 /* 74 66: 0111 0100 0110 0110 xxxx xxxx */
-static void SUI_H_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_H_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7081,7 +7081,7 @@ static void SUI_H_xx(upd7810_state *cpustate)
 }
 
 /* 74 67: 0111 0100 0110 0111 xxxx xxxx */
-static void SUI_L_xx(upd7810_state *cpustate)
+static void __FASTCALL SUI_L_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7092,7 +7092,7 @@ static void SUI_L_xx(upd7810_state *cpustate)
 }
 
 /* 74 68: 0111 0100 0110 1000 xxxx xxxx */
-static void NEI_V_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_V_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7103,7 +7103,7 @@ static void NEI_V_xx(upd7810_state *cpustate)
 }
 
 /* 74 69: 0111 0100 0110 1001 xxxx xxxx */
-static void NEI_A_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_A_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7114,7 +7114,7 @@ static void NEI_A_xx(upd7810_state *cpustate)
 }
 
 /* 74 6a: 0111 0100 0110 1010 xxxx xxxx */
-static void NEI_B_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_B_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7125,7 +7125,7 @@ static void NEI_B_xx(upd7810_state *cpustate)
 }
 
 /* 74 6b: 0111 0100 0110 1011 xxxx xxxx */
-static void NEI_C_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_C_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7136,7 +7136,7 @@ static void NEI_C_xx(upd7810_state *cpustate)
 }
 
 /* 74 6c: 0111 0100 0110 1100 xxxx xxxx */
-static void NEI_D_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_D_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7147,7 +7147,7 @@ static void NEI_D_xx(upd7810_state *cpustate)
 }
 
 /* 74 6d: 0111 0100 0110 1101 xxxx xxxx */
-static void NEI_E_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_E_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7158,7 +7158,7 @@ static void NEI_E_xx(upd7810_state *cpustate)
 }
 
 /* 74 6e: 0111 0100 0110 1110 xxxx xxxx */
-static void NEI_H_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_H_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7169,7 +7169,7 @@ static void NEI_H_xx(upd7810_state *cpustate)
 }
 
 /* 74 6f: 0111 0100 0110 1111 xxxx xxxx */
-static void NEI_L_xx(upd7810_state *cpustate)
+static void __FASTCALL NEI_L_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7180,7 +7180,7 @@ static void NEI_L_xx(upd7810_state *cpustate)
 }
 
 /* 74 70: 0111 0100 0111 0000 xxxx xxxx */
-static void SBI_V_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_V_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7191,7 +7191,7 @@ static void SBI_V_xx(upd7810_state *cpustate)
 }
 
 /* 74 71: 0111 0100 0111 0001 xxxx xxxx */
-static void SBI_A_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_A_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7202,7 +7202,7 @@ static void SBI_A_xx(upd7810_state *cpustate)
 }
 
 /* 74 72: 0111 0100 0111 0010 xxxx xxxx */
-static void SBI_B_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_B_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7213,7 +7213,7 @@ static void SBI_B_xx(upd7810_state *cpustate)
 }
 
 /* 74 73: 0111 0100 0111 0011 xxxx xxxx */
-static void SBI_C_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_C_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7224,7 +7224,7 @@ static void SBI_C_xx(upd7810_state *cpustate)
 }
 
 /* 74 74: 0111 0100 0111 0100 xxxx xxxx */
-static void SBI_D_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_D_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7235,7 +7235,7 @@ static void SBI_D_xx(upd7810_state *cpustate)
 }
 
 /* 74 75: 0111 0100 0111 0101 xxxx xxxx */
-static void SBI_E_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_E_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7246,7 +7246,7 @@ static void SBI_E_xx(upd7810_state *cpustate)
 }
 
 /* 74 76: 0111 0100 0111 0110 xxxx xxxx */
-static void SBI_H_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_H_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7257,7 +7257,7 @@ static void SBI_H_xx(upd7810_state *cpustate)
 }
 
 /* 74 77: 0111 0100 0111 0111 xxxx xxxx */
-static void SBI_L_xx(upd7810_state *cpustate)
+static void __FASTCALL SBI_L_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7268,7 +7268,7 @@ static void SBI_L_xx(upd7810_state *cpustate)
 }
 
 /* 74 78: 0111 0100 0111 1000 xxxx xxxx */
-static void EQI_V_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_V_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7279,7 +7279,7 @@ static void EQI_V_xx(upd7810_state *cpustate)
 }
 
 /* 74 79: 0111 0100 0111 1001 xxxx xxxx */
-static void EQI_A_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_A_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7290,7 +7290,7 @@ static void EQI_A_xx(upd7810_state *cpustate)
 }
 
 /* 74 7a: 0111 0100 0111 1010 xxxx xxxx */
-static void EQI_B_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_B_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7301,7 +7301,7 @@ static void EQI_B_xx(upd7810_state *cpustate)
 }
 
 /* 74 7b: 0111 0100 0111 1011 xxxx xxxx */
-static void EQI_C_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_C_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7312,7 +7312,7 @@ static void EQI_C_xx(upd7810_state *cpustate)
 }
 
 /* 74 7c: 0111 0100 0111 1100 xxxx xxxx */
-static void EQI_D_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_D_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7323,7 +7323,7 @@ static void EQI_D_xx(upd7810_state *cpustate)
 }
 
 /* 74 7d: 0111 0100 0111 1101 xxxx xxxx */
-static void EQI_E_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_E_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7334,7 +7334,7 @@ static void EQI_E_xx(upd7810_state *cpustate)
 }
 
 /* 74 7e: 0111 0100 0111 1110 xxxx xxxx */
-static void EQI_H_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_H_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7345,7 +7345,7 @@ static void EQI_H_xx(upd7810_state *cpustate)
 }
 
 /* 74 7f: 0111 0100 0111 1111 xxxx xxxx */
-static void EQI_L_xx(upd7810_state *cpustate)
+static void __FASTCALL EQI_L_xx(upd7810_state *cpustate)
 {
 	UINT8 tmp, imm;
 
@@ -7356,7 +7356,7 @@ static void EQI_L_xx(upd7810_state *cpustate)
 }
 
 /* 74 88: 0111 0100 1000 1000 oooo oooo */
-static void ANAW_wa(upd7810_state *cpustate)
+static void __FASTCALL ANAW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	RDOPARG( ea.b.l );
@@ -7366,28 +7366,28 @@ static void ANAW_wa(upd7810_state *cpustate)
 }
 
 /* 74 8d: 0111 0100 1000 1101 */
-static void DAN_EA_BC(upd7810_state *cpustate)
+static void __FASTCALL DAN_EA_BC(upd7810_state *cpustate)
 {
 	EA &= BC;
 	SET_Z(EA);
 }
 
 /* 74 8e: 0111 0100 1000 1110 */
-static void DAN_EA_DE(upd7810_state *cpustate)
+static void __FASTCALL DAN_EA_DE(upd7810_state *cpustate)
 {
 	EA &= DE;
 	SET_Z(EA);
 }
 
 /* 74 8f: 0111 0100 1000 1111 */
-static void DAN_EA_HL(upd7810_state *cpustate)
+static void __FASTCALL DAN_EA_HL(upd7810_state *cpustate)
 {
 	EA &= HL;
 	SET_Z(EA);
 }
 
 /* 74 90: 0111 0100 1001 0000 oooo oooo */
-static void XRAW_wa(upd7810_state *cpustate)
+static void __FASTCALL XRAW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	RDOPARG( ea.b.l );
@@ -7397,28 +7397,28 @@ static void XRAW_wa(upd7810_state *cpustate)
 }
 
 /* 74 95: 0111 0100 1001 0101 */
-static void DXR_EA_BC(upd7810_state *cpustate)
+static void __FASTCALL DXR_EA_BC(upd7810_state *cpustate)
 {
 	EA ^= BC;
 	SET_Z(EA);
 }
 
 /* 74 96: 0111 0100 1001 0110 */
-static void DXR_EA_DE(upd7810_state *cpustate)
+static void __FASTCALL DXR_EA_DE(upd7810_state *cpustate)
 {
 	EA ^= DE;
 	SET_Z(EA);
 }
 
 /* 74 97: 0111 0100 1001 0111 */
-static void DXR_EA_HL(upd7810_state *cpustate)
+static void __FASTCALL DXR_EA_HL(upd7810_state *cpustate)
 {
 	EA ^= HL;
 	SET_Z(EA);
 }
 
 /* 74 98: 0111 0100 1001 1000 oooo oooo */
-static void ORAW_wa(upd7810_state *cpustate)
+static void __FASTCALL ORAW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	RDOPARG( ea.b.l );
@@ -7428,28 +7428,28 @@ static void ORAW_wa(upd7810_state *cpustate)
 }
 
 /* 74 9d: 0111 0100 1001 1101 */
-static void DOR_EA_BC(upd7810_state *cpustate)
+static void __FASTCALL DOR_EA_BC(upd7810_state *cpustate)
 {
 	EA |= BC;
 	SET_Z(EA);
 }
 
 /* 74 9e: 0111 0100 1001 1110 */
-static void DOR_EA_DE(upd7810_state *cpustate)
+static void __FASTCALL DOR_EA_DE(upd7810_state *cpustate)
 {
 	EA |= DE;
 	SET_Z(EA);
 }
 
 /* 74 9f: 0111 0100 1001 1111 */
-static void DOR_EA_HL(upd7810_state *cpustate)
+static void __FASTCALL DOR_EA_HL(upd7810_state *cpustate)
 {
 	EA |= HL;
 	SET_Z(EA);
 }
 
 /* 74 a0: 0111 0100 1010 0000 oooo oooo */
-static void ADDNCW_wa(upd7810_state *cpustate)
+static void __FASTCALL ADDNCW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 tmp;
@@ -7463,7 +7463,7 @@ static void ADDNCW_wa(upd7810_state *cpustate)
 }
 
 /* 74 a5: 0111 0100 1010 0101 */
-static void DADDNC_EA_BC(upd7810_state *cpustate)
+static void __FASTCALL DADDNC_EA_BC(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA + BC;
 
@@ -7473,7 +7473,7 @@ static void DADDNC_EA_BC(upd7810_state *cpustate)
 }
 
 /* 74 a6: 0111 0100 1010 0110 */
-static void DADDNC_EA_DE(upd7810_state *cpustate)
+static void __FASTCALL DADDNC_EA_DE(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA + DE;
 
@@ -7483,7 +7483,7 @@ static void DADDNC_EA_DE(upd7810_state *cpustate)
 }
 
 /* 74 a7: 0111 0100 1010 0111 */
-static void DADDNC_EA_HL(upd7810_state *cpustate)
+static void __FASTCALL DADDNC_EA_HL(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA + HL;
 
@@ -7493,7 +7493,7 @@ static void DADDNC_EA_HL(upd7810_state *cpustate)
 }
 
 /* 74 a8: 0111 0100 1010 1000 oooo oooo */
-static void GTAW_wa(upd7810_state *cpustate)
+static void __FASTCALL GTAW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT16 tmp;
@@ -7505,7 +7505,7 @@ static void GTAW_wa(upd7810_state *cpustate)
 }
 
 /* 74 ad: 0111 0100 1010 1101 */
-static void DGT_EA_BC(upd7810_state *cpustate)
+static void __FASTCALL DGT_EA_BC(upd7810_state *cpustate)
 {
 	UINT32 tmp = EA - BC - 1;
 	ZHC_SUB( tmp, EA, 0 );
@@ -7513,7 +7513,7 @@ static void DGT_EA_BC(upd7810_state *cpustate)
 }
 
 /* 74 ae: 0111 0100 1010 1110 */
-static void DGT_EA_DE(upd7810_state *cpustate)
+static void __FASTCALL DGT_EA_DE(upd7810_state *cpustate)
 {
 	UINT32 tmp = EA - DE - 1;
 	ZHC_SUB( tmp, EA, 0 );
@@ -7521,7 +7521,7 @@ static void DGT_EA_DE(upd7810_state *cpustate)
 }
 
 /* 74 af: 0111 0100 1010 1111 */
-static void DGT_EA_HL(upd7810_state *cpustate)
+static void __FASTCALL DGT_EA_HL(upd7810_state *cpustate)
 {
 	UINT32 tmp = EA - HL - 1;
 	ZHC_SUB( tmp, EA, 0 );
@@ -7529,7 +7529,7 @@ static void DGT_EA_HL(upd7810_state *cpustate)
 }
 
 /* 74 b0: 0111 0100 1011 0000 oooo oooo */
-static void SUBNBW_wa(upd7810_state *cpustate)
+static void __FASTCALL SUBNBW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 tmp;
@@ -7542,7 +7542,7 @@ static void SUBNBW_wa(upd7810_state *cpustate)
 }
 
 /* 74 b5: 0111 0100 1011 0101 */
-static void DSUBNB_EA_BC(upd7810_state *cpustate)
+static void __FASTCALL DSUBNB_EA_BC(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA - BC;
 	ZHC_SUB( tmp, EA, 0 );
@@ -7551,7 +7551,7 @@ static void DSUBNB_EA_BC(upd7810_state *cpustate)
 }
 
 /* 74 b6: 0111 0100 1011 0110 */
-static void DSUBNB_EA_DE(upd7810_state *cpustate)
+static void __FASTCALL DSUBNB_EA_DE(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA - DE;
 	ZHC_SUB( tmp, EA, 0 );
@@ -7560,7 +7560,7 @@ static void DSUBNB_EA_DE(upd7810_state *cpustate)
 }
 
 /* 74 b7: 0111 0100 1011 0111 */
-static void DSUBNB_EA_HL(upd7810_state *cpustate)
+static void __FASTCALL DSUBNB_EA_HL(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 
@@ -7571,7 +7571,7 @@ static void DSUBNB_EA_HL(upd7810_state *cpustate)
 }
 
 /* 74 b8: 0111 0100 1011 1000 oooo oooo */
-static void LTAW_wa(upd7810_state *cpustate)
+static void __FASTCALL LTAW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 tmp;
@@ -7583,7 +7583,7 @@ static void LTAW_wa(upd7810_state *cpustate)
 }
 
 /* 74 bd: 0111 0100 1011 1101 */
-static void DLT_EA_BC(upd7810_state *cpustate)
+static void __FASTCALL DLT_EA_BC(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA - BC;
 	ZHC_SUB( tmp, EA, 0 );
@@ -7591,7 +7591,7 @@ static void DLT_EA_BC(upd7810_state *cpustate)
 }
 
 /* 74 be: 0111 0100 1011 1110 */
-static void DLT_EA_DE(upd7810_state *cpustate)
+static void __FASTCALL DLT_EA_DE(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA - DE;
 	ZHC_SUB( tmp, EA, 0 );
@@ -7599,7 +7599,7 @@ static void DLT_EA_DE(upd7810_state *cpustate)
 }
 
 /* 74 bf: 0111 0100 1011 1111 */
-static void DLT_EA_HL(upd7810_state *cpustate)
+static void __FASTCALL DLT_EA_HL(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA - HL;
 	ZHC_SUB( tmp, EA, 0 );
@@ -7607,7 +7607,7 @@ static void DLT_EA_HL(upd7810_state *cpustate)
 }
 
 /* 74 c0: 0111 0100 1100 0000 oooo oooo */
-static void ADDW_wa(upd7810_state *cpustate)
+static void __FASTCALL ADDW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 tmp;
@@ -7618,7 +7618,7 @@ static void ADDW_wa(upd7810_state *cpustate)
 }
 
 /* 74 c5: 0111 0100 1100 0101 */
-static void DADD_EA_BC(upd7810_state *cpustate)
+static void __FASTCALL DADD_EA_BC(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA + BC;
 	ZHC_ADD( tmp, EA, 0 );
@@ -7626,7 +7626,7 @@ static void DADD_EA_BC(upd7810_state *cpustate)
 }
 
 /* 74 c6: 0111 0100 1100 0110 */
-static void DADD_EA_DE(upd7810_state *cpustate)
+static void __FASTCALL DADD_EA_DE(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA + DE;
 	ZHC_ADD( tmp, EA, 0 );
@@ -7634,7 +7634,7 @@ static void DADD_EA_DE(upd7810_state *cpustate)
 }
 
 /* 74 c7: 0111 0100 1100 0111 */
-static void DADD_EA_HL(upd7810_state *cpustate)
+static void __FASTCALL DADD_EA_HL(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA + HL;
 	ZHC_ADD( tmp, EA, 0 );
@@ -7642,7 +7642,7 @@ static void DADD_EA_HL(upd7810_state *cpustate)
 }
 
 /* 74 c8: 0111 0100 1100 1000 oooo oooo */
-static void ONAW_wa(upd7810_state *cpustate)
+static void __FASTCALL ONAW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	RDOPARG( ea.b.l );
@@ -7654,7 +7654,7 @@ static void ONAW_wa(upd7810_state *cpustate)
 }
 
 /* 74 cd: 0111 0100 1100 1101 */
-static void DON_EA_BC(upd7810_state *cpustate)
+static void __FASTCALL DON_EA_BC(upd7810_state *cpustate)
 {
 	if (EA & BC)
 		PSW = (PSW & ~Z) | SK;
@@ -7663,7 +7663,7 @@ static void DON_EA_BC(upd7810_state *cpustate)
 }
 
 /* 74 ce: 0111 0100 1100 1110 */
-static void DON_EA_DE(upd7810_state *cpustate)
+static void __FASTCALL DON_EA_DE(upd7810_state *cpustate)
 {
 	if (EA & DE)
 		PSW = (PSW & ~Z) | SK;
@@ -7672,7 +7672,7 @@ static void DON_EA_DE(upd7810_state *cpustate)
 }
 
 /* 74 cf: 0111 0100 1100 1111 */
-static void DON_EA_HL(upd7810_state *cpustate)
+static void __FASTCALL DON_EA_HL(upd7810_state *cpustate)
 {
 	if (EA & HL)
 		PSW = (PSW & ~Z) | SK;
@@ -7681,7 +7681,7 @@ static void DON_EA_HL(upd7810_state *cpustate)
 }
 
 /* 74 d0: 0111 0100 1101 0000 oooo oooo */
-static void ADCW_wa(upd7810_state *cpustate)
+static void __FASTCALL ADCW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 tmp;
@@ -7693,7 +7693,7 @@ static void ADCW_wa(upd7810_state *cpustate)
 }
 
 /* 74 d5: 0111 0100 1101 0101 */
-static void DADC_EA_BC(upd7810_state *cpustate)
+static void __FASTCALL DADC_EA_BC(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA + BC + (PSW & CY);
 	ZHC_ADD( tmp, EA, (PSW & CY) );
@@ -7701,7 +7701,7 @@ static void DADC_EA_BC(upd7810_state *cpustate)
 }
 
 /* 74 d6: 0111 0100 1101 0110 */
-static void DADC_EA_DE(upd7810_state *cpustate)
+static void __FASTCALL DADC_EA_DE(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA + DE + (PSW & CY);
 	ZHC_ADD( tmp, EA, (PSW & CY) );
@@ -7709,7 +7709,7 @@ static void DADC_EA_DE(upd7810_state *cpustate)
 }
 
 /* 74 d7: 0111 0100 1101 0111 */
-static void DADC_EA_HL(upd7810_state *cpustate)
+static void __FASTCALL DADC_EA_HL(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA + HL + (PSW & CY);
 	ZHC_ADD( tmp, EA, (PSW & CY) );
@@ -7717,7 +7717,7 @@ static void DADC_EA_HL(upd7810_state *cpustate)
 }
 
 /* 74 d8: 0111 0100 1101 1000 oooo oooo */
-static void OFFAW_wa(upd7810_state *cpustate)
+static void __FASTCALL OFFAW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	RDOPARG( ea.b.l );
@@ -7729,7 +7729,7 @@ static void OFFAW_wa(upd7810_state *cpustate)
 }
 
 /* 74 dd: 0111 0100 1101 1101 */
-static void DOFF_EA_BC(upd7810_state *cpustate)
+static void __FASTCALL DOFF_EA_BC(upd7810_state *cpustate)
 {
 	if ( EA & BC )
 		PSW &= ~Z;
@@ -7738,7 +7738,7 @@ static void DOFF_EA_BC(upd7810_state *cpustate)
 }
 
 /* 74 de: 0111 0100 1101 1110 */
-static void DOFF_EA_DE(upd7810_state *cpustate)
+static void __FASTCALL DOFF_EA_DE(upd7810_state *cpustate)
 {
 	if ( EA & DE )
 		PSW &= ~Z;
@@ -7747,7 +7747,7 @@ static void DOFF_EA_DE(upd7810_state *cpustate)
 }
 
 /* 74 df: 0111 0100 1101 1111 */
-static void DOFF_EA_HL(upd7810_state *cpustate)
+static void __FASTCALL DOFF_EA_HL(upd7810_state *cpustate)
 {
 	if ( EA & HL )
 		PSW &= ~Z;
@@ -7756,7 +7756,7 @@ static void DOFF_EA_HL(upd7810_state *cpustate)
 }
 
 /* 74 e0: 0111 0100 1110 0000 oooo oooo */
-static void SUBW_wa(upd7810_state *cpustate)
+static void __FASTCALL SUBW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 tmp;
@@ -7768,7 +7768,7 @@ static void SUBW_wa(upd7810_state *cpustate)
 }
 
 /* 74 e5: 0111 0100 1110 0101 */
-static void DSUB_EA_BC(upd7810_state *cpustate)
+static void __FASTCALL DSUB_EA_BC(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA - BC;
 	ZHC_SUB( tmp, EA, 0 );
@@ -7776,7 +7776,7 @@ static void DSUB_EA_BC(upd7810_state *cpustate)
 }
 
 /* 74 e6: 0111 0100 1110 0110 */
-static void DSUB_EA_DE(upd7810_state *cpustate)
+static void __FASTCALL DSUB_EA_DE(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA - DE;
 	ZHC_SUB( tmp, EA, 0 );
@@ -7784,7 +7784,7 @@ static void DSUB_EA_DE(upd7810_state *cpustate)
 }
 
 /* 74 e7: 0111 0100 1110 0111 */
-static void DSUB_EA_HL(upd7810_state *cpustate)
+static void __FASTCALL DSUB_EA_HL(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA - HL;
 	ZHC_SUB( tmp, EA, 0 );
@@ -7792,7 +7792,7 @@ static void DSUB_EA_HL(upd7810_state *cpustate)
 }
 
 /* 74 e8: 0111 0100 1110 1000 oooo oooo */
-static void NEAW_wa(upd7810_state *cpustate)
+static void __FASTCALL NEAW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 tmp;
@@ -7804,7 +7804,7 @@ static void NEAW_wa(upd7810_state *cpustate)
 }
 
 /* 74 ed: 0111 0100 1110 1101 */
-static void DNE_EA_BC(upd7810_state *cpustate)
+static void __FASTCALL DNE_EA_BC(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 
@@ -7814,7 +7814,7 @@ static void DNE_EA_BC(upd7810_state *cpustate)
 }
 
 /* 74 ee: 0111 0100 1110 1110 */
-static void DNE_EA_DE(upd7810_state *cpustate)
+static void __FASTCALL DNE_EA_DE(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 
@@ -7824,7 +7824,7 @@ static void DNE_EA_DE(upd7810_state *cpustate)
 }
 
 /* 74 ef: 0111 0100 1110 1111 */
-static void DNE_EA_HL(upd7810_state *cpustate)
+static void __FASTCALL DNE_EA_HL(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 
@@ -7834,7 +7834,7 @@ static void DNE_EA_HL(upd7810_state *cpustate)
 }
 
 /* 74 f0: 0111 0100 1111 0000 oooo oooo */
-static void SBBW_wa(upd7810_state *cpustate)
+static void __FASTCALL SBBW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 tmp;
@@ -7846,7 +7846,7 @@ static void SBBW_wa(upd7810_state *cpustate)
 }
 
 /* 74 f5: 0111 0100 1111 0101 */
-static void DSBB_EA_BC(upd7810_state *cpustate)
+static void __FASTCALL DSBB_EA_BC(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA - BC - (PSW & CY);
 	ZHC_SUB( tmp, EA, (PSW & CY) );
@@ -7854,7 +7854,7 @@ static void DSBB_EA_BC(upd7810_state *cpustate)
 }
 
 /* 74 f6: 0111 0100 1111 0110 */
-static void DSBB_EA_DE(upd7810_state *cpustate)
+static void __FASTCALL DSBB_EA_DE(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA - DE - (PSW & CY);
 	ZHC_SUB( tmp, EA, (PSW & CY) );
@@ -7862,7 +7862,7 @@ static void DSBB_EA_DE(upd7810_state *cpustate)
 }
 
 /* 74 f7: 0111 0100 1111 0111 */
-static void DSBB_EA_HL(upd7810_state *cpustate)
+static void __FASTCALL DSBB_EA_HL(upd7810_state *cpustate)
 {
 	UINT16 tmp = EA - HL - (PSW & CY);
 	ZHC_SUB( tmp, EA, (PSW & CY) );
@@ -7870,7 +7870,7 @@ static void DSBB_EA_HL(upd7810_state *cpustate)
 }
 
 /* 74 f8: 0111 0100 1111 1000 oooo oooo */
-static void EQAW_wa(upd7810_state *cpustate)
+static void __FASTCALL EQAW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 tmp;
@@ -7882,7 +7882,7 @@ static void EQAW_wa(upd7810_state *cpustate)
 }
 
 /* 74 fd: 0111 0100 1111 1101 */
-static void DEQ_EA_BC(upd7810_state *cpustate)
+static void __FASTCALL DEQ_EA_BC(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 
@@ -7892,7 +7892,7 @@ static void DEQ_EA_BC(upd7810_state *cpustate)
 }
 
 /* 74 fe: 0111 0100 1111 1110 */
-static void DEQ_EA_DE(upd7810_state *cpustate)
+static void __FASTCALL DEQ_EA_DE(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 
@@ -7902,7 +7902,7 @@ static void DEQ_EA_DE(upd7810_state *cpustate)
 }
 
 /* 74 ff: 0111 0100 1111 1111 */
-static void DEQ_EA_HL(upd7810_state *cpustate)
+static void __FASTCALL DEQ_EA_HL(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 
@@ -7916,12 +7916,12 @@ static void DEQ_EA_HL(upd7810_state *cpustate)
  ************************************************/
 
 /* 00: 0000 0000 */
-static void NOP(upd7810_state *cpustate)
+static void __FASTCALL NOP(upd7810_state *cpustate)
 {
 }
 
 /* 01: 0000 0001 oooo oooo */
-static void LDAW_wa(upd7810_state *cpustate)
+static void __FASTCALL LDAW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 
@@ -7931,26 +7931,26 @@ static void LDAW_wa(upd7810_state *cpustate)
 }
 
 /* 02: 0000 0010 */
-static void INX_SP(upd7810_state *cpustate)
+static void __FASTCALL INX_SP(upd7810_state *cpustate)
 {
 	SP++;
 }
 
 /* 03: 0000 0011 */
-static void DCX_SP(upd7810_state *cpustate)
+static void __FASTCALL DCX_SP(upd7810_state *cpustate)
 {
 	SP--;
 }
 
 /* 04: 0000 0100 llll llll hhhh hhhh */
-static void LXI_S_w(upd7810_state *cpustate)
+static void __FASTCALL LXI_S_w(upd7810_state *cpustate)
 {
 	RDOPARG( SPL );
 	RDOPARG( SPH );
 }
 
 /* 05: 0000 0101 oooo oooo xxxx xxxx */
-static void ANIW_wa_xx(upd7810_state *cpustate)
+static void __FASTCALL ANIW_wa_xx(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 m, imm;
@@ -7967,55 +7967,55 @@ static void ANIW_wa_xx(upd7810_state *cpustate)
 /* ANI_A_xx already defined (long form) */
 
 /* 08: 0000 1000 */
-static void MOV_A_EAH(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_EAH(upd7810_state *cpustate)
 {
 	A = EAH;
 }
 
 /* 09: 0000 1001 */
-static void MOV_A_EAL(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_EAL(upd7810_state *cpustate)
 {
 	A = EAL;
 }
 
 /* 0a: 0000 1010 */
-static void MOV_A_B(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_B(upd7810_state *cpustate)
 {
 	A = B;
 }
 
 /* 0b: 0000 1011 */
-static void MOV_A_C(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_C(upd7810_state *cpustate)
 {
 	A = C;
 }
 
 /* 0c: 0000 1100 */
-static void MOV_A_D(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_D(upd7810_state *cpustate)
 {
 	A = D;
 }
 
 /* 0d: 0000 1101 */
-static void MOV_A_E(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_E(upd7810_state *cpustate)
 {
 	A = E;
 }
 
 /* 0e: 0000 1110 */
-static void MOV_A_H(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_H(upd7810_state *cpustate)
 {
 	A = H;
 }
 
 /* 0f: 0000 1111 */
-static void MOV_A_L(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_L(upd7810_state *cpustate)
 {
 	A = L;
 }
 
 /* 10: 0001 0000 */
-static void EXA(upd7810_state *cpustate)
+static void __FASTCALL EXA(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 	tmp = EA; EA = EA2; EA2 = tmp;
@@ -8023,7 +8023,7 @@ static void EXA(upd7810_state *cpustate)
 }
 
 /* 11: 0001 0001 */
-static void EXX(upd7810_state *cpustate)
+static void __FASTCALL EXX(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 	tmp = BC; BC = BC2; BC2 = tmp;
@@ -8032,7 +8032,7 @@ static void EXX(upd7810_state *cpustate)
 }
 
 /* 48 AD (7807 only) */
-static void EXR(upd7810_state *cpustate)
+static void __FASTCALL EXR(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 	tmp = BC; BC = BC2; BC2 = tmp;
@@ -8043,26 +8043,26 @@ static void EXR(upd7810_state *cpustate)
 }
 
 /* 12: 0001 0010 */
-static void INX_BC(upd7810_state *cpustate)
+static void __FASTCALL INX_BC(upd7810_state *cpustate)
 {
 	BC++;
 }
 
 /* 13: 0001 0011 */
-static void DCX_BC(upd7810_state *cpustate)
+static void __FASTCALL DCX_BC(upd7810_state *cpustate)
 {
 	BC--;
 }
 
 /* 14: 0001 0100 llll llll hhhh hhhh */
-static void LXI_B_w(upd7810_state *cpustate)
+static void __FASTCALL LXI_B_w(upd7810_state *cpustate)
 {
 	RDOPARG( C );
 	RDOPARG( B );
 }
 
 /* 15: 0001 0101 oooo oooo xxxx xxxx */
-static void ORIW_wa_xx(upd7810_state *cpustate)
+static void __FASTCALL ORIW_wa_xx(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 m, imm;
@@ -8082,55 +8082,55 @@ static void ORIW_wa_xx(upd7810_state *cpustate)
 /* ORI_A_xx already defined (long form) */
 
 /* 18: 0001 1000 */
-static void MOV_EAH_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_EAH_A(upd7810_state *cpustate)
 {
 	EAH = A;
 }
 
 /* 19: 0001 1001 */
-static void MOV_EAL_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_EAL_A(upd7810_state *cpustate)
 {
 	EAL = A;
 }
 
 /* 1a: 0001 1010 */
-static void MOV_B_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_B_A(upd7810_state *cpustate)
 {
 	B = A;
 }
 
 /* 1b: 0001 1011 */
-static void MOV_C_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_C_A(upd7810_state *cpustate)
 {
 	C = A;
 }
 
 /* 1c: 0001 1100 */
-static void MOV_D_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_D_A(upd7810_state *cpustate)
 {
 	D = A;
 }
 
 /* 1d: 0001 1101 */
-static void MOV_E_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_E_A(upd7810_state *cpustate)
 {
 	E = A;
 }
 
 /* 1e: 0001 1110 */
-static void MOV_H_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_H_A(upd7810_state *cpustate)
 {
 	H = A;
 }
 
 /* 1f: 0001 1111 */
-static void MOV_L_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_L_A(upd7810_state *cpustate)
 {
 	L = A;
 }
 
 /* 20: 0010 0000 oooo oooo */
-static void INRW_wa(upd7810_state *cpustate)
+static void __FASTCALL INRW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 tmp, m;
@@ -8144,32 +8144,32 @@ static void INRW_wa(upd7810_state *cpustate)
 }
 
 /* 21: 0010 0001 */
-static void JB(upd7810_state *cpustate)
+static void __FASTCALL JB(upd7810_state *cpustate)
 {
 	PC = BC;
 }
 
 /* 22: 0010 0010 */
-static void INX_DE(upd7810_state *cpustate)
+static void __FASTCALL INX_DE(upd7810_state *cpustate)
 {
 	DE++;
 }
 
 /* 23: 0010 0011 */
-static void DCX_DE(upd7810_state *cpustate)
+static void __FASTCALL DCX_DE(upd7810_state *cpustate)
 {
 	DE--;
 }
 
 /* 24: 0010 0100 llll llll hhhh hhhh */
-static void LXI_D_w(upd7810_state *cpustate)
+static void __FASTCALL LXI_D_w(upd7810_state *cpustate)
 {
 	RDOPARG( E );
 	RDOPARG( D );
 }
 
 /* 25: 0010 0101 oooo oooo xxxx xxxx */
-static void GTIW_wa_xx(upd7810_state *cpustate)
+static void __FASTCALL GTIW_wa_xx(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 m, imm;
@@ -8190,53 +8190,53 @@ static void GTIW_wa_xx(upd7810_state *cpustate)
 /* GTI_A_xx already defined (long form) */
 
 /* 29: 0010 1001 */
-static void LDAX_B(upd7810_state *cpustate)
+static void __FASTCALL LDAX_B(upd7810_state *cpustate)
 {
 	A = RM( BC );
 }
 
 /* 2a: 0010 1010 */
-static void LDAX_D(upd7810_state *cpustate)
+static void __FASTCALL LDAX_D(upd7810_state *cpustate)
 {
 	A = RM( DE );
 }
 
 /* 2b: 0010 1011 */
-static void LDAX_H(upd7810_state *cpustate)
+static void __FASTCALL LDAX_H(upd7810_state *cpustate)
 {
 	A = RM( HL );
 }
 
 /* 2c: 0010 1100 */
-static void LDAX_Dp(upd7810_state *cpustate)
+static void __FASTCALL LDAX_Dp(upd7810_state *cpustate)
 {
 	A = RM( DE );
 	DE++;
 }
 
 /* 2d: 0010 1101 dddd dddd */
-static void LDAX_Hp(upd7810_state *cpustate)
+static void __FASTCALL LDAX_Hp(upd7810_state *cpustate)
 {
 	A = RM( HL );
 	HL++;
 }
 
 /* 2e: 0010 1110 dddd dddd */
-static void LDAX_Dm(upd7810_state *cpustate)
+static void __FASTCALL LDAX_Dm(upd7810_state *cpustate)
 {
 	A = RM( DE );
 	DE--;
 }
 
 /* 2f: 0010 1111 dddd dddd */
-static void LDAX_Hm(upd7810_state *cpustate)
+static void __FASTCALL LDAX_Hm(upd7810_state *cpustate)
 {
 	A = RM( HL );
 	HL--;
 }
 
 /* 30: 0011 0000 oooo oooo */
-static void DCRW_wa(upd7810_state *cpustate)
+static void __FASTCALL DCRW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 tmp, m;
@@ -8250,7 +8250,7 @@ static void DCRW_wa(upd7810_state *cpustate)
 }
 
 /* 31: 0011 0001 */
-static void BLOCK(upd7810_state *cpustate)
+static void __FASTCALL BLOCK(upd7810_state *cpustate)
 {
 	WM( DE, RM( HL ) );
 	DE++;
@@ -8266,19 +8266,19 @@ static void BLOCK(upd7810_state *cpustate)
 }
 
 /* 32: 0011 0010 */
-static void INX_HL(upd7810_state *cpustate)
+static void __FASTCALL INX_HL(upd7810_state *cpustate)
 {
 	HL++;
 }
 
 /* 33: 0011 0011 */
-static void DCX_HL(upd7810_state *cpustate)
+static void __FASTCALL DCX_HL(upd7810_state *cpustate)
 {
 	HL--;
 }
 
 /* 34: 0011 0100 llll llll hhhh hhhh */
-static void LXI_H_w(upd7810_state *cpustate)
+static void __FASTCALL LXI_H_w(upd7810_state *cpustate)
 {
 	if (PSW & L0) { /* overlay active? */
 		PC+=2;
@@ -8290,7 +8290,7 @@ static void LXI_H_w(upd7810_state *cpustate)
 }
 
 /* 35: 0011 0101 oooo oooo xxxx xxxx */
-static void LTIW_wa_xx(upd7810_state *cpustate)
+static void __FASTCALL LTIW_wa_xx(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 tmp, m, imm;
@@ -8310,53 +8310,53 @@ static void LTIW_wa_xx(upd7810_state *cpustate)
 /* LTI_A_xx already defined (long form) */
 
 /* 39: 0011 1001 */
-static void STAX_B(upd7810_state *cpustate)
+static void __FASTCALL STAX_B(upd7810_state *cpustate)
 {
 	WM( BC, A );
 }
 
 /* 3a: 0011 1010 */
-static void STAX_D(upd7810_state *cpustate)
+static void __FASTCALL STAX_D(upd7810_state *cpustate)
 {
 	WM( DE, A );
 }
 
 /* 3b: 0011 1011 */
-static void STAX_H(upd7810_state *cpustate)
+static void __FASTCALL STAX_H(upd7810_state *cpustate)
 {
 	WM( HL, A );
 }
 
 /* 3c: 0011 1100 */
-static void STAX_Dp(upd7810_state *cpustate)
+static void __FASTCALL STAX_Dp(upd7810_state *cpustate)
 {
 	WM( DE, A );
 	DE++;
 }
 
 /* 3d: 0011 1101 */
-static void STAX_Hp(upd7810_state *cpustate)
+static void __FASTCALL STAX_Hp(upd7810_state *cpustate)
 {
 	WM( HL, A );
 	HL++;
 }
 
 /* 3e: 0011 1110 */
-static void STAX_Dm(upd7810_state *cpustate)
+static void __FASTCALL STAX_Dm(upd7810_state *cpustate)
 {
 	WM( DE, A );
 	DE--;
 }
 
 /* 3f: 0011 1111 */
-static void STAX_Hm(upd7810_state *cpustate)
+static void __FASTCALL STAX_Hm(upd7810_state *cpustate)
 {
 	WM( HL, A );
 	HL--;
 }
 
 /* 40: 0100 0000 llll llll hhhh hhhh */
-static void CALL_w(upd7810_state *cpustate)
+static void __FASTCALL CALL_w(upd7810_state *cpustate)
 {
 	PAIR w;
 	w.d = 0;
@@ -8373,7 +8373,7 @@ static void CALL_w(upd7810_state *cpustate)
 }
 
 /* 41: 0100 0001 */
-static void INR_A(upd7810_state *cpustate)
+static void __FASTCALL INR_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = A + 1;
 	ZHC_ADD( tmp, A, 0 );
@@ -8382,7 +8382,7 @@ static void INR_A(upd7810_state *cpustate)
 }
 
 /* 42: 0100 0010 */
-static void INR_B(upd7810_state *cpustate)
+static void __FASTCALL INR_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = B + 1;
 	ZHC_ADD( tmp, B, 0 );
@@ -8391,7 +8391,7 @@ static void INR_B(upd7810_state *cpustate)
 }
 
 /* 43: 0100 0011 */
-static void INR_C(upd7810_state *cpustate)
+static void __FASTCALL INR_C(upd7810_state *cpustate)
 {
 	UINT8 tmp = C + 1;
 	ZHC_ADD( tmp, C, 0 );
@@ -8400,14 +8400,14 @@ static void INR_C(upd7810_state *cpustate)
 }
 
 /* 44: 0100 0100 llll llll hhhh hhhh */
-static void LXI_EA_s(upd7810_state *cpustate)
+static void __FASTCALL LXI_EA_s(upd7810_state *cpustate)
 {
 	RDOPARG( EAL );
 	RDOPARG( EAH );
 }
 
 /* 45: 0100 0101 oooo oooo xxxx xxxx */
-static void ONIW_wa_xx(upd7810_state *cpustate)
+static void __FASTCALL ONIW_wa_xx(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 imm;
@@ -8426,7 +8426,7 @@ static void ONIW_wa_xx(upd7810_state *cpustate)
 /* ONI_A_xx already defined (long form) */
 
 /* 48: prefix */
-static void PRE_48(upd7810_state *cpustate)
+static void __FASTCALL PRE_48(upd7810_state *cpustate)
 {
 	RDOP(OP2);
 	cpustate->icount -= cpustate->op48[OP2].cycles;
@@ -8435,7 +8435,7 @@ static void PRE_48(upd7810_state *cpustate)
 }
 
 /* 49: 0100 1001 xxxx xxxx */
-static void MVIX_BC_xx(upd7810_state *cpustate)
+static void __FASTCALL MVIX_BC_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -8443,7 +8443,7 @@ static void MVIX_BC_xx(upd7810_state *cpustate)
 }
 
 /* 4a: 0100 1010 xxxx xxxx */
-static void MVIX_DE_xx(upd7810_state *cpustate)
+static void __FASTCALL MVIX_DE_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -8451,7 +8451,7 @@ static void MVIX_DE_xx(upd7810_state *cpustate)
 }
 
 /* 4b: 0100 1011 xxxx xxxx */
-static void MVIX_HL_xx(upd7810_state *cpustate)
+static void __FASTCALL MVIX_HL_xx(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	RDOPARG( imm );
@@ -8459,7 +8459,7 @@ static void MVIX_HL_xx(upd7810_state *cpustate)
 }
 
 /* 4c: prefix */
-static void PRE_4C(upd7810_state *cpustate)
+static void __FASTCALL PRE_4C(upd7810_state *cpustate)
 {
 	RDOP(OP2);
 	cpustate->icount -= cpustate->op4C[OP2].cycles;
@@ -8468,7 +8468,7 @@ static void PRE_4C(upd7810_state *cpustate)
 }
 
 /* 4d: prefix */
-static void PRE_4D(upd7810_state *cpustate)
+static void __FASTCALL PRE_4D(upd7810_state *cpustate)
 {
 	RDOP(OP2);
 	cpustate->icount -= cpustate->op4D[OP2].cycles;
@@ -8477,7 +8477,7 @@ static void PRE_4D(upd7810_state *cpustate)
 }
 
 /* 4e: 0100 111d dddd dddd */
-static void JRE(upd7810_state *cpustate)
+static void __FASTCALL JRE(upd7810_state *cpustate)
 {
 	UINT8 offs;
 	RDOPARG( offs );
@@ -8488,14 +8488,14 @@ static void JRE(upd7810_state *cpustate)
 }
 
 /* 50: 0101 0000 */
-static void EXH(upd7810_state *cpustate)
+static void __FASTCALL EXH(upd7810_state *cpustate)
 {
 	UINT16 tmp;
 	tmp = HL; HL = HL2; HL2 = tmp;
 }
 
 /* 51: 0101 0001 */
-static void DCR_A(upd7810_state *cpustate)
+static void __FASTCALL DCR_A(upd7810_state *cpustate)
 {
 	UINT8 tmp = A - 1;
 	ZHC_SUB( tmp, A, 0 );
@@ -8504,7 +8504,7 @@ static void DCR_A(upd7810_state *cpustate)
 }
 
 /* 52: 0101 0010 */
-static void DCR_B(upd7810_state *cpustate)
+static void __FASTCALL DCR_B(upd7810_state *cpustate)
 {
 	UINT8 tmp = B - 1;
 	ZHC_SUB( tmp, B, 0 );
@@ -8513,7 +8513,7 @@ static void DCR_B(upd7810_state *cpustate)
 }
 
 /* 53: 0101 0011 */
-static void DCR_C(upd7810_state *cpustate)
+static void __FASTCALL DCR_C(upd7810_state *cpustate)
 {
 	UINT8 tmp = C - 1;
 	ZHC_SUB( tmp, C, 0 );
@@ -8522,7 +8522,7 @@ static void DCR_C(upd7810_state *cpustate)
 }
 
 /* 54: 0101 0100 llll llll hhhh hhhh */
-static void JMP_w(upd7810_state *cpustate)
+static void __FASTCALL JMP_w(upd7810_state *cpustate)
 {
 	PAIR w;
 	w.d = 0;
@@ -8534,7 +8534,7 @@ static void JMP_w(upd7810_state *cpustate)
 }
 
 /* 55: 0101 0101 oooo oooo xxxx xxxx */
-static void OFFIW_wa_xx(upd7810_state *cpustate)
+static void __FASTCALL OFFIW_wa_xx(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 imm;
@@ -8553,7 +8553,7 @@ static void OFFIW_wa_xx(upd7810_state *cpustate)
 /* OFFI_A_xx already defined (long form) */
 
 /* 58: 0101 1000 oooo oooo (7810 only) */
-static void BIT_0_wa(upd7810_state *cpustate)
+static void __FASTCALL BIT_0_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 
@@ -8564,7 +8564,7 @@ static void BIT_0_wa(upd7810_state *cpustate)
 }
 
 /* 59: 0101 1001 oooo oooo (7810 only) */
-static void BIT_1_wa(upd7810_state *cpustate)
+static void __FASTCALL BIT_1_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 
@@ -8575,7 +8575,7 @@ static void BIT_1_wa(upd7810_state *cpustate)
 }
 
 /* 5a: 0101 1010 oooo oooo (7810 only) */
-static void BIT_2_wa(upd7810_state *cpustate)
+static void __FASTCALL BIT_2_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 
@@ -8586,7 +8586,7 @@ static void BIT_2_wa(upd7810_state *cpustate)
 }
 
 /* 5b: 0101 1011 oooo oooo (7810 only) */
-static void BIT_3_wa(upd7810_state *cpustate)
+static void __FASTCALL BIT_3_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 
@@ -8597,7 +8597,7 @@ static void BIT_3_wa(upd7810_state *cpustate)
 }
 
 /* 5c: 0101 1100 oooo oooo (7810 only) */
-static void BIT_4_wa(upd7810_state *cpustate)
+static void __FASTCALL BIT_4_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 
@@ -8608,7 +8608,7 @@ static void BIT_4_wa(upd7810_state *cpustate)
 }
 
 /* 5d: 0101 1101 oooo oooo (7810 only) */
-static void BIT_5_wa(upd7810_state *cpustate)
+static void __FASTCALL BIT_5_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 
@@ -8619,7 +8619,7 @@ static void BIT_5_wa(upd7810_state *cpustate)
 }
 
 /* 5e: 0101 1110 oooo oooo (7810 only) */
-static void BIT_6_wa(upd7810_state *cpustate)
+static void __FASTCALL BIT_6_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 
@@ -8630,7 +8630,7 @@ static void BIT_6_wa(upd7810_state *cpustate)
 }
 
 /* 5f: 0101 1111 oooo oooo (7810 only) */
-static void BIT_7_wa(upd7810_state *cpustate)
+static void __FASTCALL BIT_7_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 
@@ -8641,7 +8641,7 @@ static void BIT_7_wa(upd7810_state *cpustate)
 }
 
 /* 5d: 0101 1111 bbbb bbbb (7807 only) */
-static void SKN_bit(upd7810_state *cpustate)
+static void __FASTCALL SKN_bit(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	int val;
@@ -8694,7 +8694,7 @@ static void SKN_bit(upd7810_state *cpustate)
 }
 
 /* 58: 0101 1000 bbbb bbbb (7807 only) */
-static void SETB(upd7810_state *cpustate)
+static void __FASTCALL SETB(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	int bit;
@@ -8744,7 +8744,7 @@ static void SETB(upd7810_state *cpustate)
 }
 
 /* 5b: 0101 1011 bbbb bbbb (7807 only) */
-static void CLR(upd7810_state *cpustate)
+static void __FASTCALL CLR(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	int bit;
@@ -8794,7 +8794,7 @@ static void CLR(upd7810_state *cpustate)
 }
 
 /* 5d: 0101 1111 bbbb bbbb (7807 only) */
-static void SK_bit(upd7810_state *cpustate)
+static void __FASTCALL SK_bit(upd7810_state *cpustate)
 {
 	UINT8 imm;
 	int val;
@@ -8847,7 +8847,7 @@ static void SK_bit(upd7810_state *cpustate)
 }
 
 /* 60:*/
-static void PRE_60(upd7810_state *cpustate)
+static void __FASTCALL PRE_60(upd7810_state *cpustate)
 {
 	RDOP(OP2);
 	cpustate->icount -= cpustate->op60[OP2].cycles;
@@ -8856,7 +8856,7 @@ static void PRE_60(upd7810_state *cpustate)
 }
 
 /* 61: 0110 0001 */
-static void DAA(upd7810_state *cpustate)
+static void __FASTCALL DAA(upd7810_state *cpustate)
 {
 	UINT8 l = A & 0x0f, h = A >> 4, tmp, adj = 0x00, old_cy = PSW & CY;
 
@@ -8892,7 +8892,7 @@ static void DAA(upd7810_state *cpustate)
 }
 
 /* 62: 0110 0010 */
-static void RETI(upd7810_state *cpustate)
+static void __FASTCALL RETI(upd7810_state *cpustate)
 {
 	if(cpustate->softi) {
 		IFF = 1;
@@ -8907,7 +8907,7 @@ static void RETI(upd7810_state *cpustate)
 }
 
 /* 63: 0110 0011 oooo oooo */
-static void STAW_wa(upd7810_state *cpustate)
+static void __FASTCALL STAW_wa(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 
@@ -8917,7 +8917,7 @@ static void STAW_wa(upd7810_state *cpustate)
 }
 
 /* 64: prefix */
-static void PRE_64(upd7810_state *cpustate)
+static void __FASTCALL PRE_64(upd7810_state *cpustate)
 {
 	RDOP(OP2);
 	cpustate->icount -= cpustate->op64[OP2].cycles;
@@ -8926,7 +8926,7 @@ static void PRE_64(upd7810_state *cpustate)
 }
 
 /* 65: 0110 0101 oooo oooo xxxx xxxx */
-static void NEIW_wa_xx(upd7810_state *cpustate)
+static void __FASTCALL NEIW_wa_xx(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 tmp, m, imm;
@@ -8946,13 +8946,13 @@ static void NEIW_wa_xx(upd7810_state *cpustate)
 /* NEI_A_xx already defined (long form) */
 
 /* 68: 0110 1000 xxxx xxxx */
-static void MVI_V_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_V_xx(upd7810_state *cpustate)
 {
 	RDOPARG( V );
 }
 
 /* 69: 0110 1001 xxxx xxxx */
-static void MVI_A_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_A_xx(upd7810_state *cpustate)
 {
 	if (PSW & L1) { /* overlay active? */
 		PC++;
@@ -8963,37 +8963,37 @@ static void MVI_A_xx(upd7810_state *cpustate)
 }
 
 /* 6a: 0110 1010 xxxx xxxx */
-static void MVI_B_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_B_xx(upd7810_state *cpustate)
 {
 	RDOPARG( B );
 }
 
 /* 6b: 0110 1011 xxxx xxxx */
-static void MVI_C_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_C_xx(upd7810_state *cpustate)
 {
 	RDOPARG( C );
 }
 
 /* 6c: 0110 1100 xxxx xxxx */
-static void MVI_D_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_D_xx(upd7810_state *cpustate)
 {
 	RDOPARG( D );
 }
 
 /* 6d: 0110 1101 xxxx xxxx */
-static void MVI_E_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_E_xx(upd7810_state *cpustate)
 {
 	RDOPARG( E );
 }
 
 /* 6e: 0110 1110 xxxx xxxx */
-static void MVI_H_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_H_xx(upd7810_state *cpustate)
 {
 	RDOPARG( H );
 }
 
 /* 6f: 0110 1111 xxxx xxxx */
-static void MVI_L_xx(upd7810_state *cpustate)
+static void __FASTCALL MVI_L_xx(upd7810_state *cpustate)
 {
 	if (PSW & L0) { /* overlay active? */
 		PC++;
@@ -9004,7 +9004,7 @@ static void MVI_L_xx(upd7810_state *cpustate)
 }
 
 /* 70: prefix */
-static void PRE_70(upd7810_state *cpustate)
+static void __FASTCALL PRE_70(upd7810_state *cpustate)
 {
 	RDOP(OP2);
 	cpustate->icount -= cpustate->op70[OP2].cycles;
@@ -9013,7 +9013,7 @@ static void PRE_70(upd7810_state *cpustate)
 }
 
 /* 71: 0111 0001 oooo oooo xxxx xxxx */
-static void MVIW_wa_xx(upd7810_state *cpustate)
+static void __FASTCALL MVIW_wa_xx(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 imm;
@@ -9025,7 +9025,7 @@ static void MVIW_wa_xx(upd7810_state *cpustate)
 }
 
 /* 72: 0111 0010 */
-static void SOFTI(upd7810_state *cpustate)
+static void __FASTCALL SOFTI(upd7810_state *cpustate)
 {
 	SP--;
 	WM( SPD, PSW );
@@ -9041,7 +9041,7 @@ static void SOFTI(upd7810_state *cpustate)
 }
 
 /* 74: prefix */
-static void PRE_74(upd7810_state *cpustate)
+static void __FASTCALL PRE_74(upd7810_state *cpustate)
 {
 	RDOP(OP2);
 	cpustate->icount -= cpustate->op74[OP2].cycles;
@@ -9050,7 +9050,7 @@ static void PRE_74(upd7810_state *cpustate)
 }
 
 /* 75: 0111 0101 oooo oooo xxxx xxxx */
-static void EQIW_wa_xx(upd7810_state *cpustate)
+static void __FASTCALL EQIW_wa_xx(upd7810_state *cpustate)
 {
 	PAIR ea = cpustate->va;
 	UINT8 tmp, m, imm;
@@ -9070,7 +9070,7 @@ static void EQIW_wa_xx(upd7810_state *cpustate)
 /* EQI_A_xx already defined (long form) */
 
 /* 78: 0111 1ddd dddd dddd */
-static void CALF(upd7810_state *cpustate)
+static void __FASTCALL CALF(upd7810_state *cpustate)
 {
 	PAIR w;
 	w.d = 0;
@@ -9087,7 +9087,7 @@ static void CALF(upd7810_state *cpustate)
 }
 
 /* 80: 100t tttt */
-static void CALT(upd7810_state *cpustate)
+static void __FASTCALL CALT(upd7810_state *cpustate)
 {
 	PAIR w;
 	w.d = 0;
@@ -9104,7 +9104,7 @@ static void CALT(upd7810_state *cpustate)
 }
 
 /* a0: 1010 0000 */
-static void POP_VA(upd7810_state *cpustate)
+static void __FASTCALL POP_VA(upd7810_state *cpustate)
 {
 	A = RM( SPD );
 	SP++;
@@ -9113,7 +9113,7 @@ static void POP_VA(upd7810_state *cpustate)
 }
 
 /* a1: 1010 0001 */
-static void POP_BC(upd7810_state *cpustate)
+static void __FASTCALL POP_BC(upd7810_state *cpustate)
 {
 	C = RM( SPD );
 	SP++;
@@ -9122,7 +9122,7 @@ static void POP_BC(upd7810_state *cpustate)
 }
 
 /* a2: 1010 0010 */
-static void POP_DE(upd7810_state *cpustate)
+static void __FASTCALL POP_DE(upd7810_state *cpustate)
 {
 	E = RM( SPD );
 	SP++;
@@ -9131,7 +9131,7 @@ static void POP_DE(upd7810_state *cpustate)
 }
 
 /* a3: 1010 0011 */
-static void POP_HL(upd7810_state *cpustate)
+static void __FASTCALL POP_HL(upd7810_state *cpustate)
 {
 	L = RM( SPD );
 	SP++;
@@ -9140,7 +9140,7 @@ static void POP_HL(upd7810_state *cpustate)
 }
 
 /* a4: 1010 0100 */
-static void POP_EA(upd7810_state *cpustate)
+static void __FASTCALL POP_EA(upd7810_state *cpustate)
 {
 	EAL = RM( SPD );
 	SP++;
@@ -9149,43 +9149,43 @@ static void POP_EA(upd7810_state *cpustate)
 }
 
 /* a5: 1010 0101 */
-static void DMOV_EA_BC(upd7810_state *cpustate)
+static void __FASTCALL DMOV_EA_BC(upd7810_state *cpustate)
 {
 	EA = BC;
 }
 
 /* a6: 1010 0110 */
-static void DMOV_EA_DE(upd7810_state *cpustate)
+static void __FASTCALL DMOV_EA_DE(upd7810_state *cpustate)
 {
 	EA = DE;
 }
 
 /* a7: 1010 0111 */
-static void DMOV_EA_HL(upd7810_state *cpustate)
+static void __FASTCALL DMOV_EA_HL(upd7810_state *cpustate)
 {
 	EA = HL;
 }
 
 /* a8: 1010 1000 */
-static void INX_EA(upd7810_state *cpustate)
+static void __FASTCALL INX_EA(upd7810_state *cpustate)
 {
 	EA++;
 }
 
 /* a9: 1010 1001 */
-static void DCX_EA(upd7810_state *cpustate)
+static void __FASTCALL DCX_EA(upd7810_state *cpustate)
 {
 	EA--;
 }
 
 /* aa: 1010 1010 */
-static void EI(upd7810_state *cpustate)
+static void __FASTCALL EI(upd7810_state *cpustate)
 {
 	IFF = 1;
 }
 
 /* ab: 1010 1011 dddd dddd */
-static void LDAX_D_xx(upd7810_state *cpustate)
+static void __FASTCALL LDAX_D_xx(upd7810_state *cpustate)
 {
 	UINT16 ea;
 	RDOPARG( ea );
@@ -9194,7 +9194,7 @@ static void LDAX_D_xx(upd7810_state *cpustate)
 }
 
 /* ac: 1010 1100 */
-static void LDAX_H_A(upd7810_state *cpustate)
+static void __FASTCALL LDAX_H_A(upd7810_state *cpustate)
 {
 	UINT16 ea;
 	ea = HL + A;
@@ -9202,7 +9202,7 @@ static void LDAX_H_A(upd7810_state *cpustate)
 }
 
 /* ad: 1010 1101 */
-static void LDAX_H_B(upd7810_state *cpustate)
+static void __FASTCALL LDAX_H_B(upd7810_state *cpustate)
 {
 	UINT16 ea;
 	ea = HL + B;
@@ -9210,7 +9210,7 @@ static void LDAX_H_B(upd7810_state *cpustate)
 }
 
 /* ae: 1010 1110 */
-static void LDAX_H_EA(upd7810_state *cpustate)
+static void __FASTCALL LDAX_H_EA(upd7810_state *cpustate)
 {
 	UINT16 ea;
 	ea = HL + EA;
@@ -9218,7 +9218,7 @@ static void LDAX_H_EA(upd7810_state *cpustate)
 }
 
 /* af: 1010 1111 dddd dddd */
-static void LDAX_H_xx(upd7810_state *cpustate)
+static void __FASTCALL LDAX_H_xx(upd7810_state *cpustate)
 {
 	UINT16 ea;
 	RDOPARG( ea );
@@ -9227,7 +9227,7 @@ static void LDAX_H_xx(upd7810_state *cpustate)
 }
 
 /* b0: 1011 0000 */
-static void PUSH_VA(upd7810_state *cpustate)
+static void __FASTCALL PUSH_VA(upd7810_state *cpustate)
 {
 	SP--;
 	WM( SPD, V );
@@ -9236,7 +9236,7 @@ static void PUSH_VA(upd7810_state *cpustate)
 }
 
 /* b1: 1011 0001 */
-static void PUSH_BC(upd7810_state *cpustate)
+static void __FASTCALL PUSH_BC(upd7810_state *cpustate)
 {
 	SP--;
 	WM( SPD, B );
@@ -9245,7 +9245,7 @@ static void PUSH_BC(upd7810_state *cpustate)
 }
 
 /* b2: 1011 0010 */
-static void PUSH_DE(upd7810_state *cpustate)
+static void __FASTCALL PUSH_DE(upd7810_state *cpustate)
 {
 	SP--;
 	WM( SPD, D );
@@ -9254,7 +9254,7 @@ static void PUSH_DE(upd7810_state *cpustate)
 }
 
 /* b3: 1011 0011 */
-static void PUSH_HL(upd7810_state *cpustate)
+static void __FASTCALL PUSH_HL(upd7810_state *cpustate)
 {
 	SP--;
 	WM( SPD, H );
@@ -9263,7 +9263,7 @@ static void PUSH_HL(upd7810_state *cpustate)
 }
 
 /* b4: 1011 0100 */
-static void PUSH_EA(upd7810_state *cpustate)
+static void __FASTCALL PUSH_EA(upd7810_state *cpustate)
 {
 	SP--;
 	WM( SPD, EAH );
@@ -9272,25 +9272,25 @@ static void PUSH_EA(upd7810_state *cpustate)
 }
 
 /* b5: 1011 0101 */
-static void DMOV_BC_EA(upd7810_state *cpustate)
+static void __FASTCALL DMOV_BC_EA(upd7810_state *cpustate)
 {
 	BC = EA;
 }
 
 /* b6: 1011 0110 */
-static void DMOV_DE_EA(upd7810_state *cpustate)
+static void __FASTCALL DMOV_DE_EA(upd7810_state *cpustate)
 {
 	DE = EA;
 }
 
 /* b7: 1011 0111 */
-static void DMOV_HL_EA(upd7810_state *cpustate)
+static void __FASTCALL DMOV_HL_EA(upd7810_state *cpustate)
 {
 	HL = EA;
 }
 
 /* b8: 1011 1000 */
-static void RET(upd7810_state *cpustate)
+static void __FASTCALL RET(upd7810_state *cpustate)
 {
 	PCL = RM( SPD );
 	SP++;
@@ -9299,7 +9299,7 @@ static void RET(upd7810_state *cpustate)
 }
 
 /* b9: 1011 1001 */
-static void RETS(upd7810_state *cpustate)
+static void __FASTCALL RETS(upd7810_state *cpustate)
 {
 	PCL = RM( SPD );
 	SP++;
@@ -9309,13 +9309,13 @@ static void RETS(upd7810_state *cpustate)
 }
 
 /* ba: 1011 1010 */
-static void DI(upd7810_state *cpustate)
+static void __FASTCALL DI(upd7810_state *cpustate)
 {
 	IFF = 0;
 }
 
 /* bb: 1011 1011 dddd dddd */
-static void STAX_D_xx(upd7810_state *cpustate)
+static void __FASTCALL STAX_D_xx(upd7810_state *cpustate)
 {
 	UINT16 ea;
 	RDOPARG(ea);
@@ -9324,7 +9324,7 @@ static void STAX_D_xx(upd7810_state *cpustate)
 }
 
 /* bc: 1011 1100 */
-static void STAX_H_A(upd7810_state *cpustate)
+static void __FASTCALL STAX_H_A(upd7810_state *cpustate)
 {
 	UINT16 ea = A;
 	ea += HL;
@@ -9332,7 +9332,7 @@ static void STAX_H_A(upd7810_state *cpustate)
 }
 
 /* bd: 1011 1101 */
-static void STAX_H_B(upd7810_state *cpustate)
+static void __FASTCALL STAX_H_B(upd7810_state *cpustate)
 {
 	UINT16 ea = B;
 	ea += HL;
@@ -9340,7 +9340,7 @@ static void STAX_H_B(upd7810_state *cpustate)
 }
 
 /* be: 1011 1110 */
-static void STAX_H_EA(upd7810_state *cpustate)
+static void __FASTCALL STAX_H_EA(upd7810_state *cpustate)
 {
 	UINT16 ea = EA;
 	ea += HL;
@@ -9348,7 +9348,7 @@ static void STAX_H_EA(upd7810_state *cpustate)
 }
 
 /* bf: 1011 1111 dddd dddd */
-static void STAX_H_xx(upd7810_state *cpustate)
+static void __FASTCALL STAX_H_xx(upd7810_state *cpustate)
 {
 	UINT16 ea;
 	RDOPARG( ea );
@@ -9357,7 +9357,7 @@ static void STAX_H_xx(upd7810_state *cpustate)
 }
 
 /* c0: 11dd dddd */
-static void JR(upd7810_state *cpustate)
+static void __FASTCALL JR(upd7810_state *cpustate)
 {
 	INT8 offs = (INT8)(OP << 2) >> 2;
 	PC += offs;
@@ -9369,7 +9369,7 @@ static void JR(upd7810_state *cpustate)
 /*                   */
 /*********************/
 
-static void CALT_7801(upd7810_state *cpustate)
+static void __FASTCALL CALT_7801(upd7810_state *cpustate)
 {
 	PAIR w;
 	w.d = 0;
@@ -9386,125 +9386,125 @@ static void CALT_7801(upd7810_state *cpustate)
 }
 
 /* DCR(W) and INR(W) instructions do not modify the CY register on at least 78c05 and 78c06 */
-static void DCR_A_7801(upd7810_state *cpustate)
+static void __FASTCALL DCR_A_7801(upd7810_state *cpustate)
 {
 	UINT32 old_CY = PSW & CY;
 	DCR_A(cpustate);
 	PSW = ( PSW & ~CY ) | old_CY;
 }
 
-static void DCR_B_7801(upd7810_state *cpustate)
+static void __FASTCALL DCR_B_7801(upd7810_state *cpustate)
 {
 	UINT32 old_CY = PSW & CY;
 	DCR_B(cpustate);
 	PSW = ( PSW & ~CY ) | old_CY;
 }
 
-static void DCR_C_7801(upd7810_state *cpustate)
+static void __FASTCALL DCR_C_7801(upd7810_state *cpustate)
 {
 	UINT32 old_CY = PSW & CY;
 	DCR_C(cpustate);
 	PSW = ( PSW & ~CY ) | old_CY;
 }
 
-static void DCRW_wa_7801(upd7810_state *cpustate)
+static void __FASTCALL DCRW_wa_7801(upd7810_state *cpustate)
 {
 	UINT32 old_CY = PSW & CY;
 	DCRW_wa(cpustate);
 	PSW = ( PSW & ~CY ) | old_CY;
 }
 
-static void INR_A_7801(upd7810_state *cpustate)
+static void __FASTCALL INR_A_7801(upd7810_state *cpustate)
 {
 	UINT32 old_CY = PSW & CY;
 	INR_A(cpustate);
 	PSW = ( PSW & ~CY ) | old_CY;
 }
 
-static void INR_B_7801(upd7810_state *cpustate)
+static void __FASTCALL INR_B_7801(upd7810_state *cpustate)
 {
 	UINT32 old_CY = PSW & CY;
 	INR_B(cpustate);
 	PSW = ( PSW & ~CY ) | old_CY;
 }
 
-static void INR_C_7801(upd7810_state *cpustate)
+static void __FASTCALL INR_C_7801(upd7810_state *cpustate)
 {
 	UINT32 old_CY = PSW & CY;
 	INR_C(cpustate);
 	PSW = ( PSW & ~CY ) | old_CY;
 }
 
-static void INRW_wa_7801(upd7810_state *cpustate)
+static void __FASTCALL INRW_wa_7801(upd7810_state *cpustate)
 {
 	UINT32 old_CY = PSW & CY;
 	INRW_wa(cpustate);
 	PSW = ( PSW & ~CY ) | old_CY;
 }
 
-static void IN(upd7810_state *cpustate)
+static void __FASTCALL IN(upd7810_state *cpustate)
 {
 //	logerror("unimplemented instruction: IN\n");
 }
 
-static void OUT(upd7810_state *cpustate)
+static void __FASTCALL OUT(upd7810_state *cpustate)
 {
 //	logerror("unimplemented instruction: OUT\n");
 }
 
-static void MOV_A_S(upd7810_state *cpustate)
+static void __FASTCALL MOV_A_S(upd7810_state *cpustate)
 {
 //	logerror("unimplemented instruction: MOV_A_S\n");
 	A = RP(cpustate, UPD7807_PORTS);
 }
 
-static void MOV_S_A(upd7810_state *cpustate)
+static void __FASTCALL MOV_S_A(upd7810_state *cpustate)
 {
 //	logerror("unimplemented instruction: MOV_A_S\n");
 	WP(cpustate, UPD7807_PORTS, A);
 }
 
-static void PEN(upd7810_state *cpustate)
+static void __FASTCALL PEN(upd7810_state *cpustate)
 {
 //	logerror("unimplemented instruction: PEN\n");
 }
 
-static void PER(upd7810_state *cpustate)
+static void __FASTCALL PER(upd7810_state *cpustate)
 {
 //	logerror("unimplemented instruction: PER\n");
 }
 
-static void PEX(upd7810_state *cpustate)
+static void __FASTCALL PEX(upd7810_state *cpustate)
 {
 //	logerror("unimplemented instruction: PEX\n");
 	cpustate->io->write_io16(UPD7807_PORTE, BC);
 }
 
-static void SIO(upd7810_state *cpustate)
+static void __FASTCALL SIO(upd7810_state *cpustate)
 {
 //	logerror("unimplemented instruction: SIO\n");
 	IRR &= ~INTFST;
 	cpustate->ovcsio = 8 * 4;
 }
 
-static void SKIT_F0(upd7810_state *cpustate)
+static void __FASTCALL SKIT_F0(upd7810_state *cpustate)
 {
 	if (IRR & INTF0)
 		PSW |= SK;
 	IRR &= ~INTF0;
 }
 
-static void SKNIT_F0(upd7810_state *cpustate)
+static void __FASTCALL SKNIT_F0(upd7810_state *cpustate)
 {
 //	logerror("unimplemented instruction: SKNIT_F0\n");
 }
 
-static void STM(upd7810_state *cpustate)
+static void __FASTCALL STM(upd7810_state *cpustate)
 {
 	cpustate->ovc0 = ( ( TMM & 0x04 ) ? 16 * 8 : 8 ) * TM0;
 }
 
-static void STM_7801(upd7810_state *cpustate)
+static void __FASTCALL STM_7801(upd7810_state *cpustate)
 {
 	/* Set the timer flip/fliop */
 	TO = 1;
@@ -9516,7 +9516,7 @@ static void STM_7801(upd7810_state *cpustate)
 	cpustate->ovc0 = 16 * ( TM0 + ( ( TM1 & 0x0f ) << 8 ) );
 }
 
-static void MOV_MC_A_7801(upd7810_state *cpustate)
+static void __FASTCALL MOV_MC_A_7801(upd7810_state *cpustate)
 {
 	/* On the 7801 the mode C bits function as follows: */
 	/*       Cn=1   Cn=0         */

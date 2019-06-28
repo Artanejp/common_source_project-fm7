@@ -2,13 +2,13 @@
 	Skelton for retropc emulator
 
 	Origin : MESS 0.152
-	Author : Takeda.Toshiya
-	Date   : 2016.03.17-
+	Author : Kyuma.Ohta <whatisthis.sowhat _at_ gamil.com>
+	Date   : 2019.06.28-
 
-	[ uPD7810 ]
+	[ uPD7907 split from uPD7810 ]
 */
 
-#include "upd7810.h"
+#include "upd7907.h"
 //#ifdef USE_DEBUGGER
 #include "debugger.h"
 //#endif
@@ -64,10 +64,10 @@ enum line_state
 
 enum
 {
-	UPD7810_INTF1  = 0,
-	UPD7810_INTF2  = 1,
-	UPD7810_INTF0  = 2,
-	UPD7810_INTFE1 = 4,
+	UPD7907_INTF1  = 0,
+	UPD7907_INTF2  = 1,
+	UPD7907_INTF0  = 2,
+	UPD7907_INTFE1 = 4,
 	INPUT_LINE_NMI
 };
 
@@ -77,7 +77,7 @@ enum
 #undef IN
 #undef OUT
 
-#include "mame/emu/cpu/upd7810/upd7810.c"
+#include "mame/emu/cpu/upd7810/upd7907.c"
 //#ifdef USE_DEBUGGER
 #undef _DOFF
 #include "mame/emu/cpu/upd7810/7810dasm.c"
@@ -85,29 +85,15 @@ enum
 
 // main
 
-void UPD7810::initialize()
+void UPD7907::initialize()
 {
 	DEVICE::initialize();
 
 	opaque = CPU_INIT_CALL(upd7810);
 	
 	upd7810_state *cpustate = (upd7810_state *)opaque;
-	if(osd->check_feature("HAS_UPD7810")) {
-		cpustate->config.type = TYPE_7810;
-		set_device_name(_T("NEC uPD7810/7811 MCU"));
-	} else if(osd->check_feature("HAS_UPD7807")) {
-		cpustate->config.type = TYPE_7807;
-		set_device_name(_T("NEC uPD7807/7808/7809 MCU"));
-	} else if(osd->check_feature("HAS_UPD7801")) {
-		cpustate->config.type = TYPE_7801;
-		set_device_name(_T("NEC uPD7800/7801 MCU"));
-	} else if(osd->check_feature("HAS_UPD78C05")) {
-		cpustate->config.type = TYPE_78C05;
-		set_device_name(_T("NEC uPD78C05 MCU"));
-	} else if(osd->check_feature("HAS_UPD78C06")) {
-		cpustate->config.type = TYPE_78C06;
-		set_device_name(_T("NEC uPD78C06 MCU"));
-	} // UPD7907 moved to upd7907.cpp.
+	cpustate->config.type = TYPE_78C06;
+	set_device_name(_T("NEC uPD7907 CPU"));
 	
 	cpustate->program = d_mem;
 	cpustate->io = d_io;
@@ -126,35 +112,15 @@ void UPD7810::initialize()
 //#endif
 }
 
-void UPD7810::release()
+void UPD7907::release()
 {
 	free(opaque);
 }
 
-void UPD7810::reset()
+void UPD7907::reset()
 {
 	upd7810_state *cpustate = (upd7810_state *)opaque;
-
-	switch(cpustate->config.type) {
-	case TYPE_7810:
-		CPU_RESET_CALL(upd7810);
-		break;
-	case TYPE_7807:
-		CPU_RESET_CALL(upd7807);
-		break;
-	case TYPE_7801:
-		CPU_RESET_CALL(upd7801);
-		break;
-	case TYPE_78C05:
-		CPU_RESET_CALL(upd78c05);
-		break;
-	case TYPE_78C06:
-		CPU_RESET_CALL(upd78c06);
-		break;
-	default:
-		return;
-		break;
-	}
+	CPU_RESET_CALL(upd7907);
 	
 	cpustate->program = d_mem;
 	cpustate->io = d_io;
@@ -170,7 +136,7 @@ void UPD7810::reset()
 	busreq = false;
 }
 
-int UPD7810::run(int clock)
+int UPD7907::run(int clock)
 {
 	upd7810_state *cpustate = (upd7810_state *)opaque;
 	
@@ -204,7 +170,7 @@ int UPD7810::run(int clock)
 	}
 }
 
-int UPD7810::run_one_opecode()
+int UPD7907::run_one_opecode()
 {
 //#ifdef USE_DEBUGGER
 	upd7810_state *cpustate = (upd7810_state *)opaque;
@@ -212,31 +178,31 @@ int UPD7810::run_one_opecode()
 		d_debugger->add_cpu_trace(cpustate->pc.w.l);
 	}
 //#endif
-	int passed_icount = CPU_EXECUTE_CALL(upd7810);
+	int passed_icount = CPU_EXECUTE_CALL(upd7907);
 //#ifdef USE_DEBUGGER
 	total_icount += passed_icount;
 //#endif
 	return passed_icount;
 }
 
-void UPD7810::write_signal(int id, uint32_t data, uint32_t mask)
+void UPD7907::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	upd7810_state *cpustate = (upd7810_state *)opaque;
 	
 	switch(id) {
-	case SIG_UPD7810_INTF1:
-		set_irq_line(cpustate, UPD7810_INTF1, (data & mask) ? ASSERT_LINE : CLEAR_LINE);
+	case SIG_UPD7907_INTF1:
+		set_irq_line(cpustate, UPD7907_INTF1, (data & mask) ? ASSERT_LINE : CLEAR_LINE);
 		break;
-	case SIG_UPD7810_INTF2:
-		set_irq_line(cpustate, UPD7810_INTF2, (data & mask) ? ASSERT_LINE : CLEAR_LINE);
+	case SIG_UPD7907_INTF2:
+		set_irq_line(cpustate, UPD7907_INTF2, (data & mask) ? ASSERT_LINE : CLEAR_LINE);
 		break;
-	case SIG_UPD7810_INTF0:
-		set_irq_line(cpustate, UPD7810_INTF0, (data & mask) ? ASSERT_LINE : CLEAR_LINE);
+	case SIG_UPD7907_INTF0:
+		set_irq_line(cpustate, UPD7907_INTF0, (data & mask) ? ASSERT_LINE : CLEAR_LINE);
 		break;
-	case SIG_UPD7810_INTFE1:
-		set_irq_line(cpustate, UPD7810_INTFE1, (data & mask) ? ASSERT_LINE : CLEAR_LINE);
+	case SIG_UPD7907_INTFE1:
+		set_irq_line(cpustate, UPD7907_INTFE1, (data & mask) ? ASSERT_LINE : CLEAR_LINE);
 		break;
-	case SIG_UPD7810_NMI:
+	case SIG_UPD7907_NMI:
 		set_irq_line(cpustate, INPUT_LINE_NMI, (data & mask) ? ASSERT_LINE : CLEAR_LINE);
 		break;
 	case SIG_CPU_BUSREQ:
@@ -245,43 +211,43 @@ void UPD7810::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-uint32_t UPD7810::get_pc()
+uint32_t UPD7907::get_pc()
 {
 	upd7810_state *cpustate = (upd7810_state *)opaque;
 	return cpustate->ppc.w.l;
 }
 
-uint32_t UPD7810::get_next_pc()
+uint32_t UPD7907::get_next_pc()
 {
 	upd7810_state *cpustate = (upd7810_state *)opaque;
 	return cpustate->pc.w.l;
 }
 
 
-void UPD7810::write_debug_data8(uint32_t addr, uint32_t data)
+void UPD7907::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_mem->write_data8w(addr, data, &wait);
 }
 
-uint32_t UPD7810::read_debug_data8(uint32_t addr)
+uint32_t UPD7907::read_debug_data8(uint32_t addr)
 {
 	int wait;
 	return d_mem->read_data8w(addr, &wait);
 }
 
-void UPD7810::write_debug_io8(uint32_t addr, uint32_t data)
+void UPD7907::write_debug_io8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_io->write_io8w(addr, data, &wait);
 }
 
-uint32_t UPD7810::read_debug_io8(uint32_t addr) {
+uint32_t UPD7907::read_debug_io8(uint32_t addr) {
 	int wait;
 	return d_io->read_io8w(addr, &wait);
 }
 
-bool UPD7810::write_debug_reg(const _TCHAR *reg, uint32_t data)
+bool UPD7907::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
 	upd7810_state *cpustate = (upd7810_state *)opaque;
 	
@@ -343,7 +309,7 @@ bool UPD7810::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	return true;
 }
 
-bool UPD7810::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+bool UPD7907::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 /*
 VA = 0000  BC = 0000  DE = 0000 HL = 0000  PSW= 00 [Z SK HC L1 L0 CY]
@@ -371,7 +337,7 @@ Clocks = 0 (0)  Since Scanline = 0/0 (0/0)
 
 // disassembler
 
-int UPD7810::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
+int UPD7907::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 	uint8_t oprom[8];
 	uint8_t *opram = oprom;
@@ -380,34 +346,13 @@ int UPD7810::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer
 		int wait;
 		oprom[i] = d_mem->read_data8w(pc + i, &wait);
 	}
-	upd7810_state *cpustate = (upd7810_state *)opaque;
-	switch(cpustate->config.type) {
-	case TYPE_7810:
-		return CPU_DISASSEMBLE_CALL(upd7810) & DASMFLAG_LENGTHMASK;
-		break;
-	case TYPE_7807:
-		return CPU_DISASSEMBLE_CALL(upd7807) & DASMFLAG_LENGTHMASK;
-		break;
-	case TYPE_7801:
-		return CPU_DISASSEMBLE_CALL(upd7801) & DASMFLAG_LENGTHMASK;
-		break;
-	case TYPE_78C05:
-		return CPU_DISASSEMBLE_CALL(upd78c05) & DASMFLAG_LENGTHMASK;
-		break;
-	case TYPE_78C06:
-		return CPU_DISASSEMBLE_CALL(upd78c05) & DASMFLAG_LENGTHMASK;
-		break;
-	default:
-		return 0;
-		break;
-	}
-	return 0;
+	return CPU_DISASSEMBLE_CALL(upd7907) & DASMFLAG_LENGTHMASK;
 }
 
 
 #define STATE_VERSION	6
 
-bool UPD7810::process_state(FILEIO* state_fio, bool loading)
+bool UPD7907::process_state(FILEIO* state_fio, bool loading)
 {
 	upd7810_state *cpustate = (upd7810_state *)opaque;
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {

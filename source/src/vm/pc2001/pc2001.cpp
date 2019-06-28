@@ -19,7 +19,7 @@
 #include "../pcm1bit.h"
 #include "../upd16434.h"
 #include "../upd1990a.h"
-#include "../upd7810.h"
+#include "../upd7907.h"
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
@@ -55,7 +55,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	lcd[3] = new UPD16434(this, emu);
 	lcd[3]->set_device_name(_T("uPD16434 LCD Controller #3"));
 	rtc = new UPD1990A(this, emu);
-	cpu = new UPD7810(this, emu);
+	cpu = new UPD7907(this, emu);
 	
 	io = new PC2001::IO(this, emu);
 	

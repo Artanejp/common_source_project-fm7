@@ -6144,27 +6144,27 @@ static offs_t Dasm( _TCHAR *buffer, offs_t pc, const struct dasm_s *dasmXX, cons
 	return idx | flags | DASMFLAG_SUPPORTED;
 }
 
-CPU_DISASSEMBLE( upd7810 )
+static CPU_DISASSEMBLE( upd7810 )
 {
 	return Dasm( buffer, pc, dasmXX_7810, oprom, opram, 1, first_symbol );
 }
 
-CPU_DISASSEMBLE( upd7807 )
+static CPU_DISASSEMBLE( upd7807 )
 {
 	return Dasm( buffer, pc, dasmXX_7807, oprom, opram, 1, first_symbol );
 }
 
-CPU_DISASSEMBLE( upd7801 )
+static CPU_DISASSEMBLE( upd7801 )
 {
 	return Dasm( buffer, pc, dasmXX_7801, oprom, opram, 0, first_symbol );
 }
 
-CPU_DISASSEMBLE( upd78c05 )
+static CPU_DISASSEMBLE( upd78c05 )
 {
 	return Dasm( buffer, pc, dasmXX_78c05, oprom, opram, 0, first_symbol );
 }
 
-CPU_DISASSEMBLE( upd7907 )
+static CPU_DISASSEMBLE( upd7907 )
 {
 	return Dasm( buffer, pc, dasmXX_7907, oprom, opram, 0, first_symbol );
 }

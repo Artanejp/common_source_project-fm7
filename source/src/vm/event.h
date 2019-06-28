@@ -49,6 +49,8 @@ enum {
 	EVENT_CPUTYPE_Z80,
 	EVENT_CPUTYPE_I86,
 	EVENT_CPUTYPE_V30,
+	EVENT_CPUTYPE_UPD7810,
+	EVENT_CPUTYPE_UPD7907,
 };
 
 
@@ -228,6 +230,16 @@ private:
 #if defined(USE_CPU_UPD7801)
 		if(typeid(T) == typeid(UPD7801)) {
 			cpu_type[num] = EVENT_CPUTYPE_UPD7801;
+		} else
+#endif
+#if defined(USE_CPU_UPD7810)
+		if(typeid(T) == typeid(UPD7810)) {
+			cpu_type[num] = EVENT_CPUTYPE_UPD7810;
+		} else
+#endif
+#if defined(USE_CPU_UPD7907)
+		if(typeid(T) == typeid(UPD7907)) {
+			cpu_type[num] = EVENT_CPUTYPE_UPD7907;
 		} else
 #endif
 #if defined(USE_CPU_Z80)

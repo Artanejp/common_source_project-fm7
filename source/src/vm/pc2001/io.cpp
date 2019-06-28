@@ -12,7 +12,7 @@
 #include "../datarec.h"
 #include "../upd16434.h"
 #include "../upd1990a.h"
-#include "../upd7810.h"
+#include "../upd7907.h"
 #include "../mame/emu/cpu/upd7810/upd7810.h"
 
 #define EVENT_TIMER	0
@@ -140,7 +140,7 @@ void IO::write_signal(int id, uint32_t data, uint32_t mask)
 void IO::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_TIMER) {
-		d_cpu->write_signal(SIG_UPD7810_INTF1, 1, 1);
+		d_cpu->write_signal(SIG_UPD7907_INTF1, 1, 1);
 	}
 }
 

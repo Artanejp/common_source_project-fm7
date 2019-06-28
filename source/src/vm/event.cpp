@@ -77,6 +77,14 @@
 #include "upd7801.h"
 #endif
 
+#if defined(USE_CPU_UPD7810)
+#include "upd7810.h"
+#endif
+
+#if defined(USE_CPU_UPD7907)
+#include "upd7907.h"
+#endif
+
 #if defined(USE_CPU_Z80)
 #include "z80.h"
 #endif
@@ -332,6 +340,16 @@ int EVENT::run_cpu(uint32_t num, int cycles)
 #if defined(USE_CPU_UPD7801)
 		case EVENT_CPUTYPE_UPD7801:
 			RUN_CPU_N(num, UPD7801, cycles);
+			break;
+#endif
+#if defined(USE_CPU_UPD7907)
+		case EVENT_CPUTYPE_UPD7907:
+			RUN_CPU_N(num, UPD7907, cycles);
+			break;
+#endif
+#if defined(USE_CPU_UPD7810)
+		case EVENT_CPUTYPE_UPD7810:
+			RUN_CPU_N(num, UPD7810, cycles);
 			break;
 #endif
 #if defined(USE_CPU_Z80)

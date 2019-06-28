@@ -2,28 +2,28 @@
 	Skelton for retropc emulator
 
 	Origin : MESS 0.152
-	Author : Takeda.Toshiya
-	Date   : 2016.03.17-
+	Author : Kyuma.Ohta <whatisthis.sowhat _at_ gmail.com>
+	Date   : 2019.06.28-
 
-	[ uPD7810 ]
+	[ uPD7907 from uPD7810 ]
 */
 
-#ifndef _UPD7810_H_ 
-#define _UPD7810_H_
+#ifndef _UPD7907_H_ 
+#define _UPD7907_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
-#define SIG_UPD7810_INTF1	0
-#define SIG_UPD7810_INTF2	1
-#define SIG_UPD7810_INTF0	2
-#define SIG_UPD7810_INTFE1	3
-#define SIG_UPD7810_NMI		4
+#define SIG_UPD7907_INTF1	0
+#define SIG_UPD7907_INTF2	1
+#define SIG_UPD7907_INTF0	2
+#define SIG_UPD7907_INTFE1	3
+#define SIG_UPD7907_NMI		4
 
 class DEBUGGER;
 
-class UPD7810 : public DEVICE
+class UPD7907 : public DEVICE
 {
 private:
 	DEVICE *d_mem, *d_io;
@@ -40,15 +40,15 @@ private:
 
 	void process_state_cpustate(FILEIO* state_fio, bool loading);
 public:
-	UPD7810(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	UPD7907(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		total_icount = prev_total_icount = 0;
 		d_debugger = NULL;
 		initialize_output_signals(&outputs_to);
 		initialize_output_signals(&outputs_txd);
-		set_device_name(_T("uPD7810/7811 MCU"));
+		set_device_name(_T("uPD7907 MCU"));
 	}
-	~UPD7810() {}
+	~UPD7907() {}
 	
 	// common functions
 	void initialize();
