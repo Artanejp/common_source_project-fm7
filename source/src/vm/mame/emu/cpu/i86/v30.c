@@ -30,58 +30,58 @@ union i8086basicregs
 
 struct i8086_state
 {
-       i8086basicregs regs;
-       UINT32 pc;
-       UINT32 prevpc;
-       UINT32 base[4];
-       UINT16 sregs[4];
-       UINT16 flags;
-       INT32 AuxVal, OverVal, SignVal, ZeroVal, CarryVal, DirVal;      /* 0 or non-0 valued flags */
-       UINT8 ParityVal;
-       UINT8 TF, IF;                  /* 0 or 1 valued flags */
-       UINT8 MF;                      /* V30 mode flag */
+	i8086basicregs regs;
+	UINT32 pc;
+	UINT32 prevpc;
+	UINT32 base[4];
+	UINT16 sregs[4];
+	UINT16 flags;
+	INT32 AuxVal, OverVal, SignVal, ZeroVal, CarryVal, DirVal;      /* 0 or non-0 valued flags */
+	UINT8 ParityVal;
+	UINT8 TF, IF;                  /* 0 or 1 valued flags */
+	UINT8 MF;                      /* V30 mode flag */
 
-       UINT8 int_vector;
-       INT8 nmi_state;
-       INT8 irq_state;
-       INT8 test_state;
-       UINT8 rep_in_progress;
-       INT32 extra_cycles;       /* extra cycles for interrupts */
+	UINT8 int_vector;
+	INT8 nmi_state;
+	INT8 irq_state;
+	INT8 test_state;
+	UINT8 rep_in_progress;
+	INT32 extra_cycles;       /* extra cycles for interrupts */
 
-       int halted;         /* Is the CPU halted ? */
-       int busreq;
+	int halted;         /* Is the CPU halted ? */
+	int busreq;
 
-       UINT16 ip;
-       UINT32 sp;
+	UINT16 ip;
+	UINT32 sp;
 
-       DEVICE *pic;
-       DEVICE *program;
-       DEVICE *io;
+	DEVICE *pic;
+	DEVICE *program;
+	DEVICE *io;
 //#ifdef I86_PSEUDO_BIOS
-       DEVICE *bios;
+	DEVICE *bios;
 //#endif
 //#ifdef SINGLE_MODE_DMA
-       DEVICE *dma;
+	DEVICE *dma;
 //#endif
 //#ifdef USE_DEBUGGER
-       EMU *emu;
-       DEBUGGER *debugger;
-       DEVICE *program_stored;
-       DEVICE *io_stored;
+	EMU *emu;
+	DEBUGGER *debugger;
+	DEVICE *program_stored;
+	DEVICE *io_stored;
 //#endif
-       uint64_t total_icount;
-       uint64_t prev_total_icount;
+	uint64_t total_icount;
+	uint64_t prev_total_icount;
 
-       int icount;
-       uint32_t waitfactor;
-       uint32_t waitcount;
-
-       //char seg_prefix;                   /* prefix segment indicator */
-       UINT8 seg_prefix;                   /* prefix segment indicator */
-       UINT8   prefix_seg;                 /* The prefixed segment */
-       unsigned ea;
-       UINT16 eo; /* HJB 12/13/98 effective offset of the address (before segment is added) */
-       UINT8 ea_seg;   /* effective segment of the address */
+	int icount;
+	uint32_t waitfactor;
+	uint32_t waitcount;
+	
+	//char seg_prefix;                   /* prefix segment indicator */
+	UINT8 seg_prefix;                   /* prefix segment indicator */
+	UINT8   prefix_seg;                 /* The prefixed segment */
+	unsigned ea;
+	UINT16 eo; /* HJB 12/13/98 effective offset of the address (before segment is added) */
+	UINT8 ea_seg;   /* effective segment of the address */
 };
 
 #include "i86time.c"
@@ -279,16 +279,16 @@ static void set_test_line(i8086_state *cpustate, int state)
 
 static void cpu_wait_v30(cpu_state *cpustate,int clocks)
 {
-	uint32_t ncount = 0;
 	if(clocks < 0) return;
 	if(cpustate->waitfactor == 0) return;
 	uint32_t wcount = cpustate->waitcount;
 	wcount += (cpustate->waitfactor * (uint32_t)clocks);
 	if(wcount >= 65536) {
+		uint32_t ncount;
 		ncount = wcount >> 16;
 		wcount = wcount - (ncount << 16);
+		cpustate->extra_cycles += ncount;
 	}
-	cpustate->extra_cycles += ncount;
 	cpustate->waitcount = wcount;
 }
 
@@ -297,7 +297,7 @@ CPU_EXECUTE( v30 )
 	if (cpustate->halted || cpustate->busreq)
 	{
 //#ifdef SINGLE_MODE_DMA
-		if (cpustate->dma != NULL) {
+		if (cpustate->dma != NULL){
 			cpustate->dma->do_dma();
 		}
 //#endif
@@ -308,7 +308,7 @@ CPU_EXECUTE( v30 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_icount += passed_icount;
 //#endif
-			cpu_wait_v30(cpustate, passed_icount);
+			//cpu_wait_v30(cpustate, passed_icount);
 			return passed_icount;
 		} else {
 			cpustate->icount += icount;
@@ -325,7 +325,7 @@ CPU_EXECUTE( v30 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_icount += base_icount - cpustate->icount;
 //#endif
-			cpu_wait_v30(cpustate, base_icount - cpustate->icount);
+			//cpu_wait_v30(cpustate, base_icount - cpustate->icount);
 			return base_icount - cpustate->icount;
 		}
 	}

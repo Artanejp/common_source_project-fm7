@@ -265,8 +265,8 @@ static void cpu_wait_i86(i8086_state *cpustate,int clocks)
 	if(wcount >= 65536) {
 		ncount = wcount >> 16;
 		wcount = wcount - (ncount << 16);
+		cpustate->extra_cycles += ncount;
 	}
-	cpustate->extra_cycles += ncount;
 	cpustate->waitcount = wcount;
 }
 
@@ -286,7 +286,7 @@ CPU_EXECUTE( i8086 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_icount += passed_icount;
 //#endif
-			cpu_wait_i86(cpustate, passed_icount);
+			//cpu_wait_i86(cpustate, passed_icount);
 			return passed_icount;
 		} else {
 			cpustate->icount += icount;
@@ -303,7 +303,7 @@ CPU_EXECUTE( i8086 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_icount += base_icount - cpustate->icount;
 //#endif
-			cpu_wait_i86(cpustate, base_icount - cpustate->icount);
+			//cpu_wait_i86(cpustate, base_icount - cpustate->icount);
 			return base_icount - cpustate->icount;
 		}
 	}
@@ -423,16 +423,16 @@ CPU_EXECUTE( i8086 )
 
 static void cpu_wait_i186(cpu_state *cpustate,int clocks)
 {
-	uint32_t ncount = 0;
 	if(clocks < 0) return;
 	if(cpustate->waitfactor == 0) return;
 	uint32_t wcount = cpustate->waitcount;
 	wcount += (cpustate->waitfactor * (uint32_t)clocks);
 	if(wcount >= 65536) {
+		uint32_t ncount;
 		ncount = wcount >> 16;
 		wcount = wcount - (ncount << 16);
+		cpustate->extra_cycles += ncount;
 	}
-	cpustate->extra_cycles += ncount;
 	cpustate->waitcount = wcount;
 }
 

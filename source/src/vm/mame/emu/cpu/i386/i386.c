@@ -3669,20 +3669,22 @@ static void i386_set_a20_line(i386_state *cpustate,int state)
 	vtlb_flush_dynamic(cpustate->vtlb);
 }
 
-static INLINE void cpu_wait_i386(i386_state *cpustate,int clocks)
+static INLINE __FASTCALL void cpu_wait_i386(i386_state *cpustate,int clocks)
 {
-	uint64_t ncount = 0;
 	if(clocks <= 0) return;
 	if(cpustate->waitfactor == 0) return;
-	uint64_t wcount = cpustate->waitcount;
-	wcount += (uint64_t)(cpustate->waitfactor * (uint32_t)clocks);
+	uint32_t wcount = cpustate->waitcount;
+	wcount += (uint32_t)(cpustate->waitfactor * (uint32_t)clocks);
 	if(wcount >= 65536) {
+		uint32_t ncount;
 		ncount = wcount >> 16;
-		wcount = wcount - (ncount << 16);
+		//wcount = wcount - (ncount << 16);
+		wcount = wcount & 0x0000ffff;
+		cpustate->extra_cycles += (int)ncount;
 	}
-	if(cpustate->memory_wait > 0) ncount += cpustate->memory_wait;
-	cpustate->memory_wait = 0;
-	cpustate->extra_cycles += (int)ncount;
+//	if(cpustate->memory_wait > 0) ncount += cpustate->memory_wait; // Temporally disable memory wait.
+//	cpustate->memory_wait = 0;
+//	cpustate->extra_cycles += (int)ncount;
 	cpustate->waitcount = wcount;
 }
 
@@ -3705,7 +3707,7 @@ static CPU_EXECUTE( i386 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_cycles += passed_cycles;
 //#endif
-			cpu_wait_i386(cpustate, passed_cycles);
+			//cpu_wait_i386(cpustate, passed_cycles);
 			return passed_cycles;
 		} else {
 			cpustate->cycles += cycles;
@@ -3724,7 +3726,7 @@ static CPU_EXECUTE( i386 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_cycles += passed_cycles;
 //#endif
-			cpu_wait_i386(cpustate, passed_cycles);
+			//cpu_wait_i386(cpustate, passed_cycles);
 			return passed_cycles;
 		}
 	}
