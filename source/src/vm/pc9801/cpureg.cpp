@@ -22,6 +22,40 @@ namespace PC9801 {
 #define UPPER_I386 1
 #endif
 
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+void CPUREG::initialize()
+{
+	use_v30 = false;
+}
+
+void CPUREG::halt_by_use_v30()
+{
+	if(use_v30) {
+		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+	} else {
+		d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+	}
+}
+#endif
+
+void CPUREG::halt_by_value(bool val)
+{
+	bool haltvalue = (val) ? 0xffffffff : 0x0000000;
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+	if(use_v30) {
+		d_cpu->write_signal(SIG_CPU_BUSREQ, 0xffffffff, 0xffffffff);
+		d_v30cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
+	} else {
+		d_cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
+		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 0xffffffff, 0xffffffff);
+	}
+#else
+	d_cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
+#endif	
+}
+
 void CPUREG::reset()
 {
 	d_cpu->set_address_mask(0x000fffff);
@@ -36,7 +70,8 @@ void CPUREG::reset()
 	}
 	d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 #if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
-	d_v30cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+	use_v30 = ((config.cpu_type & 0x02) != 0) ? true : false;
+	halt_by_use_v30();
 #endif
 }
 
@@ -53,19 +88,14 @@ void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
 //		reset_reg = reset_reg & (uint8_t)(~0x20); // Reset SHUT1
 //		d_pio->write_signal(SIG_I8255_PORT_C, reset_reg, 0xff);
 		d_cpu->set_address_mask(0x000fffff);
-#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
-		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 1, 1); // ToDo: Change To SubCPU
-#endif
-		//d_cpu->reset();
+		halt_by_use_v30();
 	} else if(ch == SIG_CPUREG_HALT) {
 		stat_exthalt = ((data & mask) != 0);
-		if(stat_exthalt) {
-			d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-		} else if(!(stat_wait)) {
-			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-		}
+		halt_by_value(stat_exthalt);
+	} else if(ch == SIG_CPUREG_USE_V30) {
 #if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
-		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 1, 1); // ToDo: Change To SubCPU
+		use_v30 = ((data & mask) != 0);
+		halt_by_use_v30();
 #endif
 	}
 }
@@ -83,6 +113,9 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 	case 0x005f:
 		// ToDo: Both Pseudo BIOS.
 		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+#endif
 		stat_wait = true;
 		if(event_wait >= 0) {
 			cancel_event(this, event_wait);
@@ -97,8 +130,14 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 //			d_pio->write_signal(SIG_I8255_PORT_C, reset_reg, 0xff);
 			// ToDo: Reflesh
 			reg_0f0 = data;
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+			use_v30 = ((data & 1) != 0);
+			d_v30cpu->reset();
+			// halt_by_use_v30();
+#endif
 			d_cpu->set_address_mask(0x000fffff);
 			d_cpu->reset();
+			
 		}
 		break;
 	case 0x00f2:
@@ -227,14 +266,19 @@ void CPUREG::event_callback(int id, int err)
 	if(id == EVENT_WAIT) {
 		// ToDo: Both Pseudo BIOS.
 		if(!(stat_exthalt)) {
+			
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+			halt_by_use_v30();
+#else
 			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+#endif
 		}
 		stat_wait = false;
 		event_wait = -1;
 	}
 }
 	
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool CPUREG::process_state(FILEIO* state_fio, bool loading)
 {
@@ -250,7 +294,9 @@ bool CPUREG::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(stat_exthalt);
 	state_fio->StateValue(reg_0f0);	
 	state_fio->StateValue(event_wait);
-	
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+	state_fio->StateValue(use_v30);
+#endif	
  	return true;
 }
 

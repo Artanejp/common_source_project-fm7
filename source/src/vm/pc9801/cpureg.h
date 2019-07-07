@@ -18,8 +18,9 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_CPUREG_RESET 1
-#define SIG_CPUREG_HALT  2
+#define SIG_CPUREG_RESET	1
+#define SIG_CPUREG_HALT		2
+#define SIG_CPUREG_USE_V30	3
 
 #if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
 #include "../i386.h"
@@ -64,6 +65,11 @@ private:
 	uint64_t init_clock;
 	
 	outputs_t outputs_nmi; // NMI must route via CPUREG::
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+	bool use_v30;
+	void halt_by_use_v30();
+#endif
+	void halt_by_value(bool val);
 	
 public:
 	CPUREG(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -75,6 +81,9 @@ public:
 	~CPUREG() {}
 	
 	// common functions
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+	void initialize();
+#endif
 	void reset();
 	void  __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t  __FASTCALL read_io8(uint32_t addr);

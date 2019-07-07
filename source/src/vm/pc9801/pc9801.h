@@ -619,7 +619,7 @@ protected:
 	// drives
 	UPD765A *get_floppy_disk_controller(int drv);
 	DISK *get_floppy_disk_handler(int drv);
-	
+	void initialize_ports();
 public:
 	// ----------------------------------------
 	// initialize

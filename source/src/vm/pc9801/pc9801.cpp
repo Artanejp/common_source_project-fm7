@@ -187,7 +187,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio_prn = new I8255(this, emu);		// for printer
 	pio_prn->set_device_name(_T("8255 PIO (Printer)"));
 	pic = new I8259(this, emu);
-#if defined(HAS_I386) || defined(HAS_I486)
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
 	cpu = new I386(this, emu); // 80386, 80486
 	v30cpu = new V30(this, emu); // Secondary CPU
 #elif defined(HAS_V30)
@@ -360,8 +360,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_extreset(cpureg, SIG_CPUREG_RESET, 0xffffffff);
 #endif
 	event->set_context_cpu(cpu, cpu_clocks);
-#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_I286)
-	//event->set_context_cpu(v30cpu, 8000 * 1000); // ToDo
+#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+	event->set_context_cpu(v30cpu, 8000 * 1000); // ToDo : Implement CPU
 #endif	
 #if defined(SUPPORT_320KB_FDD_IF)
 	event->set_context_cpu(cpu_sub, 4000000);
@@ -468,7 +468,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpureg->set_context_cpu(cpu);
 	cpureg->set_context_membus(memory);
 	cpureg->set_context_piosys(pio_sys);
-	#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_I286)
+	#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
 	cpureg->set_context_v30(v30cpu);
 	#endif
 #endif
@@ -540,7 +540,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	sasi_bios->set_context_cpureg(cpureg);
 	
 	cpu->set_context_bios(sasi_bios);
-#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_I286)
+#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
 	v30cpu->set_context_bios(sasi_bios);
 #endif
 #endif
@@ -575,13 +575,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 
-#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_I286)
+#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
 	// cpu bus
 	v30cpu->set_context_mem(memory);
 	v30cpu->set_context_io(io);
 	v30cpu->set_context_intr(pic);
 #ifdef SINGLE_MODE_DMA
-	v30cpu->set_context_dma(dma);
+	//v30cpu->set_context_dma(dma); // DMA may be within MAIN CPU.
 #endif
 #ifdef USE_DEBUGGER
 	v30cpu->set_context_debugger(new DEBUGGER(this, emu));
@@ -1009,7 +1009,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	set_cpu_clock_with_switch((config.cpu_type != 0) ? 1 : 0);
+	initialize_ports();
+	set_cpu_clock_with_switch(((config.cpu_type & 1) != 0) ? 1 : 0);
 
 #if defined(_PC9801) || defined(_PC9801E)
 	fdc_2hd->get_disk_handler(0)->drive_num = 0;
@@ -1304,11 +1305,106 @@ void VM::set_wait(int dispmode, int clock)
 //	memory->write_signal(SIG_GVRAM_WAIT, waitval, 0xfffff); // OK?
 }	
 
+void VM::initialize_ports()
+{
+	uint8_t port_a, port_b, port_c;
+	port_a  = 0x80;
+//	port_a |= 0x80; // DIP SW 2-8, 1 = GDC 2.5MHz, 0 = GDC 5MHz
+	port_a |= 0x40; // DIP SW 2-7, 1 = Do not control FD motor
+	port_a |= 0x20; // DIP SW 2-6, 1 = Enable internal HD
+//	port_a |= 0x10; // DIP SW 2-5, 1 = Initialize emory switch
+//	port_a |= 0x08; // DIP SW 2-4, 1 = 20 lines, 0 = 25 lines
+//	port_a |= 0x04; // DIP SW 2-3, 1 = 40 columns, 0 = 80 columns
+	port_a |= 0x02; // DIP SW 2-2, 1 = BASIC mode, 0 = Terminal mode
+	port_a |= 0x01; // DIP SW 2-1, 1 = Normal mode, 0 = LT mode
+	if((config.dipswitch & (1 << DIPSWITCH_POSITION_NOINIT_MEMSW)) != 0) {
+		port_a = port_a | 0x10;
+	}
+	
+	port_b  = 0x00;
+	port_b |= 0x80; // RS-232C CI#, 1 = OFF
+	port_b |= 0x40; // RS-232C CS#, 1 = OFF
+	port_b |= 0x20; // RS-232C CD#, 1 = OFF
+#if !defined(SUPPORT_HIRESO)
+//	port_b |= 0x10; // INT3, 1 = Active, 0 = Inactive
+	port_b |= (config.monitor_type == 0) ? 0x08 : 0x00; // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
+#else
+	port_b |= 0x10; // SHUT0
+	port_b |= 0x08; // SHUT1
+#endif
+//	port_b |= 0x04; // IMCK, 1 = Parity error occurs in internal RAM
+//	port_b |= 0x02; // EMCK, 1 = Parity error occurs in external RAM
+//	port_b |= 0x01; // CDAT
+	
+	port_c  = 0x00;
+	port_c |= 0x80; // SHUT0
+	port_c |= 0x40; // PSTBM, 1 = Mask printer's PSTB#
+	port_c |= 0x20; // SHUT1
+	port_c |= 0x10; // MCHKEN, 1 = Enable parity check for RAM
+	port_c |= 0x08; // BUZ, 1 = Stop buzzer
+	port_c |= 0x04; // TXRE, 1 = Enable IRQ from RS-232C 8251A TXRDY
+	port_c |= 0x02; // TXEE, 1 = Enable IRQ from RS-232C 8251A TXEMPTY
+	port_c |= 0x01; // RXRE, 1 = Enable IRQ from RS-232C 8251A RXRDY
+	pio_sys->write_signal(SIG_I8255_PORT_A, port_a, 0xff);
+	pio_sys->write_signal(SIG_I8255_PORT_B, port_b, 0xff);
+	pio_sys->write_signal(SIG_I8255_PORT_C, port_c, 0xff);
+
+	uint8_t port_b2;
+	port_b2  = 0x00;
+#if defined(_PC9801)
+//	port_b |= 0x80; // TYP1, 0 = PC-9801 (first)
+//	port_b |= 0x40; // TYP0, 0
+#elif defined(_PC9801U)
+	port_b2 |= 0x80; // TYP1, 1 = PC-9801U
+	port_b2 |= 0x40; // TYP0, 1
+#else
+	port_b2 |= 0x80; // TYP1, 1 = Other PC-9801 series
+//	port_b2 |= 0x40; // TYP0, 0
+#endif
+	if(pit_clock_8mhz) {
+		port_b2 |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
+	}
+	port_b2 |= 0x10; // DIP SW 1-3, 1 = Don't use LCD
+	port_b2 |= 0x04; // Printer BUSY#, 1 = Inactive, 0 = Active (BUSY)
+#if defined(HAS_V30) || defined(HAS_V33)
+	port_b2 |= 0x02; // CPUT, 1 = V30/V33, 0 = 80x86
+#endif
+#if defined(_PC9801VF) || defined(_PC9801U)
+	port_b2 |= 0x01; // VF, 1 = PC-9801VF/U
+#endif
+	pio_prn->write_signal(SIG_I8255_PORT_B, port_b2, 0xff);
+
+	uint8_t port_a3, port_b3, port_c3;
+	port_a3  = 0xf0; // Clear mouse buttons and counters
+	port_b3  = 0x00;
+#if defined(_PC98XA)
+	port_b3 |= (uint8_t)((RAM_SIZE - 0x100000) / 0x40000);
+#else
+#if defined(SUPPORT_HIRESO)
+	port_b3 |= 0x80; // DIP SW 1-4, 1 = External FDD #3/#4, 0 = #1/#2
+#endif
+#if defined(_PC98RL)
+	port_b3 |= 0x10; // DIP SW 3-3, 1 = DMA ch.0 for SASI-HDD
+#endif
+#endif	
+	port_c3  = 0x00;
+#if defined(SUPPORT_HIRESO)
+//	port_c3 |= (config.monitor_type == 0) ? 0x08 : 0x00; // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
+	port_c3 |= 0x08; // MODSW, 1 = Normal Mode, 0 = Hirezo Mode
+#endif
+#if defined(HAS_V30) || defined(HAS_V33)
+	port_c3 |= 0x00; // DIP SW 3-8, 1 = V30, 0 = 80x86
+#endif
+	pio_mouse->write_signal(SIG_I8255_PORT_A, port_a3, 0xff);
+	pio_mouse->write_signal(SIG_I8255_PORT_B, port_b3, 0xff);
+	pio_mouse->write_signal(SIG_I8255_PORT_C, port_c3, 0xff);
+}
+
 void VM::reset()
 {
 	// Set resolution before resetting.
 	// initial device settings
-	uint8_t port_a, port_b, port_c, port_b2;
+	uint8_t port_a, port_b, port_c;
 #if defined(USE_MONITOR_TYPE) /*&& defined(SUPPORT_HIRESO)*/
 #if !defined(SUPPORT_HIRESO)
 	io->set_iovalue_single_r(0x0467, 0xfd); // Detect high-reso.
@@ -1340,129 +1436,90 @@ void VM::reset()
 		device->reset();
 	}
 #endif
-#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
-	v30cpu->write_signal(SIG_CPU_BUSREQ, 1, 1); // ToDo: Change To SubCPU
-#endif
-	set_cpu_clock_with_switch((config.cpu_type != 0) ? 1 : 0);
-	
-#if defined(USE_MONITOR_TYPE)
-	set_wait(config.monitor_type, config.cpu_type);
-#else
-	set_wait(0, config.cpu_type);
-#endif	
-	port_a  = 0x00;
-//	port_a |= 0x80; // DIP SW 2-8, 1 = GDC 2.5MHz, 0 = GDC 5MHz
-	port_a |= 0x40; // DIP SW 2-7, 1 = Do not control FD motor
-	port_a |= 0x20; // DIP SW 2-6, 1 = Enable internal HD
-//	port_a |= 0x10; // DIP SW 2-5, 1 = Initialize emory switch
-//	port_a |= 0x08; // DIP SW 2-4, 1 = 20 lines, 0 = 25 lines
-//	port_a |= 0x04; // DIP SW 2-3, 1 = 40 columns, 0 = 80 columns
-	port_a |= 0x02; // DIP SW 2-2, 1 = BASIC mode, 0 = Terminal mode
-	port_a |= 0x01; // DIP SW 2-1, 1 = Normal mode, 0 = LT mode
+	uint8_t sys_port_a = pio_sys->read_signal(SIG_I8255_PORT_A);
+	sys_port_a = sys_port_a & ~0x80;
 	if((config.dipswitch & (1 << DIPSWITCH_POSITION_GDC_FAST)) == 0) {
-		port_a = port_a | 0x80;
+		sys_port_a = sys_port_a | 0x80;
 	}
-	if((config.dipswitch & (1 << DIPSWITCH_POSITION_NOINIT_MEMSW)) != 0) {
-		port_a = port_a | 0x10;
-	}
-	gdc_gfx->set_clock_freq(((port_a & 0x80) != 0) ? (2500 * 1000) : (5000 * 1000));
-	gdc_chr->set_clock_freq(((port_a & 0x80) != 0) ? (2500 * 1000) : (5000 * 1000));
+	pio_sys->write_signal(SIG_I8255_PORT_A, sys_port_a, 0xff);
 	
-	port_b  = 0x00;
-	port_b |= 0x80; // RS-232C CI#, 1 = OFF
-	port_b |= 0x40; // RS-232C CS#, 1 = OFF
-	port_b |= 0x20; // RS-232C CD#, 1 = OFF
-#if !defined(SUPPORT_HIRESO)
-//	port_b |= 0x10; // INT3, 1 = Active, 0 = Inactive
-	port_b |= (config.monitor_type == 0) ? 0x08 : 0x00; // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
-#else
-	port_b |= 0x10; // SHUT0
-	port_b |= 0x08; // SHUT1
-#endif
-//	port_b |= 0x04; // IMCK, 1 = Parity error occurs in internal RAM
-//	port_b |= 0x02; // EMCK, 1 = Parity error occurs in external RAM
-//	port_b |= 0x01; // CDAT
-	
-	port_c  = 0x00;
-	port_c |= 0x80; // SHUT0
-	port_c |= 0x40; // PSTBM, 1 = Mask printer's PSTB#
-	port_c |= 0x20; // SHUT1
-	port_c |= 0x10; // MCHKEN, 1 = Enable parity check for RAM
-	port_c |= 0x08; // BUZ, 1 = Stop buzzer
-	port_c |= 0x04; // TXRE, 1 = Enable IRQ from RS-232C 8251A TXRDY
-	port_c |= 0x02; // TXEE, 1 = Enable IRQ from RS-232C 8251A TXEMPTY
-	port_c |= 0x01; // RXRE, 1 = Enable IRQ from RS-232C 8251A RXRDY
-	pio_sys->write_signal(SIG_I8255_PORT_A, port_a, 0xff);
-	pio_sys->write_signal(SIG_I8255_PORT_B, port_b, 0xff);
-	pio_sys->write_signal(SIG_I8255_PORT_C, port_c, 0xff);
-	
-	port_b2  = 0x00;
-#if defined(_PC9801)
-//	port_b |= 0x80; // TYP1, 0 = PC-9801 (first)
-//	port_b |= 0x40; // TYP0, 0
-#elif defined(_PC9801U)
-	port_b2 |= 0x80; // TYP1, 1 = PC-9801U
-	port_b2 |= 0x40; // TYP0, 1
-#else
-	port_b2 |= 0x80; // TYP1, 1 = Other PC-9801 series
-//	port_b2 |= 0x40; // TYP0, 0
-#endif
+	uint8_t port_b2 = pio_prn->read_signal(SIG_I8255_PORT_B);
 	if(pit_clock_8mhz) {
 		port_b2 |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
+	} else {
+		port_b2 &= ~0x20;
 	}
-	port_b2 |= 0x10; // DIP SW 1-3, 1 = Don't use LCD
 #if !defined(SUPPORT_16_COLORS) || defined(SUPPORT_EGC)
 	#if defined(SUPPORT_EGC)
 	if((config.dipswitch & (1 << DIPSWITCH_POSITION_EGC)) == 0) {
 		port_b2 = port_b2 | 0x08;
+	} else {
+		port_b2 = port_b2 & ~0x08;
 	}
 	#else
 	port_b2 |= 0x08; // DIP SW 1-8, 1 = Standard graphic mode, 0 = Enhanced graphic mode
 	#endif
 #endif
-	port_b2 |= 0x04; // Printer BUSY#, 1 = Inactive, 0 = Active (BUSY)
-#if defined(HAS_V30) || defined(HAS_V33)
-	port_b2 |= 0x02; // CPUT, 1 = V30/V33, 0 = 80x86
-#endif
-#if defined(_PC9801VF) || defined(_PC9801U)
-	port_b2 |= 0x01; // VF, 1 = PC-9801VF/U
-#endif
 	pio_prn->write_signal(SIG_I8255_PORT_B, port_b2, 0xff);
-	
-	port_a  = 0xf0; // Clear mouse buttons and counters
-	port_b  = 0x00;
-#if defined(_PC98XA)
-	port_b |= (uint8_t)((RAM_SIZE - 0x100000) / 0x40000);
-#else
-#if defined(SUPPORT_HIRESO)
-	port_b |= 0x80; // DIP SW 1-4, 1 = External FDD #3/#4, 0 = #1/#2
-#endif
-	port_b |= ((config.dipswitch & (1 << DIPSWITCH_POSITION_RAM512K)) == 0) ? 0x40 : 0x00; // DIP SW 3-6, 1 = Enable internal RAM 80000h-9FFFFh
-#if defined(_PC98RL)
-	port_b |= 0x10; // DIP SW 3-3, 1 = DMA ch.0 for SASI-HDD
-#endif
-#if defined(USE_CPU_TYPE)
-	if(config.cpu_type != 0) {
-#if !defined(SUPPORT_HIRESO)
-		port_b |= 0x02; // SPDSW, 1 = 10MHz, 0 = 12MHz
-#else
-		port_b |= 0x01; // SPDSW, 1 = 8/16MHz, 0 = 10/20MHz
-#endif
-	}
-#endif
-#endif
-	port_c  = 0x00;
-#if defined(SUPPORT_HIRESO)
-	port_c |= (config.monitor_type == 0) ? 0x08 : 0x00; // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
-//	port_c |= 0x08; // MODSW, 1 = Normal Mode, 0 = Hirezo Mode
-#endif
-#if defined(HAS_V30) || defined(HAS_V33)
-	port_c |= 0x04; // DIP SW 3-8, 1 = V30, 0 = 80x86
-#endif
-	pio_mouse->write_signal(SIG_I8255_PORT_A, port_a, 0xff);
-	pio_mouse->write_signal(SIG_I8255_PORT_B, port_b, 0xff);
-	pio_mouse->write_signal(SIG_I8255_PORT_C, port_c, 0xff);
 
+	uint8_t port_b3 = pio_mouse->read_signal(SIG_I8255_PORT_B);
+	if((config.dipswitch & (1 << DIPSWITCH_POSITION_RAM512K)) == 0) {
+		port_b3 |= 0x40;// DIP SW 3-6, 1 = Enable internal R
+	} else {
+		port_b3 &= ~0x40;
+	}
+#if defined(USE_CPU_TYPE)
+	switch(config.cpu_type & 1) {
+	case 0:
+	#if !defined(SUPPORT_HIRESO)
+		port_b3 &= ~0x02; // SPDSW, 1 = 10MHz, 0 = 12MHz
+	#else
+		port_b3 &= ~0x01; // SPDSW, 1 = 8/16MHz, 0 = 10/20MHz
+	#endif
+		break;
+	case 1:
+	#if !defined(SUPPORT_HIRESO)
+		port_b3 |= 0x02; // SPDSW, 1 = 10MHz, 0 = 12MHz
+	#else
+		port_b3 |= 0x01; // SPDSW, 1 = 8/16MHz, 0 = 10/20MHz
+	#endif
+		break;
+	}
+	#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+	if(config.cpu_type & 0x02) {// V30 or V33
+		port_b3 |= 0x04;
+//		v30cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+//		cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+		cpureg->write_signal(SIG_CPUREG_USE_V30, 1, 1);
+	} else {
+		port_b3 &= ~0x04;
+//		v30cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+//		cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+		cpureg->write_signal(SIG_CPUREG_USE_V30, 0, 1);
+	}
+	#endif
+#endif
+	pio_mouse->write_signal(SIG_I8255_PORT_B, port_b3, 0xff);
+	set_cpu_clock_with_switch(((config.cpu_type & 1) != 0) ? 1 : 0);
+	
+#if defined(USE_MONITOR_TYPE)
+	set_wait(config.monitor_type, config.cpu_type & 1);
+#else
+	set_wait(0, config.cpu_type & 1);
+#endif	
+	
+	uint8_t port_c3 = pio_mouse->read_signal(SIG_I8255_PORT_C);
+#if defined(SUPPORT_HIRESO)
+	if(config.monitor_type == 0) {
+		port_c3 |= 0x08; // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
+	} else {
+		port_c3 &= ~0x08;
+	}
+#else
+	port_c3 |= 0x08; // MODSW, 1 = Normal Mode, 0 = Hirezo Mode
+#endif
+	pio_mouse->write_signal(SIG_I8255_PORT_C, port_c3, 0xff);
+	
 #if defined(SUPPORT_320KB_FDD_IF)
 	pio_fdd->write_signal(SIG_I8255_PORT_A, 0xff, 0xff);
 	pio_fdd->write_signal(SIG_I8255_PORT_B, 0xff, 0xff);
@@ -1956,9 +2013,9 @@ void VM::update_config()
 {
 	set_cpu_clock_with_switch((config.cpu_type != 0) ? 1 : 0);
 #if defined(USE_MONITOR_TYPE)
-	set_wait(config.monitor_type, config.cpu_type);
+	set_wait(config.monitor_type, config.cpu_type & 1);
 #else
-	set_wait(0, config.cpu_type);
+	set_wait(0, config.cpu_type & 1);
 #endif	
 	{
 		uint8_t mouse_port_b = pio_mouse->read_signal(SIG_I8255_PORT_B);
@@ -2044,9 +2101,9 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	if(loading) {
 		set_cpu_clock_with_switch((config.cpu_type != 0) ? 1 : 0);
 #if defined(USE_MONITOR_TYPE)
-		set_wait(config.monitor_type, config.cpu_type);
+		set_wait(config.monitor_type, config.cpu_type & 1);
 #else
-		set_wait(0, config.cpu_type);
+		set_wait(0, config.cpu_type & 1);
 #endif	
 	}
  	return true;

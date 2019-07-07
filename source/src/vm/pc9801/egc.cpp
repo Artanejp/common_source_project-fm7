@@ -286,7 +286,7 @@ void __FASTCALL DISPLAY::egc_sftb_dnr_sub(uint32_t ext)
 			egc_srcmask.b[ext] = egc_bytemask_d1[egc_remain - 1];
 			egc_remain = 0;
 		}
-//		egc_outptr--;
+		egc_outptr--;
 #if 1		
 		__DECL_ALIGNED(16) uint8_t tmp[8];
 		__DECL_ALIGNED(4) uint8_t tmp2[4];
@@ -314,7 +314,7 @@ void __FASTCALL DISPLAY::egc_sftb_dnr_sub(uint32_t ext)
 		egc_vram_src.b[2][ext] = (egc_outptr[9] >> egc_sft8bitl) | (egc_outptr[8] << egc_sft8bitr);
 		egc_vram_src.b[3][ext] = (egc_outptr[13] >> egc_sft8bitl) | (egc_outptr[12] << egc_sft8bitr);
 #endif
-		egc_outptr--;
+//		egc_outptr--;
 	}
 }
 
@@ -399,7 +399,7 @@ void __FASTCALL DISPLAY::egc_sftb_dnl_sub(uint32_t ext)
 			egc_remain = 0;
 		}
 	}
-//	egc_outptr--;
+	egc_outptr--;
 #if 1
 	__DECL_ALIGNED(4) uint8_t tmp0[4];
 	__DECL_ALIGNED(4) uint8_t tmp1[4];
@@ -428,7 +428,7 @@ __DECL_VECTORIZED_LOOP
 	egc_vram_src.b[2][ext] = (egc_outptr[9] >> egc_sft8bitl) | (egc_outptr[8] << egc_sft8bitr);
 	egc_vram_src.b[3][ext] = (egc_outptr[13] >> egc_sft8bitl) | (egc_outptr[12] << egc_sft8bitr);
 #endif
-	egc_outptr--;
+//	egc_outptr--;
 }
 
 #if 1

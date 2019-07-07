@@ -288,6 +288,17 @@ void DISPLAY::reset()
 #if defined(SUPPORT_16_COLORS)
 	memset(modereg2, 0, sizeof(modereg2));
 	enable_egc = false;
+	if((config.dipswitch & (1 << DIPSWITCH_POSITION_GDC_FAST)) != 0) {
+//		modereg2[0x82 >> 1] = 1;
+//		modereg2[0x84 >> 1] = 1;
+		d_gdc_chr->set_clock_freq(5000 * 1000);
+		d_gdc_gfx->set_clock_freq(5000 * 1000);
+//		write_signals(&output_gdc_freq, 0xff);
+	} else {
+		d_gdc_chr->set_clock_freq(2500 * 1000);
+		d_gdc_gfx->set_clock_freq(2500 * 1000);
+//		write_signals(&output_gdc_freq, 0x00);
+	}		
 #endif
 #if defined(SUPPORT_GRCG)
 	grcg_mode = grcg_tile_ptr = 0;
@@ -471,18 +482,18 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 				if((modereg2[0x84 >> 1] != 0) && (modereg2[0x82 >> 1] != 0)) {
 					d_gdc_chr->set_clock_freq(5000 * 1000);
 					d_gdc_gfx->set_clock_freq(5000 * 1000);
-					write_signals(&output_gdc_freq, 0x00);
+					//write_signals(&output_gdc_freq, 0xff);
 				} else if(modereg2[0x82 >> 1] == 0) {
 					// ToDo: 006Eh: CMD=0000001nb
 					d_gdc_chr->set_clock_freq(2500 * 1000);
 					d_gdc_gfx->set_clock_freq(2500 * 1000);
-					write_signals(&output_gdc_freq, 0xff);
+					//write_signals(&output_gdc_freq, 0x00);
 				}
 			} else if((data & 0xfe) == 0x84) {
 				if((data & 0x01) == 0) {
 					d_gdc_chr->set_clock_freq(2500 * 1000);
 					d_gdc_gfx->set_clock_freq(2500 * 1000);
-					write_signals(&output_gdc_freq, 0xff);
+					//write_signals(&output_gdc_freq, 0x00);
 				}
 			}
 		}
