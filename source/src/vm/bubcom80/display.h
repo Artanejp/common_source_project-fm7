@@ -80,7 +80,7 @@ typedef struct {
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void start(int c);
-	void run(int c);
+	void __FASTCALL run(int c);
 	void finish(int c);
 } dmac_t;
 

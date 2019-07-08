@@ -113,7 +113,7 @@ typedef struct {
 	void  __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t  __FASTCALL read_io8(uint32_t addr);
 	void start(int c);
-	void run(int c, int nbytes);
+	void __FASTCALL run(int c, int nbytes);
 	void finish(int c);
 } pc88_dmac_t;
 
