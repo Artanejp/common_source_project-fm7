@@ -149,7 +149,7 @@ public:
 	void initialize() override;
 	void release();
 	void reset() override;
-	int run(int clock) override;
+	int __FASTCALL run(int clock) override;
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
 	bool process_state(FILEIO* state_fio, bool loading);
 

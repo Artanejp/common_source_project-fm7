@@ -136,7 +136,7 @@ private:
 	
 	void mix_sound(int samples);
 	void* get_event(int index);
-	int run_cpu(uint32_t num, int cycles);
+	int __FASTCALL run_cpu(uint32_t num, int cycles);
 
 #ifdef _DEBUG_LOG
 	bool initialize_done;
@@ -386,7 +386,7 @@ public:
 	int rechannel_sound_in_data(int32_t*dst, int16_t* src, int dst_channels, int src_channels, int samples);
 	
 	template <class T>
-		void set_context_cpu(T* device, uint32_t clocks = CPU_CLOCKS)
+		int set_context_cpu(T* device, uint32_t clocks = CPU_CLOCKS)
 	{
 		assert(dcount_cpu < MAX_CPU);
 		int index = dcount_cpu++;
@@ -395,6 +395,43 @@ public:
 		d_cpu[index].accum_clocks = 0;
 		set_cpu_type(device, index);
 		for(int k = 0; k < 6; k++) cpu_update_clocks[index][k] = d_cpu[index].update_clocks * k;
+		return index;
+	}
+	template <class T>
+		bool remove_context_cpu(T* device, int num)
+	{
+		if(num <= 0) return false; // Number one must not be removed.
+		if(num >= MAX_CPU) return false;
+		if(num >= dcount_cpu) return false;
+		if(dcount_cpu <= 1) return false;
+		// Note: This function is dangerous.
+		if(d_cpu[num].device != device) return false;
+		if(d_cpu[num].device == NULL) return false;
+		if(dcount_cpu == 2) {
+			d_cpu[1].device = (DEVICE *)NULL;
+			d_cpu[1].cpu_clocks = 0;
+			d_cpu[1].accum_clocks = 0;
+			cpu_type[1] = EVENT_CPUTYPE_GENERIC;
+			dcount_cpu = 1;
+			for(int k = 0; k < 6; k++)	cpu_update_clocks[1][k] = d_cpu[1].update_clocks * k;
+		} else {
+			for(int i = num; i < (dcount_cpu - 1); i++) {
+				d_cpu[i].device = d_cpu[i + 1].device;
+				d_cpu[i].cpu_clocks = d_cpu[i + 1].cpu_clocks;
+				d_cpu[i].accum_clocks = d_cpu[i + 1].accum_clocks;
+				cpu_type[i] = cpu_type[i + 1];
+			}
+			int n = dcount_cpu - 1;
+			d_cpu[n].device = (DEVICE *)NULL;
+			d_cpu[n].cpu_clocks = 0;
+			d_cpu[n].accum_clocks = 0;
+			cpu_type[n] = EVENT_CPUTYPE_GENERIC;
+			for(int i = 1; i < dcount_cpu; i++) {
+				for(int k = 0; k < 6; k++)	cpu_update_clocks[i][k] = d_cpu[i].update_clocks * k;
+			}
+			dcount_cpu = dcount_cpu - 1;
+		}
+		return true;
 	}
 	void set_secondary_cpu_clock(DEVICE* device, uint32_t clocks)
 	{

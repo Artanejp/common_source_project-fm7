@@ -282,7 +282,7 @@ public:
 	virtual void initialize();
 	virtual void reset();
 	void event_frame();
-	int run(int clock);
+	int __FASTCALL run(int clock);
 
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 	
@@ -378,7 +378,7 @@ public:
 	~Z80();
 	void initialize();
 	void reset();
-	int run(int clock) override;
+	int __FASTCALL run(int clock) override;
 
 	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
 #ifdef USE_DEBUGGER

@@ -12,7 +12,7 @@ class V30 : public I8086
 	virtual void initialize();
 	virtual void release();
 	virtual void reset();
-	virtual int run(int icount);
+	virtual int __FASTCALL run(int icount);
 	virtual int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
 
 };

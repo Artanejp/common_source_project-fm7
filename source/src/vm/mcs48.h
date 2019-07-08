@@ -484,7 +484,7 @@ public:
 	virtual void initialize();
 	virtual void release();
 	void reset();
-	virtual int run(int icount);
+	virtual int __FASTCALL run(int icount);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t get_pc();
 	uint32_t get_next_pc();
@@ -740,7 +740,7 @@ public:
 	~MCS48() {}
 	void initialize();
 	void release();
-	int run(int icount);
+	int __FASTCALL run(int icount);
 	bool process_state(FILEIO* state_fio, bool loading);
 #ifdef USE_DEBUGGER
 	bool is_cpu()

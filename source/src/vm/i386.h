@@ -79,7 +79,7 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	int run(int cycles);
+	int __FASTCALL run(int cycles);
 	uint32_t __FASTCALL read_signal(int id);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void set_intr_line(bool line, bool pending, uint32_t bit);

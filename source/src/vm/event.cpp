@@ -253,7 +253,7 @@ void EVENT::reset()
 	return d_cpu[num].device->run(arg)
 
 
-int EVENT::run_cpu(uint32_t num, int cycles)
+int __FASTCALL EVENT::run_cpu(uint32_t num, int cycles)
 {
 	if(num < MAX_CPU) {
 		uint32_t dom_num = cpu_type[num];

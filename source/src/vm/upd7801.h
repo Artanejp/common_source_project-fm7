@@ -125,7 +125,7 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	int run(int clock);
+	int __FASTCALL run(int clock);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t get_pc()
 	{

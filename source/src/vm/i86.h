@@ -55,7 +55,7 @@ public:
 	virtual void initialize();
 	virtual void release();
 	virtual void reset();
-	virtual int run(int icount);
+	virtual int __FASTCALL run(int icount);
 	virtual uint32_t __FASTCALL read_signal(int id);
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	virtual void set_intr_line(bool line, bool pending, uint32_t bit);

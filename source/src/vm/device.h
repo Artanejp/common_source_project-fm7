@@ -604,7 +604,7 @@ public:
 	virtual void __FASTCALL do_dma() { }
 	
 	// cpu
-	virtual int run(int clock)
+	virtual int __FASTCALL run(int clock)
 	{
 		// when clock == -1, run one opecode
 		return (clock == -1 ? 1 : clock);

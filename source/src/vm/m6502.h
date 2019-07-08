@@ -62,7 +62,7 @@ public:
 	// common functions
 	virtual void initialize();
 	virtual void reset();
-	virtual int run(int clock);
+	virtual int __FASTCALL run(int clock);
 	
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void set_intr_line(bool line, bool pending, uint32_t bit)
@@ -125,7 +125,7 @@ public:
 	~M6502() {}
 	void initialize();
 	void reset();
-	int run(int clock);
+	int __FASTCALL run(int clock);
 	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
 	bool process_state(FILEIO* state_fio, bool loading);
 };	
@@ -141,7 +141,7 @@ public:
 	~N2A03() {}
 	void initialize();
 	void reset();
-	int run(int clock);
+	int __FASTCALL run(int clock);
 	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
 	bool process_state(FILEIO* state_fio, bool loading);
 };	

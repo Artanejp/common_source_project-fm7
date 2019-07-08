@@ -333,7 +333,7 @@ public:
 	// common functions
 	virtual void initialize();
 	virtual void reset();
-	virtual int run(int clock);
+	virtual int __FASTCALL run(int clock);
 	
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t get_pc()
