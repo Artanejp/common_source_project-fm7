@@ -361,7 +361,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	event->set_context_cpu(cpu, cpu_clocks);
 #if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
-	event->set_context_cpu(v30cpu, 8000 * 1000); // ToDo : Implement CPU
+	if((config.dipswitch & (1 << DIPSWITCH_POSITION_CPU_MODE)) != 0) { // You should add manually.
+		event->set_context_cpu(v30cpu, 8000 * 1000);
+	}
 #endif	
 #if defined(SUPPORT_320KB_FDD_IF)
 	event->set_context_cpu(cpu_sub, 4000000);

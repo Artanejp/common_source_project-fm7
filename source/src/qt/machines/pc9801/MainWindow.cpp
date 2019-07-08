@@ -34,6 +34,11 @@ void Object_Menu_Control_98::do_set_memory_wait(bool flag)
 	emit sig_set_dipsw(0, flag);
 }
 
+void Object_Menu_Control_98::do_set_enable_v30(bool flag)
+{
+	emit sig_set_dipsw(DIPSWITCH_POSITION_CPU_MODE, flag);
+}
+
 
 void Object_Menu_Control_98::do_set_egc(bool flag)
 {
@@ -118,6 +123,11 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[2]->setVisible(false);
 	actionSoundDevice[3]->setVisible(false);
 #endif
+#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+	actionSUB_V30->setText(QApplication::translate("MainWindow", "Enable V30 SUB CPU(need RESTART).", 0));
+	actionSUB_V30->setToolTip(QApplication::translate("MainWindow", "Enable emulation of V30 SUB CPU.\nThis may make emulation speed slower.\nYou must restart emulator after reboot.", 0));
+#endif
+	
 #ifdef USE_CPU_TYPE
 	menuCpuType->setTitle(QApplication::translate("MainWindow", "CPU Frequency", 0));
 # if  defined(_PC98DO)
@@ -135,12 +145,28 @@ void META_MainWindow::retranslateUi(void)
 # elif  defined(_PC9801VX) || defined(_PC98XL)
 	actionCpuType[0]->setText(QString::fromUtf8("80286 10MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("80286 8MHz"));
+	actionCpuType[2]->setText(QString::fromUtf8("V30 8MHz"));
+	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_CPU_MODE)) == 0) {
+		actionCpuType[2]->setEnabled(false);
+	}
 # elif  defined(_PC9801RA) || defined(_PC98RL)
 	// ToDo: PC98RL's display rotate.
 	actionCpuType[0]->setText(QString::fromUtf8("80386 20MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("80386 16MHz"));
+	actionCpuType[2]->setText(QString::fromUtf8("V30 8MHz"));
+	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_CPU_MODE)) == 0) {
+		actionCpuType[2]->setEnabled(false);
+	}
+# elif  defined(_PC98XA)
+	actionCpuType[0]->setText(QString::fromUtf8("80286 8MHz"));
+	actionCpuType[1]->setVisible(false);
+	actionCpuType[2]->setText(QString::fromUtf8("V30 8MHz"));
+	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_CPU_MODE)) == 0) {
+		actionCpuType[2]->setEnabled(false);
+	}
 # endif
 #endif
+	
 	actionRAM_512K->setText(QApplication::translate("MainWindow", "512KB RAM", 0));
 	actionRAM_512K->setToolTip(QApplication::translate("MainWindow", "Set lower RAM size to 512KB(not 640KB).\nMaybe for backward compatibility.", 0));
 	actionINIT_MEMSW->setText(QApplication::translate("MainWindow", "INIT MEMSW(need RESET)", 0));
@@ -205,9 +231,25 @@ void META_MainWindow::retranslateUi(void)
 void META_MainWindow::setupUI_Emu(void)
 {
 #ifdef USE_CPU_TYPE
+	#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+	ConfigCPUTypes(3);
+	#else
 	ConfigCPUTypes(2);
+	#endif
 #endif
-
+#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+	actionSUB_V30 = new Action_Control_98(this, using_flags);
+	actionSUB_V30->setCheckable(true);
+	actionSUB_V30->setVisible(true);
+	menuMachine->addAction(actionSUB_V30);
+	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_CPU_MODE)) != 0) actionSUB_V30->setChecked(true); // Emulation with V30
+	connect(actionSUB_V30, SIGNAL(toggled(bool)),
+			actionSUB_V30->pc98_binds, SLOT(do_set_enable_v30(bool)));
+	connect(actionSUB_V30->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+	connect(actionSUB_V30->pc98_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
+#endif
    
 	actionRAM_512K = new Action_Control_98(this, using_flags);
 	actionRAM_512K->setCheckable(true);

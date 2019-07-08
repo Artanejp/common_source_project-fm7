@@ -25,6 +25,7 @@ public slots:
 	void do_set_gdc_fast(bool);
 	void do_set_ram_512k(bool);	
 	void do_set_init_memsw(bool);
+	void do_set_enable_v30(bool flag);
 signals:
 	int sig_emu_update_config();
 };
@@ -50,6 +51,9 @@ protected:
 	Action_Control_98 *actionRAM_512K;
 	Action_Control_98 *actionINIT_MEMSW;
 	Action_Control_98 *actionGDC_FAST;
+#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+	Action_Control_98 *actionSUB_V30;
+#endif
 #if defined(SUPPORT_EGC)
 	Action_Control_98 *actionEGC;
 #endif

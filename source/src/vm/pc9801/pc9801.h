@@ -104,13 +104,14 @@
 	#define PIT_CLOCK_5MHZ
 //	#define CPU_CLOCKS		7987248
 //	#define PIT_CLOCK_8MHZ
-	#define USE_CPU_TYPE		2
+	#define USE_CPU_TYPE		3
 #elif defined(_PC98XA)
 	#define DEVICE_NAME		"NEC PC-98XA"
 	#define CONFIG_NAME		"pc98xa"
 	#define HAS_I286
 	#define CPU_CLOCKS		7987248
 	#define PIT_CLOCK_8MHZ
+	#define USE_CPU_TYPE		3
 #elif defined(_PC98RL)
 	#define DEVICE_NAME	"NEC PC-98RL"
 	#define CONFIG_NAME	"pc98rl"
@@ -119,7 +120,7 @@
 	#define PIT_CLOCK_5MHZ
 //	#define CPU_CLOCKS		15974496
 //	#define PIT_CLOCK_8MHZ
-	#define USE_CPU_TYPE		2
+	#define USE_CPU_TYPE		3
 	#define SUPPORT_24BIT_ADDRESS
 #elif defined(_PC9801RA)
 	#define DEVICE_NAME	"NEC PC-9801RA"
@@ -129,7 +130,7 @@
 	#define PIT_CLOCK_5MHZ
 //	#define CPU_CLOCKS		15974496
 //	#define PIT_CLOCK_8MHZ
-	#define USE_CPU_TYPE		2
+	#define USE_CPU_TYPE		3
 	#define SUPPORT_32BIT_ADDRESS
 #else
 	// unknown machines
