@@ -1470,37 +1470,6 @@ void VM::reset()
 	} else {
 		port_b3 &= ~0x40;
 	}
-#if defined(USE_CPU_TYPE)
-	switch(config.cpu_type & 1) {
-	case 0:
-	#if !defined(SUPPORT_HIRESO)
-		port_b3 &= ~0x02; // SPDSW, 1 = 10MHz, 0 = 12MHz
-	#else
-		port_b3 &= ~0x01; // SPDSW, 1 = 8/16MHz, 0 = 10/20MHz
-	#endif
-		break;
-	case 1:
-	#if !defined(SUPPORT_HIRESO)
-		port_b3 |= 0x02; // SPDSW, 1 = 10MHz, 0 = 12MHz
-	#else
-		port_b3 |= 0x01; // SPDSW, 1 = 8/16MHz, 0 = 10/20MHz
-	#endif
-		break;
-	}
-	#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
-	if(config.cpu_type & 0x02) {// V30 or V33
-		port_b3 |= 0x04;
-//		v30cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-//		cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-		cpureg->write_signal(SIG_CPUREG_USE_V30, 1, 1);
-	} else {
-		port_b3 &= ~0x04;
-//		v30cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-//		cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-		cpureg->write_signal(SIG_CPUREG_USE_V30, 0, 1);
-	}
-	#endif
-#endif
 	pio_mouse->write_signal(SIG_I8255_PORT_B, port_b3, 0xff);
 	set_cpu_clock_with_switch(((config.cpu_type & 1) != 0) ? 1 : 0);
 	
@@ -1519,6 +1488,15 @@ void VM::reset()
 	}
 #else
 	port_c3 |= 0x08; // MODSW, 1 = Normal Mode, 0 = Hirezo Mode
+#endif
+#if defined(USE_CPU_TYPE)
+	#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+		if(config.cpu_type & 0x02) {// V30 or V33
+			port_c3 |= 0x04;
+		} else {
+			port_c3 &= ~0x04;
+		}
+	#endif
 #endif
 	pio_mouse->write_signal(SIG_I8255_PORT_C, port_c3, 0xff);
 	
@@ -1551,7 +1529,6 @@ void VM::reset()
 	pc88pio->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 	pc88pio_sub->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 #endif
-
 }
 
 void VM::run()
@@ -2025,7 +2002,37 @@ void VM::update_config()
 		if((config.dipswitch & (1 << DIPSWITCH_POSITION_RAM512K)) == 0) {
 			mouse_port_b = mouse_port_b | 0x40;
 		}
+#if defined(USE_CPU_TYPE)
+		switch(config.cpu_type & 1) {
+		case 0:
+	#if !defined(SUPPORT_HIRESO)
+			mouse_port_b &= ~0x02; // SPDSW, 1 = 10MHz, 0 = 12MHz
+	#else
+			mouse_port_b &= ~0x01; // SPDSW, 1 = 8/16MHz, 0 = 10/20MHz
+	#endif
+			break;
+		case 1:
+	#if !defined(SUPPORT_HIRESO)
+			mouse_port_b |= 0x02; // SPDSW, 1 = 10MHz, 0 = 12MHz
+	#else
+			mouse_port_b |= 0x01; // SPDSW, 1 = 8/16MHz, 0 = 10/20MHz
+	#endif
+			break;
+		}
+#endif
 		pio_mouse->write_signal(SIG_I8255_PORT_B, mouse_port_b, 0xff);
+	}
+	{
+#if defined(USE_CPU_TYPE)
+	#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+		if(config.cpu_type & 0x02) {// V30 or V33
+			pio_mouse->write_signal(SIG_I8255_PORT_C, 0x04, 0x04);
+		} else {
+			pio_mouse->write_signal(SIG_I8255_PORT_C, 0x00, 0x04);
+		}
+	#endif
+#endif
+
 	}
 	{
 		uint8_t sys_port_a = pio_sys->read_signal(SIG_I8255_PORT_A);

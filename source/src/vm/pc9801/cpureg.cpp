@@ -68,10 +68,12 @@ void CPUREG::reset()
 		cancel_event(this, event_wait);
 		event_wait = -1;
 	}
-	d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+
 #if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
 	use_v30 = ((config.cpu_type & 0x02) != 0) ? true : false;
 	halt_by_use_v30();
+#else
+	d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 #endif
 }
 
@@ -95,7 +97,8 @@ void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
 	} else if(ch == SIG_CPUREG_USE_V30) {
 #if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
 		use_v30 = ((data & mask) != 0);
-		halt_by_use_v30();
+//		halt_by_use_v30();
+		out_debug_log(_T("SIG_CPUREG_USE_V30: V30=%s\n"), (use_v30) ? _T("YES") : _T("NO")); 
 #endif
 	}
 }
@@ -130,13 +133,14 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 //			d_pio->write_signal(SIG_I8255_PORT_C, reset_reg, 0xff);
 			// ToDo: Reflesh
 			reg_0f0 = data;
-#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
-			use_v30 = ((data & 1) != 0);
-			d_v30cpu->reset();
-			// halt_by_use_v30();
-#endif
 			d_cpu->set_address_mask(0x000fffff);
 			d_cpu->reset();
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+			use_v30 = (((data & 1) != 0) || ((data & 2) != 0));
+			d_cpu->set_address_mask(0x000fffff);
+			d_v30cpu->reset();
+			halt_by_use_v30();
+#endif
 			
 		}
 		break;
@@ -236,7 +240,11 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 //#if defined(HAS_I86) || defined(HAS_V30)
 		// ToDo: Older VMs.
 		//value |= ((reg_0f0 & 0x01) == 0) ? 0x00 : 0x02; // CPU mode, 1 = V30, 0 = 80286/80386
-		value |= 0x00; // CPU mode, 1 = V30, 0 = 80286/80386
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+		if(use_v30) {
+			value |= 0x02; // CPU mode, 1 = V30, 0 = 80286/80386
+		}
+#endif
 //#endif
 		value |= 0x01; // RAM access, 1 = Internal RAM, 0 = External-enhanced RAM
 		return value;
