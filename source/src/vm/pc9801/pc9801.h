@@ -126,6 +126,7 @@
 	#define DEVICE_NAME	"NEC PC-9801RA"
 	#define CONFIG_NAME	"pc9801ra"
 	#define HAS_I386
+//	#define HAS_I486
 	#define CPU_CLOCKS		19968120
 	#define PIT_CLOCK_5MHZ
 //	#define CPU_CLOCKS		15974496
@@ -198,7 +199,7 @@
 		#define SUPPORT_EGC
 		#define HAS_UPD4990A
 	#endif
-	#if !defined(SUPPORT_HIRESO) /*&& !(defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM))*/ /*&& !defined(SUPPORT_32BIT_ADDRESS)*/
+	#if !defined(SUPPORT_HIRESO) /*&& !(defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM))*/
 		#define SUPPORT_NEC_EMS
 	#endif
 	#define SUPPORT_SASI_IF
