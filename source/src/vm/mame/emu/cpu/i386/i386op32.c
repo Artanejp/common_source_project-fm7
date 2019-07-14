@@ -3183,6 +3183,7 @@ static void __FASTCALL I386OP(group0F01_32)(i386_state *cpustate)      // Opcode
 				}
 				WRITE16(cpustate,ea, cpustate->gdtr.limit);
 				WRITE32(cpustate,ea + 2, cpustate->gdtr.base);
+				logerror("SGDT(32) PC=%08X MODRM=%02X EA=%08X BASE=%08X LIMIT=%04X\n", cpustate->prev_pc, modrm, ea, cpustate->gdtr.base, cpustate->gdtr.limit);
 				CYCLES(cpustate,CYCLES_SGDT);
 				break;
 			}
@@ -3199,6 +3200,7 @@ static void __FASTCALL I386OP(group0F01_32)(i386_state *cpustate)      // Opcode
 				}
 				WRITE16(cpustate,ea, cpustate->idtr.limit);
 				WRITE32(cpustate,ea + 2, cpustate->idtr.base);
+				logerror("SIDT(32) PC=%08X MODRM=%02X EA=%08X BASE=%08X LIMIT=%04X\n", cpustate->prev_pc, modrm, ea, cpustate->idtr.base, cpustate->idtr.limit);
 				CYCLES(cpustate,CYCLES_SIDT);
 				break;
 			}
@@ -3214,7 +3216,7 @@ static void __FASTCALL I386OP(group0F01_32)(i386_state *cpustate)      // Opcode
 				}
 				cpustate->gdtr.limit = READ16(cpustate,ea);
 				cpustate->gdtr.base = READ32(cpustate,ea + 2);
-				logerror("LGDT(32) PC=%08X MODRM=%02X BASE=%08X LIMIT=%04X\n", cpustate->prev_pc, modrm, cpustate->gdtr.base, cpustate->gdtr.limit);
+				logerror("LGDT(32) PC=%08X MODRM=%02X EA=%08X BASE=%08X LIMIT=%04X\n", cpustate->prev_pc, modrm, ea, cpustate->gdtr.base, cpustate->gdtr.limit);
 				CYCLES(cpustate,CYCLES_LGDT);
 				break;
 			}
@@ -3230,6 +3232,7 @@ static void __FASTCALL I386OP(group0F01_32)(i386_state *cpustate)      // Opcode
 				}
 				cpustate->idtr.limit = READ16(cpustate,ea);
 				cpustate->idtr.base = READ32(cpustate,ea + 2);
+				logerror("LIDT(32) PC=%08X MODRM=%02X EA=%08X BASE=%08X LIMIT=%04X\n", cpustate->prev_pc, modrm, ea, cpustate->idtr.base, cpustate->idtr.limit);
 				CYCLES(cpustate,CYCLES_LIDT);
 				break;
 			}
@@ -3245,6 +3248,7 @@ static void __FASTCALL I386OP(group0F01_32)(i386_state *cpustate)      // Opcode
 					WRITE16(cpustate,ea, cpustate->cr[0]);
 					CYCLES(cpustate,CYCLES_SMSW_MEM);
 				}
+				logerror("SMSW(32) PC=%08X MODRM=%02X EA=%08X CR0=%08X\n", cpustate->prev_pc, modrm, ea, cpustate->cr[0]);
 				break;
 			}
 		case 6:         /* LMSW */
@@ -3267,6 +3271,7 @@ static void __FASTCALL I386OP(group0F01_32)(i386_state *cpustate)      // Opcode
 				//if(!(cr0_bak & I386_CR0_PE) && (b & I386_CR0_PE)) {
 				//	i386_change_protect_mode(cpustate, 1);
 				//}
+				logerror("LMSW(32) PC=%08X MODRM=%02X EA=%08X CR0=%08X OLD_CR0=%08X\n", cpustate->prev_pc, modrm, ea, cpustate->cr[0], cr0_bak);
 				break;
 			}
 		default:

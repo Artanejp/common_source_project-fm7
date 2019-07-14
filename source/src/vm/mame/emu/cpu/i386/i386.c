@@ -52,7 +52,7 @@ static void pentium_smi(i386_state* cpustate);
 
 
 #define FAULT(fault,error) {\
-		logerror("FAULT(%s , %s) PC=%08x V8086=%s PROTECTED=%s SP=%08X:%08X\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO", (PROTECTED_MODE) ? cpustate->sreg[SS].base : (cpustate->sreg[SS].selector << 4), REG32(ESP)); \
+		/*logerror("FAULT(%s , %s) PC=%08x V8086=%s PROTECTED=%s SP=%08X:%08X\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO", (PROTECTED_MODE) ? cpustate->sreg[SS].base : (cpustate->sreg[SS].selector << 4), REG32(ESP)); */ \
 		if(cpustate->is_report_exception) {								\
 			cpustate->exception_code = ((UINT64)error << 32) | (UINT64)fault; \
 			cpustate->exception_pc = cpustate->prev_pc;					\
@@ -64,7 +64,7 @@ static void pentium_smi(i386_state* cpustate);
 	}
 
 #define FAULT_EXP(fault,error) {										\
-		logerror("FAULT_EXP(%s , %s) PC=%08x V8086=%s PROTECTED=%s\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO"); \
+		/*logerror("FAULT_EXP(%s , %s) PC=%08x V8086=%s PROTECTED=%s\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO"); */ \
 		if(cpustate->is_report_exception) {								\
 			cpustate->exception_code = ((UINT64)error << 32) | (UINT64)fault; \
 			cpustate->exception_pc = cpustate->prev_pc;					\
@@ -801,7 +801,7 @@ static void __FASTCALL i386_trap(i386_state *cpustate,int irq, int irq_gate, int
 		{
 			if(((flags >> 5) & 0x03) < CPL)
 			{
-				logerror("IRQ (%08x): Software IRQ - gate DPL is less than CPL.\n",cpustate->pc);
+				//logerror("IRQ (%08x): Software IRQ - gate DPL is less than CPL.\n",cpustate->pc);
 				FAULT_EXP(FAULT_GP,entry+2)
 			}
 			if(V8086_MODE)
