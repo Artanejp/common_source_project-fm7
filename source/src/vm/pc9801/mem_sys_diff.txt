@@ -1,0 +1,107 @@
+PC-9801RAでの、CSP実行時とmame実行時のシステム領域(0000:0400 - 0000:05FF)の違いに関して。
+                            2019-07-15 by K.O <whatisthis.sowhat _at_ gmail.com>
+
+         MAME/CSP
+0401h :  08h/68h -> プロテクトメモリ容量 *
+0457h :  FFh/00h -> IDEドライブ搭載(MAME),セクタ長や容量など
+0480h :  CBh/4Bh -> SENSE COMMANDサポート(MAMEのみ)
+0481h :  23h/20h -> HD BIOSセクタ長(#1,#0 : MAME=512, CSP=256)
+0484h :  E2h/02h -> HD BIOS (DMA LINE(bit7,6): MAMEのみSCSIあり(bit5))
+
+04B0h :  D8h/D7h -> DA/UA=0xh のBIOSのセグメント
+04B8h :  D8h/D7h -> DA/UA=8xh のBIOSのセグメント
+
+04D7h :  00h/D9h -> D7000hの拡張ROM ID *
+04D8h :  EAh/00h -> D8000hの拡張ROM ID *
+04D9h :  AAh/00h -> D9000hの拡張ROM ID *
+04DAh :  AAh/00h -> DA000hの拡張ROM ID *
+04DBh :  AAh/00h -> DB000hの拡張ROM ID *
+
+0500h :  23h/03h -> キーバッファオーバフロー時にブザー鳴らさない(MAME) *
+0501h :  24h/04h -> 機種情報(3) MAME=PC-9801U,98LT/HA / CSP=その他 *
+
+※MAMEは、「ノーマル(PC-9801初代・E・F・M・U以外」と判定されてる
+　CSPは、 「不明機(1)(2)(3)(4)=1000)」になる。(2)==0は、PC-9801無印及び98XA。
+
+解説  o 他のビットと組み合わせて、以下のような機種判別が行える。
+	------------+----------------------------------
+	機種情報    |意味
+	(1)(2)(3)(4)|
+	------------+----------------------------------
+	 0  0  0  0 |PC-9801初代
+	 0  1  0  0 |PC-9801E･F･M
+	 1  1  1  0 |PC-9801U
+	 1  1  0  0 |ノーマル(PC-9801初代･E･F･M･U以外)
+	 0  0  0  1 |PC-98XA
+	 0  1  0  1 |ハイレゾ(PC-98XA以外)
+	 0  1  1  0 |PC-98LT･HA,DB-P1
+	------------+----------------------------------
+	機種情報(1) = 0000:0500h bit 0
+	機種情報(2) = 0000:0501h bit 5
+	機種情報(3) = 0000:0501h bit 4
+	機種情報(4) = 0000:0501h bit 3
+関連	0000:0501h bit 5〜3
+
+
+054Ch :  CFh/4Fh -> GVRAM表示状態/Don't care.
+054Dh :  58h/50h -> フラッシュ描画フラグ(多分Don't care)
+
+055Dh :  00h/03h -> [CSP] SASI UNIT#0,#1接続
+0564h :  28h/68h -> FDD#0のリザルト
+056Ch :  29h/69h -> FDD#1のリザルト
+0574h :  C2h/6Ah -> FDD#2のリザルト
+057Ch :  C3h/6Bh -> FDD#3のリザルト
+
+0585h :  00h/1Ch -> SASI/ESDI BIOSのステータス
+
+05B0h :  FFh/00h -> IDE容量
+
+05C0h :  E3h/00h -> DIPSW2の値のコピー (N88 BASIC)
+
+
+
+05E8h :  5Fh/00h -> DISK PRM0 + 0 (OFFSET)
+05E9h :  0Bh/00h -> DISK PRM0 + 1
+05EAh :  00h/00h -> DISK PRM0 + 2 (SEG)
+05EBh :  D8h/00h -> DISK PRM0 + 3
+
+05ECh :  5Fh/00h -> DISK PRM1 + 0
+05EDh :  0Bh/00h -> DISK PRM1 + 1
+05EEh :  00h/00h -> DISK PRM1 + 2
+05EFh :  D8h/00h -> DISK PRM1 + 3
+
+メモリ	0000:05E8〜05EBh
+型	DWORD
+名前	DISK_PRM0
+分類	DISK BIOS
+	Undocumented
+対象	SASI, IDE搭載機(ノーマル,ハイレゾとも)
+内容	SASI･IDE HD #0のパラメータテーブルの先頭アドレス
+解説  o ドライブ制御用パラメータテーブルの先頭アドレスを格納する。
+	モード設定ファンクション(INT 1Bh - Function 0Eh(SASI/ESDI/IDE))を
+	実行すると、このパラメータテーブルのアドレスが変化する場合がある。
+      o SASI HDとIDE HDでは、パラメータテーブルの内容には互換性がない。
+表	SASI HDのパラメータテーブルの内容
+	-----------+-----------------------------------------------------------
+	ｵﾌｾｯﾄ(ｻｲｽﾞ)|内容
+	-----------+-----------------------------------------------------------
+	+00h(BYTE) |ステップパルス幅
+	+01h(BYTE) |ステップ間隔
+	+02h(BYTE) |ステップモード
+	+03h(BYTE) |最大ヘッドアドレス
+	+04h(WORD) |最大シリンダアドレス(High Byte, Low Byte順)
+	+06h(BYTE) |書き込み電流減少アドレス
+	+07h(BYTE) |オーバーラップシークフラグ(bit6)
+	+0Ah(BYTE) |ステップパルス幅
+	+0Bh(BYTE) |ステップ間隔
+	+0Ch(BYTE) |ステップモード
+	+0Dh(BYTE) |最大ヘッドアドレス
+	+0Eh(WORD) |最大シリンダアドレス2(High Byte, Low Byte順)
+	+10h(BYTE) |書き込み電流減少アドレス
+	+11h(BYTE) |オーバーラップシークフラグ(bit6)
+	+14H(BYTE) |SENSE(INT 1Bh - Function 04h(SASI/ESDI/IDE))でAHに返る値
+	+18H(WORD) |ヘッド数(INT 1Bhの物理アドレス→論理アドレス変換に使用する)
+	+1CH(BYTE) |新SENSE(INT 1Bh - Function 84h(SASI/ESDI/IDE))でAHに返る値
+
+05FEh :  60h/00h -> BASIC WORK (Don't care)
+05FFh :  00h/00h -> BASIC WORK (Don't care)
