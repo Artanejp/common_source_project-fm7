@@ -209,25 +209,29 @@ uint32_t YM2203::read_io8(uint32_t addr)
 		}
 		break;
 	case 2:
+		{
 			/* BUSY : x : PCMBUSY : ZERO : BRDY : EOS : FLAGB : FLAGA */
-		update_count();
-		update_interrupt();
-		uint32_t status = opna->ReadStatusEx() & ~0x80;
-		if(busy) {
-			// from PC-88 machine language master bible (XM8 version 1.00)
-			if(get_passed_usec(clock_busy) < (is_ym2608 ? 4.25 : 2.13)) {
-				status |= 0x80;
-			} else {
-				busy = false;
+			update_count();
+			update_interrupt();
+			uint32_t status = opna->ReadStatusEx() & ~0x80;
+			if(busy) {
+				// from PC-88 machine language master bible (XM8 version 1.00)
+				if(get_passed_usec(clock_busy) < (is_ym2608 ? 4.25 : 2.13)) {
+					status |= 0x80;
+				} else {
+					busy = false;
+				}
 			}
+			return status;
 		}
-		return status;
 		break;
 	case 3:
-		if(ch1 == 8) {
-			return opna->GetReg(0x100 | ch1);
+		{
+			if(ch1 == 8) {
+				return opna->GetReg(0x100 | ch1);
+			}
+			return data1;
 		}
-		return data1;
 		break;
 	default:
 		break;
