@@ -653,134 +653,134 @@ void* debugger_thread(void *lpx)
 						} else {
 							steps = min((int)atoi(params[xnum]), MAX_CPU_TRACE - 1);
 							if(steps > 0) xnum++;
-							if(steps <= 0) goto _ut_finish;
+							//if(steps <= 0) goto _ut_finish;
 						}
-					}
-					_TCHAR log_path[_MAX_PATH];
-					if(xnum < num) {
-						my_tcscpy_s(log_path, _MAX_PATH, my_absolute_path(params[xnum]));
-						logging = true;
 					}
 					FILEIO* log_fio = NULL;
-					if(logging) {
-						log_fio = new FILEIO();
-						if(!(log_fio->Fopen((const _TCHAR*)log_path, FILEIO_WRITE_APPEND_ASCII))) { // Failed to open 
-							delete log_fio;
-							log_fio = NULL;
-							logging = false;
-							my_printf(p->osd, "ERROR: Logging trace was failed for %s\n", log_path);
-						} else {
-							my_printf(p->osd, "Start logging trace for %s\n", log_path);
-							{
-								_TCHAR timestr[512] = {0};
-								struct tm *timedat;
-								time_t nowtime;
-								struct timeval tv;
-								
-								nowtime = time(NULL);
-								gettimeofday(&tv, NULL);
-								timedat = localtime(&nowtime);
-								strftime(timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", timedat);
-								log_fio->Fprintf("**** Start of logging BACKTRACE %d steps for %s at %s.%06ld ****\n\n", steps, target->this_device_name, timestr, tv.tv_usec);
-							}
+					if(steps > 0) {  // Workaround for gcc-9. 
+						_TCHAR log_path[_MAX_PATH];
+						if(xnum < num) {
+							my_tcscpy_s(log_path, _MAX_PATH, my_absolute_path(params[xnum]));
+							logging = true;
 						}
-					}
-					int steps_left = steps;
-					int max_step = target_debugger->cpu_trace_ptr & (MAX_CPU_TRACE - 1);
-					int begin_step = (target_debugger->cpu_trace_ptr - steps) & (MAX_CPU_TRACE - 1);
-					if(!(target_debugger->cpu_trace_overwrap)) {
-						if(steps_left > max_step) {
-							begin_step = 0;
-							steps_left = max_step;
-							steps = max_step;
-						}
-					}
-					if(steps_left > 1024) {
 						if(logging) {
-							my_printf(p->osd, "** NOTE: Trace %d steps, but display only 1024 steps,more are only logging.", steps_left);
-						} else {
-							my_printf(p->osd, "** NOTE: Request to trace %d steps, but display only 1024 steps.", steps_left);
-							begin_step = (max_step - 1024) & (MAX_CPU_TRACE - 1);
-							steps_left = 1024;
-						}
-					}
-
-					for(int i = begin_step; i != max_step; i = ((i + 1) & (MAX_CPU_TRACE - 1)) ) {
-						if(logging) {
-							if((log_fio != NULL)) {
-								if(!(log_fio->IsOpened())) {
-									logging = false;
-								}
-							} else {
+							log_fio = new FILEIO();
+							if(!(log_fio->Fopen((const _TCHAR*)log_path, FILEIO_WRITE_APPEND_ASCII))) { // Failed to open 
+								delete log_fio;
+								log_fio = NULL;
 								logging = false;
-							}
-						}
-						int index = i;
-
-						if(!(target_debugger->cpu_trace[index] & ~target->get_debug_prog_addr_mask())) {
-							const _TCHAR *name = my_get_symbol(target, target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask());
-							int len = target->debug_dasm_with_userdata(target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask(), buffer, array_length(buffer), target_debugger->cpu_trace_userdata[index]);
-							_TCHAR tmps[8192];
-							_TCHAR tmps2[512];
-							memset(tmps, 0x00, sizeof(tmps));
-							if(name != NULL) {
-								my_sprintf_s(tmps2, sizeof(tmps2),_T("%08X                  "), target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask());
-								strncat(tmps, tmps2, sizeof(tmps) - 1);
-								p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_INTENSITY);
-								my_sprintf_s(tmps2, sizeof(tmps2), _T("%s:\n"), name);
-								strncat(tmps, tmps2, sizeof(tmps) - 1);
-								p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
-							}
-							my_sprintf_s(tmps2, sizeof(tmps2), _T("%08X  "), target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask());
-							strncat(tmps, tmps2, sizeof(tmps) - 1);
-							for(int i = 0; i < len; i++) {
-								my_sprintf_s(tmps2, sizeof(tmps2), _T("%02X"), target->read_debug_data8((target_debugger->cpu_trace[index] + i) & target->get_debug_prog_addr_mask()));
-								strncat(tmps, tmps2, sizeof(tmps) - 1);
-							}
-							my_sprintf_s(tmps2, sizeof(tmps2), _T("  "));
-							for(int i = len; i < 8; i++) {
-								strncat(tmps, tmps2, sizeof(tmps) - 1);
-							}
-							my_sprintf_s(tmps2, sizeof(tmps2), _T("  %s"), buffer);
-							strncat(tmps, tmps2, sizeof(tmps) - 1);
-							
-							if(target_debugger->cpu_trace_exp_map[index]) {
-								my_sprintf_s(tmps2, sizeof(tmps2), _T("  <== EXCEPTION 0x%08X\n"), target_debugger->cpu_trace_exp[index]);
+								my_printf(p->osd, "ERROR: Logging trace was failed for %s\n", log_path);
 							} else {
-								my_sprintf_s(tmps2, sizeof(tmps2), _T("\n"));
-							}
-							strncat(tmps, tmps2, sizeof(tmps) - 1);
-							if(logging) {
-								log_fio->Fprintf("%s", tmps);
-							}
-							if(steps_left <= 1024) {
-								my_printf(p->osd, "%s", tmps);
-							}
-							steps_left--;
-							if(steps_left <= 0) break;
-						}
-					}
-//					if(logging) {
-				_ut_finish:
-						if(log_fio != NULL) {
-							if(log_fio->IsOpened()) {
+								my_printf(p->osd, "Start logging trace for %s\n", log_path);
 								{
 									_TCHAR timestr[512] = {0};
 									struct tm *timedat;
 									time_t nowtime;
 									struct timeval tv;
-
+								
 									nowtime = time(NULL);
 									gettimeofday(&tv, NULL);
 									timedat = localtime(&nowtime);
 									strftime(timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", timedat);
-									log_fio->Fprintf("\n**** End of logging BACKTRACE %d steps for %s at %s.%06ld ****\n", steps, target->this_device_name, timestr, tv.tv_usec);
+									log_fio->Fprintf("**** Start of logging BACKTRACE %d steps for %s at %s.%06ld ****\n\n", steps, target->this_device_name, timestr, tv.tv_usec);
 								}
-								log_fio->Fclose();
 							}
-							delete log_fio;
 						}
-//					}
+						int steps_left = steps;
+						int max_step = target_debugger->cpu_trace_ptr & (MAX_CPU_TRACE - 1);
+						int begin_step = (target_debugger->cpu_trace_ptr - steps) & (MAX_CPU_TRACE - 1);
+						if(!(target_debugger->cpu_trace_overwrap)) {
+							if(steps_left > max_step) {
+								begin_step = 0;
+								steps_left = max_step;
+								steps = max_step;
+							}
+						}
+						if(steps_left > 1024) {
+							if(logging) {
+								my_printf(p->osd, "** NOTE: Trace %d steps, but display only 1024 steps,more are only logging.", steps_left);
+							} else {
+								my_printf(p->osd, "** NOTE: Request to trace %d steps, but display only 1024 steps.", steps_left);
+								begin_step = (max_step - 1024) & (MAX_CPU_TRACE - 1);
+								steps_left = 1024;
+							}
+						}
+
+						for(int i = begin_step; i != max_step; i = ((i + 1) & (MAX_CPU_TRACE - 1)) ) {
+							if(logging) {
+								if((log_fio != NULL)) {
+									if(!(log_fio->IsOpened())) {
+										logging = false;
+									}
+								} else {
+									logging = false;
+								}
+							}
+							int index = i;
+
+							if(!(target_debugger->cpu_trace[index] & ~target->get_debug_prog_addr_mask())) {
+								const _TCHAR *name = my_get_symbol(target, target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask());
+								int len = target->debug_dasm_with_userdata(target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask(), buffer, array_length(buffer), target_debugger->cpu_trace_userdata[index]);
+								_TCHAR tmps[8192];
+								_TCHAR tmps2[512];
+								memset(tmps, 0x00, sizeof(tmps));
+								if(name != NULL) {
+									my_sprintf_s(tmps2, sizeof(tmps2),_T("%08X                  "), target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask());
+									strncat(tmps, tmps2, sizeof(tmps) - 1);
+									p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_INTENSITY);
+									my_sprintf_s(tmps2, sizeof(tmps2), _T("%s:\n"), name);
+									strncat(tmps, tmps2, sizeof(tmps) - 1);
+									p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
+								}
+								my_sprintf_s(tmps2, sizeof(tmps2), _T("%08X  "), target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask());
+								strncat(tmps, tmps2, sizeof(tmps) - 1);
+								for(int i = 0; i < len; i++) {
+									my_sprintf_s(tmps2, sizeof(tmps2), _T("%02X"), target->read_debug_data8((target_debugger->cpu_trace[index] + i) & target->get_debug_prog_addr_mask()));
+									strncat(tmps, tmps2, sizeof(tmps) - 1);
+								}
+								my_sprintf_s(tmps2, sizeof(tmps2), _T("  "));
+								for(int i = len; i < 8; i++) {
+									strncat(tmps, tmps2, sizeof(tmps) - 1);
+								}
+								my_sprintf_s(tmps2, sizeof(tmps2), _T("  %s"), buffer);
+								strncat(tmps, tmps2, sizeof(tmps) - 1);
+							
+								if(target_debugger->cpu_trace_exp_map[index]) {
+									my_sprintf_s(tmps2, sizeof(tmps2), _T("  <== EXCEPTION 0x%08X\n"), target_debugger->cpu_trace_exp[index]);
+								} else {
+									my_sprintf_s(tmps2, sizeof(tmps2), _T("\n"));
+								}
+								strncat(tmps, tmps2, sizeof(tmps) - 1);
+								if(logging) {
+									log_fio->Fprintf("%s", tmps);
+								}
+								if(steps_left <= 1024) {
+									my_printf(p->osd, "%s", tmps);
+								}
+								steps_left--;
+								if(steps_left <= 0) break;
+							}
+						
+						}
+					}
+					if(log_fio != NULL) {
+						if(log_fio->IsOpened()) {
+							{
+								_TCHAR timestr[512] = {0};
+								struct tm *timedat;
+								time_t nowtime;
+								struct timeval tv;
+
+								nowtime = time(NULL);
+								gettimeofday(&tv, NULL);
+								timedat = localtime(&nowtime);
+								strftime(timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", timedat);
+								log_fio->Fprintf("\n**** End of logging BACKTRACE %d steps for %s at %s.%06ld ****\n", steps, target->this_device_name, timestr, tv.tv_usec);
+							}
+							log_fio->Fclose();
+						}
+						delete log_fio;
+					}
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
