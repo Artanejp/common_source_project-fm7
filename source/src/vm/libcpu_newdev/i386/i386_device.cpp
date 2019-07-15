@@ -73,10 +73,8 @@ i386_device::i386_device(VM_TEMPLATE* parent_vm, EMU* parent_emu)
 	m_ferr_err_value = 0;
 	data_width = 32;
 
-	cache_data.clear();
+//	cache_data.clear();
 	set_device_name(_T("i386 DX CPU"));
-
-	
 }
 
 i386_device::~i386_device()
@@ -3521,7 +3519,7 @@ void i386_device::i386_common_init()
 //	} else {
 //		macache32 = m_program->cache<2, 0, ENDIANNESS_LITTLE>();
 //	}
-	cache_mem.clear();
+//	cache_mem.clear();
 	m_io = &space(AS_IO);
 	m_smi = false;
 	m_debugger_temp = 0;
@@ -4229,6 +4227,34 @@ int i386_device::run(int clocks)
 	{
 		if(d_dma != NULL) {
 			d_dma->do_dma();
+		}
+		bool now_debugging = false;
+		if((d_debugger != NULL) && (d_emu != NULL)){
+			now_debugging = d_debugger->now_debugging;
+		}
+		if(now_debugging) {
+			d_debugger->check_break_points(m_pc);
+			if(d_debugger->now_suspended) {
+				d_debugger->now_waiting = true;
+				emu->start_waiting_in_debugger();
+				while(d_debugger->now_debugging && d_debugger->now_suspended) {
+					emu->process_waiting_in_debugger();
+				}
+				emu->finish_waiting_in_debugger();
+				d_debugger->now_waiting = false;
+			}
+			if(d_debugger->now_debugging) {
+				d_mem = d_io = d_debugger;
+			} else {
+				now_debugging = false;
+			}
+			if(now_debugging) {
+				if(!d_debugger->now_going) {
+					d_debugger->now_suspended = true;
+				}
+				d_mem = d_program_stored;
+				d_io = d_io_stored;
+			}
 		}
 		if(clocks < 0) {
 			int passed_cycles = max(1, extra_cycles);

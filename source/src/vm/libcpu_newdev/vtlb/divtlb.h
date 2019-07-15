@@ -41,6 +41,7 @@ typedef uint32_t vtlb_entry;
 typedef uint32_t offs_t;
 
 // ======================> device_vtlb_interface
+#include "../address_spacename.h"
 
 class VM_TEMPLATE;
 class EMU;

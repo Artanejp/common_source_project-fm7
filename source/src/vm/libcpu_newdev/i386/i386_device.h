@@ -12,11 +12,11 @@
 #include "../softfloat/softfloat.h"
 #endif
 
-#include "debug/debugcpu.h"
-#include "./divtlb.h"
+#include "debug/debugger.h"
+#include "../divtlb.h"
 
 #include "./i386dasm.h"
-#include "./cache.h"
+//#include "./cache.h"
 
 #define SIG_I386_A20	1
 #define SIG_I386_SMI	2
@@ -36,19 +36,7 @@ typedef u64 uint64_t;
 
 #define X86_NUM_CPUS        4
 
-enum address_spacenum
-{
-	AS_0,                           // first address space
-	AS_1,                           // second address space
-	AS_2,                           // third address space
-	AS_3,                           // fourth address space
-	ADDRESS_SPACES,                 // maximum number of address spaces
-
-	// alternate address space names for common use
-	AS_PROGRAM = AS_0,              // program address space
-	AS_DATA = AS_1,                 // data address space
-	AS_IO = AS_2                    // I/O address space
-};
+#include "../address_spacenum.h"
 
 class VM_TEMPLATE;
 class EMU;
@@ -56,7 +44,7 @@ class DEBUGGER;
 class i386_device : public DEVICE
 {
 protected:
-	outpust_t outputs_reset;
+	outputs_t outputs_reset;
 	DEVICE* d_mem;
 	DEVICE* d_io;
 	DEVICE* d_dma;
@@ -74,25 +62,53 @@ public:
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 	virtual void initialize() override;
 	virtual void reset() override;
-	virtual int run(int clocks);
-	
-	virtual void write_signal(int ch, uint32_t data, uint32_t mask);
+	virtual int __FASTCALL run(int clocks);
+	virtual uint32_t __FASTCALL read_signal(int ch);
+	virtual void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
 	virtual void set_intr_line(bool line, bool pending, uint32_t bit);
 	virtual void set_extra_clock(int cycles);
 	virtual int get_extra_clock();
 	uint32_t get_pc();
 	uint32_t get_next_pc();
-	void write_debug_data8(uint32_t addr, uint32_t data);
-	void write_debug_data16(uint32_t addr, uint32_t data);
-	void write_debug_data32(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data8(uint32_t addr);
-	uint32_t read_debug_data16(uint32_t addr);
-	uint32_t read_debug_data32(uint32_t addr);
-	void write_debug_io8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_io8(uint32_t addr);
-	void write_debug_io16(uint32_t addr, uint32_t data);
-	uint32_t read_debug_io16(uint32_t addr);
-	void write_debug_io32(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL translate_address(int segment, uint32_t offset);
+//#ifdef USE_DEBUGGER
+	bool is_cpu()
+	{
+		return true;
+	}
+	bool is_debugger_available()
+	{
+		return true;
+	}
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	uint32_t get_debug_prog_addr_mask()
+	{
+		return 0xffffffff;
+	}
+	uint32_t get_debug_data_addr_mask()
+	{
+		return 0xffffffff;
+	}
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
+	void __FASTCALL write_debug_data16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data16(uint32_t addr);
+	void __FASTCALL write_debug_data32(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data32(uint32_t addr);
+	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
+	void __FASTCALL write_debug_io16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io32(uint32_t addr);
+	void __FASTCALL write_debug_io32(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io16(uint32_t addr);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	uint32_t __FASTCALL read_debug_reg(const _TCHAR *reg);
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
+	
 	
 	void set_address_mask(uint32_t mask)
 	{
@@ -140,11 +156,12 @@ public:
 	{
 		register_output_signal(&outputs_reset, dev, id, mask);
 	}
+#if 0
 	void set_cachable_region(uint32_t start, uint32_t end, DEVICE* dev = NULL, int type = CACHE_LINE_READ_WRITE)
 	{
 		cache_line *p;
 		if(dev == NULL) {
-			p = new cache_line(start, end, d_device, type);
+		p = new cache_line(start, end, d_device, type);
 		} else {
 			p = new cache_line(start, end, dev, type);
 		}
@@ -175,6 +192,7 @@ public:
 			}
 		}
 	}
+#endif
 	// configuration helpers
 #if 0
 	uint64_t debug_segbase(symbol_table &table, int params, const uint64_t *param);
@@ -216,24 +234,24 @@ protected:
 	// routines for opcodes whose operation can vary between cpu models
 	// default implementations usually just log an error message
 	virtual void opcode_cpuid();
-	virtual uint64_t opcode_rdmsr(bool &valid_msr);
-	virtual void opcode_wrmsr(uint64_t data, bool &valid_msr);
+	virtual __FASTCALL uint64_t opcode_rdmsr(bool &valid_msr);
+	virtual __FASTCALL void opcode_wrmsr(uint64_t data, bool &valid_msr);
 	virtual void opcode_invd() {}
 	virtual void opcode_wbinvd() {}
 
 	// routine to access memory
 	// ToDo: Memory cache
 #if 1
-	virtual u8 mem_pr8(offs_t address) { return d_mem->read_data8(address); }
-	virtual u16 mem_pr16(offs_t address) { return d_mem->read_data16(address); }
-	virtual u32 mem_pr32(offs_t address) { return d_mem->read_data32(address); }
+	virtual u8 __FASTCALL mem_pr8(offs_t address) { return d_mem->read_data8(address); }
+	virtual u16 __FASTCALL mem_pr16(offs_t address) { return d_mem->read_data16(address); }
+	virtual u32 __FASTCALL mem_pr32(offs_t address) { return d_mem->read_data32(address); }
 
-	virtual u8 mem_prd8(offs_t address) { return d_mem->read_data8(address); }
-	virtual u16 mem_prd16(offs_t address) { return d_mem->read_data16(address); }
-	virtual u32 mem_prd32(offs_t address) { return d_mem->read_data32(address); }
-	virtual void mem_pwd8(offs_t address, u8 data) { d_mem->write_data8(address, data); }
-	virtual void mem_pwd16(offs_t address, u16 data) { d_mem->write_data16(address, data); }
-	virtual void mem_pwd32(offs_t address, u32 data) { d_mem->write_data32(address, data); }
+	virtual u8 __FASTCALL mem_prd8(offs_t address) { return d_mem->read_data8(address); }
+	virtual u16 __FASTCALL mem_prd16(offs_t address) { return d_mem->read_data16(address); }
+	virtual u32 __FASTCALL mem_prd32(offs_t address) { return d_mem->read_data32(address); }
+	virtual void __FASTCALL mem_pwd8(offs_t address, u8 data) { d_mem->write_data8(address, data); }
+	virtual void __FASTCALL mem_pwd16(offs_t address, u16 data) { d_mem->write_data16(address, data); }
+	virtual void __FASTCALL mem_pwd32(offs_t address, u32 data) { d_mem->write_data32(address, data); }
 #else
 	virtual u8 mem_pr8(offs_t address) {
 		int n = cache_mem.size();
@@ -492,7 +510,7 @@ protected:
 	// ToDo: Memory Cache.
 	//memory_access_cache<1, 0, ENDIANNESS_LITTLE> *macache16;
 	//memory_access_cache<2, 0, ENDIANNESS_LITTLE> *macache32;
-	std::vector<cache_line *>cache_data; 
+//	std::vector<cache_line *>cache_data; 
 
 	int m_cpuid_max_input_value_eax; // Highest CPUID standard function available
 	uint32_t m_cpuid_id0, m_cpuid_id1, m_cpuid_id2;
@@ -576,79 +594,79 @@ protected:
 	void register_state_i386();
 	void register_state_i386_x87();
 	void register_state_i386_x87_xmm();
-	inline uint32_t i386_translate(int segment, uint32_t ip, int rwn);
-	inline vtlb_entry get_permissions(uint32_t pte, int wp);
-	bool i386_translate_address(int intention, offs_t *address, vtlb_entry *entry);
-	inline bool translate_address(int pl, int type, uint32_t *address, uint32_t *error);
-	inline void CHANGE_PC(uint32_t pc);
-	inline void NEAR_BRANCH(int32_t offs);
+	inline uint32_t __FASTCALL i386_translate(int segment, uint32_t ip, int rwn);
+	inline vtlb_entry __FASTCALL get_permissions(uint32_t pte, int wp);
+	bool __FASTCALL i386_translate_address(int intention, offs_t *address, vtlb_entry *entry);
+	inline bool __FASTCALL translate_address(int pl, int type, uint32_t *address, uint32_t *error);
+	inline void __FASTCALL CHANGE_PC(uint32_t pc);
+	inline void __FASTCALL NEAR_BRANCH(int32_t offs);
 	inline uint8_t FETCH();
 	inline uint16_t FETCH16();
 	inline uint32_t FETCH32();
-	inline uint8_t READ8(uint32_t ea);
-	inline uint16_t READ16(uint32_t ea);
-	inline uint32_t READ32(uint32_t ea);
-	inline uint64_t READ64(uint32_t ea);
-	inline uint8_t READ8PL0(uint32_t ea);
-	inline uint16_t READ16PL0(uint32_t ea);
-	inline uint32_t READ32PL0(uint32_t ea);
-	inline void WRITE_TEST(uint32_t ea);
-	inline void WRITE8(uint32_t ea, uint8_t value);
-	inline void WRITE16(uint32_t ea, uint16_t value);
-	inline void WRITE32(uint32_t ea, uint32_t value);
-	inline void WRITE64(uint32_t ea, uint64_t value);
-	inline uint8_t OR8(uint8_t dst, uint8_t src);
-	inline uint16_t OR16(uint16_t dst, uint16_t src);
-	inline uint32_t OR32(uint32_t dst, uint32_t src);
-	inline uint8_t AND8(uint8_t dst, uint8_t src);
-	inline uint16_t AND16(uint16_t dst, uint16_t src);
-	inline uint32_t AND32(uint32_t dst, uint32_t src);
-	inline uint8_t XOR8(uint8_t dst, uint8_t src);
-	inline uint16_t XOR16(uint16_t dst, uint16_t src);
-	inline uint32_t XOR32(uint32_t dst, uint32_t src);
-	inline uint8_t SBB8(uint8_t dst, uint8_t src, uint8_t b);
-	inline uint16_t SBB16(uint16_t dst, uint16_t src, uint16_t b);
-	inline uint32_t SBB32(uint32_t dst, uint32_t src, uint32_t b);
-	inline uint8_t ADC8(uint8_t dst, uint8_t src, uint8_t c);
-	inline uint16_t ADC16(uint16_t dst, uint16_t src, uint8_t c);
-	inline uint32_t ADC32(uint32_t dst, uint32_t src, uint32_t c);
-	inline uint8_t INC8(uint8_t dst);
-	inline uint16_t INC16(uint16_t dst);
-	inline uint32_t INC32(uint32_t dst);
+	inline uint8_t __FASTCALL READ8(uint32_t ea);
+	inline uint16_t __FASTCALL READ16(uint32_t ea);
+	inline uint32_t __FASTCALL READ32(uint32_t ea);
+	inline uint64_t __FASTCALL READ64(uint32_t ea);
+	inline uint8_t __FASTCALL READ8PL0(uint32_t ea);
+	inline uint16_t __FASTCALL READ16PL0(uint32_t ea);
+	inline uint32_t __FASTCALL READ32PL0(uint32_t ea);
+	inline void __FASTCALL WRITE_TEST(uint32_t ea);
+	inline void __FASTCALL WRITE8(uint32_t ea, uint8_t value);
+	inline void __FASTCALL WRITE16(uint32_t ea, uint16_t value);
+	inline void __FASTCALL WRITE32(uint32_t ea, uint32_t value);
+	inline void __FASTCALL WRITE64(uint32_t ea, uint64_t value);
+	inline uint8_t __FASTCALL OR8(uint8_t dst, uint8_t src);
+	inline uint16_t __FASTCALL OR16(uint16_t dst, uint16_t src);
+	inline uint32_t __FASTCALL OR32(uint32_t dst, uint32_t src);
+	inline uint8_t __FASTCALL AND8(uint8_t dst, uint8_t src);
+	inline uint16_t __FASTCALL AND16(uint16_t dst, uint16_t src);
+	inline uint32_t __FASTCALL AND32(uint32_t dst, uint32_t src);
+	inline uint8_t __FASTCALL XOR8(uint8_t dst, uint8_t src);
+	inline uint16_t __FASTCALL XOR16(uint16_t dst, uint16_t src);
+	inline uint32_t __FASTCALL XOR32(uint32_t dst, uint32_t src);
+	inline uint8_t __FASTCALL SBB8(uint8_t dst, uint8_t src, uint8_t b);
+	inline uint16_t __FASTCALL SBB16(uint16_t dst, uint16_t src, uint16_t b);
+	inline uint32_t __FASTCALL SBB32(uint32_t dst, uint32_t src, uint32_t b);
+	inline uint8_t __FASTCALL ADC8(uint8_t dst, uint8_t src, uint8_t c);
+	inline uint16_t __FASTCALL ADC16(uint16_t dst, uint16_t src, uint8_t c);
+	inline uint32_t __FASTCALL ADC32(uint32_t dst, uint32_t src, uint32_t c);
+	inline uint8_t __FASTCALL INC8(uint8_t dst);
+	inline uint16_t __FASTCALL INC16(uint16_t dst);
+	inline uint32_t __FASTCALL INC32(uint32_t dst);
 	inline uint8_t DEC8(uint8_t dst);
 	inline uint16_t DEC16(uint16_t dst);
 	inline uint32_t DEC32(uint32_t dst);
-	inline void PUSH16(uint16_t value);
-	inline void PUSH32(uint32_t value);
-	inline void PUSH32SEG(uint32_t value);
-	inline void PUSH8(uint8_t value);
+	inline void __FASTCALL PUSH16(uint16_t value);
+	inline void __FASTCALL PUSH32(uint32_t value);
+	inline void __FASTCALL PUSH32SEG(uint32_t value);
+	inline void __FASTCALL PUSH8(uint8_t value);
 	inline uint8_t POP8();
 	inline uint16_t POP16();
 	inline uint32_t POP32();
-	inline void BUMP_SI(int adjustment);
-	inline void BUMP_DI(int adjustment);
-	inline void check_ioperm(offs_t port, uint8_t mask);
-	inline uint8_t READPORT8(offs_t port);
-	inline void WRITEPORT8(offs_t port, uint8_t value);
-	inline uint16_t READPORT16(offs_t port);
-	inline void WRITEPORT16(offs_t port, uint16_t value);
-	inline uint32_t READPORT32(offs_t port);
+	inline void __FASTCALL BUMP_SI(int adjustment);
+	inline void __FASTCALL BUMP_DI(int adjustment);
+	inline void __FASTCALL check_ioperm(offs_t port, uint8_t mask);
+	inline uint8_t __FASTCALL READPORT8(offs_t port);
+	inline void __FASTCALL WRITEPORT8(offs_t port, uint8_t value);
+	inline uint16_t __FASTCALL READPORT16(offs_t port);
+	inline void __FASTCALL WRITEPORT16(offs_t port, uint16_t value);
+	inline uint32_t __FASTCALL READPORT32(offs_t port);
 	inline void WRITEPORT32(offs_t port, uint32_t value);
-	uint32_t i386_load_protected_mode_segment(I386_SREG *seg, uint64_t *desc );
-	void i386_load_call_gate(I386_CALL_GATE *gate);
-	void i386_set_descriptor_accessed(uint16_t selector);
-	void i386_load_segment_descriptor(int segment );
-	uint32_t i386_get_stack_segment(uint8_t privilege);
-	uint32_t i386_get_stack_ptr(uint8_t privilege);
+	uint32_t __FASTCALL i386_load_protected_mode_segment(I386_SREG *seg, uint64_t *desc );
+	void __FASTCALL i386_load_call_gate(I386_CALL_GATE *gate);
+	void __FASTCALL i386_set_descriptor_accessed(uint16_t selector);
+	void __FASTCALL i386_load_segment_descriptor(int segment );
+	uint32_t __FASTCALL i386_get_stack_segment(uint8_t privilege);
+	uint32_t __FASTCALL i386_get_stack_ptr(uint8_t privilege);
 	uint32_t get_flags() const;
-	void set_flags(uint32_t f );
-	void sib_byte(uint8_t mod, uint32_t* out_ea, uint8_t* out_segment);
-	void modrm_to_EA(uint8_t mod_rm, uint32_t* out_ea, uint8_t* out_segment);
-	uint32_t GetNonTranslatedEA(uint8_t modrm,uint8_t *seg);
-	uint32_t GetEA(uint8_t modrm, int rwn);
-	void i386_check_sreg_validity(int reg);
-	int i386_limit_check(int seg, uint32_t offset);
-	void i386_sreg_load(uint16_t selector, uint8_t reg, bool *fault);
+	void __FASTCALL set_flags(uint32_t f );
+	void __FASTCALL sib_byte(uint8_t mod, uint32_t* out_ea, uint8_t* out_segment);
+	void __FASTCALL modrm_to_EA(uint8_t mod_rm, uint32_t* out_ea, uint8_t* out_segment);
+	uint32_t __FASTCALL GetNonTranslatedEA(uint8_t modrm,uint8_t *seg);
+	uint32_t __FASTCALL GetEA(uint8_t modrm, int rwn);
+	void __FASTCALL i386_check_sreg_validity(int reg);
+	int __FASTCALL i386_limit_check(int seg, uint32_t offset);
+	void __FASTCALL i386_sreg_load(uint16_t selector, uint8_t reg, bool *fault);
 	void i386_trap(int irq, int irq_gate, int trap_level);
 	void i386_trap_with_error(int irq, int irq_gate, int trap_level, uint32_t error);
 	void i286_task_switch(uint16_t selector, uint8_t nested);
@@ -660,7 +678,7 @@ protected:
 	void i386_protected_mode_iret(int operand32);
 	void build_cycle_table();
 	void report_invalid_opcode();
-	void report_invalid_modrm(const char* opcode, uint8_t modrm);
+	void __FASTCALL report_invalid_modrm(const char* opcode, uint8_t modrm);
 	void i386_decode_opcode();
 	void i386_decode_two_byte();
 	void i386_decode_three_byte38();
@@ -673,11 +691,11 @@ protected:
 	void i386_decode_four_byte38f2();
 	void i386_decode_four_byte3af2();
 	void i386_decode_four_byte38f3();
-	uint8_t read8_debug(uint32_t ea, uint8_t *data);
+	uint8_t __FASTCALL read8_debug(uint32_t ea, uint8_t *data);
 	//uint32_t i386_get_debug_desc(I386_SREG *seg);
-	inline void CYCLES(int x);
-	inline void CYCLES_RM(int modrm, int r, int m);
-	uint8_t i386_shift_rotate8(uint8_t modrm, uint32_t value, uint8_t shift);
+	inline void __FASTCALL CYCLES(int x);
+	inline void __FASTCALL CYCLES_RM(int modrm, int r, int m);
+	uint8_t __FASTCALL i386_shift_rotate8(uint8_t modrm, uint32_t value, uint8_t shift);
 	void i386_adc_rm8_r8();
 	void i386_adc_r8_rm8();
 	void i386_adc_al_i8();
@@ -743,15 +761,15 @@ protected:
 	void i386_out_al_dx();
 	void i386_arpl();
 	void i386_push_i8();
-	void i386_ins_generic(int size);
+	void __FASTCALL i386_ins_generic(int size);
 	void i386_insb();
 	void i386_insw();
 	void i386_insd();
-	void i386_outs_generic(int size);
+	void __FASTCALL i386_outs_generic(int size);
 	void i386_outsb();
 	void i386_outsw();
 	void i386_outsd();
-	void i386_repeat(int invert_flag);
+	void __FASTCALL i386_repeat(int invert_flag);
 	void i386_rep();
 	void i386_repne();
 	void i386_sahf();
@@ -809,7 +827,7 @@ protected:
 	void i386_into();
 	void i386_escape();
 	void i386_hlt();
-	void i386_decimal_adjust(int direction);
+	void __FASTCALL i386_decimal_adjust(int direction);
 	void i386_daa();
 	void i386_das();
 	void i386_aaa();
@@ -824,7 +842,7 @@ protected:
 	void i386_loadall();
 	void i386_invalid();
 	void i386_xlat();
-	uint16_t i386_shift_rotate16(uint8_t modrm, uint32_t value, uint8_t shift);
+	uint16_t __FASTCALL i386_shift_rotate16(uint8_t modrm, uint32_t value, uint8_t shift);
 	void i386_adc_rm16_r16();
 	void i386_adc_r16_rm16();
 	void i386_adc_ax_i16();
@@ -925,7 +943,7 @@ protected:
 	void i386_pop_bp();
 	void i386_pop_si();
 	void i386_pop_di();
-	bool i386_pop_seg16(int segment);
+	bool __FASTCALL i386_pop_seg16(int segment);
 	void i386_pop_ds16();
 	void i386_pop_es16();
 	void i386_pop_fs16();
@@ -993,13 +1011,13 @@ protected:
 	void i386_bound_r16_m16_m16();
 	void i386_retf16();
 	void i386_retf_i16();
-	bool i386_load_far_pointer16(int s);
+	bool __FASTCALL i386_load_far_pointer16(int s);
 	void i386_lds16();
 	void i386_lss16();
 	void i386_les16();
 	void i386_lfs16();
 	void i386_lgs16();
-	uint32_t i386_shift_rotate32(uint8_t modrm, uint32_t value, uint8_t shift);
+	uint32_t __FASTCALL i386_shift_rotate32(uint8_t modrm, uint32_t value, uint8_t shift);
 	void i386_adc_rm32_r32();
 	void i386_adc_r32_rm32();
 	void i386_adc_eax_i32();
@@ -1102,7 +1120,7 @@ protected:
 	void i386_pop_ebp();
 	void i386_pop_esi();
 	void i386_pop_edi();
-	bool i386_pop_seg32(int segment);
+	bool __FASTCALL i386_pop_seg32(int segment);
 	void i386_pop_ds32();
 	void i386_pop_es32();
 	void i386_pop_fs32();
@@ -1170,7 +1188,7 @@ protected:
 	void i386_bound_r32_m32_m32();
 	void i386_retf32();
 	void i386_retf_i32();
-	void i386_load_far_pointer32(int s);
+	void __FASTCALL i386_load_far_pointer32(int s);
 	void i386_lds32();
 	void i386_lss32();
 	void i386_les32();
@@ -1197,14 +1215,14 @@ protected:
 	void i486_bswap_edi();
 	void i486_mov_cr_r32();
 	inline void MMXPROLOG();
-	inline void READMMX(uint32_t ea,MMX_REG &r);
-	inline void WRITEMMX(uint32_t ea,MMX_REG &r);
-	inline void READXMM(uint32_t ea,XMM_REG &r);
-	inline void WRITEXMM(uint32_t ea,XMM_REG &r);
-	inline void READXMM_LO64(uint32_t ea,XMM_REG &r);
-	inline void WRITEXMM_LO64(uint32_t ea,XMM_REG &r);
-	inline void READXMM_HI64(uint32_t ea,XMM_REG &r);
-	inline void WRITEXMM_HI64(uint32_t ea,XMM_REG &r);
+	inline void __FASTCALL READMMX(uint32_t ea,MMX_REG &r);
+	inline void __FASTCALL WRITEMMX(uint32_t ea,MMX_REG &r);
+	inline void __FASTCALL READXMM(uint32_t ea,XMM_REG &r);
+	inline void __FASTCALL WRITEXMM(uint32_t ea,XMM_REG &r);
+	inline void __FASTCALL READXMM_LO64(uint32_t ea,XMM_REG &r);
+	inline void __FASTCALL WRITEXMM_LO64(uint32_t ea,XMM_REG &r);
+	inline void __FASTCALL READXMM_HI64(uint32_t ea,XMM_REG &r);
+	inline void __FASTCALL WRITEXMM_HI64(uint32_t ea,XMM_REG &r);
 	void pentium_rdmsr();
 	void pentium_wrmsr();
 	void pentium_rdtsc();
@@ -1520,27 +1538,27 @@ protected:
 	void sse_movdq2q_r64_r128();
 	void sse_cvtpd2dq_r128_rm128();
 	void sse_lddqu_r128_m128();
-	inline void sse_predicate_compare_single(uint8_t imm8, XMM_REG d, XMM_REG s);
-	inline void sse_predicate_compare_double(uint8_t imm8, XMM_REG d, XMM_REG s);
-	inline void sse_predicate_compare_single_scalar(uint8_t imm8, XMM_REG d, XMM_REG s);
-	inline void sse_predicate_compare_double_scalar(uint8_t imm8, XMM_REG d, XMM_REG s);
-	inline floatx80 READ80(uint32_t ea);
-	inline void WRITE80(uint32_t ea, floatx80 t);
-	inline void x87_set_stack_top(int top);
-	inline void x87_set_tag(int reg, int tag);
-	void x87_write_stack(int i, floatx80 value, bool update_tag);
+	inline void __FASTCALL sse_predicate_compare_single(uint8_t imm8, XMM_REG d, XMM_REG s);
+	inline void __FASTCALL sse_predicate_compare_double(uint8_t imm8, XMM_REG d, XMM_REG s);
+	inline void __FASTCALL sse_predicate_compare_single_scalar(uint8_t imm8, XMM_REG d, XMM_REG s);
+	inline void __FASTCALL sse_predicate_compare_double_scalar(uint8_t imm8, XMM_REG d, XMM_REG s);
+	inline floatx80 __FASTCALL READ80(uint32_t ea);
+	inline void __FASTCALL WRITE80(uint32_t ea, floatx80 t);
+	inline void __FASTCALL x87_set_stack_top(int top);
+	inline void __FASTCALL x87_set_tag(int reg, int tag);
+	void __FASTCALL x87_write_stack(int i, floatx80 value, bool update_tag);
 	inline void x87_set_stack_underflow();
 	inline void x87_set_stack_overflow();
 	int x87_inc_stack();
 	int x87_dec_stack();
 	int x87_check_exceptions();
-	inline void x87_write_cw(uint16_t cw);
+	inline __FASTCALL void x87_write_cw(uint16_t cw);
 	void x87_reset();
-	floatx80 x87_add(floatx80 a, floatx80 b);
-	floatx80 x87_sub(floatx80 a, floatx80 b);
-	floatx80 x87_mul(floatx80 a, floatx80 b);
-	floatx80 x87_div(floatx80 a, floatx80 b);
-	void x87_fadd_m32real(uint8_t modrm);
+	floatx80 __FASTCALL x87_add(floatx80 a, floatx80 b);
+	floatx80 __FASTCALL x87_sub(floatx80 a, floatx80 b);
+	floatx80 __FASTCALL x87_mul(floatx80 a, floatx80 b);
+	floatx80 __FASTCALL x87_div(floatx80 a, floatx80 b);
+	void __FASTCALL x87_fadd_m32real(uint8_t modrm);
 	void x87_fadd_m64real(uint8_t modrm);
 	void x87_fadd_st_sti(uint8_t modrm);
 	void x87_fadd_sti_st(uint8_t modrm);
@@ -1712,9 +1730,9 @@ protected:
 	virtual u16 mem_pr16(offs_t address) override { return macache16->read_data16(address); };
 	virtual u32 mem_pr32(offs_t address) override { return macache16->read_data32(address); };
 #else
-	virtual u8 mem_pr8(offs_t address) override { return d_mem->read_data8(address); };
-	virtual u16 mem_pr16(offs_t address) override { return d_mem->read_data16(address); };
-	virtual u32 mem_pr32(offs_t address) override { return d_mem->read_data32(address); };
+	virtual u8 __FASTCALL mem_pr8(offs_t address) override { return d_mem->read_data8(address); };
+	virtual u16 __FASTCALL mem_pr16(offs_t address) override { return d_mem->read_data16(address); };
+	virtual u32 __FASTCALL mem_pr32(offs_t address) override { return d_mem->read_data32(address); };
 #endif	
 };
 
@@ -1750,10 +1768,10 @@ public:
 
 protected:
 
-	virtual bool execute_input_edge_triggered(int inputnum) const override { return inputnum == SIG_CPU_NMI || inputnum == SIG_CPU_SMI; }
-	virtual void write_signal(int ch, uint32_t data, uint32_t mask) override;
-	virtual uint64_t opcode_rdmsr(bool &valid_msr) override;
-	virtual void opcode_wrmsr(uint64_t data, bool &valid_msr) override;
+	virtual bool __FASTCALL execute_input_edge_triggered(int inputnum) const override { return inputnum == SIG_CPU_NMI || inputnum == SIG_CPU_SMI; }
+	virtual void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask) override;
+	virtual __FASTCALL uint64_t opcode_rdmsr(bool &valid_msr) override;
+	virtual __FASTCALL void opcode_wrmsr(uint64_t data, bool &valid_msr) override;
 };
 
 
@@ -1789,8 +1807,8 @@ public:
 	virtual void reset() override;
 
 protected:
-	virtual uint64_t opcode_rdmsr(bool &valid_msr) override;
-	virtual void opcode_wrmsr(uint64_t data, bool &valid_msr) override;
+	virtual uint64_t __FASTCALL opcode_rdmsr(bool &valid_msr) override;
+	virtual void __FASTCALL opcode_wrmsr(uint64_t data, bool &valid_msr) override;
 };
 
 
@@ -1868,8 +1886,8 @@ public:
 	virtual void reset() override;
 
 protected:
-	virtual uint64_t opcode_rdmsr(bool &valid_msr) override;
-	virtual void opcode_wrmsr(uint64_t data, bool &valid_msr) override;
+	virtual uint64_t __FASTCALL opcode_rdmsr(bool &valid_msr) override;
+	virtual void __FASTCALL opcode_wrmsr(uint64_t data, bool &valid_msr) override;
 };
 
 /*
