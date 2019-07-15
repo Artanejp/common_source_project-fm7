@@ -280,7 +280,7 @@ static void set_test_line(i8086_state *cpustate, int state)
 	cpustate->test_state = !state;
 }
 
-static void cpu_wait_v30(cpu_state *cpustate,int clocks)
+static void __FASTCALL cpu_wait_v30(cpu_state *cpustate,int clocks)
 {
 	if(clocks < 0) return;
 	if(cpustate->waitfactor == 0) return;
@@ -339,7 +339,7 @@ CPU_EXECUTE( v30 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_icount += passed_icount;
 //#endif
-			//cpu_wait_v30(cpustate, passed_icount);
+			cpu_wait_v30(cpustate, passed_icount);
 			return passed_icount;
 		} else {
 			cpustate->icount += icount;
@@ -356,7 +356,7 @@ CPU_EXECUTE( v30 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_icount += base_icount - cpustate->icount;
 //#endif
-			//cpu_wait_v30(cpustate, base_icount - cpustate->icount);
+			cpu_wait_v30(cpustate, base_icount - cpustate->icount);
 			return base_icount - cpustate->icount;
 		}
 	}
@@ -456,5 +456,7 @@ CPU_EXECUTE( v30 )
 		cpustate->icount = 0;
 	}
 	cpu_wait_v30(cpustate, base_icount - cpustate->icount);
-	return base_icount - cpustate->icount;
+	int passed_icount = base_icount - cpustate->icount;
+	cpustate->icount = 0;
+	return passed_icount;
 }

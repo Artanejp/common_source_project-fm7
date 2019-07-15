@@ -3680,8 +3680,8 @@ static INLINE __FASTCALL void cpu_wait_i386(i386_state *cpustate,int clocks)
 	if(wcount >= 65536) {
 		uint32_t ncount;
 		ncount = wcount >> 16;
-		//wcount = wcount - (ncount << 16);
-		wcount = wcount & 0x0000ffff;
+		wcount = wcount - (ncount << 16);
+		//wcount = wcount & 0x0000ffff;
 		cpustate->extra_cycles += (int)ncount;
 	}
 //	if(cpustate->memory_wait > 0) ncount += cpustate->memory_wait; // Temporally disable memory wait.
@@ -3733,11 +3733,12 @@ static CPU_EXECUTE( i386 )
 			int passed_cycles = max(1, cpustate->extra_cycles);
 			// this is main cpu, cpustate->cycles is not used
 			/*cpustate->cycles = */cpustate->extra_cycles = 0;
+//			cpu_wait_i386(cpustate, 1);
 			cpustate->tsc += passed_cycles;
 //#ifdef USE_DEBUGGER
 			cpustate->total_cycles += passed_cycles;
 //#endif
-			//cpu_wait_i386(cpustate, passed_cycles);
+			cpu_wait_i386(cpustate, passed_cycles);
 			return passed_cycles;
 		} else {
 			cpustate->cycles += cycles;
@@ -3746,6 +3747,7 @@ static CPU_EXECUTE( i386 )
 			/* adjust for any interrupts that came in */
 			cpustate->cycles -= cpustate->extra_cycles;
 			cpustate->extra_cycles = 0;
+//			cpu_wait_i386(cpustate, cycles);
 
 			/* if busreq is raised, spin cpu while remained clock */
 			if (cpustate->cycles > 0) {
@@ -3756,15 +3758,17 @@ static CPU_EXECUTE( i386 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_cycles += passed_cycles;
 //#endif
-			//cpu_wait_i386(cpustate, passed_cycles);
+			cpu_wait_i386(cpustate, passed_cycles);
 			return passed_cycles;
 		}
 	}
-
+	int ncycles;
 	if (cycles == -1) {
 		cpustate->cycles = 1;
+		ncycles = 1;
 	} else {
 		cpustate->cycles += cycles;
+		ncycles = cycles;
 	}
 	cpustate->base_cycles = cpustate->cycles;
 
@@ -3972,6 +3976,7 @@ static CPU_EXECUTE( i386 )
 	}
 	int passed_cycles = cpustate->base_cycles - cpustate->cycles;
 	cpustate->tsc += passed_cycles;
+	cpustate->cycles = 0;
 	cpu_wait_i386(cpustate, passed_cycles);
 	return passed_cycles;
 }

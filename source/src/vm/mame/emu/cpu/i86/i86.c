@@ -258,7 +258,7 @@ static void set_test_line(i8086_state *cpustate, int state)
 	cpustate->test_state = !state;
 }
 
-static void cpu_wait_i86(i8086_state *cpustate,int clocks)
+static void __FASTCALL cpu_wait_i86(i8086_state *cpustate,int clocks)
 {
 	uint32_t ncount = 0;
 	if(clocks < 0) return;
@@ -317,7 +317,7 @@ CPU_EXECUTE( i8086 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_icount += passed_icount;
 //#endif
-			//cpu_wait_i86(cpustate, passed_icount);
+			cpu_wait_i86(cpustate, passed_icount);
 			return passed_icount;
 		} else {
 			cpustate->icount += icount;
@@ -334,8 +334,10 @@ CPU_EXECUTE( i8086 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_icount += base_icount - cpustate->icount;
 //#endif
-			//cpu_wait_i86(cpustate, base_icount - cpustate->icount);
-			return base_icount - cpustate->icount;
+			cpu_wait_i86(cpustate, base_icount - cpustate->icount);
+			int passed_icount = base_icount - cpustate->icount;
+			cpustate->icount = 0;
+			return passed_icount;
 		}
 	}
 
@@ -435,7 +437,9 @@ CPU_EXECUTE( i8086 )
 		cpustate->icount = 0;
 	}
 	cpu_wait_i86(cpustate, base_icount - cpustate->icount);
-	return base_icount - cpustate->icount;
+	int passed_icount = base_icount - cpustate->icount;
+	cpustate->icount = 0;
+	return passed_icount;
 }
 
 #include "i86.h"
@@ -452,7 +456,7 @@ CPU_EXECUTE( i8086 )
 #include "instr186.c"
 #undef I80186
 
-static void cpu_wait_i186(cpu_state *cpustate,int clocks)
+static void __FASTCALL cpu_wait_i186(cpu_state *cpustate,int clocks)
 {
 	if(clocks < 0) return;
 	if(cpustate->waitfactor == 0) return;
@@ -529,7 +533,9 @@ CPU_EXECUTE( i80186 )
 			cpustate->total_icount += base_icount - cpustate->icount;
 //#endif
 			cpu_wait_i186(cpustate, base_icount - cpustate->icount);
-			return base_icount - cpustate->icount;
+			int passed_icount = base_icount - cpustate->icount;
+			cpustate->icount = 0;
+			return passed_icount;
 		}
 	}
 
@@ -629,6 +635,8 @@ CPU_EXECUTE( i80186 )
 		cpustate->icount = 0;
 	}
 	cpu_wait_i186(cpustate, base_icount - cpustate->icount);
-	return base_icount - cpustate->icount;
+	int passed_icount = base_icount - cpustate->icount;
+	cpustate->icount = 0;
+	return passed_icount;
 }
 

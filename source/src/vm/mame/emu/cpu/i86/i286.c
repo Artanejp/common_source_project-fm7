@@ -264,7 +264,7 @@ static void set_irq_line(i80286_state *cpustate, int irqline, int state)
 	cpustate->icount = first_icount;
 }
 
-static void cpu_wait_i286(cpu_state *cpustate,int clocks)
+static void __FASTCALL cpu_wait_i286(cpu_state *cpustate,int clocks)
 {
 	uint32_t ncount = 0;
 	if(clocks < 0) return;
@@ -323,7 +323,7 @@ static CPU_EXECUTE( i80286 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_icount += passed_icount;
 //#endif
-			//cpu_wait_i286(cpustate,passed_icount);
+			cpu_wait_i286(cpustate,passed_icount);
 			return passed_icount;
 		} else {
 			cpustate->icount += icount;
@@ -340,8 +340,11 @@ static CPU_EXECUTE( i80286 )
 //#ifdef USE_DEBUGGER
 			cpustate->total_icount += base_icount - cpustate->icount;
 //#endif
-			//cpu_wait_i286(cpustate, base_icount - cpustate->icount);
-			return base_icount - cpustate->icount;
+			cpu_wait_i286(cpustate, base_icount - cpustate->icount);
+			int passed_icount = base_icount - cpustate->icount;
+			cpustate->icount = 0;
+			return passed_icount;
+
 		}
 	}
 
@@ -461,7 +464,10 @@ static CPU_EXECUTE( i80286 )
 		cpustate->icount = 0;
 	}
 	cpu_wait_i286(cpustate, base_icount - cpustate->icount);
-	return base_icount - cpustate->icount;
+	int passed_icount = base_icount - cpustate->icount;
+	cpustate->icount = 0;
+	return passed_icount;
+
 }
 
 static CPU_INIT( i80286 )
