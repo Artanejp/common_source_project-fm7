@@ -81,6 +81,17 @@ void CPUREG::reset()
 #endif
 }
 
+void CPUREG::set_intr_line(bool line, bool pending, uint32_t bit)
+{
+#if defined(UPPER_I386) || defined(HAS_I286)
+	if((use_v30) && (enable_v30) && (d_v30cpu != NULL)) {
+		d_v30cpu->set_intr_line(line, pending, bit);
+		return;
+	}
+#endif
+	d_cpu->set_intr_line(line, pending, bit);
+}
+
 void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
 {
 	if(ch == SIG_CPU_NMI) {

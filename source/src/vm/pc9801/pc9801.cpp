@@ -362,7 +362,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_cpu(cpu, cpu_clocks);
 #if defined(HAS_I286) || defined(UPPER_I386)
 	if((config.dipswitch & (1 << DIPSWITCH_POSITION_CPU_MODE)) != 0) { // You should add manually.
-		event->set_context_cpu(v30cpu, 8000 * 1000);
+		event->set_context_cpu(v30cpu, 7987248);
 	}
 #endif	
 #if defined(SUPPORT_320KB_FDD_IF)
@@ -447,7 +447,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	rtcreg->set_context_output(rtc, SIG_UPD1990A_DIN, 0x20, 0);
 	rtcreg->set_context_output(rtc, SIG_UPD1990A_STB, 0x08, 0);
 	rtcreg->set_context_output(rtc, SIG_UPD1990A_CLK, 0x10, 0);
-	pic->set_context_cpu(cpu);
+//	pic->set_context_cpu(cpu);
+	pic->set_context_cpu(cpureg);
 	rtc->set_context_dout(pio_sys, SIG_I8255_PORT_B, 1);
 	
 	if(sound_type == 0 || sound_type == 1) {
@@ -1013,8 +1014,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		device->initialize();
 	}
 	initialize_ports();
-	set_cpu_clock_with_switch(((config.cpu_type & 1) != 0) ? 1 : 0);
-
+	set_cpu_clock_with_switch(config.cpu_type);
+	
 #if defined(_PC9801) || defined(_PC9801E)
 	fdc_2hd->get_disk_handler(0)->drive_num = 0;
 	fdc_2hd->get_disk_handler(1)->drive_num = 1;
@@ -1087,7 +1088,7 @@ void VM::set_cpu_clock_with_switch(int speed_type)
 		pit_clock_8mhz = true;
 	}
 #elif defined(_PC9801VM) || defined(_PC98DO) || defined(_PC98DOPLUS) || defined(_PC9801VX) || defined(_PC98XL)
-	if(speed_type != 0) {
+	if(speed_type != 0) { // This also include V30CPU/8MHz.
 		// 10MHz/16MHz -> 8MHz
 		cpu_clocks = 7987248;
 		pit_clock_8mhz = true;
@@ -1095,9 +1096,12 @@ void VM::set_cpu_clock_with_switch(int speed_type)
 		pit_clock_8mhz = false;
 	}
 #elif defined(_PC9801RA) || defined(_PC98RL)
-	if(speed_type != 0) {
+	if(speed_type == 1) {
 		// 20MHz -> 16MHz
 		cpu_clocks = 15974496;
+		pit_clock_8mhz = true;
+	} else if(speed_type == 2) { // V30 8MHz...
+		cpu_clocks = 7987248;
 		pit_clock_8mhz = true;
 	} else {
 		pit_clock_8mhz = false;
@@ -1112,7 +1116,9 @@ void VM::set_cpu_clock_with_switch(int speed_type)
 		//out_debug_log(_T("CLOCK=%d WAIT FACTOR=%d"), cpu_clocks, waitfactor);
 	}
 	cpu->write_signal(SIG_CPU_WAIT_FACTOR, waitfactor, 0xffffffff);
-	
+#if defined(UPPER_I386)
+	v30cpu->write_signal(SIG_CPU_WAIT_FACTOR, 0, 0xffffffff);
+#endif	
 	uint8_t prn_port_b = pio_prn->read_signal(SIG_I8255_PORT_B);
 	prn_port_b &= (uint8_t)(~0x20);
 	if(pit_clock_8mhz) {
@@ -1474,12 +1480,12 @@ void VM::reset()
 		port_b3 &= ~0x40;
 	}
 	pio_mouse->write_signal(SIG_I8255_PORT_B, port_b3, 0xff);
-	set_cpu_clock_with_switch(((config.cpu_type & 1) != 0) ? 1 : 0);
-	
+	set_cpu_clock_with_switch(config.cpu_type);
+
 #if defined(USE_MONITOR_TYPE)
-	set_wait(config.monitor_type, config.cpu_type & 1);
+	set_wait(config.monitor_type, config.cpu_type);
 #else
-	set_wait(0, config.cpu_type & 1);
+	set_wait(0, config.cpu_type);
 #endif	
 	
 	uint8_t port_c3 = pio_mouse->read_signal(SIG_I8255_PORT_C);
@@ -1999,11 +2005,13 @@ bool VM::is_frame_skippable()
 
 void VM::update_config()
 {
-	set_cpu_clock_with_switch((config.cpu_type != 0) ? 1 : 0);
+	if((config.cpu_type & 2) == 0) { // This don't change if using V30CPU.
+		set_cpu_clock_with_switch(config.cpu_type & 1);
+	}
 #if defined(USE_MONITOR_TYPE)
-	set_wait(config.monitor_type, config.cpu_type & 1);
+	set_wait(config.monitor_type, config.cpu_type);
 #else
-	set_wait(0, config.cpu_type & 1);
+	set_wait(0, config.cpu_type);
 #endif	
 	{
 		uint8_t mouse_port_b = pio_mouse->read_signal(SIG_I8255_PORT_B);
@@ -2117,11 +2125,12 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 #endif
 	state_fio->StateValue(sound_type);
 	if(loading) {
-		set_cpu_clock_with_switch((config.cpu_type != 0) ? 1 : 0);
+		set_cpu_clock_with_switch(config.cpu_type);
+
 #if defined(USE_MONITOR_TYPE)
-		set_wait(config.monitor_type, config.cpu_type & 1);
+		set_wait(config.monitor_type, config.cpu_type);
 #else
-		set_wait(0, config.cpu_type & 1);
+		set_wait(0, config.cpu_type);
 #endif	
 	}
  	return true;

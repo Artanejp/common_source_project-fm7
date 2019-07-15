@@ -97,6 +97,7 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
+	void set_intr_line(bool line, bool pending, uint32_t bit);
 #if defined(UPPER_I386)
 	void set_context_cpu(I386* device)
 #elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
