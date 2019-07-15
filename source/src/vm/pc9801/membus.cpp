@@ -186,6 +186,16 @@ void MEMBUS::initialize()
 #if defined(SUPPORT_NEC_EMS)
 	memset(nec_ems, 0, sizeof(nec_ems));
 #endif
+	// Belows are UGLY HACK from mame.
+#if defined(_PC9801RA)
+//	read_bios(_T("00000.ROM"), &(ram[0x00000]), 0x8000);
+//	read_bios(_T("C0000.ROM"), &(ram[0xC0000]), 0x8000);
+//	read_bios(_T("C8000.ROM"), &(ram[0xC8000]), 0x8000);
+//	read_bios(_T("D0000.ROM"), &(ram[0xD0000]), 0x8000);
+//	read_bios(_T("E8000.ROM"), &(bios_ram[0x00000]), 0x8000);
+//	read_bios(_T("F0000.ROM"), &(bios_ram[0x08000]), 0x8000);
+//	read_bios(_T("F8000.ROM"), &(bios_ram[0x10000]), 0x8000);
+#endif
 	last_access_is_interam = false;
 	config_intram();
 	update_bios();
@@ -206,6 +216,7 @@ void MEMBUS::reset()
 #if defined(SUPPORT_BIOS_RAM)
 	bios_ram_selected = false;
 	shadow_ram_selected = true;
+//	memcpy(bios_ram, bios, min((int)sizeof(bios), (int)sizeof(bios_ram))); // ;
 #else
 	shadow_ram_selected = false;
 #endif
@@ -434,7 +445,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 	case 0x0461:
 		// http://www.webtech.co.jp/company/doc/undocumented_mem/io_mem.txt
 		// ToDo: Cache flush for i486 or later.
-		{
+		if(data >= 0x08) {
 			uint32_t _bak = window_80000h;
 			window_80000h = (data & 0xfe) << 16;
 			if(_bak != window_80000h) {
@@ -464,7 +475,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 	case 0x0463:
 		// http://www.webtech.co.jp/company/doc/undocumented_mem/io_mem.txt
 		// ToDo: Cache flush for i486 or later.
-		{
+		if(data >= 0x08) {
 			uint32_t _bak = window_a0000h;
 			window_a0000h = (data & 0xfe) << 16;
 			if(_bak != window_a0000h) {
@@ -563,7 +574,7 @@ uint32_t MEMBUS::read_io8(uint32_t addr)
 		break;
 #endif
 	case 0x0567:
-		return (uint8_t)(sizeof(ram) >> 17);
+		return (uint8_t)((sizeof(ram) - 0x100000) >> 17);
 #endif
 	// dummy for no cases
 	default:
@@ -725,10 +736,9 @@ void MEMBUS::update_bios()
 	}
 #if defined(SUPPORT_ITF_ROM)
 	if(itf_selected) {
-		unset_memory_rw(0x00100000 - sizeof(bios), 0x000fffff);
+		unset_memory_w(0x00100000 - sizeof(bios), 0x000fffff);
 		set_memory_r(0x00100000 - sizeof(itf), 0x000fffff, itf);
-//		unset_memory_w(0x00100000 - sizeof(itf), 0x000fffff);
-	} //else
+	}
 #endif
 	set_wait_rw(0x00100000 - sizeof(bios), 0xfffff, introm_wait);
 	
@@ -755,7 +765,7 @@ void MEMBUS::update_bios()
 	if((page08_intram_selected) /*&& (shadow_ram_selected)*/){
 		set_wait_rw(0x80000, 0x9ffff, bank08_wait);
 		if((window_80000h == 0xc0000)) {
-#if defined(UPPER_I386)  && defined(SUPPORT_BIOS_RAM)
+#if defined(_PC9801RA21)//defined(UPPER_I386)  && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
 				set_memory_rw(0x80000, 0x9ffff, &(ram[window_80000h]));
 			} else {
@@ -765,7 +775,7 @@ void MEMBUS::update_bios()
 			copy_table_rw(0x80000, 0xc0000, 0xdffff);
 #endif
 		} else 	if(window_80000h == 0xe0000) {
-#if defined(UPPER_I386) && defined(SUPPORT_BIOS_RAM)
+#if defined(_PC9801RA) || defined(_PC9801RA2) || defined(_PC9801RA21)//defined(UPPER_I386) && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
 	#if !defined(SUPPORT_HIRESO)
 				//copy_table_rw(0x80000, 0xe0000, 0xe7fff);
@@ -822,7 +832,7 @@ void MEMBUS::update_bios()
 	}
 	/*if((page08_intram_selected) )*/{
 		if((window_a0000h == 0xc0000)) {
-#if defined(UPPER_I386) && defined(SUPPORT_BIOS_RAM)
+#if defined(_PC9801RA21) //defined(UPPER_I386) && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
 				//copy_table_rw(0xa0000, 0xc0000, 0xdffff); 
 				set_memory_rw(0xa0000, 0xbffff, &(ram[window_a0000h]));
@@ -833,7 +843,7 @@ void MEMBUS::update_bios()
 			copy_table_rw(0xa0000, 0xc0000, 0xdffff);
 #endif
 		} else 	if(window_a0000h == 0xe0000) {
-#if defined(UPPER_I386) && defined(SUPPORT_BIOS_RAM)
+#if defined(_PC9801RA) || defined(_PC9801RA2) || defined(_PC9801RA21) //defined(UPPER_I386) && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
 	#if !defined(SUPPORT_HIRESO)
 				//copy_table_rw(0xa0000, 0xe0000, 0xe7fff); 

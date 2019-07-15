@@ -203,7 +203,7 @@
 		#define SUPPORT_EGC
 		#define HAS_UPD4990A
 	#endif
-	#if !defined(SUPPORT_HIRESO) /*&& !(defined(UPPER_I386))*/
+	#if !defined(SUPPORT_HIRESO)/* && !(defined(UPPER_I386))*/
 		#define SUPPORT_NEC_EMS
 	#endif
 	#define SUPPORT_SASI_IF

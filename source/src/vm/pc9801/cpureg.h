@@ -66,6 +66,7 @@ private:
 	uint64_t init_clock;
 	
 	outputs_t outputs_nmi; // NMI must route via CPUREG::
+	outputs_t outputs_cputype; // CPU Type 0 = Normal/ 1 = V30(SUB)
 #if defined(UPPER_I386) || defined(HAS_I286)
 	bool use_v30;
 	bool enable_v30;
@@ -78,6 +79,7 @@ public:
 	{
 		event_wait = -1;
 		initialize_output_signals(&outputs_nmi);
+		initialize_output_signals(&outputs_cputype);
 		set_device_name(_T("CPU I/O"));
 	}
 	~CPUREG() {}
@@ -123,6 +125,10 @@ public:
 	void set_context_piosys(DEVICE* device)
 	{
 		d_pio = device;
+	}
+	void set_context_cputype(DEVICE* device, int id, uint32_t mask, int shift)
+	{
+		register_output_signal(&outputs_cputype, device, id, mask, shift);
 	}
 };
 

@@ -472,6 +472,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpureg->set_context_piosys(pio_sys);
 	#if defined(HAS_I286) || defined(UPPER_I386)
 	cpureg->set_context_v30(v30cpu);
+	cpureg->set_context_cputype(pio_prn, SIG_I8255_PORT_B, 0x02, 0);
 	#endif
 #endif
 	display->set_context_pic(pic);
@@ -678,8 +679,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x0043, sio_kbd, 1);
 	
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-	io->set_iomap_single_w(0x0050, cpureg);
-	io->set_iomap_single_w(0x0052, cpureg);
+	io->set_iomap_single_w(0x0050, cpureg); // NMI
+	io->set_iomap_single_w(0x0052, cpureg); // NMI
 
 	// ToDo: Before PC9801VM.
 	io->set_iomap_single_r(0x005c, cpureg);
@@ -1371,7 +1372,7 @@ void VM::initialize_ports()
 //	port_b2 |= 0x08; // HGC OFF
 	port_b2 |= 0x04; // Printer BUSY#, 1 = Inactive, 0 = Active (BUSY)
 #if defined(HAS_V30) || defined(HAS_V33)
-	port_b2 |= 0x02; // CPUT, 1 = V30/V33, 0 = 80x86
+	port_b2 |= 0x00; // CPUT, 1 = V30/V33, 0 = 80x86
 #endif
 #if defined(_PC9801VF) || defined(_PC9801U)
 	port_b2 |= 0x01; // VF, 1 = PC-9801VF/U
