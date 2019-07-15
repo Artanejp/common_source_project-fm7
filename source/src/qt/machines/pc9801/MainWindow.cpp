@@ -123,7 +123,7 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[2]->setVisible(false);
 	actionSoundDevice[3]->setVisible(false);
 #endif
-#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+#if defined(HAS_I286) || defined(UPPER_I386)
 	actionSUB_V30->setText(QApplication::translate("MainWindow", "Enable V30 SUB CPU(need RESTART).", 0));
 	actionSUB_V30->setToolTip(QApplication::translate("MainWindow", "Enable emulation of V30 SUB CPU.\nThis may make emulation speed slower.\nYou must restart emulator after reboot.", 0));
 #endif
@@ -220,6 +220,22 @@ void META_MainWindow::retranslateUi(void)
 	
 	actionDebugger[1]->setVisible(true);
 	actionDebugger[2]->setVisible(true);
+#elif defined(HAS_I286)
+	actionDebugger[0]->setText(QApplication::translate("MainWindow", "i80286 Main CPU", 0));
+	actionDebugger[1]->setText(QApplication::translate("MainWindow", "V30 Sub CPU", 0));
+	actionDebugger[1]->setVisible(true);
+#elif defined(HAS_I386)
+	actionDebugger[0]->setText(QApplication::translate("MainWindow", "i80386 Main CPU", 0));
+	actionDebugger[1]->setText(QApplication::translate("MainWindow", "V30 Sub CPU", 0));
+	actionDebugger[1]->setVisible(true);
+#elif defined(HAS_I486)
+	actionDebugger[0]->setText(QApplication::translate("MainWindow", "i80486 Main CPU", 0));
+	actionDebugger[1]->setText(QApplication::translate("MainWindow", "V30 Sub CPU", 0));
+	actionDebugger[1]->setVisible(true);
+#elif defined(UPPER_I386)
+	actionDebugger[0]->setText(QApplication::translate("MainWindow", "i80x86 Main CPU", 0));
+	actionDebugger[1]->setText(QApplication::translate("MainWindow", "V30 Sub CPU", 0));
+	actionDebugger[1]->setVisible(true);
 #endif	
 #endif
 #ifdef USE_MONITOR_TYPE
@@ -231,13 +247,13 @@ void META_MainWindow::retranslateUi(void)
 void META_MainWindow::setupUI_Emu(void)
 {
 #ifdef USE_CPU_TYPE
-	#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+	#if defined(HAS_I286) || defined(UPPER_I386)
 	ConfigCPUTypes(3);
 	#else
 	ConfigCPUTypes(2);
 	#endif
 #endif
-#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+#if defined(HAS_I286) || defined(UPPER_I386)
 	actionSUB_V30 = new Action_Control_98(this, using_flags);
 	actionSUB_V30->setCheckable(true);
 	actionSUB_V30->setVisible(true);
