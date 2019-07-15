@@ -25,7 +25,7 @@
 namespace PC9801 {
 	class DISPLAY;
 }
-#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+#if defined(UPPER_I386)
 	#if defined(SUPPORT_32BIT_ADDRESS)
 	#define RAM_SIZE	0x1000000	// 16MB
 	#elif defined(SUPPORT_24BIT_ADDRESS)

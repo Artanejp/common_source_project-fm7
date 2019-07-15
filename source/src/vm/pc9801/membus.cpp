@@ -76,10 +76,6 @@ static const uint8_t pseudo_sasi_bios[] = {
 			0x00,0x58,0xcf,0x73,0x61,0x73,0x69,0x62,0x69,0x6f,0x73,
 };
 
-
-#if defined(HAS_I386) || defined(HAS_I386) || defined(HAS_PENTIUM)
-#define UPPER_I386 1
-#endif
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 #if !defined(SUPPORT_HIRESO)
 	#define UPPER_MEMORY_24BIT	0x00fa0000

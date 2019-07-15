@@ -22,7 +22,7 @@
 
 #include "../i8259.h"
 
-#if defined(HAS_I386) || defined(HAS_I486)
+#if defined(UPPER_I386)
 #include "../i386.h"
 #elif defined(HAS_I86) || defined(HAS_V30)
 #include "../i286.h"

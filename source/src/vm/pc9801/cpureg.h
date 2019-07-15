@@ -22,7 +22,8 @@
 #define SIG_CPUREG_HALT		2
 #define SIG_CPUREG_USE_V30	3
 
-#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+
+#if defined(UPPER_I386)
 #include "../i386.h"
 #include "../v30.h"
 #elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
@@ -44,7 +45,7 @@ namespace PC9801 {
 class CPUREG : public DEVICE
 {
 private:
-#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+#if defined(UPPER_I386)
 	I386 *d_cpu;
 	V30  *d_v30cpu;
 #elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
@@ -65,8 +66,9 @@ private:
 	uint64_t init_clock;
 	
 	outputs_t outputs_nmi; // NMI must route via CPUREG::
-#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+#if defined(UPPER_I386) || defined(HAS_I286)
 	bool use_v30;
+	bool enable_v30;
 	void halt_by_use_v30();
 #endif
 	void halt_by_value(bool val);
@@ -81,7 +83,7 @@ public:
 	~CPUREG() {}
 	
 	// common functions
-#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+#if defined(UPPER_I386) || defined(HAS_I286)
 	void initialize();
 #endif
 	void reset();
@@ -93,7 +95,7 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
-#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+#if defined(UPPER_I386)
 	void set_context_cpu(I386* device)
 #elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
 	void set_context_cpu(I8086* device)
@@ -107,7 +109,7 @@ public:
 		register_output_signal(&outputs_nmi, device, SIG_CPU_NMI, 0xffffffff, 0);
 	}
 	// This will be feature developing, still not implement V30 feature.20190502 K.O
-#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_I286)
+#if defined(UPPER_I386) || defined(HAS_I286)
 	void set_context_v30(V30* device)
 	{
 		d_v30cpu = device;
@@ -123,6 +125,7 @@ public:
 		d_pio = device;
 	}
 };
+
 
 }
 #endif

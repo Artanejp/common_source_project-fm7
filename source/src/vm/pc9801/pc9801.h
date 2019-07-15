@@ -167,7 +167,11 @@
 #define DIPSWITCH_POSITION_RAM512K        (24 + 6 - 1)
 #define DIPSWITCH_POSITION_CPU_MODE       (24 + 8 - 1)
 
-
+#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM) || defined(HAS_PENTIUM_PRO) || \
+	defined(HAS_PENTIUM_MMX) || defined(HAS_PENTIUM2) || defined(HAS_PENTIUM3) || defined(HAS_PENTIUM4) || \
+	defined(HAS_MEDIAGX)
+#define UPPER_I386 1
+#endif
 
 #if defined(_PC9801) || defined(_PC9801E)
 	#define SUPPORT_CMT_IF
@@ -199,7 +203,7 @@
 		#define SUPPORT_EGC
 		#define HAS_UPD4990A
 	#endif
-	#if !defined(SUPPORT_HIRESO) /*&& !(defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM))*/
+	#if !defined(SUPPORT_HIRESO) /*&& !(defined(UPPER_I386))*/
 		#define SUPPORT_NEC_EMS
 	#endif
 	#define SUPPORT_SASI_IF
@@ -207,7 +211,7 @@
 
 #if defined(HAS_I286)
 	#define SUPPORT_24BIT_ADDRESS
-#elif defined(HAS_I386) || defined(HAS_I486)
+#elif defined(UPPER_I386)
 //	#define SUPPORT_32BIT_ADDRESS
 	#if !defined(SUPPORT_HIRESO)
 	#define SUPPORT_BIOS_RAM
@@ -351,7 +355,7 @@
 #define USE_CPU_I86
 #elif defined(HAS_V30)
 #define USE_CPU_V30
-#elif defined(HAS_I386) || defined(HAS_I486)
+#elif defined(UPPER_I386)
 #define USE_CPU_I386
 #define USE_CPU_V30
 #else
@@ -386,6 +390,7 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
+
 class EMU;
 class DEVICE;
 class EVENT;
@@ -409,7 +414,7 @@ class V30;
 #elif defined(HAS_I286)
 class I80286;
 class V30;
-#elif defined(HAS_I386) || defined(HAS_I486)
+#elif defined(UPPER_I386)
 class I386;
 class V30;
 #else
@@ -509,7 +514,7 @@ protected:
 	I8255* pio_sys;
 	I8255* pio_prn;
 	I8259* pic;
-#if defined(HAS_I386) || defined(HAS_I486)
+#if defined(UPPER_I386)
 	I386* cpu;
 	V30*    v30cpu;
 #elif  defined(HAS_V30)

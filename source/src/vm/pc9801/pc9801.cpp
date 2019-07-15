@@ -34,7 +34,7 @@
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../i8259.h"
-#if defined(HAS_I386) || defined(HAS_I486)
+#if defined(UPPER_I386)
 #include "../i386.h"
 #include "../v30.h"
 #elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
@@ -187,7 +187,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio_prn = new I8255(this, emu);		// for printer
 	pio_prn->set_device_name(_T("8255 PIO (Printer)"));
 	pic = new I8259(this, emu);
-#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+#if defined(UPPER_I386)
 	cpu = new I386(this, emu); // 80386, 80486
 	v30cpu = new V30(this, emu); // Secondary CPU
 #elif defined(HAS_V30)
@@ -356,11 +356,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	// set contexts
 	
-#if defined(HAS_I386) || defined(HAS_I486)
+#if defined(UPPER_I386)
 	cpu->set_context_extreset(cpureg, SIG_CPUREG_RESET, 0xffffffff);
 #endif
 	event->set_context_cpu(cpu, cpu_clocks);
-#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+#if defined(HAS_I286) || defined(UPPER_I386)
 	if((config.dipswitch & (1 << DIPSWITCH_POSITION_CPU_MODE)) != 0) { // You should add manually.
 		event->set_context_cpu(v30cpu, 8000 * 1000);
 	}
@@ -470,7 +470,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpureg->set_context_cpu(cpu);
 	cpureg->set_context_membus(memory);
 	cpureg->set_context_piosys(pio_sys);
-	#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+	#if defined(HAS_I286) || defined(UPPER_I386)
 	cpureg->set_context_v30(v30cpu);
 	#endif
 #endif
@@ -542,7 +542,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	sasi_bios->set_context_cpureg(cpureg);
 	
 	cpu->set_context_bios(sasi_bios);
-#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+#if defined(HAS_I286) || defined(UPPER_I386)
 	v30cpu->set_context_bios(sasi_bios);
 #endif
 #endif
@@ -577,7 +577,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 
-#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+#if defined(HAS_I286) || defined(UPPER_I386)
 	// cpu bus
 	v30cpu->set_context_mem(memory);
 	v30cpu->set_context_io(io);
@@ -807,7 +807,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x00f0, cpureg);
 	io->set_iomap_single_rw(0x00f2, cpureg);
 #endif
-#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+#if defined(UPPER_I386)
 	io->set_iomap_single_rw(0x00f6, cpureg);
 #endif
 	
@@ -861,7 +861,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_r(0x0567, memory);
 #endif
 
-#if defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+#if defined(UPPER_I386)
 	io->set_iomap_single_w(0x053d, memory);
 #endif
 #if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && defined(SUPPORT_NEC_EMS)
@@ -1118,7 +1118,8 @@ void VM::set_cpu_clock_with_switch(int speed_type)
 		prn_port_b |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
 	}
 	pio_prn->write_signal(SIG_I8255_PORT_B, prn_port_b, 0xff);
-	int pit_clocks = pit_clock_8mhz ? 1996812 : 2457600;
+	int pit_clocks;
+	pit_clocks = pit_clock_8mhz ? 1996812 : 2457600;
 	// pit ch.2: rs-232c
 	pit->set_constant_clock(0, pit_clocks);
 	pit->set_constant_clock(1, pit_clocks);
@@ -1367,6 +1368,7 @@ void VM::initialize_ports()
 		port_b2 |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
 	}
 	port_b2 |= 0x10; // DIP SW 1-3, 1 = Don't use LCD
+//	port_b2 |= 0x08; // HGC OFF
 	port_b2 |= 0x04; // Printer BUSY#, 1 = Inactive, 0 = Active (BUSY)
 #if defined(HAS_V30) || defined(HAS_V33)
 	port_b2 |= 0x02; // CPUT, 1 = V30/V33, 0 = 80x86
@@ -1490,7 +1492,7 @@ void VM::reset()
 	port_c3 |= 0x08; // MODSW, 1 = Normal Mode, 0 = Hirezo Mode
 #endif
 #if defined(USE_CPU_TYPE)
-	#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+	#if defined(HAS_I286) || defined(UPPER_I386)
 		if(config.cpu_type & 0x02) {// V30 or V33
 			port_c3 |= 0x04;
 		} else {
@@ -1565,6 +1567,12 @@ DEVICE *VM::get_cpu(int index)
 		return pc88cpu;
 	} else if(index == 2 && boot_mode != 0) {
 		return pc88cpu_sub;
+	}
+#elif defined(HAS_I286) || defined(UPPER_I386)
+	if(index == 0) {
+		return cpu;
+	} else if(index == 1) {
+		return v30cpu;
 	}
 #else
 	if(index == 0) {
@@ -2024,7 +2032,7 @@ void VM::update_config()
 	}
 	{
 #if defined(USE_CPU_TYPE)
-	#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
+	#if defined(HAS_I286) || defined(UPPER_I386)
 		if(config.cpu_type & 0x02) {// V30 or V33
 			pio_mouse->write_signal(SIG_I8255_PORT_C, 0x04, 0x04);
 		} else {
