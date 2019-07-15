@@ -93,6 +93,9 @@ uint32_t I80286::read_signal(int id)
 		} else {
 			return n.d.l;
 		}
+	} else if(id == SIG_I286_A20) {
+		cpu_state *cpustate = (cpu_state *)opaque;
+		return cpustate->amask;
 	}
 	return 0;
 }

@@ -474,6 +474,9 @@ uint32_t I386::read_signal(int id)
 		} else {
 			return n.d.l;
 		}
+	} else if(id == SIG_I386_A20) {
+		i386_state *cpustate = (i386_state *)opaque;
+		return cpustate->a20_mask;
 	}
 	return 0;
 }

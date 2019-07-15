@@ -3268,6 +3268,8 @@ static i386_state *i386_common_init(int tlbsize)
 //		memset(&cpustate->smiact, 0, sizeof(cpustate->smiact));
 
 	zero_state(cpustate);
+	cpustate->halted = 0;
+	cpustate->busreq = 0;
 
 	return cpustate;
 }
@@ -3435,8 +3437,8 @@ static void zero_state(i386_state *cpustate)
 	cpustate->dr[6] = 0xffff1ff0;
 	
 	cpustate->ext = 0;
-	cpustate->halted = 0;
-	cpustate->busreq = 0;
+//	cpustate->halted = 0;
+//	cpustate->busreq = 0;
 	cpustate->shutdown = 0;
 	cpustate->operand_size = 0;
 	cpustate->xmm_operand_size = 0;
@@ -3699,6 +3701,34 @@ static CPU_EXECUTE( i386 )
 			cpustate->dma->do_dma();
 		}
 //#endif
+		bool now_debugging = false;
+		if(cpustate->debugger != NULL) {
+			now_debugging = cpustate->debugger->now_debugging;
+		}
+		if(now_debugging) {
+			cpustate->debugger->check_break_points(cpustate->pc);
+			if(cpustate->debugger->now_suspended) {
+				cpustate->debugger->now_waiting = true;
+				cpustate->emu->start_waiting_in_debugger();
+				while(cpustate->debugger->now_debugging && cpustate->debugger->now_suspended) {
+					cpustate->emu->process_waiting_in_debugger();
+				}
+				cpustate->emu->finish_waiting_in_debugger();
+				cpustate->debugger->now_waiting = false;
+			}
+			if(cpustate->debugger->now_debugging) {
+				cpustate->program = cpustate->io = cpustate->debugger;
+			} else {
+				now_debugging = false;
+			}
+			if(now_debugging) {
+				if(!cpustate->debugger->now_going) {
+					cpustate->debugger->now_suspended = true;
+				}
+				cpustate->program = cpustate->program_stored;
+				cpustate->io = cpustate->io_stored;
+			}
+		}
 		if (cycles == -1) {
 			int passed_cycles = max(1, cpustate->extra_cycles);
 			// this is main cpu, cpustate->cycles is not used
