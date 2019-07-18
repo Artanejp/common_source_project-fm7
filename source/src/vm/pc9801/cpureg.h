@@ -25,20 +25,16 @@
 
 #if defined(UPPER_I386)
 #include "../i386.h"
-#include "../v30.h"
 #elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
 #include "../i86.h"
 #elif defined(HAS_V30)
 #include "../v30.h"
 #else
 #include "../i286.h"
+#endif
+#if defined(HAS_V30_SUB_CPU)
 #include "../v30.h"
 #endif
-
-class I8086;
-class I80286;
-class I386;
-class IV30;
 
 namespace PC9801 {
 
@@ -47,13 +43,14 @@ class CPUREG : public DEVICE
 private:
 #if defined(UPPER_I386)
 	I386 *d_cpu;
-	V30  *d_v30cpu;
 #elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
 	I8086 *d_cpu;
 #elif defined(HAS_V30)
 	V30  *d_cpu;
 #else
 	I80286 *d_cpu;
+#endif
+#if defined(HAS_V30_SUB_CPU)
 	V30  *d_v30cpu;
 #endif
 	DEVICE* d_mem;
@@ -67,7 +64,7 @@ private:
 	
 	outputs_t outputs_nmi; // NMI must route via CPUREG::
 	outputs_t outputs_cputype; // CPU Type 0 = Normal/ 1 = V30(SUB)
-#if defined(UPPER_I386) || defined(HAS_I286)
+#if defined(HAS_V30_SUB_CPU)
 	bool use_v30;
 	bool enable_v30;
 	void halt_by_use_v30();
@@ -85,7 +82,7 @@ public:
 	~CPUREG() {}
 	
 	// common functions
-#if defined(UPPER_I386) || defined(HAS_I286)
+#if defined(HAS_V30_SUB_CPU)
 	void initialize();
 #endif
 	void reset();
@@ -112,11 +109,11 @@ public:
 		register_output_signal(&outputs_nmi, device, SIG_CPU_NMI, 0xffffffff, 0);
 	}
 	// This will be feature developing, still not implement V30 feature.20190502 K.O
-#if defined(UPPER_I386) || defined(HAS_I286)
+#if defined(HAS_V30_SUB_CPU)
 	void set_context_v30(V30* device)
 	{
 		d_v30cpu = device;
-		register_output_signal(&outputs_nmi, device, SIG_CPU_NMI, 0xffffffff);
+		register_output_signal(&outputs_nmi, device, SIG_CPU_NMI, 0xffffffff, 0);
 	}
 #endif
 	void set_context_membus(DEVICE* device)

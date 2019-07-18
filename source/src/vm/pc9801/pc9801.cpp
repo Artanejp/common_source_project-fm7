@@ -36,15 +36,17 @@
 #include "../i8259.h"
 #if defined(UPPER_I386)
 #include "../i386.h"
-#include "../v30.h"
 #elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
 #include "../i86.h"
 #elif  defined(HAS_V30)
 #include "../v30.h"
 #else
 #include "../i286.h"
+#endif
+#if defined(HAS_V30_SUB_CPU)
 #include "../v30.h"
 #endif
+
 #include "../io.h"
 #include "../ls244.h"
 #include "../memory.h"
@@ -189,7 +191,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pic = new I8259(this, emu);
 #if defined(UPPER_I386)
 	cpu = new I386(this, emu); // 80386, 80486
-	v30cpu = new V30(this, emu); // Secondary CPU
 #elif defined(HAS_V30)
 	cpu = new V30(this, emu); // Secondary CPU
 //	subcpu = NULL;
@@ -198,8 +199,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	subcpu = NULL;
 #else
 	cpu = new I80286(this, emu);
+#endif
+#if defined(HAS_V30_SUB_CPU)
 	v30cpu = new V30(this, emu); // Secondary CPU
-#endif	
+#endif
+	
 #if defined(HAS_I86)
 	cpu->set_device_name(_T("CPU(i8086)"));
 #elif defined(HAS_I386)
@@ -360,7 +364,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_extreset(cpureg, SIG_CPUREG_RESET, 0xffffffff);
 #endif
 	event->set_context_cpu(cpu, cpu_clocks);
-#if defined(HAS_I286) || defined(UPPER_I386)
+#if defined(HAS_V30_SUB_CPU)
 	if((config.dipswitch & (1 << DIPSWITCH_POSITION_CPU_MODE)) != 0) { // You should add manually.
 		event->set_context_cpu(v30cpu, 7987248);
 	}
@@ -447,8 +451,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	rtcreg->set_context_output(rtc, SIG_UPD1990A_DIN, 0x20, 0);
 	rtcreg->set_context_output(rtc, SIG_UPD1990A_STB, 0x08, 0);
 	rtcreg->set_context_output(rtc, SIG_UPD1990A_CLK, 0x10, 0);
-//	pic->set_context_cpu(cpu);
+#if defined(HAS_V30_SUB_CPU)
 	pic->set_context_cpu(cpureg);
+#else
+	pic->set_context_cpu(cpu);
+#endif
 	rtc->set_context_dout(pio_sys, SIG_I8255_PORT_B, 1);
 	
 	if(sound_type == 0 || sound_type == 1) {
@@ -471,7 +478,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpureg->set_context_cpu(cpu);
 	cpureg->set_context_membus(memory);
 	cpureg->set_context_piosys(pio_sys);
-	#if defined(HAS_I286) || defined(UPPER_I386)
+	#if defined(HAS_V30_SUB_CPU)
 	cpureg->set_context_v30(v30cpu);
 	cpureg->set_context_cputype(pio_prn, SIG_I8255_PORT_B, 0x02, 0);
 	#endif
@@ -539,14 +546,16 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	sasi_bios->set_context_sasi(sasi);
 	sasi_bios->set_context_memory(memory);
 	sasi_bios->set_context_cpu(cpu);
+	#if defined(HAS_V30_SUB_CPU)
 	sasi_bios->set_context_v30cpu(v30cpu);
+	#endif
 	sasi_bios->set_context_pic(pic);
 	sasi_bios->set_context_cpureg(cpureg);
 	
 	cpu->set_context_bios(sasi_bios);
-#if defined(HAS_I286) || defined(UPPER_I386)
+	#if defined(HAS_V30_SUB_CPU)
 	v30cpu->set_context_bios(sasi_bios);
-#endif
+	#endif
 #endif
 
 #if defined(SUPPORT_SCSI_IF)
@@ -579,17 +588,17 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 
-#if defined(HAS_I286) || defined(UPPER_I386)
+#if defined(HAS_V30_SUB_CPU)
 	// cpu bus
 	v30cpu->set_context_mem(memory);
 	v30cpu->set_context_io(io);
 	v30cpu->set_context_intr(pic);
-#ifdef SINGLE_MODE_DMA
+	#ifdef SINGLE_MODE_DMA
 	//v30cpu->set_context_dma(dma); // DMA may be within MAIN CPU.
-#endif
-#ifdef USE_DEBUGGER
+	#endif
+	#ifdef USE_DEBUGGER
 	v30cpu->set_context_debugger(new DEBUGGER(this, emu));
-#endif
+	#endif
 #endif
 	
 #if defined(SUPPORT_320KB_FDD_IF)
@@ -1116,7 +1125,7 @@ void VM::set_cpu_clock_with_switch(int speed_type)
 		//out_debug_log(_T("CLOCK=%d WAIT FACTOR=%d"), cpu_clocks, waitfactor);
 	}
 	cpu->write_signal(SIG_CPU_WAIT_FACTOR, waitfactor, 0xffffffff);
-#if defined(UPPER_I386)
+#if defined(HAS_V30_SUB_CPU)
 	v30cpu->write_signal(SIG_CPU_WAIT_FACTOR, 0, 0xffffffff);
 #endif	
 	uint8_t prn_port_b = pio_prn->read_signal(SIG_I8255_PORT_B);
@@ -1499,7 +1508,7 @@ void VM::reset()
 	port_c3 |= 0x08; // MODSW, 1 = Normal Mode, 0 = Hirezo Mode
 #endif
 #if defined(USE_CPU_TYPE)
-	#if defined(HAS_I286) || defined(UPPER_I386)
+	#if defined(HAS_V30_SUB_CPU)
 		if(config.cpu_type & 0x02) {// V30 or V33
 			port_c3 |= 0x04;
 		} else {
@@ -1575,7 +1584,7 @@ DEVICE *VM::get_cpu(int index)
 	} else if(index == 2 && boot_mode != 0) {
 		return pc88cpu_sub;
 	}
-#elif defined(HAS_I286) || defined(UPPER_I386)
+#elif defined(HAS_V30_SUB_CPU)
 	if(index == 0) {
 		return cpu;
 	} else if(index == 1) {
@@ -2041,7 +2050,7 @@ void VM::update_config()
 	}
 	{
 #if defined(USE_CPU_TYPE)
-	#if defined(HAS_I286) || defined(UPPER_I386)
+	#if defined(HAS_V30_SUB_CPU)
 		if(config.cpu_type & 0x02) {// V30 or V33
 			pio_mouse->write_signal(SIG_I8255_PORT_C, 0x04, 0x04);
 		} else {

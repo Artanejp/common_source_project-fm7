@@ -15,11 +15,12 @@
 #include "membus.h"
 #include "../i8255.h"
 
+
 #define EVENT_WAIT 1
 
 namespace PC9801 {
 
-#if defined(UPPER_I386) || defined(HAS_I286)
+#if defined(HAS_V30_SUB_CPU)
 void CPUREG::initialize()
 {
 	use_v30 = false;
@@ -45,7 +46,7 @@ void CPUREG::halt_by_use_v30()
 void CPUREG::halt_by_value(bool val)
 {
 	bool haltvalue = (val) ? 0xffffffff : 0x0000000;
-#if defined(UPPER_I386) || defined(HAS_I286)
+#if defined(HAS_V30_SUB_CPU)
 	if((use_v30)) {
 		d_cpu->write_signal(SIG_CPU_BUSREQ, 0xffffffff, 0xffffffff);
 		d_v30cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
@@ -71,7 +72,7 @@ void CPUREG::reset()
 		event_wait = -1;
 	}
 
-#if defined(UPPER_I386) || defined(HAS_I286)
+#if defined(HAS_V30_SUB_CPU)
 //	use_v30 = ((config.cpu_type & 0x02) != 0) ? true : false;
 	use_v30 = false;
 	halt_by_use_v30();
@@ -83,7 +84,7 @@ void CPUREG::reset()
 
 void CPUREG::set_intr_line(bool line, bool pending, uint32_t bit)
 {
-#if defined(UPPER_I386) || defined(HAS_I286)
+#if defined(HAS_V30_SUB_CPU)
 	if((use_v30) && (enable_v30) && (d_v30cpu != NULL)) {
 		d_v30cpu->set_intr_line(line, pending, bit);
 		return;
@@ -102,7 +103,7 @@ void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
 	} else if(ch == SIG_CPUREG_RESET) {
 		out_debug_log("RESET FROM CPU!!!\n");
 		d_cpu->set_address_mask(0x000fffff);
-#if defined(UPPER_I386) || defined(HAS_I286)
+#if defined(HAS_V30_SUB_CPU)
 		halt_by_use_v30();
 		write_signals(&outputs_cputype, (use_v30) ? 0xffffffff : 0x00000000);
 #endif
@@ -110,7 +111,7 @@ void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
 		stat_exthalt = ((data & mask) != 0);
 		halt_by_value(stat_exthalt);
 	} else if(ch == SIG_CPUREG_USE_V30) {
-#if defined(UPPER_I386) || defined(HAS_I286)
+#if defined(HAS_V30_SUB_CPU)
 			use_v30 = ((data & mask) != 0);
 		//halt_by_use_v30();
 		out_debug_log(_T("SIG_CPUREG_USE_V30: V30=%s\n"), (use_v30) ? _T("YES") : _T("NO")); 
@@ -131,7 +132,7 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 	case 0x005f:
 		// ToDo: Both Pseudo BIOS.
 		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-#if defined(UPPER_I386) || defined(HAS_I286)
+#if defined(HAS_V30_SUB_CPU)
 		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 #endif
 		stat_wait = true;
@@ -146,7 +147,7 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 			// ToDo: Reflesh
 			reg_0f0 = data;
 			d_cpu->set_address_mask(0x000fffff);
-#if defined(UPPER_I386) || defined(HAS_I286)
+#if defined(HAS_V30_SUB_CPU)
 //		use_v30 = ((config.cpu_type & 0x02) != 0) ? true : false;
 			use_v30 = (((data & 1) != 0) || ((data & 2) != 0) || ((data & 4) != 0));
 			d_v30cpu->reset();
@@ -261,7 +262,7 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 //		value |= 0x08;
 //		value |= ((d_mem->read_signal(SIG_LAST_ACCESS_INTERAM) != 0) ? 0x00: 0x08); // RAM access, 1 = Internal-standard/External-enhanced RAM, 0 = Internal-enhanced RAM
 		value |= 0x04; // Refresh mode, 1 = Standard, 0 = High speed
-#if defined(UPPER_I386) || defined(HAS_I286)
+#if defined(HAS_V30_SUB_CPU)
 		// ToDo: Older VMs.
 		value |= (((reg_0f0 & 0x01) == 0) ? 0x00 : 0x02); // CPU mode, 1 = V30, 0 = 80286/80386
 #endif
@@ -296,7 +297,7 @@ void CPUREG::event_callback(int id, int err)
 		// ToDo: Both Pseudo BIOS.
 		if(!(stat_exthalt)) {
 			
-#if defined(UPPER_I386) || defined(HAS_I286)
+#if defined(HAS_V30_SUB_CPU)
 			halt_by_use_v30();
 #else
 			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
@@ -323,7 +324,7 @@ bool CPUREG::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(stat_exthalt);
 	state_fio->StateValue(reg_0f0);	
 	state_fio->StateValue(event_wait);
-#if defined(UPPER_I386) || defined(HAS_I286)
+#if defined(HAS_V30_SUB_CPU)
 	state_fio->StateValue(use_v30);
 #endif	
  	return true;

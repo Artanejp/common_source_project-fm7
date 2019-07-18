@@ -24,10 +24,15 @@
 
 #if defined(UPPER_I386)
 #include "../i386.h"
-#elif defined(HAS_I86) || defined(HAS_V30)
-#include "../i286.h"
+#elif defined(HAS_I86) || defined(HAS_I186)
+#include "../i86.h"
+#elif defined(HAS_V30)
+#include "../v30.h"
 #else
 #include "../i286.h"
+#endif
+#if defined(HAS_V30_SUB_CPU)
+#include "../v30.h"
 #endif
 
 #define EVENT_HALT_HOST 97

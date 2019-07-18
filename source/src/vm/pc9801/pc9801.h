@@ -100,6 +100,7 @@
 		#define CONFIG_NAME	"pc98xl"
 	#endif
 	#define HAS_I286
+	#define HAS_V30_SUB_CPU
 	#define CPU_CLOCKS		9984060
 	#define PIT_CLOCK_5MHZ
 //	#define CPU_CLOCKS		7987248
@@ -116,6 +117,7 @@
 	#define DEVICE_NAME	"NEC PC-98RL"
 	#define CONFIG_NAME	"pc98rl"
 	#define HAS_I386
+	#define HAS_V30_SUB_CPU
 	#define CPU_CLOCKS		19968120
 	#define PIT_CLOCK_5MHZ
 //	#define CPU_CLOCKS		15974496
@@ -126,6 +128,7 @@
 	#define DEVICE_NAME	"NEC PC-9801RA"
 	#define CONFIG_NAME	"pc9801ra"
 	#define HAS_I386
+	#define HAS_V30_SUB_CPU
 //	#define HAS_I486
 	#define CPU_CLOCKS		19968120
 	#define PIT_CLOCK_5MHZ
@@ -357,13 +360,15 @@
 #define USE_CPU_V30
 #elif defined(UPPER_I386)
 #define USE_CPU_I386
-#define USE_CPU_V30
 #else
 #define USE_CPU_I286
 #define USE_CPU_V30
 #endif
 #if defined(SUPPORT_320KB_FDD_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
 #define USE_CPU_Z80
+#endif
+#if defined(HAS_V30_SUB_CPU)
+#define USE_CPU_V30
 #endif
 
 #include "../../common.h"
@@ -413,14 +418,15 @@ class I8086;
 class V30;
 #elif defined(HAS_I286)
 class I80286;
-class V30;
 #elif defined(UPPER_I386)
 class I386;
-class V30;
 #else
 class I286;
+#endif
+#if defined(HAS_V30_SUB_CPU)
 class V30;
 #endif
+
 class IO;
 class LS244;
 //class MEMORY;
@@ -516,13 +522,14 @@ protected:
 	I8259* pic;
 #if defined(UPPER_I386)
 	I386* cpu;
-	V30*    v30cpu;
 #elif  defined(HAS_V30)
 	V30*  cpu;
 #elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
 	I8086 *cpu;
 #else
 	I80286* cpu;
+#endif
+#if defined(HAS_V30_SUB_CPU)
 	V30*    v30cpu;
 #endif
 	IO* io;
