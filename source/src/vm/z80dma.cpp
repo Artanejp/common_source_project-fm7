@@ -115,6 +115,8 @@ void Z80DMA::initialize()
 	DEVICE::initialize();
 	_SINGLE_MODE_DMA = osd->check_feature(_T("SINGLE_MODE_DMA"));
 	_DMA_DEBUG = osd->check_feature(_T("DMA_DEBUG"));
+	_X1TURBO_FEATURE = osd->check_feature(_T("_X1TURBO_FEATURE"));
+	_DMA_DEBUG = true; // TMP
 	if(d_debugger != NULL) {
 		d_debugger->set_device_name(_T("Debugger (Z80DMA)"));
 		d_debugger->set_context_mem(this);
@@ -499,7 +501,6 @@ void Z80DMA::do_dma()
 	} else {
 		blocklen = BLOCKLEN + 1;
 	}
-	
 	// Workaround of MinGW's (older) GCC.
 	// messages: crosses initialization of 'int wait_w' etc.
 	uint32_t data = 0;
