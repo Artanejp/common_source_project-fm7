@@ -1151,8 +1151,8 @@ void MB8877::process_cmd()
 //#endif
 	
 	// MB8877 mode commands
+	_TCHAR tmps[2048];
 	if(fdc_debug_log) {
-		_TCHAR tmps[512];
 		memset(tmps, 0x00, sizeof(tmps));
 		get_debug_regs_info(tmps, sizeof(tmps));
 		if(fdc_debug_log) this->out_debug_log(_T("%s"), tmps);

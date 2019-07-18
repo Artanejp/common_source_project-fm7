@@ -133,13 +133,14 @@ case ${USE_SHRINK_DEBUG_SYMBOL} in
    "Yes" | "yes" | "YES" )
        EXTRA_LINKER_FLAGS="-L${EXTRA_DLL_DIR} -fuse-ld=gold -Wl,--gdb-index -Wl,--compress-debug-sections,zlib ${EXTRA_LINKER_FLAGS}"
        EXTRA_LINKER_DLL_FLAGS="-L${EXTRA_DLL_DIR} -fuse-ld=gold -Wl,--gdb-index -Wl,--compress-debug-sections,zlib ${EXTRA_LINKER_DLL_FLAGS}"
+       MAKEFLAGS_BASE3DLL="-gsplit-dwarf ${MAKEFLAGS_BASE3}"
        MAKEFLAGS_BASE3="-gsplit-dwarf ${MAKEFLAGS_BASE3}"
        ;;
 esac
 
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
-      MAKEFLAGS_DLL_LINK_BASE="${EXTRA_LINKER_DLL_FLAGS} ${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3} -DNDEBUG"
+      MAKEFLAGS_DLL_LINK_BASE="-ggdb ${EXTRA_LINKER_DLL_FLAGS} ${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3DLL} -DNDEBUG"
       MAKEFLAGS_BASE2="-ggdb ${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3} -DNDEBUG"
       ;;
    "No" | "no" | "NO" | * )
