@@ -1033,6 +1033,9 @@ void OSD::set_features_vm(void)
 	add_feature(_T("HAS_UPD7201"), 1);
 #endif
 
+#ifdef _X1TURBO_FEATURE
+	add_feature(_T("_X1TURBO_FEATURE"), 1);
+#endif
 }
 
 void OSD::set_features_debug(void)

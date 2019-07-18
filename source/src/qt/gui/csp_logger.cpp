@@ -187,6 +187,7 @@ void CSP_Logger::open(bool b_syslog, bool cons, const char *devname)
 			
 void CSP_Logger::debug_log(int level, const char *fmt, ...)
 {
+	QMutexLocker locker(lock_mutex);
 	char strbuf[4096];
 	va_list ap;
 	
@@ -199,6 +200,7 @@ void CSP_Logger::debug_log(int level, const char *fmt, ...)
 
 void CSP_Logger::debug_log(int level, int domain_num, const char *fmt, ...)
 {
+	QMutexLocker locker(lock_mutex);
 	char strbuf[4096];
 	va_list ap;
 	
@@ -240,8 +242,8 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 	char *p;
 	char *p_bak;
 	const char delim[2] = "\n";
+	QMutexLocker locker(lock_mutex);
 	{
-		QMutexLocker locker(lock_mutex);
 #ifdef __MINGW32__
 		p = strtok(strbuf, delim);
 #else
@@ -313,7 +315,6 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 					
 				}
 				{
-					QMutexLocker locker(lock_mutex);
 #ifdef __MINGW32__
 					p = strtok(NULL, delim);
 #else
@@ -323,7 +324,6 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 				if(!record_flag) {
 					delete tmps;
 				} else {
-					QMutexLocker locker(lock_mutex);
 					//squeue.enqueue(tmps);
 					squeue.push_back(tmps);
 					if(linenum == LLONG_MAX) {
@@ -337,7 +337,6 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 			}
 #if defined(Q_OS_WIN)
 			{
-				QMutexLocker locker(lock_mutex);
 				fflush(stdout);
 			}
 #endif			
