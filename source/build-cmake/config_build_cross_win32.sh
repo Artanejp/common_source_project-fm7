@@ -2,6 +2,11 @@
 
 CMAKE=/usr/bin/cmake
 
+MAJOR_ARCH="IA32"
+#MAJOR_ARCH="AMD64"
+#MAJOR_ARCH="ARM32"
+#MAJOR_ARCH="ARM64"
+
 BUILD_TYPE="Relwithdebinfo"
 CMAKE_APPENDFLAG=""
 export WINEDEBUG="-all"

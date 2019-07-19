@@ -9,6 +9,12 @@ MAKE_STATUS_FILE="./000_make_status_config_build.log"
 AFFINITY_MAKE="make" 
 
 BUILD_TYPE="Relwithdebinfo"
+
+#MAJOR_ARCH="IA32"
+MAJOR_ARCH="AMD64"
+#MAJOR_ARCH="ARM32"
+#MAJOR_ARCH="ARM64"
+
 CMAKE_APPENDFLAG=""
 
 echo "Make status." > ${MAKE_STATUS_FILE}

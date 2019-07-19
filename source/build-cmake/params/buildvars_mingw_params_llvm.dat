@@ -17,6 +17,18 @@ if [ -v CC_PATH ] ; then
    CCMAKE_CXX=${CC_PATH}/${CCMAKE_CXX}
 fi
 
+case ${MAJOR_ARCH} in
+   "AMD64" | "amd64" | "x86_64" | "X86_64" )
+   . ./params/archdef_x86_64.dat
+   ;;
+   "IA32" | "ia32" | "x86" | "X86" )
+   . ./params/archdef_ia32.dat
+   ;;
+   * )
+   ARCH_FLAGS=""
+   ;;
+esac
+
 case ${USE_RADICAL_OPTIMIZE} in
    "Yes" | "yes" | "YES" )
       MAKEFLAGS_BASE3=" \
@@ -29,7 +41,7 @@ case ${USE_RADICAL_OPTIMIZE} in
 	       -funroll-loops \
 	       -fgraphite-identity \
 	       -floop-nest-optimize \
-	       -msse -msse2 \
+	       ${ARCH_FLAGS} \
 	       -Wall \
                ${MAKEFLAGS_BASE} \
 	       "
@@ -37,10 +49,10 @@ case ${USE_RADICAL_OPTIMIZE} in
    "No" | "no" | "NO" | * )
       MAKEFLAGS_BASE3=" \
                -O2 \
-	       -mtune=generic \
+	       \
 	       -ftree-vectorize \
 	       -funroll-loops \
-	       -msse -msse2 \
+	       ${ARCH_FLAGS} \
 	       -Wall \
                ${MAKEFLAGS_BASE} \
 	       "

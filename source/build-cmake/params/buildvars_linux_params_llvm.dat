@@ -20,34 +20,40 @@ if [ -v CC_PATH ] ; then
    CCMAKE_CXX=${CC_PATH}/${CCMAKE_CXX}
 fi
 
-case ${CSP_DEBUG} in
-   "Yes" | "yes" | "YES" )
-      MAKEFLAGS_BASE3="-ggdb \
- 	        -Wreserved-user-defined-literal \
- 	        -fslp-vectorize \
- 	        -fvectorize \
-		-fstrict-vtable-pointers \
-		-fstrict-enums \
-		-std=c++11 \
-		${MAKEFLAGS_BASE} \
-	        "
-	MAKEFLAGS_DLL_LINK_BASE="-g -ggdb -gz ${MAKEFLAGS_BASE3} -DNDEBUG"
-	       ;;
-	       
-   "No" | "no" | "NO" | *)
-      MAKEFLAGS_BASE3="  \
- 	        -Wreserved-user-defined-literal \
- 	        -fslp-vectorize \
- 	        -fvectorize \
- 	        -msse -msse2 \
-		-fstrict-vtable-pointers \
-		-fstrict-enums \
-		-std=c++11 \
-		${MAKEFLAGS_BASE} \
-	        "
-		MAKEFLAGS_DLL_LINK_BASE="-s ${MAKEFLAGS_BASE3}"
-		;;
+case ${MAJOR_ARCH} in
+   "AMD64" | "amd64" | "x86_64" | "X86_64" )
+   . ./params/archdef_x86_64.dat
+   ;;
+   "IA32" | "ia32" | "x86" | "X86" )
+   . ./params/archdef_ia32.dat
+   ;;
+   * )
+   ARCH_FLAGS=""
+   ;;
 esac
+
+case ${USE_RADICAL_OPTIMIZE} in
+   "Yes" | "yes" | "YES" )
+      MAKEFLAGS_BASE3=" \
+               -O3 \
+	       ${ARCH_FLAGS}  \
+	       -Wall \
+               ${MAKEFLAGS_BASE} \
+	       "
+	       ;;
+   "No" | "no" | "NO" | * )
+      MAKEFLAGS_BASE3=" \
+               -O2 \
+	       -mtune=generic \
+	       -ftree-vectorize \
+	       -funroll-loops \
+	       ${ARCH_FLAGS} \
+	       -Wall \
+               ${MAKEFLAGS_BASE} \
+	       "
+	       ;;
+esac
+
 case ${USE_SANITIZER} in
    "Yes" | "yes" | "YES" )
       MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
@@ -85,16 +91,53 @@ case ${USE_STACK_PROTECTION} in
            ;;
 esac	
 
+#if [ -n "${LTO_THREADS}" ] ;  then 
+#   LTO_FLAGS="-flto=${LTO_THREADS} -flto-compression-level=9 ${LTO_FLAGS}"
+#   LTO_FLAGS2="-flto -ffat-lto-objects"
+#else
+#   LTO_FLAGS=""
+#   LTO_FLAGS2=""
+#fi
 case ${USE_LTO} in
    "Yes" | "yes" | "YES" )
-    MAKEFLAGS_BASE2="${MAKEFLAGS_BASE3} -O3 -flto=thin -std=c++11 -msse -msse2 -DNDEBUG" 
-	MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3} -O3 -flto=thin -fwhole-program-vtables -msse -msse2"
-	;;
+    MAKEFLAGS_BASE2="${MAKEFLAGS_BASE3} -flto=thin  -msse -msse2 -DNDEBUG" 
+    MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3} -flto=thin -fwhole-program-vtables -msse -msse2"
+    ;;
    "No" | "no" | "NO" | * )
-    MAKEFLAGS_BASE2="-O3 -std=c++11 ${MAKEFLAGS_BASE3} -msse -msse2 -DNDEBUG" 
-	MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3}"
-	;;
+    MAKEFLAGS_BASE2="${MAKEFLAGS_BASE3} -msse -msse2 -DNDEBUG" 
+    MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3}"
+    ;;
 esac	
+
+case ${CSP_DEBUG} in
+   "Yes" | "yes" | "YES" )
+      MAKEFLAGS_BASE3="-ggdb -\
+ 	        -Wreserved-user-defined-literal \
+ 	        -fslp-vectorize \
+ 	        -fvectorize \
+		-fstrict-vtable-pointers \
+		-fstrict-enums \
+		-std=c++11 \
+		${MAKEFLAGS_BASE3} \
+	        "
+      MAKEFLAGS_DLL_LINK_BASE="-g -ggdb -gz ${MAKEFLAGS_BASE3} -DNDEBUG"
+	       ;;
+	       
+   "No" | "no" | "NO" | *)
+      MAKEFLAGS_BASE3="  \
+ 	        -Wreserved-user-defined-literal \
+ 	        -fslp-vectorize \
+ 	        -fvectorize \
+ 	        -msse -msse2 \
+		-fstrict-vtable-pointers \
+		-fstrict-enums \
+		-std=c++11 \
+		${MAKEFLAGS_BASE3} \
+	        "
+       MAKEFLAGS_DLL_LINK_BASE="-s ${MAKEFLAGS_BASE3}"
+		;;
+esac
+
 case ${USE_OPENMP} in
    "Yes" | "yes" | "YES" )
      CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DUSE_OPENMP=YES"

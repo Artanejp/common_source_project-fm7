@@ -1,0 +1,60 @@
+case ${LOCAL_ARCH_TYPE} in 
+   "GENERIC" | "generic" )
+      ARCH_FLAGS="-m32 -mtune=generic"
+      ;;
+   "SSE2" | "sse2" )
+      ARCH_FLAGS="-march=i686 -mtune=generic -msse -msse2"
+      ;;
+   "SSE3" | "sse3" )
+      ARCH_FLAGS="-march=prescott"
+      ;;
+   "AVX" | "avx" )
+      ARCH_FLAGS="-march=pentium4 -msse3  -mssse3 -msse4.1 -msse4.2 -mavx"
+      ;;
+   "SSE1" | "sse1" )
+      ARCH_FLAGS="-march=pentium3  -mtune=generic -msse"
+      ;;
+   "k6" | "K6" )
+      ARCH_FLAGS="-march=k6"
+      ;;
+   "athlon" | "ATHLON" )
+      ARCH_FLAGS="-march=athlon"
+      ;;
+   "athlonxp" | "ATHLONXP" )
+      ARCH_FLAGS="-march=athlon-xp"
+      ;;
+   "pentium" | "PENTIUM" )
+      ARCH_FLAGS="-march=pentium -mtune=generic"
+      ;;
+   "pentiummmx" | "PENTIUMMMX" | "MMX" | "mmx")
+      ARCH_FLAGS="-march=pentium-mmx"
+      ;;
+   "pentiumpro" | "PENTIUMPRO" )
+      ARCH_FLAGS="-march=pentiumpro"
+      ;;
+   "pentium2" | "PENTIUM2" )
+      ARCH_FLAGS="-march=pentium2"
+      ;;
+   "pentium3" | "PENTIUM3" )
+      ARCH_FLAGS="-march=pentium3"
+      ;;
+   "pentium4" | "PENTIUM4" )
+      ARCH_FLAGS="-march=pentium4"
+      ;;
+   "pentium4m" | "PENTIUM4M" )
+      ARCH_FLAGS="-march=pentium4m"
+      ;;
+   "pentiumM" | "PENTIUMM" )
+      ARCH_FLAGS="-march=pentium-m"
+      ;;
+   "prescott" | "PRESCOTT" )
+      ARCH_FLAGS="-march=prescott"
+      ;;
+   
+   "None" | "NONE " | "none" | "No" | "no" | "NO" | "686" | "I686" | "i686" )
+      ARCH_FLAGS="-march=i686 -mtune=generic"
+      ;;
+   * )
+      ARCH_FLAGS=""
+      ;;
+esac
