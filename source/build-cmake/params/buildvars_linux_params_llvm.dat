@@ -100,18 +100,18 @@ esac
 #fi
 case ${USE_LTO} in
    "Yes" | "yes" | "YES" )
-    MAKEFLAGS_BASE2="${MAKEFLAGS_BASE3} -flto=thin  -msse -msse2 -DNDEBUG" 
-    MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3} -flto=thin -fwhole-program-vtables -msse -msse2"
+    MAKEFLAGS_BASE2="${MAKEFLAGS_BASE3} -flto  -DNDEBUG" 
+    MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3} -flto -fwhole-program-vtables"
     ;;
    "No" | "no" | "NO" | * )
-    MAKEFLAGS_BASE2="${MAKEFLAGS_BASE3} -msse -msse2 -DNDEBUG" 
+    MAKEFLAGS_BASE2="${MAKEFLAGS_BASE3} -DNDEBUG" 
     MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3}"
     ;;
 esac	
 
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
-      MAKEFLAGS_BASE3="-ggdb -\
+      MAKEFLAGS_BASE3="-ggdb \
  	        -Wreserved-user-defined-literal \
  	        -fslp-vectorize \
  	        -fvectorize \
