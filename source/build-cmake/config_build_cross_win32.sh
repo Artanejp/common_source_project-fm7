@@ -9,7 +9,7 @@ CMAKE_LINKFLAG=""
 CMAKE_APPENDFLAG=""
 MAKEFLAGS_GENERAL="-j4"
 MAKE_STATUS_FILE="./000_make_status_config_build_cross_win32.log"
-
+AFFINITY_MAKE="make"
 export WCLANG_FORCE_CXX_EXCEPTIONS=1
 
 mkdir -p ./bin-win32/
@@ -91,7 +91,7 @@ function build_dll() {
     
     make clean
     
-    make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
+    ${AFFINITY_MAKE} ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
     _STATUS=${PIPESTATUS[0]}
     echo -e "$1 at `date --rfc-2822`:" "${_STATUS}" >> ../../${MAKE_STATUS_FILE}
    case ${_STATUS} in
@@ -208,7 +208,7 @@ for SRCDATA in $@ ; do\
 
     make clean
     
-    make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
+    ${AFFINITY_MAKE} ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
     _STATUS=${PIPESTATUS[0]}
     echo -e "${SRCDATA} at `date --rfc-2822`:" "${_STATUS}" >> ../../${MAKE_STATUS_FILE}
     case ${_STATUS} in

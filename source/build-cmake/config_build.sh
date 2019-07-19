@@ -6,6 +6,7 @@ CCMAKE_CXX=g++-6
 LLVM_VERSION=7
 LIB_INSTALL="/usr/local/lib/x86_64-linux-gnu/"
 MAKE_STATUS_FILE="./000_make_status_config_build.log"
+AFFINITY_MAKE="make" 
 
 BUILD_TYPE="Relwithdebinfo"
 CMAKE_APPENDFLAG=""
@@ -134,7 +135,7 @@ function build_dll() {
 	     .. | tee -a make.log
     
     make clean
-    make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
+    ${AFFINITY_MAKE} ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
     _STATUS=${PIPESTATUS[0]}
     echo -e "$1 at `date --rfc-2822`:" "${_STATUS}" >> ../../${MAKE_STATUS_FILE}
     case ${_STATUS} in
@@ -227,7 +228,7 @@ for SRCDATA in $@ ; do\
     
     make clean
     
-    make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
+    ${AFFINITY_MAKE}  ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
     _STATUS=${PIPESTATUS[0]}
     echo -e "${SRCDATA} at `date --rfc-2822`:" "${_STATUS}" >> ../../${MAKE_STATUS_FILE}
 

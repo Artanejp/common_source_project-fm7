@@ -54,6 +54,10 @@ LIB_INSTALL="/usr/local/lib/x86_64-linux-gnu/"
 
 MAKEFLAGS_GENERAL="-j3"
 #MAKEFLAGS_BASE=""
+# Below sets make with affinity mask.Using excepts CPU CORE #1 and #7.
+#AFFINITY_MAKE="taskset 0xfbe make" 
+
+
 CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DUSE_MOVIE_SAVER=ON -DUSE_MOVIE_LOADER=ON"
 
 
