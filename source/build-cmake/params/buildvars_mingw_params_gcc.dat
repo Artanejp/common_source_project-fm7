@@ -27,7 +27,11 @@ case ${LOCAL_ARCH_TYPE} in
 MAKEFLAGS_BASE2="${MAKEFLAGS_BASE} -mthread=posix -pthread -mthreads"
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
-     MAKEFLAGS_BASE2="-g  ${ARCH_FLAGS} ${MAKEFLAGS_BASE} ${ADDITIONAL_CFLAGS} -DNDEBUG"
+     MAKEFLAGS_BASE2="-g  ${MAKEFLAGS_BASE} -O2 \
+                          ${ARCH_FLAGS}  \
+			  -std=c++11 \
+			  ${ADDITIONAL_CFLAGS} \
+			  -DNDEBUG"
      ;;
    "No" | "no" | "NO" | * )
      MAKEFLAGS_BASE2="${MAKEFLAGS_BASE} -O3 \
