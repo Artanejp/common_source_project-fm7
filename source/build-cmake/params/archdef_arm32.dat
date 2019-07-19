@@ -1,0 +1,66 @@
+# ARM32
+WITH_FPU="No"
+case ${LOCAL_ARCH_TYPE} in 
+   "GENERIC" | "generic" )
+      ARCH_FLAGS=""
+      ;;
+   "ARMV6" | "armv6" | "V6" | "v6" )
+      ARCH_FLAGS="-march=armv6 -mtune=generic"
+      WITH_FPU="No"
+      ;;
+   "ARMV6FPU" | "armv6fpu" | "V6FPU" | "v6fpu" )
+      ARCH_FLAGS="-march=armv6+fp -mtune=generic"
+      WITH_FPU="Yes"
+      ;;
+   "ARMV7" | "armv7" | "V7" | "v7" )
+      ARCH_FLAGS="-march=armv7 -mtune=generic"
+      WITH_FPU="No"
+      ;;
+   "ARMV7FPU" | "armv7fpu" | "V7FPU" | "v7fpu" )
+      ARCH_FLAGS="-march=armv7+fp -mtune=generic"
+      WITH_FPU="Yes"
+      ;;
+   "ARMV7AMP" | "armv7amp" | "V7AMP" | "v7amp" )
+      ARCH_FLAGS="-march=armv7-a+mp -mtune=generic"
+      WITH_FPU="No"
+      ;;
+   "ARMV7AMPFPU" | "armv7ampfpu" | "V7AMPFPU" | "v7ampfpu" )
+      ARCH_FLAGS="-march=armv7-a+mp+fp -mtune=generic"
+      WITH_FPU="Yes"
+      ;;
+   "ARMV7MPSIMD" | "armv7asimd" | "V7ASIMD" | "v7asimd" )
+      ARCH_FLAGS="-march=armv7-a+mp+fp+simd -mtune=generic"
+      WITH_FPU="Yes"
+      ;;
+   "ARMV8A" | "armv8a" | "V8A" | "v8a" )
+      ARCH_FLAGS="-march=armv8-a -mtune=generic"
+      WITH_FPU="Yes"
+      ;;
+   "ARMV81A" | "armv81a" | "V81A" | "v81a" )
+      ARCH_FLAGS="-march=armv8.1-a+simd -mtune=generic"
+      WITH_FPU="Yes"
+      ;;
+   "ARMV82A" | "armv82a" | "V82A" | "v82a" )
+      ARCH_FLAGS="-march=armv8.2-a+simd -mtune=generic"
+      WITH_FPU="Yes"
+      ;;
+   "ARMV83A" | "armv83a" | "V83A" | "v83a" )
+      ARCH_FLAGS="-march=armv8.3-a+simd -mtune=generic"
+      WITH_FPU="Yes"
+      ;;
+   "ARMV84A" | "armv84a" | "V84A" | "v84a" )
+      ARCH_FLAGS="-march=armv8.4-a+simd -mtune=generic"
+      WITH_FPU="Yes"
+      ;;
+   "Custom" | "CUSTOM" | "custom" )
+      ARCH_FLAGS=""
+      ;;
+   "None" | "NONE " | "none" | "No" | "no" | "NO" )
+      ARCH_FLAGS=""
+      ;;
+   * )
+      ARCH_FLAGS=""
+      ;;
+esac
+
+ARCH_FLAGS="${ARCH_FLAGS} ${APPEND_ARCH_FLAGS}"

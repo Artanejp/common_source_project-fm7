@@ -1,3 +1,5 @@
+# AMD64/x86_64
+
 case ${LOCAL_ARCH_TYPE} in 
    "NATIVE" | "native" )
       ARCH_FLAGS="-march=native"
@@ -113,6 +115,9 @@ case ${LOCAL_ARCH_TYPE} in
    "KNM" | "knm" )
       ARCH_FLAGS="-march=knm -mtune=generic"
       ;;
+   "Custom" | "CUSTOM" | "custom" )
+      ARCH_FLAGS=""
+      ;;
    "No" | "no" | "NO" | "None" | "NONE" | "none" )
       ARCH_FLAGS=""
       ;;
@@ -120,3 +125,5 @@ case ${LOCAL_ARCH_TYPE} in
       ARCH_FLAGS=""
       ;;
 esac
+
+ARCH_FLAGS="${ARCH_FLAGS} ${APPEND_ARCH_FLAGS}"

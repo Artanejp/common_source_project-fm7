@@ -1,3 +1,4 @@
+# IA32/ix86
 case ${LOCAL_ARCH_TYPE} in 
    "GENERIC" | "generic" )
       ARCH_FLAGS="-m32 -mtune=generic"
@@ -51,6 +52,9 @@ case ${LOCAL_ARCH_TYPE} in
       ARCH_FLAGS="-march=prescott"
       ;;
    
+   "Custom" | "CUSTOM" | "custom" )
+      ARCH_FLAGS=""
+      ;;
    "None" | "NONE " | "none" | "No" | "no" | "NO" | "686" | "I686" | "i686" )
       ARCH_FLAGS="-march=i686 -mtune=generic"
       ;;
@@ -58,3 +62,5 @@ case ${LOCAL_ARCH_TYPE} in
       ARCH_FLAGS=""
       ;;
 esac
+
+ARCH_FLAGS="${ARCH_FLAGS} ${APPEND_ARCH_FLAGS}"

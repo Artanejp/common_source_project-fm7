@@ -1,0 +1,41 @@
+# AArch64 (or ARM64)
+case ${LOCAL_ARCH_TYPE} in 
+   "GENERIC" | "generic" )
+      ARCH_FLAGS=""
+      ;;
+   "ARMV81A" | "armv81a" | "V81A" | "v81a" )
+      ARCH_FLAGS="-march=armv8.1-a -mtune=generic"
+      ;;
+   "ARMV82A" | "armv82a" | "V82A" | "v82a" )
+      ARCH_FLAGS="-march=armv8.2-a -mtune=generic"
+      ;;
+   "ARMV83A" | "armv83a" | "V83A" | "v83a" )
+      ARCH_FLAGS="-march=armv8.3-a -mtune=generic"
+      ;;
+   "ARMV84A" | "armv84a" | "V84A" | "v84a" )
+      ARCH_FLAGS="-march=armv8.4-a -mtune=generic"
+      ;;
+   "ARMV81ASVE" | "armv81asve" | "V81ASVE" | "v81asve" )
+      ARCH_FLAGS="-march=armv8.1-a+sve"
+      ;;
+   "ARMV82ASVE" | "armv82asve" | "V82ASVE" | "v82asve" )
+      ARCH_FLAGS="-march=armv8.2-a+sve"
+      ;;
+   "ARMV83ASVE" | "armv83asve" | "V83ASVE" | "v83asve" )
+      ARCH_FLAGS="-march=armv8.3-a+sve"
+      ;;
+   "ARMV84ASVE" | "armv84asve" | "V84ASVE" | "v84asve" )
+      ARCH_FLAGS="-march=armv8.4-a+sve"
+      ;;
+   "Custom" | "CUSTOM" | "custom" )
+      ARCH_FLAGS=""
+      ;;
+   "None" | "NONE " | "none" | "No" | "no" | "NO" )
+      ARCH_FLAGS=""
+      ;;
+   * )
+      ARCH_FLAGS=""
+      ;;
+esac
+
+ARCH_FLAGS="${ARCH_FLAGS} ${APPEND_ARCH_FLAGS}"
