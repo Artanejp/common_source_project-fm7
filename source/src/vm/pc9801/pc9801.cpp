@@ -1327,18 +1327,6 @@ void VM::set_wait(int dispmode, int clock)
 void VM::initialize_ports()
 {
 	uint8_t port_a, port_b, port_c;
-	port_a  = 0x80;
-//	port_a |= 0x80; // DIP SW 2-8, 1 = GDC 2.5MHz, 0 = GDC 5MHz
-	port_a |= 0x40; // DIP SW 2-7, 1 = Do not control FD motor
-	port_a |= 0x20; // DIP SW 2-6, 1 = Enable internal HD
-//	port_a |= 0x10; // DIP SW 2-5, 1 = Initialize emory switch
-//	port_a |= 0x08; // DIP SW 2-4, 1 = 20 lines, 0 = 25 lines
-//	port_a |= 0x04; // DIP SW 2-3, 1 = 40 columns, 0 = 80 columns
-	port_a |= 0x02; // DIP SW 2-2, 1 = BASIC mode, 0 = Terminal mode
-	port_a |= 0x01; // DIP SW 2-1, 1 = Normal mode, 0 = LT mode
-	if((config.dipswitch & (1 << DIPSWITCH_POSITION_NOINIT_MEMSW)) != 0) {
-		port_a = port_a | 0x10;
-	}
 	
 	port_b  = 0x00;
 	port_b |= 0x80; // RS-232C CI#, 1 = OFF
@@ -1355,16 +1343,15 @@ void VM::initialize_ports()
 //	port_b |= 0x02; // EMCK, 1 = Parity error occurs in external RAM
 //	port_b |= 0x01; // CDAT
 	
-	port_c  = 0x00;
 	port_c |= 0x80; // SHUT0
 	port_c |= 0x40; // PSTBM, 1 = Mask printer's PSTB#
 	port_c |= 0x20; // SHUT1
 	port_c |= 0x10; // MCHKEN, 1 = Enable parity check for RAM
 	port_c |= 0x08; // BUZ, 1 = Stop buzzer
-	port_c |= 0x04; // TXRE, 1 = Enable IRQ from RS-232C 8251A TXRDY
-	port_c |= 0x02; // TXEE, 1 = Enable IRQ from RS-232C 8251A TXEMPTY
+//	port_c |= 0x04; // TXRE, 1 = Enable IRQ from RS-232C 8251A TXRDY
+//	port_c |= 0x02; // TXEE, 1 = Enable IRQ from RS-232C 8251A TXEMPTY
 	port_c |= 0x01; // RXRE, 1 = Enable IRQ from RS-232C 8251A RXRDY
-	pio_sys->write_signal(SIG_I8255_PORT_A, port_a, 0xff);
+//	pio_sys->write_signal(SIG_I8255_PORT_A, port_a, 0xff);
 	pio_sys->write_signal(SIG_I8255_PORT_B, port_b, 0xff);
 	pio_sys->write_signal(SIG_I8255_PORT_C, port_c, 0xff);
 
@@ -1456,13 +1443,29 @@ void VM::reset()
 		device->reset();
 	}
 #endif
-	uint8_t sys_port_a = pio_sys->read_signal(SIG_I8255_PORT_A);
-	sys_port_a = sys_port_a & ~0x80;
+	uint8_t sys_port_a  = 0x00;
+//	port_a |= 0x80; // DIP SW 2-8, 1 = GDC 2.5MHz, 0 = GDC 5MHz
+//	sys_port_a |= 0x40; // DIP SW 2-7, 1 = Do not control FD motor
+//	sys_port_a |= 0x20; // DIP SW 2-6, 1 = Enable internal HD
+//	sys_port_a |= 0x10; // DIP SW 2-5, 1 = Initialize memory switch
+//	sys_port_a |= 0x08; // DIP SW 2-4, 1 = 20 lines, 0 = 25 lines
+//	sys_port_a |= 0x04; // DIP SW 2-3, 1 = 40 columns, 0 = 80 columns
+	sys_port_a |= 0x02; // DIP SW 2-2, 1 = BASIC mode, 0 = Terminal mode
+	sys_port_a |= 0x01; // DIP SW 2-1, 1 = Normal mode, 0 = LT mode
+	if((config.dipswitch & (1 << DIPSWITCH_POSITION_NOINIT_MEMSW)) != 0) {
+		sys_port_a = sys_port_a | 0x10;
+	}
 	if((config.dipswitch & (1 << DIPSWITCH_POSITION_GDC_FAST)) == 0) {
 		sys_port_a = sys_port_a | 0x80;
 	}
 	pio_sys->write_signal(SIG_I8255_PORT_A, sys_port_a, 0xff);
-	
+	uint8_t sys_port_b = pio_sys->read_signal(SIG_I8255_PORT_B);
+#if !defined(SUPPORT_HIRESO)
+	sys_port_b &= ~0x18;
+	sys_port_b |= ((config.monitor_type == 0) ? 0x08 : 0x00); // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
+#endif
+	pio_sys->write_signal(SIG_I8255_PORT_B, sys_port_b, 0xff);
+
 	uint8_t port_b2 = pio_prn->read_signal(SIG_I8255_PORT_B);
 	if(pit_clock_8mhz) {
 		port_b2 |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
@@ -2062,10 +2065,10 @@ void VM::update_config()
 	}
 	{
 		uint8_t sys_port_a = pio_sys->read_signal(SIG_I8255_PORT_A);
-		//sys_port_a = sys_port_a & ~0x80;
-		//if((config.dipswitch & (1 << DIPSWITCH_POSITION_GDC_FAST)) != 0) {
-		//	sys_port_a = sys_port_a | 0x80;
-		//}
+		sys_port_a = sys_port_a & ~0x80;
+		if((config.dipswitch & (1 << DIPSWITCH_POSITION_GDC_FAST)) != 0) {
+			sys_port_a = sys_port_a | 0x80;
+		}
 		sys_port_a = sys_port_a & ~0x10;
 		if((config.dipswitch & (1 << DIPSWITCH_POSITION_NOINIT_MEMSW)) != 0) {
 			sys_port_a = sys_port_a | 0x10;

@@ -102,6 +102,7 @@ void MEMBUS::initialize()
 		read_bios(_T("BIOS.ROM"), bios, sizeof(bios));
 	}
 	// Check PnP Bios and disable. From NP2 v0.83.
+#if 0
 #if !defined(SUPPORT_HIRESO) //&& defined(UPPER_I386)
 	for(int ad = 0; ad < 0x10000; ad += 0x10) {
 		pair32_t magic;
@@ -115,6 +116,7 @@ void MEMBUS::initialize()
 			bios[0x8000 + ad + 2] = 0x24;
 		}
 	}
+#endif
 #endif
 #if defined(SUPPORT_BIOS_RAM)
 	memset(bios_ram, 0x00, sizeof(bios_ram));
@@ -780,11 +782,15 @@ void MEMBUS::update_bios()
 	#if !defined(SUPPORT_HIRESO)
 				//copy_table_rw(0x80000, 0xe0000, 0xe7fff);
 				set_memory_rw(0x80000, 0x87fff, &(ram[window_80000h]));
+		#if defined(SUPPORT_BIOS_RAM)
 				set_memory_rw(0x88000, 0x9ffff, bios_ram);
+		#endif
 	#else
 				//copy_table_rw(0x80000, 0xe0000, 0xeffff);
 				set_memory_rw(0x80000, 0x8ffff, &(ram[window_80000h]));
+		#if defined(SUPPORT_BIOS_RAM)
 				set_memory_rw(0x90000, 0x9ffff, bios_ram);
+		#endif
 	#endif
 			} else {
 				copy_table_rw(0x80000, 0xe0000, 0xfffff);
@@ -848,11 +854,15 @@ void MEMBUS::update_bios()
 	#if !defined(SUPPORT_HIRESO)
 				//copy_table_rw(0xa0000, 0xe0000, 0xe7fff); 
 				set_memory_rw(0xa0000, 0xa7fff, &(ram[window_a0000h]));
+		#if defined(SUPPORT_BIOS_RAM)
 				set_memory_rw(0xa8000, 0xbffff, bios_ram);
+		#endif
 	#else
 				//copy_table_rw(0xa0000, 0xe0000, 0xeffff); 
 				set_memory_rw(0xa0000, 0xaffff, &(ram[window_a0000h]));
+		#if defined(SUPPORT_BIOS_RAM)
 				set_memory_rw(0xb0000, 0xbffff, bios_ram);
+		#endif
 	#endif
 			} else {
 				copy_table_rw(0xa0000, 0xe0000, 0xfffff); 

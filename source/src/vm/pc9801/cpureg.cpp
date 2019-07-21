@@ -259,7 +259,7 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 #endif
 		// ToDo: AMD98
 		value |= 0x10; // Unknown
-//		value |= 0x08;
+		value |= 0x08;
 //		value |= ((d_mem->read_signal(SIG_LAST_ACCESS_INTERAM) != 0) ? 0x00: 0x08); // RAM access, 1 = Internal-standard/External-enhanced RAM, 0 = Internal-enhanced RAM
 		value |= 0x04; // Refresh mode, 1 = Standard, 0 = High speed
 #if defined(HAS_V30_SUB_CPU)
