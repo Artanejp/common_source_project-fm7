@@ -281,9 +281,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	#if defined(USE_TAPE_BAUD)
 		use_tape_baud = true;
 	#endif
-	#if defined(USE_TAPE_BUTTON)
-		use_tape_button = true;
-	#endif
+	use_tape_button = true;
 	#if defined(USE_TAPE_PTR)
 		use_tape_ptr = true;
 	#endif

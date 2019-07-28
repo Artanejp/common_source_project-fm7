@@ -111,7 +111,7 @@ void Menu_CMTClass::create_pulldown_menu_device_sub(void)
 			action_direct_load_mzt->setChecked(true);
 		}
 	}
-	if(using_flags->is_use_tape_button()) {
+	/*if(using_flags->is_use_tape_button())*/ {
 		action_play_start = new Action_Control(p_wid, using_flags);
 		action_play_start->setVisible(true);
 		action_play_start->setCheckable(true);
@@ -155,7 +155,7 @@ void Menu_CMTClass::connect_menu_device_sub(void)
 		this->addSeparator();
 		this->addAction(action_recording);
 		this->addSeparator();
-		if(using_flags->is_use_tape_button()) {
+		/*if(using_flags->is_use_tape_button())*/ {
 			this->addAction(action_play_start);
 			this->addAction(action_play_stop);
 			this->addSeparator();
@@ -185,7 +185,7 @@ void Menu_CMTClass::connect_menu_device_sub(void)
 		
 		connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(do_write_protect_cmt(int, bool)));	
 		connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_cmt(int, int)));
-		if(using_flags->is_use_tape_button()) {
+		/*if(using_flags->is_use_tape_button())*/ {
 			connect(action_play_start, SIGNAL(triggered()), this, SLOT(do_push_play_tape(void)));
 			connect(action_play_stop,  SIGNAL(triggered()), this, SLOT(do_push_stop_tape(void)));
 			connect(action_fast_forward,  SIGNAL(triggered()), this, SLOT(do_push_fast_forward_tape(void)));
@@ -269,7 +269,7 @@ void Menu_CMTClass::retranslate_pulldown_menu_device_sub(void)
 	this->setTitle(QApplication::translate("MenuMedia", "Cassette Tape" , 0));
 	action_insert->setIcon(icon_cmt);
 
-	if(using_flags->is_use_tape_button()) {
+	/*if(using_flags->is_use_tape_button())*/ {
 		action_play_start->setIcon(icon_play_start);
 		action_play_stop->setIcon(icon_play_stop);
 		action_fast_forward->setIcon(icon_ff);
