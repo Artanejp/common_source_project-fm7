@@ -27,7 +27,6 @@
 #define USE_DIPSWITCH
 #define DIPSWITCH_DEFAULT	0x01
 #define USE_TAPE		1
-#define USE_TAPE_BUTTON
 #define USE_BINARY_FILE		1
 #define NOTIFY_KEY_DOWN
 #define USE_SOUND_VOLUME	2

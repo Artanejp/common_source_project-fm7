@@ -30,7 +30,6 @@
 // device informations for win32
 #define SUPPORT_TV_RENDER
 #define USE_TAPE		1
-#define USE_TAPE_BUTTON
 #define USE_FLOPPY_DISK		2
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY
