@@ -230,9 +230,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 			this, SLOT(do_set_mouse_enable(bool)));
 
 	
-#ifdef USE_TAPE_BUTTON
 	hRunEmu->set_tape_play(false);
-#endif
 #if defined(USE_KEY_LOCKED) || defined(USE_LED_DEVICE)
 	connect(hRunEmu, SIGNAL(sig_send_data_led(quint32)), this, SLOT(do_recv_data_led(quint32)));
 #endif

@@ -572,32 +572,44 @@ void EmuThreadClass::do_close_tape(int drv)
 
 void EmuThreadClass::do_cmt_push_play(int drv)
 {
+#ifdef USE_TAPE
 	p_emu->push_play(drv);
+#endif
 }
 
 void EmuThreadClass::do_cmt_push_stop(int drv)
 {
+#ifdef USE_TAPE
 	p_emu->push_stop(drv);
+#endif
 }
 
 void EmuThreadClass::do_cmt_push_fast_forward(int drv)
 {
+#ifdef USE_TAPE
 	p_emu->push_fast_forward(drv);
+#endif
 }
 
 void EmuThreadClass::do_cmt_push_fast_rewind(int drv)
 {
+#ifdef USE_TAPE
 	p_emu->push_fast_rewind(drv);
+#endif
 }
 
 void EmuThreadClass::do_cmt_push_apss_forward(int drv)
 {
+#ifdef USE_TAPE
 	p_emu->push_apss_forward(drv);
+#endif
 }
 
 void EmuThreadClass::do_cmt_push_apss_rewind(int drv)
 {
+#ifdef USE_TAPE
 	p_emu->push_apss_rewind(drv);
+#endif
 }
 
 
