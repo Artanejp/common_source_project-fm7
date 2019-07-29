@@ -72,13 +72,16 @@ void DMAREG::write_io8(uint32_t addr, uint32_t data)
 
 uint32_t DMAREG::read_io8(uint32_t addr)
 {
+#if 0 /* NOT EFFECT (from UNDOCUMENTED PC-9801/io_dma.txt)*/
 	switch(addr) {
 	case 0x0021:
 	case 0x0023:
 	case 0x0025:
 	case 0x0027:
 		return d_dma->read_signal(bank_lo_id[((addr - 0x0021) >> 1) & 3]);
+		break;
 	}
+#endif
 	return 0xff;
 }
 

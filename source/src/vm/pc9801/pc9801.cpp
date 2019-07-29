@@ -665,10 +665,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	
 #if defined(SUPPORT_32BIT_ADDRESS)
-	io->set_iomap_single_w(0x0e05, dmareg);
-	io->set_iomap_single_w(0x0e07, dmareg);
-	io->set_iomap_single_w(0x0e09, dmareg);
-	io->set_iomap_single_w(0x0e0b, dmareg);
+	// ToDo: OVER 16MB MEMORIES.
+//	io->set_iomap_single_w(0x0e05, dmareg);
+//	io->set_iomap_single_w(0x0e07, dmareg);
+//	io->set_iomap_single_w(0x0e09, dmareg);
+//	io->set_iomap_single_w(0x0e0b, dmareg);
 #endif
 	
 	io->set_iomap_single_w(0x0020, rtcreg);
