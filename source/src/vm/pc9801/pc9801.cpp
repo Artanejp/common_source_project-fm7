@@ -74,6 +74,7 @@
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 #include "cpureg.h"
 #endif
+#include "dipsw.h"
 #include "display.h"
 #include "dmareg.h"
 #include "floppy.h"
@@ -99,6 +100,7 @@ using PC9801::CMT;
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 using PC9801::CPUREG;
 #endif
+using PC9801::DIPSWITCH;
 using PC9801::DISPLAY;
 using PC9801::DMAREG;
 using PC9801::FLOPPY;
@@ -424,6 +426,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio_sys->set_context_port_c(pio_sys, SIG_I8255_PORT_B, 0x80, -3); // SHUT0
 	pio_sys->set_context_port_c(pio_sys, SIG_I8255_PORT_B, 0x20, -2); // SHUT1
 #endif
+	dipswitch = new DIPSWITCH(this, emu);
+	dipswitch->set_context_pio_sys(pio_sys);
+	dipswitch->set_context_pio_prn(pio_prn);
+	dipswitch->set_context_pio_mouse(pio_mouse);
 	// sysport port.c bit6: printer strobe
 #if defined(SUPPORT_OLD_BUZZER)
 	pio_sys->set_context_port_c(beep, SIG_BEEP_MUTE, 0x08, 0);
@@ -1128,12 +1134,11 @@ void VM::set_cpu_clock_with_switch(int speed_type)
 #if defined(HAS_V30_SUB_CPU)
 	v30cpu->write_signal(SIG_CPU_WAIT_FACTOR, 0, 0xffffffff);
 #endif	
-	uint8_t prn_port_b = pio_prn->read_signal(SIG_I8255_PORT_B);
-	prn_port_b &= (uint8_t)(~0x20);
+	uint8_t prn_port_b = 0x00;
 	if(pit_clock_8mhz) {
 		prn_port_b |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
 	}
-	pio_prn->write_signal(SIG_I8255_PORT_B, prn_port_b, 0xff);
+	pio_prn->write_signal(SIG_I8255_PORT_B, prn_port_b, 0x20);
 	int pit_clocks;
 	pit_clocks = pit_clock_8mhz ? 1996812 : 2457600;
 	// pit ch.2: rs-232c
@@ -1443,55 +1448,12 @@ void VM::reset()
 		device->reset();
 	}
 #endif
-	uint8_t sys_port_a  = 0x00;
-//	port_a |= 0x80; // DIP SW 2-8, 1 = GDC 2.5MHz, 0 = GDC 5MHz
-//	sys_port_a |= 0x40; // DIP SW 2-7, 1 = Do not control FD motor
-//	sys_port_a |= 0x20; // DIP SW 2-6, 1 = Enable internal HD
-//	sys_port_a |= 0x10; // DIP SW 2-5, 1 = Initialize memory switch
-//	sys_port_a |= 0x08; // DIP SW 2-4, 1 = 20 lines, 0 = 25 lines
-//	sys_port_a |= 0x04; // DIP SW 2-3, 1 = 40 columns, 0 = 80 columns
-	sys_port_a |= 0x02; // DIP SW 2-2, 1 = BASIC mode, 0 = Terminal mode
-	sys_port_a |= 0x01; // DIP SW 2-1, 1 = Normal mode, 0 = LT mode
-	if((config.dipswitch & (1 << DIPSWITCH_POSITION_NOINIT_MEMSW)) != 0) {
-		sys_port_a = sys_port_a | 0x10;
-	}
-	if((config.dipswitch & (1 << DIPSWITCH_POSITION_GDC_FAST)) == 0) {
-		sys_port_a = sys_port_a | 0x80;
-	}
-	pio_sys->write_signal(SIG_I8255_PORT_A, sys_port_a, 0xff);
-	uint8_t sys_port_b = pio_sys->read_signal(SIG_I8255_PORT_B);
-#if !defined(SUPPORT_HIRESO)
-	sys_port_b &= ~0x18;
-	sys_port_b |= ((config.monitor_type == 0) ? 0x08 : 0x00); // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
-#endif
-	pio_sys->write_signal(SIG_I8255_PORT_B, sys_port_b, 0xff);
-
-	uint8_t port_b2 = pio_prn->read_signal(SIG_I8255_PORT_B);
+	uint8_t port_b2 = 0x00;
 	if(pit_clock_8mhz) {
 		port_b2 |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
-	} else {
-		port_b2 &= ~0x20;
 	}
-#if !defined(SUPPORT_16_COLORS) || defined(SUPPORT_EGC)
-	#if defined(SUPPORT_EGC)
-	if((config.dipswitch & (1 << DIPSWITCH_POSITION_EGC)) == 0) {
-		port_b2 = port_b2 | 0x08;
-	} else {
-		port_b2 = port_b2 & ~0x08;
-	}
-	#else
-	port_b2 |= 0x08; // DIP SW 1-8, 1 = Standard graphic mode, 0 = Enhanced graphic mode
-	#endif
-#endif
-	pio_prn->write_signal(SIG_I8255_PORT_B, port_b2, 0xff);
+	pio_prn->write_signal(SIG_I8255_PORT_B, port_b2, 0x20);
 
-	uint8_t port_b3 = pio_mouse->read_signal(SIG_I8255_PORT_B);
-	if((config.dipswitch & (1 << DIPSWITCH_POSITION_RAM512K)) == 0) {
-		port_b3 |= 0x40;// DIP SW 3-6, 1 = Enable internal R
-	} else {
-		port_b3 &= ~0x40;
-	}
-	pio_mouse->write_signal(SIG_I8255_PORT_B, port_b3, 0xff);
 	set_cpu_clock_with_switch(config.cpu_type);
 
 #if defined(USE_MONITOR_TYPE)
@@ -1499,27 +1461,6 @@ void VM::reset()
 #else
 	set_wait(0, config.cpu_type);
 #endif	
-	
-	uint8_t port_c3 = pio_mouse->read_signal(SIG_I8255_PORT_C);
-#if defined(SUPPORT_HIRESO)
-	if(config.monitor_type == 0) {
-		port_c3 |= 0x08; // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
-	} else {
-		port_c3 &= ~0x08;
-	}
-#else
-	port_c3 |= 0x08; // MODSW, 1 = Normal Mode, 0 = Hirezo Mode
-#endif
-#if defined(USE_CPU_TYPE)
-	#if defined(HAS_V30_SUB_CPU)
-		if(config.cpu_type & 0x02) {// V30 or V33
-			port_c3 |= 0x04;
-		} else {
-			port_c3 &= ~0x04;
-		}
-	#endif
-#endif
-	pio_mouse->write_signal(SIG_I8255_PORT_C, port_c3, 0xff);
 	
 #if defined(SUPPORT_320KB_FDD_IF)
 	pio_fdd->write_signal(SIG_I8255_PORT_A, 0xff, 0xff);
@@ -2024,69 +1965,7 @@ void VM::update_config()
 	set_wait(config.monitor_type, config.cpu_type);
 #else
 	set_wait(0, config.cpu_type);
-#endif	
-	{
-		uint8_t mouse_port_b = pio_mouse->read_signal(SIG_I8255_PORT_B);
-		mouse_port_b = mouse_port_b & ~0x40;
-		if((config.dipswitch & (1 << DIPSWITCH_POSITION_RAM512K)) == 0) {
-			mouse_port_b = mouse_port_b | 0x40;
-		}
-#if defined(USE_CPU_TYPE)
-		switch(config.cpu_type & 1) {
-		case 0:
-	#if !defined(SUPPORT_HIRESO)
-			mouse_port_b &= ~0x02; // SPDSW, 1 = 10MHz, 0 = 12MHz
-	#else
-			mouse_port_b &= ~0x01; // SPDSW, 1 = 8/16MHz, 0 = 10/20MHz
-	#endif
-			break;
-		case 1:
-	#if !defined(SUPPORT_HIRESO)
-			mouse_port_b |= 0x02; // SPDSW, 1 = 10MHz, 0 = 12MHz
-	#else
-			mouse_port_b |= 0x01; // SPDSW, 1 = 8/16MHz, 0 = 10/20MHz
-	#endif
-			break;
-		}
 #endif
-		pio_mouse->write_signal(SIG_I8255_PORT_B, mouse_port_b, 0xff);
-	}
-	{
-#if defined(USE_CPU_TYPE)
-	#if defined(HAS_V30_SUB_CPU)
-		if(config.cpu_type & 0x02) {// V30 or V33
-			pio_mouse->write_signal(SIG_I8255_PORT_C, 0x04, 0x04);
-		} else {
-			pio_mouse->write_signal(SIG_I8255_PORT_C, 0x00, 0x04);
-		}
-	#endif
-#endif
-
-	}
-	{
-		uint8_t sys_port_a = pio_sys->read_signal(SIG_I8255_PORT_A);
-		sys_port_a = sys_port_a & ~0x80;
-		if((config.dipswitch & (1 << DIPSWITCH_POSITION_GDC_FAST)) != 0) {
-			sys_port_a = sys_port_a | 0x80;
-		}
-		sys_port_a = sys_port_a & ~0x10;
-		if((config.dipswitch & (1 << DIPSWITCH_POSITION_NOINIT_MEMSW)) != 0) {
-			sys_port_a = sys_port_a | 0x10;
-		}
-		pio_sys->write_signal(SIG_I8255_PORT_A, sys_port_a, 0xff);
-	}
-
-	{
-		uint8_t prn_port_b = pio_prn->read_signal(SIG_I8255_PORT_B);
-#if defined(SUPPORT_EGC)
-		prn_port_b = prn_port_b & ~0x08;
-		if((config.dipswitch & (1 << DIPSWITCH_POSITION_EGC)) == 0) {
-			prn_port_b = prn_port_b | 0x08;
-		}
-#endif
-		pio_prn->write_signal(SIG_I8255_PORT_B, prn_port_b, 0xff);
-	}
-	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != config.boot_mode) {
 		// boot mode is changed !!!

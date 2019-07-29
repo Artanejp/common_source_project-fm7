@@ -4,6 +4,7 @@ message("* vm/pc9801")
 
 set(BASIC_VM_FILES 
        pc9801.cpp
+	   dipsw.cpp
 	   display.cpp
 	   floppy.cpp
 	   fmsound.cpp

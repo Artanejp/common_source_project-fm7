@@ -347,9 +347,6 @@ void DISPLAY::reset()
 	egc_srcmask.w = 0xffff;
 #endif
 	
-//	if((config.dipswitch & (1 << DIPSWITCH_POSITION_NOINIT_MEMSW)) == 0) {
-//		init_memsw();
-//	}
 	save_memsw();
 	font_code = 0;
 	font_line = 0;

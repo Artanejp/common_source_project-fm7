@@ -458,6 +458,7 @@ namespace PC9801 {
 	class CPUREG;
 #endif
 	class DISPLAY;
+	class DIPSWITCH;
 	class DMAREG;
 	class FLOPPY;
 	class FMSOUND;
@@ -570,6 +571,7 @@ protected:
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	PC9801::CPUREG* cpureg;
 #endif
+	PC9801::DIPSWITCH* dipswitch;
 	PC9801::DISPLAY* display;
 	PC9801::DMAREG* dmareg;
 	PC9801::FLOPPY* floppy;
