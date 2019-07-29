@@ -801,7 +801,7 @@ static void __FASTCALL i386_trap(i386_state *cpustate,int irq, int irq_gate, int
 		{
 			if(((flags >> 5) & 0x03) < CPL)
 			{
-				//logerror("IRQ (%08x): Software IRQ - gate DPL is less than CPL.\n",cpustate->pc);
+				logerror("IRQ (%08x): Software IRQ - gate DPL is less than CPL.\n",cpustate->pc);
 				FAULT_EXP(FAULT_GP,entry+2)
 			}
 			if(V8086_MODE)

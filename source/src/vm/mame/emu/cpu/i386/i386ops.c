@@ -683,7 +683,8 @@ static void __FASTCALL I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode
 //		logerror("Index error");
 //	}
 #else
-	if(PROTECTED_MODE && cpustate->CPL)
+	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+	if(PROTECTED_MODE && (cpustate->CPL > 0))
 		FAULT(FAULT_GP, 0);
 	uint8_t modrm = FETCH(cpustate);
 	uint8_t cr = (modrm >> 3) & 0x7;
@@ -774,16 +775,16 @@ static void __FASTCALL I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode
 {
 #if 1
 	UINT32 oldpc = cpustate->prev_pc;
-	if(PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0))) {
+	if(PROTECTED_MODE && (/*(V8086_MODE) || */(cpustate->CPL != 0))) {
 		logerror("Call from non-supervisor privilege: I386OP(mov_cr_r32) at %08X", oldpc); 
 		FAULT(FAULT_GP, 0);
 		return;
 	}
 	UINT8 modrm = FETCH(cpustate);
-	if(modrm < 0xc0) {
-		FAULT(FAULT_UD, 0);
-		return;
-	}
+//	if(modrm < 0xc0) {
+//		FAULT(FAULT_UD, 0);
+//		return;
+//	}
 	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
 
 	UINT8 cr = (modrm >> 3) & 0x7;
@@ -885,7 +886,8 @@ static void __FASTCALL I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode
 	}
 	cpustate->cr[cr] = data;
 #else
-	if((PROTECTED_MODE) && cpustate->CPL)
+	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+	if((PROTECTED_MODE) && (cpustate->CPL > 0))
 		FAULT(FAULT_GP, 0);
 	uint8_t modrm = FETCH(cpustate);
 	uint8_t cr = (modrm >> 3) & 0x7;
@@ -904,7 +906,7 @@ static void __FASTCALL I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode
 			vtlb_flush_dynamic(cpustate->vtlb);
 			break;
 	case 4: CYCLES(cpustate, 1); break; // TODO
-		default:
+	default:
 			logerror("i386: mov_cr_r32 CR%d!\n", cr);
 			return;
 	}

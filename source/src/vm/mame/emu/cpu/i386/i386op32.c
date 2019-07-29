@@ -3264,9 +3264,12 @@ static void __FASTCALL I386OP(group0F01_32)(i386_state *cpustate)      // Opcode
 					CYCLES(cpustate,CYCLES_LMSW_MEM);
 				b = READ16(cpustate,ea);
 				}
+				if(PROTECTED_MODE) {
+					b |= 0x0001;
+				}
 				//logerror("LMSW32 %02x <- VAL=%04x \n", modrm, b);
 				uint32_t cr0_bak = cpustate->cr[0];
-				cpustate->cr[0] &= ~(I386_CR0_MP | I386_CR0_EM | I386_CR0_TS);
+				cpustate->cr[0] &= ~(I386_CR0_PE | I386_CR0_MP | I386_CR0_EM | I386_CR0_TS);
 				cpustate->cr[0] |= (b & (I386_CR0_PE | I386_CR0_MP | I386_CR0_EM | I386_CR0_TS));
 				//if(!(cr0_bak & I386_CR0_PE) && (b & I386_CR0_PE)) {
 				//	i386_change_protect_mode(cpustate, 1);
