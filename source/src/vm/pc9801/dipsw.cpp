@@ -79,7 +79,8 @@ void DIPSWITCH::update_ports()
 		port_b |= ((sw1 & 0x01) != 0) ? 0x08 : 0x00;
 		pio_sys->write_signal(SIG_I8255_PORT_B, port_b, 0x08);
 #endif
-	}		
+	}
+#if !defined(SUPPORT_HIRESO)
 	if(pio_prn != NULL) {
 		uint8_t port_b = 0x00;
 #if defined(_PC9801)
@@ -96,65 +97,91 @@ void DIPSWITCH::update_ports()
 		port_b |= ((sw1 & (1 << 7)) == 0) ? 0x08 : 0x00; // DIPSW 1-8
 #if defined(_PC9801VF) || defined(_PC9801U)
 		port_b |= 0x01; // VF
-		pio_prn->write_signal(SIG_I8255_PORT_B, port_b, (0x80 | 0x40 | 0x10 | 0x08 | 0x01));
-#else
-		pio_prn->write_signal(SIG_I8255_PORT_B, port_b, (0x80 | 0x40 | 0x10 | 0x08));
 #endif
+		pio_prn->write_signal(SIG_I8255_PORT_B, port_b, (0x80 | 0x40 | 0x10 | 0x08 | 0x01));
 	}
+#endif
 	if(pio_mouse != NULL) {
 		uint8_t port_a = 0x00;
 		uint8_t port_b = 0x00;
 		uint8_t port_c = 0x00;
-#if defined(_PC98XA)
-		port_a |= 0x80; // DIPSW 2-8
-		//port_a |= (((sw2 & (1 << 7)) != 0) ? 0x80 : 0x00); // SW2-8
-		//pio_mouse->write_signal(SIG_I8255_PORT_A, port_a, 0x80);
-#elif defined(_PC98RL)
-		port_a |= 0x80; // DIPSW 1-4
-		port_a |= (((sw3 & (1 << 5)) != 0) ? 0x40 : 0x00); // SW3-6
-		port_a |= (((sw3 & (1 << 2)) != 0) ? 0x08 : 0x00); // SW3-3
-		pio_mouse->write_signal(SIG_I8255_PORT_A, port_a, 0xc8);
-#else
-		port_a |= 0x80; // DIPSW 1-4
-		pio_mouse->write_signal(SIG_I8255_PORT_A, port_a, 0x80);
-#endif
-		
-		port_b |= (((sw1 & (1 << 3)) != 0) ? 0x80 : 0x00); // SW 1-3
-		port_b |= (((sw3 & (1 << 5)) == 0) ? 0x40 : 0x00); // SW 3-6
-#if defined(USE_CPU_TYPE)
-		if((config.cpu_type & 1) == 1) {
-	#if !defined(SUPPORT_HIRESO)
-				port_b |= 0x02;
-	#else
-				port_b |= 0x01;
-	#endif
-		}
-	#if !defined(SUPPORT_HIRESO)
-		pio_mouse->write_signal(SIG_I8255_PORT_B, port_b, 0xc2);
-	#else
-		pio_mouse->write_signal(SIG_I8255_PORT_B, port_b, 0xc1);
-	#endif		
-#else
+#if defined(SUPPORT_HIRESO)
+	#if defined(_PC98XA)
+		port_b |= (((sw2 & (1 << 7)) == 0) ? 0x80 : 0x00);
+		port_b |= (((sw2 & (1 << 6)) == 0) ? 0x40 : 0x00);
 		pio_mouse->write_signal(SIG_I8255_PORT_B, port_b, 0xc0);
-#endif
-		// ToDo: MODWS (DIPSW 1-1)
-#if defined(_PC98XA)
-		port_c |= 0x02; //SW 1-10
-		//port_c |= 0x01; //SW 1-9
+	#else
+		port_b |= (((sw1 & (1 << 3)) == 0) ? 0x80 : 0x00); // SW 1-4
+		#if defined(_PC98RL)
+		port_b |= (((sw3 & (1 << 5)) == 0) ? 0x40 : 0x00); // SW 3-6
+		#endif
+		#if defined(_PC98RL) || defined(_PC9821_VARIANTS)
+		port_b |= (((sw3 & (1 << 2)) == 0) ? 0x10 : 0x00); // SW 3-3
+		#endif
+		#if defined(_PC98RL)
+		pio_mouse->write_signal(SIG_I8255_PORT_B, port_b, 0xd0);
+		#elif defined(_PC9821_VARIANTS)
+		pio_mouse->write_signal(SIG_I8255_PORT_B, port_b, 0x90);
+		#else
+		pio_mouse->write_signal(SIG_I8255_PORT_B, port_b, 0x80);
+		#endif
+	#endif
+		// ToDo: MODSW (PORTC, bit3)
+		//port_c |= 0x08;
+		// ToDo: DIPSW 3-8
+		port_c |= (((sw3 & (1 << 7)) == 0) ? 0x00 : 0x04); // CPUSW (DIPSW 3-8)
+		#if defined(_PC98XA)
+		// ToDo: DIPSW 1-10, 1-9
+		#else
+		port_c |= (((sw1 & (1 << 5)) != 0) ? 0x02 : 0x00); // DIPSW 1-6
+		port_c |= (((sw1 & (1 << 4)) != 0) ? 0x01 : 0x00); // DIPSW 1-5
+		#endif
+		pio_mouse->write_signal(SIG_I8255_PORT_C, port_c, 0x0f);
 #else
-		port_c |= (((sw1 & (1 << 5)) != 0) ? 0x02 : 0x00); // SW 1-6
-		//port_c |= (((sw1 & (1 << 4)) != 0) ? 0x02 : 0x00); // SW 1-5
-#endif
-#if defined(_PC98XL) || defined(_PC98XL2) || defined(_PC98RL)
+	#if defined(_PC98RL)
+		port_b |= (((sw1 & (1 << 3)) != 0) ? 0x80 : 0x00); // SW 1-4
+	#else
+		port_b |= 0x80;
+	#endif
+		port_b |= (((sw3 & (1 << 5)) == 0) ? 0x40 : 0x00); // SW 3-6
+	#if defined(_PC9801RX2) | defined(_PC9801RX21) |  defined(_PC9801EX) |  defined(_PC9801DX) 
+	#if defined(USE_CPU_TYPE)
+		if((config.cpu_type & 1) == 1) {
+		#if !defined(SUPPORT_HIRESO)
+				port_b |= 0x02;
+		#else
+				port_b |= 0x01;
+		#endif
+		}
+		#if !defined(SUPPORT_HIRESO)
+		pio_mouse->write_signal(SIG_I8255_PORT_B, port_b, 0x02);
+		#else
+		pio_mouse->write_signal(SIG_I8255_PORT_B, port_b, 0x01);
+		#endif		
+	#endif
+	#endif
+		pio_mouse->write_signal(SIG_I8255_PORT_B, port_b, 0xc0);
+		// ToDo: MODWS (DIPSW 1-1)
+	#if defined(_PC98XL) || defined(_PC98XL2) || defined(_PC98RL)
 		port_c |= (((sw1 & (1 << 0)) != 0) ? 0x08 : 0x00); // SW 1-1
-#endif
+	#elif defined(_PC9821_VARIANTS)
+		port_c |= 0x08;
+	#endif
+	#if defined(_PC98XA)
+		//port_c |= 0x02; //SW 1-10
+		//port_c |= 0x01; //SW 1-9
+	#else
+		port_c |= (((sw1 & (1 << 5)) != 0) ? 0x02 : 0x00); // SW 1-6
+		port_c |= (((sw1 & (1 << 4)) != 0) ? 0x01 : 0x00); // SW 1-5
+	#endif
 		pio_mouse->write_signal(SIG_I8255_PORT_B, port_c, (0x08 | 0x02 | 0x01));
-#if defined(HAS_V30_SUB_CPU) && defined(USE_CPU_TYPE)
+	#if defined(HAS_V30_SUB_CPU) && defined(USE_CPU_TYPE)
 		if(config.cpu_type & 0x02) {// V30 or V33
 			pio_mouse->write_signal(SIG_I8255_PORT_C, 0x04, 0x04);
 		} else {
 			pio_mouse->write_signal(SIG_I8255_PORT_C, 0x00, 0x04);
 		}
+	#endif
 #endif
 	}		
 }

@@ -687,7 +687,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_w (0x0037, pio_sys, 3);
 	
 	io->set_iomap_alias_rw(0x0040, pio_prn, 0);
-	io->set_iomap_alias_r (0x0042, pio_prn, 1);
+	io->set_iomap_alias_rw(0x0042, pio_prn, 1);
 	io->set_iomap_alias_rw(0x0044, pio_prn, 2);
 	io->set_iomap_alias_w (0x0046, pio_prn, 3);
 	
@@ -1362,30 +1362,42 @@ void VM::initialize_ports()
 
 	uint8_t port_b2;
 	port_b2  = 0x00;
-#if defined(_PC9801)
+
+#if !defined(SUPPORT_HIRESO)
+	#if defined(_PC9801)
 //	port_b |= 0x80; // TYP1, 0 = PC-9801 (first)
 //	port_b |= 0x40; // TYP0, 0
-#elif defined(_PC9801U)
+	#elif defined(_PC9801U)
 	port_b2 |= 0x80; // TYP1, 1 = PC-9801U
 	port_b2 |= 0x40; // TYP0, 1
-#else
+	#else
 	port_b2 |= 0x80; // TYP1, 1 = Other PC-9801 series
 //	port_b2 |= 0x40; // TYP0, 0
-#endif
+	#endif
 	if(pit_clock_8mhz) {
 		port_b2 |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
 	}
 	port_b2 |= 0x10; // DIP SW 1-3, 1 = Don't use LCD
 //	port_b2 |= 0x08; // HGC OFF
 	port_b2 |= 0x04; // Printer BUSY#, 1 = Inactive, 0 = Active (BUSY)
-#if defined(HAS_V30) || defined(HAS_V33)
+	#if defined(HAS_V30) || defined(HAS_V33)
 	port_b2 |= 0x00; // CPUT, 1 = V30/V33, 0 = 80x86
-#endif
-#if defined(_PC9801VF) || defined(_PC9801U)
+	#endif
+	#if defined(_PC9801VF) || defined(_PC9801U)
 	port_b2 |= 0x01; // VF, 1 = PC-9801VF/U
+	#endif
+#else /* HIRESO */
+	port_b2 = 0xff;
 #endif
 	pio_prn->write_signal(SIG_I8255_PORT_B, port_b2, 0xff);
-
+	uint8_t port_c2;
+	port_c2 = 0x00;
+#if defined(SUPPORT_HIRESO)
+	port_c2 |= 0x04; // PSTB inactive
+	port_c2 |= 0x02; // RST287/RST387
+	port_c2 |= 0x01; // INPUT PRIME=NOP
+#endif
+	pio_prn->write_signal(SIG_I8255_PORT_C, port_c2, 0x7f);  // EXCEPTS IR8 (BIT3) and BIT1(RST287/RST387)
 	uint8_t port_a3, port_b3, port_c3;
 	port_a3  = 0xf0; // Clear mouse buttons and counters
 	port_b3  = 0x00;
@@ -1448,12 +1460,6 @@ void VM::reset()
 		device->reset();
 	}
 #endif
-	uint8_t port_b2 = 0x00;
-	if(pit_clock_8mhz) {
-		port_b2 |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
-	}
-	pio_prn->write_signal(SIG_I8255_PORT_B, port_b2, 0x20);
-
 	set_cpu_clock_with_switch(config.cpu_type);
 
 #if defined(USE_MONITOR_TYPE)
@@ -1959,7 +1965,7 @@ bool VM::is_frame_skippable()
 void VM::update_config()
 {
 	if((config.cpu_type & 2) == 0) { // This don't change if using V30CPU.
-		set_cpu_clock_with_switch(config.cpu_type & 1);
+		set_cpu_clock_with_switch(config.cpu_type);
 	}
 #if defined(USE_MONITOR_TYPE)
 	set_wait(config.monitor_type, config.cpu_type);
