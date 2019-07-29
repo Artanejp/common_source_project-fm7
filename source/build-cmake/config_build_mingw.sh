@@ -98,6 +98,12 @@ build_dll libCSPgui
 build_dll libCSPosd
 build_dll libCSPemu_utils
 
+typeset -i SUCCESS_COUNT
+SUCCESS_COUNT=0
+
+typeset -i FAIL_COUNT
+FAIL_COUNT=0
+
 for SRCDATA in $@ ; do\
 
     mkdir -p ${SRCDATA}/build
@@ -128,9 +134,16 @@ for SRCDATA in $@ ; do\
     
     mingw32-make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
     case $? in
-      0 ) cp ./qt/common/*.exe ../../bin-win32/ ;;
+      0 ) 
+         SUCCESSS_COUNT=$((++SUCCESS_COUNT))
+         cp ./qt/common/*.exe ../../bin-win32/
+	 ;;
 #     0 ) sudo make install 2>&1 | tee -a ./make.log ;;
-      * ) exit $? ;;
+      * )
+           FAIL_COUNT=$((++FAIL_COUNT))
+           echo -e "Abort at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
+      #exit $?
+      ;;
     esac
     
     mingw32-make clean
@@ -142,6 +155,9 @@ for ii in libCSPavio libCSPgui libCSPosd libCSPemu_utils; do
     make clean
     cd ../..
 done
+
+echo -e "VM BUILD:Successed ${SUCCESS_COUNT} / Failed ${FAIL_COUNT}" >> ./${MAKE_STATUS_FILE}
+echo -e "End at `date --rfc-2822`." >> ./${MAKE_STATUS_FILE}
 
 exit 0
 

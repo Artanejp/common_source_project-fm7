@@ -104,7 +104,7 @@ function build_dll() {
           ;;
      * ) 
      	  echo -e "Abort at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
-	  #exit ${_STATUS}
+	  exit ${_STATUS}
 	  ;;
     esac
     cd ../../
@@ -186,6 +186,12 @@ cp ./libCSPgui/build-win32/qt/gui/*.a   ./bin-win32/
 #cp ./libCSPosd/build-win32/qt/osd/*.dll ./bin-win32/
 #cp ./libCSPosd/build-win32/qt/osd/*.a   ./bin-win32/
 
+typeset -i SUCCESS_COUNT
+SUCCESS_COUNT=0
+
+typeset -i FAIL_COUNT
+FAIL_COUNT=0
+
 for SRCDATA in $@ ; do\
 
     mkdir -p ${SRCDATA}/build-win32
@@ -217,11 +223,15 @@ for SRCDATA in $@ ; do\
     _STATUS=${PIPESTATUS[0]}
     echo -e "${SRCDATA} at `date --rfc-2822`:" "${_STATUS}" >> ../../${MAKE_STATUS_FILE}
     case ${_STATUS} in
-      0 ) cp ./qt/common/*.exe ../../bin-win32/ ;;
+      0 ) 
+        SUCCESSS_COUNT=$((++SUCCESS_COUNT))
+        cp ./qt/common/*.exe ../../bin-win32/
+	;;
       * )
-     	  echo -e "Abort at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
-	  #exit ${_STATUS}
-	  ;;
+        FAIL_COUNT=$((++FAIL_COUNT))
+	echo -e "Abort at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
+	#exit ${_STATUS}
+	;;
     esac
     
     make clean
@@ -235,6 +245,10 @@ for ii in libCSPavio libCSPgui libCSPosd libCSPemu_utils; do
     make clean
     cd ../..
 done
+
+echo -e "VM BUILD:Successed ${SUCCESS_COUNT} / Failed ${FAIL_COUNT}" >> ./${MAKE_STATUS_FILE}
+echo -e "End at `date --rfc-2822`." >> ./${MAKE_STATUS_FILE}
+
 
 exit 0
 

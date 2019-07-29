@@ -204,6 +204,12 @@ case ${USE_COMMON_DEVICE_LIB} in
 	   ;;
 esac
 
+typeset -i SUCCESS_COUNT
+SUCCESS_COUNT=0
+
+typeset -i FAIL_COUNT
+FAIL_COUNT=0
+
 for SRCDATA in $@ ; do\
 
     mkdir -p ${SRCDATA}/build
@@ -239,8 +245,12 @@ for SRCDATA in $@ ; do\
     echo -e "${SRCDATA} at `date --rfc-2822`:" "${_STATUS}" >> ../../${MAKE_STATUS_FILE}
 
     case ${_STATUS} in
-      0 ) sudo make install 2>&1 | tee -a ./make.log ;;
+      0 )
+         SUCCESSS_COUNT=$((++SUCCESS_COUNT))
+         sudo make install 2>&1 | tee -a ./make.log 
+         ;;
       * ) 
+           FAIL_COUNT=$((++FAIL_COUNT))
            echo -e "Abort at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
 	   #exit ${_STATUS}
 	   ;;
@@ -249,7 +259,8 @@ for SRCDATA in $@ ; do\
     make clean
     cd ../..
 done
-echo -e "End at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
+echo -e "VM BUILD:Successed ${SUCCESS_COUNT} / Failed ${FAIL_COUNT}" >> ./${MAKE_STATUS_FILE}
+echo -e "End at `date --rfc-2822`." >> ./${MAKE_STATUS_FILE}
 
 exit 0
 
