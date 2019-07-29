@@ -2,8 +2,8 @@ PC-9801RAでの、CSP実行時とmame実行時のシステム領域(0000:0400 - 
                             2019-07-15 by K.O <whatisthis.sowhat _at_ gmail.com>
 
          MAME/CSP
-0401h :  08h/68h -> プロテクトメモリ容量 *
-0457h :  FFh/00h -> IDEドライブ搭載(MAME),セクタ長や容量など
+0401h :  08h/68h -> プロテクトメモリ容量 ※問題無？
+0457h :  FFh/00h -> IDEドライブ搭載(MAME),セクタ長や容量など 
 0480h :  CBh/4Bh -> SENSE COMMANDサポート(MAMEのみ)
 0481h :  23h/20h -> HD BIOSセクタ長(#1,#0 : MAME=512, CSP=256)
 0484h :  E2h/02h -> HD BIOS (DMA LINE(bit7,6): MAMEのみSCSIあり(bit5))
@@ -18,7 +18,7 @@ PC-9801RAでの、CSP実行時とmame実行時のシステム領域(0000:0400 - 
 04DBh :  AAh/00h -> DB000hの拡張ROM ID *
 
 0500h :  23h/03h -> キーバッファオーバフロー時にブザー鳴らさない(MAME) *
-0501h :  24h/04h -> 機種情報(3) MAME=PC-9801U,98LT/HA / CSP=その他 *
+0501h :  24h/04h -> 機種情報(3) MAME=PC-9801U,98LT/HA / CSP=その他 * -> 7ed924d26802d11792b633a6ba0bbf100fb411a2で解決
 
 ※MAMEは、「ノーマル(PC-9801初代・E・F・M・U以外」と判定されてる
 　CSPは、 「不明機(1)(2)(3)(4)=1000)」になる。(2)==0は、PC-9801無印及び98XA。
