@@ -141,6 +141,10 @@ private:
 	uint32_t window_a0000h;
 #endif
 	void config_intram();
+	void update_bios_mainmem();
+	void update_bios_ipl_and_itf();
+	void update_bios_extra_boards();
+	void __FASTCALL update_bios_window(uint32_t window_addr, uint32_t begin);
 	
 public:
 	MEMBUS(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
