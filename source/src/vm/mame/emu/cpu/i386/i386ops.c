@@ -659,19 +659,19 @@ static void __FASTCALL I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode
 {
 #if 1
 	UINT32 oldpc = cpustate->prev_pc;
-	if((PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)))) {
+	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+	if(PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)/*(cpustate->CPL > IOPL)*/)) {
 		logerror("Call from non-supervisor privilege: I386OP(mov_r32_cr) at %08X", oldpc); 
 		FAULT(FAULT_GP, 0);
-		//return;
+		return;
 	}
 	UINT8 modrm = FETCH(cpustate);
-	//if(modrm < 0xc0) {
-	//	FAULT(FAULT_UD, 0);
-	//	return;
-	//}
-	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+	if(modrm < 0xc0) {
+		FAULT(FAULT_UD, 0);
+		return;
+	}
 	UINT8 cr = (modrm >> 3) & 0x7;
-	//logdebug("MOV r32 CR%d VAL=(%08X)\n", cr, cpustate->cr[cr], oldpc);
+	logdebug("MOV r32 CR%d VAL=(%08X)\n", cr, cpustate->cr[cr], oldpc);
 //	if(cr < 5) {
 //		if(cr == 1) {
 //			FAULT(FAULT_UD, 0);
@@ -775,22 +775,22 @@ static void __FASTCALL I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode
 {
 #if 1
 	UINT32 oldpc = cpustate->prev_pc;
-	if(PROTECTED_MODE && (/*(V8086_MODE) || */(cpustate->CPL != 0))) {
-		logerror("Call from non-supervisor privilege: I386OP(mov_cr_r32) at %08X", oldpc); 
+	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+	if(PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)/*(cpustate->CPL > IOPL)*/)) {
+		logerror("Call from non-supervisor privilege: I386OP(mov_cr_r32) at %08X CPL=%d", oldpc, cpustate->CPL); 
 		FAULT(FAULT_GP, 0);
 		return;
 	}
 	UINT8 modrm = FETCH(cpustate);
-//	if(modrm < 0xc0) {
-//		FAULT(FAULT_UD, 0);
-//		return;
-//	}
-	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+	if(modrm < 0xc0) {
+		FAULT(FAULT_UD, 0);
+		return;
+	}
 
 	UINT8 cr = (modrm >> 3) & 0x7;
 	UINT32 data = LOAD_RM32(modrm);
 	UINT32 data_bak;
-	//logdebug("MOV CR%d r32 VAL=(%08X) at %08X\n", cr, data, oldpc);
+	logdebug("MOV CR%d r32 VAL=(%08X) at %08X\n", cr, data, oldpc);
 	switch(cr)
 	{
 		case 0:
@@ -803,8 +803,8 @@ static void __FASTCALL I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode
 			if((data & (I386_CR0_NW | I386_CR0_CD)) == I386_CR0_NW) {
 				FAULT(FAULT_GP, 0);
 			}
-#if 1
 			data_bak = cpustate->cr[0];
+#if 0
 			data &= I386_CR0_ALL;
 			data &= ~I386_CR0_WP; // wp not supported on 386
 			//logdebug("MOV CR0,xxxxh %08x -> %08x \n", data_bak, data);
