@@ -15,6 +15,7 @@ void I8259::initialize()
 {
 	DEVICE::initialize();
 	__I8259_MAX_CHIPS = osd->get_feature_uint32_value(_T("I8259_MAX_CHIPS"));
+	__I8259_PC98_HACK = osd->check_feature(_T("I8259_PC98_HACK"));
 	if(__I8259_MAX_CHIPS >= 2) __I8259_MAX_CHIPS = 2;
 	__CHIP_MASK = __I8259_MAX_CHIPS - 1;
 	for(uint32_t c = 0; c < __I8259_MAX_CHIPS; c++) {
@@ -23,6 +24,9 @@ void I8259::initialize()
 		pic[c].icw1 = pic[c].icw2 = pic[c].icw3 = pic[c].icw4 = 0;
 		pic[c].ocw3 = 2;
 		pic[c].icw2_r = pic[c].icw3_r = pic[c].icw4_r = 0;
+		if(__I8259_PC98_HACK) {
+			pic[c].icw4 = 1;
+		}
 	}
 }
 
@@ -50,7 +54,11 @@ void I8259::write_io8(uint32_t addr, uint32_t data)
 			pic[c].icw3_r = 0;
 		} else if(pic[c].icw4_r) {
 			// icw4
-			pic[c].icw4 = data;
+			if(__I8259_PC98_HACK) {
+				pic[c].icw4 = data | 0x01; // For PC9801, may force to set 8086 mode.
+			} else {
+				pic[c].icw4 = data;
+			}
 			pic[c].icw4_r = 0;
 		} else {
 			// ocw1
@@ -81,25 +89,50 @@ void I8259::write_io8(uint32_t addr, uint32_t data)
 			pic[c].irr = 0;
 			pic[c].irr_tmp = 0;
 			pic[c].isr = 0;
-			pic[c].imr = 0;
 			pic[c].prio = 0;
+			pic[c].imr = 0;
 			if(!(pic[c].icw1 & 1)) {
 				pic[c].icw4 = 0;
+			}
+			if(__I8259_PC98_HACK) {
+				pic[c].icw4 |= 0x01;
 			}
 			pic[c].ocw3 = 0;
 		} else if((data & 0x98) == 0x08) {
 			// ocw3
+			if(__I8259_PC98_HACK) {
+				uint8_t ocw3 = pic[c].ocw3;
+				if((data & 0x02) == 0) { // OCW3_RR
+					data &= ~(0x01); // RIS
+					data |= (ocw3 & 0x01);
+				}
+				if((data & 0x40) == 0) { // ESMM
+					data &= ~(0x20); // SMM
+					data |= (ocw3 & 0x20);
+				}
+			}
 			pic[c].ocw3 = data;
 		} else if((data & 0x18) == 0x00) {
 			// ocw2
 			int n = data & 7;
 			uint8_t mask = 1 << n;
-			
+			uint8_t level = n;
+			if(!(__I8259_PC98_HACK)) {
+				if((data & 0x40) == 0) {  // OCW2_SL
+					if(pic[c].isr == 0) {
+						goto __throughfall;
+					}
+					level = pic[c].prio;
+					while((pic[c].isr & (1 << level)) == 0) {
+						level = (level + 1) & 7;
+					}
+				}
+			}
 			switch(data & 0xe0) {
 			case 0x00:
 				pic[c].prio = 0;
 				break;
-			case 0x20:
+			case 0x20:  // EOI
 				for(n = 0, mask = (1 << pic[c].prio); n < 8; n++, mask = (mask << 1) | (mask >> 7)) {
 					if(pic[c].isr & mask) {
 						pic[c].isr &= ~mask;
@@ -115,9 +148,16 @@ void I8259::write_io8(uint32_t addr, uint32_t data)
 				}
 				break;
 			case 0x80:
-				pic[c].prio = (pic[c].prio + 1) & 7;
+				if(!(__I8259_PC98_HACK)) {
+					pic[c].prio = (pic[c].prio + 1) & 7;
+				} else {
+					pic[c].prio = (level + 1) & 7;
+				}
 				break;
-			case 0xa0:
+			case 0xa0:  // EOI
+//				if(__I8259_PC98_HACK) {
+//					pic[c].prio = (level + 1) & 7;
+//				}
 				for(n = 0, mask = (1 << pic[c].prio); n < 8; n++, mask = (mask << 1) | (mask >> 7)) {
 					if(pic[c].isr & mask) {
 						pic[c].isr &= ~mask;
@@ -127,19 +167,29 @@ void I8259::write_io8(uint32_t addr, uint32_t data)
 				}
 				break;
 			case 0xc0:
-				pic[c].prio = n & 7;
+				if(__I8259_PC98_HACK) {
+					pic[c].prio = (level + 1) & 7;
+				} else {
+					pic[c].prio = n & 7;
+				}
 				break;
 			case 0xe0:
+				if(__I8259_PC98_HACK) {
+					pic[c].prio = (level + 1) & 7;
+				}
 				if(pic[c].isr & mask) {
 					pic[c].isr &= ~mask;
 					pic[c].irr &= ~mask;
 					pic[c].irr_tmp &= ~mask;
-					pic[c].prio = (pic[c].prio + 1) & 7;
+					if(!(__I8259_PC98_HACK)) {
+						pic[c].prio = (pic[c].prio + 1) & 7;
+					}
 				}
 				break;
 			}
 		}
 	}
+__throughfall:
 	update_intr();
 }
 
@@ -150,6 +200,13 @@ uint32_t I8259::read_io8(uint32_t addr)
 	if(addr & 1) {
 		return pic[c].imr;
 	} else {
+		if(__I8259_PC98_HACK) {
+			if((pic[c].ocw3 & 1) == 0) {
+				return pic[c].irr;
+			} else {
+				return pic[c].isr;
+			}
+		}
 		if(pic[c].ocw3 & 4) {
 			// poling command
 			if(pic[c].isr & ~pic[c].imr) {
@@ -239,6 +296,17 @@ void I8259::update_intr()
 		req_bit = bit;
 		intr = true;
 		break;
+	}
+	if(__I8259_PC98_HACK) {
+		// Reset events porting from NP2
+		if((req_chip == 0) && (req_level == 0)) {
+			for(uint32_t c = 0; c < __I8259_MAX_CHIPS; c++) {
+				if(pic[c].irr_tmp_id != -1) {
+					cancel_event(this, pic[c].irr_tmp_id);
+				}
+				pic[c].irr_tmp_id = -1;
+			}
+		}
 	}
 	if(d_cpu) {
 		d_cpu->set_intr_line(intr, true, 0);

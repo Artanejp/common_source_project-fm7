@@ -53,7 +53,7 @@ private:
 	uint8_t req_bit;
 	uint32_t __I8259_MAX_CHIPS;
 	uint32_t __CHIP_MASK;
-	
+	bool __I8259_PC98_HACK;
 	void __FASTCALL update_intr();
 	
 public:
@@ -62,6 +62,7 @@ public:
 		d_cpu = NULL;
 		__I8259_MAX_CHIPS = 0;
 		__CHIP_MASK = 0xffffffff;
+		__I8259_PC98_HACK = false;
 		set_device_name(_T("i8259 PIC"));
 	}
 	~I8259() {}

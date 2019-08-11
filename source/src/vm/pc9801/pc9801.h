@@ -352,6 +352,7 @@
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	3
 #define USE_DEBUGGER
+#define I8259_PC98_HACK
 
 #define USE_STATE
 #if defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88) 
