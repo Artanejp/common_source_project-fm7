@@ -3869,12 +3869,16 @@ static CPU_EXECUTE( i386 )
 				exception_pc = cpustate->prev_pc;
 				exception_code = e;
 				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32, 1);
+				cpustate->total_cycles += cpustate->cycles;
+				cpustate->cycles = 0;
 			} catch(...) {
 				cpustate->ext = 1;
 				logerror("UNKNOWN EXCEPTION HAPPEND AT PC=%08X EIP=%08X VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->prev_pc,  cpustate->eip, (cpustate->VM) ? "YES" : "NO");
 				exception_caused = true;
 				exception_pc = cpustate->prev_pc;
 				exception_code = 0;
+				cpustate->total_cycles += cpustate->cycles;
+				cpustate->cycles = 0;
 			}
 			
 			
@@ -3946,12 +3950,16 @@ static CPU_EXECUTE( i386 )
 				exception_code = e;
 				cpustate->debugger->add_cpu_trace_exception(exception_code);
 				i386_trap_with_error(cpustate,e&0xffffffff,0,0,e>>32, 1);
+				cpustate->total_cycles += cpustate->cycles;
+				cpustate->cycles = 0;
 			} catch(...) {
 				cpustate->ext = 1;
 				logerror("UNKNOWN EXCEPTION HAPPEND AT PC=%08X EIP=%08X VM8086=%s exception %08x irq=0 irq_gate=0 ERROR=%08x\n", cpustate->prev_pc,  cpustate->eip, (cpustate->VM) ? "YES" : "NO");
 				exception_caused = true;
 				exception_pc = cpustate->prev_pc;
 				exception_code = 0;
+				cpustate->total_cycles += cpustate->cycles;
+				cpustate->cycles = 0;
 			}
 //#ifdef SINGLE_MODE_DMA
 			if(cpustate->dma != NULL) {
