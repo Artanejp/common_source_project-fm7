@@ -660,6 +660,7 @@ static void __FASTCALL I386OP(mov_r32_cr)(i386_state *cpustate)        // Opcode
 #if 1
 	UINT32 oldpc = cpustate->prev_pc;
 	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+//	UINT8 modrm = FETCH(cpustate);
 	if(PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)/*(cpustate->CPL > IOPL)*/)) {
 		logerror("Call from non-supervisor privilege: I386OP(mov_r32_cr) at %08X", oldpc); 
 		FAULT(FAULT_GP, 0);
@@ -776,6 +777,7 @@ static void __FASTCALL I386OP(mov_cr_r32)(i386_state *cpustate)        // Opcode
 #if 1
 	UINT32 oldpc = cpustate->prev_pc;
 	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
+//	UINT8 modrm = FETCH(cpustate);
 	if(PROTECTED_MODE && ((V8086_MODE) || (cpustate->CPL != 0)/*(cpustate->CPL > IOPL)*/)) {
 		logerror("Call from non-supervisor privilege: I386OP(mov_cr_r32) at %08X CPL=%d", oldpc, cpustate->CPL); 
 		FAULT(FAULT_GP, 0);
