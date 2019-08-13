@@ -313,7 +313,6 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 			action_SetRenderMode[i]->binds->setValue1(i);
 			
 			if(i == p_config->rendering_type) action_SetRenderMode[i]->setChecked(true);
-		
 			if(i == CONFIG_RENDER_TYPE_STD) {
 				action_SetRenderMode[i]->setEnabled(true);
 				action_SetRenderMode[i]->setVisible(true);

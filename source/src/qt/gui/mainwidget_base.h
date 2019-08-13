@@ -58,6 +58,29 @@ QT_BEGIN_NAMESPACE
 			__action->setChecked(true);							  \
 		}														  \
 
+#define SET_ACTION_SINGLE_CONNECT(__action,__checkable,__enabled,__cfgif,__signal1,__slot1) \
+		__action = new Action_Control(this, using_flags);		  \
+		__action->setCheckable(__checkable);					  \
+		__action->setEnabled(__enabled);						  \
+		__action->setChecked(false);							  \
+		if(__cfgif) {											  \
+			__action->setChecked(true);							  \
+		}														  \
+		connect(__action, __signal1, this, __slot1);			  
+
+#define SET_ACTION_NUMERIC_CONNECT(__action,__num,__condval,__signal1,__slot1,__signal2,__slot2) \
+	__action = new Action_Control(this, using_flags);					\
+	__action->setCheckable(true);										\
+	__action->setEnabled(true);											\
+	__action->binds->setValue1(__num);											\
+	__action->setChecked(false);										\
+	if(__condval == __num) {											\
+		__action->setChecked(true);										\
+	}																	\
+	connect(__action, __signal1, __action->binds, __slot1);				\
+	connect(__action->binds, __signal2, this, __slot2); 
+
+
 #define SET_ACTION_CHECKABLE_SINGLE_CONNECT(__menu,__action,__objname,__cond,__signal1,__slot1) \
 	__action = new Action_Control(this, using_flags);					\
 	__action->setObjectName(QString::fromUtf8(__objname));				\
@@ -66,6 +89,12 @@ QT_BEGIN_NAMESPACE
 	connect(__action, __signal1, this, __slot1);						\
 	__menu->addAction(__action);
 
+#define SET_ACTION_CHECKABLE_SINGLE_CONNECT_NOMENU(__action,__objname,__cond,__signal1,__slot1) \
+	__action = new Action_Control(this, using_flags);					\
+	__action->setObjectName(QString::fromUtf8(__objname));				\
+	__action->setCheckable(true);										\
+	if(__cond) __action->setChecked(true);								\
+	connect(__action, __signal1, this, __slot1);						\
 
 #define SET_HELP_MENUENTRY(__menu,__action,__objname,__txtname) \
 	__action = new Action_Control(this, using_flags); \
@@ -492,6 +521,9 @@ protected:
 	void retranslateMachineMenu(void);
 	void retranslateBinaryMenu(int drv, int basedrv);
 	void retranslateSoundMenu(void);
+	QMenu  *createMenuNode(QMenuBar *parent, QString objname = QString::fromUtf8(""));
+	QMenu  *createMenuNode(QMenu *parent, QString objname = QString::fromUtf8(""));
+
 public:
 	Ui_MainWindowBase(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~Ui_MainWindowBase();
@@ -786,6 +818,7 @@ signals:
 	int sig_save_state(QString);
 	int sig_emu_thread_to_fixed_cpu(int);
 };
+
 QT_END_NAMESPACE
 
 #endif

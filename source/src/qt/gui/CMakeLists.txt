@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.19.2)
+set(THIS_LIB_VERSION 2.19.3)
 #include(cotire)
 #include(PrecompiledHeader)
 
@@ -80,6 +80,8 @@ set(s_qt_gui_srcs
 	  menu_cmt.cpp
 	  menu_cart.cpp
 	  menu_main.cpp
+	  menu_emulator.cpp
+	  menu_machine.cpp
 	  menu_sound.cpp
 	  menu_binary.cpp
 	  menu_bubble.cpp
