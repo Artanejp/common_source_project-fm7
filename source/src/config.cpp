@@ -567,19 +567,19 @@ void load_config(const _TCHAR *config_path)
 			uint32_t flags = 0;
 			flags = MyGetPrivateProfileInt(_T("Qt"), create_string(_T("SyslogEnabled%d"), ii), 0xffff, config_path);
 			for(int jj = 0; jj < 8; jj++) {
-				config.dev_log_to_syslog[ii][jj] = ((flags & 0x0001) != 0) ? true : false;
-				flags >>= 1;
+				config.dev_log_to_syslog[ii][jj] = ((flags & 0x0080) != 0) ? true : false;
+				flags <<= 1;
 			}
 			flags = 0;
 			flags = MyGetPrivateProfileInt(_T("Qt"), create_string(_T("ConsoleLogEnabled%d"), ii), 0xffff, config_path);
 			for(int jj = 0; jj < 8; jj++) {
-				config.dev_log_to_console[ii][jj] = ((flags & 0x0001) != 0) ? true : false;
-				flags >>= 1;
+				config.dev_log_to_console[ii][jj] = ((flags & 0x0080) != 0) ? true : false;
+				flags <<= 1;
 			}
 			flags = MyGetPrivateProfileInt(_T("Qt"), create_string(_T("RecordLogEnabled%d"), ii), 0xffff, config_path);
 			for(int jj = 0; jj < 8; jj++) {
-				config.dev_log_recording[ii][jj] = ((flags & 0x0001) != 0) ? true : false;
-			flags >>= 1;
+				config.dev_log_recording[ii][jj] = ((flags & 0x0080) != 0) ? true : false;
+				flags <<= 1;
 			}
 		}
 		config.state_log_to_console = MyGetPrivateProfileBool(_T("Qt"), _T("StateLogToConsole"), config.state_log_to_console, config_path);;
