@@ -17,6 +17,7 @@
 
 //#include "res/resource.h"
 #include "qt_debugger_tmpl.h"
+#include "qt_lineeditplus.h"
 //#include <QThread>
 //#include <QMainWindow>
 
@@ -79,7 +80,7 @@ CSP_Debugger_Tmpl::CSP_Debugger_Tmpl(QWidget *parent) : QWidget(parent, Qt::Wind
 	text->setLineWrapMode(QTextEdit::WidgetWidth);
 	text->setAcceptRichText(true);
 
-	text_command = new QLineEdit(this);
+	text_command = new QLineEditPlus(QString::fromUtf8(""), this);
 	text_command->setEchoMode(QLineEdit::Normal);
 	text_command->setMaxLength(1024);
 	text_command->setReadOnly(false);

@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.19.3)
+set(THIS_LIB_VERSION 2.19.4)
 #include(cotire)
 #include(PrecompiledHeader)
 
@@ -53,6 +53,7 @@ set(s_qt_gui_headers
 	  emu_thread_tmpl.h
 	  
 	  qt_debugger_tmpl.h
+	  qt_lineeditplus.h
 )
 
 
@@ -67,7 +68,8 @@ set(s_qt_gui_srcs
 	  gles2/qt_glutil_gles_2.cpp
 	  qt_glevents.cpp
 	  qt_dialogs.cpp
-
+	  qt_lineeditplus.cpp
+	  
 	  qt_input.cpp
 	  qt_drawitem.cpp
 	  menu_control.cpp

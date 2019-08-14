@@ -16,6 +16,7 @@
 #include <QApplication>
 #include "../../emu.h"
 #include "qt_debugger.h"
+#include "../gui/qt_lineeditplus.h"
 
 extern EMU *emu;
 
@@ -40,7 +41,7 @@ void CSP_Debugger::call_debugger(void)
 
 void CSP_Debugger::run(void)
 {
-	connect(text_command, SIGNAL(editingFinished()), this, SLOT(call_debugger()));
+	connect(text_command, SIGNAL(editingFinished2()), this, SLOT(call_debugger()));
 	connect(parent_object, SIGNAL(quit_debugger_thread()), this, SLOT(close()));
 	
 #if defined(USE_DEBUGGER)

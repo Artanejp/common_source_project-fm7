@@ -17,7 +17,7 @@
 #include <QThread>
 #include <QWidget>
 #include <QPlainTextEdit>
-#include <QLineEdit>
+
 #include <QString>
 #include <QStringList>
 #include <QVBoxLayout>
@@ -29,6 +29,7 @@
 QT_BEGIN_NAMESPACE	
 
 class CSP_DebuggerThread;
+class QLineEditPlus;
 class DLL_PREFIX CSP_Debugger_Tmpl : public QWidget
 {
 	Q_OBJECT
@@ -36,7 +37,7 @@ class DLL_PREFIX CSP_Debugger_Tmpl : public QWidget
 	QObject *parent_object;
 	QWidget *widget;
 	QTextEdit *text;
-	QLineEdit *text_command;
+	QLineEditPlus *text_command;
 	QVBoxLayout *VBoxWindow;
 
 	bool string_is_strong;
