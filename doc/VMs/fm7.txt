@@ -41,7 +41,7 @@
 	= (NUMPAD)	=	Scroll Lock(Windows) or Right Windows key
 	Comma (NUMPAD)	Right Alt
 
-	Anothe Keys include NUMPAD are refer to physical keyboard.
+	Another Keys include NUMPAD are refer to physical keyboard.
 	
 ----------------------------------------
 K.Ohta

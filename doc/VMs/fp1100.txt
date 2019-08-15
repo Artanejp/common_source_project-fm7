@@ -1,5 +1,5 @@
 "eFP-1100" - CASIO FP-1100 Emulator for Win32
-								8/27/2010
+								8/15/2019
 
 --- Internal ROM image
 
@@ -9,6 +9,18 @@
 	SUB2.ROM	SUB $1000-$1FFF
 	SUB3.ROM	SUB $F000-$FF7F
 
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	BREAK		PAUSE
+	STOP		END
+	CLS			HOME
+	KANA		ALT
+	PF0			F10
+	RUBOUT		BACK SPACE
+	000			Numpad's .
+	
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
