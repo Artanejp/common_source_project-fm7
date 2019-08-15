@@ -633,6 +633,109 @@ void YM2203::update_timing(int new_clocks, double new_frames_per_sec, int new_li
 	}
 }
 
+bool YM2203::write_debug_reg(const _TCHAR *reg, uint32_t data)
+{
+	if((reg[0] == 'R') || (reg[0] == 'r')) {
+		if(strlen(reg) >= 2) {
+			_TCHAR *eptr;
+			int regnum = _tcstol(&(reg[1]), &eptr, 16);
+			if(is_ym2608) {
+				if(regnum < 0x200) {
+					set_reg((uint32_t)regnum, data);
+				} else {
+					return false;
+				}
+			} else {
+				if(regnum < 0x100) {
+					set_reg((uint32_t)regnum, data);
+				} else {
+					return false;
+				}
+			}				
+			return true;
+		}
+		return false;
+	} else if(_tcsicmp(reg, _T("CH")) == 0) {
+		ch = data;
+		return true;
+	} else if(_tcsicmp(reg, _T("CH1")) == 0) {
+		ch1 = data;
+		return true;
+	} else if(_tcsicmp(reg, _T("FNUM2")) == 0) {
+		fnum2 = data;
+		return true;
+	} else if(_tcsicmp(reg, _T("DATA1")) == 0) {
+		data1 = data;
+		return true;
+	} else if(_tcsicmp(reg, _T("FNUM21")) == 0) {
+		fnum21 = data;
+		return true;
+	} 
+	if((_SUPPORT_YM2203_PORT_A) || (_SUPPORT_YM2203_PORT_B)) {
+		if(_tcsicmp(reg, _T("PAR")) == 0) {
+			port[0].rreg = data;
+		} else if(_tcsicmp(reg, _T("PAW")) == 0) {
+			port[0].wreg = data;
+			write_signals(&port[0].outputs, data);
+		} else if(_tcsicmp(reg, _T("PBR")) == 0) {
+			port[1].rreg = data;
+		} else if(_tcsicmp(reg, _T("PBW")) == 0) {
+			port[1].wreg = data;
+			write_signals(&port[1].outputs, data);
+		} else if(_tcsicmp(reg, _T("MODE")) == 0) {
+			mode = data;
+		} else {
+			return false;
+		}
+		return true;
+	}
+	return false;
+}
+
+bool YM2203::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	_TCHAR tmps[512] = {0};
+	if((_SUPPORT_YM2203_PORT_A) || (_SUPPORT_YM2203_PORT_B)) {
+		my_stprintf_s(tmps, 512, _T("PORTA: PAR/PAW = %02X/%02X  PORTB: PBR/PBW = %02X/%02X MODE=%02X\n")
+					  , port[0].rreg, port[0].wreg, port[1].rreg, port[1].wreg, mode
+			);
+	}
+	_TCHAR tmps2[32 * 0x200] = {0};
+	_TCHAR tmps3[16];
+	int rows = (is_ym2608) ? (0x200 / 16) : (0x100 / 16);
+	for(uint32_t i = 0; i < rows; i++) {
+		memset(tmps3, 0x00, sizeof(tmps3));
+		my_stprintf_s(tmps3, 15, _T("+%02X :"), i * 16);
+		_tcsncat(tmps2, tmps3, sizeof(tmps2) - 1);
+		for(uint32_t j = 0; j < 16; j++) {
+			memset(tmps3, 0x00, sizeof(tmps3));
+			if(i == 0) {
+				if(is_ym2608) {
+					my_stprintf_s(tmps3, 7, _T(" %02X"), opna->GetReg(j));
+				} else {
+					my_stprintf_s(tmps3, 7, _T(" %02X"), opn->GetReg(j));
+				}
+			} else {
+				if(is_ym2608) {
+					if((i * 16 + j) == 0xff) {
+						my_stprintf_s(tmps3, 7, _T(" %02X"), opna->GetReg(i * 16 + j));
+					} else {
+						my_stprintf_s(tmps3, 7, _T(" %02X"), port_log[i * 16 + j].data);
+					}
+				} else {
+					my_stprintf_s(tmps3, 7, _T(" %02X"), port_log[i * 16 + j].data);
+				}					
+			}
+			_tcsncat(tmps2, tmps3, sizeof(tmps2) - 1);
+		}
+		_tcsncat(tmps2, "\n", sizeof(tmps2) - 1);
+	}	
+	my_stprintf_s(buffer, buffer_len - 1, _T("%sCH=%02X  FNUM2=%02X CH1=%02X DATA1=%02X FNUM21=%02X\nBUSY=%s CHIP_CLOCK=%d\nREG : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F\n%s"),
+				  tmps, ch, fnum2, ch1, data1, fnum21,
+				  (busy) ? _T("Y") : _T("N"), chip_clock, tmps2);
+	return true;
+}
+
 #define STATE_VERSION	7
 
 bool YM2203::process_state(FILEIO* state_fio, bool loading)

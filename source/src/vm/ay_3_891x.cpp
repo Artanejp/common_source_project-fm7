@@ -322,6 +322,9 @@ bool AY_3_891X::write_debug_reg(const _TCHAR *reg, uint32_t data)
 			return true;
 		}
 		return false;
+	} else if(_tcsicmp(reg, _T("CH")) == 0) {
+		ch = data;
+		return true;
 	}
 	if(_SUPPORT_AY_3_891X_PORT) {
 		if(_tcsicmp(reg, _T("PAR")) == 0) {
@@ -354,18 +357,16 @@ bool AY_3_891X::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	}
 	_TCHAR tmps2[16 * 12 + 16] = {0};
 	_TCHAR tmps3[16];
-	for(uint32_t i = 0; i < 2; i++) {
+	memset(tmps3, 0x00, sizeof(tmps3));
+	my_stprintf_s(tmps3, 15, _T("+%02d :"), 0);
+	_tcsncat(tmps2, tmps3, sizeof(tmps2) - 1);
+	for(uint32_t j = 0; j < 16; j++) {
 		memset(tmps3, 0x00, sizeof(tmps3));
-		my_stprintf_s(tmps3, 15, _T("+%02d :"), i * 8);
+		my_stprintf_s(tmps3, 7, _T(" %02X"), opn->GetReg(j));
 		_tcsncat(tmps2, tmps3, sizeof(tmps2) - 1);
-		for(uint32_t j = 0; j < 8; j++) {
-			memset(tmps3, 0x00, sizeof(tmps3));
-			my_stprintf_s(tmps3, 7, _T(" %02X"), opn->GetReg(i * 8 + j));
-			_tcsncat(tmps2, tmps3, sizeof(tmps2) - 1);
-		}
-		_tcsncat(tmps2, "\n", sizeof(tmps2) - 1);
-	}	
-	my_stprintf_s(buffer, buffer_len - 1, _T("%sCH=%02X  CHIP_CLOCK=%d\nREG : +0 +1 +2 +3 +4 +5 +6 +7 +8\n%s"),
+	}
+	_tcsncat(tmps2, "\n", sizeof(tmps2) - 1);
+	my_stprintf_s(buffer, buffer_len - 1, _T("%sCH=%02X  CHIP_CLOCK=%d\nREG : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F\n%s"),
 				  tmps, ch, chip_clock, tmps2);
 	return true;
 }
