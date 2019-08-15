@@ -19,7 +19,7 @@
 	KANA		ALT
 	PF0			F10
 	RUBOUT		BACK SPACE
-	000			Numpad's .
+	000			PAGE DOWN
 	
 ----------------------------------------
 TAKEDA, toshiya
