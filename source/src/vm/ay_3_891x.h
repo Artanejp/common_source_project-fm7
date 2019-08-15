@@ -15,26 +15,22 @@
 #include "device.h"
 #include "fmgen/opna.h"
 
-#if defined(HAS_AY_3_8913)
+//#if defined(HAS_AY_3_8913)
 // AY-3-8913: both port a and port b are not supported
-#elif defined(HAS_AY_3_8912)
+//#elif defined(HAS_AY_3_8912)
 // AY-3-8912: port b is not supported
-#define SUPPORT_AY_3_891X_PORT_A
-#else
+//#define SUPPORT_AY_3_891X_PORT_A
+//#else
 // AY-3-8910: both port a and port b are supported
-#define SUPPORT_AY_3_891X_PORT_A
-#define SUPPORT_AY_3_891X_PORT_B
-#endif
-#if defined(SUPPORT_AY_3_891X_PORT_A) || defined(SUPPORT_AY_3_891X_PORT_B)
-#define SUPPORT_AY_3_891X_PORT
-#endif
+//#define SUPPORT_AY_3_891X_PORT_A
+//#define SUPPORT_AY_3_891X_PORT_B
+//#endif
+//#if defined(SUPPORT_AY_3_891X_PORT_A) || defined(SUPPORT_AY_3_891X_PORT_B)
+//#define SUPPORT_AY_3_891X_PORT
+//#endif
 
-#ifdef SUPPORT_AY_3_891X_PORT_A
 #define SIG_AY_3_891X_PORT_A	0
-#endif
-#ifdef SUPPORT_AY_3_891X_PORT_B
 #define SIG_AY_3_891X_PORT_B	1
-#endif
 #define SIG_AY_3_891X_MUTE	2
 
 class DEBUGGER;
@@ -44,11 +40,20 @@ class AY_3_891X : public DEVICE
 private:
 	DEBUGGER *d_debugger;
 	FM::OPN* opn;
+
+	bool _HAS_AY_3_8910;
+	bool _HAS_AY_3_8912;
+	bool _HAS_AY_3_8913;
+	bool _SUPPORT_AY_3_891X_PORT_A;
+	bool _SUPPORT_AY_3_891X_PORT_B;
+	bool _SUPPORT_AY_3_891X_PORT;
+	bool _IS_AY_3_891X_PORT_MODE;
+	uint32_t _AY_3_891X_PORT_MODE;
 	int base_decibel_fm, base_decibel_psg;
 	
 	uint8_t ch;
 	
-#ifdef SUPPORT_AY_3_891X_PORT
+//#ifdef SUPPORT_AY_3_891X_PORT
 	struct {
 		uint8_t wreg;
 		uint8_t rreg;
@@ -57,7 +62,7 @@ private:
 		outputs_t outputs;
 	} port[2];
 	uint8_t mode;
-#endif
+//#endif
 	
 	int chip_clock;
 	bool irq_prev, mute;
@@ -85,26 +90,26 @@ private:
 public:
 	AY_3_891X(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-#ifdef SUPPORT_AY_3_891X_PORT
+//#ifdef SUPPORT_AY_3_891X_PORT
 		for(int i = 0; i < 2; i++) {
 			initialize_output_signals(&port[i].outputs);
 			port[i].wreg = port[i].rreg = 0;//0xff;
 		}
-#endif
+//#endif
 		base_decibel_fm = base_decibel_psg = 0;
 		d_debugger = NULL;
 		use_lpf = false;
 		use_hpf = false;
 		sample_rate = 0;
-#if defined(HAS_AY_3_8910)
-		set_device_name(_T("AY-3-8910 PSG"));
-#elif defined(HAS_AY_3_8912)
-		set_device_name(_T("AY-3-8912 PSG"));
-#elif defined(HAS_AY_3_8913)
-		set_device_name(_T("AY-3-8913 PSG"));
-#else
+		_HAS_AY_3_8910 = false;
+		_HAS_AY_3_8912 = false;
+		_HAS_AY_3_8913 = false;
+		_SUPPORT_AY_3_891X_PORT_A = false;
+		_SUPPORT_AY_3_891X_PORT_B = false;
+		_SUPPORT_AY_3_891X_PORT = false;
+		_IS_AY_3_891X_PORT_MODE = false;
+		_AY_3_891X_PORT_MODE = 0;
 		set_device_name(_T("AY-3-891X PSG"));
-#endif
 	}
 	~AY_3_891X() {}
 	
@@ -138,6 +143,9 @@ public:
 	{
 		return 16;
 	}
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	
 	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data)
 	{
 		if(addr < 16) {
@@ -154,18 +162,15 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
-#ifdef SUPPORT_AY_3_891X_PORT_A
 	void set_context_port_a(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[0].outputs, device, id, mask, shift);
 	}
-#endif
-#ifdef SUPPORT_AY_3_891X_PORT_B
 	void set_context_port_b(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[1].outputs, device, id, mask, shift);
 	}
-#endif
+
 	void set_context_debugger(DEBUGGER* device)
 	{
 		d_debugger = device;

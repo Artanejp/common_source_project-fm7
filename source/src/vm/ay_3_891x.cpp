@@ -29,6 +29,33 @@ void AY_3_891X::initialize()
 	lpf_quality = 1.0;
 	hpf_quality = 1.0;
 	
+	_HAS_AY_3_8910 = osd->check_feature(_T("HAS_AY_3_8910"));
+	_HAS_AY_3_8912 = osd->check_feature(_T("HAS_AY_3_8912"));
+	_HAS_AY_3_8913 = osd->check_feature(_T("HAS_AY_3_8913"));
+	_SUPPORT_AY_3_891X_PORT_A = false;
+	_SUPPORT_AY_3_891X_PORT_B = false;
+	_IS_AY_3_891X_PORT_MODE = osd->check_feature(_T("AY_3_891X_PORT_MODE"));
+	_AY_3_891X_PORT_MODE = osd->get_feature_uint32_value(_T("AY_3_891X_PORT_MODE"));
+
+	if(_HAS_AY_3_8912) {
+		// AY-3-8912: port b is not supported
+		_SUPPORT_AY_3_891X_PORT_A = true;
+	} else if(!(_HAS_AY_3_8913)) {
+		// AY-3-8913: both port a and port b are not supported
+		// AY-3-8910: both port a and port b are supported
+		_SUPPORT_AY_3_891X_PORT_A = true;
+		_SUPPORT_AY_3_891X_PORT_B = true;
+	}		
+	_SUPPORT_AY_3_891X_PORT = ((_SUPPORT_AY_3_891X_PORT_A) || (_SUPPORT_AY_3_891X_PORT_B));
+	if(_HAS_AY_3_8910) {
+		set_device_name(_T("AY-3-8910 PSG"));
+	} else if(_HAS_AY_3_8912) {
+		set_device_name(_T("AY-3-8912 PSG"));
+	} else if(_HAS_AY_3_8913) {
+		set_device_name(_T("AY-3-8913 PSG"));
+	}
+
+
 	if(d_debugger != NULL) {
 		d_debugger->set_device_name(_T("Debugger (AY-3-891X PSG)"));
 		d_debugger->set_context_mem(this);
@@ -51,15 +78,15 @@ void AY_3_891X::reset()
 	timer_event_id = -1;
 	this->set_reg(0x27, 0);
 	
-#ifdef SUPPORT_AY_3_891X_PORT
-	port[0].first = port[1].first = true;
-	port[0].wreg = port[1].wreg = 0;//0xff;
-#ifdef AY_3_891X_PORT_MODE
-	mode = AY_3_891X_PORT_MODE;
-#else
-	mode = 0;
-#endif
-#endif
+	if(_SUPPORT_AY_3_891X_PORT) {
+		port[0].first = port[1].first = true;
+		port[0].wreg = port[1].wreg = 0;//0xff;
+		if(_IS_AY_3_891X_PORT_MODE) {
+			mode = _AY_3_891X_PORT_MODE;
+		} else {
+			mode = 0;
+		}
+	}
 	irq_prev = busy = false;
 }
 
@@ -93,31 +120,31 @@ uint32_t AY_3_891X::read_io8(uint32_t addr)
 void AY_3_891X::write_via_debugger_data8(uint32_t addr, uint32_t data)
 {
 	if(addr < 16) {
-#ifdef SUPPORT_AY_3_891X_PORT
-		if(addr == 7) {
-#ifdef AY_3_891X_PORT_MODE
-			mode = (data & 0x3f) | AY_3_891X_PORT_MODE;
-#else
-			mode = data;
-#endif
-		} else if(addr == 14) {
-#ifdef SUPPORT_AY_3_891X_PORT_A
-			if(port[0].wreg != data || port[0].first) {
-				write_signals(&port[0].outputs, data);
-				port[0].wreg = data;
-				port[0].first = false;
+		if(_SUPPORT_AY_3_891X_PORT) {
+			if(addr == 7) {
+				if(_IS_AY_3_891X_PORT_MODE) {
+					mode = (data & 0x3f) | _AY_3_891X_PORT_MODE;
+				} else {
+					mode = data;
+				}
+			} else if(addr == 14) {
+				if(_SUPPORT_AY_3_891X_PORT_A) {
+					if(port[0].wreg != data || port[0].first) {
+						write_signals(&port[0].outputs, data);
+						port[0].wreg = data;
+						port[0].first = false;
+					}
+				}
+			} else if(addr == 15) {
+				if(_SUPPORT_AY_3_891X_PORT_B) {
+					if(port[1].wreg != data || port[1].first) {
+						write_signals(&port[1].outputs, data);
+						port[1].wreg = data;
+						port[1].first = false;
+					}
+				}
 			}
-#endif
-		} else if(addr == 15) {
-#ifdef SUPPORT_AY_3_891X_PORT_B
-			if(port[1].wreg != data || port[1].first) {
-				write_signals(&port[1].outputs, data);
-				port[1].wreg = data;
-				port[1].first = false;
-			}
-#endif
 		}
-#endif
 		update_count();
 		this->set_reg(addr, data);
 	}
@@ -126,17 +153,17 @@ void AY_3_891X::write_via_debugger_data8(uint32_t addr, uint32_t data)
 uint32_t AY_3_891X::read_via_debugger_data8(uint32_t addr)
 {
 	if(addr < 16) {
-#ifdef SUPPORT_AY_3_891X_PORT
-		if(addr == 14) {
-#ifdef SUPPORT_AY_3_891X_PORT_A
-			return (mode & 0x40) ? port[0].wreg : port[0].rreg;
-#endif
-		} else if(addr == 15) {
-#ifdef SUPPORT_AY_3_891X_PORT_B
-			return (mode & 0x80) ? port[1].wreg : port[1].rreg;
-#endif
+		if(_SUPPORT_AY_3_891X_PORT) {
+			if(addr == 14) {
+				if(_SUPPORT_AY_3_891X_PORT_A) {
+					return (mode & 0x40) ? port[0].wreg : port[0].rreg;
+				}
+			} else if(addr == 15) {
+				if(_SUPPORT_AY_3_891X_PORT_B) {
+					return (mode & 0x80) ? port[1].wreg : port[1].rreg;
+				}
+			}
 		}
-#endif
 		return opn->GetReg(addr);
 	}
 	return 0;
@@ -146,14 +173,16 @@ void AY_3_891X::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_AY_3_891X_MUTE) {
 		mute = ((data & mask) != 0);
-#ifdef SUPPORT_AY_3_891X_PORT_A
+
 	} else if(id == SIG_AY_3_891X_PORT_A) {
-		port[0].rreg = (port[0].rreg & ~mask) | (data & mask);
-#endif
-#ifdef SUPPORT_AY_3_891X_PORT_B
+		if(_SUPPORT_AY_3_891X_PORT_A) {
+			port[0].rreg = (port[0].rreg & ~mask) | (data & mask);
+		}
+
 	} else if(id == SIG_AY_3_891X_PORT_B) {
-		port[1].rreg = (port[1].rreg & ~mask) | (data & mask);
-#endif
+		if(_SUPPORT_AY_3_891X_PORT_B) {
+			port[1].rreg = (port[1].rreg & ~mask) | (data & mask);
+		}
 	}
 }
 
@@ -280,6 +309,67 @@ void AY_3_891X::update_timing(int new_clocks, double new_frames_per_sec, int new
 	clock_const = (uint32_t)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
+bool AY_3_891X::write_debug_reg(const _TCHAR *reg, uint32_t data)
+{
+	if((reg[0] == 'R') || (reg[0] == 'r')) {
+		if(strlen(reg) >= 2) {
+			_TCHAR *eptr;
+			int regnum = _tcstol(&(reg[1]), &eptr, 16);
+			if(regnum >= 16) {
+				return false;
+			}
+			opn->SetReg((uint32_t)regnum, data);
+			return true;
+		}
+		return false;
+	}
+	if(_SUPPORT_AY_3_891X_PORT) {
+		if(_tcsicmp(reg, _T("PAR")) == 0) {
+			port[0].rreg = data;
+		} else if(_tcsicmp(reg, _T("PAW")) == 0) {
+			port[0].wreg = data;
+			write_signals(&port[0].outputs, data);
+		} else if(_tcsicmp(reg, _T("PBR")) == 0) {
+			port[1].rreg = data;
+		} else if(_tcsicmp(reg, _T("PBW")) == 0) {
+			port[1].wreg = data;
+			write_signals(&port[1].outputs, data);
+		} else if(_tcsicmp(reg, _T("MODE")) == 0) {
+			mode = data;
+		} else {
+			return false;
+		}
+		return true;
+	}
+	return false;
+}
+
+bool AY_3_891X::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	_TCHAR tmps[512] = {0};
+	if(_SUPPORT_AY_3_891X_PORT) {
+		my_stprintf_s(tmps, 512, _T("PORTA: PAR/PAW = %02X/%02X  PORTB: PBR/PBW = %02X/%02X MODE=%02X\n")
+					  , port[0].rreg, port[0].wreg, port[1].rreg, port[1].wreg, mode
+			);
+	}
+	_TCHAR tmps2[16 * 12 + 16] = {0};
+	_TCHAR tmps3[16];
+	for(uint32_t i = 0; i < 2; i++) {
+		memset(tmps3, 0x00, sizeof(tmps3));
+		my_stprintf_s(tmps3, 15, _T("+%02d :"), i * 8);
+		_tcsncat(tmps2, tmps3, sizeof(tmps2) - 1);
+		for(uint32_t j = 0; j < 8; j++) {
+			memset(tmps3, 0x00, sizeof(tmps3));
+			my_stprintf_s(tmps3, 7, _T(" %02X"), opn->GetReg(i * 8 + j));
+			_tcsncat(tmps2, tmps3, sizeof(tmps2) - 1);
+		}
+		_tcsncat(tmps2, "\n", sizeof(tmps2) - 1);
+	}	
+	my_stprintf_s(buffer, buffer_len - 1, _T("%sCH=%02X  CHIP_CLOCK=%d\nREG : +0 +1 +2 +3 +4 +5 +6 +7 +8\n%s"),
+				  tmps, ch, chip_clock, tmps2);
+	return true;
+}
+
 #define STATE_VERSION	5
 
 bool AY_3_891X::process_state(FILEIO* state_fio, bool loading)
@@ -294,14 +384,14 @@ bool AY_3_891X::process_state(FILEIO* state_fio, bool loading)
  		return false;
  	}
 	state_fio->StateValue(ch);
-#ifdef SUPPORT_AY_3_891X_PORT
- 	for(int i = 0; i < 2; i++) {
-		state_fio->StateValue(port[i].wreg);
-		state_fio->StateValue(port[i].rreg);
-		state_fio->StateValue(port[i].first);
- 	}
+	if(_SUPPORT_AY_3_891X_PORT) {
+		for(int i = 0; i < 2; i++) {
+			state_fio->StateValue(port[i].wreg);
+			state_fio->StateValue(port[i].rreg);
+			state_fio->StateValue(port[i].first);
+		}
+	}
 	state_fio->StateValue(mode);
-#endif
 	state_fio->StateValue(chip_clock);
 	state_fio->StateValue(irq_prev);
 	state_fio->StateValue(mute);

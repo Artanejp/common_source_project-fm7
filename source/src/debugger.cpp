@@ -20,6 +20,8 @@
 #include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
+#include <string>
+#include <list>
 #ifdef USE_DEBUGGER
 
 static FILEIO* logfile = NULL;
@@ -250,6 +252,16 @@ void show_break_reason(OSD *osd, DEVICE *cpu, DEVICE *target, bool hide_bp)
 	}
 }
 
+void set_dbg_completion_list(OSD *osd, std::list<std::string> *p)
+{
+	osd->set_dbg_completion_list(p);
+}
+
+void clear_dbg_completion_list(OSD *osd)
+{
+	osd->clear_dbg_completion_list();
+}
+
 #ifdef _MSC_VER
 unsigned __stdcall debugger_thread(void *lpx)
 #else
@@ -260,6 +272,124 @@ void* debugger_thread(void *lpx)
 	p->running = true;
 	
 	// initialize console
+	std::list<std::string> helplist;
+	std::list<std::string> complist;
+
+	helplist.clear();
+	complist.clear();
+	// Initialize help
+	helplist.push_back("D [<range>] - dump memory");
+	helplist.push_back("E[{B,W,D}] <address> <list> - edit memory (byte,word,dword)");
+	helplist.push_back("EA <address> \"<value>\" - edit memory (ascii)");
+	helplist.push_back("I[{B,W,D}] <port> - input port (byte,word,dword)");
+	helplist.push_back("O[{B,W,D}] <port> <value> - output port (byte,word,dword)");
+	helplist.push_back("R - show register(s)");
+	helplist.push_back("R <reg> <value> - edit register");
+	helplist.push_back("S <range> <list> - search");
+	helplist.push_back("U [<range>] - unassemble");
+	helplist.push_back("UT [<steps> | <steps> <logging_file>] - unassemble back trace");
+	helplist.push_back("H <value> <value> - hexadd");
+	helplist.push_back("N <filename> - name");
+	helplist.push_back("L [<range>] - load binary/hex/symbol file");
+	helplist.push_back("W <range> - write binary/hex file");
+	helplist.push_back("SC - clear symbol(s)");
+	helplist.push_back("SL - list symbol(s)");
+	helplist.push_back("BX [ON|OFF] - ON/OFF to STOP ON EXCEPTION");
+	helplist.push_back("BP <address> - set breakpoint");
+	helplist.push_back("{R,W}BP <address> - set breakpoint (break at memory access)");
+	helplist.push_back("{I,O}BP <port> [<mask>] - set breakpoint (break at i/o access)");
+	helplist.push_back("[{R,W,I,O}]B{C,D,E} {*,<list>} - clear/disable/enable breakpoint(s)");
+	helplist.push_back("[{R,W,I,O}]BL - list breakpoints");
+	helplist.push_back("[{R,W,I,O}]CP <address/port> [<mask>] - set checkpoint (don't break)");
+				
+	helplist.push_back("G - go (press esc key to break)");
+	helplist.push_back("G <address> - go and break at address (ignore breakpoints)");
+	helplist.push_back("P - trace one opcode (step over, ignore breakpoints)");
+	helplist.push_back("T [<count>] - trace (step in)");
+	helplist.push_back("Q - quit");
+				
+	helplist.push_back("> <filename> - output logfile");
+	helplist.push_back("< <filename> - input commands from file");
+				
+	helplist.push_back("! reset [all/cpu/target] - reset");
+	helplist.push_back("! key <code> [<msec>] - press key");
+	helplist.push_back("! device - enumerate debugger available device");
+	helplist.push_back("! device <id/cpu> - select target device");
+	helplist.push_back("! cpu - enumerate debugger available cpu");
+	helplist.push_back("! cpu <id> - select target cpu");
+	helplist.push_back("!! <remark> - do nothing");
+
+	helplist.push_back("<value> - hexa, decimal(%%d), ascii('a')");
+
+	complist.push_back("D [RANGE]");
+	complist.push_back("EB <ADDR> <LIST...>");
+	complist.push_back("EW <ADDR> <LIST...>");
+	complist.push_back("ED  <ADDR> <LIST...>");
+	complist.push_back("EA <ADDR> \"VALUE\"");
+	complist.push_back("IB <PORT>");
+	complist.push_back("IW <PORT>");
+	complist.push_back("ID <PORT>");
+	complist.push_back("OB <PORT>");
+	complist.push_back("OW <PORT>");
+	complist.push_back("OD <PORT>");
+	complist.push_back("R [REG VALUE]");
+	complist.push_back("S <RANGE> <LIST>");
+	complist.push_back("U [RANGE]");
+	complist.push_back("UT [STEPS [LOGGING_FILE]]");
+	complist.push_back("H <VAL1> <VBAL2>");
+	complist.push_back("N <filename>");
+	complist.push_back("L [RANGE]");
+	complist.push_back("W [RANGE]");
+	complist.push_back("SC");
+	complist.push_back("SL");
+	complist.push_back("BX ON");
+	complist.push_back("BX OFF");
+	complist.push_back("BP <ADDRESS>");
+	complist.push_back("RBP <ADDRESS>");
+	complist.push_back("WBP <ADDRESS>");
+	complist.push_back("IBP <PORT> [MASK]");
+	complist.push_back("OBP <PORT> [MASK]");
+	complist.push_back("RBC [* | LIST]");
+	complist.push_back("RBD [* | LIST]");
+	complist.push_back("RBE [* | LIST]");
+	complist.push_back("WBC [* | LIST]");
+	complist.push_back("WBD [* | LIST]");
+	complist.push_back("WBE [* | LIST]");
+	complist.push_back("IBC [* | LIST]");
+	complist.push_back("IBD [* | LIST]");
+	complist.push_back("IBE [* | LIST]");
+	complist.push_back("OBC [* | LIST]");
+	complist.push_back("OBD [* | LIST]");
+	complist.push_back("OBE [* | LIST]");
+	complist.push_back("RBL");
+	complist.push_back("WBL");
+	complist.push_back("IBL");
+	complist.push_back("OBL");
+	complist.push_back("RCP <ADDDRESS/PORT> [MASK]");
+	complist.push_back("WCP <ADDDRESS/PORT> [MASK]");
+	complist.push_back("ICP <ADDDRESS/PORT> [MASK]");
+	complist.push_back("OCP <ADDDRESS/PORT> [MASK]");
+	complist.push_back("G [ADDDRESS]");
+	complist.push_back("P");
+	complist.push_back("T [COUNT]");
+	complist.push_back("Q");
+	complist.push_back("> <FILENAME>");
+	complist.push_back("< <FILENAME>");
+
+	complist.push_back("! reset");
+	complist.push_back("! reset all");
+	complist.push_back("! reset <CPU/TARGET>");
+
+	complist.push_back("! key <CODE> [MSEC]");
+	complist.push_back("! device");
+	complist.push_back("! device <ID/CPU>");
+
+	complist.push_back("! cpu");
+	complist.push_back("! cpu <id>");
+
+	complist.push_back("!! <REM>");
+	set_dbg_completion_list(p->osd, &complist);
+
 	_TCHAR buffer[8192];
 	bool cp932 = (p->osd->get_console_code_page() == 932);
 	
@@ -1459,48 +1589,11 @@ RESTART_GO:
 			} else if(_tcsicmp(params[0], _T("!!")) == 0) {
 				// do nothing
 			} else if(_tcsicmp(params[0], _T("?")) == 0) {
-				my_printf(p->osd, _T("D [<range>] - dump memory\n"));
-				my_printf(p->osd, _T("E[{B,W,D}] <address> <list> - edit memory (byte,word,dword)\n"));
-				my_printf(p->osd, _T("EA <address> \"<value>\" - edit memory (ascii)\n"));
-				my_printf(p->osd, _T("I[{B,W,D}] <port> - input port (byte,word,dword)\n"));
-				my_printf(p->osd, _T("O[{B,W,D}] <port> <value> - output port (byte,word,dword)\n"));
-				my_printf(p->osd, _T("R - show register(s)\n"));
-				my_printf(p->osd, _T("R <reg> <value> - edit register\n"));
-				my_printf(p->osd, _T("S <range> <list> - search\n"));
-				my_printf(p->osd, _T("U [<range>] - unassemble\n"));
-				my_printf(p->osd, _T("UT [<steps> | <steps> <logging_file>] - unassemble back trace\n"));
-				my_printf(p->osd, _T("H <value> <value> - hexadd\n"));
-				my_printf(p->osd, _T("N <filename> - name\n"));
-				my_printf(p->osd, _T("L [<range>] - load binary/hex/symbol file\n"));
-				my_printf(p->osd, _T("W <range> - write binary/hex file\n"));
-				my_printf(p->osd, _T("SC - clear symbol(s)\n"));
-				my_printf(p->osd, _T("SL - list symbol(s)\n"));
-				my_printf(p->osd, _T("BX [ON|OFF] - ON/OFF to STOP ON EXCEPTION\n"));
-				my_printf(p->osd, _T("BP <address> - set breakpoint\n"));
-				my_printf(p->osd, _T("{R,W}BP <address> - set breakpoint (break at memory access)\n"));
-				my_printf(p->osd, _T("{I,O}BP <port> [<mask>] - set breakpoint (break at i/o access)\n"));
-				my_printf(p->osd, _T("[{R,W,I,O}]B{C,D,E} {*,<list>} - clear/disable/enable breakpoint(s)\n"));
-				my_printf(p->osd, _T("[{R,W,I,O}]BL - list breakpoints\n"));
-				my_printf(p->osd, _T("[{R,W,I,O}]CP <address/port> [<mask>] - set checkpoint (don't break)\n"));
-				
-				my_printf(p->osd, _T("G - go (press esc key to break)\n"));
-				my_printf(p->osd, _T("G <address> - go and break at address (ignore breakpoints)\n"));
-				my_printf(p->osd, _T("P - trace one opcode (step over, ignore breakpoints)\n"));
-				my_printf(p->osd, _T("T [<count>] - trace (step in)\n"));
-				my_printf(p->osd, _T("Q - quit\n"));
-				
-				my_printf(p->osd, _T("> <filename> - output logfile\n"));
-				my_printf(p->osd, _T("< <filename> - input commands from file\n"));
-				
-				my_printf(p->osd, _T("! reset [all/cpu/target] - reset\n"));
-				my_printf(p->osd, _T("! key <code> [<msec>] - press key\n"));
-				my_printf(p->osd, _T("! device - enumerate debugger available device\n"));
-				my_printf(p->osd, _T("! device <id/cpu> - select target device\n"));
-				my_printf(p->osd, _T("! cpu - enumerate debugger available cpu\n"));
-				my_printf(p->osd, _T("! cpu <id> - select target cpu\n"));
-				my_printf(p->osd, _T("!! <remark> - do nothing\n"));
-				
-				my_printf(p->osd, _T("<value> - hexa, decimal(%%d), ascii('a')\n"));
+				for(auto n = helplist.begin(); n != helplist.end(); ++n) {
+					std::string tmps = *n;
+					my_printf(p->osd, (const _TCHAR *)(tmps.c_str()));
+					my_printf(p->osd, _T("\n"));
+				}
 			} else {
 				my_printf(p->osd, _T("unknown command %s\n"), params[0]);
 			}
