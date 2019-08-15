@@ -15,11 +15,9 @@
 #include <QObject>
 #include <QMetaObject>
 
-//#include "res/resource.h"
 #include "qt_debugger_tmpl.h"
 #include "qt_lineeditplus.h"
-//#include <QThread>
-//#include <QMainWindow>
+#include "osd_base.h"
 
 void CSP_Debugger_Tmpl::set_string_attr(QString color, bool is_strong)
 {
@@ -63,6 +61,53 @@ void CSP_Debugger_Tmpl::stop_polling()
 	//poll_stop = true;
 }
 
+QStringList &CSP_Debugger_Tmpl::get_complete_list()
+{
+	return complete_list;
+}
+
+void CSP_Debugger_Tmpl::add_complete_list(_TCHAR *index)
+{
+	if(index != NULL) {
+		complete_list.append(QString::fromUtf8(index));
+	}
+}
+
+void CSP_Debugger_Tmpl::add_complete_list(QString index)
+{
+	complete_list.append(index);
+}
+
+void CSP_Debugger_Tmpl::set_complete_list(QStringList list)
+{
+	complete_list.clear();
+	complete_list = list;
+}
+
+void CSP_Debugger_Tmpl::set_complete_list(std::list<std::string> *list)
+{
+	if(list != NULL) {
+		if(!(list->empty())) {
+			complete_list.clear();
+			for(auto n = list->begin(); n != list->end(); ++n) {
+				QString tmps;
+				tmps.fromStdString(*n);
+				complete_list.append(tmps);
+			}
+		}
+	}
+}
+
+void CSP_Debugger_Tmpl::clear_complete_list(void)
+{
+	complete_list.clear();
+}
+
+void CSP_Debugger_Tmpl::apply_complete_list(void)
+{
+	emit sig_apply_complete_list(complete_list);
+}
+
 void CSP_Debugger_Tmpl::run(void)
 {
 	connect(this, SIGNAL(sig_finished()), this, SLOT(close()));
@@ -70,7 +115,7 @@ void CSP_Debugger_Tmpl::run(void)
 }
 
 
-CSP_Debugger_Tmpl::CSP_Debugger_Tmpl(QWidget *parent) : QWidget(parent, Qt::Window)
+CSP_Debugger_Tmpl::CSP_Debugger_Tmpl(OSD_BASE* p_osd, QWidget *parent) : QWidget(parent, Qt::Window)
 {
 	widget = this;
 	
@@ -86,6 +131,13 @@ CSP_Debugger_Tmpl::CSP_Debugger_Tmpl(QWidget *parent) : QWidget(parent, Qt::Wind
 	text_command->setReadOnly(false);
 	text_command->setEnabled(true);
 	text_command->clear();
+
+	complete_list.clear();
+
+	connect(this, SIGNAL(sig_apply_complete_list(QStringList)), text_command, SLOT(setCompleteList(QStringList)));
+	connect(p_osd, SIGNAL(sig_apply_dbg_completion_list()), this, SLOT(apply_complete_list()));
+	connect(p_osd, SIGNAL(sig_clear_dbg_completion_list()), this, SLOT(clear_complete_list()));
+	connect(p_osd, SIGNAL(sig_add_dbg_completion_list(_TCHAR *)), this, SLOT(add_complete_list(_TCHAR *)));
 	
 	VBoxWindow = new QVBoxLayout;
 

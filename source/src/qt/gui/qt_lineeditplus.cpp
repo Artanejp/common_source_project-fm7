@@ -1,15 +1,18 @@
 #include <QKeyEvent>
+#include <QCompleter>
 #include "qt_lineeditplus.h"
 
 QLineEditPlus::QLineEditPlus(const QString &contents, QWidget *parent) : QLineEdit(contents, parent)
 {
 	list.clear();
 	pointer = 0;
+	completer = NULL;
 	connect(this, SIGNAL(editingFinished()), this, SLOT(redirectEditString2()));
 }
 
 QLineEditPlus::~QLineEditPlus()
 {
+	if(completer != NULL) delete completer;
 }
 
 void QLineEditPlus::keyPressEvent(QKeyEvent *event)
@@ -62,6 +65,10 @@ int QLineEditPlus::maxCount(void)
 	return QLINEEDITPLUS_MAX_HISTORY;
 }
 
+QCompleter *QLineEditPlus::getCompleter(void)
+{
+	return completer;
+}
 
 void QLineEditPlus::redirectEditString2(void)
 {
@@ -80,3 +87,19 @@ void QLineEditPlus::redirectEditString2(void)
 	}
 	emit editingFinished2();
 }
+
+void QLineEditPlus::setCompleteList(QStringList complist)
+{
+	if(completer != NULL) delete completer;
+//	printf("COMP: %d\n", (complist.isEmpty()) ? 0 : 1);
+	if(complist.isEmpty()) {
+		completer = NULL;
+	} else {
+		completer = new QCompleter(complist, this);
+		//completer->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
+		completer->setCompletionMode(QCompleter::PopupCompletion);
+		completer->setCaseSensitivity(Qt::CaseInsensitive);
+	}
+	setCompleter(completer);
+}
+

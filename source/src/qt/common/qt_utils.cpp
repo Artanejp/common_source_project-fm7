@@ -1401,7 +1401,7 @@ void Ui_MainWindow::OnOpenDebugger(int no)
 		if(vm->get_cpu(no) != NULL && vm->get_cpu(no)->get_debugger() != NULL) {
 			QString windowName = QString::fromUtf8(vm->get_cpu(no)->get_device_name());
 			windowName = QString::fromUtf8("Debugger ") + windowName;
-			emu->hDebugger = new CSP_Debugger(this);
+			emu->hDebugger = new CSP_Debugger(emu->get_osd(), this);
 			QString objNameStr = QString("EmuDebugThread");
 			emu->hDebugger->setObjectName(objNameStr);
 			emu->hDebugger->debugger_thread_param.osd = emu->get_osd();

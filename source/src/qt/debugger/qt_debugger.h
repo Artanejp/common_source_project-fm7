@@ -25,14 +25,15 @@
 #include "../../fileio.h"
 
 
-QT_BEGIN_NAMESPACE	
+QT_BEGIN_NAMESPACE
+class OSD_BASE;
 class CSP_Debugger : public CSP_Debugger_Tmpl
 {
 	Q_OBJECT
  protected:
 
  public:
-	CSP_Debugger(QWidget *parent);
+	CSP_Debugger(OSD_BASE* p_osd, QWidget *parent);
 	~CSP_Debugger();
 #if defined(USE_DEBUGGER)
 	debugger_thread_t debugger_thread_param;

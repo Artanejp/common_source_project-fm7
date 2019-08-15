@@ -87,8 +87,9 @@ void CSP_Debugger::do_destroy_thread(void)
 	this->close();
 }
 
-CSP_Debugger::CSP_Debugger(QWidget *parent) : CSP_Debugger_Tmpl(parent)
+CSP_Debugger::CSP_Debugger(OSD_BASE* p_osd, QWidget *parent) : CSP_Debugger_Tmpl(p_osd, parent)
 {
+	
 }
 
 CSP_Debugger::~CSP_Debugger()

@@ -17,20 +17,11 @@
 #include <QStringList>
 #include <QImage>
 #include <SDL.h>
-//#include "simd_types.h"
 
-//#include <ctime>
-//#include <limits>
-//#include <osd_base.h>
+#include <string>
+#include <list>
 
-//#include "../vm/vm.h"
-//#include "../emu.h"
 #include "../config.h"
-//#include "../fileio.h"
-//#include "../fifo.h"
-//#if !defined(Q_OS_WIN32)
-//#include "qt_input.h"
-//#endif
 #define SOCKET_MAX 4
 #define SOCKET_BUFFER_MAX 0x100000
 #include "osd_types.h"
@@ -573,6 +564,9 @@ public slots:
 	virtual int draw_screen();
 	int no_draw_screen();
 	void do_draw(bool flag);
+	
+	void set_dbg_completion_list(std::list<std::string> *p);
+	void clear_dbg_completion_list(void);
 
 signals:
 	int sig_update_screen(void *, bool);
@@ -603,7 +597,9 @@ signals:
 	int sig_close_console(void);
 	int sig_set_attribute_debugger(QString, bool);
 	int sig_move_mouse_to_center(void);
-	
+	int sig_clear_dbg_completion_list(void);
+	int sig_add_dbg_completion_list(_TCHAR *);
+	int sig_apply_dbg_completion_list(void);
 };
 QT_END_NAMESPACE
 
