@@ -27,7 +27,7 @@ case ${CSP_DEBUG} in
 			  -DNDEBUG"
      ;;
    "No" | "no" | "NO" | * )
-     MAKEFLAGS_BASE2="${MAKEFLAGS_BASE} -O3 \
+     MAKEFLAGS_BASE2="${MAKEFLAGS_BASE} -O2 \
                 ${ARCH_FLAGS} \
 		-std=c++11 \
 		${ADDITIONAL_CFLAGS} \
