@@ -9,12 +9,12 @@ MULTIARCH="Yes"
 CSP_PREFIX=/usr/local
 
 CSP_GUILIB=" \
-	     libCSPcommon_vm.so.2.15.0 \
+	     libCSPcommon_vm.so.2.18.3 \
 	     libCSPemu_utils.so.2.16.2 \
 	     libCSPfmgen.so.1.5.0 \
-	     libCSPgui.so.2.18.5 \
+	     libCSPgui.so.2.19.4 \
 	     libCSPavio.so.2.10.1 \
-	     libCSPosd.so.2.19.1 \
+	     libCSPosd.so.2.20.1 \
 	     "
 
 for i in "$@"; do
