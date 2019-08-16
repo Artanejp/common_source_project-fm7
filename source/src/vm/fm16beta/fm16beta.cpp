@@ -73,21 +73,21 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	fdc_2hd->set_context_noise_head_down(new NOISE(this, emu));
 	fdc_2hd->set_context_noise_head_up(new NOISE(this, emu));
 #ifdef USE_DEBUGGER
-	fdc_2hd->set_context_debugger(new DEBUGGER(this, emu));
+//	fdc_2hd->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	fdc_2d = new MB8877(this, emu);
 	fdc_2d->set_context_noise_seek(new NOISE(this, emu));
 	fdc_2d->set_context_noise_head_down(new NOISE(this, emu));
 	fdc_2d->set_context_noise_head_up(new NOISE(this, emu));
 #ifdef USE_DEBUGGER
-	fdc_2d->set_context_debugger(new DEBUGGER(this, emu));
+//	fdc_2d->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	subcpu = new MC6809(this, emu);
 	ptm = new MC6840(this, emu);
 	rtc = new MSM58321(this, emu);
 	pcm = new PCM1BIT(this, emu);
 #ifdef USE_DEBUGGER
-	pcm->set_context_debugger(new DEBUGGER(this, emu));
+//	pcm->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 
 	cmos = new CMOS(this, emu);

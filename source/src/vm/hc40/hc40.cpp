@@ -42,7 +42,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	beep = new BEEP(this, emu);
 #ifdef USE_DEBUGGER
-	beep->set_context_debugger(new DEBUGGER(this, emu));
+//	beep->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));

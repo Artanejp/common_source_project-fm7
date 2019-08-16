@@ -53,7 +53,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	vdp = new TMS9918A(this, emu);
 #ifdef USE_DEBUGGER
 	vdp->set_context_debugger(new DEBUGGER(this, emu));
-	psg->set_context_debugger(new DEBUGGER(this, emu));
+//	psg->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);

@@ -164,7 +164,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	pcm = new PCM1BIT(this, emu);
 #ifdef USE_DEBUGGER
-	pcm->set_context_debugger(new DEBUGGER(this, emu));
+//	pcm->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 #if !defined(_MSX1_VARIANTS)
 	rtc = new RP5C01(this, emu);

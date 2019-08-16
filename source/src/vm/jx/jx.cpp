@@ -95,8 +95,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_intr(pic);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
-	pcm->set_context_debugger(new DEBUGGER(this, emu));
-	psg->set_context_debugger(new DEBUGGER(this, emu));
+//	pcm->set_context_debugger(new DEBUGGER(this, emu));
+//	psg->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	
 	crtc->set_context_disp(display, SIG_DISPLAY_ENABLE, 1);

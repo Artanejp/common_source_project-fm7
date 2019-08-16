@@ -59,7 +59,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
 #ifdef USE_DEBUGGER
-	fdc->set_context_debugger(new DEBUGGER(this, emu));
+//	fdc->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	maincpu = new Z80(this, emu);
 	mainbus= new MAIN(this, emu);
@@ -100,7 +100,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	not_busy->set_device_name(_T("NOT Gate (Printer Busy)"));
 	pcm = new PCM1BIT(this, emu);
 #ifdef USE_DEBUGGER
-	pcm->set_context_debugger(new DEBUGGER(this, emu));
+//	pcm->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	rtc = new UPD1990A(this, emu);
 	gdc_chr = new UPD7220(this, emu);

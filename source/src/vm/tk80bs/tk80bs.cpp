@@ -85,8 +85,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pcm1 = new PCM1BIT(this, emu);
 	pcm1->set_device_name(_T("1-Bit PCM Sound #2"));
 #ifdef USE_DEBUGGER
-	pcm0->set_context_debugger(new DEBUGGER(this, emu));
-	pcm1->set_context_debugger(new DEBUGGER(this, emu));
+//	pcm0->set_context_debugger(new DEBUGGER(this, emu));
+//	pcm1->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	
 #if defined(_TK80BS) || defined(_TK80)

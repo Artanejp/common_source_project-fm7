@@ -103,7 +103,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	pc88pio->set_context_event_manager(pc88event);
 	pc88pcm = new PCM1BIT(this, emu);
 #ifdef USE_DEBUGGER
-	pc88pcm->set_context_debugger(new DEBUGGER(this, emu));
+//	pc88pcm->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 //	pc88pcm->set_device_name(_T("1-Bit PCM Sound (PC-8801)"));
 //	pc88pcm->set_context_event_manager(pc88event);
@@ -245,7 +245,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88fdc_sub = new UPD765A(this, emu);
 	pc88fdc_sub->set_device_name(_T("uPD765A FDC (Sub)"));
 #ifdef USE_DEBUGGER
-	pc88fdc_sub->set_context_debugger(new DEBUGGER(this, emu));
+//	pc88fdc_sub->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 //	pc88fdc_sub->set_context_event_manager(pc88event);
 	pc88noise_seek = new NOISE(this, emu);

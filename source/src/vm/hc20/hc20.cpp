@@ -137,8 +137,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu_tf20->set_context_intr(tf20);
 #ifdef USE_DEBUGGER
 	cpu_tf20->set_context_debugger(new DEBUGGER(this, emu));
-	beep->set_context_debugger(new DEBUGGER(this, emu));
-	fdc_tf20->set_context_debugger(new DEBUGGER(this, emu));
+//	beep->set_context_debugger(new DEBUGGER(this, emu));
+//	fdc_tf20->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	
 	fdc_tf20->set_context_irq(cpu_tf20, SIG_CPU_IRQ, 1);

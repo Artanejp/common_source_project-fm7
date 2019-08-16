@@ -47,6 +47,10 @@ public:
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	bool is_debugger_available()
+	{
+		return true;
+	}
 	
 	bool process_state(FILEIO* state_fio, bool loading);
 	// unique function

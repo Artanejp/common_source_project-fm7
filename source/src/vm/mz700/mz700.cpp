@@ -323,13 +323,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
-	fdc->set_context_debugger(new DEBUGGER(this, emu));
-	pcm->set_context_debugger(new DEBUGGER(this, emu));
+//	fdc->set_context_debugger(new DEBUGGER(this, emu));
+//	pcm->set_context_debugger(new DEBUGGER(this, emu));
 #if defined(_MZ800)
-	psg->set_context_debugger(new DEBUGGER(this, emu));
+//	psg->set_context_debugger(new DEBUGGER(this, emu));
 #elif defined(_MZ1500)
-	psg_l->set_context_debugger(new DEBUGGER(this, emu));
-	psg_r->set_context_debugger(new DEBUGGER(this, emu));
+//	psg_l->set_context_debugger(new DEBUGGER(this, emu));
+//	psg_r->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 #endif	
 	// emm

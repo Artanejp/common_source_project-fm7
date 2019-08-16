@@ -55,7 +55,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pcm = new PCM1BIT(this, emu);
 	rtc = new UPD1990A(this, emu);
 #ifdef USE_DEBUGGER
-	pcm->set_context_debugger(new DEBUGGER(this, emu));
+//	pcm->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	
 	cmt = new CMT(this, emu);

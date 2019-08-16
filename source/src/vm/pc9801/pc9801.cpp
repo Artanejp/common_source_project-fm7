@@ -168,7 +168,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	beep = new PCM1BIT(this, emu);
 #endif
 #ifdef USE_DEBUGGER
-	beep->set_context_debugger(new DEBUGGER(this, emu));
+//	beep->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	dma = new I8237(this, emu);
 #ifdef USE_DEBUGGER
@@ -966,7 +966,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88fdc_sub->set_device_name(_T("uPD765A FDC (PC-8801 Sub)"));
 	pc88fdc_sub->set_context_event_manager(pc88event);
 	#ifdef USE_DEBUGGER
-	pc88fdc_sub->set_context_debugger(new DEBUGGER(this, emu));
+	//pc88fdc_sub->set_context_debugger(new DEBUGGER(this, emu));
 	#endif
 	pc88noise_seek = new NOISE(this, emu);
 	pc88noise_seek->set_context_event_manager(pc88event);

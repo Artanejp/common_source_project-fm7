@@ -105,7 +105,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	}
 	psg = new SN76489AN(this, emu);
 #ifdef USE_DEBUGGER
-	psg->set_context_debugger(new DEBUGGER(this, emu));
+//	psg->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	if(FILEIO::IsFileExisting(create_local_path(_T("IPL.ROM")))) {
 		bios = NULL;

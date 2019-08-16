@@ -89,11 +89,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
 #ifdef USE_DEBUGGER
-	fdc->set_context_debugger(new DEBUGGER(this, emu));
+//	fdc->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	pcm = new PCM1BIT(this, emu);
 #ifdef USE_DEBUGGER
-	pcm->set_context_debugger(new DEBUGGER(this, emu));
+//	pcm->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	cpu = new Z80(this, emu);
 	pio = new Z80PIO(this, emu);

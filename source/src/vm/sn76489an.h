@@ -64,7 +64,10 @@ public:
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+	bool is_debugger_available()
+	{
+		return true;
+	}
 	// unique function
 	void initialize_sound(int rate, int clock, int volume);
 };

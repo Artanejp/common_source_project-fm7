@@ -58,20 +58,17 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io = new IO(this, emu);
 	psg = new SN76489AN(this, emu);
 #ifdef USE_DEBUGGER
-	psg->set_context_debugger(new DEBUGGER(this, emu));
+//	psg->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	vdp = new _315_5124(this, emu);
 	fdc = new UPD765A(this, emu);
 #ifdef USE_DEBUGGER
-	fdc->set_context_debugger(new DEBUGGER(this, emu));
+	//fdc->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	cpu = new Z80(this, emu);
-#ifdef USE_DEBUGGER
-	cpu->set_context_debugger(new DEBUGGER(this, emu));
-#endif
 	
 	key = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);

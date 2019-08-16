@@ -58,7 +58,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	flipflop = new LS393(this, emu);
 	fdc = new MB8877(this, emu);
 #ifdef USE_DEBUGGER
-	fdc->set_context_debugger(new DEBUGGER(this, emu));
+	//fdc->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
@@ -68,7 +68,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	sio_key = new MC6850(this, emu);
 	pcm = new PCM1BIT(this, emu);
 #ifdef USE_DEBUGGER
-	pcm->set_context_debugger(new DEBUGGER(this, emu));
+//	pcm->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
