@@ -207,9 +207,9 @@ Changes:
   * [BUILD/MINGW] Update optimize parameter.
   * [BUILD] Separate definitions of archtecture flags.
   * [BUILD] Add ARM32/64 definitions (initial).Still not testing.
-  * Built with bbbb75cdc4051269c60a5f7ba18881eda56e8fd3 (or later).
+  * Built with 0810a8f8b9ba44cedc19bf6b8e903c9c1b5d6f04 (or later).
 
--- Aug 16, 2019 20:23:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Aug 16, 2019 20:38:06 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。

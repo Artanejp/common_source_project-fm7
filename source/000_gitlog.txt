@@ -1,3 +1,15 @@
+commit 0810a8f8b9ba44cedc19bf6b8e903c9c1b5d6f04
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 16 20:36:58 2019 +0900
+
+    [*nix] Update installer.
+
+commit 2c55f5fc7c22c85e05354f599903b886bd862dca
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 16 20:28:48 2019 +0900
+
+    [DOC] Update GITLOG.
+
 commit bd6153ebdada5aa0078e4505ea26b34d3e6ff655
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Aug 16 20:28:03 2019 +0900
