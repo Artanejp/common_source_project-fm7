@@ -1,3 +1,9 @@
+commit bd6153ebdada5aa0078e4505ea26b34d3e6ff655
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 16 20:28:03 2019 +0900
+
+    [DOC] Update for release.
+
 commit bbbb75cdc4051269c60a5f7ba18881eda56e8fd3
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Aug 16 19:57:38 2019 +0900
