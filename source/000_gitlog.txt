@@ -1,3 +1,787 @@
+commit bbbb75cdc4051269c60a5f7ba18881eda56e8fd3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 16 19:57:38 2019 +0900
+
+    [VM][PCM1BIT] get_debug_regs_info(): Fix typo.
+
+commit 5e85b5fc5d429ba33be0971d9f0aa895dbae74b3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 16 19:47:23 2019 +0900
+
+    [VM] Fix FTBFS caused by before commit.
+
+commit 2655c9968d9a8ff9e2ba9f86d83111844cad2194
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 16 19:10:23 2019 +0900
+
+    [VM][SN76489AN][YM2151][YM2203] Add write_debug_reg() and get_debug_regs().
+    [VM][BEEP][PCM1BIT] Add get_debug_regs().
+    [VM] Apply aboves to some VMs.
+
+commit a8f1fa4f7edc635daf82cea0e9a020fa7bf8f93b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 15 23:58:33 2019 +0900
+
+    [VM][FP1100][KEYBOARD][OOPs] Assign "000" to [PAGE DOWN].Fix duplicate assign of NUMPAD's ".".
+
+commit e4b491bb49fc2aae3e359ee565a5de88f15ee0bf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 15 23:51:46 2019 +0900
+
+    [VM][FP1100] Fix lacking some key symbols.Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/540 .
+    [DOC][FM7] Fix typo (*ﾉω・*)てへぺろ
+
+commit 663d9b3b675d34ad7dc2948ebbcfc5be96343bf8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 15 22:57:59 2019 +0900
+
+    [VM][YM2203] Add get_debug_regs_ingo() / write_debug_reg().
+    [VM][AY_3_891X] Improve debug regs.
+
+commit c5df48b2214684614733284010e9bcee78f4e5bf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 15 21:59:42 2019 +0900
+
+    [BUILD][WIN32] Make default optimize to -O2, -O3 may cause dynamic linkage problem
+
+commit cb4a95c3061e90fe319009d866e519e371c0adb7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 15 21:57:47 2019 +0900
+
+    [UI][Qt][DEBUGGER] Add auto-completion for command-line.
+
+commit 3e139820105ce6b2461882e2afe47af2118c3034
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 15 21:56:20 2019 +0900
+
+    [VM][AY_3_891X] Add feature ; dump/set register via debugger.
+    [VM][AY_3_891X] Fix not supported defines, replace flags.
+
+commit 15d5a3cc0639eaa8beedb0f4f51e63e0953b5f7e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Aug 15 04:17:09 2019 +0900
+
+    [UI][Qt][DEBUGGER] Add history for debugger command line.
+
+commit 06c6efb1eabe0d6c2b214fb94434a7a010811d6a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 13 23:47:05 2019 +0900
+
+    [VM][CONFIG][Qt] Fix bit order of logging configure.
+
+commit d748baf93b6817f12d418866bf17c376448abcdb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 13 23:45:31 2019 +0900
+
+    [UI][Qt][MENU] Split some methods (of Ui_MainMenuBase::) to menu_emulator.cpp and menu_machine.cpp .
+    [UI][Qt][MENU] Simplify menu creation.
+
+commit 4f63dc6a9a3c731664417d5436edcf6fae121c0b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 12 13:17:15 2019 +0900
+
+    [VM][I386] mov CRx,R32/mov r32,CRx : Adjusting.
+
+commit 032fcd1a33d9c8a771b1b5e833f42c633160b4b3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 12 13:16:40 2019 +0900
+
+    [VM][I386] Exitable when falling into infinite TRAP-Loop.
+
+commit 2a153371247c009e7b7ca9cbec5f09aeeffb4c01
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 11 23:55:38 2019 +0900
+
+    [VM][PC9801][i8259] Add PIC HACKing flag for PC9801.
+
+commit f6413eab759e7646aa6e5ee9e5b70fedfd3da08c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 11 23:53:57 2019 +0900
+
+    [VM][I386] MOV CR0 EyX : Fix wrong flags handling.
+
+commit c855d96c1bf64f76167471482516a5f139e2176a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 30 18:10:54 2019 +0900
+
+    [VM][PC9801][MEMBUS] Split update_bios() to functions.
+
+commit 2fd6e0449866c0d442efd08a84bfcfca8bf38cc1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 29 22:59:59 2019 +0900
+
+    [VM][PC9801][DMAREG] .
+
+commit fe8c3a4b8b1fc8e915a5c2d24bfd98f59ffd9d38
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 29 22:59:18 2019 +0900
+
+    [VM][I386] Fix WRONG flag mask at LMSW.
+
+commit 995610b436c75abff1ee7278f011e5a59e8b09c4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 29 21:25:49 2019 +0900
+
+    [VM][PC9801] Update working note around SYS_WORK_AREA.
+
+commit 7ed924d26802d11792b633a6ba0bbf100fb411a2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 29 21:16:00 2019 +0900
+
+    [VM][PC9801] Fix different value at [0000:0501].
+
+commit ceb69e721908191494a0da8c81702beb87e47f2b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 29 19:23:14 2019 +0900
+
+    [BUILD][CMAKE] Improve build message with finished.
+
+commit aca7403bc249ed0e005125795c745472d94fc118
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 29 19:22:33 2019 +0900
+
+    [VM][FP1100][HC40][SMB80TE] .
+
+commit 55ca07a80053ac53b8eaa42f473f071d83e4291d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 29 19:21:32 2019 +0900
+
+    [BUILD][Qt] Fix FTBFS with some VMs not contains TAPE.
+
+commit 695600d940b79ad8c1141e8b20a85fab5d35c53c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 29 19:20:50 2019 +0900
+
+    [VM][PC9801] Add DIPSWITCH object.
+
+commit a56970bc5aee97320fc73b31679660dc081456d0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 29 05:26:25 2019 +0900
+
+    [UI][Qt][OOPs] Fix LACK of DATARECORDER BUTTONS(abolish of USE_TAPE_BUTTON): Lack of merging UPSTREAM 2018/10/07.
+
+commit 7f212607c2788fc4a3b09e9ba887bdb956cfca54
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jul 21 22:31:07 2019 +0900
+
+    [VM][PC9801] Fix wrong initialize SYS_PORT_B.
+    [VM][PC9801] Fix wrong initialize memory switch.
+    [VM][MEMBUS] Fix FTBFS without SUPPORT_BIOS_RAM at ia32 VMs.
+
+commit e713a82b1e5566f0977892ee55720e8e6afe728b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 20 01:51:23 2019 +0900
+
+    [BUILD] Add ARM32/64 definitions (initial).
+
+commit 32158c5e238cd74315b7195850b848099b407df9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 20 01:03:20 2019 +0900
+
+    [BUILD][LLVM] Fix command line error.
+
+commit 119f86ce26fdf8a27086c109b21f351d669fe45f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 20 00:56:44 2019 +0900
+
+    [BUILD] Separate definitions of archtecture flags.
+
+commit a22844de6936f9079138414703b4d38a7fceac0b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 19 23:52:45 2019 +0900
+
+    [BUILD][MINGW] Update optimize parameter.
+
+commit b261fa01e317ea2d2cd5e4a17e44991e51826eed
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 19 16:21:01 2019 +0900
+
+    [BUILD][CMAKE] Add CPU affinity mask when compiling.This may work only with GNU/Linux host.
+
+commit 0557a4625b067c0dbd57269ad5fc422caebfe35a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 19 04:35:31 2019 +0900
+
+    [VM][Z80DMA][WIP] Workaround for https://tablacus.github.io/LSX-Dodgers/ .This still be not resolved issue.
+
+commit 6e1140bd6106f57e05fa4051329b2b69c244b844
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 19 04:34:39 2019 +0900
+
+    [VM][PC9801] Limit having V30 Sub CPU with some VMs.Not ALL with i286/i386.
+
+commit ebdb6f2de7951b49864a47314e3339dd7187b3f6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 19 04:33:38 2019 +0900
+
+    [Qt][LOGGER] Improve locking.
+
+commit cc6724899a2dff614fe73486e958023f23e172f7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 19 04:32:42 2019 +0900
+
+    [VM][MB8877] Fix buffer overflow with logging.
+    [BUILD][GCC] .
+
+commit 88f00814339419bdf1766429f9f7898cf4f16119
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 16 03:24:24 2019 +0900
+
+    [VM][LIBCPU_NEWDEV][i386_device][WIP] Porting to CSP from MAME 0.208.
+
+commit 7cfede60f3665f5414305b303155e450f7a8089c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 16 03:23:30 2019 +0900
+
+    [VM][I386][I86][I286][V30] Adjust waiting sequence.
+
+commit 6ee0318164aafabea61724e26405c2a6df3efb15
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 16 03:20:54 2019 +0900
+
+    [VM][PC9801][CPUREG] Redirect interrupt signal via CPUREG:: .VMs with V30 sub CPU (i.e.PC9801RA) work with V30.
+    [VM][PC9801] Adjust cpu clock.
+
+commit 3b1d9c37c55af74e0be39bba001ef1fc72c85b8f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 15 18:14:36 2019 +0900
+
+    [VM][PC9801][MEMBUS][CPUREG] .
+
+commit 53d001f2c26a3d9e268898dc8b590893288821a0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 15 15:45:47 2019 +0900
+
+    [UI][Qt][PC9801] Update debugger menu.
+
+commit ca4ce688539342f1638860e45b3bd7519c69a49d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 15 15:44:55 2019 +0900
+
+    [VM][I86][I186][I286][I386][V30] Start debugger even halting.
+
+commit e3be1ad62043a1f2373fe9080589b56de648cdde
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 15 15:44:15 2019 +0900
+
+    [DOC][PC9801] .
+
+commit 77426785129dc1a9b0a003ae255cbc3b06a0a129
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 15 15:43:08 2019 +0900
+
+    [VM][PC9801] Add "UPPER_I386" flag for detect using later than HAS_I386.
+    [VM][CPUREG] (Maybe) improve changing cpu sequence arount I/O 00F0h.
+
+commit 8df0acc4a347fc9f3cbcebbe874978751c1ca5f9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 15 03:33:46 2019 +0900
+
+    [DEBUGGER] Fix FTBFS with debugger.
+
+commit de520f0df8fbe698946124e9b23bce40439184e9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 15 03:33:22 2019 +0900
+
+    [VM][YM2203] Fix FTBFS with YM2203.
+
+commit a3c02bd7cc3b55d4b217a82f27ea2623a7f7eec8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 15 02:33:03 2019 +0900
+
+    [VM][PC9801][TEXT] Check differnt of system work area (0000:0400-0000:05FF) both mame(pc9801rs) and emupc9801ra .
+
+commit 2996c704450fa3d95f8b4ddf8ac57dc69128b485
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jul 14 17:18:11 2019 +0900
+
+    [VM][PC9801][SASI_BIOS] .
+
+commit 64bf08e8b6f119eb6e58e79b34d76747696955f8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jul 14 15:26:38 2019 +0900
+
+    [VM][I386] Add messages for group_FF_[16|32].
+    [VM][I386] Disable logerror message(s) on EXCEPTION.
+
+commit 8766ef4a978a25f4804a8a56920de33cb341aa2c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 9 14:28:22 2019 +0900
+
+    [VM][PC9801][CPUREG][WIP] Improve around V30 SUB CPU.This still WIP.
+
+commit 7a040f07c3cf7b2a1651e6878c2ff494e935e8c7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 9 02:27:07 2019 +0900
+
+    [VM][BUBCOM80][JX][PC8801] Fix FTBFS.
+
+commit 1d1249f8794d4d069f117b636f5c3f70d9703269
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 8 17:19:38 2019 +0900
+
+    [VM][DEVICE] Make __FASTCALL  run().
+    [VM][EVENT] Add remove_context_cpu().This may not effect to MAIN_CPU(id==0).
+
+commit 13a3b7f42faa0f719d3ddac3d4fa52dfa3f82062
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 8 17:18:46 2019 +0900
+
+    [VM][PC9801][UI] Add "V30 SUB CPU" for VMs using later than i286.
+
+commit c4322fb8dbcd039116080487cdc2116deb986f8e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 8 00:05:12 2019 +0900
+
+    [VM][I386][I286][I86][V30] Faster wait factor.
+
+commit d3ac2c1e79edf0018dbac42b379da430f25ddf7d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 8 00:04:06 2019 +0900
+
+    [VM][PC9801][CPU] Add V30@8.0MHz with I286/I386 machines.
+    [VM][PC9801][EGC] Fix wrong effect.
+
+commit d8e7acb4522df6cde1a0fe760afb9ff41241f8eb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 28 17:39:17 2019 +0900
+
+    [VM][uPD7810][uPD7907][PC2001][COMMON_VM] Include uPD7810 variants and uPD7907 to libCSP_common_VM.
+    [VM][uPD7907] Split UPD7907:: from UPD7810::.
+
+commit 1895ca332c505194f284de8eb9015a01a9898807
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 28 00:26:15 2019 +0900
+
+    [VM][JX] Fix FTBFS.
+
+commit 421e0b80147dd295e7b4efd6a4012da85b457e4a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 28 00:06:02 2019 +0900
+
+    [VM][FM16BETA][FM16PI][FMR30][FMR50][J3100][MZ80B][MZ2800][MZ5500][PC100][PC98HA] Apply changes of before commits.
+
+commit d293176c12b4acf43fc63d7c3501d8cf5d20fcc3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 28 00:02:59 2019 +0900
+
+    [VM][I80286][I8086][I80186][I8088] Fix crash without debugger.
+
+commit b8e24287b59b1014b1e513843f175b3959d91237
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 27 23:31:05 2019 +0900
+
+    [VM][PC9801] Apply before commit to PC9801 and others.
+
+commit 6fbfbd16021cece93e5446d96831cd7983a8c738
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 27 23:27:43 2019 +0900
+
+    [VM][I8086][I8088][I80186][I80286][V30] Make i86/186/88/286 and V30 to common_vm.
+    [VM][I8086][I8088][I80186][I80286][V30] Rename I286:: to I8086::, I80286:: and V30:: .
+
+commit 7165028f63419516d76de0b084681117f8ebdec2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 27 16:17:08 2019 +0900
+
+    [VM][I386] (Re-) Make functions i__FASTCALL.
+
+commit 2f0c12801a8629016c844806e632f2f11ffa7f7e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 27 14:35:16 2019 +0900
+
+    [VM][i386] Make some functions __FASTCALL.
+
+commit 4bc17fae824c6f0b6d344ba528a2d95143812a14
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 25 17:20:58 2019 +0900
+
+    [VM][I386][MEMBUS] Still disable wait feature.
+
+commit 8a9e747f7f1e4a6720c78ecfa5d2431236d489c0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 25 16:20:24 2019 +0900
+
+    [VM][I386] Temporally disable memory wait.Temporally fixed wrong drawing some software with EGC at PC-9801RTA (i.e. Dragon Buster and Touhou Yume Jikuu.)
+    [VM][I386] Cherrypick revert to 4f6aceec430.
+
+commit 06f368357ef251f0419a8c39f3481dc3f60651ea
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 25 05:17:29 2019 +0900
+
+    [VM][PC9801][EGC][VM Adjusting registers.This is WIP.
+
+commit d9ae54a524324ecf64e27d5c78b10e974cfd49ca
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 24 17:15:23 2019 +0900
+
+    [VM][PC9801][EGC] Separate EGC functions.
+
+commit e83736ed8e4bb1a2d48ef2b6b36174a9bc49df82
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jun 23 21:26:31 2019 +0900
+
+    [VM][I286][I8080][UPD7810][MZ3500] Fix FTBFS with some VMs.
+
+commit 819fa469d52bdcb178aa6aa717e8c982e4cc0667
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jun 23 20:05:31 2019 +0900
+
+    [VM][DEVICE] Use __FASTCALL with interfaces, read_*() ,write_*(), fetch_op() and some functions.
+
+commit bf680c7c09108e65b1f1933f6d3566ac2e2ab7dc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jun 23 05:26:58 2019 +0900
+
+    [VM][PC9801][DISPLAY] EGC/GRCG: Make function call with __FASTCALL.
+
+commit dc3d388b19df5a1c00d8df1db69db722f5ea5ca7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jun 23 05:25:42 2019 +0900
+
+    [VM][I386] Make calling OP to __fastcall.
+    [COMMON] Add __FASTCALL macro.This sets __fastcall if build for i386 (not AMD64).
+
+commit 4221874de695eaf8e1ba68436aaf7432dcbaafcc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 20 23:02:53 2019 +0900
+
+    [VM][PC9801][DISPLAY][EGC] Try: Make some functions inline expect to be faster.
+
+commit 663d85e0561b1de54d705038b94e9ddac58dc370
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 19 16:34:32 2019 +0900
+
+    [VM][PC9801] Set GVRAM wait value separately.
+    [VM][PC9801][DISPLAY] Not set default value MEMSW if set DIPSW to clear.
+
+commit 386e9401a4df4004c6e2e813d4983882c3fdf3d2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 19 03:50:21 2019 +0900
+
+    [VM][PC9801][MEMBUS] Disable PnP BIOS patch import from NP2.
+
+commit 05211c004d88585194ac1f80dc31f51f1263b150
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 19 03:49:42 2019 +0900
+
+    [VM][PC9801][FLOPPY] (Temporally?) remove accessing to I/O port 0090h.
+
+commit 0fc0fde750b3a9959f69cd53e5b9fa59bf82fce7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 19 03:46:42 2019 +0900
+
+    [VM][I386] i386priv.h : Make some functions to static from INLINE, dedicate to size of host CPU's instruction (or uOP) cache.
+
+commit f1393f5472a7abfd1692982998a87858108dd12a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 19 02:33:20 2019 +0900
+
+    [VM][PC9801][CPUREG] Fix? port value for ARTIC.
+    [VM][PC9801][DISPLAY] Add port 007Ch as input.Make readable grcg_mode.
+
+commit a704353e8ebb0b5ad5424eb918adab6f2b7d994d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 19 02:13:19 2019 +0900
+
+    [VM][I386] MOV CRx,Rx and MOV Rx,CRX : Fetch modrm before exception.
+
+commit 1a171eb6f52e1857b16c827948f535a1fb35d732
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jun 9 02:36:09 2019 +0900
+
+    [Qt][DRAW][GL] Selectable texture both RGBA32(UNSIGNED_BYTE) and RGBA32F / RGBA16F.
+
+commit 842219ac83b8a7eeb8cbfb59042e678728421510
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 7 00:29:19 2019 +0900
+
+    [UI][Qt] Change colors of some access lamps.
+    [UI][Qt] Change virtual media order.
+
+commit 98805aad30bd8808c3757773302ebe702221e04e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 6 23:09:53 2019 +0900
+
+    [UI][Qt] Add access lamps for CD-ROM and HDD at tool bar.
+
+commit b57a81481e7a710742154a0afe66bc502008510e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 6 20:04:44 2019 +0900
+
+    [Qt][Linux][SCHED] Add "Occupy fixed CPU" to set fixed cpu to emulation emu-thread.This still only implemented for Linux OS.
+
+commit 8567b98a1760f86a1f2dfde4c6457fead753c974
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 6 17:16:29 2019 +0900
+
+    [VM][DEVICE][OSD] Add MIDI redirector and SIO redirector to redirect data to physical device.See qt/osd_base.h . Maybe still not working well.
+
+commit 2fee809a846898fe0dcafded3b090615adba3d2b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 6 02:12:09 2019 +0900
+
+    [VM][UPD7220] Temporally add debug message to cmd_sync().
+
+commit df5d00c20fa17108b9b783e88a10012bef7e866a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 6 02:11:38 2019 +0900
+
+    [VM][PC9801][DISPLAY] Compare correct height via chr & gfx.
+
+commit 165246faa58ff448001fb84d0e0dc41d3cea8d31
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 5 22:21:18 2019 +0900
+
+    [VM][COMMON_VM] Update minor SOVERSION.
+
+commit 41617a26271bbf331713730eaf77302c1bbde208
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 5 22:17:48 2019 +0900
+
+    [VM][PC9801][DISPLAY][UPD7220] Limit display lines and width by GDC's L/F and C/R.Fix garbage display at Dragon buster.
+    [VM][PC9801][DISPLAY] Add border color feature.
+
+commit 0aa5c21235d11f1d534661ee8fbafe5529ea54e2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 5 20:46:32 2019 +0900
+
+    [VM][PC9801][FLOPPY] Revert some commits.
+
+commit 08f9a709729c973e104997040e69a33b412cabc3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 5 20:45:17 2019 +0900
+
+    [VM][PC9801][UPD7220][DISPLAY][GDC] Fix wrond addressing.Fix wrond drawing "BATTLE" for PC-9801 (excepts with EGC).
+
+commit 98d626e378d69e2b1e9430a62b708aca3f760b84
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 5 20:21:08 2019 +0900
+
+    [VM][UPD765A] Revert some commits excepts workaround for RELOCS/PC9801.Fix not detect floppy drives by PC-9801's BIOS at bootup.
+
+commit a64098a3bd607b2d8b2ec811de12fde9bec0d461
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 5 02:07:03 2019 +0900
+
+    [VM][PC9801][SASI_BIOS] More safer calling SEG:0018h.
+
+commit 28d0efa028283a0310d7098954e32683982cdee2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 5 01:54:12 2019 +0900
+
+    [VM][PC9801][FLOPPY] Make simplify I/O address handling.
+    [VM][PC9801][SYSREG] Make readonly to PIO_SYS:PORT_B.
+    [VM][PC9801][SASI_BIOS] Make simplify Bios handling.
+
+commit 66d99bc92d752e6e973f980fb83e63346990afbe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 4 18:33:43 2019 +0900
+
+    [VM][PC9801] .
+
+commit b898c00a19ed6054aa8f88645c68fe68ac05c3ed
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 4 18:32:45 2019 +0900
+
+    [VM][UPD765A] Temporally disable below check.RELICS (for PC-9801) works.
+    [VM][DISK] Add some debug messages and CRC handling.
+
+commit 47bd20cb6334d3bfc686b5dc534775c7a777e02d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 30 05:40:34 2019 +0900
+
+    [VM][PC9801][DISPLAY] Correctness displaying characters even width < 80.
+
+commit b90d20d8a10e0287e4fce31b69ef0d5641979db7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 30 03:10:35 2019 +0900
+
+    [VM][PC9801][DISPLAY] Fix crash with Jyusin-Rogus.
+    [VM][PC9801][MEMBUS] Around sound bios rom.
+
+commit 054ebfd59f48fc6dd96aadd7f96bbc4a34c1cd99
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 30 02:14:25 2019 +0900
+
+    [VM][PC9801][WIP] Problems of EMM386.EXE(98) seems to be mis-detect of high-resolutiion.Will fix.
+
+commit bab7fa1f3ce9a67dc689b24018eac264369c8bc1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 25 07:42:36 2019 +0900
+
+    [VM][DEBUGGER][WIN32] Getting buffer 16M entries causes "std::bad_alloc" at Win32 build, temporally shrink to 1M entries.
+
+commit 5085dddfb5707d32444edb6189cfa32c631f1ed2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 24 23:46:45 2019 +0900
+
+    [VM][I386][PC9801] Add MEMORY/IO WAIT feature via foo_data[8|16|32]w().(excepts [read|write_]_memory_mapped_io[8|16|32]w()).
+
+commit 4f6aceec430caec654d5ceca211c492afc409a3f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 24 18:44:23 2019 +0900
+
+    [VM][DEBUGGER] I forgot to log changing MAX_CPU_TRACE to 16M entries.Maybe will make variable length.
+
+commit 6275c66ec81d3c65d8f1c4e74e3773112eafea28
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 24 18:42:29 2019 +0900
+
+    [VM][DEBUGGER] Add user-data (normally 0) field to detect some executing features.Now only implement to I386 t detect INSN is 16bit or 32bit.
+
+commit 1d69619732e8060ea412d5978fa530df51fd592e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 24 05:35:35 2019 +0900
+
+    [VM][PC9801][DISPLAY] Commentout  debug message spam.
+
+commit abc26792dd4b81f00c4c2d7e16d250e538688ace
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 24 05:29:56 2019 +0900
+
+    [VM][I386] i386_sreg_load() : Replace IF-branch to CASE branch, to be faster.
+    [VM][I386] i386priv.h : Add Segment descriptor table (GDT/LDT etc) bitfield description defines and bit value defines of sreg[foo].flags.
+    [VM][I386] Some functions change to static from INLINE, these seems not be used heavily, used sometimes.
+
+commit 31cbe322db7fae1b6bf769ebd37e1b9224226717
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 23 22:43:48 2019 +0900
+
+    [DEBUGGER] Add features for catching EXCEPTION/FAULT by debugger.See mame/emu/cpu/i386.h and i386priv.h.
+
+commit 678df6c13efbdae2a45c9a44c285f299cc179f4d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 23 05:03:54 2019 +0900
+
+    [VM][PC9801][DISPLAY] Fix wrong drawing.
+
+commit 9a0045c5aadb1a7838143821fb409b1bf486a17c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 23 04:50:34 2019 +0900
+
+    [VM][I386] Revert commit 6c8ac5ce72b83fafaef3c1870060362e6a910b88.
+
+commit f847ea51adf7d86a51560411005a3c535ec41325
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 23 04:28:42 2019 +0900
+
+    [VM][PC9801] .
+
+commit 23ab1a65140d38b727529f28ed215c64d3b30ab3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 23 04:11:17 2019 +0900
+
+    [VM][I386] Revert before commit.
+
+commit db6dab09f5d76776bca1930db377348cdaed6a0f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 23 04:08:29 2019 +0900
+
+    [VM][I386] .
+
+commit 6c8ac5ce72b83fafaef3c1870060362e6a910b88
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 22 22:55:23 2019 +0900
+
+    [VM][I386] Add SEGMENT descripter (internal values) to some flags to be faster emulation.
+
+commit 638a42b59566c0ae0b801ab590a63c096ccb902f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 22 22:54:45 2019 +0900
+
+    [VM][MEMORY] Add debug message to load_bios().
+
+commit 301550406c4fd0fc90befc1cdfd987f4f7374633
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 22 22:54:01 2019 +0900
+
+    [VM][PC9801][DISPLAY] Fix crash with BATTLE.
+
+commit 7a9ee3e18201569d3672ec06381de949d2d75be7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 22 22:52:06 2019 +0900
+
+    [VM][I8259] Add debug message to change ICW2.
+
+commit 02432c29c2dd1d84b0b9c92c3b1ca805fd7975e6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 22 22:51:02 2019 +0900
+
+    [VM][PC9801][SOUND_BIOS] More accurate emulation for BIOS ON/OFF.
+
+commit 0f00cc432dcee09190c9f88777e2d9efb3750f8e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 21 19:29:40 2019 +0900
+
+    [VM][I386_DOSBOX] .
+
+commit 8bc560be79966a2760b2d46f30adcc4c90678f92
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 21 16:19:26 2019 +0900
+
+    [VM][I386-DOSBOX] Add FPU.
+
+commit 8218b55adda69cff6b7c4b7cebed92f038e40733
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 21 16:17:01 2019 +0900
+
+    [VM][I386] TRY: Import from DOSBOX(J3100) v.2019-05-20.
+
+commit f5c6449e14f1ef99bbb88e1ec28ca4c6090c9491
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 21 02:20:53 2019 +0900
+
+    [VM][PC9801][DISPLAY] Implement low resolution (200lines) display for VMs having 400lines display.
+
+commit c1d2d1d4cb560f85877e3a8e6034ebf0e9f7dd21
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 21 00:28:48 2019 +0900
+
+    [VM][UPD7220] Start to support variable screen pitch.Dragon-Buster for PC-9801 is playable now.But, till something wrong.
+
+commit 50bfef1a863abe2e3908470c582e2f606f4345fb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 20 22:13:18 2019 +0900
+
+    [VM][PC9801] IO: Add EMS mapping register 08E9h.
+
+commit fffaba555de770c78e4845020b861508b9574b83
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 20 22:11:57 2019 +0900
+
+    [VM][uPD1990] Improve emulation uPD4990A mode.Implement extra command 0Ch-0Eh .
+
+commit 66821a92cae9bd79308cfff6f7e76eb2cb69e167
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 19 00:49:30 2019 +0900
+
+    [OOps] I missed to add CEFCOM-21 X-)
+
+commit 44dc87474c916567728fb32a19f30a0fe8e00933
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 18 23:22:10 2019 +0900
+
+    .
+
+commit 604bafa199f22330e98da3db6d1ef87110eac4ae
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 18 23:19:05 2019 +0900
+
+    [Build][WIN32] Update cross-build scripts for Qt.
+
+commit 968898cf93f77b04b4385c3c40a338f0a4606747
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 18 23:16:03 2019 +0900
+
+    [U*ix] Update Installer.
+
+commit 00656c0afa69934ab3c1162a267e0383037ab775
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 18 23:08:18 2019 +0900
+
+    [DOC] Update.
+
 commit 88b18e84a6e8049da97d15ddc96d5acf30b1fcb5
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat May 18 22:38:25 2019 +0900

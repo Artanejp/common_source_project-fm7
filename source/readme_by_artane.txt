@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         May 18, 2019
+                                         August 16, 2019
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20190518
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20190816
 
    追加情報:
    
@@ -160,79 +160,56 @@ Changes:
 
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
 
-* SNAPSHOT May 18, 2019
+* SNAPSHOT Aug 16, 2019
   * Upstream 2019-04-30.
-  * [General] Add Hino Electronics CEFUCOM-21.
-  * [Build/GCC] Fix FTBFS without setting LTO_THREADS value and selecting USE_LTO.
-  * [Build/Linux] buildvars.dat: Add "USE_SHRINK_DEBUG_SYMBOL" flag to save disk space.
-  * [COMMON] Add high pass/low pass filter function.
-  * [VM/PCM1BIT,AY3_891x] Add LPF feature.See initialize_sound().
-  * [VM/EVENT] Add sound sampling (from host machine) feature framework.
-  * [COMMON] Add RINGBUFFER:: class, extend of FIFO::.
-  * [FIFO] Add [fill|empty] warning feature.This may be useful for some devices. i.e. 16550 UART, variants of i8251.
-  * [FILEIO] Add StateVector() classes.
-  * [VM/DEVICE] Add CPU pseudo SIGNALS, 108 to 110.
-  * [VM/COMMON] Delete unneeded __builtin_assume_aligned().MinGW32 build works built with "-msse2 -O3".
-  * [VM/DMA] Add NEW signal, notify to write-changed address.
-  * [VM/EVENT] Add new APIs for recording sound.
-  * [VM/PC9801RA] Note: Still not running Microsoft's EMM386.EXE and FreeBSD(98).Will fix.
-  * [VM/PC9801] [SASI_BIOS] Fix wrong sectors at FORMAT command.Fix run out at DOS installation.
-  * [VM/PC9801] Add some DIPSWITCH features.
-  * [VM/PC9801,FMR50,FMR30][SASI_BIOS] Add translate_address(segment,offset) to DEVICE:: .
-  * [VM/PC9801,FMR50] Add pseudo-cycles args to  pseudo-bios for i86/286/386.
-  * [VM/PC9801] Truely bootable MS-DOS 6.20,excepts EMM386.EXE.
-  * [VM/PC9801][SOUND] Playable PCM of PC-9801-86.
-  * [VM/PC9801][PC-9801-86] Mostly implement PC-9801-86 sound board.Touhou-Huumaroku (partly) works.
-  * [VM/PC9801][MEMBUS] Remove shadow_memory, this includes ram[0xc0000]-ram[0xe7fff].
-  * [VM/PC9801][MEMBUS] Maybe complete to set mapping bus to 32bit VMs except Hi-Reso.
-  * [VM/PC9801][MEMBUS] Faster memory access.
-  * [VM/PC9801][EGC] Make EGC faster (maybe...).
-  * [VM/PC9801][CPUREG] Add ARCTIC (a.k.a Timestamp) and 0.6uS? Wait.
-  * [VM/PC9801][SASI_BIOS] Improve SENSE command.Write results to 0000:0585h at INITIALIZE.
-  * [VM/PC9801][DISPLAY] EGC: Add write protect register (03h).
-  * [VM/PC9801][FLOPPY] Improve drive setting via 2DD <-> 2HD.
-  * [VM/PC9801][MOUSE] Set clock to 120Hz when resetting.
-  * [VM/PC9801] Support low resolution monitor.This is WIP.
-  * [VM/PC9801][VM/I386,I286] Add variable (main) CPU clock via CPU's write_signal().Add cpu_wait_foo() with CPU_EXECUTE(foo) .
-  * [VM/PC9801RA] Enable to boot contains i386 CPU with (about) correctness ITF and IPL.
-  * [VM/PC9801RA] Enable EGC.
-  * [VM/I386] Separate I386_OP(int) to I386_OP(int_16) and I386_OP(int_32) because pseudo bios int call (maybe 1Bh) should be in 16bit mode.
-  * [VM/I386] Enable debug log (logerror()).
-  * [VM/I386] Improve CALL ABS SELECTOR:OFFSET.
-  * [VM/I386] Call PSEUDO-BIOS even VM86 mode, EMM386.EXE for FreeDOS(98) and VEM486 (at MS-DOS 6.2) may work(still unstable a bit).
-              Some games, i.e. Touhou-KaikiDan work now.
-  * [VM/I386] Faster FETCH/READ.
-  * [VM/I386] Make some functions around address translation INLINE.
-  * [VM/I386] Fix unexpected page fault when accessing memories.
-  * [VM/I386] Try to call pseudo-bios even within protected mode (inside of i386_trap()).
-  * [VM/DEVICE,I386,I286] Add total_icount via read_signal().To implement PC-9801's clock counter.
-  * [VM/DEVICE] Add address_translate() API to generic devices.
-  * [VM/I8237] Debug register dump: Add "BANK" registers.
-  * [VM/I286][PC9801] Add SIG_I386_FORCE_RESET to notify resetting to external devices.Fix "A20 ERROR" at rebooting PC-9801(32BIT MODELS) with rebooting from program.
-  * [VM/UPD7220][PC9801] Add GDC clock feature. UPD7220::set_clock_freq().
-  * [VM/UPD7220] Implement position limiter for drawing (line etc).You may set gdc_foo->set_screen_width() and gdc_foo->set_screen_height().
-  * [VM/UPD7220] Apply "uPD7220 Design manual".make FIFO as ring buffer.
-  * [VM/UPD7220] More precision emulation.
-  * [VM/UPD7220][COMMON_VM] Integrate UPD7220_BASE:: and UPD7220:: to UPD7220:: .
-  * [VM/UPD7220] Fix not blink cursor.
-  * [VM/UPD7220] Improve around command interpret.This makes apply *real* command-queue-empty to IO 00h:BIT2.
-  * [VM/UPD7220][PC9801] Add UGLY PC98 HACK to UPD7220:: from NP2.
-  * [VM/UPD7220] Update around SYNC and drawing(WIP).
-  * [VM/YM2203] Fix wrong status reply at address #3.
-  * [VM/MEMORY] Faster memory access.
-  * [VM/MC6809][COMMON] Improve disassembler.Thanks to HASERIN-San.
-  * [VM/MC6809][DISASM] Fix offset address around INDEX addressing.
-  * [VM/PC9801][MEMORY] Add new API at copy_table_[r|w|rw](to, start, end).
-  * [VM/PC9801][DISPLAY] Faster accessable GDC.
-  * [VM/PC9801][DISPLAY] More faster VRAM access (via EGC/GRCG).
-  * [VM/PC9801][SASI_BIOS] Fix status values of SASI commands.
-  * [VM/LIBCPU_NEWDEV] Remove deprecated classes.
-  * [BUILD/WIN32] Adjust GCC option for MinGW.
-  * [QT/MENU_FLAGS] Fix TYPO.
-  * [QT/EMU,OSD] Adjust emulation sequence.
-  * Built with 88b18e84a6e8049da97d15ddc96d5acf30b1fcb5 (or later).
+  * This is point release, still exists some issues (i.e.EMM386(NEC/PC98) and FreeBSD(98) don't work) for PC-9801 and PC-Engine and some VMs, will fix them.
+  * [UI/Qt] DEBUGGER: Add history for debugger command line.
+  * [UI/Qt] DEBUGGER: Add auto-completion for command-line.
+  * [VM/DEVICE] Use __FASTCALL with interfaces, read_*() ,write_*(), fetch_op() and some functions.Make this faster emulation (i.e.PC-9801RA and EMM386 under FreeDOS).
+  * [VM/PC9801] Separate EGC functions.
+  * [VM/PC9801] Add V30@8.0MHz with some I286/I386 machines.
+  * [VM/PC9801] Check differnt of system work area (0000:0400-0000:05FF) both mame(pc9801rs) and emupc9801ra .
+  * [VM/PC9801] Add "UPPER_I386" flag for detect using later than HAS_I386.
+  * [VM/PC9801] CPUREG: (Maybe) improve changing cpu sequence around I/O 00F0h.
+  * [VM/PC9801] CPUREG: Redirect interrupt signal via CPUREG:: .VMs with V30 sub CPU (i.e.PC9801RA) work with V30.
+  * [VM/PC9801] Fix wrong initialize SYS_PORT_B.
+  * [VM/PC9801] Fix wrong initialize memory switch.
+  * [VM/PC9801] Add DIPSWITCH object.
+  * [VM/PC9801] Fix different value at [0000:0501].
+  * [VM/PC9801] MEMBUS: Split update_bios() to functions.
+  * [VM/FP1100] Fix lacking some key symbols.Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/540 .
+  * [VM/AY_3_891X] Fix not supported defines, replace flags.
+  * [VM/AY_3_891X] Add feature ; dump/set register via debugger.
+  * [VM/YM2151] Add feature ; dump/set register via debugger.
+  * [VM/YM2203] Add feature ; dump/set register via debugger.
+  * [VM/SN74689AN] Add feature ; dump/set register via debugger.
+  * [VM/BEEP] Add feature ; dump register via debugger.
+  * [VM/PCM1BIT] Add feature ; dump register via debugger.
+  * [VM/I80x86/V30] Start debugger even halting.
+  * [VM/I80x86/8088/V30] Make i86/186/88/286 and V30 to common_vm.
+  * [VM/I386] Fix WRONG flag mask at LMSW.
+  * [VM/I386] MOV CR0 EyX : Fix wrong flags handling.
+  * [VM/I386] Exitable when falling into infinite TRAP-Loop.
+  * [VM/I386] mov CRx,R32/mov r32,CRx : Adjusting.
+  * [VM/i8259] Add PIC HACKing flag for PC9801.
+  * [VM/uPD7810/uPD7907] PC2001: Include uPD7810 variants and uPD7907 to libCSP_common_VM.
+  * [VM/MB8877] Fix buffer overflow with logging.
+  * [VM/Z80DMA] TODO/WIP: Workaround for https://tablacus.github.io/LSX-Dodgers/ .This still be not resolved issue.
+  * [VM/EVENT] Add remove_context_cpu().This may not effect to MAIN_CPU(id==0).
+  * [DOC/FM7] Fix typo (*ﾉω・*)てへぺろ
+  * [Qt/LOGGER] Improve locking.
+  * [UI/Qt] OOPs: Fix LACK of DATARECORDER BUTTONS(abolish of USE_TAPE_BUTTON): Lack of merging UPSTREAM 2018/10/07.
+  * [UI/Qt] MENU: Split some methods (of Ui_MainMenuBase::) to menu_emulator.cpp and menu_machine.cpp .
+  * [UI/Qt] MENU: Simplify menu creation.
+  * [CONFIG/Qt] Fix bit order of logging configure.
+  * [BUILD/CMAKE] Add CPU affinity mask when compiling.This may work only with GNU/Linux host.
+  * [BUILD/CMAKE] Improve build message with finished.
+  * [BUILD/MINGW] Update optimize parameter.
+  * [BUILD] Separate definitions of archtecture flags.
+  * [BUILD] Add ARM32/64 definitions (initial).Still not testing.
+  * Built with bbbb75cdc4051269c60a5f7ba18881eda56e8fd3 (or later).
 
--- May 18, 2019 23:00:59 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Aug 16, 2019 20:23:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。

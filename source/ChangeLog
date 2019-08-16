@@ -1,5 +1,56 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Aug 16, 2019
+  * Upstream 2019-04-30.
+  * This is point release, still exists some issues (i.e.EMM386(NEC/PC98) and FreeBSD(98) don't work) for PC-9801 and PC-Engine and some VMs, will fix them.
+  * [UI/Qt] DEBUGGER: Add history for debugger command line.
+  * [UI/Qt] DEBUGGER: Add auto-completion for command-line.
+  * [VM/DEVICE] Use __FASTCALL with interfaces, read_*() ,write_*(), fetch_op() and some functions.Make this faster emulation (i.e.PC-9801RA and EMM386 under FreeDOS).
+  * [VM/PC9801] Separate EGC functions.
+  * [VM/PC9801] Add V30@8.0MHz with some I286/I386 machines.
+  * [VM/PC9801] Check differnt of system work area (0000:0400-0000:05FF) both mame(pc9801rs) and emupc9801ra .
+  * [VM/PC9801] Add "UPPER_I386" flag for detect using later than HAS_I386.
+  * [VM/PC9801] CPUREG: (Maybe) improve changing cpu sequence around I/O 00F0h.
+  * [VM/PC9801] CPUREG: Redirect interrupt signal via CPUREG:: .VMs with V30 sub CPU (i.e.PC9801RA) work with V30.
+  * [VM/PC9801] Fix wrong initialize SYS_PORT_B.
+  * [VM/PC9801] Fix wrong initialize memory switch.
+  * [VM/PC9801] Add DIPSWITCH object.
+  * [VM/PC9801] Fix different value at [0000:0501].
+  * [VM/PC9801] MEMBUS: Split update_bios() to functions.
+  * [VM/FP1100] Fix lacking some key symbols.Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/540 .
+  * [VM/AY_3_891X] Fix not supported defines, replace flags.
+  * [VM/AY_3_891X] Add feature ; dump/set register via debugger.
+  * [VM/YM2151] Add feature ; dump/set register via debugger.
+  * [VM/YM2203] Add feature ; dump/set register via debugger.
+  * [VM/SN74689AN] Add feature ; dump/set register via debugger.
+  * [VM/BEEP] Add feature ; dump register via debugger.
+  * [VM/PCM1BIT] Add feature ; dump register via debugger.
+  * [VM/I80x86/V30] Start debugger even halting.
+  * [VM/I80x86/8088/V30] Make i86/186/88/286 and V30 to common_vm.
+  * [VM/I386] Fix WRONG flag mask at LMSW.
+  * [VM/I386] MOV CR0 EyX : Fix wrong flags handling.
+  * [VM/I386] Exitable when falling into infinite TRAP-Loop.
+  * [VM/I386] mov CRx,R32/mov r32,CRx : Adjusting.
+  * [VM/i8259] Add PIC HACKing flag for PC9801.
+  * [VM/uPD7810/uPD7907] PC2001: Include uPD7810 variants and uPD7907 to libCSP_common_VM.
+  * [VM/MB8877] Fix buffer overflow with logging.
+  * [VM/Z80DMA] TODO/WIP: Workaround for https://tablacus.github.io/LSX-Dodgers/ .This still be not resolved issue.
+  * [VM/EVENT] Add remove_context_cpu().This may not effect to MAIN_CPU(id==0).
+  * [DOC/FM7] Fix typo (*ﾉω・*)てへぺろ
+  * [Qt/LOGGER] Improve locking.
+  * [UI/Qt] OOPs: Fix LACK of DATARECORDER BUTTONS(abolish of USE_TAPE_BUTTON): Lack of merging UPSTREAM 2018/10/07.
+  * [UI/Qt] MENU: Split some methods (of Ui_MainMenuBase::) to menu_emulator.cpp and menu_machine.cpp .
+  * [UI/Qt] MENU: Simplify menu creation.
+  * [CONFIG/Qt] Fix bit order of logging configure.
+  * [BUILD/CMAKE] Add CPU affinity mask when compiling.This may work only with GNU/Linux host.
+  * [BUILD/CMAKE] Improve build message with finished.
+  * [BUILD/MINGW] Update optimize parameter.
+  * [BUILD] Separate definitions of archtecture flags.
+  * [BUILD] Add ARM32/64 definitions (initial).Still not testing.
+  * Built with bbbb75cdc4051269c60a5f7ba18881eda56e8fd3 (or later).
+
+-- Aug 16, 2019 20:23:45 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT May 18, 2019
   * Upstream 2019-04-30.
   * [General] Add Hino Electronics CEFUCOM-21.
