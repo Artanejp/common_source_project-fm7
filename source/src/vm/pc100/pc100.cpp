@@ -51,6 +51,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	and_drq = new AND(this, emu);
 	beep = new BEEP(this, emu);
+#ifdef USE_DEBUGGER
+	beep->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	sio = new I8251(this, emu);
 	pio0 = new I8255(this, emu);
 	pio0->set_device_name(_T("8255 PIO (RTC)"));
@@ -63,6 +66,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	rtc = new MSM58321(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	fdc = new UPD765A(this, emu);
+#ifdef USE_DEBUGGER
+	fdc->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));

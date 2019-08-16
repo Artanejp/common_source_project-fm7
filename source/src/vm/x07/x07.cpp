@@ -69,6 +69,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_io(io);
 	cpu->set_context_intr(io);
 #ifdef USE_DEBUGGER
+	beep->set_context_debugger(new DEBUGGER(this, emu));
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	

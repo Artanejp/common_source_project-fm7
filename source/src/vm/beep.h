@@ -46,6 +46,8 @@ public:
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	
 	bool process_state(FILEIO* state_fio, bool loading);
 	// unique function
 	void initialize_sound(int rate, double frequency, int volume);

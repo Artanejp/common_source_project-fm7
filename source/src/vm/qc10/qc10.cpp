@@ -73,8 +73,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pic = new I8259(this, emu);
 	io = new IO(this, emu);
 	pcm = new PCM1BIT(this, emu);
+#ifdef USE_DEBUGGER
+	pcm->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	gdc = new UPD7220(this, emu);
 	fdc = new UPD765A(this, emu);
+#ifdef USE_DEBUGGER
+	fdc->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));

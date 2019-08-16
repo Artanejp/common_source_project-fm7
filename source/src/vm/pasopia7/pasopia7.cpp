@@ -77,10 +77,18 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	psg0->set_device_name(_T("SN76489AN PSG #1"));
 	psg1 = new SN76489AN(this, emu);
 	psg1->set_device_name(_T("SN76489AN PSG #2"));
+#ifdef USE_DEBUGGER
+	pcm->set_context_debugger(new DEBUGGER(this, emu));
+	psg0->set_context_debugger(new DEBUGGER(this, emu));
+	psg1->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	fdc = new UPD765A(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
+#ifdef USE_DEBUGGER
+	fdc->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
 	pio = new Z80PIO(this, emu);

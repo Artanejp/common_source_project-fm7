@@ -80,6 +80,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_mem(memory);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
+	pcm->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	
 	// initialize all devices

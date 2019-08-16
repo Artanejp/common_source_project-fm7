@@ -69,6 +69,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	psg = new AY_3_891X(this, emu);
 #ifdef USE_DEBUGGER
+	fdc->set_context_debugger(new DEBUGGER(this, emu));
+	beep->set_context_debugger(new DEBUGGER(this, emu));
 	psg->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	cpu = new Z80(this, emu);

@@ -63,6 +63,17 @@ void BEEP::set_frequency(double frequency)
 	diff = (int)(1024.0 * gen_rate / frequency / 2.0 + 0.5);
 }
 
+bool BEEP::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	my_stprintf_s(buffer, buffer_len - 1, _T("ON=%s SIGNAL=%s VOLUME=%d\nGEN RATE=%d DIFF=%d COUNT=%d\n "),
+				  (on) ? ((mute) ? _T("ON(MUTE) ") : _T("ON       ")) : ((mute) ? _T("OFF(MUTE)") : _T("OFF      ")),
+				  (signal) ? _T("ON") : _T("OFF"),
+				  gen_vol,
+				  gen_rate, diff, count
+		);
+	return true;
+}
+
 #define STATE_VERSION	1
 
 bool BEEP::process_state(FILEIO* state_fio, bool loading)

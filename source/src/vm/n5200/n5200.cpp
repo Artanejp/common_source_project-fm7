@@ -54,6 +54,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy->set_device_name(_T("1st Dummy"));
 	
 	beep = new BEEP(this, emu);
+#ifdef USE_DEBUGGER
+	beep->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	cpu = new I386(this, emu);
 	dma = new I8237(this, emu);
 #ifdef USE_DEBUGGER
@@ -79,6 +82,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
+#ifdef USE_DEBUGGER
+	fdc->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	
 	display = new DISPLAY(this, emu);
 	floppy = new FLOPPY(this, emu);

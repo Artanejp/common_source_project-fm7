@@ -94,7 +94,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
+#ifdef USE_DEBUGGER
+	fdc->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	pcm = new PCM1BIT(this, emu);
+#ifdef USE_DEBUGGER
+	pcm->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	rtc = new RP5C01(this, emu);	// RP-5C15
 	sasi_host = new SCSI_HOST(this, emu);
 	sasi_hdd = new SASI_HDD(this, emu);

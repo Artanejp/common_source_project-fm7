@@ -273,6 +273,19 @@ void PCM1BIT::initialize_sound(int rate, int volume)
 	}
 }
 
+bool PCM1BIT::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	my_stprintf_s(buffer, buffer_len - 1, _T("OUTPUT=%s SIGNAL=%s POSITIVE CLOCK=%d NEGATIVE CLOCK=%d\nLAST VOLUME(L)=%d LAST_VOLUME(R)=%d\Low pass filter=%s FREQ=%d\nHigh pass filter=%s FREQ=%d\n"),
+				  (on) ? ((mute) ? _T("ON(MUTE) ") : _T("ON       ")) : ((mute) ? _T("OFF(MUTE)") : _T("OFF      ")),
+				  (signal) ? _T("ON") : _T("OFF"),
+				  positive_clocks, negative_clocks,
+				  last_vol_l, last_vol_r,
+				  (use_lpf) ? _T("ON ") : _T("OFF"), lpf_freq,
+				  (use_hpf) ? _T("ON ") : _T("OFF"), hpf_freq
+		);
+	return true;
+}
+
 #define STATE_VERSION	4
 
 bool PCM1BIT::process_state(FILEIO* state_fio, bool loading)

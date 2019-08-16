@@ -137,7 +137,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu_tf20->set_context_intr(tf20);
 #ifdef USE_DEBUGGER
 	cpu_tf20->set_context_debugger(new DEBUGGER(this, emu));
+	beep->set_context_debugger(new DEBUGGER(this, emu));
+	fdc_tf20->set_context_debugger(new DEBUGGER(this, emu));
 #endif
+	
 	fdc_tf20->set_context_irq(cpu_tf20, SIG_CPU_IRQ, 1);
 	sio_tf20->set_context_send(0, memory, SIG_MEMORY_SIO_TF20);
 	sio_tf20->set_tx_clock(0, 4915200 / 8);	// 4.9152MHz / 8 (38.4kbps)

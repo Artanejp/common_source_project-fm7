@@ -109,6 +109,8 @@ public:
 		}
 		return 0;
 	}
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 
 	bool process_state(FILEIO* state_fio, bool loading);
 	// unique functions

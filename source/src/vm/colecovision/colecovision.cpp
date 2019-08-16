@@ -39,6 +39,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	io = new IO(this, emu);
 	psg = new SN76489AN(this, emu);
+#ifdef USE_DEBUGGER
+	psg->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	vdp = new TMS9918A(this, emu);
 #ifdef USE_DEBUGGER
 	vdp->set_context_debugger(new DEBUGGER(this, emu));

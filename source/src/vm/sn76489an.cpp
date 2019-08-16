@@ -198,6 +198,39 @@ void SN76489AN::initialize_sound(int rate, int clock, int volume)
 	diff = (int)(16.0 * (double)clock / (double)rate + 0.5);
 }
 
+bool SN76489AN::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	_TCHAR tmps1[512] = {0};
+	for(int i = 0; i < 8; i++) {
+		_TCHAR tmps2[16] = {0};
+		my_stprintf_s(tmps2, 15, _T("%04X "));
+		_tcsncat(tmps1, tmps2, sizeof(tmps1) - 1);
+	}
+	_TCHAR tmps3[1024] = {0};
+	for(int i = 0; i < 4; i++) {
+		_TCHAR tmps2[256] = {0};
+		my_stprintf_s(tmps2, sizeof(tmps2) - 1, _T("CH%d: SIGNAL=%s PERIOD=%d COUNT=%d VOLUME=%d\n"),
+					  i + 1, (ch[i].signal) ? _T("ON") : _T("OFF"), ch[i].period, ch[i].count, ch[i].volume);
+		_tcsncat(tmps3, tmps2, sizeof(tmps3) - 1);
+	}
+	_TCHAR tmps4[1024] = {0};
+	for(int i = 0; i < 16; i += 4) {
+		_TCHAR tmps2[256] = {0};
+		my_stprintf_s(tmps2, sizeof(tmps2) - 1, _T("VOLUME #%d-#%d: %d %d %d %d\n"),
+					  i + 1, i + 4,
+					  volume_table[i + 0], volume_table[i + 1], volume_table[i + 2], volume_table[i + 3]);
+		_tcsncat(tmps4, tmps2, sizeof(tmps4) - 1);
+	}
+	my_stprintf_s(buffer, buffer_len - 1,_T("MUTE=%s CS=%s WE=%s INDEX=%d NOISE GEN=%d\nVAL=%02X\n%s%sREGS: +0 +1 +2 +3 +4 +5 +6 +7\n      %s\n "),
+											(mute) ? _T("ON") : _T("OFF"),
+											(cs) ? _T("ON") : _T("OFF"),
+											(we) ? _T("ON") : _T("OFF"),
+											index, noise_gen,
+											tmps3, tmps4,
+											tmps1);
+				  return true;
+}
+		
 #define STATE_VERSION	2
 
 bool SN76489AN::process_state(FILEIO* state_fio, bool loading)

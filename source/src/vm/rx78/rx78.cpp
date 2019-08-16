@@ -53,6 +53,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io = new IO(this, emu);
 	psg = new SN76489AN(this, emu);
 	cpu = new Z80(this, emu);
+#ifdef USE_DEBUGGER
+	psg->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	
 	cmt = new CMT(this, emu);
 	key = new KEYBOARD(this, emu);

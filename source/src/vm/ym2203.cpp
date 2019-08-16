@@ -729,10 +729,16 @@ bool YM2203::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 			_tcsncat(tmps2, tmps3, sizeof(tmps2) - 1);
 		}
 		_tcsncat(tmps2, "\n", sizeof(tmps2) - 1);
-	}	
-	my_stprintf_s(buffer, buffer_len - 1, _T("%sCH=%02X  FNUM2=%02X CH1=%02X DATA1=%02X FNUM21=%02X\nBUSY=%s CHIP_CLOCK=%d\nREG : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F\n%s"),
+	}
+	bool irqflag;
+	if(is_ym2608) {
+		irqflag = opna->ReadIRQ();
+	} else {
+		irqflag = opn->ReadIRQ();
+	}		
+	my_stprintf_s(buffer, buffer_len - 1, _T("%sCH=%02X  FNUM2=%02X CH1=%02X DATA1=%02X FNUM21=%02X\nIRQ=%s BUSY=%s CHIP_CLOCK=%d\nREG : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F\n%s"),
 				  tmps, ch, fnum2, ch1, data1, fnum21,
-				  (busy) ? _T("Y") : _T("N"), chip_clock, tmps2);
+				  (irqflag) ? _T("Y") : _T("N"), (busy) ? _T("Y") : _T("N"), chip_clock, tmps2);
 	return true;
 }
 

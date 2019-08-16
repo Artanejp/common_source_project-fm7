@@ -154,6 +154,9 @@ VM::VM(EMU* parent_emu): VM_TEMPLATE(parent_emu)
 #if defined(_FM77AV_VARIANTS)
 	alu = new MB61VH010(this, emu);
 	keyboard_beep = new BEEP(this, emu);
+#ifdef USE_DEBUGGER
+	keyboard_beep->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 #endif	
 
 	// basic devices
@@ -200,6 +203,9 @@ VM::VM(EMU* parent_emu): VM_TEMPLATE(parent_emu)
 	drec->set_context_noise_stop(new NOISE(this, emu));
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	pcm1bit = new PCM1BIT(this, emu);
+#ifdef USE_DEBUGGER
+	pcm1bit->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 
 	connect_320kfdc = connect_1Mfdc = false;
 	fdc = NULL;

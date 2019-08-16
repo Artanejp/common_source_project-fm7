@@ -83,10 +83,16 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
+#ifdef USE_DEBUGGER
+	fdc->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	not_busy = new NOT(this, emu);
 	not_busy->set_device_name(_T("NOT GATE(PRINTER BUSY)"));
 
 	pcm = new PCM1BIT(this, emu);
+#ifdef USE_DEBUGGER
+	pcm->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	rtc = new RP5C01(this, emu);	// RP-5C15
 	sasi_host = new SCSI_HOST(this, emu);
 	for(int i = 0; i < array_length(sasi_hdd); i++) {

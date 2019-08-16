@@ -72,7 +72,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	flipflop = new LS393(this, emu); // LS74
 	not_remote = new NOT(this, emu);
 	pcm = new PCM1BIT(this, emu);
+#ifdef USE_DEBUGGER
+	pcm->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	fdc = new UPD765A(this, emu);
+#ifdef USE_DEBUGGER
+	fdc->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));

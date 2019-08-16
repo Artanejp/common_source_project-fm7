@@ -133,6 +133,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_intr(pic);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
+	pcm->set_context_debugger(new DEBUGGER(this, emu));
+	fdc->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	
 	// dmac

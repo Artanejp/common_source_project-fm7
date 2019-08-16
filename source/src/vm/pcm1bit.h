@@ -64,6 +64,7 @@ public:
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void set_high_pass_filter_freq(int freq, double quality = 1.0);
 	void set_low_pass_filter_freq(int freq, double quality = 1.0);
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	
 	bool process_state(FILEIO* state_fio, bool loading);
 	

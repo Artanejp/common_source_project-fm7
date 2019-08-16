@@ -102,6 +102,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	pc88pio->set_device_name(_T("8255 PIO (PC-8801)"));
 //	pc88pio->set_context_event_manager(pc88event);
 	pc88pcm = new PCM1BIT(this, emu);
+#ifdef USE_DEBUGGER
+	pc88pcm->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 //	pc88pcm->set_device_name(_T("1-Bit PCM Sound (PC-8801)"));
 //	pc88pcm->set_context_event_manager(pc88event);
 	pc88rtc = new UPD1990A(this, emu);
@@ -116,6 +119,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// 	4: 44h:OPNA A4h:OPNA		PC-8801FH/MH or later  + PC-8801-24
 	// 	5: 44h:OPNA A4h:OPN		PC-8801FH/MH or later  + PC-8801-11
 	pc88opn1 = new YM2203(this, emu);
+#ifdef USE_DEBUGGER
+	pc88opn1->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 //	pc88opn1->set_context_event_manager(pc88event);
 	if(config.sound_type == 0 || config.sound_type == 4 || config.sound_type == 5) {
 		pc88opn1->is_ym2608 = true;
@@ -127,6 +133,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	if(config.sound_type >= 2) {
 		pc88opn2 = new YM2203(this, emu);
 //		pc88opn2->set_context_event_manager(pc88event);
+	#ifdef USE_DEBUGGER
+		pc88opn2->set_context_debugger(new DEBUGGER(this, emu));
+	#endif
 		if(config.sound_type == 2 || config.sound_type == 4) {
 			pc88opn2->is_ym2608 = true;
 			pc88opn2->set_device_name(_T("YM2608 OPNA #2"));
@@ -145,11 +154,17 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	pc88opn1->set_context_event_manager(pc88event);
 	pc88opn1->is_ym2608 = false;
 	pc88opn1->set_device_name(_T("YM2203 OPN #1"));
+#ifdef USE_DEBUGGER
+	pc88opn1->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	if(config.sound_type == 1) {
 		pc88opn2 = new YM2203(this, emu);
 //		pc88opn2->set_context_event_manager(pc88event);
 		pc88opn2->is_ym2608 = false;
 		pc88opn2->set_device_name(_T("YM2203 OPN #2"));
+	#ifdef USE_DEBUGGER
+		pc88opn2->set_context_debugger(new DEBUGGER(this, emu));
+	#endif
 	} else {
 		pc88opn2 = NULL;
 	}
@@ -161,6 +176,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //		pc88opn2->set_context_event_manager(pc88event);
 		pc88opn2->is_ym2608 = false;
 		pc88opn2->set_device_name(_T("YM2203 OPN #2"));
+	#ifdef USE_DEBUGGER
+		pc88opn2->set_context_debugger(new DEBUGGER(this, emu));
+	#endif
 	} else {
 		pc88opn2 = NULL;
 	}
@@ -175,6 +193,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 			pc88opn1->is_ym2608 = false;
 			pc88opn1->set_device_name(_T("YM2203 OPN #1"));
 		#endif
+		#ifdef USE_DEBUGGER
+			pc88opn1->set_context_debugger(new DEBUGGER(this, emu));
+		#endif
 	#endif
 	#if defined(SUPPORT_PC88_OPN2)
 		pc88opn2 = new YM2203(this, emu);
@@ -185,6 +206,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		#else
 			pc88opn2->is_ym2608 = false;
 			pc88opn2->set_device_name(_T("YM2203 OPN #2"));
+		#endif
+		#ifdef USE_DEBUGGER
+			pc88opn2->set_context_debugger(new DEBUGGER(this, emu));
 		#endif
 	#endif
 #endif
@@ -220,6 +244,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	pc88pio_sub->set_context_event_manager(pc88event);
 	pc88fdc_sub = new UPD765A(this, emu);
 	pc88fdc_sub->set_device_name(_T("uPD765A FDC (Sub)"));
+#ifdef USE_DEBUGGER
+	pc88fdc_sub->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 //	pc88fdc_sub->set_context_event_manager(pc88event);
 	pc88noise_seek = new NOISE(this, emu);
 //	pc88noise_seek->set_context_event_manager(pc88event);

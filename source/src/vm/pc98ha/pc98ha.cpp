@@ -69,6 +69,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy->set_device_name(_T("1st Dummy"));
 	
 	beep = new BEEP(this, emu);
+#ifdef USE_DEBUGGER
+	beep->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	sio_rs = new I8251(this, emu);	// for rs232c
 	sio_rs->set_device_name(_T("8251 SIO (RS-232C)"));
 	sio_kbd = new I8251(this, emu);	// for keyboard
@@ -98,6 +101,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	fdc = new UPD765A(this, emu);
+#ifdef USE_DEBUGGER
+	fdc->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));

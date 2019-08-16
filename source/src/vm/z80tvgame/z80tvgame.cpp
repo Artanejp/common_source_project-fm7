@@ -73,6 +73,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_io(pio);
 	cpu->set_context_intr(dummy);
 #ifdef USE_DEBUGGER
+	pcm->set_context_debugger(new DEBUGGER(this, emu));
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	

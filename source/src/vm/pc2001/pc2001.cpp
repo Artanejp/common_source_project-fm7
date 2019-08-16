@@ -46,6 +46,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	memory = new MEMORY(this, emu);
 	pcm = new PCM1BIT(this, emu);
+#ifdef USE_DEBUGGER
+	pcm->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	lcd[0] = new UPD16434(this, emu);
 	lcd[0]->set_device_name(_T("uPD16434 LCD Controller #0"));
 	lcd[1] = new UPD16434(this, emu);
