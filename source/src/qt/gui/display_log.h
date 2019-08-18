@@ -10,6 +10,7 @@
 #include <QUrl>
 #include <QStringList>
 #include <QWidget>
+#include <QFont>
 
 #include "common.h"
 
@@ -21,6 +22,9 @@ class QFont;
 class QVBoxLayout;
 class QGridLayout;
 class QGroupBox;
+class QFontDialog;
+class QPushButton;
+class QResizeEvent;
 class QTimer;
 class QMutex;
 class USING_FLAGS;
@@ -62,16 +66,22 @@ protected:
 	QTextBrowser *TextBox;
 	QGridLayout *MasterLayout;
 	QTimer *UpdateTimer;
+	QPushButton *FontDlgButton;
+
 	USING_FLAGS *using_flags;
 	QMutex *lock_mutex;
 public:
 	Dlg_LogViewer(USING_FLAGS *p, CSP_Logger * logger, QWidget *parent, QString _domain = QString::fromUtf8(""), uint32_t _level = 0xffffffff);
 	~Dlg_LogViewer();
+	virtual void resizeEvent(QResizeEvent *event);
 
 public slots:
 	void do_search_by_domain(QString _domain_name, uint32_t _level);
 	void do_update(void);
 	void do_refresh(void);
+	void set_font(const QFont &font);
+	void rise_font_dialog(void);
+
 signals:
 	int sig_text_clear();
 	int sig_text_update(QString);

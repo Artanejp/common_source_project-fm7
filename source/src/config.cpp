@@ -217,6 +217,9 @@ void initialize_config()
 		}
 		// Extra UI
 		config.cursor_as_ten_key = CONFIG_CURSOR_AS_CURSOR;
+		memset(config.debugwindow_font, 0x00, sizeof(config.debugwindow_font));
+		memset(config.logwindow_font, 0x00, sizeof(config.logwindow_font));
+		
 	#if defined(_FM7) || defined(_FMNEW7) || defined(_FM8) \
 	    || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)		
 		config.numpad_enter_as_fullkey = false;
@@ -488,6 +491,12 @@ void load_config(const _TCHAR *config_path)
 		config.cursor_as_ten_key = MyGetPrivateProfileInt(_T("Qt"), _T("CursorAsTenKey"), config.cursor_as_ten_key, config_path);
 		config.numpad_enter_as_fullkey = MyGetPrivateProfileBool(_T("Qt"), _T("NumpadEnterAsFullKey"), config.numpad_enter_as_fullkey, config_path);
 		config.host_keyboard_type = MyGetPrivateProfileInt(_T("Qt"), _T("HostKeyboardType"), config.host_keyboard_type, config_path);
+		MyGetPrivateProfileString(_T("Qt"), _T("DebugWindowFont"), _T("Sans"), config.debugwindow_font, sizeof(config.debugwindow_font) - 1, config_path);
+		config.debugwindow_width = MyGetPrivateProfileInt(_T("Qt"), _T("DebugWindowWidth"), 800, config_path);
+		config.debugwindow_height = MyGetPrivateProfileInt(_T("Qt"), _T("DebugWindowHeight"), 500, config_path);
+		MyGetPrivateProfileString(_T("Qt"), _T("LogWindowFont"), _T("Sans"), config.logwindow_font, sizeof(config.logwindow_font) - 1, config_path);
+		config.logwindow_width = MyGetPrivateProfileInt(_T("Qt"), _T("LogWindowWidth"), 800, config_path);
+		config.logwindow_height = MyGetPrivateProfileInt(_T("Qt"), _T("LogWindowHeight"), 500, config_path);
 
 		
 		// Movie load/save.
@@ -833,6 +842,12 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileInt(_T("Qt"), _T("CursorAsTenKey"), config.cursor_as_ten_key, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("NumpadEnterAsFullKey"), config.numpad_enter_as_fullkey, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("HostKeyboardType"), config.host_keyboard_type, config_path);
+		MyWritePrivateProfileString(_T("Qt"), _T("DebugWindowFont"), config.debugwindow_font, config_path);
+		MyWritePrivateProfileInt(_T("Qt"), _T("DebugWindowWidth"), config.debugwindow_width, config_path);
+		MyWritePrivateProfileInt(_T("Qt"), _T("DebugWindowHeight"), config.debugwindow_height, config_path);
+		MyWritePrivateProfileString(_T("Qt"), _T("LogWindowFont"), config.logwindow_font, config_path);
+		MyWritePrivateProfileInt(_T("Qt"), _T("LogWindowWidth"), config.logwindow_width, config_path);
+		MyWritePrivateProfileInt(_T("Qt"), _T("LogWindowHeight"), config.logwindow_height, config_path);
 
 		for(i = 0; i < 16; i++) {
 			_TCHAR name[256];

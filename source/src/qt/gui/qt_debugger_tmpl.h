@@ -16,13 +16,9 @@
 #include <QMetaObject>
 #include <QThread>
 #include <QWidget>
-#include <QPlainTextEdit>
 
 #include <QString>
 #include <QStringList>
-#include <QVBoxLayout>
-#include <QTimer>
-#include <QCloseEvent>
 
 #include <list>
 #include <string>
@@ -30,6 +26,13 @@
 #include "../../fileio.h"
 
 QT_BEGIN_NAMESPACE	
+
+class QTextEdit;
+class QVBoxLayout;
+class QHBoxLayout;
+class QPushButton;
+class QFontDialog;
+class QResizeEvent;
 
 class CSP_DebuggerThread;
 class QLineEditPlus;
@@ -42,7 +45,10 @@ class DLL_PREFIX CSP_Debugger_Tmpl : public QWidget
 	QWidget *widget;
 	QTextEdit *text;
 	QLineEditPlus *text_command;
+	QPushButton *call_font_dialog;
+	QFontDialog *font_dialog;
 	QVBoxLayout *VBoxWindow;
+	QHBoxLayout *TailButtons;
 
 	bool string_is_strong;
 	QString text_color;
@@ -52,6 +58,7 @@ class DLL_PREFIX CSP_Debugger_Tmpl : public QWidget
 	~CSP_Debugger_Tmpl();
 	//virtual void closeEvent(QCloseEvent *event);
 	QStringList &get_complete_list();
+	virtual void resizeEvent(QResizeEvent *event);
 public slots:
 	void stop_polling();
 	void put_string(QString);
@@ -65,7 +72,8 @@ public slots:
 	
 	void clear_complete_list();
 	void apply_complete_list();
-	
+	void set_font(const QFont &font);
+	void rise_font_dialog();
 signals:
 	void sig_put_string(QString);
 	void sig_run_command(QString);

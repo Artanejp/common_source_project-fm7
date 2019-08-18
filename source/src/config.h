@@ -244,6 +244,13 @@ typedef struct {
 	int render_major_version;
 	int render_minor_version;
 	bool disk_count_immediate[16]; // Hack for MB8877, FLEX for FM-7.
+	_TCHAR debugwindow_font[1024];
+	_TCHAR logwindow_font[1024];
+	int debugwindow_width;
+	int debugwindow_height;
+	int logwindow_width;
+	int logwindow_height;
+	
 #endif	
 	
 	// sound

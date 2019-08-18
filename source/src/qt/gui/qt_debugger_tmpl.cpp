@@ -14,10 +14,20 @@
 #include <fcntl.h>
 #include <QObject>
 #include <QMetaObject>
+#include <QPlainTextEdit>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QPushButton>
+#include <QFontDialog>
+#include <QFont>
+#include <QApplication>
+#include <QResizeEvent>
+#include <QSize>
 
 #include "qt_debugger_tmpl.h"
 #include "qt_lineeditplus.h"
 #include "osd_base.h"
+#include "../../config.h"
 
 void CSP_Debugger_Tmpl::set_string_attr(QString color, bool is_strong)
 {
@@ -114,6 +124,34 @@ void CSP_Debugger_Tmpl::run(void)
 	connect(parent_object, SIGNAL(quit_debugger_thread()), this, SLOT(close()));
 }
 
+void CSP_Debugger_Tmpl::set_font(const QFont &font)
+{
+	text_command->setFont(font);
+	text->setFont(font);
+	if(!(font.toString().isEmpty())) {
+		memset(config.debugwindow_font, 0x00, sizeof(config.debugwindow_font));
+		snprintf(config.debugwindow_font, sizeof(config.debugwindow_font) - 1, "%s", font.toString().toLocal8Bit().constData());
+	}
+}
+
+void CSP_Debugger_Tmpl::rise_font_dialog(void)
+{
+	QFontDialog *dlg = new QFontDialog(text->font(), this);
+	connect(dlg, SIGNAL(fontSelected(const QFont)), this, SLOT(set_font(const QFont)));
+	dlg->show();
+}
+
+
+void CSP_Debugger_Tmpl::resizeEvent(QResizeEvent *event)
+{
+	QSize s = event->size();
+	int width = s.width();
+	int height = s.height();
+	if(width < 320) width = 320;
+	if(height < 200) height = 200;
+	config.debugwindow_height = height;
+	config.debugwindow_width = width;
+}
 
 CSP_Debugger_Tmpl::CSP_Debugger_Tmpl(OSD_BASE* p_osd, QWidget *parent) : QWidget(parent, Qt::Window)
 {
@@ -131,20 +169,38 @@ CSP_Debugger_Tmpl::CSP_Debugger_Tmpl(OSD_BASE* p_osd, QWidget *parent) : QWidget
 	text_command->setReadOnly(false);
 	text_command->setEnabled(true);
 	text_command->clear();
-
+	call_font_dialog = new QPushButton(QApplication::translate("Debugger", "Set Font", 0),this);
+	if(strlen(config.debugwindow_font) > 0) {
+		QFont font;
+		font.fromString(QString::fromLocal8Bit(config.debugwindow_font));
+		text->setFont(font);
+		text_command->setFont(font);
+	}
 	complete_list.clear();
 
 	connect(this, SIGNAL(sig_apply_complete_list(QStringList)), text_command, SLOT(setCompleteList(QStringList)));
+	connect(call_font_dialog, SIGNAL(pressed()), this, SLOT(rise_font_dialog()));
 	connect(p_osd, SIGNAL(sig_apply_dbg_completion_list()), this, SLOT(apply_complete_list()));
 	connect(p_osd, SIGNAL(sig_clear_dbg_completion_list()), this, SLOT(clear_complete_list()));
 	connect(p_osd, SIGNAL(sig_add_dbg_completion_list(_TCHAR *)), this, SLOT(add_complete_list(_TCHAR *)));
-	
-	VBoxWindow = new QVBoxLayout;
 
+	VBoxWindow = new QVBoxLayout;
+	TailButtons = new QHBoxLayout;
+	
+	TailButtons->setAlignment(Qt::AlignRight);
+	TailButtons->addStretch();
+	TailButtons->addWidget(call_font_dialog);
+	VBoxWindow->addLayout(TailButtons);
 	VBoxWindow->addWidget(text);
 	VBoxWindow->addWidget(text_command);
+	
+	int w = config.debugwindow_width;
+	int h = config.debugwindow_height;
+	if(w < 320) w = 320;
+	if(h < 200) h = 200;
+	
 	this->setLayout(VBoxWindow);
-	this->resize(640, 500);
+	this->resize(w, h);
 }
 
 

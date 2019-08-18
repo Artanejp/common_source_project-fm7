@@ -8,6 +8,7 @@
 #include <QIODevice>
 #include <QUrl>
 #include <QStringList>
+#include <QApplication>
 
 #include <QTextBrowser>
 #include <QLabel>
@@ -15,8 +16,12 @@
 #include <QVBoxLayout>
 #include <QFont>
 #include <QGridLayout>
+#include <QFontDialog>
+#include <QPushButton>
 #include <QTimer>
 #include <QMutexLocker>
+#include <QResizeEvent>
+#include <QSize>
 
 #include "mainwidget_base.h"
 #include "display_log.h"
@@ -81,6 +86,34 @@ void Dlg_LogViewerBind::do_update(void)
 	emit sig_throw_desc(str, bind_int);
 }
 
+void Dlg_LogViewer::set_font(const QFont &font)
+{
+	TextBox->setFont(font);
+	if(!(font.toString().isEmpty())) {
+		memset(config.logwindow_font, 0x00, sizeof(config.logwindow_font));
+		snprintf(config.logwindow_font, sizeof(config.logwindow_font) - 1, "%s", font.toString().toLocal8Bit().constData());
+	}
+}
+
+void Dlg_LogViewer::rise_font_dialog(void)
+{
+	QFontDialog *dlg = new QFontDialog(TextBox->font(), this);
+	connect(dlg, SIGNAL(fontSelected(const QFont)), this, SLOT(set_font(const QFont)));
+	dlg->show();
+}
+
+void Dlg_LogViewer::resizeEvent(QResizeEvent *event)
+{
+	QSize s = event->size();
+	int width = s.width();
+	int height = s.height();
+	if(width < 320) width = 320;
+	if(height < 200) height = 200;
+	config.logwindow_height = height;
+	config.logwindow_width = width;
+}
+
+
 Dlg_LogViewer::Dlg_LogViewer(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, QString _domain, uint32_t level) : QWidget(parent)
 {
 	lock_mutex = new QMutex(QMutex::Recursive);
@@ -91,7 +124,7 @@ Dlg_LogViewer::Dlg_LogViewer(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent
 	using_flags = p;
 	csp_logger = logger;
 	TextBox = new QTextBrowser();
-	TextBox->setStyleSheet("font: 12pt \"Sans\";");
+//	TextBox->setStyleSheet("font: 12pt \"Sans\";");
 	TextBox->setMinimumSize(800, 470);
 	TextBox->setOpenExternalLinks(true);
 	if(csp_logger != NULL) {
@@ -128,7 +161,15 @@ Dlg_LogViewer::Dlg_LogViewer(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent
 	connect(this, SIGNAL(sig_text_update(QString)), TextBox, SLOT(setText(QString)));
 	connect(this, SIGNAL(sig_text_append(QString)), TextBox, SLOT(append(QString)));
 	MasterLayout = new QGridLayout;
-	MasterLayout->addWidget(TextBox, 0, 0, 4, 4);
+	FontDlgButton = new QPushButton(QApplication::translate("LogWindow", "Set Font", 0),this);
+	if(strlen(config.logwindow_font) > 0) {
+		QFont font;
+		font.fromString(QString::fromLocal8Bit(config.logwindow_font));
+		TextBox->setFont(font);
+	}
+	connect(FontDlgButton, SIGNAL(pressed()), this, SLOT(rise_font_dialog()));
+	MasterLayout->addWidget(FontDlgButton, 0, 3, Qt::AlignRight);
+	MasterLayout->addWidget(TextBox, 1, 0, 4, 4);
 
 	UpdateTimer = new QTimer(this);
 	UpdateTimer->setInterval(500); // 500ms
@@ -136,6 +177,12 @@ Dlg_LogViewer::Dlg_LogViewer(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent
 	connect(UpdateTimer, SIGNAL(timeout()), this, SLOT(do_update()));
 	UpdateTimer->start();
 	this->setLayout(MasterLayout);
+
+	int w = config.logwindow_width;
+	int h = config.logwindow_height;
+	if(w < 320) w = 320;
+	if(h < 200) h = 200;
+	this->resize(w, h);
 }
 
 Dlg_LogViewer::~Dlg_LogViewer()
