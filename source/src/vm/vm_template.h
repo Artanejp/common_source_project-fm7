@@ -78,17 +78,17 @@ public:
 
 	
 	// user interface
-	virtual void open_floppy_disk(int drv, _TCHAR *file_path, int bank) { }
-	virtual void open_quick_disk(int drv, _TCHAR *file_path) { }
-	virtual void open_hard_disk(int drv, _TCHAR *file_path) { }
-	virtual void open_compact_disc(int drv, _TCHAR *file_path) { }
-	virtual void open_laser_disc(int drv, _TCHAR *file_path) { }
-	virtual void open_bubble_casette(int drv, _TCHAR *file_path, int bank) { }
-	virtual void open_cart(int drv, _TCHAR *file_path) { }
-	virtual void play_tape(int drv, _TCHAR *file_path) { }
-	virtual void rec_tape(int drv, _TCHAR *file_path) { }
-	virtual void load_binary(int drv, _TCHAR *file_path) { }
-	virtual void save_binary(int drv, _TCHAR *file_path) { }
+	virtual void open_floppy_disk(int drv, const _TCHAR *file_path, int bank) { }
+	virtual void open_quick_disk(int drv, const _TCHAR *file_path) { }
+	virtual void open_hard_disk(int drv, const _TCHAR *file_path) { }
+	virtual void open_compact_disc(int drv, const _TCHAR *file_path) { }
+	virtual void open_laser_disc(int drv, const _TCHAR *file_path) { }
+	virtual void open_bubble_casette(int drv, const _TCHAR *file_path, int bank) { }
+	virtual void open_cart(int drv, const _TCHAR *file_path) { }
+	virtual void play_tape(int drv, const _TCHAR *file_path) { }
+	virtual void rec_tape(int drv, const _TCHAR *file_path) { }
+	virtual void load_binary(int drv, const _TCHAR *file_path) { }
+	virtual void save_binary(int drv, const _TCHAR *file_path) { }
 	
 	virtual void close_floppy_disk(int drv) { }
 	virtual void close_quick_disk(int drv) { }

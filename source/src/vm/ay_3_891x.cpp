@@ -230,7 +230,9 @@ void AY_3_891X::mix(int32_t* buffer, int cnt)
 		if((use_lpf) || (use_hpf)) {
 			int32_t* p;
 			int32_t p_h[cnt * 2];
-			int32_t p_l[cnt * 2] = {0};
+			int32_t p_l[cnt * 2];
+//			memset(p_h, 0x00, sizeof(int32_t) * cnt * 2);
+//			memset(p_l, 0x00, sizeof(int32_t) * cnt * 2);
 			p = p_l;
 			opn->Mix(p, cnt);
 			if(use_lpf) {

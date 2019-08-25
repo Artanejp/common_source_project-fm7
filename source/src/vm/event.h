@@ -144,6 +144,7 @@ private:
 	template <class T>
 		void set_cpu_type(T *p, int num)
 	{
+#if defined(USE_SUPRESS_VTABLE)
 		if((num < 0) || (num >= MAX_CPU)) return;
 #if defined(USE_CPU_HD6301)
 		if(typeid(T) == typeid(HD6301)) {
@@ -250,6 +251,7 @@ private:
 		{
 			cpu_type[num] = EVENT_CPUTYPE_GENERIC;
 		}
+#endif
 	}
 public:
 	EVENT(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)

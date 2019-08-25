@@ -955,7 +955,7 @@ bool SCSI_CDROM::open_cue_file(const _TCHAR* file_path)
 
 	get_long_full_path_name(file_path, full_path_cue, sizeof(full_path_cue));
 	
-	_TCHAR *parent_dir = get_parent_dir(full_path_cue);
+	const _TCHAR *parent_dir = get_parent_dir((const _TCHAR *)full_path_cue);
 
 	size_t _arg1_ptr;
 	size_t _arg2_ptr;

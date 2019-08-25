@@ -408,9 +408,9 @@ public:
 	{
 		d_io = device;
 	}
-	void set_context_child(DEBUGGER* device)
+	void set_context_child(DEVICE* device)
 	{
-		d_child = device;
+		d_child = (DEBUGGER *)device;
 	}
 	void check_break_points(uint32_t addr)
 	{

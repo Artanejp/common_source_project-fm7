@@ -255,6 +255,7 @@ void EVENT::reset()
 
 int __FASTCALL EVENT::run_cpu(uint32_t num, int cycles)
 {
+#if defined(USE_SUPRESS_VTABLE)
 	if(num < MAX_CPU) {
 		uint32_t dom_num = cpu_type[num];
 		switch(dom_num) {
@@ -363,11 +364,14 @@ int __FASTCALL EVENT::run_cpu(uint32_t num, int cycles)
 			break;
 		}
 	}
+#endif	
 	if(cycles <= 0) {
 		return 1;
 	} else {
 		return cycles;
 	}
+
+   
 }
 
 //#define USE_SUPRESS_VTABLE
@@ -1163,8 +1167,9 @@ int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int exp
 	if(in_count <= 0) return 0;
 
 	int16_t tmpbuf_in[(in_count + 1) * sound_in_channels[bank]];
-	int32_t tmpbuf[(in_count + 1) * expect_channels] = {0};
-
+	int32_t tmpbuf[(in_count + 1) * expect_channels];
+	memset(tmpbuf, 0x00, sizeof(int32_t) * (in_count + 1) * expect_channels);
+	
 	int mp = 0;
 	for(int i = 0; i < in_count; i++) {
 		int tmpr = readptr * sound_in_channels[bank];
@@ -1234,7 +1239,8 @@ int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int exp
 		int s_count = 0;
 		// ToDo: Interpollate
 		int n_samples = (int)((double)gave_samples * ((double)expect_rate / (double)sound_in_rate[bank]));
-		int32_t tmpdata[expect_channels] = {0};
+		int32_t tmpdata[expect_channels];
+		memset(tmpdata, 0x00, sizeof(int32_t) * expect_channels);;
 		for(int i = 0; i < gave_samples; i++) {
 			for(int ch = 0; ch < expect_channels; ch++) {
 				tmpdata[ch] += p[ch];
