@@ -20,6 +20,20 @@
 #include "pc9801.h"
 #include "../../emu.h"
 #include "../device.h"
+
+
+#if defined(UPPER_I386)
+#include "../i386.h"
+#elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
+#include "../i86.h"
+#elif  defined(HAS_V30)
+#include "../v30.h"
+#else
+#include "../i286.h"
+#endif
+#if defined(HAS_V30_SUB_CPU)
+#include "../v30.h"
+#endif
 #include "../event.h"
 
 #if defined(SUPPORT_OLD_BUZZER)
@@ -34,18 +48,6 @@
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../i8259.h"
-#if defined(UPPER_I386)
-#include "../i386.h"
-#elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
-#include "../i86.h"
-#elif  defined(HAS_V30)
-#include "../v30.h"
-#else
-#include "../i286.h"
-#endif
-#if defined(HAS_V30_SUB_CPU)
-#include "../v30.h"
-#endif
 
 #include "../io.h"
 #include "../ls244.h"
@@ -1338,7 +1340,7 @@ void VM::set_wait(int dispmode, int clock)
 
 void VM::initialize_ports()
 {
-	uint8_t port_a, port_b, port_c;
+	uint8_t port_b, port_c;
 	
 	port_b  = 0x00;
 	port_b |= 0x80; // RS-232C CI#, 1 = OFF
@@ -1355,7 +1357,7 @@ void VM::initialize_ports()
 //	port_b |= 0x02; // EMCK, 1 = Parity error occurs in external RAM
 //	port_b |= 0x01; // CDAT
 	
-	port_c |= 0x80; // SHUT0
+	port_c = 0x80; // SHUT0
 	port_c |= 0x40; // PSTBM, 1 = Mask printer's PSTB#
 	port_c |= 0x20; // SHUT1
 	port_c |= 0x10; // MCHKEN, 1 = Enable parity check for RAM
@@ -1435,7 +1437,6 @@ void VM::reset()
 {
 	// Set resolution before resetting.
 	// initial device settings
-	uint8_t port_a, port_b, port_c;
 #if defined(USE_MONITOR_TYPE) /*&& defined(SUPPORT_HIRESO)*/
 #if !defined(SUPPORT_HIRESO)
 	io->set_iovalue_single_r(0x0467, 0xfd); // Detect high-reso.

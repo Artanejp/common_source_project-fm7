@@ -29,7 +29,7 @@ namespace PC9801 {
 
 #if defined(SUPPORT_EGC)
 
-__DECL_ALIGNED(16) static const uint8_t DISPLAY::egc_bytemask_u0[64] = {
+__DECL_ALIGNED(16) const uint8_t DISPLAY::egc_bytemask_u0[64] = {
 	0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01,
 	0xc0, 0x60, 0x30, 0x18, 0x0c, 0x06, 0x03, 0x01,
 	0xe0, 0x70, 0x38, 0x1c, 0x0e, 0x07, 0x03, 0x01,
@@ -41,11 +41,11 @@ __DECL_ALIGNED(16) static const uint8_t DISPLAY::egc_bytemask_u0[64] = {
 };
 
 
-__DECL_ALIGNED(16) static const uint8_t DISPLAY::egc_bytemask_u1[8] =  {
+__DECL_ALIGNED(16) const uint8_t DISPLAY::egc_bytemask_u1[8] =  {
 	0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff,
 };
 
-__DECL_ALIGNED(16) static const uint8_t DISPLAY::egc_bytemask_d0[64] = {
+__DECL_ALIGNED(16) const uint8_t DISPLAY::egc_bytemask_d0[64] = {
 	0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
 	0x03, 0x06, 0x0c, 0x18, 0x30, 0x60, 0xc0, 0x80,
 	0x07, 0x0e, 0x1c, 0x38, 0x70, 0xe0, 0xc0, 0x80,
@@ -56,11 +56,11 @@ __DECL_ALIGNED(16) static const uint8_t DISPLAY::egc_bytemask_d0[64] = {
 	0xff, 0xfe, 0xfc, 0xf8, 0xf0, 0xe0, 0xc0, 0x80,
 };
 
-__DECL_ALIGNED(16) static const uint8_t DISPLAY::egc_bytemask_d1[8] = {
+__DECL_ALIGNED(16) const uint8_t DISPLAY::egc_bytemask_d1[8] = {
 	0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff,
 };
 
-__DECL_ALIGNED(16) static const uint16_t DISPLAY::egc_maskword[16][4] = {
+__DECL_ALIGNED(16) const uint16_t DISPLAY::egc_maskword[16][4] = {
 	{0x0000, 0x0000, 0x0000, 0x0000}, {0xffff, 0x0000, 0x0000, 0x0000},
 	{0x0000, 0xffff, 0x0000, 0x0000}, {0xffff, 0xffff, 0x0000, 0x0000},
 	{0x0000, 0x0000, 0xffff, 0x0000}, {0xffff, 0x0000, 0xffff, 0x0000},
@@ -1083,7 +1083,7 @@ void __FASTCALL DISPLAY::egc_writeb(uint32_t addr1, uint8_t value)
 										  VRAM_PLANE_ADDR_3};
 	__DECL_ALIGNED(16) uint32_t realaddr[4];
 	__DECL_ALIGNED(16) egcquad_t data;
-	if(!(enable_egc)) return 0;
+	if(!(enable_egc)) return;
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 4; i++) {
 		realaddr[i] = addr | vram_base[i];

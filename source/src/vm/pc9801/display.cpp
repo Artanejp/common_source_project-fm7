@@ -22,6 +22,9 @@
 #include "../i8255.h"
 #include "../upd7220.h"
 #include "../../config.h"
+#if defined(SUPPORT_EGC)
+#include "./egc_inline.h"
+#endif
 
 namespace PC9801 {
 

@@ -386,7 +386,7 @@ uint32_t FM8_MAINIO::read_data8(uint32_t addr)
 		break;
 	case 0x37: // Multi page
 		retval = 0xff;
-		return;
+		return retval;
 		break;
 	default:
 		break;
