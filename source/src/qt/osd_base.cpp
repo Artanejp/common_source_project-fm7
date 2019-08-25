@@ -523,7 +523,7 @@ void OSD_BASE::set_dbg_completion_list(std::list<std::string> *p)
 	if(p != NULL) {
 		emit sig_clear_dbg_completion_list();
 		for(auto n = p->begin(); n != p->end(); ++n) {
-			emit sig_add_dbg_completion_list((*n).c_str());
+			emit sig_add_dbg_completion_list((_TCHAR *)((*n).c_str()));
 		}
 		emit sig_apply_dbg_completion_list();
 	}

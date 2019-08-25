@@ -1036,7 +1036,7 @@ int OSD::add_video_frames()
 			for(int y = 0; y < vm_screen_buffer.pImage.height(); y++) {
 				scrntype_t *p = vm_screen_buffer.get_buffer(y);
 				if(p != NULL) {
-					if(p != vm_screen_buffer.pImage.scanLine(y)) {
+					if(p != (scrntype_t*)(vm_screen_buffer.pImage.scanLine(y))) {
 						memcpy(vm_screen_buffer.pImage.scanLine(y), p, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
 					}
 				} else {
@@ -1082,7 +1082,7 @@ int OSD::add_video_frames()
 			for(int y = 0; y < vm_screen_buffer.pImage.height(); y++) {
 				scrntype_t *p = vm_screen_buffer.get_buffer(y);
 				if(p != NULL) {
-					if(p != vm_screen_buffer.pImage.scanLine(y)) {
+					if(p != (scrntype_t*)(vm_screen_buffer.pImage.scanLine(y))) {
 						memcpy(vm_screen_buffer.pImage.scanLine(y), p, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
 					}
 				} else {

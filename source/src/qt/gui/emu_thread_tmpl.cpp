@@ -491,7 +491,7 @@ QString EmuThreadClassBase::get_d88_file_path(int drive)
 void EmuThreadClassBase::set_emu_thread_to_fixed_cpu(int cpunum)
 {
 #if defined(Q_OS_LINUX)
-	if(thread_id <= 0) {
+	if(thread_id == (Qt::HANDLE)nullptr) {
 		queue_fixed_cpu = cpunum;
 		return;
 	}

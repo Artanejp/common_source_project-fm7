@@ -159,6 +159,7 @@ class Menu_LaserdiscClass;
 class CSP_DockDisks;
 class MOVIE_SAVER;
 class EmuThreadClassBase;
+class EmuThreadClass;
 class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 {
 	Q_OBJECT

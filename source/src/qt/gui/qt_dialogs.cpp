@@ -42,7 +42,7 @@ void CSP_DiskParams::_open_binary(QString s) {
 }
 
 
-CSP_CreateDiskDialog::CSP_CreateDiskDialog(bool *masks, QWidget *parent = 0) : QWidget(parent)
+CSP_CreateDiskDialog::CSP_CreateDiskDialog(bool *masks, QWidget *parent) : QWidget(parent)
 {
 	__real_media_type = 0x00;
 	dlg = new QFileDialog(NULL, Qt::Widget);

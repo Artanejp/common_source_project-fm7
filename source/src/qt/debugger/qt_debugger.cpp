@@ -71,7 +71,7 @@ void CSP_Debugger::closeEvent(QCloseEvent *event)
 		debugger_thread_t *d_params = &debugger_thread_param;
 		DEVICE *cpu = d_params->vm->get_cpu(d_params->cpu_index);
 		uint32_t cpu_index = d_params->cpu_index;
-		DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
+//		DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
 		if(emu->is_debugger_enabled(cpu_index)) {
 			emu->close_debugger();
 			//	debugger->now_debugging = false;
