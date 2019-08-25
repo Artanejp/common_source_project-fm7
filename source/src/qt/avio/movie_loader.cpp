@@ -75,6 +75,54 @@ MOVIE_LOADER::~MOVIE_LOADER()
 
 
 #if defined(USE_LIBAV)
+int MOVIE_LOADER::decode_audio(AVCodecContext *dec_ctx, int *got_frame)
+{
+    int  ch;
+    int ret;
+
+    /* send the packet with the compressed data to the decoder */
+    ret = avcodec_send_packet(dec_ctx, &pkt);
+    if (ret < 0) {
+		return ret;
+    }
+	if(got_frame != NULL) *got_frame = 0;
+    /* read all the output frames (in general there may be any number of them */
+	ret = avcodec_receive_frame(dec_ctx, frame);
+	if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+		return ret;
+	} else if (ret < 0) {
+		return ret;
+	}
+	if(got_frame != NULL) *got_frame = 1;
+	return ret;
+}
+
+int MOVIE_LOADER::decode_video(AVCodecContext *dec_ctx, int *got_frame)
+{
+    int i, ch;
+    int ret, data_size;
+
+    /* send the packet with the compressed data to the decoder */
+	if(got_frame != NULL) *got_frame = 0;
+    ret = avcodec_send_packet(dec_ctx, &pkt);
+    if (ret < 0) {
+		printf("0\n");
+		return ret;
+    }
+    /* read all the output frames (in general there may be any number of them */
+	ret = avcodec_receive_frame(dec_ctx, frame);
+	if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+		printf("1\n");
+		return ret;
+	} else if (ret < 0) {
+		printf("2\n");
+		return ret;
+	}
+	if(got_frame != NULL) *got_frame = 1;
+	return ret;
+}
+
+
 int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 {
 	int ret = 0;
@@ -84,7 +132,8 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 	
 	if (pkt.stream_index == video_stream_idx) {
 		/* decode video frame */
-		ret = avcodec_decode_video2(video_dec_ctx, frame, got_frame, &pkt);
+//		ret = avcodec_decode_video2(video_dec_ctx, frame, got_frame, &pkt);
+		ret = decode_video(video_dec_ctx, got_frame);
 		if (ret < 0) {
 			char str_buf[AV_ERROR_MAX_STRING_SIZE] = {0};
 			av_make_error_string(str_buf, AV_ERROR_MAX_STRING_SIZE, ret);
@@ -161,7 +210,8 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 		}
 	} else if (pkt.stream_index == audio_stream_idx) {
 		/* decode audio frame */
-		ret = avcodec_decode_audio4(audio_dec_ctx, frame, got_frame, &pkt);
+		//ret = avcodec_decode_audio4(audio_dec_ctx, frame, got_frame, &pkt);
+		ret = decode_audio(audio_dec_ctx, got_frame);
 		if (ret < 0) {
 			char str_buf[AV_ERROR_MAX_STRING_SIZE] = {0};
 			av_make_error_string(str_buf, AV_ERROR_MAX_STRING_SIZE, ret);
@@ -177,7 +227,14 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 		if (*got_frame) {
 			//size_t unpadded_linesize = frame->nb_samples * av_get_bytes_per_sample((enum AVSampleFormat)frame->format);
 			char str_buf[AV_TS_MAX_STRING_SIZE] = {0};
-			AVCodecContext *c = audio_stream->codec;
+//			AVCodecContext *c = avcodec_alloc_context3(NULL);
+			AVCodecContext *c = audio_dec_ctx;
+			if (c == NULL) {
+				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Audio: Failed to allocate context\n");
+				return -1;
+			}
+			avcodec_parameters_to_context(c, audio_stream->codecpar);
+
 			int dst_nb_samples = av_rescale_rnd(swr_get_delay(swr_context, c->sample_rate) + frame->nb_samples,
 												c->sample_rate, c->sample_rate,  AV_ROUND_UP);
 			//av_ts_make_time_string(str_buf, frame->pts, &audio_dec_ctx->time_base);
@@ -201,6 +258,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 				if(px->data[0] == NULL) {
 					free(px);
 					p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Error while converting\n");
+					//avcodec_free_context(&c);
 					return -1;
 				}
 				ret = swr_convert(swr_context,
@@ -209,6 +267,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 				if (ret < 0) {
 					free(px->data[0]);
 					free(px);
+					//avcodec_free_context(&c);
 					p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Error while converting\n");
 					return -1;
 				}
@@ -216,8 +275,10 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 				snd_write_lock->lock();
 				sound_data_queue.enqueue(px);
 				snd_write_lock->unlock();
+				//avcodec_free_context(&c);
 			} else {
 				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Error while converting\n");
+				//avcodec_free_context(&c);
 				return -1;
 			}
 		}
@@ -233,14 +294,14 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 }
 
 int MOVIE_LOADER::open_codec_context(int *stream_idx,
-									 AVFormatContext *fmt_ctx, enum AVMediaType type)
+									 AVFormatContext *fmt_ctx, AVCodecContext **ctx, enum AVMediaType type)
 {
     int ret, stream_index;
     AVStream *st;
     AVCodecContext *dec_ctx = NULL;
-    AVCodec *dec = NULL;
+    AVCodec *__dec = NULL;
     AVDictionary *opts = NULL;
-
+	
     ret = av_find_best_stream(fmt_ctx, type, -1, -1, NULL, 0);
     if (ret < 0) {
         p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not find %s stream in input file '%s'\n",
@@ -249,19 +310,24 @@ int MOVIE_LOADER::open_codec_context(int *stream_idx,
     } else {
         stream_index = ret;
         st = fmt_ctx->streams[stream_index];
-
+		
         /* find decoder for the stream */
-        dec_ctx = st->codec;
-        dec = avcodec_find_decoder(dec_ctx->codec_id);
-        if (!dec) {
+		__dec = avcodec_find_decoder(st->codecpar->codec_id);
+		if (!__dec) {
+			//avcodec_free_context(&dec_ctx);
             p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Failed to find %s codec\n",
                     av_get_media_type_string(type));
             return AVERROR(EINVAL);
         }
-
+		dec_ctx = avcodec_alloc_context3(__dec);
+		avcodec_parameters_to_context(dec_ctx, st->codecpar);
+		printf("CODEC %s\n", __dec->name);
+		if(ctx != NULL) {
+			*ctx = dec_ctx;
+		}
         /* Init the decoders, with or without reference counting */
         av_dict_set(&opts, "refcounted_frames", refcount ? "1" : "0", 0);
-        if ((ret = avcodec_open2(dec_ctx, dec, &opts)) < 0) {
+        if ((ret = avcodec_open2(dec_ctx, __dec, &opts)) < 0) {
             p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Failed to open %s codec\n",
                     av_get_media_type_string(type));
             return ret;
@@ -331,9 +397,15 @@ bool MOVIE_LOADER::open(QString filename)
         return -1;;
     }
 
-    if (open_codec_context(&video_stream_idx, fmt_ctx, AVMEDIA_TYPE_VIDEO) >= 0) {
+    if (open_codec_context(&video_stream_idx, fmt_ctx, &video_dec_ctx, AVMEDIA_TYPE_VIDEO) >= 0) {
         video_stream = fmt_ctx->streams[video_stream_idx];
-        video_dec_ctx = video_stream->codec;
+		if(video_dec_ctx == NULL) {
+			goto _end;
+		}
+//		if(avcodec_parameters_to_context(video_dec_ctx,
+//										 video_stream->codecpar) < 0) {
+//			goto _end;
+//		}
 
         /* allocate image where the decoded image will be put */
         src_width = video_dec_ctx->width;
@@ -348,20 +420,18 @@ bool MOVIE_LOADER::open(QString filename)
         }
         video_dst_bufsize = ret;
     }
-
-    if (open_codec_context(&audio_stream_idx, fmt_ctx, AVMEDIA_TYPE_AUDIO) >= 0) {
+    if (open_codec_context(&audio_stream_idx, fmt_ctx, &audio_dec_ctx, AVMEDIA_TYPE_AUDIO) >= 0) {
         audio_stream = fmt_ctx->streams[audio_stream_idx];
-        audio_dec_ctx = audio_stream->codec;
-		sound_rate = audio_stream->codec->sample_rate;
+		sound_rate = audio_dec_ctx->sample_rate;
     }
 	swr_context = swr_alloc();
 	if(swr_context == NULL) {
 		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not allocate resampler context\n");
 		goto _end;
 	}
-	av_opt_set_int	   (swr_context, "in_channel_count",   audio_stream->codec->channels,	   0);
-	av_opt_set_int	   (swr_context, "in_sample_rate",	   audio_stream->codec->sample_rate,	0);
-	av_opt_set_sample_fmt(swr_context, "in_sample_fmt",	   audio_stream->codec->sample_fmt, 0);
+	av_opt_set_int	   (swr_context, "in_channel_count",   audio_dec_ctx->channels,	   0);
+	av_opt_set_int	   (swr_context, "in_sample_rate",	   audio_dec_ctx->sample_rate,	0);
+	av_opt_set_sample_fmt(swr_context, "in_sample_fmt",	   audio_dec_ctx->sample_fmt, 0);
 	av_opt_set_int	   (swr_context, "out_channel_count",  2,	   0);
 	av_opt_set_int	   (swr_context, "out_sample_rate",	   sound_rate,	0);
 	av_opt_set_sample_fmt(swr_context, "out_sample_fmt",   AV_SAMPLE_FMT_S16,	 0);
@@ -406,7 +476,7 @@ bool MOVIE_LOADER::open(QString filename)
 		//video_mutex->unlock();
 		goto _end;
 	}
-
+	// KEEP CONTEXTS.
 	// ToDo : Initialize SWScaler and SWresampler.
 	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "MOVIE_LOADER: Loading movie completed.\n");
 	return true;
@@ -417,8 +487,14 @@ _end:
 
 void MOVIE_LOADER::close(void)
 {
-    if(video_dec_ctx != NULL) avcodec_close(video_dec_ctx);
-    if(audio_dec_ctx != NULL) avcodec_close(audio_dec_ctx);
+    if(video_dec_ctx != NULL) {
+		avcodec_close(video_dec_ctx);
+		avcodec_free_context(&video_dec_ctx);
+	}
+    if(audio_dec_ctx != NULL) {
+		avcodec_close(audio_dec_ctx);
+		avcodec_free_context(&audio_dec_ctx);
+	}
     avformat_close_input(&fmt_ctx);
 	if(sws_context != NULL) {
 		sws_freeContext(sws_context);
@@ -553,7 +629,7 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 	bool v_f = true;
 	while(v_f || a_f) {
 		v_f = (av_rescale_rnd(video_frame_count, 1000000000, (int64_t)(frame_rate * 1000.0), AV_ROUND_UP) < duration_us);
-		a_f = (av_rescale_rnd(audio_total_samples, 1000000, audio_stream->codec->sample_rate, AV_ROUND_UP) < duration_us);
+		a_f = (av_rescale_rnd(audio_total_samples, 1000000, sound_rate, AV_ROUND_UP) < duration_us);
 		//p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_LOADER, "%lld usec. V=%lld A=%lld, %d - %d\n", duration_us, video_frame_count, audio_total_samples, v_f, a_f);
 		if(!a_f && !v_f) break; 
 		if(av_read_frame(fmt_ctx, &pkt) < 0) {

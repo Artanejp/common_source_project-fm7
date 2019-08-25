@@ -51,6 +51,8 @@ class DLL_PREFIX MOVIE_LOADER: public QObject
 private:
 	bool req_transfer;
 	CSP_Logger *p_logger;
+	int decode_audio(AVCodecContext *dec_ctx,  int *got_frame);
+	int decode_video(AVCodecContext *dec_ctx,  int *got_frame);
 #if defined(USE_LIBAV)
 	AVFormatContext *fmt_ctx; // = NULL;
 	AVCodecContext *video_dec_ctx;// = NULL
@@ -72,7 +74,7 @@ private:
 	
 	int refcount; // = 0
 	int decode_packet(int *got_frame, int cached);
-	int open_codec_context(int *stream_idx, AVFormatContext *fmt_ctx, enum AVMediaType type);
+	int open_codec_context(int *stream_idx, AVFormatContext *fmt_ctx, AVCodecContext **ctx, enum AVMediaType type);
 	int get_format_from_sample_fmt(const char **fmt, enum AVSampleFormat sample_fmt);
 #endif
 protected:

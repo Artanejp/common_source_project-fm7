@@ -40,8 +40,9 @@ private:
 	AVPacket pkt;
 	struct SwrContext *swr_context;
 	int get_format_from_sample_fmt(const char **fmt, enum AVSampleFormat sample_fmt);
-	int open_codec_context(int *stream_idx, AVFormatContext *fmt_ctx, enum AVMediaType type);
+	int open_codec_context(int *stream_idx, AVFormatContext *fmt_ctx, AVCodecContext **ctx, enum AVMediaType type);
 	int decode_packet(int *got_frame, int cached);
+	int decode_audio(AVCodecContext *dec_ctx, AVPacket *pkt, AVFrame *frame, int *got_frame);
 #endif
 	int sound_rate;
 	bool _opened;

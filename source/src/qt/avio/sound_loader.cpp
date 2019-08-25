@@ -63,19 +63,19 @@ bool SOUND_LOADER::open(int id, QString filename)
 		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not find stream information\n");
 		return false;
 	}
-	if (open_codec_context(&audio_stream_idx, fmt_ctx, AVMEDIA_TYPE_AUDIO) >= 0) {
+
+	if (open_codec_context(&audio_stream_idx, fmt_ctx, &audio_dec_ctx, AVMEDIA_TYPE_AUDIO) >= 0) {
 		audio_stream = fmt_ctx->streams[audio_stream_idx];
-		audio_dec_ctx = audio_stream->codec;
-		//sound_rate = audio_stream->codec->sample_rate;
+		sound_rate = audio_stream->codecpar->sample_rate;
 	}
 	swr_context = swr_alloc();
 	if(swr_context == NULL) {
 		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not allocate resampler context\n");
 		goto _end;
 	}
-	av_opt_set_int	   (swr_context, "in_channel_count",   audio_stream->codec->channels,	   0);
-	av_opt_set_int	   (swr_context, "in_sample_rate",	   audio_stream->codec->sample_rate,	0);
-	av_opt_set_sample_fmt(swr_context, "in_sample_fmt",	   audio_stream->codec->sample_fmt, 0);
+	av_opt_set_int	   (swr_context, "in_channel_count",   audio_dec_ctx->channels,	   0);
+	av_opt_set_int	   (swr_context, "in_sample_rate",	   audio_dec_ctx->sample_rate,	0);
+	av_opt_set_sample_fmt(swr_context, "in_sample_fmt",	   audio_dec_ctx->sample_fmt, 0);
 	av_opt_set_int	   (swr_context, "out_channel_count",  2,	   0);
 	av_opt_set_int	   (swr_context, "out_sample_rate",	   sound_rate,	0);
 	av_opt_set_sample_fmt(swr_context, "out_sample_fmt",   AV_SAMPLE_FMT_S16,	 0);
@@ -90,12 +90,14 @@ bool SOUND_LOADER::open(int id, QString filename)
 	av_dump_format(fmt_ctx, 0, _filename.toLocal8Bit().constData(), 0);
 	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Audio is %d Hz ", sound_rate);
 	if (!audio_stream) {
+//		avcodec_free_context(&audio_dec_ctx);
 		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not find audio or video stream in the input, aborting\n");
 		ret = 1;
 		goto _end;
 	}
 	frame = av_frame_alloc();
 	if (!frame) {
+//		avcodec_free_context(&audio_dec_ctx);
 		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not allocate frame\n");
 		ret = AVERROR(ENOMEM);
 		goto _end;
@@ -116,7 +118,10 @@ _end:
 void SOUND_LOADER::close(void)
 {
 #if defined(USE_LIBAV)
-	if(audio_dec_ctx != NULL) avcodec_close(audio_dec_ctx);
+	if(audio_dec_ctx != NULL) {
+		avcodec_close(audio_dec_ctx);
+		avcodec_free_context(&audio_dec_ctx);
+	}
 	avformat_close_input(&fmt_ctx);
 	swr_free(&swr_context);
 	
@@ -135,13 +140,36 @@ void SOUND_LOADER::close(void)
 }
 
 #if defined(USE_LIBAV)	
+int SOUND_LOADER::decode_audio(AVCodecContext *dec_ctx, AVPacket *pkt, AVFrame *frame,
+								int *got_frame)
+{
+    int  ch;
+    int ret;
+
+    /* send the packet with the compressed data to the decoder */
+    ret = avcodec_send_packet(dec_ctx, pkt);
+    if (ret < 0) {
+		return ret;
+    }
+	if(got_frame != NULL) *got_frame = 0;
+    /* read all the output frames (in general there may be any number of them */
+	ret = avcodec_receive_frame(dec_ctx, frame);
+	if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+		return ret;
+	} else if (ret < 0) {
+		return ret;
+	}
+	if(got_frame != NULL) *got_frame = 1;
+	return ret;
+}
+
 int SOUND_LOADER::decode_packet(int *got_frame, int cached)
 {
 	int ret = 0;
 	int decoded = pkt.size;
 
 	if (pkt.stream_index == audio_stream_idx) {
-		ret = avcodec_decode_audio4(audio_dec_ctx, frame, got_frame, &pkt);
+		ret = decode_audio(audio_dec_ctx, &pkt, frame, got_frame);
 		if (ret < 0) {
 			char str_buf[AV_ERROR_MAX_STRING_SIZE] = {0};
 			av_make_error_string(str_buf, AV_ERROR_MAX_STRING_SIZE, ret);
@@ -215,7 +243,7 @@ int SOUND_LOADER::decode_packet(int *got_frame, int cached)
 }
 
 int SOUND_LOADER::open_codec_context(int *stream_idx,
-									 AVFormatContext *fmt_ctx, enum AVMediaType type)
+									 AVFormatContext *fmt_ctx, AVCodecContext **ctx, enum AVMediaType type)
 {
     int ret, stream_index;
     AVStream *st;
@@ -233,13 +261,18 @@ int SOUND_LOADER::open_codec_context(int *stream_idx,
         st = fmt_ctx->streams[stream_index];
 
         /* find decoder for the stream */
-        dec_ctx = st->codec;
-        dec = avcodec_find_decoder(dec_ctx->codec_id);
+		dec = avcodec_find_decoder(st->codecpar->codec_id);
         if (!dec) {
             p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Failed to find %s codec\n",
                     av_get_media_type_string(type));
             return AVERROR(EINVAL);
         }
+		dec_ctx = avcodec_alloc_context3(dec);
+		avcodec_parameters_to_context(dec_ctx, st->codecpar);
+		if(ctx != NULL) {
+			*ctx = dec_ctx;
+		}
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER,"CODEC %s\n", dec->name);
 
         /* Init the decoders, with or without reference counting */
         av_dict_set(&opts, "refcounted_frames", "1", 0);
