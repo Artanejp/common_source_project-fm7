@@ -233,8 +233,9 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Audio: Failed to allocate context\n");
 				return -1;
 			}
+#if LIBAVCODEC_VERSION_MAJOR > 56
 			avcodec_parameters_to_context(c, audio_stream->codecpar);
-
+#endif
 			int dst_nb_samples = av_rescale_rnd(swr_get_delay(swr_context, c->sample_rate) + frame->nb_samples,
 												c->sample_rate, c->sample_rate,  AV_ROUND_UP);
 			//av_ts_make_time_string(str_buf, frame->pts, &audio_dec_ctx->time_base);
@@ -312,6 +313,10 @@ int MOVIE_LOADER::open_codec_context(int *stream_idx,
         st = fmt_ctx->streams[stream_index];
 		
         /* find decoder for the stream */
+#if LIBAVCODEC_VERSION_MAJOR <= 56
+		dec_ctx = st->codec;
+		__dec = avcodec_find_decoder(dec_ctx->codec_id);
+#else
 		__dec = avcodec_find_decoder(st->codecpar->codec_id);
 		if (!__dec) {
 			//avcodec_free_context(&dec_ctx);
@@ -321,7 +326,8 @@ int MOVIE_LOADER::open_codec_context(int *stream_idx,
         }
 		dec_ctx = avcodec_alloc_context3(__dec);
 		avcodec_parameters_to_context(dec_ctx, st->codecpar);
-		printf("CODEC %s\n", __dec->name);
+#endif
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "CODEC %s\n", __dec->name);
 		if(ctx != NULL) {
 			*ctx = dec_ctx;
 		}

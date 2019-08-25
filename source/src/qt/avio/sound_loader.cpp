@@ -66,7 +66,11 @@ bool SOUND_LOADER::open(int id, QString filename)
 
 	if (open_codec_context(&audio_stream_idx, fmt_ctx, &audio_dec_ctx, AVMEDIA_TYPE_AUDIO) >= 0) {
 		audio_stream = fmt_ctx->streams[audio_stream_idx];
+#if LIBAVCODEC_VERSION_MAJOR > 56
 		sound_rate = audio_stream->codecpar->sample_rate;
+#else
+		sound_rate = audio_stream->codec->sample_rate;
+#endif
 	}
 	swr_context = swr_alloc();
 	if(swr_context == NULL) {
@@ -185,7 +189,11 @@ int SOUND_LOADER::decode_packet(int *got_frame, int cached)
 		if (*got_frame) {
 			//size_t unpadded_linesize = frame->nb_samples * av_get_bytes_per_sample((enum AVSampleFormat)frame->format);
 			//char str_buf[AV_TS_MAX_STRING_SIZE] = {0};
+#if LIBAVCODEC_VERSION_MAJOR > 56
+			AVCodecParameters *c = audio_stream->codecpar;
+#else
 			AVCodecContext *c = audio_stream->codec;
+#endif
 			int dst_nb_samples = av_rescale_rnd(swr_get_delay(swr_context, c->sample_rate) + frame->nb_samples,
 												c->sample_rate, c->sample_rate,  AV_ROUND_UP);
 			//av_ts_make_time_string(str_buf, frame->pts, &audio_dec_ctx->time_base);
@@ -261,6 +269,7 @@ int SOUND_LOADER::open_codec_context(int *stream_idx,
         st = fmt_ctx->streams[stream_index];
 
         /* find decoder for the stream */
+#if LIBAVCODEC_VERSION_MAJOR > 56
 		dec = avcodec_find_decoder(st->codecpar->codec_id);
         if (!dec) {
             p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Failed to find %s codec\n",
@@ -269,6 +278,10 @@ int SOUND_LOADER::open_codec_context(int *stream_idx,
         }
 		dec_ctx = avcodec_alloc_context3(dec);
 		avcodec_parameters_to_context(dec_ctx, st->codecpar);
+#else
+		dec = avcodec_find_decoder(st->codec->codec_id);
+		dec_ctx = st->codec;
+#endif
 		if(ctx != NULL) {
 			*ctx = dec_ctx;
 		}
