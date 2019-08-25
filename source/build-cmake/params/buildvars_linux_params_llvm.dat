@@ -36,6 +36,12 @@ case ${USE_RADICAL_OPTIMIZE} in
    "Yes" | "yes" | "YES" )
       MAKEFLAGS_BASE3=" \
                -O3 \
+ 	        -Wreserved-user-defined-literal \
+ 	        -fslp-vectorize \
+ 	        -fvectorize \
+		-fstrict-vtable-pointers \
+		-fstrict-enums \
+		-std=c++11 \
 	       ${ARCH_FLAGS}  \
 	       -Wall \
                ${MAKEFLAGS_BASE} \
@@ -44,9 +50,12 @@ case ${USE_RADICAL_OPTIMIZE} in
    "No" | "no" | "NO" | * )
       MAKEFLAGS_BASE3=" \
                -O2 \
-	       -mtune=generic \
-	       -ftree-vectorize \
-	       -funroll-loops \
+ 	        -Wreserved-user-defined-literal \
+ 	        -fslp-vectorize \
+ 	        -fvectorize \
+		-fstrict-vtable-pointers \
+		-fstrict-enums \
+		-std=c++11 \
 	       ${ARCH_FLAGS} \
 	       -Wall \
                ${MAKEFLAGS_BASE} \
@@ -91,51 +100,58 @@ case ${USE_STACK_PROTECTION} in
            ;;
 esac	
 
-#if [ -n "${LTO_THREADS}" ] ;  then 
-#   LTO_FLAGS="-flto=${LTO_THREADS} -flto-compression-level=9 ${LTO_FLAGS}"
-#   LTO_FLAGS2="-flto -ffat-lto-objects"
-#else
-#   LTO_FLAGS=""
-#   LTO_FLAGS2=""
-#fi
-case ${USE_LTO} in
+case ${USE_WHOLE_PROGRAM_OPTIMIZE} in
    "Yes" | "yes" | "YES" )
-    MAKEFLAGS_BASE2="${MAKEFLAGS_BASE3} -flto  -DNDEBUG" 
-    MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3} -flto -fwhole-program-vtables"
-    ;;
-   "No" | "no" | "NO" | * )
-    MAKEFLAGS_BASE2="${MAKEFLAGS_BASE3} -DNDEBUG" 
-    MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE3}"
-    ;;
-esac	
+      LTO_FLAGS="-fwhole-program -fwhole-program-vtables"
+      ;;
+   * )
+      LTO_FLAGS=""
+      ;;
+esac
 
+case ${COMPRESS_SYMBOLS} in
+   "Yes" | "yes" | "YES" )
+   COMPRESS_CFLAGS="-gz=zlib"
+   ;;
+   "No" | "no" | "NO" | * )
+   COMPRESS_CFLAGS=""
+   ;;
+esac
+
+#ToDo: Its ugly hack.
+if [ -z ${EXTRA_DLL_DIR} ] ; then
+   EXTRA_DLL_DIR="/usr/local/lib/x86_64-linux-gnu"
+fi
+
+case ${USE_SHRINK_DEBUG_SYMBOL} in
+   "Yes" | "yes" | "YES" )
+       EXTRA_LINKER_FLAGS="-L${EXTRA_DLL_DIR} -fuse-ld=gold -Wl,--gdb-index -Wl,--compress-debug-sections,zlib ${EXTRA_LINKER_FLAGS}"
+       EXTRA_LINKER_DLL_FLAGS="-L${EXTRA_DLL_DIR} -fuse-ld=gold -Wl,--gdb-index -Wl,--compress-debug-sections,zlib ${EXTRA_LINKER_DLL_FLAGS}"
+       MAKEFLAGS_BASE3DLL="-gsplit-dwarf ${MAKEFLAGS_BASE3}"
+       MAKEFLAGS_BASE3="-gsplit-dwarf ${MAKEFLAGS_BASE3}"
+       ;;
+esac
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
-      MAKEFLAGS_BASE3="-ggdb \
- 	        -Wreserved-user-defined-literal \
- 	        -fslp-vectorize \
- 	        -fvectorize \
-		-fstrict-vtable-pointers \
-		-fstrict-enums \
-		-std=c++11 \
-		${MAKEFLAGS_BASE3} \
-	        "
-      MAKEFLAGS_DLL_LINK_BASE="-g -ggdb -gz ${MAKEFLAGS_BASE3} -DNDEBUG"
-	       ;;
-	       
-   "No" | "no" | "NO" | *)
-      MAKEFLAGS_BASE3="  \
- 	        -Wreserved-user-defined-literal \
- 	        -fslp-vectorize \
- 	        -fvectorize \
- 	        -msse -msse2 \
-		-fstrict-vtable-pointers \
-		-fstrict-enums \
-		-std=c++11 \
-		${MAKEFLAGS_BASE3} \
-	        "
-       MAKEFLAGS_DLL_LINK_BASE="-s ${MAKEFLAGS_BASE3}"
-		;;
+      MAKEFLAGS_DLL_LINK_BASE="-ggdb ${EXTRA_LINKER_DLL_FLAGS} ${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3DLL} -DNDEBUG"
+      MAKEFLAGS_DLL_BASE="-ggdb ${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3DLL} -DNDEBUG"
+      MAKEFLAGS_BASE2="-ggdb ${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3} -DNDEBUG"
+      ;;
+   "No" | "no" | "NO" | * )
+      MAKEFLAGS_DLL_LINK_BASE="${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3}"
+      MAKEFLAGS_DLL_BASE="${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3}"
+      MAKEFLAGS_BASE2="${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3}"
+      ;;
+esac
+case ${USE_LTO} in
+   "Yes" | "yes" | "YES" )
+       MAKEFLAGS_LINK_BASE2="${EXTRA_LINKER_FLAGS} ${LTO_FLAGS} ${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_BASE2="${LTO_FLAGS2} ${MAKEFLAGS_BASE2}"
+       ;;
+   "No" | "no" | "NO" | * )
+       MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_BASE2="${MAKEFLAGS_BASE2}"
+       ;;
 esac
 
 case ${USE_OPENMP} in
@@ -147,7 +163,7 @@ case ${USE_OPENMP} in
    ;;
 esac
 
-  CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DCMAKE_AR:STRING=llvm-ar-${LLVM_VERSION} -DCMAKE_NM:STRING=llvm-nm-${LLVM_VERSION} -DCMAKE_RANLIB:STRING=llvm-ranlib-${LLVM_VERSION}"
-  CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DCMAKE_AS:STRING=llvm-as-${LLVM_VERSION}"
+CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DCMAKE_AR:STRING=llvm-ar-${LLVM_VERSION} -DCMAKE_NM:STRING=llvm-nm-${LLVM_VERSION} -DCMAKE_RANLIB:STRING=llvm-ranlib-${LLVM_VERSION}"
+CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DCMAKE_AS:STRING=llvm-as-${LLVM_VERSION}"
 
 
