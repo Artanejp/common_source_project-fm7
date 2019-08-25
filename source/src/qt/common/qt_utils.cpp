@@ -245,7 +245,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	hRunEmu->setObjectName(objNameStr);
 	
 	hDrawEmu = new DrawThreadClass(emu->get_osd(), csp_logger, this);
-	emu->set_parent_handler(hRunEmu, hDrawEmu);
+	emu->set_parent_handler((EmuThreadClass*)hRunEmu, hDrawEmu);
 	
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	QImageReader *reader = new QImageReader(":/background.png");
