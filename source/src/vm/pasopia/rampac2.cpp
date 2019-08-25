@@ -8,6 +8,7 @@
 	[ ram pac 2 (32kbytes) ]
 */
 
+
 #include "rampac2.h"
 
 namespace PASOPIA {
