@@ -78,8 +78,8 @@ MOVIE_LOADER::~MOVIE_LOADER()
 int MOVIE_LOADER::decode_audio(AVCodecContext *dec_ctx, int *got_frame)
 {
     int  ch;
-    int ret;
-
+    int ret = 0;
+#if (LIBAVCODEC_VERSION_MAJOR > 56)
     /* send the packet with the compressed data to the decoder */
     ret = avcodec_send_packet(dec_ctx, &pkt);
     if (ret < 0) {
@@ -94,14 +94,16 @@ int MOVIE_LOADER::decode_audio(AVCodecContext *dec_ctx, int *got_frame)
 		return ret;
 	}
 	if(got_frame != NULL) *got_frame = 1;
+#endif
 	return ret;
 }
 
 int MOVIE_LOADER::decode_video(AVCodecContext *dec_ctx, int *got_frame)
 {
     int i, ch;
-    int ret, data_size;
-
+    int ret = 0;
+	int data_size;
+#if (LIBAVCODEC_VERSION_MAJOR > 56)
     /* send the packet with the compressed data to the decoder */
 	if(got_frame != NULL) *got_frame = 0;
     ret = avcodec_send_packet(dec_ctx, &pkt);
@@ -119,6 +121,7 @@ int MOVIE_LOADER::decode_video(AVCodecContext *dec_ctx, int *got_frame)
 		return ret;
 	}
 	if(got_frame != NULL) *got_frame = 1;
+#endif
 	return ret;
 }
 
@@ -132,8 +135,11 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 	
 	if (pkt.stream_index == video_stream_idx) {
 		/* decode video frame */
-//		ret = avcodec_decode_video2(video_dec_ctx, frame, got_frame, &pkt);
+#if (LIBAVCODEC_VERSION_MAJOR > 56)
 		ret = decode_video(video_dec_ctx, got_frame);
+#else
+		ret = avcodec_decode_video2(video_dec_ctx, frame, got_frame, &pkt);
+#endif
 		if (ret < 0) {
 			char str_buf[AV_ERROR_MAX_STRING_SIZE] = {0};
 			av_make_error_string(str_buf, AV_ERROR_MAX_STRING_SIZE, ret);
@@ -210,8 +216,11 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 		}
 	} else if (pkt.stream_index == audio_stream_idx) {
 		/* decode audio frame */
-		//ret = avcodec_decode_audio4(audio_dec_ctx, frame, got_frame, &pkt);
+#if (LIBAVCODEC_VERSION_MAJOR > 56)
 		ret = decode_audio(audio_dec_ctx, got_frame);
+#else
+		ret = avcodec_decode_audio4(audio_dec_ctx, frame, got_frame, &pkt);
+#endif
 		if (ret < 0) {
 			char str_buf[AV_ERROR_MAX_STRING_SIZE] = {0};
 			av_make_error_string(str_buf, AV_ERROR_MAX_STRING_SIZE, ret);

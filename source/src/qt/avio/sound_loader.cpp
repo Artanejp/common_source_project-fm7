@@ -143,13 +143,13 @@ void SOUND_LOADER::close(void)
 	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "SOUND_LOADER: Close sound.");
 }
 
-#if defined(USE_LIBAV)	
+#if defined(USE_LIBAV)
 int SOUND_LOADER::decode_audio(AVCodecContext *dec_ctx, AVPacket *pkt, AVFrame *frame,
 								int *got_frame)
 {
     int  ch;
-    int ret;
-
+    int ret = 0;
+#if (LIBAVCODEC_VERSION_MAJOR > 56)
     /* send the packet with the compressed data to the decoder */
     ret = avcodec_send_packet(dec_ctx, pkt);
     if (ret < 0) {
@@ -164,6 +164,7 @@ int SOUND_LOADER::decode_audio(AVCodecContext *dec_ctx, AVPacket *pkt, AVFrame *
 		return ret;
 	}
 	if(got_frame != NULL) *got_frame = 1;
+#endif
 	return ret;
 }
 
@@ -173,7 +174,11 @@ int SOUND_LOADER::decode_packet(int *got_frame, int cached)
 	int decoded = pkt.size;
 
 	if (pkt.stream_index == audio_stream_idx) {
+#if (LIBAVCODEC_VERSION_MAJOR > 56)
 		ret = decode_audio(audio_dec_ctx, &pkt, frame, got_frame);
+#else
+		ret = avcodec_decode_audio4(audio_dec_ctx, frame, got_frame, &pkt);
+#endif
 		if (ret < 0) {
 			char str_buf[AV_ERROR_MAX_STRING_SIZE] = {0};
 			av_make_error_string(str_buf, AV_ERROR_MAX_STRING_SIZE, ret);
