@@ -7,4 +7,4 @@ export PATH="$PATH:\
             "
 export PKG_CONFIG_LIBDIR=/usr/i686-w64-mingw32/lib
 
-make CROSS_COMPILE=i686-w64-mingw32- PKG_CONFIG_LIBDIR=/usr/i686-w64-mingw32/lib $@ 2>&1 
+taskset 0xfbe make CROSS_COMPILE=i686-w64-mingw32- PKG_CONFIG_LIBDIR=/usr/i686-w64-mingw32/lib $@ 2>&1 

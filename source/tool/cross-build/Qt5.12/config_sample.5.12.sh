@@ -47,6 +47,7 @@ export PKG_CONFIG_SYSROOT_DIR=/usr/local/i586-mingw-msvc/pkgconfig
 	    -L $VULKAN_SDK/lib \
 	    -device-option SDL_PREFIX=$SDK_PREFIX/SDL/i686-w64-mingw32 \
 	    -device-option SDL2_PREFIX=$SDK_PREFIX/SDL/i686-w64-mingw32 \
+	    -device-option LIBS_SDL2+=SDLmain \
 	    -device-option ICU_PREFIX=$SDK_PREFIX/icu \
 	    -device-option OPENGL_ES2_PREFIX=$SDK_PREFIX/Angle \
 	    -device-option VULKAN_PREFIX=$VULKAN_SDK \
