@@ -89,9 +89,10 @@ void Dlg_LogViewerBind::do_update(void)
 void Dlg_LogViewer::set_font(const QFont &font)
 {
 	TextBox->setFont(font);
+	config_t *p_cfg = using_flags->get_config_ptr();
 	if(!(font.toString().isEmpty())) {
-		memset(config.logwindow_font, 0x00, sizeof(config.logwindow_font));
-		snprintf(config.logwindow_font, sizeof(config.logwindow_font) - 1, "%s", font.toString().toLocal8Bit().constData());
+		memset(p_cfg->logwindow_font, 0x00, sizeof(p_cfg->logwindow_font));
+		snprintf(p_cfg->logwindow_font, sizeof(p_cfg->logwindow_font) - 1, "%s", font.toString().toLocal8Bit().constData());
 	}
 }
 
@@ -109,8 +110,10 @@ void Dlg_LogViewer::resizeEvent(QResizeEvent *event)
 	int height = s.height();
 	if(width < 320) width = 320;
 	if(height < 200) height = 200;
-	config.logwindow_height = height;
-	config.logwindow_width = width;
+	config_t *p_cfg = using_flags->get_config_ptr();
+	
+	p_cfg->logwindow_height = height;
+	p_cfg->logwindow_width = width;
 }
 
 
@@ -162,9 +165,12 @@ Dlg_LogViewer::Dlg_LogViewer(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent
 	connect(this, SIGNAL(sig_text_append(QString)), TextBox, SLOT(append(QString)));
 	MasterLayout = new QGridLayout;
 	FontDlgButton = new QPushButton(QApplication::translate("LogWindow", "Set Font", 0),this);
-	if(strlen(config.logwindow_font) > 0) {
+
+	config_t *p_cfg = using_flags->get_config_ptr();
+
+	if(strlen(p_cfg->logwindow_font) > 0) {
 		QFont font;
-		font.fromString(QString::fromLocal8Bit(config.logwindow_font));
+		font.fromString(QString::fromLocal8Bit(p_cfg->logwindow_font));
 		TextBox->setFont(font);
 	}
 	connect(FontDlgButton, SIGNAL(pressed()), this, SLOT(rise_font_dialog()));
@@ -178,8 +184,8 @@ Dlg_LogViewer::Dlg_LogViewer(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent
 	UpdateTimer->start();
 	this->setLayout(MasterLayout);
 
-	int w = config.logwindow_width;
-	int h = config.logwindow_height;
+	int w = p_cfg->logwindow_width;
+	int h = p_cfg->logwindow_height;
 	if(w < 320) w = 320;
 	if(h < 200) h = 200;
 	this->resize(w, h);

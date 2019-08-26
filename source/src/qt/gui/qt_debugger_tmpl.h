@@ -24,6 +24,7 @@
 #include <string>
 
 #include "../../fileio.h"
+#include "../../config.h"
 
 QT_BEGIN_NAMESPACE	
 
@@ -41,6 +42,7 @@ class DLL_PREFIX CSP_Debugger_Tmpl : public QWidget
 {
 	Q_OBJECT
  protected:
+	config_t *p_cfg;
 	QObject *parent_object;
 	QWidget *widget;
 	QTextEdit *text;
@@ -53,7 +55,8 @@ class DLL_PREFIX CSP_Debugger_Tmpl : public QWidget
 	bool string_is_strong;
 	QString text_color;
 	QStringList complete_list;
- public:
+
+public:
 	CSP_Debugger_Tmpl(OSD_BASE* p_osd, QWidget *parent);
 	~CSP_Debugger_Tmpl();
 	//virtual void closeEvent(QCloseEvent *event);
