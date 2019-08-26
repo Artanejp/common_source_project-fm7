@@ -622,7 +622,7 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 		l = 2 * sizeof(int16_t) * (int)(t + 0.5);
 		null_sound = (uint8_t *)malloc(l);
 		if(null_sound != NULL) {
-			memset(null_sound, 0x00, sizeof(null_sound));
+			memset(null_sound, 0x00, sizeof(uint8_t) * l);
 			emit sig_send_audio_frame(null_sound, l);
 		}
 		if(!now_pausing) {
