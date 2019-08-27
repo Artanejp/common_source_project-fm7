@@ -16,6 +16,8 @@
 #include <QVector>
 #include <QString>
 #include <QQueue>
+#include <QThread>
+#include <QContiguousCache>
 
 #if !defined(Q_OS_WIN32)
 #  include <syslog.h>
@@ -142,6 +144,20 @@ public:
 class QMutex;
 class OSD;
 
+class DLL_PREFIX CSP_Log_ConsoleThread: public QThread {
+	Q_OBJECT
+	QContiguousCache<QString> conslog;
+	//QQueue<QString> conslog;
+	QMutex *_mutex;
+public:
+	CSP_Log_ConsoleThread(QObject *parent);
+	~CSP_Log_ConsoleThread();
+	void run() override;
+public slots:
+	void do_message(QString header, QString message);
+	
+};
+
 class DLL_PREFIX CSP_Logger: public QObject {
 	Q_OBJECT
 private:
@@ -168,7 +184,8 @@ private:
 	QStringList vfile_names;
 	QStringList cpu_names;
 	QStringList device_names;
-
+	CSP_Log_ConsoleThread *console_printer;
+	
 	// Device
 	bool level_dev_out_record[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1][CSP_LOG_LEVELS]; // Record to log chain
 	bool level_dev_out_syslog[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1][CSP_LOG_LEVELS]; // Syslog chain
@@ -219,6 +236,9 @@ public:
 	void *get_raw_data(bool forget = false, int64_t start = 0, int64_t *end_line = NULL);
 public slots:
 	void do_debug_log(int level, int domain_num, QString mes);
+signals:
+	int sig_console_message(QString, QString);
+	int sig_console_quit();
 };
 QT_END_NAMESPACE
 

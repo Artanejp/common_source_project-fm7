@@ -24,11 +24,22 @@ CSP_Logger::CSP_Logger(QObject *parent, bool b_syslog, bool cons, const char *de
 	level_state_out_record = false;
 	level_state_out_syslog = false;
 	level_state_out_console = false;
+
+	console_printer = new CSP_Log_ConsoleThread(this);
+	console_printer->setObjectName(QString::fromUtf8("Console_Logger"));
+	console_printer->start(QThread::LowPriority);
+	//console_printer->moveToThread(console_printer);
+	connect(this, SIGNAL(sig_console_message(QString, QString)), console_printer, SLOT(do_message(QString, QString)));
+	connect(this, SIGNAL(sig_console_quit()), console_printer, SLOT(quit()));
 }
 
 
 CSP_Logger::~CSP_Logger()
 {
+	emit sig_console_quit();
+	console_printer->wait();
+	delete console_printer;
+	
 	loglist.clear();
 	log_sysname.clear();
 	squeue.clear();
@@ -302,9 +313,7 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 				//tmps = new CSP_LoggerLine(linenum, level, domain_s, time_s, QString::fromLocal8Bit(p));
 				if(log_onoff) {
 					if(cons_log_level_n != 0) {
-						fprintf(stdout, "%s : %s\n",
-								log_sysname.toLocal8Bit().constData(),
-								tmps->get_element_console().toLocal8Bit().constData());
+						emit sig_console_message(log_sysname, tmps->get_element_console());
 					}
 #if !defined(Q_OS_WIN)   
 					if(sys_log_level_n != 0) {
@@ -729,6 +738,44 @@ void *CSP_Logger::get_raw_data(bool forget, int64_t start, int64_t *end_line)
 		return (void *)t;
 	}
 	return (void *)NULL;
+}
+
+CSP_Log_ConsoleThread::CSP_Log_ConsoleThread(QObject *parent) : QThread(parent)
+{
+	_mutex = new QMutex(QMutex::Recursive);
+	conslog.setCapacity(256);
+}
+
+CSP_Log_ConsoleThread::~CSP_Log_ConsoleThread()
+{
+	delete _mutex;
+}
+
+void CSP_Log_ConsoleThread::do_message(QString header, QString message)
+{
+	QMutexLocker l(_mutex);
+	QString tmps = header;
+	tmps = tmps + QString::fromUtf8(" : ") + message;
+	conslog.append(tmps);
+}
+
+void CSP_Log_ConsoleThread::run()
+{
+	QString tmps;
+	do {
+//		exec();
+		int leftline = 40;
+		while(!(conslog.isEmpty())) {
+			{
+				QMutexLocker l(_mutex);
+				tmps = conslog.takeFirst();
+			}
+			fprintf(stdout, "%s\n", tmps.toLocal8Bit().constData());
+			leftline--;
+			if(leftline < 0) break;
+		}
+		msleep(5);
+	} while(!isFinished());
 }
 
 #if defined(CSP_OS_WINDOWS)
