@@ -286,7 +286,7 @@ int OSD_BASE::add_video_frames()
 //#ifdef USE_PRINTER
 void OSD_BASE::create_bitmap(bitmap_t *bitmap, int width, int height)
 {
-	QRect rect;
+//	QRect rect;
 	QColor col = QColor(0, 0, 0, 255);
 	initialize_screen_buffer(bitmap, width, height, 0); // HALFTONE
 	bitmap->hPainter.begin(&(bitmap->pImage));

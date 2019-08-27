@@ -35,9 +35,13 @@ protected:
 	QLabel *setup_head_label[2];
 	CSP_KeySetupCombo *setup_combo[KEYDEF_MAXIMUM];
 	QLabel *setup_label[KEYDEF_MAXIMUM];
+	bool vk_checked[256];
+	uint8_t vk_map[KEYDEF_MAXIMUM];
 public:
 	CSP_KeySetDialog(QWidget *parent = NULL, GLDrawClass *glv = NULL);
 	~CSP_KeySetDialog();
+public slots:
+	void do_update_keyname_table(uint32_t vk, QString name);
 };
 QT_END_NAMESPACE
 

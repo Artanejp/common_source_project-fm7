@@ -1277,6 +1277,10 @@ int MainLoop(int argc, char *argv[])
 	QObject::connect(GuiMain, SIGNAL(lastWindowClosed()),
 					 rMainWindow, SLOT(on_actionExit_triggered()));
 
+	QObject::connect(emu->get_osd(), SIGNAL(sig_clear_keyname_table()),	 rMainWindow, SLOT(do_clear_keyname_table()));
+	QObject::connect(emu->get_osd(), SIGNAL(sig_add_keyname_table(uint32_t, QString)),	 rMainWindow, SLOT(do_add_keyname_table(uint32_t, QString)));
+	emu->get_osd()->update_keyname_table();
+	
 	GuiMain->exec();
 	return 0;
 }

@@ -275,3 +275,10 @@ int USING_FLAGS::get_sound_device_num()
 {
 	return -1;
 }
+
+bool USING_FLAGS::is_support_phy_key_name()
+{
+	return false;
+}
+
+

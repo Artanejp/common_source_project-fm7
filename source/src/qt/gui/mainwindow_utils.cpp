@@ -67,6 +67,17 @@ void Ui_MainWindowBase::set_scan_line(bool flag)
 	emit sig_emu_update_config();
 }
 
+void Ui_MainWindowBase::do_clear_keyname_table()
+{
+	phys_key_name_map.clear();
+}
+
+void Ui_MainWindowBase::do_add_keyname_table(uint32_t vk, QString name)
+{
+	phys_key_name_map.insert(vk, name);
+//	printf("VK=%02X NAME=%s\n", vk, name.toLocal8Bit().constData());
+}
+
 void Ui_MainWindowBase::do_set_screen_rotate(int type)
 {
 	p_config->rotate_type = type;

@@ -237,8 +237,9 @@
 #else
 #define USE_SOUND_VOLUME	11
 #endif
-#define SUPPORT_TV_RENDER
 
+#define SUPPORT_TV_RENDER
+#define SUPPORT_QUERY_PHY_KEY_NAME
 #define IGNORE_DISK_CRC_DEFAULT		true
 // device informations for virtual machine
 
@@ -453,7 +454,6 @@ class VM : public VM_TEMPLATE
 {
 protected:
 //	EMU* emu;
-	
 	// devices
 //	EVENT* event;
 	
@@ -576,7 +576,6 @@ public:
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
 	void set_vm_frame_rate(double fps);
-	
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
@@ -610,6 +609,14 @@ public:
 	void push_apss_rewind(int drv);
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
+
+#ifdef SUPPORT_QUERY_PHY_KEY_NAME
+	int get_key_name_table_size(void);
+	const _TCHAR *get_phy_key_name_by_scancode(uint32_t scancode);
+	const _TCHAR *get_phy_key_name_by_vk(uint32_t vk);
+	uint32_t get_scancode_by_vk(uint32_t vk);
+	uint32_t get_vk_by_scancode(uint32_t scancode);
+#endif
 	
 #if defined(USE_BUBBLE)
 	void open_bubble_casette(int drv, const _TCHAR *path, int bank);

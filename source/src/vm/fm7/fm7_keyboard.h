@@ -136,6 +136,13 @@ private:
 	{
 		return kana_pressed;
 	}
+#ifdef SUPPORT_QUERY_PHY_KEY_NAME
+	int get_key_name_table_size(void);
+	const _TCHAR *get_phy_key_name_by_scancode(uint32_t scancode);
+	const _TCHAR *get_phy_key_name_by_vk(uint32_t vk);
+	uint32_t get_scancode_by_vk(uint32_t vk);
+	uint32_t get_vk_by_scancode(uint32_t scancode);
+#endif
 	void event_callback(int event_id, int err);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int id);

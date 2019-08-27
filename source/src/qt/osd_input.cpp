@@ -872,6 +872,45 @@ int OSD_BASE::get_mouse_button()
 	return mouse_button;
 }
 
+int OSD_BASE::get_key_name_table_size(void)
+{
+	return 0;
+}
+
+void OSD_BASE::update_keyname_table(void)
+{
+	emit sig_clear_keyname_table();
+	const _TCHAR *p = NULL;
+	for(uint32_t i = 0x00; i < get_key_name_table_size(); i++) {
+		p = get_key_name_by_scancode(i);
+		uint32_t vk = get_vk_by_scancode(i);
+		if((p != NULL) && (vk != 0xffffffff)) {
+			QString tmps = QString::fromUtf8(p);
+			emit sig_add_keyname_table(vk, tmps);
+		}
+	}
+}
+	
+const _TCHAR *OSD_BASE::get_key_name_by_scancode(uint32_t scancode)
+{
+	return (const _TCHAR *)NULL;
+}
+
+const _TCHAR *OSD_BASE::get_key_name_by_vk(uint32_t vk)
+{
+	return (const _TCHAR *)NULL;
+}
+
+uint32_t OSD_BASE::get_scancode_by_vk(uint32_t vk)
+{
+	return 0xffffffff;
+}
+
+uint32_t OSD_BASE::get_vk_by_scancode(uint32_t scancode)
+{
+	return 0xffffffff;
+}
+
 #if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
 uint16_t OSD_BASE::GetAsyncKeyState(uint32_t vk)
 {

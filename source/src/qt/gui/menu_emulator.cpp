@@ -177,11 +177,57 @@ void Ui_MainWindowBase::rise_movie_dialog(void)
 
 }
 
+#include "qt_input.h"
+
 void Ui_MainWindowBase::rise_keyboard_dialog(void)
 {
 	if(graphicsView != NULL) {
 		CSP_KeySetDialog *dlg = new CSP_KeySetDialog(NULL, graphicsView);
 		dlg->setWindowTitle(QApplication::translate("KeySetDialog", "Configure Keyboard", 0));
+		connect(this, SIGNAL(sig_add_keyname_table(uint32_t, QString)), dlg, SLOT(do_update_keyname_table(uint32_t, QString)));
+		if(!(phys_key_name_map.isEmpty())) {
+			for(auto i = phys_key_name_map.constBegin(); i != phys_key_name_map.constEnd(); ++i)
+			{
+				bool is_set = false;
+				if(!using_flags->is_notify_key_down_lr_shift()) {
+					if(i.key() == VK_SHIFT) {
+						emit sig_add_keyname_table(VK_LSHIFT, i.value());
+						emit sig_add_keyname_table(VK_RSHIFT, i.value());
+						is_set = true;
+					} else if(i.key() == VK_MENU) {
+						emit sig_add_keyname_table(VK_LMENU, i.value());
+						emit sig_add_keyname_table(VK_RMENU, i.value());
+						is_set = true;
+					}
+				}
+				if(i.key() == VK_CONTROL) {
+					emit sig_add_keyname_table(VK_LCONTROL, i.value());
+					emit sig_add_keyname_table(VK_RCONTROL, i.value());
+					is_set = true;
+				}
+				if(p_config->numpad_enter_as_fullkey) {
+					if(i.key() == VK_RETURN) {
+						emit sig_add_keyname_table(VK_OEM_CSP_KPRET, i.value());
+						emit sig_add_keyname_table(VK_RETURN, i.value());
+						is_set = true;
+					}						
+				}
+				if(p_config->swap_kanji_pause) {
+					if(i.key() == VK_KANJI) {
+						emit sig_add_keyname_table(VK_PAUSE, i.value());
+						is_set = true;
+					} else if(i.key() == VK_PAUSE) {
+						emit sig_add_keyname_table(VK_KANJI, i.value());
+						is_set = true;
+					}
+				}
+				
+				if(!is_set) {
+					emit sig_add_keyname_table(i.key(), i.value());
+				}
+			}
+		}
+										   
 		dlg->show();
 	}
 }

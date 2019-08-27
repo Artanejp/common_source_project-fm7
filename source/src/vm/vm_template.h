@@ -145,6 +145,21 @@ public:
 	virtual const _TCHAR *get_vm_git_version(void) {
 		return (const _TCHAR *)_git_revision;
 	}
+	virtual int get_key_name_table_size(void) {
+		return 0;
+	}
+	virtual const _TCHAR *get_phy_key_name_by_scancode(uint32_t scancode) {
+		return (const _TCHAR *)NULL;
+	}
+	virtual const _TCHAR *get_phy_key_name_by_vk(uint32_t vk) {
+		return (const _TCHAR *)NULL;
+	}
+	virtual uint32_t get_scancode_by_vk(uint32_t vk) {
+		return 0xffffffff;
+	}
+	virtual uint32_t get_vk_by_scancode(uint32_t scancode) {
+		return 0xffffffff;
+	}
 	DEVICE* dummy;
 	DEVICE* first_device;
 	DEVICE* last_device;

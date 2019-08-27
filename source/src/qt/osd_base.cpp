@@ -51,6 +51,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QThread(0)
 	max_vm_nodes = 0;
 	p_logger = logger;
 	debug_mutex = new QMutex(QMutex::Recursive);
+	vm = NULL;
 	
 	SupportedFeatures.clear();
 	midi_receivers.clear();

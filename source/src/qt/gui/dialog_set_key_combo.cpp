@@ -21,12 +21,16 @@ CSP_KeySetupCombo::CSP_KeySetupCombo(QWidget *parent,
 	int i;
 	scanname_list.clear();
 	scancode_list.clear();
+	vkcode_list.clear();
 	scancode_list.append(0xffffffff);
+	vkcode_list.append(0xffffffff);
 	scanname_list.append(QApplication::translate("KeySetDialog", "Undefined", 0));
 	for(i = 0; i < KEYDEF_MAXIMUM; i++) {
 		if(base_table[i].vk == 0xffffffff) break;
 		scanname_list.append(QString::fromUtf8(base_table[i].name));
 		scancode_list.append(base_table[i].scan);
+		vkcode_list.append(base_table[i].vk);
+//		printf("%02X %s\n", base_table[i].scan, base_table[i].name); 
 	}
 	this->addItems(scanname_list);
 	for(i = 0; i < scancode_list.size(); i++) {
@@ -50,3 +54,11 @@ void CSP_KeySetupCombo::do_selected(int index)
 	emit sig_selected(vk, scan);
 }
 
+void CSP_KeySetupCombo::do_update_scan_name(uint32_t index, QString name)
+{
+	for(int i = 0; i < scancode_list.size(); i++) {
+		if(vkcode_list.value(i) == index) {
+			this->setItemText(i, name);
+		}
+	}
+}

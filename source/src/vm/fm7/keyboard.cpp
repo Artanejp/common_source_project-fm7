@@ -1158,6 +1158,60 @@ void KEYBOARD::write_data8(uint32_t addr, uint32_t data)
 	}
 }
 
+#ifdef SUPPORT_QUERY_PHY_KEY_NAME
+int KEYBOARD::get_key_name_table_size(void)
+{
+	int count = 0;
+	for(int i = 0; i < 256; i++) {
+		count++;
+		if(key_code_name[i].phy >= 0xffff) break;
+	}
+	return count;
+}
+
+const _TCHAR *KEYBOARD::get_phy_key_name_by_scancode(uint32_t scancode)
+{
+	for(int i = 0; i < 256; i++) {
+		if(key_code_name[i].phy >= 0xffff) break;
+		if(key_code_name[i].phy == (uint16_t)scancode) {
+			return (const _TCHAR *)(key_code_name[i].name);
+		}
+	}
+	return (const _TCHAR *)NULL;
+}
+
+const _TCHAR *KEYBOARD::get_phy_key_name_by_vk(uint32_t vk)
+{
+	uint32_t scancode = get_scancode_by_vk(vk);
+	if((scancode == 0) || (scancode >= (sizeof(vk_matrix_106) / sizeof(uint16_t)))) {
+		return (const _TCHAR *)NULL;
+	}
+	return get_phy_key_name_by_scancode(scancode);
+}
+
+uint32_t KEYBOARD::get_scancode_by_vk(uint32_t vk)
+{
+	uint16_t scancode = 0x00;
+	for(int i = 0; i < (sizeof(vk_matrix_106) / sizeof(uint16_t)) ; i++) {
+		if(vk_matrix_106[i] == (const uint16_t)vk) {
+			scancode = vk_matrix_106[i];
+			return (uint32_t)scancode;
+		}
+	}
+	return 0xffffffff;
+}
+
+uint32_t KEYBOARD::get_vk_by_scancode(uint32_t scancode)
+{
+	uint32_t vk;
+	if(scancode < (sizeof(vk_matrix_106) / sizeof(uint16_t))) {
+		vk = vk_matrix_106[scancode];
+		return vk;
+	}
+	return 0xffffffff;
+}
+#endif
+
 KEYBOARD::KEYBOARD(VM_TEMPLATE* parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 #if defined(_FM77AV_VARIANTS)
@@ -1225,11 +1279,10 @@ void KEYBOARD::release(void)
 	delete key_fifo;
 }
 
-
-
 KEYBOARD::~KEYBOARD()
 {
 }
+
 
 #define STATE_VERSION 9
 //#if defined(Q_OS_WIN)

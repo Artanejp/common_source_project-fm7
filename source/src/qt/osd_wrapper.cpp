@@ -52,6 +52,57 @@
 #include "qt_gldraw.h"
 #include "csp_logger.h"
 
+
+int OSD::get_key_name_table_size(void)
+{
+#ifdef SUPPORT_QUERY_PHY_KEY_NAME
+	if(vm != NULL) {
+		return vm->get_key_name_table_size();
+	}
+#endif
+	return 0;
+}
+	
+const _TCHAR *OSD::get_key_name_by_scancode(uint32_t scancode)
+{
+#ifdef SUPPORT_QUERY_PHY_KEY_NAME
+	if(vm != NULL) {
+		return vm->get_phy_key_name_by_scancode(scancode);
+	}
+#endif
+	return (const _TCHAR *)NULL;
+}
+
+const _TCHAR *OSD::get_key_name_by_vk(uint32_t vk)
+{
+#ifdef SUPPORT_QUERY_PHY_KEY_NAME
+	if(vm != NULL) {
+		return vm->get_phy_key_name_by_vk(vk);
+	}
+#endif
+	return (const _TCHAR *)NULL;
+}
+
+uint32_t OSD::get_scancode_by_vk(uint32_t vk)
+{
+#ifdef SUPPORT_QUERY_PHY_KEY_NAME
+	if(vm != NULL) {
+		return vm->get_scancode_by_vk(vk);
+	}
+#endif
+	return 0xffffffff;
+}
+
+uint32_t OSD::get_vk_by_scancode(uint32_t scancode)
+{
+#ifdef SUPPORT_QUERY_PHY_KEY_NAME
+	if(vm != NULL) {
+		return vm->get_vk_by_scancode(scancode);
+	}
+#endif
+	return 0xffffffff;
+}
+
 const _TCHAR *OSD::get_lib_common_vm_version()
 {
 	if(vm->first_device != NULL) {

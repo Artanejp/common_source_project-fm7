@@ -31,7 +31,6 @@ CSP_KeySetDialog::CSP_KeySetDialog(QWidget *parent, GLDrawClass *glv) : QWidget(
 	int lim = glv->get_key_table_size();
 	int i;
 	int j = 0;
-	bool vk_checked[256];
 
 	if(lim > KEYDEF_MAXIMUM) lim = KEYDEF_MAXIMUM;
 	setup_head_label[0] = new QLabel(QString::fromUtf8("<B>VK</B>"));
@@ -39,7 +38,14 @@ CSP_KeySetDialog::CSP_KeySetDialog(QWidget *parent, GLDrawClass *glv) : QWidget(
 	keycodes_layout->addWidget(setup_head_label[0], 0, 0);
 	keycodes_layout->addWidget(setup_head_label[1], 0, 1);
 	
-	for(i = 0; i < 256; i++) vk_checked[i] = false;
+	for(i = 0; i < 256; i++) {
+		vk_checked[i] = false;
+	}
+	for(i = 0; i < KEYDEF_MAXIMUM; i++) {
+		vk_map[i] = 0x00;
+		setup_combo[i] = NULL;
+		setup_label[i] = NULL;
+	}
 	for(i = 0; i < lim; i++) {
 		QString tmps;
 		const char *p;
@@ -81,6 +87,7 @@ CSP_KeySetDialog::CSP_KeySetDialog(QWidget *parent, GLDrawClass *glv) : QWidget(
 			connect(setup_combo[j], SIGNAL(sig_selected(uint32_t, uint32_t)),
 					glv, SLOT(do_update_keyboard_scan_code(uint32_t, uint32_t)));
 			tmps = QString::fromUtf8("<B>") + QString::fromUtf8(p) + QString::fromUtf8("</B>"); 
+			vk_map[j] = (uint8_t)i;
 			setup_label[j] = new QLabel(tmps);
 			keycodes_layout->addWidget(setup_label[j], j + 1, 0);
 			keycodes_layout->addWidget(setup_combo[j], j + 1, 1);
@@ -101,3 +108,12 @@ CSP_KeySetDialog::~CSP_KeySetDialog()
 {
 }
 
+void CSP_KeySetDialog::do_update_keyname_table(uint32_t vk, QString name)
+{
+	if(p_glv == NULL) return;
+	for(int i = 0; i < KEYDEF_MAXIMUM; i++) {
+		if(setup_combo[i] != NULL) {
+			setup_combo[i]->do_update_scan_name(vk, name);
+		}
+	}
+}

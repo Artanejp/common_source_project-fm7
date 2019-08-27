@@ -28,7 +28,7 @@ CSP_DropDownJoykeyButton::CSP_DropDownJoykeyButton(USING_FLAGS *p, QWidget *pare
 	connect(combo, SIGNAL(activated(int)), this, SLOT(do_select(int)));
 	if((button_num < 16) && (button_num >= 0)) {
 		for(int i = 0; i < combo->count(); i++) {
-			if(p_config->joy_to_key_buttons[button_num] == default_key_table_106_QtScan[i].vk) {
+			if(p_config->joy_to_key_buttons[button_num] == -default_key_table_106_QtScan[i].vk) {
 				combo->setCurrentIndex(i);
 				break;
 			}

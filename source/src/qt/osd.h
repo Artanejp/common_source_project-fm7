@@ -118,6 +118,11 @@ public:
 	const _TCHAR *get_lib_common_vm_version();
 	const _TCHAR *get_lib_common_vm_git_version();
 	const _TCHAR *get_lib_osd_version();
+	int get_key_name_table_size(void);
+	uint32_t get_scancode_by_vk(uint32_t vk);
+	uint32_t get_vk_by_scancode(uint32_t scancode);
+	const _TCHAR *get_key_name_by_scancode(uint32_t scancode);
+	const _TCHAR *get_key_name_by_vk(uint32_t vk);
 	
 	// Socket
 	void initialize_socket();

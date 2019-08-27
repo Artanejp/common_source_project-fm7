@@ -14,6 +14,7 @@
 #include <QIcon>
 #include <QString>
 #include <QStringList>
+#include <QMap>
 //#include <QMenu>
 //#include <QMenuBar>
 
@@ -355,6 +356,7 @@ protected:
 	CSP_Logger *csp_logger;
 	QMainWindow *MainWindow;
 	QApplication *CoreApplication;
+	QMap<uint32_t, QString>phys_key_name_map; // VK, NAME
 	
 	GLDrawClass *graphicsView;
 	CSP_DockDisks *driveData;
@@ -740,6 +742,8 @@ public slots:
 	void do_set_state_log_to_syslog(bool f);
 	void do_set_joy_to_key(bool flag);
 	void do_select_fixed_cpu(int num);
+	void do_add_keyname_table(uint32_t vk, QString name);
+	void do_clear_keyname_table();
 
 signals:
 	int message_changed(QString);
@@ -818,6 +822,7 @@ signals:
 	int sig_load_state(QString);
 	int sig_save_state(QString);
 	int sig_emu_thread_to_fixed_cpu(int);
+	int sig_add_keyname_table(uint32_t, QString);
 };
 
 QT_END_NAMESPACE

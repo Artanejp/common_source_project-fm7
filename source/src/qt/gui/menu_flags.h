@@ -349,7 +349,7 @@ public:
 	virtual int get_vm_node_size();
 	virtual void set_vm_node_name(int id, const _TCHAR *name);
 	virtual _TCHAR *get_vm_node_name(int id);
-	
+	virtual bool is_support_phy_key_name();
 	config_t *get_config_ptr(void);
 };
 	

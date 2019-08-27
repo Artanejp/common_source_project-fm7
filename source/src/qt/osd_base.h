@@ -356,6 +356,7 @@ public:
 	void write_console(const _TCHAR* buffer, unsigned int length);
 	int read_console_input(_TCHAR* buffer, int length);
 	bool is_console_key_pressed(uint32_t ch);
+	void update_keyname_table(void);
 	
 	// common input
 	void update_input();
@@ -515,6 +516,12 @@ public:
 	virtual const _TCHAR *get_vm_node_name(int id);
 	virtual int get_vm_node_size(void);
 	
+	virtual int get_key_name_table_size(void);
+	virtual uint32_t get_scancode_by_vk(uint32_t vk);
+	virtual uint32_t get_vk_by_scancode(uint32_t scancode);
+	virtual const _TCHAR *get_key_name_by_scancode(uint32_t scancode);
+	virtual const _TCHAR *get_key_name_by_vk(uint32_t vk);
+	
 	// Get #define S to value.You may use inside of VM/ .
 	virtual void set_features(void) {}
 	void add_feature(const _TCHAR *key, double value);
@@ -600,6 +607,9 @@ signals:
 	int sig_clear_dbg_completion_list(void);
 	int sig_add_dbg_completion_list(_TCHAR *);
 	int sig_apply_dbg_completion_list(void);
+
+	int sig_clear_keyname_table(void);
+	int sig_add_keyname_table(uint32_t, QString);
 };
 QT_END_NAMESPACE
 

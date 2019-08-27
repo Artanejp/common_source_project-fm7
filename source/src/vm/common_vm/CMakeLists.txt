@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 2.18.4)
+SET(THIS_LIB_VERSION 2.19.0)
 
 #include(cotire)
 set(s_vm_common_vm_srcs

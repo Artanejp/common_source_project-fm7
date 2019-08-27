@@ -24,6 +24,7 @@ protected:
 
 	QStringList scanname_list;
 	QList<uint32_t> scancode_list;
+	QList<uint32_t> vkcode_list;
 public:
 	CSP_KeySetupCombo(QWidget *parent,
 					  int num,
@@ -33,6 +34,7 @@ public:
 	~CSP_KeySetupCombo();
 public slots:
 	void do_selected(int index);
+	void do_update_scan_name(uint32_t index, QString name);
 signals:
 	int sig_selected(uint32_t, uint32_t);
 };

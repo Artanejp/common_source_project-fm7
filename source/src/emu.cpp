@@ -104,6 +104,7 @@ EMU::EMU()
 	osd->vm = vm;
 # if defined(_USE_QT)
 	osd->reset_vm_node();
+	osd->update_keyname_table();
 # endif	
 #ifdef USE_AUTO_KEY
 	initialize_auto_key();
@@ -269,6 +270,7 @@ void EMU::reset()
  		osd->vm = vm;;
 #if defined(_USE_QT)
 		osd->reset_vm_node();
+		osd->update_keyname_table();
 #endif
 		int presented_rate;
 		int presented_samples;
@@ -3020,6 +3022,7 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 					osd->vm = vm;
 # if defined(_USE_QT)
 					osd->reset_vm_node();
+					osd->update_keyname_table();
 # endif	
 					vm->initialize_sound(sound_rate, sound_samples);
 #ifdef USE_SOUND_VOLUME

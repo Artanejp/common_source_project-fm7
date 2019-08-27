@@ -1136,6 +1136,9 @@ void OSD::set_features_misc(void)
 #ifdef DATAREC_SOUND_RIGHT
 	add_feature(_T("DATAREC_SOUND_RIGHT"), 1);
 #endif
+#ifdef SUPPORT_QUERY_PHY_KEY_NAME
+	add_feature(_T("SUPPORT_QUERY_PHY_KEY_NAME"), 1);
+#endif
 }
 
 void OSD::set_features(void)

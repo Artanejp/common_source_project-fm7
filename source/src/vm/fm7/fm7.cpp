@@ -1337,8 +1337,46 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	//mainio->restore_opn();
  	return true;
 }
+#ifdef SUPPORT_QUERY_PHY_KEY_NAME
+int VM::get_key_name_table_size(void)
+{
+	if(keyboard != NULL) {
+		return keyboard->get_key_name_table_size();
+	}
+	return 0;
+}
+const _TCHAR *VM::get_phy_key_name_by_scancode(uint32_t scancode)
+{
+	if(keyboard != NULL) {
+		return keyboard->get_phy_key_name_by_scancode(scancode);
+	}
+	return (const _TCHAR *)NULL;
+}
+	
+const _TCHAR *VM::get_phy_key_name_by_vk(uint32_t vk)
+{
+	if(keyboard != NULL) {
+		return keyboard->get_phy_key_name_by_vk(vk);
+	}
+	return (const _TCHAR *)NULL;
+}
 
+uint32_t VM::get_scancode_by_vk(uint32_t vk)
+{
+	if(keyboard != NULL) {
+		return keyboard->get_scancode_by_vk(vk);
+	}
+	return 0xffffffff;
+}
 
+uint32_t VM::get_vk_by_scancode(uint32_t scancode)
+{
+	if(keyboard != NULL) {
+		return keyboard->get_vk_by_scancode(scancode);
+	}
+	return 0xffffffff;
+}
+#endif
 
 #ifdef USE_DIG_RESOLUTION
 void VM::get_screen_resolution(int *w, int *h)
