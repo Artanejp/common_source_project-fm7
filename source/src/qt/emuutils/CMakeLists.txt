@@ -20,6 +20,7 @@ QT5_WRAP_CPP(s_qt_emuutils_headers_MOC ${s_qt_emuutils_headers})
 add_definitions(-D__LIBEMU_UTIL_VERSION=\"libCSPemu_utils.${THIS_LIB_VERSION}\")
 
 if(WIN32)
+
 include (GenerateExportHeader)
 
 add_library(CSPemu_utils SHARED
@@ -27,10 +28,12 @@ add_library(CSPemu_utils SHARED
 	  ${s_qt_emuutils_headers_MOC}
 )
 
-target_link_libraries(CSPemu_utils PUBLIC
+target_link_libraries(CSPemu_utils PRIVATE
 		Qt5::Core
-		libz.a
+		libz.dll.a
+		${SDL2_LIBRARIES}
 	  )
+	  
 set_target_properties(CSPemu_utils PROPERTIES
 			     SOVERSION ${THIS_LIB_VERSION}
 			     VERSION ${THIS_LIB_VERSION}

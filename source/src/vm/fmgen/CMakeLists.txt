@@ -23,7 +23,7 @@ add_library(CSPfmgen SHARED
     ${s_vm_fmgen_srcs}
     )
 target_link_libraries(CSPfmgen
-	${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPemu_utils.dll.a
+	PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPemu_utils.dll.a
 	)
 set_target_properties(CSPfmgen PROPERTIES
 			     SOVERSION ${THIS_LIB_VERSION}
