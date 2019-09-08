@@ -1,6 +1,6 @@
 message("* qt/avio")
 
-SET(THIS_LIB_VERSION 2.11.0)
+SET(THIS_LIB_VERSION 2.11.1)
 set(s_qt_avio_headers
 	  movie_saver.h
 	  movie_loader.h
@@ -36,7 +36,7 @@ add_library(CSPavio SHARED
 )
 
 target_link_libraries(CSPavio PUBLIC
-		   ${LIBAV_LIBRARIES}
+		   PRIVATE ${LIBAV_LIBRARIES}
 		   ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPosd.dll.a
 #		   ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPgui.dll.a
 	  	   ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPemu_utils.dll.a

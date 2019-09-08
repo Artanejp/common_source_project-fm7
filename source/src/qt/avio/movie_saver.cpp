@@ -230,8 +230,6 @@ void MOVIE_SAVER::run()
 	int tmp_wait = fps_wait;
 	bool need_audio_transcode = false;
 	bool need_video_transcode = false;
-	int i;
-	int64_t total_packets_written = 0;
 	bool a_f, v_f;
 	a_f = v_f = false;
 	volatile bool old_recording = false;
@@ -288,16 +286,36 @@ void MOVIE_SAVER::run()
 				need_video_transcode = true;
 			}
 		_write_frame:
+			int result_ts = 0;
+#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+			if(audio_st.context != NULL) {
+				if(video_st.context != NULL) {
+					result_ts = av_compare_ts(video_st.next_pts, video_st.context->time_base,
+											  audio_st.next_pts, audio_st.context->time_base);
+				} else {
+					result_ts = 1; // AUDIO ONLY
+				}
+			} else {
+				if(video_st.context != NULL) {
+					result_ts = -1; // VIDEO ONLY
+				}
+			}
+#else
+			result_ts =	 av_compare_ts(video_st.next_pts, video_st.st->codec->time_base,
+									   audio_st.next_pts, audio_st.st->codec->time_base);
+#endif
 			if ((n_encode_video == 0) &&
-				((n_encode_audio != 0) || av_compare_ts(video_st.next_pts, video_st.st->codec->time_base,
-														audio_st.next_pts, audio_st.st->codec->time_base) <= 0)) {
+				((n_encode_audio != 0) ||
+				 (result_ts <= 0))) {
 				n_encode_video = write_video_frame();
+				ret = n_encode_video;
 				if(n_encode_video < 0) {
 					p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE/Saver: Something wrong with encoding video.");
 					goto _final;
 				}
 			} else {
 				n_encode_audio = write_audio_frame();
+				ret = n_encode_audio;
 				if(n_encode_audio < 0) {
 					p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE/Saver: Something wrong with encoding audio.");
 					goto _final;

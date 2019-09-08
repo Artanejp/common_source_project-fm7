@@ -50,7 +50,9 @@ bool SOUND_LOADER::open(int id, QString filename)
 	_data_size = 0;
 	_dataptr = 0;
 	/* register all formats and codecs */
+#if (LIBAVCODEC_VERSION_MAJOR <= 56)
 	av_register_all();
+#endif
 	
 	/* open input file, and allocate format context */
 	if (avformat_open_input(&fmt_ctx, _filename.toLocal8Bit().constData(), NULL, NULL) < 0) {
@@ -147,7 +149,6 @@ void SOUND_LOADER::close(void)
 int SOUND_LOADER::decode_audio(AVCodecContext *dec_ctx, AVPacket *pkt, AVFrame *frame,
 								int *got_frame)
 {
-    int  ch;
     int ret = 0;
 #if (LIBAVCODEC_VERSION_MAJOR > 56)
     /* send the packet with the compressed data to the decoder */

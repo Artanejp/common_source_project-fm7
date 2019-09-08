@@ -49,16 +49,12 @@ int MOVIE_SAVER::write_frame(void *_fmt_ctx, const void *_time_base, void *_st, 
 }
 
 /* Add an output stream. */
-//static void add_stream(OutputStream *ost, AVFormatContext *oc,
-//					   AVCodec **codec,
-//					   enum AVCodecID codec_id)
 bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 					   void **_codec,
 					   uint64_t _codec_id)
 {
 #if defined(USE_LIBAV)
 	AVCodecContext *c;
-
 	OutputStream *ost = (OutputStream *)_ost;
 	AVFormatContext *oc = (AVFormatContext *)_oc;
 	AVCodec **codec = (AVCodec **)_codec;
@@ -77,14 +73,54 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 		return false;
 	}
 	ost->st->id = oc->nb_streams-1;
+#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+	ost->context = avcodec_alloc_context3(*codec);
+	if (ost->context == NULL) {
+		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Failed to allocate context for encoding: \n");
+		return false;
+	}
+	AVCodecParameters  *cp = ost->st->codecpar;
+	AVRational ratio;
+	ratio.num = 1;
+	ratio.den = 1;
+	switch ((*codec)->type) {
+	case AVMEDIA_TYPE_AUDIO:
+		cp->codec_type = AVMEDIA_TYPE_AUDIO;
+		cp->codec_id = codec_id;
+		cp->format = (*codec)->sample_fmts ? (*codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
+		cp->bit_rate = audio_bit_rate;
+		cp->channel_layout = AV_CH_LAYOUT_STEREO;
+		cp->channels = 2;
+		cp->sample_rate = audio_sample_rate;
+		cp->frame_size = 1024;
+		break;
+	case AVMEDIA_TYPE_VIDEO:
+		cp->codec_type = AVMEDIA_TYPE_VIDEO;
+		cp->codec_id = codec_id;
+		cp->format = STREAM_PIX_FMT;
+		cp->bit_rate = video_bit_rate;
+		cp->width	= video_geometry.width();
+		cp->height   = video_geometry.height();
+//		cp->profile = ;
+//		cp->level = ;
+		cp->sample_aspect_ratio = ratio;
+		cp->field_order = AV_FIELD_PROGRESSIVE;
+		break;
+	default:
+		break;
+	}
+	avcodec_parameters_to_context(ost->context, cp);
+	c = ost->context;
+#else
 	c = ost->st->codec;
-
+#endif
 	switch ((*codec)->type) {
 	case AVMEDIA_TYPE_AUDIO:
 		setup_audio(c, (void **)codec);
 			ost->st->time_base = (AVRational){ 1, c->sample_rate };
 		break;
 	case AVMEDIA_TYPE_VIDEO:
+	#if 1//(LIBAVCODEC_VERSION_MAJOR <= 56)
 		c->codec_id = codec_id;
 		c->bit_rate = video_bit_rate;
 		// See:
@@ -92,6 +128,7 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 		/* Resolution must be a multiple of two. */
 		c->width	= video_geometry.width();
 		c->height   = video_geometry.height();
+	#endif
 		c->thread_count	 = video_encode_threads;
 		
 		/* timebase: This is the fundamental unit of time (in seconds) in terms
@@ -102,7 +139,9 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 		c->time_base	   = ost->st->time_base;
 
 		//c->gop_size	  = rec_fps; /* emit one intra frame every one second */
+	#if 1//(LIBAVCODEC_VERSION_MAJOR <= 56)
 		c->pix_fmt	   = STREAM_PIX_FMT;
+	#endif
 		if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
 			/* just for testing, we also add B frames */
 			c->max_b_frames = 2;
@@ -141,14 +180,21 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 void MOVIE_SAVER::close_stream(void *_oc, void *_ost)
 {
 #if defined(USE_LIBAV)
-	AVFormatContext *oc = (AVFormatContext *)_oc;
 	OutputStream *ost = (OutputStream *)_ost;
+	#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+	avcodec_close(ost->context);
+	while(avcodec_is_open(ost->context) != 0) { this->msleep(5);}
+	#else
 	avcodec_close(ost->st->codec);
 	while(avcodec_is_open(ost->st->codec) != 0) { this->msleep(5);}
+	#endif
 	av_frame_free(&ost->frame);
 	av_frame_free(&ost->tmp_frame);
 	sws_freeContext(ost->sws_ctx);
 	swr_free(&ost->swr_ctx);
+	#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+	avcodec_free_context(&(ost->context));
+	#endif
 #endif	
 }
 
@@ -184,7 +230,9 @@ bool MOVIE_SAVER::do_open_main()
 	memset(&audio_st, 0x00, sizeof(audio_st));
 	
 	/* Initialize libavcodec, and register all codecs and formats. */
+#if 1//(LIBAVCODEC_VERSION_MAJOR <= 56)
 	av_register_all();
+#endif
 
 	{
 		QString value;
@@ -238,6 +286,7 @@ bool MOVIE_SAVER::do_open_main()
 	/* Add the audio and video streams using the default format codecs
 	 * and initialize the codecs. */
 	if (fmt->video_codec != AV_CODEC_ID_NONE) {
+		
 		if(!add_stream((void *)&video_st, (void *)oc, (void **)&video_codec, (uint64_t)fmt->video_codec)) goto _err_final;
 		have_video = 1;
 		encode_video = 1;
@@ -341,10 +390,24 @@ void MOVIE_SAVER::do_close_main()
 					video_offset = 0;
 				}
 			}
-
+			int result = 0;
+#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+			if(audio_st.context != NULL) {
+				if(video_st.context != NULL) {
+					result = av_compare_ts(video_st.next_pts, video_st.context->time_base,
+										   audio_st.next_pts, audio_st.context->time_base);
+				} else {
+					result = 1;
+				}
+			} else {
+				result = -1;
+			}
+#else
+			result = av_compare_ts(video_st.next_pts, video_st.st->codec->time_base,
+								   audio_st.next_pts, audio_st.st->codec->time_base);
+#endif
 			if ((n_encode_video == 0) &&
-				((n_encode_audio != 0) || av_compare_ts(video_st.next_pts, video_st.st->codec->time_base,
-														audio_st.next_pts, audio_st.st->codec->time_base) <= 0)) {
+				((n_encode_audio != 0) || (result <= 0))) {
 				n_encode_video = write_video_frame();
 				if(n_encode_video < 0) break;
 			} else {
@@ -355,8 +418,9 @@ void MOVIE_SAVER::do_close_main()
 		if (have_video)	{
 			close_stream(oc, &video_st);
 		}
-		if (have_audio)
+		if (have_audio) {
 			close_stream(oc, &audio_st);
+		}
 		have_video = have_audio = 0;
 
 		av_write_trailer(oc);

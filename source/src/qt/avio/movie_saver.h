@@ -70,6 +70,9 @@ typedef struct OutputStream {
 
 	struct SwsContext *sws_ctx;
 	struct SwrContext *swr_ctx;
+#if (LIBAVCODEC_VERSION_MAJOR > 56)
+	AVCodecContext *context;
+#endif   
 } OutputStream;
 
 class OSD;
@@ -120,10 +123,9 @@ protected:
 	AVFormatContext *output_context;
 	AVCodec *audio_codec, *video_codec;
 	AVDictionary *raw_options_list;
-
+#endif
 	OutputStream video_st;
 	OutputStream audio_st;
-#endif   
 	QString _filename;
 	bool bRunThread;
 	bool debug_timestamp;

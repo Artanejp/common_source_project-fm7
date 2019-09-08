@@ -77,7 +77,6 @@ MOVIE_LOADER::~MOVIE_LOADER()
 #if defined(USE_LIBAV)
 int MOVIE_LOADER::decode_audio(AVCodecContext *dec_ctx, int *got_frame)
 {
-    int  ch;
     int ret = 0;
 #if (LIBAVCODEC_VERSION_MAJOR > 56)
     /* send the packet with the compressed data to the decoder */
@@ -100,9 +99,7 @@ int MOVIE_LOADER::decode_audio(AVCodecContext *dec_ctx, int *got_frame)
 
 int MOVIE_LOADER::decode_video(AVCodecContext *dec_ctx, int *got_frame)
 {
-    int i, ch;
     int ret = 0;
-	int data_size;
 #if (LIBAVCODEC_VERSION_MAJOR > 56)
     /* send the packet with the compressed data to the decoder */
 	if(got_frame != NULL) *got_frame = 0;
@@ -180,7 +177,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 				//video_mutex->unlock();
 			}
 			
-			char str_buf2[AV_TS_MAX_STRING_SIZE] = {0};
+//			char str_buf2[AV_TS_MAX_STRING_SIZE] = {0};
 
 
 			video_frame_count++;
@@ -235,7 +232,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 			
 		if (*got_frame) {
 			//size_t unpadded_linesize = frame->nb_samples * av_get_bytes_per_sample((enum AVSampleFormat)frame->format);
-			char str_buf[AV_TS_MAX_STRING_SIZE] = {0};
+//			char str_buf[AV_TS_MAX_STRING_SIZE] = {0};
 //			AVCodecContext *c = avcodec_alloc_context3(NULL);
 			AVCodecContext *c = audio_dec_ctx;
 			if (c == NULL) {
@@ -386,7 +383,7 @@ int MOVIE_LOADER::get_format_from_sample_fmt(const char **fmt,
 
 bool MOVIE_LOADER::open(QString filename)
 {
-    int ret = 0, got_frame;
+    int ret = 0;
 	_filename = filename;
 	if(_filename.isEmpty()) return false;
 	
@@ -398,8 +395,9 @@ bool MOVIE_LOADER::open(QString filename)
 	audio_total_samples = 0;
 	
     /* register all formats and codecs */
+#if (LIBAVCODEC_VERSION_MAJOR <= 56)
     av_register_all();
-
+#endif
     /* open input file, and allocate format context */
     if (avformat_open_input(&fmt_ctx, _filename.toLocal8Bit().constData(), NULL, NULL) < 0) {
         p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not open source file %s\n", _filename.toLocal8Bit().constData());
@@ -427,7 +425,11 @@ bool MOVIE_LOADER::open(QString filename)
         src_height = video_dec_ctx->height;
         pix_fmt = video_dec_ctx->pix_fmt;
 		AVRational rate;
+#if (LIBAVCODEC_VERSION_MAJOR > 56)
+		rate = video_stream->avg_frame_rate;
+#else
 		rate = av_stream_get_r_frame_rate(video_stream);
+#endif
 		frame_rate = av_q2d(rate);
         if (ret < 0) {
             p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not allocate raw video buffer\n");

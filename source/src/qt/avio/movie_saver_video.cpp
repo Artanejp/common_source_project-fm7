@@ -74,7 +74,7 @@ void MOVIE_SAVER::setup_h264(void *_codec_context)
 
 void MOVIE_SAVER::setup_mpeg4(void *_codec)
 {
-#if defined(USE_LIBAV)
+#if defined(USE_LIBAV)	
 	AVCodecContext *c = (AVCodecContext *)_codec;
 	c->qmin	 = p_config->video_mpeg4_minq;
 	c->qmax	 = p_config->video_mpeg4_maxq;
@@ -147,9 +147,13 @@ bool MOVIE_SAVER::open_video()
 	AVDictionary *opt_arg = raw_options_list;
 	OutputStream *ost = &video_st;
 	AVCodec *codec = video_codec;
-	AVFormatContext *oc = output_context;
-	AVCodecContext *c = ost->st->codec;
+	AVCodecContext *c;
 	AVDictionary *opt = NULL;
+#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+	c = ost->context;
+#else
+	c = ost->st->codec;
+#endif
 
 	av_dict_copy(&opt, opt_arg, 0);
 
@@ -225,7 +229,12 @@ void *MOVIE_SAVER::get_video_frame(void)
 {
 #if defined(USE_LIBAV)
 	OutputStream *ost = &video_st;
-	AVCodecContext *c = ost->st->codec;
+	AVCodecContext *c;
+#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+	c = ost->context;
+#else
+	c = ost->st->codec;
+#endif
 
 	//if (c->pix_fmt != AV_PIX_FMT_YUV420P) {
 		/* as we only generate a YUV420P picture, we must convert it
@@ -338,21 +347,55 @@ int MOVIE_SAVER::write_video_frame()
 	int got_packet = 0;
 	AVPacket pkt = { 0 };
 
+#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+	c = ost->context;
+#else
 	c = ost->st->codec;
+#endif
 
 	frame = (AVFrame *)get_video_frame();
 	av_init_packet(&pkt);
-
 	/* encode the image */
 	frame->pts = totalDstFrame;
 	//got_packet = 1;
 	//while(got_packet) {
+#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+	if(frame != NULL) {
+		ret = avcodec_send_frame(c, frame);
+		totalDstFrame++;
+		if(ret < 0) {
+			if(ret == AVERROR_EOF) {
+				return 0;
+			}
+			return ((ret == AVERROR(EAGAIN)) ? 0 : -1);
+		}
+		while (ret  >= 0) {
+			ret = avcodec_receive_packet(c, &pkt);
+			if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+				return (frame || got_packet) ? 0 : 1;
+			} else if (ret < 0) {
+				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing video frame: %s\n",
+									err2str(ret).toLocal8Bit().constData());
+				return -1;
+			}
+			pkt.stream_index = 0;
+			int ret2 = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)&pkt);
+			if (ret2 < 0) {
+				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing video frame: %s\n", err2str(ret2).toLocal8Bit().constData());
+				return -1;
+			}
+			got_packet = 1;
+			av_packet_unref(&pkt);
+		}
+	}
+	return (frame || got_packet) ? 0 : 1;
+#else
 	ret = avcodec_encode_video2(c, &pkt, frame, &got_packet);
-	//if(!got_packet) break;
 	if (ret < 0) {
 		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error encoding video frame: %s\n", err2str(ret).toLocal8Bit().constData());
 		return -1;
 	}
+	//if(!got_packet) break;
 	totalDstFrame++;
 	if (got_packet) {
 		ret = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)&pkt);
@@ -361,11 +404,11 @@ int MOVIE_SAVER::write_video_frame()
 	} else {
 		ret = 0;
 	}
-	
 	if (ret < 0) {
 		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing video frame: %s\n", err2str(ret).toLocal8Bit().constData());
 		return -1;
 	}
+	
 	//}
 	//if(frame) {
 	//	char buf[256];
@@ -374,6 +417,7 @@ int MOVIE_SAVER::write_video_frame()
 	//	AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Write video to file. sec=%s", s);
 	//}
 	return (frame || got_packet) ? 0 : 1;
+#endif
 #else
 	return 1;
 #endif

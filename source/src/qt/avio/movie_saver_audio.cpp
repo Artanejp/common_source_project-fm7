@@ -66,18 +66,24 @@ bool MOVIE_SAVER::open_audio(void)
  	AVDictionary *opt_arg = raw_options_list;
 	OutputStream *ost = &audio_st;
 	AVCodec *codec = audio_codec;
-	AVCodecContext *c;
+	AVCodecContext *c = NULL;
 	int nb_samples;
 	int ret;
 	AVDictionary *opt = NULL;
 
+#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+	c = ost->context;
+#else
 	c = ost->st->codec;
-
+#endif
 	/* open it */
 	av_dict_copy(&opt, opt_arg, 0);
 	ret = avcodec_open2(c, codec, &opt);
 	av_dict_free(&opt);
 	if (ret < 0) {
+#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+		avcodec_free_context(&(ost->context));
+#endif
 		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not open audio codec: %s\n", err2str(ret).toLocal8Bit().constData());
 		return false;
 	}
@@ -86,17 +92,18 @@ bool MOVIE_SAVER::open_audio(void)
 		nb_samples = 10000;
 	else
 		nb_samples = c->frame_size;
-
 	ost->frame	 = (AVFrame *)alloc_audio_frame((uint64_t)c->sample_fmt, c->channel_layout,
 									   c->sample_rate, nb_samples);
 	ost->tmp_frame = (AVFrame *)alloc_audio_frame((uint64_t)AV_SAMPLE_FMT_S16, c->channel_layout,
 									   c->sample_rate, nb_samples);
 
 	/* create resampler context */
-#if 1
 	/* set options */
 	ost->swr_ctx = swr_alloc();
 	if (!ost->swr_ctx) {
+#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+		avcodec_free_context(&(ost->context));
+#endif
 		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate resampler context\n");
 		return false;
 	}
@@ -107,18 +114,11 @@ bool MOVIE_SAVER::open_audio(void)
 	av_opt_set_int	   (ost->swr_ctx, "out_sample_rate",	c->sample_rate,	0);
 	av_opt_set_sample_fmt(ost->swr_ctx, "out_sample_fmt",	 c->sample_fmt,	 0);
 	
-#else
-	ost->swr_ctx = swr_alloc_set_opts(NULL,
-									  AV_CH_LAYOUT_STEREO, c->sample_fmt, c->sample_rate,
-									  AV_CH_LAYOUT_STEREO, AV_SAMPLE_FMT_S16, audio_sample_rate,
-									  0, NULL);
-	if (ost->swr_ctx == NULL) {
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Failed to initialize the resampling context\n");
-		return false;
-	}
-#endif	
 	/* initialize the resampling context */
 	if ((ret = swr_init(ost->swr_ctx)) < 0) {
+#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+		avcodec_free_context(&(ost->context));
+#endif
 		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Failed to initialize the resampling context\n");
 		return false;
 	}
@@ -135,8 +135,7 @@ bool MOVIE_SAVER::open_audio(void)
 void *MOVIE_SAVER::get_audio_frame()
 {
 #if defined(USE_LIBAV)
-	OutputStream *ost = &audio_st;
-	AVFrame *frame = ost->tmp_frame;
+	AVFrame *frame = audio_st.tmp_frame;
 	int j, i;
 	int16_t *q = (int16_t*)frame->data[0];
 	int offset = 0;
@@ -153,7 +152,13 @@ void *MOVIE_SAVER::get_audio_frame()
 			audio_remain = audio_size;
 			audio_offset = 0;
 		}
-		for (i = 0; i < ost->st->codec->channels; i++) {
+		int chs;
+	#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+		chs = audio_st.context->channels;
+	#else
+		chs = audio_st.st->codec->channels;
+	#endif
+		for (i = 0; i < chs; i++) {
 			q[offset++] = audio_frame_buf[audio_offset++];
 			audio_remain -= sizeof(int16_t);
 			if(audio_remain <= 0) {
@@ -167,7 +172,11 @@ void *MOVIE_SAVER::get_audio_frame()
 			//}
 		}
 	}
-	frame->pts = av_rescale_rnd(ost->next_pts, audio_st.st->codec->sample_rate, audio_sample_rate, AV_ROUND_UP);
+	#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+	frame->pts = av_rescale_rnd(audio_st.next_pts, audio_st.context->sample_rate, audio_sample_rate, AV_ROUND_UP);
+	#else
+	frame->pts = av_rescale_rnd(audio_st.next_pts, audio_st.st->codec->sample_rate, audio_sample_rate, AV_ROUND_UP);
+	#endif
 	//frame->pts = ost->next_pts;
 	//ost->next_pts += frame->nb_samples;
 
@@ -195,9 +204,12 @@ int MOVIE_SAVER::write_audio_frame()
 	int got_packet;
 	int dst_nb_samples;
 
-	av_init_packet(&pkt);
+	#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+	c = ost->context;
+	#else
 	c = ost->st->codec;
-
+	#endif
+	av_init_packet(&pkt);
 	frame_src = (AVFrame *)get_audio_frame();
 	//if(req_close) return 1;
 	if (frame_src == NULL) return 0;
@@ -238,7 +250,37 @@ int MOVIE_SAVER::write_audio_frame()
 		ost->next_pts += dst_nb_samples;
 		totalAudioFrame++;
 	}
-
+	#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+	got_packet = 0;
+	{
+		ret = avcodec_send_frame(c, frame_dst);
+		if(ret < 0) {
+			if(ret == AVERROR_EOF) {
+				return 0;
+			}
+			return ((ret == AVERROR(EAGAIN)) ? 0 : -1);
+		}
+		while (ret >= 0) {
+			ret = avcodec_receive_packet(c, &pkt);
+			if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+				return (got_packet || frame_dst) ? 0 : 1;
+			} else if (ret < 0) {
+				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing audio frame: %s\n",
+									err2str(ret).toLocal8Bit().constData());
+				return -1;
+			}
+			got_packet = 1;
+			pkt.stream_index = 1;
+			int ret2 = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)&pkt);
+			if (ret2 < 0) {
+				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing audio frame: %s\n", err2str(ret2).toLocal8Bit().constData());
+				return -1;
+			}
+			av_packet_unref(&pkt);
+		}
+	}
+	return (frame_dst || got_packet) ? 0 : 1;
+#else
 	ret = avcodec_encode_audio2(c, &pkt, frame_dst, &got_packet);
 	if (ret < 0) {
 		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error encoding audio frame: %s\n", err2str(ret).toLocal8Bit().constData());
@@ -260,6 +302,7 @@ int MOVIE_SAVER::write_audio_frame()
 		//}
 	}
 	return (frame_dst || got_packet) ? 0 : 1;
+#endif
 #else
 	return 1;
 #endif
@@ -271,10 +314,11 @@ void MOVIE_SAVER::setup_audio(void *_codec_context, void **_codec)
 	AVCodecContext *c = (AVCodecContext *)_codec_context;
 	AVCodec **codec = (AVCodec **)_codec;
 	
-	c->sample_fmt  = (*codec)->sample_fmts ?
-		(*codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
+	#if 1//(LIBAVCODEC_VERSION_MAJOR <= 56)
+	c->sample_fmt  = (*codec)->sample_fmts ? (*codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
 	c->bit_rate	= audio_bit_rate;
 	c->sample_rate = audio_sample_rate;
+	#endif
 	if(c->codec_id == AUDIO_CODEC_AAC) {
 		c->strict_std_compliance = -2; // For internal AAC
 		c->global_quality = 100;
@@ -287,7 +331,8 @@ void MOVIE_SAVER::setup_audio(void *_codec_context, void **_codec)
 		c->cutoff = (audio_sample_rate * 3) / 5;
 	} else {
 		c->cutoff = audio_sample_rate / 2;
-	}		
+	}
+	#if 1//(LIBAVCODEC_VERSION_MAJOR <= 56)
 	if ((*codec)->supported_samplerates) {
 		c->sample_rate = (*codec)->supported_samplerates[0];
 		for (int i = 0; (*codec)->supported_samplerates[i]; i++) {
@@ -305,5 +350,6 @@ void MOVIE_SAVER::setup_audio(void *_codec_context, void **_codec)
 		}
 	}
 	c->channels		= av_get_channel_layout_nb_channels(c->channel_layout);
+	#endif
 #endif
 }
