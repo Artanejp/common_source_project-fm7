@@ -26,6 +26,9 @@ extern "C" {
 	#include <libswscale/swscale.h>
 	#include <libswresample/swresample.h>
 }
+	#if (LIBAVCODEC_VERSION_MAJOR > 56)
+	#define AVCODEC_UPPER_V56
+	#endif
 #endif
 
 //int MOVIE_SAVER::write_frame(AVFormatContext *fmt_ctx, const AVRational *time_base, AVStream *st, AVPacket *pkt)
@@ -73,12 +76,14 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 		return false;
 	}
 	ost->st->id = oc->nb_streams-1;
-#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+#ifdef AVCODEC_UPPER_V56
 	ost->context = avcodec_alloc_context3(*codec);
 	if (ost->context == NULL) {
 		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Failed to allocate context for encoding: \n");
 		return false;
 	}
+#endif
+#ifdef AVCODEC_UPPER_V56
 	AVCodecParameters  *cp = ost->st->codecpar;
 	AVRational ratio;
 	ratio.num = 1;
@@ -117,10 +122,10 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 	switch ((*codec)->type) {
 	case AVMEDIA_TYPE_AUDIO:
 		setup_audio(c, (void **)codec);
-			ost->st->time_base = (AVRational){ 1, c->sample_rate };
+		ost->st->time_base = (AVRational){ 1, c->sample_rate };
+		c->time_base = (AVRational){ 1, c->sample_rate };
 		break;
 	case AVMEDIA_TYPE_VIDEO:
-	#if 1//(LIBAVCODEC_VERSION_MAJOR <= 56)
 		c->codec_id = codec_id;
 		c->bit_rate = video_bit_rate;
 		// See:
@@ -128,7 +133,6 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 		/* Resolution must be a multiple of two. */
 		c->width	= video_geometry.width();
 		c->height   = video_geometry.height();
-	#endif
 		c->thread_count	 = video_encode_threads;
 		
 		/* timebase: This is the fundamental unit of time (in seconds) in terms
@@ -139,9 +143,7 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 		c->time_base	   = ost->st->time_base;
 
 		//c->gop_size	  = rec_fps; /* emit one intra frame every one second */
-	#if 1//(LIBAVCODEC_VERSION_MAJOR <= 56)
 		c->pix_fmt	   = STREAM_PIX_FMT;
-	#endif
 		if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
 			/* just for testing, we also add B frames */
 			c->max_b_frames = 2;
@@ -181,7 +183,7 @@ void MOVIE_SAVER::close_stream(void *_oc, void *_ost)
 {
 #if defined(USE_LIBAV)
 	OutputStream *ost = (OutputStream *)_ost;
-	#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+	#ifdef AVCODEC_UPPER_V56
 	avcodec_close(ost->context);
 	while(avcodec_is_open(ost->context) != 0) { this->msleep(5);}
 	#else
@@ -192,7 +194,7 @@ void MOVIE_SAVER::close_stream(void *_oc, void *_ost)
 	av_frame_free(&ost->tmp_frame);
 	sws_freeContext(ost->sws_ctx);
 	swr_free(&ost->swr_ctx);
-	#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+	#ifdef AVCODEC_UPPER_V56
 	avcodec_free_context(&(ost->context));
 	#endif
 #endif	
@@ -230,7 +232,7 @@ bool MOVIE_SAVER::do_open_main()
 	memset(&audio_st, 0x00, sizeof(audio_st));
 	
 	/* Initialize libavcodec, and register all codecs and formats. */
-#if 1//(LIBAVCODEC_VERSION_MAJOR <= 56)
+#ifndef AVCODEC_UPPER_V56
 	av_register_all();
 #endif
 
@@ -391,7 +393,7 @@ void MOVIE_SAVER::do_close_main()
 				}
 			}
 			int result = 0;
-#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+#ifdef AVCODEC_UPPER_V56
 			if(audio_st.context != NULL) {
 				if(video_st.context != NULL) {
 					result = av_compare_ts(video_st.next_pts, video_st.context->time_base,

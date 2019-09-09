@@ -27,6 +27,9 @@ extern "C" {
 	#include <libswscale/swscale.h>
 	#include <libswresample/swresample.h>
 }
+	#if (LIBAVCODEC_VERSION_MAJOR > 56)
+	#define AVCODEC_UPPER_V56
+	#endif
 #endif
 /**************************************************************/
 /* video output */
@@ -43,13 +46,9 @@ void MOVIE_SAVER::setup_h264(void *_codec_context)
 	c->b_quant_offset = 2;
 	c->temporal_cplx_masking = 0.1;
 	c->spatial_cplx_masking = 0.15;
-	c->scenechange_threshold = 35;
-	c->noise_reduction = 0;
 	c->bidir_refine = 2;
 	c->refs = 5;
-	c->chromaoffset = 2;
 	c->max_qdiff = 6;
-	c->b_frame_strategy = p_config->video_h264_b_adapt;
 	c->me_subpel_quality = p_config->video_h264_subme;
 	c->i_quant_offset = 1.2;
 	c->i_quant_factor = 1.5;
@@ -59,35 +58,36 @@ void MOVIE_SAVER::setup_h264(void *_codec_context)
 	c->bidir_refine = 2;
 	c->keyint_min = rec_fps / 5;
 	c->gop_size = rec_fps * 5;
-	c->b_sensitivity = 55;
-	c->scenechange_threshold = 40;
 	/* Needed to avoid using macroblocks in which some coeffs overflow.
 	 * This does not happen with normal video, it just happens here as
 	 * the motion of the chroma plane does not match the luma plane. */
 	c->mb_decision = 2;
-#if (LIBAVCODEC_VERSION_MAJOR < 58)	
+	c->profile=FF_PROFILE_H264_HIGH;
+#ifdef AVCODEC_UPPER_V56
+	av_dict_set(&raw_options_list, _T("me_method"), _T("umh"), 0);
+	av_dict_set_int(&raw_options_list, _T("qmin"), p_config->video_h264_minq, 0);
+	av_dict_set_int(&raw_options_list, _T("qmax"), p_config->video_h264_maxq, 0);
+	av_dict_set_int(&raw_options_list, _T("sc_threshold"), 40, 0);
+	av_dict_set_int(&raw_options_list, _T("noise_reduction"), 0, 0);
+	av_dict_set_int(&raw_options_list, _T("chromaoffset"), 2, 0);	
+	av_dict_set_int(&raw_options_list, _T("b_strategy"), p_config->video_h264_b_adapt, 0);	
+#else
+	c->scenechange_threshold = 40;
+	c->noise_reduction = 0;
+	c->chromaoffset = 2;
+	c->b_frame_strategy = p_config->video_h264_b_adapt;
+	c->b_sensitivity = 55;
 	c->me_method = ME_UMH;
 #endif
-	c->profile=FF_PROFILE_H264_HIGH;
-#endif	
+#endif
 }
 
 void MOVIE_SAVER::setup_mpeg4(void *_codec)
 {
 #if defined(USE_LIBAV)	
 	AVCodecContext *c = (AVCodecContext *)_codec;
-	c->qmin	 = p_config->video_mpeg4_minq;
-	c->qmax	 = p_config->video_mpeg4_maxq;
-	c->max_b_frames	 = p_config->video_mpeg4_bframes;
-	c->bit_rate = p_config->video_mpeg4_bitrate * 1000;
-	c->b_quant_offset = 2;
-	c->temporal_cplx_masking = 0.1;
-	c->spatial_cplx_masking = 0.15;
-	c->scenechange_threshold = 35;
-	c->noise_reduction = 0;
 	c->bidir_refine = 2;
 	c->refs = 5;
-	c->chromaoffset = 2;
 	c->max_qdiff = 6;
 	c->i_quant_offset = 1.2;
 	c->i_quant_factor = 1.5;
@@ -97,8 +97,9 @@ void MOVIE_SAVER::setup_mpeg4(void *_codec)
 	c->bidir_refine = 2;
 	c->keyint_min = rec_fps / 5;
 	c->gop_size = rec_fps * 5;
-	c->b_sensitivity = 55;
-	c->scenechange_threshold = 30;
+	c->gop_size  = rec_fps; /* emit one intra frame every one second */
+	c->qmin	 = p_config->video_mpeg4_minq;
+	c->qmax	 = p_config->video_mpeg4_maxq;
 	if(c->qmin > c->qmax) {
 		int tmp;
 		tmp = c->qmin;
@@ -107,7 +108,23 @@ void MOVIE_SAVER::setup_mpeg4(void *_codec)
 	}
 	if(c->qmin <= 0) c->qmin = 1;
 	if(c->qmax <= 0) c->qmax = 1;
-	c->gop_size  = rec_fps; /* emit one intra frame every one second */
+	c->max_b_frames	 = p_config->video_mpeg4_bframes;
+	c->bit_rate = p_config->video_mpeg4_bitrate * 1000;
+	c->b_quant_offset = 2;
+	c->temporal_cplx_masking = 0.1;
+	c->spatial_cplx_masking = 0.15;
+#ifdef AVCODEC_UPPER_V56
+	av_dict_set_int(&raw_options_list, _T("sc_threshold"), 30, 0);
+	av_dict_set_int(&raw_options_list, _T("quantizer_noise_shaping"), 0, 0);
+	av_dict_set_int(&raw_options_list, _T("b_strategy"), 1, 0);
+	av_dict_set_int(&raw_options_list, _T("b_sensitivity"), 55, 0);
+#else
+	c->scenechange_threshold = 30;
+	c->noise_reduction = 0;
+	c->chromaoffset = 2;
+	c->b_strategy = 1;
+	c->b_sensitivity = 55;
+#endif
 #endif
 }
 //static AVFrame *alloc_picture(enum AVPixelFormat pix_fmt, int width, int height)
@@ -149,7 +166,7 @@ bool MOVIE_SAVER::open_video()
 	AVCodec *codec = video_codec;
 	AVCodecContext *c;
 	AVDictionary *opt = NULL;
-#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+#ifdef AVCODEC_UPPER_V56
 	c = ost->context;
 #else
 	c = ost->st->codec;
@@ -184,7 +201,13 @@ bool MOVIE_SAVER::open_video()
 		return false;
 	}
 	//}
-	
+#ifdef AVCODEC_UPPER_V56
+	ret = avcodec_parameters_from_context(ost->st->codecpar, c);
+	if (ret < 0) {
+		fprintf(stderr, "Could not copy the stream parameters\n");
+		return false;
+	}
+#endif
 	p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
 						  "MOVIE: Open to write video : Success.");
 	return true;
@@ -193,36 +216,6 @@ bool MOVIE_SAVER::open_video()
 #endif
 }
 
-static void fill_yuv_image(AVFrame *pict, int frame_index,
-						   int width, int height)
-{
-#if defined(USE_LIBAV)
-	int x, y, i, ret;
-
-	/* when we pass a frame to the encoder, it may keep a reference to it
-	 * internally;
-	 * make sure we do not overwrite it here
-	 */
-	ret = av_frame_make_writable(pict);
-	if (ret < 0)
-		exit(1);
-
-	i = frame_index;
-
-	/* Y */
-	for (y = 0; y < height; y++)
-		for (x = 0; x < width; x++)
-			pict->data[0][y * pict->linesize[0] + x] = x + y + i * 3;
-
-	/* Cb and Cr */
-	for (y = 0; y < height / 2; y++) {
-		for (x = 0; x < width / 2; x++) {
-			pict->data[1][y * pict->linesize[1] + x] = 128 + y + i * 2;
-			pict->data[2][y * pict->linesize[2] + x] = 64 + x + i * 5;
-		}
-	}
-#endif	
-}
 
 //static AVFrame *get_video_frame(OutputStream *ost)
 void *MOVIE_SAVER::get_video_frame(void)
@@ -230,7 +223,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 #if defined(USE_LIBAV)
 	OutputStream *ost = &video_st;
 	AVCodecContext *c;
-#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+#ifdef AVCODEC_UPPER_V56
 	c = ost->context;
 #else
 	c = ost->st->codec;
@@ -269,7 +262,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 			return (void *)NULL;
 		}
 	}
-	const int in_linesize[1] = { 4 * _width };
+	//const int in_linesize[1] = { 4 * _width };
 	//fill_yuv_image(ost->tmp_frame, ost->next_pts, c->width, c->height);
 	{
 		int w = _width;
@@ -347,7 +340,7 @@ int MOVIE_SAVER::write_video_frame()
 	int got_packet = 0;
 	AVPacket pkt = { 0 };
 
-#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+#ifdef AVCODEC_UPPER_V56
 	c = ost->context;
 #else
 	c = ost->st->codec;
@@ -359,16 +352,18 @@ int MOVIE_SAVER::write_video_frame()
 	frame->pts = totalDstFrame;
 	//got_packet = 1;
 	//while(got_packet) {
-#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+#ifdef AVCODEC_UPPER_V56
 	if(frame != NULL) {
 		ret = avcodec_send_frame(c, frame);
-		totalDstFrame++;
 		if(ret < 0) {
-			if(ret == AVERROR_EOF) {
-				return 0;
+			return -1;
+			if(ret == AVERROR_EOF) {	
+				return 1;
+				//return 0;
 			}
 			return ((ret == AVERROR(EAGAIN)) ? 0 : -1);
 		}
+		totalDstFrame++;
 		while (ret  >= 0) {
 			ret = avcodec_receive_packet(c, &pkt);
 			if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {

@@ -11,6 +11,10 @@
 #include "common.h"
 #include "csp_logger.h"
 
+#if (LIBAVCODEC_VERSION_MAJOR > 56)
+#define AVCODEC_UPPER_V56
+#endif
+
 MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg) : QThread(0)
 {
 	buffer_size=8 * 1024 * 224;
@@ -287,7 +291,7 @@ void MOVIE_SAVER::run()
 			}
 		_write_frame:
 			int result_ts = 0;
-#if 0//(LIBAVCODEC_VERSION_MAJOR > 56)
+#ifdef AVCODEC_UPPER_V56
 			if(audio_st.context != NULL) {
 				if(video_st.context != NULL) {
 					result_ts = av_compare_ts(video_st.next_pts, video_st.context->time_base,
