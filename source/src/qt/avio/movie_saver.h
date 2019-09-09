@@ -38,19 +38,31 @@ extern "C" {
 enum {
 	VIDEO_CODEC_MPEG4 = 0,
 	VIDEO_CODEC_H264,
+	VIDEO_CODEC_HEVC,  // ToDo
+	VIDEO_CODEC_VP9,   // ToDo
 	VIDEO_CODEC_END,
+	// ToDo: HWACCEL feature (maybe will not imprement).
+	VIDEO_CODEC_ACCEL_VAAPI = 32, // Intel VAAPI (GNU/Linux and some systems)
+	VIDEO_CODEC_ACCEL_QSV   = 64, // Intel QSV (libmfx)
+	VIDEO_CODEC_ACCEL_NVENC = 96, // NVidia NVENC (maybe Windows Only)
+	VIDEO_CODEC_ACCEL_AMF   = 128, // AMD UVD/VCE (Windows Only)
+	VIDEO_CODEC_ACCEL_VDPAU = 4096, // NVidia VDPAU (GNU/Linux and some systems; Only for decoding (and scaling)).
+	VIDEO_CODEC_ACCEL_DXVA2 = 8192, // Microsoft DXVA2 (Windows only)
+	VIDEO_CODEC_ACCEL_D3D11 = 12228, // Microsoft Direct3D 11 (Windows only)
 };
 
 enum {
 	AUDIO_CODEC_MP3 = 0,
 	AUDIO_CODEC_AAC,
 	AUDIO_CODEC_VORBIS,
+	AUIIO_CODEC_OPUS, // ToDo
 	AUDIO_CODEC_END,
 };
 
 enum {
 	VIDEO_CONTAINER_TYPE_MP4 = 0,
 	VIDEO_CONTAINER_TYPE_MKV,
+	VIDEO_CONTAINER_TYPE_WEBM, // ToDo
 	VIDEO_CONTAINER_TYPE_END,
 
 };
