@@ -117,14 +117,6 @@ const _TCHAR *OSD::get_lib_common_vm_git_version()
 	return vm->get_vm_git_version();
 }
 
-const _TCHAR *OSD::get_lib_osd_version()
-{
-	const _TCHAR *p = (const _TCHAR *)"\0";
-#if defined(__LIBOSD_VERSION)
-	p = (const _TCHAR *)__LIBOSD_VERSION;
-#endif
-	return p;	  
-}
 
 // Screen
 void OSD::vm_draw_screen(void)

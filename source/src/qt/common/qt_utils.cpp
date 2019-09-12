@@ -1501,6 +1501,10 @@ QString Ui_MainWindow::get_system_version()
 		outstr.append(libcommon_ver);
 		outstr.append("<BR>\n");
 	}
+	if(!(osdver.isEmpty())) {
+		outstr.append(osdver);
+		outstr.append("<BR>\n");
+	}
 	if(!(libfmgen_ver.isEmpty())) {
 		outstr.append(libfmgen_ver);
 		outstr.append("<BR>\n");

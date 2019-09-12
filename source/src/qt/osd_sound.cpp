@@ -20,67 +20,140 @@
 #include <QDateTime>
 #include <QThread>
 
+void OSD_BASE::audio_capture_callback(void *udata, Uint8 *stream, int len)
+{
+	if(len <= 0) return;
+	if(udata == NULL) return;
+	if(stream == NULL) return;
+	int len2, len3;
+	osd_snddata_capture_t *pData = (osd_snddata_capture_t *)udata;
+
+	if(pData->read_buffer_ptr == NULL) return;
+	if((pData->writepos + len) >= pData->buffer_size) {
+		// Need Wrap
+		len2 = pData->buffer_size - pData->writepos;
+		if(len2 > len) len2 = len;
+		memset(&(pData->read_buffer_ptr[pData->writepos]), 0x00, len2);
+		memcpy(&(pData->read_buffer_ptr[pData->writepos]), stream, len2);
+		len3 = len - len2;
+		if(len3 > 0) {
+			memset(&(pData->read_buffer_ptr[0]), 0x00, len3);
+			memcpy(&(pData->read_buffer_ptr[0]), &(stream[len2]), len3);
+		}
+	} else {
+		// Not need to wrap
+		memset(&(pData->read_buffer_ptr[pData->writepos]), 0x00, len);
+		memcpy(&(pData->read_buffer_ptr[pData->writepos]), stream, len);
+	}
+	pData->writepos += len;
+	if(pData->writepos >= pData->buffer_size) {
+		pData->writepos -= pData->buffer_size;
+	}
+	pData->writelen += len;
+	if(pData->writelen >= pData->buffer_size) {
+		pData->writelen = pData->buffer_size;
+	}
+}
+
 void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 {
-	int len2 = len;
-	int spos;
-	Uint8 *p;
-	Uint8 *s;
-	int writepos;
-	int sndlen;
-	//printf("Callback: udata=%08x stream=%08x len=%d\n", udata, stream, len);
-	sdl_snddata_t *pData = (sdl_snddata_t *)udata;
-	if(pData == NULL) return;
-	
 	if(len <= 0) return;
-	spos = 0;
+	if(udata == NULL) return;
+	if(stream == NULL) return;
+	int len2, len3;
+	sdl_snddata_t *pData = (sdl_snddata_t *)udata;
+	int sndlen, sndpos, bufsize;
+	int spos = 0;
+	int format_len = 1;
+	
+	len3 = len;
 	memset(stream, 0x00, len);
+	switch(pData->sound_format) {
+	case AUDIO_S16LSB:
+	case AUDIO_S16MSB:
+	case AUDIO_U16LSB:
+	case AUDIO_U16MSB:
+		format_len = sizeof(int16_t);
+		break;
+	case AUDIO_S32LSB:
+	case AUDIO_S32MSB:
+		format_len = sizeof(int32_t);
+		break;
+	case AUDIO_F32LSB:
+	case AUDIO_F32MSB:
+		format_len = sizeof(float);
+		break;
+	}
 	do {
 		if(pData->p_config->general_sound_level < -32768) pData->p_config->general_sound_level = -32768;
 		if(pData->p_config->general_sound_level > 32767)  pData->p_config->general_sound_level = 32767;
 		*pData->snd_total_volume = (uint8_t)(((uint32_t)(pData->p_config->general_sound_level + 32768)) >> 9);
-		sndlen = *pData->sound_data_len;
-		if(*(pData->sound_buffer_size)  <= *(pData->sound_write_pos)) { // Wrap
-			*(pData->sound_write_pos) = 0;
-		}
-		len2 = *(pData->sound_buffer_size) - *(pData->sound_write_pos);
+		sndlen = *(pData->sound_data_len);
+		bufsize = *(pData->sound_buffer_size);
+		sndpos = *(pData->sound_write_pos);
 		if(*pData->sound_exit) {
 			return;
 		}
-		if(len2 >= sndlen) len2 = sndlen;  // Okay
-		if((spos + len2) >= (int)(len / sizeof(Sint16))) {
-			len2 = (len / sizeof(Sint16)) - spos;
-		}
-		if((*(pData->sound_write_pos) + len2) >= *(pData->sound_buffer_size) ) len2 = *(pData->sound_buffer_size) - *(pData->sound_write_pos);
 		
-		//if(*(pData->sound_debug)) debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
-		//												"Callback,sound_write_pos=%d,spos=%d,len=%d,len2=%d",
-		//												*(pData->sound_write_pos), spos, len, len2);
-		if((len2 > 0) && (sndlen > 0)){
-			writepos = *pData->sound_write_pos;
-			p = (Uint8 *)(*pData->sound_buf_ptr);
-			p = &p[writepos * 2];
-			s = &stream[spos * 2];
+		sndpos = sndpos * format_len;
+		sndlen = sndlen * format_len; // ToDo: Multiple format
+		bufsize = bufsize * format_len; // ToDo: Multiple format
+		
+		if(sndlen >= len) sndlen = len;
+		if((sndpos + sndlen) >= bufsize) { // Need to wrap
+			int len2 = bufsize - sndpos;
+			uint8_t* p = (Uint8 *)(*pData->sound_buf_ptr);
+			uint8_t* s = &stream[spos];
+			p = &p[sndpos];
 #if defined(USE_SDL2)
-			SDL_MixAudioFormat(s, (Uint8*)p, pData->sound_format, len2 * 2, *(pData->snd_total_volume));
+			SDL_MixAudioFormat(s, p, pData->sound_format, len2, *(pData->snd_total_volume));
 #else
-			SDL_MixAudio(s, (Uint8 *)p, len2 * 2, *(pData->snd_total_volume));
+			SDL_MixAudio(s, p, len2, *(pData->snd_total_volume));
 #endif
-			*(pData->sound_data_len) -= len2;
-			if(*(pData->sound_data_len) <= 0) *(pData->sound_data_len) = 0;
-			*pData->sound_write_pos += len2;
-		} else {
-			len2 = 0;
-			if(spos >= (len / 2)) return;
-			if(*(pData->sound_data_len) <= 0) return;
-			//while(*(pData->sound_data_len) <= 0) {
-			//	QThread::usleep(500);
-			//	if(*pData->sound_exit) return;
-			//}
+			spos += len2;
+			len2 = sndlen - len2;
+			s = &stream[spos];
+			*(pData->sound_write_pos) = 0;
+			if(len2 > 0) {
+				p = (Uint8 *)(*pData->sound_buf_ptr);
+				p = &p[0];
+#if defined(USE_SDL2)
+				SDL_MixAudioFormat(s, p, pData->sound_format, len2, *(pData->snd_total_volume));
+#else
+				SDL_MixAudio(s, p, len2, *(pData->snd_total_volume));
+#endif
+				*(pData->sound_write_pos) = (len2 / format_len);
+				if(*(pData->sound_buffer_size) <= *(pData->sound_write_pos)) {
+					*(pData->sound_write_pos) = 0;
+				}
+				sndpos = len2;
+				spos += len2;
+				len2 = 0;
+			}
+			len -= sndlen;
+		} else { // No Need to wrap
+			int len2 = sndlen;
+			uint8_t* p = (Uint8 *)(*pData->sound_buf_ptr);
+			uint8_t* s = &stream[spos];
+			p = &p[sndpos];
+#if defined(USE_SDL2)
+			SDL_MixAudioFormat(s, p, pData->sound_format, len2, *(pData->snd_total_volume));
+#else
+			SDL_MixAudio(s, p, len2, *(pData->snd_total_volume));
+#endif
+			*(pData->sound_write_pos) += (len2 / format_len); 
+			if(*(pData->sound_buffer_size) <= *(pData->sound_write_pos)) {
+				*(pData->sound_write_pos) = 0;
+			}
+			spos += len2;
+			len -= sndlen;
 		}
-		spos += len2;
+		*(pData->sound_data_len)  -= (sndlen / format_len);
+		if(*(pData->sound_data_len) <= 0) return;
 		if(*pData->sound_exit) return;
-	} while(spos < len); 
+		if(spos >= len3) return;
+		// WIP: Do place wait (1ms)?
+	} while(len > 0);
 }
 
 const _TCHAR *OSD_BASE::get_sound_device_name(int num)
@@ -102,9 +175,57 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 	std::string devname;
 	int i;
 
+	bool pre_initialized = sound_initialized;
 	if(sound_initialized) {
 		release_sound();
 	}
+
+	sound_capture_device_list.clear();
+#if 0
+	for(int ch = 0 ; ch < MAX_CAPTURE_SOUND; ch++) {
+		// ToDo: Allocation.
+		// ToDo: Close physical device.
+		if(!pre_initialized) {
+			sound_capturing_emu[ch] = false;
+			
+			sound_capture_desc[ch].physical_dev = 0;
+			sound_capture_desc[ch].read_format = AUDIO_S16SYS;
+			sound_capture_desc[ch].read_rate = 0;
+			sound_capture_desc[ch].read_channels = 0;
+			sound_capture_desc[ch].read_samples = 0;
+			sound_capture_desc[ch].read_silence = 0;
+			sound_capture_desc[ch].read_size = 0;
+			sound_capture_desc[ch].read_userdata = NULL;
+			sound_capture_desc[ch].sample_type = 0; // ToDo : ENUM
+			sound_capture_desc[ch].rate = 0;
+			sound_capture_desc[ch].channels = 0;
+			sound_capture_desc[ch].samples = 0;
+			sound_capture_desc[ch].write_size = 0;
+			sound_capture_desc[ch].write_pos = 0;
+			sound_capture_desc[ch].read_data_len = 0;
+			sound_capture_desc[ch].read_buffer_len = 0;
+			sound_capture_desc[ch].read_buffer_ptr = NULL;
+			sound_capture_desc[ch].out_buffer = NULL;
+		}
+	}
+	for(int num = 0 ; num < MAX_SOUND_CAPTURE_DEVICES; num++) {
+		sound_capture_dev_desc[num].format = AUDIO_S16SYS;
+		sound_capture_dev_desc[num].sample_rate = 0;
+		sound_capture_dev_desc[num].channels = 0;
+		sound_capture_dev_desc[num].buffer_samples = 0;
+		sound_capture_dev_desc[num].silence = 0;
+		sound_capture_dev_desc[num].size = 0;
+		sound_capture_dev_desc[num].callback = audio_capture_callback;
+		sound_capture_dev_desc[num].userdata.format = AUDIO_S16SYS;
+		sound_capture_dev_desc[num].userdata.buffer_size = 0;
+		sound_capture_dev_desc[num].userdata.readlen = 0;
+		sound_capture_dev_desc[num].userdata.writelen = 0;
+		sound_capture_dev_desc[num].userdata.readpos = 0;
+		sound_capture_dev_desc[num].userdata.read_buffer_ptr = NULL;
+		capturing_sound[num] = false;
+	}
+#endif
+	
 	sound_rate = rate;
 	sound_samples = samples;
 	rec_sound_buffer_ptr = 0;
@@ -213,7 +334,19 @@ void OSD_BASE::release_sound()
 	// release SDL sound
 	sound_exit = true;
 	sound_initialized = false;
-
+#if 0
+	for(int num = 0; num < MAX_SOUND_CAPTURE_DEVICES; num++) {
+		if(capturing_sound[num]) {
+			close_sound_capture_device(num, true);
+		}
+	}
+	// ToDo: Reopen
+	for(int ch = 0; ch < MAX_CAPTURE_SOUNDS; ch++) {
+		if(sound_capturing_emu[ch]) {
+			close_capture_sound_emu(ch);
+		}
+	}
+#endif
 #if defined(USE_SDL2)   
 	//SDL_PauseAudioDevice(audio_dev_id, 1);
 	SDL_CloseAudioDevice(audio_dev_id);
@@ -431,51 +564,12 @@ void OSD_BASE::stop_record_sound()
 			// update wave header
 			wav_header_t wav_header;
 			wav_chunk_t wav_chunk;
-#if 0
-			pair16_t tmpval16;
-			pair32_t tmpval32;
-			
-			memcpy(wav_header.riff_chunk.id, "RIFF", 4);
-			
-			tmpval32.d = rec_sound_bytes + sizeof(wav_header_t) - 8;
-			wav_header.riff_chunk.size = tmpval32.get_4bytes_le_to();
-			
-			memcpy(wav_header.wave, "WAVE", 4);
-			memcpy(wav_header.fmt_chunk.id, "fmt ", 4);
-			
-			tmpval32.d = 16;
-			wav_header.fmt_chunk.size = tmpval32.get_4bytes_le_to();
-
-			tmpval16.w = 1;
-			wav_header.format_id = tmpval16.get_2bytes_le_to();
-			
-			tmpval16.w = 2;
-			wav_header.channels =  tmpval16.get_2bytes_le_to();
-			
-			tmpval16.w = 16;
-			wav_header.sample_bits = tmpval16.get_2bytes_le_to();
-
-			tmpval32.d = snd_spec_presented.freq;
-			wav_header.sample_rate = tmpval32.get_4bytes_le_to();
-
-			tmpval16.w = wav_header.channels * wav_header.sample_bits / 8;
-			wav_header.block_size = tmpval16.get_2bytes_le_to();
-
-			tmpval32.d = wav_header.sample_rate * wav_header.block_size;
-			wav_header.data_speed = tmpval32.get_4bytes_le_to();
-			
-			memcpy(wav_chunk.id, "data", 4);
-
-			tmpval32.d = rec_sound_bytes;
-			wav_chunk.size = tmpval32.get_4bytes_le_to();
-#else
 			if(!set_wav_header(&wav_header, &wav_chunk, 2, snd_spec_presented.freq, 16,
 							 (size_t)(rec_sound_bytes + sizeof(wav_header) + sizeof(wav_chunk)))) {
 				delete rec_sound_fio;
 				now_record_sound = false;
 				return;
 			}
-#endif
 			rec_sound_fio->Fseek(0, FILEIO_SEEK_SET);
 			rec_sound_fio->Fwrite(&wav_header, sizeof(wav_header_t), 1);
 			rec_sound_fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
@@ -517,4 +611,174 @@ void OSD_BASE::init_sound_files()
 
 void OSD_BASE::release_sound_files()
 {
+}
+
+
+void OSD_BASE::close_capture_sound_emu(int ch)
+{
+	if(ch < 0) return;
+	if(ch >= MAX_CAPTURE_SOUNDS) return;
+	if(sound_capture_desc[ch].out_buffer != NULL) {
+		free(sound_capture_desc[ch].out_buffer);
+	}
+	sound_capture_desc[ch].out_buffer = NULL;
+	sound_capturing_emu[ch] = false;
+}
+
+void *OSD_BASE::get_capture_sound_buffer(int ch)
+{
+	if(ch < 0) return NULL;
+	if(ch >= MAX_CAPTURE_SOUNDS) return NULL;
+	return sound_capture_desc[ch].out_buffer;
+}
+
+bool OSD_BASE::is_capture_sound_buffer(int ch)
+{
+	if(ch < 0) return false;
+	if(ch >= MAX_CAPTURE_SOUNDS) return false;
+	if(sound_capture_desc[ch].out_buffer == NULL) return false;
+	return sound_capturing_emu[ch];
+}
+void *OSD_BASE::open_capture_sound_emu(int ch, int rate, int channels, int sample_type, int samples, int physical_device_num)
+{
+	if(ch < 0) return NULL;
+	if(ch >= MAX_CAPTURE_SOUNDS) return NULL;
+	
+	close_capture_sound_emu(ch);
+	sound_capture_desc[ch].rate = rate;
+	sound_capture_desc[ch].channels = channels;
+	sound_capture_desc[ch].samples = samples;
+	sound_capture_desc[ch].sample_type = sample_type;
+	sound_capture_desc[ch].physical_dev = physical_device_num;
+	bool stat = false;
+	if((physical_device_num >= 0) && (physical_device_num < sound_capture_device_list.count()) && (physical_device_num < MAX_SOUND_CAPTURE_DEVICES)) {
+		if(!(capturing_sound[physical_device_num])) {
+			stat = open_sound_capture_device(physical_device_num, (rate < 44100) ? 44100 : rate, (channels > 2) ? channels : 2);
+		}
+	}
+	
+	void *p = NULL;
+	if(stat) {
+		switch(sample_type) {
+		case SAMPLE_TYPE_UINT8:
+		case SAMPLE_TYPE_SINT8:
+			p = malloc(sizeof(uint8_t) * channels * (samples + 100));
+			break;
+		case SAMPLE_TYPE_UINT16_BE:
+		case SAMPLE_TYPE_SINT16_BE:
+		case SAMPLE_TYPE_UINT16_LE:
+		case SAMPLE_TYPE_SINT16_LE:
+			p = malloc(sizeof(uint16_t) * channels * (samples + 100));
+			break;
+		case SAMPLE_TYPE_UINT32_BE:
+		case SAMPLE_TYPE_SINT32_BE:
+		case SAMPLE_TYPE_UINT32_LE:
+		case SAMPLE_TYPE_SINT32_LE:
+		p = malloc(sizeof(uint32_t) * channels * (samples + 100));
+		break;
+		case SAMPLE_TYPE_FLOAT_BE:
+		case SAMPLE_TYPE_FLOAT_LE:
+			p = malloc(sizeof(float) * channels * (samples + 100));
+			break;
+		}
+	}
+	sound_capture_desc[ch].out_buffer = (uint8_t *)p;
+	sound_capturing_emu[ch] = true;
+	return p;
+}
+	
+bool OSD_BASE::open_sound_capture_device(int num, int req_rate, int req_channels)
+{
+	if(num < 0) return false;
+	if(num >= MAX_SOUND_CAPTURE_DEVICES) return false;
+	if(sound_capture_device_list.count() <= num) return false;
+	SDL_AudioSpec req;
+	SDL_AudioSpec desired;
+	req.freq = req_rate;
+	req.channels = req_channels;
+	req.silence = 0;
+	req.format = AUDIO_S16SYS;
+	req.samples = (sizeof(sound_capture_buffer[num]) / sizeof(int16_t)) / req_channels;
+	req.callback = &(this->audio_capture_callback);
+	req.userdata = (void *)(&(sound_capture_dev_desc[num].userdata));
+	
+	if(!(capturing_sound[num])) {
+		sound_capture_desc[num].physical_dev = SDL_OpenAudioDevice((const char *)sound_capture_device_list.value(num).toUtf8().constData(), 1, &req, &desired, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+		if(sound_capture_desc[num].physical_dev <= 0) {
+			debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,"Failed to initialize sound capture device \"%s\"\n", (const char *)sound_capture_device_list.value(num).toUtf8().constData());
+			sound_capture_desc[num].physical_dev = -1;
+			return false;
+		}
+		// Device OK
+		capturing_sound[num] = true;
+		sound_capture_dev_desc[num].format = desired.format;
+		sound_capture_dev_desc[num].sample_rate = desired.freq;
+		sound_capture_dev_desc[num].channels = desired.channels;
+		sound_capture_dev_desc[num].buffer_samples = desired.samples;
+		sound_capture_dev_desc[num].size = desired.size;
+		sound_capture_dev_desc[num].callback = desired.callback;
+		sound_capture_dev_desc[num].silence = desired.silence;
+		int buflen = desired.samples * desired.channels;
+		switch(desired.format) {
+		case AUDIO_S8:
+		case AUDIO_U8:
+			buflen = buflen * sizeof(int8_t);
+			break;
+		case AUDIO_S16LSB:
+		case AUDIO_S16MSB:
+		case AUDIO_U16LSB:
+		case AUDIO_U16MSB:
+			buflen = buflen * sizeof(int16_t);
+			break;
+		case AUDIO_S32LSB:
+		case AUDIO_S32MSB:
+			buflen = buflen * sizeof(int32_t);
+			break;
+		case AUDIO_F32LSB:
+		case AUDIO_F32MSB:
+			buflen = buflen * sizeof(float);
+			break;
+		default:
+			break;
+		}
+		
+		sound_capture_dev_desc[num].userdata.buffer_size = buflen;
+		sound_capture_dev_desc[num].userdata.format = desired.format;
+		sound_capture_dev_desc[num].userdata.readlen = 0;
+		sound_capture_dev_desc[num].userdata.writelen = 0;
+		sound_capture_dev_desc[num].userdata.readpos = 0;
+		sound_capture_dev_desc[num].userdata.writepos = 0;
+		sound_capture_dev_desc[num].userdata.read_buffer_ptr = &(sound_capture_buffer[num][0]);
+		memset(&(sound_capture_buffer[num][0]), 0x00, buflen);
+		
+		for(int ch = 0; ch < MAX_SOUND_CAPTURE_DEVICES; ch++) {
+			if((sound_capture_desc[ch].physical_dev == num)) {
+				sound_capture_desc[ch].read_format = desired.format;
+				sound_capture_desc[ch].read_rate = desired.freq;
+				sound_capture_desc[ch].read_silence = desired.silence;
+				sound_capture_desc[ch].read_size = desired.size;
+				sound_capture_desc[ch].read_channels = desired.channels;
+				sound_capture_desc[ch].read_samples = desired.samples;
+				sound_capture_desc[ch].read_callback = desired.callback;
+				sound_capture_desc[ch].read_userdata = desired.userdata;
+				
+				sound_capture_desc[ch].read_pos = 0;
+				sound_capture_desc[ch].read_data_len = 0;
+				sound_capture_desc[ch].read_buffer_len = buflen;
+				sound_capture_desc[ch].read_buffer_ptr = (uint8_t *)(&(sound_capture_buffer[num][0]));
+
+				
+			}				
+		}
+	}
+	return true;
+}
+
+bool OSD_BASE::close_sound_capture_device(int num, bool force)
+{
+	// ToDo: Check capturing entries
+	if((capturing_sound[num]) && (sound_capture_desc[num].physical_dev > 0)) {
+		SDL_CloseAudioDevice(sound_capture_desc[num].physical_dev);
+	}
+	return true;
 }

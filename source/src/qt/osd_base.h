@@ -47,6 +47,20 @@
 
 //#include "qt_main.h"
 
+enum {
+	SAMPLE_TYPE_SINT8 = 0,
+	SAMPLE_TYPE_UINT8,
+	SAMPLE_TYPE_SINT16_BE,
+	SAMPLE_TYPE_SINT16_LE,
+	SAMPLE_TYPE_UINT16_BE,
+	SAMPLE_TYPE_UINT16_LE,
+	SAMPLE_TYPE_SINT32_BE,
+	SAMPLE_TYPE_SINT32_LE,
+	SAMPLE_TYPE_UINT32_BE,
+	SAMPLE_TYPE_UINT32_LE,
+	SAMPLE_TYPE_FLOAT_BE,
+	SAMPLE_TYPE_FLOAT_LE,
+};
 
 class GLDrawClass;
 class EmuThreadClass;
@@ -67,6 +81,8 @@ class SIO_REDIRECTOR;
 
 QT_BEGIN_NAMESPACE
 
+#define MAX_SOUND_CAPTURE_DEVICES 8
+#define MAX_CAPTURE_SOUNDS 16
 typedef struct {
 	int id;
 	const _TCHAR *name;
@@ -89,6 +105,52 @@ typedef struct {
 	int id; // Unique id
 	SIO_REDIRECTOR* dev;
 } external_sio_t;
+
+typedef struct {
+	SDL_AudioFormat format;
+	int buffer_size;
+	int readlen;
+	int writelen;
+	int readpos;
+	int writepos;
+	uint8_t* read_buffer_ptr;
+} osd_snddata_capture_t;
+
+typedef struct {
+	SDL_AudioFormat format;
+	int sample_rate;
+	int channels;
+	int buffer_samples;
+	int silence;
+	int size;
+	SDL_AudioCallback callback;
+	osd_snddata_capture_t userdata;
+} osd_snd_capture_dev_desc_t;
+
+typedef struct {
+	int physical_dev;
+	SDL_AudioFormat  read_format;
+	int read_rate;
+	int read_channels;
+	int read_samples;
+	int read_silence;
+	int read_size;
+	SDL_AudioCallback read_callback;
+	void *read_userdata;
+	// For output
+	int sample_type; // ToDo : ENUM
+	int rate;
+	int channels;
+	int samples;
+	int write_size;
+	int write_pos;
+	int read_pos;
+	int read_data_len;
+	int read_buffer_len;
+	
+	uint8_t *read_buffer_ptr;
+	uint8_t *out_buffer;
+} osd_snd_capture_desc_t;
 
 class DLL_PREFIX OSD_BASE : public QThread
 {
@@ -206,6 +268,7 @@ protected:
 #endif
 	SDL_AudioSpec snd_spec_req, snd_spec_presented;
 	void release_sound();
+	static void audio_capture_callback(void *udata, Uint8 *stream, int len);
 	static void audio_callback(void *udata, Uint8 *stream, int len);
 	int sound_rate, sound_samples;
 	bool sound_ok, sound_started, now_mute;
@@ -216,7 +279,7 @@ protected:
 	FILEIO* rec_sound_fio;
 	int rec_sound_bytes;
 	int rec_sound_buffer_ptr;
-	
+
 	int sound_buffer_size;
 	int sound_data_len;
 	int sound_data_pos;
@@ -226,7 +289,14 @@ protected:
 	bool sound_initialized;
 	Sint16 *sound_buf_ptr;
 	Uint8 snd_total_volume;
-	
+
+	// sound capture
+	QStringList sound_capture_device_list;
+	bool sound_capturing_emu[MAX_CAPTURE_SOUNDS];
+	osd_snd_capture_desc_t  sound_capture_desc[MAX_CAPTURE_SOUNDS]; // To EMU:: and VM::
+	bool capturing_sound[MAX_SOUND_CAPTURE_DEVICES];
+	osd_snd_capture_dev_desc_t  sound_capture_dev_desc[MAX_SOUND_CAPTURE_DEVICES]; // From physical devices
+	uint8_t sound_capture_buffer[MAX_SOUND_CAPTURE_DEVICES][32768];
 	// video device
 	virtual void initialize_video();
 	virtual void release_video();
@@ -429,6 +499,17 @@ public:
 	
 	bool now_record_sound;
 	int get_sound_rate();
+
+	// To VM:: and EMU::
+	void *get_capture_sound_buffer(int ch);
+	bool is_capture_sound_buffer(int ch);
+	void *open_capture_sound_emu(int ch, int rate, int channels, int sample_type, int samples, int physical_device_num);
+	void close_capture_sound_emu(int ch);
+
+	// From physical device?
+	bool open_sound_capture_device(int num, int req_rate, int req_channels);
+	bool close_sound_capture_device(int num, bool force);
+
 	// Wrapper : Sound
 	virtual void load_sound_file(int id, const _TCHAR *name, int16_t **data, int *dst_size);
 	virtual void free_sound_file(int id, int16_t **data);
@@ -508,7 +589,7 @@ public:
 	virtual void reset_vm_node(void);
 	virtual const _TCHAR *get_lib_common_vm_version() { return (const _TCHAR *)"\0"; }
 	virtual const _TCHAR *get_lib_common_vm_git_version() { return (const _TCHAR *)"\0"; }
-	virtual const _TCHAR *get_lib_osd_version() { return (const _TCHAR *)"\0"; }
+	const _TCHAR *get_lib_osd_version();
 	
 	virtual void set_device_name(int id, char *name);
 	
