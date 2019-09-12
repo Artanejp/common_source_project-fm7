@@ -36,7 +36,7 @@ class GLDrawClass;
 #include "qt_input.h"
 #endif
 typedef struct {
-	Sint16 **sound_buf_ptr;
+	uint8_t **sound_buf_ptr;
 	int *sound_buffer_size;
 	int *sound_write_pos;
 	int *sound_data_len;

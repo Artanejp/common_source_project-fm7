@@ -270,6 +270,8 @@ protected:
 	void release_sound();
 	static void audio_capture_callback(void *udata, Uint8 *stream, int len);
 	static void audio_callback(void *udata, Uint8 *stream, int len);
+	void convert_sound_format(uint8_t* dst1, uint8_t* dst2, int16_t* src1, int16_t* src2, int samples1, int samples2);
+
 	int sound_rate, sound_samples;
 	bool sound_ok, sound_started, now_mute;
 	bool sound_first_half;
@@ -287,7 +289,7 @@ protected:
 	bool sound_exit;
 	bool sound_debug;
 	bool sound_initialized;
-	Sint16 *sound_buf_ptr;
+	uint8_t *sound_buf_ptr;
 	Uint8 snd_total_volume;
 
 	// sound capture

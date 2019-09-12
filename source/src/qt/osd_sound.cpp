@@ -102,7 +102,7 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 		if(sndlen >= len) sndlen = len;
 		if((sndpos + sndlen) >= bufsize) { // Need to wrap
 			int len2 = bufsize - sndpos;
-			uint8_t* p = (Uint8 *)(*pData->sound_buf_ptr);
+			uint8_t* p = (uint8_t *)(*pData->sound_buf_ptr);
 			uint8_t* s = &stream[spos];
 			p = &p[sndpos];
 #if defined(USE_SDL2)
@@ -115,7 +115,7 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 			s = &stream[spos];
 			*(pData->sound_write_pos) = 0;
 			if(len2 > 0) {
-				p = (Uint8 *)(*pData->sound_buf_ptr);
+				p = (uint8_t *)(*pData->sound_buf_ptr);
 				p = &p[0];
 #if defined(USE_SDL2)
 				SDL_MixAudioFormat(s, p, pData->sound_format, len2, *(pData->snd_total_volume));
@@ -133,7 +133,7 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 			len -= sndlen;
 		} else { // No Need to wrap
 			int len2 = sndlen;
-			uint8_t* p = (Uint8 *)(*pData->sound_buf_ptr);
+			uint8_t* p = (uint8_t *)(*pData->sound_buf_ptr);
 			uint8_t* s = &stream[spos];
 			p = &p[sndpos];
 #if defined(USE_SDL2)
@@ -243,7 +243,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 
 	snd_total_volume = 127;
    
-	snddata.sound_buf_ptr = &sound_buf_ptr;
+	snddata.sound_buf_ptr = (uint8_t**)(&sound_buf_ptr);
 	snddata.sound_buffer_size = &sound_buffer_size;
 	snddata.sound_write_pos = &sound_write_pos;
 	snddata.sound_data_len = &sound_data_len;
@@ -311,8 +311,25 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		*presented_samples = sound_samples;
 	}
 	// secondary buffer
+	int format_len = 1;
+	switch(snddata.sound_format) {
+	case AUDIO_S16LSB:
+	case AUDIO_S16MSB:
+	case AUDIO_U16LSB:
+	case AUDIO_U16MSB:
+		format_len = sizeof(int16_t);
+		break;
+	case AUDIO_S32LSB:
+	case AUDIO_S32MSB:
+		format_len = sizeof(int32_t);
+		break;
+	case AUDIO_F32LSB:
+	case AUDIO_F32MSB:
+		format_len = sizeof(float);
+		break;
+	}
 	sound_buffer_size = sound_samples * snd_spec_presented.channels * 2;
-	sound_buf_ptr = (Sint16 *)malloc(sound_buffer_size * sizeof(Sint16)); 
+	sound_buf_ptr = (uint8_t *)malloc(sound_buffer_size * format_len); 
 	if(sound_buf_ptr == NULL) {
 #if defined(USE_SDL2)   	   
 		SDL_CloseAudioDevice(audio_dev_id);
@@ -324,7 +341,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 
 	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
 						  "Sound OK: BufSize = %d", sound_buffer_size);
-	memset(sound_buf_ptr, 0x00, sound_buffer_size * sizeof(Sint16));
+	memset(sound_buf_ptr, 0x00, sound_buffer_size * format_len);
 	sound_initialized = true;
 	sound_ok = sound_first_half = true;
 }
@@ -359,6 +376,288 @@ void OSD_BASE::release_sound()
 	// stop recording
 }
 
+void OSD_BASE::convert_sound_format(uint8_t* dst1, uint8_t* dst2, int16_t* src1, int16_t* src2, int samples1, int samples2)
+{
+	if(dst1 == NULL) return;
+	if(snddata.sound_format == AUDIO_S16SYS) { // Not Convert
+		if((src1 != NULL) && (samples1 > 0)) {
+			my_memcpy(dst1, src1, samples1 * sizeof(int16_t));
+		}
+		if((src2 != NULL) && (samples2 > 0) && (dst2 != NULL)) {
+			my_memcpy(dst2, src2, samples2 * sizeof(int16_t));
+		}
+		return;
+	}
+
+	union {
+#if defined(__LITTLE_ENDIAN__)
+		uint8_t l, h, h1, h2;
+#else		
+		uint8_t h2, h1, h, l;
+#endif
+		float f;
+		uint32_t d;
+	} float_data;
+	
+	switch(snddata.sound_format) {
+		// S16SYS
+	case AUDIO_S8:
+		if(src1 != NULL) {
+			int16_t *q = (int16_t*)src1;
+			int8_t* p = (int8_t*)dst1;
+			int dat;
+			for(int i = 0; i < samples1; i++) {
+				dat = q[i];
+				dat >>= 8;
+				p[i] = dat;
+			}
+		}
+		if((src2 != NULL) && (dst2 != NULL)) {
+			int16_t *q = (int16_t*)src2;
+			int8_t* p = (int8_t*)dst2;
+			int dat;
+			for(int i = 0; i < samples2; i++) {
+				dat = q[i];
+				dat >>= 8;
+				p[i] = dat;
+			}
+		}
+		break;
+	case AUDIO_U8:
+		if(src1 != NULL) {
+			int16_t *q = (int16_t*)src1;
+			uint8_t* p = (uint8_t*)dst1;
+			int dat;
+			for(int i = 0; i < samples1; i++) {
+				dat = q[i];
+				dat += 32768;
+				dat >>= 8;
+				p[i] = dat;
+			}
+		}
+		if((src2 != NULL) && (dst2 != NULL)) {
+			int16_t *q = (int16_t*)src2;
+			uint8_t* p = (uint8_t*)dst2;
+			int dat;
+			for(int i = 0; i < samples2; i++) {
+				dat = q[i];
+				dat += 32768;
+				dat >>= 8;
+				p[i] = dat;
+			}
+		}
+		break;
+	case AUDIO_S16LSB:
+		if(src1 != NULL) {
+			int16_t *q = (int16_t*)src1;
+			int16_t* p = (int16_t*)dst1;
+			pair16_t dat;
+			for(int i = 0; i < samples1; i++) {
+				dat.sw = q[i];
+#if defined(__LITTLE_ENDIAN__)
+				p[i] = dat.sw;
+#else
+				p[i] = dat.get_2bytes_le_to();
+#endif
+			}
+		}
+		if((src2 != NULL) && (dst2 != NULL)) {
+			int16_t* q = (int16_t*)src2;
+			int16_t* p = (int16_t*)dst2;
+			pair16_t dat;
+			for(int i = 0; i < samples2; i++) {
+				dat.sw = q[i];
+#if defined(__LITTLE_ENDIAN__)
+				p[i] = dat.sw;
+#else
+				p[i] = dat.get_2bytes_le_to();
+#endif
+			}
+		}
+		break;
+	case AUDIO_U16LSB:
+		if(src1 != NULL) {
+			int16_t* q = (int16_t*)src1;
+			uint16_t* p = (uint16_t*)dst1;
+			pair16_t dat;
+			int32_t d2;
+			for(int i = 0; i < samples1; i++) {
+				d2 = q[i];
+				d2 = d2 + 32768;
+#if defined(__LITTLE_ENDIAN__)
+				p[i] = d2 & 0xffff;
+#else
+				dat.w = d2 & 0xffff;
+				p[i] = dat.get_2bytes_le_to();
+#endif
+			}
+		}
+		if((src2 != NULL) && (dst2 != NULL)) {
+			int16_t* q = (int16_t*)src2;
+			uint16_t* p = (uint16_t*)dst2;
+			pair16_t dat;
+			int d2;
+			for(int i = 0; i < samples2; i++) {
+				d2 = q[i];
+				d2 = d2 + 32768;
+#if defined(__LITTLE_ENDIAN__)
+				p[i] = d2 & 0xffff;
+#else
+				dat.w = d2 & 0xffff;
+				p[i] = dat.get_2bytes_le_to();
+#endif
+			}
+		}
+		break;
+	case AUDIO_S16MSB:
+		if(src1 != NULL) {
+			int16_t *q = (int16_t*)src1;
+			int16_t* p = (int16_t*)dst1;
+			pair16_t dat;
+			for(int i = 0; i < samples1; i++) {
+				dat.sw = q[i];
+#if defined(__LITTLE_ENDIAN__)
+				p[i] = dat.get_2bytes_be_to();
+#else
+				p[i] = dat.w;
+#endif
+			}
+		}
+		if((src2 != NULL) && (dst2 != NULL)) {
+			int16_t* q = (int16_t*)src2;
+			int16_t* p = (int16_t*)dst2;
+			pair16_t dat;
+			for(int i = 0; i < samples2; i++) {
+				dat.sw = q[i];
+#if defined(__LITTLE_ENDIAN__)
+				p[i] = dat.get_2bytes_be_to();
+#else
+				p[i] = dat.w;
+#endif
+			}
+		}
+		break;
+	case AUDIO_U16MSB:
+		if(src1 != NULL) {
+			int16_t* q = (int16_t*)src1;
+			uint16_t* p = (uint16_t*)dst1;
+			pair16_t dat;
+			int d2;
+			for(int i = 0; i < samples1; i++) {
+				d2 = q[i];
+				d2 = d2 + 32768;
+#if defined(__LITTLE_ENDIAN__)
+				dat.w = d2 & 0xffff;
+				p[i] = dat.get_2bytes_be_to();
+#else
+				p[i] = d2 & 0xffff;
+#endif
+			}
+		}
+		if((src2 != NULL) && (dst2 != NULL)) {
+			int16_t* q = (int16_t*)src2;
+			uint16_t* p = (uint16_t*)dst2;
+			pair16_t dat;
+			int d2;
+			for(int i = 0; i < samples2; i++) {
+				d2 = q[i];
+				d2 = d2 + 32768;
+#if defined(__LITTLE_ENDIAN__)
+				dat.w = d2 & 0xffff;
+				p[i] = dat.get_2bytes_be_to();
+#else
+				p[i] = d2 & 0xffff;
+#endif
+			}
+		}
+		break;
+	case AUDIO_S32LSB:
+		if(src1 != NULL) {
+			uint32_t data;
+			uint32_t* p = (uint32_t*)dst1;
+			int32_t* q = (int32_t*)src1;
+			for(int i = 0; i < samples1; i++) {
+				data = q[i];
+				data <<= 16;
+				p[i] = EndianToLittle_DWORD(data);
+			}
+		}
+		if((src2 != NULL) && (dst2 != NULL)) {
+			uint32_t data;
+			uint32_t* p = (uint32_t*)dst2;
+			int32_t* q = (int32_t*)src2;
+			for(int i = 0; i < samples2; i++) {
+				data = q[i];
+				data <<= 16;
+				p[i] = EndianToLittle_DWORD(data);
+			}
+		}
+		break;
+	case AUDIO_S32MSB:
+		if(src1 != NULL) {
+			uint32_t data;
+			uint32_t* p = (uint32_t*)dst1;
+			int32_t* q = (int32_t*)src1;
+			for(int i = 0; i < samples1; i++) {
+				data = q[i];
+				data <<= 16;
+				p[i] = EndianToBig_DWORD(data);
+			}
+		}
+		if((src2 != NULL) && (dst2 != NULL)) {
+			uint32_t* p = (uint32_t*)dst2;
+			int32_t* q = (int32_t*)src2;
+			uint32_t data;
+			for(int i = 0; i < samples2; i++) {
+				data = q[i];
+				data <<= 16;
+				p[i] = EndianToBig_DWORD(data);
+			}
+		}
+		break;
+	case AUDIO_F32LSB:
+		if(src1 != NULL) {
+			uint32_t* p = (uint32_t*)dst1;
+			int32_t* q = (int32_t*)src1;
+			for(int i = 0; i < samples1; i++) {
+				float_data.f = q[i];
+				float_data.f /= 65536;
+				p[i] = EndianToLittle_DWORD(float_data.d);
+			}
+		}
+		if((src2 != NULL) && (dst2 != NULL)) {
+			uint32_t* p = (uint32_t*)dst2;
+			int32_t* q = (int32_t*)src2;
+			for(int i = 0; i < samples2; i++) {
+				float_data.f = q[i];
+				float_data.f /= 65536;
+				p[i] = EndianToLittle_DWORD(float_data.d);
+			}
+		}
+		break;
+	case AUDIO_F32MSB:
+		if(src1 != NULL) {
+			uint32_t* p = (uint32_t*)dst1;
+			int32_t* q = (int32_t*)src1;
+			for(int i = 0; i < samples1; i++) {
+				float_data.f = q[i];
+				float_data.f /= 65536;
+				p[i] = EndianToBig_DWORD(float_data.d);
+			}
+		}
+		if((src2 != NULL) && (dst2 != NULL)) {
+			uint32_t* p = (uint32_t*)dst2;
+			int32_t* q = (int32_t*)src2;
+			for(int i = 0; i < samples2; i++) {
+				float_data.f = q[i];
+				float_data.f /= 65536;
+				p[i] = EndianToBig_DWORD(float_data.d);
+			}
+		}
+		break;
+	}
+}
+
 void OSD_BASE::update_sound(int* extra_frames)
 {
 	*extra_frames = 0;
@@ -367,7 +666,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 	if(sound_ok) {
 		uint32_t play_c, size1, size2;
 		//uint32_t offset;
-		Sint16 *ptr1, *ptr2;
+		uint8_t *ptr1, *ptr2;
 		
 		// start play
 		// check current position
@@ -418,12 +717,28 @@ void OSD_BASE::update_sound(int* extra_frames)
 		        int ssize;
 		        int pos;
 		        int pos2;
+				int format_len = 1;
 		        if(sound_initialized) {
+					switch(snddata.sound_format) {
+					case AUDIO_S16LSB:
+					case AUDIO_S16MSB:
+					case AUDIO_U16LSB:
+					case AUDIO_U16MSB:
+						format_len = sizeof(int16_t);
+						break;
+					case AUDIO_S32LSB:
+					case AUDIO_S32MSB:
+						format_len = sizeof(int32_t);
+						break;
+					case AUDIO_F32LSB:
+					case AUDIO_F32MSB:
+						format_len = sizeof(float);
+						break;
+					}
 					ssize = sound_samples * snd_spec_presented.channels;
-
 			        pos = sound_data_pos;
 			        pos2 = pos + ssize;
-		        	ptr1 = &sound_buf_ptr[pos];
+		        	ptr1 = (uint8_t*)(&sound_buf_ptr[pos * format_len]);
 			        if(pos2 >= sound_buffer_size) {
 						size1 = sound_buffer_size  - pos;
 						size2 = pos2 - sound_buffer_size;
@@ -438,12 +753,17 @@ void OSD_BASE::update_sound(int* extra_frames)
 #else
 					SDL_LockAudio();
 #endif
+#if 0
 					if(ptr1) {
-						my_memcpy(ptr1, sound_buffer, size1 * sizeof(Sint16));
+						my_memcpy(ptr1, sound_buffer, size1 * format_len);
 					}
-					if(ptr2) {
-						my_memcpy(ptr2, &sound_buffer[size1], size2 * sizeof(Sint16));
+					if((ptr2) && (size2 > 0)) {
+						my_memcpy(ptr2, &sound_buffer[size1], size2 * format_len);
 					}
+#else
+					convert_sound_format(ptr1, ptr2, sound_buffer, &sound_buffer[size1], size1, size2);
+#endif
+
 					sound_data_len = sound_data_len + ssize;
 					if(sound_data_len >= sound_buffer_size) sound_data_len = sound_buffer_size;
 					sound_data_pos = sound_data_pos + ssize;
@@ -470,7 +790,7 @@ void OSD_BASE::mute_sound()
 		// check current position
 		uint32_t size1, size2;
 	    
-		Sint16 *ptr1, *ptr2;
+		uint8_t *ptr1, *ptr2;
 		// WIP
 		int ssize;
 		int pos;
@@ -480,10 +800,27 @@ void OSD_BASE::mute_sound()
 #else
 		SDL_LockAudio();
 #endif
+		int format_len = 1;
+		switch(snddata.sound_format) {
+		case AUDIO_S16LSB:
+		case AUDIO_S16MSB:
+		case AUDIO_U16LSB:
+		case AUDIO_U16MSB:
+			format_len = sizeof(int16_t);
+			break;
+		case AUDIO_S32LSB:
+		case AUDIO_S32MSB:
+			format_len = sizeof(int32_t);
+			break;
+		case AUDIO_F32LSB:
+		case AUDIO_F32MSB:
+			format_len = sizeof(float);
+			break;
+		}
 		ssize = sound_buffer_size / 2;
 		pos = sound_data_pos;
 		pos2 = pos + ssize;
-		ptr1 = &sound_buf_ptr[pos];
+		ptr1 = &sound_buf_ptr[pos * format_len];
 		if(pos2 >= sound_buffer_size) {
 			size1 = sound_buffer_size - pos;
 			size2 = pos2 - sound_buffer_size;
@@ -495,10 +832,10 @@ void OSD_BASE::mute_sound()
 		}
 		
 		if(ptr1) {
-			memset(ptr1, 0x00, size1 * sizeof(Sint16));
+			memset(ptr1, 0x00, size1 * format_len);
 		}
-		if(ptr2) {
-			memset(ptr2, 0x00, size2 * sizeof(Sint16));
+		if((ptr2) && (size2 > 0)){
+			memset(ptr2, 0x00, size2 * format_len);
 		}
 		sound_data_pos = (sound_data_pos + ssize) % sound_buffer_size;
 #if defined(USE_SDL2)   
