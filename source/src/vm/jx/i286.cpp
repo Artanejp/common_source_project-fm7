@@ -169,8 +169,6 @@ void I286::initialize()
 	d_debugger->set_context_mem(d_mem);
 	d_debugger->set_context_io(d_io);
 #endif
-	cpustate->waitfactor = 0;
-	cpustate->waitcount = 0;
 }
 
 void I286::release()
@@ -182,6 +180,7 @@ void I286::reset()
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	int busreq = cpustate->busreq;
+	int haltreq = cpustate->haltreq;
 	
 	CPU_RESET_CALL(CPU_MODEL);
 	
@@ -201,6 +200,7 @@ void I286::reset()
 	cpustate->io_stored = d_io;
 #endif
 	cpustate->busreq = busreq;
+	cpustate->haltreq = haltreq;
 }
 
 int I286::run(int icount)
@@ -249,6 +249,8 @@ void I286::write_signal(int id, uint32_t data, uint32_t mask)
 		set_irq_line(cpustate, INPUT_LINE_IRQ, (data & mask) ? HOLD_LINE : CLEAR_LINE);
 	} else if(id == SIG_CPU_BUSREQ) {
 		cpustate->busreq = (data & mask) ? 1 : 0;
+	} else if(id == SIG_CPU_HALTREQ) {
+		cpustate->haltreq = (data & mask) ? 1 : 0;
 	} else if(id == SIG_I86_TEST) {
 		cpustate->test_state = (data & mask) ? 1 : 0;
 #ifdef HAS_I286
@@ -450,7 +452,7 @@ int I286::get_shutdown_flag()
 }
 #endif
 
-#define STATE_VERSION	6
+#define STATE_VERSION	8
 
 bool I286::process_state(FILEIO* state_fio, bool loading)
 {
@@ -486,6 +488,7 @@ bool I286::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->extra_cycles);
 	state_fio->StateValue(cpustate->halted);
 	state_fio->StateValue(cpustate->busreq);
+	state_fio->StateValue(cpustate->haltreq);
 	state_fio->StateValue(cpustate->ip);
 	state_fio->StateValue(cpustate->sp);
 //#ifdef USE_DEBUGGER
@@ -499,6 +502,7 @@ bool I286::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->ea_seg);
 	state_fio->StateValue(cpustate->waitfactor);
 	state_fio->StateValue(cpustate->waitcount);
+	state_fio->StateValue(cpustate->memory_wait);
  	
 //#ifdef USE_DEBUGGER
 	// post process

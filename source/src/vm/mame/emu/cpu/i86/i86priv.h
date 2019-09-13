@@ -91,16 +91,99 @@ enum BREGS {
 #define DF                  (int)(cpustate->DirVal < 0)
 
 /************************************************************************/
+#ifdef I80286
+inline __FASTCALL uint32_t read_mem_byte(i80286_state *cpustate, uint32_t a)
+#else
+inline __FASTCALL uint32_t read_mem_byte(i8086_state *cpustate, uint32_t a)
+#endif
+{
+	int w;
+	uint32_t r = cpustate->program->read_data8w(a, &w);
+	cpustate->memory_wait += w;
+	return r;
+}
 
-#define read_mem_byte(a)            cpustate->program->read_data8(a)
-#define read_mem_word(a)            cpustate->program->read_data16(a)
-#define write_mem_byte(a,d)         cpustate->program->write_data8((a),(d))
-#define write_mem_word(a,d)         cpustate->program->write_data16((a),(d))
+#ifdef I80286
+inline __FASTCALL uint32_t read_mem_word(i80286_state *cpustate, uint32_t a)
+#else
+inline __FASTCALL uint32_t read_mem_word(i8086_state *cpustate, uint32_t a)
+#endif
+{
+	int w;
+	uint32_t r = cpustate->program->read_data16w(a, &w);
+	cpustate->memory_wait += w;
+	return r;
+}
 
-#define read_port_byte(a)       cpustate->io->read_io8(a)
-#define read_port_word(a)       cpustate->io->read_io16(a)
-#define write_port_byte(a,d)    cpustate->io->write_io8((a),(d))
-#define write_port_word(a,d)    cpustate->io->write_io16((a),(d))
+#ifdef I80286
+inline __FASTCALL void write_mem_byte(i80286_state *cpustate, uint32_t a, uint32_t b)
+#else
+inline __FASTCALL void write_mem_byte(i8086_state *cpustate, uint32_t a, uint32_t b)
+#endif	
+{
+	int w;
+	cpustate->program->write_data8w(a, b, &w);
+	cpustate->memory_wait += w;
+}
+
+#ifdef I80286
+inline __FASTCALL void write_mem_word(i80286_state *cpustate, uint32_t a, uint32_t b)
+#else
+inline __FASTCALL void write_mem_word(i8086_state *cpustate, uint32_t a, uint32_t b)
+#endif	
+{
+	int w;
+	cpustate->program->write_data16w(a, b, &w);
+	cpustate->memory_wait += w;
+}
+
+#ifdef I80286
+inline __FASTCALL uint32_t read_port_byte(i80286_state *cpustate, uint32_t a)
+#else
+inline __FASTCALL uint32_t read_port_byte(i8086_state *cpustate, uint32_t a)
+#endif
+{
+	int w;
+	uint32_t r = cpustate->io->read_io8w(a, &w);
+	cpustate->memory_wait += w;
+	return r;
+}
+
+#ifdef I80286
+inline __FASTCALL uint32_t read_port_word(i80286_state *cpustate, uint32_t a)
+#else
+inline __FASTCALL uint32_t read_port_word(i8086_state *cpustate, uint32_t a)
+#endif
+{
+	int w;
+	uint32_t r = cpustate->io->read_io16w(a, &w);
+	cpustate->memory_wait += w;
+	return r;
+}
+
+#ifdef I80286
+inline __FASTCALL void write_port_byte(i80286_state *cpustate, uint32_t a, uint32_t b)
+#else
+inline __FASTCALL void write_port_byte(i8086_state *cpustate, uint32_t a, uint32_t b)
+#endif
+{
+	int w;
+	cpustate->io->write_io8w(a, b, &w);
+	cpustate->memory_wait += w;
+}
+
+#ifdef I80286
+inline __FASTCALL void write_port_word(i80286_state *cpustate, uint32_t a, uint32_t b)
+#else
+inline __FASTCALL void write_port_word(i8086_state *cpustate, uint32_t a, uint32_t b)
+#endif
+{
+	int w;
+	cpustate->io->write_io16w(a, b, &w);
+	cpustate->memory_wait += w;
+}
+
+
 
 /************************************************************************/
 
@@ -110,22 +193,22 @@ enum BREGS {
 #define DefaultBase(Seg)        ((cpustate->seg_prefix && (Seg == DS || Seg == SS)) ? cpustate->base[cpustate->prefix_seg] : cpustate->base[Seg])
 
 #ifdef I80286
-#define GetMemB(Seg,Off)        (read_mem_byte(GetMemAddr(cpustate,Seg,Off,1,I80286_READ)))
-#define GetMemW(Seg,Off)        (read_mem_word(GetMemAddr(cpustate,Seg,Off,2,I80286_READ)))
-#define PutMemB(Seg,Off,x)      write_mem_byte(GetMemAddr(cpustate,Seg,Off,1,I80286_WRITE), (x))
-#define PutMemW(Seg,Off,x)      write_mem_word(GetMemAddr(cpustate,Seg,Off,2,I80286_WRITE), (x))
+#define GetMemB(Seg,Off)        (read_mem_byte(cpustate, GetMemAddr(cpustate,Seg,Off,1,I80286_READ)))
+#define GetMemW(Seg,Off)        (read_mem_word(cpustate, GetMemAddr(cpustate,Seg,Off,2,I80286_READ)))
+#define PutMemB(Seg,Off,x)      write_mem_byte(cpustate, GetMemAddr(cpustate,Seg,Off,1,I80286_WRITE), (x))
+#define PutMemW(Seg,Off,x)      write_mem_word(cpustate, GetMemAddr(cpustate,Seg,Off,2,I80286_WRITE), (x))
 #else
-#define GetMemB(Seg,Off)        (read_mem_byte((DefaultBase(Seg) + (Off)) & AMASK))
-#define GetMemW(Seg,Off)        (read_mem_word((DefaultBase(Seg) + (Off)) & AMASK))
-#define PutMemB(Seg,Off,x)      write_mem_byte((DefaultBase(Seg) + (Off)) & AMASK, (x))
-#define PutMemW(Seg,Off,x)      write_mem_word((DefaultBase(Seg) + (Off)) & AMASK, (x))
+#define GetMemB(Seg,Off)        (read_mem_byte(cpustate, (DefaultBase(Seg) + (Off)) & AMASK))
+#define GetMemW(Seg,Off)        (read_mem_word(cpustate, (DefaultBase(Seg) + (Off)) & AMASK))
+#define PutMemB(Seg,Off,x)      write_mem_byte(cpustate, (DefaultBase(Seg) + (Off)) & AMASK, (x))
+#define PutMemW(Seg,Off,x)      write_mem_word(cpustate, (DefaultBase(Seg) + (Off)) & AMASK, (x))
 #endif
 
-#define PEEKBYTE(ea)            (read_mem_byte((ea) & AMASK))
-#define ReadByte(ea)            (read_mem_byte((ea) & AMASK))
-#define ReadWord(ea)            (read_mem_word((ea) & AMASK))
-#define WriteByte(ea,val)       write_mem_byte((ea) & AMASK, val);
-#define WriteWord(ea,val)       write_mem_word((ea) & AMASK, val);
+#define PEEKBYTE(ea)            (read_mem_byte(cpustate, (ea) & AMASK))
+#define ReadByte(ea)            (read_mem_byte(cpustate, (ea) & AMASK))
+#define ReadWord(ea)            (read_mem_word(cpustate, (ea) & AMASK))
+#define WriteByte(ea,val)       write_mem_byte(cpustate, (ea) & AMASK, val);
+#define WriteWord(ea,val)       write_mem_word(cpustate, (ea) & AMASK, val);
 
 #define FETCH                   (cpustate->program->read_data8(cpustate->pc++))
 #define FETCHOP                 (cpustate->program->read_data8(cpustate->pc++))

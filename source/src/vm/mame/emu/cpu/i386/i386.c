@@ -3269,8 +3269,9 @@ static i386_state *i386_common_init(int tlbsize)
 
 	zero_state(cpustate);
 	cpustate->halted = 0;
+	cpustate->haltreq = 0;
 	cpustate->busreq = 0;
-
+	cpustate->waitfactor = 65536;
 	return cpustate;
 }
 
@@ -3619,7 +3620,11 @@ static void pentium_smi(i386_state *cpustate)
 static void i386_set_irq_line(i386_state *cpustate,int irqline, int state)
 {
 	int first_cycles = cpustate->cycles;
-
+	if (cpustate->haltreq != 0) {
+		cpustate->extra_cycles += first_cycles - cpustate->cycles;
+		cpustate->cycles = first_cycles;
+		return;
+	}
 	if (state != CLEAR_LINE && cpustate->halted)
 	{
 		cpustate->prev_pc = cpustate->pc;
@@ -3673,32 +3678,38 @@ static void i386_set_a20_line(i386_state *cpustate,int state)
 
 static INLINE __FASTCALL void cpu_wait_i386(i386_state *cpustate,int clocks)
 {
-	if(clocks <= 0) return;
-	if(cpustate->waitfactor == 0) return;
-	uint32_t wcount = cpustate->waitcount;
-	wcount += (uint32_t)(cpustate->waitfactor * (uint32_t)clocks);
+	if(clocks <= 0) clocks = 1;
+	int64_t wfactor = cpustate->waitfactor;
+	int64_t wcount = cpustate->waitcount;
+	int64_t mwait = cpustate->memory_wait;
+	int64_t ncount;
+
+	if(wfactor > 65536) {
+		wcount += ((wfactor - 65536) * clocks); // Append wait due to be slower clock.
+	}
+	wcount += (wfactor * mwait);  // memory wait
 	if(wcount >= 65536) {
-		uint32_t ncount;
 		ncount = wcount >> 16;
 		wcount = wcount - (ncount << 16);
-		//wcount = wcount & 0x0000ffff;
 		cpustate->extra_cycles += (int)ncount;
+	} else if(wcount < 0) {
+		wcount = 0;
 	}
-//	if(cpustate->memory_wait > 0) ncount += cpustate->memory_wait; // Temporally disable memory wait.
-//	cpustate->memory_wait = 0;
-//	cpustate->extra_cycles += (int)ncount;
 	cpustate->waitcount = wcount;
+	cpustate->memory_wait = 0;
 }
 
 static CPU_EXECUTE( i386 )
 {
 	CHANGE_PC(cpustate,cpustate->eip);
 
-	if (cpustate->halted || cpustate->busreq)
+	if (cpustate->halted || cpustate->busreq || cpustate->haltreq)
 	{
 //#ifdef SINGLE_MODE_DMA
-		if(cpustate->dma != NULL) {
-			cpustate->dma->do_dma();
+		if(!(cpustate->haltreq)) {
+			if(cpustate->dma != NULL) {
+				cpustate->dma->do_dma();
+			}
 		}
 //#endif
 		bool now_debugging = false;
@@ -3783,7 +3794,7 @@ static CPU_EXECUTE( i386 )
 	bool exception_caused = false;
 	UINT32 exception_pc = 0;
 	UINT64 exception_code = 0;
-	while( cpustate->cycles > 0 && !cpustate->busreq )
+	while( cpustate->cycles > 0 && !cpustate->busreq && !cpustate->haltreq) 
 	{
 //#ifdef USE_DEBUGGER
 		bool now_debugging = false;
@@ -3883,8 +3894,10 @@ static CPU_EXECUTE( i386 )
 			
 			
 //#ifdef SINGLE_MODE_DMA
-			if(cpustate->dma != NULL) {
-				cpustate->dma->do_dma();
+			if(!(cpustate->haltreq)) {
+				if(cpustate->dma != NULL) {
+					cpustate->dma->do_dma();
+				}
 			}
 //#endif
 			/* adjust for any interrupts that came in */
@@ -3962,8 +3975,10 @@ static CPU_EXECUTE( i386 )
 				cpustate->cycles = 0;
 			}
 //#ifdef SINGLE_MODE_DMA
-			if(cpustate->dma != NULL) {
-				cpustate->dma->do_dma();
+			if(!(cpustate->haltreq)) {
+				if(cpustate->dma != NULL) {
+					cpustate->dma->do_dma();
+				}
 			}
 //#endif
 			/* adjust for any interrupts that came in */
@@ -3976,7 +3991,7 @@ static CPU_EXECUTE( i386 )
 	}
 
 	/* if busreq is raised, spin cpu while remained clock */
-	if (cpustate->cycles > 0 && cpustate->busreq) {
+	if (cpustate->cycles > 0 && (cpustate->busreq || cpustate->haltreq)) {
 //#ifdef USE_DEBUGGER
 		cpustate->total_cycles += cpustate->cycles;
 //#endif

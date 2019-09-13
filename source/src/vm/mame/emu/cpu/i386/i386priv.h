@@ -563,6 +563,7 @@ struct i386_state
 
 	int halted;
 	int busreq;
+	int haltreq;
 	int shutdown;
 
 	int operand_size;
@@ -695,53 +696,53 @@ extern int i386_parity_table[256];
 //static int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32 size);
 INLINE UINT8 __FASTCALL read_data8_with_wait(i386_state* cpustate, UINT32 addr)
 {
-//	int wait = 0;
-//	UINT8 val = cpustate->program->read_data8w(addr, &wait);
-//	if(wait > 0) cpustate->memory_wait += wait;
-	UINT8 val = cpustate->program->read_data8(addr);
+	int wait = 0;
+	UINT8 val = cpustate->program->read_data8w(addr, &wait);
+	if(wait > 0) cpustate->memory_wait += wait;
+//	UINT8 val = cpustate->program->read_data8(addr);
 	return val;
 }
 
 INLINE UINT16 __FASTCALL read_data16_with_wait(i386_state* cpustate, UINT32 addr)
 {
-//	int wait = 0;
-//	UINT16 val = cpustate->program->read_data16w(addr, &wait);
-//	if(wait > 0) cpustate->memory_wait += wait;
-	UINT16 val = cpustate->program->read_data16(addr);
+	int wait = 0;
+	UINT16 val = cpustate->program->read_data16w(addr, &wait);
+	if(wait > 0) cpustate->memory_wait += wait;
+//	UINT16 val = cpustate->program->read_data16(addr);
 	return val;
 }
 
 INLINE UINT32 __FASTCALL read_data32_with_wait(i386_state* cpustate, UINT32 addr)
 {
-//	int wait = 0;
-//	UINT32 val = cpustate->program->read_data32w(addr, &wait);
-//	if(wait > 0) cpustate->memory_wait += wait;
-	UINT32 val = cpustate->program->read_data32(addr);
+	int wait = 0;
+	UINT32 val = cpustate->program->read_data32w(addr, &wait);
+	if(wait > 0) cpustate->memory_wait += wait;
+//	UINT32 val = cpustate->program->read_data32(addr);
 	return val;
 }
 
 INLINE void __FASTCALL write_data8_with_wait(i386_state* cpustate, UINT32 addr, UINT32 data)
 {
-//	int wait = 0;
-//	cpustate->program->write_data8w(addr, data, &wait);
-//	if(wait > 0) cpustate->memory_wait += wait;
-	cpustate->program->write_data8(addr, data);
+	int wait = 0;
+	cpustate->program->write_data8w(addr, data, &wait);
+	if(wait > 0) cpustate->memory_wait += wait;
+//	cpustate->program->write_data8(addr, data);
 }
 
 INLINE void __FASTCALL write_data16_with_wait(i386_state* cpustate, UINT32 addr, UINT32 data)
 {
-//	int wait = 0;
-//	cpustate->program->write_data16w(addr, data, &wait);
-//	if(wait > 0) cpustate->memory_wait += wait;
-	cpustate->program->write_data16(addr, data);
+	int wait = 0;
+	cpustate->program->write_data16w(addr, data, &wait);
+	if(wait > 0) cpustate->memory_wait += wait;
+//	cpustate->program->write_data16(addr, data);
 }
 
 INLINE void __FASTCALL write_data32_with_wait(i386_state* cpustate, UINT32 addr, UINT32 data)
 {
-//	int wait = 0;
-//	cpustate->program->write_data32w(addr, data, &wait);
-//	if(wait > 0) cpustate->memory_wait += wait;
-	cpustate->program->write_data32(addr, data);
+	int wait = 0;
+	cpustate->program->write_data32w(addr, data, &wait);
+	if(wait > 0) cpustate->memory_wait += wait;
+//	cpustate->program->write_data32(addr, data);
 }
 
 #define FAULT_THROW(fault,error) {										\

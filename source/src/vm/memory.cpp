@@ -235,6 +235,7 @@ void MEMORY::write_data32w(uint32_t addr, uint32_t data, int* wait)
 }
 
 #ifdef MEMORY_DISABLE_DMA_MMIO
+
 uint32_t MEMORY::read_dma_data8(uint32_t addr)
 {
 	int bank = (addr & ADDR_MASK) >> addr_shift;

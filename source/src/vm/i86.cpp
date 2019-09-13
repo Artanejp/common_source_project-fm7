@@ -88,8 +88,6 @@ void I8086::initialize()
 		d_debugger->set_context_mem(d_mem);
 		d_debugger->set_context_io(d_io);
 	}
-	cpustate->waitfactor = 0;
-	cpustate->waitcount = 0;
 }
 
 void I8086::release()
@@ -116,6 +114,7 @@ void I8086::reset()
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	int busreq = cpustate->busreq;
+	int haltreq = cpustate->haltreq;
 
 	cpu_reset_generic();
 	
@@ -135,6 +134,7 @@ void I8086::reset()
 	cpustate->io_stored = d_io;
 //#endif
 	cpustate->busreq = busreq;
+	cpustate->haltreq = haltreq;
 }
 
 int I8086::run(int icount)
@@ -182,6 +182,8 @@ void I8086::write_signal(int id, uint32_t data, uint32_t mask)
 		set_irq_line(cpustate, INPUT_LINE_IRQ, (data & mask) ? HOLD_LINE : CLEAR_LINE);
 	} else if(id == SIG_CPU_BUSREQ) {
 		cpustate->busreq = (data & mask) ? 1 : 0;
+	} else if(id == SIG_CPU_HALTREQ) {
+		cpustate->haltreq = (data & mask) ? 1 : 0;
 	} else if(id == SIG_I86_TEST) {
 		cpustate->test_state = (data & mask) ? 1 : 0;
 	} else if(id == SIG_CPU_WAIT_FACTOR) {
@@ -389,7 +391,7 @@ int I8086::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_l
 }
 
 
-#define STATE_VERSION	7
+#define STATE_VERSION	8
 
 bool I8086::process_state(FILEIO* state_fio, bool loading)
 {
@@ -439,6 +441,7 @@ bool I8086::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->ea_seg);
 	state_fio->StateValue(cpustate->waitfactor);
 	state_fio->StateValue(cpustate->waitcount);
+	state_fio->StateValue(cpustate->memory_wait);
 //#endif
  	
  	// post process

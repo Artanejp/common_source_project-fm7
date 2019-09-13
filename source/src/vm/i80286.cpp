@@ -164,8 +164,6 @@ void I8086::initialize()
 	d_debugger->set_context_mem(d_mem);
 	d_debugger->set_context_io(d_io);
 //#endif
-	cpustate->waitfactor = 0;
-	cpustate->waitcount = 0;
 }
 
 void I80286::release()
@@ -480,7 +478,7 @@ int I80286::get_shutdown_flag()
 	return cpustate->shutdown;
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 
 bool I80286::process_state(FILEIO* state_fio, bool loading)
 {
@@ -545,6 +543,7 @@ bool I80286::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->ea_seg);
 	state_fio->StateValue(cpustate->waitfactor);
 	state_fio->StateValue(cpustate->waitcount);
+	state_fio->StateValue(cpustate->memory_wait);
  	// post process
 	if(loading) {
 		cpustate->prev_total_icount = cpustate->total_icount;

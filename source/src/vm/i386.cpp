@@ -434,8 +434,6 @@ void I386::initialize()
 	cpustate->parent_device = this; // This aims to log.
 	cpustate->cpu_type = n_cpu_type; // check cpu type
 	cpustate->shutdown = 0;
-	cpustate->waitcount = 0;
-	cpustate->waitfactor = 0;
 }
 
 void I386::release()
@@ -491,6 +489,8 @@ void I386::write_signal(int id, uint32_t data, uint32_t mask)
 		i386_set_irq_line(cpustate, INPUT_LINE_IRQ, (data & mask) ? HOLD_LINE : CLEAR_LINE);
 	} else if(id == SIG_CPU_BUSREQ) {
 		cpustate->busreq = (data & mask) ? 1 : 0;
+	} else if(id == SIG_CPU_HALTREQ) {
+		cpustate->haltreq = (data & mask) ? 1 : 0;
 	} else if(id == SIG_I386_A20) {
 		i386_set_a20_line(cpustate, data & mask);
 	} else if(id == SIG_I386_NOTIFY_RESET) {
@@ -854,7 +854,7 @@ int I386::get_shutdown_flag()
 	return cpustate->shutdown;
 }
 
-#define STATE_VERSION	7
+#define STATE_VERSION	8
 
 void process_state_SREG(I386_SREG* val, FILEIO* state_fio)
 {
@@ -976,6 +976,7 @@ bool I386::process_state(FILEIO* state_fio, bool loading)
 	process_state_SEG_DESC(&cpustate->ldtr, state_fio);
 	state_fio->StateValue(cpustate->ext);
 	state_fio->StateValue(cpustate->halted);
+	state_fio->StateValue(cpustate->haltreq);
 	state_fio->StateValue(cpustate->busreq);
 	state_fio->StateValue(cpustate->shutdown);
 	state_fio->StateValue(cpustate->operand_size);

@@ -8,7 +8,7 @@
 //#include "debugger.h"
 
 //#include "host.h"
-#include "i86priv.h"
+//#include "i86priv.h"
 #include "i86.h"
 
 static int i386_dasm_one(_TCHAR *buffer, UINT32 eip, const UINT8 *oprom, int mode);
@@ -49,6 +49,7 @@ struct i8086_state
 	INT32 extra_cycles;       /* extra cycles for interrupts */
 
 	int halted;         /* Is the CPU halted ? */
+	int haltreq;
 	int busreq;
 
 	UINT16 ip;
@@ -75,6 +76,7 @@ struct i8086_state
 	int icount;
 	uint32_t waitfactor;
 	uint32_t waitcount;
+	int32_t memory_wait;
 	
 	//char seg_prefix;                   /* prefix segment indicator */
 	UINT8 seg_prefix;                   /* prefix segment indicator */
@@ -84,6 +86,8 @@ struct i8086_state
 	UINT8 ea_seg;   /* effective segment of the address */
 };
 
+#undef I80286
+#include "i86priv.h"
 #include "i86time.c"
 
 /***************************************************************************/
@@ -182,6 +186,8 @@ static CPU_INIT( i8086 )
 		Mod_RM.RM.w[i] = (WREGS) (i & 7);
 		Mod_RM.RM.b[i] = (BREGS) reg_name[i & 7];
 	}
+	cpustate->waitfactor = 65536;
+	cpustate->haltreq = 0;
 	return cpustate;
 }
 
@@ -201,6 +207,7 @@ static CPU_RESET( i8086 )
 	int extra_cycles = cpustate->extra_cycles;
 	int halted = cpustate->halted;
 	int busreq = cpustate->busreq;
+	int haltreq = cpustate->haltreq;
 	
 	memset(cpustate, 0, sizeof(*cpustate));
 
@@ -214,10 +221,12 @@ static CPU_RESET( i8086 )
 	cpustate->prev_total_icount = prev_total_icount;
 //#endif
 	cpustate->waitcount = 0;
+	cpustate->memory_wait = 0;
 	cpustate->icount = icount;
 	cpustate->extra_cycles = extra_cycles;
 	cpustate->halted = halted;
 	cpustate->busreq = busreq;
+	cpustate->haltreq = haltreq;
 }
 
 static CPU_RESET( v30 )
@@ -231,6 +240,11 @@ static CPU_RESET( v30 )
 static void set_irq_line(i8086_state *cpustate, int irqline, int state)
 {
 	int first_icount = cpustate->icount;
+	if (cpustate->haltreq != 0) {
+		cpustate->extra_cycles += first_icount - cpustate->icount;
+		cpustate->icount = first_icount;
+		return;
+	}
 
 	if (state != CLEAR_LINE && cpustate->halted)
 	{
@@ -282,26 +296,35 @@ static void set_test_line(i8086_state *cpustate, int state)
 
 static void __FASTCALL cpu_wait_v30(cpu_state *cpustate,int clocks)
 {
-	if(clocks < 0) return;
-	if(cpustate->waitfactor == 0) return;
-	uint32_t wcount = cpustate->waitcount;
-	wcount += (cpustate->waitfactor * (uint32_t)clocks);
+	if(clocks <= 0) clocks = 1;
+	int64_t wfactor = cpustate->waitfactor;
+	int64_t wcount = cpustate->waitcount;
+	int64_t mwait = cpustate->memory_wait;
+	int64_t ncount;
+	if(cpustate->waitfactor >= 65536) {
+		wcount += ((wfactor - 65536) * clocks); // Append wait due to be slower clock.
+	}
+	wcount += (wfactor * mwait);  // memory wait
 	if(wcount >= 65536) {
-		uint32_t ncount;
 		ncount = wcount >> 16;
 		wcount = wcount - (ncount << 16);
-		cpustate->extra_cycles += ncount;
+		cpustate->extra_cycles += (int)ncount;
+	} else if(wcount < 0) {
+		wcount = 0;
 	}
 	cpustate->waitcount = wcount;
+	cpustate->memory_wait = 0;
 }
 
 CPU_EXECUTE( v30 )
 {
-	if (cpustate->halted || cpustate->busreq)
+	if (cpustate->halted || cpustate->busreq || cpustate->haltreq)
 	{
 //#ifdef SINGLE_MODE_DMA
-		if (cpustate->dma != NULL){
-			cpustate->dma->do_dma();
+		if(!cpustate->haltreq) {
+			if (cpustate->dma != NULL){
+				cpustate->dma->do_dma();
+			}
 		}
 //#endif
 		bool now_debugging = false;
@@ -379,7 +402,7 @@ CPU_EXECUTE( v30 )
 	cpustate->extra_cycles = 0;
 
 	/* run until we're out */
-	while (cpustate->icount > 0 && !cpustate->busreq)
+	while (cpustate->icount > 0 && !cpustate->busreq && !cpustate->haltreq)
 	{
 //#ifdef USE_DEBUGGER
 		bool now_debugging = false;
@@ -409,8 +432,10 @@ CPU_EXECUTE( v30 )
 			TABLEV30;
 			cpustate->total_icount += first_icount - cpustate->icount;
 //#ifdef SINGLE_MODE_DMA
-			if (cpustate->dma != NULL) {
-				cpustate->dma->do_dma();
+			if(!cpustate->haltreq) {
+				if (cpustate->dma != NULL) {
+					cpustate->dma->do_dma();
+				}
 			}
 //#endif
 			if(now_debugging) {
@@ -433,8 +458,10 @@ CPU_EXECUTE( v30 )
 			cpustate->total_icount += first_icount - cpustate->icount;
 //#endif
 //#ifdef SINGLE_MODE_DMA
-			if (cpustate->dma != NULL) {
-				cpustate->dma->do_dma();
+			if(!cpustate->haltreq) {
+				if (cpustate->dma != NULL) {
+					cpustate->dma->do_dma();
+				}
 			}
 //#endif
 //#ifdef USE_DEBUGGER
@@ -449,7 +476,7 @@ CPU_EXECUTE( v30 )
 	}
 
 	/* if busreq is raised, spin cpu while remained clock */
-	if (cpustate->icount > 0 && cpustate->busreq) {
+	if (cpustate->icount > 0 && (cpustate->busreq || cpustate->haltreq)) {
 //#ifdef USE_DEBUGGER
 		cpustate->total_icount += cpustate->icount;
 //#endif

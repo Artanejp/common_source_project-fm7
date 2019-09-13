@@ -55,8 +55,6 @@ void V30::initialize()
 		d_debugger->set_context_mem(d_mem);
 		d_debugger->set_context_io(d_io);
 	}
-	cpustate->waitfactor = 0;
-	cpustate->waitcount = 0;
 }
 
 void V30::release()
@@ -67,6 +65,7 @@ void V30::reset()
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	int busreq = cpustate->busreq;
+	int haltreq = cpustate->haltreq;
 
 	CPU_RESET_CALL( v30 );
 	
@@ -86,6 +85,7 @@ void V30::reset()
 	cpustate->io_stored = d_io;
 //#endif
 	cpustate->busreq = busreq;
+	cpustate->haltreq = haltreq;
 }
 
 int V30::run(int icount)

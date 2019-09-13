@@ -110,7 +110,7 @@ static void PREFIX186(_insb)(i8086_state *cpustate)    /* Opcode 0x6c */
 	if (PM && (CPL>IOPL)) throw TRAP(GENERAL_PROTECTION_FAULT, 0);
 #endif
 	ICOUNT -= timing.ins8;
-	PutMemB(ES,cpustate->regs.w[DI],read_port_byte(cpustate->regs.w[DX]));
+	PutMemB(ES,cpustate->regs.w[DI],read_port_byte(cpustate, cpustate->regs.w[DX]));
 	cpustate->regs.w[DI] += cpustate->DirVal;
 }
 
@@ -120,7 +120,7 @@ static void PREFIX186(_insw)(i8086_state *cpustate)    /* Opcode 0x6d */
 	if (PM && (CPL>IOPL)) throw TRAP(GENERAL_PROTECTION_FAULT, 0);
 #endif
 	ICOUNT -= timing.ins16;
-	PutMemW(ES,cpustate->regs.w[DI],read_port_word(cpustate->regs.w[DX]));
+	PutMemW(ES,cpustate->regs.w[DI],read_port_word(cpustate, cpustate->regs.w[DX]));
 	cpustate->regs.w[DI] += 2 * cpustate->DirVal;
 }
 
@@ -130,7 +130,7 @@ static void PREFIX186(_outsb)(i8086_state *cpustate)    /* Opcode 0x6e */
 	if (PM && (CPL>IOPL)) throw TRAP(GENERAL_PROTECTION_FAULT, 0);
 #endif
 	ICOUNT -= timing.outs8;
-	write_port_byte(cpustate->regs.w[DX],GetMemB(DS,cpustate->regs.w[SI]));
+	write_port_byte(cpustate, cpustate->regs.w[DX],GetMemB(DS,cpustate->regs.w[SI]));
 	cpustate->regs.w[SI] += cpustate->DirVal; /* GOL 11/27/01 */
 }
 
@@ -140,7 +140,7 @@ static void PREFIX186(_outsw)(i8086_state *cpustate)    /* Opcode 0x6f */
 	if (PM && (CPL>IOPL)) throw TRAP(GENERAL_PROTECTION_FAULT, 0);
 #endif
 	ICOUNT -= timing.outs16;
-	write_port_word(cpustate->regs.w[DX],GetMemW(DS,cpustate->regs.w[SI]));
+	write_port_word(cpustate, cpustate->regs.w[DX],GetMemW(DS,cpustate->regs.w[SI]));
 	cpustate->regs.w[SI] += 2 * cpustate->DirVal; /* GOL 11/27/01 */
 }
 
