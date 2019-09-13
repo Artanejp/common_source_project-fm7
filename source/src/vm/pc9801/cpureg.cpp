@@ -34,9 +34,13 @@ void CPUREG::initialize()
 void CPUREG::halt_by_use_v30()
 {
 	if((use_v30)) {
+		d_cpu->write_signal(SIG_CPU_HALTREQ, 1, 1);
+		d_v30cpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
 		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	} else {
+		d_cpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
+		d_v30cpu->write_signal(SIG_CPU_HALTREQ, 1, 1);
 		d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 	}
@@ -48,11 +52,15 @@ void CPUREG::halt_by_value(bool val)
 	bool haltvalue = (val) ? 0xffffffff : 0x0000000;
 #if defined(HAS_V30_SUB_CPU)
 	if((use_v30)) {
+		d_cpu->write_signal(SIG_CPU_HALTREQ, 0xffffffff, 0xffffffff);
 		d_cpu->write_signal(SIG_CPU_BUSREQ, 0xffffffff, 0xffffffff);
+		d_v30cpu->write_signal(SIG_CPU_HALTREQ, 0, 0xffffffff);
 		d_v30cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
 	} else {
+		d_cpu->write_signal(SIG_CPU_HALTREQ, 0, 0xffffffff);
 		d_cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
 		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 0xffffffff, 0xffffffff);
+		d_v30cpu->write_signal(SIG_CPU_HALTREQ, 0xffffffff, 0xffffffff);
 	}
 #else
 	d_cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);

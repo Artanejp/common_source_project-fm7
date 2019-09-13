@@ -1133,11 +1133,11 @@ void VM::set_cpu_clock_with_switch(int speed_type)
 #endif
 	uint32_t waitfactor;
 	if(CPU_CLOCKS > cpu_clocks) {
-		waitfactor = (uint32_t)(65536.0 * ((1.0 - (double)cpu_clocks / (double)CPU_CLOCKS)));
-		//out_debug_log(_T("CLOCK=%d WAIT FACTOR=%d"), cpu_clocks, waitfactor);
+//		waitfactor = (uint32_t)(65536.0 * ((1.0 - (double)cpu_clocks / (double)CPU_CLOCKS)));
+		waitfactor = (uint32_t)(65536.0 * ((double)CPU_CLOCKS / (double)cpu_clocks));
 	} else {
-		waitfactor = 0;
-		//out_debug_log(_T("CLOCK=%d WAIT FACTOR=%d"), cpu_clocks, waitfactor);
+		waitfactor = 65536;
+//		out_debug_log(_T("CLOCK=%d WAIT FACTOR=%d"), cpu_clocks, waitfactor);
 	}
 	cpu->write_signal(SIG_CPU_WAIT_FACTOR, waitfactor, 0xffffffff);
 #if defined(HAS_V30_SUB_CPU)
