@@ -83,8 +83,10 @@ void AD7820KR::event_callback(int event_id, int err)
 						overflow = true;
 						_n = -16384;
 					}
-					_n = _n / 128;
-					_n = _n + 128;
+					_n = _n + 16384;
+					_n >>= 7;
+					//_n = _n / 128;
+					//_n = _n + 128;
 					if(wr_rd_mode) {
 						adc_data = ((adc_msb & 0xf0) | (_n & 0x0f));
 					} else {

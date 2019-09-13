@@ -13,10 +13,11 @@
 //#include "../vm.h"
 //#include "../../emu.h"
 #include "../device.h"
+#include "../memory.h"
 
 #define SIG_FMTOWNS_MACHINE_ID	1
 
-class I386;
+class I80386;
 // Bank size = 1GB / 1MB.
 // Page 0 (0000:00000 - 0000:fffff) is another routine.
 #define TOWNS_BANK_SIZE 1024
@@ -97,21 +98,10 @@ protected:
 	
 	// RAM
 	uint8_t ram_page0[0xc0000];       // 0x00000000 - 0x000bffff : RAM
-	//uint8_t vram_plane[0x8000 * 8]; // 0x000c0000 - 0x000c7fff : Plane Accessed VRAM
-	//uint8_t text_ram[0x1000];       // 0x000c8000 - 0x000c8fff : Character VRAM
-	//uint8_t vram_reserved[0x1000];    // 0x000c9000 - 0x000c9fff : Resetved
-	uint8_t ram_0c0[0x8000];          // 0x000ca000 - 0x000cafff : ANKCG1 / IO / RAM
-	uint8_t ram_0c8[0x2000];          // 0x000ca000 - 0x000cafff : ANKCG1 / IO / RAM
-	
-	//uint8_t sprite_ram[0x1000];     // 0x000ca000 - 0x000cafff : Sprite RAM
-	//uint8_t ank_cg1[0x800];         // 0x000ca000 - 0x000ca7ff : ANK CG ROM (FONTROM[0x3d000 - 0x3d7ff])
-	//uint8_t ank_cg2[0x1000];        // 0x000cb000 - 0x000cbfff : ANK CG ROM (FONTROM[0x3d800 - 0x3e7ff])
-	uint8_t ram_0ca[0x1000];          // 0x000ca000 - 0x000cafff : ANKCG1 / IO / RAM
-	uint8_t ram_0cb[0x1000];          // 0x000cb000 - 0x000cbfff : ANKCG2 / RAM
-	uint8_t ram_0cc[0x4000];          // 0x000cc000 - 0x000cffff : MMIO / RAM
+	uint8_t ram_pagef[0x08000];       // 0x000f0000 - 0x000f7fff : RAM
 
-	uint8_t *extram;                  // 0x00100000 - (0x3fffffff) : Size is defined by extram_size;
-	uint32_t extram_size;
+	uint8_t *extra_ram;                  // 0x00100000 - (0x3fffffff) : Size is defined by extram_size;
+	uint32_t extra_ram_size;
 
 	uint32_t vram_wait_val;
 	uint32_t mem_wait_val;
@@ -138,7 +128,7 @@ protected:
 	virtual void     write_mmio(uint32_t addr, uint32_t data, int *wait, bool *hit);
 
 public:
-	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu) {
 		set_device_name(_T("FMTOWNS_MEMORY"));
 		d_cpu = NULL;
 		d_vram = NULL;
@@ -171,7 +161,7 @@ public:
 		// cpu_id = 0x02; // 80486SX/DX. 
 		// cpu_id = 0x03; // 80386SX. 
 		cpu_id = 0x01; // 80386DX. 
-
+		extra_ram = NULL;
 	}
 	~TOWNS_MEMORY() {}
 	
