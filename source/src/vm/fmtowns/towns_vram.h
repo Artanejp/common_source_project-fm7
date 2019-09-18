@@ -88,7 +88,12 @@ protected:
 	uint8_t  mask_buffer_16_neg[0x80000];
 	
 	
-	uint16_t vram[0x80000 / 2]; // Related by machine.
+	uint8_t vram[0x80000]; // Related by machine.
+
+	// VRAM CONTROL REGISTER.
+	uint8_t voutreg_num;  // I/O 0448h
+	uint8_t voutreg_ctrl; // I/O 044Ah : voutreg_num = 0.
+	uint8_t voutreg_prio; // I/O 044Ah : voutreg_num = 1.
 	
 	
 	// FMR50 Compatible registers. They are mostly dummy.
@@ -136,20 +141,7 @@ protected:
 	bool has_hardware_blending;
 	// End.
 
-	void lock_framebuffer(int layer, int bank)
-	{
-#if defined(_USE_QT)
-		vram_lock[bank][layer].lock();
-#endif
-	}
-	void unlock_framebuffer(int layer, int bank)
-	{
-#if defined(_USE_QT)
-		vram_lock[bank][layer].unlock();
-#endif
-	}
 
-	
 public:
 	TOWNS_VRAM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -189,6 +181,34 @@ public:
 	uint32_t read_plane_data8(uint32_t addr);
 	uint32_t read_plane_data16(uint32_t addr);
 	uint32_t read_plane_data32(uint32_t addr);
+
+	void get_vramctrl_regs(uint8_t &ctrl, uint8_t &prio)
+	{
+		ctrl = voutreg_ctrl; // I/O 044Ah : voutreg_num = 0.
+		prio = voutreg_prio; // I/O 044Ah : voutreg_num = 1.
+	}
+	uint8_t* get_vram_address(uint32_t offset)
+	{
+		if(offset >= 0x80000) return NULL; // ToDo
+		return &(vram[offset]);
+	}
+	uint32_t get_vram_size()
+	{
+		return 0x80000; // ToDo
+	}
+	void lock_framebuffer(int layer, int bank)
+	{
+#if defined(_USE_QT)
+		vram_lock[bank][layer].lock();
+#endif
+	}
+	void unlock_framebuffer(int layer, int bank)
+	{
+#if defined(_USE_QT)
+		vram_lock[bank][layer].unlock();
+#endif
+	}
+	
 	// New APIs?
 	void write_plane_data8(uint32_t addr, uint32_t data);
 	void write_plane_data16(uint32_t addr, uint32_t data);

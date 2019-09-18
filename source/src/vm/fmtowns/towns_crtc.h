@@ -135,6 +135,16 @@ namespace FMTOWNS {
 }
 
 namespace FMTOWNS {
+	
+typedef struct {
+	int32_t mode[2];
+	int32_t pixels[2];
+	int32_t mag[2];
+	uint32_t prio;
+	uint32_t pad[4];
+	uint8_t pixels_layer[2][1024]; // RAW VALUE
+} linebuffer_t;
+	
 class TOWNS_CRTC : public DEVICE
 {
 private:
@@ -168,7 +178,7 @@ private:
     uint32_t vstart_lines[2]; // VSTART ((VDS[01] * clock) : Horizonal offset words (Related by VH[01]).
     uint32_t vend_lines[2];   // VEND   ((VDE[01] * clock) : Horizonal offset words (Related by VH[01]).
 	uint32_t frame_offset[2]; // FO.
-	uint32_t vram_line[2];
+	uint32_t head_address[2];
 	
 	uint8_t zoom_factor_vert[2]; // Related display resolutions of two layers and zoom factors.
 	uint8_t zoom_factor_horiz[2]; // Related display resolutions of two layers and zoom factors.
@@ -245,10 +255,14 @@ private:
 	int event_id_vst2;
 	int event_id_vblank;
 	
+	int display_linebuf;
+	linebuffer_t *linebuffers[2];
+	
 	void set_display(bool val);
 	void set_vblank(bool val);
 	void set_vsync(bool val);
 	void set_hsync(bool val);
+	void transfer_line(int line);
 
 protected:
 	bool render_a_line(int layer, int linenum, int xoffset, uint8_t *vramptr, uint32_t words);
@@ -261,6 +275,9 @@ public:
 	TOWNS_CRTC(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_int_vsync);
+		for(int i = 0; i < 2; i++) {
+			linebuffers[i] = NULL;
+		}
 		set_device_name(_T("FM-Towns CRTC"));
 	}
 	~TOWNS_CRTC() {}
@@ -288,7 +305,16 @@ public:
 	//void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	
 	// unique function
+	linebuffer_t* get_line_buffer(int page, int line)
+	{
+		page = page & 1;
+		if(line < 0) return NULL;
+		if(line >= TOWNS_CRTC_MAX_LINES) return NULL;
+		if(linebuffers[page] == NULL) return NULL;
+		return &(linebuffers[page][line]);
+	}
 	void set_context_vsync(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_int_vsync, device, id, mask);

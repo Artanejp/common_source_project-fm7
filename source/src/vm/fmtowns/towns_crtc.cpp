@@ -44,11 +44,28 @@ void TOWNS_CRTC::initialize()
 	event_id_vst1 = -1;
 	event_id_vst2 = -1;
 	event_id_vblank = -1;
-	
+
+	for(int i = 0; i < 2; i++) {
+		// ToDo: Allocate at external buffer (when using compute shaders).
+		linebuffers[i] = malloc(sizeof(linebuffer_t ) * TOWNS_CRTC_MAX_LINES);
+		if(linebuffers[i] != NULL) {
+			for(int l = 0; l < TOWNS_CRTC_MAX_LINES; l++) {
+				memset(&(linebuffers[i][l]), 0x00, sizeof(linebuffer_t));
+			}
+		}
+	}
 	// register events
 	//register_frame_event(this);
 	//register_vline_event(this);
 	
+}
+
+void TOWNS_CRTC::release()
+{
+	for(int i = 0; i < 2; i++) {
+		// ToDo: Allocate at external buffer (when using compute shaders).
+		if(linebuffers[i] != NULL) free(linebuffers[i]);
+	}
 }
 
 void TOWNS_CRTC::reset()
@@ -162,7 +179,7 @@ void TONWS_CRTC::write_io8(uint32_t addr, uint32_t data)
 		rdata.w = regs[ch];
 		rdata.h = (uint8_t)data;
 		write_io16(addr, rdata.w);
-	}		
+	} 		
 }
 
 void TOWNS_CRTC::write_io16(uint32_t addr, uint32_t data)
@@ -338,56 +355,146 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-// Note: This entry 
-void TOWNS_CRTC::event_line_per_layer(int display_line, int layer)
+void TOWNS_CRTC::transfer_line(int line)
 {
-	uint32_t startaddr;
-	if(display_line < 0) return;
+	if(line < 0) return;
+	if(line >= TOWNS_CRTC_MAX_LINES) return;
+	if(d_vram == NULL) return;
+	uint8_t ctrl, prio, outc;
+	d_vram->get_vramctrl_regs(ctrl, prio, outc);
 	
-	layer = layer & 1;
-	if((one_layer_mode) && (layer != 0)) {
-		d_vram->write_signal(SIG_TOWNS_VRAM_DONT_RENDER, (layer << 24) | ((uint32_t)display_line), 0x100fffff);
-		return; // Not render.
+	int trans = ((display_linebuf & 1) == 0) ? 1 : 0;
+	if(linebuffers[trans] == NULL) return;
+	for(int i = 0; i < 2; i++) {
+		linebuffers[trans][line].mode[i] = 0;
+		linebuffers[trans][line].pixels[i] = 0;
+		linebuffers[trans][line].mag[i] = 0;
 	}
-	zoom_count_vert[layer]--;
-	if((zoom_count_vert[layer] == 0) || (display_line == 0)) {
-		int vline = vram_line[layer];
-		
-		startaddr = vstart_addr[layer];
-		if(zoom_count_vert[layer] == 0) vram_line[layer]++;
-		zoom_count_vert[layer] = zoom_factor_vert[layer];
-		
-		uint32_t offset_words = (regs[(layer * 4) + 18] & 0x07ff) - (regs[(layer * 2) + 9] & 0x07ff); // HAJx - HDSx
-		uint32_t offset_per_line = line_offset[layer];
-		uint32_t draw_width  = (regs[0x09 + layer * 2 + 1] & 0x07ff) - (regs[0x09 + layer * 2 + 0] & 0x07ff); // HDEx-HDSx
-		
-		// ToDo: Interlace mode
-		if(one_layer_mode) {
-			offset_per_line = offset_per_line * 4 * 2; // 4Words.
-			offset_words    = offset_words    * 4 * 2; // 4Words.
-		} else {
-			offset_per_line = offset_per_line * 2 * 2; // 2Words.
-			offset_words    = offset_words    * 2 * 2; // 2Words.
+	int page0, page1;
+	linebuffers[trans][line].prio = prio;
+	if((prio & 0x01) == 0) {
+		page0 = 0; // Front
+		page1 = 1; // Back
+	} else {
+		page0 = 1;
+		page1 = 0;
+	}
+	if((ctrl & 0x10) == 0) { // One layer mode
+		bool to_disp = false;
+		if(!(frame_in[0])) return;
+		switch(ctrl & 0x0f) {
+		case 0x0a:
+			linebuffers[trans][line].mode[0] = DISPMODE_256;
+			to_disp = true;
+			break;
+		case 0x0f:
+			linebuffers[trans][line].mode[0] = DISPMODE_32768;
+			to_disp = true;
+			break;
 		}
-
-		startaddr = startaddr + offset_per_line * vline;
-	
-		d_vram->write_signal(SIG_TOWNS_VRAM_SET_PARAM,  layer, 0x1); // Begin modify rendering factor
-		d_vram->write_signal(SIG_TOWNS_VRAM_PIX_COUNT,  draw_width, 0xfffffff); // Pixel count
-		d_vram->write_signal(SIG_TOWNS_VRAM_START_ADDR, startaddr, 0xffffffff); // VRAM START ADDRESS
-		d_vram->write_signal(SIG_TOWNS_VRAM_HZOOM, zoom_factor_horiz[layer], 0x0f); // HZOOM factor
-//		d_vram->write_signal(SIG_TOWNS_VRAM_VZOOM, zoom_factor_vert[layer], 0x0f); // OFFSET WORD
-		d_vram->write_signal(SIG_TOWNS_VRAM_OFFSET_WORDS, offset_words, 0xffffffff); // OFFSET WORD
-	} else {
-		d_vram->write_signal(SIG_TOWNS_VRAM_KEEP_PARAM, layer, 0x1); // Begin modify rendering factor
-	}	
-	if(!(frame_in[layer])) {
-		d_vram->write_signal(SIG_TOWNS_VRAM_DONT_RENDER, (layer << 24) | ((uint32_t)display_line), 0x100fffff);
-	} else {
-		d_vram->write_signal(SIG_TOWNS_VRAM_DO_RENDER, (layer << 24) | ((uint32_t)display_line), 0x100fffff);
-	}		
-	if(!(carry_enable[layer])) {
-		vram_line[layer] = vram_line[layer] & 0x00ff;
+		if(to_disp) {
+			uint32_t offset = vstart_addr[0];
+			offset = offset + head_address[0];
+			if(hstart_words[0] >= regs[9]) {
+				offset = offset + hstart_words[0] - regs[9];
+			}
+			offset <<= 3;
+			offset = offset & 0x7ffff; // OK?
+			// ToDo: HAJ0, LO0
+			uint16_t _begin = regs[9]; // HDS0
+			uint16_t _end = regs[10];  // HDE0
+			if(_begin < _end) {
+				int words = _end - _begin;
+				if(hstart_words[0] >= regs[9]) {
+					words = words - (hstart_words[0] - regs[9]);
+				}
+				uint8_t magx = zoom_factor_horiz[0];
+				uint8_t *p = d_vram->get_vram_address(offset);
+				if((p != NULL) && (words >= magx) && (magx != 0)){
+					memcpy(linebuffers[trans][line].pixels_layer[0], p, words / magx);
+					switch(linebuffers[trans][line].mode[0]) {
+					case DISPMODE_32768:
+						linebuffers[trans][line].pixels[0] = words / (magx * 2);
+						linebuffers[trans][line].mag[0] = magx;
+						break;
+					case DISPMODE_256:
+						linebuffers[trans][line].pixels[0] = words / (magx * 1);
+						linebuffers[trans][line].mag[0] = magx;
+						break;
+					}
+				}
+			}
+		}
+		if(zoom_count_vert[0] > 0) {
+			zoom_count_vert[0]--;
+		}
+		if(zoom_count_vert[0] == 0) {
+			zoom_count_vert[0] = zoom_factor_vert[0];
+			head_address[0] += frame_offset[0];
+		}
+	} else { // Two layers.
+		bool to_disp[2] = {false, false};
+		uint8_t ctrl_b = ctrl;
+		for(int l = 0; l < 1; l++) {
+			if(frame_in[l]) {
+				switch(ctrl_b & 0x03) {
+				case 0x01:
+					linebuffers[trans][line].mode[l] = DISPMODE_16;
+					to_disp[l] = true;
+					break;
+				case 0x03:
+					linebuffers[trans][line].mode[l] = DISPMODE_32768;
+					to_disp[l] = true;
+					break;
+				}
+			}
+			ctrl_b >>= 2;
+		}
+		for(int l = 0; l < 1; l++) {
+			if((to_disp[l]) && (frame_in[l])) {
+				uint32_t offset = vstart_addr[l];
+				offset = offset + head_address[l];
+				if(hstart_words[l] >= regs[9 + l * 2]) {
+					offset = offset + (hstart_words[l] - regs[9 + l * 2]);
+				}
+				offset <<= 2;
+				offset = offset & 0x3ffff; // OK?
+				if(l != 0) offset += 0x40000;
+				// ToDo: HAJ0, LO0
+				uint16_t _begin = regs[9 + l * 2]; // HDSx
+				uint16_t _end = regs[10 + l * 2];  // HDEx
+				if(_begin < _end) {
+					int words = _end - _begin;
+					if(hstart_words[l] >= regs[9 + l * 2]) {
+						words = words - (hstart_words[l] - regs[9 + l * 2]);
+					}
+					uint8_t magx = zoom_factor_horiz[l];
+					uint8_t *p = d_vram->get_vram_address(offset);
+					if((p != NULL) && (words >= magx) && (magx != 0)){
+						memcpy(linebuffers[trans][line].pixels_layer[l], p, words / magx);
+						switch(linebuffers[trans][line].mode[l]) {
+						case DISPMODE_32768:
+							linebuffers[trans][line].pixels[l] = words / (magx * 2);
+							linebuffers[trans][line].mag[l] = magx;
+							break;
+						case DISPMODE_16:
+							linebuffers[trans][line].pixels[l] = (words * 2) / (magx * 1);
+							linebuffers[trans][line].mag[l] = magx;
+							break;
+						}
+					}
+				}
+			}
+			if(frame_in[l]) {
+				if(zoom_count_vert[l] > 0) {
+					zoom_count_vert[l]--;
+				}
+				if(zoom_count_vert[l] == 0) {
+					zoom_count_vert[l] = zoom_factor_vert[l];
+					head_address[l] += frame_offset[l];
+				}
+			}
+		}
 	}
 }
 
@@ -428,6 +535,7 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 		hsync = false;
 		for(int i = 0; i < 2; i++) {
 			hdisp[i] = false;
+			zoom_count_vert[i] = zoom_factor_vert[i];
 		}
 		major_line_count = -1;
 		// ToDo: EET
@@ -455,6 +563,7 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 			if(vert_end_us[i] > 0.0) {
 				register_event(this, EVENT_CRTC_VDE + i, vert_end_us[i],   false, &event_id_vde[i]); // VDEx
 			}
+			head_address[i] = 0;
 		}
 		
 		if(event_id_hstart != -1) {
@@ -465,6 +574,7 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 			cancel_event(this, event_id_hsw);
 			event_id_hsw = -1;
 		}
+		register_event(this, EVENT_CRTC_HSTART, horiz_us, false, &event_id_hstart); // HSTART
 	} else if(event_id == EVENT_CRTC_VST1) { // VSYNC
 		vsync = true;
 	} else if (event_id == EVENT_CRTC_VST2) {
@@ -475,6 +585,7 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 		frame_in[layer] = true;
 		// DO ofset line?
 		event_id_vstart[layer] = -1;
+		zoom_count_vert[layer] = zoom_factor_vert[layer];
 	} else if(eid2 == EVENT_CRTC_VDE) { // Display end
 		int layer = event_id & 1;
 		frame_in[layer] = false;
@@ -511,25 +622,19 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 				register_event(this, EVENT_CRTC_HDS + i, horiz_start_us[i], false, &event_id_hds[i]); // HDS0
 			} else {
 				hdisp[i] = true;
-				if(!vsync) {
-					event_line_per_layer(major_line_count, layer);
-				}
 			}
 			if((horiz_end_us[i] > 0.0) && (horiz_end_us[i] > horiz_start_us[i])) {
 				register_event(this, EVENT_CRTC_HDE + i, horiz_end_us[i], false, &event_id_hde[i]); // HDS0
 			}
 		}
-
 		register_event(this, EVENT_CRTC_HSTART, horiz_us, false, &event_id_hstart); // HSTART
 	} else if(event_id == EVENT_CRTC_HSW) {
 		hsync = false;
 		event_id_hsw = -1;
+		transfer_line(major_line_count - 1);
 	} else if(eid2 == EVENT_CRTC_HDS) {
 		int layer = event_id & 1;
 		hdisp[layer] = true;
-		if(!vsync) {
-			event_line_per_layer(major_line_count, layer);
-		}
 		if((horiz_end_us[i] <= 0.0) || (horiz_end_us[i] <= horiz_start_us[i])) {
 			hdisp[layer] = false;
 		}

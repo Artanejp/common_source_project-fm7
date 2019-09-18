@@ -254,8 +254,23 @@ bool TOWNS_VRAM::check_dirty_and_calc_alpha(uint32_t addr)
 	}
 	return dirty;
 }
-			
-		
+
+void TOWNS_CRTC::write_io16(uint32_t addr, uint32_t data)
+{
+	switch(addr) {
+	case 0x0448:
+		voutreg_num = data & 0x01;
+		break;
+	case 0x044a:
+		if(voutreg_num == 0) {
+			voutreg_ctrl = data & 0x10;
+		} else if(voutreg_num == 1) {
+			voutreg_prio = data & 0x10;
+		}			
+		break;
+	}
+}
+
 uint32_t TOWNS_VRAM::read_plane_data8(uint32_t addr)
 {
 	// Plane Access
