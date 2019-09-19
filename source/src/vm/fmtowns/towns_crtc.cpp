@@ -357,6 +357,10 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 
 void TOWND_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, uint8_t* src, int y, int width, int layer)
 {
+	if(dst == NULL) return;
+	if(mask == NULL) return;
+	if(src == NULL) return;
+	
 	int magx = linebuffers[trans][y].mag[layer];
 	int pwidth = linebuffers[trans][y].pixels[layer];
 	int num = linebuffers[trans][y].num[layer];
@@ -376,6 +380,8 @@ void TOWND_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, uint8_t* src, i
 	__DECL_ALIGNED(16) uint16_t bbuf[8];
 	__DECL_ALIGNED(32) scrntype_t sbuf[8];
 	__DECL_ALIGNED(32) scrntype_t abuf[8];
+	__DECL_ALIGNED(32) uint8_t a2buf[8];
+	
 	int k = 0;
 	for(x = 0; x < (pwidth >> 3); x++) {
 		for(int i = 0; i < 8; i++) {
@@ -388,8 +394,12 @@ void TOWND_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, uint8_t* src, i
 			bbuf[i] = pbuf[i];
 		}			
 		for(int i = 0; i < 8; i++) {
-			rbuf[i] = (rbuf[i] >> 5) & 0x1f;
-			gbuf[i] = (gbuf[i] >> 10) & 0x1f;
+			rbuf[i] = rbuf[i] >> 5;
+			gbuf[i] = gbuf[i] >> 10;
+		}			
+		for(int i = 0; i < 8; i++) {
+			rbuf[i] = rbuf[i] & 0x1f;
+			gbuf[i] = gbuf[i] & 0x1f;
 			bbuf[i] = bbuf[i] & 0x1f;
 		}
 		for(int i = 0; i < 8; i++) {
@@ -398,17 +408,18 @@ void TOWND_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, uint8_t* src, i
 			bbuf[i] <<= 3;
 		}
 		for(int i = 0; i < 8; i++) {
-			abuf[i] = (pbuf[i] & 0x8000) ? 0 : 255;
+			abuf[i] = (pbuf[i] & 0x8000) ? 0 : (scrntype_t)(-1);
+			a2buf[i] = (pbuf[i] & 0x8000) ? 0 : 255;
 		}
 		for(int i = 0; i < 8; i++) {
-			sbuf[i] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], abuf[i]);
+			sbuf[i] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], a2buf[i]);
 		}
 		if(magx == 1) {
 			for(int i = 0; i < 8; i++) {
 				*q++ = sbuf[i];
 			}
 			for(int i = 0; i < rwidth; i++) {
-				*r++ = (rbuf[i] == 0) ? 0 : (scrntype_t)(-1);
+				*r++ = abuf[i];
 			}
 			k += 8;
 			if(k >= width) break;
@@ -416,7 +427,7 @@ void TOWND_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, uint8_t* src, i
 			for(int i = 0; i < 8; i++) {
 				if(j = 0; j < magx; j++) {
 					*q++ = sbuf[i];
-					*r++ = (rbuf[i] == 0) ? 0 : (scrntype_t)(-1);
+					*r++ = abuf[i];
 					k++;
 					if(k >= width) break;
 				}
@@ -447,17 +458,18 @@ void TOWND_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, uint8_t* src, i
 			bbuf[i] <<= 3;
 		}
 		for(int i = 0; i < rwidth; i++) {
-			abuf[i] = (pbuf[i] & 0x8000) ? 0 : 255;
+			abuf[i] = (pbuf[i] & 0x8000) ? 0 : (scrntype_t)(-1);
+			a2buf[i] = (pbuf[i] & 0x8000) ? 0 : 255;
 		}
 		for(int i = 0; i < rwidth; i++) {
-			sbuf[i] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], abuf[i]);
+			sbuf[i] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], a2buf[i]);
 		}
 		if(magx == 1) {
 			for(int i = 0; i < rwidth; i++) {
 				*q++ = sbuf[i];
 			}
 			for(int i = 0; i < rwidth; i++) {
-				*r++ = (rbuf[i] == 0) ? 0 : (scrntype_t)(-1);
+				*r++ = abuf[i];
 			}
 			k += 8;
 			if(k >= width) break;
@@ -465,7 +477,116 @@ void TOWND_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, uint8_t* src, i
 			for(int i = 0; i < rwidth; i++) {
 				if(j = 0; j < magx; j++) {
 					*q++ = sbuf[i];
-					*r++ = (rbuf[i] == 0) ? 0 : (scrntype_t)(-1);
+					*r++ = abuf[i];
+					k++;
+					if(k >= width) break;
+				}
+				if(k >= width) break;
+			}
+		}
+	}
+}
+
+void TOWND_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, uint8_t* src, scrntype_t* pal, int y, int width, int layer)
+{
+	if(dst == NULL) return;
+	if(mask == NULL) return;
+	if(src == NULL) return;
+	if(pal == NULL) return;
+	
+	int magx = linebuffers[trans][y].mag[layer];
+	int pwidth = linebuffers[trans][y].pixels[layer];
+	int num = linebuffers[trans][y].num[layer];
+	uint8_t *p = linebuffers[trans][y].pixels_layer[layer];
+	scrntype_t *q = dst;
+	scrntype_t *r = mask;
+	if(magx < 1) return;
+	if((pwidth * magx) > width) {
+		pwidth = width / magx;
+		if((width % magx) != 0) {
+			pwidth++;
+		}
+	}
+	__DECL_ALIGNED(16) uint8_t pbuf[8];
+	__DECL_ALIGNED(16) uint8_t hlbuf[16];
+	__DECL_ALIGNED(32) scrntype_t sbuf[16];
+	__DECL_ALIGNED(32) scrntype_t abuf[16];
+	
+	int k = 0;
+	for(x = 0; x < (pwidth >> 3); x++) {
+		for(int i = 0; i < 8; i++) {
+			pbuf[i] = *p++;
+		}
+		for(int i = 0; i < 16; i += 2) {
+			hlbuf[i] = pbuf[i >> 1];
+			hlbuf[i + 1] = pbuf[i >> 1];
+		}			
+		for(int i = 0; i < 16; i += 2) {
+			hlbuf[i] >>= 4;;
+			hlbuf[i + 1] = hlbuf[i + 1] & 15;
+		}
+		for(int i = 0; i < 16; i++) {
+			abuf[i] = (hlbuf[ii] == 0) ? 0 : (scrntype_t)(-1);
+		}
+		for(int i = 0; i < 16; i++) {
+			sbuf[i] = (hlbuf[i] == 0) ? RGBA_COLOR(0, 0, 0, 0) : pal[hlbuf[i]];
+		}
+		if(magx == 1) {
+			for(int i = 0; i < 16; i++) {
+				*q++ = sbuf[i];
+			}
+			for(int i = 0; i < 16; i++) {
+				*r++ = abuf[i];
+			}
+			k += 16;
+			if(k >= width) break;
+		} else {
+			for(int i = 0; i < 16; i++) {
+				if(j = 0; j < magx; j++) {
+					*q++ = sbuf[i];
+					*r++ = abuf[i];
+					k++;
+					if(k >= width) break;
+				}
+				if(k >= width) break;
+			}
+		}
+	}
+	if(k >= width) return;
+	int rwidth = pwidth & 7;
+	uint8_t tmpp;
+	uint8_t tmph;
+	uint8_t tmpl;
+	if(rwidth > 0) {
+		for(x = 0; x < rwidth; x++) {
+			tmpp = *p++;
+			tmph = tmpp >> 4;
+			tmpl = tmpp & 0x0f;
+			ah = (tmph == 0) ? 0 : (scrntype_t)(-1);
+			al = (tmpl == 0) ? 0 : (scrntype_t)(-1);
+			sbuf[0] = (tmph == 0) ? RGBA_COLOR(0, 0, 0, 0) : pal[tmph];
+			sbuf[1] = (tmpl == 0) ? RGBA_COLOR(0, 0, 0, 0) : pal[tmpl];
+
+			if(magx == 1) {
+				*q++ = sbuf[0];
+				*r++ = ah;
+				k++;
+				if(k >= width) break;
+				*q++ = sbuf[1];
+				*r++ = al;
+				k++;
+				if(k >= width) break;
+			} else {
+				for(int j = 0; j < magx; j++) {
+					*q++ = sbuf[0];
+					*r++ = ah;
+					k++;
+					if(k >= width) break;
+				}
+				if(k >= width) break;
+				for(int j = 0; j < magx; j++) {
+					*q++ = sbuf[1];
+					*r++ = al;
 					k++;
 					if(k >= width) break;
 				}
