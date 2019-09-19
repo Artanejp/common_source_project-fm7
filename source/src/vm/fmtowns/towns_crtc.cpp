@@ -355,6 +355,514 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 	return 0xff;
 }
 
+void TOWND_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, uint8_t* src, int y, int width, int layer)
+{
+	int magx = linebuffers[trans][y].mag[layer];
+	int pwidth = linebuffers[trans][y].pixels[layer];
+	int num = linebuffers[trans][y].num[layer];
+	uint8_t *p = linebuffers[trans][y].pixels_layer[layer];
+	scrntype_t *q = dst;
+	scrntype_t *r = mask;
+	if(magx < 1) return;
+	if((pwidth * magx) > width) {
+		pwidth = width / magx;
+		if((width % magx) != 0) {
+			pwidth++;
+		}
+	}
+	__DECL_ALIGNED(16) uint16_t pbuf[8];
+	__DECL_ALIGNED(16) uint16_t rbuf[8];
+	__DECL_ALIGNED(16) uint16_t gbuf[8];
+	__DECL_ALIGNED(16) uint16_t bbuf[8];
+	__DECL_ALIGNED(32) scrntype_t sbuf[8];
+	__DECL_ALIGNED(32) scrntype_t abuf[8];
+	int k = 0;
+	for(x = 0; x < (pwidth >> 3); x++) {
+		for(int i = 0; i < 8; i++) {
+			pbuf[i] = read_2bytes_le_from(p);
+			p += 2;
+		}
+		for(int i = 0; i < 8; i++) {
+			rbuf[i] = pbuf[i];
+			gbuf[i] = pbuf[i];
+			bbuf[i] = pbuf[i];
+		}			
+		for(int i = 0; i < 8; i++) {
+			rbuf[i] = (rbuf[i] >> 5) & 0x1f;
+			gbuf[i] = (gbuf[i] >> 10) & 0x1f;
+			bbuf[i] = bbuf[i] & 0x1f;
+		}
+		for(int i = 0; i < 8; i++) {
+			rbuf[i] <<= 3;
+			gbuf[i] <<= 3;
+			bbuf[i] <<= 3;
+		}
+		for(int i = 0; i < 8; i++) {
+			abuf[i] = (pbuf[i] & 0x8000) ? 0 : 255;
+		}
+		for(int i = 0; i < 8; i++) {
+			sbuf[i] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], abuf[i]);
+		}
+		if(magx == 1) {
+			for(int i = 0; i < 8; i++) {
+				*q++ = sbuf[i];
+			}
+			for(int i = 0; i < rwidth; i++) {
+				*r++ = (rbuf[i] == 0) ? 0 : (scrntype_t)(-1);
+			}
+			k += 8;
+			if(k >= width) break;
+		} else {
+			for(int i = 0; i < 8; i++) {
+				if(j = 0; j < magx; j++) {
+					*q++ = sbuf[i];
+					*r++ = (rbuf[i] == 0) ? 0 : (scrntype_t)(-1);
+					k++;
+					if(k >= width) break;
+				}
+				if(k >= width) break;
+			}
+		}
+	}
+	if(k >= width) return;
+	if((pwidth & 7) != 0) {
+		int rwidth = pwidth & 7;
+		for(int i = 0; i < rwidth; i++) {
+			pbuf[i] = read_2bytes_le_from(p);
+			p += 2;
+		}
+		for(int i = 0; i < rwidth; i++) {
+			rbuf[i] = pbuf[i];
+			gbuf[i] = pbuf[i];
+			bbuf[i] = pbuf[i];
+		}			
+		for(int i = 0; i < rwidth; i++) {
+			rbuf[i] = (rbuf[i] >> 5) & 0x1f;
+			gbuf[i] = (gbuf[i] >> 10) & 0x1f;
+			bbuf[i] = bbuf[i] & 0x1f;
+		}
+		for(int i = 0; i < rwidth; i++) {
+			rbuf[i] <<= 3;
+			gbuf[i] <<= 3;
+			bbuf[i] <<= 3;
+		}
+		for(int i = 0; i < rwidth; i++) {
+			abuf[i] = (pbuf[i] & 0x8000) ? 0 : 255;
+		}
+		for(int i = 0; i < rwidth; i++) {
+			sbuf[i] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], abuf[i]);
+		}
+		if(magx == 1) {
+			for(int i = 0; i < rwidth; i++) {
+				*q++ = sbuf[i];
+			}
+			for(int i = 0; i < rwidth; i++) {
+				*r++ = (rbuf[i] == 0) ? 0 : (scrntype_t)(-1);
+			}
+			k += 8;
+			if(k >= width) break;
+		} else {
+			for(int i = 0; i < rwidth; i++) {
+				if(j = 0; j < magx; j++) {
+					*q++ = sbuf[i];
+					*r++ = (rbuf[i] == 0) ? 0 : (scrntype_t)(-1);
+					k++;
+					if(k >= width) break;
+				}
+				if(k >= width) break;
+			}
+		}
+	}
+}
+
+void TOWNS_CRTC::draw_screen()
+{
+	if(linebuffers[trans] == NULL) return;
+	if(d_vram == NULL) return;
+	__DECL_ALIGNED(32)  scrntype_t apal16[2][16];
+	__DECL_ALIGNED(32)  scrntype_t apal256[256];
+	
+	{
+		vm->lock_vm();
+		d_vram->get_analog_palette(0, &(apal16[0][0]));
+		d_vram->get_analog_palette(0, &(apal16[1][0]));
+		d_vram->get_analog_palette(2, apal256);
+		vm->unlock_vm();
+	}
+	int lines = d_vram->get_screen_height();
+	int width = d_vram->get_screen_width();
+	if(lines > TOWNS_CRTC_MAX_LINES) lines = TOWNS_CRTC_MAX_LINES;
+	if(width > TOWNS_CRTC_MAX_PIXELS) width = TOWNS_CRTC_MAX_PIXELS;
+	// ToDo: faster alpha blending.
+	__DECL_ALIGNED(32) scrntype_t lbuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
+	__DECL_ALIGNED(32) scrntype_t lbuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
+	__DECL_ALIGNED(32) scrntype_t abuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
+	
+	scrntype_t *dst;
+	for(int y = 0; y < lines; y++) {
+//		memset(lbuffer0, 0x00, sizeof(lbuffer0));
+		memset(lbuffer1, 0x00, sizeof(lbuffer1));
+//		memset(abuffer0, 0x00, sizeof(abuffer0));
+
+		if(linebuffers[trans].mode[0] == DISPMODE_256) {
+			// 256 colors
+			int magx = linebuffers[trans].mag[0];
+			int pwidth = linebuffers[trans].pixels[0];
+			int num = linebuffers[trans].num[0];
+			uint8_t *p = linebuffers[trans].pixels_layer[0];
+			__DECL_ALIGNED(16) uint8_t pbuf[16];
+			__DECL_ALIGNED(32) scrntype_t sbuf[16];
+			if(magx < 1) return;
+			if(magx == 1) {
+				if(pwidth > width) pwidth = width;
+				for(int x = 0; x < (pwidth >> 4); x++) {
+					// ToDo: Start position
+					for(int i = 0; i < 16; i++) {
+						pbuf[i] = *p++;
+					}
+					int xx = x << 4;
+					for(int i = 0; i < 16; i++) {
+						lbuffer1[xx++] = apal256[pbuf[i]];
+					}
+				}
+				if((pwidth & 15) != 0) {
+					int xx = pwidth & ~15;
+					int w = pwidth & 15;
+					for(int i = 0; i < w; i++) {
+						pbuf[i] = p++;
+					}
+					for(int i = 0; i < w; i++) {
+						lbuffer1[xx++] = apal256[pbuf[i]];
+					}
+				}
+			} else {
+				if((pwidth * magx) > width) {
+					pwidth = width / magx;
+					if((width % magx) != 0) pwidth++;
+				}
+				int k = 0;
+				for(int x = 0; x < (pwidth >> 4); x++) {
+					// ToDo: Start position
+					for(int i = 0; i < 16; i++) {
+						pbuf[i] = *p++;
+					}
+					for(int i = 0; i < 16; i++) {
+					    sbuf[i] = apal256[pbuf[i]];
+					}
+					for(int i = 0; i < 16; i++) {
+						scrntype_t s = sbuf[i];
+						for(int j = 0; j < magx; j++) {
+							lbuffer1[k++] = s;
+						}
+					}
+				}
+				if((pwidth & 15) != 0) {
+					for(int i = 0; i < (pwidth & 15); i++) {
+						pbuf[i] = *p++;
+					}
+					for(int i = 0; i < (pwidth & 15); i++) {
+					    sbuf[i] = apal256[pbuf[i]];
+					}
+					for(int i = 0; i < (pwidth & 15); i++) {
+						scrntype_t s = sbuf[i];
+						for(int j = 0; j < magx; j++) {
+							lbuffer1[k++] = s;
+							if(k >= width) break;
+						}
+						if(k > width) break;
+					}
+				}
+			}
+		} else {
+			int magx = linebuffers[trans].mag[1];
+			int pwidth = linebuffers[trans].pixels[1];
+			int num = linebuffers[trans].num[1];
+			uint8_t *p = linebuffers[trans].pixels_layer[1];
+			__DECL_ALIGNED(16) uint16_t rbuf[16];
+			__DECL_ALIGNED(16) uint16_t gbuf[16];
+			__DECL_ALIGNED(16) uint16_t bbuf[16];
+			__DECL_ALIGNED(16) uint8_t p8buf[16];
+			__DECL_ALIGNED(16) uint8_t hlbuf[32];
+			__DECL_ALIGNED(32) scrntype_t sbuf[16];
+			if(magx < 1) return;
+			if(pwidth > width) pwidth = width;
+			if(linebuffers[trans].mode[1] == DISPMODE_16) { // Lower layer
+				int k = 0;
+				for(int x = 0; x < (pwidth >> 5); x++) {
+					for(int i = 0; i < 16; i++) {
+						p8buf[i] = *p++;
+					}
+					for(int i = 0; i < 32; i += 2) {
+						hlbuf[i + 0] = p8buf[i >> 1] >> 4;
+						hlbuf[i + 1] = p8buf[i >> 1] & 0x0f;
+					}
+					for(int i = 0; i < 32; i++) {
+						sbuf[i] = apal16[num][hlbuf[i]];
+					}
+					if(magx == 1) {
+						for(int i = 0; i < 32; i++) {
+							lbuffer1[k++] = sbuf[i];
+							if(k > width) break;
+						}
+					} else {
+						for(int i = 0; i < 32; i++) {
+							for(int j = 0; j < magx; j++) {
+								lbuffer1[k++] = sbuf[i];
+								if(k > width) break;
+							}
+							if(k > width) break;
+						}
+					}
+				}
+				if((pwidth & 31) >= 2) {
+					for(int x = 0; x < ((pwidth & 31) >> 1); x++) {
+						p8buf[x] = *p++;
+					}
+					for(int i = 0; i < (pwidth & 0x1e); i += 2) {
+						hlbuf[i + 0] = p8buf[i >> 1] >> 4;
+						hlbuf[i + 1] = p8buf[i >> 1] & 0x0f;
+					}
+					for(int i = 0; i < (pwidth & 0x1f); i++) {
+						sbuf[i] = apal16[num][hlbuf[i]];
+					}
+					if(magx == 1) {
+						for(int i = 0; i < (pwidth & 0x1f); i++) {
+							lbuffer1[k++] = sbuf[i];
+							if(k > width) break;
+						}
+					} else {
+						for(int i = 0; i < (pwidth & 0x1f); i++) {
+							for(int j = 0; j < magx; j++) {
+								lbuffer1[k++] = sbuf[i];
+								if(k > width) break;
+							}
+							if(k > width) break;
+						}
+					}
+				}
+			} else if(linebuffers[trans].mode[1] == DISPMODE_32768) { // Lower layer
+				uint16_t* q = (uint16_t*)p;
+				int k = 0;
+				pair16_t n;
+				for(int x = 0; x < (pwidth >> 4); x++) {
+					for(int i = 0; i < 16; i++) {
+						rbuf[i] = read_2bytes_le_from(p);
+						p += 2;
+					}
+					for(int i = 0; i < 16; i++) {
+						gbuf[i] = rbuf[i];
+						bbuf[i] = rbuf[i];
+						abuf[i] = rbuf[i];
+					}
+					for(int i = 0; i < 16; i++) {
+						gbuf[i] = (gbuf[i] >> 10) & 0x1f;
+						bbuf[i] = bbuf[i] & 0x1f;
+						rbuf[i] = (rbuf[i]  >> 5) & 0x1f;
+						abuf[i] = (abuf[i] & 0x8000) ? 0 : 255;
+					}
+					if(magx == 1) {
+						for(int i = 0; i < 16; i++) {
+							lbuffer1[k++] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], abuf[i]);
+						}
+					} else if(magx > 0) {
+						for(int i = 0; i < 16; i++) {
+							scrntype_t s = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], abuf[i]);
+							for(int j = 0; j < magx; j++) {
+								lbuffer1[k++] = s;
+								if(k > width) break;
+							}
+							if(k > width) break;
+						}
+					}
+				}
+				for(int x = 0; x < (pwidth >> 4); x++) {
+					for(int i = 0; i < 16; i++) {
+						rbuf[i] = read_2bytes_le_from(p);
+						p += 2;
+					}
+					for(int i = 0; i < 16; i++) {
+						gbuf[i] = rbuf[i];
+						bbuf[i] = rbuf[i];
+						abuf[i] = rbuf[i];
+					}
+					for(int i = 0; i < 16; i++) {
+						gbuf[i] = (gbuf[i] >> 10) & 0x1f;
+						bbuf[i] = bbuf[i] & 0x1f;
+						rbuf[i] = (rbuf[i]  >> 5) & 0x1f;
+						abuf[i] = (abuf[i] & 0x8000) ? 0 : 255;
+					}
+					if(magx == 1) {
+						for(int i = 0; i < 16; i++) {
+							lbuffer1[k++] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], abuf[i]);
+						}
+					} else if(magx > 0) {
+						for(int i = 0; i < 16; i++) {
+							scrntype_t s = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], abuf[i]);
+							for(int j = 0; j < magx; j++) {
+								lbuffer1[k++] = s;
+								if(k > width) break;
+							}
+							if(k > width) break;
+						}
+					}
+				}
+			}
+			// Upper layer
+			magx = linebuffers[trans].mag[0];
+			pwidth = linebuffers[trans].pixels[0];
+			num = linebuffers[trans].num[0];
+			p = linebuffers[trans].pixels_layer[0];
+			if(magx < 1) return;
+			if(pwidth > width) pwidth = width;
+			// ToDo: alpha blending by GPU
+			if(linebuffers[trans].mode[0] == DISPMODE_16) { // Upper layer
+				int k = 0;
+				for(int x = 0; x < (pwidth >> 5); x++) {
+					for(int i = 0; i < 16; i++) {
+						p8buf[i] = *p++;
+					}
+					for(int i = 0; i < 32; i += 2) {
+						hlbuf[i + 0] = p8buf[i >> 1] >> 4;
+						hlbuf[i + 1] = p8buf[i >> 1] & 0x0f;
+					}
+					for(int i = 0; i < 32; i++) {
+						sbuf[i] = apal16[num][hlbuf[i]];
+					}
+					if(magx == 1) {
+						for(int i = 0; i < 32; i++) {
+							lbuffer1[k] = (hlbuf[i] == 0) ? lbuffer1[k] : sbuf[i];
+							k++;
+							if(k > width) break;
+						}
+					} else {
+						for(int i = 0; i < 32; i++) {
+							for(int j = 0; j < magx; j++) {
+								lbuffer1[k] = (hlbuf[i] == 0) ? lbuffer1[k] : sbuf[i];
+								k++;
+								if(k > width) break;
+							}
+							if(k > width) break;
+						}
+					}
+				}
+				if((pwidth & 31) >= 2) {
+					for(int x = 0; x < ((pwidth & 31) >> 1); x++) {
+						p8buf[x] = *p++;
+					}
+					for(int i = 0; i < (pwidth & 0x1e); i += 2) {
+						hlbuf[i + 0] = p8buf[i >> 1] >> 4;
+						hlbuf[i + 1] = p8buf[i >> 1] & 0x0f;
+					}
+					for(int i = 0; i < (pwidth & 0x1f); i++) {
+						sbuf[i] = apal16[num][hlbuf[i]];
+					}
+					if(magx == 1) {
+						for(int i = 0; i < (pwidth & 0x1f); i++) {
+							lbuffer1[k] = (hlbuf[i] == 0) ? lbuffer1[k] : sbuf[i];
+							k++;
+							if(k > width) break;
+						}
+					} else {
+						for(int i = 0; i < (pwidth & 0x1f); i++) {
+							for(int j = 0; j < magx; j++) {
+								lbuffer1[k] = (hlbuf[i] == 0) ? lbuffer1[k] : sbuf[i];
+								k++;
+								if(k > width) break;
+							}
+							if(k > width) break;
+						}
+					}
+				}
+			} else if(linebuffers[trans].mode[0] == DISPMODE_32768) { // upper layer
+				uint16_t* q = (uint16_t*)p;
+				int k = 0;
+				pair16_t n;
+				for(int x = 0; x < (pwidth >> 4); x++) {
+					for(int i = 0; i < 16; i++) {
+						rbuf[i] = read_2bytes_le_from(p);
+						p += 2;
+					}
+					for(int i = 0; i < 16; i++) {
+						gbuf[i] = rbuf[i];
+						bbuf[i] = rbuf[i];
+						abuf[i] = rbuf[i];
+					}
+					for(int i = 0; i < 16; i++) {
+						gbuf[i] = (gbuf[i] >> 10) & 0x1f;
+						bbuf[i] = bbuf[i] & 0x1f;
+						rbuf[i] = (rbuf[i]  >> 5) & 0x1f;
+						abuf[i] = (abuf[i] & 0x8000) ? 0 : 255;
+					}
+					if(magx == 1) {
+						for(int i = 0; i < 16; i++) {
+							lbuffer1[k] = (abuf[i] == 0) ? lbuffer1[k] : RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], abuf[i]);
+							k++;
+						}
+					} else if(magx > 0) {
+						for(int i = 0; i < 16; i++) {
+							if(!(abuf[i] == 0)) {
+								scrntype_t s = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], abuf[i]);
+								for(int j = 0; j < magx; j++) {
+									lbuffer1[k++] = s;
+									if(k > width) break;
+								}
+							} else {
+								k += magx;
+							}
+							if(k > width) break;
+						}
+					}
+				}
+				for(int x = 0; x < (pwidth >> 4); x++) {
+					for(int i = 0; i < 16; i++) {
+						rbuf[i] = read_2bytes_le_from(p);
+						p += 2;
+					}
+					for(int i = 0; i < 16; i++) {
+						gbuf[i] = rbuf[i];
+						bbuf[i] = rbuf[i];
+						abuf[i] = rbuf[i];
+					}
+					for(int i = 0; i < 16; i++) {
+						gbuf[i] = (gbuf[i] >> 10) & 0x1f;
+						bbuf[i] = bbuf[i] & 0x1f;
+						rbuf[i] = (rbuf[i]  >> 5) & 0x1f;
+						abuf[i] = (abuf[i] & 0x8000) ? 0 : 255;
+					}
+					if(magx == 1) {
+						for(int i = 0; i < 16; i++) {
+							lbuffer1[k] = (abuf[i] == 0) ? lbuffer1[k] : RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], abuf[i]);
+							k++;
+						}
+					} else if(magx > 0) {
+						for(int i = 0; i < 16; i++) {
+							if(abuf[i] != 0) {
+								scrntype_t s = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], abuf[i]);
+								for(int j = 0; j < magx; j++) {
+									lbuffer1[k++] = s;
+									if(k > width) break;
+								}
+							} else {
+								k += magx;
+							}
+							if(k > width) break;
+						}
+					}
+				}
+			}
+		}
+		// ToDo: alpha blending
+		{
+			vm->lock_vm();
+			scrntype_t *pp = emu->get_screen_buffer(y);
+			if(pp != NULL) {
+				my_memcpy(pp, lbuffer1, width * sizeof(scrntype_t));
+			}
+			vm->unlock_vm();
+		}
+	}
+}
+	
 void TOWNS_CRTC::transfer_line(int line)
 {
 	if(line < 0) return;
@@ -369,6 +877,7 @@ void TOWNS_CRTC::transfer_line(int line)
 		linebuffers[trans][line].mode[i] = 0;
 		linebuffers[trans][line].pixels[i] = 0;
 		linebuffers[trans][line].mag[i] = 0;
+		linebuffers[trans][line].num[i] = -1;
 	}
 	int page0, page1;
 	linebuffers[trans][line].prio = prio;
@@ -381,6 +890,7 @@ void TOWNS_CRTC::transfer_line(int line)
 	}
 	if((ctrl & 0x10) == 0) { // One layer mode
 		bool to_disp = false;
+		linebuffers[trans][line].num[0] = 0;
 		if(!(frame_in[0])) return;
 		switch(ctrl & 0x0f) {
 		case 0x0a:
@@ -435,6 +945,8 @@ void TOWNS_CRTC::transfer_line(int line)
 	} else { // Two layers.
 		bool to_disp[2] = {false, false};
 		uint8_t ctrl_b = ctrl;
+		linebuffers[trans][line].num[0] = page0;
+		linebuffers[trans][line].num[1] = page1;
 		for(int l = 0; l < 1; l++) {
 			if(frame_in[l]) {
 				switch(ctrl_b & 0x03) {

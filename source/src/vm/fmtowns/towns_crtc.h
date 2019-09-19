@@ -128,9 +128,9 @@ namespace FMTOWNS {
 
 	enum {
 		DISPMODE_NONE = 0,
-		DISPMODE_32768_2,
-		DISPMODE_32768_1,
-		DISPMODE_256_OR_16,
+		DISPMODE_256,
+		DISPMODE_32768,
+		DISPMODE_16,
 	};
 }
 
@@ -140,9 +140,10 @@ typedef struct {
 	int32_t mode[2];
 	int32_t pixels[2];
 	int32_t mag[2];
+	int32_t num[2];
 	uint32_t prio;
-	uint32_t pad[4];
-	uint8_t pixels_layer[2][1024]; // RAW VALUE
+	uint32_t pad[7];
+	uint8_t pixels_layer[2][TOWNS_CRTC_MAX_PIXELS]; // RAW VALUE
 } linebuffer_t;
 	
 class TOWNS_CRTC : public DEVICE

@@ -913,27 +913,6 @@ __exit_0:
 	return;
 }
 
-void TOWNS_VRAM::draw_screen()
-{
-	// Note: This renderer will contain three types (at least:)
-	// 1. Software Zoom, Hardware stack (Using GPU for stack, Using CPU for zoom)
-	// 2. Softare Zoom,  Software stack (Using only host-CPU).
-	// 3. Hardware Zoom, Hardware stack (Using GPU and compute shader?).
-	// To implement 1., Zooming all screen don't wish to use CPU, per raster Zooming wish to use GPU.
-	// At first, will implement 2.As of CSP platform implement only single frame buffer area.
-	//
-	// Answer values(excepts 2.):
-	//  Note: Upper layer = layer1, lower layer = layer2.
-	// a. Pixel Layers of 1/2.
-	// b. Alpha Layers of 1.
-	// c. Layer using flags both layer1, layer2.
-	// d. Data of Layers (1/2).
-	// e. Source screen width and height per layer.
-	// f. Offset sourcfe-pixel-address per raster.
-	// g. Source raster width per layer and scanline.
-	// h. Offset dst-pixel-position in raster per layer.
-	// - 20190110 K.Ohta.
-}
 
 
 }
