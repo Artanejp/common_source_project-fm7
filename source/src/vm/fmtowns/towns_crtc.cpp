@@ -1033,6 +1033,7 @@ void TOWNS_CRTC::transfer_line()
 			break;
 		}
 		if(to_disp) {
+			// ToDo: Sprite mode.
 			uint32_t offset = vstart_addr[0];
 			offset = offset + head_address[0];
 			if(hstart_words[0] >= regs[9]) {
@@ -1077,6 +1078,7 @@ void TOWNS_CRTC::transfer_line()
 		uint8_t ctrl_b = ctrl;
 		linebuffers[trans][line].num[0] = page0;
 		linebuffers[trans][line].num[1] = page1;
+		// ToDo: Sprite mode.
 		for(int l = 0; l < 2; l++) {
 			bool disp = frame_in[l];
 			if((horiz_end_us[l] <= 0.0) || (horiz_end_us[l] <= horiz_start_us[l])) {
