@@ -88,6 +88,16 @@
  */
 #define TOWNS_CRTC_MAX_LINES  1024
 #define TOWNS_CRTC_MAX_PIXELS 1024
+
+#define SIG_TOWNS_CRTC_HSYNC   1
+#define SIG_TOWNS_CRTC_VSYNC   2
+#define SIG_TOWNS_CRTC_FIELD   3
+#define SIG_TOWNS_CRTC_VDISP0  4
+#define SIG_TOWNS_CRTC_VDISP1  5
+#define SIG_TOWNS_CRTC_HDISP0  6
+#define SIG_TOWNS_CRTC_HDISP1  7
+#define SIG_TOWNS_CRTC_MMIO_CF882H 8
+
 namespace FMTOWNS {
 
 	enum {
@@ -153,7 +163,7 @@ private:
 	outputs_t outputs_int_vsync;  // Connect to int 11.
 	uint16_t regs[32];      // I/O 0442H, 0443H
 	bool regs_written[32];
-	uint8_t ch;         // I/O 0440H
+	uint8_t crtc_ch;         // I/O 0440H
 	bool timing_changed[2];
 	bool address_changed[2];
 	bool mode_changed[2];
@@ -188,8 +198,6 @@ private:
 	uint32_t line_count[2]; // Separate per layer.
 	
 	int vert_line_count; // Not separate per layer.Total count.
-
-	int buffer_num; // Frame buffer number.
 	// Note: To display to real screen, use blending of OpenGL/DirectX
 	//       from below framebuffers per layer if you can.
 	//       And, recommand to use (hardware) shader to rendering (= not to use framebuffer of below) if enabled.
@@ -197,50 +205,28 @@ private:
 	//       Rendering precesses may be heavily to use only CPU (I think). 20170107 K.Ohta.
 	
 	// Not Saved?.
-	uint8_t layer_colors[2];
-	uint16_t *vram_ptr[2];   // Layer [01] address.
-	uint32_t vram_size[2];   // Layer [01] size [bytes].
-	uint32_t vram_offset[2]; // Layer [01] address offset.
-	
-	uint32_t layer_virtual_width[2];
-	uint32_t layer_virtual_height[2];
-	uint32_t layer_display_width[2];
-	uint32_t layer_display_height[2];
 	// End.
 	
-	bool vdisp, vblank, vsync, hsync, hdisp, frame_in;
+	bool vdisp, vblank, vsync, hsync, hdisp[2], frame_in[2];
 
+	// FM-R50 emulation
+	uint8_t r50_planemask; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
+	uint8_t r50_pagesel;   // MMIO 000CF882h : BIT 4
+	uint8_t dpalette_regs[8]; // I/O FD98H - FD9FH
+	bool dpalette_changed;
+	
 	// Video output controller (I/O 0448H, 044AH)
 	// Register 00 : Display mode.
-	bool display_on[2]; // CL11-CL00 : bit3-0
-	bool one_layer_mode; // PMODE : bit4
 	// Register 11: Priority mode.
-	uint8_t vout_palette_mode;
-	bool vout_ys;
 	bool video_brightness; // false = high.
-	bool layer1_front; // if false, layer 0 is front.
-	
-	// Video output registers. May be split to separate files?
-	// FMR50 Compatible registers. They are mostly dummy.
-
-	// MMIO? 000C:FF80H
-	uint8_t r50_mix_reg;
-	// MMIO? 000C:FF81H
-	uint8_t r50_update_mode;
-	// MMIO? 000C:FF82H Not dummy?
-	uint8_t r50_dispmode;
-	// MMIO? 000C:FF83H Not dummy?
-	uint8_t r50_pagesel;
-	// MMIO? 000C:FF86H Not dummy?
-	uint8_t r50_status;
-	// I/O FDA0H Not Dummy?
-	//uint8_t r50_sub_statreg;
-
 	
 	// Others.
-	uint8_t video_out_reg_addr;  // I/O 0448H
-	uint8_t video_out_reg_data;  // I/O 044AH
+	// VRAM CONTROL REGISTER.
+	uint8_t voutreg_num;  // I/O 0448h
+	uint8_t voutreg_ctrl; // I/O 044Ah : voutreg_num = 0.
+	uint8_t voutreg_prio; // I/O 044Ah : voutreg_num = 1.
 	uint8_t video_out_regs[2];
+	bool crtout[2];              // I/O FDA0H WRITE
 	// End.
 
 	
@@ -255,9 +241,14 @@ private:
 	int event_id_vst1;
 	int event_id_vst2;
 	int event_id_vblank;
-	
+	int event_id_hstart;
+	int event_id_vds[2];
+	int event_id_vde[2];
+	int event_id_hds[2];
+	int event_id_hde[2];
+
 	int display_linebuf;
-	linebuffer_t *linebuffers[2];
+	linebuffer_t *linebuffers[4];
 	
 	void set_display(bool val);
 	void set_vblank(bool val);

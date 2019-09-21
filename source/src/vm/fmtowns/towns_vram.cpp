@@ -49,17 +49,16 @@ void TOWNS_VRAM::initialize()
 
 void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
-	uint32_t naddr = addr & 0xfff00000;
+	uint32_t naddr = addr & 0xfff80000;
 	switch(naddr) {
 	case 0x80000000:
+	case 0x80100000:
+		// ToDo: Upper 0x80x80000
 		// Main VRAM
-		write_raw_vram8(addr - 0x80000000, data);
+		write_raw_vram8(addr, data);
 		return;
 		break;
-	case 0x80100000:
-		// Main VRAM
-		break;
-	case 0x00000000:
+	case 0x00080000:
 		switch(addr & 0x000ff000) {
 		case 0xc0000:
 		case 0xc1000:
@@ -73,16 +72,19 @@ void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 			return;
 			break;
 		case 0xc8000:
-			// Text VRAM
-			break;
 		case 0xc9000:
-			// Reserved
-			break;
 		case 0xca000:
-			// ANKCG1 / IO / RAM
-			break;
 		case 0xcb000:
-			// CGROM
+		case 0xcc000:
+		case 0xcd000:
+		case 0xce000:
+		case 0xcf000:
+			// Reserved
+			if((addr < 0xcff80) && (addr >= 0xcff88)) {
+				d_sprite->write_data8(addr & 0x7fff, data);
+			} else {
+				write_mmio8(addr, data);
+			}				
 			break;
 		default:
 			return;
@@ -98,17 +100,16 @@ void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 
 void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 {
-	uint32_t naddr = addr & 0xfff00000;
+	uint32_t naddr = addr & 0xfff80000;
 	switch(naddr) {
 	case 0x80000000:
+	case 0x80100000:
+		// ToDo: Upper 0x80x80000
 		// Main VRAM
-		write_raw_vram16(addr - 0x80000000, data);
+		write_raw_vram16(addr, data);
 		return;
 		break;
-	case 0x80100000:
-		// Main VRAM
-		break;
-	case 0x00000000:
+	case 0x00080000:
 		switch(addr & 0x000ff000) {
 		case 0xc0000:
 		case 0xc1000:
@@ -122,16 +123,22 @@ void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 			return;
 			break;
 		case 0xc8000:
-			// Text VRAM
-			break;
 		case 0xc9000:
-			// Reserved
-			break;
 		case 0xca000:
-			// ANKCG1 / IO / RAM
-			break;
 		case 0xcb000:
-			// CGROM
+		case 0xcc000:
+		case 0xcd000:
+		case 0xce000:
+		case 0xcf000:
+			// Reserved
+			if((addr < (0xcff80 - 1)) && (addr >= 0xcff88)) {
+				d_sprite->write_data16(addr & 0x7fff, data);
+			} else {
+				pair16_t d;
+				d.2 = data;
+				write_mmio8(addr, d.b.l);
+				write_mmio8(addr + 1, d.b.h);
+			}				
 			break;
 		default:
 			return;
@@ -147,17 +154,16 @@ void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	
 void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
-	uint32_t naddr = addr & 0xfff00000;
+	uint32_t naddr = addr & 0xfff80000;
 	switch(naddr) {
 	case 0x80000000:
+	case 0x80100000:
+		// ToDo: Upper 0x80x80000
 		// Main VRAM
-		write_raw_vram32(addr - 0x80000000, data);
+		write_raw_vram32(addr, data);
 		return;
 		break;
-	case 0x80100000:
-		// Main VRAM
-		break;
-	case 0x00000000:
+	case 0x00080000:
 		switch(addr & 0x000ff000) {
 		case 0xc0000:
 		case 0xc1000:
@@ -171,16 +177,24 @@ void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 			return;
 			break;
 		case 0xc8000:
-			// Text VRAM
-			break;
 		case 0xc9000:
-			// Reserved
-			break;
 		case 0xca000:
-			// ANKCG1 / IO / RAM
-			break;
 		case 0xcb000:
-			// CGROM
+		case 0xcc000:
+		case 0xcd000:
+		case 0xce000:
+		case 0xcf000:
+			// Reserved
+			if((addr < (0xcff80 - 3)) && (addr >= 0xcff88)) {
+				d_sprite->write_data32(addr & 0x7fff, data);
+			} else {
+				pair32_t d;
+				d.d = data;
+				write_mmio8(addr, d.b.l);
+				write_mmio8(addr + 1, d.b.h);
+				write_mmio8(addr + 2, d.b.h2);
+				write_mmio8(addr + 3, d.b.h3);
+			}				
 			break;
 		default:
 			return;
@@ -196,16 +210,15 @@ void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 
 uint32_t TOWNS_VRAM::read_memory_mapped_io8(uint32_t addr)
 {
-	uint32_t naddr = addr & 0xfff00000;
+	uint32_t naddr = addr & 0xfff80000;
 	switch(naddr) {
 	case 0x80000000:
-		// Main VRAM
-		return read_raw_vram8(addr - 0x80000000);
-		break;
 	case 0x80100000:
+		// ToDo: Upper 0x80x80000
 		// Main VRAM
+		return read_raw_vram8(addr);
 		break;
-	case 0x00000000:
+	case 0x00080000:
 		switch(addr & 0x000ff000) {
 		case 0xc0000:
 		case 0xc1000:
@@ -219,16 +232,19 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io8(uint32_t addr)
 			return read_plane_data8(addr);	// Plane access by I/O FF81h
 			break;
 		case 0xc8000:
-			// Text VRAM
-			break;
 		case 0xc9000:
-			// Reserved
-			break;
 		case 0xca000:
-			// ANKCG1 / IO / RAM
-			break;
 		case 0xcb000:
-			// CGROM
+		case 0xcc000:
+		case 0xcd000:
+		case 0xce000:
+		case 0xcf000:
+			// Reserved
+			if((addr < 0xcff80) && (addr >= 0xcff88)) {
+				return d_sprite->read_data8(addr & 0x7fff);
+			} else {
+				return read_mmio8(addr);
+			}				
 			break;
 		default:
 			return 0xff;
@@ -242,16 +258,15 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io8(uint32_t addr)
 
 uint32_t TOWNS_VRAM::read_memory_mapped_io16(uint32_t addr)
 {
-	uint32_t naddr = addr & 0xfff00000;
+	uint32_t naddr = addr & 0xfff80000;
 	switch(naddr) {
 	case 0x80000000:
-		// Main VRAM
-		return read_raw_vram16(addr - 0x80000000);
-		break;
 	case 0x80100000:
+		// ToDo: Upper 0x80x80000
 		// Main VRAM
+		return read_raw_vram16(addr);
 		break;
-	case 0x00000000:
+	case 0x00080000:
 		switch(addr & 0x000ff000) {
 		case 0xc0000:
 		case 0xc1000:
@@ -265,16 +280,22 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io16(uint32_t addr)
 			return read_plane_data16(addr);	// Plane access by I/O FF81h
 			break;
 		case 0xc8000:
-			// Text VRAM
-			break;
 		case 0xc9000:
-			// Reserved
-			break;
 		case 0xca000:
-			// ANKCG1 / IO / RAM
-			break;
 		case 0xcb000:
-			// CGROM
+		case 0xcc000:
+		case 0xcd000:
+		case 0xce000:
+		case 0xcf000:
+			// Reserved
+			if((addr < (0xcff80 - 1)) && (addr >= 0xcff88)) {
+				return d_sprite->read_data16(addr & 0x7fff);
+			} else {
+				pair16_t d;
+				d.l = read_mmio8(addr);
+				d.h = read_mmio8(addr + 1);
+				return d.w;
+			}				
 			break;
 		default:
 			return 0xffff;
@@ -289,16 +310,15 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io16(uint32_t addr)
 
 uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 {
-	uint32_t naddr = addr & 0xfff00000;
+	uint32_t naddr = addr & 0xfff80000;
 	switch(naddr) {
 	case 0x80000000:
-		// Main VRAM
-		return read_raw_vram32(addr - 0x80000000);
-		break;
 	case 0x80100000:
+		// ToDo: Upper 0x80x80000
 		// Main VRAM
+		return read_raw_vram32(addr);
 		break;
-	case 0x00000000:
+	case 0x00080000:
 		switch(addr & 0x000ff000) {
 		case 0xc0000:
 		case 0xc1000:
@@ -312,16 +332,24 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 			return read_plane_data32(addr);	// Plane access by I/O FF81h
 			break;
 		case 0xc8000:
-			// Text VRAM
-			break;
 		case 0xc9000:
-			// Reserved
-			break;
 		case 0xca000:
-			// ANKCG1 / IO / RAM
-			break;
 		case 0xcb000:
-			// CGROM
+		case 0xcc000:
+		case 0xcd000:
+		case 0xce000:
+		case 0xcf000:
+			// Reserved
+			if((addr < (0xcff80 - 3)) && (addr >= 0xcff88)) {
+				return d_sprite->read_data16(addr & 0x7fff);
+			} else {
+				pair32_t d;
+				d.l = read_mmio8(addr);
+				d.h = read_mmio8(addr + 1);
+				d.h2 = read_mmio8(addr + 2);
+				d.h3 = read_mmio8(addr + 3);
+				return d.d;
+			}				
 			break;
 		default:
 			return 0xffffffff;
@@ -341,158 +369,279 @@ uint32_t TOWNS_VRAM::read_raw_vram8(uint32_t addr)
 	
 uint32_t TOWNS_VRAM::read_raw_vram16(uint32_t addr)
 {
-	if(addr == 0x7ffff) {
+	pair16_t a;
+	bool is_wrap = false;
+	uint32_t wrap_addr;
+	if((addr & 0x3ffff) == 0x3ffff) {
+		if(addr != 0x8013ffff) {
+			is_wrap = true;
+			wrap_addr = (addr == 0x8007ffff) ? 0x40000 : 0;
+		}
+	}
+	addr = addr & 0x7ffff;
+	if(is_wrap) {
 		pair16_t a;
 		a.b.l = vram[addr];
-		a.b.h = vram[0];
-		return (uint32_t)(a.w);
+		a.b.h = vram[wrap_addr];
 	} else {
 #ifdef __LITTLE_ENDIAN__
 		// SAME endian
 		uint16_t* p = (uint16_t *)(&vram[addr]);
-		return (uint32_t)(*p);
+		a.w = *p;
 #else
-		pair16_t a;
-		a.b.l = vram[addr];
-		a.b.h = vram[addr + 1];
-		return (uint32_t)(a.w);
+		a.read_2bytes_le_from(&vram[addr]);
 #endif
 	}
+	return (uint32_t)(a.w);
 }
 
 uint32_t TOWNS_VRAM::read_raw_vram32(uint32_t addr)
 {
-	if(addr > 0x7fffc) {
-		pair32_t a;
+	pair32_t a;
+	bool is_wrap = false;
+	uint32_t wrap_addr = 0;
+	uint32_t wrap_mask;
+	
+	if((addr & 0x3ffff) > 0x3fffc) {
+		if((addr < 0x8013fffd) && (addr > 0x8013ffff)) {
+			is_wrap = true;
+			wrap_addr = ((addr <= 0x8007ffff) && (addr > 0x8007fffc)) ? 0x40000 : 0;
+			wrap_mask = (addr >= 0x80100000) ? 0x7ffff : 0x3ffff;
+		}
+	}
+	addr = addr & 0x7ffff;
+	if(is_wrap) {
 		a.b.l  = vram[addr];
-		a.b.h  = vram[(addr + 1) & 0x7ffff];
-		a.b.h2 = vram[(addr + 2) & 0x7ffff];
-		a.b.h3 = vram[(addr + 3) & 0x7ffff];
-		return a.d;
+		a.b.h  = vram[((addr + 1) & wrap_mask) | wrap_addr];
+		a.b.h2 = vram[((addr + 2) & wrap_mask) | wrap_addr];
+		a.b.h3 = vram[((addr + 3) & wrap_mask) | wrap_addr];
 	} else {
 #ifdef __LITTLE_ENDIAN__
-		// SAME endian
-		uint32_t* p = (uint32_t *)(&vram[addr]);
-		return *p;
+		uint32_t* p = (uint32_t)(&vram[addr]);
+		a.d = *p;
 #else
-		pair32_t a;
-		a.b.l  = vram[addr];
-		a.b.h  = vram[addr + 1];
-		a.b.h2 = vram[addr + 2];
-		a.b.h3 = vram[addr + 3];
+		a.read_4bytes_le_from(&vram[addr]);
 #endif
-		return a.d;
 	}
+	return a.d;
 }
 
 void TOWNS_VRAM::write_raw_vram8(uint32_t addr, uint32_t data)
 {
-	if(vram[addr] != data) {
+	uint8_t mask;
+	uint8_t d1;
+	uint8_t d2;
+	uint8_t d3;
+	switch(addr & 0x03) {
+	case 0:
+		mask = packed_pixel_mask_reg.b.l;
+		break;
+	case 1:
+		mask = packed_pixel_mask_reg.b.h;
+		break;
+	case 2:
+		mask = packed_pixel_mask_reg.b.h2;
+		break;
+	case 3:
+		mask = packed_pixel_mask_reg.b.h3;
+		break;
+	}
+	addr = addr & 0x7ffff; // ToDo
+	d1 = vram[addr];
+	d2 = data;
+	if(mask != 0xff) {
+		d2 = d2 & mask;
+		d3 = d1 & ~(mask);
+		d2 = d2 | d3;
+	}
+	if(d1 != d2) {
 		make_dirty_vram(addr, 1);
-		vram[addr] = data;
+		vram[addr] = d2;
 	}
 }
 
 void TOWNS_VRAM::write_raw_vram16(uint32_t addr, uint32_t data)
 {
-	if(addr == 0x7ffff) {
-		pair16_t a;
-		a.w = data;
-		if(vram[addr] != a.b.l) {
+	pair16_t a;
+	pair16_t b;
+	pair16_t c;
+	uint16_t mask;
+	bool is_wrap = false;
+	uint32_t wrap_addr = 0;
+	mask = ((addr & 0x02) == 0) ? packed_pixel_mask_reg.w.l : packed_pixel_mask_reg.w.h;
+	a.w = data;
+	
+	if((addr & 0x3ffff) == 0x3ffff) {
+		if(addr != 0x8013ffff) {
+			is_wrap = true;
+			wrap_addr = (addr == 0x8007ffff) ? 0x40000 : 0;
+		}
+	}
+	addr = addr & 0x7ffff;
+	if(is_wrap) {
+		b.b.l = vram[addr];
+		b.b.h = vram[wrap_addr];
+		c.w = b.w;
+		if(mask != 0xffff) {
+			b.w = b.w & ~(mask);
+			a.w = a.w & mask;
+			a.w = a.w | b.w;
+		}
+		if(a.w != c.w) {
 			make_dirty_vram(addr, 1);
+			make_dirty_vram(wrap_addr, 1);
 			vram[addr] = a.b.l;
+			vram[wrap_addr] = a.b.h;
 		}
-		if(vram[0] != a.b.h) {
-			make_dirty_vram(0, 1);
-			vram[0] = a.b.h;
-		}
-		return;
 	} else {
 #ifdef __LITTLE_ENDIAN__
-		// SAME endian
-		uint16_t* p = (uint16_t *)(&vram[addr]);
-		if(*p != (uint16_t)data) {
-			make_dirty_vram(addr, 2);
-			*p = data;
-		}
-		return;
+		uint16_t* p = (uint16_t)(&vram[addr]);
+		b.w = *p;
 #else
-		pair16_t a;
-		a.w = data;
-		uint16_t* p = (uint16_t *)(&vram[addr]);
-		uint16_t b = *p;
-		if(a.w != b) {
-			make_dirty_vram(addr, 2);
-			vram[addr] = a.b.l;
-			vram[addr + 1] = a.b.h;
-		}
+		b.read_2bytes_le_from(&vram[addr]);
 #endif
+		c.w = b.w;
+		if(mask != 0xffff) {
+			b.w = b.w & ~(mask.w);
+			a.w = a.w & mask.w;
+			a.w = a.w | b.w;
+		}
+		if(a.w != c.w) {
+			make_dirty_vram(addr, 2);
+#ifdef __LITTLE_ENDIAN__
+			*p = a.w;
+#else
+			a.write_2bytes_le_to(&vram[addr]);
+#endif
+		}
 	}
+	return;
 }
 
 void TOWNS_VRAM::write_raw_vram32(uint32_t addr, uint32_t data)
 {
-	if(addr > 0x7fffc) {
-		pair32_t a;
-		a.d = data;
-		if(vram[addr] != a.b.l) {
-			make_dirty_vram(addr & 0x7ffff, 1);
-			vram[addr & 0x7ffff] = a.b.l;
+	pair32_t a;
+	pair32_t b;
+	pair32_t c;
+	uint32_t mask;
+	bool is_wrap = false;
+	uint32_t wrap_addr = 0;
+	uint32_t wrap_mask;
+	mask = ((addr & 0x02) == 0) ? packed_pixel_mask_reg.w.l : packed_pixel_mask_reg.w.h;
+	a.d = data;
+	
+	if((addr & 0x3ffff) > 0x3fffc) {
+		if((addr < 0x80100000) || (addr >= 0x80140000)) {
+			is_wrap = true;
+			wrap_addr = ((addr <= 0x8007ffff) && (addr > 0x8008fffc)) ? 0x40000 : 0;
+			wrap_mask = (addr >= 0x80100000) ? 0x7ffff : 0x3ffff;
 		}
-		if(vram[(addr + 1) & 0x7ffff] != a.b.h) {
-			make_dirty_vram((addr + 1) & 0x7ffff, 1);
-			vram[(addr + 1) & 0x7ffff] = a.b.h;
+	}
+	addr = addr & 0x7ffff;
+	if(is_wrap) {
+		b.b.l  = vram[addr];
+		b.b.h  = vram[((addr + 1) & wrap_mask) | wrap_addr];
+		b.b.h2 = vram[((addr + 2) & wrap_mask) | wrap_addr];
+		b.b.h3 = vram[((addr + 3) & wrap_mask) | wrap_addr];
+		
+		c.d = b.d;
+		if(mask != 0xffffffff) {
+			b.d = b.d & ~(mask);
+			a.d = a.d & mask;
+			a.d = a.d | b.d;
 		}
-		if(vram[(addr + 2) & 0x7ffff] != a.b.h2) {
-			make_dirty_vram((addr + 2) & 0x7ffff, 1);
-			vram[(addr + 2) & 0x7ffff] = a.b.h2;
+		if(a.d != c.d) {
+			int leftbytes = 0x40000 - (addr & 0x3ffff);
+			make_dirty_vram(addr, leftbytes);
+			make_dirty_vram(wrap_addr, 4 - leftbytes);
+			vram[addr] = a.b.l;
+			vram[((addr + 1) & wrap_mask) | wrap_addr] = a.b.h;
+			vram[((addr + 2) & wrap_mask) | wrap_addr] = a.b.h2;
+			vram[((addr + 3) & wrap_mask) | wrap_addr] = a.b.h3;
 		}
-		if(vram[(addr + 3) & 0x7ffff] != a.b.h3) {
-			make_dirty_vram((addr + 3) & 0x7ffff, 1);
-			vram[(addr + 3) & 0x7ffff] = a.b.h3;
-		}
-		return;
 	} else {
 #ifdef __LITTLE_ENDIAN__
-		// SAME endian
-		uint32_t* p = (uint32_t *)(&vram[addr]);
-		if(*p != data) {
-			make_dirty_vram(addr, 4);
-			*p = data;
-		}
-		return;
+		uint32_t* p = (uint32_t)(&vram[addr]);
+		b.d = *p;
 #else
-		pair32_t a;
-		a.d = data;
-		uint32_t* p = (uint32_t *)(&vram[addr]);
-		uint32_t b = *p;
-		if(a.d != b) {
-			make_dirty_vram(addr, 4);
-			vram[addr] = a.b.l;
-			vram[addr + 1] = a.b.h;
-			vram[addr + 2] = a.b.h2;
-			vram[addr + 3] = a.b.h3;
-		}
+		b.read_4bytes_le_from(&vram[addr]);
 #endif
+		c.d = b.d;
+		if(mask != 0xffffffff) {
+			b.d = b.d & ~(mask);
+			a.d = a.d & mask;
+			a.d = a.d | b.d;
+		}
+		if(a.d != c.d) {
+			make_dirty_vram(addr, 4);
+#ifdef __LITTLE_ENDIAN__
+			*p = a.d;
+#else
+			d.write_4bytes_le_to(&vram[addr]);
+#endif
+		}
+	}
+	return;
+}
+
+void TOWNS_CRTC::write_mmio8(uint32_t addr, uint32_t data)
+{
+	if((addr < 0xcff80) || (addr >= 0xcff88)) {
+		d_sprite->write_data8(addr & 0x7fff, data);
+		return;
+	}
+	switch(addr) {
+	case 0xcff80:
+		mix_reg = data & 0x28;
+		break;
+	case 0xcff81:
+		r50_readplane = (data & 0xc0) >> 6;
+		r50_ramsel = data & 0x0f;
+		break;
+	case 0xcff82:
+		d_crtc->write_signal(SIG_TOWNS_CRTC_MMIO_CF882H, data);
+		break;
+	case 0xcff83:
+		r50_gvramset = (data & 0x10) >> 4;
+		break;
+	case 0xcff86:
+		break;
+	default:
+		break;
 	}
 }
 
-
-
-void TOWNS_CRTC::write_io16(uint32_t addr, uint32_t data)
+uint32_t TOWNS_CRTC::read_mmio8(uint32_t addr)
 {
+	if((addr < 0xcff80) || (addr >= 0xcff88)) {
+		return d_sprite->read_data8(addr & 0x7fff);
+	}
 	switch(addr) {
-	case 0x0448:
-		voutreg_num = data & 0x01;
+	case 0xcff80:
+		return mix_reg;
 		break;
-	case 0x044a:
-		if(voutreg_num == 0) {
-			voutreg_ctrl = data & 0x10;
-		} else if(voutreg_num == 1) {
-			voutreg_prio = data & 0x10;
-		}			
+	case 0xcff81:
+		return ((r50_readplane << 6) | r50_ramsel);
+		break;
+	case 0xcff82:
+		return d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CF882H);
+		break;
+	case 0xcff83:
+		return (r50_gvramset << 4);
+		break;
+	case 0xcff86:
+		{
+			uint8_t d;
+			d = (d_crtc->read_signal(SIG_TOWNS_CRTC_VSYNC) != 0) ? 0x04 : 0;
+			d = d | ((d_crtc->read_signal(SIG_TOWNS_CRTC_HSYNC) != 0) ? 0x80 : 0);
+			d = d | 0x10;
+			return d;
+		}
+		break;
+	default:
 		break;
 	}
+	return 0xff;
 }
 
 uint32_t TOWNS_VRAM::read_plane_data8(uint32_t addr)
