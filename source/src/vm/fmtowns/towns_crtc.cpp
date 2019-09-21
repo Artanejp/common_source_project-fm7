@@ -9,6 +9,8 @@
 */
 
 #include "towns_crtc.h"
+#include "towns_vram.h"
+#include "towns_sprite.h"
 
 namespace FMTOWNS {
 enum {
@@ -63,7 +65,8 @@ void TOWNS_CRTC::initialize()
 	// register events
 	//register_frame_event(this);
 	//register_vline_event(this);
-	
+	crtc_clock = 28.6363e6;
+	vm->set_vm_frame_rate(FRAMES_PER_SEC); // Its dummy.
 }
 
 void TOWNS_CRTC::release()
@@ -97,17 +100,13 @@ void TOWNS_CRTC::reset()
 	vt_disp = (SCREEN_HEIGHT > LINES_PER_FRAME) ? (SCREEN_HEIGHT >> 1) : SCREEN_HEIGHT;
 	vs_start = vt_disp + 16;
 	vs_end = vs_start + 16;
+	req_recalc = false;
 	
 	timing_changed = false;
 	disp_end_clock = 0;
-	
-#if defined(TOWNS_CRTC_CHAR_CLOCK)
-	char_clock = 0;
-	next_char_clock = TOWNS_CRTC_CHAR_CLOCK;
-#elif defined(TOWNS_CRTC_HORIZ_FREQ)
-	horiz_freq = 0;
-	next_horiz_freq = TOWNS_CRTC_HORIZ_FREQ;
-#endif
+	sprite_disp_page = 0; // OK?
+	sprite_enabled = false;
+	crtc_clock = 28.6363e6; // OK?
 
 	line_count[0] = line_count[1] = 0;
 	vert_line_count = -1;
@@ -118,6 +117,7 @@ void TOWNS_CRTC::reset()
 		line_changed[1][i] = true;
 		line_rendered[1][i] = false;
 	}
+	
 	if(event_id_hsync  >= 0) cancel_event(this, event_id_hsync);
 	if(event_id_hsw    >= 0) cancel_event(this, event_id_hsw);
 	if(event_id_vsync  >= 0) cancel_event(this, event_id_vsync);
@@ -126,6 +126,7 @@ void TOWNS_CRTC::reset()
 	if(event_id_vst2   >= 0) cancel_event(this, event_id_vst2);
 	if(event_id_vblank >= 0) cancel_event(this, event_id_vblank);
 	if(event_id_hstart >= 0) cancel_event(this, event_id_hstart);
+
 	for(int i = 0; i < 2; i++) {
 		if(event_id_vds[i] >= 0) cancel_event(this, event_id_vds[i]);
 		if(event_id_hds[i] >= 0) cancel_event(this, event_id_hds[i]);
@@ -147,6 +148,8 @@ void TOWNS_CRTC::reset()
 	}
 
 	// Register vstart
+	vm->set_vm_frame_rate(FRAMES_PER_SEC); // Its dummy.
+	force_recalc_crtc_param();
 	register_event(this, EVENT_CRTC_VSTART, vstart_us, false, &event_id_vstart);
 }
 // CRTC register #29
@@ -159,7 +162,7 @@ void TOWNS_CRTC::set_crtc_clock(uint16_t val)
 	};
 	if(crtc_clock[clksel] != crtc_clock) {
 		crtc_clock = crtc_clock[clksel];
-		force_recalc_crtc_param();
+		req_recalc = true;
 	}
 }
 
@@ -169,20 +172,25 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 	horiz_width_nega_us = crtc_clock * ((double)(regs[1] & 0x00fe)); // HSW2
 	horiz_us = crtc_clock * ((double)((regs[4] & 0x07fe) + 1)); // HST
 	vsync_pre_us = ((double)(regs[5] & 0x1f)) * horiz_us; // VST1
-
+	
 	double horiz_ref = horiz_us / 2.0;
 	
 	vst2_us = ((double)(regs[6] & 0x1f)) * horiz_ref; // VST2
 	eet_us = ((double)(regs[7] & 0x1f)) * horiz_ref;  // EET
 	frame_us = ((double)(regs[8] & 0x07ff)) * horiz_ref; // VST
-
+	if(frame_us > 0.0) {
+		vm->set_vm_frame_rate(1.0e6 / frame_us);
+	} else {
+		vm->set_vm_frame_rate(FRAMES_PER_SEC);
+	}		
+	
 	for(int layer = 0; layer < 2; layer++) {
 		vert_start_us[layer] =  ((double)(regs[(layer << 1) + 13] & 0x07ff)) * horiz_ref;   // VDSx
 		vert_end_us[layer] =    ((double)(regs[(layer << 1) + 13 + 1] & 0x07ff)) * horiz_ref; // VDEx
 		horiz_start_us[layer] = ((double)(regs[(layer << 1) + 9] & 0x07ff)) * crtc_clock ;   // HDSx
 		horiz_end_us[layer] =   ((double)(regs[(layer << 1) + 9 + 1] & 0x07ff)) * crtc_clock ;   // HDEx
 	}
-		
+	req_recalc = false;
 }
 
 
@@ -237,14 +245,14 @@ void TOWNS_CRTC::write_io16(uint32_t addr, uint32_t data)
 			if(crtc_ch < 32) {
 				if((crtc_ch < 0x09) && ((crtc_ch >= 0x04) || (crtc_ch <= 0x01))) { // HSW1..VST
 					if(regs[crtc_ch] != (uint16_t)data) {
-						force_recalc_crtc_param();
+						req_recalc = true;
 					}
 				} else if(crtc_ch < 0x11) { // HDS0..VDE1
 					uint8_t localch = ((crtc_ch  - 0x09) / 2) & 1;
 					if(regs[crtc_ch] != (uint16_t)data) {
 						timing_changed[localch] = true;
 						// ToDo: Crtc_Change render parameter within displaying.
-						force_recalc_crtc_param();
+						req_recalc = true;
 					}
 				}else if(crtc_ch < 0x19) { // FA0..LO1
 					uint8_t localch = (crtc_ch - 0x11) / 4;
@@ -421,8 +429,10 @@ uint32_t TOWNS_CRTC::read_io16(uint32_t addr)
 		{
 			uint16_t d = 0xff7c;
 			d = d | ((dpalette_changed) ? 0x80 : 0x00);
-			d = d | ((d_sprite->read_signal(SIG_TOWNS_SPRITE_BUSY) != 0) ? 0x02 : 0x00);
-			d = d | ((d_sprite->read_signal(SIG_TOWNS_SPRITE_DISPPAGE) != 0) ? 0x01 : 0x00);
+			if(d_sprite != NULL) {
+				d = d | ((d_sprite->read_signal(SIG_TOWNS_SPRITE_BUSY) != 0) ? 0x02 : 0x00);
+			}
+			d = d | ((sprite_disp_page != 0) ? 0x01 : 0x00);
 			dpalette_changed = false;
 			return d;
 		}
@@ -1156,7 +1166,7 @@ void TOWNS_CRTC::update_timing(int new_clocks, double new_frames_per_sec, int ne
 	cpu_clocks = new_clocks;
 	frames_per_sec = new_frames_per_sec;
 	max_lines = new_lines_per_frame;
-	max_frame_usec = 1.0e6 / frames_per_sec;
+	req_recalc = true;
 }
 
 void TOWNS_CRTC::event_callback(int event_id, int err)
@@ -1175,6 +1185,9 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 	int eid2 = (event_id / 2) * 2;
 	if(event_id == EVENT_CRTC_VSTART) {
 		display_linebuf = (display_linebuf + 1) & 3; // Incremant per vstart
+		if(req_recalc) {
+			force_recalc_crtc_param();
+		}
 		line_count[0] = line_count[1] = 0;
 		vert_line_count = -1;
 		if((horiz_us != next_horiz_us) || (vert_us != next_vert_us)) {
@@ -1188,6 +1201,9 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 		}
 		// ToDo: EET
 		register_event(this, EVENT_CRTC_VSTART, frame_us, false, &event_id_frame);
+		if(d_sprite != NULL) {
+			d_sprite->write_signal(SIG_TOWNS_SPRITE_CALL_VSTART, 0xffffffff, 0xffffffff);
+		}
 		if(vert_sync_pre_us >= 0.0) {
 			vsync = false;
 			register_event(this, EVENT_CRTC_VST1, vert_sync_pre_us, false, &event_id_vst1); // VST1
@@ -1245,6 +1261,9 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 		event_id_hstart = -1;
 		transfer_line(); // Tranfer before line.
 		vert_line_count++;
+		if(d_sprite != NULL) {
+			d_sprite->write_signal(SIG_TOWNS_SPRITE_CALL_HSYNC, vert_line_count, 0xffffffff);
+		}
 		hdisp[0] = false;
 		hdisp[1] = false;
 		if(event_id_hsw != -1) {
@@ -1338,6 +1357,10 @@ void TOWNS_CRTC::write_signal(int ch, uint32_t data, uint32_t mask)
 	if(ch == SIG_TOWNS_CRTC_MMIO_CF882H) {
 		r50_planemask = ((data & 0x20) >> 2) | (data & 0x07);
 		r50_pagesel = ((data & 0x10) != 0) ? 1 : 0;
+	} else if(ch == SIG_TOWNS_CRTC_SPRITE_DISP) {
+		sprite_disp_page = data & 1; // OK?
+	} else if(ch == SIG_TOWNS_CRTC_SPRITE_USING) {
+		sprite_enabled = ((data & mask) != 0) ? true : false; // OK?
 	}
 }
 
@@ -1361,15 +1384,7 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 
 	state_fio->StateValue(display_enabled);
 	state_fio->StateValue(crtc_clock);
-	state_fio->StateValue(horiz_us);
-	state_fio->StateValue(next_horiz_us);
-	state_fio->StateValue(horiz_width_posi_us);
-	state_fio->StateValue(horiz_width_nega_us);
-	state_fio->StateValue(vert_us);
-	state_fio->StateValue(next_vert_us);
-	state_fio->StateValue(vstart_us);
-	state_fio->StateValue(vert_sync_pre_us);
-	state_fio->StateValue(vert_sync_end_us);
+	state_fio->StateValue(max_lines);
 	state_fio->StateValue(frames_per_sec);
 
 	state_fio->StateArray(vstart_addr, sizeof(vstart_addr), 1);
@@ -1382,9 +1397,7 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	
 	state_fio->StateArray(zoom_factor_vert, sizeof(zoom_factor_vert), 1);
 	state_fio->StateArray(zoom_factor_horiz, sizeof(zoom_factor_horiz), 1);
-
 	state_fio->StateArray(zoom_count_vert, sizeof(zoom_count_vert), 1);
-
 	state_fio->StateArray(line_count, sizeof(line_count), 1);
 
 	state_fio->StateValue(vert_line_count);
@@ -1408,6 +1421,9 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(voutreg_prio);
 	state_fio->StateArray(video_out_regs, sizeof(video_out_regs), 1);
 	state_fio->StateArray(crtout, sizeof(crtout), 1);
+
+	state_fio->StateValue(sprite_disp_page);
+	state_fio->StateValue(sprite_enabled);
 
 	state_fio->StateValue(event_id_hsync);
 	state_fio->StateValue(event_id_hsw);
@@ -1435,6 +1451,8 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 			}
 		}
 		display_linebuf = 0;
+		req_recalc = false;
+		force_recalc_crtc_param();
 	}
 	return true;
 }

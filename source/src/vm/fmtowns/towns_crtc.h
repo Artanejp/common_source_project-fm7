@@ -89,14 +89,16 @@
 #define TOWNS_CRTC_MAX_LINES  1024
 #define TOWNS_CRTC_MAX_PIXELS 1024
 
-#define SIG_TOWNS_CRTC_HSYNC   1
-#define SIG_TOWNS_CRTC_VSYNC   2
-#define SIG_TOWNS_CRTC_FIELD   3
-#define SIG_TOWNS_CRTC_VDISP0  4
-#define SIG_TOWNS_CRTC_VDISP1  5
-#define SIG_TOWNS_CRTC_HDISP0  6
-#define SIG_TOWNS_CRTC_HDISP1  7
-#define SIG_TOWNS_CRTC_MMIO_CF882H 8
+#define SIG_TOWNS_CRTC_HSYNC          1
+#define SIG_TOWNS_CRTC_VSYNC          2
+#define SIG_TOWNS_CRTC_FIELD          3
+#define SIG_TOWNS_CRTC_VDISP0         4
+#define SIG_TOWNS_CRTC_VDISP1         5
+#define SIG_TOWNS_CRTC_HDISP0         6
+#define SIG_TOWNS_CRTC_HDISP1         7
+#define SIG_TOWNS_CRTC_MMIO_CF882H    8
+#define SIG_TOWNS_CRTC_SPRITE_BUFFER  9
+#define SIG_TOWNS_CRTC_SPRITE_DISP    10
 
 namespace FMTOWNS {
 
@@ -155,10 +157,14 @@ typedef struct {
 	uint32_t pad[7];
 	uint8_t pixels_layer[2][TOWNS_CRTC_MAX_PIXELS]; // RAW VALUE
 } linebuffer_t;
-	
+
+class TOWNS_VRAM;
+class TOWNS_SPRITE;
 class TOWNS_CRTC : public DEVICE
 {
-private:
+protected:
+	TOWNS_VRAM* d_vram;
+	TOWNS_SPRITE* d_sprite;
 	// output signals
 	outputs_t outputs_int_vsync;  // Connect to int 11.
 	uint16_t regs[32];      // I/O 0442H, 0443H
@@ -179,6 +185,10 @@ private:
 	double vstart_us;
 	double vert_sync_pre_us; // VST1 * horiz_us / 2.0
 	double vert_sync_end_us; // VST2 * horiz_us / 2.0
+	double eet_us;
+	double frame_us;
+	
+	bool req_recalc;
 	// End
 
 	double frames_per_sec;
@@ -209,6 +219,10 @@ private:
 	
 	bool vdisp, vblank, vsync, hsync, hdisp[2], frame_in[2];
 
+	// around sprite
+	uint8_t sprite_disp_page;
+	bool sprite_enabled;
+	
 	// FM-R50 emulation
 	uint8_t r50_planemask; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
 	uint8_t r50_pagesel;   // MMIO 000CF882h : BIT 4
@@ -267,9 +281,11 @@ public:
 	TOWNS_CRTC(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_int_vsync);
-		for(int i = 0; i < 2; i++) {
+		for(int i = 0; i < 4; i++) {
 			linebuffers[i] = NULL;
 		}
+		d_sprite = NULL;
+		d_vram = NULL;
 		set_device_name(_T("FM-Towns CRTC"));
 	}
 	~TOWNS_CRTC() {}
@@ -307,6 +323,16 @@ public:
 		if(linebuffers[page] == NULL) return NULL;
 		return &(linebuffers[page][line]);
 	}
+	
+	void set_context_sprite(DEVICE* dev)
+	{
+		d_sprite = (TOWNS_SPRITE*)dev;
+	}
+	void set_context_vram(DEVICE* dev)
+	{
+		d_vram = (TOWNS_VRAM*)dev;
+	}
+	
 	void set_context_vsync(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_int_vsync, device, id, mask);
