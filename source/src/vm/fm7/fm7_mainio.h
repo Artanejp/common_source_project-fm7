@@ -287,6 +287,7 @@ class FM7_MAINIO : public DEVICE {
 
 	void set_beep(uint32_t data); // fd03
 	virtual void reset_sound(void);
+	void reset_opn_psg(int ch_num);
 	void reset_printer(void);
 	
 	void reset_fdc(void);

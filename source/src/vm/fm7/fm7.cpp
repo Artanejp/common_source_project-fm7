@@ -759,6 +759,7 @@ void VM::reset()
 	}
 #if !defined(_FM77AV_VARIANTS) || defined(_FM8)
 # if defined(USE_AY_3_8910_AS_PSG)
+	psg->set_reg(0x27, 0);	// set prescaler
 	psg->set_reg(0x2e, 0);	// set prescaler
 	psg->write_signal(SIG_AY_3_891X_MUTE, 0x00, 0x01); // Okay?
 # else	
@@ -867,8 +868,10 @@ void VM::initialize_sound(int rate, int samples)
 	opn[2]->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
 # if !defined(_FM77AV_VARIANTS)   
 	psg->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
+#  if defined(USE_AY_3_8910_AS_PSG)
 	psg->set_low_pass_filter_freq(4500);
 	psg->set_high_pass_filter_freq(50);
+#  endif
 # endif
 # if defined(_FM77AV_VARIANTS)
 	keyboard_beep->initialize_sound(rate, 2400.0, 512);

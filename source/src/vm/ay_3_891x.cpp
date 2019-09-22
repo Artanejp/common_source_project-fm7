@@ -173,7 +173,6 @@ void AY_3_891X::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_AY_3_891X_MUTE) {
 		mute = ((data & mask) != 0);
-
 	} else if(id == SIG_AY_3_891X_PORT_A) {
 		if(_SUPPORT_AY_3_891X_PORT_A) {
 			port[0].rreg = (port[0].rreg & ~mask) | (data & mask);

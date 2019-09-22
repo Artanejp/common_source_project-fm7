@@ -366,7 +366,7 @@ uint32_t FM8_MAINIO::read_data8(uint32_t addr)
 		break;
 	case 0x0e: // PSG DATA
 		retval = (uint32_t) get_psg();
-		//printf("PSG DATA READ val=%02x\n", retval);
+		//out_debug_log("PSG DATA READ val=%02x\n", retval);
 		return retval;
 		break;
 	case 0x0f: // FD0F

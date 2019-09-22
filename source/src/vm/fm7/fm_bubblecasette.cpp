@@ -403,7 +403,7 @@ bool BUBBLECASETTE::open(_TCHAR* file_path, int bank)
 		fio->Fopen(file_path, FILEIO_READ_WRITE_BINARY);
 		file_length = fio->FileLength();
 		if(file_length == 0) return false;
-		//printf("Size=%d\n", file_length);
+		//out_debug_log("Size=%d\n", file_length);
 		if(file_length == 0x8000) { // 32KB
 			bubble_type = BUBBLE_TYPE_32KB;
 			media_size = 0x8000;
@@ -640,7 +640,7 @@ bool BUBBLECASETTE::write_one_page()
 			return false;
 			break;
 		}
-		//printf("Write One Page: PAGE=%04x COUNT=%04x:\n ",page_address.w.l, page_count.w.l);
+		//out_debug_log("Write One Page: PAGE=%04x COUNT=%04x:\n ",page_address.w.l, page_count.w.l);
 		if(remain < (int)(offset + page_size)) return false;
 		fio->Fseek(f_pos + offset, FILEIO_SEEK_SET);
 		fio->Fwrite(&bubble_data[offset], page_size, 1);

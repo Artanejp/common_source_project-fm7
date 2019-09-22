@@ -19,7 +19,7 @@ int FM7_MAINMEM::window_convert(uint32_t addr, uint32_t *realaddr)
 		raddr = ((window_offset * 256) + addr) & 0x0ffff; 
 		*realaddr = raddr;
 #ifdef _FM77AV_VARIANTS
-		//printf("TWR hit %04x -> %04x\n", addr, raddr);
+		//out_debug_log("TWR hit %04x -> %04x\n", addr, raddr);
 		return FM7_MAINMEM_AV_PAGE0; // 0x00000 - 0x0ffff
 #else // FM77(L4 or others)
 		*realaddr |= 0x20000;
@@ -289,7 +289,7 @@ void FM7_MAINMEM::write_with_mmr(uint32_t addr, uint32_t segment, uint32_t data,
 		void (__FASTCALL FM7_MAINMEM::*write_func)(uint32_t, uint32_t, bool);
 		write_func = this->mmr_update_table_nor[n_pos].write_func;
 		raddr = mmr_baseaddr_table_nor[n_pos] | (addr & 0xfff);
-		//printf("%08x %08x %08x\n", addr, raddr, n_pos);
+		//out_debug_log("%08x %08x %08x\n", addr, raddr, n_pos);
 		(this->*write_func)(raddr, data, dmamode);
 	}
 	return;

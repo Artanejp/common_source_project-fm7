@@ -586,7 +586,7 @@ void FM7_MAINIO::set_irq_printer(bool flag)
 void FM7_MAINIO::set_irq_keyboard(bool flag)
 {
 	//uint8_t backup = irqstat_reg0;
-   	//printf("MAIN: KEYBOARD: IRQ=%d MASK=%d\n", flag ,irqmask_keyboard);
+   	//out_debug_log("MAIN: KEYBOARD: IRQ=%d MASK=%d\n", flag ,irqmask_keyboard);
 	irqreq_keyboard = flag;
 	if(flag && !irqmask_keyboard) {
 		irqstat_reg0 &= 0xfe;
@@ -699,7 +699,7 @@ uint8_t FM7_MAINIO::get_fd04(void)
 #endif
 	if(firq_sub_attention) {
 		set_sub_attention(false);
-		//printf("Attention \n");
+		//out_debug_log("Attention \n");
 	} 
 #if defined(_FM77AV_VARIANTS)
 	if(hotreset) {
@@ -840,7 +840,7 @@ uint8_t FM7_MAINIO::read_kanjidata_left(void)
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 	if(!stat_kanjirom) return 0xff;
 #endif	
-	//printf("KANJI MAIN CLASS1 ADDR: %05x\n", kaddress.w.l);
+	//out_debug_log("KANJI MAIN CLASS1 ADDR: %05x\n", kaddress.w.l);
 	if(kanjiclass1) {
 		return kanjiclass1->read_data8(KANJIROM_DATA_HI);
 	} else {
@@ -1227,7 +1227,7 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 			return mainmem->read_data8(addr - 0x80 + FM7_MAINIO_MMR_BANK + mmr_segment * 16);
 		}
 #endif
-		//	if((addr >= 0x0006) && !(addr == 0x1f) && !(addr == 0x0b)) printf("MAINIO: READ: %08x \n", addr);
+		//	if((addr >= 0x0006) && !(addr == 0x1f) && !(addr == 0x0b)) out_debug_log("MAINIO: READ: %08x \n", addr);
 		switch(addr) {
 		case 0x00: // FD00
 			retval = (uint32_t) get_port_fd00();
@@ -1272,7 +1272,7 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 #endif			
 		case 0x0e: // PSG DATA
 			retval = (uint32_t) get_psg();
-			//printf("PSG DATA READ val=%02x\n", retval);
+			//out_debug_log("PSG DATA READ reg=%d val=%02x\n", opn_address[3], retval);
 			break;
 		case 0x0f: // FD0F
 		  	read_fd0f();
@@ -1283,7 +1283,7 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 			retval = subsystem_read_status();  
 			break;
 #endif
-			//printf("OPN CMD READ \n");
+			//out_debug_log("OPN CMD READ \n");
 			break;
 		case 0x16: // OPN DATA
 			retval = (uint32_t) get_opn(0);
@@ -1300,7 +1300,7 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 				retval = (uint32_t) get_fdc_stat();
 			}
 		    break;
-			//printf("FDC: READ STATUS %02x PC=%04x\n", retval, maincpu->get_pc()); 
+			//out_debug_log("FDC: READ STATUS %02x PC=%04x\n", retval, maincpu->get_pc()); 
 			break;
 		case 0x19: // FDC: Track
 			if(stat_fdmode_2hd) {
@@ -1308,7 +1308,7 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 			} else {
 				retval = (uint32_t) get_fdc_track();
 			}
-			//printf("FDC: READ TRACK REG %02x\n", retval); 
+			//out_debug_log("FDC: READ TRACK REG %02x\n", retval); 
 			break;
 		case 0x1a: // FDC: Sector
 			if(stat_fdmode_2hd) {
@@ -1316,7 +1316,7 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 			} else {
 				retval = (uint32_t) get_fdc_sector();
 			}
-			//printf("FDC: READ SECTOR REG %02x\n", retval); 
+			//out_debug_log("FDC: READ SECTOR REG %02x\n", retval); 
 			break;
 		case 0x1b: // FDC: Data
 			if(stat_fdmode_2hd) {
@@ -1331,7 +1331,7 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 			} else {
 				retval = (uint32_t) get_fdc_fd1c();
 			}
-			//printf("FDC: READ HEAD REG %02x\n", retval); 
+			//out_debug_log("FDC: READ HEAD REG %02x\n", retval); 
 			break;
 		case 0x1d:
 			if(stat_fdmode_2hd) {
@@ -1339,7 +1339,7 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 			} else {
 				retval = (uint32_t) get_fdc_motor();
 			}
-			//printf("FDC: READ MOTOR REG %02x\n", retval); 
+			//out_debug_log("FDC: READ MOTOR REG %02x\n", retval); 
 			break;
 		case 0x1e:
 			if(stat_fdmode_2hd) {
@@ -1347,7 +1347,7 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 			} else {
 				retval = (uint32_t) get_fdc_fd1e();
 			}
-			//printf("FDC: READ MOTOR REG %02x\n", retval); 
+			//out_debug_log("FDC: READ MOTOR REG %02x\n", retval); 
 			break;
 		case 0x1f:
 			if(stat_fdmode_2hd) {
@@ -1360,30 +1360,30 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 		case 0x18: // FDC: STATUS
 			retval = (uint32_t) get_fdc_stat();
 		    break;
-			//printf("FDC: READ STATUS %02x PC=%04x\n", retval, maincpu->get_pc()); 
+			//out_debug_log("FDC: READ STATUS %02x PC=%04x\n", retval, maincpu->get_pc()); 
 			break;
 		case 0x19: // FDC: Track
 			retval = (uint32_t) get_fdc_track();
-			//printf("FDC: READ TRACK REG %02x\n", retval); 
+			//out_debug_log("FDC: READ TRACK REG %02x\n", retval); 
 			break;
 		case 0x1a: // FDC: Sector
 			retval = (uint32_t) get_fdc_sector();
-			//printf("FDC: READ SECTOR REG %02x\n", retval); 
+			//out_debug_log("FDC: READ SECTOR REG %02x\n", retval); 
 			break;
 		case 0x1b: // FDC: Data
 			retval = (uint32_t) get_fdc_data();
 			break;
 		case 0x1c:
 			retval = (uint32_t) get_fdc_fd1c();
-			//printf("FDC: READ HEAD REG %02x\n", retval); 
+			//out_debug_log("FDC: READ HEAD REG %02x\n", retval); 
 			break;
 		case 0x1d:
 			retval = (uint32_t) get_fdc_motor();
-			//printf("FDC: READ MOTOR REG %02x\n", retval); 
+			//out_debug_log("FDC: READ MOTOR REG %02x\n", retval); 
 			break;
 		case 0x1e:
 			retval = (uint32_t) get_fdc_fd1e();
-			//printf("FDC: READ MOTOR REG %02x\n", retval); 
+			//out_debug_log("FDC: READ MOTOR REG %02x\n", retval); 
 			break;
 		case 0x1f:
 			retval = (uint32_t) fdc_getdrqirq();
@@ -1504,7 +1504,7 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 		return retval;
 	}
 #endif
-	//if((addr >= 0x0006) && (addr != 0x1f)) printf("MAINIO: READ: %08x DATA=%08x\n", addr);
+	//if((addr >= 0x0006) && (addr != 0x1f)) out_debug_log("MAINIO: READ: %08x DATA=%08x\n", addr);
 	return 0xff;
 }
 
@@ -1591,11 +1591,11 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 #endif
 			break;
 		case 0x0d:
-			//printf("PSG CMD WRITE val=%02x\n", data);
+			//out_debug_log("PSG CMD WRITE val=%02x\n", data);
 			set_psg_cmd(data);
 			break;
 		case 0x0e:
-			//printf("PSG DATA WRITE val=%02x\n", data);
+			//out_debug_log("PSG DATA WRITE val=%02x\n", data);
 			set_psg(data);
 			break;
 		case 0x0f: // FD0F
@@ -1617,11 +1617,11 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 			break;
 #endif
 		case 0x15: // OPN CMD
-			//printf("OPN CMD WRITE val=%02x\n", data);
+			//out_debug_log("OPN CMD WRITE val=%02x\n", data);
 			set_opn_cmd(0, data);
 			break;
 		case 0x16: // OPN DATA
-			//printf("OPN DATA WRITE val=%02x\n", data);
+			//out_debug_log("OPN DATA WRITE val=%02x\n", data);
 			set_opn(0, data);
 			break;
 		case 0x17:
@@ -1634,7 +1634,7 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 			} else {
 				set_fdc_cmd((uint8_t)data);
 			}
-			//printf("FDC: WRITE CMD %02x\n", data); 
+			//out_debug_log("FDC: WRITE CMD %02x\n", data); 
 			break;
 		case 0x19: // FDC: Track
 			if(stat_fdmode_2hd) {
@@ -1642,7 +1642,7 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 			} else {
 				set_fdc_track((uint8_t)data);
 			}
-			//printf("FDC: WRITE TRACK REG %02x\n", data); 
+			//out_debug_log("FDC: WRITE TRACK REG %02x\n", data); 
 			break;
 		case 0x1a: // FDC: Sector
 			if(stat_fdmode_2hd) {
@@ -1650,7 +1650,7 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 			} else {
 				set_fdc_sector((uint8_t)data);
 			}
-			//printf("FDC: WRITE SECTOR REG %02x\n", data); 
+			//out_debug_log("FDC: WRITE SECTOR REG %02x\n", data); 
 			break;
    		case 0x1b: // FDC: Data
 			if(stat_fdmode_2hd) {
@@ -1665,7 +1665,7 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 			} else {
 				set_fdc_fd1c((uint8_t)data);
 			}
-			//printf("FDC: WRITE HEAD REG %02x\n", data); 
+			//out_debug_log("FDC: WRITE HEAD REG %02x\n", data); 
 			break;
 		case 0x1d:
 			if(stat_fdmode_2hd) {
@@ -1673,7 +1673,7 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 			} else {
 				set_fdc_fd1d((uint8_t)data);
 			}
-			//printf("FDC: WRITE MOTOR REG %02x\n", data); 
+			//out_debug_log("FDC: WRITE MOTOR REG %02x\n", data); 
 			break;
 		case 0x1e:
 			if(stat_fdmode_2hd) {
@@ -1688,26 +1688,26 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 #else
 		case 0x18: // FDC: COMMAND
 			set_fdc_cmd((uint8_t)data);
-			//printf("FDC: WRITE CMD %02x\n", data); 
+			//out_debug_log("FDC: WRITE CMD %02x\n", data); 
 			break;
 		case 0x19: // FDC: Track
 			set_fdc_track((uint8_t)data);
-			//printf("FDC: WRITE TRACK REG %02x\n", data); 
+			//out_debug_log("FDC: WRITE TRACK REG %02x\n", data); 
 			break;
 		case 0x1a: // FDC: Sector
 			set_fdc_sector((uint8_t)data);
-			//printf("FDC: WRITE SECTOR REG %02x\n", data); 
+			//out_debug_log("FDC: WRITE SECTOR REG %02x\n", data); 
 			break;
    		case 0x1b: // FDC: Data
 			set_fdc_data((uint8_t)data);
 			break;
 		case 0x1c:
 			set_fdc_fd1c((uint8_t)data);
-			//printf("FDC: WRITE HEAD REG %02x\n", data); 
+			//out_debug_log("FDC: WRITE HEAD REG %02x\n", data); 
 			break;
 		case 0x1d:
 			set_fdc_fd1d((uint8_t)data);
-			//printf("FDC: WRITE MOTOR REG %02x\n", data); 
+			//out_debug_log("FDC: WRITE MOTOR REG %02x\n", data); 
 			break;
 		case 0x1e:
 			set_fdc_fd1e((uint8_t)data);
@@ -1808,7 +1808,7 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 			mmr_segment = data & 7;
 #else
-			//			printf("MMR SEGMENT: %02x\n", data & 3);
+			//			out_debug_log("MMR SEGMENT: %02x\n", data & 3);
 			mmr_segment = data & 3;
 #endif			
 			mainmem->write_data8(FM7_MAINIO_MMR_SEGMENT, (uint32_t)mmr_segment);
@@ -1857,7 +1857,7 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 			}
 			break;
 		default:
-			//printf("MAIN: Write I/O Addr=%08x DATA=%02x\n", addr, data); 
+			//out_debug_log("MAIN: Write I/O Addr=%08x DATA=%02x\n", addr, data); 
 			break;
 		}
 		if((addr < 0x40) && (addr >= 0x38)) {
@@ -1870,12 +1870,12 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 		set_clockmode((uint8_t)data);
 		return;
 	}
-	//if((addr >= 0x0006) && !(addr == 0x1f)) printf("MAINIO: WRITE: %08x DATA=%08x\n", addr, data);
+	//if((addr >= 0x0006) && !(addr == 0x1f)) out_debug_log("MAINIO: WRITE: %08x DATA=%08x\n", addr, data);
 }
 
 void FM7_MAINIO::event_callback(int event_id, int err)
 {
-//	printf("MAIN EVENT id=%d\n", event_id);
+//	out_debug_log("MAIN EVENT id=%d\n", event_id);
 	switch(event_id) {
 	case EVENT_BEEP_OFF:
 		event_beep_off();

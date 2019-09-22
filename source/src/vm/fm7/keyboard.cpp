@@ -103,11 +103,11 @@ void KEYBOARD::set_modifiers(uint8_t sc, bool flag)
 	} else if(sc == 0x53) { // LSHIFT
 		lshift_pressed = flag;
 		shift_pressed = lshift_pressed | rshift_pressed;
-		//printf("LSHIFT : %d\n", flag ? 1 : 0);
+		//out_debug_log("LSHIFT : %d\n", flag ? 1 : 0);
 	} else if(sc == 0x54) { // RSHIFT
 		rshift_pressed = flag;
 		shift_pressed = lshift_pressed | rshift_pressed;
-		//printf("RSHIFT : %d\n", flag ? 1 : 0);
+		//out_debug_log("RSHIFT : %d\n", flag ? 1 : 0);
 	} else if(sc == 0x56) { // GRPH
 		graph_pressed = flag;
 	} else if(sc == 0x55) { // CAPS
@@ -718,7 +718,7 @@ void KEYBOARD::set_mode(void)
 	mode = cmd_fifo->read();
 	if(mode <= KEYMODE_SCAN) {
 		keymode = mode;
-		//printf("Keymode : %d\n", keymode);
+		//out_debug_log("Keymode : %d\n", keymode);
 		//reset_unchange_mode();
 		beep_phase = 0;
 		autokey_backup = 0x00;

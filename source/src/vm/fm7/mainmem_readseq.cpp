@@ -134,7 +134,7 @@ uint32_t FM7_MAINMEM::read_data8_main(uint32_t addr, bool dmamode)
 		}
 		if((addr >= 0xfffe) && (addr < 0x10000)) {
 			uint32_t raddr = addr - 0xe000;
-			//printf("%04x %02x\n", raddr, fm7_mainmem_initrom[raddr]);
+			//out_debug_log("%04x %02x\n", raddr, fm7_mainmem_initrom[raddr]);
 			iowait();
 			return fm7_mainmem_initrom[raddr];
 		}

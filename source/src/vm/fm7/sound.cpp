@@ -20,32 +20,42 @@
 
 namespace FM7 {
 
+void FM7_MAINIO::reset_opn_psg(int ch_num)
+{
+	if((ch_num < 0) || (ch_num > 3)) return;
+	opn_data[ch_num]= 0;
+	opn_cmdreg[ch_num] = 0;
+	opn_address[ch_num] = 0;
+	opn_stat[ch_num] = 0;
+	opn_prescaler_type[ch_num] = 1;
+	memset(opn_regs[ch_num], 0x00, 0x100 * sizeof(uint8_t));
+	if(ch_num == 3) {
+#if !defined(_FM77AV_VARIANTS)
+		if(psg != NULL) {
+			psg->reset();
+			write_opn_reg(3, 0x2e, 0);
+			write_opn_reg(3, 0x27, 0);
+			write_opn_reg(3, 0, 0);
+		}
+#endif
+		return;
+	}
+	if(opn[ch_num] != NULL) {
+		opn[ch_num]->reset();
+		write_opn_reg(ch_num, 0x2e, 0);
+		write_opn_reg(ch_num, 0x27, 0);
+	}
+	return;
+}
+	
 void FM7_MAINIO::reset_sound(void)
 {
 	int i, j;
 
-//#if !defined(_FM8)
-	for(i = 0; i < 3; i++) {
-		opn_data[i]= 0;
-		opn_cmdreg[i] = 0;
-		opn_address[i] = 0;
-		opn_stat[i] = 0;
-		opn_prescaler_type[i] = 1;
-		memset(opn_regs[i], 0x00, 0x100 * sizeof(uint8_t));
-		if(opn[i] != NULL) {
-			opn[i]->reset();
-			write_opn_reg(i, 0x2e, 0);
-			write_opn_reg(i, 0x27, 0);
-		}
+	for(i = 0; i < 4; i++) {
+		reset_opn_psg(i);
 	}
-//#endif
-#if !defined(_FM77AV_VARIANTS)
-	if(psg != NULL) {
-		psg->reset();
-		write_opn_reg(3, 0x2e, 0);
-		write_opn_reg(3, 0x27, 0);
-	}
-#endif
+
  #if defined(_FM77AV_VARIANTS)
 	opn_psg_77av = true;
  #else
@@ -240,7 +250,7 @@ void FM7_MAINIO::set_opn(int index, uint8_t val)
 uint8_t FM7_MAINIO::get_opn(int index)
 {
 	uint8_t val = 0xff;
-	if((index > 2) || (index < 0)) return val;
+	if((index > 3) || (index < 0)) return val;
 	if((index == 0) && (!connect_opn)) return val;
 	if((index == 1) && (!connect_whg)) return val;
 	if((index == 2) && (!connect_thg)) return val;
@@ -250,10 +260,19 @@ uint8_t FM7_MAINIO::get_opn(int index)
 		if(psg == NULL) return val;
 	} else
 # endif
-		if(opn[index] == NULL) {
-			return val;
-		}
+	if(opn[index] == NULL) {
+		return val;
+	}
+	// 20190922 from XM7 3477a.
+	static const uint8_t opn_bitmask[16] = {
+		0xff,	0x0f,	0xff,	0x0f,
+		0xff,	0x0f,	0x1f,	0xff,
+		0x1f,	0x1f,	0x1f,	0xff,
+		0xff,	0x0f,	0xff,	0xff,
+	};
+
 	if(index == 3) opn_cmdreg[index] = opn_cmdreg[index] & 0x03;
+
 	switch(opn_cmdreg[index]) {
 		case 0: // Unavailable
 			val = 0xff;
@@ -267,7 +286,9 @@ uint8_t FM7_MAINIO::get_opn(int index)
 			} else {
 # if !defined(_FM77AV_VARIANTS)
 				if(index == 3) {
-					val = psg->read_io8(1);
+//					if(opn_address[index] < 0x10) {
+						val = psg->read_io8(1) & opn_bitmask[opn_address[index] & 15];
+//					}
 				} else
 # endif
 				{

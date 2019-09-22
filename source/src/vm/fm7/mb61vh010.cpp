@@ -373,7 +373,7 @@ void MB61VH010::do_alucmds_dmyread(uint32_t addr)
 			do_compare(addr);
 			break;
 	}
-	//printf("ALU DMYREAD ADDR=%04x, CMD=%02x CMP STATUS=%02x DISABLE=%01x\n", addr, command_reg, cmp_status_reg, bank_disable_reg);
+	//out_debug_log("ALU DMYREAD ADDR=%04x, CMD=%02x CMP STATUS=%02x DISABLE=%01x\n", addr, command_reg, cmp_status_reg, bank_disable_reg);
 	//if(eventid_busy >= 0) cancel_event(this, eventid_busy) ;
 	//register_event(this, EVENT_MB61VH010_BUSY_OFF, 1.0 / 16.0, false, &eventid_busy) ;
 }  
@@ -413,7 +413,7 @@ void MB61VH010::do_alucmds(uint32_t addr)
 			do_compare(addr);
 			break;
 	}
-	//printf("ALU CMDS ADDR=%04x, CMD=%02x CMP STATUS=%02x\n", addr, command_reg, cmp_status_reg);
+	//out_debug_log("ALU CMDS ADDR=%04x, CMD=%02x CMP STATUS=%02x\n", addr, command_reg, cmp_status_reg);
 	return;
 }
 

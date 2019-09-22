@@ -1896,7 +1896,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 #endif			
 		case SIG_DISPLAY_EXTRA_MODE: // FD04 bit 4, 3
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			//printf("Wrote $FD04: %02x\n", data);
+			//out_debug_log("Wrote $FD04: %02x\n", data);
 			{
 				int oldmode = display_mode;
 				int mode;
@@ -2024,7 +2024,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 		case SIG_DISPLAY_MODE320: // FD12 bit 6
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			{
-				//printf("Wrote $FD12: %02x\n", data);
+				//out_debug_log("Wrote $FD12: %02x\n", data);
 				int oldmode = display_mode;
 				mode320 = flag;
 				if(mode400line) {
