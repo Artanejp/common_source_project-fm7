@@ -512,7 +512,7 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-bool TOWND_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int width, int layer, bool do_alpha)
+bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int width, int layer, bool do_alpha)
 {
 	if(dst == NULL) return false;
 	
@@ -675,7 +675,7 @@ bool TOWND_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int widt
 	return true;
 }
 
-bool TOWND_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int width, int layer, bool do_alpha)
+bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int width, int layer, bool do_alpha)
 {
 	if(dst == NULL) return;
 	
