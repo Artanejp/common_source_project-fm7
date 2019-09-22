@@ -95,22 +95,13 @@ void GLScreenPack::genBuffer(int width, int height)
 	_fn.glBindTexture(GL_TEXTURE_2D, Texture);
 	if(context->isOpenGLES()) {
 		if(texture_is_float) {
-			if((context->hasExtension(QByteArray("GL_OES_texture_half_float"))) && !(texture_is_high_presicion)) {
+			 if((context->hasExtension(QByteArray("GL_OES_texture_half_float"))) && !(texture_is_high_presicion)) {
 				has_extension_texture_half_float = true;
-#if !defined(Q_OS_WIN)
 				_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
-#else
-				_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, 0);
-#endif
 				push_log("GLES: Using half float texture.");
 			} else if(context->hasExtension(QByteArray("GL_OES_texture_float"))) {
 				has_extension_texture_float = true;
-#if !defined(Q_OS_WIN)
 				_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
-#else
-//			_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA32F, GL_FLOAT, 0);
-				_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, 0);
-#endif
 				push_log("GLES: Using float texture.");
 			} else	
 			{
@@ -128,12 +119,18 @@ void GLScreenPack::genBuffer(int width, int height)
 	} else {
 		// OpenGL, not GLES
 		if(texture_is_float) {
-			has_extension_texture_float = true;
-			_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
-			push_log("GL: Using float texture.");
+			if(context->hasExtension("GL_ARB_half_float_pixel")  && !(texture_is_high_presicion)) {
+				has_extension_texture_half_float = true;
+				_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+				push_log("GL: Using half float texture.");
+			} else {
+				has_extension_texture_float = true;
+				_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+				push_log("GL: Using float texture.");
+			}
 		} else {
 			_fn.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-			push_log("GLES: Using unsigned integer (UNSIGNED_BYTE) texture.");
+			push_log("GL: Using unsigned integer (UNSIGNED_BYTE) texture.");
 		}			
 	}
     _fn.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
