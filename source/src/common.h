@@ -966,8 +966,7 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 #endif
 
 // win32 api
-//#ifndef _WIN32
-#if 1
+#ifndef _WIN32
 	BOOL MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName);
 	DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName);
 	UINT MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT nDefault, LPCTSTR lpFileName);
