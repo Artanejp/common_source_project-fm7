@@ -478,13 +478,6 @@ void DLL_PREFIX load_config(const _TCHAR *config_path)
 		
 		if(config.rendering_type < 0) config.rendering_type = 0;
 		if(config.rendering_type >= CONFIG_RENDER_TYPE_END) config.rendering_type = CONFIG_RENDER_TYPE_END - 1;
-		// Assigning joysticks.
-		for(i = 0; i < 16; i++) {
-			_TCHAR name[256];
-			my_stprintf_s(name, 255, _T("AssignedJoystick%d"), i + 1);
-			MyGetPrivateProfileString(_T("Qt"), (const _TCHAR *)name, _T(""),
-									  config.assigned_joystick_name[i], sizeof(config.assigned_joystick_name[i]) - 1, config_path);
-		}
 
 		// Extra UI
 		config.swap_kanji_pause = MyGetPrivateProfileBool(_T("Qt"), _T("SwapKanjiPause"), config.swap_kanji_pause, config_path);
@@ -497,6 +490,13 @@ void DLL_PREFIX load_config(const _TCHAR *config_path)
 		MyGetPrivateProfileString(_T("Qt"), _T("LogWindowFont"), _T("Sans"), config.logwindow_font, sizeof(config.logwindow_font) - 1, config_path);
 		config.logwindow_width = MyGetPrivateProfileInt(_T("Qt"), _T("LogWindowWidth"), 800, config_path);
 		config.logwindow_height = MyGetPrivateProfileInt(_T("Qt"), _T("LogWindowHeight"), 500, config_path);
+		// Assigning joysticks.
+		for(i = 0; i < 16; i++) {
+			_TCHAR name[256];
+			my_stprintf_s(name, 255, _T("AssignedJoystick%d"), i + 1);
+			MyGetPrivateProfileString(_T("Qt"), (const _TCHAR *)name, _T(""),
+									  config.assigned_joystick_name[i], sizeof(config.assigned_joystick_name[i]) - 1, config_path);
+		}
 
 		
 		// Movie load/save.
