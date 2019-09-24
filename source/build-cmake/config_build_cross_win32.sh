@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CMAKE=/usr/bin/cmake
+CMAKE=cmake
 
 MAJOR_ARCH="IA32"
 #MAJOR_ARCH="AMD64"
@@ -13,39 +13,92 @@ export WINEDEBUG="-all"
 CMAKE_LINKFLAG=""
 CMAKE_APPENDFLAG=""
 MAKEFLAGS_GENERAL="-j4"
-MAKE_STATUS_FILE="./000_make_status_config_build_cross_win32.log"
+MAKE_STATUS_FILE="${PWD}/000_make_status_config_build_cross_win32.log"
 AFFINITY_MAKE="make"
 export WCLANG_FORCE_CXX_EXCEPTIONS=1
 
 mkdir -p ./bin-win32/
 
+if [ "__${CUSTOM_BASE_PATH}__" != "____" ] ; then
+   BASE_PATH="${CUSTOM_BASE_PATH}"
+   else
+   case $1 in
+     "-script-path" | "--script-path" )
+        BASE_PATH=$2
+	shift
+	shift
+	;;
+      * )
+       BASE_PATH="$PWD"
+       ;;
+   esac
+fi   
+NEED_COPY_CMAKELISTS=0
+if [ "__${BASE_PATH}__" != "__${PWD}__" ] ; then
+   NEED_COPY_CMAKELISTS=1
+   mkdir -p ${PWD}/cmake
+   cp ${BASE_PATH}/cmake/*.cmake ${PWD}/cmake/
+fi
+
 echo "Make status." > ${MAKE_STATUS_FILE}
 echo "Started at `date --rfc-2822`:" >> ${MAKE_STATUS_FILE}
-if [ -e ./buildvars_mingw_cross_win32.dat ] ; then
-    . ./buildvars_mingw_cross_win32.dat
+if   [ -e ${PWD}/buildvars_mingw_cross_win32.dat ] ; then
+    . ${PWD}/buildvars_mingw_cross_win32.dat
+elif [ -e ${BASE_PATH}/buildvars_mingw_cross_win32.dat ] ; then
+    . ${BASE_PATH}/buildvars_mingw_cross_win32.dat
 else
     echo "WARN: Config file does not exist." >> ${MAKE_STATUS_FILE}
     echo "WARN: Read configs from templete." >> ${MAKE_STATUS_FILE}
-    . ./buildvars_mingw_cross_win32.dat.tmpl
+    if [ -e ${BASE_PATH}/buildvars_mingw_cross_win32.dat.tmpl ] ; then
+      . ${BASE_PATH}/buildvars_mingw_cross_win32.dat.tmpl
+    fi
 fi
 
-case ${BUILD_TOOLCHAIN} in
-   "LLVM" | "llvm" | "CLANG" | "clang" )
-          TOOLCHAIN_SCRIPT="../../cmake/toolchain_win32_cross_linux_llvm.cmake"
-	  . ./params/buildvars_mingw_params_llvm.dat
+if [ -n "${TOOLCHAIN_PREFIX}" ] ; then
+  LD_LIBRARY_PATH="${TOOLCHAIN_PREFIX}/lib:${LD_LIBRARY_PATH}"
+  PATH="${TOOLCHAIN_PREFIX}/bin:${PATH}"
+fi
+
+case ${CROSS_BUILD} in
+    "Yes" | "YES" | "yes" | "1" )
+    case ${BUILD_TOOLCHAIN} in
+        "LLVM" | "llvm" | "CLANG" | "clang" )
+	  TOOLCHAIN_SCRIPT="${BASE_PATH}/cmake/toolchain_win32_cross_linux_llvm.cmake"
 	  echo "Setup for LLVM"
-	  ;;
-   "GCC" | "gcc" | "GNU" )
-	  TOOLCHAIN_SCRIPT="../../cmake/toolchain_mingw_cross_linux.cmake"
-	  . ./params/buildvars_mingw_params_gcc.dat
+	;;
+	"GCC" | "gcc" | "GNU" )
+	  TOOLCHAIN_SCRIPT="${BASE_PATH}/cmake/toolchain_mingw_cross_linux.cmake"
 	  echo "Setup for GCC"
 	  ;;
-   * )
-	  TOOLCHAIN_SCRIPT="../../cmake/toolchain_mingw_cross_linux.cmake"
-	  . ./params/buildvars_mingw_params_gcc.dat
+	"CUSTOM" | "custom" | "Custom" )
+	  TOOLCHAIN_SCRIPT="${CUSTOM_TOOLCHAIN_PATH}"
+	  echo "Setup with custom toolchain; ${CUSTOM_TOOLCHAIN_PATH}"
+	  ;;
+        * )
+	  TOOLCHAIN_SCRIPT="${BASE_PATH}/cmake/toolchain_mingw_cross_linux.cmake"
 	  echo "ASSUME GCC"
 	  ;;
+    esac
+    ;;
+    *)
+    TOOLCHAIN_SCRIPT=""
+    ;;
 esac   
+case ${BUILD_TOOLCHAIN} in
+    "LLVM" | "llvm" | "CLANG" | "clang" )
+       . ${BASE_PATH}/params/buildvars_mingw_params_llvm.dat
+     ;;
+     "CUSTOM" | "custom" | "Custom"  )
+       if [ -e ./buildvars_custom_params.dat ] ; then
+          . ./buildvars_custom_params.dat
+       else
+          . ${BASE_PATH}/params/buildvars_mingw_params_gcc.dat
+       fi
+	  ;;
+        * )
+	  . ${BASE_PATH}/params/buildvars_mingw_params_gcc.dat
+          ;;
+esac
 
 CMAKE_APPENDFLAG="${CMAKE_APPENDFLAG} -DLIBAV_ROOT_DIR=${FFMPEG_DIR}"
 
@@ -71,10 +124,19 @@ MAKEFLAGS_LIB_CXX="${MAKEFLAGS_LIB_CXX} -DWINVER=0x501"
 MAKEFLAGS_LIB_CC="${MAKEFLAGS_LIB_CC} -DWINVER=0x501"
 
 function build_dll() {
+    NPATH=${PWD}
     mkdir -p $1/build-win32
+    if [ $NEED_COPY_CMAKELISTS -ne 0 ] ; then    
+       cp ${BASE_PATH}/$1/CMakeLists.txt $1/CMakeLists.txt
+    fi
     cd $1/build-win32
     echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
-    ${CMAKE} -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_SCRIPT} \
+    if [ "__${TOOLCHAIN_SCRIPT}__" != "____" ] ; then
+       TOOLCHAIN_CMD="-DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_SCRIPT}"
+    else
+       TOOLCHAIN_CMD=""
+    fi
+    ${CMAKE}  ${TOOLCHAIN_CMD} \
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
@@ -98,12 +160,12 @@ function build_dll() {
     
     ${AFFINITY_MAKE} ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
     _STATUS=${PIPESTATUS[0]}
-    echo -e "$1 at `date --rfc-2822`:" "${_STATUS}" >> ../../${MAKE_STATUS_FILE}
+    echo -e "$1 at `date --rfc-2822`:" "${_STATUS}" >> ${MAKE_STATUS_FILE}
    case ${_STATUS} in
      0 )
           ;;
      * ) 
-     	  echo -e "Abort at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
+     	  echo -e "Abort at `date --rfc-2822`." >> ${MAKE_STATUS_FILE}
 	  exit ${_STATUS}
 	  ;;
     esac
@@ -195,10 +257,19 @@ FAIL_COUNT=0
 for SRCDATA in $@ ; do\
 
     mkdir -p ${SRCDATA}/build-win32
+    if [ $NEED_COPY_CMAKELISTS -ne 0] ; then    
+       cp ${BASE_PATH}/${SRCDATA}/CMakeLists.txt ${SRCDATA}/CMakeLists.txt
+    fi
     cd ${SRCDATA}/build-win32
     
     echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
-    ${CMAKE} -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_SCRIPT} \
+   if [ "__${TOOLCHAIN_SCRIPT}__" != "____" ] ; then
+       TOOLCHAIN_CMD="-DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_SCRIPT}"
+    else
+       TOOLCHAIN_CMD=""
+    fi
+
+    ${CMAKE} ${TOOLCHAIN_CMD} \
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
@@ -221,7 +292,7 @@ for SRCDATA in $@ ; do\
     
     ${AFFINITY_MAKE} ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
     _STATUS=${PIPESTATUS[0]}
-    echo -e "${SRCDATA} at `date --rfc-2822`:" "${_STATUS}" >> ../../${MAKE_STATUS_FILE}
+    echo -e "${SRCDATA} at `date --rfc-2822`:" "${_STATUS}" >> ${MAKE_STATUS_FILE}
     case ${_STATUS} in
       0 ) 
         SUCCESSS_COUNT=$((++SUCCESS_COUNT))
@@ -229,7 +300,7 @@ for SRCDATA in $@ ; do\
 	;;
       * )
         FAIL_COUNT=$((++FAIL_COUNT))
-	echo -e "Abort at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
+	echo -e "Abort at `date --rfc-2822`." >> ${MAKE_STATUS_FILE}
 	#exit ${_STATUS}
 	;;
     esac
@@ -238,7 +309,7 @@ for SRCDATA in $@ ; do\
     cd ../..
 done
 
-echo -e "End at `date --rfc-2822`." >> ../../${MAKE_STATUS_FILE}
+echo -e "End at `date --rfc-2822`." >> ${MAKE_STATUS_FILE}
 
 for ii in libCSPavio libCSPgui libCSPosd libCSPemu_utils; do
     cd $ii/build-win32
@@ -246,8 +317,8 @@ for ii in libCSPavio libCSPgui libCSPosd libCSPemu_utils; do
     cd ../..
 done
 
-echo -e "VM BUILD:Successed ${SUCCESS_COUNT} / Failed ${FAIL_COUNT}" >> ./${MAKE_STATUS_FILE}
-echo -e "End at `date --rfc-2822`." >> ./${MAKE_STATUS_FILE}
+echo -e "VM BUILD:Successed ${SUCCESS_COUNT} / Failed ${FAIL_COUNT}" >> ${MAKE_STATUS_FILE}
+echo -e "End at `date --rfc-2822`." >> ${MAKE_STATUS_FILE}
 
 
 exit 0
