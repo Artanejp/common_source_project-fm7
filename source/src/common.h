@@ -966,18 +966,18 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 #endif
 
 // win32 api
-//#ifndef _WIN32
+#ifndef _WIN32
 	BOOL MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName);
 	DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName);
 	UINT MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT nDefault, LPCTSTR lpFileName);
 	// used only in winmain and win32 osd class
 //	#define ZeroMemory(p,s) memset(p,0x00,s)
 //	#define CopyMemory(t,f,s) memcpy(t,f,s)
-//#else
-//	#define MyWritePrivateProfileString WritePrivateProfileString
-//	#define MyGetPrivateProfileString GetPrivateProfileString
-//	#define MyGetPrivateProfileInt GetPrivateProfileInt
-//#endif
+#else
+	#define MyWritePrivateProfileString WritePrivateProfileString
+	#define MyGetPrivateProfileString GetPrivateProfileString
+	#define MyGetPrivateProfileInt GetPrivateProfileInt
+#endif
 
 // rgb color
 #if !defined(_RGB555) && !defined(_RGB565) && !defined(_RGB888)

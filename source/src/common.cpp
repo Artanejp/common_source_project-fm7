@@ -346,7 +346,7 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 //#endif
 
 
-//#ifndef _WIN32
+#ifndef _WIN32
 BOOL DLL_PREFIX MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName)
 {
 	BOOL result = FALSE;
@@ -472,7 +472,7 @@ UINT DLL_PREFIX MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT
 	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Got Int: %d\n", i);
 	return i;
 }
-//#endif
+#endif
 
 #if defined(_RGB555)
 scrntype_t DLL_PREFIX RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
