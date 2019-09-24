@@ -1562,14 +1562,14 @@ void DLL_PREFIX calc_low_pass_filter(int32_t* dst, int32_t* src, int sample_freq
 typedef DLL_PREFIX struct cur_time_s {
 	int year, month, day, day_of_week, hour, minute, second;
 	bool initialized;
-	cur_time_s()
+	DLL_PREFIX cur_time_s()
 	{
 		initialized = false;
 	}
-	void increment();
-	void update_year();
-	void update_day_of_week();
-	bool process_state(void *f, bool loading);
+	void DLL_PREFIX increment();
+	void DLL_PREFIX update_year();
+	void DLL_PREFIX update_day_of_week();
+	bool DLL_PREFIX process_state(void *f, bool loading);
 } cur_time_t;
 
 void DLL_PREFIX get_host_time(cur_time_t* cur_time);

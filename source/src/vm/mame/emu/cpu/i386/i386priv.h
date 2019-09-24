@@ -19,6 +19,11 @@
 #define PENTIUMOP(XX)   pentium_##XX
 #define MMXOP(XX)       mmx_##XX
 #define SSEOP(XX)       sse_##XX
+#define I386OP_D(XX)      (void __FASTCALL (*)(i386_state *))(&i386_##XX)
+#define I486OP_D(XX)      (void __FASTCALL (*)(i386_state *))(&i486_##XX)
+#define PENTIUMOP_D(XX)   (void __FASTCALL (*)(i386_state *))(&pentium_##XX)
+#define MMXOP_D(XX)       (void __FASTCALL (*)(i386_state *))(&mmx_##XX)
+#define SSEOP_D(XX)       (void __FASTCALL (*)(i386_state *))(&sse_##XX)
 
 static int i386_dasm_one(_TCHAR *buffer, UINT32 pc, const UINT8 *oprom, int mode);
 

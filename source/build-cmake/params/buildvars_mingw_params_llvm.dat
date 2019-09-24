@@ -4,18 +4,7 @@
 # Neither for GCC and LLVM/Linux .
 #
 
-if [ -v CC_SUFFIX ] ; then
-   CCMAKE_CC=${CCMAKE_CC}-${CC_SUFFIX}
-   CCMAKE_CXX=${CCMAKE_CXX}-${CC_SUFFIX}
-fi
-if [ -v CC_PREFIX ] ; then
-   CCMAKE_CC=${CC_PREFIX}-${CCMAKE_CC}
-   CCMAKE_CXX=${CC_PREFIX}-${CCMAKE_CXX}
-fi
-if [ -v CC_PATH ] ; then
-   CCMAKE_CC=${CC_PATH}/${CCMAKE_CC}
-   CCMAKE_CXX=${CC_PATH}/${CCMAKE_CXX}
-fi
+MAKEFLAGS_BASE2="${MAKEFLAGS_BASE}"
 
 case ${MAJOR_ARCH} in
    "AMD64" | "amd64" | "x86_64" | "X86_64" )
@@ -29,34 +18,20 @@ case ${MAJOR_ARCH} in
    ;;
 esac
 
-case ${USE_RADICAL_OPTIMIZE} in
+case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
-      MAKEFLAGS_BASE3=" \
-               -O3 \
-               -fvect-cost-model=dynamic -ftree-vectorize \
-               -ftree-loop-distribute-patterns \
-	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
-	       -fbranch-probabilities -fbranch-target-load-optimize \
-	       -fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
-	       -funroll-loops \
-	       -fgraphite-identity \
-	       -floop-nest-optimize \
-	       ${ARCH_FLAGS} \
-	       -Wall \
-               ${MAKEFLAGS_BASE} \
-	       "
-	       ;;
+         MAKEFLAGS_BASE2="-g -ggdb ${MAKEFLAGS_BASE} -DNDEBUG"
+         MAKEFLAGS_LINK_BASE="-g -ggdb ${MAKEFLAGS_BASE}"
+         ;;
    "No" | "no" | "NO" | * )
-      MAKEFLAGS_BASE3=" \
-               -O2 \
-	       \
-	       -ftree-vectorize \
-	       -funroll-loops \
-	       ${ARCH_FLAGS} \
-	       -Wall \
-               ${MAKEFLAGS_BASE} \
-	       "
-	       ;;
+         MAKEFLAGS_BASE2="-O3 ${MAKEFLAGS_BASE} -DNDEBUG \
+	 					  -std=c++0x \
+						  -Wreserved-user-defined-literal \
+						  -D_HAS_EXCEPTIONS \
+						  -D__float128=\"long double\"
+						  "
+         MAKEFLAGS_LINK_BASE="-s ${MAKEFLAGS_BASE}"
+         ;;
 esac
 
 case ${USE_WHOLE_PROGRAM_OPTIMIZE} in
@@ -67,6 +42,7 @@ case ${USE_WHOLE_PROGRAM_OPTIMIZE} in
       LTO_FLAGS=""
       ;;
 esac
+
 case ${USE_SANITIZER} in
    "Yes" | "yes" | "YES" )
       MAKEFLAGS_BASE3="${MAKEFLAGS_BASE3} \
@@ -113,26 +89,10 @@ case ${COMPRESS_SYMBOLS} in
    ;;
 esac
 
-case ${CSP_DEBUG} in
-   "Yes" | "yes" | "YES" )
-         MAKEFLAGS_BASE2="-g -ggdb ${MAKEFLAGS_BASE} -DNDEBUG"
-         MAKEFLAGS_LINK_BASE="-g -ggdb ${MAKEFLAGS_BASE}"
-         ;;
-   "No" | "no" | "NO" | * )
-         MAKEFLAGS_BASE2="-O3 ${MAKEFLAGS_BASE} -DNDEBUG \
-	 					  -std=c++0x \
-						  -Wreserved-user-defined-literal \
-						  -D_HAS_EXCEPTIONS \
-						  -D__float128=\"long double\"
-						  "
-         MAKEFLAGS_LINK_BASE="-s ${MAKEFLAGS_BASE}"
-         ;;
-esac
-
 case ${USE_LTO} in
    "Yes" | "yes" | "YES" )
        MAKEFLAGS_LINK_BASE2="-flto=${LTO_THREADS} ${LTO_FLAGS} ${MAKEFLAGS_BASE2}"
-       MAKEFLAGS_BASE2="-flto -ffat-lto-objects ${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_BASE2="-flto ${MAKEFLAGS_BASE2}"
        ;;
    "No" | "no" | "NO" | * )
        MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE2}"
@@ -148,10 +108,25 @@ case ${USE_OPENMP} in
    ;;
 esac
 
+case ${CROSS_BUILD} in
+    "Yes" | "YES" | "yes" | "1" )
+        X_LDFLAGS=" \
+	-DCMAKE_EXE_LINKER_FLAGS:STRING=-L/usr/${X_ARCH_PREFIX}w64-mingw32/lib \
+	-DCMAKE_SHARED_LINKER_FLAGS:STRING=-L/usr/${X_ARCH_PREFIX}w64-mingw32/lib \
+	-DCMAKE_LINKER:STRING=/usr/bin/${X_ARCH_PREFIX}w64-mingw32-ld \
+        "
+
+	;;
+     * )
+        X_LDFLAGS=""
+	;;
+esac
+
 CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON -DUSE_MOVIE_LOADER=ON \
                    -DUSE_MOVIE_SAVER=ON \
-                   -DCMAKE_AR:STRING=llvm-ar \
-                   -DCMAKE_LD:STRING=i686-w64-mingw32-ld \
-		   -DCMAKE_NM:STRING=llvm-nm \
-		   -DCMAKE_RANLIB:STRING=llvm-ranlib \
+                   -DCMAKE_AR:STRING=i686-w64-mingw32-ar \
+		   -DCMAKE_NM:STRING=i686-w64-mingw32-nm \
+		   -DCMAKE_RANLIB:STRING=i686-w64-mingw32-ranlib \
+		   ${X_LDFLAGS} \
 		   "
+#                   -DCMAKE_LD:STRING=i686-w64-mingw32-ld \
