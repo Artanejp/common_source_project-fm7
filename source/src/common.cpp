@@ -346,7 +346,8 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 //#endif
 
 
-#ifndef _WIN32
+//#ifndef _WIN32
+#if 1
 BOOL DLL_PREFIX MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName)
 {
 	BOOL result = FALSE;
