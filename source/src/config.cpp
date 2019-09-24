@@ -491,6 +491,7 @@ void DLL_PREFIX load_config(const _TCHAR *config_path)
 		config.logwindow_width = MyGetPrivateProfileInt(_T("Qt"), _T("LogWindowWidth"), 800, config_path);
 		config.logwindow_height = MyGetPrivateProfileInt(_T("Qt"), _T("LogWindowHeight"), 500, config_path);
 		// Assigning joysticks.
+#if 0
 		for(i = 0; i < 16; i++) {
 			_TCHAR name[256];
 			my_stprintf_s(name, 255, _T("AssignedJoystick%d"), i + 1);
@@ -498,7 +499,7 @@ void DLL_PREFIX load_config(const _TCHAR *config_path)
 									  config.assigned_joystick_name[i], 255, config_path);
 			printf("%d->%s\n", i, config.assigned_joystick_name[i]);
 		}
-
+#endif
 		
 		// Movie load/save.
 		config.video_width   = MyGetPrivateProfileInt(_T("Qt"), _T("VideoWidth"), 640, config_path);
