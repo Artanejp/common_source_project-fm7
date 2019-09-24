@@ -259,7 +259,7 @@ FAIL_COUNT=0
 for SRCDATA in $@ ; do\
 
     mkdir -p ${SRCDATA}/build-win32
-    if [ $NEED_COPY_CMAKELISTS -ne 0] ; then    
+    if [ $NEED_COPY_CMAKELISTS -ne 0 ] ; then    
        cp ${BASE_PATH}/${SRCDATA}/CMakeLists.txt ${SRCDATA}/CMakeLists.txt
     fi
     cd ${SRCDATA}/build-win32
