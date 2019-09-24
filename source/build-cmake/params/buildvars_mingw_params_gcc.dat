@@ -8,10 +8,10 @@ MAKEFLAGS_BASE2="${MAKEFLAGS_BASE} -mthread=posix -pthread -mthreads"
 
 case ${MAJOR_ARCH} in
    "AMD64" | "amd64" | "x86_64" | "X86_64" )
-   . ./params/archdef_x86_64.dat
+   . ${BASE_PATH}/params/archdef_x86_64.dat
    ;;
    "IA32" | "ia32" | "x86" | "X86" )
-   . ./params/archdef_ia32.dat
+   . ${BASE_PATH}/params/archdef_ia32.dat
    ;;
    * )
    ARCH_FLAGS=""
