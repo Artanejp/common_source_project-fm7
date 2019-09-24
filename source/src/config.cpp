@@ -481,9 +481,10 @@ void DLL_PREFIX load_config(const _TCHAR *config_path)
 		// Assigning joysticks.
 		for(i = 0; i < 16; i++) {
 			_TCHAR name[256];
-			my_stprintf_s(name, 256, _T("AssignedJoystick"), i + 1);
+			memset(config.assigned_joystick_name[i], 0x00, sizeof(_TCHAR) * 256);
+			my_stprintf_s(name, 255, _T("AssignedJoystick%d"), i + 1);
 			MyGetPrivateProfileString(_T("Qt"), (const _TCHAR *)name, _T(""),
-									  config.assigned_joystick_name[i], 256, config_path);
+									  _T(""), 255, config_path);
 		}
 
 		// Extra UI
@@ -851,7 +852,7 @@ void DLL_PREFIX save_config(const _TCHAR *config_path)
 
 		for(i = 0; i < 16; i++) {
 			_TCHAR name[256];
-			my_stprintf_s(name, 256, _T("AssignedJoystick%d"), i + 1);
+			my_stprintf_s(name, 255, _T("AssignedJoystick%d"), i + 1);
 			MyWritePrivateProfileString(_T("Qt"), (const _TCHAR *)name, 
 										config.assigned_joystick_name[i], config_path);
 		}
