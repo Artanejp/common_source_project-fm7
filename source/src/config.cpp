@@ -49,7 +49,7 @@ bool MyGetPrivateProfileBool(LPCTSTR lpAppName, LPCTSTR lpKeyName, bool bDefault
 	return (MyGetPrivateProfileInt(lpAppName, lpKeyName, bDefault ? 1 : 0, lpFileName) != 0);
 }
 
-void initialize_config()
+void DLL_PREFIX initialize_config()
 {
 	// initial settings
 	memset(&config, 0, sizeof(config_t));
@@ -230,7 +230,7 @@ void initialize_config()
 #endif	
 }
 
-void load_config(const _TCHAR *config_path)
+void DLL_PREFIX load_config(const _TCHAR *config_path)
 {
 	int drv, i;
 	// initial settings
@@ -500,54 +500,54 @@ void load_config(const _TCHAR *config_path)
 
 		
 		// Movie load/save.
-		config.video_width   = MyGetPrivateProfileInt(_T("Qt"), _T("VideoWidth"), config.video_width, config_path);
+		config.video_width   = MyGetPrivateProfileInt(_T("Qt"), _T("VideoWidth"), 640, config_path);
 		if(config.video_width < 128) config.video_width = 128;
-		config.video_height  = MyGetPrivateProfileInt(_T("Qt"), _T("VideoHeight"), config.video_height, config_path);
+		config.video_height  = MyGetPrivateProfileInt(_T("Qt"), _T("VideoHeight"), 480, config_path);
 		if(config.video_height < 80) config.video_height = 80;
 		
-		config.video_codec_type = MyGetPrivateProfileInt(_T("Qt"), _T("VideoCodecType"), config.video_codec_type, config_path);
+		config.video_codec_type = MyGetPrivateProfileInt(_T("Qt"), _T("VideoCodecType"), 1, config_path);
 		if(config.video_codec_type > 1) config.video_codec_type = 1;
 		if(config.video_codec_type < 0) config.video_codec_type = 0;
 		
-		config.audio_codec_type = MyGetPrivateProfileInt(_T("Qt"), _T("AudioCodecType"), config.audio_codec_type, config_path);
+		config.audio_codec_type = MyGetPrivateProfileInt(_T("Qt"), _T("AudioCodecType"), 0, config_path);
 		if(config.video_codec_type > 2) config.audio_codec_type = 2;
 		if(config.video_codec_type < 0) config.audio_codec_type = 0;
 		
-		config.video_h264_bitrate = MyGetPrivateProfileInt(_T("Qt"), _T("H264Bitrate"), config.video_h264_bitrate, config_path);
+		config.video_h264_bitrate = MyGetPrivateProfileInt(_T("Qt"), _T("H264Bitrate"), 3500, config_path);
 		if(config.video_h264_bitrate < 64) config.video_h264_bitrate = 64;
 		
-		config.video_h264_bframes = MyGetPrivateProfileInt(_T("Qt"), _T("H264BFrames"), config.video_h264_bframes, config_path);
+		config.video_h264_bframes = MyGetPrivateProfileInt(_T("Qt"), _T("H264BFrames"), 4, config_path);
 		if(config.video_h264_bframes < 0) config.video_h264_bframes = 0;
 		if(config.video_h264_bframes > 10) config.video_h264_bframes = 10;
 		
-		config.video_h264_b_adapt = MyGetPrivateProfileInt(_T("Qt"), _T("H264BAdapt"), config.video_h264_b_adapt, config_path);
+		config.video_h264_b_adapt = MyGetPrivateProfileInt(_T("Qt"), _T("H264BAdapt"), 2, config_path);
 		if(config.video_h264_b_adapt < 0) config.video_h264_b_adapt = 0;
 		if(config.video_h264_b_adapt > 2) config.video_h264_b_adapt = 2;
 		
-		config.video_h264_subme   = MyGetPrivateProfileInt(_T("Qt"), _T("H264Subme"), config.video_h264_subme, config_path);
+		config.video_h264_subme   = MyGetPrivateProfileInt(_T("Qt"), _T("H264Subme"), 7, config_path);
 		if(config.video_h264_subme < 0) config.video_h264_subme = 0;
 		if(config.video_h264_subme > 11) config.video_h264_subme = 11;
 		
-		config.video_h264_minq   = MyGetPrivateProfileInt(_T("Qt"), _T("H264MinQ"), config.video_h264_minq, config_path);
+		config.video_h264_minq   = MyGetPrivateProfileInt(_T("Qt"), _T("H264MinQ"), 15, config_path);
 		if(config.video_h264_minq < 0) config.video_h264_minq = 0;
 		if(config.video_h264_minq > 63) config.video_h264_minq = 63;
 		
-		config.video_h264_maxq   = MyGetPrivateProfileInt(_T("Qt"), _T("H264MaxQ"), config.video_h264_maxq, config_path);
+		config.video_h264_maxq   = MyGetPrivateProfileInt(_T("Qt"), _T("H264MaxQ"), 28, config_path);
 		if(config.video_h264_maxq < 0) config.video_h264_maxq = 0;
 		if(config.video_h264_maxq > 63) config.video_h264_maxq = 63;
 		
-		config.video_mpeg4_bitrate = MyGetPrivateProfileInt(_T("Qt"), _T("MPEG4Bitrate"), config.video_mpeg4_bitrate, config_path);
+		config.video_mpeg4_bitrate = MyGetPrivateProfileInt(_T("Qt"), _T("MPEG4Bitrate"), 1500, config_path);
 		if(config.video_mpeg4_bitrate < 64) config.video_mpeg4_bitrate = 64;
 		
-		config.video_mpeg4_bframes = MyGetPrivateProfileInt(_T("Qt"), _T("MPEG4BFrames"), config.video_mpeg4_bframes, config_path);
+		config.video_mpeg4_bframes = MyGetPrivateProfileInt(_T("Qt"), _T("MPEG4BFrames"), 2, config_path);
 		if(config.video_mpeg4_bframes < 0) config.video_mpeg4_bframes = 0;
 		if(config.video_mpeg4_bframes > 10) config.video_mpeg4_bframes = 10;
 		
-		config.video_mpeg4_minq   = MyGetPrivateProfileInt(_T("Qt"), _T("MPEG4MinQ"), config.video_mpeg4_minq, config_path);
+		config.video_mpeg4_minq   = MyGetPrivateProfileInt(_T("Qt"), _T("MPEG4MinQ"), 1, config_path);
 		if(config.video_mpeg4_minq < 1) config.video_mpeg4_minq = 1;
 		if(config.video_mpeg4_minq > 31) config.video_mpeg4_minq = 31;
 		
-		config.video_mpeg4_maxq   = MyGetPrivateProfileInt(_T("Qt"), _T("MPEG4MaxQ"), config.video_mpeg4_maxq, config_path);
+		config.video_mpeg4_maxq   = MyGetPrivateProfileInt(_T("Qt"), _T("MPEG4MaxQ"), 15, config_path);
 		if(config.video_mpeg4_maxq < 1) config.video_mpeg4_maxq = 1;
 		if(config.video_mpeg4_maxq > 31) config.video_mpeg4_maxq = 31;
 		if(config.video_mpeg4_maxq < config.video_mpeg4_minq) {
@@ -557,15 +557,15 @@ void load_config(const _TCHAR *config_path)
 			config.video_mpeg4_minq = n;
 		}
 		
-		config.video_threads = MyGetPrivateProfileInt(_T("Qt"), _T("VideoThreads"), config.video_threads, config_path);
+		config.video_threads = MyGetPrivateProfileInt(_T("Qt"), _T("VideoThreads"), 0, config_path);
 		if(config.video_threads < 0) config.video_threads = 0;
 		if(config.video_threads > 16) config.video_threads = 16;
 		
-		config.audio_bitrate = MyGetPrivateProfileInt(_T("Qt"), _T("AudioBitrate"), config.audio_bitrate, config_path);
+		config.audio_bitrate = MyGetPrivateProfileInt(_T("Qt"), _T("AudioBitrate"), 224, config_path);
 		if(config.audio_bitrate < 16) config.audio_bitrate = 16;
 		if(config.audio_bitrate > 448) config.audio_bitrate = 448;
 		
-		config.video_frame_rate = MyGetPrivateProfileInt(_T("Qt"), _T("VideoFramerate"), config.video_frame_rate, config_path);
+		config.video_frame_rate = MyGetPrivateProfileInt(_T("Qt"), _T("VideoFramerate"), 60, config_path);
 		if(config.video_frame_rate < 15) config.video_frame_rate = 15;
 		if(config.video_frame_rate > 75) config.video_frame_rate = 75;
 		// Logging
@@ -600,7 +600,7 @@ void load_config(const _TCHAR *config_path)
 	#endif
 }
 		
-void save_config(const _TCHAR *config_path)
+void DLL_PREFIX save_config(const _TCHAR *config_path)
 {
 	int drv, i;
 #if !defined(_MSC_VER)
@@ -913,7 +913,7 @@ void save_config(const _TCHAR *config_path)
 
 #define STATE_VERSION	6
 
-bool process_config_state(void *f, bool loading)
+bool DLL_PREFIX process_config_state(void *f, bool loading)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
