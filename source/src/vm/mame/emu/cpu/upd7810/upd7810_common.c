@@ -497,7 +497,7 @@ struct upd7810_state
 	const struct opcode_s *op64;
 	const struct opcode_s *op70;
 	const struct opcode_s *op74;
-	void (*handle_timers)(upd7810_state *cpustate, int cycles);
+	void (__FASTCALL *handle_timers)(upd7810_state *cpustate, int cycles);
 	UPD7810_CONFIG config;
 //	device_irq_acknowledge_callback irq_callback;
 //	legacy_cpu_device *device;
