@@ -478,6 +478,8 @@ static const int auto_key_table_base[][2] = {
 	// 0x200: kana
 	// 0x400: alphabet
 	// 0x800: ALPHABET
+	// 0x1000 : LOCK
+	// 0x2000 : UNLOCK
 	{0x08,	0x000 | 0x08},	// BS
 	{0x09,	0x000 | 0x09},	// Tab
 	{0x0d,	0x000 | 0x0d},	// Enter
@@ -1112,6 +1114,7 @@ void EMU::set_auto_key_code(int code)
 {
 	if(code == 0xf2 || (code = get_auto_key_code(code)) != 0) {
 		if(code == 0x08 || code == 0x09 || code == 0x0d || code == 0x1b || code == 0x20 || code == 0xf2) {
+			// VK_BACK, VK_TAB, VK_RETURN, VK_ESCAPE, VK_SPACE, VK_OEM_COPY(Katakana/Hiragana)
 			auto_key_buffer->write(code);
 #ifdef USE_AUTO_KEY_NUMPAD
 		} else if(code >= 0x30 && code <= 0x39) {
@@ -1286,6 +1289,56 @@ void EMU::set_auto_key_char(char code)
 					if(!romaji_table[i].kana[j]) {
 						break;
 					}
+					if(j == 0) {
+						bool handakuon_found = false;
+						bool dakuon_found = false;
+#if defined(USE_TWO_STROKE_AUTOKEY_HANDAKUON)
+						if(romaji_table[i].kana[1] == 0xdf) {
+							// HANDAKUON
+							for(int jj = 0;;jj++) {
+								if(kana_handakuon_keyboard_table[jj][0] == -1) break;
+								if(kana_handakuon_keyboard_table[jj][0] == romaji_table[i].kana[0]) {
+									for(int l = 1; l < 6; l++) {
+										if(kana_handakuon_keyboard_table[jj][l] == 0x00) break;
+										auto_key_buffer->write(kana_handakuon_keyboard_table[jj][l] & 0x31ff);
+										if(!is_auto_key_running()) {
+											start_auto_key();
+										}
+									}
+									j += 1;
+									handakuon_found = true;
+									break;
+								}
+							}
+						}
+#endif
+#if defined(USE_TWO_STROKE_AUTOKEY_DAKUON)
+						if(romaji_table[i].kana[1] == 0xde) {
+							// DAKUON
+							for(int jj = 0;;jj++) {
+								if(kana_dakuon_keyboard_table[jj][0] == -1) break;
+								if(kana_dakuon_keyboard_table[jj][0] == romaji_table[i].kana[0]) {
+									for(int l = 1; l < 6; l++) {
+										if(kana_dakuon_keyboard_table[jj][l] == 0x00) break;
+										auto_key_buffer->write(kana_dakuon_keyboard_table[jj][l] & 0x31ff);
+										if(!is_auto_key_running()) {
+											start_auto_key();
+										}
+									}
+									j += 1;
+									dakuon_found = true;
+									break;
+								}
+							}
+						}
+#endif
+						if((handakuon_found) || (dakuon_found)) {
+//							if(!romaji_table[i].kana[j]) {
+//								break;
+//							}
+							continue;
+						}
+					}
 					set_auto_key_code(romaji_table[i].kana[j]);
 				}
 				memset(codes, 0, sizeof(codes));
@@ -1336,13 +1389,17 @@ void EMU::update_auto_key()
 		}
 	case 3 + USE_AUTO_KEY_SHIFT:
 		if(auto_key_buffer && !auto_key_buffer->empty()) {
-			osd->key_down_native(auto_key_buffer->read_not_remove(0) & 0xff, false);
+			if(!(auto_key_buffer->read_not_remove(0) & 0x2000)) {
+				osd->key_down_native(auto_key_buffer->read_not_remove(0) & 0xff, false);
+			}
 		}
 		auto_key_phase++;
 		break;
 	case USE_AUTO_KEY + USE_AUTO_KEY_SHIFT:
 		if(auto_key_buffer && !auto_key_buffer->empty()) {
-			osd->key_up_native(auto_key_buffer->read_not_remove(0) & 0xff);
+			if(!(auto_key_buffer->read_not_remove(0) & 0x1000)) {
+				osd->key_up_native(auto_key_buffer->read_not_remove(0) & 0xff);
+			}
 		}
 		auto_key_phase++;
 		break;
