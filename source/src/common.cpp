@@ -1594,6 +1594,155 @@ const wchar_t *DLL_PREFIX tchar_to_wchar(const _TCHAR *ts)
 #endif
 }
 
+int DLL_PREFIX ucs4_kana_zenkaku_to_hankaku(const uint32_t in, uint32_t *buf, int bufchars)
+{
+	uint32_t out = (uint32_t)in;
+	int letters = 1;
+	if((buf != NULL) && (bufchars >= 4)) {
+		memset(buf, 0x00, sizeof(uint32_t) * bufchars);
+	} else {
+		return -1;
+	}
+	// U+FF61-U+FF9F = HANKAKU KANA
+	// U+FF01-U+FF5E = ZENKAKU ALPHABET
+	// U+3041-U+309E = ZENKAKU HIRAGANA
+	// U+30A1-U+30FE = ZENKAKU KATAKANA
+	static const uint32_t kanacnvtable[] = {
+		// AIUEO
+		0xff67, 0xff71, 0xff68, 0xff72, 0xff69, 0xff73, 0xff6a, 0xff74, 0xff6b, 0xff75,
+		// KA/GA
+		0xff76, 0xff76, 0xff77, 0xff77, 0xff78, 0xff78, 0xff79, 0xff79, 0xff7a, 0xff7a,
+		// SA/ZA
+		0xff7b, 0xff7b, 0xff7c, 0xff7c, 0xff7d, 0xff7d, 0xff7e, 0xff7e, 0xff7f, 0xff7f,
+		// TA/DA
+		0xff80, 0xff80, 0xff81, 0xff81, 0xff6f, 0xff82, 0xff82, 0xff83, 0xff83, 0xff84, 0xff84,
+		// NA
+		0xff85, 0xff86, 0xff87, 0xff88, 0xff89,
+		// HA/BA/PA
+		0xff8a, 0xff8a, 0xff8a, 0xff8b, 0xff8b, 0xff8b, 0xff8c, 0xff8c, 0xff8c, 
+		0xff8d, 0xff8d, 0xff8d, 0xff8e, 0xff8e, 0xff8e,
+		// MA
+		0xff8f, 0xff90, 0xff91, 0xff92, 0xff93,
+		// YAYUYO
+		0xff6c, 0xff94, 0xff6d, 0xff95, 0xff6e, 0xff96,
+		// RA
+		0xff97, 0xff98, 0xff99, 0xff9a, 0xff9b,
+		// WA
+		0xff9c, 0xff9c, 0xff68, 0xff69, 0xff66, 0xff9d, 0xff73, 0xff76, 0xff79, 0xff9e, 0xff9f,
+		0x00000000,
+	};
+
+	enum {
+		L_NORMAL,
+		L_SMALL,
+		L_DAKUON,
+		L_HANDAKUON,
+		L_SMALL_WA,
+		L_WI,
+		L_WO,
+		L_WE,
+		L_VU,
+		L_XKA,
+		L_XKE
+	};
+	static const int attr_tbl[] = {
+		// AIUEO
+			L_SMALL, L_NORMAL, L_SMALL, L_NORMAL, L_SMALL, L_NORMAL, L_SMALL, L_NORMAL, L_SMALL, L_NORMAL,
+		// Kx
+		L_NORMAL, L_DAKUON, L_NORMAL, L_DAKUON, L_NORMAL, L_DAKUON, L_NORMAL, L_DAKUON, L_NORMAL, L_DAKUON,
+		// Sx
+		L_NORMAL, L_DAKUON, L_NORMAL, L_DAKUON, L_NORMAL, L_DAKUON, L_NORMAL, L_DAKUON, L_NORMAL, L_DAKUON,
+		// Tx
+		L_NORMAL, L_DAKUON, L_NORMAL, L_DAKUON, L_NORMAL, L_DAKUON, L_SMALL, L_NORMAL, L_DAKUON, L_NORMAL, L_DAKUON,
+		// Nx
+		L_NORMAL,   L_NORMAL,  L_NORMAL,   L_NORMAL,   L_NORMAL,
+		// Hx
+		L_NORMAL,   L_DAKUON,  L_HANDAKUON,  L_NORMAL,   L_DAKUON,  L_HANDAKUON,  L_NORMAL,   L_DAKUON,  L_HANDAKUON,  L_NORMAL,   L_DAKUON,  L_HANDAKUON,  L_NORMAL,   L_DAKUON,  L_HANDAKUON, 
+		// Mx
+		L_NORMAL,   L_NORMAL,  L_NORMAL,   L_NORMAL,   L_NORMAL,
+		// Yx
+		L_SMALL, L_NORMAL, L_SMALL, L_NORMAL, L_SMALL, L_NORMAL,
+		// Rx
+		L_NORMAL,   L_NORMAL,  L_NORMAL,   L_NORMAL,   L_NORMAL,
+		// Wx
+		L_SMALL_WA, L_NORMAL, L_WI, L_WE, L_NORMAL, L_NORMAL, L_VU, L_XKA, L_XKE
+	};
+
+	uint32_t tmp = 0;	
+	if((in < 0xFF5F) && (in > 0xFF00)) { // ALPHABET
+		out = in - 0xff00 + 0x20; // Zenkaku alphabet to Hankaku alphabet
+		buf[0] = out;
+		return 1;
+	} else if((in < 0x3095) && (in > 0x3040)) { // Hiragana
+		tmp = in - 0x3041;
+	} else if((in < 0x30f5) && (in > 0x30a0)) { // Katakana
+		tmp = in - 0x30a1;
+	} else if((in == 0x3099) || (in == 0x309b)) { // DAKUON
+		buf[0] = 0xff9e;
+		return 1;
+	} else if((in == 0x309a) || (in == 0x309c)) { // HAN DAKUON
+		buf[0] = 0xff9f;
+		return 1;
+	} else if(in == 0x3002) {// MARU
+		buf[0] = 0xff61;
+		return 1;
+	} else if(in == 0x30fb) {// NAKAGURO
+		buf[0] = 0xff65;
+		return 1;
+	} else if(in == 0x3001) {// Ten
+		buf[0] = 0xff64;
+		return 1; 
+	} else if((in == 0x300c) || (in == 0x300d)){// KagiKakko
+		buf[0] = 0xff62 + (in - 0x300c);
+		return 1; 
+	} else {
+		buf[0] = in;
+		return 1;
+	}
+	uint32_t kana = kanacnvtable[tmp];
+	int attr = attr_tbl[tmp];
+	switch(attr) {
+	case L_NORMAL:
+	case L_SMALL:
+		buf[0] = kana;
+		break;
+	case L_DAKUON:
+		buf[0] = kana;
+		buf[1] = 0xff9e; // DAKUON
+		letters = 2;
+		break;
+	case L_HANDAKUON:
+		buf[0] = kana;
+		buf[1] = 0xff9f; // DAKUON
+		letters = 2;
+		break;
+	case L_SMALL_WA:
+		buf[0] = kana;
+		break;
+	case L_WI:
+		buf[0] = kana; // WIP
+		break;
+	case L_WE:
+		buf[0] = kana; // WIP
+		break;
+	case L_VU:
+		buf[0] = 0xff73; // U
+		buf[1] = 0xff9f; // DAKUON
+		letters = 2;
+		break;
+	case L_XKA:
+		buf[0] = 0xff76; // KA
+		break;
+	case L_XKE:
+		buf[0] = 0xff79; // KE
+		break;
+	default:
+		buf[0] = kana;
+		break;
+	}
+	return letters;
+}
+
 const _TCHAR *DLL_PREFIX create_string(const _TCHAR* format, ...)
 {
 	static _TCHAR buffer[8][1024];

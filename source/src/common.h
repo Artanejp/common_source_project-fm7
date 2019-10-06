@@ -1525,6 +1525,9 @@ const char *DLL_PREFIX tchar_to_char(const _TCHAR *ts);
 const _TCHAR *DLL_PREFIX wchar_to_tchar(const wchar_t *ws);
 const wchar_t *DLL_PREFIX tchar_to_wchar(const _TCHAR *ts);
 
+// Convert Zenkaku KATAKANA/HIRAGANA/ALPHABET to Hankaku.Data must be UCS-4 encoding Unicode (UTF-32).
+int DLL_PREFIX ucs4_kana_zenkaku_to_hankaku(const uint32_t in, uint32_t *buf, int bufchars);
+
 // for disassedmbler
 uint32_t DLL_PREFIX get_relative_address_8bit(uint32_t base, uint32_t mask, int8_t offset);
 uint32_t DLL_PREFIX get_relative_address_16bit(uint32_t base, uint32_t mask, int16_t offset);

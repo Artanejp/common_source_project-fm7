@@ -453,7 +453,19 @@ void EmuThreadClass::do_start_auto_key(QString ctext)
 	if(using_flags->is_use_auto_key()) {
 		QTextCodec *codec = QTextCodec::codecForName("Shift-Jis");
 		QByteArray array;
-		clipBoardText = ctext;
+		QVector<uint> ucs4_src = ctext.toUcs4();
+		QString dst;
+		dst.clear();
+		uint32_t pool[8] = {0};
+		for(auto itr = ucs4_src.constBegin(); itr != ucs4_src.constEnd(); ++itr) {
+			uint val = (*itr);
+			int chrs = ucs4_kana_zenkaku_to_hankaku((const uint32_t)val, pool, sizeof(pool) / sizeof(uint32_t));
+			if(chrs > 0) {
+				dst.append(QString::fromUcs4((uint*)pool, chrs));
+			}
+		}
+//		clipBoardText = ctext;
+		clipBoardText = dst;
 		array = codec->fromUnicode(clipBoardText);
 		if(clipBoardText.size() > 0) {
 			static int auto_key_table[256];
