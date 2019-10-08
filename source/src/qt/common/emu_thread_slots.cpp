@@ -464,97 +464,19 @@ void EmuThreadClass::do_start_auto_key(QString ctext)
 				dst.append(QString::fromUcs4((uint*)pool, chrs));
 			}
 		}
-//		clipBoardText = ctext;
 		clipBoardText = dst;
+		printf("%s\n", clipBoardText.toLocal8Bit().constData());
 		array = codec->fromUnicode(clipBoardText);
+		printf("Array is:");
+		for(int l = 0; l < array.size(); l++) {
+			printf("%02X ", array.at(l));
+		}
+		printf("\n");
 		if(clipBoardText.size() > 0) {
-			static int auto_key_table[256];
-			static bool initialized = false;
-			if(!initialized) {
-				memset(auto_key_table, 0, sizeof(auto_key_table));
-				if(using_flags->is_use_auto_key_us()) {
-					for(int i = 0;; i++) {
-						if(auto_key_table_base_us[i][0] == -1) {
-							break;
-						}
-						auto_key_table[auto_key_table_base_us[i][0]] = auto_key_table_base_us[i][1];
-					}
-				} else {
-					for(int i = 0;; i++) {
-						if(auto_key_table_base[i][0] == -1) {
-							break;
-						}
-						auto_key_table[auto_key_table_base[i][0]] = auto_key_table_base[i][1];
-					}
-				}
-#ifdef USE_VM_AUTO_KEY_TABLE
-				for(int i = 0;; i++) {
-					if(vm_auto_key_table_base[i][0] == -1) {
-						break;
-					}
-					auto_key_table[vm_auto_key_table_base[i][0]] = vm_auto_key_table_base[i][1];
-				}
-#endif
-#if defined(_X1TURBO) || defined(_X1TURBOZ)
-				// FIXME
-				if(config.keyboard_type) {
-					for(int i = 0;; i++) {
-						if(auto_key_table_50on_base[i][0] == -1) {
-							break;
-						}
-						auto_key_table[auto_key_table_50on_base[i][0]] = auto_key_table_50on_base[i][1];
-					}
-				} 
-#endif
-				initialized = true;
-			}
-			
-			FIFO* auto_key_buffer = emu->get_auto_key_buffer();
-			auto_key_buffer->clear();
-			// ToDo: Support Zenkaku KANA/HIRAGANA -> Hankaku kana
-			int size = strlen(array.constData()), prev_kana = 0;
+			int size = array.size();
 			const char *buf = (char *)(array.constData());
-			
-			for(int i = 0; i < size; i++) {
-				int code = buf[i] & 0xff;
-				if((0x81 <= code && code <= 0x9f) || 0xe0 <= code) {
-					i++;	// kanji ?
-					continue;
-				}
-				// Effect [Enter] even Unix etc.(0x0a should not be ignored). 
-				//else if(code == 0xa) { 
-				//continue;	// cr-lf
-				//}
-				if((code = auto_key_table[code]) != 0) {
-					int kana = code & 0x200;
-					if(prev_kana != kana) {
-						auto_key_buffer->write(0xf2);
-					}
-					prev_kana = kana;
-					if(using_flags->is_use_auto_key_no_caps()) {
-						if((code & 0x100) && !(code & (0x400 | 0x800))) {
-							auto_key_buffer->write((code & 0xff) | 0x100);
-						} else {
-							auto_key_buffer->write(code & 0xff);
-						}
-					} else if(using_flags->is_use_auto_key_caps()) {
-						if(code & (0x100 | 0x800)) {
-							auto_key_buffer->write((code & 0xff) | 0x100);
-						} else {
-							auto_key_buffer->write(code & 0xff);
-						}
-					} else if(code & (0x100 | 0x400)) {
-						auto_key_buffer->write((code & 0xff) | 0x100);
-					} else {
-						auto_key_buffer->write(code & 0xff);
-					}
-				}
-			}
-	   		
-			if(prev_kana) {
-				auto_key_buffer->write(0xf2);
-			}
 			p_emu->stop_auto_key();
+			p_emu->set_auto_key_list((char *)buf, size);
 			p_emu->start_auto_key();
 		}
 	}

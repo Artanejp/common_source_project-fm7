@@ -1689,6 +1689,9 @@ int DLL_PREFIX ucs4_kana_zenkaku_to_hankaku(const uint32_t in, uint32_t *buf, in
 	} else if(in == 0x30fb) {// NAKAGURO
 		buf[0] = 0xff65;
 		return 1;
+	} else if(in == 0x30fc) {// ONBIKI
+		buf[0] = 0xff70;
+		return 1;
 	} else if(in == 0x3001) {// Ten
 		buf[0] = 0xff64;
 		return 1; 

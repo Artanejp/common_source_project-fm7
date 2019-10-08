@@ -394,6 +394,7 @@ void EMU::key_down(int code, bool extended, bool repeat)
 	} else if(!is_auto_key_running())
 #endif
 	osd->key_down(code, extended, repeat);
+//	printf("KEY DOWN: %04X EXT=%d REPEAT=%d\n", code, extended, repeat);
 }
 
 void EMU::key_up(int code, bool extended)
@@ -407,6 +408,7 @@ void EMU::key_up(int code, bool extended)
 	} else if(!is_auto_key_running())
 #endif
 	osd->key_up(code, extended);
+//	printf("KEY UP: %04X EXT=%d\n", code, extended);
 }
 
 void EMU::key_char(char code)
@@ -1040,6 +1042,13 @@ static const struct {
 	{",",		{0xa4, 0x00}},
 	{".",		{0xa1, 0x00}},
 	{"/",		{0xa5, 0x00}},
+	// Pass through kana key codes.
+	{"\x0bc",	{0xa4, 0x00}},
+	{"\x0bd",   {0xb0, 0x00}},
+	{"\x0be",	{0xa1, 0x00}},
+	{"\x0bf",	{0xa5, 0x00}},
+	{"\x0db",	{0xa2, 0x00}},
+	{"\x0dd",	{0xa3, 0x00}},
 	{"",		{0x00}},
 };
 
@@ -1162,6 +1171,59 @@ void EMU::set_auto_key_list(char *buf, int size)
 				auto_key_buffer->write(0xf2);
 			}
 			prev_kana = kana;
+			// check handakuon
+			if(i < (size - 1)) {
+				bool dakuon_lock = false;
+				bool handakuon_lock = false;
+#if defined(USE_TWO_STROKE_AUTOKEY_HANDAKUON)
+				if((buf[i + 1] & 0xff) == 0xdf) { // Is Handakuon
+					for(int jj = 0; ; jj++) {
+						if(kana_handakuon_keyboard_table[jj][0] == -1) break;
+						if(kana_handakuon_keyboard_table[jj][0] == (buf[i] & 0xff)) { // Found
+							handakuon_lock = true;
+							for(int l = 1; l < 6; l++) {
+								int n_code = kana_handakuon_keyboard_table[jj][l];
+								if(n_code == 0x00) break;
+								if(n_code & (0x100 | 0x400 | 0x800)) {
+									auto_key_buffer->write((n_code & 0x30ff)| 0x100);
+								} else {
+									auto_key_buffer->write(n_code & 0x30ff);
+								}
+							}
+							break;
+						}
+					}
+					if(handakuon_lock) {
+						i++;
+						continue;
+					}
+				}
+#endif				
+#if defined(USE_TWO_STROKE_AUTOKEY_DAKUON)
+				if((buf[i + 1] & 0xff) == 0xde) { // Is Dakuon
+					for(int jj = 0; ; jj++) {
+						if(kana_dakuon_keyboard_table[jj][0] == -1) break;
+						if(kana_dakuon_keyboard_table[jj][0] == (buf[i] & 0xff)) { // Found
+							dakuon_lock = true;
+							for(int l = 1; l < 6; l++) {
+								int n_code = kana_dakuon_keyboard_table[jj][l];
+								if(n_code == 0x00) break;
+								if(n_code & (0x100 | 0x400 | 0x800)) {
+									auto_key_buffer->write((n_code & 0x30ff)| 0x100);
+								} else {
+									auto_key_buffer->write(n_code & 0x30ff);
+								}
+							}
+							break;
+						}
+					}
+					if(dakuon_lock) {
+						i++;
+						continue;
+					}
+				}
+#endif				
+			}
 #if defined(USE_AUTO_KEY_CAPS_LOCK)
 			// use caps lock key to switch uppercase/lowercase of alphabet
 			// USE_AUTO_KEY_CAPS_LOCK shows the caps lock key code
@@ -1253,7 +1315,7 @@ void EMU::set_auto_key_char(char code)
 		codes[0] = codes[1];
 		codes[1] = codes[2];
 		codes[2] = codes[3];
-		codes[3] = (code >= 'A' && code <= 'Z') ? ('a' + (code - 'A')) : code;
+		codes[3] = (code >= 'A' && code <= 'Z') ? ('a' + (code - 'A')) : code & 0xff;
 		codes[4] = '\0';
 		
 		if(codes[2] == 'n' && !is_vowel(codes[3])) {
@@ -1270,7 +1332,7 @@ void EMU::set_auto_key_char(char code)
 			int len = strlen(romaji_table[i].romaji), comp = -1;
 			if(len == 0) {
 				// end of table
-				if(!is_alphabet(codes[3])) {
+				if(!(is_alphabet(codes[3])) /*&& !((codes[3] >= 0x2c) && (codes[3] <= 0x2e)) && !((codes[3] == 0x5b) || (codes[3] == 0x5d))*/) {
 					set_auto_key_code(codes[3]);
 					memset(codes, 0, sizeof(codes));
 				}
@@ -1305,8 +1367,8 @@ void EMU::set_auto_key_char(char code)
 											start_auto_key();
 										}
 									}
-									j += 1;
 									handakuon_found = true;
+									j += 1;
 									break;
 								}
 							}
@@ -1321,9 +1383,9 @@ void EMU::set_auto_key_char(char code)
 									for(int l = 1; l < 6; l++) {
 										if(kana_dakuon_keyboard_table[jj][l] == 0x00) break;
 										auto_key_buffer->write(kana_dakuon_keyboard_table[jj][l] & 0x31ff);
-										if(!is_auto_key_running()) {
-											start_auto_key();
-										}
+									}
+									if(!is_auto_key_running()) {
+										start_auto_key();
 									}
 									j += 1;
 									dakuon_found = true;
@@ -1333,9 +1395,6 @@ void EMU::set_auto_key_char(char code)
 						}
 #endif
 						if((handakuon_found) || (dakuon_found)) {
-//							if(!romaji_table[i].kana[j]) {
-//								break;
-//							}
 							continue;
 						}
 					}
@@ -1391,6 +1450,7 @@ void EMU::update_auto_key()
 		if(auto_key_buffer && !auto_key_buffer->empty()) {
 			if(!(auto_key_buffer->read_not_remove(0) & 0x2000)) {
 				osd->key_down_native(auto_key_buffer->read_not_remove(0) & 0xff, false);
+//				printf("Press key: %04X\n", auto_key_buffer->read_not_remove(0));
 			}
 		}
 		auto_key_phase++;
@@ -1399,6 +1459,7 @@ void EMU::update_auto_key()
 		if(auto_key_buffer && !auto_key_buffer->empty()) {
 			if(!(auto_key_buffer->read_not_remove(0) & 0x1000)) {
 				osd->key_up_native(auto_key_buffer->read_not_remove(0) & 0xff);
+//				printf("Release key: %04X\n", auto_key_buffer->read_not_remove(0));
 			}
 		}
 		auto_key_phase++;

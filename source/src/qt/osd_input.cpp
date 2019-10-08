@@ -556,14 +556,14 @@ void OSD_BASE::key_down_native(int code, bool repeat)
 		code = VK_KANJI;
 		keep_frames = true;
 	}
-	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
+	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU || code == VK_MENU)) {
 		code = keycode_conv[code];
 	}
 	if(key_status[code] == 0 || keep_frames) {
 		repeat = false;
 	}
 	if(get_dont_keeep_key_pressed()) {
-		if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
+		if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU || code == VK_MENU)) {
 			key_status[code] = KEY_KEEP_FRAMES;
 		} else {
 			key_status[code] = keep_frames ? KEY_KEEP_FRAMES : 0x80;
@@ -597,7 +597,7 @@ void OSD_BASE::key_down_native(int code, bool repeat)
 
 void OSD_BASE::key_up_native(int code)
 {
-	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
+	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU || code == VK_MENU)) {
 		code = keycode_conv[code];
 	}
 	if(key_status[code] == 0) {
@@ -645,13 +645,13 @@ void OSD_BASE::key_down_sub(int code, bool repeat)
 		code = VK_KANJI;
 		keep_frames = true;
 	}
-	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
+	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU || code == VK_MENU)) {
 		code = keycode_conv[code];
 	}
 	
 
 	if(get_dont_keeep_key_pressed()) {
-		if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
+		if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU || code == VK_MENU)) {
 			key_status[code] = KEY_KEEP_FRAMES;
 		} else {
 			key_status[code] = keep_frames ? KEY_KEEP_FRAMES : 0x80;
@@ -702,7 +702,7 @@ void OSD_BASE::key_down_sub(int code, bool repeat)
 
 void OSD_BASE::key_up_sub(int code)
 {
-	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
+	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU || code == VK_MENU)) {
 		code = keycode_conv[code];
 	}
 	if(key_status[code] == 0) {
