@@ -246,135 +246,6 @@ void EVENT::reset()
 #endif
 }
 
-#define RUN_CPU_N(num, _class, arg)								\
-	return static_cast<_class *>(d_cpu[num].device)->run(arg)
-
-#define RUN_CPU_GENERIC(num, arg)			\
-	return d_cpu[num].device->run(arg)
-
-
-int __FASTCALL EVENT::run_cpu(uint32_t num, int cycles)
-{
-#if defined(USE_SUPRESS_VTABLE)
-	if(num < MAX_CPU) {
-		uint32_t dom_num = cpu_type[num];
-		switch(dom_num) {
-#if defined(USE_CPU_HD6301)
-		case EVENT_CPUTYPE_HD6301:
-			RUN_CPU_N(num, HD6301, cycles);
-			break;
-#endif
-#if defined(USE_CPU_HUC6280)
-		case EVENT_CPUTYPE_HUC6280:
-			RUN_CPU_N(num, HUC6280, cycles);
-			break;
-#endif
-#if defined(USE_CPU_V30)
-		case EVENT_CPUTYPE_V30:
-			RUN_CPU_N(num, V30, cycles);
-			break;
-#endif
-#if defined(USE_CPU_I286)
-		case EVENT_CPUTYPE_I286:
-	#if defined(_JX)
-			RUN_CPU_N(num, JX::I286, cycles);
-    #else
-			RUN_CPU_N(num, I80286, cycles);
-	#endif
-			break;
-#endif
-#if defined(USE_CPU_I86) || defined(USE_CPU_I186) || defined(USE_CPU_I88)
-		case EVENT_CPUTYPE_I86:
-			RUN_CPU_N(num, I8086, cycles);
-			break;
-#endif
-#if defined(USE_CPU_I386)
-		case EVENT_CPUTYPE_I386:
-			RUN_CPU_N(num, I386, cycles);
-			break;
-#endif
-#if defined(USE_CPU_I8080)
-		case EVENT_CPUTYPE_I8080:
-			RUN_CPU_N(num, I8080, cycles);
-			break;
-#endif
-#if defined(USE_CPU_M6502)
-		case EVENT_CPUTYPE_M6502:
-			RUN_CPU_N(num, M6502, cycles);
-			break;
-#endif
-#if defined(USE_CPU_N2A03)
-		case EVENT_CPUTYPE_N2A03:
-			RUN_CPU_N(num, N2A03, cycles);
-			break;
-#endif
-#if defined(USE_CPU_MB8861)
-		case EVENT_CPUTYPE_MB8861:
-			RUN_CPU_N(num, MB8861, cycles);
-			break;
-#endif
-#if defined(USE_CPU_MC6800)
-		case EVENT_CPUTYPE_MC6800:
-			RUN_CPU_N(num, MC6800, cycles);
-			break;
-#endif
-#if defined(USE_CPU_MC6801)
-		case EVENT_CPUTYPE_MC6801:
-			RUN_CPU_N(num, MC6801, cycles);
-			break;
-#endif
-#if defined(USE_CPU_MC6809)
-		case EVENT_CPUTYPE_MC6809:
-			RUN_CPU_N(num, MC6809, cycles);
-			break;
-#endif
-#if defined(USE_CPU_MCS48)
-		case EVENT_CPUTYPE_MCS48:
-			RUN_CPU_N(num, MCS48, cycles);
-			break;
-#endif
-#if defined(USE_CPU_TMS9995)
-		case EVENT_CPUTYPE_TMS9995:
-			RUN_CPU_N(num, TMS9995, cycles);
-			break;
-#endif
-#if defined(USE_CPU_UPD7801)
-		case EVENT_CPUTYPE_UPD7801:
-			RUN_CPU_N(num, UPD7801, cycles);
-			break;
-#endif
-#if defined(USE_CPU_UPD7907)
-		case EVENT_CPUTYPE_UPD7907:
-			RUN_CPU_N(num, UPD7907, cycles);
-			break;
-#endif
-#if defined(USE_CPU_UPD7810)
-		case EVENT_CPUTYPE_UPD7810:
-			RUN_CPU_N(num, UPD7810, cycles);
-			break;
-#endif
-#if defined(USE_CPU_Z80)
-		case EVENT_CPUTYPE_Z80:
-			RUN_CPU_N(num, Z80, cycles);
-			break;
-#endif
-		case EVENT_CPUTYPE_GENERIC:
-		default:
-			RUN_CPU_GENERIC(num, cycles);
-			break;
-		}
-	}
-#endif	
-	if(cycles <= 0) {
-		return 1;
-	} else {
-		return cycles;
-	}
-
-   
-}
-
-//#define USE_SUPRESS_VTABLE
 void EVENT::drive()
 {
 	// raise pre frame events to update timing settings
@@ -445,16 +316,13 @@ void EVENT::drive()
 				// sync to sub cpus
 				if(cpu_done == 0) {
 					// run one opecode on primary cpu
-#if !defined(USE_SUPRESS_VTABLE)
 					cpu_done = d_cpu[0].device->run(-1);
-#else
-					cpu_done = run_cpu(0, -1);
-#endif
 				}
 				
 				// sub cpu runs continuously and no events will be fired while the given clocks,
 				// so I need to give small enough clocks...
-				cpu_done_tmp = (event_extra > 0 || cpu_done < 4) ? cpu_done : 4;
+				cpu_done_tmp = (event_extra > 0 || cpu_done < 255) ? cpu_done : 255;
+//				cpu_done_tmp = cpu_done;
 				cpu_done -= cpu_done_tmp;
 				
 				for(int i = 1; i < dcount_cpu; i++) {
@@ -463,11 +331,7 @@ void EVENT::drive()
 					int sub_clock = d_cpu[i].accum_clocks >> 10;
 					if(sub_clock) {
 						d_cpu[i].accum_clocks -= sub_clock << 10;
-#if !defined(USE_SUPRESS_VTABLE)
 						d_cpu[i].device->run(sub_clock);
-#else
-						run_cpu(i, sub_clock);
-#endif
 					}
 				}
 			}

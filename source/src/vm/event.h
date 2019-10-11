@@ -67,8 +67,6 @@ private:
 	cpu_t d_cpu[MAX_CPU];
 
 	uint32_t cpu_update_clocks[MAX_CPU][6];
-	uint32_t cpu_type[MAX_CPU];
-	
 	int dcount_cpu;
 	
 	int frame_clocks;
@@ -136,123 +134,10 @@ private:
 	
 	void mix_sound(int samples);
 	void* get_event(int index);
-	int __FASTCALL run_cpu(uint32_t num, int cycles);
 
 #ifdef _DEBUG_LOG
 	bool initialize_done;
 #endif
-	template <class T>
-		void set_cpu_type(T *p, int num)
-	{
-#if defined(USE_SUPRESS_VTABLE)
-		if((num < 0) || (num >= MAX_CPU)) return;
-#if defined(USE_CPU_HD6301)
-		if(typeid(T) == typeid(HD6301)) {
-			cpu_type[num] = EVENT_CPUTYPE_HD6301;
-		} else
-#endif
-#if defined(USE_CPU_HUC6280)
-		if(typeid(T) == typeid(HUC6280)) {
-			cpu_type[num] = EVENT_CPUTYPE_HUC6280;
-		} else
-#endif
-#if defined(USE_CPU_I86) || defined(USE_CPU_I186) || defined(USE_CPU_I88)
-		if(typeid(T) == typeid(I8086)) {
-			cpu_type[num] = EVENT_CPUTYPE_I86;
-		} else
-#endif
-#if defined(USE_CPU_V30)
-		if(typeid(T) == typeid(V30)) {
-			cpu_type[num] = EVENT_CPUTYPE_V30;
-		} else
-#endif
-			
-#if defined(USE_CPU_I286)
-  #if defined(_JX)
-		if(typeid(T) == typeid(JX::I286)) {
-			cpu_type[num] = EVENT_CPUTYPE_I286;
-		} else
-  #else
-		if(typeid(T) == typeid(I80286)) {
-			cpu_type[num] = EVENT_CPUTYPE_I286;
-		} else
-  #endif
-#endif
-#if defined(USE_CPU_I386) || defined(USE_CPU_I486) || defined(USE_CPU_PENTIUM)
-		if(typeid(T) == typeid(I386)) {
-			cpu_type[num] = EVENT_CPUTYPE_I386;
-		} else
-#endif
-#if defined(USE_CPU_I8080)
-		if(typeid(T) == typeid(I8080)) {
-			cpu_type[num] = EVENT_CPUTYPE_I8080;
-		} else
-#endif
-#if defined(USE_CPU_M6502)
-		if(typeid(T) == typeid(M6502)) {
-			cpu_type[num] = EVENT_CPUTYPE_M6502;
-		} else
-#endif
-#if defined(USE_CPU_N2A03)
-		if(typeid(T) == typeid(N2A03)) {
-			cpu_type[num] = EVENT_CPUTYPE_N2A03;
-		} else
-#endif
-#if defined(USE_CPU_MB8861)
-		if(typeid(T) == typeid(MB8861)) {
-			cpu_type[num] = EVENT_CPUTYPE_MB8861;
-		} else
-#endif
-#if defined(USE_CPU_MC6800)
-		if(typeid(T) == typeid(MC6800)) {
-			cpu_type[num] = EVENT_CPUTYPE_MC6800;
-		} else
-#endif
-#if defined(USE_CPU_MC6801)
-		if(typeid(T) == typeid(MC6801)) {
-			cpu_type[num] = EVENT_CPUTYPE_MC6801;
-		} else
-#endif
-#if defined(USE_CPU_MC6809)
-		if(typeid(T) == typeid(MC6809)) {
-			cpu_type[num] = EVENT_CPUTYPE_MC6809;
-		} else
-#endif
-#if defined(USE_CPU_MCS48)
-		if(typeid(T) == typeid(MCS48)) {
-			cpu_type[num] = EVENT_CPUTYPE_MCS48;
-		} else
-#endif
-#if defined(USE_CPU_TMS9995)
-		if(typeid(T) == typeid(TMS9995)) {
-			cpu_type[num] = EVENT_CPUTYPE_TMS9995;
-		} else
-#endif
-#if defined(USE_CPU_UPD7801)
-		if(typeid(T) == typeid(UPD7801)) {
-			cpu_type[num] = EVENT_CPUTYPE_UPD7801;
-		} else
-#endif
-#if defined(USE_CPU_UPD7810)
-		if(typeid(T) == typeid(UPD7810)) {
-			cpu_type[num] = EVENT_CPUTYPE_UPD7810;
-		} else
-#endif
-#if defined(USE_CPU_UPD7907)
-		if(typeid(T) == typeid(UPD7907)) {
-			cpu_type[num] = EVENT_CPUTYPE_UPD7907;
-		} else
-#endif
-#if defined(USE_CPU_Z80)
-		if(typeid(T) == typeid(Z80)) {
-			cpu_type[num] = EVENT_CPUTYPE_Z80;
-		} else
-#endif
-		{
-			cpu_type[num] = EVENT_CPUTYPE_GENERIC;
-		}
-#endif
-	}
 public:
 	EVENT(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -294,9 +179,6 @@ public:
 #ifdef _DEBUG_LOG
 		initialize_done = false;
 #endif
-		for(int i = 0; i < MAX_CPU; i++) {
-			cpu_type[i] = EVENT_CPUTYPE_GENERIC;
-		}
 		set_device_name(_T("Event Manager"));
 	}
 	~EVENT() {}
@@ -387,20 +269,17 @@ public:
 	int get_sound_in_data(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
 	int rechannel_sound_in_data(int32_t*dst, int16_t* src, int dst_channels, int src_channels, int samples);
 	
-	template <class T>
-		int set_context_cpu(T* device, uint32_t clocks = CPU_CLOCKS)
+	int set_context_cpu(DEVICE* device, uint32_t clocks = CPU_CLOCKS)
 	{
 		assert(dcount_cpu < MAX_CPU);
 		int index = dcount_cpu++;
 		d_cpu[index].device = (DEVICE *)device;
 		d_cpu[index].cpu_clocks = clocks;
 		d_cpu[index].accum_clocks = 0;
-		set_cpu_type(device, index);
 		for(int k = 0; k < 6; k++) cpu_update_clocks[index][k] = d_cpu[index].update_clocks * k;
 		return index;
 	}
-	template <class T>
-		bool remove_context_cpu(T* device, int num)
+	bool remove_context_cpu(DEVICE* device, int num)
 	{
 		if(num <= 0) return false; // Number one must not be removed.
 		if(num >= MAX_CPU) return false;
@@ -413,7 +292,6 @@ public:
 			d_cpu[1].device = (DEVICE *)NULL;
 			d_cpu[1].cpu_clocks = 0;
 			d_cpu[1].accum_clocks = 0;
-			cpu_type[1] = EVENT_CPUTYPE_GENERIC;
 			dcount_cpu = 1;
 			for(int k = 0; k < 6; k++)	cpu_update_clocks[1][k] = d_cpu[1].update_clocks * k;
 		} else {
@@ -421,13 +299,11 @@ public:
 				d_cpu[i].device = d_cpu[i + 1].device;
 				d_cpu[i].cpu_clocks = d_cpu[i + 1].cpu_clocks;
 				d_cpu[i].accum_clocks = d_cpu[i + 1].accum_clocks;
-				cpu_type[i] = cpu_type[i + 1];
 			}
 			int n = dcount_cpu - 1;
 			d_cpu[n].device = (DEVICE *)NULL;
 			d_cpu[n].cpu_clocks = 0;
 			d_cpu[n].accum_clocks = 0;
-			cpu_type[n] = EVENT_CPUTYPE_GENERIC;
 			for(int i = 1; i < dcount_cpu; i++) {
 				for(int k = 0; k < 6; k++)	cpu_update_clocks[i][k] = d_cpu[i].update_clocks * k;
 			}
