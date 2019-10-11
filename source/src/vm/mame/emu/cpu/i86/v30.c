@@ -355,23 +355,21 @@ CPU_EXECUTE( v30 )
 				cpustate->io = cpustate->io_stored;
 			}
 		}
+		int passed_icount;
 		if (icount == -1) {
-			int passed_icount = max(1, cpustate->extra_cycles);
+			passed_icount = max(1, cpustate->extra_cycles);
 			// this is main cpu, cpustate->icount is not used
 			cpustate->icount += passed_icount;
 			cpustate->extra_cycles = 0;
-//#ifdef USE_DEBUGGER
 			cpustate->total_icount += passed_icount;
-//#endif
-			cpu_wait_v30(cpustate, passed_icount);
-			return passed_icount;
+//			cpu_wait_v30(cpustate, passed_icount);
 		} else {
+#if 0
 			cpustate->icount += icount;
 			int base_icount = cpustate->icount;
-
 			/* adjust for any interrupts that came in */
 			cpustate->icount -= cpustate->extra_cycles;
-
+			cpustate->extra_cycles = 0;
 			/* if busreq is raised, spin cpu while remained clock */
 			if (cpustate->icount > 0) {
 				cpustate->icount = 0;
@@ -380,10 +378,25 @@ CPU_EXECUTE( v30 )
 			cpustate->total_icount += base_icount - cpustate->icount;
 //#endif
 			cpu_wait_v30(cpustate, base_icount - cpustate->icount);
-			cpustate->extra_cycles = 0;
 			return base_icount - cpustate->icount;
+#else
+			int passed_icount = 0;
+			if(icount > 0) {
+				passed_icount = icount;
+			}
+			if(cpustate->extra_cycles > 0) {
+				passed_icount += cpustate->extra_cycles;
+			}
+			cpustate->icount = 0;
+			cpustate->extra_cycles = 0;
+			cpustate->total_icount += passed_icount;
+//#endif
+//			cpu_wait_v30(cpustate, passed_icount);
+#endif
 		}
+		return passed_icount;
 	}
+	// Not HALTED
 	if (icount == -1) {
 		cpustate->icount = 1;
 	} else {
@@ -482,9 +495,10 @@ CPU_EXECUTE( v30 )
 		cpustate->total_icount += cpustate->icount;
 //#endif
 		cpustate->icount = 0;
+		return base_icount;
 	}
-	cpu_wait_v30(cpustate, base_icount - cpustate->icount);
 	int passed_icount = base_icount - cpustate->icount;
+	cpu_wait_v30(cpustate, passed_icount);
 	cpustate->icount = 0;
 	return passed_icount;
 }

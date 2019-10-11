@@ -78,6 +78,8 @@ static void pentium_smi(i386_state* cpustate);
 
 static void cpu_reset_generic(i386_state* cpustate)
 {
+	int busreq = cpustate->busreq;
+	int haltreq = cpustate->haltreq;
 	switch(cpustate->cpu_type) {
 	case N_CPU_TYPE_I386:
 		CPU_RESET_CALL( i386 );
@@ -110,6 +112,8 @@ static void cpu_reset_generic(i386_state* cpustate)
 		CPU_RESET_CALL( i386 );
 		break;
 	}
+	cpustate->busreq = busreq;
+	cpustate->haltreq = haltreq;
 }
 
 
@@ -3621,8 +3625,8 @@ static void i386_set_irq_line(i386_state *cpustate,int irqline, int state)
 {
 	int first_cycles = cpustate->cycles;
 	if (cpustate->haltreq != 0) {
-		cpustate->extra_cycles += first_cycles - cpustate->cycles;
-		cpustate->cycles = first_cycles;
+//		cpustate->extra_cycles += first_cycles - cpustate->cycles;
+//		cpustate->cycles = first_cycles;
 		return;
 	}
 	if (state != CLEAR_LINE && cpustate->halted)
@@ -3743,7 +3747,12 @@ static CPU_EXECUTE( i386 )
 		if (cycles == -1) {
 			int passed_cycles = max(1, cpustate->extra_cycles);
 			// this is main cpu, cpustate->cycles is not used
-			cpustate->cycles += passed_cycles;
+			cpustate->cycles -= passed_cycles;
+			/* if busreq is raised, spin cpu while remained clock */
+			if (cpustate->cycles > 0) {
+				cpustate->cycles = 0;
+			}
+//			cpustate->cycles = 0;
 			cpustate->base_cycles = cpustate->cycles;
 
 			/* adjust for any interrupts that came in */
@@ -3777,13 +3786,10 @@ static CPU_EXECUTE( i386 )
 			return passed_cycles;
 		}
 	}
-	int ncycles;
 	if (cycles == -1) {
 		cpustate->cycles = 1;
-		ncycles = 1;
 	} else {
 		cpustate->cycles += cycles;
-		ncycles = cycles;
 	}
 	cpustate->base_cycles = cpustate->cycles;
 
@@ -3812,7 +3818,7 @@ static CPU_EXECUTE( i386 )
 				cpustate->debugger->exception_happened = true;
 				exception_caused = false;
 				exception_code = 0;
-				printf("EXCEPTION HIT PC=%08X CODE=%X\n", exception_pc, exception_code);
+				//printf("EXCEPTION HIT PC=%08X CODE=%X\n", exception_pc, exception_code);
 			}
 			cpustate->debugger->check_break_points(cpustate->pc);
 			if(cpustate->debugger->now_suspended) {
