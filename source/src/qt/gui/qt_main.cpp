@@ -67,8 +67,8 @@ QCommandLineOption *_opt_dipsw_on;
 QCommandLineOption *_opt_dipsw_off;
 QProcessEnvironment _envvers;
 extern QApplication *GuiMain;
-extern bool _b_dump_envver;
-extern std::string config_fullpath;
+bool _b_dump_envver;
+std::string config_fullpath;
 
 DLL_PREFIX void SetOptions_Sub(QCommandLineParser *cmdparser)
 {
