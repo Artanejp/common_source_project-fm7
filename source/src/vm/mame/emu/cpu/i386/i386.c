@@ -3743,7 +3743,11 @@ static CPU_EXECUTE( i386 )
 		if (cycles == -1) {
 			int passed_cycles = max(1, cpustate->extra_cycles);
 			// this is main cpu, cpustate->cycles is not used
-			/*cpustate->cycles = */cpustate->extra_cycles = 0;
+			cpustate->cycles += passed_cycles;
+			cpustate->base_cycles = cpustate->cycles;
+
+			/* adjust for any interrupts that came in */
+			cpustate->extra_cycles = 0;
 //			cpu_wait_i386(cpustate, 1);
 			cpustate->tsc += passed_cycles;
 //#ifdef USE_DEBUGGER

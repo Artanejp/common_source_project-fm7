@@ -358,7 +358,8 @@ CPU_EXECUTE( v30 )
 		if (icount == -1) {
 			int passed_icount = max(1, cpustate->extra_cycles);
 			// this is main cpu, cpustate->icount is not used
-			/*cpustate->icount = */cpustate->extra_cycles = 0;
+			cpustate->icount += passed_icount;
+			cpustate->extra_cycles = 0;
 //#ifdef USE_DEBUGGER
 			cpustate->total_icount += passed_icount;
 //#endif
