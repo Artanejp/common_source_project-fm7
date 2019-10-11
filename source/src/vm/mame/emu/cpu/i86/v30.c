@@ -371,7 +371,6 @@ CPU_EXECUTE( v30 )
 
 			/* adjust for any interrupts that came in */
 			cpustate->icount -= cpustate->extra_cycles;
-			cpustate->extra_cycles = 0;
 
 			/* if busreq is raised, spin cpu while remained clock */
 			if (cpustate->icount > 0) {
@@ -381,6 +380,7 @@ CPU_EXECUTE( v30 )
 			cpustate->total_icount += base_icount - cpustate->icount;
 //#endif
 			cpu_wait_v30(cpustate, base_icount - cpustate->icount);
+			cpustate->extra_cycles = 0;
 			return base_icount - cpustate->icount;
 		}
 	}
