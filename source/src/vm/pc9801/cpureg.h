@@ -55,6 +55,7 @@ private:
 #endif
 	DEVICE* d_mem;
 	DEVICE* d_pio;
+	DEVICE* d_pic;
 	uint8_t reg_0f0;
 	bool nmi_enabled;
 	int event_wait;
@@ -95,6 +96,8 @@ public:
 	
 	// unique function
 	void set_intr_line(bool line, bool pending, uint32_t bit);
+	uint32_t get_intr_ack();
+
 #if defined(UPPER_I386)
 	void set_context_cpu(I386* device)
 #elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
@@ -123,6 +126,10 @@ public:
 	void set_context_piosys(DEVICE* device)
 	{
 		d_pio = device;
+	}
+	void set_context_pic(DEVICE* device)
+	{
+		d_pic = device;
 	}
 	void set_context_cputype(DEVICE* device, int id, uint32_t mask, int shift)
 	{

@@ -23,12 +23,16 @@ namespace PC9801 {
 #if defined(HAS_V30_SUB_CPU)
 void CPUREG::initialize()
 {
+	reg_0f0 = 0;
 	use_v30 = false;
-	if((config.dipswitch & (1 << DIPSWITCH_POSITION_CPU_MODE)) != 0) {
+	stat_exthalt = false;
+	if((config.dipswitch & (1 << DIPSWITCH_POSITION_USE_V30)) != 0) {
 		enable_v30 = true;
 	} else {
 		enable_v30 = false;
 	}
+//	use_v30 = ((config.dipswitch & (1 << DIPSWITCH_POSITION_CPU_MODE)) != 0);
+//	halt_by_use_v30();
 }
 
 void CPUREG::halt_by_use_v30()
@@ -36,13 +40,9 @@ void CPUREG::halt_by_use_v30()
 	if((use_v30)) {
 		d_cpu->write_signal(SIG_CPU_HALTREQ, 1, 1);
 		d_v30cpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	} else {
 		d_cpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
 		d_v30cpu->write_signal(SIG_CPU_HALTREQ, 1, 1);
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 	}
 }
 #endif
@@ -51,17 +51,8 @@ void CPUREG::halt_by_value(bool val)
 {
 	bool haltvalue = (val) ? 0xffffffff : 0x0000000;
 #if defined(HAS_V30_SUB_CPU)
-	if((use_v30)) {
-		d_cpu->write_signal(SIG_CPU_HALTREQ, 0xffffffff, 0xffffffff);
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 0xffffffff, 0xffffffff);
-		d_v30cpu->write_signal(SIG_CPU_HALTREQ, 0, 0xffffffff);
-		d_v30cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
-	} else {
-		d_cpu->write_signal(SIG_CPU_HALTREQ, 0, 0xffffffff);
-		d_cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
-		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 0xffffffff, 0xffffffff);
-		d_v30cpu->write_signal(SIG_CPU_HALTREQ, 0xffffffff, 0xffffffff);
-	}
+	d_cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
+	d_v30cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
 #else
 	d_cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
 #endif	
@@ -72,22 +63,28 @@ void CPUREG::reset()
 	d_cpu->set_address_mask(0x000fffff);
 	init_clock = get_current_clock_uint64() & 0x000000ffffffffff;
 	nmi_enabled = false;
-	stat_wait = false;
 	stat_exthalt = false;
-	reg_0f0 = 0;
+	reg_0f0 = 0x00;
 	if(event_wait >= 0) {
 		cancel_event(this, event_wait);
 		event_wait = -1;
 	}
 
 #if defined(HAS_V30_SUB_CPU)
-//	use_v30 = ((config.cpu_type & 0x02) != 0) ? true : false;
-	use_v30 = false;
+	use_v30 = ((config.dipswitch & (1 << DIPSWITCH_POSITION_CPU_MODE)) != 0);
+//	use_v30 = false;
+	reg_0f0 = (use_v30) ? 0x01 : 0x00;
+//	use_v30 = (((reg_0f0 & 1) != 0) || ((reg_0f0 & 2) != 0) || ((reg_0f0 & 4) != 0));
+	write_signals(&outputs_cputype, (use_v30) ? 0xffffffff : 0x00000000);
+	d_v30cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	halt_by_use_v30();
-	write_signals(&outputs_cputype, 0x00);
-#else
-	d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 #endif
+	d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+}
+
+uint32_t CPUREG::get_intr_ack()
+{
+	return d_pic->get_intr_ack();
 }
 
 void CPUREG::set_intr_line(bool line, bool pending, uint32_t bit)
@@ -112,15 +109,18 @@ void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
 		out_debug_log("RESET FROM CPU!!!\n");
 		d_cpu->set_address_mask(0x000fffff);
 #if defined(HAS_V30_SUB_CPU)
-		halt_by_use_v30();
+		use_v30 = (((reg_0f0 & 1) != 0) || ((reg_0f0 & 2) != 0) || ((reg_0f0 & 4) != 0));
 		write_signals(&outputs_cputype, (use_v30) ? 0xffffffff : 0x00000000);
+//		d_v30cpu->reset();
+		halt_by_use_v30();
 #endif
 	} else if(ch == SIG_CPUREG_HALT) {
 		stat_exthalt = ((data & mask) != 0);
 		halt_by_value(stat_exthalt);
 	} else if(ch == SIG_CPUREG_USE_V30) {
 #if defined(HAS_V30_SUB_CPU)
-			use_v30 = ((data & mask) != 0);
+		use_v30 = ((data & mask) != 0);
+//		write_signals(&outputs_cputype, (use_v30) ? 0xffffffff : 0x00000000);
 		//halt_by_use_v30();
 		out_debug_log(_T("SIG_CPUREG_USE_V30: V30=%s\n"), (use_v30) ? _T("YES") : _T("NO")); 
 #endif
@@ -139,11 +139,7 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x005f:
 		// ToDo: Both Pseudo BIOS.
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-#if defined(HAS_V30_SUB_CPU)
-		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-#endif
-		stat_wait = true;
+		halt_by_value(true);
 		if(event_wait >= 0) {
 			cancel_event(this, event_wait);
 			event_wait = -1;
@@ -155,12 +151,13 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 			// ToDo: Reflesh
 			reg_0f0 = data;
 			d_cpu->set_address_mask(0x000fffff);
-#if defined(HAS_V30_SUB_CPU)
-//		use_v30 = ((config.cpu_type & 0x02) != 0) ? true : false;
-			use_v30 = (((data & 1) != 0) || ((data & 2) != 0) || ((data & 4) != 0));
-			d_v30cpu->reset();
-#endif
 			d_cpu->reset();
+#if defined(HAS_V30_SUB_CPU)
+//			use_v30 = (((reg_0f0 & 1) != 0) || ((reg_0f0 & 2) != 0) || ((reg_0f0 & 4) != 0));
+//			write_signals(&outputs_cputype, (use_v30) ? 0xffffffff : 0x00000000);
+			d_v30cpu->reset();
+//			halt_by_use_v30();
+#endif
 			out_debug_log(_T("WRITE I/O 00F0h: VAL=%02X\n"), data);
 		}
 		break;
@@ -306,17 +303,15 @@ void CPUREG::event_callback(int id, int err)
 		if(!(stat_exthalt)) {
 			
 #if defined(HAS_V30_SUB_CPU)
-			halt_by_use_v30();
-#else
-			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+			d_v30cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 #endif
+			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 		}
-		stat_wait = false;
 		event_wait = -1;
 	}
 }
 	
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool CPUREG::process_state(FILEIO* state_fio, bool loading)
 {
@@ -328,7 +323,6 @@ bool CPUREG::process_state(FILEIO* state_fio, bool loading)
  	}
 	state_fio->StateValue(nmi_enabled);
 	state_fio->StateValue(init_clock);
-	state_fio->StateValue(stat_wait);
 	state_fio->StateValue(stat_exthalt);
 	state_fio->StateValue(reg_0f0);	
 	state_fio->StateValue(event_wait);

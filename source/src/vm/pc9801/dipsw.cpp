@@ -26,6 +26,7 @@ namespace PC9801 {
 void DIPSWITCH::initialize()
 {
 	update_dipswitch();
+	update_ports();
 }
 
 void DIPSWITCH::reset()
@@ -40,14 +41,7 @@ void DIPSWITCH::reset()
 #else
 	port_c3 |= 0x08; // MODSW, 1 = Normal Mode, 0 = Hirezo Mode
 #endif
-#if defined(USE_CPU_TYPE)
-	#if defined(HAS_V30_SUB_CPU)
-		if(config.cpu_type & 0x02) {// V30 or V33
-			port_c3 |= 0x04;
-		}
-	#endif
-#endif
-	pio_mouse->write_signal(SIG_I8255_PORT_C, port_c3, 0x0c);
+	pio_mouse->write_signal(SIG_I8255_PORT_C, port_c3, 0x08);
 
 }
 
@@ -56,16 +50,19 @@ void DIPSWITCH::update_dipswitch()
 	sw1 = 0;
 	sw2 = 0;
 	sw3 = 0;
-#if 1 /* HARDWARE DIP SWITCH */
+	/* HARDWARE DIP SWITCH */
 	sw1 |= (((config.dipswitch & (0xff << 8)) >> 8) & 0xff);
-#if 1
 	sw1 &= 0xfe;
+#if defined(SUPPORT_HIRESO)
 	sw1 |= ((config.monitor_type == 0) ? 0x01 : 0x00);
-#endif
+	sw3 |= ((config.monitor_type == 0) ? 0x08 : 0x00);
+#else
+	sw1 |= 0x01;
+	sw3 |= 0x08;
+#endif	
  	sw2 |= (((config.dipswitch & (0xff << 16)) >> 16) & 0xff);
 	sw2 = (sw2 & 0x0d) | ((~sw2) & 0xf2); 
-	sw3 |= (((config.dipswitch & (0xff << 24)) >> 24) & 0x7f); 
-#endif
+	sw3 |= (((config.dipswitch & (0xff << 24)) >> 24) & 0xf7);
 }
 
 void DIPSWITCH::update_ports()
@@ -174,14 +171,8 @@ void DIPSWITCH::update_ports()
 		port_c |= (((sw1 & (1 << 5)) != 0) ? 0x02 : 0x00); // SW 1-6
 		port_c |= (((sw1 & (1 << 4)) != 0) ? 0x01 : 0x00); // SW 1-5
 	#endif
-		pio_mouse->write_signal(SIG_I8255_PORT_B, port_c, (0x08 | 0x02 | 0x01));
-	#if defined(HAS_V30_SUB_CPU) && defined(USE_CPU_TYPE)
-		if(config.cpu_type & 0x02) {// V30 or V33
-			pio_mouse->write_signal(SIG_I8255_PORT_C, 0x04, 0x04);
-		} else {
-			pio_mouse->write_signal(SIG_I8255_PORT_C, 0x00, 0x04);
-		}
-	#endif
+		port_c |= (((sw3 & (1 << 7)) != 0) ? 0x04 : 0x00); // SW 3-8
+		pio_mouse->write_signal(SIG_I8255_PORT_B, port_c, (0x08 | 0x04 | 0x02 | 0x01));
 #endif
 	}		
 }

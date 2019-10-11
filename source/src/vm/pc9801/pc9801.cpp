@@ -372,7 +372,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	event->set_context_cpu(cpu, cpu_clocks);
 #if defined(HAS_V30_SUB_CPU)
-	if((config.dipswitch & (1 << DIPSWITCH_POSITION_CPU_MODE)) != 0) { // You should add manually.
+	if((config.dipswitch & (1 << DIPSWITCH_POSITION_USE_V30)) != 0) { // You should add manually.
 		event->set_context_cpu(v30cpu, 7987248);
 	}
 #endif	
@@ -591,7 +591,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
+#if !defined(HAS_V30_SUB_CPU)
 	cpu->set_context_intr(pic);
+#endif
 #ifdef SINGLE_MODE_DMA
 	cpu->set_context_dma(dma);
 #endif
@@ -601,11 +603,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 
 #if defined(HAS_V30_SUB_CPU)
 	// cpu bus
+	cpu->set_context_intr(cpureg);
 	v30cpu->set_context_mem(memory);
 	v30cpu->set_context_io(io);
-	v30cpu->set_context_intr(pic);
+	v30cpu->set_context_intr(cpureg);
+	cpureg->set_context_pic(pic);
 	#ifdef SINGLE_MODE_DMA
-	//v30cpu->set_context_dma(dma); // DMA may be within MAIN CPU.
+	v30cpu->set_context_dma(dma); // DMA may be within MAIN CPU.
 	#endif
 	#ifdef USE_DEBUGGER
 	v30cpu->set_context_debugger(new DEBUGGER(this, emu));
@@ -1972,9 +1976,7 @@ bool VM::is_frame_skippable()
 
 void VM::update_config()
 {
-	if((config.cpu_type & 2) == 0) { // This don't change if using V30CPU.
-		set_cpu_clock_with_switch(config.cpu_type);
-	}
+	set_cpu_clock_with_switch(config.cpu_type);
 #if defined(USE_MONITOR_TYPE)
 	set_wait(config.monitor_type, config.cpu_type);
 #else

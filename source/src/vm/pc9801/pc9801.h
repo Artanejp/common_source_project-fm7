@@ -140,6 +140,7 @@
 	// unknown machines
 #endif
 
+#define DIPSWITCH_POSITION_USE_V30         (0 + 8 - 1)
 // DIPSW POSITION
 // DIPSW1: 8-15
 #define DIPSWITCH_POSITION_HIGH_RESO       (8 + 1 - 1)
