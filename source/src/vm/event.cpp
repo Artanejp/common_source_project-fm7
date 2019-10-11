@@ -272,7 +272,8 @@ void EVENT::drive()
 			vline_clocks[index]++;
 		}
 		for(int i = 1; i < dcount_cpu; i++) {
-			d_cpu[i].update_clocks = (int)(1024.0 * (double)d_cpu[i].cpu_clocks / (double)d_cpu[0].cpu_clocks + 0.5);
+			//d_cpu[i].update_clocks = (int)(1024.0 * (double)d_cpu[i].cpu_clocks / (double)d_cpu[0].cpu_clocks + 0.5);
+			d_cpu[i].update_clocks = (int)(4096.0 * (double)d_cpu[i].cpu_clocks / (double)d_cpu[0].cpu_clocks + 0.5);
 		}
 		for(DEVICE* device = vm->first_device; device; device = device->next_device) {
 			if(device->get_event_manager_id() == this_device_id) {
@@ -321,17 +322,24 @@ void EVENT::drive()
 				
 				// sub cpu runs continuously and no events will be fired while the given clocks,
 				// so I need to give small enough clocks...
-				cpu_done_tmp = (event_extra > 0 || cpu_done < 255) ? cpu_done : 255;
-//				cpu_done_tmp = cpu_done;
+				cpu_done_tmp = (event_extra > 0 || cpu_done < 256) ? cpu_done : 256;
 				cpu_done -= cpu_done_tmp;
-				
 				for(int i = 1; i < dcount_cpu; i++) {
 					// run sub cpus
-					d_cpu[i].accum_clocks += d_cpu[i].update_clocks * cpu_done_tmp;
-					int sub_clock = d_cpu[i].accum_clocks >> 10;
-					if(sub_clock) {
-						d_cpu[i].accum_clocks -= sub_clock << 10;
-						d_cpu[i].device->run(sub_clock);
+					int clock_result = d_cpu[i].update_clocks * cpu_done_tmp;
+					int sub_clock;
+					if(clock_result > 0) {
+						if(clock_result >= 0x10000) { // OVER 16 clocks with HOST
+							sub_clock = (int)(clock_result >> 12);
+							d_cpu[i].device->run(sub_clock); // Execute over 16 host clocks.
+							clock_result -= (sub_clock << 12);
+						}
+						d_cpu[i].accum_clocks += clock_result; // At most, 16 host clocks.Guranteed maximum at 16 host clocks.
+						sub_clock = (int)(d_cpu[i].accum_clocks >> 12);
+						if(sub_clock > 0) {
+							d_cpu[i].accum_clocks -= sub_clock << 12;
+							d_cpu[i].device->run(sub_clock);
+						}
 					}
 				}
 			}
@@ -1161,7 +1169,8 @@ void EVENT::update_config()
 	}
 }
 
-#define STATE_VERSION	4
+// Clock ratio resolution was changed from 2^10 to 2^12.20191011 K.O
+#define STATE_VERSION	5
 
 bool EVENT::process_state(FILEIO* state_fio, bool loading)
 {
