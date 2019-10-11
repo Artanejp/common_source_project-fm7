@@ -51,20 +51,28 @@ protected:
 	Action_Control_98 *actionRAM_512K;
 	Action_Control_98 *actionINIT_MEMSW;
 	Action_Control_98 *actionGDC_FAST;
-#if defined(HAS_I286) || defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM)
-	Action_Control_98 *actionSUB_V30;
-#endif
 #if defined(SUPPORT_EGC)
 	Action_Control_98 *actionEGC;
 #endif
 #if defined(_PC98DO)
 	Action_Control_98 *actionMemoryWait;
-#endif   
+#endif
+#if defined(HAS_V30_SUB_CPU)
+	Action_Control_98 *actionSUB_V30;
+	QActionGroup   *actionGroup_RunningCpu;
+	QMenu *menuRunCpu;
+	Action_Control_98 *actionRunMainCPU;
+	Action_Control_98 *actionRunSubCPU;
+#endif
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 public:
 	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~META_MainWindow();
+public slots:
+	void do_use_ix86();
+	void do_use_v30();
+	
 };
 
 QT_END_NAMESPACE

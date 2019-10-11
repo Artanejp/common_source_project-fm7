@@ -36,7 +36,7 @@ void Object_Menu_Control_98::do_set_memory_wait(bool flag)
 
 void Object_Menu_Control_98::do_set_enable_v30(bool flag)
 {
-	emit sig_set_dipsw(DIPSWITCH_POSITION_CPU_MODE, flag);
+	emit sig_set_dipsw(DIPSWITCH_POSITION_USE_V30, flag);
 }
 
 
@@ -75,6 +75,16 @@ Action_Control_98::~Action_Control_98()
 	delete pc98_binds;
 }
 
+// DIPSW 3-8
+void META_MainWindow::do_use_ix86()
+{
+	set_dipsw(DIPSWITCH_POSITION_CPU_MODE, false);
+}
+
+void META_MainWindow::do_use_v30()
+{
+	set_dipsw(DIPSWITCH_POSITION_CPU_MODE, true);
+}
 
 void META_MainWindow::retranslateUi(void)
 {
@@ -123,7 +133,7 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[2]->setVisible(false);
 	actionSoundDevice[3]->setVisible(false);
 #endif
-#if defined(HAS_I286) || defined(UPPER_I386)
+#if defined(HAS_V30_SUB_CPU)
 	actionSUB_V30->setText(QApplication::translate("MainWindow", "Enable V30 SUB CPU(need RESTART).", 0));
 	actionSUB_V30->setToolTip(QApplication::translate("MainWindow", "Enable emulation of V30 SUB CPU.\nThis may make emulation speed slower.\nYou must restart emulator after reboot.", 0));
 #endif
@@ -145,28 +155,27 @@ void META_MainWindow::retranslateUi(void)
 # elif  defined(_PC9801VX) || defined(_PC98XL)
 	actionCpuType[0]->setText(QString::fromUtf8("80286 10MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("80286 8MHz"));
-	actionCpuType[2]->setText(QString::fromUtf8("V30 8MHz"));
-	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_CPU_MODE)) == 0) {
-		actionCpuType[2]->setEnabled(false);
-	}
 # elif  defined(_PC9801RA) || defined(_PC98RL)
 	// ToDo: PC98RL's display rotate.
 	actionCpuType[0]->setText(QString::fromUtf8("80386 20MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("80386 16MHz"));
-	actionCpuType[2]->setText(QString::fromUtf8("V30 8MHz"));
-	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_CPU_MODE)) == 0) {
-		actionCpuType[2]->setEnabled(false);
-	}
 # elif  defined(_PC98XA)
 	actionCpuType[0]->setText(QString::fromUtf8("80286 8MHz"));
 	actionCpuType[1]->setVisible(false);
-	actionCpuType[2]->setText(QString::fromUtf8("V30 8MHz"));
-	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_CPU_MODE)) == 0) {
-		actionCpuType[2]->setEnabled(false);
-	}
 # endif
+#endif	
+#if defined(HAS_V30_SUB_CPU)
+	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_USE_V30)) == 0) {
+		actionRunSubCPU->setEnabled(false);
+	}
+# if defined(UPPER_I386)
+	actionRunMainCPU->setText(QString::fromUtf8("i386"));
+# else
+	actionRunMainCPU->setText(QString::fromUtf8("i80286"));
+# endif
+	actionRunSubCPU->setText(QString::fromUtf8("V30 8MHz"));
+	menuRunCpu->setTitle(QApplication::translate("MainWindow", "Running CPU (DIPSW 3-8)", 0));
 #endif
-	
 	actionRAM_512K->setText(QApplication::translate("MainWindow", "512KB RAM", 0));
 	actionRAM_512K->setToolTip(QApplication::translate("MainWindow", "Set lower RAM size to 512KB(not 640KB).\nMaybe for backward compatibility.", 0));
 	actionINIT_MEMSW->setText(QApplication::translate("MainWindow", "INIT MEMSW(need RESET)", 0));
@@ -222,21 +231,18 @@ void META_MainWindow::retranslateUi(void)
 	actionDebugger[2]->setVisible(true);
 #elif defined(HAS_I286)
 	actionDebugger[0]->setText(QApplication::translate("MainWindow", "i80286 Main CPU", 0));
-	actionDebugger[1]->setText(QApplication::translate("MainWindow", "V30 Sub CPU", 0));
-	actionDebugger[1]->setVisible(true);
 #elif defined(HAS_I386)
 	actionDebugger[0]->setText(QApplication::translate("MainWindow", "i80386 Main CPU", 0));
-	actionDebugger[1]->setText(QApplication::translate("MainWindow", "V30 Sub CPU", 0));
-	actionDebugger[1]->setVisible(true);
 #elif defined(HAS_I486)
 	actionDebugger[0]->setText(QApplication::translate("MainWindow", "i80486 Main CPU", 0));
-	actionDebugger[1]->setText(QApplication::translate("MainWindow", "V30 Sub CPU", 0));
-	actionDebugger[1]->setVisible(true);
 #elif defined(UPPER_I386)
 	actionDebugger[0]->setText(QApplication::translate("MainWindow", "i80x86 Main CPU", 0));
+#endif
+#if defined(HAS_V30_SUB_CPU)	
 	actionDebugger[1]->setText(QApplication::translate("MainWindow", "V30 Sub CPU", 0));
 	actionDebugger[1]->setVisible(true);
-#endif	
+#endif
+
 #endif
 #ifdef USE_MONITOR_TYPE
 	actionMonitorType[0]->setText(QApplication::translate("MainWindow", "High Resolution", 0));
@@ -247,24 +253,46 @@ void META_MainWindow::retranslateUi(void)
 void META_MainWindow::setupUI_Emu(void)
 {
 #ifdef USE_CPU_TYPE
-	#if defined(HAS_I286) || defined(UPPER_I386)
-	ConfigCPUTypes(3);
-	#else
 	ConfigCPUTypes(2);
-	#endif
 #endif
-#if defined(HAS_I286) || defined(UPPER_I386)
+#if defined(HAS_V30_SUB_CPU)
 	actionSUB_V30 = new Action_Control_98(this, using_flags);
 	actionSUB_V30->setCheckable(true);
 	actionSUB_V30->setVisible(true);
 	menuMachine->addAction(actionSUB_V30);
-	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_CPU_MODE)) != 0) actionSUB_V30->setChecked(true); // Emulation with V30
+	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_USE_V30)) != 0) actionSUB_V30->setChecked(true); // Emulation with V30
 	connect(actionSUB_V30, SIGNAL(toggled(bool)),
 			actionSUB_V30->pc98_binds, SLOT(do_set_enable_v30(bool)));
 	connect(actionSUB_V30->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
 			this, SLOT(set_dipsw(int, bool)));
 	connect(actionSUB_V30->pc98_binds, SIGNAL(sig_emu_update_config()),
 			this, SLOT(do_emu_update_config()));
+
+	actionGroup_RunningCpu = new QActionGroup(this);
+	actionGroup_RunningCpu->setExclusive(true);
+	
+	actionRunMainCPU = new Action_Control_98(this, using_flags);
+	actionRunMainCPU->setCheckable(true);
+	actionRunMainCPU->setVisible(true);
+	actionGroup_RunningCpu->addAction(actionRunMainCPU);
+	connect(actionRunMainCPU, SIGNAL(triggered()), this, SLOT(do_use_ix86()));
+
+	actionRunSubCPU = new Action_Control_98(this, using_flags);
+	actionRunSubCPU->setCheckable(true);
+	actionRunSubCPU->setVisible(true);
+	actionGroup_RunningCpu->addAction(actionRunSubCPU);
+	connect(actionRunSubCPU, SIGNAL(triggered()), this, SLOT(do_use_v30()));
+
+	if((config.dipswitch & (1 << DIPSWITCH_POSITION_CPU_MODE)) != 0) {
+		actionRunSubCPU->setChecked(true);
+	} else {
+		actionRunMainCPU->setChecked(true);
+	}
+	menuRunCpu = new QMenu(menuMachine);
+	menuRunCpu->addAction(actionRunMainCPU);
+	menuRunCpu->addAction(actionRunSubCPU);
+	menuMachine->addAction(menuRunCpu->menuAction());
+
 #endif
    
 	actionRAM_512K = new Action_Control_98(this, using_flags);
