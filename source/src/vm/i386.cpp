@@ -111,7 +111,7 @@
 #define CPU_RESET_CALL(name)			CPU_RESET_NAME(name)(cpustate)
 
 #define CPU_EXECUTE_NAME(name)			cpu_execute_##name
-#define CPU_EXECUTE(name)			int CPU_EXECUTE_NAME(name)(i386_state *cpustate, int cycles)
+#define CPU_EXECUTE(name)			int __FASTCALL CPU_EXECUTE_NAME(name)(i386_state *cpustate, int cycles)
 #define CPU_EXECUTE_CALL(name)			CPU_EXECUTE_NAME(name)(cpustate, cycles)
 
 #define CPU_TRANSLATE_NAME(name)		cpu_translate_##name

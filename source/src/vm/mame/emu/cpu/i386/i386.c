@@ -3283,6 +3283,8 @@ CPU_INIT( i386 )
 {
 	i386_state *cpustate = i386_common_init(32);
 	build_opcode_table(cpustate, OP_I386);
+//	build_opcode_table(cpustate, OP_I386 | OP_FPU);
+//	build_x87_opcode_table(cpustate);
 	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_I386];
 	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_I386];
 	return cpustate;
@@ -3512,6 +3514,8 @@ static CPU_RESET( i386 )
 	cpustate->nmi_masked = false;
 	cpustate->nmi_latched = false;
 
+//	x87_reset(cpustate);
+	
 	cpustate->a20_mask = ~0;
 	// Move to zero_state().
 	cpustate->cr[0] = 0x7fffffe0; // reserved bits set to 1
