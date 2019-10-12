@@ -89,27 +89,15 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	
 	pc88event = new EVENT(this, emu);
-//	pc88event->set_device_name(_T("Event Manager (PC-8801)"));
-//	pc88event->set_frames_per_sec(60);
-//	pc88event->set_lines_per_frame(260);
 	
 	pc88 = new PC88(this, emu);
-//	pc88->set_context_event_manager(pc88event);
 	pc88sio = new I8251(this, emu);
-//	pc88sio->set_device_name(_T("8251 SIO (PC-8801)"));
-//	pc88sio->set_context_event_manager(pc88event);
 	pc88pio = new I8255(this, emu);
-//	pc88pio->set_device_name(_T("8255 PIO (PC-8801)"));
-//	pc88pio->set_context_event_manager(pc88event);
 	pc88pcm = new PCM1BIT(this, emu);
 #ifdef USE_DEBUGGER
 //	pc88pcm->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-//	pc88pcm->set_device_name(_T("1-Bit PCM Sound (PC-8801)"));
-//	pc88pcm->set_context_event_manager(pc88event);
 	pc88rtc = new UPD1990A(this, emu);
-//	pc88rtc->set_device_name(_T("uPD1990A RTC (PC-8801)"));
-//	pc88rtc->set_context_event_manager(pc88event);
 #if defined(_PC8801MA)
 	// config.sound_type
 	// 	0: 44h:OPNA A4h:None		PC-8801FH/MH or later
@@ -122,7 +110,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	pc88opn1->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-//	pc88opn1->set_context_event_manager(pc88event);
 	if(config.sound_type == 0 || config.sound_type == 4 || config.sound_type == 5) {
 		pc88opn1->is_ym2608 = true;
 		pc88opn1->set_device_name(_T("YM2608 OPNA #1"));
@@ -132,7 +119,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	}
 	if(config.sound_type >= 2) {
 		pc88opn2 = new YM2203(this, emu);
-//		pc88opn2->set_context_event_manager(pc88event);
 	#ifdef USE_DEBUGGER
 		pc88opn2->set_context_debugger(new DEBUGGER(this, emu));
 	#endif
@@ -151,7 +137,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// 	0: 44h:OPN  A4h:None		PC-8001mkIISR
 	// 	1: 44h:OPN  A4h:OPN		PC-8001mkIISR + PC-8801-11
 	pc88opn1 = new YM2203(this, emu);
-//	pc88opn1->set_context_event_manager(pc88event);
 	pc88opn1->is_ym2608 = false;
 	pc88opn1->set_device_name(_T("YM2203 OPN #1"));
 #ifdef USE_DEBUGGER
@@ -173,7 +158,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// 	1: 44h:None A4h:OPN		PC-8001mkII + PC-8801-11
 	if(config.sound_type == 1) {
 		pc88opn2 = new YM2203(this, emu);
-//		pc88opn2->set_context_event_manager(pc88event);
 		pc88opn2->is_ym2608 = false;
 		pc88opn2->set_device_name(_T("YM2203 OPN #2"));
 	#ifdef USE_DEBUGGER
@@ -185,7 +169,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #else
 	#if defined(SUPPORT_PC88_OPN1)
 		pc88opn1 = new YM2203(this, emu);
-//		pc88opn1->set_context_event_manager(pc88event);
 		#if defined(SUPPORT_PC88_OPNA)
 			pc88opn1->is_ym2608 = true;
 			pc88opn1->set_device_name(_T("YM2608 OPNA #1"));
@@ -199,7 +182,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	#endif
 	#if defined(SUPPORT_PC88_OPN2)
 		pc88opn2 = new YM2203(this, emu);
-//		pc88opn2->set_context_event_manager(pc88event);
 		#if defined(SUPPORT_PC88_OPNA)
 			pc88opn2->is_ym2608 = true;
 			pc88opn2->set_device_name(_T("YM2608 OPNA #2"));
@@ -226,43 +208,30 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	if(config.printer_type == 0) {
 		pc88prn = new PRNFILE(this, emu);
-//		pc88prn->set_context_event_manager(pc88event);
 //	} else if(config.printer_type == 1) {
 //		pc88prn = new PCPR201(this, emu);
-//		pc88prn->set_context_event_manager(pc88event);
 	} else {
 		pc88prn = dummy;
 	}
 	pc88cpu = new Z80(this, emu);
-//	pc88cpu->set_context_event_manager(pc88event);
 	
 	pc88sub = new PC80S31K(this, emu);
 	pc88sub->set_device_name(_T("PC-80S31K (Sub)"));
-//	pc88sub->set_context_event_manager(pc88event);
 	pc88pio_sub = new I8255(this, emu);
 	pc88pio_sub->set_device_name(_T("8255 PIO (Sub)"));
-//	pc88pio_sub->set_context_event_manager(pc88event);
 	pc88fdc_sub = new UPD765A(this, emu);
 	pc88fdc_sub->set_device_name(_T("uPD765A FDC (Sub)"));
 #ifdef USE_DEBUGGER
 //	pc88fdc_sub->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-//	pc88fdc_sub->set_context_event_manager(pc88event);
 	pc88noise_seek = new NOISE(this, emu);
-//	pc88noise_seek->set_context_event_manager(pc88event);
 	pc88noise_head_down = new NOISE(this, emu);
-//	pc88noise_head_down->set_context_event_manager(pc88event);
 	pc88noise_head_up = new NOISE(this, emu);
-//	pc88noise_head_up->set_context_event_manager(pc88event);
 	pc88cpu_sub = new Z80(this, emu);
 	pc88cpu_sub->set_device_name(_T("Z80 CPU (Sub)"));
-//	pc88cpu_sub->set_context_event_manager(pc88event);
-	
 #ifdef SUPPORT_PC88_CDROM
 	pc88scsi_host = new SCSI_HOST(this, emu);
-//	pc88scsi_host->set_context_event_manager(pc88event);
 	pc88scsi_cdrom = new SCSI_CDROM(this, emu);
-//	pc88scsi_cdrom->set_context_event_manager(pc88event);
 #endif
 	
 #ifdef SUPPORT_PC88_HMB20
@@ -272,7 +241,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		pc88opm->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 		pc88opm->set_device_name(_T("YM2151 OPM (HMB-20)"));
-//		pc88opm->set_context_event_manager(pc88event);
 	} else {
 		pc88opm = NULL;
 	}
@@ -285,16 +253,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //		pc88gsx_pit->set_context_event_manager(pc88event);
 		pc88gsx_psg1 = new AY_3_891X(this, emu);
 		pc88gsx_psg1->set_device_name(_T("AY-3-8910 PSG #1 (GSX-8800)"));
-//		pc88gsx_psg1->set_context_event_manager(pc88event);
 		pc88gsx_psg2 = new AY_3_891X(this, emu);
 		pc88gsx_psg2->set_device_name(_T("AY-3-8910 PSG #2 (GSX-8800)"));
-//		pc88gsx_psg2->set_context_event_manager(pc88event);
 		pc88gsx_psg3 = new AY_3_891X(this, emu);
 		pc88gsx_psg3->set_device_name(_T("AY-3-8910 PSG #3 (GSX-8800)"));
-//		pc88gsx_psg3->set_context_event_manager(pc88event);
 		pc88gsx_psg4 = new AY_3_891X(this, emu);
 		pc88gsx_psg4->set_device_name(_T("AY-3-8910 PSG #4 (GSX-8800)"));
-//		pc88gsx_psg4->set_context_event_manager(pc88event);
 #ifdef USE_DEBUGGER
 		pc88gsx_psg1->set_context_debugger(new DEBUGGER(this, emu));
 		pc88gsx_psg2->set_context_debugger(new DEBUGGER(this, emu));
@@ -311,16 +275,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	if(config.dipswitch & DIPSWITCH_PCG8100) {
 		pc88pcg_pit = new I8253(this, emu);
 		pc88pcg_pit->set_device_name(_T("8253 PIT (PCG-8100)"));
-//		pc88pcg_pit->set_context_event_manager(pc88event);
 		pc88pcg_pcm1 = new PCM1BIT(this, emu);
 		pc88pcg_pcm1->set_device_name(_T("1-Bit PCM Sound (PCG-8100 #1)"));
-//		pc88pcg_pcm1->set_context_event_manager(pc88event);
 		pc88pcg_pcm2 = new PCM1BIT(this, emu);
 		pc88pcg_pcm2->set_device_name(_T("1-Bit PCM Sound (PCG-8100 #2)"));
-//		pc88pcg_pcm2->set_context_event_manager(pc88event);
 		pc88pcg_pcm3 = new PCM1BIT(this, emu);
 		pc88pcg_pcm3->set_device_name(_T("1-Bit PCM Sound (PCG-8100 #3)"));
-//		pc88pcg_pcm3->set_context_event_manager(pc88event);
 	} else {
 		pc88pcg_pit = NULL;
 		pc88pcg_pcm1 = pc88pcg_pcm2 = pc88pcg_pcm3 = NULL;
@@ -483,6 +443,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
+//		printf("DEV NAME=%s ID=%d\n", device->this_device_name, device->this_device_id);
 		device->initialize();
 	}
 }
