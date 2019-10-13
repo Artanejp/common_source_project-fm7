@@ -1017,7 +1017,6 @@ void GLDraw_2_0::resizeGL_SetVertexs(void)
 void GLDraw_2_0::resizeGL(int width, int height)
 {
 	//int side = qMin(width, height);
-	p_wid->makeCurrent();
 	extfunc_2->glViewport(0, 0, width, height);
 	extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 	crt_flag = true;
@@ -1042,7 +1041,6 @@ void GLDraw_2_0::resizeGL(int width, int height)
 	if(using_flags->get_max_button() > 0) {
 		updateButtonTexture();
 	}
-	p_wid->doneCurrent();
 }
 
 void GLDraw_2_0::paintGL(void)

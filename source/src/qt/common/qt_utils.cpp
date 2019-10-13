@@ -1255,7 +1255,7 @@ int MainLoop(int argc, char *argv[])
 #endif	
 	GLDrawClass *pgl = rMainWindow->getGraphicsView();
 	pgl->set_emu_launched();
-	pgl->setFixedSize(pgl->width(), pgl->height());
+//	pgl->setFixedSize(pgl->width(), pgl->height());
 	rMainWindow->retranselateUi_Depended_OSD();
 	QObject::connect(emu->get_osd(), SIGNAL(sig_update_device_node_name(int, const _TCHAR *)),
 					 rMainWindow, SLOT(do_update_device_node_name(int, const _TCHAR *)));

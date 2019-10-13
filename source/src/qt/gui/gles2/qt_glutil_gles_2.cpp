@@ -1487,7 +1487,6 @@ void GLDraw_ES_2::resizeGL_Screen(void)
 void GLDraw_ES_2::resizeGL(int width, int height)
 {
 	//int side = qMin(width, height);
-	p_wid->makeCurrent();
 	extfunc->glViewport(0, 0, width, height);
 	//extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 	crt_flag = true;
@@ -1507,7 +1506,6 @@ void GLDraw_ES_2::resizeGL(int width, int height)
 	if(using_flags->get_max_button() > 0) {
 		updateButtonTexture();
 	}
-	p_wid->doneCurrent();
 }
 
 void GLDraw_ES_2::initButtons(void)
