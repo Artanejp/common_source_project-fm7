@@ -122,7 +122,7 @@ void MOVIE_SAVER::setup_mpeg4(void *_codec)
 	c->scenechange_threshold = 30;
 	c->noise_reduction = 0;
 	c->chromaoffset = 2;
-	c->b_strategy = 1;
+//	c->b_strategy = 1;
 	c->b_sensitivity = 55;
 #endif
 #endif
