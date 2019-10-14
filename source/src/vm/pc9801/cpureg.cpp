@@ -69,17 +69,15 @@ void CPUREG::reset()
 		cancel_event(this, event_wait);
 		event_wait = -1;
 	}
-
+	d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 #if defined(HAS_V30_SUB_CPU)
-	use_v30 = ((config.dipswitch & (1 << DIPSWITCH_POSITION_CPU_MODE)) != 0);
-//	use_v30 = false;
-	reg_0f0 = (use_v30) ? 0x01 : 0x00;
-//	use_v30 = (((reg_0f0 & 1) != 0) || ((reg_0f0 & 2) != 0) || ((reg_0f0 & 4) != 0));
-	write_signals(&outputs_cputype, (use_v30) ? 0xffffffff : 0x00000000);
+	// On RESET, primary running Ix86, not V30.20191015 K.O
+	use_v30 = false;
+	reg_0f0 = 0x00;
+	write_signals(&outputs_cputype, 0x00000000);
 	d_v30cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	halt_by_use_v30();
 #endif
-	d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 }
 
 uint32_t CPUREG::get_intr_ack()
@@ -109,21 +107,17 @@ void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
 		out_debug_log("RESET FROM CPU!!!\n");
 		d_cpu->set_address_mask(0x000fffff);
 #if defined(HAS_V30_SUB_CPU)
-		use_v30 = (((reg_0f0 & 1) != 0) || ((reg_0f0 & 2) != 0) || ((reg_0f0 & 4) != 0));
-		write_signals(&outputs_cputype, (use_v30) ? 0xffffffff : 0x00000000);
-//		d_v30cpu->reset();
+		// RESET V30 at here.
+//		use_v30 = (((reg_0f0 & 1) != 0) || ((reg_0f0 & 2) != 0) || ((reg_0f0 & 4) != 0));
+		d_v30cpu->reset();
 		halt_by_use_v30();
+		write_signals(&outputs_cputype, (use_v30) ? 0xffffffff : 0x00000000);
+#else
+		write_signals(&outputs_cputype, 0x00000000);
 #endif
 	} else if(ch == SIG_CPUREG_HALT) {
 		stat_exthalt = ((data & mask) != 0);
 		halt_by_value(stat_exthalt);
-	} else if(ch == SIG_CPUREG_USE_V30) {
-#if defined(HAS_V30_SUB_CPU)
-		use_v30 = ((data & mask) != 0);
-//		write_signals(&outputs_cputype, (use_v30) ? 0xffffffff : 0x00000000);
-		//halt_by_use_v30();
-		out_debug_log(_T("SIG_CPUREG_USE_V30: V30=%s\n"), (use_v30) ? _T("YES") : _T("NO")); 
-#endif
 	}
 }
 	
@@ -151,13 +145,12 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 			// ToDo: Reflesh
 			reg_0f0 = data;
 			d_cpu->set_address_mask(0x000fffff);
-			d_cpu->reset();
 #if defined(HAS_V30_SUB_CPU)
+			// REGISTER 00F0h don't effect when changing via V30 <=> ix86.20191015 K.O
+			use_v30 = ((config.dipswitch & (1 << DIPSWITCH_POSITION_CPU_MODE)) != 0);
 //			use_v30 = (((reg_0f0 & 1) != 0) || ((reg_0f0 & 2) != 0) || ((reg_0f0 & 4) != 0));
-//			write_signals(&outputs_cputype, (use_v30) ? 0xffffffff : 0x00000000);
-			d_v30cpu->reset();
-//			halt_by_use_v30();
 #endif
+			d_cpu->reset(); // WILL RESET V30 at this signal handler.
 			out_debug_log(_T("WRITE I/O 00F0h: VAL=%02X\n"), data);
 		}
 		break;

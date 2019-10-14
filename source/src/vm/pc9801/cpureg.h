@@ -20,8 +20,6 @@
 
 #define SIG_CPUREG_RESET	1
 #define SIG_CPUREG_HALT		2
-#define SIG_CPUREG_USE_V30	3
-
 
 #if defined(UPPER_I386)
 #include "../i386.h"
