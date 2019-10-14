@@ -1,3 +1,553 @@
+commit 74c7914381802640510c76f176b3c3ffeceb678d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 15 02:19:11 2019 +0900
+
+    [DOC][DUMPCHECK] .
+
+commit 3b94006f820e808876d62631c42f0b3e11ad3990
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 15 02:17:29 2019 +0900
+
+    [DOC][DUMPCHECK] Add document.
+
+commit c8513abd5bcf9159fa3d430329f5ad88317d531b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 15 01:40:22 2019 +0900
+
+    [VM][PC9801][CPUREG] V30 SUB CPU works.
+
+commit 0aa814aec48526931dfe6e7fec33312ee094dd37
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 14 05:27:25 2019 +0900
+
+    [Qt][AVIO] Fix FTBFS with older FFMpeg.
+
+commit aa57ec7fae3928116ae8cffaf97c1fd655f35059
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 14 05:20:39 2019 +0900
+
+    [Qt][OpenGL] Don't makeCurrent()/doneCurrent() inside of resizeGL().Fixed crash running within Docker container.
+
+commit 9c18fc9259f1042e464eab4e85a60c8371122569
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 14 03:19:01 2019 +0900
+
+    [VM][PC8801] Fix double install DEBUGGER:: for OPN#1,#2.Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/598 .
+
+commit c01549d4c0e0b80f5505a4794064e96304ec3cf7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 13 05:18:48 2019 +0900
+
+    [VM][PC8801] Remove unneeded comment outed lines.
+
+commit 6e48f01b78bceed325d515fec186aa707f8d8f6f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 13 05:14:25 2019 +0900
+
+    [VM][EVENT] Fix wrong effect of before commit.Revert "High resolution accum_clocks" of EVENT::drive().STATE_VERSION is reverted to 4.
+    [VM][EVENT] Update comment of scheduler (EVENT::drive()).
+    [VM][EVENT] .
+    [VM][I386] .
+
+commit 4fee6d8db9e9880a893b3c2f48af66e10026ce61
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 12 04:24:02 2019 +0900
+
+    [Qt][PC9801] Update UI.
+
+commit 658ecd0226e1238aa08b3d07f13b04ec5f973432
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 12 04:23:21 2019 +0900
+
+    [VM][V30][I386] Adjust halt sequence.WIP.
+
+commit 7ed453ad816789dfd5bc37b4b7b44462b8207f66
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 12 04:22:07 2019 +0900
+
+    [VM][PC9801] Re-define DIPSW, to work with V30@PC-9801RA.
+
+commit 0d330a3a567fba627168adf0377a6d4fdf2858c1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 11 19:18:25 2019 +0900
+
+    [VM][V30] .
+
+commit aad9f33ab5e526374ad6472f36ca749e2ef638ec
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 11 19:16:47 2019 +0900
+
+    [VM][I8259][PC9801] Fix crash when changing V30 Sub CPU <-> i286/i386 Main CPU.
+
+commit e3d809ce03c16ce4cecd41aad159f9326fb02dac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 11 19:15:20 2019 +0900
+
+    [VM][EVENT] Clock ratio resolution was changed from 2^10 to 2^12.
+    [VM][EVENT] More safer scheduling when host cpu spend a lot of clocks.
+
+commit 364710984d43d2ec63f6bb6cb611bcb021f62ab0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 11 16:05:40 2019 +0900
+
+    [Qt] .
+
+commit e7ac176d71fbdb2865ebe4a649d536c0a945961a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 11 16:04:37 2019 +0900
+
+    [VM][I386][V30] Fix cloick handling when BUSREQ/HALT.
+
+commit 1ef0c1a88ebacd4554196ae591907807c9477cc5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 11 16:00:01 2019 +0900
+
+    [VM][EVENT] Remove scheduler per CPU_TYPE, because optimize of calling virtual functions may be enough to fast.
+    [VM][EVENT] EVENT::drive() : Allow larger clock usage for sub CPUs; limit is 255 host clocks.Fix lockup scheduler of PC-9801RA with enabling V30 sub cpu.
+
+commit 6a34194446dde36a03030f1afbbbe82ecb6a01e8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 8 17:51:55 2019 +0900
+
+    [VM][FAMILYBASIC] Enable to input kana via romaji-kana conversion.Still some characters (i.e. KAGIKAKKO) are not correct.
+
+commit cf5b3ae2475e143c03bf02ded91322a9892c7435
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 8 17:49:22 2019 +0900
+
+    [EMU][ROMAJI_KANA] Some characters are enabled to input via ROMAJI-KANA conversion.
+    [EMU][AUTOKEY]  Some characters are enabled to input via pasting from clipboard.
+    [UI][Qt][ROMAJI_KANA] Some characters input from KANA mode (by host) are enabled.
+
+commit e7cca9698b99fb9303c8fcb4184f3521b11e27c1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 7 07:32:10 2019 +0900
+
+    [UI][Qt][AUTO_KEY] Copy and paste: Paste even Zenkaku KATAKANA/HIRAGNA/ASCII to VM (converted to Hankaku letters).
+
+commit 6dc77cb112b4239d88b12836839917d09abac184
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 7 01:32:24 2019 +0900
+
+    [VM][FAMILYBASIC][WIP] Fix wrong string for romaji-kana (and auto key).Still imcoplete, implementing DAKUION,will fix.
+
+commit f0cea7e39d883c803002bd0c2ce41d3b4e48c60a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 30 23:45:14 2019 +0900
+
+    [Tools] Add DUMP LIST CHECKER.Document will write.
+
+commit 2f5ccd70fa37c13d38b5063ea0420d81c755b87c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Sep 26 17:41:11 2019 +0900
+
+    [BUILD][WIN32] Update templete.
+
+commit 0265a3c66662b95a5223912f5ad0fb18b89002dc
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 25 00:24:39 2019 +0000
+
+    [BUILD][CMAKE] LLVM: Build against FFMpeg 4.2.
+
+commit 95d6ef6a85d108b4f1691e7758bf24f3354e8206
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 25 08:04:31 2019 +0900
+
+    [CONFIG][WIN32] Re-enable to use Get/WritePrivate** as MyGet/Write**.
+
+commit df421e6d050394ffa40713e04117e11d7850a237
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 25 07:59:37 2019 +0900
+
+    [Qt][JOY_THREAD] Fix memory leak when plug/unplug joystick.
+
+commit c4e98c4113bafd3b2b0111272a99a96f3e3b9e28
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 25 07:52:59 2019 +0900
+
+    [WIN32][CONFIG] Get rid of Assigned joystick.
+
+commit 1ea12d17a034df07dfb9e9c8380c10caa5326cf8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 25 07:46:01 2019 +0900
+
+    .
+
+commit ad310a5d95f6053e3020c27a7d980b0623e8c525
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 25 07:40:22 2019 +0900
+
+    .
+
+commit 271617a4a5642c1752abd4be969067af6875e766
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 25 07:38:29 2019 +0900
+
+    .
+
+commit 3d9176170f8d236eb152bf557643554b3cd2b644
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 25 07:27:25 2019 +0900
+
+    [CONFIG] .
+
+commit ed3ee99fad2f7d24fe8ca248aedec8735f3cde9a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 25 07:22:27 2019 +0900
+
+    .
+
+commit 90fff6b997b718dc248971144d6f68e064053e90
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 25 07:12:00 2019 +0900
+
+    .
+
+commit 2d4ec9b6b6cb49ae6d9f1df7655e163c7789502b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 25 06:57:26 2019 +0900
+
+    [WIN32][COMMON][CONFIG] Stop to use Junk GetPrivateProfileInt() and Get/WritePrivateProfileString().
+
+commit ba8a7fa33c5db263b33424ddc51801a4b5f1f6d1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 25 06:35:23 2019 +0900
+
+    [Qt][MOVIE_SAVER][CONFIG] Some functions make dllexport.
+
+commit 16dae15140f7df49163cb4168d49e09a733ac846
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 24 20:42:16 2019 +0900
+
+    [BUILD][WIN32][CMAKE] .
+
+commit 50241ea85a2e1ac6a310fe27eb36a13aa27d93f4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 24 20:02:37 2019 +0900
+
+    [BUILD][CMAKE][WIN32] Fix Typos.
+
+commit 6f3d85b7ae022268e4705a9138558d429fb70d8e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 24 19:18:54 2019 +0900
+
+    [BUILD][WIN32][CMAKE] Fix TYPO in build script.
+
+commit 0f3680febadc8f0c17e79d3f9eb2f42f2f47faae
+Merge: 2f9c613f 06223d21
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 24 19:02:49 2019 +0900
+
+    Merge branch 'master' of github.com:Artanejp/common_source_project-fm7
+
+commit 06223d216c1323ec3ce7c55570c348b4a8f424e4
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 24 09:58:32 2019 +0000
+
+    [BUILD][CMAKE][WIN32] Add support cross-build with CLANG-MinGW-w64.You may use with dockered environment, see https://github.com/mstorsjo/llvm-mingw .
+
+commit 81373c46b1d0fd78d63873a13357e51ee79d13cd
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 24 09:55:45 2019 +0000
+
+    [COMMON][WIN32] Fix FTBFS with CLANG-MINGW-w64.
+
+commit 8fa9640533308f400d760157ba02af177e599e16
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 24 09:54:39 2019 +0000
+
+    [VM][I386][UPD7810] Fix FTBFS with CLANG/MINGW-W64 (cross build).
+
+commit 2f9c613f8a6a1cc205eb394e552be5dfe82f84b5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 24 18:23:01 2019 +0900
+
+    .
+
+commit 0e58074cb5337d0de709c83d141447bcd3b41da0
+Merge: 71faf66e d4098528
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 24 06:29:49 2019 +0000
+
+    Merge branch 'master' of github.com:Artanejp/common_source_project-fm7
+
+commit 71faf66e8b5148be6e6f03df619e58c906a2eb3d
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 24 06:29:34 2019 +0000
+
+    .
+
+commit d4098528f82390b1911babdfc2ad12342d46b146
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Sep 24 15:27:28 2019 +0900
+
+    [WIP][BUILD][CMAKE][WIN32] Integrating cross-build and non-cross-build.
+
+commit 781ecce7e8936f9845681aaf7ca8eb2936cf2048
+Merge: 6bc9dacb 93616c56
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 22 21:58:46 2019 +0900
+
+    [VM][FMTOWNS] Merge branch 'tokumeiwokiboushimasu-master'
+
+commit 93616c563ca5f31f2236d56d91bc5d614caf5568
+Merge: 6bc9dacb da2a3611
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 22 21:56:23 2019 +0900
+
+    Merge branch 'master' of https://github.com/tokumeiwokiboushimasu/common_source_project-fm7 into tokumeiwokiboushimasu-master
+    [VM][FMTOWNS][CRTC] Fix typo.Thanks to tokumeiwokibousimasu-san!
+
+commit 6bc9dacb6f2f6d6dee466447dd4515a551310e04
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 22 21:02:27 2019 +0900
+
+    [VM][FM7][SOUND] Fix reading value of PSG register(s).Fix sound of FM-7's demonstration with FM-7/77 (not with 77AV variants).
+    [VM][FM7][SOUND] Separate reset sequence for OPN/WHG/THG/PSG to a common function.
+    [VM][FM7] Replace printf debug messages to out_debug_log().
+
+commit 7b5f39fc3ee93fcb44d9729c131d8a78b486bb36
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 22 19:16:09 2019 +0900
+
+    [Qt][OpenGL][GLES] Fix texture format for float/half float.May work "TV RENDERER" with Win32 build (via ANGLE).
+    [Qt][OpenGL] Use half float texture for float textures to reduce GPU usage.
+
+commit ff20832654d33ffe5161f7ed05dc5165b2bdf9ae
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 22 05:20:03 2019 +0900
+
+    [VM][FMTOWNS][CRTC] WIP: Implement screen width and height.
+
+commit 51c2bf995b9cfbf09db4f03deba3ec3a96643cb2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 22 04:17:10 2019 +0900
+
+    [VM][FMTOWNS][CRTC] .
+
+commit 259cfd5730153f32d687c4e906edfabbcac102b3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 22 03:35:51 2019 +0900
+
+    [VM][FMTOWNS][CRTC] Add comment.ToDo : Will support sprite.
+
+commit 469c76f18d21537f0ed00567f45331c01a7c083d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 22 03:27:35 2019 +0900
+
+    [VM][FMTOWNS][DISPLAY][CRTC] Update implements.
+
+commit 22b86435921511aa3914067519a90d1c8ad21b85
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Sep 21 05:34:09 2019 +0900
+
+    [VM][FMTOWNS][VRAM] .
+
+commit da2a3611267ba5390d11fedeaf2b503e013f6160
+Author: tokumeiwokiboushimasu <t.o.k.u.m.e.i.w.o.k.i.b.o.u.s.h.i.m.a.s.u@gmail.com>
+Date:   Fri Sep 20 07:58:15 2019 +0900
+
+    fix typo
+
+commit 0c2915d0dc3402234fd978ae7feba3a4b8d7e395
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Sep 19 23:34:50 2019 +0900
+
+    [VM][FMTOWNS][CRTC] .
+
+commit 7d0dc579d58ec7a762cb973825539efde55269ee
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Sep 19 23:10:23 2019 +0900
+
+    [FMTOWNS][CRTC][WIP] Implementing render.
+
+commit 7c317634da826ca3be704685d2ecf3c323d494aa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Sep 19 01:54:03 2019 +0900
+
+    [VM][FMTOWNS][VRAM][CRTC] Apply new drawing feature.WIP.
+
+commit 4081dfd340aefd9e4083569dd396f85be2a4750f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Sep 14 00:47:49 2019 +0900
+
+    [VM][I286][JX] Fix FTBFS.
+
+commit 558956954eceacda0706997b9ee7874ea9fbb9f5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Sep 14 00:22:04 2019 +0900
+
+    [VM][PC9801] Apply wait factors to before commit.
+    [VM][PC9801][CPUREG] TRY: Improve reset sequence.Still be imcomplete.
+
+commit 8b1aacb4fc40059d7b4689fe78ebf594354db779
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Sep 14 00:20:57 2019 +0900
+
+    [VM][Ix86][I386] More correctness wait.
+    [VM][Ix86][I386] Implement wait by memory-wait-factor.
+    [VM][Ix86][I386] Add SIG_CPU_HALTREQ.
+
+commit f615baf0f7facd35043882b1c4979be29df56aed
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 13 14:12:38 2019 +0900
+
+    [VM][FMTOWNS] MEMORY: Re-Implementing from MEMORY.
+
+commit d1734af52653f3644e20836915926e79daf304ec
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 13 03:24:12 2019 +0900
+
+    [OSD][SOUND][SDL] Convert sound rate/bitwidth.
+
+commit a8f89b31670b5cde504f41c80315255925ed53b2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Sep 13 00:47:55 2019 +0900
+
+    [OSD][Qt][SOUND] Update sound APIs: for sound sampling.Still be imcomplete.Will implement.
+    [OSD][SOUND] Simplify sound callback for SDL.
+    [OSD][General] Fix not reply version of libvCSPosd.Display OSD version at "about this software".
+
+commit 24b79a5ecf7011ac38a4608f0dea5fc68de540e7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 9 18:33:39 2019 +0900
+
+    [Qt][AVIO] Add some codec entries (still not implement).
+
+commit 60d417e806719bd696a4aecb074aa1f07e421673
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 9 18:09:53 2019 +0900
+
+    [Qt][AVIO] Finally,drop "deprected" APIs for FFMpeg 4.x(or 3.4)/
+
+commit 015039f258b38677f7425ee6878cd0c3bcd8a788
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 9 03:33:35 2019 +0900
+
+    [Build][CMAKE] Update SOVERSION.
+
+commit 430b9601f2dcf193a511dbab3a0deb424c479433
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 9 03:31:42 2019 +0900
+
+    [Qt][AVIO][WIP] Drop to use deprecated functions for FFMpeg 4.x.This still disabled for MOVIE_SAVER.
+
+commit 8145c4bd553fe7de7270868b69c4a0bff7c4aba9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Aug 28 04:43:04 2019 +0900
+
+    [CM][Z80DMA][OOPS] Disable debug spam.
+
+commit d0365074674a3d6cc830115b3eebb33dd60de1f5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Aug 28 04:42:40 2019 +0900
+
+    [Qt][LOGGER] Threaded console logging.
+
+commit 7103aef34dff0841d2027838ebaaa915555db030
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Aug 27 22:51:48 2019 +0900
+
+    [UI][Qt][VM] Add keycode - vk - name table listing features.See vm/fm7/keyboard.cpp and qt/osd_base.h and gui/dialog_set_key.cpp.
+
+commit 41a62f0249c2f42c03026f57b0be5a5d0c1d4f04
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 26 23:14:09 2019 +0900
+
+    [Qt][HOMEBREW] Fix not detected SDL at configuration of Qt::Gamepad.
+
+commit f62dbede1ae8c1525ef090bffb693f325a0f3b94
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 26 22:18:15 2019 +0900
+
+    [Qt][GUI] Fix linkage error at libCSPgui.dll for Win32.
+
+commit 53ac6f7f0d34717294864804bc7f80856dd3b195
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 26 09:08:37 2019 +0900
+
+    [QT][MOVIE_LOADER] Fix weird initilaizing memory.
+
+commit fc5203d9d4aedf4c4e85f49b2ae2ee9bfd43dd4b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 26 08:55:51 2019 +0900
+
+    [Qt][LOADER] .
+
+commit f7a4dfd3da0bd9fcfced3d343d0dee3da1feade3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 26 08:49:52 2019 +0900
+
+    [Qt][MOVIE_LOADER][SOUND_LOADER] Will FIX FTBFS with FFMPEG 2.x.
+
+commit 2b5d20bea8fb0a6c66f98b94663d5a1da1ebc672
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 26 08:18:31 2019 +0900
+
+    [Qt][MOVIE_LOADER][SOUND_LOADER] Update FFMPEG's API: Revoke to use functions marked as deprecate.
+
+commit f3104acc7e3cf0dd48f1f86075b22de14247790d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 26 02:45:31 2019 +0900
+
+    [BUILD][CMAKE] Linux: Enable split symbols even using LLVM CLANG.
+
+commit ed2c81ffb78b53114fe62208cf49af50b542e64c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 25 23:01:24 2019 +0900
+
+    [VM][PASOPIA] Fix FTBFS with LLVM CLANG.
+
+commit b150c24761bb617e97cdf541d7cb33e0adf73efd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 25 17:51:59 2019 +0900
+
+    [BUILD][Qt][CMAKE] Update SOVERSION.
+
+commit d7666278251fc2d033a427acc60f018a9eeafa59
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 25 17:51:04 2019 +0900
+
+    [VM][AY_3_891X] Fix pop noise when enabling lpf or hpf.
+
+commit b6f71179774c80f4a2df3d4ba041bc187822f18c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 25 17:33:10 2019 +0900
+
+    [UI][Qt] .
+
+commit b1b9240b70b3bfd0ac655d935e3765a1cb755e2b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 25 17:32:46 2019 +0900
+
+    [UI][Qt] Fix FTBFS with LLVM CLANG.
+
+commit c9374afc102d07cfe7b7ddf8c70341b1ca1b9959
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 25 17:31:30 2019 +0900
+
+    [VM][FM7][PC9801] Fix FTBFSs with LLVM CLANG.
+
+commit 0c495a4851203edf617ed6311e747f78aae3baf4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 25 17:30:32 2019 +0900
+
+    [VM][COMMON_VM][DEBUGGER] Fix FTBFSs with LLVM CLANG.
+    [VM][MC6809] Fix duplicate signal; SIG_CPU_HALT.
+
+commit 7819e24c2fe422f12db57c4b91f7c80ab0cdb9f3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 19 02:49:49 2019 +0900
+
+    [UI][Qt] Add font selection to debugger and log view dialogs.
+    [Qt][CONFIG] Keep font metrics and window size of debugger and log viewer.Save to foo.ini file.
+
+commit 373681366e7eef2adc6120d5a46885eeec5bce96
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Aug 16 20:39:27 2019 +0900
+
+    [DOC] Re-Update.
+
 commit 0810a8f8b9ba44cedc19bf6b8e903c9c1b5d6f04
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Aug 16 20:36:58 2019 +0900

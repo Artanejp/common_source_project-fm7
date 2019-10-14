@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                       August 16, 2019
+                                                       October 15, 2019
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -10,7 +10,7 @@ and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
 
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20190816
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20191015
    
 Additional INFO:
 
@@ -52,8 +52,10 @@ h. Built with Qt5.5 (for Ubuntu 16.04LTS) or Qt 5.10 (for Win32 and Debian/Sid).
 
 i. Now, changed default drawing infrastructure to OpenGL ES2.You can change --opengl option via comman line (or GUI).
 
+j. Now for Win32 build, using LLVM CLANG cross toolchains on Docker environment.Because exception handling of MinGW-w64's gcc is very slowly (this cause by *evil* Borland).
+  See https://github.com/Artanejp/llvm-mingw and https://hub.docker.com/r/artanejp/llvm-mingw64-ubuntu-cosmic for datails.
+  
 * TIPS: If emufoo.exe don't show screen drawing, set environment variable QT_OPENGL to software (i.e. Using Windows as VirtualBox's gueat OS).
-
 
 3.How to build:
 
@@ -162,56 +164,55 @@ Changes:
 
 * To see older changes, read ChangeLog and 000_gitlog.txt.
 
-* SNAPSHOT Aug 16, 2019
+* SNAPSHOT Oct 15, 2019
   * Upstream 2019-04-30.
   * This is point release, still exists some issues (i.e.EMM386(NEC/PC98) and FreeBSD(98) don't work) for PC-9801 and PC-Engine and some VMs, will fix them.
-  * [UI/Qt] DEBUGGER: Add history for debugger command line.
-  * [UI/Qt] DEBUGGER: Add auto-completion for command-line.
-  * [VM/DEVICE] Use __FASTCALL with interfaces, read_*() ,write_*(), fetch_op() and some functions.Make this faster emulation (i.e.PC-9801RA and EMM386 under FreeDOS).
-  * [VM/PC9801] Separate EGC functions.
-  * [VM/PC9801] Add V30@8.0MHz with some I286/I386 machines.
-  * [VM/PC9801] Check differnt of system work area (0000:0400-0000:05FF) both mame(pc9801rs) and emupc9801ra .
-  * [VM/PC9801] Add "UPPER_I386" flag for detect using later than HAS_I386.
-  * [VM/PC9801] CPUREG: (Maybe) improve changing cpu sequence around I/O 00F0h.
-  * [VM/PC9801] CPUREG: Redirect interrupt signal via CPUREG:: .VMs with V30 sub CPU (i.e.PC9801RA) work with V30.
-  * [VM/PC9801] Fix wrong initialize SYS_PORT_B.
-  * [VM/PC9801] Fix wrong initialize memory switch.
-  * [VM/PC9801] Add DIPSWITCH object.
-  * [VM/PC9801] Fix different value at [0000:0501].
-  * [VM/PC9801] MEMBUS: Split update_bios() to functions.
-  * [VM/FP1100] Fix lacking some key symbols.Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/540 .
-  * [VM/AY_3_891X] Fix not supported defines, replace flags.
-  * [VM/AY_3_891X] Add feature ; dump/set register via debugger.
-  * [VM/YM2151] Add feature ; dump/set register via debugger.
-  * [VM/YM2203] Add feature ; dump/set register via debugger.
-  * [VM/SN74689AN] Add feature ; dump/set register via debugger.
-  * [VM/BEEP] Add feature ; dump register via debugger.
-  * [VM/PCM1BIT] Add feature ; dump register via debugger.
-  * [VM/I80x86/V30] Start debugger even halting.
-  * [VM/I80x86/8088/V30] Make i86/186/88/286 and V30 to common_vm.
-  * [VM/I386] Fix WRONG flag mask at LMSW.
-  * [VM/I386] MOV CR0 EyX : Fix wrong flags handling.
-  * [VM/I386] Exitable when falling into infinite TRAP-Loop.
-  * [VM/I386] mov CRx,R32/mov r32,CRx : Adjusting.
-  * [VM/i8259] Add PIC HACKing flag for PC9801.
-  * [VM/uPD7810/uPD7907] PC2001: Include uPD7810 variants and uPD7907 to libCSP_common_VM.
-  * [VM/MB8877] Fix buffer overflow with logging.
-  * [VM/Z80DMA] TODO/WIP: Workaround for https://tablacus.github.io/LSX-Dodgers/ .This still be not resolved issue.
-  * [VM/EVENT] Add remove_context_cpu().This may not effect to MAIN_CPU(id==0).
-  * [DOC/FM7] Fix typo (*ﾉω・*)てへぺろ
-  * [Qt/LOGGER] Improve locking.
-  * [UI/Qt] OOPs: Fix LACK of DATARECORDER BUTTONS(abolish of USE_TAPE_BUTTON): Lack of merging UPSTREAM 2018/10/07.
-  * [UI/Qt] MENU: Split some methods (of Ui_MainMenuBase::) to menu_emulator.cpp and menu_machine.cpp .
-  * [UI/Qt] MENU: Simplify menu creation.
-  * [CONFIG/Qt] Fix bit order of logging configure.
-  * [BUILD/CMAKE] Add CPU affinity mask when compiling.This may work only with GNU/Linux host.
-  * [BUILD/CMAKE] Improve build message with finished.
-  * [BUILD/MINGW] Update optimize parameter.
-  * [BUILD] Separate definitions of archtecture flags.
-  * [BUILD] Add ARM32/64 definitions (initial).Still not testing.
-  * Built with 0810a8f8b9ba44cedc19bf6b8e903c9c1b5d6f04 (or later).
+  * [Tools] Add DUMP LIST CHECKER.
+  * [BUILD/Win32] Build with LLVM CLANG (for MinGW-w64).Because GCC for MinGW-w64/Win32 has very slow exception handling (due to Borland's patent). 
+  * [BUILD/Win32] See https://github.com/Artanejp/llvm-mingw and https://hub.docker.com/r/artanejp/llvm-mingw64-ubuntu-cosmic for datails.
+  * [BUILD/Win32] Build against FFMpeg 4.2.
+  * [FM7/SOUND] Fix reading value of PSG register(s).Fix sound of FM-7's demonstration with FM-7/77 (not with 77AV variants).
+  * [FM7/SOUND] Separate reset sequence for OPN/WHG/THG/PSG to a common function.
+  * [VM/FM7] Replace printf debug messages to out_debug_log().
+  * [VM/FAMILYBASIC] WIP: Fix wrong string for romaji-kana (and auto key).Still imcoplete, implementing DAKUION,will fix.
+  * [VM/PC9801] CPUREG: V30 SUB CPU works.
+  * [VM/PC9801] Re-define DIPSW, to work with V30@PC-9801RA.
+  * [VM/PC8801] Fix double install DEBUGGER:: for OPN#1,#2.Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/598 .
+  * [VM/MC6809] Fix duplicate signal; SIG_CPU_HALT.
+  * [VM/DEBUGGER] Fix FTBFSs with LLVM CLANG.
+  * [VM/AY_3_891X] Fix pop noise when enabling lpf or hpf.
+  * [VM/Z80DMA] OOPS: Disable debug spam.
+  * [VM/Ix86] More correctness wait.
+  * [VM/Ix86] Implement wait by memory-wait-factor.
+  * [VM/Ix86] Add SIG_CPU_HALTREQ.
+  * [VM/I386][VM/V30] Fix cloick handling when BUSREQ/HALT.
+  * [VM/I8259] PC9801: Fix crash when changing V30 Sub CPU <-> i286/i386 Main CPU.
+  * [VM/EVENT] Update comment of scheduler (EVENT::drive()).
+  * [EMU/ROMAJI_KANA] Some characters are enabled to input via ROMAJI-KANA conversion.
+  * [EMU/AUTOKEY]  Some characters are enabled to input via pasting from clipboard.This using UCS-4(aka UTF-32) internal format.
+  * [Qt/OpenGL] Don't makeCurrent()/doneCurrent() inside of resizeGL().Fixed crash running within Docker container.
+  * [UI/Qt] ROMAJI_KANA: Some characters input from KANA mode (by host) are enabled.
+  * [UI/Qt] VM: Add keycode - vk - name table listing features.See vm/fm7/keyboard.cpp and qt/osd_base.h and gui/dialog_set_key.cpp.
+  * [Qt/LOGGER] Threaded console logging.
+  * [Qt/AVIO] Update FFMPEG's API: Revoke to use functions marked as deprecate.
+  * [Qt/AVIO] Drop to use deprecated functions for FFMpeg 4.x.
+  * [Qt/AVIO] Add some codec entries (still not implement).
+  * [OSD/Qt] Update sound APIs: for sound sampling.Still be imcomplete.Will implement.
+  * [OSD/SOUND] Simplify sound callback for SDL.
+  * [OSD/SOUND] SDL: Convert sound rate/bitwidth.
+  * [OSD/General] Fix not reply version of libvCSPosd.Display OSD version at "about this software".
+  * [QT/MOVIE_LOADER] Fix weird initilaizing memory.
+  * [Qt/MOVIE_SAVER] CONFIG: Some functions make dllexport.
+  * [Qt/HOMEBREW] Fix not detected SDL at configuration of Qt::Gamepad.
+  * [Qt/JOY_THREAD] Fix memory leak when plug/unplug joystick.
+  * [UI/Qt] Add font selection to debugger and log view dialogs.
+  * [UI/Qt] AUTO_KEY: Copy and paste: Paste even Zenkaku KATAKANA/HIRAGNA/ASCII to VM (converted to Hankaku letters).
+  * [Qt/CONFIG] Keep font metrics and window size of debugger and log viewer.Save to foo.ini file.
+  * [Qt/OpenGL] GLES: Fix texture format for float/half float.May work "TV RENDERER" with Win32 build (via ANGLE).
+  * [Qt/OpenGL] Use half float texture for float textures to reduce GPU usage.
+  * Built with 74c7914381802640510c76f176b3c3ffeceb678d (or later).
 
--- Aug 16, 2019 20:38:06 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Oct 15, 2019 02:40:49 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
 * To see older upstream's changes, read history.txt.
