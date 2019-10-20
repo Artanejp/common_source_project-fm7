@@ -162,28 +162,35 @@ void DrawThreadClass::doWork(const QString &param)
 	tick_timer.start();
 	quint64 elapsed = (quint64)_rate;
 	double drate;
+	double vrate;
+	bool rendered = false;
 	if(renderSemaphore == NULL) {
 		QSemaphore *s = new QSemaphore(0);
 		if(s == NULL) goto __exit;
 		renderSemaphore = s;
 	}
-	
 	do {
-		//_rate = (wait_refresh < emu_frame_rate) ? emu_frame_rate : wait_refresh;
-		_rate = 1.0e3 / p_osd->vm_frame_rate(); // FPS to msec
+		vrate = 1.0e3 / p_osd->vm_frame_rate(); // FPS to msec
+		_rate = (wait_refresh < emu_frame_rate) ? emu_frame_rate : wait_refresh;
+		if((vrate * 2.0) > _rate) _rate = vrate * 2.0; 
 		drate = (double)elapsed / 1.0e6; // nsec to msec
-		if(_rate >= drate) {
-			wait_factor = (int)nearbyint(_rate - drate) + 3;
-		} else {
-			wait_factor = 3;
-		}
-		//printf("RATE:%f ELAPSED: %f WAIT_FACTOR:%d\n", _rate, drate,  wait_factor);
+		wait_factor = (int)nearbyint(_rate);
+//		if(_rate >= drate) {
+//			wait_factor = (int)nearbyint(_rate - drate) + ;
+//		} else {
+//			wait_factor = (int)_rate;
+//		}
 		if(renderSemaphore->tryAcquire(1, wait_factor)) { // Success
 			if(!bRunThread) goto __exit;
 			volatile bool _b = bRecentRenderStatus;
 			bRecentRenderStatus = false;
 			doDrawMain(_b);
-		}
+			rendered = true;
+		} else {
+			rendered = false;
+		}			
+		//printf("RATE:%f VM_RATE:%f ELAPSED:%f WAIT_FACTOR:%d RENDER=%s\n", _rate, vrate, drate,  wait_factor,
+		//(rendered) ? "YES" : "NO");
 		if(!bRunThread) goto __exit;
 		volatile bool _d = bDrawReq;
 		if(draw_screen_buffer == NULL) _d = false;
