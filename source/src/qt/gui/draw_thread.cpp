@@ -15,8 +15,8 @@
 #include <QSemaphore>
 #include <QScreen>
 #include <QWaitCondition>
+#include <QElapsedTimer>
 
-#include <SDL.h>
 #include "emu.h"
 #include "osd.h"
 #include "vm/vm.h"
@@ -37,7 +37,6 @@ DrawThreadClass::DrawThreadClass(OSD *o, CSP_Logger *logger,QObject *parent) : Q
 	using_flags = NULL;
 	if(p_osd != NULL) using_flags = p_osd->get_config_flags();
 	screen = QGuiApplication::primaryScreen();
-
 
 	is_shared_glcontext = false;
 	glContext = NULL;
@@ -159,25 +158,39 @@ void DrawThreadClass::doWork(const QString &param)
 	bRunThread = true;
 	double _rate = 1000.0 / 30.0;
 	bDrawReq = false;
-	if(renderSemaphore == NULL) goto __exit;
+	QElapsedTimer tick_timer;
+	tick_timer.start();
+	quint64 elapsed = (quint64)_rate;
+	double drate;
+	if(renderSemaphore == NULL) {
+		QSemaphore *s = new QSemaphore(0);
+		if(s == NULL) goto __exit;
+		renderSemaphore = s;
+	}
+	
 	do {
-		_rate = (wait_refresh < emu_frame_rate) ? emu_frame_rate : wait_refresh;
-		if(_rate < 2.0) {
-			wait_factor = 2.0;
+		//_rate = (wait_refresh < emu_frame_rate) ? emu_frame_rate : wait_refresh;
+		_rate = 1.0e3 / p_osd->vm_frame_rate(); // FPS to msec
+		drate = (double)elapsed / 1.0e6; // nsec to msec
+		if(_rate >= drate) {
+			wait_factor = (int)nearbyint(_rate - drate) + 3;
 		} else {
-			wait_factor = (int)_rate - 1;
+			wait_factor = 3;
 		}
+		//printf("RATE:%f ELAPSED: %f WAIT_FACTOR:%d\n", _rate, drate,  wait_factor);
 		if(renderSemaphore->tryAcquire(1, wait_factor)) { // Success
-			if(!bRunThread) break;
+			if(!bRunThread) goto __exit;
 			volatile bool _b = bRecentRenderStatus;
 			bRecentRenderStatus = false;
 			doDrawMain(_b);
 		}
-		if(!bRunThread) break;
+		if(!bRunThread) goto __exit;
 		volatile bool _d = bDrawReq;
 		if(draw_screen_buffer == NULL) _d = false;
 		if((_d) && (draw_screen_buffer != NULL)) bDrawReq = false;
 		do_draw_one_turn(_d);
+		elapsed = tick_timer.nsecsElapsed();
+		tick_timer.start();
 	} while(bRunThread);
 __exit:
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
