@@ -1,7 +1,6 @@
 // NTSC Shader - written by Hans-Kristian Arntzen
 // License: GPLv3
 // pulled from git://github.com/libretro/common-shaders.git on 01/30/2014
-//precision  mediump float;
 
 
 in mediump vec2 v_texcoord;
@@ -110,11 +109,8 @@ void main() {
 // #include "ntsc-pass2-decode.inc" //
 	float one_x = 1.0 / source_size.x;
 	vec3 signal = vec3(0.0);
-	int i,j;
-	int ibegin = 1;
-	float pos_offset = float(TAPS - ibegin) * one_x;
-	vec3 sums_p = vec3(0.0, 0.0, 0.0);
-
+//	int ibegin = 1;
+	float pos_offset = (TAPS - 1.0) * one_x;
 	vec2 fix_coord = v_texcoord - vec2(0.5 * one_x, 0.0);
 	vec2 delta = vec2(one_x, 0);
 	vec3 pix_p, pix_n;
@@ -129,10 +125,13 @@ void main() {
 //		pix_p = pix_p * vec3(3.6, 1.7, 1.7);
 //		pix_n = pix_n * vec3(3.6, 1.7, 1.7);
 #endif
-		pix_p = (pix_n + pix_p) * vec3(luma_filter[ii], chroma_filter[ii], chroma_filter[ii]);
-		signal = signal + pix_p;
-		addr_p = addr_p - delta;
-		addr_n = addr_n + delta;
+		pix_p += pix_n;
+		pix_p *= vec3(luma_filter[ii], chroma_filter[ii], chroma_filter[ii]);
+		signal += pix_p;
+//		addr_p = addr_p - delta;
+//		addr_n = addr_n + delta;
+		addr_p.x = addr_p.x - one_x;
+		addr_n.x = addr_n.x + one_x;
 	}
 	vec3 texvar = texture2D(a_texture, fix_coord).xyz;
 	// yMax = (0.299+0.587+0.114) * (+-1.0) * (BRIGHTNESS + ARTIFACTING + ARTIFACTING) * (+-1.0)

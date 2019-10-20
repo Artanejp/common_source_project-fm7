@@ -1,9 +1,6 @@
 // NTSC Shader - written by Hans-Kristian Arntzen
 // License: GPLv3
 // pulled from git://github.com/libretro/common-shaders.git on 01/30/2014
-//precision  mediump float;
-
-
 in mediump vec2 v_texcoord;
 out mediump vec4 opixel;
 
@@ -46,7 +43,8 @@ mat3 mix_mat = mat3(
 // END "ntsc-param.inc" //
 
 // moved from vertex
-#define pix_no (v_texcoord.xy * source_size.xy * (target_size.xy / source_size.xy))
+//#define pix_no (v_texcoord.xy * source_size.xy * (target_size.xy / source_size.xy))
+#define pix_no (v_texcoord.xy * target_size.xy)
 
 // Change Matrix: [RGB]->[YCbCr]
 
@@ -75,6 +73,7 @@ void main() {
 	
 	vec3 col = texture(a_texture, v_texcoord).rgb;
 	vec3 ycbcr;
+	vec2 _pix_no;
 	ycbcr = rgb2ycbcr(col);
 //
 // From https://ja.wikipedia.org/wiki/YUV#RGB%E3%81%8B%E3%82%89%E3%81%AE%E5%A4%89%E6%8F%9B
@@ -83,13 +82,15 @@ void main() {
 //  Cb = -0.168736 * R - 0.331264 * G + 0.5 * B
 //  Cr = 0.5 * R - 0.418688 * G - 0.081312 * B
 
+	_pix_no = pix_no;
+	
 #if defined(TWO_PHASE)
-	float chroma_phase = PI * (mod(pix_no.y, 2.0) + phase);
+	float chroma_phase = PI * (mod(_pix_no.y, 2.0) + phase);
 #elif defined(THREE_PHASE)
-	float chroma_phase = 0.6667 * PI * (mod(pix_no.y, 3.0) + phase);
+	float chroma_phase = 0.6667 * PI * (mod(_pix_no.y, 3.0) + phase);
 #endif
 
-	float mod_phase = chroma_phase + pix_no.x * CHROMA_MOD_FREQ;
+	float mod_phase = chroma_phase + _pix_no.x * CHROMA_MOD_FREQ;
 
 	float i_mod = cos(mod_phase);
 	float q_mod = sin(mod_phase);

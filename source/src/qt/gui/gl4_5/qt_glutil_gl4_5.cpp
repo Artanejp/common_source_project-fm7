@@ -383,8 +383,8 @@ void GLDraw_4_5::initLocalGLObjects(void)
 	int _width = using_flags->get_screen_width();
 	int _height = using_flags->get_screen_height();
 	
-	if((_width * 4) <= texture_max_size) {
-		_width = _width * 4;
+	if(((int)(_width * 3.5)) <= texture_max_size) {
+		_width = (int)(_width * 3.5);
 		low_resolution_screen = true;
 	} else {
 		_width = _width * 2;
@@ -478,11 +478,13 @@ void GLDraw_4_5::initLocalGLObjects(void)
 #if 1
 
 	initPackedGLObject(&ntsc_pass1,
+//					   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
 					   _width, _height,
 					   ":/gl4_5/vertex_shader.glsl" , ":/gl4_5/ntsc_pass1.glsl",
 					   "NTSC Shader Pass1", true, true);
 	initPackedGLObject(&ntsc_pass2,
-					   _width / 2, _height,
+					   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
+//					   _width , _height,
 					   ":/gl4_5/vertex_shader.glsl" , ":/gl4_5/ntsc_pass2.glsl",
 					   "NTSC Shader Pass2", true, true);
 	if(!(((gl_major_version >= 3) && (gl_minor_version >= 1)) || (gl_major_version >= 4))){
