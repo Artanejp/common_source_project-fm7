@@ -262,12 +262,14 @@ void DISPLAY::draw_screen2()
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 				yoff_d = (dpage != 0) ? 0x18000 : 0x00000;
 #else
-//				yoff_d = 0;
+				yoff_d = 0;
 #endif
 #if defined(_FM77AV_VARIANTS)
 				if(display_page_bak == 1) yoff_d += 0xc000;
 				for(int i = 0; i < 3; i++) {
 					cmd.baseaddress[i] = yoff_d + (i * 0x4000);
+					cmd.data[i] = gvram_shadow;
+					cmd.voffset[i] = yoff;
 				}
 #else
 //				for(int i = 0; i < 3; i++) {
