@@ -383,8 +383,8 @@ void GLDraw_4_5::initLocalGLObjects(void)
 	int _width = using_flags->get_screen_width();
 	int _height = using_flags->get_screen_height();
 	
-	if(((int)(_width * 3.5)) <= texture_max_size) {
-		_width = (int)(_width * 3.5);
+	if(((int)(_width * 3.0)) <= texture_max_size) {
+		_width = (int)(_width * 3.0);
 		low_resolution_screen = true;
 	} else {
 		_width = _width * 2;
