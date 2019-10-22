@@ -16,19 +16,310 @@ extern config_t config;
 
 namespace FM7 {
 
+void DISPLAY::clear_display(int dmode, int w, int h)
+{
+#if defined(FIXED_FRAMEBUFFER_SIZE)
+	if((dmode != DISPLAY_MODE_8_400L) && (dmode != DISPLAY_MODE_1_400L)) {
+		h = h * 2;
+	}
+#endif
+	for(int yy = 0; yy < h; yy++) {
+		scrntype_t *p;
+		p = emu->get_screen_buffer(yy);
+		if(p != NULL) {
+			memset(p, 0x00, sizeof(scrntype_t) * w);
+		}
+	}
+}
+
+void DISPLAY::draw_window(int dmode, int y, int begin, int bytes, bool window_inv, bool scan_line)
+{
+	_render_command_data_t cmd;
+	bool use_cmd = false;
+	int xzoom = 1;
+	uint32_t _offset_base = 0x4000;
+	int planes;
+	int shift;
+	int width;
+	switch(dmode) {
+	case DISPLAY_MODE_8_200L:
+		_offset_base = 0x4000;
+		use_cmd = true;
+		planes = 3;
+		shift = 5;
+		width = 80;
+		break;
+#if defined(_FM77AV_VARIANTS)
+	case DISPLAY_MODE_4096:
+		_offset_base = 0x2000;
+		xzoom = 2;
+		planes = 12;
+		shift = 5;
+		width = 40;
+		break;
+#  if defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV40)
+	case DISPLAY_MODE_8_400L:
+		_offset_base = 0x8000;
+		use_cmd = true;
+		planes = 3;
+		shift = 5;
+		width = 80;
+		break;
+#    if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	case DISPLAY_MODE_256k:
+		_offset_base = 0x2000;
+		xzoom = 2;
+		planes = 20;
+		shift = 5;
+		width = 40;
+		break;
+#    endif
+#  endif
+#endif
+	default:
+		return;
+		break;
+	}
+	if(use_cmd) {
+		memset(&cmd, 0x00, sizeof(_render_command_data_t));
+#if defined(USE_GREEN_DISPLAY)
+		if(use_green_monitor) {
+			cmd.palette = dpalette_pixel_green;
+		} else {
+			cmd.palette = dpalette_pixel;
+		}
+#else
+		cmd.palette = dpalette_pixel;
+#endif				
+		if(!multimode_dispflags[0]) cmd.is_render[0] = true;
+		if(!multimode_dispflags[1]) cmd.is_render[1] = true;
+		if(!multimode_dispflags[2]) cmd.is_render[2] = true;
+		cmd.bit_trans_table[0] = (_bit_trans_table_t*)(&(bit_trans_table_2[0][0])); // B
+		cmd.bit_trans_table[1] = (_bit_trans_table_t*)(&(bit_trans_table_1[0][0])); // R
+		cmd.bit_trans_table[2] = (_bit_trans_table_t*)(&(bit_trans_table_0[0][0])); // G
+		for(int i = 0; i < 3; i++) {
+			cmd.data[i] = gvram_shadow;
+			cmd.baseaddress[i] = (i * _offset_base) + yoff_d;
+			cmd.voffset[i] = y * width;
+		}
+		cmd.xzoom = xzoom;
+		cmd.addrmask = _offset_base - 1;
+		cmd.addrmask2 = _offset_base - 1;
+		cmd.render_width = bytes;
+		cmd.begin_pos = begin;
+		cmd.shift = shift;
+	}
+	scrntype_t *p;
+	scrntype_t *pp;
+	if(dmode == DISPLAY_MODE_8_400L) {
+#if defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV40)
+		p = emu->get_screen_buffer(y);
+		if(p == NULL) return;
+		Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), NULL, false);
+#endif
+	} else {
+#if !defined(FIXED_FRAMEBUFFER_SIZE)
+		p = emu->get_screen_buffer(y);
+		pp = NULL;
+#else
+		p = emu->get_screen_buffer(y << 1);
+		pp = emu->get_screen_buffer((y << 1) + 1);
+#endif
+		if(p == NULL) return;
+		switch(dmode) {
+		case DISPLAY_MODE_8_200L:
+			{
+				if(pp != NULL) {
+					Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), &(pp[cmd.begin_pos * 8]), scan_line);
+				} else {
+					Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), NULL, false);
+				}
+			}
+			break;
+#if defined(_FM77AV_VARIANTS)
+		case DISPLAY_MODE_4096:
+			{
+				uint32_t mask = 0x000;
+				if(!multimode_dispflags[0]) mask = 0x00f;
+				if(!multimode_dispflags[1]) mask = mask | 0x0f0;
+				if(!multimode_dispflags[2]) mask = mask | 0xf00;
+				if(pp != NULL) pp = &(pp[begin]);
+				p = &(p[begin]);
+				uint32_t yoff = y * 40 + begin;
+				for(int x = begin; x < (begin + bytes); x++) {
+					GETVRAM_4096(yoff, p, pp, mask, window_inv, scan_line);
+#    if defined(FIXED_FRAMEBUFFER_SIZE)
+					p += 16;
+					if(pp != NULL) pp += 16;
+#    else
+					p += 8;
+#    endif
+					yoff++;
+				}
+			}
+			break;
+#    if defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV40)
+		case DISPLAY_MODE_256k:
+			{
+				uint32_t yoff = y * 40;
+				if(pp != NULL) pp = &(pp[begin]);
+				p = &(p[begin]);
+				for(int x = begin; x < (begin + bytes); x++) {
+					GETVRAM_256k(yoff + x, p, pp, scan_line);
+#      if defined(FIXED_FRAMEBUFFER_SIZE)
+					p += 16;
+					if(pp != NULL) pp += 16;
+#      else
+					p += 8;
+#      endif
+				}
+			}
+			break;
+#    endif
+#  endif
+		default:
+			break;
+		}
+	}			
+}
+
+#if defined(_FM77L4)
+void DISPLAY::draw_77l4_400l(bool ff)
+{
+	bool renderf = false;
+	uint32_t naddr;
+	uint8_t bitcode;
+	uint8_t charcode;
+	uint8_t attr_code;
+	scrntype_t on_color;
+	int xlim, ylim;
+	bool do_green;
+	uint8_t *regs = l4crtc->get_regs();
+	cursor_start = (int)(regs[10] & 0x1f);
+	cursor_end = (int)(regs[11] & 0x1f);
+	cursor_type = (int)((regs[10] & 0x60) >> 5);
+	text_xmax = (int)((uint16_t)regs[1] << 1);
+	text_lines = (int)((regs[9] & 0x1f) + 1);
+	text_ymax = (int)(regs[6] & 0x7f);
+	int yoff = 0;
+	scrntype_t *p;
+	for(int y =0; y < 400; y+= 8) {
+		renderf = false;
+		if((y & 0x0f) == 0) {
+			for(int yy = 0; yy < 16; yy++) renderf |= vram_draw_table[y + yy];
+			renderf = renderf | ff;
+			if(renderf) {
+				for(int yy = 0; yy < 16; yy++) vram_draw_table[y + yy] = true;
+			}
+		}
+		if(use_green_monitor) {
+			for(int yy = 0; yy < 8; yy++) {
+				if(!(vram_draw_table[y + yy] | ff)) continue;
+				vram_draw_table[y + yy] = false;
+				p = emu->get_screen_buffer(y + yy);
+				if(p == NULL) continue;
+				yoff = (y + yy) * 80;
+				for(int x = 0; x < 10; x++) {
+					for(int ii = 0; ii < 8; ii++) {
+						GETVRAM_1_400L_GREEN(yoff + ii, p);
+						p += 8;
+					}
+					yoff += 8;
+				}
+			}
+			do_green = true;
+		} else {
+			for(int yy = 0; yy < 8; yy++) {
+				if(!(vram_draw_table[y + yy] | ff)) continue;
+				vram_draw_table[y + yy] = false;
+				p = emu->get_screen_buffer(y + yy);
+				if(p == NULL) continue;
+				yoff = (y + yy) * 80;
+				for(int x = 0; x < 10; x++) {
+					for(int ii = 0; ii < 8; ii++) {
+						GETVRAM_1_400L(yoff + ii, p);
+						p += 8;
+					}
+					yoff += 8;
+				}
+			}
+			do_green = false;
+		}
+		// Draw Text
+		if(renderf) {
+			bool reverse;
+			bool display_char;
+			int raster;
+			bool cursor_rev;
+			uint8_t bitdata;
+			if(text_width40) {
+				xlim = 40;
+			} else {
+				xlim = 80;
+			}
+				
+			for(int x = 0; x < xlim; x++) {
+				naddr = (text_start_addr.w.l + ((y / text_lines) * text_xmax + x) * 2) & 0x0ffe;
+				charcode = text_vram[naddr];
+				attr_code = text_vram[naddr + 1];
+						
+				on_color = GETVRAM_TEXTCOLOR(attr_code, do_green);
+					
+				display_char = ((attr_code & 0x10) == 0);
+				reverse = ((attr_code & 0x08) != 0);
+					
+				for(int yy = 0; yy < 16; yy++) {
+					raster = y % text_lines;
+					bitdata = 0x00;
+					p = emu->get_screen_buffer(y + yy);
+					if(p == NULL) continue;
+					if((raster < 16) && (display_char || text_blink)) {
+						bitdata = subsys_cg_l4[(uint32_t)charcode * 16 + (uint32_t)raster];
+					}
+					cursor_rev = false;
+					if((naddr == (uint32_t)(cursor_addr.w.l)) && (cursor_type != 1) &&
+					   (text_blink || (cursor_type == 0))) {
+						if((raster >= cursor_start) && (raster <= cursor_end)) {
+							cursor_rev = true;
+						}
+					}
+					bitdata = GETVRAM_TEXTPIX(bitdata, reverse, cursor_rev);
+					if(bitdata != 0) {
+						if(text_width40) {
+							scrntype_t *pp = &(p[x * 2]); 
+							for(int ii = 0; ii < 8; ii++) {
+								if((bitdata & 0x80) != 0) {
+									p[0] = on_color;
+									p[1] = on_color;
+								}
+								bitdata <<= 1;
+								p += 2;
+							}										
+						} else {
+							scrntype_t *pp = &(p[x * 2]); 
+							for(int ii = 0; ii < 8; ii++) {
+								if((bitdata & 0x80) != 0) {
+									p[0] = on_color;
+								}
+								bitdata <<= 1;
+								p += 1;
+							}										
+						}
+					}
+				}
+			}
+		}
+	}
+}
+#endif
+
 void DISPLAY::draw_screen()
 {
-#if 1
-	this->draw_screen2();
-#else /* 1 */
-	int y;
-	int x;
-	scrntype_t *p, *pp, *p2;
-	uint32_t yoff_d1, yoff_d2;
 	uint16_t wx_begin = -1, wx_end = -1, wy_low = 1024, wy_high = -1;
 	bool scan_line = config.scan_line;
 	bool ff = force_update;
 	int dmode = display_mode;
+	yoff_d = 0;
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	{
 		wx_begin = window_xbegin;
@@ -76,684 +367,86 @@ void DISPLAY::draw_screen()
 	emu->set_vm_screen_lines(ylines);
 	if(!crt_flag) {
 		if(crt_flag_bak) {
-			clean_display();
+			clear_display(dmode, xpixels, ylines);
 		}
 		crt_flag_bak = crt_flag;
+		if(ff) force_update = false;
 		return;
 	}
 	crt_flag_bak = crt_flag;
 	if(!(vram_wrote_shadow | ff)) return;
 	vram_wrote_shadow = false;
 
-	_render_command_data_t cmd;
-	memset(cmd, 0x00, sizeof(cmd));
-
-	uint32_t yoff_d = 0;
 	int wpixels = xpixels >> 3;
-	for(y = 0;  y < ylines; y += 8) {
-		for(yy = 0; yy < 8; yy++) {
-				if(!(vram_draw_table[y + yy] | ff)) continue;
-				vram_draw_table[y + yy] = false;
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#if defined(_FM77L4)
+	if(dmode == DISPLAY_MODE_1_400L) {
+		draw_77l4_400l(ff);
+		if(ff) force_update = false;
+		return;
+	}
+#endif	
+	for(int y = 0;  y < ylines; y += 8) {
+		for(int yy = 0; yy < 8; yy++) {
+			if(!(vram_draw_table[y + yy] | ff)) continue;
+			vram_draw_table[y + yy] = false;
+#  if defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV40)
 				int dpage;
 				dpage = vram_display_block;
 				bool window_inv = false;
-				if((check_window(dmode, yy + y)) && (dmode != DISPLAY_MODE_256k)) {
+#    if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+				if((window_opened && (wy_low <= (y + yy)) && (wy_high > (y + yy)))
+				   && (dmode != DISPLAY_MODE_256k)) {
 					if((wx_begin > 0) && (wx_begin < wx_end) && (wx_begin < wpixels)) {
 						yoff_d = (dpage != 0) ? 0x18000 : 0x00000;
 						if(display_page_bak == 1) yoff_d += 0xc000;
-						draw_window(dmode, yy + y, 0, wx_begin, 
-										 yoff_d1, yoff_d2, yoff_d);
+						draw_window(dmode, yy + y, 0, wx_begin,
+									false, scan_line);
 						yoff_d = (dpage != 0) ? 0x00000 : 0x18000;
 						if(display_page_bak == 1) yoff_d += 0xc000;
 						draw_window(dmode, yy + y,
 									wx_begin, ((wx_end >= wpixels) ? wpixels : wx_end) - wx_begin,
-									yoff_d1, yoff_d2, yoff_d); // if 0?
+									true, scan_line);
 						if(wx_end < wpixels) {
 							yoff_d = (dpage != 0) ? 0x18000 : 0x00000;
 							if(display_page_bak == 1) yoff_d += 0xc000;
 							draw_window(dmode, yy + y, wx_end,  wpixels - wx_end,
-										  yoff_d1, yoff_d2, yoff_d);
+										false, scan_line);
 						}
 					} else {
 						yoff_d = (dpage != 0) ? 0x00000 : 0x18000;
 						if(display_page_bak == 1) yoff_d += 0xc000;
-						draw_window(dmode, yy + y, 0, wx_end, 
-									yoff_d1, yoff_d2, yoff_d); // if 0?
+						draw_window(dmode, yy + y, 0, wx_end,
+									false, scan_line);
 						if(wx_end < wpixels) {
 							yoff_d = (dpage != 0) ? 0x18000 : 0x00000;
 							if(display_page_bak == 1) yoff_d += 0xc000;
 							draw_window(dmode, yy + y, wx_end , wpixels - wx_end,
-										yoff_d1, yoff_d2, yoff_d);
+										true, scan_line);
 						}
 					}						
-				} else {
+				} else
+#    endif
+				{
+					
 					yoff_d = (dpage != 0) ? 0x18000 : 0x00000;
 					if(display_page_bak == 1) yoff_d += 0xc000;
-					draw_line(dmode, yy + y, yoff_d1, yoff_d2, yoff_d);
+					draw_window(dmode, yy + y, 0, wpixels, false, scan_line);
 				}
 				// Copy line
 #elif defined(_FM77AV_VARIANTS)
+				yoff_d = 0;
 				if(display_page_bak == 1) yoff_d += 0xc000;
-				draw_line(dmode, yy + y, yoff_d1, yoff_d2, yoff_d);
-				// Copy line
-#elif defined(_FM77L4)
-				draw_line(dmode, yy + y, yoff_d1, yoff_d2, yoff_d);
-				// Copy line
-#else 				
-				draw_line(dmode, yy + y, yoff_d1, yoff_d2, yoff_d);
-				// Copy line
-#endif
-		}
-	}
-#endif /* 1 */
-}
-
-void DISPLAY::draw_screen2()
-{
-	int y;
-	int x;
-	scrntype_t *p, *pp, *p2;
-	int yoff;
-	int yy;
-	int k;
-	//uint32_t rgbmask;
-	uint32_t yoff_d1, yoff_d2;
-	uint16_t wx_begin, wx_end, wy_low, wy_high;
-	bool scan_line = config.scan_line;
-	bool ff = force_update;
-
-#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	{
-		wx_begin = window_xbegin;
-		wx_end   = window_xend;
-		wy_low   = window_low;
-		wy_high  = window_high;
-		bool _flag = window_opened; 
-		if((wx_begin < wx_end) && (wy_low < wy_high)) {
-			window_opened = true;
-		} else {
-			window_opened = false;
-		}
-		if(_flag != window_opened) {
-			vram_wrote_shadow = true;
-		}
-	}
-#endif
-//	frame_skip_count_draw++;
-#if defined(_FM77AV_VARIANTS)
-	yoff_d2 = 0;
-	yoff_d1 = 0;
-#else
-	//if(!(vram_wrote_shadow)) return;
-	yoff_d1 = yoff_d2 = offset_point;
-#endif
-	// Set blank
-	int ylines;
-	int xpixels;
-	switch(display_mode) {
-	case DISPLAY_MODE_8_200L:
-		xpixels = 640;
-		ylines = 200;
-		break;
-	case DISPLAY_MODE_8_400L:
-		xpixels = 640;
-		ylines = 400;
-		break;
-	default:
-		xpixels = 320;
-		ylines = 200;
-		break;
-	}
-# if !defined(FIXED_FRAMEBUFFER_SIZE)
-	emu->set_vm_screen_size(xpixels, ylines, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-# endif
-	emu->set_vm_screen_lines(ylines);
-	if(!crt_flag) {
-		if(crt_flag_bak) {
-			scrntype_t *ppp;
-#if !defined(FIXED_FRAMEBUFFER_SIZE)
-			for(y = 0; y < ylines; y += 8) {
-				for(yy = 0; yy < 8; yy++) {
-					vram_draw_table[y + yy] = false;
-					ppp = emu->get_screen_buffer(y + yy);
-					if(ppp != NULL) memset(ppp, 0x00, xpixels * sizeof(scrntype_t));
-				}
-			}
-#else
-			for(y = 0; y < 400; y += 8) {
-				for(yy = 0; yy < 8; yy++) {
-					vram_draw_table[y + yy] = false;
-					ppp = emu->get_screen_buffer(y + yy);
-					if(ppp != NULL) memset(ppp, 0x00, 640 * sizeof(scrntype_t));
-				}
-			}
-#endif
-			
-		}
-		crt_flag_bak = crt_flag;
-		return;
-	}
-	crt_flag_bak = crt_flag;
-	if(!(vram_wrote_shadow | ff)) return;
-	vram_wrote_shadow = false;
-	if(display_mode == DISPLAY_MODE_8_200L) {
-		_render_command_data_t cmd;
-		uint32_t yoff_d = 0;
-		int ii;
-		yoff = 0;
-#if defined(USE_GREEN_DISPLAY)
-		if(use_green_monitor) {
-			cmd.palette = dpalette_pixel_green;
-		} else {
-			cmd.palette = dpalette_pixel;
-		}
-#else
-		cmd.palette = dpalette_pixel;
-#endif				
-		for(int i = 0; i < 3; i++) {
-			cmd.data[i] = gvram_shadow;
-			cmd.baseaddress[i] = i * 0x4000;
-			cmd.voffset[i] = yoff;
-			cmd.is_render[i] = false;
-		}
-		if(!multimode_dispflags[0]) cmd.is_render[0] = true;
-		if(!multimode_dispflags[1]) cmd.is_render[1] = true;
-		if(!multimode_dispflags[2]) cmd.is_render[2] = true;
-		cmd.bit_trans_table[0] = (_bit_trans_table_t*)(&(bit_trans_table_2[0][0])); // B
-		cmd.bit_trans_table[1] = (_bit_trans_table_t*)(&(bit_trans_table_1[0][0])); // R
-		cmd.bit_trans_table[2] = (_bit_trans_table_t*)(&(bit_trans_table_0[0][0])); // G
-		cmd.xzoom = 1;
-		cmd.addrmask = 0x3fff;
-		cmd.addrmask2 = 0x3fff;
-		cmd.begin_pos = 0;
-		cmd.shift = 5;
-		cmd.render_width = 80;
-		for(y = 0; y < 200; y += 8) {
-			for(yy = 0; yy < 8; yy++) {
-			
-				if(!(vram_draw_table[y + yy] | ff)) continue;
-				vram_draw_table[y + yy] = false;
-#if !defined(FIXED_FRAMEBUFFER_SIZE)
-				p = emu->get_screen_buffer(y + yy);
-				p2 = NULL;
-#else
-				p = emu->get_screen_buffer((y + yy) * 2);
-				p2 = emu->get_screen_buffer((y + yy) * 2 + 1);
-#endif
-				if(p == NULL) continue;
-				yoff = (y + yy) * 80;
-				for(int i = 0; i < 3; i++) {
-					cmd.voffset[i] = yoff;
-				}
-				
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-				int dpage;
-				dpage = vram_display_block;
-				bool window_inv = false;
-				if(window_opened && (wy_low <= (y + yy)) && (wy_high > (y + yy))) {
-					if((wx_begin > 0) && (wx_begin < wx_end) && (wx_begin < 80)) {
-						// Window : left
-						cmd.begin_pos = 0;
-						window_inv = false;
-						int _wend = wx_end;
-						if(_wend >= 80) _wend = 80;
-						cmd.render_width = wx_begin;
-						yoff_d = (dpage != 0) ? 0x18000 : 0x00000;
-						if(display_page_bak == 1) yoff_d += 0xc000;
-						for(int i = 0; i < 3; i++) {
-							cmd.baseaddress[i] = yoff_d + (i * 0x4000);
-						}
-						if(cmd.render_width > 0) {
-							if(cmd.render_width > 80) cmd.render_width = 80;
-						}
-						Render8Colors_Line(&cmd, p, p2, scan_line);
-
-						// Center
-						cmd.begin_pos = wx_begin;
-						cmd.render_width = _wend - wx_begin;
-						yoff_d = (dpage != 0) ? 0x00000 : 0x18000;
-						if(display_page_bak == 1) yoff_d += 0xc000;
-						for(int i = 0; i < 3; i++) {
-							cmd.baseaddress[i] = yoff_d + (i * 0x4000);
-						}
-						if(cmd.render_width > 0) {
-							if(cmd.render_width > 80) cmd.render_width = 80;
-						}
-						Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), &(p2[cmd.begin_pos * 8]) , scan_line);
-						// Right
-						if(wx_end < 80) {
-							cmd.begin_pos = wx_end;
-							cmd.render_width = 80 - wx_end;
-							yoff_d = (dpage != 0) ? 0x18000 : 0x00000;
-							if(display_page_bak == 1) yoff_d += 0xc000;
-							for(int i = 0; i < 3; i++) {
-								cmd.baseaddress[i] = yoff_d + (i * 0x4000);
-							}
-							if(cmd.render_width > 0) {
-								if(cmd.render_width > 80) cmd.render_width = 80;
-							}
-							Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), &(p2[cmd.begin_pos * 8]), scan_line);
-						}
-						continue;
-					} else if((wx_begin <= 0) && (wx_begin < wx_end) && (wx_end >= 0)) {
-						// Left
-						cmd.begin_pos = 0;
-						cmd.render_width = wx_end;
-						yoff_d = (dpage != 0) ? 0x00000 : 0x18000;
-						if(display_page_bak == 1) yoff_d += 0xc000;
-						for(int i = 0; i < 3; i++) {
-							cmd.baseaddress[i] = yoff_d + (i * 0x4000);
-						}
-						if(cmd.render_width > 0) {
-							if(cmd.render_width > 80) cmd.render_width = 80;
-						}
-						if(cmd.render_width > 0) Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), &(p2[cmd.begin_pos * 8]), scan_line);
-						// Right
-						if(wx_end < 80) {
-							cmd.begin_pos = wx_end;
-							cmd.render_width = 80 - wx_end;
-							yoff_d = (dpage != 0) ? 0x18000 : 0x00000;
-							if(display_page_bak == 1) yoff_d += 0xc000;
-							for(int i = 0; i < 3; i++) {
-								cmd.baseaddress[i] = yoff_d + (i * 0x4000);
-							}
-							if(cmd.render_width > 0) {
-								if(cmd.render_width > 80) cmd.render_width = 80;
-							}
-							Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), &(p2[cmd.begin_pos * 8]), scan_line);
-						}
-						continue;
-					}
-				}
-#endif
-				//cmd.begin_pos = 0;
-				//cmd.render_width = 80;
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-				yoff_d = (dpage != 0) ? 0x18000 : 0x00000;
+				draw_window(dmode, yy + y, 0, wpixels, false, scan_line);
 #else
 				yoff_d = 0;
+				draw_window(dmode, yy + y, 0, wpixels, false, scan_line);
 #endif
-#if defined(_FM77AV_VARIANTS)
-				if(display_page_bak == 1) yoff_d += 0xc000;
-				for(int i = 0; i < 3; i++) {
-					cmd.baseaddress[i] = yoff_d + (i * 0x4000);
-					cmd.data[i] = gvram_shadow;
-					cmd.voffset[i] = yoff;
-				}
-#else
-//				for(int i = 0; i < 3; i++) {
-//					cmd.baseaddress[i] = i * 0x4000;
-//				}
-#endif
-				
-				Render8Colors_Line(&cmd, p, p2, scan_line);
-#if defined(FIXED_FRAMEBUFFER_SIZE)
-				//CopyDrawnData(p, p2, 80, scan_line);
-#endif
-			}
 		}
-		if(ff) force_update = false;
-		return;
 	}
-#if defined(_FM77L4)
-	if(display_mode == DISPLAY_MODE_1_400L) {
-		int ii;
-		uint8_t *regs = l4crtc->get_regs();
-		cursor_start = (int)(regs[10] & 0x1f);
-		cursor_end = (int)(regs[11] & 0x1f);
-		cursor_type = (int)((regs[10] & 0x60) >> 5);
-		text_xmax = (int)((uint16_t)regs[1] << 1);
-		text_lines = (int)((regs[9] & 0x1f) + 1);
-		text_ymax = (int)(regs[6] & 0x7f);
-		yoff = 0;
-		// Green display had only connected to FM-8, FM-7/NEW7 and FM-77.
-		for(y = 0; y < 400; y += 8) {
-			bool renderf = false;
-			uint32_t naddr;
-			uint8_t bitcode;
-			uint8_t charcode;
-			uint8_t attr_code;
-			scrntype_t on_color;
-			int xlim, ylim;
-			bool do_green;
-			if((y & 0x0f) == 0) {
-				for(yy = 0; yy < 16; yy++) renderf |= vram_draw_table[y + yy];
-				renderf = renderf | ff;
-				if(renderf) {
-					for(yy = 0; yy < 16; yy++) vram_draw_table[y + yy] = true;
-				}
-			}
-			if(use_green_monitor) {
-				for(yy = 0; yy < 8; yy++) {
-					if(!(vram_draw_table[y + yy] | ff)) continue;
-					vram_draw_table[y + yy] = false;
-					p = emu->get_screen_buffer(y + yy);
-					if(p == NULL) continue;
-					yoff = (y + yy) * 80;
-					for(x = 0; x < 10; x++) {
-						for(ii = 0; ii < 8; ii++) {
-							GETVRAM_1_400L_GREEN(yoff + ii, p);
-							p += 8;
-						}
-						yoff += 8;
-					}
-				}
-				do_green = true;
-			} else {
-				for(yy = 0; yy < 8; yy++) {
-					if(!(vram_draw_table[y + yy] | ff)) continue;
-					vram_draw_table[y + yy] = false;
-					p = emu->get_screen_buffer(y + yy);
-					if(p == NULL) continue;
-					yoff = (y + yy) * 80;
-					for(x = 0; x < 10; x++) {
-						for(ii = 0; ii < 8; ii++) {
-							GETVRAM_1_400L(yoff + ii, p);
-							p += 8;
-						}
-						yoff += 8;
-					}
-				}
-				do_green = false;
-			}
-			// Draw Text
-			if(renderf) {
-				bool reverse;
-				bool display_char;
-				int raster;
-				bool cursor_rev;
-				uint8_t bitdata;
-				if(text_width40) {
-					xlim = 40;
-				} else {
-					xlim = 80;
-				}
-				
-				for(x = 0; x < xlim; x++) {
-					naddr = (text_start_addr.w.l + ((y / text_lines) * text_xmax + x) * 2) & 0x0ffe;
-					charcode = text_vram[naddr];
-					attr_code = text_vram[naddr + 1];
-						
-					on_color = GETVRAM_TEXTCOLOR(attr_code, do_green);
-					
-					display_char = ((attr_code & 0x10) == 0);
-					reverse = ((attr_code & 0x08) != 0);
-					
-					for(yy = 0; yy < 16; yy++) {
-						raster = y % text_lines;
-						bitdata = 0x00;
-						p = emu->get_screen_buffer(y + yy);
-						if(p == NULL) continue;
-						if((raster < 16) && (display_char || text_blink)) {
-							bitdata = subsys_cg_l4[(uint32_t)charcode * 16 + (uint32_t)raster];
-						}
-						cursor_rev = false;
-						if((naddr == (uint32_t)(cursor_addr.w.l)) && (cursor_type != 1) &&
-						   (text_blink || (cursor_type == 0))) {
-							if((raster >= cursor_start) && (raster <= cursor_end)) {
-								cursor_rev = true;
-							}
-						}
-						bitdata = GETVRAM_TEXTPIX(bitdata, reverse, cursor_rev);
-						if(bitdata != 0) {
-							if(text_width40) {
-									scrntype_t *pp = &(p[x * 2]); 
-									for(ii = 0; ii < 8; ii++) {
-										if((bitdata & 0x80) != 0) {
-											p[0] = on_color;
-											p[1] = on_color;
-										}
-										bitdata <<= 1;
-										p += 2;
-									}										
-							} else {
-								scrntype_t *pp = &(p[x * 2]); 
-								for(ii = 0; ii < 8; ii++) {
-									if((bitdata & 0x80) != 0) {
-										p[0] = on_color;
-									}
-									bitdata <<= 1;
-									p += 1;
-								}										
-							}
-						}
-					}
-				}
-			}
-		}
-		if(ff) force_update = false;
-		return;
-	}
-#endif
-# if defined(_FM77AV_VARIANTS)
-	if(display_mode == DISPLAY_MODE_4096) {
-		uint32_t mask = 0;
-		int ii;
-		yoff = 0;
-		if(!multimode_dispflags[0]) mask = 0x00f;
-		if(!multimode_dispflags[1]) mask = mask | 0x0f0;
-		if(!multimode_dispflags[2]) mask = mask | 0xf00;
-		for(y = 0; y < 200; y += 4) {
-			for(yy = 0; yy < 4; yy++) {
-				if(!(vram_draw_table[y + yy] | ff)) continue;
-				vram_draw_table[y + yy] = false;
-
-#if !defined(FIXED_FRAMEBUFFER_SIZE)
-				p = emu->get_screen_buffer(y + yy);
-				p2 = NULL;
-#else
-				p = emu->get_screen_buffer((y + yy) * 2 );
-				p2 = emu->get_screen_buffer((y + yy) * 2 + 1);
-#endif
-				if(p == NULL) continue;
-				yoff = (y + yy) * 40;
-#  if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-				if(window_opened && (wy_low <= (y + yy)) && (wy_high > (y + yy))) {
-					for(x = 0; x < 40; x++) {
-						if((x >= wx_begin) && (x < wx_end)) {
-							GETVRAM_4096(yoff, p, p2, mask, true, scan_line);
-						} else {
-							GETVRAM_4096(yoff, p, p2, mask, false, scan_line);
-						}
-#if defined(FIXED_FRAMEBUFFER_SIZE)
-						p2 += 16;
-						p += 16;
-#else
-						p += 8;
-#endif
-						yoff++;
-					}
-				} else
-#  endif
-				{
-					for(x = 0; x < 5; x++) {
-						for(ii = 0; ii < 8; ii++) {
-							GETVRAM_4096(yoff + ii, p, p2, mask, false, scan_line);
-#if defined(FIXED_FRAMEBUFFER_SIZE)
-							p2 += 16;
-							p += 16;
-#else
-							p += 8;
-#endif
-						}
-						yoff += 8;
-					}
-				}
-			}
-		   
-		}
-		if(ff) force_update = false;
-		return;
-	}
-#  if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	else if(display_mode == DISPLAY_MODE_8_400L) {
-		_render_command_data_t cmd;
-		int ii;
-		yoff = 0;
-		cmd.palette = dpalette_pixel;
-		for(int i = 0; i < 3; i++) {
-			cmd.data[i] = gvram_shadow;
-			cmd.baseaddress[i] = i * 0x8000;
-			cmd.voffset[i] = yoff;
-			cmd.is_render[i] = false;
-		}
-		if(!multimode_dispflags[0]) cmd.is_render[0] = true;
-		if(!multimode_dispflags[1]) cmd.is_render[1] = true;
-		if(!multimode_dispflags[2]) cmd.is_render[2] = true;
-		cmd.bit_trans_table[0] = (_bit_trans_table_t*)(&(bit_trans_table_2[0][0])); // B
-		cmd.bit_trans_table[1] = (_bit_trans_table_t*)(&(bit_trans_table_1[0][0])); // R
-		cmd.bit_trans_table[2] = (_bit_trans_table_t*)(&(bit_trans_table_0[0][0])); // G
-		cmd.xzoom = 1;
-		cmd.addrmask = 0x7fff;
-		cmd.addrmask2 = 0x7fff;
-		cmd.begin_pos = 0;
-		cmd.shift = 5;
-		cmd.render_width = 80;
-		for(y = 0; y < 400; y += 8) {
-			for(yy = 0; yy < 8; yy++) {
-				if(!(vram_draw_table[y + yy] | ff)) continue;
-				vram_draw_table[y + yy] = false;
-
-				p = emu->get_screen_buffer(y + yy);
-				if(p == NULL) continue;
-				pp = p;
-				yoff = (y + yy) * 80;
-				for(int i = 0; i < 3; i++) {
-					cmd.voffset[i] = yoff;
-				}
-				int dpage;
-				bool window_inv = false;
-				uint32_t yoff_d = 0;
-				dpage = vram_display_block;
-#    if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-				if(window_opened && (wy_low <= (y + yy)) && (wy_high > (y + yy))) {
-					if((wx_begin > 0) && (wx_begin < wx_end) && (wx_begin < 80)) {
-						// Window : left
-						cmd.begin_pos = 0;
-						window_inv = false;
-						int _wend = wx_end;
-						if(_wend >= 80) _wend = 80;
-						cmd.render_width = wx_begin;
-						yoff_d = (dpage != 0) ? 0x18000 : 0x00000;
-						for(int i = 0; i < 3; i++) {
-							cmd.baseaddress[i] = yoff_d + (i * 0x8000);
-						}
-						if(cmd.render_width > 0) {
-							if(cmd.render_width > 80) cmd.render_width = 80;
-						}
-						Render8Colors_Line(&cmd, p, NULL, false);
-
-						// Center
-						cmd.begin_pos = wx_begin;
-						cmd.render_width = _wend - wx_begin;
-						yoff_d = (dpage != 0) ? 0x00000 : 0x18000;
-						if(display_page_bak == 1) yoff_d += 0xc000;
-						for(int i = 0; i < 3; i++) {
-							cmd.baseaddress[i] = yoff_d + (i * 0x8000);
-						}
-						if(cmd.render_width > 0) {
-							if(cmd.render_width > 80) cmd.render_width = 80;
-						}
-						Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), NULL, false);
-						// Right
-						if(wx_end < 80) {
-							cmd.begin_pos = wx_end;
-							cmd.render_width = 80 - wx_end;
-							yoff_d = (dpage != 0) ? 0x18000 : 0x00000;
-							for(int i = 0; i < 3; i++) {
-								cmd.baseaddress[i] = yoff_d + (i * 0x8000);
-							}
-							if(cmd.render_width > 0) {
-								if(cmd.render_width > 80) cmd.render_width = 80;
-							}
-							Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), NULL, false);
-						}
-						continue;
-					} else if((wx_begin <= 0) && (wx_begin < wx_end) && (wx_end >= 0)) {
-						// Left
-						cmd.begin_pos = 0;
-						cmd.render_width = wx_end;
-						yoff_d = (dpage != 0) ? 0x00000 : 0x18000;
-						for(int i = 0; i < 3; i++) {
-							cmd.baseaddress[i] = yoff_d + (i * 0x8000);
-						}
-						if(cmd.render_width > 0) {
-							if(cmd.render_width > 80) cmd.render_width = 80;
-						}
-						if(cmd.render_width > 0) Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), NULL, false);
-						// Right
-						if(wx_end < 80) {
-							cmd.begin_pos = wx_end;
-							cmd.render_width = 80 - wx_end;
-							yoff_d = (dpage != 0) ? 0x18000 : 0x00000;
-							for(int i = 0; i < 3; i++) {
-								cmd.baseaddress[i] = yoff_d + (i * 0x8000);
-							}
-							if(cmd.render_width > 0) {
-								if(cmd.render_width > 80) cmd.render_width = 80;
-							}
-							Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), NULL, false);
-						}
-						continue;
-					} 
-				}
-#    endif
-				// Not Opened
-				cmd.begin_pos = 0;
-				cmd.render_width = 80;
-				yoff_d = (dpage != 0) ? 0x18000 : 0x00000;
-				for(int i = 0; i < 3; i++) {
-					cmd.baseaddress[i] = yoff_d + (i * 0x8000);
-				}
-				if(cmd.render_width > 0) {
-					if(cmd.render_width > 80) cmd.render_width = 80;
-				}
-				Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), NULL, false);
-			}
-		}
-		if(ff) force_update = false;
-		return;
-	} else if(display_mode == DISPLAY_MODE_256k) {
-		int ii;
-		//rgbmask = ~multimode_dispmask;
-		//
-		for(y = 0; y < 200; y += 4) {
-			for(yy = 0; yy < 4; yy++) {
-				if(!(vram_draw_table[y + yy] | ff)) continue;
-				vram_draw_table[y + yy] = false;
-#if !defined(FIXED_FRAMEBUFFER_SIZE)
-				p = emu->get_screen_buffer(y + yy);
-				p2 = NULL;
-#else
-				p = emu->get_screen_buffer((y + yy) * 2 );
-				p2 = emu->get_screen_buffer((y + yy) * 2 + 1);
-#endif
-				if(p == NULL) continue;
-				pp = p;
-				yoff = (y + yy) * 40;
-				{
-					for(x = 0; x < 5; x++) {
-						for(ii = 0; ii < 8; ii++) {
-							GETVRAM_256k(yoff + ii, p, p2, scan_line);
-#if !defined(FIXED_FRAMEBUFFER_SIZE)
-							p += 8;
-#else
-							p += 16;
-							p2 += 16;
-#endif
-						}
-						yoff += 8;
-					}
-				}
-			}
-		}
-		if(ff) force_update = false;
-		return;
-	}
-#  endif // _FM77AV40
-# endif //_FM77AV_VARIANTS
+	if(ff) force_update = false;
+	return;
 }
+
 
 bool DISPLAY::screen_update(void)
 {
@@ -853,7 +546,6 @@ uint8_t DISPLAY::GETVRAM_TEXTPIX(uint8_t bitdata, bool reverse, bool cursor_rev)
 void DISPLAY::GETVRAM_1_400L(int yoff, scrntype_t *p)
 {
 	uint8_t pixel;
-	uint32_t yoff_d;
 	if(p == NULL) return;
 	yoff_d = yoff & 0x7fff;
 	pixel = gvram_shadow[yoff_d];
@@ -876,7 +568,6 @@ __DECL_VECTORIZED_LOOP
 void DISPLAY::GETVRAM_1_400L_GREEN(int yoff, scrntype_t *p)
 {
 	uint8_t pixel;
-	uint32_t yoff_d;
 	if(p == NULL) return;
 	yoff_d = yoff & 0x7fff;
 	pixel = gvram_shadow[yoff_d];
@@ -911,8 +602,6 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,
 	scrntype_t b, r, g;
 	uint32_t idx;;
 	scrntype_t pixel;
-	uint32_t yoff_d1;
-	uint32_t yoff_d2;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	int dpage = vram_display_block;
 # endif
@@ -1056,8 +745,6 @@ void DISPLAY::GETVRAM_256k(int yoff, scrntype_t *p, scrntype_t *px, bool scan_li
 	uint32_t _bit;
 	int _shift;
 	int cp;
-	uint32_t yoff_d1;
-	uint32_t yoff_d2;
 	if(p == NULL) return;
 	
 	r3 = g3 = b3 = 0;

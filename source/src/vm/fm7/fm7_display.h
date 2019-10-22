@@ -43,7 +43,6 @@ namespace FM7 {
 class DISPLAY: public DEVICE
 {
 private:
-
 	__DECL_ALIGNED(16) uint16_t bit_trans_table_0[256][8];
 	__DECL_ALIGNED(16) uint16_t bit_trans_table_1[256][8];
 	__DECL_ALIGNED(16) uint16_t bit_trans_table_2[256][8];
@@ -52,6 +51,9 @@ private:
 	__DECL_ALIGNED(16) uint16_t bit_trans_table_4[256][8];
 	__DECL_ALIGNED(16) uint16_t bit_trans_table_5[256][8];
 #endif
+
+	uint32_t yoff_d1, yoff_d2;
+	uint32_t yoff_d;
 protected:
 	uint32_t (__FASTCALL DISPLAY::*read_cpu_func_table[512])(uint32_t);
 	uint32_t (__FASTCALL DISPLAY::*read_dma_func_table[512])(uint32_t);
@@ -120,7 +122,8 @@ protected:
 	void copy_vram_all();
 	void copy_vram_per_line(int begin, int end);
 	void copy_vram_blank_area(void);
-
+	void __FASTCALL draw_window(int dmode, int y, int begin, int bytes, bool window_inv, bool scan_line);
+	void __FASTCALL clear_display(int dmode, int w, int h);
  private:
 	bool sub_busy;
 	bool firq_mask;
@@ -380,7 +383,6 @@ protected:
 	void __FASTCALL write_dummy(uint32_t addr, uint8_t data);
    
 	uint32_t read_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size);
-	void draw_screen2();
 
 	void event_callback_vstart(void);
 	void event_callback_vsync(void);
@@ -418,6 +420,9 @@ protected:
 		return static_cast<T *>(np)->read_dma_data8(addr);
 	}
 
+#if defined(_FM77L4)
+	void __FASTCALL draw_77l4_400l(bool ff);
+#endif
 public:
 	DISPLAY(VM_TEMPLATE* parent_vm, EMU *parent_emu);
 	~DISPLAY();
