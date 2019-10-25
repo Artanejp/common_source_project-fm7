@@ -120,28 +120,25 @@ mat3 ycbcr2rgb_mat = mat3(
 void main() {
 // #include "ntsc-pass2-decode.inc" //
 	float one_x = 1.0 / source_size.x;
-	vec4 signal = vec4(0.0);
+	vec3 signal = vec3(0.0);
 	float pos_offset = float(TAPS - 1) * one_x;
 	vec2 fix_coord = v_texcoord - vec2(0.5 * one_x, 0.0);
 	vec2 delta = vec2(one_x, 0);
-	vec4 pix_p, pix_n;
+	vec3 pix_p, pix_n;
 	vec3 tmpv;
 	vec2 addr_p = fix_coord + vec2(pos_offset, 0);
 	vec2 addr_n = fix_coord - vec2(pos_offset, 0);
 
 	for(int ii = 1; ii < TAPS; ii++) {
-		pix_p = texture2D(a_texture, addr_p - delta * vec2(ii - 1, 0));
-		pix_n = texture2D(a_texture, addr_n + delta * vec2(ii - 1, 0));
+		pix_p = texture2D(a_texture, addr_p - delta * vec2(ii - 1, 0)).xyz;
+		pix_n = texture2D(a_texture, addr_n + delta * vec2(ii - 1, 0)).xyz;
 #ifndef HAS_FLOAT_TEXTURE
 		pix_p = pix_p * vec3(3.6, 1.7, 1.7);
 		pix_n = pix_n * vec3(3.6, 1.7, 1.7);
 #endif
-		signal += (pix_n + pix_p) * vec4(luma_filter[ii], chroma_filter[ii], chroma_filter[ii], 0);
-//		signal = signal + pix_p;
-//		addr_p = addr_p - delta;
-//		addr_n = addr_n + delta;
+		signal += (pix_n + pix_p) * vec3(luma_filter[ii], chroma_filter[ii], chroma_filter[ii]);
 	}
-	vec4 texvar = texture2D(a_texture, fix_coord);
+	vec3 texvar = texture2D(a_texture, fix_coord).xyz;
 	// yMax = (0.299+0.587+0.114) * (+-1.0) * (BRIGHTNESS + ARTIFACTING + ARTIFACTING) * (+-1.0)
 	// CbMax = (-0.168736 -0.331264 + 0.5) * (+-1.0) * (FRINGING + 2*SATURATION) * (+-1.0)
 	// CrMax = (0.5 - 0.418688 - 0.081312) * (+-1.0) * (FRINGING + 2*SATURATION) * (+-1.0)
@@ -149,9 +146,9 @@ void main() {
 	//    Cb = 0 to +1.7
 	//    Cr = 0 to +1.7
 #ifndef HAS_FLOAT_TEXTURE
-	texvar = texvar * vec4(3.6, 1.7, 1.7, 0);
+	texvar = texvar * vec3(3.6, 1.7, 1.7);
 #endif
-	signal +=  texvar * vec4(luma_filter[TAPS], chroma_filter[TAPS], chroma_filter[TAPS], 0);
+	signal +=  texvar * vec3(luma_filter[TAPS], chroma_filter[TAPS], chroma_filter[TAPS]);
 // END "ntsc-pass2-decode.inc" //
 
 	vec3 rgb = ycbcr2rgb(signal.xyz);
@@ -163,6 +160,7 @@ void main() {
    vec3 gamma = vec3(CRT_GAMMA / DISPLAY_GAMMA);
    rgb = pow(abs(rgb), gamma.rgb);
 #endif
+
 	vec4 pixel = vec4(rgb, 1.0);
 #ifdef HOST_ENDIAN_IS_LITTLE
 	pixel.rgba = pixel.bgra;

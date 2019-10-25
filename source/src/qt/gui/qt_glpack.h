@@ -59,11 +59,12 @@ protected:
 	bool shader_status;
 	bool texture_is_float;
 	bool texture_is_high_presicion;
+	bool need_alpha_channel;
 	
 	bool has_extension_texture_float;
 	bool has_extension_texture_half_float;
 	bool has_extension_fragment_high_precision;
-
+	
 	QString obj_name;
 	QStringList log_str;
 	void genBuffer(int width, int height);
@@ -71,7 +72,7 @@ protected:
 	void push_log(const char *s) { log_str.append(QString::fromUtf8(s)); }
 public:
 	GLScreenPack(int _width, int _height, QString _name = QString::fromUtf8(""), QObject *parent = NULL,
-				 bool is_float = false, bool req_high_presicion = false);
+				 bool is_float = false, bool req_high_presicion = false, bool need_alpha = true);
 	~GLScreenPack();
 	virtual bool initialize(int total_width, int total_height,
 							const QString &vertex_shader_file, const QString &fragment_shader_file,

@@ -207,12 +207,12 @@ void GLDraw_ES_2::initGLObjects()
 void GLDraw_ES_2::initPackedGLObject(GLScreenPack **p,
 									int _width, int _height,
 									const QString vertex_shader, const QString fragment_shader,
-									 const QString _name, bool req_float, bool req_highp)
+									 const QString _name, bool req_float, bool req_highp, bool req_alpha_channel)
 {
 	QString s;
 	GLScreenPack *pp;
 	if(p != NULL) {
-		pp = new GLScreenPack(_width, _height, _name,  p_wid, req_float, req_highp);
+		pp = new GLScreenPack(_width, _height, _name,  p_wid, req_float, req_highp, req_alpha_channel);
 		*p = pp;
 		if(pp != NULL) {
 			pp->initialize(_width, _height, vertex_shader, fragment_shader);
@@ -333,12 +333,12 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 		initPackedGLObject(&main_pass,
 						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
 						   ":/gles2/vertex_shader.glsl" , ":/gles2/chromakey_fragment_shader2.glsl",
-						   "Main Shader", false, false);
+						   "Main Shader", false, false, true);
 	} else {
 		initPackedGLObject(&main_pass,
 						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
 						   ":/gles2/vertex_shader.glsl" , ":/gles2/fragment_shader.glsl",
-						   "Main Shader", false, false);
+						   "Main Shader", false, false, true);
 	}		
 	if(main_pass != NULL) {
 		setNormalVAO(main_pass->getShader(), main_pass->getVAO(),
@@ -394,11 +394,11 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 	initPackedGLObject(&ntsc_pass1,
 					   _width, _height,
 					   ":/gles2/vertex_shader.glsl" , ":/gles2/ntsc_pass1.glsl",
-					   "NTSC Shader Pass1", true, false);
+					   "NTSC Shader Pass1", true, false, true);
 	initPackedGLObject(&ntsc_pass2,
 					   _width / 2, _height,
 					   ":/gles2/vertex_shader.glsl" , ":/gles2/ntsc_pass2.glsl",
-					   "NTSC Shader Pass2", false, false);
+					   "NTSC Shader Pass2", true, false, true);
 	if(!(((gl_major_version >= 3) && (gl_minor_version >= 1)) || (gl_major_version >= 4))){
 		int ii;
 		QOpenGLShaderProgram *shader = ntsc_pass2->getShader();

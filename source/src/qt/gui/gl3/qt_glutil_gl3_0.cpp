@@ -308,12 +308,12 @@ void GLDraw_3_0::initGLObjects()
 void GLDraw_3_0::initPackedGLObject(GLScreenPack **p,
 									int _width, int _height,
 									const QString vertex_shader, const QString fragment_shader,
-									const QString _name, bool req_float, bool req_highp)
+									const QString _name, bool req_float, bool req_highp, bool req_alpha_channel)
 {
 	QString s;
 	GLScreenPack *pp;
 	if(p != NULL) {
-		pp = new GLScreenPack(_width, _height, _name, p_wid, req_float, req_highp);
+		pp = new GLScreenPack(_width, _height, _name, p_wid, req_float, req_highp, req_alpha_channel);
 		*p = pp;
 		if(pp != NULL) {
 			pp->initialize(_width, _height, vertex_shader, fragment_shader);

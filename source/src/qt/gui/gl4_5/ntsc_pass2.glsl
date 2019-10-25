@@ -103,21 +103,21 @@ void main() {
 // #include "ntsc-pass2-decode.inc" //
 	float one_x = 1.0 / source_size.x;
 	vec2 delta = vec2(one_x, 0);
-	vec4 signal = vec4(0.0);
+	vec3 signal = vec3(0.0);
 	vec2 pos_offset = vec2(float(TAPS - 1.0) * one_x, 0.0);
 	vec2 fix_coord = v_texcoord - vec2(0.5 * one_x, 0.0);
-	vec4 pix_p, pix_n;
+	vec3 pix_p, pix_n;
 	vec2 addr_p = fix_coord + pos_offset;
 	vec2 addr_n = fix_coord - pos_offset;
 	for(int ii = 1; ii < TAPS; ii++) {
-		pix_p = texture2D(a_texture, addr_p - delta * vec2(ii - 1, 0));
-		pix_n = texture2D(a_texture, addr_n + delta * vec2(ii - 1, 0));
+		pix_p = texture2D(a_texture, addr_p - delta * vec2(ii - 1, 0)).xyz;
+		pix_n = texture2D(a_texture, addr_n + delta * vec2(ii - 1, 0)).xyz;
 		signal = signal +
-				(pix_n + pix_p) * vec4(luma_filter[ii], chroma_filter[ii], chroma_filter[ii], 0);
+				(pix_n + pix_p) * vec3(luma_filter[ii], chroma_filter[ii], chroma_filter[ii]);
 		//addr_p -= delta;
 		//addr_n += delta;
 	}
-	vec4 texvar = texture2D(a_texture, fix_coord);
+	vec3 texvar = texture2D(a_texture, fix_coord).xyz;
 	// yMax = (0.299+0.587+0.114) * (+-1.0) * (BRIGHTNESS + ARTIFACTING + ARTIFACTING) * (+-1.0)
 	// CbMax = (-0.168736 -0.331264 + 0.5) * (+-1.0) * (FRINGING + 2*SATURATION) * (+-1.0)
 	// CrMax = (0.5 - 0.418688 - 0.081312) * (+-1.0) * (FRINGING + 2*SATURATION) * (+-1.0)
@@ -127,10 +127,10 @@ void main() {
 #ifndef HAS_FLOAT_TEXTURE
 //	texvar = texvar * vec3(3.6, 1.7, 1.7);
 #endif
-	signal +=  texvar * vec4(luma_filter[TAPS], chroma_filter[TAPS], chroma_filter[TAPS], 0);
+	signal +=  texvar * vec3(luma_filter[TAPS], chroma_filter[TAPS], chroma_filter[TAPS]);
 // END "ntsc-pass2-decode.inc" //
 
-	vec3 rgb = ycbcr2rgb(signal.xyz);
+	vec3 rgb = ycbcr2rgb(signal);
 #ifndef HAS_FLOAT_TEXTURE
 //	rgb = rgb * vec3(0.67, 1.0, 1.0);
 #endif

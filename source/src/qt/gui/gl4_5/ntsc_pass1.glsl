@@ -2,7 +2,7 @@
 // License: GPLv3
 // pulled from git://github.com/libretro/common-shaders.git on 01/30/2014
 in mediump vec2 v_texcoord;
-out mediump vec4 opixel;
+out mediump vec3 opixel;
 
 uniform sampler2D a_texture;
 uniform vec4 source_size;
@@ -109,8 +109,8 @@ void main() {
 	//ycbcr = ycbcr * vec3(0.277778 ,0.588235, 0.588235);
 #endif
 	// Normalise
-	vec4 outvar = vec4(ycbcr, 1.0);
-
-	opixel = outvar;
+	//vec3 outvar = vec4(ycbcr, 1.0);
+	//opixel = outvar;
+	opixel = ycbcr;
 // END "ntsc-pass1-encode-demodulate.inc" //
 }

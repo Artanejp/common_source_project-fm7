@@ -143,7 +143,10 @@ protected:
 	virtual void initPackedGLObject(GLScreenPack **p,
 									int _width, int _height,
 									const QString vertex_shader, const QString fragment_shader,
-									const QString _name, bool req_float = false, bool req_highp = false);
+									const QString _name,
+									bool req_float = false, bool req_highp = false,
+									bool req_alpha_channel = true);
+	
 	virtual void drawGridsHorizonal(void);
 	virtual void drawGridsVertical(void);
 	virtual void drawGrids();
