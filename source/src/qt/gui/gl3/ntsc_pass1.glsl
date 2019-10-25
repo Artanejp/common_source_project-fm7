@@ -65,10 +65,7 @@ mat3 yiq_mat = mat3(
       0.5870, -0.2744, -0.5229,
     0.1140, -0.3216, 0.3114
 );
-vec3 rgb2yiq(vec3 col)
-{
-   return (col * yiq_mat);
-}
+#define rgb2yiq(col) (col * yiq_mat)
 
 // Change Matrix: [RGB]->[YCbCr]
 mat3 ycbcr_mat = mat3(
@@ -77,18 +74,14 @@ mat3 ycbcr_mat = mat3(
       0.11448,  0.50000, -0.08131
 );
 
-vec3 rgb2ycbcr(vec3 col)
-{
-   return (col * ycbcr_mat);
-}
+#define rgb2ycbcr(col) (col * ycbcr_mat)
 
 void main() {
 	// #include "ntsc-pass1-encode-demodulate.inc" //
 	
 	vec3 col = texture2D(a_texture, v_texcoord).rgb;
 	vec3 ycbcr;
-	ycbcr = rgb2yiq(col);
-	//ycbcr = rgb2ycbcr(col);
+	ycbcr = rgb2ycbcr(col);
 
 #if defined(TWO_PHASE)
 	float chroma_phase = PI * (mod(pix_no.y, 2.0) + phase);

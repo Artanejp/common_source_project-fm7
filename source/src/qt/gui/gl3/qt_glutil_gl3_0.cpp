@@ -427,7 +427,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 		initPackedGLObject(&main_pass,
 						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
 						   ":/gl3/vertex_shader.glsl" , ":/gl3/chromakey_fragment_shader2.glsl",
-						   "Main Shader", false, false);
+						   "Main Shader", true, false);
 	} else {
 		initPackedGLObject(&main_pass,
 						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
@@ -485,11 +485,11 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	initPackedGLObject(&ntsc_pass1,
 					   _width, _height,
 					   ":/gl3/vertex_shader.glsl" , ":/gl3/ntsc_pass1.glsl",
-					   "NTSC Shader Pass1", true, true);
+					   "NTSC Shader Pass1", true, false);
 	initPackedGLObject(&ntsc_pass2,
 					   _width / 2, _height,
 					   ":/gl3/vertex_shader.glsl" , ":/gl3/ntsc_pass2.glsl",
-					   "NTSC Shader Pass2", true, true);
+					   "NTSC Shader Pass2", false, false);
 	{
 		int ii;
 		QOpenGLShaderProgram *shader = ntsc_pass2->getShader();
