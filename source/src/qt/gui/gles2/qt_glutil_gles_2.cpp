@@ -398,7 +398,7 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 	initPackedGLObject(&ntsc_pass2,
 					   _width / 2, _height,
 					   ":/gles2/vertex_shader.glsl" , ":/gles2/ntsc_pass2.glsl",
-					   "NTSC Shader Pass2", true, false);
+					   "NTSC Shader Pass2", false, false);
 	if(!(((gl_major_version >= 3) && (gl_minor_version >= 1)) || (gl_major_version >= 4))){
 		int ii;
 		QOpenGLShaderProgram *shader = ntsc_pass2->getShader();
