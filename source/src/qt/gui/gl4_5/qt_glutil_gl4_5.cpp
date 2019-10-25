@@ -383,8 +383,8 @@ void GLDraw_4_5::initLocalGLObjects(void)
 	int _width = using_flags->get_screen_width();
 	int _height = using_flags->get_screen_height();
 	
-	if(((int)(_width * 3.0)) <= texture_max_size) {
-		_width = (int)(_width * 3.0);
+	if(((int)(_width * 4)) <= texture_max_size) {
+		_width = (int)(_width * 4);
 		low_resolution_screen = true;
 	} else {
 		_width = _width * 2;
@@ -419,12 +419,12 @@ void GLDraw_4_5::initLocalGLObjects(void)
 		initPackedGLObject(&main_pass,
 						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
 						   ":/gl4_5/vertex_shader.glsl" , ":/gl4_5/chromakey_fragment_shader2.glsl",
-						   "Main Shader", true);
+						   "Main Shader", true, false);
 	} else {
 		initPackedGLObject(&main_pass,
 						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
 						   ":/gl4_5/vertex_shader.glsl" , ":/gl4_5/fragment_shader.glsl",
-						   "Main Shader", true);
+						   "Main Shader", false);
 	}		
 	if(main_pass != NULL) {
 		setNormalVAO(main_pass->getShader(), main_pass->getVAO(),
@@ -440,7 +440,7 @@ void GLDraw_4_5::initLocalGLObjects(void)
 	initPackedGLObject(&led_pass,
 					   10, 10,
 					   ":/gl4_5/led_vertex_shader.glsl" , ":/gl4_5/led_fragment_shader.glsl",
-					   "LED Shader", true);
+					   "LED Shader", true, false);
 	for(int i = 0; i < 32; i++) {
 		led_pass_vao[i] = new QOpenGLVertexArrayObject;
 		led_pass_vbuffer[i] = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
@@ -459,7 +459,7 @@ void GLDraw_4_5::initLocalGLObjects(void)
 	initPackedGLObject(&osd_pass,
 					   48.0, 48.0,
 					   ":/gl4_5/vertex_shader.glsl" , ":/gl4_5/icon_fragment_shader.glsl",
-					   "OSD Shader", true);
+					   "OSD Shader", false, false);
 	for(int i = 0; i < 32; i++) {
 		osd_pass_vao[i] = new QOpenGLVertexArrayObject;
 		osd_pass_vbuffer[i] = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
@@ -481,12 +481,12 @@ void GLDraw_4_5::initLocalGLObjects(void)
 //					   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
 					   _width, _height,
 					   ":/gl4_5/vertex_shader.glsl" , ":/gl4_5/ntsc_pass1.glsl",
-					   "NTSC Shader Pass1", true, true);
+					   "NTSC Shader Pass1", true, false);
 	initPackedGLObject(&ntsc_pass2,
-					   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
-//					   _width , _height,
+//					   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
+					   _width / 2, _height,
 					   ":/gl4_5/vertex_shader.glsl" , ":/gl4_5/ntsc_pass2.glsl",
-					   "NTSC Shader Pass2", true, true);
+					   "NTSC Shader Pass2", false, false);
 	if(!(((gl_major_version >= 3) && (gl_minor_version >= 1)) || (gl_major_version >= 4))){
 		int ii;
 		QOpenGLShaderProgram *shader = ntsc_pass2->getShader();

@@ -83,21 +83,15 @@ uniform float chroma_filter[24 + 1];
 #endif
 #define DISPLAY_GAMMA 2.1
 
+#define GAMMA_FACTOR (CRT_GAMMA / DISPLAY_GAMMA)
 
 // #include ntsc-rgbyuv.inc //
-
-
 mat3 ycbcr2rgb_mat = mat3(
 	 1.0, 1.0, 1.0,
 	 0.0, -0.34414 , 1.77200,
 	 1.40200, -0.71414, 0.0
  );
  
-//vec3 ycbcr2rgb(vec3 ycbcr)
-//{
-//	//vec3 ra = ycbcr * vec3(1.0, 0.7, 1.0);
-//	return (ycbcr * ycbcr2rgb_mat);
-//}
 #define ycbcr2rgb(foo) (foo.rgb * ycbcr2rgb_mat)
 
 // END ntsc-rgbyuv.inc //
@@ -108,32 +102,22 @@ mat3 ycbcr2rgb_mat = mat3(
 void main() {
 // #include "ntsc-pass2-decode.inc" //
 	float one_x = 1.0 / source_size.x;
-	vec3 signal = vec3(0.0);
-//	int ibegin = 1;
-	float pos_offset = (TAPS - 1.0) * one_x;
-	vec2 fix_coord = v_texcoord - vec2(0.5 * one_x, 0.0);
 	vec2 delta = vec2(one_x, 0);
-	vec3 pix_p, pix_n;
-	vec3 tmpv;
-	vec2 addr_p = fix_coord + vec2(pos_offset, 0);
-	vec2 addr_n = fix_coord - vec2(pos_offset, 0);
-
+	vec4 signal = vec4(0.0);
+	vec2 pos_offset = vec2(float(TAPS - 1.0) * one_x, 0.0);
+	vec2 fix_coord = v_texcoord - vec2(0.5 * one_x, 0.0);
+	vec4 pix_p, pix_n;
+	vec2 addr_p = fix_coord + pos_offset;
+	vec2 addr_n = fix_coord - pos_offset;
 	for(int ii = 1; ii < TAPS; ii++) {
-		pix_p = texture(a_texture, addr_p).xyz;
-		pix_n = texture(a_texture, addr_n).xyz;
-#ifndef HAS_FLOAT_TEXTURE
-//		pix_p = pix_p * vec3(3.6, 1.7, 1.7);
-//		pix_n = pix_n * vec3(3.6, 1.7, 1.7);
-#endif
-		pix_p += pix_n;
-		pix_p *= vec3(luma_filter[ii], chroma_filter[ii], chroma_filter[ii]);
-		signal += pix_p;
-//		addr_p = addr_p - delta;
-//		addr_n = addr_n + delta;
-		addr_p.x = addr_p.x - one_x;
-		addr_n.x = addr_n.x + one_x;
+		pix_p = texture2D(a_texture, addr_p - delta * vec2(ii - 1, 0));
+		pix_n = texture2D(a_texture, addr_n + delta * vec2(ii - 1, 0));
+		signal = signal +
+				(pix_n + pix_p) * vec4(luma_filter[ii], chroma_filter[ii], chroma_filter[ii], 0);
+		//addr_p -= delta;
+		//addr_n += delta;
 	}
-	vec3 texvar = texture2D(a_texture, fix_coord).xyz;
+	vec4 texvar = texture2D(a_texture, fix_coord);
 	// yMax = (0.299+0.587+0.114) * (+-1.0) * (BRIGHTNESS + ARTIFACTING + ARTIFACTING) * (+-1.0)
 	// CbMax = (-0.168736 -0.331264 + 0.5) * (+-1.0) * (FRINGING + 2*SATURATION) * (+-1.0)
 	// CrMax = (0.5 - 0.418688 - 0.081312) * (+-1.0) * (FRINGING + 2*SATURATION) * (+-1.0)
@@ -143,16 +127,16 @@ void main() {
 #ifndef HAS_FLOAT_TEXTURE
 //	texvar = texvar * vec3(3.6, 1.7, 1.7);
 #endif
-	signal +=  texvar * vec3(luma_filter[TAPS], chroma_filter[TAPS], chroma_filter[TAPS]);
+	signal +=  texvar * vec4(luma_filter[TAPS], chroma_filter[TAPS], chroma_filter[TAPS], 0);
 // END "ntsc-pass2-decode.inc" //
 
-	vec3 rgb = ycbcr2rgb(signal);
+	vec3 rgb = ycbcr2rgb(signal.xyz);
 #ifndef HAS_FLOAT_TEXTURE
 //	rgb = rgb * vec3(0.67, 1.0, 1.0);
 #endif
 
 #ifdef GAMMA_CORRECTION
-   vec3 gamma = vec3(CRT_GAMMA / DISPLAY_GAMMA);
+   const vec3 gamma = vec3(GAMMA_FACTOR);
    rgb = pow(abs(rgb), gamma.rgb);
 #endif
 	vec4 pixel = vec4(rgb, 1.0);

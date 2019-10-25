@@ -43,8 +43,8 @@ mat3 mix_mat = mat3(
 // END "ntsc-param.inc" //
 
 // moved from vertex
-//#define pix_no (v_texcoord.xy * source_size.xy * (target_size.xy / source_size.xy))
-#define pix_no (v_texcoord.xy * target_size.xy)
+#define pix_no (v_texcoord.xy * source_size.xy * (target_size.xy / source_size.xy))
+//#define pix_no (v_texcoord.xy * target_size.xy)
 
 // Change Matrix: [RGB]->[YCbCr]
 
