@@ -189,8 +189,8 @@ void DrawThreadClass::doWork(const QString &param)
 		} else {
 			rendered = false;
 		}			
-		//printf("RATE:%f VM_RATE:%f ELAPSED:%f WAIT_FACTOR:%d RENDER=%s\n", _rate, vrate, drate,  wait_factor,
-		//(rendered) ? "YES" : "NO");
+		/*printf("RATE:%f VM_RATE:%f ELAPSED:%f WAIT_FACTOR:%d RENDER=%s\n", _rate, vrate, drate,  wait_factor,
+		  (rendered) ? "YES" : "NO");*/
 		if(!bRunThread) goto __exit;
 		volatile bool _d = bDrawReq;
 		if(draw_screen_buffer == NULL) _d = false;
