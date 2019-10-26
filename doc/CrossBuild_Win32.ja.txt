@@ -1,0 +1,50 @@
+** クロスビルド環境に関して
+--- Oct 26, 2019 Kyuma Ohta <whatisthis.sowhat@gmail.com>
+
+1.はじめに
+  Common Source code Project(以下CSP)では、今までWindows向けビルドには
+  Debian GNU/Linux上で動くMinGW-w64 クロスコンパイラツールチェーンを使
+  って来ました。
+  しかし、MinGW-w64でビルドされたプログラムは、遅い。と言うか、重い。
+  C++の例外処理（exception)について、32ビット環境に関しては、歴史的な
+  特許の問題があって、高速な処理法が使えない。と言う問題があるからです。
+  （64ビットビルドだと、特許に引っかからない方法が使われてる？）
+  その他にもいくつか問題があったので、コンパイラツールチェーンをLLVM CLANG
+  に切り替えてみました。が、MinGW-w64と共存させているとヘッダが派手に
+  衝突しまくるので、どうしたものか…と考えていたら、Docker環境でコン
+  テナを作ってクロスビルド環境を作るという方法がされていたので、カスタ
+  マイズしてみたのです。
+
+2.具体的にはどうするか。
+  まず、Dockerを入れて下さい。Dockerは、GNU/LinuxなOSなら、ほぼ簡単に
+  インストール出来ますし、WindowsでもWindows10ならば簡単に入るらしいで
+  す。
+  MacやWindows8.1以前は、できるようですがよくわからない。
+
+  そして、Dockerhubから、以下のイメージ（※Ubuntu がアップデートしたら
+  変わるかも）をpullしてください。[1]
+  $ docker pull artanejp/mingw-w64-llvm-ubuntu19.10:initial
+  
+  数GB以上のディスクが必要になりますが、LLVM CLANGのクロス
+  ツールチェインと、CSPをビルドするのに必要なライブラリ群が一気に
+  用意されます。
+  後は、このイメージを起動して、
+  adduser でユーザを作りsuでユーザを切り替え、docker コンテナ内から
+  $ mkdir ~/src
+  $ cd ~/src
+  $ git pull https://github.com/Artanejp/common_source_project-fm7.git
+  $ cd common_source_project-fm7/source/build-cmake
+  $ cp buildvars_mingw_cross_win32.dat.tmpl buildvars_mingw_cross_win32.dat
+  として、 buildvars_mingw_cross_win32.dat を適切に設定した上で、
+  $ ./config_build_cross_win32.sh VM名
+  とすれば、ビルドを始めるはずです。多分。
+
+お楽しみを！
+K.Ohta
+
+[1] Dockerを作る時のスクリプトなどは、 https://github.com/Artanejp/llvm-mingw
+    でメンテナンスをしています。
+
+    又、DockerHubの直接のページは、
+	https://cloud.docker.com/u/artanejp/repository/docker/artanejp/mingw-w64-llvm-ubuntu19.10
+	です。
