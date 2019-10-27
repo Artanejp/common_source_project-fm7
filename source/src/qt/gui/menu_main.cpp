@@ -407,7 +407,7 @@ void Ui_MainWindowBase::setupUi(void)
 				} else {
 					// major == 3
 					if(p_config->render_minor_version < 0) p_config->render_minor_version = 0;
-					if(p_config->render_minor_version > 2) p_config->render_minor_version = 2;
+					if(p_config->render_minor_version > 1) p_config->render_minor_version = 1;
 				}					
 				fmt.setVersion(p_config->render_major_version , p_config->render_minor_version ); // Requires >=Qt-4.8.0
 				csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL ES(v%d.%d).", p_config->render_major_version, p_config->render_minor_version);

@@ -227,6 +227,7 @@ protected:
 	// screen
 	void initialize_screen();
 	void release_screen();
+
 	virtual void initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode);
 	void release_screen_buffer(bitmap_t *buffer);
 	void rotate_screen_buffer(bitmap_t *source, bitmap_t *dest);
@@ -478,6 +479,11 @@ public:
 	int get_vm_window_width_aspect();
 	int get_vm_window_height_aspect();
 	scrntype_t* get_vm_screen_buffer(int y);
+	void reset_screen_buffer()
+	{
+		// It's ugly hack for screen.
+		emit sig_resize_vm_screen((QImage*)NULL, -1, -1);
+	}
 	//int draw_screen();
 	//int no_draw_screen();
 	void reload_bitmap();

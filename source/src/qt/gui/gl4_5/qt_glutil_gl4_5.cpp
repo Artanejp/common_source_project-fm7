@@ -113,16 +113,21 @@ QOpenGLTexture *GLDraw_4_5::createMainTexture(QImage *img)
 	QImage *ip = NULL;
 	int w;
 	int h;
+	
 	if(img == NULL) {
 		w = using_flags->get_real_screen_width();
 		h = using_flags->get_real_screen_height();
+//		return NULL;
 	} else {
 		w = img->width();
 		h = img->height();
 	}
-	QImage im(w, h, QImage::Format_RGBA8888);
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SCREEN, "createMainTexture(): WxH: %dx%d\n",w, h);
+	if((w <= 0) || (h <= 0)) return NULL;
+	QImage *im = NULL;
 	if(img == NULL) {
-		ip = &im;
+		im = new QImage(w, h, QImage::Format_RGBA8888);
+		ip = im;
 	} else {
 		ip = img;
 	}
@@ -143,19 +148,19 @@ QOpenGLTexture *GLDraw_4_5::createMainTexture(QImage *img)
 	}
 	{
 		main_mutex->lock();
-		extfunc->glGenBuffers(1, &main_texture_buffer);
-		extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
-		//extfunc->glBufferData(GL_PIXEL_UNPACK_BUFFER, w * h * sizeof(uint32_t), ip->constBits(), GL_DYNAMIC_COPY);
-		//extfunc->glBufferStorage(GL_PIXEL_UNPACK_BUFFER, w * h * sizeof(uint32_t), ip->constBits(),  GL_DYNAMIC_STORAGE_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
-		extfunc->glBufferStorage(GL_PIXEL_UNPACK_BUFFER, w * h * sizeof(uint32_t), ip->constBits(),  GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
 		tx = new QOpenGLTexture(QOpenGLTexture::Target2D);
 		tx->setFormat(QOpenGLTexture::RGBA8_UNorm);
 		tx->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Nearest);
 		tx->setWrapMode(QOpenGLTexture::ClampToEdge);
 		tx->setData(*ip, QOpenGLTexture::DontGenerateMipMaps);
 		tx->bind();
-		tx->release();
+		extfunc->glGenBuffers(1, &main_texture_buffer);
+		extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
+		//extfunc->glBufferData(GL_PIXEL_UNPACK_BUFFER, w * h * sizeof(uint32_t), ip->constBits(), GL_DYNAMIC_COPY);
+		extfunc->glBufferStorage(GL_PIXEL_UNPACK_BUFFER, w * h * sizeof(uint32_t), ip->constBits(),  GL_DYNAMIC_STORAGE_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+		//extfunc->glBufferStorage(GL_PIXEL_UNPACK_BUFFER, w * h * sizeof(uint32_t), ip->constBits(),  GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
 		extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+		tx->release();
 		
 //		extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
 //		extfunc->glDeleteSync(sync_fence);
@@ -169,7 +174,7 @@ QOpenGLTexture *GLDraw_4_5::createMainTexture(QImage *img)
 		main_mutex->unlock();
 		
 	}
-
+	if(im != NULL) delete im;
 	return tx;
 }
 
@@ -807,7 +812,8 @@ void GLDraw_4_5::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mappe
 	imgptr = p;
 	if(uVramTextureID == NULL) {
 		uVramTextureID = createMainTexture(p);
-	} else 	{
+	} else 
+	{
 		// Upload to main texture
 		bool is_dummy = false;
 		
@@ -838,6 +844,7 @@ void GLDraw_4_5::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mappe
 			} else {
 				// p == NULL
 				main_mutex->lock();
+//				printf("*\n");
 				// Flush buffer range
 //				extfunc->glFlushMappedBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, pixel_width *pixel_height * sizeof(scrntype_t));
 //				extfunc->glWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
@@ -1523,11 +1530,11 @@ void GLDraw_4_5::do_set_texture_size(QImage *p, int w, int h)
 		iw = (float)using_flags->get_real_screen_width();
 		ih = (float)using_flags->get_real_screen_height();
 	}
-	//printf("%dx%d -> %fx%f\n", w, h, iw, ih);
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SCREEN, "%dx%d -> %fx%f\n", w, h, iw, ih);
 	if(p_wid != NULL) {
 		screen_texture_width = w;
 		screen_texture_height = h;
-
+		
 		p_wid->makeCurrent();
 		{
 			//set_texture_vertex(p, p_wid->width(), p_wid->height(), w, h);
@@ -1542,21 +1549,21 @@ void GLDraw_4_5::do_set_texture_size(QImage *p, int w, int h)
 						 vertexTmpTexture, 4);
 			
 		}
-		if(((int)iw != pixel_width) || ((int)ih != pixel_height)) {
+		/*if(((int)iw != pixel_width) || ((int)ih != pixel_height))*/ {
 			QImage im((int)screen_texture_width, (int)screen_texture_height, QImage::Format_RGBA8888);
 			if(p == NULL) {
 				p = &im;
 			}
 			if(uVramTextureID != NULL) {
-				p_wid->makeCurrent();
+//				p_wid->makeCurrent();
 				uVramTextureID->destroy();
 				delete uVramTextureID;
 				uVramTextureID = createMainTexture(p);
-				p_wid->doneCurrent();
+//				p_wid->doneCurrent();
 			} else {
-				p_wid->makeCurrent();
+//				p_wid->makeCurrent();
 				uVramTextureID = createMainTexture(p);
-				p_wid->doneCurrent();
+//				p_wid->doneCurrent();
 			}
 		}
 		vertexFormat[0].x = -1.0f;
@@ -1899,14 +1906,14 @@ bool GLDraw_4_5::map_vram_texture(void)
 	return false;
 #else
 
-	extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
-	extfunc->glDeleteSync(sync_fence);
-	sync_fence = extfunc->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,  0);
+//	extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
+//	extfunc->glDeleteSync(sync_fence);
+//	sync_fence = extfunc->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,  0);
 	
-	//extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
+	extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
 	map_base_address = (scrntype_t *)(extfunc->glMapNamedBufferRange(main_texture_buffer, 0, pixel_width * pixel_height * sizeof(scrntype_t),  GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT));
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SCREEN, "MAPPED SCREEN TO PHYSICAL ADDRESS:%0llx\n", (uintptr_t)map_base_address);
-	//extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+	extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	if(map_base_address == NULL) return false;
 	return true;
 #endif

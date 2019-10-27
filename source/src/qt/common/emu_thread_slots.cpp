@@ -465,13 +465,13 @@ void EmuThreadClass::do_start_auto_key(QString ctext)
 			}
 		}
 		clipBoardText = dst;
-		printf("%s\n", clipBoardText.toLocal8Bit().constData());
+		//printf("%s\n", clipBoardText.toLocal8Bit().constData());
 		array = codec->fromUnicode(clipBoardText);
-		printf("Array is:");
-		for(int l = 0; l < array.size(); l++) {
-			printf("%02X ", array.at(l));
-		}
-		printf("\n");
+		//printf("Array is:");
+		//for(int l = 0; l < array.size(); l++) {
+		//	printf("%02X ", array.at(l));
+		//}
+		//printf("\n");
 		if(clipBoardText.size() > 0) {
 			int size = array.size();
 			const char *buf = (char *)(array.constData());

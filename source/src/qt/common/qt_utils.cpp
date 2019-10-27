@@ -1272,6 +1272,7 @@ int MainLoop(int argc, char *argv[])
 	}
 	csp_logger->set_osd(emu->get_osd());
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "InitInstance() OK.");
+	pgl->do_set_texture_size(NULL, -1, -1);  // It's very ugly workaround (;_;) 20191028 K.Ohta
 	// ToDo: Update raltime.
 	for(int i = 0; i < 16; i++) {
 		const _TCHAR* sp = emu->get_osd()->get_sound_device_name(i);

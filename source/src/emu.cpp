@@ -271,6 +271,7 @@ void EMU::reset()
 #if defined(_USE_QT)
 		osd->reset_vm_node();
 		osd->update_keyname_table();
+		osd->reset_screen_buffer();
 #endif
 		int presented_rate;
 		int presented_samples;
@@ -3141,6 +3142,7 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 # if defined(_USE_QT)
 					osd->reset_vm_node();
 					osd->update_keyname_table();
+					osd->reset_screen_buffer();
 # endif	
 					vm->initialize_sound(sound_rate, sound_samples);
 #ifdef USE_SOUND_VOLUME
