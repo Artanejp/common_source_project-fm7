@@ -293,6 +293,18 @@ void GLDrawClass::InitFBO(void)
 #endif
 	if((render_type == CONFIG_RENDER_PLATFORM_OPENGL_ES) || (glContext->isOpenGLES())){
 		QPair<int, int> _glversion = _fmt.version();
+		if(_major_version >= 3) {
+			if((_glversion.first >= 3) &&
+			   (extfunc == NULL)) {
+				if(_glversion.second >= 1) {
+					extfunc = new GLDraw_ES_2(this, using_flags, csp_logger);
+					if(extfunc != NULL) {
+						csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL ES(v3.1) Renderer");
+						goto _nr_end;
+					}
+				}
+			}
+		}
 		if((_glversion.first >= 2) && (_glversion.second >= 0) &&
 		   (extfunc == NULL) &&
 		   (_major_version >= 2)){

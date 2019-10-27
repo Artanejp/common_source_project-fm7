@@ -406,6 +406,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	{
 			int render_type = p_config->render_platform;
 			int _major_version = p_config->render_major_version;
+			int _minor_version = p_config->render_minor_version;
 			//int _minor_version = p_config->render_minor_version; // ToDo
 			for(i = 0; i < MAX_RENDER_PLATFORMS; i++) {
 				tmps = QString::number(i);
@@ -419,9 +420,17 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 					action_SetRenderPlatform[i]->setVisible(false);
 				} else {
 					if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_ES) {
-						if(_major_version >= 2) {
-							if(i == RENDER_PLATFORMS_OPENGL_ES_2) {
-								action_SetRenderPlatform[i]->setChecked(true);
+						if(_major_version == 3) {
+							if(_minor_version >= 1) {
+								if(i == RENDER_PLATFORMS_OPENGL_ES_31) {
+									action_SetRenderPlatform[i]->setChecked(true);
+								}
+							}
+						} else {
+							if(_major_version >= 2) {
+								if(i == RENDER_PLATFORMS_OPENGL_ES_2) {
+									action_SetRenderPlatform[i]->setChecked(true);
+								}
 							}
 						}
 					} else if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_MAIN) {
@@ -590,11 +599,13 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 		}
 	}
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_ES_2]->setText(QApplication::translate("MenuEmulator", "OpenGL ES v2.0", 0));
+	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_ES_31]->setText(QApplication::translate("MenuEmulator", "OpenGL ES v3.1", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL3_MAIN]->setText(QApplication::translate("MenuEmulator", "OpenGLv3.0", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL2_MAIN]->setText(QApplication::translate("MenuEmulator", "OpenGLv2.0", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_CORE]->setText(QApplication::translate("MenuEmulator", "OpenGL(Core profile)", 0));
 	
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_ES_2]->setToolTip(QApplication::translate("MenuEmulator", "Using OpenGL ES v2.0.\nThis is recommanded.\nIf changed, need to restart this emulator.", 0));
+	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_ES_31]->setToolTip(QApplication::translate("MenuEmulator", "Using OpenGL ES v3.1.\nThis is recommanded.\nIf changed, need to restart this emulator.", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL3_MAIN]->setToolTip(QApplication::translate("MenuEmulator", "Using OpenGL v3.0(MAIN).\nThis is recommanded.\nIf changed, need to restart this emulator.", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL2_MAIN]->setToolTip(QApplication::translate("MenuEmulator", "Using OpenGLv2.\nThis is fallback of some systems.\nIf changed, need to restart this emulator.", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_CORE]->setToolTip(QApplication::translate("MenuEmulator", "Using OpenGL core profile.\nThis still not implement.\nIf changed, need to restart this emulator.", 0));

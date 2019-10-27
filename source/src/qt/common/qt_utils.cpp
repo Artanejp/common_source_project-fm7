@@ -1000,12 +1000,20 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 				config.render_major_version = 3;
 				config.render_minor_version = 0;
 			} else if((render == QString::fromUtf8("GLES2")) ||
-					 (render == QString::fromUtf8("GLESV2")) ||
-					 (render == QString::fromUtf8("GLES3")) ||
-					 (render == QString::fromUtf8("GLESV3")) ||
-					 (render == QString::fromUtf8("GLES"))) {
+					  (render == QString::fromUtf8("GLESV2")) ||
+					  (render == QString::fromUtf8("ESV2")) ||
+					  (render == QString::fromUtf8("ES2")) ||
+					  (render == QString::fromUtf8("ES")) ||
+					  (render == QString::fromUtf8("GLES"))) {
 				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_ES;
 				config.render_major_version = 2;
+				config.render_minor_version = 1;
+			} else if((render == QString::fromUtf8("GLES3")) ||
+					  (render == QString::fromUtf8("GLESV3")) ||
+					  (render == QString::fromUtf8("ESV3")) ||
+					  (render == QString::fromUtf8("ES3"))) {
+				config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_ES;
+				config.render_major_version = 3;
 				config.render_minor_version = 1;
 			} else if((render == QString::fromUtf8("GL4")) ||
 					 (render == QString::fromUtf8("GL43")) ||

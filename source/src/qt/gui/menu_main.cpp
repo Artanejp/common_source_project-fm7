@@ -298,6 +298,11 @@ void Ui_MainWindowBase::do_select_render_platform(int num)
 		_major = 2;
 		_minor = 0;
 		break;
+	case RENDER_PLATFORMS_OPENGL_ES_31:
+		_type = CONFIG_RENDER_PLATFORM_OPENGL_ES;
+		_major = 3;
+		_minor = 1;
+		break;
 	case RENDER_PLATFORMS_OPENGL3_MAIN:
 		_type = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
 		_major = 3;
@@ -390,7 +395,18 @@ void Ui_MainWindowBase::setupUi(void)
 
 			if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_ES) {
 				fmt.setRenderableType(QSurfaceFormat::OpenGLES);
-				csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL ES.");
+				if(p_config->render_major_version < 2) p_config->render_platform = 2;
+				if(p_config->render_major_version > 3) p_config->render_platform = 3;
+				if(p_config->render_major_version == 2) {
+					if(p_config->render_minor_version < 0) p_config->render_minor_version = 0;
+					if(p_config->render_minor_version > 1) p_config->render_minor_version = 1;
+				} else {
+					// major == 3
+					if(p_config->render_minor_version < 0) p_config->render_minor_version = 0;
+					if(p_config->render_minor_version > 2) p_config->render_minor_version = 2;
+				}					
+				fmt.setVersion(p_config->render_major_version , p_config->render_minor_version ); // Requires >=Qt-4.8.0
+				csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL ES(v%d.%d).", p_config->render_major_version, p_config->render_minor_version);
 			} else if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) { 
 				fmt.setProfile(QSurfaceFormat::CoreProfile); // Requires >=Qt-4.8.0
 				fmt.setVersion(4, 7); // Requires >=Qt-4.8.0
