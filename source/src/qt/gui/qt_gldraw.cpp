@@ -90,7 +90,6 @@ void GLDrawClass::paintGL(void)
 			extfunc->resizeGL(draw_width, draw_height);
 			delay_update = false;
 		}
-		//extfunc->paintGL();
 	}
 	emit sig_draw_timing();
 	SaveToPixmap(); // If save requested, then Save to Pixmap.
@@ -242,4 +241,32 @@ const bool GLDrawClass::is_ready_to_map_vram_texture(void)
 {
 	if(extfunc == NULL) return false;
 	return extfunc->is_ready_to_map_vram_texture();
+}
+
+QString GLDrawClass::getRenderString()
+{
+	QString s;
+	QString _head;
+	QOpenGLContext *ctx;
+	ctx = context();
+	if(ctx != NULL) {
+		QSurfaceFormat fmt = ctx->format();
+		int major = fmt.majorVersion();
+		int minor = fmt.minorVersion();
+		if(ctx->isOpenGLES()) {
+			_head = QString::fromUtf8("OpenGL ES v");
+		} else {
+			if(fmt.profile() == QSurfaceFormat::CoreProfile) {
+				_head = QString::fromUtf8("OpenGL (Core) v");
+			} else {
+				_head = QString::fromUtf8("OpenGL (Main) v");
+			}				
+		}
+		s = QString::fromUtf8("Host:&nbsp;");
+		s = s + _head + QString::number(major) +
+			QString::fromUtf8(".")  + QString::number(minor) + QString::fromUtf8("<BR>");
+	} else {
+		s = QString::fromUtf8("Host: NOT OpenGL <BR>");
+	}
+	return s + render_string;
 }

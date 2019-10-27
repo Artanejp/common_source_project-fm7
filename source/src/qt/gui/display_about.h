@@ -13,6 +13,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGroupBox>
+#include <QString>
 
 #include "common.h"
 
@@ -34,8 +35,9 @@ protected:
 	QLabel *revarea;
 	QWidget *BoxTitle;
 	QVBoxLayout *VBox;
+	QString renderer;
 public:
-	Dlg_AboutCSP(USING_FLAGS *p, QWidget *parent = 0);
+	Dlg_AboutCSP(USING_FLAGS *p, QString rendererString = QString::fromUtf8(""), QWidget *parent = 0);
 	~Dlg_AboutCSP();
 	
 };

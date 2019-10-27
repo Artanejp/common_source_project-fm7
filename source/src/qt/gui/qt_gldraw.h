@@ -19,6 +19,7 @@
 #include <QColor>
 #include <QPixmap>
 #include <QString>
+#include <QPair>
 
 class EMU;
 class QEvent;
@@ -53,10 +54,11 @@ class DLL_PREFIX GLDrawClass: public QOpenGLWidget
 	int draw_height;
 	
 	bool delay_update;
-
+	
  protected:
 	bool run_vm;
-
+	QString render_string;
+	
 	void keyReleaseEvent(QKeyEvent *event);
 	void keyPressEvent(QKeyEvent *event);
 	void initializeGL();
@@ -112,6 +114,8 @@ public:
 	GLuint get_mapped_buffer_num(int region);
 
 	scrntype_t* get_screen_buffer(int y);
+
+	virtual QString getRenderString();
 public slots:
 	void initKeyCode(void);
 	void releaseKeyCode(void);

@@ -171,7 +171,11 @@ void Ui_MainWindowBase::do_set_window_focus_type(bool flag)
 
 void Ui_MainWindowBase::do_show_about(void)
 {
-	Dlg_AboutCSP *dlg = new Dlg_AboutCSP(using_flags, static_cast<QWidget *>(this));
+	QString renderStr;
+	if(graphicsView != NULL) {
+		renderStr = graphicsView->getRenderString();
+	}
+	Dlg_AboutCSP *dlg = new Dlg_AboutCSP(using_flags, renderStr, static_cast<QWidget *>(this));
 	dlg->show();
 }
 

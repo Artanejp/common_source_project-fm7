@@ -299,6 +299,7 @@ void GLDrawClass::InitFBO(void)
 				if(_glversion.second >= 1) {
 					extfunc = new GLDraw_ES_2(this, using_flags, csp_logger);
 					if(extfunc != NULL) {
+						_major_version = 3;
 						csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL ES(v3.1) Renderer");
 						goto _nr_end;
 					}
@@ -310,6 +311,8 @@ void GLDrawClass::InitFBO(void)
 		   (_major_version >= 2)){
 			extfunc = new GLDraw_ES_2(this, using_flags, csp_logger);
 			if(extfunc != NULL) {
+				_major_version = 2;
+				_minor_version = 0;
 				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL ES(v2.0) Renderer");
 				goto _nr_end;
 			}
@@ -322,6 +325,9 @@ void GLDrawClass::InitFBO(void)
 		  ((_major_version >= 5) || ((_major_version == 4) && (_minor_version >= 3)))){
 			extfunc = new GLDraw_4_5(this, using_flags, csp_logger); // ToDo
 			if(extfunc != NULL) {
+				_major_version = 4;
+				_minor_version = 5;
+				render_type = CONFIG_RENDER_PLATFORM_OPENGL_CORE;
 				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v4.5(CORE) Renderer");
 				goto _nr_end;
 			}
@@ -333,7 +339,10 @@ void GLDrawClass::InitFBO(void)
 		   (_major_version >= 3)){
 			extfunc = new GLDraw_3_0(this, using_flags, csp_logger);
 			if(extfunc != NULL) {
+				_major_version = 3;
+				_minor_version = 0;
 				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v3.0 Renderer");
+				render_type = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
 				goto _nr_end;
 			}
 		}
@@ -343,13 +352,32 @@ void GLDrawClass::InitFBO(void)
 			}				
 			extfunc = new GLDraw_2_0(this, using_flags, csp_logger);
 			if(extfunc != NULL) {
+				_major_version = 2;
+				_minor_version = 0;
 				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v2.0 Renderer");
+				render_type = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
 				goto _nr_end;
 			}
 		}
 	}
 _nr_end:
 	if(extfunc != NULL) {
+		if((render_type != CONFIG_RENDER_PLATFORM_OPENGL_MAIN) &&
+		   (render_type != CONFIG_RENDER_PLATFORM_OPENGL_CORE) &&
+		   (render_type != CONFIG_RENDER_PLATFORM_OPENGL_ES)) {
+			render_string = QString::fromUtf8("Emu:  Not OpenGL");
+		} else {
+			QString _head;
+			if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_ES) {
+				_head = QString::fromUtf8("OpenGL ES v");
+			} else if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) {
+				_head = QString::fromUtf8("OpenGL (Core) v");
+			} else {
+				_head = QString::fromUtf8("OpenGL (Main) v");
+			}				
+			render_string = QString::fromUtf8("Emu:&nbsp;&nbsp;") + _head + QString::number(_major_version) +
+				QString::fromUtf8(".") + QString::number(_minor_version) + QString::fromUtf8("<BR>");
+		}
 		extfunc->initGLObjects();
 		extfunc->initFBO();
 		extfunc->initLocalGLObjects();

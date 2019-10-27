@@ -18,7 +18,7 @@
 
 //extern USING_FLAGS *using_flags;
 
-Dlg_AboutCSP::Dlg_AboutCSP(USING_FLAGS *p, QWidget *parent) : QWidget(NULL)
+Dlg_AboutCSP::Dlg_AboutCSP(USING_FLAGS *p, QString rendererString, QWidget *parent) : QWidget(NULL)
 {
 	QByteArray tmps;
 	QFile f_credits(":/credits.html");
@@ -33,7 +33,9 @@ Dlg_AboutCSP::Dlg_AboutCSP(USING_FLAGS *p, QWidget *parent) : QWidget(NULL)
 	using_flags = p;
 	// Credits
 	credits.clear();
-	printf("%x\n",parent_widget);
+	renderer = rendererString;
+	
+//	printf("%x\n",parent_widget);
 	if(f_credits.open(QIODevice::ReadOnly | QIODevice::Text)) {
 		tmps = f_credits.readAll();
 		if(!tmps.isEmpty()) {
@@ -54,6 +56,11 @@ Dlg_AboutCSP::Dlg_AboutCSP(USING_FLAGS *p, QWidget *parent) : QWidget(NULL)
 			ni = ns.indexOf(reps);
 			if(ni >= 0) {
 				ns.replace(ni, reps.length(), bs);
+			}
+			reps = QString::fromUtf8("@@RendererType@@");
+			ni = ns.indexOf(reps);
+			if(ni >= 0) {
+				ns.replace(ni, reps.length(), renderer);
 			}
 			
 			credits = ns;
