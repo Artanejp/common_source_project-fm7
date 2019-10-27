@@ -105,16 +105,16 @@ int MOVIE_LOADER::decode_video(AVCodecContext *dec_ctx, int *got_frame)
 	if(got_frame != NULL) *got_frame = 0;
     ret = avcodec_send_packet(dec_ctx, &pkt);
     if (ret < 0) {
-		printf("0\n");
+//		printf("0\n");
 		return ret;
     }
     /* read all the output frames (in general there may be any number of them */
 	ret = avcodec_receive_frame(dec_ctx, frame);
 	if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-		printf("1\n");
+//		printf("1\n");
 		return ret;
 	} else if (ret < 0) {
-		printf("2\n");
+//		printf("2\n");
 		return ret;
 	}
 	if(got_frame != NULL) *got_frame = 1;

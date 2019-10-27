@@ -197,14 +197,14 @@ bool MOVIE_SAVER::open_video()
 	//if (c->pix_fmt != AV_PIX_FMT_YUV420P) {
 	ost->tmp_frame = (AVFrame *)alloc_picture(AV_PIX_FMT_RGBA, _width, _height);
 	if (!ost->tmp_frame) {
-		fprintf(stderr, "Could not allocate temporary picture\n");
+		p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,  "Could not allocate temporary picture\n");
 		return false;
 	}
 	//}
 #ifdef AVCODEC_UPPER_V56
 	ret = avcodec_parameters_from_context(ost->st->codecpar, c);
 	if (ret < 0) {
-		fprintf(stderr, "Could not copy the stream parameters\n");
+		p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,  "Could not copy the stream parameters\n");
 		return false;
 	}
 #endif
