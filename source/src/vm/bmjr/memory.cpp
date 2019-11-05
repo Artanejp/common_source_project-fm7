@@ -267,7 +267,7 @@ void MEMORY::event_frame()
 	// If same as bm2, not effect below keys at Qt version.
 	if(key_stat[VK_LCONTROL]) key_data &= ~0x10; // 英数     -> LCTRL
 	if(key_stat[VK_LSHIFT  ]) key_data &= ~0x20; // 英記号   -> L-SHIFT
-	if(key_stat[VK_RWIN    ]) key_data &= ~0x40; // カナ記号 -> R-Win
+	if(key_stat[VK_RSHIFT  ]) key_data &= ~0x40; // カナ記号 -> R-Win
 	if(key_stat[VK_KANA    ]) key_data &= ~0x80; // カナ     -> カタカナひらがな
 #else
 	// this is same as "日立ベーシックマスターJr.(MB-6885)エミュレータ bm2"

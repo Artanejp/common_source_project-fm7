@@ -32,7 +32,6 @@
 #define USE_TAPE		1
 #define USE_FLOPPY_DISK		2
 #define NOTIFY_KEY_DOWN
-#define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY_SHIFT	2
 #define USE_AUTO_KEY		5

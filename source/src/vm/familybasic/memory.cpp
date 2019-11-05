@@ -298,7 +298,11 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 			switch(kb_scan) {
 			case 1:
 				if(key_stat[0x15]) val &= ~0x02;	// KANA
+#if 0				
 //				if(key_stat[0x10]) val &= ~0x04;	// RSHIFT
+#else
+				if(key_stat[VK_RSHIFT]) val &= ~0x04;	// RSHIFT
+#endif
 				if(key_stat[0xdc]) val &= ~0x08;	// '\\'
 				if(key_stat[0x23]) val &= ~0x10;	// STOP
 				break;
@@ -339,7 +343,11 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 				if(key_stat[0x33]) val &= ~0x10;	// 3
 				break;
 			case 8:
+#if 0
 				if(key_stat[0x10]) val &= ~0x02;	// LSHIFT
+#else
+				if(key_stat[VK_LSHIFT]) val &= ~0x02;	// LSHIFT
+#endif
 				if(key_stat[0x12]) val &= ~0x04;	// GRAPH
 				if(key_stat[0x31]) val &= ~0x08;	// 1
 				if(key_stat[0x32]) val &= ~0x10;	// 2

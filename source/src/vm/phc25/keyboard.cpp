@@ -77,10 +77,18 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 		return key_stat[key_map[addr - 0x7800]] ? 0 : 1;
 	} else if(addr == 0x7850) {
 		// LSHIFT
+#if 0
 		return key_stat[0x10] ? 0 : 1;
+#else
+		return key_stat[VK_LSHIFT] ? 0 : 1;
+#endif		
 	} else if(addr == 0x7851) {
 		// RSHIFT
+#if 0
 		return 1;
+#else
+		return key_stat[VK_RSHIFT] ? 0 : 1;
+#endif
 	} else if(addr == 0x7852) {
 		// CTRL
 		return key_stat[0x11] ? 0 : 1;
