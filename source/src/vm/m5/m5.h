@@ -40,6 +40,8 @@
 #include "../../fileio.h"
 #include "../vm_template.h"
 
+#define NOTIFY_KEY_DOWN_LR_SHIFT
+
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 	_T("PSG"), _T("CMT (Signal)"), _T("Noise (CMT)"),
