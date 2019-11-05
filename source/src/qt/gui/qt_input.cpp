@@ -252,9 +252,9 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 	if(event->isAutoRepeat()) return;
 	scan = event->nativeScanCode();
 	vk = get106Scancode2VK(scan);
-	/*
+	
 #if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)	
-	if(using_flags->is_notify_key_down_lr_shift()) {
+//	if(using_flags->is_notify_key_down_lr_shift()) {
 		if(vk == VK_SHIFT) {
 			if((GetAsyncKeyState(VK_LSHIFT) & 0x8000) == 0) vk = VK_LSHIFT;
 			if((GetAsyncKeyState(VK_RSHIFT) & 0x8000) == 0) vk = VK_RSHIFT;
@@ -263,9 +263,9 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 			if(GetAsyncKeyState(VK_LMENU) & 0x8000) vk = VK_LMENU;
 			if(GetAsyncKeyState(VK_RMENU) & 0x8000) vk = VK_RMENU;
 		}
-	}
+//	}
 #endif
-	*/
+	
 	//QThread::msleep(2);
 	//printf("Key: UP: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emit sig_key_up(vk, mod);
@@ -290,9 +290,9 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 			return;
 		}
 	}
-	/*
+	
 #if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)	
-	if(using_flags->is_notify_key_down_lr_shift()) {
+	//if(using_flags->is_notify_key_down_lr_shift()) {
 		if(vk == VK_SHIFT) {
 			if(GetAsyncKeyState(VK_LSHIFT) & 0x8000) vk = VK_LSHIFT;
 			if(GetAsyncKeyState(VK_RSHIFT) & 0x8000) vk = VK_RSHIFT;
@@ -301,9 +301,9 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 			if(GetAsyncKeyState(VK_LMENU) & 0x8000) vk = VK_LMENU;
 			if(GetAsyncKeyState(VK_RMENU) & 0x8000) vk = VK_RMENU;
 		}
-	}
+	//}
 #endif
-	*/
+	
 	emit sig_key_down(vk, mod, false);
 }
 
