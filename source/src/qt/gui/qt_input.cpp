@@ -167,11 +167,13 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 			vk = VK_KANJI;
 		}
 	}
+	/*
 	if(!using_flags->is_notify_key_down_lr_shift()) {
 		if((vk == VK_LSHIFT) || (vk == VK_RSHIFT)) vk = VK_SHIFT;
 		if((vk == VK_LMENU) || (vk == VK_RMENU)) vk = VK_MENU;
 	}
-	if((vk == VK_LCONTROL) || (vk == VK_RCONTROL)) vk = VK_CONTROL;
+	*/
+//	if((vk == VK_LCONTROL) || (vk == VK_RCONTROL)) vk = VK_CONTROL;
 	if(p_config->numpad_enter_as_fullkey) {
 		if(vk == VK_OEM_CSP_KPRET) vk = VK_RETURN;
 	}
@@ -250,6 +252,7 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 	if(event->isAutoRepeat()) return;
 	scan = event->nativeScanCode();
 	vk = get106Scancode2VK(scan);
+	/*
 #if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)	
 	if(using_flags->is_notify_key_down_lr_shift()) {
 		if(vk == VK_SHIFT) {
@@ -262,6 +265,7 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 		}
 	}
 #endif
+	*/
 	//QThread::msleep(2);
 	//printf("Key: UP: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emit sig_key_up(vk, mod);
@@ -286,6 +290,7 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 			return;
 		}
 	}
+	/*
 #if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)	
 	if(using_flags->is_notify_key_down_lr_shift()) {
 		if(vk == VK_SHIFT) {
@@ -298,6 +303,7 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 		}
 	}
 #endif
+	*/
 	emit sig_key_down(vk, mod, false);
 }
 

@@ -120,7 +120,6 @@ protected:
 
 	bool use_scanline;
 	bool use_screen_rotate;
-	bool use_shift_numpad_key;
 
 	int max_scsi;
 
@@ -158,7 +157,6 @@ protected:
 	
 	int screen_width_aspect;
 	int screen_height_aspect;
-	bool notify_key_down_lr_shift;
 
 	bool tape_binary_only;
 	int screen_mode_num;
@@ -278,7 +276,6 @@ public:
 
 	bool is_use_scanline() { return use_scanline; }
 	bool is_use_screen_rotate() { return use_screen_rotate; }
-	bool is_use_shift_numpad_key() { return use_shift_numpad_key; }
 
 	int get_max_scsi() { return max_scsi; }
 
@@ -318,7 +315,6 @@ public:
 	button_desc_t *get_vm_buttons() { return vm_buttons_d; }
 	vm_ranges_t *get_draw_ranges() { return vm_ranges_d; }
 
-	bool is_notify_key_down_lr_shift() { return notify_key_down_lr_shift; }
 	bool is_tape_binary_only() { return tape_binary_only; }
 
 	bool is_machine_basicmaster_variants() { return machine_basicmaster_variants; }

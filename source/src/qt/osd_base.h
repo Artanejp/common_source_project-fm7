@@ -172,7 +172,6 @@ protected:
 	QList<supportedlist_t> SupportedFeatures;
 	
 	bool __USE_AUTO_KEY;
-	bool __USE_SHIFT_NUMPAD_KEY;
    
 	_TCHAR app_path[_MAX_PATH];
 	QElapsedTimer osd_timer;

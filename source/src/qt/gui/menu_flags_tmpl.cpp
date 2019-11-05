@@ -60,7 +60,6 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	max_qd = 0;
 	max_tape = 0;
 	use_scanline = use_screen_rotate = false;
-	use_shift_numpad_key = false;
 	screen_mode_num = 1;
 
 
@@ -148,7 +147,6 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	base_qd_num = 1;
 	
 	use_scanline = use_screen_rotate = false;
-	use_shift_numpad_key = false;
 	screen_mode_num = 1;
 
 
@@ -184,7 +182,6 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	vm_ranges_d = NULL;
 	
 	use_vertical_pixel_lines = false;
-	notify_key_down_lr_shift = false;
 	tape_binary_only = false;
 	device_name = QString::fromUtf8("");
 	config_name = QString::fromUtf8("");

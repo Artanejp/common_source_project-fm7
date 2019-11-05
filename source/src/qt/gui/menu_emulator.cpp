@@ -189,7 +189,7 @@ void Ui_MainWindowBase::rise_keyboard_dialog(void)
 			for(auto i = phys_key_name_map.constBegin(); i != phys_key_name_map.constEnd(); ++i)
 			{
 				bool is_set = false;
-				if(!using_flags->is_notify_key_down_lr_shift()) {
+//				if(!using_flags->is_notify_key_down_lr_shift()) {
 					if(i.key() == VK_SHIFT) {
 						emit sig_add_keyname_table(VK_LSHIFT, i.value());
 						emit sig_add_keyname_table(VK_RSHIFT, i.value());
@@ -199,7 +199,7 @@ void Ui_MainWindowBase::rise_keyboard_dialog(void)
 						emit sig_add_keyname_table(VK_RMENU, i.value());
 						is_set = true;
 					}
-				}
+//				}
 				if(i.key() == VK_CONTROL) {
 					emit sig_add_keyname_table(VK_LCONTROL, i.value());
 					emit sig_add_keyname_table(VK_RCONTROL, i.value());

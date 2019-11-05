@@ -277,26 +277,29 @@ void OSD_BASE::key_down(int code, bool extended, bool repeat)
 		//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_OSD, "KEY DOWN %d", code);
 		//if(!dinput_key_available) {
 			if(code == VK_SHIFT) {
+				if(!(key_status[VK_RSHIFT] & 0x80) && (GetAsyncKeyState(VK_RSHIFT) & 0x8000)) {
+					key_down_native(VK_RSHIFT, repeat);
+				}
 				if(!(key_status[VK_LSHIFT] & 0x80) && (GetAsyncKeyState(VK_LSHIFT) & 0x8000)) {
 					code = VK_LSHIFT;
-				} else if(!(key_status[VK_RSHIFT] & 0x80) && (GetAsyncKeyState(VK_RSHIFT) & 0x8000)) {
-					code = VK_RSHIFT;
 				} else {
 					return;
 				}
 			} else if(code == VK_CONTROL) {
+				if(!(key_status[VK_RCONTROL] & 0x80) && (GetAsyncKeyState(VK_RCONTROL) & 0x8000)) {
+					key_down_native(VK_RCONTROL, repeat);
+				}
 				if(!(key_status[VK_LCONTROL] & 0x80) && (GetAsyncKeyState(VK_LCONTROL) & 0x8000)) {
 					code = VK_LCONTROL;
-				} else if(!(key_status[VK_RCONTROL] & 0x80) && (GetAsyncKeyState(VK_RCONTROL) & 0x8000)) {
-					code = VK_RCONTROL;
 				} else {
 					return;
 				}
 			} else if(code == VK_MENU) {
+				if(!(key_status[VK_RMENU] & 0x80) && (GetAsyncKeyState(VK_RMENU) & 0x8000)) {
+					key_down_native(VK_RMENU, repeat);
+				}
 				if(!(key_status[VK_LMENU] & 0x80) && (GetAsyncKeyState(VK_LMENU) & 0x8000)) {
 					code = VK_LMENU;
-				} else if(!(key_status[VK_RMENU] & 0x80) && (GetAsyncKeyState(VK_RMENU) & 0x8000)) {
-					code = VK_RMENU;
 				} else {
 					return;
 				}
@@ -331,8 +334,6 @@ void OSD_BASE::key_down(int code, bool extended, bool repeat)
 				break;
 			}
    
-//#ifdef USE_SHIFT_NUMPAD_KEY
-			if(__USE_SHIFT_NUMPAD_KEY) {
 //			if(code == VK_LSHIFT || code == VK_RSHIFT) {
 			if(code == VK_LSHIFT) {
 				key_shift_pressed = true;
@@ -402,9 +403,6 @@ void OSD_BASE::key_down(int code, bool extended, bool repeat)
 					break;
 				}
 			}
-		   }
-		   
-//#endif
 			key_down_native(code, repeat);
 		//} else {
 		//	if(repeat || code == 0xf0 || code == 0xf1 || code == 0xf2 || code == 0xf3 || code == 0xf4) {
@@ -478,9 +476,6 @@ void OSD_BASE::key_up(int code, bool extended)
 				break;
 			}
 					
-//#ifdef USE_SHIFT_NUMPAD_KEY
-			if(__USE_SHIFT_NUMPAD_KEY) {
-			
 //			if(code == VK_LSHIFT || code == VK_RSHIFT) {
 				if(code == VK_LSHIFT) {
 					key_shift_pressed = false;
@@ -532,13 +527,8 @@ void OSD_BASE::key_up(int code, bool extended)
 						return;
 					}
 				}
-			}
-//#endif
 			key_up_native(code);
-		}
-//#ifdef USE_AUTO_KEY
-//}
-//#endif
+	}
 }
 
 

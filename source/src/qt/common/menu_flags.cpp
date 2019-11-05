@@ -94,7 +94,6 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	base_qd_num = 1;
 	
 	use_scanline = use_screen_rotate = false;
-	use_shift_numpad_key = false;
 	screen_mode_num = 1;
 
 
@@ -137,7 +136,6 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	vm_buttons_d = NULL;
 
 	use_vertical_pixel_lines = false;
-	notify_key_down_lr_shift = false;
 	tape_binary_only = false;
 #if defined(DEVICE_NAME)
 	device_name = QString::fromUtf8(DEVICE_NAME);
@@ -402,9 +400,6 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_SCREEN_ROTATE)
 	use_screen_rotate = true;
 #endif
-#if defined(USE_SHIFT_NUMPAD_KEY)
-	use_shift_numpad_key = true;
-#endif
 #if defined(MAX_SCSI)
 	max_scsi = MAX_SCSI;
 #endif
@@ -440,9 +435,6 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	
 #if defined(USE_VERTICAL_PIXEL_LINES)
 	use_vertical_pixel_lines = true;
-#endif
-#if defined(NOTIFY_KEY_DOWN_LR_SHIFT)
-	notify_key_down_lr_shift = true;
 #endif
 #if defined(TAPE_BINARY_ONLY)
 	tape_binary_only = true;

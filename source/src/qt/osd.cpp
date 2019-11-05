@@ -1150,12 +1150,8 @@ void OSD::set_features(void)
 	set_features_debug();
 
 	__USE_AUTO_KEY = false;
-	__USE_SHIFT_NUMPAD_KEY = false;
 #ifdef USE_AUTO_KEY
 	__USE_AUTO_KEY = true;
-#endif
-#ifdef USE_SHIFT_NUMPAD_KEY
-	__USE_SHIFT_NUMPAD_KEY = true;
 #endif
 }
 
