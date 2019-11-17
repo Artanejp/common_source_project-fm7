@@ -127,14 +127,12 @@ void SERIAL_ROM::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_SERIALROM_CLK:
 		{
 			bool oldclk = clk;
-			bool newclk = clk;
 			if(cs) {
-				newclk = ((data & mask) != 0);
+				clk = ((data & mask) != 0);
 			} else {
 				return;
 			}
-			if((oldclk != newclk) && !(reset_reg)) {
-				clk = newclk;
+			if((oldclk != clk) && !(reset_reg)) {
 				if(clk) {
 					// Rise up
 					rom_addr = (rom_addr + 1) & 0xff;
@@ -218,10 +216,9 @@ uint32_t SERIAL_ROM::read_io8(uint32_t addr)
 void SERIAL_ROM::write_io8(uint32_t addr, uint32_t data)
 {
 	this->write_signal(SIG_SERIALROM_CS, data, 0x20);
-	if((data & 0x80) == 0) { // RESET not asserted
-		this->write_signal(SIG_SERIALROM_CLK, data, 0x40);
-		reset_reg = false;
-	}
+	
+	reset_reg = ((data & 0x80) != 0);
+	this->write_signal(SIG_SERIALROM_CLK, data, 0x40);
 	this->write_signal(SIG_SERIALROM_RESET, data, 0x80);
 }
 
