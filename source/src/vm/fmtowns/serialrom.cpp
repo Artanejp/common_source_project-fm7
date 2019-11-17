@@ -8,12 +8,51 @@
 */
 
 #include "../../fileio.h"
-#include "./towns_memory.h"
 #include "./serialrom.h"
-#include "../i386.h"
 
 namespace FMTOWNS {
-	
+
+// POS=rom bit position, c=data
+void SERIAL_ROM::store_reversed_byte(uint8_t pos, uint8_t c)
+{
+	int npos = (256 - (uint16_t)pos) >> 3;
+	int bitpos = (256 - (uint16_t)pos) & 7;
+	uint8_t dst = 0x00;
+	for(int i = 0; i < 8; i++) {
+		dst <<= 1;
+		dst = dst | ((c >> i)& 0x01);
+	}
+	if(bitpos == 0) {
+		rom[npos] = dst;
+	} else {
+		pair16_t tmp;
+		pair16_t mask;
+		tmp.b.l = rom[npos];
+		if(npos < 31) {
+			tmp.b.h = rom[npos + 1];
+		} else {
+			tmp.b.h = 0x00;
+		}
+		mask.b.h = 0x00;
+		mask.b.l = 0xff;
+		mask.w <<= bitpos;
+		tmp.w = tmp.w & (~mask.w);
+		uint16_t data;
+		data = dst;
+		data <<= bitpos;
+		tmp.w = tmp.w | data;
+		if(npos < 31) {
+			rom[npos + 1] = tmp.b.h;
+		}
+		rom[npos] = tmp.b.l;
+	}
+}
+
+uint8_t SERIAL_ROM::read_rom_bits(uint8_t pos)
+{
+	return ((rom[pos >> 3] >> (pos & 7)) & 0x01);
+}
+
 void SERIAL_ROM::initialize()
 {
 	cs = true;
@@ -23,68 +62,57 @@ void SERIAL_ROM::initialize()
 	rom_addr = 0;
 	
 	memset(rom, 0xff, sizeof(rom));
+	uint8_t tmprom[256];
+	memset(tmprom, 0xff, sizeof(tmprom));
+	bool loaded = false;
 	FILEIO *fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("MYTOWNS.ROM")), FILEIO_READ_BINARY)) { // FONT
-		fio->Fread(rom, sizeof(rom), 1);
+		fio->Fread(tmprom, sizeof(tmprom), 1);
 		fio->Fclose();
+		loaded = true;
 	} else if(fio->Fopen(create_local_path(_T("SERIAL.ROM")), FILEIO_READ_BINARY)) { // FONT
-		fio->Fread(rom, sizeof(rom), 1);
+		fio->Fread(tmprom, sizeof(tmprom), 1);
 		fio->Fclose();
+		loaded = true;
+	}
+	if(loaded) {
+		// Q: IS MYTOWNS.ROM reverse bit-order? 20191117 K.O
+		//memcpy(rom, tmprom, sizeof(rom));
+		for(uint8_t i = 0; i < 32; i++) {
+			store_reversed_byte(i << 3, tmprom[i]);
+		}
 	} else {
-		// Header
-		const _TCHAR *id = _T("FUJITSU");
-		int _len = strlen(id);
-		if(_len < 0) _len = 0; // Bit 251 - 72
-		if(_len >= 22) _len = 21; // Bit 251 - 72
-		for(int i = 0; i < (_len + 1); i++) {
-			rom[32 - i] = 0x00;
+		rom[255 >> 3] = rom[255 >> 3] & 0x0f; // Clear head of 4 bits.
+		static const _TCHAR signaure[] = _T("FUJITSU");
+		for(int i = 0; i < strlen(signature); i++) {
+			store_reversed_byte((uint8_t)(244 - (i * 8)), signature[i]);
 		}
-		for(int i = 0; i < _len; i++) {
-			uint8_t _c = (uint8_t)id[i];
-			uint8_t _revc = 0x00;
-			uint8_t val = 0x80;
-			for(int j = 0; j < 8; j++) {
-				if((_c & 0x01) != 0) _revc = _revc | val;
-				val >>= 1;
-				_c  >>= 1;
-			}
-			rom[31 - i] = rom[31 - i] | ((_revc & 0xf0) >> 4); // High
-			rom[31 - (i + 1)] = rom[31 - (i + 1)] | ((_revc & 0x0f) << 4); // Low
+		// ToDo: Reserved BITs (bit 195 - bit 72)
+		// Machine ID
+		store_reversed_byte(64, 0x01);
+		store_reversed_byte(56, 0x01);
+		// SERIAL (DUMMY)
+		static const uint8_t serial_num[5] = {0xbc, 0xde, 0xf0, 0x12, 0x34};
+		uint8_t tmp1 = rom[48 >> 3];
+		uint8_t tmp2 = serial_num[0] & 0x0f;
+		uint8_t dst = 0;
+		for(int i = 0; i < 4; i++) {
+			dst <<= 1;
+			dst = dst | (tmp2 & 0x01);
+			tmps >>= 1;
 		}
-		rom[31 - _len] = rom[31 - _len] | 0x0f; // Last bit
-		// Machine ID (bit 71 - bit 56) must be dummy.
-
-		// Serial (bit 55 - bit20)
-		auto serial = static_cast<uint64_t>(0x00000123);
-		auto nmask  = static_cast<uint64_t>(0x0f);
-		nmask = nmask << 32;
-		int nibblepos = 8;
-		// Initialize footer and serial ID.
-		for(int i = 0; i < 7; i++) {
-			rom[7 - i] = 0x00;
+		tmp1 = tmp1 & 0xf0;
+		rom[48 >> 3] = tmp1 | (dst & 0x0f);
+		for(int i = 1; i < 5; i++) {
+			store_reversed_byte(20 + ((4 - i) << 3), serial_num[i]);
 		}
-		
-		for(int i = 0; i < 9; i++) {
-			uint64_t nval = (nmask & serial) >> 32;
-			uint8_t _c = ((uint8_t)nval) & 0x0f;
-			uint8_t _revc = 0x00;
-			uint8_t val = 0x08;
-			for(int j = 0; j < 4; j++) {
-				if((_c & 0x01) != 0) _revc = _revc | val;
-				val >>= 1;
-				_c  >>= 1;
-			}
-			serial <<= 4;
-			// High
-			if((i & 1) == 0) { // Lower
-				rom[6 - (i / 2)] = rom[6 - (i / 2)] | (_revc << 4);  
-			} else { // Lower
-				rom[6 - (i / 2)] = rom[6 - (i / 2)] | _revc;  
-			}
-		}
+		// Clear bit 19 - bit0
+		rom[16 >> 3] = rom[16 >> 3] & 0xf0;
+		rom[8 >> 3] = 0x00;
+		rom[0 >> 3] = 0x00;
 	}
 }
-
+	
 void SERIAL_ROM::reset()
 {
 //	cs = true;
@@ -145,32 +173,140 @@ uint32_t SERIAL_ROM::read_signal(int ch)
 		return ((clk) ? 0xffffffff : 0x00000000);
 		break;
 	case SIG_SERIALROM_CS:
-		return 0;
+		return ((cs) ? 0xffffffff : 0x00000000);;
 		break;
 	case SIG_SERIALROM_RESET:
 		return ((reset_reg) ? 0xffffffff : 0x00000000);
 		break;
+	case SIG_SERIALROM_RESET_STATE:
+		return reset_state;
+		break;
 	case SIG_SERIALROM_DATA:
-		{
-			if((rom_addr >= 56) && (rom_addr < 72)) {
-				// Serial id
-				uint32_t machine_id = d_mem->read_signal(SIG_FMTOWNS_MACHINE_ID);
-				uint32_t bitaddr = 15 - (rom_addr - 56);
-				uint32_t bitmask = 0x8000 >> bitaddr;
-				return (((bitmask & machine_id) != 0) ? 0xffffffff : 0x00000000);
-			} else {
-				uint32_t localaddr = (rom_addr & 0xff) >> 3;
-				uint32_t localbit  = (rom_addr & 0xff) & 0x07;
-				uint8_t _c = rom[localaddr];
-				uint8_t _bmask = 0x01 << localbit;
-				return (((_c & _bmask) != 0) ? 0xffffffff : 0x00000000);
-			}
+		if(cs) {
+			return (read_rom_bits(rom_addr) == 0x00) ? 0x00000000 : 0xffffffff;
+		} else {
+			return 0x00000000;
 		}
 		break;
 	}
 	return 0;
 }
 
+bool SERIAL_ROM::write_debug_reg(const _TCHAR *reg, uint32_t data)
+{
+	_TCHAR numseg[8] = {'\0'};
+	int noff = 0;
+	if((reg[0] == 'R') || (reg[0] == 'r')){
+		if(strlen(reg) < 2) return false;
+		if((reg[1] == 'R') || (reg[1] == 'r')) { // Reversed bit
+			noff = 1;
+		}
+		for(int i = 0; i < 2; i++) {
+			if(reg[i + noff + 1] == '\0') break;
+			if((reg[i + noff + 1] < '0') || (reg[i + noff + 1] >'9')) break;
+			numseg[i] = reg[i + noff + 1];
+		}
+		if(strlen(numseg) < 1) return false;
+		int pos = atoi(numseg);
+		if((pos < 0) || (pos > 31)) return false;
+		if((reg[1] == 'R') || (reg[1] == 'r')) { // Reversed bit
+			uint8_t dst = 0;
+			for(int i = 0; i <8; i++) {
+				dst <<= 1;
+				dst = dst | (data & 0x01);
+				data >>= 1;
+			}
+			rom[pos] = dst;
+		} else {
+			rom[pos] = data;
+		}
+		return true;
+	} else if((reg[0] == 'B') || (reg[0] == 'b')){
+		if(strlen(reg) < 2) return false;
+		if((reg[1] == 'R') || (reg[i] == 'r')) { // Reversed bit
+			noff = 1;
+		}		
+		for(int i = 0; i < 3; i++) {
+			if(reg[i + noff + 1] == '\0') break;
+			if((reg[i + noff + 1] < '0') || (reg[i + noff + 1] >'9')) break;
+			numseg[i] = reg[i + noff + 1];
+		}
+		if(strlen(numseg) < 1) return false;
+		int bitpos = atoi(numseg);
+		if((pos < 0) || (pos > 255)) return false;
+		int bytepos = bitpos >> 3;
+		int offs = bitpos & 7;
+		uint8_t dst = rom[bytepos];
+		if((reg[1] == 'R') || (reg[i] == 'r')) { // Reversed bit
+			offs = 7 - offs;
+		}
+		dst = dst & (~(0x01 << offs));
+		dst = dst | ((data & 0x01) << offs);
+		rom[bytepos] = dst;
+		return true;
+	}
+	return false;
+}
+
+bool SERIAL_ROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	uint8_t reverse_mem[32];
+
+	memset(reverse_mem, 0x00, sizeof(reverse_mem));
+	for(int i = 0; i < 32; i++) {
+		uint8_t dst = 0x00;
+		uint8_t src = rom[i];
+		for(int j = 0; j < 8; j++) {
+			dst <<= 1;
+			dst |= (src & 0x01);
+			src >>= 1;
+		}
+		reverse_mem[i] = dst;
+	}
+	// Dump raw value
+	my_tcscat_s(buffer, buffer_len, _T("** INFO:\n"));
+	my_tcscat_s(buffer, buffer_len, _T("ROM value is enable to modify, \n"));
+	my_tcscat_s(buffer, buffer_len, _T("  R00-R32 : Overwrite rom raw value by byte\n"));
+	my_tcscat_s(buffer, buffer_len, _T("  RR00-RR32 : Overwrite rom reversed value by byte\n"));
+	my_tcscat_s(buffer, buffer_len, _T("  B000-B256 : Overwrite bit foo to (value != 0) ? 1 : 0\n"));
+	my_tcscat_s(buffer, buffer_len, _T("  BR000-BR256 : Overwrite bit foo to (value != 0) ? 1 : 0 by reversed order.\n\n"));
+	
+	my_tcscat_s(buffer, buffer_len, _T("** STATS:\n"));
+	my_tcscat_s(buffer, buffer_len,
+				create_string(_T("    CS=%s CLK=%d RESET REG=%d RESET STATE=%d\n   ROM BIT POSITION=%03d(0x%02X)\n\n"),
+							  (cs) ? _T("ON ") : _T("OFF"),
+							  (clk) ? 1 : 0,
+							  (reset_reg) ? 1 : 0,
+							  reset_state,
+							  rom_addr, rom_addr)
+		);
+	
+	my_tcscat_s(buffer, buffer_len, _T("** RAW MEMORY VALUE:\n"));
+	my_tcscat_s(buffer, buffer_len, _T("    +0  +1  +2  +3  +4  +5  +6  +7\n"));
+	my_tcscat_s(buffer, buffer_len, _T("    ------------------------------\n"));
+	for(int n = 0; n < 4; n++) {
+		my_tcscat_s(buffer, buffer_len,
+					create_string(_T("+%02X %02X  %02X  %02X  %02X  %02X  %02X  %02X  %02X\n"),
+								  n * 4,
+								  rom[n * 4 + 0], rom[n * 4 + 1], rom[n * 4 + 2], rom[n * 4 + 3],
+								  rom[n * 4 + 4], rom[n * 4 + 5], rom[n * 4 + 6], rom[n * 4 + 7])
+			);
+	}
+	my_tcscat_s(buffer, buffer_len, _T("\n"));
+	my_tcscat_s(buffer, buffer_len, _T("** BIT REVERSED VALUE:\n"));
+	my_tcscat_s(buffer, buffer_len, _T("    +0  +1  +2  +3  +4  +5  +6  +7\n"));
+	my_tcscat_s(buffer, buffer_len, _T("    ------------------------------\n"));
+	for(int n = 0; n < 4; n++) {
+		my_tcscat_s(buffer, buffer_len,
+					create_string(_T("+%02X %02X  %02X  %02X  %02X  %02X  %02X  %02X  %02X\n"),
+								  n * 4,
+								  reverse_mem[n * 4 + 0], reverse_mem[n * 4 + 1], reverse_mem[n * 4 + 2], reverse_mem[n * 4 + 3],
+								  reverse_mem[n * 4 + 4], reverse_mem[n * 4 + 5], reverse_mem[n * 4 + 6], reverse_mem[n * 4 + 7])
+			);
+	}
+	return true;
+}
+	
 #define STATE_VERSION	1
 
 bool SERIAL_ROM::process_state(FILEIO* state_fio, bool loading)
