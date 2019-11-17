@@ -121,19 +121,21 @@ void SERIAL_ROM::reset()
 //	rom_addr = 0;
 }
 
-void SERIAL_ROM::write_signal(int ch, uint32_t data, uint32_t mask)
+void SERIAL_ROM::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	switch(ch) {
+	switch(id) {
 	case SIG_SERIALROM_CLK:
 		{
 			bool oldclk = clk;
 			bool newclk = clk;
 			if(cs) {
 				newclk = ((data & mask) != 0);
+			} else {
+				return;
 			}
 			if((oldclk != newclk) && !(reset_reg)) {
 				clk = newclk;
-				if(!(oldclk)) {
+				if(clk) {
 					// Rise up
 					rom_addr = (rom_addr + 1) & 0xff;
 				}
@@ -148,19 +150,26 @@ void SERIAL_ROM::write_signal(int ch, uint32_t data, uint32_t mask)
 		if((cs) && (clk)) {
 			switch(reset_state) {
 			case 0:
-				if(reset_reg) reset_state++;
+				if(!(reset_reg)) reset_state++;
 				break;
 			case 1:
+				if(reset_reg) reset_state++;
+				break;
+			case 2:
 				if(!(reset_reg)) {
 					// Do Reset
 					rom_addr = 0;
 					reset_state = 0;
+					reset_reg = false;
 				}
 				break;
 			default:
+				reset_state = 0; // ToDo
 				break;
 			}
-					
+		}  else {
+			// Reset reset state?
+			reset_state = 0;
 		}
 		break;
 	}
@@ -190,6 +199,30 @@ uint32_t SERIAL_ROM::read_signal(int ch)
 		break;
 	}
 	return 0;
+}
+
+uint32_t SERIAL_ROM::read_io8(uint32_t addr)
+{
+	uint8_t val = 0x00;
+	if(cs) {
+		val = (rom[rom_addr >> 3] >> (rom_addr & 7)) & 0x01;
+	} else {
+		val = 0x01;
+	}
+	val = val | 0x3e;
+	if(clk) val = val | 0x40;
+	if(reset_reg) val = val | 0x80;
+	return val;
+}
+
+void SERIAL_ROM::write_io8(uint32_t addr, uint32_t data)
+{
+	this->write_signal(SIG_SERIALROM_CS, data, 0x20);
+	if((data & 0x80) == 0) { // RESET not asserted
+		this->write_signal(SIG_SERIALROM_CLK, data, 0x40);
+		reset_reg = false;
+	}
+	this->write_signal(SIG_SERIALROM_RESET, data, 0x80);
 }
 
 bool SERIAL_ROM::write_debug_reg(const _TCHAR *reg, uint32_t data)
