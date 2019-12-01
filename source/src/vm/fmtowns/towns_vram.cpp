@@ -8,10 +8,12 @@
 	History: 2017.01.16 Initial.
 */
 
+
 #include "common.h"
+#include "./towns_common.h"
 #include "./towns_vram.h"
 
-#define CLEAR_COLOR RGBA_COLOR(0,0,0,0)
+#define _CLEAR_COLOR RGBA_COLOR(0,0,0,0)
 
 #if defined(_RGB888)
 #define _USE_ALPHA_CHANNEL
@@ -21,29 +23,6 @@ namespace FMTOWNS {
 
 void TOWNS_VRAM::initialize()
 {
-	for(int i = 0; i < 32768; i++) {
-		uint8_t g = (i / (32 * 32)) & 0x1f;
-		uint8_t r = (i / 32) & 0x1f;
-		uint8_t b = i & 0x1f;
-		table_32768c[i] = RGBA_COLOR(r << 3, g << 3, b << 3, 0xff);
-		table_32768c[i + 32768] = table_32768c[i];
-		alpha_32768c[i] = RGBA_COLOR(255, 255, 255, 255);
-		alpha_32768c[i + 32768] = RGBA_COLOR(0, 0, 0, 0);
-		mask_32768c[i] = 0xffff;
-		mask_32768c[i + 32768] = 0x0000;
-	}
-	for(int i = 0; i < 256; i++) {
-		int chigh = i & 0xf0;
-		int clow  = i & 0x0f;
-		uint8_t alpha;
-		alpha_16c[ i << 2     ] = (chigh == 0) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
-		alpha_16c[(i << 2) + 1] = (clow  == 0) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
-		mask_16c[i] = ((chigh == 0) ? 0x00: 0xf0) | ((clow == 0) ? 0x00 : 0x0f);
-	}
-	for(int i = 0; i < TOWNS_CRTC_MAX_LINES; i++) {
-		line_rendered[0][i] = false;
-		line_rendered[1][i] = false;
-	}
 
 }
 

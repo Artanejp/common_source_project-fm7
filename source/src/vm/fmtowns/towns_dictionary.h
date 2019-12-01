@@ -4,7 +4,16 @@
 	Author : Kyuma.Ohta <whatisthis.sowhat _at_ gmail.com>
 	Date   : 2019.01.09-
 
-	[ dictionary rom/ram & cmos & RAM area 0x000d0000 - 0x000effff]
+	[ dictionary rom/ram & cmos & RAM area 0x000d0000 - 0x000dffff]
+	* MEMORY :
+	*   0x000d0000 - 0x000d7fff : DICTIONARY ROM (BANKED)
+	*   0x000d8000 - 0x000d9fff : DICTIONARY RAM / GAIJI RAM
+	*   0x000da000 - 0x000dffff : RESERVED
+	*   0xc2080000 - 0xc20fffff : DICTIONARY ROM (NOT BANKED)
+	*   0xc2140000 - 0xc2141fff : DICTIONARY RAM
+	* I/O : 
+	*   0x0484                         : DICTIONARY BANK (for 0xd0000 - 0xd7ffff)
+	*   0x3000 - 0x3ffe (even address) : DICTIONARY RAM
 */
 
 #pragma once
@@ -12,59 +21,75 @@
 #include "../../common.h"
 #include "../device.h"
 
-#define SIG_FMTOWNS_DICTSEL 0x1000
-#define SIG_FMTOWNS_DICTBANK 0x1001
+#define SIG_FMTOWNS_DICT_BANK 1
 
 namespace FMTOWNS {
 
 class DICTIONARY : public DEVICE
 {
 protected:
-	DEVICE *d_sysrom;
-	
 	uint8_t dict_rom[0x80000]; // 512KB
 	uint8_t dict_ram[0x2000];  // 2 + 6KB
-	uint8_t ram_0d0[0x20000]; // 128KB
 
-	bool bankd0_dict;
 	uint8_t dict_bank;
 
+	int ram_wait_val;
+	int rom_wait_val;
 	bool cmos_dirty;
 
 public:
 	DICTIONARY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		bankd0_dict = false;
 		dict_bank = 0x00;
 		cmos_dirty = false;
-		d_sysrom = NULL;
-		set_device_name("FM-Towns Dictionary ROM/RAM 0x000d0000 - 0x000effff with CMOS RAM");
+		set_device_name("FM-Towns Dictionary ROM/RAM 0x000d0000 - 0x000dffff with CMOS RAM");
 	}
 	~DICTIONARY() {}
 	void initialize();
 	void release();
 	void reset();
 
-	uint32_t read_data8(uint32_t addr);
-	uint32_t read_data16(uint32_t addr);
-	uint32_t read_data32(uint32_t addr);
+	uint32_t __FASTCALL read_data8w(uint32_t addr, int *wait);
+	uint32_t __FASTCALL read_data16w(uint32_t addr, int *wait);
+	uint32_t __FASTCALL read_data32w(uint32_t addr, int *wait);
+	
+	uint32_t __FASTCALL read_data8(uint32_t addr) {
+		int wait;
+		return read_data8w(addr, &wait);
+	}
+	uint32_t __FASTCALL read_data16(uint32_t addr) {
+		int wait;
+		return read_data16w(addr, &wait);
+	}
+	uint32_t __FASTCALL read_data32(uint32_t addr) {
+ 		int wait;
+		return read_data32w(addr, &wait);
+	}
+	
+	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int *wait);
+	void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int *wait);
+	void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int *wait);
 
-	void write_data8(uint32_t addr, uint32_t data);
-	void write_data16(uint32_t addr, uint32_t data);
-	void write_data32(uint32_t addr, uint32_t data);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data) {
+		int wait;
+		write_data8w(addr, data, &wait);
+	}
+	void __FASTCALL write_data16(uint32_t addr, uint32_t data) {
+		int wait;
+		write_data16w(addr, data, &wait);
+	}
+	void __FASTCALL write_data32(uint32_t addr, uint32_t data) {
+		int wait;
+		write_data32w(addr, data, &wait);
+	}
+	
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-
-	void write_signal(int ch, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int ch);
+	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int ch);
 
 	bool process_state(FILEIO* state_fio, bool loading);
-
-	void set_context_sysrom(DEVICE* dev)
-	{
-		d_sysrom = dev;
-	}
 };
 
 }

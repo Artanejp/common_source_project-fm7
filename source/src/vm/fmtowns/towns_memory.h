@@ -14,13 +14,14 @@
 //#include "../../emu.h"
 #include "../device.h"
 #include "../memory.h"
+#include "./towns_common.h"
 
 #define SIG_FMTOWNS_MACHINE_ID	1
 
 class I80386;
-// Bank size = 1GB / 1MB.
 // Page 0 (0000:00000 - 0000:fffff) is another routine.
-#define TOWNS_BANK_SIZE 1024
+#define TOWNS_BANK_SHIFT 10
+#define TOWNS_BANK_SIZE (1 << TOWNS_BANK_SHIFT)
 // Page0 size is 1MB / 2KB.
 #define TOWNS_BANK000_BANK_SIZE 512
 
@@ -72,6 +73,20 @@ namespace FMTOWNS {
 class TOWNS_MEMORY : public DEVICE
 {
 protected:
+	typedef struct {
+		DEVICE* dev;
+		uint8_t* memory;
+		int wait;
+	} bank_t;
+	
+	bank_t rd_table[(0xffffffff / TOWNS_BANK_SIZE) + 1];
+	bank_t wr_table[(0xffffffff / TOWNS_BANK_SIZE) + 1];
+	int addr_shift;
+	bool initialized;
+	
+	uint8_t rd_dummy[TOWNS_BANK_SIZE];
+	uint8_t wr_dummy[TOWNS_BANK_SIZE];
+	
 	I386 *d_cpu;
 
 	TOWNS_VRAM* d_vram;
@@ -84,20 +99,20 @@ protected:
 	DEVICE* d_sysrom;
 	DEVICE* d_msdos;
 	DEVICE* d_serialrom;
+
+	outputs_t outputs_ram_wait;
+	outputs_t outputs_rom_wait;
 	
 	bool bankc0_vram;
 	bool ankcg_enabled;
 
 	uint16_t machine_id;
 	uint8_t cpu_id;
-
-	// ToDo: around DMA
-	uint32_t dma_addr_mask;
-	//uint8_t dma_addr_reg;
-	//uint8_t dma_wrap_reg;
+	bool dma_is_vram;
 	
 	// RAM
 	uint8_t ram_page0[0xc0000];       // 0x00000000 - 0x000bffff : RAM
+	uint8_t ram_mmio[0x8000];         // 0x000c8000 - 0x000cff7f : // ToDo: Move To Sprite.
 	uint8_t ram_pagef[0x08000];       // 0x000f0000 - 0x000f7fff : RAM
 
 	uint8_t *extra_ram;                  // 0x00100000 - (0x3fffffff) : Size is defined by extram_size;
@@ -119,17 +134,15 @@ protected:
 	DEVICE*   device_bank_adrs_cx[0x100000]; // Per 4KB.
 	uint32_t type_bank_adrs_cx[0x100000]; // Per 4KB.
 
-	void     write_data_base(uint32_t addr, uint32_t data, int* wait, int wordsize);
-	uint32_t read_data_base(uint32_t addr, int* wait, int wordsize);
-	bool     check_bank(uint32_t addr, uint32_t *mask, uint32_t *offset, void** readfn, void** writefn, void** readp, void** writep);
 	virtual void initialize_tables(void);
 	
-	virtual uint32_t read_mmio(uint32_t addr, int *wait, bool *hit);
-	virtual void     write_mmio(uint32_t addr, uint32_t data, int *wait, bool *hit);
-
 public:
-	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu) {
+	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("FMTOWNS_MEMORY"));
+		bank_size = TOWNS_BANK_SIZE; // 1024
+		addr_mask = bank_size - 1;
+		addr_shift = TOWNS_BANK_SHIFT;
+		
 		d_cpu = NULL;
 		d_vram = NULL;
 		d_pcm = NULL;
@@ -139,6 +152,10 @@ public:
 		d_sysrom = NULL;
 		d_dictionary = NULL;
 		d_msdos = NULL;
+		initialized = false;
+		
+		initialize_output_signals(&outputs_ram_wait);
+		initialize_output_signals(&outputs_rom_wait);
 		// Note: machine id must set before initialize() from set_context_machine_id() by VM::VM().
 		// machine_id = 0x0100;   // FM-Towns 1,2
 		// machine_id = 0x0200 // FM-Towns  1F/2F/1H/2H
@@ -169,30 +186,60 @@ public:
 	void initialize();
 	void reset();
 
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
+	// Belows are SUBSET of MEMORY::. Because access patterns of Towns are differ per DEVICEs.
+	void set_memory_r(uint32_t start, uint32_t end, uint8_t *memory);
+	void set_memory_w(uint32_t start, uint32_t end, uint8_t *memory);
+	void set_memory_rw(uint32_t start, uint32_t end, uint8_t *memory);
+	void set_memory_mapped_io_r(uint32_t start, uint32_t end, DEVICE *device);
+	void set_memory_mapped_io_w(uint32_t start, uint32_t end, DEVICE *device);
+	void set_memory_mapped_io_rw(uint32_t start, uint32_t end, DEVICE *device);
+	void unset_memory_r(uint32_t start, uint32_t end);
+	void unset_memory_w(uint32_t start, uint32_t end);
+	void unset_memory_rw(uint32_t start, uint32_t end);
+	void copy_table_r(uint32_t to, uint32_t start, uint32_t end);
+	void copy_table_w(uint32_t to, uint32_t start, uint32_t end);
+	void copy_table_rw(uint32_t to, uint32_t start, uint32_t end);
+	void set_wait_r(uint32_t start, uint32_t end, int wait);
+	void set_wait_w(uint32_t start, uint32_t end, int wait);
+	void set_wait_rw(uint32_t start, uint32_t end, int wait);
+
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
 	// Using [read|write]_data[16|32] to be faster memory access.
-	void write_data16(uint32_t addr, uint32_t data);
-	uint32_t read_data16(uint32_t addr);
-	void write_data32(uint32_t addr, uint32_t data);
-	uint32_t read_data32(uint32_t addr);
+	void __FASTCALL write_data16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data16(uint32_t addr);
+	void __FASTCALL write_data32(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data32(uint32_t addr);
 	// With Wait
-	void write_data8w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t write_data8w(uint32_t addr, int* wait);
-	void write_data16w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t write_data16w(uint32_t addr, int* wait);
-	void write_data32w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t write_data32w(uint32_t addr, int* wait);
+	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait);
+	void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_data16w(uint32_t addr, int* wait);
+	void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t __FASTCALL read_data32w(uint32_t addr, int* wait);
 	
-	void write_dma_data8(uint32_t addr, uint32_t data);
-	uint32_t read_dma_data8(uint32_t addr);
+	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_data8(uint32_t addr);
 	// Using [read|write]_dma_data16 for DMAC 16bit mode (SCSI/CDROM?).
-	void write_dma_data16(uint32_t addr, uint32_t data);
-	uint32_t read_dma_data16(uint32_t addr);
+	void __FASTCALL write_dma_data16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_data16(uint32_t addr);
+
+	// With wait
+	void __FASTCALL write_dma_data8w(uint32_t addr, uint32_t data, int wait);
+	uint32_t __FASTCALL read_dma_data8w(uint32_t addr, int wait);
+	// Using [read|write]_dma_data16 for DMAC 16bit mode (SCSI/CDROM?).
+	void __FASTCALL write_dma_data16w(uint32_t addr, uint32_t data, int wait);
+	uint32_t __FASTCALL read_dma_data16w(uint32_t addr, int wait);
 	
-	virtual void     write_io8(uint32_t addr, uint32_t data);
-	virtual uint32_t read_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	virtual void     __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
+
+	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
+	
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int ch);
+	
 	void event_frame();
 	bool process_state(FILEIO* state_fio, bool loading);
 	
@@ -212,14 +259,20 @@ public:
 	void set_context_system_rom(DEVICE* device)
 	{
 		d_sysrom = device;
+		register_output_signal(&outputs_ram_wait, device, SIG_FMTOWNS_RAM_WAIT, 0xffffffff);
+		register_output_signal(&outputs_rom_wait, device, SIG_FMTOWNS_ROM_WAIT, 0xffffffff);
 	}
 	void set_context_dictionary(DEVICE* device)
 	{
 		d_dictionary = device;
+		register_output_signal(&outputs_ram_wait, device, SIG_FMTOWNS_RAM_WAIT, 0xffffffff);
+		register_output_signal(&outputs_rom_wait, device, SIG_FMTOWNS_ROM_WAIT, 0xffffffff);
 	}
 	void set_context_msdos(DEVICE* device)
 	{
 		d_msdos = device;
+		register_output_signal(&outputs_ram_wait, device, SIG_FMTOWNS_RAM_WAIT, 0xffffffff);
+		register_output_signal(&outputs_rom_wait, device, SIG_FMTOWNS_ROM_WAIT, 0xffffffff);
 	}
 	void set_context_beep(DEVICE* device)
 	{
@@ -228,6 +281,8 @@ public:
 	void set_context_sprite(TOWNS_SPRITE* device)
 	{
 		d_sprite = device;
+		register_output_signal(&outputs_ram_wait, device, SIG_FMTOWNS_RAM_WAIT, 0xffffffff);
+		register_output_signal(&outputs_rom_wait, device, SIG_FMTOWNS_ROM_WAIT, 0xffffffff);
 	}
 	void set_context_romcard(TOWNS_ROM_CARD* device, int num)
 	{
@@ -236,6 +291,8 @@ public:
 	void set_context_pcm(FMTOWNS::ADPCM* device)
 	{
 		d_pcm = device;
+		register_output_signal(&outputs_ram_wait, device, SIG_FMTOWNS_RAM_WAIT, 0xffffffff);
+		register_output_signal(&outputs_rom_wait, device, SIG_FMTOWNS_ROM_WAIT, 0xffffffff);
 	}
 	void set_context_serial_rom(DEVICE* device)
 	{
