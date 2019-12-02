@@ -54,7 +54,7 @@ static void pentium_smi(i386_state* cpustate);
 #define FAULT(fault,error) {\
 		/*logerror("FAULT(%s , %s) PC=%08x V8086=%s PROTECTED=%s SP=%08X:%08X\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO", (PROTECTED_MODE) ? cpustate->sreg[SS].base : (cpustate->sreg[SS].selector << 4), REG32(ESP)); */ \
 		if(cpustate->is_report_exception) {								\
-			cpustate->exception_code = ((UINT64)error << 32) | (UINT64)fault; \
+			cpustate->exception_code = (((UINT64)error) << 32) | (UINT64)fault; \
 			cpustate->exception_pc = cpustate->prev_pc;					\
 			cpustate->exception_caused = 1;								\
 			cpustate->ext = 1;											\
@@ -66,7 +66,7 @@ static void pentium_smi(i386_state* cpustate);
 #define FAULT_EXP(fault,error) {										\
 		/*logerror("FAULT_EXP(%s , %s) PC=%08x V8086=%s PROTECTED=%s\n", #fault, #error, cpustate->pc, (cpustate->VM) ? "YES" : "NO", (PROTECTED_MODE) ? "YES" : "NO"); */ \
 		if(cpustate->is_report_exception) {								\
-			cpustate->exception_code = ((UINT64)error << 32) | (UINT64)fault; \
+			cpustate->exception_code = (((UINT64)error) << 32) | (UINT64)fault; \
 			cpustate->exception_pc = cpustate->prev_pc;					\
 			cpustate->exception_caused = 1;								\
 			cpustate->ext = 1;											\
@@ -123,7 +123,7 @@ static void cpu_reset_generic(i386_state* cpustate)
 {
 	UINT32 v1,v2;
 	UINT32 base, limit;
-	int entry;
+	UINT32 entry;
 
 	if(!seg->selector)
 	{
@@ -168,7 +168,7 @@ static void cpu_reset_generic(i386_state* cpustate)
 {
 	UINT32 v1,v2;
 	UINT32 base,limit;
-	int entry;
+	UINT32 entry;
 
 	if ( gate->segment & 0x4 )
 	{
@@ -962,7 +962,7 @@ static void __FASTCALL i386_trap(i386_state *cpustate,int irq, int irq_gate, int
 				if((stack.flags & 0x0080) == 0)
 				{
 					logerror("IRQ: New stack segment is not present.\n");
-					FAULT_EXP(FAULT_SS,(stack.selector & ~0x03)+cpustate->ext) // #TS(stack selector + EXT)
+					FAULT_EXP(FAULT_SS,((stack.selector & ~0x03) + cpustate->ext)) // #TS(stack selector + EXT)
 				}
 				newESP = i386_get_stack_ptr(cpustate,DPL);
 				if(type & 0x08) // 32-bit gate
@@ -1043,7 +1043,7 @@ static void __FASTCALL i386_trap(i386_state *cpustate,int irq, int irq_gate, int
 			}
 			else
 			{
-				int stack_limit;
+				uint32_t stack_limit;
 				if((desc.flags & 0x0004) || (DPL == CPL))
 				{
 					/* IRQ to same privilege */
@@ -3025,7 +3025,8 @@ INLINE void __FASTCALL CYCLES_RM(i386_state *cpustate,int modrm, int r, int m)
 
 static void build_cycle_table()
 {
-	int i, j;
+	long unsigned int i;
+	int j;
 	for (j=0; j < X86_NUM_CPUS; j++)
 	{
 //		cycle_table_rm[j] = (UINT8 *)malloc(CYCLES_NUM_OPCODES);
@@ -3292,7 +3293,7 @@ CPU_INIT( i386 )
 
 static void build_opcode_table(i386_state *cpustate, UINT32 features)
 {
-	int i;
+	long unsigned int i;
 	for (i=0; i < 256; i++)
 	{
 		cpustate->opcode_table1_16[i] = I386OP(invalid);

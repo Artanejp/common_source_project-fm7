@@ -165,7 +165,7 @@ INLINE double fx80_to_double(floatx80 fx)
 
 INLINE floatx80 double_to_fx80(double in)
 {
-	return float64_to_floatx80(*(UINT64*)&in);
+	return float64_to_floatx80(*((UINT64*)(&in)));
 }
 
 INLINE floatx80 READ80(i386_state *cpustate, UINT32 ea)
