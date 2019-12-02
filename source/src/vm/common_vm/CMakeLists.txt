@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 2.19.1)
+SET(THIS_LIB_VERSION 2.20.0)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
@@ -48,6 +48,8 @@ set(s_vm_common_vm_srcs
 	../mc6847_base.cpp
 	../mc6850.cpp
 	../mcs48_base.cpp
+	
+	../memory.cpp
 	../msm5205.cpp
 	../msm58321_base.cpp
 	../midi_redirector.cpp

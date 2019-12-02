@@ -494,7 +494,7 @@ void I386::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_I386_A20) {
 		i386_set_a20_line(cpustate, data & mask);
 	} else if(id == SIG_I386_NOTIFY_RESET) {
-		write_signals(&outputs_extreset, ((data & mask == 0) ? 0x00000000 : 0xffffffff));
+		write_signals(&outputs_extreset, (((data & mask) == 0) ? 0x00000000 : 0xffffffff));
 	} else if(id == SIG_CPU_WAIT_FACTOR) {
 		cpustate->waitfactor = data; // 65536.
 		cpustate->waitcount = 0; // 65536.
