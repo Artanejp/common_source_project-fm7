@@ -25,7 +25,7 @@ set(VMFILES_BASE
   z80ctc.cpp
   
   io.cpp
-  memory.cpp
+#  memory.cpp
 
   event.cpp
 )

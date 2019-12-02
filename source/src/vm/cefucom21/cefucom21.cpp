@@ -56,6 +56,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	mcu_io = new IO(this, emu);
 	mcu_vdp = new MC6847(this, emu);
 	mcu_mem = new MEMORY(this, emu);
+	// MUST set MEMORY SIZE before use.
+	mcu_mem->set_addr_max(MEMORY_ADDR_MAX);
+	mcu_mem->set_bank_size(MEMORY_BANK_SIZE);
+	
 	mcu_not = new NOT(this, emu);
 	mcu_cpu = new Z80(this, emu);
 	mcu_pio = new Z80PIO(this, emu);
@@ -66,6 +70,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pcu_pio3 = new I8255(this, emu);
 	pcu_io = new IO(this, emu);
 	pcu_mem = new MEMORY(this, emu);
+	// MUST set MEMORY SIZE before use.
+	pcu_mem->set_addr_max(MEMORY_ADDR_MAX);
+	pcu_mem->set_bank_size(MEMORY_BANK_SIZE);
+	
 	pcu_rtc = new RP5C01(this, emu);
 	pcu_cpu = new Z80(this, emu);
 	pcu_ctc1 = new Z80CTC(this, emu);

@@ -24,7 +24,7 @@ set(WITH_MOUSE ON)
 set(VMFILES_BASE
       i286.cpp
       io.cpp
-      memory.cpp
+#      memory.cpp
       event.cpp
 )
 set(VMFILES_LIB

@@ -93,8 +93,15 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cmos = new CMOS(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	mainbus = new MAINBUS(this, emu);
-	subbus = new SUB(this, emu);
+	// MUST set MEMORY SIZE before use.
+	mainbus->set_addr_max(MEMORY_ADDR_MAX);
+	mainbus->set_bank_size(MEMORY_BANK_SIZE);
 	
+	subbus = new SUB(this, emu);
+	// MUST set MEMORY SIZE before use.
+	subbus->set_addr_max(MEMORY_ADDR_MAX);
+	subbus->set_bank_size(MEMORY_BANK_SIZE);
+
 	// set contexts
 	event->set_context_cpu(cpu, 8000000);
 	event->set_context_cpu(subcpu, 2000000);

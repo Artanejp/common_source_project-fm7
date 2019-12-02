@@ -23,7 +23,7 @@ set(WITH_MOUSE ON)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-      memory.cpp
+#      memory.cpp
   
       io.cpp
       event.cpp

@@ -41,13 +41,17 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	io = new IO(this, emu);
 	memory = new MEMORY(this, emu);
+	// MUST set MEMORY SIZE before use.
+	memory->set_addr_max(MEMORY_ADDR_MAX);
+	memory->set_bank_size(MEMORY_BANK_SIZE);
+	
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
 	pio1 = new Z80PIO(this, emu);
 	pio1->set_device_name(_T("Z80 PIO (LEDs)"));
 	pio2 = new Z80PIO(this, emu);
 	pio2->set_device_name(_T("Z80 PIO (7-Seg/Keyboard)"));
-	
+
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 

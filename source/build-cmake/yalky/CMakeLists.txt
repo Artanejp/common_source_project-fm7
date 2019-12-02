@@ -23,7 +23,7 @@ set(WITH_DEBUGGER ON)
 
 set(VMFILES_BASE
 	i8080.cpp
-	memory.cpp
+#	memory.cpp
 	event.cpp
 )
 

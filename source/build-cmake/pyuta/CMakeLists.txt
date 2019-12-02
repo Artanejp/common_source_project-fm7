@@ -22,7 +22,7 @@ set(WITH_MOUSE ON)
 set(VMFILES_BASE
 		   tms9995.cpp
 		   event.cpp
-		   memory.cpp
+#		   memory.cpp
 )
 set(VMFILES_LIB
 		   datarec.cpp

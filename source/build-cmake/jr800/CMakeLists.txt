@@ -22,7 +22,7 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE OFF)
 
 set(VMFILES_BASE
-		memory.cpp
+#		memory.cpp
 		event.cpp
 )
 

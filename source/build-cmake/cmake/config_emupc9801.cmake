@@ -9,7 +9,7 @@ set(VMFILES
 
 		   event.cpp
 		   io.cpp
-		   memory.cpp
+#		   memory.cpp
 )
 set(VMFILES_LIB
 		   i8237_base.cpp

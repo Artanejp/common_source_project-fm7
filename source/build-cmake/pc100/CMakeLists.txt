@@ -22,7 +22,7 @@ set(VMFILES
 		   i286.cpp
 		   msm58321.cpp
 		   
-		   memory.cpp
+#		   memory.cpp
 		   event.cpp
 		   io.cpp
 )

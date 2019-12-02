@@ -15,7 +15,7 @@ set(VMFILES
 		   i8255.cpp
 		   event.cpp
 		   io.cpp
-		   memory.cpp
+#		   memory.cpp
 )
 set(VMFILES_LIB
 		   i8251.cpp

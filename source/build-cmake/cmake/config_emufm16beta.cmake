@@ -17,7 +17,7 @@ set(VMFILES
 #		   scsi_dev.cpp
 #		   scsi_host.cpp
 #		   scsi_hdd.cpp
-		   memory.cpp
+#		   memory.cpp
 		   
 		   event.cpp
 		   io.cpp

@@ -8,7 +8,7 @@ set(VMFILES
 #		   i286.cpp
 		   event.cpp
 		   io.cpp
-		   memory.cpp
+#		   memory.cpp
 )
 set(VMFILES_LIB
 		   noise.cpp

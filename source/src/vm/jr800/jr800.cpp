@@ -48,6 +48,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	cpu = new MC6800(this, emu);
 	cpu = new HD6301(this, emu);
 	memory = new MEMORY(this, emu);
+	// MUST set MEMORY SIZE before use.
+	memory->set_addr_max(MEMORY_ADDR_MAX);
+	memory->set_bank_size(MEMORY_BANK_SIZE);
+	
 	pcm = new PCM1BIT(this, emu);
 	
 	io = new IO(this, emu);

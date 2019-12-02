@@ -87,6 +87,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	membus = new MEMBUS(this, emu);
+	// MUST set MEMORY SIZE before use.
+	membus->set_addr_max(MEMORY_ADDR_MAX);
+	membus->set_bank_size(MEMORY_BANK_SIZE);
+	
 	rtc = new RTC(this, emu);
 	
 	// set contexts

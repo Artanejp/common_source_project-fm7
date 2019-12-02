@@ -21,7 +21,7 @@ set(WITH_MOUSE OFF)
 set(FLAG_USE_Z80 ON)
 set(VMFILES
 		   io.cpp
-		   memory.cpp
+#		   memory.cpp
 		   event.cpp
 )
 set(VMFILES_LIB

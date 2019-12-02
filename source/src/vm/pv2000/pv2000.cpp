@@ -44,6 +44,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	io = new IO(this, emu);
 	memory = new MEMORY(this, emu);
+	// MUST set MEMORY SIZE before use.
+	memory->set_addr_max(MEMORY_ADDR_MAX);
+	memory->set_bank_size(MEMORY_BANK_SIZE);
+	
 	psg = new SN76489AN(this, emu);
 	vdp = new TMS9918A(this, emu);
 #ifdef USE_DEBUGGER

@@ -20,7 +20,7 @@ set(WITH_MOUSE OFF)
 set(WITH_DEBUGGER ON)
 
 set(VMFILES
-		   memory.cpp
+#		   memory.cpp
 		   event.cpp
 )
 set(VMFILES_LIB

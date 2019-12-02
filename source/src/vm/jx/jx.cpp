@@ -61,6 +61,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I286(this, emu);	// 8088
 	io = new IO(this, emu);
 	mem = new MEMORY(this, emu);
+	// MUST set MEMORY SIZE before use.
+	mem->set_addr_max(MEMORY_ADDR_MAX);
+	mem->set_bank_size(MEMORY_BANK_SIZE);
+	
 	pcm = new PCM1BIT(this, emu);
 	psg = new SN76489AN(this, emu);	// SN76496N
 	fdc = new UPD765A(this, emu);

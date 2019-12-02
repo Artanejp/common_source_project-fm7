@@ -17,7 +17,7 @@ set(VMFILES_BASE
 		   mz1p17.cpp
 		   event.cpp
 		   io.cpp
-		   memory.cpp
+#		   memory.cpp
 )
 
 set(VMFILES_LIB

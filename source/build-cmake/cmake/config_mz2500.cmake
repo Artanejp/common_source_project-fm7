@@ -32,7 +32,7 @@ set(VMFILES_BASE
 		   mz1p17.cpp
 
 		   event.cpp
-		   memory.cpp
+#		   memory.cpp
 		   io.cpp
 
 		   )

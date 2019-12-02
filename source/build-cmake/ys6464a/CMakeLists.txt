@@ -26,7 +26,7 @@ set(VMFILES_BASE
   i8255.cpp
  
   io.cpp
-  memory.cpp
+#  memory.cpp
 
   event.cpp
 )

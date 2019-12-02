@@ -24,7 +24,7 @@ set(FLAG_USE_Z80 ON)
 set(VMFILES
 		   mc6847.cpp
 		   io.cpp
-		   memory.cpp
+#		   memory.cpp
 		   event.cpp
 )
 

@@ -22,7 +22,7 @@ set(WITH_MOUSE OFF)
 set(VMFILES
 		   i8080.cpp
 		   
-		   memory.cpp
+#		   memory.cpp
 		   event.cpp
 )
 set(VMFILES_LIB

@@ -25,7 +25,7 @@ set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
       event.cpp
       io.cpp
-      memory.cpp
+#      memory.cpp
 )
 set(VMFILES_LIB
       beep.cpp

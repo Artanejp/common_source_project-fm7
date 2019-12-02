@@ -42,6 +42,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io = new IO(this, emu);
 	pio = new I8255(this, emu);
 	memory = new MEMORY(this, emu);
+	// MUST set MEMORY SIZE before use.
+	memory->set_addr_max(MEMORY_ADDR_MAX);
+	memory->set_bank_size(MEMORY_BANK_SIZE);
+	
 //	pcm = new PCM1BIT(this, emu);
 	cpu = new Z80(this, emu);
 	

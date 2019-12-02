@@ -25,7 +25,7 @@ set(VMFILES_BASE
 	msm58321.cpp
 	m6502.cpp
 	io.cpp
-	memory.cpp
+#	memory.cpp
 	event.cpp
 )
 
