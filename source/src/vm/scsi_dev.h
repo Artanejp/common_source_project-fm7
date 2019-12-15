@@ -185,7 +185,8 @@ public:
 #else
 		register_output_signal(&outputs_dat, device, SIG_SCSI_DAT, 0xff);
 #endif
-		register_output_signal(&outputs_dat, device, SIG_SCSI_DAT, 1 << scsi_id);
+		// OK? 20191215 K.O
+//		register_output_signal(&outputs_dat, device, SIG_SCSI_DAT, 1 << scsi_id);
 		register_output_signal(&outputs_bsy, device, SIG_SCSI_BSY, 1 << scsi_id);
 		register_output_signal(&outputs_cd,  device, SIG_SCSI_CD,  1 << scsi_id);
 		register_output_signal(&outputs_io,  device, SIG_SCSI_IO,  1 << scsi_id);
