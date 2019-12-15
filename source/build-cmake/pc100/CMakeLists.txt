@@ -19,20 +19,19 @@ set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE ON)
 
 set(VMFILES
-		   i286.cpp
-		   msm58321.cpp
-		   
-#		   memory.cpp
-		   event.cpp
-		   io.cpp
+	   msm58321.cpp
+	   event.cpp
 )
 set(VMFILES_LIB
 		   beep.cpp
 		   and.cpp
+		   i286.cpp
 		   i8251.cpp
 		   i8255.cpp
 		   i8259.cpp
+		   io.cpp
 		   msm58321_base.cpp
+		   memory.cpp
 		   noise.cpp
 		   pcm1bit.cpp
 		   upd765a.cpp

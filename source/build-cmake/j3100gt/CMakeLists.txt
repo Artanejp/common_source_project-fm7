@@ -21,7 +21,6 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 		   i8237.cpp
-		   io.cpp
 		   event.cpp
 )
 set(VMFILES_LIB
@@ -30,6 +29,7 @@ set(VMFILES_LIB
 		   i8237_base.cpp
 		   i8253.cpp
 		   i8259.cpp
+		   io.cpp
 		   noise.cpp
 		   pcm1bit.cpp
 		   upd765a.cpp

@@ -1086,10 +1086,10 @@ void OSD::set_features_misc(void)
 	add_feature(_T("SINGLE_MODE_DMA"), 1);
 #endif
 #ifdef MEMORY_ADDR_MAX
-	add_feature(_T("MEMORY_ADDR_MAX"), (uint32_t)MEMORY_ADDR_MAX);
+	add_feature(_T("MEMORY_ADDR_MAX"), (uint64_t)MEMORY_ADDR_MAX);
 #endif
 #ifdef MEMORY_BANK_SIZE
-	add_feature(_T("MEMORY_BANK_SIZE"), (uint32_t)MEMORY_BANK_SIZE);
+	add_feature(_T("MEMORY_BANK_SIZE"), (uint64_t)MEMORY_BANK_SIZE);
 #endif
 #ifdef IOBUS_RETURN_ADDR
 	add_feature(_T("IOBUS_RETURN_ADDR"), 1);

@@ -20,7 +20,6 @@ set(VMFILES
 
 #		   disk.cpp
 		   event.cpp
-		   io.cpp
 )
 
 set(VMFILES_LIB
@@ -32,6 +31,7 @@ set(VMFILES_LIB
 		   i8251.cpp
 		   i8253.cpp
 		   i8259.cpp
+		   io.cpp
 		   msm58321_base.cpp
 		   
 		   hd63484.cpp

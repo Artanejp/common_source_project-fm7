@@ -23,14 +23,13 @@ set(WITH_MOUSE ON)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-#      memory.cpp
-  
-      io.cpp
       event.cpp
 )
 
 set(VMFILES_LIB
       datarec.cpp
+      io.cpp
+      memory.cpp
 	  noise.cpp
       sn76489an.cpp
       tms9918a.cpp

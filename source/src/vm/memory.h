@@ -14,12 +14,12 @@
 #include "../emu.h"
 #include "device.h"
 
-#ifndef MEMORY_ADDR_MAX
-#define MEMORY_ADDR_MAX 0x10000
-#endif
-#ifndef MEMORY_BANK_SIZE
-#define MEMORY_BANK_SIZE 0x1000
-#endif
+//#ifndef MEMORY_ADDR_MAX
+//#define MEMORY_ADDR_MAX 0x10000
+//#endif
+//#ifndef MEMORY_BANK_SIZE
+//#define MEMORY_BANK_SIZE 0x1000
+//#endif
 
 class VM;
 class EMU;
@@ -41,12 +41,16 @@ protected:
 	uint8_t *wr_dummy;
 	
 	bool _MEMORY_DISABLE_DMA_MMIO;
+	bool bank_size_was_set;
+	bool addr_max_was_set;
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		// Set temporally values.
 		addr_max = 0x10000;
 		bank_size = 0x1000;
+		bank_size_was_set = false;
+		addr_max_was_set = false;
  		
 		rd_table = wr_table = NULL;
 		rd_dummy = wr_dummy = NULL;
@@ -125,12 +129,14 @@ public:
 	{
 		// Allow to modify before initialize() or set_foo_r|w|rw()..
 		if(rd_table == NULL) {
+			addr_max_was_set = true;
 			addr_max = size;
 		}
 	}
 	void set_bank_size(int64_t size)
 	{
 		if(rd_table == NULL) {
+			bank_size_was_set = true;
 			bank_size = size;
 		}
 	}

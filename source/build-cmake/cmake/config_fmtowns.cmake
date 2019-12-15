@@ -14,7 +14,6 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 set(VMFILES
   event.cpp
-  io.cpp
   
   scsi_host.cpp
   scsi_dev.cpp
@@ -27,6 +26,7 @@ set(VMFILES_LIB
    i8251.cpp
    i8253.cpp
    i8259.cpp
+   io.cpp
    msm58321.cpp
    upd71071.cpp
    

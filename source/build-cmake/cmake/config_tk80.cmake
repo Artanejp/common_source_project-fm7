@@ -18,12 +18,15 @@ set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
 		   i8080.cpp
-#		   memory.cpp
 		   event.cpp
 )
 set(VMFILES_LIB
+		   datarec.cpp
 		   i8080_base.cpp
 		   i8255.cpp
+ 		   io.cpp
+		   memory.cpp
+		   noise.cpp
 		   pcm1bit.cpp
 )
 
@@ -31,22 +34,22 @@ if(BUILD_TK80BS)
     add_definitions(-D_TK80BS)
     set(EXEC_TARGET emutk80bs)
     set(VM_NAME tk80bs)
-    set(VMFILES_LIB ${VMFILES_LIB} noise.cpp datarec.cpp i8251.cpp)
-    set(VMFILES_BASE ${VMFILES_BASE} io.cpp)
+    set(VMFILES_LIB ${VMFILES_LIB}  i8251.cpp)
+    set(VMFILES_BASE ${VMFILES_BASE})
     set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/tk80bs.qrc)
 elseif(BUILD_TK80)
     add_definitions(-D_TK80)
     set(EXEC_TARGET emutk80)
     set(VM_NAME tk80)
-    set(VMFILES_LIB ${VMFILES_LIB} )
-    #set(VMFILES_BASE ${VMFILES_BASE} noise.cpp datarec.cpp io.cpp)
+    set(VMFILES_LIB ${VMFILES_LIB})
+    #set(VMFILES_BASE ${VMFILES_BASE})
     set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/tk80.qrc)
 elseif(BUILD_TK85)
     add_definitions(-D_TK85)
     set(EXEC_TARGET emutk85)
     set(VM_NAME tk80bs)
-    set(VMFILES_LIB ${VMFILES_LIB} noise.cpp datarec.cpp )
-    set(VMFILES_BASE ${VMFILES_BASE} io.cpp)
+    set(VMFILES_LIB ${VMFILES_LIB})
+    set(VMFILES_BASE ${VMFILES_BASE})
     set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/tk85.qrc)
 endif()
 

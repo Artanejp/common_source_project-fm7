@@ -24,8 +24,6 @@ set(FLAG_USE_Z80 ON)
 
 set(VMFILES_BASE
       event.cpp
-      io.cpp
-#      memory.cpp
 )
 set(VMFILES_LIB
       beep.cpp
@@ -34,8 +32,10 @@ set(VMFILES_LIB
       hd146818p.cpp
       hd6301.cpp
       i8255.cpp
+      io.cpp
       mc6800.cpp
       mc6801.cpp
+      memory.cpp
       noise.cpp
       
       tf20.cpp

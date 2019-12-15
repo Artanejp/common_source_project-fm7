@@ -25,19 +25,19 @@ set(WITH_MOUSE ON)
 set(VMFILES
 		   msm58321.cpp
 		   event.cpp
-		   io.cpp
-#		   memory.cpp
 )
 
 set(VMFILES_LIB
-#		   datarec.cpp
+		   datarec.cpp
 		   disk.cpp
 		   i8251.cpp
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
+		   io.cpp
 		   mb8877.cpp
 		   msm58321_base.cpp
+		   memory.cpp
 		   noise.cpp
 		   not.cpp
 		   pcm1bit.cpp

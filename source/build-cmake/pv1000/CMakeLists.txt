@@ -18,13 +18,14 @@ set(USE_FMGEN OFF)
 set(WITH_JOYSTICK ON)
 set(WITH_MOUSE OFF)
 set(FLAG_USE_Z80 ON)
-set(VMFILES
-		   io.cpp
-#		   memory.cpp
-  
-		   event.cpp
-)
 
+set(VMFILES
+	   event.cpp
+)
+set(VMFILES_LIB
+		io.cpp
+		memory.cpp
+)
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

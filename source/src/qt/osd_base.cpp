@@ -414,6 +414,7 @@ void OSD_BASE::add_feature(const _TCHAR *key, double value)
 		SupportedFeatures.append(l);
 	}
 }
+
 void OSD_BASE::add_feature(const _TCHAR *key, int64_t value)
 {
 	QString tmps;
@@ -422,6 +423,18 @@ void OSD_BASE::add_feature(const _TCHAR *key, int64_t value)
 	if(!check_feature(key)) {
 		l.string = tmps;
 		l.v.ivalue = value;
+		SupportedFeatures.append(l);
+	}
+}
+
+void OSD_BASE::add_feature(const _TCHAR *key, uint64_t value)
+{
+	QString tmps;
+	supportedlist_t l;
+	tmps = QString::fromUtf8(key);
+	if(!check_feature(key)) {
+		l.string = tmps;
+		l.v.uvalue = value;
 		SupportedFeatures.append(l);
 	}
 }
@@ -436,19 +449,30 @@ void OSD_BASE::add_feature(const _TCHAR *key, int value)
 	add_feature(key, (int64_t)value);
 }
 
+
+void OSD_BASE::add_feature(const _TCHAR *key, int16_t value)
+{
+	add_feature(key, (int64_t)value);
+}
+
+void OSD_BASE::add_feature(const _TCHAR *key, int8_t value)
+{
+	add_feature(key, (int64_t)value);
+}
+
 void OSD_BASE::add_feature(const _TCHAR *key, uint32_t value)
 {
-	add_feature(key, (int64_t)(value & 0xffffffff));
+	add_feature(key, (uint64_t)(value & 0xffffffff));
 }
 
 void OSD_BASE::add_feature(const _TCHAR *key, uint16_t value)
 {
-	add_feature(key, (int64_t)(value & 0xffff));
+	add_feature(key, (uint64_t)(value & 0xffff));
 }
 
 void OSD_BASE::add_feature(const _TCHAR *key, uint8_t value)
 {
-	add_feature(key, (int64_t)(value & 0xff));
+	add_feature(key, (uint64_t)(value & 0xff));
 }
 
 
@@ -480,7 +504,7 @@ double OSD_BASE::get_feature_double_value(const _TCHAR *key)
 	return std::numeric_limits<double>::quiet_NaN(); // You don't use (0.0 / 0.0). 
 }
 
-int64_t OSD_BASE::get_feature_int_value(const _TCHAR *key)
+int64_t OSD_BASE::get_feature_int64_value(const _TCHAR *key)
 {
 	QString tmps;
 	supportedlist_t l;
@@ -494,19 +518,54 @@ int64_t OSD_BASE::get_feature_int_value(const _TCHAR *key)
 	return 0;
 }
 
+int OSD_BASE::get_feature_int_value(const _TCHAR *key)
+{
+	return (int)get_feature_int64_value(key);
+}
+
+int32_t OSD_BASE::get_feature_int32_value(const _TCHAR *key)
+{
+	return (int32_t)get_feature_int64_value(key);
+}
+
+int16_t OSD_BASE::get_feature_int16_value(const _TCHAR *key)
+{
+	return (int16_t)get_feature_int64_value(key);
+}
+
+int8_t OSD_BASE::get_feature_int8_value(const _TCHAR *key)
+{
+	return (int8_t)get_feature_int64_value(key);
+}
+
+
+uint64_t OSD_BASE::get_feature_uint64_value(const _TCHAR *key)
+{
+	QString tmps;
+	supportedlist_t l;
+	tmps = QString::fromUtf8(key);
+	for(int i = 0; i < SupportedFeatures.size(); i++) {
+		l = SupportedFeatures.at(i);
+		if(l.string == tmps) {
+			return l.v.uvalue;
+		}
+	}
+	return 0;
+}
+
 uint32_t OSD_BASE::get_feature_uint32_value(const _TCHAR *key)
 {
-	return (uint32_t)(get_feature_int_value(key) & 0xffffffff);
+	return (uint32_t)(get_feature_uint64_value(key) & 0xffffffff);
 }
 
 uint16_t OSD_BASE::get_feature_uint16_value(const _TCHAR *key)
 {
-	return (uint16_t)(get_feature_uint32_value(key) & 0xffff);
+	return (uint16_t)(get_feature_uint64_value(key) & 0xffff);
 }
 
 uint8_t OSD_BASE::get_feature_uint8_value(const _TCHAR *key)
 {
-	return (uint8_t)(get_feature_uint32_value(key) & 0xff);
+	return (uint8_t)(get_feature_uint64_value(key) & 0xff);
 }
 
 void OSD_BASE::start_waiting_in_debugger()

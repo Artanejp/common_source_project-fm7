@@ -56,9 +56,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new M6502(this, emu);	// YM-2002
 	io = new IO(this, emu);
 	memory = new MEMORY(this, emu);
-	// MUST set MEMORY SIZE before use.
-	memory->set_addr_max(MEMORY_ADDR_MAX);
-	memory->set_bank_size(MEMORY_BANK_SIZE);
 	
 	apu = new AM9511(this, emu);
 	beep = new BEEP(this, emu);

@@ -15,7 +15,6 @@ set(WITH_JOYSTICK ON)
 
 set(VMFILES
 		   event.cpp
-#		   io.cpp
 )
 
 set(VMFILES_LIB

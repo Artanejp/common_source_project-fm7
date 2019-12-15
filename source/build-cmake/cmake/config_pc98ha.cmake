@@ -7,23 +7,23 @@ set(WITH_MOUSE ON)
 set(VMFILES
 #		   i286.cpp
 		   event.cpp
-		   io.cpp
-#		   memory.cpp
 )
 set(VMFILES_LIB
-		   noise.cpp
 		   beep.cpp
+		   disk.cpp
 		   i8251.cpp
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
+		   io.cpp
 		   ls244.cpp
+		   memory.cpp
+		   noise.cpp
 		   not.cpp
+		   prnfile.cpp
  
 		   upd71071.cpp
 		   upd765a.cpp
-		   disk.cpp
-		   prnfile.cpp
 )
 
 set(BUILD_SHARED_LIBS OFF)

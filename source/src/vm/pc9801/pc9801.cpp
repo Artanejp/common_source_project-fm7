@@ -231,9 +231,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	rtcreg->set_device_name(_T("74LS244 (RTC)"));
 	//memory = new MEMORY(this, emu);
 	memory = new MEMBUS(this, emu);
-	// MUST set MEMORY SIZE before use.
-	memory->set_addr_max(MEMORY_ADDR_MAX);
-	memory->set_bank_size(MEMORY_BANK_SIZE);
 	
 	not_busy = new NOT(this, emu);
 	not_busy->set_device_name(_T("NOT Gate (Printer Busy)"));

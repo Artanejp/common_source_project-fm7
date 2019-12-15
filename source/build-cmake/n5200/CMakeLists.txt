@@ -22,19 +22,18 @@ set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
-#                  i386.cpp
 		   i8237.cpp
-		   
-		   io.cpp
 		   event.cpp
 )
 set(VMFILES_LIB
 		   beep.cpp
+		   i386.cpp
 		   i8237_base.cpp
 		   i8251.cpp
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
+		   io.cpp
 		   noise.cpp
 		   upd1990a.cpp
 		   upd7220.cpp

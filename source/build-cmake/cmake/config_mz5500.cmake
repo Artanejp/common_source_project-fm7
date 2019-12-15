@@ -12,7 +12,6 @@ set(VMFILES
 		   mz1p17.cpp
 		   
 		   event.cpp
-		   io.cpp
 )
 
 set(VMFILES_LIB
@@ -21,6 +20,7 @@ set(VMFILES_LIB
 		   i8237_base.cpp
 		   i8255.cpp
 		   i8259.cpp
+		   io.cpp
 		   ls393.cpp
 		   not.cpp
 		   noise.cpp

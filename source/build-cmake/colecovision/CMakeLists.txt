@@ -22,13 +22,13 @@ set(WITH_MOUSE OFF)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES
-		   io.cpp
 		   event.cpp
 )
 
 set(VMFILES_LIB
-		   tms9918a.cpp
+		   io.cpp
   		   sn76489an.cpp
+		   tms9918a.cpp
 )
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

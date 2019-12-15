@@ -6,10 +6,7 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 		   i8237.cpp
-
 		   event.cpp
-		   io.cpp
-#		   memory.cpp
 )
 set(VMFILES_LIB
 		   i8237_base.cpp
@@ -17,7 +14,11 @@ set(VMFILES_LIB
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
+		   io.cpp
+
 		   ls244.cpp
+		   memory.cpp
+		   
 		   pc80s31k.cpp
 		   tms3631.cpp
 		   upd1990a.cpp

@@ -20,11 +20,11 @@ set(VMFILES
 #		   memory.cpp
 		   
 		   event.cpp
-		   io.cpp
 )
 
 set(VMFILES_LIB
 		   hd46505.cpp
+		   io.cpp
 
 		   i8237_base.cpp
 		   i8251.cpp

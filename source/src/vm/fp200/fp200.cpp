@@ -43,9 +43,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	cpu = new I8080(this, emu);	// i8085
 	memory = new MEMORY(this, emu);
-	// MUST set MEMORY SIZE before use.
-	memory->set_addr_max(MEMORY_ADDR_MAX);
-	memory->set_bank_size(MEMORY_BANK_SIZE);
 	
 	rtc = new RP5C01(this, emu);
 	

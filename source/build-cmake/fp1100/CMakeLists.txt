@@ -22,14 +22,14 @@ set(WITH_MOUSE OFF)
 set(FLAG_USE_Z80 ON)
 set(VMFILES
 		  event.cpp
-		  io.cpp
-#		  memory.cpp
 )
 set(VMFILES_LIB
 		   beep.cpp
 		   datarec.cpp
 		   disk.cpp
 		   hd46505.cpp
+ 		   io.cpp
+		   memory.cpp
 		   noise.cpp
 		   upd7801.cpp
 		   upd765a.cpp

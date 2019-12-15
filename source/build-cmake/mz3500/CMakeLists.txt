@@ -21,12 +21,12 @@ set(WITH_MOUSE ON)
 set(VMFILES
 	   mz1p17.cpp
 	   event.cpp
-	   io.cpp
 )
 set(VMFILES_LIB
 	   i8251.cpp
 	   i8253.cpp
 	   i8255.cpp
+	   io.cpp
 		   
 	   ls244.cpp
 	   not.cpp

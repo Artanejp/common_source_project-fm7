@@ -16,8 +16,6 @@ set(WITH_MOUSE OFF)
 set(VMFILES_BASE
 		   mz1p17.cpp
 		   event.cpp
-		   io.cpp
-#		   memory.cpp
 )
 
 set(VMFILES_LIB
@@ -26,7 +24,9 @@ set(VMFILES_LIB
 	   datarec.cpp
 	   i8253.cpp
 	   i8255.cpp
+	   io.cpp
 	   ls393.cpp
+	   memory.cpp
 	   pcm1bit.cpp
 	   prnfile.cpp
 )		   
@@ -92,10 +92,7 @@ set(VMFILES_LIB ${VMFILES_LIB}
 endif()
 
 if(BUILD_MZ80A)
-set(VMFILES ${VMFILES}
-#            mb8877.cpp
-#	    disk.cpp
-	    io.cpp )
+set(VMFILES ${VMFILES}  )
 #add_definitions(-DSUPPORT_MZ80AIF)
 set(VMFILES_LIB ${VMFILES_LIB}
 		mb8877.cpp

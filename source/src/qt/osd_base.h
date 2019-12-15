@@ -92,6 +92,7 @@ typedef struct {
 	QString string;
 	union {
 		int64_t ivalue;
+		uint64_t uvalue;
 		double  fvalue;
 	} v;
 } supportedlist_t;
@@ -616,12 +617,21 @@ public:
 	void add_feature(const _TCHAR *key, float value);
 	void add_feature(const _TCHAR *key, int value = 1);
 	void add_feature(const _TCHAR *key, int64_t value);
+	void add_feature(const _TCHAR *key, int16_t value);
+	void add_feature(const _TCHAR *key, int8_t value);
+	void add_feature(const _TCHAR *key, uint64_t value);
 	void add_feature(const _TCHAR *key, uint32_t value);
 	void add_feature(const _TCHAR *key, uint16_t value);
 	void add_feature(const _TCHAR *key, uint8_t value);
 	bool check_feature(const _TCHAR *key);
 	double get_feature_double_value(const _TCHAR *key);
-	int64_t get_feature_int_value(const _TCHAR *key);
+	int get_feature_int_value(const _TCHAR *key);
+	int64_t get_feature_int64_value(const _TCHAR *key);
+	int32_t get_feature_int32_value(const _TCHAR *key);
+	int16_t get_feature_int16_value(const _TCHAR *key);
+	int8_t get_feature_int8_value(const _TCHAR *key);
+	
+	uint64_t get_feature_uint64_value(const _TCHAR *key);
 	uint32_t get_feature_uint32_value(const _TCHAR *key);
 	uint16_t get_feature_uint16_value(const _TCHAR *key);
 	uint8_t get_feature_uint8_value(const _TCHAR *key);

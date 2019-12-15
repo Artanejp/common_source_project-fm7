@@ -12,21 +12,22 @@ set(WITH_MOUSE OFF)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES
-		   i8255.cpp
-		   io.cpp
 		   event.cpp
 )
 set(VMFILES_LIB
 		   datarec.cpp
-		   ls393.cpp
-		   not.cpp
-		   z80pio.cpp
-		   z80ctc.cpp
-		   pcm1bit.cpp
-		   upd765a.cpp
-		   noise.cpp
 		   disk.cpp
 		   hd46505.cpp
+		   i8255.cpp
+		   io.cpp
+		   
+		   ls393.cpp
+		   noise.cpp
+		   not.cpp
+		   pcm1bit.cpp
+		   upd765a.cpp
+		   z80pio.cpp
+		   z80ctc.cpp
 )
 
 if(NOT BUILD_PASOPIA)

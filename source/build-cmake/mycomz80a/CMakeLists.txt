@@ -18,15 +18,13 @@ set(USE_FMGEN OFF)
 set(FLAG_USE_Z80 ON)
 set(VMFILES
 		msm5832.cpp
-		datarec.cpp
-	
 		event.cpp
-		io.cpp
 )
 set(VMFILES_LIB
 		datarec.cpp
   		hd46505.cpp
 		i8255.cpp
+		io.cpp
 		msm58321_base.cpp
 		noise.cpp
 		sn76489an.cpp

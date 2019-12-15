@@ -32,8 +32,6 @@ set(VMFILES_BASE
 		   mz1p17.cpp
 
 		   event.cpp
-#		   memory.cpp
-		   io.cpp
 
 		   )
 set(VMFILES_LIB
@@ -41,6 +39,8 @@ set(VMFILES_LIB
 		   datarec.cpp
 		   i8253.cpp
 		   i8255.cpp
+		   memory.cpp
+		   io.cpp
 
 		   pcm1bit.cpp
 		   z80pio.cpp

@@ -9,15 +9,15 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 		event.cpp
-		io.cpp
-#		memory.cpp
 )
 set(VMFILES_LIB
-		noise.cpp
 		beep.cpp
 		datarec.cpp
 		i8251.cpp
 		i8255.cpp
+		io.cpp
+		memory.cpp
+		noise.cpp
   
 		pc80s31k.cpp
 		pcm1bit.cpp

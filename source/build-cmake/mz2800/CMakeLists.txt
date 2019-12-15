@@ -24,18 +24,18 @@ set(VMFILES
 		   scsi_hdd.cpp
 		   scsi_host.cpp
 		   event.cpp
-		   io.cpp
 )
 set(VMFILES_LIB
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
+		   io.cpp
 		   noise.cpp
 		   rp5c01.cpp
 		   z80sio.cpp
 		   z80pio.cpp
 		   prnfile.cpp
-		   #		i286.cpp
+		   i286.cpp
 		   upd71071.cpp
 		   mb8877.cpp
 		   not.cpp

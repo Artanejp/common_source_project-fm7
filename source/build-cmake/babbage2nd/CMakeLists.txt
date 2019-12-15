@@ -22,15 +22,13 @@ set(WITH_MOUSE ON)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-  z80ctc.cpp
-  
-  io.cpp
-#  memory.cpp
-
   event.cpp
 )
 
 set(VMFILES_LIB
+  io.cpp
+  memory.cpp
+  z80ctc.cpp
   z80pio.cpp
 )
 

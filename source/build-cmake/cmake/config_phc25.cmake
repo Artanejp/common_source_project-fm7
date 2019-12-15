@@ -14,15 +14,14 @@ set(WITH_JOYSTICK ON)
 set(FLAG_USE_Z80 ON)
 set(VMFILES
 		   mc6847.cpp
-		   io.cpp
-		   
 		   event.cpp
 )
 set(VMFILES_LIB
 		   ay_3_891x.cpp
-		   noise.cpp
 		   datarec.cpp
+		   io.cpp
 		   mc6847_base.cpp
+		   noise.cpp
 		   not.cpp
 )
 

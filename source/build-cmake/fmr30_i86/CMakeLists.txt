@@ -26,8 +26,6 @@ set(VMFILES
 		   scsi_host.cpp
 		   scsi_hdd.cpp
 		   
-		   io.cpp
-
 		   event.cpp
 )
 set(VMFILES_LIB
@@ -36,6 +34,7 @@ set(VMFILES_LIB
 		   i8253.cpp
 		   i8259.cpp
 		   i8237_base.cpp
+		   io.cpp
 		   mb8877.cpp
 		   noise.cpp
 		   pcm1bit.cpp

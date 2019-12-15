@@ -24,8 +24,6 @@ set(WITH_DEBUGGER ON)
 set(VMFILES_BASE
 	msm58321.cpp
 	m6502.cpp
-	io.cpp
-#	memory.cpp
 	event.cpp
 )
 
@@ -33,11 +31,13 @@ set(VMFILES_LIB
 	am9511.cpp
 	beep.cpp
 	disk.cpp
+	io.cpp
 	m6502_base.cpp
 	mb8877.cpp
 	mc6820.cpp
 	mc6844.cpp
 	mc6850.cpp
+	memory.cpp
 	msm58321_base.cpp
 	noise.cpp
 )

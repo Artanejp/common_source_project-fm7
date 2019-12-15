@@ -9,14 +9,14 @@ message("")
 
 set(VMFILES_BASE
 	event.cpp
-	io.cpp
-#	memory.cpp
 )
 
 set(VMFILES_LIB
 	datarec.cpp
 	ay_3_891x.cpp
 	i8255.cpp
+	io.cpp
+	memory.cpp
 	not.cpp
 	pcm1bit.cpp
 	ym2413.cpp

@@ -22,17 +22,17 @@ set(WITH_MOUSE OFF)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES
-		   mc6847.cpp
-		   io.cpp
-#		   memory.cpp
-		   event.cpp
+	   mc6847.cpp
+	   event.cpp
 )
 
 set(VMFILES_LIB
 	ay_3_891x.cpp
 	datarec.cpp
 	i8255.cpp
-	mc6847_mase.cpp
+    io.cpp
+	mc6847_base.cpp
+    memory.cpp
 	not.cpp
 	rp5c01.cpp
 	z80.cpp

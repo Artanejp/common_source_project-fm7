@@ -95,9 +95,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMBUS(this, emu);
-	// MUST set MEMORY SIZE before use.
-	memory->set_addr_max(MEMORY_ADDR_MAX);
-	memory->set_bank_size(MEMORY_BANK_SIZE);
 	
 #if defined(_TK80BS)
 	pio_t->set_device_name(_T("i8255 PIO (TK-80/SOUND/KEYBOARD/DISPLAY)"));

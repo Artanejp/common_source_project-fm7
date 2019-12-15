@@ -15,19 +15,19 @@ set(WITH_MOUSE ON)
 set(VMFILES
 		   i8255.cpp
 		   event.cpp
-		   io.cpp
-#		   memory.cpp
 )
 
 set(VMFILES_LIB
-		noise.cpp
 		datarec.cpp
+		disk.cpp
+		io.cpp
+		memory.cpp
+		noise.cpp
+
 		pc6031.cpp
 		pc80s31k.cpp
-		upd765a.cpp
-
 		prnfile.cpp
-		disk.cpp
+		upd765a.cpp
 )
 set(FLAG_USE_MCS48 ON)
 set(FLAG_USE_Z80 ON)

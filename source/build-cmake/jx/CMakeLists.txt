@@ -22,19 +22,19 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
-      i286.cpp
-      io.cpp
-#      memory.cpp
       event.cpp
 )
 set(VMFILES_LIB
       disk.cpp
+      hd46505.cpp
+      i286.cpp
       i8251.cpp
       i8253.cpp
       i8255.cpp
       i8259.cpp
+      io.cpp
+      memory.cpp
 	  
-      hd46505.cpp
       not.cpp
 	  noise.cpp
       pcm1bit.cpp

@@ -47,9 +47,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I8080(this, emu);	// 8085
 	pio = new I8155(this, emu);	// 8156
 	memory = new MEMORY(this, emu);
-	// MUST set MEMORY SIZE before use.
-	memory->set_addr_max(MEMORY_ADDR_MAX);
-	memory->set_bank_size(MEMORY_BANK_SIZE);
 	
 	io = new IO(this, emu);
 	

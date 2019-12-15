@@ -16,6 +16,12 @@ void MEMORY::initialize()
 {
 	DEVICE::initialize();
 	_MEMORY_DISABLE_DMA_MMIO = osd->check_feature(_T("MEMORY_DISABLE_DMA_MMIO"));
+	if(!(addr_max_was_set) && osd->check_feature(_T("MEMORY_ADDR_MAX"))) {
+		addr_max = osd->get_feature_uint64_value(_T("MEMORY_ADDR_MAX"));
+	}
+	if(!(bank_size_was_set) && osd->check_feature(_T("MEMORY_BANK_SIZE"))) {
+		bank_size = osd->get_feature_uint64_value(_T("MEMORY_BANK_SIZE"));
+	}
 	// allocate tables here to support multiple instances with different address range
 	if(rd_table == NULL) {
 		int64_t bank_num = addr_max / bank_size;

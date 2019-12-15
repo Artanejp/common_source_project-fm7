@@ -22,14 +22,14 @@ set(WITH_MOUSE ON)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-	io.cpp
-#	memory.cpp
 	event.cpp
 )
 
 set(VMFILES_LIB
+	io.cpp
 	ls393.cpp
 	mb8877.cpp
+	memory.cpp
 	mc6850.cpp
 	pcm1bit.cpp
 	z80ctc.cpp

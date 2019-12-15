@@ -22,12 +22,12 @@ set(WITH_MOUSE ON)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-       io.cpp
        event.cpp
 )
 
 set(VMFILES_LIB
        datarec.cpp
+       io.cpp
        not.cpp
 	   noise.cpp
        z80pio.cpp

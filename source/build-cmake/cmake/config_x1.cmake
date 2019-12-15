@@ -14,7 +14,6 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 set(VMFILES
 		   event.cpp
-		   io.cpp
 		   mz1p17.cpp
 
 		   scsi_host.cpp
@@ -22,13 +21,17 @@ set(VMFILES
 		   scsi_hdd.cpp
 )
 set(VMFILES_LIB
-		   noise.cpp
 		   ay_3_891x.cpp
 		   beep.cpp
 		   datarec.cpp
+		   disk.cpp
+		   harddisk.cpp
 		   hd46505.cpp
 		   i8255.cpp
+		   io.cpp
 		   mb8877.cpp
+		   noise.cpp
+		   prnfile.cpp
 		   upd1990a.cpp
 		   ym2151.cpp
 #		   ym2203.cpp
@@ -36,9 +39,6 @@ set(VMFILES_LIB
 		   z80sio.cpp
 		   z80pio.cpp
 		   
-		   disk.cpp
-		   prnfile.cpp
-		   harddisk.cpp
 )
 set(FLAG_USE_MCS48 ON)
 set(FLAG_USE_Z80 ON)

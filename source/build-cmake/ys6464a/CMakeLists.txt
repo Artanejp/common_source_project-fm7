@@ -23,14 +23,13 @@ set(WITH_MOUSE ON)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES_BASE
-  i8255.cpp
- 
-  io.cpp
-#  memory.cpp
-
   event.cpp
 )
-
+set(VMFILES_LIB	
+	i8255.cpp
+	io.cpp
+	memory.cpp
+)
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

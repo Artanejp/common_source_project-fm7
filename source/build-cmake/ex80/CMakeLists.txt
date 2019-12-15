@@ -22,7 +22,6 @@ set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
        i8080.cpp
-       io.cpp
        event.cpp
 )
 
@@ -30,6 +29,7 @@ set(VMFILES_LIB
        i8080_base.cpp
        i8251.cpp
        i8255.cpp
+       io.cpp
        pcm1bit.cpp
 )       
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")

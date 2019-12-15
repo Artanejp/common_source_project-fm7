@@ -20,14 +20,14 @@ set(WITH_MOUSE ON)
 
 set(FLAG_USE_Z80 ON)
 set(VMFILES
-		   io.cpp
 		   event.cpp
 )
 
 set(VMFILES_LIB
 		   datarec.cpp
 		   i8251.cpp
-		   i8255.cpp
+		   i8255.cpp	
+		   io.cpp
 		   noise.cpp
 		   sn76489an.cpp
 		   tms9918a.cpp
