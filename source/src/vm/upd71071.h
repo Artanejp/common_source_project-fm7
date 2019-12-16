@@ -47,6 +47,17 @@ protected:
 
 	bool _SINGLE_MODE_DMA;
 	bool _USE_DEBUGGER;
+
+	virtual void __FASTCALL do_dma_verify_8bit(int c);
+	virtual void __FASTCALL do_dma_dev_to_mem_8bit(int c);
+	virtual void __FASTCALL do_dma_mem_to_dev_8bit(int c);
+	virtual void __FASTCALL do_dma_inc_dec_ptr_8bit(int c);
+	virtual void __FASTCALL do_dma_verify_16bit(int c);
+	virtual void __FASTCALL do_dma_dev_to_mem_16bit(int c);
+	virtual void __FASTCALL do_dma_mem_to_dev_16bit(int c);
+	virtual void __FASTCALL do_dma_inc_dec_ptr_16bit(int c);
+	virtual bool __FASTCALL do_dma_prologue(int c);
+
 public:
 	UPD71071(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

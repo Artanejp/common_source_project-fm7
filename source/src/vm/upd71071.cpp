@@ -224,10 +224,144 @@ uint32_t UPD71071::read_signal(int ch)
 	return 0;
 }
 
-
-void UPD71071::do_dma_8bit(int c)
+void UPD71071::do_dma_verify_8bit(int c)
 {
+	// verify
+	uint32_t val = dma[c].dev->read_dma_io8(0);
+	// update temporary register
+	tmp = (tmp >> 8) | (val << 8);
+
 }
+void UPD71071::do_dma_dev_to_mem_8bit(int c)
+{
+	// io -> memory
+	uint32_t val;
+	val = dma[c].dev->read_dma_io8(0);
+	write_signals(&outputs_wrote_mem_byte, dma[c].areg);
+	if(_USE_DEBUGGER) {
+		if(d_debugger != NULL && d_debugger->now_device_debugging) {
+			d_debugger->write_via_debugger_data8(dma[c].areg, val);
+		} else {
+			this->write_via_debugger_data8(dma[c].areg, val);
+		}
+	} else {
+		this->write_via_debugger_data8(dma[c].areg, val);
+	}							
+	// update temporary register
+	tmp = (tmp >> 8) | (val << 8);
+
+}
+
+void UPD71071::do_dma_mem_to_dev_8bit(int c)
+{
+	// memory -> io
+	uint32_t val;
+	if(_USE_DEBUGGER) {
+		if(d_debugger != NULL && d_debugger->now_device_debugging) {
+			val = d_debugger->read_via_debugger_data8(dma[c].areg);
+		} else {
+			val = this->read_via_debugger_data8(dma[c].areg);
+		}
+	} else {
+		val = this->read_via_debugger_data8(dma[c].areg);
+	}
+	dma[c].dev->write_dma_io8(0, val);
+	// update temporary register
+	tmp = (tmp >> 8) | (val << 8);
+}
+
+void UPD71071::do_dma_inc_dec_ptr_8bit(int c)
+{
+	// Note: FM-Towns may extend to 32bit.
+	if(dma[c].mode & 0x20) {
+		dma[c].areg = (dma[c].areg - 1) & 0xffffff;
+	} else {
+		dma[c].areg = (dma[c].areg + 1) & 0xffffff;
+	}
+}
+
+void UPD71071::do_dma_verify_16bit(int c)
+{
+	// verify
+	uint32_t val = dma[c].dev->read_dma_io16(0);
+	// update temporary register
+	tmp = val;
+
+}
+void UPD71071::do_dma_dev_to_mem_16bit(int c)
+{
+	// io -> memory
+	uint32_t val;
+	val = dma[c].dev->read_dma_io16(0);
+	write_signals(&outputs_wrote_mem_byte, dma[c].areg);
+	if(_USE_DEBUGGER) {
+		if(d_debugger != NULL && d_debugger->now_device_debugging) {
+			d_debugger->write_via_debugger_data16(dma[c].areg, val);
+		} else {
+			this->write_via_debugger_data16(dma[c].areg, val);
+		}
+	} else {
+		this->write_via_debugger_data16(dma[c].areg, val);
+	}							
+	// update temporary register
+	tmp = val;
+
+}
+
+void UPD71071::do_dma_mem_to_dev_16bit(int c)
+{
+	// memory -> io
+	uint32_t val;
+	if(_USE_DEBUGGER) {
+		if(d_debugger != NULL && d_debugger->now_device_debugging) {
+			val = d_debugger->read_via_debugger_data16(dma[c].areg);
+		} else {
+			val = this->read_via_debugger_data16(dma[c].areg);
+		}
+	} else {
+		val = this->read_via_debugger_data16(dma[c].areg);
+	}
+	dma[c].dev->write_dma_io16(0, val);
+	// update temporary register
+	tmp = val;
+}
+
+void UPD71071::do_dma_inc_dec_ptr_16bit(int c)
+{
+	// Note: FM-Towns may extend to 32bit.
+	if(dma[c].mode & 0x20) {
+		dma[c].areg = (dma[c].areg - 2) & 0xffffff;
+	} else {
+		dma[c].areg = (dma[c].areg + 2) & 0xffffff;
+	}
+}
+
+bool UPD71071::do_dma_prologue(int c)
+{
+	bool need_break = false;
+	if(dma[c].creg-- == 0) {  // OK?
+		// TC
+		if(dma[c].mode & 0x10) {
+			// auto initialize
+			dma[c].areg = dma[c].bareg;
+			dma[c].creg = dma[c].bcreg;
+		} else {
+			mask |= bit;
+		}
+		req &= ~bit;
+		sreq &= ~bit;
+		tc |= bit;
+						
+		write_signals(&outputs_tc, 0xffffffff);
+	} else if(_SINGLE_MODE_DMA) {
+		if((dma[c].mode & 0xc0) == 0x40) {
+			// single mode
+			need_break = true;
+		}
+	}
+	return need_break;
+}
+
 void UPD71071::do_dma()
 {
 	// check DDMA
@@ -245,134 +379,26 @@ void UPD71071::do_dma()
 				if((dma[c].mode & 0x01) == 1) {
 					// 16bit transfer mode
 					if((dma[c].mode & 0x0c) == 0x00) {
-						// verify
-						uint32_t val = dma[c].dev->read_dma_io16(0);
-						// update temporary register
-						tmp = val;
+						do_dma_verify_16bit(c);
 					} else if((dma[c].mode & 0x0c) == 0x04) {
-						// io -> memory
-						uint32_t val;
-						val = dma[c].dev->read_dma_io16(0);
-						write_signals(&outputs_wrote_mem_word, dma[c].areg);
-						if(_USE_DEBUGGER) {
-							if(d_debugger != NULL && d_debugger->now_device_debugging) {
-								d_debugger->write_via_debugger_data16(dma[c].areg, val);
-							} else {
-								this->write_via_debugger_data16(dma[c].areg, val);
-							}
-						} else {
-								this->write_via_debugger_data16(dma[c].areg, val);
-						}
-							
-						// update temporary register
-						tmp = val;
+						do_dma_dev_to_mem_16bit(c);
 					} else if((dma[c].mode & 0x0c) == 0x08) {
-						// memory -> io
-						uint32_t val;
-						if(_USE_DEBUGGER) {
-							if(d_debugger != NULL && d_debugger->now_device_debugging) {
-								val = d_debugger->read_via_debugger_data16(dma[c].areg);
-							} else {
-								val = this->read_via_debugger_data16(dma[c].areg);
-							}
-						} else {
-								val = this->read_via_debugger_data16(dma[c].areg);
-						}							
-						dma[c].dev->write_dma_io16(0, val);
-						// update temporary register
-						tmp = val;
+						do_dma_mem_to_dev_16bit(c);
 					}
-					if(dma[c].mode & 0x20) {
-						dma[c].areg = (dma[c].areg - 2) & 0xffffff;
-					} else {
-						dma[c].areg = (dma[c].areg + 2) & 0xffffff;
-					}
-					if(dma[c].creg-- == 0) {  // OK?
-						// TC
-						if(dma[c].mode & 0x10) {
-							// auto initialize
-							dma[c].areg = dma[c].bareg;
-							dma[c].creg = dma[c].bcreg;
-						} else {
-							mask |= bit;
-						}
-						req &= ~bit;
-						sreq &= ~bit;
-						tc |= bit;
-						
-						write_signals(&outputs_tc, 0xffffffff);
-					} else if(_SINGLE_MODE_DMA) {
-						if((dma[c].mode & 0xc0) == 0x40) {
-							// single mode
-							break;
-						}
-					}
+					do_dma_inc_dec_ptr_16bit(c);
 				} else {
 					// 8bit transfer mode
 					if((dma[c].mode & 0x0c) == 0x00) {
-						// verify
-						uint32_t val = dma[c].dev->read_dma_io8(0);
-						// update temporary register
-						tmp = (tmp >> 8) | (val << 8);
+						do_dma_verify_8bit(c);
 					} else if((dma[c].mode & 0x0c) == 0x04) {
-						// io -> memory
-						uint32_t val;
-						val = dma[c].dev->read_dma_io8(0);
-						write_signals(&outputs_wrote_mem_byte, dma[c].areg);
-						if(_USE_DEBUGGER) {
-							if(d_debugger != NULL && d_debugger->now_device_debugging) {
-								d_debugger->write_via_debugger_data8(dma[c].areg, val);
-							} else {
-								this->write_via_debugger_data8(dma[c].areg, val);
-							}
-						} else {
-							this->write_via_debugger_data8(dma[c].areg, val);
-						}							
-						// update temporary register
-						tmp = (tmp >> 8) | (val << 8);
+						do_dma_dev_to_mem_8bit(c);
 					} else if((dma[c].mode & 0x0c) == 0x08) {
-						// memory -> io
-						uint32_t val;
-						if(_USE_DEBUGGER) {
-							if(d_debugger != NULL && d_debugger->now_device_debugging) {
-								val = d_debugger->read_via_debugger_data8(dma[c].areg);
-							} else {
-								val = this->read_via_debugger_data8(dma[c].areg);
-							}
-						} else {
-							val = this->read_via_debugger_data8(dma[c].areg);
-						}
-						dma[c].dev->write_dma_io8(0, val);
-						// update temporary register
-						tmp = (tmp >> 8) | (val << 8);
+						do_dma_mem_to_dev_8bit(c);
 					}
-					if(dma[c].mode & 0x20) {
-						dma[c].areg = (dma[c].areg - 1) & 0xffffff;
-					} else {
-						dma[c].areg = (dma[c].areg + 1) & 0xffffff;
-					}
+					do_dma_inc_dec_ptr_8bit(c);
 				}
-				if(dma[c].creg-- == 0) {
-					// TC
-					if(dma[c].mode & 0x10) {
-						// auto initialize
-						dma[c].areg = dma[c].bareg;
-						dma[c].creg = dma[c].bcreg;
-					} else {
-						mask |= bit;
-					}
-					req &= ~bit;
-					sreq &= ~bit;
-					tc |= bit;
-					
-					write_signals(&outputs_tc, 0xffffffff);
-//#ifdef SINGLE_MODE_DMA
-				} else if(_SINGLE_MODE_DMA) {
-					if((dma[c].mode & 0xc0) == 0x40) {
-						// single mode
-						break;
-					}
-//#endif
+				if(do_dma_prologue(c)) {
+					break;
 				}
 			}
 		}
