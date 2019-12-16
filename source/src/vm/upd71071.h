@@ -24,7 +24,7 @@
 class DEBUGGER;
 class UPD71071 : public DEVICE
 {
-private:
+protected:
 	DEVICE* d_mem;
 //#ifdef SINGLE_MODE_DMA
 	DEVICE* d_dma;
@@ -75,13 +75,13 @@ public:
 	~UPD71071() {}
 	
 	// common functions
-	void initialize();
-	void reset();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t __FASTCALL read_signal(int id);
-	void __FASTCALL do_dma();
+	virtual void initialize();
+	virtual void reset();
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	virtual uint32_t __FASTCALL read_signal(int id);
+	virtual void __FASTCALL do_dma();
 	// for debug
 	void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr);
@@ -96,7 +96,7 @@ public:
 		return d_debugger;
 	}
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	bool process_state(FILEIO* state_fio, bool loading);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
 	// unique functions
 	void set_context_memory(DEVICE* device)
 	{

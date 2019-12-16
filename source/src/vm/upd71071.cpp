@@ -223,7 +223,11 @@ uint32_t UPD71071::read_signal(int ch)
 	}
 	return 0;
 }
-			
+
+
+void UPD71071::do_dma_8bit(int c)
+{
+}
 void UPD71071::do_dma()
 {
 	// check DDMA
@@ -239,7 +243,7 @@ void UPD71071::do_dma()
 			while((req | sreq) & bit) {
 				// Will check WORD transfer mode for FM-Towns.(mode.bit0 = '1).
 				if((dma[c].mode & 0x01) == 1) {
-					// 8bit transfer mode
+					// 16bit transfer mode
 					if((dma[c].mode & 0x0c) == 0x00) {
 						// verify
 						uint32_t val = dma[c].dev->read_dma_io16(0);
