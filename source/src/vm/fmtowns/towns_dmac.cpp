@@ -80,5 +80,25 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 	}
 	return UPD71071::read_io8(addr);
 }
-			
+
+void TOWNS_DMAC::do_dma_inc_dec_ptr_8bit(int c)
+{
+	// Note: FM-Towns may extend to 32bit.
+	if(dma[c].mode & 0x20) {
+		dma[c].areg = (dma[c].areg - 1) & 0xffffffff;
+	} else {
+		dma[c].areg = (dma[c].areg + 1) & 0xffffffff;
+	}
+}
+
+void TOWNS_DMAC::do_dma_inc_dec_ptr_16bit(int c)
+{
+	// Note: FM-Towns may extend to 32bit.
+	if(dma[c].mode & 0x20) {
+		dma[c].areg = (dma[c].areg - 2) & 0xffffffff;
+	} else {
+		dma[c].areg = (dma[c].areg + 2) & 0xffffffff;
+	}
+}
+	
 		

@@ -339,6 +339,7 @@ void UPD71071::do_dma_inc_dec_ptr_16bit(int c)
 bool UPD71071::do_dma_prologue(int c)
 {
 	bool need_break = false;
+	uint8_t bit = 1 << c;
 	if(dma[c].creg-- == 0) {  // OK?
 		// TC
 		if(dma[c].mode & 0x10) {
