@@ -150,7 +150,7 @@ void SCSI_CDROM::event_callback(int event_id, int err)
 			// one frame finished
 			cdda_playing_frame++;
 			if((is_cue) && (cdda_playing_frame != cdda_end_frame)) {
-				if(cdda_playing_frame >= toc_table[current_track + 1].index0) {
+				if((cdda_playing_frame >= toc_table[current_track + 1].index0) && (track_num > (current_track + 1))) {
 					get_track_by_track_num(current_track + 1); // Note: Increment current track
 					if(fio_img->IsOpened()) {
 						//fio_img->Fseek(0, FILEIO_SEEK_SET);
@@ -638,8 +638,8 @@ void SCSI_CDROM::start_command()
 					// PCE tries to be clever here and set (start of track + track pregap size) to skip the pregap
 					// (I guess it wants the TOC to have the real start sector for data tracks and the start of the pregap for audio?)
 					
-//					int track = get_track(cdda_end_frame);
-					int track = current_track;
+//					int track = get_track(cdda_start_frame);
+//					int track = current_track;
 //					cdda_start_frame = toc_table[track].index0;
 					cdda_playing_frame = cdda_start_frame;
 					//if(cdda_end_frame > toc_table[track + 1].index1 && (cdda_end_frame - toc_table[track].pregap) <= toc_table[track + 1].index1) {
@@ -683,23 +683,21 @@ void SCSI_CDROM::start_command()
 				cdda_repeat = ((command[1] & 3) == 1);
 				cdda_interrupt = ((command[1] & 3) == 2);
 				
-				if(event_cdda_delay_play >= 0) cancel_event(this, event_cdda_delay_play);
-				register_event(this, EVENT_CDDA_DELAY_PLAY, 10.0, false, &event_cdda_delay_play);
-				//set_cdda_status(CDDA_PLAYING);
+//				if(event_cdda_delay_play >= 0) cancel_event(this, event_cdda_delay_play);
+//				register_event(this, EVENT_CDDA_DELAY_PLAY, 10.0, false, &event_cdda_delay_play);
+				set_cdda_status(CDDA_PLAYING);
 			} else {
 				cdda_repeat = false;
 				cdda_interrupt = false;
-				if(event_cdda_delay_play >= 0) cancel_event(this, event_cdda_delay_play);
-				register_event(this, EVENT_CDDA_DELAY_PLAY, 10.0, false, &event_cdda_delay_play);
+//				if(event_cdda_delay_play >= 0) cancel_event(this, event_cdda_delay_play);
+//				register_event(this, EVENT_CDDA_DELAY_STOP, 10.0, false, &event_cdda_delay_play);
+				set_cdda_status(CDDA_OFF);
 			}				
 		}
 		// change to status phase
 		set_dat(is_device_ready() ? SCSI_STATUS_GOOD : SCSI_STATUS_CHKCOND);
 		if(is_device_ready()) {
 			write_signals(&outputs_done, 0xffffffff);
-			//if(event_delay_interrupt >= 0) cancel_event(this, event_delay_interrupt);
-			//register_event(this, EVENT_CDROM_DELAY_INTERRUPT_ON, 10.0, false, &event_delay_interrupt);
-
 		}
 		set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		return;
