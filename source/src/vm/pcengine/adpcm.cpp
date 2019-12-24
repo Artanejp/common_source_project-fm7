@@ -432,7 +432,7 @@ void ADPCM::do_cmd(uint8_t cmd)
 			out_debug_log(_T("ADPCM UPDATE HALF ADDRESS HALF=%04x\n"), half_addr);
 		}
 	
-	} else {
+	} else  {
 		//set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
 		//	set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, ASSERT_LINE);
 		if(play_in_progress) {

@@ -157,7 +157,7 @@ void PCE::write_data8(uint32_t addr, uint32_t data)
 	uint16_t ofs = addr & 0x1fff;
 	
 #ifdef SUPPORT_CDROM
-	if(support_cdrom && mpr >= 0x68 && mpr <= 0x87) {
+	if(support_cdrom && mpr >= 0x68 && mpr <= 0x87) { // 0xd0000-0xfffff
 		cdrom_ram[addr & 0x3ffff] = data;
 		return;
 	}
@@ -253,7 +253,7 @@ uint32_t PCE::read_data8(uint32_t addr)
 		return cart[addr & 0x7ffff];
 	}
 #ifdef SUPPORT_CDROM
-	if(support_cdrom && mpr >= 0x68 && mpr <= 0x87) {
+	if(support_cdrom && mpr >= 0x68 && mpr <= 0x87) { // 0xd0000-0xfffff
 		return cdrom_ram[addr & 0x3ffff];
 	}
 #endif
