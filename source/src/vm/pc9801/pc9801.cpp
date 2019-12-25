@@ -429,6 +429,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio_mouse->set_context_port_c(mouse, SIG_MOUSE_PORT_C, 0xf0, 0);
 #if defined(SUPPORT_HIRESO)
 	// sysport port.c bit7,5: sysport port.b bit4,3
+//	pio_sys->set_context_port_b(pio_sys, SIG_I8255_PORT_C, 0x10, +3); // SHUT0
+//	pio_sys->set_context_port_b(pio_sys, SIG_I8255_PORT_C, 0x08, +2); // SHUT1
 	pio_sys->set_context_port_c(pio_sys, SIG_I8255_PORT_B, 0x80, -3); // SHUT0
 	pio_sys->set_context_port_c(pio_sys, SIG_I8255_PORT_B, 0x20, -2); // SHUT1
 #endif

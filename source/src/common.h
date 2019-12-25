@@ -1064,6 +1064,21 @@ inline scrntype_t msb_to_alpha_mask_u16le(uint16_t n)
 	#define B_OF_COLOR(c)		(((c)      ) & 0xff)
 	#define A_OF_COLOR(c)		(((c) >> 24) & 0xff)
 #endif
+// 20181104 K.O:
+// Below routines aim to render common routine.
+
+#ifdef _MSC_VER
+	#define __DECL_ALIGNED(foo) __declspec(align(foo))
+	#ifndef __builtin_assume_aligned
+		#define __builtin_assume_aligned(foo, a) foo
+	#endif
+#elif defined(__GNUC__)
+	#define __DECL_ALIGNED(foo) __attribute__((aligned(foo)))
+#else
+	// ToDo
+	#define __builtin_assume_aligned(foo, a) foo
+	#define __DECL_ALIGNED(foo)
+#endif
 
 inline scrntype_t rgb555le_to_scrntype_t(uint16_t n)
 {
@@ -1108,23 +1123,6 @@ inline scrntype_t msb_to_alpha_mask_u16le(uint16_t n)
 	#endif
 	return _n;
 }
-
-#endif
-
-// 20181104 K.O:
-// Below routines aim to render common routine.
-
-#ifdef _MSC_VER
-	#define __DECL_ALIGNED(foo) __declspec(align(foo))
-	#ifndef __builtin_assume_aligned
-		#define __builtin_assume_aligned(foo, a) foo
-	#endif
-#elif defined(__GNUC__)
-	#define __DECL_ALIGNED(foo) __attribute__((aligned(foo)))
-#else
-	// ToDo
-	#define __builtin_assume_aligned(foo, a) foo
-	#define __DECL_ALIGNED(foo)
 #endif
 
 // ToDo: for MSVC
@@ -1453,6 +1451,7 @@ inline int16_t ExchangeEndianS16(uint16_t __in)
 	__o.b.l = __i.b.h;
 	return __o.s16;
 }
+
 
 // wav file header
 #pragma pack(1)
