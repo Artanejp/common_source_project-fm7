@@ -669,6 +669,7 @@ void PSUB::process_cmd()
 				if(play) {
 					new_status = CMT_STOP;
 				} else if(rec) {
+					d_drec->set_ff_rew(0);
 					d_drec->set_remote(true);
 				} else {
 					new_status = CMT_EJECT;
@@ -690,7 +691,8 @@ void PSUB::process_cmd()
 		break;
 	case 0xeb:
 		// CMT sensor (bit2=WP, bit1=SET, bit0=END)
-		databuf[0x1b][0] = (play ? 2 : rec ? 6 : 0) | (play && eot ? 1 : 0);
+//		databuf[0x1b][0] = (play ? 2 : rec ? 6 : 0) | (play && eot ? 1 : 0);
+		databuf[0x1b][0] = (play ? 2 : rec ? 6 : 0) | ((play || rec) && !eot ? 1 : 0);
 		datalen = 1;
 		break;
 	case 0xec:

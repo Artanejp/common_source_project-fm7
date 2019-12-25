@@ -114,6 +114,11 @@ void SUB::write_io8(uint32_t addr, uint32_t data)
 				d_drec->set_ff_rew(0);
 				d_drec->set_remote(true);
 			}
+			if(!(p2_out & 0x02) && (data & 0x02)) {
+				if(rom_crc32 == CRC32_MSM80C49_262) {
+					d_drec->set_remote(false);
+				}
+			}
 			if((p2_out & 0x04) && !(data & 0x04)) {
 				d_drec->set_ff_rew(1);
 				d_drec->set_remote(true);
@@ -122,7 +127,7 @@ void SUB::write_io8(uint32_t addr, uint32_t data)
 				d_drec->set_ff_rew(-1);
 				d_drec->set_remote(true);
 			}
-			if((p2_out & 0x10) && !(data & 0x10)) {
+			if(!(p2_out & 0x10) && (data & 0x10)) {
 				d_drec->set_remote(false);
 			}
 			intr = ((data & 0x40) == 0);
@@ -214,17 +219,18 @@ void SUB::update_tape()
 {
 	if(rom_crc32 != CRC32_MSM80C49_277) {
 		uint32_t value = 0x10;
-		if(!(tape_play && tape_eot)) {
+//		if(!(tape_play && tape_eot)) {
+		if((tape_play || tape_rec) && !tape_eot) {
 			value |= 0x01;	// tape end
 		}
 		if(tape_play || tape_rec) {
 			value |= 0x02;	// cassette inserted
 		}
-		if(rom_crc32 == CRC32_MSM80C49_262) {
-			value ^= 0x02;	// X1F/G or X1turbo
-		}
-		if(tape_play) {
+		if(tape_rec) {
 			value |= 0x04;	// rec protected
+		}
+		if(rom_crc32 == CRC32_MSM80C49_262) {
+			value ^= 0x06;	// X1F/G or X1turbo
 		}
 		if(tape_play && tape_apss) {
 			value |= 0x20;

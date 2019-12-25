@@ -1,3 +1,25 @@
+11/3/2019
+
+[PC98RL] fix horizontal frequency
+[PC98RL/DISPLAY] fix not to change horizontal frequency
+[PC98RL/DISPLAY] fix cg window
+[PC98RL/DISPLAY] fix multiple vram planes accessing
+[PC9801/DISPLAY] fix vram word accessing (thanks Mr.Artane.)
+
+
+10/28/2019
+
+[X1/PSUB] improve tape recording
+[X1/SUB] improve tape stopping
+[X1/SUB] improve tape write-protected signal
+
+
+10/22/2019
+
+[X1/PSUB] improve tape end signal
+[X1/SUB] improve tape end signal
+
+
 4/30/2019
 
 [VM/DEVICE] add is_primary_cpu() and update_extra_event()
