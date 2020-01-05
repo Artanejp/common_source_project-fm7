@@ -96,8 +96,11 @@ vec3 ycbcr2rgb(vec3 ycbcr)
 
 void main() {
 	// #include "ntsc-pass1-encode-demodulate.inc" //
-	
+#if __VERSION__ >= 300
+	vec3 col = texture(a_texture, v_texcoord).rgb;
+#else	
 	vec3 col = texture2D(a_texture, v_texcoord).rgb;
+#endif
 	vec3 ycbcr;
 #ifdef HOST_ENDIAN_IS_LITTLE
 	col.rgb = col.bgr;

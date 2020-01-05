@@ -130,15 +130,24 @@ void main() {
 	vec2 addr_n = fix_coord - vec2(pos_offset, 0);
 
 	for(int ii = 1; ii < TAPS; ii++) {
+#if __VERSION__ >= 300
+		pix_p = texture(a_texture, addr_p - delta * vec2(ii - 1, 0)).xyz;
+		pix_n = texture(a_texture, addr_n + delta * vec2(ii - 1, 0)).xyz;
+#else
 		pix_p = texture2D(a_texture, addr_p - delta * vec2(ii - 1, 0)).xyz;
 		pix_n = texture2D(a_texture, addr_n + delta * vec2(ii - 1, 0)).xyz;
+#endif
 #ifndef HAS_FLOAT_TEXTURE
 		pix_p = pix_p * vec3(3.6, 1.7, 1.7);
 		pix_n = pix_n * vec3(3.6, 1.7, 1.7);
 #endif
 		signal += (pix_n + pix_p) * vec3(luma_filter[ii], chroma_filter[ii], chroma_filter[ii]);
 	}
+#if __VERSION__ >= 300
+	vec3 texvar = texture(a_texture, fix_coord).xyz;
+#else
 	vec3 texvar = texture2D(a_texture, fix_coord).xyz;
+#endif
 	// yMax = (0.299+0.587+0.114) * (+-1.0) * (BRIGHTNESS + ARTIFACTING + ARTIFACTING) * (+-1.0)
 	// CbMax = (-0.168736 -0.331264 + 0.5) * (+-1.0) * (FRINGING + 2*SATURATION) * (+-1.0)
 	// CrMax = (0.5 - 0.418688 - 0.081312) * (+-1.0) * (FRINGING + 2*SATURATION) * (+-1.0)
