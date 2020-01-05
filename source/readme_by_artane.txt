@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         October 15, 2019
+                                         January 05, 2020
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20191015
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20200105
 
    追加情報:
    
@@ -217,18 +217,37 @@ Changes:
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
 
-4/30/2019
+12/31/2019
 
-[VM/DEVICE] add is_primary_cpu() and update_extra_event()
-[VM/EVENT] support to udpate event while cpu is running one opecode
-[VM/I8259] fix reading isr register (thanks Mr.rednow)
-[VM/SCSI_HOST] fix to raise irq at command/message phase
-[VM/Z80] improve to update event in every read/write cycle
-
-[CEFUCOM21] support Hino Electronics CEFUCOM-21 (not work)
 [MZ2500/CRTC] apply crtc patch (thanks Mr.Koucha-Youkan)
-[PC8801MA] improve to enable/disable cmdsing and pcg
-[PC8801MA] improve to enable/disable changing palette for each scan line
+
+11/3/2019
+
+[PC98RL] fix horizontal frequency
+
+[PC98RL/DISPLAY] fix not to change horizontal frequency
+
+[PC98RL/DISPLAY] fix cg window
+
+[PC98RL/DISPLAY] fix multiple vram planes accessing
+
+[PC9801/DISPLAY] fix vram word accessing (thanks Mr.Artane.)
+
+
+10/28/2019
+
+[X1/PSUB] improve tape recording
+
+[X1/SUB] improve tape stopping
+
+[X1/SUB] improve tape write-protected signal
+
+
+10/22/2019
+
+[X1/PSUB] improve tape end signal
+
+[X1/SUB] improve tape end signal
 
 -----
 
