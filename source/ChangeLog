@@ -1,8 +1,8 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
 * SNAPSHOT Jan 05, 2020
- * Upstream Dec 31, 2019.
-  * This is point release, still exists some issues (i.e.EMM386(NEC/PC98) and FreeBSD(98) don't work) for PC-9801 and PC-Engine and some VMs, will fix them.
+ * Upstream 2019-12-31.
+ * This is point release, still exists some issues (i.e.EMM386(NEC/PC98) and FreeBSD(98) don't work) for PC-9801 and PC-Engine and some VMs, will fix them.
  * [PCENGINE/CD-ROM^2] More games work.Except some games (i.e. Valis1/2).
  * [DOC] Add CrossBuild_Win32.ja.txt.
  * [VM/FM77AV] VRAM: Fix crash with opening of LUXOL.
