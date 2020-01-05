@@ -1,3 +1,8 @@
+12/31/2019
+
+[MZ2500/CRTC] apply crtc patch (thanks Mr.Koucha-Youkan)
+
+
 11/3/2019
 
 [PC98RL] fix horizontal frequency

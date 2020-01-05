@@ -966,10 +966,10 @@ void CRTC::draw_40column_screen()
 			uint32_t dest = 640 * y;
 			uint8_t col;
 			for(int x = 0; x < 640; x++) {
-				if((text[src1] & 8) && (text[src2] & 8)) {
+				// thanks Mr.Koucha-Youkan
+				col = (((text[src1] & 7) << 3) | (text[src2] & 7)) + 16;
+				if(col == 16 && ((text[src1] & 8) && (text[src2] & 8))) {
 					col = 8; // non transparent black
-				} else {
-					col = (((text[src1] & 7) << 3) | (text[src2] & 7)) + 16;
 				}
 				text[dest++] = col;
 				src1++;
