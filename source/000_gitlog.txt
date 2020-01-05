@@ -1,3 +1,289 @@
+commit e327e2060d37129fed5cb150cbae8ef943fc03f8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 5 20:46:59 2020 +0900
+
+    [DOC] Prepare to release 2020-01-05.
+
+commit 6c12d47a9734658a4a34e75c5b0ba990fd5fbb58
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 5 20:35:27 2020 +0900
+
+    [VM][MZ2500] Merge Upstream 2019-12-31.
+
+commit 04a5e471d5e8f4578849169a5fd3082dacdf072f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 25 23:52:05 2019 +0900
+
+    [VM][X1] Merge UPSTREAM 2019-11-03 (2019-10-28/10-22).
+
+commit dfaec19a07d9feb679dfbaedd8d77256f0214093
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 25 23:49:30 2019 +0900
+
+    [VM][PC9801][COMMON] Merge UPSTREAM 2019-11-03.
+
+commit 39f03478602be67e54c5b7037ef6b3ed03729929
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 25 18:42:13 2019 +0900
+
+    [VM][PCENGINE][ADPCM] Fix stopping with command 60h(REPEAT PLAY).Fix not sounding BOSS round at Valis2, but still hangs up.
+
+commit bd77f0d6f809c8d0743c095f54cfaf47ea166f33
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 24 18:54:15 2019 +0900
+
+    [VM][SCSI_CDROM] WIP: Fixing not play game at Valis 1.
+
+commit 764ae51dcea9747163911b0ff9923fbd52c3ed54
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 24 17:23:17 2019 +0900
+
+    [VM][PCENGINE][ADPCM] Add comments.
+
+commit 8b27321fcc6a86b1be306604e41ce6db696d86f5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 24 17:21:32 2019 +0900
+
+    [VM][CDROM] CD-DA: Fix playing beyond multiple tracks.Fix freezing some CD-ROM^2 games for PC-Engine (i.e. Vails series).
+
+commit 491426312249cdd760b4ec977ffd5cc4079f4fd0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 16 13:29:11 2019 +0900
+
+    [VM][FMTOWNS][UPD71071][DMAC] .
+
+commit 39e178fb5ea9065e5151aecad207c28da058abf8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 16 13:25:01 2019 +0900
+
+    [VM][UPD71071] do_dma() : Split to tiny functions.
+
+commit 787ba502ade25d01c9a6c445e85959d917f4ddd1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 16 13:09:00 2019 +0900
+
+    [VM][UPD71071] Prepare address extend for uPD71071 (for Towns).
+
+commit 6c1c2509c8d41e3631cb2b5549f0dbc1e36f9f13
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 15 21:31:49 2019 +0900
+
+    [VM][SCSI_DEV] Comment out duplicated writing to SIG_SCSI_DAT.
+
+commit 73fbc347d77163b342527a45b18a6f71994b65a7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 15 15:21:40 2019 +0900
+
+    [VM][COMMON_VM] Include IO:: class to common_vm.
+    [VM][COMMON_VM] MEMORY:: ; update API.
+
+commit f9c9118d4fabcb03813aec19fcacea5aff430ae1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 3 01:57:33 2019 +0900
+
+    [VM][BMJr] Fix FTBFS.
+
+commit 52bdedc565fa5cb02e869a1f2274f5a47fd90836
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 2 20:05:32 2019 +0900
+
+    [VM][I386] Reduce compiler warnings.
+
+commit ea4bcfbaa18f88d2af5e56dc7a996d48848f2838
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 2 20:04:46 2019 +0900
+
+    [VM] Apply before commit to some VMs.
+
+commit 30dff61489cc6b2db6c7cf79674dfba32920071c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 2 20:02:37 2019 +0900
+
+    [VM][COMMON_VM] Add MEMORY:: (vm/memory.[cpp|h]) to libCSPcommon_vm.
+
+commit 6c5b7e7612246fb0db6fce145f25c1b84f32adda
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 2 04:17:49 2019 +0900
+
+    [VM][FMTOWNS] CMOS includes to DICTIONARY.
+
+commit 65d9cb3547add2cfb4e78c39f361301b9bd2dfa6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 2 04:16:55 2019 +0900
+
+    [VM][FMTOWNS] Update APIs.
+
+commit e0defc47dc9373d4a76581e828a4a95d82a316a2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 17 20:51:03 2019 +0900
+
+    [VM][FMTOWNS][SERIAL_ROM] .
+
+commit a92f64cdd87cfb34c9ae38deebe5a83c986b1a7d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 17 20:46:15 2019 +0900
+
+    [VM][FMTOWNS][SERIAL_ROM] Improve register sequence, and manipulate via read_io8() and write_io8().
+
+commit edb940447c084b7cf6197261fd0694f8384b3368
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 17 20:18:29 2019 +0900
+
+    [VM][FMTOWNS] More simple implement of serial rom.
+
+commit aab7762f034a08cb782d9786e4312d73cca82332
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 5 23:17:49 2019 +0900
+
+    [Qt][KEYBOARD] .
+
+commit 5226d9a22a3435e5fa7918c3d25b485d6e30b5e0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 5 23:05:57 2019 +0900
+
+    [VM][BMJR][FAMILYBASIC][FP1100][M5][MULTI8][MAP1010] Apply before commit to some VMs.
+
+commit 29f0a0fa0d4a6bb2c3b29b415fee45a09c8e5054
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 5 23:02:53 2019 +0900
+
+    [Qt][OSD][KEYBOARD] Remove some obsoleted defines.
+
+commit eb8afea31457a7052d2e32dae28726d26ffbd0ac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 5 21:39:59 2019 +0900
+
+    [VM][M5] Fix keyboard input, separate BOTH LSHIFT and RSHIFT. Expect to fix issue of https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/617.
+
+commit 8ebda574f0cbe9362081202a24092d3097a46e0d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 28 03:39:14 2019 +0900
+
+    [Qt][AVIO] Replace fprintf() to logging functions.
+
+commit 11b6b076a4dc6adf85eea347b5d4c013d049b4fd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 28 03:38:04 2019 +0900
+
+    [Qt][OpenGL4.5] Fix not map buffer to screen on most (not all) of emulators.
+
+commit db92e0360d8ff1bd88f7abd4a52b86ef0e0e38c2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 27 20:36:30 2019 +0900
+
+    [UI][Qt][ABOUT_DIALOG] Print OpenGL version within dialog.
+    [UI][Qt][ABOUT_DIALOG] Maybe improve credit displaying.
+
+commit 387492b106c468fb0c578141671439ce11c21a37
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 27 18:33:57 2019 +0900
+
+    [Qt][OPenGLES] Add entry for OpenGL ES 3.1.
+
+commit a5484aece0385b09f6604f557666a07ff60ec513
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 27 00:14:03 2019 +0900
+
+    [Qt][DRAW] .
+
+commit ad31d6b40b2946a50b49e095a65bb05e04052ba5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 27 00:06:52 2019 +0900
+
+    [Qt][OpenGL][GL4.5] Fix not capture GPU snapshot from RENDERDOC.
+
+commit 96397b22bf0f4744ae0577ef08df658cdacd411c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 26 20:14:46 2019 +0900
+
+    [DOC] Add CrossBuild_Win32.ja.txt.
+
+commit 3ffb0eaa6ff35516a5f7d4588c48a17f7ac1065f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 26 08:06:58 2019 +0900
+
+    [Qt][OpenGL] GLPack:: Selective texture having (or not) ALPHA CHANNEL.
+
+commit f1ad1f9fb4cfbdf9cbc56e79a97df905aa9c59d7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 26 04:53:08 2019 +0900
+
+    [Qt][OpenGL][GLES2] Optimize shaders.
+    [Qt][OpenGL][GLES2] Optimize usage of textures.
+
+commit 79bd5e5cc46ff5b0a4e6e70fd56efb7537cb7947
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 26 04:51:47 2019 +0900
+
+    [Qt][OpenGL][GL3] Fix using color space; yiq to ycrcb.
+    [Qt][OpenGL][GL3] Use half float textures if enabled.
+
+commit 7d9ad385c737ee29cf19c4d0d005111fe2b0d3d5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 26 04:50:46 2019 +0900
+
+    [Qt][OpenGL][GL4.5] Use HALF FLOAT TEXTURE if enabled to reduce GPU usage (mostly NTSC shader PASS2).
+
+commit a7358eb12a56b48d621934ee105aaf85129a21d8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 23 01:30:36 2019 +0900
+
+    [VM][FM7][DISPLAY] Simplify logic of draw_screen().
+
+commit d2d4ba9923f481352083125e0c24573910890835
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 21 05:51:35 2019 +0900
+
+    [VM][FM7][VRAM][WIP] More simpleness rendering.This is WORK-IN-PROGRESS.
+
+commit 404de1fc72315a6995fbdcfca3b018f7eccfc7e4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 21 05:51:06 2019 +0900
+
+    [Qt][DRAW_THREAD] More adjust scheduler.
+
+commit 8371fcfd892c95d4bef3e5be97a2845c422691e9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 21 03:48:16 2019 +0900
+
+    [Qt][OpenGL][4.5] NTSC SHADER: Adjust scale factor.
+
+commit 89e0ad9c2c740b1ce9688650172b8fb9b9935476
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 21 03:47:17 2019 +0900
+
+    [Qt][DRAW_THREAD] New (more accurate) draw scheduler.
+
+commit 95837f990f6cdf1656168bd1f37aa9708a67aef9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 21 03:45:21 2019 +0900
+
+    [VM][FM77AV][VRAM] Fix crash with opening of LUXOL.
+
+commit c7081598f2a1fb46c5b6f35da267e62d887425f1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 20 15:37:11 2019 +0900
+
+    [Qt][OPENGL][GL4.5] Tuning around "TV Renderer".
+
+commit aff814ae96e93c83e6a7ec386d0d7b35d75b6d3d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 19 22:50:39 2019 +0900
+
+    [VM][FMTOWNS][SPRITE] Simplify logics.Now disable to use cache.
+
+commit f6211b39a816a61c1bc90ab788029205aa6cc6ec
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 15 13:28:19 2019 +0900
+
+    [TOOL][INSTALLER][OOPs] I forgot update installer.Updated (;_;)
+
+commit 22ef8f6eeabdf0b8fbe545928ee2c03017dd2e05
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 15 02:42:47 2019 +0900
+
+    [DOC] Update documents.
+
 commit 74c7914381802640510c76f176b3c3ffeceb678d
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Oct 15 02:19:11 2019 +0900
