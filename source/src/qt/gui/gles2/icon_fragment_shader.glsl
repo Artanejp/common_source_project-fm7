@@ -27,7 +27,11 @@ void main ()
 	vec4 pixel_r_1;
 	vec4 pixel;
 	float alpha;
+#if __VERSION__ >= 300
+	pixel_r_1 = texture(a_texture, v_texcoord);
+#else
 	pixel_r_1 = texture2D(a_texture, v_texcoord);
+#endif
 	//alpha = pixel_r_1.a * color.a;
 
 	pixel_r_1 = pixel_r_1 * color;

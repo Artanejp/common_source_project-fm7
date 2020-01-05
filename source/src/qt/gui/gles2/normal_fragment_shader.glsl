@@ -11,7 +11,7 @@ uniform mediump vec4 color;
 void main ()
 {
 #if __VERSION__ >= 300
-	opixel = (texture2D (a_texture, v_texcoord) * color);
+	opixel = (texture(a_texture, v_texcoord) * color);
 #else
 	gl_FragColor = (texture2D (a_texture, v_texcoord) * color);
 #endif		 

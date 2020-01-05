@@ -28,7 +28,11 @@ void main ()
 	vec4 pixel_r_1;
 	vec4 pixel;
 	
+#if __VERSION__ >= 300
+	pixel_r_1 = texture(a_texture, v_texcoord);
+#else
 	pixel_r_1 = texture2D(a_texture, v_texcoord);
+#endif
 //#ifdef HOST_ENDIAN_IS_LITTLE
 //	pixel_r_1.rgb = pixel_r_1.bgr;
 //#endif
