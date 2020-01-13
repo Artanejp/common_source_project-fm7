@@ -31,7 +31,9 @@ int Ui_MainWindowBase::set_d88_slot(int drive, int num)
 	//path = QString::fromUtf8(emu->d88_file[drive].path);
 	path = hRunEmu->get_d88_file_path(drive);
 	menu_fds[drive]->do_select_inner_media(num);
+
 	if(hRunEmu->get_d88_file_cur_bank(drive) != num) {
+		emit sig_close_disk(drive);
 		emit sig_open_disk(drive, path, num);
 		if(hRunEmu->is_floppy_disk_protected(drive)) {
 			menu_fds[drive]->do_set_write_protect(true);

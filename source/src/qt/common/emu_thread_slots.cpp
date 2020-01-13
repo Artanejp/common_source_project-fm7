@@ -515,7 +515,6 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
    
 	//p_emu->d88_file[drv].bank_num = 0;
 	//p_emu->d88_file[drv].cur_bank = -1;
-	
 	if(check_file_extension(localPath.constData(), ".d88") || check_file_extension(localPath.constData(), ".d77")) {
 		
 		FILEIO *fio = new FILEIO();

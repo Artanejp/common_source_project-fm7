@@ -855,7 +855,7 @@ QString EmuThreadClass::get_d88_file_path(int drive)
 	if(drive < 0) return QString::fromUtf8("");
 	if(drive < USE_FLOPPY_DISK) {
 		QMutexLocker _locker(&uiMutex);
-		QString _n = QString::fromLocal8Bit((const char *)(&(p_emu->d88_file[drive].path)));
+		QString _n = QString::fromUtf8((const char *)(&(p_emu->d88_file[drive].path)));
 		return _n;
 	}
 #endif
