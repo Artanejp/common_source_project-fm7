@@ -1,5 +1,5 @@
 "eBASICMasterJr" - HITACHI BASIC Master Jr emulator for Win32
-								9/8/2015
+								1/14/2020
 
 --- Internal ROM image
 
@@ -12,11 +12,13 @@
 
 	Virtual		PC
 	--------------------------------
-	EISUU		Left Ctrl
-	EIKIGOU		Left Shift
-	KANA		Right Ctrl
-	KANAKIGOU	Right Shift
-
+	EISUU		   Left Ctrl
+	EIKIGOU		   Left Shift
+	KANA		   Right Ctrl (Qt: or Katakana Hiragana)
+	KANAKIGOU	   Right Shift
+    KOUTAI/DEL     Back Space or Delete
+	FUKKAI/RETURN  Enter
+	BREAK          Esc or Pause / Break
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp

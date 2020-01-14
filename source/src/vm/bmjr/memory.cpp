@@ -142,8 +142,9 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 			d_drec->write_signal(SIG_DATAREC_MIC, ~data, 0x01);
 			break;
 		case 0xeec0:
+			// From BM2/bm2mem.c
 			key_column = data & 0x0f;
-			nmi_enb = ((data & 0x80) != 0);
+			nmi_enb = ((data & 0xff) == 0xf0);
 			event_frame(); // update keyboard
 			break;
 		case 0xefd0:
@@ -203,11 +204,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 			// unknown (timer)
 			break;
 		case 0xef80:
-			if(break_pressed) {
-				break_pressed = false;
-				return 0x80;
-			}
-			return 0x00;
+			return 0xff; // from BM2 ; OK? 20200114 K.O
 		case 0xefd0:
 			return memory_bank;
 		}
@@ -261,14 +258,18 @@ void MEMORY::event_frame()
 		if(key_stat[key_table[key_column][1]]) key_data &= ~0x02;
 		if(key_stat[key_table[key_column][2]]) key_data &= ~0x04;
 		if(key_stat[key_table[key_column][3]]) key_data &= ~0x08;
+		if(key_column == 12) { // MAP Back Space to Delete. 20200114 K.O
+			if(key_stat[0x08]) key_data &= ~0x04;
+		}
 	}
 
 #if defined(_USE_QT)
 	// If same as bm2, not effect below keys at Qt version.
 	if(key_stat[VK_LCONTROL]) key_data &= ~0x10; // 英数     -> LCTRL
 	if(key_stat[VK_LSHIFT  ]) key_data &= ~0x20; // 英記号   -> L-SHIFT
-	if(key_stat[VK_RSHIFT  ]) key_data &= ~0x40; // カナ記号 -> R-Win
+	if(key_stat[VK_RSHIFT  ]) key_data &= ~0x40; // カナ記号 -> R-SHIFT
 	if(key_stat[VK_KANA    ]) key_data &= ~0x80; // カナ     -> カタカナひらがな
+	if(key_stat[VK_RCONTROL]) key_data &= ~0x80; // カナ     -> R-CTRL
 #else
 	// this is same as "日立ベーシックマスターJr.(MB-6885)エミュレータ bm2"
 	if(key_stat[0xa2]) key_data &= ~0x10; // 英数     -> L-CTRL
@@ -276,16 +277,32 @@ void MEMORY::event_frame()
 	if(key_stat[0xa1]) key_data &= ~0x40; // カナ記号 -> R-SHIFT
 	if(key_stat[0xa3]) key_data &= ~0x80; // カナ     -> R-CTRL
 #endif
+	if((break_pressed)  && (nmi_enb)) {
+		break_pressed = false;
+		d_cpu->write_signal(SIG_CPU_NMI, 1, 1);
+		//printf("NMI\n");
+	}
+	// from BM2: 20200114 K.O 
+	if((break_pressed) && ((key_data & 0x40) == 0)) {
+		d_cpu->reset();
+	}
 }
 
 void MEMORY::key_down(int code)
 {
 	// pause -> break
-	if(code == 0x13) {
-		if(nmi_enb) {
-			d_cpu->write_signal(SIG_CPU_NMI, 1, 1);
-		}
+	// esc ->   break
+	if((code == 0x13) || (code == 0x1b)) {
 		break_pressed = true;
+	}
+}
+
+void MEMORY::key_up(int code)
+{
+	// pause -> break
+	// esc ->   break
+	if((code == 0x13) || (code == 0x1b)) {
+		break_pressed = false;
 	}
 }
 

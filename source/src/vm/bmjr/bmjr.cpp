@@ -199,6 +199,7 @@ void VM::key_down(int code, bool repeat)
 
 void VM::key_up(int code)
 {
+	memory->key_up(code);
 }
 
 // ----------------------------------------------------------------------------

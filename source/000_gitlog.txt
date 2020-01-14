@@ -1,3 +1,39 @@
+commit 6ec6e4cf3c15e08a89f75bca246ce1ae051c36cb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 6 01:48:56 2020 +0900
+
+    [Qt][GLES3] Win32: More fix shader-compilation errors with Angle Project.
+
+commit 9414657204c9527b22ee634053d8dfc8012d188c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 6 01:41:14 2020 +0900
+
+    [Qt][OpenGL_ES] Win32: Fix shader compilation errors with Angle Project.
+
+commit 9e94bf171ae7d7a443da159ef24b0f353351b043
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 5 22:19:45 2020 +0900
+
+    [Unix] Update installer.
+
+commit a893e3fd6aa12e5ce15f7c09693e7a070fd8c549
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 5 22:00:41 2020 +0900
+
+    [DOC] .
+
+commit de45e931c3ad246a60fe430d489e10e66ac14ae0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 5 21:04:53 2020 +0900
+
+    [DOC] Update ChangeLog.
+
+commit 3d5521747ed59ea8b8a462604fe31b1c20f76f00
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 5 21:02:51 2020 +0900
+
+    [DOC] Update ChangeLog, gitlog.
+
 commit e327e2060d37129fed5cb150cbae8ef943fc03f8
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Jan 5 20:46:59 2020 +0900

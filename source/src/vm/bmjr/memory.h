@@ -92,6 +92,7 @@ public:
 		d_pia = device;
 	}
 	void key_down(int code);
+	void key_up(int code);
 	void draw_screen();
 };
 }
