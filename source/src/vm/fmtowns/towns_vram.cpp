@@ -11,6 +11,7 @@
 
 #include "common.h"
 #include "./towns_common.h"
+#include "./towns_crtc.h"
 #include "./towns_vram.h"
 
 #define _CLEAR_COLOR RGBA_COLOR(0,0,0,0)
@@ -26,6 +27,22 @@ void TOWNS_VRAM::initialize()
 
 }
 
+void TOWNS_VRAM::make_dirty_vram(uint32_t addr, int bytes)
+{
+	if(bytes <= 0) return;
+	uint32_t naddr1 = (addr & 0x7ffff) >> 3;
+	uint32_t naddr2 = ((addr + bytes) & 0x7ffff) >> 3;
+	if(naddr1 != naddr2) {
+		for(uint32_t a = naddr1; a != naddr2;) {
+			dirty_flag[a] = true;
+			a = (a + 1) & (0x7ffff >> 3);
+		}
+		dirty_flag[naddr2] = true;
+	} else {
+		dirty_flag[naddr1] = true;
+	}
+}
+	
 void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	uint32_t naddr = addr & 0xfff80000;
@@ -60,7 +77,9 @@ void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 		case 0xcf000:
 			// Reserved
 			if((addr < 0xcff80) && (addr >= 0xcff88)) {
-				d_sprite->write_data8(addr & 0x7fff, data);
+				if(d_sprite != NULL) {
+					d_sprite->write_data8(addr & 0x7fff, data);
+				}
 			} else {
 				write_mmio8(addr, data);
 			}				
@@ -111,10 +130,12 @@ void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 		case 0xcf000:
 			// Reserved
 			if((addr < (0xcff80 - 1)) && (addr >= 0xcff88)) {
-				d_sprite->write_data16(addr & 0x7fff, data);
+				if(d_sprite != NULL) {
+					d_sprite->write_data16(addr & 0x7fff, data);
+				}
 			} else {
-				pair16_t d;
-				d.2 = data;
+				pair32_t d;
+				d.w.l = data;
 				write_mmio8(addr, d.b.l);
 				write_mmio8(addr + 1, d.b.h);
 			}				
@@ -131,7 +152,7 @@ void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	
 }
 	
-void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
+void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 {
 	uint32_t naddr = addr & 0xfff80000;
 	switch(naddr) {
@@ -165,7 +186,9 @@ void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 		case 0xcf000:
 			// Reserved
 			if((addr < (0xcff80 - 3)) && (addr >= 0xcff88)) {
-				d_sprite->write_data32(addr & 0x7fff, data);
+				if(d_sprite != NULL) {
+					d_sprite->write_data32(addr & 0x7fff, data);
+				}
 			} else {
 				pair32_t d;
 				d.d = data;
@@ -220,7 +243,10 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io8(uint32_t addr)
 		case 0xcf000:
 			// Reserved
 			if((addr < 0xcff80) && (addr >= 0xcff88)) {
-				return d_sprite->read_data8(addr & 0x7fff);
+				if(d_sprite != NULL) {
+					return d_sprite->read_data8(addr & 0x7fff);
+				}
+				return 0xff;
 			} else {
 				return read_mmio8(addr);
 			}				
@@ -268,11 +294,14 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io16(uint32_t addr)
 		case 0xcf000:
 			// Reserved
 			if((addr < (0xcff80 - 1)) && (addr >= 0xcff88)) {
-				return d_sprite->read_data16(addr & 0x7fff);
+				if(d_sprite != NULL) {
+					return d_sprite->read_data16(addr & 0x7fff);
+				}
+				return 0xff;
 			} else {
 				pair16_t d;
-				d.l = read_mmio8(addr);
-				d.h = read_mmio8(addr + 1);
+				d.b.l = read_mmio8(addr);
+				d.b.h = read_mmio8(addr + 1);
 				return d.w;
 			}				
 			break;
@@ -320,13 +349,16 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 		case 0xcf000:
 			// Reserved
 			if((addr < (0xcff80 - 3)) && (addr >= 0xcff88)) {
-				return d_sprite->read_data16(addr & 0x7fff);
+				if(d_sprite != NULL) {
+					return d_sprite->read_data16(addr & 0x7fff);
+				}
+				return 0xff;
 			} else {
 				pair32_t d;
-				d.l = read_mmio8(addr);
-				d.h = read_mmio8(addr + 1);
-				d.h2 = read_mmio8(addr + 2);
-				d.h3 = read_mmio8(addr + 3);
+				d.b.l = read_mmio8(addr);
+				d.b.h = read_mmio8(addr + 1);
+				d.b.h2 = read_mmio8(addr + 2);
+				d.b.h3 = read_mmio8(addr + 3);
 				return d.d;
 			}				
 			break;
@@ -359,7 +391,6 @@ uint32_t TOWNS_VRAM::read_raw_vram16(uint32_t addr)
 	}
 	addr = addr & 0x7ffff;
 	if(is_wrap) {
-		pair16_t a;
 		a.b.l = vram[addr];
 		a.b.h = vram[wrap_addr];
 	} else {
@@ -396,7 +427,7 @@ uint32_t TOWNS_VRAM::read_raw_vram32(uint32_t addr)
 		a.b.h3 = vram[((addr + 3) & wrap_mask) | wrap_addr];
 	} else {
 #ifdef __LITTLE_ENDIAN__
-		uint32_t* p = (uint32_t)(&vram[addr]);
+		uint32_t* p = (uint32_t*)(&vram[addr]);
 		a.d = *p;
 #else
 		a.read_4bytes_le_from(&vram[addr]);
@@ -462,7 +493,7 @@ void TOWNS_VRAM::write_raw_vram16(uint32_t addr, uint32_t data)
 		b.b.h = vram[wrap_addr];
 		c.w = b.w;
 		if(mask != 0xffff) {
-			b.w = b.w & ~(mask);
+			b.w = b.w & ~mask;
 			a.w = a.w & mask;
 			a.w = a.w | b.w;
 		}
@@ -474,15 +505,15 @@ void TOWNS_VRAM::write_raw_vram16(uint32_t addr, uint32_t data)
 		}
 	} else {
 #ifdef __LITTLE_ENDIAN__
-		uint16_t* p = (uint16_t)(&vram[addr]);
+		uint16_t* p = (uint16_t* )(&vram[addr]);
 		b.w = *p;
 #else
 		b.read_2bytes_le_from(&vram[addr]);
 #endif
 		c.w = b.w;
 		if(mask != 0xffff) {
-			b.w = b.w & ~(mask.w);
-			a.w = a.w & mask.w;
+			b.w = b.w & ~mask;
+			a.w = a.w & mask;
 			a.w = a.w | b.w;
 		}
 		if(a.w != c.w) {
@@ -525,7 +556,7 @@ void TOWNS_VRAM::write_raw_vram32(uint32_t addr, uint32_t data)
 		
 		c.d = b.d;
 		if(mask != 0xffffffff) {
-			b.d = b.d & ~(mask);
+			b.d = b.d & ~mask;
 			a.d = a.d & mask;
 			a.d = a.d | b.d;
 		}
@@ -540,7 +571,7 @@ void TOWNS_VRAM::write_raw_vram32(uint32_t addr, uint32_t data)
 		}
 	} else {
 #ifdef __LITTLE_ENDIAN__
-		uint32_t* p = (uint32_t)(&vram[addr]);
+		uint32_t* p = (uint32_t* )(&vram[addr]);
 		b.d = *p;
 #else
 		b.read_4bytes_le_from(&vram[addr]);
@@ -563,10 +594,12 @@ void TOWNS_VRAM::write_raw_vram32(uint32_t addr, uint32_t data)
 	return;
 }
 
-void TOWNS_CRTC::write_mmio8(uint32_t addr, uint32_t data)
+void TOWNS_VRAM::write_mmio8(uint32_t addr, uint32_t data)
 {
 	if((addr < 0xcff80) || (addr >= 0xcff88)) {
-		d_sprite->write_data8(addr & 0x7fff, data);
+		if(d_sprite != NULL) {
+			d_sprite->write_data8(addr & 0x7fff, data);
+		}
 		return;
 	}
 	switch(addr) {
@@ -578,10 +611,12 @@ void TOWNS_CRTC::write_mmio8(uint32_t addr, uint32_t data)
 		r50_ramsel = data & 0x0f;
 		break;
 	case 0xcff82:
-		d_crtc->write_signal(SIG_TOWNS_CRTC_MMIO_CF882H, data);
+		if(d_crtc != NULL) {
+			d_crtc->write_signal(SIG_TOWNS_CRTC_MMIO_CF882H, data, 0xffffffff);
+		}
 		break;
 	case 0xcff83:
-		r50_gvramset = (data & 0x10) >> 4;
+		r50_gvramsel = (data & 0x10) >> 4;
 		break;
 	case 0xcff86:
 		break;
@@ -590,10 +625,13 @@ void TOWNS_CRTC::write_mmio8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t TOWNS_CRTC::read_mmio8(uint32_t addr)
+uint32_t TOWNS_VRAM::read_mmio8(uint32_t addr)
 {
 	if((addr < 0xcff80) || (addr >= 0xcff88)) {
-		return d_sprite->read_data8(addr & 0x7fff);
+		if(d_sprite != NULL) {
+			return d_sprite->read_data8(addr & 0x7fff);
+		}
+		return 0xff;
 	}
 	switch(addr) {
 	case 0xcff80:
@@ -606,7 +644,7 @@ uint32_t TOWNS_CRTC::read_mmio8(uint32_t addr)
 		return d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CF882H);
 		break;
 	case 0xcff83:
-		return (r50_gvramset << 4);
+		return (r50_gvramsel << 4);
 		break;
 	case 0xcff86:
 		{
@@ -626,7 +664,6 @@ uint32_t TOWNS_CRTC::read_mmio8(uint32_t addr)
 uint32_t TOWNS_VRAM::read_plane_data8(uint32_t addr)
 {
 	// Plane Access
-	pair_t data_p;
 	uint32_t x_addr = 0;
 	uint8_t *p = (uint8_t*)vram;
 	uint32_t mod_pos;
@@ -686,7 +723,6 @@ uint32_t TOWNS_VRAM::read_plane_data32(uint32_t addr)
 void TOWNS_VRAM::write_plane_data8(uint32_t addr, uint32_t data)
 {
 	// Plane Access
-	pair_t data_p;
 	uint32_t x_addr = 0;
 	uint8_t *p = (uint8_t*)vram;
 	uint32_t mod_pos;
@@ -753,7 +789,7 @@ void TOWNS_VRAM::write_plane_data32(uint32_t addr, uint32_t data)
 
 // I/Os
 // Palette.
-void TOWNS_CRTC::calc_apalette16(int layer, int index)
+void TOWNS_VRAM::calc_apalette16(int layer, int index)
 {
 	if(index < 0) return;
 	if(index > 15) return;
@@ -768,11 +804,11 @@ void TOWNS_CRTC::calc_apalette16(int layer, int index)
 	}
 }
 
-void TOWNS_CRTC::calc_apalette256(int index)
+void TOWNS_VRAM::calc_apalette256(int index)
 {
 	if(index < 0) return;
 	if(index > 255) return;
-	apalette_256_rgb[layer][index] =
+	apalette_256_rgb[index] =
 		((uint32_t)apalette_b) |
 		((uint32_t)apalette_r << 8) |
 		((uint32_t)apalette_g << 16);
@@ -783,7 +819,7 @@ void TOWNS_CRTC::calc_apalette256(int index)
 	}
 }
 
-void TOWNS_CRTC::set_apalette_r(int layer, uint8_t val)
+void TOWNS_VRAM::set_apalette_r(int layer, uint8_t val)
 {
 	apalette_r = val;
 	if(apalette_code < 16) {
@@ -793,7 +829,7 @@ void TOWNS_CRTC::set_apalette_r(int layer, uint8_t val)
 	calc_apalette256((int)apalette_code % 256);
 }
 
-void TOWNS_CRTC::set_apalette_g(int layer, uint8_t val)
+void TOWNS_VRAM::set_apalette_g(int layer, uint8_t val)
 {
 	apalette_g = val;
 	if(apalette_code < 16) {
@@ -803,7 +839,7 @@ void TOWNS_CRTC::set_apalette_g(int layer, uint8_t val)
 	calc_apalette256((int)apalette_code % 256);
 }
 
-void TOWNS_CRTC::set_apalette_b(int layer, uint8_t val)
+void TOWNS_VRAM::set_apalette_b(int layer, uint8_t val)
 {
 	apalette_b = val;
 	if(apalette_code < 16) {
@@ -813,15 +849,19 @@ void TOWNS_CRTC::set_apalette_b(int layer, uint8_t val)
 	calc_apalette256((int)apalette_code % 256);
 }
 
-void TOWNS_CRTC::set_apalette_num(int layer, uint8_t val)
+void TOWNS_VRAM::set_apalette_num(uint8_t val)
 {
 	apalette_code = ((int)val) % 256;
 }
 
+void TOWNS_VRAM::write_signal(int id, uint32_t data, uint32_t mask)
+{
+	// ToDo
+}
 // Renderers
 
 
-
 }
+
 #undef _CLEAR_COLOR
 

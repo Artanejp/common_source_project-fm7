@@ -19,6 +19,9 @@ set(VMFILES
   scsi_dev.cpp
   scsi_hdd.cpp
   scsi_cdrom.cpp
+
+  msm58321.cpp
+  
 )
 set(VMFILES_LIB
    noise.cpp

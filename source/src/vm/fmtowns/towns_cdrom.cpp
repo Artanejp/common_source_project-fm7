@@ -101,19 +101,19 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 			trk = track_num;
 		}
 		int index0 = toc_table[trk].index0;
-		int index1 = toc_table[trk].index1
-		int pregap = toc_table[trk].pregap
+		int index1 = toc_table[trk].index1;
+		int pregap = toc_table[trk].pregap;
 		uint32_t lba = (uint32_t)index0;
 		if(pregap > 0) lba = lba - pregap;
 		if(lba < 150) lba = 150;
 		uint32_t msf = lba_to_msf(lba); // Q:lba + 150?
 		stat_track++;
 		return msf;
-	} eise if(id == SIG_TOWNS_CDROM_START_MSF_AA) {
-		trk = track_num;
+	} else if(id == SIG_TOWNS_CDROM_START_MSF_AA) {
+		int trk = track_num;
 		int index0 = toc_table[trk].index0;
-		int index1 = toc_table[trk].index1
-		int pregap = toc_table[trk].pregap
+		int index1 = toc_table[trk].index1;
+		int pregap = toc_table[trk].pregap;
 		uint32_t lba = (uint32_t)index0;
 		if(pregap > 0) lba = lba - pregap;
 		if(lba < 150) lba = 150;
@@ -311,10 +311,10 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 		} else if(cdda_start_frame > max_logical_block) {
 			cdda_start_frame = 0;
 		}
-		int track = current_track;
+		track = current_track;
 		cdda_playing_frame = cdda_start_frame;
 		if(cdda_end_frame > toc_table[track + 1].index1 && (cdda_end_frame - toc_table[track].pregap) <= toc_table[track + 1].index1) {
-			auto_increment_track = true;
+			//auto_increment_track = true;
 		}
 		if(event_cdda_delay_play >= 0) {
 			cancel_event(this, event_cdda_delay_play);
@@ -356,7 +356,7 @@ void TOWNS_CDROM::set_subq(void)
 				msf_rel = 0;
 			}
 		}
-		uint32_t msf_abs = lba_to_msf_alt(frame);
+		msf_abs = lba_to_msf_alt(frame);
 		subq_overrun = !(subq_buffer->empty());
 		subq_buffer->clear();
 		// http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-130.pdf

@@ -1,5 +1,5 @@
 
-#include "../towns_dmac.h"
+#include "./towns_dmac.h"
 #include "debugger.h"
 
 namespace FMTOWNS {
@@ -23,22 +23,22 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 	switch(addr & 0x0f) {
 	case 0x04:
 		nba.b.l = data & 0xff;
-		ba.b.l = data & 0xff;
+		na.b.l = data & 0xff;
 		addr_modified = true;
 		break;
 	case 0x05:
 		nba.b.h = data & 0xff;
-		ba.b.h = data & 0xff;
+		na.b.h = data & 0xff;
 		addr_modified = true;
 		break;
 	case 0x06:
 		nba.b.h2 = data & 0xff;
-		ba.b.h2 = data & 0xff;
+		na.b.h2 = data & 0xff;
 		addr_modified = true;
 		break;
 	case 0x07:
 		nba.b.h3 = data & 0xff;
-		ba.b.h3 = data & 0xff;
+		na.b.h3 = data & 0xff;
 		addr_modified = true;
 		break;
 	}
@@ -64,16 +64,16 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 		}
 		switch(addr & 0x0f) {
 		case 0x04:
-			val = nval.l;
+			val = nval.b.l;
 			break;
 		case 0x05:
-			val = nval.h;
+			val = nval.b.h;
 			break;
 		case 0x06:
-			val = nval.h2;
+			val = nval.b.h2;
 			break;
 		case 0x07:
-			val = nval.h3;
+			val = nval.b.h3;
 			break;
 		}
 		return val;
@@ -101,4 +101,4 @@ void TOWNS_DMAC::do_dma_inc_dec_ptr_16bit(int c)
 	}
 }
 	
-		
+}		

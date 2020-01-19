@@ -15,6 +15,7 @@
 #include "../emu.h"
 #include "device.h"
 
+#include "towns_common.h"
 /*
  * I/O Address :
  *  0440H : Register address (8bit W/O : bit7 to 5 must be '0').
@@ -86,8 +87,6 @@
  *   #00 : Control registers.
  *   #01 : Priority registers.
  */
-#define TOWNS_CRTC_MAX_LINES  1024
-#define TOWNS_CRTC_MAX_PIXELS 1024
 
 #define SIG_TOWNS_CRTC_HSYNC          1
 #define SIG_TOWNS_CRTC_VSYNC          2
@@ -99,6 +98,7 @@
 #define SIG_TOWNS_CRTC_MMIO_CF882H    8
 #define SIG_TOWNS_CRTC_SPRITE_BUFFER  9
 #define SIG_TOWNS_CRTC_SPRITE_DISP    10
+#define SIG_TOWNS_CRTC_SPRITE_USING   11
 
 namespace FMTOWNS {
 
@@ -149,10 +149,10 @@ namespace FMTOWNS {
 namespace FMTOWNS {
 	
 typedef struct {
-	int32_t mode[2];
-	int32_t pixels[2];
-	int32_t mag[2];
-	int32_t num[2];
+	int32_t mode[4];
+	int32_t pixels[4];
+	int32_t mag[4];
+	int32_t num[4];
 	uint32_t prio;
 	uint32_t pad[7];
 	uint8_t pixels_layer[2][TOWNS_CRTC_MAX_PIXELS]; // RAW VALUE
@@ -174,38 +174,54 @@ protected:
 	bool address_changed[2];
 	bool mode_changed[2];
 	
-	uint8_t display_mode[2]; 
+	uint8_t display_mode[2];
+	bool line_changed[2][TOWNS_CRTC_MAX_LINES];
 	bool display_enabled;
 	
-	double crtc_clock; // 
+	double crtc_clock; //
+	int cpu_clocks;
+	
 	// They are not saved.Must be calculate when loading.
 	double horiz_us, next_horiz_us; // (HST + 1) * clock
 	double horiz_width_posi_us, horiz_width_nega_us; // HSW1, HSW2
 	double vert_us, next_vert_us; // (VST +1) * horiz_us / 2.0
-	double vstart_us;
 	double vert_sync_pre_us; // VST1 * horiz_us / 2.0
 	double vert_sync_end_us; // VST2 * horiz_us / 2.0
 	double eet_us;
 	double frame_us;
+	double vst2_us;
+	double vert_start_us[2];
+	double vert_end_us[2];
+	double horiz_start_us[2];
+	double horiz_end_us[2];
 	
 	bool req_recalc;
 	// End
 
 	double frames_per_sec;
 
-	uint32_t vstart_addr[2];  // VSTART ADDRESS
-    uint32_t hstart_words[2]; // HSTART ((HDS[01] * clock) : Horizonal offset words (Related by ZH[01]). Maybe 0.
-    uint32_t hend_words[2];   // HEND   ((HDE[01] * clock) : Horizonal offset words (Related by ZH[01]). Maybe 0.
+	uint32_t vstart_addr[4];  // VSTART ADDRESS
+    uint32_t hstart_words[4]; // HSTART ((HDS[01] * clock) : Horizonal offset words (Related by ZH[01]). Maybe 0.
+    uint32_t hend_words[4];   // HEND   ((HDE[01] * clock) : Horizonal offset words (Related by ZH[01]). Maybe 0.
     uint32_t vstart_lines[2]; // VSTART ((VDS[01] * clock) : Horizonal offset words (Related by VH[01]).
-    uint32_t vend_lines[2];   // VEND   ((VDE[01] * clock) : Horizonal offset words (Related by VH[01]).
-	uint32_t frame_offset[2]; // FO.
+    uint32_t vend_lines[4];   // VEND   ((VDE[01] * clock) : Horizonal offset words (Related by VH[01]).
+	uint32_t frame_offset[4]; // FO.
+	uint32_t line_offset[4]; // FO.
 	uint32_t head_address[2];
+	bool impose_mode[2]; // OK?
+	bool carry_enable[2]; //OK?
 	
 	uint8_t zoom_factor_vert[2]; // Related display resolutions of two layers and zoom factors.
 	uint8_t zoom_factor_horiz[2]; // Related display resolutions of two layers and zoom factors.
 	uint8_t zoom_count_vert[2];
-	
 	uint32_t line_count[2]; // Separate per layer.
+
+	uint8_t scsel;
+	uint8_t clksel;
+	
+	int pixels_per_line;
+	int lines_per_frame;
+	int max_lines;
 	
 	int vert_line_count; // Not separate per layer.Total count.
 	// Note: To display to real screen, use blending of OpenGL/DirectX
@@ -216,9 +232,9 @@ protected:
 	
 	// Not Saved?.
 	// End.
-	
 	bool vdisp, vblank, vsync, hsync, hdisp[2], frame_in[2];
-
+	bool interlace_field;
+	
 	// around sprite
 	uint8_t sprite_disp_page;
 	bool sprite_enabled;
@@ -268,14 +284,16 @@ protected:
 	void set_vblank(bool val);
 	void set_vsync(bool val);
 	void set_hsync(bool val);
-	void transfer_line(int line);
-
-protected:
-	bool render_a_line(int layer, int linenum, int xoffset, uint8_t *vramptr, uint32_t words);
-	void render_line_16(int layer, scrntype_t *framebuffer, uint8_t *vramptr, uint32_t words);
-	void render_line_256(int layer, scrntype_t *framebuffer, uint8_t *vramptr, uint32_t words);
-	void render_line_32768(int layer, scrntype_t *framebuffer, uint8_t *vramptr, uint32_t words);
-	void render_clear(int layer, scrntype_t *framebuffer);
+	void force_recalc_crtc_param(void);
+	void restart_display();
+	void stop_display();
+	void notify_mode_changed(int layer, uint8_t mode);
+	void set_crtc_clock(uint16_t val);
+	uint16_t read_reg30();
+	
+	bool __FASTCALL render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int width, int layer, bool do_alpha);
+	bool __FASTCALL render_32768(scrntype_t* dst, scrntype_t *mask, int y, int width, int layer, bool do_alpha);
+	void transfer_line();
 	
 public:
 	TOWNS_CRTC(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -291,31 +309,26 @@ public:
 	~TOWNS_CRTC() {}
 
 	void initialize();
+	void release();
 	void reset();
+	void draw_screen();
+	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
+	void event_pre_frame();
+	void event_frame();
 	
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int ch);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int ch);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-
-	void write_io16(uint32_t addr, uint32_t data);
-	uint32_t read_io16(uint32_t addr);
+	void __FASTCALL write_io16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io16(uint32_t addr);
 	
-	uint32_t read_data8(uint32_t addr);
-	uint32_t read_data16(uint32_t addr);
-	uint32_t read_data32(uint32_t addr);
-	
-	void write_data8(uint32_t addr, uint32_t data);
-	void write_data16(uint32_t addr, uint32_t data);
-	void write_data32(uint32_t addr, uint32_t data);
 	void event_callback(int event_id, int err);
-	//void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
-	linebuffer_t* get_line_buffer(int page, int line)
+	linebuffer_t* __FASTCALL get_line_buffer(int page, int line)
 	{
 		page = page & 1;
 		if(line < 0) return NULL;

@@ -145,7 +145,7 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("Beep"), _T("FM SSG"), _T("FM OPNB"), _T("PCM"), _T("CD-DA"),
+	_T("Beep"), _T("CD-DA"), _T("FM OPN2"), _T("ADPCM"), 
 #if defined(USE_SOUND_FILES)
 	_T("FDD SEEK"),
 #endif
@@ -160,11 +160,12 @@ class I8251;
 class I8253;
 class I8259;
 class I386;
+class NOISE;
 
 class IO;
 class RF5C68;      // DAC
 class YM2612;      // OPNB
-class MB87078;     // VOLUME
+//class MB87078;     // VOLUME
 class AD7820KR;    // A/D Converter.
 class PCM1BIT;
 
@@ -199,7 +200,7 @@ namespace FMTOWNS {
 	class TOWNS_MEMORY;
 
 	class TOWNS_CDROM;
-	class SPRITE;
+	class TOWNS_SPRITE;
 	class JOYSTICK; // Mouse and Joystick.
 }
 
@@ -212,8 +213,7 @@ protected:
 	I8253* pit0;
 	I8253* pit1;
 	
-	I8259* pic0;
-	I8259* pic1;
+	I8259* pic;
 	
 	I386* cpu; // i386DX/SX/486DX/486SX?/Pentium with FPU?
 
@@ -222,17 +222,23 @@ protected:
 	MSM58321* rtc;
 	UPD71071* dma;
 	UPD71071* extra_dma;
-	RF5C68*   dac;
-	MB87078*  e_volumes;
-	AD7820KR* adc;
-	RF5C68*   adpcm;
-	PCM1BIT*  beep;
+	NOISE*    seek_sound;
+	NOISE*    head_up_sound;
+	NOISE*    head_down_sound;
 	
+	RF5C68*   rf5c68;
+//	MB87078*  e_volumes;
+	AD7820KR* adc;
+	PCM1BIT*  beep;
+	YM2612*   opn2;
+	
+	FMTOWNS::ADPCM*          adpcm;
 	FMTOWNS::TOWNS_CRTC*     crtc;
 	FMTOWNS::FLOPPY*         floppy;
 	FMTOWNS::KEYBOARD*       keyboard;
 	FMTOWNS::TIMER*          timer;
-	FMTOWNS::TOWNS_VRAM*     sprite;
+	FMTOWNS::TOWNS_VRAM*     vram;
+	FMTOWNS::TOWNS_SPRITE*   sprite;
 	FMTOWNS::TOWNS_MEMORY*   memory;
 	FMTOWNS::DICTIONARY*     dictionary;
 	FMTOWNS::SYSROM*         sysrom;
@@ -248,10 +254,24 @@ protected:
 	
 	FMTOWNS::SCSI* scsi;
 	SCSI_HOST*     scsi_host;
-	SCSI_HDD*      hdd[4]; // 
+	SCSI_HDD*      hdd[4]; //
 
+	int adc_in_ch;
+	int line_in_ch;
+	int modem_in_ch;
+	int mic_in_ch;
+
+	int beep_mix_ch;
+	int cdc_mix_ch;
+	int opn2_mix_ch;
+	int pcm_mix_ch;
+	int line_mix_ch;
+	int modem_mix_ch;
+	int mic_mix_ch;
+/*
 	scrntype_t *d_renderbuffer[2][2]; // [bank][layer]
 	uint32_t renderbuffer_size[2][2];
+*/
 public:
 	// ----------------------------------------
 	// initialize
@@ -291,14 +311,19 @@ public:
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
+	uint32_t is_floppy_disk_accessed();
 	bool is_floppy_disk_inserted(int drv);
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
 	bool is_frame_skippable();
-	
+	void set_machine_type(uint16_t machine_id, uint16_t cpu_id);
+
+	void clear_sound_in();
+	int get_sound_in_data(int ch, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
+	int sound_in(int ch, int32_t* src, int samples);
+
 	void update_config();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device

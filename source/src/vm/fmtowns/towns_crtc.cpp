@@ -7,6 +7,7 @@
 	[ FM-Towns CRTC ]
 	History: 2016.12.28 Initial from HD46505 .
 */
+#include "../../common.h"
 
 #include "towns_crtc.h"
 #include "towns_vram.h"
@@ -55,7 +56,7 @@ void TOWNS_CRTC::initialize()
 	}		
 	for(int i = 0; i < 4; i++) {
 		// ToDo: Allocate at external buffer (when using compute shaders).
-		linebuffers[i] = malloc(sizeof(linebuffer_t ) * TOWNS_CRTC_MAX_LINES);
+		linebuffers[i] = (linebuffer_t *)malloc(sizeof(linebuffer_t ) * TOWNS_CRTC_MAX_LINES);
 		if(linebuffers[i] != NULL) {
 			for(int l = 0; l < TOWNS_CRTC_MAX_LINES; l++) {
 				memset(&(linebuffers[i][l]), 0x00, sizeof(linebuffer_t));
@@ -83,30 +84,40 @@ void TOWNS_CRTC::release()
 void TOWNS_CRTC::reset()
 {
 	// initialize
-	display = false;
+	display_enabled = false;
 	vblank = vsync = hsync = true;
 	
 //	memset(regs, 0, sizeof(regs));
-	ch = 0;
+	crtc_ch = 0;
 	
 	// initial settings for 1st frame
 	req_recalc = false;
-	timing_changed = false;
-	disp_end_clock = 0;
 	sprite_disp_page = 0; // OK?
 	sprite_enabled = false;
 //	crtc_clock = 28.6363e6; // OK?
-
+	interlace_field = false;
+	
 	line_count[0] = line_count[1] = 0;
 	vert_line_count = -1;
 	display_linebuf = 0;
 	for(int i = 0; i < TOWNS_CRTC_MAX_LINES; i++) {
 		line_changed[0][i] = true;
-		line_rendered[0][i] = false;
 		line_changed[1][i] = true;
-		line_rendered[1][i] = false;
 	}
-	
+	for(int i = 0; i < 2; i++) {
+		timing_changed[i] = true;
+		address_changed[i] = true;
+		mode_changed[i] = true;
+
+		impose_mode[i] = false; // OK?
+		carry_enable[i] = false; //OK?
+	}
+	for(int i = 0; i < 4; i++) {
+		frame_offset[i] = 0;
+		line_offset[i] = 0;
+		vstart_addr[i] = 0;
+		hstart_words[i] = 0;
+	}
 	if(event_id_hsync  >= 0) cancel_event(this, event_id_hsync);
 	if(event_id_hsw    >= 0) cancel_event(this, event_id_hsw);
 	if(event_id_vsync  >= 0) cancel_event(this, event_id_vsync);
@@ -146,6 +157,22 @@ void TOWNS_CRTC::reset()
 	force_recalc_crtc_param();
 //	register_event(this, EVENT_CRTC_VSTART, vstart_us, false, &event_id_vstart);
 }
+
+void TOWNS_CRTC::restart_display()
+{
+	// ToDo
+}
+
+void TOWNS_CRTC::stop_display()
+{
+	// ToDo
+}
+
+void TOWNS_CRTC::notify_mode_changed(int layer, uint8_t mode)
+{
+		// ToDo
+}
+
 // CRTC register #29
 void TOWNS_CRTC::set_crtc_clock(uint16_t val)
 {
@@ -154,8 +181,8 @@ void TOWNS_CRTC::set_crtc_clock(uint16_t val)
 	static const double clocks[] = {
 		28.6363e6, 24.5454e6, 25.175e6, 21.0525e6
 	};
-	if(crtc_clock[clksel] != crtc_clock) {
-		crtc_clock = crtc_clock[clksel];
+	if(clocks[clksel] != crtc_clock) {
+		crtc_clock = clocks[clksel];
 		req_recalc = true;
 	}
 }
@@ -165,7 +192,7 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 	horiz_width_posi_us = crtc_clock * ((double)(regs[0] & 0x00fe)); // HSW1
 	horiz_width_nega_us = crtc_clock * ((double)(regs[1] & 0x00fe)); // HSW2
 	horiz_us = crtc_clock * ((double)((regs[4] & 0x07fe) + 1)); // HST
-	vsync_pre_us = ((double)(regs[5] & 0x1f)) * horiz_us; // VST1
+	vert_sync_pre_us = ((double)(regs[5] & 0x1f)) * horiz_us; // VST1
 	
 	double horiz_ref = horiz_us / 2.0;
 	
@@ -188,7 +215,7 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 }
 
 
-void TONWS_CRTC::write_io8(uint32_t addr, uint32_t data)
+void TOWNS_CRTC::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x0440:
@@ -198,7 +225,7 @@ void TONWS_CRTC::write_io8(uint32_t addr, uint32_t data)
 		{
 			pair16_t rdata;
 			rdata.w = regs[crtc_ch];
-			rdata.l = (uint8_t)data;
+			rdata.b.l = (uint8_t)data;
 			write_io16(addr, rdata.w);
 		}
 		break;
@@ -206,7 +233,7 @@ void TONWS_CRTC::write_io8(uint32_t addr, uint32_t data)
 		{
 			pair16_t rdata;
 			rdata.w = regs[crtc_ch];
-			rdata.h = (uint8_t)data;
+			rdata.b.h = (uint8_t)data;
 			write_io16(addr, rdata.w);
 		}
 		break;
@@ -261,10 +288,10 @@ void TOWNS_CRTC::write_io16(uint32_t addr, uint32_t data)
 							hstart_words[localch] = (uint32_t)(data & 0x07ff);
 							break;
 						case 2: // FOx
-							frame_offet[localch] = (uint32_t)(data & 0xffff);
+							frame_offset[localch] = (uint32_t)(data & 0xffff);
 							break;
 						case 3: // LOx
-							line_offet[localch] = (uint32_t)(data & 0xffff);
+							line_offset[localch] = (uint32_t)(data & 0xffff);
 							break;
 						}					
 					}
@@ -281,10 +308,10 @@ void TOWNS_CRTC::write_io16(uint32_t addr, uint32_t data)
 								uint8_t zfh[2];
 								pair16_t pd;
 								pd.w = (uint16_t)data;
-								zfv[0] = ((pd.l & 0xf0) >> 4) + 1;
-								zfh[0] = (pd.l & 0x0f) + 1;
-								zfv[1] = ((pd.h & 0xf0) >> 4) + 1;
-								zfh[1] = (pd.h & 0x0f) + 1;
+								zfv[0] = ((pd.b.l & 0xf0) >> 4) + 1;
+								zfh[0] = (pd.b.l & 0x0f) + 1;
+								zfv[1] = ((pd.b.h & 0xf0) >> 4) + 1;
+								zfh[1] = (pd.b.h & 0x0f) + 1;
 								if((zfv[0] != zoom_factor_vert[0]) || (zfh[0] != zoom_factor_horiz[0])) {
 									timing_changed[0] = true;
 									address_changed[0] = true;
@@ -367,13 +394,13 @@ void TOWNS_CRTC::write_io16(uint32_t addr, uint32_t data)
 	case 0xfd9e:
 	case 0xfd9f:
 		{
-			pair16_t n;
+			pair32_t n;
 			n.d = data;
 			if(addr == 0xfd9f) {
-				dpalette_regs[7] = n.l & 0x0f;
+				dpalette_regs[7] = n.b.l & 0x0f;
 			} else {
-				dpalette_regs[addr & 7] = n.l & 0x0f;
-				dpalette_regs[(addr + 1) & 7] = n.h & 0x0f;
+				dpalette_regs[addr & 7] = n.b.l & 0x0f;
+				dpalette_regs[(addr + 1) & 7] = n.b.h & 0x0f;
 			}
 			dpalette_changed = true;
 		}
@@ -400,7 +427,7 @@ uint16_t TOWNS_CRTC::read_reg30()
 	//data |= ((sync_enable)  ? 0x0004 : 0);
 	//data |= ((vcard_enable) ? 0x0002 : 0);
 	//data |= ((sub_carry)    ? 0x0001 : 0);
-	
+	return data;
 }
 
 uint32_t TOWNS_CRTC::read_io16(uint32_t addr)
@@ -441,11 +468,11 @@ uint32_t TOWNS_CRTC::read_io16(uint32_t addr)
 		{
 			pair16_t n;
 			if(addr == 0xfd9f) {
-				n.l = dpalette_regs[7];
-				n.h = 0xff;
+				n.b.l = dpalette_regs[7];
+				n.b.h = 0xff;
 			} else {
-				n.l = dpalette_regs[addr & 0x07];
-				n.h = dpalette_regs[(addr + 1) & 0x07];
+				n.b.l = dpalette_regs[addr & 0x07];
+				n.b.h = dpalette_regs[(addr + 1) & 0x07];
 			}
 			return n.w;
 		}
@@ -472,22 +499,22 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 		{
 			pair16_t d;
 			if(crtc_ch == 30) {
-				d.w = read_reg32();
+				d.w = read_reg30();
 			} else {
 				d.w = regs[crtc_ch];
 			}
-			return (uint32_t)(d.l);
+			return (uint32_t)(d.b.l);
 		}
 		break;
 	case 0x0443:
 		{
 			pair16_t d;
 			if(crtc_ch == 30) {
-				d.w = read_reg32();
+				d.w = read_reg30();
 			} else {
 				d.w = regs[crtc_ch];
 			}
-			return (uint32_t)(d.h);
+			return (uint32_t)(d.b.h);
 		}
 		break;
 	case 0xfd98:
@@ -537,11 +564,14 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int widt
 	__DECL_ALIGNED(32) scrntype_t sbuf[8];
 	__DECL_ALIGNED(32) scrntype_t abuf[8];
 	__DECL_ALIGNED(32) uint8_t a2buf[8];
+	pair16_t ptmp16;
+	int rwidth = pwidth & 7;
 	
 	int k = 0;
-	for(x = 0; x < (pwidth >> 3); x++) {
+	for(int x = 0; x < (pwidth >> 3); x++) {
 		for(int i = 0; i < 8; i++) {
-			pbuf[i] = read_2bytes_le_from(p);
+			ptmp16.read_2bytes_le_from(p);
+			pbuf[i] = ptmp16.w;
 			p += 2;
 		}
 		for(int i = 0; i < 8; i++) {
@@ -593,13 +623,13 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int widt
 		} else {
 			for(int i = 0; i < 8; i++) {
 				int kbak = k;
-				for(j = 0; j < magx; j++) {
+				for(int j = 0; j < magx; j++) {
 					*q++ = sbuf[i];
 					k++;
 					if(k >= width) break;
 				}
 				if(r != NULL) {
-					for(j = 0; j < magx; j++) {
+					for(int j = 0; j < magx; j++) {
 						*r++ = abuf[i];
 						kbak++;
 						if(kbak >= width) break;
@@ -610,10 +640,11 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int widt
 		}
 	}
 	if(k >= width) return true;
+	
 	if((pwidth & 7) != 0) {
-		int rwidth = pwidth & 7;
 		for(int i = 0; i < rwidth; i++) {
-			pbuf[i] = read_2bytes_le_from(p);
+			ptmp16.read_2bytes_le_from(p);
+			pbuf[i] = ptmp16.w;
 			p += 2;
 		}
 		for(int i = 0; i < rwidth; i++) {
@@ -657,10 +688,10 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int widt
 				}
 			}
 			k += 8;
-			if(k >= width) break;
+			if(k >= width) return true;
 		} else {
 			for(int i = 0; i < rwidth; i++) {
-				if(j = 0; j < magx; j++) {
+				for(int j = 0; j < magx; j++) {
 					*q++ = sbuf[i];
 					if(r != NULL) {
 						*r++ = abuf[i];
@@ -668,7 +699,7 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int widt
 					k++;
 					if(k >= width) break;
 				}
-				if(k >= width) break;
+				if(k >= width) return true;
 			}
 		}
 	}
@@ -677,12 +708,12 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int widt
 
 bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int width, int layer, bool do_alpha)
 {
-	if(dst == NULL) return;
+	if(dst == NULL) return false;
 	
 	int trans = display_linebuf & 3;
 	int magx = linebuffers[trans][y].mag[layer];
 	int pwidth = linebuffers[trans][y].pixels[layer];
-	int num = linebuffers[trans][y].num[layer];
+	//int num = linebuffers[trans][y].num[layer];
 	uint8_t *p = linebuffers[trans][y].pixels_layer[layer];
 	scrntype_t *q = dst;
 	scrntype_t *r = mask;
@@ -711,7 +742,7 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 		pal = palbuf;
 	}
 	int k = 0;
-	for(x = 0; x < (pwidth >> 3); x++) {
+	for(int x = 0; x < (pwidth >> 3); x++) {
 		for(int i = 0; i < 8; i++) {
 			pbuf[i] = *p++;
 		}
@@ -724,7 +755,7 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 			hlbuf[i + 1] = hlbuf[i + 1] & 15;
 		}
 		for(int i = 0; i < 16; i++) {
-			abuf[i] = (hlbuf[ii] == 0) ? 0 : (scrntype_t)(-1);
+			abuf[i] = (hlbuf[i] == 0) ? 0 : (scrntype_t)(-1);
 		}
 		for(int i = 0; i < 16; i++) {
 			sbuf[i] = (hlbuf[i] == 0) ? RGBA_COLOR(0, 0, 0, 0) : pal[hlbuf[i]];
@@ -743,13 +774,13 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 		} else {
 			for(int i = 0; i < 16; i++) {
 				int kbak = k;
-				if(j = 0; j < magx; j++) {
+				for(int j = 0; j < magx; j++) {
 					*q++ = sbuf[i];
 					k++;
 					if(k >= width) break;
 				}
 				if(r != NULL) {
-					for(j = 0; j < magx; j++) {
+					for(int j = 0; j < magx; j++) {
 						*r++ = abuf[i];
 						kbak++;
 						if(kbak >= width) break;
@@ -760,12 +791,13 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 		}
 	}
 	if(k >= width) return true;
-	int rwidth = pwidth & 7;
 	uint8_t tmpp;
 	uint8_t tmph;
 	uint8_t tmpl;
+	scrntype_t ah, al;
+	int rwidth = pwidth & 7;
 	if(rwidth > 0) {
-		for(x = 0; x < rwidth; x++) {
+		for(int x = 0; x < rwidth; x++) {
 			tmpp = *p++;
 			tmph = tmpp >> 4;
 			tmpl = tmpp & 0x0f;
@@ -825,11 +857,11 @@ void TOWNS_CRTC::draw_screen()
 	__DECL_ALIGNED(32)  scrntype_t apal256[256];
 	
 	{
-		vm->lock_vm();
+		emu->lock_vm();
 		d_vram->get_analog_palette(0, &(apal16[0][0]));
 		d_vram->get_analog_palette(0, &(apal16[1][0]));
 		d_vram->get_analog_palette(2, apal256);
-		vm->unlock_vm();
+		emu->unlock_vm();
 	}
 	
 	int lines = lines_per_frame;
@@ -850,13 +882,13 @@ void TOWNS_CRTC::draw_screen()
 	for(int y = 0; y < lines; y++) {
 		bool do_mix0 = false;
 		bool do_mix1 = false;
-		if(linebuffers[trans].mode[0] == DISPMODE_256) {
+		if(linebuffers[trans]->mode[0] == DISPMODE_256) {
 			// 256 colors
 			do_mix0 = true;
-			int magx = linebuffers[trans].mag[0];
-			int pwidth = linebuffers[trans].pixels[0];
-			int num = linebuffers[trans].num[0];
-			uint8_t *p = linebuffers[trans].pixels_layer[0];
+			int magx = linebuffers[trans]->mag[0];
+			int pwidth = linebuffers[trans]->pixels[0];
+			int num = linebuffers[trans]->num[0];
+			uint8_t *p = linebuffers[trans]->pixels_layer[0];
 			__DECL_ALIGNED(16) uint8_t pbuf[16];
 			__DECL_ALIGNED(32) scrntype_t sbuf[16];
 			if(magx < 1) {
@@ -923,21 +955,21 @@ void TOWNS_CRTC::draw_screen()
 				}
 			}
 		} else {
-			if(linebuffers[trans].mode[1] == DISPMODE_16) { // Lower layer
-				do_mix1 = render_16(lbuffer1, abuffer1, &(apal16[linebuffers[trans].num[1]][0]), y, width, 1, do_alpha);
-			} else if(linebuffers[trans].mode[1] == DISPMODE_32768) { // Lower layer
+			if(linebuffers[trans]->mode[1] == DISPMODE_16) { // Lower layer
+				do_mix1 = render_16(lbuffer1, abuffer1, &(apal16[linebuffers[trans]->num[1]][0]), y, width, 1, do_alpha);
+			} else if(linebuffers[trans]->mode[1] == DISPMODE_32768) { // Lower layer
 				do_mix1 = render_32768(lbuffer1, abuffer1, y, width, 1, do_alpha);
 			}
 			// Upper layer
-			if(linebuffers[trans].mode[0] == DISPMODE_16) { // Lower layer
-				do_mix0 = render_16(lbuffer0, abuffer0, &(apal16[linebuffers[trans].num[0]][0]), y, width, 0, do_alpha);
-			} else if(linebuffers[trans].mode[1] == DISPMODE_32768) { // Lower layer
+			if(linebuffers[trans]->mode[0] == DISPMODE_16) { // Lower layer
+				do_mix0 = render_16(lbuffer0, abuffer0, &(apal16[linebuffers[trans]->num[0]][0]), y, width, 0, do_alpha);
+			} else if(linebuffers[trans]->mode[1] == DISPMODE_32768) { // Lower layer
 				do_mix0 = render_32768(lbuffer0, abuffer0, y, width, 1, do_alpha);
 			}
 		}
 		// ToDo: alpha blending
 		{
-			vm->lock_vm();
+			emu->lock_vm();
 			scrntype_t *pp = emu->get_screen_buffer(y);
 			if(pp != NULL) {
 				if((do_mix0) && (do_mix1)) {
@@ -987,7 +1019,7 @@ void TOWNS_CRTC::draw_screen()
 					memset(pp, 0x00, width * sizeof(scrntype_t));
 				}
 			}
-			vm->unlock_vm();
+			emu->unlock_vm();
 		}
 	}
 	//display_linebuf = (display_linebuf + 1) & 3;
@@ -1155,6 +1187,8 @@ void TOWNS_CRTC::transfer_line()
 void TOWNS_CRTC::update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame)
 {
 	max_lines = new_lines_per_frame;
+	frames_per_sec = new_frames_per_sec;
+	cpu_clocks = new_clocks;
 	req_recalc = true;
 }
 
@@ -1202,6 +1236,7 @@ void TOWNS_CRTC::event_pre_frame()
 void TOWNS_CRTC::event_frame()
 {
 	display_linebuf = (display_linebuf + 1) & 3; // Incremant per vstart
+	lines_per_frame = max_lines;
 //		if(req_recalc) {
 //			force_recalc_crtc_param();
 //		}
@@ -1337,7 +1372,7 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 	} else if(eid2 == EVENT_CRTC_HDS) {
 		int layer = event_id & 1;
 		hdisp[layer] = true;
-		if((horiz_end_us[i] <= 0.0) || (horiz_end_us[i] <= horiz_start_us[i])) {
+		if((horiz_end_us[layer] <= 0.0) || (horiz_end_us[layer] <= horiz_start_us[layer])) {
 			hdisp[layer] = false;
 		}
 		event_id_hds[layer] = -1;
@@ -1411,6 +1446,8 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(regs, sizeof(regs), 1);
 	state_fio->StateArray(regs_written, sizeof(regs_written), 1);
 	state_fio->StateValue(crtc_ch);
+	state_fio->StateValue(interlace_field);
+
 	state_fio->StateArray(timing_changed, sizeof(timing_changed), 1);
 	state_fio->StateArray(address_changed, sizeof(address_changed), 1);
 	state_fio->StateArray(mode_changed, sizeof(mode_changed), 1);
@@ -1420,14 +1457,19 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(crtc_clock);
 	state_fio->StateValue(max_lines);
 	state_fio->StateValue(frames_per_sec);
+	state_fio->StateValue(cpu_clocks);
 
 	state_fio->StateArray(vstart_addr, sizeof(vstart_addr), 1);
 	state_fio->StateArray(hstart_words, sizeof(hstart_words), 1);
 	state_fio->StateArray(hend_words, sizeof(hend_words), 1);
 	state_fio->StateArray(vstart_lines, sizeof(vstart_lines), 1);
 	state_fio->StateArray(vend_lines, sizeof(vend_lines), 1);
+	state_fio->StateArray(line_offset, sizeof(line_offset), 1);
 	state_fio->StateArray(frame_offset, sizeof(frame_offset), 1);
 	state_fio->StateArray(head_address, sizeof(head_address), 1);
+	state_fio->StateArray(impose_mode,  sizeof(impose_mode), 1);
+	state_fio->StateArray(carry_enable, sizeof(carry_enable), 1);
+
 	
 	state_fio->StateArray(zoom_factor_vert, sizeof(zoom_factor_vert), 1);
 	state_fio->StateArray(zoom_factor_horiz, sizeof(zoom_factor_horiz), 1);

@@ -8,8 +8,9 @@
 */
 
 #include "./adpcm.h"
-#include "rf5c68.h"
 #include "ad7820kr.h"
+#include "rf5c68.h"
+#include "ym2612.h"
 #include "../i8259.h"
 
 namespace FMTOWNS {
@@ -240,6 +241,10 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 	}
 }
 
+uint32_t ADPCM::read_signal(int ch)
+{
+	return 0;
+}
 #define STATE_VERSION	1
 
 bool ADPCM::process_state(FILEIO* state_fio, bool loading)

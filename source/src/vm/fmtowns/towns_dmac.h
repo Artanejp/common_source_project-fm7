@@ -4,7 +4,7 @@
 #include "../upd71071.h"
 
 namespace FMTOWNS {
-class TOWNS_DMAC : publiuc UPD71071
+class TOWNS_DMAC : public UPD71071
 {
 protected:
 	virtual void __FASTCALL do_dma_inc_dec_ptr_8bit(int c);

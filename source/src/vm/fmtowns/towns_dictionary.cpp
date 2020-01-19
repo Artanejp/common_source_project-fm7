@@ -35,7 +35,7 @@ void DICTIONARY::initialize()
 	cmos_dirty = true;
 	if(fio->Fopen(create_local_path(_T("FMT_CMOS.BIN")), FILEIO_READ_BINARY)) {
 		if(fio->Fread(dict_ram, sizeof(dict_ram), 1) == 1) {
-			cmod_dirty = false;
+			cmos_dirty = false;
 		}
 		fio->Fclose();
 	}
@@ -149,7 +149,7 @@ uint32_t DICTIONARY::read_data16w(uint32_t addr, int* wait)
 	return (uint32_t)(n.u16);
 }
 
-uint32_t DICTIONARY::read_data32(uint32_t addr)
+uint32_t DICTIONARY::read_data32w(uint32_t addr, int* wait)
 {
 	pair32_t n;
 	addr = addr & 0xfffffffc;
@@ -195,8 +195,8 @@ void DICTIONARY::write_data16w(uint32_t addr, uint32_t data, int* wait)
 		return;
 	}		
 	int dummy;
-	write_data8(addr + 0, n.b.l, &dummy);
-	write_data8(addr + 1, n.b.h, wait);
+	write_data8w(addr + 0, n.b.l, &dummy);
+	write_data8w(addr + 1, n.b.h, wait);
 }
 
 void DICTIONARY::write_data32w(uint32_t addr, uint32_t data, int* wait)

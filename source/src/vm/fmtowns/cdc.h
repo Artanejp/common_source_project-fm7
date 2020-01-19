@@ -6,9 +6,8 @@
 */
 #pragma once
 
-#include "../device.h"
 #include "../../common.h"
-
+#include "../device.h"
 
 #define SIG_TOWNS_CDC_DRQ 1
 #define SIG_TOWNS_CDC_IRQ 2
@@ -32,7 +31,8 @@ protected:
 	outputs_t output_dma_line;
 	outputs_t output_dma_intr;
 	outputs_t output_submpu_intr;
-	
+
+	DEVICE*    d_dmac;
 	SCSI_HOST* d_scsi_host;
 	TOWNS_CDROM* d_cdrom;
 	
@@ -52,7 +52,6 @@ protected:
 	bool submpu_intr_mask;
 	
 	bool busy_status;
-	bool busy_status;
 	bool cd_status;
 	bool io_status;
 	bool msg_status;
@@ -60,6 +59,8 @@ protected:
 	bool ack_status;
 
 	uint8_t w_regs[16];
+	bool command_type_play;
+	bool stat_reply_intr;
 	
 	virtual void read_cdrom(bool req_reply);
 	virtual void stop_cdda(bool req_reply);
@@ -100,19 +101,23 @@ public:
 	virtual void set_context_scsi_host(SCSI_HOST* dev);
 	virtual void set_context_cdrom(TOWNS_CDROM* dev);
 
+	void set_context_dmac(DEVICE *dev)
+	{
+		d_dmac = dev;
+	}
 	void set_context_dmareq_line(DEVICE* dev, int id, uint32_t mask)
 	{
-		register_output_signals(&output_dma_line, dev, id, mask);
+		register_output_signal(&output_dma_line, dev, id, mask);
 	}
 	
 	void set_context_dmaint_line(DEVICE* dev, int id, uint32_t mask)
 	{
-		register_output_signals(&output_dma_intr, dev, id, mask);
+		register_output_signal(&output_dma_intr, dev, id, mask);
 	}
 	
 	void set_context_mpuint_line(DEVICE* dev, int id, uint32_t mask)
 	{
-		register_output_signals(&output_submpu_intr, dev, id, mask);
+		register_output_signal(&output_submpu_intr, dev, id, mask);
 	}
 };
 

@@ -8,11 +8,11 @@
 */
 #pragma once
 
-#include "../../common.h"
-#include "../device.h"
-
 // These are common definitions for FM-Towns.
-#define SIG_FMTOWNS_RAM_WAIT 0x10000000
-#define SIG_FMTOWNS_ROM_WAIT 0x10000001
+#define SIG_FMTOWNS_RAM_WAIT  0x10000000
+#define SIG_FMTOWNS_ROM_WAIT  0x10000001
+#define SIG_FMTOWNS_VRAM_WAIT 0x10000001
 
+#define TOWNS_CRTC_MAX_LINES  1024
+#define TOWNS_CRTC_MAX_PIXELS 1024
 

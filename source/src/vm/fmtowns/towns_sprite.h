@@ -5,9 +5,11 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_TOWNS_SPRITE_HOOK_VLINE 256
-#define SIG_TOWNS_SPRITE_SET_LINES  257
-
+#define SIG_TOWNS_SPRITE_HOOK_VLINE  256
+#define SIG_TOWNS_SPRITE_SET_LINES   257
+#define SIG_TOWNS_SPRITE_BUSY        258
+#define SIG_TOWNS_SPRITE_CALL_HSYNC  259
+#define SIG_TOWNS_SPRITE_CALL_VSTART 260
 namespace FMTOWNS {
 	class TOWNS_VRAM;
 }
@@ -22,6 +24,8 @@ protected:
 	uint8_t reg_addr;
 	uint8_t reg_data[8];
 	// #0, #1
+	uint16_t reg_ctrl;
+   
 	bool reg_spen;
 	uint16_t reg_index;
 	uint8_t pattern_ram[0x20000];
@@ -30,13 +34,14 @@ protected:
 	uint16_t reg_hoffset;
 	bool disp_page0;
 	bool disp_page1;
+	int frame_sprite_count;
+	bool sprite_enabled;
 	
 	bool now_transferring;
 	
 	int render_num;
 	int render_mod;
 	int render_lines;
-	bool sprite_enabled;
 	
 	bool split_rendering;
 	int max_sprite_per_frame;

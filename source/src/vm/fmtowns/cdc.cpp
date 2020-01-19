@@ -6,19 +6,24 @@
 */
 
 #include "cdc.h"
-#include "towns_cdrom.h"
 #include "../../fifo.h"
 #include "../scsi_host.h"
-#include "../scsi_dev.h"
+#include "../upd71071.h"
+#include "towns_cdrom.h"
 
 namespace FMTOWNS {
+
+// SAME AS SCSI_CDROM::
+#define CDDA_OFF	0
+#define CDDA_PLAYING	1
+#define CDDA_PAUSED	2
 
 void CDC::set_context_scsi_host(SCSI_HOST* dev)
 {
 	d_scsi_host = dev;
 	d_scsi_host->set_context_irq(this, SIG_TOWNS_CDC_IRQ, 0xffffffff);
 	d_scsi_host->set_context_drq(this, SIG_TOWNS_CDC_DRQ, 0xffffffff);
-	d_scsi_host->set_context_bsy(this, SIG_TOWNS_CDC_BUSY, 0xffffffff);
+	d_scsi_host->set_context_bsy(this, SIG_TOWNS_CDC_BSY, 0xffffffff);
 	d_scsi_host->set_context_cd(this, SIG_TOWNS_CDC_CD, 0xffffffff);
 	d_scsi_host->set_context_io(this, SIG_TOWNS_CDC_IO, 0xffffffff);
 	d_scsi_host->set_context_msg(this, SIG_TOWNS_CDC_MSG, 0xffffffff);
@@ -30,7 +35,7 @@ void CDC::set_context_scsi_host(SCSI_HOST* dev)
 void CDC::set_context_cdrom(TOWNS_CDROM* dev)
 {
 	d_cdrom = dev;
-	d_cdrom->set_context_done(this, SIG_TOWNS_CDC_CDROM_DONE, 0xffffffff);
+	dev->set_context_done(this, SIG_TOWNS_CDC_CDROM_DONE, 0xffffffff);
 }
 
 void CDC::reset()
@@ -52,6 +57,10 @@ void CDC::reset()
 	
 	dma_transfer = false;
 	pio_transfer = true;
+	command_type_play = false; // false = status command
+	stat_reply_intr   = false;
+	req_status        = false;
+	
 	d_scsi_host->reset();
 }
 
@@ -141,7 +150,7 @@ void CDC::write_io8(uint32_t address, uint32_t data)
 		}			
 		break;
 	default:
-		if((addr & 0x01) == 0) {
+		if((address & 0x01) == 0) {
 			w_regs[address & 0x0f] = data;
 		}
 		break;
@@ -154,7 +163,7 @@ uint32_t CDC::read_io8(uint32_t address)
 	 * 04C0h : Master status register
 	 */
 	uint32_t val = 0xff;
-	switch(addr & 0x0f) {
+	switch(address & 0x0f) {
 	case 0x0: //Master status
 		{
 			val = 0x00;
@@ -212,11 +221,10 @@ uint32_t CDC::read_io8(uint32_t address)
 							extra_status++;
 							break;
 						case 6:
-							uint32_t msf = d_cdrom->read_signal
 							{
 								uint32_t msf = d_cdrom->read_signal(SIG_TOWNS_CDROM_START_MSF_AA);
 								write_status(0x17, (msf & 0x00ff0000) >> 16, (msf & 0x0000ff00) >> 8, msf & 0x000000ff);
-								exra_status++;
+								extra_status++;
 							}
 							break;
 						default:
@@ -316,7 +324,10 @@ void CDC::read_cdrom(bool req_reply)
 	uint32_t lba1 = ((uint32_t)m1 & 0x1f) * 0x10000 + ((uint32_t)s1) * 0x100 + (uint32_t)f1;
 	uint32_t lba2 = ((uint32_t)m2 & 0x1f) * 0x10000 + ((uint32_t)s2) * 0x100 + (uint32_t)f2;
 	uint32_t __remain;
-	int track = get_track(lba1);
+	int track = 0;
+	if(d_cdrom != NULL) {
+		track = d_cdrom->get_track(lba1);
+	}
 	if(track < 2) {
 		if(lba1 >= 150) {
 			lba1 = lba1 - 150;
@@ -329,14 +340,16 @@ void CDC::read_cdrom(bool req_reply)
 			lba2 = 0;
 		}
 	}
-	set_cdda_status(CDDA_OFF);
+	if(d_cdrom != NULL) {
+		d_cdrom->set_cdda_status(CDDA_OFF);
+	}
 	if(lba1 > lba2) { // NOOP?
 		extra_status = 0;
 		write_status(0x01, 0x00, 0x00, 0x00);
 		return;
 	}
 	__remain = lba2 - lba1;
-	seek_time = get_seek_time(lba1);
+	//seek_time = get_seek_time(lba1);
 	
 	command[0] = SCSI_CMD_READ12;
 	command[1] = 0; // LUN = 0
@@ -377,7 +390,7 @@ void CDC::stop_cdda(bool req_reply)
 	command[2] = 0;
 	command[3] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[4] = (uint8_t)(param_fifo->read() & 0xff); 
-	commadn[5] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[5] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[6] = 0;
 	command[7] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[8] = (uint8_t)(param_fifo->read() & 0xff); 
@@ -402,7 +415,7 @@ void CDC::stop_cdda2(bool req_reply)
 	command[2] = 0;
 	command[3] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[4] = (uint8_t)(param_fifo->read() & 0xff); 
-	commadn[5] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[5] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[6] = 0;
 	command[7] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[8] = (uint8_t)(param_fifo->read() & 0xff); 
@@ -415,7 +428,7 @@ void CDC::stop_cdda2(bool req_reply)
 	d_cdrom->start_command();
 }
 
-void CDC::unpause_cdda(bool rea_reply)
+void CDC::unpause_cdda(bool req_reply)
 {
 	uint8_t* command = d_cdrom->command;
 	if(!(d_cdrom->is_device_ready())) {
@@ -427,7 +440,7 @@ void CDC::unpause_cdda(bool rea_reply)
 	command[2] = 0;
 	command[3] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[4] = (uint8_t)(param_fifo->read() & 0xff); 
-	commadn[5] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[5] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[6] = 0;
 	command[7] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[8] = (uint8_t)(param_fifo->read() & 0xff); 
@@ -452,7 +465,7 @@ void CDC::play_cdda(bool req_reply)
 	command[2] = 0;
 	command[3] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[4] = (uint8_t)(param_fifo->read() & 0xff); 
- 	commadn[5] = (uint8_t)(param_fifo->read() & 0xff); 
+ 	command[5] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[6] = 0;
 	command[7] = (uint8_t)(param_fifo->read() & 0xff); 
 	command[8] = (uint8_t)(param_fifo->read() & 0xff); 

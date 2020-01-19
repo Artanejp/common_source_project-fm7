@@ -83,7 +83,7 @@ void SERIAL_ROM::initialize()
 		}
 	} else {
 		rom[255 >> 3] = rom[255 >> 3] & 0x0f; // Clear head of 4 bits.
-		static const _TCHAR signaure[] = _T("FUJITSU");
+		static const _TCHAR signature[] = _T("FUJITSU");
 		for(int i = 0; i < strlen(signature); i++) {
 			store_reversed_byte((uint8_t)(244 - (i * 8)), signature[i]);
 		}
@@ -99,7 +99,7 @@ void SERIAL_ROM::initialize()
 		for(int i = 0; i < 4; i++) {
 			dst <<= 1;
 			dst = dst | (tmp2 & 0x01);
-			tmps >>= 1;
+			tmp2 >>= 1;
 		}
 		tmp1 = tmp1 & 0xf0;
 		rom[48 >> 3] = tmp1 | (dst & 0x0f);
@@ -253,7 +253,7 @@ bool SERIAL_ROM::write_debug_reg(const _TCHAR *reg, uint32_t data)
 		return true;
 	} else if((reg[0] == 'B') || (reg[0] == 'b')){
 		if(strlen(reg) < 2) return false;
-		if((reg[1] == 'R') || (reg[i] == 'r')) { // Reversed bit
+		if((reg[1] == 'R') || (reg[1] == 'r')) { // Reversed bit
 			noff = 1;
 		}		
 		for(int i = 0; i < 3; i++) {
@@ -263,11 +263,11 @@ bool SERIAL_ROM::write_debug_reg(const _TCHAR *reg, uint32_t data)
 		}
 		if(strlen(numseg) < 1) return false;
 		int bitpos = atoi(numseg);
-		if((pos < 0) || (pos > 255)) return false;
+		if((bitpos < 0) || (bitpos > 255)) return false;
 		int bytepos = bitpos >> 3;
 		int offs = bitpos & 7;
 		uint8_t dst = rom[bytepos];
-		if((reg[1] == 'R') || (reg[i] == 'r')) { // Reversed bit
+		if((reg[1] == 'R') || (reg[1] == 'r')) { // Reversed bit
 			offs = 7 - offs;
 		}
 		dst = dst & (~(0x01 << offs));

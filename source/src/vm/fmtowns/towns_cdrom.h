@@ -14,23 +14,33 @@
 
 // 0 - 9 : SCSI_CDROM::
 // 100 - : SCSI_DEV::
-#define SIG_TOWNS_CDROM_SET_TRACK 10
+#define SIG_TOWNS_CDROM_SET_TRACK         0x10
+#define SIG_TOWNS_CDROM_MAX_TRACK         0x11
+#define SIG_TOWNS_CDROM_IS_MEDIA_INSERTED 0x12
+#define SIG_TOWNS_CDROM_REACHED_MAX_TRACK 0x13
+#define SIG_TOWNS_CDROM_CURRENT_TRACK     0x14
+#define SIG_TOWNS_CDROM_START_MSF         0x15
+#define SIG_TOWNS_CDROM_START_MSF_AA      0x16
+#define SIG_TOWNS_CDROM_GET_ADR           0x17
+#define SIG_TOWNS_CDROM_SET_STAT_TRACK    0x18
+#define SIG_TOWNS_CDROM_RELATIVE_MSF      0x20
+#define SIG_TOWNS_CDROM_ABSOLUTE_MSF      0x21
 
 // Virtual (pseudo) SCSI command.
-#define TOWNS_CDROM_CDDA_PLAY    0xf0
-#define TOWNS_CDROM_CDDA_PAUSE   0xf1
-#define TOWNS_CDROM_CDDA_UNPAUSE 0xf2
-#define TOWNS_CDROM_CDDA_STOP    0xf3
+#define TOWNS_CDROM_CDDA_PLAY             0xf0
+#define TOWNS_CDROM_CDDA_PAUSE            0xf1
+#define TOWNS_CDROM_CDDA_UNPAUSE          0xf2
+#define TOWNS_CDROM_CDDA_STOP             0xf3
 
 class SCSI_HOST;
 class FIFO;
 class FILEIO;
 
-namespace TOWNS {
+namespace FMTOWNS {
 	class CDC;
 }
 
-namespace TOWNS {
+namespace FMTOWNS {
 class TOWNS_CDROM : public SCSI_CDROM {
 protected:
 	FIFO* subq_buffer;
@@ -77,6 +87,19 @@ public:
 	virtual void set_subq(void);
 	virtual uint8_t get_subq_status();
 	virtual uint8_t read_subq();
+	virtual void set_cdda_status(uint8_t status)
+	{
+		SCSI_CDROM::set_cdda_status(status);
+	}
+	virtual int get_track(uint32_t lba)
+	{
+		return SCSI_CDROM::get_track(lba);
+	}
+	virtual double get_seek_time(uint32_t lba)
+	{
+		return SCSI_CDROM::get_seek_time(lba);
+	}
+
 };
 
 }

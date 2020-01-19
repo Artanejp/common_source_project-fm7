@@ -24,6 +24,7 @@
 #include "../io.h"
 #include "../mb8877.h"
 #include "../msm58321.h"
+#include "../noise.h"
 #include "../pcm1bit.h"
 #include "../scsi_hdd.h"
 #include "../scsi_host.h"
@@ -45,13 +46,17 @@
 #include "rf5c68.h"
 //AD7820 ADC
 #include "ad7820kr.h"
+#include "ym2612.h"
 // 80387?
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
 #endif
 
+#include "./adpcm.h"
+#include "./cdc.h"
 #include "./floppy.h"
+#include "./fontroms.h"
 #include "./keyboard.h"
 #include "./msdosrom.h"
 #include "./scsi.h"
@@ -133,20 +138,19 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	sprite = new TOWNS_SPRITE(this, emu);
 	sysrom = new SYSROM(this, emu);
 	msdosrom = new MSDOSROM(this, emu);
-	fontrom = new FONT_ROM(this, emu);
+	fontrom = new FONT_ROMS(this, emu);
 	dictionary = new DICTIONARY(this, emu);
 #if defined(HAS_20PIX_FONTS)
 	fontrom_20pix = new FONT_ROM_20PIX(this, emu);
 #endif
 	serialrom = new SERIAL_ROM(this, emu);
 	adpcm = new ADPCM(this, emu);
-	mixer = new MIXER(this, emu); // Pseudo mixer.
-	
-	
+//	mixer = new MIXER(this, emu); // Pseudo mixer.
+		
 	adc = new AD7820KR(this, emu);
 	rf5c68 = new RF5C68(this, emu);
-	e_volume[0] = new MB87878(this, emu);
-	e_volume[1] = new MB87878(this, emu);
+//	e_volume[0] = new MB87878(this, emu);
+//	e_volume[1] = new MB87878(this, emu);
 	
 	sio = new I8251(this, emu);
 	pit0 = new I8253(this, emu);
@@ -156,6 +160,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	rtc = new MSM58321(this, emu);
 	beep = new PCM1BIT(this, emu);
 	opn2 = new YM2612(this, emu);
+
+	seek_sound = new NOISE(this, emu);
+	head_up_sound = new NOISE(this, emu);
+	head_down_sound = new NOISE(this, emu);
 	
 	scsi_host = new SCSI_HOST(this, emu);
 	scsi_host->set_device_name(_T("SCSI HOST"));
@@ -177,7 +185,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new TOWNS_MEMORY(this, emu);
 	scsi = new SCSI(this, emu);
 	timer = new TIMER(this, emu);
 	
@@ -245,6 +252,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	mic_in_ch = -1;
 
 	// Use pseudo mixer instead of event.Due to using ADC.
+#if 0
 	line_mix_ch = -1;
 	modem_mix_ch = -1;
 	mic_mix_ch = -1;
@@ -256,12 +264,21 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	opn2_mix_ch = mixer->set_context_sound(opn2);
 	cdc_mix_ch = mixer->set_context_sound(cdc);
 	mixer->set_interpolate_filter_freq(pcm_mix_ch, 4000); // channel, freq; disable if freq <= 0.
-	
 	event->set_context_sound(mixer);
-	
-	if(fdc->load_sound_data(MB8877_SND_TYPE_SEEK, _T("FDDSEEK.WAV"))) {
-		event->set_context_sound(fdc);
-	}
+#else
+	// Temporally not use mixer.
+	event->set_context_sound(beep);
+	event->set_context_sound(opn2);
+	event->set_context_sound(rf5c68);
+	event->set_context_sound(cdrom);
+#endif
+	fdc->set_context_noise_seek(seek_sound);
+	fdc->set_context_noise_head_down(head_down_sound);
+	fdc->set_context_noise_head_up(head_up_sound);
+	event->set_context_sound(seek_sound);
+	event->set_context_sound(head_down_sound);
+	event->set_context_sound(head_up_sound);
+
 	
 /*	pic	0	timer
 		1	keyboard
@@ -321,40 +338,43 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	keyboard->set_context_pic(pic);
 	
 	sprite->set_context_vram(vram);
+	vram->set_context_sprite(sprite);
+	vram->set_context_crtc(crtc);
 
 	//e_volume[0]->set_context_ch0(line_in, MB87878_VOLUME_LEFT);
 	//e_volume[0]->set_context_ch1(line_in, MB87878_VOLUME_RIGHT);
 	//e_volume[0]->set_context_ch2(NULL, MB87878_VOLUME_LEFT);
 	//e_volume[0]->set_context_ch3(NULL, MB87878_VOLUME_RIGHT);
-	e_volume[1]->set_context_ch0(cdc, MB87878_VOLUME_LEFT);
-	e_volume[1]->set_context_ch1(cdc, MB87878_VOLUME_RIGHT);
+//	e_volume[1]->set_context_ch0(cdc, MB87878_VOLUME_LEFT);
+//	e_volume[1]->set_context_ch1(cdc, MB87878_VOLUME_RIGHT);
 	//e_volume[1]->set_context_ch2(mic, MB87878_VOLUME_LEFT | MB87878_VOLUME_RIGHT);
 	//e_volume[1]->set_context_ch3(modem, MB87878_VOLUME_LEFT | MB87878_VOLUME_RIGHT);
 	
 	memory->set_context_vram(vram);
-	memory->set_context_rom(sys_rom);
-	memory->set_context_msdos(msdos_rom);
-	memory->set_context_dictionary(dict_rom);
+	memory->set_context_system_rom(sysrom);
+	memory->set_context_msdos(msdosrom);
+	memory->set_context_dictionary(dictionary);
 	memory->set_context_beep(beep);
-	memory->set_context_serial_rom(serial_rom);
+	memory->set_context_serial_rom(serialrom);
 	memory->set_context_sprite(sprite);
-	memory->set_context_machine_id(machine_id);
-	memory->set_context_cpu_id(cpu_id);
+	memory->set_machine_id(machine_id);
+	memory->set_cpu_id(cpu_id);
 	memory->set_context_cpu(cpu);
 
 	cdc->set_context_cdrom(cdrom);
 	cdc->set_context_scsi_host(cdc_scsi);
-	cdc->set_context_drq(dma, SIG_UPD71071_CH3, 0xff);
-	cdc->set_context_pic(pic, SIG_I8259_CHIP1 | SIG_I8259_IR1);
+	cdc->set_context_dmareq_line(dma, SIG_UPD71071_CH3, 0xff);
+//	cdc->set_context_pic(pic, SIG_I8259_CHIP1 | SIG_I8259_IR1);
 	
-	crtc->set_context_vsync(pic, SIG_I8259_CHIP1 | SIG_I8259_IR3); // VSYNC
-	adpcm->set_context_pic(pic, SIG_I8259_CHIP1 | SIG_I8259_IR5); // ADPCM AND OPN2
+	crtc->set_context_vsync(pic, SIG_I8259_CHIP1 | SIG_I8259_IR3, 0xffffffff); // VSYNC
 	adpcm->set_context_opn2(opn2);
-	adpcm->set_context_adpcm(rf5c68);
+	adpcm->set_context_rf5c68(rf5c68);
 	adpcm->set_context_adc(adc);
+	adpcm->set_context_pic(pic);
+	adpcm->set_context_intr_line(pic, SIG_I8259_CHIP1 | SIG_I8259_IR5, 0xffffffff); // ADPCM AND OPN2
 
 	rf5c68->set_context_interrupt_boundary(adpcm, SIG_ADPCM_WRITE_INTERRUPT, 0xffffffff);
-	opn2->set_context_interrupt(adpcm, SIG_ADPCM_OPX_INTR, 0xffffffff);
+	opn2->set_context_irq(adpcm, SIG_ADPCM_OPX_INTR, 0xffffffff);
 	
 	adc->set_sample_rate(19200);
 	adc->set_sound_bank(-1);
@@ -394,7 +414,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_r(0x30, memory);	// cpu id
 	io->set_iomap_single_r(0x31, memory);	// cpu id
 	
-	io->set_iomap_single_rw(0x32, serial_rom);	// serial rom
+	io->set_iomap_single_rw(0x32, serialrom);	// serial rom
 
 	io->set_iomap_alias_rw(0x40, pit0, 0);
 	io->set_iomap_alias_rw(0x42, pit0, 1);
@@ -444,21 +464,24 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	io->set_iomap_range_rw(0x4c0, 0x4cf, cdc); // CDROM
 	// PAD, Sound
+#if 0
 	io->set_iomap_alias_r(0x4d0, pad, 0); // Pad1
 	io->set_iomap_alias_r(0x4d2, pad, 1); // Pad 2
-	io->set_iomap_single_rw(0x4d5, adpcm, 0); // mute 
+	io->set_iomap_alias_rw(0x4d5, adpcm, 0); // mute 
 	io->set_iomap_alias_w(0x4d6, pad, 3); // Pad out
-	
+#else
+	io->set_iomap_alias_rw(0x4d5, adpcm, 0); // mute 
+#endif	
 	// OPN2(YM2612)
 	io->set_iomap_alias_rw(0x4d8, opn2, 0); // STATUS(R)/Addrreg 0(W)
 	io->set_iomap_alias_w(0x4da, opn2, 1);  // Datareg 0(W)
 	io->set_iomap_alias_w(0x4dc, opn2, 2);  // Addrreg 1(W)
 	io->set_iomap_alias_w(0x4de, opn2, 3);  // Datareg 1(W)
 	// Electrical volume
-	io->set_iomap_alias_rw(0x4e0, e_volume[0], 0);
-	io->set_iomap_alias_rw(0x4e1, e_volume[0], 1);
-	io->set_iomap_alias_rw(0x4e2, e_volume[1], 0);
-	io->set_iomap_alias_rw(0x4e3, e_volume[1], 1);
+//	io->set_iomap_alias_rw(0x4e0, e_volume[0], 0);
+//	io->set_iomap_alias_rw(0x4e1, e_volume[0], 1);
+//	io->set_iomap_alias_rw(0x4e2, e_volume[1], 0);
+//	io->set_iomap_alias_rw(0x4e3, e_volume[1], 1);
 
 	// ADPCM
 	io->set_iomap_range_w(0x4e7, 0x4ff, adpcm); // 
@@ -495,6 +518,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0xfd90, 0xfda0, vram);	// Palette and CRTC
 
 	// Vram allocation may be before initialize().
+	/*
 	bool alloc_failed = false;
 	for(int bank = 0; bank < 2; bank++) {
 		if(alloc_failed) break;
@@ -514,7 +538,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 				memset(p, 0x00, __size);
 				renderbuffer_size[bank][layer] = __size;
 				d_renderbuffer[bank][layer] = p;
-				d_vram->set_context_renderbuffer(p, layer, bank, width, height, stride);
+//				d_vram->set_context_renderbuffer(p, layer, bank, width, height, stride);
 			}
 		}
 	}
@@ -530,6 +554,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 			}
 		}
 	}
+	*/
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
@@ -565,42 +590,6 @@ void VM::set_machine_type(uint16_t machine_id, uint16_t cpu_id)
 	if(memory != NULL) {
 		memory->set_cpu_id(cpu_id);
 		memory->set_machine_id(machine_id);
-	}
-	if(vram != NULL) {
-		vram->set_cpu_id(cpu_id);
-		vram->set_machine_id(machine_id);
-	}
-	if(sprite != NULL) {
-		sprite->set_cpu_id(cpu_id);
-		sprite->set_machine_id(machine_id);
-	}
-	if(sys_rom != NULL) {
-		sysrom->set_cpu_id(cpu_id);
-		sysrom->set_machine_id(machine_id);
-	}
-	if(msdos_rom != NULL) {
-		msdosrom->set_cpu_id(cpu_id);
-		msdosrom->set_machine_id(machine_id);
-	}
-	if(dictinoary != NULL) {
-		dictionary->set_cpu_id(cpu_id);
-		dictionary->set_machine_id(machine_id);
-	}
-	if(fontrom != NULL) {
-		fontrom->set_cpu_id(cpu_id);
-		fontrom->set_machine_id(machine_id);
-	}
-	if(serialrom != NULL) {
-		serialrom->set_cpu_id(cpu_id);
-		serialrom->set_machine_id(machine_id);
-	}
-	if(crtc != NULL) {
-		crtc->set_cpu_id(cpu_id);
-		crtc->set_machine_id(machine_id);
-	}
-	if(cdc != NULL) {
-		cdc->set_cpu_id(cpu_id);
-		cdc->set_machine_id(machine_id);
 	}
 #if defined(HAS_20PIX_FONTS)
 	if(fontrom_20pix != NULL) {
@@ -653,7 +642,7 @@ DEVICE *VM::get_cpu(int index)
 
 void VM::draw_screen()
 {
-	memory->draw_screen();
+	crtc->draw_screen();
 }
 
 uint32_t VM::is_floppy_disk_accessed()
@@ -682,17 +671,18 @@ void VM::initialize_sound(int rate, int samples)
 	
 	// add_sound_in_source() must add after per initialize_sound().
 	adc_in_ch = event->add_sound_in_source(rate, samples, 2);
-	mixer->set_context_out_line(adc_in_ch);
 	adc->set_sample_rate(19200);
 	adc->set_sound_bank(adc_in_ch);
+#if 0	
+	mixer->set_context_out_line(adc_in_ch);
 	mixer->set_context_sample_out(adc_in_ch, rate, samples); // Must be 2ch.
-
 	// ToDo: Check recording sample rate & channels.
 	mic_in_ch = event->add_sound_in_source(rate, samples, 2);
 	mixer->set_context_mic_in(mic_in_ch, rate, samples);
 
 	line_in_ch = event->add_sound_in_source(rate, samples, 2);
 	mixer->set_context_line_in(line_in_ch, rate, samples);
+#endif
 	emu->unlock_vm();
 }
 
@@ -717,7 +707,7 @@ void VM::clear_sound_in()
 int VM::get_sound_in_data(int ch, int32_t* dst, int expect_samples, int expect_rate, int expect_channels)
 {
 	if(dst == NULL) return 0;
-	if(samples <= 0) return 0;
+	if(expect_samples <= 0) return 0;
 	int n_ch = -1;
 	switch(ch) {
 	case 0x00:
@@ -731,7 +721,7 @@ int VM::get_sound_in_data(int ch, int32_t* dst, int expect_samples, int expect_r
 		break;
 	}
 	if(n_ch < 0) return 0;
-	samples = event->get_sound_in_data(n_ch, dst, expect_samples, expect_rate, expect_channels);
+	int samples = event->get_sound_in_data(n_ch, dst, expect_samples, expect_rate, expect_channels);
 	return samples;
 }
 
@@ -767,17 +757,18 @@ int VM::sound_in(int ch, int32_t* src, int samples)
 void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 {
 #ifndef HAS_LINEIN_SOUND
-	if(ch >= 4) ch++;
+//	if(ch >= 7) ch++;
 #endif
 #ifndef HAS_MIC_SOUND
-	if(ch >= 5) ch++;
+//	if(ch >= 8) ch++;
 #endif
 #ifndef HAS_MODEM_SOUND
-	if(ch >= 6) ch++;
+//	if(ch >= 9) ch++;
 #endif
 #ifndef HAS_2ND_ADPCM
-	if(ch >= 7) ch++;
+//	if(ch >= 10) ch++;
 #endif
+#if 0	
 	if(ch == 0) { // BEEP
 		mixer->set_volume(beep_mix_ch, decibel_l, decibel_r);
 	}
@@ -812,7 +803,26 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	else if(ch == 9) { // HDD(ToDo)
 		fdc->set_volume(0, decibel_l, decibel_r);
 	}	
-
+#else
+	if(ch == 0) { // BEEP
+		beep->set_volume(0, decibel_l, decibel_r);
+	}
+	else if(ch == 1) { // CD-ROM
+		cdrom->set_volume(0, decibel_l, decibel_r);
+	}	
+	else if(ch == 2) { // OPN2
+		opn2->set_volume(0, decibel_l, decibel_r);
+	}
+	else if(ch == 3) { // ADPCM
+		rf5c68->set_volume(0, decibel_l, decibel_r);
+	}
+	else if(ch == 4) { // SEEK, HEAD UP / DOWN
+		seek_sound->set_volume(0, decibel_l, decibel_r);
+		head_up_sound->set_volume(0, decibel_l, decibel_r);
+		head_down_sound->set_volume(0, decibel_l, decibel_r);
+	}
+	
+#endif
 }
 #endif
 
@@ -899,13 +909,15 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
  		}
  	}
 	// Machine specified.
+	state_fio->StateValue(beep_mix_ch);
+	state_fio->StateValue(cdc_mix_ch);
+	state_fio->StateValue(opn2_mix_ch);
+	state_fio->StateValue(pcm_mix_ch);
 	state_fio->StateValue(line_mix_ch);
 	state_fio->StateValue(modem_mix_ch);
 	state_fio->StateValue(mic_mix_ch);
-	state_fio->StateValue(beep_mix_ch);
-	state_fio->StateValue(pcm_mix_ch);
-	state_fio->StateValue(opn2_mix_ch);
-	state_fio->StateValue(cdc_mix_ch);
+
+	
 	return true;
 }
 

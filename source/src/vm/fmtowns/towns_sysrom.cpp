@@ -119,7 +119,7 @@ uint32_t SYSROM::read_data32w(uint32_t addr, int* wait)
 	nd.b.h  = read_data8w((addr & 0xfffffffc) + 1, &dummy);
 	nd.b.h2 = read_data8w((addr & 0xfffffffc) + 2, &dummy);
 	nd.b.h3 = read_data8w((addr & 0xfffffffc) + 3, wait);
-	return nb.d;
+	return nd.d;
 }
 	
 void SYSROM::write_data8w(uint32_t addr, uint32_t data, int* wait)
@@ -166,8 +166,8 @@ void SYSROM::write_data16w(uint32_t addr, uint32_t data, int* wait)
 	int dummy;
 	nd.w = (uint16_t)data;
 	// OK?
-	write_data8w((addr & 0xfffffffe) + 0, nb.b.l, &dummy);
-	write_data8w((addr & 0xfffffffe) + 1, nb.b.h, wait);
+	write_data8w((addr & 0xfffffffe) + 0, nd.b.l, &dummy);
+	write_data8w((addr & 0xfffffffe) + 1, nd.b.h, wait);
 }
 
 void SYSROM::write_data32w(uint32_t addr, uint32_t data, int* wait)
@@ -175,10 +175,10 @@ void SYSROM::write_data32w(uint32_t addr, uint32_t data, int* wait)
 	pair32_t nd;
 	int dummy;
 	nd.d = data;
-	write_data8w((addr & 0xfffffffc) + 0, nb.b.l, &dummy);
-	write_data8w((addr & 0xfffffffc) + 1, nb.b.h, &dummy);
-	write_data8w((addr & 0xfffffffc) + 2, nb.b.h2, &dummy);
-	write_data8w((addr & 0xfffffffc) + 3, nb.b.h3, wait);
+	write_data8w((addr & 0xfffffffc) + 0, nd.b.l, &dummy);
+	write_data8w((addr & 0xfffffffc) + 1, nd.b.h, &dummy);
+	write_data8w((addr & 0xfffffffc) + 2, nd.b.h2, &dummy);
+	write_data8w((addr & 0xfffffffc) + 3, nd.b.h3, wait);
 }
 	
 void SYSROM::write_signal(int ch, uint32_t data, uint32_t mask)

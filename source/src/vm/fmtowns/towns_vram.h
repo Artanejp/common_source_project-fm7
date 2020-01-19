@@ -12,9 +12,10 @@
 #define _TOWNS_VRAM_H_
 
 #include "../vm.h"
-#include "../emu.h"
+#include "../../emu.h"
 #include "device.h"
 #include "../../common.h"
+#include "towns_common.h"
 
 #if defined(_USE_QT)
 #include <QMutex>
@@ -24,23 +25,29 @@
 #define TOWNS_VRAM_ADDR_MASK 0x7ffff
 // VRAM DIRECT ACCESS: For Sprite. You should access with 16bit
 // You can write raw data, drawing with colorkey is automatically.
-#define SIG_TOWNS_TRANSFER_SPRITE_DATA 0x100000
-#define SIG_TOWNS_SET_SPRITE_BANK      0x140000
-#define SIG_TOWNS_CLEAR_SPRITE_BUFFER  0x140001
+#define SIG_TOWNS_TRANSFER_SPRITE_DATA   0x100000
+#define SIG_TOWNS_SET_SPRITE_BANK        0x140000
+#define SIG_TOWNS_CLEAR_SPRITE_BUFFER    0x140001
 // Do render with any mode. You should set vline to arg.
-#define SIG_TOWNS_RENDER_RASTER    0x01
-#define SIG_TOWNS_RENDER_FULL      0x02
-#define SIG_TOWNS_VRAM_VSTART      0x03
-#define SIG_TOWNS_VRAM_VBLANK      0x04
-#define SIG_TOWNS_VRAM_VSYNC       0x05
-#define SIG_TOWNS_VRAM_HSYNC       0x06
-#define SIG_TOWNS_VRAM_SET_VLINE   0x07
-#define SIG_TOWNS_RENDER_FLAG      0x08
+#define SIG_TOWNS_RENDER_RASTER          0x01
+#define SIG_TOWNS_RENDER_FULL            0x02
+#define SIG_TOWNS_VRAM_VSTART            0x03
+#define SIG_TOWNS_VRAM_VBLANK            0x04
+#define SIG_TOWNS_VRAM_VSYNC             0x05
+#define SIG_TOWNS_VRAM_HSYNC             0x06
+#define SIG_TOWNS_VRAM_SET_VLINE         0x07
+#define SIG_TOWNS_RENDER_FLAG            0x08
+#define SIG_TOWNS_VRAM_DP0               0x0a
+#define SIG_TOWNS_VRAM_DP1               0x0b
+#define SIG_TOWNS_VRAM_FRAMEBUFFER_READY 0x10
+#define SIG_TOWNS_VRAM_SWAP_FRAMEBUFFER  0x11
 
 namespace FMTOWNS {
 class TOWNS_VRAM : public DEVICE
 {
 protected:
+	DEVICE* d_sprite;
+	DEVICE* d_crtc;
 	uint32_t page_modes[4];
 	bool line_rendered[2][TOWNS_CRTC_MAX_LINES];
 	
@@ -58,8 +65,6 @@ protected:
 	uint8_t packed_access_mask_hi;
 
 	bool dirty_flag[0x80000 >> 3]; // Per 8bytes : 16pixels(16colors) / 8pixels(256) / 4pixels(32768)
-
-	
 	
 	// FMR50 Compatible registers. They are mostly dummy.
 	// Digital paletts. I/O FD98H - FD9FH.
@@ -105,50 +110,96 @@ protected:
 	bool has_hardware_blending;
 	// End.
 
+	virtual void __FASTCALL write_raw_vram8(uint32_t addr, uint32_t data);
+	virtual void __FASTCALL write_raw_vram16(uint32_t addr, uint32_t data);
+	virtual void __FASTCALL write_raw_vram32(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_raw_vram8(uint32_t addr);
+	virtual uint32_t __FASTCALL read_raw_vram16(uint32_t addr);
+	virtual uint32_t __FASTCALL read_raw_vram32(uint32_t addr);
+	virtual void __FASTCALL write_mmio8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_mmio8(uint32_t addr);
+
+	virtual uint32_t __FASTCALL read_plane_data8(uint32_t addr);
+	virtual uint32_t __FASTCALL read_plane_data16(uint32_t addr);
+	virtual uint32_t __FASTCALL read_plane_data32(uint32_t addr);
+	virtual void __FASTCALL write_plane_data8(uint32_t addr, uint32_t data);
+	virtual void __FASTCALL write_plane_data16(uint32_t addr, uint32_t data);
+	virtual void __FASTCALL write_plane_data32(uint32_t addr, uint32_t data);
+
+	virtual void __FASTCALL calc_apalette16(int layer, int index);
+	virtual void __FASTCALL calc_apalette256(int index);
+	virtual void __FASTCALL set_apalette_r(int layer, uint8_t val);
+	virtual void __FASTCALL set_apalette_g(int layer, uint8_t val);
+	virtual void __FASTCALL set_apalette_b(int layer, uint8_t val);
+	virtual void __FASTCALL set_apalette_num(uint8_t val);
+	virtual void __FASTCALL make_dirty_vram(uint32_t addr, int bytes);
 
 public:
 	TOWNS_VRAM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		memset(vram, 0x00, sizeof(vram));
+		d_sprite = NULL;
+		d_crtc = NULL;
 	}
 	~TOWNS_VRAM() {}
-	
-	virtual uint32_t read_memory_mapped_io8(uint32_t addr);
-	virtual uint32_t read_memory_mapped_io16(uint32_t addr);
-	virtual uint32_t read_memory_mapped_io32(uint32_t addr);
-	virtual void write_memory_mapped_io8(uint32_t addr, uint32_t data);
-	virtual void write_memory_mapped_io16(uint32_t addr, uint32_t data);
-	virtual void write_memory_mapped_io32(uint32_t addr, uint32_t data);
 
-	uint32_t read_io8(uint32_t addr);
-	void write_io8(uint32_t addr, uint32_t data);
+	virtual void initialize();
+	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
+	virtual uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
+	virtual uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr);
+	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
+	virtual void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
+	virtual void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data);
 
 	
-	void write_signal(int id, uint32_t data, uint32_t mask); // Do render
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask); // Do render
 
 	// Unique Functions
-	uint8_t* get_vram_address(uint32_t offset)
+	virtual uint8_t* __FASTCALL get_vram_address(uint32_t offset)
 	{
 		if(offset >= 0x80000) return NULL; // ToDo
 		return &(vram[offset]);
 	}
-	uint32_t get_vram_size()
+	virtual uint32_t __FASTCALL get_vram_size()
 	{
 		return 0x80000; // ToDo
 	}
-	void lock_framebuffer(int layer, int bank)
+	virtual void __FASTCALL lock_framebuffer(int layer, int bank)
 	{
 #if defined(_USE_QT)
 		vram_lock[bank][layer].lock();
 #endif
 	}
-	void unlock_framebuffer(int layer, int bank)
+	virtual void __FASTCALL unlock_framebuffer(int layer, int bank)
 	{
 #if defined(_USE_QT)
 		vram_lock[bank][layer].unlock();
 #endif
 	}
-	
+	void get_analog_palette(int ch, scrntype_t *dst)
+	{
+		scrntype_t *p;
+		if(dst == NULL) return;
+		switch(ch) {
+		case 0:
+		case 1:
+			p = &(apalette_16_pixel[ch][0]);
+			memcpy(dst, p, 16 * sizeof(scrntype_t));
+			break;
+		case 2:
+			p = &(apalette_256_pixel[0]);
+			memcpy(dst, p, 256 * sizeof(scrntype_t));
+			break;
+		}
+	}
+	void set_context_sprite(DEVICE *dev)
+	{
+		d_sprite = dev;
+	}
+	void set_context_crtc(DEVICE *dev)
+	{
+		d_crtc = dev;
+	}
 	// New APIs?
 	// End.
 };

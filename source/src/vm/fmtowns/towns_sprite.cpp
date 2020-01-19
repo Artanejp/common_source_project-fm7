@@ -8,6 +8,7 @@
 */
 
 #include "../../common.h"
+#include "./towns_vram.h"
 #include "./towns_sprite.h"
 
 namespace FMTOWNS {
@@ -18,6 +19,7 @@ void TOWNS_SPRITE::initialize(void)
 	reg_ctrl = 0x0000; // REG#00, #01
 	reg_voffset = 0x0000; // REG#02, #03
 	reg_hoffset = 0x0000; // REG#04, #05
+	reg_index = 0x0000;
 	disp_page1 = false;
 	disp_page0 = false;
 	reg_spen = false;
@@ -31,8 +33,6 @@ void TOWNS_SPRITE::initialize(void)
 	max_sprite_per_frame = 224;
 	frame_sprite_count = 0;	
 
-	vram_buffer = NULL;
-	mask_buffer = NULL;
 }
 
 void TOWNS_SPRITE::reset()
@@ -41,6 +41,7 @@ void TOWNS_SPRITE::reset()
 	reg_ctrl = 0x0000; // REG#00, #01
 	reg_voffset = 0x0000; // REG#02, #03
 	reg_hoffset = 0x0000; // REG#04, #05
+	reg_index = 0x0000;
 	disp_page1 = false;
 	disp_page0 = false;
 	reg_spen = false;
@@ -544,7 +545,7 @@ __DECL_VECTORIZED_LOOP
 			}
 			// void __FASTCALL VRAM::write_sprite_data(int x, int y, int xoffset, int yoffset, uint16_t *ptr __assume_aligned(16), int width);
 			if(d_vram != NULL) {
-				d_vram->write_sprite_data(x, y + yy, xoffset, yoffset, lbuf, 16);
+				//d_vram->write_sprite_data(x, y + yy, xoffset, yoffset, lbuf, 16);
 			}
 		}
 	} else if(is_halfx) { // halfx only
@@ -564,7 +565,7 @@ __DECL_VECTORIZED_LOOP
 				lbuf[xx] = ((lbuf[xx] >> 2) & 0x7fff) | mbuf[xx];
 			}
 			if(d_vram != NULL) {
-				d_vram->write_sprite_data(x, y + yy, xoffset, yoffset, lbuf, 8);
+				//d_vram->write_sprite_data(x, y + yy, xoffset, yoffset, lbuf, 8);
 			}
 		}
 	} else if(is_halfy) { // halfy only
@@ -586,7 +587,7 @@ __DECL_VECTORIZED_LOOP
 				lbuf[xx] = ((lbuf[xx] >> 1) & 0x7fff) | mbuf[xx];
 			}
 			if(d_vram != NULL) {
-				d_vram->write_sprite_data(x, y + (yy >>1), xoffset, yoffset, lbuf, 16);
+				//d_vram->write_sprite_data(x, y + (yy >>1), xoffset, yoffset, lbuf, 16);
 			}
 		}
 	} else { //halfx &&halfy
@@ -608,7 +609,7 @@ __DECL_VECTORIZED_LOOP
 				lbuf[xx] = ((lbuf[xx] >> 2) & 0x7fff) | mbuf[xx];
 			}
 			if(d_vram != NULL) {
-				d_vram->write_sprite_data(x, y + (yy >>1), xoffset, yoffset, lbuf, 8);
+				//d_vram->write_sprite_data(x, y + (yy >>1), xoffset, yoffset, lbuf, 8);
 			}
 		}
 	}
@@ -633,7 +634,7 @@ void TOWNS_SPRITE::render_full()
 		for(; render_num < (int)lot; render_num++) {
 			
 			uint32_t addr = render_num << 3;
-			pair16_t _nx, _ny, _nattr, _ny;
+			pair16_t _nx, _ny, _nattr, _ncol;
 			_nx.b.l = pattern_ram[addr + 0];
 			_nx.b.h = pattern_ram[addr + 1];
 			_ny.b.l = pattern_ram[addr + 2];
@@ -666,7 +667,7 @@ void TOWNS_SPRITE::render_part(int start, int end)
 		if((frame_sprite_count >= max_sprite_per_frame) && (max_sprite_per_frame > 0)) return;
 		for(render_num = start; render_num < end; render_num++) {
 			uint32_t addr = render_num << 3;
-			pair16_t _nx, _ny, _nattr, _ny;
+			pair16_t _nx, _ny, _nattr, _ncol;
 			_nx.b.l = pattern_ram[addr + 0];
 			_nx.b.h = pattern_ram[addr + 1];
 			_ny.b.l = pattern_ram[addr + 2];
@@ -886,7 +887,7 @@ void TOWNS_SPRITE::write_data32(uint32_t addr, uint32_t data)
 	return;
 }
 
-void FMTOWNS_SPRITE::event_frame()
+void TOWNS_SPRITE::event_frame()
 {
 	uint16_t lot = reg_index & 0x3ff;
 	if(reg_spen && !(sprite_enabled)) {
@@ -921,7 +922,7 @@ void FMTOWNS_SPRITE::event_frame()
 	}
 }
 
-void FMTOWNS_SPRITE::do_vline_hook(int line)
+void TOWNS_SPRITE::do_vline_hook(int line)
 {
 	int lot = reg_index & 0x3ff;
 	if(!split_rendering) return;
@@ -941,7 +942,7 @@ void FMTOWNS_SPRITE::do_vline_hook(int line)
 }
 // Q: Is changing pages syncing to Frame?
 // ToDo: Implement VRAM.
-void FMTOWNS_SPRITE::write_signal(int id, uint32_t data, uint32_t mask)
+void TOWNS_SPRITE::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_TOWNS_SPRITE_HOOK_VLINE) {
 		int line = data & 0x1ff;
@@ -963,6 +964,7 @@ bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
  	}
 	
 	state_fio->StateValue(reg_addr);
+	state_fio->StateValue(reg_ctrl);
 	state_fio->StateArray(reg_data, sizeof(reg_data), 1);
 	// RAMs
 	state_fio->StateArray(pattern_ram, sizeof(pattern_ram), 1);
@@ -975,6 +977,7 @@ bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(disp_page1);
 
 	state_fio->StateValue(sprite_enabled);
+	state_fio->StateValue(frame_sprite_count);
 	
 	state_fio->StateValue(render_num);
 	state_fio->StateValue(render_mod);
