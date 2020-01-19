@@ -17,7 +17,7 @@ set(VM_FMTOWNS_DEV_SRCS
 	fontroms.cpp
 	msdosrom.cpp
 	serialrom.cpp
-	townd_dictionary.cpp
+	towns_dictionary.cpp
 	
 	towns_cdrom.cpp
 	towns_crtc.cpp
