@@ -22,7 +22,6 @@
 #define TOWNS_CDROM_CDDA_UNPAUSE 0xf2
 #define TOWNS_CDROM_CDDA_STOP    0xf3
 
-
 class SCSI_HOST;
 class FIFO;
 class FILEIO;

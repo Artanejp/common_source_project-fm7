@@ -57,6 +57,11 @@ public:
 		initialize_output_signals(&outputs_intr);
 		initialize_output_signals(&outputs_led_control);
 		initialize_output_signals(&outputs_allmute);
+		d_rf5c68 = NULL;
+		d_opn2 = NULL;
+		d_pic = NULL;
+		d_adc = NULL;
+
 		for(int i = 0; i < 8; i++) {
 			dac_intr[i] = false;
 			dac_intr_mask[i] = true;

@@ -11,7 +11,7 @@
 #include "floppy.h"
 #include "../i8259.h"
 #include "../mb8877.h"
-
+namespace FMTOWNS {
 void FLOPPY::initialize()
 {
 	drvreg = drvsel = 0;
@@ -108,4 +108,4 @@ bool FLOPPY::load_state(FILEIO* state_fio)
 	state_fio->Fread(changed, sizeof(changed), 1);
 	return true;
 }
-
+}

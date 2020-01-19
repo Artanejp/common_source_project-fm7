@@ -19,6 +19,7 @@
 #define SIG_TIMER_CH1	1
 #define SIG_TIMER_RTC	2
 
+namespace FMTOWNS {
 class TIMER : public DEVICE
 {
 private:
@@ -55,6 +56,7 @@ public:
 		d_rtc = device;
 	}
 };
+}
 
 #endif
 

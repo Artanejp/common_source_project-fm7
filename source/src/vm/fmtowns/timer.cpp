@@ -8,11 +8,13 @@
 	[ timer ]
 */
 
-#include "timer.h"
+#include "./timer.h"
 #include "../i8259.h"
 #include "../msm58321.h"
 #include "../pcm1bit.h"
 
+namespace FMTOWNS {
+	
 void TIMER::initialize()
 {
 	free_run_counter = 0;
@@ -111,5 +113,7 @@ bool TIMER::load_state(FILEIO* state_fio)
 	tmout0 = state_fio->FgetBool();
 	tmout1 = state_fio->FgetBool();
 	return true;
+}
+
 }
 

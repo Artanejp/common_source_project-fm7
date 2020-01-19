@@ -12,6 +12,7 @@
 #include "../i8259.h"
 #include "../../fifo.h"
 
+namespace FMTOWNS {
 void KEYBOARD::initialize()
 {
 	key_buf = new FIFO(64);
@@ -131,5 +132,6 @@ bool KEYBOARD::load_state(FILEIO* state_fio)
 	kbmsk = state_fio->FgetUint8();
 	state_fio->Fread(table, sizeof(table), 1);
 	return true;
+}
 }
 

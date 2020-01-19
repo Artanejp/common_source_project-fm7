@@ -45,7 +45,8 @@ void ADPCM::reset()
 	if(event_adpcm_clock >= 0) {
 		cancel_event(this, event_adpcm_clock);
 	}
-	register_event(this, EVENT_ADPCM_CLOCK, 16.0e6 / (384.0 * 2.0), true, &event_adpcm_clock); // Is this true?
+	// Tick is (8.0e6 / 384.0)[Hz] .. Is this true?
+	register_event(this, EVENT_ADPCM_CLOCK, 1.0e6 / (16.0 / (384.0 * 2.0)), true, &event_adpcm_clock);
 }
 
 void ADPCM::initialize_adc_clock(int freq)
@@ -154,7 +155,7 @@ void ADPCM::write_io8(uint32_t addr, uint32_t data)
 	case 0xd5:
 		opn2_mute = ((data & 0x02) == 0) ? true : false;
 		adpcm_mute =  ((data & 0x01) == 0) ? true : false;
-		//d_opn2->write_signal(SIG_YM2612_MUTE, (opn2_mute) ? 0xffffffff : 0x00000000, 0xffffffff);
+		d_opn2->write_signal(SIG_YM2612_MUTE, (opn2_mute) ? 0xffffffff : 0x00000000, 0xffffffff);
 		d_rf5c68->write_signal(SIG_RF5C68_MUTE, (adpcm_mute) ? 0xffffffff : 0x00000000, 0xffffffff);
 		break;
 	case 0xe8:

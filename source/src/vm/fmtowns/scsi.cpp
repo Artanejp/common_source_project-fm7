@@ -29,6 +29,8 @@
 #define STATUS_INT	0x02
 #define STATUS_PERR	0x01
 
+namespace FMTOWNS {
+	
 void SCSI::reset()
 {
 	ctrl_reg = CTRL_IMSK;
@@ -135,4 +137,4 @@ bool SCSI::load_state(FILEIO* state_fio)
 	irq_status = state_fio->FgetBool();
 	return true;
 }
-
+}

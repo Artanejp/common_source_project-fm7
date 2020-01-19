@@ -22,11 +22,11 @@
 
 class SCSI_HOST;
 class FIFO;
-namespace TOWNS {
+namespace FMTOWNS {
 	class TOWNS_CDROM;
 }
 
-namespace TOWNS {
+namespace FMTOWNS {
 class CDC : public DEVICE {
 protected:
 	outputs_t output_dma_line;

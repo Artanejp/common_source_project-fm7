@@ -359,6 +359,9 @@ void RF5C68::initialize_sound(int sample_rate, int samples)
 			event_dac_sample = -1;
 		}
 		if(mix_rate > 0) {
+			// TOWNS::ADPCM::event_callback() -> SIG_RF5C68_DAC_PERIOD(=DRIVE CLOCK from VM)
+			// -> RF5C68::event_callback()(=AUDIO MIXING CLOCK by EMU)
+			// -> RF5C68::mix() -> OSD::SOUND
 			sample_tick_us = 1.0e6 / ((double)mix_rate);
 			register_event(this, EVENT_DAC_SAMPLE, sample_tick_us, true, &event_dac_sample);
 		}

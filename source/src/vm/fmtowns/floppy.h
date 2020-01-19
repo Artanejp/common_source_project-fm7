@@ -19,6 +19,7 @@
 
 class MB8877;
 
+namespace FMTOWNS {
 class FLOPPY : public DEVICE
 {
 private:
@@ -55,6 +56,7 @@ public:
 		changed[drv] = true;
 	}
 };
+}
 
 #endif
 

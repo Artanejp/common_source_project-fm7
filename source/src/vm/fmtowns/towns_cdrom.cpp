@@ -232,19 +232,15 @@ void TOWNS_CDROM::start_command()
 	switch(command[0]) {
 	case TOWNS_CDROM_CDDA_PLAY:
 		play_cdda_from_cmd();
-		return;
 		break;
 	case TOWNS_CDROM_CDDA_PAUSE:
 		pause_cdda_from_cmd();
-		return;
 		break;
 	case TOWNS_CDROM_CDDA_UNPAUSE:
 		unpause_cdda_from_cmd();
-		return;
 		break;
 	case TOWNS_CDROM_CDDA_STOP:
 		stop_cdda_from_cmd();
-		return;
 		break;
 	case SCSI_CMD_TST_U_RDY:
 	case SCSI_CMD_INQUIRY:
@@ -257,12 +253,10 @@ void TOWNS_CDROM::start_command()
 	case SCSI_CMD_READ12:
 		SCSI_CDROM::start_command();
 		set_subq(); // First
-		return;
 		break;
 	case 0xff:
 		// End of List
 		set_dat(SCSI_STATUS_CHKCOND);
-		return;
 		break;
 	default:
 		#ifdef _SCSI_DEBUG_LOG
@@ -296,8 +290,6 @@ void TOWNS_CDROM::stop_cdda_from_cmd()
 	set_cdda_status(CDDA_OFF);
 	set_subq();
 }
-
-
 
 void TOWNS_CDROM::play_cdda_from_cmd()
 {

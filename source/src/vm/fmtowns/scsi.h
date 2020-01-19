@@ -18,6 +18,7 @@
 #define SIG_SCSI_IRQ	0
 #define SIG_SCSI_DRQ	1
 
+namespace FMTOWNS {
 class SCSI : public DEVICE
 {
 private:
@@ -54,6 +55,7 @@ public:
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 };
+}
 
 #endif
 

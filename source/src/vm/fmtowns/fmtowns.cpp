@@ -29,7 +29,14 @@
 #include "../scsi_host.h"
 #include "../upd71071.h"
 
+#include "towns_cdrom.h"
 #include "towns_crtc.h"
+#include "towns_dictionary.h"
+#include "towns_dmac.h"
+#include "towns_memory.h"
+#include "towns_sprite.h"
+#include "towns_sysrom.h"
+#include "towns_vram.h"
 // Electric Volume
 //#include "mb87078.h"
 //YM-2612 "OPN2"
@@ -44,17 +51,35 @@
 #include "../debugger.h"
 #endif
 
-#include "cmos.h"
-#include "floppy.h"
-#include "keyboard.h"
-#include "memory.h"
-#include "scsi.h"
-//#include "serial.h"
-#include "timer.h"
+#include "./floppy.h"
+#include "./keyboard.h"
+#include "./msdosrom.h"
+#include "./scsi.h"
+#include "./serialrom.h"
+#include "./timer.h"
 
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
+using FMTOWNS::ADPCM;
+using FMTOWNS::CDC;
+using FMTOWNS::DICTIONARY;
+using FMTOWNS::FLOPPY;
+using FMTOWNS::FONT_ROMS;
+using FMTOWNS::KEYBOARD;
+using FMTOWNS::MSDOSROM;
+using FMTOWNS::SCSI;
+using FMTOWNS::SERIAL_ROM;
+using FMTOWNS::SYSROM;
+using FMTOWNS::TIMER;
+
+using FMTOWNS::TOWNS_CDROM;
+using FMTOWNS::TOWNS_CRTC;
+using FMTOWNS::TOWNS_DMAC;
+using FMTOWNS::TOWNS_MEMORY;
+using FMTOWNS::TOWNS_SPRITE;
+using FMTOWNS::TOWNS_VRAM;
+
 
 VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
@@ -649,6 +674,12 @@ void VM::initialize_sound(int rate, int samples)
 	// init sound gen
 	beep->initialize_sound(rate, 8000);
 
+	// init OPN2
+	opn2->initialize_sound(rate, 1.0e6 / (16.0 / (384.0 * 2.0)), samples, 0.0, 0.0);
+
+	// init PCM
+	rf5c68->initialize_sound(rate, samples);
+	
 	// add_sound_in_source() must add after per initialize_sound().
 	adc_in_ch = event->add_sound_in_source(rate, samples, 2);
 	mixer->set_context_out_line(adc_in_ch);
