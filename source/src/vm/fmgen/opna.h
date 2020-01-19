@@ -294,6 +294,8 @@ namespace FM
 		uint	fnum3[3];
 		
 		Channel4 ch[6];
+		int32   dac_data;
+		bool    dac_enabled;
 
 		static void	BuildLFOTable();
 		static int amtable[FM_LFOENTS];
@@ -476,7 +478,6 @@ namespace FM
 		//void	ResetStatus(uint bit);
 	// 線形補間用ワーク
 		int32	mixc, mixc1;
-		
 	};
 }
 

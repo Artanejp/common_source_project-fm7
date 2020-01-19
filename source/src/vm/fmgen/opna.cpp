@@ -2241,6 +2241,8 @@ void OPN2Base::Reset()
 	statusnext = 0;
 	lfocount = 0;
 	status = 0;
+	dac_enabled = false;
+	dac_data = 0;
 	UpdateStatus();
 }
 
@@ -2446,7 +2448,13 @@ void OPN2Base::MixSubSL(int activech, ISample** dest)
 	if (activech & 0x010) (*dest[2] += ch[2].CalcL());
 	if (activech & 0x040) (*dest[3] += ch[3].CalcL());
 	if (activech & 0x100) (*dest[4] += ch[4].CalcL());
-	if (activech & 0x400) (*dest[5] += ch[5].CalcL());
+	if (activech & 0x400) {
+		if ((dac_enabled)) {
+			(*dest[5] += dac_data);
+		} else {
+			(*dest[5] += ch[5].CalcL());
+		}
+	}
 }
 
 inline void OPN2Base::MixSubS(int activech, ISample** dest)
@@ -2456,7 +2464,13 @@ inline void OPN2Base::MixSubS(int activech, ISample** dest)
 	if (activech & 0x010) (*dest[2] += ch[2].Calc());
 	if (activech & 0x040) (*dest[3] += ch[3].Calc());
 	if (activech & 0x100) (*dest[4] += ch[4].Calc());
-	if (activech & 0x400) (*dest[5] += ch[5].Calc());
+	if (activech & 0x400) {
+		if ((dac_enabled)) {
+			(*dest[5] += dac_data);
+		} else {
+			(*dest[5] += ch[5].Calc());
+		}
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -2510,7 +2524,6 @@ void OPN2Base::Mix6(Sample* buffer, int nsamples, int activech)
 	idest[3] = &ibuf[pan[3]];
 	idest[4] = &ibuf[pan[4]];
 	idest[5] = &ibuf[pan[5]];
-
 	Sample* limit = buffer + nsamples * 2;
 	for (Sample* dest = buffer; dest < limit; dest+=2)
 	{
@@ -2636,7 +2649,17 @@ void OPN2::SetReg(uint addr, uint data)
 		reg29 = data;
 //		UpdateStatus(); //?
 		break;
-	
+	case 0x2a:
+		{
+			int32 tmp;
+			data &= 0xff;
+			tmp = (data >= 0x80) ? (-(0x100 - data)) : data;
+			dac_data = tmp << 6;
+		}
+		break;
+	case 0x2b:
+		dac_enabled = ((data & 0x80) != 0);
+		break;
 	default:
 		OPN2Base::SetReg(addr, data);
 		break;
