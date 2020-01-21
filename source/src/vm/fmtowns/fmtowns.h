@@ -172,7 +172,6 @@ class PCM1BIT;
 class MB8877;      // FDC
 class MSM58321;    // RTC
 class RF5C68;      // ADPCM
-class UPD71071;    // DMAC
 
 class SCSI_HOST;
 class SCSI_DEV;
@@ -196,11 +195,12 @@ namespace FMTOWNS {
 	class FONT_ROM_20PIX;
 #endif
 	class TOWNS_CRTC;
-	class TOWNS_VRAM;
-	class TOWNS_MEMORY;
-
 	class TOWNS_CDROM;
+	class TOWNS_DMAC;    // DMAC
+	class TOWNS_MEMORY;
 	class TOWNS_SPRITE;
+	class TOWNS_VRAM;
+
 	class JOYSTICK; // Mouse and Joystick.
 }
 
@@ -220,8 +220,8 @@ protected:
 	IO*       io;
 	MB8877*   fdc;
 	MSM58321* rtc;
-	UPD71071* dma;
-	UPD71071* extra_dma;
+	FMTOWNS::TOWNS_DMAC* dma;
+	FMTOWNS::TOWNS_DMAC* extra_dma;
 	NOISE*    seek_sound;
 	NOISE*    head_up_sound;
 	NOISE*    head_down_sound;

@@ -41,8 +41,10 @@ void SYSROM::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x0480:
-		select_f8_dictram = ((data & 0x02) != 0);
-		select_f8_rom = ((data & 0x01) != 0);
+		select_f8_rom = ((data & 0x02) == 0);
+		select_f8_dictram = ((data & 0x01) != 0);
+		out_debug_log(_T("F8 ROM %s, F8 DICTRAM %s"), (select_f8_rom) ? _T("ON") : _T("OFF")
+					  ,(select_f8_dictram) ? _T("ON") : _T("OFF"));
 		break;
 	}
 }
@@ -51,7 +53,7 @@ uint32_t SYSROM::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0x0480:
-		return (0x00 | ((select_f8_dictram) ? 0x02 : 0x00) | ((select_f8_rom) ? 0x01 : 0x00));
+		return (0x00 | ((select_f8_dictram) ? 0x01 : 0x00) | ((select_f8_rom) ? 0x00 : 0x02));
 		break;
 	}
 	return 0xff;
@@ -109,9 +111,11 @@ void SYSROM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	if(addr < 0xfffc0000) {
 		if((addr >= 0x000f8000) && (addr < 0x00100000)) {
-			if(select_f8_rom) {
-				return;
-			} else {
+			// page 000F8xxxx : enable to write at all condition.
+//			if(select_f8_rom) {
+//				return;
+//			} else
+			{
 				// RAM
 				if((select_f8_dictram) && (addr < 0x000fa000)) { // OK?
 					if(d_dict != NULL) {

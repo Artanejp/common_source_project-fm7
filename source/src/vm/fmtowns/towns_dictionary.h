@@ -30,6 +30,7 @@ class DICTIONARY : public DEVICE
 protected:
 	uint8_t dict_rom[0x80000]; // 512KB
 	uint8_t dict_ram[0x2000];  // 2 + 6KB
+//	uint8_t ram_d0[0x8000];  // 32KB
 
 	uint8_t dict_bank;
 	bool cmos_dirty;

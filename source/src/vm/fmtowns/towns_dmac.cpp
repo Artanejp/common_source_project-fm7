@@ -100,5 +100,6 @@ void TOWNS_DMAC::do_dma_inc_dec_ptr_16bit(int c)
 		dma[c].areg = (dma[c].areg + 2) & 0xffffffff;
 	}
 }
+
 	
 }		

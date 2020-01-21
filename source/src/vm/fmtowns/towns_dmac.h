@@ -20,11 +20,11 @@ public:
 	virtual void reset();
 	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
-	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	virtual uint32_t __FASTCALL read_signal(int id);
-	virtual void __FASTCALL do_dma();
+//	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+//	virtual uint32_t __FASTCALL read_signal(int id);
+//	virtual void __FASTCALL do_dma();
 
-	virtual bool process_state(FILEIO* state_fio, bool loading);
+//	virtual bool process_state(FILEIO* state_fio, bool loading);
 };
 
 }

@@ -67,7 +67,7 @@ void TOWNS_CRTC::initialize()
 	set_lines_per_frame(512);
 	//set_pixels_per_line(640);
 
-	crtc_clock = 28.6363e6;
+	crtc_clock = 1.0e6 / 28.6363e6;
 	set_frames_per_sec(FRAMES_PER_SEC); // Its dummy.
 	register_frame_event(this);
 	
@@ -182,7 +182,7 @@ void TOWNS_CRTC::set_crtc_clock(uint16_t val)
 		28.6363e6, 24.5454e6, 25.175e6, 21.0525e6
 	};
 	if(clocks[clksel] != crtc_clock) {
-		crtc_clock = clocks[clksel];
+		crtc_clock = 1.0e6 / clocks[clksel];
 		req_recalc = true;
 	}
 }
@@ -205,7 +205,7 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 		frame_us = 1.0e6 / FRAMES_PER_SEC;
 		set_frames_per_sec(FRAMES_PER_SEC); // Its dummy.
 	}		
-	
+//	out_debug_log(_T("RECALC PARAM: horiz_us=%f frame_us=%f"), horiz_us, frame_us);
 	for(int layer = 0; layer < 2; layer++) {
 		vert_start_us[layer] =  ((double)(regs[(layer << 1) + 13] & 0x07ff)) * horiz_ref;   // VDSx
 		vert_end_us[layer] =    ((double)(regs[(layer << 1) + 13 + 1] & 0x07ff)) * horiz_ref; // VDEx
@@ -218,6 +218,7 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 
 void TOWNS_CRTC::write_io8(uint32_t addr, uint32_t data)
 {
+//	out_debug_log(_T("WRITE8  ADDR=%04x DATA=%04x"), addr, data);
 	switch(addr) {
 	case 0x0440:
 		crtc_ch = data & 0x1f;
@@ -240,6 +241,7 @@ void TOWNS_CRTC::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x0448:
 	case 0x044a:
+	case 0x044c:
 	case 0xfd98:
 	case 0xfd99:
 	case 0xfd9a:
@@ -256,6 +258,7 @@ void TOWNS_CRTC::write_io8(uint32_t addr, uint32_t data)
 
 void TOWNS_CRTC::write_io16(uint32_t addr, uint32_t data)
 {
+//	out_debug_log(_T("WRITE16 ADDR=%04x DATA=%04x"), addr, data);
 	switch(addr) {
 	case 0x0440:
 	case 0x0441:
@@ -386,6 +389,8 @@ void TOWNS_CRTC::write_io16(uint32_t addr, uint32_t data)
 			voutreg_prio = data & 0x10;
 		}			
 		break;
+	case 0x044c:
+		break;
 	case 0xfd98:
 	case 0xfd99:
 	case 0xfd9a:
@@ -433,6 +438,7 @@ uint16_t TOWNS_CRTC::read_reg30()
 
 uint32_t TOWNS_CRTC::read_io16(uint32_t addr)
 {
+//	out_debug_log(_T("READ16 ADDR=%04x"), addr);
 	switch(addr) {
 	case 0x0440:
 	case 0x0441:
@@ -458,6 +464,7 @@ uint32_t TOWNS_CRTC::read_io16(uint32_t addr)
 			dpalette_changed = false;
 			return d;
 		}
+		break;
 	case 0xfd98:
 	case 0xfd99:
 	case 0xfd9a:
@@ -492,6 +499,7 @@ uint32_t TOWNS_CRTC::read_io16(uint32_t addr)
 
 uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 {
+//	out_debug_log(_T("READ8 ADDR=%04x"), addr);
 	switch(addr) {
 	case 0x0440:
 		return (uint32_t)crtc_ch;

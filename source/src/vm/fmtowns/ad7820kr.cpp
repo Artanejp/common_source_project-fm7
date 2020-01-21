@@ -106,7 +106,9 @@ void AD7820KR::start_sample(double usec)
 	write_signals(&outputs_ready, 0x00000000);    // IN SAMPLING
 	write_signals(&outputs_intr, 0x00000000);     // CLEAR INTRRUPT
 	write_signals(&outputs_overflow, 0x00000000); // CLEAR OVERFLOW
-	register_event(this, EVENT_SAMPLE, usec, false, &event_sample);
+	if(usec > 0.0) {
+		register_event(this, EVENT_SAMPLE, usec, false, &event_sample);
+	}
 }
 
 void AD7820KR::write_signal(int ch, uint32_t data, uint32_t mask)

@@ -180,8 +180,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 			scsi_host->set_context_target(scsi_hdd);
 		}
 	}
-	dma = new UPD71071(this, emu);
-	extra_dma = new UPD71071(this, emu);
+	dma = new TOWNS_DMAC(this, emu);
+	extra_dma = new TOWNS_DMAC(this, emu);
 
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
@@ -396,8 +396,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_io(io);
 	cpu->set_context_intr(pic);
 	cpu->set_context_dma(dma);
-
-
+	cpu->set_context_bios(NULL);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
@@ -410,10 +409,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x20, memory);	// reset
 	io->set_iomap_single_r(0x21, memory);	// cpu misc
 	io->set_iomap_single_w(0x22, memory);	// power
-	//io->set_iomap_single_rw(0x24, memory);	// dma
+	io->set_iomap_single_rw(0x24, memory);	// dma
 	io->set_iomap_single_r(0x25, memory);	// cpu_misc4 (after Towns2)
-	//io->set_iomap_single_r(0x26, timer);
-	//io->set_iomap_single_r(0x27, timer);
+	io->set_iomap_single_r(0x26, timer);
+	io->set_iomap_single_r(0x27, timer);
 	io->set_iomap_single_r(0x28, memory);   // NMI MASK (after Towns2)
 	io->set_iomap_single_r(0x30, memory);	// cpu id
 	io->set_iomap_single_r(0x31, memory);	// cpu id
@@ -450,18 +449,19 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x20e, floppy); // Towns drive SW
 	
 	io->set_iomap_single_rw(0x400, memory);	// System Status
-	//io->set_iomap_single_rw(0x402, memory);
+	io->set_iomap_single_rw(0x402, memory);
 	io->set_iomap_single_rw(0x404, memory);	// System status
+	io->set_iomap_range_rw(0x406, 0x43f, memory);
 	
 	io->set_iomap_range_rw(0x440, 0x443, crtc); // CRTC
-	io->set_iomap_range_rw(0x448, 0x44c, vram); // 
+	io->set_iomap_range_rw(0x448, 0x44f, crtc); // 
 	io->set_iomap_single_rw(0x450, sprite); //
 	io->set_iomap_single_rw(0x452, sprite); //
 	
 	io->set_iomap_range_rw(0x458, 0x45f, vram); // CRTC
 	
 	io->set_iomap_single_rw(0x480, memory); //
-	io->set_iomap_single_rw(0x484, memory); // Dictionary
+	io->set_iomap_single_rw(0x484, dictionary); // Dictionary
 	//io->set_iomap_alias_r(0x48a, memory_card, 0); //
 	//io->set_iomap_alias_rw(0x490, memory_card); // After Towns2
 	//io->set_iomap_alias_rw(0x491, memory_card); // After Towns2
@@ -518,7 +518,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0xc32, scsi);
 
 	
-	io->set_iomap_range_rw(0x3000, 0x3fff, memory); // CMOS
+	io->set_iomap_range_rw(0x3000, 0x3fff, dictionary); // CMOS
 	io->set_iomap_range_rw(0xfd90, 0xfda0, vram);	// Palette and CRTC
 
 	// Vram allocation may be before initialize().

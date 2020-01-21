@@ -25,6 +25,7 @@ void DICTIONARY::initialize()
 {
 	memset(dict_rom, 0xff, sizeof(dict_rom));
 	memset(dict_ram, 0x00, sizeof(dict_ram));
+//	memset(ram_d0, 0x00, sizeof(ram_d0));
 	
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("FMT_DIC.ROM")), FILEIO_READ_BINARY)) { // DICTIONARIES
@@ -219,6 +220,7 @@ bool DICTIONARY::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateValue(dict_bank);
 	state_fio->StateArray(dict_ram, sizeof(dict_ram), 1);
+//	state_fio->StateArray(ram_d0, sizeof(ram_d0), 1);
 	
 	if(loading) {
 		cmos_dirty = true;

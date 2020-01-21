@@ -24,9 +24,58 @@ namespace FMTOWNS {
 
 void TOWNS_VRAM::initialize()
 {
-
 }
 
+void TOWNS_VRAM::reset()
+{
+	for(int i = 0; i < (sizeof(dirty_flag) / sizeof(bool)); i++) {
+		dirty_flag[i] = true;
+	}
+	
+	vram_access_reg_addr = 0;
+	packed_pixel_mask_reg.d = 0xffffffff;
+	access_page1 = false;;
+	write_plane_mask = 0xffffffff;
+	
+	sprite_busy = false;
+	sprite_disp_page = false;
+	mix_reg = 0xff;
+	r50_readplane = 0x0; // OK?
+	r50_ramsel = 0x0; // OK?
+	r50_gvramsel = 0x0; // OK?
+	
+	apalette_code = 0;
+	apalette_b = 0;
+	apalette_r = 0;
+	apalette_g = 0;
+	for(int i = 0; i < 16; i++) {
+		uint16_t r = ((i & 4) != 0) ? 0x700 : 0;
+		uint16_t g = ((i & 2) != 0) ? 0x070 : 0;
+		uint16_t b = ((i & 1) != 0) ? 0x007 : 0;
+		if((i & 8) != 0) {
+			r <<= 1;
+			b <<= 1;
+			g <<= 1;
+		}
+		apalette_16_rgb[0][i] = r | g | b;
+		apalette_16_rgb[1][i] = r | g | b;
+		apalette_16_pixel[0][i] = RGBA_COLOR((r >> 4) | 0x0f, g | 0x0f, (b << 4) | 0x0f, 0xff);
+		apalette_16_pixel[1][i] = RGBA_COLOR((r >> 4) | 0x0f, g | 0x0f, (b << 4) | 0x0f, 0xff);
+	}
+	for(int i = 0; i < 256; i++) {
+		apalette_256_rgb[i] = ((i & 0xc0) << 16) | ((i & 0x38) << 8) | (i & 0x07);
+		apalette_256_pixel[i] = RGBA_COLOR((i & 0xc0) | 0x3f, ((i & 0x38) << 2) | 0x1f, ((i & 0x07) <<5) | 0x1f, 255);
+	}
+
+	for(int i = 0; i < 8; i++) {
+		r50_digital_palette[i] = (uint8_t)i;
+	}
+	layer_display_flags[0] = layer_display_flags[1] = 0;
+	r50_dpalette_updated = true;
+
+	memset(vram, 0x00, sizeof(vram));
+}
+	
 void TOWNS_VRAM::make_dirty_vram(uint32_t addr, int bytes)
 {
 	if(bytes <= 0) return;
@@ -860,6 +909,106 @@ void TOWNS_VRAM::write_signal(int id, uint32_t data, uint32_t mask)
 }
 // Renderers
 
+void TOWNS_VRAM::write_io8(uint32_t address,  uint32_t data)
+{
+	switch(address & 0xffff) {
+	case 0x0458:
+		vram_access_reg_addr = data & 3;
+		break;
+	case 0x045a:
+		switch(vram_access_reg_addr) {
+		case 0:
+			packed_pixel_mask_reg.b.l = data;
+			break;
+		case 1:
+			packed_pixel_mask_reg.b.h2 = data;
+			break;
+		}			
+		break;
+	case 0x045b:
+		switch(vram_access_reg_addr) {
+		case 0:
+			packed_pixel_mask_reg.b.h = data;
+			break;
+		case 1:
+			packed_pixel_mask_reg.b.h3 = data;
+			break;
+		}			
+		break;
+	}
+}
+
+void TOWNS_VRAM::write_io16(uint32_t address,  uint32_t data)
+{
+	pair32_t d;
+	d.d = data;
+	switch(address & 0xffff) {
+	case 0x0458:
+		vram_access_reg_addr = data & 3;
+		break;
+	case 0x045a:
+		switch(vram_access_reg_addr) {
+		case 0:
+			packed_pixel_mask_reg.w.l = d.w.l;
+			break;
+		case 1:
+			packed_pixel_mask_reg.w.h = d.w.l;
+			break;
+		}			
+		break;
+	}
+}
+
+uint32_t TOWNS_VRAM::read_io8(uint32_t address)
+{
+	switch(address & 0xffff) {
+	case 0x0458:
+		return vram_access_reg_addr;
+		break;
+	case 0x045a:
+		switch(vram_access_reg_addr) {
+		case 0:
+			return packed_pixel_mask_reg.b.l;
+			break;
+		case 1:
+			return packed_pixel_mask_reg.b.h2;
+			break;
+		}			
+		break;
+	case 0x045b:
+		switch(vram_access_reg_addr) {
+		case 0:
+			return packed_pixel_mask_reg.b.h;
+			break;
+		case 1:
+			return packed_pixel_mask_reg.b.h3;
+			break;
+		}			
+		break;
+	}
+	return 0xff;
+}
+
+uint32_t TOWNS_VRAM::read_io16(uint32_t address)
+{
+	pair32_t d;
+	switch(address & 0xffff) {
+	case 0x0458:
+		return vram_access_reg_addr;
+		break;
+	case 0x045a:
+		switch(vram_access_reg_addr) {
+		case 0:
+			return packed_pixel_mask_reg.w.l;
+			break;
+		case 1:
+			return packed_pixel_mask_reg.w.h;
+			break;
+		}			
+		break;
+	}
+	return 0xffff;
+}
 
 }
 

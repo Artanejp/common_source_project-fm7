@@ -116,7 +116,7 @@ protected:
 	
 	// RAM
 	uint8_t ram_page0[0xc0000];       // 0x00000000 - 0x000bffff : RAM
-	uint8_t ram_mmio[0x8000];         // 0x000c8000 - 0x000cff7f : // ToDo: Move To Sprite.
+	uint8_t ram_pagee[0x16000];       // 0x000da000 - 0x000effff : RAM
 	uint8_t ram_pagef[0x08000];       // 0x000f0000 - 0x000f7fff : RAM
 
 	uint8_t *extra_ram;                  // 0x00100000 - (0x3fffffff) : Size is defined by extram_size;
@@ -146,6 +146,7 @@ protected:
 
 //	virtual void initialize_tables(void);
 	virtual void set_wait_values();
+	virtual void config_page00();
 	
 public:
 	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {

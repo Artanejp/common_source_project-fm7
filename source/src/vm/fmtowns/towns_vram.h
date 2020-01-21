@@ -48,12 +48,7 @@ class TOWNS_VRAM : public DEVICE
 protected:
 	DEVICE* d_sprite;
 	DEVICE* d_crtc;
-	uint32_t page_modes[4];
-	bool line_rendered[2][TOWNS_CRTC_MAX_LINES];
 	
-	uint16_t *vram_ptr[2];   // Layer [01] address.
-	uint32_t vram_size[2];   // Layer [01] size [bytes].
-	uint32_t vram_offset[2]; // Layer [01] address offset.
 #if defined(_USE_QT)
 	// If you use other framework, place mutex lock.
 	QMutex vram_lock[2][2]; // [bank][layer];
@@ -61,8 +56,6 @@ protected:
 	
 	bool access_page1;
 	uint32_t write_plane_mask; // for plane-access.
-	uint8_t packed_access_mask_lo;
-	uint8_t packed_access_mask_hi;
 
 	bool dirty_flag[0x80000 >> 3]; // Per 8bytes : 16pixels(16colors) / 8pixels(256) / 4pixels(32768)
 	
@@ -74,7 +67,7 @@ protected:
 	bool r50_dpalette_updated;   // I/O 044CH (RO) : bit7
 	
 	bool sprite_busy;            // I/O 044CH (RO) : bit1. Must update from write_signal().
-	bool splite_disp_page;       // I/O 044CH (RO) : bit0. Must update from write_signal().
+	bool sprite_disp_page;       // I/O 044CH (RO) : bit0. Must update from write_signal().
 	uint8_t mix_reg;             // MMIO 000CH:FF80H
 	uint8_t r50_readplane;       // MMIO 000CH:FF81H : BIT 7 and 6.
 	uint8_t r50_ramsel;          // MMIO 000CH:FF81H : BIT 3 to 0.
@@ -101,6 +94,7 @@ protected:
 	// I/O 0458H (RW) : VRAM ACCESS CONTROLLER reg address.
 	// I/O 045AH (RW) : VRAM ACCESS CONTROLLER reg data (LOW).
 	// I/O 045BH (RW) : VRAM ACCESS CONTROLLER reg data (HIGH).
+	uint8_t vram_access_reg_addr;
 	pair32_t packed_pixel_mask_reg; // '1' = Write. I/O 0458H - 045BH.
 	uint8_t vram[0x80000]; // Related by machine.
 	// End.
@@ -144,13 +138,20 @@ public:
 	~TOWNS_VRAM() {}
 
 	virtual void initialize();
+	virtual void reset();
+	
 	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
 	virtual uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
 	virtual uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr);
 	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
 	virtual void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
 	virtual void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data);
-
+	
+	virtual void __FASTCALL write_io8(uint32_t address, uint32_t data);
+	virtual void __FASTCALL write_io16(uint32_t address, uint32_t data);
+	
+	virtual uint32_t __FASTCALL read_io8(uint32_t address);
+	virtual uint32_t __FASTCALL read_io16(uint32_t address);
 	
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask); // Do render
 
