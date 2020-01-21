@@ -3445,7 +3445,7 @@ static void zero_state(i386_state *cpustate)
 	cpustate->dr[6] = 0xffff1ff0;
 	
 	cpustate->ext = 0;
-//	cpustate->halted = 0;
+	cpustate->halted = 0;
 //	cpustate->busreq = 0;
 	cpustate->shutdown = 0;
 	cpustate->operand_size = 0;
