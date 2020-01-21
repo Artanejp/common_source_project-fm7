@@ -776,12 +776,12 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				my_stprintf_s(buffer, buffer_len,
 			  _T("MODE=PROTECTED 16bit PC=%08X PREV_PC=%08X SP(REAL)=%08X\n")
 			  _T("CR[0-4]=%08X %08X %08X %08X %08X IOP=%d CPL=%d\n")	  
-			  _T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
+			  _T("EAX=%08X  EBX=%08X ECX=%08X EDX=%08X ESP=%08X  EBP=%08X  ESI=%08X  EDI=%08X\n")
 			  _T("DS=%04X  ES=%04X SS=%04X CS=%04X FS=%04X GS=%04X A20_MASK=%08X IP=%04X  EFLAGS=%08X FLAG=[%c%c%c%c%c%c%c%c%c]\n")
 			  _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 							  cpustate->pc, cpustate->prev_pc, cpustate->sreg[SS].base + ((uint32_t)REG32(ESP)),
 			  cpustate->cr[0] ,cpustate->cr[1], cpustate->cr[2], cpustate->cr[3], cpustate->cr[4], (cpustate->IOP1) | (cpustate->IOP2 << 1), cpustate->CPL,
-			  REG16(AX), REG16(BX), REG16(CX), REG16(DX), REG16(SP), REG16(BP), REG16(SI), REG16(DI),
+			  REG32(EAX), REG32(EBX), REG32(ECX), REG32(EDX), REG32(ESP), REG32(EBP), REG32(ESI), REG16(DI),
 			  cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->sreg[FS].selector, cpustate->sreg[GS].selector, cpustate->a20_mask, cpustate->eip, cpustate->eflags,
 			  cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
 			  cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'),
@@ -792,12 +792,12 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				my_stprintf_s(buffer, buffer_len,
 			  _T("MODE=16bit PC=%08X PREV_PC=%08X SP(REAL)=%08X\n")
 			  _T("CR[0-4]=%08X %08X %08X %08X %08X IOP=%d CPL=%d\n")	  
-			  _T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
+			  _T("EAX=%08X  EBX=%08X ECX=%08X EDX=%08X ESP=%08X  EBP=%08X  ESI=%08X  EDI=%08X\n")
 			  _T("DS=%04X  ES=%04X SS=%04X CS=%04X FS=%04X GS=%04X A20_MASK=%08X IP=%04X EFLAGS=%08X FLAG=[%c%c%c%c%c%c%c%c%c]\n")
 			  _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 							  cpustate->pc, cpustate->prev_pc, cpustate->sreg[SS].base + ((uint32_t)REG16(SP) & 0xffff),
 			  cpustate->cr[0] ,cpustate->cr[1], cpustate->cr[2], cpustate->cr[3], cpustate->cr[4], (cpustate->IOP1) | (cpustate->IOP2 << 1), cpustate->CPL,
-			  REG16(AX), REG16(BX), REG16(CX), REG16(DX), REG16(SP), REG16(BP), REG16(SI), REG16(DI),
+			  REG32(EAX), REG32(EBX), REG32(ECX), REG32(EDX), REG32(ESP), REG32(EBP), REG32(ESI), REG32(EDI),
 			  cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->sreg[FS].selector, cpustate->sreg[GS].selector, cpustate->a20_mask, cpustate->eip, cpustate->eflags,
 			  cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
 			  cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'),
