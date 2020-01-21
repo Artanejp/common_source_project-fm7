@@ -28,8 +28,6 @@ void SYSROM::initialize()
 		fio->Fclose();
 	}
 
-	ram_wait_val = 6;
-	rom_wait_val = 6;
 }
 
 
@@ -59,126 +57,96 @@ uint32_t SYSROM::read_io8(uint32_t addr)
 	return 0xff;
 }
 	
-uint32_t SYSROM::read_data8w(uint32_t addr, int* wait)
+uint32_t SYSROM::read_memory_mapped_io8(uint32_t addr)
 {
 	uint8_t n_data = 0xff;
 	if(addr < 0xfffc0000) { // Banked (from MSDOS/i86 compatible mode) 
 		if((addr >= 0x000f8000) && (addr < 0x00100000)) {
 			if(select_f8_rom) { // BOOT ROM
 				n_data = rom[(addr & 0x7fff) + 0x38000];
-				if(wait != NULL) {
-					*wait = rom_wait_val;
-				}
 			} else { // RAM
 				if((select_f8_dictram) && (addr < 0x000fa000)) {
 					// OK?
 					if(d_dict != NULL) {
-						n_data = d_dict->read_data8w(0xc21400000 + (addr & 0x1fff), wait);
+						n_data = d_dict->read_memory_mapped_io8(0xc21400000 + (addr & 0x1fff));
 						return n_data;
 					}
 				} else {
 					n_data = ram[(addr & 0x7fff) + 0x8000];
 				}
-				if(wait != NULL) {
-					*wait = ram_wait_val;
-				}
-			}
-			return n_data;
-		} else {
-			if(wait != NULL) {
-				*wait = 0;
 			}
 		}
 	} else {
 		n_data = rom[addr & 0x3ffff];
-		if(wait != NULL) {
-			*wait = rom_wait_val;
-		}
 	}
 	return (uint32_t)n_data;
 }
 	
-uint32_t SYSROM::read_data16w(uint32_t addr, int* wait)
+uint32_t SYSROM::read_memory_mapped_io16(uint32_t addr)
 {
 	pair16_t nd;
 	int dummy;
 	nd.w = 0x00;
 	// OK?
-	nd.b.l = read_data8w((addr & 0xfffffffe) + 0, &dummy);
-	nd.b.h = read_data8w((addr & 0xfffffffe) + 1, wait);
+	nd.b.l = read_memory_mapped_io8((addr & 0xfffffffe) + 0);
+	nd.b.h = read_memory_mapped_io8((addr & 0xfffffffe) + 1);
 	return nd.w;
 }
 
-uint32_t SYSROM::read_data32w(uint32_t addr, int* wait)
+uint32_t SYSROM::read_memory_mapped_io32(uint32_t addr)
 {
 	pair32_t nd;
-	int dummy;
 	nd.d = 0x00;
 	// OK?
-	nd.b.l  = read_data8w((addr & 0xfffffffc) + 0, &dummy);
-	nd.b.h  = read_data8w((addr & 0xfffffffc) + 1, &dummy);
-	nd.b.h2 = read_data8w((addr & 0xfffffffc) + 2, &dummy);
-	nd.b.h3 = read_data8w((addr & 0xfffffffc) + 3, wait);
+	nd.b.l  = read_memory_mapped_io8((addr & 0xfffffffc) + 0);
+	nd.b.h  = read_memory_mapped_io8((addr & 0xfffffffc) + 1);
+	nd.b.h2 = read_memory_mapped_io8((addr & 0xfffffffc) + 2);
+	nd.b.h3 = read_memory_mapped_io8((addr & 0xfffffffc) + 3);
 	return nd.d;
 }
 	
-void SYSROM::write_data8w(uint32_t addr, uint32_t data, int* wait)
+void SYSROM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	if(addr < 0xfffc0000) {
 		if((addr >= 0x000f8000) && (addr < 0x00100000)) {
 			if(select_f8_rom) {
-				if(wait != NULL) {
-					*wait = rom_wait_val;
-				}
 				return;
 			} else {
 				// RAM
 				if((select_f8_dictram) && (addr < 0x000fa000)) { // OK?
 					if(d_dict != NULL) {
-						d_dict->write_data8w(0xc21400000 + (addr & 0x1fff), data, wait);
+						d_dict->write_memory_mapped_io8(0xc21400000 + (addr & 0x1fff), data);
 						return;
 					}
 				} else {
 					ram[addr & 0x7fff] = data;
 				}
-				if(wait != NULL) {
-					*wait = ram_wait_val;
-				}
 			}
-			return;
-		}
-		if(wait != NULL) {
-			*wait = 0;
 		}
 		return;
 	}
 	// ADDR >= 0xfffc0000
-	if(wait != NULL) {
-		*wait = rom_wait_val;
-	}
 	return;
 }
 
 
-void SYSROM::write_data16w(uint32_t addr, uint32_t data, int* wait)
+void SYSROM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 {
 	pair16_t nd;
-	int dummy;
 	nd.w = (uint16_t)data;
 	// OK?
-	write_data8w((addr & 0xfffffffe) + 0, nd.b.l, &dummy);
-	write_data8w((addr & 0xfffffffe) + 1, nd.b.h, wait);
+	write_memory_mapped_io8((addr & 0xfffffffe) + 0, nd.b.l);
+	write_memory_mapped_io8((addr & 0xfffffffe) + 1, nd.b.h);
 }
 
-void SYSROM::write_data32w(uint32_t addr, uint32_t data, int* wait)
+void SYSROM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 {
 	pair32_t nd;
-	int dummy;
 	nd.d = data;
-	write_data8w((addr & 0xfffffffc) + 0, nd.b.l, &dummy);
-	write_data8w((addr & 0xfffffffc) + 1, nd.b.h, &dummy);
-	write_data8w((addr & 0xfffffffc) + 2, nd.b.h2, &dummy);
-	write_data8w((addr & 0xfffffffc) + 3, nd.b.h3, wait);
+	write_memory_mapped_io8((addr & 0xfffffffc) + 0, nd.b.l);
+	write_memory_mapped_io8((addr & 0xfffffffc) + 1, nd.b.h);
+	write_memory_mapped_io8((addr & 0xfffffffc) + 2, nd.b.h2);
+	write_memory_mapped_io8((addr & 0xfffffffc) + 3, nd.b.h3);
 }
 	
 void SYSROM::write_signal(int ch, uint32_t data, uint32_t mask)
@@ -189,12 +157,6 @@ void SYSROM::write_signal(int ch, uint32_t data, uint32_t mask)
 		break;
 	case SIG_FMTOWNS_F8_DICTRAM:
 		select_f8_dictram = ((data & mask) != 0);
-		break;
-	case SIG_FMTOWNS_RAM_WAIT:
-		ram_wait_val = data;
-		break;
-	case SIG_FMTOWNS_ROM_WAIT:
-		rom_wait_val = data;
 		break;
 	}
 }
@@ -207,12 +169,6 @@ uint32_t SYSROM::read_signal(int ch)
 		break;
 	case SIG_FMTOWNS_F8_DICTRAM:
 		return ((select_f8_dictram) ? 0xffffffff : 0x00000000);
-		break;
-	case SIG_FMTOWNS_RAM_WAIT:
-		return ram_wait_val;
-		break;
-	case SIG_FMTOWNS_ROM_WAIT:
-		return rom_wait_val;
 		break;
 	}
 	return 0x00;
@@ -230,8 +186,6 @@ bool SYSROM::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateValue(select_f8_rom);
 	state_fio->StateValue(select_f8_dictram);
-	state_fio->StateValue(rom_wait_val);
-	state_fio->StateValue(ram_wait_val);
 	
 	state_fio->StateArray(ram, sizeof(ram), 1);
 	return true;

@@ -6,7 +6,7 @@
 
 	[MSDOS ROM]
 */
-
+#include "../../fileio.h"
 #include "./msdosrom.h"
 
 namespace FMTOWNS {
@@ -14,7 +14,7 @@ namespace FMTOWNS {
 void MSDOSROM::initialize()
 {
 	memset(rom, 0xff, sizeof(rom));
-	FILEIO *fio;
+	FILEIO *fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("FMT_DOS.ROM")), FILEIO_READ_BINARY)) { // MSDOS
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
@@ -22,7 +22,7 @@ void MSDOSROM::initialize()
 	delete fio;
 }
 
-uint32_t MSDOSROM::read_data8(uint32_t addr)	
+uint32_t MSDOSROM::read_memory_mapped_io8(uint32_t addr)	
 {
 	uint8_t d = 0xff;
 	if((addr >= 0xc2000000) && (addr < 0xc2080000)) {

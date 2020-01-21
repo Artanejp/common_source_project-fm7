@@ -32,9 +32,6 @@ protected:
 	bool select_f8_rom;
 	bool select_f8_dictram;
 	
-	int ram_wait_val;
-	int rom_wait_val;
-	
 public:
 	SYSROM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -45,39 +42,13 @@ public:
 	void initialize();
 	void reset();
 
-	uint32_t __FASTCALL read_data8w(uint32_t addr, int *wait);
-	uint32_t __FASTCALL read_data16w(uint32_t addr, int *wait);
-	uint32_t __FASTCALL read_data32w(uint32_t addr, int *wait);
+	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
+	uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
+	uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr);
+	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
+	void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data);
 	
-	uint32_t __FASTCALL read_data8(uint32_t addr) {
-		int wait;
-		return read_data8w(addr, &wait);
-	}
-	uint32_t __FASTCALL read_data16(uint32_t addr) {
-		int wait;
-		return read_data16w(addr, &wait);
-	}
-	uint32_t __FASTCALL read_data32(uint32_t addr) {
- 		int wait;
-		return read_data32w(addr, &wait);
-	}
-	
-	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int *wait);
-	void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int *wait);
-	void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int *wait);
-
-	void __FASTCALL write_data8(uint32_t addr, uint32_t data) {
-		int wait;
-		write_data8w(addr, data, &wait);
-	}
-	void __FASTCALL write_data16(uint32_t addr, uint32_t data) {
-		int wait;
-		write_data16w(addr, data, &wait);
-	}
-	void __FASTCALL write_data32(uint32_t addr, uint32_t data) {
-		int wait;
-		write_data32w(addr, data, &wait);
-	}
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 

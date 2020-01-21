@@ -41,8 +41,6 @@ void DICTIONARY::initialize()
 	}
 	delete fio;
 
-	ram_wait_val = 6; // OK?
-	rom_wait_val = 6; // OK?
 }
 
 void DICTIONARY::release()
@@ -62,25 +60,16 @@ void DICTIONARY::reset()
 	dict_bank = 0;
 }
 
-uint32_t DICTIONARY::read_data8w(uint32_t addr, int* wait)
+uint32_t DICTIONARY::read_memory_mapped_io8(uint32_t addr)
 {
 	uint8_t n_data = 0xff;
 	// 0xd0000 - 0xdffff : primary  is VRAM, secondary is DICTIONARY.
 	if((addr < 0x000e0000) && (addr >= 0x000d0000)) {
 		if(addr < 0xd8000) {
-			if(wait != NULL) {
-				*wait = rom_wait_val;
-			}
 			return dict_rom[(((uint32_t)dict_bank) << 15) | (addr & 0x7fff)];
 		} else if(addr < 0xda000) {
-			if(wait != NULL) {
-				*wait = ram_wait_val;
-			}
 			return dict_ram[addr & 0x1fff];
 		} else {
-			if(wait != NULL) {
-				*wait = 0;
-			}
 		}			
 	} else if((addr >= 0xc20800000) && (addr < 0xc2100000)) {
 		n_data = dict_rom[addr & 0x7ffff];
@@ -90,141 +79,81 @@ uint32_t DICTIONARY::read_data8w(uint32_t addr, int* wait)
 	return n_data;
 }
 
-void DICTIONARY::write_data8w(uint32_t addr, uint32_t data, int* wait)
+void DICTIONARY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	if((addr < 0x000e0000) && (addr >= 0x000d0000)) {
 		if(addr < 0xd8000) {
-			if(wait != NULL) {
-				*wait = rom_wait_val;
-			}
 			return;
 		} else if(addr < 0xda000) {
-			if(wait != NULL) {
-				*wait = ram_wait_val;
-			}
 			dict_ram[addr & 0x1fff] = data;
 			return;
 		}
 		// ToDo: address >= 0xda000
-		if(wait != NULL) {
-			*wait = ram_wait_val;
-		}
 		return;
 	} else if((addr >= 0xc20800000) && (addr < 0xc2100000)) {
-		if(wait != NULL) {
-			*wait = rom_wait_val;
-		}
 		return;
 	} else if((addr >= 0xc21400000) && (addr < 0xc2142000)) {
 		dict_ram[addr & 0x1fff] = data;
-		if(wait != NULL) {
-			*wait = ram_wait_val;
-		}
 		return;
-	}
-	if(wait != NULL) {
-		*wait = 0;
 	}
 }
 
-uint32_t DICTIONARY::read_data16w(uint32_t addr, int* wait)
+uint32_t DICTIONARY::read_memory_mapped_io16(uint32_t addr)
 {
 	pair16_t n;
 	addr = addr & 0xfffffffe;
 	if((addr >= 0xd8000) && (addr <= 0xe0000)) { // DICTRAM
-		int tmpwait;
-		int waitsum = 0;
-		n.b.l = (uint8_t)read_data8w(addr + 0, &tmpwait);
-		waitsum += tmpwait;
-		n.b.h = (uint8_t)read_data8w(addr + 1, &tmpwait);
-		waitsum += tmpwait;
-		if(wait != NULL) {
-			*wait = waitsum;
-		}
+		n.b.l = (uint8_t)read_memory_mapped_io8(addr + 0);
+		n.b.h = (uint8_t)read_memory_mapped_io8(addr + 1);
 		return n.w;
 	}
-	int dummy;
-	n.b.l = (uint8_t)read_data8w(addr + 0, &dummy);
-	n.b.h = (uint8_t)read_data8w(addr + 1, wait);
+	n.b.l = (uint8_t)read_memory_mapped_io8(addr + 0);
+	n.b.h = (uint8_t)read_memory_mapped_io8(addr + 1);
 	return (uint32_t)(n.u16);
 }
 
-uint32_t DICTIONARY::read_data32w(uint32_t addr, int* wait)
+uint32_t DICTIONARY::read_memory_mapped_io32(uint32_t addr)
 {
 	pair32_t n;
 	addr = addr & 0xfffffffc;
 	if((addr >= 0xd8000) && (addr <= 0xe0000)) { // DICTRAM
-		int tmpwait;
-		int waitsum = 0;
-		n.b.l = (uint8_t)read_data8w(addr + 0, &tmpwait);
-		waitsum += tmpwait;
-		n.b.h = (uint8_t)read_data8w(addr + 1, &tmpwait);
-		waitsum += tmpwait;
-		n.b.h2 = (uint8_t)read_data8w(addr + 2, &tmpwait);
-		waitsum += tmpwait;
-		n.b.h3 = (uint8_t)read_data8w(addr + 3, &tmpwait);
-		waitsum += tmpwait;
-		if(wait != NULL) {
-			*wait = waitsum;
-		}
+		n.b.l = (uint8_t)read_memory_mapped_io8(addr + 0);
+		n.b.h = (uint8_t)read_memory_mapped_io8(addr + 1);
+		n.b.h2 = (uint8_t)read_memory_mapped_io8(addr + 2);
+		n.b.h3 = (uint8_t)read_memory_mapped_io8(addr + 3);
 		return n.d;
 	}
-	int dummy;
-	n.b.l  = (uint8_t)read_data8w(addr + 0, &dummy);
-	n.b.h  = (uint8_t)read_data8w(addr + 1, &dummy);
-	n.b.h2 = (uint8_t)read_data8w(addr + 2, &dummy);
-	n.b.h3 = (uint8_t)read_data8w(addr + 3, wait);
+	n.b.l  = (uint8_t)read_memory_mapped_io8(addr + 0);
+	n.b.h  = (uint8_t)read_memory_mapped_io8(addr + 1);
+	n.b.h2 = (uint8_t)read_memory_mapped_io8(addr + 2);
+	n.b.h3 = (uint8_t)read_memory_mapped_io8(addr + 3);
 	return n.d;
 }
 
-void DICTIONARY::write_data16w(uint32_t addr, uint32_t data, int* wait)
+void DICTIONARY::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 {
 	pair16_t n;
 	addr = addr & 0xfffffffe;
 	n.w = (uint16_t)data;
 	if((addr >= 0xd8000) && (addr <= 0xe0000)) { // DICTRAM
-		int tmpwait;
-		int waitsum = 0;
-		write_data8w(addr + 0, n.b.l, &tmpwait);
-		waitsum += tmpwait;
-		write_data8w(addr + 1, n.b.h, &tmpwait);
-		waitsum += tmpwait;
-		if(wait != NULL) {
-			*wait = waitsum;
-		}
+		write_memory_mapped_io8(addr + 0, n.b.l);
+		write_memory_mapped_io8(addr + 1, n.b.h);
 		return;
 	}		
-	int dummy;
-	write_data8w(addr + 0, n.b.l, &dummy);
-	write_data8w(addr + 1, n.b.h, wait);
 }
 
-void DICTIONARY::write_data32w(uint32_t addr, uint32_t data, int* wait)
+void DICTIONARY::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 {
 	pair32_t n;
 	addr = addr & 0xfffffffc;
 	n.d = data;
 	if((addr >= 0xd8000) && (addr <= 0xe0000)) { // DICTRAM
-		int tmpwait;
-		int waitsum = 0;
-		write_data8w(addr + 0, n.b.l, &tmpwait);
-		waitsum += tmpwait;
-		write_data8w(addr + 1, n.b.h, &tmpwait);
-		waitsum += tmpwait;
-		write_data8w(addr + 2, n.b.h2, &tmpwait);
-		waitsum += tmpwait;
-		write_data8w(addr + 3, n.b.h3, &tmpwait);
-		waitsum += tmpwait;
-		if(wait != NULL) {
-			*wait = waitsum;
-		}
+		write_memory_mapped_io8(addr + 0, n.b.l);
+		write_memory_mapped_io8(addr + 1, n.b.h);
+		write_memory_mapped_io8(addr + 2, n.b.h2);
+		write_memory_mapped_io8(addr + 3, n.b.h3);
 		return;
 	}
-	int dummy;
-	write_data8w(addr + 0, n.b.l, &dummy);
-	write_data8w(addr + 1, n.b.h, &dummy);
-	write_data8w(addr + 2, n.b.h2, &dummy);
-	write_data8w(addr + 3, n.b.h3, wait);
 }
 
 
@@ -265,12 +194,6 @@ void DICTIONARY::write_signal(int ch, uint32_t data, uint32_t mask)
 	case SIG_FMTOWNS_DICT_BANK:
 		dict_bank = (uint8_t)(data & 0x0f);
 		break;
-	case SIG_FMTOWNS_RAM_WAIT:
-		ram_wait_val = data;
-		break;
-	case SIG_FMTOWNS_ROM_WAIT:
-		rom_wait_val = data;
-		break;
 	}
 }
 
@@ -279,12 +202,6 @@ uint32_t DICTIONARY::read_signal(int ch)
 	switch(ch) {
 	case SIG_FMTOWNS_DICT_BANK:
 		return (uint32_t)(dict_bank & 0x0f);
-		break;
-	case SIG_FMTOWNS_RAM_WAIT:
-		return ram_wait_val;
-		break;
-	case SIG_FMTOWNS_ROM_WAIT:
-		return rom_wait_val;
 		break;
 	}
 	return 0x00;
@@ -302,8 +219,6 @@ bool DICTIONARY::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateValue(dict_bank);
 	state_fio->StateArray(dict_ram, sizeof(dict_ram), 1);
-	state_fio->StateValue(ram_wait_val);
-	state_fio->StateValue(rom_wait_val);
 	
 	if(loading) {
 		cmos_dirty = true;

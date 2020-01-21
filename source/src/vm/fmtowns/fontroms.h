@@ -26,7 +26,7 @@ public:
 	~FONT_ROMS() {}
 
 	void initialize();
-	uint32_t read_data8(uint32_t addr);
+	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
 };
 
 }

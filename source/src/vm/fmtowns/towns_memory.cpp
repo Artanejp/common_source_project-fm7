@@ -57,8 +57,20 @@ void TOWNS_MEMORY::initialize()
 	memset(ram_pagef, 0x00, sizeof(ram_pagef));
 	
 	set_memory_rw(0x00000000, 0x000bffff, ram_page0);
+	set_memory_mapped_io_rw(0x000cf000, 0x000cffff, this);
+	set_memory_mapped_io_r (0x000ca000, 0x000cbfff, d_font);
 	set_memory_rw(0x000f0000, 0x000f7fff, ram_pagef);
-	set_memory_mapped_io_rw(0x000c8000, 0x000cffff, this);
+	
+	set_memory_mapped_io_r (0x000f8000, 0x000fffff, d_sysrom);
+	set_memory_mapped_io_rw(0x80000000, 0x81ffffff, d_vram);
+	set_memory_mapped_io_r (0xc2000000, 0xc207ffff, d_msdos);
+	set_memory_mapped_io_r (0xc2080000, 0xc20fffff, d_dictionary);
+	set_memory_mapped_io_r(0xc2100000, 0xc213ffff, d_vram);
+	set_memory_mapped_io_rw(0xc2140000, 0xc2141fff, d_dictionary);
+	set_memory_mapped_io_rw(0x000d8000, 0x000dffff, d_dictionary);
+	
+	
+	set_memory_mapped_io_r (0xfffc0000, 0xffffffff, d_sysrom);
 	set_wait_values();
 	// Another devices are blank
 	
@@ -722,31 +734,21 @@ void TOWNS_MEMORY::event_callback(int id, int err)
 
 uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 {
-	if(addr >= 0x000d0000) return 0xff;
-	if(addr <  0x000c8000) return 0xff;
-	if(addr <  0x000cff80) {
-		return ram_mmio[addr & 0x7fff];
-	}
 	uint32_t val = 0xff;
+	if((addr < 0xcf000) || (addr >= 0xd0000)) return 0xff;
+	if(addr < 0xcff80) {
+		if(d_vram != NULL) {
+			val = d_vram->read_memory_mapped_io8(addr);
+		}
+		return val;
+	}
 	switch(addr & 0x7f) {
 	case 0x00:
-		if(d_vram != NULL) {
-			//val = d_vram->read_io8(FMTOWNS_VRAM_IO_CURSOR);
-		}
-		break;
 	case 0x01:
-		if(d_vram != NULL) {
-			//val = d_vram->read_io8(FMTOWNS_VRAM_IO_FMR_RAMSELECT);
-		}
-		break;
 	case 0x02:
-		if(d_vram != NULL) {
-			//val = d_vram->read_io8(FMTOWNS_VRAM_IO_FMR_DISPMODE);
-		}
-		break;
 	case 0x03:
 		if(d_vram != NULL) {
-			//val = d_vram->read_io8(FMTOWNS_VRAM_IO_FMR_PAGESEL);
+			val = d_vram->read_memory_mapped_io8(addr);
 		}
 		break;
 	case 0x04:
@@ -754,7 +756,7 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 		break;
 	case 0x06:
 		if(d_vram != NULL) {
-			//val = d_vram->read_io8(FMTOWNS_VRAM_IO_SYNC_STATUS);
+			val = d_vram->read_memory_mapped_io8(addr);
 		}
 		break;
 	//case 0x14:
@@ -762,7 +764,7 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 	case 0x16:
 	case 0x17:
 		if(d_vram != NULL) {
-			//val = d_vram->read_io8(FMTOWNS_VRAM_KANJICG + (addr & 3));
+			val = d_vram->read_memory_mapped_io8(addr);
 		}
 		break;
 	case 0x18:
@@ -778,6 +780,9 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 		val = val & 0x7f;
 		break;
 	default:
+		if(d_vram != NULL) {
+			val = d_vram->read_memory_mapped_io8(addr);
+		}
 		break;
 	}
 	return (uint32_t)val;
@@ -785,31 +790,20 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 
 void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
-	if(addr >= 0x000d0000) return;
-	if(addr <  0x000c8000) return;
-	if(addr <  0x000cff80) {
-		ram_mmio[addr & 0x7fff] = data;
+	if((addr < 0xcf000) || (addr >= 0xd0000)) return;
+	if(addr < 0xcff80) {
+		if(d_vram != NULL) {
+			d_vram->write_memory_mapped_io8(addr , data);
+		}
 		return;
 	}
 	switch(addr & 0x7f) {
 	case 0x00:
-		if(d_vram != NULL) {
-			//d_vram->write_io8(FMTOWNS_VRAM_IO_CURSOR, data);
-		}
-		break;
 	case 0x01:
-		if(d_vram != NULL) {
-			//d_vram->write_io8(FMTOWNS_VRAM_IO_FMR_RAMSELECT, data);
-		}
-		break;
 	case 0x02:
-		if(d_vram != NULL) {
-			//d_vram->write_io8(FMTOWNS_VRAM_IO_FMR_DISPMODE, data);
-		}
-		break;
 	case 0x03:
 		if(d_vram != NULL) {
-			//d_vram->write_io8(FMTOWNS_VRAM_IO_FMR_PAGESEL, data);
+			d_vram->write_memory_mapped_io8(addr , data);
 		}
 		break;
 	case 0x04:
@@ -821,7 +815,7 @@ void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 	case 0x16:
 	case 0x17:
 		if(d_vram != NULL) {
-			//d_vram->write_io8(FMTOWNS_VRAM_KANJICG + (addr & 3), data);
+			d_vram->write_memory_mapped_io8(addr , data);
 		}
 		break;
 	case 0x18:
@@ -835,6 +829,9 @@ void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 	case 0x20:
 		break;
 	default:
+		if(d_vram != NULL) {
+			d_vram->write_memory_mapped_io8(addr , data);
+		}
 		break;
 	}
 	return;

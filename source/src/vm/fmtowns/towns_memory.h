@@ -102,6 +102,7 @@ protected:
 	DEVICE* d_sysrom;
 	DEVICE* d_msdos;
 	DEVICE* d_serialrom;
+	DEVICE* d_font;
 
 	outputs_t outputs_ram_wait;
 	outputs_t outputs_rom_wait;
@@ -272,20 +273,18 @@ public:
 	void set_context_system_rom(DEVICE* device)
 	{
 		d_sysrom = device;
-		register_output_signal(&outputs_ram_wait, device, SIG_FMTOWNS_RAM_WAIT, 0xffffffff);
-		register_output_signal(&outputs_rom_wait, device, SIG_FMTOWNS_ROM_WAIT, 0xffffffff);
+	}
+	void set_context_font_rom(DEVICE* device)
+	{
+		d_font = device;
 	}
 	void set_context_dictionary(DEVICE* device)
 	{
 		d_dictionary = device;
-		register_output_signal(&outputs_ram_wait, device, SIG_FMTOWNS_RAM_WAIT, 0xffffffff);
-		register_output_signal(&outputs_rom_wait, device, SIG_FMTOWNS_ROM_WAIT, 0xffffffff);
 	}
 	void set_context_msdos(DEVICE* device)
 	{
 		d_msdos = device;
-		register_output_signal(&outputs_ram_wait, device, SIG_FMTOWNS_RAM_WAIT, 0xffffffff);
-		register_output_signal(&outputs_rom_wait, device, SIG_FMTOWNS_ROM_WAIT, 0xffffffff);
 	}
 	void set_context_beep(DEVICE* device)
 	{
@@ -294,8 +293,6 @@ public:
 	void set_context_sprite(DEVICE* device)
 	{
 		d_sprite = device;
-		register_output_signal(&outputs_ram_wait, device, SIG_FMTOWNS_RAM_WAIT, 0xffffffff);
-		register_output_signal(&outputs_rom_wait, device, SIG_FMTOWNS_ROM_WAIT, 0xffffffff);
 	}
 	void set_context_romcard(DEVICE* device, int num)
 	{
@@ -304,8 +301,6 @@ public:
 	void set_context_pcm(DEVICE* device)
 	{
 		d_pcm = device;
-		register_output_signal(&outputs_ram_wait, device, SIG_FMTOWNS_RAM_WAIT, 0xffffffff);
-		register_output_signal(&outputs_rom_wait, device, SIG_FMTOWNS_ROM_WAIT, 0xffffffff);
 	}
 	void set_context_serial_rom(DEVICE* device)
 	{

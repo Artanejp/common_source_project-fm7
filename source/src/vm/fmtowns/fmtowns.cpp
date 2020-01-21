@@ -242,6 +242,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 
 
 #endif
+	event->set_frames_per_sec(FRAMES_PER_SEC);
+	event->set_lines_per_frame(LINES_PER_FRAME);
+	
 	set_machine_type(machine_id, cpu_id);
 	// set contexts
 	event->set_context_cpu(cpu, cpu_clock);
@@ -354,6 +357,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_system_rom(sysrom);
 	memory->set_context_msdos(msdosrom);
 	memory->set_context_dictionary(dictionary);
+	memory->set_context_font_rom(fontrom);
 	memory->set_context_beep(beep);
 	memory->set_context_serial_rom(serialrom);
 	memory->set_context_sprite(sprite);
