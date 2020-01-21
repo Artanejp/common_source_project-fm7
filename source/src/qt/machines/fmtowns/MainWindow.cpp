@@ -24,7 +24,7 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("", false);
-	menu_BINs[0]->setTitle(QApplication::translate("MenuBABBAGE", "RAM", 0));
+//	menu_BINs[0]->setTitle(QApplication::translate("MenuBABBAGE", "RAM", 0));
 	//menuMachine->setVisible(false);
 	// Set Labels
 	
