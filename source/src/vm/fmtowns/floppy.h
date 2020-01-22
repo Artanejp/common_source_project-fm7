@@ -24,14 +24,16 @@ class FLOPPY : public DEVICE
 {
 private:
 	MB8877 *d_fdc;
-	DEVICE *d_pic;
-	
+	outputs_t output_intr_line;
 	int drvreg, drvsel;
 	bool irq, irqmsk, changed[4];
 	void update_intr();
 	
 public:
-	FLOPPY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	FLOPPY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		initialize_output_signals(&output_intr_line);
+	}
 	~FLOPPY() {}
 	
 	// common functions
@@ -47,9 +49,9 @@ public:
 	{
 		d_fdc = device;
 	}
-	void set_context_pic(DEVICE* device)
+	void set_context_intr_line(DEVICE* dev, int id, uint32_t mask)
 	{
-		d_pic = device;
+		register_output_signal(&output_intr_line, dev, id, mask);
 	}
 	void change_disk(int drv)
 	{

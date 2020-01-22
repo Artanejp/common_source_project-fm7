@@ -132,7 +132,7 @@ uint32_t ADPCM::read_io8(uint32_t addr)
 				dac_intr[i] = false;
 			}
 			if(_s) {
-				d_pic->write_signal(SIG_I8259_IR5 | SIG_I8259_CHIP1, 0x00000000, 0xffffffff);
+				write_signals(&outputs_intr, 0);
 			}
 		}
 		break;

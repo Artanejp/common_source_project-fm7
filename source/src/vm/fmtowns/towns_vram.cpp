@@ -424,7 +424,7 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 
 uint32_t TOWNS_VRAM::read_raw_vram8(uint32_t addr)
 {
-	return vram[addr];
+	return vram[addr & 0x7ffff];
 }
 	
 uint32_t TOWNS_VRAM::read_raw_vram16(uint32_t addr)
@@ -715,7 +715,6 @@ uint32_t TOWNS_VRAM::read_plane_data8(uint32_t addr)
 	// Plane Access
 	uint32_t x_addr = 0;
 	uint8_t *p = (uint8_t*)vram;
-	uint32_t mod_pos;
 
 	// ToDo: Writing plane.
 	if(access_page1) x_addr = 0x40000; //?
@@ -774,7 +773,6 @@ void TOWNS_VRAM::write_plane_data8(uint32_t addr, uint32_t data)
 	// Plane Access
 	uint32_t x_addr = 0;
 	uint8_t *p = (uint8_t*)vram;
-	uint32_t mod_pos;
 
 	// ToDo: Writing plane.
 	if(access_page1) x_addr = 0x40000; //?
@@ -991,7 +989,6 @@ uint32_t TOWNS_VRAM::read_io8(uint32_t address)
 
 uint32_t TOWNS_VRAM::read_io16(uint32_t address)
 {
-	pair32_t d;
 	switch(address & 0xffff) {
 	case 0x0458:
 		return vram_access_reg_addr;

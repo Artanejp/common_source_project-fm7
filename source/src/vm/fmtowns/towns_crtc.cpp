@@ -154,10 +154,19 @@ void TOWNS_CRTC::reset()
 	set_lines_per_frame(512);
 	//set_pixels_per_line(640);
 	
+	set_vsync(vsync, true);
+	
 	force_recalc_crtc_param();
 //	register_event(this, EVENT_CRTC_VSTART, vstart_us, false, &event_id_vstart);
 }
 
+void TOWNS_CRTC::set_vsync(bool val, bool force)
+{
+	if((vsync != val) || (force)) {
+		write_signals(&outputs_int_vsync, (val) ? 0xffffffff : 0x00000000);
+		vsync = val;
+	}
+}
 void TOWNS_CRTC::restart_display()
 {
 	// ToDo
@@ -212,6 +221,24 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 		horiz_start_us[layer] = ((double)(regs[(layer << 1) + 9] & 0x07ff)) * crtc_clock ;   // HDSx
 		horiz_end_us[layer] =   ((double)(regs[(layer << 1) + 9 + 1] & 0x07ff)) * crtc_clock ;   // HDEx
 	}
+#if 1
+	out_debug_log(_T("RECALC: CRTC_CLOCK=%f MHz FPS=%f"), 1.0 / crtc_clock, 1.0e6 / frame_us);
+	_TCHAR sdata[32 * 5];
+	_TCHAR sdata2[8];
+	for(int q = 0; q < 4; q++) {
+		memset(sdata, 0x00, sizeof(sdata));
+		for(int r = 0; r < 8; r++) {
+			my_sprintf_s(sdata2, 8, "%04X ", regs[r + q * 8]);
+			my_tcscat_s(sdata, sizeof(sdata) / sizeof(_TCHAR), sdata2);
+		}
+		out_debug_log(_T("RECALC: regs[%02d..%02d]= %s"), q * 8, q * 8 + 7, sdata);
+	}
+	out_debug_log(_T("RECALC: HORIZ_us=%f HORIZ_WIDTH_P_us=%f HORIZ_WIDTH_N_us=%f"), horiz_us, horiz_width_posi_us, horiz_width_nega_us);
+	out_debug_log(_T("RECALC: VERT_SYNC_PRE_us=%f VST2_us=%f EET_us=%f frame_us=%f"), vert_sync_pre_us, vst2_us, eet_us, frame_us);
+	for(int q = 0; q < 2; q++) {
+		out_debug_log(_T("RECALC: LAYER%d: VERT_START_us=%f VERT_END_us=%f HORIZ_START_us=%f HORIZ_END_us=%f"), q, vert_start_us[q], vert_end_us[q], horiz_start_us[q], horiz_end_us[q]);
+	}
+#endif
 	req_recalc = false;
 }
 
@@ -240,8 +267,17 @@ void TOWNS_CRTC::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x0448:
+		voutreg_num = data & 0x01;
+		break;
 	case 0x044a:
+		if(voutreg_num == 0) {
+			voutreg_ctrl = data & 0x10;
+		} else if(voutreg_num == 1) {
+			voutreg_prio = data & 0x10;
+		}			
+		break;
 	case 0x044c:
+		break;
 	case 0xfd98:
 	case 0xfd99:
 	case 0xfd9a:
@@ -250,8 +286,21 @@ void TOWNS_CRTC::write_io8(uint32_t addr, uint32_t data)
 	case 0xfd9d:
 	case 0xfd9e:
 	case 0xfd9f:
+		{
+			pair32_t n;
+			n.d = data;
+			if(addr == 0xfd9f) {
+				dpalette_regs[7] = n.b.l & 0x0f;
+			} else {
+				dpalette_regs[addr & 7] = n.b.l & 0x0f;
+				dpalette_regs[(addr + 1) & 7] = n.b.h & 0x0f;
+			}
+			dpalette_changed = true;
+		}
+		break;
 	case 0xfda0:
-		write_io16(addr, data);
+		crtout[0] = ((data & 0x0c) != 0) ? true : false;
+		crtout[1] = ((data & 0x03) != 0) ? true : false;
 		break;
 	}
 }
@@ -259,13 +308,8 @@ void TOWNS_CRTC::write_io8(uint32_t addr, uint32_t data)
 void TOWNS_CRTC::write_io16(uint32_t addr, uint32_t data)
 {
 //	out_debug_log(_T("WRITE16 ADDR=%04x DATA=%04x"), addr, data);
-	switch(addr) {
-	case 0x0440:
-	case 0x0441:
-		crtc_ch = data & 0x1f;
-		break;
+	switch(addr & 0xfffe) {
 	case 0x0442:
-	case 0x0443:
 		{
 			if(crtc_ch < 32) {
 				if((crtc_ch < 0x09) && ((crtc_ch >= 0x04) || (crtc_ch <= 0x01))) { // HSW1..VST
@@ -377,44 +421,8 @@ void TOWNS_CRTC::write_io16(uint32_t addr, uint32_t data)
 			}
 		}
 		break;
-	case 0x0448:
-	case 0x0449:
-		voutreg_num = data & 0x01;
-		break;
-	case 0x044a:
-	case 0x044b:
-		if(voutreg_num == 0) {
-			voutreg_ctrl = data & 0x10;
-		} else if(voutreg_num == 1) {
-			voutreg_prio = data & 0x10;
-		}			
-		break;
-	case 0x044c:
-		break;
-	case 0xfd98:
-	case 0xfd99:
-	case 0xfd9a:
-	case 0xfd9b:
-	case 0xfd9c:
-	case 0xfd9d:
-	case 0xfd9e:
-	case 0xfd9f:
-		{
-			pair32_t n;
-			n.d = data;
-			if(addr == 0xfd9f) {
-				dpalette_regs[7] = n.b.l & 0x0f;
-			} else {
-				dpalette_regs[addr & 7] = n.b.l & 0x0f;
-				dpalette_regs[(addr + 1) & 7] = n.b.h & 0x0f;
-			}
-			dpalette_changed = true;
-		}
-		break;
-	case 0xfda0:
-		crtout[0] = ((data & 0x0c) != 0) ? true : false;
-		crtout[1] = ((data & 0x03) != 0) ? true : false;
-		break;
+	default:
+		write_io8(addr & 0xfffe, data);
 	}
 }
 
@@ -439,59 +447,16 @@ uint16_t TOWNS_CRTC::read_reg30()
 uint32_t TOWNS_CRTC::read_io16(uint32_t addr)
 {
 //	out_debug_log(_T("READ16 ADDR=%04x"), addr);
-	switch(addr) {
-	case 0x0440:
-	case 0x0441:
-		return (uint32_t)crtc_ch;
-		break;
+	switch(addr & 0xfffe) {
 	case 0x0442:
-	case 0x0443:
 		if(crtc_ch == 30) {
 			return (uint32_t)read_reg30();
 		} else {
 			return regs[crtc_ch];
 		}
 		break;
-	case 0x044c:
-	case 0x044d:
-		{
-			uint16_t d = 0xff7c;
-			d = d | ((dpalette_changed) ? 0x80 : 0x00);
-			if(d_sprite != NULL) {
-				d = d | ((d_sprite->read_signal(SIG_TOWNS_SPRITE_BUSY) != 0) ? 0x02 : 0x00);
-			}
-			d = d | ((sprite_disp_page != 0) ? 0x01 : 0x00);
-			dpalette_changed = false;
-			return d;
-		}
-		break;
-	case 0xfd98:
-	case 0xfd99:
-	case 0xfd9a:
-	case 0xfd9b:
-	case 0xfd9c:
-	case 0xfd9d:
-	case 0xfd9e:
-	case 0xfd9f:
-		{
-			pair16_t n;
-			if(addr == 0xfd9f) {
-				n.b.l = dpalette_regs[7];
-				n.b.h = 0xff;
-			} else {
-				n.b.l = dpalette_regs[addr & 0x07];
-				n.b.h = dpalette_regs[(addr + 1) & 0x07];
-			}
-			return n.w;
-		}
-		break;
-	case 0xfda0:
-		{
-			uint16_t d = 0xfffc;
-			d = d | ((vsync) ? 0x01 : 0);
-			d = d | ((hsync) ? 0x02 : 0);
-			return d;
-		}
+	default:
+		return read_io8(addr & 0xfffe);
 		break;
 	}
 	return 0xffff;
@@ -524,6 +489,18 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 				d.w = regs[crtc_ch];
 			}
 			return (uint32_t)(d.b.h);
+		}
+		break;
+	case 0x044c:
+		{
+			uint16_t d = 0x7c;
+			d = d | ((dpalette_changed) ? 0x80 : 0x00);
+			if(d_sprite != NULL) {
+				d = d | ((d_sprite->read_signal(SIG_TOWNS_SPRITE_BUSY) != 0) ? 0x02 : 0x00);
+			}
+			d = d | ((sprite_disp_page != 0) ? 0x01 : 0x00);
+			dpalette_changed = false;
+			return d;
 		}
 		break;
 	case 0xfd98:
@@ -919,7 +896,7 @@ void TOWNS_CRTC::draw_screen()
 					int xx = pwidth & ~15;
 					int w = pwidth & 15;
 					for(int i = 0; i < w; i++) {
-						pbuf[i] = p++;
+						pbuf[i] = *p++;
 					}
 					for(int i = 0; i < w; i++) {
 						lbuffer1[xx++] = apal256[pbuf[i]];
@@ -1280,10 +1257,10 @@ void TOWNS_CRTC::event_frame()
 		event_id_vst2 = -1;
 	}
 	if(vert_sync_pre_us > 0.0) {
-		vsync = false;
+		set_vsync(false, true);
 		register_event(this, EVENT_CRTC_VST1, vert_sync_pre_us, false, &event_id_vst1); // VST1
 	} else {
-		vsync = true;
+		set_vsync(true, true);
 	}
 	if(vst2_us > 0.0) {
 		register_event(this, EVENT_CRTC_VST2, vst2_us, false, &event_id_vst2);
@@ -1336,10 +1313,10 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 	int eid2 = (event_id / 2) * 2;
 	// EVENT_VSTART MOVED TO event_frame().
 	if(event_id == EVENT_CRTC_VST1) { // VSYNC
-		vsync = true;
+		set_vsync(true, false);
 		event_id_vst1 = -1;
 	} else if (event_id == EVENT_CRTC_VST2) {
-		vsync = false;
+		set_vsync(false, false);
 		event_id_vst2 = -1;
 	} else if(eid2 == EVENT_CRTC_VDS) { // Display start
 		int layer = event_id & 1;
@@ -1550,7 +1527,7 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	if(loading) {
 		for(int i = 0; i < 4; i++) {
 			if(linebuffers[i] == NULL) {
-				linebuffers[i] = malloc(sizeof(linebuffer_t ) * TOWNS_CRTC_MAX_LINES);
+				linebuffers[i] = (linebuffer_t*)malloc(sizeof(linebuffer_t ) * TOWNS_CRTC_MAX_LINES);
 			}
 			for(int l = 0; l < TOWNS_CRTC_MAX_LINES; l++) {
 				memset(&(linebuffers[i][l]), 0x00, sizeof(linebuffer_t));

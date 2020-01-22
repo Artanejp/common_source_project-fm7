@@ -56,14 +56,18 @@ namespace FMTOWNS {
 class KEYBOARD : public DEVICE
 {
 private:
-	DEVICE* d_pic;
+	outputs_t output_intr_line;
+	outputs_t output_nmi_line;
 	
 	FIFO *key_buf;
 	uint8_t kbstat, kbdata, kbint, kbmsk;
 	uint8_t table[256];
-	
 public:
-	KEYBOARD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	KEYBOARD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		initialize_output_signals(&output_intr_line);
+		initialize_output_signals(&output_nmi_line);
+	}
 	~KEYBOARD() {}
 	
 	// common functions
@@ -76,9 +80,13 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
-	void set_context_pic(DEVICE* device)
+	void set_context_intr_line(DEVICE* dev, int id, uint32_t mask)
 	{
-		d_pic = device;
+		register_output_signal(&output_intr_line, dev, id, mask);
+	}
+	void set_context_nmi_line(DEVICE* dev, int id, uint32_t mask)
+	{
+		register_output_signal(&output_nmi_line, dev, id, mask);
 	}
 	void key_down(int code);
 	void key_up(int code);

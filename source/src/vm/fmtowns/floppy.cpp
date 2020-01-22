@@ -76,7 +76,7 @@ void FLOPPY::write_signal(int id, uint32_t data, uint32_t mask)
 
 void FLOPPY::update_intr()
 {
-	d_pic->write_signal(SIG_I8259_CHIP0 | SIG_I8259_IR6, irq && irqmsk ? 1 : 0, 1);
+	write_signals(&output_intr_line, irq && irqmsk ? 1 : 0);
 }
 
 #define STATE_VERSION	1

@@ -23,7 +23,8 @@ namespace FMTOWNS {
 class TIMER : public DEVICE
 {
 private:
-	DEVICE *d_pcm, *d_pic, *d_rtc;
+	DEVICE *d_pcm, *d_rtc;
+	outputs_t output_intr_line;
 	
 	uint16_t free_run_counter;
 	uint8_t intr_reg, rtc_data;
@@ -31,7 +32,10 @@ private:
 	void update_intr();
 	
 public:
-	TIMER(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	TIMER(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		initialize_output_signals(&output_intr_line);
+	}
 	~TIMER() {}
 	
 	// common functions
@@ -47,13 +51,13 @@ public:
 	{
 		d_pcm = device;
 	}
-	void set_context_pic(DEVICE* device)
-	{
-		d_pic = device;
-	}
 	void set_context_rtc(DEVICE* device)
 	{
 		d_rtc = device;
+	}
+	void set_context_intr_line(DEVICE* dev, int id, uint32_t mask)
+	{
+		register_output_signal(&output_intr_line, dev, id, mask);
 	}
 };
 }

@@ -280,14 +280,12 @@ protected:
 	int display_linebuf;
 	linebuffer_t *linebuffers[4];
 	
-	void set_display(bool val);
-	void set_vblank(bool val);
-	void set_vsync(bool val);
-	void set_hsync(bool val);
+	void __FASTCALL set_vsync(bool val, bool force);
 	void force_recalc_crtc_param(void);
 	void restart_display();
 	void stop_display();
 	void notify_mode_changed(int layer, uint8_t mode);
+	
 	void set_crtc_clock(uint16_t val);
 	uint16_t read_reg30();
 	

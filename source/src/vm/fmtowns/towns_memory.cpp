@@ -16,7 +16,8 @@
 #include "../pcm1bit.h"
 
 namespace FMTOWNS {
-#define EVENT_1US_WAIT 1
+#define EVENT_1US_WAIT    1
+#define EVENT_1US_FREERUN 2
 
 void TOWNS_MEMORY::config_page00()
 {
@@ -90,6 +91,7 @@ void TOWNS_MEMORY::initialize()
 	// load rom image
 	// ToDo: More smart.
 	vram_size = 0x80000; // OK?
+	event_freerun = -1;
 }
 
 void TOWNS_MEMORY::set_wait_values()
@@ -555,11 +557,17 @@ void TOWNS_MEMORY::reset()
 {
 	// reset memory
 	// ToDo
-	d_cpu->set_address_mask(0xffffffff);
+	if(d_cpu != NULL) {
+		d_cpu->set_address_mask(0xffffffff);
+	}
 	dma_is_vram = true;
 	nmi_vector_protect = false;
 	config_page00();
 	set_wait_values();
+	freerun_counter = 0;
+	if(event_freerun > -1) cancel_event(this, event_freerun);
+	register_event(this, EVENT_1US_FREERUN, 1.0, true, &event_freerun);
+	
 }
 
 uint32_t TOWNS_MEMORY::read_data8(uint32_t addr)
@@ -611,14 +619,32 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 	switch(addr & 0xffff) {
 	case 0x0020: // Software reset ETC.
 		// reset cause register
-		val = ((software_reset) ? 1 : 0) | ((d_cpu->get_shutdown_flag() != 0) ? 2 : 0);
+		if(d_cpu != NULL) {
+			val = ((software_reset) ? 1 : 0) | ((d_cpu->get_shutdown_flag() != 0) ? 2 : 0);
+		}
 		software_reset = false;
-		d_cpu->set_shutdown_flag(0);
+		if(d_cpu != NULL) {
+			d_cpu->set_shutdown_flag(0);
+		}
 		val =  val | 0x7c;
 		break;
 	case 0x0022:
 		// Power register
 		val = 0xff;
+		break;
+	case 0x0026:
+		{
+			pair16_t n;
+			n.w = freerun_counter;
+			val = n.b.l;
+		}
+		break;
+	case 0x0027:
+		{
+			pair16_t n;
+			n.w = freerun_counter;
+			val = n.b.l;
+		}
 		break;
 	case 0x0030:
 		val = (((machine_id & 0x1f) << 3) | (cpu_id & 7));
@@ -695,6 +721,25 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 	return val;
 }
 
+uint32_t TOWNS_MEMORY::read_io16(uint32_t addr)
+{
+	switch(addr & 0xfffe) {
+	case 0x0026:
+		return freerun_counter;
+		break;
+	default:
+		{
+			// OK?
+			pair16_t n;
+			n.b.l = read_io8((addr & 0xfffe) + 0);
+			n.b.h = read_io8((addr & 0xfffe) + 1);
+			return n.w;
+		}
+		break;
+	}
+	return 0xffff;
+}
+
 void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 
@@ -712,24 +757,32 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 			software_reset = false;
 		}
 		if((data & 0x40) != 0) {
-			d_cpu->set_shutdown_flag(1);
+			if(d_cpu != NULL) {
+				d_cpu->set_shutdown_flag(1);
+			}
 			emu->power_off();
 		}
 		if(software_reset) {
-			d_cpu->reset();
+			if(d_cpu != NULL) {
+				d_cpu->reset();
+			}
 		}
-		switch(data & 0x08) {
-		case 0x00:	// 20bit
-			d_cpu->set_address_mask(0xffffffff);
-			break;
-		default:	// 32bit
-			d_cpu->set_address_mask(0x000fffff);
-			break;
+		if(d_cpu != NULL) {
+			switch(data & 0x08) {
+			case 0x00:	// 20bit
+				d_cpu->set_address_mask(0xffffffff);
+				break;
+			default:	// 32bit
+				d_cpu->set_address_mask(0x000fffff);
+				break;
+			}
 		}
 		break;
 	case 0x0022:
 		if((data & 0x40) != 0) {
-			d_cpu->set_shutdown_flag(1);
+			if(d_cpu != NULL) {
+				d_cpu->set_shutdown_flag(1);
+			}
 			emu->power_off();
 		}
 		// Power register
@@ -745,7 +798,9 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
 			if(event_wait_1us != -1) cancel_event(this, event_wait_1us);
 			register_event(this, EVENT_1US_WAIT, 1.0, false, &event_wait_1us);
-			d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+			if(d_cpu != NULL) {
+				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+			}
 		}
 		break;
 	case 0x0404: // System Status Reg.
@@ -774,10 +829,15 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 void TOWNS_MEMORY::event_callback(int id, int err)
 {
 	switch(id) {
+	case EVENT_1US_FREERUN:
+		freerun_counter++;
+		break;
 	case EVENT_1US_WAIT:
 		event_wait_1us = -1;
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+			if(d_cpu != NULL) {
+				d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+			}
 		}
 		break;
 	default:
@@ -823,7 +883,7 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 		break;
 	case 0x18:
 		if(d_beep != NULL) {
-			//d_beep->write_signal(SIG_BEEP_ON, 1, 1);
+			d_beep->write_signal(SIG_PCM1BIT_ON, 1, 1);
 		}
 		break;
 	case 0x19:
@@ -876,7 +936,7 @@ void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x18:
 		if(d_beep != NULL) {
-			//d_beep->write_signal(SIG_BEEP_ON, 0, 1);
+			d_beep->write_signal(SIG_PCM1BIT_ON, 0, 1);
 		}
 		break;
 	case 0x19:
@@ -898,15 +958,29 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 {
 	if(ch == SIG_MEMORY_EXTNMI) {
 		extra_nmi_val = ((data & mask) != 0);
+		if(!(extra_nmi_mask)) {
+			// Not MASK
+			if(d_cpu != NULL) {
+				d_cpu->write_signal(SIG_CPU_NMI, data, mask);
+			}
+		}			
 	} else if(ch == SIG_CPU_NMI) {
 		// Check protect
-		d_cpu->write_signal(SIG_CPU_NMI, data, mask);
+		if(d_cpu != NULL) {
+			d_cpu->write_signal(SIG_CPU_NMI, data, mask);
+		}
 	} else if(ch == SIG_CPU_IRQ) {
-		d_cpu->write_signal(SIG_CPU_IRQ, data, mask);
+		if(d_cpu != NULL) {
+			d_cpu->write_signal(SIG_CPU_IRQ, data, mask);
+		}
 	} else if(ch == SIG_CPU_BUSREQ) {
-		d_cpu->write_signal(SIG_CPU_BUSREQ, data, mask);
+		if(d_cpu != NULL) {
+			d_cpu->write_signal(SIG_CPU_BUSREQ, data, mask);
+		}
 	} else if(ch == SIG_I386_A20) {
-		d_cpu->write_signal(SIG_I386_A20, data, mask);
+		if(d_cpu != NULL) {
+			d_cpu->write_signal(SIG_I386_A20, data, mask);
+		}
 	} else if(ch == SIG_FMTOWNS_RAM_WAIT) {
 		mem_wait_val = (int)data;
 		set_wait_values();
@@ -933,6 +1007,14 @@ uint32_t TOWNS_MEMORY::read_signal(int ch)
 	} 
 	return 0;
 }
+
+void TOWNS_MEMORY::set_intr_line(bool line, bool pending, uint32_t bit)
+{
+	if(d_cpu != NULL) {
+		d_cpu->set_intr_line(line, pending, bit);
+	}
+}
+
 // ToDo: DMA
 
 #define STATE_VERSION	1
@@ -953,6 +1035,9 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(software_reset);
 
 	state_fio->StateValue(event_wait_1us);
+	state_fio->StateValue(event_freerun);
+	state_fio->StateValue(freerun_counter);
+	
 	state_fio->StateValue(extra_nmi_val);
 	state_fio->StateValue(extra_nmi_mask);
 	

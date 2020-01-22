@@ -281,39 +281,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(seek_sound);
 	event->set_context_sound(head_down_sound);
 	event->set_context_sound(head_up_sound);
-
-	
-/*	pic	0	timer
-		1	keyboard
-		2	rs-232c
-		3	ex rs-232c
-		4	(option)
-		5	(option)
-		6	floppy drive or dma ???
-		7	(slave)
-		8	scsi
-		9	cd-rom controller
-		10	(option)
-		11	crtc vsync
-		12	printer
-		13	sound (OPN2 + ADPCM)
-		14	(option)
-		15	(reserve)
-	nmi 0   keyboard (RAS)
-        1   extend slot
-	dma	0	floppy drive
-		1	hard drive
-		2	printer
-		3	cd-rom controller
-    dma 4   extend slot
-        5   (reserve)
-        6   (reserve)
-        7   (reserve)
-
-
-*/
-	
-	
 	
 	pit0->set_context_ch0(timer, SIG_TIMER_CH0, 1);
 	pit0->set_context_ch1(timer, SIG_TIMER_CH1, 1);
@@ -322,8 +289,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit0->set_constant_clock(1, 307200);
 	pit0->set_constant_clock(2, 307200);
 	pit1->set_constant_clock(1, 1228800);
-	pic->set_context_cpu(cpu);
-	fdc->set_context_drq(dma, SIG_UPD71071_CH0, 1);
+//	pic->set_context_cpu(cpu);
+	pic->set_context_cpu(memory);
 	fdc->set_context_irq(floppy, SIG_FLOPPY_IRQ, 1);
 	rtc->set_context_data(timer, SIG_TIMER_RTC, 0x0f, 0);
 	rtc->set_context_busy(timer, SIG_TIMER_RTC, 0x80);
@@ -337,8 +304,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_child_dma(extra_dma);
 	
 	floppy->set_context_fdc(fdc);
-	floppy->set_context_pic(pic);
-	keyboard->set_context_pic(pic);
 	
 	sprite->set_context_vram(vram);
 	vram->set_context_sprite(sprite);
@@ -367,15 +332,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	cdc->set_context_cdrom(cdrom);
 	cdc->set_context_scsi_host(cdc_scsi);
-	cdc->set_context_dmareq_line(dma, SIG_UPD71071_CH3, 0xff);
-//	cdc->set_context_pic(pic, SIG_I8259_CHIP1 | SIG_I8259_IR1);
+//	cdc->set_context_dmaint_line(dma, SIG_UPD71071_CH3, 0xff);
 	
-	crtc->set_context_vsync(pic, SIG_I8259_CHIP1 | SIG_I8259_IR3, 0xffffffff); // VSYNC
 	adpcm->set_context_opn2(opn2);
 	adpcm->set_context_rf5c68(rf5c68);
 	adpcm->set_context_adc(adc);
-	adpcm->set_context_pic(pic);
-	adpcm->set_context_intr_line(pic, SIG_I8259_CHIP1 | SIG_I8259_IR5, 0xffffffff); // ADPCM AND OPN2
 
 	rf5c68->set_context_interrupt_boundary(adpcm, SIG_ADPCM_WRITE_INTERRUPT, 0xffffffff);
 	opn2->set_context_irq(adpcm, SIG_ADPCM_OPX_INTR, 0xffffffff);
@@ -385,10 +346,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	adc->set_context_interrupt(adpcm, SIG_ADPCM_ADC_INTR, 0xffffffff); 
 	
 	scsi->set_context_dma(dma);
-	scsi->set_context_pic(pic);
 	scsi->set_context_host(scsi_host);
+	scsi->set_context_pic(pic);
 	timer->set_context_pcm(beep);
-	timer->set_context_pic(pic);
 	timer->set_context_rtc(rtc);
 	
 	// cpu bus
@@ -400,122 +360,153 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
+	// Interrupts
+	// IRQ0  : TIMER
+	// IRQ1  : KEYBOARD
+	// IRQ2  : USART (ToDo)
+	// IRQ3  : EXTRA USART (ToDo)
+	// IRQ4  : EXTRA I/O (Maybe not implement)
+	// IRQ5  : EXTRA I/O (Maybe not implement)
+	// IRQ6  : FDC
+	// IRQ7  : Deisy chain (to IRQ8 - 15)
+	timer->set_context_intr_line(pic, SIG_I8259_CHIP0 | SIG_I8259_IR0, 0xffffffff);
+	keyboard->set_context_intr_line(pic, SIG_I8259_CHIP0 | SIG_I8259_IR1, 0xffffffff);
+	floppy->set_context_intr_line(pic, SIG_I8259_CHIP0 | SIG_I8259_IR6, 0xffffffff);
+	
+	// IRQ8  : SCSI (-> scsi.cpp)
+	// IRQ9  : CDC
+	// IRQ10 : EXTRA I/O (Maybe not implement)
+	// IRQ11 : VSYNC
+	// IRQ12 : PRINTER (ToDo)
+	// IRQ13 : ADPCM AND OPN2 (Route to adpcm.cpp)
+	// IRQ14 : EXTRA I/O (Maybe not implement)
+	// IRQ15 : RESERVED.
+	cdc->set_context_dmaint_line(pic, SIG_I8259_CHIP1 | SIG_I8259_IR1, 0xffffffff);
+	cdc->set_context_mpuint_line(pic, SIG_I8259_CHIP1 | SIG_I8259_IR1, 0xffffffff);
+	crtc->set_context_vsync(pic, SIG_I8259_CHIP1 | SIG_I8259_IR3, 0xffffffff);
+	adpcm->set_context_intr_line(pic, SIG_I8259_CHIP1 | SIG_I8259_IR5, 0xffffffff);
+
+	// DMA0  : FDC/DRQ
+	// DMA1  : SCSI (-> scsi.cpp)
+	// DMA2  : PRINTER (ToDo)
+	// DMA3  : CDC
+	// EXTRA DMA0 : EXTRA SLOT (Maybe not implement)
+	// EXTRA DMA1 : Reserved
+	// EXTRA DMA2 : Reserved
+	// EXTRA DMA3 : Reserved
+	fdc->set_context_drq(dma, SIG_UPD71071_CH0, 1);
+	cdc->set_context_dmareq_line(dma, SIG_UPD71071_CH3, 0xff);
+
+	// NMI0 : KEYBOARD (RAS)
+	// NMI1 : Extra SLOT (Maybe not implement)
+	keyboard->set_context_nmi_line(memory, SIG_CPU_NMI, 0xffffffff);
 	
 	// i/o bus
-	io->set_iomap_alias_rw(0x00, pic, I8259_ADDR_CHIP0 | 0);
-	io->set_iomap_alias_rw(0x02, pic, I8259_ADDR_CHIP0 | 1);
-	io->set_iomap_alias_rw(0x10, pic, I8259_ADDR_CHIP1 | 0);
-	io->set_iomap_alias_rw(0x12, pic, I8259_ADDR_CHIP1 | 1);
-	io->set_iomap_single_rw(0x20, memory);	// reset
-	io->set_iomap_single_r(0x21, memory);	// cpu misc
-	io->set_iomap_single_w(0x22, memory);	// power
-	io->set_iomap_single_rw(0x24, memory);	// dma
-	io->set_iomap_single_r(0x25, memory);	// cpu_misc4 (after Towns2)
-	io->set_iomap_single_r(0x26, timer);
-	io->set_iomap_single_r(0x27, timer);
-	io->set_iomap_single_r(0x28, memory);   // NMI MASK (after Towns2)
-	io->set_iomap_single_r(0x30, memory);	// cpu id
-	io->set_iomap_single_r(0x31, memory);	// cpu id
+	io->set_iomap_alias_rw (0x0000, pic, I8259_ADDR_CHIP0 | 0);
+	io->set_iomap_alias_rw (0x0002, pic, I8259_ADDR_CHIP0 | 1);
+	io->set_iomap_alias_rw (0x0010, pic, I8259_ADDR_CHIP1 | 0);
+	io->set_iomap_alias_rw (0x0012, pic, I8259_ADDR_CHIP1 | 1);
 	
-	io->set_iomap_single_rw(0x32, serialrom);	// serial rom
+	io->set_iomap_range_rw (0x0020, 0x0028, memory);
+	io->set_iomap_range_r  (0x0030, 0x0031, memory);	// cpu id / machine id
+	io->set_iomap_single_rw(0x0032, memory);	// serial rom (routed from memory)
 
-	io->set_iomap_alias_rw(0x40, pit0, 0);
-	io->set_iomap_alias_rw(0x42, pit0, 1);
-	io->set_iomap_alias_rw(0x44, pit0, 2);
-	io->set_iomap_alias_rw(0x46, pit0, 3);
-	io->set_iomap_alias_rw(0x50, pit1, 0);
-	io->set_iomap_alias_rw(0x52, pit1, 1);
-	io->set_iomap_alias_rw(0x54, pit1, 2);
-	io->set_iomap_alias_rw(0x56, pit1, 3);
+	io->set_iomap_alias_rw(0x0040, pit0, 0);
+	io->set_iomap_alias_rw(0x0042, pit0, 1);
+	io->set_iomap_alias_rw(0x0044, pit0, 2);
+	io->set_iomap_alias_rw(0x0046, pit0, 3);
+	io->set_iomap_alias_rw(0x0050, pit1, 0);
+	io->set_iomap_alias_rw(0x0052, pit1, 1);
+	io->set_iomap_alias_rw(0x0054, pit1, 2);
+	io->set_iomap_alias_rw(0x0056, pit1, 3);
 	
-	io->set_iomap_single_rw(0x60, timer);
-	io->set_iomap_single_rw(0x68, timer); // Interval timer register2 (after Towns 10F).
-	io->set_iomap_single_rw(0x6a, timer); // Interval timer register2 (after Towns 10F).
-	io->set_iomap_single_rw(0x6b, timer); // Interval timer register2 (after Towns 10F).
-	io->set_iomap_single_rw(0x6c, memory); // 1uS wait register (after Towns 10F).
+	io->set_iomap_single_rw(0x0060, timer);
+	io->set_iomap_single_rw(0x0068, timer); // Interval timer register2 (after Towns 10F).
+	io->set_iomap_single_rw(0x006a, timer); // Interval timer register2 (after Towns 10F).
+	io->set_iomap_single_rw(0x006b, timer); // Interval timer register2 (after Towns 10F).
+	io->set_iomap_single_rw(0x006c, memory); // 1uS wait register (after Towns 10F).
 	
-	io->set_iomap_single_rw(0x70, timer);
-	io->set_iomap_single_w(0x80, timer);
+	io->set_iomap_single_rw(0x0070, timer); // RTC DATA
+	io->set_iomap_single_w (0x0080, timer); // RTC COMMAND
 	
-	io->set_iomap_range_rw(0xa0, 0xaf, dma);
-	io->set_iomap_range_rw(0xb0, 0xbf, extra_dma);
+	io->set_iomap_range_rw (0x00a0, 0x00af, dma);
+	io->set_iomap_range_rw (0x00b0, 0x00bf, extra_dma);
 	
-	io->set_iomap_alias_rw(0x200, fdc, 0);
-	io->set_iomap_alias_rw(0x202, fdc, 1);
-	io->set_iomap_alias_rw(0x204, fdc, 2);
-	io->set_iomap_alias_rw(0x206, fdc, 3);
-	io->set_iomap_single_rw(0x208, floppy);
-	io->set_iomap_single_rw(0x20c, floppy);
-	io->set_iomap_single_rw(0x20e, floppy); // Towns drive SW
+	io->set_iomap_alias_rw (0x0200, fdc, 0);  // STATUS/COMMAND
+	io->set_iomap_alias_rw (0x0202, fdc, 1);  // TRACK
+	io->set_iomap_alias_rw (0x0204, fdc, 2);  // SECTOR
+	io->set_iomap_alias_rw (0x0206, fdc, 3);  // DATA
+	io->set_iomap_single_rw(0x0208, floppy);  // DRIVE STATUS / DRIVE CONTROL
+	io->set_iomap_single_rw(0x020c, floppy);  // DRIVE SELECT
+	io->set_iomap_single_rw(0x020e, floppy);  // Towns drive SW
 	
-	io->set_iomap_single_rw(0x400, memory);	// System Status
-	io->set_iomap_single_rw(0x402, memory);
-	io->set_iomap_single_rw(0x404, memory);	// System status
-	io->set_iomap_range_rw(0x406, 0x43f, memory);
+	io->set_iomap_range_rw (0x0400, 0x0404, memory); // System Status
+	io->set_iomap_range_rw (0x0406, 0x403f, memory); // Reserved
 	
-	io->set_iomap_range_rw(0x440, 0x443, crtc); // CRTC
-	io->set_iomap_range_rw(0x448, 0x44f, crtc); // 
-	io->set_iomap_single_rw(0x450, sprite); //
-	io->set_iomap_single_rw(0x452, sprite); //
+	io->set_iomap_range_rw(0x0440, 0x0443, crtc); // CRTC
+	io->set_iomap_range_rw(0x0448, 0x044f, crtc); // VIDEO OUT (CRTC)
 	
-	io->set_iomap_range_rw(0x458, 0x45f, vram); // CRTC
+	io->set_iomap_range_rw(0x0450, 0x0452, sprite); // SPRITE
 	
-	io->set_iomap_single_rw(0x480, memory); //
-	io->set_iomap_single_rw(0x484, dictionary); // Dictionary
+	io->set_iomap_single_rw(0x0458, vram);         // VRAM ACCESS CONTROLLER (ADDRESS)
+	io->set_iomap_range_rw (0x045a, 0x045f, vram); // VRAM ACCESS CONTROLLER (DATA)
+	
+	io->set_iomap_single_rw(0x0480, sysrom); //  MEMORY REGISTER
+	io->set_iomap_single_rw(0x0484, dictionary); // Dictionary
+	
 	//io->set_iomap_alias_r(0x48a, memory_card, 0); //
 	//io->set_iomap_alias_rw(0x490, memory_card); // After Towns2
 	//io->set_iomap_alias_rw(0x491, memory_card); // After Towns2
 	
-	io->set_iomap_range_rw(0x4c0, 0x4cf, cdc); // CDROM
+	io->set_iomap_range_rw(0x04c0, 0x04cf, cdc); // CDROM
 	// PAD, Sound
 #if 0
-	io->set_iomap_alias_r(0x4d0, pad, 0); // Pad1
-	io->set_iomap_alias_r(0x4d2, pad, 1); // Pad 2
-	io->set_iomap_alias_rw(0x4d5, adpcm, 0); // mute 
-	io->set_iomap_alias_w(0x4d6, pad, 3); // Pad out
-#else
-	io->set_iomap_alias_rw(0x4d5, adpcm, 0); // mute 
+	io->set_iomap_single_r(0x04d0, pad); // Pad1
+	io->set_iomap_single_r(0x04d2, pad); // Pad 2
+	io->set_iomap_single_w(0x04d6, pad); // Pad out
 #endif	
+	io->set_iomap_single_rw(0x04d5, adpcm); // mute 
 	// OPN2(YM2612)
-	io->set_iomap_alias_rw(0x4d8, opn2, 0); // STATUS(R)/Addrreg 0(W)
-	io->set_iomap_alias_w(0x4da, opn2, 1);  // Datareg 0(W)
-	io->set_iomap_alias_w(0x4dc, opn2, 2);  // Addrreg 1(W)
-	io->set_iomap_alias_w(0x4de, opn2, 3);  // Datareg 1(W)
+	io->set_iomap_alias_rw(0x04d8, opn2, 0); // STATUS(R)/Addrreg 0(W)
+	io->set_iomap_alias_w (0x04da, opn2, 1);  // Datareg 0(W)
+	io->set_iomap_alias_w (0x04dc, opn2, 2);  // Addrreg 1(W)
+	io->set_iomap_alias_w (0x04de, opn2, 3);  // Datareg 1(W)
 	// Electrical volume
-//	io->set_iomap_alias_rw(0x4e0, e_volume[0], 0);
-//	io->set_iomap_alias_rw(0x4e1, e_volume[0], 1);
-//	io->set_iomap_alias_rw(0x4e2, e_volume[1], 0);
-//	io->set_iomap_alias_rw(0x4e3, e_volume[1], 1);
+//	io->set_iomap_alias_rw(0x04e0, e_volume[0], 0);
+//	io->set_iomap_alias_rw(0x04e1, e_volume[0], 1);
+//	io->set_iomap_alias_rw(0x04e2, e_volume[1], 0);
+//	io->set_iomap_alias_rw(0x04e3, e_volume[1], 1);
 
 	// ADPCM
-	io->set_iomap_range_w(0x4e7, 0x4ff, adpcm); // 
+	io->set_iomap_range_rw(0x04e7, 0x04ef, adpcm); // A/D SAMPLING DATA REG 
+	io->set_iomap_range_rw(0x04f0, 0x04ff, adpcm); // A/D SAMPLING DATA REG 
 
-	io->set_iomap_single_rw(0x5c0, memory); // NMI MASK
-	io->set_iomap_single_r(0x5c2, memory);  // NMI STATUS
-	io->set_iomap_single_r(0x5c8, vram); // TVRAM EMULATION
-	io->set_iomap_single_w(0x5ca, vram); // VSYNC INTERRUPT
+	io->set_iomap_single_rw(0x05c0, memory); // NMI MASK
+	io->set_iomap_single_r (0x05c2, memory);  // NMI STATUS
+	io->set_iomap_single_r (0x05c8, vram); // TVRAM EMULATION
+	io->set_iomap_single_w (0x05ca, vram); // VSYNC INTERRUPT
 	
-	io->set_iomap_single_r(0x5e8, memory); // RAM capacity register.(later Towns1H/2H/1F/2F).
-	io->set_iomap_single_r(0x5ec, memory); // RAM Wait register , ofcially after Towns2, but exists after Towns1H.
+	io->set_iomap_single_rw(0x05e8, memory); // RAM capacity register.(later Towns1H/2H/1F/2F).
+	io->set_iomap_single_rw(0x05ec, memory); // RAM Wait register , ofcially after Towns2, but exists after Towns1H.
 	
-	io->set_iomap_single_rw(0x600, keyboard);
-	io->set_iomap_single_rw(0x602, keyboard);
-	io->set_iomap_single_rw(0x604, keyboard);
-	//io->set_iomap_single_r(0x606, keyboard); // BufFul (After Towns2)
+	io->set_iomap_single_rw(0x0600, keyboard);
+	io->set_iomap_single_rw(0x0602, keyboard);
+	io->set_iomap_single_rw(0x0604, keyboard);
+	io->set_iomap_single_r (0x0606, keyboard); // BufFul (After Towns2)
 
-	//io->set_iomap_single_rw(0x800, printer);
-	//io->set_iomap_single_rw(0x802, printer);
-	//io->set_iomap_single_rw(0x804, printer);
+	//io->set_iomap_single_rw(0x0800, printer);
+	//io->set_iomap_single_rw(0x0802, printer);
+	//io->set_iomap_single_rw(0x0804, printer);
 	
-	io->set_iomap_alias_rw(0xa00, sio, 0);
-	io->set_iomap_alias_rw(0xa02, sio, 1);
-//	io->set_iomap_single_r(0xa04, serial);
-//	io->set_iomap_single_r(0xa06, serial);
-//	io->set_iomap_single_w(0xa08, serial);
-//	io->set_iomap_single_rw(0xa0a, modem);
+	io->set_iomap_alias_rw (0x0a00, sio, 0);
+	io->set_iomap_alias_rw (0x0a02, sio, 1);
+//	io->set_iomap_single_r (0x0a04, serial);
+//	io->set_iomap_single_r (0x0a06, serial);
+//	io->set_iomap_single_w (0x0a08, serial);
+//	io->set_iomap_single_rw(0x0a0a, modem);
 	
-	io->set_iomap_single_rw(0xc30, scsi);
-	io->set_iomap_single_rw(0xc32, scsi);
+	io->set_iomap_single_rw(0x0c30, scsi);
+	io->set_iomap_single_rw(0x0c32, scsi);
 
 	
 	io->set_iomap_range_rw(0x3000, 0x3fff, dictionary); // CMOS

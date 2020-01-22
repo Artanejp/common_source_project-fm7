@@ -79,9 +79,9 @@ void TIMER::write_signal(int id, uint32_t data, uint32_t mask)
 void TIMER::update_intr()
 {
 	if((tmout0 && (intr_reg & 1)) || (tmout1 && (intr_reg & 2))) {
-		d_pic->write_signal(SIG_I8259_CHIP0 | SIG_I8259_IR0, 1, 1);
+		write_signals(&output_intr_line, 1);
 	} else {
-		d_pic->write_signal(SIG_I8259_CHIP0 | SIG_I8259_IR0, 0, 1);
+		write_signals(&output_intr_line, 0);
 	}
 }
 

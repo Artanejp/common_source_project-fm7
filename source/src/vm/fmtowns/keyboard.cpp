@@ -53,7 +53,7 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 	switch(addr) {
 	case 0x600:
 		kbint &= ~1;
-		d_pic->write_signal(SIG_I8259_CHIP0 | SIG_I8259_IR1, 0, 0);
+		write_signals(&output_intr_line, 0);
 		kbstat &= ~1;
 		return kbdata;
 	case 0x602:
@@ -72,7 +72,7 @@ void KEYBOARD::event_frame()
 	}
 	if((kbstat & 1) && (kbmsk & 1) && !(kbint & 1)) {
 		kbint |= 1;
-		d_pic->write_signal(SIG_I8259_CHIP0 | SIG_I8259_IR1, 1, 1);
+		write_signals(&output_intr_line, 0xffffffff);
 	}
 //	kbstat &= ~2;
 }
