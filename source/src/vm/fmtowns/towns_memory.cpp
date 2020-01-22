@@ -15,9 +15,10 @@
 #include "../i386.h"
 #include "../pcm1bit.h"
 
+#include <math.h>
+
 namespace FMTOWNS {
-#define EVENT_1US_WAIT    1
-#define EVENT_1US_FREERUN 2
+#define EVENT_1US_WAIT       1
 
 void TOWNS_MEMORY::config_page00()
 {
@@ -91,7 +92,6 @@ void TOWNS_MEMORY::initialize()
 	// load rom image
 	// ToDo: More smart.
 	vram_size = 0x80000; // OK?
-	event_freerun = -1;
 }
 
 void TOWNS_MEMORY::set_wait_values()
@@ -564,10 +564,6 @@ void TOWNS_MEMORY::reset()
 	nmi_vector_protect = false;
 	config_page00();
 	set_wait_values();
-	freerun_counter = 0;
-	if(event_freerun > -1) cancel_event(this, event_freerun);
-	register_event(this, EVENT_1US_FREERUN, 1.0, true, &event_freerun);
-	
 }
 
 uint32_t TOWNS_MEMORY::read_data8(uint32_t addr)
@@ -613,6 +609,7 @@ void TOWNS_MEMORY::write_data32(uint32_t addr, uint32_t data)
 // 0x05c0 - 0x05c2
 // 0x05ec (Wait register)
 // Is set extra NMI (0x05c0 - 0x05c2)?
+
 uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
@@ -631,20 +628,6 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 	case 0x0022:
 		// Power register
 		val = 0xff;
-		break;
-	case 0x0026:
-		{
-			pair16_t n;
-			n.w = freerun_counter;
-			val = n.b.l;
-		}
-		break;
-	case 0x0027:
-		{
-			pair16_t n;
-			n.w = freerun_counter;
-			val = n.b.l;
-		}
 		break;
 	case 0x0030:
 		val = (((machine_id & 0x1f) << 3) | (cpu_id & 7));
@@ -724,9 +707,6 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 uint32_t TOWNS_MEMORY::read_io16(uint32_t addr)
 {
 	switch(addr & 0xfffe) {
-	case 0x0026:
-		return freerun_counter;
-		break;
 	default:
 		{
 			// OK?
@@ -829,9 +809,6 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 void TOWNS_MEMORY::event_callback(int id, int err)
 {
 	switch(id) {
-	case EVENT_1US_FREERUN:
-		freerun_counter++;
-		break;
 	case EVENT_1US_WAIT:
 		event_wait_1us = -1;
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
@@ -1035,8 +1012,6 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(software_reset);
 
 	state_fio->StateValue(event_wait_1us);
-	state_fio->StateValue(event_freerun);
-	state_fio->StateValue(freerun_counter);
 	
 	state_fio->StateValue(extra_nmi_val);
 	state_fio->StateValue(extra_nmi_mask);

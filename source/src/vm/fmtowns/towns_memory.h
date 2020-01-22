@@ -114,8 +114,6 @@ protected:
 	uint8_t cpu_id;
 	bool dma_is_vram;
 
-	// Freerun counter : I/O 0x0026 (word) : From MAME 0.216
-	uint16_t freerun_counter;
 	// RAM
 	uint8_t ram_page0[0xc0000];       // 0x00000000 - 0x000bffff : RAM
 	uint8_t ram_pagee[0x16000];       // 0x000da000 - 0x000effff : RAM
@@ -145,7 +143,6 @@ protected:
 	uint32_t type_bank_adrs_cx[0x100000]; // Per 4KB.
 
 	int event_wait_1us;
-	int event_freerun;
 
 //	virtual void initialize_tables(void);
 	virtual void set_wait_values();

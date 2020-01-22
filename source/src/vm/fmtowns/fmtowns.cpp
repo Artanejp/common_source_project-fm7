@@ -407,7 +407,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw (0x0010, pic, I8259_ADDR_CHIP1 | 0);
 	io->set_iomap_alias_rw (0x0012, pic, I8259_ADDR_CHIP1 | 1);
 	
-	io->set_iomap_range_rw (0x0020, 0x0028, memory);
+	io->set_iomap_range_rw (0x0020, 0x0025, memory);
+	io->set_iomap_range_rw (0x0026, 0x0027, timer);  // Freerun counter
+	
 	io->set_iomap_range_r  (0x0030, 0x0031, memory);	// cpu id / machine id
 	io->set_iomap_single_rw(0x0032, memory);	// serial rom (routed from memory)
 
