@@ -559,6 +559,7 @@ void TOWNS_MEMORY::reset()
 	// ToDo
 	if(d_cpu != NULL) {
 		d_cpu->set_address_mask(0xffffffff);
+//		d_cpu->set_address_mask(0x000fffff);
 	}
 	dma_is_vram = true;
 	nmi_vector_protect = false;

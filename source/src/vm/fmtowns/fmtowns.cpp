@@ -332,7 +332,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	cdc->set_context_cdrom(cdrom);
 	cdc->set_context_scsi_host(cdc_scsi);
-//	cdc->set_context_dmaint_line(dma, SIG_UPD71071_CH3, 0xff);
+	cdc->set_context_dmac(dma);
 	
 	adpcm->set_context_opn2(opn2);
 	adpcm->set_context_rf5c68(rf5c68);
