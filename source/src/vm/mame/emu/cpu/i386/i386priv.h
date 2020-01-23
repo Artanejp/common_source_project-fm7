@@ -1415,14 +1415,14 @@ INLINE UINT16 __FASTCALL READ16PL0(i386_state *cpustate,UINT32 ea)
 	UINT32 address = ea, error;
 
 	if( !WORD_ALIGNED(ea) ) {        /* Unaligned read */
-//		UINT32 mask = cpustate->a20_mask;
-//		if(!translate_address_with_width(cpustate,0,TRANSLATE_READ,2,&address,&error)) {
+		UINT32 mask = cpustate->a20_mask;
+		if(!translate_address_with_width(cpustate,0,TRANSLATE_READ,2,&address,&error)) {
 			value  =  READ8PL0(cpustate, ea + 0);
 			value |= (READ8PL0(cpustate, ea + 1) << 8);
-//		} else {			
-//			value  = read_data8_with_wait(cpustate, (address + 0) & mask);
-//			value |= (read_data8_with_wait(cpustate, (address + 1) & mask) << 8);
-//		}
+		} else {			
+			value  = read_data8_with_wait(cpustate, (address + 0) & mask);
+			value |= (read_data8_with_wait(cpustate, (address + 1) & mask) << 8);
+		}
 	} else {
 		if(!translate_address(cpustate,0,TRANSLATE_READ,&address,&error))
 			PF_THROW(error);
