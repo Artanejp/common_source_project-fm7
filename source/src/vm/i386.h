@@ -29,7 +29,7 @@ class DEBUGGER;
 
 class I386 : public DEVICE
 {
-private:
+protected:
 	DEVICE *d_mem, *d_io, *d_pic;
 //#ifdef I386_PSEUDO_BIOS
 	DEVICE *d_bios;
@@ -42,6 +42,8 @@ private:
 //#endif
 	void *opaque;
 	outputs_t outputs_extreset;
+	void get_debug_sregs_info(_TCHAR *buffer, size_t buffer_len);
+	void get_debug_gregs_info(_TCHAR *buffer, size_t buffer_len);
 public:
 	I386(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

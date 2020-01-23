@@ -734,75 +734,157 @@ uint32_t I386::read_debug_reg(const _TCHAR *reg)
 	return 0;
 }
 
+void I386::get_debug_gregs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	i386_state *cpustate = (i386_state *)opaque;
+	_TCHAR gprstr[64][256]; // Reserve for Rxx etc
+	static const int    gprlist_i[] = {EAX, EBX, ECX, EDX, ESP, EBP, ESI, EDI, -1};
+	static const _TCHAR *gprlist_s[] = {_T("EAX"), _T("EBX"), _T("ECX"), _T("EDX"), _T("ESP"), _T("EBP"), _T("ESI"), _T("EDI"), NULL};
+	int regnum = 0;
+	while(gprlist_i[regnum] >= 0) {
+		memset(gprstr[regnum], 0x00, sizeof(_TCHAR) * 256);
+		my_stprintf_s(gprstr[regnum], 255, _T("%s=%08X "), gprlist_s[regnum], REG32(gprlist_i[regnum]));
+		regnum++;
+		if(regnum >= 64) break;
+	}
+	regnum = 0;
+	if(buffer != NULL) {
+		while(gprlist_i[regnum] >= 0) {
+			my_tcscat_s(buffer, buffer_len, gprstr[regnum]);
+			regnum++;
+			if(regnum >= 64) break;
+		}
+		my_tcscat_s(buffer, buffer_len, _T("\n"));
+	}
+}
+
+void I386::get_debug_sregs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	i386_state *cpustate = (i386_state *)opaque;
+	_TCHAR segstr[8][256];
+	static const int    seglist_i[] = {CS, SS, DS, ES, FS, GS, -1};
+	static const _TCHAR *seglist_s[] = {_T("CS"), _T("SS"), _T("DS"), _T("ES"), _T("FS"), _T("GS"), NULL};
+	int segnum = 0;
+	while(seglist_i[segnum] >= 0) {
+		memset(segstr[segnum], 0x00, sizeof(_TCHAR) * 256);
+		int realseg = seglist_i[segnum];
+		my_stprintf_s(segstr[segnum], 255,
+					_T("%s : SELECTOR=%04X BASE=%08X LIMIT=%08X FLAGS=%04X D=%d %s\n")
+					,
+					seglist_s[segnum],
+					cpustate->sreg[realseg].selector,
+					cpustate->sreg[realseg].base,
+					cpustate->sreg[realseg].limit,
+					cpustate->sreg[realseg].flags,
+					cpustate->sreg[realseg].d,
+					(cpustate->sreg[realseg].valid) ? _T("VALID") : _T("INVALID")        
+			);
+		segnum++;
+		if(segnum >= 8) break;
+	}
+	segnum = 0;
+	if(buffer != NULL) {
+		while(seglist_i[segnum] >= 0) {
+			my_tcscat_s(buffer, buffer_len, segstr[segnum]);
+			segnum++;
+			if(segnum >= 8) break;
+		}
+	}
+}
+
 bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	i386_state *cpustate = (i386_state *)opaque;
-
+	_TCHAR segstr[256 * 12] = {0};
+	_TCHAR gprstr[256 * 64] = {0};
+	get_debug_sregs_info(segstr, sizeof(segstr) / sizeof(_TCHAR));
+	get_debug_gregs_info(gprstr, sizeof(gprstr) / sizeof(_TCHAR));
+	
 	if(cpustate->operand_size) {
 		my_stprintf_s(buffer, buffer_len,
 					  _T("MODE=%s PC=%08X PREV_PC=%08X SP(REAL)=%08X\n")
 					  _T("CR[0-4]=%08X %08X %08X %08X %08X IOPL=%d CPL=%d\n")	  
-					  _T("EAX=%08X  EBX=%08X ECX=%08X EDX=%08X ESP=%08X  EBP=%08X  ESI=%08X  EDI=%08X\n")
-					  _T("DS=%04X  ES=%04X SS=%04X CS=%04X FS=%04X GS=%04X\n")
+					  _T("%s")
+					  _T("%s")
 					  _T("A20_MASK=%08X EIP=%08X  EFLAGS=%08X FLAG=[%c%c%c%c%c%c%c%c%c]\n")
+					  _T("GDTR: BASE=%08X LIMIT=%08X LDTR: BASE=%08X LIMIT=%08X\n")
 					  _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 					  (PROTECTED_MODE != 0) ? ((V8086_MODE) ? _T("PROTECTED V8086(32bit)") : _T("PROTECTED 32bit")) : ((V8086_MODE) ? _T("V8086(32bit)") : _T("32bit")),
 					  cpustate->pc, cpustate->prev_pc, cpustate->sreg[SS].base + ((uint32_t)REG32(ESP)),
 					  cpustate->cr[0] ,cpustate->cr[1], cpustate->cr[2], cpustate->cr[3], cpustate->cr[4], (cpustate->IOP1) | (cpustate->IOP2 << 1), cpustate->CPL,
-					  REG32(EAX), REG32(EBX), REG32(ECX), REG32(EDX), REG32(ESP), REG32(EBP), REG32(ESI), REG32(EDI),
-					  cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->sreg[FS].selector, cpustate->sreg[GS].selector, cpustate->a20_mask, cpustate->eip, cpustate->eflags,
+					  gprstr,
+					  segstr,
+					  cpustate->a20_mask, cpustate->eip, cpustate->eflags,
 					  cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
 					  cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'),
+					  cpustate->gdtr.base, cpustate->gdtr.limit,
+					  cpustate->ldtr.base, cpustate->ldtr.limit,
 					  cpustate->total_cycles, cpustate->total_cycles - cpustate->prev_total_cycles,
-					  get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
+					  get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame()
+			);
 	} else {
 		if((PROTECTED_MODE) != 0) {
 			if((V8086_MODE)) {
 				my_stprintf_s(buffer, buffer_len,
 					  _T("MODE=V8086 (PROTECTED) PC=%08X PREV_PC=%08X SP(REAL)=%08X\n")
 					  _T("CR[0-4]=%08X %08X %08X %08X %08X IOP=%d CPL=%d\n")	  
-					  _T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
-					  _T("DS=%04X  ES=%04X SS=%04X CS=%04X FS=%04X GS=%04X A20_MASK=%08X IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]\n")
+					  _T("%s")
+					  _T("%s")
+ 					  _T("A20_MASK=%08X IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]\n")
+					  _T("GDTR: BASE=%08X LIMIT=%08X LDTR: BASE=%08X LIMIT=%08X\n")
 					  _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 					  cpustate->pc, cpustate->prev_pc, cpustate->sreg[SS].base + ((uint32_t)REG32(ESP) & 0xffff),
 					  cpustate->cr[0] ,cpustate->cr[1], cpustate->cr[2], cpustate->cr[3], cpustate->cr[4], (cpustate->IOP1) | (cpustate->IOP2 << 1), cpustate->CPL,
-					  REG16(AX), REG16(BX), REG16(CX), REG16(DX), REG16(SP), REG16(BP), REG16(SI), REG16(DI),
-							  cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->sreg[FS].selector, cpustate->sreg[GS].selector, cpustate->a20_mask, cpustate->eip,
+					  gprstr,
+					  segstr,
+					  cpustate->a20_mask, cpustate->eip,
 					  cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
 					  cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'),
+					  cpustate->gdtr.base, cpustate->gdtr.limit,
+					  cpustate->ldtr.base, cpustate->ldtr.limit,
 					  cpustate->total_cycles, cpustate->total_cycles - cpustate->prev_total_cycles,
 					  get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 			} else {
 				my_stprintf_s(buffer, buffer_len,
-			  _T("MODE=PROTECTED 16bit PC=%08X PREV_PC=%08X SP(REAL)=%08X\n")
-			  _T("CR[0-4]=%08X %08X %08X %08X %08X IOP=%d CPL=%d\n")	  
-			  _T("EAX=%08X  EBX=%08X ECX=%08X EDX=%08X ESP=%08X  EBP=%08X  ESI=%08X  EDI=%08X\n")
-			  _T("DS=%04X  ES=%04X SS=%04X CS=%04X FS=%04X GS=%04X A20_MASK=%08X IP=%04X  EFLAGS=%08X FLAG=[%c%c%c%c%c%c%c%c%c]\n")
-			  _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+							  _T("MODE=PROTECTED 16bit PC=%08X PREV_PC=%08X SP(REAL)=%08X\n")
+							  _T("CR[0-4]=%08X %08X %08X %08X %08X IOP=%d CPL=%d\n")	  
+							  _T("%s")
+							  _T("%s")
+							  _T("A20_MASK=%08X IP=%04X  EFLAGS=%08X FLAG=[%c%c%c%c%c%c%c%c%c]\n")
+							  _T("GDTR: BASE=%08X LIMIT=%08X LDTR: BASE=%08X LIMIT=%08X\n")
+							  _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 							  cpustate->pc, cpustate->prev_pc, cpustate->sreg[SS].base + ((uint32_t)REG32(ESP)),
-			  cpustate->cr[0] ,cpustate->cr[1], cpustate->cr[2], cpustate->cr[3], cpustate->cr[4], (cpustate->IOP1) | (cpustate->IOP2 << 1), cpustate->CPL,
-			  REG32(EAX), REG32(EBX), REG32(ECX), REG32(EDX), REG32(ESP), REG32(EBP), REG32(ESI), REG16(DI),
-			  cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->sreg[FS].selector, cpustate->sreg[GS].selector, cpustate->a20_mask, cpustate->eip, cpustate->eflags,
-			  cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
-			  cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'),
-			  cpustate->total_cycles, cpustate->total_cycles - cpustate->prev_total_cycles,
-			  get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
+							  cpustate->cr[0] ,cpustate->cr[1], cpustate->cr[2], cpustate->cr[3], cpustate->cr[4], (cpustate->IOP1) | (cpustate->IOP2 << 1), cpustate->CPL,
+							  gprstr,
+							  segstr,
+							  cpustate->a20_mask, cpustate->eip, cpustate->eflags,
+							  cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
+							  cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'),
+							  cpustate->gdtr.base, cpustate->gdtr.limit,
+							  cpustate->ldtr.base, cpustate->ldtr.limit,
+							  cpustate->total_cycles, cpustate->total_cycles - cpustate->prev_total_cycles,
+							  get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 			}
 		} else {
 				my_stprintf_s(buffer, buffer_len,
-			  _T("MODE=16bit PC=%08X PREV_PC=%08X SP(REAL)=%08X\n")
-			  _T("CR[0-4]=%08X %08X %08X %08X %08X IOP=%d CPL=%d\n")	  
-			  _T("EAX=%08X  EBX=%08X ECX=%08X EDX=%08X ESP=%08X  EBP=%08X  ESI=%08X  EDI=%08X\n")
-			  _T("DS=%04X  ES=%04X SS=%04X CS=%04X FS=%04X GS=%04X A20_MASK=%08X IP=%04X EFLAGS=%08X FLAG=[%c%c%c%c%c%c%c%c%c]\n")
-			  _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+							  _T("MODE=16bit PC=%08X PREV_PC=%08X SP(REAL)=%08X\n")
+							  _T("CR[0-4]=%08X %08X %08X %08X %08X IOP=%d CPL=%d\n")	  
+							  _T("%s")
+							  _T("%s")
+							  _T("A20_MASK=%08X IP=%04X EFLAGS=%08X FLAG=[%c%c%c%c%c%c%c%c%c]\n")
+							  _T("GDTR: BASE=%08X LIMIT=%08X LDTR: BASE=%08X LIMIT=%08X\n")
+							  _T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 							  cpustate->pc, cpustate->prev_pc, cpustate->sreg[SS].base + ((uint32_t)REG16(SP) & 0xffff),
-			  cpustate->cr[0] ,cpustate->cr[1], cpustate->cr[2], cpustate->cr[3], cpustate->cr[4], (cpustate->IOP1) | (cpustate->IOP2 << 1), cpustate->CPL,
-			  REG32(EAX), REG32(EBX), REG32(ECX), REG32(EDX), REG32(ESP), REG32(EBP), REG32(ESI), REG32(EDI),
-			  cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->sreg[FS].selector, cpustate->sreg[GS].selector, cpustate->a20_mask, cpustate->eip, cpustate->eflags,
-			  cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
-			  cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'),
-			  cpustate->total_cycles, cpustate->total_cycles - cpustate->prev_total_cycles,
-			  get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
+							  cpustate->cr[0] ,cpustate->cr[1], cpustate->cr[2], cpustate->cr[3], cpustate->cr[4], (cpustate->IOP1) | (cpustate->IOP2 << 1), cpustate->CPL,
+							  gprstr,
+							  segstr,
+							  cpustate->a20_mask, cpustate->eip, cpustate->eflags,
+							  cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
+							  cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'),
+							  cpustate->gdtr.base, cpustate->gdtr.limit,
+							  cpustate->ldtr.base, cpustate->ldtr.limit,
+							  cpustate->total_cycles, cpustate->total_cycles - cpustate->prev_total_cycles,
+							  get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 		}			
 	}
 	cpustate->prev_total_cycles = cpustate->total_cycles;
