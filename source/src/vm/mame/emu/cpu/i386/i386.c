@@ -1532,7 +1532,6 @@ static void __FASTCALL i386_protected_mode_jump(i386_state *cpustate, UINT16 seg
 	DPL = (desc.flags >> 5) & 0x03;  // descriptor privilege level
 	RPL = segment & 0x03;  // requested privilege level
 	
-	//logerror("JMP: protected mode PC=%08X SEG=%04x OFFSET=%08x VALID=%s BASE=%08x LIMIT=%08x FLAGS=%08x INDIRECT=%s OP32=%s V8086=%s CPL=%d DPL=%d RPL=%d\n", cpustate->prev_pc, seg, off,  (desc.valid) ? "YES" : "NO", desc.base, desc.limit, desc.flags, (indirect != 0) ? "YES" : "NO", (operand32 != 0) ? "YES" : "NO" ,(V8086_MODE) ? "YES" : "NO", CPL, DPL, RPL);
 
 	if((desc.flags & 0x0018) == 0x0018)
 	{
@@ -1568,6 +1567,8 @@ static void __FASTCALL i386_protected_mode_jump(i386_state *cpustate, UINT16 seg
 		}
 		if(offset > desc.limit)
 		{
+			logerror("JMP: SELECTOR=%04X BASE=%08X LIMIT=%08X FLAGS=%04X D=%d\n",
+					 desc.selector, desc.base, desc.limit, desc.flags, desc.d);
 			logerror("JMP: Offset is past segment limit\n");
 			FAULT(FAULT_GP,0)
 		}
