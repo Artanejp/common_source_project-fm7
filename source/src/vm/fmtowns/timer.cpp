@@ -13,6 +13,9 @@
 #include "../msm58321.h"
 #include "../pcm1bit.h"
 
+#define EVENT_1US_WAIT    1
+#define EVENT_INTERVAL_US 2
+
 namespace FMTOWNS {
 	
 void TIMER::initialize()
@@ -20,8 +23,24 @@ void TIMER::initialize()
 	free_run_counter = 0;
 	intr_reg = rtc_data = 0;
 	tmout0 = tmout1 = false;
+	event_interval_us = -1;
+	event_wait_1us = -1;
+
 }
 
+void TIMER::reset()
+{
+	interval_enabled = false;
+	interval_us.w = 0;
+	intv_i = false;
+	intv_ov = false;
+
+	if(event_wait_1us >= 0) {
+		cancel_event(this, event_wait_1us);
+		event_wait_1us = -1;
+	}
+	do_interval();
+}
 void TIMER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
@@ -33,6 +52,34 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 		update_intr();
 		d_pcm->write_signal(SIG_PCM1BIT_ON, data, 4);
 		break;
+	case 0x0068: // Interval control
+		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
+			if(!(interval_enabled)) {// OK?
+				intv_ov = false;
+				intv_i = false;
+			}
+			interval_enabled = ((data & 0x80) == 0);
+			do_interval();
+		}
+		break;
+	case 0x006a: // Interval control
+	case 0x006b: // Interval control
+		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
+			// Q: Do reset intv_i and intv_ov? 20200124 K.O
+			bool highaddress = (addr == 0x6b);
+			if(highaddress) {
+				interval_us.b.h = data;
+			} else {
+				interval_us.b.l = data;
+			}
+			do_interval();
+		}
+	case 0x006c: // Wait register.
+		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
+			if(event_wait_1us != -1) cancel_event(this, event_wait_1us);
+			register_event(this, EVENT_1US_WAIT, 1.0, false, &event_wait_1us);
+			write_signals(&outputs_halt_line, 0xffffffff);
+		}
 	case 0x70:
 		d_rtc->write_signal(SIG_MSM58321_DATA, data, 0x0f);
 		break;
@@ -45,6 +92,21 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
+void TIMER::do_interval(void)
+{
+	if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
+		if(interval_enabled) {
+			uint32_t interval = interval_us.w;
+			if(interval == 0) interval = 65536;
+			// Update interval
+			if(event_interval_us >= 0) cancel_event(this, event_interval_us);
+			register_event(this, EVENT_INTERVAL_US, 1.0 * (double)interval, true, &event_interval_us);
+		} else {
+			if(event_interval_us >= 0) cancel_event(this, event_interval_us);
+			event_interval_us = -1;
+		}
+	}
+}
 uint32_t TIMER::read_io8(uint32_t addr)
 {
 	switch(addr) {
@@ -55,6 +117,30 @@ uint32_t TIMER::read_io8(uint32_t addr)
 		return free_run_counter >> 8;
 	case 0x60:
 		return (tmout0 ? 1 : 0) | (tmout1 ? 2 : 0) | ((intr_reg & 7) << 2) | 0xe0;
+	case 0x0068: //
+		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
+			uint8_t val = (interval_enabled) ? 0x1f : 0x9f;
+			if(intv_i) val |= 0x40;
+			if(intv_ov) val |= 0x20;
+			intv_i = false;
+			intv_ov = false;
+			return val;
+		}
+	case 0x006a: // Interval control
+	case 0x006b: // Interval control
+		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
+			bool highaddress = (addr == 0x6b);
+			if(highaddress) {
+				return interval_us.b.h;
+			} else {
+				return interval_us.b.l;
+			}
+		}
+		break;
+	case 0x006c: // Wait register.
+		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
+			return 0x00;
+		}
 	case 0x70:
 		return rtc_data;
 	}
@@ -78,40 +164,58 @@ void TIMER::write_signal(int id, uint32_t data, uint32_t mask)
 
 void TIMER::update_intr()
 {
-	if((tmout0 && (intr_reg & 1)) || (tmout1 && (intr_reg & 2))) {
-		write_signals(&output_intr_line, 1);
+	if((tmout0 && (intr_reg & 1)) || (tmout1 && (intr_reg & 2)) || (intv_i)) {
+		write_signals(&outputs_intr_line, 1);
 	} else {
-		write_signals(&output_intr_line, 0);
+		write_signals(&outputs_intr_line, 0);
+	}
+}
+
+void TIMER::event_callback(int id, int err)
+{
+	switch(id) {
+	case EVENT_1US_WAIT:
+		event_wait_1us = -1;
+		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
+			write_signals(&outputs_halt_line, 0);
+		}
+		break;
+	case EVENT_INTERVAL_US:
+		if(interval_enabled) {
+			if(intv_i) intv_ov = true;
+			intv_i = true;
+			update_intr();
+		}
+		break;
 	}
 }
 
 #define STATE_VERSION	1
 
-void TIMER::save_state(FILEIO* state_fio)
+bool TIMER::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputUint16(free_run_counter);
-	state_fio->FputUint8(intr_reg);
-	state_fio->FputUint8(rtc_data);
-	state_fio->FputBool(tmout0);
-	state_fio->FputBool(tmout1);
-}
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+ 		return false;
+ 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+ 		return false;
+ 	}
+	state_fio->StateValue(machine_id);
+	state_fio->StateValue(cpu_id);
+	state_fio->StateValue(free_run_counter);
+	state_fio->StateValue(intr_reg);
+	state_fio->StateValue(rtc_data);
+	state_fio->StateValue(tmout0);
+	state_fio->StateValue(tmout1);
 
-bool TIMER::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
-	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	free_run_counter = state_fio->FgetUint16();
-	intr_reg = state_fio->FgetUint8();
-	rtc_data = state_fio->FgetUint8();
-	tmout0 = state_fio->FgetBool();
-	tmout1 = state_fio->FgetBool();
+	state_fio->StateValue(interval_enabled);
+	state_fio->StateValue(interval_us);
+	state_fio->StateValue(intv_i);
+	state_fio->StateValue(intv_ov);
+
+	state_fio->StateValue(event_wait_1us);
+	state_fio->StateValue(event_interval_us);
+	
 	return true;
 }
 

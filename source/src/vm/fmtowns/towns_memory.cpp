@@ -18,7 +18,6 @@
 #include <math.h>
 
 namespace FMTOWNS {
-#define EVENT_1US_WAIT       1
 
 void TOWNS_MEMORY::config_page00()
 {
@@ -646,11 +645,6 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 			val = ((__reset) ? 0x80 : 0x00) | ((__clk) ? 0x40 : 0x00) | 0x3e | ((__dat) ? 0x01 : 0x00);
 		}
 		break;
-	case 0x006c: // Wait register.
-		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-			val = 0x7f;
-		}
-		break;
 	case 0x0400: // Resolution:
 		val = 0xfe;
 		break;
@@ -707,16 +701,12 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 
 uint32_t TOWNS_MEMORY::read_io16(uint32_t addr)
 {
-	switch(addr & 0xfffe) {
-	default:
-		{
+	{
 			// OK?
-			pair16_t n;
-			n.b.l = read_io8((addr & 0xfffe) + 0);
-			n.b.h = read_io8((addr & 0xfffe) + 1);
-			return n.w;
-		}
-		break;
+		pair16_t n;
+		n.b.l = read_io8((addr & 0xfffe) + 0);
+		n.b.h = read_io8((addr & 0xfffe) + 1);
+		return n.w;
 	}
 	return 0xffff;
 }
@@ -775,14 +765,6 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 			d_serialrom->write_signal(SIG_SERIALROM_RESET, data, 0x80);
 		}
 		break;
-	case 0x006c: // Wait register.
-		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-			if(event_wait_1us != -1) cancel_event(this, event_wait_1us);
-			register_event(this, EVENT_1US_WAIT, 1.0, false, &event_wait_1us);
-			if(d_cpu != NULL) {
-				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-			}
-		}
 		break;
 	case 0x0404: // System Status Reg.
 		dma_is_vram = ((data & 0x80) == 0);
@@ -805,23 +787,6 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		break;
 	}
 	return;
-}
-
-void TOWNS_MEMORY::event_callback(int id, int err)
-{
-	switch(id) {
-	case EVENT_1US_WAIT:
-		event_wait_1us = -1;
-		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-			if(d_cpu != NULL) {
-				d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-			}
-		}
-		break;
-	default:
-		break;
-	}
-	
 }
 
 uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
@@ -1002,6 +967,7 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
  		return false;
  	}
+	
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
@@ -1011,8 +977,6 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(dma_is_vram);
 	state_fio->StateValue(nmi_vector_protect);
 	state_fio->StateValue(software_reset);
-
-	state_fio->StateValue(event_wait_1us);
 	
 	state_fio->StateValue(extra_nmi_val);
 	state_fio->StateValue(extra_nmi_mask);

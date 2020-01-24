@@ -240,7 +240,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #else
 	// ToDo: Pentium Model (After HB).
 
-
 #endif
 	event->set_frames_per_sec(FRAMES_PER_SEC);
 	event->set_lines_per_frame(LINES_PER_FRAME);
@@ -329,7 +328,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_machine_id(machine_id);
 	memory->set_cpu_id(cpu_id);
 	memory->set_context_cpu(cpu);
-
+	
 	cdc->set_context_cdrom(cdrom);
 	cdc->set_context_scsi_host(cdc_scsi);
 	cdc->set_context_dmac(dma);
@@ -350,6 +349,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	scsi->set_context_pic(pic);
 	timer->set_context_pcm(beep);
 	timer->set_context_rtc(rtc);
+	timer->set_context_halt_line(cpu, SIG_CPU_HALTREQ, 0xffffffff);
 	
 	// cpu bus
 	cpu->set_context_mem(memory);
@@ -422,11 +422,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x0054, pit1, 2);
 	io->set_iomap_alias_rw(0x0056, pit1, 3);
 	
-	io->set_iomap_single_rw(0x0060, timer);
+	io->set_iomap_single_rw(0x0060, timer); // Beep and interrupts register
 	io->set_iomap_single_rw(0x0068, timer); // Interval timer register2 (after Towns 10F).
 	io->set_iomap_single_rw(0x006a, timer); // Interval timer register2 (after Towns 10F).
 	io->set_iomap_single_rw(0x006b, timer); // Interval timer register2 (after Towns 10F).
-	io->set_iomap_single_rw(0x006c, memory); // 1uS wait register (after Towns 10F).
+	io->set_iomap_single_rw(0x006c, timer); // 1uS wait register (after Towns 10F).
 	
 	io->set_iomap_single_rw(0x0070, timer); // RTC DATA
 	io->set_iomap_single_w (0x0080, timer); // RTC COMMAND
@@ -587,6 +587,10 @@ void VM::set_machine_type(uint16_t machine_id, uint16_t cpu_id)
 	if(memory != NULL) {
 		memory->set_cpu_id(cpu_id);
 		memory->set_machine_id(machine_id);
+	}
+	if(timer != NULL) {
+		timer->set_cpu_id(cpu_id);
+		timer->set_machine_id(machine_id);
 	}
 #if defined(HAS_20PIX_FONTS)
 	if(fontrom_20pix != NULL) {

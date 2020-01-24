@@ -60,7 +60,6 @@ enum {
 // Please set from config
 #define TOWNS_EXTRAM_PAGES 6
 
-class I386;
 class BEEP;
 	
 namespace FMTOWNS {
@@ -90,14 +89,13 @@ protected:
 	uint8_t rd_dummy[TOWNS_BANK_SIZE];
 	uint8_t wr_dummy[TOWNS_BANK_SIZE];
 	
-	I386 *d_cpu;
-
 	DEVICE* d_vram;
 	DEVICE* d_sprite;       // 0x81000000 - 0x8101ffff ?
 	DEVICE* d_romcard[2]; // 0xc0000000 - 0xc0ffffff / 0xc1000000 - 0xc1ffffff
 	DEVICE* d_pcm;             // 0xc2200000 - 0xc2200fff 
 	DEVICE* d_beep;
-
+	I386*   d_cpu;
+	
 	DEVICE* d_dictionary;
 	DEVICE* d_sysrom;
 	DEVICE* d_msdos;
@@ -141,8 +139,6 @@ protected:
 	uint8_t* write_bank_adrs_cx[0x100000]; // Per 4KB.
 	DEVICE*   device_bank_adrs_cx[0x100000]; // Per 4KB.
 	uint32_t type_bank_adrs_cx[0x100000]; // Per 4KB.
-
-	int event_wait_1us;
 
 //	virtual void initialize_tables(void);
 	virtual void set_wait_values();
@@ -255,7 +251,6 @@ public:
 	uint32_t __FASTCALL read_signal(int ch);
 	
 	//void event_frame();
-	void event_callback(int id, int err);
 	virtual void set_intr_line(bool line, bool pending, uint32_t bit);
 	
 	bool process_state(FILEIO* state_fio, bool loading);
@@ -264,10 +259,6 @@ public:
 	void set_context_cpu(I386* device)
 	{
 		d_cpu = device;
-	}
-	void set_machine_id(uint8_t id)
-	{
-		machine_id = id;
 	}
 	void set_context_vram(DEVICE* device)
 	{
