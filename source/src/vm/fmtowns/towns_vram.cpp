@@ -586,7 +586,7 @@ void TOWNS_VRAM::write_raw_vram32(uint32_t addr, uint32_t data)
 	bool is_wrap = false;
 	uint32_t wrap_addr = 0;
 	uint32_t wrap_mask;
-	mask = ((addr & 0x02) == 0) ? packed_pixel_mask_reg.w.l : packed_pixel_mask_reg.w.h;
+	mask = packed_pixel_mask_reg.d;
 	a.d = data;
 	
 	if((addr & 0x3ffff) > 0x3fffc) {
