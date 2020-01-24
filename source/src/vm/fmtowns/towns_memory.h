@@ -151,6 +151,8 @@ public:
 		addr_mask = bank_size - 1;
 		addr_shift = TOWNS_BANK_SHIFT;
 		
+		extram_size = 0x00200000; // Basically 2MB
+		
 		d_cpu = NULL;
 		d_vram = NULL;
 		d_pcm = NULL;
@@ -254,8 +256,42 @@ public:
 	virtual void set_intr_line(bool line, bool pending, uint32_t bit);
 	
 	bool process_state(FILEIO* state_fio, bool loading);
-
+	
 	// unique functions
+	void set_extra_ram_size(uint32_t megabytes)
+	{
+		uint32_t limit = 5;
+		uint32_t minimum = 2;
+		switch(machine_id & 0xff00) {
+		case 0x0000: // ???
+		case 0x0100: // Towns Model 1/2
+			minimum = 1;
+			break;
+		case 0x0200: // TOWNS 2F/2H
+		case 0x0400: // TOWNS 10F/10H/20F/20H
+			limit = 8; // 2MB + 2MB x 3
+			break;
+		case 0x0300: // TOWNS2 UX
+		case 0x0600: // TOWNS2 UG
+			limit = 9; // 2MB + 4MB x 2? - 1MB
+			break;
+		case 0x0500: // TOWNS2 CX
+		case 0x0800: // TOWNS2 HG
+			limit = 15; // 8MB x 2 - 1MB?
+			break;
+		case 0x0700: // TOWNS2 HR
+		case 0x0900: // TOWNS2 UR
+		case 0x0B00: // TOWNS2 MA
+		case 0x0C00: // TOWNS2 MX
+		case 0x0D00: // TOWNS2 ME
+		case 0x0F00: // TOWNS2 MF/Fresh
+			limit = 31; // 16MB x 2 - 1MB? 
+			break;
+		}
+		if(megabytes > limit) megabytes = limit;
+		if(megabytes < minimum) megabytes = minimum;
+		extram_size = megabytes << 20;
+	}
 	void set_context_cpu(I386* device)
 	{
 		d_cpu = device;

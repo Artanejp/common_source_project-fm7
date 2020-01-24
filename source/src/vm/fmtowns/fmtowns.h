@@ -31,12 +31,14 @@
 #define CONFIG_NAME		"fmtowns_2f"
 #define MAX_DRIVE       2
 #undef  _HAS_HDD
+#define _FMTOWNS1_2ND_GEN
 
 #elif defined(_FMTOWNS_2H)
 #define DEVICE_NAME		"FUJITSU FM-Towns 2H"
 #define CONFIG_NAME		"fmtowns_2h"
 #define MAX_DRIVE       2
 #define _HAS_HDD        2
+#define _FMTOWNS1_2ND_GEN
 
 #elif defined(_FMTOWNS_20F)
 #define DEVICE_NAME		"FUJITSU FM-Towns 20F"
@@ -44,6 +46,7 @@
 #define MAX_DRIVE       2
 #undef  _HAS_HDD
 #define TYPE_TOWNS_X0   1
+#define _FMTOWNS1_3RD_GEN
 
 #elif defined(_FMTOWNS_40H)
 #define DEVICE_NAME		"FUJITSU FM-Towns 40H"
@@ -51,6 +54,7 @@
 #define MAX_DRIVE       2
 #define _HAS_HDD        2
 #define TYPE_TOWNS_X0   1
+#define _FMTOWNS1_3RD_GEN
 
 #elif defined(_FMTOWNS2_UX20)
 #define DEVICE_NAME		"FUJITSU FM-Towns II UX20"
@@ -59,14 +63,16 @@
 #undef  _HAS_HDD
 #define WITH_386SX      1
 #define TYPE_TOWNS2_UX  1
+#define _FMTOWNS_UX_VARIANTS
 
 #elif defined(_FMTOWNS2_UX40)
 #define DEVICE_NAME		"FUJITSU FM-Towns II UX40"
-#define CONFIG_NAME		"fmtowns2_ux20"
+#define CONFIG_NAME		"fmtowns2_ux40"
 #define MAX_DRIVE       2
 #define _HAS_HDD        1
 #define WITH_386SX      1
 #define TYPE_TOWNS2_UX  1
+#define _FMTOWNS_UX_VARIANTS
 
 #elif defined(_FMTOWNS2_CX20)
 #define DEVICE_NAME		"FUJITSU FM-Towns II CX20"
@@ -74,6 +80,7 @@
 #define MAX_DRIVE       2
 #undef _HAS_HDD
 #define TYPE_TOWNS2_CX  1
+#define _FMTOWNS2_CX_VARIANTS
 
 #elif defined(_FMTOWNS2_CX40)
 #define DEVICE_NAME		"FUJITSU FM-Towns II CX40"
@@ -81,6 +88,7 @@
 #define MAX_DRIVE       2
 #define _HAS_HDD        4
 #define TYPE_TOWNS2_CX  1
+#define _FMTOWNS2_CX_VARIANTS
 
 #elif defined(_FMTOWNS2_CX100)
 #define DEVICE_NAME		"FUJITSU FM-Towns II CX40"
@@ -88,6 +96,36 @@
 #define MAX_DRIVE       2
 #define _HAS_HDD        4
 #define TYPE_TOWNS2_CX  1
+#define _FMTOWNS2_CX_VARIANTS
+#elif defined(_FMTOWNS2_UG10)
+#define DEVICE_NAME		"FUJITSU FM-Towns II UG10"
+#define CONFIG_NAME		"fmtowns2_ug1"
+#define MAX_DRIVE       2
+#undef  _HAS_HDD        
+#define WITH_386SX      1
+#define _FMTOWNS_UG_VARIANTS
+#elif defined(_FMTOWNS2_UG20)
+#define DEVICE_NAME		"FUJITSU FM-Towns II UG20"
+#define CONFIG_NAME		"fmtowns2_ug20"
+#define MAX_DRIVE       2
+#undef  _HAS_HDD        
+#define WITH_386SX      1
+#define _FMTOWNS_UG_VARIANTS
+#elif defined(_FMTOWNS2_UG40)
+#define DEVICE_NAME		"FUJITSU FM-Towns II UG40"
+#define CONFIG_NAME		"fmtowns2_ug40"
+#define MAX_DRIVE       2
+#define _HAS_HDD        1
+#define WITH_386SX      1
+#define _FMTOWNS_UG_VARIANTS
+#elif defined(_FMTOWNS2_UG80)
+#define DEVICE_NAME		"FUJITSU FM-Towns II UG80"
+#define CONFIG_NAME		"fmtowns2_ug80"
+#define MAX_DRIVE       2
+#define _HAS_HDD        1
+#define WITH_386SX      1
+#define _FMTOWNS_UG_VARIANTS
+
 #endif
 
 // device informations for virtual machine

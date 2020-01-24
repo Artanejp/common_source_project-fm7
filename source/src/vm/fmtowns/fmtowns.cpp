@@ -556,6 +556,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #if defined(__GIT_REPO_VERSION)
 	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
 #endif
+	// ToDo : Use config framework
+	memory->set_extra_ram_size(6);
+
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}

@@ -61,6 +61,7 @@ void TOWNS_MEMORY::initialize()
 	}
 	
 	extram_size = extram_size & 0x3ff00000;
+	set_extra_ram_size(extram_size >> 20); // Check extra ram size.
 	if(extram_size >= 0x00100000) {
 		extra_ram = (uint8_t*)malloc(extram_size);
 		if(extra_ram != NULL) {
@@ -689,7 +690,7 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		break;
 	   
 	case 0x05ec:
-		if(machine_id >= 0x0500) { // Towns2 CX : Is this hidden register after Towns 1F/2F/1H/2H?
+		if(machine_id >= /*0x0500*/0x0200) { // Towns2 CX : Is this hidden register after Towns 1F/2F/1H/2H? -> Yes
 		   val = 0x00 | ((mem_wait_val > 0) ? 0x01 : 0x00); 
 		}
 		break;
@@ -777,7 +778,7 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		extra_nmi_mask = ((data & 0x08) == 0);
 		break;
 	case 0x05ec:
-		if(machine_id >= 0x0500) { // Towns2 CX : Is this hidden register after Towns 1F/2F/1H/2H?
+		if(machine_id >= /*0x0500*/0x0200) { // Towns2 CX : Is this hidden register after Towns 1F/2F/1H/2H? -> Yes
 			vram_wait_val = ((data & 0x01) != 0) ? 3 : 6;
 			mem_wait_val = ((data & 0x01) != 0) ? 0 : 3;
 		}
