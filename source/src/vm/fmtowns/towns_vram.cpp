@@ -31,7 +31,6 @@ void TOWNS_VRAM::reset()
 	for(int i = 0; i < (sizeof(dirty_flag) / sizeof(bool)); i++) {
 		dirty_flag[i] = true;
 	}
-	
 	vram_access_reg_addr = 0;
 	packed_pixel_mask_reg.d = 0xffffffff;
 	access_page1 = false;;
@@ -73,7 +72,18 @@ void TOWNS_VRAM::reset()
 	layer_display_flags[0] = layer_display_flags[1] = 0;
 	r50_dpalette_updated = true;
 
-	memset(vram, 0x00, sizeof(vram));
+//	memset(vram, 0x00, sizeof(vram));
+	// For Debug
+	for(uint32_t x = 0; x < (sizeof(vram) / sizeof(uint16_t)); x++) {
+		uint16_t r = ((x & 0x1ffff) / 3) & 0x1f;
+		uint16_t g = ((x & 0x1ffff) / 6) & 0x1f;
+		uint16_t b = ((x & 0x1ffff) / 9) & 0x1f;
+		
+		uint16_t c = (r << 10) | (g << 5) | b;
+		uint16_t* p = (uint16_t*)(&vram[x << 1]);
+		*p = c;
+	}
+
 }
 	
 void TOWNS_VRAM::make_dirty_vram(uint32_t addr, int bytes)
@@ -487,6 +497,7 @@ uint32_t TOWNS_VRAM::read_raw_vram32(uint32_t addr)
 
 void TOWNS_VRAM::write_raw_vram8(uint32_t addr, uint32_t data)
 {
+//	return;
 	uint8_t mask;
 	uint8_t d1;
 	uint8_t d2;
@@ -521,6 +532,7 @@ void TOWNS_VRAM::write_raw_vram8(uint32_t addr, uint32_t data)
 
 void TOWNS_VRAM::write_raw_vram16(uint32_t addr, uint32_t data)
 {
+//	return;
 	pair16_t a;
 	pair16_t b;
 	pair16_t c;
@@ -579,6 +591,7 @@ void TOWNS_VRAM::write_raw_vram16(uint32_t addr, uint32_t data)
 
 void TOWNS_VRAM::write_raw_vram32(uint32_t addr, uint32_t data)
 {
+	return; // For Debug
 	pair32_t a;
 	pair32_t b;
 	pair32_t c;
@@ -771,6 +784,7 @@ uint32_t TOWNS_VRAM::read_plane_data32(uint32_t addr)
 void TOWNS_VRAM::write_plane_data8(uint32_t addr, uint32_t data)
 {
 	// Plane Access
+	return;
 	uint32_t x_addr = 0;
 	uint8_t *p = (uint8_t*)vram;
 
@@ -816,6 +830,7 @@ void TOWNS_VRAM::write_plane_data8(uint32_t addr, uint32_t data)
 
 void TOWNS_VRAM::write_plane_data16(uint32_t addr, uint32_t data)
 {
+	return;
 	pair16_t d;
 	d.w = (uint16_t)data;
 	write_plane_data8(addr + 0, d.b.l);
@@ -825,6 +840,7 @@ void TOWNS_VRAM::write_plane_data16(uint32_t addr, uint32_t data)
 
 void TOWNS_VRAM::write_plane_data32(uint32_t addr, uint32_t data)
 {
+	return;
 	pair32_t d;
 	d.d = data;
 	write_plane_data8(addr + 0, d.b.l);

@@ -307,6 +307,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	sprite->set_context_vram(vram);
 	vram->set_context_sprite(sprite);
 	vram->set_context_crtc(crtc);
+	
+	crtc->set_context_sprite(sprite);
+	crtc->set_context_vram(vram);
 
 	//e_volume[0]->set_context_ch0(line_in, MB87878_VOLUME_LEFT);
 	//e_volume[0]->set_context_ch1(line_in, MB87878_VOLUME_RIGHT);

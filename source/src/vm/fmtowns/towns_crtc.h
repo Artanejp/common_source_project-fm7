@@ -155,7 +155,7 @@ typedef struct {
 	int32_t num[4];
 	uint32_t prio;
 	uint32_t pad[7];
-	uint8_t pixels_layer[2][TOWNS_CRTC_MAX_PIXELS]; // RAW VALUE
+	uint8_t pixels_layer[2][TOWNS_CRTC_MAX_PIXELS * sizeof(uint16_t)]; // RAW VALUE
 } linebuffer_t;
 
 class TOWNS_VRAM;
@@ -182,13 +182,13 @@ protected:
 	int cpu_clocks;
 	
 	// They are not saved.Must be calculate when loading.
-	double horiz_us, next_horiz_us; // (HST + 1) * clock
+	double horiz_us; // (HST + 1) * clock
 	double horiz_width_posi_us, horiz_width_nega_us; // HSW1, HSW2
-	double vert_us, next_vert_us; // (VST +1) * horiz_us / 2.0
-	double vert_sync_pre_us; // VST1 * horiz_us / 2.0
+	double vert_us; // (VST +1) * horiz_us / 2.0
 	double vert_sync_end_us; // VST2 * horiz_us / 2.0
 	double eet_us;
 	double frame_us;
+	double vst1_us; // VST1 * horiz_us / 2.0
 	double vst2_us;
 	double vert_start_us[2];
 	double vert_end_us[2];
@@ -291,7 +291,7 @@ protected:
 	
 	bool __FASTCALL render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int width, int layer, bool do_alpha);
 	bool __FASTCALL render_32768(scrntype_t* dst, scrntype_t *mask, int y, int width, int layer, bool do_alpha);
-	void transfer_line();
+	void __FASTCALL transfer_line(int line);
 	
 public:
 	TOWNS_CRTC(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
