@@ -163,8 +163,22 @@ void TOWNS_CRTC::reset()
 	//set_pixels_per_line(640);
 	
 	set_vsync(vsync, true);
-	
+	// For DEBUG Only
+	// Mode 19
+#if 1
+	const uint16_t reg_default[] =
+		{ 0x0060, 0x02c0, 0x0000, 0x0000, 0x031f, 0x0000, 0x0004, 0x0000,
+		  0x0419, 0x008a, 0x018a, 0x008a, 0x030a, 0x0046, 0x0246, 0x0046,
+		  0x0406, 0x0000, 0x008a, 0x0000, 0x0080, 0x0000, 0x008a, 0x0000,
+		  0x0080, 0x0058, 0x0001, 0x0000, 0x000d, 0x0002, 0x0000, 0x0192};
+	for(int i = 0; i < 32; i++) {
+		write_io16(0x0440, i);
+		write_io16(0x0442, reg_default[i]);
+	}
+	write_io16(0x0440, 0);
+#else
 	force_recalc_crtc_param();
+#endif
 //	register_event(this, EVENT_CRTC_VSTART, vstart_us, false, &event_id_vstart);
 }
 
@@ -1130,6 +1144,7 @@ void TOWNS_CRTC::transfer_line(int line)
 		bool to_disp = false;
 		linebuffers[trans][line].num[0] = 0;
 		if(!(frame_in[0])) return;
+		int line_shift = 1;
 		if((horiz_end_us[0] <= 0.0) || (horiz_end_us[0] <= horiz_start_us[0])) return;
 		switch(ctrl & 0x0f) {
 		case 0x0a:
@@ -1160,24 +1175,26 @@ void TOWNS_CRTC::transfer_line(int line)
 				}
 				uint8_t magx = zoom_factor_horiz[0];
 				uint8_t *p = d_vram->get_vram_address(offset);
+//				words <<= 1;
 				if((p != NULL) && (words > magx) && (magx != 0)){
+//					out_debug_log("LINE=%d HEAD=%08X LINE_OFFSET=%d VRAM=%08X words=%d magx=%d", line, head_address[0], line_offset[0], p, words, magx);
 					if(words >= TOWNS_CRTC_MAX_PIXELS) words = TOWNS_CRTC_MAX_PIXELS;
 					switch(linebuffers[trans][line].mode[0]) {
 					case DISPMODE_32768:
+						// OK?
+//						if(words > (line_offset[0] << 1)) words = line_offset[0] << 1;
 						linebuffers[trans][line].pixels[0] = words;
-						linebuffers[trans][line].mag[0] = magx;
-						if((words / magx) >= 1) {
-							memcpy(linebuffers[trans][line].pixels_layer[0], p, (words / magx) * sizeof(uint16_t));
-							did_transfer[0] = true;
-						}
+						linebuffers[trans][line].mag[0] = magx;  // ToDo: Real magnify
+						line_shift = 3;
+						memcpy(linebuffers[trans][line].pixels_layer[0], p, words << 1);
+						did_transfer[0] = true;
 						break;
 					case DISPMODE_256:
 						linebuffers[trans][line].pixels[0] = words;
 						linebuffers[trans][line].mag[0] = magx;
-						if((words / magx) >= 1) {
-							memcpy(linebuffers[trans][line].pixels_layer[0], p, words / magx);
-							did_transfer[0] = true;
-						}
+						line_shift = 2;
+						memcpy(linebuffers[trans][line].pixels_layer[0], p, words);
+						did_transfer[0] = true;
 						break;
 					}
 					
@@ -1195,7 +1212,7 @@ void TOWNS_CRTC::transfer_line(int line)
 			zoom_count_vert[0] = zoom_factor_vert[0];
 			// ToDo: Interlace
 			if(to_disp) {
-				head_address[0] += line_offset[0];
+				head_address[0] += (line_offset[0] << line_shift);
 			}
 		}
 	} else { // Two layers.
@@ -1226,8 +1243,10 @@ void TOWNS_CRTC::transfer_line(int line)
 			ctrl_b >>= 2;
 //			linebuffers[trans][line].mode[l] = DISPMODE_32768;
 		}
+		int line_shift;
 		for(int l = 0; l < 2; l++) {
 			if(to_disp[l]) {
+				line_shift = 1;
 				uint32_t offset = vstart_addr[l];
 				offset = offset + head_address[l];
 				if(hstart_words[l] >= regs[9 + l * 2]) {
@@ -1241,31 +1260,29 @@ void TOWNS_CRTC::transfer_line(int line)
 				uint16_t _end = regs[10 + l * 2];  // HDEx
 				if(_begin < _end) {
 					int words = _end - _begin;
-					if(hstart_words[l] >= regs[9 + l * 2]) {
-						words = words - (hstart_words[l] - regs[9 + l * 2]);
+					if(hstart_words[l] >= _begin) {
+						words = words - (hstart_words[l] - _begin);
 					}
 					uint8_t magx = zoom_factor_horiz[l];
 					uint8_t *p = d_vram->get_vram_address(offset);
-//					out_debug_log("LINE=%d LAYER=%d VRAM=%08X words=%d magx=%d", line, l, p, words, magx);
+//					out_debug_log("LINE=%d LAYER=%d HEAD=%08X LINE_OFFSET=%d VRAM=%08X words=%d magx=%d", line, l, head_address[l], line_offset[l], p, words, magx);
 					if((p != NULL) && (words >= magx) && (magx != 0)){
 						if(words >= TOWNS_CRTC_MAX_PIXELS) words = TOWNS_CRTC_MAX_PIXELS;
 						switch(linebuffers[trans][line].mode[l]) {
 						case DISPMODE_32768:
-							linebuffers[trans][line].pixels[l] = words / magx;
-							linebuffers[trans][line].mag[l] = magx;
-							if((words / magx) >= 1) {
-								memcpy(linebuffers[trans][line].pixels_layer[l], p, (words / magx)* sizeof(uint16_t));
-								did_transfer[l] = true;
-							}
-							
+//							if(words > (line_offset[l] << 1)) words = line_offset[l] << 1;
+							linebuffers[trans][line].pixels[l] = words;
+							linebuffers[trans][line].mag[l] = magx << 1; // ToDo: Real magnify
+							memcpy(linebuffers[trans][line].pixels_layer[l], p, words << 1);
+							did_transfer[l] = true;
+							line_shift = 3;
 							break;
 						case DISPMODE_16:
 							linebuffers[trans][line].pixels[l] = words;
 							linebuffers[trans][line].mag[l] = magx;
-							if((words / magx) >= 2) {
-								memcpy(linebuffers[trans][line].pixels_layer[l], p, (words / magx)/ 2);
-								did_transfer[l] = true;
-							}
+							memcpy(linebuffers[trans][line].pixels_layer[l], p, words >> 1);
+							line_shift = 1;
+							did_transfer[l] = true;
 							break;
 						}
 					}
@@ -1278,7 +1295,7 @@ void TOWNS_CRTC::transfer_line(int line)
 				zoom_count_vert[l] = zoom_factor_vert[l];
 				// ToDo: Interlace
 				if(to_disp[l]) {
-					head_address[l] += line_offset[l];
+					head_address[l] += (line_offset[l] << line_shift);
 				}
 			}
 			if(!(did_transfer[l])) {
