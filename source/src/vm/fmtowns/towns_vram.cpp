@@ -24,6 +24,7 @@ namespace FMTOWNS {
 
 void TOWNS_VRAM::initialize()
 {
+	memset(vram, 0x00, sizeof(vram));
 }
 
 void TOWNS_VRAM::reset()
@@ -72,18 +73,20 @@ void TOWNS_VRAM::reset()
 	layer_display_flags[0] = layer_display_flags[1] = 0;
 	r50_dpalette_updated = true;
 
-//	memset(vram, 0x00, sizeof(vram));
+	
 	// For Debug
 	for(uint32_t x = 0; x < (sizeof(vram) / sizeof(uint16_t)); x++) {
 		uint16_t r = ((x & 0x1ffff) / 3) & 0x1f;
 		uint16_t g = ((x & 0x1ffff) / 6) & 0x1f;
 		uint16_t b = ((x & 0x1ffff) / 9) & 0x1f;
+		uint16_t a =  ((x / 640) & 1) ? 0x0000 : 0x8000;
+		uint16_t c = (r << 10) | (g << 5) | b | a;
+		if((x / 640) & 1) c = 0;
 		
-		uint16_t c = (r << 10) | (g << 5) | b;
 		uint16_t* p = (uint16_t*)(&vram[x << 1]);
 		*p = c;
 	}
-
+	
 }
 	
 void TOWNS_VRAM::make_dirty_vram(uint32_t addr, int bytes)
