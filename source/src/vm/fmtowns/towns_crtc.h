@@ -279,7 +279,14 @@ protected:
 
 	int display_linebuf;
 	linebuffer_t *linebuffers[4];
-	
+
+	// Render buffer
+		// ToDo: faster alpha blending.
+	__DECL_ALIGNED(32) scrntype_t lbuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
+	__DECL_ALIGNED(32) scrntype_t lbuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
+	__DECL_ALIGNED(32) scrntype_t abuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
+	__DECL_ALIGNED(32) scrntype_t abuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
+
 	void __FASTCALL set_vsync(bool val, bool force);
 	void force_recalc_crtc_param(void);
 	void restart_display();
@@ -290,9 +297,12 @@ protected:
 	uint16_t read_reg30();
 	
 	bool __FASTCALL render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int width, int layer, bool do_alpha);
+	bool __FASTCALL render_256(scrntype_t* dst, int y, int width);
 	bool __FASTCALL render_32768(scrntype_t* dst, scrntype_t *mask, int y, int width, int layer, bool do_alpha);
 	void __FASTCALL transfer_line(int line);
-	
+
+	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1);
+
 public:
 	TOWNS_CRTC(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

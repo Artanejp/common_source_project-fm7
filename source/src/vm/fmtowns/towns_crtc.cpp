@@ -699,6 +699,87 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int widt
 	return true;
 }
 
+bool TOWNS_CRTC::render_256(scrntype_t* dst, int y, int width)
+{
+	// 256 colors
+	if(dst == NULL) return false;
+	int trans = display_linebuf & 3;
+	int magx = linebuffers[trans]->mag[0];
+	int pwidth = linebuffers[trans]->pixels[0];
+	int num = linebuffers[trans]->num[0];
+	uint8_t *p = linebuffers[trans]->pixels_layer[0];
+	__DECL_ALIGNED(32)  scrntype_t apal256[256];
+	
+	d_vram->get_analog_palette(2, apal256);
+	
+	__DECL_ALIGNED(16) uint8_t pbuf[16];
+	__DECL_ALIGNED(32) scrntype_t sbuf[16];
+	if(magx < 1) {
+		return false;;
+	}
+	if(magx == 1) {
+		if(pwidth > width) pwidth = width;
+		if(pwidth < 1) pwidth = 1;
+		for(int x = 0; x < (pwidth >> 4); x++) {
+			// ToDo: Start position
+			for(int i = 0; i < 16; i++) {
+				pbuf[i] = *p++;
+			}
+			int xx = x << 4;
+			for(int i = 0; i < 16; i++) {
+				dst[xx++] = apal256[pbuf[i]];
+			}
+		}
+		if((pwidth & 15) != 0) {
+			int xx = pwidth & ~15;
+			int w = pwidth & 15;
+			for(int i = 0; i < w; i++) {
+				pbuf[i] = *p++;
+			}
+			for(int i = 0; i < w; i++) {
+				dst[xx++] = apal256[pbuf[i]];
+			}
+		}
+	} else {
+		if((pwidth * magx) > width) {
+			pwidth = width / magx;
+			if((width % magx) != 0) pwidth++;
+		}
+		int k = 0;
+		for(int x = 0; x < (pwidth >> 4); x++) {
+			// ToDo: Start position
+			for(int i = 0; i < 16; i++) {
+				pbuf[i] = *p++;
+			}
+			for(int i = 0; i < 16; i++) {
+				sbuf[i] = apal256[pbuf[i]];
+			}
+			for(int i = 0; i < 16; i++) {
+				scrntype_t s = sbuf[i];
+				for(int j = 0; j < magx; j++) {
+					lbuffer0[k++] = s;
+				}
+			}
+		}
+		if((pwidth & 15) != 0) {
+			for(int i = 0; i < (pwidth & 15); i++) {
+				pbuf[i] = *p++;
+			}
+			for(int i = 0; i < (pwidth & 15); i++) {
+				sbuf[i] = apal256[pbuf[i]];
+			}
+			for(int i = 0; i < (pwidth & 15); i++) {
+				scrntype_t s = sbuf[i];
+				for(int j = 0; j < magx; j++) {
+					lbuffer0[k++] = s;
+					if(k >= width) break;
+				}
+				if(k > width) break;
+			}
+		}
+	}
+	return true;
+}
 bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int width, int layer, bool do_alpha)
 {
 	if(dst == NULL) return false;
@@ -837,6 +918,59 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 	return true;
 }
 
+void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1)
+{
+	scrntype_t *pp = emu->get_screen_buffer(y);
+	if(pp != NULL) {
+		if((do_mix0) && (do_mix1)) {
+			// alpha blending
+			__DECL_ALIGNED(32) scrntype_t pixbuf0[8];
+			__DECL_ALIGNED(32) scrntype_t pixbuf1[8];
+			__DECL_ALIGNED(32) scrntype_t maskbuf[8];
+			for(int xx = 0; xx < width; xx += 8) {
+				scrntype_t *px1 = &(lbuffer1[xx]);
+				scrntype_t *ax = &(abuffer0[xx]);
+				for(int ii = 0; ii < 8; ii++) {
+					pixbuf1[ii] = px1[ii];
+					maskbuf[ii] = ax[ii];
+				}
+				scrntype_t *px0 = &(lbuffer0[xx]);
+												
+				for(int ii = 0; ii < 8; ii++) {
+					pixbuf0[ii] = px0[ii];
+				}
+				for(int ii = 0; ii < 8; ii++) {
+					pixbuf1[ii] = pixbuf1[ii] & ~(maskbuf[ii]);
+					pixbuf0[ii] = pixbuf0[ii] & maskbuf[ii];
+				}
+				for(int ii = 0; ii < 8; ii++) {
+					pixbuf0[ii] = pixbuf0[ii] | pixbuf1[ii];
+				}
+				for(int ii = 0; ii < 8; ii++) {
+					*pp++ = pixbuf0[ii];
+				}
+			}
+			scrntype_t pix0, pix1, mask0;
+			int xptr = width & 0x7f8;
+			for(int ii = 0; ii < (width & 7); ii++) {
+				pix0 = lbuffer0[ii + xptr];
+				pix1 = lbuffer1[ii + xptr];
+				mask0 = abuffer0[ii + xptr];
+				pix0 = pix0 & mask0;
+				pix1 = pix1 & ~(mask0);
+				pix0 = pix0 | pix1;
+				*pp++ = pix0;
+			}
+		} else if(do_mix0) {
+			my_memcpy(pp, lbuffer0, width * sizeof(scrntype_t));
+		} else if(do_mix1) {
+			my_memcpy(pp, lbuffer1, width * sizeof(scrntype_t));
+		} else {
+			memset(pp, 0x00, width * sizeof(scrntype_t));
+		}
+	}
+}
+
 void TOWNS_CRTC::draw_screen()
 {
 	int trans = (display_linebuf == 0) ? 3 : ((display_linebuf - 1) & 3);
@@ -845,17 +979,6 @@ void TOWNS_CRTC::draw_screen()
 		//display_linebuf = (display_linebuf + 1) & 3;
 		return;
 	}
-	__DECL_ALIGNED(32)  scrntype_t apal16[2][16];
-	__DECL_ALIGNED(32)  scrntype_t apal256[256];
-	
-	{
-//		emu->lock_vm();
-		d_vram->get_analog_palette(0, &(apal16[0][0]));
-		d_vram->get_analog_palette(0, &(apal16[1][0]));
-		d_vram->get_analog_palette(2, apal256);
-//		emu->unlock_vm();
-	}
-	
 	int lines = lines_per_frame;
 	int width = pixels_per_line;
 	if(lines <= 0) lines = 1;
@@ -863,94 +986,22 @@ void TOWNS_CRTC::draw_screen()
 	
 	if(lines > TOWNS_CRTC_MAX_LINES) lines = TOWNS_CRTC_MAX_LINES;
 	if(width > TOWNS_CRTC_MAX_PIXELS) width = TOWNS_CRTC_MAX_PIXELS;
-	// ToDo: faster alpha blending.
-	__DECL_ALIGNED(32) scrntype_t lbuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
-	__DECL_ALIGNED(32) scrntype_t lbuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
-	__DECL_ALIGNED(32) scrntype_t abuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
-	__DECL_ALIGNED(32) scrntype_t abuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
+	
 	memset(lbuffer1, 0x00, sizeof(lbuffer1));
 	memset(abuffer1, 0x00, sizeof(abuffer1));
 	memset(lbuffer0, 0x00, sizeof(lbuffer0));
 	memset(abuffer0, 0x00, sizeof(abuffer0));
 	
-	scrntype_t *dst;
 	for(int y = 0; y < lines; y++) {
 		bool do_mix0 = false;
 		bool do_mix1 = false;
 		if(linebuffers[trans]->mode[0] == DISPMODE_256) {
-			// 256 colors
-			do_mix0 = true;
-			int magx = linebuffers[trans]->mag[0];
-			int pwidth = linebuffers[trans]->pixels[0];
-			int num = linebuffers[trans]->num[0];
-			uint8_t *p = linebuffers[trans]->pixels_layer[0];
-			__DECL_ALIGNED(16) uint8_t pbuf[16];
-			__DECL_ALIGNED(32) scrntype_t sbuf[16];
-			if(magx < 1) {
-				continue;
-			}
-			if(magx == 1) {
-				if(pwidth > width) pwidth = width;
-				for(int x = 0; x < (pwidth >> 4); x++) {
-					// ToDo: Start position
-					for(int i = 0; i < 16; i++) {
-						pbuf[i] = *p++;
-					}
-					int xx = x << 4;
-					for(int i = 0; i < 16; i++) {
-						lbuffer1[xx++] = apal256[pbuf[i]];
-					}
-				}
-				if((pwidth & 15) != 0) {
-					int xx = pwidth & ~15;
-					int w = pwidth & 15;
-					for(int i = 0; i < w; i++) {
-						pbuf[i] = *p++;
-					}
-					for(int i = 0; i < w; i++) {
-						lbuffer1[xx++] = apal256[pbuf[i]];
-					}
-				}
-			} else {
-				if((pwidth * magx) > width) {
-					pwidth = width / magx;
-					if((width % magx) != 0) pwidth++;
-				}
-				int k = 0;
-				for(int x = 0; x < (pwidth >> 4); x++) {
-					// ToDo: Start position
-					for(int i = 0; i < 16; i++) {
-						pbuf[i] = *p++;
-					}
-					for(int i = 0; i < 16; i++) {
-					    sbuf[i] = apal256[pbuf[i]];
-					}
-					for(int i = 0; i < 16; i++) {
-						scrntype_t s = sbuf[i];
-						for(int j = 0; j < magx; j++) {
-							lbuffer1[k++] = s;
-						}
-					}
-				}
-				if((pwidth & 15) != 0) {
-					for(int i = 0; i < (pwidth & 15); i++) {
-						pbuf[i] = *p++;
-					}
-					for(int i = 0; i < (pwidth & 15); i++) {
-					    sbuf[i] = apal256[pbuf[i]];
-					}
-					for(int i = 0; i < (pwidth & 15); i++) {
-						scrntype_t s = sbuf[i];
-						for(int j = 0; j < magx; j++) {
-							lbuffer1[k++] = s;
-							if(k >= width) break;
-						}
-						if(k > width) break;
-					}
-				}
-			}
+			do_mix0 = render_256(lbuffer0, y, width);
+			do_mix1 = false;
 		} else {
-//			out_debug_log("MODE=%d/%d", linebuffers[trans]->mode[0], linebuffers[trans]->mode[1]);
+			__DECL_ALIGNED(32)  scrntype_t apal16[2][16];
+			d_vram->get_analog_palette(0, &(apal16[0][0]));
+			d_vram->get_analog_palette(1, &(apal16[1][0]));
 			if(linebuffers[trans]->mode[1] == DISPMODE_16) { // Lower layer
 				do_mix1 = render_16(lbuffer1, abuffer1, &(apal16[linebuffers[trans]->num[1]][0]), y, width, 1, do_alpha);
 			} else if(linebuffers[trans]->mode[1] == DISPMODE_32768) { // Lower layer
@@ -963,60 +1014,7 @@ void TOWNS_CRTC::draw_screen()
 				do_mix0 = render_32768(lbuffer0, abuffer0, y, width, 0, do_alpha);
 			}
 		}
-		// ToDo: alpha blending
-		{
-//			emu->lock_vm();
-			scrntype_t *pp = emu->get_screen_buffer(y);
-			if(pp != NULL) {
-				if((do_mix0) && (do_mix1)) {
-					// alpha blending
-					__DECL_ALIGNED(32) scrntype_t pixbuf0[8];
-					__DECL_ALIGNED(32) scrntype_t pixbuf1[8];
-					__DECL_ALIGNED(32) scrntype_t maskbuf[8];
-					for(int xx = 0; xx < width; xx += 8) {
-						scrntype_t *px1 = &(lbuffer1[xx]);
-						scrntype_t *ax = &(abuffer0[xx]);
-						for(int ii = 0; ii < 8; ii++) {
-							pixbuf1[ii] = px1[ii];
-							maskbuf[ii] = ax[ii];
-						}
-						scrntype_t *px0 = &(lbuffer0[xx]);
-												
-						for(int ii = 0; ii < 8; ii++) {
-							pixbuf0[ii] = px0[ii];
-						}
-						for(int ii = 0; ii < 8; ii++) {
-							pixbuf1[ii] = pixbuf1[ii] & ~(maskbuf[ii]);
-							pixbuf0[ii] = pixbuf0[ii] & maskbuf[ii];
-						}
-						for(int ii = 0; ii < 8; ii++) {
-							pixbuf0[ii] = pixbuf0[ii] | pixbuf1[ii];
-						}
-						for(int ii = 0; ii < 8; ii++) {
-							*pp++ = pixbuf0[ii];
-						}
-					}
-					scrntype_t pix0, pix1, mask0;
-					int xptr = width & 0x7f8;
-					for(int ii = 0; ii < (width & 7); ii++) {
-						pix0 = lbuffer0[ii + xptr];
-						pix1 = lbuffer1[ii + xptr];
-						mask0 = abuffer0[ii + xptr];
-						pix0 = pix0 & mask0;
-						pix1 = pix1 & ~(mask0);
-						pix0 = pix0 | pix1;
-						*pp++ = pix0;
-					}
-				} else if(do_mix0) {
-					my_memcpy(pp, lbuffer0, width * sizeof(scrntype_t));
-				} else if(do_mix1) {
-					my_memcpy(pp, lbuffer1, width * sizeof(scrntype_t));
-				} else {
-					memset(pp, 0x00, width * sizeof(scrntype_t));
-				}
-			}
-//			emu->unlock_vm();
-		}
+		mix_screen(y, width, do_mix0, do_mix1);
 	}
 	
 	//display_linebuf = (display_linebuf + 1) & 3;
