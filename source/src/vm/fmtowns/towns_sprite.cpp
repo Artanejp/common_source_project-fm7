@@ -53,6 +53,8 @@ void TOWNS_SPRITE::reset()
 	now_transferring = false;
 	max_sprite_per_frame = 224;
 	frame_sprite_count = 0;
+	tvram_enabled = true;
+	shadow_memory_enabled = true;
 	
 	memset(reg_data, 0x00, sizeof(reg_data)); // OK?
 }
@@ -694,7 +696,7 @@ void TOWNS_SPRITE::write_io8(uint32_t addr, uint32_t data)
 {
 	reg_addr = addr & 7;
 	reg_data[reg_addr] = (uint8_t)data;
-	
+
 	switch(reg_addr) {
 	case 0:
 		reg_index = ((uint16_t)(reg_data[0]) + (((uint16_t)(reg_data[1] & 0x03)) << 8));
@@ -729,6 +731,12 @@ void TOWNS_SPRITE::write_io8(uint32_t addr, uint32_t data)
 uint32_t TOWNS_SPRITE::read_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
+
+	if(addr == 0x05c8) {
+		val = (tvram_enabled) ? 0x80 : 0;
+		tvram_enabled = false;
+		return val;
+	}
 	reg_addr = addr & 7;
 	switch(reg_addr) {
 	case 0:
@@ -763,12 +771,12 @@ uint32_t TOWNS_SPRITE::read_io8(uint32_t addr)
 }
 
 
-uint32_t TOWNS_SPRITE::read_data8(uint32_t addr)
+uint32_t TOWNS_SPRITE::read_memory_mapped_io8(uint32_t addr)
 {
 	return pattern_ram[addr & 0x1ffff];
 }
 
-uint32_t TOWNS_SPRITE::read_data16(uint32_t addr)
+uint32_t TOWNS_SPRITE::read_memory_mapped_io16(uint32_t addr)
 {
 	pair16_t tval;
 	tval.b.l = pattern_ram[addr & 0x1ffff];
@@ -776,7 +784,7 @@ uint32_t TOWNS_SPRITE::read_data16(uint32_t addr)
 	return (uint32_t)(tval.w);
 }
 
-uint32_t TOWNS_SPRITE::read_data32(uint32_t addr)
+uint32_t TOWNS_SPRITE::read_memory_mapped_io32(uint32_t addr)
 {
 	pair32_t tval;
 	tval.b.l  = pattern_ram[addr & 0x1ffff];
@@ -786,103 +794,88 @@ uint32_t TOWNS_SPRITE::read_data32(uint32_t addr)
 	return (uint32_t)(tval.d);
 }
 
-void TOWNS_SPRITE::write_data8(uint32_t addr, uint32_t data)
+void TOWNS_SPRITE::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	uint32_t nbank;
 	if((addr >= 0x81000000) && (addr < 0x81020000)) {
 		nbank = (addr & 0x1e000) >> 12;
 	} else {
-		nbank = 0; // OK?
+		if(((addr >= 0xc8000) && (addr < 0xcb000))) {
+			nbank = (addr - 0xc8000) >> 12;
+			switch(nbank) {
+			case 0:
+				tvram_enabled = true;
+				if(shadow_memory_enabled) {
+					ram[addr & 0xfff] = data;
+				} else {
+					pattern_ram[addr & 0xfff] = data;
+				}
+				break;
+			case 1:
+				ram[(addr & 0xfff) + 0x1000] = data;
+				break;
+			case 2:
+				tvram_enabled = true;
+				if(shadow_memory_enabled) {
+					ram[(addr & 0xfff) + 0x2000] = data;
+				} else {
+					pattern_ram[addr & 0x3fff] = data;
+				}
+				break;
+			}
+			return;
+		}			
 	}
 	
-	switch(nbank) {
-	case 0:
-	case 1:
-		// ToDO: Discard cache
-		pattern_ram[addr & 0x1fff] = data;
-		break;
-	case 2:
-	case 3:
-		// ToDO: Discard cache
-		pattern_ram[(addr & 0x1fff) + 0x2000] = data;
-		break;
-	default:
-		// ToDO: Discard cache
-		pattern_ram[addr & 0x1ffff] = data;
-		break;
-	}
+	// ToDO: Discard cache
+	pattern_ram[addr & 0x1ffff] = data;
 	return;
 }
-void TOWNS_SPRITE::write_data16(uint32_t addr, uint32_t data)
+
+void TOWNS_SPRITE::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 {
 	pair16_t t;
 	uint32_t nbank;
+	t.w = (uint16_t)data;
 	if((addr >= 0x81000000) && (addr < 0x81020000)) {
 		nbank = (addr & 0x1e000) >> 12;
+	} else if(((addr >= 0xc8000) && (addr < 0xcb000))) {
+		write_memory_mapped_io8(addr, t.b.l);
+		write_memory_mapped_io8(addr + 1, t.b.h);
+		return;
 	} else {
-		nbank = 0; // OK?
+		return;
 	}
 
-	t.w = (uint16_t)data;
-	
-	switch(nbank) {
-	case 0:
-	case 1:
-		// ToDO: Discard cache
-		pattern_ram[(addr + 0) & 0x1fff] = t.b.l;
-		pattern_ram[(addr + 1) & 0x1fff] = t.b.h;
-		break;
-	case 2:
-	case 3:
-		// ToDO: Discard cache
-		pattern_ram[((addr + 0) & 0x1fff) + 0x2000] = t.b.l;
-		pattern_ram[((addr + 1) & 0x1fff) + 0x2000] = t.b.h;
-		break;
-	default:
+	{
 		// ToDO: Discard cache
 		pattern_ram[(addr + 0) & 0x1ffff] = t.b.l;
 		pattern_ram[(addr + 1) & 0x1ffff] = t.b.h;
-		break;
 	}
 	return;
 }
 				
-void TOWNS_SPRITE::write_data32(uint32_t addr, uint32_t data)
+void TOWNS_SPRITE::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 {
 	pair32_t t;
 	uint32_t nbank;
+	t.d = data;
 	if((addr >= 0x81000000) && (addr < 0x81020000)) {
 		nbank = (addr & 0x1e000) >> 12;
+	} else if(((addr >= 0xc8000) && (addr < 0xcb000))) {
+		write_memory_mapped_io8(addr, t.b.l);
+		write_memory_mapped_io8(addr + 1, t.b.h);
+		write_memory_mapped_io8(addr + 2, t.b.h2);
+		write_memory_mapped_io8(addr + 3, t.b.h3);
 	} else {
-		nbank = 0; // OK?
+		return;
 	}
-
-	t.d = data;
-	
-	switch(nbank) {
-	case 0:
-	case 1:
-		// ToDO: Discard cache
-		pattern_ram[(addr + 0) & 0x1fff] = t.b.l;
-		pattern_ram[(addr + 1) & 0x1fff] = t.b.h;
-		pattern_ram[(addr + 2) & 0x1fff] = t.b.h2;
-		pattern_ram[(addr + 3) & 0x1fff] = t.b.h3;
-		break;
-	case 2:
-	case 3:
-		// ToDO: Discard cache
-		pattern_ram[((addr + 0) & 0x1fff) + 0x2000] = t.b.l;
-		pattern_ram[((addr + 1) & 0x1fff) + 0x2000] = t.b.h;
-		pattern_ram[((addr + 2) & 0x1fff) + 0x2000] = t.b.h2;
-		pattern_ram[((addr + 3) & 0x1fff) + 0x2000] = t.b.h3;
-		break;
-	default:
+	{
 		// ToDO: Discard cache
 		pattern_ram[(addr + 0) & 0x1ffff] = t.b.l;
 		pattern_ram[(addr + 1) & 0x1ffff] = t.b.h;
 		pattern_ram[(addr + 2) & 0x1ffff] = t.b.h2;
 		pattern_ram[(addr + 3) & 0x1ffff] = t.b.h3;
-		break;
 	}
 	return;
 }
@@ -950,6 +943,8 @@ void TOWNS_SPRITE::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_TOWNS_SPRITE_SET_LINES) {
 		int line = data & 0x7ff; // 2048 - 1
 		render_lines = line;
+	} else if(id == SIG_TOWNS_SPRITE_SHADOW_RAM) {
+		shadow_memory_enabled = ((data & mask) == 0);
 	}
 }
 
@@ -968,6 +963,7 @@ bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(reg_data, sizeof(reg_data), 1);
 	// RAMs
 	state_fio->StateArray(pattern_ram, sizeof(pattern_ram), 1);
+	state_fio->StateArray(ram, sizeof(ram), 1);
 	
 	state_fio->StateValue(reg_spen);
 	state_fio->StateValue(reg_index);
@@ -986,6 +982,8 @@ bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 	
 	state_fio->StateValue(frame_sprite_count);
 	state_fio->StateValue(max_sprite_per_frame);
+	state_fio->StateValue(tvram_enabled);
+	state_fio->StateValue(shadow_memory_enabled);
 
 	//state_fio->StateValue(split_rendering);
 

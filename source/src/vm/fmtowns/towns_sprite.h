@@ -7,9 +7,10 @@
 
 #define SIG_TOWNS_SPRITE_HOOK_VLINE  256
 #define SIG_TOWNS_SPRITE_SET_LINES   257
-#define SIG_TOWNS_SPRITE_BUSY        258
-#define SIG_TOWNS_SPRITE_CALL_HSYNC  259
-#define SIG_TOWNS_SPRITE_CALL_VSTART 260
+#define SIG_TOWNS_SPRITE_SHADOW_RAM  258
+#define SIG_TOWNS_SPRITE_BUSY        259
+#define SIG_TOWNS_SPRITE_CALL_HSYNC  260
+#define SIG_TOWNS_SPRITE_CALL_VSTART 261
 namespace FMTOWNS {
 	class TOWNS_VRAM;
 }
@@ -29,6 +30,7 @@ protected:
 	bool reg_spen;
 	uint16_t reg_index;
 	uint8_t pattern_ram[0x20000];
+	uint8_t ram[0x3000];
 
 	uint16_t reg_voffset;
 	uint16_t reg_hoffset;
@@ -46,6 +48,9 @@ protected:
 	bool split_rendering;
 	int max_sprite_per_frame;
 
+	bool tvram_enabled;
+	bool shadow_memory_enabled;
+
 	void __FASTCALL render_sprite(int num,  int x, int y, uint16_t attr, uint16_t color);
 	void render_full();
 	void render_part(int start, int end);
@@ -59,19 +64,19 @@ public:
 	}
 	~TOWNS_SPRITE() {}
 
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 
-	void write_data8(uint32_t addr, uint32_t data);
-	void write_data16(uint32_t addr, uint32_t data);
-	void write_data32(uint32_t addr, uint32_t data);
+	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
+	void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data);
 	
-	uint32_t read_data8(uint32_t addr);
-	uint32_t read_data16(uint32_t addr);
-	uint32_t read_data32(uint32_t addr);
+	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
+	uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
+	uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr);
 
 	void reset();
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void initialize();
 	void event_frame();
 	bool process_state(FILEIO* state_fio, bool loading);
