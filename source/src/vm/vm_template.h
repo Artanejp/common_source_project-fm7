@@ -93,7 +93,7 @@ public:
 	virtual void close_floppy_disk(int drv) { }
 	virtual void close_quick_disk(int drv) { }
 	virtual void close_hard_disk(int drv) { }
-	virtual void close_compact_disc() { }
+	virtual void close_compact_disc(int drv) { }
 	virtual void close_laser_disc(int drv) { }
 	virtual void close_bubble_casette(int drv) { }
 	virtual void close_cart(int drv) { }
