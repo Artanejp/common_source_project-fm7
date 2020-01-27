@@ -146,7 +146,9 @@
 
 #if defined(_HAS_HDD)
 #define MAX_SCSI		8
+#define USE_HARD_DISK   _HAS_HDD
 #endif
+#define USE_COMPACT_DISC 1
 
 #define MAX_MEMCARD		2
 #define I8259_MAX_CHIPS		2
@@ -292,7 +294,7 @@ protected:
 	
 	FMTOWNS::SCSI* scsi;
 	SCSI_HOST*     scsi_host;
-	SCSI_HDD*      hdd[4]; //
+	SCSI_HDD*      scsi_hdd[8]; //
 
 	int adc_in_ch;
 	int line_in_ch;
@@ -354,6 +356,17 @@ public:
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
 	bool is_frame_skippable();
+
+	void open_compact_disc(int drv, const _TCHAR* file_path);
+	void close_compact_disc(int drv);
+	bool is_compact_disc_inserted(int drv);
+	uint32_t is_compact_disc_accessed();
+#if defined(USE_HARD_DISK)
+	void open_hard_disk(int drv, const _TCHAR* file_path);
+	void close_hard_disk(int drv);
+	bool is_hard_disk_inserted(int drv);
+	uint32_t is_hard_disk_accessed();
+#endif	
 	void set_machine_type(uint16_t machine_id, uint16_t cpu_id);
 
 	void clear_sound_in();

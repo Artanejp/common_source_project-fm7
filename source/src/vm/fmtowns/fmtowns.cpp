@@ -167,18 +167,22 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	scsi_host = new SCSI_HOST(this, emu);
 	scsi_host->set_device_name(_T("SCSI HOST"));
+	
 	for(int i = 0; i < 7; i++) {
+		scsi_hdd[i] = NULL;
+#if defined(USE_HARD_DISK)
 		if(FILEIO::IsFileExisting(create_local_path(_T("SCSI%d.DAT"), i))) {
-			SCSI_HDD* scsi_hdd = new SCSI_HDD(this, emu);
+			scsi_hdd[i] = new SCSI_HDD(this, emu);
 #if defined(_USE_QT)
 			char d_name[64] = {0};
 			snprintf(d_name, 64, "SCSI DISK #%d", i + 1);
-			scsi_hdd->set_device_name(d_name);
+			scsi_hdd[i]->set_device_name(d_name);
 #endif			
-			scsi_hdd->scsi_id = i;
-			scsi_hdd->set_context_interface(scsi_host);
-			scsi_host->set_context_target(scsi_hdd);
+			scsi_hdd[i]->scsi_id = i;
+			scsi_hdd[i]->set_context_interface(scsi_host);
+			scsi_host->set_context_target(scsi_hdd[i]);
 		}
+#endif
 	}
 	dma = new TOWNS_DMAC(this, emu);
 	extra_dma = new TOWNS_DMAC(this, emu);
@@ -332,6 +336,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_cpu_id(cpu_id);
 	memory->set_context_cpu(cpu);
 	
+	cdrom->scsi_id = 0;
+	cdrom->set_context_interface(cdc_scsi);
+	cdc_scsi->set_context_target(cdrom);
 	cdc->set_context_cdrom(cdrom);
 	cdc->set_context_scsi_host(cdc_scsi);
 	cdc->set_context_dmac(dma);
@@ -488,7 +495,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	io->set_iomap_single_rw(0x05c0, memory); // NMI MASK
 	io->set_iomap_single_r (0x05c2, memory);  // NMI STATUS
-	io->set_iomap_single_r (0x05c8, vram); // TVRAM EMULATION
+	io->set_iomap_single_r (0x05c8, sprite); // TVRAM EMULATION
 	io->set_iomap_single_w (0x05ca, vram); // VSYNC INTERRUPT
 	
 	io->set_iomap_single_rw(0x05e8, memory); // RAM capacity register.(later Towns1H/2H/1F/2F).
@@ -758,6 +765,70 @@ int VM::sound_in(int ch, int32_t* src, int samples)
 
 	}
 	return ss;
+}
+
+#if defined(USE_HARD_DISK)
+void VM::open_hard_disk(int drv, const _TCHAR* file_path)
+{
+	if((drv < USE_HARD_DISK) && (drv < 8) && (drv >= 0)) {
+		if(scsi_hdd[drv] != NULL) {
+			scsi_hdd[drv]->open(drv, file_path, 1024);
+		}
+	}
+}
+
+void VM::close_hard_disk(int drv)
+{
+	if((drv < USE_HARD_DISK) && (drv < 8) && (drv >= 0)) {
+		if(scsi_hdd[drv] != NULL) {
+			scsi_hdd[drv]->close(drv);
+		}
+	}
+}
+
+bool VM::is_hard_disk_inserted(int drv)
+{
+	if((drv < USE_HARD_DISK) && (drv < 8) && (drv >= 0)) {
+		if(scsi_hdd[drv] != NULL) {
+			return scsi_hdd[drv]->mounted(drv);
+		}
+	}
+	return false;
+}
+
+uint32_t VM::is_hard_disk_accessed()
+{
+	uint32_t status = 0;
+	
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		if(scsi_hdd[drv] != NULL) {
+			if(scsi_hdd[drv]->accessed(drv & 1)) {
+				status |= 1 << drv;
+			}
+		}
+	}
+	return status;
+}
+#endif // USE_HARD_DISK
+
+void VM::open_compact_disc(int drv, const _TCHAR* file_path)
+{
+	cdrom->open(file_path);
+}
+
+void VM::close_compact_disc(int drv)
+{
+	cdrom->close();
+}
+
+bool VM::is_compact_disc_inserted(int drv)
+{
+	return cdrom->mounted();
+}
+
+uint32_t VM::is_compact_disc_accessed()
+{
+	return cdrom->accessed();
 }
 
 #ifdef USE_SOUND_VOLUME
