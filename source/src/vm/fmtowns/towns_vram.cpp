@@ -597,7 +597,7 @@ void TOWNS_VRAM::write_raw_vram16(uint32_t addr, uint32_t data)
 
 void TOWNS_VRAM::write_raw_vram32(uint32_t addr, uint32_t data)
 {
-	return; // For Debug
+//	return; // For Debug
 	pair32_t a;
 	pair32_t b;
 	pair32_t c;
@@ -737,36 +737,22 @@ uint32_t TOWNS_VRAM::read_plane_data8(uint32_t addr)
 
 	// ToDo: Writing plane.
 	if(access_page1) x_addr = 0x40000; //?
-	addr = (addr & 0x7fff) << 3;
+	addr = (addr & 0x7fff) << 2;
 	p = &(p[x_addr + addr]); 
 	
 	// 8bit -> 32bit
-	uint32_t *pp = (uint32_t *)p;
 	uint8_t tmp = 0;
-	uint32_t tmp_d = *pp;
-	
-#ifdef __LITTLE_ENDIAN__
-	uint32_t tmp_m1 = 0x000000f0;
-	uint32_t tmp_m2 = 0x0000000f;
-#else
-	uint32_t tmp_m1 = 0xf0000000;
-	uint32_t tmp_m2 = 0x0f000000;
-#endif	
-	uint32_t tmp_r;
-	tmp_d = tmp_d & write_plane_mask;
-	
+	uint8_t val = 0;
+	uint8_t ntmp = r50_ramsel & 0x0f;
+	uint8_t cvalmask = ntmp | (ntmp << 4);
 	for(int i = 0; i < 4; i++) {
-		tmp <<= 2;
-		tmp = tmp | (((tmp_d & tmp_m1) != 0) ? 0x02 : 0x00);
-		tmp = tmp | (((tmp_d & tmp_m2) != 0) ? 0x01 : 0x00);
-		
-#ifdef __LITTLE_ENDIAN__
-		tmp_d <<= 8;
-#else
-		tmp_d >>= 8;
-#endif		
+		val <<= 2;
+		tmp = *p++;
+		tmp = tmp & cvalmask;
+		if((tmp & 0xf0) != 0) val |= 0x02;
+		if((tmp & 0x0f) != 0) val |= 0x01;
 	}
-	return tmp;
+	return val;
 }
 
 uint32_t TOWNS_VRAM::read_plane_data16(uint32_t addr)
@@ -790,13 +776,12 @@ uint32_t TOWNS_VRAM::read_plane_data32(uint32_t addr)
 void TOWNS_VRAM::write_plane_data8(uint32_t addr, uint32_t data)
 {
 	// Plane Access
-	return;
 	uint32_t x_addr = 0;
 	uint8_t *p = (uint8_t*)vram;
 
 	// ToDo: Writing plane.
 	if(access_page1) x_addr = 0x40000; //?
-	addr = (addr & 0x7fff) << 3;
+	addr = (addr & 0x7fff) << 2;
 	x_addr = x_addr + addr;
 	p = &(p[x_addr]); 
 	
@@ -804,30 +789,42 @@ void TOWNS_VRAM::write_plane_data8(uint32_t addr, uint32_t data)
 	uint32_t *pp = (uint32_t *)p;
 	uint32_t tmp = 0;
 	uint32_t tmp_d = data & 0xff;
+	uint8_t ntmp = r50_ramsel & 0x0f;
+	
 #ifdef __LITTLE_ENDIAN__
-	uint32_t tmp_m1 = 0xf0000000 & write_plane_mask;
-	uint32_t tmp_m2 = 0x0f000000 & write_plane_mask;
+	uint32_t tmp_m1 = 0xf0000000/* & write_plane_mask*/;
+	uint32_t tmp_m2 = 0x0f000000/* & write_plane_mask*/;
+	tmp_m1 &= (((uint32_t)ntmp) << 28);
+	tmp_m2 &= (((uint32_t)ntmp) << 24);
+	
 #else
-	uint32_t tmp_m1 = 0x000000f0 & write_plane_mask;
-	uint32_t tmp_m2 = 0x0000000f & write_plane_mask;
+	uint32_t tmp_m1 = 0x000000f0/* & write_plane_mask*/;
+	uint32_t tmp_m2 = 0x0000000f/* & write_plane_mask*/;
+	tmp_m1 &= (((uint32_t)ntmp) << 4);
+	tmp_m2 &= (((uint32_t)ntmp) << 0);
 #endif	
 	uint32_t tmp_r1;
 	uint32_t tmp_r2;
+	uint32_t mask = 0;
 
 	for(int i = 0; i < 4; i++) {
 #ifdef __LITTLE_ENDIAN__
 		tmp = tmp >> 8;
+		mask = mask >> 8;
 #else
 		tmp = tmp << 8;
+		mask = mask << 8;
 #endif
-		tmp = tmp | (((tmp_d & 0x02) != 0) ? tmp_m1 : 0x00);
-		tmp = tmp | (((tmp_d & 0x01) != 0) ? tmp_m2 : 0x00);
-		tmp_d >>= 2;
+		tmp = tmp | (((tmp_d & 0x80) != 0) ? tmp_m1 : 0x00);
+		tmp = tmp | (((tmp_d & 0x40) != 0) ? tmp_m2 : 0x00);
+		mask = mask | (tmp_m1 | tmp_m2);
+		tmp_d <<= 2;
 	}
 	tmp_r1 = *pp;
 	tmp_r2 = tmp_r1;
-	tmp_r1 = tmp_r1 & ~write_plane_mask;
-	tmp_r1 = tmp_d | tmp_r1;
+	tmp_r1 = tmp_r1 & ~mask;
+//	tmp_r1 = tmp_r1 & ~write_plane_mask;
+	tmp_r1 = tmp | tmp_r1;
 	if(tmp_r2 != tmp_r1) {
 		*pp = tmp_r1;
 		dirty_flag[x_addr >> 3] = true;
@@ -836,7 +833,6 @@ void TOWNS_VRAM::write_plane_data8(uint32_t addr, uint32_t data)
 
 void TOWNS_VRAM::write_plane_data16(uint32_t addr, uint32_t data)
 {
-	return;
 	pair16_t d;
 	d.w = (uint16_t)data;
 	write_plane_data8(addr + 0, d.b.l);
@@ -846,7 +842,6 @@ void TOWNS_VRAM::write_plane_data16(uint32_t addr, uint32_t data)
 
 void TOWNS_VRAM::write_plane_data32(uint32_t addr, uint32_t data)
 {
-	return;
 	pair32_t d;
 	d.d = data;
 	write_plane_data8(addr + 0, d.b.l);
