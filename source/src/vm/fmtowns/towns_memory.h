@@ -114,6 +114,8 @@ protected:
 
 	// RAM
 	uint8_t ram_page0[0xc0000];       // 0x00000000 - 0x000bffff : RAM
+	uint8_t ram_pagec[0x10000];       // 0x000c0000 - 0x000cffff : URA? RAM
+	uint8_t ram_paged[0x0a000];       // 0x000d0000 - 0x000d9fff : RAM
 	uint8_t ram_pagee[0x16000];       // 0x000da000 - 0x000effff : RAM
 	uint8_t ram_pagef[0x08000];       // 0x000f0000 - 0x000f7fff : RAM
 

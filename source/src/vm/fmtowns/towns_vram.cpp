@@ -34,7 +34,6 @@ void TOWNS_VRAM::reset()
 	}
 	vram_access_reg_addr = 0;
 	packed_pixel_mask_reg.d = 0xffffffff;
-	access_page1 = false;;
 	write_plane_mask = 0xffffffff;
 	
 	sprite_busy = false;
@@ -73,7 +72,7 @@ void TOWNS_VRAM::reset()
 	layer_display_flags[0] = layer_display_flags[1] = 0;
 	r50_dpalette_updated = true;
 
-	
+#if 0	
 	// For Debug
 	for(uint32_t x = 0; x < (sizeof(vram) / sizeof(uint16_t)); x++) {
 //		uint16_t r = ((x & 0x1ffff) / 3) & 0x1f;
@@ -89,7 +88,7 @@ void TOWNS_VRAM::reset()
 		uint16_t* p = (uint16_t*)(&vram[x << 1]);
 		*p = c;
 	}
-	
+#endif	
 }
 	
 void TOWNS_VRAM::make_dirty_vram(uint32_t addr, int bytes)
@@ -133,6 +132,7 @@ void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 			return;
 			break;
 		case 0xc8000:
+			
 		case 0xc9000:
 		case 0xca000:
 		case 0xcb000:
@@ -736,19 +736,19 @@ uint32_t TOWNS_VRAM::read_plane_data8(uint32_t addr)
 	uint8_t *p = (uint8_t*)vram;
 
 	// ToDo: Writing plane.
-	if(access_page1) x_addr = 0x40000; //?
+	if(r50_gvramsel != 0) x_addr = 0x20000; //?
 	addr = (addr & 0x7fff) << 2;
 	p = &(p[x_addr + addr]); 
 	
 	// 8bit -> 32bit
 	uint8_t tmp = 0;
 	uint8_t val = 0;
-	uint8_t ntmp = r50_ramsel & 0x0f;
-	uint8_t cvalmask = ntmp | (ntmp << 4);
+	uint8_t nmask[4] = {0x11, 0x22, 0x44, 0x88};
+	uint8_t ntmp = nmask[r50_readplane & 3];
 	for(int i = 0; i < 4; i++) {
 		val <<= 2;
 		tmp = *p++;
-		tmp = tmp & cvalmask;
+		tmp = tmp & ntmp;
 		if((tmp & 0xf0) != 0) val |= 0x02;
 		if((tmp & 0x0f) != 0) val |= 0x01;
 	}
@@ -780,7 +780,7 @@ void TOWNS_VRAM::write_plane_data8(uint32_t addr, uint32_t data)
 	uint8_t *p = (uint8_t*)vram;
 
 	// ToDo: Writing plane.
-	if(access_page1) x_addr = 0x40000; //?
+	if(r50_gvramsel != 0) x_addr = 0x20000; //?
 	addr = (addr & 0x7fff) << 2;
 	x_addr = x_addr + addr;
 	p = &(p[x_addr]); 

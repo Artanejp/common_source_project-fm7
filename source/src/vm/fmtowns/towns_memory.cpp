@@ -10,6 +10,7 @@
 #include "../../fileio.h"
 #include "./towns_memory.h"
 #include "./towns_vram.h"
+#include "./towns_sprite.h"
 #include "./fontroms.h"
 #include "./serialrom.h"
 #include "../i386.h"
@@ -22,12 +23,20 @@ namespace FMTOWNS {
 void TOWNS_MEMORY::config_page00()
 {
 	set_memory_rw          (0x00000000, 0x000bffff, ram_page0);
-	set_memory_mapped_io_rw(0x000c0000, 0x000c7fff, d_vram);
-	set_memory_mapped_io_rw(0x000c8000, 0x000cafff, d_sprite);
-	set_memory_mapped_io_rw(0x000cb000, 0x000cbfff, d_font);
-	set_memory_mapped_io_rw(0x000cc000, 0x000cffff, this);
-//	set_memory_rw          (0x000d0000, 0x000d7fff, ram_paged);
-	set_memory_mapped_io_rw(0x000d0000, 0x000d9fff, d_dictionary); // CMOS
+	if(dma_is_vram) {
+		set_memory_mapped_io_rw(0x000c0000, 0x000c7fff, d_vram);
+		set_memory_mapped_io_rw(0x000c8000, 0x000cafff, d_sprite);
+		set_memory_mapped_io_rw(0x000cb000, 0x000cbfff, d_font);
+		set_memory_mapped_io_rw(0x000cc000, 0x000cffff, this);
+		set_memory_rw          (0x000d0000, 0x000d7fff, ram_paged);
+//		set_memory_mapped_io_rw(0x000d0000, 0x000d9fff, d_dictionary); // CMOS
+		set_memory_mapped_io_rw(0x000d8000, 0x000d9fff, d_dictionary); // CMOS
+	} else {
+		set_memory_rw          (0x000c0000, 0x000cffff, ram_pagec);
+		set_memory_rw          (0x000d0000, 0x000d9fff, ram_paged);
+		set_memory_mapped_io_rw(0x000c8000, 0x000cafff, d_sprite);
+//		set_memory_mapped_io_rw(0x000cc000, 0x000cffff, this);
+	}		
 	set_memory_rw          (0x000da000, 0x000effff, ram_pagee);
 	set_memory_rw          (0x000f0000, 0x000f7fff, ram_pagef);
 	set_memory_mapped_io_rw(0x000f8000, 0x000fffff, d_sysrom); 
@@ -70,6 +79,8 @@ void TOWNS_MEMORY::initialize()
 		}
 	}		
 	memset(ram_page0, 0x00, sizeof(ram_page0));
+	memset(ram_pagec, 0x00, sizeof(ram_pagec));
+	memset(ram_paged, 0x00, sizeof(ram_paged));
 	memset(ram_pagee, 0x00, sizeof(ram_pagee));
 	memset(ram_pagef, 0x00, sizeof(ram_pagef));
 	
@@ -769,9 +780,12 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x0404: // System Status Reg.
 		dma_is_vram = ((data & 0x80) == 0);
-//		config_page00();
+		config_page00();
 		if(d_font != NULL) {
 			d_font->write_signal(SIG_TOWNS_FONT_DMA_IS_VRAM, (dma_is_vram) ? 0xffffffff : 0x00000000, 0xffffffff);
+		}
+		if(d_sprite != NULL) {
+			d_sprite->write_signal(SIG_TOWNS_SPRITE_SHADOW_RAM, (dma_is_vram) ? 0xffffffff : 0x00000000, 0xffffffff);
 		}
 		break;
 	case 0x05c0:
@@ -817,12 +831,16 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 			val = d_vram->read_memory_mapped_io8(addr);
 		}
 		break;
-	//case 0x14:
-	//case 0x15:
+//	case 0x14:
+//	case 0x15:
 	case 0x16:
+		if(d_font != NULL) {
+			val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_DATA_LOW);
+		}
+		break;
 	case 0x17:
-		if(d_vram != NULL) {
-			val = d_vram->read_memory_mapped_io8(addr);
+		if(d_font != NULL) {
+			val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_DATA_HIGH);
 		}
 		break;
 	case 0x18:
@@ -871,7 +889,15 @@ void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 	case 0x06:
 		break;
 	case 0x14:
+		if(d_font != NULL) {
+			d_font->write_signal(SIG_TOWNS_FONT_KANJI_HIGH, data, 0xff);
+		}
+		break;
 	case 0x15:
+		if(d_font != NULL) {
+			d_font->write_signal(SIG_TOWNS_FONT_KANJI_LOW, data, 0xff);
+		}
+		break;
 	case 0x16:
 	case 0x17:
 		if(d_vram != NULL) {
@@ -983,6 +1009,8 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(extra_nmi_mask);
 	
 	state_fio->StateArray(ram_page0,  sizeof(ram_page0), 1);
+	state_fio->StateArray(ram_pagec,  sizeof(ram_pagec), 1);
+	state_fio->StateArray(ram_paged,  sizeof(ram_paged), 1);
 	state_fio->StateArray(ram_pagee,  sizeof(ram_pagee), 1);
 	state_fio->StateArray(ram_pagef,  sizeof(ram_pagef), 1);
 	if(loading) {
