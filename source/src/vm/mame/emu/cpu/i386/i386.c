@@ -1539,7 +1539,7 @@ static void __FASTCALL i386_protected_mode_jump(i386_state *cpustate, UINT16 seg
 		if((desc.flags & 0x0004) == 0)
 		{
 			/* non-conforming */
-			if(RPL < CPL)
+			if(RPL > CPL)
 			{
 				logerror("JMP: RPL %i is less than CPL %i\n",RPL,CPL);
 				FAULT(FAULT_GP,segment & 0xfffc)
@@ -1553,7 +1553,7 @@ static void __FASTCALL i386_protected_mode_jump(i386_state *cpustate, UINT16 seg
 		else
 		{
 			/* conforming */
-			if(DPL < CPL)
+			if(DPL > CPL)
 			{
 				logerror("JMP: DPL %i is less than CPL %i\n",DPL,CPL);
 				FAULT(FAULT_GP,segment & 0xfffc)
