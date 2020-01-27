@@ -157,6 +157,7 @@
 #define MB8877_NO_BUSY_AFTER_SEEK
 #define IO_ADDR_MAX		0x10000
 #define SCSI_HOST_AUTO_ACK
+//#define SCSI_HOST_WIDE
 
 // device informations for win32
 #define USE_CPU_TYPE		2

@@ -102,7 +102,7 @@ void CDC::write_io8(uint32_t address, uint32_t data)
 	 * 04C4h : Parameter register
 	 * 04C6h : Transfer control register.
 	 */
-	
+	out_debug_log(_T("WRITE I/O: ADDR=%04X DATA=%02X"), address, data);
 	switch(address & 0x0f) {
 	case 0x00: // Master control register
 		{
@@ -299,6 +299,7 @@ uint32_t CDC::read_io8(uint32_t address)
 		val = d_cdrom->read_subq();
 		break;
 	}
+//	out_debug_log(_T("READ I/O: ADDR=%04X VAL=%02X"), address, val);
 	return val;
 }
 
@@ -328,6 +329,7 @@ void CDC::read_cdrom(bool req_reply)
 	if(d_cdrom != NULL) {
 		track = d_cdrom->get_track(lba1);
 	}
+	out_debug_log(_T("READ_CDROM TRACK=%d LBA1=%06X LBA2=%06X F1/S1/M1=%02X/%02X/%02X F2/S2/M2=%02X/%02X/%02X"), track, lba1, lba2, f1, s1, m1, f2, s2, m2);
 	if(track < 2) {
 		if(lba1 >= 150) {
 			lba1 = lba1 - 150;
@@ -601,13 +603,17 @@ void CDC::write_signal(int ch, uint32_t data, uint32_t mask)
 {
 	switch(ch) {
 	case SIG_TOWNS_CDC_DRQ:
-		if((dma_transfer) && ((data & mask) != 0)) {
-			software_transfer_phase = false;
-			write_signals(&output_dma_line, 0xffffffff); // Indirect call do_dma().
-		} else if((pio_transfer) && ((data & mask) != 0)) {
-			software_transfer_phase = true;
-		} else if(!((data & mask) != 0)) {
-			software_transfer_phase = false;
+		if((data & mask) != 0) {
+			if((dma_transfer) ) {
+				software_transfer_phase = false;
+//				uint8_t val = d_scsi_host->read_dma_io8(0);
+				d_dmac->write_signal(SIG_UPD71071_CH3, data, mask);
+//				write_signals(&output_dma_line, val); // Indirect call do_dma().
+			} else if((pio_transfer) ) {
+				software_transfer_phase = true;
+			} else {
+				software_transfer_phase = false;
+			}
 		}
 		break;
 	case SIG_TOWNS_CDC_CDROM_DONE:

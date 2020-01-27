@@ -304,6 +304,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_ch1(scsi_host);
 	//dma->set_context_ch2(printer);
 	dma->set_context_ch3(cdc);
+	//dma->set_context_ch3(cdc_scsi);
 	dma->set_context_child_dma(extra_dma);
 	
 	floppy->set_context_fdc(fdc);
@@ -339,6 +340,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cdrom->scsi_id = 0;
 	cdrom->set_context_interface(cdc_scsi);
 	cdc_scsi->set_context_target(cdrom);
+	cdrom->set_context_done(cdc, SIG_TOWNS_CDC_CDROM_DONE, 1);
+	
 	cdc->set_context_cdrom(cdrom);
 	cdc->set_context_scsi_host(cdc_scsi);
 	cdc->set_context_dmac(dma);
