@@ -102,6 +102,13 @@ void TOWNS_CRTC::reset()
 	line_count[0] = line_count[1] = 0;
 	vert_line_count = -1;
 	display_linebuf = 0;
+
+	r50_planemask = 0x0f;
+	r50_pagesel = 0;
+	dpalette_changed = true;
+	for(int i = 0; i < 8; i++) {
+		dpalette_regs[i] = i;
+	}
 	for(int i = 0; i < TOWNS_CRTC_MAX_LINES; i++) {
 		line_changed[0][i] = true;
 		line_changed[1][i] = true;
@@ -119,6 +126,10 @@ void TOWNS_CRTC::reset()
 		zoom_factor_horiz[i] = 1;
 		zoom_count_vert[i] = 1;
 	}		
+	for(int i = 0; i < 2; i++) {
+		crtout[i] = true;
+		crtout_top[i] = true;
+	}
 	for(int i = 0; i < 4; i++) {
 		frame_offset[i] = 0;
 		line_offset[i] = 640;
@@ -804,7 +815,7 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y, int width)
 bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int width, int layer, bool do_alpha)
 {
 	if(dst == NULL) return false;
-	
+
 	int trans = display_linebuf & 3;
 	int magx = linebuffers[trans][y].mag[layer];
 	int pwidth = linebuffers[trans][y].pixels[layer];
@@ -812,7 +823,7 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 	uint8_t *p = linebuffers[trans][y].pixels_layer[layer];
 	scrntype_t *q = dst;
 	scrntype_t *r2 = mask;
-
+	
 	if(magx < 1) return false;
 	if((pwidth * magx) > width) {
 		pwidth = width / magx;
@@ -822,12 +833,17 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 	}
 	__DECL_ALIGNED(16) uint8_t pbuf[8];
 	__DECL_ALIGNED(16) uint8_t hlbuf[16];
+	__DECL_ALIGNED(16) uint8_t mbuf[16];
 	__DECL_ALIGNED(32) scrntype_t sbuf[16];
 	__DECL_ALIGNED(32) scrntype_t abuf[16];
 	__DECL_ALIGNED(32) scrntype_t a2buf[16];
+	
 	scrntype_t __DECL_ALIGNED(32)  palbuf[16];
 	const scrntype_t amask2 = RGBA_COLOR(255, 255, 255, 0);
-	
+	uint8_t pmask = linebuffers[trans][y].r50_planemask & 0x0f;
+	for(int i = 0; i < 16; i++) {
+		mbuf[i] = pmask;
+	}	
 	if(pal == NULL) {
 		for(int i = 0; i < 16; i++) {
 			uint8_t r, g,b;
@@ -857,7 +873,7 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 			hlbuf[i] >>= 4;
 		}
 		for(int i = 0; i < 16; i++) {
-			hlbuf[i] &= 15;
+			hlbuf[i] &= mbuf[i];
 		}
 
 		if(do_alpha) {
@@ -1147,6 +1163,8 @@ void TOWNS_CRTC::transfer_line(int line)
 	uint8_t ctrl_b = ctrl;
 	linebuffers[trans][line].num[0] = page0;
 	linebuffers[trans][line].num[1] = page1;
+	uint8_t page_16mode = r50_pagesel;
+	linebuffers[trans][line].r50_planemask = r50_planemask;
 	for(int l = 0; l < 2; l++) {
 		memset(linebuffers[trans][line].pixels_layer[l], 0x00, TOWNS_CRTC_MAX_PIXELS * sizeof(uint16_t));
 	}
@@ -1158,19 +1176,24 @@ void TOWNS_CRTC::transfer_line(int line)
 			if((horiz_end_us[0] <= 0.0) || (horiz_end_us[0] <= horiz_start_us[0])) {
 				disp = false;
 			}
-			switch(ctrl & 0x0f) {
-			case 0x0a:
-				linebuffers[trans][line].mode[0] = DISPMODE_256;
-				address_shift[0] = 3; // FM-Towns Manual P.145
-				to_disp[0] = true;
-				address_mask[0] = 0x7ffff;
-				break;
-			case 0x0f:
-				linebuffers[trans][line].mode[0] = DISPMODE_32768;
-				to_disp[0] = true;
-				address_shift[0] = 3; // FM-Towns Manual P.145
-				address_mask[0] = 0x7ffff;
-				break;
+			if(!(crtout_top[0]) && !(crtout_top[1])) {
+				disp = false;
+			}
+			if(disp) {
+				switch(ctrl & 0x0f) {
+				case 0x0a:
+					linebuffers[trans][line].mode[0] = DISPMODE_256;
+					address_shift[0] = 3; // FM-Towns Manual P.145
+					to_disp[0] = true;
+					address_mask[0] = 0x7ffff;
+					break;
+				case 0x0f:
+					linebuffers[trans][line].mode[0] = DISPMODE_32768;
+					to_disp[0] = true;
+					address_shift[0] = 3; // FM-Towns Manual P.145
+					address_mask[0] = 0x7ffff;
+					break;
+				}
 			}
 			if(l == 0) break;
 		} else { // Two layer mode
@@ -1178,6 +1201,9 @@ void TOWNS_CRTC::transfer_line(int line)
 			linebuffers[trans][line].num[1] = page1;
 			bool disp = frame_in[l];
 			if((horiz_end_us[l] <= 0.0) || (horiz_end_us[l] <= horiz_start_us[l])) {
+				disp = false;
+			}
+			if(!(crtout_top[l])) {
 				disp = false;
 			}
 //			out_debug_log("LAYER=%d CTRL_B=%02X DISP=%d START=%f END=%f", l, ctrl_b, disp, horiz_start_us[l], horiz_end_us[l]);
@@ -1206,6 +1232,9 @@ void TOWNS_CRTC::transfer_line(int line)
 				offset = offset + (hstart_words[l] - regs[9 + l * 2]);
 			}
 			offset <<= address_shift[l];
+			if(linebuffers[trans][line].mode[l] == DISPMODE_16) { // Display page
+				offset += ((page_16mode != 0) ? 0x20000 : 0);
+			}
 			offset = offset & address_mask[l]; // OK?
 			offset += address_add[l];
 			// ToDo: HAJ0, LO0
@@ -1316,11 +1345,13 @@ void TOWNS_CRTC::event_frame()
 //		if(req_recalc) {
 //			force_recalc_crtc_param();
 //		}
+
 	line_count[0] = line_count[1] = 0;
 	vert_line_count = -1;
 	hsync = false;
 //	out_debug_log(_T("FRAME EVENT LINES=%d FRAMEus=%f Hus=%f VST1us=%f VST2us=%f"),lines_per_frame, frame_us, horiz_us, vst1_us, vst2_us);
 	for(int i = 0; i < 2; i++) {
+		crtout_top[i] = crtout[i];
 		hdisp[i] = false;
 		zoom_count_vert[i] = zoom_factor_vert[i];
 	}
@@ -1585,6 +1616,7 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(voutreg_prio);
 	state_fio->StateArray(video_out_regs, sizeof(video_out_regs), 1);
 	state_fio->StateArray(crtout, sizeof(crtout), 1);
+	state_fio->StateArray(crtout_top, sizeof(crtout_top), 1);
 
 	state_fio->StateValue(sprite_disp_page);
 	state_fio->StateValue(sprite_enabled);

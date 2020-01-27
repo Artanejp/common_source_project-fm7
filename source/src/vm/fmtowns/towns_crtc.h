@@ -147,16 +147,25 @@ namespace FMTOWNS {
 }
 
 namespace FMTOWNS {
-	
+
+// May align to be faster.
+#pragma pack(push, 4)
 typedef struct {
 	int32_t mode[4];
 	int32_t pixels[4];
 	int32_t mag[4];
 	int32_t num[4];
 	uint32_t prio;
-	uint32_t pad[7];
+#pragma pack(push, 1)
+	uint8_t r50_planemask; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
+	uint8_t r50_pad[3];   
+#pragma pack(pop)
+	uint32_t pad[3];
+	// Align of 4 * (4 + 1 + 3) = 4 * 8 [bytes] = 256 [bits]
 	uint8_t pixels_layer[2][TOWNS_CRTC_MAX_PIXELS * sizeof(uint16_t)]; // RAW VALUE
+	// pixels_lauyer[][] : 1024 * 2 * 8 = 1024 * 16 [bytes]
 } linebuffer_t;
+#pragma pack(pop)
 
 class TOWNS_VRAM;
 class TOWNS_SPRITE;
@@ -257,6 +266,7 @@ protected:
 	uint8_t voutreg_prio; // I/O 044Ah : voutreg_num = 1.
 	uint8_t video_out_regs[2];
 	bool crtout[2];              // I/O FDA0H WRITE
+	bool crtout_top[2];              // I/O FDA0H WRITE(AT once frame)
 	// End.
 
 	
