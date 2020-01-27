@@ -24,6 +24,7 @@ void TOWNS_MEMORY::config_page00()
 {
 	set_memory_rw          (0x00000000, 0x000bffff, ram_page0);
 	if(dma_is_vram) {
+		set_memory_mapped_io_r (0x000b0000, 0x000bffff, d_msdos); // OK? <- for compatible ROM.
 		set_memory_mapped_io_rw(0x000c0000, 0x000c7fff, d_vram);
 		set_memory_mapped_io_rw(0x000c8000, 0x000cafff, d_sprite);
 		set_memory_mapped_io_rw(0x000cb000, 0x000cbfff, d_font);

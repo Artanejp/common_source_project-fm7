@@ -27,6 +27,8 @@ uint32_t MSDOSROM::read_memory_mapped_io8(uint32_t addr)
 	uint8_t d = 0xff;
 	if((addr >= 0xc2000000) && (addr < 0xc2080000)) {
 		d = rom[addr & 0x7ffff];
+	} else if((addr >= 0x000b0000) && (addr < 0x000c0000)) {
+		d = rom[addr & 0x0ffff];
 	}
 	return (uint32_t)d;
 }
