@@ -1,5 +1,7 @@
 ; nasmw -O3 -f bin sys.asm -o fmt_sys6.prg
-; version 2003.03.04.1
+; modified by K.Ohta from 2020-01-27 from comp_sysrom/sys.asm, .
+; version 2003.03.04.1 by Kasanova.
+;  http://townsemu.world.coocan.jp/compatiroms.html
 ;---------------------------------------------------------------------
 ;
 ; FM TOWNS å›ä∑ ROM ÉVÉäÅ[ÉY
