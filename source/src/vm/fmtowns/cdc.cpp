@@ -617,6 +617,7 @@ void CDC::write_signal(int ch, uint32_t data, uint32_t mask)
 				write_signals(&output_submpu_intr, 0xffffffff);
 			}
 			submpu_ready = true;
+			out_debug_log("DONE");
 		}
 		break;
 	case SIG_TOWNS_CDC_IRQ:
