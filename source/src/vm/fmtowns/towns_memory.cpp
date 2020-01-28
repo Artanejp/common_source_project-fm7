@@ -629,6 +629,9 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 	switch(addr & 0xffff) {
 	case 0x0020: // Software reset ETC.
 		// reset cause register
+#if 0
+		val = 0x00;
+#else
 		if(d_cpu != NULL) {
 			val = ((software_reset) ? 1 : 0) | ((d_cpu->get_shutdown_flag() != 0) ? 2 : 0);
 		}
@@ -636,6 +639,7 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		if(d_cpu != NULL) {
 			d_cpu->set_shutdown_flag(0);
 		}
+#endif
 		val =  val | 0x7c;
 		break;
 	case 0x0022:
@@ -740,12 +744,18 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		} else {
 			software_reset = false;
 		}
+		
 		if((data & 0x40) != 0) {
 			if(d_cpu != NULL) {
 				d_cpu->set_shutdown_flag(1);
 			}
 			emu->power_off();
+		} else {
+			if(d_cpu != NULL) {
+				d_cpu->set_shutdown_flag(0);
+			}
 		}
+		
 		if(software_reset) {
 			if(d_cpu != NULL) {
 				d_cpu->reset();
