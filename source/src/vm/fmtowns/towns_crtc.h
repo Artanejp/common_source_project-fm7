@@ -199,6 +199,8 @@ protected:
 	double frame_us;
 	double vst1_us; // VST1 * horiz_us / 2.0
 	double vst2_us;
+	int hst, vst;
+	
 	double vert_start_us[2];
 	double vert_end_us[2];
 	double horiz_start_us[2];

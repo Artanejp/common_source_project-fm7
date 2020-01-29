@@ -16,18 +16,22 @@
 #undef TYPE_TOWNS2_CX
 
 
+#define HAS_MB89311
 
 #if defined(_FMTOWNS_1)
 #define DEVICE_NAME		"FUJITSU FM-Towns Model 1"
 #define CONFIG_NAME		"fmtowns_1"
 #define MAX_DRIVE       1
 #define _HAS_HDD        1
+#undef HAS_MB89311
 
 #elif defined(_FMTOWNS_2)
 #define DEVICE_NAME		"FUJITSU FM-Towns Model 2"
 #define CONFIG_NAME		"fmtowns_2"
 #define MAX_DRIVE       2
 #define _HAS_HDD        1
+#undef HAS_MB89311
+
 #elif defined(_FMTOWNS_2F)
 #define DEVICE_NAME		"FUJITSU FM-Towns 2F"
 #define CONFIG_NAME		"fmtowns_2f"
@@ -143,15 +147,11 @@
 
 #define CPU_CLOCKS		16000000
 
-#if defined(_FMR60)
-#define SCREEN_WIDTH		1024
-#define SCREEN_HEIGHT		768
-#define WINDOW_HEIGHT_ASPECT	840
-#else
-#define SCREEN_WIDTH		640
-#define SCREEN_HEIGHT		400
-#define WINDOW_HEIGHT_ASPECT	480
-#endif
+#undef FIXED_FRAMEBUFFER_SIZE
+#define SCREEN_WIDTH		    1024
+#define SCREEN_HEIGHT		    768
+#define WINDOW_WIDTH_ASPECT	    1024
+#define WINDOW_HEIGHT_ASPECT    768
 
 #if defined(_HAS_HDD)
 #define MAX_SCSI		8

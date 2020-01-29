@@ -174,9 +174,13 @@ void TOWNS_CRTC::reset()
 	//set_pixels_per_line(640);
 	
 	set_vsync(vsync, true);
+	hst = 640;
+	vst = 400;
+	//osd->set_vm_screen_size((hst <= SCREEN_WIDTH) ? hst : SCREEN_WIDTH, (vst <= SCREEN_HEIGHT) ? vst : SCREEN_HEIGHT, -1, -1,  WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+	//emu->set_vm_screen_lines(vst);
 	// For DEBUG Only
 	// Mode 19
-#if 1
+#if 0
 	const uint16_t reg_default[] =
 		{ 0x0060, 0x02c0, 0x0000, 0x0000, 0x031f, 0x0000, 0x0004, 0x0000,
 		  0x0419, 0x008a, 0x018a, 0x008a, 0x030a, 0x0046, 0x0246, 0x0046,
@@ -231,11 +235,12 @@ void TOWNS_CRTC::set_crtc_clock(uint16_t val)
 
 void TOWNS_CRTC::force_recalc_crtc_param(void)
 {
+	uint32_t hst_bak = hst;
+	uint32_t vst_bak = vst;
 	horiz_width_posi_us = crtc_clock * ((double)(regs[0] & 0x00fe)); // HSW1
 	horiz_width_nega_us = crtc_clock * ((double)(regs[1] & 0x00fe)); // HSW2
 	horiz_us = crtc_clock * ((double)((regs[4] & 0x07fe) + 1)); // HST
 	vst1_us = ((double)(regs[5] & 0x1f)) * horiz_us; // VST1
-	
 	double horiz_ref = horiz_us / 2.0;
 	
 	vst2_us = ((double)(regs[6] & 0x1f)) * horiz_ref; // VST2
@@ -272,6 +277,35 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 		out_debug_log(_T("RECALC: LAYER%d: VERT_START_us=%f VERT_END_us=%f HORIZ_START_us=%f HORIZ_END_us=%f"), q, vert_start_us[q], vert_end_us[q], horiz_start_us[q], horiz_end_us[q]);
 	}
 #endif
+	hst = (regs[4] & 0x7fe) + 1;
+	vst = (regs[8] & 0x7ff) + 1;
+	if((voutreg_ctrl & 0x10) == 0) {
+		// Single layer
+		uint32_t vst_an = (int)(regs[14] & 0x07ff) - (int)(regs[13] & 0x07ff);
+		if(vst_an <= 1) vst_an = 2;
+		uint32_t hst_an = (int)(regs[10] & 0x07ff) - (int)(regs[9] & 0x07ff);
+		if(hst_an <= 8) hst_an = 8;
+		hst = (hst < hst_an) ? hst : hst_an;
+		vst = (vst < vst_an) ? vst : vst_an;
+	} else {
+		uint32_t vst_an = (int)(regs[14] & 0x07ff) - (int)(regs[13] & 0x07ff);
+		if(vst_an <= 1) vst_an = 2;
+		uint32_t hst_an = (int)(regs[10] & 0x07ff) - (int)(regs[9] & 0x07ff);
+		if(hst_an <= 8) hst_an = 8;
+		uint32_t vst_an2 = (int)(regs[16] & 0x07ff) - (int)(regs[15] & 0x07ff);
+		if(vst_an2 <= 1) vst_an2 = 2;
+		uint32_t hst_an2 = (int)(regs[12] & 0x07ff) - (int)(regs[11] & 0x07ff);
+		if(hst_an2 <= 8) hst_an2 = 8;
+		if(vst_an < vst_an2) vst_an = vst_an2;
+		if(hst_an < hst_an2) hst_an = hst_an2;
+		vst_an >>= 1;
+		if(vst > vst_an) vst = vst_an;
+		if(hst > hst_an) hst = hst_an;
+	}
+	if((hst_bak != hst) && (vst_bak != vst)) {
+		//osd->set_vm_screen_size((hst <= SCREEN_WIDTH) ? hst : SCREEN_WIDTH, (vst <= SCREEN_HEIGHT) ? vst : SCREEN_HEIGHT, -1, -1, -1, -1);
+		//osd->set_vm_screen_lines(vst);
+	}
 	req_recalc = false;
 }
 
@@ -1641,6 +1675,8 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	//state_fio->StateValue(display_linebuf);
 
 	if(loading) {
+		vst = 1;
+		hst = 8;
 		for(int i = 0; i < 4; i++) {
 			if(linebuffers[i] == NULL) {
 				linebuffers[i] = (linebuffer_t*)malloc(sizeof(linebuffer_t ) * TOWNS_CRTC_MAX_LINES);
