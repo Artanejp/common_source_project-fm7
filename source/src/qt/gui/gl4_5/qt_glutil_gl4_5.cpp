@@ -829,9 +829,10 @@ void GLDraw_4_5::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mappe
 																		  pixel_width *pixel_height * sizeof(scrntype_t),
 																		  GL_MAP_WRITE_BIT ));
 					int hh = (pixel_height < p->height()) ? pixel_height : p->height();
+					int ww = (pixel_width < p->width()) ? pixel_width : p->width();
 					if(pp != NULL) {
 						for(int y = 0; y < hh; y++) {
-							memcpy(&(pp[y * pixel_width]), p->scanLine(y), p->width() * sizeof(uint32_t));
+							memcpy(&(pp[y * pixel_width]), p->scanLine(y), ww * sizeof(uint32_t));
 						}
 					}
 					extfunc->glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
