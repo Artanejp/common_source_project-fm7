@@ -538,32 +538,7 @@ static UINT32 i386_get_stack_ptr(i386_state* cpustate, UINT8 privilege)
 		i386_load_segment_descriptor(cpustate,reg);
 	}
 }
-#if 0
-static int i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32 size)
-{
-	if(PROTECTED_MODE && !V8086_MODE)
-	{
-		if((cpustate->sreg[seg].flags & 0x0018) == 0x0010 && cpustate->sreg[seg].flags & 0x0004) // if expand-down data segment
-		{
-			// compare if greater then 0xffffffff when we're passed the access size
-			if(((offset + size - 1) <= cpustate->sreg[seg].limit) || ((cpustate->sreg[seg].d)?0:((offset + size - 1) > 0xffff)))
-			{
-				logerror("Limit check at 0x%08x failed. Segment %04x, limit %08x, offset %08x (expand-down)\n",cpustate->pc,cpustate->sreg[seg].selector,cpustate->sreg[seg].limit,offset);
-				return 1;
-			}
-		}
-		else
-		{
-			if((offset + size - 1) > cpustate->sreg[seg].limit)
-			{
-				logerror("Limit check at 0x%08x failed. Segment %04x, limit %08x, offset %08x\n",cpustate->pc,cpustate->sreg[seg].selector,cpustate->sreg[seg].limit,offset);
-				return 1;
-			}
-		}
-	}
-	return 0;
-}
-#endif
+
 static void __FASTCALL i386_sreg_load(i386_state *cpustate, UINT16 selector, UINT8 reg, bool *fault)
 {
 	// Checks done when MOV changes a segment register in protected mode
@@ -1565,7 +1540,7 @@ static void __FASTCALL i386_protected_mode_jump(i386_state *cpustate, UINT16 seg
 			logerror("JMP: Segment is not present\n");
 			FAULT(FAULT_NP,segment & 0xfffc)
 		}
-		if(offset > desc.limit)
+		if((offset /*& cpustate->a20_mask*/) > desc.limit)
 		{
 			logerror("JMP: SELECTOR=%04X BASE=%08X LIMIT=%08X FLAGS=%04X D=%d\n",
 					 desc.selector, desc.base, desc.limit, desc.flags, desc.d);
@@ -1757,9 +1732,9 @@ static void __FASTCALL i386_protected_mode_jump(i386_state *cpustate, UINT16 seg
 	if(SetRPL != 0)
 		segment = (segment & ~0x03) | cpustate->CPL;
 	if(operand32 == 0)
-		cpustate->eip = offset & 0x0000ffff;
+		cpustate->eip = (offset & 0x0000ffff) /*& cpustate->a20_mask*/;
 	else
-		cpustate->eip = offset;
+		cpustate->eip = offset /*& cpustate->a20_mask*/;
 	cpustate->sreg[CS].selector = segment;
 	cpustate->performed_intersegment_jump = 1;
 	i386_load_segment_descriptor(cpustate,CS);

@@ -859,6 +859,7 @@ extern MODRM_TABLE i386_MODRM_table[256];
 INLINE int __FASTCALL i386_limit_check(i386_state *cpustate, int seg, UINT32 offset, UINT32 size)
 {
 //	size = 1; // TBD
+//	offset &= cpustate->a20_mask;
 	if(PROTECTED_MODE && !V8086_MODE)
 	{
 		if((cpustate->sreg[seg].flags & 0x0018) == 0x0010 && cpustate->sreg[seg].flags & 0x0004) // if expand-down data segment
