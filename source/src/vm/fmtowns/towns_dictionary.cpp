@@ -86,6 +86,7 @@ void DICTIONARY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 		if(addr < 0xd8000) {
 			return;
 		} else if(addr < 0xda000) {
+			cmos_dirty = true;
 			dict_ram[addr & 0x1fff] = data;
 			return;
 		}
@@ -94,6 +95,7 @@ void DICTIONARY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 	} else if((addr >= 0xc20800000) && (addr < 0xc2100000)) {
 		return;
 	} else if((addr >= 0xc21400000) && (addr < 0xc2142000)) {
+		cmos_dirty = true;
 		dict_ram[addr & 0x1fff] = data;
 		return;
 	}
@@ -103,27 +105,15 @@ uint32_t DICTIONARY::read_memory_mapped_io16(uint32_t addr)
 {
 	pair16_t n;
 	addr = addr & 0xfffffffe;
-	if((addr >= 0xd8000) && (addr <= 0xe0000)) { // DICTRAM
-		n.b.l = (uint8_t)read_memory_mapped_io8(addr + 0);
-		n.b.h = (uint8_t)read_memory_mapped_io8(addr + 1);
-		return n.w;
-	}
 	n.b.l = (uint8_t)read_memory_mapped_io8(addr + 0);
 	n.b.h = (uint8_t)read_memory_mapped_io8(addr + 1);
-	return (uint32_t)(n.u16);
+	return (uint32_t)(n.w);
 }
 
 uint32_t DICTIONARY::read_memory_mapped_io32(uint32_t addr)
 {
 	pair32_t n;
 	addr = addr & 0xfffffffc;
-	if((addr >= 0xd8000) && (addr <= 0xe0000)) { // DICTRAM
-		n.b.l = (uint8_t)read_memory_mapped_io8(addr + 0);
-		n.b.h = (uint8_t)read_memory_mapped_io8(addr + 1);
-		n.b.h2 = (uint8_t)read_memory_mapped_io8(addr + 2);
-		n.b.h3 = (uint8_t)read_memory_mapped_io8(addr + 3);
-		return n.d;
-	}
 	n.b.l  = (uint8_t)read_memory_mapped_io8(addr + 0);
 	n.b.h  = (uint8_t)read_memory_mapped_io8(addr + 1);
 	n.b.h2 = (uint8_t)read_memory_mapped_io8(addr + 2);
@@ -136,11 +126,9 @@ void DICTIONARY::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	pair16_t n;
 	addr = addr & 0xfffffffe;
 	n.w = (uint16_t)data;
-	if((addr >= 0xd8000) && (addr <= 0xe0000)) { // DICTRAM
-		write_memory_mapped_io8(addr + 0, n.b.l);
-		write_memory_mapped_io8(addr + 1, n.b.h);
-		return;
-	}		
+	write_memory_mapped_io8(addr + 0, n.b.l);
+	write_memory_mapped_io8(addr + 1, n.b.h);
+	return;
 }
 
 void DICTIONARY::write_memory_mapped_io32(uint32_t addr, uint32_t data)
@@ -148,13 +136,10 @@ void DICTIONARY::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 	pair32_t n;
 	addr = addr & 0xfffffffc;
 	n.d = data;
-	if((addr >= 0xd8000) && (addr <= 0xe0000)) { // DICTRAM
-		write_memory_mapped_io8(addr + 0, n.b.l);
-		write_memory_mapped_io8(addr + 1, n.b.h);
-		write_memory_mapped_io8(addr + 2, n.b.h2);
-		write_memory_mapped_io8(addr + 3, n.b.h3);
-		return;
-	}
+	write_memory_mapped_io8(addr + 0, n.b.l);
+	write_memory_mapped_io8(addr + 1, n.b.h);
+	write_memory_mapped_io8(addr + 2, n.b.h2);
+	write_memory_mapped_io8(addr + 3, n.b.h3);
 }
 
 
@@ -164,9 +149,9 @@ void DICTIONARY::write_io8(uint32_t addr, uint32_t data)
 		dict_bank = data & 0x0f;
 	} else if((addr >= 0x3000) && (addr < 0x4000)) {
 		if((addr & 0x0001) == 0) { // OK?
-			uint32_t naddr = (addr >> 1) & 0x7ff;
+//			uint32_t naddr = (addr >> 1) & 0x7ff;
 			cmos_dirty = true;
-			dict_ram[naddr] = (uint8_t)data;
+			dict_ram[addr & 0xfff] = (uint8_t)data;
 		}
 	}
 }
@@ -178,8 +163,8 @@ uint32_t DICTIONARY::read_io8(uint32_t addr)
 		data = dict_bank & 0x0f;
 	} else if((addr >= 0x3000) && (addr < 0x4000)) {
 		if((addr & 0x0001) == 0) { // OK?
-			uint32_t naddr = (addr >> 1) & 0x7ff;
-			data = dict_ram[naddr];
+//			uint32_t naddr = (addr >> 1) & 0x7ff;
+			data = dict_ram[addr & 0x0fff];
 		} else {
 			data = 0xff;
 		}
