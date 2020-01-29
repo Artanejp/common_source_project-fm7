@@ -1581,14 +1581,14 @@ void GLDraw_4_5::do_set_texture_size(QImage *p, int w, int h)
 		vertexFormat[3].z = -0.9f;
 
 		vertexFormat[0].s = 0.0f;
-		//vertexFormat[0].t = (float)h / ih;
-		//vertexFormat[1].s = (float)w / iw;
-		//vertexFormat[1].t = (float)h / ih;
-		//vertexFormat[2].s = (float)w / iw;
-		vertexFormat[0].t = 1.0f;
-		vertexFormat[1].s = 1.0f;
-		vertexFormat[1].t = 1.0f;
-		vertexFormat[2].s = 1.0f;
+		vertexFormat[0].t = (float)h / ih;
+		vertexFormat[1].s = (float)w / iw;
+		vertexFormat[1].t = (float)h / ih;
+		vertexFormat[2].s = (float)w / iw;
+		//vertexFormat[0].t = 1.0f;
+		//vertexFormat[1].s = 1.0f;
+		//vertexFormat[1].t = 1.0f;
+		//vertexFormat[2].s = 1.0f;
 		vertexFormat[2].t = 0.0f;
 		vertexFormat[3].s = 0.0f;
 		vertexFormat[3].t = 0.0f;
