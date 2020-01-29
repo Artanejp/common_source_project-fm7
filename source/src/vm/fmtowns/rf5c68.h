@@ -83,15 +83,16 @@ public:
 	~RF5C68() {}
 
 	void initialize();
+	void release();
 	void reset();
 
-	uint32_t read_data8(uint32_t addr);
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	
-	uint32_t read_signal(int ch);
-	void write_signal(int ch, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int ch);
+	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
 
 	void event_callback(int id, int err);
 	

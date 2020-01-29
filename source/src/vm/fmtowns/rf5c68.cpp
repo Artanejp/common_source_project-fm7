@@ -35,7 +35,13 @@ void RF5C68::initialize()
 	dac_on = false;
 	dac_bank = 0;
 	dac_ch = 0;
+	sample_buffer = NULL;
+}
 
+void RF5C68::release()
+{
+	if(sample_buffer != NULL) free(sample_buffer);
+	sample_buffer = NULL;
 }
 
 void RF5C68::reset()
