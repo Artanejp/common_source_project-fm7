@@ -302,10 +302,9 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 		if(vst > vst_an) vst = vst_an;
 		if(hst > hst_an) hst = hst_an;
 	}
-	if((hst_bak != hst) && (vst_bak != vst)) {
-		//osd->set_vm_screen_size((hst <= SCREEN_WIDTH) ? hst : SCREEN_WIDTH, (vst <= SCREEN_HEIGHT) ? vst : SCREEN_HEIGHT, -1, -1, -1, -1);
-		//osd->set_vm_screen_lines(vst);
-	}
+//	if((hst_bak != hst) && (vst_bak != vst)) {
+//		hst = hs
+//	}
 	req_recalc = false;
 }
 
@@ -1117,14 +1116,20 @@ void TOWNS_CRTC::draw_screen()
 		//display_linebuf = (display_linebuf + 1) & 3;
 		return;
 	}
-	int lines = lines_per_frame;
-	int width = pixels_per_line;
+//	int lines = lines_per_frame;
+//	int width = pixels_per_line;
+	int lines = vst;
+	int width = hst;
 	// Will remove.
 	if(lines <= 0) lines = 1;
 	if(width <= 16) width = 16;
 	
 	if(lines > TOWNS_CRTC_MAX_LINES) lines = TOWNS_CRTC_MAX_LINES;
 	if(width > TOWNS_CRTC_MAX_PIXELS) width = TOWNS_CRTC_MAX_PIXELS;
+	
+	osd->set_vm_screen_size(width, lines, SCREEN_WIDTH, SCREEN_HEIGHT,  -1, -1);
+	//out_debug_log("WxH: %dx%d", width, lines);
+	osd->set_vm_screen_lines(lines);
 	
 	memset(lbuffer1, 0x00, sizeof(lbuffer1));
 	memset(abuffer1, 0xff, sizeof(abuffer1));
