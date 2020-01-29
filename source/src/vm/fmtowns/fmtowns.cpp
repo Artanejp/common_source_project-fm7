@@ -57,6 +57,7 @@
 #include "./cdc.h"
 #include "./floppy.h"
 #include "./fontroms.h"
+#include "./joystick.h"
 #include "./keyboard.h"
 #include "./msdosrom.h"
 #include "./scsi.h"
@@ -71,6 +72,7 @@ using FMTOWNS::CDC;
 using FMTOWNS::DICTIONARY;
 using FMTOWNS::FLOPPY;
 using FMTOWNS::FONT_ROMS;
+using FMTOWNS::JOYSTICK;
 using FMTOWNS::KEYBOARD;
 using FMTOWNS::MSDOSROM;
 using FMTOWNS::SCSI;
@@ -189,6 +191,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
+	joystick = new JOYSTICK(this, emu);
 	scsi = new SCSI(this, emu);
 	timer = new TIMER(this, emu);
 	
@@ -325,6 +328,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	//e_volume[1]->set_context_ch2(mic, MB87878_VOLUME_LEFT | MB87878_VOLUME_RIGHT);
 	//e_volume[1]->set_context_ch3(modem, MB87878_VOLUME_LEFT | MB87878_VOLUME_RIGHT);
 	
+	memory->set_context_cpu(cpu);
 	memory->set_context_dmac(dma);
 	memory->set_context_vram(vram);
 	memory->set_context_system_rom(sysrom);
@@ -336,7 +340,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_sprite(sprite);
 	memory->set_machine_id(machine_id);
 	memory->set_cpu_id(cpu_id);
-	memory->set_context_cpu(cpu);
 	
 	cdrom->scsi_id = 0;
 	cdrom->set_context_interface(cdc_scsi);
@@ -371,6 +374,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_intr(pic);
 	cpu->set_context_dma(dma);
 	cpu->set_context_bios(NULL);
+	cpu->set_context_extreset(memory, SIG_FMTOWNS_NOTIFY_RESET, 0xffffffff);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
@@ -476,10 +480,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	io->set_iomap_range_rw(0x04c0, 0x04cf, cdc); // CDROM
 	// PAD, Sound
-#if 0
-	io->set_iomap_single_r(0x04d0, pad); // Pad1
-	io->set_iomap_single_r(0x04d2, pad); // Pad 2
-	io->set_iomap_single_w(0x04d6, pad); // Pad out
+#if 1
+	io->set_iomap_single_r(0x04d0, joystick); // Pad1
+	io->set_iomap_single_r(0x04d2, joystick); // Pad 2
+	io->set_iomap_single_w(0x04d6, joystick); // Pad out
 #endif	
 	io->set_iomap_single_rw(0x04d5, adpcm); // mute 
 	// OPN2(YM2612)
@@ -508,7 +512,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x0600, keyboard);
 	io->set_iomap_single_rw(0x0602, keyboard);
 	io->set_iomap_single_rw(0x0604, keyboard);
-	io->set_iomap_single_r (0x0606, keyboard); // BufFul (After Towns2)
 
 	//io->set_iomap_single_rw(0x0800, printer);
 	//io->set_iomap_single_rw(0x0802, printer);
@@ -572,7 +575,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	// ToDo : Use config framework
 	memory->set_extra_ram_size(6);
-
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
@@ -583,6 +585,7 @@ VM::~VM()
 	// delete all devices
 	for(DEVICE* device = first_device; device;) {
 		DEVICE *next_device = device->next_device;
+//		printf("DEVID=%d\n", device->this_device_id);
 		device->release();
 		delete device;
 		device = next_device;
@@ -626,10 +629,6 @@ void VM::set_machine_type(uint16_t machine_id, uint16_t cpu_id)
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
-	// temporary fix...
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}

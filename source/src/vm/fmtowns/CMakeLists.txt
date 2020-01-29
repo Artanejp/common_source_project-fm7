@@ -16,6 +16,8 @@ set(VM_FMTOWNS_DEV_SRCS
 	towns_dmac.cpp
 	
 	fontroms.cpp
+	joystick.cpp
+
 	msdosrom.cpp
 	serialrom.cpp
 	towns_dictionary.cpp

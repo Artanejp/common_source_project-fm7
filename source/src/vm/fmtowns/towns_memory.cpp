@@ -21,11 +21,14 @@
 
 namespace FMTOWNS {
 
+#define ADDR_MASK (addr_max - 1)
+#define BANK_MASK (bank_size - 1)
+	
 void TOWNS_MEMORY::config_page00()
 {
-	set_memory_rw          (0x00000000, 0x000bffff, ram_page0);
 	if(dma_is_vram) {
-		set_memory_mapped_io_r (0x000b0000, 0x000bffff, d_msdos); // OK? <- for compatible ROM.
+		set_memory_rw          (0x00000000, 0x000bffff, ram_page0);
+//		set_memory_mapped_io_r (0x000b0000, 0x000bffff, d_msdos); // OK? <- for compatible ROM.
 		set_memory_mapped_io_rw(0x000c0000, 0x000c7fff, d_vram);
 		set_memory_mapped_io_rw(0x000c8000, 0x000cafff, d_sprite);
 		set_memory_mapped_io_rw(0x000cb000, 0x000cbfff, d_font);
@@ -34,6 +37,7 @@ void TOWNS_MEMORY::config_page00()
 //		set_memory_mapped_io_rw(0x000d0000, 0x000d9fff, d_dictionary); // CMOS
 		set_memory_mapped_io_rw(0x000d8000, 0x000d9fff, d_dictionary); // CMOS
 	} else {
+		set_memory_rw          (0x00000000, 0x000bffff, ram_page0);
 		set_memory_rw          (0x000c0000, 0x000cffff, ram_pagec);
 		set_memory_rw          (0x000d0000, 0x000d9fff, ram_paged);
 		set_memory_mapped_io_rw(0x000c8000, 0x000cafff, d_sprite);
@@ -47,7 +51,7 @@ void TOWNS_MEMORY::config_page00()
 void TOWNS_MEMORY::initialize()
 {
 	if(initialized) return;
-	initialized = true;
+	DEVICE::initialize();
 	
 	extra_nmi_mask = true;
 	extra_nmi_val = false;
@@ -56,20 +60,43 @@ void TOWNS_MEMORY::initialize()
 	mem_wait_val = 3;
 
 	// Initialize R/W table
-	memset(rd_dummy, 0xff, sizeof(rd_dummy));
-	memset(wr_dummy, 0x00, sizeof(wr_dummy));
-	memset(rd_table, 0x00, sizeof(rd_table));
-	memset(wr_table, 0x00, sizeof(wr_table));
-	for(int i = 0; i < (0x100000000 >> TOWNS_BANK_SHIFT); i++) {
-		rd_table[i].dev = NULL;
-		rd_table[i].memory = rd_dummy;
-		rd_table[i].wait = 6;
+	_MEMORY_DISABLE_DMA_MMIO = osd->check_feature(_T("MEMORY_DISABLE_DMA_MMIO"));
+	if(!(addr_max_was_set) && osd->check_feature(_T("MEMORY_ADDR_MAX"))) {
+		addr_max = osd->get_feature_uint64_value(_T("MEMORY_ADDR_MAX"));
 	}
-	for(int i = 0; i < (0x100000000 >> TOWNS_BANK_SHIFT); i++) {
-		wr_table[i].dev = NULL;
-		wr_table[i].memory = rd_dummy;
-		wr_table[i].wait = 6;
+	if(!(bank_size_was_set) && osd->check_feature(_T("MEMORY_BANK_SIZE"))) {
+		bank_size = osd->get_feature_uint64_value(_T("MEMORY_BANK_SIZE"));
 	}
+	// allocate tables here to support multiple instances with different address range
+	if(rd_table == NULL) {
+		int64_t bank_num = addr_max / bank_size;
+		bank_mask = BANK_MASK;
+		addr_mask = ADDR_MASK;
+		
+		rd_dummy = (uint8_t *)malloc(bank_size);
+		wr_dummy = (uint8_t *)malloc(bank_size);
+		
+		rd_table = (bank_t *)calloc(bank_num, sizeof(bank_t));
+		wr_table = (bank_t *)calloc(bank_num, sizeof(bank_t));
+		
+		for(int i = 0; i < bank_num; i++) {
+			rd_table[i].dev = NULL;
+			rd_table[i].memory = rd_dummy;
+			rd_table[i].wait = 0;
+			
+			wr_table[i].dev = NULL;
+			wr_table[i].memory = wr_dummy;
+			rd_table[i].wait = 0;
+		}
+		for(int i = 0;; i++) {
+			if(bank_size == (uint64_t)(1 << i)) {
+				addr_shift = i;
+				break;
+			}
+		}
+		memset(rd_dummy, 0xff, bank_size);
+	}
+	initialized = true;
 	
 	extram_size = extram_size & 0x3ff00000;
 	set_extra_ram_size(extram_size >> 20); // Check extra ram size.
@@ -251,10 +278,10 @@ void TOWNS_MEMORY::copy_table_w(uint32_t to, uint32_t start, uint32_t end)
 {
 	TOWNS_MEMORY::initialize();
 
-	uint32_t start_bank = start >> addr_shift;
-	uint32_t end_bank = end >> addr_shift;
-	uint32_t to_bank = to >> addr_shift;
-	int blocks = (int)((0xffffffff / bank_size) + 1);
+	uint64_t start_bank = start >> addr_shift;
+	uint64_t end_bank = end >> addr_shift;
+	uint64_t to_bank = to >> addr_shift;
+	uint64_t blocks = addr_max / bank_size;
 	
 	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		if(to_bank >= blocks) break;
@@ -269,10 +296,10 @@ void TOWNS_MEMORY::copy_table_r(uint32_t to, uint32_t start, uint32_t end)
 {
 	TOWNS_MEMORY::initialize();
 
-	uint32_t start_bank = start >> addr_shift;
-	uint32_t end_bank = end >> addr_shift;
-	uint32_t to_bank = to >> addr_shift;
-	int blocks = (int)((0xffffffff / bank_size) + 1);
+	uint64_t start_bank = start >> addr_shift;
+	uint64_t end_bank = end >> addr_shift;
+	uint64_t to_bank = to >> addr_shift;
+	uint64_t blocks = addr_max / bank_size;
 
 	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		if(to_bank >= blocks) break;
@@ -324,7 +351,7 @@ void TOWNS_MEMORY::set_wait_rw(uint32_t start, uint32_t end, int wait)
 // 20191202 K.Ohta
 uint32_t TOWNS_MEMORY::read_data8w(uint32_t addr, int *wait)
 {
-	uint32_t bank = addr >> TOWNS_BANK_SHIFT;
+	uint32_t bank = addr >> addr_shift;
 	if(wait != NULL) {
 		*wait = rd_table[bank].wait;
 	}
@@ -332,14 +359,14 @@ uint32_t TOWNS_MEMORY::read_data8w(uint32_t addr, int *wait)
 //		return rd_table[bank].dev->read_data8w(addr, wait);
 		return rd_table[bank].dev->read_memory_mapped_io8(addr);
 	} else if(rd_table[bank].memory != NULL) {
-		return rd_table[bank].memory[addr & (TOWNS_BANK_SIZE - 1)];
+		return rd_table[bank].memory[addr & bank_mask];
 	}
 	return 0xff;
 }
 
 uint32_t TOWNS_MEMORY::read_data16w(uint32_t addr, int *wait)
 {
-	uint32_t bank = addr >> TOWNS_BANK_SHIFT;
+	uint32_t bank = addr >> addr_shift;
 	if(wait != NULL) {
 		*wait = rd_table[bank].wait;
 	}
@@ -349,8 +376,8 @@ uint32_t TOWNS_MEMORY::read_data16w(uint32_t addr, int *wait)
 	} else if(rd_table[bank].memory != NULL) {
 		// Internal memories may access with 32bit width.
 		pair32_t nd;
-		nd.b.l = rd_table[bank].memory[(addr & (TOWNS_BANK_SIZE - 2)) + 0];
-		nd.b.h = rd_table[bank].memory[(addr & (TOWNS_BANK_SIZE - 2)) + 1];
+		nd.b.l = rd_table[bank].memory[(addr & bank_mask & 0xfffffffe) + 0];
+		nd.b.h = rd_table[bank].memory[(addr & bank_mask & 0xfffffffe) + 1];
 		return nd.w.l;
 	}
 	return 0xffff;
@@ -358,7 +385,7 @@ uint32_t TOWNS_MEMORY::read_data16w(uint32_t addr, int *wait)
 
 uint32_t TOWNS_MEMORY::read_data32w(uint32_t addr, int *wait)
 {
-	uint32_t bank = addr >> TOWNS_BANK_SHIFT;
+	uint32_t bank = addr >> addr_shift;
 	if(wait != NULL) {
 		*wait = rd_table[bank].wait;
 	}
@@ -368,10 +395,10 @@ uint32_t TOWNS_MEMORY::read_data32w(uint32_t addr, int *wait)
 	} else if(rd_table[bank].memory != NULL) {
 		// Internal memories may access with 32bit width.
 		pair32_t nd;
-		nd.b.l  = rd_table[bank].memory[(addr & (TOWNS_BANK_SIZE - 4)) + 0];
-		nd.b.h  = rd_table[bank].memory[(addr & (TOWNS_BANK_SIZE - 4)) + 1];
-		nd.b.h2 = rd_table[bank].memory[(addr & (TOWNS_BANK_SIZE - 4)) + 2];
-		nd.b.h3 = rd_table[bank].memory[(addr & (TOWNS_BANK_SIZE - 4)) + 3];
+		nd.b.l  = rd_table[bank].memory[(addr & bank_mask & 0xfffffffc) + 0];
+		nd.b.h  = rd_table[bank].memory[(addr & bank_mask & 0xfffffffc) + 1];
+		nd.b.h2 = rd_table[bank].memory[(addr & bank_mask & 0xfffffffc) + 2];
+		nd.b.h3 = rd_table[bank].memory[(addr & bank_mask & 0xfffffffc) + 3];
 		return nd.d;
 	}
 	return 0xffffffff;
@@ -379,7 +406,7 @@ uint32_t TOWNS_MEMORY::read_data32w(uint32_t addr, int *wait)
 
 void TOWNS_MEMORY::write_data8w(uint32_t addr, uint32_t data, int *wait)
 {
-	uint32_t bank = addr >> TOWNS_BANK_SHIFT;
+	uint32_t bank = addr >> addr_shift;
 	if(wait != NULL) {
 		*wait = wr_table[bank].wait;
 	}
@@ -387,13 +414,13 @@ void TOWNS_MEMORY::write_data8w(uint32_t addr, uint32_t data, int *wait)
 		wr_table[bank].dev->write_memory_mapped_io8(addr, data);
 	} else if(wr_table[bank].memory != NULL) {
 		// Internal memories may access with 32bit width.
-		wr_table[bank].memory[addr & (TOWNS_BANK_SIZE - 1)] = data;
+		wr_table[bank].memory[addr & bank_mask] = data;
 	}
 }
 
 void TOWNS_MEMORY::write_data16w(uint32_t addr, uint32_t data, int *wait)
 {
-	uint32_t bank = addr >> TOWNS_BANK_SHIFT;
+	uint32_t bank = addr >> addr_shift;
 	if(wait != NULL) {
 		*wait = wr_table[bank].wait;
 	}
@@ -404,14 +431,14 @@ void TOWNS_MEMORY::write_data16w(uint32_t addr, uint32_t data, int *wait)
 		// Internal memories may access with 32bit width.
 		pair32_t nd;
 		nd.d = data; 
-		wr_table[bank].memory[(addr & (TOWNS_BANK_SIZE - 2)) + 0] = nd.b.l;
-		wr_table[bank].memory[(addr & (TOWNS_BANK_SIZE - 2)) + 1] = nd.b.h;
+		wr_table[bank].memory[(addr & bank_mask & 0xfffffffe) + 0] = nd.b.l;
+		wr_table[bank].memory[(addr & bank_mask & 0xfffffffe) + 1] = nd.b.h;
 	}
 }
 
 void TOWNS_MEMORY::write_data32w(uint32_t addr, uint32_t data, int *wait)
 {
-	uint32_t bank = addr >> TOWNS_BANK_SHIFT;
+	uint32_t bank = addr >> addr_shift;
 	if(wait != NULL) {
 		*wait = wr_table[bank].wait;
 	}
@@ -422,16 +449,16 @@ void TOWNS_MEMORY::write_data32w(uint32_t addr, uint32_t data, int *wait)
 		// Internal memories may access with 32bit width.
 		pair32_t nd;
 		nd.d = data; 
-		wr_table[bank].memory[(addr & (TOWNS_BANK_SIZE - 4)) + 0] = nd.b.l;
-		wr_table[bank].memory[(addr & (TOWNS_BANK_SIZE - 4)) + 1] = nd.b.h;
-		wr_table[bank].memory[(addr & (TOWNS_BANK_SIZE - 4)) + 2] = nd.b.h2;
-		wr_table[bank].memory[(addr & (TOWNS_BANK_SIZE - 4)) + 3] = nd.b.h3;
+		wr_table[bank].memory[(addr & bank_mask & 0xfffffffc) + 0] = nd.b.l;
+		wr_table[bank].memory[(addr & bank_mask & 0xfffffffc) + 1] = nd.b.h;
+		wr_table[bank].memory[(addr & bank_mask & 0xfffffffc) + 2] = nd.b.h2;
+		wr_table[bank].memory[(addr & bank_mask & 0xfffffffc) + 3] = nd.b.h3;
 	}
 }
 
 uint32_t TOWNS_MEMORY::read_dma_data8w(uint32_t addr, int* wait)
 {
-	int bank = (addr & (TOWNS_BANK_SIZE - 1)) >> addr_shift;
+	int bank = addr >> addr_shift;
 	if(rd_table[bank].dev != NULL) { 
 		if(wait != NULL) {
 			*wait = rd_table[bank].wait;
@@ -442,14 +469,14 @@ uint32_t TOWNS_MEMORY::read_dma_data8w(uint32_t addr, int* wait)
 		if(wait != NULL) {
 			*wait = mem_wait_val;
 		}
-		return rd_table[bank].memory[addr & (TOWNS_BANK_SIZE - 1)];
+		return rd_table[bank].memory[addr & bank_mask];
 	}
 	return 0xff;
 }
 
 uint32_t TOWNS_MEMORY::read_dma_data16w(uint32_t addr, int* wait)
 {
-	int bank = (addr & (TOWNS_BANK_SIZE - 2)) >> addr_shift;
+	int bank = addr >> addr_shift;
 	if(rd_table[bank].dev != NULL) { 
 		if(wait != NULL) {
 			*wait = rd_table[bank].wait;
@@ -460,8 +487,8 @@ uint32_t TOWNS_MEMORY::read_dma_data16w(uint32_t addr, int* wait)
 			*wait = mem_wait_val;
 		}
 		pair16_t nd;
-		nd.b.l = rd_table[bank].memory[(addr & (TOWNS_BANK_SIZE - 2)) + 0];
-		nd.b.h = rd_table[bank].memory[(addr & (TOWNS_BANK_SIZE - 2)) + 1];
+		nd.b.l = rd_table[bank].memory[(addr & bank_mask & 0xfffffffe) + 0];
+		nd.b.h = rd_table[bank].memory[(addr & bank_mask & 0xfffffffe) + 1];
 		return nd.w;
 	}
 	return 0xffff;
@@ -470,7 +497,7 @@ uint32_t TOWNS_MEMORY::read_dma_data16w(uint32_t addr, int* wait)
 
 void TOWNS_MEMORY::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
 {
-	int bank = (addr & (TOWNS_BANK_SIZE - 1)) >> addr_shift;
+	int bank = addr >> addr_shift;
 	if(wr_table[bank].dev != NULL) { 
 		if(wait != NULL) {
 			*wait = wr_table[bank].wait;
@@ -481,14 +508,14 @@ void TOWNS_MEMORY::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
 		if(wait != NULL) {
 			*wait = mem_wait_val;
 		}
-		wr_table[bank].memory[addr & (TOWNS_BANK_SIZE - 1)] = data;
+		wr_table[bank].memory[addr & bank_mask] = data;
 	}
 	return;
 }
 
 void TOWNS_MEMORY::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
 {
-	int bank = (addr & (TOWNS_BANK_SIZE - 2)) >> addr_shift;
+	int bank = addr  >> addr_shift;
 	if(wr_table[bank].dev != NULL) { 
 		if(wait != NULL) {
 			*wait = wr_table[bank].wait;
@@ -501,8 +528,8 @@ void TOWNS_MEMORY::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
 		}
 		pair32_t nd;
 		nd.d = data;
-		wr_table[bank].memory[(addr & (TOWNS_BANK_SIZE - 2)) + 0] = nd.b.l;
-		wr_table[bank].memory[(addr & (TOWNS_BANK_SIZE - 2)) + 1] = nd.b.h;
+		wr_table[bank].memory[(addr & bank_mask & 0xfffffffe) + 0] = nd.b.l;
+		wr_table[bank].memory[(addr & bank_mask & 0xfffffffe) + 1] = nd.b.h;
 	}
 	return;
 }
@@ -532,6 +559,11 @@ void TOWNS_MEMORY::write_dma_data16(uint32_t addr, uint32_t data)
 
 void TOWNS_MEMORY::release()
 {
+	if(rd_table != NULL) free(rd_table);
+	if(rd_dummy != NULL) free(rd_dummy);
+	if(wr_table != NULL) free(wr_table);
+	if(wr_dummy != NULL) free(wr_dummy);
+	
 	if(extra_ram != NULL) {
 		free(extra_ram);
 		extra_ram = NULL;
@@ -597,13 +629,10 @@ void TOWNS_MEMORY::write_data32(uint32_t addr, uint32_t data)
 
 uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 {
-	uint32_t val = 0xff;
+	uint32_t val = 0x00;  // MAY NOT FILL to "1" for unused bit 20200129 K.O
 	switch(addr & 0xffff) {
 	case 0x0020: // Software reset ETC.
 		// reset cause register
-#if 0
-		val = 0x00;
-#else
 		if(d_cpu != NULL) {
 			val = ((software_reset) ? 1 : 0) | ((d_cpu->get_shutdown_flag() != 0) ? 2 : 0);
 		}
@@ -611,19 +640,16 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		if(d_cpu != NULL) {
 			d_cpu->set_shutdown_flag(0);
 		}
-#endif
-		val =  val | 0x7c;
+//		val =  val | 0x7c; // MAY NOT FILL to "1" for unused bit 20200129 K.O
 		break;
 	case 0x0022:
 		// Power register
-		val = 0xff;
 //		if(d_dmac != NULL) {
 //			val = d_dmac->read_signal(SIG_TOWNS_DMAC_ADDR_REG);
 //		}
 		break;
 	case 0x0024:
 		// Power register
-		val = 0xff;
 		if(d_dmac != NULL) {
 			val = d_dmac->read_signal(SIG_TOWNS_DMAC_WRAP_REG);
 		}
@@ -645,16 +671,20 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		}
 		break;
 	case 0x0400: // Resolution:
-		val = 0xfe;
+//		val = 0xfe;
+		val = 0x00;
 		break;
 	case 0x0404: // System Status Reg.
-		val = (dma_is_vram) ? 0x7f : 0xff;
+//		val = (dma_is_vram) ? 0x7f : 0xff;
+		val = (dma_is_vram) ? 0x00 : 0x80;
 		break;
 	case 0x05c0:
-		val = (extra_nmi_mask) ? 0xf7 : 0xff;
+//		val = (extra_nmi_mask) ? 0xf7 : 0xff;
+		val = (extra_nmi_mask) ? 0x00 : 0x08;
 		break;
 	case 0x05c2:
-		val = (extra_nmi_val) ? 0xff : 0xf7;
+//		val = (extra_nmi_val) ? 0xff : 0xf7;
+		val = (extra_nmi_val) ? 0x08 : 0x00;
 		break;
 	case 0x05e8:
 		// After Towns1F/2F/1H/2H
@@ -681,7 +711,7 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 				val = ((extram_size >> 20) & 0x7f);
 				break;
 			default:
-				val = 0xff; // ???
+				val = 0x00; // ???
 				break;
 			}
 		}
@@ -744,7 +774,18 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 			}
 		}
 		if(d_cpu != NULL) {
-//			switch(data & 0x08) {
+#if 1
+			
+			switch(data & 0x08) {
+			case 0x00:	// 32bit
+				d_cpu->set_address_mask(0xffffffff);
+				break;
+			default:	// 20bit
+				d_cpu->set_address_mask(0x000fffff);
+				break;
+			}
+			
+#else
 			switch(data & 0x30) { // From eFMR50
 			case 0x00:	// 20bit
 				d_cpu->set_address_mask(0x000fffff);
@@ -756,6 +797,7 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 				d_cpu->set_address_mask(0xffffffff);
 				break;
 			}
+#endif
 			if(d_dmac != NULL) {
 				uint32_t maskval = d_cpu->get_address_mask();
 				d_dmac->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, maskval, 0xff);
@@ -778,7 +820,6 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		if(d_dmac != NULL) {
 			d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP_REG, data, 0xff);
 		}
-		// Power register
 		break;
 	case 0x0032:
 		{
@@ -961,6 +1002,10 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 		if(d_cpu != NULL) {
 			d_cpu->write_signal(SIG_I386_A20, data, mask);
 		}
+	} else if(ch == SIG_FMTOWNS_NOTIFY_RESET) {
+		out_debug_log("RESET FROM CPU!!!\n");
+//		d_cpu->set_address_mask(0x000fffff);
+		d_cpu->set_address_mask(0xffffffff);
 	} else if(ch == SIG_FMTOWNS_RAM_WAIT) {
 		mem_wait_val = (int)data;
 		set_wait_values();

@@ -15,6 +15,8 @@
 #undef TYPE_TOWNS2_UX
 #undef TYPE_TOWNS2_CX
 
+
+
 #if defined(_FMTOWNS_1)
 #define DEVICE_NAME		"FUJITSU FM-Towns Model 1"
 #define CONFIG_NAME		"fmtowns_1"
@@ -128,6 +130,13 @@
 
 #endif
 
+#if defined(WITH_386SX)
+#define MEMORY_ADDR_MAX 0x001000000 /* 16MB */
+#else
+#define MEMORY_ADDR_MAX 0x100000000 /* 4GiB */
+#endif
+#define MEMORY_BANK_SIZE 1024
+
 // device informations for virtual machine
 #define FRAMES_PER_SEC		55.4 // OK?
 #define LINES_PER_FRAME 	784  // OK?
@@ -169,6 +178,12 @@
 #define USE_CRT_FILTER
 #define USE_SOUND_FILES		1
 #define USE_SOUND_FILES_FDD
+#define USE_JOYSTICK
+#define USE_JOY_BUTTON_CAPTIONS
+#define USE_JOYSTICK_TYPE	2
+#define JOYSTICK_TYPE_DEFAULT	0
+#define USE_MOUSE
+#define USE_MOUSE_TYPE      3
 
 #if defined(USE_SOUND_FILES)
 #define USE_SOUND_VOLUME	5
@@ -190,6 +205,18 @@ static const _TCHAR *sound_device_caption[] = {
 #if defined(USE_SOUND_FILES)
 	_T("FDD SEEK"),
 #endif
+};
+#endif
+#ifdef USE_JOY_BUTTON_CAPTIONS
+static const _TCHAR *joy_button_captions[] = {
+	_T("Up"),
+	_T("Down"),
+	_T("Left"),
+	_T("Right"),
+	_T("Button #1"),
+	_T("Button #2"),
+	_T("RUN"),
+	_T("SELECT"),
 };
 #endif
 
@@ -223,6 +250,7 @@ namespace FMTOWNS {
 	class ADPCM;
 	class CDC;
 	class FLOPPY;
+	class JOYSTICK;
 	class KEYBOARD;
 	class SERIAL_ROM;
 	class SCSI;
@@ -276,6 +304,7 @@ protected:
 	FMTOWNS::ADPCM*          adpcm;
 	FMTOWNS::TOWNS_CRTC*     crtc;
 	FMTOWNS::FLOPPY*         floppy;
+	FMTOWNS::JOYSTICK*       joystick;
 	FMTOWNS::KEYBOARD*       keyboard;
 	FMTOWNS::TIMER*          timer;
 	FMTOWNS::TOWNS_VRAM*     vram;

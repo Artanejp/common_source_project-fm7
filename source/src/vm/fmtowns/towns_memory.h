@@ -14,7 +14,7 @@
 #include "../../emu.h"
 #include "device.h"
 #include "../../common.h"
-#include "../memory.h"
+//#include "../memory.h"
 #include "./towns_common.h"
 
 #define SIG_FMTOWNS_MACHINE_ID	1
@@ -79,15 +79,15 @@ protected:
 		int wait;
 	} bank_t;
 	
-	bank_t rd_table[0x100000000 >> TOWNS_BANK_SHIFT];
-	bank_t wr_table[0x100000000 >> TOWNS_BANK_SHIFT];
-	uint32_t bank_size;
-	uint32_t addr_mask;
+	bank_t *rd_table;
+	bank_t *wr_table;
 	int addr_shift;
-	bool initialized;
+	uint8_t *rd_dummy;
+	uint8_t *wr_dummy;
 	
-	uint8_t rd_dummy[TOWNS_BANK_SIZE];
-	uint8_t wr_dummy[TOWNS_BANK_SIZE];
+	bool _MEMORY_DISABLE_DMA_MMIO;
+	bool bank_size_was_set;
+	bool addr_max_was_set;
 	
 	DEVICE* d_vram;
 	DEVICE* d_sprite;       // 0x81000000 - 0x8101ffff ?
@@ -137,6 +137,8 @@ protected:
 #endif
 	// misc
 	uint32_t vram_size; // Normally 512KB.
+	bool initialized;
+
 
 	uint8_t* read_bank_adrs_cx[0x100000]; // Per 4KB.
 	uint8_t* write_bank_adrs_cx[0x100000]; // Per 4KB.
@@ -150,9 +152,18 @@ protected:
 public:
 	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("FMTOWNS_MEMORY"));
-		bank_size = TOWNS_BANK_SIZE; // 1024
-		addr_mask = bank_size - 1;
-		addr_shift = TOWNS_BANK_SHIFT;
+		addr_max = 0x100000000; // 4GiB
+		bank_size = 1024; // 1024
+		addr_shift = 10;
+		addr_mask = 0;
+		bank_mask = 0;
+		bank_size_was_set = false;
+		addr_max_was_set = false;
+		
+		rd_table = wr_table = NULL;
+		rd_dummy = wr_dummy = NULL;
+
+		_MEMORY_DISABLE_DMA_MMIO = false;
 		
 		extram_size = 0x00200000; // Basically 2MB
 		
@@ -167,7 +178,7 @@ public:
 		d_dictionary = NULL;
 		d_msdos = NULL;
 		initialized = false;
-		
+
 		initialize_output_signals(&outputs_ram_wait);
 		initialize_output_signals(&outputs_rom_wait);
 		// Note: machine id must set before initialize() from set_context_machine_id() by VM::VM().
@@ -352,6 +363,36 @@ public:
 	{
 		cpu_id = val & 0x07;
 	}
+
+	// Unique functions.
+	void set_addr_max(int64_t size)
+	{
+		// Allow to modify before initialize() or set_foo_r|w|rw()..
+		if(rd_table == NULL) {
+			addr_max_was_set = true;
+			addr_max = size;
+		}
+	}
+	void set_bank_size(int64_t size)
+	{
+		if(rd_table == NULL) {
+			bank_size_was_set = true;
+			bank_size = size;
+		}
+	}
+	uint64_t get_addr_max()
+	{
+		return addr_max;
+	}
+	uint64_t get_bank_size()
+	{
+		return bank_size;
+	}
+	uint64_t addr_max;
+	uint64_t bank_size;
+
+	uint64_t addr_mask;
+	uint64_t bank_mask;
 };
 
 }
