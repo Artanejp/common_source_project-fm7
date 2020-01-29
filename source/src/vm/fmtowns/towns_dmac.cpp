@@ -14,6 +14,7 @@ void TOWNS_DMAC::reset()
 	dma_wrap_reg = 0;
 	dma_addr_reg = 0;
 	dma_addr_mask = 0xffffffff; // OK?
+	dma_addr_mask = 0x000fffff; // OK?
 }
 
 void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
