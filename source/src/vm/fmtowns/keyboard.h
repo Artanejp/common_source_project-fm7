@@ -14,6 +14,7 @@
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
+#include "../../fifo.h"
 
 /*
 	ひらがな/ローマ字	ひらがな
@@ -55,18 +56,32 @@ class FIFO;
 namespace FMTOWNS {
 class KEYBOARD : public DEVICE
 {
-private:
+protected:
 	outputs_t output_intr_line;
 	outputs_t output_nmi_line;
 	
 	FIFO *key_buf;
+	FIFO *cmd_buf;
+	
 	uint8_t kbstat, kbdata, kbint, kbmsk;
+	int repeat_start_ms;
+	int repeat_tick_ms;
+	bool enable_double_pressed_cursor;
+	bool device_order;
+	
+	bool nmi_status;
 	uint8_t table[256];
+
+	virtual void do_common_command(uint8_t cmd);
 public:
 	KEYBOARD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		key_buf = NULL;
+		cmd_buf = NULL;
+		
 		initialize_output_signals(&output_intr_line);
 		initialize_output_signals(&output_nmi_line);
+		set_device_name(_T("FM-Towns Keyboard (JIS)"));
 	}
 	~KEYBOARD() {}
 	
@@ -74,8 +89,8 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void event_frame();
 	bool process_state(FILEIO* state_fio, bool loading);
 	
