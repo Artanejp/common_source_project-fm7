@@ -94,10 +94,10 @@ public:
 	virtual uint32_t __FASTCALL read_signal(int id);
 	virtual void __FASTCALL do_dma();
 	// for debug
-	void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr);
-	void __FASTCALL write_via_debugger_data16(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_via_debugger_data16(uint32_t addr);
+	virtual void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr);
+	virtual void __FASTCALL write_via_debugger_data16(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_via_debugger_data16(uint32_t addr);
 	bool is_debugger_available()
 	{
 		return true;
@@ -106,7 +106,7 @@ public:
 	{
 		return d_debugger;
 	}
-	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 	// unique functions
 	void set_context_memory(DEVICE* device)
