@@ -98,7 +98,7 @@ void FONT_ROMS::write_signal(int ch, uint32_t data, uint32_t mask)
 {
 	if(ch == SIG_TOWNS_FONT_ANKCG) {  // write CFF19
 		ankcg_enabled = ((data & mask) != 0);
-		out_debug_log(_T("ANKCG %s"), (ankcg_enabled) ? _T("ON") : _T("OFF"));
+//		out_debug_log(_T("ANKCG %s"), (ankcg_enabled) ? _T("ON") : _T("OFF"));
 	} else if(ch == SIG_TOWNS_FONT_KANJI_LOW) { // write CFF15
 		kanji_code.b.l = data & 0x7f;
 		calc_kanji_offset();
