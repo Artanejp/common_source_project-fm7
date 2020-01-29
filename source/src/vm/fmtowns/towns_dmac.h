@@ -3,10 +3,19 @@
 #include "../vm.h"
 #include "../upd71071.h"
 
+// Using original signal using after 1 << 12.
+#define SIG_TOWNS_DMAC_ADDR_REG  4096
+#define SIG_TOWNS_DMAC_WRAP_REG  4100
+#define SIG_TOWNS_DMAC_ADDR_MASK 4104
+
 namespace FMTOWNS {
 class TOWNS_DMAC : public UPD71071
 {
 protected:
+	uint8_t dma_addr_reg;
+	uint8_t dma_wrap_reg;
+	uint32_t dma_addr_mask;
+	
 	virtual void __FASTCALL do_dma_inc_dec_ptr_8bit(int c);
 	virtual void __FASTCALL do_dma_inc_dec_ptr_16bit(int c);
 public:
@@ -18,13 +27,22 @@ public:
 	// common functions
 	virtual void initialize();
 	virtual void reset();
+//	virtual void __FASTCALL do_dma();
+	
 	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
-//	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-//	virtual uint32_t __FASTCALL read_signal(int id);
-//	virtual void __FASTCALL do_dma();
+	
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	virtual uint32_t __FASTCALL read_signal(int id);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
 
-//	virtual bool process_state(FILEIO* state_fio, bool loading);
+	// for debug
+	virtual void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr);
+	virtual void __FASTCALL write_via_debugger_data16(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_via_debugger_data16(uint32_t addr);
+	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	
 };
 
 }

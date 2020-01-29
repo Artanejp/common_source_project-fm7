@@ -325,6 +325,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	//e_volume[1]->set_context_ch2(mic, MB87878_VOLUME_LEFT | MB87878_VOLUME_RIGHT);
 	//e_volume[1]->set_context_ch3(modem, MB87878_VOLUME_LEFT | MB87878_VOLUME_RIGHT);
 	
+	memory->set_context_dmac(dma);
 	memory->set_context_vram(vram);
 	memory->set_context_system_rom(sysrom);
 	memory->set_context_msdos(msdosrom);

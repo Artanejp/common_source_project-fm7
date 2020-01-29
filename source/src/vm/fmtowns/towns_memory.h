@@ -94,6 +94,7 @@ protected:
 	DEVICE* d_romcard[2]; // 0xc0000000 - 0xc0ffffff / 0xc1000000 - 0xc1ffffff
 	DEVICE* d_pcm;             // 0xc2200000 - 0xc2200fff 
 	DEVICE* d_beep;
+	DEVICE* d_dmac;
 	I386*   d_cpu;
 	
 	DEVICE* d_dictionary;
@@ -157,6 +158,7 @@ public:
 		
 		d_cpu = NULL;
 		d_vram = NULL;
+		d_dmac = NULL;
 		d_pcm = NULL;
 		d_sprite = NULL;
 		d_romcard[0] = d_romcard[1] = NULL;
@@ -297,6 +299,10 @@ public:
 	void set_context_cpu(I386* device)
 	{
 		d_cpu = device;
+	}
+	void set_context_dmac(DEVICE* device)
+	{
+		d_dmac = device;
 	}
 	void set_context_vram(DEVICE* device)
 	{

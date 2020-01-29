@@ -9,6 +9,7 @@
 
 #include "../../fileio.h"
 #include "./towns_memory.h"
+#include "./towns_dmac.h"
 #include "./towns_vram.h"
 #include "./towns_sprite.h"
 #include "./fontroms.h"
@@ -437,13 +438,6 @@ uint32_t TOWNS_MEMORY::read_dma_data8w(uint32_t addr, int* wait)
 		}
 		rd_table[bank].dev->read_memory_mapped_io8(addr);
 //		return rd_table[bank].dev->read_dma_data8w(addr, wait);
-	} else if(dma_is_vram) {
-		if(wait != NULL) {
-			*wait = mem_wait_val;
-		}
-		if(d_vram != NULL) {
-			return d_vram->read_memory_mapped_io8(addr);
-		}
 	} else if(rd_table[bank].memory != NULL) {
 		if(wait != NULL) {
 			*wait = mem_wait_val;
@@ -461,13 +455,6 @@ uint32_t TOWNS_MEMORY::read_dma_data16w(uint32_t addr, int* wait)
 			*wait = rd_table[bank].wait;
 		}
 		rd_table[bank].dev->read_memory_mapped_io16(addr);
-	} else if(dma_is_vram) {
-		if(wait != NULL) {
-			*wait = mem_wait_val;
-		}
-		if(d_vram != NULL) {
-			return d_vram->read_memory_mapped_io16(addr);
-		}
 	} else if(rd_table[bank].memory != NULL) {
 		if(wait != NULL) {
 			*wait = mem_wait_val;
@@ -490,13 +477,6 @@ void TOWNS_MEMORY::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
 		}
 		wr_table[bank].dev->write_memory_mapped_io8(addr, data);
 		return;
-	} else if(dma_is_vram) {
-		if(wait != NULL) {
-			*wait = mem_wait_val;
-		}
-		if(d_vram != NULL) {
-			d_vram->write_memory_mapped_io8(addr, data);
-		}
 	} else if(wr_table[bank].memory != NULL) {
 		if(wait != NULL) {
 			*wait = mem_wait_val;
@@ -515,14 +495,6 @@ void TOWNS_MEMORY::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
 		}
 		wr_table[bank].dev->write_memory_mapped_io16(addr, data);
 		return;
-	} else if(dma_is_vram) {
-		if(wait != NULL) {
-			*wait = wr_table[bank].wait;
-		}
-		if(d_vram != NULL) {
-			d_vram->write_memory_mapped_io16(addr, data);
-			return;
-		}
 	} else if(wr_table[bank].memory != NULL) {
 		if(wait != NULL) {
 			*wait = mem_wait_val;
@@ -645,6 +617,16 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 	case 0x0022:
 		// Power register
 		val = 0xff;
+//		if(d_dmac != NULL) {
+//			val = d_dmac->read_signal(SIG_TOWNS_DMAC_ADDR_REG);
+//		}
+		break;
+	case 0x0024:
+		// Power register
+		val = 0xff;
+		if(d_dmac != NULL) {
+			val = d_dmac->read_signal(SIG_TOWNS_DMAC_WRAP_REG);
+		}
 		break;
 	case 0x0030:
 		val = (((machine_id & 0x1f) << 3) | (cpu_id & 7));
@@ -762,13 +744,21 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 			}
 		}
 		if(d_cpu != NULL) {
-			switch(data & 0x08) {
+//			switch(data & 0x08) {
+			switch(data & 0x30) { // From eFMR50
 			case 0x00:	// 20bit
-				d_cpu->set_address_mask(0xffffffff);
-				break;
-			default:	// 32bit
 				d_cpu->set_address_mask(0x000fffff);
 				break;
+			case 0x20:	// 24bit
+				d_cpu->set_address_mask(0x00ffffff);
+				break;
+			default:	// 32bit
+				d_cpu->set_address_mask(0xffffffff);
+				break;
+			}
+			if(d_dmac != NULL) {
+				uint32_t maskval = d_cpu->get_address_mask();
+				d_dmac->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, maskval, 0xff);
 			}
 		}
 		break;
@@ -778,6 +768,15 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 				d_cpu->set_shutdown_flag(1);
 			}
 			emu->power_off();
+		}
+		if(d_dmac != NULL) {
+			d_dmac->write_signal(SIG_TOWNS_DMAC_ADDR_REG, data, 0xff);
+		}
+		// Power register
+		break;
+	case 0x0024:
+		if(d_dmac != NULL) {
+			d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP_REG, data, 0xff);
 		}
 		// Power register
 		break;
