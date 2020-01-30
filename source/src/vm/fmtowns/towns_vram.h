@@ -55,7 +55,6 @@ protected:
 #endif
 	
 	bool access_page1;
-	uint32_t write_plane_mask; // for plane-access.
 
 	bool dirty_flag[0x80000 >> 3]; // Per 8bytes : 16pixels(16colors) / 8pixels(256) / 4pixels(32768)
 	
