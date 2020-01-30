@@ -9,14 +9,23 @@
 */
 
 #include "floppy.h"
+#include "../disk.h"
 #include "../i8259.h"
 #include "../mb8877.h"
 namespace FMTOWNS {
 void FLOPPY::initialize()
 {
-	drvreg = drvsel = 0;
+	drive_swapped = false; // ToDo: implement via config;
+}
+
+void FLOPPY::reset()
+{
+	drvreg = 0;
 	irq = irqmsk = false;
-	changed[0] = changed[1] = changed[2] = changed[3] = false;
+	drvsel = (drive_swapped) ? 2 : 0;
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		d_fdc->set_drive_type(i, DRIVE_TYPE_2HD);
+	}
 }
 
 void FLOPPY::write_io8(uint32_t addr, uint32_t data)
@@ -30,9 +39,11 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 		update_intr();
 		d_fdc->write_signal(SIG_MB8877_MOTOR, data, 0x10);
 		d_fdc->write_signal(SIG_MB8877_SIDEREG, data, 4);
-		break;
+		 // ToDo: Single dencity.
+ 		break;
 	case 0x20c:
 		// drive select register
+		// ToDo: IN USE bit
 		if(data & 1) {
 			nextdrv = 0;
 		} else if(data & 2) {
@@ -42,26 +53,34 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 		} else if(data & 8) {
 			nextdrv = 3;
 		}
+		if(drive_swapped) {
+			nextdrv = (nextdrv + 2) & 3;
+		}
 		if(drvsel != nextdrv) {
 			d_fdc->write_signal(SIG_MB8877_DRIVEREG, drvsel = nextdrv, 3);
 		}
+		d_fdc->set_drive_type(drvreg & 3, ((data & 0x40) != 0) ? DRIVE_TYPE_2HD : DRIVE_TYPE_2DD);
 		drvreg = data;
+	case 0x20e:
+		drive_swapped = ((data & 0x01) != 0);
 		break;
 	}
 }
 
 uint32_t FLOPPY::read_io8(uint32_t addr)
 {
+	uint8_t val;
 	switch(addr & 0xffff) {
 	case 0x208:
-		if(changed[drvsel]) {
-			changed[drvsel] = false;
-			return d_fdc->fdc_status() | 0xe1;	// fdd*2
-		}
-//		return d_fdc->fdc_status() | 0x60;	// fdd*1
-		return d_fdc->fdc_status() | 0xe0;	// fdd*2
+		val = 0x01;
+		if(d_fdc->is_disk_inserted(drvsel)) val |= 0x02;
+		val |= 0x04; // ToDo 5.25 inch
+		return val;
 	case 0x20c:
 		return drvreg;
+	case 0x20e:
+		val = (drive_swapped) ? 1 : 0;
+		return val;
 	}
 	return 0xff;
 }
@@ -81,31 +100,21 @@ void FLOPPY::update_intr()
 
 #define STATE_VERSION	1
 
-void FLOPPY::save_state(FILEIO* state_fio)
+bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
 	
-	state_fio->FputInt32(drvreg);
-	state_fio->FputInt32(drvsel);
-	state_fio->FputBool(irq);
-	state_fio->FputBool(irqmsk);
-	state_fio->Fwrite(changed, sizeof(changed), 1);
-}
-
-bool FLOPPY::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
-	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	drvreg = state_fio->FgetInt32();
-	drvsel = state_fio->FgetInt32();
-	irq = state_fio->FgetBool();
-	irqmsk = state_fio->FgetBool();
-	state_fio->Fread(changed, sizeof(changed), 1);
+	state_fio->StateValue(drvreg);
+	state_fio->StateValue(drvsel);
+	state_fio->StateValue(irq);
+	state_fio->StateValue(irqmsk);
+	state_fio->StateValue(drive_swapped);
 	return true;
 }
+
 }

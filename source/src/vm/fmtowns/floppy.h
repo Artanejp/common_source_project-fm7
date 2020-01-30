@@ -26,7 +26,8 @@ private:
 	MB8877 *d_fdc;
 	outputs_t output_intr_line;
 	int drvreg, drvsel;
-	bool irq, irqmsk, changed[4];
+	bool irq, irqmsk;
+	bool drive_swapped;
 	void update_intr();
 	
 public:
@@ -38,11 +39,12 @@ public:
 	
 	// common functions
 	void initialize();
+	void reset();
+	
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_fdc(MB8877* device)
@@ -52,10 +54,6 @@ public:
 	void set_context_intr_line(DEVICE* dev, int id, uint32_t mask)
 	{
 		register_output_signal(&output_intr_line, dev, id, mask);
-	}
-	void change_disk(int drv)
-	{
-		changed[drv] = true;
 	}
 };
 }
