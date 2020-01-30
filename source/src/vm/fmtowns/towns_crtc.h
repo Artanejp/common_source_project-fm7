@@ -199,7 +199,8 @@ protected:
 	double frame_us;
 	double vst1_us; // VST1 * horiz_us / 2.0
 	double vst2_us;
-	int hst, vst;
+	int hst[4], vst[4];
+	int vst_tmp, hst_tmp;
 	
 	double vert_start_us[2];
 	double vert_end_us[2];
@@ -219,6 +220,8 @@ protected:
 	uint32_t frame_offset[4]; // FO.
 	uint32_t line_offset[4]; // FO.
 	uint32_t head_address[2];
+	int horiz_offset_tmp[2];
+	int vert_offset_tmp[2];
 	bool impose_mode[2]; // OK?
 	bool carry_enable[2]; //OK?
 	
