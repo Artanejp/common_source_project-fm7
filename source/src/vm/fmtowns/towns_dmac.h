@@ -4,9 +4,10 @@
 #include "../upd71071.h"
 
 // Using original signal using after 1 << 12.
-#define SIG_TOWNS_DMAC_ADDR_REG  4096
-#define SIG_TOWNS_DMAC_WRAP_REG  4100
-#define SIG_TOWNS_DMAC_ADDR_MASK 4104
+#define SIG_TOWNS_DMAC_ADDR_REG     4096
+#define SIG_TOWNS_DMAC_WRAP_REG     4100
+#define SIG_TOWNS_DMAC_ADDR_MASK    4104
+#define SIG_TOWNS_DMAC_HIGH_ADDRESS 4108
 
 namespace FMTOWNS {
 class TOWNS_DMAC : public UPD71071
@@ -15,6 +16,7 @@ protected:
 	uint8_t dma_addr_reg;
 	uint8_t dma_wrap_reg;
 	uint32_t dma_addr_mask;
+	uint32_t dma_high_address;
 	
 	virtual void __FASTCALL do_dma_inc_dec_ptr_8bit(int c);
 	virtual void __FASTCALL do_dma_inc_dec_ptr_16bit(int c);
