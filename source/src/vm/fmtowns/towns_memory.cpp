@@ -575,7 +575,9 @@ void TOWNS_MEMORY::reset()
 	// ToDo
 	if(d_cpu != NULL) {
 		d_cpu->set_address_mask(0xffffffff);
-//		d_cpu->set_address_mask(0x000fffff);
+	}
+	if(d_dmac != NULL) {
+		d_dmac->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, 0xffffffff, 0xffffffff);
 	}
 	dma_is_vram = true;
 	nmi_vector_protect = false;
@@ -650,9 +652,9 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		break;
 	case 0x0024:
 		// Power register
-		if(d_dmac != NULL) {
-			val = d_dmac->read_signal(SIG_TOWNS_DMAC_WRAP_REG);
-		}
+//		if(d_dmac != NULL) {
+//			val = d_dmac->read_signal(SIG_TOWNS_DMAC_WRAP_REG);
+//		}
 		break;
 	case 0x0030:
 		val = (((machine_id & 0x1f) << 3) | (cpu_id & 7));
@@ -773,35 +775,9 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 				d_cpu->reset();
 			}
 		}
-		if(d_cpu != NULL) {
-#if 1
-			
-			switch(data & 0x08) {
-			case 0x00:	// 32bit
-				d_cpu->set_address_mask(0xffffffff);
-				break;
-			default:	// 20bit
-				d_cpu->set_address_mask(0x000fffff);
-				break;
-			}
-			
-#else
-			switch(data & 0x30) { // From eFMR50
-			case 0x00:	// 20bit
-				d_cpu->set_address_mask(0x000fffff);
-				break;
-			case 0x20:	// 24bit
-				d_cpu->set_address_mask(0x00ffffff);
-				break;
-			default:	// 32bit
-				d_cpu->set_address_mask(0xffffffff);
-				break;
-			}
-#endif
-			if(d_dmac != NULL) {
-				uint32_t maskval = d_cpu->get_address_mask();
-				d_dmac->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, maskval, 0xff);
-			}
+		// Towns SEEMS to not set addreess mask (a.k.a A20 mask). 20200131 K.O	
+		if(d_dmac != NULL) {
+			d_dmac->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, 0xffffffff, 0xffffffff);
 		}
 		break;
 	case 0x0022:
@@ -817,9 +793,9 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		// Power register
 		break;
 	case 0x0024:
-		if(d_dmac != NULL) {
-			d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP_REG, data, 0xff);
-		}
+//		if(d_dmac != NULL) {
+//			d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP_REG, data, 0xff);
+//		}
 		break;
 	case 0x0032:
 		{
@@ -1004,8 +980,12 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 		}
 	} else if(ch == SIG_FMTOWNS_NOTIFY_RESET) {
 		out_debug_log("RESET FROM CPU!!!\n");
-//		d_cpu->set_address_mask(0x000fffff);
-		d_cpu->set_address_mask(0xffffffff);
+		if(d_cpu != NULL) {
+			d_cpu->set_address_mask(0xffffffff);
+		}
+		if(d_dmac != NULL) {
+			d_dmac->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, 0xffffffff, 0xffffffff);
+		}
 	} else if(ch == SIG_FMTOWNS_RAM_WAIT) {
 		mem_wait_val = (int)data;
 		set_wait_values();

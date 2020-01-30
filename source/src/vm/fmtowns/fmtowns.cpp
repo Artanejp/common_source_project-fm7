@@ -26,6 +26,7 @@
 #include "../msm58321.h"
 #include "../noise.h"
 #include "../pcm1bit.h"
+#include "../harddisk.h"
 #include "../scsi_hdd.h"
 #include "../scsi_host.h"
 #include "../upd71071.h"
@@ -172,20 +173,17 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	for(int i = 0; i < 7; i++) {
 		scsi_hdd[i] = NULL;
+	}	
 #if defined(USE_HARD_DISK)
-		if(FILEIO::IsFileExisting(create_local_path(_T("SCSI%d.DAT"), i))) {
-			scsi_hdd[i] = new SCSI_HDD(this, emu);
-#if defined(_USE_QT)
-			char d_name[64] = {0};
-			snprintf(d_name, 64, "SCSI DISK #%d", i + 1);
-			scsi_hdd[i]->set_device_name(d_name);
-#endif			
-			scsi_hdd[i]->scsi_id = i;
-			scsi_hdd[i]->set_context_interface(scsi_host);
-			scsi_host->set_context_target(scsi_hdd[i]);
-		}
-#endif
+	for(int i = 0; i < USE_HARD_DISK; i++) {
+		scsi_hdd[i] = new SCSI_HDD(this, emu);
+		scsi_hdd[i]->set_device_name(_T("SCSI Hard Disk Drive #%d"), i + 1);
+		scsi_hdd[i]->scsi_id = i;
+		scsi_hdd[i]->set_disk_handler(0, new HARDDISK(emu));
+		scsi_hdd[i]->set_context_interface(scsi_host);
+		scsi_host->set_context_target(scsi_hdd[i]);
 	}
+#endif
 	dma = new TOWNS_DMAC(this, emu);
 	extra_dma = new TOWNS_DMAC(this, emu);
 
@@ -308,7 +306,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	//dma->set_context_ch2(printer);
 	dma->set_context_ch3(cdc);
 	//dma->set_context_ch3(cdc_scsi);
-	dma->set_context_child_dma(extra_dma);
+	//dma->set_context_child_dma(extra_dma);
 	
 	floppy->set_context_fdc(fdc);
 	
@@ -928,7 +926,7 @@ void VM::key_up(int code)
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
-	floppy->change_disk(drv);
+//	floppy->change_disk(drv);
 }
 
 void VM::close_floppy_disk(int drv)
