@@ -527,7 +527,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	
 	io->set_iomap_range_rw(0x3000, 0x3fff, dictionary); // CMOS
-	io->set_iomap_range_rw(0xfd90, 0xfda0, vram);	// Palette and CRTC
+	io->set_iomap_range_rw(0xfd90, 0xfda0, crtc);	// Palette and CRTC
+	io->set_iomap_range_rw(0xff80, 0xffff, vram);	// MMIO
 
 	// Vram allocation may be before initialize().
 	/*

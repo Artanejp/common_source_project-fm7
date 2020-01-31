@@ -60,10 +60,8 @@ protected:
 	
 	// FMR50 Compatible registers. They are mostly dummy.
 	// Digital paletts. I/O FD98H - FD9FH.
-	uint8_t r50_digital_palette[8];
 	bool layer_display_flags[2]; // I/O FDA0H (WO) : bit3-2 (Layer1) or bit1-0 (Layer0).Not 0 is true.
 	
-	bool r50_dpalette_updated;   // I/O 044CH (RO) : bit7
 	
 	bool sprite_busy;            // I/O 044CH (RO) : bit1. Must update from write_signal().
 	bool sprite_disp_page;       // I/O 044CH (RO) : bit0. Must update from write_signal().
@@ -71,15 +69,6 @@ protected:
 	uint8_t r50_readplane;       // MMIO 000CH:FF81H : BIT 7 and 6.
 	uint8_t r50_ramsel;          // MMIO 000CH:FF81H : BIT 3 to 0.
 	uint8_t r50_gvramsel;        // MMIO 000CH:FF83H : bit4 (and 3).
-	// Around Analog palette.
-	uint8_t apalette_code; // I/O FD90H (RW). 16 or 256 colors.
-	uint8_t apalette_b;    // I/O FD92H (RW).
-	uint8_t apalette_r;    // I/O FD94H (RW).
-	uint8_t apalette_g;    // I/O FD96H (RW).
-	uint16_t   apalette_16_rgb[2][16];   // R * 256 + G * 16 + B
-	scrntype_t apalette_16_pixel[2][16]; // Not saved. Must be calculated.
-	uint32_t   apalette_256_rgb[256];    // R * 65536 + G * 256 + B
-	scrntype_t apalette_256_pixel[256];  // Not saved. Must be calculated.
 	// Accessing VRAM. Will be separated.
 	// Memory description:
 	// All of accessing must be little endian.
@@ -119,12 +108,6 @@ protected:
 	virtual void __FASTCALL write_plane_data16(uint32_t addr, uint32_t data);
 	virtual void __FASTCALL write_plane_data32(uint32_t addr, uint32_t data);
 
-	virtual void __FASTCALL calc_apalette16(int layer, int index);
-	virtual void __FASTCALL calc_apalette256(int index);
-	virtual void __FASTCALL set_apalette_r(int layer, uint8_t val);
-	virtual void __FASTCALL set_apalette_g(int layer, uint8_t val);
-	virtual void __FASTCALL set_apalette_b(int layer, uint8_t val);
-	virtual void __FASTCALL set_apalette_num(uint8_t val);
 	virtual void __FASTCALL make_dirty_vram(uint32_t addr, int bytes);
 
 public:
@@ -175,22 +158,6 @@ public:
 #if defined(_USE_QT)
 		vram_lock[bank][layer].unlock();
 #endif
-	}
-	void get_analog_palette(int ch, scrntype_t *dst)
-	{
-		scrntype_t *p;
-		if(dst == NULL) return;
-		switch(ch) {
-		case 0:
-		case 1:
-			p = &(apalette_16_pixel[ch][0]);
-			memcpy(dst, p, 16 * sizeof(scrntype_t));
-			break;
-		case 2:
-			p = &(apalette_256_pixel[0]);
-			memcpy(dst, p, 256 * sizeof(scrntype_t));
-			break;
-		}
 	}
 	void set_context_sprite(DEVICE *dev)
 	{

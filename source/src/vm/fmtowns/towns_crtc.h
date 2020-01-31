@@ -103,6 +103,12 @@
 namespace FMTOWNS {
 
 	enum {
+		TOWNS_CRTC_PALETTE_R = 0,
+		TOWNS_CRTC_PALETTE_G,
+		TOWNS_CRTC_PALETTE_B,
+		TOWNS_CRTC_PALETTE_I
+	};
+	enum {
 		TOWNS_CRTC_REG_HSW1 = 0,
 		TOWNS_CRTC_REG_HSW2 = 1,
 		TOWNS_CRTC_REG_HST  = 4,
@@ -253,6 +259,16 @@ protected:
 	uint8_t sprite_disp_page;
 	bool sprite_enabled;
 	
+	// Around Analog palette.
+	uint8_t apalette_code; // I/O FD90H (RW). 16 or 256 colors.
+	uint8_t apalette_b;    // I/O FD92H (RW).
+	uint8_t apalette_r;    // I/O FD94H (RW).
+	uint8_t apalette_g;    // I/O FD96H (RW).
+	uint8_t   apalette_16_rgb[2][16][4];   // R * 256 + G * 16 + B
+	scrntype_t apalette_16_pixel[2][16]; // Not saved. Must be calculated.
+	uint8_t   apalette_256_rgb[256][4];    // R * 65536 + G * 256 + B
+	scrntype_t apalette_256_pixel[256];  // Not saved. Must be calculated.
+	
 	// FM-R50 emulation
 	uint8_t r50_planemask; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
 	uint8_t r50_pagesel;   // MMIO 000CF882h : BIT 4
@@ -310,6 +326,18 @@ protected:
 	
 	void set_crtc_clock(uint16_t val);
 	uint16_t read_reg30();
+	
+	virtual void __FASTCALL calc_apalette16(int layer, int index);
+	virtual void __FASTCALL calc_apalette256(int index);
+	virtual void __FASTCALL calc_apalette(int index);
+	
+	virtual void __FASTCALL set_apalette_r(uint8_t val);
+	virtual void __FASTCALL set_apalette_g(uint8_t val);
+	virtual void __FASTCALL set_apalette_b(uint8_t val);
+	virtual void __FASTCALL set_apalette_num(uint8_t val);
+	virtual uint8_t __FASTCALL get_apalette_b();
+	virtual uint8_t __FASTCALL get_apalette_r();
+	virtual uint8_t __FASTCALL get_apalette_g();
 	
 	bool __FASTCALL render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int width, int layer, bool do_alpha);
 	bool __FASTCALL render_256(scrntype_t* dst, int y, int width);
