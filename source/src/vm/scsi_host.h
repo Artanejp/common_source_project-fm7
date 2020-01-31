@@ -63,13 +63,13 @@ public:
 	
 	// common functions
 	void reset();
-#ifdef SCSI_HOST_WIDE
+//#ifdef SCSI_HOST_WIDE
 	void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_dma_io16(uint32_t addr);
-#else
+//#else
 	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
-#endif
+//#endif
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int id);
 	bool process_state(FILEIO* state_fio, bool loading);
