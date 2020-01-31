@@ -12,6 +12,7 @@
 #include "towns_crtc.h"
 #include "towns_vram.h"
 #include "towns_sprite.h"
+#include "fontroms.h"
 
 namespace FMTOWNS {
 enum {
@@ -568,6 +569,9 @@ void TOWNS_CRTC::write_io8(uint32_t addr, uint32_t data)
 		}			
 		break;
 	case 0x044c:
+		break;
+	case 0x05ca:
+		write_signals(&outputs_int_vsync, 0x00000000); // Clear VSYNC
 		break;
 	case 0xfd98:
 	case 0xfd99:
@@ -1439,7 +1443,100 @@ void TOWNS_CRTC::draw_screen()
 	//display_linebuf = (display_linebuf + 1) & 3;
 	return;
 }
-	
+
+// From MAME 0.216
+// ToDo: Will refine.
+void TOWNS_CRTC::render_text()
+{
+	uint32_t addr_base_jis = 0x00000;
+	uint32_t addr_base_ank = 0x3d800;
+	uint32_t linesize = regs[24] * 4;
+	int c = 0;
+	for(int y = 0; y < 25; y++) {
+		for(int x = 0; x < 80; x++) {
+			uint32_t addr_of = ((x * 4) + (y * (linesize * 16)) + 1) & 0x3ffff;
+			uint32_t attr = d_sprite->read_signal(SIG_TOWNS_SPRITE_PEEK_TVRAM + c + 1);
+			pair32_t jis;
+			uint32_t romaddr;
+			if((attr & 0xc0) != 0) {
+				// JIS
+				jis.b.h = d_sprite->read_signal(SIG_TOWNS_SPRITE_PEEK_TVRAM + c + 0x2000);
+				jis.b.l = d_sprite->read_signal(SIG_TOWNS_SPRITE_PEEK_TVRAM + c + 0x2001);
+				if(jis.b.h < 0x30) {
+					romaddr =
+						(((uint32_t)(jis.b.l & 0x1f)) << 4) |
+						((uint32_t)((jis.b.l - 0x20) & 0x20) << 8) |
+						((uint32_t)((jis.b.l - 0x20) & 0x40) << 6) |
+						(((uint32_t)(jis.b.h & 0x07)) << 9);
+					romaddr <<= 1;
+//					romaddr >>= 1;
+				} else if(jis.b.h < 0x70) {
+					romaddr =
+						(((uint32_t)(jis.b.l & 0x1f)) << 5) +
+						((uint32_t)((jis.b.l - 0x20) & 0x60) << 9) +
+						((uint32_t)((jis.b.h & 0x0f)) << 10) +
+						((uint32_t)((jis.b.h - 0x30) & 0x70) * 0xc00) +
+						0x8000;
+//					romaddr >>= 1;
+				} else {
+					romaddr =
+						(((uint32_t)(jis.b.l & 0x1f)) << 4) |
+						((uint32_t)((jis.b.l - 0x20) & 0x20) << 8) |
+						((uint32_t)((jis.b.l - 0x20) & 0x40) << 6) |
+						(((uint32_t)(jis.b.h & 0x07)) << 9);
+					romaddr <<= 1;
+					romaddr |= 0x38000;
+				}
+				romaddr = addr_base_jis + romaddr;
+//				romaddr >>= 1;
+			} else {
+				// ANK
+				uint8_t ank  = d_sprite->read_signal(SIG_TOWNS_SPRITE_PEEK_TVRAM + c);
+//				uint8_t ank = 0x36; 
+				romaddr = addr_base_ank + (ank * 16);
+			}
+			// Get data
+			uint32_t color = attr & 0x07;
+			uint8_t tmpdata = 0;;
+			if(attr & 0x20) color |= 0x08;
+			// Do render
+//			out_debug_log("ROMADDR=%08X", romaddr);
+			for(int column = 0; column < 16; column++) {
+				if(d_font != NULL) {
+					if((attr & 0xc0) == 0) {
+						// ANK
+						tmpdata = d_font->read_signal(SIG_TOWNS_FONT_PEEK_DATA + column + romaddr);
+					} else if((attr & 0xc0) == 0x80) {
+						tmpdata = d_font->read_signal(SIG_TOWNS_FONT_PEEK_DATA + column * 2 + romaddr + 1);
+					} else {
+						tmpdata = d_font->read_signal(SIG_TOWNS_FONT_PEEK_DATA + column * 2 + romaddr + 0);
+					}
+						
+				}
+				if(attr & 0x08)
+				{
+					tmpdata = ~tmpdata;
+				}
+				uint32_t pix = 0;
+				uint32_t of = addr_of;
+				uint8_t *p = d_vram->get_vram_address(of + 0x40000);
+				for(int nb = 0; nb < 8; nb += 2) {
+					pix = 0;
+					if(tmpdata & (0x80 >> nb)) {
+						pix = pix | ((color & 0x0f) << 4);
+					}
+					if(tmpdata & (0x80 >> (nb + 1))) {
+						pix = pix | ((color & 0x0f) << 0);
+					}
+					if(p != NULL) *p++ = pix;
+					of++;
+				}
+				addr_of = (addr_of + linesize) & 0x3ffff;
+			}
+			c += 2;
+		}
+	}
+}
 void TOWNS_CRTC::transfer_line(int line)
 {
 	if(line < 0) return;
@@ -1670,6 +1767,11 @@ void TOWNS_CRTC::event_pre_frame()
 		// ToDo: Resize texture.
 		//set_pixels_per_line(pixels_per_line);
 	}
+	if(d_sprite->read_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED) != 0) {
+//		if(((voutreg_ctrl & 0x1f) == 0x14) || ((voutreg_ctrl & 0x1f) == 0x11)) {
+			render_text();
+//		}
+	}
 }
 
 void TOWNS_CRTC::event_frame()
@@ -1739,6 +1841,13 @@ void TOWNS_CRTC::event_frame()
 	if(horiz_us > 0.0) {
 		register_event(this, EVENT_CRTC_HSTART, horiz_us, false, &event_id_hstart); // HSTART
 	}
+	// Draw Text layer
+//	if(d_sprite->read_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED) != 0) {
+//		if(((voutreg_ctrl & 0x1f) == 0x14) || ((voutreg_ctrl & 0x1f) == 0x11)) {
+//			render_text();
+//		}
+//	}
+	
 }
 
 void TOWNS_CRTC::event_callback(int event_id, int err)

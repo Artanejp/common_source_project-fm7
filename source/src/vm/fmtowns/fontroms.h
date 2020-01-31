@@ -12,13 +12,12 @@
 #include "../vm.h"
 #include "../device.h"
 
-#define SIG_TOWNS_FONT_ANKCG            1
 #define SIG_TOWNS_FONT_DMA_IS_VRAM      2
 #define SIG_TOWNS_FONT_KANJI_LOW        4
 #define SIG_TOWNS_FONT_KANJI_HIGH       5
 #define SIG_TOWNS_FONT_KANJI_DATA_LOW   8
 #define SIG_TOWNS_FONT_KANJI_DATA_HIGH  9
-
+#define SIG_TOWNS_FONT_PEEK_DATA        0x10000
 namespace FMTOWNS {
 
 class FONT_ROMS : public DEVICE
@@ -28,7 +27,6 @@ protected:
 	uint8_t ram[0x1000];
 
 	bool dma_is_vram;
-	bool ankcg_enabled;
 	pair16_t kanji_code;
 	uint32_t kanji_address;
 

@@ -15,9 +15,10 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_TIMER_CH0	0
-#define SIG_TIMER_CH1	1
-#define SIG_TIMER_RTC	2
+#define SIG_TIMER_CH0	    0
+#define SIG_TIMER_CH1	    1
+#define SIG_TIMER_RTC	    2
+#define SIG_TIMER_RTC_BUSY  3
 
 namespace FMTOWNS {
 class TIMER : public DEVICE
@@ -29,6 +30,7 @@ private:
 	
 	uint16_t free_run_counter;
 	uint8_t intr_reg, rtc_data;
+	bool rtc_busy;
 	bool tmout0, tmout1;
 
 	bool interval_enabled;

@@ -25,7 +25,7 @@ void TIMER::initialize()
 	tmout0 = tmout1 = false;
 	event_interval_us = -1;
 	event_wait_1us = -1;
-
+	rtc_busy = false;
 }
 
 void TIMER::reset()
@@ -142,7 +142,7 @@ uint32_t TIMER::read_io8(uint32_t addr)
 			return 0x00;
 		}
 	case 0x70:
-		return rtc_data;
+		return (rtc_data & 0x7f) | ((rtc_busy) ? 0 : 0x80);
 	}
 	return 0xff;
 }
@@ -158,7 +158,9 @@ void TIMER::write_signal(int id, uint32_t data, uint32_t mask)
 		tmout1 = ((data & mask) != 0);
 		update_intr();
 	} else if(id == SIG_TIMER_RTC) {
-		rtc_data = (data & mask) | (rtc_data & ~mask);
+		rtc_data = data & mask;
+	} else if(id == SIG_TIMER_RTC_BUSY) {
+		rtc_busy = ((data & mask) == 0);
 	}
 }
 
@@ -205,6 +207,8 @@ bool TIMER::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(free_run_counter);
 	state_fio->StateValue(intr_reg);
 	state_fio->StateValue(rtc_data);
+	state_fio->StateValue(rtc_busy);
+	
 	state_fio->StateValue(tmout0);
 	state_fio->StateValue(tmout1);
 

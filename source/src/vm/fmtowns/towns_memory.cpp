@@ -29,18 +29,19 @@ void TOWNS_MEMORY::config_page00()
 	if(dma_is_vram) {
 		set_memory_rw          (0x00000000, 0x000bffff, ram_page0);
 //		set_memory_mapped_io_r (0x000b0000, 0x000bffff, d_msdos); // OK? <- for compatible ROM.
+		set_memory_rw          (0x000c0000, 0x000cffff, ram_pagec);
 		set_memory_mapped_io_rw(0x000c0000, 0x000c7fff, d_vram);
 		set_memory_mapped_io_rw(0x000c8000, 0x000cafff, d_sprite);
-		set_memory_mapped_io_rw(0x000cb000, 0x000cbfff, d_font);
-		set_memory_mapped_io_rw(0x000cc000, 0x000cffff, this);
+//		set_memory_mapped_io_rw(0x000cb000, 0x000cbfff, d_font);
+		set_memory_mapped_io_rw(0x000cf000, 0x000cffff, this);
 		set_memory_rw          (0x000d0000, 0x000d7fff, ram_paged);
 //		set_memory_mapped_io_rw(0x000d0000, 0x000d9fff, d_dictionary); // CMOS
 		set_memory_mapped_io_rw(0x000d8000, 0x000d9fff, d_dictionary); // CMOS
 	} else {
 		set_memory_rw          (0x00000000, 0x000bffff, ram_page0);
 		set_memory_rw          (0x000c0000, 0x000cffff, ram_pagec);
+//		set_memory_mapped_io_rw(0x000c8000, 0x000cbfff, d_sprite);
 		set_memory_rw          (0x000d0000, 0x000d9fff, ram_paged);
-		set_memory_mapped_io_rw(0x000c8000, 0x000cafff, d_sprite);
 //		set_memory_mapped_io_rw(0x000cc000, 0x000cffff, this);
 	}		
 	set_memory_rw          (0x000da000, 0x000effff, ram_pagee);
@@ -760,10 +761,11 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		}
 		
 		if((data & 0x40) != 0) {
-			if(d_cpu != NULL) {
-				d_cpu->set_shutdown_flag(1);
-			}
-			emu->power_off();
+//			if(d_cpu != NULL) {
+//				d_cpu->set_shutdown_flag(1);
+//			}
+			// Todo: Implement true power off.
+//			emu->power_off();
 		} else {
 			if(d_cpu != NULL) {
 				d_cpu->set_shutdown_flag(0);
@@ -782,10 +784,11 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x0022:
 		if((data & 0x40) != 0) {
-			if(d_cpu != NULL) {
-				d_cpu->set_shutdown_flag(1);
-			}
-			emu->power_off();
+//			if(d_cpu != NULL) {
+//				d_cpu->set_shutdown_flag(1);
+//			}
+			// Todo: Implement true power off.
+//			emu->power_off();
 		}
 		if(d_dmac != NULL) {
 			d_dmac->write_signal(SIG_TOWNS_DMAC_ADDR_REG, data, 0xff);
@@ -811,9 +814,6 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		if(d_font != NULL) {
 			d_font->write_signal(SIG_TOWNS_FONT_DMA_IS_VRAM, (dma_is_vram) ? 0xffffffff : 0x00000000, 0xffffffff);
 		}
-		if(d_sprite != NULL) {
-			d_sprite->write_signal(SIG_TOWNS_SPRITE_SHADOW_RAM, (dma_is_vram) ? 0xffffffff : 0x00000000, 0xffffffff);
-		}
 		break;
 	case 0x05c0:
 		extra_nmi_mask = ((data & 0x08) == 0);
@@ -836,9 +836,7 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 	uint32_t val = 0xff;
 	if((addr < 0xcc000) || (addr >= 0xd0000)) return 0xff;
 	if(addr < 0xcff80) {
-		if(d_vram != NULL) {
-			val = d_vram->read_memory_mapped_io8(addr);
-		}
+		val = ram_pagec[addr & 0xffff];
 		return val;
 	}
 	switch(addr & 0x7f) {
@@ -858,7 +856,9 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 			val = d_vram->read_memory_mapped_io8(addr);
 		}
 		break;
-//	case 0x14:
+	case 0x14:
+		val = 0x80;
+		break;
 //	case 0x15:
 	case 0x16:
 		if(d_font != NULL) {
@@ -876,8 +876,8 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 		}
 		break;
 	case 0x19:
-		if(d_font != NULL) {
-			val = val & ((d_font->read_signal(SIG_TOWNS_FONT_ANKCG) != 0) ? 0x00 : 0x01);
+		if(d_sprite != NULL) {
+			val = val & ((d_sprite->read_signal(SIG_TOWNS_SPRITE_ANKCG) != 0) ? 0x00 : 0x01);
 		}
 		break;
 	case 0x20:
@@ -897,9 +897,7 @@ void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	if((addr < 0xcc000) || (addr >= 0xd0000)) return;
 	if(addr < 0xcff80) {
-		if(d_vram != NULL) {
-			d_vram->write_memory_mapped_io8(addr , data);
-		}
+		ram_pagec[addr & 0xffff] = data;
 		return;
 	}
 	switch(addr & 0x7f) {
@@ -937,8 +935,8 @@ void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x19:
-		if(d_font != NULL) {
-			d_font->write_signal(SIG_TOWNS_FONT_ANKCG, ((data & 1) == 0) ? 0xffffffff : 0, 0xffffffff);
+		if(d_sprite != NULL) {
+			d_sprite->write_signal(SIG_TOWNS_SPRITE_ANKCG, ((data & 1) == 0) ? 0xffffffff : 0, 0xffffffff);
 		}
 		break;
 	case 0x20:

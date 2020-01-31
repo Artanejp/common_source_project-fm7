@@ -178,7 +178,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(int i = 0; i < USE_HARD_DISK; i++) {
 		scsi_hdd[i] = new SCSI_HDD(this, emu);
 		scsi_hdd[i]->set_device_name(_T("SCSI Hard Disk Drive #%d"), i + 1);
-		scsi_hdd[i]->scsi_id = i;
+		scsi_hdd[i]->scsi_id = i ;
 		scsi_hdd[i]->set_disk_handler(0, new HARDDISK(emu));
 		scsi_hdd[i]->set_context_interface(scsi_host);
 		scsi_host->set_context_target(scsi_hdd[i]);
@@ -297,7 +297,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pic->set_context_cpu(memory);
 	fdc->set_context_irq(floppy, SIG_FLOPPY_IRQ, 1);
 	rtc->set_context_data(timer, SIG_TIMER_RTC, 0x0f, 0);
-	rtc->set_context_busy(timer, SIG_TIMER_RTC, 0x80);
+	rtc->set_context_busy(timer, SIG_TIMER_RTC_BUSY, 0x80);
 	scsi_host->set_context_irq(scsi, SIG_SCSI_IRQ, 1);
 	scsi_host->set_context_drq(scsi, SIG_SCSI_DRQ, 1);
 	dma->set_context_memory(memory);
@@ -310,12 +310,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	floppy->set_context_fdc(fdc);
 	
-	sprite->set_context_vram(vram);
+	sprite->set_context_vram(vram);	
+	sprite->set_context_font(fontrom);
 	vram->set_context_sprite(sprite);
 	vram->set_context_crtc(crtc);
 	
 	crtc->set_context_sprite(sprite);
 	crtc->set_context_vram(vram);
+	crtc->set_context_font(fontrom);
 
 	//e_volume[0]->set_context_ch0(line_in, MB87878_VOLUME_LEFT);
 	//e_volume[0]->set_context_ch1(line_in, MB87878_VOLUME_RIGHT);
@@ -502,7 +504,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x05c0, memory); // NMI MASK
 	io->set_iomap_single_r (0x05c2, memory);  // NMI STATUS
 	io->set_iomap_single_r (0x05c8, sprite); // TVRAM EMULATION
-	io->set_iomap_single_w (0x05ca, vram); // VSYNC INTERRUPT
+	io->set_iomap_single_w (0x05ca, crtc); // VSYNC INTERRUPT
 	
 	io->set_iomap_single_rw(0x05e8, memory); // RAM capacity register.(later Towns1H/2H/1F/2F).
 	io->set_iomap_single_rw(0x05ec, memory); // RAM Wait register , ofcially after Towns2, but exists after Towns1H.

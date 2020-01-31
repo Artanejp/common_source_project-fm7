@@ -51,12 +51,12 @@ void TOWNS_DMAC::do_dma_verify_16bit(int c)
 		is_master = true;
 	}
 	if(is_master) {
-//		if((c == 1) || (c == 3)) {
-//			if(b16 != 0) {
-//				UPD71071::do_dma_verify_16bit(c);
-//				return;
-//			}
-//		}
+		if((c == 1) || (c == 3)) {
+			if(b16 != 0) {
+				UPD71071::do_dma_verify_16bit(c);
+				return;
+			}
+		}
 	} else if(b16 != 0) {
 		UPD71071::do_dma_verify_16bit(c);
 		return;
@@ -78,12 +78,12 @@ void TOWNS_DMAC::do_dma_dev_to_mem_16bit(int c)
 		is_master = true;
 	}
 	if(is_master) {
-//		if((c == 1) || (c == 3)) {
-//			if(b16 != 0) {
-//				UPD71071::do_dma_dev_to_mem_16bit(c);
-//				return;
-//			}
-//		}
+		if((c == 1) || (c == 3)) {
+			if(b16 != 0) {
+				UPD71071::do_dma_dev_to_mem_16bit(c);
+				return;
+			}
+		}
 	} else if(b16 != 0) {
 		UPD71071::do_dma_dev_to_mem_16bit(c);
 		return;
@@ -115,12 +115,12 @@ void TOWNS_DMAC::do_dma_mem_to_dev_16bit(int c)
 		is_master = true;
 	}
 	if(is_master) {
-//		if((c == 1) || (c == 3)) {
-//			if(b16 != 0) {
-//				UPD71071::do_dma_mem_to_dev_16bit(c);
-//				return;
-//			}
-//		}
+		if((c == 1) || (c == 3)) {
+			if(b16 != 0) {
+				UPD71071::do_dma_mem_to_dev_16bit(c);
+				return;
+			}
+		}
 	} else if(b16 != 0) {
 		UPD71071::do_dma_mem_to_dev_16bit(c);
 		return;

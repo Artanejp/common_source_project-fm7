@@ -116,6 +116,7 @@ public:
 		memset(vram, 0x00, sizeof(vram));
 		d_sprite = NULL;
 		d_crtc = NULL;
+		set_device_name(_T("FM-Towns VRAM"));
 	}
 	~TOWNS_VRAM() {}
 

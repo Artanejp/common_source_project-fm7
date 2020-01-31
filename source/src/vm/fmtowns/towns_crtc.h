@@ -180,6 +180,8 @@ class TOWNS_CRTC : public DEVICE
 protected:
 	TOWNS_VRAM* d_vram;
 	TOWNS_SPRITE* d_sprite;
+	DEVICE*       d_font;
+	
 	// output signals
 	outputs_t outputs_int_vsync;  // Connect to int 11.
 	uint16_t regs[32];      // I/O 0442H, 0443H
@@ -345,6 +347,7 @@ protected:
 	void __FASTCALL transfer_line(int line);
 
 	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1);
+	virtual void render_text();
 
 public:
 	TOWNS_CRTC(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -355,6 +358,7 @@ public:
 		}
 		d_sprite = NULL;
 		d_vram = NULL;
+		d_font = NULL;
 		set_device_name(_T("FM-Towns CRTC"));
 	}
 	~TOWNS_CRTC() {}
@@ -395,6 +399,10 @@ public:
 	void set_context_vram(DEVICE* dev)
 	{
 		d_vram = (TOWNS_VRAM*)dev;
+	}
+	void set_context_font(DEVICE* dev)
+	{
+		d_font = dev;
 	}
 	
 	void set_context_vsync(DEVICE* device, int id, uint32_t mask)

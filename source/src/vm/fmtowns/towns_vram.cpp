@@ -663,7 +663,7 @@ void TOWNS_VRAM::write_mmio8(uint32_t addr, uint32_t data)
 		mix_reg = data & 0x28;
 		break;
 	case 0xcff81:
-		out_debug_log(_T("0xCFF81=%02X"), data & 0xff);
+//		out_debug_log(_T("0xCFF81=%02X"), data & 0xff);
 		r50_readplane = (data & 0xc0) >> 6;
 		r50_ramsel = data & 0x0f;
 		break;
@@ -673,7 +673,7 @@ void TOWNS_VRAM::write_mmio8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0xcff83:
-		out_debug_log(_T("0xCFF83=%02X"), data & 0xff);
+//		out_debug_log(_T("0xCFF83=%02X"), data & 0xff);
 		r50_gvramsel = (data & 0x10) >> 4;
 		break;
 	case 0xcff86:
@@ -887,7 +887,7 @@ void TOWNS_VRAM::write_io8(uint32_t address,  uint32_t data)
 	switch(address & 0xffff) {
 	case 0x0458:
 		vram_access_reg_addr = data & 3;
-		out_debug_log(_T("VRAM ACCESS(0458h)=%02X"), data);
+//		out_debug_log(_T("VRAM ACCESS(0458h)=%02X"), data);
 		break;
 	case 0x045a:
 		switch(vram_access_reg_addr) {
@@ -898,7 +898,7 @@ void TOWNS_VRAM::write_io8(uint32_t address,  uint32_t data)
 			packed_pixel_mask_reg.b.h2 = data;
 			break;
 		}			
-		out_debug_log(_T("VRAM MASK(045Ah)=%08X"), packed_pixel_mask_reg.d);
+//		out_debug_log(_T("VRAM MASK(045Ah)=%08X"), packed_pixel_mask_reg.d);
 		break;
 	case 0x045b:
 		switch(vram_access_reg_addr) {
@@ -909,7 +909,7 @@ void TOWNS_VRAM::write_io8(uint32_t address,  uint32_t data)
 			packed_pixel_mask_reg.b.h3 = data;
 			break;
 		}			
-		out_debug_log(_T("VRAM MASK(045Bh)=%08X"), packed_pixel_mask_reg.d);
+//		out_debug_log(_T("VRAM MASK(045Bh)=%08X"), packed_pixel_mask_reg.d);
 		break;
 	}
 }
@@ -926,7 +926,7 @@ void TOWNS_VRAM::write_io16(uint32_t address,  uint32_t data)
 	switch(address & 0xffff) {
 	case 0x0458:
 		vram_access_reg_addr = data & 3;
-		out_debug_log(_T("VRAM ACCESS(0458h)=%02X"), data);
+//		out_debug_log(_T("VRAM ACCESS(0458h)=%02X"), data);
 		break;
 	case 0x045a:
 		switch(vram_access_reg_addr) {
@@ -937,7 +937,7 @@ void TOWNS_VRAM::write_io16(uint32_t address,  uint32_t data)
 			packed_pixel_mask_reg.w.h = d.w.l;
 			break;
 		}			
-		out_debug_log(_T("VRAM MASK(045Ah)=%08X"), packed_pixel_mask_reg.d);
+//		out_debug_log(_T("VRAM MASK(045Ah)=%08X"), packed_pixel_mask_reg.d);
 		break;
 	}
 }

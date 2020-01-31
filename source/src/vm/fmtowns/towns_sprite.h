@@ -5,12 +5,15 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_TOWNS_SPRITE_HOOK_VLINE  256
-#define SIG_TOWNS_SPRITE_SET_LINES   257
-#define SIG_TOWNS_SPRITE_SHADOW_RAM  258
-#define SIG_TOWNS_SPRITE_BUSY        259
-#define SIG_TOWNS_SPRITE_CALL_HSYNC  260
-#define SIG_TOWNS_SPRITE_CALL_VSTART 261
+#define SIG_TOWNS_SPRITE_HOOK_VLINE     256
+#define SIG_TOWNS_SPRITE_SET_LINES      257
+#define SIG_TOWNS_SPRITE_SHADOW_RAM     258
+#define SIG_TOWNS_SPRITE_BUSY           259
+#define SIG_TOWNS_SPRITE_CALL_HSYNC     260
+#define SIG_TOWNS_SPRITE_CALL_VSTART    261
+#define SIG_TOWNS_SPRITE_ANKCG          262
+#define SIG_TOWNS_SPRITE_TVRAM_ENABLED  263
+#define SIG_TOWNS_SPRITE_PEEK_TVRAM     0x00010000
 namespace FMTOWNS {
 	class TOWNS_VRAM;
 }
@@ -21,6 +24,7 @@ class TOWNS_SPRITE : public DEVICE
 
 protected:
 	TOWNS_VRAM *d_vram;
+	DEVICE *d_font;
 	// REGISTERS
 	uint8_t reg_addr;
 	uint8_t reg_data[8];
@@ -51,6 +55,7 @@ protected:
 	bool tvram_enabled;
 	bool shadow_memory_enabled;
 
+	bool ankcg_enabled;
 	void __FASTCALL render_sprite(int num,  int x, int y, uint16_t attr, uint16_t color);
 	void render_full();
 	void render_part(int start, int end);
@@ -60,6 +65,7 @@ public:
 	TOWNS_SPRITE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_vram = NULL;
+		d_font = NULL;
 		set_device_name(_T("SPRITE"));
 	}
 	~TOWNS_SPRITE() {}
@@ -68,15 +74,11 @@ public:
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 
 	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
-	void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
-	void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data);
-	
 	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
-	uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
-	uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr);
 
 	void reset();
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int id);
 	void initialize();
 	void event_frame();
 	bool process_state(FILEIO* state_fio, bool loading);
@@ -84,6 +86,10 @@ public:
 	void set_context_vram(TOWNS_VRAM *p)
 	{
 		d_vram = p;
+	}
+	void set_context_font(DEVICE *p)
+	{
+		d_font = p;
 	}
 };
 }
