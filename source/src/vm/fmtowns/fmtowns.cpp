@@ -306,7 +306,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	//dma->set_context_ch2(printer);
 	dma->set_context_ch3(cdc);
 	//dma->set_context_ch3(cdc_scsi);
-	//dma->set_context_child_dma(extra_dma);
+	dma->set_context_child_dma(extra_dma);
 	
 	floppy->set_context_fdc(fdc);
 	
@@ -774,7 +774,7 @@ void VM::open_hard_disk(int drv, const _TCHAR* file_path)
 {
 	if((drv < USE_HARD_DISK) && (drv < 8) && (drv >= 0)) {
 		if(scsi_hdd[drv] != NULL) {
-			scsi_hdd[drv]->open(drv, file_path, 1024);
+			scsi_hdd[drv]->open(drv, file_path, 512);
 		}
 	}
 }

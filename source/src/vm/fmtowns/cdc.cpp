@@ -669,9 +669,10 @@ uint32_t CDC::read_dma_io8(uint32_t addr)
 uint32_t CDC::read_dma_io16(uint32_t addr)
 {
 	pair16_t d;
-	d.b.l = d_scsi_host->read_dma_io8(addr);
-	d.b.h = d_scsi_host->read_dma_io8(addr);
-	return (uint32_t)(d.u16);
+//	d.b.l = d_scsi_host->read_dma_io8(addr);
+//	d.b.h = d_scsi_host->read_dma_io8(addr);
+	d.w = d_scsi_host->read_dma_io16(addr);
+	return (uint32_t)(d.w);
 }
 
 void CDC::write_dma_io8(uint32_t addr, uint32_t data)
@@ -681,10 +682,11 @@ void CDC::write_dma_io8(uint32_t addr, uint32_t data)
 
 void CDC::write_dma_io16(uint32_t addr, uint32_t data)
 {
-	pair32_t _d;
-	_d.d = data;
-	d_scsi_host->write_dma_io8(addr, _d.b.l);
-	d_scsi_host->write_dma_io8(addr, _d.b.h);
+	d_scsi_host->write_dma_io16(addr, data);
+//	pair32_t _d;
+//	_d.d = data;
+//	d_scsi_host->write_dma_io8(addr, _d.b.l);
+//	d_scsi_host->write_dma_io8(addr, _d.b.h);
 }
 
 
