@@ -456,6 +456,18 @@ void TOWNS_MEMORY::write_data32w(uint32_t addr, uint32_t data, int *wait)
 	}
 }
 
+uint32_t TOWNS_MEMORY::read_dma_data8(uint32_t addr)
+{
+	int dummy;
+	return read_dma_data8w(addr, &dummy);
+}
+
+uint32_t TOWNS_MEMORY::read_dma_data16(uint32_t addr)
+{
+	int dummy;
+	return read_dma_data16w(addr, &dummy);
+}
+
 uint32_t TOWNS_MEMORY::read_dma_data8w(uint32_t addr, int* wait)
 {
 	int bank = addr >> addr_shift;
@@ -494,7 +506,6 @@ uint32_t TOWNS_MEMORY::read_dma_data16w(uint32_t addr, int* wait)
 	return 0xffff;
 }
 
-
 void TOWNS_MEMORY::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
 {
 	int bank = addr >> addr_shift;
@@ -532,17 +543,6 @@ void TOWNS_MEMORY::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
 		wr_table[bank].memory[(addr & bank_mask & 0xfffffffe) + 1] = nd.b.h;
 	}
 	return;
-}
-uint32_t TOWNS_MEMORY::read_dma_data8(uint32_t addr)
-{
-	int dummy;
-	return read_dma_data8w(addr, &dummy);
-}
-
-uint32_t TOWNS_MEMORY::read_dma_data16(uint32_t addr)
-{
-	int dummy;
-	return read_dma_data16w(addr, &dummy);
 }
 
 void TOWNS_MEMORY::write_dma_data8(uint32_t addr, uint32_t data)

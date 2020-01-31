@@ -15,10 +15,12 @@ void TOWNS_DMAC::reset()
 	dma_addr_reg = 0;
 	dma_addr_mask = 0xffffffff; // OK?
 	dma_high_address = 0x00000000;
+	b16 = 2; // Fixed 16bit.
 }
 
 void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 {
+	if((addr & 0x0f) == 0x0c) out_debug_log("WRITE REG: %08X %08X", addr, data);
 	switch(addr & 0x0f) {
 	case 0x07:
 		dma_high_address = (data & 0xff) << 24;
@@ -34,31 +36,114 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 {
 	uint32_t val;
 	pair32_t nval;
-	if(((addr & 0x0f) >= 4) && ((addr & 0x0f) <= 7)) {
-		if(base) {
-			nval.d = dma[selch].bareg;
-		} else {
-			nval.d = dma[selch].areg;
-		}
-		switch(addr & 0x0f) {
-		case 0x04:
-			val = nval.b.l;
-			break;
-		case 0x05:
-			val = nval.b.h;
-			break;
-		case 0x06:
-			val = nval.b.h2;
-			break;
-		case 0x07:
-			val = nval.b.h3;
-			break;
-		}
-		return val;
+	if((addr & 0x0f) == 7) {
+		return (dma_high_address >> 24);
 	}
 	return UPD71071::read_io8(addr);
 }
 
+// Note: DATABUS will be 16bit wide. 20200131 K.O
+void TOWNS_DMAC::do_dma_verify_16bit(int c)
+{
+	// verify
+	bool is_master = false;
+	if(d_dma != NULL) {
+		is_master = true;
+	}
+	if(is_master) {
+//		if((c == 1) || (c == 3)) {
+//			if(b16 != 0) {
+//				UPD71071::do_dma_verify_16bit(c);
+//				return;
+//			}
+//		}
+	} else if(b16 != 0) {
+		UPD71071::do_dma_verify_16bit(c);
+		return;
+	}
+	pair16_t d;
+	d.b.l = dma[c].dev->read_dma_io8(0);
+	d.b.h = dma[c].dev->read_dma_io8(0);
+	// update temporary register
+	tmp = d.w;
+
+}
+void TOWNS_DMAC::do_dma_dev_to_mem_16bit(int c)
+{
+	// io -> memory
+	uint32_t val;
+	pair16_t d;
+	bool is_master = false;
+	if(d_dma != NULL) {
+		is_master = true;
+	}
+	if(is_master) {
+//		if((c == 1) || (c == 3)) {
+//			if(b16 != 0) {
+//				UPD71071::do_dma_dev_to_mem_16bit(c);
+//				return;
+//			}
+//		}
+	} else if(b16 != 0) {
+		UPD71071::do_dma_dev_to_mem_16bit(c);
+		return;
+	}
+	d.b.l = dma[c].dev->read_dma_io8(0);
+	d.b.h = dma[c].dev->read_dma_io8(0);
+	val = d.w;
+	write_signals(&outputs_wrote_mem_byte, dma[c].areg);
+	if(_USE_DEBUGGER) {
+		if(d_debugger != NULL && d_debugger->now_device_debugging) {
+			d_debugger->write_via_debugger_data16(dma[c].areg, val);
+		} else {
+			this->write_via_debugger_data16(dma[c].areg, val);
+		}
+	} else {
+		this->write_via_debugger_data16(dma[c].areg, val);
+	}							
+	// update temporary register
+	tmp = val;
+
+}
+
+void TOWNS_DMAC::do_dma_mem_to_dev_16bit(int c)
+{
+	// memory -> io
+	uint32_t val;
+	bool is_master = false;
+	if(d_dma != NULL) {
+		is_master = true;
+	}
+	if(is_master) {
+//		if((c == 1) || (c == 3)) {
+//			if(b16 != 0) {
+//				UPD71071::do_dma_mem_to_dev_16bit(c);
+//				return;
+//			}
+//		}
+	} else if(b16 != 0) {
+		UPD71071::do_dma_mem_to_dev_16bit(c);
+		return;
+	}
+	if(_USE_DEBUGGER) {
+		if(d_debugger != NULL && d_debugger->now_device_debugging) {
+			val = d_debugger->read_via_debugger_data16(dma[c].areg);
+		} else {
+			val = this->read_via_debugger_data16(dma[c].areg);
+		}
+	} else {
+		val = this->read_via_debugger_data16(dma[c].areg);
+	}
+	pair16_t d;
+	d.w = val;
+	dma[c].dev->write_dma_io8(0, d.b.l);
+	dma[c].dev->write_dma_io8(0, d.b.h);
+//	dma[c].dev->write_dma_io16(0, val);
+	// update temporary register
+	tmp = val;
+}
+
+	
 void TOWNS_DMAC::do_dma_inc_dec_ptr_8bit(int c)
 {
 	// Note: FM-Towns may extend to 32bit.

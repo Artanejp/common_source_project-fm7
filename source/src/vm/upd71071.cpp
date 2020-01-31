@@ -219,7 +219,7 @@ uint32_t UPD71071::read_signal(int ch)
 		return 0xffffffff;
 	} else if((ch >= (SIG_UPD71071_IS_16BITS_TRANSFER + 0)) && (ch < (SIG_UPD71071_IS_16BITS_TRANSFER + 4))) {
 		bool _nch = ch - SIG_UPD71071_IS_16BITS_TRANSFER;
-		return ((dma[_nch].mode & 1) != 0) ? 0xffffffff : 0;
+		return ((b16 & 2) != 0) ? 0xffffffff : 0;
 	}
 	return 0;
 }
@@ -377,7 +377,7 @@ void UPD71071::do_dma()
 			// execute dma
 			while((req | sreq) & bit) {
 				// Will check WORD transfer mode for FM-Towns.(mode.bit0 = '1).
-				if((dma[c].mode & 0x01) == 1) {
+				if(((dma[c].mode & 0x01) != 0)/* || (b16 != 0)*/) {
 					// 16bit transfer mode
 					if((dma[c].mode & 0x0c) == 0x00) {
 						do_dma_verify_16bit(c);

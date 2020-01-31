@@ -787,6 +787,7 @@ uint32_t MB8877::read_dma_io8(uint32_t addr)
 	return read_io8(3);
 }
 
+
 void MB8877::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MB8877_DRIVEREG) {
