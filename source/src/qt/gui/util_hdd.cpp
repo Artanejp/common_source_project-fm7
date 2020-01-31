@@ -32,7 +32,7 @@ void Ui_MainWindowBase::eject_hard_disk(int drv)
 void Ui_MainWindowBase::CreateHardDiskMenu(int drv, int drv_base)
 {
 	{
-		QString ext = "*.thd *.nhd *.hdi *.hdd "; // ToDo: Will support *.h[0123456] for Unz, FM-Towns emulator.
+		QString ext = "*.thd *.nhd *.hdi *.hdd *.h[0-9]"; 
 		QString desc1 = "Hard Disk Drive";
 		menu_hdds[drv] = new Menu_HDDClass(menubar, QString::fromUtf8("HDD"), using_flags, this, drv, drv_base);
 		menu_hdds[drv]->create_pulldown_menu();
