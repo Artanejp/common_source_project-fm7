@@ -1458,7 +1458,12 @@ void TOWNS_CRTC::render_text()
 			uint32_t attr = d_sprite->read_signal(SIG_TOWNS_SPRITE_PEEK_TVRAM + c + 1);
 			pair32_t jis;
 			uint32_t romaddr;
-			if((attr & 0xc0) != 0) {
+			if((attr & 0xc0) == 0) {
+				// ANK
+				uint8_t ank  = d_sprite->read_signal(SIG_TOWNS_SPRITE_PEEK_TVRAM + c);
+//				uint8_t ank = 0x36; 
+				romaddr = addr_base_ank + (ank * 16);
+			}	else if((attr & 0xc0) != 0x80) {
 				// JIS
 				jis.b.h = d_sprite->read_signal(SIG_TOWNS_SPRITE_PEEK_TVRAM + c + 0x2000);
 				jis.b.l = d_sprite->read_signal(SIG_TOWNS_SPRITE_PEEK_TVRAM + c + 0x2001);
@@ -1489,15 +1494,10 @@ void TOWNS_CRTC::render_text()
 				}
 				romaddr = addr_base_jis + romaddr;
 //				romaddr >>= 1;
-			} else {
-				// ANK
-				uint8_t ank  = d_sprite->read_signal(SIG_TOWNS_SPRITE_PEEK_TVRAM + c);
-//				uint8_t ank = 0x36; 
-				romaddr = addr_base_ank + (ank * 16);
 			}
 			// Get data
 			uint32_t color = attr & 0x07;
-			uint8_t tmpdata = 0;;
+			uint8_t tmpdata = 0;
 			if(attr & 0x20) color |= 0x08;
 			// Do render
 //			out_debug_log("ROMADDR=%08X", romaddr);
