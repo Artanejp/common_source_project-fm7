@@ -530,7 +530,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\i386.cpp"
+					RelativePath="..\src\vm\i386_np21.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -1034,6 +1034,198 @@
 						</FileConfiguration>
 					</File>
 				</Filter>
+				<Filter
+					Name="np21w i386c Source Files"
+					>
+					<File
+						RelativePath="..\src\vm\np21\i386c\cpucore.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\src\vm\np21\i386c\cpumem.cpp"
+						>
+					</File>
+					<Filter
+						Name="ia32"
+						>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\cpu.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\cpu_io.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\cpu_mem.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\ctrlxfer.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\debug.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\exception.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\groups.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\ia32.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\inst_table.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\interface.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\paging.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\resolve.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\segments.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\task.cpp"
+							>
+						</File>
+						<Filter
+							Name="instructions"
+							>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\bin_arith.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\bit_byte.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\ctrl_trans.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\data_trans.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\dec_arith.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\flag_ctrl.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\logic_arith.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\misc_inst.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\seg_reg.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\shift_rotate.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\string_inst.cpp"
+								>
+							</File>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\system_inst.cpp"
+								>
+							</File>
+							<Filter
+								Name="fpu"
+								>
+								<File
+									RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu\fpdummy.cpp"
+									>
+								</File>
+								<File
+									RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu\fpemul_dosbox.cpp"
+									>
+								</File>
+								<File
+									RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu\fpemul_dosbox2.cpp"
+									>
+								</File>
+								<File
+									RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu\fpemul_softfloat.cpp"
+									>
+								</File>
+								<Filter
+									Name="softfloat"
+									>
+									<File
+										RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu\softfloat\softfloat.cpp"
+										>
+									</File>
+								</Filter>
+							</Filter>
+							<Filter
+								Name="mmx"
+								>
+								<File
+									RelativePath="..\src\vm\np21\i386c\ia32\instructions\mmx\3dnow.cpp"
+									>
+								</File>
+								<File
+									RelativePath="..\src\vm\np21\i386c\ia32\instructions\mmx\mmx.cpp"
+									>
+								</File>
+							</Filter>
+							<Filter
+								Name="sse"
+								>
+								<File
+									RelativePath="..\src\vm\np21\i386c\ia32\instructions\sse\sse.cpp"
+									>
+								</File>
+							</Filter>
+							<Filter
+								Name="sse2"
+								>
+								<File
+									RelativePath="..\src\vm\np21\i386c\ia32\instructions\sse2\sse2.cpp"
+									>
+								</File>
+							</Filter>
+							<Filter
+								Name="sse3"
+								>
+								<File
+									RelativePath="..\src\vm\np21\i386c\ia32\instructions\sse3\sse3.cpp"
+									>
+								</File>
+							</Filter>
+						</Filter>
+					</Filter>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="VM Driver Source Files"
@@ -1324,7 +1516,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\i386.h"
+					RelativePath="..\src\vm\i386_np21.h"
 					>
 				</File>
 				<File
@@ -1451,6 +1643,138 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="np21w i386c Header Files"
+					>
+					<File
+						RelativePath="..\src\vm\np21\i386c\cpucore.h"
+						>
+					</File>
+					<File
+						RelativePath="..\src\vm\np21\i386c\cpumem.h"
+						>
+					</File>
+					<Filter
+						Name="ia32"
+						>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\cpu.h"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\cpu_io.h"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\cpu_mem.h"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\ctrlxfer.h"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\exception.h"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\groups.h"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\inst_table.h"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\interface.h"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\paging.h"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\resolve.h"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\segments.h"
+							>
+						</File>
+						<File
+							RelativePath="..\src\vm\np21\i386c\ia32\task.h"
+							>
+						</File>
+						<Filter
+							Name="fpu"
+							>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu\fp.h"
+								>
+							</File>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu\fpumem.h"
+								>
+							</File>
+							<Filter
+								Name="softfloat"
+								>
+								<File
+									RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu\softfloat\softfloat-macros.h"
+									>
+								</File>
+								<File
+									RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu\softfloat\softfloat-specialize.h"
+									>
+								</File>
+								<File
+									RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu\softfloat\softfloat.h"
+									>
+								</File>
+								<File
+									RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu\softfloat\softfloatdef.h"
+									>
+								</File>
+							</Filter>
+						</Filter>
+						<Filter
+							Name="mmx"
+							>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\mmx\3dnow.h"
+								>
+							</File>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\mmx\mmx.h"
+								>
+							</File>
+						</Filter>
+						<Filter
+							Name="sse"
+							>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\sse\sse.h"
+								>
+							</File>
+						</Filter>
+						<Filter
+							Name="sse2"
+							>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\sse2\sse2.h"
+								>
+							</File>
+						</Filter>
+						<Filter
+							Name="sse3"
+							>
+							<File
+								RelativePath="..\src\vm\np21\i386c\ia32\instructions\sse3\sse3.h"
+								>
+							</File>
+						</Filter>
+					</Filter>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="VM Driver Header Files"
@@ -1507,6 +1831,14 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
+				RelativePath="..\src\res\indicator\access_off.bmp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\indicator\access_on.bmp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\res\pc98rl.ico"
 				>
 			</File>
@@ -1534,14 +1866,6 @@
 			</File>
 			<File
 				RelativePath="..\src\res\resource.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\res\indicator\access_off.bmp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\res\indicator\access_on.bmp"
 				>
 			</File>
 		</Filter>

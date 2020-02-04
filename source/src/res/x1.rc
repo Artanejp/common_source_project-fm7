@@ -175,6 +175,7 @@ BEGIN
     BEGIN
         MENUITEM "Mount",                       ID_OPEN_HD1
         MENUITEM "Unmount",                     ID_CLOSE_HD1
+        MENUITEM "Mount Blank 20MB Disk",       ID_OPEN_BLANK_20MB_HD1
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_HD1
     END
@@ -182,6 +183,7 @@ BEGIN
     BEGIN
         MENUITEM "Mount",                       ID_OPEN_HD2
         MENUITEM "Unmount",                     ID_CLOSE_HD2
+        MENUITEM "Mount Blank 20MB Disk",       ID_OPEN_BLANK_20MB_HD2
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_HD2
     END
@@ -189,6 +191,7 @@ BEGIN
     BEGIN
         MENUITEM "Mount",                       ID_OPEN_HD3
         MENUITEM "Unmount",                     ID_CLOSE_HD3
+        MENUITEM "Mount Blank 20MB Disk",       ID_OPEN_BLANK_20MB_HD3
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_HD3
     END
@@ -196,6 +199,7 @@ BEGIN
     BEGIN
         MENUITEM "Mount",                       ID_OPEN_HD4
         MENUITEM "Unmount",                     ID_CLOSE_HD4
+        MENUITEM "Mount Blank 20MB Disk",       ID_OPEN_BLANK_20MB_HD4
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_HD4
     END
