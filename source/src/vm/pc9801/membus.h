@@ -140,6 +140,7 @@ private:
 	uint32_t window_80000h;
 	uint32_t window_a0000h;
 #endif
+//	inline bool __FASTCALL get_memory_addr(uint32_t *addr);
 	void config_intram();
 	void update_bios_mainmem();
 	void update_bios_ipl_and_itf();
@@ -161,6 +162,13 @@ public:
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+	// ToDo: Re-Implement.
+// 	uint32_t __FASTCALL read_data8(uint32_t addr);
+//	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+//	uint32_t __FASTCALL read_data16(uint32_t addr);
+//	void __FASTCALL write_data16(uint32_t addr, uint32_t data);
+//	uint32_t __FASTCALL read_data32(uint32_t addr);
+//	void __FASTCALL write_data32(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_dma_data8(uint32_t addr);
 	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data);
 #endif

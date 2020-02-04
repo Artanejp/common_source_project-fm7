@@ -75,7 +75,11 @@ uint32_t MOUSE::read_io8(uint32_t addr)
 void MOUSE::event_callback(int event_id, int err)
 {
 	if(!(ctrlreg & 0x10)) {
-		d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR5, 1, 1);
+		#if !defined(SUPPORT_HIRESO)
+			d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR5, 1, 1);
+		#else
+			d_pic->write_signal(SIG_I8259_CHIP0 | SIG_I8259_IR6, 1, 1);
+		#endif
 	}
 	if(cur_freq != (freq & 3)) {
 		cancel_event(this, register_id);

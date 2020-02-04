@@ -14,7 +14,11 @@
 #include "cpureg.h"
 #include "membus.h"
 #include "../i8255.h"
-
+#if defined(SUPPORT_32BIT_ADDRESS)
+#include "../i386_np21.h"
+#else
+#include "../i286.h"
+#endif
 
 #define EVENT_WAIT 1
 

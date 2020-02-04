@@ -14,13 +14,12 @@
 	Author : Takeda.Toshiya
 	Date   : 2012.02.03-
 
-	[ PC-9801-26 ]
+	[ PC-9801-26/86 ]
 */
 
 #include "fmsound.h"
-#ifdef _PC98_HAVE_86PCM
-#include "fifo.h"
-#endif
+#include "../i8259.h"
+#include "../../fifo.h"
 
 // From http://www.webtech.co.jp/company/doc/undocumented_mem/io_sound.txt .
 // bit 7-4:
@@ -35,71 +34,63 @@
 // 1000 : PC-9821Cf/Cx/Cb/Cx2/Cb2/Cx3/Cb3/Na7/Nx
 // 1xx0 : Unknown
 // 1111 : NO Sound or PC-9801-26.
-// PC-98DO+
-#if defined(_PC98DOPLUS)
-#define BOARD_ID	0x00
-#elif defined(_PC98GS)
-#define BOARD_ID	0x10
-#elif defined(SUPPORT_PC98_OPNA)
-#define BOARD_ID	0x40
-//#define BOARD_ID	0x50
+
+//#if defined(SUPPORT_PC98_OPNA)
+#if defined(SUPPORT_PC98_86PCM)
+#define BOARD_ID	4
 #else
-#define BOARD_ID	0xf0
+#define BOARD_ID	0
 #endif
 
 #define EVENT_PCM 1
 
 namespace PC9801 {
 
+#if defined(SUPPORT_PC98_86PCM)
+#define EVENT_SAMPLE	0
+//#define _PCM_DEBUG_LOG
+
+static const uint32_t sample_rate_x8[] = {
+	352800, 264600, 176400, 132300, 88200,  66150,  44010,  33075
+};
+static const int bytes_per_sample[] = {
+	0, 2, 2, 4, 0, 1, 1, 2
+};
+#endif	
 void FMSOUND::initialize()
 {
-#ifdef _PC98_HAVE_86PCM
-	pcm_fifo = new FIFO(32768);
-	play_bufsize = sizeof(play_pool) / sizeof(int32_t);
-	play_w_remain = 0;
-	play_rptr = 0;
-	play_wptr = 0;
-	memset(play_pool, 0x00, sizeof(int32_t) * play_bufsize);
-
-	event_pcm = -1;
+#if defined(SUPPORT_PC98_86PCM)
+	pcm_clocks = 0;
+	pcm_prev_clock = 0;
+	pcm_fifo = new FIFO(0x8000);
+	pcm_register_id = -1;
 #endif
 }
 
 void FMSOUND::release()
 {
-#ifdef _PC98_HAVE_86PCM
+#if defined(SUPPORT_PC98_86PCM)
 	if(pcm_fifo != NULL) pcm_fifo->release();
+	delete pcm_fifo;
+	pcm_fifo = NULL;
 #endif
 }
 	
 void FMSOUND::reset()
 {
-	mask = (BOARD_ID & 0xf0) | 0; 
-#ifdef _PC98_HAVE_86PCM
-	// Will move to initialize()?
-	fifo_enabled = false;
-	pcm_freq = 44100;
-	pcm_da_intleft = 128;
-	// Q: Is clear FIFO?
-	lrclock = false;
-	fifo_direction = true; // PLAY
-	fifo_int_status = false;
-	fifo_int_flag = false;
-	pcm_is_16bit = false;
-	pcm_l_enabled = true;
-	pcm_r_enabled = true;
-	play_bufsize = sizeof(play_pool) / sizeof(int32_t);
-
-	play_w_remain = 0;
-	play_rptr = 0;
-	play_wptr = 0;
-	memset(play_pool, 0x00, sizeof(int32_t) * play_bufsize);
-
-	mix_mod = 0;
-	if(event_pcm >= 0) {
-		cancel_event(this, event_pcm);
-		event_pcm = -1;
+	opna_mask = 0;
+#if defined(SUPPORT_PC98_86PCM)
+	pcm_vol_ctrl = pcm_fifo_ctrl = 0;
+	pcm_dac_ctrl = 0x32;
+	pcm_fifo_size = 0x80;
+	pcm_mute_ctrl = 0x01;
+	pcm_fifo_written = pcm_overflow = pcm_irq_raised = false;
+	pcm_fifo->clear();
+	if(pcm_register_id != -1) {
+		cancel_event(this, pcm_register_id);
+		pcm_register_id = -1;
 	}
+	pcm_sample_l = pcm_sample_r = 0;
 #endif
 }
 
@@ -120,376 +111,199 @@ void FMSOUND::check_fifo_position()
 
 void FMSOUND::mix(int32_t* buffer, int cnt)
 {
-	int ncount = 0;
-	int32_t sample_l, sample_r;
-	int32_t lastvol_l, lastvol_r;
-#ifdef _PC98_HAVE_86PCM
-	int lptr = play_rptr;
-	if(lptr >= play_bufsize) lptr = 0;
-	int rptr;
-
-	if(((pcm_l_enabled) || (pcm_r_enabled)) && (play_w_remain > 0) && (fifo_direction) && (fifo_enabled)) { // Play
-		if(pcm_freq == sample_rate) {
-			int32_t* p = buffer;
-			if((pcm_l_enabled) && (pcm_r_enabled)) {
-				rptr = lptr + 1;
-				if(rptr >= play_bufsize) rptr = 0;
-				sample_l = play_pool[lptr];
-				sample_r = play_pool[rptr];
-			} else if(pcm_l_enabled) {
-				rptr = lptr;
-				sample_l = play_pool[lptr];
-				sample_r = 0;
-			} else if(pcm_r_enabled) {
-				rptr = lptr;
-				sample_r = play_pool[rptr];
-				sample_l = 0;
-			} 
-			lastvol_l = apply_volume(sample_l, volume_l);
-			lastvol_r = apply_volume(sample_r, volume_r);
-			for(int i = 0; i < cnt; i++) {
-				p[0] += lastvol_l;
-				p[1] += lastvol_r;
-				play_w_remain -= (((pcm_l_enabled) && (pcm_r_enabled)) ? 2 : 1);
-				if(play_w_remain > 0) {
-					if((pcm_l_enabled) && (pcm_r_enabled)) {
-						lptr += 2;
-						if(lptr >= play_bufsize) lptr = 0;
-						rptr = lptr + 1;
-						if(rptr >= play_bufsize) rptr = 0;
-						sample_l = play_pool[lptr];
-						sample_r = play_pool[rptr];
-					} else if(pcm_l_enabled) {
-						lptr++;
-						if(lptr >= play_bufsize) lptr = 0;
-						rptr = lptr;
-						sample_l = play_pool[lptr];
-						sample_r = 0;
-					} else if(pcm_r_enabled) {
-						lptr++;
-						if(lptr >= play_bufsize) lptr = 0;
-						rptr = lptr;
-						sample_r = play_pool[rptr];
-						sample_l = 0;
-					} 
-					lastvol_l = apply_volume(sample_l, volume_l);
-					lastvol_r = apply_volume(sample_r, volume_r);
-				} else {
-					play_w_remain = 0;
-				}
-				p += 2;
-				play_rptr = lptr;
-			}
-		} else if(pcm_freq < sample_rate) {
-			int32_t* p = buffer;
-			if((pcm_l_enabled) && (pcm_r_enabled)) {
-				rptr = lptr + 1;
-				if(rptr >= play_bufsize) rptr = 0;
-				sample_l = play_pool[lptr];
-				sample_r = play_pool[rptr];
-			} else if(pcm_l_enabled) {
-				rptr = lptr;
-				sample_l = play_pool[lptr];
-				sample_r = 0;
-			} else if(pcm_r_enabled) {
-				rptr = lptr;
-				sample_r = play_pool[rptr];
-				sample_l = 0;
-			} 
-			lastvol_l = apply_volume(sample_l, volume_l);
-			lastvol_r = apply_volume(sample_r, volume_r);
-			for(int i = 0; i < cnt; i++) {
-				p[0] += lastvol_l;
-				p[1] += lastvol_r;
-				mix_mod = mix_mod + pcm_freq;
-				if(mix_mod >= sample_rate) {
-					mix_mod -= sample_rate;
-					//play_w_remain -= (((pcm_l_enabled) && (pcm_r_enabled)) ? 2 : 1);
-					if(play_w_remain > 0) {
-						if((pcm_l_enabled) && (pcm_r_enabled)) {
-							lptr += 2;
-							if(lptr >= play_bufsize) lptr = 0;
-							rptr = lptr + 1;
-							if(rptr >= play_bufsize) rptr = 0;
-							sample_l = play_pool[lptr];
-							sample_r = play_pool[rptr];
-							play_w_remain -= 2;
-						} else if(pcm_r_enabled) {
-							lptr++;
-							if(lptr >= play_bufsize) lptr = 0;
-							rptr = lptr;
-							sample_r = play_pool[rptr];
-							play_w_remain -= 1;
-						} else if(pcm_l_enabled) {
-							lptr++;
-							if(lptr >= play_bufsize) lptr = 0;
-							rptr = lptr;
-							sample_l = play_pool[lptr];
-							play_w_remain -= 1;
-						}
-						lastvol_l = apply_volume(sample_l, volume_l);
-						lastvol_r = apply_volume(sample_r, volume_r);
-					} else {
-						play_w_remain = 0;
-					}
-				}
-				p += 2;
-				play_rptr = lptr;
-			}
-		} else if(pcm_freq > sample_rate) {
-			int32_t* p = buffer;
-			int min_skip = pcm_freq / sample_rate;
-			if((pcm_l_enabled) && (pcm_r_enabled)) {
-				rptr = lptr + 1;
-				if(rptr >= play_bufsize) rptr = 0;
-				sample_l = play_pool[lptr];
-				sample_r = play_pool[rptr];
-			} else if(pcm_l_enabled) {
-				rptr = lptr;
-				sample_l = play_pool[lptr];
-				sample_r = 0;
-			} else if(pcm_r_enabled) {
-				rptr = lptr;
-				sample_r = play_pool[rptr];
-				sample_l = 0;
-			} 
-			lastvol_l = apply_volume(sample_l, volume_l);
-			lastvol_r = apply_volume(sample_r, volume_r);
-			int inc_factor;
-			for(int i = 0; i < cnt; i++) {
-				p[0] += lastvol_l;
-				p[1] += lastvol_r;
-				inc_factor = 0;
-				mix_mod = mix_mod + (sample_rate * min_skip);
-				if(mix_mod >= pcm_freq) {
-					mix_mod -= pcm_freq;
-					inc_factor = 1;
-				}
-				play_w_remain -= (((pcm_l_enabled) && (pcm_r_enabled)) ? ((min_skip + inc_factor) * 2) : (min_skip + inc_factor));
-				if(play_w_remain > 0) {
-					if((pcm_l_enabled) && (pcm_r_enabled)) {
-						lptr += ((min_skip + inc_factor) * 2);
-						if(lptr >= play_bufsize) lptr = lptr - play_bufsize;
-						rptr = lptr + 1;
-						if(rptr >= play_bufsize) rptr = 0;
-						sample_l = play_pool[lptr];
-						sample_r = play_pool[rptr];
-					} else if(pcm_l_enabled) {
-						lptr += (min_skip + inc_factor);
-						if(lptr >= play_bufsize) lptr = lptr - play_bufsize;
-						rptr = lptr;
-						sample_l = play_pool[lptr];
-						sample_r = 0;
-					} else if(pcm_r_enabled) {
-						lptr += (min_skip + inc_factor);
-						if(lptr >= play_bufsize) lptr = lptr - play_bufsize;
-						rptr = lptr;
-						sample_r = play_pool[rptr];
-						sample_l = 0;
-					}
-					lastvol_l = apply_volume(sample_l, volume_l);
-					lastvol_r = apply_volume(sample_r, volume_r);
-				} else {
-					play_w_remain = 0;
-				}
-				p += 2;
-				play_rptr = lptr;
-			}
+#if defined(SUPPORT_PC98_86PCM)
+	if((pcm_fifo_ctrl & 0x80) && !(pcm_fifo_ctrl & 0x40) && !(pcm_mute_ctrl & 1)) {
+		for(int i = 0; i < cnt; i++) {
+			#ifdef _PCM_DEBUG_LOG
+				this->out_debug_log(_T("Mix Sample = %d,%d\n"), pcm_sample_l, pcm_sample_r);
+			#endif
+			*buffer++ += apply_volume(pcm_sample_l, pcm_volume_l); // L
+			*buffer++ += apply_volume(pcm_sample_r, pcm_volume_r); // R
 		}
 	}
-	//* ToDo: Mix PCM
 #endif
 }
 	
 void FMSOUND::event_callback(int id, int err)
 {
-	switch(id) {
-	case EVENT_PCM:
-#ifdef _PC98_HAVE_86PCM
-		lrclock = !lrclock;
-		if((pcm_fifo != NULL)) {
-			if(fifo_direction) { // Play
-				pair16_t data;
-				data.w = 0;
-				if(!(pcm_fifo->empty())) {
-					if(fifo_enabled) {
-						if(pcm_is_16bit) {
-							if(((lrclock) && (pcm_l_enabled)) || (!(lrclock) && (pcm_r_enabled))) {
-								data.b.h = (uint8_t)(pcm_fifo->read());
-								data.b.l = (uint8_t)(pcm_fifo->read());
-								check_fifo_position();
-							}
-						} else {
-							if(((lrclock) && (pcm_l_enabled)) || (!(lrclock) && (pcm_r_enabled))) {
-								data.b.h = (uint8_t)(pcm_fifo->read());
-								check_fifo_position();
-								data.b.l = 0x00;
-							}
-						}
-					}
-					if(((lrclock) && (pcm_l_enabled)) || (!(lrclock) && (pcm_r_enabled))) {
-						pcm_data.sd = (int32_t)(data.sw >> 1);
-						play_pool[play_wptr++] = pcm_data.sd;
-					}
-					if(play_wptr >= play_bufsize) play_wptr = 0;
-					play_w_remain++;
-					if(play_w_remain >= play_bufsize) play_w_remain = play_bufsize;
-				}
-			} else { // ToDo: Record
-				pcm_data.sd = 0;
-				if(pcm_is_16bit) {
-					pcm_fifo->write(pcm_data.b.h);
-					check_fifo_position();
-					pcm_fifo->write(pcm_data.b.l);
-					check_fifo_position();
-				} else {
-					pcm_fifo->write(pcm_data.b.h);
-					check_fifo_position();
-				}
+#if defined(SUPPORT_PC98_86PCM)
+	if(pcm_fifo->count() >= bytes_per_sample[(pcm_dac_ctrl >> 4) & 7]) {
+		pcm_sample_l = pcm_sample_r = 0;
+		
+		if(pcm_fifo_ctrl & 0x40) {
+			// record
+//			pcm_overflow = pcm_fifo->full();
+		} else {
+			// play
+			if(pcm_dac_ctrl & 0x20) pcm_sample_l = pcm_volume * get_sample() / 32768;
+			if(pcm_dac_ctrl & 0x10) pcm_sample_r = pcm_volume * get_sample() / 32768;
+		}
+//		if(pcm_fifo_written && pcm_fifo->count() <= pcm_fifo_size) {
+		if(pcm_fifo->count() == pcm_fifo_size) {
+			pcm_fifo_written = false;
+			pcm_irq_raised = true;
+			
+			if(pcm_fifo_ctrl & 0x20) {
+				#ifdef SUPPORT_PC98_86PCM_IRQ
+					d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR4, 1, 1);
+				#endif
+				#ifdef _PCM_DEBUG_LOG
+					this->out_debug_log(_T("Raise IRQ in Sample Event\n"));
+				#endif
 			}
 		}
+	}
 #endif
-		break;
+}
+
+#if defined(SUPPORT_PC98_86PCM)
+int FMSOUND::get_sample()
+{
+	if(!(pcm_dac_ctrl & 0x40)) {
+		uint16_t sample;
+		sample  = pcm_fifo->read() << 8;
+		sample |= pcm_fifo->read();
+		return (int)(int16_t)sample;
+	} else {
+		uint8_t sample = pcm_fifo->read();
+		return (int)(int8_t)sample * 256;
 	}
 }
+#endif
+
 	
 void FMSOUND::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x0188:
-		if((mask & 2) == 0) {
+//		if((mask & 2) == 0) {
 			d_opn->write_io8(0, data);
-		}
+//		}
 		break;
 	case 0x018a:
-		if((mask & 2) == 0) {
+//		if((opna_mask & 2) == 0) {
 			d_opn->write_io8(1, data);
-		}
+//		}
 		break;
-#ifdef SUPPORT_PC98_OPNA
+#if defined(SUPPORT_PC98_OPNA)
 	case 0x018c:
-		if((mask & 2) == 0) {
-			if(mask & 1) {
+//		if((opna_mask & 2) == 0) {
+			if(opna_mask & 1) {
 				d_opn->write_io8(2, data);
 			}
-		}
+//		}
 		break;
 	case 0x018e:
-		if((mask & 2) == 0) {
-			if(mask & 1) {
+//		if((opna_mask & 2) == 0) {
+			if(opna_mask & 1) {
 				d_opn->write_io8(3, data);
 			}
-		}
+//		}
 		break;
 	case 0xa460:
 		// bit 7-2: Unused
 		// bit 1: Mask OPNA='1' (If set release OPNA).
 		// bit 0: Using YM2608='1'
-		mask = data;
+		opna_mask = data;
 		break;
 #endif
-#ifdef _PC98_HAVE_86PCM
+#if defined(SUPPORT_PC98_86PCM)
 	case 0xa466:
-		pcm_volume_reg = data;
-		// ToDo: Implement volumes
+		#ifdef _PCM_DEBUG_LOG
+			this->out_debug_log(_T("OUT\tA466, %02X\tVOLUME\n"), data);
+		#endif
+		pcm_vol_ctrl = data;
 		break;
 	case 0xa468:
-		{
-			if((pcm_ctrl_reg & 0x80) != (data & 0x80)) {
-				fifo_enabled = ((data & 0x80) != 0);
-				//out_debug_log("FIFO : %s\n", (fifo_enabled) ? "ENABLED" : "DISABLED");
+		#ifdef _PCM_DEBUG_LOG
+			this->out_debug_log(_T("OUT\tA468, %02X\tFIFO\n"), data);
+		#endif
+		if((pcm_fifo_ctrl & 0x87) != (data & 0x87)) {
+			if(pcm_register_id != -1) {
+				cancel_event(this, pcm_register_id);
+				pcm_register_id = -1;
 			}
-			if((pcm_ctrl_reg & 0x40) != (data & 0x40)) {
-				fifo_direction = ((data & 0x40) == 0); // '1' = recording, '0' = playing.
-				//out_debug_log("Update PCM FIFO TYPE : %s\n", (fifo_direction) ? "PLAY" : "REC");
-			}
-			if((pcm_ctrl_reg & 0x20) != (data & 0x20)) {
-				fifo_int_flag = ((data & 0x20) != 0);
-				//out_debug_log("Update PCM FIFO INT-MASK : %s\n", (fifo_int_flag) ? "YES" : "NO");
-			}
-			if(((pcm_ctrl_reg & 0x10) != 0) && ((data & 0x10) == 0)) {
-				//out_debug_log("PCM CLEAR INTr\n");
-				write_signals(&outputs_int_pcm, 0x00000000);
-				fifo_int_status = false;
-			}
-			if((pcm_ctrl_reg & 0x08) != (data & 0x08)) {
-				if((data & 0x08) != 0) {
-					//out_debug_log("PCM RESET \n");
-					play_w_remain = 0;
-					play_rptr = 0;
-					play_wptr = 0;
-					memset(play_pool, 0x00, sizeof(int32_t) * play_bufsize);
-					mix_mod = 0;
-					pcm_fifo->clear();
-				}
-			}
-			uint32_t freq;
-			switch(data & 0x07) {
-			case 0:
-				freq = 44100;
-				break;
-			case 1:
-				freq = 33080;
-				break;
-			case 2:
-				freq = 22050;
-				break;
-			case 3:
-				freq = 16540;
-				break;
-			case 4:
-				freq = 11030;
-				break;
-			case 5:
-				freq = 8270;
-				break;
-			case 6:
-				freq = 5520;
-				break;
-			case 7:
-				freq = 4130;
-				break;
-			}
-			if(freq != pcm_freq) {
-				if(event_pcm >= 0) {
-					cancel_event(this, event_pcm);
-					event_pcm = -1;
-				}
-				//out_debug_log("Update PCM FREQ=%d\n", freq);
-				lrclock = false;
-				pcm_freq = freq;
-				mix_mod = 0;
-			}
-			if(event_pcm < 0) {
-				register_event(this, EVENT_PCM, 1.0e6 / (double)(freq * 2), true, &event_pcm);
+			if(data & 0x80) {
+				register_event(this, EVENT_SAMPLE, 8000000.0 / sample_rate_x8[data & 7], true, &pcm_register_id);
+				#ifdef _PCM_DEBUG_LOG
+					this->out_debug_log(_T("Start Event\n"));
+				#endif
+			} else {
+				#ifdef _PCM_DEBUG_LOG
+					this->out_debug_log(_T("Cancel Event\n"));
+				#endif
+				pcm_sample_l = pcm_sample_r = 0;
 			}
 		}
-		pcm_ctrl_reg = data;
+		if(/*(pcm_fifo_ctrl & 0x10) &&*/ !(data & 0x10)) {
+			if(pcm_irq_raised) {
+				pcm_irq_raised = false;
+				#ifdef SUPPORT_PC98_86PCM_IRQ
+					d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR4, 0, 0);
+				#endif
+				#ifdef _PCM_DEBUG_LOG
+					this->out_debug_log(_T("Clear IRQ in A468\n"));
+				#endif
+			}
+		}
+		if((pcm_fifo_ctrl & 0x08) != (data & 0x08)) {
+			pcm_fifo->clear();
+			pcm_fifo_written = false;
+			#ifdef _PCM_DEBUG_LOG
+				this->out_debug_log(_T("Clear Buffer\n"));
+			#endif
+		}
+		if(!(pcm_fifo_ctrl & 0x20) && (data & 0x20)) {
+			if(pcm_irq_raised) {
+				#ifdef SUPPORT_PC98_86PCM_IRQ
+					d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR4, 1, 1);
+				#endif
+				#ifdef _PCM_DEBUG_LOG
+					this->out_debug_log(_T("Raise IRQ in A468\n"));
+				#endif
+			}
+		} else if((pcm_fifo_ctrl & 0x20) && !(data & 0x20)) {
+			if(pcm_irq_raised) {
+				#ifdef SUPPORT_PC98_86PCM_IRQ
+					d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR4, 0, 0);
+				#endif
+				#ifdef _PCM_DEBUG_LOG
+					this->out_debug_log(_T("Drop IRQ in A468\n"));
+				#endif
+			}
+		}
+		pcm_fifo_ctrl = data;
 		break;
 	case 0xa46a:
-		if(!fifo_int_flag) {
-			pcm_is_16bit = ((data & 0x40) == 0);
-			pcm_l_enabled = ((data & 0x20) != 0);
-			pcm_r_enabled = ((data & 0x10) != 0);
-			pcm_da_reg = data;
-			//out_debug_log("Update PCM TYPE: %s / %s%s\n", (pcm_is_16bit) ? "16bit" : "8bit", (pcm_l_enabled) ? "L" : " ", (pcm_r_enabled) ? "R" : " ");
-		} else {
-			if((data & 0xff) == 0xff) {
-				pcm_da_intleft = 0x7ffc;
+		if(pcm_fifo_ctrl & 0x20) {
+			#ifdef _PCM_DEBUG_LOG
+				this->out_debug_log(_T("OUT\tA46A, %02X\tIRQ\n"), data);
+			#endif
+			if(data != 0xff) {
+				pcm_fifo_size = (data + 1) * 128;
 			} else {
-				pcm_da_intleft = (int)(((uint32_t)((data & 0xff) + 1)) << 7);
+				pcm_fifo_size = 0x7ffc;
 			}
-		}
-	case 0xa46c:
-		if(pcm_fifo != NULL) {
-			//out_debug_log("FIFO DATA OUT %02x", data);
-			//if((fifo_enabled) && (fifo_direction)) {
-				pcm_fifo->write(data);
-				//out_debug_log("FIFO DATA OUT %02x", data);
-				//check_fifo_position();
-			//}
+		} else {
+			#ifdef _PCM_DEBUG_LOG
+				this->out_debug_log(_T("OUT\tA46A, %02X\tDAC\n"), data);
+			#endif
+			pcm_dac_ctrl = data;
 		}
 		break;
+	case 0xa46c:
+		#ifdef _PCM_DEBUG_LOG
+			this->out_debug_log(_T("OUT\tA46C, %02X\tBUFFER COUNT=%d\n"), data, pcm_fifo->count() + 1);
+		#endif
+		pcm_fifo->write(data);
+		pcm_fifo_written = true;
+		break;
+	case 0xa66e:
+		#ifdef _PCM_DEBUG_LOG
+			this->out_debug_log(_T("OUT\tA66E, %02X\tMUTE\n"), data);
+		#endif
+		pcm_mute_ctrl = data;
+ 		break;
 #endif		
 	}
 }
@@ -498,64 +312,89 @@ uint32_t FMSOUND::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0x0188:
-		if((mask & 2) == 0) {
+		//if((opna_mask & 2) == 0) {
 			return d_opn->read_io8(0);
-		}
+			//}
 		break;
 	case 0x018a:
-		if((mask & 2) == 0) {
+		//if((opna_mask & 2) == 0) {
 			return d_opn->read_io8(1);
-		}
+			//}
 		break;
-#ifdef SUPPORT_PC98_OPNA
+#if defined(SUPPORT_PC98_OPNA)
 	case 0x018c:
-		if((mask & 2) == 0) {
-			if(mask & 1) {
+//		if((mask & 2) == 0) {
+			if(opna_mask & 1) {
 				return d_opn->read_io8(2);
 			}
-		}
+//		}
 		break;
 	case 0x018e:
-		if((mask & 2) == 0) {
-			if(mask & 1) {
+//		if((mask & 2) == 0) {
+			if(opna_mask & 1) {
 				return d_opn->read_io8(3);
 			}
-		}
+//		}
 		break;
 	case 0xa460:
 		// bit 3,2 :(Unused)
 		// bit 1 : YM2608 Masking '1' = masked.
 		// bit 0 : Having OPNA
-		return BOARD_ID | (mask & 0x0f);
+		return (BOARD_ID << 4) | (opna_mask & 0x0f);
 #endif
-#ifdef _PC98_HAVE_86PCM
+#if defined(SUPPORT_PC98_86PCM)
+	case 0xa462:
+	case 0xa464:
+		return 0; // dummy
 	case 0xa466:
 		{
-			uint8_t data = 0x00;
-			if(pcm_fifo != NULL) {
-				data = data | ((pcm_fifo->full()) ? 0x80 : 0x00);
-				data = data | ((pcm_fifo->empty()) ? 0x40 : 0x00);
-				//data = data | ((pcm_fifo->full()) ? 0x80 : 0x00);  // WIP: recording
-			}
-			data = data | ((lrclock) ? 0x01 : 0x00);
-			return data;
+			pcm_clocks += get_passed_clock(pcm_prev_clock);
+			pcm_prev_clock = get_current_clock();
+			pcm_clocks %= get_event_clocks();
+			uint32_t passed_samples_x8 = muldiv_u32(sample_rate_x8[pcm_fifo_ctrl & 7], (uint32_t)pcm_clocks, get_event_clocks());
+			uint32_t val = (pcm_fifo->full() ? 0x80 : 0) | (pcm_fifo->empty() ? 0x40 : 0) | (pcm_overflow ? 0x20 : 0) | ((passed_samples_x8 & 7) < 4 ? 0 : 0x01);
+			#ifdef _PCM_DEBUG_LOG
+				this->out_debug_log(_T("IN\tA466 = %02X\tSTATUS\n"), val);
+			#endif
+			return val;
 		}
-		break;
 	case 0xa468:
-		pcm_ctrl_reg = pcm_ctrl_reg & (uint8_t)(~0x10);
-		pcm_ctrl_reg = pcm_ctrl_reg | ((fifo_int_status) ? 0x10 : 0x00);
-		return pcm_ctrl_reg;
-		break;
+		{
+			uint32_t val = pcm_fifo_ctrl & ~0x10;
+/*
+			if(!pcm_irq_raised) {
+				if(pcm_fifo_ctrl & 0x20) {
+					if(pcm_fifo_written && pcm_fifo->count() <= pcm_fifo_size) {
+						pcm_fifo_written = false;
+						pcm_irq_raised = true;
+					}
+				}
+			}
+*/
+			if(pcm_irq_raised) val |= 0x10;
+			#ifdef _PCM_DEBUG_LOG
+				this->out_debug_log(_T("IN\tA468 = %02X\tFIFO\n"), val);
+			#endif
+			return val;
+		}
 	case 0xa46a:
-		return pcm_da_reg;
-		break;
+		#ifdef _PCM_DEBUG_LOG
+			this->out_debug_log(_T("IN\tA46A = %02X\tDAC\n"), pcm_dac_ctrl);
+		#endif
+		return pcm_dac_ctrl;
 	case 0xa46c:
-		//if((fifo_enabled) && !(fifo_direction)) {
-			uint8_t data = pcm_fifo->read();
-			//	check_fifo_position();
-			return (uint32_t)data;
-			//}
-		break;
+		{
+			uint32_t val = 0; //pcm_fifo->read();
+			#ifdef _PCM_DEBUG_LOG
+				this->out_debug_log(_T("IN\tA46C = %02X\tBUFFER COUNT = %d\n"), val, pcm_fifo->count());
+			#endif
+			return val;
+		}
+	case 0xa66e:
+		#ifdef _PCM_DEBUG_LOG
+			this->out_debug_log(_T("IN\tA66E = %02X\tMUTE\n"), pcm_mute_ctrl);
+		#endif
+		return pcm_mute_ctrl;
 #endif
 	}
 	return 0xff;
@@ -563,8 +402,8 @@ uint32_t FMSOUND::read_io8(uint32_t addr)
 
 void FMSOUND::set_volume(int ch, int decibel_l, int decibel_r)
 {
-	volume_l = decibel_to_volume(decibel_l);
-	volume_r = decibel_to_volume(decibel_r);
+	pcm_volume_l = decibel_to_volume(decibel_l);
+	pcm_volume_r = decibel_to_volume(decibel_r);
 }
 
 void FMSOUND::initialize_sound(int rate, int samples)
@@ -572,7 +411,8 @@ void FMSOUND::initialize_sound(int rate, int samples)
 	sample_rate = rate;
 	sample_samples = samples;
 }
-	
+
+#if defined(SUPPORT_PC98_OPNA)
 #define STATE_VERSION	2
 
 bool FMSOUND::process_state(FILEIO* state_fio, bool loading)
@@ -583,39 +423,27 @@ bool FMSOUND::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-#ifdef _PC98_HAVE_86PCM
-	if(!(pcm_fifo->process_state(state_fio, loading))) {
+	state_fio->StateValue(opna_mask);
+#if defined(SUPPORT_PC98_86PCM)
+	state_fio->StateValue(pcm_clocks);
+	state_fio->StateValue(pcm_prev_clock);
+	state_fio->StateValue(pcm_vol_ctrl);
+	state_fio->StateValue(pcm_fifo_ctrl);
+	state_fio->StateValue(pcm_dac_ctrl);
+	state_fio->StateValue(pcm_fifo_size);
+	state_fio->StateValue(pcm_mute_ctrl);
+	state_fio->StateValue(pcm_fifo_written);
+	state_fio->StateValue(pcm_overflow);
+	state_fio->StateValue(pcm_irq_raised);
+	if(!pcm_fifo->process_state((void *)state_fio, loading)) {
 		return false;
 	}
-#endif
-	state_fio->StateValue(mask);
-#ifdef _PC98_HAVE_86PCM
-	state_fio->StateValue(pcm_ctrl_reg);
-	state_fio->StateValue(pcm_da_reg);
-	state_fio->StateValue(pcm_volume_reg);
-	state_fio->StateValue(pcm_data);
-	state_fio->StateValue(pcm_freq);
-
-	state_fio->StateValue(fifo_enabled);
-	state_fio->StateValue(fifo_direction);
-	state_fio->StateValue(fifo_int_flag);
-	state_fio->StateValue(fifo_int_status);
-
-	state_fio->StateValue(lrclock);
-	state_fio->StateValue(pcm_is_16bit);
-	state_fio->StateValue(pcm_l_enabled);
-	state_fio->StateValue(pcm_r_enabled);
-	state_fio->StateValue(pcm_da_intleft);
-
-	state_fio->StateValue(play_w_remain);
-	state_fio->StateValue(play_rptr);
-	state_fio->StateValue(play_wptr);
-	state_fio->StateValue(mix_mod);
-	state_fio->StateValue(event_pcm);
-	
-	state_fio->StateArray(play_pool, sizeof(play_pool), 1);
+	state_fio->StateValue(pcm_register_id);
+	state_fio->StateValue(pcm_sample_l);
+	state_fio->StateValue(pcm_sample_r);
 #endif
 	return true;
 }
+#endif
 
 }

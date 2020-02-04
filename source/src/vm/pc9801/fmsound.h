@@ -14,7 +14,7 @@
 	Author : Takeda.Toshiya
 	Date   : 2012.02.03-
 
-	[ PC-9801-26 ]
+	[ PC-9801-26/86 ]
 */
 
 #ifndef _FMSOUND_H_
@@ -24,14 +24,10 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#if defined(_PC98DOPLUS) || defined(_PC98GS) || defined(SUPPORT_PC98_OPNA)
-#define _PC98_SUPPORT_EXTRA_SOUND
-#define _PC98_HAVE_86PCM
-#endif
-
-#ifdef _PC98_HAVE_86PCM
+#ifdef SUPPORT_PC98_OPNA
 class FIFO;
 #endif
+
 namespace PC9801 {
 
 class FMSOUND : public DEVICE
@@ -40,39 +36,23 @@ private:
 	DEVICE* d_opn;
 
 	outputs_t outputs_int_pcm;
-	uint8_t mask;
-#ifdef _PC98_HAVE_86PCM
-	FIFO* pcm_fifo;
-
-	// ToDo: Implement volumes
-	uint8_t pcm_volume_reg;
-	uint8_t pcm_ctrl_reg;
-	uint8_t pcm_da_reg;
-	pair32_t pcm_data;
+#if defined(SUPPORT_PC98_OPNA)
+	uint8_t opna_mask;
+#if defined(SUPPORT_PC98_86PCM)
+	DEVICE *d_pic;
+	uint64_t pcm_clocks;
+	uint32_t pcm_prev_clock;
+	uint8_t pcm_vol_ctrl, pcm_fifo_ctrl, pcm_dac_ctrl, pcm_mute_ctrl;
+	int pcm_fifo_size;
+	bool pcm_fifo_written, pcm_overflow, pcm_irq_raised;
+	FIFO *pcm_fifo;
+	int pcm_register_id;
+	int pcm_sample_l, pcm_sample_r;
+	int pcm_volume, pcm_volume_l, pcm_volume_r;
 	
-	bool fifo_enabled;
-	bool fifo_direction;
-	bool fifo_int_flag;
-	bool fifo_int_status;
-	bool fifo_reset_req;
-
-	uint32_t pcm_freq;
-	bool lrclock;
-	bool pcm_is_16bit;
-	bool pcm_l_enabled;
-	bool pcm_r_enabled;
-	int  pcm_da_intleft;
-
-	int mix_mod;
-
-	int play_bufsize;
-	int play_w_remain;
-	int play_rptr;
-	int play_wptr;
-	int32_t play_pool[65536]; // Internal buffer
-	
-	int event_pcm;
+	int get_sample();
 #endif
+ #endif
 
 	int sample_rate;
 	int sample_samples;
@@ -84,7 +64,7 @@ public:
 	FMSOUND(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_int_pcm);
-#ifdef SUPPORT_PC98_OPNA
+#if defined(SUPPORT_PC98_OPNA)
 		set_device_name(_T("PC-9801-86 (FM Sound)"));
 #else
 		set_device_name(_T("PC-9801-26 (FM Sound)"));
@@ -98,12 +78,13 @@ public:
 	void reset();
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
-	bool process_state(FILEIO* state_fio, bool loading);
 	void mix(int32_t* buffer, int cnt);
 	void event_callback(int id, int err);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void initialize_sound(int rate, int samples);
-	
+#if defined(SUPPORT_PC98_OPNA)
+	bool process_state(FILEIO* state_fio, bool loading);
+#endif
 	// unique function
 	void set_context_opn(DEVICE* device)
 	{
@@ -113,6 +94,16 @@ public:
 	{
 		register_output_signal(&outputs_int_pcm, device, id, mask); 
 	}
+#if defined(SUPPORT_PC98_OPNA) && defined(SUPPORT_PC98_86PCM)
+	void set_context_pic(DEVICE* device)
+	{
+		d_pic = device;
+	}
+	void initialize_sound(int rate, double frequency, int volume)
+	{
+		pcm_volume = volume;
+	}
+#endif
 };
 
 }

@@ -129,7 +129,7 @@ protected:
 	void cmd_reset();
 	void cmd_reset2();
 	void cmd_reset3();
-	void cmd_sync();
+	void cmd_sync(bool flag);
 	void cmd_master();
 	void cmd_slave();
 	void cmd_start();

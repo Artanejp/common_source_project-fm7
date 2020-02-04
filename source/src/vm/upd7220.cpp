@@ -25,7 +25,8 @@ enum {
 	CMD_RESET3	= 0x09,
 	
 	CMD_BCTRL	= 0x0c, // 0C/0D
-	CMD_SYNC	= 0x0e, // 0E/0F
+	CMD_SYNC_OFF = 0x0e,
+	CMD_SYNC_ON	= 0x0f,
 	
 	CMD_WRITE	= 0x20, // 20-3F
 	CMD_DMAW	= 0x24,
@@ -38,7 +39,8 @@ enum {
 	CMD_VECTW	= 0x4c,
 	
 	CMD_TEXTE	= 0x68,
-	CMD_START	= 0x6b,
+	CMD_START_	= 0x6b,
+	CMD_START	= 0x0d,
 	CMD_VECTE	= 0x6c,
 	CMD_SLAVE	= 0x6e,
 	CMD_MASTER	= 0x6f,
@@ -53,7 +55,8 @@ enum {
 	CMD_CSRR	= 0xe0,
 	/* unknown command (3 params) */
 	CMD_UNK_5A	= 0x5a,
-	CMD_STOP2	= 0x05,
+	CMD_STOP_	= 0x05,
+	CMD_STOP	= 0x0c,
 	CMD_START2	= 0x04,
 };
 enum {
@@ -202,11 +205,15 @@ void UPD7220::check_cmd()
 	case CMD_RESET3:
 		cmd_reset3();
 		break;
-	case CMD_SYNC + 0:
-	case CMD_SYNC + 1:
-		//if(cmd_fifo->count() > 7) {
-			cmd_sync();
-		//}
+	case CMD_SYNC_OFF:
+		if(cmd_fifo->count() > 7) {
+			cmd_sync(false);
+		}
+		break;
+	case CMD_SYNC_ON:
+		if(cmd_fifo->count() > 7) {
+			cmd_sync(true);
+		}
 		break;
 	case CMD_MASTER:
 		cmd_master();
@@ -214,22 +221,24 @@ void UPD7220::check_cmd()
 	case CMD_SLAVE:
 		cmd_slave();
 		break;
+	case CMD_START_:
 	case CMD_START:
 		cmd_start();
 		break;
-	case CMD_STOP2:
+	case CMD_STOP_:
+	case CMD_STOP:
 		cmd_stop();
 		sync_mask = true;
 		break;
-	case CMD_BCTRL + 0:
-		cmd_stop();
-		sync_mask = false;
-		break;
-	case CMD_START2:
-	case CMD_BCTRL + 1:
-		cmd_start();
-		sync_mask = true;
-		break;
+//	case CMD_BCTRL + 0:
+//		cmd_stop();
+//		sync_mask = false;
+//		break;
+//	case CMD_START2:
+//	case CMD_BCTRL + 1:
+//		cmd_start();
+//		sync_mask = true;
+//		break;
 	case CMD_ZOOM:
 		cmd_zoom();
 		break;
@@ -385,9 +394,11 @@ void UPD7220::process_cmd()
 	case CMD_RESET3:
 		cmd_reset3();
 		break;
-	case CMD_SYNC + 0:
-	case CMD_SYNC + 1:	
-		cmd_sync();
+	case CMD_SYNC_OFF:
+		cmd_sync(false);
+		break;
+	case CMD_SYNC_ON:	
+		cmd_sync(true);
 		break;
 	case CMD_CSRFORM:
 		cmd_csrform();
@@ -878,9 +889,9 @@ void UPD7220::cmd_reset3()
 	}
 }
 
-void UPD7220::cmd_sync()
+void UPD7220::cmd_sync(bool flag)
 {
-	start = ((cmdreg & 1) != 0);
+//	start = ((cmdreg & 1) != 0);
 	int len = cmd_fifo->count();
 	wrote_bytes = (len >= 8) ? 8 : len;
 	if(sync_ptr >= 8) sync_ptr = 0;
@@ -896,7 +907,8 @@ void UPD7220::cmd_sync()
 			cmdreg = -1;
 		}
 	}
-	//cmdreg = -1;
+	start = flag;
+	cmdreg = -1;
 }
 
 void UPD7220::cmd_master()

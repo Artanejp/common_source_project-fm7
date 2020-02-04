@@ -23,7 +23,7 @@
 
 
 #if defined(UPPER_I386)
-#include "../i386.h"
+#include "../i386_np21.h"
 #elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
 #include "../i86.h"
 #elif  defined(HAS_V30)
@@ -354,14 +354,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		3  (INT0)
 		4  RS-232C
 		5  (INT1)
-		6  (INT2)
+		6  (INT2) MOUSE (HIRESO)
 		7  SLAVE PIC
-		8  PRINTER
+		8  PRINTER (8086,V30) or FPU
 		9  (INT3) PC-9801-27 (SASI), PC-9801-55 (SCSI), or IDE
 		10 (INT41) FDC (640KB I/F)
 		11 (INT42) FDC (1MB I/F)
-		12 (INT5) PC-9801-26(K) or PC-9801-14
-		13 (INT6) MOUSE
+		12 (INT5) PC-9801-26(K)/86 or PC-9801-14
+		13 (INT6) MOUSE (STANDARD)
 		14 
 		15 (RESERVED)
 	*/
@@ -369,6 +369,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// set contexts
 	
 #if defined(UPPER_I386)
+	// ToDo: Implement
 	cpu->set_context_extreset(cpureg, SIG_CPUREG_RESET, 0xffffffff);
 #endif
 	event->set_context_cpu(cpu, cpu_clocks);
@@ -383,7 +384,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(beep);
 	if(sound_type == 0 || sound_type == 1) {
 		event->set_context_sound(opn);
+#if defined(SUPPORT_PC98_OPNA) && defined(SUPPORT_PC98_86PCM)
 		event->set_context_sound(fmsound);
+#endif
 	} else if(sound_type == 2 || sound_type == 3) {
 		event->set_context_sound(tms3631);
 	}
@@ -476,7 +479,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		opn->set_context_irq(pic, SIG_I8259_CHIP1 | SIG_I8259_IR4, 1);
 		opn->set_context_port_b(joystick, SIG_JOYSTICK_SELECT, 0xc0, 0);
 		fmsound->set_context_opn(opn);
-		fmsound->set_context_pcm_int(pic, SIG_I8259_CHIP1 | SIG_I8259_IR4, 1); // OK?
+#if defined(SUPPORT_PC98_OPNA) && defined(SUPPORT_PC98_86PCM)
+		fmsound->set_context_pic(pic);
+#endif
+//		fmsound->set_context_pcm_int(pic, SIG_I8259_CHIP1 | SIG_I8259_IR4, 1); // OK?
 		joystick->set_context_opn(opn);
 
 	} else if(sound_type == 2 || sound_type == 3) {
@@ -544,19 +550,31 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #if !defined(SUPPORT_HIRESO)
 	sasi_host->set_context_irq(pio_sys, SIG_I8255_PORT_B, 0x10);
 #endif
-	sasi_host->set_context_irq(sasi, SIG_SASI_IRQ, 1);
-	sasi_host->set_context_drq(sasi, SIG_SASI_DRQ, 1);
+//	sasi_host->set_context_irq(sasi, SIG_SASI_IRQ, 1);
+//	sasi_host->set_context_drq(sasi, SIG_SASI_DRQ, 1);
+	sasi_host->set_context_bsy(sasi, SIG_SASI_BSY, 1);
+	sasi_host->set_context_cd (sasi, SIG_SASI_CXD, 1);
+	sasi_host->set_context_io (sasi, SIG_SASI_IXO, 1);
+	sasi_host->set_context_msg(sasi, SIG_SASI_MSG, 1);
+	sasi_host->set_context_req(sasi, SIG_SASI_REQ, 1);
+	sasi_host->set_context_ack(sasi, SIG_SASI_ACK, 1);
 #ifdef _PC98XA
-	dma->set_context_ch3(sasi_host);
-	dma->set_context_tc3(sasi, SIG_SASI_TC, 1);
+//	dma->set_context_ch3(sasi_host);
+//	dma->set_context_tc3(sasi, SIG_SASI_TC, 1);
+	dma->set_context_ch3(sasi);
+ 	dma->set_context_tc3(sasi, SIG_SASI_TC, 1);
 #else
-	dma->set_context_ch0(sasi_host);
-	dma->set_context_tc0(sasi, SIG_SASI_TC, 1);
+//	dma->set_context_ch0(sasi_host);
+	dma->set_context_ch0(sasi);
+ 	dma->set_context_tc0(sasi, SIG_SASI_TC, 1);
 #endif
 	sasi->set_context_host(sasi_host);
 	sasi->set_context_hdd(sasi_hdd);
 	sasi->set_context_dma(dma);
 	sasi->set_context_pic(pic);
+	#if !defined(SUPPORT_HIRESO)
+		sasi->set_context_pio(pio_sys);
+	#endif
 	sasi_bios->set_context_sasi(sasi);
 	sasi_bios->set_context_memory(memory);
 	sasi_bios->set_context_cpu(cpu);
@@ -606,7 +624,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 
 #if defined(HAS_V30_SUB_CPU)
 	// cpu bus
-	cpu->set_context_intr(cpureg);
+//	cpu->set_context_intr(cpureg);
+	cpu->set_context_intr(pic);
 	v30cpu->set_context_mem(memory);
 	v30cpu->set_context_io(io);
 	v30cpu->set_context_intr(cpureg);
@@ -844,16 +863,18 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	if(sound_type == 0 || sound_type == 1) {
 		io->set_iomap_single_rw(0x0188, fmsound);
 		io->set_iomap_single_rw(0x018a, fmsound);
-#ifdef SUPPORT_PC98_OPNA
+#if defined(SUPPORT_PC98_OPNA)
 		io->set_iomap_single_rw(0x018c, fmsound);
 		io->set_iomap_single_rw(0x018e, fmsound);
+#if defined(SUPPORT_PC98_86PCM)
 		io->set_iomap_single_rw(0xa460, fmsound);
-		io->set_iomap_single_rw(0xa460, fmsound);
+		io->set_iomap_single_rw(0xa462, fmsound);
 		io->set_iomap_single_rw(0xa466, fmsound);
 		io->set_iomap_single_rw(0xa468, fmsound);
 		io->set_iomap_single_rw(0xa46a, fmsound);
 		io->set_iomap_single_rw(0xa46c, fmsound);
-		//io->set_iomap_single_rw(0xa46e, fmsound);
+		io->set_iomap_single_rw(0xa46e, fmsound);
+#endif
 #endif
 	} else if(sound_type == 2 || sound_type == 3) {
 		io->set_iomap_alias_rw(0x0088, pio_14, 0);
@@ -1600,6 +1621,9 @@ void VM::initialize_sound(int rate, int samples)
 	if(sound_type == 0 || sound_type == 1) {
 		if(opn->is_ym2608) {
 			opn->initialize_sound(rate, 7987248, samples, 0, 0);
+#if defined(SUPPORT_PC98_OPNA) && defined(SUPPORT_PC98_86PCM)
+			fmsound->initialize_sound(rate, samples, 8000);
+#endif
 		} else {
 			opn->initialize_sound(rate, 3993624, samples, 0, 0);
 		}
@@ -1666,6 +1690,12 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		if(sound_type == 0 || sound_type == 1) {
 			fmsound->set_volume(0, decibel_l, decibel_r);
 		}
+#if defined(SUPPORT_PC98_86PCM)
+	} else if(ch-- == 0) {
+		if(sound_type == 0 || sound_type == 1) {
+			fmsound->set_volume(0, decibel_l, decibel_r);
+		}
+#endif
 #endif
 	} else if(ch-- == 0) {
 		if(sound_type == 2 || sound_type == 3) {

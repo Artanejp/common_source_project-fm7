@@ -60,15 +60,43 @@ __DECL_ALIGNED(16) const uint8_t DISPLAY::egc_bytemask_d1[8] = {
 	0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff,
 };
 
+/*
 __DECL_ALIGNED(16) const uint16_t DISPLAY::egc_maskword[16][4] = {
-	{0x0000, 0x0000, 0x0000, 0x0000}, {0xffff, 0x0000, 0x0000, 0x0000},
-	{0x0000, 0xffff, 0x0000, 0x0000}, {0xffff, 0xffff, 0x0000, 0x0000},
-	{0x0000, 0x0000, 0xffff, 0x0000}, {0xffff, 0x0000, 0xffff, 0x0000},
-	{0x0000, 0xffff, 0xffff, 0x0000}, {0xffff, 0xffff, 0xffff, 0x0000},
-	{0x0000, 0x0000, 0x0000, 0xffff}, {0xffff, 0x0000, 0x0000, 0xffff},
-	{0x0000, 0xffff, 0x0000, 0xffff}, {0xffff, 0xffff, 0x0000, 0xffff},
-	{0x0000, 0x0000, 0xffff, 0xffff}, {0xffff, 0x0000, 0xffff, 0xffff},
-	{0x0000, 0xffff, 0xffff, 0xffff}, {0xffff, 0xffff, 0xffff, 0xffff}
+	{0x0000, 0x0000, 0x0000, 0x0000},
+	{0xffff, 0x0000, 0x0000, 0x0000},
+	{0x0000, 0xffff, 0x0000, 0x0000},
+	{0xffff, 0xffff, 0x0000, 0x0000},
+	{0x0000, 0x0000, 0xffff, 0x0000},
+	{0xffff, 0x0000, 0xffff, 0x0000},
+	{0x0000, 0xffff, 0xffff, 0x0000},
+	{0xffff, 0xffff, 0xffff, 0x0000},
+	{0x0000, 0x0000, 0x0000, 0xffff},
+	{0xffff, 0x0000, 0x0000, 0xffff},
+	{0x0000, 0xffff, 0x0000, 0xffff},
+	{0xffff, 0xffff, 0x0000, 0xffff},
+	{0x0000, 0x0000, 0xffff, 0xffff},
+	{0xffff, 0x0000, 0xffff, 0xffff},
+	{0x0000, 0xffff, 0xffff, 0xffff},
+	{0xffff, 0xffff, 0xffff, 0xffff},
+};
+*/
+__DECL_ALIGNED(16) const uint32_t DISPLAY::egc_maskdword[16][2] = {
+	{0x00000000, 0x00000000},
+	{0x0000ffff, 0x00000000},
+	{0xffff0000, 0x00000000},
+	{0xffffffff, 0x00000000},
+	{0x00000000, 0x0000ffff},
+	{0x0000ffff, 0x0000ffff},
+	{0xffff0000, 0x0000ffff},
+	{0xffffffff, 0x0000ffff},
+	{0x00000000, 0xffff0000},
+	{0x0000ffff, 0xffff0000},
+	{0xffff0000, 0xffff0000},
+	{0xffffffff, 0xffff0000},
+	{0x00000000, 0xffffffff},
+	{0x0000ffff, 0xffffffff},
+	{0xffff0000, 0xffffffff},
+	{0xffffffff, 0xffffffff},
 };
 
 // SUBROUTINES are moved to display,h due to making inline. 20190514 K.O
@@ -545,10 +573,17 @@ uint64_t __FASTCALL DISPLAY::egc_ope_xx(uint8_t ope, uint32_t addr)
 		}
 		break;
 	}
-	dst.w[0] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_0]);
-	dst.w[1] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_1]);
-	dst.w[2] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_2]);
-	dst.w[3] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_3]);
+	#ifdef __BIG_ENDIAN__
+		dst.w[0] = vram_draw_readw(addr | VRAM_PLANE_ADDR_0);
+		dst.w[1] = vram_draw_readw(addr | VRAM_PLANE_ADDR_1);
+		dst.w[2] = vram_draw_readw(addr | VRAM_PLANE_ADDR_2);
+		dst.w[3] = vram_draw_readw(addr | VRAM_PLANE_ADDR_3);
+	#else
+		dst.w[0] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_0]);
+		dst.w[1] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_1]);
+		dst.w[2] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_2]);
+		dst.w[3] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_3]);
+	#endif
 	
 	//egc_vram_data.d[0] = 0;
 	//egc_vram_data.d[1] = 0;
@@ -1005,10 +1040,17 @@ __DECL_VECTORIZED_LOOP
 		realaddr[i] = addr | vram_base[i];
 	}
 	if(!(addr & 1)) {
+		#ifdef __BIG_ENDIAN__
+			egc_lastvram.w[0] = vram_draw_readw(addr | VRAM_PLANE_ADDR_0);
+			egc_lastvram.w[1] = vram_draw_readw(addr | VRAM_PLANE_ADDR_1);
+			egc_lastvram.w[2] = vram_draw_readw(addr | VRAM_PLANE_ADDR_2);
+			egc_lastvram.w[3] = vram_draw_readw(addr | VRAM_PLANE_ADDR_3);
+		#else		
 __DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 4; i++) {
-			egc_lastvram.w[i] = *(uint16_t *)(&vram_draw[realaddr[i]]);
-		}
+			for(int i = 0; i < 4; i++) {
+				egc_lastvram.w[i] = *(uint16_t *)(&vram_draw[realaddr[i]]);
+			}
+		#endif
 //		egc_lastvram.w[0] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_0]);
 //		egc_lastvram.w[1] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_1]);
 //		egc_lastvram.w[2] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_2]);
@@ -1058,10 +1100,18 @@ __DECL_VECTORIZED_LOOP
 			if(!(egc_ope & 0x400)) {
 				return egc_vram_src.w[pl];
 			} else {
-				return *(uint16_t *)(&vram_draw[addr | (VRAM_PLANE_SIZE * pl)]);
+				#ifdef __BIG_ENDIAN__
+					return vram_draw_readw(addr | (VRAM_PLANE_SIZE * pl));
+				#else
+					return *(uint16_t *)(&vram_draw[addr | (VRAM_PLANE_SIZE * pl)]);
+				#endif
 			}
 		}
-		return *(uint16_t *)(&vram_draw[addr1]);
+		#ifdef __BIG_ENDIAN__
+			return vram_draw_readw(addr1);
+		#else
+			return *(uint16_t *)(&vram_draw[addr1]);
+		#endif
 	} else if(!(egc_sft & 0x1000)) {
 		uint16_t value = egc_readb(addr1);
 		value |= egc_readb(addr1 + 1) << 8;
@@ -1167,14 +1217,17 @@ __DECL_VECTORIZED_LOOP
 	
 	if(!(addr & 1)) {
 		if((egc_ope & 0x0300) == 0x0200) {
+			#ifdef __BIG_ENDIAN__
+				egc_patreg.w[0] = vram_draw_readw(addr | VRAM_PLANE_ADDR_0);
+				egc_patreg.w[1] = vram_draw_readw(addr | VRAM_PLANE_ADDR_1);
+				egc_patreg.w[2] = vram_draw_readw(addr | VRAM_PLANE_ADDR_2);
+				egc_patreg.w[3] = vram_draw_readw(addr | VRAM_PLANE_ADDR_3);
+			#else
 __DECL_VECTORIZED_LOOP
-			for(int i = 0; i < 4; i++) {
-				egc_patreg.w[i] = *(uint16_t *)(&vram_draw[realaddr[i]]);
-			}
-			//egc_patreg.w[0] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_0]);
-			//egc_patreg.w[1] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_1]);
-			//egc_patreg.w[2] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_2]);
-			//egc_patreg.w[3] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_3]);
+				for(int i = 0; i < 4; i++) {
+					egc_patreg.w[i] = *(uint16_t *)(&vram_draw[realaddr[i]]);
+				}
+			#endif
 		}
 		data.q = egc_opew(addr, value);
 		uint32_t bit;

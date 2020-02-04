@@ -37,7 +37,6 @@ public:
 
 	// debugger
 	virtual DEVICE *get_cpu(int num) { return NULL; }
-	virtual uint32_t get_cpu_pc() { return 0; }
 	virtual void initialize(void) { }
 	virtual void update_dipswitch(void) { }
 	

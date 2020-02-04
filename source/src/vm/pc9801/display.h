@@ -141,7 +141,7 @@ private:
 	__DECL_ALIGNED(16) static const uint8_t  egc_bytemask_u1[8];
 	__DECL_ALIGNED(16) static const uint8_t  egc_bytemask_d0[64];
 	__DECL_ALIGNED(16) static const uint8_t  egc_bytemask_d1[8];
-	__DECL_ALIGNED(16) static const uint16_t egc_maskword[16][4];
+	__DECL_ALIGNED(16) static const uint32_t egc_maskdword[16][2];
 #endif
 	bool display_high;
 #if !defined(SUPPORT_HIRESO)
@@ -174,6 +174,10 @@ private:
 #else
 	void ank_copy(int code, uint8_t *pattern);
 	void kanji_copy(int first, int second, uint8_t *pattern);
+#endif
+#ifdef __BIG_ENDIAN__
+	inline void vram_draw_writew(uint32_t addr, uint32_t data);
+	inline uint32_t vram_draw_readw(uint32_t addr);
 #endif
 #if defined(SUPPORT_GRCG)
 	void __FASTCALL grcg_writeb(uint32_t addr1, uint32_t data);

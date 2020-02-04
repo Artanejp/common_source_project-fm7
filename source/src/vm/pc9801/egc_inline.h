@@ -318,11 +318,17 @@ inline uint64_t __FASTCALL DISPLAY::egc_ope_0f(uint8_t ope, uint32_t addr)
 inline uint64_t __FASTCALL DISPLAY::egc_ope_c0(uint8_t ope, uint32_t addr)
 {
 	__DECL_ALIGNED(16) egcquad_t dst;
-	
-	dst.w[0] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_0]);
-	dst.w[1] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_1]);
-	dst.w[2] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_2]);
-	dst.w[3] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_3]);
+	#ifdef __BIG_ENDIAN__
+		dst.w[0] = vram_draw_readw(addr | VRAM_PLANE_ADDR_0);
+		dst.w[1] = vram_draw_readw(addr | VRAM_PLANE_ADDR_1);
+		dst.w[2] = vram_draw_readw(addr | VRAM_PLANE_ADDR_2);
+		dst.w[3] = vram_draw_readw(addr | VRAM_PLANE_ADDR_3);
+	#else
+		dst.w[0] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_0]);
+		dst.w[1] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_1]);
+		dst.w[2] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_2]);
+		dst.w[3] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_3]);
+	#endif
 //	egc_vram_data.d[0] = (egc_vram_src.d[0] & dst.d[0]);
 //	egc_vram_data.d[1] = (egc_vram_src.d[1] & dst.d[1]);
 	egc_vram_data.q = egc_vram_src.q & dst.q;
@@ -339,10 +345,17 @@ inline uint64_t __FASTCALL DISPLAY::egc_ope_fc(uint8_t ope, uint32_t addr)
 {
 	__DECL_ALIGNED(16) egcquad_t dst;
 
-	dst.w[0] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_0]);
-	dst.w[1] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_1]);
-	dst.w[2] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_2]);
-	dst.w[3] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_3]);
+	#ifdef __BIG_ENDIAN__
+		dst.w[0] = vram_draw_readw(addr | VRAM_PLANE_ADDR_0);
+		dst.w[1] = vram_draw_readw(addr | VRAM_PLANE_ADDR_1);
+		dst.w[2] = vram_draw_readw(addr | VRAM_PLANE_ADDR_2);
+		dst.w[3] = vram_draw_readw(addr | VRAM_PLANE_ADDR_3);
+	#else
+		dst.w[0] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_0]);
+		dst.w[1] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_1]);
+		dst.w[2] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_2]);
+		dst.w[3] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_3]);
+	#endif
 	egc_vram_data.q = egc_vram_src.q;
 	egc_vram_data.q |= ((~egc_vram_src.q) & dst.q);
 //	egc_vram_data.d[0] = egc_vram_src.d[0];
@@ -425,11 +438,17 @@ inline uint64_t __FASTCALL DISPLAY::egc_ope_np(uint8_t ope, uint32_t addr)
 	__DECL_ALIGNED(16) egcquad_t dst;
 	__DECL_ALIGNED(16) egcquad_t tmp;
 	
-	dst.w[0] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_0]);
-	dst.w[1] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_1]);
-	dst.w[2] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_2]);
-	dst.w[3] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_3]);
-	
+	#ifdef __BIG_ENDIAN__
+		dst.w[0] = vram_draw_readw(addr | VRAM_PLANE_ADDR_0);
+		dst.w[1] = vram_draw_readw(addr | VRAM_PLANE_ADDR_1);
+		dst.w[2] = vram_draw_readw(addr | VRAM_PLANE_ADDR_2);
+		dst.w[3] = vram_draw_readw(addr | VRAM_PLANE_ADDR_3);
+	#else
+		dst.w[0] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_0]);
+		dst.w[1] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_1]);
+		dst.w[2] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_2]);
+		dst.w[3] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_3]);
+	#endif
 
 	tmp.q =  (ope & 0x80) ? (dst.q & egc_vram_src.q) : 0;
 	tmp.q |= (ope & 0x20) ? ((~dst.q) & egc_vram_src.q) : 0;
