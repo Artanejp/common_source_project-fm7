@@ -344,7 +344,9 @@ void Z80DMA::write_io8(uint32_t addr, uint32_t data)
 			wr_ptr = 0;
 		} else if(wr_tmp[wr_num] == GET_REGNUM(READ_MASK)) {
 			// from Xmillenium
+			upcount--;
 			update_read_buffer();
+			upcount++;
 		}
 	}
 }

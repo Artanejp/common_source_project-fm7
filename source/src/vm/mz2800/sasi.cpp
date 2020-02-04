@@ -12,6 +12,11 @@
 #include "../upd71071.h"
 #include "../scsi_host.h"
 
+#define CONTROL_SEL	0x20
+#define CONTROL_RST	0x08
+#define CONTROL_DMAE	0x02
+#define CONTROL_INTE	0x01
+
 #define STATUS_INT	0x01
 #define STATUS_IXO	0x04
 #define STATUS_CXD	0x08
@@ -48,13 +53,13 @@ void SASI::write_io8(uint32_t addr, uint32_t data)
 			this->out_debug_log(_T("[SASI] out %04X %02X\n"), addr, data);
 		#endif
 		control = data;
-		if((prev_control & 0x20) != (control & 0x20)) {
-			d_host->write_signal(SIG_SCSI_SEL, data, 0x20);
+		if((prev_control & CONTROL_SEL) != (control & CONTROL_SEL)) {
+			d_host->write_signal(SIG_SCSI_SEL, data, CONTROL_SEL);
 		}
-		if((prev_control & 0x08) != (control & 0x08)) {
-			d_host->write_signal(SIG_SCSI_RST, data, 0x08);
+		if((prev_control & CONTROL_RST) != (control & CONTROL_RST)) {
+			d_host->write_signal(SIG_SCSI_RST, data, CONTROL_RST);
 		}
-		if((prev_control & 0x03) != (control & 0x03)) {
+		if((prev_control & (CONTROL_DMAE | CONTROL_INTE)) != (control & (CONTROL_DMAE | CONTROL_INTE))) {
 			update_signal();
 		}
 		prev_control = control;
@@ -147,7 +152,7 @@ void SASI::write_signal(int id, uint32_t data, uint32_t mask)
 		break;
 	case SIG_SASI_TC:
 		if(data & mask) {
-			control &= ~0x02;
+			control &= ~CONTROL_DMAE;
 			update_signal();
 			prev_control = control;
 		}
@@ -160,27 +165,27 @@ void SASI::update_signal()
 	// http://retropc.net/ohishi/museum/mz1e30.htm
 	bool prev_ic20_o11 = (!prev_req_status) && prev_cxd_status;
 	bool prev_ic10_o8 = !(!prev_req_status && !prev_ixo_status && prev_msg_status && !prev_cxd_status);
-	bool prev_ic18_o11 = !(!(prev_control & 0x02) && prev_ic20_o11);
+	bool prev_ic18_o11 = !(!(prev_control & CONTROL_DMAE) && prev_ic20_o11);
 	bool prev_ic18_o8 = !(prev_ic10_o8 && prev_ic18_o11);
 	
 	bool ic20_o11 = (!req_status) && cxd_status;
 	bool ic10_o8 = !(!req_status && !ixo_status && msg_status && !cxd_status);
-	bool ic18_o11 = !(!(control & 0x02) && ic20_o11);
+	bool ic18_o11 = !(!(control & CONTROL_DMAE) && ic20_o11);
 	bool ic18_o8 = !(ic10_o8 && ic18_o11);
 	
 	bool prev_irq_status = irq_status;
 	bool prev_drq_status = drq_status;
 	
 	if(!prev_ic18_o8 && ic18_o8) {
-		irq_status = ((control & 0x01) != 0);
+		irq_status = ((control & CONTROL_INTE) != 0);
 	}
 	if(!prev_ic20_o11 && ic20_o11) {
-		drq_status = ((control & 0x02) != 0);
+		drq_status = ((control & CONTROL_DMAE) != 0);
 	}
-	if((prev_control & 0x01) && !(control & 0x01)) {
+	if((prev_control & CONTROL_INTE) && !(control & CONTROL_INTE)) {
 		irq_status = false;
 	}
-	if((prev_control & 0x02) && !(control & 0x02)) {
+	if((prev_control & CONTROL_DMAE) && !(control & CONTROL_DMAE)) {
 		drq_status = false;
 	}
 	if(prev_ack_status && !ack_status) {

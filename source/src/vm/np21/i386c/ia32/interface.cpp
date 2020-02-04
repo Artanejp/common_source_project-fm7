@@ -83,8 +83,11 @@ ia32_initreg(void)
 	}
 	LOAD_SEGREG(CPU_CS_INDEX, 0xf000);
 	CPU_STAT_CS_BASE = 0xffff0000;
+//	CPU_STAT_CS_LIMIT = 0xffff;
+//	CPU_STAT_SREG(CPU_CS_INDEX).flag = 0x93;
 	CPU_EIP = 0xfff0;
-	CPU_ADRSMASK = 0x000fffff;
+//	CPU_ADRSMASK = 0x000fffff;
+	CPU_ADRSMASK = 0xffffffff;
 
 	tlb_init();
 	fpu_initialize();

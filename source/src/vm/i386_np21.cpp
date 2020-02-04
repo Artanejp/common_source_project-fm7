@@ -9,23 +9,98 @@
 */
 
 #include "i386_np21.h"
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 #include "debugger.h"
-#endif
+//#endif
 #include "i8259.h"
 #include "np21/i386c/ia32/cpu.h"
 #include "np21/i386c/ia32/instructions/fpu/fp.h"
 
 void I386::initialize()
 {
+	DEVICE::initialize();
+	_I386_PSEUDO_BIOS = osd->check_feature("I386_PSEUDO_BIOS");
+	_SINGLE_MODE_DMA  = osd->check_feature("SINGLE_MODE_DMA");
+	_USE_DEBUGGER     = osd->check_feature("USE_DEBUGGER");
+	
+	n_cpu_type = I386_NP21::N_CPU_TYPE_I386DX;
+	if(osd->check_feature("HAS_I386")) {
+		n_cpu_type = I386_NP21::N_CPU_TYPE_I386DX;
+	} else if(osd->check_feature("HAS_I386DX")) {
+		n_cpu_type = I386_NP21::N_CPU_TYPE_I386DX;
+	} else if(osd->check_feature("HAS_I386SX")) {
+		n_cpu_type = I386_NP21::N_CPU_TYPE_I386SX;
+	} else if(osd->check_feature("HAS_I486DX")) {
+		n_cpu_type = I386_NP21::N_CPU_TYPE_I486DX;
+	} else if(osd->check_feature("HAS_I486")) {
+		n_cpu_type = I386_NP21::N_CPU_TYPE_I486DX;
+	} else if(osd->check_feature("HAS_I486SX")) {
+		n_cpu_type = I386_NP21::N_CPU_TYPE_I486SX;
+	} else if(osd->check_feature("HAS_PENTIUM")) {
+		n_cpu_type = I386_NP21::N_CPU_TYPE_PENTIUM;
+	} else if(osd->check_feature("HAS_PENTIUM_PRO")) {
+		n_cpu_type = I386_NP21::N_CPU_TYPE_PENTIUM_PRO;
+	} else if(osd->check_feature("HAS_PENTIUM_MMX")) {
+		n_cpu_type = I386_NP21::N_CPU_TYPE_PENTIUM_MMX;
+	} else if(osd->check_feature("HAS_PENTIUM2")) {
+		n_cpu_type = I386_NP21::N_CPU_TYPE_PENTIUM2;
+	} else if(osd->check_feature("HAS_PENTIUM3")) {
+		n_cpu_type = I386_NP21::N_CPU_TYPE_PENTIUM3;
+	} else if(osd->check_feature("HAS_PENTIUM4")) {
+		n_cpu_type = I386_NP21::N_CPU_TYPE_PENTIUM4;
+	}
+	switch(n_cpu_type) {
+	case I386_NP21::N_CPU_TYPE_I386DX:
+		set_device_name(_T("i80386DX CPU"));
+		break;
+	case I386_NP21::N_CPU_TYPE_I386SX:
+		set_device_name(_T("i80386SX CPU"));
+		break;
+	case I386_NP21::N_CPU_TYPE_I486DX:
+		set_device_name(_T("i486DX CPU"));
+		break;
+	case I386_NP21::N_CPU_TYPE_I486SX:
+		set_device_name(_T("i486SX CPU"));
+		break;
+	case I386_NP21::N_CPU_TYPE_PENTIUM:
+		set_device_name(_T("Pentium CPU"));
+		break;
+	case I386_NP21::N_CPU_TYPE_PENTIUM_PRO:
+		set_device_name(_T("Pentium PRO CPU"));
+		break;
+	case I386_NP21::N_CPU_TYPE_PENTIUM_MMX:
+		set_device_name(_T("Pentium MMX CPU"));
+		break;
+	case I386_NP21::N_CPU_TYPE_PENTIUM2:
+		set_device_name(_T("Pentium2 CPU"));
+		break;
+	case I386_NP21::N_CPU_TYPE_PENTIUM3:
+		set_device_name(_T("Pentium3 CPU"));
+		break;
+	case I386_NP21::N_CPU_TYPE_PENTIUM4:
+		set_device_name(_T("Pentium4 CPU"));
+		break;
+	default: // ???
+		set_device_name(_T("i80386 CPU"));
+		break;
+	}
+	
 	realclock = get_cpu_clocks(this);
 	device_cpu = this;
-#ifdef USE_DEBUGGER
-	device_mem_stored = device_mem;
-	device_io_stored = device_io;
-	device_debugger->set_context_mem(device_mem);
-	device_debugger->set_context_io(device_io);
-#endif
+//#ifdef USE_DEBUGGER
+	if(_USE_DEBUGGER) {
+		device_mem_stored = device_mem;
+		device_io_stored = device_io;
+		device_debugger->set_context_mem(device_mem);
+		device_debugger->set_context_io(device_io);
+	}
+//#endif
+	if(!(_I386_PSEUDO_BIOS)) {
+		device_bios = NULL;
+	}
+	if(!(_SINGLE_MODE_DMA)) {
+		device_dma = NULL;
+	}
 	waitfactor = 65536;
 	CPU_INITIALIZE();
 }
@@ -37,103 +112,127 @@ void I386::release()
 
 void I386::reset()
 {
-#if defined(HAS_I386)
-	i386cpuid.cpu_family = CPU_80386_FAMILY;
-	i386cpuid.cpu_model = CPU_80386_MODEL;
-	i386cpuid.cpu_stepping = CPU_80386_STEPPING;
-	i386cpuid.cpu_feature = CPU_FEATURES_80386;
-	i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_80386;
-	i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_80386;
-	i386cpuid.cpu_brandid = CPU_BRAND_ID_80386;
-	strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
-	strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_80386);
-#elif defined(HAS_I486SX)
-	i386cpuid.cpu_family = CPU_I486SX_FAMILY;
-	i386cpuid.cpu_model = CPU_I486SX_MODEL;
-	i386cpuid.cpu_stepping = CPU_I486SX_STEPPING;
-	i386cpuid.cpu_feature = CPU_FEATURES_I486SX;
-	i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_I486SX;
-	i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_I486SX;
-	i386cpuid.cpu_brandid = CPU_BRAND_ID_I486SX;
-	strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
-	strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_I486SX);
-#elif defined(HAS_I486DX)
-	i386cpuid.cpu_family = CPU_I486DX_FAMILY;
-	i386cpuid.cpu_model = CPU_I486DX_MODEL;
-	i386cpuid.cpu_stepping = CPU_I486DX_STEPPING;
-	i386cpuid.cpu_feature = CPU_FEATURES_I486DX;
-	i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_I486DX;
-	i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_I486DX;
-	i386cpuid.cpu_brandid = CPU_BRAND_ID_I486DX;
-	strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
-	strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_I486DX);
-#elif defined(HAS_PENTIUM)
-	i386cpuid.cpu_family = CPU_PENTIUM_FAMILY;
-	i386cpuid.cpu_model = CPU_PENTIUM_MODEL;
-	i386cpuid.cpu_stepping = CPU_PENTIUM_STEPPING;
-	i386cpuid.cpu_feature = CPU_FEATURES_PENTIUM;
-	i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_PENTIUM;
-	i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_PENTIUM;
-	i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM;
-	strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
-	strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM);
-#elif defined(HAS_PENTIUM_PRO)
-	i386cpuid.cpu_family = CPU_PENTIUM_PRO_FAMILY;
-	i386cpuid.cpu_model = CPU_PENTIUM_PRO_MODEL;
-	i386cpuid.cpu_stepping = CPU_PENTIUM_PRO_STEPPING;
-	i386cpuid.cpu_feature = CPU_FEATURES_PENTIUM_PRO;
-	i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_PENTIUM_PRO;
-	i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_PENTIUM_PRO;
-	i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM_PRO;
-	strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
-	strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM_PRO);
-#elif defined(HAS_PENTIUM_MMX)
-	i386cpuid.cpu_family = CPU_MMX_PENTIUM_FAMILY;
-	i386cpuid.cpu_model = CPU_MMX_PENTIUM_MODEL;
-	i386cpuid.cpu_stepping = CPU_MMX_PENTIUM_STEPPING;
-	i386cpuid.cpu_feature = CPU_FEATURES_MMX_PENTIUM;
-	i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_MMX_PENTIUM;
-	i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_MMX_PENTIUM;
-	i386cpuid.cpu_brandid = CPU_BRAND_ID_MMX_PENTIUM;
-	strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
-	strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_MMX_PENTIUM);
-#elif defined(HAS_PENTIUM2)
-	i386cpuid.cpu_family = CPU_PENTIUM_II_FAMILY;
-	i386cpuid.cpu_model = CPU_PENTIUM_II_MODEL;
-	i386cpuid.cpu_stepping = CPU_PENTIUM_II_STEPPING;
-	i386cpuid.cpu_feature = CPU_FEATURES_PENTIUM_II;
-	i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_PENTIUM_II;
-	i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_PENTIUM_II;
-	i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM_II;
-	strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
-	strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM_II);
-#elif defined(HAS_PENTIUM3)
-	i386cpuid.cpu_family = CPU_PENTIUM_III_FAMILY;
-	i386cpuid.cpu_model = CPU_PENTIUM_III_MODEL;
-	i386cpuid.cpu_stepping = CPU_PENTIUM_III_STEPPING;
-	i386cpuid.cpu_feature = CPU_FEATURES_PENTIUM_III;
-	i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_PENTIUM_III;
-	i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_PENTIUM_III;
-	i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM_III;
-	strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
-	strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM_III);
-#elif defined(HAS_PENTIUM4)
-	i386cpuid.cpu_family = CPU_PENTIUM_4_FAMILY;
-	i386cpuid.cpu_model = CPU_PENTIUM_4_MODEL;
-	i386cpuid.cpu_stepping = CPU_PENTIUM_4_STEPPING;
-	i386cpuid.cpu_feature = CPU_FEATURES_PENTIUM_4;
-	i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_PENTIUM_4;
-	i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_PENTIUM_4;
-	i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM_4;
-	strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
-	strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM_4);
-#endif
+//#if defined(HAS_I386)
+	switch(n_cpu_type) {
+	default:
+	case I386_NP21::N_CPU_TYPE_I386DX:
+	case I386_NP21::N_CPU_TYPE_I386SX:
+		i386cpuid.cpu_family = CPU_80386_FAMILY;
+		i386cpuid.cpu_model = CPU_80386_MODEL;
+		i386cpuid.cpu_stepping = CPU_80386_STEPPING;
+		i386cpuid.cpu_feature = CPU_FEATURES_80386;
+		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_80386;
+		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_80386;
+		i386cpuid.cpu_brandid = CPU_BRAND_ID_80386;
+		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
+		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_80386);
+		break;
+//#elif defined(HAS_I486SX)
+	case I386_NP21::N_CPU_TYPE_I486SX:
+		i386cpuid.cpu_family = CPU_I486SX_FAMILY;
+		i386cpuid.cpu_model = CPU_I486SX_MODEL;
+		i386cpuid.cpu_stepping = CPU_I486SX_STEPPING;
+		i386cpuid.cpu_feature = CPU_FEATURES_I486SX;
+		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_I486SX;
+		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_I486SX;
+		i386cpuid.cpu_brandid = CPU_BRAND_ID_I486SX;
+		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
+		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_I486SX);
+		break;
+//#elif defined(HAS_I486DX)
+	case I386_NP21::N_CPU_TYPE_I486DX:
+		i386cpuid.cpu_family = CPU_I486DX_FAMILY;
+		i386cpuid.cpu_model = CPU_I486DX_MODEL;
+		i386cpuid.cpu_stepping = CPU_I486DX_STEPPING;
+		i386cpuid.cpu_feature = CPU_FEATURES_I486DX;
+		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_I486DX;
+		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_I486DX;
+		i386cpuid.cpu_brandid = CPU_BRAND_ID_I486DX;
+		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
+		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_I486DX);
+		break;
+//#elif defined(HAS_PENTIUM)
+	case I386_NP21::N_CPU_TYPE_PENTIUM:
+		i386cpuid.cpu_family = CPU_PENTIUM_FAMILY;
+		i386cpuid.cpu_model = CPU_PENTIUM_MODEL;
+		i386cpuid.cpu_stepping = CPU_PENTIUM_STEPPING;
+		i386cpuid.cpu_feature = CPU_FEATURES_PENTIUM;
+		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_PENTIUM;
+		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_PENTIUM;
+		i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM;
+		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
+		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM);
+		break;
+//#elif defined(HAS_PENTIUM_PRO)
+	case I386_NP21::N_CPU_TYPE_PENTIUM_PRO:
+		i386cpuid.cpu_family = CPU_PENTIUM_PRO_FAMILY;
+		i386cpuid.cpu_model = CPU_PENTIUM_PRO_MODEL;
+		i386cpuid.cpu_stepping = CPU_PENTIUM_PRO_STEPPING;
+		i386cpuid.cpu_feature = CPU_FEATURES_PENTIUM_PRO;
+		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_PENTIUM_PRO;
+		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_PENTIUM_PRO;
+		i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM_PRO;
+		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
+		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM_PRO);
+		break;
+//#elif defined(HAS_PENTIUM_MMX)
+	case I386_NP21::N_CPU_TYPE_PENTIUM_MMX:
+		i386cpuid.cpu_family = CPU_MMX_PENTIUM_FAMILY;
+		i386cpuid.cpu_model = CPU_MMX_PENTIUM_MODEL;
+		i386cpuid.cpu_stepping = CPU_MMX_PENTIUM_STEPPING;
+		i386cpuid.cpu_feature = CPU_FEATURES_MMX_PENTIUM;
+		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_MMX_PENTIUM;
+		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_MMX_PENTIUM;
+		i386cpuid.cpu_brandid = CPU_BRAND_ID_MMX_PENTIUM;
+		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
+		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_MMX_PENTIUM);
+		break;
+//#elif defined(HAS_PENTIUM2)
+	case I386_NP21::N_CPU_TYPE_PENTIUM2:
+		i386cpuid.cpu_family = CPU_PENTIUM_II_FAMILY;
+		i386cpuid.cpu_model = CPU_PENTIUM_II_MODEL;
+		i386cpuid.cpu_stepping = CPU_PENTIUM_II_STEPPING;
+		i386cpuid.cpu_feature = CPU_FEATURES_PENTIUM_II;
+		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_PENTIUM_II;
+		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_PENTIUM_II;
+		i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM_II;
+		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
+		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM_II);
+		break;
+//#elif defined(HAS_PENTIUM3)
+	case I386_NP21::N_CPU_TYPE_PENTIUM3:
+
+		i386cpuid.cpu_family = CPU_PENTIUM_III_FAMILY;
+		i386cpuid.cpu_model = CPU_PENTIUM_III_MODEL;
+		i386cpuid.cpu_stepping = CPU_PENTIUM_III_STEPPING;
+		i386cpuid.cpu_feature = CPU_FEATURES_PENTIUM_III;
+		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_PENTIUM_III;
+		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_PENTIUM_III;
+		i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM_III;
+		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
+		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM_III);
+		break;
+//#elif defined(HAS_PENTIUM4)
+	case I386_NP21::N_CPU_TYPE_PENTIUM4:
+		i386cpuid.cpu_family = CPU_PENTIUM_4_FAMILY;
+		i386cpuid.cpu_model = CPU_PENTIUM_4_MODEL;
+		i386cpuid.cpu_stepping = CPU_PENTIUM_4_STEPPING;
+		i386cpuid.cpu_feature = CPU_FEATURES_PENTIUM_4;
+		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_PENTIUM_4;
+		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_PENTIUM_4;
+		i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM_4;
+		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
+		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM_4);
+		break;
+	}
+//#endif
 	i386cpuid.fpu_type = FPU_TYPE_SOFTFLOAT;
 //	i386cpuid.fpu_type = FPU_TYPE_DOSBOX;
 //	i386cpuid.fpu_type = FPU_TYPE_DOSBOX2;
 	FPU_INITIALIZE();
 	
 	CPU_RESET();
+	CPU_ADRSMASK = address_mask;
 	CPU_TYPE = 0;
 	CS_BASE = 0xf0000;
 	CPU_CS = CPU_PREV_CS = 0xf000;
@@ -169,9 +268,13 @@ void I386::cpu_wait(int clocks)
 }
 int I386::run_one_opecode()
 {
-#ifdef USE_DEBUGGER
-	bool now_debugging = device_debugger->now_debugging;
-	if(now_debugging) {
+//#ifdef USE_DEBUGGER
+	
+	bool now_debugging = false;
+	if((_USE_DEBUGGER) && (device_debugger != NULL)) {
+		now_debugging = device_debugger->now_debugging;
+	}
+	if((now_debugging)) {
 		device_debugger->check_break_points(get_next_pc());
 		if(device_debugger->now_suspended) {
 			device_debugger->now_waiting = true;
@@ -203,16 +306,16 @@ int I386::run_one_opecode()
 		}
 		return -CPU_REMCLOCK;
 	} else {
-#endif
+//#endif
 		CPU_PREV_CS = CPU_CS;
 		CPU_REMCLOCK = 0;
 		UINT16 CPU_PREV_isEI = CPU_isEI;
 		CPU_EXEC();
 		if(!CPU_PREV_isEI && CPU_isEI) device_pic->update_intr();
 		return -CPU_REMCLOCK;
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	}
-#endif
+//#endif
 }
 
 int I386::run(int cycles)
@@ -221,9 +324,11 @@ int I386::run(int cycles)
 		int passed_cycles;
 		if(busreq) {
 			// don't run cpu!
-#ifdef SINGLE_MODE_DMA
-			if(device_dma != NULL) device_dma->do_dma();
-#endif
+//#ifdef SINGLE_MODE_DMA
+			if(_SINGLE_MODE_DMA) {
+				if(device_dma != NULL) device_dma->do_dma();
+			}
+//#endif
 			passed_cycles = max(1, extra_cycles);
 			extra_cycles = 0;
 		} else {
@@ -232,9 +337,11 @@ int I386::run(int cycles)
 			extra_cycles = 0;
 			passed_cycles += run_one_opecode();
 		}
-#ifdef USE_DEBUGGER
-		total_cycles += passed_cycles;
-#endif
+//#ifdef USE_DEBUGGER
+		if(_USE_DEBUGGER) {
+			total_cycles += passed_cycles;
+		}
+//#endif
 		cpu_wait(passed_cycles);
 		return passed_cycles;
 	} else {
@@ -247,9 +354,11 @@ int I386::run(int cycles)
 		}
 		// if busreq is raised, spin cpu while remained clock
 		if(remained_cycles > 0 && busreq) {
-#ifdef USE_DEBUGGER
-			total_cycles += remained_cycles;
-#endif
+//#ifdef USE_DEBUGGER
+			if(_USE_DEBUGGER) {
+				total_cycles += remained_cycles;
+			}
+//#endif
 			remained_cycles = 0;
 		}
 		int passed_cycles = first_cycles - remained_cycles;
@@ -273,7 +382,8 @@ void I386::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_CPU_BUSREQ) {
 		busreq = ((data & mask) != 0);
 	} else if(id == SIG_I386_A20) {
-		CPU_ADRSMASK = data & mask;
+		//CPU_ADRSMASK = data & mask;
+		ia32a20enable((data & mask) != 0);
 	} else if(id == SIG_I386_NOTIFY_RESET) {
 		write_signals(&outputs_extreset, (((data & mask) == 0) ? 0x00000000 : 0xffffffff));
 	} else if(id == SIG_CPU_WAIT_FACTOR) {
@@ -329,7 +439,7 @@ uint32_t I386::get_next_pc()
 	return convert_address(CPU_CS, CPU_EIP);
 }
 
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 void I386::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
@@ -490,12 +600,14 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	_T("AX=%04X  BX=%04X  CX=%04X  DX=%04X  SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
 	_T("DS=%04X  ES=%04X  SS=%04X  CS=%04X  IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]\n")
 	_T("EIP=%08X  PC=%08X  PM=%d  VM86=%d\n")
+	_T("ADDRESS_MASK=%08X\n")
 	_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 	CPU_AX, CPU_BX, CPU_CX, CPU_DX, CPU_SP, CPU_BP, CPU_SI, CPU_DI,
 	CPU_DS, CPU_ES, CPU_SS, CPU_CS, CPU_IP,
 	(CPU_FLAG & O_FLAG) ? _T('O') : _T('-'), (CPU_FLAG & D_FLAG) ? _T('D') : _T('-'), (CPU_FLAG & I_FLAG) ? _T('I') : _T('-'), (CPU_FLAG & T_FLAG) ? _T('T') : _T('-'),
 	(CPU_FLAG & S_FLAG) ? _T('S') : _T('-'), (CPU_FLAG & Z_FLAG) ? _T('Z') : _T('-'), (CPU_FLAG & A_FLAG) ? _T('A') : _T('-'), (CPU_FLAG & P_FLAG) ? _T('P') : _T('-'), (CPU_FLAG & C_FLAG) ? _T('C') : _T('-'),
 	CPU_EIP, convert_address(CPU_CS, CPU_EIP), CPU_STAT_PM ? 1 : 0, CPU_STAT_VM86 ? 1 : 0,
+    CPU_ADRSMASK,
 	total_cycles, total_cycles - prev_total_cycles,
 	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 	prev_total_cycles = total_cycles;
@@ -565,11 +677,12 @@ int I386::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	return eip - prev_eip;
 #endif
 }
-#endif
+//#endif
 
 void I386::set_address_mask(uint32_t mask)
 {
 	CPU_ADRSMASK = mask;
+	address_mask = mask;
 }
 
 uint32_t I386::get_address_mask()
@@ -599,19 +712,19 @@ void I386::set_context_io(DEVICE* device)
 	device_io = device;
 }
 
-#ifdef I386_PSEUDO_BIOS
+//#ifdef I386_PSEUDO_BIOS
 void I386::set_context_bios(DEVICE* device)
 {
 	device_bios = device;
 }
-#endif
+//#endif
 
-#ifdef SINGLE_MODE_DMA
+//#ifdef SINGLE_MODE_DMA
 void I386::set_context_dma(DEVICE* device)
 {
 	device_dma = device;
 }
-#endif
+//#endif
 
 #define STATE_VERSION	2
 
@@ -627,10 +740,10 @@ bool I386::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(&CPU_STATSAVE, sizeof(CPU_STATSAVE), 1);
 	state_fio->StateBuffer(&i386cpuid, sizeof(i386cpuid), 1);
 	state_fio->StateBuffer(&i386msr, sizeof(i386msr), 1);
-#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGGER
 	state_fio->StateValue(total_cycles);
 	state_fio->StateValue(prev_total_cycles);
-#endif
+//#endif
 	state_fio->StateValue(remained_cycles);
 	state_fio->StateValue(extra_cycles);
 	state_fio->StateValue(busreq);
@@ -638,6 +751,7 @@ bool I386::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(waitfactor);
 	state_fio->StateValue(waitcount);
 	state_fio->StateValue(i386_memory_wait);
+	state_fio->StateValue(address_mask);
 	
 	return true;
 }

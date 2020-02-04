@@ -54,8 +54,6 @@ private:
 	uint32_t __I8259_MAX_CHIPS;
 	uint32_t __CHIP_MASK;
 	bool __I8259_PC98_HACK;
-	void __FASTCALL update_intr();
-	
 public:
 	I8259(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -93,6 +91,7 @@ public:
 	{
 		d_cpu = device;
 	}
+	void __FASTCALL update_intr();
 };
 
 #endif

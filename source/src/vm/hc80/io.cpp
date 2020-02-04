@@ -353,7 +353,7 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 		cmd6303 = data;
 		psr |= BIT_OBF;
 #ifdef OUT_CMD_LOG
-		this->out_debug_log(_T("\n%4x\tCMD %2x\n"), vm->get_cpu_pc(), data);
+		this->out_debug_log(_T("\n%4x\tCMD %2x\n"), get_cpu_pc(0), data);
 #endif
 		break;
 	case 0x80:
@@ -451,7 +451,7 @@ uint32_t IO::read_io8(uint32_t addr)
 			psr &= ~BIT_F1;
 		}
 #ifdef OUT_CMD_LOG
-		this->out_debug_log(_T("%4x\tRCV %2x\n"), vm->get_cpu_pc(), val);
+		this->out_debug_log(_T("%4x\tRCV %2x\n"), get_cpu_pc(0), val);
 #endif
 		return val;
 	case 0x80:

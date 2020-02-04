@@ -2090,7 +2090,7 @@ static _TCHAR *hexstringpc(UINT64 pc)
 
 static _TCHAR *shexstring(UINT32 value, int digits, int always)
 {
-	static _TCHAR buffer[20];
+	static _TCHAR buffer[32];
 	if (value >= 0x80000000)
 		_stprintf(buffer, _T("-%s"), hexstring(-value, digits));
 	else if (always)

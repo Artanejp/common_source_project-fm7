@@ -27,15 +27,10 @@ class MEMORY : public DEVICE
 {
 protected:
 	typedef struct {
-		DEVICE* dev;
-		uint8_t* memory;
+		DEVICE *device;
+		uint8_t *memory;
 		int wait;
 	} bank_t;
-	
-	bank_t *rd_table;
-	bank_t *wr_table;
-	
-	int addr_shift;
 	
 	uint8_t *rd_dummy;
 	uint8_t *wr_dummy;
@@ -155,6 +150,10 @@ public:
 	uint64_t addr_mask;
 	uint64_t bank_mask;
 
+	bank_t *rd_table;
+	bank_t *wr_table;
+	
+	int addr_shift;
 };
 
 #endif

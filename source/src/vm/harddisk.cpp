@@ -44,7 +44,7 @@ void HARDDISK::open(const _TCHAR* file_path, int default_sector_size)
 				sector_size = 256;
 				sector_num = cylinders * surfaces * sectors;
 			} else if(check_file_extension(file_path, _T(".nhd")) && memcmp(header, sig_nhd, 15) == 0) {
-				// T98Next
+				// T98-Next
 /*
 				typedef struct nhd_header_s {
 					char sig[16];

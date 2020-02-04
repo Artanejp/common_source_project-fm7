@@ -80,6 +80,7 @@ void open_recent_quick_disk(int drv, int index);
 #ifdef USE_HARD_DISK
 void open_hard_disk_dialog(HWND hWnd, int drv);
 void open_recent_hard_disk(int drv, int index);
+void open_blank_hard_disk_dialog(HWND hWnd, int drv, int sector_size, int sectors, int surfaces, int cylinders);
 #endif
 #ifdef USE_TAPE
 void open_tape_dialog(HWND hWnd, int drv, bool play);
@@ -1152,7 +1153,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 #endif
 #ifdef USE_HARD_DISK
 	#if USE_HARD_DISK >= 1
-		#define HD_MENU_ITEMS(drv, ID_OPEN_HD, ID_CLOSE_HD, ID_RECENT_HD) \
+		#define HD_MENU_ITEMS(drv, ID_OPEN_HD, ID_CLOSE_HD, ID_OPEN_BLANK_20MB_HD, ID_OPEN_BLANK_20MB_1024_HD, ID_OPEN_BLANK_40MB_HD, ID_RECENT_HD) \
 		case ID_OPEN_HD: \
 			if(emu) { \
 				open_hard_disk_dialog(hWnd, drv); \
@@ -1163,34 +1164,49 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				emu->close_hard_disk(drv); \
 			} \
 			break; \
+		case ID_OPEN_BLANK_20MB_HD: \
+			if(emu) { \
+				open_blank_hard_disk_dialog(hWnd, drv, 256, 33, 8, 310); \
+			} \
+			break; \
+		case ID_OPEN_BLANK_20MB_1024_HD: \
+			if(emu) { \
+				open_blank_hard_disk_dialog(hWnd, drv, 1024, 8, 8, 320); \
+			} \
+			break; \
+		case ID_OPEN_BLANK_40MB_HD: \
+			if(emu) { \
+				open_blank_hard_disk_dialog(hWnd, drv, 256, 33, 8, 615); \
+			} \
+			break; \
 		case ID_RECENT_HD + 0: case ID_RECENT_HD + 1: case ID_RECENT_HD + 2: case ID_RECENT_HD + 3: \
 		case ID_RECENT_HD + 4: case ID_RECENT_HD + 5: case ID_RECENT_HD + 6: case ID_RECENT_HD + 7: \
 			if(emu) { \
 				open_recent_hard_disk(drv, LOWORD(wParam) - ID_RECENT_HD); \
 			} \
 			break;
-		HD_MENU_ITEMS(0, ID_OPEN_HD1, ID_CLOSE_HD1, ID_RECENT_HD1)
+		HD_MENU_ITEMS(0, ID_OPEN_HD1, ID_CLOSE_HD1, ID_OPEN_BLANK_20MB_HD1, ID_OPEN_BLANK_20MB_1024_HD1, ID_OPEN_BLANK_40MB_HD1, ID_RECENT_HD1)
 	#endif
 	#if USE_HARD_DISK >= 2
-		HD_MENU_ITEMS(1, ID_OPEN_HD2, ID_CLOSE_HD2, ID_RECENT_HD2)
+		HD_MENU_ITEMS(1, ID_OPEN_HD2, ID_CLOSE_HD2, ID_OPEN_BLANK_20MB_HD2, ID_OPEN_BLANK_20MB_1024_HD2, ID_OPEN_BLANK_40MB_HD2, ID_RECENT_HD2)
 	#endif
 	#if USE_HARD_DISK >= 3
-		HD_MENU_ITEMS(2, ID_OPEN_HD3, ID_CLOSE_HD3, ID_RECENT_HD3)
+		HD_MENU_ITEMS(2, ID_OPEN_HD3, ID_CLOSE_HD3, ID_OPEN_BLANK_20MB_HD3, ID_OPEN_BLANK_20MB_1024_HD3, ID_OPEN_BLANK_40MB_HD3, ID_RECENT_HD3)
 	#endif
 	#if USE_HARD_DISK >= 4
-		HD_MENU_ITEMS(3, ID_OPEN_HD4, ID_CLOSE_HD4, ID_RECENT_HD4)
+		HD_MENU_ITEMS(3, ID_OPEN_HD4, ID_CLOSE_HD4, ID_OPEN_BLANK_20MB_HD4, ID_OPEN_BLANK_20MB_1024_HD4, ID_OPEN_BLANK_40MB_HD4, ID_RECENT_HD4)
 	#endif
 	#if USE_HARD_DISK >= 5
-		HD_MENU_ITEMS(4, ID_OPEN_HD5, ID_CLOSE_HD5, ID_RECENT_HD5)
+		HD_MENU_ITEMS(4, ID_OPEN_HD5, ID_CLOSE_HD5, ID_OPEN_BLANK_20MB_HD5, ID_OPEN_BLANK_20MB_1024_HD5, ID_OPEN_BLANK_40MB_HD5, ID_RECENT_HD5)
 	#endif
 	#if USE_HARD_DISK >= 6
-		HD_MENU_ITEMS(5, ID_OPEN_HD6, ID_CLOSE_HD6, ID_RECENT_HD6)
+		HD_MENU_ITEMS(5, ID_OPEN_HD6, ID_CLOSE_HD6, ID_OPEN_BLANK_20MB_HD6, ID_OPEN_BLANK_20MB_1024_HD6, ID_OPEN_BLANK_40MB_HD6, ID_RECENT_HD6)
 	#endif
 	#if USE_HARD_DISK >= 7
-		HD_MENU_ITEMS(6, ID_OPEN_HD7, ID_CLOSE_HD7, ID_RECENT_HD7)
+		HD_MENU_ITEMS(6, ID_OPEN_HD7, ID_CLOSE_HD7, ID_OPEN_BLANK_20MB_HD7, ID_OPEN_BLANK_20MB_1024_HD7, ID_OPEN_BLANK_40MB_HD7, ID_RECENT_HD7)
 	#endif
 	#if USE_HARD_DISK >= 8
-		HD_MENU_ITEMS(7, ID_OPEN_HD8, ID_CLOSE_HD8, ID_RECENT_HD8)
+		HD_MENU_ITEMS(7, ID_OPEN_HD8, ID_CLOSE_HD8, ID_OPEN_BLANK_20MB_HD8, ID_OPEN_BLANK_20MB_1024_HD8, ID_OPEN_BLANK_40MB_HD8, ID_RECENT_HD8)
 	#endif
 #endif
 #ifdef USE_TAPE
@@ -2538,10 +2554,14 @@ void open_blank_floppy_disk_dialog(HWND hWnd, int drv, uint8_t type)
 		config.initial_floppy_disk_dir, _MAX_PATH
 	);
 	if(path) {
-		UPDATE_HISTORY(path, config.recent_floppy_disk_path[drv]);
-		my_tcscpy_s(config.initial_floppy_disk_dir, _MAX_PATH, get_parent_dir(path));
-		emu->create_bank_floppy_disk(path, type);
-		open_floppy_disk(drv, path, 0);
+		if(!check_file_extension(path, _T(".d88")) && !check_file_extension(path, _T(".d77"))) {
+			my_tcscat_s(path, _MAX_PATH, _T(".d88"));
+		}
+		if(emu->create_blank_floppy_disk(path, type)) {
+			UPDATE_HISTORY(path, config.recent_floppy_disk_path[drv]);
+			my_tcscpy_s(config.initial_floppy_disk_dir, _MAX_PATH, get_parent_dir(path));
+			open_floppy_disk(drv, path, 0);
+		}
 	}
 }
 
@@ -2671,6 +2691,27 @@ void open_recent_hard_disk(int drv, int index)
 	}
 	my_tcscpy_s(config.recent_hard_disk_path[drv][0], _MAX_PATH, path);
 	emu->open_hard_disk(drv, path);
+}
+
+void open_blank_hard_disk_dialog(HWND hWnd, int drv, int sector_size, int sectors, int surfaces, int cylinders)
+{
+	_TCHAR* path = get_open_file_name(
+		hWnd,
+		_T("Supported Files (*.hdi;*.nhd)\0*.hdi;*.nhd\0All Files (*.*)\0*.*\0\0"),
+		_T("Hard Disk"),
+		create_date_file_name(_T("hdi")),
+		config.initial_hard_disk_dir, _MAX_PATH
+	);
+	if(path) {
+		if(!check_file_extension(path, _T(".hdi")) && !check_file_extension(path, _T(".nhd"))) {
+			my_tcscat_s(path, _MAX_PATH, _T(".hdi"));
+		}
+		if(emu->create_blank_hard_disk(path, sector_size, sectors, surfaces, cylinders)) {
+			UPDATE_HISTORY(path, config.recent_hard_disk_path[drv]);
+			my_tcscpy_s(config.initial_hard_disk_dir, _MAX_PATH, get_parent_dir(path));
+			emu->open_hard_disk(drv, path);
+		}
+	}
 }
 #endif
 

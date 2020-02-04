@@ -33,12 +33,12 @@ static void trace_fmt_ex(const char *fmt, ...)
 DEVICE *device_cpu;
 DEVICE *device_mem;
 DEVICE *device_io;
-#ifdef I386_PSEUDO_BIOS
+//#ifdef I386_PSEUDO_BIOS
 DEVICE *device_bios = NULL;
-#endif
-#ifdef SINGLE_MODE_DMA
+//#endif
+//#ifdef SINGLE_MODE_DMA
 DEVICE *device_dma = NULL;
-#endif
+//#endif
 SINT64 i386_memory_wait;
 // ----
 REG8 MEMCALL memp_read8(UINT32 address) {
@@ -424,9 +424,9 @@ UINT32 IOINPCALL iocore_inp32(UINT port)
 
 void dmax86(void)
 {
-#ifdef SINGLE_MODE_DMA
+//#ifdef SINGLE_MODE_DMA
 	if(device_dma != NULL) device_dma->do_dma();
-#endif
+//#endif
 }
 
 #endif

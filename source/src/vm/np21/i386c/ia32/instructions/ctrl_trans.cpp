@@ -944,7 +944,7 @@ CALL_Ed(UINT32 op)
 	CPU_CLEAR_PREV_ESP();
 }
 
-#ifdef I386_PSEUDO_BIOS
+//#ifdef I386_PSEUDO_BIOS
 int
 CALL_PSEUDO_BIOS(UINT16 new_ip, UINT16 new_cs)
 {
@@ -983,7 +983,7 @@ CALL_PSEUDO_BIOS(UINT16 new_ip, UINT16 new_cs)
 	}
 	return 0;
 }
-#endif
+//#endif
 
 void
 CALL16_Ap(void)
@@ -997,11 +997,11 @@ CALL16_Ap(void)
 	GET_PCWORD(new_ip);
 	GET_PCWORD(new_cs);
 	if (!CPU_STAT_PM || CPU_STAT_VM86) {
-#ifdef I386_PSEUDO_BIOS
+//#ifdef I386_PSEUDO_BIOS
 		if (CALL_PSEUDO_BIOS(new_ip, new_cs)) {
 			return;
 		}
-#endif
+//#endif
 		/* Real mode or VM86 mode */
 		CPU_SET_PREV_ESP();
 		load_segreg(CPU_CS_INDEX, new_cs, &sreg, &sd, GP_EXCEPTION);
@@ -1033,11 +1033,11 @@ CALL32_Ap(void)
 	GET_PCDWORD(new_ip);
 	GET_PCWORD(new_cs);
 	if (!CPU_STAT_PM || CPU_STAT_VM86) {
-#ifdef I386_PSEUDO_BIOS
+//#ifdef I386_PSEUDO_BIOS
 		if (CALL_PSEUDO_BIOS(new_ip, new_cs)) {
 			return;
 		}
-#endif
+//#endif
 		/* Real mode or VM86 mode */
 		CPU_SET_PREV_ESP();
 		load_segreg(CPU_CS_INDEX, new_cs, &sreg, &sd, GP_EXCEPTION);
@@ -1072,11 +1072,11 @@ CALL16_Ep(UINT32 op)
 		new_ip = cpu_vmemoryread_w(CPU_INST_SEGREG_INDEX, madr);
 		new_cs = cpu_vmemoryread_w(CPU_INST_SEGREG_INDEX, madr + 2);
 		if (!CPU_STAT_PM || CPU_STAT_VM86) {
-#ifdef I386_PSEUDO_BIOS
+//#ifdef I386_PSEUDO_BIOS
 			if (CALL_PSEUDO_BIOS(new_ip, new_cs)) {
 				return;
 			}
-#endif
+//#endif
 			/* Real mode or VM86 mode */
 			CPU_SET_PREV_ESP();
 			load_segreg(CPU_CS_INDEX, new_cs, &sreg, &sd, GP_EXCEPTION);
@@ -1114,11 +1114,11 @@ CALL32_Ep(UINT32 op)
 		new_ip = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, madr);
 		new_cs = cpu_vmemoryread_w(CPU_INST_SEGREG_INDEX, madr + 4);
 		if (!CPU_STAT_PM || CPU_STAT_VM86) {
-#ifdef I386_PSEUDO_BIOS
+//#ifdef I386_PSEUDO_BIOS
 			if (CALL_PSEUDO_BIOS(new_ip, new_cs)) {
 				return;
 			}
-#endif
+//#endif
 			/* Real mode or VM86 mode */
 			CPU_SET_PREV_ESP();
 			load_segreg(CPU_CS_INDEX, new_cs, &sreg, &sd, GP_EXCEPTION);

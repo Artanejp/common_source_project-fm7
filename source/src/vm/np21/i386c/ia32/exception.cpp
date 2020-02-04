@@ -236,7 +236,7 @@ interrupt(int num, int intrtype, int errorp, int error_code)
 
 	VERBOSE(("interrupt: num = 0x%02x, intrtype = %s, errorp = %s, error_code = %08x", num, (intrtype == INTR_TYPE_EXTINTR) ? "external" : (intrtype == INTR_TYPE_EXCEPTION ? "exception" : "softint"), errorp ? "on" : "off", error_code));
 
-#ifdef I386_PSEUDO_BIOS
+//#ifdef I386_PSEUDO_BIOS
 	if ((!CPU_STAT_PM || CPU_STAT_VM86) && intrtype == INTR_TYPE_SOFTINTR && device_bios != NULL) {
 //		uint16_t regs[8] = {CPU_AX, CPU_CX, CPU_DX, CPU_BX, CPU_SP, CPU_BP, CPU_SI, CPU_DI};
 		uint32_t regs[8] = {CPU_EAX, CPU_ECX, CPU_EDX, CPU_EBX, CPU_ESP, CPU_EBP, CPU_ESI, CPU_EDI};
@@ -270,7 +270,7 @@ interrupt(int num, int intrtype, int errorp, int error_code)
 			return;
 		}
 	}
-#endif
+//#endif
 
 	CPU_SET_PREV_ESP();
 

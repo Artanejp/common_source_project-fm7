@@ -171,12 +171,29 @@ int DEVICE::get_event_manager_id()
 	}
 	return event_manager->this_device_id;
 }
+
+uint32_t DEVICE::get_event_clocks()
+{
+	if(event_manager == NULL) {
+		event_manager = vm->first_device->next_device;
+	}
+	return event_manager->get_event_clocks();
+}
+
 bool DEVICE::is_primary_cpu(DEVICE* device)
 {
 	if(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	return event_manager->is_primary_cpu(device);
+}
+
+uint32_t DEVICE::get_cpu_clocks(DEVICE* device)
+{
+	if(event_manager == NULL) {
+		event_manager = vm->first_device->next_device;
+	}
+	return event_manager->get_cpu_clocks(device);
 }
 void DEVICE::update_extra_event(int clock)
 {
