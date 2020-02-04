@@ -364,7 +364,7 @@ void Ui_MainWindow::do_create_d88_media(int drv, quint8 media_type, QString name
 #if defined(USE_FLOPPY_DISK)
 		if(drv < USE_FLOPPY_DISK) {
 			const _TCHAR* path = (const _TCHAR *)(name.toLocal8Bit().data());
-			emu->create_bank_floppy_disk(path, media_type);
+			emu->create_blank_floppy_disk(path, media_type);
 			emit sig_open_disk(drv, name, 0);
 		}
 #endif

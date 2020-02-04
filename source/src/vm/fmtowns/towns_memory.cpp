@@ -51,8 +51,8 @@ void TOWNS_MEMORY::config_page00()
 	
 void TOWNS_MEMORY::initialize()
 {
-	if(initialized) return;
-	DEVICE::initialize();
+//	if(initialized) return;
+//	DEVICE::initialize();
 	
 	extra_nmi_mask = true;
 	extra_nmi_val = false;
@@ -68,6 +68,11 @@ void TOWNS_MEMORY::initialize()
 	if(!(bank_size_was_set) && osd->check_feature(_T("MEMORY_BANK_SIZE"))) {
 		bank_size = osd->get_feature_uint64_value(_T("MEMORY_BANK_SIZE"));
 	}
+#if 1
+	MEMORY::initialize();
+	bank_mask = BANK_MASK;
+	addr_mask = ADDR_MASK;
+#else
 	// allocate tables here to support multiple instances with different address range
 	if(rd_table == NULL) {
 		int64_t bank_num = addr_max / bank_size;
@@ -97,8 +102,8 @@ void TOWNS_MEMORY::initialize()
 		}
 		memset(rd_dummy, 0xff, bank_size);
 	}
+#endif	
 	initialized = true;
-	
 	extram_size = extram_size & 0x3ff00000;
 	set_extra_ram_size(extram_size >> 20); // Check extra ram size.
 	if(extram_size >= 0x00100000) {
@@ -147,7 +152,7 @@ void TOWNS_MEMORY::set_wait_values()
 	// ToDo: DICT RAM and PCM RAM
 	set_wait_rw(0xfffc0000, 0xffffffff, mem_wait_val);
 }
-
+#if 0
 // Note: This contains SUBSET of MEMORY:: class (except read_bios()).	
 void TOWNS_MEMORY::set_memory_r(uint32_t start, uint32_t end, uint8_t *memory)
 {
@@ -352,10 +357,11 @@ void TOWNS_MEMORY::set_wait_rw(uint32_t start, uint32_t end, int wait)
 // 20191202 K.Ohta
 uint32_t TOWNS_MEMORY::read_data8w(uint32_t addr, int *wait)
 {
-	uint32_t bank = addr >> addr_shift;
+	uint32_t bank = (addr & ADDR_MASK) >> addr_shift;
 	if(wait != NULL) {
 		*wait = rd_table[bank].wait;
 	}
+//	printf("READ %08X\n", addr);
 	if(rd_table[bank].dev != NULL) {
 //		return rd_table[bank].dev->read_data8w(addr, wait);
 		return rd_table[bank].dev->read_memory_mapped_io8(addr);
@@ -557,7 +563,7 @@ void TOWNS_MEMORY::write_dma_data16(uint32_t addr, uint32_t data)
 	int dummy;
 	return write_dma_data16w(addr, data, &dummy);
 }
-
+#endif
 void TOWNS_MEMORY::release()
 {
 	if(rd_table != NULL) free(rd_table);
@@ -585,7 +591,7 @@ void TOWNS_MEMORY::reset()
 	config_page00();
 	set_wait_values();
 }
-
+#if 0
 uint32_t TOWNS_MEMORY::read_data8(uint32_t addr)
 {
 	int dummy;
@@ -621,7 +627,7 @@ void TOWNS_MEMORY::write_data32(uint32_t addr, uint32_t data)
 	int dummy;
 	return write_data32w(addr, data, &dummy);
 }
-
+#endif
 // Address (TOWNS BASIC):
 // 0x0020 - 0x0022, 0x0030-0x0031,
 // 0x0400 - 0x0404,

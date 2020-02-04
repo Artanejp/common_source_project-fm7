@@ -1,8 +1,8 @@
 /*
-	FUJITSU FM-Towns Emulator 'eFMR-60'
+	FUJITSU FM-Towns Emulator 'eFMTowns'
 
 	Author : Kyuma Ohta <whatisthis.sowhat _at_ gmail.com>
-	Date   : 216.12.28 -
+	Date   : 2016.12.28 -
 
 	[ virtual machine ]
 	History: 
@@ -374,7 +374,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_intr(pic);
 	cpu->set_context_dma(dma);
 	cpu->set_context_bios(NULL);
-	cpu->set_context_extreset(memory, SIG_FMTOWNS_NOTIFY_RESET, 0xffffffff);
+//	cpu->set_context_extreset(memory, SIG_FMTOWNS_NOTIFY_RESET, 0xffffffff);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
@@ -579,6 +579,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+//	cpu->set_address_mask(0xffffffff);
 }
 
 VM::~VM()
@@ -633,6 +634,7 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
+//	cpu->set_address_mask(0xffffffff);
 }
 
 void VM::run()

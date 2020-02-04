@@ -2402,7 +2402,7 @@ bool EMU::is_cart_inserted(int drv)
 #endif
 
 #ifdef USE_FLOPPY_DISK
-void EMU::create_bank_floppy_disk(const _TCHAR* file_path, uint8_t type)
+bool EMU::create_blank_floppy_disk(const _TCHAR* file_path, uint8_t type)
 {
 	/*
 		type: 0x00 = 2D, 0x10 = 2DD, 0x20 = 2HD
@@ -2427,6 +2427,7 @@ void EMU::create_bank_floppy_disk(const _TCHAR* file_path, uint8_t type)
 		fio->Fclose();
 	}
 	delete fio;
+	return true;
 }
 
 void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
@@ -2552,6 +2553,92 @@ uint32_t EMU::is_quick_disk_accessed()
 #endif
 
 #ifdef USE_HARD_DISK
+bool EMU::create_blank_hard_disk(const _TCHAR* file_path, int sector_size, int sectors, int surfaces, int cylinders)
+{
+	if(check_file_extension(file_path, _T(".nhd"))) {
+		// T98-Next
+		const char sig_nhd[] = "T98HDDIMAGE.R0";
+		typedef struct nhd_header_s {
+			char sig[16];
+			char comment[256];
+			int32_t header_size;	// +272
+			int32_t cylinders;	// +276
+			int16_t surfaces;	// +280
+			int16_t sectors;	// +282
+			int16_t sector_size;	// +284
+			uint8_t reserved[0xe2];
+		} nhd_header_t;
+		nhd_header_t header;
+		
+		memset(&header, 0, sizeof(header));
+		strcpy(header.sig, "T98HDDIMAGE.R0");
+		header.header_size = sizeof(header);
+		header.cylinders = cylinders;
+		header.surfaces = surfaces;
+		header.sectors = sectors;
+		header.sector_size = sector_size;
+		
+		FILEIO *fio = new FILEIO();
+		if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
+			fio->Fwrite(&header, sizeof(header), 1);
+			void *empty = calloc(sector_size, 1);
+#if 0
+			fio->Fwrite(empty, sector_size, sectors * surfaces * cylinders);
+#else
+			for(int i = 0; i < sectors * surfaces * cylinders; i++) {
+				fio->Fwrite(empty, sector_size, 1);
+			}
+#endif
+			free(empty);
+			fio->Fclose();
+		}
+		delete fio;
+		return true;
+	} else if(check_file_extension(file_path, _T(".hdi"))) {
+		// ANEX86
+		typedef struct hdi_header_s {
+			int32_t dummy;		// + 0
+			int32_t hdd_type;	// + 4
+			int32_t header_size;	// + 8
+			int32_t hdd_size;	// +12
+			int32_t sector_size;	// +16
+			int32_t sectors;	// +20
+			int32_t surfaces;	// +24
+			int32_t cylinders;	// +28
+			uint8_t padding[0x1000 - sizeof(int32_t) * 8];
+		} hdi_header_t;
+		hdi_header_t header;
+		
+		memset(&header, 0, sizeof(header));
+		header.hdd_type = 0; // ???
+		header.header_size = sizeof(header);
+		header.hdd_size = sector_size * sectors * surfaces * cylinders;
+		header.sector_size = sector_size;
+		header.sectors = sectors;
+		header.surfaces = surfaces;
+		header.cylinders = cylinders;
+		
+		FILEIO *fio = new FILEIO();
+		if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
+			fio->Fwrite(&header, sizeof(header), 1);
+			void *empty = calloc(sector_size, 1);
+#if 0
+			fio->Fwrite(empty, sector_size, sectors * surfaces * cylinders);
+#else
+			for(int i = 0; i < sectors * surfaces * cylinders; i++) {
+				fio->Fwrite(empty, sector_size, 1);
+			}
+#endif
+			free(empty);
+			fio->Fclose();
+		}
+		delete fio;
+		return true;
+	}
+	// unknown extension
+	return false;
+}
+
 void EMU::open_hard_disk(int drv, const _TCHAR* file_path)
 {
 	if(drv < USE_HARD_DISK) {

@@ -223,25 +223,41 @@ public:
 	}
 	virtual void __FASTCALL write_data16(uint32_t addr, uint32_t data)
 	{
-		write_data8(addr, data & 0xff);
+		write_data8(addr,     (data     ) & 0xff);
 		write_data8(addr + 1, (data >> 8) & 0xff);
 	}
 	virtual uint32_t __FASTCALL read_data16(uint32_t addr)
 	{
-		uint32_t val = read_data8(addr);
+		uint32_t val;
+		val  = read_data8(addr    );
 		val |= read_data8(addr + 1) << 8;
 		return val;
 	}
 	virtual void __FASTCALL write_data32(uint32_t addr, uint32_t data)
 	{
-		write_data16(addr, data & 0xffff);
-		write_data16(addr + 2, (data >> 16) & 0xffff);
+		if(!(addr & 1)) {
+			write_data16(addr,     (data      ) & 0xffff);
+			write_data16(addr + 2, (data >> 16) & 0xffff);
+		} else {
+			write_data8 (addr,     (data      ) & 0x00ff);
+			write_data16(addr + 1, (data >>  8) & 0xffff);
+			write_data8 (addr + 3, (data >> 24) & 0x00ff);
+		}
 	}
 	virtual uint32_t __FASTCALL read_data32(uint32_t addr)
 	{
-		uint32_t val = read_data16(addr);
-		val |= read_data16(addr + 2) << 16;
-		return val;
+		if(!(addr & 1)) {
+			uint32_t val;
+			val  = read_data16(addr    );
+			val |= read_data16(addr + 2) << 16;
+			return val;
+		} else {
+			uint32_t val;
+			val  = read_data8 (addr    );
+			val |= read_data16(addr + 1) <<  8;
+			val |= read_data8 (addr + 3) << 24;
+			return val;
+		}
 	}
 	virtual void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait)
 	{
@@ -255,33 +271,53 @@ public:
 	}
 	virtual void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int* wait)
 	{
-		int wait_l, wait_h;
-		write_data8w(addr, data & 0xff, &wait_l);
-		write_data8w(addr + 1, (data >> 8) & 0xff, &wait_h);
-		*wait = wait_l + wait_h;
+		int wait_0, wait_1;
+		write_data8w(addr,     (data     ) & 0xff, &wait_0);
+		write_data8w(addr + 1, (data >> 8) & 0xff, &wait_1);
+		*wait = wait_0 + wait_1;
 	}
 	virtual uint32_t __FASTCALL read_data16w(uint32_t addr, int* wait)
 	{
-		int wait_l, wait_h;
-		uint32_t val = read_data8w(addr, &wait_l);
-		val |= read_data8w(addr + 1, &wait_h) << 8;
-		*wait = wait_l + wait_h;
+		int wait_0, wait_1;
+		uint32_t val;
+		val  = read_data8w(addr,     &wait_0);
+		val |= read_data8w(addr + 1, &wait_1) << 8;
+		*wait = wait_0 + wait_1;
 		return val;
 	}
 	virtual void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int* wait)
 	{
-		int wait_l, wait_h;
-		write_data16w(addr, data & 0xffff, &wait_l);
-		write_data16w(addr + 2, (data >> 16) & 0xffff, &wait_h);
-		*wait = wait_l + wait_h;
+		if(!(addr & 1)) {
+			int wait_0, wait_1;
+			write_data16w(addr,     (data      ) & 0xffff, &wait_0);
+			write_data16w(addr + 2, (data >> 16) & 0xffff, &wait_1);
+			*wait = wait_0 + wait_1;
+		} else {
+			int wait_0, wait_1, wait_2;
+			write_data8w (addr,     (data      ) & 0x00ff, &wait_0);
+			write_data16w(addr + 1, (data >>  8) & 0xffff, &wait_1);
+			write_data8w (addr + 3, (data >> 24) & 0x00ff, &wait_2);
+			*wait = wait_0 + wait_1 + wait_2;
+		}
 	}
 	virtual uint32_t __FASTCALL read_data32w(uint32_t addr, int* wait)
 	{
-		int wait_l, wait_h;
-		uint32_t val = read_data16w(addr, &wait_l);
-		val |= read_data16w(addr + 2, &wait_h) << 16;
-		*wait = wait_l + wait_h;
-		return val;
+		if(!(addr & 1)) {
+			int wait_0, wait_1;
+			uint32_t val;
+			val  = read_data16w(addr,     &wait_0);
+			val |= read_data16w(addr + 2, &wait_1) << 16;
+			*wait = wait_0 + wait_1;
+			return val;
+		} else {
+			int wait_0, wait_1, wait_2;
+			uint32_t val;
+			val  = read_data8w (addr,     &wait_0);
+			val |= read_data16w(addr + 1, &wait_1) <<  8;
+			val |= read_data8w (addr + 3, &wait_2) << 24;
+			*wait = wait_0 + wait_1 + wait_2;
+			return val;
+		}
 	}
 	virtual uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait)
 	{
@@ -348,25 +384,41 @@ public:
 	}
 	virtual void __FASTCALL write_io16(uint32_t addr, uint32_t data)
 	{
-		write_io8(addr, data & 0xff);
+		write_io8(addr    , (data     ) & 0xff);
 		write_io8(addr + 1, (data >> 8) & 0xff);
 	}
 	virtual uint32_t __FASTCALL read_io16(uint32_t addr)
 	{
-		uint32_t val = read_io8(addr);
+		uint32_t val;
+		val  = read_io8(addr    );
 		val |= read_io8(addr + 1) << 8;
 		return val;
 	}
 	virtual void __FASTCALL write_io32(uint32_t addr, uint32_t data)
 	{
-		write_io16(addr, data & 0xffff);
-		write_io16(addr + 2, (data >> 16) & 0xffff);
+		if(!(addr & 1)) {
+			write_io16(addr,     (data      ) & 0xffff);
+			write_io16(addr + 2, (data >> 16) & 0xffff);
+		} else {
+			write_io8 (addr,     (data      ) & 0x00ff);
+			write_io16(addr + 1, (data >>  8) & 0xffff);
+			write_io8 (addr + 3, (data >> 24) & 0x00ff);
+		}
 	}
 	virtual uint32_t __FASTCALL read_io32(uint32_t addr)
 	{
-		uint32_t val = read_io16(addr);
-		val |= read_io16(addr + 2) << 16;
-		return val;
+		if(!(addr & 1)) {
+			uint32_t val;
+			val  = read_io16(addr    );
+			val |= read_io16(addr + 2) << 16;
+			return val;
+		} else {
+			uint32_t val;
+			val  = read_io8 (addr    );
+			val |= read_io16(addr + 1) <<  8;
+			val |= read_io8 (addr + 3) << 24;
+			return val;
+		}
 	}
 	virtual void __FASTCALL write_io8w(uint32_t addr, uint32_t data, int* wait)
 	{
@@ -380,33 +432,53 @@ public:
 	}
 	virtual void __FASTCALL write_io16w(uint32_t addr, uint32_t data, int* wait)
 	{
-		int wait_l, wait_h;
-		write_io8w(addr, data & 0xff, &wait_l);
-		write_io8w(addr + 1, (data >> 8) & 0xff, &wait_h);
-		*wait = wait_l + wait_h;
+		int wait_0, wait_1;
+		write_io8w(addr,     (data     ) & 0xff, &wait_0);
+		write_io8w(addr + 1, (data >> 8) & 0xff, &wait_1);
+		*wait = wait_0 + wait_1;
 	}
 	virtual uint32_t __FASTCALL read_io16w(uint32_t addr, int* wait)
 	{
-		int wait_l, wait_h;
-		uint32_t val = read_io8w(addr, &wait_l);
-		val |= read_io8w(addr + 1, &wait_h) << 8;
-		*wait = wait_l + wait_h;
+		int wait_0, wait_1;
+		uint32_t val;
+		val  = read_io8w(addr,     &wait_0);
+		val |= read_io8w(addr + 1, &wait_1) << 8;
+		*wait = wait_0 + wait_1;
 		return val;
 	}
 	virtual void __FASTCALL write_io32w(uint32_t addr, uint32_t data, int* wait)
 	{
-		int wait_l, wait_h;
-		write_io16w(addr, data & 0xffff, &wait_l);
-		write_io16w(addr + 2, (data >> 16) & 0xffff, &wait_h);
-		*wait = wait_l + wait_h;
+		if(!(addr & 1)) {
+			int wait_0, wait_1;
+			write_io16w(addr,     (data      ) & 0xffff, &wait_0);
+			write_io16w(addr + 2, (data >> 16) & 0xffff, &wait_1);
+			*wait = wait_0 + wait_1;
+		} else {
+			int wait_0, wait_1, wait_2;
+			write_io8w (addr,     (data      ) & 0x00ff, &wait_0);
+			write_io16w(addr + 1, (data >>  8) & 0xffff, &wait_1);
+			write_io8w (addr + 3, (data >> 24) & 0x00ff, &wait_2);
+			*wait = wait_0 + wait_1 + wait_2;
+		}
 	}
 	virtual uint32_t __FASTCALL read_io32w(uint32_t addr, int* wait)
 	{
-		int wait_l, wait_h;
-		uint32_t val = read_io16w(addr, &wait_l);
-		val |= read_io16w(addr + 2, &wait_h) << 16;
-		*wait = wait_l + wait_h;
-		return val;
+		if(!(addr & 1)) {
+			int wait_0, wait_1;
+			uint32_t val;
+			val  = read_io16w(addr,     &wait_0);
+			val |= read_io16w(addr + 2, &wait_1) << 16;
+			*wait = wait_0 + wait_1;
+			return val;
+		} else {
+			int wait_0, wait_1, wait_2;
+			uint32_t val;
+			val  = read_io8w (addr,     &wait_0);
+			val |= read_io16w(addr + 1, &wait_1) <<  8;
+			val |= read_io8w (addr + 3, &wait_2) << 24;
+			*wait = wait_0 + wait_1 + wait_2;
+			return val;
+		}
 	}
 	virtual void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data)
 	{
@@ -468,25 +540,41 @@ public:
 	}
 	virtual void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	{
-		write_memory_mapped_io8(addr, data & 0xff);
+		write_memory_mapped_io8(addr,     (data     ) & 0xff);
 		write_memory_mapped_io8(addr + 1, (data >> 8) & 0xff);
 	}
 	virtual uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr)
 	{
-		uint32_t val = read_memory_mapped_io8(addr);
+		uint32_t val;
+		val =  read_memory_mapped_io8(addr    );
 		val |= read_memory_mapped_io8(addr + 1) << 8;
 		return val;
 	}
 	virtual void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data)
 	{
-		write_memory_mapped_io16(addr, data & 0xffff);
-		write_memory_mapped_io16(addr + 2, (data >> 16) & 0xffff);
+		if(!(addr & 1)) {
+			write_memory_mapped_io16(addr,     (data      ) & 0xffff);
+			write_memory_mapped_io16(addr + 2, (data >> 16) & 0xffff);
+		} else {
+			write_memory_mapped_io8 (addr,     (data      ) & 0x00ff);
+			write_memory_mapped_io16(addr + 1, (data >>  8) & 0xffff);
+			write_memory_mapped_io8 (addr + 3, (data >> 24) & 0x00ff);
+		}
 	}
 	virtual uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr)
 	{
-		uint32_t val = read_memory_mapped_io16(addr);
-		val |= read_memory_mapped_io16(addr + 2) << 16;
-		return val;
+		if(!(addr & 1)) {
+			uint32_t val;
+			val  = read_memory_mapped_io16(addr    );
+			val |= read_memory_mapped_io16(addr + 2) << 16;
+			return val;
+		} else {
+			uint32_t val;
+			val  = read_memory_mapped_io8 (addr    );
+			val |= read_memory_mapped_io16(addr + 1) <<  8;
+			val |= read_memory_mapped_io8 (addr + 3) << 24;
+			return val;
+		}
 	}
 	virtual void __FASTCALL write_memory_mapped_io8w(uint32_t addr, uint32_t data, int* wait)
 	{
@@ -500,33 +588,53 @@ public:
 	}
 	virtual void __FASTCALL write_memory_mapped_io16w(uint32_t addr, uint32_t data, int* wait)
 	{
-		int wait_l, wait_h;
-		write_memory_mapped_io8w(addr, data & 0xff, &wait_l);
-		write_memory_mapped_io8w(addr + 1, (data >> 8) & 0xff, &wait_h);
-		*wait = wait_l + wait_h;
+		int wait_0, wait_1;
+		write_memory_mapped_io8w(addr,     (data     ) & 0xff, &wait_0);
+		write_memory_mapped_io8w(addr + 1, (data >> 8) & 0xff, &wait_1);
+		*wait = wait_0 + wait_1;
 	}
 	virtual uint32_t __FASTCALL  read_memory_mapped_io16w(uint32_t addr, int* wait)
 	{
-		int wait_l, wait_h;
-		uint32_t val = read_memory_mapped_io8w(addr, &wait_l);
-		val |= read_memory_mapped_io8w(addr + 1, &wait_h) << 8;
-		*wait = wait_l + wait_h;
+		int wait_0, wait_1;
+		uint32_t val;
+		val  = read_memory_mapped_io8w(addr,     &wait_0);
+		val |= read_memory_mapped_io8w(addr + 1, &wait_1) << 8;
+		*wait = wait_0 + wait_1;
 		return val;
 	}
 	virtual void __FASTCALL write_memory_mapped_io32w(uint32_t addr, uint32_t data, int* wait)
 	{
-		int wait_l, wait_h;
-		write_memory_mapped_io16w(addr, data & 0xffff, &wait_l);
-		write_memory_mapped_io16w(addr + 2, (data >> 16) & 0xffff, &wait_h);
-		*wait = wait_l + wait_h;
+		if(!(addr & 1)) {
+			int wait_0, wait_1;
+			write_memory_mapped_io16w(addr,     (data      ) & 0xffff, &wait_0);
+			write_memory_mapped_io16w(addr + 2, (data >> 16) & 0xffff, &wait_1);
+			*wait = wait_0 + wait_1;
+		} else {
+			int wait_0, wait_1, wait_2;
+			write_memory_mapped_io8w (addr,     (data      ) & 0x00ff, &wait_0);
+			write_memory_mapped_io16w(addr + 1, (data >>  8) & 0xffff, &wait_1);
+			write_memory_mapped_io8w (addr + 3, (data >> 24) & 0x00ff, &wait_2);
+			*wait = wait_0 + wait_1 + wait_2;
+		}
 	}
 	virtual uint32_t __FASTCALL read_memory_mapped_io32w(uint32_t addr, int* wait)
 	{
-		int wait_l, wait_h;
-		uint32_t val = read_memory_mapped_io16w(addr, &wait_l);
-		val |= read_memory_mapped_io16w(addr + 2, &wait_h) << 16;
-		*wait = wait_l + wait_h;
-		return val;
+		if(!(addr & 1)) {
+			int wait_0, wait_1;
+			uint32_t val;
+			val  = read_memory_mapped_io16w(addr,     &wait_0);
+			val |= read_memory_mapped_io16w(addr + 2, &wait_1) << 16;
+			*wait = wait_0 + wait_1;
+			return val;
+		} else {
+			int wait_0, wait_1, wait_2;
+			uint32_t val;
+			val  = read_memory_mapped_io8w (addr,     &wait_0);
+			val |= read_memory_mapped_io16w(addr + 1, &wait_1) <<  8;
+			val |= read_memory_mapped_io8w (addr + 3, &wait_2) << 24;
+			*wait = wait_0 + wait_1 + wait_2;
+			return val;
+		}
 	}
 	
 	// device to device
@@ -624,15 +732,15 @@ public:
 	}
 	
 	// bios
-	virtual bool bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+	virtual bool bios_call_far_i86(uint32_t PC, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 	{
 		return false;
 	}
-	virtual bool bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+	virtual bool bios_int_i86(int intnum, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 	{
 		return false;
 	}
-	virtual bool bios_call_far_ia32(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+	virtual bool bios_call_far_ia32(uint32_t PC, uint32_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 	{
 		return false;
 	}
@@ -664,12 +772,26 @@ public:
 		}
 		return event_manager->this_device_id;
 	}
+	virtual uint32_t get_event_clocks()
+	{
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		return event_manager->get_event_clocks();
+	}
 	virtual bool is_primary_cpu(DEVICE* device)
 	{
 		if(event_manager == NULL) {
 			event_manager = vm->first_device->next_device;
 		}
 		return event_manager->is_primary_cpu(device);
+	}
+	virtual uint32_t get_cpu_clocks(DEVICE* device)
+	{
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		return event_manager->get_cpu_clocks(device);
 	}
 	virtual void update_extra_event(int clock)
 	{

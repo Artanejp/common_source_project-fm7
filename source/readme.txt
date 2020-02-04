@@ -352,6 +352,8 @@ Save/Load State info:
 	MAME i286 core
 - vm/i386.*
 	MAME i386 core
+- vm/i386_np21.*
+	Neko Project 21/W i386 core
 - vm/i8259.*
 	Neko Project 2 and MESS 8259 core
 - vm/ld700.*

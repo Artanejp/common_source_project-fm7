@@ -14,7 +14,7 @@
 #include "../../emu.h"
 #include "device.h"
 #include "../../common.h"
-//#include "../memory.h"
+#include "../memory.h"
 #include "./towns_common.h"
 
 #define SIG_FMTOWNS_MACHINE_ID	1
@@ -70,9 +70,10 @@ namespace FMTOWNS {
 }
 	
 namespace FMTOWNS {
-class TOWNS_MEMORY : public DEVICE
+class TOWNS_MEMORY : public MEMORY
 {
 protected:
+#if 0
 	typedef struct {
 		DEVICE* dev;
 		uint8_t* memory;
@@ -84,6 +85,7 @@ protected:
 	int addr_shift;
 	uint8_t *rd_dummy;
 	uint8_t *wr_dummy;
+#endif
 	
 	bool _MEMORY_DISABLE_DMA_MMIO;
 	bool bank_size_was_set;
@@ -150,13 +152,11 @@ protected:
 	virtual void config_page00();
 	
 public:
-	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu) {
 		set_device_name(_T("FMTOWNS_MEMORY"));
 		addr_max = 0x100000000; // 4GiB
 		bank_size = 1024; // 1024
 		addr_shift = 10;
-		addr_mask = 0;
-		bank_mask = 0;
 		bank_size_was_set = false;
 		addr_max_was_set = false;
 		
@@ -211,7 +211,7 @@ public:
 	void initialize();
 	void release();
 	void reset();
-
+#if 0
 	// Belows are SUBSET of MEMORY::. Because access patterns of Towns are differ per DEVICEs.
 	void set_memory_r(uint32_t start, uint32_t end, uint8_t *memory);
 	void set_memory_w(uint32_t start, uint32_t end, uint8_t *memory);
@@ -256,6 +256,7 @@ public:
 	// Using [read|write]_dma_data16 for DMAC 16bit mode (SCSI/CDROM?).
 	void __FASTCALL write_dma_data16w(uint32_t addr, uint32_t data, int *wait);
 	uint32_t __FASTCALL read_dma_data16w(uint32_t addr, int *wait);
+#endif
 	
 	virtual void     __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr);

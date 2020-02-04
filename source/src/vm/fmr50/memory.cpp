@@ -12,7 +12,7 @@
 #if defined(HAS_I286)
 #include "../i286.h"
 #else
-#include "../i386.h"
+#include "../i386_np21.h"
 #endif
 
 namespace FMR50 {

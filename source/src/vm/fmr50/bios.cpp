@@ -318,7 +318,7 @@ void BIOS::event_frame()
 		}													  \
 	}
 
-bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	if((PC == 0xfffc4) || (PC == 0xfffc9) || (PC == 0xfffd3)) {
 		uint32_t regs32[10] = {0};
@@ -336,7 +336,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 	return false;
 }
 
-bool BIOS::bios_call_far_ia32(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+bool BIOS::bios_call_far_ia32(uint32_t PC, uint32_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	pair32_t *regpair = (pair32_t *)regs;
 	int drv = AL & 0xf;

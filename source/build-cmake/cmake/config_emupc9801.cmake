@@ -5,6 +5,7 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES
+
 		   i8237.cpp
 		   event.cpp
 )

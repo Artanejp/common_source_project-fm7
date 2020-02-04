@@ -13,6 +13,7 @@ set(USE_FMGEN ON)
 set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 set(VMFILES
+  i386.cpp
   event.cpp
   
   scsi_host.cpp

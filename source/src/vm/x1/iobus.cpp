@@ -32,6 +32,7 @@ void IOBUS::initialize()
 {
 	prev_clock = vram_wait_index = 0;
 	column40 = true;
+	memset(vram, 0, sizeof(vram));
 #ifdef USE_DEBUGGER
 	d_debugger->set_device_name(_T("Debugger (I/O Bus)"));
 	d_debugger->set_context_mem(this);
@@ -41,7 +42,6 @@ void IOBUS::initialize()
 
 void IOBUS::reset()
 {
-	memset(vram, 0, sizeof(vram));
 	vram_ofs_b = 0x0000;
 	vram_ofs_r = 0x4000;
 	vram_ofs_g = 0x8000;

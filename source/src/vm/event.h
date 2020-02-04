@@ -196,6 +196,23 @@ public:
 	{
 		return this_device_id;
 	}
+	uint32_t get_event_clocks()
+	{
+		return d_cpu[0].cpu_clocks;
+	}
+	bool is_primary_cpu(DEVICE* device)
+	{
+		return (d_cpu[0].device == device);
+	}
+	uint32_t get_cpu_clocks(DEVICE* device)
+	{
+		for(int index = 0; index < dcount_cpu; index++) {
+			if(d_cpu[index].device == device) {
+				return d_cpu[index].cpu_clocks;
+			}
+		}
+		return CPU_CLOCKS;
+	}
 	void set_frames_per_sec(double new_frames_per_sec)
 	{
 		next_frames_per_sec = new_frames_per_sec;
@@ -209,10 +226,6 @@ public:
 	int get_lines_per_frame()
 	{
 		return next_lines_per_frame;
-	}
-	bool is_primary_cpu(DEVICE* device)
-	{
-		return (d_cpu[0].device == device);
 	}
 	void update_extra_event(int clock);
 	void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id);

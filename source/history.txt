@@ -1,3 +1,37 @@
+2/1/2020
+
+[EMU] support to create blank hard disk image (*.hdi/*.nhd)
+[WINMAIN] add menu items to mount blank hard disk image
+
+[VM/DEVICE] improve memory/io bus interfaces for 16/32bit access
+[VM/DEVICE] add get_event_clocks() and get_cpu_clocks()
+[VM/EVENT] add get_event_clocks() and get_cpu_clocks()
+[VM/I386_NP21] support 80386 (based on Neko Project 21/W i386 core)
+[VM/I8259] make update_intr() public
+[VM/MEMORY] improve memory bus interfaces for 16/32bit access
+[VM/MEMORY] make rd_table/wr_table/addr_shift public
+[VM/UPD7220] fix stop command (thanks Neko Project 21/W)
+
+[FMR50] change i386 core from MAME to Neko Project 21/W
+[FMR50] support to mount blank hard disk image
+[MZ2500] support to mount blank hard disk image
+[MZ2800] support to mount blank hard disk image
+[PC9801] change i386 core from MAME to Neko Project 21/W
+[PC9801] support to mount blank hard disk image
+[PC9801/DISPLAY] improve code for big-endian host machine
+[PC9801/FMSOUND] support 86-type PCM (thanks Neko Project 21/W)
+[PC9801/MEMBUS] improve memory bus interfaces for 16/32bit access
+[PC9801/MOUSE] fix irq number in hireso mode
+[PC9801/SASI] improve irq/drq signals to generate from sasi bus signals
+[X1TURBO] support to mount blank hard disk image
+[X1TURBO/IOBUS] fix not to clear vram in reset()
+
+
+1/23/2020
+
+[VM/Z80DMA] fix byte counter read by read mask follows command (thanks Mr.Sato)
+
+
 12/31/2019
 
 [MZ2500/CRTC] apply crtc patch (thanks Mr.Koucha-Youkan)
