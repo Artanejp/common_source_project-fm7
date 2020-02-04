@@ -211,53 +211,21 @@ public:
 	void initialize();
 	void release();
 	void reset();
-#if 0
-	// Belows are SUBSET of MEMORY::. Because access patterns of Towns are differ per DEVICEs.
-	void set_memory_r(uint32_t start, uint32_t end, uint8_t *memory);
-	void set_memory_w(uint32_t start, uint32_t end, uint8_t *memory);
-	void set_memory_rw(uint32_t start, uint32_t end, uint8_t *memory);
-	void set_memory_mapped_io_r(uint32_t start, uint32_t end, DEVICE *device);
-	void set_memory_mapped_io_w(uint32_t start, uint32_t end, DEVICE *device);
-	void set_memory_mapped_io_rw(uint32_t start, uint32_t end, DEVICE *device);
-	void unset_memory_r(uint32_t start, uint32_t end);
-	void unset_memory_w(uint32_t start, uint32_t end);
-	void unset_memory_rw(uint32_t start, uint32_t end);
-	void copy_table_r(uint32_t to, uint32_t start, uint32_t end);
-	void copy_table_w(uint32_t to, uint32_t start, uint32_t end);
-	void copy_table_rw(uint32_t to, uint32_t start, uint32_t end);
-	void set_wait_r(uint32_t start, uint32_t end, int wait);
-	void set_wait_w(uint32_t start, uint32_t end, int wait);
-	void set_wait_rw(uint32_t start, uint32_t end, int wait);
-
-	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_data8(uint32_t addr);
 	// Using [read|write]_data[16|32] to be faster memory access.
 	void __FASTCALL write_data16(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_data16(uint32_t addr);
 	void __FASTCALL write_data32(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_data32(uint32_t addr);
-	// With Wait
-	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait);
 	void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int* wait);
 	uint32_t __FASTCALL read_data16w(uint32_t addr, int* wait);
 	void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int* wait);
 	uint32_t __FASTCALL read_data32w(uint32_t addr, int* wait);
-	
-	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_dma_data8(uint32_t addr);
 	// Using [read|write]_dma_data16 for DMAC 16bit mode (SCSI/CDROM?).
 	void __FASTCALL write_dma_data16(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_dma_data16(uint32_t addr);
-
-	// With wait
-	void __FASTCALL write_dma_data8w(uint32_t addr, uint32_t data, int *wait);
-	uint32_t __FASTCALL read_dma_data8w(uint32_t addr, int *wait);
-	// Using [read|write]_dma_data16 for DMAC 16bit mode (SCSI/CDROM?).
 	void __FASTCALL write_dma_data16w(uint32_t addr, uint32_t data, int *wait);
 	uint32_t __FASTCALL read_dma_data16w(uint32_t addr, int *wait);
-#endif
-	
+
 	virtual void     __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
 	virtual uint32_t __FASTCALL read_io16(uint32_t addr);

@@ -374,7 +374,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_intr(pic);
 	cpu->set_context_dma(dma);
 	cpu->set_context_bios(NULL);
-//	cpu->set_context_extreset(memory, SIG_FMTOWNS_NOTIFY_RESET, 0xffffffff);
+	cpu->set_context_extreset(memory, SIG_FMTOWNS_NOTIFY_RESET, 0xffffffff);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
