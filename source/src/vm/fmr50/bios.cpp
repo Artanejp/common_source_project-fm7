@@ -1249,7 +1249,7 @@ write_id:
 	return false;
 }
 
-bool BIOS::bios_int_ia32(int intnum, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+bool BIOS::bios_int_ia32(int intnum, uint32_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	if(intnum == 0x93) {
 		// disk bios
@@ -1258,7 +1258,7 @@ bool BIOS::bios_int_ia32(int intnum, uint32_t regs[], uint16_t sregs[], int32_t*
 	return false;
 }
 
-bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+bool BIOS::bios_int_i86(int intnum, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	if(intnum == 0x93) {
 		// disk bios
