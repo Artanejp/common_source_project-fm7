@@ -52,8 +52,7 @@ private:
 	
 	int get_sample();
 #endif
- #endif
-
+#endif
 	int sample_rate;
 	int sample_samples;
 	int volume_r;

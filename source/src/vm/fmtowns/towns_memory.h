@@ -20,17 +20,6 @@
 #define SIG_FMTOWNS_MACHINE_ID	1
 #define SIG_MEMORY_EXTNMI       2
 
-// Page 0 (0000:00000 - 0000:fffff) is another routine.
-#define TOWNS_BANK_SHIFT 10
-#define TOWNS_BANK_SIZE (1 << TOWNS_BANK_SHIFT)
-// Page0 size is 1MB / 2KB.
-#define TOWNS_BANK000_BANK_SIZE 512
-
-// C000:00000 - C1f0:fffff is 32MB / 32KB 
-#define TOWNS_BANKC0x_BANK_SIZE 1024
-// C200:00000 - C230:fffff is 4MB / 2KB 
-#define TOWNS_BANKC2x_BANK_SIZE 2048
-
 // MAP:
 // 00000000 - 000fffff : SYSTEM RAM PAGE 0 (Similar to FMR-50).
 // 00100000 - 3fffffff : EXTRA RAM (for i386 native mode.Page size is 1MB.)
@@ -73,28 +62,10 @@ namespace FMTOWNS {
 class TOWNS_MEMORY : public MEMORY
 {
 protected:
-#if 0
-	typedef struct {
-		DEVICE* dev;
-		uint8_t* memory;
-		int wait;
-	} bank_t;
-	
-	bank_t *rd_table;
-	bank_t *wr_table;
-	int addr_shift;
-	uint8_t *rd_dummy;
-	uint8_t *wr_dummy;
-#endif
-	
-	bool _MEMORY_DISABLE_DMA_MMIO;
-	bool bank_size_was_set;
-	bool addr_max_was_set;
-	
 	DEVICE* d_vram;
 	DEVICE* d_sprite;       // 0x81000000 - 0x8101ffff ?
 	DEVICE* d_romcard[2]; // 0xc0000000 - 0xc0ffffff / 0xc1000000 - 0xc1ffffff
-	DEVICE* d_pcm;             // 0xc2200000 - 0xc2200fff 
+//	DEVICE* d_pcm;             // 0xc2200000 - 0xc2200fff 
 	DEVICE* d_beep;
 	DEVICE* d_dmac;
 	I386*   d_cpu;
@@ -104,6 +75,7 @@ protected:
 	DEVICE* d_msdos;
 	DEVICE* d_serialrom;
 	DEVICE* d_font;
+	DEVICE* d_font_20pix;
 
 	outputs_t outputs_ram_wait;
 	outputs_t outputs_rom_wait;
@@ -132,22 +104,10 @@ protected:
 	bool software_reset;
 	bool nmi_vector_protect;
 	
-	// ROM
-	uint8_t rom_font1[0x40000];   // 0xc2100000 - 0xc23f0000
-#if 0
-	uint8_t rom_font20[0x80000];
-#endif
 	// misc
 	uint32_t vram_size; // Normally 512KB.
 	bool initialized;
 
-
-	uint8_t* read_bank_adrs_cx[0x100000]; // Per 4KB.
-	uint8_t* write_bank_adrs_cx[0x100000]; // Per 4KB.
-	DEVICE*   device_bank_adrs_cx[0x100000]; // Per 4KB.
-	uint32_t type_bank_adrs_cx[0x100000]; // Per 4KB.
-
-//	virtual void initialize_tables(void);
 	virtual void set_wait_values();
 	virtual void config_page00();
 	
@@ -160,9 +120,6 @@ public:
 		bank_size_was_set = false;
 		addr_max_was_set = false;
 		
-		rd_table = wr_table = NULL;
-		rd_dummy = wr_dummy = NULL;
-
 		_MEMORY_DISABLE_DMA_MMIO = false;
 		
 		extram_size = 0x00200000; // Basically 2MB
@@ -170,13 +127,15 @@ public:
 		d_cpu = NULL;
 		d_vram = NULL;
 		d_dmac = NULL;
-		d_pcm = NULL;
+//		d_pcm = NULL;
 		d_sprite = NULL;
 		d_romcard[0] = d_romcard[1] = NULL;
 		d_beep = NULL;
 		d_sysrom = NULL;
 		d_dictionary = NULL;
 		d_msdos = NULL;
+		d_font = NULL;
+		d_font_20pix = NULL;
 		initialized = false;
 
 		initialize_output_signals(&outputs_ram_wait);
@@ -211,24 +170,15 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	// Using [read|write]_data[16|32] to be faster memory access.
-	void __FASTCALL write_data16(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_data16(uint32_t addr);
-	void __FASTCALL write_data32(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_data32(uint32_t addr);
-	void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t __FASTCALL read_data16w(uint32_t addr, int* wait);
-	void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t __FASTCALL read_data32w(uint32_t addr, int* wait);
-	// Using [read|write]_dma_data16 for DMAC 16bit mode (SCSI/CDROM?).
-	void __FASTCALL write_dma_data16(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_dma_data16(uint32_t addr);
-	void __FASTCALL write_dma_data16w(uint32_t addr, uint32_t data, int *wait);
-	uint32_t __FASTCALL read_dma_data16w(uint32_t addr, int *wait);
-
 	virtual void     __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
 	virtual uint32_t __FASTCALL read_io16(uint32_t addr);
+
+	uint32_t __FASTCALL read_data16w(uint32_t addr, int* wait);
+	uint32_t __FASTCALL read_data32w(uint32_t addr, int* wait);
+	void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int* wait);
+	void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int* wait);
+	
 
 	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
@@ -296,6 +246,10 @@ public:
 	{
 		d_font = device;
 	}
+	void set_context_font_20pix_rom(DEVICE* device)
+	{
+		d_font_20pix = device;
+	}
 	void set_context_dictionary(DEVICE* device)
 	{
 		d_dictionary = device;
@@ -316,10 +270,10 @@ public:
 	{
 		d_romcard[num & 1] = device;
 	}
-	void set_context_pcm(DEVICE* device)
-	{
-		d_pcm = device;
-	}
+//	void set_context_pcm(DEVICE* device)
+//	{
+//		d_pcm = device;
+//	}
 	void set_context_serial_rom(DEVICE* device)
 	{
 		d_serialrom = device;
@@ -333,35 +287,6 @@ public:
 		cpu_id = val & 0x07;
 	}
 
-	// Unique functions.
-	void set_addr_max(int64_t size)
-	{
-		// Allow to modify before initialize() or set_foo_r|w|rw()..
-		if(rd_table == NULL) {
-			addr_max_was_set = true;
-			addr_max = size;
-		}
-	}
-	void set_bank_size(int64_t size)
-	{
-		if(rd_table == NULL) {
-			bank_size_was_set = true;
-			bank_size = size;
-		}
-	}
-	uint64_t get_addr_max()
-	{
-		return addr_max;
-	}
-	uint64_t get_bank_size()
-	{
-		return bank_size;
-	}
-	uint64_t addr_max;
-	uint64_t bank_size;
-
-	uint64_t addr_mask;
-	uint64_t bank_mask;
 };
 
 }

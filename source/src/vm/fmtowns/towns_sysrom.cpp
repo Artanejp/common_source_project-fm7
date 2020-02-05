@@ -92,8 +92,8 @@ uint32_t SYSROM::read_memory_mapped_io16(uint32_t addr)
 	int dummy;
 	nd.w = 0x00;
 	// OK?
-	nd.b.l = read_memory_mapped_io8((addr & 0xfffffffe) + 0);
-	nd.b.h = read_memory_mapped_io8((addr & 0xfffffffe) + 1);
+	nd.b.l = read_memory_mapped_io8(addr + 0);
+	nd.b.h = read_memory_mapped_io8(addr + 1);
 	return nd.w;
 }
 
@@ -102,10 +102,10 @@ uint32_t SYSROM::read_memory_mapped_io32(uint32_t addr)
 	pair32_t nd;
 	nd.d = 0x00;
 	// OK?
-	nd.b.l  = read_memory_mapped_io8((addr & 0xfffffffc) + 0);
-	nd.b.h  = read_memory_mapped_io8((addr & 0xfffffffc) + 1);
-	nd.b.h2 = read_memory_mapped_io8((addr & 0xfffffffc) + 2);
-	nd.b.h3 = read_memory_mapped_io8((addr & 0xfffffffc) + 3);
+	nd.b.l  = read_memory_mapped_io8(addr + 0);
+	nd.b.h  = read_memory_mapped_io8(addr + 1);
+	nd.b.h2 = read_memory_mapped_io8(addr + 2);
+	nd.b.h3 = read_memory_mapped_io8(addr + 3);
 	return nd.d;
 }
 	
@@ -144,18 +144,18 @@ void SYSROM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	pair16_t nd;
 	nd.w = (uint16_t)data;
 	// OK?
-	write_memory_mapped_io8((addr & 0xfffffffe) + 0, nd.b.l);
-	write_memory_mapped_io8((addr & 0xfffffffe) + 1, nd.b.h);
+	write_memory_mapped_io8(addr + 0, nd.b.l);
+	write_memory_mapped_io8(addr + 1, nd.b.h);
 }
 
 void SYSROM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 {
 	pair32_t nd;
 	nd.d = data;
-	write_memory_mapped_io8((addr & 0xfffffffc) + 0, nd.b.l);
-	write_memory_mapped_io8((addr & 0xfffffffc) + 1, nd.b.h);
-	write_memory_mapped_io8((addr & 0xfffffffc) + 2, nd.b.h2);
-	write_memory_mapped_io8((addr & 0xfffffffc) + 3, nd.b.h3);
+	write_memory_mapped_io8(addr + 0, nd.b.l);
+	write_memory_mapped_io8(addr + 1, nd.b.h);
+	write_memory_mapped_io8(addr + 2, nd.b.h2);
+	write_memory_mapped_io8(addr + 3, nd.b.h3);
 }
 	
 void SYSROM::write_signal(int ch, uint32_t data, uint32_t mask)

@@ -113,6 +113,7 @@ void I386::release()
 void I386::reset()
 {
 //#if defined(HAS_I386)
+	out_debug_log(_T("RESET"));
 	switch(n_cpu_type) {
 	default:
 	case I386_NP21::N_CPU_TYPE_I386DX:

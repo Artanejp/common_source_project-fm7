@@ -78,6 +78,7 @@ void FMSOUND::release()
 	
 void FMSOUND::reset()
 {
+#if defined(SUPPORT_PC98_OPNA)
 	opna_mask = 0;
 #if defined(SUPPORT_PC98_86PCM)
 	pcm_vol_ctrl = pcm_fifo_ctrl = 0;
@@ -91,6 +92,7 @@ void FMSOUND::reset()
 		pcm_register_id = -1;
 	}
 	pcm_sample_l = pcm_sample_r = 0;
+#endif
 #endif
 }
 
@@ -402,8 +404,10 @@ uint32_t FMSOUND::read_io8(uint32_t addr)
 
 void FMSOUND::set_volume(int ch, int decibel_l, int decibel_r)
 {
+#if defined(SUPPORT_PC98_86PCM)
 	pcm_volume_l = decibel_to_volume(decibel_l);
 	pcm_volume_r = decibel_to_volume(decibel_r);
+#endif
 }
 
 void FMSOUND::initialize_sound(int rate, int samples)
@@ -423,6 +427,7 @@ bool FMSOUND::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
+#if defined(SUPPORT_PC98_OPNA)
 	state_fio->StateValue(opna_mask);
 #if defined(SUPPORT_PC98_86PCM)
 	state_fio->StateValue(pcm_clocks);
@@ -441,6 +446,7 @@ bool FMSOUND::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(pcm_register_id);
 	state_fio->StateValue(pcm_sample_l);
 	state_fio->StateValue(pcm_sample_r);
+#endif
 #endif
 	return true;
 }
