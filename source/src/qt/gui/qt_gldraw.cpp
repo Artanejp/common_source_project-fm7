@@ -19,7 +19,7 @@
 #include <GL/glext.h>
 #include <GL/wglext.h>
 #endif
-#include <GL/glu.h>
+//#include <GL/glu.h>
 
 
 #ifdef USE_OPENMP
