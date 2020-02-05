@@ -25,6 +25,7 @@ set(VM_FMTOWNS_DEV_SRCS
 	towns_cdrom.cpp
 	towns_crtc.cpp
 	towns_memory.cpp
+	towns_scsi_host.cpp
 	towns_sprite.cpp
 	towns_sysrom.cpp
 	towns_vram.cpp

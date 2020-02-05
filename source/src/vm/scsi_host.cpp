@@ -9,6 +9,8 @@
 
 #include "scsi_host.h"
 
+#define EVENT_DATA_QUEUE 1
+
 void SCSI_HOST::reset()
 {
 	data_reg = 0;
@@ -19,29 +21,16 @@ void SCSI_HOST::reset()
 	set_drq(false);
 }
 
-//#ifdef SCSI_HOST_WIDE
+#ifdef SCSI_HOST_WIDE
 void SCSI_HOST::write_dma_io16(uint32_t addr, uint32_t data)
-{
-	#ifdef _SCSI_DEBUG_LOG
-		this->force_out_debug_log(_T("[SCSI_HOST] Write %02X\n"), data);
-	#endif
-	write_signals(&outputs_dat, data & 0xffff);
-	
-	#ifdef SCSI_HOST_AUTO_ACK
-		// set ack to clear req signal immediately
-		if(bsy_status && !io_status) {
-			this->write_signal(SIG_SCSI_ACK, 1, 1);
-		}
-	#endif
-}
-//#else
+#else
 void SCSI_HOST::write_dma_io8(uint32_t addr, uint32_t data)
-//#endif
+#endif
 {
 	#ifdef _SCSI_DEBUG_LOG
 		this->force_out_debug_log(_T("[SCSI_HOST] Write %02X\n"), data);
 	#endif
-	write_signals(&outputs_dat, data & 0xff);
+	write_signals(&outputs_dat, data);
 	
 	#ifdef SCSI_HOST_AUTO_ACK
 		// set ack to clear req signal immediately
@@ -51,14 +40,11 @@ void SCSI_HOST::write_dma_io8(uint32_t addr, uint32_t data)
 	#endif
 }
 
-//#ifdef SCSI_HOST_WIDE
+#ifdef SCSI_HOST_WIDE
 uint32_t SCSI_HOST::read_dma_io16(uint32_t addr)
-{
-	return read_dma_io8(addr);
-}
-//#else
+#else
 uint32_t SCSI_HOST::read_dma_io8(uint32_t addr)
-//#endif
+#endif
 {
 	uint32_t value = data_reg;
 	#ifdef _SCSI_DEBUG_LOG

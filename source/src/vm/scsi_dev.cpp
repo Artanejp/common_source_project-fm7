@@ -406,7 +406,7 @@ void SCSI_DEV::set_dat(int value)
 void SCSI_DEV::set_bsy(int value)
 {
 	#ifdef _SCSI_DEBUG_LOG
-//		this->out_debug_log(_T("[SCSI_DEV:ID=%d] BUSY = %d\n"), scsi_id, value ? 1 : 0);
+		this->out_debug_log(_T("[SCSI_DEV:ID=%d] BUSY = %d\n"), scsi_id, value ? 1 : 0);
 	#endif
 	write_signals(&outputs_bsy, value ? 0xffffffff : 0);
 }

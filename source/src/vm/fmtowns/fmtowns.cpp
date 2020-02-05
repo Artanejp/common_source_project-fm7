@@ -28,7 +28,7 @@
 #include "../pcm1bit.h"
 #include "../harddisk.h"
 #include "../scsi_hdd.h"
-#include "../scsi_host.h"
+#include "./towns_scsi_host.h"
 #include "../upd71071.h"
 
 #include "towns_cdrom.h"
@@ -85,6 +85,7 @@ using FMTOWNS::TOWNS_CDROM;
 using FMTOWNS::TOWNS_CRTC;
 using FMTOWNS::TOWNS_DMAC;
 using FMTOWNS::TOWNS_MEMORY;
+using FMTOWNS::TOWNS_SCSI_HOST;
 using FMTOWNS::TOWNS_SPRITE;
 using FMTOWNS::TOWNS_VRAM;
 
@@ -133,7 +134,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	crtc = new TOWNS_CRTC(this, emu);
 	cdc  = new CDC(this, emu);
-	cdc_scsi = new SCSI_HOST(this, emu);
+	cdc_scsi = new TOWNS_SCSI_HOST(this, emu);
+//	cdc_scsi = new SCSI_HOST(this, emu);
 	cdrom = new TOWNS_CDROM(this, emu);
 
 	memory = new TOWNS_MEMORY(this, emu);
@@ -168,8 +170,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	head_up_sound = new NOISE(this, emu);
 	head_down_sound = new NOISE(this, emu);
 	
-	scsi_host = new SCSI_HOST(this, emu);
-	scsi_host->set_device_name(_T("SCSI HOST"));
+	scsi_host = new TOWNS_SCSI_HOST(this, emu);
+//	scsi_host = new SCSI_HOST(this, emu);
 	
 	for(int i = 0; i < 7; i++) {
 		scsi_hdd[i] = NULL;

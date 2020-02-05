@@ -166,7 +166,7 @@
 #define MB8877_NO_BUSY_AFTER_SEEK
 #define IO_ADDR_MAX		0x10000
 #define SCSI_HOST_AUTO_ACK
-#define SCSI_HOST_WIDE
+//#define SCSI_HOST_WIDE
 #define _SCSI_DEBUG_LOG
 
 // device informations for win32
@@ -269,6 +269,7 @@ namespace FMTOWNS {
 	class TOWNS_CDROM;
 	class TOWNS_DMAC;    // DMAC
 	class TOWNS_MEMORY;
+	class TOWNS_SCSI_HOST;
 	class TOWNS_SPRITE;
 	class TOWNS_VRAM;
 
@@ -321,11 +322,13 @@ protected:
 #endif
 	FMTOWNS::SERIAL_ROM*     serialrom;
 	FMTOWNS::CDC*            cdc;
-	SCSI_HOST*               cdc_scsi;
+	FMTOWNS::TOWNS_SCSI_HOST* cdc_scsi;
+	//SCSI_HOST* cdc_scsi;
 	FMTOWNS::TOWNS_CDROM*    cdrom;
 	
 	FMTOWNS::SCSI* scsi;
-	SCSI_HOST*     scsi_host;
+	FMTOWNS::TOWNS_SCSI_HOST* scsi_host;
+	//SCSI_HOST* scsi_host;
 	SCSI_HDD*      scsi_hdd[8]; //
 
 	int adc_in_ch;

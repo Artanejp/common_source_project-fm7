@@ -17,7 +17,7 @@
 //class VM;
 class SCSI_HOST : public DEVICE
 {
-private:
+protected: // Make pcotected because TOWNS's DMAC may transfer 16bit around SCSI.
 	outputs_t outputs_irq;	// to adaptor
 	outputs_t outputs_drq;
 	
@@ -37,8 +37,8 @@ private:
 	uint32_t bsy_status, cd_status, io_status, msg_status, req_status, ack_status;
 	bool access;
 	
-	void __FASTCALL set_irq(bool value);
-	void __FASTCALL set_drq(bool value);
+	virtual void __FASTCALL set_irq(bool value);
+	virtual void __FASTCALL set_drq(bool value);
 	
 public:
 	SCSI_HOST(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -62,17 +62,17 @@ public:
 	~SCSI_HOST() {}
 	
 	// common functions
-	void reset();
-//#ifdef SCSI_HOST_WIDE
-	void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_dma_io16(uint32_t addr);
-//#else
-	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
-//#endif
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t __FASTCALL read_signal(int id);
-	bool process_state(FILEIO* state_fio, bool loading);
+	virtual void reset();
+#ifdef SCSI_HOST_WIDE
+	virtual void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_dma_io16(uint32_t addr);
+#else
+	virtual void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_dma_io8(uint32_t addr);
+#endif
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	virtual uint32_t __FASTCALL read_signal(int id);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)

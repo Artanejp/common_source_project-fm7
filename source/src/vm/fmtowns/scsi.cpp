@@ -87,12 +87,17 @@ uint32_t SCSI::read_io8(uint32_t addr)
 		        (d_host->read_signal(SIG_SCSI_IO ) ? STATUS_IO  : 0) |
 		        (d_host->read_signal(SIG_SCSI_MSG) ? STATUS_MSG : 0) |
 		        (d_host->read_signal(SIG_SCSI_CD ) ? STATUS_CD  : 0) |
-		        (d_host->read_signal(SIG_SCSI_BSY) ? STATUS_BSY : 0) |
+				(d_host->read_signal(SIG_SCSI_BSY) ? STATUS_BSY : 0) |
 		        (irq_status                        ? STATUS_INT : 0);
 		#ifdef _SCSI_DEBUG_LOG
 			this->out_debug_log(_T("[SCSI] in  %04X %02X\n"), addr, value);
 		#endif
+//			irq_status = false;
 		return value;
+	case 0xc34:
+		// From MAME 0.216
+		// Linux uses this port to detect the ability to do word transfers.  We'll tell it that it doesn't for now.
+		return 0x80; 
 	}
 	return 0xff;
 }
