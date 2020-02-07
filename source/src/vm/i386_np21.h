@@ -11,8 +11,8 @@
 #ifndef _I386_H_ 
 #define _I386_H_
 
-#include "vm.h"
-#include "../emu.h"
+#include "vm_template.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_I386_A20	        1
@@ -97,6 +97,7 @@ public:
 		_I386_PSEUDO_BIOS = false;
 		_SINGLE_MODE_DMA = false;
 		address_mask = 0x000fffff; // OK?
+		n_cpu_type = N_CPU_TYPE_I386DX;
 	}
 	~I386() {}
 	
