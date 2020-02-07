@@ -1,1 +1,0 @@
-This source code from src/devices/cpu/i386, MAME 0.208.

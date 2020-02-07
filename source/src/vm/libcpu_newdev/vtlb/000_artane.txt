@@ -1,1 +1,0 @@
-This source code from src/emu/, MAME 0.208.
