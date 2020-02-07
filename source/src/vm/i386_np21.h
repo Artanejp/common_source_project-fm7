@@ -97,7 +97,7 @@ public:
 		_I386_PSEUDO_BIOS = false;
 		_SINGLE_MODE_DMA = false;
 		address_mask = 0x000fffff; // OK?
-		n_cpu_type = N_CPU_TYPE_I386DX;
+		n_cpu_type = I386_NP21::N_CPU_TYPE_I386DX;
 	}
 	~I386() {}
 	

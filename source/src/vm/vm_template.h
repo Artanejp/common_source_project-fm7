@@ -6,6 +6,7 @@
 class EMU;
 class EVENT;
 class DEVICE;
+class FILEIO;
 class DLL_PREFIX VM_TEMPLATE {
 protected:
 	EMU* emu;

@@ -39,7 +39,7 @@
 #pragma warning( disable : 4996 )
 #endif
 
-#include "../../../vm.h"
+#include "../../../vm_template.h"
 #include "../../../../emu.h"
 #include "../../../device.h"
 

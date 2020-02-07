@@ -1,20 +1,25 @@
 //#include	"compiler.h"
-
 #if 1
 #undef	TRACEOUT
-//#define USE_TRACEOUT_VS
+#define USE_TRACEOUT_VS
 //#define MEM_BDA_TRACEOUT
 //#define MEM_D8_TRACEOUT
 #ifdef USE_TRACEOUT_VS
-static void trace_fmt_ex(const char *fmt, ...)
+#include "../../common.h"
+#include "../device.h"
+extern DEVICE *device_cpu;
+static void __FASTCALL trace_fmt_ex(const char *fmt, ...)
 {
-	char stmp[2048];
-	va_list ap;
-	va_start(ap, fmt);
-	vsprintf(stmp, fmt, ap);
-	strcat(stmp, "\n");
-	va_end(ap);
-	OutputDebugStringA(stmp);
+	if(device_cpu != NULL) {
+		char stmp[2048];
+		va_list ap;
+		va_start(ap, fmt);
+		vsprintf(stmp, fmt, ap);
+		strcat(stmp, "\n");
+		va_end(ap);
+//		OutputDebugStringA(stmp);
+		device_cpu->out_debug_log(stmp);
+	}
 }
 #define	TRACEOUT(s)	trace_fmt_ex s
 #else
