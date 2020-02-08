@@ -13,6 +13,7 @@
 #define EVENT_SEL	0
 #define EVENT_PHASE	1
 #define EVENT_REQ	2
+#define EVENT_BSY	3
 //#define _SCSI_DEBUG_LOG
 
 void SCSI_DEV::initialize()
@@ -33,8 +34,23 @@ void SCSI_DEV::reset()
 	data_bus = 0;
 	sel_status = atn_status = ack_status = rst_status = false;
 	selected = atn_pending = false;
-	
-	event_sel = event_phase = event_req = -1;
+
+	if(event_sel > -1) {
+		cancel_event(this, event_sel);
+		event_sel = -1;
+	}
+	if(event_phase > -1) {
+		cancel_event(this, event_phase);
+		event_phase = -1;
+	}
+	if(event_req > -1) {
+		cancel_event(this, event_req);
+		event_req = -1;
+	}
+	if(event_bsy > -1) {
+		cancel_event(this, event_bsy);
+		event_bsy = -1;
+	}
 	set_phase(SCSI_PHASE_BUS_FREE);
 	set_sense_code(SCSI_SENSE_NOSENSE);
 }
@@ -356,6 +372,11 @@ void SCSI_DEV::event_callback(int event_id, int err)
 		event_req = -1;
 		set_req(next_req);
 		break;
+
+	case EVENT_BSY:
+		event_bsy = -1;
+		set_bsy(next_bsy);
+		break;
 	}
 }
 
@@ -372,19 +393,19 @@ void SCSI_DEV::set_phase(int value)
 	set_msg(value & 2);
 	set_cd (value & 4);
 	
-	if(value == SCSI_PHASE_COMMAND) {
+	/*if(value == SCSI_PHASE_COMMAND) {
 		first_req_clock = 0;
-		set_bsy(true);
-		set_req_delay(1, 800.0);
-
-	} else if(value == SCSI_PHASE_BUS_FREE) {
+		set_req_delay(1, 10.0);
+		//set_bsy_delay(false, 800.0);
+		//set_req_delay(1, 1.0);
+	} else */if(value == SCSI_PHASE_BUS_FREE) {
 		set_bsy(false);
-//		set_req(0);
+		set_req(0);
 		selected = false;
 	} else {
 		first_req_clock = 0;
-		set_req(1);
-//		set_bsy(true);
+//		set_req(1);
+		set_bsy(true);
 		set_req_delay(1, 10.0);
 	}
 	phase = value;
@@ -412,6 +433,19 @@ void SCSI_DEV::set_dat(int value)
 	write_signals(&outputs_dat, value);
 }
 
+void SCSI_DEV::set_bsy_delay(int value, double usec)
+{
+	if(usec <= 0.0) {
+		set_bsy(value);
+	} else {
+		if(event_bsy != -1) {
+			cancel_event(this, event_bsy);
+			event_bsy = -1;
+		}
+		register_event(this, EVENT_BSY, usec, false, &event_bsy);
+		next_bsy = value;
+	}
+}
 void SCSI_DEV::set_bsy(int value)
 {
 	#ifdef _SCSI_DEBUG_LOG
@@ -830,7 +864,7 @@ bool SCSI_DEV::write_buffer(int length)
 	return true;
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool SCSI_DEV::process_state(FILEIO* state_fio, bool loading)
 {
@@ -863,5 +897,7 @@ bool SCSI_DEV::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(position);
 	state_fio->StateValue(remain);
 	state_fio->StateValue(sense_code);
+	state_fio->StateValue(next_bsy);
+	state_fio->StateValue(event_bsy);
  	return true;
 }

@@ -151,6 +151,9 @@ private:
 	int phase, next_phase, next_req;
 	int event_sel, event_phase, event_req;
 	uint32_t first_req_clock;
+	int event_bsy;
+	int next_bsy;
+	
 	double next_req_usec;
 	
 	uint8_t sense_code;
@@ -164,6 +167,14 @@ public:
 		initialize_output_signals(&outputs_io);
 		initialize_output_signals(&outputs_msg);
 		initialize_output_signals(&outputs_req);
+		
+		event_bsy = -1;
+		event_sel = -1;
+		event_phase = -1;
+		event_req = -1;
+		next_bsy = 0;
+		next_phase = SCSI_PHASE_BUS_FREE;
+		next_req = 0;
 		
 		set_device_name(_T("SCSI DEVICE"));
 	}
@@ -203,6 +214,7 @@ public:
 	void set_phase_delay(int value, double usec);
 	void set_dat(int value);
 	void set_bsy(int value);
+	void set_bsy_delay(int value, double usec);
 	void set_cd(int value);
 	void set_io(int value);
 	void set_msg(int value);

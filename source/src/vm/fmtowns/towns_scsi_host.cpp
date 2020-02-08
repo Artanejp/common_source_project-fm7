@@ -134,9 +134,10 @@ void TOWNS_SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_SCSI_REQ:
 		{
 			uint32_t prev_status = req_status;
+			prev_status &= mask;
 			req_status &= ~mask;
 			req_status |= (data & mask);
-			if(!prev_status && req_status) {
+			if(/*(prev_status == 0) && */((data & mask) != 0)) {
 				// L -> H
 //				if(bsy_status) {
 					if(!cd_status && !msg_status) {
@@ -149,7 +150,7 @@ void TOWNS_SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 						set_irq(true);
 					}
 //				}
-			} else if(prev_status && !req_status) {
+			} else if(/*(prev_status != 0)&& */((data & mask) == 0)) {
 				// H -> L
 				set_drq(false);
 				set_irq(false);
@@ -157,9 +158,9 @@ void TOWNS_SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 					this->write_signal(SIG_SCSI_ACK, 0, 0);
 				#endif
 			}
-			if(prev_status != req_status) {
-				write_signals(&outputs_req, req_status ? 0xffffffff : 0);
-			}
+//			if(prev_status != req_status) {
+			write_signals(&outputs_req, (req_status != 0) ? 0xffffffff : 0);
+//			}
 		}
 		return;
 		break;
