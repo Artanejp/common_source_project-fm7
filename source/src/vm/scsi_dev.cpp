@@ -369,12 +369,18 @@ void SCSI_DEV::set_phase(int value)
 	set_msg(value & 2);
 	set_cd (value & 4);
 	
-	if(value == SCSI_PHASE_BUS_FREE) {
+	if(value == SCSI_PHASE_COMMAND) {
+		first_req_clock = 0;
+		set_bsy(true);
+		set_req(1);
+		set_req_delay(1, 10.0);
+	} else if(value == SCSI_PHASE_BUS_FREE) {
 		set_bsy(false);
-		set_req(0);
+//		set_req(0);
 		selected = false;
 	} else {
 		first_req_clock = 0;
+		set_req(1);
 //		set_bsy(true);
 		set_req_delay(1, 10.0);
 	}
@@ -672,7 +678,9 @@ void SCSI_DEV::start_command()
 		
 	case SCSI_CMD_READ10:
 		#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Read 10-byte\n"), scsi_id);
+		this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Read 10-byte\n PARAMS=[%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X ]\n"), scsi_id,
+			command[0], command[1], command[2], command[3], command[4], command[5],
+			command[6], command[7], command[8], command[9]);
 		#endif
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];

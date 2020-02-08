@@ -16,7 +16,7 @@ void HARDDISK::open(const _TCHAR* file_path, int default_sector_size)
 	pair32_t tmp;
 	
 	close();
-#if 1
+#if 0
 	printf(_T("OPEN IMAGE: %s DEFAULT SECTOR SIZE=%d\n"), file_path, default_sector_size);
 #endif
 	if(FILEIO::IsFileExisting(file_path)) {
@@ -122,7 +122,26 @@ void HARDDISK::open(const _TCHAR* file_path, int default_sector_size)
 				tmp.read_4bytes_le_from(header + 148);
 				sector_num = tmp.sd;
 //				sector_num = cylinders * surfaces * sectors;
-			} else {
+			}  else {
+				bool is_hx = false;
+				for(int i = 0; i < 9; i++) {
+					_TCHAR _tmps[6] = {0};
+					my_stprintf_s(_tmps, 6, _T("h%d"), i);
+					if(check_file_extension(file_path, _tmps)) {
+						is_hx = true;
+						break;
+					}
+				}
+				if(is_hx) {
+					// *.H0 .. *.H9 : Variable cylinders
+					header_size = 0;
+					surfaces = 8;
+					sectors = 63;
+					cylinders = (fio->FileLength() / default_sector_size) / (sectors * surfaces);
+					sector_size = default_sector_size;
+					sector_num = fio->FileLength() / sector_size;
+					return;
+				}						
 				// solid
 				header_size = 0;
 				// sectors = 33, surfaces = 4, cylinders = 153, sector_size = 256	// 5MB
