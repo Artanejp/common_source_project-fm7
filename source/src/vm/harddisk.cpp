@@ -123,6 +123,7 @@ void HARDDISK::open(const _TCHAR* file_path, int default_sector_size)
 				sector_num = tmp.sd;
 //				sector_num = cylinders * surfaces * sectors;
 			}  else {
+			   /*
 				bool is_hx = false;
 				for(int i = 0; i < 9; i++) {
 					_TCHAR _tmps[6] = {0};
@@ -141,7 +142,7 @@ void HARDDISK::open(const _TCHAR* file_path, int default_sector_size)
 					sector_size = default_sector_size;
 					sector_num = fio->FileLength() / sector_size;
 					return;
-				}						
+				}*/						
 				// solid
 				header_size = 0;
 				// sectors = 33, surfaces = 4, cylinders = 153, sector_size = 256	// 5MB

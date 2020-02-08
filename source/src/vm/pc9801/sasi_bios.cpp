@@ -120,7 +120,7 @@ void BIOS::reset()
 	event_irq = -1;
 }
 
-bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+bool BIOS::bios_int_i86(int intnum, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	// SASI
 	switch(intnum) {
@@ -135,7 +135,7 @@ bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* 
 	return false;
 }
 
-bool BIOS::bios_int_ia32(int intnum, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+bool BIOS::bios_int_ia32(int intnum, uint32_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	// SASI
 	switch(intnum) {
@@ -150,7 +150,7 @@ bool BIOS::bios_int_ia32(int intnum, uint32_t regs[], uint16_t sregs[], int32_t*
 	return false;
 }
 
-bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	uint32_t reg32[10];
 	for(int i = 0; i < 10; i++) {
@@ -164,7 +164,7 @@ bool BIOS::bios_call_far_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int
 	}
 	return false;
 }
-bool BIOS::bios_call_far_ia32(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+bool BIOS::bios_call_far_ia32(uint32_t PC, uint32_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	pair32_t *regpair = (pair32_t *)regs;
 	bool need_retcall = false;
@@ -218,10 +218,10 @@ bool BIOS::bios_call_far_ia32(uint32_t PC, uint32_t regs[], uint16_t sregs[], in
 			sp = sp - 18;
 			LOAD_SP(sp);
 			LOAD_BP(sp);
-			DS = 0x0000;
+//			DS = 0x0000;
 			LOAD_BX(0x04b0);
 			LOAD_AX(((uint16_t)seg) << 8);
-			CS = ((uint16_t)seg) << 8;
+//			CS = ((uint16_t)seg) << 8;
 			IP_L = 0x0018;
 			IP_H = 0x0000;
 			if(cycles != NULL) {

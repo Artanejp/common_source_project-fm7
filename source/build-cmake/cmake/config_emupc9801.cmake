@@ -174,9 +174,10 @@ elseif(BUILD_PC9801RA)
    add_definitions(-D_PC9801RA)
    set(EXEC_TARGET emupc9801ra)
    set(VMFILES ${VMFILES}
+ #      i386.cpp
        scsi_host.cpp
-	   scsi_dev.cpp
-	   scsi_hdd.cpp
+       scsi_dev.cpp
+       scsi_hdd.cpp
        )
    set(VMFILES_LIB 
        not.cpp

@@ -24,6 +24,7 @@
 
 #if defined(UPPER_I386)
 #include "../i386_np21.h"
+//#include "../i386.h"
 #elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
 #include "../i86.h"
 #elif  defined(HAS_V30)
