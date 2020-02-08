@@ -66,18 +66,7 @@ void TOWNS_SCSI_HOST::write_dma_io16(uint32_t addr, uint32_t data)
 
 void TOWNS_SCSI_HOST::write_dma_io8(uint32_t addr, uint32_t data)
 {
-#if 0
-	pair32_t d;
-	d.d = data;
-	if(!write_queue->full()) {
-		write_queue->write(d.b.l);
-	}
-	if(event_write_queue < 0) {
-		register_event(this, EVENT_WRITE_QUEUE, 1.0, true, &event_write_queue);
-	}
-#else
 	SCSI_HOST::write_dma_io8(addr, data);
-#endif
 }
 
 uint32_t TOWNS_SCSI_HOST::read_dma_io16(uint32_t addr)
@@ -97,7 +86,7 @@ uint32_t TOWNS_SCSI_HOST::read_dma_io16(uint32_t addr)
 //	}
 	return d.d;
 #else
-	out_debug_log(_T("READ DMA16"));
+//	out_debug_log(_T("READ DMA16"));
 	return SCSI_HOST::read_dma_io8(addr);
 #endif
 }
@@ -114,7 +103,7 @@ uint32_t TOWNS_SCSI_HOST::read_dma_io8(uint32_t addr)
 //	}
 	return val;
 #else
-	out_debug_log(_T("READ DMA8"));
+//	out_debug_log(_T("READ DMA8"));
 	return SCSI_HOST::read_dma_io8(addr);
 #endif
 }
