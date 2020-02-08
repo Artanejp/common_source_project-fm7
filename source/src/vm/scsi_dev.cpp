@@ -77,9 +77,11 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 //						set_phase(SCSI_PHASE_MESSAGE_OUT);
 					} else {
 						// change to command phase
+						// ToDo: Ready status (via MESSAGE_IN) for FM-Towns 20200208 K.O
 						memset(command, 0, sizeof(command));
 						command_index = 0;
-						set_phase_delay(SCSI_PHASE_COMMAND, 10.0);
+//						set_phase_delay(SCSI_PHASE_COMMAND, 10.0);
+						set_phase_delay(SCSI_PHASE_COMMAND, 800.0);
 //						set_phase(SCSI_PHASE_COMMAND);
 					}
 				}
@@ -265,6 +267,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 						if(command_index < get_command_length(command[0])) {
 							// request next command
 							set_req_delay(1, 1.0);
+//							set_req_delay(1, 800.0); // OK?
 						} else {
 							// start command
 							start_command();
@@ -372,8 +375,8 @@ void SCSI_DEV::set_phase(int value)
 	if(value == SCSI_PHASE_COMMAND) {
 		first_req_clock = 0;
 		set_bsy(true);
-		set_req(1);
-		set_req_delay(1, 10.0);
+		set_req_delay(1, 800.0);
+
 	} else if(value == SCSI_PHASE_BUS_FREE) {
 		set_bsy(false);
 //		set_req(0);
