@@ -115,46 +115,40 @@ uint32_t TOWNS_SCSI_HOST::read_signal(int ch)
 	
 void TOWNS_SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 {
-#if 0
-	if(id == SIG_SCSI_DAT) {
-		uint32_t d;
-		d = data & mask;
-		if(!(read_queue->full())) {
-			read_queue->write(d);
+	switch(id) {
+	case SIG_SCSI_REQ:
+		{
+			uint32_t prev_status = req_status;
+			req_status &= ~mask;
+			req_status |= (data & mask);
+			if(!prev_status && req_status) {
+				// L -> H
+//				if(bsy_status) {
+					if(!cd_status && !msg_status) {
+						// data phase
+						set_drq(true);
+//						set_irq(false);
+						access = true;
+					} else if(cd_status) {
+						// command/status/message phase
+						set_irq(true);
+					}
+//				}
+			} else if(prev_status && !req_status) {
+				// H -> L
+				set_drq(false);
+				set_irq(false);
+				#ifdef SCSI_HOST_AUTO_ACK
+					this->write_signal(SIG_SCSI_ACK, 0, 0);
+				#endif
+			}
+			if(prev_status != req_status) {
+				write_signals(&outputs_req, req_status ? 0xffffffff : 0);
+			}
 		}
-		#ifdef SCSI_HOST_AUTO_ACK
-		// set ack to clear req signal immediately
-		if(bsy_status && io_status) {
-			this->write_signal(SIG_SCSI_ACK, 1, 1);
-		}
-		#endif
 		return;
-	} else if(id == SIG_SCSI_RST) {
-		read_queue->clear();
-		write_queue->clear();
-		if(event_write_queue >= 0) {
-			cancel_event(this, event_write_queue);
-			event_write_queue = -1;
-		}
-		// Not return,will do SCSI_HOST::write_signal()
-	} else if(id == SIG_SCSI_SEL) {
-		read_queue->clear();
-		write_queue->clear();
-		if(event_write_queue >= 0) {
-			cancel_event(this, event_write_queue);
-			event_write_queue = -1;
-		}
-		// Not return,will do SCSI_HOST::write_signal()
-	} else if(id == SIG_SCSI_ATN) {
-		read_queue->clear();
-		write_queue->clear();
-		if(event_write_queue >= 0) {
-			cancel_event(this, event_write_queue);
-			event_write_queue = -1;
-		}
-		// Not return,will do SCSI_HOST::write_signal()
+		break;
 	}
-#endif
 	return SCSI_HOST::write_signal(id, data, mask);	
 }
 

@@ -40,15 +40,18 @@ void SCSI::reset()
 
 void SCSI::write_io8(uint32_t addr, uint32_t data)
 {
+	out_debug_log(_T("[SCSI] Write I/O %04X %02X"), addr, data);
 	switch(addr & 0xffff) {
 	case 0x0c30:
 		// data register
 		#ifdef _SCSI_DEBUG_LOG
 			this->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
 		#endif
-//		if(ctrl_reg & CTRL_WEN) {
+//			d_host->write_signal(SIG_SCSI_REQ, 0, 0);
+		if(ctrl_reg & CTRL_WEN) {
+//		if((ctrl_reg & CTRL_WEN) && !(ctrl_reg & CTRL_DMAE)) {
 			d_host->write_dma_io8(addr, data);
-//		}
+		}
 		break;
 		
 	case 0x0c32:
@@ -59,8 +62,8 @@ void SCSI::write_io8(uint32_t addr, uint32_t data)
 		ctrl_reg = data;
 		if(ctrl_reg  & CTRL_WEN) {
 			d_host->write_signal(SIG_SCSI_RST, data, CTRL_RST);
-			d_host->write_signal(SIG_SCSI_SEL, data, CTRL_SEL);
 			d_host->write_signal(SIG_SCSI_ATN, data, CTRL_ATN);
+			d_host->write_signal(SIG_SCSI_SEL, data, CTRL_SEL);
 		}
 		break;
 	}
@@ -73,14 +76,16 @@ uint32_t SCSI::read_io8(uint32_t addr)
 	switch(addr & 0xffff) {
 	case 0x0c30:
 		// data register
-//		if(ctrl_reg & CTRL_WEN) {
+//		d_host->write_signal(SIG_SCSI_REQ, 0, 0);
+//		if((ctrl_reg & CTRL_WEN) && !(ctrl_reg & CTRL_DMAE)) {
+		if(ctrl_reg & CTRL_WEN) {
 			value = d_host->read_dma_io8(addr);
-//		}
+		}
 		#ifdef _SCSI_DEBUG_LOG
 			this->out_debug_log(_T("[SCSI] in  %04X %02X\n"), addr, value);
 		#endif
-		return value;
-		
+//		return value;
+		break;
 	case 0x0c32:
 		// status register
 		value = (d_host->read_signal(SIG_SCSI_REQ) ? STATUS_REQ : 0) |
@@ -93,13 +98,16 @@ uint32_t SCSI::read_io8(uint32_t addr)
 			this->out_debug_log(_T("[SCSI] in  %04X %02X\n"), addr, value);
 		#endif
 //			irq_status = false;
-		return value;
+//		return value;
+			break;
 	case 0xc34:
 		// From MAME 0.216
 		// Linux uses this port to detect the ability to do word transfers.  We'll tell it that it doesn't for now.
-		return 0x80; 
+		value = 0x80;
+		break;
 	}
-	return 0xff;
+//	out_debug_log(_T("[SCSI] READ I/O %04X %02X\n"), addr, value);
+	return value;
 }
 
 void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
@@ -110,6 +118,7 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 			d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR0, data, mask);
 		}
 		irq_status = ((data & mask) != 0);
+//		out_debug_log(_T("[SCSI] IRQ  %04X %02X\n"), data, mask);
 		break;
 		
 	case SIG_SCSI_DRQ:

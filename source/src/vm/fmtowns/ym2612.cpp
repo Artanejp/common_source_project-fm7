@@ -166,7 +166,7 @@ void YM2612::write_via_debugger_data8(uint32_t addr, uint32_t data)
 {
 	if(addr < 0x100) {
 		// YM2612
-		if(0x2d <= addr && addr <= 0x2f) {
+		 if(0x2d <= addr && addr <= 0x2f) {
 			// don't write again for prescaler
 		} else if(0xa4 <= addr && addr <= 0xa6) {
 			// XM8 version 1.20
