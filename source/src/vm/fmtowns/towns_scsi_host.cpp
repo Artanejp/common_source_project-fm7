@@ -33,6 +33,8 @@ void TOWNS_SCSI_HOST::release()
 void TOWNS_SCSI_HOST::reset()
 {
 	SCSI_HOST::reset();
+	selected = false;
+	
 	read_queue->clear();
 	write_queue->clear();
 	if(event_write_queue > -1) {
@@ -43,6 +45,19 @@ void TOWNS_SCSI_HOST::reset()
 		cancel_event(this, event_read_queue);
 	}
 	event_read_queue = -1;
+
+	write_signals(&outputs_sel, 0);
+	write_signals(&outputs_req, 0);
+	write_signals(&outputs_atn, 0);
+	write_signals(&outputs_io, 0);
+	write_signals(&outputs_cd, 0);
+	write_signals(&outputs_drq, 0);
+	write_signals(&outputs_bsy, 0);
+	write_signals(&outputs_msg, 0);
+	write_signals(&outputs_rst, 0);
+//	write_signals(&outputs_dat, 0);
+
+	write_signals(&outputs_irq, 0);
 }
 
 void TOWNS_SCSI_HOST::write_dma_io16(uint32_t addr, uint32_t data)
@@ -148,6 +163,24 @@ void TOWNS_SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 		}
 		return;
 		break;
+#if 0
+	case SIG_SCSI_SEL:
+		{
+		#ifdef _SCSI_DEBUG_LOG
+			this->out_debug_log(_T("[SCSI_HOST] SEL = %d\n"), (data & mask) ? 1 : 0);
+		#endif
+			bool prev_selected = selected;
+//			if(prev_selected = !(data & mask)) {
+				selected = ((data & mask) != 0);
+				write_signals(&outputs_sel, (selected) ? 0xffffffff : 0);
+				if(selected) {
+					data_reg = 0x08;
+				}
+//			}
+		}
+		return;
+		break;
+#endif
 	}
 	return SCSI_HOST::write_signal(id, data, mask);	
 }
@@ -197,6 +230,7 @@ bool TOWNS_SCSI_HOST::process_state(FILEIO* state_fio, bool loading)
  	}
 	state_fio->StateValue(event_read_queue);
 	state_fio->StateValue(event_write_queue);
+	state_fio->StateValue(selected);
 	return true;
 }
 }

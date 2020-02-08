@@ -21,6 +21,8 @@ protected:
 	FIFO *write_queue;
 	int event_read_queue;
 	int event_write_queue;
+
+	bool selected;
 public:
 	TOWNS_SCSI_HOST(VM_TEMPLATE* parent_vm, EMU* parent_emu) : SCSI_HOST(parent_vm, parent_emu)
 	{
