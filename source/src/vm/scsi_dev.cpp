@@ -519,6 +519,12 @@ void SCSI_DEV::start_command()
 		// transfer length
 //		remain = 16;
 		remain = command[4];
+		// From mame 0.216's t10spc.cpp.
+		if(remain == 0) {
+			remain = 4;
+		} else if(remain > 18) {
+			remain = 18;
+		}
 		// create sense data table
 		buffer->clear();
 		for(int i = 0; i < remain; i++) {

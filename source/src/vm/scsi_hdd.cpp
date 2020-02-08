@@ -22,6 +22,61 @@ void SCSI_HDD::release()
 	SCSI_DEV::release();
 }
 
+void SCSI_HDD::start_command()
+{
+	switch(command[0]) {
+	case SCSI_CMD_SEND_DIAG:
+		{
+			pair16_t len;
+			len.b.h = command[3];
+			len.b.l = command[4];
+//			remain = len.w;
+//			remain *= logical_block_size();
+			// ToDo: Implement dummy write
+		}
+//		return;
+		break;
+	case SCSI_CMD_RCV_DIAG:
+		{
+			// ToDo: Implement dummy read
+		}
+		break;
+	case SCSI_CMD_START_STP: // Start/Stop
+		buffer->clear();
+		out_debug_log(_T("[SCSI_HDD:ID=%d] START/STOP Unit \n"), scsi_id);
+		set_dat(SCSI_STATUS_GOOD);
+		set_sense_code(SCSI_SENSE_NOSENSE);
+		set_phase_delay(SCSI_PHASE_STATUS, 10.0);
+		return;
+		break;
+	case SCSI_CMD_REZERO: // Recaliblate
+		{
+			double usec = 10.0;
+			for(int drv = 0; drv < 8; drv++) {
+				long pos = 0;
+				if(disk[drv] != NULL) {
+					pos = disk[drv]->get_cur_position();
+					long distance = pos / (disk[drv]->get_headers() * disk[drv]->get_sectors_per_cylinder());
+					if(distance > 0) {
+						usec += ((double)seek_time * (double)distance);
+					} else {
+						usec += 10.0;
+					}
+				}
+			}
+			buffer->clear();
+			if(usec < (double)seek_time) usec = (double)seek_time;
+			out_debug_log(_T("[SCSI_HDD:ID=%d] RECALIBRATE Total Seek time=%fus\n"), scsi_id, usec);
+			set_dat(SCSI_STATUS_GOOD);
+			set_sense_code(SCSI_SENSE_NOSENSE);
+			set_phase_delay(SCSI_PHASE_STATUS, usec);
+		}
+		return;
+		break;
+	}
+	SCSI_DEV::start_command();
+}
+
 void SCSI_HDD::reset()
 {
 	if(!is_hot_swappable) {

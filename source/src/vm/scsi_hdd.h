@@ -75,6 +75,10 @@ public:
 	void close(int drv);
 	bool mounted(int drv);
 	bool accessed(int drv);
+
+	// virtual scsi functions
+	virtual void start_command();
+
 };
 
 class SASI_HDD : public SCSI_HDD
