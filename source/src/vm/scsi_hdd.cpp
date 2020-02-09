@@ -25,17 +25,20 @@ void SCSI_HDD::release()
 void SCSI_HDD::start_command()
 {
 	switch(command[0]) {
+#if 0
+	// ToDo: Implement dummy write
 	case SCSI_CMD_SEND_DIAG:
 		{
 			pair16_t len;
 			len.b.h = command[3];
 			len.b.l = command[4];
-//			remain = len.w;
+			remain = len.w;
 //			remain *= logical_block_size();
-			// ToDo: Implement dummy write
+			set_phase_delay(SCSI_PHASE_DATA_OUT, 10.0);
 		}
-//		return;
+		return;
 		break;
+#endif
 	case SCSI_CMD_RCV_DIAG:
 		{
 			// ToDo: Implement dummy read
@@ -73,6 +76,55 @@ void SCSI_HDD::start_command()
 		}
 		return;
 		break;
+#if 0
+	case SCSI_CMD_REQ_SENSE:
+		// From t10spc.cpp , mame 0.216.
+		#ifdef _SCSI_DEBUG_LOG
+			this->out_debug_log(_T("[SASI_HDD:ID=%d] Command: Request Sense\n"), scsi_id);
+		#endif
+		// start position
+//		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
+//		position *= physical_block_size();
+		// transfer length
+		remain = command[4];
+		if(remain == 0) {
+			remain = 4;
+			// create sense data table
+			buffer->clear();
+			buffer->write(get_sense_code() & 0x7f);
+			buffer->write(((max_logical_block_addr() >> 16) & 0x1f) | (get_logical_unit_number() << 5));
+			buffer->write(((max_logical_block_addr() >>  8) & 0xff));
+			buffer->write(((max_logical_block_addr() >>  0) & 0xff));
+		} else {
+			remain = 18; // From MAME 0.216
+			buffer->clear();
+			buffer->write(0x70); // SCSI_SERROR_CURRENT?
+			buffer->write(0x00);
+			buffer->write(is_device_ready() ? SCSI_KEY_NOSENSE : SCSI_KEY_UNITATT); // OK? ToDo: Will implement code.
+			buffer->write(((max_logical_block_addr() >> 24) & 0xff));
+			buffer->write(((max_logical_block_addr() >> 16) & 0xff));
+			buffer->write(((max_logical_block_addr() >> 8) & 0xff));
+			buffer->write(((max_logical_block_addr() >> 0) & 0xff));
+			buffer->write(0x0a);
+			
+			buffer->write(0x00);
+			buffer->write(0x00);
+			buffer->write(0x00);
+			buffer->write(0x00);
+			buffer->write(get_sense_code() & 0x7f);
+			buffer->write(get_sense_code() & 0x0f);
+
+			buffer->write(0x00);
+			buffer->write(0x00);
+			buffer->write(0x00);
+			buffer->write(0x00);
+		}						  
+		// change to data in phase
+//		set_sense_code(SCSI_SENSE_NOSENSE);
+		set_phase_delay(SCSI_PHASE_DATA_IN, 10.0);
+		return;
+		break;
+#endif
 	}
 	SCSI_DEV::start_command();
 }

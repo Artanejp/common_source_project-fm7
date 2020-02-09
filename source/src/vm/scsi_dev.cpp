@@ -143,7 +143,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 */
 			bool prev_status = ack_status;
 			ack_status = ((data & mask) != 0);
-			
+			//out_debug_log(_T("[SCSI:ID=%d] ACK=%s from %s"), scsi_id, (ack_status) ? _T("ON") : _T("OFF"), (prev_status) ? _T("ON") : _T("OFF"));
 			if(phase == SCSI_PHASE_BUS_FREE) {
 				// this device is not selected
 			} else if(!prev_status & ack_status) {
@@ -414,7 +414,7 @@ void SCSI_DEV::set_bsy(int value)
 void SCSI_DEV::set_cd(int value)
 {
 	#ifdef _SCSI_DEBUG_LOG
-//		this->out_debug_log(_T("[SCSI_DEV:ID=%d] C/D = %d\n"), scsi_id, value ? 1 : 0);
+		this->out_debug_log(_T("[SCSI_DEV:ID=%d] C/D = %d\n"), scsi_id, value ? 1 : 0);
 	#endif
 	write_signals(&outputs_cd,  value ? 0xffffffff : 0);
 }
@@ -422,7 +422,7 @@ void SCSI_DEV::set_cd(int value)
 void SCSI_DEV::set_io(int value)
 {
 	#ifdef _SCSI_DEBUG_LOG
-//		this->out_debug_log(_T("[SCSI_DEV:ID=%d] I/O = %d\n"), scsi_id, value ? 1 : 0);
+		this->out_debug_log(_T("[SCSI_DEV:ID=%d] I/O = %d\n"), scsi_id, value ? 1 : 0);
 	#endif
 	write_signals(&outputs_io,  value ? 0xffffffff : 0);
 }
@@ -430,7 +430,7 @@ void SCSI_DEV::set_io(int value)
 void SCSI_DEV::set_msg(int value)
 {
 	#ifdef _SCSI_DEBUG_LOG
-//		this->out_debug_log(_T("[SCSI_DEV:ID=%d] MSG = %d\n"), scsi_id, value ? 1 : 0);
+		this->out_debug_log(_T("[SCSI_DEV:ID=%d] MSG = %d\n"), scsi_id, value ? 1 : 0);
 	#endif
 	write_signals(&outputs_msg, value ? 0xffffffff : 0);
 }
@@ -438,7 +438,7 @@ void SCSI_DEV::set_msg(int value)
 void SCSI_DEV::set_req(int value)
 {
 	#ifdef _SCSI_DEBUG_LOG
-//		this->out_debug_log(_T("[SCSI_DEV:ID=%d] REQ = %d\n"), scsi_id, value ? 1 : 0);
+		this->out_debug_log(_T("[SCSI:ID=%d] REQ = %d\n"), scsi_id, value ? 1 : 0);
 	#endif
 	if(event_req != -1) {
 		cancel_event(this, event_req);
@@ -497,6 +497,7 @@ void SCSI_DEV::start_command()
 			set_dat(SCSI_STATUS_GOOD);
 			set_sense_code(SCSI_SENSE_NOSENSE);
 		}
+		remain = 0;
 		set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		break;
 		
