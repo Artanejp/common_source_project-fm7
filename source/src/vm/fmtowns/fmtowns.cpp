@@ -183,6 +183,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		scsi_hdd[i]->scsi_id = i ;
 		scsi_hdd[i]->set_disk_handler(0, new HARDDISK(emu));
 		scsi_hdd[i]->set_context_interface(scsi_host);
+		my_sprintf_s(scsi_hdd[i]->vendor_id, 9, "FUJITSU");
+		my_sprintf_s(scsi_hdd[i]->product_id, 17, "SCSI-HDD");
 		scsi_host->set_context_target(scsi_hdd[i]);
 	}
 #endif

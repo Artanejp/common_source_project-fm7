@@ -137,25 +137,32 @@ void TOWNS_SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 			prev_status &= mask;
 			req_status &= ~mask;
 			req_status |= (data & mask);
-			if(/*(prev_status == 0) && */((data & mask) != 0)) {
+			if((prev_status == 0) && ((data & mask) != 0)) {
 				// L -> H
 //				if(bsy_status) {
 					if(!cd_status && !msg_status) {
 						// data phase
 						set_drq(true);
-//						set_irq(false);
+						set_irq(false);
 						access = true;
 					} else if(cd_status) {
 						// command/status/message phase
 						set_irq(true);
 					}
 //				}
-			} else if(/*(prev_status != 0)&& */((data & mask) == 0)) {
+			} else if((prev_status != 0) && ((data & mask) == 0)) {
 				// H -> L
-				set_drq(false);
-				set_irq(false);
+				if(!cd_status && !msg_status) {
+					set_drq(false); // Data phase
+				} else if(cd_status) {
+					// command/status/message phase
+					set_irq(false);
+//					set_drq(false);
+				} else {
+					//	set_drq(false); // Data phase
+				}
 				#ifdef SCSI_HOST_AUTO_ACK
-					this->write_signal(SIG_SCSI_ACK, 0, 0);
+					this->write_signal(SIG_SCSI_ACK, 0, 1);
 				#endif
 			}
 //			if(prev_status != req_status) {
