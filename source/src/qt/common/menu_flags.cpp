@@ -113,7 +113,9 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	
 	real_screen_width  = SCREEN_WIDTH;
 	real_screen_height = SCREEN_HEIGHT;
-	
+#if defined(USE_CUSTOM_SCREEN_ZOOM_FACTOR)
+	custom_screen_zoom_factor = USE_CUSTOM_SCREEN_ZOOM_FACTOR;
+#endif
 #if defined(SCREEN_FAKE_WIDTH)
 	screen_width = SCREEN_FAKE_WIDTH;
 #else

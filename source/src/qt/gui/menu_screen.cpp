@@ -143,10 +143,38 @@ void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 	actionGroup_ScreenSize = new QActionGroup(this);
 	actionGroup_ScreenSize->setExclusive(true);
 	screen_mode_count = 0;
-	for(i = 0; i < using_flags->get_screen_mode_num(); i++) {
-		w = (int)(screen_multiply_table[i] * (double)using_flags->get_screen_width());
-		h = (int)(screen_multiply_table[i] * (double)using_flags->get_screen_height());
+	int ix = 0;
+	double _iimul = 1.0;
+	double _zmul = using_flags->get_custom_screen_zoom_factor();
+	double _mul = screen_multiply_table[ix];
+	for(i = 0; i < using_flags->get_screen_mode_num();i++) {
+		double _ymul = _zmul * _iimul;
+		_ymul = _zmul *  _iimul;
+		if((_mul == 0.5) && (i > 0) && (_zmul > 0.0)) {
+			_mul = _mul * _zmul;
+		} else if((_ymul > 0.0) && (_ymul < screen_multiply_table[ix + 1]) /*&& (ix > 0)*/) {
+			if(screen_multiply_table[ix + 1] != 0.0) {
+				if(_ymul < screen_multiply_table[ix]) {
+					_mul = _ymul;
+					_iimul = _iimul + 1.0;
+				} else {
+					_mul = screen_multiply_table[ix];
+					ix++;
+				}
+			} else {
+				_mul = _ymul;
+				_iimul = _iimul + 1.0;
+			}
+		} else {
+			_mul = screen_multiply_table[ix];
+			ix++;
+		}			
+		w = (int)(_mul * (double)using_flags->get_screen_width());
+		h = (int)(_mul * (double)using_flags->get_screen_height());
 		if((w <= 0) || (h <= 0)) {
+			break;
+		}
+		if((w >= 16000) || (h >= 10000)) {
 			break;
 		}
 		screen_mode_count++;
@@ -159,7 +187,7 @@ void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 		if(i == p_config->window_mode)  actionScreenSize[i]->setChecked(true);  // OK?
 
 		actionGroup_ScreenSize->addAction(actionScreenSize[i]);
-		actionScreenSize[i]->binds->setDoubleValue(screen_multiply_table[i]);
+		actionScreenSize[i]->binds->setDoubleValue(_mul);
 		
 		connect(actionScreenSize[i], SIGNAL(triggered()),
 			actionScreenSize[i]->binds, SLOT(set_screen_size()));
@@ -472,7 +500,8 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 	double s_mul;
 	for(i = 0; i < using_flags->get_screen_mode_num(); i++) {
 		if(actionScreenSize[i] == NULL) continue;
-		s_mul = screen_multiply_table[i];
+		s_mul =	actionScreenSize[i]->binds->getDoubleValue();
+;
 		if(s_mul <= 0) break;
 		tmps = QString::number(s_mul);
 		tmps = QString::fromUtf8("x", -1) + tmps;

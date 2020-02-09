@@ -61,7 +61,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	max_tape = 0;
 	use_scanline = use_screen_rotate = false;
 	screen_mode_num = 1;
-
+	custom_screen_zoom_factor = 0.0;
 
 	use_sound_device_type = 0;
 	use_sound_volume = 0;

@@ -91,7 +91,7 @@ uint32_t SCSI::read_io8(uint32_t addr)
 		value = (d_host->read_signal(SIG_SCSI_REQ) ? STATUS_REQ : 0) |
 		        (d_host->read_signal(SIG_SCSI_IO ) ? STATUS_IO  : 0) |
 		        (d_host->read_signal(SIG_SCSI_MSG) ? STATUS_MSG : 0) |
-		        (d_host->read_signal(SIG_SCSI_CD ) ? STATUS_CD  : 0) |
+			    (d_host->read_signal(SIG_SCSI_CD ) ? STATUS_CD  : 0) |
 				(d_host->read_signal(SIG_SCSI_BSY) ? STATUS_BSY : 0) |
 		        (irq_status                        ? STATUS_INT : 0);
 		#ifdef _SCSI_DEBUG_LOG

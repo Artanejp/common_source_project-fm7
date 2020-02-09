@@ -157,7 +157,8 @@ protected:
 	
 	int screen_width_aspect;
 	int screen_height_aspect;
-
+	double custom_screen_zoom_factor;
+	
 	bool tape_binary_only;
 	int screen_mode_num;
 
@@ -310,6 +311,7 @@ public:
 	float get_screen_y_zoom() { return screen_y_zoom; }
 	
 	int get_screen_mode_num() { return screen_mode_num; }
+	double get_custom_screen_zoom_factor() { return custom_screen_zoom_factor; }
 	int get_max_button() { return max_button; }
 	int get_max_draw_ranges() { return max_ranges; }
 	button_desc_t *get_vm_buttons() { return vm_buttons_d; }
