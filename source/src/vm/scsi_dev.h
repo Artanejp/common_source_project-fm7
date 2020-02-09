@@ -150,6 +150,9 @@ private:
 	
 	int phase, next_phase, next_req;
 	int event_sel, event_phase, event_req;
+	int next_bsy;
+	int event_bsy;
+	
 	uint32_t first_req_clock;
 	double next_req_usec;
 	
@@ -203,6 +206,7 @@ public:
 	void set_phase_delay(int value, double usec);
 	void set_dat(int value);
 	void set_bsy(int value);
+	void set_bsy_delay(int value, double usec);
 	void set_cd(int value);
 	void set_io(int value);
 	void set_msg(int value);

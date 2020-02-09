@@ -13,6 +13,7 @@
 #define EVENT_SEL	0
 #define EVENT_PHASE	1
 #define EVENT_REQ	2
+#define EVENT_BSY   3
 //#define _SCSI_DEBUG_LOG
 
 void SCSI_DEV::initialize()
@@ -33,8 +34,16 @@ void SCSI_DEV::reset()
 	data_bus = 0;
 	sel_status = atn_status = ack_status = rst_status = false;
 	selected = atn_pending = false;
+	next_bsy = 0;
 	
-	event_sel = event_phase = event_req = -1;
+	if(event_sel > -1)   cancel_event(this, event_sel);
+	if(event_phase > -1) cancel_event(this, event_phase);
+	if(event_req > -1)   cancel_event(this, event_req);
+	if(event_bsy > -1)   cancel_event(this, event_bsy);
+	event_sel = event_phase = event_req = event_bsy = -1;
+	// Release BUS
+//	write_signals(&outputs_dat, 0);
+	write_signals(&outputs_bsy, 0);
 	set_phase(SCSI_PHASE_BUS_FREE);
 	set_sense_code(SCSI_SENSE_NOSENSE);
 }
@@ -79,8 +88,9 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 						// change to command phase
 						memset(command, 0, sizeof(command));
 						command_index = 0;
-						set_phase_delay(SCSI_PHASE_COMMAND, 10.0);
+						set_phase_delay(SCSI_PHASE_COMMAND, 800.0);
 //						set_phase(SCSI_PHASE_COMMAND);
+//						set_bsy(1);
 					}
 				}
 			}
@@ -286,7 +296,9 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 							// identify, change to command phase
 							memset(command, 0, sizeof(command));
 							command_index = 0;
-							set_phase_delay(SCSI_PHASE_COMMAND, 10.0);
+							set_phase_delay(SCSI_PHASE_COMMAND, 800.0);
+//							set_bsy(1);
+//							set_req(1);
 						} else {
 							// abort, change to bus free phase
 							set_phase_delay(SCSI_PHASE_BUS_FREE, 10.0);
@@ -330,6 +342,10 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 void SCSI_DEV::event_callback(int event_id, int err)
 {
 	switch(event_id) {
+	case EVENT_BSY:
+		event_bsy = -1;
+		set_bsy(next_bsy);
+		break;
 	case EVENT_SEL:
 		event_sel = -1;
 		if((data_bus & 0x7f) == (1 << scsi_id)) {
@@ -338,7 +354,8 @@ void SCSI_DEV::event_callback(int event_id, int err)
 				#ifdef _SCSI_DEBUG_LOG
 					this->out_debug_log(_T("[SCSI_DEV:ID=%d] This device is selected\n"), scsi_id);
 				#endif
-				set_bsy(true);
+				set_bsy_delay(1, 800.0);
+//				set_req_delay(1, 810.0);
 				selected = true;
 			}
 		}
@@ -361,22 +378,22 @@ void SCSI_DEV::set_phase(int value)
 	#ifdef _SCSI_DEBUG_LOG
 		this->out_debug_log(_T("[SCSI_DEV:ID=%d] Phase %s -> %s\n"), scsi_id, scsi_phase_name[phase], scsi_phase_name[value]);
 	#endif
-	if(event_phase != -1) {
-		cancel_event(this, event_phase);
-		event_phase = -1;
-	}
 	set_io (value & 1);
 	set_msg(value & 2);
 	set_cd (value & 4);
 	
+	if(event_phase != -1) {
+		cancel_event(this, event_phase);
+		event_phase = -1;
+	}
 	if(value == SCSI_PHASE_BUS_FREE) {
-		set_bsy(false);
+		set_bsy(0);
 		set_req(0);
 		selected = false;
 	} else {
 		first_req_clock = 0;
-//		set_bsy(true);
-		set_req_delay(1, 10.0);
+//		set_bsy_delay(1, 10.0);
+		set_req(1);
 	}
 	phase = value;
 }
@@ -403,6 +420,19 @@ void SCSI_DEV::set_dat(int value)
 	write_signals(&outputs_dat, value);
 }
 
+void SCSI_DEV::set_bsy_delay(int value, double usec)
+{
+	if(event_bsy > -1) {
+		cancel_event(this, event_bsy);
+		event_bsy = -1;
+	}
+	next_bsy = value;
+	if(usec <= 10.0) {
+		set_bsy(value);
+	} else {
+		register_event(this, EVENT_BSY, usec, false, &event_bsy);
+	}
+}
 void SCSI_DEV::set_bsy(int value)
 {
 	#ifdef _SCSI_DEBUG_LOG
@@ -438,7 +468,7 @@ void SCSI_DEV::set_msg(int value)
 void SCSI_DEV::set_req(int value)
 {
 	#ifdef _SCSI_DEBUG_LOG
-		this->out_debug_log(_T("[SCSI:ID=%d] REQ = %d\n"), scsi_id, value ? 1 : 0);
+//		this->out_debug_log(_T("[SCSI:ID=%d] REQ = %d\n"), scsi_id, value ? 1 : 0);
 	#endif
 	if(event_req != -1) {
 		cancel_event(this, event_req);
@@ -814,7 +844,7 @@ bool SCSI_DEV::write_buffer(int length)
 	return true;
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool SCSI_DEV::process_state(FILEIO* state_fio, bool loading)
 {
@@ -847,5 +877,7 @@ bool SCSI_DEV::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(position);
 	state_fio->StateValue(remain);
 	state_fio->StateValue(sense_code);
+	state_fio->StateValue(event_bsy);
+	state_fio->StateValue(next_bsy);
  	return true;
 }
