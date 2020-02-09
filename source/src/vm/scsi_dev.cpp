@@ -472,7 +472,7 @@ void SCSI_DEV::set_msg(int value)
 void SCSI_DEV::set_req(int value)
 {
 	#ifdef _SCSI_DEBUG_LOG
-		this->out_debug_log(_T("[SCSI:ID=%d] REQ = %d\n"), scsi_id, value ? 1 : 0);
+//		this->out_debug_log(_T("[SCSI:ID=%d] REQ = %d\n"), scsi_id, value ? 1 : 0);
 	#endif
 	if(event_req != -1) {
 		cancel_event(this, event_req);
