@@ -17,9 +17,9 @@ set(VMFILES
   event.cpp
   
   scsi_host.cpp
-  scsi_dev.cpp
-  scsi_hdd.cpp
-  scsi_cdrom.cpp
+#  scsi_dev.cpp
+#  scsi_hdd.cpp
+#  scsi_cdrom.cpp
 
   msm58321.cpp
   

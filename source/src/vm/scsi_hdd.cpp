@@ -22,6 +22,19 @@ void SCSI_HDD::release()
 	SCSI_DEV::release();
 }
 
+void SCSI_HDD::out_debug_log(const _TCHAR *format, ...)
+{
+	if(!(__SCSI_DEBUG_LOG) && !(_OUT_DEBUG_LOG)) return;
+	va_list args;
+	_TCHAR _tmps[4096] = {0};
+	_TCHAR _domain[256] = {0};
+	my_sprintf_s(_domain, sizeof(_domain) / sizeof(_TCHAR), _T("[SCSI_HDD:ID=%d]"), scsi_id);
+	va_start(args, format);
+	vsnprintf(_tmps, sizeof(_tmps) / sizeof(_TCHAR), format, args);
+	va_end(args);
+	DEVICE::out_debug_log(_T("%s %s"), _domain, _tmps);
+}
+
 void SCSI_HDD::start_command()
 {
 	switch(command[0]) {
@@ -46,7 +59,7 @@ void SCSI_HDD::start_command()
 		break;
 	case SCSI_CMD_START_STP: // Start/Stop
 		buffer->clear();
-		out_debug_log(_T("[SCSI_HDD:ID=%d] START/STOP Unit \n"), scsi_id);
+		out_debug_log(_T("START/STOP Unit \n"));
 		set_dat(SCSI_STATUS_GOOD);
 		set_sense_code(SCSI_SENSE_NOSENSE);
 		set_phase_delay(SCSI_PHASE_STATUS, 10.0);
@@ -69,7 +82,7 @@ void SCSI_HDD::start_command()
 			}
 			buffer->clear();
 			if(usec < (double)seek_time) usec = (double)seek_time;
-			out_debug_log(_T("[SCSI_HDD:ID=%d] RECALIBRATE Total Seek time=%fus\n"), scsi_id, usec);
+			out_debug_log(_T("RECALIBRATE Total Seek time=%fus\n"), usec);
 			set_dat(SCSI_STATUS_GOOD);
 			set_sense_code(SCSI_SENSE_NOSENSE);
 			set_phase_delay(SCSI_PHASE_STATUS, usec);
@@ -79,9 +92,7 @@ void SCSI_HDD::start_command()
 #if 0
 	case SCSI_CMD_REQ_SENSE:
 		// From t10spc.cpp , mame 0.216.
-		#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SASI_HDD:ID=%d] Command: Request Sense\n"), scsi_id);
-		#endif
+		out_debug_log(_T("Command: Request Sense\n"));
 		// start position
 //		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
 //		position *= physical_block_size();
@@ -321,14 +332,24 @@ bool SCSI_HDD::process_state(FILEIO* state_fio, bool loading)
 }
 
 // SASI hard disk drive
+void SASI_HDD::out_debug_log(const _TCHAR *format, ...)
+{
+	if(!(__SCSI_DEBUG_LOG) && !(_OUT_DEBUG_LOG)) return;
+	va_list args;
+	_TCHAR _tmps[4096] = {0};
+	_TCHAR _domain[256] = {0};
+	my_sprintf_s(_domain, sizeof(_domain) / sizeof(_TCHAR), _T("[SASI_HDD:ID=%d]"), scsi_id);
+	va_start(args, format);
+	vsnprintf(_tmps, sizeof(_tmps) / sizeof(_TCHAR), format, args);
+	va_end(args);
+	DEVICE::out_debug_log(_T("%s %s"), _domain, _tmps);
+}
 
 void SASI_HDD::start_command()
 {
 	switch(command[0]) {
 	case SCSI_CMD_REQ_SENSE:
-		#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SASI_HDD:ID=%d] Command: Request Sense\n"), scsi_id);
-		#endif
+		out_debug_log(_T("Command: Request Sense\n"));
 		// start position
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
 		position *= physical_block_size();
@@ -347,11 +368,9 @@ void SASI_HDD::start_command()
 		return;
 		
 	case 0xc2:
-		#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SASI_HDD:ID=%d] Command: SASI Command 0xC2\n"), scsi_id);
-		#endif
+		out_debug_log(_T("Command: SASI Command 0xC2\n"));
 		// transfer length
-		remain = 10; // DTCŒn (ƒgƒ‰ƒ“ƒWƒXƒ^‹ZpSPECIAL No.27, P.88)
+		remain = 10; // DTCç³» (ãƒˆãƒ©ãƒ³ã‚¸ã‚¹ã‚¿æŠ€è¡“SPECIAL No.27, P.88)
 		// clear data buffer
 		buffer->clear();
 		// change to data in phase

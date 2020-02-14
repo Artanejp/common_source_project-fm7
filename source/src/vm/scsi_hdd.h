@@ -77,8 +77,8 @@ public:
 	bool accessed(int drv);
 
 	// virtual scsi functions
+	virtual void out_debug_log(const _TCHAR *format, ...);
 	virtual void start_command();
-
 };
 
 class SASI_HDD : public SCSI_HDD
@@ -91,6 +91,7 @@ public:
 	~SASI_HDD() {}
 	
 	// virtual scsi functions
+	virtual void out_debug_log(const _TCHAR *format, ...);
 	void start_command();
 };
 

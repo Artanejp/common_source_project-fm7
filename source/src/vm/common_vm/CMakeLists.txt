@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 2.22.2)
+SET(THIS_LIB_VERSION 2.23.0)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
@@ -67,9 +67,9 @@ set(s_vm_common_vm_srcs
 	../prnfile.cpp
 	../ptf20.cpp
 	../rp5c01.cpp
-#	../scsi_cdrom.cpp
-#	../scsi_dev_base.cpp
-#	../scsi_hdd.cpp
+	../scsi_cdrom.cpp
+	../scsi_dev.cpp
+	../scsi_hdd.cpp
 #	../scsi_host.cpp
 	../sio_redirector.cpp
 	

@@ -680,6 +680,19 @@ public:
 			item->device->write_signal(item->id, val, mask);
 		}
 	};
+	virtual void update_signal_mask(outputs_t *items, DEVICE *device, uint32_t mask)
+	{
+		if(items == NULL) return;
+		int c = items->count;
+		if(c <= 0) return;
+		if(c >= MAX_OUTPUT) c = MAX_OUTPUT - 1;
+		// if (ARG:device == NULL) apply to all devices.
+		for(int i = 0; i < c; i++) {
+			if((device == NULL) || (device == items->item[i].device)) {
+				items->item[i].mask = mask;
+			}
+		}
+	}
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) {}
 	virtual uint32_t __FASTCALL read_signal(int ch)
 	{

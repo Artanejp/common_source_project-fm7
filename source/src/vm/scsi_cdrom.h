@@ -66,11 +66,12 @@ protected:
 	int get_track_noop(uint32_t lba);
 	uint32_t lba_to_msf(uint32_t lba);
 	uint32_t lba_to_msf_alt(uint32_t lba);
+	bool __CDROM_DEBUG_LOG;
 public:
 	SCSI_CDROM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : SCSI_DEV(parent_vm, parent_emu) 
 	{
 		initialize_output_signals(&outputs_done);
-		
+		__CDROM_DEBUG_LOG = false;
 		volume_m = 1024;
 		volume_l = volume_r = 1024;
 		
@@ -128,6 +129,7 @@ public:
 	{
 		register_output_signal(&outputs_done, device, id, mask);
 	}
+	virtual void out_debug_log(const _TCHAR *format, ...);
 	void open(const _TCHAR* file_path);
 	void close();
 	bool mounted();

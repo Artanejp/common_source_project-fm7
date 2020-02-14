@@ -136,7 +136,7 @@ class FIFO;
 
 class SCSI_DEV : public DEVICE
 {
-private:
+protected:
 	outputs_t outputs_dat;
 	outputs_t outputs_bsy;
 	outputs_t outputs_cd;
@@ -157,10 +157,19 @@ private:
 	double next_req_usec;
 	
 	uint8_t sense_code;
-	
+
+	bool _SCSI_HOST_WIDE;
+	bool _SCSI_DEV_IMMEDIATE_SELECT;
+	bool __SCSI_DEBUG_LOG;
+	bool _OUT_DEBUG_LOG;
+
 public:
 	SCSI_DEV(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		_SCSI_HOST_WIDE = false;
+		_SCSI_DEV_IMMEDIATE_SELECT = false;
+		__SCSI_DEBUG_LOG = false;
+		_OUT_DEBUG_LOG = false;
 		initialize_output_signals(&outputs_dat);
 		initialize_output_signals(&outputs_bsy);
 		initialize_output_signals(&outputs_cd);
@@ -169,6 +178,7 @@ public:
 		initialize_output_signals(&outputs_req);
 		
 		set_device_name(_T("SCSI DEVICE"));
+		
 	}
 	~SCSI_DEV() {}
 	
@@ -179,15 +189,17 @@ public:
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
+	virtual void out_debug_log(const char *fmt, ...);
 	
 	// unique functions
 	void set_context_interface(DEVICE* device)
 	{
-#ifdef SCSI_HOST_WIDE
-		register_output_signal(&outputs_dat, device, SIG_SCSI_DAT, 0xffff);
-#else
+		// Will update mask of SIG_SCSI_DAT at initialize(), when set SCSI_HOST_WIDE.
+//#ifdef SCSI_HOST_WIDE
+//		register_output_signal(&outputs_dat, device, SIG_SCSI_DAT, 0xffff);
+//#else
 		register_output_signal(&outputs_dat, device, SIG_SCSI_DAT, 0xff);
-#endif
+//#endif
 		register_output_signal(&outputs_bsy, device, SIG_SCSI_BSY, 1 << scsi_id);
 		register_output_signal(&outputs_cd,  device, SIG_SCSI_CD,  1 << scsi_id);
 		register_output_signal(&outputs_io,  device, SIG_SCSI_IO,  1 << scsi_id);

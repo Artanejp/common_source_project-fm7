@@ -567,6 +567,19 @@ public:
 		items->item[c].mask = mask;
 		items->item[c].shift = 0;
 	}
+	virtual void update_signal_mask(outputs_t *items, DEVICE *device, uint32_t mask)
+	{
+		if(items == NULL) return;
+		int c = items->count;
+		if(c <= 0) return;
+		if(c >= MAX_OUTPUT) c = MAX_OUTPUT - 1;
+		// if (ARG:device == NULL) apply to all devices.
+		for(int i = 0; i < c; i++) {
+			if((device == NULL) || (device == items->item[i].device)) {
+				items->item[i].mask = mask;
+			}
+		}
+	}
 	virtual void __FASTCALL write_signals(outputs_t *items, uint32_t data)
 	{
 		for(int i = 0; i < items->count; i++) {

@@ -52,13 +52,11 @@ set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
-
+set(WITH_SCSI_SASI 0)
 if(BUILD_PC9801)
    add_definitions(-D_PC9801)
    set(EXEC_TARGET emupc9801)
    set(FLAG_USE_Z80 ON)
-   set(VMFILES ${VMFILES}
-   )
    set(VMFILES_LIB 
        beep.cpp
        not.cpp
@@ -99,8 +97,7 @@ elseif(BUILD_PC9801U)
 elseif(BUILD_PC9801VM)
    add_definitions(-D_PC9801VM)
    set(EXEC_TARGET emupc9801vm)
-   set(VMFILES ${VMFILES}
-       )
+   set(WITH_SCSI_SASI 1)
    set(VMFILES_LIB 
        not.cpp
        pcm1bit.cpp
@@ -112,11 +109,6 @@ elseif(BUILD_PC9801VM)
 elseif(BUILD_PC9801VX)
    add_definitions(-D_PC9801VX)
    set(EXEC_TARGET emupc9801vx)
-   set(VMFILES ${VMFILES}
-       scsi_host.cpp
-       scsi_dev.cpp
-       scsi_hdd.cpp
-   )
    set(VMFILES_LIB 
        not.cpp
        pcm1bit.cpp
@@ -128,11 +120,6 @@ elseif(BUILD_PC9801VX)
 elseif(BUILD_PC98XA)
    add_definitions(-D_PC98XA)
    set(EXEC_TARGET emupc98xa)
-   set(VMFILES ${VMFILES}
-       scsi_host.cpp
-	   scsi_dev.cpp
-	   scsi_hdd.cpp
-       )
    set(VMFILES_LIB 
        not.cpp
        pcm1bit.cpp
@@ -144,11 +131,6 @@ elseif(BUILD_PC98XA)
 elseif(BUILD_PC98XL)
    add_definitions(-D_PC98XL)
    set(EXEC_TARGET emupc98xl)
-   set(VMFILES ${VMFILES}
-       scsi_host.cpp
-	   scsi_dev.cpp
-	   scsi_hdd.cpp
-       )
    set(VMFILES_LIB 
        not.cpp
        pcm1bit.cpp
@@ -173,12 +155,7 @@ elseif(BUILD_PC9801VF)
 elseif(BUILD_PC9801RA)
    add_definitions(-D_PC9801RA)
    set(EXEC_TARGET emupc9801ra)
-   set(VMFILES ${VMFILES}
- #      i386.cpp
-       scsi_host.cpp
-       scsi_dev.cpp
-       scsi_hdd.cpp
-       )
+   set(WITH_SCSI_SASI 1)
    set(VMFILES_LIB 
        not.cpp
        pcm1bit.cpp
@@ -190,11 +167,6 @@ elseif(BUILD_PC9801RA)
 elseif(BUILD_PC98RL)
    add_definitions(-D_PC98RL)
    set(EXEC_TARGET emupc98rl)
-   set(VMFILES ${VMFILES}
-       scsi_host.cpp
-	   scsi_dev.cpp
-	   scsi_hdd.cpp
-       )
    set(VMFILES_LIB 
        not.cpp
        pcm1bit.cpp
@@ -206,8 +178,7 @@ elseif(BUILD_PC98RL)
 elseif(BUILD_PC98DO)
    add_definitions(-D_PC98DO)
    set(EXEC_TARGET emupc98do)
-   set(VMFILES ${VMFILES}
-   )
+   set(WITH_SCSI_SASI 1)
    set(FLAG_USE_Z80 ON)
    set(VMFILES_LIB ${VMFILES_LIB}
        pc80s31k.cpp
@@ -223,11 +194,7 @@ elseif(BUILD_PC98DO)
 elseif(BUILD_PC98DOP)
    add_definitions(-D_PC98DOPLUS)
    set(EXEC_TARGET emupc98doplus)
-   set(VMFILES ${VMFILES}
-       scsi_host.cpp
-	   scsi_dev.cpp
-	   scsi_hdd.cpp
-   )
+   set(WITH_SCSI_SASI 1)
    set(FLAG_USE_Z80 ON)
    set(VMFILES_LIB ${VMFILES_LIB}
        pc80s31k.cpp
@@ -242,6 +209,9 @@ elseif(BUILD_PC98DOP)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc98doplus.qrc)
 endif()
 
+if(WITH_SCSI_SASI)
+  set(VMFILES ${VMFILES} scsi_host.cpp)
+endif()  
 
 if(BUILD_PC98DO)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pc8801)
