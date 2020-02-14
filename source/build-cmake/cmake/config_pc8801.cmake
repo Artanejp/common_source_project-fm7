@@ -98,7 +98,9 @@ elseif(BUILD_PC8801MA)
         ym2151.cpp
   )      
   set(VMFILES ${VMFILES}
-            scsi_dev.cpp scsi_cdrom.cpp scsi_host.cpp
+            #scsi_dev.cpp
+	    #scsi_cdrom.cpp
+	    scsi_host.cpp
   )      
 endif()
 

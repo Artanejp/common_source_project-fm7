@@ -259,9 +259,7 @@ void TOWNS_CDROM::start_command()
 		set_dat(SCSI_STATUS_CHKCOND);
 		break;
 	default:
-		#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: Unknown %02X\n"), scsi_id, command[0]);
-		#endif
+		out_debug_log(_T("Command: Unknown %02X\n"), command[0]);
 		set_dat(SCSI_STATUS_GOOD);
 		set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 	}

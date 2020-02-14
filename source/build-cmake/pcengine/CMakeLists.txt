@@ -22,8 +22,8 @@ set(WITH_MOUSE OFF)
 set(VMFILES_BASE
 		   huc6280.cpp
 		   scsi_host.cpp
-		   scsi_dev.cpp
-		   scsi_cdrom.cpp
+#		   scsi_dev.cpp
+#		   scsi_cdrom.cpp
 		   
 		   event.cpp
 )

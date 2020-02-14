@@ -15,8 +15,8 @@ set(VMFILES_2500
 		   w3100a.cpp
 
 		   scsi_host.cpp
-		   scsi_dev.cpp;
-		   scsi_hdd.cpp
+#		   scsi_dev.cpp
+#		   scsi_hdd.cpp
 	   
 )
 set(VMFILES_LIB_2500

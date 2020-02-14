@@ -17,8 +17,8 @@ set(VMFILES
 		   mz1p17.cpp
 
 		   scsi_host.cpp
-		   scsi_dev.cpp
-		   scsi_hdd.cpp
+#		   scsi_dev.cpp
+#		   scsi_hdd.cpp
 )
 set(VMFILES_LIB
 		   ay_3_891x.cpp

@@ -13,9 +13,9 @@ set(WITH_MOUSE ON)
 
 set(VMFILES
 		   msm58321.cpp
-		   scsi_dev.cpp
+#		   scsi_dev.cpp
 		   scsi_host.cpp
-		   scsi_hdd.cpp
+#		   scsi_hdd.cpp
 #		   memory.cpp
 
 #		   disk.cpp

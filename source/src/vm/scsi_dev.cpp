@@ -197,8 +197,8 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 					buffer->write(data_bus);
 					break;
 				}
-//				set_req_delay(0, 0.1);
-				set_req_delay(0, 0.25); // 4MHz
+				set_req_delay(0, 0.1);
+//				set_req_delay(0, 0.25); // 4MHz
 			} else if(prev_status && !ack_status) {
 				// H -> L
 				if(atn_pending) {
@@ -406,7 +406,7 @@ void SCSI_DEV::set_phase(int value)
 		selected = false;
 	} else {
 		first_req_clock = 0;
-//		set_bsy(1);
+		set_bsy(1);
 		set_req(1);
 		//set_req_delay(0, 800.0);
 		//set_bsy_delay(0, 800.0);
@@ -529,7 +529,7 @@ void SCSI_DEV::start_command()
 			set_dat(SCSI_STATUS_GOOD);
 			set_sense_code(SCSI_SENSE_NOSENSE);
 		}
-		remain = 0;
+//		remain = 0;
 		set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		break;
 		

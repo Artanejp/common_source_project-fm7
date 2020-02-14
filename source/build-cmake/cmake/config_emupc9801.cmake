@@ -103,8 +103,6 @@ elseif(BUILD_PC9801VM)
        pcm1bit.cpp
 	   ${VMFILES_LIB}
    )
-#  set(FLAG_USE_I286 ON)
-#   set(FLAG_USE_I86 ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801vm.qrc)
 elseif(BUILD_PC9801VX)
    add_definitions(-D_PC9801VX)
@@ -114,8 +112,7 @@ elseif(BUILD_PC9801VX)
        pcm1bit.cpp
 	   ${VMFILES_LIB}
    )
-#  set(FLAG_USE_I286 ON)
-#   set(FLAG_USE_I86 ON)
+  set(WITH_SCSI_SASI 1)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801vx.qrc)
 elseif(BUILD_PC98XA)
    add_definitions(-D_PC98XA)
@@ -125,8 +122,6 @@ elseif(BUILD_PC98XA)
        pcm1bit.cpp
 	   ${VMFILES_LIB}
    )
-#  set(FLAG_USE_I286 ON)
-#   set(FLAG_USE_I86 ON)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc98xa.qrc)
 elseif(BUILD_PC98XL)
    add_definitions(-D_PC98XL)
@@ -136,8 +131,7 @@ elseif(BUILD_PC98XL)
        pcm1bit.cpp
 	   ${VMFILES_LIB}
    )
-#  set(FLAG_USE_I286 ON)
-#   set(FLAG_USE_I86 ON)
+  set(WITH_SCSI_SASI 1)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc98xl.qrc)
 elseif(BUILD_PC9801VF)
    add_definitions(-D_PC9801VF)
@@ -149,8 +143,6 @@ elseif(BUILD_PC9801VF)
        pcm1bit.cpp
 	   ${VMFILES_LIB}
    )
-#  set(FLAG_USE_I286 ON)
-#    set(FLAG_USE_I86 ON)
  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801vf.qrc)
 elseif(BUILD_PC9801RA)
    add_definitions(-D_PC9801RA)
@@ -161,8 +153,6 @@ elseif(BUILD_PC9801RA)
        pcm1bit.cpp
 	   ${VMFILES_LIB}
    )
-#  set(FLAG_USE_I286 OFF)
-#    set(FLAG_USE_I86 ON)
  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801ra.qrc)
 elseif(BUILD_PC98RL)
    add_definitions(-D_PC98RL)
@@ -172,8 +162,7 @@ elseif(BUILD_PC98RL)
        pcm1bit.cpp
 	   ${VMFILES_LIB}
    )
-#  set(FLAG_USE_I286 OFF)
-#    set(FLAG_USE_I86 ON)
+  set(WITH_SCSI_SASI 1)
  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc98rl.qrc)
 elseif(BUILD_PC98DO)
    add_definitions(-D_PC98DO)
