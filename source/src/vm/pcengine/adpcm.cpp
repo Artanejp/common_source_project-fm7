@@ -124,7 +124,7 @@ void ADPCM::reset_adpcm()
 	dma_connected = false;
 	play_in_progress = false;
 	adpcm_paused = false;
-	
+
 	if(event_fader != -1) {
 		cancel_event(this, event_fader);
 	}
@@ -192,7 +192,10 @@ void ADPCM::do_stop(bool do_notify)
 	reg_0c &= ~ADPCM_PLAY_FLAG;
 	msm_last_cmd &= ~0x60;
 	play_in_progress = false;
-	if(do_notify) set_dma_status(false);
+	if(do_notify) {
+		set_dma_status(false);
+//		d_pce->write_signal(SIG_PCE_ADPCM_DMA, 0x00000000, 0xffffffff);
+	}
 	out_debug_log(_T("ADPCM STOP PLAY PTR=%04x DMA CLEAR=%s\n"), msm_ptr, (do_notify) ? _T("YES") : _T("NO"));
 	
 }
@@ -214,6 +217,7 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 	case SIG_ADPCM_DMACTRL:
 		if((data & 0x03) != 0) {
 			set_dma_status(true);
+			//d_pce->write_signal(SIG_PCE_ADPCM_DMA, 0xffffffff, 0xffffffff);
 			//reg_0b |= 0x02;
 		}
 		reg_0b = data;
@@ -247,7 +251,7 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 		do_dma(data);
 		break;
 	case SIG_ADPCM_DO_DMA_TRANSFER:
-		//set_dma_status(true);
+		set_dma_status(true);
 		dma_connected = true;
 		do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
 		break;
@@ -400,7 +404,8 @@ void ADPCM::do_cmd(uint8_t cmd)
 	} else {
 		if(adpcm_stream) {
 			if(written_size > 0x8000) {
-				//req_play = false;
+//			if(msm_length > 0x8000) {
+//				req_play = false;
 			} else {
 				msm_last_cmd = cmd;
 				return; // Exit from command. 20190212 K.O
@@ -408,7 +413,7 @@ void ADPCM::do_cmd(uint8_t cmd)
 		}
 	}
 	if(req_play) {
-//				msm_start_addr = (adpcm_read_ptr) & 0xffff;
+//		msm_ptr = read_ptr;
 		if(/*((cmd & 0x40) != 0) && */!(play_in_progress)) {
 			// ADPCM play
 			half_addr = (read_ptr + ((adpcm_length + 1) >> 1)) & 0xffff;
@@ -425,21 +430,21 @@ void ADPCM::do_cmd(uint8_t cmd)
 			msm_last_cmd = cmd;
 		} else {
 			// 20181213 K.O: Import from Ootake v2.83.Thanks to developers of Ootake.
-			if(((adpcm_length & 0xffff) >= 0x8000) && ((adpcm_length & 0xffff) <= 0x80ff)) {
+			if((adpcm_repeat)
+			   && ((adpcm_length & 0xffff) >= 0x8000)
+			   && ((adpcm_length & 0xffff) <= 0x80ff)) {
 				half_addr = (read_ptr + 0x85) & 0xffff;
 			} else {
 				half_addr = (read_ptr + ((adpcm_length + 1) >> 1)) & 0xffff;
 			}
 			out_debug_log(_T("ADPCM UPDATE HALF ADDRESS HALF=%04x\n"), half_addr);
 		}
-	
 	} else  {
-		//set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
-		//	set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, ASSERT_LINE);
+		
 		if(play_in_progress) {
 			if((msm_last_cmd & 0x40) != 0) {
-//				adpcm_stream = false;
-//				adpcm_repeat = false;
+				adpcm_stream = false;
+				adpcm_repeat = false;
 				msm_last_cmd = cmd;
 				d_pce->write_signal(SIG_PCE_ADPCM_HALF, 0x00000000, 0xffffffff);
 				d_pce->write_signal(SIG_PCE_ADPCM_FULL, 0x00000000, 0xffffffff);
@@ -448,14 +453,13 @@ void ADPCM::do_cmd(uint8_t cmd)
 				return;
 			}
 		}
+		
 		msm_last_cmd = cmd;
-		adpcm_stream = false;
-		adpcm_repeat = false;
+//		adpcm_stream = false;
+//		adpcm_repeat = false;
 		d_pce->write_signal(SIG_PCE_ADPCM_HALF, 0x00000000, 0xffffffff);
 		d_pce->write_signal(SIG_PCE_ADPCM_FULL, 0x00000000, 0xffffffff);
 
-//		adpcm_stream = false;
-//		adpcm_repeat = false;
 		out_debug_log(_T("ADPCM STATUS UPDATE / STOP\n"));
 	}
 }

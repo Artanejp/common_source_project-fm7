@@ -134,10 +134,8 @@ void PCE::reset()
 	joy_reset();
 #ifdef SUPPORT_CDROM
 	adpcm_dma_enabled = false;
-	
 	cdrom_reset();
 #endif
-	
 	prev_width = -1;
 }
 
@@ -1893,9 +1891,8 @@ void PCE::cdrom_reset()
 	check_read6_status_flag = true;
 	irq_status = drq_status = false;
 	
-	adpcm_dma_enabled = false;
 	d_adpcm->write_signal(SIG_ADPCM_DMA_ENABLED, 0x00, 0x03);
-
+	adpcm_dma_enabled = false;
 	if(event_cdda_fader != -1) {
 		cancel_event(this, event_cdda_fader);
 	}
@@ -1915,12 +1912,12 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 		// Reset req?
 		d_scsi_host->write_signal(SIG_SCSI_SEL, 1, 1);
 		d_scsi_host->write_signal(SIG_SCSI_SEL, 0, 1);
-
-		adpcm_dma_enabled = false;
-		d_adpcm->write_signal(SIG_ADPCM_DMA_ENABLED, 0x00, 0xff);
 		// From Ootake v2.38
+		d_adpcm->write_signal(SIG_ADPCM_DMA_ENABLED, 0x00000000, 0xffffffff);
+		//adpcm_dma_enabled = false;
 		cdrom_regs[0x03] = 0x00; // Reset IRQ status at al.
 		set_cdrom_irq_line(0x0, 0x0); // Update IRQ
+		out_debug_log(_T("CMD=$00 CDC STATUS\n"));
 		break;
 		
 	case 0x01:  /* CDC command / status / data */
@@ -1956,9 +1953,9 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 			// Reset ADPCM hardware
 
 			d_adpcm->write_signal(SIG_ADPCM_RESET, 0xff, 0xff);
-			adpcm_dma_enabled = false;
+			d_adpcm->write_signal(SIG_ADPCM_DMA_ENABLED, 0x00000000, 0xffffffff);
 			
-			//out_debug_log(_T("CMD=$04 ADPCM RESET\n"));
+			out_debug_log(_T("CMD=$04 ADPCM RESET\n"));
 			cdrom_regs[0x03] = 0x00; // Reset IRQ status at al.
 			set_cdrom_irq_line(0x0, 0x0); // Update IRQ
 		}
@@ -1992,10 +1989,7 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 			/* Start CD to ADPCM transfer */
 			adpcm_dma_enabled = true;
 			d_adpcm->write_signal(SIG_ADPCM_DMA_ENABLED, 0xffffffff, 0xffffffff);
-		} else {
-			//adpcm_dma_enabled = false;
 		}
-
 		break;
 		
 	case 0x0c:  /* ADPCM status */
@@ -2071,6 +2065,7 @@ uint8_t PCE::cdrom_read(uint16_t addr)
 			   (d_scsi_host->read_signal(SIG_SCSI_IO) != 0)) { // STATUS PHASE: Porting from Ootake v2.83.
 				//	// busy = false;
 				cdrom_regs[0x02] = cdrom_regs[0x02] & ~(0x80 | PCE_CD_IRQ_TRANSFER_READY | PCE_CD_IRQ_TRANSFER_DONE);
+				cdrom_regs[0x03] &= ~0x20; // SIGNAL_DONE : From Ootake v2.83.
 				set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_DONE, CLEAR_LINE);
 			}
 			return data & ~0x40; // Clear REQ
@@ -2129,7 +2124,6 @@ uint8_t PCE::cdrom_read(uint16_t addr)
 				set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_DONE, ASSERT_LINE);
 				d_adpcm->write_signal(SIG_ADPCM_DMA_RELEASED, 0xff, 0xff);
 			}
-
 		}
 		break;
 		
