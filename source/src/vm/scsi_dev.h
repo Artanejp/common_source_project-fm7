@@ -150,35 +150,30 @@ protected:
 	
 	int phase, next_phase, next_req;
 	int event_sel, event_phase, event_req;
-	int next_bsy;
-	int event_bsy;
-	
 	uint32_t first_req_clock;
 	double next_req_usec;
 	
 	uint8_t sense_code;
-
+	
 	bool _SCSI_HOST_WIDE;
 	bool _SCSI_DEV_IMMEDIATE_SELECT;
 	bool __SCSI_DEBUG_LOG;
 	bool _OUT_DEBUG_LOG;
-
 public:
 	SCSI_DEV(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		_SCSI_HOST_WIDE = false;
-		_SCSI_DEV_IMMEDIATE_SELECT = false;
-		__SCSI_DEBUG_LOG = false;
-		_OUT_DEBUG_LOG = false;
 		initialize_output_signals(&outputs_dat);
 		initialize_output_signals(&outputs_bsy);
 		initialize_output_signals(&outputs_cd);
 		initialize_output_signals(&outputs_io);
 		initialize_output_signals(&outputs_msg);
 		initialize_output_signals(&outputs_req);
+		_SCSI_HOST_WIDE = false;
+		_SCSI_DEV_IMMEDIATE_SELECT = false;
+		__SCSI_DEBUG_LOG = false;
+		_OUT_DEBUG_LOG = false;
 		
 		set_device_name(_T("SCSI DEVICE"));
-		
 	}
 	~SCSI_DEV() {}
 	
@@ -200,6 +195,7 @@ public:
 //#else
 		register_output_signal(&outputs_dat, device, SIG_SCSI_DAT, 0xff);
 //#endif
+//		register_output_signal(&outputs_dat, device, SIG_SCSI_DAT, 1 << scsi_id);
 		register_output_signal(&outputs_bsy, device, SIG_SCSI_BSY, 1 << scsi_id);
 		register_output_signal(&outputs_cd,  device, SIG_SCSI_CD,  1 << scsi_id);
 		register_output_signal(&outputs_io,  device, SIG_SCSI_IO,  1 << scsi_id);
@@ -218,7 +214,6 @@ public:
 	void set_phase_delay(int value, double usec);
 	void set_dat(int value);
 	void set_bsy(int value);
-	void set_bsy_delay(int value, double usec);
 	void set_cd(int value);
 	void set_io(int value);
 	void set_msg(int value);

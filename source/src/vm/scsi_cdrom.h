@@ -100,6 +100,7 @@ public:
 	virtual void mix(int32_t* buffer, int cnt);
 	virtual void set_volume(int ch, int decibel_l, int decibel_r);
 	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual void out_debug_log(const _TCHAR *format, ...);
 	
 	// virtual scsi functions
 	virtual void reset_device();
@@ -129,7 +130,6 @@ public:
 	{
 		register_output_signal(&outputs_done, device, id, mask);
 	}
-	virtual void out_debug_log(const _TCHAR *format, ...);
 	void open(const _TCHAR* file_path);
 	void close();
 	bool mounted();

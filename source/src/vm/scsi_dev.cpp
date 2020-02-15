@@ -13,7 +13,6 @@
 #define EVENT_SEL	0
 #define EVENT_PHASE	1
 #define EVENT_REQ	2
-#define EVENT_BSY   3
 //#define _SCSI_DEBUG_LOG
 
 void SCSI_DEV::initialize()
@@ -54,16 +53,8 @@ void SCSI_DEV::reset()
 	data_bus = 0;
 	sel_status = atn_status = ack_status = rst_status = false;
 	selected = atn_pending = false;
-	next_bsy = 0;
 	
-	if(event_sel > -1)   cancel_event(this, event_sel);
-	if(event_phase > -1) cancel_event(this, event_phase);
-	if(event_req > -1)   cancel_event(this, event_req);
-	if(event_bsy > -1)   cancel_event(this, event_bsy);
-	event_sel = event_phase = event_req = event_bsy = -1;
-	// Release BUS
-//	write_signals(&outputs_dat, 0);
-	write_signals(&outputs_bsy, 0);
+	event_sel = event_phase = event_req = -1;
 	set_phase(SCSI_PHASE_BUS_FREE);
 	set_sense_code(SCSI_SENSE_NOSENSE);
 }
@@ -110,8 +101,6 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 						command_index = 0;
 						set_phase_delay(SCSI_PHASE_COMMAND, 10.0);
 //						set_phase(SCSI_PHASE_COMMAND);
-//						set_bsy(1);
-//						set_req_delay(0, 1000.0);
 					}
 				}
 			}
@@ -172,7 +161,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 */
 			bool prev_status = ack_status;
 			ack_status = ((data & mask) != 0);
-			//out_debug_log(_T("ACK=%s from %s"), (ack_status) ? _T("ON") : _T("OFF"), (prev_status) ? _T("ON") : _T("OFF"));
+			
 			if(phase == SCSI_PHASE_BUS_FREE) {
 				// this device is not selected
 			} else if(!prev_status & ack_status) {
@@ -198,7 +187,6 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 					break;
 				}
 				set_req_delay(0, 0.1);
-//				set_req_delay(0, 0.25); // 4MHz
 			} else if(prev_status && !ack_status) {
 				// H -> L
 				if(atn_pending) {
@@ -317,8 +305,6 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 							memset(command, 0, sizeof(command));
 							command_index = 0;
 							set_phase_delay(SCSI_PHASE_COMMAND, 10.0);
-//							set_bsy(1);
-//							set_req_delay(0, 1000.0);
 						} else {
 							// abort, change to bus free phase
 							set_phase_delay(SCSI_PHASE_BUS_FREE, 10.0);
@@ -360,18 +346,13 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 void SCSI_DEV::event_callback(int event_id, int err)
 {
 	switch(event_id) {
-	case EVENT_BSY:
-		event_bsy = -1;
-		set_bsy(next_bsy);
-		break;
 	case EVENT_SEL:
 		event_sel = -1;
 		if((data_bus & 0x7f) == (1 << scsi_id)) {
 			if(is_device_existing()) {
 				// this device is selected!
 				out_debug_log(_T("This device is selected\n"));
-				set_bsy(1);
-//				set_req(1);
+				set_bsy(true);
 				selected = true;
 			}
 		}
@@ -392,24 +373,22 @@ void SCSI_DEV::event_callback(int event_id, int err)
 void SCSI_DEV::set_phase(int value)
 {
 	out_debug_log(_T("Phase %s -> %s\n"), scsi_phase_name[phase], scsi_phase_name[value]);
-	set_io (value & 1);
-	set_msg(value & 2);
-	set_cd (value & 4);
-	
 	if(event_phase != -1) {
 		cancel_event(this, event_phase);
 		event_phase = -1;
 	}
+	set_io (value & 1);
+	set_msg(value & 2);
+	set_cd (value & 4);
+	
 	if(value == SCSI_PHASE_BUS_FREE) {
-		set_bsy(0);
+		set_bsy(false);
 		set_req(0);
 		selected = false;
 	} else {
 		first_req_clock = 0;
-		set_bsy(1);
-		set_req(1);
-		//set_req_delay(0, 800.0);
-		//set_bsy_delay(0, 800.0);
+//		set_bsy(true);
+		set_req_delay(1, 10.0);
 	}
 	phase = value;
 }
@@ -430,23 +409,12 @@ void SCSI_DEV::set_phase_delay(int value, double usec)
 
 void SCSI_DEV::set_dat(int value)
 {
+	if(__SCSI_DEBUG_LOG) {
 //		emu->force_out_debug_log(_T("[SCSI_DEV:ID=%d] DATA = %02x\n"), scsi_id, value);
+	}
 	write_signals(&outputs_dat, value);
 }
 
-void SCSI_DEV::set_bsy_delay(int value, double usec)
-{
-	if(event_bsy > -1) {
-		cancel_event(this, event_bsy);
-		event_bsy = -1;
-	}
-	next_bsy = value;
-	if(usec <= 10.0) {
-		set_bsy(value);
-	} else {
-		register_event(this, EVENT_BSY, usec, false, &event_bsy);
-	}
-}
 void SCSI_DEV::set_bsy(int value)
 {
 	out_debug_log(_T("BUSY = %d\n"), value ? 1 : 0);
@@ -473,7 +441,7 @@ void SCSI_DEV::set_msg(int value)
 
 void SCSI_DEV::set_req(int value)
 {
-//		out_debug_log(_T("REQ = %d\n"), value ? 1 : 0);
+	out_debug_log(_T("REQ = %d\n"), value ? 1 : 0);
 	if(event_req != -1) {
 		cancel_event(this, event_req);
 		event_req = -1;
@@ -520,7 +488,7 @@ void SCSI_DEV::start_command()
 {
 	switch(command[0]) {
 	case SCSI_CMD_TST_U_RDY:
-			out_debug_log(_T("Command: Test Unit Ready\n"));
+		out_debug_log(_T("Command: Test Unit Ready\n"));
 		// change to status phase
 		if(!is_device_ready()) {
 			set_dat(SCSI_STATUS_CHKCOND);
@@ -529,7 +497,6 @@ void SCSI_DEV::start_command()
 			set_dat(SCSI_STATUS_GOOD);
 			set_sense_code(SCSI_SENSE_NOSENSE);
 		}
-//		remain = 0;
 		set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		break;
 		
@@ -642,9 +609,9 @@ void SCSI_DEV::start_command()
 		break;
 		
 	case SCSI_CMD_READ6:
-		out_debug_log(_T("Command: Read 6-byte\n"));
 		// start position
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
+		out_debug_log(_T("Command: Read 6-byte LBA=%d BLOCKS=%d\n"), position, command[4]);
 		position *= physical_block_size();
 		// transfer length
 		remain = command[4] * logical_block_size();
@@ -670,9 +637,9 @@ void SCSI_DEV::start_command()
 		break;
 		
 	case SCSI_CMD_WRITE6:
-		out_debug_log(_T("Command: Write 6-Byte\n"));
 		// start position
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
+		out_debug_log(_T("Command: Write 6-byte LBA=%d BLOCKS=%d\n"), position, command[4]);
 		position *= physical_block_size();
 		// transfer length
 		remain = command[4] * logical_block_size();
@@ -690,9 +657,9 @@ void SCSI_DEV::start_command()
 		break;
 		
 	case SCSI_CMD_READ10:
-		out_debug_log(_T("Command: Read 10-byte\n"));
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];
+		out_debug_log(_T("Command: Read 10-byte LBA=%d BLOCKS=%d\n"), position, command[7] * 0x100 + command[8]);
 		position *= physical_block_size();
 		// transfer length
 		remain = command[7] * 0x100 + command[8];
@@ -719,13 +686,12 @@ void SCSI_DEV::start_command()
 		break;
 		
 	case SCSI_CMD_WRITE10:
-		out_debug_log(_T("Command: Write 10-Byte\n"));
 		goto WRITE10;
 	case SCSI_CMD_WRT_VERIFY:
-		out_debug_log(_T("Command: Write and Verify\n"));
 	WRITE10:
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];
+		out_debug_log(_T("Command: %s LBA=%d BLOCKS=%d\n"), (command[0] == SCSI_CMD_WRT_VERIFY) ? _T("Write and Verify") : _T("Write 10-byte"), position, command[7] * 0x100 + command[8]);
 		position *= physical_block_size();
 		// transfer length
 		remain = command[7] * 0x100 + command[8];
@@ -744,9 +710,9 @@ void SCSI_DEV::start_command()
 		break;
 		
 	case SCSI_CMD_READ12:
-		out_debug_log(_T("Command: Read 12-byte\n"));
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];
+		out_debug_log(_T("Command: Read 12-byte LBA=%d BLOCKS=%d\n"), position, command[6] * 0x1000000 + command[7] * 0x10000 + command[8] * 0x100 + command[9]);
 		position *= physical_block_size();
 		// transfer length
 		remain = command[6] * 0x1000000 + command[7] * 0x10000 + command[8] * 0x100 + command[9];
@@ -773,9 +739,9 @@ void SCSI_DEV::start_command()
 		break;
 		
 	case SCSI_CMD_WRITE12:
-		out_debug_log(_T("Command: Write 12-Byte\n"));
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];
+		out_debug_log(_T("Command: Write 12-byte LBA=%d BLOCKS=%d\n"), position, command[6] * 0x1000000 + command[7] * 0x10000 + command[8] * 0x100 + command[9]);
 		position *= physical_block_size();
 		// transfer length
 		remain = command[6] * 0x1000000 + command[7] * 0x10000 + command[8] * 0x100 + command[9];
@@ -820,7 +786,7 @@ bool SCSI_DEV::write_buffer(int length)
 	return true;
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	2
 
 bool SCSI_DEV::process_state(FILEIO* state_fio, bool loading)
 {
@@ -853,7 +819,5 @@ bool SCSI_DEV::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(position);
 	state_fio->StateValue(remain);
 	state_fio->StateValue(sense_code);
-	state_fio->StateValue(event_bsy);
-	state_fio->StateValue(next_bsy);
  	return true;
 }
