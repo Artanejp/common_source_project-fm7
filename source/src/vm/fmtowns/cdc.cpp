@@ -7,6 +7,7 @@
 
 #include "cdc.h"
 #include "../../fifo.h"
+
 #include "../scsi_host.h"
 #include "../upd71071.h"
 #include "towns_cdrom.h"
@@ -21,14 +22,14 @@ namespace FMTOWNS {
 void CDC::set_context_scsi_host(SCSI_HOST* dev)
 {
 	d_scsi_host = dev;
-	d_scsi_host->set_context_irq(this, SIG_TOWNS_CDC_IRQ, 0xffffffff);
-	d_scsi_host->set_context_drq(this, SIG_TOWNS_CDC_DRQ, 0xffffffff);
-	d_scsi_host->set_context_bsy(this, SIG_TOWNS_CDC_BSY, 0xffffffff);
-	d_scsi_host->set_context_cd(this, SIG_TOWNS_CDC_CD, 0xffffffff);
-	d_scsi_host->set_context_io(this, SIG_TOWNS_CDC_IO, 0xffffffff);
-	d_scsi_host->set_context_msg(this, SIG_TOWNS_CDC_MSG, 0xffffffff);
-	d_scsi_host->set_context_req(this, SIG_TOWNS_CDC_REQ, 0xffffffff);
-	d_scsi_host->set_context_ack(this, SIG_TOWNS_CDC_ACK, 0xffffffff);
+	d_scsi_host->set_context_irq(this, SIG_TOWNS_CDC_IRQ, 1 << 0);
+	d_scsi_host->set_context_drq(this, SIG_TOWNS_CDC_DRQ, 1 << 0);
+	d_scsi_host->set_context_bsy(this, SIG_TOWNS_CDC_BSY, 1 << 0);
+	d_scsi_host->set_context_cd(this, SIG_TOWNS_CDC_CD, 1 << 0);
+	d_scsi_host->set_context_io(this, SIG_TOWNS_CDC_IO, 1 << 0);
+	d_scsi_host->set_context_msg(this, SIG_TOWNS_CDC_MSG, 1 << 0);
+	d_scsi_host->set_context_req(this, SIG_TOWNS_CDC_REQ, 1 << 0);
+	d_scsi_host->set_context_ack(this, SIG_TOWNS_CDC_ACK, 1 << 0);
 }
 
 
@@ -40,9 +41,10 @@ void CDC::set_context_cdrom(TOWNS_CDROM* dev)
 
 void CDC::reset()
 {
-	param_fifo->clear();
 	stat_fifo->clear();
-
+	memset(param_queue, 0x00, sizeof(param_queue));
+	param_ptr = 0;
+	
 	has_status = false;
 	extra_status = 0;
 	submpu_ready = true;
@@ -60,13 +62,12 @@ void CDC::reset()
 	command_type_play = false; // false = status command
 	stat_reply_intr   = false;
 	req_status        = false;
-	
+	readptr = 0;
 	d_scsi_host->reset();
 }
 
 void CDC::initialize()
 {
-	param_fifo = new FIFO(6); // 
 	stat_fifo = new FIFO(4);
 	
 	submpu_ready = true;
@@ -88,10 +89,8 @@ void CDC::initialize()
 
 void CDC::release()
 {
-	param_fifo->release();
 	stat_fifo->release();
 	
-	delete param_fifo;
 	delete stat_fifo;
 }
 void CDC::write_io8(uint32_t address, uint32_t data)
@@ -114,7 +113,9 @@ void CDC::write_io8(uint32_t address, uint32_t data)
 				if(dma_intr) write_signals(&output_dma_intr, 0x00000000);
 				dma_intr = false;
 			}
-			if((data & 0x04) != 0) this->reset();
+			if((data & 0x04) != 0) {
+				reset();
+			}
 			submpu_intr_mask = ((data & 0x02) != 0) ? true : false;
 			dma_intr_mask    = ((data & 0x01) != 0) ? true : false;
 			w_regs[address & 0x0f] = data;
@@ -125,29 +126,32 @@ void CDC::write_io8(uint32_t address, uint32_t data)
 			command_type_play = ((data & 0x80) != 0) ? false : true; // false = status command
 			stat_reply_intr   = ((data & 0x40) != 0) ? true : false;
 			req_status        = ((data & 0x20) != 0) ? true : false;
+			w_regs[address & 0x0f] = data;
+			readptr = 0;
 			if(command_type_play) {
 				enqueue_command_play(data);
 			} else {
 				enqueue_command_status(data);
 			}
-			w_regs[address & 0x0f] = data;
 		}
+		param_ptr = 0;
+		
+//		memset(param_queue, 0x00, sizeof(param_queue));
 		break;
 	case 0x04: // Parameter register
-		if(submpu_ready) {
-			if(param_fifo->full()) {
-				param_fifo->read(); // Dummy read
-			}
-			param_fifo->write((int)(data & 0xff));
-			w_regs[address & 0x0f] = data;
-		}
+		param_queue[param_ptr] = data;
+		param_ptr = (param_ptr + 1) & 0x07;
 		break;
 	case 0x06:
-		{
-			dma_transfer = ((data & 0x10) != 0) ? true : false;
-			pio_transfer = ((data & 0x08) != 0) ? true : false;
-			w_regs[address & 0x0f] = data;
-		}			
+		if((data & 0x08) != 0) {
+			dma_transfer = false;
+			pio_transfer = true;
+		}
+		if((data & 0x10) != 0) {
+			dma_transfer = true;
+			pio_transfer = false;
+		}
+		w_regs[address & 0x0f] = data;
 		break;
 	default:
 		if((address & 0x01) == 0) {
@@ -290,6 +294,8 @@ uint32_t CDC::read_io8(uint32_t address)
 	case 0x4: //
 		if(pio_transfer) {
 			val = d_scsi_host->read_dma_io8(0);
+			out_debug_log(_T("PIO READ PTR=%d DATA=%02X"), readptr, val);
+			readptr++;
 		}
 		break;
 	case 0xc: // Sub code status register
@@ -314,34 +320,27 @@ void CDC::read_cdrom(bool req_reply)
 
 	uint8_t m1, s1, f1;
 	uint8_t m2, s2, f2;
-	f2 = (uint8_t)(param_fifo->read() & 0xff);
-	s2 = (uint8_t)(param_fifo->read() & 0xff);
-	m2 = (uint8_t)(param_fifo->read() & 0xff);
+//	uint8_t pad1, dcmd;
 
-	f1 = (uint8_t)(param_fifo->read() & 0xff);
-	s1 = (uint8_t)(param_fifo->read() & 0xff);
-	m1 = (uint8_t)(param_fifo->read() & 0xff);
+	m1 = FROM_BCD(param_queue[0]);
+	s1 = FROM_BCD(param_queue[1]);
+	f1 = FROM_BCD(param_queue[2]);
 
-	uint32_t lba1 = ((uint32_t)m1 & 0x1f) * 0x10000 + ((uint32_t)s1) * 0x100 + (uint32_t)f1;
-	uint32_t lba2 = ((uint32_t)m2 & 0x1f) * 0x10000 + ((uint32_t)s2) * 0x100 + (uint32_t)f2;
+	m2 = FROM_BCD(param_queue[3]);
+	s2 = FROM_BCD(param_queue[4]);
+	f2 = FROM_BCD(param_queue[5]);
+	uint8_t pad1 = param_queue[6];
+	uint8_t dcmd = param_queue[7];
+
+	int32_t lba1 = ((m1 * (60 * 75)) + (s1 * 75) + f1) - 150;
+	int32_t lba2 = ((m2 * (60 * 75)) + (s2 * 75) + f2) - 150;
+	
 	uint32_t __remain;
 	int track = 0;
 	if(d_cdrom != NULL) {
 		track = d_cdrom->get_track(lba1);
 	}
-	out_debug_log(_T("READ_CDROM TRACK=%d LBA1=%06X LBA2=%06X F1/S1/M1=%02X/%02X/%02X F2/S2/M2=%02X/%02X/%02X"), track, lba1, lba2, f1, s1, m1, f2, s2, m2);
-	if(track < 2) {
-		if(lba1 >= 150) {
-			lba1 = lba1 - 150;
-		} else {
-			lba1 = 0;
-		}
-		if(lba2 >= 150) {
-			lba2 = lba2 - 150;
-		} else {
-			lba2 = 0;
-		}
-	}
+	out_debug_log(_T("READ_CDROM TRACK=%d LBA1=%06X LBA2=%06X F1/S1/M1=%02X/%02X/%02X F2/S2/M2=%02X/%02X/%02X PAD=%02X DCMD=%02X"), track, lba1, lba2, f1, s1, m1, f2, s2, m2, pad1, dcmd);
 	if(d_cdrom != NULL) {
 		d_cdrom->set_cdda_status(CDDA_OFF);
 	}
@@ -353,15 +352,15 @@ void CDC::read_cdrom(bool req_reply)
 	__remain = lba2 - lba1;
 	//seek_time = get_seek_time(lba1);
 	
-	command[0] = SCSI_CMD_READ12;
-	command[1] = 0; // LUN = 0
-	command[2] = 0; 
-	command[3] = m2 & 0x1f;
-	command[4] = s2;
-	command[5] = f2;
+	command[0] = SCSI_CMD_READ10;
+	command[1] = 0;
+	command[2] = 0;
+	command[3] = m1;
+	command[4] = s1;
+	command[5] = f1;
 	
-	command[6] = 0;
-	command[7] = (uint8_t)((__remain / 0x10000) & 0xff);
+	command[4] = 0;
+	command[5] = (uint8_t)((__remain / 0x10000) & 0xff);
 	command[8] = (uint8_t)((__remain / 0x100) & 0xff);
 	command[9] = (uint8_t) (__remain % 0x100);
 
@@ -387,16 +386,31 @@ void CDC::stop_cdda(bool req_reply)
 		if(req_reply) write_status(0x10, 0x00, 0x00, 0x00);
 		return;
 	}
+
+	uint8_t m1, s1, f1;
+	uint8_t m2, s2, f2;
+	
+	m1 = FROM_BCD(param_queue[0]);
+	s1 = FROM_BCD(param_queue[1]);
+	f1 = FROM_BCD(param_queue[2]);
+
+	m2 = FROM_BCD(param_queue[3]);
+	s2 = FROM_BCD(param_queue[4]);
+	f2 = FROM_BCD(param_queue[5]);
+	uint8_t pad1 = param_queue[6];
+	uint8_t dcmd = param_queue[7];
+
 	command[0] = TOWNS_CDROM_CDDA_STOP;
 	command[1] = 0;
 	command[2] = 0;
-	command[3] = (uint8_t)(param_fifo->read() & 0xff); 
-	command[4] = (uint8_t)(param_fifo->read() & 0xff); 
-	command[5] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[3] = f1;
+	command[4] = s1;
+	command[5] = m1;
 	command[6] = 0;
-	command[7] = (uint8_t)(param_fifo->read() & 0xff); 
-	command[8] = (uint8_t)(param_fifo->read() & 0xff); 
-	command[9] = (uint8_t)(param_fifo->read() & 0xff);
+	command[7] = f2;
+	command[8] = s2;
+	command[9] = m2;
+
 	if(req_reply) {
 		extra_status = 1;
 		write_status(0x00, 0x00, 0x00, 0x00);
@@ -412,16 +426,30 @@ void CDC::stop_cdda2(bool req_reply)
 		if(req_reply) write_status(0x10, 0x00, 0x00, 0x00);
 		return;
 	}
+	uint8_t m1, s1, f1;
+	uint8_t m2, s2, f2;
+	
+	m1 = FROM_BCD(param_queue[0]);
+	s1 = FROM_BCD(param_queue[1]);
+	f1 = FROM_BCD(param_queue[2]);
+
+	m2 = FROM_BCD(param_queue[3]);
+	s2 = FROM_BCD(param_queue[4]);
+	f2 = FROM_BCD(param_queue[5]);
+	uint8_t pad1 = param_queue[6];
+	uint8_t dcmd = param_queue[7];
+	
 	command[0] = TOWNS_CDROM_CDDA_STOP;
 	command[1] = 0;
 	command[2] = 0;
-	command[3] = (uint8_t)(param_fifo->read() & 0xff); 
-	command[4] = (uint8_t)(param_fifo->read() & 0xff); 
-	command[5] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[3] = f1;
+	command[4] = m1;
+	command[5] = s1;
 	command[6] = 0;
-	command[7] = (uint8_t)(param_fifo->read() & 0xff); 
-	command[8] = (uint8_t)(param_fifo->read() & 0xff); 
-	command[9] = (uint8_t)(param_fifo->read() & 0xff);
+	command[7] = f2;
+	command[8] = m2;
+	command[9] = s2;
+
 	if(req_reply) {
 		extra_status = 1;
 		write_status(0x00, 0x00, 0x00, 0x00);
@@ -437,16 +465,30 @@ void CDC::unpause_cdda(bool req_reply)
 		if(req_reply) write_status(0x10, 0x00, 0x00, 0x00);
 		return;
 	}
+	uint8_t m1, s1, f1;
+	uint8_t m2, s2, f2;
+	
+	m1 = FROM_BCD(param_queue[0]);
+	s1 = FROM_BCD(param_queue[1]);
+	f1 = FROM_BCD(param_queue[2]);
+
+	m2 = FROM_BCD(param_queue[3]);
+	s2 = FROM_BCD(param_queue[4]);
+	f2 = FROM_BCD(param_queue[5]);
+	uint8_t pad1 = param_queue[6];
+	uint8_t dcmd = param_queue[7];
+	
 	command[0] = TOWNS_CDROM_CDDA_UNPAUSE;
 	command[1] = 0;
 	command[2] = 0;
-	command[3] = (uint8_t)(param_fifo->read() & 0xff); 
-	command[4] = (uint8_t)(param_fifo->read() & 0xff); 
-	command[5] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[3] = f1;
+	command[4] = m1;
+	command[5] = s1;
 	command[6] = 0;
-	command[7] = (uint8_t)(param_fifo->read() & 0xff); 
-	command[8] = (uint8_t)(param_fifo->read() & 0xff); 
-	command[9] = (uint8_t)(param_fifo->read() & 0xff);
+	command[7] = f2;
+	command[8] = m2;
+	command[9] = s2;
+
 	if(req_reply) {
 		extra_status = 1;
 		write_status(0x00, 0x03, 0x00, 0x00);
@@ -462,17 +504,29 @@ void CDC::play_cdda(bool req_reply)
 		if(req_reply) write_status(0x10, 0x00, 0x00, 0x00);
 		return;
 	}
+	uint8_t m1, s1, f1;
+	uint8_t m2, s2, f2;
+	
+	m1 = FROM_BCD(param_queue[0]);
+	s1 = FROM_BCD(param_queue[1]);
+	f1 = FROM_BCD(param_queue[2]);
+
+	m2 = FROM_BCD(param_queue[3]);
+	s2 = FROM_BCD(param_queue[4]);
+	f2 = FROM_BCD(param_queue[5]);
+	uint8_t pad1 = param_queue[6];
+	uint8_t dcmd = param_queue[7];
+	
 	command[0] = TOWNS_CDROM_CDDA_PLAY;
 	command[1] = 0;
 	command[2] = 0;
-	command[3] = (uint8_t)(param_fifo->read() & 0xff); 
-	command[4] = (uint8_t)(param_fifo->read() & 0xff); 
- 	command[5] = (uint8_t)(param_fifo->read() & 0xff); 
+	command[3] = f1;
+	command[4] = m1;
+	command[5] = s1;
 	command[6] = 0;
-	command[7] = (uint8_t)(param_fifo->read() & 0xff); 
-	command[8] = (uint8_t)(param_fifo->read() & 0xff); 
-	command[9] = (uint8_t)(param_fifo->read() & 0xff);
-
+	command[7] = f2;
+	command[8] = m2;
+	command[9] = s2;
 	
 	if(req_reply) {
 		extra_status = 1;
@@ -504,14 +558,17 @@ void CDC::enqueue_command_play(uint8_t cmd)
 {
 	//write_signals(&output_submpu_intr, 0x00000000);
 	if((d_cdrom->read_signal(SIG_TOWNS_CDROM_IS_MEDIA_INSERTED) == 0x00000000) && (cmd != 0xa0)) { // Not Inserted
+		out_debug_log(_T("CMD (%02X) BUT DISC NOT ACTIVE"), cmd);
 		if(req_status) {
 			extra_status = 0;
 			write_status(0x10, 0x00, 0x00, 0x00);
 		}
 	} else {
 		has_status = false;
+		d_scsi_host->write_dma_io8(0, 0x81); // SELECT SCSI 0
 		switch(cmd & 0x1f) {
 		case 0x00: // SEEK
+			out_debug_log(_T("CMD SEEK (%02X)"), cmd);
 			if(req_status) {
 				extra_status = 1;
 				write_status(0x00, 0x00, 0x00, 0x00);
@@ -519,18 +576,22 @@ void CDC::enqueue_command_play(uint8_t cmd)
 			// ToDo: REAL SEEK
 			break;
 		case 0x01: // Unknown (from MAME)
+			out_debug_log(_T("CMD UNKNOWN (%02X)"), cmd);
 			if(req_status) {
 				extra_status = 0;
 				write_status(0x00, 0xff, 0xff, 0xff);
 			}
 			break;
 		case 0x02: // READ (Mode1)
+			out_debug_log(_T("CMD READ MODE1 (%02X)"), cmd);
 			read_cdrom(req_status);
 			break;
 		case 0x04: // PLAY CDDA
+			out_debug_log(_T("CMD PLAY CDDA (%02X)"), cmd);
 			play_cdda(req_status);
 			break;
 		case 0x05: // Read TOC
+			out_debug_log(_T("CMD READ TOC (%02X)"), cmd);
 			if(req_status) {
 				extra_status = 1;
 				write_status(0x00, 0x00, 0x00, 0x00);
@@ -540,14 +601,17 @@ void CDC::enqueue_command_play(uint8_t cmd)
 			}
 			break;
 		case 0x06: // CD-DA Stats (?)
+			out_debug_log(_T("CMD READ CD-DA STATUS (%02X)"), cmd);
 			extra_status = 1;
 			write_status(0x00, 0x00, 0x00, 0x00);
 			break;
 		case 0x1f: // ??
+			out_debug_log(_T("CMD UNKNOWN (%02X)"), cmd);
 			extra_status = 0;
 			write_status(0x00, 0x00, 0x00, 0x00);
 			break;
 		default: // Illegal command
+			out_debug_log(_T("CMD Illegal(%02X)"), cmd);
 			extra_status = 0;
 			write_status(0x10, 0x00, 0x00, 0x00);
 			break;
@@ -559,14 +623,17 @@ void CDC::enqueue_command_status(uint8_t cmd)
 {
 	//write_signals(&output_submpu_intr, 0x00000000);
 	if((d_cdrom->read_signal(SIG_TOWNS_CDROM_IS_MEDIA_INSERTED) == 0x00000000) && (cmd != 0xa0)) { // Not Inserted
+		out_debug_log(_T("CMD (%02X) BUT DISC NOT ACTIVE"), cmd);
 		if(req_status) {
 			extra_status = 0;
 			write_status(0x10, 0x00, 0x00, 0x00);
 		}
 	} else {
 		has_status = false;
+		d_scsi_host->write_dma_io8(0, 0x81); // SELECT SCSI 0
 		switch(cmd & 0x1f) {
 		case 0x00: // set state
+			out_debug_log(_T("CMD SET CDDA STATE (%02X)"), cmd);
 			if(req_status) {
 				extra_status = 0;
 				if(d_cdrom->read_signal(SIG_SCSI_CDROM_PLAYING) != 0) { // Active() && !(paused)
@@ -577,25 +644,31 @@ void CDC::enqueue_command_status(uint8_t cmd)
 			}
 			break;
 		case 0x01: // set state (CDDASET)
+			out_debug_log(_T("CMD SET CDDASET STATE (%02X)"), cmd);
 			if(req_status) {
 				extra_status = 0;
 				write_status(0x00, 0x00, 0x00, 0x00);
 			}
 			break;
 		case 0x04: // STOP CDDA
+			out_debug_log(_T("CMD PAUSE CDDA $84(%02X)"), cmd);
 			stop_cdda(req_status);
 			break;
 		case 0x05: // STOP CDDA (Difference from $84?)
+			out_debug_log(_T("CMD PAUSE CDDA $85(%02X)"), cmd);
 			stop_cdda2(req_status);
 			break;
 		case 0x07: // UNPAUSE CDDA
+			out_debug_log(_T("CMD RESUME CDDA(%02X)"), cmd);
 			unpause_cdda(req_status);
 			break;
 		default: // Illegal command
+			out_debug_log(_T("CMD Illegal(%02X)"), cmd);
 			extra_status = 0;
 			write_status(0x10, 0x00, 0x00, 0x00);
 			break;
 		}
+//		d_scsi_host->write_dma_io8(0, 0x81); // SELECT SCSI 0
 	}
 }
 
@@ -603,11 +676,14 @@ void CDC::write_signal(int ch, uint32_t data, uint32_t mask)
 {
 	switch(ch) {
 	case SIG_TOWNS_CDC_DRQ:
+		out_debug_log(_T("SIG_TOWND_CDC_DRQ"));
 		if((data & mask) != 0) {
 			if((dma_transfer) ) {
 				software_transfer_phase = false;
-//				uint8_t val = d_scsi_host->read_dma_io8(0);
-				d_dmac->write_signal(SIG_UPD71071_CH3, data, mask);
+				uint8_t val = d_scsi_host->read_dma_io8(0);
+				out_debug_log(_T("DRQ/DMA PTR=%d DATA=%02X"), readptr, val);
+				d_dmac->write_signal(SIG_UPD71071_CH3, val, 0xff);
+				readptr++;
 //				write_signals(&output_dma_line, val); // Indirect call do_dma().
 			} else if((pio_transfer) ) {
 				software_transfer_phase = true;
@@ -701,9 +777,6 @@ bool CDC::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	if(!(param_fifo->process_state((void *)state_fio, loading))) {
-		return false;
-	}
 	if(!(stat_fifo->process_state((void *)state_fio, loading))) {
 		return false;
 	}
@@ -729,6 +802,8 @@ bool CDC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(req_status);
 	state_fio->StateValue(ack_status);
 	
+	state_fio->StateBuffer(param_queue, sizeof(param_queue), 1);
+	state_fio->StateValue(param_ptr);
 	return true;
 	
 }

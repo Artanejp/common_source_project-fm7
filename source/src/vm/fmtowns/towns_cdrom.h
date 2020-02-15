@@ -72,8 +72,8 @@ public:
 	virtual void release();
 
 	virtual void reset();
-	virtual void write_signal(int id, uint32_t data, uint32_t mask);
-	virtual uint32_t read_signal(int id);
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	virtual uint32_t __FASTCALL read_signal(int id);
 	
 	virtual void event_callback(int event_id, int err);
 
@@ -99,7 +99,10 @@ public:
 	{
 		return SCSI_CDROM::get_seek_time(lba);
 	}
-
+	virtual uint8_t get_cdda_status()
+	{
+		return cdda_status;
+	}
 };
 
 }

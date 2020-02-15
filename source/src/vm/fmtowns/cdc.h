@@ -21,6 +21,7 @@
 
 class SCSI_HOST;
 class FIFO;
+
 namespace FMTOWNS {
 	class TOWNS_CDROM;
 }
@@ -36,9 +37,11 @@ protected:
 	SCSI_HOST* d_scsi_host;
 	TOWNS_CDROM* d_cdrom;
 	
-	FIFO* param_fifo;
+	uint8_t param_queue[8];
+	int param_ptr;
 	FIFO* stat_fifo;
 
+	int readptr;
 	bool has_status;
 	int extra_status;
 	bool submpu_ready;

@@ -17,9 +17,6 @@
 #define CDDA_PLAYING	1
 #define CDDA_PAUSED	2
 
-#define _SCSI_DEBUG_LOG
-#define _CDROM_DEBUG_LOG
-
 // 0-99 is reserved for SCSI_DEV class
 #define EVENT_CDDA						100
 #define EVENT_CDDA_DELAY_PLAY			101
@@ -442,7 +439,6 @@ void SCSI_CDROM::start_command()
 	//out_debug_log(_T("Command: #%02x %02x %02x %02x %02x %02x\n"), command[0], command[1], command[2], command[3], command[4], command[5]);
 	switch(command[0]) {
 	case SCSI_CMD_READ6:
-		//seek_time = 10;//get_seek_time((command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3]);
 		seek_time = get_seek_time((command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3]);
 		set_cdda_status(CDDA_OFF);
 		if(seek_time > 10.0) {
@@ -458,7 +454,7 @@ void SCSI_CDROM::start_command()
 		break;
 	case SCSI_CMD_READ10:
 	case SCSI_CMD_READ12:
-		seek_time = get_seek_time((command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3]);
+		seek_time = get_seek_time(command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5]);
 		set_cdda_status(CDDA_OFF);
 		if(seek_time > 10.0) {
 			if(event_cdda_delay_play >= 0) {
@@ -710,9 +706,7 @@ void SCSI_CDROM::start_command()
 		return;
 		
 	case 0xda:
-		#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: NEC Pause\n"), scsi_id);
-		#endif
+		out_debug_log(_T("Command: NEC Pause\n"));
 		if(is_device_ready()) {
 			if(cdda_status == CDDA_PLAYING) {
 				set_cdda_status(CDDA_PAUSED);
@@ -725,9 +719,7 @@ void SCSI_CDROM::start_command()
 		return;
 		
 	case 0xdd:
-		#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: NEC Read Sub Channel Q\n"), scsi_id);
-		#endif
+		out_debug_log(_T("Command: NEC Read Sub Channel Q\n"));
 		if(is_device_ready()) {
 			// create track info
 			uint32_t frame = (cdda_status == CDDA_OFF) ? cdda_start_frame : cdda_playing_frame;
@@ -771,14 +763,10 @@ void SCSI_CDROM::start_command()
 		return;
 		
 	case 0xde:
-		#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Command: NEC Get Dir Info\n"), scsi_id);
-		#endif
+		out_debug_log(_T("Command: NEC Get Dir Info\n"));
 		if(is_device_ready()) {
 			buffer->clear();
-		#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SCSI_DEV:ID=%d] CMD=%02x ARG=%02x \n"), scsi_id, command[1], command[2]);
-		#endif
+			out_debug_log(_T("CMD=%02x ARG=%02x \n"), command[1], command[2]);
 			switch(command[1]) {
 			case 0x00:      /* Get first and last track numbers */
 				buffer->write(TO_BCD(1));
@@ -853,22 +841,16 @@ bool SCSI_CDROM::read_buffer(int length)
 
 	if(is_cue) {
 		// ToDo: Need seek wait.
-		#ifdef _CDROM_DEBUG_LOG
-		this->out_debug_log(_T("Seek to LBA %d LENGTH=%d\n"), position / 2352, length);
-		#endif
+		out_debug_log(_T("Seek to LBA %d LENGTH=%d\n"), position / 2352, length);
 		if(fio_img->Fseek(((long)position - (long)(toc_table[current_track].lba_offset * 2352)), FILEIO_SEEK_SET) != 0) {
 			set_sense_code(SCSI_SENSE_ILLGLBLKADDR); //SCSI_SENSE_SEEKERR
-			#ifdef _SCSI_DEBUG_LOG
-				this->out_debug_log(_T("[SCSI_DEV:ID=%d] Error on reading (ILLGLBLKADDR) at line %d\n"), scsi_id, __LINE__);
-			#endif
+			out_debug_log(_T("Error on reading (ILLGLBLKADDR) at line %d\n"), __LINE__);
 			return false;
 		}
 	} else {
 		if(fio_img->Fseek((long)position, FILEIO_SEEK_SET) != 0) {
 			set_sense_code(SCSI_SENSE_ILLGLBLKADDR); //SCSI_SENSE_SEEKERR
-			#ifdef _SCSI_DEBUG_LOG
-				this->out_debug_log(_T("[SCSI_DEV:ID=%d] Error on reading (ILLGLBLKADDR) at line %d\n"), scsi_id, __LINE__);
-			#endif
+			out_debug_log(_T("Error on reading (ILLGLBLKADDR) at line %d\n"), __LINE__);
 			return false;
 		}
 	}
@@ -878,10 +860,7 @@ bool SCSI_CDROM::read_buffer(int length)
 		int tmp_length = 2352 - offset;
 		
 		if(fio_img->Fread(tmp_buffer, tmp_length, 1) != 1) {
-			#ifdef _SCSI_DEBUG_LOG
-			this->out_debug_log(_T("[SCSI_DEV:ID=%d] Error on reading (ILLGLBLKADDR) at line %d\n"), scsi_id, __LINE__);
-			#endif
-			
+			out_debug_log(_T("Error on reading (ILLGLBLKADDR) at line %d\n"), __LINE__);
 			set_sense_code(SCSI_SENSE_ILLGLBLKADDR); //SCSI_SENSE_NORECORDFND
 			return false;
 		}
@@ -908,14 +887,10 @@ bool SCSI_CDROM::write_buffer(int length)
 		int value = buffer->read();
 		if(command[0] == SCSI_CMD_MODE_SEL6) {
 			if(i == 4) {
-				#ifdef _SCSI_DEBUG_LOG
-					this->out_debug_log(_T("[SCSI_DEV:ID=%d] NEC Read Mode = %02X\n"), scsi_id, value);
-				#endif
+				out_debug_log(_T("NEC Read Mode = %02X\n"), value);
 				read_mode = (value != 0);
 			} else if(i == 10) {
-				#ifdef _SCSI_DEBUG_LOG
-					this->out_debug_log(_T("[SCSI_DEV:ID=%d] NEC Retry Count = %02X\n"), scsi_id, value);
-				#endif
+				out_debug_log(_T("NEC Retry Count = %02X\n"), value);
 			}
 		}
 		position++;
@@ -1063,9 +1038,7 @@ bool SCSI_CDROM::open_cue_file(const _TCHAR* file_path)
 				image_tmp_data_path = std::string(parent_dir);
 				image_tmp_data_path.append(_arg2);
 				
-				#ifdef _CDROM_DEBUG_LOG
-					this->out_debug_log(_T("**FILE %s\n"), image_tmp_data_path.c_str());
-				#endif
+				out_debug_log(_T("**FILE %s\n"), image_tmp_data_path.c_str());
 				goto _n_continue; // ToDo: Check ARG2 (BINARY etc..) 20181118 K.O
 			} else if(_arg1 == "TRACK") {
 				_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
@@ -1204,7 +1177,7 @@ bool SCSI_CDROM::open_cue_file(const _TCHAR* file_path)
 
 				
 				//#ifdef _CDROM_DEBUG_LOG
-				this->out_debug_log(_T("TRACK#%02d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d LBA_OFFSET=%d PATH=%s\n"),
+				out_debug_log(_T("TRACK#%02d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d LBA_OFFSET=%d PATH=%s\n"),
 									i, (toc_table[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352"),
 									toc_table[i].pregap, toc_table[i].index0, toc_table[i].index1,
 									toc_table[i].lba_size, toc_table[i].lba_offset, track_data_path[i - 1]);
@@ -1303,8 +1276,8 @@ void SCSI_CDROM::open(const _TCHAR* file_path)
 			}
 		}
 	}
-#ifdef _SCSI_DEBUG_LOG
-	if(mounted()) {
+ 
+	if(mounted() && (__SCSI_DEBUG_LOG)) {
 		for(int i = 0; i < track_num + 1; i++) {
 			uint32_t idx0_msf = lba_to_msf(toc_table[i].index0);
 			uint32_t idx1_msf = lba_to_msf(toc_table[i].index1);
@@ -1315,7 +1288,6 @@ void SCSI_CDROM::open(const _TCHAR* file_path)
 			(pgap_msf >> 16) & 0xff, (pgap_msf >> 8) & 0xff, pgap_msf & 0xff);
 		}
 	}
-#endif
 }
 
 void SCSI_CDROM::close()
