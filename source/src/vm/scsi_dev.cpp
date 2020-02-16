@@ -441,7 +441,7 @@ void SCSI_DEV::set_msg(int value)
 
 void SCSI_DEV::set_req(int value)
 {
-	out_debug_log(_T("REQ = %d\n"), value ? 1 : 0);
+//	out_debug_log(_T("REQ = %d\n"), value ? 1 : 0);
 	if(event_req != -1) {
 		cancel_event(this, event_req);
 		event_req = -1;
