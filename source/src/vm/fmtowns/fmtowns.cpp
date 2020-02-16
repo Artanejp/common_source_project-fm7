@@ -347,12 +347,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	cdrom->scsi_id = 0;
 	cdrom->set_context_interface(cdc_scsi);
+	cdc->set_context_scsi_host(cdc_scsi);
 	cdc_scsi->set_context_target(cdrom);
 	cdrom->set_context_done(cdc, SIG_TOWNS_CDC_CDROM_DONE, 1);
 	
 	cdc->set_context_cdrom(cdrom);
-	cdc->set_context_scsi_host(cdc_scsi);
 	cdc->set_context_dmac(dma);
+	cdc_scsi->set_device_name(_T("CDROM controller's PSEUDO SCSI"));
 	
 	adpcm->set_context_opn2(opn2);
 	adpcm->set_context_rf5c68(rf5c68);

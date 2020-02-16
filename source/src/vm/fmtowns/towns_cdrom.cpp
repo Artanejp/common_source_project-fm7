@@ -52,6 +52,7 @@ void TOWNS_CDROM::reset()
 	subq_buffer->clear();
 	subq_overrun = false;
 	stat_track = current_track;
+	out_debug_log("RESET");
 	SCSI_CDROM::reset();
 }
 
