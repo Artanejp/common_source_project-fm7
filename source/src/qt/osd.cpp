@@ -1075,6 +1075,9 @@ void OSD::set_features_debug(void)
 #ifdef _SCSI_DEBUG_LOG
 	add_feature(_T("_SCSI_DEBUG_LOG"), 1);
 #endif
+#ifdef _CDROM_DEBUG_LOG
+	add_feature(_T("_CDROM_DEBUG_LOG"), 1);
+#endif
 #ifdef _DEBUG_PC80S31K
 	add_feature(_T("_DEBUG_PC80S31K"), 1);
 #endif
