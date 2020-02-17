@@ -102,7 +102,9 @@ uint32_t TOWNS_SCSI_HOST::read_dma_io16(uint32_t addr)
 	return d.d;
 #else
 //	out_debug_log(_T("READ DMA16"));
-	return SCSI_HOST::read_dma_io8(addr);
+	uint8_t val = SCSI_HOST::read_dma_io8(addr);
+	out_debug_log(_T("DMA READ8 DATA: %02X"), val);
+	return val;
 #endif
 }
 

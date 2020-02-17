@@ -308,8 +308,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_ch0(fdc);
 	dma->set_context_ch1(scsi_host);
 	//dma->set_context_ch2(printer);
-	dma->set_context_ch3(cdc);
-	//dma->set_context_ch3(cdc_scsi);
+	//dma->set_context_ch3(cdc);
+	dma->set_context_ch3(cdc_scsi);
 	dma->set_context_child_dma(extra_dma);
 	
 	floppy->set_context_fdc(fdc);

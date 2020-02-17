@@ -64,6 +64,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 	switch(id) {
 	case SIG_SCSI_DAT:
 		data_bus = data & mask;
+//		out_debug_log(_T("DATA=%04X"), data_bus);
 		break;
 		
 	case SIG_SCSI_SEL:
@@ -161,7 +162,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 */
 			bool prev_status = ack_status;
 			ack_status = ((data & mask) != 0);
-			
+//			out_debug_log(_T("ACK=%s"), (ack_status) ? _T("ON") : _T("OFF"));
 			if(phase == SCSI_PHASE_BUS_FREE) {
 				// this device is not selected
 			} else if(!prev_status & ack_status) {

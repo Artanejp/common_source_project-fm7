@@ -86,6 +86,7 @@ protected:
 	int event_poll_cmd;
 	int event_enqueue_cmd;
 	int event_wait_req;
+	int event_wait_cmd_req_off;
 	
 	virtual void read_cdrom(bool req_reply);
 	virtual void stop_cdda(bool req_reply);
@@ -95,8 +96,18 @@ protected:
 	virtual void write_status(uint8_t a, uint8_t b, uint8_t c, uint8_t d);
 	virtual void enqueue_command_play(uint8_t cmd);
 	virtual void enqueue_command_status(uint8_t cmd);
+
+	bool check_bus_free();
+	bool check_command_phase();
+	bool check_data_in();
+	void select_unit_on();
+	void select_unit_off();
+	void select_unit_off2();
+	
+	void prologue_command_phase();
+	
 	void enqueue_cmdqueue(int size, uint8_t data[]);
-	void start_poll_bus_free();
+	void start_poll_bus_free(int unit);
 	void start_poll_cmd_phase();
 	void start_enqueue_command();
 

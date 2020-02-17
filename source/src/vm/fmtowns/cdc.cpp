@@ -19,14 +19,15 @@ namespace FMTOWNS {
 #define CDDA_PLAYING	1
 #define CDDA_PAUSED	2
 
-#define EVENT_CDROM_SEL_ON   1
-#define EVENT_CDROM_SEL_OFF  2
-#define EVENT_CDROM_SEL_OFF2 3
-#define EVENT_POLL_CMD       4
-#define EVENT_ENQUEUE_CMD    5 
-#define EVENT_WAIT_REQ       6 
-#define EVENT_POLL_BUS_FREE  7
-#define EVENT_CDC_RESET      8
+#define EVENT_CDROM_SEL_ON     1
+#define EVENT_CDROM_SEL_OFF    2
+#define EVENT_CDROM_SEL_OFF2   3
+#define EVENT_POLL_CMD         4
+#define EVENT_ENQUEUE_CMD      5 
+#define EVENT_WAIT_REQ         6 
+#define EVENT_POLL_BUS_FREE    7
+#define EVENT_CDC_RESET        8
+#define EVENT_WAIT_CMD_REQ_OFF 9
 	
 void CDC::set_context_scsi_host(SCSI_HOST* dev)
 {
@@ -134,7 +135,7 @@ void CDC::initialize()
 	event_poll_cmd = -1;
 	event_enqueue_cmd = -1;
 	event_wait_req = -1;
-
+	event_wait_cmd_req_off = -1;
 }
 
 void CDC::release()
@@ -159,18 +160,20 @@ void CDC::enqueue_cmdqueue(int size, uint8_t data[])
 			cmdqueue[n].cmd_write_ptr = 0;
 			next_cmdqueue++;
 			left_cmdqueue--;
-			start_poll_bus_free();
+			start_poll_bus_free(0); // CDROM's pseudo SCSI ID is 0.
 		}
 		next_cmdqueue = next_cmdqueue & (CDC_COMMAND_QUEUE_LENGTH - 1);
 	}
 	return NULL;
 }
 
-void CDC::start_poll_bus_free()
+void CDC::start_poll_bus_free(int unit)
 {
+	unit = unit & 7;
 	out_debug_log("POLLING BUS FREE");
-	d_scsi_host->write_dma_io8(0, 0x81);
-//	d_scsi_host->write_signal(SIG_SCSI_SEL, 1, 1);
+	// SET SCSI ID to DATA BUS before RISING UP SEL.
+	d_scsi_host->write_dma_io8(0, (0x80 | (1 << unit)));
+	//	d_scsi_host->write_signal(SIG_SCSI_SEL, 1, 1);
 	register_event(this, EVENT_CDROM_SEL_ON, 15.0, true, &event_cdrom_sel); 
 }
 
@@ -190,7 +193,71 @@ void CDC::start_enqueue_command()
 		register_event(this, EVENT_ENQUEUE_CMD, 3.0, true, &event_enqueue_cmd); 
 	}
 }
-	
+
+bool CDC::check_bus_free()
+{
+	if(!(busy_status) && !(scsi_req_status)) {
+		return (!(cd_status) && !(msg_status) && !(io_status));
+	}
+	return false;
+}
+
+bool CDC::check_command_phase()
+{
+	return ((cd_status) && !(msg_status) && !(io_status));
+}
+
+bool CDC::check_data_in()
+{
+	return 	(!(cd_status) && !(msg_status) && (io_status));
+}
+
+void CDC::select_unit_on()
+{
+	out_debug_log("BUS FREE->SEL ON");
+	d_scsi_host->write_signal(SIG_SCSI_SEL, 1, 1);
+	//d_scsi_host->write_dma_io8(0, 0x81); // Write SCSI ADDRESS 0
+	if(event_cdrom_sel > -1) {
+		cancel_event(this, event_cdrom_sel);
+		event_cdrom_sel = -1;
+	}
+	register_event(this, EVENT_CDROM_SEL_OFF, 800.0, false, &event_cdrom_sel); 
+}
+
+void CDC::select_unit_off()
+{
+//	d_scsi_host->write_dma_io8(0, 0x00); // Write SCSI ADDRESS 0
+	register_event(this, EVENT_CDROM_SEL_OFF2, 100.0, false, &event_cdrom_sel); 
+}
+
+void CDC::select_unit_off2()
+{
+	out_debug_log("SEL ON ->SEL OFF");
+	event_cdrom_sel = -1;
+	d_scsi_host->write_signal(SIG_SCSI_SEL, 0, 1);
+	event_cdrom_sel = -1;
+	start_poll_cmd_phase();
+}
+
+
+void CDC::prologue_command_phase()
+{
+	if(check_command_phase()) {
+		out_debug_log("COMMAND PHASE");
+		accept_command = true;
+		cancel_event(this, event_poll_cmd);
+		event_poll_cmd = -1;
+		if(event_enqueue_cmd > -1) {
+			cancel_event(this, event_enqueue_cmd);
+		}
+		if(left_cmdqueue < CDC_COMMAND_QUEUE_LENGTH) {
+//				d_scsi_host->write_signal(SIG_SCSI_SEL, 1, 1);
+			start_enqueue_command();
+		}
+
+	}
+}
+
 void CDC::event_callback(int id, int error)
 {
 	switch(id) {
@@ -198,40 +265,19 @@ void CDC::event_callback(int id, int error)
 		d_scsi_host->write_signal(SIG_SCSI_RST, 0, 1);
 		break;
 	case EVENT_CDROM_SEL_ON:
-		if(!(busy_status) && !(scsi_req_status) &&
-		   !(cd_status) && !(msg_status) && !(io_status)) { // BUS FREE
-			out_debug_log("BUS FREE->SEL ON");
-			d_scsi_host->write_signal(SIG_SCSI_SEL, 1, 1);
-			//d_scsi_host->write_dma_io8(0, 0x81); // Write SCSI ADDRESS 0
-			cancel_event(this, event_cdrom_sel);
-			event_cdrom_sel = -1;
-			register_event(this, EVENT_CDROM_SEL_OFF, 800.0, false, &event_cdrom_sel); 
+		if(check_bus_free()) {
+			select_unit_on();
 		}
 		break;
 	case EVENT_CDROM_SEL_OFF:
-		d_scsi_host->write_dma_io8(0, 0x00); // Write SCSI ADDRESS 0
-		register_event(this, EVENT_CDROM_SEL_OFF2, 100.0, false, &event_cdrom_sel); 
+		select_unit_off();
 		break;
 	case EVENT_CDROM_SEL_OFF2:
-		out_debug_log("SEL ON ->SEL OFF");
-		event_cdrom_sel = -1;
-		d_scsi_host->write_signal(SIG_SCSI_SEL, 0, 1);
-		event_cdrom_sel = -1;
-		start_poll_cmd_phase();
+		select_unit_off2();
 		break;
 	case EVENT_POLL_CMD:
-		if((scsi_req_status) && (cd_status) && !(msg_status) && !(io_status)) {
-			out_debug_log("COMMAND PHASE");
-			accept_command = true;
-			cancel_event(this, event_poll_cmd);
-			event_poll_cmd = -1;
-			if(event_enqueue_cmd > -1) {
-				cancel_event(this, event_enqueue_cmd);
-			}
-			if(left_cmdqueue < CDC_COMMAND_QUEUE_LENGTH) {
-//				d_scsi_host->write_signal(SIG_SCSI_SEL, 1, 1);
-				start_enqueue_command();
-			}
+		if((scsi_req_status)) {
+			prologue_command_phase();
 		}
 		break;
 	case EVENT_ENQUEUE_CMD:
@@ -240,8 +286,24 @@ void CDC::event_callback(int id, int error)
 			data_in_status = false;
 			uint8_t val = cmdqueue[current_cmdqueue].command[cmdqueue[current_cmdqueue].cmd_write_ptr];
 			d_scsi_host->write_dma_io8(0, val);
+			d_scsi_host->write_signal(SIG_SCSI_ACK, 0, 1);
 			cmdqueue[current_cmdqueue].cmd_write_ptr++;
-			if(cmdqueue[current_cmdqueue].cmd_write_ptr >= cmdqueue[current_cmdqueue].cmd_table_size) {
+			if(event_wait_cmd_req_off > -1) {
+				cancel_event(this, event_wait_cmd_req_off);
+				event_wait_cmd_req_off = -1;
+			}				
+			register_event(this, EVENT_WAIT_CMD_REQ_OFF, 6.0, true, &event_wait_cmd_req_off); 
+		}
+		}
+		break;
+	case EVENT_WAIT_CMD_REQ_OFF:
+		if(!(scsi_req_status)) {
+			if(event_wait_cmd_req_off > -1) {
+				cancel_event(this, event_wait_cmd_req_off);
+				event_wait_cmd_req_off = -1;
+			}
+//			d_scsi_host->write_signal(SIG_SCSI_ACK, 0, 1);
+			if(cmdqueue[current_cmdqueue].cmd_write_ptr >= cmdqueue[current_cmdqueue].cmd_table_size) { // Write all data.
 				accept_command = false;
 				cancel_event(this, event_enqueue_cmd);
 				event_enqueue_cmd = -1;
@@ -262,23 +324,24 @@ void CDC::event_callback(int id, int error)
 				}
 				current_cmdqueue++;
 				current_cmdqueue = current_cmdqueue & (CDC_COMMAND_QUEUE_LENGTH - 1);
-//				d_scsi_host->write_signal(SIG_SCSI_SEL, 0, 1);
-				register_event(this, EVENT_WAIT_REQ, 6.0, true, &event_wait_req); 
+				d_scsi_host->write_signal(SIG_SCSI_ACK, 0, 1);
+				register_event(this, EVENT_WAIT_REQ, 1.0, true, &event_wait_req); 
+			} else {
+				// Continue
+				if(event_enqueue_cmd > -1) {
+					cancel_event(this, event_enqueue_cmd);
+					event_enqueue_cmd = -1;
+				}
+				start_enqueue_command();
 			}
 		}
-		}
-		break;
 	case EVENT_WAIT_REQ:
-		if(1/*(scsi_req_status)*/) {
+		if((scsi_req_status)) {
+#if 0
 			if(!(cd_status) && !(msg_status) && (io_status)) { // DATA IN
 				out_debug_log("DATA IN");
 				data_in_status = true;
 				if(!(pio_transfer) && (dma_transfer)) {
-					uint8_t val = d_scsi_host->read_dma_io8(0);
-					out_debug_log(_T("DATA IN/DMA DATA=%02X"), val);
-					d_dmac->write_signal(SIG_UPD71071_CH3, val, 0xff);
-//					data_in_status = false;
-					data_reg = val;
 					// WAIT FOR DRQ, NOT EVENT.
 					cancel_event(this, event_wait_req);
 					event_wait_req = -1;
@@ -289,19 +352,23 @@ void CDC::event_callback(int id, int error)
 //					cancel_event(this, event_wait_req);
 //					event_wait_req = -1;
 				}
-			} else if(((cd_status) && !(msg_status) && (io_status)) ||// STATUS
+			} else
+#endif
+				if(((cd_status) && !(msg_status) && (io_status)) ||// STATUS
 					  ((cd_status) && (msg_status) && (io_status))) { // MSG IN
 				data_in_status = true;
 				if(!(pio_transfer) && (dma_transfer)) {
-					uint8_t val = d_scsi_host->read_dma_io8(0);
-					out_debug_log(_T("STATUS DATA=%02X"), val);
-					d_dmac->write_signal(SIG_UPD71071_CH3, val, 0xff);
-					data_reg = val;
+					//uint8_t val = d_scsi_host->read_dma_io8(0);
+					//out_debug_log(_T("STATUS DATA=%02X"), val);
+					d_dmac->write_signal(SIG_UPD71071_CH3, 0xff, 0xff);
+					//data_reg = val;
 					// WAIT FOR DRQ, NOT EVENT.
 					cancel_event(this, event_wait_req);
 					event_wait_req = -1;
 				} else if((pio_transfer) && !(dma_transfer)) {
 					data_reg = d_scsi_host->read_dma_io8(0);
+					out_debug_log(_T("STATUS DATA=%02X"), data_reg);
+					d_scsi_host->write_signal(SIG_SCSI_ACK, 1, 1);
 					// WAIT FOR DRQ, NOT EVENT.
 //					cancel_event(this, event_wait_req);
 //					event_wait_req = -1;
@@ -311,8 +378,8 @@ void CDC::event_callback(int id, int error)
 		} else {
 			// BUS FREE
 //			d_scsi_host->write_signal(SIG_SCSI_SEL, 0, 1);
-			cancel_event(this, event_wait_req);
-			event_wait_req = -1;
+//			cancel_event(this, event_wait_req);
+//			event_wait_req = -1;
 			// EOL
 		}
 		break;
@@ -326,7 +393,7 @@ void CDC::write_io8(uint32_t address, uint32_t data)
 	 * 04C4h : Parameter register
 	 * 04C6h : Transfer control register.
 	 */
-	out_debug_log(_T("WRITE I/O: ADDR=%04X DATA=%02X"), address, data);
+//	out_debug_log(_T("WRITE I/O: ADDR=%04X DATA=%02X"), address, data);
 	switch(address & 0x0f) {
 	case 0x00: // Master control register
 		{
@@ -520,7 +587,7 @@ uint32_t CDC::read_io8(uint32_t address)
 		val = data_reg;
 		if((pio_transfer)) {
 			data_reg = d_scsi_host->read_dma_io8(0);
-			out_debug_log(_T("PIO READ DATA=%02X"), val);
+//			out_debug_log(_T("PIO READ DATA=%02X"), val);
 		}
 		break;
 	case 0xc: // Sub code status register
@@ -577,7 +644,7 @@ void CDC::read_cdrom(bool req_reply)
 	__remain = lba2 - lba1;
 	//seek_time = get_seek_time(lba1);
 	uint8_t command[16] = {0};
-	command[0] = SCSI_CMD_READ10;
+	command[0] = SCSI_CMD_READ12;
 	command[1] = 0;
 	command[2] = 0;
 	command[3] = m1;
@@ -589,7 +656,7 @@ void CDC::read_cdrom(bool req_reply)
 	command[8] = (uint8_t)((__remain / 0x100) & 0xff);
 	command[9] = (uint8_t) (__remain % 0x100);
 
-	enqueue_cmdqueue(10, command);
+	enqueue_cmdqueue(12, command);
 	
 	if(req_reply) {
 		extra_status = 2;
@@ -902,15 +969,15 @@ void CDC::write_signal(int ch, uint32_t data, uint32_t mask)
 {
 	switch(ch) {
 	case SIG_TOWNS_CDC_DRQ:
-		out_debug_log(_T("SIG_TOWND_CDC_DRQ"));
+//		out_debug_log(_T("SIG_TOWNS_CDC_DRQ"));
 		if((data & mask) != 0) {
 			if((dma_transfer) ) {
 				software_transfer_phase = false;
-				uint8_t val = d_scsi_host->read_dma_io8(0);
-				out_debug_log(_T("DRQ/DMA PTR=%d DATA=%02X"),  val);
-				d_dmac->write_signal(SIG_UPD71071_CH3, val, 0xff);
-				data_reg = val;
-//				write_signals(&output_dma_line, val); // Indirect call do_dma().
+				out_debug_log(_T("DRQ/DMA"));
+				if((scsi_req_status) && (check_data_in())) {
+					out_debug_log(_T("SEND DMAREQ to DMA3"));
+					d_dmac->write_signal(SIG_UPD71071_CH3, 0xff, 0xff);
+				}
 			} else if((pio_transfer) ) {
 				software_transfer_phase = true;
 			} else {
@@ -958,11 +1025,11 @@ void CDC::write_signal(int ch, uint32_t data, uint32_t mask)
 		msg_status = ((data & mask) != 0);
 		break;
 	case SIG_TOWNS_CDC_REQ:
-		out_debug_log(_T("REQ %s"), ((data & mask) != 0) ? _T("ON") : _T("OFF"));
+//		out_debug_log(_T("REQ %s"), ((data & mask) != 0) ? _T("ON") : _T("OFF"));
 		scsi_req_status = ((data & mask) != 0);
 		break;
 	case SIG_TOWNS_CDC_ACK:
-		out_debug_log(_T("ACK %s"), ((data & mask) != 0) ? _T("ON") : _T("OFF"));
+//		out_debug_log(_T("ACK %s"), ((data & mask) != 0) ? _T("ON") : _T("OFF"));
 		ack_status = ((data & mask) != 0);
 		break;
 		
@@ -1053,6 +1120,7 @@ bool CDC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(event_poll_cmd);
 	state_fio->StateValue(event_enqueue_cmd);
 	state_fio->StateValue(event_wait_req);
+	state_fio->StateValue(event_wait_cmd_req_off);
 	
 	return true;
 	
