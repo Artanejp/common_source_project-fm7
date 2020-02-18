@@ -248,6 +248,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 							// update buffer
 							if(buffer->count() == 0) {
 								int length = remain > SCSI_BUFFER_SIZE ? SCSI_BUFFER_SIZE : (int)remain;
+								out_debug_log(_T("LOAD BUFFER to %d bytes"), length);
 								if(!read_buffer(length)) {
 									// change to status phase
 									set_dat(SCSI_STATUS_CHKCOND);
@@ -713,15 +714,16 @@ void SCSI_DEV::start_command()
 	case SCSI_CMD_READ12:
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];
-		out_debug_log(_T("Command: Read 12-byte LBA=%d BLOCKS=%d\n"), position, command[6] * 0x1000000 + command[7] * 0x10000 + command[8] * 0x100 + command[9]);
-		position *= physical_block_size();
 		// transfer length
 		remain = command[6] * 0x1000000 + command[7] * 0x10000 + command[8] * 0x100 + command[9];
+		out_debug_log(_T("Command: Read 12-byte LBA=%d BLOCKS=%d PBS=%d LBS=%d\n"), position, remain, physical_block_size(), logical_block_size());
+		position *= physical_block_size();
 		remain *= logical_block_size();
 		if(remain != 0) {
 			// read data buffer
 			buffer->clear();
 			int length = remain > SCSI_BUFFER_SIZE ? SCSI_BUFFER_SIZE : (int)remain;
+			out_debug_log(_T("LOAD BUFFER to %d bytes"), length);
 			if(!read_buffer(length)) {
 				// change to status phase
 				set_dat(SCSI_STATUS_CHKCOND);

@@ -103,6 +103,10 @@ public:
 	{
 		return cdda_status;
 	}
+	void set_read_mode(bool is_mode2)
+	{
+		read_mode = is_mode2;
+	}
 };
 
 }

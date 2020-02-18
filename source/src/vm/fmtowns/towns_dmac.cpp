@@ -27,6 +27,10 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		dma_high_address = (data & 0xff) << 24;
 		return;
 		break;
+//	case 0x08:
+//		cmd = (cmd & 0xff00) | (data & 0xfb);
+//		return;
+//		break;
 	default:
 		break;
 	}
@@ -42,7 +46,7 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 	}
 	return UPD71071::read_io8(addr);
 }
-
+#if 0
 // Note: DATABUS will be 16bit wide. 20200131 K.O
 void TOWNS_DMAC::do_dma_verify_16bit(int c)
 {
@@ -143,7 +147,7 @@ void TOWNS_DMAC::do_dma_mem_to_dev_16bit(int c)
 	// update temporary register
 	tmp = val;
 }
-
+#endif
 	
 void TOWNS_DMAC::do_dma_inc_dec_ptr_8bit(int c)
 {
@@ -217,6 +221,7 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t mask)
 
 void TOWNS_DMAC::write_via_debugger_data8(uint32_t addr, uint32_t data)
 {
+	out_debug_log(_T("WRITE 8BIT ADDR %08X to DATA:%02X"), addr, data);
 	d_mem->write_dma_data8(addr & dma_addr_mask, data);
 }
 
@@ -227,6 +232,7 @@ uint32_t TOWNS_DMAC::read_via_debugger_data8(uint32_t addr)
 
 void TOWNS_DMAC::write_via_debugger_data16(uint32_t addr, uint32_t data)
 {
+//	out_debug_log(_T("WRITE 16BIT DATA:%04X"), data);
 	d_mem->write_dma_data16(addr & dma_addr_mask, data);
 }
 

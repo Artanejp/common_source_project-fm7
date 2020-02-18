@@ -349,7 +349,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cdrom->set_context_interface(cdc_scsi);
 	cdc->set_context_scsi_host(cdc_scsi);
 	cdc_scsi->set_context_target(cdrom);
-	cdrom->set_context_done(cdc, SIG_TOWNS_CDC_CDROM_DONE, 1);
+//	cdrom->set_context_done(cdc, SIG_TOWNS_CDC_CDROM_DONE, 1);
 	
 	cdc->set_context_cdrom(cdrom);
 	cdc->set_context_dmac(dma);
