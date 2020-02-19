@@ -1212,7 +1212,7 @@ int MainLoop(int argc, char *argv[])
 	cmdparser.process(arglist);
 	ProcessCmdLine(&cmdparser, &virtualMediaList);
 
-	QCoreApplication *GuiMain = NULL;
+	QApplication *GuiMain = NULL;
 	
 	GuiMain = new QApplication(argc, argv);
 	GuiMain->setObjectName(QString::fromUtf8("Gui_Main"));

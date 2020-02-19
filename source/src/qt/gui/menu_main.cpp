@@ -912,7 +912,7 @@ void Ui_MainWindowBase::doBeforeCloseMainWindow(void)
 	emit quit_emulator_all();
 }
 
-void Ui_MainWindowBase::setCoreApplication(QCoreApplication *p)
+void Ui_MainWindowBase::setCoreApplication(QApplication *p)
 {
 	this->CoreApplication = p;
 	connect(actionExit_Emulator, SIGNAL(triggered()),
