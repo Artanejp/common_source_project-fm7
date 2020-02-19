@@ -171,7 +171,7 @@ void CDC::enqueue_cmdqueue(int size, uint8_t data[])
 		}
 		next_cmdqueue = next_cmdqueue & (CDC_COMMAND_QUEUE_LENGTH - 1);
 	}
-	return NULL;
+	return;
 }
 
 void CDC::start_poll_bus_free(int unit)

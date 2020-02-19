@@ -7,6 +7,7 @@
 	[ YM2203 / YM2608 ]
 */
 
+
 #include "ym2612.h"
 #include "debugger.h"
 #include <math.h>
@@ -19,6 +20,7 @@
 static CFMDLL* fmdll = NULL;
 static int chip_reference_counter = 0;
 static bool dont_create_multiple_chips = false;
+#else
 #endif
 
 void YM2612::initialize()

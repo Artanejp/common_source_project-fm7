@@ -455,7 +455,7 @@ namespace FM
 	};
 
 	//	YM2612/3438(OPN2) ----------------------------------------------------
-	class OPN2 : public OPN2Base
+	class DLL_PREFIX OPN2 : public OPN2Base
 	{
 	public:
 		OPN2();
