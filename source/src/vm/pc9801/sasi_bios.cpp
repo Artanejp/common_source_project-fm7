@@ -254,7 +254,7 @@ __next:
 		case 0x00:
 		case 0x80:
 			if(!(d_mem->is_sasi_bios_load())) {
-				if(sasi_bios(PC, regs, sregs, ZeroFlag, CarryFlag)) {
+				if(sasi_bios(PC, regs, (uint16_t*)sregs, ZeroFlag, CarryFlag)) {
 #ifdef _PSEUDO_BIOS_DEBUG
 					out_debug_log(_T("SASI BIOS CALL SUCCESS:\n From AX=%04x BX=%04x CX=%04x DX=%04x\n To AX=%04x BX=%04x CX=%04x DX=%04x\n"), backup_ax, backup_bx, backup_cx, backup_dx, AX, BX, CX, DX);
 #endif
