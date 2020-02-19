@@ -46,7 +46,7 @@
 #include "../../vm/fmgen/fmgen.h"
 
 EMU* emu;
-QApplication *GuiMain = NULL;
+//QApplication *GuiMain = NULL;
 extern config_t config;
 #if defined(CSP_OS_WINDOWS)
 CSP_Logger DLL_PREFIX_I *csp_logger;
@@ -1029,16 +1029,16 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 	switch(config.render_platform) {
 	case CONFIG_RENDER_PLATFORM_OPENGL_MAIN:
 	case CONFIG_RENDER_PLATFORM_OPENGL_CORE:
-		GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, true);
-		GuiMain->setAttribute(Qt::AA_UseOpenGLES, false);
+		QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
+		QCoreApplication::setAttribute(Qt::AA_UseOpenGLES, false);
 		break;
 	case CONFIG_RENDER_PLATFORM_OPENGL_ES:
-		GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, false);
-		GuiMain->setAttribute(Qt::AA_UseOpenGLES, true);
+		QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, false);
+		QCoreApplication::setAttribute(Qt::AA_UseOpenGLES, true);
 		break;
 	default: // to GLES 2.1 as Default
-		GuiMain->setAttribute(Qt::AA_UseDesktopOpenGL, false);
-		GuiMain->setAttribute(Qt::AA_UseOpenGLES, true);
+		QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, false);
+		QCoreApplication::setAttribute(Qt::AA_UseOpenGLES, true);
 		config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_ES;
 		config.render_major_version = 2;
 		config.render_minor_version = 1;
@@ -1187,24 +1187,19 @@ int MainLoop(int argc, char *argv[])
 	delim = "/";
 #endif
 	
-	GuiMain = new QApplication(argc, argv);
-	GuiMain->setObjectName(QString::fromUtf8("Gui_Main"));
-	_envvers = QProcessEnvironment::systemEnvironment();
-	
     QCommandLineParser cmdparser;
 
 	virtualMediaList.clear();
 	SetOptions(&cmdparser);
 
-	cmdparser.process(QCoreApplication::arguments());
-
-	ProcessCmdLine(&cmdparser, &virtualMediaList);
-
-	emustr = emustr + cfgstr;
-
-	SetupLogger(GuiMain, emustr, CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1);
-
-	
+	QStringList arglist;
+	if(argv != NULL) {
+		for(int i = 0; i < argc; i++) {
+			if(argv[i] != NULL) {
+				arglist.append(QString::fromLocal8Bit(argv[i]));
+			}
+		}
+	}
 	archstr = "Generic";
 #if defined(__x86_64__)
 	archstr = "amd64";
@@ -1212,8 +1207,21 @@ int MainLoop(int argc, char *argv[])
 #if defined(__i386__)
 	archstr = "ia32";
 #endif
+	emustr = emustr + cfgstr;
+	USING_FLAGS_EXT *using_flags = new USING_FLAGS_EXT(&config);
+	cmdparser.process(arglist);
+	ProcessCmdLine(&cmdparser, &virtualMediaList);
+
+	QCoreApplication *GuiMain = NULL;
+	
+	GuiMain = new QApplication(argc, argv);
+	GuiMain->setObjectName(QString::fromUtf8("Gui_Main"));
+	_envvers = QProcessEnvironment::systemEnvironment();
+
+	SetupLogger(GuiMain, emustr, CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1);
 	OpeningMessage(archstr);
 	SetupSDL();
+
 	/*
 	 * Into Qt's Loop.
 	 */
@@ -1249,7 +1257,7 @@ int MainLoop(int argc, char *argv[])
 		}
 	}
 	
-	USING_FLAGS_EXT *using_flags = new USING_FLAGS_EXT(&config);
+//	USING_FLAGS_EXT *using_flags = new USING_FLAGS_EXT(&config);
 	// initialize emulation core
 	rMainWindow = new META_MainWindow(using_flags, csp_logger);
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));

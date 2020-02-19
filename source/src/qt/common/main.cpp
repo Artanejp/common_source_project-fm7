@@ -24,8 +24,6 @@
 
 // emulation core
 
-extern EMU* emu;
-extern QApplication *GuiMain;
 #if defined(CSP_OS_WINDOWS)
 CSP_Logger DLL_PREFIX_I *csp_logger;
 #else

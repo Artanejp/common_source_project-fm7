@@ -66,7 +66,7 @@ QCommandLineOption *_opt_dump_envver;
 QCommandLineOption *_opt_dipsw_on;
 QCommandLineOption *_opt_dipsw_off;
 QProcessEnvironment _envvers;
-extern QApplication *GuiMain;
+
 bool _b_dump_envver;
 std::string config_fullpath;
 
@@ -104,7 +104,7 @@ DLL_PREFIX void SetOptions_Sub(QCommandLineParser *cmdparser)
     _cl.append("gl");
     _cl.append("opengl");
     _cl.append("render");
-    _opt_opengl = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Force set using renderer type."), "{ GL | GL2 | GL3 | GL4 | GLES}");
+    _opt_opengl = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Force set using renderer type."), "{  GL2 | GL | GL3 | GL4 | GL4_CORE | GLES | ES2 | ES3}");
     _cl.clear();
 	
     _cl.append("v");
