@@ -356,7 +356,7 @@ protected:
 	config_t *p_config;
 	CSP_Logger *csp_logger;
 	QMainWindow *MainWindow;
-	QApplication *CoreApplication;
+	QCoreApplication *CoreApplication;
 	QMap<uint32_t, QString>phys_key_name_map; // VK, NAME
 	
 	GLDrawClass *graphicsView;
@@ -533,7 +533,7 @@ public:
 	~Ui_MainWindowBase();
 
 	// Initializer : using from InitContext.
-	void setCoreApplication(QApplication *p);
+	void setCoreApplication(QCoreApplication *p);
 	void createContextMenu(void);
 	void setupUi(void);
 	virtual void set_window(int mode);
