@@ -105,8 +105,8 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	int run(int cycles);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	int __FASTCALL run(int cycles);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void set_intr_line(bool line, bool pending, uint32_t bit);
 	void set_extra_clock(int cycles);
 	int get_extra_clock();
@@ -133,20 +133,20 @@ public:
 	{
 		return 0xffffffff;
 	}
-	void write_debug_data8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data8(uint32_t addr);
-	void write_debug_data16(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data16(uint32_t addr);
-	void write_debug_data32(uint32_t addr, uint32_t data);
-	uint32_t read_debug_data32(uint32_t addr);
-	void write_debug_io8(uint32_t addr, uint32_t data);
-	uint32_t read_debug_io8(uint32_t addr);
-	void write_debug_io16(uint32_t addr, uint32_t data);
-	uint32_t read_debug_io32(uint32_t addr);
-	void write_debug_io32(uint32_t addr, uint32_t data);
-	uint32_t read_debug_io16(uint32_t addr);
-	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
-	uint32_t read_debug_reg(const _TCHAR *reg);
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
+	void __FASTCALL write_debug_data16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data16(uint32_t addr);
+	void __FASTCALL write_debug_data32(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data32(uint32_t addr);
+	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
+	void __FASTCALL write_debug_io16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io32(uint32_t addr);
+	void __FASTCALL write_debug_io32(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io16(uint32_t addr);
+	bool __FASTCALL write_debug_reg(const _TCHAR *reg, uint32_t data);
+	uint32_t __FASTCALL read_debug_reg(const _TCHAR *reg);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 //#endif
