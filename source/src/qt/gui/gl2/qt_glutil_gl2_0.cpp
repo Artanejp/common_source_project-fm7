@@ -820,7 +820,8 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 		extfunc_2->glEnable(GL_TEXTURE_2D);
 
 		extfunc_2->glViewport(0, 0, p_wid->width(), p_wid->height());
-		extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+//		extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+		extfunc_2->glOrtho(1.0f, -1.0f, 1.0f, -1.0f, 1.0, -1.0);
 		extfunc_2->glBindTexture(GL_TEXTURE_2D, texid);
 
 		if(!f_smoosing) {
