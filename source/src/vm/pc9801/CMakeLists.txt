@@ -13,7 +13,7 @@ set(BASIC_VM_FILES
 	   keyboard.cpp
 	   dmareg.cpp
 	   membus.cpp
-	   ../upd7220.cpp
+#	   ../upd7220.cpp
 	   )
 	   
 if(BUILD_PC9801) 
