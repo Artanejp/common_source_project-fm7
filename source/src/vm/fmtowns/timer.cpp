@@ -44,7 +44,7 @@ void TIMER::reset()
 void TIMER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
-	case 0x60:
+	case 0x0060:
 		if(data & 0x80) {
 			tmout0 = false;
 		}
@@ -80,10 +80,10 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 			register_event(this, EVENT_1US_WAIT, 1.0, false, &event_wait_1us);
 			write_signals(&outputs_halt_line, 0xffffffff);
 		}
-	case 0x70:
+	case 0x0070:
 		d_rtc->write_signal(SIG_MSM58321_DATA, data, 0x0f);
 		break;
-	case 0x80:
+	case 0x0080:
 		d_rtc->write_signal(SIG_MSM58321_CS, data, 0x80);
 		d_rtc->write_signal(SIG_MSM58321_READ, data, 0x04);
 		d_rtc->write_signal(SIG_MSM58321_WRITE, data, 0x02);
@@ -110,12 +110,12 @@ void TIMER::do_interval(void)
 uint32_t TIMER::read_io8(uint32_t addr)
 {
 	switch(addr) {
-	case 0x26:
+	case 0x0026:
 		free_run_counter = (uint16_t)get_passed_usec(0);
 		return free_run_counter & 0xff;
-	case 0x27:
+	case 0x0027:
 		return free_run_counter >> 8;
-	case 0x60:
+	case 0x0060:
 		return (tmout0 ? 1 : 0) | (tmout1 ? 2 : 0) | ((intr_reg & 7) << 2) | 0xe0;
 	case 0x0068: //
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
@@ -141,8 +141,8 @@ uint32_t TIMER::read_io8(uint32_t addr)
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
 			return 0x00;
 		}
-	case 0x70:
-		return (rtc_data & 0x7f) | ((rtc_busy) ? 0 : 0x80);
+	case 0x0070:
+		return (rtc_data & 0x7f) | ((rtc_busy) ? 0x80 : 0x00);
 	}
 	return 0xff;
 }

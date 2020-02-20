@@ -21,7 +21,7 @@ void TOWNS_DMAC::reset()
 void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 {
 //	if((addr & 0x0f) == 0x0c) out_debug_log("WRITE REG: %08X %08X", addr, data);
-	out_debug_log("WRITE REG: %04X %02X", addr, data);
+//	out_debug_log("WRITE REG: %04X %02X", addr, data);
 	switch(addr & 0x0f) {
 	case 0x07:
 		dma_high_address = (data & 0xff) << 24;
@@ -221,7 +221,7 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t mask)
 
 void TOWNS_DMAC::write_via_debugger_data8(uint32_t addr, uint32_t data)
 {
-	out_debug_log(_T("WRITE 8BIT ADDR %08X to DATA:%02X"), addr, data);
+//	out_debug_log(_T("WRITE 8BIT ADDR %08X to DATA:%02X"), addr, data);
 	d_mem->write_dma_data8(addr & dma_addr_mask, data);
 }
 
