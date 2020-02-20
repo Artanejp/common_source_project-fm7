@@ -686,8 +686,8 @@ uint32_t UPD7220::read_io8(uint32_t addr)
 		}
 		val |= vsync ? STAT_VSYNC : 0;
 		val |= (cmd_drawing) ? STAT_DRAW : 0;
-		val |= (cmd_fifo->empty()) ? STAT_EMPTY : 0;
-		//val |= STAT_EMPTY;
+		//val |= (cmd_fifo->empty()) ? STAT_EMPTY : 0;
+		val |= STAT_EMPTY;
 		val |= (cmd_fifo->full()) ? STAT_FULL : 0;
 		val |= (!(fo->empty())) ? STAT_DRDY : 0;
 		// clear busy stat
