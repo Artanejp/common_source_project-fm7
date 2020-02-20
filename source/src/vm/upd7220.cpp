@@ -802,20 +802,20 @@ void UPD7220::cmd_vecte()
 	wrote_bytes = 1;
 	
 	// execute command
-	if(!(vect[0] & 0x78)) {
+	if(!(vect[0] & 0x78)) { // R, C, T, L
 		pattern = ra[8] | (ra[9] << 8);
 		draw_pset(dx, dy);
 	}
-	if(vect[0] & 0x08) {
+	if(vect[0] & 0x08) { // L (Line)
 		draw_vectl();
 	}
-	if(vect[0] & 0x10) {
+	if(vect[0] & 0x10) { // T (Text)
 		draw_vectt();
 	}
-	if(vect[0] & 0x20) {
+	if(vect[0] & 0x20) { // C (Circle)
 		draw_vectc();
 	}
-	if(vect[0] & 0x40) {
+	if(vect[0] & 0x40) { // R (Rect)
 		draw_vectr();
 	}
 	reset_vect();
@@ -1269,7 +1269,9 @@ void UPD7220::draw_vectr()
 	int vx2 = vectdir[dir][2];
 	int vy2 = vectdir[dir][3];
 	pattern = ra[8] | (ra[9] << 8);
-	
+
+//	out_debug_log(_T("VECTR D=%d D2=%d START=%d,%d VX1,VY1,VX2,VY2 = %d,%d,%d,%d"),
+//				  d, d1, dx, dy, vx1, vy1, vx2,vy2);
 	for(int i = 0; i < d; i++) {
 		draw_pset(dx, dy);
 		dx += vx1;
@@ -1343,15 +1345,6 @@ void UPD7220::draw_pset(int x, int y)
 	pattern = (pattern >> 1) | (dot << 15);
 	uint32_t addr = y * width + (x >> 3);
 
-	if((_UPD7220_UGLY_PC98_HACK)) {
-//		if(addr >= 0x8000) return;
-//		if((y == 409) && (x >= 384)) return;
-//		if(y > 409) return;
-//		if((x < 0) || (y < 0) || (x >= (width << 3))) return;
-//		addr = addr & 0x7fff;
-	} else {
-		//if((x < 0) || (y < 0) || (x >= (width << 3)) || (y >= height)) return;
-	}
 	uint8_t bit;
 	if(_UPD7220_MSB_FIRST) {
 		bit = 0x80 >> (x & 7);

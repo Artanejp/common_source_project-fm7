@@ -255,7 +255,15 @@ void DISPLAY::initialize()
 	// set vram pointer to gdc
 	d_gdc_chr->set_vram_ptr(tvram, 0x2000);
 	d_gdc_chr->set_screen_width(80);
+#if !defined(SUPPORT_HIRESO)
+	#if !defined(SUPPORT_2ND_VRAM)
 	d_gdc_gfx->set_vram_bus_ptr(this, 0x20000);
+	#else
+	d_gdc_gfx->set_vram_bus_ptr(this, 0x40000);
+	#endif
+#else
+	d_gdc_gfx->set_vram_bus_ptr(this, 0x80000);
+#endif
 	d_gdc_gfx->set_screen_width(SCREEN_WIDTH >> 3);
 	
 	// register event
@@ -1194,12 +1202,16 @@ uint32_t DISPLAY::read_memory_mapped_io16(uint32_t addr)
 void DISPLAY::write_dma_io8(uint32_t addr, uint32_t data)
 {
 #if defined(SUPPORT_GRCG)
-	if(grcg_mode & GRCG_CG_MODE) {
+	if(grcg_cg_mode) {
+//	if(grcg_mode & GRCG_CG_MODE) {
 #if defined(SUPPORT_EGC)
-		if(modereg2[MODE2_EGC]) {
+		if(enable_egc) {
+//		if(modereg2[MODE2_EGC]) {
+//			out_debug_log(_T("ADDR = %08X"), addr);
 			egc_writeb(addr, data);
 		} else
 #endif
+//		out_debug_log(_T("ADDR = %08X"), addr);
 		grcg_writeb(addr, data);
 		return;
 	}
@@ -1225,9 +1237,11 @@ void DISPLAY::write_dma_io8(uint32_t addr, uint32_t data)
 void DISPLAY::write_dma_io16(uint32_t addr, uint32_t data)
 {
 #if defined(SUPPORT_GRCG)
-	if(grcg_mode & GRCG_CG_MODE) {
+	if(grcg_cg_mode) {
+//	if(grcg_mode & GRCG_CG_MODE) {
 #if defined(SUPPORT_EGC)
-		if(modereg2[MODE2_EGC]) {
+		if(enable_egc) {
+//		if(modereg2[MODE2_EGC]) {
 			egc_writew(addr, data);
 		} else
 #endif
@@ -1302,9 +1316,11 @@ void DISPLAY::write_dma_io16(uint32_t addr, uint32_t data)
 uint32_t DISPLAY::read_dma_io8(uint32_t addr)
 {
 #if defined(SUPPORT_GRCG)
-	if(grcg_mode & GRCG_CG_MODE) {
+	if(grcg_cg_mode) {
+//	if(grcg_mode & GRCG_CG_MODE) {
 #if defined(SUPPORT_EGC)
-		if(modereg2[MODE2_EGC]) {
+		if(enable_egc) {
+//		if(modereg2[MODE2_EGC]) {
 			return egc_readb(addr);
 		}
 #endif
@@ -1322,9 +1338,11 @@ uint32_t DISPLAY::read_dma_io8(uint32_t addr)
 uint32_t DISPLAY::read_dma_io16(uint32_t addr)
 {
 #if defined(SUPPORT_GRCG)
-	if(grcg_mode & GRCG_CG_MODE) {
+	if(grcg_cg_mode) {
+//	if(grcg_mode & GRCG_CG_MODE) {
 #if defined(SUPPORT_EGC)
-		if(modereg2[MODE2_EGC]) {
+		if(enable_egc) {
+//		if(modereg2[MODE2_EGC]) {
 			return egc_readw(addr);
 		}
 #endif
@@ -2108,6 +2126,11 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	
 	// post process
 	if(loading) {
+ 
+#if defined(SUPPORT_16_COLORS) && defined(SUPPORT_EGC)
+		is_use_egc = ((config.dipswitch & (1 << DIPSWITCH_POSITION_EGC)) != 0);
+		enable_egc = ((is_use_egc) && (modereg2[MODE2_EGC] != 0)) ? true : false;
+#endif		
 #if defined(SUPPORT_2ND_VRAM) && !defined(SUPPORT_HIRESO)
 		if(vram_disp_sel & 1) {
 			vram_disp_b = vram + 0x28000;
@@ -2131,6 +2154,8 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 		}
 #endif
 #if defined(SUPPORT_GRCG)
+		grcg_cg_mode = ((grcg_mode & GRCG_CG_MODE) != 0) ? true : false;
+		grcg_rw_mode = ((grcg_mode & GRCG_RW_MODE) != 0) ? true : false;
 		for(int i = 0; i < 4; i++) {
 			grcg_tile_word[i] = ((uint16_t)grcg_tile[i]) | ((uint16_t)grcg_tile[i] << 8);
 		}
