@@ -99,7 +99,7 @@ __DECL_ALIGNED(16) const uint32_t DISPLAY::egc_maskdword[16][2] = {
 	{0xffffffff, 0xffffffff},
 };
 
-// SUBROUTINES are moved to display,h due to making inline. 20190514 K.O
+// SUBROUTINES are moved to display.h due to making inline. 20190514 K.O
 void __FASTCALL DISPLAY::egc_sftb_upn_sub(uint32_t ext)
 {
 	if(egc_dstbit >= 8) {

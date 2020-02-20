@@ -508,8 +508,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	display->set_context_gdc_chr(gdc_chr, gdc_chr->get_ra());
 	display->set_context_gdc_gfx(gdc_gfx, gdc_gfx->get_ra(), gdc_gfx->get_cs());
 	display->set_context_gdc_freq(pio_sys, SIG_I8255_PORT_A, 0x80);
+	
 	//pio_sys->set_context_port_b(display, SIG_DISPLAY98_HIGH_RESOLUTION, 0x08, 0); // SHUT1
-	//display->set_context_pio_prn(pio_prn);
+	display->set_context_pio_prn(pio_prn);
 	
 	dmareg->set_context_dma(dma);
 	keyboard->set_context_sio(sio_kbd);

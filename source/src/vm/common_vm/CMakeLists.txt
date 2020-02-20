@@ -84,7 +84,7 @@ set(s_vm_common_vm_srcs
 	../upd1990a.cpp
 	../upd4991a.cpp
 	../upd71071.cpp
-	../upd7220.cpp
+#	../upd7220.cpp
 	../upd765a.cpp
 	../upd7752.cpp
 	../upd7801.cpp

@@ -11,8 +11,8 @@
 #ifndef _UPD7220_H_
 #define _UPD7220_H_
 
-//#include "vm.h"
-//#include "../emu.h"
+#include "vm.h"
+#include "../emu.h"
 #include "device.h"
 
 #define MODE_MIX	((sync[0] & 0x22) == 0x00)
@@ -23,16 +23,16 @@
 #define RT_TABLEBIT	12
 #define RT_TABLEMAX	(1 << RT_TABLEBIT)
 
-#define SIG_UPD7220_CLOCK_FREQ	1
-#define SIG_UPD7220_EXT_VSYNC	2
-#define SIG_UPD7220_WIDTH_BYTES	3
-#define SIG_UPD7220_HEIGHT		4
-#define SIG_UPD7220_PITCH		5
-#define SIG_UPD7220_DISP_HEIGHT	6
-#define SIG_UPD7220_DISP_WIDTH	7
+#define SIG_UPD7220_CLOCK_FREQ  1
+#define SIG_UPD7220_EXT_VSYNC   2
+#define SIG_UPD7220_WIDTH_BYTES 3
+#define SIG_UPD7220_HEIGHT      4
+#define SIG_UPD7220_PITCH       5
+#define SIG_UPD7220_DISP_WIDTH  6
+#define SIG_UPD7220_DISP_HEIGHT 7
 
-class RINGBUFFER;
 class FIFO;
+
 class UPD7220 : public DEVICE
 {
 protected:
@@ -46,7 +46,7 @@ protected:
 	uint8_t* vram;
 	uint32_t vram_size;
 	uint16_t vram_data_mask;
-
+	
 	// feature flags
 	bool __QC10;
 	bool _UPD7220_MSB_FIRST;
@@ -55,7 +55,8 @@ protected:
 	int  _UPD7220_HORIZ_FREQ;
 	int  _UPD7220_A_VERSION;
 	int  _LINES_PER_FRAME;
-	
+	int  _CHARS_PER_LINE;
+
 	// regs
 	int cmdreg;
 	uint8_t statreg;
@@ -69,16 +70,10 @@ protected:
 	uint8_t zoom, zr, zw;
 	uint8_t ra[16];
 	uint8_t cs[3];
-	uint8_t cs_ptr;
-	uint8_t csrw_ptr;
-	uint8_t sync_ptr;
 	uint8_t pitch;
 	uint32_t lad;
 	uint8_t vect[11];
-	uint8_t vectw_ptr;
 	int ead, dad;
-	bool wg;
-	
 	uint8_t maskl, maskh;
 	uint8_t mod;
 	bool hsync, hblank;
@@ -93,43 +88,36 @@ protected:
 	int height;
 	
 	int cpu_clocks;
+
+//#ifdef UPD7220_HORIZ_FREQ
+	int horiz_freq, next_horiz_freq;
+//#endif
 	double frames_per_sec;
 	int lines_per_frame;
 	
-	// ring buffers
-	RINGBUFFER *fo;
-	RINGBUFFER *cmd_fifo;
-
 	// waiting
 	int event_cmdready;
 	uint32_t wrote_bytes;
 	bool cmd_drawing;
 	uint32_t clock_freq;
+	
+	// fifo buffers
+	uint8_t params[16];
+	int params_count;
+	FIFO *fo;
+	
 	// draw
 	int rt[RT_TABLEMAX + 1];
 	int dx, dy;	// from ead, dad
 	int dir, dif, sl, dc, d, d2, d1, dm;
-	bool dgd;
 	uint16_t pattern;
-	const int vectdir[16][4] = {
-		{ 0, 1, 1, 0}, { 1, 1, 1,-1}, { 1, 0, 0,-1}, { 1,-1,-1,-1},
-		{ 0,-1,-1, 0}, {-1,-1,-1, 1}, {-1, 0, 0, 1}, {-1, 1, 1, 1},
-		{ 0, 1, 1, 1}, { 1, 1, 1, 0}, { 1, 0, 1,-1}, { 1,-1, 0,-1},
-		{ 0,-1,-1,-1}, {-1,-1,-1, 0}, {-1, 0,-1, 1}, {-1, 1, 0, 1}
-	};
-	int horiz_freq, next_horiz_freq;	
+	
 	// command
-	//void check_cmd();
-	//void process_cmd();
-	uint32_t before_addr;
-	uint8_t cache_val;
-	bool first_load;
-	bool sync_mask;
+	void check_cmd();
+	void process_cmd();
 	
 	void cmd_reset();
-	void cmd_reset2();
-	void cmd_reset3();
-	void cmd_sync(bool flag);
+	void __FASTCALL cmd_sync(bool flag);
 	void cmd_master();
 	void cmd_slave();
 	void cmd_start();
@@ -137,11 +125,11 @@ protected:
 	void cmd_zoom();
 	void cmd_scroll();
 	void cmd_csrform();
-	//void cmd_pitch();
+	void cmd_pitch();
 	void cmd_lpen();
 	void cmd_vectw();
-	//void cmd_vecte();
-	//void cmd_texte();
+	void cmd_vecte();
+	void cmd_texte();
 	void cmd_csrw();
 	void cmd_csrr();
 	void cmd_mask();
@@ -157,26 +145,13 @@ protected:
 	void update_vect();
 	void reset_vect();
 	
-	void __FASTCALL register_event_wait_cmd(uint32_t bytes);
-
-	void check_cmd();
-	void process_cmd();
-	
 	void draw_vectl();
 	void draw_vectt();
 	void draw_vectc();
 	void draw_vectr();
-	
-	void cmd_vecte();
-	void cmd_texte();
-	void cmd_pitch();
-	
 	void draw_text();
-	inline void __FASTCALL draw_pset(int x, int y);
-	inline void __FASTCALL start_pset();
-	inline void __FASTCALL finish_pset();
-	inline bool __FASTCALL draw_pset_diff(int x, int y);
-	inline void __FASTCALL shift_pattern(int shift);
+	void __FASTCALL draw_pset(int x, int y);
+	void register_event_wait_cmd(uint32_t bytes);
 	
 public:
 	UPD7220(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -202,19 +177,22 @@ public:
 	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
+
+	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int ch);
+	
 	void event_pre_frame();
 	void event_frame();
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
-	
-	uint32_t __FASTCALL read_signal(int ch);
-	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
-
 	bool process_state(FILEIO* state_fio, bool loading);
-
 	
 	// unique functions
+	void set_clock_freq(uint32_t val)
+	{
+		clock_freq = val;
+	}
 	void set_context_drq(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_drq, device, id, mask);
@@ -223,11 +201,7 @@ public:
 	{
 		register_output_signal(&outputs_vsync, device, id, mask);
 	}
-	void set_context_vblank(DEVICE* device, int id, uint32_t mask)
-	{
-		register_output_signal(&outputs_vblank, device, id, mask);
-	}
-    void set_vram_ptr(uint8_t* ptr, uint32_t size)
+	void set_vram_ptr(uint8_t* ptr, uint32_t size)
 	{
 		vram = ptr;
 		vram_size = size;
@@ -242,23 +216,29 @@ public:
 		d_vram_bus = device;
 		vram_size = size;
 	}
+	void set_context_vblank(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_vblank, device, id, mask);
+	}
 	void set_vram_bus_ptr(DEVICE* device, uint32_t size, uint16_t mask)
 	{
 		set_vram_bus_ptr(device, size);
-                vram_data_mask = mask;
+		vram_data_mask = mask;
 	}
 	void set_screen_width(int value)
 	{
 		width = value;
 	}
-	void set_screen_height(int value)
+	void set_screen_height(int val)
 	{
-		height = value;
+		height = val;
 	}
-	void set_clock_freq(uint32_t hz)
+//#ifdef UPD7220_HORIZ_FREQ
+	void set_horiz_freq(int freq)
 	{
-		clock_freq = hz;
+		next_horiz_freq = freq;
 	}
+//#endif
 	uint8_t* get_sync()
 	{
 		return sync;
@@ -284,161 +264,13 @@ public:
 		return start;
 	}
 	uint32_t __FASTCALL cursor_addr(uint32_t mask);
-	int __FASTCALL cursor_top();
-	int __FASTCALL cursor_bottom();
-	bool __FASTCALL attr_blink()
+	int cursor_top();
+	int cursor_bottom();
+	bool attr_blink()
 	{
 		return (blink_attr < (blink_rate * 3 / 4));
 	}
-	void __FASTCALL set_horiz_freq(int freq)
-	{
-		next_horiz_freq = freq;
-	}
 };
-
-
-inline void  UPD7220::draw_pset(int x, int y)
-{
-	uint32_t addr = y * width + (x >> 3);
-	if(_UPD7220_UGLY_PC98_HACK) {
-//		if(addr >= 0x8000) return;
-//		if((y == 409) && (x >= 384)) return;
-//		if(y > 409) return;
-//		if((x < 0) || (y < 0) || (x >= (width << 3))) return;
-//		addr = addr & 0x7fff;
-	} else {
-		if((x < 0) || (y < 0) || (x >= (width << 3)) || (y >= height)) return;
-	}
-	uint16_t dot = pattern & 1;
-	pattern = (pattern >> 1) | (dot << 15);
-	uint8_t bit;
-	if(_UPD7220_MSB_FIRST) {
-		bit = 0x80 >> (x & 7);
-	} else {
-		bit = 1 << (x & 7);
-	}
-	uint8_t cur = read_vram(addr);
-//	ead = addr;
-//	dad = x & 0x0f;
-	
-	switch(mod) {
-	case 0: // replace
-		write_vram(addr, (cur & ~bit) | (dot ? bit : 0));
-		break;
-	case 1: // complement
-		write_vram(addr, (cur & ~bit) | ((cur ^ (dot ? 0xff : 0)) & bit));
-		break;
-	case 2: // reset
-		write_vram(addr, cur & (dot ? ~bit : 0xff));
-		break;
-	case 3: // set
-		write_vram(addr, cur | (dot ? bit : 0));
-		break;
-	}
-}
-
-inline void UPD7220::start_pset()
-{
-	before_addr = 0xffffffff;
-	first_load = true;
-	cache_val = 0;
-}
-
-inline void UPD7220::finish_pset()
-{
-	if(!first_load) {
-		write_vram(before_addr, cache_val);
-		//wrote_bytes++;
-	}
-	first_load = true;
-	before_addr = 0xffffffff;
-	cache_val = 0;
-}
-
-inline void UPD7220::shift_pattern(int shift)
-{
-	int bits;
-	uint16_t dot;
-	if(shift == 0) {
-		return;
-	} else if(shift < 0) {
-		// Left shift
-		bits = (-shift) % 16;
-		if(bits == 0) return;
-		dot = pattern;
-		dot <<= bits;
-		pattern >>= (16 - bits);
-		pattern = (pattern | dot) & 0xffff;
-	} else if(shift > 0) {
-		// Right shift
-		bits = shift % 16;
-		if(bits == 0) return;
-		dot = pattern;
-		dot >>= bits;
-		pattern <<= (16 - bits);
-		pattern = (pattern | dot) & 0xffff;
-	}
-}
-	
-
-inline bool UPD7220::draw_pset_diff(int x, int y)
-{
-	uint16_t dot = pattern & 1;
-	pattern = (pattern >> 1) | (dot << 15);
-	uint32_t addr = y * width + (x >> 3);
-	uint8_t bit;
-
-//	if(_UPD7220_UGLY_PC98_HACK) {
-//		if(addr >= 0x8000) {
-//		if((y > 409) || ((y == 409) && x >= 384)){
-//			finish_pset();
-//			return false;
-//		}
-//		else if((x < 0) || (y < 0) || (x >= (width << 3))) {
-//			finish_pset();
-//			return false;
-//		}
-//	} else if((x < 0) || (y < 0) || (x >= (width << 3)) || (y >= height)) {
-//		finish_pset();
-//		return false;
-//	}
-	if((first_load) || (addr != before_addr)) {
-		if(!(first_load)) {
-			write_vram(before_addr, cache_val);
-			//wrote_bytes++;
-		}
-		cache_val = read_vram(addr);
-	}
-	
-	first_load = false;
-	before_addr = addr;
-//	ead = addr;
-//	dad = x & 0x0f;
-	
-	if(_UPD7220_MSB_FIRST) {
-		bit = 0x80 >> (x & 7);
-	} else {
-		bit = 1 << (x & 7);
-	}
-	uint8_t cur = cache_val;
-	wrote_bytes++; // OK?
-
-	switch(mod) {
-	case 0: // replace
-		cache_val = (cur & ~bit) | (dot ? bit : 0);
-		break;
-	case 1: // complement
-		cache_val = (cur & ~bit) | ((cur ^ (dot ? 0xff : 0)) & bit);
-		break;
-	case 2: // reset
-		cache_val = cur & (dot ? ~bit : 0xff);
-		break;
-	case 3: // set
-		cache_val = cur | (dot ? bit : 0);
-		break;
-	}
-	return true;
-}
 
 #endif
 

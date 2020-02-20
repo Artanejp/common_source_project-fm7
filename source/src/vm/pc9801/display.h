@@ -23,6 +23,7 @@
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
+
 #include "./display_consts.h"
 
 #define SIG_DISPLAY98_SET_PAGE_80		1
@@ -33,26 +34,24 @@
 class UPD7220;
 
 namespace PC9801 {
-
-
 class DISPLAY : public DEVICE
 {
 private:
 	DEVICE *d_pic;
 	DEVICE *d_pio_prn;
-	outputs_t output_gdc_freq;
-	
 	UPD7220 *d_gdc_chr, *d_gdc_gfx;
+	
+	outputs_t output_gdc_freq;
 	uint8_t *ra_chr;
 	uint8_t *ra_gfx, *cs_gfx;
 	
 	uint8_t tvram[0x4000];
 	uint32_t vram_bank;
 #if !defined(SUPPORT_HIRESO)
-#if defined(SUPPORT_2ND_VRAM)
-	__DECL_ALIGNED(4) uint8_t vram[0x40000];
-#else
+#if !defined(SUPPORT_2ND_VRAM)
 	__DECL_ALIGNED(4) uint8_t vram[0x20000];
+#else
+	__DECL_ALIGNED(4) uint8_t vram[0x40000];
 #endif
 #else
 	__DECL_ALIGNED(4) uint8_t vram[0x80000];
@@ -123,7 +122,7 @@ private:
 	uint32_t egc_stack;
 	uint8_t* egc_inptr;
 	uint8_t* egc_outptr;
-
+	
 	int tmp_inptr_ofs;
 	int tmp_outptr_ofs;
 	
@@ -144,6 +143,7 @@ private:
 	__DECL_ALIGNED(16) static const uint32_t egc_maskdword[16][2];
 #endif
 	bool display_high;
+	
 #if !defined(SUPPORT_HIRESO)
 	#define FONT_SIZE	16
 	#define FONT_WIDTH	8
@@ -165,15 +165,13 @@ private:
 	
 	uint8_t screen_chr[SCREEN_HEIGHT][SCREEN_WIDTH + 1];
 	uint8_t screen_gfx[SCREEN_HEIGHT][SCREEN_WIDTH];
-
 	uint32_t bank_table[0x10];
-
 	
 #if !defined(SUPPORT_HIRESO)
-	void kanji_copy(uint8_t *dst, uint8_t *src, int from, int to);
+	void __FASTCALL kanji_copy(uint8_t *dst, uint8_t *src, int from, int to);
 #else
-	void ank_copy(int code, uint8_t *pattern);
-	void kanji_copy(int first, int second, uint8_t *pattern);
+	void __FASTCALL ank_copy(int code, uint8_t *pattern);
+	void __FASTCALL kanji_copy(int first, int second, uint8_t *pattern);
 #endif
 #ifdef __BIG_ENDIAN__
 	inline void vram_draw_writew(uint32_t addr, uint32_t data);
@@ -186,38 +184,38 @@ private:
 	uint32_t __FASTCALL grcg_readw(uint32_t addr1);
 #endif
 #if defined(SUPPORT_EGC)
-	inline void __FASTCALL egc_shift();
+	void __FASTCALL egc_shift();
 	void __FASTCALL egc_sftb_upn_sub(uint32_t ext);
 	void __FASTCALL egc_sftb_dnn_sub(uint32_t ext);
 	void __FASTCALL egc_sftb_upr_sub(uint32_t ext);
 	void __FASTCALL egc_sftb_dnr_sub(uint32_t ext);
 	void __FASTCALL egc_sftb_upl_sub(uint32_t ext);
 	void __FASTCALL egc_sftb_dnl_sub(uint32_t ext);
-	inline void __FASTCALL egc_sftb_upn0(uint32_t ext);
-	inline void __FASTCALL egc_sftw_upn0();
-	inline void __FASTCALL egc_sftb_dnn0(uint32_t ext);
-	inline void __FASTCALL egc_sftw_dnn0();
-	inline void __FASTCALL egc_sftb_upr0(uint32_t ext);
-	inline void __FASTCALL egc_sftw_upr0();
-	inline void __FASTCALL egc_sftb_dnr0(uint32_t ext);
-	inline void __FASTCALL egc_sftw_dnr0();
-	inline void __FASTCALL egc_sftb_upl0(uint32_t ext);
-	inline void __FASTCALL egc_sftw_upl0();
-	inline void __FASTCALL egc_sftb_dnl0(uint32_t ext);
-	inline void __FASTCALL egc_sftw_dnl0();
-	inline void __FASTCALL egc_sftb(int func, uint32_t ext);
-	inline void __FASTCALL egc_sftw(int func);
-	inline void __FASTCALL egc_shiftinput_byte(uint32_t ext);
-	inline void __FASTCALL egc_shiftinput_incw();
-	inline void __FASTCALL egc_shiftinput_decw();
-	inline uint64_t __FASTCALL egc_ope_00(uint8_t ope, uint32_t addr);
-	inline uint64_t __FASTCALL egc_ope_0f(uint8_t ope, uint32_t addr);
-    inline uint64_t __FASTCALL egc_ope_c0(uint8_t ope, uint32_t addr);
-	inline uint64_t __FASTCALL egc_ope_f0(uint8_t ope, uint32_t addr);
-	inline uint64_t __FASTCALL egc_ope_fc(uint8_t ope, uint32_t addr);
-	inline uint64_t __FASTCALL egc_ope_ff(uint8_t ope, uint32_t addr);
-	inline uint64_t __FASTCALL egc_ope_nd(uint8_t ope, uint32_t addr);
-	inline uint64_t __FASTCALL egc_ope_np(uint8_t ope, uint32_t addr);
+	void __FASTCALL egc_sftb_upn0(uint32_t ext);
+	void __FASTCALL egc_sftw_upn0();
+	void __FASTCALL egc_sftb_dnn0(uint32_t ext);
+	void __FASTCALL egc_sftw_dnn0();
+	void __FASTCALL egc_sftb_upr0(uint32_t ext);
+	void __FASTCALL egc_sftw_upr0();
+	void __FASTCALL egc_sftb_dnr0(uint32_t ext);
+	void __FASTCALL egc_sftw_dnr0();
+	void __FASTCALL egc_sftb_upl0(uint32_t ext);
+	void __FASTCALL egc_sftw_upl0();
+	void __FASTCALL egc_sftb_dnl0(uint32_t ext);
+	void __FASTCALL egc_sftw_dnl0();
+	void __FASTCALL egc_sftb(int func, uint32_t ext);
+	void __FASTCALL egc_sftw(int func);
+	void __FASTCALL egc_shiftinput_byte(uint32_t ext);
+	void __FASTCALL egc_shiftinput_incw();
+	void __FASTCALL egc_shiftinput_decw();
+	uint64_t __FASTCALL egc_ope_00(uint8_t ope, uint32_t addr);
+	uint64_t __FASTCALL egc_ope_0f(uint8_t ope, uint32_t addr);
+	uint64_t __FASTCALL egc_ope_c0(uint8_t ope, uint32_t addr);
+	uint64_t __FASTCALL egc_ope_f0(uint8_t ope, uint32_t addr);
+	uint64_t __FASTCALL egc_ope_fc(uint8_t ope, uint32_t addr);
+	uint64_t __FASTCALL egc_ope_ff(uint8_t ope, uint32_t addr);
+	uint64_t __FASTCALL egc_ope_nd(uint8_t ope, uint32_t addr);
+	uint64_t __FASTCALL egc_ope_np(uint8_t ope, uint32_t addr);
 	uint64_t __FASTCALL egc_ope_xx(uint8_t ope, uint32_t addr);
 	uint64_t __FASTCALL egc_opefn(uint32_t func, uint8_t ope, uint32_t addr);
 	uint64_t __FASTCALL egc_opeb(uint32_t addr, uint8_t value);
@@ -227,9 +225,9 @@ private:
 	void __FASTCALL egc_writeb(uint32_t addr1, uint8_t value);
 	void __FASTCALL egc_writew(uint32_t addr1, uint16_t value);
 #endif
-
 	void draw_chr_screen();
 	void draw_gfx_screen();
+	
 	void init_memsw();
 	void save_memsw();
 public:
@@ -237,6 +235,10 @@ public:
 	{
 		initialize_output_signals(&output_gdc_freq);
 		memset(tvram, 0, sizeof(tvram));
+		d_pic = NULL;
+		d_pio_prn = NULL;
+		d_gdc_chr = NULL;
+		d_gdc_gfx = NULL;
 		set_device_name(_T("Display"));
 	}
 	~DISPLAY() {}
@@ -260,6 +262,10 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
+	void set_context_gdc_freq(DEVICE *device, int id, int mask)
+	{
+		register_output_signal(&output_gdc_freq, device, id, mask);
+	}
 	void set_context_pic(DEVICE *device)
 	{
 		d_pic = device;
@@ -268,10 +274,6 @@ public:
 	{
 		d_gdc_chr = device;
 		ra_chr = ra;
-	}
-	void set_context_gdc_freq(DEVICE *device, int id, int mask)
-	{
-		register_output_signal(&output_gdc_freq, device, id, mask);
 	}
 	void set_context_gdc_gfx(UPD7220 *device, uint8_t *ra, uint8_t *cs)
 	{
@@ -292,7 +294,6 @@ public:
 	}
 	void draw_screen();
 };
-
 }
 #endif
 
