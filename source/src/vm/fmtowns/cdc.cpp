@@ -71,6 +71,7 @@ void CDC::reset()
 	
 	dma_transfer = true;
 	pio_transfer = false;
+	transferring = false;
 	command_type_play = false; // false = status command
 	stat_reply_intr   = false;
 	req_status        = false;
@@ -354,69 +355,8 @@ void CDC::event_callback(int id, int error)
 			}
 		}
 	case EVENT_WAIT_REQ:
-#if 0
-		if((scsi_req_status)) {
-			if((check_data_in()) && (busy_status)) {
-				if(dma_transfer) { // DATA IN and DMA TRANSFER
-					if(buffer_count < 0) {
-						// Timeout or read ended
-						//dma_transfer = false;
-						//pio_transter = false;
-						//if(event_wait_req > -1) {
-						//	cancel_event(this, event_wait_req);
-						//	event_wait_req = true;
-						//}
-					} else {
-						d_dmac->write_signal(SIG_UPD71071_CH3, 0xff, 0xff);
-						buffer_count++;
-						if(buffer_count >= 2048) {
-							//data_reg = d_scsi_host->read_dma_io8(0);
-							if(check_status()) {
-								// END OF READING
-								extra_status = 0;
-								write_status(0x06, 0x00, 0x00, 0x00);
-								pio_transfer = false;
-								dma_transfer = false;
-								write_signal(SIG_TOWNS_CDC_IRQ, 1, 1);
-								buffer_count = -1;
-								submpu_ready = true;
-								if(event_wait_req > -1) {
-									cancel_event(this, event_wait_req);
-									event_wait_req = true;
-								}
-							} else {
-								// Try to next
-								extra_status = 0;
-								write_status(0x22, 0x00, 0x00, 0x00);
-								write_signal(SIG_TOWNS_CDC_IRQ, 1, 1);
-								//submpu_ready = true;
-								pio_transfer = false;
-								dma_transfer = true;
-								buffer_count = 0;
-							}						
-						}
-					}
-				} else {
-					// PIO TRANSFER
-					if(event_wait_req > -1) {
-						cancel_event(this, event_wait_req);
-						event_wait_req = true;
-					}
-				}	
-			} 
-		} else {
-			// BUS FREE
-//			d_scsi_host->write_signal(SIG_SCSI_SEL, 0, 1);
-//			cancel_event(this, event_wait_req);
-//			event_wait_req = -1;
-			// EOL
-		}
-#else
-		if(event_wait_req > -1) {
-			cancel_event(this, event_wait_req);
-			event_wait_req = true;
-		}
-#endif
+		event_wait_req = -1;
+		// ToDo: Reading
 		break;
 	}
 }
@@ -473,11 +413,13 @@ void CDC::write_io8(uint32_t address, uint32_t data)
 		if((data & 0x08) != 0) {
 			dma_transfer = false;
 			pio_transfer = true;
+			transferring = true;
 			buffer_count = 0;
 		}
 		if((data & 0x10) != 0) {
 			dma_transfer = true;
 			pio_transfer = false;
+			transferring = true;
 			if(buffer_count < 0) {
 				buffer_count = 0;
 				// Read speed
@@ -510,6 +452,8 @@ uint32_t CDC::read_io8(uint32_t address)
 			val = val | ((d_dmac->read_signal(SIG_UPD71071_IS_TRANSFERING + 3) !=0) ? 0x10 : 0x00); // USING DMAC ch.3
 			val = val | ((has_status)              ? 0x02 : 0x00);
 			val = val | ((submpu_ready)            ? 0x01 : 0x00);
+			submpu_intr = false;
+			dma_intr = false;
 		}
 		break;
 	case 0x2: // Status register
@@ -641,27 +585,6 @@ uint32_t CDC::read_io8(uint32_t address)
 			if((scsi_req_status) && (check_data_in()) && (busy_status)) {
 				data_reg = d_scsi_host->read_dma_io8(0);
 				buffer_count++;
-				if(buffer_count >= 2048) {
-					if(check_status()) {
-						// END OF READING
-						extra_status = 0;
-						write_status(0x06, 0x00, 0x00, 0x00);
-						pio_transfer = false;
-						dma_transfer = false;
-						write_signal(SIG_TOWNS_CDC_IRQ, 1, 1);
-						buffer_count = -1;
-						submpu_ready = true;
-					} else {
-						// Try to next
-						extra_status = 0;
-						write_status(0x21, 0x00, 0x00, 0x00);
-						write_signal(SIG_TOWNS_CDC_IRQ, 1, 1);
-						//submpu_ready = true;
-						pio_transfer = true;
-						dma_transfer = false;
-						buffer_count = 0;
-					}						
-				}
 			}
 			val = data_reg;
 //			out_debug_log(_T("PIO READ DATA=%02X"), val);
@@ -1061,40 +984,42 @@ void CDC::enqueue_command_status(uint8_t cmd)
 void CDC::write_signal(int ch, uint32_t data, uint32_t mask)
 {
 	switch(ch) {
+	case SIG_TOWNS_CDC_NEXT_SECTOR:
+		extra_status = 0;
+		if(pio_transfer) {
+			write_status(0x21, 0x00, 0x00, 0x00, true);
+		} else {
+			write_status(0x22, 0x00, 0x00, 0x00, true);
+		}				
+		write_signal(SIG_TOWNS_CDC_IRQ, 1, 1);
+		buffer_count = -1;
+		out_debug_log(_T("SEEK TO NEXT SECTOR"));
+		break;
+	case SIG_TOWNS_CDC_TRANSFER_COMPLETE:
+//		if(transferring) {
+			// END OF READING
+			extra_status = 0;
+			write_status(0x06, 0x00, 0x00, 0x00, true);
+			write_signal(SIG_TOWNS_CDC_IRQ, 1, 1);
+			buffer_count = -1;
+			submpu_ready = true;
+			if(event_wait_req > -1) {
+				cancel_event(this, event_wait_req);
+				event_wait_req = -1;
+			}
+			out_debug_log(_T("TRANSFER COMPLETED"));
+			transferring = false;
+			dma_transfer = false;
+			pio_transfer = false;
+//		}
+		break;		
 	case SIG_TOWNS_CDC_DRQ:
 //		out_debug_log(_T("SIG_TOWNS_CDC_DRQ %02X %02X"), data, mask);
 		if((data & mask) != 0) {
 			if((dma_transfer) ) {
 				software_transfer_phase = false;
-//				out_debug_log(_T("DRQ/DMA"));
-//				d_scsi_host->write_signal(SIG_SCSI_ACK, 0, 1);
-				//if((scsi_req_status) && (check_data_in())) {
-					d_dmac->write_signal(SIG_UPD71071_CH3, 0xff, 0xff);
-					buffer_count++;
-//					out_debug_log(_T("SEND DMAREQ to DMA3 COUNT=%d"), buffer_count);
-					if(buffer_count >= 2048) {
-						if(check_status()) {
-							// END OF READING
-							extra_status = 0;
-							write_status(0x06, 0x00, 0x00, 0x00, true);
-							write_signal(SIG_TOWNS_CDC_IRQ, 1, 1);
-							buffer_count = -1;
-							submpu_ready = true;
-							if(event_wait_req > -1) {
-								cancel_event(this, event_wait_req);
-								event_wait_req = true;
-							}
-							out_debug_log(_T("TRANSFER COMPLETED"));
-						} else {
-							// Try to next
-							extra_status = 0;
-							write_status(0x22, 0x00, 0x00, 0x00, true);
-							write_signal(SIG_TOWNS_CDC_IRQ, 1, 1);
-							buffer_count = -1;
-							out_debug_log(_T("SEEK TO NEXT SECTOR"));
-						}						
-					}
-				//}
+				d_dmac->write_signal(SIG_UPD71071_CH3, 0xff, 0xff);
+				buffer_count++;
 			} else if((pio_transfer) ) {
 				software_transfer_phase = true;
 			} else {
@@ -1212,6 +1137,7 @@ bool CDC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(software_transfer_phase);
 	state_fio->StateValue(dma_transfer);
 	state_fio->StateValue(pio_transfer);
+	state_fio->StateValue(transferring);
 
 	state_fio->StateValue(dma_intr);
 	state_fio->StateValue(submpu_intr);

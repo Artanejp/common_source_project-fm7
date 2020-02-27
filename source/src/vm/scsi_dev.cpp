@@ -218,6 +218,12 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 									next_req_usec += 1000000.0 / bytes_per_sec;
 									double usec = next_req_usec - get_passed_usec(first_req_clock);
 									set_req_delay(1, (usec > 1.0) ? usec : 1.0);
+									if(logical_block_size() > 0) {
+										local_data_pos = (local_data_pos + 1) % logical_block_size();
+										if(local_data_pos == 0) {
+											write_signals(&outputs_next_sector, 0xffffffff);
+										}
+									}
 								}
 								break;
 							default:
@@ -237,6 +243,13 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 								buffer->clear(); // just in case
 							}
 							// change to status phase
+							switch(command[0]) {
+							case SCSI_CMD_WRITE6:
+							case SCSI_CMD_WRITE10:
+							case SCSI_CMD_WRITE12:
+								write_signals(&outputs_completed, 0xffffffff);
+								break;
+							}
 							set_dat(SCSI_STATUS_GOOD);
 							set_sense_code(SCSI_SENSE_NOSENSE);
 							set_phase_delay(SCSI_PHASE_STATUS, 10.0);
@@ -267,6 +280,12 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 									double usec = next_req_usec - get_passed_usec(first_req_clock);
 									set_req_delay(1, (usec > 1.0) ? usec : 1.0);
 									//set_req_delay(1, usec);
+									if(logical_block_size() > 0) {
+										local_data_pos = (local_data_pos + 1) % logical_block_size();
+										if(local_data_pos == 0) {
+											write_signals(&outputs_next_sector, 0xffffffff);
+										}
+									}
 								}
 								break;
 							default:
@@ -275,6 +294,13 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 							}
 						} else {
 							// change to status phase
+							switch(command[0]) {
+							case SCSI_CMD_READ6:
+							case SCSI_CMD_READ10:
+							case SCSI_CMD_READ12:
+								write_signals(&outputs_completed, 0xffffffff);
+								break;
+							}
 							set_dat(SCSI_STATUS_GOOD);
 							set_sense_code(SCSI_SENSE_NOSENSE);
 							set_phase_delay(SCSI_PHASE_STATUS, 10.0);
@@ -337,6 +363,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 			if(!prev_status & rst_status) {
 				// L -> H
 				out_debug_log(_T("RST signal raised\n"));
+				local_data_pos = 0;
 				reset_device();
 				set_phase(SCSI_PHASE_BUS_FREE);
 			}
@@ -488,6 +515,7 @@ int SCSI_DEV::get_command_length(int value)
 
 void SCSI_DEV::start_command()
 {
+	local_data_pos = 0;
 	switch(command[0]) {
 	case SCSI_CMD_TST_U_RDY:
 		out_debug_log(_T("Command: Test Unit Ready\n"));
@@ -789,7 +817,7 @@ bool SCSI_DEV::write_buffer(int length)
 	return true;
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool SCSI_DEV::process_state(FILEIO* state_fio, bool loading)
 {
@@ -821,6 +849,7 @@ bool SCSI_DEV::process_state(FILEIO* state_fio, bool loading)
  	}
 	state_fio->StateValue(position);
 	state_fio->StateValue(remain);
+	state_fio->StateValue(local_data_pos);
 	state_fio->StateValue(sense_code);
  	return true;
 }

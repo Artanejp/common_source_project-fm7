@@ -872,9 +872,15 @@ bool SCSI_CDROM::read_buffer(int length)
 			}
 			position++;
 			offset = (offset + 1) % 2352;
+//			if(offset == 0) {
+//				if(length > 0) {
+//					write_signals(&outputs_next_sector, 0xffffffff);
+//				}					
+//			}
 		}
 		access = true;
 	}
+//	write_signals(&outputs_completed, 0xffffffff);
 	// Is This right? 20181120 K.O
 	//write_signals(&outputs_done, 0xffffffff); // Maybe don't need "DONE SIGNAL" with reading DATA TRACK. 20181207 K.O
 	set_sense_code(SCSI_SENSE_NOSENSE);

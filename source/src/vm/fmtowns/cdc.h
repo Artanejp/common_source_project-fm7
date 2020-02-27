@@ -9,15 +9,17 @@
 #include "../../common.h"
 #include "../device.h"
 
-#define SIG_TOWNS_CDC_DRQ 1
-#define SIG_TOWNS_CDC_IRQ 2
-#define SIG_TOWNS_CDC_BSY 3
-#define SIG_TOWNS_CDC_CD  4
-#define SIG_TOWNS_CDC_IO  5
-#define SIG_TOWNS_CDC_MSG 6
-#define SIG_TOWNS_CDC_REQ 7
-#define SIG_TOWNS_CDC_ACK 8
-#define SIG_TOWNS_CDC_CDROM_DONE 9
+#define SIG_TOWNS_CDC_DRQ                 1
+#define SIG_TOWNS_CDC_IRQ                 2
+#define SIG_TOWNS_CDC_BSY                 3
+#define SIG_TOWNS_CDC_CD                  4
+#define SIG_TOWNS_CDC_IO                  5
+#define SIG_TOWNS_CDC_MSG                 6
+#define SIG_TOWNS_CDC_REQ                 7
+#define SIG_TOWNS_CDC_ACK                 8
+#define SIG_TOWNS_CDC_CDROM_DONE          9
+#define SIG_TOWNS_CDC_NEXT_SECTOR        10
+#define SIG_TOWNS_CDC_TRANSFER_COMPLETE  11
 
 class SCSI_HOST;
 class FIFO;
@@ -59,6 +61,7 @@ protected:
 	bool software_transfer_phase;
 	bool dma_transfer;
 	bool pio_transfer;
+	bool transferring;
 
 	bool dma_intr;
 	bool submpu_intr;
