@@ -55,13 +55,17 @@ protected:
 	FIFO* stat_fifo;
 
 	int readptr;
+
+	int sectors_count;
+	int read_lba;
+	
 	bool has_status;
 	int extra_status;
 	bool submpu_ready;
 	bool software_transfer_phase;
+	bool dma_transfer_phase;
 	bool dma_transfer;
 	bool pio_transfer;
-	bool transferring;
 
 	bool dma_intr;
 	bool submpu_intr;
@@ -74,6 +78,7 @@ protected:
 	bool msg_status;
 	bool scsi_req_status;
 	bool ack_status;
+	uint8_t raw_status;
 	
 	bool data_in_status;
 	uint8_t data_reg;
@@ -92,6 +97,7 @@ protected:
 	int event_wait_req;
 	int event_wait_cmd_req_off;
 	int event_cdc_status;
+	int event_cdrom_status;
 	
 	virtual void read_cdrom(bool req_reply);
 	virtual void stop_cdda(bool req_reply);
@@ -105,7 +111,11 @@ protected:
 	bool check_bus_free();
 	bool check_command_phase();
 	bool check_data_in();
+	bool check_data_out();
 	bool check_status();
+	bool check_message_in();
+	bool check_message_out();
+	
 	void select_unit_on();
 	void select_unit_off();
 	void select_unit_off2();
@@ -117,6 +127,7 @@ protected:
 	void start_poll_cmd_phase();
 	void start_enqueue_command();
 
+	void read_a_sector(int lba, bool req_reply);
 public:
 	CDC(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
