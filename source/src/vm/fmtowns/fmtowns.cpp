@@ -348,7 +348,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cdrom->scsi_id = 0;
 	cdrom->set_context_interface(cdc_scsi);
 	cdrom->set_context_completed(cdc, SIG_TOWNS_CDC_TRANSFER_COMPLETE, 0xffffffff);
-	//cdrom->set_context_next_sector(cdc, SIG_TOWNS_CDC_NEXT_SECTOR, 0xffffffff);
+	cdrom->set_context_next_sector(cdc, SIG_TOWNS_CDC_NEXT_SECTOR, 0xffffffff);
 	//dma->set_context_tc(cdc, SIG_TOWNS_CDC_TRANSFER_COMPLETE, 0xffffffff);
 	
 	cdc->set_context_scsi_host(cdc_scsi);

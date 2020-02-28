@@ -110,11 +110,11 @@ void CDC::reset()
 		event_cdc_status = -1;
 	}
 	buffer_count = -1;
-//	d_scsi_host->reset();
+	d_scsi_host->reset();
 	d_scsi_host->write_signal(SIG_SCSI_RST, 1, 1);
 	d_scsi_host->write_signal(SIG_SCSI_ATN, 0, 1);
 	d_scsi_host->write_signal(SIG_SCSI_SEL, 0, 1);
-	register_event(this, EVENT_CDC_RESET, 30.0, false, NULL);
+	register_event(this, EVENT_CDC_RESET, 300.0, false, NULL);
 }
 
 void CDC::initialize()
@@ -182,6 +182,9 @@ void CDC::start_poll_bus_free(int unit)
 	// SET SCSI ID to DATA BUS before RISING UP SEL.
 	d_scsi_host->write_dma_io8(0, (0x80 | (1 << unit)));
 	//	d_scsi_host->write_signal(SIG_SCSI_SEL, 1, 1);
+	if(event_cdrom_sel > -1) {
+		cancel_event(this, event_cdrom_sel);
+	}
 	register_event(this, EVENT_CDROM_SEL_ON, 15.0, true, &event_cdrom_sel); 
 }
 
@@ -277,7 +280,7 @@ void CDC::event_callback(int id, int error)
 {
 	switch(id) {
 	case EVENT_CDC_STATUS:
-		write_signal(SIG_TOWNS_CDC_CDROM_DONE, 1, 1);
+//		write_signal(SIG_TOWNS_CDC_CDROM_DONE, 1, 1);
 		event_cdc_status = -1;
 		break;
 	case EVENT_CDC_RESET:
@@ -646,14 +649,6 @@ void CDC::read_cdrom(bool req_reply)
 	//seek_time = get_seek_time(lba1);
 	uint8_t command[16] = {0};
 	extra_status = 0;
-#if 0
-	command[0] = SCSI_CMD_READ6;
-	command[1] = (uint8_t)((lba1 / 0x10000) & 0x1f);
-	command[2] = (uint8_t)((lba1 / 0x100) & 0xff);
-	command[3] = (uint8_t)(lba1 & 0xff);
-	command[4] = (uint8_t) (__remain % 0x100);
-	enqueue_cmdqueue(6, command);
-#else
 	out_debug_log(_T("LOGICAL BLOCK SIZE=%d"), d_cdrom->logical_block_size());
 	command[0] = SCSI_CMD_READ12;
 	command[1] = 0;
@@ -668,20 +663,6 @@ void CDC::read_cdrom(bool req_reply)
 	command[9] = (uint8_t) (__remain % 0x100);
 
 	enqueue_cmdqueue(12, command);
-#endif
-#if 0
-	if(req_reply) {
-		extra_status = 2;
-		write_status(0x00, 0x00, 0x00, 0x00);
-	} else {
-		extra_status = 0;
-		if(pio_transfer) {
-			write_status(0x21, 0x00, 0x00, 0x00);
-		} else {
-			write_status(0x22, 0x00, 0x00, 0x00);
-		}
-	}
-#endif
 	submpu_ready = false;
 }	
 
@@ -991,7 +972,10 @@ void CDC::write_signal(int ch, uint32_t data, uint32_t mask)
 		} else {
 			write_status(0x22, 0x00, 0x00, 0x00, true);
 		}				
-		write_signal(SIG_TOWNS_CDC_IRQ, 1, 1);
+		if(stat_reply_intr) {
+			write_signal(SIG_TOWNS_CDC_IRQ, 1, 1);
+		}
+		submpu_ready = true;
 		buffer_count = -1;
 		out_debug_log(_T("SEEK TO NEXT SECTOR"));
 		break;
@@ -1000,7 +984,9 @@ void CDC::write_signal(int ch, uint32_t data, uint32_t mask)
 			// END OF READING
 			extra_status = 0;
 			write_status(0x06, 0x00, 0x00, 0x00, true);
-			write_signal(SIG_TOWNS_CDC_IRQ, 1, 1);
+			if(stat_reply_intr) {
+				write_signal(SIG_TOWNS_CDC_IRQ, 1, 1);
+			}
 			buffer_count = -1;
 			submpu_ready = true;
 			if(event_wait_req > -1) {
