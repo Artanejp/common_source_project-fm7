@@ -1,0 +1,40 @@
+"eFMTowns" - FUJITSU FM-Towns series emulator for some platforms.
+									2/29/2020
+
+--- Internal ROM images
+
+	FMT_SYS.ROM      IPL/BIOS ROM       256KB
+	FMT_FNT.ROM      16pixs FONT ROM    256KB
+	FMT_DOS.ROM      MS-DOS ROM         512KB
+	FMT_DIC.ROM      OAK DICTIONARY ROM 512KB
+
+	Optional:
+	FMT_F20.ROM      20pixs ROM         512KB (Optional for later machines)
+
+	Note:
+	- You can use both *real* machine's ROM  and compatible ROM
+	  that supports a emulated machine.
+	- Pseudo BIOS *DON'T* include these emulators.
+	  This may be policy of eFM-Towns (maybe not change). 
+
+--- STATUS (2/29/2020)
+
+	- MS-DOS 3.1 Booting from SCSI HDD or FLOPPY  works *mostly*.
+	- MS-DOS 6.1 *don't* boot from SCSI HDD.
+	- SCSI using from MS-DOS6.1 based OS don't works.Only within FLOPPY.
+	- CD-ROM still does not work.
+	- SPRITE, OPN2, PCM and some devices are not still working.
+
+--- Key maps
+
+	- ToDo.
+
+--- Have fun!
+
+----------------------------------------
+Kyuma Ohta
+whatisthis.sowhat _at_ gmail.com
+
+https://github.com/Artanejp/common_source_project-fm7
+https://osdn.net/projects/csp-qt
+Twitter: @Artanejp

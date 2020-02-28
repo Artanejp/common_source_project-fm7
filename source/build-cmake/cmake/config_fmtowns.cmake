@@ -64,27 +64,27 @@ if(BUILD_FMTOWNS_2)
   set(EXEC_TARGET emufmtowns_2)
   add_definitions(-D_FMTOWNS_2)
   ## ToDo
-  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/x1.qrc)
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmtowns.qrc)
 elseif(BUILD_FMTOWNS_2H)
   set(EXEC_TARGET emufmtowns2H)
   add_definitions(-D_FMTOWNS_2H)
   ## ToDo
-  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/x1.qrc)
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmtowns.qrc)
 elseif(BUILD_FMTOWNS_20H)
   set(EXEC_TARGET emufmtowns40H)
   add_definitions(-D_FMTOWNS_40H)
   ## ToDo
-  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/x1.qrc)
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmtowns.qrc)
 elseif(BUILD_FMTOWNS2_UX40)
   set(EXEC_TARGET emufmtownsUX40)
   add_definitions(-D_FMTOWNS2_UX40)
   ## ToDo
-  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/x1.qrc)
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmtowns.qrc)
 elseif(BUILD_FMTOWNS2_CX100)
   set(EXEC_TARGET emufmtownsCX100)
   add_definitions(-D_FMTOWNS2_CX100)
   ## ToDo
-  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/x1.qrc)
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmtowns.qrc)
 endif()
 
 include(config_commonsource)
