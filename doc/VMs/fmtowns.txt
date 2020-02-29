@@ -26,8 +26,37 @@
 	- SPRITE, OPN2, PCM and some devices are not still working.
 
 --- Key maps
+	Virtual			PC
+	--------------------------------
+	BREAK			Pause Break
+	ALT				Left ALT
+	HIRAGANA/ROMAJI	HIRAGANA
+	HANKAKU/ZENKAKU	HANKAKU/ZENKAKU
+	HENKAN			HENKAN
+	MUHENKAN		MUHENKAN
+	KANA/KANJI		F11
+	KATAKANA		F12
+	COPY			Print Screen
+	ZENGYOU			PgUp
+	JIGYOU			PgDn
+	JIKKOU			Right WIN
+	TORIKESHI		Left WIN
+	KANJI JISHO		Right ALT + Print Screen
+	TANGO MASSHOU	Right ALT + Scroll Lock
+	TANGO TOUROKU	Right ALT + Pause Break
+	PF11			Right ALT + F1
+	PF12			Right ALT + F2
+	PF13			Right ALT + F3
+	PF14			Right ALT + F4
+	PF15			Right ALT + F5
+	PF16			Right ALT + F6
+	PF17			Right ALT + F7
+	PF18			Right ALT + F8
+	PF19			Right ALT + F9
+	PF20			Right ALT + F10
 
-	- ToDo.
+	Tips:
+		1. Romaji-Kana conversion (at some OSs) will enable "Ctrl + HIRAGANA".
 
 --- Have fun!
 

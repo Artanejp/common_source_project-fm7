@@ -175,6 +175,26 @@ void KEYBOARD::key_down(int code)
 		table[code] = 1;
 		if(code = key_table[code]) {
 			// $11:CTRL, $10:SHIFT
+			if((code >= 0x70) && (code < 0x7a)) {
+				// If PFkey, press with /*SHIFT or */RALT, PF += 10.
+				if((table[0xa5]) /*|| (table[0x10])*/) { // RALT /*or SHIFT*/
+					static const int pf1xtbl[] = { 0x69, 0x5b, 0x74, 0x75, 0x76,
+												   0x77, 0x78, 0x79, 0x7a, 0x7b};
+					code = pf1xtbl[code - 0x70];
+				}
+			} else if((code == 0x7d)) { // Print Screen + RALT -> Kanji Jisho
+				if(table[0xa5]) { // RALT
+					code = 0x6b;
+				}
+			} else if((code == 0x7c)) { // Pause Break + RALT -> Tango Touroku
+				if(table[0xa5]) { // RALT
+					code = 0x6d;
+				}
+			} else if((code == 0x6c)) { // Scroll Lock + RALT -> Tango Massyou.
+				if(table[0xa5]) { // RALT
+					code = 0x6c;
+				}
+			}
 			key_buf->write(0xc0 | (table[0x11] ? 8 : 0) | (table[0x10] ? 4 : 0));
 			key_buf->write(code & 0x7f);
 		}
@@ -186,6 +206,26 @@ void KEYBOARD::key_up(int code)
 //	if(table[code]) {
 		table[code] = 0;
 		if(code = key_table[code]) {
+			if((code >= 0x70) && (code < 0x7a)) {
+				// If PFkey, press with /*SHIFT or */RALT, PF += 10.
+				if((table[0xa5]) /*|| (table[0x10])*/) { // RALT /*or SHIFT*/
+					static const int pf1xtbl[] = { 0x69, 0x5b, 0x74, 0x75, 0x76,
+												   0x77, 0x78, 0x79, 0x7a, 0x7b};
+					code = pf1xtbl[code - 0x70];
+				}
+			} else if((code == 0x7d)) { // Print Screen + RALT -> Kanji Jisho
+				if(table[0xa5]) { // RALT
+					code = 0x6b;
+				}
+			} else if((code == 0x7c)) { // Pause Break + RALT -> Tango Touroku
+				if(table[0xa5]) { // RALT
+					code = 0x6d;
+				}
+			} else if((code == 0x6c)) { // Scroll Lock + RALT -> Tango Massyou.
+				if(table[0xa5]) { // RALT
+					code = 0x6c;
+				}
+			}
 			key_buf->write(0xd0 | (table[0x11] ? 8 : 0) | (table[0x10] ? 4 : 0));
 			key_buf->write(code & 0x7f);
 		}
