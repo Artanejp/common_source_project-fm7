@@ -494,7 +494,7 @@ static void __FASTCALL I386OP(call_abs16)(i386_state *cpustate)        // Opcode
 
 	CYCLES(cpustate,CYCLES_CALL_INTERSEG);      /* TODO: Timing = 17 + m */
 
-//#ifdef I386_PSEUDO_BIOS
+//#ifdef I86_PSEUDO_BIOS
 	UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
 	// ToDo: PROTECTED MODE CALL and PSEUDO-BIOS.
 	// Q: In V8086_MODE, is enabled call far (foo)?
@@ -3097,7 +3097,7 @@ static void __FASTCALL I386OP(groupFF_16)(i386_state *cpustate)        // Opcode
 					address = READ16(cpustate,ea + 0);
 					selector = READ16(cpustate,ea + 2);
 					CYCLES(cpustate,CYCLES_CALL_MEM_INTERSEG);      /* TODO: Timing = 10 + m */
-//#ifdef I386_PSEUDO_BIOS
+//#ifdef I86_PSEUDO_BIOS
 					UINT8 IOPL = cpustate->IOP1 | (cpustate->IOP2 << 1);
 					// ToDo: PROTECTED MODE CALL and PSEUDO-BIOS.
 					// Q: In V8086_MODE, is enabled call far (foo)?

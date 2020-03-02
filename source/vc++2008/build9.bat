@@ -60,8 +60,10 @@ copy Release\fm77av40.exe build_xp\fm77av40\.
 copy Release\fm77av40ex.exe build_xp\fm77av40\.
 
 devenv.com fm16beta_i186.vcproj /Rebuild Release
+devenv.com fm16beta_i286.vcproj /Rebuild Release
 mkdir build_xp\fm16beta
 copy Release\fm16beta_i186.exe build_xp\fm16beta\.
+copy Release\fm16beta_i286.exe build_xp\fm16beta\.
 
 devenv.com fm16pi.vcproj /Rebuild Release
 mkdir build_xp\fm16pi

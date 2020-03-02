@@ -42,6 +42,9 @@
 #include "../../../vm_template.h"
 #include "../../../../emu.h"
 #include "../../../device.h"
+//#ifdef USE_DEBUGGER
+#include "../../../debugger.h"
+//#endif
 
 #ifdef __BIG_ENDIAN__
 	#define BYTESEX_BIG
@@ -577,7 +580,6 @@ extern I386MSR		i386msr;
 extern sigjmp_buf	exec_1step_jmpbuf;
 #endif
 extern UINT32		realclock;
-
 extern DEVICE		*device_cpu;
 extern DEVICE		*device_mem;
 extern DEVICE		*device_io;
@@ -586,8 +588,11 @@ extern DEVICE		*device_bios;
 //#endif
 //#ifdef SINGLE_MODE_DMA
 extern DEVICE		*device_dma;
+extern DEBUGGER		*device_debugger;
 //#endif
 extern int64_t      i386_memory_wait;
+extern UINT32		codefetch_address;
+
 /*
  * CPUID
  */

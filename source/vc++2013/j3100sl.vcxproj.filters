@@ -2,47 +2,47 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{9c235066-eb5f-4069-b877-4b1d3553e79a}</UniqueIdentifier>
+      <UniqueIdentifier>{98e6b08d-26be-47d3-82b0-705843c9417d}</UniqueIdentifier>
       <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
     </Filter>
     <Filter Include="Source Files\EMU Source Files">
-      <UniqueIdentifier>{b652c406-c97b-4840-beda-6b9550388a82}</UniqueIdentifier>
+      <UniqueIdentifier>{261d575f-e731-4bce-997d-379e2ab51b91}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Source Files\OSD Source Files">
-      <UniqueIdentifier>{0bcc653d-ac6f-42b4-b937-873e4e1f28b8}</UniqueIdentifier>
+      <UniqueIdentifier>{49914948-56d1-4f92-bee8-347c8f4845c4}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Source Files\VM Common Source Files">
-      <UniqueIdentifier>{93dab27f-2aa0-4cb0-a298-c19f963c0dec}</UniqueIdentifier>
+      <UniqueIdentifier>{29317af0-fb3d-47d1-ae22-75ad83a031ce}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Source Files\VM Driver Source Files">
-      <UniqueIdentifier>{f85f7716-1955-40de-9f27-8d47f92915e1}</UniqueIdentifier>
+      <UniqueIdentifier>{5ba59c7a-f590-4ff7-a6a6-b14c78a4d4b6}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{ba8ba570-cd8c-4765-af62-0066b7139a6b}</UniqueIdentifier>
+      <UniqueIdentifier>{012b5849-4257-4cec-9cc7-e2014a39ece3}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
     </Filter>
     <Filter Include="Header Files\EMU Header Files">
-      <UniqueIdentifier>{5fb03652-9e10-44bb-8db6-743a16613e36}</UniqueIdentifier>
+      <UniqueIdentifier>{a61c850b-c989-485f-916a-9cbb9b193452}</UniqueIdentifier>
       <Extensions>h</Extensions>
     </Filter>
     <Filter Include="Header Files\OSD Header Files">
-      <UniqueIdentifier>{fbb09374-04b2-4d93-9dfd-1db93fda787c}</UniqueIdentifier>
+      <UniqueIdentifier>{af4dfc85-9f91-4ea3-becb-70db02360a41}</UniqueIdentifier>
       <Extensions>h</Extensions>
     </Filter>
     <Filter Include="Header Files\VM Common Header Files">
-      <UniqueIdentifier>{da33dcd3-eed2-4963-8d02-3300f232630e}</UniqueIdentifier>
+      <UniqueIdentifier>{0b421f87-5442-4fb5-bbcb-3281aff69674}</UniqueIdentifier>
       <Extensions>h</Extensions>
     </Filter>
     <Filter Include="Header Files\VM Driver Header Files">
-      <UniqueIdentifier>{7ad0583b-618d-4cf3-aa57-9ba8aba3d005}</UniqueIdentifier>
+      <UniqueIdentifier>{b90a239f-a693-4aee-92cc-9072207a6ddc}</UniqueIdentifier>
       <Extensions>h</Extensions>
     </Filter>
     <Filter Include="Resource Files">
-      <UniqueIdentifier>{b1437a34-80f7-4539-a824-ff6e0ab237cb}</UniqueIdentifier>
+      <UniqueIdentifier>{ecf7c72c-9965-4f49-a970-6c634b5dbe4f}</UniqueIdentifier>
       <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
   </ItemGroup>
@@ -92,6 +92,9 @@
     <ClCompile Include="..\src\vm\hd46505.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\i386_dasm.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\i8237.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
@@ -101,7 +104,7 @@
     <ClCompile Include="..\src\vm\i8259.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\i286.cpp">
+    <ClCompile Include="..\src\vm\i86.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\io.cpp">
@@ -117,6 +120,9 @@
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\upd765a.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\v30_dasm.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\j3100\display.cpp">
@@ -178,6 +184,9 @@
     <ClInclude Include="..\src\vm\hd46505.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\i386_dasm.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\i8237.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
@@ -187,7 +196,7 @@
     <ClInclude Include="..\src\vm\i8259.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\i286.h">
+    <ClInclude Include="..\src\vm\i86.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\io.h">
@@ -203,6 +212,9 @@
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\upd765a.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\v30_dasm.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\vm.h">
@@ -243,13 +255,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\src\res\j3100.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="..\src\res\indicator\access_off.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="..\src\res\indicator\access_on.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\j3100.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

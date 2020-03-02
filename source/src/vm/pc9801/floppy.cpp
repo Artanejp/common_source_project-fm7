@@ -30,14 +30,18 @@ namespace PC9801 {
 void FLOPPY::reset()
 {
 #if defined(SUPPORT_2HD_FDD_IF)
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		d_fdc_2hd->set_drive_type(i, DRIVE_TYPE_2HD);
+	if(d_fdc_2hd) {
+		for(int i = 0; i < MAX_DRIVE; i++) {
+			d_fdc_2hd->set_drive_type(i, DRIVE_TYPE_2HD);
+		}
 	}
 	ctrlreg_2hd = 0x80;
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		d_fdc_2dd->set_drive_type(i, DRIVE_TYPE_2DD);
+	if(d_fdc_2dd) {
+		for(int i = 0; i < MAX_DRIVE; i++) {
+			d_fdc_2dd->set_drive_type(i, DRIVE_TYPE_2DD);
+		}
 	}
 	ctrlreg_2dd = 0x80;
 #endif
@@ -56,39 +60,51 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 	switch(addr) {
 #if defined(SUPPORT_2HD_FDD_IF)
 	case 0x0090:
-		d_fdc_2hd->write_io8(0, data);
+		if(d_fdc_2hd) {
+			d_fdc_2hd->write_io8(0, data);
+		}
 		break;
 	case 0x0092:
-		d_fdc_2hd->write_io8(1, data);
+		if(d_fdc_2hd) {
+			d_fdc_2hd->write_io8(1, data);
+		}
 		break;
 	case 0x0094:
 	case 0x0096:
-		if(!(ctrlreg_2hd & 0x80) && (data & 0x80)) {
-			d_fdc_2hd->reset();
+		if(d_fdc_2hd) {
+			if(!(ctrlreg_2hd & 0x80) && (data & 0x80)) {
+				d_fdc_2hd->reset();
+			}
+			d_fdc_2hd->write_signal(SIG_UPD765A_FREADY, data, 0x40);
 		}
-		d_fdc_2hd->write_signal(SIG_UPD765A_FREADY, data, 0x40);
 		ctrlreg_2hd = data;
 		break;
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
 	case 0x00c8:
-		d_fdc_2dd->write_io8(0, data);
+		if(d_fdc_2dd) {
+			d_fdc_2dd->write_io8(0, data);
+		}
 		break;
 	case 0x00ca:
-		d_fdc_2dd->write_io8(1, data);
+		if(d_fdc_2dd) {
+			d_fdc_2dd->write_io8(1, data);
+		}
 		break;
 	case 0x00cc:
 	case 0x00ce:
-		if(!(ctrlreg_2dd & 0x80) && (data & 0x80)) {
-			d_fdc_2dd->reset();
-		}
-		if(data & 1) {
-			if(timer_id != -1) {
-				cancel_event(this, timer_id);
+		if(d_fdc_2dd) {
+			if(!(ctrlreg_2dd & 0x80) && (data & 0x80)) {
+				d_fdc_2dd->reset();
 			}
-			register_event(this, EVENT_TIMER, 100000, false, &timer_id);
+			if(data & 1) {
+				if(timer_id != -1) {
+					cancel_event(this, timer_id);
+				}
+				register_event(this, EVENT_TIMER, 100000, false, &timer_id);
+			}
+			d_fdc_2dd->write_signal(SIG_UPD765A_MOTOR, data, 0x08);
 		}
-		d_fdc_2dd->write_signal(SIG_UPD765A_MOTOR, data, 0x08);
 		ctrlreg_2dd = data;
 		break;
 #endif
@@ -186,30 +202,48 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 	switch(addr) {
 #if defined(SUPPORT_2HD_FDD_IF)
 	case 0x0090:
-		return d_fdc_2hd->read_io8(0);
+		if(d_fdc_2hd) {
+			return d_fdc_2hd->read_io8(0);
+		}
+		break;
 	case 0x0092:
-		return d_fdc_2hd->read_io8(1);
+		if(d_fdc_2hd) {
+			return d_fdc_2hd->read_io8(1);
+		}
+		break;
 	case 0x0094:
 	case 0x0096:
-//		value |= 0x80; // FINT1 (DIP SW 1-7), 1 = OFF, 0 = ON
-		value |= 0x40; // FINT0 (DIP SW 1-6), 1 = OFF, 0 = ON
-//		value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
-		return value;
+		if(d_fdc_2hd) {
+//			value |= 0x80; // FINT1 (DIP SW 1-7), 1 = OFF, 0 = ON
+			value |= 0x40; // FINT0 (DIP SW 1-6), 1 = OFF, 0 = ON
+//			value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
+			return value;
+		}
+		break;
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
 	case 0x00c8:
-		return d_fdc_2dd->read_io8(0);
+		if(d_fdc_2dd) {
+			return d_fdc_2dd->read_io8(0);
+		}
+		break;
 	case 0x00ca:
-		return d_fdc_2dd->read_io8(1);
+		if(d_fdc_2dd) {
+			return d_fdc_2dd->read_io8(1);
+		}
+		break;
 	case 0x00cc:
 	case 0x00ce:
-//		value |= 0x80; // FINT1 (DIP SW 1-7), 1 = OFF, 0 = ON
-		value |= 0x40; // FINT0 (DIP SW 1-6), 1 = OFF, 0 = ON
-		value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
-		if(d_fdc_2dd->is_disk_inserted()) {
-			value |= 0x10; // RDY
+		if(d_fdc_2dd) {
+//			value |= 0x80; // FINT1 (DIP SW 1-7), 1 = OFF, 0 = ON
+			value |= 0x40; // FINT0 (DIP SW 1-6), 1 = OFF, 0 = ON
+			value |= 0x20; // DMACH (DIP SW 1-3), 1 = OFF, 0 = ON
+			if(d_fdc_2dd->is_disk_inserted()) {
+				value |= 0x10; // RDY
+			}
+			return value;
 		}
-		return value;
+		break;
 #endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
 	case 0x0090:

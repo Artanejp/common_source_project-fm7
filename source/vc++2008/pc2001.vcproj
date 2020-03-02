@@ -786,10 +786,6 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
-				RelativePath="..\src\res\resource.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\res\pc2001.ico"
 				>
 			</File>
@@ -814,6 +810,10 @@
 						AdditionalIncludeDirectories="..\src\res"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\res\resource.h"
+				>
 			</File>
 		</Filter>
 	</Files>

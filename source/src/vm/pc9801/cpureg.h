@@ -23,15 +23,13 @@
 
 #if defined(UPPER_I386)
 #include "../i386_np21.h"
-#elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
+#elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88) || defined(HAS_V30)
 #include "../i86.h"
-#elif defined(HAS_V30)
-#include "../v30.h"
 #else
 #include "../i286.h"
 #endif
 #if defined(HAS_V30_SUB_CPU)
-#include "../v30.h"
+#include "../i86.h"
 #endif
 
 namespace PC9801 {
@@ -42,14 +40,14 @@ private:
 #if defined(UPPER_I386)
 	I386 *d_cpu;
 #elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
-	I8086 *d_cpu;
+	I86 *d_cpu;
 #elif defined(HAS_V30)
-	V30  *d_cpu;
+	I86  *d_cpu;
 #else
-	I80286 *d_cpu;
+	I286 *d_cpu;
 #endif
 #if defined(HAS_V30_SUB_CPU)
-	V30  *d_v30cpu;
+	I86  *d_v30cpu;
 #endif
 	DEVICE* d_mem;
 	DEVICE* d_pio;
@@ -99,11 +97,11 @@ public:
 #if defined(UPPER_I386)
 	void set_context_cpu(I386* device)
 #elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
-	void set_context_cpu(I8086* device)
+	void set_context_cpu(I86* device)
 #elif defined(HAS_V30)
-	void set_context_cpu(V30* device)
+	void set_context_cpu(I86* device)
 #else
-	void set_context_cpu(I80286* device)
+	void set_context_cpu(I286* device)
 #endif
 	{
 		d_cpu = device;
@@ -111,7 +109,7 @@ public:
 	}
 	// This will be feature developing, still not implement V30 feature.20190502 K.O
 #if defined(HAS_V30_SUB_CPU)
-	void set_context_v30(V30* device)
+	void set_context_v30(I86* device)
 	{
 		d_v30cpu = device;
 		register_output_signal(&outputs_nmi, device, SIG_CPU_NMI, 0xffffffff, 0);

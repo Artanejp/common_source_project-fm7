@@ -210,6 +210,12 @@ BEGIN
     END
     POPUP "Device"
     BEGIN
+        POPUP "Floppy Drive"
+        BEGIN
+            MENUITEM "1MB-FD",                  ID_VM_DIPSWITCH0
+            MENUITEM "640KB-FD",                ID_VM_DIPSWITCH1
+            MENUITEM "320KB-FD",                ID_VM_DIPSWITCH2
+        END
         POPUP "Sound"
         BEGIN
             MENUITEM "PC-9801-26 (BIOS Enabled)",   ID_VM_SOUND_TYPE0

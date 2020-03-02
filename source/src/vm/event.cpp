@@ -21,12 +21,8 @@
 #include "huc6280.h"
 #endif
 
-#if defined(USE_CPU_I86) || defined(USE_CPU_I186) || defined(USE_CPU_I88)
+#if defined(USE_CPU_I86) || defined(USE_CPU_I186) || defined(USE_CPU_I88) || defined(USE_CPU_V30)
 #include "i86.h"
-#endif
-
-#if defined(USE_CPU_V30)
-#include "v30.h"
 #endif
 
 #if defined(USE_CPU_I286)

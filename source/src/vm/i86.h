@@ -3,69 +3,72 @@
 
 	Origin : MAME i286 core
 	Author : Takeda.Toshiya
-	Date  : 2012.10.18-
+	Date   : 2012.10.18-
 
-	[ i286 ]
+	[ 8086/8088/80186/V30 ]
 */
-#pragma once
-#ifndef _I86_H_ 
+
+#ifndef _I86_H_
 #define _I86_H_
 
-//#include "fileio.h"
-//#include "vm_template.h"
-//#include "../emu.h"
+#include "vm.h"
+#include "../emu.h"
 #include "device.h"
 
 #define SIG_I86_TEST	0
 
+//#ifdef USE_DEBUGGER
 class DEBUGGER;
+//#endif
 
 enum {
-	N_CPU_TYPE_I8086 = 0,
-	N_CPU_TYPE_I8088,
-	N_CPU_TYPE_I80186,
-	N_CPU_TYPE_V30,
-	N_CPU_TYPE_I80286,
-};	
+	INTEL_8086 = 0,
+	INTEL_8088,
+	INTEL_80186,
+	NEC_V30,
+};
 
-
-class I8086 : public DEVICE
+class I86 : public DEVICE
 {
-protected:
+private:
+	bool _SINGLE_MODE_DMA;
+	bool _USE_DEBUGGER;
 	DEVICE *d_mem, *d_io, *d_pic;
+//#ifdef I86_PSEUDO_BIOS
 	DEVICE *d_bios;
+//#endif
+//#ifdef SINGLE_MODE_DMA
 	DEVICE *d_dma;
+//#endif
+//#ifdef USE_DEBUGGER
 	DEBUGGER *d_debugger;
+//#endif
 	void *opaque;
-	int n_cpu_type;
-	bool _HAS_i80286;
-	bool _HAS_v30;
-	void cpu_reset_generic();
-
+	
 public:
-	I8086(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I86(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+//#ifdef I86_PSEUDO_BIOS
 		d_bios = NULL;
+//#endif
+//#ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
-		d_debugger = NULL;;
+//#endif
 	}
-	~I8086() {}
+	~I86() {}
 	
 	// common functions
-	virtual void initialize();
-	virtual void release();
-	virtual void reset();
-	virtual int __FASTCALL run(int icount);
-	virtual uint32_t __FASTCALL read_signal(int id);
-	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	virtual void set_intr_line(bool line, bool pending, uint32_t bit);
-	virtual void set_extra_clock(int icount);
-	virtual int get_extra_clock();
-	virtual uint32_t get_pc();
-	virtual uint32_t get_next_pc();
-	virtual uint32_t __FASTCALL translate_address(int segment, uint32_t offset);
-
-
+	void initialize();
+	void release();
+	void reset();
+	int run(int icount);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	void set_intr_line(bool line, bool pending, uint32_t bit);
+	void set_extra_clock(int icount);
+	int get_extra_clock();
+	uint32_t get_pc();
+	uint32_t get_next_pc();
+//#ifdef USE_DEBUGGER
 	bool is_cpu()
 	{
 		return true;
@@ -78,27 +81,28 @@ public:
 	{
 		return d_debugger;
 	}
-	virtual uint32_t get_debug_prog_addr_mask()
+	uint32_t get_debug_prog_addr_mask()
 	{
 		return 0xfffff;
 	}
-	virtual uint32_t get_debug_data_addr_mask()
+	uint32_t get_debug_data_addr_mask()
 	{
 		return 0xfffff;
 	}
-	virtual void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_debug_data8(uint32_t addr);
-	virtual void __FASTCALL write_debug_data16(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_debug_data16(uint32_t addr);
-	virtual void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_debug_io8(uint32_t addr);
-	virtual void __FASTCALL write_debug_io16(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_debug_io16(uint32_t addr);
-	virtual bool write_debug_reg(const _TCHAR *reg, uint32_t data);
-	virtual uint32_t __FASTCALL read_debug_reg(const _TCHAR *reg);
-	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	virtual int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
-	virtual bool process_state(FILEIO* state_fio, bool loading);
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
+	void __FASTCALL write_debug_data16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data16(uint32_t addr);
+	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
+	void __FASTCALL write_debug_io16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io16(uint32_t addr);
+	bool __FASTCALL write_debug_reg(const _TCHAR *reg, uint32_t data);
+	uint32_t __FASTCALL read_debug_reg(const _TCHAR *reg);
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+//#endif
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
 	void set_context_mem(DEVICE* device)
@@ -109,23 +113,29 @@ public:
 	{
 		d_io = device;
 	}
-	void set_context_intr(DEVICE* device, uint32_t bit = 0xffffffff)
+	void set_context_intr(DEVICE* device)
 	{
 		d_pic = device;
 	}
+//#ifdef I86_PSEUDO_BIOS
 	void set_context_bios(DEVICE* device)
 	{
 		d_bios = device;
 	}
+//#endif
+//#ifdef SINGLE_MODE_DMA
 	void set_context_dma(DEVICE* device)
 	{
 		d_dma = device;
 	}
+//#endif
+//#ifdef USE_DEBUGGER
 	void set_context_debugger(DEBUGGER* device)
 	{
 		d_debugger = device;
 	}
-
+//#endif
+	int device_model;
 };
 
 #endif

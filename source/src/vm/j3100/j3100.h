@@ -37,10 +37,8 @@
 #define UPD765A_SENCE_INTSTAT_RESULT
 #define UPD765A_EXT_DRVSEL
 #ifdef TYPE_SL
-#define HAS_I86
 #define I8259_MAX_CHIPS		1
 #else
-#define HAS_I286
 #define I8259_MAX_CHIPS		2
 #endif
 #if !(defined(_J3100SS) || defined(_J3100SE))
@@ -80,10 +78,10 @@ class I8237;
 //class I8250;
 class I8253;
 class I8259;
-#if defined(HAS_I286)
-class I80286;
+#ifdef TYPE_SL
+class I86;
 #else
-class I8086;
+class I286;
 #endif
 class IO;
 class PCM1BIT;
@@ -127,10 +125,10 @@ protected:
 //	I8250* sio;
 	I8253* pit;
 	I8259* pic;
-#if defined(HAS_I286)
-	I80286* cpu;
+#ifdef TYPE_SL
+	I86* cpu;
 #else
-	I8086* cpu;
+	I286* cpu;
 #endif
 	IO* io;
 	PCM1BIT* pcm;

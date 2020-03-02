@@ -34,6 +34,22 @@ void Object_Menu_Control_98::do_set_memory_wait(bool flag)
 	emit sig_set_dipsw(0, flag);
 }
 
+void Object_Menu_Control_98::do_set_connect_2hd(bool flag)
+{
+	emit sig_set_dipsw(0, flag);
+}
+
+void  Object_Menu_Control_98::do_set_connect_2d(bool flag)
+{
+	emit sig_set_dipsw(2, flag);
+}
+
+void Object_Menu_Control_98::do_set_connect_2dd(bool flag)
+{
+	emit sig_set_dipsw(1, flag);
+}
+
+
 void Object_Menu_Control_98::do_set_enable_v30(bool flag)
 {
 	emit sig_set_dipsw(DIPSWITCH_POSITION_USE_V30, flag);
@@ -211,6 +227,14 @@ void META_MainWindow::retranslateUi(void)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MainWindow", "NEC PC-PR201 kanji serial printer.", 0));
 	actionPrintDevice[1]->setEnabled(false);
+#endif
+
+#if defined(SUPPORT_320KB_FDD_IF)
+	actionConnect2D->setText(QApplication::translate("MainWindow", "Connect 320KB 2D Drive", 0));
+#endif
+#if defined(_PC9801) || defined(_PC9801E)
+	actionConnect2DD->setText(QApplication::translate("MainWindow", "Connect 2DD Drive", 0));
+	actionConnect2HD->setText(QApplication::translate("MainWindow", "Connect 2HD Drive", 0));
 #endif	
 	// End.
 	// Set Labels
@@ -356,7 +380,38 @@ void META_MainWindow::setupUI_Emu(void)
 	connect(actionMemoryWait->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
 			this, SLOT(set_dipsw(int, bool)));
 #endif   
+#if defined(SUPPORT_320KB_FDD_IF)
+	actionConnect2D = new Action_Control_98(this, using_flags);
+	actionConnect2D->setCheckable(true);
+	actionConnect2D->setVisible(true);
+	menuMachine->addAction(actionConnect2D);
+	if((config.dipswitch & 0x0004) != 0) actionConnect2D->setChecked(true);
+	connect(actionConnect2D, SIGNAL(toggled(bool)),
+			actionConnect2D->pc98_binds, SLOT(do_set_connect_2d(bool)));
+	connect(actionConnect2D->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+#endif
+#if defined(_PC9801) || defined(_PC9801E)
+	actionConnect2DD = new Action_Control_98(this, using_flags);
+	actionConnect2DD->setCheckable(true);
+	actionConnect2DD->setVisible(true);
+	menuMachine->addAction(actionConnect2DD);
+	if((config.dipswitch & 0x0002) != 0) actionConnect2DD->setChecked(true);
+	connect(actionConnect2DD, SIGNAL(toggled(bool)),
+			actionConnect2DD->pc98_binds, SLOT(do_set_connect_2dd(bool)));
+	connect(actionConnect2DD->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
 	
+	actionConnect2HD = new Action_Control_98(this, using_flags);
+	actionConnect2HD->setCheckable(true);
+	actionConnect2HD->setVisible(true);
+	menuMachine->addAction(actionConnect2HD);
+	if((config.dipswitch & 0x0001) != 0) actionConnect2HD->setChecked(true);
+	connect(actionConnect2HD, SIGNAL(toggled(bool)),
+			actionConnect2HD->pc98_binds, SLOT(do_set_connect_2hd(bool)));
+	connect(actionConnect2HD->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+#endif
 #ifdef USE_BOOT_MODE
 	ConfigCPUBootMode(USE_BOOT_MODE);
 #endif

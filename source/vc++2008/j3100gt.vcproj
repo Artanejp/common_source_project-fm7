@@ -550,6 +550,46 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\i286.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\i386_dasm.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\i8237.cpp"
 					>
 					<FileConfiguration
@@ -591,26 +631,6 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\i8259.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\i286.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -943,6 +963,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\i286.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\i386_dasm.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\i8237.h"
 					>
 				</File>
@@ -952,10 +980,6 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\i8259.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\i286.h"
 					>
 				</File>
 				<File
@@ -1026,6 +1050,14 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
+				RelativePath="..\src\res\indicator\access_off.bmp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\indicator\access_on.bmp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\res\j3100.ico"
 				>
 			</File>
@@ -1053,14 +1085,6 @@
 			</File>
 			<File
 				RelativePath="..\src\res\resource.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\res\indicator\access_off.bmp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\res\indicator\access_on.bmp"
 				>
 			</File>
 		</Filter>

@@ -18,8 +18,7 @@
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../i8259.h"
-//#include "../i286.h"
-#include "./i286.h"
+#include "../i86.h"
 #include "../io.h"
 #include "../memory.h"
 #include "../noise.h"
@@ -58,7 +57,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit = new I8253(this, emu);
 	pio = new I8255(this, emu);
 	pic = new I8259(this, emu);
-	cpu = new I286(this, emu);	// 8088
+	cpu = new I86(this, emu);
+//	cpu->device_model = INTEL_8088;
 	io = new IO(this, emu);
 	mem = new MEMORY(this, emu);
 	
@@ -356,7 +356,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

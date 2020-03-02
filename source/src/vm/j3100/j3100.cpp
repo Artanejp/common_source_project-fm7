@@ -18,18 +18,15 @@
 //#include "../i8250.h"
 #include "../i8253.h"
 #include "../i8259.h"
-#if defined(HAS_I286)
-#include "../i286.h"
-#else
-#include "../i86.h"
-#endif
 #include "../io.h"
 #include "../noise.h"
 #include "../pcm1bit.h"
 #include "../upd765a.h"
 #ifdef TYPE_SL
+#include "../i86.h"
 #include "../rp5c01.h"
 #else
+#include "../i286.h"
 #include "../hd146818p.h"
 #endif
 
@@ -96,10 +93,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	sio = new I8250(this, emu);
 	pit = new I8253(this, emu);	// i8254
 	pic = new I8259(this, emu);
-#if defined(HAS_I286)
-	cpu = new I80286(this, emu);
+#ifdef TYPE_SL
+	cpu = new I86(this, emu);
+	cpu->device_model = INTEL_8086;
 #else
-	cpu = new I8086(this, emu);
+ 	cpu = new I286(this, emu);
 #endif
 	io = new IO(this, emu);
 	pcm = new PCM1BIT(this, emu);
@@ -441,7 +439,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

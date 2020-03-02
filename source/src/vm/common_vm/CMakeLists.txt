@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 2.23.2)
+SET(THIS_LIB_VERSION 2.24.0)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
@@ -20,6 +20,7 @@ set(s_vm_common_vm_srcs
 	../huc6280_base.cpp
 	../i286.cpp
 #	../i386.cpp
+	../i386_dasm.cpp
 	../i8080_base.cpp
 
 	../i8155.cpp
@@ -91,7 +92,7 @@ set(s_vm_common_vm_srcs
 
 	../upd7810.cpp
 	../upd7907.cpp
-	../v30.cpp
+	../v30_dasm.cpp
 # 20170518/MSX: Use v9938.cpp and define "-D_MSX_VDP_MESS" instead of v99x8.cpp .
 	../v9938.cpp
 ##	../v99x8.cpp
@@ -111,6 +112,19 @@ set(s_vm_common_vm_srcs
 #	../fm7/dummydevice.cpp
 #	../fmtowns/ym2612.cpp
 
+#	../i286_np21.cpp
+#	../np21/i286c/cpumem.cpp
+#	../np21/i286c/i286c.cpp
+#	../np21/i286c/i286c_0f.cpp
+#	../np21/i286c/i286c_8x.cpp
+#	../np21/i286c/i286c_ea.cpp
+#	../np21/i286c/i286c_f6.cpp
+#	../np21/i286c/i286c_fe.cpp
+#	../np21/i286c/i286c_mn.cpp
+#	../np21/i286c/i286c_rp.cpp
+#	../np21/i286c/i286c_sf.cpp
+#	../np21/i286c/v30patch.cpp
+	
 	../i386_np21.cpp
 	../np21/i386c/cpucore.cpp
 	../np21/i386c/cpumem.cpp		   

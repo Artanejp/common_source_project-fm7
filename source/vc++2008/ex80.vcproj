@@ -840,10 +840,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\res\resource.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\res\ex80\board.png"
 				>
 			</File>
@@ -945,6 +941,10 @@
 			</File>
 			<File
 				RelativePath="..\src\res\ex80\button24.png"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\resource.h"
 				>
 			</File>
 		</Filter>

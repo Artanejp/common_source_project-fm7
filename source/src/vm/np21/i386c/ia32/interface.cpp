@@ -112,8 +112,7 @@ ia32shut(void)
 void
 ia32a20enable(BOOL enable)
 {
-
-	CPU_ADRSMASK = (enable)?0xffffffff:0x00ffffff;
+	CPU_ADRSMASK = (enable) ? ~0 : ~(1 << 20);
 }
 
 //#pragma optimize("", off)

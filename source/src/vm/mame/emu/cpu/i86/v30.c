@@ -39,7 +39,8 @@ struct i8086_state
 	INT32 AuxVal, OverVal, SignVal, ZeroVal, CarryVal, DirVal;      /* 0 or non-0 valued flags */
 	UINT8 ParityVal;
 	UINT8 TF, IF;                  /* 0 or 1 valued flags */
-	UINT8 MF;                      /* V30 mode flag */
+	UINT8 MF, MF_WriteDisabled;    /* V30 mode flag */
+	UINT8 NF;                      /* 8080 N flag */
 
 	UINT8 int_vector;
 	INT8 nmi_state;
@@ -233,6 +234,8 @@ static CPU_RESET( v30 )
 {
 	CPU_RESET_CALL(i8086);
 	SetMD(1);
+	cpustate->MF = cpustate->MF_WriteDisabled = 1;
+	cpustate->NF = 0; /* is this correct ? */
 }
 
 /* ASG 971222 -- added these interface functions */
@@ -502,3 +505,4 @@ CPU_EXECUTE( v30 )
 	cpustate->icount = 0;
 	return passed_icount;
 }
+

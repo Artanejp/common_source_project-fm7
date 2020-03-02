@@ -2,105 +2,105 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{c1bc22e0-d975-4459-bc92-74bf57d0ca3d}</UniqueIdentifier>
+      <UniqueIdentifier>{0e8ae70c-89af-43cb-a5cd-7d7b69dd3c07}</UniqueIdentifier>
       <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
     </Filter>
     <Filter Include="Source Files\EMU Source Files">
-      <UniqueIdentifier>{7399e7ae-51e6-4508-812b-a8c3b9b77b31}</UniqueIdentifier>
+      <UniqueIdentifier>{6d9f2edc-c8f9-4945-992f-aab645ed47fe}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Source Files\OSD Source Files">
-      <UniqueIdentifier>{bd04e394-1f95-4fe9-aaac-23d9c562f4f6}</UniqueIdentifier>
+      <UniqueIdentifier>{41cc9b71-c0f8-4d7a-979b-8eb8af094876}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Source Files\VM Common Source Files">
-      <UniqueIdentifier>{c35f19a4-c556-4bf6-9ffd-49c23634fb9a}</UniqueIdentifier>
+      <UniqueIdentifier>{b77f35db-3b42-4cfa-97a9-61aa2cba52fd}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Source Files\VM Common Source Files\fmgen Source Files">
-      <UniqueIdentifier>{298bdf7e-477c-4ac4-b56e-15e1d4bdf968}</UniqueIdentifier>
+      <UniqueIdentifier>{60b5a9cd-d520-41f0-a330-35dfeb90dbd9}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files">
-      <UniqueIdentifier>{8d8fb2e7-9922-4cd5-921b-aced9d04b53c}</UniqueIdentifier>
+      <UniqueIdentifier>{825cea13-28fb-44d2-bde8-7b3a64669492}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files\ia32">
-      <UniqueIdentifier>{7ae05cb5-b3d0-44a3-9a72-b649a107cf88}</UniqueIdentifier>
+      <UniqueIdentifier>{fed54583-c10d-407e-8480-352a4501a3ec}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions">
-      <UniqueIdentifier>{06e09ae8-a8bf-4f0c-9301-f5198cc5893f}</UniqueIdentifier>
+      <UniqueIdentifier>{c163a617-6aa2-48da-aa42-7d79d0f09116}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\fpu">
-      <UniqueIdentifier>{98112fe4-1f93-4f59-b529-50c44c95cefd}</UniqueIdentifier>
+      <UniqueIdentifier>{aff3fe65-c309-4abd-b92c-921495ad1d29}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\fpu\softfloat">
-      <UniqueIdentifier>{1fd7e6da-4acc-46d6-92c5-f57bfca1a6bf}</UniqueIdentifier>
+      <UniqueIdentifier>{1036d9c4-3a39-43fb-97d7-0edc07fa8915}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\mmx">
-      <UniqueIdentifier>{23e576df-bcd4-4aa0-b145-dc151c124b51}</UniqueIdentifier>
+      <UniqueIdentifier>{5d9f091a-688c-44fc-9fcf-b8e3f49e4c2e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\sse">
-      <UniqueIdentifier>{002f565b-4979-44ed-8243-183c420e11bd}</UniqueIdentifier>
+      <UniqueIdentifier>{d14b87c5-aa34-4e17-b3d2-c8ddf8116588}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\sse2">
-      <UniqueIdentifier>{c9402c67-a71e-46ac-9397-6f0fc50d059f}</UniqueIdentifier>
+      <UniqueIdentifier>{d6352262-37d1-4bbe-bde6-fdce8abf3104}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\sse3">
-      <UniqueIdentifier>{0e341f62-b576-415f-bc4b-0ad0b400d374}</UniqueIdentifier>
+      <UniqueIdentifier>{0eb73587-e715-43b5-9249-b547cb2948a3}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\VM Driver Source Files">
-      <UniqueIdentifier>{ff64cbd3-aba2-4480-93be-f3a323e56aef}</UniqueIdentifier>
+      <UniqueIdentifier>{7e4fb472-6477-4964-8b93-4f9dd25e811d}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{46709b1d-d844-48e9-bfac-a4878530d336}</UniqueIdentifier>
+      <UniqueIdentifier>{c350e09a-fc2f-4d15-bb1e-74871c04686f}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
     </Filter>
     <Filter Include="Header Files\EMU Header Files">
-      <UniqueIdentifier>{ea269616-3959-4490-8c68-6d6b8103d43c}</UniqueIdentifier>
+      <UniqueIdentifier>{d9a3b80f-71d8-4d95-9e7e-2a7913435fb0}</UniqueIdentifier>
       <Extensions>h</Extensions>
     </Filter>
     <Filter Include="Header Files\OSD Header Files">
-      <UniqueIdentifier>{d56ae9bc-0e13-4883-8407-37e4be658359}</UniqueIdentifier>
+      <UniqueIdentifier>{26e181e7-2f69-48c3-ad30-14ebf8df3614}</UniqueIdentifier>
       <Extensions>h</Extensions>
     </Filter>
     <Filter Include="Header Files\VM Common Header Files">
-      <UniqueIdentifier>{c686b539-5a19-48ff-9577-9948827c3564}</UniqueIdentifier>
+      <UniqueIdentifier>{47016a1b-9674-4418-80a1-3fe583e640a3}</UniqueIdentifier>
       <Extensions>h</Extensions>
     </Filter>
     <Filter Include="Header Files\VM Common Header Files\fmgen Header Files">
-      <UniqueIdentifier>{435e5c08-d7e7-4ea5-9a98-b006f96e0b0a}</UniqueIdentifier>
+      <UniqueIdentifier>{fa32120d-f1ca-4bae-8b9f-c1fa54a29714}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\VM Common Header Files\np21w i386c Header Files">
-      <UniqueIdentifier>{93a1fb56-b3e4-40c6-9e3f-a34a85a6d737}</UniqueIdentifier>
+      <UniqueIdentifier>{110dab01-29ac-4923-91a6-22c078ade6bc}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\VM Common Header Files\np21w i386c Header Files\ia32">
-      <UniqueIdentifier>{2e8dbc2d-99f7-45d2-a8f9-eda049359215}</UniqueIdentifier>
+      <UniqueIdentifier>{b96f7ccc-dd9a-438f-a215-503af305fa42}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\VM Common Header Files\np21w i386c Header Files\ia32\fpu">
-      <UniqueIdentifier>{e2d27212-7d9d-4f44-9eac-7c2494a2889c}</UniqueIdentifier>
+      <UniqueIdentifier>{648ad33e-b44f-4857-ab1d-9bb5c6e5d417}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\VM Common Header Files\np21w i386c Header Files\ia32\fpu\softfloat">
-      <UniqueIdentifier>{f3ba283a-1ba5-492d-beac-b59ec132a317}</UniqueIdentifier>
+      <UniqueIdentifier>{447ab64f-42fb-4fc4-94e8-65b1a5d71ce2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\VM Common Header Files\np21w i386c Header Files\ia32\mmx">
-      <UniqueIdentifier>{00a0314c-f354-4bcf-b952-9ff845d5f304}</UniqueIdentifier>
+      <UniqueIdentifier>{3c55bddf-fc9d-4b38-aede-21525e2d7094}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\VM Common Header Files\np21w i386c Header Files\ia32\sse">
-      <UniqueIdentifier>{53d20044-7cf2-475c-b5e4-487f0845a6de}</UniqueIdentifier>
+      <UniqueIdentifier>{d04f23c6-9dbf-4198-a470-edc79e4258cf}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\VM Common Header Files\np21w i386c Header Files\ia32\sse2">
-      <UniqueIdentifier>{7335a7cd-b3b1-4570-9ed8-2b0fc113cf49}</UniqueIdentifier>
+      <UniqueIdentifier>{db60c4c2-2e83-4112-8a83-f098f9702b3a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\VM Common Header Files\np21w i386c Header Files\ia32\sse3">
-      <UniqueIdentifier>{b8ee4a8d-f6a0-48a7-96a8-aacd5b4ca5ae}</UniqueIdentifier>
+      <UniqueIdentifier>{319c2a85-ee85-417c-b0bf-ecc7f0ecb05c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\VM Driver Header Files">
-      <UniqueIdentifier>{4df0faad-cdc5-4edb-b596-dc6e6c612db7}</UniqueIdentifier>
+      <UniqueIdentifier>{c07b7e98-0c39-4fb7-8d49-8045a2f8c372}</UniqueIdentifier>
       <Extensions>h</Extensions>
     </Filter>
     <Filter Include="Resource Files">
-      <UniqueIdentifier>{d2b292c8-0a0f-401d-80c4-f1611187bcf1}</UniqueIdentifier>
+      <UniqueIdentifier>{88ff5722-1466-4a9f-97e8-6761f46353b1}</UniqueIdentifier>
       <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
   </ItemGroup>
@@ -148,6 +148,9 @@
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\harddisk.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\i386_dasm.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\i386_np21.cpp">
@@ -410,6 +413,9 @@
     <ClInclude Include="..\src\vm\harddisk.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\i386_dasm.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\i386_np21.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
@@ -616,13 +622,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\src\res\pc98rl.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="..\src\res\indicator\access_off.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="..\src\res\indicator\access_on.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\pc98rl.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

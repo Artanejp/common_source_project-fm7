@@ -17,10 +17,10 @@
 #include "../i8237.h"
 #include "../i8251.h"
 #include "../i8259.h"
-#ifdef HAS_I286
-#include "../i286.h"
-#else
+#if defined(HAS_I186)
 #include "../i86.h"
+#elif defined(HAS_I286)
+#include "../i286.h"
 #endif
 #include "../io.h"
 #include "../mb8877.h"
@@ -56,10 +56,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	crtc = new HD46505(this, emu);
-#if defined(HAS_I286)	
+#if defined(HAS_I186)
+	cpu = new I86(this, emu);
+	cpu->device_model = INTEL_80186;
+#elif defined(HAS_I286)
 	cpu = new I80286(this, emu);
-#else
-	cpu = new I8086(this, emu);
 #endif	
 	io = new IO(this, emu);
 	dma = new I8237(this, emu);
@@ -111,7 +112,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(fdc_2d->get_context_noise_head_up());
 	
 	keyboard->set_context_main(mainbus);
-#ifdef HAS_I286
+#if defined(HAS_I286)
 	mainbus->set_context_cpu(cpu);
 #endif
 	mainbus->set_context_dma(dma);
@@ -179,7 +180,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0x0000, 0x0001, pic);
 	io->set_iomap_range_rw(0x0010, 0x001f, dma);
 	io->set_iomap_range_w(0x0020, 0x0023, mainbus);	// dma bank regs
-#ifdef HAS_I286
+#if defined(HAS_I286)
 	io->set_iomap_single_rw(0x0060, mainbus);		// reset
 #endif
 
@@ -416,7 +417,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

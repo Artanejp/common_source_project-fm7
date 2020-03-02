@@ -17,9 +17,9 @@
 #include "../i8251.h"
 #include "../i8253.h"
 #include "../i8259.h"
-#if defined(HAS_I86) || defined(HAS_I88) || defined(HAS_I186)
+#if defined(HAS_I86)
 #include "../i86.h"
-#else
+#elif defined(HAS_I286)
 #include "../i286.h"
 #endif
 #include "../io.h"
@@ -82,10 +82,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	sio_ch2->set_device_name(_T("8251 SIO (RS-232C #2)"));
 	pit = new I8253(this, emu);
 	pic = new I8259(this, emu);
-#if defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
-	cpu = new I8086(this, emu);
-#else
-	cpu = new I80286(this, emu);
+#if defined(HAS_I86)
+	cpu = new I86(this, emu);
+	cpu->device_model = INTEL_8086;
+#elif defined(HAS_I286)
+	cpu = new I286(this, emu);
 #endif
 	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);
@@ -440,7 +441,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	8
+#define STATE_VERSION	9
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

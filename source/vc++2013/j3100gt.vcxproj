@@ -170,10 +170,11 @@
     <ClCompile Include="..\src\vm\event.cpp" />
     <ClCompile Include="..\src\vm\hd146818p.cpp" />
     <ClCompile Include="..\src\vm\hd46505.cpp" />
+    <ClCompile Include="..\src\vm\i286.cpp" />
+    <ClCompile Include="..\src\vm\i386_dasm.cpp" />
     <ClCompile Include="..\src\vm\i8237.cpp" />
     <ClCompile Include="..\src\vm\i8253.cpp" />
     <ClCompile Include="..\src\vm\i8259.cpp" />
-    <ClCompile Include="..\src\vm\i286.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
@@ -200,10 +201,11 @@
     <ClInclude Include="..\src\vm\event.h" />
     <ClInclude Include="..\src\vm\hd146818p.h" />
     <ClInclude Include="..\src\vm\hd46505.h" />
+    <ClInclude Include="..\src\vm\i286.h" />
+    <ClInclude Include="..\src\vm\i386_dasm.h" />
     <ClInclude Include="..\src\vm\i8237.h" />
     <ClInclude Include="..\src\vm\i8253.h" />
     <ClInclude Include="..\src\vm\i8259.h" />
-    <ClInclude Include="..\src\vm\i286.h" />
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
@@ -221,9 +223,9 @@
     <ClInclude Include="..\src\res\resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\src\res\j3100.ico" />
     <Image Include="..\src\res\indicator\access_off.bmp" />
     <Image Include="..\src\res\indicator\access_on.bmp" />
+    <Image Include="..\src\res\j3100.ico" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\res\j3100.rc">

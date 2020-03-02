@@ -27,7 +27,8 @@ EMU* emu;
 HMENU hMenu = NULL;
 bool now_menuloop = false;
 
-void update_menu(HWND hWnd, HMENU hMenu);
+void update_toplevel_menu(HWND hWnd, HMENU hMenu);
+void update_popup_menu(HWND hWnd, HMENU hMenu);
 void show_menu_bar(HWND hWnd);
 void hide_menu_bar(HWND hWnd);
 
@@ -290,6 +291,9 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 	// initialize emulation core
 	emu = new EMU(hWnd, hInstance);
 	emu->set_host_window_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
+	
+	// update top-level menu for emulator settings
+	update_toplevel_menu(hWnd, hMenu);
 	
 #ifdef SUPPORT_DRAG_DROP
 	// open command line path
@@ -578,7 +582,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		if(emu) {
 			emu->suspend();
 		}
-		update_menu(hWnd, (HMENU)wParam);
+		update_popup_menu(hWnd, (HMENU)wParam);
 		break;
 	case WM_ENTERMENULOOP:
 		now_menuloop = true;
@@ -627,12 +631,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_RESET:
 			if(emu) {
 				emu->reset();
+				update_toplevel_menu(hWnd, hMenu);
 			}
 			break;
 #ifdef USE_SPECIAL_RESET
 		case ID_SPECIAL_RESET:
 			if(emu) {
 				emu->special_reset();
+				update_toplevel_menu(hWnd, hMenu);
 			}
 			break;
 #endif
@@ -2005,7 +2011,83 @@ void update_host_capture_menu(HMENU hMenu)
 }
 #endif
 
-void update_menu(HWND hWnd, HMENU hMenu)
+void update_toplevel_menu(HWND hWnd, HMENU hMenu)
+{
+	int count = GetMenuItemCount(hMenu);
+	for(int pos = 0; pos < count; pos++) {
+		HMENU hMenuSub = GetSubMenu(hMenu, pos);
+		if(hMenuSub) {
+			int count_sub = GetMenuItemCount(hMenuSub);
+			UINT id = -1;
+			for(int pos_sub = 0; pos_sub < count_sub; pos_sub++) {
+				if((id = GetMenuItemID(hMenuSub, pos_sub)) != -1) {
+					break;
+				}
+			}
+			if(id >= ID_CONTROL_MENU_START && id <= ID_CONTROL_MENU_END) {
+				
+			}
+#ifdef USE_FLOPPY_DISK
+#if USE_FLOPPY_DISK >= 1
+			else if(id >= ID_FD1_MENU_START && id <= ID_FD1_MENU_END) {
+				EnableMenuItem(hMenu, pos, (emu->is_floppy_disk_connected(0) ? MF_ENABLED : MF_GRAYED) | MF_BYPOSITION);
+			}
+#endif
+#if USE_FLOPPY_DISK >= 2
+			else if(id >= ID_FD2_MENU_START && id <= ID_FD2_MENU_END) {
+				EnableMenuItem(hMenu, pos, (emu->is_floppy_disk_connected(1) ? MF_ENABLED : MF_GRAYED) | MF_BYPOSITION);
+			}
+#endif
+#if USE_FLOPPY_DISK >= 3
+			else if(id >= ID_FD3_MENU_START && id <= ID_FD3_MENU_END) {
+				EnableMenuItem(hMenu, pos, (emu->is_floppy_disk_connected(2) ? MF_ENABLED : MF_GRAYED) | MF_BYPOSITION);
+			}
+#endif
+#if USE_FLOPPY_DISK >= 4
+			else if(id >= ID_FD4_MENU_START && id <= ID_FD4_MENU_END) {
+				EnableMenuItem(hMenu, pos, (emu->is_floppy_disk_connected(3) ? MF_ENABLED : MF_GRAYED) | MF_BYPOSITION);
+			}
+#endif
+#if USE_FLOPPY_DISK >= 5
+			else if(id >= ID_FD5_MENU_START && id <= ID_FD5_MENU_END) {
+				EnableMenuItem(hMenu, pos, (emu->is_floppy_disk_connected(4) ? MF_ENABLED : MF_GRAYED) | MF_BYPOSITION);
+			}
+#endif
+#if USE_FLOPPY_DISK >= 6
+			else if(id >= ID_FD6_MENU_START && id <= ID_FD6_MENU_END) {
+				EnableMenuItem(hMenu, pos, (emu->is_floppy_disk_connected(5) ? MF_ENABLED : MF_GRAYED) | MF_BYPOSITION);
+			}
+#endif
+#if USE_FLOPPY_DISK >= 7
+			else if(id >= ID_FD7_MENU_START && id <= ID_FD7_MENU_END) {
+				EnableMenuItem(hMenu, pos, (emu->is_floppy_disk_connected(6) ? MF_ENABLED : MF_GRAYED) | MF_BYPOSITION);
+			}
+#endif
+#if USE_FLOPPY_DISK >= 8
+			else if(id >= ID_FD8_MENU_START && id <= ID_FD8_MENU_END) {
+				EnableMenuItem(hMenu, pos, (emu->is_floppy_disk_connected(7) ? MF_ENABLED : MF_GRAYED) | MF_BYPOSITION);
+			}
+#endif
+#endif
+#ifdef USE_QUICK_DISK
+#if USE_QUICK_DISK >= 1
+			else if(id >= ID_QD1_MENU_START && id <= ID_QD1_MENU_END) {
+				EnableMenuItem(hMenu, pos, (emu->is_quick_disk_connected(0) ? MF_ENABLED : MF_GRAYED) | MF_BYPOSITION);
+			}
+#endif
+#if USE_QUICK_DISK >= 2
+			else if(id >= ID_QD2_MENU_START && id <= ID_QD2_MENU_END) {
+				EnableMenuItem(hMenu, pos, (emu->is_quick_disk_connected(1) ? MF_ENABLED : MF_GRAYED) | MF_BYPOSITION);
+			}
+#endif
+#endif
+		}
+	}
+	// redraw menu bar
+	DrawMenuBar(hWnd);
+}
+
+void update_popup_menu(HWND hWnd, HMENU hMenu)
 {
 	int count = GetMenuItemCount(hMenu);
 	UINT id = -1;
@@ -2016,225 +2098,274 @@ void update_menu(HWND hWnd, HMENU hMenu)
 	}
 	if(id >= ID_CONTROL_MENU_START && id <= ID_CONTROL_MENU_END) {
 		update_control_menu(hMenu);
+	}
 #ifdef USE_STATE
-	} else if(id >= ID_SAVE_MENU_START && id <= ID_SAVE_MENU_END) {
+	else if(id >= ID_SAVE_MENU_START && id <= ID_SAVE_MENU_END) {
 		update_save_state_menu(hMenu);
-	} else if(id >= ID_LOAD_MENU_START && id <= ID_LOAD_MENU_END) {
+	}
+	else if(id >= ID_LOAD_MENU_START && id <= ID_LOAD_MENU_END) {
 		update_load_state_menu(hMenu);
+	}
 #endif
 #ifdef USE_CART
 #if USE_CART >= 1
-	} else if(id >= ID_CART1_MENU_START && id <= ID_CART1_MENU_END) {
+	else if(id >= ID_CART1_MENU_START && id <= ID_CART1_MENU_END) {
 		update_cart_menu(hMenu, 0, ID_RECENT_CART1, ID_CLOSE_CART1);
+	}
 #endif
 #if USE_CART >= 2
-	} else if(id >= ID_CART2_MENU_START && id <= ID_CART2_MENU_END) {
+	else if(id >= ID_CART2_MENU_START && id <= ID_CART2_MENU_END) {
 		update_cart_menu(hMenu, 1, ID_RECENT_CART2, ID_CLOSE_CART2);
+	}
 #endif
 #endif
 #ifdef USE_FLOPPY_DISK
 #if USE_FLOPPY_DISK >= 1
-	} else if(id >= ID_FD1_MENU_START && id <= ID_FD1_MENU_END) {
+	else if(id >= ID_FD1_MENU_START && id <= ID_FD1_MENU_END) {
 		update_floppy_disk_menu(hMenu, 0, ID_RECENT_FD1, ID_D88_FILE_PATH1, ID_SELECT_D88_BANK1, ID_EJECT_D88_BANK1, ID_CLOSE_FD1, ID_WRITE_PROTECT_FD1, ID_CORRECT_TIMING_FD1, ID_IGNORE_CRC_FD1);
+	}
 #endif
 #if USE_FLOPPY_DISK >= 2
-	} else if(id >= ID_FD2_MENU_START && id <= ID_FD2_MENU_END) {
+	else if(id >= ID_FD2_MENU_START && id <= ID_FD2_MENU_END) {
 		update_floppy_disk_menu(hMenu, 1, ID_RECENT_FD2, ID_D88_FILE_PATH2, ID_SELECT_D88_BANK2, ID_EJECT_D88_BANK2, ID_CLOSE_FD2, ID_WRITE_PROTECT_FD2, ID_CORRECT_TIMING_FD2, ID_IGNORE_CRC_FD2);
+	}
 #endif
 #if USE_FLOPPY_DISK >= 3
-	} else if(id >= ID_FD3_MENU_START && id <= ID_FD3_MENU_END) {
+	else if(id >= ID_FD3_MENU_START && id <= ID_FD3_MENU_END) {
 		update_floppy_disk_menu(hMenu, 2, ID_RECENT_FD3, ID_D88_FILE_PATH3, ID_SELECT_D88_BANK3, ID_EJECT_D88_BANK3, ID_CLOSE_FD3, ID_WRITE_PROTECT_FD3, ID_CORRECT_TIMING_FD3, ID_IGNORE_CRC_FD3);
+	}
 #endif
 #if USE_FLOPPY_DISK >= 4
-	} else if(id >= ID_FD4_MENU_START && id <= ID_FD4_MENU_END) {
+	else if(id >= ID_FD4_MENU_START && id <= ID_FD4_MENU_END) {
 		update_floppy_disk_menu(hMenu, 3, ID_RECENT_FD4, ID_D88_FILE_PATH4, ID_SELECT_D88_BANK4, ID_EJECT_D88_BANK4, ID_CLOSE_FD4, ID_WRITE_PROTECT_FD4, ID_CORRECT_TIMING_FD4, ID_IGNORE_CRC_FD4);
+	}
 #endif
 #if USE_FLOPPY_DISK >= 5
-	} else if(id >= ID_FD5_MENU_START && id <= ID_FD5_MENU_END) {
+	else if(id >= ID_FD5_MENU_START && id <= ID_FD5_MENU_END) {
 		update_floppy_disk_menu(hMenu, 4, ID_RECENT_FD5, ID_D88_FILE_PATH5, ID_SELECT_D88_BANK5, ID_EJECT_D88_BANK5, ID_CLOSE_FD5, ID_WRITE_PROTECT_FD5, ID_CORRECT_TIMING_FD5, ID_IGNORE_CRC_FD5);
+	}
 #endif
 #if USE_FLOPPY_DISK >= 6
-	} else if(id >= ID_FD6_MENU_START && id <= ID_FD6_MENU_END) {
+	else if(id >= ID_FD6_MENU_START && id <= ID_FD6_MENU_END) {
 		update_floppy_disk_menu(hMenu, 5, ID_RECENT_FD6, ID_D88_FILE_PATH6, ID_SELECT_D88_BANK6, ID_EJECT_D88_BANK6, ID_CLOSE_FD6, ID_WRITE_PROTECT_FD6, ID_CORRECT_TIMING_FD6, ID_IGNORE_CRC_FD6);
+	}
 #endif
 #if USE_FLOPPY_DISK >= 7
-	} else if(id >= ID_FD7_MENU_START && id <= ID_FD7_MENU_END) {
+	else if(id >= ID_FD7_MENU_START && id <= ID_FD7_MENU_END) {
 		update_floppy_disk_menu(hMenu, 6, ID_RECENT_FD7, ID_D88_FILE_PATH7, ID_SELECT_D88_BANK7, ID_EJECT_D88_BANK7, ID_CLOSE_FD7, ID_WRITE_PROTECT_FD7, ID_CORRECT_TIMING_FD7, ID_IGNORE_CRC_FD7);
+	}
 #endif
 #if USE_FLOPPY_DISK >= 8
-	} else if(id >= ID_FD8_MENU_START && id <= ID_FD8_MENU_END) {
+	else if(id >= ID_FD8_MENU_START && id <= ID_FD8_MENU_END) {
 		update_floppy_disk_menu(hMenu, 7, ID_RECENT_FD8, ID_D88_FILE_PATH8, ID_SELECT_D88_BANK8, ID_EJECT_D88_BANK8, ID_CLOSE_FD8, ID_WRITE_PROTECT_FD8, ID_CORRECT_TIMING_FD8, ID_IGNORE_CRC_FD8);
+	}
 #endif
 #endif
 #ifdef USE_QUICK_DISK
 #if USE_QUICK_DISK >= 1
-	} else if(id >= ID_QD1_MENU_START && id <= ID_QD1_MENU_END) {
+	else if(id >= ID_QD1_MENU_START && id <= ID_QD1_MENU_END) {
 		update_quick_disk_menu(hMenu, 0, ID_RECENT_QD1, ID_CLOSE_QD1);
+	}
 #endif
 #if USE_QUICK_DISK >= 2
-	} else if(id >= ID_QD2_MENU_START && id <= ID_QD2_MENU_END) {
+	else if(id >= ID_QD2_MENU_START && id <= ID_QD2_MENU_END) {
 		update_quick_disk_menu(hMenu, 1, ID_RECENT_QD2, ID_CLOSE_QD2);
+	}
 #endif
 #endif
 #ifdef USE_HARD_DISK
 #if USE_HARD_DISK >= 1
-	} else if(id >= ID_HD1_MENU_START && id <= ID_HD1_MENU_END) {
+	else if(id >= ID_HD1_MENU_START && id <= ID_HD1_MENU_END) {
 		update_hard_disk_menu(hMenu, 0, ID_RECENT_HD1, ID_CLOSE_HD1);
+	}
 #endif
 #if USE_HARD_DISK >= 2
-	} else if(id >= ID_HD2_MENU_START && id <= ID_HD2_MENU_END) {
+	else if(id >= ID_HD2_MENU_START && id <= ID_HD2_MENU_END) {
 		update_hard_disk_menu(hMenu, 1, ID_RECENT_HD2, ID_CLOSE_HD2);
+	}
 #endif
 #if USE_HARD_DISK >= 3
-	} else if(id >= ID_HD3_MENU_START && id <= ID_HD3_MENU_END) {
+	else if(id >= ID_HD3_MENU_START && id <= ID_HD3_MENU_END) {
 		update_hard_disk_menu(hMenu, 2, ID_RECENT_HD3, ID_CLOSE_HD3);
+	}
 #endif
 #if USE_HARD_DISK >= 4
-	} else if(id >= ID_HD4_MENU_START && id <= ID_HD4_MENU_END) {
+	else if(id >= ID_HD4_MENU_START && id <= ID_HD4_MENU_END) {
 		update_hard_disk_menu(hMenu, 3, ID_RECENT_HD4, ID_CLOSE_HD4);
+	}
 #endif
 #if USE_HARD_DISK >= 5
-	} else if(id >= ID_HD5_MENU_START && id <= ID_HD5_MENU_END) {
+	else if(id >= ID_HD5_MENU_START && id <= ID_HD5_MENU_END) {
 		update_hard_disk_menu(hMenu, 4, ID_RECENT_HD5, ID_CLOSE_HD5);
+	}
 #endif
 #if USE_HARD_DISK >= 6
-	} else if(id >= ID_HD6_MENU_START && id <= ID_HD6_MENU_END) {
+	else if(id >= ID_HD6_MENU_START && id <= ID_HD6_MENU_END) {
 		update_hard_disk_menu(hMenu, 5, ID_RECENT_HD6, ID_CLOSE_HD6);
+	}
 #endif
 #if USE_HARD_DISK >= 7
-	} else if(id >= ID_HD7_MENU_START && id <= ID_HD7_MENU_END) {
+	else if(id >= ID_HD7_MENU_START && id <= ID_HD7_MENU_END) {
 		update_hard_disk_menu(hMenu, 6, ID_RECENT_HD7, ID_CLOSE_HD7);
+	}
 #endif
 #if USE_HARD_DISK >= 8
-	} else if(id >= ID_HD8_MENU_START && id <= ID_HD8_MENU_END) {
+	else if(id >= ID_HD8_MENU_START && id <= ID_HD8_MENU_END) {
 		update_hard_disk_menu(hMenu, 7, ID_RECENT_HD8, ID_CLOSE_HD8);
+	}
 #endif
 #endif
 #ifdef USE_TAPE
 #if USE_TAPE >= 1
-	} else if(id >= ID_TAPE1_MENU_START && id <= ID_TAPE1_MENU_END) {
+	else if(id >= ID_TAPE1_MENU_START && id <= ID_TAPE1_MENU_END) {
 		update_tape_menu(hMenu, 0, ID_RECENT_TAPE1, ID_CLOSE_TAPE1, ID_PLAY_BUTTON1, ID_STOP_BUTTON1, ID_FAST_FORWARD1, ID_FAST_REWIND1, ID_APSS_FORWARD1, ID_APSS_REWIND1, ID_USE_WAVE_SHAPER1, ID_DIRECT_LOAD_MZT1, ID_TAPE_BAUD_LOW1, ID_TAPE_BAUD_HIGH1);
+	}
 #endif
 #if USE_TAPE >= 2
-	} else if(id >= ID_TAPE2_MENU_START && id <= ID_TAPE2_MENU_END) {
+	else if(id >= ID_TAPE2_MENU_START && id <= ID_TAPE2_MENU_END) {
 		update_tape_menu(hMenu, 1, ID_RECENT_TAPE2, ID_CLOSE_TAPE2, ID_PLAY_BUTTON2, ID_STOP_BUTTON2, ID_FAST_FORWARD2, ID_FAST_REWIND2, ID_APSS_FORWARD2, ID_APSS_REWIND2, ID_USE_WAVE_SHAPER2, ID_DIRECT_LOAD_MZT2, ID_TAPE_BAUD_LOW2, ID_TAPE_BAUD_HIGH2);
+	}
 #endif
 #endif
 #ifdef USE_COMPACT_DISC
 #if USE_COMPACT_DISC >= 1
-	} else if(id >= ID_COMPACT_DISC1_MENU_START && id <= ID_COMPACT_DISC1_MENU_END) {
+	else if(id >= ID_COMPACT_DISC1_MENU_START && id <= ID_COMPACT_DISC1_MENU_END) {
 		update_compact_disc_menu(hMenu, 0, ID_RECENT_COMPACT_DISC1, ID_CLOSE_COMPACT_DISC1);
+	}
 #endif
 #if USE_COMPACT_DISC >= 2
-	} else if(id >= ID_COMPACT_DISC2_MENU_START && id <= ID_COMPACT_DISC2_MENU_END) {
+	else if(id >= ID_COMPACT_DISC2_MENU_START && id <= ID_COMPACT_DISC2_MENU_END) {
 		update_compact_disc_menu(hMenu, 1, ID_RECENT_COMPACT_DISC2, ID_CLOSE_COMPACT_DISC2);
+	}
 #endif
 #endif
 #ifdef USE_LASER_DISC
 #if USE_LASER_DISC >= 1
-	} else if(id >= ID_LASER_DISC1_MENU_START && id <= ID_LASER_DISC1_MENU_END) {
+	else if(id >= ID_LASER_DISC1_MENU_START && id <= ID_LASER_DISC1_MENU_END) {
 		update_laser_disc_menu(hMenu, 0, ID_RECENT_LASER_DISC1, ID_CLOSE_LASER_DISC1);
+	}
 #endif
 #if USE_LASER_DISC >= 2
-	} else if(id >= ID_LASER_DISC2_MENU_START && id <= ID_LASER_DISC2_MENU_END) {
+	else if(id >= ID_LASER_DISC2_MENU_START && id <= ID_LASER_DISC2_MENU_END) {
 		update_laser_disc_menu(hMenu, 1, ID_RECENT_LASER_DISC2, ID_CLOSE_LASER_DISC2);
+	}
 #endif
 #endif
 #ifdef USE_BINARY_FILE
 #if USE_BINARY_FILE >= 1
-	} else if(id >= ID_BINARY1_MENU_START && id <= ID_BINARY1_MENU_END) {
+	else if(id >= ID_BINARY1_MENU_START && id <= ID_BINARY1_MENU_END) {
 		update_binary_menu(hMenu, 0, ID_RECENT_BINARY1);
+	}
 #endif
 #if USE_BINARY_FILE >= 2
-	} else if(id >= ID_BINARY2_MENU_START && id <= ID_BINARY2_MENU_END) {
+	else if(id >= ID_BINARY2_MENU_START && id <= ID_BINARY2_MENU_END) {
 		update_binary_menu(hMenu, 1, ID_RECENT_BINARY2);
+	}
 #endif
 #endif
 #ifdef USE_BUBBLE
 #if USE_BUBBLE >= 1
-	} else if(id >= ID_BUBBLE1_MENU_START && id <= ID_BUBBLE1_MENU_END) {
+	else if(id >= ID_BUBBLE1_MENU_START && id <= ID_BUBBLE1_MENU_END) {
 		update_bubble_casette_menu(hMenu, 0, ID_RECENT_BUBBLE1);
+	}
 #endif
 #if USE_BUBBLE >= 2
-	} else if(id >= ID_BUBBLE2_MENU_START && id <= ID_BUBBLE2_MENU_END) {
+	else if(id >= ID_BUBBLE2_MENU_START && id <= ID_BUBBLE2_MENU_END) {
 		update_bubble_casette_menu(hMenu, 1, ID_RECENT_BUBBLE2);
+	}
 #endif
 #endif
 #ifdef USE_BOOT_MODE
-	} else if(id >= ID_VM_BOOT_MENU_START && id <= ID_VM_BOOT_MENU_END) {
-		 update_vm_boot_menu(hMenu);
+	else if(id >= ID_VM_BOOT_MENU_START && id <= ID_VM_BOOT_MENU_END) {
+		update_vm_boot_menu(hMenu);
+	}
 #endif
 #ifdef USE_CPU_TYPE
-	} else if(id >= ID_VM_CPU_MENU_START && id <= ID_VM_CPU_MENU_END) {
-		 update_vm_cpu_menu(hMenu);
+	else if(id >= ID_VM_CPU_MENU_START && id <= ID_VM_CPU_MENU_END) {
+		update_vm_cpu_menu(hMenu);
+	}
 #endif
 #ifdef USE_DIPSWITCH
-	} else if(id >= ID_VM_DIPSWITCH_MENU_START && id <= ID_VM_DIPSWITCH_MENU_END) {
-		 update_vm_dipswitch_menu(hMenu);
+	else if(id >= ID_VM_DIPSWITCH_MENU_START && id <= ID_VM_DIPSWITCH_MENU_END) {
+		update_vm_dipswitch_menu(hMenu);
+	}
 #endif
 #ifdef USE_DEVICE_TYPE
-	} else if(id >= ID_VM_DEVICE_MENU_START && id <= ID_VM_DEVICE_MENU_END) {
-		 update_vm_device_menu(hMenu);
+	else if(id >= ID_VM_DEVICE_MENU_START && id <= ID_VM_DEVICE_MENU_END) {
+		update_vm_device_menu(hMenu);
+	}
 #endif
 #ifdef USE_DRIVE_TYPE
-	} else if(id >= ID_VM_DRIVE_MENU_START && id <= ID_VM_DRIVE_MENU_END) {
-		 update_vm_drive_menu(hMenu);
+	else if(id >= ID_VM_DRIVE_MENU_START && id <= ID_VM_DRIVE_MENU_END) {
+		update_vm_drive_menu(hMenu);
+	}
 #endif
 #ifdef USE_KEYBOARD_TYPE
-	} else if(id >= ID_VM_KEYBOARD_MENU_START && id <= ID_VM_KEYBOARD_MENU_END) {
-		 update_vm_keyboard_menu(hMenu);
+	else if(id >= ID_VM_KEYBOARD_MENU_START && id <= ID_VM_KEYBOARD_MENU_END) {
+		update_vm_keyboard_menu(hMenu);
+	}
 #endif
 #ifdef USE_MOUSE_TYPE
-	} else if(id >= ID_VM_MOUSE_MENU_START && id <= ID_VM_MOUSE_MENU_END) {
-		 update_vm_mouse_menu(hMenu);
+	else if(id >= ID_VM_MOUSE_MENU_START && id <= ID_VM_MOUSE_MENU_END) {
+		update_vm_mouse_menu(hMenu);
+	}
 #endif
 #ifdef USE_JOYSTICK_TYPE
-	} else if(id >= ID_VM_JOYSTICK_MENU_START && id <= ID_VM_JOYSTICK_MENU_END) {
-		 update_vm_joystick_menu(hMenu);
+	else if(id >= ID_VM_JOYSTICK_MENU_START && id <= ID_VM_JOYSTICK_MENU_END) {
+		update_vm_joystick_menu(hMenu);
+	}
 #endif
 #if defined(USE_SOUND_TYPE) || defined(USE_FLOPPY_DISK) || defined(USE_TAPE) || defined(USE_DIPSWITCH)
-	} else if(id >= ID_VM_SOUND_MENU_START && id <= ID_VM_SOUND_MENU_END) {
-#if defined(USE_SOUND_TYPE) || defined(USE_FLOPPY_DISK) || defined(USE_TAPE)
-		update_vm_sound_menu(hMenu);
-#endif
-#ifdef USE_DIPSWITCH
-		// dipswitch may be in sound menu
-		 update_vm_dipswitch_menu(hMenu);
-#endif
+	else if(id >= ID_VM_SOUND_MENU_START && id <= ID_VM_SOUND_MENU_END) {
+		#if defined(USE_SOUND_TYPE) || defined(USE_FLOPPY_DISK) || defined(USE_TAPE)
+			update_vm_sound_menu(hMenu);
+		#endif
+		#ifdef USE_DIPSWITCH
+			// dipswitch may be in sound menu
+			update_vm_dipswitch_menu(hMenu);
+		#endif
+	}
 #endif
 #if defined(USE_MONITOR_TYPE) || defined(USE_SCANLINE) || defined(USE_DIPSWITCH)
-	} else if(id >= ID_VM_MONITOR_MENU_START && id <= ID_VM_MONITOR_MENU_END) {
-#if defined(USE_MONITOR_TYPE) || defined(USE_SCANLINE)
-		update_vm_monitor_menu(hMenu);
-#endif
-#ifdef USE_DIPSWITCH
-		// dipswitch may be in monitor menu
-		 update_vm_dipswitch_menu(hMenu);
-#endif
+	else if(id >= ID_VM_MONITOR_MENU_START && id <= ID_VM_MONITOR_MENU_END) {
+		#if defined(USE_MONITOR_TYPE) || defined(USE_SCANLINE)
+			update_vm_monitor_menu(hMenu);
+		#endif
+		#ifdef USE_DIPSWITCH
+			// dipswitch may be in monitor menu
+			update_vm_dipswitch_menu(hMenu);
+		#endif
+	}
 #endif
 #ifdef USE_PRINTER_TYPE
-	} else if(id >= ID_VM_PRINTER_MENU_START && id <= ID_VM_PRINTER_MENU_START) {
-		 update_vm_printer_menu(hMenu);
+	else if(id >= ID_VM_PRINTER_MENU_START && id <= ID_VM_PRINTER_MENU_START) {
+		update_vm_printer_menu(hMenu);
+	}
 #endif
-	} else if(id >= ID_HOST_MENU_START && id <= ID_HOST_MENU_END) {
+	else if(id >= ID_HOST_MENU_START && id <= ID_HOST_MENU_END) {
 		update_host_menu(hMenu);
+	}
 #ifndef ONE_BOARD_MICRO_COMPUTER
-	} else if(id >= ID_SCREEN_MENU_START && id <= ID_SCREEN_MENU_END) {
+	else if(id >= ID_SCREEN_MENU_START && id <= ID_SCREEN_MENU_END) {
 		update_host_screen_menu(hMenu);
+	}
 #endif
 #ifdef USE_SCREEN_FILTER
-	} else if(id >= ID_FILTER_MENU_START && id <= ID_FILTER_MENU_END) {
+	else if(id >= ID_FILTER_MENU_START && id <= ID_FILTER_MENU_END) {
 		update_host_filter_menu(hMenu);
-#endif
-	} else if(id >= ID_SOUND_MENU_START && id <= ID_SOUND_MENU_END) {
-		update_host_sound_menu(hMenu);
-	} else if(id >= ID_INPUT_MENU_START && id <= ID_INPUT_MENU_END) {
-		update_host_input_menu(hMenu);
-#ifdef USE_VIDEO_CAPTURE
-	} else if(id >= ID_CAPTURE_MENU_START && id <= ID_CAPTURE_MENU_END) {
-		update_host_capture_menu(hMenu);
-#endif
 	}
+#endif
+	else if(id >= ID_SOUND_MENU_START && id <= ID_SOUND_MENU_END) {
+		update_host_sound_menu(hMenu);
+	}
+	else if(id >= ID_INPUT_MENU_START && id <= ID_INPUT_MENU_END) {
+		update_host_input_menu(hMenu);
+	}
+#ifdef USE_VIDEO_CAPTURE
+	else if(id >= ID_CAPTURE_MENU_START && id <= ID_CAPTURE_MENU_END) {
+		update_host_capture_menu(hMenu);
+	}
+#endif
 	DrawMenuBar(hWnd);
 }
 

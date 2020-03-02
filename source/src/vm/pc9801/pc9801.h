@@ -302,6 +302,8 @@
 #define USE_DIPSWITCH
 #if defined(_PC9801) || defined(_PC9801E)
 #define USE_FLOPPY_DISK		6
+#define USE_DIPSWITCH
+#define DIPSWITCH_DEFAULT	(1 + 2 + 4)
 #elif defined(_PC98DO) || defined(_PC98DOPLUS)
 #define USE_BOOT_MODE		5
 #define DIPSWITCH_MEMWAIT	0x01
@@ -314,11 +316,7 @@
 #endif
 #if defined(SUPPORT_SASI_IF) || defined(SUPPORT_SCSI_IF) || defined(SUPPORT_IDE_IF)
 #define USE_HARD_DISK		2
-	#if defined(HAS_I286)
-	#define I86_PSEUDO_BIOS
-	#else
-	#define I386_PSEUDO_BIOS
-	#endif
+#define I86_PSEUDO_BIOS
 #endif
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
 #define USE_TAPE		1
@@ -326,7 +324,7 @@
 #endif
 #define USE_KEY_LOCKED
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
-// slow enough for N88-“ú–{ŒêBASIC
+// slow enough for N88-æ—¥æœ¬èªžBASIC
 #define USE_AUTO_KEY		8
 #define USE_AUTO_KEY_RELEASE	10
 #else
@@ -366,7 +364,7 @@
 #if defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88) 
 #define USE_CPU_I86
 #elif defined(HAS_V30)
-#define USE_CPU_V30
+#define USE_CPU_I86
 #elif defined(UPPER_I386)
 #define USE_CPU_I386
 #else
@@ -421,19 +419,15 @@ class I8251;
 class I8253;
 class I8255;
 class I8259;
-#if defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
-class I8086;
-#elif defined(HAS_V30)
-class V30;
-#elif defined(HAS_I286)
-class I80286;
+#if defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88) || defined(HAS_V30)
+class I86;
 #elif defined(UPPER_I386)
 class I386;
 #else
 class I286;
 #endif
 #if defined(HAS_V30_SUB_CPU)
-class V30;
+class I86;
 #endif
 
 class IO;
@@ -532,15 +526,13 @@ protected:
 	I8259* pic;
 #if defined(UPPER_I386)
 	I386* cpu;
-#elif  defined(HAS_V30)
-	V30*  cpu;
-#elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
-	I8086 *cpu;
+#elif  defined(HAS_V30) || defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
+	I86*  cpu;
 #else
-	I80286* cpu;
+	I286* cpu;
 #endif
 #if defined(HAS_V30_SUB_CPU)
-	V30*    v30cpu;
+	I86*    v30cpu;
 #endif
 	IO* io;
 	LS244* rtcreg;
@@ -687,6 +679,9 @@ public:
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
+#if defined(_PC9801) || defined(_PC9801E)
+	bool is_floppy_disk_connected(int drv);
+#endif
 	bool is_floppy_disk_inserted(int drv);
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);

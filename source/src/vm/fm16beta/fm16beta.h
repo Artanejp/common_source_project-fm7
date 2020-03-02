@@ -10,15 +10,12 @@
 #ifndef _FM16BETA_H_
 #define _FM16BETA_H_
 
-#if defined(HAS_I286)
-#define DEVICE_NAME		"FUJITSU FM16beta (i286)"
-#define CONFIG_NAME		"fm16beta_i286"
-#else
-#ifndef HAS_I186
-#define HAS_I186
-#endif
+#if defined(HAS_I186)
 #define DEVICE_NAME		"FUJITSU FM16beta (i186)"
 #define CONFIG_NAME		"fm16beta_i186"
+#elif defined(HAS_I286)
+#define DEVICE_NAME		"FUJITSU FM16beta (i286)"
+#define CONFIG_NAME		"fm16beta_i286"
 #endif
 
 // device informations for virtual machine
@@ -38,10 +35,10 @@
 #define SINGLE_MODE_DMA
 //#define MB8877_NO_BUSY_AFTER_SEEK
 
-#if defined(HAS_I286)
-#define MEMORY_ADDR_MAX		0x1000000	// 16MB
-#else
+#if defined(HAS_I186)
 #define MEMORY_ADDR_MAX		0x100000	// 1MB
+#elif defined(HAS_I286)
+#define MEMORY_ADDR_MAX		0x1000000	// 16MB
 #endif
 #define MEMORY_BANK_SIZE	0x4000
 
@@ -81,8 +78,11 @@ class HD46505;
 class I8237;
 class I8251;
 class I8259;
-class I80286;
-class I8086;
+#if defined(HAS_I186)
+class I86;
+#elif defined(HAS_I286)
+class I286;
+#endif
 class IO;
 class MB8877;
 class MC6809;
@@ -110,11 +110,11 @@ protected:
 	I8237* dma;
 	I8251* sio;
 	I8259* pic;
-#ifdef HAS_I286
-	I80286* cpu;
-#else
-	I8086* cpu;
-#endif	
+#if defined(HAS_I186)
+	I86* cpu;
+#elif defined(HAS_I286)
+	I286* cpu;
+#endif
 	IO* io;
 	MB8877* fdc_2hd;
 	MB8877* fdc_2d;

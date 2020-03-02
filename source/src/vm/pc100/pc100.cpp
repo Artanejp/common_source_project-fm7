@@ -18,7 +18,7 @@
 #include "../i8251.h"
 #include "../i8255.h"
 #include "../i8259.h"
-#include "../i286.h"
+#include "../i86.h"
 #include "../io.h"
 #include "../memory.h"
 #include "../msm58321.h"
@@ -60,7 +60,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio1 = new I8255(this, emu);
 	pio1->set_device_name(_T("8255 PIO (CRTC)"));
 	pic = new I8259(this, emu);
-	cpu = new I80286(this, emu);
+	cpu = new I86(this, emu);
+	cpu->device_model = INTEL_8086;
+	
 	io = new IO(this, emu);
 	memory = new MEMORY(this, emu);
 	
@@ -354,7 +356,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

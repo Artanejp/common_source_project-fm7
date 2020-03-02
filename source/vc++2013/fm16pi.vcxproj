@@ -168,11 +168,12 @@
     <ClCompile Include="..\src\win32\winmain.cpp" />
     <ClCompile Include="..\src\vm\disk.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
-    <ClCompile Include="..\src\vm\i286.cpp" />
+    <ClCompile Include="..\src\vm\i386_dasm.cpp" />
     <ClCompile Include="..\src\vm\i8251.cpp" />
     <ClCompile Include="..\src\vm\i8253.cpp" />
     <ClCompile Include="..\src\vm\i8255.cpp" />
     <ClCompile Include="..\src\vm\i8259.cpp" />
+    <ClCompile Include="..\src\vm\i86.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\mb8877.cpp" />
     <ClCompile Include="..\src\vm\memory.cpp" />
@@ -180,6 +181,7 @@
     <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\not.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
+    <ClCompile Include="..\src\vm\v30_dasm.cpp" />
     <ClCompile Include="..\src\vm\fm16pi\fm16pi.cpp" />
     <ClCompile Include="..\src\vm\fm16pi\sub.cpp" />
   </ItemGroup>
@@ -194,11 +196,12 @@
     <ClInclude Include="..\src\vm\device.h" />
     <ClInclude Include="..\src\vm\disk.h" />
     <ClInclude Include="..\src\vm\event.h" />
-    <ClInclude Include="..\src\vm\i286.h" />
+    <ClInclude Include="..\src\vm\i386_dasm.h" />
     <ClInclude Include="..\src\vm\i8251.h" />
     <ClInclude Include="..\src\vm\i8253.h" />
     <ClInclude Include="..\src\vm\i8255.h" />
     <ClInclude Include="..\src\vm\i8259.h" />
+    <ClInclude Include="..\src\vm\i86.h" />
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\mb8877.h" />
     <ClInclude Include="..\src\vm\memory.h" />
@@ -206,6 +209,7 @@
     <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\not.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
+    <ClInclude Include="..\src\vm\v30_dasm.h" />
     <ClInclude Include="..\src\vm\vm.h" />
     <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\fm16pi\fm16pi.h" />

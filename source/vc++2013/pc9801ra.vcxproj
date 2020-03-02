@@ -169,6 +169,7 @@
     <ClCompile Include="..\src\vm\disk.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
     <ClCompile Include="..\src\vm\harddisk.cpp" />
+    <ClCompile Include="..\src\vm\i386_dasm.cpp" />
     <ClCompile Include="..\src\vm\i386_np21.cpp" />
     <ClCompile Include="..\src\vm\i8237.cpp" />
     <ClCompile Include="..\src\vm\i8251.cpp" />
@@ -257,6 +258,7 @@
     <ClInclude Include="..\src\vm\disk.h" />
     <ClInclude Include="..\src\vm\event.h" />
     <ClInclude Include="..\src\vm\harddisk.h" />
+    <ClInclude Include="..\src\vm\i386_dasm.h" />
     <ClInclude Include="..\src\vm\i386_np21.h" />
     <ClInclude Include="..\src\vm\i8237.h" />
     <ClInclude Include="..\src\vm\i8251.h" />
@@ -327,9 +329,9 @@
     <ClInclude Include="..\src\res\resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\src\res\pc9801ra.ico" />
     <Image Include="..\src\res\indicator\access_off.bmp" />
     <Image Include="..\src\res\indicator\access_on.bmp" />
+    <Image Include="..\src\res\pc9801ra.ico" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\res\pc9801ra.rc">

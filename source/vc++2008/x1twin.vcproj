@@ -1535,6 +1535,14 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
+				RelativePath="..\src\res\indicator\access_off.bmp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\indicator\access_on.bmp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\res\resource.h"
 				>
 			</File>
@@ -1563,14 +1571,6 @@
 						AdditionalIncludeDirectories="..\src\res"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\src\res\indicator\access_off.bmp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\res\indicator\access_on.bmp"
-				>
 			</File>
 		</Filter>
 	</Files>

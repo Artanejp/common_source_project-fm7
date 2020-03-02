@@ -19,7 +19,7 @@
 #define SIG_MEMORY_VSYNC	1
 
 #if defined(HAS_I286)
-class I80286;
+class I286;
 #else
 class I386;
 #endif
@@ -30,7 +30,7 @@ class MEMORY : public DEVICE
 {
 private:
 #if defined(HAS_I286)
-	I80286 *d_cpu;
+	I286 *d_cpu;
 #else
 	I386 *d_cpu;
 #endif
@@ -134,7 +134,7 @@ public:
 	
 	// unique functions
 #if defined(HAS_I286)
-	void set_context_cpu(I80286* device)
+	void set_context_cpu(I286* device)
 #else
 	void set_context_cpu(I386* device)
 #endif

@@ -1147,6 +1147,14 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
+				RelativePath="..\src\res\indicator\access_off.bmp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\indicator\access_on.bmp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\res\multi8.ico"
 				>
 			</File>
@@ -1174,14 +1182,6 @@
 			</File>
 			<File
 				RelativePath="..\src\res\resource.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\res\indicator\access_off.bmp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\res\indicator\access_on.bmp"
 				>
 			</File>
 		</Filter>

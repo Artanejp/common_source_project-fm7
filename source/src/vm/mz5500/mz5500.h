@@ -33,11 +33,6 @@
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		4
-#ifdef _MZ6550
-#define HAS_I286
-#else
-#define HAS_I86
-#endif
 #define I8259_MAX_CHIPS		2
 #define UPD7220_HORIZ_FREQ	24860
 #define Z80CTC_CLOCKS		2457600
@@ -61,7 +56,7 @@
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
-#ifdef HAS_I286
+#if defined(_MZ6550)
 #define USE_CPU_I286
 #else
 #define USE_CPU_I86
@@ -84,10 +79,10 @@ class EVENT;
 class I8237;
 class I8255;
 class I8259;
-#if defined(HAS_I286)
-class I80286;
+#if defined(_MZ6550)
+class I286;
 #else
-class I8086;
+class I86;
 #endif
 class IO;
 class LS393;
@@ -121,9 +116,9 @@ protected:
 	I8255* pio;
 	I8259* pic;	// includes 2chips
 #if defined(HAS_I286)
-	I80286* cpu;
+	I286* cpu;
 #else
-	I8086* cpu;
+	I86* cpu;
 #endif
 	IO* io;
 	LS393* div;

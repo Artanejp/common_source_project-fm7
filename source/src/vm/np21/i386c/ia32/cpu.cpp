@@ -132,6 +132,9 @@ exec_1step(void)
 
 	for (prefix = 0; prefix < MAX_PREFIX; prefix++) {
 		GET_PCBYTE(op);
+//#ifdef USE_DEBUGGER
+		if (prefix == 0) device_debugger->add_cpu_trace(codefetch_address);
+//#endif
 #if defined(IA32_INSTRUCTION_TRACE)
 		ctx[ctx_index].op[prefix] = op;
 		ctx[ctx_index].opbytes++;
@@ -187,10 +190,10 @@ exec_1step(void)
 #endif
 						break;
 					}
-					//if (CPU_REMCLOCK <= 0) {
+					if (CPU_REMCLOCK <= 0) {
 						CPU_EIP = CPU_PREV_EIP;
 						break;
-					//}
+					}
 				}
 			} else if (CPU_INST_REPUSE != 0xf2) {
 				/* repe */
@@ -202,10 +205,10 @@ exec_1step(void)
 #endif
 						break;
 					}
-					//if (CPU_REMCLOCK <= 0) {
+					if (CPU_REMCLOCK <= 0) {
 						CPU_EIP = CPU_PREV_EIP;
 						break;
-					//}
+					}
 				}
 			} else {
 				/* repne */
@@ -217,10 +220,10 @@ exec_1step(void)
 #endif
 						break;
 					}
-					//if (CPU_REMCLOCK <= 0) {
+					if (CPU_REMCLOCK <= 0) {
 						CPU_EIP = CPU_PREV_EIP;
 						break;
-					//}
+					}
 				}
 			}
 		}
@@ -236,10 +239,10 @@ exec_1step(void)
 #endif
 						break;
 					}
-					//if (CPU_REMCLOCK <= 0) {
+					if (CPU_REMCLOCK <= 0) {
 						CPU_EIP = CPU_PREV_EIP;
 						break;
-					//}
+					}
 				}
 			} else if (CPU_INST_REPUSE != 0xf2) {
 				/* repe */
@@ -251,10 +254,10 @@ exec_1step(void)
 #endif
 						break;
 					}
-					//if (CPU_REMCLOCK <= 0) {
+					if (CPU_REMCLOCK <= 0) {
 						CPU_EIP = CPU_PREV_EIP;
 						break;
-					//}
+					}
 				}
 			} else {
 				/* repne */
@@ -266,10 +269,10 @@ exec_1step(void)
 #endif
 						break;
 					}
-					//if (CPU_REMCLOCK <= 0) {
+					if (CPU_REMCLOCK <= 0) {
 						CPU_EIP = CPU_PREV_EIP;
 						break;
-					//}
+					}
 				}
 			}
 		}
@@ -540,7 +543,7 @@ exec_allstep(void)
 		}
 cpucontinue:
 #if defined(SUPPORT_ASYNC_CPU)
-		// ”ñ“¯ŠúCPUˆ—
+		// éžåŒæœŸCPUå‡¦ç†
 		if(np2cfg.asynccpu){
 #define LATECOUNTER_THRESHOLD	6
 #define LATECOUNTER_THRESHOLDM	6

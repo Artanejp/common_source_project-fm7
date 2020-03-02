@@ -7,6 +7,7 @@
 #ifdef USE_TRACEOUT_VS
 #include "../../common.h"
 #include "../device.h"
+
 extern DEVICE *device_cpu;
 static void __FASTCALL trace_fmt_ex(const char *fmt, ...)
 {
@@ -35,9 +36,9 @@ static void __FASTCALL trace_fmt_ex(const char *fmt, ...)
 #include	"i386hax/haxcore.h"
 #endif
 
-DEVICE *device_cpu;
-DEVICE *device_mem;
-DEVICE *device_io;
+DEVICE *device_cpu = NULL;
+DEVICE *device_mem = NULL;
+DEVICE *device_io = NULL;
 //#ifdef I386_PSEUDO_BIOS
 DEVICE *device_bios = NULL;
 //#endif
@@ -45,6 +46,9 @@ DEVICE *device_bios = NULL;
 DEVICE *device_dma = NULL;
 //#endif
 SINT64 i386_memory_wait;
+DEBUGGER *device_debugger = NULL;
+UINT32 codefetch_address;
+
 // ----
 REG8 MEMCALL memp_read8(UINT32 address) {
 	
@@ -83,7 +87,12 @@ REG8 MEMCALL memp_read8_codefetch(UINT32 address) {
 	address = address & CPU_ADRSMASK;
 	int wait = 0;
 	REG8 val;
-	val = device_mem->read_data8w(address, &wait);
+	if(device_debugger != NULL) {
+		codefetch_address = address & CPU_ADRSMASK;
+		val = device_mem->read_data8w(codefetch_address, &wait);
+	} else {
+		val = device_mem->read_data8w(address, &wait);
+	}
 	i386_memory_wait += wait;
 	return val;
 //	return device_mem->read_data8(address);
@@ -94,7 +103,12 @@ REG16 MEMCALL memp_read16_codefetch(UINT32 address) {
 	address = address & CPU_ADRSMASK;
 	int wait = 0;
 	REG16 val;
-	val = device_mem->read_data16w(address, &wait);
+	if(device_debugger != NULL) {
+		codefetch_address = address & CPU_ADRSMASK;
+		val = device_mem->read_data16w(codefetch_address, &wait);
+	} else {
+		val = device_mem->read_data16w(address, &wait);
+	}
 	i386_memory_wait += wait;
 	return val;
 //	return device_mem->read_data16(address);
@@ -105,7 +119,12 @@ UINT32 MEMCALL memp_read32_codefetch(UINT32 address) {
 	address = address & CPU_ADRSMASK;
 	int wait = 0;
 	UINT32 val;
-	val = device_mem->read_data32w(address, &wait);
+	if(device_debugger != NULL) {
+		codefetch_address = address & CPU_ADRSMASK;
+		val = device_mem->read_data32w(codefetch_address, &wait);
+	} else {
+		val = device_mem->read_data32w(address, &wait);
+	}
 	i386_memory_wait += wait;
 	return val;
 //	return device_mem->read_data32(address);

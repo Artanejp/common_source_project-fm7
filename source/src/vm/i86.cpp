@@ -3,71 +3,132 @@
 
 	Origin : MAME i286 core
 	Author : Takeda.Toshiya
-	Date  : 2012.10.18-
+	Date   : 2012.10.18-
 
-	[ i286 ]
+	[ 8086/8088/80186/V30 ]
 */
 
 #include "i86.h"
+//#ifdef USE_DEBUGGER
 #include "debugger.h"
-
-#include "i80x86_commondefs.h"
+#include "i386_dasm.h"
+#include "v30_dasm.h"
+//#endif
 
 /* ----------------------------------------------------------------------------
-	MAME i86
+	MAME i286
 ---------------------------------------------------------------------------- */
 
-// Note:
-// API of bios_int_i86() / bios_caii_i86() has changed.
-// regs[8] regs[9] are added.These entries set redirect-address by PSEUDO-BIOS.
-// If need, will add more entries for cycle#.
-// - 20181126 K.O
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+#pragma warning( disable : 4018 )
+#pragma warning( disable : 4146 )
+#pragma warning( disable : 4244 )
+#pragma warning( disable : 4996 )
+#endif
 
+#ifndef __BIG_ENDIAN__
+#define LSB_FIRST
+#endif
 
+#ifndef INLINE
+#define INLINE inline
+#endif
 
-//#if defined(HAS_I86) || defined(HAS_I88) || defined(HAS_I186) || defined(HAS_V30)
-	#define cpu_state i8086_state
-	#include "mame/emu/cpu/i86/i86.c"
-	#include "mame/emu/cpu/i386/i386dasm.c"
-//#elif defined(HAS_I286)
-//#define cpu_state i80286_state
-//#include "mame/emu/cpu/i86/i286.c"
-//#endif
-//#ifdef USE_DEBUGGER
-//#ifdef HAS_V30
-//#include "mame/emu/cpu/nec/necdasm.c"
-//#else
-//#endif
-//#endif
+#define logerror(...)
 
-void I8086::initialize()
+/*****************************************************************************/
+/* src/emu/devcpu.h */
+
+// CPU interface functions
+#define CPU_INIT_NAME(name)			cpu_init_##name
+#define CPU_INIT(name)				void* CPU_INIT_NAME(name)()
+#define CPU_INIT_CALL(name)			CPU_INIT_NAME(name)()
+
+#define CPU_RESET_NAME(name)			cpu_reset_##name
+#define CPU_RESET(name)				void CPU_RESET_NAME(name)(cpu_state *cpustate)
+#define CPU_RESET_CALL(name)			CPU_RESET_NAME(name)(cpustate)
+
+#define CPU_EXECUTE_NAME(name)			cpu_execute_##name
+#define CPU_EXECUTE(name)			int CPU_EXECUTE_NAME(name)(cpu_state *cpustate, int icount)
+#define CPU_EXECUTE_CALL(name)			CPU_EXECUTE_NAME(name)(cpustate, icount)
+
+/*****************************************************************************/
+/* src/emu/diexec.h */
+
+// I/O line states
+enum line_state
+{
+	CLEAR_LINE = 0,				// clear (a fired or held) line
+	ASSERT_LINE,				// assert an interrupt immediately
+	HOLD_LINE,				// hold interrupt line until acknowledged
+	PULSE_LINE				// pulse interrupt line instantaneously (only for NMI, RESET)
+};
+
+enum
+{
+	INPUT_LINE_IRQ = 0,
+	INPUT_LINE_NMI
+};
+
+/*****************************************************************************/
+/* src/emu/emucore.h */
+
+// constants for expression endianness
+enum endianness_t
+{
+	ENDIANNESS_LITTLE,
+	ENDIANNESS_BIG
+};
+
+// declare native endianness to be one or the other
+#ifdef LSB_FIRST
+const endianness_t ENDIANNESS_NATIVE = ENDIANNESS_LITTLE;
+#else
+const endianness_t ENDIANNESS_NATIVE = ENDIANNESS_BIG;
+#endif
+// endian-based value: first value is if 'endian' is little-endian, second is if 'endian' is big-endian
+#define ENDIAN_VALUE_LE_BE(endian,leval,beval)	(((endian) == ENDIANNESS_LITTLE) ? (leval) : (beval))
+// endian-based value: first value is if native endianness is little-endian, second is if native is big-endian
+#define NATIVE_ENDIAN_VALUE_LE_BE(leval,beval)	ENDIAN_VALUE_LE_BE(ENDIANNESS_NATIVE, leval, beval)
+// endian-based value: first value is if 'endian' matches native, second is if 'endian' doesn't match native
+#define ENDIAN_VALUE_NE_NNE(endian,leval,beval)	(((endian) == ENDIANNESS_NATIVE) ? (neval) : (nneval))
+
+/*****************************************************************************/
+/* src/emu/memory.h */
+
+// offsets and addresses are 32-bit (for now...)
+typedef UINT32	offs_t;
+
+#define cpu_state i8086_state
+#include "mame/emu/cpu/i86/i86.c"
+
+void I86::initialize()
 {
 	DEVICE::initialize();
-	n_cpu_type = N_CPU_TYPE_I8086;
-	_HAS_i80286 = false;
-	_HAS_v30 = false;
-	if(osd->check_feature("HAS_I86")) {
-		n_cpu_type = N_CPU_TYPE_I8086;
-	} else if(osd->check_feature("HAS_I88")) {
-		n_cpu_type = N_CPU_TYPE_I8088;
-	} else if(osd->check_feature("HAS_I186")) {
-		n_cpu_type = N_CPU_TYPE_I80186;
+	_SINGLE_MODE_DMA = osd->check_feature("SINGLE_MODE_DMA");
+	_USE_DEBUGGER  = osd->check_feature("USE_DEBUGGER");
+	switch(device_model) {
+	case INTEL_8086:
+		opaque = CPU_INIT_CALL(i8086);
+		set_device_name(_T("8086 CPU"));
+		break;
+	case INTEL_8088:
+		opaque = CPU_INIT_CALL(i8088);
+		set_device_name(_T("8088 CPU"));
+		break;
+	case INTEL_80186:
+		opaque = CPU_INIT_CALL(i80186);
+		set_device_name(_T("80186 CPU"));
+		break;
+	case NEC_V30:
+		opaque = CPU_INIT_CALL(v30);
+		set_device_name(_T("V30 CPU"));
+		break;
+	default:
+		opaque = CPU_INIT_CALL(i8086);
+		set_device_name(_T("8086 CPU"));
+		break;
 	}
-	switch(n_cpu_type) {
-	case N_CPU_TYPE_I8086:
-		set_device_name(_T("i8086 CPU"));
-		opaque = CPU_INIT_CALL( i8086 );
-		break;
-	case N_CPU_TYPE_I8088:
-		set_device_name(_T("i8088 CPU"));
-		opaque = CPU_INIT_CALL( i8088 );
-		break;
-	case N_CPU_TYPE_I80186:
-		set_device_name(_T("i80186 CPU"));
-		opaque = CPU_INIT_CALL( i80186 );
-		break;
-	}	
-	
 	cpu_state *cpustate = (cpu_state *)opaque;
 	cpustate->pic = d_pic;
 	cpustate->program = d_mem;
@@ -76,48 +137,45 @@ void I8086::initialize()
 	cpustate->bios = d_bios;
 //#endif
 //#ifdef SINGLE_MODE_DMA
-	cpustate->dma = d_dma;
+	if(_SINGLE_MODE_DMA) {
+		cpustate->dma = d_dma;
+	}
 //#endif
 //#ifdef USE_DEBUGGER
 	cpustate->emu = emu;
 	cpustate->debugger = d_debugger;
 	cpustate->program_stored = d_mem;
 	cpustate->io_stored = d_io;
-
-	if(d_debugger != NULL) {
-		d_debugger->set_context_mem(d_mem);
-		d_debugger->set_context_io(d_io);
-	}
+	
+	d_debugger->set_context_mem(d_mem);
+	d_debugger->set_context_io(d_io);
+//#endif
 }
 
-void I8086::release()
+void I86::release()
 {
 	free(opaque);
 }
-void I8086::cpu_reset_generic()
-{
-	cpu_state *cpustate = (cpu_state *)opaque;
-	switch(n_cpu_type) {
-	case N_CPU_TYPE_I8086:
-		CPU_RESET_CALL( i8086 );
-		break;
-	case N_CPU_TYPE_I8088:
-		CPU_RESET_CALL( i8088 );
-		break;
-	case N_CPU_TYPE_I80186:
-		CPU_RESET_CALL( i80186 );
-		break;
-	}	
-}
 
-void I8086::reset()
+void I86::reset()
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	int busreq = cpustate->busreq;
-	int haltreq = cpustate->haltreq;
-
-	cpu_reset_generic();
 	
+	switch(device_model) {
+	case INTEL_8086:
+		CPU_RESET_CALL(i8086);
+		break;
+	case INTEL_8088:
+		CPU_RESET_CALL(i8088);
+		break;
+	case INTEL_80186:
+		CPU_RESET_CALL(i80186);
+		break;
+	case NEC_V30:
+		CPU_RESET_CALL(v30);
+		break;
+	}
 	cpustate->pic = d_pic;
 	cpustate->program = d_mem;
 	cpustate->io = d_io;
@@ -125,7 +183,9 @@ void I8086::reset()
 	cpustate->bios = d_bios;
 //#endif
 //#ifdef SINGLE_MODE_DMA
-	cpustate->dma = d_dma;
+	if(_SINGLE_MODE_DMA) {
+		cpustate->dma = d_dma;
+	}
 //#endif
 //#ifdef USE_DEBUGGER
 	cpustate->emu = emu;
@@ -134,45 +194,26 @@ void I8086::reset()
 	cpustate->io_stored = d_io;
 //#endif
 	cpustate->busreq = busreq;
-	cpustate->haltreq = haltreq;
 }
 
-int I8086::run(int icount)
+int I86::run(int icount)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
-	int ret = 0;
-	switch(n_cpu_type) {
-	case N_CPU_TYPE_I8086:
-	case N_CPU_TYPE_I8088:
-		ret = CPU_EXECUTE_CALL( i8086 );
-		break;
-	case N_CPU_TYPE_I80186:
-		ret = CPU_EXECUTE_CALL( i80186 );
-		break;
-	}	
-	return ret;
-}
-
-uint32_t I8086::read_signal(int id)
-{
-	if((id == SIG_CPU_TOTAL_CYCLE_HI) || (id == SIG_CPU_TOTAL_CYCLE_LO)) {
-		cpu_state *cpustate = (cpu_state *)opaque;
-		pair64_t n;
-		if(cpustate != NULL) {
-			n.q = cpustate->total_icount;
-		} else {
-			n.q = 0;
-		}
-		if(id == SIG_CPU_TOTAL_CYCLE_HI) {
-			return n.d.h;
-		} else {
-			return n.d.l;
-		}
+	
+	switch(device_model) {
+	case INTEL_8086:
+		return CPU_EXECUTE_CALL(i8086);
+	case INTEL_8088:
+		return CPU_EXECUTE_CALL(i8086);
+	case INTEL_80186:
+		return CPU_EXECUTE_CALL(i80186);
+	case NEC_V30:
+		return CPU_EXECUTE_CALL(v30);
 	}
 	return 0;
 }
 
-void I8086::write_signal(int id, uint32_t data, uint32_t mask)
+void I86::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	
@@ -182,99 +223,91 @@ void I8086::write_signal(int id, uint32_t data, uint32_t mask)
 		set_irq_line(cpustate, INPUT_LINE_IRQ, (data & mask) ? HOLD_LINE : CLEAR_LINE);
 	} else if(id == SIG_CPU_BUSREQ) {
 		cpustate->busreq = (data & mask) ? 1 : 0;
-	} else if(id == SIG_CPU_HALTREQ) {
-		cpustate->haltreq = (data & mask) ? 1 : 0;
 	} else if(id == SIG_I86_TEST) {
 		cpustate->test_state = (data & mask) ? 1 : 0;
-	} else if(id == SIG_CPU_WAIT_FACTOR) {
-		cpustate->waitfactor = data; // 65536.
-		cpustate->waitcount = 0; // 65536.
 	}
 }
 
-void I8086::set_intr_line(bool line, bool pending, uint32_t bit)
+void I86::set_intr_line(bool line, bool pending, uint32_t bit)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	set_irq_line(cpustate, INPUT_LINE_IRQ, line ? HOLD_LINE : CLEAR_LINE);
 }
 
-void I8086::set_extra_clock(int icount)
+void I86::set_extra_clock(int icount)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	cpustate->extra_cycles += icount;
 }
 
-int I8086::get_extra_clock()
+int I86::get_extra_clock()
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	return cpustate->extra_cycles;
 }
 
-uint32_t I8086::get_pc()
+uint32_t I86::get_pc()
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	return cpustate->prevpc;
 }
 
-uint32_t I8086::get_next_pc()
+uint32_t I86::get_next_pc()
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	return cpustate->pc;
 }
 
-uint32_t I8086::translate_address(int segment, uint32_t offset)
-{
-	cpu_state *cpustate = (cpu_state *)opaque;
-	return cpustate->base[segment] + offset;
-}
-
-void I8086::write_debug_data8(uint32_t addr, uint32_t data)
+//#ifdef USE_DEBUGGER
+void I86::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_mem->write_data8w(addr, data, &wait);
 }
 
-uint32_t I8086::read_debug_data8(uint32_t addr)
+uint32_t I86::read_debug_data8(uint32_t addr)
 {
 	int wait;
 	return d_mem->read_data8w(addr, &wait);
 }
 
-void I8086::write_debug_data16(uint32_t addr, uint32_t data)
+void I86::write_debug_data16(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_mem->write_data16w(addr, data, &wait);
 }
 
-uint32_t I8086::read_debug_data16(uint32_t addr)
+uint32_t I86::read_debug_data16(uint32_t addr)
 {
 	int wait;
 	return d_mem->read_data16w(addr, &wait);
 }
 
-void I8086::write_debug_io8(uint32_t addr, uint32_t data)
+void I86::write_debug_io8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_io->write_io8w(addr, data, &wait);
 }
 
-uint32_t I8086::read_debug_io8(uint32_t addr) {
+uint32_t I86::read_debug_io8(uint32_t addr)
+{
 	int wait;
 	return d_io->read_io8w(addr, &wait);
 }
 
-void I8086::write_debug_io16(uint32_t addr, uint32_t data)
+void I86::write_debug_io16(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_io->write_io16w(addr, data, &wait);
 }
 
-uint32_t I8086::read_debug_io16(uint32_t addr) {
+uint32_t I86::read_debug_io16(uint32_t addr)
+{
 	int wait;
 	return d_io->read_io16w(addr, &wait);
 }
 
-bool I8086::write_debug_reg(const _TCHAR *reg, uint32_t data)
+bool I86::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	if(_tcsicmp(reg, _T("IP")) == 0) {
@@ -318,7 +351,7 @@ bool I8086::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	return true;
 }
 
-uint32_t I8086::read_debug_reg(const _TCHAR *reg)
+uint32_t I86::read_debug_reg(const _TCHAR *reg)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	if(_tcsicmp(reg, _T("IP")) == 0) {
@@ -359,7 +392,7 @@ uint32_t I8086::read_debug_reg(const _TCHAR *reg)
 	return 0;
 }
 
-bool I8086::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+bool I86::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	my_stprintf_s(buffer, buffer_len,
@@ -376,34 +409,36 @@ bool I8086::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	return true;
 }
 
-int I8086::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
+int I86::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
-	UINT64 eip = pc - cpustate->base[CS];
-	UINT8 ops[16];
+	uint32_t eip = pc - cpustate->base[CS];
+	uint8_t oprom[16];
+	
 	for(int i = 0; i < 16; i++) {
 		int wait;
-		ops[i] = d_mem->read_data8w(pc + i, &wait);
+		oprom[i] = d_mem->read_data8w((pc + i) & AMASK, &wait);
 	}
-	UINT8 *oprom = ops;
-	
-	return CPU_DISASSEMBLE_CALL(x86_16) & DASMFLAG_LENGTHMASK;
+	switch(device_model) {
+	case NEC_V30:
+		return v30_dasm(cpustate->debugger, oprom, eip, (cpustate->MF == 0), buffer, buffer_len);
+	default:
+		return i386_dasm(oprom, eip, false, buffer, buffer_len);
+	}
 }
 
+#define STATE_VERSION	1
 
-#define STATE_VERSION	8
-
-bool I8086::process_state(FILEIO* state_fio, bool loading)
+bool I86::process_state(FILEIO* state_fio, bool loading)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
- 		return false;
- 	}
+		return false;
+	}
 	if(!state_fio->StateCheckInt32(this_device_id)) {
- 		return false;
- 	}
-//#if defined(HAS_I86) || defined(HAS_I88) || defined(HAS_I186) || defined(HAS_V30)
+		return false;
+	}
 	state_fio->StateArray(cpustate->regs.w, sizeof(cpustate->regs.w), 1);
 	state_fio->StateValue(cpustate->pc);
 	state_fio->StateValue(cpustate->prevpc);
@@ -420,6 +455,8 @@ bool I8086::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->TF);
 	state_fio->StateValue(cpustate->IF);
 	state_fio->StateValue(cpustate->MF);
+	state_fio->StateValue(cpustate->MF_WriteDisabled);
+	state_fio->StateValue(cpustate->NF);
 	state_fio->StateValue(cpustate->int_vector);
 	state_fio->StateValue(cpustate->nmi_state);
 	state_fio->StateValue(cpustate->irq_state);
@@ -431,7 +468,9 @@ bool I8086::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->ip);
 	state_fio->StateValue(cpustate->sp);
 //#ifdef USE_DEBUGGER
-	state_fio->StateValue(cpustate->total_icount);
+	if(_USE_DEBUGGER) {
+		state_fio->StateValue(cpustate->total_icount);
+	}
 //#endif
 	state_fio->StateValue(cpustate->icount);
 	state_fio->StateValue(cpustate->seg_prefix);
@@ -439,14 +478,15 @@ bool I8086::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->ea);
 	state_fio->StateValue(cpustate->eo);
 	state_fio->StateValue(cpustate->ea_seg);
-	state_fio->StateValue(cpustate->waitfactor);
-	state_fio->StateValue(cpustate->waitcount);
-	state_fio->StateValue(cpustate->memory_wait);
-//#endif
- 	
- 	// post process
-	if(loading) {
-		cpustate->prev_total_icount = cpustate->total_icount;
+	
+//#ifdef USE_DEBUGGER
+	// post process
+	if(_USE_DEBUGGER) {
+		if(loading) {
+			cpustate->prev_total_icount = cpustate->total_icount;
+		}
 	}
- 	return true;
+//#endif
+	return true;
 }
+

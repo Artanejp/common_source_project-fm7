@@ -21,19 +21,17 @@
 #include "../../emu.h"
 #include "../device.h"
 
-
-#if defined(UPPER_I386)
+#if defined(HAS_I386) || defined(HAS_I486SX) || defined(HAS_I486DX) || defined(UPPER_I386)
 #include "../i386_np21.h"
 //#include "../i386.h"
-#elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
-#include "../i86.h"
-#elif  defined(HAS_V30)
-#include "../v30.h"
-#else
+#elif defined(HAS_I286)
+//#include "../i286_np21.h"
 #include "../i286.h"
+#else
+#include "../i86.h"
 #endif
 #if defined(HAS_V30_SUB_CPU)
-#include "../v30.h"
+#include "../i86.h"
 #endif
 #include "../event.h"
 
@@ -197,36 +195,34 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio_prn = new I8255(this, emu);		// for printer
 	pio_prn->set_device_name(_T("8255 PIO (Printer)"));
 	pic = new I8259(this, emu);
-#if defined(UPPER_I386)
-	cpu = new I386(this, emu); // 80386, 80486
-#elif defined(HAS_V30)
-	cpu = new V30(this, emu); // Secondary CPU
-//	subcpu = NULL;
-#elif defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
-	cpu = new I8086(this, emu);// 8086, V30, 80286
-//	subcpu = NULL;
-#else
-	cpu = new I80286(this, emu);
-#endif
-#if defined(HAS_V30_SUB_CPU)
-	v30cpu = new V30(this, emu); // Secondary CPU
-#endif
 	
 #if defined(HAS_I86)
-	cpu->set_device_name(_T("CPU(i8086)"));
-#elif defined(HAS_I386)
-	cpu->set_device_name(_T("CPU(i386)"));
-#elif defined(HAS_I486)
-	cpu->set_device_name(_T("CPU(i486)"));
-#elif defined(HAS_PENTIUM)
-	cpu->set_device_name(_T("CPU(Pentium)"));
-#elif defined(HAS_V33A)
-	cpu->set_device_name(_T("CPU(V33A)"));
+	cpu = new I86(this, emu);
+	cpu->device_model = INTEL_8086;
 #elif defined(HAS_V30)
-	cpu->set_device_name(_T("CPU(V30)"));
-#else
-	cpu->set_device_name(_T("CPU(i286)"));
+	cpu = new I86(this, emu);
+	cpu->device_model = NEC_V30;
+#elif defined(HAS_I286)
+	cpu = new I286(this, emu);
+//	cpu->device_model = INTEL_80286;
+#elif defined(HAS_I386)
+	cpu = new I386(this, emu);
+	cpu->device_model = INTEL_80386;
+#elif defined(HAS_I486SX)
+	cpu = new I386(this, emu);
+	cpu->device_model = INTEL_I486SX;
+#elif defined(HAS_I486DX)
+	cpu = new I386(this, emu);
+	cpu->device_model = INTEL_I486DX;
 #endif
+#if defined(HAS_V30_SUB_CPU)
+	if((config.dipswitch & (1 << DIPSWITCH_POSITION_USE_V30)) != 0) { // You should add manual
+		v30cpu = new I86(this, emu);
+		v30cpu->device_model = NEC_V30;
+	} else {
+		v30cpu = NULL;
+	}
+#endif	
 	io = new IO(this, emu);
 	rtcreg = new LS244(this, emu);
 	rtcreg->set_device_name(_T("74LS244 (RTC)"));
@@ -241,12 +237,28 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	rtc = new UPD1990A(this, emu);
 #if defined(SUPPORT_2HD_FDD_IF)
-	fdc_2hd = new UPD765A(this, emu);
-	fdc_2hd->set_device_name(_T("uPD765A FDC (2HD I/F)"));
+#if defined(_PC9801) || defined(_PC9801E)
+	if((config.dipswitch & 1) && FILEIO::IsFileExisting(create_local_path(_T("2HDIF.ROM")))) {
+#endif
+		fdc_2hd = new UPD765A(this, emu);
+		fdc_2hd->set_device_name(_T("uPD765A FDC (2HD I/F)"));
+#if defined(_PC9801) || defined(_PC9801E)
+	} else {
+		fdc_2hd = NULL;
+	}
+#endif
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
-	fdc_2dd = new UPD765A(this, emu);
-	fdc_2dd->set_device_name(_T("uPD765A FDC (2DD I/F)"));
+#if defined(_PC9801) || defined(_PC9801E)
+	if((config.dipswitch & 2) && FILEIO::IsFileExisting(create_local_path(_T("2DDIF.ROM")))) {
+#endif
+		fdc_2dd = new UPD765A(this, emu);
+		fdc_2dd->set_device_name(_T("uPD765A FDC (2DD I/F)"));
+#if defined(_PC9801) || defined(_PC9801E)
+	} else {
+		fdc_2dd = NULL;
+	}
+#endif
 #endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
 	fdc = new UPD765A(this, emu);
@@ -339,14 +351,21 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 #if defined(SUPPORT_320KB_FDD_IF)
 	// 320kb fdd drives
-	pio_sub = new I8255(this, emu);
-	pio_sub->set_device_name(_T("8255 PIO (320KB FDD)"));
-	pc80s31k = new PC80S31K(this, emu);
-	pc80s31k->set_device_name(_T("PC-80S31K (320KB FDD)"));
-	fdc_sub = new UPD765A(this, emu);
-	fdc_sub->set_device_name(_T("uPD765A FDC (320KB FDD)"));
-	cpu_sub = new Z80(this, emu);
-	cpu_sub->set_device_name(_T("Z80 CPU (320KB FDD)"));
+	if((config.dipswitch & 4) && (FILEIO::IsFileExisting(create_local_path(_T("DISK.ROM"))) || FILEIO::IsFileExisting(create_local_path(_T("PC88.ROM"))))) {
+		pio_sub = new I8255(this, emu);
+		pio_sub->set_device_name(_T("8255 PIO (320KB FDD)"));
+		pc80s31k = new PC80S31K(this, emu);
+		pc80s31k->set_device_name(_T("PC-80S31K (320KB FDD)"));
+		fdc_sub = new UPD765A(this, emu);
+		fdc_sub->set_device_name(_T("uPD765A FDC (320KB FDD)"));
+		cpu_sub = new Z80(this, emu);
+		cpu_sub->set_device_name(_T("Z80 CPU (320KB FDD)"));
+	} else {
+		pio_sub = NULL;
+		pc80s31k = NULL;
+		fdc_sub = NULL;
+		cpu_sub = NULL;
+	}
 #endif
 	
 	/* IRQ	0  PIT
@@ -380,7 +399,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	}
 #endif	
 #if defined(SUPPORT_320KB_FDD_IF)
-	event->set_context_cpu(cpu_sub, 4000000);
+	if(cpu_sub) {
+		event->set_context_cpu(cpu_sub, 4000000);
+	}
 #endif
 	event->set_context_sound(beep);
 	if(sound_type == 0 || sound_type == 1) {
@@ -399,12 +420,16 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// dma ch.0: sasi
 	// dma ch.1: memory refresh
 #if defined(SUPPORT_2HD_FDD_IF)
-	dma->set_context_ch2(fdc_2hd);
-	dma->set_context_tc2(fdc_2hd, SIG_UPD765A_TC, 1);
+	if(fdc_2hd) {
+		dma->set_context_ch2(fdc_2hd);
+		dma->set_context_tc2(fdc_2hd, SIG_UPD765A_TC, 1);
+	}
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
-	dma->set_context_ch3(fdc_2dd);
-	dma->set_context_tc3(fdc_2dd, SIG_UPD765A_TC, 1);
+	if(fdc_2dd) {
+		dma->set_context_ch3(fdc_2dd);
+		dma->set_context_tc3(fdc_2dd, SIG_UPD765A_TC, 1);
+	}
 #endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
 #if !defined(SUPPORT_HIRESO)
@@ -500,8 +525,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpureg->set_context_membus(memory);
 	cpureg->set_context_piosys(pio_sys);
 	#if defined(HAS_V30_SUB_CPU)
-	cpureg->set_context_v30(v30cpu);
-	cpureg->set_context_cputype(pio_prn, SIG_I8255_PORT_B, 0x02, 0);
+	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_USE_V30)) != 0) {
+		cpureg->set_context_v30(v30cpu);
+		cpureg->set_context_cputype(pio_prn, SIG_I8255_PORT_B, 0x02, 0);
+	}
 	#endif
 #endif
 	display->set_context_pic(pic);
@@ -519,21 +546,25 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	mouse->set_context_pio(pio_mouse);
 	
 #if defined(SUPPORT_2HD_FDD_IF)
-	fdc_2hd->set_context_irq(floppy, SIG_FLOPPY_2HD_IRQ, 1);
-	fdc_2hd->set_context_drq(floppy, SIG_FLOPPY_2HD_DRQ, 1);
-	fdc_2hd->set_context_noise_seek(noise_seek);
-	fdc_2hd->set_context_noise_head_down(noise_head_down);
-	fdc_2hd->set_context_noise_head_up(noise_head_up);
-	fdc_2hd->raise_irq_when_media_changed = true;
+	if(fdc_2hd) {
+		fdc_2hd->set_context_irq(floppy, SIG_FLOPPY_2HD_IRQ, 1);
+		fdc_2hd->set_context_drq(floppy, SIG_FLOPPY_2HD_DRQ, 1);
+		fdc_2hd->set_context_noise_seek(noise_seek);
+		fdc_2hd->set_context_noise_head_down(noise_head_down);
+		fdc_2hd->set_context_noise_head_up(noise_head_up);
+		fdc_2hd->raise_irq_when_media_changed = true;
+	}
 	floppy->set_context_fdc_2hd(fdc_2hd);
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
-	fdc_2dd->set_context_irq(floppy, SIG_FLOPPY_2DD_IRQ, 1);
-	fdc_2dd->set_context_drq(floppy, SIG_FLOPPY_2DD_DRQ, 1);
-	fdc_2dd->set_context_noise_seek(noise_seek);
-	fdc_2dd->set_context_noise_head_down(noise_head_down);
-	fdc_2dd->set_context_noise_head_up(noise_head_up);
-	fdc_2dd->raise_irq_when_media_changed = true;
+	if(fdc_2dd) {
+		fdc_2dd->set_context_irq(floppy, SIG_FLOPPY_2DD_IRQ, 1);
+		fdc_2dd->set_context_drq(floppy, SIG_FLOPPY_2DD_DRQ, 1);
+		fdc_2dd->set_context_noise_seek(noise_seek);
+		fdc_2dd->set_context_noise_head_down(noise_head_down);
+		fdc_2dd->set_context_noise_head_up(noise_head_up);
+		fdc_2dd->raise_irq_when_media_changed = true;
+	}
 	floppy->set_context_fdc_2dd(fdc_2dd);
 #endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
@@ -580,15 +611,16 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	sasi_bios->set_context_sasi(sasi);
 	sasi_bios->set_context_memory(memory);
 	sasi_bios->set_context_cpu(cpu);
-	#if defined(HAS_V30_SUB_CPU)
-	sasi_bios->set_context_v30cpu(v30cpu);
-	#endif
 	sasi_bios->set_context_pic(pic);
 	sasi_bios->set_context_cpureg(cpureg);
 	
 	cpu->set_context_bios(sasi_bios);
 	#if defined(HAS_V30_SUB_CPU)
-	v30cpu->set_context_bios(sasi_bios);
+	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_USE_V30)) != 0) {
+		if(v30cpu != NULL) {
+			v30cpu->set_context_bios(sasi_bios);
+		}
+	}
 	#endif
 #endif
 
@@ -628,43 +660,47 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// cpu bus
 //	cpu->set_context_intr(cpureg);
 	cpu->set_context_intr(pic);
-	v30cpu->set_context_mem(memory);
-	v30cpu->set_context_io(io);
-	v30cpu->set_context_intr(cpureg);
-	cpureg->set_context_pic(pic);
+	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_USE_V30)) != 0) {
+		v30cpu->set_context_mem(memory);
+		v30cpu->set_context_io(io);
+		v30cpu->set_context_intr(cpureg);
+		cpureg->set_context_pic(pic);
 	#ifdef SINGLE_MODE_DMA
-	v30cpu->set_context_dma(dma); // DMA may be within MAIN CPU.
+		v30cpu->set_context_dma(dma); // DMA may be within MAIN CPU.
 	#endif
 	#ifdef USE_DEBUGGER
-	v30cpu->set_context_debugger(new DEBUGGER(this, emu));
+		v30cpu->set_context_debugger(new DEBUGGER(this, emu));
 	#endif
+	}
 #endif
 	
 #if defined(SUPPORT_320KB_FDD_IF)
 	// 320kb fdd drives
-	pc80s31k->set_context_cpu(cpu_sub);
-	pc80s31k->set_context_fdc(fdc_sub);
-	pc80s31k->set_context_pio(pio_sub);
-	pio_fdd->set_context_port_a(pio_sub, SIG_I8255_PORT_A, 0xff, 0);
-	pio_fdd->set_context_port_b(pio_sub, SIG_I8255_PORT_A, 0xff, 0);
-	pio_fdd->set_context_port_c(pio_sub, SIG_I8255_PORT_C, 0x0f, 4);
-	pio_fdd->set_context_port_c(pio_sub, SIG_I8255_PORT_C, 0xf0, -4);
-	pio_fdd->clear_ports_by_cmdreg = true;
-	pio_sub->set_context_port_a(pio_fdd, SIG_I8255_PORT_B, 0xff, 0);
-	pio_sub->set_context_port_b(pio_fdd, SIG_I8255_PORT_A, 0xff, 0);
-	pio_sub->set_context_port_c(pio_fdd, SIG_I8255_PORT_C, 0x0f, 4);
-	pio_sub->set_context_port_c(pio_fdd, SIG_I8255_PORT_C, 0xf0, -4);
-	pio_sub->clear_ports_by_cmdreg = true;
-	fdc_sub->set_context_irq(cpu_sub, SIG_CPU_IRQ, 1);
-	fdc_sub->set_context_noise_seek(noise_seek);
-	fdc_sub->set_context_noise_head_down(noise_head_down);
-	fdc_sub->set_context_noise_head_up(noise_head_up);
-	cpu_sub->set_context_mem(pc80s31k);
-	cpu_sub->set_context_io(pc80s31k);
-	cpu_sub->set_context_intr(pc80s31k);
+	if(pc80s31k && pio_sub && fdc_sub && cpu_sub) {
+		pc80s31k->set_context_cpu(cpu_sub);
+		pc80s31k->set_context_fdc(fdc_sub);
+		pc80s31k->set_context_pio(pio_sub);
+		pio_fdd->set_context_port_a(pio_sub, SIG_I8255_PORT_B, 0xff, 0);
+		pio_fdd->set_context_port_b(pio_sub, SIG_I8255_PORT_A, 0xff, 0);
+		pio_fdd->set_context_port_c(pio_sub, SIG_I8255_PORT_C, 0x0f, 4);
+		pio_fdd->set_context_port_c(pio_sub, SIG_I8255_PORT_C, 0xf0, -4);
+		pio_fdd->clear_ports_by_cmdreg = true;
+		pio_sub->set_context_port_a(pio_fdd, SIG_I8255_PORT_B, 0xff, 0);
+		pio_sub->set_context_port_b(pio_fdd, SIG_I8255_PORT_A, 0xff, 0);
+		pio_sub->set_context_port_c(pio_fdd, SIG_I8255_PORT_C, 0x0f, 4);
+		pio_sub->set_context_port_c(pio_fdd, SIG_I8255_PORT_C, 0xf0, -4);
+		pio_sub->clear_ports_by_cmdreg = true;
+		fdc_sub->set_context_irq(cpu_sub, SIG_CPU_IRQ, 1);
+		fdc_sub->set_context_noise_seek(noise_seek);
+		fdc_sub->set_context_noise_head_down(noise_head_down);
+		fdc_sub->set_context_noise_head_up(noise_head_up);
+		cpu_sub->set_context_mem(pc80s31k);
+		cpu_sub->set_context_io(pc80s31k);
+		cpu_sub->set_context_intr(pc80s31k);
 #ifdef USE_DEBUGGER
-	cpu_sub->set_context_debugger(new DEBUGGER(this, emu));
+		cpu_sub->set_context_debugger(new DEBUGGER(this, emu));
 #endif
+	}
 #endif
 	
 	// i/o bus
@@ -826,10 +862,16 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x0075, pit, 2);
 	io->set_iomap_alias_w (0x0077, pit, 3);
 	
-	io->set_iomap_single_rw(0x0090, floppy);
-	io->set_iomap_single_rw(0x0092, floppy);
-	io->set_iomap_single_rw(0x0094, floppy);
-	io->set_iomap_single_rw(0x0096, floppy);
+#if defined(SUPPORT_2HD_FDD_IF)
+	if(fdc_2hd) {
+#endif
+		io->set_iomap_single_rw(0x0090, floppy);
+		io->set_iomap_single_rw(0x0092, floppy);
+		io->set_iomap_single_rw(0x0094, floppy);
+		io->set_iomap_single_rw(0x0096, floppy);
+#if defined(SUPPORT_2HD_FDD_IF)
+	}
+#endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
 #if !defined(SUPPORT_HIRESO)
 	io->set_iomap_single_rw(0x00bc, floppy);
@@ -841,10 +883,16 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 #endif
 #if !defined(SUPPORT_HIRESO)
-	io->set_iomap_single_rw(0x00c8, floppy);
-	io->set_iomap_single_rw(0x00ca, floppy);
-	io->set_iomap_single_rw(0x00cc, floppy);
-//	io->set_iomap_single_rw(0x00ce, floppy); // OK? 20190516 K.O
+#if defined(SUPPORT_2DD_FDD_IF)
+	if(fdc_2dd) {
+#endif
+		io->set_iomap_single_rw(0x00c8, floppy);
+		io->set_iomap_single_rw(0x00ca, floppy);
+		io->set_iomap_single_rw(0x00cc, floppy);
+		io->set_iomap_single_rw(0x00ce, floppy); // OK? 20190516 K.O
+#if defined(SUPPORT_2DD_FDD_IF)
+	}
+#endif
 #endif
 	
 #if defined(SUPPORT_CMT_IF)
@@ -1071,15 +1119,23 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	set_cpu_clock_with_switch(config.cpu_type);
 	
 #if defined(_PC9801) || defined(_PC9801E)
-	fdc_2hd->get_disk_handler(0)->drive_num = 0;
-	fdc_2hd->get_disk_handler(1)->drive_num = 1;
-	fdc_2dd->get_disk_handler(0)->drive_num = 2;
-	fdc_2dd->get_disk_handler(1)->drive_num = 3;
-	fdc_sub->get_disk_handler(0)->drive_num = 4;
-	fdc_sub->get_disk_handler(1)->drive_num = 5;
+	if(fdc_2hd) {
+		fdc_2hd->get_disk_handler(0)->drive_num = 0;
+		fdc_2hd->get_disk_handler(1)->drive_num = 1;
+	}
+	if(fdc_2dd) {
+		fdc_2dd->get_disk_handler(0)->drive_num = 2;
+		fdc_2dd->get_disk_handler(1)->drive_num = 3;
+	}
+	if(fdc_sub) {
+		fdc_sub->get_disk_handler(0)->drive_num = 4;
+		fdc_sub->get_disk_handler(1)->drive_num = 5;
+	}
 #elif defined(_PC9801VF) || defined(_PC9801U)
-	fdc_2dd->get_disk_handler(0)->drive_num = 0;
-	fdc_2dd->get_disk_handler(1)->drive_num = 1;
+	if(fdc_2dd) {
+		fdc_2dd->get_disk_handler(0)->drive_num = 0;
+		fdc_2dd->get_disk_handler(1)->drive_num = 1;
+	}
 #elif defined(_PC98DO) || defined(_PC98DOPLUS)
 	fdc->get_disk_handler(0)->drive_num = 0;
 	fdc->get_disk_handler(1)->drive_num = 1;
@@ -1171,7 +1227,9 @@ void VM::set_cpu_clock_with_switch(int speed_type)
 	}
 	cpu->write_signal(SIG_CPU_WAIT_FACTOR, waitfactor, 0xffffffff);
 #if defined(HAS_V30_SUB_CPU)
-	v30cpu->write_signal(SIG_CPU_WAIT_FACTOR, 0, 0xffffffff);
+	if(v30cpu != NULL) {
+		v30cpu->write_signal(SIG_CPU_WAIT_FACTOR, 0, 0xffffffff);
+	}
 #endif	
 	uint8_t prn_port_b = 0x00;
 	if(pit_clock_8mhz) {
@@ -1512,7 +1570,9 @@ void VM::reset()
 	pio_fdd->write_signal(SIG_I8255_PORT_C, 0xff, 0xff);
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
-	fdc_2dd->write_signal(SIG_UPD765A_FREADY, 1, 1);	// 2DD FDC RDY is pulluped
+	if(fdc_2dd) {
+		fdc_2dd->write_signal(SIG_UPD765A_FREADY, 1, 1);	// 2DD FDC RDY is pulluped
+	}
 #endif
 	
 	if(sound_type == 0 || sound_type == 1) {
@@ -1797,6 +1857,15 @@ void VM::close_floppy_disk(int drv)
 		controller->close_disk(drv & 1);
 	}
 }
+
+#if defined(_PC9801) || defined(_PC9801E)
+bool VM::is_floppy_disk_connected(int drv)
+{
+	DISK *handler = get_floppy_disk_handler(drv);
+	
+	return (handler != NULL);
+}
+#endif
 
 bool VM::is_floppy_disk_inserted(int drv)
 {

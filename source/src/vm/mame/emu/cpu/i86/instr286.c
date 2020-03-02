@@ -78,7 +78,7 @@
 #define JMP  1
 #define CALL 2
 
-static CPU_RESET( CPU_MODEL );
+static CPU_RESET( i80286 );
 
 // when a cpu reset happens on a AT the bios checks for 9 in byte 0xf
 // of the nvram.  if yes, after init, it sets the stack pointer to the value in 0040:0067
@@ -113,7 +113,7 @@ static void i80286_trap2(i80286_state *cpustate,UINT32 error)
 		// this is supposed to triggered by support hardware
 		// create a shutdown output line that causes a reset
 		// NMI can wake processor without reset
-		CPU_RESET_CALL(CPU_MODEL);
+		CPU_RESET_CALL(i80286);
 		cpustate->shutdown = 1;
 	}
 	cpustate->trap_level = 0;

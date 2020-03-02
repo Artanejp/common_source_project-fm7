@@ -23,7 +23,6 @@ class SASI_HDD;
 class HARDDISK;
 class I386;
 class I8086;
-class V30;
 class I80286;
 
 namespace PC9801 {
@@ -38,7 +37,6 @@ protected:
 	MEMBUS *d_mem;
 	SASI   *d_sasi;
 	DEVICE *d_cpu;
-	DEVICE *d_v30cpu;
 	DEVICE *d_pic;
 	DEVICE *d_cpureg;
 	
@@ -91,10 +89,6 @@ public:
 	void set_context_cpu(DEVICE* device)
 	{
 		d_cpu = device;
-	}
-	void set_context_v30cpu(DEVICE* device)
-	{
-		d_v30cpu = device;
 	}
 	void set_context_pic(DEVICE* device)
 	{

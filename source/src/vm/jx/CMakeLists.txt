@@ -9,7 +9,6 @@ set(BASIC_VM_FILES
 	   keyboard.cpp
 	   speaker.cpp
 	   
-	   ./i286.cpp
 	   )
 
 add_library(vm_jx  ${BASIC_VM_FILES})

@@ -2,47 +2,98 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{eb9f3467-3e7b-4239-b994-874364016749}</UniqueIdentifier>
+      <UniqueIdentifier>{6c67a7ef-6fc8-49d1-9736-7c8392509ccb}</UniqueIdentifier>
       <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
     </Filter>
     <Filter Include="Source Files\EMU Source Files">
-      <UniqueIdentifier>{a3038846-daeb-4d4c-96b9-7694ea49a786}</UniqueIdentifier>
+      <UniqueIdentifier>{9e8cc474-9486-4ab5-818f-b5f9b9fa7ba9}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Source Files\OSD Source Files">
-      <UniqueIdentifier>{e157f8e4-feec-42b5-b18e-cc1f148a798d}</UniqueIdentifier>
+      <UniqueIdentifier>{8a3779ee-f02d-45b0-9512-b772c884f90e}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Source Files\VM Common Source Files">
-      <UniqueIdentifier>{5343887a-859e-44fe-90ad-c678bc2085cb}</UniqueIdentifier>
+      <UniqueIdentifier>{0eff6bb6-38a3-4ef6-bf5f-e5b311bd8fa8}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
+    <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files">
+      <UniqueIdentifier>{06b18efd-93bb-47ba-9a13-d0250ae4deac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files\ia32">
+      <UniqueIdentifier>{6d996efe-d725-4806-abfc-715e951ed5fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions">
+      <UniqueIdentifier>{5bb7c9af-ab1d-4eb3-b01b-6675ec77a6fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\fpu">
+      <UniqueIdentifier>{4212e41d-52a7-4e17-9646-25efc9905f2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\fpu\softfloat">
+      <UniqueIdentifier>{7a58fcf7-2db7-4981-b35a-e2e1e7df44f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\mmx">
+      <UniqueIdentifier>{f9f6cb4b-3025-432c-a03d-6c93f11e5d8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\sse">
+      <UniqueIdentifier>{c1b3c3a5-f200-4df7-b9fa-25e0f658c839}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\sse2">
+      <UniqueIdentifier>{dfd42874-f629-4bd9-8c02-002b6deb730a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\sse3">
+      <UniqueIdentifier>{11d78fde-b8f8-4848-8ec4-73bf23d5cc1a}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\VM Driver Source Files">
-      <UniqueIdentifier>{08bc379c-dd84-436a-bfdf-1535a358da56}</UniqueIdentifier>
+      <UniqueIdentifier>{34f36753-a97a-435e-b5ff-f8a6a40e461e}</UniqueIdentifier>
       <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{3b8d4f34-795d-41d8-9a3f-ee939df42cfc}</UniqueIdentifier>
+      <UniqueIdentifier>{a850b5fb-cbab-4504-a9bb-9fe85b09bb53}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
     </Filter>
     <Filter Include="Header Files\EMU Header Files">
-      <UniqueIdentifier>{34aae56e-6891-43d7-8f45-de973721d762}</UniqueIdentifier>
+      <UniqueIdentifier>{ba669998-3a49-4136-8d8f-9083fbf3e010}</UniqueIdentifier>
       <Extensions>h</Extensions>
     </Filter>
     <Filter Include="Header Files\OSD Header Files">
-      <UniqueIdentifier>{e326eae5-6336-4816-8355-10351cad37d3}</UniqueIdentifier>
+      <UniqueIdentifier>{affd9b98-960d-48e5-bc3a-f1d5996df8e1}</UniqueIdentifier>
       <Extensions>h</Extensions>
     </Filter>
     <Filter Include="Header Files\VM Common Header Files">
-      <UniqueIdentifier>{ab4873d2-04c1-4448-8957-9a552c38f521}</UniqueIdentifier>
+      <UniqueIdentifier>{b04ae9af-cb9f-4f39-9fa6-b729201e4161}</UniqueIdentifier>
       <Extensions>h</Extensions>
     </Filter>
+    <Filter Include="Header Files\VM Common Header Files\np21w i386c Header Files">
+      <UniqueIdentifier>{fa0f2423-1fdf-4d0d-b97b-ad532b4d236b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\VM Common Header Files\np21w i386c Header Files\ia32">
+      <UniqueIdentifier>{684430be-b1fb-41b2-bcbf-b4cabcaf24b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\VM Common Header Files\np21w i386c Header Files\ia32\fpu">
+      <UniqueIdentifier>{91de2cce-40fc-46f2-b528-c038906cdec8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\VM Common Header Files\np21w i386c Header Files\ia32\fpu\softfloat">
+      <UniqueIdentifier>{68c2bcbb-651c-4fe2-8573-35cd62f15543}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\VM Common Header Files\np21w i386c Header Files\ia32\mmx">
+      <UniqueIdentifier>{949d57bb-f352-4392-b6d1-8d221ef8b56e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\VM Common Header Files\np21w i386c Header Files\ia32\sse">
+      <UniqueIdentifier>{2c03d6e8-20d0-4c6e-9cbd-880c2c91c605}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\VM Common Header Files\np21w i386c Header Files\ia32\sse2">
+      <UniqueIdentifier>{52cffc49-d691-447f-98ad-c3e598d3915f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\VM Common Header Files\np21w i386c Header Files\ia32\sse3">
+      <UniqueIdentifier>{6a3df11e-73d2-40e0-bbd4-0578b71f30e4}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files\VM Driver Header Files">
-      <UniqueIdentifier>{23d0e823-815a-495b-80be-61a4528f66bc}</UniqueIdentifier>
+      <UniqueIdentifier>{e0c7509b-4fc1-4bea-a84d-2019ec623680}</UniqueIdentifier>
       <Extensions>h</Extensions>
     </Filter>
     <Filter Include="Resource Files">
-      <UniqueIdentifier>{044074a3-8e87-4ba3-8e53-3ba1b1558235}</UniqueIdentifier>
+      <UniqueIdentifier>{7c6ed9cf-ed17-4314-afca-b68f122343e9}</UniqueIdentifier>
       <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
   </ItemGroup>
@@ -92,7 +143,10 @@
     <ClCompile Include="..\src\vm\event.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\i386.cpp">
+    <ClCompile Include="..\src\vm\i386_dasm.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\i386_np21.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\i8237.cpp">
@@ -124,6 +178,123 @@
     </ClCompile>
     <ClCompile Include="..\src\vm\upd765a.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\cpucore.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\cpumem.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\cpu.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\cpu_io.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\cpu_mem.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\ctrlxfer.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\debug.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\exception.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\groups.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\ia32.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\inst_table.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\interface.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\paging.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\resolve.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\segments.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\task.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\bin_arith.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\bit_byte.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\ctrl_trans.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\data_trans.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\dec_arith.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\flag_ctrl.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\fpu.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\logic_arith.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\misc_inst.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\seg_reg.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\shift_rotate.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\string_inst.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\system_inst.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\fpu\fpdummy.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\fpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\fpu\fpemul_dosbox.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\fpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\fpu\fpemul_dosbox2.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\fpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\fpu\fpemul_softfloat.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\fpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\fpu\softfloat\softfloat.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\fpu\softfloat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\mmx\3dnow.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\mmx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\mmx\mmx.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\mmx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\sse\sse.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\sse</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\sse2\sse2.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\sse2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\np21\i386c\ia32\instructions\sse3\sse3.cpp">
+      <Filter>Source Files\VM Common Source Files\np21w i386c Source Files\ia32\instructions\sse3</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\n5200\display.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
@@ -178,7 +349,10 @@
     <ClInclude Include="..\src\vm\event.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\i386.h">
+    <ClInclude Include="..\src\vm\i386_dasm.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\i386_np21.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\i8237.h">
@@ -217,6 +391,81 @@
     <ClInclude Include="..\src\vm\vm_template.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\cpucore.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\cpumem.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\cpu.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\cpu_io.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\cpu_mem.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\ctrlxfer.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\exception.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\groups.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\inst_table.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\interface.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\paging.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\resolve.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\segments.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\task.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\instructions\fpu\fp.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\instructions\fpu\fpumem.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\instructions\fpu\softfloat\softfloat-macros.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32\fpu\softfloat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\instructions\fpu\softfloat\softfloat-specialize.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32\fpu\softfloat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\instructions\fpu\softfloat\softfloat.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32\fpu\softfloat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\instructions\fpu\softfloat\softfloatdef.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32\fpu\softfloat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\instructions\mmx\3dnow.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32\mmx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\instructions\mmx\mmx.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32\mmx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\instructions\sse\sse.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32\sse</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\instructions\sse2\sse2.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32\sse2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\np21\i386c\ia32\instructions\sse3\sse3.h">
+      <Filter>Header Files\VM Common Header Files\np21w i386c Header Files\ia32\sse3</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\n5200\display.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
@@ -240,13 +489,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\src\res\n5200.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="..\src\res\indicator\access_off.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="..\src\res\indicator\access_on.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\n5200.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

@@ -3,7 +3,7 @@
 
 	Origin : MAME 0.142
 	Author : Takeda.Toshiya
-	Date  : 2011.04.23-
+	Date   : 2011.04.23-
 
 	[ MC6800 ]
 */

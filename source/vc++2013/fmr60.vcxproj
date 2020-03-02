@@ -172,6 +172,7 @@
     <ClCompile Include="..\src\vm\hd46505.cpp" />
     <ClCompile Include="..\src\vm\hd63484.cpp" />
     <ClCompile Include="..\src\vm\i286.cpp" />
+    <ClCompile Include="..\src\vm\i386_dasm.cpp" />
     <ClCompile Include="..\src\vm\i8251.cpp" />
     <ClCompile Include="..\src\vm\i8253.cpp" />
     <ClCompile Include="..\src\vm\i8259.cpp" />
@@ -208,6 +209,7 @@
     <ClInclude Include="..\src\vm\hd46505.h" />
     <ClInclude Include="..\src\vm\hd63484.h" />
     <ClInclude Include="..\src\vm\i286.h" />
+    <ClInclude Include="..\src\vm\i386_dasm.h" />
     <ClInclude Include="..\src\vm\i8251.h" />
     <ClInclude Include="..\src\vm\i8253.h" />
     <ClInclude Include="..\src\vm\i8259.h" />

@@ -40,7 +40,6 @@
 #ifdef SUPPORT_QUICK_DISK
 #endif
 #ifdef SUPPORT_16BIT_BOARD
-#define HAS_I88
 #define I8259_MAX_CHIPS		1
 #endif
 #define PRINTER_STROBE_RISING_EDGE
@@ -104,7 +103,7 @@ namespace MZ700 {
 }
 #endif
 #ifdef SUPPORT_16BIT_BOARD
-	class I8086;
+	class I86;
 	class I8259;
 #endif
 namespace MZ2500 {
@@ -157,7 +156,7 @@ protected:
 	
 #ifdef SUPPORT_16BIT_BOARD
 	Z80PIO* pio_to16;
-	I8086* cpu_16;
+	I86* cpu_16;
 	I8259* pic_16;
 	MZ80B::MZ1M01* mz1m01;
 #endif

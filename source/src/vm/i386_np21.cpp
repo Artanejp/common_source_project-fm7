@@ -3,7 +3,7 @@
 
 	Origin : np21/w i386c core
 	Author : Takeda.Toshiya
-	Date  : 2020.01.25-
+	Date   : 2020.01.25-
 
 	[ i386/i486/Pentium ]
 */
@@ -11,91 +11,31 @@
 #include "i386_np21.h"
 //#ifdef USE_DEBUGGER
 #include "debugger.h"
+#include "i386_dasm.h"
 //#endif
-#include "i8259.h"
-#include "np21/i386c/ia32/cpu.h"
+#include "np21/i386c/cpucore.h"
 #include "np21/i386c/ia32/instructions/fpu/fp.h"
 
 void I386::initialize()
 {
 	DEVICE::initialize();
-	_I386_PSEUDO_BIOS = osd->check_feature("I386_PSEUDO_BIOS");
+	_I86_PSEUDO_BIOS = osd->check_feature("I86_PSEUDO_BIOS");
 	_SINGLE_MODE_DMA  = osd->check_feature("SINGLE_MODE_DMA");
 	_USE_DEBUGGER     = osd->check_feature("USE_DEBUGGER");
-	
-	n_cpu_type = I386_NP21::N_CPU_TYPE_I386DX;
-	if(osd->check_feature("HAS_I386")) {
-		n_cpu_type = I386_NP21::N_CPU_TYPE_I386DX;
-	} else if(osd->check_feature("HAS_I386DX")) {
-		n_cpu_type = I386_NP21::N_CPU_TYPE_I386DX;
-	} else if(osd->check_feature("HAS_I386SX")) {
-		n_cpu_type = I386_NP21::N_CPU_TYPE_I386SX;
-	} else if(osd->check_feature("HAS_I486DX")) {
-		n_cpu_type = I386_NP21::N_CPU_TYPE_I486DX;
-	} else if(osd->check_feature("HAS_I486")) {
-		n_cpu_type = I386_NP21::N_CPU_TYPE_I486DX;
-	} else if(osd->check_feature("HAS_I486SX")) {
-		n_cpu_type = I386_NP21::N_CPU_TYPE_I486SX;
-	} else if(osd->check_feature("HAS_PENTIUM")) {
-		n_cpu_type = I386_NP21::N_CPU_TYPE_PENTIUM;
-	} else if(osd->check_feature("HAS_PENTIUM_PRO")) {
-		n_cpu_type = I386_NP21::N_CPU_TYPE_PENTIUM_PRO;
-	} else if(osd->check_feature("HAS_PENTIUM_MMX")) {
-		n_cpu_type = I386_NP21::N_CPU_TYPE_PENTIUM_MMX;
-	} else if(osd->check_feature("HAS_PENTIUM2")) {
-		n_cpu_type = I386_NP21::N_CPU_TYPE_PENTIUM2;
-	} else if(osd->check_feature("HAS_PENTIUM3")) {
-		n_cpu_type = I386_NP21::N_CPU_TYPE_PENTIUM3;
-	} else if(osd->check_feature("HAS_PENTIUM4")) {
-		n_cpu_type = I386_NP21::N_CPU_TYPE_PENTIUM4;
-	}
-	switch(n_cpu_type) {
-	case I386_NP21::N_CPU_TYPE_I386DX:
-		set_device_name(_T("i80386DX CPU"));
-		break;
-	case I386_NP21::N_CPU_TYPE_I386SX:
-		set_device_name(_T("i80386SX CPU"));
-		break;
-	case I386_NP21::N_CPU_TYPE_I486DX:
-		set_device_name(_T("i486DX CPU"));
-		break;
-	case I386_NP21::N_CPU_TYPE_I486SX:
-		set_device_name(_T("i486SX CPU"));
-		break;
-	case I386_NP21::N_CPU_TYPE_PENTIUM:
-		set_device_name(_T("Pentium CPU"));
-		break;
-	case I386_NP21::N_CPU_TYPE_PENTIUM_PRO:
-		set_device_name(_T("Pentium PRO CPU"));
-		break;
-	case I386_NP21::N_CPU_TYPE_PENTIUM_MMX:
-		set_device_name(_T("Pentium MMX CPU"));
-		break;
-	case I386_NP21::N_CPU_TYPE_PENTIUM2:
-		set_device_name(_T("Pentium2 CPU"));
-		break;
-	case I386_NP21::N_CPU_TYPE_PENTIUM3:
-		set_device_name(_T("Pentium3 CPU"));
-		break;
-	case I386_NP21::N_CPU_TYPE_PENTIUM4:
-		set_device_name(_T("Pentium4 CPU"));
-		break;
-	default: // ???
-		set_device_name(_T("i80386 CPU"));
-		break;
-	}
-	
-	realclock = get_cpu_clocks(this);
+//	realclock = get_cpu_clocks(this);
 	device_cpu = this;
+	
 //#ifdef USE_DEBUGGER
 	if(_USE_DEBUGGER) {
 		device_mem_stored = device_mem;
 		device_io_stored = device_io;
 		device_debugger->set_context_mem(device_mem);
 		device_debugger->set_context_io(device_io);
+	} else {
+		device_debugger = NULL;
 	}
 //#endif
-	if(!(_I386_PSEUDO_BIOS)) {
+	if(!(_I86_PSEUDO_BIOS)) {
 		device_bios = NULL;
 	}
 	if(!(_SINGLE_MODE_DMA)) {
@@ -103,6 +43,9 @@ void I386::initialize()
 	}
 	waitfactor = 65536;
 	CPU_INITIALIZE();
+	CPU_ADRSMASK = 0x000fffff;
+	realclock = get_cpu_clocks(this);
+	nmi_pending = irq_pending = false;
 }
 
 void I386::release()
@@ -114,10 +57,8 @@ void I386::reset()
 {
 //#if defined(HAS_I386)
 	out_debug_log(_T("RESET"));
-	switch(n_cpu_type) {
-	default:
-	case I386_NP21::N_CPU_TYPE_I386DX:
-	case I386_NP21::N_CPU_TYPE_I386SX:
+	switch(device_model) {
+	case INTEL_80386:
 		i386cpuid.cpu_family = CPU_80386_FAMILY;
 		i386cpuid.cpu_model = CPU_80386_MODEL;
 		i386cpuid.cpu_stepping = CPU_80386_STEPPING;
@@ -127,9 +68,9 @@ void I386::reset()
 		i386cpuid.cpu_brandid = CPU_BRAND_ID_80386;
 		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
 		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_80386);
+		set_device_name(_T("80386 CPU"));
 		break;
-//#elif defined(HAS_I486SX)
-	case I386_NP21::N_CPU_TYPE_I486SX:
+	case INTEL_I486SX:
 		i386cpuid.cpu_family = CPU_I486SX_FAMILY;
 		i386cpuid.cpu_model = CPU_I486SX_MODEL;
 		i386cpuid.cpu_stepping = CPU_I486SX_STEPPING;
@@ -139,9 +80,9 @@ void I386::reset()
 		i386cpuid.cpu_brandid = CPU_BRAND_ID_I486SX;
 		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
 		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_I486SX);
+		set_device_name(_T("80486SX CPU"));
 		break;
-//#elif defined(HAS_I486DX)
-	case I386_NP21::N_CPU_TYPE_I486DX:
+	case INTEL_I486DX:
 		i386cpuid.cpu_family = CPU_I486DX_FAMILY;
 		i386cpuid.cpu_model = CPU_I486DX_MODEL;
 		i386cpuid.cpu_stepping = CPU_I486DX_STEPPING;
@@ -151,9 +92,9 @@ void I386::reset()
 		i386cpuid.cpu_brandid = CPU_BRAND_ID_I486DX;
 		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
 		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_I486DX);
+		set_device_name(_T("80486DX CPU"));
 		break;
-//#elif defined(HAS_PENTIUM)
-	case I386_NP21::N_CPU_TYPE_PENTIUM:
+	case INTEL_PENTIUM:
 		i386cpuid.cpu_family = CPU_PENTIUM_FAMILY;
 		i386cpuid.cpu_model = CPU_PENTIUM_MODEL;
 		i386cpuid.cpu_stepping = CPU_PENTIUM_STEPPING;
@@ -163,21 +104,9 @@ void I386::reset()
 		i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM;
 		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
 		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM);
+		set_device_name(_T("Pentium CPU"));
 		break;
-//#elif defined(HAS_PENTIUM_PRO)
-	case I386_NP21::N_CPU_TYPE_PENTIUM_PRO:
-		i386cpuid.cpu_family = CPU_PENTIUM_PRO_FAMILY;
-		i386cpuid.cpu_model = CPU_PENTIUM_PRO_MODEL;
-		i386cpuid.cpu_stepping = CPU_PENTIUM_PRO_STEPPING;
-		i386cpuid.cpu_feature = CPU_FEATURES_PENTIUM_PRO;
-		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_PENTIUM_PRO;
-		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_PENTIUM_PRO;
-		i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM_PRO;
-		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
-		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM_PRO);
-		break;
-//#elif defined(HAS_PENTIUM_MMX)
-	case I386_NP21::N_CPU_TYPE_PENTIUM_MMX:
+	case INTEL_MMX_PENTIUM:
 		i386cpuid.cpu_family = CPU_MMX_PENTIUM_FAMILY;
 		i386cpuid.cpu_model = CPU_MMX_PENTIUM_MODEL;
 		i386cpuid.cpu_stepping = CPU_MMX_PENTIUM_STEPPING;
@@ -187,9 +116,21 @@ void I386::reset()
 		i386cpuid.cpu_brandid = CPU_BRAND_ID_MMX_PENTIUM;
 		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
 		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_MMX_PENTIUM);
+		set_device_name(_T("MMX Pentium CPU"));
 		break;
-//#elif defined(HAS_PENTIUM2)
-	case I386_NP21::N_CPU_TYPE_PENTIUM2:
+	case INTEL_PENTIUM_PRO:
+		i386cpuid.cpu_family = CPU_PENTIUM_PRO_FAMILY;
+		i386cpuid.cpu_model = CPU_PENTIUM_PRO_MODEL;
+		i386cpuid.cpu_stepping = CPU_PENTIUM_PRO_STEPPING;
+		i386cpuid.cpu_feature = CPU_FEATURES_PENTIUM_PRO;
+		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_PENTIUM_PRO;
+		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_PENTIUM_PRO;
+		i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM_PRO;
+		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
+		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM_PRO);
+		set_device_name(_T("Pentium Pro CPU"));
+		break;
+	case INTEL_PENTIUM_II:
 		i386cpuid.cpu_family = CPU_PENTIUM_II_FAMILY;
 		i386cpuid.cpu_model = CPU_PENTIUM_II_MODEL;
 		i386cpuid.cpu_stepping = CPU_PENTIUM_II_STEPPING;
@@ -199,10 +140,9 @@ void I386::reset()
 		i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM_II;
 		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
 		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM_II);
+		set_device_name(_T("Pentium II CPU"));
 		break;
-//#elif defined(HAS_PENTIUM3)
-	case I386_NP21::N_CPU_TYPE_PENTIUM3:
-
+	case INTEL_PENTIUM_III:
 		i386cpuid.cpu_family = CPU_PENTIUM_III_FAMILY;
 		i386cpuid.cpu_model = CPU_PENTIUM_III_MODEL;
 		i386cpuid.cpu_stepping = CPU_PENTIUM_III_STEPPING;
@@ -212,9 +152,21 @@ void I386::reset()
 		i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM_III;
 		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
 		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM_III);
+		set_device_name(_T("Pentium III CPU"));
 		break;
-//#elif defined(HAS_PENTIUM4)
-	case I386_NP21::N_CPU_TYPE_PENTIUM4:
+	case INTEL_PENTIUM_M:
+		i386cpuid.cpu_family = CPU_PENTIUM_M_FAMILY;
+		i386cpuid.cpu_model = CPU_PENTIUM_M_MODEL;
+		i386cpuid.cpu_stepping = CPU_PENTIUM_M_STEPPING;
+		i386cpuid.cpu_feature = CPU_FEATURES_PENTIUM_M;
+		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_PENTIUM_M;
+		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_PENTIUM_M;
+		i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM_M;
+		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
+		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM_M);
+		set_device_name(_T("Pentium M CPU"));
+		break;
+	case INTEL_PENTIUM_4:
 		i386cpuid.cpu_family = CPU_PENTIUM_4_FAMILY;
 		i386cpuid.cpu_model = CPU_PENTIUM_4_MODEL;
 		i386cpuid.cpu_stepping = CPU_PENTIUM_4_STEPPING;
@@ -224,20 +176,85 @@ void I386::reset()
 		i386cpuid.cpu_brandid = CPU_BRAND_ID_PENTIUM_4;
 		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_INTEL);
 		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_PENTIUM_4);
+		set_device_name(_T("Pentium 4 CPU"));
+		break;
+	case AMD_K6_2:
+		i386cpuid.cpu_family = CPU_AMD_K6_2_FAMILY;
+		i386cpuid.cpu_model = CPU_AMD_K6_2_MODEL;
+		i386cpuid.cpu_stepping = CPU_AMD_K6_2_STEPPING;
+		i386cpuid.cpu_feature = CPU_FEATURES_AMD_K6_2;
+		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_AMD_K6_2;
+		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_AMD_K6_2;
+		i386cpuid.cpu_brandid = CPU_BRAND_ID_AMD_K6_2;
+		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_AMD);
+		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_AMD_K6_2);
+		set_device_name(_T("AMD-K6 3D CPU"));
+		break;
+	case AMD_K6_III:
+		i386cpuid.cpu_family = CPU_AMD_K6_III_FAMILY;
+		i386cpuid.cpu_model = CPU_AMD_K6_III_MODEL;
+		i386cpuid.cpu_stepping = CPU_AMD_K6_III_STEPPING;
+		i386cpuid.cpu_feature = CPU_FEATURES_AMD_K6_III;
+		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_AMD_K6_III;
+		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_AMD_K6_III;
+		i386cpuid.cpu_brandid = CPU_BRAND_ID_AMD_K6_III;
+		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_AMD);
+		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_AMD_K6_III);
+		set_device_name(_T("AMD-K6 3D+ CPU"));
+		break;
+	case AMD_K7_ATHLON:
+		i386cpuid.cpu_family = CPU_AMD_K7_ATHLON_FAMILY;
+		i386cpuid.cpu_model = CPU_AMD_K7_ATHLON_MODEL;
+		i386cpuid.cpu_stepping = CPU_AMD_K7_ATHLON_STEPPING;
+		i386cpuid.cpu_feature = CPU_FEATURES_AMD_K7_ATHLON;
+		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_AMD_K7_ATHLON;
+		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_AMD_K7_ATHLON;
+		i386cpuid.cpu_brandid = CPU_BRAND_ID_AMD_K7_ATHLON;
+		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_AMD);
+		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_AMD_K7_ATHLON);
+		set_device_name(_T("AMD-K7 CPU"));
+		break;
+	case AMD_K7_ATHLON_XP:
+		i386cpuid.cpu_family = CPU_AMD_K7_ATHLON_XP_FAMILY;
+		i386cpuid.cpu_model = CPU_AMD_K7_ATHLON_XP_MODEL;
+		i386cpuid.cpu_stepping = CPU_AMD_K7_ATHLON_XP_STEPPING;
+		i386cpuid.cpu_feature = CPU_FEATURES_AMD_K7_ATHLON_XP;
+		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_AMD_K7_ATHLON_XP;
+		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_AMD_K7_ATHLON_XP;
+		i386cpuid.cpu_brandid = CPU_BRAND_ID_AMD_K7_ATHLON_XP;
+		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_AMD);
+		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_AMD_K7_ATHLON_XP);
+		set_device_name(_T("AMD Athlon XP CPU"));
+		break;
+	default:
+		i386cpuid.cpu_family = CPU_FAMILY;
+		i386cpuid.cpu_model = CPU_MODEL;
+		i386cpuid.cpu_stepping = CPU_STEPPING;
+		i386cpuid.cpu_feature = CPU_FEATURES_ALL;
+		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_ALL;
+		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_ALL;
+		i386cpuid.cpu_brandid = CPU_BRAND_ID_NEKOPRO2;
+		strcpy(i386cpuid.cpu_vendor, CPU_VENDOR_NEKOPRO);
+		strcpy(i386cpuid.cpu_brandstring, CPU_BRAND_STRING_NEKOPRO2);
+		set_device_name(_T("Neko Processor II CPU"));
 		break;
 	}
-//#endif
+	osd->set_vm_node(this_device_id, (char *)this_device_name);
+	
 	i386cpuid.fpu_type = FPU_TYPE_SOFTFLOAT;
 //	i386cpuid.fpu_type = FPU_TYPE_DOSBOX;
 //	i386cpuid.fpu_type = FPU_TYPE_DOSBOX2;
-	FPU_INITIALIZE();
+	fpu_initialize();
+ 	
+	UINT32 PREV_CPU_ADRSMASK = CPU_ADRSMASK;
 	
 	CPU_RESET();
-	CPU_ADRSMASK = address_mask;
+//	CPU_ADRSMASK = address_mask;
 	CPU_TYPE = 0;
-	CS_BASE = 0xf0000;
-	CPU_CS = CPU_PREV_CS = 0xf000;
+	CS_BASE = PREV_CS_BASE = 0xf0000;
+	CPU_CS = 0xf000;
 	CPU_IP = 0xfff0;
+	CPU_ADRSMASK = PREV_CPU_ADRSMASK;
 	CPU_CLEARPREFETCH();
 	
 	remained_cycles = extra_cycles = 0;
@@ -292,12 +309,17 @@ int I386::run_one_opecode()
 			now_debugging = false;
 		}
 		
-		CPU_PREV_CS = CPU_CS;
-		CPU_REMCLOCK = 0;
-		UINT16 CPU_PREV_isEI = CPU_isEI;
+		PREV_CS_BASE = CS_BASE;
+		CPU_REMCLOCK = CPU_BASECLOCK = 1;
 		CPU_EXEC();
-		if(!CPU_PREV_isEI && CPU_isEI) device_pic->update_intr();
-		
+		if(nmi_pending) {
+			CPU_INTERRUPT(2, 0);
+			nmi_pending = false;
+		} else if(irq_pending && CPU_isEI) {
+			CPU_INTERRUPT(device_pic->get_intr_ack(), 0);
+			irq_pending = false;
+			device_pic->update_intr();
+		}
 		if(now_debugging) {
 			if(!device_debugger->now_going) {
 				device_debugger->now_suspended = true;
@@ -305,15 +327,21 @@ int I386::run_one_opecode()
 			device_mem = device_mem_stored;
 			device_io = device_io_stored;
 		}
-		return -CPU_REMCLOCK;
+		return CPU_BASECLOCK - CPU_REMCLOCK;
 	} else {
 //#endif
-		CPU_PREV_CS = CPU_CS;
-		CPU_REMCLOCK = 0;
-		UINT16 CPU_PREV_isEI = CPU_isEI;
+		PREV_CS_BASE = CS_BASE;
+		CPU_REMCLOCK = CPU_BASECLOCK = 1;
 		CPU_EXEC();
-		if(!CPU_PREV_isEI && CPU_isEI) device_pic->update_intr();
-		return -CPU_REMCLOCK;
+		if(nmi_pending) {
+			CPU_INTERRUPT(2, 0);
+			nmi_pending = false;
+		} else if(irq_pending && CPU_isEI) {
+			CPU_INTERRUPT(device_pic->get_intr_ack(), 0);
+			irq_pending = false;
+			device_pic->update_intr();
+		}
+		return CPU_BASECLOCK - CPU_REMCLOCK;
 //#ifdef USE_DEBUGGER
 	}
 //#endif
@@ -346,7 +374,8 @@ int I386::run(int cycles)
 		cpu_wait(passed_cycles);
 		return passed_cycles;
 	} else {
-		remained_cycles += cycles;
+		remained_cycles += cycles + extra_cycles;
+		extra_cycles = 0;
 		int first_cycles = remained_cycles;
 		
 		// run cpu while given clocks
@@ -371,18 +400,13 @@ int I386::run(int cycles)
 void I386::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_CPU_NMI) {
-		if(data & mask) {
-			CPU_INTERRUPT(2, 0);
-		}
+		nmi_pending = ((data & mask) != 0);
 	} else if(id == SIG_CPU_IRQ) {
-		if(data & mask) {
-			if(CPU_isEI) {
-				CPU_INTERRUPT(device_pic->get_intr_ack(), 0);
-			}
-		}
+		irq_pending = ((data & mask) != 0);
 	} else if(id == SIG_CPU_BUSREQ) {
 		busreq = ((data & mask) != 0);
 	} else if(id == SIG_I386_A20) {
+		CPU_ADRSMASK = (data & mask) ? ~0 : ~(1 << 20);
 		//CPU_ADRSMASK = data & mask;
 		ia32a20enable((data & mask) != 0);
 	} else if(id == SIG_I386_NOTIFY_RESET) {
@@ -395,11 +419,7 @@ void I386::write_signal(int id, uint32_t data, uint32_t mask)
 
 void I386::set_intr_line(bool line, bool pending, uint32_t bit)
 {
-	if(line) {
-		if(CPU_isEI) {
-			CPU_INTERRUPT(device_pic->get_intr_ack(), 0);
-		}
-	}
+	irq_pending = line;
 }
 
 void I386::set_extra_clock(int cycles)
@@ -414,30 +434,33 @@ int I386::get_extra_clock()
 
 // from convert_address() in np21/i386c/ia32/disasm.cpp
 
-uint32_t I386::convert_address(uint32_t cs, uint32_t eip)
+uint32_t I386::convert_address(uint32_t cs_base, uint32_t eip)
 {
-	uint32_t addr = (cs << 4) + eip;
-	
-	if (CPU_STAT_PM && CPU_STAT_PAGING) {
-		uint32_t pde_addr = CPU_STAT_PDE_BASE + ((addr >> 20) & 0xffc);
-		uint32_t pde = device_mem->read_data32(pde_addr);
-		/* XXX: check */
-		uint32_t pte_addr = (pde & CPU_PDE_BASEADDR_MASK) + ((addr >> 10) & 0xffc);
-		uint32_t pte = device_mem->read_data32(pte_addr);
-		/* XXX: check */
-		addr = (pte & CPU_PTE_BASEADDR_MASK) + (addr & 0x00000fff);
+	if(CPU_STAT_PM) {
+		uint32_t addr = cs_base + eip;
+		
+		if(CPU_STAT_PAGING) {
+			uint32_t pde_addr = CPU_STAT_PDE_BASE + ((addr >> 20) & 0xffc);
+			uint32_t pde = device_mem->read_data32(pde_addr);
+			/* XXX: check */
+			uint32_t pte_addr = (pde & CPU_PDE_BASEADDR_MASK) + ((addr >> 10) & 0xffc);
+			uint32_t pte = device_mem->read_data32(pte_addr);
+			/* XXX: check */
+			addr = (pte & CPU_PTE_BASEADDR_MASK) + (addr & CPU_PAGE_MASK);
+		}
+		return addr;
 	}
-	return addr;
+	return cs_base + (eip & 0xffff);
 }
 
 uint32_t I386::get_pc()
 {
-	return convert_address(CPU_PREV_CS, CPU_PREV_EIP);
+	return convert_address(PREV_CS_BASE, CPU_PREV_EIP);
 }
 
 uint32_t I386::get_next_pc()
 {
-	return convert_address(CPU_CS, CPU_EIP);
+	return convert_address(CS_BASE, CPU_EIP);
 }
 
 //#ifdef USE_DEBUGGER
@@ -515,7 +538,25 @@ uint32_t I386::read_debug_io32(uint32_t addr)
 
 bool I386::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
-	if(_tcsicmp(reg, _T("IP")) == 0) {
+	if(_tcsicmp(reg, _T("EIP")) == 0) {
+		CPU_EIP = data;
+	} else if(_tcsicmp(reg, _T("EAX")) == 0) {
+		CPU_EAX = data;
+	} else if(_tcsicmp(reg, _T("EBX")) == 0) {
+		CPU_EBX = data;
+	} else if(_tcsicmp(reg, _T("ECX")) == 0) {
+		CPU_ECX = data;
+	} else if(_tcsicmp(reg, _T("EDX")) == 0) {
+		CPU_EDX = data;
+	} else if(_tcsicmp(reg, _T("ESP")) == 0) {
+		CPU_ESP = data;
+	} else if(_tcsicmp(reg, _T("EBP")) == 0) {
+		CPU_EBP = data;
+	} else if(_tcsicmp(reg, _T("ESI")) == 0) {
+		CPU_ESI = data;
+	} else if(_tcsicmp(reg, _T("EDI")) == 0) {
+		CPU_EDI = data;
+	} else if(_tcsicmp(reg, _T("IP")) == 0) {
 		CPU_IP = data;
 	} else if(_tcsicmp(reg, _T("AX")) == 0) {
 		CPU_AX = data;
@@ -557,7 +598,25 @@ bool I386::write_debug_reg(const _TCHAR *reg, uint32_t data)
 
 uint32_t I386::read_debug_reg(const _TCHAR *reg)
 {
-	if(_tcsicmp(reg, _T("IP")) == 0) {
+	if(_tcsicmp(reg, _T("EIP")) == 0) {
+		return CPU_EIP;
+	} else if(_tcsicmp(reg, _T("EAX")) == 0) {
+		return CPU_EAX;
+	} else if(_tcsicmp(reg, _T("EBX")) == 0) {
+		return CPU_EBX;
+	} else if(_tcsicmp(reg, _T("ECX")) == 0) {
+		return CPU_ECX;
+	} else if(_tcsicmp(reg, _T("EDX")) == 0) {
+		return CPU_EDX;
+	} else if(_tcsicmp(reg, _T("ESP")) == 0) {
+		return CPU_ESP;
+	} else if(_tcsicmp(reg, _T("EBP")) == 0) {
+		return CPU_EBP;
+	} else if(_tcsicmp(reg, _T("ESI")) == 0) {
+		return CPU_ESI;
+	} else if(_tcsicmp(reg, _T("EDI")) == 0) {
+		return CPU_EDI;
+	} else if(_tcsicmp(reg, _T("IP")) == 0) {
 		return CPU_IP;
 	} else if(_tcsicmp(reg, _T("AX")) == 0) {
 		return CPU_AX;
@@ -597,86 +656,50 @@ uint32_t I386::read_debug_reg(const _TCHAR *reg)
 
 bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
-	my_stprintf_s(buffer, buffer_len,
-	_T("AX=%04X  BX=%04X  CX=%04X  DX=%04X  SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
-	_T("DS=%04X  ES=%04X  SS=%04X  CS=%04X  IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]\n")
-	_T("EIP=%08X  PC=%08X  PM=%d  VM86=%d\n")
-	_T("ADDRESS_MASK=%08X\n")
-	_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
-	CPU_AX, CPU_BX, CPU_CX, CPU_DX, CPU_SP, CPU_BP, CPU_SI, CPU_DI,
-	CPU_DS, CPU_ES, CPU_SS, CPU_CS, CPU_IP,
-	(CPU_FLAG & O_FLAG) ? _T('O') : _T('-'), (CPU_FLAG & D_FLAG) ? _T('D') : _T('-'), (CPU_FLAG & I_FLAG) ? _T('I') : _T('-'), (CPU_FLAG & T_FLAG) ? _T('T') : _T('-'),
-	(CPU_FLAG & S_FLAG) ? _T('S') : _T('-'), (CPU_FLAG & Z_FLAG) ? _T('Z') : _T('-'), (CPU_FLAG & A_FLAG) ? _T('A') : _T('-'), (CPU_FLAG & P_FLAG) ? _T('P') : _T('-'), (CPU_FLAG & C_FLAG) ? _T('C') : _T('-'),
-	CPU_EIP, convert_address(CPU_CS, CPU_EIP), CPU_STAT_PM ? 1 : 0, CPU_STAT_VM86 ? 1 : 0,
-    CPU_ADRSMASK,
-	total_cycles, total_cycles - prev_total_cycles,
-	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
+	if(CPU_STAT_PM) {
+		my_stprintf_s(buffer, buffer_len,
+		_T("EAX=%08X  EBX=%08X  ECX=%08X  EDX=%08X\n")
+		_T("ESP=%08X  EBP=%08X  ESI=%08X  EDI=%08X\n")
+		_T("DS=%04X  ES=%04X  SS=%04X  CS=%04X  EIP=%08X  FLAG=[%c%c%c%c%c%c%c%c%c%s]\n")
+		_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+		CPU_EAX, CPU_EBX, CPU_ECX, CPU_EDX, CPU_ESP, CPU_EBP, CPU_ESI, CPU_EDI,
+		CPU_DS, CPU_ES, CPU_SS, CPU_CS, CPU_EIP,
+		(CPU_FLAG & O_FLAG) ? _T('O') : _T('-'), (CPU_FLAG & D_FLAG) ? _T('D') : _T('-'), (CPU_FLAG & I_FLAG) ? _T('I') : _T('-'), (CPU_FLAG & T_FLAG) ? _T('T') : _T('-'), (CPU_FLAG & S_FLAG) ? _T('S') : _T('-'),
+		(CPU_FLAG & Z_FLAG) ? _T('Z') : _T('-'), (CPU_FLAG & A_FLAG) ? _T('A') : _T('-'), (CPU_FLAG & P_FLAG) ? _T('P') : _T('-'), (CPU_FLAG & C_FLAG) ? _T('C') : _T('-'), (CPU_STAT_VM86) ? _T(":VM86") : _T(""),
+		total_cycles, total_cycles - prev_total_cycles,
+		get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
+	} else {
+		my_stprintf_s(buffer, buffer_len,
+		_T("AX=%04X  BX=%04X  CX=%04X  DX=%04X  SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
+		_T("DS=%04X  ES=%04X  SS=%04X  CS=%04X  IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]\n")
+		_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+		CPU_AX, CPU_BX, CPU_CX, CPU_DX, CPU_SP, CPU_BP, CPU_SI, CPU_DI,
+		CPU_DS, CPU_ES, CPU_SS, CPU_CS, CPU_IP,
+		(CPU_FLAG & O_FLAG) ? _T('O') : _T('-'), (CPU_FLAG & D_FLAG) ? _T('D') : _T('-'), (CPU_FLAG & I_FLAG) ? _T('I') : _T('-'), (CPU_FLAG & T_FLAG) ? _T('T') : _T('-'), (CPU_FLAG & S_FLAG) ? _T('S') : _T('-'),
+		(CPU_FLAG & Z_FLAG) ? _T('Z') : _T('-'), (CPU_FLAG & A_FLAG) ? _T('A') : _T('-'), (CPU_FLAG & P_FLAG) ? _T('P') : _T('-'), (CPU_FLAG & C_FLAG) ? _T('C') : _T('-'),
+		total_cycles, total_cycles - prev_total_cycles,
+		get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
+	}
 	prev_total_cycles = total_cycles;
 	return true;
 }
 
-#define USE_MAME_I386_DASM
-
-#ifdef USE_MAME_I386_DASM
-/*****************************************************************************/
-/* src/emu/devcpu.h */
-
-// CPU interface functions
-#define CPU_DISASSEMBLE_NAME(name)		cpu_disassemble_##name
-#define CPU_DISASSEMBLE(name)			int CPU_DISASSEMBLE_NAME(name)(_TCHAR *buffer, offs_t eip, const UINT8 *oprom)
-#define CPU_DISASSEMBLE_CALL(name)		CPU_DISASSEMBLE_NAME(name)(buffer, eip, oprom)
-
-/*****************************************************************************/
-/* src/emu/didisasm.h */
-
-// Disassembler constants
-const UINT32 DASMFLAG_SUPPORTED     = 0x80000000;   // are disassembly flags supported?
-const UINT32 DASMFLAG_STEP_OUT      = 0x40000000;   // this instruction should be the end of a step out sequence
-const UINT32 DASMFLAG_STEP_OVER     = 0x20000000;   // this instruction should be stepped over by setting a breakpoint afterwards
-const UINT32 DASMFLAG_OVERINSTMASK  = 0x18000000;   // number of extra instructions to skip when stepping over
-const UINT32 DASMFLAG_OVERINSTSHIFT = 27;           // bits to shift after masking to get the value
-const UINT32 DASMFLAG_LENGTHMASK    = 0x0000ffff;   // the low 16-bits contain the actual length
-
-// offsets and addresses are 32-bit (for now...)
-typedef UINT32	offs_t;
-
-/*****************************************************************************/
-/* src/osd/osdcomm.h */
-
-/* Highly useful macro for compile-time knowledge of an array size */
-#define ARRAY_LENGTH(x)     (sizeof(x) / sizeof(x[0]))
-
-#include "mame/emu/cpu/i386/i386dasm.c"
-#endif
 
 int I386::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
-#ifdef USE_MAME_I386_DASM
-	UINT64 eip = pc - (CPU_CS << 4);
-	UINT8 ops[16];
+	uint32_t eip = pc - (CPU_CS << 4);
+	uint8_t oprom[16];
+	
 	for(int i = 0; i < 16; i++) {
 		int wait;
-		ops[i] = device_mem->read_data8w((pc + i) & CPU_ADRSMASK, &wait);
+		oprom[i] = device_mem->read_data8w((pc + i) & CPU_ADRSMASK, &wait);
 	}
-	UINT8 *oprom = ops;
 	
-	if (!CPU_STAT_PM || CPU_STAT_VM86) {
-		return CPU_DISASSEMBLE_CALL(x86_16) & DASMFLAG_LENGTHMASK;
-	} else {
-		return CPU_DISASSEMBLE_CALL(x86_32) & DASMFLAG_LENGTHMASK;
-	}
-#else
-	disasm_context_t ctx;
-	uint32_t eip = pc - (CPU_CS << 4);
-	uint32_t prev_eip = eip;
-	
-	if(disasm(&eip, &ctx) == 0) {
-		my_strcpy_s(buffer, buffer_len, char_to_tchar(ctx.str));
-	} else {
-		buffer[0] = _T('\0');
-	}
-	return eip - prev_eip;
-#endif
+	if(CPU_INST_OP32) {
+		return i386_dasm(oprom, eip, true,  buffer, buffer_len);
+ 	} else {
+		return i386_dasm(oprom, eip, false, buffer, buffer_len);
+ 	}
 }
 //#endif
 
@@ -713,7 +736,7 @@ void I386::set_context_io(DEVICE* device)
 	device_io = device;
 }
 
-//#ifdef I386_PSEUDO_BIOS
+//#ifdef I86_PSEUDO_BIOS
 void I386::set_context_bios(DEVICE* device)
 {
 	device_bios = device;
@@ -726,6 +749,20 @@ void I386::set_context_dma(DEVICE* device)
 	device_dma = device;
 }
 //#endif
+void I386::set_context_intr(DEVICE* device)
+{
+	device_pic = device;
+}
+
+void I386::set_context_debugger(DEBUGGER* deb)
+{
+	device_debugger = deb;
+}
+
+void *I386::get_debugger()
+{
+	return device_debugger;
+}
 
 #define STATE_VERSION	2
 
@@ -742,13 +779,18 @@ bool I386::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(&i386cpuid, sizeof(i386cpuid), 1);
 	state_fio->StateBuffer(&i386msr, sizeof(i386msr), 1);
 //#ifdef USE_DEBUGGER
-	state_fio->StateValue(total_cycles);
-	state_fio->StateValue(prev_total_cycles);
+	if(_USE_DEBUGGER) {
+		state_fio->StateValue(total_cycles);
+		state_fio->StateValue(prev_total_cycles);
+	}
 //#endif
 	state_fio->StateValue(remained_cycles);
 	state_fio->StateValue(extra_cycles);
 	state_fio->StateValue(busreq);
-	state_fio->StateValue(CPU_PREV_CS);
+	state_fio->StateValue(nmi_pending);
+	state_fio->StateValue(irq_pending);
+	state_fio->StateValue(PREV_CS_BASE);
+
 	state_fio->StateValue(waitfactor);
 	state_fio->StateValue(waitcount);
 	state_fio->StateValue(i386_memory_wait);

@@ -45,21 +45,6 @@
 #define CPU_EXECUTE(name)			int CPU_EXECUTE_NAME(name)(cpu_state *cpustate, int icount)
 #define CPU_EXECUTE_CALL(name)			CPU_EXECUTE_NAME(name)(cpustate, icount)
 
-#define CPU_DISASSEMBLE_NAME(name)		cpu_disassemble_##name
-#define CPU_DISASSEMBLE(name)			int CPU_DISASSEMBLE_NAME(name)(_TCHAR *buffer, offs_t eip, const UINT8 *oprom)
-#define CPU_DISASSEMBLE_CALL(name)		CPU_DISASSEMBLE_NAME(name)(buffer, eip, oprom)
-
-/*****************************************************************************/
-/* src/emu/didisasm.h */
-
-// Disassembler constants
-const UINT32 DASMFLAG_SUPPORTED     = 0x80000000;   // are disassembly flags supported?
-const UINT32 DASMFLAG_STEP_OUT      = 0x40000000;   // this instruction should be the end of a step out sequence
-const UINT32 DASMFLAG_STEP_OVER     = 0x20000000;   // this instruction should be stepped over by setting a breakpoint afterwards
-const UINT32 DASMFLAG_OVERINSTMASK  = 0x18000000;   // number of extra instructions to skip when stepping over
-const UINT32 DASMFLAG_OVERINSTSHIFT = 27;           // bits to shift after masking to get the value
-const UINT32 DASMFLAG_LENGTHMASK    = 0x0000ffff;   // the low 16-bits contain the actual length
-
 /*****************************************************************************/
 /* src/emu/diexec.h */
 

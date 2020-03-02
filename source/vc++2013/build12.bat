@@ -74,8 +74,11 @@ copy binary_vc12\fm77av40ex.exe build_vc12\fm77av40\.
 
 devenv.com fm16beta_i186.vcxproj /Rebuild Release
 call :clean
+devenv.com fm16beta_i286.vcxproj /Rebuild Release
+call :clean
 mkdir build_vc12\fm16beta
 copy binary_vc12\fm16beta_i186.exe build_vc12\fm16beta\.
+copy binary_vc12\fm16beta_i286.exe build_vc12\fm16beta\.
 
 devenv.com fm16pi.vcxproj /Rebuild Release
 call :clean

@@ -13,7 +13,8 @@
 #include "../event.h"
 
 #include "../beep.h"
-#include "../i386.h"
+#include "../i386_np21.h"
+//#include "../i386.h"
 #include "../i8237.h"
 #include "../i8251.h"
 #include "../i8253.h"
@@ -58,6 +59,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	beep->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	cpu = new I386(this, emu);
+	cpu->device_model = INTEL_80386;
 	dma = new I8237(this, emu);
 #ifdef USE_DEBUGGER
 	dma->set_context_debugger(new DEBUGGER(this, emu));
@@ -439,7 +441,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

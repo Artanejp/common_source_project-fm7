@@ -16,7 +16,9 @@
 #include "../i8255.h"
 #if defined(SUPPORT_32BIT_ADDRESS)
 #include "../i386_np21.h"
+//#include "../i386.h"
 #else
+//#include "../i286_np21.h"
 #include "../i286.h"
 #endif
 
@@ -43,10 +45,14 @@ void CPUREG::halt_by_use_v30()
 {
 	if((use_v30)) {
 		d_cpu->write_signal(SIG_CPU_HALTREQ, 1, 1);
-		d_v30cpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
+		if(d_v30cpu != NULL) {
+			d_v30cpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
+		}
 	} else {
 		d_cpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
-		d_v30cpu->write_signal(SIG_CPU_HALTREQ, 1, 1);
+		if(d_v30cpu != NULL) {
+			d_v30cpu->write_signal(SIG_CPU_HALTREQ, 1, 1);
+		}
 	}
 }
 #endif
@@ -56,7 +62,9 @@ void CPUREG::halt_by_value(bool val)
 	bool haltvalue = (val) ? 0xffffffff : 0x0000000;
 #if defined(HAS_V30_SUB_CPU)
 	d_cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
-	d_v30cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
+	if(d_v30cpu != NULL) {
+		d_v30cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
+	}
 #else
 	d_cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
 #endif	
@@ -79,7 +87,9 @@ void CPUREG::reset()
 	use_v30 = false;
 	reg_0f0 = 0x00;
 	write_signals(&outputs_cputype, 0x00000000);
-	d_v30cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+	if(d_v30cpu != NULL) {
+		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+	}
 	halt_by_use_v30();
 #endif
 }
@@ -113,7 +123,9 @@ void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
 #if defined(HAS_V30_SUB_CPU)
 		// RESET V30 at here.
 //		use_v30 = (((reg_0f0 & 1) != 0) || ((reg_0f0 & 2) != 0) || ((reg_0f0 & 4) != 0));
-		d_v30cpu->reset();
+		if(d_v30cpu != NULL) {
+			d_v30cpu->reset();
+		}
 		halt_by_use_v30();
 		write_signals(&outputs_cputype, (use_v30) ? 0xffffffff : 0x00000000);
 #else
@@ -300,7 +312,9 @@ void CPUREG::event_callback(int id, int err)
 		if(!(stat_exthalt)) {
 			
 #if defined(HAS_V30_SUB_CPU)
-			d_v30cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+			if(d_v30cpu != NULL) {
+				d_v30cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+			}
 #endif
 			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 		}

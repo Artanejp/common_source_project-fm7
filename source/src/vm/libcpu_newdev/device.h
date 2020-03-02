@@ -615,6 +615,7 @@ public:
 	{
 		return 0xff;
 	}
+	virtual void update_intr() {}
 	virtual void notify_intr_reti() {}
 	virtual void notify_intr_ei() {}
 	

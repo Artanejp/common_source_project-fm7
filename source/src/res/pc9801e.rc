@@ -215,6 +215,12 @@ BEGIN
             MENUITEM "8086 8MHz",               ID_VM_CPU_TYPE0
             MENUITEM "8086 5MHz",               ID_VM_CPU_TYPE1
         END
+        POPUP "Floppy Drive"
+        BEGIN
+            MENUITEM "1MB-FD",                  ID_VM_DIPSWITCH0
+            MENUITEM "640KB-FD",                ID_VM_DIPSWITCH1
+            MENUITEM "320KB-FD",                ID_VM_DIPSWITCH2
+        END
         POPUP "Sound"
         BEGIN
             MENUITEM "PC-9801-26 (BIOS Enabled)",   ID_VM_SOUND_TYPE0

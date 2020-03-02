@@ -3,14 +3,15 @@
 
 	Origin : MAME i286 core
 	Author : Takeda.Toshiya
-	Date  : 2012.10.18-
+	Date   : 2012.10.18-
 
-	[ i286 ]
+	[ 80286 ]
 */
 
 #include "i286.h"
 //#ifdef USE_DEBUGGER
 #include "debugger.h"
+#include "i386_dasm.h"
 //#endif
 #include "i80x86_commondefs.h"
 
@@ -18,15 +19,12 @@
 	#define cpu_state i80286_state
 	#define CPU_MODEL i80286
 	#include "mame/emu/cpu/i86/i286.c"
-	#include "mame/emu/cpu/i386/i386dasm.c"
+//	#include "mame/emu/cpu/i386/i386dasm.c"
 //}
 
-void I80286::initialize()
+void I286::initialize()
 {
 	DEVICE::initialize();
-	_HAS_i80286 = false;
-	_HAS_v30 = true;
-	n_cpu_type = N_CPU_TYPE_I80286;
 	
 	opaque = CPU_INIT_CALL(i80286);
 	cpu_state *cpustate = (cpu_state *)opaque;
@@ -46,12 +44,12 @@ void I80286::initialize()
 	}
 }
 
-void I80286::release()
+void I286::release()
 {
 	free(opaque);
 }
 
-void I80286::reset()
+void I286::reset()
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	int busreq = cpustate->busreq;
@@ -72,13 +70,13 @@ void I80286::reset()
 	cpustate->haltreq = haltreq;
 }
 
-int I80286::run(int icount)
+int I286::run(int icount)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	return CPU_EXECUTE_CALL( i80286 );
 }
 
-uint32_t I80286::read_signal(int id)
+uint32_t I286::read_signal(int id)
 {
 	if((id == SIG_CPU_TOTAL_CYCLE_HI) || (id == SIG_CPU_TOTAL_CYCLE_LO)) {
 		cpu_state *cpustate = (cpu_state *)opaque;
@@ -100,7 +98,7 @@ uint32_t I80286::read_signal(int id)
 	return 0;
 }
 
-void I80286::write_signal(int id, uint32_t data, uint32_t mask)
+void I286::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	
@@ -122,89 +120,91 @@ void I80286::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void I80286::set_intr_line(bool line, bool pending, uint32_t bit)
+void I286::set_intr_line(bool line, bool pending, uint32_t bit)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	set_irq_line(cpustate, INPUT_LINE_IRQ, line ? HOLD_LINE : CLEAR_LINE);
 }
 
-void I80286::set_extra_clock(int icount)
+void I286::set_extra_clock(int icount)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	cpustate->extra_cycles += icount;
 }
 
-int I80286::get_extra_clock()
+int I286::get_extra_clock()
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	return cpustate->extra_cycles;
 }
 
-uint32_t I80286::get_pc()
+uint32_t I286::get_pc()
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	return cpustate->prevpc;
 }
 
-uint32_t I80286::get_next_pc()
+uint32_t I286::get_next_pc()
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	return cpustate->pc;
 }
 
-uint32_t I80286::translate_address(int segment, uint32_t offset)
+uint32_t I286::translate_address(int segment, uint32_t offset)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	return cpustate->base[segment] + offset;
 }
 
-void I80286::write_debug_data8(uint32_t addr, uint32_t data)
+void I286::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_mem->write_data8w(addr, data, &wait);
 }
 
-uint32_t I80286::read_debug_data8(uint32_t addr)
+uint32_t I286::read_debug_data8(uint32_t addr)
 {
 	int wait;
 	return d_mem->read_data8w(addr, &wait);
 }
 
-void I80286::write_debug_data16(uint32_t addr, uint32_t data)
+void I286::write_debug_data16(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_mem->write_data16w(addr, data, &wait);
 }
 
-uint32_t I80286::read_debug_data16(uint32_t addr)
+uint32_t I286::read_debug_data16(uint32_t addr)
 {
 	int wait;
 	return d_mem->read_data16w(addr, &wait);
 }
 
-void I80286::write_debug_io8(uint32_t addr, uint32_t data)
+void I286::write_debug_io8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_io->write_io8w(addr, data, &wait);
 }
 
-uint32_t I80286::read_debug_io8(uint32_t addr) {
+uint32_t I286::read_debug_io8(uint32_t addr)
+{
 	int wait;
 	return d_io->read_io8w(addr, &wait);
 }
 
-void I80286::write_debug_io16(uint32_t addr, uint32_t data)
+void I286::write_debug_io16(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_io->write_io16w(addr, data, &wait);
 }
 
-uint32_t I80286::read_debug_io16(uint32_t addr) {
+uint32_t I286::read_debug_io16(uint32_t addr)
+{
 	int wait;
 	return d_io->read_io16w(addr, &wait);
 }
 
-bool I80286::write_debug_reg(const _TCHAR *reg, uint32_t data)
+bool I286::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	if(_tcsicmp(reg, _T("IP")) == 0) {
@@ -248,7 +248,7 @@ bool I80286::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	return true;
 }
 
-uint32_t I80286::read_debug_reg(const _TCHAR *reg)
+uint32_t I286::read_debug_reg(const _TCHAR *reg)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	if(_tcsicmp(reg, _T("IP")) == 0) {
@@ -289,7 +289,7 @@ uint32_t I80286::read_debug_reg(const _TCHAR *reg)
 	return 0;
 }
 
-bool I80286::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+bool I286::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	my_stprintf_s(buffer, buffer_len,
@@ -306,48 +306,46 @@ bool I80286::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	return true;
 }
 
-int I80286::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
+int I286::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
-	UINT64 eip = pc - cpustate->base[CS];
-	UINT8 ops[16];
+	uint32_t eip = pc - cpustate->base[CS];
+	uint8_t  oprom[16];
 	for(int i = 0; i < 16; i++) {
 		int wait;
-		ops[i] = d_mem->read_data8w(pc + i, &wait);
+		oprom[i] = d_mem->read_data8w((pc + i) & AMASK, &wait);
 	}
-	UINT8 *oprom = ops;
-	
-	return CPU_DISASSEMBLE_CALL(x86_16) & DASMFLAG_LENGTHMASK;
+	return i386_dasm(oprom, eip, false, buffer, buffer_len);
 }
 
 
-void I80286::set_address_mask(uint32_t mask)
+void I286::set_address_mask(uint32_t mask)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	cpustate->amask = mask;
 }
 
-uint32_t I80286::get_address_mask()
+uint32_t I286::get_address_mask()
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	return cpustate->amask;
 }
 
-void I80286::set_shutdown_flag(int shutdown)
+void I286::set_shutdown_flag(int shutdown)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	cpustate->shutdown = shutdown;
 }
 
-int I80286::get_shutdown_flag()
+int I286::get_shutdown_flag()
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	return cpustate->shutdown;
 }
 
-#define STATE_VERSION	8
+#define STATE_VERSION	9
 
-bool I80286::process_state(FILEIO* state_fio, bool loading)
+bool I286::process_state(FILEIO* state_fio, bool loading)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	
@@ -389,7 +387,9 @@ bool I80286::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->ParityVal);
 	state_fio->StateValue(cpustate->TF);
 	state_fio->StateValue(cpustate->IF);
+#if 0
 	state_fio->StateValue(cpustate->MF);
+#endif
 	state_fio->StateValue(cpustate->nmi_state);
 	state_fio->StateValue(cpustate->irq_state);
 	state_fio->StateValue(cpustate->test_state);

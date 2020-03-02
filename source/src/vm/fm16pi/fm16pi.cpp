@@ -49,7 +49,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit = new I8253(this, emu);
 	pio = new I8255(this, emu);	// for system port
 	pic = new I8259(this, emu);
-	cpu = new I8086(this, emu);
+	cpu = new I86(this, emu);
+	cpu->device_model = INTEL_8086;
 	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
@@ -420,7 +421,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

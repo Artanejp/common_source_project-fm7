@@ -26,6 +26,9 @@ public slots:
 	void do_set_ram_512k(bool);	
 	void do_set_init_memsw(bool);
 	void do_set_enable_v30(bool flag);
+	void do_set_connect_2d(bool flag);
+	void do_set_connect_2dd(bool flag);
+	void do_set_connect_2hd(bool flag);
 signals:
 	int sig_emu_update_config();
 };
@@ -56,6 +59,13 @@ protected:
 #endif
 #if defined(_PC98DO)
 	Action_Control_98 *actionMemoryWait;
+#endif
+#if defined(SUPPORT_320KB_FDD_IF)
+	Action_Control_98 *actionConnect2D;
+#endif
+#if defined(_PC9801) || defined(_PC9801E)
+	Action_Control_98 *actionConnect2DD;
+	Action_Control_98 *actionConnect2HD;
 #endif
 #if defined(HAS_V30_SUB_CPU)
 	Action_Control_98 *actionSUB_V30;

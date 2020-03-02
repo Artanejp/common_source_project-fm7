@@ -550,6 +550,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\i386_dasm.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\i386_np21.cpp"
 					>
 					<FileConfiguration
@@ -815,10 +835,42 @@
 					<File
 						RelativePath="..\src\vm\np21\i386c\cpucore.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								PreprocessorDefinitions=""
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								PreprocessorDefinitions=""
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\src\vm\np21\i386c\cpumem.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								PreprocessorDefinitions=""
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								PreprocessorDefinitions=""
+							/>
+						</FileConfiguration>
 					</File>
 					<Filter
 						Name="ia32"
@@ -826,58 +878,282 @@
 						<File
 							RelativePath="..\src\vm\np21\i386c\ia32\cpu.cpp"
 							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Release|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
 						</File>
 						<File
 							RelativePath="..\src\vm\np21\i386c\ia32\cpu_io.cpp"
 							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Release|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
 						</File>
 						<File
 							RelativePath="..\src\vm\np21\i386c\ia32\cpu_mem.cpp"
 							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Release|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
 						</File>
 						<File
 							RelativePath="..\src\vm\np21\i386c\ia32\ctrlxfer.cpp"
 							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Release|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
 						</File>
 						<File
 							RelativePath="..\src\vm\np21\i386c\ia32\debug.cpp"
 							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Release|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
 						</File>
 						<File
 							RelativePath="..\src\vm\np21\i386c\ia32\exception.cpp"
 							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Release|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
 						</File>
 						<File
 							RelativePath="..\src\vm\np21\i386c\ia32\groups.cpp"
 							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Release|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
 						</File>
 						<File
 							RelativePath="..\src\vm\np21\i386c\ia32\ia32.cpp"
 							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Release|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
 						</File>
 						<File
 							RelativePath="..\src\vm\np21\i386c\ia32\inst_table.cpp"
 							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Release|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
 						</File>
 						<File
 							RelativePath="..\src\vm\np21\i386c\ia32\interface.cpp"
 							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Release|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
 						</File>
 						<File
 							RelativePath="..\src\vm\np21\i386c\ia32\paging.cpp"
 							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Release|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
 						</File>
 						<File
 							RelativePath="..\src\vm\np21\i386c\ia32\resolve.cpp"
 							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Release|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
 						</File>
 						<File
 							RelativePath="..\src\vm\np21\i386c\ia32\segments.cpp"
 							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Release|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
 						</File>
 						<File
 							RelativePath="..\src\vm\np21\i386c\ia32\task.cpp"
 							>
+							<FileConfiguration
+								Name="Debug|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Release|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									PreprocessorDefinitions=""
+								/>
+							</FileConfiguration>
 						</File>
 						<Filter
 							Name="instructions"
@@ -885,54 +1161,262 @@
 							<File
 								RelativePath="..\src\vm\np21\i386c\ia32\instructions\bin_arith.cpp"
 								>
+								<FileConfiguration
+									Name="Debug|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
+								<FileConfiguration
+									Name="Release|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
 							</File>
 							<File
 								RelativePath="..\src\vm\np21\i386c\ia32\instructions\bit_byte.cpp"
 								>
+								<FileConfiguration
+									Name="Debug|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
+								<FileConfiguration
+									Name="Release|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
 							</File>
 							<File
 								RelativePath="..\src\vm\np21\i386c\ia32\instructions\ctrl_trans.cpp"
 								>
+								<FileConfiguration
+									Name="Debug|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
+								<FileConfiguration
+									Name="Release|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
 							</File>
 							<File
 								RelativePath="..\src\vm\np21\i386c\ia32\instructions\data_trans.cpp"
 								>
+								<FileConfiguration
+									Name="Debug|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
+								<FileConfiguration
+									Name="Release|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
 							</File>
 							<File
 								RelativePath="..\src\vm\np21\i386c\ia32\instructions\dec_arith.cpp"
 								>
+								<FileConfiguration
+									Name="Debug|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
+								<FileConfiguration
+									Name="Release|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
 							</File>
 							<File
 								RelativePath="..\src\vm\np21\i386c\ia32\instructions\flag_ctrl.cpp"
 								>
+								<FileConfiguration
+									Name="Debug|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
+								<FileConfiguration
+									Name="Release|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
 							</File>
 							<File
 								RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu.cpp"
 								>
+								<FileConfiguration
+									Name="Debug|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
+								<FileConfiguration
+									Name="Release|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
 							</File>
 							<File
 								RelativePath="..\src\vm\np21\i386c\ia32\instructions\logic_arith.cpp"
 								>
+								<FileConfiguration
+									Name="Debug|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
+								<FileConfiguration
+									Name="Release|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
 							</File>
 							<File
 								RelativePath="..\src\vm\np21\i386c\ia32\instructions\misc_inst.cpp"
 								>
+								<FileConfiguration
+									Name="Debug|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
+								<FileConfiguration
+									Name="Release|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
 							</File>
 							<File
 								RelativePath="..\src\vm\np21\i386c\ia32\instructions\seg_reg.cpp"
 								>
+								<FileConfiguration
+									Name="Debug|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
+								<FileConfiguration
+									Name="Release|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
 							</File>
 							<File
 								RelativePath="..\src\vm\np21\i386c\ia32\instructions\shift_rotate.cpp"
 								>
+								<FileConfiguration
+									Name="Debug|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
+								<FileConfiguration
+									Name="Release|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
 							</File>
 							<File
 								RelativePath="..\src\vm\np21\i386c\ia32\instructions\string_inst.cpp"
 								>
+								<FileConfiguration
+									Name="Debug|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
+								<FileConfiguration
+									Name="Release|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
 							</File>
 							<File
 								RelativePath="..\src\vm\np21\i386c\ia32\instructions\system_inst.cpp"
 								>
+								<FileConfiguration
+									Name="Debug|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
+								<FileConfiguration
+									Name="Release|Win32"
+									>
+									<Tool
+										Name="VCCLCompilerTool"
+										PreprocessorDefinitions=""
+									/>
+								</FileConfiguration>
 							</File>
 							<Filter
 								Name="fpu"
@@ -940,18 +1424,82 @@
 								<File
 									RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu\fpdummy.cpp"
 									>
+									<FileConfiguration
+										Name="Debug|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
+									<FileConfiguration
+										Name="Release|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
 								</File>
 								<File
 									RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu\fpemul_dosbox.cpp"
 									>
+									<FileConfiguration
+										Name="Debug|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
+									<FileConfiguration
+										Name="Release|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
 								</File>
 								<File
 									RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu\fpemul_dosbox2.cpp"
 									>
+									<FileConfiguration
+										Name="Debug|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
+									<FileConfiguration
+										Name="Release|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
 								</File>
 								<File
 									RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu\fpemul_softfloat.cpp"
 									>
+									<FileConfiguration
+										Name="Debug|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
+									<FileConfiguration
+										Name="Release|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
 								</File>
 								<Filter
 									Name="softfloat"
@@ -959,6 +1507,22 @@
 									<File
 										RelativePath="..\src\vm\np21\i386c\ia32\instructions\fpu\softfloat\softfloat.cpp"
 										>
+										<FileConfiguration
+											Name="Debug|Win32"
+											>
+											<Tool
+												Name="VCCLCompilerTool"
+												PreprocessorDefinitions=""
+											/>
+										</FileConfiguration>
+										<FileConfiguration
+											Name="Release|Win32"
+											>
+											<Tool
+												Name="VCCLCompilerTool"
+												PreprocessorDefinitions=""
+											/>
+										</FileConfiguration>
 									</File>
 								</Filter>
 							</Filter>
@@ -968,10 +1532,42 @@
 								<File
 									RelativePath="..\src\vm\np21\i386c\ia32\instructions\mmx\3dnow.cpp"
 									>
+									<FileConfiguration
+										Name="Debug|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
+									<FileConfiguration
+										Name="Release|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
 								</File>
 								<File
 									RelativePath="..\src\vm\np21\i386c\ia32\instructions\mmx\mmx.cpp"
 									>
+									<FileConfiguration
+										Name="Debug|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
+									<FileConfiguration
+										Name="Release|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
 								</File>
 							</Filter>
 							<Filter
@@ -980,6 +1576,22 @@
 								<File
 									RelativePath="..\src\vm\np21\i386c\ia32\instructions\sse\sse.cpp"
 									>
+									<FileConfiguration
+										Name="Debug|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
+									<FileConfiguration
+										Name="Release|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
 								</File>
 							</Filter>
 							<Filter
@@ -988,6 +1600,22 @@
 								<File
 									RelativePath="..\src\vm\np21\i386c\ia32\instructions\sse2\sse2.cpp"
 									>
+									<FileConfiguration
+										Name="Debug|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
+									<FileConfiguration
+										Name="Release|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
 								</File>
 							</Filter>
 							<Filter
@@ -996,6 +1624,22 @@
 								<File
 									RelativePath="..\src\vm\np21\i386c\ia32\instructions\sse3\sse3.cpp"
 									>
+									<FileConfiguration
+										Name="Debug|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
+									<FileConfiguration
+										Name="Release|Win32"
+										>
+										<Tool
+											Name="VCCLCompilerTool"
+											PreprocessorDefinitions=""
+										/>
+									</FileConfiguration>
 								</File>
 							</Filter>
 						</Filter>
@@ -1232,6 +1876,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\hd46505.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\i386_dasm.h"
 					>
 				</File>
 				<File
@@ -1496,15 +2144,15 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\res\resource.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\res\indicator\access_off.bmp"
 				>
 			</File>
 			<File
 				RelativePath="..\src\res\indicator\access_on.bmp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\resource.h"
 				>
 			</File>
 		</Filter>

@@ -22,6 +22,7 @@
 #include "../i8253.h"
 #include "../i8259.h"
 #if defined(HAS_I286)
+//#include "../i286_np21.h"
 #include "../i286.h"
 #else
 #include "../i386_np21.h"
@@ -119,19 +120,23 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy->set_device_name(_T("1st Dummy"));
 
 #if defined(HAS_I286)
-	cpu = new I80286(this, emu);
-#else
-	cpu = new I386(this, emu);
-#endif
-#if defined(HAS_I286)
-	cpu->set_device_name(_T("CPU(i286)"));
+	cpu = new I286(this, emu);
+//	cpu->device_model = INTEL_80286;
 #elif defined(HAS_I386)
-	cpu->set_device_name(_T("CPU(i386)"));
+	cpu = new I386(this, emu);
+	cpu->device_model = INTEL_80386;
 #elif defined(HAS_I486)
-	cpu->set_device_name(_T("CPU(i486)"));
-#elif defined(HAS_PENTIUM)
-	cpu->set_device_name(_T("CPU(Pentium)"));
+ 	cpu = new I386(this, emu);
+#if defined(HAS_I486DX)
+	cpu->device_model = INTEL_I486DX;
+#else
+	cpu->device_model = INTEL_I486SX;
 #endif
+#elif defined(HAS_PENTIUM)
+ 	cpu = new I386(this, emu);
+	cpu->device_model = INTEL_PENTIUM;
+#endif
+	
 	crtc = new HD46505(this, emu);
 #ifdef _FMR60
 	acrtc = new HD63484(this, emu);

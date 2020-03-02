@@ -26,7 +26,6 @@
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		2
 #define UPD765A_SENCE_INTSTAT_RESULT
-#define HAS_I86
 #define I8259_MAX_CHIPS		1
 #define MEMORY_ADDR_MAX		0x100000
 #define MEMORY_BANK_SIZE	0x4000
@@ -66,6 +65,7 @@ class I8251;
 class I8253;
 class I8255;
 class I8259;
+class I86;
 class IO;
 class MEMORY;
 class PCM1BIT;
@@ -73,7 +73,6 @@ class SN76489AN;
 class UPD765A;
 
 namespace JX {
-	class I286;
 	class DISPLAY;
 	class FLOPPY;
 	class KEYBOARD;
@@ -92,7 +91,7 @@ protected:
 	I8253* pit;
 	I8255* pio;
 	I8259* pic;
-	JX::I286* cpu;
+	I86* cpu;
 	IO* io;
 	MEMORY* mem;
 	PCM1BIT* pcm;

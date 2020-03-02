@@ -11,7 +11,11 @@
 #include "../../emu.h"
 #include "./memory.h"
 #include "../i8237.h"
+#if defined(HAS_I86)
+#include "../i86.h"
+#elif defined(HAS_I286)
 #include "../i286.h"
+#endif
 
 namespace FMR30 {
 

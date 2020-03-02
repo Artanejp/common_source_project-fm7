@@ -85,13 +85,13 @@ public:
 		write_signal(bit, line ? 1 : 0, 1);
 	}
 	uint32_t get_intr_ack();
+	void update_intr();
 	
-	// unique functions
+	// unique function
 	void set_context_cpu(DEVICE* device)
 	{
 		d_cpu = device;
 	}
-	void __FASTCALL update_intr();
 };
 
 #endif

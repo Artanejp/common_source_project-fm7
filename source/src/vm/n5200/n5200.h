@@ -21,7 +21,6 @@
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		4
-#define HAS_I386
 #define I8259_MAX_CHIPS		2
 #define IO_ADDR_MAX		0x10000
 

@@ -42,7 +42,6 @@ enum BREGS {
 
 #define SetTF(x)            (cpustate->TF = (x))
 #define SetIF(x)            (cpustate->IF = (x))
-#define SetMD(x)            (cpustate->MF = (x))
 #define SetDF(x)            (cpustate->DirVal = (x) ? -1 : 1)
 
 #define SetOFW_Add(x,y,z)   (cpustate->OverVal = ((x) ^ (y)) & ((x) ^ (z)) & 0x8000)
@@ -230,11 +229,11 @@ inline __FASTCALL void write_port_word(i8086_state *cpustate, uint32_t a, uint32
 #else
 #define IOPL (3)
 #define NT (1)
-#define xF (1)
+#define xF (cpustate->MF)
 #endif
 
 #define CompressFlags() (WORD)(CF | 2 |(PF << 2) | (AF << 4) | (ZF << 6) \
-				| (SF << 7) | (cpustate->TF << 8) | (cpustate->IF << 9) | (cpustate->MF << 15) \
+				| (SF << 7) | (cpustate->TF << 8) | (cpustate->IF << 9) \
 				| (DF << 10) | (OF << 11) | (IOPL << 12) | (NT << 14) | (xF << 15))
 
 #define ExpandFlags(f) \
@@ -246,8 +245,8 @@ inline __FASTCALL void write_port_word(i8086_state *cpustate, uint32_t a, uint32
 		cpustate->SignVal = ((f) & 128) ? -1 : 0; \
 		cpustate->TF = ((f) & 256) >> 8; \
 		cpustate->IF = ((f) & 512) >> 9; \
-		cpustate->MF = ((f) & 32768) >> 15; \
 		cpustate->DirVal = ((f) & 1024) ? -1 : 1; \
 		cpustate->OverVal = (f) & 2048; \
+		cpustate->MF = ((f) & 32768) >> 15; \
 }
 #endif /* __I86_H__ */

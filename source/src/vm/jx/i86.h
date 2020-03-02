@@ -1,29 +1,34 @@
 /*
 	Skelton for retropc emulator
 
+	Origin : MAME i286 core
 	Author : Takeda.Toshiya
-	Date  : 2012.10.18-
+	Date   : 2012.10.18-
 
-	[ i286 ]
+	[ i86 ]
 */
 
-#ifndef _I286_H_ 
-#define _I286_H_
+#ifndef _I86_H_ 
+#define _I86_H_
 
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
 
 #define SIG_I86_TEST	0
-#define SIG_I286_A20	1
 
 #ifdef USE_DEBUGGER
 class DEBUGGER;
 #endif
 
-namespace JX {
+//enum {
+//	INTEL_8086 = 0,
+//	INTEL_8088,
+//	INTEL_80186,
+//	NEC_V30,
+//};
 
-class I286 : public DEVICE
+class I86 : public DEVICE
 {
 private:
 	DEVICE *d_mem, *d_io, *d_pic;
@@ -39,7 +44,7 @@ private:
 	void *opaque;
 	
 public:
-	I286(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I86(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 #ifdef I86_PSEUDO_BIOS
 		d_bios = NULL;
@@ -47,36 +52,20 @@ public:
 #ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
 #endif
-#ifdef USE_DEBUGGER
-		d_debugger = NULL;
-#endif
-#if defined(HAS_I86)
-		set_device_name(_T("8086 CPU"));
-#elif defined(HAS_I88)
-		set_device_name(_T("8088 CPU"));
-#elif defined(HAS_I186)
-		set_device_name(_T("80186 CPU"));
-#elif defined(HAS_V30)
-		set_device_name(_T("V30 CPU"));
-#elif defined(HAS_I286)
-		set_device_name(_T("80286 CPU"));
-#endif
 	}
-	~I286() {}
+	~I86() {}
 	
 	// common functions
 	void initialize();
 	void release();
 	void reset();
-	int __FASTCALL run(int icount);
-	uint32_t __FASTCALL read_signal(int id);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	int run(int icount);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void set_intr_line(bool line, bool pending, uint32_t bit);
 	void set_extra_clock(int icount);
 	int get_extra_clock();
 	uint32_t get_pc();
 	uint32_t get_next_pc();
-	uint32_t __FASTCALL translate_address(int segment, uint32_t offset);
 #ifdef USE_DEBUGGER
 	bool is_cpu()
 	{
@@ -92,32 +81,24 @@ public:
 	}
 	uint32_t get_debug_prog_addr_mask()
 	{
-#ifdef HAS_I286
-		return 0xffffff;
-#else
 		return 0xfffff;
-#endif
 	}
 	uint32_t get_debug_data_addr_mask()
 	{
-#ifdef HAS_I286
-		return 0xffffff;
-#else
 		return 0xfffff;
-#endif
 	}
-	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
-	void __FASTCALL write_debug_data16(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_debug_data16(uint32_t addr);
-	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
-	void __FASTCALL write_debug_io16(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_debug_io16(uint32_t addr);
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
+	void write_debug_data16(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data16(uint32_t addr);
+	void write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io8(uint32_t addr);
+	void write_debug_io16(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io16(uint32_t addr);
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	uint32_t read_debug_reg(const _TCHAR *reg);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
-
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
 	bool process_state(FILEIO* state_fio, bool loading);
 	
@@ -152,13 +133,7 @@ public:
 		d_debugger = device;
 	}
 #endif
-#ifdef HAS_I286
-	void set_address_mask(uint32_t mask);
-	uint32_t get_address_mask();
-	void set_shutdown_flag(int shutdown);
-	int get_shutdown_flag();
-#endif
+//	int device_model;
 };
 
-}
 #endif

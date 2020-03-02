@@ -1,3 +1,21 @@
+2/17/2020
+
+[EMU] add is_floppy_disk_connected() and is_quick_disk_connected()
+[WINMAIN] disable floppy/quick disk drive menus when drives are disconnected
+
+[VM/I8080] improve disassembler to distinguish 8080 and 8085
+[VM/I86] split i86/i88/i186/v30 from I286 class
+[VM/I86] fix aam in v30
+[VM/I86] support 8080 emulation mode in V30
+[VM/I386_NP21] improve not to explicitly accept irq while executing opecode
+[VM/I386_DASM] split i386 disassembler from I286/I386 class
+[VM/V30_DASM] split v30 disassembler from I286 class
+[VM/V30_DASM] add 8080 disassebler for 8080 emulation mode
+[VM/VM_TEMPLATE] add is_floppy_disk_connected() and is_quick_disk_connected()
+
+[PC9801] support to enable/disable 1MB/640K/320KB-FDD interfaces
+
+
 2/1/2020
 
 [EMU] support to create blank hard disk image (*.hdi/*.nhd)
