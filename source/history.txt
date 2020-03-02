@@ -1,3 +1,11 @@
+2/21/2020
+
+[VM/I386_NP21] update to Neko Project 21/W ver0.86 rev71 beta4
+
+[PC9801VX] support to switch cpu mode to V30
+[PC9801RA] support to switch cpu mode to V30
+
+
 2/17/2020
 
 [EMU] add is_floppy_disk_connected() and is_quick_disk_connected()

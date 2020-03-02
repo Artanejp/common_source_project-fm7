@@ -336,7 +336,7 @@ static CPU_EXECUTE( i80286 )
 			}
 		}
 		if (icount == -1) {
-			int passed_icount = max(1, cpustate->extra_cycles);
+			int passed_icount = max(5, cpustate->extra_cycles); // 80286 CPI: 4.8
 			// this is main cpu, cpustate->icount is not used
 			/*cpustate->icount = */cpustate->extra_cycles = 0;
 //#ifdef USE_DEBUGGER

@@ -19,6 +19,7 @@ namespace I286_NP21 {
 	#include "np21/i286c/v30patch.h"
 }
 
+
 void I286::initialize()
 {
 	DEVICE::initialize();
@@ -34,6 +35,7 @@ void I286::initialize()
 	CPU_INITIALIZE();
 	CPU_ADRSMASK = 0x000fffff;
 	nmi_pending = irq_pending = false;
+	waitfactor = 65536;
 	I286_NP21::_SINGLE_MODE_DMA = _SINGLE_MODE_DMA;
 }
 
@@ -68,8 +70,31 @@ void I286::reset()
 	CPU_IP = CPU_PREV_IP = 0xfff0;
 	CPU_ADRSMASK = PREV_CPU_ADRSMASK;
 	CPU_CLEARPREFETCH();
-	
+	i286_memory_wait = 0;
+	waitcount = 0;
 	remained_cycles = extra_cycles = 0;
+}
+
+void I286::cpu_wait(int clocks)
+{
+	if(clocks <= 0) clocks = 1;
+	int64_t wfactor = waitfactor;
+	int64_t wcount = waitcount;
+	int64_t mwait = i286_memory_wait;
+	int64_t ncount;
+	if(wfactor > 65536) {
+		wcount += ((wfactor - 65536) * clocks); // Append wait due to be slower clock.
+	}
+	wcount += (wfactor * mwait);  // memory wait
+	if(wcount >= 65536) {
+		ncount = wcount >> 16;
+		wcount = wcount - (ncount << 16);
+		extra_cycles += (int)ncount;
+	} else if(wcount < 0) {
+		wcount = 0;
+	}
+	waitcount = wcount;
+	i286_memory_wait = 0;
 }
 
 int I286::run_one_opecode()
@@ -152,7 +177,7 @@ int I286::run(int cycles)
 				if(device_dma != NULL) device_dma->do_dma();
 			}
 //#endif
-			passed_cycles = max(1, extra_cycles);
+			passed_cycles = max(5, extra_cycles); // 80286 CPI: 4.8
 			extra_cycles = 0;
 		} else {
 			// run only one opcode
@@ -194,6 +219,9 @@ void I286::write_signal(int id, uint32_t data, uint32_t mask)
 		busreq = ((data & mask) != 0);
 	} else if(id == SIG_I286_A20) {
 		CPU_ADRSMASK = (data & mask) ? 0x00ffffff : 0x000fffff;
+	} else if(id == SIG_CPU_WAIT_FACTOR) {
+		waitfactor = data; // 65536.
+		waitcount = 0; // 65536.
 	}
 }
 
@@ -444,7 +472,7 @@ void *I286::get_debugger()
 }
 //#endif
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool I286::process_state(FILEIO* state_fio, bool loading)
 {
@@ -469,6 +497,10 @@ bool I286::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(irq_pending);
 	state_fio->StateValue(PREV_CS_BASE);
 	state_fio->StateValue(CPU_PREV_IP);
+	
+	state_fio->StateValue(waitfactor);
+	state_fio->StateValue(waitcount);
+	state_fio->StateValue(i286_memory_wait);
 	return true;
 }
 

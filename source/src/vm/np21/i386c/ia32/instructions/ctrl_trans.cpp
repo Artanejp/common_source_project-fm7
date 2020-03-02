@@ -1410,6 +1410,7 @@ INT1(void)
 void
 INT3(void)
 {
+/*
 #if defined(SUPPORT_IA32_HAXM)
 #if defined(USE_CUSTOM_HOOKINST)
 	if(bioshookinfo.hookinst == 0xCC){
@@ -1424,7 +1425,7 @@ INT3(void)
 	}
 #endif
 #endif
-
+*/
 	CPU_WORKCLOCK(33);
 	INTERRUPT(3, INTR_TYPE_SOFTINTR);
 }

@@ -531,8 +531,8 @@ protected:
 #else
 	I286* cpu;
 #endif
-#if defined(HAS_V30_SUB_CPU)
-	I86*    v30cpu;
+#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+	I86* v30;
 #endif
 	IO* io;
 	LS244* rtcreg;

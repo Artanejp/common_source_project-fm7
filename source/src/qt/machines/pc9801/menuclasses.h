@@ -67,12 +67,14 @@ protected:
 	Action_Control_98 *actionConnect2DD;
 	Action_Control_98 *actionConnect2HD;
 #endif
-#if defined(HAS_V30_SUB_CPU)
+#if !defined(SUPPORT_HIRESO)
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	Action_Control_98 *actionSUB_V30;
 	QActionGroup   *actionGroup_RunningCpu;
 	QMenu *menuRunCpu;
 	Action_Control_98 *actionRunMainCPU;
 	Action_Control_98 *actionRunSubCPU;
+#endif
 #endif
 	void setupUI_Emu(void);
 	void retranslateUi(void);

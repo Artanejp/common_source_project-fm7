@@ -358,7 +358,7 @@ int I386::run(int cycles)
 				if(device_dma != NULL) device_dma->do_dma();
 			}
 //#endif
-			passed_cycles = max(1, extra_cycles);
+			passed_cycles = max(5, extra_cycles); // 80386 CPI: 4.9
 			extra_cycles = 0;
 		} else {
 			// run only one opcode

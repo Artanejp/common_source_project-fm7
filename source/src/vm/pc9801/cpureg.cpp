@@ -21,125 +21,42 @@
 //#include "../i286_np21.h"
 #include "../i286.h"
 #endif
+#if !defined(SUPPORT_HIRESO)
+#include "../i86.h"
+#include "../i8255.h"
+#endif
 
 #define EVENT_WAIT 1
 
 namespace PC9801 {
 
-#if defined(HAS_V30_SUB_CPU)
 void CPUREG::initialize()
 {
-	reg_0f0 = 0;
-	use_v30 = false;
-	stat_exthalt = false;
-	if((config.dipswitch & (1 << DIPSWITCH_POSITION_USE_V30)) != 0) {
-		enable_v30 = true;
-	} else {
-		enable_v30 = false;
-	}
-//	use_v30 = ((config.dipswitch & (1 << DIPSWITCH_POSITION_CPU_MODE)) != 0);
-//	halt_by_use_v30();
-}
-
-void CPUREG::halt_by_use_v30()
-{
-	if((use_v30)) {
-		d_cpu->write_signal(SIG_CPU_HALTREQ, 1, 1);
-		if(d_v30cpu != NULL) {
-			d_v30cpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
-		}
-	} else {
-		d_cpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
-		if(d_v30cpu != NULL) {
-			d_v30cpu->write_signal(SIG_CPU_HALTREQ, 1, 1);
-		}
-	}
-}
+	reg_0f0 = 0x00;
+	event_wait = -1;
+#if !defined(SUPPORT_HIRESO)
+	reg_0f0 = reg_0f0 | ((cpu_mode) ? 1 : 0);
 #endif
-
-void CPUREG::halt_by_value(bool val)
-{
-	bool haltvalue = (val) ? 0xffffffff : 0x0000000;
-#if defined(HAS_V30_SUB_CPU)
-	d_cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
-	if(d_v30cpu != NULL) {
-		d_v30cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
-	}
-#else
-	d_cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 0xffffffff);
-#endif	
 }
 
 void CPUREG::reset()
 {
 	d_cpu->set_address_mask(0x000fffff);
-	init_clock = get_current_clock_uint64() & 0x000000ffffffffff;
 	nmi_enabled = false;
-	stat_exthalt = false;
-	reg_0f0 = 0x00;
-	if(event_wait >= 0) {
-		cancel_event(this, event_wait);
-		event_wait = -1;
+	init_clock = get_current_clock_uint64() & 0x000000ffffffffff;
+#if !defined(SUPPORT_HIRESO)
+	reg_0f0 = reg_0f0 & 0xfe;
+	reg_0f0 = reg_0f0 | ((cpu_mode) ? 1 : 0);
+	d_pio->write_signal(SIG_I8255_PORT_B, ((reg_0f0 & 1) != 0) ? 2 : 0, 2);
+	if(d_v30 != NULL) {
+		d_v30->write_signal(SIG_CPU_BUSREQ, ~reg_0f0, 1);
 	}
-	d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-#if defined(HAS_V30_SUB_CPU)
-	// On RESET, primary running Ix86, not V30.20191015 K.O
-	use_v30 = false;
-	reg_0f0 = 0x00;
-	write_signals(&outputs_cputype, 0x00000000);
-	if(d_v30cpu != NULL) {
-		d_v30cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-	}
-	halt_by_use_v30();
+	d_cpu->write_signal(SIG_CPU_BUSREQ, reg_0f0, 1);
 #endif
 }
 
-uint32_t CPUREG::get_intr_ack()
-{
-	return d_pic->get_intr_ack();
-}
-
-void CPUREG::set_intr_line(bool line, bool pending, uint32_t bit)
-{
-#if defined(HAS_V30_SUB_CPU)
-	if((use_v30) && (enable_v30) && (d_v30cpu != NULL)) {
-		d_v30cpu->set_intr_line(line, pending, bit);
-		return;
-	}
-#endif
-	d_cpu->set_intr_line(line, pending, bit);
-}
-
-void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
-{
-	if(ch == SIG_CPU_NMI) {
-		out_debug_log("NMI\n");
-		//if(nmi_enabled) {
-			write_signals(&outputs_nmi, data);
-		//}
-	} else if(ch == SIG_CPUREG_RESET) {
-		out_debug_log("RESET FROM CPU!!!\n");
-		d_cpu->set_address_mask(0x000fffff);
-#if defined(HAS_V30_SUB_CPU)
-		// RESET V30 at here.
-//		use_v30 = (((reg_0f0 & 1) != 0) || ((reg_0f0 & 2) != 0) || ((reg_0f0 & 4) != 0));
-		if(d_v30cpu != NULL) {
-			d_v30cpu->reset();
-		}
-		halt_by_use_v30();
-		write_signals(&outputs_cputype, (use_v30) ? 0xffffffff : 0x00000000);
-#else
-		write_signals(&outputs_cputype, 0x00000000);
-#endif
-	} else if(ch == SIG_CPUREG_HALT) {
-		stat_exthalt = ((data & mask) != 0);
-		halt_by_value(stat_exthalt);
-	}
-}
-	
 void CPUREG::write_io8(uint32_t addr, uint32_t data)
 {
-	//out_debug_log(_T("I/O WRITE: %04x %04x\n"), addr, data);
 	switch(addr) {
 	case 0x0050:
 		nmi_enabled = false;
@@ -149,7 +66,10 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x005f:
 		// ToDo: Both Pseudo BIOS.
-		halt_by_value(true);
+		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+		if(d_v30 != NULL) {
+			d_v30->write_signal(SIG_CPU_BUSREQ, 1, 1);
+		}
 		if(event_wait >= 0) {
 			cancel_event(this, event_wait);
 			event_wait = -1;
@@ -157,18 +77,18 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 		register_event(this, EVENT_WAIT, 0.6, false, &event_wait);
 		break;
 	case 0x00f0:
-		{
-			// ToDo: Reflesh
-			reg_0f0 = data;
-			d_cpu->set_address_mask(0x000fffff);
-#if defined(HAS_V30_SUB_CPU)
-			// REGISTER 00F0h don't effect when changing via V30 <=> ix86.20191015 K.O
-			use_v30 = ((config.dipswitch & (1 << DIPSWITCH_POSITION_CPU_MODE)) != 0);
-//			use_v30 = (((reg_0f0 & 1) != 0) || ((reg_0f0 & 2) != 0) || ((reg_0f0 & 4) != 0));
-#endif
-			d_cpu->reset(); // WILL RESET V30 at this signal handler.
-			out_debug_log(_T("WRITE I/O 00F0h: VAL=%02X\n"), data);
+		out_debug_log(_T("00F0h=%02X"), data);
+		reg_0f0 = data;
+		d_cpu->write_signal(SIG_CPU_BUSREQ,  reg_0f0, 1);
+		if(d_v30 != NULL) {
+			d_v30->reset();
+			d_v30->write_signal(SIG_CPU_BUSREQ, ~reg_0f0, 1);
 		}
+		d_pio->write_signal(SIG_I8255_PORT_B, ((reg_0f0 & 1) != 0) ? 2 : 0, 2);
+//		d_pio->write_signal(SIG_I8255_PORT_B, reg_0f0, 2);
+		write_signals(&outputs_cputype, ((reg_0f0 & 1) != 0) ? 0xffffffff : 0x00000000);
+		d_cpu->reset();
+		d_cpu->set_address_mask(0x000fffff);
 		break;
 	case 0x00f2:
 #if defined(SUPPORT_32BIT_ADDRESS)
@@ -177,22 +97,14 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 		d_cpu->set_address_mask(0x00ffffff);
 #endif
 		break;
-#if defined(UPPER_I386)
+#if defined(SUPPORT_32BIT_ADDRESS)
 	case 0x00f6:
 		switch(data) {
 		case 0x02:
-#if defined(SUPPORT_32BIT_ADDRESS)
-			d_cpu->set_address_mask(0xffffffff);
-#else
 			d_cpu->set_address_mask(0x00ffffff);
-#endif
 			break;
 		case 0x03:
 			d_cpu->set_address_mask(0x000fffff);
-			break;
-			// ToDo: Software DIPSWITCH.
-		case 0xa0:
-		case 0xe0:
 			break;
 		}
 		break;
@@ -203,7 +115,6 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 uint32_t CPUREG::read_io8(uint32_t addr)
 {
 	uint32_t value;
-	//out_debug_log(_T("I/O READ: %04x \n"), addr);
 	
 	switch(addr) {
 	case 0x005c:
@@ -246,22 +157,19 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 		break;
 	case 0x00f0:
 		value  = 0x00;
-#if defined(_PC9821_VARIANTS) || defined(_PC9801NA)
+//#if defined(_PC9821_VARIANTS) || defined(_PC9801NA)
 //		value |= 0x80; // 1 = PC-9801NA, 0 = PC-9801NA/C
 //		value |= 0x80; // 1 = PC-9821modelS1, 0 = PC-9821modelS2
 //		value |= 0x80; // 1 = PC-9821CemodelS1, 0 = PC-9821CemodelS2
 //		value |= 0x80; // 1 = PC-9821Xt, 0 = PC-9821Xa
 //		value |= 0x80; // CPU MODE, 1 = High/Low, 0 = Middle (PC-9821Ap/As/Ae/Af)
 //		value |= 0x40; // ODP, 1 = Existing (PC-9821Ts)
-#else
-		value |= 0x80;
+//#else
+#if defined(SUPPORT_SCSI_IF)
+//		value |= 0x40; // Internal 55-type SCSI-HDD, 0 = Existing
 #endif
-#if defined(_PC9801RA) || defined(_PC9801RS) || defined(_PC9821_VARIANTS)		
-	#if !defined(SUPPORT_SCSI_IF)
-		value |= 0x40; // Internal 55-type SCSI-HDD, 0 = Existing
-	#endif
-#else
-		value |= 0x40;
+#if defined(SUPPORT_SASI_IF)
+//		value |= 0x20; // Internal 27-type SASI-HDD, 0 = Existing
 #endif
 #if defined(_PC9801RA) || defined(_PC9801RS) || defined(_PC9821_VARIANTS) || \
 	defined(_PC98NOTE_VARIANTS) || defined(_PC98DOPLUS)		
@@ -270,15 +178,18 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 	#endif
 #else
 		value |= 0x20;
-#endif
+#endif		
 		// ToDo: AMD98
-		value |= 0x10; // Unknown
-		value |= 0x08;
-//		value |= ((d_mem->read_signal(SIG_LAST_ACCESS_INTERAM) != 0) ? 0x00: 0x08); // RAM access, 1 = Internal-standard/External-enhanced RAM, 0 = Internal-enhanced RAM
-		value |= 0x04; // Refresh mode, 1 = Standard, 0 = High speed
-#if defined(HAS_V30_SUB_CPU)
-		// ToDo: Older VMs.
-		value |= (((reg_0f0 & 0x01) == 0) ? 0x00 : 0x02); // CPU mode, 1 = V30, 0 = 80286/80386
+//		value |= 0x10; // Unknown
+		value |= 0x08; // RAM access, 1 = Internal-standard/External-enhanced RAM, 0 = Internal-enhanced RAM
+//		value |= 0x04; // Refresh mode, 1 = Standard, 0 = High speed
+#if defined(HAS_I86) || defined(HAS_V30)
+		value |= 0x02; // CPU mode, 1 = V30, 0 = 80286/80386
+#endif
+#if !defined(SUPPORT_HIRESO)
+		if(cpu_mode) {
+			value |= 0x02; // CPU mode, 1 = V30, 0 = 80286/80386
+		}
 #endif
 		value |= 0x01; // RAM access, 1 = Internal RAM, 0 = External-enhanced RAM
 		return value;
@@ -288,59 +199,90 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 	case 0x00f4: // ToDo: DMA SPEED (after 9801DA)
 		return 0xff;
 		break;
-#if defined(UPPER_I386)
+#if defined(SUPPORT_32BIT_ADDRESS)
 	case 0x00f6:
-		value  = ((d_cpu->get_address_mask() & (1 << 20)) != 0) ? 0x00 : 0x01;
+		value  = 0x00;
 #if defined(SUPPORT_HIRESO) && !defined(_PC98RL)
 		value |= 0x10; // SASI-HDD, 1 = DMA ch0, 0 = DMA ch1
 #endif
-		value |= 0xec; 
 		if(nmi_enabled) {
 			value |= 0x02; // NMI, 1 = Enabled
 		}
-		return value;
+		return ((d_cpu->get_address_mask() & (1 << 20)) ? 0x00 : 0x01) | value;
 #endif
 	}
 	return 0xff;
 }
 
-
 void CPUREG::event_callback(int id, int err)
 {
 	if(id == EVENT_WAIT) {
+#if !defined(SUPPORT_HIRESO)
 		// ToDo: Both Pseudo BIOS.
-		if(!(stat_exthalt)) {
-			
-#if defined(HAS_V30_SUB_CPU)
-			if(d_v30cpu != NULL) {
-				d_v30cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-			}
-#endif
-			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+		uint32_t haltvalue = 0;
+		uint32_t haltvalue_v30 = 1;
+		if(cpu_mode) {
+			haltvalue = 1;
+			haltvalue_v30 = 0;
 		}
+		if(d_v30 != NULL) {
+			d_v30->write_signal(SIG_CPU_BUSREQ, haltvalue_v30, 1);
+		}
+		d_cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 1);
 		event_wait = -1;
+#endif
+ 	}
+}
+
+#if !defined(SUPPORT_HIRESO)
+void CPUREG::set_intr_line(bool line, bool pending, uint32_t bit)
+{
+	if(d_v30 != NULL) {
+		if(((reg_0f0 & 1) != 0)){
+			d_v30->set_intr_line(line, pending, bit);
+		} else {
+			d_cpu->set_intr_line(line, pending, bit);
+		}
+	} else {
+//		if(cpu_mode == 0) {
+			d_cpu->set_intr_line(line, pending, bit);
+//		}
 	}
 }
-	
-#define STATE_VERSION	4
+
+void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
+{
+	if(ch == SIG_CPU_NMI) {
+		out_debug_log("NMI\n");
+		//if(nmi_enabled) {
+			write_signals(&outputs_nmi, data);
+		//}
+	} else if(ch == SIG_CPUREG_RESET) {
+		// This don't need at PC9801?
+//		out_debug_log("RESET FROM CPU!!!\n");
+	}
+}
+
+#endif
+
+#define STATE_VERSION	3
 
 bool CPUREG::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
- 		return false;
- 	}
+		return false;
+	}
 	if(!state_fio->StateCheckInt32(this_device_id)) {
- 		return false;
- 	}
+		return false;
+	}
+	state_fio->StateValue(reg_0f0);
+#if !defined(SUPPORT_HIRESO)
+	state_fio->StateValue(cpu_mode);
+#endif
 	state_fio->StateValue(nmi_enabled);
 	state_fio->StateValue(init_clock);
-	state_fio->StateValue(stat_exthalt);
-	state_fio->StateValue(reg_0f0);	
 	state_fio->StateValue(event_wait);
-#if defined(HAS_V30_SUB_CPU)
-	state_fio->StateValue(use_v30);
-#endif	
- 	return true;
+	return true;
 }
 
 }

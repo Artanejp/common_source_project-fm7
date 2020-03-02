@@ -122,7 +122,8 @@ BEGIN
             MENUITEM "State 9",                 ID_LOAD_STATE9
         END
         MENUITEM SEPARATOR
-        MENUITEM "Debug Main CPU",              ID_OPEN_DEBUGGER0
+        MENUITEM "Debug 80286",                 ID_OPEN_DEBUGGER0
+        MENUITEM "Debug V30",                   ID_OPEN_DEBUGGER1
         MENUITEM "Close Debugger",              ID_CLOSE_DEBUGGER
         MENUITEM SEPARATOR
         MENUITEM "Exit",                        ID_EXIT
@@ -177,6 +178,8 @@ BEGIN
         BEGIN
             MENUITEM "80286 10MHz",             ID_VM_CPU_TYPE0
             MENUITEM "80286  8MHz",             ID_VM_CPU_TYPE1
+            MENUITEM "V30 10MHz",               ID_VM_CPU_TYPE2
+            MENUITEM "V30  8MHz",               ID_VM_CPU_TYPE3
         END
         POPUP "Sound"
         BEGIN

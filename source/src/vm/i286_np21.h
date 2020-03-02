@@ -46,7 +46,11 @@ private:
 	bool nmi_pending, irq_pending;
 	uint32_t PREV_CS_BASE;
 	uint16_t CPU_PREV_IP;
+	uint32_t waitfactor;
+	int64_t waitcount;
+	
 	int run_one_opecode();
+	void cpu_wait(int clocks);
 	
 public:
 	I286(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)

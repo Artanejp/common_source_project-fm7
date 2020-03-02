@@ -180,8 +180,8 @@ BEGIN
         END
         POPUP "Sound"
         BEGIN
-            MENUITEM "PC-9801-26 (BIOS Enabled)",   ID_VM_SOUND_TYPE0
-            MENUITEM "PC-9801-26 (BIOS Disabled)",  ID_VM_SOUND_TYPE1
+            MENUITEM "PC-9801-86 (BIOS Enabled)",   ID_VM_SOUND_TYPE0
+            MENUITEM "PC-9801-86 (BIOS Disabled)",  ID_VM_SOUND_TYPE1
 //            MENUITEM "PC-9801-14 (BIOS Enabled)",   ID_VM_SOUND_TYPE2
 //            MENUITEM "PC-9801-14 (BIOS Disabled)",  ID_VM_SOUND_TYPE3
             MENUITEM "None",                        ID_VM_SOUND_TYPE4

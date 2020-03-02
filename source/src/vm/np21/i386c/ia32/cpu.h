@@ -1285,7 +1285,7 @@ void ia32_printf(const char *buf, ...);
 void ia32_warning(const char *buf, ...);
 void ia32_panic(const char *buf, ...);
 
-void ia32_bioscall(void);
+//void ia32_bioscall(void);
 
 void CPUCALL change_pm(BOOL onoff);
 void CPUCALL change_vm(BOOL onoff);

@@ -17,6 +17,7 @@ namespace I286_NP21 {
 //#ifdef USE_DEBUGGER
 	DEBUGGER *device_debugger = NULL;
 //#endif
+	SINT64 i286_memory_wait;
 	bool _SINGLE_MODE_DMA = false;
 }
 namespace I286_NP21 {
@@ -25,37 +26,56 @@ namespace I286_NP21 {
 REG8 MEMCALL memp_read8(UINT32 address) {
 
 	address = address & CPU_ADRSMASK;
-	return device_mem->read_data8(address);
+	int wait = 0;
+	REG8 val;
+	val = device_mem->read_data8w(address, &wait);
+	i286_memory_wait += wait;
+	return val;
+
 }
 
-REG16 MEMCALL memp_read16(UINT32 address) {
-
+REG16 MEMCALL memp_read16(UINT32 address)
+{
 	address = address & CPU_ADRSMASK;
-	return device_mem->read_data16(address);
+	int wait = 0;
+	REG16 val;
+	val = device_mem->read_data16w(address, &wait);
+	i286_memory_wait += wait;
+	return val;
 }
 
-UINT32 MEMCALL memp_read32(UINT32 address) {
-
+UINT32 MEMCALL memp_read32(UINT32 address)
+{
 	address = address & CPU_ADRSMASK;
-	return device_mem->read_data32(address);
+	int wait = 0;
+	REG32 val;
+	val = device_mem->read_data32w(address, &wait);
+	i286_memory_wait += wait;
+	return val;
 }
 
 void MEMCALL memp_write8(UINT32 address, REG8 value) {
 
 	address = address & CPU_ADRSMASK;
-	device_mem->write_data8(address, value);
+	int wait = 0;
+	device_mem->write_data8w(address, value, &wait);
+	i286_memory_wait += wait;
 }
 
 void MEMCALL memp_write16(UINT32 address, REG16 value) {
 
 	address = address & CPU_ADRSMASK;
-	device_mem->write_data16(address, value);
+	int wait = 0;
+	device_mem->write_data16w(address, value, &wait);
+	i286_memory_wait += wait;
 }
 
 void MEMCALL memp_write32(UINT32 address, UINT32 value) {
 
 	address = address & CPU_ADRSMASK;
-	device_mem->write_data32(address, value);
+	int wait = 0;
+	device_mem->write_data32w(address, value, &wait);
+	i286_memory_wait += wait;
 }
 
 
@@ -146,32 +166,47 @@ void MEMCALL memr_writes(UINT seg, UINT off, const void *dat, UINT leng) {
 
 void IOOUTCALL iocore_out8(UINT port, REG8 dat)
 {
-	device_io->write_io8(port, dat);
+	int wait = 0;
+	device_io->write_io8w(port, dat, &wait);
+	i286_memory_wait += wait;
 }
 
 REG8 IOINPCALL iocore_inp8(UINT port)
 {
-	return device_io->read_io8(port);
+	int wait = 0;
+	UINT8 val = device_io->read_io8w(port, &wait);
+	i286_memory_wait += wait;
+	return val;
 }
 
 void IOOUTCALL iocore_out16(UINT port, REG16 dat)
 {
-	device_io->write_io16(port, dat);
+	int wait = 0;
+	device_io->write_io16w(port, dat, &wait);
+	i286_memory_wait += wait;
 }
 
 REG16 IOINPCALL iocore_inp16(UINT port)
 {
-	return device_io->read_io16(port);
+	int wait = 0;
+	UINT16 val = device_io->read_io16w(port, &wait);
+	i286_memory_wait += wait;
+	return val;
 }
 
 void IOOUTCALL iocore_out32(UINT port, UINT32 dat)
 {
-	device_io->write_io32(port, dat);
+	int wait = 0;
+	device_io->write_io32w(port, dat, &wait);
+	i286_memory_wait += wait;
 }
 
 UINT32 IOINPCALL iocore_inp32(UINT port)
 {
-	return device_io->read_io32(port);
+	int wait = 0;
+	UINT32 val = device_io->read_io32w(port, &wait);
+	i286_memory_wait += wait;
+	return val;
 }
 
 void dmax86(void)

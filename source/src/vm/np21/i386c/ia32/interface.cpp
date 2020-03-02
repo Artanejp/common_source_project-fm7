@@ -145,19 +145,19 @@ ia32(void)
 	}else 
 */
 	if (!CPU_TRAP) {
-		//do {
+		do {
 			exec_1step();
 			dmax86();
-		//} while (CPU_REMCLOCK > 0);
+		} while (CPU_REMCLOCK > 0);
 	}else{
-		//do {
+		do {
 			exec_1step();
 			if (CPU_TRAP) {
 				CPU_DR6 |= CPU_DR6_BS;
 				INTERRUPT(1, INTR_TYPE_EXCEPTION);
 			}
 			dmax86();
-		//} while (CPU_REMCLOCK > 0);
+		} while (CPU_REMCLOCK > 0);
 	}
 #ifdef __cplusplus
 	} catch (int e) {
@@ -335,6 +335,7 @@ ia32_printf(const char *str, ...)
 /*
  * bios call interface
  */
+#if 0
 void
 ia32_bioscall(void)
 {
@@ -347,9 +348,9 @@ ia32_bioscall(void)
 		adrs = CPU_PREV_EIP + CPU_STAT_CS_BASE;
 #endif
 		if ((adrs >= 0xf8000) && (adrs < 0x100000)) {
-			//if (biosfunc(adrs)) {
-			//	/* Nothing to do */
-			//}
+			if (biosfunc(adrs)) {
+				/* Nothing to do */
+			}
 			LOAD_SEGREG(CPU_ES_INDEX, CPU_ES);
 			LOAD_SEGREG(CPU_CS_INDEX, CPU_CS);
 			LOAD_SEGREG(CPU_SS_INDEX, CPU_SS);
@@ -364,3 +365,4 @@ ia32_bioscall(void)
 #endif
 	}
 }
+#endif

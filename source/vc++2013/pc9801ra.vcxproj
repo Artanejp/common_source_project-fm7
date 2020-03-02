@@ -176,6 +176,7 @@
     <ClCompile Include="..\src\vm\i8253.cpp" />
     <ClCompile Include="..\src\vm\i8255.cpp" />
     <ClCompile Include="..\src\vm\i8259.cpp" />
+    <ClCompile Include="..\src\vm\i86.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\ls244.cpp" />
     <ClCompile Include="..\src\vm\memory.cpp" />
@@ -190,6 +191,7 @@
     <ClCompile Include="..\src\vm\upd1990a.cpp" />
     <ClCompile Include="..\src\vm\upd7220.cpp" />
     <ClCompile Include="..\src\vm\upd765a.cpp" />
+    <ClCompile Include="..\src\vm\v30_dasm.cpp" />
     <ClCompile Include="..\src\vm\ym2203.cpp" />
     <ClCompile Include="..\src\vm\fmgen\fmgen.cpp" />
     <ClCompile Include="..\src\vm\fmgen\fmtimer.cpp" />
@@ -265,6 +267,7 @@
     <ClInclude Include="..\src\vm\i8253.h" />
     <ClInclude Include="..\src\vm\i8255.h" />
     <ClInclude Include="..\src\vm\i8259.h" />
+    <ClInclude Include="..\src\vm\i86.h" />
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\ls244.h" />
     <ClInclude Include="..\src\vm\memory.h" />
@@ -279,6 +282,7 @@
     <ClInclude Include="..\src\vm\upd1990a.h" />
     <ClInclude Include="..\src\vm\upd7220.h" />
     <ClInclude Include="..\src\vm\upd765a.h" />
+    <ClInclude Include="..\src\vm\v30_dasm.h" />
     <ClInclude Include="..\src\vm\vm.h" />
     <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\ym2203.h" />

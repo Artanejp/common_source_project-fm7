@@ -29,6 +29,7 @@ extern DEVICE		*device_dma;
 //#ifdef USE_DEBUGGER
 extern DEBUGGER 	*device_debugger;
 //#endif
+extern SINT64		i286_memory_wait;
 extern bool			_SINGLE_MODE_DMA;
 }
 #ifdef __BIG_ENDIAN__
