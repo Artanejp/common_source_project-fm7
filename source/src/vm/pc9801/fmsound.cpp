@@ -81,7 +81,7 @@ void FMSOUND::reset()
 	pcm_vol_ctrl = pcm_fifo_ctrl = 0;
 	pcm_dac_ctrl = 0x32;
 	pcm_fifo_size = 0x80;
-	pcm_mute_ctrl = 0x01;
+	pcm_mute_ctrl = 0x00;
 	pcm_fifo_written = pcm_overflow = pcm_irq_raised = false;
 	pcm_fifo->clear();
 	if(pcm_register_id != -1) {
@@ -111,7 +111,7 @@ void FMSOUND::mix(int32_t* buffer, int cnt)
 {
 #if defined(SUPPORT_PC98_86PCM)
 	// Note: Temporally disable mute register (A66Eh). 20200303 K.O
-	if((pcm_fifo_ctrl & 0x80) && !(pcm_fifo_ctrl & 0x40) /*&& !(pcm_mute_ctrl & 1)*/) {
+	if((pcm_fifo_ctrl & 0x80) && !(pcm_fifo_ctrl & 0x40) && !(pcm_mute_ctrl & 1)) {
 		for(int i = 0; i < cnt; i++) {
 			#ifdef _PCM_DEBUG_LOG
 				this->out_debug_log(_T("Mix Sample = %d,%d\n"), pcm_sample_l, pcm_sample_r);
