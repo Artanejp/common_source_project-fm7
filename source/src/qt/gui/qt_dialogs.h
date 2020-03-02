@@ -12,6 +12,7 @@
 
 #include <QFileDialog>
 #include <QComboBox>
+#include <QSpinBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QApplication>
@@ -95,6 +96,40 @@ public slots:
 	void do_create_disk(QString s) {
 		emit sig_create_disk(__real_media_type, s);
 	}
+};
+
+class CSP_CreateHardDiskDialog : public QWidget {
+	Q_OBJECT
+	QComboBox _preset_type;
+	QComboBox _sector_size;
+	QSpinBox _sectors;
+	QSpinBox _surfaces;
+	QSpinBox _cylinders;
+	
+	QLabel _label_preset_type;
+	QLabel _label_sector_size;
+	QLabel _label_sectors;
+	QLabel _label_surfaces;
+	QLabel _label_cylinders;
+	QLabel type_label;
+	QLabel _size_label_label;
+	QLabel _size_label;
+	
+	QGridLayout layout;
+public:
+	QFileDialog* dlg;
+	CSP_CreateHardDiskDialog(int secsize, int sectors, int surfaces, int cylinders, QWidget *parent = 0);
+	~CSP_CreateHardDiskDialog() {
+		delete dlg;
+	}
+signals:
+	int sig_update_total_size(uint64_t);
+	int sig_create_disk(int, int, int, int, QString);
+public slots:
+	void do_preset(int num);
+	void do_update_total_size(uint64_t size);
+	void do_create_disk(QString filename);
+	void do_update_values(int dummy);
 };
 
 QT_END_NAMESPACE

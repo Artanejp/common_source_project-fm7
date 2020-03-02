@@ -61,7 +61,7 @@ public slots:
 	void _open_bubble(int drv, const QString fname);
 	void eject_bubble(int drv);
 #endif
-
+	void do_create_hard_disk(int drv, int sector_size, int sectors, int surfaces, int cylinders, QString name);
 	void do_create_d88_media(int drv, quint8 media_type, QString name);
 #if defined(USE_DEBUGGER)
 	void OnOpenDebugger(int n);

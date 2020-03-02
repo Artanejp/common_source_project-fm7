@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.19.12)
+set(THIS_LIB_VERSION 2.20.0)
 #include(cotire)
 #include(PrecompiledHeader)
 

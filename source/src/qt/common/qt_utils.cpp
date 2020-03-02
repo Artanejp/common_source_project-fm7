@@ -364,8 +364,23 @@ void Ui_MainWindow::do_create_d88_media(int drv, quint8 media_type, QString name
 #if defined(USE_FLOPPY_DISK)
 		if(drv < USE_FLOPPY_DISK) {
 			const _TCHAR* path = (const _TCHAR *)(name.toLocal8Bit().data());
-			emu->create_blank_floppy_disk(path, media_type);
-			emit sig_open_disk(drv, name, 0);
+			if(emu->create_blank_floppy_disk(path, media_type)) {
+				emit sig_open_disk(drv, name, 0);
+			}
+		}
+#endif
+	}
+}
+
+void Ui_MainWindow::do_create_hard_disk(int drv, int sector_size, int sectors, int surfaces, int cylinders, QString name)
+{
+	if(!(name.isEmpty()) && (drv >= 0)) {
+#if defined(USE_HARD_DISK)
+		if(drv < USE_HARD_DISK) {
+			const _TCHAR* path = (const _TCHAR *)(name.toLocal8Bit().data());
+			if(emu->create_blank_hard_disk(path, sector_size, sectors, surfaces, cylinders)) {
+				emit sig_open_hard_disk(drv, name);
+			}
 		}
 #endif
 	}
