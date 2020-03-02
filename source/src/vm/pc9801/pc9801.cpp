@@ -919,7 +919,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		io->set_iomap_single_rw(0xa468, fmsound);
 		io->set_iomap_single_rw(0xa46a, fmsound);
 		io->set_iomap_single_rw(0xa46c, fmsound);
-		io->set_iomap_single_rw(0xa46e, fmsound);
+		io->set_iomap_single_rw(0xa66e, fmsound);
 #endif
 #endif
 	} else if(sound_type == 2 || sound_type == 3) {

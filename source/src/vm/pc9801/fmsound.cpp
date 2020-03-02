@@ -42,8 +42,6 @@
 #define BOARD_ID	0
 #endif
 
-#define EVENT_PCM 1
-
 namespace PC9801 {
 
 #if defined(SUPPORT_PC98_86PCM)
@@ -80,7 +78,6 @@ void FMSOUND::reset()
 {
 #if defined(SUPPORT_PC98_OPNA)
 	opna_mask = 0;
-#if defined(SUPPORT_PC98_86PCM)
 	pcm_vol_ctrl = pcm_fifo_ctrl = 0;
 	pcm_dac_ctrl = 0x32;
 	pcm_fifo_size = 0x80;
@@ -92,7 +89,6 @@ void FMSOUND::reset()
 		pcm_register_id = -1;
 	}
 	pcm_sample_l = pcm_sample_r = 0;
-#endif
 #endif
 }
 
@@ -114,7 +110,8 @@ void FMSOUND::check_fifo_position()
 void FMSOUND::mix(int32_t* buffer, int cnt)
 {
 #if defined(SUPPORT_PC98_86PCM)
-	if((pcm_fifo_ctrl & 0x80) && !(pcm_fifo_ctrl & 0x40) && !(pcm_mute_ctrl & 1)) {
+	// Note: Temporally disable mute register (A66Eh). 20200303 K.O
+	if((pcm_fifo_ctrl & 0x80) && !(pcm_fifo_ctrl & 0x40) /*&& !(pcm_mute_ctrl & 1)*/) {
 		for(int i = 0; i < cnt; i++) {
 			#ifdef _PCM_DEBUG_LOG
 				this->out_debug_log(_T("Mix Sample = %d,%d\n"), pcm_sample_l, pcm_sample_r);
@@ -137,6 +134,7 @@ void FMSOUND::event_callback(int id, int err)
 //			pcm_overflow = pcm_fifo->full();
 		} else {
 			// play
+
 			if(pcm_dac_ctrl & 0x20) pcm_sample_l = pcm_volume * get_sample() / 32768;
 			if(pcm_dac_ctrl & 0x10) pcm_sample_r = pcm_volume * get_sample() / 32768;
 		}
@@ -386,7 +384,7 @@ uint32_t FMSOUND::read_io8(uint32_t addr)
 		return pcm_dac_ctrl;
 	case 0xa46c:
 		{
-			uint32_t val = 0; //pcm_fifo->read();
+			uint32_t val = /*0;*/ pcm_fifo->read();
 			#ifdef _PCM_DEBUG_LOG
 				this->out_debug_log(_T("IN\tA46C = %02X\tBUFFER COUNT = %d\n"), val, pcm_fifo->count());
 			#endif
