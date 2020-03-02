@@ -18,7 +18,7 @@
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../i8259.h"
-#include "../i86.h"
+#include "./i86.h"
 #include "../io.h"
 #include "../memory.h"
 #include "../noise.h"
@@ -35,7 +35,7 @@
 #include "keyboard.h"
 #include "speaker.h"
 
-using JX::I286;
+using JX::I86;
 using JX::DISPLAY;
 using JX::FLOPPY;
 using JX::KEYBOARD;

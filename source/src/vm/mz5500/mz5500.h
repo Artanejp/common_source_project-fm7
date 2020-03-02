@@ -115,7 +115,7 @@ protected:
 	I8237* dma;
 	I8255* pio;
 	I8259* pic;	// includes 2chips
-#if defined(HAS_I286)
+#if defined(_MZ6550)
 	I286* cpu;
 #else
 	I86* cpu;

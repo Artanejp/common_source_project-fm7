@@ -74,7 +74,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
 
-	cpu = new I80286(this, emu);
+	cpu = new I286(this, emu);
 	pit = new I8253(this, emu);
 	pio0 = new I8255(this, emu);
 	pic = new I8259(this, emu);

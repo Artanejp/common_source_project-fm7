@@ -8,13 +8,13 @@
 	[ i86 ]
 */
 
-#include "i86.h"
+#include "./i86.h"
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
 #include "../i386_dasm.h"
 //#include "../v30_dasm.h"
 #endif
-
+namespace JX {
 /* ----------------------------------------------------------------------------
 	MAME i286
 ---------------------------------------------------------------------------- */
@@ -195,7 +195,7 @@ int I86::run(int icount)
 	if(cpustate->pc == 0xff17d) cpustate->pc = 0xff18f;
 #endif
 #ifdef KEYBOARD_HACK
-	if(cpustate->pc == 0xfa909) { cpustate->regs.b[BH] = read_port_byte(0xa1); cpustate->pc = 0xfa97c; }
+	if(cpustate->pc == 0xfa909) { cpustate->regs.b[BH] = read_port_byte(cpustate, 0xa1); cpustate->pc = 0xfa97c; }
 	if(cpustate->pc == 0xff6e1) { cpustate->regs.b[AL] = 0x0d; cpustate->pc += 2; }
 #endif
 #endif
@@ -486,3 +486,4 @@ bool I86::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 
+}

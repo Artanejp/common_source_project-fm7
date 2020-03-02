@@ -65,7 +65,6 @@ class I8251;
 class I8253;
 class I8255;
 class I8259;
-class I86;
 class IO;
 class MEMORY;
 class PCM1BIT;
@@ -73,6 +72,7 @@ class SN76489AN;
 class UPD765A;
 
 namespace JX {
+	class I86;
 	class DISPLAY;
 	class FLOPPY;
 	class KEYBOARD;
@@ -91,7 +91,7 @@ protected:
 	I8253* pit;
 	I8255* pio;
 	I8259* pic;
-	I86* cpu;
+	JX::I86* cpu;
 	IO* io;
 	MEMORY* mem;
 	PCM1BIT* pcm;

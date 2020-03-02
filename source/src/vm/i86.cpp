@@ -204,7 +204,7 @@ int I86::run(int icount)
 	case INTEL_8086:
 		return CPU_EXECUTE_CALL(i8086);
 	case INTEL_8088:
-		return CPU_EXECUTE_CALL(i8086);
+		return CPU_EXECUTE_CALL(i8088);
 	case INTEL_80186:
 		return CPU_EXECUTE_CALL(i80186);
 	case NEC_V30:

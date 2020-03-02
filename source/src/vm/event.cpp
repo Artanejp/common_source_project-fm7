@@ -26,11 +26,7 @@
 #endif
 
 #if defined(USE_CPU_I286)
-#if defined(_JX)
-#include "jx/i286.h"
-#else
 #include "i286.h"
-#endif
 #endif
 
 #if defined(USE_CPU_I386) || defined(USE_CPU_I486) || defined(USE_CPU_PENTIUM)

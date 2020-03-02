@@ -21,6 +21,7 @@
 class DEBUGGER;
 #endif
 
+namespace JX {
 //enum {
 //	INTEL_8086 = 0,
 //	INTEL_8088,
@@ -135,5 +136,5 @@ public:
 #endif
 //	int device_model;
 };
-
+}
 #endif
