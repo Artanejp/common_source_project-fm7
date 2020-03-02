@@ -98,9 +98,10 @@ public:
 	{
 		d_pic = device;
 	}
-	void initialize_sound(int rate, double frequency, int volume)
+	void initialize_sound(int rate, int frequency, int volume)
 	{
 		pcm_volume = volume;
+		initialize_sound(rate, frequency);
 	}
 #endif
 };

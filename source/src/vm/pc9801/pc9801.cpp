@@ -1683,12 +1683,15 @@ void VM::initialize_sound(int rate, int samples)
 		if(opn->is_ym2608) {
 			opn->initialize_sound(rate, 7987248, samples, 0, 0);
 #if defined(SUPPORT_PC98_OPNA) && defined(SUPPORT_PC98_86PCM)
-			fmsound->initialize_sound(rate, samples, 8000);
+			fmsound->initialize_sound(rate, samples, 14000);
+#else
+			fmsound->initialize_sound(rate, samples);
 #endif
 		} else {
 			opn->initialize_sound(rate, 3993624, samples, 0, 0);
+			fmsound->initialize_sound(rate, samples);
 		}
-		fmsound->initialize_sound(rate, samples);
+
 	} else if(sound_type == 2 || sound_type == 3) {
 		tms3631->initialize_sound(rate, 8000);
 	}
