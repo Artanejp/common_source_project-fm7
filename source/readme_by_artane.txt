@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         January 05, 2020
+                                         March 03, 2020
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -164,77 +164,137 @@ Changes:
 
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
 
-* SNAPSHOT Jan 05, 2020
- * Upstream 2019-12-31.
- * This is point release, still exists some issues (i.e.EMM386(NEC/PC98) and FreeBSD(98) don't work) for PC-9801 and PC-Engine and some VMs, will fix them.
- * [PCENGINE/CD-ROM^2] More games work.Except some games (i.e. Valis1/2).
- * [DOC] Add CrossBuild_Win32.ja.txt.
- * [VM/FM77AV] VRAM: Fix crash with opening of LUXOL.
- * [VM/FM7] DISPLAY: Simplify logic of draw_screen().
- * [VM/M5] Fix keyboard input, separate BOTH LSHIFT and RSHIFT.
-           Expect to fix issue of https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/617.
- * [VM/COMMON_VM] Add MEMORY:: (vm/memory.[cpp|h]) to libCSPcommon_vm.
- * [VM/COMMON_VM] MEMORY:: ; update API.
- * [VM/COMMON_VM] Include IO:: class to common_vm.
- * [VM/SCSI_DEV] Comment out duplicated writing to SIG_SCSI_DAT.
- * [VM/UPD71071] Prepare address extend for uPD71071 (for Towns).
- * [VM/UPD71071] do_dma() : Split to tiny functions.
- * [VM/SCSI_CDROM] CD-DA: Fix playing beyond multiple tracks.
-              Fix freezing some CD-ROM^2 games for PC-Engine (i.e. Vails series).
- * [VM/PCENGINE] ADPCM: Add comments.
- * [VM/PCENGINE] ADPCM: Fix stopping with command 60h(REPEAT PLAY).Fix not sounding BOSS round at Valis2, but still hangs up.
- * [VM/PCENGINE] SCSI_CDROM: WIP: Fixing not play game at Valis 1.
- * [VM/I386] Reduce compiler warnings.
- * [Qt/OpenGL] Use half float textures if enabled.
- * [Qt/OpenGL] GL3: Fix using color space; yiq to ycrcb.
- * [Qt/OpenGL] GLPack:: Selective texture having (or not) ALPHA CHANNEL.
- * [Qt/OpenGL] GL4.5: Fix not capture GPU snapshot from RENDERDOC.
- * [Qt/OpenGL] GL4.5: Fix not map buffer to screen on most (not all) of emulators.
- * [Qt/OpenGL] GL4.5: Tuning around "TV Renderer".
- * [Qt/OpenGL] GL4.5: NTSC SHADER: Adjust scale factor.
- * [Qt/OpenGL] OpenGL ES: Add entry for OpenGL ES 3.1.
- * [Qt/DRAW_THREAD] New (more accurate) draw scheduler.
- * [Qt/ABOUT_DIALOG] Maybe improve credit displaying.
- * [Qt/AVIO] Replace fprintf() to logging functions.
- * [OSD/KEYBOARD] Remove some obsoleted defines.
- * Built with e327e2060d37129fed5cb150cbae8ef943fc03f8 (or later).
+* SNAPSHOT March 03, 2020
+ * Upstream 2020-02-21.
+ * [VM/FMTOWNS] Work initially.
+                See STATUS section for doc/VMs/fmtowns.txt and
+		000_gitlog.txt .
+ * [VM/I386_NP21] Merge Upstream 2020-02-21 's I386::/NP21.Belows are differ from upstream:
+      - Implement memory wait to change CPU speed.
+      - Implement extra reset wire to notify CPU reset.
+      - Some headers are changed due to cause FTBFS with GCC.
+      - Character encoding chenged to UTF-8 at most of source files(not all?)
+ * [VM/I386] IMPORTANT: libcpu_newdev/i386 has removed.I386:: porting from NP21 seems to be working nice, no need to porting from MAME/C++.
+ * [VM/HARDDISK] Calculate correctness C/H/S of HDD.
+ * [VM/SCSI_HDD][WIP] Implement RECALIBRATE SCSI command.
+ * [VM/SCSI_HDD][VM/SCSI_DEV] Implement some command.But still not active.
+ * [VM/BMJr] Fix Break sequence. Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/648 .
+ * [VM/BMJr] Fix reset-key (EIKIGOU + BREAK) sequence.
+ * [VM/BMJr] Alse assume Back Space key to DELETE key.
+ * [VM/BMJr] Also assume Esc key to BREAK key.
+ * [VM/FMGEN] Initial implemantation of YM2612 (OPN2).
+ * [VM/UPD71071] Make some functions make virtual to prepare overwrap by TOWNS_DMAC.
+ * [VM/DEVICE] Add update_signal_mask() to modify signal mask for SIG_SCSI_DAT for SCSI/SASI devices.
+ * [VM/COMMON_VM] Include SCSI devices to libCSPcommon_vm, excepts SCSI_HOST::.
+ * [VM/PCENGINE] ADPCM: Fix em-bugged freeze ADPCM DMA after CDC STATUS (write to I/O 1800h.)
+ * [BUILD/Windows] LLVM: Update Qt version to 5.14.
+ * [VM/PC9801] DISPLAY: Re-Backport from Upstream 2020-02-01.Kakinoki Syougi works fine.
+ * [VM/SCSI_CDROM] Fix freeze some PC-Engine's CD-ROM^2 games and SCSI HDD for FM-Towns.
+ * [Qt/OpenGL_ES] Win32: Fix shader compilation errors with Angle Project.
+ * [Qt/OpenGL] Correctness texture magnitude calculating.
+ * [UI/Qt] Win32: Fix closing D77/D88 image when select another slot.
+ * [UI/Qt] Harddisk: Add *.h0-*.h9 , they are Unz (Towns emulator)'s virtual harddisk images.
+ * [OSD/SOUND] Fix crash when effective sound sink don't exists.
+ * [Qt/OpenGL] Fix FTBFS if don't have libglu.
+ * [UI/Qt] Add "USE_CUSTOM_SCREEN_ZOOM_FACTOR" flag to fooVM.h.
+ * [UI/Qt] Try: Make GUI core (QApplication -> QCoreApplication) to be non-Global.
+   Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/719 .
+ * Built with 177db8ccb3765bf7f49ef3d9f25738bb15348e2b (or later).
 
--- Jan 05, 2020 20:59:52 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Mar 03, 2020 01:44:00 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
 
-12/31/2019
+2/21/2020
 
-[MZ2500/CRTC] apply crtc patch (thanks Mr.Koucha-Youkan)
+[VM/I386_NP21] update to Neko Project 21/W ver0.86 rev71 beta4
 
-11/3/2019
+[PC9801VX] support to switch cpu mode to V30
 
-[PC98RL] fix horizontal frequency
-
-[PC98RL/DISPLAY] fix not to change horizontal frequency
-
-[PC98RL/DISPLAY] fix cg window
-
-[PC98RL/DISPLAY] fix multiple vram planes accessing
-
-[PC9801/DISPLAY] fix vram word accessing (thanks Mr.Artane.)
+[PC9801RA] support to switch cpu mode to V30
 
 
-10/28/2019
+2/17/2020
 
-[X1/PSUB] improve tape recording
+[EMU] add is_floppy_disk_connected() and is_quick_disk_connected()
 
-[X1/SUB] improve tape stopping
+[WINMAIN] disable floppy/quick disk drive menus when drives are disconnected
 
-[X1/SUB] improve tape write-protected signal
+[VM/I8080] improve disassembler to distinguish 8080 and 8085
+
+[VM/I86] split i86/i88/i186/v30 from I286 class
+
+[VM/I86] fix aam in v30
+
+[VM/I86] support 8080 emulation mode in V30
+
+[VM/I386_NP21] improve not to explicitly accept irq while executing opecode
+
+[VM/I386_DASM] split i386 disassembler from I286/I386 class
+
+[VM/V30_DASM] split v30 disassembler from I286 class
+
+[VM/V30_DASM] add 8080 disassebler for 8080 emulation mode
+
+[VM/VM_TEMPLATE] add is_floppy_disk_connected() and is_quick_disk_connected()
+
+[PC9801] support to enable/disable 1MB/640K/320KB-FDD interfaces
 
 
-10/22/2019
+2/1/2020
 
-[X1/PSUB] improve tape end signal
+[EMU] support to create blank hard disk image (*.hdi/*.nhd)
 
-[X1/SUB] improve tape end signal
+[WINMAIN] add menu items to mount blank hard disk image
+
+[VM/DEVICE] improve memory/io bus interfaces for 16/32bit access
+
+[VM/DEVICE] add get_event_clocks() and get_cpu_clocks()
+
+[VM/EVENT] add get_event_clocks() and get_cpu_clocks()
+
+[VM/I386_NP21] support 80386 (based on Neko Project 21/W i386 core)
+
+[VM/I8259] make update_intr() public
+
+[VM/MEMORY] improve memory bus interfaces for 16/32bit access
+
+[VM/MEMORY] make rd_table/wr_table/addr_shift public
+
+[VM/UPD7220] fix stop command (thanks Neko Project 21/W)
+
+[FMR50] change i386 core from MAME to Neko Project 21/W
+
+[FMR50] support to mount blank hard disk image
+
+[MZ2500] support to mount blank hard disk image
+
+[MZ2800] support to mount blank hard disk image
+
+[PC9801] change i386 core from MAME to Neko Project 21/W
+
+[PC9801] support to mount blank hard disk image
+
+[PC9801/DISPLAY] improve code for big-endian host machine
+
+[PC9801/FMSOUND] support 86-type PCM (thanks Neko Project 21/W)
+
+[PC9801/MEMBUS] improve memory bus interfaces for 16/32bit access
+
+[PC9801/MOUSE] fix irq number in hireso mode
+
+[PC9801/SASI] improve irq/drq signals to generate from sasi bus signals
+
+[X1TURBO] support to mount blank hard disk image
+
+[X1TURBO/IOBUS] fix not to clear vram in reset()
+
+
+1/23/2020
+
+[VM/Z80DMA] fix byte counter read by read mask follows command (thanks Mr.Sato)
 
 -----
 

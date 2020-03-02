@@ -1,3 +1,822 @@
+commit 177db8ccb3765bf7f49ef3d9f25738bb15348e2b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 3 01:26:33 2020 +0900
+
+    [VM][I286][I386][PC9801] Merge upstreeam 2020-02-21.
+
+commit 24a74fdbe6a7472b85c03ba13ff634b71ac388f8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 2 21:17:51 2020 +0900
+
+    [VM][JX][MZ2800] Fix FTBFS with I8088.
+    
+    [VM][MZ6550] Fix FTBFS.
+
+commit dd351894cec0ada1df15b4363ce4e5935743c8b0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 2 20:57:45 2020 +0900
+
+    [VM][FM16BETA] Fix FTBFS.
+
+commit 46be78be36a2f2651f07b7e34c8f316d725678fb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 2 20:46:52 2020 +0900
+
+    [VM][General] Merge upstream 2020-02-17.
+
+commit 4f88b7a8de97056c95ac83f81df34b3f62978e7c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 29 19:36:22 2020 +0900
+
+    [VM][FMTOWNS][KEYBOARD][DOC] Emulate all of JIS key.
+
+commit 81ee6961b0a154584b1eeeb1baa9dd71789bed95
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 29 03:00:40 2020 +0900
+
+    [VM][FMTOWNS][CDROM][CDC] .
+
+commit db62a679e637e7275e974397fa0f838ce88964af
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 29 03:00:02 2020 +0900
+
+    [UI][Qt][FMTOWNS][DOC] Add document and qrc file.
+
+commit 27c8780f60b1db3f12b4f0394c1ee3eb092579d7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 28 13:25:53 2020 +0900
+
+    [VM][FMTOWNS][CDC][WIP] Fix unexpected SEL signal at reset.
+
+commit 8214dd83aff65b358e8bf0e88a9da13eb8d457a3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 28 00:35:46 2020 +0900
+
+    [VM][FMTOWNS][CDROM][WIP] Still implement CDC.Still not work.
+
+commit eae4a809254bf50abc89ab4dd389c06a9e143e91
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 21 01:07:48 2020 +0900
+
+    [VM][FMTOWNS][TIMER] Negate polarity of RTC's BUSY signal.
+    [VM][FMTOWNS][TOWNS_DMAC] .
+
+commit 3949356448e02b98ecec22d68c621ea52e611288
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 21 00:25:27 2020 +0900
+
+    [VM][PC9801][DISPLAY] .
+
+commit ddbbd2c3d25663b8e646613a1150f287bab93906
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 20 20:36:59 2020 +0900
+
+    [Build][PC9801][CMAKE] .
+
+commit b41c071ba4917bb22882daea5749a0310d37b4ed
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 20 20:22:10 2020 +0900
+
+    [VM][PC9801][DISPLAY] Re-Backport from Upstream 2020-02-01.Kakinoki Syougi works fine.
+    
+    Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/719 .
+
+commit 6ce4e123d53c2d035c4adb26536c0499066c9041
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 20 16:36:06 2020 +0900
+
+    [VM][UPD7220] Fix Hang-Up at N88 BASIC for PC-9801.
+
+commit 03d6e92d37c5bff7aac37aac92ba95766a189097
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 19 20:01:51 2020 +0000
+
+    [VM][FMTOWNS][FMGEN] Fix LACKing DLLEXPORT attribute to OPN2:: class.
+    [VM][FMTOWNS] Fix FTBFS with LLVM CLANG.
+    [BUILD][CMAKE][Windows][LLVM] Update Qt version to 5.14.
+
+commit d4231bce6b9e8023b538708f8fc8365a073c88a4
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 19 19:30:20 2020 +0000
+
+    [VM][PC9801][SASI_BIOS] Fix FTBFS with LLVM CLANG.
+
+commit d82ae54e53e43244bd2b31bc653c47112424d17c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 19 23:09:48 2020 +0900
+
+    [Qt][OpenGL2] TRY: Test to fix matrix of glOrtho().Expect to fix wrong display at VirtualBox Windows.
+
+commit 3a3f799d54056865e7b553da8a372c64a2051fe0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 19 22:48:21 2020 +0900
+
+    [UI][Qt][MAIN] .
+
+commit 216157bde5018ee08ae69afe5fbfc8be9a3e860a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 19 22:41:25 2020 +0900
+
+    [UI][Qt][MAIN] Fix FTBFS with LLVM CLANG.
+
+commit 00db1a72e7c0efb97df01c5a3a0cab27add7833f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 19 22:32:40 2020 +0900
+
+    [VM][I386_NP21] .
+
+commit 8cd2fce509b9bf71330ca6b539d8d45fb5a50ee2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 19 22:30:37 2020 +0900
+
+    [VM][I386_NP21] Fix FTBFS when enabling __FASTCALL prefix.
+
+commit b1ccd96f53fe95388cecd6dc7bebf19edcab8f05
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 19 22:20:57 2020 +0900
+
+    [UI][Qt][General] Try: Make GUI core (QApplication -> QCoreApplication) to be non-Global.
+    
+    This aims to solve for below warning at setting Attributes of QCoreApplication.
+
+commit 0ab5a189ee3adf3db1e27fd3ba21d0230e6d02a1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 19 00:15:06 2020 +0900
+
+    [VM][FMTOWNS][CDROM][WIP] Has read a first sector, but overwritten by another sector (;_;)
+
+commit 4db90db17f3af41722981ee097579ceecb56088d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 18 01:13:31 2020 +0900
+
+    [VM][FMTOWNS][CDC][WIP] Improve CPU<->DMAC<->CDC<->CDC_SCSI<->TOWNS_CDROM routing, but still not works.
+
+commit 37c4133be32d818d676eeb2b78d3b3155d0f67fa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 16 19:19:10 2020 +0900
+
+    [OSD][Qt][OOPs] Add miss-added entry for _CDROM_DEBUG_LOG flag.
+
+commit ee6363e6a82d02c89e16b8dea4e5bf99fbb1b5d2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 16 19:18:45 2020 +0900
+
+    [VM][SCSI_DEV] Update log entry.
+
+commit bc1c1a7f193eaa8ad633b65130b5fc86f9ff8445
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 16 19:17:51 2020 +0900
+
+    [VM][FMTOWNS][CDC][WIP] Re-Implementing with *PSEUDO* 4bit MCU.This still not be completed.
+
+commit 7f8d701b417137795038e8c24df116e01a878bb5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 15 23:20:24 2020 +0900
+
+    [VM][FMTOWNS][CDROM][SCSI_DEV][WIP] Implementing CDC and CDROM.
+
+commit 6d9d43c36247f5dd01ff4d32d595aa23ce8944b6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 15 16:12:39 2020 +0900
+
+    [VM][SCSI_DEV][SCSI_CDROM] Fix freeze some PC-Engine's CD-ROM^2 games and SCSI HDD for FM-Towns.
+
+commit 49701e13b81175e039b15b61118443aadb0e8b28
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 15 05:22:24 2020 +0900
+
+    [VM][SCSI_DEV] .
+
+commit 291cd82eec5c0915ddf0a0bb89a18cb2bf6115fb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 15 05:21:09 2020 +0900
+
+    [VM][PCENGINE][ADPCM][WIP] Fixing em-bugged freeze ADPCM DMA after CDC STATUS (write to I/O 1800h.)
+
+commit a9c625ba8c83cd277280bd81cf322a355eb09079
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 14 23:13:05 2020 +0900
+
+    [VM][DEVICE] Add update_signal_mask() to modify signal mask for SIG_SCSI_DAT for SCSI/SASI devices.
+    [VM][COMMON_VM] Include SCSI devices to libCSPcommon_vm, excepts SCSI_HOST::.
+
+commit effd9e8388ee80c5996f0a52fb8c6427bb8510c8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Feb 10 00:57:18 2020 +0900
+
+    [VM][FMTOWNS][SCSI] Partky working SCSI HDD.Something still be wrong and unstable.
+
+commit a52ce9ece54f010ac9b360494a5a6d4418d76755
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 9 19:54:11 2020 +0900
+
+    [VM][SCSI_DEV] .
+
+commit 79e039198cdcd8ed5bfb0976a13fab93d518ef91
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 9 19:24:04 2020 +0900
+
+    [VM][SCSI_DEV] TRY: Add delayed bsy signal handling features.
+
+commit a3e45c16b66e0f5fc4803548a2b1268adfbc727b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 9 19:22:44 2020 +0900
+
+    [UI][Qt] Add "USE_CUSTOM_SCREEN_ZOOM_FACTOR" flag to fooVM.h.
+
+commit b4bc0dd6ffbb268fd0681df3a97f49326eee86d7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 9 17:27:46 2020 +0900
+
+    [VM][FMTOWNS] Set "SCSI_DEV_IMMEDIATE_SELECT".Set HDD's vendor ID and product ID.
+
+commit c695298069c2b53aa18c5f1942cf66b16d41d275
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 9 17:26:52 2020 +0900
+
+    [VM][SCSI_HDD][SCSI_DEV] Implement some command.But still not active.
+
+commit 8d1fdc378138d312fd88fe2961cc9f9dc5ce452e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 9 04:47:50 2020 +0900
+
+    [VM][HARDDISK] Uncomment disk recognize part.
+
+commit ac41c8db4d77f52178151ab1868a9bc4197b31eb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 9 04:46:24 2020 +0900
+
+    [VM][PC9801][SASI_BIOS] Update APIs.Fix not working SASI pseudo bios.
+
+commit 744a110b752f4e9d95f6d74060bfa9cdfb196a15
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 9 04:45:20 2020 +0900
+
+    [VM][SCSI_DEV] Revert latest commit.
+
+commit d9e6ead5190ef41721e1f01a6ab1bd197cb525c7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 9 02:51:53 2020 +0900
+
+    [VM][FMTOWNS][SCSI_DEV] .
+
+commit 43e5218f4d6baabb454e094c638f1dde787f6a63
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 9 01:30:25 2020 +0900
+
+    [VM][FMTOWNS][TOWNS_SCSI_HOST][WIP] Improving SEL sequence.
+
+commit 0d1add18b6969ddf60461a47f5a6e0af619271d6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 9 01:29:40 2020 +0900
+
+    [VM][SCSI_HDD][WIP] Implement RECALIBRATE SCSI command.
+
+commit 70ea3f7a878d5899af7e55dc87ed986f4fc85d0d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 8 22:46:24 2020 +0900
+
+    [VM][SCSI_DEV][WIP] Adjusting bus timing.
+
+commit 6ae5f0edc0df081604d2d720851a20057d7882fd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 8 22:45:48 2020 +0900
+
+    [VM][FMTOWNS][SCSI] .
+
+commit 12a304e1fe764b0278f6b75f1ecbb6c2dfe973fb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 8 18:45:07 2020 +0900
+
+    [VM][FMTOWNS][SCSI][WIP] Still not working MS-DOS on HDD(´；ω；｀)
+
+commit bcac14845d1e4d6d22735a339edf1ba212752969
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 8 18:44:06 2020 +0900
+
+    [VM][HARDDISK] Calculate correctness C/H/S of HDD.
+    [VM][SCSI_DEV][WIP] Adjusting reply bus on changing phase.
+
+commit 13a20cbc8e5bef1088972b4b088fb8e68255727c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 7 13:44:47 2020 +0900
+
+    [VM_TEMPLATE] Fix FTBFS when include directly.
+    [VM][I386_NP21] .
+
+commit 56182292ccc9af4f553124123f7e25d237d12514
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 7 13:27:55 2020 +0900
+
+    [VM][I386_NP21] Make VM to VM_TEMPLATE as class.
+
+commit 041039ba0e5c8dc682df7cb179918c371ee4db5a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 7 13:22:08 2020 +0900
+
+    [VM][I386] IMPORTANT: libcpu_newdev/i386 has removed.I386:: porting from NP21 seems to be working nice, no need to porting from MAME/C++.
+
+commit 27f90df3ff9bd5dc9f1a01f5ffa9f276c284dcba
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 6 23:11:06 2020 +0900
+
+    [VM][FMTOWNS][SCSI][OOPS] I forgot adding new TONWS_SCSI:: to git X-)
+
+commit 316325d060ebc27ce1027c9bb8cfeb30879f1903
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 5 23:02:34 2020 +0900
+
+    [Qt][OpenGL] Fix FTBFS if don't have libglu.
+
+commit d39a2e669eb1e0631cd916257b50e81a74c6a8d2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 5 23:01:45 2020 +0900
+
+    [OSD][SOUND] Fix crash when effective sound sink don't exists.
+
+commit 8d54c24a9c4997ee6e927866ac8e04b2f1eeb60e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 5 16:17:46 2020 +0900
+
+    [VM][FMTOWNS][SCSI][WIP] Still not working HDD.
+
+commit 6802c9acf74a12778f87ee8d8977cb577a882220
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 5 13:30:21 2020 +0900
+
+    [VM][FMTOWNS] Bootable with I286_NP21.Fix word/dword access at TOWNS_SYSROM::.
+    [VM][PC9801][FMSOUND] Fix FTBFS with not SUPPORT_OPNA.
+
+commit bef24a7cb5f5a14cb0c705c20fe3e0e0f7265707
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 5 11:39:05 2020 +0900
+
+    [VM][FMR50][I386] Fix not detect pseudo-bios, not bootable.
+
+commit feb6fd79868851b6eb6f1055f0dd4101712ac52e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 5 01:41:36 2020 +0900
+
+    [VM][FMTOWNS] Still use old I386.
+
+commit 9b7de3bf642caf3c96524c151c766f63237c16aa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 5 01:13:24 2020 +0900
+
+    [GENERAL] .
+
+commit bc698c87261ff202b1cfd756d257cce79004b7b5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 5 01:12:57 2020 +0900
+
+    [VM] Merge UPstream 2020-02-01.
+
+commit c3f0d191f800179f19d09ed3df747f5d83769a9c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 5 01:00:39 2020 +0900
+
+    [VM] Apply upstream 2020-02-01 to some VMs.
+
+commit e70ec22c1888ce4d2fcbc4ad53e84c46aba0742e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 5 00:58:34 2020 +0900
+
+    [VM][PC9801] Apply upstream 2020-02-01.
+
+commit 6696da524aa0afb4020c45295dbaae912a5459a8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 4 21:52:06 2020 +0900
+
+    [VM][I386_NP21] Merge Upstream 2020-02-01 's I386::/NP21.Belows are differ from upstream:
+     * Implement memory wait to change CPU speed.
+     * Implement extra reset wire to notify CPU reset.
+     * Some headers are changed due to cause FTBFS with GCC.
+     * Character encoding chenged to UTF-8 at most of source files(not all?)
+
+commit 9cb4ed22ffc718a7c70ec2b07618e7e0dfb94721
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 4 00:52:10 2020 +0900
+
+    [VM][FMTOWNS][CRTC] May render kanji text.
+
+commit ddd62b7f0cb7fbbf2328f96e354a009e08877dcd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 1 03:34:34 2020 +0900
+
+    [VM][SCSI_HOST] Implement both wide and narrow bus.
+
+commit 98baafc4ffa0d6a1c008e68434568c9943a8a20e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 1 03:33:40 2020 +0900
+
+    [VM][FMTOWNS] Implement Text VRAM emulation .Floppy version ofMS-DOS works.
+
+commit d0bc8cc0ebc121268d1d093fc31973a9e4769eff
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 31 21:30:36 2020 +0900
+
+    [UI][Qt][Harddisk] Add *.h0-*.h9 , they are Unz (Towns emulator)'s virtual harddisk images.
+
+commit dda280eddab4c4d545fee376a4e299c0131d892f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 31 21:29:51 2020 +0900
+
+    [VM][FMTOWNS][CDC] Modify DMA Transfer hook.
+
+commit 88719c854d47728f3a0dd8063e21b237d418c6da
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 31 21:28:30 2020 +0900
+
+    [VM][FMTOWNS][TOWNS_DMAC][UPD72017] More coirrectness DMA transfer.
+
+commit d5800fff60d0192fa1e9a05f3c0b8cf31f233dab
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 31 19:15:51 2020 +0900
+
+    [VM][FMTOWNS][CRTC] (Maybe) Complete palette emulation.Move palette functions from TOWNS_VRAM:: to TOWNS_CRTC:: .
+
+commit 23213e459eb0d90a4b8c02eea584e8810bd26fc2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 31 05:01:18 2020 +0900
+
+    [VM][I386] .
+
+commit ac29099071256f80fac42f54f2d980fc0fbbef98
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 31 04:59:20 2020 +0900
+
+    [VM][FMTOWNS][MEMORY] Remove implement of address mask.
+
+commit 41f8716d72a23f07c6a99b9c2c7f1683df324625
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 31 04:57:30 2020 +0900
+
+    [VM][FMTOWNS][CRTC] Record VST/HST per frame.Fill by skelton color before starting to transfer.
+
+commit eed8527435330202a2b84c67dac44481e932d53c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 31 04:56:51 2020 +0900
+
+    [VM][FMTOWNS][TOWNS_DMAC] Implement as correctness address handling.
+
+commit 6c0a7c1df04292a2ae76e878b7b2584d2b46a2d1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 31 04:56:03 2020 +0900
+
+    [VM][FMTOWNS][VRAM] Remove unused values.Add debug message.
+
+commit 5f1afea3b0da3b4821e98b9cc7be7e5ebc1e8e92
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 31 04:55:34 2020 +0900
+
+    [VM][FMTOWNS][FLOPPY] Implement correctness registers.
+
+commit a204e8011289e90611f7d1a04f9fc5bccc722261
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 30 04:16:44 2020 +0900
+
+    [VM][FMTOWNS][TOWNS_CRTC] Fix crash with GL4.5 renderer.
+
+commit a6cba311a1087abfc0eb7d3435c2f3e703e0d5c1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 30 04:16:08 2020 +0900
+
+    [Qt][OpenGL] Correctness texture magnitude calculating.
+
+commit c529b4ec8a5b0019d8590dd8adb66659e5b15bb1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 30 03:35:56 2020 +0900
+
+    [Qt][OpenGL] .
+
+commit 6a795034fda58b1adc5f122068c22dbca8506d73
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 30 03:34:59 2020 +0900
+
+    [VM][FMTOWNS][CRTC][WIP] Variable framebuffer.
+
+commit 03cb044b326ccbf27f5fb7d52e976fad4e610439
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 30 01:14:00 2020 +0900
+
+    [VM][FMTOWNS][JOYSTICK] Initial support of 2 buttons PAD.
+
+commit 67667e01c0b9e3abc6c3d7a26c07f9a644c22a32
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 30 01:12:36 2020 +0900
+
+    [VM][FMTOWNS][TOWNS_MEMORY] Now working memory check of Syetem ROM.
+
+commit 17b0847d9f32175b11ee61cbd09e9611a4c64443
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 30 01:11:50 2020 +0900
+
+    [VM][FMTOWNS][TOWNS_DMAC] Fix around address mask value (OK?)
+
+commit 03a2f642ec55c926ee6564475be2b58918dc2d64
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 30 01:11:25 2020 +0900
+
+    [VM][FMTOWNS][DICTIONARY] Fix memory breaking.
+
+commit 9a09db48678e1090e2f3d4a104f4c0bca551dc99
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 30 01:10:55 2020 +0900
+
+    [VM][FMTOWNS][SYSROM] Fix brutal memory breaking.
+
+commit 1b1861979c9b4746881f6269bbf1e0bac3190feb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 30 01:10:25 2020 +0900
+
+    [VM][FMTOWNS][KEYBOARD][WIP] Implementing Towns Keyboard.
+
+commit 3c7022d51e21df37724225fac3d0025d9f56be49
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 30 01:09:47 2020 +0900
+
+    [VM][FMTOWNS][FONT_ROM] Comment out debug message.
+
+commit 6e9f9a4b023d66531a4e34b168579602024a2f9b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 30 01:09:15 2020 +0900
+
+    [VM][FMTOWNS][RF5C60] Fix memory reak.
+
+commit e1c164ca0031105c2b0f3801b7319611fff0b3b8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 30 01:08:28 2020 +0900
+
+    [VM][I386] Prepare support with A20_MASK.
+
+commit 208caf1f46d27731d11ec23a57c0dcd25adb2bd7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 29 19:22:02 2020 +0900
+
+    [VM][FMTOWNS][TOWNS_DMAC] Implement DMAC registers to I/O port 0020h-0024h, same as eFMR50.
+
+commit 92605b15834f9a3c8450683b492a0ae162ec0821
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 29 19:21:04 2020 +0900
+
+    [VM][UPD71071][COMMON_VM] Make some functions make virtual to prepare overwrap by TOWNS_DMAC.
+
+commit e3806a2547e01e67a4f5ea60c8c3016244b9fea1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 28 17:43:49 2020 +0900
+
+    [VM][FMTOWNS][MEMORY][WIP] Debugging around I/O 0020h.
+
+commit 2e15ae8e0b1aa2090bc6b331bb88edf355b124be
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 28 06:14:59 2020 +0900
+
+    [VM][FMTOWNS][CDC][WIP] Adjusting around CDC.
+
+commit 5f34b4d13b71449404317e41ad668602f2e99f07
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 28 04:41:28 2020 +0900
+
+    [VM][FMTOWNS][CDC] .
+
+commit 02b993440bd4b2b5c0fb7e77c29b21dd93bd3d7a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 28 04:40:49 2020 +0900
+
+    [VM][FMTOWNS] May PLACE MSDOS-ROM to b00000-bfffff.
+
+commit 72f684089fa9b4d66d9af798de86147fbbee6cc9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 28 03:50:00 2020 +0900
+
+    [VM][FMTOWNS] Add HARDDISK and CDROM.
+
+commit 48f32b19722c5f721b05b157c1600d96aeed8b85
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 28 03:49:10 2020 +0900
+
+    [VM][FMTOWNS][MEMORY][VM] More correctness mapping.
+
+commit 7a063cd84484e198ed348cc7c87453fd0c06e719
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 28 03:48:39 2020 +0900
+
+    [VM][FMTOWNS][SPRITE] Add TVRAM emulation features.
+
+commit 0ae599b6498159da8c17ef6fb0887e1b49d38f03
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 28 03:47:38 2020 +0900
+
+    [VM][FMTOWNS][VRAM] Plane accessing (FMR50 emulation) may work (perhaps...).
+
+commit d5b70182814ef885e8902470551e81c37e46576e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 28 03:46:46 2020 +0900
+
+    [VM][FMTOWNS][FONTROM] Add kanji code handling for MMIO 0xcff94-0xcff97.
+
+commit b84fedc7da70eb328b0720e70f3c8660e8025a21
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 28 03:45:48 2020 +0900
+
+    [VM][i386] Fix wrong privilage checking on i386_protected_mode_jump().
+
+commit d43606aa73bdd425d90cb261ae786234a0be1557
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 28 03:45:18 2020 +0900
+
+    [VM_TEMPLATE] Fix oops around CDROM.
+
+commit c10a0e9247b757fdb8b47b1fb26933901f97b68c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 27 17:24:13 2020 +0900
+
+    [VM][FMTOWNS][VRAM] Plane read/write features works.
+
+commit c0d7f98130634958087f74877997e4bb6cd2f9ae
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 27 16:17:36 2020 +0900
+
+    [VM][FMTOWNS][TESTCODE] Import document at upstream.
+
+commit 4ee64327f78598b121695b1548fdd5d3f66f7f00
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 27 16:17:04 2020 +0900
+
+    [VM][FMTOWNS][TESTCODE] Import from upstream.
+
+commit c977bf8dcb3548ccc618d76a6b7031cea527bf1f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 27 16:15:19 2020 +0900
+
+    [VM][FMTOWNS][TESTCODE] Import from comp_sysrom (http://townsemu.world.coocan.jp/compatiroms.html .)
+
+commit d55d7cfb35eeb7260fb9a26959466d2f0280569b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 27 16:01:26 2020 +0900
+
+    [VM][FMTOWNS][CRTC] Simplify logic of transfer_line().
+
+commit 66030f07fac47b4c3856e203e4703f8874eb1fa1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 27 02:44:54 2020 +0900
+
+    [VM][FMTOWNS][CRTC][WIP] Adjusting CRTC transfer timing.
+
+commit afb8a8e9d2b182253947e62281dc9f1803a30092
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 26 20:04:33 2020 +0900
+
+    [VM][FMTOWNS][VRAM] Change debug pattern.
+
+commit 32956ba9691f669a6beb645357be7a9393c361e4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 26 19:48:43 2020 +0900
+
+    [VM][FMTOWNS][CRTC] Fix around zooming.
+
+commit e68cbe5f2dfacb5a021f1d23cd7aaa022a073505
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 26 17:23:41 2020 +0900
+
+    [VM][FMTOWNS][CRTC] May display 256 colors mode.
+
+commit 11e1f07a6165a47aa557376bb767b357ae9765d7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 25 03:53:59 2020 +0900
+
+    [VM][FMTOWNS][VRAM][CRTC][WIP] Debugging CRTC.Using test pattern.
+
+commit a69ac161b4ab3f0259655fdade0270850d04075a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 24 21:01:42 2020 +0900
+
+    [VM][FMTOWNS][MEMORY] Truely implement EXTRA RAM.
+
+commit 8bfdab5b10016278a432cb9ec3cc8880423e0759
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 24 20:02:55 2020 +0900
+
+    [VM][FMTOWNS][VRAM] Fix wrong mask value for writing_as_32bit width.
+
+commit d48654cf124feb71b4e814de733bde6843f65a0e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 24 20:01:40 2020 +0900
+
+    [VM][FMTOWNS][TIMER] Move wait 1us feature to TIMER::.Add interval timer feature (After 10F)
+
+commit ba008b0a4a611dba21d686301e18aa53042e2cb1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 23 22:19:02 2020 +0900
+
+    [VM][FMTOWNS] Fix crash around CDC.
+
+commit a3e4306291b3f6906322f81885e79eb502d82411
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 23 22:15:05 2020 +0900
+
+    [VM][I386] .
+
+commit cdb6778856097b87ef2be83066e1cd3604d8fab9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 23 22:13:17 2020 +0900
+
+    [VM][I386] .
+
+commit f0e4e6f9f6a4783d94cf8534281d15b02e56567f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 23 22:12:26 2020 +0900
+
+    [VM][I386][DEBUGGER] Improve display around SEGMENTS.
+
+commit cb145b3fc5144879178b81c6670705552b03c6e3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 23 04:21:49 2020 +0900
+
+    [VM][FMTOWNS][MEMORY] Free-run counter already implement at TIMER::.Use this.
+
+commit 3d0e389430a7e5929be57c4c75f1cae6aeab9ac3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 23 03:23:30 2020 +0900
+
+    [VM][FMTOWNS] Improbe I/O definition.
+    
+    [VM][FMTOWNS] Add secret free run counter (Thanks to developer of MAME).
+
+commit 378ceacae59749b89f0471a434fdea43ed0203ff
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 22 03:13:45 2020 +0900
+
+    [VM][FMTOWNS][WIP] Fixing any sequences.
+
+commit 60645fba7e550e69354e187f55d6c635af9b9879
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 22 03:13:06 2020 +0900
+
+    [VM][I386][DEBUGER] Display registers as 32bit even 16bit mode.
+
+commit 1a401e72335339255dc253585900440d7c73ff80
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 22 03:12:29 2020 +0900
+
+    [VM][I386] Fix freezing even reset() after HLT.
+
+commit 870ec73b3011adfcb30acc4a5cbc86e28ef0985a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 21 17:38:11 2020 +0900
+
+    [VM][FMTOWNS] Maybe booting when starting, but, somthing is wrong for memory structure, not be booted yet.
+
+commit 8b5ab23f1a44e0debc5132b80039f731b7493cb1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 21 17:37:41 2020 +0900
+
+    [UI][Qt][FMTOWNS] Fix crash when starting.
+
+commit 7576b64aa4ef5fbc6aa2efb0ba068d52744259a5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 20 04:42:42 2020 +0900
+
+    [VM][FMTOWNS] May buildable, still not working.
+    [VM][FMTOWNS] Still not implement some devices.
+    [VM][FMTOWNS][YM2612] Add YM2612 (OPN2) to vm/fmtowns tree.
+
+commit c2dc2ade4579753c3e135036f9395e76f9897104
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 20 04:37:55 2020 +0900
+
+    [VM][FMGEN] Update implemantation of YM2612 (OPN2).
+    
+    [VM][FMGEN] libCSPfmgen : Update SOVERSION.
+
+commit 155e0aa3dc5be6fd6d8b4f7c0787c96920f74716
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 19 22:27:32 2020 +0900
+
+    [VM][FMTOWNS] .
+
+commit a1e3b4b4ef77c8d6c249c3fb89b16e402fe96fbc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 19 22:20:53 2020 +0900
+
+    [VM][FMTOWNS] Start to try building.Maybe imcomplete a lot.
+
+commit cf01cafebb5c8eb01b462e65b953ee5afb48b66a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 14 18:32:42 2020 +0900
+
+    [VM][BMJr] Fix Break sequence. Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/648 .
+    [VM][BMJr] Fix reset-key (EIKIGOU + BREAK) sequence.
+    [VM][BMJr] Alse assume Back Space key to DELETE key.
+    [VM][BMJr] Also assume Esc key to BREAK key.
+    [VM][BMJr] Update document.
+
+commit 8d58a0e007dc1ca2a8ac04a54234613c1131ec7b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 14 02:10:30 2020 +0900
+
+    [UI][Qt][WIN32] Fix closing D77/D88 image when select another slot.
+
 commit 6ec6e4cf3c15e08a89f75bca246ce1ae051c36cb
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon Jan 6 01:48:56 2020 +0900
