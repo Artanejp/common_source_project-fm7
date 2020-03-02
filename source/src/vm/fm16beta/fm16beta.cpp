@@ -60,7 +60,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I86(this, emu);
 	cpu->device_model = INTEL_80186;
 #elif defined(HAS_I286)
-	cpu = new I80286(this, emu);
+	cpu = new I286(this, emu);
 #endif	
 	io = new IO(this, emu);
 	dma = new I8237(this, emu);

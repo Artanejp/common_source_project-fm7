@@ -333,26 +333,26 @@ this->out_debug_log("SUB -> MAIN: SUB BUSY = %d\n", sub_busy);
 
 /*
 IRQ8			-> INT0
-	IRQ8: ƒ^ƒCƒ}[
+	IRQ8: ã‚¿ã‚¤ãƒžãƒ¼
 IRQ1 + FIRQ1		-> INT1
-	IRQ1: ƒL[ƒ{[ƒh
-	FIRQ1: BREAKƒL[
+	IRQ1: ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰
+	FIRQ1: BREAKã‚­ãƒ¼
 IRQ5 + IRQ6		-> INT2
-	IRQ5: IMBƒtƒƒbƒsƒBƒfƒBƒXƒN
-	IRQ6: ƒn[ƒhƒfƒBƒXƒN
+	IRQ5: IMBãƒ•ãƒ­ãƒƒãƒ”ã‚£ãƒ‡ã‚£ã‚¹ã‚¯
+	IRQ6: ãƒãƒ¼ãƒ‰ãƒ‡ã‚£ã‚¹ã‚¯
 FIRQ0 + FIRQ2 + FIRQ3	-> INT3
-	FIRQ0: SUBƒAƒeƒ“ƒVƒ‡ƒ“
-	FIRQ2: Šg’£
-	FIRQ3: ƒ†[ƒU—p
+	FIRQ0: SUBã‚¢ãƒ†ãƒ³ã‚·ãƒ§ãƒ³
+	FIRQ2: æ‹¡å¼µ
+	FIRQ3: ãƒ¦ãƒ¼ã‚¶ç”¨
 IRQ0			-> INT4
 	IRQ0: RS-232C
 IRQ2 + IRQ9 + INTNDP	-> INT5
-	IRQ2: Šg’£
-	IRQ9: ƒ†[ƒU—p
+	IRQ2: æ‹¡å¼µ
+	IRQ9: ãƒ¦ãƒ¼ã‚¶ç”¨
 IRQ4			-> INT6
-	IRQ4: 320KBƒtƒƒbƒsƒBƒfƒBƒXƒN
+	IRQ4: 320KBãƒ•ãƒ­ãƒƒãƒ”ã‚£ãƒ‡ã‚£ã‚¹ã‚¯
 IRQ7			-> INT7
-	IRQ7: ƒvƒŠƒ“ƒ^
+	IRQ7: ãƒ—ãƒªãƒ³ã‚¿
 */
 
 void MAINBUS::update_int0()

@@ -38,7 +38,7 @@
 #define SIG_MAIN_RTC_BUSY	20
 
 #ifdef HAS_I286
-class I80286;
+class I286;
 #else
 class I8086;
 #endif
@@ -53,7 +53,7 @@ private:
 	//csp_state_utils *state_entry;
 
 #ifdef HAS_I286
-	I80286 *d_cpu;
+	I286 *d_cpu;
 	uint8_t rst;
 #endif
 	I8237 *d_dma;
@@ -117,7 +117,7 @@ public:
 	
 	// unique functions
 #ifdef HAS_I286
-	void set_context_cpu(I80286* device)
+	void set_context_cpu(I286* device)
 	{
 		d_cpu = device;
 	}
