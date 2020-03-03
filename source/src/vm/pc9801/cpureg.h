@@ -39,7 +39,7 @@ private:
 	outputs_t outputs_cputype;
 	uint8_t reg_0f0;
 	
-#if defined(SUPPORT_32BIT_ADDRESS)
+#if defined(SUPPORT_32BIT_ADDRESS) || defined(UPPER_I386)
 	I386 *d_cpu;
 #else
 	I286 *d_cpu;
@@ -73,7 +73,7 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
-#if defined(SUPPORT_32BIT_ADDRESS)
+#if defined(SUPPORT_32BIT_ADDRESS) || defined(UPPER_I386)
 	void set_context_cpu(I386* device)
 #else
 	void set_context_cpu(I286* device)

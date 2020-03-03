@@ -14,7 +14,7 @@
 #include "cpureg.h"
 #include "membus.h"
 #include "../i8255.h"
-#if defined(SUPPORT_32BIT_ADDRESS)
+#if defined(SUPPORT_32BIT_ADDRESS) || defined(UPPER_I386)
 #include "../i386_np21.h"
 //#include "../i386.h"
 #else
@@ -67,9 +67,11 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 	case 0x005f:
 		// ToDo: Both Pseudo BIOS.
 		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+#if !defined(SUPPORT_HIRESO)
 		if(d_v30 != NULL) {
 			d_v30->write_signal(SIG_CPU_BUSREQ, 1, 1);
 		}
+#endif
 		if(event_wait >= 0) {
 			cancel_event(this, event_wait);
 			event_wait = -1;
@@ -80,12 +82,14 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 		out_debug_log(_T("00F0h=%02X"), data);
 		reg_0f0 = data;
 		d_cpu->write_signal(SIG_CPU_BUSREQ,  reg_0f0, 1);
+#if !defined(SUPPORT_HIRESO)
 		if(d_v30 != NULL) {
 			d_v30->reset();
 			d_v30->write_signal(SIG_CPU_BUSREQ, ~reg_0f0, 1);
 		}
 		d_pio->write_signal(SIG_I8255_PORT_B, ((reg_0f0 & 1) != 0) ? 2 : 0, 2);
 //		d_pio->write_signal(SIG_I8255_PORT_B, reg_0f0, 2);
+#endif
 		write_signals(&outputs_cputype, ((reg_0f0 & 1) != 0) ? 0xffffffff : 0x00000000);
 		d_cpu->reset();
 		d_cpu->set_address_mask(0x000fffff);
