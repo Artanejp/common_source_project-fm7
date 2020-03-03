@@ -61,7 +61,7 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	int run(int icount);
+	int __FASTCALL run(int icount);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void set_intr_line(bool line, bool pending, uint32_t bit);
 	void set_extra_clock(int icount);
@@ -97,7 +97,7 @@ public:
 	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
 	void __FASTCALL write_debug_io16(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_debug_io16(uint32_t addr);
-	bool __FASTCALL write_debug_reg(const _TCHAR *reg, uint32_t data);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	uint32_t __FASTCALL read_debug_reg(const _TCHAR *reg);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
