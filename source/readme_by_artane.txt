@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20200302
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20200303
 
    追加情報:
    
@@ -175,6 +175,7 @@ Changes:
       - Some headers are changed due to cause FTBFS with GCC.
       - Character encoding chenged to UTF-8 at most of source files(not all?)
  * [VM/I386] IMPORTANT: libcpu_newdev/i386 has removed.I386:: porting from NP21 seems to be working nice, no need to porting from MAME/C++.
+ * [UI/Qt] Add HARDDISK CREATION feature.
  * [VM/HARDDISK] Calculate correctness C/H/S of HDD.
  * [VM/SCSI_HDD][WIP] Implement RECALIBRATE SCSI command.
  * [VM/SCSI_HDD][VM/SCSI_DEV] Implement some command.But still not active.
@@ -187,6 +188,7 @@ Changes:
  * [VM/DEVICE] Add update_signal_mask() to modify signal mask for SIG_SCSI_DAT for SCSI/SASI devices.
  * [VM/COMMON_VM] Include SCSI devices to libCSPcommon_vm, excepts SCSI_HOST::.
  * [VM/PCENGINE] ADPCM: Fix em-bugged freeze ADPCM DMA after CDC STATUS (write to I/O 1800h.)
+ * [VM/PC9801] 86PCM: Fix Initial value of PCM_MUTE(A66Eh).Adjust volume multiply factor.
  * [BUILD/Windows] LLVM: Update Qt version to 5.14.
  * [VM/PC9801] DISPLAY: Re-Backport from Upstream 2020-02-01.Kakinoki Syougi works fine.
  * [VM/SCSI_CDROM] Fix freeze some PC-Engine's CD-ROM^2 games and SCSI HDD for FM-Towns.
@@ -199,9 +201,9 @@ Changes:
  * [UI/Qt] Add "USE_CUSTOM_SCREEN_ZOOM_FACTOR" flag to fooVM.h.
  * [UI/Qt] Try: Make GUI core (QApplication -> QCoreApplication) to be non-Global.
    Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/719 .
- * Built with 177db8ccb3765bf7f49ef3d9f25738bb15348e2b (or later).
+ * Built with fd1687a197f8e25788c8231a08e73fb3a5667763 (or later).
 
--- Mar 03, 2020 01:44:00 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Mar 03, 2020 15:13:25 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 
 本家の変更:

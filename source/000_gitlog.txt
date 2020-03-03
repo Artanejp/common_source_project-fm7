@@ -1,3 +1,52 @@
+commit fd1687a197f8e25788c8231a08e73fb3a5667763
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 3 15:11:15 2020 +0900
+
+    [DOC][FMTOWNS] Update FM-Towns status.
+
+commit bb54da75384e70e20503d377f9fb23dcfe4297ab
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 3 15:09:42 2020 +0900
+
+    [UI][Qt] Add HARDDISK CREATION feature.
+    [I18N] Add Japanese translations.
+
+commit e9959a717496ea6a75d1d3a091e4b77ec0531796
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 3 06:53:41 2020 +0900
+
+    [VM][PC9801][86PCM] Adjust volume multiplier of PCM.
+
+commit ff6b8ffe94eda721f736324ce67e2aa7ec4aaa4d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 3 06:36:52 2020 +0900
+
+    [VM][FMSOWND][86PCM] Fix Initial value of PCM_MUTE(A66Eh).
+
+commit 155f29ee4b65906c49358356b274c558b10dede7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 3 06:30:37 2020 +0900
+
+    [VM][PC9801][FMSOUND] Temporally disable PCM_MUTE(A66Eh).Temporally fix not sound PCM.
+
+commit 7b8aaba8dd5bba29859942f40b6373a543118a82
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 3 04:03:24 2020 +0900
+
+    [UI][Qt] Add HARDDISK create widget.Still not working, only dummy.
+
+commit 9c47959ef8f965dfdc942a4c7c674e877212c384
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 3 01:51:25 2020 +0900
+
+    [DOC] .
+
+commit 22bd0f796586f796b96fa83242d90b712f4a34ea
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 3 01:48:18 2020 +0900
+
+    [General] Update Document.
+
 commit 177db8ccb3765bf7f49ef3d9f25738bb15348e2b
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Mar 3 01:26:33 2020 +0900
