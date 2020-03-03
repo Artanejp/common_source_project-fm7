@@ -928,7 +928,7 @@ uint32_t DISPLAY::read_io8(uint32_t addr)
 void DISPLAY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	uint32_t idx = (addr & 0x000f0000) >> 16;
-	if(bank_table[idx] >= 0x80000000) return 0xffff;
+	if(bank_table[idx] >= 0x80000000) return;
 	addr = bank_table[idx] | (addr & 0x0000ffff);
 	
 	if(TVRAM_ADDRESS <= addr && addr < (TVRAM_ADDRESS + 0x3fe2)) {
@@ -1073,7 +1073,7 @@ void DISPLAY::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 uint32_t DISPLAY::read_memory_mapped_io8(uint32_t addr)
 {
 	uint32_t idx = (addr & 0x000f0000) >> 16;
-	if(bank_table[idx] >= 0x80000000) return;
+	if(bank_table[idx] >= 0x80000000) return 0xff;
 	addr = bank_table[idx] | (addr & 0x0000ffff);
 	
 	if(TVRAM_ADDRESS <= addr && addr < (TVRAM_ADDRESS + 0x2000)) {
@@ -1177,7 +1177,7 @@ uint32_t DISPLAY::read_memory_mapped_io8(uint32_t addr)
 uint32_t DISPLAY::read_memory_mapped_io16(uint32_t addr)
 {
 	uint32_t idx = (addr & 0x000f0000) >> 16;
-	if(bank_table[idx] >= 0x80000000) return 0xff;
+	if(bank_table[idx] >= 0x80000000) return 0xffff;
 	addr = bank_table[idx] | (addr & 0x0000ffff);
 	
 	if(TVRAM_ADDRESS <= addr && addr < (TVRAM_ADDRESS + 0x5000)) {
