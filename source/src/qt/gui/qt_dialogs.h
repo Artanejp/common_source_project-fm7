@@ -116,15 +116,17 @@ class CSP_CreateHardDiskDialog : public QWidget {
 	QLabel _size_label;
 	
 	QGridLayout layout;
+
+	int media_drv;
 public:
 	QFileDialog* dlg;
-	CSP_CreateHardDiskDialog(int secsize, int sectors, int surfaces, int cylinders, QWidget *parent = 0);
+	CSP_CreateHardDiskDialog(int drive, int secsize, int sectors, int surfaces, int cylinders, QWidget *parent = 0);
 	~CSP_CreateHardDiskDialog() {
 		delete dlg;
 	}
 signals:
 	int sig_update_total_size(uint64_t);
-	int sig_create_disk(int, int, int, int, QString);
+	int sig_create_disk(int, int, int, int, int, QString);
 public slots:
 	void do_preset(int num);
 	void do_update_total_size(uint64_t size);

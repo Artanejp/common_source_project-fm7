@@ -72,7 +72,7 @@ CSP_CreateDiskDialog::CSP_CreateDiskDialog(bool *masks, QWidget *parent) : QWidg
 
 }
 
-CSP_CreateHardDiskDialog::CSP_CreateHardDiskDialog(int sector_size, int sectors, int surfaces, int cylinders, QWidget *parent) : QWidget(parent)
+CSP_CreateHardDiskDialog::CSP_CreateHardDiskDialog(int drive, int sector_size, int sectors, int surfaces, int cylinders, QWidget *parent) : QWidget(parent)
 {
 	dlg = new QFileDialog(NULL, Qt::Widget);
 	dlg->setParent(this);
@@ -98,6 +98,7 @@ CSP_CreateHardDiskDialog::CSP_CreateHardDiskDialog(int sector_size, int sectors,
 	_label_surfaces.setText(QString::fromUtf8("Heads"));
 	_label_cylinders.setText(QString::fromUtf8("Cylinders"));
 	_label_preset_type.setText(QString::fromUtf8("Preset size"));
+	media_drv = drive;
 	
 	if(sectors < 15) sectors = 15;
 	if(sectors > 33) sectors = 33;
@@ -165,10 +166,10 @@ void CSP_CreateHardDiskDialog::do_create_disk(QString filename)
 	int secs = _sectors.value();
 	int heads = _surfaces.value();
 	int cyl = _cylinders.value();
+//	printf("ToDo: Will create media.Filename = %s SEC_SIZE=%d SECS=%d SURFACES=%d CYL=%d\n",
+//		   filename.toLocal8Bit().constData(), secsize, secs, heads, cyl);
 
-	printf("ToDo: Will create media.Filename = %s SEC_SIZE=%d SECS=%d SURFACES=%d CYL=%d\n",
-		   filename.toLocal8Bit().constData(), secsize, secs, heads, cyl);
-//	emit sig_create_disk(secsize, secs, heads, cyl, filename);
+	emit sig_create_disk(media_drv, secsize, secs, heads, cyl, filename);
 }
 
 void CSP_CreateHardDiskDialog::do_update_values(int dummy)

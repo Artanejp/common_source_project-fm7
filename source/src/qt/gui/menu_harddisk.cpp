@@ -57,7 +57,7 @@ void Menu_HDDClass::retranslate_pulldown_menu_device_sub(void)
 
 void Menu_HDDClass::do_open_dialog_create_hd()
 {
-	CSP_CreateHardDiskDialog dlg(512, 15, 4, 1024);
+	CSP_CreateHardDiskDialog dlg(media_drive, 512, 15, 4, 1024);
 	
 	if(initial_dir.isEmpty()) { 
 		QDir dir;
@@ -91,7 +91,8 @@ void Menu_HDDClass::do_open_dialog_create_hd()
 		tmps = tmps + QString::fromUtf8(" ") + this->title();
 	}
 	dlg.dlg->setWindowTitle(tmps);
-	
+	connect(&dlg, SIGNAL(sig_create_disk(int, int, int, int, int, QString)),
+			p_wid, SLOT(do_create_hard_disk(int, int, int, int, int, QString)));
 //	QObject::connect(&dlg, SIGNAL(sig_create_disk(QString)), this, SLOT(do_create_media(QString)));
 //	QObject::connect(this, SIGNAL(sig_create_d88_media(int, quint8, QString)), p_wid, SLOT(do_create_d88_media(int, quint8, QString)));
 
