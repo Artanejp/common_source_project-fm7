@@ -17,10 +17,10 @@
 	- Pseudo BIOS *DON'T* include these emulators.
 	  This may be policy of eFM-Towns (maybe not change). 
 
---- STATUS (2/29/2020)
+--- STATUS (3/03/2020)
 
-	- MS-DOS 3.1 Booting from SCSI HDD or FLOPPY  works *mostly*.
-	- MS-DOS 6.1 *don't* boot from SCSI HDD.
+	- MS-DOS 3.1 Booting from FLOPPY works mostly.
+	- MS-DOS 6.1 and MS-DOS 3.1 *don't* boot from SCSI HDD.
 	- SCSI using from MS-DOS6.1 based OS don't works.Only within FLOPPY.
 	- CD-ROM still does not work.
 	- SPRITE, OPN2, PCM and some devices are not still working.
