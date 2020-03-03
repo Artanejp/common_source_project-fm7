@@ -50,8 +50,8 @@ private:
 	uint8_t intr_request;
 	uint8_t intr_in_service;
 	
-	void __FASTCALL update_memory_map();
-	void __FASTCALL update_intr();
+	void update_memory_map();
+	void update_intr();
 	
 public:
 	MAIN(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)

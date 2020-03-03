@@ -39,7 +39,7 @@ private:
 		uint8_t intstat;
 	} sioctrl[4];
 	
-	void __FASTCALL update_intr(int ch);
+	void update_intr(int ch);
 	
 public:
 	SERIAL(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)

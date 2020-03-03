@@ -27,10 +27,10 @@ private:
 	uint16_t rtcmr, rtdsr, rtadr, rtobr, rtibr;
 	uint8_t regs[40];
 	
-	void  __FASTCALL read_from_cur_time();
-	void  __FASTCALL write_to_cur_time();
-	void  __FASTCALL update_checksum();
-	void  __FASTCALL update_intr();
+	void  read_from_cur_time();
+	void  write_to_cur_time();
+	void  update_checksum();
+	void  update_intr();
 public:
 	RTC(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
