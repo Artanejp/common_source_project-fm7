@@ -247,7 +247,7 @@ void DISPLAY::initialize()
 		init_memsw();
 	}
 #ifndef HAS_UPD4990A
-	dll_cur_time_t cur_time;
+	cur_time_t cur_time;
 	get_host_time(&cur_time);
 	tvram[0x3ffe] = TO_BCD(cur_time.year);
 #endif
