@@ -47,9 +47,11 @@ static void trace_fmt_ex(const char *fmt, ...)
 #endif
 #endif	/* 1 */
 
+#include <cmath>
 #include <math.h>
 #include <float.h>
 
+#undef isnan
 #if defined(_MSC_VER)
 #define isnan(x) (_isnan(x))
 #else

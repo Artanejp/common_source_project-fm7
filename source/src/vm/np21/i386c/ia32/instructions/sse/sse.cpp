@@ -25,10 +25,17 @@
 
 //#include "compiler.h"
 
+#include <cmath>
 #include <math.h>
 #include <float.h>
 
+#if !defined(isnan)
+#if defined(_MSC_VER)
+#define isnan(x) (_isnan(x))
+#else
 #define isnan(x) (__isnan(x))
+#endif
+#endif
 
 #include "../../cpu.h"
 #include "../../ia32.mcr"
