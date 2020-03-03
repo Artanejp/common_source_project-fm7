@@ -9,10 +9,10 @@ MULTIARCH="Yes"
 CSP_PREFIX=/usr/local
 
 CSP_GUILIB=" \
-	     libCSPcommon_vm.so.2.20.1 \
+	     libCSPcommon_vm.so.2.24.0 \
 	     libCSPemu_utils.so.2.16.6 \
-	     libCSPfmgen.so.1.5.0 \
-	     libCSPgui.so.2.19.11 \
+	     libCSPfmgen.so.1.6.1 \
+	     libCSPgui.so.2.20.0 \
 	     libCSPavio.so.2.11.1 \
 	     libCSPosd.so.2.23.0 \
 	     "
