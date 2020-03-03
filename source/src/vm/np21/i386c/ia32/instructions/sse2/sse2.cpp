@@ -47,6 +47,7 @@ static void trace_fmt_ex(const char *fmt, ...)
 #endif
 #endif	/* 1 */
 
+#include <cmath>
 #include <math.h>
 #include <float.h>
 
