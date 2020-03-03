@@ -97,7 +97,7 @@ private:
 
 	bool __HAS_UPD7201;
 	bool __SIO_DEBUG;
-	void __FASTCALL update_intr();
+	void update_intr();
 	
 public:
 	Z80SIO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)

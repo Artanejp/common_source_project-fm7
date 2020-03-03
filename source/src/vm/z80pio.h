@@ -57,7 +57,7 @@ private:
 	DEVICE *d_cpu, *d_child;
 	bool iei, oei;
 	uint32_t intr_bit;
-	void __FASTCALL update_intr();
+	void update_intr();
 	
 public:
 	Z80PIO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
