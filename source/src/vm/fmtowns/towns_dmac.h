@@ -17,10 +17,15 @@ protected:
 	uint8_t dma_wrap_reg;
 	uint32_t dma_addr_mask;
 	uint32_t dma_high_address;
-	
-//	virtual void __FASTCALL do_dma_verify_16bit(int c);
-//	virtual void __FASTCALL do_dma_dev_to_mem_16bit(int c);
-//	virtual void __FASTCALL do_dma_mem_to_dev_16bit(int c);
+#if 0
+	virtual bool __FASTCALL do_dma_per_channel(int _ch);
+	virtual bool __FASTCALL do_dma_prologue(int c);
+#endif
+#if 1
+	virtual void __FASTCALL do_dma_verify_16bit(int c);
+	virtual void __FASTCALL do_dma_dev_to_mem_16bit(int c);
+	virtual void __FASTCALL do_dma_mem_to_dev_16bit(int c);
+#endif
 	virtual void __FASTCALL do_dma_inc_dec_ptr_8bit(int c);
 	virtual void __FASTCALL do_dma_inc_dec_ptr_16bit(int c);
 public:
