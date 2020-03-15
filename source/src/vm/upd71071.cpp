@@ -119,6 +119,7 @@ uint32_t UPD71071::read_io8(uint32_t addr)
 	case 0x00:
 		return b16;
 	case 0x01:
+		// Q: Should be right BIT shift of BASE bit? 20200315 K.O
 		return (base << 2) | (1 << selch);
 	case 0x02:
 		if(base) {
@@ -377,7 +378,7 @@ void UPD71071::do_dma()
 			// execute dma
 			while((req | sreq) & bit) {
 				// Will check WORD transfer mode for FM-Towns.(mode.bit0 = '1).
-				if(((dma[c].mode & 0x01) != 0)/* || (b16 != 0)*/) {
+				if(((dma[c].mode & 0x01) != 0) && (b16 != 0)) {
 					// 16bit transfer mode
 					if((dma[c].mode & 0x0c) == 0x00) {
 						do_dma_verify_16bit(c);
