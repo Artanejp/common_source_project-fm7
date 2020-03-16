@@ -37,6 +37,9 @@ void UPD71071::reset()
 	cmd = tmp = 0;
 	req = sreq = tc = 0;
 	mask = 0x0f;
+	eop_status = false;
+	write_signals(&outputs_tc, 0x0);  // RESET TC
+	write_signals(&outputs_eop, 0x0); // RESET EOP
 }
 
 void UPD71071::write_io8(uint32_t addr, uint32_t data)
@@ -100,9 +103,12 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x0e:
 		if(((sreq = data) != 0) && !(_SINGLE_MODE_DMA)) {
-//#ifndef SINGLE_MODE_DMA
-			do_dma();
-//#endif
+			for(int _ch = 0; _ch < 4; _ch++) {
+				// Check bit of SREQ.
+				if((sreq & (1 << _ch)) != 0) {
+					do_dma_per_channel(_ch);
+				}
+			}
 		}
 		break;
 	case 0x0f:
@@ -175,14 +181,16 @@ uint32_t UPD71071::read_io8(uint32_t addr)
 
 void UPD71071::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	uint8_t bit = 1 << (id & 3);
-	
+	int ch = id & 3;
+	uint8_t bit = 1 << ch;
 	if(data & mask) {
 		if(!(req & bit)) {
 			req |= bit;
-//#ifndef SINGLE_MODE_DMA
-			if(!_SINGLE_MODE_DMA) do_dma();
-//#endif
+			if(!_SINGLE_MODE_DMA) {
+				// Without #define SINGLE_MODE_DMA ,
+				// DMA trasfer is triggerd by SIGNAL or writing I/O 0Eh.
+				do_dma_per_channel(ch);
+			}
 		}
 	} else {
 		req &= ~bit;
@@ -294,7 +302,7 @@ void UPD71071::do_dma_dev_to_mem_16bit(int c)
 	// io -> memory
 	uint32_t val;
 	val = dma[c].dev->read_dma_io16(0);
-	write_signals(&outputs_wrote_mem_byte, dma[c].areg);
+	write_signals(&outputs_wrote_mem_word, dma[c].areg);
 	if(_USE_DEBUGGER) {
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
 			d_debugger->write_via_debugger_data16(dma[c].areg, val);
@@ -339,7 +347,6 @@ void UPD71071::do_dma_inc_dec_ptr_16bit(int c)
 
 bool UPD71071::do_dma_prologue(int c)
 {
-	bool need_break = false;
 	uint8_t bit = 1 << c;
 	if(dma[c].creg-- == 0) {  // OK?
 		// TC
@@ -354,16 +361,67 @@ bool UPD71071::do_dma_prologue(int c)
 		sreq &= ~bit;
 		tc |= bit;
 						
+		eop_status = true;
 		write_signals(&outputs_tc, 0xffffffff);
-	} else if(_SINGLE_MODE_DMA) {
-		if((dma[c].mode & 0xc0) == 0x40) {
-			// single mode
-			need_break = true;
+		write_signals(&outputs_eop, 0xffffffff);
+		return true;
+	}
+	if((dma[c].mode & 0xc0) == 0x00) { // Demand
+		if(eop_status) {
+			write_signals(&outputs_eop, 0x00000000);
+			eop_status = false;
 		}
 	}
-	return need_break;
+	if(_SINGLE_MODE_DMA) {
+		// Note: At FM-Towns, SCSI's DMAC will be set after
+		//       SCSI bus phase become DATA IN/DATA OUT.
+		//       Before bus phase became DATA IN/DATA OUT,
+		//       DMAC mode and state was unstable (and ASSERTED
+		//       DRQ came from SCSI before this state change).
+		// ToDo: Stop correctly before setting.
+		//       -- 20200316 K.O
+		if(((dma[c].mode & 0xc0) == 0x40) || ((dma[c].mode & 0xc0) == 0x00)) {
+			// single mode or demand mode
+			req &= ~bit;
+			sreq &= ~bit;
+			return true;
+		}
+	}
+	return false;
 }
 
+void UPD71071::do_dma_per_channel(int c)
+{
+	if(cmd & 4) {
+		return;
+	}
+	uint8_t bit = 1 << c;
+	if(((req | sreq) & bit) && !(mask & bit)) {
+		// execute dma
+		while((req | sreq) & bit) {
+			// Will check WORD transfer mode for FM-Towns.(mode.bit0 = '1).
+			// Note: At FM-Towns, may set bit0 of mode register (B/W),
+			//       but transferring per 8bit from/to SCSI HOST...
+			///      I wonder this...
+			// 2020-03-16 K.O
+			{
+				// 8bit transfer mode
+				if((dma[c].mode & 0x0c) == 0x00) {
+					do_dma_verify_8bit(c);
+				} else if((dma[c].mode & 0x0c) == 0x04) {
+					do_dma_dev_to_mem_8bit(c);
+				} else if((dma[c].mode & 0x0c) == 0x08) {
+					do_dma_mem_to_dev_8bit(c);
+				}
+				do_dma_inc_dec_ptr_8bit(c);
+			}
+			if(do_dma_prologue(c)) {
+				break;
+			}
+		}
+	}
+	return;
+}	
 void UPD71071::do_dma()
 {
 	// check DDMA
@@ -373,37 +431,7 @@ void UPD71071::do_dma()
 	
 	// run dma
 	for(int c = 0; c < 4; c++) {
-		uint8_t bit = 1 << c;
-		if(((req | sreq) & bit) && !(mask & bit)) {
-			// execute dma
-			while((req | sreq) & bit) {
-				// Will check WORD transfer mode for FM-Towns.(mode.bit0 = '1).
-				if(((dma[c].mode & 0x01) != 0) && (b16 != 0)) {
-					// 16bit transfer mode
-					if((dma[c].mode & 0x0c) == 0x00) {
-						do_dma_verify_16bit(c);
-					} else if((dma[c].mode & 0x0c) == 0x04) {
-						do_dma_dev_to_mem_16bit(c);
-					} else if((dma[c].mode & 0x0c) == 0x08) {
-						do_dma_mem_to_dev_16bit(c);
-					}
-					do_dma_inc_dec_ptr_16bit(c);
-				} else {
-					// 8bit transfer mode
-					if((dma[c].mode & 0x0c) == 0x00) {
-						do_dma_verify_8bit(c);
-					} else if((dma[c].mode & 0x0c) == 0x04) {
-						do_dma_dev_to_mem_8bit(c);
-					} else if((dma[c].mode & 0x0c) == 0x08) {
-						do_dma_mem_to_dev_8bit(c);
-					}
-					do_dma_inc_dec_ptr_8bit(c);
-				}
-				if(do_dma_prologue(c)) {
-					break;
-				}
-			}
-		}
+		do_dma_per_channel(c);
 	}
 //#ifdef SINGLE_MODE_DMA
 	if(_SINGLE_MODE_DMA) {
@@ -437,7 +465,7 @@ CH3 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF REQ=1 MASK=1 MODE=FF INVALID
 	return true;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool UPD71071::process_state(FILEIO* state_fio, bool loading)
 {
@@ -463,6 +491,7 @@ bool UPD71071::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(sreq);
 	state_fio->StateValue(mask);
 	state_fio->StateValue(tc);
+	state_fio->StateValue(eop_status);
 	return true;
 }
 

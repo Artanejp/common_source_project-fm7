@@ -289,7 +289,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 								}
 								break;
 							default:
-								set_req_delay(1, 1.0);
+								set_req_delay(1, 10.0);
 								break;
 							}
 						} else {
@@ -298,6 +298,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 							case SCSI_CMD_READ6:
 							case SCSI_CMD_READ10:
 							case SCSI_CMD_READ12:
+							case SCSI_CMD_INQUIRY:
 								write_signals(&outputs_completed, 0xffffffff);
 								break;
 							}
@@ -310,7 +311,9 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 					case SCSI_PHASE_COMMAND:
 						if(command_index < get_command_length(command[0])) {
 							// request next command
-							set_req_delay(1, 1.0);
+//							set_req_delay(1, 1.0);
+							// Q:Command wait may be longet than 1.0us? 20200316 K.O
+							set_req_delay(1, 10.0);
 						} else {
 							// start command
 							start_command();
@@ -446,25 +449,25 @@ void SCSI_DEV::set_dat(int value)
 
 void SCSI_DEV::set_bsy(int value)
 {
-	out_debug_log(_T("BUSY = %d\n"), value ? 1 : 0);
+//	out_debug_log(_T("BUSY = %d\n"), value ? 1 : 0);
 	write_signals(&outputs_bsy, value ? 0xffffffff : 0);
 }
 
 void SCSI_DEV::set_cd(int value)
 {
-	out_debug_log(_T("C/D = %d\n"), value ? 1 : 0);
+//	out_debug_log(_T("C/D = %d\n"), value ? 1 : 0);
 	write_signals(&outputs_cd,  value ? 0xffffffff : 0);
 }
 
 void SCSI_DEV::set_io(int value)
 {
-	out_debug_log(_T("I/O = %d\n"), value ? 1 : 0);
+//	out_debug_log(_T("I/O = %d\n"), value ? 1 : 0);
 	write_signals(&outputs_io,  value ? 0xffffffff : 0);
 }
 
 void SCSI_DEV::set_msg(int value)
 {
-	out_debug_log(_T("MSG = %d\n"), value ? 1 : 0);
+//	out_debug_log(_T("MSG = %d\n"), value ? 1 : 0);
 	write_signals(&outputs_msg, value ? 0xffffffff : 0);
 }
 
@@ -560,7 +563,6 @@ void SCSI_DEV::start_command()
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
 		position *= physical_block_size();
 		// transfer length
-		remain = 32;
 		// create inquiry data table
 		buffer->clear();
 		buffer->write(device_type);
@@ -585,7 +587,8 @@ void SCSI_DEV::start_command()
 		}
 		// change to data in phase
 		set_dat(buffer->read());
-		set_phase_delay(SCSI_PHASE_DATA_IN, 10.0);
+		remain = buffer->count();
+		set_phase_delay(SCSI_PHASE_DATA_IN, 1000.0);
 		break;
 		
 	case SCSI_CMD_RD_CAPAC:

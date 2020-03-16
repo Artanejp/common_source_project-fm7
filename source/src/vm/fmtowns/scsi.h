@@ -26,6 +26,7 @@ private:
 	
 	uint8_t ctrl_reg;
 	bool irq_status;
+	bool irq_status_bak;
 	
 public:
 	SCSI(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {

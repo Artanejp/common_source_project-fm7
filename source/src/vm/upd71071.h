@@ -31,8 +31,9 @@ protected:
 //#endif
 	DEBUGGER *d_debugger;
 	outputs_t outputs_tc;
-	outputs_t outputs_wrote_mem_byte;
-	outputs_t outputs_wrote_mem_word;
+	outputs_t outputs_wrote_mem_byte; // Call memory to 8bit access
+	outputs_t outputs_wrote_mem_word; // Call memory to 16bit access
+	outputs_t outputs_eop; // End of period?
 	
 	struct {
 		DEVICE* dev;
@@ -44,6 +45,7 @@ protected:
 	uint8_t b16, selch, base;
 	uint16_t cmd, tmp;
 	uint8_t req, sreq, mask, tc;
+	bool eop_status;
 
 	bool _SINGLE_MODE_DMA;
 	bool _USE_DEBUGGER;
@@ -57,6 +59,7 @@ protected:
 	virtual void __FASTCALL do_dma_mem_to_dev_16bit(int c);
 	virtual void __FASTCALL do_dma_inc_dec_ptr_16bit(int c);
 	virtual bool __FASTCALL do_dma_prologue(int c);
+	virtual void do_dma_per_channel(int c);
 
 public:
 	UPD71071(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -81,6 +84,7 @@ public:
 		initialize_output_signals(&outputs_tc);
 		initialize_output_signals(&outputs_wrote_mem_word);
 		initialize_output_signals(&outputs_wrote_mem_byte);
+		initialize_output_signals(&outputs_eop);
 		set_device_name(_T("uPD71071 DMAC"));
 	}
 	~UPD71071() {}
@@ -142,6 +146,10 @@ public:
 	void set_context_tc(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_tc, device, id, mask);
+	}	
+	void set_context_eop(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_eop, device, id, mask);
 	}
 	void set_context_wrote_mem(DEVICE* device, int id)
 	{

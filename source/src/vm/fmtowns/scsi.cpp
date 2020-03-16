@@ -36,11 +36,12 @@ void SCSI::reset()
 {
 	ctrl_reg = CTRL_IMSK;
 	irq_status = false;
+	irq_status_bak = false;
 }
 
 void SCSI::write_io8(uint32_t addr, uint32_t data)
 {
-	out_debug_log(_T("[SCSI] Write I/O %04X %02X"), addr, data);
+//	out_debug_log(_T("Write I/O %04X %02X"), addr, data);
 	switch(addr & 0xffff) {
 	case 0x0c30:
 		// data register
@@ -115,8 +116,11 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 	switch(id) {
 	case SIG_SCSI_IRQ:
 		if((ctrl_reg & CTRL_IMSK)) {
-			d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR0, data, mask);
-			out_debug_log(_T("[SCSI] IRQ  %04X %02X\n"), data, mask);
+			if(irq_status_bak != ((data & mask) != 0)) {
+				d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR0, data, mask);
+				//out_debug_log(_T("[SCSI] IRQ  %04X %02X\n"), data, mask);
+			}
+			irq_status_bak = ((data & mask) != 0);
 		}
 		irq_status = ((data & mask) != 0);
 		break;
@@ -129,7 +133,7 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 
 bool SCSI::process_state(FILEIO* state_fio, bool loading)
@@ -142,6 +146,7 @@ bool SCSI::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateValue(ctrl_reg);
 	state_fio->StateValue(irq_status);
+	state_fio->StateValue(irq_status_bak);
 	return true;
 }
 }
