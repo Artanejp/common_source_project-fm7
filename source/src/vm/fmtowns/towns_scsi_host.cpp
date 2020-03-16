@@ -62,6 +62,7 @@ uint32_t TOWNS_SCSI_HOST::read_signal(int ch)
 	
 void TOWNS_SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 {
+#if 0
 	switch(id) {
 	case SIG_SCSI_REQ:
 		{
@@ -122,7 +123,8 @@ void TOWNS_SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 		break;
 #endif
 	}
-	return SCSI_HOST::write_signal(id, data, mask);	
+#endif
+	SCSI_HOST::write_signal(id, data, mask);	
 }
 
 void TOWNS_SCSI_HOST::event_callback(int event_id, int err)

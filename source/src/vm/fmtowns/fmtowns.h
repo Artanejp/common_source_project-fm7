@@ -330,8 +330,8 @@ protected:
 	FMTOWNS::TOWNS_CDROM*    cdrom;
 	
 	FMTOWNS::SCSI* scsi;
-	FMTOWNS::TOWNS_SCSI_HOST* scsi_host;
-	//SCSI_HOST* scsi_host;
+	//FMTOWNS::TOWNS_SCSI_HOST* scsi_host;
+	SCSI_HOST* scsi_host;
 	SCSI_HDD*      scsi_hdd[8]; //
 
 	int adc_in_ch;

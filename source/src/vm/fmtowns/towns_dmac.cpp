@@ -21,12 +21,13 @@ void TOWNS_DMAC::reset()
 void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 {
 //	if((addr & 0x0f) == 0x0c) out_debug_log("WRITE REG: %08X %08X", addr, data);
-	out_debug_log("WRITE REG: %04X %02X", addr, data);
+//	out_debug_log("WRITE REG: %04X %02X", addr, data);
 	uint naddr;
 	switch(addr & 0x0f) {
 	case 0x00:
 		out_debug_log(_T("RESET REG(00h) to %02X"), data);
 		break;
+/*		
 	case 0x02:
 	case 0x03:
 		naddr = (addr & 0x0f) - 2;
@@ -96,6 +97,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		}
 		return;
 		break;
+*/
 	case 0x07:
 		dma_high_address = (data & 0xff) << 24;
 		return;
@@ -397,6 +399,9 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t mask)
 		}
 	} else {
 		// Fallthrough.
+//		if(id == SIG_UPD71071_CH1) {
+//			out_debug_log(_T("DRQ from SCSI %02X %02X"), data, mask);
+//		}
 		UPD71071::write_signal(id, data, mask);
 	}
 }		

@@ -170,8 +170,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	head_up_sound = new NOISE(this, emu);
 	head_down_sound = new NOISE(this, emu);
 	
-	scsi_host = new TOWNS_SCSI_HOST(this, emu);
-//	scsi_host = new SCSI_HOST(this, emu);
+//	scsi_host = new TOWNS_SCSI_HOST(this, emu);
+	scsi_host = new SCSI_HOST(this, emu);
 	
 	for(int i = 0; i < 7; i++) {
 		scsi_hdd[i] = NULL;
