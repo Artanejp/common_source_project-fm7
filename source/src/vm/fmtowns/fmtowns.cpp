@@ -786,7 +786,7 @@ void VM::open_hard_disk(int drv, const _TCHAR* file_path)
 {
 	if((drv < USE_HARD_DISK) && (drv < 8) && (drv >= 0)) {
 		if(scsi_hdd[drv] != NULL) {
-			scsi_hdd[drv]->open(drv, file_path, 512);
+			scsi_hdd[drv]->open(0, file_path, 512);
 		}
 	}
 }
@@ -795,7 +795,7 @@ void VM::close_hard_disk(int drv)
 {
 	if((drv < USE_HARD_DISK) && (drv < 8) && (drv >= 0)) {
 		if(scsi_hdd[drv] != NULL) {
-			scsi_hdd[drv]->close(drv);
+			scsi_hdd[drv]->close(0);
 		}
 	}
 }
@@ -804,7 +804,7 @@ bool VM::is_hard_disk_inserted(int drv)
 {
 	if((drv < USE_HARD_DISK) && (drv < 8) && (drv >= 0)) {
 		if(scsi_hdd[drv] != NULL) {
-			return scsi_hdd[drv]->mounted(drv);
+			return scsi_hdd[drv]->mounted(0);
 		}
 	}
 	return false;
@@ -816,7 +816,7 @@ uint32_t VM::is_hard_disk_accessed()
 	
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
 		if(scsi_hdd[drv] != NULL) {
-			if(scsi_hdd[drv]->accessed(drv & 1)) {
+			if(scsi_hdd[drv]->accessed(0)) {
 				status |= 1 << drv;
 			}
 		}
