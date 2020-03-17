@@ -116,10 +116,10 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 	switch(id) {
 	case SIG_SCSI_IRQ:
 		if((ctrl_reg & CTRL_IMSK)) {
-			if(irq_status_bak != ((data & mask) != 0)) {
+//			if(irq_status_bak != ((data & mask) != 0)) {
 				d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR0, data, mask);
 				//out_debug_log(_T("[SCSI] IRQ  %04X %02X\n"), data, mask);
-			}
+//			}
 			irq_status_bak = ((data & mask) != 0);
 		}
 		irq_status = ((data & mask) != 0);
