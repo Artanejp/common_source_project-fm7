@@ -14,12 +14,17 @@
 //#include "../emu.h"
 #include "device.h"
 
-#define SIG_UPD71071_CH0	0
-#define SIG_UPD71071_CH1	1
-#define SIG_UPD71071_CH2	2
-#define SIG_UPD71071_CH3	3
-#define SIG_UPD71071_IS_TRANSFERING 4 /* 4 - 7 */
-#define SIG_UPD71071_IS_16BITS_TRANSFER 8 /* 8 - 11 */
+#define SIG_UPD71071_CH0				0
+#define SIG_UPD71071_CH1				1
+#define SIG_UPD71071_CH2				2
+#define SIG_UPD71071_CH3				3
+ /* UBE: INDICATE TARGET DEVICE HAS 16bit capability YES=1 NO=0*/
+#define SIG_UPD71071_UBE_CH0			4
+#define SIG_UPD71071_UBE_CH1			5
+#define SIG_UPD71071_UBE_CH2			6
+#define SIG_UPD71071_UBE_CH3			7
+#define SIG_UPD71071_IS_TRANSFERING		16 /* 16 - 19 */
+#define SIG_UPD71071_IS_16BITS_TRANSFER	20 /* 20 - 23 */
 
 class DEBUGGER;
 class UPD71071 : public DEVICE
@@ -31,25 +36,28 @@ protected:
 //#endif
 	DEBUGGER *d_debugger;
 	outputs_t outputs_tc;
-	outputs_t outputs_wrote_mem_byte; // Call memory to 8bit access
-	outputs_t outputs_wrote_mem_word; // Call memory to 16bit access
-	outputs_t outputs_eop; // End of period?
+	outputs_t outputs_ube[4]; // If "1" word transfer, "0" byte transfer (OUT)
 	
 	struct {
 		DEVICE* dev;
 		uint32_t areg, bareg;
 		uint16_t creg, bcreg;
 		uint8_t mode;
+		bool is_16bit;
 	} dma[4];
 	
 	uint8_t b16, selch, base;
 	uint16_t cmd, tmp;
 	uint8_t req, sreq, mask, tc;
-	bool eop_status;
+	bool inputs_ube[4];
+	bool stats_ube[4];
+	
 
 	bool _SINGLE_MODE_DMA;
 	bool _USE_DEBUGGER;
 
+	virtual void __FASTCALL set_ube(int ch);
+	virtual void __FASTCALL reset_ube(int ch);
 	virtual void __FASTCALL do_dma_verify_8bit(int c);
 	virtual void __FASTCALL do_dma_dev_to_mem_8bit(int c);
 	virtual void __FASTCALL do_dma_mem_to_dev_8bit(int c);
@@ -59,7 +67,7 @@ protected:
 	virtual void __FASTCALL do_dma_mem_to_dev_16bit(int c);
 	virtual void __FASTCALL do_dma_inc_dec_ptr_16bit(int c);
 	virtual bool __FASTCALL do_dma_prologue(int c);
-	virtual void do_dma_per_channel(int c);
+	virtual void __FASTCALL do_dma_per_channel(int c);
 
 public:
 	UPD71071(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -82,9 +90,9 @@ public:
 		_SINGLE_MODE_DMA = false;
 		_USE_DEBUGGER = false;
 		initialize_output_signals(&outputs_tc);
-		initialize_output_signals(&outputs_wrote_mem_word);
-		initialize_output_signals(&outputs_wrote_mem_byte);
-		initialize_output_signals(&outputs_eop);
+		for(int i = 0; i < 4; i++) {
+			initialize_output_signals(&outputs_ube[i]);
+		}
 		set_device_name(_T("uPD71071 DMAC"));
 	}
 	~UPD71071() {}
@@ -147,14 +155,21 @@ public:
 	{
 		register_output_signal(&outputs_tc, device, id, mask);
 	}	
-	void set_context_eop(DEVICE* device, int id, uint32_t mask)
+	void set_context_ube0(DEVICE* device, int id, uint32_t mask)
 	{
-		register_output_signal(&outputs_eop, device, id, mask);
+		register_output_signal(&outputs_ube[0], device, id, mask);
 	}
-	void set_context_wrote_mem(DEVICE* device, int id)
+	void set_context_ube1(DEVICE* device, int id, uint32_t mask)
 	{
-		register_output_signal(&outputs_wrote_mem_byte, device, id, 1);
-		register_output_signal(&outputs_wrote_mem_word, device, id, 2);
+		register_output_signal(&outputs_ube[1], device, id, mask);
+	}
+	void set_context_ube2(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_ube[2], device, id, mask);
+	}
+	void set_context_ube3(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_ube[3], device, id, mask);
 	}
 };
 

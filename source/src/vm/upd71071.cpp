@@ -26,20 +26,23 @@ void UPD71071::initialize()
 			d_debugger->set_context_io(vm->dummy);
 		}
 	}
+	for(int i = 0; i < 4; i++) {
+		inputs_ube[i] = false; // This is input, maybe not initialize at reset().
+	}
 }
 
 void UPD71071::reset()
 {
 	for(int i = 0; i < 4; i++) {
 		dma[i].mode = 0x04;
+		dma[selch].is_16bit = false;
+		reset_ube(i);
 	}
 	b16 = selch = base = 0;
 	cmd = tmp = 0;
 	req = sreq = tc = 0;
 	mask = 0x0f;
-	eop_status = false;
 	write_signals(&outputs_tc, 0x0);  // RESET TC
-	write_signals(&outputs_eop, 0x0); // RESET EOP
 }
 
 void UPD71071::write_io8(uint32_t addr, uint32_t data)
@@ -50,6 +53,8 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 			// dma reset
 			for(int i = 0; i < 4; i++) {
 				dma[i].mode = 0x04;
+				dma[selch].is_16bit = false;
+				reset_ube(i);
 			}
 			selch = base = 0;
 			cmd = tmp = 0;
@@ -100,6 +105,8 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x0a:
 		dma[selch].mode = data;
+		dma[selch].is_16bit = ((data & 1) != 0) ? true : false;
+		set_ube(selch);
 		break;
 	case 0x0e:
 		if(((sreq = data) != 0) && !(_SINGLE_MODE_DMA)) {
@@ -113,6 +120,7 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x0f:
 		mask = data;
+		set_ube(selch);
 		break;
 	}
 }
@@ -183,17 +191,38 @@ void UPD71071::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	int ch = id & 3;
 	uint8_t bit = 1 << ch;
-	if(data & mask) {
-		if(!(req & bit)) {
-			req |= bit;
-			if(!_SINGLE_MODE_DMA) {
-				// Without #define SINGLE_MODE_DMA ,
-				// DMA trasfer is triggerd by SIGNAL or writing I/O 0Eh.
-				do_dma_per_channel(ch);
+	if((id >= SIG_UPD71071_CH0) && (id <= SIG_UPD71071_CH3)) {
+		if(data & mask) {
+			if(!(req & bit)) {
+				req |= bit;
+				if(!_SINGLE_MODE_DMA) {
+					// Without #define SINGLE_MODE_DMA ,
+					// DMA trasfer is triggerd by SIGNAL or writing I/O 0Eh.
+					do_dma_per_channel(ch);
+				}
 			}
+		} else {
+			req &= ~bit;
 		}
-	} else {
-		req &= ~bit;
+	} else if((id >= SIG_UPD71071_UBE_CH0) && (id <= SIG_UPD71071_UBE_CH3)) {
+		inputs_ube[ch] = ((data & mask) != 0) ? true : false;
+	}
+}
+
+void UPD71071::set_ube(int ch)
+{
+	bool stat = inputs_ube[ch & 3];
+	stat &= dma[ch & 3].is_16bit; 
+	if(stats_ube[ch & 3] != stat) {
+		write_signals(&outputs_ube[ch & 3], (stat) ? 0xffffffff : 0x00000000);
+		stats_ube[ch & 3] = stat;
+	}
+}
+void UPD71071::reset_ube(int ch)
+{
+	if(stats_ube[ch &3]) {
+		write_signals(&outputs_ube[ch & 3], 0x00000000);
+		stats_ube[ch & 3] = false;
 	}
 }
 
@@ -222,13 +251,16 @@ uint32_t UPD71071::read_via_debugger_data16(uint32_t addr)
 uint32_t UPD71071::read_signal(int ch)
 {
 	if((ch >= (SIG_UPD71071_IS_TRANSFERING + 0)) && (ch < (SIG_UPD71071_IS_TRANSFERING + 4))) {
-		bool _nch = ch - SIG_UPD71071_IS_TRANSFERING;
+		int _nch = ch - SIG_UPD71071_IS_TRANSFERING;
 		if((cmd & 0x04) != 0) return 0x00; // Not transfering
 		if((dma[_nch].creg == 0)) return 0x00; //
 		return 0xffffffff;
 	} else if((ch >= (SIG_UPD71071_IS_16BITS_TRANSFER + 0)) && (ch < (SIG_UPD71071_IS_16BITS_TRANSFER + 4))) {
-		bool _nch = ch - SIG_UPD71071_IS_16BITS_TRANSFER;
-		return ((b16 & 2) != 0) ? 0xffffffff : 0;
+		int _nch = ch - SIG_UPD71071_IS_16BITS_TRANSFER;
+		bool stat = stats_ube[_nch];
+		return (stat) ? 0xffffffff : 0;
+	} else if((ch >= SIG_UPD71071_UBE_CH0) && (ch <= SIG_UPD71071_UBE_CH3)) {
+		return (inputs_ube[ch - SIG_UPD71071_UBE_CH0]) ? 0xffffffff : 0x00000000;
 	}
 	return 0;
 }
@@ -238,6 +270,7 @@ void UPD71071::do_dma_verify_8bit(int c)
 	// verify
 	uint32_t val = dma[c].dev->read_dma_io8(0);
 	// update temporary register
+	reset_ube(c);
 	tmp = (tmp >> 8) | (val << 8);
 
 }
@@ -245,8 +278,8 @@ void UPD71071::do_dma_dev_to_mem_8bit(int c)
 {
 	// io -> memory
 	uint32_t val;
+	reset_ube(c);
 	val = dma[c].dev->read_dma_io8(0);
-	write_signals(&outputs_wrote_mem_byte, dma[c].areg);
 	if(_USE_DEBUGGER) {
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
 			d_debugger->write_via_debugger_data8(dma[c].areg, val);
@@ -265,6 +298,7 @@ void UPD71071::do_dma_mem_to_dev_8bit(int c)
 {
 	// memory -> io
 	uint32_t val;
+	reset_ube(c);
 	if(_USE_DEBUGGER) {
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
 			val = d_debugger->read_via_debugger_data8(dma[c].areg);
@@ -293,6 +327,7 @@ void UPD71071::do_dma_verify_16bit(int c)
 {
 	// verify
 	uint32_t val = dma[c].dev->read_dma_io16(0);
+	set_ube(c);
 	// update temporary register
 	tmp = val;
 
@@ -301,26 +336,41 @@ void UPD71071::do_dma_dev_to_mem_16bit(int c)
 {
 	// io -> memory
 	uint32_t val;
+	set_ube(c);
 	val = dma[c].dev->read_dma_io16(0);
-	write_signals(&outputs_wrote_mem_word, dma[c].areg);
-	if(_USE_DEBUGGER) {
-		if(d_debugger != NULL && d_debugger->now_device_debugging) {
-			d_debugger->write_via_debugger_data16(dma[c].areg, val);
+	if((dma[c].areg & 1) != 0) {
+		// If odd address, write a byte.
+		uint32_t tval = (val >> 8) & 0xff;
+		if(_USE_DEBUGGER) {
+			if(d_debugger != NULL && d_debugger->now_device_debugging) {
+				d_debugger->write_via_debugger_data8(dma[c].areg, tval);
+			} else {
+				this->write_via_debugger_data8(dma[c].areg, tval);
+			}
+		} else {
+			this->write_via_debugger_data8(dma[c].areg, tval);
+		}
+	} else {
+		// 16bit
+		if(_USE_DEBUGGER) {
+			if(d_debugger != NULL && d_debugger->now_device_debugging) {
+				d_debugger->write_via_debugger_data16(dma[c].areg, val);
+			} else {
+				this->write_via_debugger_data16(dma[c].areg, val);
+			}
 		} else {
 			this->write_via_debugger_data16(dma[c].areg, val);
 		}
-	} else {
-		this->write_via_debugger_data16(dma[c].areg, val);
-	}							
+	}
 	// update temporary register
 	tmp = val;
-
 }
 
 void UPD71071::do_dma_mem_to_dev_16bit(int c)
 {
 	// memory -> io
 	uint32_t val;
+	set_ube(c);
 	if(_USE_DEBUGGER) {
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
 			val = d_debugger->read_via_debugger_data16(dma[c].areg);
@@ -329,6 +379,10 @@ void UPD71071::do_dma_mem_to_dev_16bit(int c)
 		}
 	} else {
 		val = this->read_via_debugger_data16(dma[c].areg);
+	}
+	if((dma[c].areg & 1) != 0) {
+		// If odd address, read a high byte.
+		val = (val >> 8) & 0xff;
 	}
 	dma[c].dev->write_dma_io16(0, val);
 	// update temporary register
@@ -361,16 +415,8 @@ bool UPD71071::do_dma_prologue(int c)
 		sreq &= ~bit;
 		tc |= bit;
 						
-		eop_status = true;
 		write_signals(&outputs_tc, 0xffffffff);
-		write_signals(&outputs_eop, 0xffffffff);
 		return true;
-	}
-	if((dma[c].mode & 0xc0) == 0x00) { // Demand
-		if(eop_status) {
-			write_signals(&outputs_eop, 0x00000000);
-			eop_status = false;
-		}
 	}
 	if(_SINGLE_MODE_DMA) {
 		// Note: At FM-Towns, SCSI's DMAC will be set after
@@ -404,7 +450,22 @@ void UPD71071::do_dma_per_channel(int c)
 			//       but transferring per 8bit from/to SCSI HOST...
 			///      I wonder this...
 			// 2020-03-16 K.O
-			{
+			if((dma[c].is_16bit) && (inputs_ube[c]) && (b16)) {
+				// This channel transferr makes 16bit.
+				if((dma[c].mode & 0x0c) == 0x00) {
+					do_dma_verify_16bit(c);
+				} else if((dma[c].mode & 0x0c) == 0x04) {
+					do_dma_dev_to_mem_16bit(c);
+				} else if((dma[c].mode & 0x0c) == 0x08) {
+					do_dma_mem_to_dev_16bit(c);
+				}
+				if((dma[c].areg & 1) != 0) {
+					// If odd address, align next word to 2n.
+					do_dma_inc_dec_ptr_8bit(c);
+				} else {
+					do_dma_inc_dec_ptr_16bit(c);
+				}
+			} else {
 				// 8bit transfer mode
 				if((dma[c].mode & 0x0c) == 0x00) {
 					do_dma_verify_8bit(c);
@@ -465,7 +526,7 @@ CH3 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF REQ=1 MASK=1 MODE=FF INVALID
 	return true;
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool UPD71071::process_state(FILEIO* state_fio, bool loading)
 {
@@ -481,6 +542,7 @@ bool UPD71071::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateValue(dma[i].creg);
 		state_fio->StateValue(dma[i].bcreg);
 		state_fio->StateValue(dma[i].mode);
+		state_fio->StateValue(dma[i].is_16bit);
 	}
 	state_fio->StateValue(b16);
 	state_fio->StateValue(selch);
@@ -491,7 +553,9 @@ bool UPD71071::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(sreq);
 	state_fio->StateValue(mask);
 	state_fio->StateValue(tc);
-	state_fio->StateValue(eop_status);
+	state_fio->StateArray(inputs_ube, sizeof(inputs_ube), 1);
+	state_fio->StateArray(stats_ube, sizeof(stats_ube), 1);
+
 	return true;
 }
 
