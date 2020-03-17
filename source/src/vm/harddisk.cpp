@@ -16,7 +16,7 @@ void HARDDISK::open(const _TCHAR* file_path, int default_sector_size)
 	pair32_t tmp;
 	
 	close();
-#if 0
+#if 1
 	printf(_T("OPEN IMAGE: %s DEFAULT SECTOR SIZE=%d\n"), file_path, default_sector_size);
 #endif
 	if(FILEIO::IsFileExisting(file_path)) {
