@@ -41,7 +41,7 @@ protected:
 	struct {
 		DEVICE* dev;
 		uint32_t areg, bareg;
-		uint16_t creg, bcreg;
+		uint32_t creg, bcreg; // 20200318 K.O (Temporally workaround for Towns)
 		uint8_t mode;
 		bool is_16bit;
 	} dma[4];
