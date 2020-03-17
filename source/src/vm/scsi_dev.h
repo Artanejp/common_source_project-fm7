@@ -143,6 +143,7 @@ protected:
 	outputs_t outputs_io;
 	outputs_t outputs_msg;
 	outputs_t outputs_req;
+	outputs_t outputs_clrq; // Request host to clear data queue.
 	outputs_t outputs_next_sector; // Signal for boundary of sector(s).
 	outputs_t outputs_completed; // Signal for transfer completed of CD-ROM.
 	
@@ -172,6 +173,7 @@ public:
 		initialize_output_signals(&outputs_io);
 		initialize_output_signals(&outputs_msg);
 		initialize_output_signals(&outputs_req);
+		initialize_output_signals(&outputs_clrq);
 		initialize_output_signals(&outputs_next_sector);
 		initialize_output_signals(&outputs_completed);
 		_SCSI_HOST_WIDE = false;
@@ -207,6 +209,8 @@ public:
 		register_output_signal(&outputs_io,  device, SIG_SCSI_IO,  1 << scsi_id);
 		register_output_signal(&outputs_msg, device, SIG_SCSI_MSG, 1 << scsi_id);
 		register_output_signal(&outputs_req, device, SIG_SCSI_REQ, 1 << scsi_id);
+		register_output_signal(&outputs_clrq, device, SIG_SCSI_CLEAR_QUEUE, 1 << scsi_id);
+		
 	}
 	void set_context_completed(DEVICE* device, int id, uint32_t mask)
 	{

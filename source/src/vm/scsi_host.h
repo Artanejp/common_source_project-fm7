@@ -15,6 +15,8 @@
 #include "device.h"
 //class EMU;
 //class VM;
+class FIFO;
+
 class SCSI_HOST : public DEVICE
 {
 protected: // Make pcotected because TOWNS's DMAC may transfer 16bit around SCSI.
@@ -32,10 +34,12 @@ protected: // Make pcotected because TOWNS's DMAC may transfer 16bit around SCSI
 	outputs_t outputs_atn;
 	outputs_t outputs_ack;
 	outputs_t outputs_rst;
+	FIFO* data_queue;
 	
 	uint32_t data_reg;
 	uint32_t bsy_status, cd_status, io_status, msg_status, req_status, ack_status;
 	bool access;
+	bool is_16bit;
 	
 	virtual void __FASTCALL set_irq(bool value);
 	virtual void __FASTCALL set_drq(bool value);
@@ -57,12 +61,18 @@ public:
 		initialize_output_signals(&outputs_atn);
 		initialize_output_signals(&outputs_ack);
 		initialize_output_signals(&outputs_rst);
+
+		data_queue = NULL;
 		set_device_name(_T("SCSI HOST"));
 	}
 	~SCSI_HOST() {}
 	
 	// common functions
 	virtual void reset();
+	virtual void initialize();
+	virtual void release();
+	virtual void event_callback(int id, int err);
+
 #ifdef SCSI_HOST_WIDE
 	virtual void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_dma_io16(uint32_t addr);
@@ -70,6 +80,12 @@ public:
 	virtual void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_dma_io8(uint32_t addr);
 #endif
+/*
+	virtual void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	virtual void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_dma_io8(uint32_t addr);
+	virtual uint32_t __FASTCALL read_dma_io16(uint32_t addr);
+*/	
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	virtual uint32_t __FASTCALL read_signal(int id);
 	virtual bool process_state(FILEIO* state_fio, bool loading);

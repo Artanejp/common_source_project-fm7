@@ -15,8 +15,9 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_SCSI_IRQ	0
-#define SIG_SCSI_DRQ	1
+#define SIG_SCSI_IRQ			0
+#define SIG_SCSI_DRQ			1
+#define SIG_SCSI_16BIT_TRANSFER	2
 
 namespace FMTOWNS {
 class SCSI : public DEVICE

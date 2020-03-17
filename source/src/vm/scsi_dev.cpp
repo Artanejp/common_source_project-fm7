@@ -217,7 +217,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 								{
 									next_req_usec += 1000000.0 / bytes_per_sec;
 									double usec = next_req_usec - get_passed_usec(first_req_clock);
-									set_req_delay(1, (usec > 1.0) ? usec : 1.0);
+									set_req_delay(1, (usec > 0.2) ? usec : 0.2);
 									if(logical_block_size() > 0) {
 										local_data_pos = (local_data_pos + 1) % logical_block_size();
 										if(local_data_pos == 0) {
@@ -278,7 +278,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 								{
 									next_req_usec += 1000000.0 / bytes_per_sec;
 									double usec = next_req_usec - get_passed_usec(first_req_clock);
-									set_req_delay(1, (usec > 1.0) ? usec : 1.0);
+									set_req_delay(1, (usec > 0.2) ? usec : 0.2);
 									//set_req_delay(1, usec);
 									if(logical_block_size() > 0) {
 										local_data_pos = (local_data_pos + 1) % logical_block_size();
@@ -389,7 +389,6 @@ void SCSI_DEV::event_callback(int event_id, int err)
 			}
 		}
 		break;
-		
 	case EVENT_PHASE:
 		event_phase = -1;
 		set_phase(next_phase);
@@ -414,13 +413,20 @@ void SCSI_DEV::set_phase(int value)
 	set_cd (value & 4);
 	
 	if(value == SCSI_PHASE_BUS_FREE) {
+		if(phase != value) {
+			write_signals(&outputs_clrq, 0xffffffff);
+		}
 		set_bsy(false);
 		set_req(0);
 		selected = false;
 	} else {
+		if(phase != value) {
+			write_signals(&outputs_clrq, 0xffffffff);
+		}
 		first_req_clock = 0;
 //		set_bsy(true);
 		set_req_delay(1, 10.0);
+		
 	}
 	phase = value;
 }
