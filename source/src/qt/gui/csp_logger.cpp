@@ -159,7 +159,7 @@ void CSP_Logger::open(bool b_syslog, bool cons, const char *devname)
 	} else {
 		dname = QString::fromUtf8("*Undefined*");
 	}
-	log_sysname = QString::fromUtf8("Common Source Code Project(");
+	log_sysname = QString::fromUtf8("CSP(");
 	log_sysname = log_sysname + dname + QString::fromUtf8(")");
 	
 	if(b_syslog) {
@@ -433,7 +433,7 @@ void CSP_Logger::set_emu_vm_name(const char *devname)
 	} else {
 		dname = QString::fromUtf8("*Undefined*");
 	}
-	log_sysname = QString::fromUtf8("Common Source Code Project(");
+	log_sysname = QString::fromUtf8("CSP(");
 	log_sysname = log_sysname + dname + QString::fromUtf8(")");
 }
 
