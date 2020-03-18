@@ -58,8 +58,12 @@ void TOWNS_MEMORY::initialize()
 	extra_nmi_mask = true;
 	extra_nmi_val = false;
 
+//	vram_wait_val = 6;
+//	mem_wait_val = 3;
 	vram_wait_val = 6;
 	mem_wait_val = 3;
+	mem_wait_val >>= 1;
+	vram_wait_val >>= 1;
 
 	// Initialize R/W table
 	_MEMORY_DISABLE_DMA_MMIO = osd->check_feature(_T("MEMORY_DISABLE_DMA_MMIO"));
@@ -399,6 +403,8 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		if(machine_id >= /*0x0500*/0x0200) { // Towns2 CX : Is this hidden register after Towns 1F/2F/1H/2H? -> Yes
 			vram_wait_val = ((data & 0x01) != 0) ? 3 : 6;
 			mem_wait_val = ((data & 0x01) != 0) ? 0 : 3;
+			mem_wait_val >>= 1;
+			vram_wait_val >>= 1;
 		}
 		set_wait_values();
 		break;
