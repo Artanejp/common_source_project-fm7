@@ -38,9 +38,9 @@ uint32_t FONT_ROMS::read_memory_mapped_io8(uint32_t addr)
 		return (uint32_t)(font_kanji16[addr & 0x3ffff]);
 	} else if((addr >= 0x000ca000) && (addr < 0x000ca800)) {
 		return (uint32_t)(font_kanji16[0x3d000 + (addr & 0x7ff)]);
-	}/* else if((addr >= 0x000cb000) && (addr < 0x000cc000)) {
-		return (uint32_t)(font_kanji16[0x18000 + (addr & 0xfff)]);
-	}*/
+	} else if((addr >= 0x000cb000) && (addr < 0x000cc000)) {
+		return (uint32_t)(font_kanji16[0x3d800 + (addr & 0xfff)]);
+	}
 	return 0xff;
 }
 

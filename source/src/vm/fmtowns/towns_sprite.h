@@ -34,7 +34,7 @@ protected:
 	bool reg_spen;
 	uint16_t reg_index;
 	uint8_t pattern_ram[0x20000];
-	uint8_t ram[0x3000];
+//	uint8_t ram[0x3000];
 
 	uint16_t reg_voffset;
 	uint16_t reg_hoffset;
@@ -53,7 +53,6 @@ protected:
 	int max_sprite_per_frame;
 
 	bool tvram_enabled;
-	bool shadow_memory_enabled;
 
 	bool ankcg_enabled;
 	void __FASTCALL render_sprite(int num,  int x, int y, uint16_t attr, uint16_t color);
@@ -90,6 +89,13 @@ public:
 	void set_context_font(DEVICE *p)
 	{
 		d_font = p;
+	}
+	void get_tvram_snapshot(uint8_t *p)
+	{
+		if(p != NULL) {
+			memcpy(&(p[0x0000]), &(pattern_ram[0x0000]), 0x1000);
+			memcpy(&(p[0x1000]), &(pattern_ram[0x2000]), 0x1000);
+		}
 	}
 };
 }

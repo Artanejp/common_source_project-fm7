@@ -54,11 +54,9 @@ void TOWNS_SPRITE::reset()
 	max_sprite_per_frame = 224;
 	frame_sprite_count = 0;
 	tvram_enabled = false;
-	shadow_memory_enabled = true;
 	
 	memset(reg_data, 0x00, sizeof(reg_data)); // OK?
-
-	ankcg_enabled = false;
+//	ankcg_enabled = false;
 }
 #if 0
 void TOWNS_SPRITE::clear_cache(int num)
@@ -733,7 +731,7 @@ void TOWNS_SPRITE::write_io8(uint32_t addr, uint32_t data)
 uint32_t TOWNS_SPRITE::read_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
-
+	
 	if(addr == 0x05c8) {
 		val = (tvram_enabled) ? 0x80 : 0;
 //		tvram_enabled = false;
@@ -775,45 +773,28 @@ uint32_t TOWNS_SPRITE::read_io8(uint32_t addr)
 
 uint32_t TOWNS_SPRITE::read_memory_mapped_io8(uint32_t addr)
 {
-	if(((addr >= 0xc8000) && (addr < 0xca000))) {
-		addr = addr & 0x7fff;
+	if((addr >= 0x81000000) && (addr < 0x81020000)) {
+		return pattern_ram[addr & 0x1ffff];
+	} else if(((addr >= 0xc8000) && (addr < 0xca000))) {
+		return pattern_ram[addr - 0xc8000];
 	} else if((addr >= 0xca000) && (addr < 0xcb000)) {
-		if((ankcg_enabled) && (addr < 0xca800)) {
-			return d_font->read_memory_mapped_io8(addr);
-		}
-		addr = addr & 0x7fff;
-	} else if((addr >= 0xcb000) && (addr < 0xd0000)) {
-		return 0xff;
-//		addr = addr & 0x7fff;
+		return pattern_ram[addr - 0xc8000];
 	}
-	return pattern_ram[addr & 0x1ffff];
+	return 0x00;
 }
 
 
 void TOWNS_SPRITE::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
-	uint32_t nbank;
 	if((addr >= 0x81000000) && (addr < 0x81020000)) {
-		nbank = (addr & 0x1e000) >> 12;
+		pattern_ram[addr & 0x1ffff] = data;
 	} else if(((addr >= 0xc8000) && (addr < 0xc9000))) {
 		tvram_enabled = true;
-		addr = addr & 0x7fff;
-	} else if(((addr >= 0xc9000) && (addr < 0xca000))) {
-		//	tvram_enabled = true;
-		addr = addr & 0x7fff;
+		pattern_ram[addr - 0xc8000] = data;
 	} else if((addr >= 0xca000) && (addr < 0xcb000)) {
-//		if(ankcg_enabled) {
-//			return;
-//		}
 		tvram_enabled = true;
-		addr = addr & 0x7fff;
-	} else if((addr >= 0xcb000) && (addr < 0xd0000)) {
-		return;
-//		addr = addr & 0x7fff;
+		pattern_ram[addr - 0xc8000] = data;
 	}
-	
-	// ToDO: Discard cache
-	pattern_ram[addr & 0x1ffff] = data;
 	return;
 }
 
@@ -881,18 +862,18 @@ void TOWNS_SPRITE::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_TOWNS_SPRITE_SET_LINES) {
 		int line = data & 0x7ff; // 2048 - 1
 		render_lines = line;
-	} else if(id == SIG_TOWNS_SPRITE_SHADOW_RAM) {
-		shadow_memory_enabled = ((data & mask) == 0);
-	} else if(id == SIG_TOWNS_SPRITE_ANKCG) {  // write CFF19
+	} /*else if(id == SIG_TOWNS_SPRITE_ANKCG) {  // write CFF19
 		ankcg_enabled = ((data & mask) != 0);
+	} */else if(id == SIG_TOWNS_SPRITE_TVRAM_ENABLED) {  // write CFF19
+		tvram_enabled = ((data & mask) != 0);
 	}
 }
 
 uint32_t TOWNS_SPRITE::read_signal(int id)
 {
-	if(id == SIG_TOWNS_SPRITE_ANKCG) {  // write CFF19
+	/*if(id == SIG_TOWNS_SPRITE_ANKCG) {  // write CFF19
 		 return ((ankcg_enabled) ? 0xffffffff : 0);
-	} else if(id == SIG_TOWNS_SPRITE_TVRAM_ENABLED) {
+	 } else */ if(id == SIG_TOWNS_SPRITE_TVRAM_ENABLED) {
 		 uint32_t v = ((tvram_enabled) ? 0xffffffff : 0);
 		 tvram_enabled = false;
 		 return v;
@@ -920,7 +901,6 @@ bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(reg_data, sizeof(reg_data), 1);
 	// RAMs
 	state_fio->StateArray(pattern_ram, sizeof(pattern_ram), 1);
-	state_fio->StateArray(ram, sizeof(ram), 1);
 	
 	state_fio->StateValue(reg_spen);
 	state_fio->StateValue(reg_index);
@@ -940,9 +920,8 @@ bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(frame_sprite_count);
 	state_fio->StateValue(max_sprite_per_frame);
 	state_fio->StateValue(tvram_enabled);
-	state_fio->StateValue(shadow_memory_enabled);
 
-	state_fio->StateValue(ankcg_enabled);
+//	state_fio->StateValue(ankcg_enabled);
 	//state_fio->StateValue(split_rendering);
 
 	return true;

@@ -31,22 +31,29 @@ void TOWNS_MEMORY::config_page00()
 //		set_memory_mapped_io_r (0x000b0000, 0x000bffff, d_msdos); // OK? <- for compatible ROM.
 		set_memory_rw          (0x000c0000, 0x000cffff, ram_pagec);
 		set_memory_mapped_io_rw(0x000c0000, 0x000c7fff, d_vram);
-		set_memory_mapped_io_rw(0x000c8000, 0x000cafff, d_sprite);
-//		set_memory_mapped_io_rw(0x000cb000, 0x000cbfff, d_font);
+		set_memory_mapped_io_rw(0x000c8000, 0x000c8fff, d_sprite);
+//		set_memory_rw          (0x000c9000, 0x000c9fff, &(ram_pagec[0x0900]));
+		set_memory_mapped_io_rw(0x000ca000, 0x000cafff, d_sprite);
+		if(ankcg_enabled) {
+			set_memory_mapped_io_r(0x000ca000, 0x000ca7ff, d_font);
+			set_memory_mapped_io_r(0x000cb000, 0x000cbfff, d_font);
+		}
 		set_memory_mapped_io_rw(0x000cf000, 0x000cffff, this);
 		set_memory_rw          (0x000d0000, 0x000d7fff, ram_paged);
-//		set_memory_mapped_io_rw(0x000d0000, 0x000d9fff, d_dictionary); // CMOS
 		set_memory_mapped_io_rw(0x000d8000, 0x000d9fff, d_dictionary); // CMOS
 	} else {
 		set_memory_rw          (0x00000000, 0x000bffff, ram_page0);
 		set_memory_rw          (0x000c0000, 0x000cffff, ram_pagec);
-//		set_memory_mapped_io_rw(0x000c8000, 0x000cbfff, d_sprite);
 		set_memory_rw          (0x000d0000, 0x000d9fff, ram_paged);
 //		set_memory_mapped_io_rw(0x000cc000, 0x000cffff, this);
 	}		
 	set_memory_rw          (0x000da000, 0x000effff, ram_pagee);
 	set_memory_rw          (0x000f0000, 0x000f7fff, ram_pagef);
-	set_memory_mapped_io_rw(0x000f8000, 0x000fffff, d_sysrom); 
+	set_memory_mapped_io_rw(0x000f8000, 0x000fffff, d_sysrom);
+	if(ankcg_enabled) {
+//		set_memory_mapped_io_r(0x000ca000, 0x000ca7ff, d_font);
+//		set_memory_mapped_io_r(0x000cb000, 0x000cbfff, d_font);
+	}
 }
 	
 void TOWNS_MEMORY::initialize()
@@ -200,6 +207,7 @@ void TOWNS_MEMORY::reset()
 #endif
 	dma_is_vram = true;
 	nmi_vector_protect = false;
+	ankcg_enabled = false;
 	config_page00();
 	set_wait_values();
 }
@@ -459,9 +467,10 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 		}
 		break;
 	case 0x19:
-		if(d_sprite != NULL) {
-			val = val & ((d_sprite->read_signal(SIG_TOWNS_SPRITE_ANKCG) != 0) ? 0x00 : 0x01);
-		}
+//		if(d_sprite != NULL) {
+//			val = val & ((d_sprite->read_signal(SIG_TOWNS_SPRITE_ANKCG) != 0) ? 0x00 : 0x01);
+//		}
+		val = val & (ankcg_enabled) ? 0x00 : 0x01;
 		break;
 	case 0x20:
 		val = 0xff;
@@ -519,7 +528,9 @@ void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x19:
 		if(d_sprite != NULL) {
-			d_sprite->write_signal(SIG_TOWNS_SPRITE_ANKCG, ((data & 1) == 0) ? 0xffffffff : 0, 0xffffffff);
+//			d_sprite->write_signal(SIG_TOWNS_SPRITE_ANKCG, ((data & 1) == 0) ? 0xffffffff : 0, 0xffffffff);
+			ankcg_enabled = ((data & 1) == 0) ? true : false;
+			config_page00();
 		}
 		break;
 	case 0x20:
@@ -658,6 +669,7 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 			state_fio->Fwrite(extra_ram, extram_size, 1);
 		}
 	}
+	state_fio->StateValue(ankcg_enabled);
 	
 	state_fio->StateValue(vram_wait_val);
 	state_fio->StateValue(mem_wait_val);

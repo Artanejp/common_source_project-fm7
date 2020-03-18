@@ -230,6 +230,7 @@ void TOWNS_CRTC::reset()
 		hst[i] = hst_tmp;
 		vst[i] = vst_tmp;
 	}
+	memset(tvram_snapshot, 0x00, sizeof(tvram_snapshot));
 	//osd->set_vm_screen_size((hst <= SCREEN_WIDTH) ? hst : SCREEN_WIDTH, (vst <= SCREEN_HEIGHT) ? vst : SCREEN_HEIGHT, -1, -1,  WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 	//emu->set_vm_screen_lines(vst);
 	// For DEBUG Only
@@ -254,8 +255,8 @@ void TOWNS_CRTC::reset()
 void TOWNS_CRTC::set_vsync(bool val, bool force)
 {
 	if((vsync != val) || (force)) {
-		write_signals(&outputs_int_vsync, (val) ? 0xffffffff : 0x00000000);
 		vsync = val;
+		write_signals(&outputs_int_vsync, (val) ? 0xffffffff : 0x00000000);
 	}
 }
 void TOWNS_CRTC::restart_display()
@@ -1455,18 +1456,18 @@ void TOWNS_CRTC::render_text()
 	for(int y = 0; y < 25; y++) {
 		for(int x = 0; x < 80; x++) {
 			uint32_t addr_of = ((x * 4) + (y * (linesize * 16)) + 1) & 0x3ffff;
-			uint32_t attr = d_sprite->read_signal(SIG_TOWNS_SPRITE_PEEK_TVRAM + c + 1);
+			uint32_t attr = tvram_snapshot[c + 1];
 			pair32_t jis;
 			uint32_t romaddr;
 			if((attr & 0xc0) == 0) {
 				// ANK
-				uint8_t ank  = d_sprite->read_signal(SIG_TOWNS_SPRITE_PEEK_TVRAM + c);
+				uint8_t ank  = tvram_snapshot[c + 0];
 //				uint8_t ank = 0x36; 
 				romaddr = addr_base_ank + (ank * 16);
 			}	else if((attr & 0xc0) != 0x80) {
 				// JIS
-				jis.b.h = d_sprite->read_signal(SIG_TOWNS_SPRITE_PEEK_TVRAM + c + 0x2000);
-				jis.b.l = d_sprite->read_signal(SIG_TOWNS_SPRITE_PEEK_TVRAM + c + 0x2001);
+				jis.b.h = tvram_snapshot[c + 0x1000]; // CA000-CAFFF
+				jis.b.l = tvram_snapshot[c + 0x1001]; // CA000-CAFFF
 				if(jis.b.h < 0x30) {
 					romaddr =
 						(((uint32_t)(jis.b.l & 0x1f)) << 4) |
@@ -1767,11 +1768,12 @@ void TOWNS_CRTC::event_pre_frame()
 		// ToDo: Resize texture.
 		//set_pixels_per_line(pixels_per_line);
 	}
-	if(d_sprite->read_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED) != 0) {
+//	if(d_sprite->read_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED) != 0) {
 //		if(((voutreg_ctrl & 0x1f) == 0x14) || ((voutreg_ctrl & 0x1f) == 0x11)) {
-			render_text();
+//			d_sprite->get_tvram_snapshot(tvram_snapshot);
+//			render_text();
 //		}
-	}
+//	}
 }
 
 void TOWNS_CRTC::event_frame()
@@ -1842,12 +1844,12 @@ void TOWNS_CRTC::event_frame()
 		register_event(this, EVENT_CRTC_HSTART, horiz_us, false, &event_id_hstart); // HSTART
 	}
 	// Draw Text layer
-//	if(d_sprite->read_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED) != 0) {
+	if(d_sprite->read_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED) != 0) {
 //		if(((voutreg_ctrl & 0x1f) == 0x14) || ((voutreg_ctrl & 0x1f) == 0x11)) {
-//			render_text();
+			d_sprite->get_tvram_snapshot(tvram_snapshot);
+			render_text();
 //		}
-//	}
-	
+	}
 }
 
 void TOWNS_CRTC::event_callback(int event_id, int err)
@@ -1881,6 +1883,7 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 		int layer = event_id & 1;
 		frame_in[layer] = false;
 		event_id_vde[layer] = -1;
+
 		// DO ofset line?
 	} else if(event_id == EVENT_CRTC_HSTART) {
 		// Do render

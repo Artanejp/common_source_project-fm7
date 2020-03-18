@@ -270,6 +270,8 @@ protected:
 	scrntype_t apalette_16_pixel[2][16]; // Not saved. Must be calculated.
 	uint8_t   apalette_256_rgb[256][4];    // R * 65536 + G * 256 + B
 	scrntype_t apalette_256_pixel[256];  // Not saved. Must be calculated.
+
+	uint8_t tvram_snapshot[4096 * 2];
 	
 	// FM-R50 emulation
 	uint8_t r50_planemask; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
