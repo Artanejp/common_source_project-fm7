@@ -199,6 +199,7 @@
 #define USE_STATE
 #define USE_CPU_I386
 #define HAS_I386
+//#define USE_QUEUED_SCSI_TRANSFER
 
 #include "../../common.h"
 #include "../../fileio.h"

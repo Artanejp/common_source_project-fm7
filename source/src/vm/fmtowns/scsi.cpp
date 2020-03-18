@@ -65,6 +65,7 @@ void SCSI::write_io8(uint32_t addr, uint32_t data)
 			d_host->write_signal(SIG_SCSI_RST, data, CTRL_RST);
 			d_host->write_signal(SIG_SCSI_ATN, data, CTRL_ATN);
 			d_host->write_signal(SIG_SCSI_SEL, data, CTRL_SEL);
+			d_host->write_signal(SIG_SCSI_HOST_DMAE, data, CTRL_DMAE);
 		}
 		break;
 	}

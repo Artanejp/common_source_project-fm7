@@ -119,6 +119,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 	case 0x0f:
 		// Note: This is *temporaly* workaround for 16bit transfer mode with 8bit bus.
 		// 20200318 K.O
+#if !defined(USE_QUEUED_SCSI_TRANSFER)
 		if((dma[selch].is_16bit) && (b16)) {
 			if(creg_set[selch]) {
 				dma[selch].creg <<= 1;
@@ -130,12 +131,13 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 				dma[selch].bcreg++;
 				bcreg_set[selch] = false;
 			}
+			}
+#endif
+		if((data & 0x02) == 0) {
+			out_debug_log(_T("START SCSI DMA MODE=%02X ADDR=%08X COUNT=%04X"),
+						  dma[1].mode, (dma[1].areg & 0xffffff) | dma_high_address[1],
+						  dma[1].creg);
 		}
-//		if((data & 0x02) == 0) {
-//			out_debug_log(_T("START SCSI DMA MODE=%02X ADDR=%08X COUNT=%04X"),
-//						  dma[1].mode, (dma[1].areg & 0xffffff) | dma_high_address[1],
-//						  dma[1].creg);
-//		}
 		break;
 	default:
 		break;
@@ -278,10 +280,10 @@ bool TOWNS_DMAC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	{
 		my_stprintf_s(buffer, buffer_len,
 					  _T("16Bit=%s ADDR_MASK=%08X ADDR_REG=%02X ADDR_WRAP=%02X \n")
-					  _T("%s\n")
-					  _T("%s\n")
-					  _T("%s\n")
-					  _T("%s\n")
+					  _T("%s")
+					  _T("%s")
+					  _T("%s")
+					  _T("%s")
 					  , (b16) ? _T("YES") : _T("NO"),
 					  dma_addr_mask,
 					  dma_addr_reg,
