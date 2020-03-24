@@ -271,7 +271,7 @@ protected:
 	uint8_t   apalette_256_rgb[256][4];    // R * 65536 + G * 256 + B
 	scrntype_t apalette_256_pixel[256];  // Not saved. Must be calculated.
 
-	uint8_t tvram_snapshot[4096 * 2];
+	uint8_t tvram_snapshot[0x4000];
 	
 	// FM-R50 emulation
 	uint8_t r50_planemask; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
@@ -330,6 +330,7 @@ protected:
 	
 	void set_crtc_clock(uint16_t val);
 	uint16_t read_reg30();
+	uint32_t __FASTCALL get_font_address(uint32_t c, uint8_t &attr);
 	
 	virtual void __FASTCALL calc_apalette16(int layer, int index);
 	virtual void __FASTCALL calc_apalette256(int index);

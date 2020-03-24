@@ -88,7 +88,8 @@ void TOWNS_CRTC::reset()
 {
 	// initialize
 	display_enabled = false;
-	vblank = vsync = hsync = true;
+	vblank = true;
+	vsync = hsync = false;
 	
 //	memset(regs, 0, sizeof(regs));
 	crtc_ch = 0;
@@ -223,7 +224,8 @@ void TOWNS_CRTC::reset()
 	set_lines_per_frame(512);
 	//set_pixels_per_line(640);
 	
-	set_vsync(vsync, true);
+	write_signals(&outputs_int_vsync, 0x0);
+
 	hst_tmp = 640;
 	vst_tmp = 400;
 	for(int i = 0; i < 4; i++) {
@@ -256,7 +258,8 @@ void TOWNS_CRTC::set_vsync(bool val, bool force)
 {
 	if((vsync != val) || (force)) {
 		vsync = val;
-		write_signals(&outputs_int_vsync, (val) ? 0xffffffff : 0x00000000);
+		write_signals(&outputs_int_vsync, (val) ? 0x00000000 : 0xffffffff);
+//		if(!(val)) write_signals(&outputs_int_vsync, 0xffffffff);
 	}
 }
 void TOWNS_CRTC::restart_display()
@@ -752,7 +755,7 @@ uint16_t TOWNS_CRTC::read_reg30()
 	data |= ((hdisp[1])      ?  0x2000 : 0);
 	data |= ((hdisp[0])      ?  0x1000 : 0);
 	//data |= ((eet)          ?  0x0800 : 0);
-	data |= ((vsync)         ?  0x0400 : 0);
+	data |= (!(vsync)         ?  0x0400 : 0);
 	data |= (!(hsync)        ?  0x0200 : 0);
 	//data |= ((video_in)     ? 0x0100 : 0);
 	//data |= ((half_tone)    ? 0x0008 : 0);
@@ -868,8 +871,8 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 	case 0xfda0:
 		{
 			uint8_t d = 0xfc;
-			d = d | ((vsync) ? 0x01 : 0);
-			d = d | ((hsync) ? 0x02 : 0);
+			d = d | ((vsync) ? 0x00 : 0x01);
+			d = d | ((hsync) ? 0x00 : 0x02);
 			return d;
 		}
 		break;
@@ -1447,79 +1450,96 @@ void TOWNS_CRTC::draw_screen()
 
 // From MAME 0.216
 // ToDo: Will refine.
+uint32_t TOWNS_CRTC::get_font_address(uint32_t c, uint8_t &attr)
+{
+	static const uint32_t addr_base_jis = 0x00000;
+	static const uint32_t addr_base_ank = 0x3d800;
+	uint32_t romaddr = 0;
+	attr = tvram_snapshot[c + 1];
+	if((attr & 0xc0) == 0) {
+		uint8_t ank = tvram_snapshot[c];
+		romaddr = addr_base_ank + (ank * 16);
+	} else if((attr & 0xc0) == 0x40) { // KANJI LEFT
+		pair32_t jis;
+		jis.b.h = tvram_snapshot[c + 0x2000]; // CA000-CAFFF
+		jis.b.l = tvram_snapshot[c + 0x2001]; // CA000-CAFFF
+		if(jis.b.h < 0x30) {
+			romaddr =
+				(((uint32_t)(jis.b.l & 0x1f)) << 4) |
+				((uint32_t)((jis.b.l - 0x20) & 0x20) << 8) |
+				((uint32_t)((jis.b.l - 0x20) & 0x40) << 6) |
+				(((uint32_t)(jis.b.h & 0x07)) << 9);
+			romaddr <<= 1;
+//					romaddr >>= 1;
+		} else if(jis.b.h < 0x70) {
+			romaddr =
+				(((uint32_t)(jis.b.l & 0x1f)) << 5) +
+				((uint32_t)((jis.b.l - 0x20) & 0x60) << 9) +
+				((uint32_t)((jis.b.h & 0x0f)) << 10) +
+				((uint32_t)((jis.b.h - 0x30) & 0x70) * 0xc00) +
+				0x8000;
+//			romaddr <<= 1;
+		} else {
+			romaddr =
+				(((uint32_t)(jis.b.l & 0x1f)) << 4) |
+				((uint32_t)((jis.b.l - 0x20) & 0x20) << 8) |
+				((uint32_t)((jis.b.l - 0x20) & 0x40) << 6) |
+				(((uint32_t)(jis.b.h & 0x07)) << 9);
+			romaddr <<= 1;
+			romaddr |= 0x38000;
+		}
+		romaddr = addr_base_jis + romaddr;
+//				romaddr >>= 1;
+	}
+	return romaddr;
+}
+
 void TOWNS_CRTC::render_text()
 {
-	uint32_t addr_base_jis = 0x00000;
-	uint32_t addr_base_ank = 0x3d800;
-	uint32_t linesize = regs[24] * 4;
+//	uint32_t linesize = regs[24] * 4;
 	int c = 0;
 	for(int y = 0; y < 25; y++) {
+		uint32_t linesize = regs[24] * 4;
+		uint32_t addr_of = y * (linesize * 16);
+		if(c >= 0x1000) break;
+		uint32_t romaddr;
 		for(int x = 0; x < 80; x++) {
-			uint32_t addr_of = ((x * 4) + (y * (linesize * 16)) + 1) & 0x3ffff;
-			uint32_t attr = tvram_snapshot[c + 1];
-			pair32_t jis;
-			uint32_t romaddr;
-			if((attr & 0xc0) == 0) {
-				// ANK
-				uint8_t ank  = tvram_snapshot[c + 0];
-//				uint8_t ank = 0x36; 
-				romaddr = addr_base_ank + (ank * 16);
-			}	else if((attr & 0xc0) != 0x80) {
-				// JIS
-				jis.b.h = tvram_snapshot[c + 0x1000]; // CA000-CAFFF
-				jis.b.l = tvram_snapshot[c + 0x1001]; // CA000-CAFFF
-				if(jis.b.h < 0x30) {
-					romaddr =
-						(((uint32_t)(jis.b.l & 0x1f)) << 4) |
-						((uint32_t)((jis.b.l - 0x20) & 0x20) << 8) |
-						((uint32_t)((jis.b.l - 0x20) & 0x40) << 6) |
-						(((uint32_t)(jis.b.h & 0x07)) << 9);
-					romaddr <<= 1;
-//					romaddr >>= 1;
-				} else if(jis.b.h < 0x70) {
-					romaddr =
-						(((uint32_t)(jis.b.l & 0x1f)) << 5) +
-						((uint32_t)((jis.b.l - 0x20) & 0x60) << 9) +
-						((uint32_t)((jis.b.h & 0x0f)) << 10) +
-						((uint32_t)((jis.b.h - 0x30) & 0x70) * 0xc00) +
-						0x8000;
-//					romaddr >>= 1;
-				} else {
-					romaddr =
-						(((uint32_t)(jis.b.l & 0x1f)) << 4) |
-						((uint32_t)((jis.b.l - 0x20) & 0x20) << 8) |
-						((uint32_t)((jis.b.l - 0x20) & 0x40) << 6) |
-						(((uint32_t)(jis.b.h & 0x07)) << 9);
-					romaddr <<= 1;
-					romaddr |= 0x38000;
-				}
-				romaddr = addr_base_jis + romaddr;
-//				romaddr >>= 1;
+			uint8_t attr;
+			uint32_t t = get_font_address(c, attr);
+			if(((attr & 0xc0) == 0) || ((attr & 0xc0) == 0x40)) {
+				// ANK OR KANJI LEFT
+				romaddr = t;
+			} else if((attr & 0xc0) == 0x80) {
+				// KANJI RIGHT
+				romaddr = romaddr + 1;
+			} else {
+				// Illegal
+				addr_of = (addr_of + 4) & 0x3ffff;
+				c += 2;
+				continue;
 			}
 			// Get data
 			uint32_t color = attr & 0x07;
 			uint8_t tmpdata = 0;
 			if(attr & 0x20) color |= 0x08;
+			
 			// Do render
 //			out_debug_log("ROMADDR=%08X", romaddr);
+			uint32_t of = addr_of;
 			for(int column = 0; column < 16; column++) {
 				if(d_font != NULL) {
 					if((attr & 0xc0) == 0) {
 						// ANK
 						tmpdata = d_font->read_signal(SIG_TOWNS_FONT_PEEK_DATA + column + romaddr);
-					} else if((attr & 0xc0) == 0x80) {
-						tmpdata = d_font->read_signal(SIG_TOWNS_FONT_PEEK_DATA + column * 2 + romaddr + 1);
 					} else {
-						tmpdata = d_font->read_signal(SIG_TOWNS_FONT_PEEK_DATA + column * 2 + romaddr + 0);
+						tmpdata = d_font->read_signal(SIG_TOWNS_FONT_PEEK_DATA + column * 2 + romaddr);
 					}
-						
 				}
 				if(attr & 0x08)
 				{
 					tmpdata = ~tmpdata;
 				}
 				uint32_t pix = 0;
-				uint32_t of = addr_of;
 				uint8_t *p = d_vram->get_vram_address(of + 0x40000);
 				for(int nb = 0; nb < 8; nb += 2) {
 					pix = 0;
@@ -1530,10 +1550,10 @@ void TOWNS_CRTC::render_text()
 						pix = pix | ((color & 0x0f) << 0);
 					}
 					if(p != NULL) *p++ = pix;
-					of++;
 				}
-				addr_of = (addr_of + linesize) & 0x3ffff;
+				of = (of + linesize) & 0x3ffff;
 			}
+			addr_of = (addr_of + 4) & 0x3ffff;
 			c += 2;
 		}
 	}
@@ -1768,12 +1788,11 @@ void TOWNS_CRTC::event_pre_frame()
 		// ToDo: Resize texture.
 		//set_pixels_per_line(pixels_per_line);
 	}
-//	if(d_sprite->read_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED) != 0) {
-//		if(((voutreg_ctrl & 0x1f) == 0x14) || ((voutreg_ctrl & 0x1f) == 0x11)) {
-//			d_sprite->get_tvram_snapshot(tvram_snapshot);
-//			render_text();
-//		}
-//	}
+	// Render VRAM
+	if(d_sprite->read_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED) != 0) {
+		d_sprite->get_tvram_snapshot(tvram_snapshot);
+		render_text();
+	}
 }
 
 void TOWNS_CRTC::event_frame()
@@ -1786,6 +1805,7 @@ void TOWNS_CRTC::event_frame()
 	line_count[0] = line_count[1] = 0;
 	vert_line_count = -1;
 	hsync = false;
+
 //	out_debug_log(_T("FRAME EVENT LINES=%d FRAMEus=%f Hus=%f VST1us=%f VST2us=%f"),lines_per_frame, frame_us, horiz_us, vst1_us, vst2_us);
 	for(int i = 0; i < 2; i++) {
 		crtout_top[i] = crtout[i];
@@ -1812,7 +1832,7 @@ void TOWNS_CRTC::event_frame()
 	} else {
 		set_vsync(true, true);
 	}
-	if(vst2_us > 0.0) {
+	if((vst2_us > 0.0) && (vst2_us > vst1_us)) {
 		register_event(this, EVENT_CRTC_VST2, vst2_us, false, &event_id_vst2);
 	}
 	for(int i = 0; i < 2; i++) {
@@ -1842,13 +1862,6 @@ void TOWNS_CRTC::event_frame()
 	}
 	if(horiz_us > 0.0) {
 		register_event(this, EVENT_CRTC_HSTART, horiz_us, false, &event_id_hstart); // HSTART
-	}
-	// Draw Text layer
-	if(d_sprite->read_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED) != 0) {
-//		if(((voutreg_ctrl & 0x1f) == 0x14) || ((voutreg_ctrl & 0x1f) == 0x11)) {
-			d_sprite->get_tvram_snapshot(tvram_snapshot);
-			render_text();
-//		}
 	}
 }
 
@@ -1997,6 +2010,7 @@ void TOWNS_CRTC::write_signal(int ch, uint32_t data, uint32_t mask)
 		sprite_enabled = ((data & mask) != 0) ? true : false; // OK?
 	}
 }
+
 
 #define STATE_VERSION	1
 
