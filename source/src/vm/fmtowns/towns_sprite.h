@@ -18,6 +18,7 @@ namespace FMTOWNS {
 	class TOWNS_VRAM;
 }
 
+class DEBUGGER;
 namespace FMTOWNS {
 class TOWNS_SPRITE : public DEVICE
 {
@@ -25,6 +26,7 @@ class TOWNS_SPRITE : public DEVICE
 protected:
 	TOWNS_VRAM *d_vram;
 	DEVICE *d_font;
+	DEBUGGER *d_debugger;
 	// REGISTERS
 	uint8_t reg_addr;
 	uint8_t reg_data[8];
@@ -53,6 +55,7 @@ protected:
 	int max_sprite_per_frame;
 
 	bool tvram_enabled;
+	bool tvram_enabled_bak;
 
 	bool ankcg_enabled;
 	void __FASTCALL render_sprite(int num,  int x, int y, uint16_t attr, uint16_t color);
@@ -74,6 +77,50 @@ public:
 
 	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
+	uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr)
+	{
+		if(addr >= 0x20000) {
+			return 0x00;
+		}
+		return pattern_ram[addr];
+	}
+	void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data)
+	{
+		if(addr >= 0x20000) {
+			return;
+		}
+		if(addr < 0x1000) {
+			tvram_enabled = true;
+			tvram_enabled_bak = true;
+		} else if((addr >= 0x2000) && (addr < 0x3000)) {
+			tvram_enabled = true;
+			tvram_enabled_bak = true;
+		}
+		pattern_ram[addr] = (uint8_t)data;
+	}
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr)
+	{
+		return read_via_debugger_data8(addr);
+	}
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data)
+	{
+		write_via_debugger_data8(addr, data);
+	}
+	
+	bool is_debugger_available()
+	{
+		return true;
+	}
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	uint64_t get_debug_data_addr_space()
+	{
+		return 0x20000;
+	}
 
 	void reset();
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
@@ -90,11 +137,14 @@ public:
 	{
 		d_font = p;
 	}
+	void set_context_debugger(DEBUGGER *p)
+	{
+		d_debugger = p;
+	}
 	void get_tvram_snapshot(uint8_t *p)
 	{
 		if(p != NULL) {
-			memcpy(&(p[0x0000]), &(pattern_ram[0x0000]), 0x1000);
-			memcpy(&(p[0x1000]), &(pattern_ram[0x2000]), 0x1000);
+			memcpy(&(p[0x0000]), &(pattern_ram[0x0000]), 0x4000);
 		}
 	}
 };
