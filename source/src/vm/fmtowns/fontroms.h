@@ -17,6 +17,7 @@
 #define SIG_TOWNS_FONT_KANJI_HIGH       5
 #define SIG_TOWNS_FONT_KANJI_DATA_LOW   8
 #define SIG_TOWNS_FONT_KANJI_DATA_HIGH  9
+#define SIG_TOWNS_FONT_KANJI_ROW        10
 #define SIG_TOWNS_FONT_PEEK_DATA        0x10000
 namespace FMTOWNS {
 
@@ -24,9 +25,9 @@ class FONT_ROMS : public DEVICE
 {
 protected:
 	uint8_t font_kanji16[0x40000];
-	uint8_t ram[0x1000];
+//	uint8_t ram[0x1000];
 
-	bool dma_is_vram;
+//	bool dma_is_vram;
 	pair16_t kanji_code;
 	uint32_t kanji_address;
 
