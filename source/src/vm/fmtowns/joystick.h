@@ -25,12 +25,18 @@ private:
 	int dx, dy;
 	int lx, ly;
 	uint32_t mouse_button;
-	bool mouse_strobe;
-	uint32_t mouse_data;
 	int mouse_phase;
+	bool mouse_strobe;
+	uint8_t mouse_data;
+	
 	int mouse_timeout_event;
 	int mouse_type;
 	uint8_t mask;
+	
+	void set_emulate_mouse();
+	virtual void update_strobe(bool flag);
+	uint32_t update_mouse();
+
 public:
 	JOYSTICK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
