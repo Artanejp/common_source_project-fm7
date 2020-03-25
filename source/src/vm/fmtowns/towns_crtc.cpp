@@ -13,6 +13,7 @@
 #include "towns_vram.h"
 #include "towns_sprite.h"
 #include "fontroms.h"
+#include "../debugger.h"
 
 namespace FMTOWNS {
 enum {
@@ -87,7 +88,7 @@ void TOWNS_CRTC::release()
 void TOWNS_CRTC::reset()
 {
 	// initialize
-	display_enabled = false;
+	display_enabled = true;
 	vblank = true;
 	vsync = hsync = false;
 	
@@ -1873,6 +1874,73 @@ void TOWNS_CRTC::event_frame()
 	}
 }
 
+bool TOWNS_CRTC::write_debug_reg(const _TCHAR *reg, uint32_t data)
+{
+	return false;
+}
+
+bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	if(buffer == NULL) return false;
+
+	_TCHAR paramstr[2048] = {0};
+	my_stprintf_s(paramstr, sizeof(paramstr) / sizeof(_TCHAR),
+				  _T("\n")
+				  _T("DISPLAY: %s / VCOUNT=%d / FRAMES PER SEC=%6g / FRAME uS=%6g / CLOCK=%6gMHz\n")
+				  _T("LINES PER FRAME=%d / PIXELS PER LINE=%d / MAX LINE=%d\n")
+				  _T("EET   uS=%6g /")
+				  _T("VST1  uS=%6g / VST2  uS=%6g\n")
+				  _T("HORIZ uS=%6g / POSI  uS=%6g / NEGA  uS=%6g\n")
+				  _T("VERT  START uS [0]=%6g [1]=%6g / END   uS [0]=%6g [1]=%6g\n")
+				  _T("HORIZ START uS [0]=%6g [1]=%6g / END   uS [0]=%6g [1]=%6g\n\n")
+				  , (display_enabled) ? _T("ON ") : _T("OFF"), vert_line_count
+				  , frames_per_sec, frame_us, 1.0 / crtc_clock
+				  , lines_per_frame, pixels_per_line, max_lines
+				  , eet_us
+				  , vst1_us, vst2_us
+				  , horiz_us, horiz_width_posi_us, horiz_width_nega_us
+				  , vert_start_us[0], vert_start_us[1], vert_end_us[0], vert_end_us[1]
+				  , horiz_start_us[0], horiz_start_us[1], horiz_end_us[0], horiz_end_us[1]
+		);
+				  
+	_TCHAR regstr[1024] = {0};
+	my_stprintf_s(regstr, sizeof(regstr) / sizeof(_TCHAR),
+				  _T("REGS:     +0     +1     +2    +3    +4    +5    +6    +7\n")
+				  _T("------------------------------------------------------\n")
+		);
+	for(int r = 0; r < 32; r += 8) {
+		_TCHAR tmps[32] = {0};
+		my_stprintf_s(tmps, sizeof(tmps) / sizeof(_TCHAR), "+%02d:   ", r);
+		my_tcscat_s(regstr, sizeof(regstr) / sizeof(_TCHAR), tmps);
+		for(int q = 0; q < 8; q++) {
+			my_stprintf_s(tmps, sizeof(tmps) / sizeof(_TCHAR), _T("%04X "), regs[r + q]);
+			my_tcscat_s(regstr, sizeof(regstr) / sizeof(_TCHAR), tmps);
+		}
+		my_tcscat_s(regstr, sizeof(regstr) / sizeof(_TCHAR), _T("\n"));
+	}
+	my_stprintf_s(buffer, buffer_len,
+				  _T("%s")
+				  _T("SPRITE ENABLED=%s / SPRITE DISP=%d \n")
+				  _T("ZOOM[0] V=%d H=%d VCOUNT=%d / ZOOM[1] V=%d H=%d VCOUNT=%d\n")
+				  _T("VSYNC=%s / VBLANK=%s / VDISP=%s / FRAME IN[0]=%s / [1]=%s\n")
+				  _T("HSYNC=%s / HDISP[0]=%s / [1]=%s\n\n")
+				  _T("%s")
+				  , paramstr
+//				  , line_count[0], line_count[1]
+				  , (sprite_enabled) ? _T("YES") : _T("NO"), sprite_disp_page
+				  , zoom_factor_vert[0], zoom_factor_horiz[0], zoom_count_vert[0]
+				  , zoom_factor_vert[1], zoom_factor_horiz[1], zoom_count_vert[1]
+				  ,	(vsync) ? _T("YES") : _T("NO "), (vblank) ? _T("YES") : _T("NO ")
+				  , (vdisp) ? _T("YES") : _T("NO ")
+				  , (frame_in[0]) ? _T("YES") : _T("NO ")
+				  , (frame_in[1]) ? _T("YES") : _T("NO ")
+				  , (hsync) ? _T("YES") : _T("NO ")
+				  , (hdisp[0]) ? _T("YES") : _T("NO ")
+				  , (hdisp[1]) ? _T("YES") : _T("NO ")
+				  , regstr
+		);
+	return true;
+}
 void TOWNS_CRTC::event_callback(int event_id, int err)
 {
 	/*

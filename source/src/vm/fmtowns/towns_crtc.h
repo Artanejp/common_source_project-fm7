@@ -100,6 +100,8 @@
 #define SIG_TOWNS_CRTC_SPRITE_DISP     10
 #define SIG_TOWNS_CRTC_SPRITE_USING    11
 #define SIG_TOWNS_CRTC_COMPATIBLE_MMIO 12
+
+class DEBUGGER;
 namespace FMTOWNS {
 
 	enum {
@@ -181,7 +183,8 @@ protected:
 	TOWNS_VRAM* d_vram;
 	TOWNS_SPRITE* d_sprite;
 	DEVICE*       d_font;
-
+	DEBUGGER*     d_debugger;
+	
 	uint16_t machine_id;
 	uint8_t cpu_id;
 	bool is_compatible;
@@ -388,7 +391,22 @@ public:
 	
 	void event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+
+	bool is_debugger_available()
+	{
+		return true;
+	}
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	uint64_t get_debug_data_addr_space()
+	{
+		return 0x0;
+	}
 	// unique function
 	linebuffer_t* __FASTCALL get_line_buffer(int page, int line)
 	{
@@ -410,6 +428,10 @@ public:
 	void set_context_font(DEVICE* dev)
 	{
 		d_font = dev;
+	}
+	void set_context_debugger(DEBUGGER* dev)
+	{
+		d_debugger = dev;
 	}
 	void set_machine_id(uint16_t val)
 	{
