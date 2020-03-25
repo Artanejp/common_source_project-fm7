@@ -14,6 +14,8 @@
 #include "./towns_sprite.h"
 #include "./fontroms.h"
 #include "./serialrom.h"
+#include "./towns_crtc.h"
+
 #include "../i386_np21.h"
 #include "../pcm1bit.h"
 
@@ -33,10 +35,10 @@ void TOWNS_MEMORY::config_page00()
 		set_memory_mapped_io_rw(0x000c0000, 0x000c7fff, d_vram);
 		set_memory_mapped_io_rw(0x000c8000, 0x000c8fff, d_sprite);
 		set_memory_mapped_io_rw(0x000ca000, 0x000cafff, d_sprite);
-//		if(ankcg_enabled) {
+		if(ankcg_enabled) {
 //			set_memory_mapped_io_r(0x000ca000, 0x000ca7ff, d_font);
-//			set_memory_mapped_io_r(0x000cb000, 0x000cbfff, d_font);
-//		}
+			set_memory_mapped_io_r(0x000cb000, 0x000cbfff, d_font);
+		}
 		set_memory_mapped_io_rw(0x000cf000, 0x000cffff, this);
 		set_memory_rw          (0x000d0000, 0x000d7fff, ram_paged);
 		set_memory_mapped_io_rw(0x000d8000, 0x000d9fff, d_dictionary); // CMOS
@@ -58,6 +60,7 @@ void TOWNS_MEMORY::initialize()
 	
 	extra_nmi_mask = true;
 	extra_nmi_val = false;
+	poff_status = false;
 
 //	vram_wait_val = 6;
 //	mem_wait_val = 3;
@@ -191,6 +194,7 @@ void TOWNS_MEMORY::reset()
 {
 	// reset memory
 	// ToDo
+	is_compatible = true;
 #if 1	
 	if(d_cpu != NULL) {
 		d_cpu->set_address_mask(0xffffffff);
@@ -202,6 +206,7 @@ void TOWNS_MEMORY::reset()
 	dma_is_vram = true;
 	nmi_vector_protect = false;
 	ankcg_enabled = false;
+	nmi_mask = false;
 	config_page00();
 	set_wait_values();
 }
@@ -226,19 +231,47 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		if(d_cpu != NULL) {
 			d_cpu->set_shutdown_flag(0);
 		}
-//		val =  val | 0x7c; // MAY NOT FILL to "1" for unused bit 20200129 K.O
+		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
+			val = val | ((poff_status) ? 0x04 : 0x00);
+		}
 		break;
 	case 0x0022:
-		// Power register
 //		if(d_dmac != NULL) {
 //			val = d_dmac->read_signal(SIG_TOWNS_DMAC_ADDR_REG);
 //		}
 		break;
 	case 0x0024:
-		// Power register
-//		if(d_dmac != NULL) {
-//			val = d_dmac->read_signal(SIG_TOWNS_DMAC_WRAP_REG);
-//		}
+		// CPU MISC3
+		val = 0xff;
+		if(machine_id >= 0x0700) { // After HR/HG
+			val &= ~0x08; // POFFEN (
+		}
+		if(machine_id >= 0x0700) { // After HR/HG
+			val &= ~0x10; // Free run counter
+		}
+		if(machine_id >= 0x0700) { // After HR/HG
+			val &= ~0x20; // CRTPOWOFF (0022h)
+		}
+		if(machine_id >= 0x0700) { // After HR/HG
+			val &= ~0x40; // RCREN
+		}
+		if(machine_id >= 0x0700) { // After HR/HG
+			val &= ~0x80; // ENPOFF
+		}
+		break;
+	case 0x0025:
+		// CPU MISC4
+		if(machine_id >= 0x0500) { // After CX
+			val = 0x7f;
+		} else {
+			val = 0xff;
+		}
+		break;
+	case 0x0028:
+		// NMI MASK
+		if(machine_id >= 0x0500) { // After CX
+			val = (nmi_mask) ? 0x01 : 0x00;
+		}
 		break;
 	case 0x0030:
 		val = (((machine_id & 0x1f) << 3) | (cpu_id & 7));
@@ -308,6 +341,12 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		   val = 0x00 | ((mem_wait_val > 0) ? 0x01 : 0x00); 
 		}
 		break;
+	case 0xfda4:
+		if(machine_id >= 0x0700) { // After HR/HG
+			return (is_compatible) ? 0x00 : 0x01;
+		} else {
+			return 0x00;
+		}
 	default:
 		break;
 	}
@@ -344,12 +383,14 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		}
 		
 		if((data & 0x40) != 0) {
+			poff_status = true;
 //			if(d_cpu != NULL) {
 //				d_cpu->set_shutdown_flag(1);
 //			}
 			// Todo: Implement true power off.
 //			emu->power_off();
 		} else {
+			poff_status = false;
 			if(d_cpu != NULL) {
 				d_cpu->set_shutdown_flag(0);
 			}
@@ -407,6 +448,14 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		}
 		set_wait_values();
 		break;
+	case 0xfda4:
+		if(machine_id >= 0x0700) { // After HR/HG
+			is_compatible = ((data & 0x01) == 0x00) ? true : false;
+			if(d_crtc != NULL) {
+				d_crtc->write_signal(SIG_TOWNS_CRTC_COMPATIBLE_MMIO, (is_compatible) ? 0xffffffff : 0x00000000, 0xffffffff);
+			}
+		}
+		break;
 	default:
 		break;
 	}
@@ -438,6 +487,15 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 			val = d_vram->read_memory_mapped_io8(addr);
 		}
 		break;
+	case 0x08:
+		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
+			if(d_crtc != NULL) {
+				val = d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CF882H);
+			}
+		} else if(d_vram != NULL) {
+			val = d_vram->read_memory_mapped_io8(addr);
+		}
+		break;
 	case 0x14:
 		val = 0x80;
 		break;
@@ -458,10 +516,38 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 		}
 		break;
 	case 0x19:
-//		if(d_sprite != NULL) {
-//			val = val & ((d_sprite->read_signal(SIG_TOWNS_SPRITE_ANKCG) != 0) ? 0x00 : 0x01);
-//		}
-		val = val & (ankcg_enabled) ? 0x00 : 0x01;
+		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
+			val = (ankcg_enabled) ? 0x01 : 0x00;
+		} else if(d_vram != NULL) {
+			val = d_vram->read_memory_mapped_io8(addr);
+		}
+		break;
+	case 0x1c:
+		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
+			if(d_font != NULL) {
+				val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_HIGH);
+			}
+		} else if(d_vram != NULL) {
+			val = d_vram->read_memory_mapped_io8(addr);
+		}
+		break;
+	case 0x1d:
+		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
+			if(d_font != NULL) {
+				val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_LOW);
+			}
+		} else if(d_vram != NULL) {
+			val = d_vram->read_memory_mapped_io8(addr);
+		}
+		break;
+	case 0x1e:
+		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
+			if(d_font != NULL) {
+				val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_ROW);
+			}
+		} else if(d_vram != NULL) {
+			val = d_vram->read_memory_mapped_io8(addr);
+		}
 		break;
 	case 0x20:
 		val = 0xff;
@@ -506,23 +592,30 @@ void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 			d_font->write_signal(SIG_TOWNS_FONT_KANJI_LOW, data, 0xff);
 		}
 		break;
+		/*
 	case 0x16:
 	case 0x17:
-		if(d_vram != NULL) {
-			d_vram->write_memory_mapped_io8(addr , data);
-		}
+			// KANJI ROM/RAM? WRITE
 		break;
+		*/
 	case 0x18:
 		if(d_beep != NULL) {
 			d_beep->write_signal(SIG_PCM1BIT_ON, 0, 1);
 		}
 		break;
 	case 0x19:
-//		if(d_sprite != NULL) {
-//			d_sprite->write_signal(SIG_TOWNS_SPRITE_ANKCG, ((data & 1) == 0) ? 0xffffffff : 0, 0xffffffff);
-			ankcg_enabled = ((data & 1) == 0) ? true : false;
-			config_page00();
-//		}
+		ankcg_enabled = ((data & 1) == 0) ? true : false;
+		config_page00();
+		break;
+	case 0x1e:
+		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
+			if(d_font != NULL) {
+				d_font->write_signal(SIG_TOWNS_FONT_KANJI_ROW, data, 0xff);
+			}
+		} else if(d_vram != NULL) {
+			d_vram->write_memory_mapped_io8(addr , data);
+		}
+		break;
 		break;
 	case 0x20:
 		break;
@@ -546,8 +639,10 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 		}			
 	} else if(ch == SIG_CPU_NMI) {
 		// Check protect
-		if(d_cpu != NULL) {
-			d_cpu->write_signal(SIG_CPU_NMI, data, mask);
+		if(!(nmi_mask)) {
+			if(d_cpu != NULL) {
+				d_cpu->write_signal(SIG_CPU_NMI, data, mask);
+			}
 		}
 	} else if(ch == SIG_CPU_IRQ) {
 		if(d_cpu != NULL) {
@@ -605,7 +700,7 @@ void TOWNS_MEMORY::set_intr_line(bool line, bool pending, uint32_t bit)
 
 // ToDo: DMA
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -618,13 +713,16 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
  	}
 	state_fio->StateValue(machine_id);
 	state_fio->StateValue(cpu_id);
+	state_fio->StateValue(is_compatible);
 	
 	state_fio->StateValue(dma_is_vram);
 	state_fio->StateValue(nmi_vector_protect);
 	state_fio->StateValue(software_reset);
+	state_fio->StateValue(poff_status);
 	
 	state_fio->StateValue(extra_nmi_val);
 	state_fio->StateValue(extra_nmi_mask);
+	state_fio->StateValue(nmi_mask);
 	
 	state_fio->StateArray(ram_page0,  sizeof(ram_page0), 1);
 	state_fio->StateArray(ram_pagec,  sizeof(ram_pagec), 1);

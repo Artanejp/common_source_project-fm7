@@ -68,6 +68,7 @@ protected:
 //	DEVICE* d_pcm;             // 0xc2200000 - 0xc2200fff 
 	DEVICE* d_beep;
 	DEVICE* d_dmac;
+	DEVICE* d_crtc;
 	I386*   d_cpu;
 	
 	DEVICE* d_dictionary;
@@ -85,6 +86,7 @@ protected:
 
 	uint16_t machine_id;
 	uint8_t cpu_id;
+	bool is_compatible;
 	bool dma_is_vram;
 
 	// RAM
@@ -101,8 +103,10 @@ protected:
 	uint32_t mem_wait_val;
 	bool extra_nmi_mask;
 	bool extra_nmi_val;
+	bool nmi_mask;
 	bool software_reset;
 	bool nmi_vector_protect;
+	bool poff_status;
 	
 	// misc
 	uint32_t vram_size; // Normally 512KB.
@@ -265,6 +269,10 @@ public:
 	void set_context_sprite(DEVICE* device)
 	{
 		d_sprite = device;
+	}
+	void set_context_crtc(DEVICE* device)
+	{
+		d_crtc = device;
 	}
 	void set_context_romcard(DEVICE* device, int num)
 	{
