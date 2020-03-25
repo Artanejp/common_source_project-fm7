@@ -37,6 +37,8 @@ void SCSI::reset()
 	ctrl_reg = CTRL_IMSK;
 	irq_status = false;
 	irq_status_bak = false;
+	exirq_status = false;
+	ex_int_enable = false;
 }
 
 void SCSI::write_io8(uint32_t addr, uint32_t data)
@@ -61,6 +63,10 @@ void SCSI::write_io8(uint32_t addr, uint32_t data)
 			this->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
 		#endif
 		ctrl_reg = data;
+		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
+			ex_int_enable = ((data & 0x20) != 0) ? true : false;
+			// Set host to 16bit bus width. BIT3 ,= '1'.
+		}
 		if(ctrl_reg  & CTRL_WEN) {
 			d_host->write_signal(SIG_SCSI_RST, data, CTRL_RST);
 			d_host->write_signal(SIG_SCSI_ATN, data, CTRL_ATN);
@@ -76,6 +82,13 @@ uint32_t SCSI::read_io8(uint32_t addr)
 	uint32_t value = 0;
 	
 	switch(addr & 0xffff) {
+	case 0x0034:
+		if(machine_id >= 0x0600) { // After UG
+			value = 0x7f; // Ready to transfer 16bit width DMA, excepts CX/UX.
+		} else {
+			value = 0xff;
+		}
+		break;
 	case 0x0c30:
 		// data register
 //		d_host->write_signal(SIG_SCSI_REQ, 0, 0);
@@ -96,6 +109,11 @@ uint32_t SCSI::read_io8(uint32_t addr)
 			    (d_host->read_signal(SIG_SCSI_CD ) ? STATUS_CD  : 0) |
 				(d_host->read_signal(SIG_SCSI_BSY) ? STATUS_BSY : 0) |
 		        (irq_status                        ? STATUS_INT : 0);
+		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
+			value = value | 0x00;
+		} else {
+			value = value | 0x04; // Disable EX-Int.
+		}
 		#ifdef _SCSI_DEBUG_LOG
 			this->out_debug_log(_T("[SCSI] in  %04X %02X\n"), addr, value);
 		#endif
@@ -123,19 +141,37 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 //			}
 			irq_status_bak = ((data & mask) != 0);
 		}
-		irq_status = ((data & mask) != 0);
+		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
+			if(!(exirq_status)) {
+				irq_status = ((data & mask) != 0);
+			} else {
+				irq_status = true;
+			}
+		} else {
+			irq_status = ((data & mask) != 0);
+		}
 		break;
 		
 	case SIG_SCSI_DRQ:
 		if(ctrl_reg & CTRL_DMAE) {
 			d_dma->write_signal(SIG_UPD71071_CH1, data, mask);
 		}
+		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
+			if(ex_int_enable) {
+				d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR0, data, mask);
+				exirq_status = ((data & mask) != 0);
+				if(exirq_status) {
+					irq_status = true;
+				} else if(!(irq_status_bak)) {
+					irq_status = false;
+				}
+			}
+		}
 		break;
 	}
 }
 
-#define STATE_VERSION	2
-
+#define STATE_VERSION	3
 
 bool SCSI::process_state(FILEIO* state_fio, bool loading)
 {
@@ -145,9 +181,17 @@ bool SCSI::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
+	state_fio->StateValue(machine_id);
+	state_fio->StateValue(cpu_id);
+	
 	state_fio->StateValue(ctrl_reg);
 	state_fio->StateValue(irq_status);
 	state_fio->StateValue(irq_status_bak);
+	
+	if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
+		state_fio->StateValue(ex_int_enable);
+		state_fio->StateValue(exirq_status);
+	}
 	return true;
 }
 }

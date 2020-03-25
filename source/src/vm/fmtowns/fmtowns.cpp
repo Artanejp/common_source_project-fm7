@@ -341,6 +341,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_cpu(cpu);
 	memory->set_context_dmac(dma);
 	memory->set_context_vram(vram);
+	memory->set_context_crtc(crtc);
 	memory->set_context_system_rom(sysrom);
 	memory->set_context_msdos(msdosrom);
 	memory->set_context_dictionary(dictionary);
@@ -348,8 +349,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_beep(beep);
 	memory->set_context_serial_rom(serialrom);
 	memory->set_context_sprite(sprite);
-	memory->set_machine_id(machine_id);
-	memory->set_cpu_id(cpu_id);
 	
 	cdrom->scsi_id = 0;
 	cdrom->set_context_interface(cdc_scsi);
@@ -441,9 +440,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	io->set_iomap_range_rw (0x0020, 0x0025, memory);
 	io->set_iomap_range_rw (0x0026, 0x0027, timer);  // Freerun counter
+	io->set_iomap_single_rw(0x0028, memory);
 	
 	io->set_iomap_range_r  (0x0030, 0x0031, memory);	// cpu id / machine id
 	io->set_iomap_single_rw(0x0032, memory);	// serial rom (routed from memory)
+	io->set_iomap_single_r (0x0034, scsi);	// ENABLE/ UNABLE to WORD DMA for SCSI
 
 	io->set_iomap_alias_rw(0x0040, pit0, 0);
 	io->set_iomap_alias_rw(0x0042, pit0, 1);
@@ -543,7 +544,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	
 	io->set_iomap_range_rw(0x3000, 0x3fff, dictionary); // CMOS
-	io->set_iomap_range_rw(0xfd90, 0xfda0, crtc);	// Palette and CRTC
+	
+	io->set_iomap_range_rw(0xfd90, 0xfda2, crtc);	// Palette and CRTC
+	io->set_iomap_single_rw(0xfda4, memory);	// memory
 	io->set_iomap_range_rw(0xff80, 0xffff, vram);	// MMIO
 
 	// Vram allocation may be before initialize().
@@ -624,9 +627,17 @@ void VM::set_machine_type(uint16_t machine_id, uint16_t cpu_id)
 		memory->set_cpu_id(cpu_id);
 		memory->set_machine_id(machine_id);
 	}
+	if(crtc != NULL) {
+		crtc->set_cpu_id(cpu_id);
+		crtc->set_machine_id(machine_id);
+	}
 	if(timer != NULL) {
 		timer->set_cpu_id(cpu_id);
 		timer->set_machine_id(machine_id);
+	}
+	if(scsi != NULL) {
+		scsi->set_cpu_id(cpu_id);
+		scsi->set_machine_id(machine_id);
 	}
 #if defined(HAS_20PIX_FONTS)
 	if(fontrom_20pix != NULL) {

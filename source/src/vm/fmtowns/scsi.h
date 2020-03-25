@@ -28,6 +28,10 @@ private:
 	uint8_t ctrl_reg;
 	bool irq_status;
 	bool irq_status_bak;
+	bool exirq_status;
+	bool ex_int_enable;
+	uint16_t machine_id;
+	uint8_t cpu_id;
 	
 public:
 	SCSI(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
@@ -53,6 +57,14 @@ public:
 	void set_context_host(DEVICE* device)
 	{
 		d_host = device;
+	}
+	void set_machine_id(uint16_t val)
+	{
+		machine_id = val & 0xfff8;
+	}
+	void set_cpu_id(uint16_t val)
+	{
+		cpu_id = val & 0x07;
 	}
 	bool process_state(FILEIO* state_fio, bool loading);
 };
