@@ -677,6 +677,32 @@ bool MC6809_BASE::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	return true;
 }
 
+bool MC6809_BASE::get_debug_regs_description(_TCHAR *buffer, size_t buffer_len)
+{
+	my_stprintf_s(buffer, buffer_len,
+				  _T("PC  : PROGRAM COUNTER (16bit)\n")
+				  _T("CC  : CONDITION FLAGS (16bit)\n")
+				  _T("DP  : DIRECT POINTER  (8bit)\n")
+				  _T("S   : SYSTEM STACK POINTER (16bit)\n")
+				  _T("U   : USER   STACK POINTER (16bit)\n")
+				  _T("X   : INDEX REGISTER       (16bit)\n")
+				  _T("Y   : INDEX REGISTER       (16bit)\n")
+				  _T("A   : ACCUMLATOR           (8bit)\n")
+				  _T("B   : ACCUMLATOR           (8bit)\n")
+				  _T("D   : ACCUMLATOR           (16bit)\n")
+				  _T("NOTE: D is chain of A and B.D = (A << 8) | B.\n")
+				  _T("NOTE: ENDIANNESS is BIG.\n")
+				  _T("ADDRESSING:\n")
+				  _T("foo #bar  (16/8bit)        : immediate value of bar\n")
+				  _T("foo <bar  (8bit)           : direct addressing of bar; address = (DP << 8) | bar.\n")
+				  _T("foo bar   (16bit or index) : extended address.address = bar\n")
+				  _T("foo [bar] (16bit or index) : indirect addressing.address = VALUE16(bar)\n")
+				  _T("FLAGS:\n")
+				  _T("E: ENTIRE   / F: FAST INTERRUPT(FIRQ) / H: HALF CARRY / I: (STANDARD) INTERRUPT(IRQ/SWI)\n")
+				  _T("N: NEGATIVE / Z: ZERO                 / V: OVERFLOW   / C: CARRY")
+		);
+	return true;
+}
 /*
 PC = 0000 PPC = 0000
 INTR=[ IRQ FIRQ  NMI HALT][CI CO SI SO TRAP] CC =[EFHINZVC]
@@ -1435,8 +1461,8 @@ OP_HANDLER(sync_09)	// Rename 20101110
 
 /* $14 trap(HALT) */
 OP_HANDLER(trap) {
-	int_state |= MC6809_INSN_HALT;	// HALTフラグ
-	// Debug: トラチE�E要因
+	int_state |= MC6809_INSN_HALT;	// HALT繝輔Λ繧ｰ
+	// Debug: 繝医Λ繝・・隕∝屏
 	this->out_debug_log(_T("TRAP(HALT) @%04x %02x %02x\n"), PC - 1, RM((PC - 1)), RM(PC));
 }
 
@@ -1522,7 +1548,7 @@ OP_HANDLER(exg) {
 	t1.d = 0;
 	t2.d = 0;
 	/*
-	 * 20111011: 16bit vs 16Bitの演算にする(XM7/ cpu_x86.asmより
+	 * 20111011: 16bit vs 16Bit縺ｮ貍皮ｮ励↓縺吶ｋ(XM7/ cpu_x86.asm繧医ｊ
 	 */
 	{
 		switch ((tb >> 4) & 15) {
@@ -1679,7 +1705,7 @@ OP_HANDLER(tfr) {
 	IMMBYTE(tb);
 	t.d = 0;
 	/*
-	 * 20111011: 16bit vs 16Bitの演算にする(XM7/ cpu_x86.asmより)
+	 * 20111011: 16bit vs 16Bit縺ｮ貍皮ｮ励↓縺吶ｋ(XM7/ cpu_x86.asm繧医ｊ)
 	 */
 	{
 		switch ((tb >> 4) & 15) {

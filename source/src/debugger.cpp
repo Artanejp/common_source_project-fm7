@@ -285,6 +285,7 @@ void* debugger_thread(void *lpx)
 	helplist.push_back("O[{B,W,D}] <port> <value> - output port (byte,word,dword)");
 	helplist.push_back("R - show register(s)");
 	helplist.push_back("R <reg> <value> - edit register");
+	helplist.push_back("RH - show registers description");
 	helplist.push_back("S <range> <list> - search");
 	helplist.push_back("U [<range>] - unassemble");
 	helplist.push_back("UT [<steps> | <steps> <logging_file>] - unassemble back trace");
@@ -1588,7 +1589,11 @@ RESTART_GO:
 				}
 			} else if(_tcsicmp(params[0], _T("!!")) == 0) {
 				// do nothing
-			} else if(_tcsicmp(params[0], _T("?")) == 0) {
+			}  else if(_tcsicmp(params[0], _T("RH")) == 0) {
+				if(target->get_debug_regs_description(buffer, array_length(buffer))) {
+					my_printf(p->osd, _T("REGISTER DESCRIPTION:\n%s\n"), buffer);
+				}
+			}  else if(_tcsicmp(params[0], _T("?")) == 0) {
 				for(auto n = helplist.begin(); n != helplist.end(); ++n) {
 					std::string tmps = *n;
 					my_printf(p->osd, (const _TCHAR *)(tmps.c_str()));

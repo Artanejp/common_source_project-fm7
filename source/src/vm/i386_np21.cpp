@@ -654,16 +654,45 @@ uint32_t I386::read_debug_reg(const _TCHAR *reg)
 	return 0;
 }
 
+bool I386::get_debug_regs_description(_TCHAR *buffer, size_t buffer_len)
+{
+	my_stprintf_s(buffer, buffer_len,
+				  _T("(E)IP       : Instruction pointer\n")
+				  _T("(E)FLAGS    : FLAGs\n")
+				  _T("CS          : Code  SEGMENT\n")
+				  _T("SS          : Stack SEGMENT\n")
+				  _T("DS ES FS GS : Data  SEGMENT\n")
+				  _T("(E)SP       : Stack pointer\n")
+				  _T("(E)BP       : Base pointer (sometimes using local stack pointer)\n")
+				  _T("(E)SI       : SOURCE INDEX\n")
+				  _T("(E)DI       : DESTINATION INDEX\n")
+				  _T("EAX EBX ECX EDX         : 32bit ACCUMERATORS\n")
+				  _T("AX  BX  CX  DX          : 16bit ACCUMERATORS\n")
+				  _T("AH AL BH BL CH CL DH DL : 8bit  ACCUMERATORS\n")
+				  _T("*** ExX is same as xX, split into xH and xL\n")
+				  _T("LDTR        : LOCAL     SEGMENT ADDRESS TABLE\n")
+				  _T("GDTR        : GLOBAL    SEGMENT ADDRESS TABLE\n")
+				  _T("IDTR        : INTERRUPT SEGMENT ADDRESS TABLE\n")
+				  _T("TRx         : TEST  REGISTERs\n")
+				  _T("DRx         : DEBUG REGISTERs\n")
+				  _T("CR0-CR4     : SYSTEM REGISTERs\n")
+				  _T("MXCSR       : \n")
+				  _T("\n")
+		);				  
+	return true;
+}
 bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	if(CPU_STAT_PM) {
 		my_stprintf_s(buffer, buffer_len,
 		_T("EAX=%08X  EBX=%08X  ECX=%08X  EDX=%08X\n")
 		_T("ESP=%08X  EBP=%08X  ESI=%08X  EDI=%08X\n")
-		_T("DS=%04X  ES=%04X  SS=%04X  CS=%04X  EIP=%08X  FLAG=[%c%c%c%c%c%c%c%c%c%s]\n")
+		_T("SS=%04X  CS=%04X  DS=%04X  ES=%04X  FS=%04X  GS=%04X\n")
+		_T("EIP=%08X PREV_EIP=%08X PREV_ESP=%08X EFLAGS=%08X FLAG=[%c%c%c%c%c%c%c%c%c%s]\n")
 		_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 		CPU_EAX, CPU_EBX, CPU_ECX, CPU_EDX, CPU_ESP, CPU_EBP, CPU_ESI, CPU_EDI,
-		CPU_DS, CPU_ES, CPU_SS, CPU_CS, CPU_EIP,
+		CPU_SS, CPU_CS, CPU_DS, CPU_ES,  CPU_FS, CPU_GS,
+ 	    CPU_EIP, CPU_PREV_EIP, CPU_PREV_ESP, CPU_FLAG,
 		(CPU_FLAG & O_FLAG) ? _T('O') : _T('-'), (CPU_FLAG & D_FLAG) ? _T('D') : _T('-'), (CPU_FLAG & I_FLAG) ? _T('I') : _T('-'), (CPU_FLAG & T_FLAG) ? _T('T') : _T('-'), (CPU_FLAG & S_FLAG) ? _T('S') : _T('-'),
 		(CPU_FLAG & Z_FLAG) ? _T('Z') : _T('-'), (CPU_FLAG & A_FLAG) ? _T('A') : _T('-'), (CPU_FLAG & P_FLAG) ? _T('P') : _T('-'), (CPU_FLAG & C_FLAG) ? _T('C') : _T('-'), (CPU_STAT_VM86) ? _T(":VM86") : _T(""),
 		total_cycles, total_cycles - prev_total_cycles,
@@ -671,10 +700,12 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	} else {
 		my_stprintf_s(buffer, buffer_len,
 		_T("AX=%04X  BX=%04X  CX=%04X  DX=%04X  SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
-		_T("DS=%04X  ES=%04X  SS=%04X  CS=%04X  IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]\n")
+		_T("SS=%04X  CS=%04X  DS=%04X  ES=%04X  FS=%04X GS=%04X\n")
+		_T("IP=%04X  PREV_IP=%04X PREV_SP=%04X  EFLAGS=%08X FLAG=[%c%c%c%c%c%c%c%c%c]\n")
 		_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 		CPU_AX, CPU_BX, CPU_CX, CPU_DX, CPU_SP, CPU_BP, CPU_SI, CPU_DI,
-		CPU_DS, CPU_ES, CPU_SS, CPU_CS, CPU_IP,
+		CPU_SS, CPU_CS, CPU_DS, CPU_ES, CPU_FS, CPU_GS,
+		CPU_IP, CPU_STATSAVE.cpu_regs.prev_eip.w.w, CPU_STATSAVE.cpu_regs.prev_esp.w.w, CPU_FLAG,
 		(CPU_FLAG & O_FLAG) ? _T('O') : _T('-'), (CPU_FLAG & D_FLAG) ? _T('D') : _T('-'), (CPU_FLAG & I_FLAG) ? _T('I') : _T('-'), (CPU_FLAG & T_FLAG) ? _T('T') : _T('-'), (CPU_FLAG & S_FLAG) ? _T('S') : _T('-'),
 		(CPU_FLAG & Z_FLAG) ? _T('Z') : _T('-'), (CPU_FLAG & A_FLAG) ? _T('A') : _T('-'), (CPU_FLAG & P_FLAG) ? _T('P') : _T('-'), (CPU_FLAG & C_FLAG) ? _T('C') : _T('-'),
 		total_cycles, total_cycles - prev_total_cycles,

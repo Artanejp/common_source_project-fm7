@@ -1222,6 +1222,10 @@ public:
 	{
 		return false;
 	}
+	virtual bool get_debug_regs_description(_TCHAR *buffer, size_t buffer_len)
+	{
+		return false;
+	}
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	{
 		return debug_dasm_with_userdata(pc, buffer, buffer_len, 0);
