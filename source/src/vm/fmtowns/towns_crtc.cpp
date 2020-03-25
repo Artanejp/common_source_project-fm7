@@ -100,6 +100,7 @@ void TOWNS_CRTC::reset()
 	sprite_enabled = false;
 //	crtc_clock = 28.6363e6; // OK?
 	interlace_field = false;
+	is_compatible = true;
 	
 	line_count[0] = line_count[1] = 0;
 	vert_line_count = -1;
@@ -179,6 +180,7 @@ void TOWNS_CRTC::reset()
 		crtout[i] = true;
 		crtout_top[i] = true;
 	}
+	crtout_reg = 0x0c;
 	for(int i = 0; i < 4; i++) {
 		frame_offset[i] = 0;
 		line_offset[i] = 640;
@@ -600,6 +602,7 @@ void TOWNS_CRTC::write_io8(uint32_t addr, uint32_t data)
 	case 0xfda0:
 		crtout[0] = ((data & 0x0c) != 0) ? true : false;
 		crtout[1] = ((data & 0x03) != 0) ? true : false;
+		crtout_reg = data & 0x0f;
 		break;
 	}
 }
@@ -874,6 +877,11 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 			d = d | ((vsync) ? 0x00 : 0x01);
 			d = d | ((hsync) ? 0x00 : 0x02);
 			return d;
+		}
+		break;
+	case 0xfda2:
+		if(machine_id >= 0x0700) { // After HR/HG
+			return (crtout_reg & 0x0f);
 		}
 		break;
 	} 
@@ -1994,6 +2002,9 @@ uint32_t TOWNS_CRTC::read_signal(int ch)
 			return d;
 		}
 		break;
+	case SIG_TOWNS_CRTC_COMPATIBLE_MMIO:
+		return (is_compatible) ? 0xffffffff : 0x00000000;
+		break;
 	}
 	return 0;
 }
@@ -2008,11 +2019,13 @@ void TOWNS_CRTC::write_signal(int ch, uint32_t data, uint32_t mask)
 		sprite_disp_page = data & 1; // OK?
 	} else if(ch == SIG_TOWNS_CRTC_SPRITE_USING) {
 		sprite_enabled = ((data & mask) != 0) ? true : false; // OK?
+	} else if(ch == SIG_TOWNS_CRTC_COMPATIBLE_MMIO) {
+		is_compatible = ((data & mask) != 0) ? true : false;
 	}
 }
 
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2022,6 +2035,10 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
+	state_fio->StateValue(machine_id);
+	state_fio->StateValue(cpu_id);
+	state_fio->StateValue(is_compatible);
+	
 	state_fio->StateArray(regs, sizeof(regs), 1);
 	state_fio->StateArray(regs_written, sizeof(regs_written), 1);
 	state_fio->StateValue(crtc_ch);
@@ -2075,6 +2092,7 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(voutreg_ctrl);
 	state_fio->StateValue(voutreg_prio);
 	state_fio->StateArray(video_out_regs, sizeof(video_out_regs), 1);
+	state_fio->StateValue(crtout_reg);
 	state_fio->StateArray(crtout, sizeof(crtout), 1);
 	state_fio->StateArray(crtout_top, sizeof(crtout_top), 1);
 

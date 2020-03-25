@@ -88,18 +88,18 @@
  *   #01 : Priority registers.
  */
 
-#define SIG_TOWNS_CRTC_HSYNC          1
-#define SIG_TOWNS_CRTC_VSYNC          2
-#define SIG_TOWNS_CRTC_FIELD          3
-#define SIG_TOWNS_CRTC_VDISP0         4
-#define SIG_TOWNS_CRTC_VDISP1         5
-#define SIG_TOWNS_CRTC_HDISP0         6
-#define SIG_TOWNS_CRTC_HDISP1         7
-#define SIG_TOWNS_CRTC_MMIO_CF882H    8
-#define SIG_TOWNS_CRTC_SPRITE_BUFFER  9
-#define SIG_TOWNS_CRTC_SPRITE_DISP    10
-#define SIG_TOWNS_CRTC_SPRITE_USING   11
-
+#define SIG_TOWNS_CRTC_HSYNC           1
+#define SIG_TOWNS_CRTC_VSYNC           2
+#define SIG_TOWNS_CRTC_FIELD           3
+#define SIG_TOWNS_CRTC_VDISP0          4
+#define SIG_TOWNS_CRTC_VDISP1          5
+#define SIG_TOWNS_CRTC_HDISP0          6
+#define SIG_TOWNS_CRTC_HDISP1          7
+#define SIG_TOWNS_CRTC_MMIO_CF882H     8
+#define SIG_TOWNS_CRTC_SPRITE_BUFFER   9
+#define SIG_TOWNS_CRTC_SPRITE_DISP     10
+#define SIG_TOWNS_CRTC_SPRITE_USING    11
+#define SIG_TOWNS_CRTC_COMPATIBLE_MMIO 12
 namespace FMTOWNS {
 
 	enum {
@@ -181,7 +181,10 @@ protected:
 	TOWNS_VRAM* d_vram;
 	TOWNS_SPRITE* d_sprite;
 	DEVICE*       d_font;
-	
+
+	uint16_t machine_id;
+	uint8_t cpu_id;
+	bool is_compatible;
 	// output signals
 	outputs_t outputs_int_vsync;  // Connect to int 11.
 	uint16_t regs[32];      // I/O 0442H, 0443H
@@ -292,6 +295,7 @@ protected:
 	uint8_t video_out_regs[2];
 	bool crtout[2];              // I/O FDA0H WRITE
 	bool crtout_top[2];              // I/O FDA0H WRITE(AT once frame)
+	uint8_t crtout_reg;
 	// End.
 
 	
@@ -406,6 +410,14 @@ public:
 	void set_context_font(DEVICE* dev)
 	{
 		d_font = dev;
+	}
+	void set_machine_id(uint16_t val)
+	{
+		machine_id = val & 0xfff8;
+	}
+	void set_cpu_id(uint16_t val)
+	{
+		cpu_id = val & 0x07;
 	}
 	
 	void set_context_vsync(DEVICE* device, int id, uint32_t mask)
