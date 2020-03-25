@@ -695,10 +695,19 @@ void TOWNS_SPRITE::render_part(int start, int end)
 // ToDo: Discard cache(s) if dirty 
 void TOWNS_SPRITE::write_io8(uint32_t addr, uint32_t data)
 {
-	reg_addr = addr & 7;
-	reg_data[reg_addr] = (uint8_t)data;
-
-	switch(reg_addr) {
+	if(addr == 0x0450) {
+		reg_addr = addr & 7;
+	} else if(addr != 0x0452) {
+		return;
+	}
+	write_reg(reg_addr, data);
+}
+	
+void TOWNS_SPRITE::write_reg(uint32_t addr, uint32_t data)
+{
+	reg_data[addr] = (uint8_t)data;
+	
+	switch(addr) {
 	case 0:
 		reg_index = ((uint16_t)(reg_data[0]) + (((uint16_t)(reg_data[1] & 0x03)) << 8));
 		break;
@@ -737,8 +746,11 @@ uint32_t TOWNS_SPRITE::read_io8(uint32_t addr)
 		val = (tvram_enabled) ? 0x80 : 0;
 		tvram_enabled = false;
 		return val;
+	} else if(addr == 0x0450) {
+		return (reg_addr & 0x07);
+	} else if(addr != 0x0452) {
+		return 0xff;
 	}
-	reg_addr = addr & 7;
 	switch(reg_addr) {
 	case 0:
 		val = reg_index & 0xff;
@@ -804,8 +816,13 @@ void TOWNS_SPRITE::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 bool TOWNS_SPRITE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	_TCHAR regstr[1024] = {0};
+	_TCHAR sstr[32] = {0};
+	my_stprintf_s(sstr, 32, _T("TEXT VRAM:%s \n"), ((tvram_enabled) || (tvram_enabled_bak)) ? _T("WROTE") : _T("NOT WROTE"));
+	memset(sstr, 0x00, sizeof(sstr));
+	my_stprintf_s(sstr, 32, _T("A:%02X \n"), reg_addr & 0x07);
+	my_tcscat_s(regstr, 1024, sstr);
 	for(int r = 0; r < 8; r++) {
-		_TCHAR sstr[32] = {0};
+		memset(sstr, 0x00, sizeof(sstr));
 		my_stprintf_s(sstr, 32, _T("R%d:%02X "), r, reg_data[r]);
 		my_tcscat_s(regstr, 1024, sstr);
 		if((r & 3) == 3) {
@@ -823,10 +840,13 @@ bool TOWNS_SPRITE::write_debug_reg(const _TCHAR *reg, uint32_t data)
 		if((reg[1] >= '0') && (reg[1] <= '7')) {
 			if(reg[2] != '\0') return false;
 			int rnum = reg[1] - '0';
-//			reg_data[rnum] = (uint8_t)data;
-			write_io8(rnum, data);
+			write_reg(rnum, data);
 			return true;
 		}
+	} else 	if((reg[0] == 'A') || (reg[0] == 'a')) {
+		if(reg[1] != '\0') return false;
+		reg_addr = data & 7;
+		return true;
 	}
 	return false;
 }

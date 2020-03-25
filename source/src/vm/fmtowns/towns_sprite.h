@@ -62,6 +62,7 @@ protected:
 	void render_full();
 	void render_part(int start, int end);
 	void do_vline_hook(int line);
+	virtual void __FASTCALL write_reg(uint32_t addr, uint32_t data);
 
 public:
 	TOWNS_SPRITE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
