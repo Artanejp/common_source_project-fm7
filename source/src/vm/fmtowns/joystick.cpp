@@ -19,7 +19,7 @@ void JOYSTICK::reset()
 	dx = dy = 0;
 	lx = ly = 0;
 	mouse_state = emu->get_mouse_buffer();
-	mask = 0xff;
+	mask = 0x00;
 	mouse_type = -1; // Force update data.
 	mouse_phase = 0;
 	mouse_strobe = false;
@@ -136,7 +136,7 @@ uint32_t JOYSTICK::read_io8(uint32_t address)
 			} else {
 				retval = 0xbf; // COM OFF
 			}			
-			if((mask & (0x10 << port_num)) == 0) {
+			//if((mask & (0x10 << port_num)) == 0) {
 				if((joydata[port_num] & 0x40) != 0) { // RUN = L+R
 					retval = retval & ~0x0c; // LEFT + RIGHT
 				} else {
@@ -155,7 +155,7 @@ uint32_t JOYSTICK::read_io8(uint32_t address)
 						retval = retval & ~0x02; // BACK
 					}				
 				}
-			}
+			//}
 			if(((trig & 0x01) != 0) && ((joydata[port_num] & 0x10) != 0)) { // TRIGGER1
 				retval = retval & ~0x10;
 			}
