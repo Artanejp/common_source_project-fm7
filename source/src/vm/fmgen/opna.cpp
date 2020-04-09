@@ -2243,9 +2243,40 @@ void OPN2Base::Reset()
 	status = 0;
 	dac_enabled = false;
 	dac_data = 0;
+
 	UpdateStatus();
 }
 
+//	プリスケーラ設定
+void OPN2Base::SetPrescaler(uint p)
+{
+	static const char table[3][2] = { { 6, 4 }, { 3, 2 }, { 2, 1 } };
+	static const uint8 table2[8] = { 108,  77,  71,  67,  62,  44,  8,  5 };
+	// 512
+	if (prescale != p)
+	{
+		prescale = p;
+		assert(0 <= prescale && prescale < 3);
+		
+		uint fmclock = clock / (table[p][0] * 24);
+		
+		rate = psgrate;
+		
+		// 合成周波数と出力周波数の比
+		assert(fmclock < (0x80000000 >> FM_RATIOBITS));
+		uint ratio = ((fmclock << FM_RATIOBITS) + rate/2) / rate;
+
+		SetTimerPrescaler(table[p][0] * 24);
+//		MakeTimeTable(ratio);
+		chip.SetRatio(ratio);
+		psg.SetClock(clock / table[p][1], psgrate);
+
+		for (int i=0; i<8; i++)
+		{
+			lfotable[i] = (ratio << (2+FM_LFOCBITS-FM_RATIOBITS)) / table2[i];
+		}
+	}
+}
 // ---------------------------------------------------------------------------
 //	サンプリングレート変更
 //
@@ -2281,38 +2312,53 @@ void OPN2Base::SetReg(uint addr, uint data)
 	{
 		uint modified;
 
+	// LFO -------------------------------------------------------------------
+	case 0x22:
+		modified = reg22 ^ data;
+		reg22 = data;
+		if (modified & 0x8)
+			lfocount = 0;
+		lfodcount = reg22 & 8 ? lfotable[reg22 & 7] : 0;
+		break;
+
 	// Timer -----------------------------------------------------------------
-		case 0x24: case 0x25:
-			SetTimerA(addr, data);
-			break;
-
-		case 0x26:
-			SetTimerB(data);
-			break;
-
-		case 0x27:
-			SetTimerControl(data);
-			break;
-
+	case 0x24: case 0x25:
+		SetTimerA(addr, data);
+		break;
+		
+	case 0x26:
+		SetTimerB(data);
+		break;
+		
+	case 0x27:
+		SetTimerControl(data);
+		break;
+		
 	// Misc ------------------------------------------------------------------
 	case 0x28:		// Key On/Off
 		if ((data & 3) < 3)
 		{
-			c = (data & 3) + (data & 4 ? 3 : 0);
+//			c = (data & 3) + (data & 4 ? 3 : 0);
+			c = data & 3;
+			if(c == 3) break;
+			if((data & 0x04) != 0) c += 3;
 			ch[c].KeyControl(data >> 4);
 		}
 		break;
 
 	// Status Mask -----------------------------------------------------------
 	case 0x29:
-		reg29 = data;
+//		reg29 = data;
 //		UpdateStatus(); //?
 		break;
-	
+
+		
 	// Prescaler -------------------------------------------------------------
+		/*
 	case 0x2d: case 0x2e: case 0x2f:
 		SetPrescaler(addr-0x2d);
 		break;
+		*/
 	
 	// F-Number --------------------------------------------------------------
 	case 0x1a0:	case 0x1a1: case 0x1a2:
@@ -2350,15 +2396,6 @@ void OPN2Base::SetReg(uint addr, uint data)
 	case 0xb4: case 0xb5: case 0xb6:
 		pan[c] = (data >> 6) & 3;
 		ch[c].SetMS(data);
-		break;
-
-	// LFO -------------------------------------------------------------------
-	case 0x22:
-		modified = reg22 ^ data;
-		reg22 = data;
-		if (modified & 0x8)
-			lfocount = 0;
-		lfodcount = reg22 & 8 ? lfotable[reg22 & 7] : 0;
 		break;
 
 	// PSG -------------------------------------------------------------------
@@ -2403,7 +2440,7 @@ void OPN2Base::ResetStatus(uint bits)
 inline void OPN2Base::UpdateStatus()
 {
 //	LOG2("%d:INT = %d\n", Diag::GetCPUTick(), (status & stmask & reg29) != 0);
-	Intr((status & stmask & reg29) != 0);
+	Intr((status & stmask) != 0);
 }
 
 // ---------------------------------------------------------------------------
@@ -2449,8 +2486,9 @@ void OPN2Base::MixSubSL(int activech, ISample** dest)
 	if (activech & 0x040) (*dest[3] += ch[3].CalcL());
 	if (activech & 0x100) (*dest[4] += ch[4].CalcL());
 	if (activech & 0x400) {
+		ISample tmp = ((ISample) dac_data) << 5;
 		if ((dac_enabled)) {
-			(*dest[5] += dac_data);
+			(*dest[5] += tmp);
 		} else {
 			(*dest[5] += ch[5].CalcL());
 		}
@@ -2465,8 +2503,9 @@ inline void OPN2Base::MixSubS(int activech, ISample** dest)
 	if (activech & 0x040) (*dest[3] += ch[3].Calc());
 	if (activech & 0x100) (*dest[4] += ch[4].Calc());
 	if (activech & 0x400) {
+		ISample tmp = ((ISample) dac_data) << 5;
 		if ((dac_enabled)) {
-			(*dest[5] += dac_data);
+			(*dest[5] += tmp);
 		} else {
 			(*dest[5] += ch[5].Calc());
 		}
@@ -2645,20 +2684,18 @@ void OPN2::SetReg(uint addr, uint data)
 
 	switch (addr)
 	{
-	case 0x29:
-		reg29 = data;
-//		UpdateStatus(); //?
-		break;
 	case 0x2a:
 		{
-			int32 tmp;
-			data &= 0xff;
-			tmp = (data >= 0x80) ? (-(0x100 - data)) : data;
-			dac_data = tmp << 6;
+			int32 tmp = data & 0xff;
+			tmp = (tmp - 0x80) << 1;
+			dac_data = (dac_data & 1) | tmp;
 		}
 		break;
 	case 0x2b:
 		dac_enabled = ((data & 0x80) != 0);
+		break;
+	case 0x2c: // Test
+		dac_data = (dac_data & ~0x01) | (((data & 0x08) != 0) ? 1 : 0);
 		break;
 	default:
 		OPN2Base::SetReg(addr, data);

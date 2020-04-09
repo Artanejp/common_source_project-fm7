@@ -99,6 +99,7 @@ void YM2612::write_io8(uint32_t addr, uint32_t data)
 		// write dummy data for prescaler
 		ch = data;
 		addr_A1 = false;
+		/*
 		if(0x2d <= ch && ch <= 0x2f) {
 			update_count();
 			this->set_reg(ch, 0);
@@ -106,6 +107,7 @@ void YM2612::write_io8(uint32_t addr, uint32_t data)
 			clock_busy = get_current_clock();
 			busy = true;
 		}
+		*/
 		break;
 	case 1:
 		if(!(addr_A1)) {
@@ -148,8 +150,7 @@ uint32_t YM2612::read_io8(uint32_t addr)
 			uint32_t status;
 			status = opn2->ReadStatus() & ~0x80;
 			if(busy) {
-				// from PC-88 machine language master bible (XM8 version 1.00)
-				if(get_passed_usec(clock_busy) < 2.13) {
+				if(get_passed_usec(clock_busy) < 1.0) {
 					status |= 0x80;
 				} else {
 					busy = false;
@@ -282,21 +283,32 @@ void YM2612::update_interrupt()
 	irq_prev = irq;
 }
 
-inline int32_t VCALC(int32_t x, int32_t y)
+#define VCALC(x, y) { \
+		x = (x * y) >> 8;						\
+	}
+
+#define SATURATION_ADD(x, y) { \
+		x = x + y;				 \
+		if(x < -0x8000) x = -0x8000;			\
+		if(x >  0x7fff) x =  0x7fff;			\
+	}
+
+#if 0
+static inline __FASTCALL int32_t VCALC(int32_t x, int32_t y)
 {
 	x = x * y;
 	x = x >> 8;
 	return x;
 }
 
-inline int32_t SATURATION_ADD(int32_t x, int32_t y)
+static inline __FASTCALL int32_t SATURATION_ADD(int32_t x, int32_t y)
 {
 	x = x + y;
 	if(x < -0x8000) x = -0x8000;
 	if(x >  0x7fff) x =  0x7fff;
 	return x;
 }
-
+#endif
 
 void YM2612::mix(int32_t* buffer, int cnt)
 {
@@ -311,42 +323,49 @@ void YM2612::mix(int32_t* buffer, int cnt)
 #endif
 		int32_t *p = dbuffer;
 		int32_t *q = buffer;
-		int32_t tmp[8];
-		int32_t tvol[8] = {v_left_volume, v_right_volume,
-				 v_left_volume, v_right_volume,
-				 v_left_volume, v_right_volume,
-				 v_left_volume, v_right_volume};
-		int i;
-		// More EXCEPTS to optimize to SIMD features.
-		for(i = 0; i < cnt / 4; i++) {
-			tmp[0] = VCALC(p[0], tvol[0]);
-			tmp[1] = VCALC(p[1], tvol[1]);
-			tmp[2] = VCALC(p[2], tvol[2]);
-			tmp[3] = VCALC(p[3], tvol[3]);
-			tmp[4] = VCALC(p[4], tvol[4]);
-			tmp[5] = VCALC(p[5], tvol[5]);
-			tmp[6] = VCALC(p[6], tvol[6]);
-			tmp[7] = VCALC(p[7], tvol[7]);
+		__DECL_ALIGNED(32) int32_t tmpp[8];
+		__DECL_ALIGNED(32) int32_t tmpq[8];
+		const __DECL_ALIGNED(32) int32_t tvol[8] =
+			{v_left_volume, v_right_volume,
+			 v_left_volume, v_right_volume,
+			 v_left_volume, v_right_volume,
+			 v_left_volume, v_right_volume};
 
-			q[0] = SATURATION_ADD(q[0], tmp[0]);
-			q[1] = SATURATION_ADD(q[1], tmp[1]);
-			q[2] = SATURATION_ADD(q[2], tmp[2]);
-			q[3] = SATURATION_ADD(q[3], tmp[3]);
-		   
-			q[4] = SATURATION_ADD(q[4], tmp[4]);
-			q[5] = SATURATION_ADD(q[5], tmp[5]);
-			q[6] = SATURATION_ADD(q[6], tmp[6]);
-			q[7] = SATURATION_ADD(q[7], tmp[7]);
+		for(int i = 0; i < cnt / 4; i++) {
+__DECL_VECTORIZED_LOOP
+			for(int j = 0; j < 8; j++) {
+				tmpp[j] = p[j];
+				tmpq[j] = q[j];
+			}
+__DECL_VECTORIZED_LOOP
+			for(int j = 0; j < 8; j++) {
+				VCALC(tmpp[j], tvol[j]);
+			}
+__DECL_VECTORIZED_LOOP
+			for(int j = 0; j < 8; j++) {
+				SATURATION_ADD(tmpq[j], tmpp[j]);
+			}
+__DECL_VECTORIZED_LOOP
+			for(int j = 0; j < 8; j++) {
+				q[j] = tmpq[j];
+			}
 			q += 8;
 			p += 8;
 		}
 		if((cnt & 3) != 0) {
-			for(i = 0; i < (cnt & 3); i++) {
-				tmp[0] = VCALC(p[0], tvol[0]);
-				tmp[1] = VCALC(p[1], tvol[1]);
-			   
-				q[0] = SATURATION_ADD(q[0], tmp[0]);
-				q[1] = SATURATION_ADD(q[1], tmp[1]);
+			for(int i = 0; i < (cnt & 3); i++) {
+__DECL_VECTORIZED_LOOP
+				for(int j = 0; j < 2; j++) {
+					tmpp[j] = p[j];
+				}
+__DECL_VECTORIZED_LOOP
+				for(int j = 0; j < 2; j++) {
+					VCALC(tmpp[j], tvol[j]);
+				}
+__DECL_VECTORIZED_LOOP
+				for(int j = 0; j < 2; j++) {
+					SATURATION_ADD(q[j], tmpp[j]);
+				}
 				q += 2;
 				p += 2;
 			}

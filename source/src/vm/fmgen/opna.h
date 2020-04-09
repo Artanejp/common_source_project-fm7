@@ -106,7 +106,7 @@ namespace FM
 
 	protected:
 		void	SetParameter(Channel4* ch, uint addr, uint data);
-		void	SetPrescaler(uint p);
+		virtual void	SetPrescaler(uint p);
 		void	RebuildTimeTable();
 		void	Intr(bool value);
 		
@@ -248,8 +248,8 @@ namespace FM
 		OPN2Base();
 		~OPN2Base();
 		
-		uint	ReadStatus() { return status & 0x03; }
-		uint	ReadStatusEx();
+		uint	ReadStatus() { return status & 0x7f; }
+		uint	ReadStatusEx()  { return 0xff; }
 		void	SetChannelMask(uint mask);
 	
 	private:
@@ -258,6 +258,7 @@ namespace FM
 	protected:
 		bool	Init(uint c, uint r, bool);
 		bool	SetRate(uint c, uint r, bool);
+		virtual void	SetPrescaler(uint p);
 
 		void	Reset();
 		void 	SetReg(uint addr, uint data);

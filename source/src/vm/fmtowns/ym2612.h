@@ -73,7 +73,6 @@ protected:
 	virtual void update_event();
 	virtual void update_interrupt();
 	outputs_t outputs_irq;
-
 public:
 	YM2612(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
