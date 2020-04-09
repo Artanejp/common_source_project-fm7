@@ -177,12 +177,13 @@ typedef struct {
 
 class TOWNS_VRAM;
 class TOWNS_SPRITE;
+class FONT_ROMS;
 class TOWNS_CRTC : public DEVICE
 {
 protected:
 	TOWNS_VRAM* d_vram;
 	TOWNS_SPRITE* d_sprite;
-	DEVICE*       d_font;
+	FONT_ROMS*       d_font;
 	DEBUGGER*     d_debugger;
 	
 	uint16_t machine_id;
@@ -425,7 +426,7 @@ public:
 	{
 		d_vram = (TOWNS_VRAM*)dev;
 	}
-	void set_context_font(DEVICE* dev)
+	void set_context_font(FONT_ROMS* dev)
 	{
 		d_font = dev;
 	}

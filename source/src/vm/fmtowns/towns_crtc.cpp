@@ -1166,10 +1166,12 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 	scrntype_t __DECL_ALIGNED(32)  palbuf[16];
 	const scrntype_t amask2 = RGBA_COLOR(255, 255, 255, 0);
 	uint8_t pmask = linebuffers[trans][y].r50_planemask & 0x0f;
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 16; i++) {
 		mbuf[i] = pmask;
 	}	
 	if(pal == NULL) {
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
 			uint8_t r, g,b;
 			r = ((i & 2) != 0) ? (((i & 8) != 0) ? 255 : 128) : 0;
@@ -1178,6 +1180,7 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 			palbuf[i] = RGBA_COLOR(r, g, b, 255);
 		}
 	} else {
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
 			palbuf[i] = pal[i];
 		}
@@ -1185,27 +1188,33 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 	palbuf[0] = RGBA_COLOR(0, 0, 0, 0);
 	int k = 0;
 	for(int x = 0; x < (pwidth >> 3); x++) {
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			pbuf[i] = *p++;
 		}
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i += 2) {
 			hlbuf[i] = pbuf[i >> 1];
 		}			
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i += 2) {
 			hlbuf[i + 1] = hlbuf[i];
 		}			
-		for(int i = 0; i < 16; i += 2) {
+__DECL_VECTORIZED_LOOP
+		for(int i = 1; i < 16; i += 2) {
 			hlbuf[i] >>= 4;
 		}
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
 			hlbuf[i] &= mbuf[i];
 		}
-
 		if(do_alpha) {
+__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 16; i++) {
 				sbuf[i] = palbuf[hlbuf[i]];
 			}
 		} else {
+__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 16; i++) {
 				abuf[i] = (hlbuf[i] == 0) ? RGBA_COLOR(0, 0, 0, 0): RGBA_COLOR(255, 255, 255, 255);
 				sbuf[i] = palbuf[hlbuf[i]];
@@ -1465,40 +1474,46 @@ uint32_t TOWNS_CRTC::get_font_address(uint32_t c, uint8_t &attr)
 	static const uint32_t addr_base_ank = 0x3d800;
 	uint32_t romaddr = 0;
 	attr = tvram_snapshot[c + 1];
-	if((attr & 0xc0) == 0) {
-		uint8_t ank = tvram_snapshot[c];
-		romaddr = addr_base_ank + (ank * 16);
-	} else if((attr & 0xc0) == 0x40) { // KANJI LEFT
-		pair32_t jis;
-		jis.b.h = tvram_snapshot[c + 0x2000]; // CA000-CAFFF
-		jis.b.l = tvram_snapshot[c + 0x2001]; // CA000-CAFFF
-		if(jis.b.h < 0x30) {
-			romaddr =
-				(((uint32_t)(jis.b.l & 0x1f)) << 4) |
-				((uint32_t)((jis.b.l - 0x20) & 0x20) << 8) |
-				((uint32_t)((jis.b.l - 0x20) & 0x40) << 6) |
-				(((uint32_t)(jis.b.h & 0x07)) << 9);
-			romaddr <<= 1;
-//					romaddr >>= 1;
-		} else if(jis.b.h < 0x70) {
-			romaddr =
-				(((uint32_t)(jis.b.l & 0x1f)) << 5) +
-				((uint32_t)((jis.b.l - 0x20) & 0x60) << 9) +
-				((uint32_t)((jis.b.h & 0x0f)) << 10) +
-				((uint32_t)((jis.b.h - 0x30) & 0x70) * 0xc00) +
-				0x8000;
-//			romaddr <<= 1;
-		} else {
-			romaddr =
-				(((uint32_t)(jis.b.l & 0x1f)) << 4) |
-				((uint32_t)((jis.b.l - 0x20) & 0x20) << 8) |
-				((uint32_t)((jis.b.l - 0x20) & 0x40) << 6) |
-				(((uint32_t)(jis.b.h & 0x07)) << 9);
-			romaddr <<= 1;
-			romaddr |= 0x38000;
+	switch(attr & 0xc0) {
+	case 0x00:
+		{
+			uint8_t ank = tvram_snapshot[c];
+			romaddr = addr_base_ank + (ank * 16);
 		}
-		romaddr = addr_base_jis + romaddr;
-//				romaddr >>= 1;
+		break;
+	case 0x40:
+		{ // KANJI LEFT
+			pair32_t jis;
+			jis.b.h = tvram_snapshot[c + 0x2000]; // CA000-CAFFF
+			jis.b.l = tvram_snapshot[c + 0x2001]; // CA000-CAFFF
+			if(jis.b.h < 0x30) {
+				romaddr =
+					(((uint32_t)(jis.b.l & 0x1f)) << 4) |
+					((uint32_t)((jis.b.l - 0x20) & 0x20) << 8) |
+					((uint32_t)((jis.b.l - 0x20) & 0x40) << 6) |
+					(((uint32_t)(jis.b.h & 0x07)) << 9);
+				romaddr <<= 1;
+			} else if(jis.b.h < 0x70) {
+				romaddr =
+					(((uint32_t)(jis.b.l & 0x1f)) << 5) +
+					((uint32_t)((jis.b.l - 0x20) & 0x60) << 9) +
+					((uint32_t)((jis.b.h & 0x0f)) << 10) +
+					((uint32_t)((jis.b.h - 0x30) & 0x70) * 0xc00) +
+					0x8000;
+			} else {
+				romaddr =
+					(((uint32_t)(jis.b.l & 0x1f)) << 4) |
+					((uint32_t)((jis.b.l - 0x20) & 0x20) << 8) |
+					((uint32_t)((jis.b.l - 0x20) & 0x40) << 6) |
+					(((uint32_t)(jis.b.h & 0x07)) << 9);
+				romaddr <<= 1;
+				romaddr |= 0x38000;
+			}
+			romaddr = addr_base_jis + romaddr;
+		}
+		break;
+	default: // KANJI RIGHT or ILLEGAL
+		return 0;
 	}
 	return romaddr;
 }
@@ -1511,7 +1526,7 @@ void TOWNS_CRTC::render_text()
 		uint32_t linesize = regs[24] * 4;
 		uint32_t addr_of = y * (linesize * 16);
 		if(c >= 0x1000) break;
-		uint32_t romaddr;
+		uint32_t romaddr = 0;
 		for(int x = 0; x < 80; x++) {
 			uint8_t attr;
 			uint32_t t = get_font_address(c, attr);
@@ -1539,9 +1554,9 @@ void TOWNS_CRTC::render_text()
 				if(d_font != NULL) {
 					if((attr & 0xc0) == 0) {
 						// ANK
-						tmpdata = d_font->read_signal(SIG_TOWNS_FONT_PEEK_DATA + column + romaddr);
+						tmpdata = d_font->read_direct_data8(column + romaddr);
 					} else {
-						tmpdata = d_font->read_signal(SIG_TOWNS_FONT_PEEK_DATA + column * 2 + romaddr);
+						tmpdata = d_font->read_direct_data8(column * 2 + romaddr);
 					}
 				}
 				if(attr & 0x08)
@@ -1550,18 +1565,19 @@ void TOWNS_CRTC::render_text()
 				}
 				uint32_t pix = 0;
 				uint8_t *p = d_vram->get_vram_address(of + 0x40000);
-				for(int nb = 0; nb < 8; nb += 2) {
-					pix = 0;
-					if(tmpdata & (0x80 >> nb)) {
-						pix = pix | ((color & 0x0f) << 4);
+				if(p != NULL) {
+__DECL_VECTORIZED_LOOP
+					for(int nb = 0; nb < 8; nb += 2) {
+//						pix = 0;
+						pix = ((tmpdata & 0x80) != 0) ? color : 0;
+						pix = pix | (((tmpdata & 0x40) != 0) ? (color << 4) : 0);
+						tmpdata <<= 2;
+						*p++ = pix;
 					}
-					if(tmpdata & (0x80 >> (nb + 1))) {
-						pix = pix | ((color & 0x0f) << 0);
-					}
-					if(p != NULL) *p++ = pix;
 				}
 				of = (of + linesize) & 0x3ffff;
 			}
+//		_leave0:
 			addr_of = (addr_of + 4) & 0x3ffff;
 			c += 2;
 		}

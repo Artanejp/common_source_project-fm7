@@ -510,7 +510,7 @@ void TOWNS_VRAM::write_raw_vram8(uint32_t addr, uint32_t data)
 
 void TOWNS_VRAM::write_raw_vram16(uint32_t addr, uint32_t data)
 {
-#if 1
+#if 0
 	pair16_t d;
 	d.w = data;
 	write_raw_vram8(addr + 0, d.b.l);
@@ -576,7 +576,7 @@ void TOWNS_VRAM::write_raw_vram16(uint32_t addr, uint32_t data)
 
 void TOWNS_VRAM::write_raw_vram32(uint32_t addr, uint32_t data)
 {
-#if 1
+#if 0
 	pair32_t d;
 	d.d = data;
 	write_raw_vram8(addr + 0, d.b.l);
@@ -744,6 +744,7 @@ uint32_t TOWNS_VRAM::read_plane_data8(uint32_t addr)
 		if((tmp & 0x0f) != 0) val |= 0x01;
 	}
 #else
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 4; i++) {
 		tmp = *p++;
 		tmp >>= r50_readplane;
@@ -790,28 +791,6 @@ void TOWNS_VRAM::write_plane_data8(uint32_t addr, uint32_t data)
 	uint32_t tmp = 0;
 	uint32_t tmp_d = data & 0xff;
 	uint8_t ntmp = r50_ramsel & 0x0f;
-#if 0
-	for(int x = 0; x < 4; x++) {
-		if((ntmp & 0x08) != 0) {
-			p[x] = p[x] & ~0x88;
-			p[x] = p[x] | ((data & 0x80) >> 4) | ((data & 0x40) << 1);
-		}
-		if((ntmp & 0x04) != 0) {
-			p[x] = p[x] & ~0x44;
-			p[x] = p[x] | ((data & 0x80) >> 5) | ((data & 0x40) << 0);
-		}
-		if((ntmp & 0x02) != 0) {
-			p[x] = p[x] & ~0x22;
-			p[x] = p[x] | ((data & 0x80) >> 6) | ((data & 0x40) >> 1);
-		}
-		if((ntmp & 0x01) != 0) {
-			p[x] = p[x] & ~0x11;
-			p[x] = p[x] | ((data & 0x80) >> 7) | ((data & 0x40) >> 2);
-		}
-		data <<= 2;
-	}
-				
-#else
 #ifdef __LITTLE_ENDIAN__
 	uint32_t tmp_m1 = 0xf0000000/* & write_plane_mask*/;
 	uint32_t tmp_m2 = 0x0f000000/* & write_plane_mask*/;
@@ -819,15 +798,16 @@ void TOWNS_VRAM::write_plane_data8(uint32_t addr, uint32_t data)
 	tmp_m2 &= (((uint32_t)ntmp) << 24);
 	
 #else
-	uint32_t tmp_m1 = 0x000000f0/* & write_plane_mask*/;
-	uint32_t tmp_m2 = 0x0000000f/* & write_plane_mask*/;
-	tmp_m1 &= (((uint32_t)ntmp) << 4);
-	tmp_m2 &= (((uint32_t)ntmp) << 0);
+	uint32_t tmp_m1 = 0x0000000f/* & write_plane_mask*/;
+	uint32_t tmp_m2 = 0x000000f0/* & write_plane_mask*/;
+	tmp_m1 &= (((uint32_t)ntmp) << 0);
+	tmp_m2 &= (((uint32_t)ntmp) << 4);
 #endif	
 	uint32_t tmp_r1;
 	uint32_t tmp_r2;
 	uint32_t mask = 0;
 
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 4; i++) {
 #ifdef __LITTLE_ENDIAN__
 		tmp = tmp >> 8;
@@ -836,8 +816,8 @@ void TOWNS_VRAM::write_plane_data8(uint32_t addr, uint32_t data)
 		tmp = tmp << 8;
 		mask = mask << 8;
 #endif
-		tmp = tmp | (((tmp_d & 0x80) != 0) ? tmp_m1 : 0x00);
-		tmp = tmp | (((tmp_d & 0x40) != 0) ? tmp_m2 : 0x00);
+		tmp = tmp | (((tmp_d & 0x80) != 0) ? tmp_m2 : 0x00);
+		tmp = tmp | (((tmp_d & 0x40) != 0) ? tmp_m1 : 0x00);
 		mask = mask | (tmp_m1 | tmp_m2);
 		tmp_d <<= 2;
 	}
@@ -845,11 +825,10 @@ void TOWNS_VRAM::write_plane_data8(uint32_t addr, uint32_t data)
 	tmp_r2 = tmp_r1;
 	tmp_r1 = tmp_r1 & ~mask;
 	tmp_r1 = tmp | tmp_r1;
-//	if(tmp_r2 != tmp_r1) {
+	if(tmp_r2 != tmp_r1) {
 		*pp = tmp_r1;
-//		dirty_flag[x_addr >> 3] = true;
-//	}
-#endif
+		dirty_flag[x_addr >> 3] = true;
+	}
 }
 
 void TOWNS_VRAM::write_plane_data16(uint32_t addr, uint32_t data)
