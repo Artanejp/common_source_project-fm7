@@ -355,7 +355,6 @@ void OPN::SetReg(uint addr, uint data)
 		ch[c].SetFB((data >> 3) & 7);
 		ch[c].SetAlgorithm(data & 7);
 		break;
-		
 	default:
 		if (c < 3)
 		{
@@ -2225,16 +2224,27 @@ void OPN2Base::Reset()
 {
 	int i;
 	
+	SetReg(0x27, 0x30);
+	SetPrescaler(0);
 	OPNBase::Reset();
-	for (i=0x20; i<0x28; i++) SetReg(i, 0);
-	for (i=0x30; i<0xc0; i++) SetReg(i, 0);
-	for (i=0x130; i<0x1c0; i++) SetReg(i, 0);
-	for (i=0x100; i<0x110; i++) SetReg(i, 0);
-	for (i=0x10; i<0x20; i++) SetReg(i, 0);
+	SetReg(0x27, 0x30);
+	SetReg(0x26, 0x00);
+	SetReg(0x25, 0x00);
+	SetReg(0x26, 0x00);
+	
 	for (i=0; i<6; i++)
 	{
 		pan[i] = 3;
 		ch[i].Reset();
+	}
+	// Reset sequence from Mame 0.216
+	for(uint32_t ad = 0xb6; ad >= 0xb4; ad--) {
+		SetReg(ad, 0xc0);
+		SetReg(ad | 0x100, 0xc0);
+	}
+	for(uint32_t ad = 0xb2; ad >= 0x30; ad--) {
+		SetReg(ad, 0x00);
+		SetReg(ad | 0x100, 0x00);
 	}
 	
 	stmask = ~0x1c;
@@ -2308,6 +2318,7 @@ void OPN2Base::SetChannelMask(uint mask)
 void OPN2Base::SetReg(uint addr, uint data)
 {
 	int	c = addr & 3;
+	if(((addr & 0x0f0) >= 0x030) && (c == 3)) return; // NOOP
 	switch (addr)
 	{
 		uint modified;
@@ -2336,13 +2347,11 @@ void OPN2Base::SetReg(uint addr, uint data)
 		
 	// Misc ------------------------------------------------------------------
 	case 0x28:		// Key On/Off
-		if ((data & 3) < 3)
 		{
-//			c = (data & 3) + (data & 4 ? 3 : 0);
-			c = data & 3;
-			if(c == 3) break;
-			if((data & 0x04) != 0) c += 3;
-			ch[c].KeyControl(data >> 4);
+			uint8_t cc = data & 3;
+			if(cc == 3) break;
+			if((data & 0x04) != 0) cc += 3;
+			ch[cc].KeyControl(data >> 4);
 		}
 		break;
 
@@ -2371,15 +2380,15 @@ void OPN2Base::SetReg(uint addr, uint data)
 	case 0x1a4:	case 0x1a5: case 0x1a6:
 		c += 3;
 	case 0xa4 : case 0xa5: case 0xa6:
-		fnum2[c] = uint8(data);
+		fnum2[c] = uint8(data) & 0x3f;
 		break;
 
 	case 0xa8:	case 0xa9: case 0xaa:
-		fnum3[c] = data + fnum2[c+6] * 0x100;
+		fnum3[c] = ((fnum2[c + 6] & 0x07) * 0x100) + (data & 0xff);
 		break;
 
 	case 0xac : case 0xad: case 0xae:
-		fnum2[c+6] = uint8(data);
+		fnum2[c+6] = uint8(data) & 0x3f;
 		break;
 		
 	// Algorithm -------------------------------------------------------------
@@ -2398,18 +2407,13 @@ void OPN2Base::SetReg(uint addr, uint data)
 		ch[c].SetMS(data);
 		break;
 
-	// PSG -------------------------------------------------------------------
-	case  0: case  1: case  2: case  3: case  4: case  5: case  6: case  7:
-	case  8: case  9: case 10: case 11: case 12: case 13: case 14: case 15:
-		break;
-
 	// ‰¹F ------------------------------------------------------------------
 	default:
 		if (c < 3)
 		{
 			if (addr & 0x100)
 				c += 3;
-			OPNBase::SetParameter(&ch[c], addr, data);
+			OPNBase::SetParameter(&ch[c], addr & 0x2ff, data);
 		}
 		break;
 	}
@@ -2420,10 +2424,10 @@ void OPN2Base::SetReg(uint addr, uint data)
 //
 void OPN2Base::SetStatus(uint bits)
 {
-	if (!(status & bits))
+//	if (!(status & bits))
 	{
 //		LOG2("SetStatus(%.2x %.2x)\n", bits, stmask);
-		status |= bits & stmask;
+		status |= (bits & stmask);
 		UpdateStatus();
 	}
 //	else
@@ -2432,7 +2436,7 @@ void OPN2Base::SetStatus(uint bits)
 
 void OPN2Base::ResetStatus(uint bits)
 {
-	status &= ~bits;
+	status &= ~(bits & stmask);
 //	LOG1("ResetStatus(%.2x)\n", bits);
 	UpdateStatus();
 }
@@ -2464,8 +2468,8 @@ void OPN2Base::FMMix(Sample* buffer, int nsamples)
 		}
 		
 		int act = (((ch[2].Prepare() << 2) | ch[1].Prepare()) << 2) | ch[0].Prepare();
-		if (reg29 & 0x80)
-			act |= (ch[3].Prepare() | ((ch[4].Prepare() | (ch[5].Prepare() << 2)) << 2)) << 6;
+//		if (reg29 & 0x80)
+		act |= (ch[3].Prepare() | ((ch[4].Prepare() | (ch[5].Prepare() << 2)) << 2)) << 6;
 		if (!(reg22 & 0x08))
 			act &= 0x555;
 
