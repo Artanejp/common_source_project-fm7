@@ -47,8 +47,11 @@ public:
 
 	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int ch);
-
+	
 	bool process_state(FILEIO *state_fio, bool loading);
+
+	/* Unique function(s) */
+	uint8_t __FASTCALL read_direct_data8(uint32_t addr);
 };
 
 }

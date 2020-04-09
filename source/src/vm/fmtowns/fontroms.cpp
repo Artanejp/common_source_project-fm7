@@ -31,7 +31,12 @@ void FONT_ROMS::reset()
 	kanji_code.w = 0;
 	kanji_address = 0;
 }
-	
+
+uint8_t FONT_ROMS::read_direct_data8(uint32_t addr)
+{
+	return font_kanji16[addr & 0x3ffff];
+}
+
 uint32_t FONT_ROMS::read_memory_mapped_io8(uint32_t addr)
 {
 	if((addr >= 0xc2100000) && (addr < 0xc2140000)) {
