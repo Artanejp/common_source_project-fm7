@@ -74,7 +74,6 @@ void TOWNS_CRTC::initialize()
 	register_frame_event(this);
 	voutreg_ctrl = 0x1f;
 	voutreg_prio = 0x00;
-	
 }
 
 void TOWNS_CRTC::release()
@@ -139,6 +138,10 @@ void TOWNS_CRTC::reset()
 		apalette_16_rgb[0][i][TOWNS_CRTC_PALETTE_R] = r;
 		apalette_16_rgb[0][i][TOWNS_CRTC_PALETTE_G] = g;
 		apalette_16_rgb[0][i][TOWNS_CRTC_PALETTE_B] = b;
+		
+		apalette_16_rgb[1][i][TOWNS_CRTC_PALETTE_R] = r;
+		apalette_16_rgb[1][i][TOWNS_CRTC_PALETTE_G] = g;
+		apalette_16_rgb[1][i][TOWNS_CRTC_PALETTE_B] = b;
 		if(i == 0) {
 			apalette_16_pixel[0][0] = RGBA_COLOR(0, 0, 0, 0);
 			apalette_16_pixel[1][0] = RGBA_COLOR(0, 0, 0, 0);
@@ -301,9 +304,9 @@ void TOWNS_CRTC::calc_apalette(int index)
 void TOWNS_CRTC::calc_apalette16(int layer, int index)
 {
 	index = index & 0x0f;
-	apalette_r = apalette_16_rgb[layer][index][TOWNS_CRTC_PALETTE_R];
-	apalette_g = apalette_16_rgb[layer][index][TOWNS_CRTC_PALETTE_G];
-	apalette_b = apalette_16_rgb[layer][index][TOWNS_CRTC_PALETTE_B];
+	apalette_r = apalette_16_rgb[layer][index][TOWNS_CRTC_PALETTE_R] & 0xf0;
+	apalette_g = apalette_16_rgb[layer][index][TOWNS_CRTC_PALETTE_G] & 0xf0;
+	apalette_b = apalette_16_rgb[layer][index][TOWNS_CRTC_PALETTE_B] & 0xf0;
 
 	if(index == 0) {
 		apalette_16_pixel[layer][index] = RGBA_COLOR(0, 0, 0, 0); // ??
@@ -332,7 +335,7 @@ void TOWNS_CRTC::set_apalette_r(uint8_t val)
 		apalette_16_rgb[0][apalette_code & 0x0f][TOWNS_CRTC_PALETTE_R] = val;
 		calc_apalette16(0, (int)apalette_code);
 		break;
-	case 0x02:
+	case 0x20:
 		apalette_16_rgb[1][apalette_code & 0x0f][TOWNS_CRTC_PALETTE_R] = val;
 		calc_apalette16(1, (int)apalette_code);
 		break;
@@ -350,7 +353,7 @@ void TOWNS_CRTC::set_apalette_g(uint8_t val)
 		apalette_16_rgb[0][apalette_code & 0x0f][TOWNS_CRTC_PALETTE_G] = val;
 		calc_apalette16(0, (int)apalette_code);
 		break;
-	case 0x02:
+	case 0x20:
 		apalette_16_rgb[1][apalette_code & 0x0f][TOWNS_CRTC_PALETTE_G] = val;
 		calc_apalette16(1, (int)apalette_code);
 		break;
@@ -368,7 +371,7 @@ void TOWNS_CRTC::set_apalette_b(uint8_t val)
 		apalette_16_rgb[0][apalette_code & 0x0f][TOWNS_CRTC_PALETTE_B] = val;
 		calc_apalette16(0, (int)apalette_code);
 		break;
-	case 0x02:
+	case 0x20:
 		apalette_16_rgb[1][apalette_code & 0x0f][TOWNS_CRTC_PALETTE_B] = val;
 		calc_apalette16(1, (int)apalette_code);
 		break;
@@ -386,7 +389,7 @@ uint8_t TOWNS_CRTC::get_apalette_r()
 	case 0x00:
 		val = apalette_16_rgb[0][apalette_code & 0x0f][TOWNS_CRTC_PALETTE_R];
 		break;
-	case 0x02:
+	case 0x20:
 		val = apalette_16_rgb[1][apalette_code & 0x0f][TOWNS_CRTC_PALETTE_R];
 		break;
 	default:
@@ -1164,7 +1167,6 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 	__DECL_ALIGNED(32) scrntype_t a2buf[16];
 	
 	scrntype_t __DECL_ALIGNED(32)  palbuf[16];
-	const scrntype_t amask2 = RGBA_COLOR(255, 255, 255, 0);
 	uint8_t pmask = linebuffers[trans][y].r50_planemask & 0x0f;
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 16; i++) {
@@ -1448,13 +1450,13 @@ void TOWNS_CRTC::draw_screen()
 			memcpy(apal16[0], apalette_16_pixel[0], sizeof(scrntype_t) * 16);
 			memcpy(apal16[1], apalette_16_pixel[1], sizeof(scrntype_t) * 16);
 			if(linebuffers[trans]->mode[1] == DISPMODE_16) { // Lower layer
-				do_mix1 = render_16(lbuffer1, abuffer1, &(apal16[linebuffers[trans]->num[1]][0]), y, width, 1, do_alpha);
+				do_mix1 = render_16(lbuffer1, abuffer1, &(apal16[linebuffers[trans]->num[1]][0]), y, width, linebuffers[trans]->num[1], do_alpha);
 			} else if(linebuffers[trans]->mode[1] == DISPMODE_32768) { // Lower layer
 				do_mix1 = render_32768(lbuffer1, abuffer1, y, width, 1, do_alpha);
 			}
 			// Upper layer
 			if(linebuffers[trans]->mode[0] == DISPMODE_16) { 
-				do_mix0 = render_16(lbuffer0, abuffer0, &(apal16[linebuffers[trans]->num[0]][0]), y, width, 0, do_alpha);
+				do_mix0 = render_16(lbuffer0, abuffer0, &(apal16[linebuffers[trans]->num[0]][0]), y, width, linebuffers[trans]->num[0], do_alpha);
 			} else if(linebuffers[trans]->mode[0] == DISPMODE_32768) { 
 				do_mix0 = render_32768(lbuffer0, abuffer0, y, width, 0, do_alpha);
 			}
@@ -1621,6 +1623,8 @@ void TOWNS_CRTC::transfer_line(int line)
 	uint8_t ctrl_b = ctrl;
 	linebuffers[trans][line].num[0] = page0;
 	linebuffers[trans][line].num[1] = page1;
+	linebuffers[trans][line].mode[0] = DISPMODE_NONE;
+	linebuffers[trans][line].mode[1] = DISPMODE_NONE;
 	uint8_t page_16mode = r50_pagesel;
 	for(int l = 0; l < 2; l++) {
 		if((ctrl & 0x10) == 0) { // One layer mode
