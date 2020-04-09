@@ -1367,39 +1367,53 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1)
 			__DECL_ALIGNED(32) scrntype_t maskbuf_back[8];
 			for(int xx = 0; xx < width; xx += 8) {
 				scrntype_t *px1 = &(lbuffer1[xx]);
+				scrntype_t *px0 = &(lbuffer0[xx]);
 				scrntype_t *ax = &(abuffer0[xx]);
+__DECL_VECTORIZED_LOOP
 				for(int ii = 0; ii < 8; ii++) {
 					pixbuf1[ii] = px1[ii];
 					maskbuf_front[ii] = ax[ii];
-					maskbuf_back[ii] = ~maskbuf_front[ii];
 				}
-				scrntype_t *px0 = &(lbuffer0[xx]);
-				
+__DECL_VECTORIZED_LOOP
 				for(int ii = 0; ii < 8; ii++) {
 					pixbuf0[ii] = px0[ii];
 				}
+__DECL_VECTORIZED_LOOP
+				for(int ii = 0; ii < 8; ii++) {
+					maskbuf_back[ii] = ~maskbuf_front[ii];
+				}
+__DECL_VECTORIZED_LOOP
 				for(int ii = 0; ii < 8; ii++) {
 					pixbuf1[ii] = pixbuf1[ii] & maskbuf_back[ii];
 					pixbuf0[ii] = pixbuf0[ii] & maskbuf_front[ii];
 				}
+__DECL_VECTORIZED_LOOP
 				for(int ii = 0; ii < 8; ii++) {
 					pixbuf0[ii] = pixbuf0[ii] | pixbuf1[ii];
 				}
+__DECL_VECTORIZED_LOOP
 				for(int ii = 0; ii < 8; ii++) {
 					*pp++ = pixbuf0[ii];
 				}
 			}
-			scrntype_t pix0, pix1, mask0, mask1;
-			int xptr = width & 0x7f8; // Maximum 2048 pixs
-			for(int ii = 0; ii < (width & 7); ii++) {
-				pix0 = lbuffer0[ii + xptr];
-				pix1 = lbuffer1[ii + xptr];
-				mask0 = abuffer0[ii + xptr];
-				mask1 = ~mask0;
-				pix0 = pix0 & mask0;
-				pix1 = pix1 & mask1;
-				pix0 = pix0 | pix1;
-				*pp++ = pix0;
+			int rrwidth = width & 7;
+			if(rrwidth > 0) {
+				scrntype_t pix0, pix1, mask0, mask1;
+				int xptr = width & 0x7f8; // Maximum 2048 pixs
+				scrntype_t *px1 = &(lbuffer1[xptr]);
+				scrntype_t *px0 = &(lbuffer0[xptr]);
+				scrntype_t *ax = &(abuffer0[xptr]);
+__DECL_VECTORIZED_LOOP
+				for(int ii = 0; ii < rrwidth; ii++) {
+					pix0 = px0[ii];
+					pix1 = px1[ii];
+					mask0 = ax[ii];
+					mask1 = ~mask0;
+					pix0 = pix0 & mask0;
+					pix1 = pix1 & mask1;
+					pix0 = pix0 | pix1;
+					*pp++ = pix0;
+				}
 			}
 		} else if(do_mix0) {
 			my_memcpy(pp, lbuffer0, width * sizeof(scrntype_t));
