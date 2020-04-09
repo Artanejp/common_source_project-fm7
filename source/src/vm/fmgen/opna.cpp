@@ -2606,10 +2606,7 @@ bool OPN2Base::ProcessState(void *f, bool loading)
 	state_fio->StateArray(fnum3, sizeof(fnum3), 1);
 	
 	if(loading) {
-		// Make force-restore around prescaler and timers. 20180625 K.O
-		uint bak = prescale;
-		prescale = 10;
-		SetPrescaler(bak);
+		SetPrescaler(prescale);
 	}
 	for(int i = 0; i < 6; i++) {
 		if(!ch[i].ProcessState(f, loading)) {
