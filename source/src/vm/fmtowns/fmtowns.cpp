@@ -593,6 +593,20 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	// ToDo : Use config framework
 	memory->set_extra_ram_size(6);
+
+#if defined(WITH_I386SX)
+	cpu->device_model = INTEL_80386;
+#elif defined(WITH_I486SX)
+	cpu->device_model = INTEL_I486SX;
+#elif defined(WITH_I486DX)
+	cpu->device_model = INTEL_I486DX;
+#elif defined(WITH_PENTIUM)
+	cpu->device_model = INTEL_PENTIUM;
+#else
+	// I386
+	cpu->device_model = INTEL_80386;
+#endif	
+
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}

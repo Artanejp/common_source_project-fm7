@@ -150,6 +150,13 @@
 #include "fmtowns/fmtowns.h"
 #endif
 
+#if defined(_FMTOWNS2_HG20) || defined(_FMTOWNS2_HG40) || defined(_FMTOWNS2_HG100)
+#include "fmtowns/fmtowns.h"
+#endif
+
+#if defined(_FMTOWNS2_HR20) || defined(_FMTOWNS2_HR100) || defined(_FMTOWNS2_HR200)
+#include "fmtowns/fmtowns.h"
+#endif
 // CASIO FP-200
 #ifdef _FP200
 #include "fp200/fp200.h"
