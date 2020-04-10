@@ -21,11 +21,8 @@ namespace FMTOWNS {
 void ADPCM::initialize()
 {
 	adc_fifo = new FIFO(64); // OK?
-	for(int i = 0; i < 8; i++) {
-		dac_intr_mask[i] = true; // true = enable intrrupt.
-		dac_intr[i] = false;
-	}
-	intr_opx = false;
+	event_adc_clock = -1;
+	event_adpcm_clock = -1;
 }
 
 void ADPCM::release()
@@ -38,6 +35,14 @@ void ADPCM::reset()
 {
 	// Is clear FIFO?
 	adc_fifo->clear();
+	dac_intr_mask = 0xffff; // Enable
+	dac_intr = 0x0000;      // OFF
+	latest_dac_intr = false;
+
+	opx_intr = false;
+	adpcm_mute = false;
+	opn2_mute = false;
+	
 	write_signals(&outputs_intr, 0x00000000);
 	write_signals(&outputs_led_control, 0x00000000);
 	write_signals(&outputs_allmute, 0xffffffff); // OK?
@@ -88,51 +93,32 @@ uint32_t ADPCM::read_io8(uint32_t addr)
 	  0x04e9 - 0x04ec : DAC CONTROL
 	  0x04f0 - 0x04f8 : DAC
 	*/
-	uint8_t val = 0xff;
-	switch(addr & 0xff) {
-	case 0xe7: // ADC data register
+	uint8_t val = 0x00;
+	switch(addr) {
+	case 0x04e7: // ADC data register
 		if(!(adc_fifo->empty())) {
 			val = (uint8_t)(adc_fifo->read() & 0xff);
 		} else {
 			val = 0x00;
 		}
 		break;
-	case 0xe8: // ADC flags
+	case 0x04e8: // ADC flags
 		val = (!(adc_fifo->empty())) ? 0x01 : 0x00;
 		break;
-	case 0xe9: // Int13 reason
-		{
-			bool intr_pcm = false;
-			for(int i = 0; i < 8; i++) {
-				if(dac_intr[i]) {
-					intr_pcm = true;
-					break;
-				}
-			}
-			val = 0xf6 | ((intr_pcm) ? 0x08 : 0x00) | ((intr_opx) ? 0x01 : 0x00);
-		}
+	case 0x04e9: // Int13 reason
+		val = 0x00 | ((dac_intr != 0) ? 0x08 : 0x00) | ((opx_intr) ? 0x01 : 0x00);
 		break;
-	case 0xea: // PCM Interrupt mask
-		val = 0x00;
-		for(int i = 0; i < 8; i++) {
-			val = val | ((dac_intr_mask[i]) ? (0x01 << i) : 0);
-		}
+	case 0x04ea: // PCM Interrupt mask
+		val = dac_intr_mask;
 		break;
-	case 0xeb: // PCM Interrupt status
+	case 0x04eb: // PCM Interrupt status
 		{
-			bool _s = false;
-			val = 0x00;
-			for(int i = 0; i < 8; i++) {
-				val = val | ((dac_intr[i]) ? (0x01 << i) : 0);
-			}
-			for(int i = 0; i < 8; i++) {
-				if(dac_intr[i]) {
-					_s = true;
-				}
-				dac_intr[i] = false;
-			}
-			if(_s) {
-				write_signals(&outputs_intr, 0);
+			val = dac_intr;
+			dac_intr = 0x00;
+			if(latest_dac_intr) {
+				opx_intr = false;
+				write_signals(&outputs_intr, 0); // Clear Interrupt
+				latest_dac_intr = false;
 			}
 		}
 		break;
@@ -151,37 +137,26 @@ void ADPCM::write_io8(uint32_t addr, uint32_t data)
 	  0x04e9 - 0x04ec : DAC CONTROL
 	  0x04f0 - 0x04f8 : DAC
 	*/
-	uint32_t naddr = addr & 0xff;
-	switch(naddr) {
-	case 0xd5:
+	switch(addr) {
+	case 0x04d5:
 		opn2_mute = ((data & 0x02) == 0) ? true : false;
 		adpcm_mute =  ((data & 0x01) == 0) ? true : false;
 		d_opn2->write_signal(SIG_YM2612_MUTE, (opn2_mute) ? 0xffffffff : 0x00000000, 0xffffffff);
 		d_rf5c68->write_signal(SIG_RF5C68_MUTE, (adpcm_mute) ? 0xffffffff : 0x00000000, 0xffffffff);
 		break;
-	case 0xe8:
+	case 0x04e8:
 		adc_fifo->clear();
 		break;
-	case 0xea:
-		{
-			uint32_t mask = 0x01;
-			for(int i = 0; i < 8; i++) {
-				if((data & mask) != 0) {
-					dac_intr_mask[i] = true;
-				} else {
-					dac_intr_mask[i] = false;
-				}
-				mask <<= 1;
-			}
-		}
+	case 0x04ea:
+		dac_intr_mask = data;
 		break;
-	case 0xec:
+	case 0x04ec:
 		write_signals(&outputs_led_control, ((data & 0x80) == 0) ? 0xffffffff : 0x00000000);
 		write_signals(&outputs_allmute, ((data & 0x40) == 0) ? 0xffffffff : 0x00000000);
 		break;
 	default:
-		if(naddr >= 0xf0) {
-			d_rf5c68->write_io8(naddr & 0x0f, data);
+		if(addr >= 0x04f0) {
+			d_rf5c68->write_io8(addr & 0x0f, data);
 		}
 		break;
 	}
@@ -209,27 +184,48 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 		bool n_onoff = (((data & mask) & 0x00000008) != 0) ? true : false;
 		bool n_allset =(((data & mask) & 0x80000000) != 0) ? true : false;
 		if(!(n_allset)) {
-			n_onoff = n_onoff & dac_intr_mask[n_ch];
-			if(n_onoff != dac_intr[n_ch]) { // SET/RESET INT13				
-				write_signals(&outputs_intr, (n_onoff) ? 0xffffffff : 0x00000000);
+			bool _d = ((dac_intr_mask & (1 << n_ch)) != 0) ? true : false;
+			if(n_onoff) {
+				dac_intr = dac_intr | (1 << n_ch);
+			} else {
+				dac_intr = dac_intr & ~(1 << n_ch);
 			}
-			dac_intr[n_ch] = n_onoff;
+			if((n_onoff) && (_d)) { // ON
+				write_signals(&outputs_intr, 0xffffffff);
+				latest_dac_intr = true;
+			} else if(!(opx_intr)) {
+				write_signals(&outputs_intr, 0x00000000);
+				latest_dac_intr = false;
+			}				
 		} else {
 			// ALLSET
-			bool n_backup;
-			bool _s = false;
-			for(int i = 0; i < 8; i++) { // SET/RESET INT13				
-				n_backup = dac_intr[i];
-				dac_intr[i] = n_onoff & dac_intr_mask[i];
-				if(n_backup != dac_intr[i]) _s = true;
+			uint16_t intr_backup = dac_intr;
+			dac_intr = (n_onoff) ? 0xffff : 0x0000;
+			if(dac_intr != intr_backup) {
+				if(n_onoff) {
+					if((dac_intr & dac_intr_mask) != 0) {
+						write_signals(&outputs_intr, 0xffffffff);
+						latest_dac_intr = true;
+					}
+				} else {
+					if(!(opx_intr)) {
+						write_signals(&outputs_intr, 0x00000000);
+						latest_dac_intr = false;
+					}
+				}
 			}
-			if(_s) {
-				write_signals(&outputs_intr, (n_onoff) ? 0xffffffff : 0x00000000);
-			}
-		}
+		}	
 	} else if(ch == SIG_ADPCM_OPX_INTR) { // SET/RESET INT13
-		intr_opx = ((data & mask) != 0); 
-		write_signals(&outputs_intr, (intr_opx) ? 0xffffffff : 0x00000000);
+		opx_intr = ((data & mask) != 0);
+		if(opx_intr) {
+			write_signals(&outputs_intr, 0xffffffff);
+			latest_dac_intr = true;
+		} else {
+			if(latest_dac_intr) {
+				write_signals(&outputs_intr, 0x00000000);
+				latest_dac_intr = false;
+			}
+		}			
 	} else if(ch == SIG_ADPCM_ADC_INTR) { // Push data to FIFO from ADC.
 		if((data & mask) != 0) {
 			uint32_t n_data = d_adc->read_signal(SIG_AD7820_DATA_REG);
@@ -261,9 +257,10 @@ bool ADPCM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(opn2_mute);
 	state_fio->StateValue(adpcm_mute);
 	
-	state_fio->StateValue(intr_opx);
-	state_fio->StateArray(dac_intr,     sizeof(dac_intr), 1);
-	state_fio->StateArray(dac_intr_mask, sizeof(dac_intr_mask), 1);
+	state_fio->StateValue(opx_intr);
+	state_fio->StateValue(dac_intr);
+	state_fio->StateValue(dac_intr_mask);
+	state_fio->StateValue(latest_dac_intr);
 
 	state_fio->StateValue(event_adc_clock);
 	state_fio->StateValue(event_adpcm_clock);

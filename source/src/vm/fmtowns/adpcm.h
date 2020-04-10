@@ -40,10 +40,11 @@ protected:
 	outputs_t outputs_allmute;
 
 	FIFO* adc_fifo;
-	bool intr_opx;
-	bool dac_intr[8];
-	bool dac_intr_mask[8];
-
+	bool opx_intr;
+	uint16_t dac_intr;
+	uint16_t dac_intr_mask;
+	bool latest_dac_intr;
+	
 	bool opn2_mute;
 	bool adpcm_mute;
 
@@ -61,16 +62,6 @@ public:
 		d_opn2 = NULL;
 		d_pic = NULL;
 		d_adc = NULL;
-
-		for(int i = 0; i < 8; i++) {
-			dac_intr[i] = false;
-			dac_intr_mask[i] = true;
-		}
-		intr_opx = false;
-		adpcm_mute = false;
-		opn2_mute = false;
-		event_adc_clock = -1;
-		event_adpcm_clock = -1;
 		set_device_name(_T("FM-Towns ADPCM"));
 	}
 	~ADPCM() {}

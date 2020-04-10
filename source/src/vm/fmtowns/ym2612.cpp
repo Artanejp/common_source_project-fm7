@@ -388,6 +388,7 @@ void YM2612::set_volume(int _ch, int decibel_l, int decibel_r)
 
 void YM2612::initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg)
 {
+	// Note: Clock may set to real value, not multiplied by 2.
 	opn2->Init(clock, rate, false, get_application_path());
 	opn2->SetVolumeFM(decibel_fm, decibel_fm);
 	opn2->SetVolumePSG(decibel_psg, decibel_psg);
