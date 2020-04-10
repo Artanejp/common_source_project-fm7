@@ -570,7 +570,7 @@ void OPNABase::Reset()
 //
 bool OPNABase::SetRate(uint c, uint r, bool)
 {
-	c /= 2;		// 従来版との互換性を重視したけりゃコメントアウトしよう
+//	c /= 2;		// 従来版との互換性を重視したけりゃコメントアウトしよう
 	
 	OPNBase::Init(c, r);
 
@@ -2225,6 +2225,7 @@ void OPN2Base::Reset()
 	int i;
 	
 	SetReg(0x27, 0x30);
+	prescale = 10;
 	SetPrescaler(0);
 	OPNBase::Reset();
 	SetReg(0x27, 0x30);
@@ -2247,8 +2248,7 @@ void OPN2Base::Reset()
 		SetReg(ad | 0x100, 0x00);
 	}
 	
-	stmask = ~0x1c;
-	statusnext = 0;
+	stmask = 0x7f;
 	lfocount = 0;
 	status = 0;
 	dac_enabled = false;
@@ -2257,40 +2257,10 @@ void OPN2Base::Reset()
 	UpdateStatus();
 }
 
-//	プリスケーラ設定
-void OPN2Base::SetPrescaler(uint p)
-{
-	static const char table[3][2] = { { 6, 4 }, { 3, 2 }, { 2, 1 } };
-	static const uint8 table2[8] = { 108,  77,  71,  67,  62,  44,  8,  5 };
-	// 512
-	if (prescale != p)
-	{
-		prescale = p;
-		assert(0 <= prescale && prescale < 3);
-		
-		uint fmclock = clock / (table[p][0] * 24);
-		
-		rate = psgrate;
-		
-		// 合成周波数と出力周波数の比
-		assert(fmclock < (0x80000000 >> FM_RATIOBITS));
-		uint ratio = ((fmclock << FM_RATIOBITS) + rate/2) / rate;
-
-		SetTimerPrescaler(table[p][0] * 24);
-//		MakeTimeTable(ratio);
-		chip.SetRatio(ratio);
-		psg.SetClock(clock / table[p][1], psgrate);
-
-		for (int i=0; i<8; i++)
-		{
-			lfotable[i] = (ratio << (2+FM_LFOCBITS-FM_RATIOBITS)) / table2[i];
-		}
-	}
-}
 // ---------------------------------------------------------------------------
 //	サンプリングレート変更
 //
-bool OPN2Base::SetRate(uint c, uint r, bool)
+bool OPN2Base::SetRate(uint c, uint r, bool b)
 {
 	c /= 2;		// 従来版との互換性を重視したけりゃコメントアウトしよう
 	
@@ -2424,7 +2394,7 @@ void OPN2Base::SetReg(uint addr, uint data)
 //
 void OPN2Base::SetStatus(uint bits)
 {
-//	if (!(status & bits))
+	if (!(status & bits))
 	{
 //		LOG2("SetStatus(%.2x %.2x)\n", bits, stmask);
 		status |= (bits & stmask);
@@ -2598,15 +2568,17 @@ bool OPN2Base::ProcessState(void *f, bool loading)
 	state_fio->StateArray(fnum2, sizeof(fnum2), 1);
 	state_fio->StateValue(reg22);
 	state_fio->StateValue(reg29);
+	state_fio->StateValue(prescale);
 	state_fio->StateValue(stmask);
-	state_fio->StateValue(statusnext);
 	state_fio->StateValue(lfocount);
 	state_fio->StateValue(lfodcount);
 	state_fio->StateArray(fnum, sizeof(fnum), 1);
 	state_fio->StateArray(fnum3, sizeof(fnum3), 1);
 	
 	if(loading) {
-		SetPrescaler(prescale);
+		uint8 v = prescale;
+		prescale = 10;
+		SetPrescaler(v); // Re-Setting prescaler.
 	}
 	for(int i = 0; i < 6; i++) {
 		if(!ch[i].ProcessState(f, loading)) {
@@ -2682,6 +2654,7 @@ bool OPN2::SetRate(uint c, uint r, bool ipflag)
 void OPN2::SetReg(uint addr, uint data)
 {
 	addr &= 0x1ff;
+//	printf("OPN2::SetReg(%.3x %.2x)\n", addr, data);
 
 	switch (addr)
 	{

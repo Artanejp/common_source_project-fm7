@@ -258,7 +258,6 @@ namespace FM
 	protected:
 		bool	Init(uint c, uint r, bool);
 		bool	SetRate(uint c, uint r, bool);
-		virtual void	SetPrescaler(uint p);
 
 		void	Reset();
 		void 	SetReg(uint addr, uint data);
@@ -286,7 +285,6 @@ namespace FM
 		uint	reg29;		// OPNA only?
 		
 		uint	stmask;
-		uint	statusnext;
 
 		uint32	lfocount;
 		uint32	lfodcount;
