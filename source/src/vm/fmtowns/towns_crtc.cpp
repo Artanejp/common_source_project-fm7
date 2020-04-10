@@ -72,7 +72,7 @@ void TOWNS_CRTC::initialize()
 	crtc_clock = 1.0e6 / 28.6363e6;
 	set_frames_per_sec(FRAMES_PER_SEC); // Its dummy.
 	register_frame_event(this);
-	voutreg_ctrl = 0x1f;
+	voutreg_ctrl = 0x15;
 	voutreg_prio = 0x00;
 }
 
@@ -184,7 +184,7 @@ void TOWNS_CRTC::reset()
 		crtout[i] = true;
 		crtout_top[i] = true;
 	}
-	crtout_reg = 0x0c;
+	crtout_reg = 0x0f;
 	for(int i = 0; i < 4; i++) {
 		frame_offset[i] = 0;
 		line_offset[i] = 640;
@@ -1452,27 +1452,54 @@ void TOWNS_CRTC::draw_screen()
 	memset(abuffer1, 0xff, sizeof(abuffer1));
 	memset(lbuffer0, 0x00, sizeof(lbuffer0));
 	memset(abuffer0, 0xff, sizeof(abuffer0));
-	
+	bool is_single = false;
+//	if((voutreg_ctrl & 0x10) == 0) is_single = true;
+		
 	for(int y = 0; y < lines; y++) {
 		bool do_mix0 = false;
 		bool do_mix1 = false;
-		if(linebuffers[trans]->mode[0] == DISPMODE_256) {
-			do_mix0 = render_256(lbuffer0, y, width);
-			do_mix1 = false;
+		if(is_single) {
+			if((crtout[0]) || (crtout[1])) {
+				switch(linebuffers[trans]->mode[0]) {
+				case DISPMODE_256:
+					do_mix0 = render_256(lbuffer0, y, width);
+					break;
+				case DISPMODE_32768:
+					do_mix0 = render_32768(lbuffer0, abuffer0, y, width, 0, do_alpha);
+					break;
+				default: // 16 Colors mode don't allow with single layer mode.
+					break;
+				}
+			}
 		} else {
 			__DECL_ALIGNED(32)  scrntype_t apal16[2][16];
 			memcpy(apal16[0], apalette_16_pixel[0], sizeof(scrntype_t) * 16);
 			memcpy(apal16[1], apalette_16_pixel[1], sizeof(scrntype_t) * 16);
-			if(linebuffers[trans]->mode[1] == DISPMODE_16) { // Lower layer
-				do_mix1 = render_16(lbuffer1, abuffer1, &(apal16[linebuffers[trans]->num[1]][0]), y, width, linebuffers[trans]->num[1], do_alpha);
-			} else if(linebuffers[trans]->mode[1] == DISPMODE_32768) { // Lower layer
-				do_mix1 = render_32768(lbuffer1, abuffer1, y, width, 1, do_alpha);
+			if(crtout[linebuffers[trans]->num[1]]) {
+				switch(linebuffers[trans]->mode[linebuffers[trans]->num[1]]) {
+				case DISPMODE_16:
+					do_mix1 = render_16(lbuffer1, abuffer1, &(apal16[linebuffers[trans]->num[1]][0]), y, width, linebuffers[trans]->num[1], do_alpha);
+					break;
+				case DISPMODE_32768:
+					do_mix1 = render_32768(lbuffer1, abuffer1, y, width, linebuffers[trans]->num[1], do_alpha);
+					break;
+				default: // 256 Colors mode don't allow in 2 layers mode.
+					break;
+				}
 			}
 			// Upper layer
-			if(linebuffers[trans]->mode[0] == DISPMODE_16) { 
-				do_mix0 = render_16(lbuffer0, abuffer0, &(apal16[linebuffers[trans]->num[0]][0]), y, width, linebuffers[trans]->num[0], do_alpha);
-			} else if(linebuffers[trans]->mode[0] == DISPMODE_32768) { 
-				do_mix0 = render_32768(lbuffer0, abuffer0, y, width, 0, do_alpha);
+			if(crtout[linebuffers[trans]->num[0]]){
+				switch(linebuffers[trans]->mode[linebuffers[trans]->num[0]]) {
+				case DISPMODE_16:
+					do_mix0 = render_16(lbuffer0, abuffer0, &(apal16[linebuffers[trans]->num[0]][0]), y, width, linebuffers[trans]->num[0], do_alpha);
+					break;
+				case DISPMODE_32768:
+					do_mix0 = render_32768(lbuffer0, abuffer0, y, width, linebuffers[trans]->num[0], do_alpha);
+					break;
+				default: // 256 Colors mode don't allow in 2 layers mode.
+					do_mix0 = false;
+					break;
+				}
 			}
 		}
 		mix_screen(y, width, do_mix0, do_mix1);
@@ -1637,8 +1664,8 @@ void TOWNS_CRTC::transfer_line(int line)
 	uint8_t ctrl_b = ctrl;
 	linebuffers[trans][line].num[0] = page0;
 	linebuffers[trans][line].num[1] = page1;
-	linebuffers[trans][line].mode[0] = DISPMODE_NONE;
-	linebuffers[trans][line].mode[1] = DISPMODE_NONE;
+	linebuffers[trans][line].mode[0] = DISPMODE_16;
+	linebuffers[trans][line].mode[1] = DISPMODE_16;
 	uint8_t page_16mode = r50_pagesel;
 	for(int l = 0; l < 2; l++) {
 		if((ctrl & 0x10) == 0) { // One layer mode
@@ -1646,9 +1673,6 @@ void TOWNS_CRTC::transfer_line(int line)
 			linebuffers[trans][line].num[1] = 0;
 			bool disp = frame_in[0];
 			if((horiz_end_us[0] <= 0.0) || (horiz_end_us[0] <= horiz_start_us[0])) {
-				disp = false;
-			}
-			if(!(crtout_top[0]) && !(crtout_top[1])) {
 				disp = false;
 			}
 //			if(vert_offset_tmp[0] > line) {
@@ -1668,6 +1692,10 @@ void TOWNS_CRTC::transfer_line(int line)
 					address_shift[0] = 3; // FM-Towns Manual P.145
 					address_mask[0] = 0x7ffff;
 					break;
+				default:
+					linebuffers[trans][line].mode[0] = DISPMODE_NONE;
+					to_disp[0] = false;
+					break;
 				}
 			}
 			if(l == 0) break;
@@ -1676,9 +1704,6 @@ void TOWNS_CRTC::transfer_line(int line)
 			linebuffers[trans][line].num[1] = page1;
 			bool disp = frame_in[l];
 			if((horiz_end_us[l] <= 0.0) || (horiz_end_us[l] <= horiz_start_us[l])) {
-				disp = false;
-			}
-			if(!(crtout_top[l])) {
 				disp = false;
 			}
 //			if(vert_offset_tmp[l] > line) {
@@ -1696,6 +1721,10 @@ void TOWNS_CRTC::transfer_line(int line)
 					linebuffers[trans][line].mode[l] = DISPMODE_32768;
 					to_disp[l] = true;
 					address_shift[l] = 2; // FM-Towns Manual P.145
+					break;
+				default:
+					linebuffers[trans][line].mode[l] = DISPMODE_NONE;
+					to_disp[l] = false;
 					break;
 				}
 			}
@@ -1724,7 +1753,9 @@ void TOWNS_CRTC::transfer_line(int line)
 //			offset = offset - line_offset[l] * vert_offset_tmp[l];
 			
 			offset <<= address_shift[l];
-			if(linebuffers[trans][line].mode[l] == DISPMODE_16) { // Display page
+//			if((linebuffers[trans][line].mode[l] == DISPMODE_16) &&
+//			   (l == 0))
+			{ // Display page
 				offset += ((page_16mode != 0) ? 0x20000 : 0);
 			}
 			offset = offset & address_mask[l]; // OK?
@@ -1794,6 +1825,11 @@ void TOWNS_CRTC::update_timing(int new_clocks, double new_frames_per_sec, int ne
 
 void TOWNS_CRTC::event_pre_frame()
 {
+	for(int i = 0; i < 2; i++) {
+		crtout_top[i] = crtout[i];
+		hdisp[i] = false;
+		zoom_count_vert[i] = zoom_factor_vert[i];
+	}
 	if(req_recalc) {
 		force_recalc_crtc_param();
 	}
@@ -1850,11 +1886,6 @@ void TOWNS_CRTC::event_frame()
 	hsync = false;
 
 //	out_debug_log(_T("FRAME EVENT LINES=%d FRAMEus=%f Hus=%f VST1us=%f VST2us=%f"),lines_per_frame, frame_us, horiz_us, vst1_us, vst2_us);
-	for(int i = 0; i < 2; i++) {
-		crtout_top[i] = crtout[i];
-		hdisp[i] = false;
-		zoom_count_vert[i] = zoom_factor_vert[i];
-	}
 	// ToDo: EET
 	//register_event(this, EVENT_CRTC_VSTART, frame_us, false, &event_id_frame); // EVENT_VSTART MOVED TO event_frame().
 	if(d_sprite != NULL) {
@@ -1942,6 +1973,7 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				  _T("REGS:     +0     +1     +2    +3    +4    +5    +6    +7\n")
 				  _T("------------------------------------------------------\n")
 		);
+	
 	for(int r = 0; r < 32; r += 8) {
 		_TCHAR tmps[32] = {0};
 		my_stprintf_s(tmps, sizeof(tmps) / sizeof(_TCHAR), "+%02d:   ", r);
@@ -1952,12 +1984,23 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		}
 		my_tcscat_s(regstr, sizeof(regstr) / sizeof(_TCHAR), _T("\n"));
 	}
+	_TCHAR regstr2[1024] = {0};
+	my_stprintf_s(regstr2, sizeof(regstr2) / sizeof(_TCHAR),
+				  _T("R50:    PAGESEL=%d  PLANEMASK=%01X DPALETTE CHANGED=%s\n")
+				  _T("CRT:    OUT0=%s OUT1=%s ")
+				  _T("OUTREG: CTRL=%02X PRIO=%02X\n")
+				  , r50_pagesel, r50_planemask, (dpalette_changed) ? _T("YES") : _T("NO ")
+				  , (crtout[0]) ? _T("ON ") : _T("OFF"), (crtout[1]) ? _T("ON ") : _T("OFF")
+				  , voutreg_ctrl, voutreg_prio
+		);
+	
 	my_stprintf_s(buffer, buffer_len,
 				  _T("%s")
 				  _T("SPRITE ENABLED=%s / SPRITE DISP=%d \n")
 				  _T("ZOOM[0] V=%d H=%d VCOUNT=%d / ZOOM[1] V=%d H=%d VCOUNT=%d\n")
 				  _T("VSYNC=%s / VBLANK=%s / VDISP=%s / FRAME IN[0]=%s / [1]=%s\n")
 				  _T("HSYNC=%s / HDISP[0]=%s / [1]=%s\n\n")
+				  _T("%s")
 				  _T("%s")
 				  , paramstr
 //				  , line_count[0], line_count[1]
@@ -1971,6 +2014,7 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				  , (hsync) ? _T("YES") : _T("NO ")
 				  , (hdisp[0]) ? _T("YES") : _T("NO ")
 				  , (hdisp[1]) ? _T("YES") : _T("NO ")
+				  , regstr2
 				  , regstr
 		);
 	return true;

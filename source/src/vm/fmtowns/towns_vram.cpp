@@ -497,11 +497,11 @@ void TOWNS_VRAM::write_raw_vram8(uint32_t addr, uint32_t data)
 	addr = addr & 0x7ffff; // ToDo
 	d1 = vram[addr];
 	d2 = data;
-//	if(mask != 0xff) {
+	if(mask != 0xff) {
 		d2 = d2 & mask;
 		d3 = d1 & ~(mask);
 		d2 = d2 | d3;
-//	}
+	}
 	if(d1 != d2) {
 		make_dirty_vram(addr, 1);
 		vram[addr] = d2;
@@ -526,8 +526,8 @@ void TOWNS_VRAM::write_raw_vram16(uint32_t addr, uint32_t data)
 	mask = ((addr & 0x02) == 0) ? packed_pixel_mask_reg.w.l : packed_pixel_mask_reg.w.h;
 	a.w = data;
 	
-	if((addr & 0x3ffff) == 0x3ffff) {
-		if(addr != 0x8013ffff) {
+	if((addr & 0x3fffe) == 0x3fffe) {
+		if(addr != 0x8013fffe) {
 			is_wrap = true;
 			wrap_addr = (addr == 0x8007ffff) ? 0x40000 : 0;
 		}
@@ -821,6 +821,9 @@ __DECL_VECTORIZED_LOOP
 		mask = mask | (tmp_m1 | tmp_m2);
 		tmp_d <<= 2;
 	}
+//	uint32_t mask2 = packed_pixel_mask_reg.d;
+//	tmp &= mask2;
+//	mask = mask & mask2;
 	tmp_r1 = *pp;
 	tmp_r2 = tmp_r1;
 	tmp_r1 = tmp_r1 & ~mask;
