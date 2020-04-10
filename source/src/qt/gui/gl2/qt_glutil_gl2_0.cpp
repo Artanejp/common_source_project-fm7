@@ -1146,5 +1146,5 @@ void GLDraw_2_0::do_set_horiz_lines(int lines)
 void GLDraw_2_0::do_set_led_width(int bitwidth)
 {
 	if((bitwidth >= 0) && (bitwidth < 32)) osd_led_bit_width = bitwidth;
-	printf("%d\n", bitwidth);
+//	printf("%d\n", bitwidth);
 }

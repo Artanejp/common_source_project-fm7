@@ -134,7 +134,7 @@ void OSD_BASE::initialize_screen_buffer(bitmap_t *buffer, int width, int height,
 		buffer->pImage = QImage(width, height, QImage::Format_ARGB32);
 		buffer->pImage.fill(col);
 	}
-	printf("%dx%d NULL=%d\n", buffer->pImage.width(), buffer->pImage.height(), buffer->pImage.isNull() ? 1 : 0);
+//	printf("%dx%d NULL=%d\n", buffer->pImage.width(), buffer->pImage.height(), buffer->pImage.isNull() ? 1 : 0);
 	QColor fillcolor;
 	fillcolor.setRgb(0, 0, 0, 255);
 	buffer->pImage.fill(fillcolor);

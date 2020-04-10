@@ -259,7 +259,7 @@ bool MOVIE_SAVER::do_open_main()
 	/* allocate the output media context */
 	avformat_alloc_output_context2(&oc, NULL, NULL, _filename.toLocal8Bit().constData());
 	if (!oc) {
-		printf("Could not reduce output format from file extension: using MPEG.\n");
+//		printf("Could not reduce output format from file extension: using MPEG.\n");
 		avformat_alloc_output_context2(&oc, NULL, "mpeg", _filename.toLocal8Bit().constData());
 	}
 	if (!oc)

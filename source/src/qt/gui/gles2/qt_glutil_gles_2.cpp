@@ -1392,7 +1392,7 @@ void GLDraw_ES_2::do_set_texture_size(QImage *p, int w, int h)
 		iw = (float)using_flags->get_real_screen_width();
 		ih = (float)using_flags->get_real_screen_height();
 	}
-	printf("%dx%d -> %fx%f\n", w, h, iw, ih);
+//	printf("%dx%d -> %fx%f\n", w, h, iw, ih);
 	if(p_wid != NULL) {
 		screen_texture_width = w;
 		screen_texture_height = h;

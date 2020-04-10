@@ -496,7 +496,7 @@ void DLL_PREFIX load_config(const _TCHAR *config_path)
 			my_stprintf_s(name, 255, _T("AssignedJoystick%d"), i + 1);
 			MyGetPrivateProfileString(_T("Qt"), (const _TCHAR *)name, _T(""),
 									  config.assigned_joystick_name[i], 255, config_path);
-			printf("%d->%s\n", i, config.assigned_joystick_name[i]);
+//			printf("%d->%s\n", i, config.assigned_joystick_name[i]);
 		}
 		// Movie load/save.
 		config.video_width   = MyGetPrivateProfileInt(_T("Qt"), _T("VideoWidth"), 640, config_path);
