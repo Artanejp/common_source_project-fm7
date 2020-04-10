@@ -1453,7 +1453,7 @@ void TOWNS_CRTC::draw_screen()
 	memset(lbuffer0, 0x00, sizeof(lbuffer0));
 	memset(abuffer0, 0xff, sizeof(abuffer0));
 	bool is_single = false;
-//	if((voutreg_ctrl & 0x10) == 0) is_single = true;
+	if((voutreg_ctrl & 0x10) == 0) is_single = true;
 		
 	for(int y = 0; y < lines; y++) {
 		bool do_mix0 = false;
@@ -1779,7 +1779,7 @@ void TOWNS_CRTC::transfer_line(int line)
 					switch(linebuffers[trans][line].mode[l]) {
 					case DISPMODE_32768:
 						linebuffers[trans][line].pixels[l] = words;
-						linebuffers[trans][line].mag[l] = magx << 1; // ToDo: Real magnif
+						linebuffers[trans][line].mag[l] = magx; // ToDo: Real magnif
 						memcpy(&(linebuffers[trans][line].pixels_layer[l][hoffset]), p, words << 1);
 						did_transfer[l] = true;
 						break;

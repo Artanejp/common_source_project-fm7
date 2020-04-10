@@ -55,7 +55,6 @@ namespace FMTOWNS {
 	class TOWNS_VRAM;
 	class TOWNS_SPRITE;
 	class TOWNS_ROM_CARD;
-	class ADPCM;
 }
 	
 namespace FMTOWNS {
@@ -65,7 +64,7 @@ protected:
 	DEVICE* d_vram;
 	DEVICE* d_sprite;       // 0x81000000 - 0x8101ffff ?
 	DEVICE* d_romcard[2]; // 0xc0000000 - 0xc0ffffff / 0xc1000000 - 0xc1ffffff
-//	DEVICE* d_pcm;             // 0xc2200000 - 0xc2200fff 
+	DEVICE* d_pcm;             // 0xc2200000 - 0xc2200fff 
 	DEVICE* d_beep;
 	DEVICE* d_dmac;
 	DEVICE* d_crtc;
@@ -131,7 +130,7 @@ public:
 		d_cpu = NULL;
 		d_vram = NULL;
 		d_dmac = NULL;
-//		d_pcm = NULL;
+		d_pcm = NULL;
 		d_sprite = NULL;
 		d_romcard[0] = d_romcard[1] = NULL;
 		d_beep = NULL;
@@ -278,10 +277,10 @@ public:
 	{
 		d_romcard[num & 1] = device;
 	}
-//	void set_context_pcm(DEVICE* device)
-//	{
-//		d_pcm = device;
-//	}
+	void set_context_pcm(DEVICE* device)
+	{
+		d_pcm = device;
+	}
 	void set_context_serial_rom(DEVICE* device)
 	{
 		d_serialrom = device;

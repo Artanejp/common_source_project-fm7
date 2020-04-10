@@ -95,9 +95,13 @@ protected:
 	virtual void __FASTCALL write_raw_vram8(uint32_t addr, uint32_t data);
 	virtual void __FASTCALL write_raw_vram16(uint32_t addr, uint32_t data);
 	virtual void __FASTCALL write_raw_vram32(uint32_t addr, uint32_t data);
+	virtual void __FASTCALL write_raw_vram16_nowrap(uint32_t addr, uint32_t data);
+	virtual void __FASTCALL write_raw_vram32_nowrap(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_raw_vram8(uint32_t addr);
 	virtual uint32_t __FASTCALL read_raw_vram16(uint32_t addr);
 	virtual uint32_t __FASTCALL read_raw_vram32(uint32_t addr);
+	virtual uint32_t __FASTCALL read_raw_vram16_nowrap(uint32_t addr);
+	virtual uint32_t __FASTCALL read_raw_vram32_nowrap(uint32_t addr);
 	virtual void __FASTCALL write_mmio8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_mmio8(uint32_t addr);
 

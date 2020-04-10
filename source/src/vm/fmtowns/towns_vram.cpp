@@ -138,10 +138,14 @@ void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	uint32_t naddr = addr & 0xfff80000;
 	switch(naddr) {
 	case 0x80000000:
+	case 0x80080000:
+		write_raw_vram16(addr, data);
+		return;
 	case 0x80100000:
+	case 0x80180000:
 		// ToDo: Upper 0x80x80000
 		// Main VRAM
-		write_raw_vram16(addr, data);
+		write_raw_vram16_nowrap(addr, data);
 		return;
 		break;
 	case 0x00080000:
@@ -194,10 +198,16 @@ void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 	uint32_t naddr = addr & 0xfff80000;
 	switch(naddr) {
 	case 0x80000000:
-	case 0x80100000:
+	case 0x80080000:
 		// ToDo: Upper 0x80x80000
 		// Main VRAM
 		write_raw_vram32(addr, data);
+		return;
+	case 0x80100000:
+	case 0x80180000:
+		// ToDo: Upper 0x80x80000
+		// Main VRAM
+		write_raw_vram32_nowrap(addr, data);
 		return;
 		break;
 	case 0x00080000:
@@ -473,6 +483,34 @@ uint32_t TOWNS_VRAM::read_raw_vram32(uint32_t addr)
 	return a.d;
 }
 
+uint32_t TOWNS_VRAM::read_raw_vram16_nowrap(uint32_t addr)
+{
+	pair16_t a;
+	addr = addr & 0x7ffff;
+#ifdef __LITTLE_ENDIAN__
+	// SAME endian
+	uint16_t* p = (uint16_t *)(&vram[addr]);
+	a.w = *p;
+#else
+	a.read_2bytes_le_from(&vram[addr]);
+#endif
+	return (uint32_t)(a.w);
+}
+
+uint32_t TOWNS_VRAM::read_raw_vram32_nowrap(uint32_t addr)
+{
+	pair32_t a;
+	bool is_wrap = false;
+	addr = addr & 0x7ffff;
+#ifdef __LITTLE_ENDIAN__
+	uint32_t* p = (uint32_t*)(&vram[addr]);
+	a.d = *p;
+#else
+	a.read_4bytes_le_from(&vram[addr]);
+#endif
+	return a.d;
+}
+
 void TOWNS_VRAM::write_raw_vram8(uint32_t addr, uint32_t data)
 {
 //	return;
@@ -647,6 +685,72 @@ void TOWNS_VRAM::write_raw_vram32(uint32_t addr, uint32_t data)
 		}
 	}
 #endif
+	return;
+}
+
+void TOWNS_VRAM::write_raw_vram16_nowrap(uint32_t addr, uint32_t data)
+{
+	pair16_t a;
+	pair16_t b;
+	pair16_t c;
+	uint16_t mask;
+	mask = ((addr & 0x02) == 0) ? packed_pixel_mask_reg.w.l : packed_pixel_mask_reg.w.h;
+	a.w = data;
+	
+	addr = addr & 0x7ffff;
+#ifdef __LITTLE_ENDIAN__
+	uint16_t* p = (uint16_t* )(&vram[addr]);
+	b.w = *p;
+#else
+	b.read_2bytes_le_from(&vram[addr]);
+#endif
+	c.w = b.w;
+	if(mask != 0xffff) {
+		b.w = b.w & ~mask;
+		a.w = a.w & mask;
+		a.w = a.w | b.w;
+	}
+	if(a.w != c.w) {
+		make_dirty_vram(addr, 2);
+#ifdef __LITTLE_ENDIAN__
+		*p = a.w;
+#else
+		a.write_2bytes_le_to(&vram[addr]);
+#endif
+	}
+	return;
+}
+
+void TOWNS_VRAM::write_raw_vram32_nowrap(uint32_t addr, uint32_t data)
+{
+	pair32_t a;
+	pair32_t b;
+	pair32_t c;
+	uint32_t mask;
+	mask = packed_pixel_mask_reg.d;
+	a.d = data;
+	
+	addr = addr & 0x7ffff;
+#ifdef __LITTLE_ENDIAN__
+	uint32_t* p = (uint32_t* )(&vram[addr]);
+	b.d = *p;
+#else
+	b.read_4bytes_le_from(&vram[addr]);
+#endif
+	c.d = b.d;
+	if(mask != 0xffffffff) {
+		b.d = b.d & ~(mask);
+		a.d = a.d & mask;
+		a.d = a.d | b.d;
+	}
+	if(a.d != c.d) {
+		make_dirty_vram(addr, 4);
+#ifdef __LITTLE_ENDIAN__
+		*p = a.d;
+#else
+		d.write_4bytes_le_to(&vram[addr]);
+#endif
+	}
 	return;
 }
 

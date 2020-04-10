@@ -100,7 +100,9 @@ void TOWNS_MEMORY::initialize()
 	dma_is_vram = true;
 	config_page00();
 	
-	set_memory_mapped_io_rw(0x80000000, 0x81ffffff, d_vram);
+	set_memory_mapped_io_rw(0x80000000, 0x8007ffff, d_vram);
+	set_memory_mapped_io_rw(0x80100000, 0x8017ffff, d_vram);
+	set_memory_mapped_io_rw(0x81000000, 0x8101ffff, d_sprite);
 //	set_memory_mapped_io_rw(0xc0000000, 0xc0ffffff, d_iccard[0]);
 //	set_memory_mapped_io_rw(0xc1000000, 0xc1ffffff, d_iccard[1]);
 	set_memory_mapped_io_r (0xc2000000, 0xc207ffff, d_msdos);
@@ -110,6 +112,7 @@ void TOWNS_MEMORY::initialize()
 	if(d_font_20pix != NULL) {
 		set_memory_mapped_io_r (0xc2180000, 0xc21fffff, d_font_20pix);
 	}
+	set_memory_mapped_io_rw(0xc2200000, 0xc220ffff, d_pcm);
 	set_memory_mapped_io_r (0xfffc0000, 0xffffffff, d_sysrom);
 	set_wait_values();
 	// Another devices are blank

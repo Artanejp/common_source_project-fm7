@@ -276,7 +276,7 @@ uint32_t RF5C68::read_io8(uint32_t addr)
 }
 
 // Read PCM memory
-uint32_t RF5C68::read_data8(uint32_t addr)
+uint32_t RF5C68::read_memory_mapped_io8(uint32_t addr)
 {
 	if(dac_on) {
 		return 0xff;
@@ -285,7 +285,7 @@ uint32_t RF5C68::read_data8(uint32_t addr)
 	return wave_memory[(addr & 0x0fff) | dac_bank];
 }
 
-void RF5C68::write_data8(uint32_t addr, uint32_t data)
+void RF5C68::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	// if(dac_on) don't write <- Is correct?
 	if(!dac_on) {

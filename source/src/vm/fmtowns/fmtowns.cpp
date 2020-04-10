@@ -349,6 +349,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_beep(beep);
 	memory->set_context_serial_rom(serialrom);
 	memory->set_context_sprite(sprite);
+	memory->set_context_pcm(rf5c68);
 	
 	cdrom->scsi_id = 0;
 	cdrom->set_context_interface(cdc_scsi);
