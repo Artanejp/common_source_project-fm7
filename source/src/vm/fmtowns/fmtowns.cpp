@@ -709,7 +709,6 @@ void VM::initialize_sound(int rate, int samples)
 	beep->initialize_sound(rate, 8000);
 
 	// init OPN2
-//	opn2->initialize_sound(rate, 1.0e6 / (16.0 / (384.0 * 2.0)), samples, 0.0, 0.0);
 	// MASTER CLOCK MAYBE 600KHz * 12 = 7200KHz .
 	// From FM-Towns Technical Databook (Rev.2), Page 201
 	opn2->initialize_sound(rate, (int)(600.0e3 * 12.0) , samples, 0.0, 0.0); 
