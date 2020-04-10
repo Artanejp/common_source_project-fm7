@@ -570,7 +570,7 @@ void OPNABase::Reset()
 //
 bool OPNABase::SetRate(uint c, uint r, bool)
 {
-//	c /= 2;		// 従来版との互換性を重視したけりゃコメントアウトしよう
+	c /= 2;		// 従来版との互換性を重視したけりゃコメントアウトしよう
 	
 	OPNBase::Init(c, r);
 
