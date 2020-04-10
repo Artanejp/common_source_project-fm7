@@ -13,29 +13,27 @@ set(USE_FMGEN ON)
 set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 set(VMFILES
-#  i386.cpp
   event.cpp
   
   scsi_host.cpp
-#  scsi_dev.cpp
-#  scsi_hdd.cpp
-#  scsi_cdrom.cpp
 
   msm58321.cpp
   
 )
 set(VMFILES_LIB
+   i386.cpp
    noise.cpp
    pcm1bit.cpp
    i8251.cpp
    i8253.cpp
    i8259.cpp
    io.cpp
-   msm58321.cpp
    upd71071.cpp
-   
    mb8877.cpp
-   ym2151.cpp
+   
+   scsi_dev.cpp
+   scsi_hdd.cpp
+   scsi_cdrom.cpp
    
    disk.cpp
    prnfile.cpp
