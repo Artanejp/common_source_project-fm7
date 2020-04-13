@@ -41,17 +41,41 @@ namespace FMTOWNS {
 }
 
 namespace FMTOWNS {
+	#pragma pack(1)
+	typedef union {
+		struct {
+			uint8_t P:1;
+			uint8_t Q:1;
+			uint8_t R:1;
+			uint8_t S:1;
+			uint8_t T:1;
+			uint8_t U:1;
+			uint8_t V:1;
+			uint8_t W:1;
+		} bit;
+		uint8_t byte;
+	} SUBC_t;
+#pragma pack()
+
 class TOWNS_CDROM : public SCSI_CDROM {
 protected:
 	FIFO* subq_buffer;
+//	SUBC_t subq_buffer[98]; // OK?
+	int subq_bitptr;
+	int subq_bitwidth;
+	
 	bool subq_overrun;
 	int stat_track;
+	static const uint16_t crc_table[256];
 	
 	virtual void play_cdda_from_cmd();
 	virtual void pause_cdda_from_cmd();
 	virtual void unpause_cdda_from_cmd();
 	virtual void stop_cdda_from_cmd();
-	
+// void make_bitslice_subc_q(uint8_t *data, int bitwidth);
+// uint16_t calc_subc_crc16(uint8_t *databuf, int bytes, uint16_t initval)
+	uint16_t calc_subc_crc16(uint8_t *databuf, int bytes, uint16_t initval);
+
 public:
 	TOWNS_CDROM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : SCSI_CDROM(parent_vm, parent_emu)
 	{
