@@ -1094,7 +1094,8 @@ void CDC::write_signal(int ch, uint32_t data, uint32_t mask)
 			software_transfer_phase = false;
 			dma_transfer_phase = true;
 		}				
-		write_signal(SIG_TOWNS_CDC_IRQ, 1, 1);
+		write_signals(&output_submpu_intr, 0xffffffff);
+		//write_signal(SIG_TOWNS_CDC_IRQ, 0xffffffff, 0xffffffff); // From MAME 0.216
 		buffer_count = -1;
 		out_debug_log(_T("SEEK TO NEXT SECTOR"));
 		if(event_cdrom_status > -1) {
