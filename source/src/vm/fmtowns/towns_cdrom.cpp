@@ -446,6 +446,8 @@ void TOWNS_CDROM::initialize()
 	is_cue = false;
 	current_track = 0;
 	read_sectors = 0;
+
+	transfer_speed = 1;	
 	for(int i = 0; i < 99; i++) {
 		memset(track_data_path[i], 0x00, _MAX_PATH * sizeof(_TCHAR));
 	}
@@ -501,6 +503,7 @@ void TOWNS_CDROM::reset()
 	status_pre_queue->clear();
 	status_queue->clear();
 	extra_command = 0xff; // NOT COMMAND
+
 	
 	if(is_cue) {
 		if(fio_img->IsOpened()) {
@@ -519,12 +522,48 @@ void TOWNS_CDROM::reset()
 	write_signals(&outputs_drq, 0);
 	write_signals(&outputs_next_sector, 0);
 	write_signals(&outputs_done, 0);
-	
+	set_dma_intr(false);
+	set_mcu_intr(false);
 	// Q: Does not seek to track 0? 20181118 K.O
 	//current_track = 0;
 //	TOWNS_CDROM::reset();
 }
 
+void TOWNS_CDROM::set_dma_intr(bool val)
+{
+	if(val) {
+		if(!(dma_intr_mask)) {
+			dma_intr = true;
+			write_signals(&outputs_dmaint, 0xffffffff);
+		} else if(dma_intr) {
+			dma_intr = false;
+			write_signals(&outputs_dmaint, 0x0);
+		}			
+	} else {
+		if(dma_intr) {
+			dma_intr = false;
+			write_signals(&outputs_dmaint, 0x0);
+		}
+	}
+}
+
+void TOWNS_CDROM::set_mcu_intr(bool val)
+{
+	if(val) {
+		if(!(mcu_intr_mask)) {
+			mcu_intr = true;
+			write_signals(&outputs_mcuint, 0xffffffff);
+		} else if(dma_intr) {
+			mcu_intr = false;
+			write_signals(&outputs_mcuint, 0x0);
+		}			
+	} else {
+		if(mcu_intr) {
+			mcu_intr = false;
+			write_signals(&outputs_mcuint, 0x0);
+		}
+	}
+}
 
 void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 {
@@ -830,8 +869,8 @@ void TOWNS_CDROM::read_cdrom(bool req_reply)
 		write_status(0x01, 0x00, 0x00, 0x00);
 		return;
 	}
-	dma_transfer_phase = false;
-	software_transfer_phase = false;
+	dma_transfer = false;
+	pio_transfer = false;
 	
 	__remain = lba2 - lba1;
 	extra_status = 0;
@@ -1098,7 +1137,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 					   false, NULL);
 		break;
 	case EVENT_DRQ:
-		{
+		if(dma_transfer) {
 			if(is_data_in) {
 				// Error handling (overrun)
 			}
@@ -2048,9 +2087,99 @@ void TOWNS_CDROM::set_volume(int ch, int decibel_l, int decibel_r)
 void TOWNS_CDROM::set_volume(int volume)
 {
 	volume_m = (int)(1024.0 * (max(0, min(100, volume)) / 100.0));
-
 }
 
+uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
+{
+	/*
+	 * 04C0h : Master status
+	 * 04C2h : CDC status
+	 * 04C4h : DATA
+	 * 04CCh : SUBQ CODE
+	 * 04CDh : SUBQ STATUS 
+	 */
+	uint32_t val = 0;
+	switch(addr & 0x0f) {
+	case 0x00:
+		val = 0x00;
+		val = val | ((mcu_intr)					? 0x80 : 0x00);
+		val = val | ((dma_intr)					? 0x40 : 0x00);
+		val = val | ((pio_transfer)				? 0x20 : 0x00);
+//			val = val | ((d_dmac->read_signal(SIG_UPD71071_IS_TRANSFERING + 3) !=0) ? 0x10 : 0x00); // USING DMAC ch.3
+		val = val | ((dma_transfer)				? 0x10 : 0x00); // USING DMAC ch.3
+		val = val | ((has_status)				? 0x02 : 0x00);
+		val = val | ((mcu_ready)				? 0x01 : 0x00);
+		mcu_intr = false;
+		dma_intr = false;
+		break;
+	case 0x02:
+		val = read_status();
+		break;
+	case 0x04:
+		if(pio_transfer) {
+			val = (buffer->read() & 0xff);
+			data_reg = val;
+		}
+		break;
+	case 0x0c: // Subq code
+		val = read_subq();
+		break;
+	case 0x0d: // Subq status
+		val = get_subq_status();
+		break;
+	}
+
+	return val;
+}
+
+void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
+{
+	/*
+	 * 04C0h : Master control register
+	 * 04C2h : Command register
+	 * 04C4h : Parameter register
+	 * 04C6h : Transfer control register.
+	 */
+	w_regs[address & 0x0f] = data;
+	switch(address & 0x0f) {
+	case 0x00: // Master control register
+		if((data & 0x04) != 0) {
+			reset();
+			break;
+		}
+		mcu_intr_mask = ((data & 0x02) != 0) ? true : false;
+		dma_intr_mask = ((data & 0x01) != 0) ? true : false;
+		if((data & 0x80) != 0) {
+			if(mcu_intr) set_mcu_intr(false);
+		}
+		if((data & 0x40) != 0) {
+			if(dma_intr) set_dma_intr(false);
+		}
+		break;
+	case 0x02: // Command
+		if(mcu_ready) {
+			stat_reply_intr   = ((data & 0x40) != 0) ? true : false;
+			param_ptr = 0;
+			execute_command(data);
+//			param_ptr = 0;
+		}
+		break;
+	case 0x04: // Param
+		param_queue[param_ptr] = data;
+		param_ptr = (param_ptr + 1) & 0x07;
+		break;
+	case 0x06:
+		if((data & 0x08) != 0) {
+			dma_transfer = false;
+			pio_transfer = true;
+		}
+		if((data & 0x10) != 0) {
+			dma_transfer = true;
+			pio_transfer = false;
+		}
+		break;
+	}
+}
 #define STATE_VERSION	1
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
@@ -2064,6 +2193,19 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	for(int i = 0; i < (sizeof(subq_buffer) / sizeof(SUBC_t)); i++) {
 		state_fio->SteteValue(subq_buffer[i].byte);
 	}
+	state_fio->StateValue(mcu_intr);
+	state_fio->StateValue(dma_intr);
+	state_fio->StateValue(pio_transfer);
+	state_fio->StateValue(dma_transfer);
+	state_fio->StateValue(mcu_ready);
+	state_fio->StateValue(mcu_intr_mask);
+	state_fio->StateValue(dma_intr_mask);
+	state_fio->StateArray(w_regs, sizeof(w_regs), 1);
+	
+	state_fio->StateValue(stat_reply_intr);
+	state_fio->StateValue(param_ptr);
+	state_fio->StateArray(param_queue, sizeof(param_queue), 1);
+
 	state_fio->StateValue(subq_bitwidth);
 	state_fio->StateValue(subq_bitptr);
 	state_fio->StateValue(subq_overrun);
@@ -2107,17 +2249,10 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(event_next_sector);
 	
 	// SCSI_DEV
-	state_fio->StateValue(next_phase);
-	state_fio->StateValue(next_req);
-	state_fio->StateArray(command, sizeof(command), 1);
-	state_fio->StateValue(command_index);
-	if(!buffer->process_state((void *)state_fio, loading)) {
- 		return false;
- 	}
 	state_fio->StateValue(position);
-	state_fio->StateValue(remain);
-	state_fio->StateValue(local_data_pos);
-	state_fio->StateValue(sense_code);
+//	state_fio->StateValue(remain);
+//	state_fio->StateValue(local_data_pos);
+//	state_fio->StateValue(sense_code);
  	return true;
 }
 	
