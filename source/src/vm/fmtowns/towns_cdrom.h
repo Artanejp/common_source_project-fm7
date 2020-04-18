@@ -59,22 +59,69 @@ namespace FMTOWNS {
 
 class TOWNS_CDROM : public SCSI_CDROM {
 protected:
+	outputs_t outputs_drq;
+	outputs_t outputs_next_sector;
+	outputs_t outputs_done;
+	outputs_t outputs_mcuint;
+	
 	FIFO* subq_buffer;
+	FIFO* buffer;
+	FIFO* status_queue;
+	FIFO* status_pre_queue;
+	
 //	SUBC_t subq_buffer[98]; // OK?
 	int subq_bitptr;
 	int subq_bitwidth;
-	
 	bool subq_overrun;
+	
 	int stat_track;
+	int cdda_status;
+	
+	int read_length;
+	
+	uint8_t extra_command;
+	bool mcu_intr;
+	bool dma_intr;
+	bool mcu_intr_mask;
+	bool dma_intr_mask;
+	
+	int event_drq;
+	int event_next_sector;
+	int event_cdda;
+	int event_cdda_delay_play;
+	int event_delay_interrupt;
+	
 	static const uint16_t crc_table[256];
+	uint8_t param_queue[8];
 	
 	virtual void play_cdda_from_cmd();
 	virtual void pause_cdda_from_cmd();
 	virtual void unpause_cdda_from_cmd();
 	virtual void stop_cdda_from_cmd();
-// void make_bitslice_subc_q(uint8_t *data, int bitwidth);
-// uint16_t calc_subc_crc16(uint8_t *databuf, int bytes, uint16_t initval)
+
+//	bool is_device_ready();
+//	void reset_device();
+//	void set_cdda_status(uint8_t status);
+//	void read_a_cdda_sample();
+//	bool read_buffer(int length);
+//	void set_status(uint8_t cmd, bool type0, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+//	void set_status_extra(uint8_t cmd, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+//	void copy_status_queue();
+//	void read_cdrom(bool req_reply);
+//	uint32_t execute_command(uint8_t command);
+//	void set_dma_intr(bool val);
+//	void set_mcu_intr(bool val);
+	
+
+//	void make_bitslice_subc_q(uint8_t *data, int bitwidth);
 	uint16_t calc_subc_crc16(uint8_t *databuf, int bytes, uint16_t initval);
+//	int get_track(uint32_t lba);
+//	int get_track_noop(uint32_t lba);
+//	void get_track_by_track_num(int track);
+
+//	double get_seek_time(uint32_t lba);
+//	uint32_t lba_to_msf(uint32_t lba);
+//	uint32_t lba_to_msf_alt(uint32_t lba);
 
 public:
 	TOWNS_CDROM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : SCSI_CDROM(parent_vm, parent_emu)
@@ -89,6 +136,16 @@ public:
 		bytes_per_sec = 2048 * 75; // speed x1
 		max_logical_block = 0;
 		access = false;
+		subq_buffer = NULL;
+		buffer = NULL;
+		status_queue = NULL;
+		status_pre_queue = NULL;
+		
+		initialize_output_signals(&outputs_drq);
+		initialize_output_signals(&outputs_next_sector);
+		initialize_output_signals(&outputs_done);
+		initialize_output_signals(&outputs_mcuint);
+		
 		set_device_name(_T("FM-Towns CD-ROM drive"));
 	}
 	~TOWNS_CDROM() { }
@@ -130,6 +187,23 @@ public:
 	void set_read_mode(bool is_mode2)
 	{
 		read_mode = is_mode2;
+	}
+
+	void set_context_done_line(DEVICE* dev, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_done, dev, id, mask);
+	}
+	void set_context_next_sector_line(DEVICE* dev, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_next_sector, dev, id, mask);
+	}
+	void set_context_mpuint_line(DEVICE* dev, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_mcuint, dev, id, mask);
+	}
+	void set_context_drq_line(DEVICE* dev, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_drq, dev, id, mask);
 	}
 };
 

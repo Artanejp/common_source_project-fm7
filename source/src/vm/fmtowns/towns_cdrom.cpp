@@ -421,8 +421,8 @@ void TOWNS_CDROM::initialize()
 {
 	subq_overrun = false;
 	stat_track = 0;
-	status_queue = new FIFO(5);
-	status_pre_queue = new FIFO(5);
+	status_queue = new FIFO(4);
+	status_pre_queue = new FIFO(6);
 	
 //   	SCSI_DEV::initialize();
 	// ToDo: MasterDevice::initialize()
@@ -483,6 +483,8 @@ void TOWNS_CDROM::release()
 void TOWNS_CDROM::reset()
 {
 	memset(subq_buffer, 0x00, sizeof(subq_buffer));
+	memset(param_queue, 0x00, sizeof(param_queue));
+	param_ptr = 0;
 	subq_overrun = false;
 	stat_track = current_track;
 	out_debug_log("RESET");
@@ -503,7 +505,6 @@ void TOWNS_CDROM::reset()
 	status_pre_queue->clear();
 	status_queue->clear();
 	extra_command = 0xff; // NOT COMMAND
-
 	
 	if(is_cue) {
 		if(fio_img->IsOpened()) {
@@ -522,8 +523,12 @@ void TOWNS_CDROM::reset()
 	write_signals(&outputs_drq, 0);
 	write_signals(&outputs_next_sector, 0);
 	write_signals(&outputs_done, 0);
-	set_dma_intr(false);
-	set_mcu_intr(false);
+	mcu_intr = false;
+	dma_intr = false;
+	mcu_intr_mask = false;
+	dma_intr_mask = false;
+	write_signals(&outputs_mcuint, 0);
+	
 	// Q: Does not seek to track 0? 20181118 K.O
 	//current_track = 0;
 //	TOWNS_CDROM::reset();
@@ -532,36 +537,26 @@ void TOWNS_CDROM::reset()
 void TOWNS_CDROM::set_dma_intr(bool val)
 {
 	if(val) {
-		if(!(dma_intr_mask)) {
-			dma_intr = true;
-			write_signals(&outputs_dmaint, 0xffffffff);
-		} else if(dma_intr) {
-			dma_intr = false;
-			write_signals(&outputs_dmaint, 0x0);
-		}			
+		dma_intr = true;
+		if(!(dma_intr_mask)) write_signals(&outputs_mcuint, 0xffffffff);
 	} else {
-		if(dma_intr) {
+//		if(dma_intr) {
 			dma_intr = false;
-			write_signals(&outputs_dmaint, 0x0);
-		}
+			if(!(mcu_intr)) write_signals(&outputs_mcuint, 0x0);
+//		}
 	}
 }
 
 void TOWNS_CDROM::set_mcu_intr(bool val)
 {
 	if(val) {
-		if(!(mcu_intr_mask)) {
-			mcu_intr = true;
-			write_signals(&outputs_mcuint, 0xffffffff);
-		} else if(dma_intr) {
-			mcu_intr = false;
-			write_signals(&outputs_mcuint, 0x0);
-		}			
+		mcu_intr = true;
+		if(!(mcu_intr_mask)) write_signals(&outputs_mcuint, 0xffffffff);
 	} else {
-		if(mcu_intr) {
+//		if(mcu_intr) {
 			mcu_intr = false;
-			write_signals(&outputs_mcuint, 0x0);
-		}
+			if(!dma_intr)) write_signals(&outputs_mcuint, 0x0);
+//		}
 	}
 }
 
@@ -826,6 +821,7 @@ uint8_t TOWNS_CDROM::read_status()
 	}
 	return val;
 }
+
 void TOWNS_CDROM::read_cdrom(bool req_reply)
 {
 	if(!(d_cdrom->is_device_ready())) {
@@ -1216,7 +1212,6 @@ bool TOWNS_CDROM::read_buffer(int length)
 	return true;
 }
 
-
 void TOWNS_CDROM::read_a_cdda_sample()
 {
 	if(event_cdda_delay_play > -1) {
@@ -1377,36 +1372,7 @@ bool TOWNS_CDROM::is_device_ready()
 	return mounted();
 }
 
-int TOWNS_CDROM::get_command_length(int value)
-{
-	switch(value) {
-	case TOWNS_CDROM_CDDA_PLAY:
-		return 10;
-		break;
-	case TOWNS_CDROM_CDDA_PAUSE:
-		return 4;
-		break;
-	case TOWNS_CDROM_CDDA_UNPAUSE:
-		return 4;
-		break;
-	case TOWNS_CDROM_CDDA_STOP:
-		return 4;
-		break;
-	case 0xd8:
-	case 0xd9:
-	case 0xda:
-	case 0xdd:
-	case 0xde:
-		// ToDo: These commands are PCE's extend.Will implement.
-		return 10;
-		break;
-	default:
-		// ToDo: Will implement master command.
-//		return TOWNS_CDROM::get_command_length(value);
-		break;
-	}
-	return 0;
-}
+
 void TOWNS_CDROM::get_track_by_track_num(int track)
 {
 	if((track <= 0) || (track >= track_num)) {
@@ -2111,6 +2077,7 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 		val = val | ((mcu_ready)				? 0x01 : 0x00);
 		mcu_intr = false;
 		dma_intr = false;
+		write_signals(&outputs_mcuint, 0);
 		break;
 	case 0x02:
 		val = read_status();
