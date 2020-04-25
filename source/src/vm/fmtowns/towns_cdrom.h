@@ -9,28 +9,30 @@
 #pragma once
 
 #include "../../common.h"
-#include "../scsi_dev.h"
-#include "../scsi_cdrom.h"
+#include "../device.h"
 
 // 0 - 9 : SCSI_CDROM::
 // 100 - : SCSI_DEV::
-#define SIG_TOWNS_CDROM_SET_TRACK         0x10
-#define SIG_TOWNS_CDROM_MAX_TRACK         0x11
-#define SIG_TOWNS_CDROM_IS_MEDIA_INSERTED 0x12
-#define SIG_TOWNS_CDROM_REACHED_MAX_TRACK 0x13
-#define SIG_TOWNS_CDROM_CURRENT_TRACK     0x14
-#define SIG_TOWNS_CDROM_START_MSF         0x15
-#define SIG_TOWNS_CDROM_START_MSF_AA      0x16
-#define SIG_TOWNS_CDROM_GET_ADR           0x17
-#define SIG_TOWNS_CDROM_SET_STAT_TRACK    0x18
-#define SIG_TOWNS_CDROM_RELATIVE_MSF      0x20
-#define SIG_TOWNS_CDROM_ABSOLUTE_MSF      0x21
+#define SIG_TOWNS_CDROM_PLAYING				0
+#define SIG_TOWNS_CDROM_SAMPLE_L			1
+#define SIG_TOWNS_CDROM_SAMPLE_R			2
+#define SIG_TOWNS_CDROM_CDDA_PLAY			3
+#define SIG_TOWNS_CDROM_CDDA_STOP			4
+#define SIG_TOWNS_CDROM_CDDA_PAUSE			5
 
-// Virtual (pseudo) SCSI command.
-#define TOWNS_CDROM_CDDA_PLAY             0xf0
-#define TOWNS_CDROM_CDDA_PAUSE            0xf1
-#define TOWNS_CDROM_CDDA_UNPAUSE          0xf2
-#define TOWNS_CDROM_CDDA_STOP             0xf3
+#define SIG_TOWNS_CDROM_SET_TRACK			0x10
+#define SIG_TOWNS_CDROM_MAX_TRACK			0x11
+#define SIG_TOWNS_CDROM_IS_MEDIA_INSERTED	0x12
+#define SIG_TOWNS_CDROM_REACHED_MAX_TRACK	0x13
+#define SIG_TOWNS_CDROM_CURRENT_TRACK		0x14
+#define SIG_TOWNS_CDROM_START_MSF			0x15
+#define SIG_TOWNS_CDROM_START_MSF_AA		0x16
+#define SIG_TOWNS_CDROM_GET_ADR				0x17
+#define SIG_TOWNS_CDROM_SET_STAT_TRACK		0x18
+#define SIG_TOWNS_CDROM_RELATIVE_MSF		0x20
+#define SIG_TOWNS_CDROM_ABSOLUTE_MSF		0x21
+#define SIG_TOWNS_CDROM_READ_DATA			0x22
+#define SIG_TOWNS_CDROM_RESET				0x23
 
 class SCSI_HOST;
 class FIFO;
@@ -57,89 +59,144 @@ namespace FMTOWNS {
 	} SUBC_t;
 #pragma pack()
 
-class TOWNS_CDROM : public SCSI_CDROM {
+	/*class TOWNS_CDROM : public SCSI_CDROM */
+class TOWNS_CDROM: public DEVICE {
 protected:
 	outputs_t outputs_drq;
 	outputs_t outputs_next_sector;
 	outputs_t outputs_done;
 	outputs_t outputs_mcuint;
-	
-	FIFO* subq_buffer;
+
+	FILEIO* fio_img;
+//	FIFO* subq_buffer;
 	FIFO* buffer;
 	FIFO* status_queue;
 	FIFO* status_pre_queue;
+
+	uint8_t data_reg;
+	bool dma_transfer;
+	bool pio_transfer;
 	
-//	SUBC_t subq_buffer[98]; // OK?
+	SUBC_t subq_buffer[98]; // OK?
 	int subq_bitptr;
 	int subq_bitwidth;
 	bool subq_overrun;
+	bool is_playing;
 	
+	bool read_mode;
 	int stat_track;
-	int cdda_status;
+
+	bool is_cue;
+	struct {
+		int32_t index0, index1, pregap;
+		uint32_t lba_offset;
+		uint32_t lba_size;
+		bool is_audio;
+	} toc_table[1024];
+	_TCHAR track_data_path[99][_MAX_PATH];
+	_TCHAR img_file_path_bak[_MAX_PATH];
 	
+	uint32_t cdda_start_frame;
+	uint32_t cdda_end_frame;
+	uint32_t cdda_playing_frame;
+	int cdda_status;
+	bool cdda_repeat;
+	bool cdda_interrupt;
+	int cdda_buffer_ptr;
+	uint8_t cdda_buffer[2352 * 75];
+	
+	int mix_loop_num;
+	int current_track;
+	int read_sectors;
+	int transfer_speed;
 	int read_length;
+	int position;
 	
 	uint8_t extra_command;
+	bool stat_reply_intr;
+	bool mcu_ready;
+	bool has_status;
 	bool mcu_intr;
 	bool dma_intr;
 	bool mcu_intr_mask;
 	bool dma_intr_mask;
 	
 	int event_drq;
+	int event_seek;
 	int event_next_sector;
 	int event_cdda;
 	int event_cdda_delay_play;
 	int event_delay_interrupt;
-	
+
+	int cdda_sample_l;
+	int cdda_sample_r;
+		
+	int volume_l;
+	int volume_r;
+	int volume_m;
+
+	uint8_t w_regs[16];
 	static const uint16_t crc_table[256];
+
+	int param_ptr;
 	uint8_t param_queue[8];
+
+	double seek_time;
+	int track_num;
+	uint32_t max_logical_block;
+	int bytes_per_sec;
+	bool access;
+
+	int extra_status;
+	void play_cdda_from_cmd();
+	void pause_cdda_from_cmd();
+	void unpause_cdda_from_cmd();
+	void stop_cdda_from_cmd();
+
+	bool is_device_ready();
+	void reset_device();
+	void read_a_cdda_sample();
 	
-	virtual void play_cdda_from_cmd();
-	virtual void pause_cdda_from_cmd();
-	virtual void unpause_cdda_from_cmd();
-	virtual void stop_cdda_from_cmd();
-
-//	bool is_device_ready();
-//	void reset_device();
-//	void set_cdda_status(uint8_t status);
-//	void read_a_cdda_sample();
-//	bool read_buffer(int length);
-//	void set_status(uint8_t cmd, bool type0, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-//	void set_status_extra(uint8_t cmd, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-//	void copy_status_queue();
-//	void read_cdrom(bool req_reply);
-//	uint32_t execute_command(uint8_t command);
-//	void set_dma_intr(bool val);
-//	void set_mcu_intr(bool val);
+	void set_status(uint8_t cmd, bool type0, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+	void set_status_extra(uint8_t cmd, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+	void copy_status_queue();
+	void read_cdrom(bool req_reply);
 	
+	virtual void execute_command(uint8_t command);
+	
+	void __FASTCALL set_dma_intr(bool val);
+	void __FASTCALL set_mcu_intr(bool val);
+	
+	void __FASTCALL make_bitslice_subc_q(uint8_t *data, int bitwidth);
+	uint16_t __FASTCALL calc_subc_crc16(uint8_t *databuf, int bytes, uint16_t initval);
 
-//	void make_bitslice_subc_q(uint8_t *data, int bitwidth);
-	uint16_t calc_subc_crc16(uint8_t *databuf, int bytes, uint16_t initval);
-//	int get_track(uint32_t lba);
-//	int get_track_noop(uint32_t lba);
-//	void get_track_by_track_num(int track);
+	bool open_cue_file(const _TCHAR* file_path);
+	virtual uint8_t read_subq();
+	virtual uint8_t get_subq_status();
+	virtual void set_subq(void);
+	
+	int get_track_noop(uint32_t lba);
+	void get_track_by_track_num(int track);
 
-//	double get_seek_time(uint32_t lba);
-//	uint32_t lba_to_msf(uint32_t lba);
-//	uint32_t lba_to_msf_alt(uint32_t lba);
+	uint32_t lba_to_msf(uint32_t lba);
+	uint32_t lba_to_msf_alt(uint32_t lba);
+	int get_frames_from_msf(const char *s);
+	int hexatoi(const char *s);
 
+	bool __CDROM_DEBUG_LOG;
+	
 public:
-	TOWNS_CDROM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : SCSI_CDROM(parent_vm, parent_emu)
+	TOWNS_CDROM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		my_sprintf_s(vendor_id, 9, "FUJITSU");
-		my_sprintf_s(product_id, 17, "CDROM");
-		device_type = 0x05; // CD-ROM drive
-		is_removable = true;
-		is_hot_swappable = false;
 //		seek_time = 400000; // 400msec (temporary)
 		seek_time = 10.0;
 		bytes_per_sec = 2048 * 75; // speed x1
 		max_logical_block = 0;
 		access = false;
-		subq_buffer = NULL;
 		buffer = NULL;
 		status_queue = NULL;
 		status_pre_queue = NULL;
+		memset(subq_buffer, 0x00, sizeof(subq_buffer));
 		
 		initialize_output_signals(&outputs_drq);
 		initialize_output_signals(&outputs_next_sector);
@@ -153,34 +210,40 @@ public:
 	virtual void release();
 
 	virtual void reset();
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_dma_io8(uint32_t addr);
+	virtual void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	virtual uint32_t __FASTCALL read_signal(int id);
 	
 	virtual void event_callback(int event_id, int err);
-
+	virtual void mix(int32_t* buffer, int cnt);
+	
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 
+	virtual bool mounted();
+	virtual bool accessed();
+	virtual void open(const _TCHAR* file_path);
+	virtual void close();
+	
 	// SCSI SPECIFIC COMMANDS
-	virtual int get_command_length(int value);
-	virtual void start_command();
+	virtual void set_volume(int volume);
+	virtual void set_volume(int ch, int decibel_l, int decibel_r);
+	virtual bool read_buffer(int length);
 
 	// Towns specified command
-	virtual void set_subq(void);
-	virtual uint8_t get_subq_status();
-	virtual uint8_t read_subq();
-	virtual void set_cdda_status(uint8_t status)
+	virtual void set_cdda_status(uint8_t status);
+	int get_track(uint32_t lba);
+	virtual double get_seek_time(uint32_t lba);
+	virtual uint8_t read_status();
+	virtual int logical_block_size();
+	virtual const int physical_block_size()
 	{
-		SCSI_CDROM::set_cdda_status(status);
+		return 2352; // OK?
 	}
-	virtual int get_track(uint32_t lba)
-	{
-		return SCSI_CDROM::get_track(lba);
-	}
-	virtual double get_seek_time(uint32_t lba)
-	{
-		return SCSI_CDROM::get_seek_time(lba);
-	}
-	virtual uint8_t get_cdda_status()
+	uint8_t get_cdda_status()
 	{
 		return cdda_status;
 	}

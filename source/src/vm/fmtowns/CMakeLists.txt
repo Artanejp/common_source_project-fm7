@@ -8,7 +8,7 @@ set(VM_FMTOWNS_DEV_SRCS
 	ym2612.cpp
 	
 	adpcm.cpp
-	cdc.cpp
+#	cdc.cpp
 	floppy.cpp
 	keyboard.cpp
 	scsi.cpp
