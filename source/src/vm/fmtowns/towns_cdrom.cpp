@@ -857,6 +857,7 @@ uint8_t TOWNS_CDROM::read_status()
 
 uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
 {
+	data_reg = (uint8_t)(buffer->read() & 0xff);
 	return data_reg;
 }
 
@@ -911,7 +912,7 @@ void TOWNS_CDROM::read_cdrom(bool req_reply)
 		return;
 	}
 	
-	__remain = lba2 - lba1;
+	__remain = (lba2 - lba1 + 1);
 	read_length = __remain * logical_block_size();
 	extra_status = 0;
 	dma_transfer_phase = dma_transfer;
@@ -926,7 +927,7 @@ void TOWNS_CDROM::read_cdrom(bool req_reply)
 	}
 	// Kick a first
 	double usec = get_seek_time(lba1);
-	if(usec < 10.0) usec = 10.0;
+	if(usec < ((1.0e6 * 2048.0) / 150.0e3)) usec = ((1.0e6 * 2048.0) / 150.0e3);
 	register_event(this, EVENT_CDROM_SEEK_COMPLETED, usec, false, NULL);
 	if(req_reply) {
 		set_status(CDROM_COMMAND_READ_MODE1, req_reply, 2, 0x00, 0x00, 0x00, 0x00);
@@ -1208,7 +1209,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				set_status(CDROM_COMMAND_READ_MODE1, true, 0, 0x22, 0x00, 0x00, 0x00);
 				set_dma_intr(true);
 				register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-							   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 0.5, // OK?
+							   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 16.0, // OK?
 							   false, NULL);
 			} else {
 				out_debug_log(_T("EOT"));
@@ -1217,10 +1218,9 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				pio_transfer_phase = false;
 				set_dma_intr(true);
 			}
-			break;
-		} else if(dma_transfer_phase) {
-			uint8_t val = (uint8_t)(buffer->read() & 0xff);
-			data_reg = val;
+			return;
+		}
+		if(dma_transfer_phase) {
 			write_signals(&outputs_drq, 0xffffffff);
 		}
 		break;
@@ -2309,8 +2309,8 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 			reset();
 			break;
 		}
-		mcu_intr_mask = ((data & 0x02) != 0) ? true : false;
-		dma_intr_mask = ((data & 0x01) != 0) ? true : false;
+		mcu_intr_mask = ((data & 0x02) == 0) ? true : false;
+		dma_intr_mask = ((data & 0x01) == 0) ? true : false;
 		if((data & 0x80) != 0) {
 			if(mcu_intr) set_mcu_intr(false);
 		}

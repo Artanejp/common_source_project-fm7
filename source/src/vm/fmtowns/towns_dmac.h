@@ -23,6 +23,7 @@ protected:
 	bool bcreg_set[4];
 	virtual void __FASTCALL do_dma_inc_dec_ptr_8bit(int c);
 	virtual void __FASTCALL do_dma_inc_dec_ptr_16bit(int c);
+	virtual bool __FASTCALL do_dma_prologue(int c);
 public:
 	TOWNS_DMAC(VM_TEMPLATE* parent_vm, EMU* parent_emu) : UPD71071(parent_vm, parent_emu)
 	{
