@@ -547,12 +547,16 @@ void TOWNS_CDROM::set_dma_intr(bool val)
 {
 	if(val) {
 		dma_intr = true;
-		if(!(dma_intr_mask)) write_signals(&outputs_mcuint, 0xffffffff);
+		if(!(dma_intr_mask)) {
+			write_signals(&outputs_mcuint, 0xffffffff);
+		}
 	} else {
-//		if(dma_intr) {
+		if(!(mcu_intr) && (dma_intr)) {
 			dma_intr = false;
-			if(!(mcu_intr)) write_signals(&outputs_mcuint, 0x0);
-//		}
+			write_signals(&outputs_mcuint, 0x0);
+		} else {
+			dma_intr = false;
+		}
 	}
 }
 
@@ -560,12 +564,16 @@ void TOWNS_CDROM::set_mcu_intr(bool val)
 {
 	if(val) {
 		mcu_intr = true;
-		if(!(mcu_intr_mask)) write_signals(&outputs_mcuint, 0xffffffff);
+		if(!(mcu_intr_mask)) {
+			write_signals(&outputs_mcuint, 0xffffffff);
+		}
 	} else {
-//		if(mcu_intr) {
+		if(!(dma_intr) && (mcu_intr)) {
 			mcu_intr = false;
-			if(!(dma_intr)) write_signals(&outputs_mcuint, 0x0);
-//		}
+			write_signals(&outputs_mcuint, 0x0);
+		} else {
+			mcu_intr = false;
+		}
 	}
 }
 
@@ -2284,8 +2292,11 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 		val = val | ((dma_transfer_phase)				? 0x10 : 0x00); // USING DMAC ch.3
 		val = val | ((has_status)				? 0x02 : 0x00);
 		val = val | ((mcu_ready)				? 0x01 : 0x00);
-		set_mcu_intr(false);
-		set_dma_intr(false);
+		if((mcu_intr) || (dma_intr)) { 
+			mcu_intr = false;
+			dma_intr = false;
+			write_signals(&outputs_mcuint, 0x00000000);
+		}
 		break;
 	case 0x02:
 		val = read_status();

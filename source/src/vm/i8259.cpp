@@ -228,6 +228,9 @@ uint32_t I8259::read_io8(uint32_t addr)
 
 void I8259::write_signal(int id, uint32_t data, uint32_t mask)
 {
+	if((id & 0x0f) == 0x09) {
+		out_debug_log(_T("CDC INTR %02X"), data & mask);
+	}
 	if(data & mask) {
 		pic[id >> 3].irr |= 1 << (id & 7);
 		update_intr();
