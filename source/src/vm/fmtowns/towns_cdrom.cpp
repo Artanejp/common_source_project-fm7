@@ -527,8 +527,6 @@ void TOWNS_CDROM::reset()
 	is_playing = false;
 	read_sectors = 0;
 	write_signals(&outputs_drq, 0);
-	write_signals(&outputs_next_sector, 0);
-	write_signals(&outputs_done, 0);
 	mcu_intr = false;
 	dma_intr = false;
 	stat_reply_intr = false;
@@ -631,6 +629,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 	if(!(mounted()))  {
 		out_debug_log(_T("CMD (%02X) BUT DISC NOT ACTIVE"), command);
 		set_status(command, req_status, 0, 0x10, 0, 0, 0);
+		mcu_ready = true;
 		set_mcu_intr(true);
 		return;
 	}
@@ -658,6 +657,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 	case CDROM_COMMAND_01:
 		out_debug_log(_T("CMD UNKNOWN 01(%02X)"), command);
 		set_status(command, req_status, 0, 0, 0xff, 0xff, 0xff);
+		mcu_ready = true;
 		set_mcu_intr(true);
 		break;
 	case CDROM_COMMAND_READ_MODE1:
@@ -676,17 +676,20 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		} else {
 			set_status(command, true, 2, 0x16, 0, 0xa0, 0);
 		}
+		mcu_ready = true;
 		set_mcu_intr(true);
 		// TOC READING
 		break;
 	case CDROM_COMMAND_READ_CDDA_STATE:
 		out_debug_log(_T("CMD SET CDDA STATE(%02X)"), command);
 		set_status(command, req_status, 1,  0, 0, 0, 0);
+		mcu_ready = true;
 		set_mcu_intr(true);
 		break;
 	case CDROM_COMMAND_1F:
 		out_debug_log(_T("CMD UNKNOWN 1F(%02X)"), command);
 		set_status(command, req_status, 0,  0x10, 0, 0, 0);
+		mcu_ready = true;
 		set_mcu_intr(true);
 		break;
 	case CDROM_COMMAND_SET_STATE:
@@ -696,28 +699,37 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		} else {
 			set_status(command, req_status, 0, 0, 1, 0, 0);
 		}
+		mcu_ready = true;
 		set_mcu_intr(true);
 		break;
 	case CDROM_COMMAND_SET_CDDASET:
 		out_debug_log(_T("CMD CDDA SET(%02X)"), command);
 		set_status(command, req_status, 0, 0, 0, 0, 0);
+		mcu_ready = true;
 		set_mcu_intr(true);
 		break;
 	case CDROM_COMMAND_STOP_CDDA:
 		out_debug_log(_T("CMD STOP CDDA(%02X)"), command);
 		stop_cdda_from_cmd();
+		mcu_ready = true;
+		set_mcu_intr(true);
 		break;
 	case CDROM_COMMAND_STOP_CDDA2:
 		out_debug_log(_T("CMD PLAY CDDA2(%02X)"), command);
 		stop_cdda2_from_cmd(); // ToDo : Re-Implement.
+		mcu_ready = true;
+		set_mcu_intr(true);
 		break;
 	case CDROM_COMMAND_RESUME_CDDA:
 		out_debug_log(_T("CMD RESUME CDDA(%02X)"), command);
 		unpause_cdda_from_cmd();
+		mcu_ready = true;
+		set_mcu_intr(true);
 		break;
 	default:
 		out_debug_log(_T("CMD Illegal(%02X)"), command);
 		set_status(command, true, 0, 0x10, 0x00, 0x00, 0x00);
+		mcu_ready = true;
 		set_mcu_intr(true);
 		break;
 	}
@@ -956,14 +968,14 @@ void TOWNS_CDROM::set_status(uint8_t cmd, bool req_status, int extra, uint8_t s0
 	if(extra > 0) extra_status = extra;
 	if(req_status) {
 		has_status = true;
-		mcu_ready = true;
+//		mcu_ready = true;
 		status_queue->write(s0);
 		status_queue->write(s1);
 		status_queue->write(s2);
 		status_queue->write(s3);
 		out_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), cmd, s0, s1, s2, s3, extra_status);
 	} else {
-		mcu_ready = true;
+//		mcu_ready = true;
 	}
 }
 
@@ -1151,11 +1163,11 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 {
 	switch (event_id) {
 	case EVENT_CDROM_DELAY_INTERRUPT_ON:
-		write_signals(&outputs_done, 0xffffffff);
+		write_signals(&outputs_mcuint, 0xffffffff);
 		event_delay_interrupt = -1;
 		break;
 	case EVENT_CDROM_DELAY_INTERRUPT_OFF:
-		write_signals(&outputs_done, 0x00000000);
+		write_signals(&outputs_mcuint, 0x00000000);
 		event_delay_interrupt = -1;
 		break;
 	case EVENT_CDDA_DELAY_PLAY:
@@ -1170,7 +1182,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDDA_DELAY_STOP:
 		if(cdda_interrupt) {
-			write_signals(&outputs_done, 0xffffffff);
+			write_signals(&outputs_mcuint, 0xffffffff);
 		}
 		set_cdda_status(CDDA_OFF);
 		event_cdda_delay_play = -1;
@@ -1180,6 +1192,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			bool req_status = ((w_regs[0x02] & 0x20) != 0) ? true : false;
 			event_seek = -1;
 			set_status(w_regs[0x02], req_status, 1, 0, 0, 0, 0);
+			mcu_ready = true;
 			set_mcu_intr(true);
 		}
 		break;
@@ -1195,7 +1208,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_CDROM_NEXT_SECTOR:
 		event_next_sector = -1;
 //		set_dma_intr(true);
-//		write_signals(&outputs_next_sector, 0xffffffff);
 		register_event(this, EVENT_CDROM_SEEK_COMPLETED,
 					   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 0.5, // OK?
 					   false, NULL);
@@ -1213,6 +1225,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 							   false, NULL);
 			} else {
 				out_debug_log(_T("EOT"));
+				mcu_ready = true;
 				set_status(CDROM_COMMAND_READ_MODE1, true, 0, 0x06, 0x00, 0x00, 0x00);
 				dma_transfer_phase = false;
 				pio_transfer_phase = false;
@@ -1396,7 +1409,7 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 		}
 		if(cdda_status != CDDA_PLAYING) {
 			//// Notify to release bus.
-			write_signals(&outputs_done, 0x00000000);
+			write_signals(&outputs_mcuint, 0x00000000);
 			if(cdda_status == CDDA_OFF) {
 				//get_track_by_track_num(current_track); // Re-Play
 				//memset(cdda_buffer, 0x00, sizeof(cdda_buffer));
@@ -1420,7 +1433,7 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 		}
 		if(cdda_status == CDDA_PLAYING) {
 			// Notify to release bus.
-			write_signals(&outputs_done, 0x00000000);
+			write_signals(&outputs_mcuint, 0x00000000);
 			//if(event_delay_interrupt >= 0) cancel_event(this, event_delay_interrupt);
 			//register_event(this, EVENT_CDROM_DELAY_INTERRUPT_OFF, 1.0e6 / (44100.0 * 2352), false, &event_delay_interrupt);
 			if(status == CDDA_OFF) {

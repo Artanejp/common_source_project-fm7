@@ -308,8 +308,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_ch0(fdc);
 	dma->set_context_ch1(scsi_host);
 	//dma->set_context_ch2(printer);
-	//dma->set_context_ch3(cdc);
-//	dma->set_context_ch3(cdc_scsi);
 	dma->set_context_ch3(cdrom);
 	dma->set_context_ube1(scsi_host, SIG_SCSI_16BIT_BUS, 0x02);
 
@@ -351,19 +349,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_serial_rom(serialrom);
 	memory->set_context_sprite(sprite);
 	memory->set_context_pcm(rf5c68);
-	
-//	cdrom->scsi_id = 0;
-//	cdrom->set_context_interface(cdc_scsi);
-	//cdrom->set_context_completed(cdc, SIG_TOWNS_CDC_TRANSFER_COMPLETE, 0xffffffff);
-	//cdrom->set_context_next_sector(cdc, SIG_TOWNS_CDC_NEXT_SECTOR, 0xffffffff);
-	//cdrom->set_context_done(cdc, SIG_TOWNS_CDC_TRANSFER_COMPLETE, 1);
-	
-//	cdc->set_context_scsi_host(cdc_scsi);
-//	cdc_scsi->set_context_target(cdrom);
-	
-//	cdc->set_context_cdrom(cdrom);
-//	cdc->set_context_dmac(dma);
-//	cdc_scsi->set_device_name(_T("CDROM controller's PSEUDO SCSI"));
 	
 	adpcm->set_context_opn2(opn2);
 	adpcm->set_context_rf5c68(rf5c68);
@@ -414,7 +399,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// IRQ13 : ADPCM AND OPN2 (Route to adpcm.cpp)
 	// IRQ14 : EXTRA I/O (Maybe not implement)
 	// IRQ15 : RESERVED.
-	//cdrom->set_context_dmaint_line(pic, SIG_I8259_CHIP1 | SIG_I8259_IR1, 0xffffffff);
 	cdrom->set_context_mpuint_line(pic, SIG_I8259_CHIP1 | SIG_I8259_IR1, 0xffffffff);
 	crtc->set_context_vsync(pic, SIG_I8259_CHIP1 | SIG_I8259_IR3, 0xffffffff);
 	adpcm->set_context_intr_line(pic, SIG_I8259_CHIP1 | SIG_I8259_IR5, 0xffffffff);

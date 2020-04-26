@@ -63,8 +63,6 @@ namespace FMTOWNS {
 class TOWNS_CDROM: public DEVICE {
 protected:
 	outputs_t outputs_drq;
-	outputs_t outputs_next_sector;
-	outputs_t outputs_done;
 	outputs_t outputs_mcuint;
 
 	FILEIO* fio_img;
@@ -199,8 +197,6 @@ public:
 		memset(subq_buffer, 0x00, sizeof(subq_buffer));
 		
 		initialize_output_signals(&outputs_drq);
-		initialize_output_signals(&outputs_next_sector);
-		initialize_output_signals(&outputs_done);
 		initialize_output_signals(&outputs_mcuint);
 		
 		set_device_name(_T("FM-Towns CD-ROM drive"));
@@ -252,14 +248,6 @@ public:
 		read_mode = is_mode2;
 	}
 
-	void set_context_done_line(DEVICE* dev, int id, uint32_t mask)
-	{
-		register_output_signal(&outputs_done, dev, id, mask);
-	}
-	void set_context_next_sector_line(DEVICE* dev, int id, uint32_t mask)
-	{
-		register_output_signal(&outputs_next_sector, dev, id, mask);
-	}
 	void set_context_mpuint_line(DEVICE* dev, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_mcuint, dev, id, mask);
