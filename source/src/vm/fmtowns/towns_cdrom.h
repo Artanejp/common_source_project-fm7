@@ -71,11 +71,12 @@ protected:
 //	FIFO* subq_buffer;
 	FIFO* buffer;
 	FIFO* status_queue;
-	FIFO* status_pre_queue;
 
 	uint8_t data_reg;
 	bool dma_transfer;
 	bool pio_transfer;
+	bool dma_transfer_phase;
+	bool pio_transfer_phase;
 	
 	SUBC_t subq_buffer[98]; // OK?
 	int subq_bitptr;
@@ -152,6 +153,7 @@ protected:
 	void pause_cdda_from_cmd();
 	void unpause_cdda_from_cmd();
 	void stop_cdda_from_cmd();
+	void stop_cdda2_from_cmd();
 
 	bool is_device_ready();
 	void reset_device();
@@ -159,7 +161,6 @@ protected:
 	
 	void set_status(uint8_t cmd, bool type0, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra(uint8_t cmd, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-	void copy_status_queue();
 	void read_cdrom(bool req_reply);
 	
 	virtual void execute_command(uint8_t command);
@@ -195,7 +196,6 @@ public:
 		access = false;
 		buffer = NULL;
 		status_queue = NULL;
-		status_pre_queue = NULL;
 		memset(subq_buffer, 0x00, sizeof(subq_buffer));
 		
 		initialize_output_signals(&outputs_drq);
