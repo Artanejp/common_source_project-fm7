@@ -55,7 +55,7 @@
 #endif
 
 #include "./adpcm.h"
-#include "./cdc.h"
+//#include "./cdc.h"
 #include "./floppy.h"
 #include "./fontroms.h"
 #include "./joystick.h"
@@ -69,7 +69,7 @@
 // initialize
 // ----------------------------------------------------------------------------
 using FMTOWNS::ADPCM;
-using FMTOWNS::CDC;
+//using FMTOWNS::CDC;
 using FMTOWNS::DICTIONARY;
 using FMTOWNS::FLOPPY;
 using FMTOWNS::FONT_ROMS;
@@ -133,9 +133,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io = new IO(this, emu);
 	
 	crtc = new TOWNS_CRTC(this, emu);
-//	cdc  = new CDC(this, emu);
-//	cdc_scsi = new TOWNS_SCSI_HOST(this, emu);
-//	cdc_scsi = new SCSI_HOST(this, emu);
 	cdrom = new TOWNS_CDROM(this, emu);
 
 	memory = new TOWNS_MEMORY(this, emu);
@@ -273,7 +270,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	beep_mix_ch = mixer->set_context_sound(beep);
 	pcm_mix_ch  = mixer->set_context_sound(rf5c68);
 	opn2_mix_ch = mixer->set_context_sound(opn2);
-	cdc_mix_ch = mixer->set_context_sound(cdc);
+	cdc_mix_ch = mixer->set_context_sound(cdrom);
 	mixer->set_interpolate_filter_freq(pcm_mix_ch, 4000); // channel, freq; disable if freq <= 0.
 	event->set_context_sound(mixer);
 #else
@@ -332,8 +329,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	//e_volume[0]->set_context_ch1(line_in, MB87878_VOLUME_RIGHT);
 	//e_volume[0]->set_context_ch2(NULL, MB87878_VOLUME_LEFT);
 	//e_volume[0]->set_context_ch3(NULL, MB87878_VOLUME_RIGHT);
-//	e_volume[1]->set_context_ch0(cdc, MB87878_VOLUME_LEFT);
-//	e_volume[1]->set_context_ch1(cdc, MB87878_VOLUME_RIGHT);
+//	e_volume[1]->set_context_ch0(cdrom, MB87878_VOLUME_LEFT);
+//	e_volume[1]->set_context_ch1(cdrom, MB87878_VOLUME_RIGHT);
 	//e_volume[1]->set_context_ch2(mic, MB87878_VOLUME_LEFT | MB87878_VOLUME_RIGHT);
 	//e_volume[1]->set_context_ch3(modem, MB87878_VOLUME_LEFT | MB87878_VOLUME_RIGHT);
 	
@@ -392,7 +389,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	floppy->set_context_intr_line(pic, SIG_I8259_CHIP0 | SIG_I8259_IR6, 0xffffffff);
 	
 	// IRQ8  : SCSI (-> scsi.cpp)
-	// IRQ9  : CDC
+	// IRQ9  : CDC/CDROM
 	// IRQ10 : EXTRA I/O (Maybe not implement)
 	// IRQ11 : VSYNC
 	// IRQ12 : PRINTER (ToDo)
@@ -406,7 +403,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// DMA0  : FDC/DRQ
 	// DMA1  : SCSI (-> scsi.cpp)
 	// DMA2  : PRINTER (ToDo)
-	// DMA3  : CDC
+	// DMA3  : CDC/CDROM
 	// EXTRA DMA0 : EXTRA SLOT (Maybe not implement)
 	// EXTRA DMA1 : Reserved
 	// EXTRA DMA2 : Reserved

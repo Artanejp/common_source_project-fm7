@@ -287,7 +287,7 @@ class SCSI_CDROM;
 
 namespace FMTOWNS {
 	class ADPCM;
-	class CDC;
+//	class CDC;
 	class FLOPPY;
 	class JOYSTICK;
 	class KEYBOARD;
@@ -358,9 +358,8 @@ protected:
 	FMTOWNS::FONT_ROM_20PIX* fontrom_20pix;
 #endif
 	FMTOWNS::SERIAL_ROM*     serialrom;
-	FMTOWNS::CDC*            cdc;
-	FMTOWNS::TOWNS_SCSI_HOST* cdc_scsi;
-	//SCSI_HOST* cdc_scsi;
+//	FMTOWNS::CDC*            cdc;
+//	FMTOWNS::TOWNS_SCSI_HOST* cdc_scsi;
 	FMTOWNS::TOWNS_CDROM*    cdrom;
 	
 	FMTOWNS::SCSI* scsi;
