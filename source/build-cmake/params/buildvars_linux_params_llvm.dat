@@ -100,12 +100,16 @@ case ${USE_STACK_PROTECTION} in
            ;;
 esac	
 
+LTO_FLAGS="-flto=4 -flto-compression-level=9 ${LTO_FLAGS}"
+LTO_FLAGS2="-flto -ffat-lto-objects"
+
+
 case ${USE_WHOLE_PROGRAM_OPTIMIZE} in
    "Yes" | "yes" | "YES" )
-      LTO_FLAGS="-fwhole-program -fwhole-program-vtables"
+      LTO_FLAGS="${LTO_FLAGS} -fwhole-program -fwhole-program-vtables"
       ;;
    * )
-      LTO_FLAGS=""
+      #LTO_FLAGS=""
       ;;
 esac
 
