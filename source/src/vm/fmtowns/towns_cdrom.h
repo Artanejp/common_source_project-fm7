@@ -59,7 +59,44 @@ namespace FMTOWNS {
 	} SUBC_t;
 #pragma pack()
 
-	/*class TOWNS_CDROM : public SCSI_CDROM */
+// From Towns Linux : include/linux/towns_cd.h
+enum {
+	CDROM_COMMAND_SEEK =			0x00,
+	CDROM_COMMAND_READ_MODE2 =		0x01,
+	CDROM_COMMAND_READ_MODE1 =		0x02,
+	CDROM_COMMAND_READ_RAW   =		0x03,
+	CDROM_COMMAND_PLAY_TRACK =		0x04,
+	CDROM_COMMAND_READ_TOC =		0x05,
+	CDROM_COMMAND_READ_CDDA_STATE =	0x06,
+	CDROM_COMMAND_1F =				0x1f,
+	CDROM_COMMAND_SET_STATE =		0x80,
+	CDROM_COMMAND_SET_CDDASET =		0x81,
+	CDROM_COMMAND_STOP_CDDA =		0x84,
+	CDROM_COMMAND_PAUSE_CDDA =		0x85,
+	CDROM_COMMAND_RESUME_CDDA =		0x87,
+};
+
+// STATUS[0].
+enum {
+	TOWNS_CD_STATUS_ACCEPT			= 0x00,
+	TOWNS_CD_STATUS_NOT_ACCEPT		= 0x01,
+	TOWNS_CD_STATUS_READ_DONE		= 0x06,
+	TOWNS_CD_STATUS_PLAY_DONE		= 0x07,
+	TOWNS_CD_STATUS_DOOR_OPEN_DONE	= 0x09,
+	TOWNS_CD_STATUS_DISC_NOT_READY	= 0x10,
+	TOWNS_CD_STATUS_DOOR_CLOSE_DONE	= 0x10,
+	TOWNS_CD_STATUS_STOP_DONE		= 0x11,
+	TOWNS_CD_STATUS_PAUSE_DONE		= 0x12,
+	TOWNS_CD_STATUS_RESUME_DONE		= 0x13,
+	TOWNS_CD_STATUS_TOC_ADDR		= 0x16,
+	TOWNS_CD_STATUS_TOC_DATA		= 0x17,
+	TOWNS_CD_STATUS_SUBQ_READ		= 0x18,
+	TOWNS_CD_STATUS_CMD_ABEND		= 0x21,
+	TOWNS_CD_STATUS_DATA_READY		= 0x22,
+	TOWNS_CD_STATUS_UNKNOWN			= 0xff,
+};
+
+/*class TOWNS_CDROM : public SCSI_CDROM */
 class TOWNS_CDROM: public DEVICE {
 protected:
 	outputs_t outputs_drq;
@@ -111,7 +148,8 @@ protected:
 	int read_length;
 	int position;
 	
-	uint8_t extra_command;
+	uint8_t latest_command;
+	bool req_status;
 	bool stat_reply_intr;
 	bool mcu_ready;
 	bool has_status;
@@ -148,21 +186,29 @@ protected:
 
 	int extra_status;
 	void play_cdda_from_cmd();
-	void pause_cdda_from_cmd();
 	void unpause_cdda_from_cmd();
 	void stop_cdda_from_cmd();
-	void stop_cdda2_from_cmd();
+	void pause_cdda_from_cmd();
 
 	bool is_device_ready();
 	void reset_device();
 	void read_a_cdda_sample();
-	
-	void set_status(uint8_t cmd, bool type0, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-	void set_status_extra(uint8_t cmd, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-	void read_cdrom(bool req_reply);
+
+	void send_mcu_ready();
+	void set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+	void set_status_extra(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+	void set_status_extra_toc_addr(uint8_t s1, uint8_t s2, uint8_t s3);
+	void set_status_extra_toc_data(uint8_t s1, uint8_t s2, uint8_t s3);
+
+	void read_cdrom();
 	
 	virtual void execute_command(uint8_t command);
 	
+	void status_not_ready();
+	void status_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
+	void status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
+	uint32_t cdrom_get_adr(int trk);
+
 	void __FASTCALL set_dma_intr(bool val);
 	void __FASTCALL set_mcu_intr(bool val);
 	
