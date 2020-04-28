@@ -147,6 +147,7 @@ protected:
 	int read_sectors;
 	int transfer_speed;
 	int read_length;
+//	int read_pos;
 	int position;
 	
 	uint8_t latest_command;
@@ -165,6 +166,7 @@ protected:
 	int event_cdda;
 	int event_cdda_delay_play;
 	int event_delay_interrupt;
+	int event_delay_ready;
 
 	int cdda_sample_l;
 	int cdda_sample_r;
@@ -197,6 +199,7 @@ protected:
 
 	void send_mcu_ready();
 	void set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+	void set_status_not_mcuint(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra_toc_addr(uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra_toc_data(uint8_t s1, uint8_t s2, uint8_t s3);
@@ -208,6 +211,9 @@ protected:
 	void status_not_ready();
 	void status_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
 	void status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
+	void set_delay_ready();
+	void set_delay_ready2();
+	
 	uint32_t cdrom_get_adr(int trk);
 
 	void __FASTCALL set_dma_intr(bool val);
