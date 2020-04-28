@@ -608,6 +608,11 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 			reset();
 		}
 		break;
+	case SIG_TOWNS_CDROM_DMAINT:
+		if((data & mask) != 0) {
+			set_dma_intr(true);
+		}
+		break;
 	default:
 //		SCSI_DEV::write_signal(id, data, mask);
 		// ToDo: Implement master devices.
@@ -1211,7 +1216,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			if(read_length > 0) {
 				out_debug_log(_T("READ NEXT SECTOR"));
 				set_status(true, 0, TOWNS_CD_STATUS_DATA_READY, 0x00, 0x00, 0x00);
-				set_dma_intr(true);
+				set_mcu_intr(true);
 				register_event(this, EVENT_CDROM_SEEK_COMPLETED,
 							   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 16.0, // OK?
 							   false, NULL);

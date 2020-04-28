@@ -165,7 +165,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(sasi);
 	dma->set_context_ch1(fdc);
-	dma->set_context_tc(pic, SIG_I8259_CHIP0 | SIG_I8259_IR3, 1);
+	dma->set_context_tc(pic, SIG_I8259_CHIP0 | SIG_I8259_IR3, 3); // OK?
 	dma->set_context_tc(sasi, SIG_SASI_TC, 1);
 	opn->set_context_irq(pic, SIG_I8259_CHIP1 | SIG_I8259_IR7, 1);
 	opn->set_context_port_a(crtc, SIG_CRTC_PALLETE, 0x04, 0);

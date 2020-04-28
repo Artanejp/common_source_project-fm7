@@ -415,7 +415,7 @@ bool UPD71071::do_dma_prologue(int c)
 		sreq &= ~bit;
 		tc |= bit;
 						
-		write_signals(&outputs_tc, 0xffffffff);
+		write_signals(&outputs_tc, tc);
 		return true;
 	}
 	if(_SINGLE_MODE_DMA) {
