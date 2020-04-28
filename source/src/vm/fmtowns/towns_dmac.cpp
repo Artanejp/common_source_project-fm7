@@ -38,7 +38,7 @@ bool TOWNS_DMAC::do_dma_prologue(int c)
 		sreq &= ~bit;
 		tc |= bit;
 						
-		write_signals(&outputs_tc, 0xffffffff);
+		write_signals(&outputs_tc, tc);
 		return true;
 	}
 	if(_SINGLE_MODE_DMA) {
@@ -232,7 +232,7 @@ uint32_t TOWNS_DMAC::read_signal(int id)
 	return UPD71071::read_signal(id);
 }
 
-void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t mask)
+void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 {
 	if(id == SIG_TOWNS_DMAC_ADDR_REG) {
 		dma_addr_reg = data & 3;
@@ -266,7 +266,7 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t mask)
 //		if(id == SIG_UPD71071_CH1) {
 //			out_debug_log(_T("DRQ from SCSI %02X %02X"), data, mask);
 //		}
-		UPD71071::write_signal(id, data, mask);
+		UPD71071::write_signal(id, data, _mask);
 	}
 }		
 

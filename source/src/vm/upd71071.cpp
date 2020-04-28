@@ -187,12 +187,12 @@ uint32_t UPD71071::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-void UPD71071::write_signal(int id, uint32_t data, uint32_t mask)
+void UPD71071::write_signal(int id, uint32_t data, uint32_t _mask)
 {
 	int ch = id & 3;
 	uint8_t bit = 1 << ch;
 	if((id >= SIG_UPD71071_CH0) && (id <= SIG_UPD71071_CH3)) {
-		if(data & mask) {
+		if(data & _mask) {
 			if(!(req & bit)) {
 				req |= bit;
 				if(!_SINGLE_MODE_DMA) {
@@ -205,7 +205,7 @@ void UPD71071::write_signal(int id, uint32_t data, uint32_t mask)
 			req &= ~bit;
 		}
 	} else if((id >= SIG_UPD71071_UBE_CH0) && (id <= SIG_UPD71071_UBE_CH3)) {
-		inputs_ube[ch] = ((data & mask) != 0) ? true : false;
+		inputs_ube[ch] = ((data & _mask) != 0) ? true : false;
 	}
 }
 

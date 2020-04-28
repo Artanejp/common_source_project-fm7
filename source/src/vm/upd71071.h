@@ -102,7 +102,7 @@ public:
 	virtual void reset();
 	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
-	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t _mask);
 	virtual uint32_t __FASTCALL read_signal(int id);
 	virtual void __FASTCALL do_dma();
 	// for debug
@@ -151,25 +151,25 @@ public:
 	{
 		d_debugger = device;
 	}
-	void set_context_tc(DEVICE* device, int id, uint32_t mask)
+	void set_context_tc(DEVICE* device, int id, uint32_t _mask)
 	{
-		register_output_signal(&outputs_tc, device, id, mask);
+		register_output_signal(&outputs_tc, device, id, _mask);
 	}	
-	void set_context_ube0(DEVICE* device, int id, uint32_t mask)
+	void set_context_ube0(DEVICE* device, int id, uint32_t _mask)
 	{
-		register_output_signal(&outputs_ube[0], device, id, mask);
+		register_output_signal(&outputs_ube[0], device, id, _mask);
 	}
-	void set_context_ube1(DEVICE* device, int id, uint32_t mask)
+	void set_context_ube1(DEVICE* device, int id, uint32_t _mask)
 	{
-		register_output_signal(&outputs_ube[1], device, id, mask);
+		register_output_signal(&outputs_ube[1], device, id, _mask);
 	}
-	void set_context_ube2(DEVICE* device, int id, uint32_t mask)
+	void set_context_ube2(DEVICE* device, int id, uint32_t _mask)
 	{
-		register_output_signal(&outputs_ube[2], device, id, mask);
+		register_output_signal(&outputs_ube[2], device, id, _mask);
 	}
-	void set_context_ube3(DEVICE* device, int id, uint32_t mask)
+	void set_context_ube3(DEVICE* device, int id, uint32_t _mask)
 	{
-		register_output_signal(&outputs_ube[3], device, id, mask);
+		register_output_signal(&outputs_ube[3], device, id, _mask);
 	}
 };
 
