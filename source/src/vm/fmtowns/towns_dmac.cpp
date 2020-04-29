@@ -22,44 +22,6 @@ void TOWNS_DMAC::reset()
 //	b16 = 2; // Fixed 16bit.
 }
 
-bool TOWNS_DMAC::do_dma_prologue(int c)
-{
-	uint8_t bit = 1 << c;
-	if(dma[c].creg-- == 0) {  // OK?
-		// TC
-		if(dma[c].mode & 0x10) {
-			// auto initialize
-			dma[c].areg = dma[c].bareg;
-			dma[c].creg = dma[c].bcreg;
-		} else {
-			mask |= bit;
-		}
-		req &= ~bit;
-		sreq &= ~bit;
-		tc |= bit;
-						
-		write_signals(&outputs_tc, tc);
-		return true;
-	}
-	if(_SINGLE_MODE_DMA) {
-		// Note: At FM-Towns, SCSI's DMAC will be set after
-		//       SCSI bus phase become DATA IN/DATA OUT.
-		//       Before bus phase became DATA IN/DATA OUT,
-		//       DMAC mode and state was unstable (and ASSERTED
-		//       DRQ came from SCSI before this state change).
-		// ToDo: Stop correctly before setting.
-		//       -- 20200316 K.O
-		if(((dma[c].mode & 0xc0) == 0x40) || ((dma[c].mode & 0xc0) == 0x00)) {
-			// single mode or demand mode
-			req &= ~bit;
-			sreq &= ~bit;
-			return true;
-		}
-	}
-	return false;
-}
-
-	
 void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 {
 //	if((addr & 0x0f) == 0x0c) out_debug_log("WRITE REG: %08X %08X", addr, data);
@@ -295,7 +257,7 @@ uint32_t TOWNS_DMAC::read_via_debugger_data16(uint32_t addr)
 
 // note: if SINGLE_MODE_DMA is defined, do_dma() is called in every machine cycle
 bool TOWNS_DMAC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
-{
+{	
 	static const _TCHAR *dir[4] = {
 		_T("VERIFY"), _T("I/O->MEM"), _T("MEM->I/O"), _T("INVALID")
 	};
@@ -318,14 +280,15 @@ bool TOWNS_DMAC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	{
 		my_stprintf_s(buffer, buffer_len,
 					  _T("16Bit=%s ADDR_MASK=%08X ADDR_REG=%02X ADDR_WRAP=%02X \n")
+					  _T("SELECT CH=%d BASE=%02X REQ=%02X SREQ=%02X MASK=%02X TC=%02X ")
+					  _T("CMD=%04X TMP=%04X\n")
 					  _T("%s")
 					  _T("%s")
 					  _T("%s")
-					  _T("%s")
-					  , (b16) ? _T("YES") : _T("NO"),
-					  dma_addr_mask,
-					  dma_addr_reg,
-					  dma_wrap_reg,
+					  _T("%s"),
+					  (b16) ? _T("YES") : _T("NO"), dma_addr_mask, dma_addr_reg, dma_wrap_reg,
+					  selch, base, req, sreq, mask, tc,
+					  cmd, tmp,
 					  sbuf[0],
 					  sbuf[1],
 					  sbuf[2],
