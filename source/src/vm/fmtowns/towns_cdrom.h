@@ -130,14 +130,15 @@ protected:
 		uint32_t lba_size;
 		bool is_audio;
 	} toc_table[1024];
-	_TCHAR track_data_path[99][_MAX_PATH];
+	_TCHAR track_data_path[100][_MAX_PATH];
 	_TCHAR img_file_path_bak[_MAX_PATH];
+	bool with_filename[100];
 	
 	uint32_t cdda_start_frame;
 	uint32_t cdda_end_frame;
 	uint32_t cdda_playing_frame;
 	int cdda_status;
-	bool cdda_repeat;
+	int cdda_repeat_count;
 	bool cdda_interrupt;
 	int cdda_buffer_ptr;
 	uint8_t cdda_buffer[2352 * 75];
@@ -211,6 +212,7 @@ protected:
 	void status_not_ready();
 	void status_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
 	void status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
+	void status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_delay_ready();
 	void set_delay_ready2();
 	

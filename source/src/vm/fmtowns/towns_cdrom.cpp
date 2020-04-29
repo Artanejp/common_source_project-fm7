@@ -495,7 +495,8 @@ void TOWNS_CDROM::reset()
 	mcu_ready = true;
 	has_status = false;
 	req_status = false;
-	
+
+	cdda_repeat_count = -1;
 	touch_sound();
 	if(event_delay_interrupt != -1) cancel_event(this, event_delay_interrupt);
 	if(event_cdda_delay_play != -1) cancel_event(this, event_cdda_delay_play);
@@ -531,7 +532,6 @@ void TOWNS_CDROM::reset()
 	}
 	read_mode = false;
 	set_cdda_status(CDDA_OFF);
-	is_playing = false;
 	read_sectors = 0;
 	write_signals(&outputs_drq, 0);
 	mcu_intr = false;
@@ -676,6 +676,12 @@ void TOWNS_CDROM::status_not_ready()
 //	send_mcu_ready();	
 }
 
+void TOWNS_CDROM::status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3)
+{
+	out_debug_log(_T("Error on reading (ILLGLBLKADDR): EXTRA=%d s0=%02X s1=%02X s2=%02X s3=%02X\n"), extra, TOWNS_CD_STATUS_CMD_ABEND, s1, s2, s3);
+	set_status(req_status, extra, TOWNS_CD_STATUS_CMD_ABEND, s1, s2, s3);
+}
+
 void TOWNS_CDROM::status_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3)
 {
 	set_status(req_status, extra, TOWNS_CD_STATUS_ACCEPT, s1, s2, s3);
@@ -723,7 +729,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		return;
 	}
 	switch(command & 0x9f) {
-	case CDROM_COMMAND_SEEK:
+	case CDROM_COMMAND_SEEK: // 00h (RESTORE?)
 		{
 			uint8_t m, s, f;
 //			m = FROM_BCD(param_queue[0]);
@@ -742,20 +748,20 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				);
 		}
 		break;
-	case CDROM_COMMAND_READ_MODE2:
+	case CDROM_COMMAND_READ_MODE2: // 01h
 		out_debug_log(_T("CMD READ MODE2(%02X)"), command);
 		status_accept(0, 0xff, 0xff, 0xff);
 		break;
-	case CDROM_COMMAND_READ_MODE1:
+	case CDROM_COMMAND_READ_MODE1: // 02h
 		out_debug_log(_T("CMD READ MODE1(%02X)"), command);
 		read_cdrom();
 		break;
-	case CDROM_COMMAND_PLAY_TRACK:
+	case CDROM_COMMAND_PLAY_TRACK: // 04h
 		out_debug_log(_T("CMD PLAY TRACK(%02X)"), command);
 		play_cdda_from_cmd(); // ToDo : Re-Implement.
 //		play_cdda(req_status);
 		break;
-	case CDROM_COMMAND_READ_TOC:
+	case CDROM_COMMAND_READ_TOC: // 05h
 		out_debug_log(_T("CMD READ TOC(%02X)"), command);
 		if(req_status) {
 			set_status(true, 1, TOWNS_CD_STATUS_ACCEPT, 0, 0, 0);
@@ -765,7 +771,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 //		send_mcu_ready();
 		// TOC READING
 		break;
-	case CDROM_COMMAND_READ_CDDA_STATE:
+	case CDROM_COMMAND_READ_CDDA_STATE: // 06h
 		out_debug_log(_T("CMD SET CDDA STATE(%02X)"), command);
 		status_accept(1, 0x00, 0x00, 0x00);
 		break;
@@ -773,11 +779,13 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		out_debug_log(_T("CMD UNKNOWN 1F(%02X)"), command);
 		status_not_ready(); // ToDo: Will implement
 		break;
-	case CDROM_COMMAND_SET_STATE:
-		{
+	case CDROM_COMMAND_SET_STATE: // 80h
+		if(req_status) {
 			uint8_t playcode;
 			out_debug_log(_T("CMD SET STATE(%02X)"), command);
-			if(is_playing) { // OK?
+			if((cdda_status == CDDA_PLAYING)
+			   && (current_track >= 0) && (current_track < track_num)
+			   && (toc_table[current_track].is_audio)) { // OK?
 				playcode = 3;
 			} else {
 				playcode = 1;
@@ -785,19 +793,21 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			status_accept(0, playcode, 0x00, 0x00);
 		}
 		break;
-	case CDROM_COMMAND_SET_CDDASET:
-		out_debug_log(_T("CMD CDDA SET(%02X)"), command);
-		status_accept(0, 0x00, 0x00, 0x00);
+	case CDROM_COMMAND_SET_CDDASET: // 81h
+		if(req_status) {
+			out_debug_log(_T("CMD CDDA SET(%02X)"), command);
+			status_accept(0, 0x00, 0x00, 0x00);
+		}
 		break;
-	case CDROM_COMMAND_STOP_CDDA:
+	case CDROM_COMMAND_STOP_CDDA: // 84h
 		out_debug_log(_T("CMD STOP CDDA(%02X)"), command);
 		stop_cdda_from_cmd();
 		break;
-	case CDROM_COMMAND_PAUSE_CDDA:
+	case CDROM_COMMAND_PAUSE_CDDA: // 85h
 		out_debug_log(_T("CMD PLAY CDDA2(%02X)"), command);
 		pause_cdda_from_cmd(); // ToDo : Re-Implement.
 		break;
-	case CDROM_COMMAND_RESUME_CDDA:
+	case CDROM_COMMAND_RESUME_CDDA: // 87h
 		out_debug_log(_T("CMD RESUME CDDA(%02X)"), command);
 		unpause_cdda_from_cmd();
 		break;
@@ -1147,7 +1157,7 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 			}
 			uint32_t msf;
 			if(cdda_playing_frame >= cdda_end_frame) {
-				if(cdda_repeat) {
+				if(cdda_repeat_count >= 0) {
 					return 0;
 				} else {
 					msf = lba_to_msf(cdda_end_frame - cdda_start_frame);
@@ -1373,16 +1383,13 @@ bool TOWNS_CDROM::read_buffer(int length)
 		// ToDo: Need seek wait.
 		out_debug_log(_T("Seek to LBA %d LENGTH=%d\n"), position / 2352, length);
 		if(fio_img->Fseek(((long)position - (long)(toc_table[current_track].lba_offset * 2352)), FILEIO_SEEK_SET) != 0) {
-//			set_sense_code(SCSI_SENSE_ILLGLBLKADDR); //SCSI_SENSE_SEEKERR
-			out_debug_log(_T("Error on reading (ILLGLBLKADDR) at line %d\n"), __LINE__);
-			send_mcu_ready();
+			status_illegal_lba(0, 0x00, 0x00, 0x00);			
+			//send_mcu_ready();
 			return false;
 		}
 	} else {
 		if(fio_img->Fseek((long)position, FILEIO_SEEK_SET) != 0) {
-//			set_sense_code(SCSI_SENSE_ILLGLBLKADDR); //SCSI_SENSE_SEEKERR
-			out_debug_log(_T("Error on reading (ILLGLBLKADDR) at line %d\n"), __LINE__);
-			send_mcu_ready();
+			status_illegal_lba(0, 0x00, 0x00, 0x00);			
 			return false;
 		}
 	}
@@ -1392,9 +1399,7 @@ bool TOWNS_CDROM::read_buffer(int length)
 //		int tmp_length = min(length, (int)sizeof(tmp_buffer));
 		int tmp_length = 2352 - offset;
 		if(fio_img->Fread(tmp_buffer, tmp_length, 1) != 1) {
-			out_debug_log(_T("Error on reading (ILLGLBLKADDR) at line %d\n"), __LINE__);
-//			set_sense_code(SCSI_SENSE_ILLGLBLKADDR); //SCSI_SENSE_NORECORDFND
-			send_mcu_ready();
+			status_illegal_lba(0, 0x00, 0x00, 0x00);			
 			return false;
 		}
 		for(int i = 0; i < tmp_length; i++) {
@@ -1450,12 +1455,13 @@ void TOWNS_CDROM::read_a_cdda_sample()
 			}
 		}
 		if(cdda_playing_frame == cdda_end_frame) {
-			out_debug_log(_T("Reaches to the end of track.(FRAME %d). START_FRAME=%d END_FRAME=%d REPEAT=%s INTERRUPT=%s\n"),
+			out_debug_log(_T("Reaches to the end of track.(FRAME %d). START_FRAME=%d END_FRAME=%d REPEAT COUNT=%d INTERRUPT=%s\n"),
 						  cdda_playing_frame, cdda_start_frame, cdda_end_frame, 
-						  (cdda_repeat) ? _T("YES") : _T("NO"),
+						  cdda_repeat_count,
 						  (cdda_interrupt) ? _T("YES") : _T("NO"));
 			// reached to end frame
-			if(cdda_repeat) {
+			cdda_repeat_count--;
+			if(cdda_repeat_count >= 0) {
 				// reload buffer
 				// Restart.
 				if(is_cue) {
@@ -1537,7 +1543,6 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 			touch_sound();
 			set_realtime_render(this, true);
 			out_debug_log(_T("Play CDDA from %s.\n"), (cdda_status == CDDA_PAUSED) ? _T("PAUSED") : _T("STOPPED"));
-			is_playing = true;
 		}
 	} else {
 		if(event_cdda != -1) {
@@ -1553,7 +1558,7 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 				memset(cdda_buffer, 0x00, sizeof(cdda_buffer));
 				cdda_buffer_ptr = 0;
 				read_sectors = 0;
-				cdda_repeat = false; // OK?
+				cdda_repeat_count = -1; // OK?
 				//if(is_cue) {
 				//	if(fio_img->IsOpened()) fio_img->Fclose();
 				//}
@@ -1562,7 +1567,6 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 			touch_sound();
 			set_realtime_render(this, false);
 			out_debug_log(_T("%s playing CDDA.\n"), (status == CDDA_PAUSED) ? _T("PAUSE") : _T("STOP"));
-			is_playing = true;
 		}
 	}
 	cdda_status = status;
@@ -1571,7 +1575,6 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 void TOWNS_CDROM::reset_device()
 {
 	set_cdda_status(CDDA_OFF);
-	is_playing = false;
 //	SCSI_DEV::reset_device();
 	// Will Implement
 }
@@ -1691,11 +1694,14 @@ uint32_t TOWNS_CDROM::lba_to_msf_alt(uint32_t lba)
 
 void TOWNS_CDROM::unpause_cdda_from_cmd()
 {
-	if(cdda_status == CDDA_PAUSED) {
+	if((cdda_status == CDDA_PAUSED) &&
+	   (current_track >= 0) && (current_track < track_num)
+	   && (toc_table[current_track].is_audio)) { // OK?
 		set_cdda_status(CDDA_PLAYING);
 		//set_subq();
 	}
-	send_mcu_ready();	
+	set_subq();
+	status_accept(1, 0x03, 0x00, 0x00);
 }
 
 void TOWNS_CDROM::stop_cdda_from_cmd()
@@ -1704,7 +1710,11 @@ void TOWNS_CDROM::stop_cdda_from_cmd()
 		status_not_ready();
 		return;
 	}
-	set_cdda_status(CDDA_OFF);
+	if(/*(status != CDDA_OFF) && */
+		(current_track >= 0) && (current_track < track_num)
+		&& (toc_table[current_track].is_audio)) { // OK?
+		set_cdda_status(CDDA_OFF);
+	}
 	set_subq();
 	status_accept(1, 0x00, 0x00, 0x00);
 }
@@ -1715,36 +1725,44 @@ void TOWNS_CDROM::pause_cdda_from_cmd()
 		status_not_ready();
 		return;
 	}
-	uint8_t m1, s1, f1;
-	uint8_t m2, s2, f2;
-	
-	m1 = FROM_BCD(param_queue[0]);
-	s1 = FROM_BCD(param_queue[1]);
-	f1 = FROM_BCD(param_queue[2]);
-
-	m2 = FROM_BCD(param_queue[3]);
-	s2 = FROM_BCD(param_queue[4]);
-	f2 = FROM_BCD(param_queue[5]);
-	uint8_t pad1 = param_queue[6];
-	uint8_t dcmd = param_queue[7];
-	
-	set_cdda_status(CDDA_OFF);
-	set_subq();
+	if((current_track >= 0) && (current_track < track_num)
+	   && (toc_table[current_track].is_audio)) { // OK?
+		set_cdda_status(CDDA_PAUSED);
+		set_subq();
+	}
 	status_accept(1, 0x00, 0x00, 0x00);
 }
 
 void TOWNS_CDROM::play_cdda_from_cmd()
 {
-	uint8_t m_start = param_queue[0]; 
-	uint8_t s_start = param_queue[1];
-	uint8_t f_start = param_queue[2];
-	uint8_t m_end   = param_queue[3];
-	uint8_t s_end   = param_queue[4];
-	uint8_t f_end   = param_queue[5];
-	if(is_device_ready()) {
+	uint8_t m_start      = param_queue[0]; 
+	uint8_t s_start      = param_queue[1];
+	uint8_t f_start      = param_queue[2];
+	uint8_t m_end        = param_queue[3];
+	uint8_t s_end        = param_queue[4];
+	uint8_t f_end        = param_queue[5];
+	uint8_t is_repeat    = param_queue[6]; // From Towns Linux v1.1/towns_cd.c
+	uint8_t repeat_count = param_queue[7];
+	cdda_repeat_count = -1;
+	if(!(mounted())) {
+		status_not_ready();
+		return;
+	}
+	{
 		cdda_start_frame = FROM_BCD(f_start) + (FROM_BCD(s_start) + FROM_BCD(m_start) * 60) * 75;
 		cdda_end_frame   = FROM_BCD(f_end)   + (FROM_BCD(s_end)   + FROM_BCD(m_end) * 60) * 75;
 		int track = get_track(cdda_start_frame);
+		if(!(toc_table[track].is_audio)) {
+			status_not_accept(0, 0x0, 0x00, 0x00);
+			return;
+		}
+		if(is_repeat == 1) {
+			cdda_repeat_count = 0;
+		} else {
+			// Maybe is_repeat == 9
+			cdda_repeat_count = repeat_count;
+			cdda_repeat_count++;
+		}
 		if(cdda_start_frame >= toc_table[track].pregap) {
 			cdda_start_frame -= toc_table[track].pregap;
 		}
@@ -1765,7 +1783,8 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 		register_event(this, EVENT_CDDA_DELAY_PLAY, 10.0, false, &event_cdda_delay_play);
 	}
 	set_subq(); // First
-	send_mcu_ready();	
+	status_accept(1, 0x03, 0x00, 0x00);
+//	send_mcu_ready();	
 }
 
 void TOWNS_CDROM::make_bitslice_subc_q(uint8_t *data, int bitwidth)
@@ -1964,10 +1983,12 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 		line_buf.clear();
 		for(int i = 0; i < 100; i++) {
 			memset(&(track_data_path[i][0]), 0x00, _MAX_PATH * sizeof(_TCHAR));
+			with_filename[i] = false;
 		}
 		int _c;
 		bool is_eof = false;
 		int sptr = 0;
+		bool have_filename = false;
 		while(1) {
 			line_buf.clear();
 			int _np = 0;
@@ -2024,6 +2045,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				image_tmp_data_path.append(_arg2);
 				
 				out_debug_log(_T("**FILE %s\n"), image_tmp_data_path.c_str());
+				have_filename = true;
 				goto _n_continue; // ToDo: Check ARG2 (BINARY etc..) 20181118 K.O
 			} else if(_arg1 == "TRACK") {
 				_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
@@ -2040,6 +2062,9 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 					
 					memset(track_data_path[_nr_num - 1], 0x00, sizeof(_TCHAR) * _MAX_PATH);
 					strncpy((char *)(track_data_path[_nr_num - 1]), image_tmp_data_path.c_str(), _MAX_PATH);
+					image_tmp_data_path.clear();
+					with_filename[_nr_num - 1] = have_filename;
+					have_filename = false;
 					_arg3_ptr_s = _arg3.find_first_of((const char *)" \t\n");
 					_arg3.substr(0, _arg3_ptr_s);
 					
@@ -2112,6 +2137,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 		}
 		// Finish
 		max_logical_block = 0;
+		uint32_t pt_lba_ptr = 0;
 		if(track_num > 0) {
 			toc_table[0].lba_offset = 0;
 			toc_table[0].lba_size = 0;
@@ -2144,7 +2170,6 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				if(toc_table[i].pregap <= 150) {
 					toc_table[i].pregap = 150; // Default PREGAP must be 2Sec. From OoTake.(Only with PCE? Not with FM-Towns?)
 				}
-
 				_n = 0;
 				if(strlen(track_data_path[i - 1]) > 0) {
 					if(fio_img->Fopen(track_data_path[i - 1], FILEIO_READ_BINARY)) {
@@ -2156,11 +2181,15 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 						fio_img->Fclose();
 					}
 				}
-				toc_table[i].lba_size = _n;
+//				toc_table[i].lba_size = _n;
 				toc_table[i].lba_offset = max_logical_block - _n;
-
-				
-				//#ifdef _CDROM_DEBUG_LOG
+			}
+			for(int i = 1; i < track_num; i++) {
+				if(i < (track_num - 1)) {
+					toc_table[i].lba_size = toc_table[i + 1].index1 - toc_table[i].index1;
+				} else {
+					toc_table[i].lba_size = max_logical_block - toc_table[i].lba_offset;
+				}
 				out_debug_log(_T("TRACK#%02d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d LBA_OFFSET=%d PATH=%s\n"),
 									i, (toc_table[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352"),
 									toc_table[i].pregap, toc_table[i].index0, toc_table[i].index1,
@@ -2500,13 +2529,12 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(is_cue);
 	state_fio->StateValue(current_track);
 	state_fio->StateValue(track_num);
-	state_fio->StateValue(is_playing);
 
 	state_fio->StateValue(cdda_start_frame);
 	state_fio->StateValue(cdda_end_frame);
 	state_fio->StateValue(cdda_playing_frame);
 	state_fio->StateValue(cdda_status);
-	state_fio->StateValue(cdda_repeat);
+	state_fio->StateValue(cdda_repeat_count);
 	state_fio->StateValue(cdda_interrupt);
 	state_fio->StateArray(cdda_buffer, sizeof(cdda_buffer), 1);
 	state_fio->StateValue(cdda_buffer_ptr);
