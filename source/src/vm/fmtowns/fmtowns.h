@@ -200,7 +200,7 @@
 #define IO_ADDR_MAX		0x10000
 #define SCSI_HOST_AUTO_ACK
 //#define SCSI_HOST_WIDE
-#define _SCSI_DEBUG_LOG
+//#define _SCSI_DEBUG_LOG
 //#define SCSI_DEV_IMMEDIATE_SELECT
 #define _CDROM_DEBUG_LOG
 
