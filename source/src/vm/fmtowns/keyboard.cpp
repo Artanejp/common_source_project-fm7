@@ -12,13 +12,15 @@
 #include "../i8259.h"
 #include "../../fifo.h"
 
+#define EVENT_KEY_CODE		1
+
 namespace FMTOWNS {
 void KEYBOARD::initialize()
 {
 	DEVICE::initialize();
 	key_buf = new FIFO(64);
 	cmd_buf = new FIFO(16);
-	register_frame_event(this);
+	event_keycode = -1;
 }
 
 void KEYBOARD::release()
@@ -40,10 +42,24 @@ void KEYBOARD::reset()
 	repeat_tick_ms = 30;
 	enable_double_pressed_cursor = true;
 	nmi_status = false;
+	if(event_keycode > -1) {
+		cancel_event(this, event_keycode);
+		event_keycode = -1;
+	}
 	write_signals(&output_intr_line, 0);
 	write_signals(&output_nmi_line, 0);
 }
 
+void KEYBOARD::register_key_interrupt(bool first)
+{
+	double usec = (first) ? 1000.0 : 50.0;
+	if(event_keycode > -1) {
+		cancel_event(this, event_keycode);
+	}
+	event_keycode = -1;
+	register_event(this, EVENT_KEY_CODE, usec, false, &event_keycode);
+}
+	
 void KEYBOARD::do_common_command(uint8_t cmd)
 {
 	static const int type_start_ms[] = {400, 500, 300};
@@ -141,7 +157,7 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 		if(key_buf->empty()) {
 			kbstat &= ~1;
 		} else {
-			kbdata = key_buf->read();
+			register_key_interrupt(false); // NEXT BYTE
 		}
 //		out_debug_log(_T("READ I/O ADDR=%04X VAL=%02X"), addr, kbdata);
 		return kbtmp;
@@ -156,18 +172,21 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 	return 0;
 }
 
-void KEYBOARD::event_frame()
+void KEYBOARD::event_callback(int event_id, int err)
 {
-	if(!(kbstat & 1) && !key_buf->empty()) {
-		kbstat |= 1;
+	switch(event_id) {
+	case EVENT_KEY_CODE:
 		kbdata = key_buf->read();
+		kbstat |= 1;
+		if(kbmsk & 1) {
+			kbint |= 1;
+			write_signals(&output_intr_line, 0xffffffff);
+		}
+		event_keycode = -1;
+		break;
 	}
-	if((kbstat & 1) && (kbmsk & 1) && !(kbint & 1)) {
-		kbint |= 1;
-		write_signals(&output_intr_line, 0xffffffff);
-	}
-//	kbstat &= ~2;
 }
+	
 
 void KEYBOARD::key_down(int code)
 {
@@ -197,6 +216,7 @@ void KEYBOARD::key_down(int code)
 			}
 			key_buf->write(0xc0 | (table[0x11] ? 8 : 0) | (table[0x10] ? 4 : 0));
 			key_buf->write(code & 0x7f);
+			register_key_interrupt(true);
 		}
 //	}
 }
@@ -228,6 +248,7 @@ void KEYBOARD::key_up(int code)
 			}
 			key_buf->write(0xd0 | (table[0x11] ? 8 : 0) | (table[0x10] ? 4 : 0));
 			key_buf->write(code & 0x7f);
+			register_key_interrupt(true);
 		}
 //	}
 }
@@ -261,7 +282,8 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(device_order);
 
 	state_fio->StateArray(table, sizeof(table), 1);
-
+	
+	state_fio->StateValue(event_keycode);
 	return true;
 }
 

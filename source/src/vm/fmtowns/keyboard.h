@@ -110,7 +110,11 @@ protected:
 	bool nmi_status;
 	uint8_t table[256];
 
+	int event_keycode;
+	
 	virtual void do_common_command(uint8_t cmd);
+	void register_key_interrupt(bool first);
+
 public:
 	KEYBOARD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -129,7 +133,7 @@ public:
 	void reset();
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void event_frame();
+	void event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
