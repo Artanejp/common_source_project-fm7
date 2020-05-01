@@ -46,7 +46,8 @@ ia32_initreg(void)
 
 	CPU_STATSAVE.cpu_inst_default.seg_base = (UINT32)-1;
 
-	CPU_EDX = (CPU_FAMILY << 8) | (CPU_MODEL << 4) | CPU_STEPPING;
+//	CPU_EDX = (CPU_FAMILY << 8) | (CPU_MODEL << 4) | CPU_STEPPING;
+	CPU_EDX = (i386cpuid.cpu_family << 8) | (i386cpuid.cpu_model << 4) | i386cpuid.cpu_stepping;
 	CPU_EFLAG = 2;
 	CPU_CR0 = CPU_CR0_CD | CPU_CR0_NW;
 #if defined(USE_FPU)

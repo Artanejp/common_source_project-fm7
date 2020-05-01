@@ -62,7 +62,8 @@ void I386::reset()
 		i386cpuid.cpu_family = CPU_80386_FAMILY;
 		i386cpuid.cpu_model = CPU_80386_MODEL;
 		i386cpuid.cpu_stepping = CPU_80386_STEPPING;
-		i386cpuid.cpu_feature = CPU_FEATURES_80386;
+//		i386cpuid.cpu_feature = CPU_FEATURES_80386; 
+		i386cpuid.cpu_feature = CPU_FEATURES_80386 | CPU_FEATURE_FPU_FLAG; // 20200501 TMP K.O
 		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_80386;
 		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_80386;
 		i386cpuid.cpu_brandid = CPU_BRAND_ID_80386;
