@@ -133,11 +133,13 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 			}
 			}
 #endif
+#if 0
 		if((data & 0x02) == 0) {
 			out_debug_log(_T("START SCSI DMA MODE=%02X ADDR=%08X COUNT=%04X"),
 						  dma[1].mode, (dma[1].areg & 0xffffff) | dma_high_address[1],
 						  dma[1].creg);
 		}
+#endif
 		break;
 	default:
 		break;

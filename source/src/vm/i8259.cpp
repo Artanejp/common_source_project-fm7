@@ -47,7 +47,7 @@ void I8259::write_io8(uint32_t addr, uint32_t data)
 			// icw2
 			pic[c].icw2 = data;
 			pic[c].icw2_r = 0;
-			out_debug_log("Set ICW2 to %02X\n", data);
+//			out_debug_log("Set ICW2 to %02X\n", data);
 		} else if(pic[c].icw3_r) {
 			// icw3
 			pic[c].icw3 = data;
@@ -228,9 +228,9 @@ uint32_t I8259::read_io8(uint32_t addr)
 
 void I8259::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	if((id & 0x0f) == 0x09) {
-		out_debug_log(_T("CDC INTR %02X"), data & mask);
-	}
+//	if((id & 0x0f) == 0x09) {
+//		out_debug_log(_T("CDC INTR %02X"), data & mask);
+//	}
 	if(data & mask) {
 		pic[id >> 3].irr |= 1 << (id & 7);
 		update_intr();
