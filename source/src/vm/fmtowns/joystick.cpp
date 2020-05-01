@@ -103,7 +103,7 @@ void JOYSTICK::write_io8(uint32_t address, uint32_t data)
 	// ToDo: Mouse
 	if(address == 0x04d6) {
 		if(emulate_mouse[0]) {
-			update_strobe(((data & 0x20) != 0));
+			update_strobe(((data & 0x10) != 0));
 		} else if(emulate_mouse[1]) {
 			update_strobe(((data & 0x20) != 0));
 		}
@@ -230,10 +230,10 @@ void JOYSTICK::update_strobe(bool flag)
 		mouse_phase++;
 		if(mouse_phase >= 4) {
 			mouse_phase = 0;
-//			if(mouse_timeout_event >= 0) {
-//				cancel_event(this, mouse_timeout_event);
-//				mouse_timeout_event = -1;
-//			}
+			if(mouse_timeout_event >= 0) {
+				cancel_event(this, mouse_timeout_event);
+				mouse_timeout_event = -1;
+			}
 		}
 	}
 }
