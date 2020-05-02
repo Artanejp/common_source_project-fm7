@@ -1947,7 +1947,28 @@ int TOWNS_CDROM::hexatoi(const char *s)
 }
 
 #include <string>
+#include <map>
 
+enum {
+	CUE_NONE = 0,
+	CUE_REM,
+	CUE_FILE,
+	CUE_TRACK,
+	CUE_INDEX,
+	CUE_PREGAP,
+};
+enum {
+	MODE_AUDIO = 0,
+	MODE_MODE1_2352,
+	MODE_MODE1_2048,
+	MODE_CD_G,
+	MODE_MODE2_2336,
+	MODE_MODE2_2352,
+	MODE_CDI_2336,
+	MODE_CDI_2352,
+	MODE_NONE
+};
+	
 bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 {
 	std::string line_buf;
@@ -1978,6 +1999,25 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 	std::string _arg1;
 	std::string _arg2;
 	std::string _arg3;
+
+	std::map<std::string, int> cue_enum;
+	std::map<std::string, int> cue_type;
+
+	// Initialize
+	cue_enum.insert(std::make_pair("REM", CUE_REM));
+	cue_enum.insert(std::make_pair("FILE", CUE_FILE));
+	cue_enum.insert(std::make_pair("TRACK", CUE_TRACK));
+	cue_enum.insert(std::make_pair("INDEX", CUE_INDEX));
+	cue_enum.insert(std::make_pair("PREGAP", CUE_PREGAP));
+
+	cue_type.insert(std::make_pair("AUDID", MODE_MODE1_2352));
+	cue_type.insert(std::make_pair("MODE1/2048", MODE_MODE1_2048));
+	cue_type.insert(std::make_pair("MODE1/2352", MODE_MODE1_2352));
+	cue_type.insert(std::make_pair("MODE2/2336", MODE_MODE2_2336));
+	cue_type.insert(std::make_pair("MODE2/2352", MODE_MODE2_2352));
+	cue_type.insert(std::make_pair("CDI/2336", MODE_CDI_2336));
+	cue_type.insert(std::make_pair("CDI/2352", MODE_CDI_2352));
+	cue_type.insert(std::make_pair("CDG", MODE_CD_G));
 	
 	if(fio->Fopen(file_path, FILEIO_READ_ASCII)) { // ToDo: Support not ASCII cue file (i.e. SJIS/UTF8).20181118 K.O
 		line_buf.clear();
@@ -1989,6 +2029,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 		bool is_eof = false;
 		int sptr = 0;
 		bool have_filename = false;
+//		int _nr_num = 0;			
 		while(1) {
 			line_buf.clear();
 			int _np = 0;
@@ -2027,7 +2068,123 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 			if(_arg2_ptr != std::string::npos) {
 				_arg2 = _arg2.substr(_arg2_ptr);
 			}
+			int typeval;
+			try {
+				typeval = cue_enum.at(_arg1);
+			} catch (std::out_of_range &e) {
+				typeval = CUE_NONE;
+			}
+			out_debug_log(_T("ARG1: %s = %d"), _arg1.c_str(), typeval);
+			switch(typeval) {
+			case CUE_REM:
+				break;
+			case CUE_FILE:
+				{
+					_arg2_ptr = _arg2.find_first_of((const char *)"\"") + 1;
+					if(_arg2_ptr == std::string::npos) break;
+					
+					_arg2 = _arg2.substr(_arg2_ptr);
+					_arg3_ptr = _arg2.find_first_of((const char *)"\"");
+					if(_arg3_ptr == std::string::npos) break;
+					_arg2 = _arg2.substr(0, _arg3_ptr);
+					
+					image_tmp_data_path.clear();
+					image_tmp_data_path = std::string(parent_dir);
+					image_tmp_data_path.append(_arg2);
+					
+					out_debug_log(_T("**FILE %s\n"), image_tmp_data_path.c_str());
+					have_filename = true;
+				}
+				break;
+			case CUE_TRACK:
+				{
+					_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
+					
+					_arg3 = _arg2.substr(_arg2_ptr_s);
+					_arg2 = _arg2.substr(0, _arg2_ptr_s);
+					_arg3_ptr = _arg3.find_first_not_of((const char *)" \t");
+					int _nr_num = atoi(_arg2.c_str());
+				
+					// Set image file
+					if((_nr_num > 0) && (_nr_num < 100) && (_arg3_ptr != std::string::npos)) {
+						nr_current_track = _nr_num;
+						_arg3 = _arg3.substr(_arg3_ptr);
+						
+						memset(track_data_path[_nr_num - 1], 0x00, sizeof(_TCHAR) * _MAX_PATH);
+						strncpy((char *)(track_data_path[_nr_num - 1]), image_tmp_data_path.c_str(), _MAX_PATH);
+						image_tmp_data_path.clear();
+						with_filename[_nr_num - 1] = have_filename;
+						have_filename = false;
+						_arg3_ptr_s = _arg3.find_first_of((const char *)" \t\n");
+						_arg3.substr(0, _arg3_ptr_s);
+						
+						std::transform(_arg3.begin(), _arg3.end(), _arg3.begin(),
+									   [](unsigned char c) -> unsigned char{ return std::toupper(c); });
+						
+						toc_table[nr_current_track].is_audio = false;
+						toc_table[nr_current_track].index0 = 0;
+						toc_table[nr_current_track].index1 = 0;
+						toc_table[nr_current_track].pregap = 0;
+						
+						int track_type;
+						try {
+							track_type = cue_type.at(_arg3);
+						} catch (std::out_of_range &e) {
+							track_type = MODE_NONE;
+						}
+						
+						toc_table[nr_current_track].is_audio = false;
+						
+						switch(track_type) {
+						case MODE_AUDIO:
+							toc_table[nr_current_track].is_audio = true; 
+							break;
+							// ToDo: Set data size.
+						}
+						if(track_num < (_nr_num + 1)) track_num = _nr_num + 1;
+					} else {
+						// ToDo: 20181118 K.Ohta
+						nr_current_track = 0;
+					}
+				}
+				break;
+			case CUE_INDEX:
+				if((nr_current_track > 0) && (nr_current_track < 100)) {
+					_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
+					if(_arg2_ptr_s == std::string::npos) break;
+					
+					_arg3 = _arg2.substr(_arg2_ptr_s);
+					_arg2 = _arg2.substr(0, _arg2_ptr_s);
+					_arg3_ptr = _arg3.find_first_not_of((const char *)" \t");
+					if(_arg3_ptr == std::string::npos) break;
 
+					_arg3 = _arg3.substr(_arg3_ptr);
+					_arg3_ptr_s = _arg3.find_first_of((const char *)" \t");
+					_arg3.substr(0, _arg3_ptr_s);
+					int index_type = atoi(_arg2.c_str());
+
+					switch(index_type) {
+					case 0:
+						toc_table[nr_current_track].index0 = get_frames_from_msf(_arg3.c_str());
+						break;
+					case 1:
+						toc_table[nr_current_track].index1 = get_frames_from_msf(_arg3.c_str());
+						break;
+					default:
+						break;
+					}
+				}
+				break;
+			case CUE_PREGAP:
+				if((nr_current_track > 0) && (nr_current_track < 100)) {
+					_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
+					_arg2 = _arg2.substr(0, _arg2_ptr_s - 1);
+					
+					toc_table[nr_current_track].pregap = get_frames_from_msf(_arg2.c_str());
+				}
+				break;
+			}
+#if 0
 			if(_arg1 == "REM") {
 				// REM
 				goto _n_continue;
@@ -2053,7 +2210,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				_arg3 = _arg2.substr(_arg2_ptr_s);
 				_arg2 = _arg2.substr(0, _arg2_ptr_s);
 				_arg3_ptr = _arg3.find_first_not_of((const char *)" \t");
-				int _nr_num = atoi(_arg2.c_str());
+				_nr_num = atoi(_arg2.c_str());
 				
 				// Set image file
 				if((_nr_num > 0) && (_nr_num < 100) && (_arg3_ptr != std::string::npos)) {
@@ -2130,6 +2287,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 					goto _n_continue;
 				}
 			}
+#endif
 		_n_continue:
 			if(is_eof) break;
 			line_buf.clear();
