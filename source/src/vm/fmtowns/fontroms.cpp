@@ -91,7 +91,36 @@ void FONT_ROMS::calc_kanji_offset()
 		break;
 	}
 }		
-	
+
+void FONT_ROMS::write_io8(uint32_t addr, uint32_t data)
+{
+	switch(addr & 0xffff) {
+	case 0xff94: // hidden register
+		kanji_code.b.h = data;
+		calc_kanji_offset();
+		break;
+	case 0xff95: // hidden register
+		kanji_code.b.l = data;
+		calc_kanji_offset();
+		break;
+	}
+}
+
+uint32_t FONT_ROMS::read_io8(uint32_t addr)
+{
+	uint32_t val = 0x00;
+	switch(addr) {
+	case 0xff96: // LOW
+		val = font_kanji16[(kanji_address << 1) + 0];
+		break;
+	case 0xff97: // High
+		val = font_kanji16[(kanji_address << 1) + 1];
+		kanji_address++;
+		break;
+	}
+	return val;
+}
+		
 	
 void FONT_ROMS::write_signal(int ch, uint32_t data, uint32_t mask)
 {

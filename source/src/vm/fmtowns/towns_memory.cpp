@@ -39,7 +39,7 @@ void TOWNS_MEMORY::config_page00()
 //			set_memory_mapped_io_r(0x000ca000, 0x000ca7ff, d_font);
 			set_memory_mapped_io_r(0x000cb000, 0x000cbfff, d_font);
 		}
-		set_memory_mapped_io_rw(0x000cf000, 0x000cffff, this);
+		set_memory_mapped_io_rw(0x000cf000, 0x000cffff, this); // MMIO
 		set_memory_rw          (0x000d0000, 0x000d7fff, ram_paged);
 		set_memory_mapped_io_rw(0x000d8000, 0x000d9fff, d_dictionary); // CMOS
 	} else {
@@ -351,6 +351,9 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 			return 0x00;
 		}
 	default:
+		if((addr & 0xffff) >= 0xff80) {
+			return read_memory_mapped_io8((addr & 0xffff) + 0xc0000);
+		}
 		break;
 	}
 	return val;
@@ -359,7 +362,7 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 uint32_t TOWNS_MEMORY::read_io16(uint32_t addr)
 {
 	{
-			// OK?
+		// OK?
 		pair16_t n;
 		n.b.l = read_io8((addr & 0xfffe) + 0);
 		n.b.h = read_io8((addr & 0xfffe) + 1);
@@ -460,6 +463,9 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	default:
+		if((addr & 0xffff) >= 0xff80) {
+			write_memory_mapped_io8((addr & 0xffff) + 0xc0000, data);
+		}
 		break;
 	}
 	return;
@@ -607,7 +613,7 @@ void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x19:
-		ankcg_enabled = ((data & 1) == 0) ? true : false;
+		ankcg_enabled = ((data & 1) != 0) ? true : false;
 		config_page00();
 		break;
 	case 0x1e:

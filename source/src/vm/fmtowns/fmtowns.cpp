@@ -526,12 +526,17 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x0c30, scsi);
 	io->set_iomap_single_rw(0x0c32, scsi);
 
-	
 	io->set_iomap_range_rw(0x3000, 0x3fff, dictionary); // CMOS
 	
 	io->set_iomap_range_rw(0xfd90, 0xfda2, crtc);	// Palette and CRTC
 	io->set_iomap_single_rw(0xfda4, memory);	// memory
-	io->set_iomap_range_rw(0xff80, 0xffff, vram);	// MMIO
+	
+	io->set_iomap_range_rw(0xff80, 0xff87, vram);	// MMIO
+	io->set_iomap_range_rw(0xff88, 0xff94, memory);	// MMIO
+	io->set_iomap_range_w (0xff94, 0xff95, fontrom);
+	io->set_iomap_range_r (0xff96, 0xff97, fontrom);
+	io->set_iomap_range_rw(0xff98, 0xffff, memory);	// MMIO
+	io->set_iomap_range_rw(0xff9c, 0xffa0, memory);	// MMIO
 
 	// Vram allocation may be before initialize().
 	/*
