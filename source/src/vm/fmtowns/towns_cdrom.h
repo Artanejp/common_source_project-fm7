@@ -225,6 +225,11 @@ protected:
 	uint16_t __FASTCALL calc_subc_crc16(uint8_t *databuf, int bytes, uint16_t initval);
 
 	bool open_cue_file(const _TCHAR* file_path);
+	bool parse_cue_file_args(std::string& _arg2, const _TCHAR *parent_dir, std::string& imgpath);
+	void parse_cue_track(std::string &_arg2, int& nr_current_track, std::string imgpath);
+	int parse_cue_index(std::string &_arg2, int nr_current_track);
+
+	
 	virtual uint8_t read_subq();
 	virtual uint8_t get_subq_status();
 	virtual void set_subq(void);

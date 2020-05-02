@@ -1968,7 +1968,129 @@ enum {
 	MODE_CDI_2352,
 	MODE_NONE
 };
+
+bool TOWNS_CDROM::parse_cue_file_args(std::string& _arg2, const _TCHAR *parent_dir, std::string& imgpath)
+{
+	size_t _arg2_ptr;
+	size_t _arg3_ptr;
+	std::string _arg3;
 	
+	_arg2_ptr = _arg2.find_first_of((const char *)"\"") + 1;
+	if(_arg2_ptr == std::string::npos) return false;
+					
+	_arg2 = _arg2.substr(_arg2_ptr);
+	_arg3_ptr = _arg2.find_first_of((const char *)"\"");
+	if(_arg3_ptr == std::string::npos) return false;
+	_arg2 = _arg2.substr(0, _arg3_ptr);
+	
+	imgpath.clear();
+	imgpath = std::string(parent_dir);
+	imgpath.append(_arg2);
+	
+//	out_debug_log(_T("**FILE %s\n"), imgpath.c_str());
+
+	return true;
+}
+
+void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std::string imgpath)
+{
+	size_t _arg2_ptr_s;
+	size_t _arg2_ptr;
+	_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
+					
+	std::string _arg3 = _arg2.substr(_arg2_ptr_s);
+	_arg2 = _arg2.substr(0, _arg2_ptr_s);
+	size_t _arg3_ptr = _arg3.find_first_not_of((const char *)" \t");
+	size_t _arg3_ptr_s;
+	int _nr_num = atoi(_arg2.c_str());
+				
+	// Set image file
+	if((_nr_num > 0) && (_nr_num < 100) && (_arg3_ptr != std::string::npos)) {
+		std::map<std::string, int> cue_type;
+		cue_type.insert(std::make_pair("AUDIO", MODE_AUDIO));
+		cue_type.insert(std::make_pair("MODE1/2048", MODE_MODE1_2048));
+		cue_type.insert(std::make_pair("MODE1/2352", MODE_MODE1_2352));
+		cue_type.insert(std::make_pair("MODE2/2336", MODE_MODE2_2336));
+		cue_type.insert(std::make_pair("MODE2/2352", MODE_MODE2_2352));
+		cue_type.insert(std::make_pair("CDI/2336", MODE_CDI_2336));
+		cue_type.insert(std::make_pair("CDI/2352", MODE_CDI_2352));
+		cue_type.insert(std::make_pair("CDG", MODE_CD_G));
+
+		nr_current_track = _nr_num;
+		_arg3 = _arg3.substr(_arg3_ptr);
+		
+		memset(track_data_path[_nr_num - 1], 0x00, sizeof(_TCHAR) * _MAX_PATH);
+		strncpy((char *)(track_data_path[_nr_num - 1]), imgpath.c_str(), _MAX_PATH);
+//		image_tmp_data_path.clear();
+//		with_filename[_nr_num - 1] = have_filename;
+//		have_filename = false;
+		_arg3_ptr_s = _arg3.find_first_of((const char *)" \t\n");
+		_arg3.substr(0, _arg3_ptr_s);
+						
+		std::transform(_arg3.begin(), _arg3.end(), _arg3.begin(),
+					   [](unsigned char c) -> unsigned char{ return std::toupper(c); });
+						
+		toc_table[nr_current_track].is_audio = false;
+		toc_table[nr_current_track].index0 = 0;
+		toc_table[nr_current_track].index1 = 0;
+		toc_table[nr_current_track].pregap = 0;
+		int track_type;
+		try {
+			track_type = cue_type.at(_arg3);
+		} catch (std::out_of_range &e) {
+			track_type = MODE_NONE;
+		}
+					
+		switch(track_type) {
+		case MODE_AUDIO:
+			toc_table[nr_current_track].is_audio = true; 
+			break;
+			// ToDo: Set data size.
+		}
+		if(track_num < (_nr_num + 1)) track_num = _nr_num + 1;
+	} else {
+		// ToDo: 20181118 K.Ohta
+		nr_current_track = 0;
+	}
+
+}
+
+int TOWNS_CDROM::parse_cue_index(std::string &_arg2, int nr_current_track)
+{
+	int index = -1;
+	std::string _arg3;
+	size_t _arg2_ptr_s;
+	size_t _arg3_ptr_s;
+	size_t _arg3_ptr;
+	if((nr_current_track > 0) && (nr_current_track < 100)) {
+		_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
+		if(_arg2_ptr_s == std::string::npos) return -1;;
+		
+		_arg3 = _arg2.substr(_arg2_ptr_s);
+		_arg2 = _arg2.substr(0, _arg2_ptr_s);
+		_arg3_ptr = _arg3.find_first_not_of((const char *)" \t");
+		if(_arg3_ptr == std::string::npos) return -1;
+		
+		_arg3 = _arg3.substr(_arg3_ptr);
+		_arg3_ptr_s = _arg3.find_first_of((const char *)" \t");
+		_arg3.substr(0, _arg3_ptr_s);
+		index = atoi(_arg2.c_str());
+		
+		switch(index) {
+		case 0:
+			toc_table[nr_current_track].index0 = get_frames_from_msf(_arg3.c_str());
+			break;
+		case 1:
+			toc_table[nr_current_track].index1 = get_frames_from_msf(_arg3.c_str());
+			break;
+		default:
+			index = -1;
+			break;
+		}
+	}
+	return index;
+}
+
 bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 {
 	std::string line_buf;
@@ -2001,7 +2123,6 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 	std::string _arg3;
 
 	std::map<std::string, int> cue_enum;
-	std::map<std::string, int> cue_type;
 
 	// Initialize
 	cue_enum.insert(std::make_pair("REM", CUE_REM));
@@ -2010,14 +2131,6 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 	cue_enum.insert(std::make_pair("INDEX", CUE_INDEX));
 	cue_enum.insert(std::make_pair("PREGAP", CUE_PREGAP));
 
-	cue_type.insert(std::make_pair("AUDID", MODE_MODE1_2352));
-	cue_type.insert(std::make_pair("MODE1/2048", MODE_MODE1_2048));
-	cue_type.insert(std::make_pair("MODE1/2352", MODE_MODE1_2352));
-	cue_type.insert(std::make_pair("MODE2/2336", MODE_MODE2_2336));
-	cue_type.insert(std::make_pair("MODE2/2352", MODE_MODE2_2352));
-	cue_type.insert(std::make_pair("CDI/2336", MODE_CDI_2336));
-	cue_type.insert(std::make_pair("CDI/2352", MODE_CDI_2352));
-	cue_type.insert(std::make_pair("CDG", MODE_CD_G));
 	
 	if(fio->Fopen(file_path, FILEIO_READ_ASCII)) { // ToDo: Support not ASCII cue file (i.e. SJIS/UTF8).20181118 K.O
 		line_buf.clear();
@@ -2074,106 +2187,22 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 			} catch (std::out_of_range &e) {
 				typeval = CUE_NONE;
 			}
-			out_debug_log(_T("ARG1: %s = %d"), _arg1.c_str(), typeval);
 			switch(typeval) {
 			case CUE_REM:
 				break;
 			case CUE_FILE:
 				{
-					_arg2_ptr = _arg2.find_first_of((const char *)"\"") + 1;
-					if(_arg2_ptr == std::string::npos) break;
-					
-					_arg2 = _arg2.substr(_arg2_ptr);
-					_arg3_ptr = _arg2.find_first_of((const char *)"\"");
-					if(_arg3_ptr == std::string::npos) break;
-					_arg2 = _arg2.substr(0, _arg3_ptr);
-					
-					image_tmp_data_path.clear();
-					image_tmp_data_path = std::string(parent_dir);
-					image_tmp_data_path.append(_arg2);
-					
-					out_debug_log(_T("**FILE %s\n"), image_tmp_data_path.c_str());
-					have_filename = true;
+					if(!(parse_cue_file_args(_arg2, parent_dir, image_tmp_data_path))) break;
+					with_filename[nr_current_track + 1] = true;
 				}
 				break;
 			case CUE_TRACK:
 				{
-					_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
-					
-					_arg3 = _arg2.substr(_arg2_ptr_s);
-					_arg2 = _arg2.substr(0, _arg2_ptr_s);
-					_arg3_ptr = _arg3.find_first_not_of((const char *)" \t");
-					int _nr_num = atoi(_arg2.c_str());
-				
-					// Set image file
-					if((_nr_num > 0) && (_nr_num < 100) && (_arg3_ptr != std::string::npos)) {
-						nr_current_track = _nr_num;
-						_arg3 = _arg3.substr(_arg3_ptr);
-						
-						memset(track_data_path[_nr_num - 1], 0x00, sizeof(_TCHAR) * _MAX_PATH);
-						strncpy((char *)(track_data_path[_nr_num - 1]), image_tmp_data_path.c_str(), _MAX_PATH);
-						image_tmp_data_path.clear();
-						with_filename[_nr_num - 1] = have_filename;
-						have_filename = false;
-						_arg3_ptr_s = _arg3.find_first_of((const char *)" \t\n");
-						_arg3.substr(0, _arg3_ptr_s);
-						
-						std::transform(_arg3.begin(), _arg3.end(), _arg3.begin(),
-									   [](unsigned char c) -> unsigned char{ return std::toupper(c); });
-						
-						toc_table[nr_current_track].is_audio = false;
-						toc_table[nr_current_track].index0 = 0;
-						toc_table[nr_current_track].index1 = 0;
-						toc_table[nr_current_track].pregap = 0;
-						
-						int track_type;
-						try {
-							track_type = cue_type.at(_arg3);
-						} catch (std::out_of_range &e) {
-							track_type = MODE_NONE;
-						}
-						
-						toc_table[nr_current_track].is_audio = false;
-						
-						switch(track_type) {
-						case MODE_AUDIO:
-							toc_table[nr_current_track].is_audio = true; 
-							break;
-							// ToDo: Set data size.
-						}
-						if(track_num < (_nr_num + 1)) track_num = _nr_num + 1;
-					} else {
-						// ToDo: 20181118 K.Ohta
-						nr_current_track = 0;
-					}
+					parse_cue_track(_arg2, nr_current_track, image_tmp_data_path);
 				}
 				break;
 			case CUE_INDEX:
-				if((nr_current_track > 0) && (nr_current_track < 100)) {
-					_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
-					if(_arg2_ptr_s == std::string::npos) break;
-					
-					_arg3 = _arg2.substr(_arg2_ptr_s);
-					_arg2 = _arg2.substr(0, _arg2_ptr_s);
-					_arg3_ptr = _arg3.find_first_not_of((const char *)" \t");
-					if(_arg3_ptr == std::string::npos) break;
-
-					_arg3 = _arg3.substr(_arg3_ptr);
-					_arg3_ptr_s = _arg3.find_first_of((const char *)" \t");
-					_arg3.substr(0, _arg3_ptr_s);
-					int index_type = atoi(_arg2.c_str());
-
-					switch(index_type) {
-					case 0:
-						toc_table[nr_current_track].index0 = get_frames_from_msf(_arg3.c_str());
-						break;
-					case 1:
-						toc_table[nr_current_track].index1 = get_frames_from_msf(_arg3.c_str());
-						break;
-					default:
-						break;
-					}
-				}
+				parse_cue_index(_arg2, nr_current_track);
 				break;
 			case CUE_PREGAP:
 				if((nr_current_track > 0) && (nr_current_track < 100)) {
@@ -2184,110 +2213,6 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				}
 				break;
 			}
-#if 0
-			if(_arg1 == "REM") {
-				// REM
-				goto _n_continue;
-			} else if(_arg1 == "FILE") {
-				_arg2_ptr = _arg2.find_first_of((const char *)"\"") + 1;
-				if(_arg2_ptr == std::string::npos) goto _n_continue;
-				
-				_arg2 = _arg2.substr(_arg2_ptr);
-				_arg3_ptr = _arg2.find_first_of((const char *)"\"");
-				if(_arg3_ptr == std::string::npos) goto _n_continue;
-				_arg2 = _arg2.substr(0, _arg3_ptr);
-				
-				image_tmp_data_path.clear();
-				image_tmp_data_path = std::string(parent_dir);
-				image_tmp_data_path.append(_arg2);
-				
-				out_debug_log(_T("**FILE %s\n"), image_tmp_data_path.c_str());
-				have_filename = true;
-				goto _n_continue; // ToDo: Check ARG2 (BINARY etc..) 20181118 K.O
-			} else if(_arg1 == "TRACK") {
-				_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
-				
-				_arg3 = _arg2.substr(_arg2_ptr_s);
-				_arg2 = _arg2.substr(0, _arg2_ptr_s);
-				_arg3_ptr = _arg3.find_first_not_of((const char *)" \t");
-				_nr_num = atoi(_arg2.c_str());
-				
-				// Set image file
-				if((_nr_num > 0) && (_nr_num < 100) && (_arg3_ptr != std::string::npos)) {
-					nr_current_track = _nr_num;
-					_arg3 = _arg3.substr(_arg3_ptr);
-					
-					memset(track_data_path[_nr_num - 1], 0x00, sizeof(_TCHAR) * _MAX_PATH);
-					strncpy((char *)(track_data_path[_nr_num - 1]), image_tmp_data_path.c_str(), _MAX_PATH);
-					image_tmp_data_path.clear();
-					with_filename[_nr_num - 1] = have_filename;
-					have_filename = false;
-					_arg3_ptr_s = _arg3.find_first_of((const char *)" \t\n");
-					_arg3.substr(0, _arg3_ptr_s);
-					
-					std::transform(_arg3.begin(), _arg3.end(), _arg3.begin(),
-								   [](unsigned char c) -> unsigned char{ return std::toupper(c); });
-					
-					toc_table[nr_current_track].is_audio = false;
-					toc_table[nr_current_track].index0 = 0;
-					toc_table[nr_current_track].index1 = 0;
-					toc_table[nr_current_track].pregap = 0;
-						
-					if(_arg3.compare("AUDIO") == 0) {
-						toc_table[nr_current_track].is_audio = true;
-					} else if(_arg3.compare("MODE1/2352") == 0) {
-						toc_table[nr_current_track].is_audio = false;
-					} else {
-						// ToDo:  another type
-					}
-					if(track_num < (_nr_num + 1)) track_num = _nr_num + 1;
-				} else {
-					// ToDo: 20181118 K.Ohta
-					nr_current_track = 0;
-				}
-				goto _n_continue;
-			} else if(_arg1 == "INDEX") {
-				
-				if((nr_current_track > 0) && (nr_current_track < 100)) {
-					_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
-					if(_arg2_ptr_s == std::string::npos) goto _n_continue;
-					
-					_arg3 = _arg2.substr(_arg2_ptr_s);
-					_arg2 = _arg2.substr(0, _arg2_ptr_s);
-					_arg3_ptr = _arg3.find_first_not_of((const char *)" \t");
-					if(_arg3_ptr == std::string::npos) goto _n_continue;
-
-					_arg3 = _arg3.substr(_arg3_ptr);
-					_arg3_ptr_s = _arg3.find_first_of((const char *)" \t");
-					_arg3.substr(0, _arg3_ptr_s);
-					int index_type = atoi(_arg2.c_str());
-
-					switch(index_type) {
-					case 0:
-						toc_table[nr_current_track].index0 = get_frames_from_msf(_arg3.c_str());
-						break;
-					case 1:
-						toc_table[nr_current_track].index1 = get_frames_from_msf(_arg3.c_str());
-						break;
-					default:
-						break;
-					}
-					goto _n_continue;
-				} else {
-					goto _n_continue;
-				}
-			} else if(_arg1 == "PREGAP") {
-				if((nr_current_track > 0) && (nr_current_track < 100)) {
-					_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
-					_arg2 = _arg2.substr(0, _arg2_ptr_s - 1);
-					
-					toc_table[nr_current_track].pregap = get_frames_from_msf(_arg2.c_str());
-					goto _n_continue;
-				} else {
-					goto _n_continue;
-				}
-			}
-#endif
 		_n_continue:
 			if(is_eof) break;
 			line_buf.clear();
@@ -2311,25 +2236,51 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				//if(toc_table[i].pregap <= 0) {
 				//	toc_table[i].pregap = 150; // Default PREGAP must be 2Sec. From OoTake.(Only with PCE? Not with FM-Towns?)
 				//}
-				if(toc_table[i].index1 != 0) {
-					toc_table[i].index0 = toc_table[i].index0 + max_logical_block;
-					toc_table[i].index1 = toc_table[i].index1 + max_logical_block;
-					if(toc_table[i].pregap == 0) {
-						toc_table[i].pregap = toc_table[i].index1 - toc_table[i].index0;
+				if(!(with_filename[i])) { // Relative offset
+					if(toc_table[i + 1].index1 == 0) {
+						toc_table[i].lba_size = max_logical_block - toc_table[i].index1;
+						toc_table[i].lba_offset = toc_table[i - 1].index1;
+					} else {
+						toc_table[i].lba_size = toc_table[i + 1].index1 - toc_table[i].index1;
+						toc_table[i].lba_offset = toc_table[i - 1].index1;
 					}
-				} else { // index1 == 0
-					if(toc_table[i].pregap == 0) {
-						toc_table[i].pregap = toc_table[i].index0;
+//						toc_table[i].index0 = toc_table[i].index0 + max_logical_block;
+//						toc_table[i].index1 = toc_table[i].index1 + max_logical_block;
+				} else {
+					if((with_filename[i + 1]) || (i == (track_num - 1))) { // Single file
+						if(fio_img->Fopen(track_data_path[i - 1], FILEIO_READ_BINARY)) {
+							int _nn;
+							if((_nn = fio_img->FileLength() / 2352) > 0) {
+								toc_table[i].lba_size = _nn;
+							} else {
+								toc_table[i].lba_size = 0;
+							}
+						} else {
+							toc_table[i].lba_size = 0;
+						}
+						toc_table[i].lba_offset = 0;
+						toc_table[i].index0 = toc_table[i].index0 + max_logical_block;
+						toc_table[i].index1 = toc_table[i].index1 + max_logical_block;
+					} else if(toc_table[i + 1].index1 == 0) {
+						toc_table[i].lba_size = max_logical_block - toc_table[i].index1;
+						toc_table[i].lba_offset = toc_table[i - 1].index1;
+					} else {
+						toc_table[i].lba_size = toc_table[i + 1].index1 - toc_table[i].index1;
+						toc_table[i].lba_offset = toc_table[i - 1].index1;
 					}
-					toc_table[i].index1 = toc_table[i].index0 + max_logical_block;
-					toc_table[i].index0 = max_logical_block;
+				}
+				if(toc_table[i].index0 == 0) {
+					toc_table[i].index0 = toc_table[i].index1;
+				}
+				if(toc_table[i].pregap == 0) {
+					toc_table[i].pregap = toc_table[i].index1 - toc_table[i].index0;
 				}
 				// Even...
 				if(toc_table[i].pregap <= 150) {
 					toc_table[i].pregap = 150; // Default PREGAP must be 2Sec. From OoTake.(Only with PCE? Not with FM-Towns?)
 				}
 				_n = 0;
-				if(strlen(track_data_path[i - 1]) > 0) {
+				if((strlen(track_data_path[i - 1]) > 0) && (with_filename[i])) {
 					if(fio_img->Fopen(track_data_path[i - 1], FILEIO_READ_BINARY)) {
 						if((_n = fio_img->FileLength() / 2352) > 0) {
 							max_logical_block += _n;
@@ -2343,11 +2294,11 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				toc_table[i].lba_offset = max_logical_block - _n;
 			}
 			for(int i = 1; i < track_num; i++) {
-				if(i < (track_num - 1)) {
-					toc_table[i].lba_size = toc_table[i + 1].index1 - toc_table[i].index1;
-				} else {
-					toc_table[i].lba_size = max_logical_block - toc_table[i].lba_offset;
-				}
+//				if(i < (track_num - 1)) {
+//					toc_table[i].lba_size = toc_table[i + 1].index1 - toc_table[i].index1;
+//				} else {
+//					toc_table[i].lba_size = max_logical_block - toc_table[i].lba_offset;
+//				}
 				out_debug_log(_T("TRACK#%02d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d LBA_OFFSET=%d PATH=%s\n"),
 									i, (toc_table[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352"),
 									toc_table[i].pregap, toc_table[i].index0, toc_table[i].index1,
@@ -2355,9 +2306,9 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				//#endif
 			}
 			toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
-//			toc_table[track_num].index0 = toc_table[track_num].index1 = max_logical_block;
-//			toc_table[track_num].lba_offset = max_logical_block;
-//			toc_table[track_num].lba_size = 0;
+			toc_table[track_num].index0 = toc_table[track_num].index1 = max_logical_block;
+			toc_table[track_num].lba_offset = max_logical_block;
+			toc_table[track_num].lba_size = 0;
 			
 		}
 		fio->Fclose();
