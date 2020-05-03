@@ -7,6 +7,7 @@
 
 #include "../../common.h"
 #include "./rf5c68.h"
+#include "../debugger.h"
 
 #define EVENT_DAC_SAMPLE 1
 
@@ -30,12 +31,18 @@ void RF5C68::initialize()
 		dac_fd[i].d = 0x0000;
 		dac_onoff[i] = false;
 		dac_addr[i] = 0x00000000;
-		dac_force_load[i] = true;
+		dac_force_load[i] = false;
 	}
 	dac_on = false;
 	dac_bank = 0;
 	dac_ch = 0;
 	sample_buffer = NULL;
+
+	if(d_debugger != NULL) {
+		d_debugger->set_device_name(_T("Debugger (RICOH RF5C68)"));
+		d_debugger->set_context_mem(this);
+		d_debugger->set_context_io(vm->dummy);
+	}
 }
 
 void RF5C68::release()
@@ -58,7 +65,7 @@ void RF5C68::reset()
 		dac_fd[i].d = 0x0000;
 		dac_onoff[i] = false;
 		dac_addr[i] = 0x00000000;
-		dac_force_load[i] = true;
+		dac_force_load[i] = false;
 	}
 	if((sample_buffer != NULL) && (sample_length > 0)) {
 		memset(sample_buffer, 0x00, sample_length * sizeof(int32_t) * 2);
@@ -136,21 +143,66 @@ void RF5C68::write_signal(int ch, uint32_t data, uint32_t mask)
 	switch(ch)
 	{
 	case SIG_RF5C68_DAC_PERIOD:
-		if(dac_on) {
+//		if(dac_on) {
 			for(int ch = 0; ch < 8; ch++) {
 				if(dac_onoff[ch]) {
 					uint32_t addr_old = (dac_addr[ch] & 0x7fffffff) >> 11;
 					uint32_t addr_new;
+#if 1
+					if((addr_old & 0x0fff) == 0x0fff) {
+						// Will beyond of boundary
+						write_signals(&interrupt_boundary, ((addr_old & 0xe000) >> 13) | 0x00000008);
+					}
+					pair32_t tmpval;
+					tmpval.b.l = wave_memory[addr_old & 0xffff];
+					if(tmpval.b.l == 0xff) {
+						// Loop
+						dac_addr[ch] = (uint32_t)(dac_addr_st[ch].w.l) << 11;
+						addr_old = dac_addr[ch] >> 11;
+						tmpval.b.l = wave_memory[addr_old & 0xffff];
+						if(tmpval.b.l == 0xff) {
+							dac_tmpval_l[ch] = 0;
+							dac_tmpval_r[ch] = 0;
+							continue; // This channel will stop
+						}
+					}
 					dac_addr[ch] += dac_fd[ch].d;
 					dac_addr[ch] = dac_addr[ch] & 0x7fffffff;
-					addr_new = dac_addr[ch] >> 11;
+					addr_old = dac_addr[ch] >> 11;
+					
+					uint32_t sign = tmpval.d & 0x80;
+					uint32_t val = tmpval.d & 0x7f;
+					uint32_t lval, rval;
+					val = val * dac_env[ch];
+					lval = val * dac_lpan[ch];
+					rval = val * dac_rpan[ch];
+					if(sign != 0) { // ADD
+						dac_tmpval_l[ch] += lval;
+						dac_tmpval_r[ch] += rval;
+					} else { // SUB
+						dac_tmpval_l[ch] -= lval;
+						dac_tmpval_r[ch] -= rval;
+					}
+					// Limiter
+					if(dac_tmpval_l[ch] >= (127 << 6)) {
+						dac_tmpval_l[ch] = 127 << 6;
+					} else if(dac_tmpval_l[ch] < -(127 << 6)) {
+						dac_tmpval_l[ch] = -(127 << 6);
+					} 
+					if(dac_tmpval_r[ch] >= (127 << 6)) {
+						dac_tmpval_r[ch] = 127 << 6;
+					} else if(dac_tmpval_r[ch] < -(127 << 6)) {
+						dac_tmpval_r[ch] = -(127 << 6);
+					}
+#else					
+//					out_debug_log(_T("SIG_RF5C68_DAC_PERIOD CH=%d ADDR=%08X"), ch, dac_addr[ch]);
 					if((addr_old != addr_new) || (dac_force_load[ch])) {
 					    pair32_t tmpval;
 						tmpval.b.l = wave_memory[addr_new & 0xffff];
 						if((addr_new & 0xf000) != (addr_old & 0xf000)) { // Boundary
-							if((addr_new & 0x1000) != 0) {
+//							if((addr_new & 0x1000) != 0) {
 								write_signals(&interrupt_boundary, ((addr_new & 0xe000) >> 13) | 0x00000008);
-							}
+//							}
 						}
 						if(dac_force_load[ch]) {
 							dac_addr[ch] = (uint32_t)(dac_addr_st[ch].w.l) << 11;
@@ -192,12 +244,13 @@ void RF5C68::write_signal(int ch, uint32_t data, uint32_t mask)
 							}
 						}
 					}
+#endif
 				} else {
 					dac_tmpval_l[ch] = 0;
 					dac_tmpval_r[ch] = 0;
 				}
 			}
-		}
+//		}
 		break;
 	case SIG_RF5C68_CLEAR_INTR:
 		write_signals(&interrupt_boundary, 0x80000000);
@@ -278,20 +331,54 @@ uint32_t RF5C68::read_io8(uint32_t addr)
 // Read PCM memory
 uint32_t RF5C68::read_memory_mapped_io8(uint32_t addr)
 {
-	if(dac_on) {
-		return 0xff;
+	if(d_debugger != NULL && d_debugger->now_device_debugging) {
+		return d_debugger->read_via_debugger_data8(addr);
+	} else {
+		if(dac_on) {
+			return 0xff;
+		}
+		return read_via_debugger_data8(addr);	
 	}
-	// dac_off
-	return wave_memory[(addr & 0x0fff) | dac_bank];
+	return 0xff;
+}
+
+uint32_t RF5C68::read_memory_mapped_io16(uint32_t addr)
+{
+	if(d_debugger != NULL && d_debugger->now_device_debugging) {
+		return d_debugger->read_via_debugger_data16(addr);
+	} else {
+		if(dac_on) {
+			return 0xffff;
+		}
+		return read_via_debugger_data16(addr);	
+	}
+	return 0xffff;
 }
 
 void RF5C68::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	// if(dac_on) don't write <- Is correct?
-	if(!dac_on) {
-		wave_memory[(addr & 0x0fff) | dac_bank] = (uint8_t)data;
+	if(d_debugger != NULL && d_debugger->now_device_debugging) {
+		d_debugger->write_via_debugger_data8(addr, data);
+	} else {
+		if(!dac_on) {
+			write_via_debugger_data8(addr, data);
+			return;
+		}
 	}
 }
+
+void RF5C68::write_memory_mapped_io16(uint32_t addr, uint32_t data)
+{
+	if(d_debugger != NULL && d_debugger->now_device_debugging) {
+		d_debugger->write_via_debugger_data16(addr, data);
+	} else {
+		if(!dac_on) {
+			write_via_debugger_data16(addr, data);
+			return;
+		}
+	}
+}	
 
 void RF5C68::set_volume(int ch, int decibel_l, int decibel_r)
 {
@@ -387,6 +474,67 @@ void RF5C68::initialize_sound(int sample_rate, int samples)
 	sample_count = 0;
 }
 
+void RF5C68::write_debug_data8(uint32_t addr, uint32_t data)
+{
+	wave_memory[addr & 0xffff] = data;
+}
+
+uint32_t RF5C68::read_debug_data8(uint32_t addr)
+{
+	return wave_memory[addr & 0xffff];
+}
+
+void RF5C68::write_via_debugger_data8(uint32_t addr, uint32_t data)
+{
+	wave_memory[(addr & 0x0fff) | dac_bank] = data;
+}
+
+void RF5C68::write_via_debugger_data16(uint32_t addr, uint32_t data)
+{
+	pair32_t _b;
+	_b.d = data;
+	wave_memory[((addr + 0) & 0x0fff) | dac_bank] = _b.b.l;
+	wave_memory[((addr + 1) & 0x0fff) | dac_bank] = _b.b.h;
+}
+
+
+uint32_t RF5C68::read_via_debugger_data8(uint32_t addr)
+{
+	return wave_memory[(addr & 0x0fff) | dac_bank];
+}
+
+uint32_t RF5C68::read_via_debugger_data16(uint32_t addr)
+{
+	pair16_t _b;
+	_b.b.l = wave_memory[((addr + 0) & 0x0fff) | dac_bank];
+	_b.b.h = wave_memory[((addr + 1) & 0x0fff) | dac_bank];
+	return _b.w;
+}
+
+bool RF5C68::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	_TCHAR sbuf[8][512] = {0};
+	_TCHAR sbuf2[4096] = {0};
+	for(int i = 0; i < 8; i++) {
+		my_stprintf_s(sbuf[i], sizeof(sbuf[i]),
+					  _T("CH%d: %s: ENV=%02X LPAN=%02X RPAN=%02X FD=%04X LS=%04X ADDR=%08X ADDR_ST=%08X\n")
+					  , i, (dac_onoff[i]) ? _T("ON ") : _T("OFF")
+					  , dac_env[i], dac_lpan[i], dac_rpan[i]
+					  , dac_fd[i].w.l, dac_ls[i].w.l
+					  , dac_addr[i], dac_addr_st[i]
+			);
+	}
+	for(int i = 0; i < 8; i++) {
+		my_tcscat_s(sbuf2, sizeof(sbuf2), sbuf[i]);
+	}
+	my_stprintf_s(buffer, buffer_len,
+				  _T("DAC %s BANK=%01X CH=%d MUTE=%s\n")
+				  _T("%s")
+				  , (dac_on) ? _T("ON ") : _T("OFF"), dac_bank, dac_ch, (is_mute) ? _T("ON ") : _T("OFF")
+				  , sbuf2);
+	return true;
+}
+
 #define STATE_VERSION	1
 
 bool RF5C68::process_state(FILEIO* state_fio, bool loading)
@@ -400,7 +548,6 @@ bool RF5C68::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(dac_on);
 	state_fio->StateValue(dac_bank);
 	state_fio->StateValue(dac_ch);
-	state_fio->StateValue(dac_on);
 	state_fio->StateValue(is_mute);
 	state_fio->StateArray(dac_onoff, sizeof(dac_onoff), 1);
 	state_fio->StateArray(dac_addr_st, sizeof(dac_addr_st), 1);	

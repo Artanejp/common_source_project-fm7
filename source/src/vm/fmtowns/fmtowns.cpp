@@ -353,6 +353,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	adpcm->set_context_adc(adc);
 
 	rf5c68->set_context_interrupt_boundary(adpcm, SIG_ADPCM_WRITE_INTERRUPT, 0xffffffff);
+#ifdef USE_DEBUGGER
+	rf5c68->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	opn2->set_context_irq(adpcm, SIG_ADPCM_OPX_INTR, 0xffffffff);
 	
 	adc->set_sample_rate(19200);

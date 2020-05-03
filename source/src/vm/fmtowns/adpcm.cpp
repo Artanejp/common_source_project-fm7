@@ -35,7 +35,7 @@ void ADPCM::reset()
 {
 	// Is clear FIFO?
 	adc_fifo->clear();
-	dac_intr_mask = 0xffff; // Enable
+	dac_intr_mask = 0x0000; // Disable
 	dac_intr = 0x0000;      // OFF
 	latest_dac_intr = false;
 
@@ -52,7 +52,7 @@ void ADPCM::reset()
 		cancel_event(this, event_adpcm_clock);
 	}
 	// Tick is (8.0e6 / 384.0)[Hz] .. Is this true?
-	register_event(this, EVENT_ADPCM_CLOCK, 1.0e6 / (16.0 / (384.0 * 2.0)), true, &event_adpcm_clock);
+	register_event(this, EVENT_ADPCM_CLOCK, (384.0 * 2.0) / 16.0, true, &event_adpcm_clock);
 }
 
 void ADPCM::initialize_adc_clock(int freq)
@@ -116,7 +116,7 @@ uint32_t ADPCM::read_io8(uint32_t addr)
 			val = dac_intr;
 			dac_intr = 0x00;
 			if(latest_dac_intr) {
-				opx_intr = false;
+//				opx_intr = false;
 				write_signals(&outputs_intr, 0); // Clear Interrupt
 				latest_dac_intr = false;
 			}
@@ -180,50 +180,42 @@ void ADPCM::write_data8(uint32_t addr, uint32_t data)
 void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 {
 	if(ch == SIG_ADPCM_WRITE_INTERRUPT) {
+		out_debug_log(_T("SIG_ADPCM_WRITE_INTERRUPT val=%08X mask=%08X"), data ,mask);
 		uint32_t n_ch = data & 0x07;
 		bool n_onoff = (((data & mask) & 0x00000008) != 0) ? true : false;
 		bool n_allset =(((data & mask) & 0x80000000) != 0) ? true : false;
+		bool _d = false;
 		if(!(n_allset)) {
-			bool _d = ((dac_intr_mask & (1 << n_ch)) != 0) ? true : false;
+			_d = ((dac_intr_mask & (1 << n_ch)) != 0) ? true : false;
 			if(n_onoff) {
 				dac_intr = dac_intr | (1 << n_ch);
 			} else {
 				dac_intr = dac_intr & ~(1 << n_ch);
 			}
-			if((n_onoff) && (_d)) { // ON
-				write_signals(&outputs_intr, 0xffffffff);
-				latest_dac_intr = true;
-			} else if(!(opx_intr)) {
-				write_signals(&outputs_intr, 0x00000000);
-				latest_dac_intr = false;
-			}				
 		} else {
 			// ALLSET
 			uint16_t intr_backup = dac_intr;
 			dac_intr = (n_onoff) ? 0xffff : 0x0000;
-			if(dac_intr != intr_backup) {
-				if(n_onoff) {
-					if((dac_intr & dac_intr_mask) != 0) {
-						write_signals(&outputs_intr, 0xffffffff);
-						latest_dac_intr = true;
-					}
-				} else {
-					if(!(opx_intr)) {
-						write_signals(&outputs_intr, 0x00000000);
-						latest_dac_intr = false;
-					}
-				}
-			}
+			_d = true;
+//			_d = (dac_intr != intr_backup) ? true : false;
 		}	
+		if((n_onoff) && (_d)) { // ON
+			write_signals(&outputs_intr, 0xffffffff);
+			latest_dac_intr = true;
+		} else if(!(n_onoff)) {
+			if(!(opx_intr) && (latest_dac_intr)) {
+				write_signals(&outputs_intr, 0x00000000);
+			}				
+			latest_dac_intr = false;
+		}
 	} else if(ch == SIG_ADPCM_OPX_INTR) { // SET/RESET INT13
+//		out_debug_log(_T("SIG_ADPCM_OPX_INTR val=%08X mask=%08X"), data ,mask);
 		opx_intr = ((data & mask) != 0);
 		if(opx_intr) {
 			write_signals(&outputs_intr, 0xffffffff);
-			latest_dac_intr = true;
 		} else {
-			if(latest_dac_intr) {
+			if(!(latest_dac_intr)) {
 				write_signals(&outputs_intr, 0x00000000);
-				latest_dac_intr = false;
 			}
 		}			
 	} else if(ch == SIG_ADPCM_ADC_INTR) { // Push data to FIFO from ADC.

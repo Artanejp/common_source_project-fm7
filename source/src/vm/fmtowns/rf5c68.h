@@ -30,8 +30,10 @@
 #define SIG_RF5C68_REG_FD         0x58
 #define SIG_RF5C68_FORCE_LOAD     0x60
 
+class DEBUGGER;
 class RF5C68 : public DEVICE {
 protected:
+	DEBUGGER *d_debugger;
 	outputs_t interrupt_boundary;
 
 	// DAC
@@ -78,6 +80,7 @@ public:
 		sample_tick_us = 0.0;
 		is_mute = true;
 		initialize_output_signals(&interrupt_boundary);
+		d_debugger = NULL;
 		set_device_name(_T("ADPCM RF5C68"));
 	}
 	~RF5C68() {}
@@ -88,6 +91,12 @@ public:
 
 	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
 	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
+	void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
+	
+	uint32_t  __FASTCALL read_debug_data8(uint32_t addr);
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
+	
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	
@@ -101,6 +110,29 @@ public:
 
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	bool process_state(FILEIO* state_fio, bool loading);
+
+	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr);
+	void __FASTCALL write_via_debugger_data16(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_via_debugger_data16(uint32_t addr);
+	
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	bool is_debugger_available()
+	{
+		return ((d_debugger != NULL) ? true : false);
+	}
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
+	virtual uint32_t get_debug_data_addr_mask()
+	{
+		return 0xffff;
+	}
 	
 	void set_context_interrupt_boundary(DEVICE* device, int id, uint32_t mask)
 	{
