@@ -793,8 +793,8 @@ uint32_t TOWNS_VRAM::read_mmio8(uint32_t addr)
 	case 0xcff86:
 		{
 			uint8_t d;
-			d = (d_crtc->read_signal(SIG_TOWNS_CRTC_VSYNC) == 0) ? 0x04 : 0;
-			d = d | ((d_crtc->read_signal(SIG_TOWNS_CRTC_HSYNC) == 0) ? 0x80 : 0);
+			d = (d_crtc->read_signal(SIG_TOWNS_CRTC_VSYNC) != 0) ? 0x04 : 0;
+			d = d | ((d_crtc->read_signal(SIG_TOWNS_CRTC_HSYNC) != 0) ? 0x80 : 0);
 			d = d | 0x10;
 			return d;
 		}

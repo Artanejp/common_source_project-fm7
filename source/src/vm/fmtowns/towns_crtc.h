@@ -336,6 +336,8 @@ protected:
 	void stop_display();
 	void notify_mode_changed(int layer, uint8_t mode);
 	
+	void cancel_event_by_id(int& event_num);
+	
 	void set_crtc_clock(uint16_t val);
 	uint16_t read_reg30();
 	uint32_t __FASTCALL get_font_address(uint32_t c, uint8_t &attr);

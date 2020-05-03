@@ -194,35 +194,22 @@ void TOWNS_CRTC::reset()
 		vert_offset_tmp[i] = 0;
 		horiz_offset_tmp[i] = 0;
 	}
-	if(event_id_hsync  >= 0) cancel_event(this, event_id_hsync);
-	if(event_id_hsw    >= 0) cancel_event(this, event_id_hsw);
-	if(event_id_vsync  >= 0) cancel_event(this, event_id_vsync);
-	if(event_id_vstart >= 0) cancel_event(this, event_id_vstart);
-	if(event_id_vst1   >= 0) cancel_event(this, event_id_vst1);
-	if(event_id_vst2   >= 0) cancel_event(this, event_id_vst2);
-	if(event_id_vblank >= 0) cancel_event(this, event_id_vblank);
-	if(event_id_hstart >= 0) cancel_event(this, event_id_hstart);
+	cancel_event_by_id(event_id_hsync);
+	cancel_event_by_id(event_id_hsw);
+	cancel_event_by_id(event_id_vsync);
+	cancel_event_by_id(event_id_vstart);
+	cancel_event_by_id(event_id_vst1);
+	cancel_event_by_id(event_id_vst2);	
+	cancel_event_by_id(event_id_vblank);
+	cancel_event_by_id(event_id_hstart);
+
 
 	for(int i = 0; i < 2; i++) {
-		if(event_id_vds[i] >= 0) cancel_event(this, event_id_vds[i]);
-		if(event_id_hds[i] >= 0) cancel_event(this, event_id_hds[i]);
-		if(event_id_vde[i] >= 0) cancel_event(this, event_id_vde[i]);
-		if(event_id_hde[i] >= 0) cancel_event(this, event_id_hde[i]);
+		cancel_event_by_id(event_id_vds[i]);
+		cancel_event_by_id(event_id_hds[i]);
+		cancel_event_by_id(event_id_vde[i]);
+		cancel_event_by_id(event_id_hde[i]);
 	}
-	event_id_hsw = -1;
-	event_id_vsync = -1;
-	event_id_vstart = -1;
-	event_id_vst1 = -1;
-	event_id_vst2 = -1;
-	event_id_vblank = -1;
-	event_id_hstart = -1;
-	for(int i = 0; i < 2; i++) {
-		event_id_vds[i] = -1;
-		event_id_hds[i] = -1;
-		event_id_vde[i] = -1;
-		event_id_hde[i] = -1;
-	}
-
 	// Register vstart
 	pixels_per_line = 640;
 	lines_per_frame = 400;
@@ -258,6 +245,12 @@ void TOWNS_CRTC::reset()
 	force_recalc_crtc_param();
 #endif
 //	register_event(this, EVENT_CRTC_VSTART, vstart_us, false, &event_id_vstart);
+}
+
+void TOWNS_CRTC::cancel_event_by_id(int& event_num)
+{
+	if(event_num > -1) cancel_event(this, event_num);
+	event_num = -1;
 }
 
 void TOWNS_CRTC::set_vsync(bool val, bool force)
@@ -877,9 +870,9 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 		break;
 	case 0xfda0:
 		{
-			uint8_t d = 0xfc;
-			d = d | ((vsync) ? 0x00 : 0x01);
-			d = d | ((hsync) ? 0x00 : 0x02);
+			uint8_t d = 0x00;
+			d = d | ((vsync) ? 0x01 : 0x00);
+			d = d | ((hsync) ? 0x02 : 0x00);
 			return d;
 		}
 		break;
@@ -1891,32 +1884,21 @@ void TOWNS_CRTC::event_frame()
 	if(d_sprite != NULL) {
 		d_sprite->write_signal(SIG_TOWNS_SPRITE_CALL_VSTART, 0xffffffff, 0xffffffff);
 	}
-
-	if(event_id_vst1 > -1) {
-		cancel_event(this, event_id_vst1);
-		event_id_vst1 = -1;
-	}
-	if(event_id_vst2 > -1) {
-		cancel_event(this, event_id_vst2);
-		event_id_vst2 = -1;
-	}
+	cancel_event_by_id(event_id_vst1);
+	cancel_event_by_id(event_id_vst2);
+	
+	set_vsync(true, true);
+	
 	if(vst1_us > 0.0) {
-		set_vsync(false, true);
 		register_event(this, EVENT_CRTC_VST1, vst1_us, false, &event_id_vst1); // VST1
-	} else {
-		set_vsync(true, true);
 	}
 	if((vst2_us > 0.0) && (vst2_us > vst1_us)) {
 		register_event(this, EVENT_CRTC_VST2, vst2_us, false, &event_id_vst2);
 	}
 	for(int i = 0; i < 2; i++) {
 		frame_in[i] = false;
-		if(event_id_vds[i] != -1) {
-			cancel_event(this, event_id_vds[i]);
-		}
-		if(event_id_vde[i] != -1) {
-			cancel_event(this, event_id_vde[i]);
-		}
+		cancel_event_by_id(event_id_vds[i]);
+		cancel_event_by_id(event_id_vde[i]);
 		if(vert_start_us[i] > 0.0) {
 			register_event(this, EVENT_CRTC_VDS + i, vert_start_us[i], false, &event_id_vds[i]); // VDSx
 		}
@@ -1926,14 +1908,8 @@ void TOWNS_CRTC::event_frame()
 		head_address[i] = 0;
 	}
 		
-	if(event_id_hstart != -1) {
-		cancel_event(this, event_id_hstart);
-		event_id_hstart = -1;
-	}
-	if(event_id_hsw != -1) {
-		cancel_event(this, event_id_hsw);
-		event_id_hsw = -1;
-	}
+	cancel_event_by_id(event_id_hstart);
+	cancel_event_by_id(event_id_hsw);
 	if(horiz_us > 0.0) {
 		register_event(this, EVENT_CRTC_HSTART, horiz_us, false, &event_id_hstart); // HSTART
 	}
@@ -2035,7 +2011,9 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 	int eid2 = (event_id / 2) * 2;
 	// EVENT_VSTART MOVED TO event_frame().
 	if(event_id == EVENT_CRTC_VST1) { // VSYNC
-		set_vsync(true, false);
+		if(event_id_vst2 <= -1) {
+			set_vsync(false, false);
+		}
 		event_id_vst1 = -1;
 	} else if (event_id == EVENT_CRTC_VST2) {
 		set_vsync(false, false);
@@ -2066,26 +2044,17 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 		}
 		hdisp[0] = false;
 		hdisp[1] = false;
-		if(event_id_hsw != -1) {
-			cancel_event(this, event_id_hsw);
-			event_id_hsw = -1;
-		}
+		cancel_event_by_id(event_id_hsw);
+//		hsync = false;
+		hsync = true;
 		if(!vsync) {
-			hsync = true;
 			register_event(this, EVENT_CRTC_HSW, horiz_width_posi_us, false, &event_id_hsw); // VDEx
 		} else {
-			hsync = true;
 			register_event(this, EVENT_CRTC_HSW, horiz_width_nega_us, false, &event_id_hsw); // VDEx
 		}
 		for(int i = 0; i < 2; i++) {
-			if(event_id_hds[i] != -1) {
-				cancel_event(this, event_id_hds[i]);
-			}
-			event_id_hds[i] = -1;
-			if(event_id_hde[i] != -1) {
-				cancel_event(this, event_id_hde[i]);
-			}
-			event_id_hde[i] = -1;
+			cancel_event_by_id(event_id_hds[i]);
+			cancel_event_by_id(event_id_hde[i]);
 			
 			if(horiz_start_us[i] > 0.0) {
 				register_event(this, EVENT_CRTC_HDS + i, horiz_start_us[i], false, &event_id_hds[i]); // HDS0
@@ -2098,7 +2067,7 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 		}
 		register_event(this, EVENT_CRTC_HSTART, horiz_us, false, &event_id_hstart); // HSTART
 	} else if(event_id == EVENT_CRTC_HSW) {
-		hsync = false;
+//		hsync = false;
 		event_id_hsw = -1;
 	} else if(eid2 == EVENT_CRTC_HDS) {
 		int layer = event_id & 1;
@@ -2109,7 +2078,8 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 		event_id_hds[layer] = -1;
 	} else if(eid2 == EVENT_CRTC_HDE) {
 		int layer = event_id & 1;
-		hdisp[layer] = false;	
+		hdisp[layer] = false;
+		if(!(hdisp[0]) && !(hdisp[1])) hsync = false;
 		event_id_hde[layer] = -1;
 	}
 
