@@ -30,6 +30,7 @@ private:
 	uint8_t mouse_data;
 	
 	int mouse_timeout_event;
+	int mouse_sampling_event;
 	int mouse_type;
 	uint8_t mask;
 	
@@ -40,6 +41,8 @@ private:
 public:
 	JOYSTICK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		mouse_timeout_event = -1;
+		mouse_sampling_event = -1;
 		set_device_name(_T("FM-Towns PAD and MOUSE (JIS)"));
 	}
 	~JOYSTICK() {}

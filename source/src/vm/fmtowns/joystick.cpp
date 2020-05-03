@@ -12,6 +12,7 @@
 
 namespace FMTOWNS {
 #define EVENT_MOUSE_TIMEOUT 1
+#define EVENT_MOUSE_SAMPLING 2
 	
 void JOYSTICK::reset()
 {
@@ -23,12 +24,17 @@ void JOYSTICK::reset()
 	mouse_type = -1; // Force update data.
 	mouse_phase = 0;
 	mouse_strobe = false;
-	mouse_data = 0x00;
+	mouse_data = 0x0f;
 	if(mouse_timeout_event >= 0) {
 		cancel_event(this, mouse_timeout_event);
 	}
 	mouse_timeout_event = -1;
 	update_config(); // Update MOUSE PORT.
+	
+	if(mouse_sampling_event >= 0) {
+		cancel_event(this, mouse_sampling_event);
+	}
+	register_event(this, EVENT_MOUSE_SAMPLING, 33.0e3, true, &mouse_sampling_event);
 }
 
 void JOYSTICK::initialize()
@@ -40,6 +46,7 @@ void JOYSTICK::initialize()
 	lx = ly = -1;
 	mouse_button = 0x00;
 	mouse_timeout_event = -1;
+	mouse_sampling_event = -1;
 	set_emulate_mouse();
 	mouse_type = config.mouse_type;
 	register_frame_event(this);
@@ -56,14 +63,15 @@ void JOYSTICK::event_frame()
 	int stat = 0x00;
 	uint32_t retval = 0x00;
 	uint32_t val;
+#if 0
 	mouse_state = emu->get_mouse_buffer();
 	if(mouse_state != NULL) {
 		dx += mouse_state[0];
 		dy += mouse_state[1];
-		if(dx < -255) {
-			dx = -255;
-		} else if(dx > 255) {
-			dx = 255;
+		if(dx < -127) {
+			dx = -127;
+		} else if(dx > 127) {
+			dx = 127;
 		}
 		if(dy < -255) {
 			dy = -255;
@@ -77,6 +85,7 @@ void JOYSTICK::event_frame()
 		if((stat & 0x01) == 0) mouse_button |= 0x10; // left
 		if((stat & 0x02) == 0) mouse_button |= 0x20; // right
 	}
+#endif
 	rawdata = emu->get_joy_buffer();
 	if(rawdata == NULL) return;
    
@@ -103,7 +112,10 @@ void JOYSTICK::write_io8(uint32_t address, uint32_t data)
 	// ToDo: Mouse
 	if(address == 0x04d6) {
 		if(emulate_mouse[0]) {
+//			update_strobe(((data & 0x10) != 0));
+//			if((data & 0x10) != 0) {
 			update_strobe(((data & 0x10) != 0));
+//			}
 		} else if(emulate_mouse[1]) {
 			update_strobe(((data & 0x20) != 0));
 		}
@@ -121,7 +133,8 @@ uint32_t JOYSTICK::read_io8(uint32_t address)
 	case 0x04d0:
 	case 0x04d2:
 		if(emulate_mouse[port_num]) {
-			uint8_t rval = 0xb0;
+//			uint8_t rval = 0xb0;
+			uint8_t rval = 0xf0;
 			rval |= update_mouse() & 0x0f; 
 			if((mouse_button & 0x10) != 0) {
 				rval &= ~0x10; // Button LEFT
@@ -179,7 +192,30 @@ void JOYSTICK::event_callback(int event_id, int err)
 		mouse_strobe = false;
 		mouse_timeout_event = -1;
 		dx = dy = lx = ly = 0;
-		mouse_data = ly & 0x0f;
+		mouse_data = 0x0f;
+		break;
+	case EVENT_MOUSE_SAMPLING:
+		mouse_state = emu->get_mouse_buffer();
+		if(mouse_state != NULL) {
+			dx += mouse_state[0];
+			dy += mouse_state[1];
+			if(dx < -127) {
+				dx = -127;
+			} else if(dx > 127) {
+				dx = 127;
+			}
+			if(dy < -127) {
+				dy = -127;
+			} else if(dy > 127) {
+				dy = 127;
+			}
+		}		
+		if(mouse_state != NULL) {
+			uint32_t stat = mouse_state[2];
+			mouse_button = 0x00;
+			if((stat & 0x01) == 0) mouse_button |= 0x10; // left
+			if((stat & 0x02) == 0) mouse_button |= 0x20; // right
+		}
 		break;
 	}
 }
@@ -214,8 +250,9 @@ void JOYSTICK::set_emulate_mouse()
 
 void JOYSTICK::update_strobe(bool flag)
 {
-	if(mouse_strobe != flag) {
-		mouse_strobe = flag;
+	bool _bak = mouse_strobe;
+	mouse_strobe = flag;
+	if((_bak != flag)/* && (flag)*/) {
 		if((mouse_phase == 0)) {
 			// Sample data from MOUSE to registers.
 			lx = -dx;
@@ -242,22 +279,23 @@ uint32_t JOYSTICK::update_mouse()
 {
 	switch(mouse_phase) {
 	case 1:
-		mouse_data = (lx >> 1) & 0x0f;
+		mouse_data = (lx >> 0) & 0x0f;
 		break;
 	case 2:
-		mouse_data = (lx >> 5) & 0x0f;
+		mouse_data = (lx >> 4) & 0x0f;
 		break;
 	case 3:
-		mouse_data = (ly >> 1) & 0x0f;
+		mouse_data = (ly >> 0) & 0x0f;
 		break;
 	case 0:
-		mouse_data = (ly >> 5) & 0x0f;
+		mouse_data = (ly >> 4) & 0x0f;
 		break;
 	}
+//	out_debug_log(_T("READ MOUSE DATA=%01X PHASE=%d STROBE=%d"), mouse_data, mouse_phase, (mouse_strobe) ? 1 : 0);
 	return mouse_data;
 }
 
-#define STATE_VERSION 2
+#define STATE_VERSION 3
 
 bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 {
@@ -280,6 +318,7 @@ bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 	state_fio->StateValue(mouse_phase);
 	state_fio->StateValue(mouse_data);
 	state_fio->StateValue(mouse_timeout_event);
+	state_fio->StateValue(mouse_sampling_event);
 
 	return true;
 }
