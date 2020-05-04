@@ -836,7 +836,7 @@ void OSD_BASE::set_mouse_pointer(int x, int y)
 		//delta_y = y - (dh / 2);
 		delta_x += (mouse_ptrx - mouse_oldx);
 		delta_y += (mouse_ptry - mouse_oldy);
-		if(delta_x > (dw / 2)) {
+/*		if(delta_x > (dw / 2)) {
 			delta_x = dw / 2;
 		} else if(delta_x < -(dw / 2)) {
 			delta_x = -dw / 2;
@@ -845,7 +845,7 @@ void OSD_BASE::set_mouse_pointer(int x, int y)
 			delta_y = dh / 2;
 		} else if(delta_y < -(dh / 2)) {
 			delta_y = -dh / 2;
-		}
+			}*/
 		mouse_oldx = mouse_ptrx;
 		mouse_oldy = mouse_ptry;
 		//printf("Mouse Moved: (%d, %d) -> delta(%d, %d)\n", mouse_ptrx, mouse_ptry, delta_x, delta_y);
