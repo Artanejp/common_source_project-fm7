@@ -536,7 +536,7 @@ void SCSI_DEV::start_command()
 			set_dat(SCSI_STATUS_GOOD);
 			set_sense_code(SCSI_SENSE_NOSENSE);
 		}
-		set_phase_delay(SCSI_PHASE_STATUS, 10.0);
+		set_phase_delay(SCSI_PHASE_STATUS, 1000.0);
 		break;
 		
 	case SCSI_CMD_REQ_SENSE:
@@ -560,7 +560,7 @@ void SCSI_DEV::start_command()
 		}
 		// change to data in phase
 		set_dat(buffer->read());
-		set_phase_delay(SCSI_PHASE_DATA_IN, 10.0);
+		set_phase_delay(SCSI_PHASE_DATA_IN, 1000.0);
 		break;
 		
 	case SCSI_CMD_INQUIRY:
@@ -616,7 +616,8 @@ void SCSI_DEV::start_command()
 		buffer->write((    logical_block_size() >>  0) & 0xff);
 		// change to data in phase
 		set_dat(buffer->read());
-		set_phase_delay(SCSI_PHASE_DATA_IN, 10.0);
+//		set_phase_delay(SCSI_PHASE_DATA_IN, 10.0);
+		set_phase_delay(SCSI_PHASE_DATA_IN, 1000.0);
 		break;
 		
 	case SCSI_CMD_FORMAT:
@@ -628,7 +629,7 @@ void SCSI_DEV::start_command()
 		} else {
 			// no extra bytes, change to status phase
 			set_dat(SCSI_STATUS_GOOD);
-			set_phase_delay(SCSI_PHASE_STATUS, 10.0);
+			set_phase_delay(SCSI_PHASE_STATUS, 1000.0);
 		}
 		break;
 		
@@ -644,7 +645,7 @@ void SCSI_DEV::start_command()
 		buffer->write(0x00); // lsb of defect list length
 		// change to data in phase
 		set_dat(buffer->read());
-		set_phase_delay(SCSI_PHASE_DATA_IN, 10.0);
+		set_phase_delay(SCSI_PHASE_DATA_IN, 1000.0);
 		break;
 		
 	case SCSI_CMD_READ6:
