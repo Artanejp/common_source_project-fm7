@@ -542,49 +542,26 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0xff9c, 0xffa0, memory);	// MMIO
 
 	// Vram allocation may be before initialize().
-	/*
-	bool alloc_failed = false;
-	for(int bank = 0; bank < 2; bank++) {
-		if(alloc_failed) break;
-		for(int layer = 0; layer < 2; layer++) {
-			d_renderbuffer[bank][layer] = NULL;
-			renderbuffer_size[bank][layer] = 0;
-			
-			uint32_t initial_width = 640;
-			uint32_t initial_height = 480;
-			uint32_t initial_stride = 640;
-			uint32_t __size = initial_stride * initial_height * sizeof(scrntype_t);
-			scrntype_t *p = (scrntype_t*)malloc(__size);
-			if(p == NULL) {
-				alloc_faled = true;
-				break;
-			} else {
-				memset(p, 0x00, __size);
-				renderbuffer_size[bank][layer] = __size;
-				d_renderbuffer[bank][layer] = p;
-//				d_vram->set_context_renderbuffer(p, layer, bank, width, height, stride);
-			}
-		}
-	}
-	if(alloc_failed) {
-		for(int bank = 0; bank < 2; bank++) {
-			for(int layer = 0; layer < 2; layer++) {
-				renderbuffer_size[bank][layer] = 0;
-				if(d_renderbuffer[bank][layer] != NULL) {
-					free((void *)(d_renderbuffer[bank][layer]));
-				}
-				d_renderbuffer[bank][layer] = NULL;
-				d_vram->set_context_renderbuffer(NULL, layer, bank, 0, 0, 0);
-			}
-		}
-	}
-	*/
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
 #endif
 	// ToDo : Use config framework
-	memory->set_extra_ram_size(6);
+	int exram_size = -1;
+	if(exram_size < 1) {
+		if(machine_id < 0x0200) { // Model1 - 2H
+			exram_size = 6;
+		} else if(machine_id == 0x0500) { // CX
+			exram_size = 15;
+		} else if(machine_id < 0x0700) {  // 10F,20H
+			exram_size = 8;
+		} else if(machine_id == 0x0800) { // HG
+			exram_size = 15;
+		} else { 
+			exram_size = 31;
+		}
+	}
+	memory->set_extra_ram_size(exram_size);
 
 #if defined(WITH_I386SX)
 	cpu->device_model = INTEL_80386;
