@@ -68,6 +68,7 @@ void TOWNS_MEMORY::initialize()
 	mem_wait_val = 3;
 	mem_wait_val >>= 1;
 	vram_wait_val >>= 1;
+	cpu_clock_val = 16000 * 1000;
 
 	// Initialize R/W table
 	_MEMORY_DISABLE_DMA_MMIO = osd->check_feature(_T("MEMORY_DISABLE_DMA_MMIO"));
@@ -170,6 +171,12 @@ void TOWNS_MEMORY::write_data32w(uint32_t addr, uint32_t data, int* wait)
 	
 void TOWNS_MEMORY::set_wait_values()
 {
+	uint32_t waitfactor = 1 << 16;
+	if(cpu_clock_val < get_cpu_clocks(d_cpu)) {
+		waitfactor = (uint32_t)(((double)get_cpu_clocks(d_cpu) / (double)cpu_clock_val) * 65536.0);
+	}
+	d_cpu->write_signal(SIG_CPU_WAIT_FACTOR, waitfactor, 0xffffffff);
+	
 	set_wait_rw(0x00000000, 0x00100000 + (extram_size & 0x3ff00000) - 1, mem_wait_val);
 	// ToDo: Extend I/O Slots
 	set_wait_rw(0x80000000, 0x800fffff, vram_wait_val);
@@ -211,6 +218,7 @@ void TOWNS_MEMORY::reset()
 	ankcg_enabled = false;
 	nmi_mask = false;
 	config_page00();
+//	cpu_clock_val = 16000 * 1000;
 	set_wait_values();
 }
 // Address (TOWNS BASIC):
@@ -219,6 +227,7 @@ void TOWNS_MEMORY::reset()
 // 0x0480 - 0x0484
 // 0x05c0 - 0x05c2
 // 0x05ec (Wait register)
+// 0x05ed (CPU SPEED REGISTER)
 // Is set extra NMI (0x05c0 - 0x05c2)?
 
 uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
@@ -340,8 +349,22 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		break;
 	   
 	case 0x05ec:
-		if(machine_id >= /*0x0500*/0x0200) { // Towns2 CX : Is this hidden register after Towns 1F/2F/1H/2H? -> Yes
-		   val = 0x00 | ((mem_wait_val > 0) ? 0x01 : 0x00); 
+		if(machine_id >= 0x0200) { // Towns2 CX : Is this hidden register after Towns 1F/2F/1H/2H? -> Yes
+			val = 0x00;
+			if(mem_wait_val < 1) val |= 0x01;
+		} else {
+			val = 0xff;
+		}
+		break;
+	case 0x05ed:
+		if(machine_id >= 0x0500) { // Towns2 CX : Is this hidden register after Towns 1F/2F/1H/2H? -> Yes
+			uint32_t clk = get_cpu_clocks(d_cpu);
+			clk = clk / (1000 * 1000);
+			if(clk < 16) clk = 16;
+			if(clk > 127) clk = 127; // ToDo
+			val = 0x00 | clk;
+		} else {
+			val = 0xff;
 		}
 		break;
 	case 0xfda4:
@@ -451,6 +474,7 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 			mem_wait_val = ((data & 0x01) != 0) ? 0 : 3;
 			mem_wait_val >>= 1;
 			vram_wait_val >>= 1;
+			cpu_clock_val = ((data & 0x01) != 0) ? (get_cpu_clocks(d_cpu)) : (16 * 1000 * 1000);
 		}
 		set_wait_values();
 		break;
@@ -709,7 +733,7 @@ void TOWNS_MEMORY::set_intr_line(bool line, bool pending, uint32_t bit)
 
 // ToDo: DMA
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -772,6 +796,7 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(vram_wait_val);
 	state_fio->StateValue(mem_wait_val);
 	state_fio->StateValue(vram_size);
+	state_fio->StateValue(cpu_clock_val);
 
 	// ToDo: Do save ROMs?
 	return true;

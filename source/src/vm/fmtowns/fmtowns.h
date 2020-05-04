@@ -178,7 +178,7 @@
 #define FRAMES_PER_SEC		55.4 // OK?
 #define LINES_PER_FRAME 	784  // OK?
 
-#define CPU_CLOCKS		16000000
+#define CPU_CLOCKS		16000000 // This maybe dummy value, see VM::VM().
 
 #undef FIXED_FRAMEBUFFER_SIZE
 #define SCREEN_WIDTH		    1024

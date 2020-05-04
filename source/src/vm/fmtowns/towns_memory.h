@@ -97,7 +97,7 @@ protected:
 
 	uint8_t *extra_ram;                  // 0x00100000 - (0x3fffffff) : Size is defined by extram_size;
 	uint32_t extram_size;
-
+	uint32_t cpu_clock_val;
 	uint32_t vram_wait_val;
 	uint32_t mem_wait_val;
 	bool extra_nmi_mask;
