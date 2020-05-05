@@ -19,7 +19,7 @@
 #include "qt_gldraw.h"
 #include "csp_logger.h"
 #include "menu_flags.h"
-
+#include "dock_disks.h"
 // buttons
 #ifdef MAX_BUTTONS
 #define MAX_FONT_SIZE 32
@@ -550,6 +550,7 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 	   bank = 0;
 	}
 	p_emu->open_floppy_disk(drv, localPath.constData(), bank);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, drv, path);
 	emit sig_update_recent_disk(drv);
 #endif	
 }
@@ -557,6 +558,7 @@ void EmuThreadClass::do_play_tape(int drv, QString name)
 {
 #if defined(USE_TAPE)
 	p_emu->play_tape(drv, name.toLocal8Bit().constData());
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, path);
 #endif
 }
 
@@ -635,6 +637,7 @@ void EmuThreadClass::do_open_quickdisk(int drv, QString path)
 {
 #ifdef USE_QUICK_DISK
 	p_emu->open_quick_disk(drv, path.toLocal8Bit().constData());
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_QD, drv, path);
 #endif	
 }
 
@@ -642,6 +645,7 @@ void EmuThreadClass::do_open_cdrom(int drv, QString path)
 {
 #ifdef USE_COMPACT_DISC
 	p_emu->open_compact_disc(drv, path.toLocal8Bit().constData());
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_CD, drv, path);
 #endif	
 }
 void EmuThreadClass::do_eject_cdrom(int drv)
@@ -662,6 +666,7 @@ void EmuThreadClass::do_open_hard_disk(int drv, QString path)
 {
 #ifdef USE_HARD_DISK
 	p_emu->open_hard_disk(drv, path.toLocal8Bit().constData());
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, drv, path);
 #endif	
 }
 
@@ -676,6 +681,7 @@ void EmuThreadClass::do_open_cart(int drv, QString path)
 {
 #ifdef USE_CART
 	p_emu->open_cart(drv, path.toLocal8Bit().constData());
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_Cart, drv, path);
 #endif	
 }
 
@@ -691,6 +697,7 @@ void EmuThreadClass::do_open_laser_disc(int drv, QString path)
 {
 #ifdef USE_LASER_DISC
 	p_emu->open_laser_disc(drv, path.toLocal8Bit().constData());
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, drv, path);
 #endif	
 }
 
@@ -698,6 +705,7 @@ void EmuThreadClass::do_load_binary(int drv, QString path)
 {
 #ifdef USE_BINARY_FILE
 	p_emu->load_binary(drv, path.toLocal8Bit().constData());
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, drv, path);
 #endif	
 }
 
@@ -768,6 +776,7 @@ void EmuThreadClass::do_open_bubble_casette(int drv, QString path, int bank)
 	   bank = 0;
 	}
 	p_emu->open_bubble_casette(drv, localPath.constData(), bank);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drv, path);
 	emit sig_update_recent_bubble(drv);
 #endif	
 }

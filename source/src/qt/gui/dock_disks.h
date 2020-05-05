@@ -49,6 +49,7 @@ private:
 	int _now_height;
 	float _now_pt;
 	int local_num;
+	QString mediaFileName;
 public:
 	CSP_LabelVirtualDevice(QWidget *parent = 0,
 							int width = 6, float point = 12.0f,
@@ -68,6 +69,7 @@ public slots:
 	void setScreenWidth(int width, int basewidth);
 	void setPixmapLabel(QPixmap p);
 	void setPixmapIndicator(QPixmap p);
+	void setMediaFileName(QString filename);
 };
 
 class CSP_DockDisks : public QWidget {
@@ -101,6 +103,7 @@ public slots:
 	void setPixmap(int dom, int localNum, const QPixmap &);
 	void setOrientation(int loc);
 	void setScreenWidth(int width);
+	void updateMediaFileName(int dom, int localnum, QString filename);
 };
 QT_END_NAMESPACE
 

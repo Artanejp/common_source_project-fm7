@@ -64,7 +64,9 @@ CSP_LabelVirtualDevice::CSP_LabelVirtualDevice(QWidget *parent,
 	HBox->addWidget(Message);
 	HBox->setContentsMargins(0, 0, 0, 0);
 	this->setLayout(HBox);
-
+//	setAttribute(Qt::WA_AlwaysShowToolTips, true);
+	mediaFileName.clear();
+	this->setToolTip(mediaFileName);
 	//this->setGeometry(0, 0, this->width(), 	_height);
 }
 
@@ -435,6 +437,77 @@ void CSP_DockDisks::updateLabel(int dom, int localnum, QString str)
 	}
 }
 
+void CSP_DockDisks::updateMediaFileName(int dom, int localnum, QString filename)
+{
+	switch(dom) {
+	case CSP_DockDisks_Domain_Binary:
+		if((localnum < 8) && (localnum >= 0)) {
+			if(pBinary[localnum] != NULL) {
+				pBinary[localnum]->setMediaFileName(filename);
+			}
+		}
+		break;
+	case CSP_DockDisks_Domain_Bubble:
+		if((localnum < 8) && (localnum >= 0)) {
+			if(pBubble[localnum] != NULL) {
+				pBubble[localnum]->setMediaFileName(filename);
+			}
+		}
+		break;
+	case CSP_DockDisks_Domain_Cart:
+		if((localnum < 8) && (localnum >= 0)) {
+			if(pCart[localnum] != NULL) {
+				pCart[localnum]->setMediaFileName(filename);
+			}
+		}
+		break;
+	case CSP_DockDisks_Domain_CMT:
+		if((localnum < 2) && (localnum >= 0)) {
+			if(pCMT[localnum] != NULL) {
+				pCMT[localnum]->setMediaFileName(filename);
+			}
+		}
+		break;
+	case CSP_DockDisks_Domain_CD:
+		if((localnum < 2) && (localnum >= 0)) {
+			if(pCompactDisc[localnum] != NULL) {
+				pCompactDisc[localnum]->setMediaFileName(filename);
+			}
+		}
+		break;
+	case CSP_DockDisks_Domain_FD:
+		if((localnum < 8) && (localnum >= 0)) {
+			if(pFloppyDisk[localnum] != NULL) {
+				pFloppyDisk[localnum]->setMediaFileName(filename);
+			}
+		}
+		break;
+	case CSP_DockDisks_Domain_HD:
+		if((localnum < 8) && (localnum >= 0)) {
+			if(pHardDisk[localnum] != NULL) {
+				pHardDisk[localnum]->setMediaFileName(filename);
+			}
+		}
+		break;
+	case CSP_DockDisks_Domain_LD:
+		if((localnum < 2) && (localnum >= 0)) {
+			if(pLaserDisc[localnum] != NULL) {
+				pLaserDisc[localnum]->setMediaFileName(filename);
+			}
+		}
+		break;
+	case CSP_DockDisks_Domain_QD:
+		if((localnum < 2) && (localnum >= 0)) {
+			if(pQuickDisk[localnum] != NULL) {
+				pQuickDisk[localnum]->setMediaFileName(filename);
+			}
+		}
+		break;
+	default:
+		break;
+	}
+}
+
 void CSP_DockDisks::updateMessage(int dom, int localnum, QString str)
 {
 	switch(dom) {
@@ -617,5 +690,11 @@ void CSP_DockDisks::setScreenWidth(int width)
 		if(pQuickDisk[i] != NULL) pQuickDisk[i]->setScreenWidth(width, -1);
 	}
 	this->setGeometry(0, 0, now_width, now_height);
+}
+
+void CSP_LabelVirtualDevice::setMediaFileName(QString filename)
+{
+	mediaFileName = filename;
+	this->setToolTip(filename);
 }
 

@@ -348,6 +348,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hRunEmu, SIGNAL(sig_change_osd(int, int, QString)), driveData, SLOT(updateMessage(int, int, QString)));
 	connect(hRunEmu, SIGNAL(sig_change_access_lamp(int, int, QString)), driveData, SLOT(updateLabel(int, int, QString)));
 	connect(hRunEmu, SIGNAL(sig_set_access_lamp(int, bool)), graphicsView, SLOT(do_display_osd_leds(int, bool)));
+	connect(hRunEmu, SIGNAL(sig_change_virtual_media(int, int, QString)), driveData, SLOT(updateMediaFileName(dom, localnum, filename)));
 	connect(emu->get_osd(), SIGNAL(sig_enable_mouse()), glv, SLOT(do_enable_mouse()));
 	connect(emu->get_osd(), SIGNAL(sig_disable_mouse()), glv, SLOT(do_disable_mouse()));
 

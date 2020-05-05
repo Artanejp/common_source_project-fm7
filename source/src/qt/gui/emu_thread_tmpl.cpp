@@ -22,6 +22,7 @@
 #include "mainwidget_base.h"
 #include "qt_gldraw.h"
 #include "common.h"
+#include "dock_disks.h"
 
 //#include "../../romakana.h"
 
@@ -335,13 +336,16 @@ int EmuThreadClassBase::parse_command_queue(QStringList _l, int _begin)
 					const _TCHAR *path_shadow = (const _TCHAR *)(fileInfo.absoluteFilePath().toLocal8Bit().constData());
 					if(_dom_type == QString::fromUtf8("vFloppyDisk")) {
 						emit sig_open_fd(_dom_num, fileInfo.absoluteFilePath());
+						emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, _dom_num, fileInfo.absoluteFilePath());;
 						if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
 							emit sig_set_d88_num(_dom_num, _slot);
 						}
 					} else 	if(_dom_type == QString::fromUtf8("vHardDisk")) {
 						emit sig_open_hdd(_dom_num, fileInfo.absoluteFilePath());
+						emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, _dom_num, fileInfo.absoluteFilePath());;
 					} else if(_dom_type == QString::fromUtf8("vBubble")) {
 						emit sig_open_bubble(_dom_num, fileInfo.absoluteFilePath());
+						emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, _dom_num, fileInfo.absoluteFilePath());;
 						if(check_file_extension(path_shadow, ".b77")) {
 							emit sig_set_b77_num(_dom_num, _slot);
 						}
@@ -352,18 +356,24 @@ int EmuThreadClassBase::parse_command_queue(QStringList _l, int _begin)
 				if(fileInfo.isFile()) {
 					if(_dom_type == QString::fromUtf8("vQuickDisk")) {
 						emit sig_open_quick_disk(_dom_num, fileInfo.absoluteFilePath());
-					} else if(_dom_type == QString::fromUtf8("vCmt")) {
+						emit sig_change_virtual_media(CSP_DockDisks_Domain_QD, _dom_num, fileInfo.absoluteFilePath());;
+				} else if(_dom_type == QString::fromUtf8("vCmt")) {
 						emit sig_open_cmt_load(_dom_num, fileInfo.absoluteFilePath());
+						emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, _dom_num, fileInfo.absoluteFilePath());;
 					} else if(_dom_type == QString::fromUtf8("vBinary")) {
 						emit sig_open_binary_load(_dom_num, fileInfo.absoluteFilePath());
+						emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, _dom_num, fileInfo.absoluteFilePath());;
 					} else if(_dom_type == QString::fromUtf8("vCart")) {
 						emit sig_open_cart(_dom_num, fileInfo.absoluteFilePath());
+						emit sig_change_virtual_media(CSP_DockDisks_Domain_Cart, _dom_num, fileInfo.absoluteFilePath());;
 					} else if(_dom_type == QString::fromUtf8("vLD")) {
 						vMovieQueue.append(_dom);
 						vMovieQueue.append(fileInfo.absoluteFilePath());
+						emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, _dom_num, fileInfo.absoluteFilePath());;
 						//emit sig_open_laser_disc(_dom_num, fileInfo.absoluteFilePath());
 					} else if(_dom_type == QString::fromUtf8("vCD")) {
 						emit sig_open_cdrom(_dom_num, fileInfo.absoluteFilePath());
+						emit sig_change_virtual_media(CSP_DockDisks_Domain_CD, _dom_num, fileInfo.absoluteFilePath());;
 					}
 				}
 			}
