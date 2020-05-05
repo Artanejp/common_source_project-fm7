@@ -672,6 +672,7 @@ public slots:
 	
 	void set_dbg_completion_list(std::list<std::string> *p);
 	void clear_dbg_completion_list(void);
+	void set_hdd_image_name(int drv, _TCHAR *filename);
 
 signals:
 	int sig_update_screen(void *, bool);
@@ -708,6 +709,8 @@ signals:
 
 	int sig_clear_keyname_table(void);
 	int sig_add_keyname_table(uint32_t, QString);
+
+	int sig_change_virtual_media(int, int, QString);
 };
 QT_END_NAMESPACE
 

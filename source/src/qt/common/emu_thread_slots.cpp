@@ -505,6 +505,7 @@ void EmuThreadClass::do_close_disk(int drv)
 	p_emu->close_floppy_disk(drv);
 	p_emu->d88_file[drv].bank_num = 0;
 	p_emu->d88_file[drv].cur_bank = -1;
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, drv, QString::fromUtf8(""));
 #endif	
 }
 
@@ -558,7 +559,7 @@ void EmuThreadClass::do_play_tape(int drv, QString name)
 {
 #if defined(USE_TAPE)
 	p_emu->play_tape(drv, name.toLocal8Bit().constData());
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, path);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, name);
 #endif
 }
 
@@ -566,6 +567,7 @@ void EmuThreadClass::do_rec_tape(int drv, QString name)
 {
 #if defined(USE_TAPE)
 	p_emu->rec_tape(drv, name.toLocal8Bit().constData());
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, name);
 #endif
 }
 
@@ -573,6 +575,7 @@ void EmuThreadClass::do_close_tape(int drv)
 {
 #if defined(USE_TAPE)
 	p_emu->close_tape(drv);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, QString::fromUtf8(""));
 #endif
 }
 
@@ -630,6 +633,7 @@ void EmuThreadClass::do_close_quickdisk(int drv)
 {
 #ifdef USE_QUICK_DISK
 	p_emu->close_quick_disk(drv);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_QD, drv, QString::fromUtf8(""));
 #endif	
 }
 
@@ -652,6 +656,7 @@ void EmuThreadClass::do_eject_cdrom(int drv)
 {
 #ifdef USE_COMPACT_DISC
 	p_emu->close_compact_disc(drv);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_CD, drv, QString::fromUtf8(""));
 #endif	
 }
 
@@ -659,6 +664,7 @@ void EmuThreadClass::do_close_hard_disk(int drv)
 {
 #ifdef USE_HARD_DISK
 	p_emu->close_hard_disk(drv);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, drv, QString::fromUtf8(""));
 #endif	
 }
 
@@ -674,6 +680,7 @@ void EmuThreadClass::do_close_cart(int drv)
 {
 #ifdef USE_CART
 	p_emu->close_cart(drv);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_Cart, drv, QString::fromUtf8(""));
 #endif	
 }
 
@@ -690,6 +697,7 @@ void EmuThreadClass::do_close_laser_disc(int drv)
 {
 #ifdef USE_LASER_DISC
 	p_emu->close_laser_disc(drv);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, drv, QString::fromUtf8(""));
 #endif
 }
 
@@ -713,6 +721,7 @@ void EmuThreadClass::do_save_binary(int drv, QString path)
 {
 #ifdef USE_BINARY_FILE
 	p_emu->save_binary(drv, path.toLocal8Bit().constData());
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, drv, QString::fromUtf8(""));
 #endif	
 }
 
@@ -730,6 +739,7 @@ void EmuThreadClass::do_close_bubble_casette(int drv)
 	p_emu->close_bubble_casette(drv);
 	p_emu->b77_file[drv].bank_num = 0;
 	p_emu->b77_file[drv].cur_bank = -1;
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drv, QString::fromUtf8(""));
 #endif	
 }
 

@@ -22,6 +22,7 @@
 #include "menu_flags.h"
 #include "../osd.h"
 #include "mainwidget_base.h"
+#include "../../fileio.h"
 
 // buttons
 #ifdef MAX_BUTTONS
@@ -474,7 +475,11 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 			for(int ii = 0; ii < using_flags->get_max_hdd(); ii++ ) {
 				emit sig_change_access_lamp(CSP_DockDisks_Domain_HD, ii, hdd_text[ii]);
+				if(config.last_hard_disk_path[ii][0] != _T('\0') && FILEIO::IsFileExisting(config.last_hard_disk_path[ii])) {
+					emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, ii, config.last_hard_disk_path[ii]);
+				}
 			}
+			
 			first = false;
 		}
 		interval = 0;

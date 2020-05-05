@@ -40,6 +40,7 @@
 //#include "qt_main.h"
 //#include "csp_logger.h"
 #include "osd_base.h"
+#include "gui/dock_disks.h"
 
 OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QThread(0)
 {
@@ -601,4 +602,11 @@ void OSD_BASE::clear_dbg_completion_list(void)
 {
 	emit sig_clear_dbg_completion_list();
 	emit sig_apply_dbg_completion_list();
+}
+
+// Belows are API for GUI STATUS BAR.
+void OSD_BASE::set_hdd_image_name(int drv, _TCHAR *filename)
+{
+	QString _n = QString::fromLocal8Bit(filename);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, drv, _n);
 }

@@ -64,8 +64,8 @@ CSP_LabelVirtualDevice::CSP_LabelVirtualDevice(QWidget *parent,
 	HBox->addWidget(Message);
 	HBox->setContentsMargins(0, 0, 0, 0);
 	this->setLayout(HBox);
-//	setAttribute(Qt::WA_AlwaysShowToolTips, true);
-	mediaFileName.clear();
+	setAttribute(Qt::WA_AlwaysShowToolTips, true);
+	mediaFileName = QApplication::translate("CSP_LabelVirtualDevice", ("**BLANK**"), 0);
 	this->setToolTip(mediaFileName);
 	//this->setGeometry(0, 0, this->width(), 	_height);
 }
@@ -694,7 +694,11 @@ void CSP_DockDisks::setScreenWidth(int width)
 
 void CSP_LabelVirtualDevice::setMediaFileName(QString filename)
 {
-	mediaFileName = filename;
-	this->setToolTip(filename);
+	if(filename.size() < 1) {
+		mediaFileName = QApplication::translate("CSP_LabelVirtualDevice", ("**BLANK**"), 0);
+	} else {
+		mediaFileName = filename;
+	}
+	this->setToolTip(mediaFileName);
 }
 
