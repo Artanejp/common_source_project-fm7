@@ -62,6 +62,7 @@ void FM8_MAINIO::reset()
 {
 	FM7_MAINIO::reset();
 	cancel_event(this, event_timerirq);
+	event_timerirq = -1;
 }
 
 uint8_t FM8_MAINIO::get_port_fd00(void)
