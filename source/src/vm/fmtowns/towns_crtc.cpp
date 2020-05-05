@@ -188,6 +188,8 @@ void TOWNS_CRTC::reset()
 	for(int i = 0; i < 4; i++) {
 		frame_offset[i] = 0;
 		line_offset[i] = 640;
+	}
+	for(int i = 0; i < 2; i++) {
 		vstart_addr[i] = 0;
 		hstart_words[i] = 0;
 		head_address[i] = 0;
