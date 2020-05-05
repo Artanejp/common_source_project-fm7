@@ -507,7 +507,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_r (0x05c2, memory);  // NMI STATUS
 	io->set_iomap_single_r (0x05c8, sprite); // TVRAM EMULATION
 	io->set_iomap_single_w (0x05ca, crtc); // VSYNC INTERRUPT
-	
+	if(machine_id < 0x0200) {
+		io->set_iomap_single_rw(0x05e0, memory); //  MEMORY WAIT REGISTER ffrom AB.COM 
+	} else {
+		io->set_iomap_single_rw(0x05e2, memory); // MEMORY WAIT REGISTER ffrom AB.COM 
+	}
 	io->set_iomap_single_rw(0x05e8, memory); // RAM capacity register.(later Towns1H/2H/1F/2F).
 	io->set_iomap_single_rw(0x05ec, memory); // RAM Wait register , ofcially after Towns2, but exists after Towns1H.
 	io->set_iomap_single_r (0x05ed, memory); // RAM Wait register , ofcially after Towns2, but exists after Towns1H.

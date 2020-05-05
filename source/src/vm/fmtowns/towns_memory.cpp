@@ -66,6 +66,11 @@ void TOWNS_MEMORY::initialize()
 //	mem_wait_val = 3;
 	vram_wait_val = 6;
 	mem_wait_val = 3;
+	if((cpu_id == 0x01) || (cpu_id == 0x03)) { // i386
+		wait_register = 0x03;
+	} else {
+		wait_register = 0x83;
+	}
 //	mem_wait_val >>= 1;
 //	vram_wait_val >>= 1;
 	cpu_clock_val = 16000 * 1000;
@@ -286,11 +291,11 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		}
 		break;
 	case 0x0030:
-		val = (((machine_id & 0x1f) << 3) | (cpu_id & 7));
+		val = ((machine_id & 0xf8) | (cpu_id & 7));
 		// SPEED: bit0/Write
 		break;
 	case 0x0031:
-		val = ((machine_id >> 5) & 0xff);
+		val = ((machine_id >> 8) & 0xff);
 		break;
 	case 0x0032:
 		{
@@ -316,6 +321,16 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 	case 0x05c2:
 //		val = (extra_nmi_val) ? 0xff : 0xf7;
 		val = (extra_nmi_val) ? 0x08 : 0x00;
+		break;
+	case 0x05e0:
+		if(machine_id < 0x0200) { // Towns 1/2
+			return wait_register;
+		}
+		break;
+	case 0x05e2:
+		if(machine_id >= 0x0200) { // i386
+			return wait_register;
+		}
 		break;
 	case 0x05e8:
 		// After Towns1F/2F/1H/2H
@@ -468,8 +483,39 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	case 0x05c0:
 		extra_nmi_mask = ((data & 0x08) == 0);
 		break;
+	case 0x05e0:
+		// From AB.COM
+		if(machine_id < 0x0200) { // Towns 1/2
+			uint8_t nval = data & 7;
+			if(nval < 1) nval = 1;
+			if(nval > 5) nval = 5;
+			mem_wait_val = nval + 1;
+			vram_wait_val = nval + 3 + 1;
+			wait_register = nval;
+			set_wait_values();
+		}
+		break;
+	case 0x05e2:
+		if(machine_id >= 0x0200) { // After Towns 1H/2F.
+			if(data != 0x83) {
+				uint8_t nval = data & 7;
+				if(machine_id <= 0x0200) { // Towns 1H/2F.
+					if(nval < 1) nval = 1;
+				}
+				if(nval > 5) nval = 5;
+				mem_wait_val = nval;
+				vram_wait_val = nval + 3;
+				wait_register = nval;
+			} else {
+				mem_wait_val = 3;
+				vram_wait_val = 6;
+				wait_register = data;
+			}
+			set_wait_values();
+		}
+		break;
 	case 0x05ec:
-		if(machine_id >= /*0x0500*/0x0200) { // Towns2 CX : Is this hidden register after Towns 1F/2F/1H/2H? -> Yes
+		if(machine_id >= 0x0500) { // Towns2 CX : Is this hidden register after Towns 1F/2F/1H/2H? -> Yes
 			vram_wait_val = ((data & 0x01) != 0) ? 3 : 6;
 			mem_wait_val = ((data & 0x01) != 0) ? 0 : 3;
 //			mem_wait_val >>= 1;
@@ -733,7 +779,7 @@ void TOWNS_MEMORY::set_intr_line(bool line, bool pending, uint32_t bit)
 
 // ToDo: DMA
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -748,6 +794,10 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpu_id);
 	state_fio->StateValue(is_compatible);
 	
+	state_fio->StateValue(mem_wait_val);
+	state_fio->StateValue(vram_wait_val);
+	state_fio->StateValue(wait_register);
+	
 	state_fio->StateValue(dma_is_vram);
 	state_fio->StateValue(nmi_vector_protect);
 	state_fio->StateValue(software_reset);
@@ -756,6 +806,7 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(extra_nmi_val);
 	state_fio->StateValue(extra_nmi_mask);
 	state_fio->StateValue(nmi_mask);
+	
 	
 	state_fio->StateArray(ram_page0,  sizeof(ram_page0), 1);
 	state_fio->StateArray(ram_pagec,  sizeof(ram_pagec), 1);

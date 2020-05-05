@@ -100,6 +100,9 @@ protected:
 	uint32_t cpu_clock_val;
 	uint32_t vram_wait_val;
 	uint32_t mem_wait_val;
+
+	uint8_t wait_register;
+	
 	bool extra_nmi_mask;
 	bool extra_nmi_val;
 	bool nmi_mask;
