@@ -45,19 +45,23 @@ void TOWNS_VRAM::reset()
 	layer_display_flags[0] = layer_display_flags[1] = 0;
 }
 	
-void TOWNS_VRAM::make_dirty_vram(uint32_t addr, int bytes)
+__inline__ void TOWNS_VRAM::make_dirty_vram(uint32_t addr, int bytes)
 {
-	if(bytes <= 0) return;
-	uint32_t naddr1 = (addr & 0x7ffff) >> 3;
-	uint32_t naddr2 = ((addr + bytes) & 0x7ffff) >> 3;
-	if(naddr1 != naddr2) {
-		for(uint32_t a = naddr1; a != naddr2;) {
-			dirty_flag[a] = true;
-			a = (a + 1) & (0x7ffff >> 3);
-		}
-		dirty_flag[naddr2] = true;
-	} else {
+	uint32_t amask = 0x7ffff;
+	uint32_t naddr1 = (addr & amask) >> 3;
+	switch(bytes) {
+	case 1:
 		dirty_flag[naddr1] = true;
+		break;
+	case 2:
+	case 3:
+	case 4:
+		{
+			uint32_t naddr2 = ((addr + bytes - 1) & amask) >> 3;
+			dirty_flag[naddr1] = true;
+			dirty_flag[naddr2] = true;
+		}
+		break;
 	}
 }
 	
@@ -402,12 +406,12 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 	return 0xffffffff;
 }
 
-uint32_t TOWNS_VRAM::read_raw_vram8(uint32_t addr)
+__inline__ uint32_t TOWNS_VRAM::read_raw_vram8(uint32_t addr)
 {
 	return vram[addr & 0x7ffff];
 }
 	
-uint32_t TOWNS_VRAM::read_raw_vram16(uint32_t addr)
+__inline__ uint32_t TOWNS_VRAM::read_raw_vram16(uint32_t addr)
 {
 	pair16_t a;
 	bool is_wrap = false;
@@ -434,7 +438,7 @@ uint32_t TOWNS_VRAM::read_raw_vram16(uint32_t addr)
 	return (uint32_t)(a.w);
 }
 
-uint32_t TOWNS_VRAM::read_raw_vram32(uint32_t addr)
+__inline__ uint32_t TOWNS_VRAM::read_raw_vram32(uint32_t addr)
 {
 	pair32_t a;
 	bool is_wrap = false;
@@ -465,7 +469,7 @@ uint32_t TOWNS_VRAM::read_raw_vram32(uint32_t addr)
 	return a.d;
 }
 
-uint32_t TOWNS_VRAM::read_raw_vram16_nowrap(uint32_t addr)
+__inline__ uint32_t TOWNS_VRAM::read_raw_vram16_nowrap(uint32_t addr)
 {
 	pair16_t a;
 	addr = addr & 0x7ffff;
@@ -479,7 +483,7 @@ uint32_t TOWNS_VRAM::read_raw_vram16_nowrap(uint32_t addr)
 	return (uint32_t)(a.w);
 }
 
-uint32_t TOWNS_VRAM::read_raw_vram32_nowrap(uint32_t addr)
+__inline__ uint32_t TOWNS_VRAM::read_raw_vram32_nowrap(uint32_t addr)
 {
 	pair32_t a;
 	bool is_wrap = false;
@@ -493,7 +497,7 @@ uint32_t TOWNS_VRAM::read_raw_vram32_nowrap(uint32_t addr)
 	return a.d;
 }
 
-void TOWNS_VRAM::write_raw_vram8(uint32_t addr, uint32_t data)
+__inline__ void TOWNS_VRAM::write_raw_vram8(uint32_t addr, uint32_t data)
 {
 //	return;
 	uint8_t mask;
@@ -528,7 +532,7 @@ void TOWNS_VRAM::write_raw_vram8(uint32_t addr, uint32_t data)
 	}
 }
 
-void TOWNS_VRAM::write_raw_vram16(uint32_t addr, uint32_t data)
+__inline__ void TOWNS_VRAM::write_raw_vram16(uint32_t addr, uint32_t data)
 {
 #if 0
 	pair16_t d;
@@ -594,7 +598,7 @@ void TOWNS_VRAM::write_raw_vram16(uint32_t addr, uint32_t data)
 	return;
 }
 
-void TOWNS_VRAM::write_raw_vram32(uint32_t addr, uint32_t data)
+__inline__ void TOWNS_VRAM::write_raw_vram32(uint32_t addr, uint32_t data)
 {
 #if 0
 	pair32_t d;
@@ -670,7 +674,7 @@ void TOWNS_VRAM::write_raw_vram32(uint32_t addr, uint32_t data)
 	return;
 }
 
-void TOWNS_VRAM::write_raw_vram16_nowrap(uint32_t addr, uint32_t data)
+__inline__ void TOWNS_VRAM::write_raw_vram16_nowrap(uint32_t addr, uint32_t data)
 {
 	pair16_t a;
 	pair16_t b;
@@ -703,7 +707,7 @@ void TOWNS_VRAM::write_raw_vram16_nowrap(uint32_t addr, uint32_t data)
 	return;
 }
 
-void TOWNS_VRAM::write_raw_vram32_nowrap(uint32_t addr, uint32_t data)
+__inline__ void TOWNS_VRAM::write_raw_vram32_nowrap(uint32_t addr, uint32_t data)
 {
 	pair32_t a;
 	pair32_t b;

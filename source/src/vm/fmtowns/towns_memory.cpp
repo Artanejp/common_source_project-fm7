@@ -66,8 +66,8 @@ void TOWNS_MEMORY::initialize()
 //	mem_wait_val = 3;
 	vram_wait_val = 6;
 	mem_wait_val = 3;
-	mem_wait_val >>= 1;
-	vram_wait_val >>= 1;
+//	mem_wait_val >>= 1;
+//	vram_wait_val >>= 1;
 	cpu_clock_val = 16000 * 1000;
 
 	// Initialize R/W table
@@ -472,8 +472,8 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		if(machine_id >= /*0x0500*/0x0200) { // Towns2 CX : Is this hidden register after Towns 1F/2F/1H/2H? -> Yes
 			vram_wait_val = ((data & 0x01) != 0) ? 3 : 6;
 			mem_wait_val = ((data & 0x01) != 0) ? 0 : 3;
-			mem_wait_val >>= 1;
-			vram_wait_val >>= 1;
+//			mem_wait_val >>= 1;
+//			vram_wait_val >>= 1;
 			cpu_clock_val = ((data & 0x01) != 0) ? (get_cpu_clocks(d_cpu)) : (16 * 1000 * 1000);
 		}
 		set_wait_values();
