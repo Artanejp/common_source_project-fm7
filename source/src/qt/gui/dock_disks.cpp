@@ -318,7 +318,7 @@ CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
 			_wmod = 0;
 		}
 		for(int i = 0; i < using_flags->get_max_hdd(); i++) {
-			pHardDisk[i] = new CSP_LabelVirtualDevice(this, 12, font_pt, QString::fromUtf8("HD"), i);
+			pHardDisk[i] = new CSP_LabelVirtualDevice(this, 4, font_pt, QString::fromUtf8("HD"), i);
 			pHardDisk[i]->setVisible(true);
 		}
 		int _xtmp = _x;
