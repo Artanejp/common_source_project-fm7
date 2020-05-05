@@ -76,14 +76,31 @@ int cpu_debug_rep_cont = 0;
 CPU_REGS cpu_debug_rep_regs;
 #endif
 
+extern SINT32 exception_set;
+extern UINT32 exception_pc;
+extern UINT64 exception_code;
+
+static __inline__ void __FASTCALL check_exception(bool is_debugging)
+{
+	if(!(is_debugging)) return;
+	if(exception_set != 0) {
+		device_debugger->exception_code = exception_code;
+		device_debugger->exception_pc = exception_pc;
+		device_debugger->exception_happened = true;
+		device_debugger->add_cpu_trace_exception(exception_code);
+		exception_set = 0;
+	}
+}
+
 void
 exec_1step(void)
 {
 	int prefix;
 	UINT32 op;
-
+	bool is_debugging = ((device_debugger != NULL) && (device_debugger->now_debugging)) ? true : false; 
 	CPU_PREV_EIP = CPU_EIP;
 	CPU_STATSAVE.cpu_inst = CPU_STATSAVE.cpu_inst_default;
+	exception_set = 0;
 
 #if defined(ENABLE_TRAP)
 	steptrap(CPU_CS, CPU_EIP);
@@ -131,6 +148,7 @@ exec_1step(void)
 #endif
 
 	for (prefix = 0; prefix < MAX_PREFIX; prefix++) {
+		check_exception(is_debugging);
 		GET_PCBYTE(op);
 //#ifdef USE_DEBUGGER
 		if (prefix == 0) device_debugger->add_cpu_trace(codefetch_address);
@@ -150,6 +168,7 @@ exec_1step(void)
 	if (prefix == MAX_PREFIX) {
 		EXCEPTION(UD_EXCEPTION, 0);
 	}
+	check_exception(is_debugging);
 
 #if defined(IA32_INSTRUCTION_TRACE)
 	if (op == 0x0f) {
@@ -167,6 +186,7 @@ exec_1step(void)
 		cpu_debug_rep_cont = 0;
 #endif
 		(*insttable_1byte[CPU_INST_OP32][op])();
+		check_exception(is_debugging);
 		return;
 	}
 
@@ -184,6 +204,7 @@ exec_1step(void)
 				/* rep */
 				for (;;) {
 					(*insttable_1byte[CPU_INST_OP32][op])();
+					check_exception(is_debugging);
 					if (--CPU_CX == 0) {
 #if defined(DEBUG)
 						cpu_debug_rep_cont = 0;
@@ -199,6 +220,7 @@ exec_1step(void)
 				/* repe */
 				for (;;) {
 					(*insttable_1byte[CPU_INST_OP32][op])();
+					check_exception(is_debugging);
 					if (--CPU_CX == 0 || CC_NZ) {
 #if defined(DEBUG)
 						cpu_debug_rep_cont = 0;
@@ -214,6 +236,7 @@ exec_1step(void)
 				/* repne */
 				for (;;) {
 					(*insttable_1byte[CPU_INST_OP32][op])();
+					check_exception(is_debugging);
 					if (--CPU_CX == 0 || CC_Z) {
 #if defined(DEBUG)
 						cpu_debug_rep_cont = 0;
@@ -233,6 +256,7 @@ exec_1step(void)
 				/* rep */
 				for (;;) {
 					(*insttable_1byte[CPU_INST_OP32][op])();
+					check_exception(is_debugging);
 					if (--CPU_ECX == 0) {
 #if defined(DEBUG)
 						cpu_debug_rep_cont = 0;
@@ -248,6 +272,7 @@ exec_1step(void)
 				/* repe */
 				for (;;) {
 					(*insttable_1byte[CPU_INST_OP32][op])();
+					check_exception(is_debugging);
 					if (--CPU_ECX == 0 || CC_NZ) {
 #if defined(DEBUG)
 						cpu_debug_rep_cont = 0;
@@ -263,6 +288,7 @@ exec_1step(void)
 				/* repne */
 				for (;;) {
 					(*insttable_1byte[CPU_INST_OP32][op])();
+					check_exception(is_debugging);
 					if (--CPU_ECX == 0 || CC_Z) {
 #if defined(DEBUG)
 						cpu_debug_rep_cont = 0;
@@ -298,7 +324,9 @@ exec_allstep(void)
 	static int latecount = 0;
 	static int latecount2 = 0;
 	static int hltflag = 0;
-
+	bool is_debugging = ((device_debugger != NULL) && (device_debugger->now_debugging)) ? true : false; 
+	exception_set = 0;
+	
 	if(latecount2==0){
 		if(latecount > 0){
 			//latecount--;
@@ -360,6 +388,7 @@ exec_allstep(void)
 	#endif
 
 		for (prefix = 0; prefix < MAX_PREFIX; prefix++) {
+			check_exception(is_debugging);
 			GET_PCBYTE(op);
 	#if defined(IA32_INSTRUCTION_TRACE)
 			ctx[ctx_index].op[prefix] = op;
@@ -376,6 +405,7 @@ exec_allstep(void)
 		if (prefix == MAX_PREFIX) {
 			EXCEPTION(UD_EXCEPTION, 0);
 		}
+		check_exception(is_debugging);
 
 	#if defined(IA32_INSTRUCTION_TRACE)
 		if (op == 0x0f) {
@@ -393,6 +423,7 @@ exec_allstep(void)
 			cpu_debug_rep_cont = 0;
 	#endif
 			(*insttable_1byte[CPU_INST_OP32][op])();
+			check_exception(is_debugging);
 			goto cpucontinue; //continue;
 		}
 
@@ -412,15 +443,18 @@ exec_allstep(void)
 			if (CPU_CX != 0) {
 				if(CPU_CX==1){
 					(*func)();
+					check_exception(is_debugging);
 					--CPU_CX;
 				}else{
 					if (!(insttable_info[op] & REP_CHECKZF)) {
 						if(insttable_1byte_repfunc[CPU_INST_OP32][op]){
 							(*insttable_1byte_repfunc[CPU_INST_OP32][op])(0);
+							check_exception(is_debugging);
 						}else{
 							/* rep */
 							for (;;) {
 								(*func)();
+								check_exception(is_debugging);
 								if (--CPU_CX == 0) {
 			#if defined(DEBUG)
 									cpu_debug_rep_cont = 0;
@@ -436,10 +470,12 @@ exec_allstep(void)
 					} else if (CPU_INST_REPUSE != 0xf2) {
 						if(insttable_1byte_repfunc[CPU_INST_OP32][op]){
 							(*insttable_1byte_repfunc[CPU_INST_OP32][op])(1);
+							check_exception(is_debugging);
 						}else{
 							/* repe */
 							for (;;) {
 								(*func)();
+								check_exception(is_debugging);
 								if (--CPU_CX == 0 || CC_NZ) {
 			#if defined(DEBUG)
 									cpu_debug_rep_cont = 0;
@@ -455,10 +491,12 @@ exec_allstep(void)
 					} else {
 						if(insttable_1byte_repfunc[CPU_INST_OP32][op]){
 							(*insttable_1byte_repfunc[CPU_INST_OP32][op])(2);
+							check_exception(is_debugging);
 						}else{
 							/* repne */
 							for (;;) {
 								(*func)();
+								check_exception(is_debugging);
 								if (--CPU_CX == 0 || CC_Z) {
 			#if defined(DEBUG)
 									cpu_debug_rep_cont = 0;
@@ -478,15 +516,18 @@ exec_allstep(void)
 			if (CPU_ECX != 0) {
 				if(CPU_ECX==1){
 					(*func)();
+					check_exception(is_debugging);
 					--CPU_ECX;
 				}else{
 					if (!(insttable_info[op] & REP_CHECKZF)) {
 						if(insttable_1byte_repfunc[CPU_INST_OP32][op]){
 							(*insttable_1byte_repfunc[CPU_INST_OP32][op])(0);
+							check_exception(is_debugging);
 						}else{
 							/* rep */
 							for (;;) {
 								(*func)();
+								check_exception(is_debugging);
 								if (--CPU_ECX == 0) {
 			#if defined(DEBUG)
 									cpu_debug_rep_cont = 0;
@@ -502,10 +543,12 @@ exec_allstep(void)
 					} else if (CPU_INST_REPUSE != 0xf2) {
 						if(insttable_1byte_repfunc[CPU_INST_OP32][op]){
 							(*insttable_1byte_repfunc[CPU_INST_OP32][op])(1);
+							check_exception(is_debugging);
 						}else{
 							/* repe */
 							for (;;) {
 								(*func)();
+								check_exception(is_debugging);
 								if (--CPU_ECX == 0 || CC_NZ) {
 			#if defined(DEBUG)
 									cpu_debug_rep_cont = 0;
@@ -521,10 +564,12 @@ exec_allstep(void)
 					} else {
 						if(insttable_1byte_repfunc[CPU_INST_OP32][op]){
 							(*insttable_1byte_repfunc[CPU_INST_OP32][op])(2);
+							check_exception(is_debugging);
 						}else{
 							/* repne */
 							for (;;) {
 								(*func)();
+								check_exception(is_debugging);
 								if (--CPU_ECX == 0 || CC_Z) {
 			#if defined(DEBUG)
 									cpu_debug_rep_cont = 0;

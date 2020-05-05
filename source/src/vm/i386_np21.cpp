@@ -381,7 +381,8 @@ int I386::run(int cycles)
 		
 		// run cpu while given clocks
 		while(remained_cycles > 0 && !busreq) {
-			remained_cycles -= run(-1);
+			remained_cycles -= run_one_opecode();
+//			remained_cycles -= run(-1);
 		}
 		// if busreq is raised, spin cpu while remained clock
 		if(remained_cycles > 0 && busreq) {

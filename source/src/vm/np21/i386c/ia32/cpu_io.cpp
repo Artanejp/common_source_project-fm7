@@ -31,9 +31,9 @@
 #include "../cpumem.h"
 
 
-static void CPUCALL check_io(UINT port, UINT len);
+static __inline__ void CPUCALL check_io(UINT port, UINT len);
 
-static void CPUCALL
+static __inline__ void CPUCALL
 check_io(UINT port, UINT len) 
 {
 	UINT off;

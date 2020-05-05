@@ -190,10 +190,10 @@ struct tlb_entry {
 #define	TLB_ENTRY_TAG_MAX_SHIFT		12
 	UINT32	paddr;	/* physical address */
 };
-static void MEMCALL tlb_update(UINT32 laddr, UINT entry, int ucrw);
+static __inline__ void MEMCALL tlb_update(UINT32 laddr, UINT entry, int ucrw);
 
 /* paging */
-static UINT32 MEMCALL paging(UINT32 laddr, int ucrw);
+static __inline__ UINT32 MEMCALL paging(UINT32 laddr, int ucrw);
 
 /*
  * linear memory access
@@ -698,7 +698,7 @@ laddr2paddr(UINT32 laddr, int ucrw)
 /*
  * paging
  */
-static UINT32 MEMCALL
+static __inline__ UINT32 MEMCALL
 paging(UINT32 laddr, int ucrw)
 {
 	struct tlb_entry *ep;
@@ -901,7 +901,7 @@ tlb_lookup(UINT32 laddr, int ucrw)
 	return NULL;
 }
 
-static void MEMCALL
+static __inline__ void MEMCALL
 tlb_update(UINT32 laddr, UINT entry, int bit)
 {
 	struct tlb_entry *ep;

@@ -48,7 +48,9 @@ DEVICE *device_dma = NULL;
 SINT64 i386_memory_wait;
 DEBUGGER *device_debugger = NULL;
 UINT32 codefetch_address;
-
+SINT32 exception_set;
+UINT32 exception_pc;
+UINT64 exception_code;
 // ----
 REG8 MEMCALL memp_read8(UINT32 address) {
 	

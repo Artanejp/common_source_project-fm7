@@ -117,6 +117,7 @@ ia32a20enable(BOOL enable)
 }
 
 //#pragma optimize("", off)
+
 void
 ia32(void)
 {

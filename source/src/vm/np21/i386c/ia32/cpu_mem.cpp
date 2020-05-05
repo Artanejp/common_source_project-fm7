@@ -30,11 +30,11 @@
 /*
  * memory access check
  */
-static int MEMCALL check_limit_upstairs(descriptor_t *sdp, UINT32 offset, UINT len, BOOL is32bit);
-static void MEMCALL cpu_memoryread_check(descriptor_t *sdp, UINT32 offset, UINT len, int e);
-static void MEMCALL cpu_memorywrite_check(descriptor_t *sdp, UINT32 offset, UINT len, int e);
+static __inline__ int MEMCALL check_limit_upstairs(descriptor_t *sdp, UINT32 offset, UINT len, BOOL is32bit);
+static __inline__ void MEMCALL cpu_memoryread_check(descriptor_t *sdp, UINT32 offset, UINT len, int e);
+static __inline__ void MEMCALL cpu_memorywrite_check(descriptor_t *sdp, UINT32 offset, UINT len, int e);
 
-static int MEMCALL
+static __inline__ int MEMCALL
 check_limit_upstairs(descriptor_t *sdp, UINT32 offset, UINT len, BOOL is32bit)
 {
 	UINT32 limit;
@@ -134,7 +134,7 @@ exc:
 	return 0;
 }
 
-static void MEMCALL
+static __inline__ void MEMCALL
 cpu_memoryread_check(descriptor_t *sdp, UINT32 offset, UINT len, int e)
 {
 
@@ -176,7 +176,7 @@ exc:
 	EXCEPTION(e, 0);
 }
 
-static void MEMCALL
+static __inline__ void MEMCALL
 cpu_memorywrite_check(descriptor_t *sdp, UINT32 offset, UINT len, int e)
 {
 

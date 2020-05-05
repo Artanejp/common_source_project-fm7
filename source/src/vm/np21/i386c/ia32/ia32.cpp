@@ -243,7 +243,7 @@ change_vm(BOOL onoff)
 /*
  * flags
  */
-static void CPUCALL
+static __inline__ void CPUCALL
 modify_eflags(UINT32 new_flags, UINT32 mask)
 {
 	UINT32 orig = CPU_EFLAG;
