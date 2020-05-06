@@ -1332,22 +1332,21 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 						   false, NULL);
 		} else {
 			out_debug_log(_T("EOT"));
-			if(pio_transfer) {
+//			if(pio_transfer) {
 				set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
-			}
+//			}
 		}			
 		break;
 	case EVENT_CDROM_DMA_EOT:
 		event_next_sector = -1;
-		if(read_length > 0) {
-			event_callback(EVENT_CDROM_NEXT_SECTOR, -1);
-		} else {
+		if(read_length <= 0) {
 			out_debug_log(_T("EOT(DMA)"));
 			if(dma_transfer) {
-				set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
+//				set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
 				dma_transfer = false;
 			}
 		}
+		event_callback(EVENT_CDROM_NEXT_SECTOR, -1);
 		break;
 	case EVENT_CDROM_DRQ:
 		// ToDo: Buffer OVERFLOW at PIO mode.
