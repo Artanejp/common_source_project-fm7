@@ -187,7 +187,8 @@ protected:
 	uint32_t max_logical_block;
 	int bytes_per_sec;
 	bool access;
-
+	bool media_changed;
+	
 	int extra_status;
 	void play_cdda_from_cmd();
 	void unpause_cdda_from_cmd();
@@ -242,6 +243,9 @@ protected:
 	int get_frames_from_msf(const char *s);
 	int hexatoi(const char *s);
 
+	virtual void open_from_cmd(const _TCHAR* file_path);
+	virtual void close_from_cmd();
+	
 	bool __CDROM_DEBUG_LOG;
 	
 public:
