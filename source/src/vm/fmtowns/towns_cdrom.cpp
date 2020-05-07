@@ -904,6 +904,7 @@ uint8_t TOWNS_CDROM::read_status()
 				} else {
 					pair32_t msf;
 					msf.d = read_signal(SIG_TOWNS_CDROM_START_MSF);
+					out_debug_log(_T("TRACK=%d M:S:F=%02X:%02X:%02X"), stat_track - 1, msf.b.h2, msf.b.h, msf.b.l);
 					set_status_extra_toc_data(msf.b.h2, msf.b.h, msf.b.l); // OK?
 					if((track_num <= 0) || (stat_track >= track_num)) {
 						extra_status = 0; // It's end.
@@ -1139,8 +1140,8 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 			int index0 = toc_table[trk].index0;
 			int index1 = toc_table[trk].index1;
 			int pregap = toc_table[trk].pregap;
-			if(pregap > 0) index0 = index0 + pregap;
-			if(index0 < 150) index0 = 150;
+			//if(pregap > 0) index0 = index0 + pregap;
+			//if(index0 < 150) index0 = 150;
 			uint32_t lba = (uint32_t)index0;
 			uint32_t msf = lba_to_msf(lba); // Q:lba + 150?
 			stat_track++;
@@ -1423,17 +1424,35 @@ void TOWNS_CDROM::read_a_cdda_sample()
 	cdda_sample_l = (int)(int16_t)(cdda_buffer[cdda_buffer_ptr + 0] + cdda_buffer[cdda_buffer_ptr + 1] * 0x100);
 	cdda_sample_r = (int)(int16_t)(cdda_buffer[cdda_buffer_ptr + 2] + cdda_buffer[cdda_buffer_ptr + 3] * 0x100);
 	// ToDo: CLEAR IRQ Line (for PCE)
-	
-	if((cdda_buffer_ptr += 4) >= 2352) {
+	cdda_buffer_ptr = cdda_buffer_ptr + 4;
+	bool force_seek = false;
+	if(cdda_buffer_ptr >= 2352) {
 		// one frame finished
 		cdda_playing_frame++;
 		cdda_buffer_ptr = 0;
+		if(cdda_playing_frame >= cdda_end_frame) {
+			if(cdda_repeat_count <= 0) {
+				set_cdda_status(CDDA_OFF);
+				set_subq();
+				access = false;
+				return;
+			} else {
+				cdda_playing_frame = cdda_start_frame;
+				cdda_repeat_count--;
+				force_seek = true;
+			}
+		}
 		check_cdda_track_boundary(cdda_playing_frame);
+		if(force_seek) {
+			seek_relative_frame_in_image(cdda_playing_frame);
+		}
 		access = true;
 		if(fio_img->Fread(cdda_buffer,
 					   2352 * sizeof(uint8_t),
 						  1) != 1) {
 			set_cdda_status(CDDA_OFF);
+			set_subq();
+			access = false;
 			return;
 		}
 	}
@@ -1664,7 +1683,7 @@ void TOWNS_CDROM::pause_cdda_from_cmd()
 
 bool TOWNS_CDROM::seek_relative_frame_in_image(uint32_t frame_no)
 {
-	if(frame_no > toc_table[current_track].lba_offset) {
+	if(frame_no >= toc_table[current_track].lba_offset) {
 		if(fio_img->IsOpened()) {
 			if(fio_img->Fseek(
 				(frame_no - toc_table[current_track].lba_offset) * physical_block_size(),
@@ -1679,16 +1698,13 @@ bool TOWNS_CDROM::seek_relative_frame_in_image(uint32_t frame_no)
 
 void TOWNS_CDROM::check_cdda_track_boundary(uint32_t &frame_no)
 {
-	if(frame_no >= toc_table[current_track + 1].index0) {
-		cdda_repeat_count--;
-		if(cdda_repeat_count >= 0) {
-			frame_no = cdda_start_frame;
-		} else {
-			current_track = get_track(frame_no);
+	if((frame_no >= toc_table[current_track + 1].index0) ||
+	   (frame_no < toc_table[current_track].index0)) {
+		current_track = get_track(frame_no);
+		out_debug_log(_T("CDDA: BEYOND OF TRACK BOUNDARY, FRAME=%d"), frame_no);
+		if(frame_no < toc_table[current_track].index0) {
+			frame_no = toc_table[current_track].index0;
 		}
-//		if(frame_no < toc_table[current_track].index0) {
-//			frame_no = toc_table[current_track].index0;
-//		}
 		seek_relative_frame_in_image(frame_no);
 	}
 }
