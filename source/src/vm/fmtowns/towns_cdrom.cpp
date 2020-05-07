@@ -1378,7 +1378,7 @@ bool TOWNS_CDROM::read_buffer(int length)
 	}
 	uint32_t offset = (uint32_t)(position % 2352);
 	int n_length = length;
-	if(!(seek_relative_frame_in_image(position))) {
+	if(!(seek_relative_frame_in_image(position / physical_block_size()))) {
 		status_illegal_lba(0, 0x00, 0x00, 0x00);
 		return false;
 	}
