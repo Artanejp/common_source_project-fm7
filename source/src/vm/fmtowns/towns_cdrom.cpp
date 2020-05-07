@@ -1001,7 +1001,10 @@ void TOWNS_CDROM::read_cdrom()
 	uint32_t __remain;
 	int track = 0;
 	track = get_track(lba1);
-	out_debug_log(_T("READ_CDROM TRACK=%d LBA1=%d LBA2=%d F1/S1/M1=%02X/%02X/%02X F2/S2/M2=%02X/%02X/%02X PAD=%02X DCMD=%02X"), track, lba1, lba2, f1, s1, m1, f2, s2, m2, pad1, dcmd);
+	out_debug_log(_T("READ_CDROM TRACK=%d LBA1=%d LBA2=%d M1/S1/F1=%02X/%02X/%02X M2/S2/F2=%02X/%02X/%02X PAD=%02X DCMD=%02X"), track, lba1, lba2,
+				  param_queue[0], param_queue[1], param_queue[2],
+				  param_queue[3], param_queue[4], param_queue[5],
+				  pad1, dcmd);
 	set_cdda_status(CDDA_OFF);
 	if(lba1 > lba2) { // NOOP?
 		extra_status = 0;
@@ -1136,9 +1139,9 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 			int index0 = toc_table[trk].index0;
 			int index1 = toc_table[trk].index1;
 			int pregap = toc_table[trk].pregap;
+			if(pregap > 0) index0 = index0 + pregap;
+			if(index0 < 150) index0 = 150;
 			uint32_t lba = (uint32_t)index0;
-			if(pregap > 0) lba = lba - pregap;
-			if(lba < 150) lba = 150;
 			uint32_t msf = lba_to_msf(lba); // Q:lba + 150?
 			stat_track++;
 			return msf;
@@ -2229,6 +2232,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 			toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
 			// P1: Calc
 			int _n = 0;
+			int vnptr = 0;
 			for(int i = 1; i < track_num; i++) {
 
 				if(fio_img->IsOpened()) {
@@ -2238,38 +2242,20 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				//if(toc_table[i].pregap <= 0) {
 				//	toc_table[i].pregap = 150; // Default PREGAP must be 2Sec. From OoTake.(Only with PCE? Not with FM-Towns?)
 				//}
-				if(!(with_filename[i])) { // Relative offset
-					if(toc_table[i + 1].index1 == 0) {
-						toc_table[i].lba_size = max_logical_block - toc_table[i].index1;
-						toc_table[i].lba_offset = toc_table[i - 1].index1;
-					} else {
-						toc_table[i].lba_size = toc_table[i + 1].index1 - toc_table[i].index1;
-						toc_table[i].lba_offset = toc_table[i - 1].index1;
-					}
-//						toc_table[i].index0 = toc_table[i].index0 + max_logical_block;
-//						toc_table[i].index1 = toc_table[i].index1 + max_logical_block;
-				} else {
-					if((with_filename[i + 1]) || (i == (track_num - 1))) { // Single file
-						if(fio_img->Fopen(track_data_path[i - 1], FILEIO_READ_BINARY)) {
-							int _nn;
-							if((_nn = fio_img->FileLength() / 2352) > 0) {
-								toc_table[i].lba_size = _nn;
-							} else {
-								toc_table[i].lba_size = 0;
-							}
+				if((strlen(track_data_path[i - 1]) > 0) && (with_filename[i])) {
+					if(fio_img->Fopen(track_data_path[i - 1], FILEIO_READ_BINARY)) {
+						if((_n = fio_img->FileLength() / 2352) > 0) {
+							max_logical_block += _n;
 						} else {
-							toc_table[i].lba_size = 0;
+							_n = 0;
 						}
-						toc_table[i].lba_offset = 0;
-						toc_table[i].index0 = toc_table[i].index0 + max_logical_block;
-						toc_table[i].index1 = toc_table[i].index1 + max_logical_block;
-					} else if(toc_table[i + 1].index1 == 0) {
-						toc_table[i].lba_size = max_logical_block - toc_table[i].index1;
-						toc_table[i].lba_offset = toc_table[i - 1].index1;
-					} else {
-						toc_table[i].lba_size = toc_table[i + 1].index1 - toc_table[i].index1;
-						toc_table[i].lba_offset = toc_table[i - 1].index1;
+						fio_img->Fclose();
 					}
+					toc_table[i].lba_size = _n;
+				}
+				toc_table[i].lba_offset = max_logical_block - _n;
+				if(!(with_filename[i + 1]) && (toc_table[i + 1].index1 > toc_table[i].index1)) {
+					toc_table[i].lba_size = toc_table[i + 1].index1 - toc_table[i].index1;
 				}
 				if(toc_table[i].index0 == 0) {
 					toc_table[i].index0 = toc_table[i].index1;
@@ -2281,26 +2267,10 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				if(toc_table[i].pregap <= 150) {
 					toc_table[i].pregap = 150; // Default PREGAP must be 2Sec. From OoTake.(Only with PCE? Not with FM-Towns?)
 				}
-				_n = 0;
-				if((strlen(track_data_path[i - 1]) > 0) && (with_filename[i])) {
-					if(fio_img->Fopen(track_data_path[i - 1], FILEIO_READ_BINARY)) {
-						if((_n = fio_img->FileLength() / 2352) > 0) {
-							max_logical_block += _n;
-						} else {
-							_n = 0;
-						}
-						fio_img->Fclose();
-					}
-				}
-//				toc_table[i].lba_size = _n;
-				toc_table[i].lba_offset = max_logical_block - _n;
 			}
 			for(int i = 1; i < track_num; i++) {
-//				if(i < (track_num - 1)) {
-//					toc_table[i].lba_size = toc_table[i + 1].index1 - toc_table[i].index1;
-//				} else {
-//					toc_table[i].lba_size = max_logical_block - toc_table[i].lba_offset;
-//				}
+				toc_table[i].index0 += toc_table[i].lba_offset;
+				toc_table[i].index1 += toc_table[i].lba_offset;
 				out_debug_log(_T("TRACK#%02d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d LBA_OFFSET=%d PATH=%s\n"),
 									i, (toc_table[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352"),
 									toc_table[i].pregap, toc_table[i].index0, toc_table[i].index1,
