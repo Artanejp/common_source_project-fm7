@@ -143,7 +143,7 @@ protected:
 	int cdda_repeat_count;
 	bool cdda_interrupt;
 	int cdda_buffer_ptr;
-	uint8_t cdda_buffer[2352 * 75];
+	uint8_t cdda_buffer[2352 + 8];
 	
 	int mix_loop_num;
 	int current_track;
@@ -208,6 +208,8 @@ protected:
 	void set_status_extra(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra_toc_addr(uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra_toc_data(uint8_t s1, uint8_t s2, uint8_t s3);
+	void check_cdda_track_boundary(uint32_t &frame_no);
+	bool seek_relative_frame_in_image(uint32_t frame_no);
 
 	void read_cdrom();
 	
