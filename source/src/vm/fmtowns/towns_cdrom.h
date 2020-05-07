@@ -92,6 +92,8 @@ enum {
 	TOWNS_CD_STATUS_TOC_ADDR		= 0x16,
 	TOWNS_CD_STATUS_TOC_DATA		= 0x17,
 	TOWNS_CD_STATUS_SUBQ_READ		= 0x18,
+	TOWNS_CD_STATUS_SUBQ_READ2		= 0x18,
+	TOWNS_CD_STATUS_SUBQ_READ3		= 0x18,
 	TOWNS_CD_STATUS_CMD_ABEND		= 0x21,
 	TOWNS_CD_STATUS_DATA_READY		= 0x22,
 	TOWNS_CD_STATUS_UNKNOWN			= 0xff,
@@ -188,6 +190,7 @@ protected:
 	int bytes_per_sec;
 	bool access;
 	bool media_changed;
+	uint32_t read_lba;
 	
 	int extra_status;
 	void play_cdda_from_cmd();
