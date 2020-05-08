@@ -19,7 +19,7 @@
   - MODE2 READ: まだ非実装
   - RAW READ  : まだ非実装
   - SUB FIELD (SUB CODE; 04CCH, 04CDh): レジスタは実装したがP-Wフィールド設定は殆ど未実装
-  - **TownsOS 1.xをCDブートすると、なぜかハングアップ(BIOSが00007DD4hに落ちる)。**HDDブートだと大丈夫？
+  - **TownsOS 1.xをCDブートすると、なぜかハングアップ(BIOSが00007DD4hに落ちる)**。HDDブートだと大丈夫？
   - TownsOS 2.x系のCDからのブートは大丈夫っぽいが、挙動が不審。
   - **Towns Linux (Slackware+JE4)のインストール中に、インストールファイル(*.tgzなど)が壊れる。**
   - **MS-DOS+MSCDEXでも大体は動くが、時折転送に失敗する**。
