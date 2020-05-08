@@ -2130,7 +2130,7 @@ uint32_t TOWNS_CRTC::read_signal(int ch)
 void TOWNS_CRTC::write_signal(int ch, uint32_t data, uint32_t mask)
 {
 	if(ch == SIG_TOWNS_CRTC_MMIO_CF882H) {
-		out_debug_log(_T("CF882H=%02X"), data & 0xff);
+//		out_debug_log(_T("CF882H=%02X"), data & 0xff);
 		r50_planemask = ((data & 0x20) >> 2) | (data & 0x07);
 		r50_pagesel = ((data & 0x10) != 0) ? 1 : 0;
 	} else if(ch == SIG_TOWNS_CRTC_SPRITE_DISP) {
