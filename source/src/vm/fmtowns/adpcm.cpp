@@ -180,7 +180,7 @@ void ADPCM::write_data8(uint32_t addr, uint32_t data)
 void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 {
 	if(ch == SIG_ADPCM_WRITE_INTERRUPT) {
-		out_debug_log(_T("SIG_ADPCM_WRITE_INTERRUPT val=%08X mask=%08X"), data ,mask);
+//		out_debug_log(_T("SIG_ADPCM_WRITE_INTERRUPT val=%08X mask=%08X"), data ,mask);
 		uint32_t n_ch = data & 0x07;
 		bool n_onoff = (((data & mask) & 0x00000008) != 0) ? true : false;
 		bool n_allset =(((data & mask) & 0x80000000) != 0) ? true : false;
@@ -202,7 +202,7 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 		if((n_onoff) && (_d)) { // ON
 			write_signals(&outputs_intr, 0xffffffff);
 			latest_dac_intr = true;
-		} else if(!(n_onoff)) {
+		} else if(!(n_onoff) || !(_d)) {
 			if(!(opx_intr) && (latest_dac_intr)) {
 				write_signals(&outputs_intr, 0x00000000);
 			}				

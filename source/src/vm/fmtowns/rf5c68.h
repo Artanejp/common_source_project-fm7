@@ -40,24 +40,22 @@ protected:
 	uint8_t wave_memory[0x10000];
 	// DAC REGISTERS
 	bool dac_on;
-	uint8_t dac_bank;
+	uint16_t dac_bank;
 	uint8_t dac_ch;
 	bool is_mute;
 	
-	bool dac_onoff[8];
-	pair32_t dac_addr_st[8];
-	uint32_t dac_addr[8];
-	uint32_t dac_env[8];
-	uint32_t dac_lpan[8];
-	uint32_t dac_rpan[8];
-	pair32_t dac_ls[8];
-	pair32_t dac_fd[8];
+	__DECL_ALIGNED(16) bool dac_onoff[8];
+	__DECL_ALIGNED(16) pair32_t dac_addr_st[8];
+	__DECL_ALIGNED(16) uint32_t dac_addr[8];
+	__DECL_ALIGNED(16) uint32_t dac_env[8];
+	__DECL_ALIGNED(16) uint32_t dac_pan[16];
+	__DECL_ALIGNED(16) pair32_t dac_ls[8];
+	__DECL_ALIGNED(16) pair32_t dac_fd[8];
 	
 
 	// TMP Values
 	bool dac_force_load[8];
-	int32_t  dac_tmpval_l[8];
-	int32_t  dac_tmpval_r[8];
+	__DECL_ALIGNED(16) int32_t  dac_tmpval[16];
 
 	int volume_l, volume_r;
 	int32_t* sample_buffer;

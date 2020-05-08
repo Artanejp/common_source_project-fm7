@@ -501,7 +501,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	// ADPCM
 	io->set_iomap_range_rw(0x04e7, 0x04ef, adpcm); // A/D SAMPLING DATA REG 
-	io->set_iomap_range_rw(0x04f0, 0x04ff, adpcm); // A/D SAMPLING DATA REG 
+	io->set_iomap_range_rw(0x04f0, 0x04f8, rf5c68); // A/D SAMPLING DATA REG 
 
 	io->set_iomap_single_rw(0x05c0, memory); // NMI MASK
 	io->set_iomap_single_r (0x05c2, memory);  // NMI STATUS
