@@ -66,7 +66,7 @@ void TOWNS_MEMORY::initialize()
 //	mem_wait_val = 3;
 	vram_wait_val = 6;
 	mem_wait_val = 3;
-	if((cpu_id == 0x01) || (cpu_id == 0x03)) { // i386
+	if((cpu_id == 0x01) || (cpu_id == 0x03)) {
 		wait_register = 0x03;
 	} else {
 		wait_register = 0x83;
