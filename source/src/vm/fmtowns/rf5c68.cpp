@@ -154,7 +154,7 @@ __DECL_VECTORIZED_LOOP
 					if((addr_old & 0x0fff) == 0x0fff) {
 						// Will beyond of boundary
 						write_signals(&interrupt_boundary, ((addr_old & 0xe000) >> 13) | 0x00000008);
-						out_debug_log(_T("PCM INTERRUPT CH=%d ADDR=%04X"), ch, addr_old & 0xffff);
+//						out_debug_log(_T("PCM INTERRUPT CH=%d ADDR=%04X"), ch, addr_old & 0xffff);
 					}
 				
 					int chd = ch << 1;
