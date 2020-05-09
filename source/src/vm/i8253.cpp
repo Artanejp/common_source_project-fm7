@@ -414,6 +414,30 @@ int I8253::get_next_count(int ch)
 	return counter[ch].count;
 }
 
+bool I8253::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{	
+	_TCHAR regs1[3][1024];
+	for(int ch = 0; ch < 3; ch++) {
+		memset(regs1[ch], 0x00, sizeof(_TCHAR) * 1024);
+		my_sprintf_s(regs1[ch], 1024 -1,
+					 _T("CH%d: FREQ=%d ")
+					 _T("MODE=%d DELAY=%s START=%s ")
+					 _T("CTRL=%02X COUNT_REG=%04X COUNT=%d ")
+					 _T("GATE=%s PREV_IN=%s PREV_OUT=%s ")
+					 _T("\n")
+					 ,
+					 ch, counter[ch].freq,
+					 counter[ch].mode, (counter[ch].delay) ? _T("YES") : _T("NO "),  (counter[ch].start) ? _T("YES") : _T("NO "),
+					 counter[ch].ctrl_reg, counter[ch].count_reg, counter[ch].count,
+					 (counter[ch].gate) ? _T("YES") : _T("NO "), (counter[ch].prev_in) ? _T("YES") : _T("NO "), (counter[ch].prev_out) ? _T("YES") : _T("NO "));
+	}
+	my_sprintf_s(buffer, buffer_len, _T("TYPE=%s\n%s%s%s"),
+				 (__HAS_I8254) ? _T("i8254") : _T("i8253"),
+				 regs1[0], regs1[1], regs1[2]
+		);
+	return true;
+}
+	
 #define STATE_VERSION	1
 
 bool I8253::process_state(FILEIO* state_fio, bool loading)

@@ -21,6 +21,8 @@
 #define SIG_I8253_GATE_1	4
 #define SIG_I8253_GATE_2	5
 
+class DEBUGGER;
+
 class I8253 : public DEVICE
 {
 private:
@@ -52,6 +54,7 @@ private:
 		// output signals
 		outputs_t outputs;
 	} counter[3];
+	DEBUGGER* d_debugger;
 	uint64_t cpu_clocks;
 
 	bool __HAS_I8254;
@@ -72,6 +75,7 @@ public:
 			counter[i].freq = 0;
 		}
 		__HAS_I8254 = false;
+		d_debugger = NULL;
 		set_device_name(_T("8253 PIT"));
 	}
 	~I8253() {}
@@ -89,6 +93,21 @@ public:
 	}
 	bool process_state(FILEIO* state_fio, bool loading);
 	
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+//	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+
+	bool is_debugger_available()
+	{
+		return (d_debugger != NULL) ? true : false;
+	}
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	uint64_t get_debug_data_addr_space()
+	{
+		return 0x1;
+	}
 	// unique functions
 	void set_context_ch0(DEVICE* device, int id, uint32_t mask)
 	{
@@ -105,6 +124,10 @@ public:
 	void set_constant_clock(int ch, uint32_t hz)
 	{
 		counter[ch].freq = hz;
+	}
+	void set_context_debugger(DEBUGGER* p)
+	{
+		d_debugger = p;
 	}
 };
 
