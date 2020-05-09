@@ -203,9 +203,9 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 			write_signals(&outputs_intr, 0xffffffff);
 			latest_dac_intr = true;
 		} else if(!(n_onoff) || !(_d)) {
-			if(!(opx_intr) && (latest_dac_intr)) {
+//			if(!(opx_intr) && (latest_dac_intr)) {
 				write_signals(&outputs_intr, 0x00000000);
-			}				
+//			}				
 			latest_dac_intr = false;
 		}
 	} else if(ch == SIG_ADPCM_OPX_INTR) { // SET/RESET INT13
@@ -214,9 +214,9 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 		if(opx_intr) {
 			write_signals(&outputs_intr, 0xffffffff);
 		} else {
-			if(!(latest_dac_intr)) {
+//			if(!(latest_dac_intr)) {
 				write_signals(&outputs_intr, 0x00000000);
-			}
+//			}
 		}			
 	} else if(ch == SIG_ADPCM_ADC_INTR) { // Push data to FIFO from ADC.
 		if((data & mask) != 0) {
