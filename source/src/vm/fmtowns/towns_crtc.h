@@ -408,7 +408,7 @@ public:
 	}
 	uint64_t get_debug_data_addr_space()
 	{
-		return 0x0;
+		return 0x1;
 	}
 	// unique function
 	linebuffer_t* __FASTCALL get_line_buffer(int page, int line)

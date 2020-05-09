@@ -17,8 +17,9 @@
 
 #define SIG_TIMER_CH0	    0
 #define SIG_TIMER_CH1	    1
-#define SIG_TIMER_RTC	    2
-#define SIG_TIMER_RTC_BUSY  3
+#define SIG_TIMER_CH2	    2
+#define SIG_TIMER_RTC	    3
+#define SIG_TIMER_RTC_BUSY  4
 
 namespace FMTOWNS {
 class TIMER : public DEVICE

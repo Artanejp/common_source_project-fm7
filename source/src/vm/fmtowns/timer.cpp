@@ -157,6 +157,10 @@ void TIMER::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_TIMER_CH1) {
 		tmout1 = ((data & mask) != 0);
 		update_intr();
+	} else if(id == SIG_TIMER_CH2) {
+		//if((intr_reg & 4) != 0) {
+		//	d_pcm->write_signal(SIG_PCM1BIT_SIGNAL, ((data & mask) != 0) ? 1 : 0, 1);
+		//}
 	} else if(id == SIG_TIMER_RTC) {
 		rtc_data = data & mask;
 	} else if(id == SIG_TIMER_RTC_BUSY) {
