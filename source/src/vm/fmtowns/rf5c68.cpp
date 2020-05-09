@@ -234,41 +234,41 @@ void RF5C68::write_io8(uint32_t addr, uint32_t data)
 	switch(naddr) {
 	case 0x00: // ENV
 		dac_env[dac_ch] = data & 0xff;
-		out_debug_log(_T("DAC REG 00 (ENV) CH=%d RAW=%02X"),
-					  dac_ch, data);
+//		out_debug_log(_T("DAC REG 00 (ENV) CH=%d RAW=%02X"),
+//					  dac_ch, data);
 		break;
 	case 0x01: // PAN
 		dac_pan[(dac_ch << 1) + 0] = data & 0x0f;
 		dac_pan[(dac_ch << 1) + 1] = (data & 0xf0) >> 4;
-		out_debug_log(_T("DAC REG 01 (PAN) CH=%d L=%01X R=%01X"),
-					  dac_ch, data & 0x0f, (data & 0xf0) >> 4);
+//		out_debug_log(_T("DAC REG 01 (PAN) CH=%d L=%01X R=%01X"),
+//					  dac_ch, data & 0x0f, (data & 0xf0) >> 4);
 		break;
 	case 0x02: // FDL
 		dac_fd[dac_ch].b.l = data & 0xff;
-		out_debug_log(_T("DAC REG 02 (FD LOW) CH=%d RAW=%02X"),
-					  dac_ch, data);
+//		out_debug_log(_T("DAC REG 02 (FD LOW) CH=%d RAW=%02X"),
+//					  dac_ch, data);
 		break;
 	case 0x03: // FDH
 		dac_fd[dac_ch].b.h = data & 0xff;
-		out_debug_log(_T("DAC REG 03 (FD HIGH) CH=%d RAW=%02X"),
-					  dac_ch, data);
+//		out_debug_log(_T("DAC REG 03 (FD HIGH) CH=%d RAW=%02X"),
+//					  dac_ch, data);
 		break;
 	case 0x04: // LSL
 		dac_ls[dac_ch].b.l = data & 0xff;
-		out_debug_log(_T("DAC REG 04 (LS) CH=%d RAW=%02X"),
-					  dac_ch, data);
+//		out_debug_log(_T("DAC REG 04 (LS) CH=%d RAW=%02X"),
+//					  dac_ch, data);
 		break;
 	case 0x05: // LSH
 		dac_ls[dac_ch].b.h = data & 0xff;
-		out_debug_log(_T("DAC REG 05 (ADDR STEP HIGH) CH=%d RAW=%02X"),
-					  dac_ch, data);
+//		out_debug_log(_T("DAC REG 05 (ADDR STEP HIGH) CH=%d RAW=%02X"),
+//					  dac_ch, data);
 		break;
 	case 0x06: // ST
 		dac_addr_st[dac_ch].d = 0;
 		dac_addr_st[dac_ch].b.h = data & 0xff;
 		dac_addr[dac_ch] = (uint32_t)(dac_addr_st[dac_ch].w.l) << 11;
-		out_debug_log(_T("DAC REG 06 (ADDR STEP HIGH) CH=%d RAW=%02X"),
-					  dac_ch, data);
+//		out_debug_log(_T("DAC REG 06 (ADDR STEP HIGH) CH=%d RAW=%02X"),
+//					  dac_ch, data);
 		break;
 	case 0x07: // Control
 		dac_on = ((data & 0x80) != 0) ? true : false;
@@ -277,10 +277,10 @@ void RF5C68::write_io8(uint32_t addr, uint32_t data)
 		} else { // WB3-0
 			dac_bank = ((data & 0x0f) << 12);
 		}
-		out_debug_log(_T("DAC REG 07 RAW=%02X ON=%s CH=%d BANK=%04X"),
-					   data,
-					   (dac_on) ? _T("ON ") :_T("OFF"),
-					   dac_ch, dac_bank);
+//		out_debug_log(_T("DAC REG 07 RAW=%02X ON=%s CH=%d BANK=%04X"),
+//					   data,
+//					   (dac_on) ? _T("ON ") :_T("OFF"),
+//					   dac_ch, dac_bank);
 		break;
 	case 0x08: // ON/OFF per CH
 		{
@@ -298,8 +298,8 @@ void RF5C68::write_io8(uint32_t addr, uint32_t data)
 				mask <<= 1;
 			}
 		}
-		out_debug_log(_T("DAC REG 08 (DAC/ONOFF) RAW=%02X"),
-					   data);
+//		out_debug_log(_T("DAC REG 08 (DAC/ONOFF) RAW=%02X"),
+//					   data);
 		break;
 	default:
 		break;
