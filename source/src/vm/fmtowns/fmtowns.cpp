@@ -287,13 +287,19 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(head_down_sound);
 	event->set_context_sound(head_up_sound);
 	
+#ifdef USE_DEBUGGER
+	pit0->set_context_debugger(new DEBUGGER(this, emu));
+	pit1->set_context_debugger(new DEBUGGER(this, emu));
+#endif	
 	pit0->set_context_ch0(timer, SIG_TIMER_CH0, 1);
 	pit0->set_context_ch1(timer, SIG_TIMER_CH1, 1);
-	pit0->set_context_ch2(beep, SIG_PCM1BIT_SIGNAL, 1);
+	pit0->set_context_ch2(beep,  SIG_PCM1BIT_SIGNAL, 1);
 	pit0->set_constant_clock(0, 307200);
 	pit0->set_constant_clock(1, 307200);
 	pit0->set_constant_clock(2, 307200);
-	pit1->set_constant_clock(1, 1228800);
+	pit1->set_constant_clock(0, 1229900);
+	pit1->set_constant_clock(1, 1229900);
+	pit1->set_constant_clock(2, 1229900);
 //	pic->set_context_cpu(cpu);
 	pic->set_context_cpu(memory);
 	fdc->set_context_irq(floppy, SIG_FLOPPY_IRQ, 1);
@@ -700,6 +706,8 @@ void VM::initialize_sound(int rate, int samples)
 	// MASTER CLOCK MAYBE 600KHz * 12 = 7200KHz .
 	// From FM-Towns Technical Databook (Rev.2), Page 201
 	opn2->initialize_sound(rate, (int)(600.0e3 * 12.0) , samples, 0.0, 0.0); 
+	//opn2->initialize_sound(rate, (int)(8000.0e3) , samples, 0.0, 0.0); 
+	//opn2->initialize_sound(rate, (int)(600.0e3 * 6.0) , samples, 0.0, 0.0); 
 
 	// init PCM
 	rf5c68->initialize_sound(rate, samples);

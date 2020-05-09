@@ -2257,6 +2257,30 @@ void OPN2Base::Reset()
 	UpdateStatus();
 }
 
+//	プリスケーラ設定
+void OPN2Base::SetPrescaler(uint p)
+{
+	static const uint8 table2[8] = { 108,  77,  71,  67,  62,  44,  8,  5 };
+	
+	prescale = 0;
+	uint fmclock = clock / 6 / 12;
+	rate = psgrate;
+	
+	// 合成周波数と出力周波数の比
+//	assert(fmclock < (0x80000000 >> FM_RATIOBITS));
+	uint ratio = ((fmclock << FM_RATIOBITS) + rate/2) / rate;
+
+	SetTimerPrescaler(6 * 12 * 2);
+//		MakeTimeTable(ratio);
+	chip.SetRatio(ratio);
+	psg.SetClock(clock / 4, psgrate);
+		
+	for (int i=0; i<8; i++)
+	{
+		lfotable[i] = (ratio << (2+FM_LFOCBITS-FM_RATIOBITS)) / table2[i];
+	}
+}
+
 // ---------------------------------------------------------------------------
 //	サンプリングレート変更
 //
