@@ -22,19 +22,18 @@
 #define CDDA_PAUSED	2
 
 // 0-99 is reserved for SCSI_DEV class
-#define EVENT_CDDA						100
-#define EVENT_CDDA_DELAY_PLAY			101
-#define EVENT_CDROM_SEEK				102
-#define EVENT_CDROM_DELAY_INTERRUPT_ON	103
-#define EVENT_CDROM_DELAY_INTERRUPT_OFF	104
-#define EVENT_CDDA_DELAY_STOP			105
-#define EVENT_CDROM_SEEK_COMPLETED		106
-#define EVENT_CDROM_DRQ					107
-#define EVENT_CDROM_NEXT_SECTOR			108
-#define EVENT_CDROM_DELAY_READY			109
-#define EVENT_CDROM_DELAY_READY2		110
-#define EVENT_CDROM_DMA_EOT				111
-
+#define EVENT_CDDA							100
+#define EVENT_CDDA_DELAY_PLAY				101
+#define EVENT_CDROM_SEEK					102
+#define EVENT_CDROM_DELAY_INTERRUPT_ON		103
+#define EVENT_CDROM_DELAY_INTERRUPT_OFF		104
+#define EVENT_CDDA_DELAY_STOP				105
+#define EVENT_CDROM_SEEK_COMPLETED			106
+#define EVENT_CDROM_DRQ						107
+#define EVENT_CDROM_NEXT_SECTOR				108
+#define EVENT_CDROM_DELAY_READY				109
+#define EVENT_CDROM_DELAY_READY2			110
+#define EVENT_CDROM_DMA_EOT					111
 #define _CDROM_DEBUG_LOG
 
 // Event must be larger than 116.
@@ -444,6 +443,7 @@ void TOWNS_CDROM::initialize()
 	event_seek = -1;
 	event_delay_ready = -1;
 
+	// ToDo: larger buffer for later VMs.
 	buffer = new FIFO(8192);
 
 	cdda_status = CDDA_OFF;
@@ -1284,17 +1284,11 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		event_cdda_delay_play = -1;
 		access = true;
 		buffer->clear();
-		if(fio_img->Fread(cdda_buffer,
-					   2352 * sizeof(uint8_t),
-						  1) != 1) {
+		if(prefetch_audio_sectors(1) != 1) {
 			set_cdda_status(CDDA_OFF);
 			set_subq();
 			access = false;
 			return;
-		}
-		// Success
-		for(int i = 0; i < 2352; i++) {
-			buffer->write(((int)cdda_buffer[i]) & 0xff);
 		}
 		break;
 	case EVENT_CDDA:
@@ -1351,20 +1345,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 //			}
 		}			
 		break;
-/*	case EVENT_CDROM_AUDIO_SEEK_COMPLETED:
-		// BIOS FDDFCh(0FC0h:01FCh)-
-		// Audio sector always should be 2352 bytes/sector.
-		if(event_next_sector > -1) {
-			cancel_event(this, event_next_sector);
-		}
-		event_next_sector = -1;
-		if(read_buffer_audio(physical_block_size())) { // Need next sector.
-			register_event(this, EVENT_CDROM_NEXT_AUDIO_SECTOR,
-						   (1.0e6 / 150.0e3) * (double)physical_block_size(), // OK?
-						   false, &event_next_sector);
-		}
-		break;
-*/
 	case EVENT_CDROM_DMA_EOT:
 		event_next_sector = -1;
 		if(read_length <= 0) {
@@ -1496,15 +1476,14 @@ void TOWNS_CDROM::read_a_cdda_sample()
 	} else {
 		return;
 	}
-//	cdda_sample_l = (int)(int16_t)(cdda_buffer[cdda_buffer_ptr + 0] + cdda_buffer[cdda_buffer_ptr + 1] * 0x100);
-//	cdda_sample_r = (int)(int16_t)(cdda_buffer[cdda_buffer_ptr + 2] + cdda_buffer[cdda_buffer_ptr + 3] * 0x100);
-	// ToDo: CLEAR IRQ Line (for PCE)
+
 	cdda_buffer_ptr = cdda_buffer_ptr + 4;
 	bool force_seek = false;
 	if((cdda_buffer_ptr % 2352) == 0) {
 		// one frame finished
 		cdda_playing_frame++;
 		cdda_buffer_ptr = 0;
+		
 		if(cdda_playing_frame >= cdda_end_frame) {
 			if(cdda_repeat_count <= 0) {
 				set_cdda_status(CDDA_OFF);
@@ -1513,32 +1492,85 @@ void TOWNS_CDROM::read_a_cdda_sample()
 				return;
 			} else {
 				cdda_playing_frame = cdda_start_frame;
+				cdda_loading_frame = cdda_start_frame;
 				cdda_repeat_count--;
 				force_seek = true;
 			}
 		}
-		check_cdda_track_boundary(cdda_playing_frame);
+		check_cdda_track_boundary(cdda_loading_frame);
 		if(force_seek) {
-			seek_relative_frame_in_image(cdda_playing_frame);
+			seek_relative_frame_in_image(cdda_loading_frame);
 		}
-		access = true;
-		if(fio_img->Fread(cdda_buffer,
-					   2352 * sizeof(uint8_t),
-						  1) != 1) {
-			set_cdda_status(CDDA_OFF);
-			set_subq();
-			access = false;
-			return;
-		}
-		// Success
-		for(int i = 0; i < 2352; i++) {
-			buffer->write(((int)cdda_buffer[i]) & 0xff);
+		cdda_playing_frame = cdda_loading_frame;
+		if(buffer->count() <= physical_block_size()) {
+			// Kick prefetch
+			if(event_next_sector < 0) {
+				// TMP: prefetch 2 sectors
+				prefetch_audio_sectors(2);
+			}
 		}
 	}
 	// Post process
 	if(((cdda_buffer_ptr % 2352) == 0) && (cdda_status == CDDA_PLAYING)) {
 		set_subq();
 	}
+}
+
+// -1 = End of sector.
+int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
+{
+	if(!(mounted())) {
+		status_not_ready();
+		return -1;
+	}
+	if(sectors < 1) {
+		return -1;
+	}
+	uint8_t tmpbuf[sectors * 2352 + 8];
+	int n_sectors = 0;
+	int m_sectors = 0;
+	bool last_read = false;
+	while(sectors > 0) {
+		n_sectors = 0;
+		for(int i = 0; i < sectors; i++) {
+			cdda_loading_frame++;
+			if(cdda_loading_frame >= cdda_end_frame) {
+				last_read = true;
+				break; // OK?
+			}
+			if(check_cdda_track_boundary(cdda_loading_frame)) {
+				last_read = true;
+				break; // OK?
+			}
+			n_sectors++;
+		}
+		if(n_sectors >= 1) {
+			access = true;
+			if(fio_img->Fread(tmpbuf, 2352 * n_sectors * sizeof(uint8_t), 1) != 1) {
+				set_cdda_status(CDDA_OFF);
+				set_subq();
+				access = false;
+				return 0;
+			}
+			int bytes = 0;
+			for(int i = 0; i < (2352 * n_sectors); i++) {
+				if(buffer->full()) {
+					break; // Buffer full
+				}
+				buffer->write(((int)tmpbuf[i]) & 0xff);
+				bytes++;
+			}
+			if(bytes < (2352 * n_sectors)) {
+				return (bytes / 2352);
+			}
+		}
+		m_sectors += n_sectors;
+		if(last_read) {
+			break;
+		}
+		sectors -= n_sectors;
+	}
+	return m_sectors;
 }
 
 void TOWNS_CDROM::set_cdda_status(uint8_t status)
@@ -1554,7 +1586,6 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 			write_signals(&outputs_mcuint, 0x00000000);
 			if(cdda_status == CDDA_OFF) {
 				//get_track_by_track_num(current_track); // Re-Play
-				//memset(cdda_buffer, 0x00, sizeof(cdda_buffer));
 				cdda_playing_frame = cdda_start_frame;
 				current_track = get_track(cdda_playing_frame);
 				seek_relative_frame_in_image(cdda_playing_frame);
@@ -1579,7 +1610,7 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 			//if(event_delay_interrupt >= 0) cancel_event(this, event_delay_interrupt);
 			//register_event(this, EVENT_CDROM_DELAY_INTERRUPT_OFF, 1.0e6 / (44100.0 * 2352), false, &event_delay_interrupt);
 			if(status == CDDA_OFF) {
-				memset(cdda_buffer, 0x00, sizeof(cdda_buffer));
+				buffer->clear();
 				cdda_buffer_ptr = 0;
 				read_sectors = 0;
 				cdda_repeat_count = -1; // OK?
@@ -1775,7 +1806,7 @@ bool TOWNS_CDROM::seek_relative_frame_in_image(uint32_t frame_no)
 }
 
 
-void TOWNS_CDROM::check_cdda_track_boundary(uint32_t &frame_no)
+bool TOWNS_CDROM::check_cdda_track_boundary(uint32_t &frame_no)
 {
 	if((frame_no >= toc_table[current_track + 1].index0) ||
 	   (frame_no < toc_table[current_track].index0)) {
@@ -1785,7 +1816,9 @@ void TOWNS_CDROM::check_cdda_track_boundary(uint32_t &frame_no)
 			frame_no = toc_table[current_track].index0;
 		}
 		seek_relative_frame_in_image(frame_no);
+		return true;
 	}
+	return false;
 }
 
 void TOWNS_CDROM::play_cdda_from_cmd()
@@ -1829,6 +1862,7 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 		}
 		track = current_track;
 		cdda_playing_frame = cdda_start_frame;
+		cdda_loading_frame = cdda_start_frame;
 		seek_relative_frame_in_image(cdda_playing_frame);
 		out_debug_log(_T("PLAY_CDROM TRACK=%d START=%02X:%02X:%02X(%d) END=%02X:%02X:%02X(%d) IS_REPEAT=%d REPEAT_COUNT=%d"),
 					  track,
@@ -1839,7 +1873,9 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 			cancel_event(this, event_cdda_delay_play);
 			event_cdda_delay_play = -1;
 		}
-		register_event(this, EVENT_CDDA_DELAY_PLAY, 10.0, false, &event_cdda_delay_play);
+		double usec = get_seek_time(cdda_playing_frame);
+		if(usec < 10.0) usec = 10.0;
+		register_event(this, EVENT_CDDA_DELAY_PLAY, usec, false, &event_cdda_delay_play);
 	}
 	set_subq(); // First
 	status_accept(1, (media_changed) ? 0x09 : 0x03, 0x00, 0x00);
@@ -2689,10 +2725,10 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cdda_start_frame);
 	state_fio->StateValue(cdda_end_frame);
 	state_fio->StateValue(cdda_playing_frame);
+	state_fio->StateValue(cdda_loading_frame);
 	state_fio->StateValue(cdda_status);
 	state_fio->StateValue(cdda_repeat_count);
 	state_fio->StateValue(cdda_interrupt);
-	state_fio->StateArray(cdda_buffer, sizeof(cdda_buffer), 1);
 	state_fio->StateValue(cdda_buffer_ptr);
 	state_fio->StateValue(cdda_sample_l);
 	state_fio->StateValue(cdda_sample_r);
