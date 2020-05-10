@@ -288,9 +288,9 @@ ia32_panic(const char *str, ...)
 	strcat(buf, "\n");
 	strcat(buf, cpu_reg2str());
 	VERBOSE(("%s", buf));
-
+	device_cpu->out_debug_log("PANIC: %s", buf);
 	msgbox("ia32_panic", buf);
-
+	
 #if defined(IA32_REBOOT_ON_PANIC)
 	VERBOSE(("ia32_panic: reboot"));
 	//pccore_reset();
