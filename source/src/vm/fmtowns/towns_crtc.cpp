@@ -1161,7 +1161,7 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 	__DECL_ALIGNED(32) scrntype_t abuf[16];
 	__DECL_ALIGNED(32) scrntype_t a2buf[16];
 	
-	scrntype_t __DECL_ALIGNED(32)  palbuf[16];
+	__DECL_ALIGNED(32)  scrntype_t  palbuf[16];
 	uint8_t pmask = linebuffers[trans][y].r50_planemask & 0x0f;
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 16; i++) {
