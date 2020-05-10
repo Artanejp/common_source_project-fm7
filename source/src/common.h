@@ -1073,7 +1073,9 @@ inline scrntype_t msb_to_alpha_mask_u16le(uint16_t n)
 		#define __builtin_assume_aligned(foo, a) foo
 	#endif
 #elif defined(__GNUC__)
+	// C++ >= C++11
 	#define __DECL_ALIGNED(foo) __attribute__((aligned(foo)))
+	//#define __DECL_ALIGNED(foo) alignas(foo)
 #else
 	// ToDo
 	#define __builtin_assume_aligned(foo, a) foo

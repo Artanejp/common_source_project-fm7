@@ -1,6 +1,6 @@
 message("* qt/emuutils")
 
-SET(THIS_LIB_VERSION 2.16.6)
+SET(THIS_LIB_VERSION 2.17.0)
 
 set(s_qt_emuutils_headers
 	../gui/csp_logger.h
