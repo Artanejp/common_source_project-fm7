@@ -166,6 +166,7 @@ protected:
 	int event_drq;
 	int event_seek;
 	int event_next_sector;
+	int event_seek_completed;
 	int event_cdda;
 	int event_cdda_delay_play;
 	int event_delay_interrupt;

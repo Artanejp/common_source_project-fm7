@@ -440,6 +440,7 @@ void TOWNS_CDROM::initialize()
 	event_delay_interrupt = -1;
 	event_drq = -1;
 	event_next_sector = -1;
+	event_seek_completed = -1;
 	event_seek = -1;
 	event_delay_ready = -1;
 
@@ -503,11 +504,13 @@ void TOWNS_CDROM::reset()
 	if(event_cdda != -1) cancel_event(this, event_cdda);
 	if(event_drq != -1) cancel_event(this, event_drq);
 	if(event_next_sector != -1) cancel_event(this, event_next_sector);
+	if(event_seek_completed != -1) cancel_event(this, event_seek_completed);
 	if(event_seek != -1) cancel_event(this, event_seek);
 	if(event_delay_ready != -1) cancel_event(this, event_delay_ready);
 	event_cdda = -1;
 	event_cdda_delay_play = -1;
 	event_delay_interrupt = -1;
+	event_seek_completed = -1;
 	event_drq = -1;
 	event_next_sector = -1;
 	event_seek = -1;
@@ -699,7 +702,7 @@ void TOWNS_CDROM::set_delay_ready()
 	event_delay_ready = -1;
 //	register_event(this, EVENT_CDROM_DELAY_READY, 1.0e3, false, &event_delay_ready);
 	// 50uS
-	register_event(this, EVENT_CDROM_DELAY_READY, 50.0, false, &event_delay_ready); 
+	register_event(this, EVENT_CDROM_DELAY_READY, 32.0, false, &event_delay_ready); 
 }
 
 void TOWNS_CDROM::set_delay_ready2()
@@ -708,7 +711,7 @@ void TOWNS_CDROM::set_delay_ready2()
 		cancel_event(this, event_delay_ready);
 	}
 	event_delay_ready = -1;
-	register_event(this, EVENT_CDROM_DELAY_READY2, 1.0e3, false, &event_delay_ready);
+	register_event(this, EVENT_CDROM_DELAY_READY2, 32.0, false, &event_delay_ready);
 }
 
 void TOWNS_CDROM::status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3)
@@ -1019,16 +1022,23 @@ void TOWNS_CDROM::read_cdrom()
 		cancel_event(this, event_next_sector);
 		event_next_sector = -1;
 	}
+	if(event_seek_completed > -1) {  
+		cancel_event(this, event_seek_completed);
+		event_seek_completed = -1;
+	}
 	// Kick a first
 	double usec = get_seek_time(lba1);
-	register_event(this, EVENT_CDROM_SEEK_COMPLETED, usec, false, NULL);
+	if(usec < (1.0e6 / ((double)transfer_speed * 150.0e3))) {
+		usec = (1.0e6 / ((double)transfer_speed * 150.0e3));
+	}
+	register_event(this, EVENT_CDROM_SEEK_COMPLETED, usec, false, &event_seek_completed);
 	if(req_status) {
 		set_status(req_status, 2, 0x00, 0x00, 0x00, 0x00);
 	} else {
 		if(pio_transfer) {
 			set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
 		} else {
-			set_status(true, 0, TOWNS_CD_STATUS_DATA_READY, 0x00, 0x00, 0x00);
+//			set_status(true, 0, TOWNS_CD_STATUS_DATA_READY, 0x00, 0x00, 0x00);
 		}
 	}
 }	
@@ -1313,6 +1323,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		// BIOS FDDFCh(0FC0h:01FCh)-
 		pio_transfer_phase = pio_transfer;
 		dma_transfer_phase = dma_transfer;
+		event_seek_completed = -1;
 		//read_pos = 0;
 		if(event_next_sector > -1) {
 			cancel_event(this, event_next_sector);
@@ -1331,13 +1342,18 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDROM_NEXT_SECTOR:
 		event_next_sector = -1;
+		if(event_seek_completed > -1) {  
+			cancel_event(this, event_seek_completed);
+		}
+		event_seek_completed = -1;
 		// BIOS FDDFCh(0FC0h:01FCh)-
 		if(read_length > 0) {
 			out_debug_log(_T("READ NEXT SECTOR"));
 			set_status(true, 0, TOWNS_CD_STATUS_DATA_READY, 0x00, 0x00, 0x00);
 			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
 						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 16.0, // OK?
-						   false, NULL);
+						   false, &event_seek_completed);
+//			event_callback(EVENT_CDROM_SEEK_COMPLETED, 0);
 		} else {
 			out_debug_log(_T("EOT"));
 //			if(pio_transfer) {
@@ -1895,7 +1911,7 @@ void TOWNS_CDROM::make_bitslice_subc_q(uint8_t *data, int bitwidth)
 	// Q: IS set SYNC CODE?.
 	for(int bp = 0; bp < bitwidth; bp++) {
 		subq_buffer[bp].bit.Q =
-			((data[nbit >> 3] & (1 << (7 - (nbit & 7))) != 0) ? 1 : 0);
+			((data[nbit >> 3] & (1 << (7 - (nbit & 7)))) != 0) ? 1 : 0;
 		nbit++;
 	}
 }
@@ -2773,6 +2789,7 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(event_delay_interrupt);
 	state_fio->StateValue(event_drq);
 	state_fio->StateValue(event_next_sector);
+	state_fio->StateValue(event_seek_completed);	
 	state_fio->StateValue(event_delay_ready);
 	
 	// SCSI_DEV
