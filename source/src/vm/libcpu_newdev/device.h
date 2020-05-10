@@ -761,6 +761,7 @@ public:
 	virtual bool get_debug_regs_description(_TCHAR *buffer, size_t buffer_len);
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 	virtual int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
+	virtual bool debug_rewind_call_trace(uint32_t pc, int &size, _TCHAR* buffer, size_t buffer_len, uint32_t userdata = 0);
 /*
 	These functions are used for debugging non-cpu device
 	Insert debugger between standard read/write functions and these functions for checking breakpoints

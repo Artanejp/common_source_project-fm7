@@ -289,6 +289,7 @@ void* debugger_thread(void *lpx)
 	helplist.push_back("S <range> <list> - search");
 	helplist.push_back("U [<range>] - unassemble");
 	helplist.push_back("UT [<steps> | <steps> <logging_file>] - unassemble back trace");
+	helplist.push_back("UCT [<steps>] - display call trace");
 	helplist.push_back("H <value> <value> - hexadd");
 	helplist.push_back("N <filename> - name");
 	helplist.push_back("L [<range>] - load binary/hex/symbol file");
@@ -337,6 +338,7 @@ void* debugger_thread(void *lpx)
 	complist.push_back("S <RANGE> <LIST>");
 	complist.push_back("U [RANGE]");
 	complist.push_back("UT [STEPS [LOGGING_FILE]]");
+	complist.push_back("UCT [STEPS]");
 	complist.push_back("H <VAL1> <VBAL2>");
 	complist.push_back("N <filename>");
 	complist.push_back("L [RANGE]");
@@ -769,6 +771,50 @@ void* debugger_thread(void *lpx)
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
+			} else if(_tcsicmp(params[0], _T("UCT")) == 0) {
+				if(target_debugger == NULL) {
+					my_printf(p->osd, _T("debugger is not attached to target device %s\n"), target->this_device_name);
+				} else if(num <= 4) {
+					int steps = 1024;
+					int xsteps;
+					if(num > 1) {
+						xsteps = min((int)atoi(params[1]), MAX_CPU_TRACE - 1);
+						if(xsteps >= 1) steps = xsteps;
+					}
+					int begin_step = (target_debugger->cpu_trace_ptr - steps) & (MAX_CPU_TRACE - 1);
+					int max_step = target_debugger->cpu_trace_ptr & (MAX_CPU_TRACE - 1);
+					int steps_left = steps;
+					if(!(target_debugger->cpu_trace_overwrap)) {
+						if(steps_left > max_step) {
+							begin_step = 0;
+							steps_left = max_step;
+							steps = max_step;
+						}
+					}
+					for(int i = begin_step; i != max_step; i = ((i + 1) & (MAX_CPU_TRACE - 1)) ) {
+						int index = i;
+
+						if(!(target_debugger->cpu_trace[index] & ~target->get_debug_prog_addr_mask())) {
+							int len = 0;
+							bool hit = target->debug_rewind_call_trace(
+								target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask(),
+								len,
+								buffer,
+								array_length(buffer),
+								target_debugger->cpu_trace_userdata[index]);
+							if(hit) {
+								const _TCHAR *name = my_get_symbol(target, target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask());
+								if(name != NULL) {
+									my_printf(p->osd, "%s	(%s)", buffer, name);
+								} else {
+									my_printf(p->osd, "%s", buffer);
+								}
+							}
+						}
+						steps_left--;
+						if(steps_left <= 0) break;
+					}
+				}
 			} else if(_tcsicmp(params[0], _T("UT")) == 0) {
 				if(target_debugger == NULL) {
 					my_printf(p->osd, _T("debugger is not attached to target device %s\n"), target->this_device_name);
@@ -848,7 +894,6 @@ void* debugger_thread(void *lpx)
 								}
 							}
 							int index = i;
-
 							if(!(target_debugger->cpu_trace[index] & ~target->get_debug_prog_addr_mask())) {
 								const _TCHAR *name = my_get_symbol(target, target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask());
 								int len = target->debug_dasm_with_userdata(target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask(), buffer, array_length(buffer), target_debugger->cpu_trace_userdata[index]);
@@ -891,7 +936,6 @@ void* debugger_thread(void *lpx)
 								steps_left--;
 								if(steps_left <= 0) break;
 							}
-						
 						}
 					}
 					if(log_fio != NULL) {

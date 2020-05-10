@@ -717,8 +717,39 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	return true;
 }
 
-
-int I386::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+bool I386::debug_rewind_call_trace(uint32_t pc, int &size, _TCHAR* buffer, size_t buffer_len, uint32_t userdata)
+{
+	size = 0;
+	_TCHAR prefix[128] = {0};
+	if((userdata & 0x8000fff0) != 0) { // Maybe call/ret/jmp/intr
+		if(userdata & I386_TRACE_DATA_BIT_IRQ) {
+			strncpy(prefix, _T("*IRQ HAPPENED*"), 127);
+		} else if(userdata & I386_TRACE_DATA_BIT_EXCEPTION) {
+			strncpy(prefix,  _T("*EXCEPTION HAPPENED*"), 127);
+		} else if(userdata & I386_TRACE_DATA_BIT_INT) {
+			strncpy(prefix, _T("*INTXX*"), 127);
+		} else if(userdata & I386_TRACE_DATA_BIT_RET) {
+			strncpy(prefix, _T("*RETURN*"), 127);
+		} else if(userdata & I386_TRACE_DATA_BIT_JMP) {
+			strncpy(prefix, _T("*JMP*"), 127);
+		} else if(userdata & I386_TRACE_DATA_BIT_CALL) {
+			strncpy(prefix, _T("*CALL*"), 127);
+		} else {
+			// Not meanful
+			return false;
+		}
+		_TCHAR dasmbuf[1024] = {0};
+		size = debug_dasm_with_userdata(pc, dasmbuf, 1023, userdata);
+		if(size <= 0) {
+			strncpy(dasmbuf, 1023, _T("**UNDEFINED BEHAVIOR**"));
+		}
+		my_stprintf_s(buffer, buffer_len, _T("HIT %s	@%08X	%s\n"),
+					  prefix, pc,  dasmbuf);
+		return true;
+	}
+	return false;
+}
+int I386::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {
 	uint32_t eip = pc - (CPU_CS << 4);
 	uint8_t oprom[16];
@@ -727,13 +758,10 @@ int I386::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 		int wait;
 		oprom[i] = device_mem->read_data8w((pc + i) & CPU_ADRSMASK, &wait);
 	}
-	
-	if(CPU_INST_OP32) {
-		return i386_dasm(oprom, eip, true,  buffer, buffer_len);
- 	} else {
-		return i386_dasm(oprom, eip, false, buffer, buffer_len);
- 	}
+	bool __op32 =  (userdata & I386_TRACE_DATA_BIT_USERDATA_SET) ? ((userdata & I386_TRACE_DATA_BIT_OP32) ? true : false) : ((CPU_INST_OP32 != 0) ? true : false);
+	return i386_dasm(oprom, eip, __op32,  buffer, buffer_len);
 }
+
 //#endif
 
 void I386::set_address_mask(uint32_t mask)

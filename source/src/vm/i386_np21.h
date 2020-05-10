@@ -18,6 +18,18 @@
 #define SIG_I386_A20	        1
 #define SIG_I386_NOTIFY_RESET	2
 
+#define I386_TRACE_DATA_BIT_USERDATA_SET	0x80000000
+#define I386_TRACE_DATA_BIT_OP32			0x00000001
+#define I386_TRACE_DATA_BIT_RET				0x00000040
+#define I386_TRACE_DATA_BIT_RETF			0x00000050
+#define I386_TRACE_DATA_BIT_IRET			0x00000060
+#define I386_TRACE_DATA_BIT_JMP				0x00000080
+#define I386_TRACE_DATA_BIT_JMP_COND		0x00000090
+#define I386_TRACE_DATA_BIT_CALL			0x00000100
+#define I386_TRACE_DATA_BIT_INT				0x10000000
+#define I386_TRACE_DATA_BIT_IRQ				0x20000000
+#define I386_TRACE_DATA_BIT_EXCEPTION		0x40000000
+
 enum {
 	DEFAULT = -1,
 	INTEL_80386 = 0,
@@ -132,7 +144,8 @@ public:
 	uint32_t __FASTCALL read_debug_reg(const _TCHAR *reg);
 	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	virtual bool get_debug_regs_description(_TCHAR *buffer, size_t buffer_len);
-	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
+	virtual bool debug_rewind_call_trace(uint32_t pc, int &size, _TCHAR* buffer, size_t buffer_len, uint32_t userdata = 0);
 //#endif
 	bool process_state(FILEIO* state_fio, bool loading);
 	

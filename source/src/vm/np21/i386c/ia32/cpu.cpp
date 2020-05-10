@@ -80,6 +80,18 @@ extern SINT32 exception_set;
 extern UINT32 exception_pc;
 extern UINT64 exception_code;
 
+#define I386_TRACE_DATA_BIT_USERDATA_SET	0x80000000
+#define I386_TRACE_DATA_BIT_OP32			0x00000001
+#define I386_TRACE_DATA_BIT_RET				0x00000040
+#define I386_TRACE_DATA_BIT_RETF			0x00000050
+#define I386_TRACE_DATA_BIT_IRET			0x00000060
+#define I386_TRACE_DATA_BIT_JMP				0x00000080
+#define I386_TRACE_DATA_BIT_JMP_COND		0x00000090
+#define I386_TRACE_DATA_BIT_CALL			0x00000100
+#define I386_TRACE_DATA_BIT_INT				0x10000000
+#define I386_TRACE_DATA_BIT_IRQ				0x20000000
+#define I386_TRACE_DATA_BIT_EXCEPTION		0x40000000
+
 static __inline__ void __FASTCALL check_exception(bool is_debugging)
 {
 	if(!(is_debugging)) return;
@@ -101,7 +113,6 @@ exec_1step(void)
 	CPU_PREV_EIP = CPU_EIP;
 	CPU_STATSAVE.cpu_inst = CPU_STATSAVE.cpu_inst_default;
 	exception_set = 0;
-
 #if defined(ENABLE_TRAP)
 	steptrap(CPU_CS, CPU_EIP);
 #endif
@@ -146,18 +157,66 @@ exec_1step(void)
 	}
 	ctx[ctx_index].opbytes = 0;
 #endif
-
+	
 	for (prefix = 0; prefix < MAX_PREFIX; prefix++) {
 		check_exception(is_debugging);
 		GET_PCBYTE(op);
 //#ifdef USE_DEBUGGER
-		if (prefix == 0) device_debugger->add_cpu_trace(codefetch_address);
+		UINT32 op_size = I386_TRACE_DATA_BIT_USERDATA_SET; 
+		if (prefix == 0) {
+			if(device_debugger != NULL) {
+				device_debugger->add_cpu_trace(codefetch_address);
+				op_size |= ((CPU_INST_AS32) ? I386_TRACE_DATA_BIT_OP32 : 0);
+//				device_debugger->add_cpu_trace_userdata(op_size, (I386_TRACE_DATA_BIT_USERDATA_SET | I386_TRACE_DATA_BIT_OP32));
+			}
+		}
 //#endif
 #if defined(IA32_INSTRUCTION_TRACE)
 		ctx[ctx_index].op[prefix] = op;
 		ctx[ctx_index].opbytes++;
 #endif
-
+		// ToDo: more accurate call trace.
+		if((op >= 0x70) && (op <= 0x7f)) {
+			op_size |= I386_TRACE_DATA_BIT_JMP_COND;
+		} else {
+			switch(op) {
+			case 0x9a: //CAll
+				op_size |= I386_TRACE_DATA_BIT_CALL;
+				break;
+			case 0xc2: // RET far
+			case 0xc3:
+				op_size |= I386_TRACE_DATA_BIT_RET;
+				break;
+			case 0xca: // RET far
+			case 0xcb:
+				op_size |= I386_TRACE_DATA_BIT_RET;
+				break;
+			case 0xcc: // INTr
+			case 0xcd:
+			case 0xce:
+				op_size |= I386_TRACE_DATA_BIT_INT;
+				break;
+			case 0xcf:
+				op_size |= I386_TRACE_DATA_BIT_IRET;
+				break;
+			case 0xe8: //CAll
+				op_size |= I386_TRACE_DATA_BIT_CALL;
+			break;
+			case 0xe9: //JMP
+			case 0xea: //JMP16
+			case 0xeb: //JMP
+				op_size |= I386_TRACE_DATA_BIT_CALL;
+				break;
+			case 0xe3:
+				op_size |= I386_TRACE_DATA_BIT_JMP_COND;
+				break;
+			case 0xf1:
+				op_size |= I386_TRACE_DATA_BIT_INT;
+				break;
+			}
+		}
+		device_debugger->add_cpu_trace_userdata(op_size, 0xf000ffff);
+	
 		/* prefix */
 		if (insttable_info[op] & INST_PREFIX) {
 			(*insttable_1byte[0][op])();

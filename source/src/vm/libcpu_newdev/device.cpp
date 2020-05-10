@@ -559,6 +559,12 @@ int DEVICE::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_
 {
 	return 0;
 }
+bool DEVICE::debug_rewind_call_trace(uint32_t pc, int &size, _TCHAR* buffer, size_t buffer_len, uint32_t userdata = 0)
+{
+		size = 0;
+		return false;
+}
+
 /*
 	These functions are used for debugging non-cpu device
 	Insert debugger between standard read/write functions and these functions for checking breakpoints
