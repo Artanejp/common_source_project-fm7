@@ -148,6 +148,42 @@ public:
 		if(offset >= 0x80000) return NULL; // ToDo
 		return &(vram[offset]);
 	}
+	virtual bool __FASTCALL set_buffer_to_vram(uint32_t offset, uint8_t *buf, int words)
+	{
+		offset &= 0x7ffff;
+		if(words > 16) return false;
+		if(words <= 0) return false;
+		uint8_t* p = &(vram[offset]);
+		if((offset + words) < 0x80000) {
+			memcpy(p, buf, words << 1);
+		} else {
+			int nb = 0x80000 - offset;
+			memcpy(p, buf, nb << 1);
+			int nnb = words - nb;
+			if(nnb > 0) {
+				memcpy(vram, &(buf[nb << 1]), nnb << 1);
+			}
+		}
+		return true;
+	}
+	virtual bool __FASTCALL get_vram_to_buffer(uint32_t offset, uint8_t *buf, int words)
+	{
+		offset &= 0x7ffff;
+		if(words > 16) return false;
+		if(words <= 0) return false;
+		uint8_t* p = &(vram[offset]);
+		if((offset + words) < 0x80000) {
+			memcpy(buf, p, words << 1);
+		} else {
+			uint32_t nb = 0x80000 - offset;
+			memcpy(buf, p, nb << 1);
+			int nnb = words - nb;
+			if(nnb > 0) {
+				memcpy(&(buf[nb << 1]), vram, nnb << 1);
+			}
+		}
+		return true;
+	}
 	virtual uint32_t __FASTCALL get_vram_size()
 	{
 		return 0x80000; // ToDo

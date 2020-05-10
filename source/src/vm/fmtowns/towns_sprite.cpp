@@ -67,7 +67,7 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	if(num < 0) return;
 	if(num >= lot) return;
 	if(!(reg_spen) || !(sprite_enabled)) return; 
-	
+
 	bool is_32768 = ((color & 0x8000) == 0); // CTEN
 	// ToDo: SPYS
 	if((color & 0x2000) != 0) return; // DISP
@@ -283,22 +283,20 @@ __DECL_VECTORIZED_LOOP
 		}
 	}
 		
-	uint32_t vpaddr = (((x - xoffset) % 256 + ((y - yoffset) * 256)) << 1) & 0x1ffff;
+	uint32_t vpaddr = (((x - xoffset) % 256 + ((y - yoffset) * 256)) << 1) & 0x7ffff;
 	if(!(is_halfx) && !(is_halfy)) { // not halfed
-		int __xstart;
-		int __xend;
+		int __xstart = 0;		
+		int __xend = 16;
+		int __ystart = 0;
+		int __yend = 16;
+		/*
 		if(x < xoffset) {
 			__xstart = ((xoffset - x + 16) >= 0) ? (xoffset - x + 16) : 0;
 			__xend = ((xoffset - x + 16) >= 0)  ? 16 : 0;
 		} else if(x > (xoffset + 256)) {
-			__xstart = x - (xoffset + 256);
-			if(__xstart >= 16) {
-				__xstart = 0;
-				__xend = 0;
-			} else {
-				__xstart = 0;
-				__xend = 16 - __xstart;
-			}
+			__xend = 16 - (x - (xoffset + 256));
+			__xstart = 0;
+			if(__xend < 0) goto __noop;
 		} else { // INSIDE OF WINDOW
 			__xstart = 0;
 			__xend = 16;
@@ -323,6 +321,7 @@ __DECL_VECTORIZED_LOOP
 			__yend = 16;
 		}
 		if(((__ystart <= 0) && (__yend <= 0))) goto __noop;
+		*/
 		for(int yy = __ystart; yy < __yend;  yy++) {
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 16; xx++) {
@@ -338,12 +337,8 @@ __DECL_VECTORIZED_LOOP
 				mbuf[xx].w = (lbuf[xx].w == 0) ? 0xffff :  0x0000;
 			}
 			if(d_vram != NULL) {
-				uint8_t* vp = d_vram->get_vram_address(vpaddr);
 				__DECL_ALIGNED(16) uint8_t source[32] = {0};
-				if(vp != NULL) {
-					for(int xx = (__xstart << 1); xx < (__xend << 1); xx++) {
-						source[xx] = vp[xx];
-					}
+				d_vram->get_vram_to_buffer(vpaddr, source, 16);
 __DECL_VECTORIZED_LOOP						
 					for(int xx = 0; xx < 16; xx++) {
 						source[(xx << 1) + 0] &= mbuf[xx].b.l;
@@ -354,28 +349,21 @@ __DECL_VECTORIZED_LOOP
 						source[(xx << 1) + 0] |= lbuf[xx].b.l;
 						source[(xx << 1) + 1] |= lbuf[xx].b.h;
 					}
-					for(int xx = (__xstart << 1); xx < (__xend << 1) ;xx++) {
-						vp[xx] = source[xx];
-					}
-				}
+					d_vram->set_buffer_to_vram(vpaddr, source, 16);
 			}
-			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
+			vpaddr = (vpaddr + (256 << 1)) & 0x7ffff;
 		}
 	} else if((is_halfx) && !(is_halfy)) { // halfx only
+		/*
 		int __xstart;
 		int __xend;
 		if(x < xoffset) {
 			__xstart = ((xoffset - x + 8) >= 0) ? (xoffset - x + 8) : 0;
 			__xend = ((xoffset - x + 8) >= 0)  ? 8 : 0;
 		} else if(x > (xoffset + 256)) {
-			__xstart = x - (xoffset + 256);
-			if(__xstart >= 8) {
-				__xstart = 0;
-				__xend = 0;
-			} else {
-				__xstart = 0;
-				__xend = 8 - __xstart;
-			}
+			__xend = 8 - (x - (xoffset + 256));
+			__xstart = 0;
+			if(__xend < 0) goto __noop;
 		} else { // INSIDE OF WINDOW
 			__xstart = 0;
 			__xend = 8;
@@ -400,6 +388,11 @@ __DECL_VECTORIZED_LOOP
 			__yend = 16;
 		}
 		if(((__ystart <= 0) && (__yend <= 0))) goto __noop;
+		*/
+		int __xstart = 0;		
+		int __xend = 8;
+		int __ystart = 0;
+		int __yend = 16;
 		for(int yy = __ystart; yy < __yend;  yy++) {
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 16; xx++) {
@@ -420,12 +413,8 @@ __DECL_VECTORIZED_LOOP
 				mbuf[xx].w = (lbuf[xx].w == 0) ? 0xffff : 0x0000;
 			}
 			if(d_vram != NULL) {
-				uint8_t* vp = d_vram->get_vram_address(vpaddr);
 				__DECL_ALIGNED(16) uint8_t source[32] = {0};
-				if(vp != NULL) {
-					for(int xx = (__xstart << 1); xx < (__xend << 1); xx++) {
-						source[xx] = vp[xx];
-					}
+				d_vram->get_vram_to_buffer(vpaddr, source, 8);
 __DECL_VECTORIZED_LOOP						
 					for(int xx = 0; xx < 8; xx++) {
 						source[(xx << 1) + 0] &= mbuf[xx].b.l;
@@ -436,28 +425,20 @@ __DECL_VECTORIZED_LOOP
 						source[(xx << 1) + 0] |= lbuf[xx].b.l;
 						source[(xx << 1) + 1] |= lbuf[xx].b.h;
 					}
-					for(int xx = (__xstart << 1); xx < (__xend << 1); xx++) {
-						vp[xx] = source[xx];
-					}
+					d_vram->set_buffer_to_vram(vpaddr, source, 8);
 				}
-			}
-			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
+			vpaddr = (vpaddr + (256 << 1)) & 0x7ffff;
 		}
 	} else if(is_halfy) { // halfy only
-		int __xstart;
+/*		int __xstart;
 		int __xend;
 		if(x < xoffset) {
 			__xstart = ((xoffset - x + 16) >= 0) ? (xoffset - x + 16) : 0;
 			__xend = ((xoffset - x + 16) >= 0)  ? 16 : 0;
 		} else if(x > (xoffset + 256)) {
-			__xstart = x - (xoffset + 256);
-			if(__xstart >= 16) {
-				__xstart = 0;
-				__xend = 0;
-			} else {
-				__xstart = 0;
-				__xend = 16 - __xstart;
-			}
+			__xend = 16 - (x - (xoffset + 256));
+			__xstart = 0;
+			if(__xend < 0) goto __noop;
 		} else { // INSIDE OF WINDOW
 			__xstart = 0;
 			__xend = 16;
@@ -482,6 +463,11 @@ __DECL_VECTORIZED_LOOP
 			__yend = 8;
 		}
 		if(((__ystart <= 0) && (__yend <= 0))) goto __noop;
+*/
+		int __xstart = 0;		
+		int __xend = 16;
+		int __ystart = 0;
+		int __yend = 8;
 		for(int yy = (__ystart << 1); yy < (__yend << 1);  yy += 2) {
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 16; xx++) {
@@ -504,12 +490,8 @@ __DECL_VECTORIZED_LOOP
 				mbuf[xx].w = (lbuf[xx].w == 0) ? 0xffff : 0x0000;
 			}
 			if(d_vram != NULL) {
-				uint8_t* vp = d_vram->get_vram_address(vpaddr);
 				__DECL_ALIGNED(16) uint8_t source[32] = {0};
-				if(vp != NULL) {
-					for(int xx = (__xstart << 1); xx < (__xend << 1); xx++) {
-						source[xx] = vp[xx];
-					}
+				d_vram->get_vram_to_buffer(vpaddr, source, 16);
 __DECL_VECTORIZED_LOOP						
 					for(int xx = 0; xx < 16; xx++) {
 						source[(xx << 1) + 0] &= mbuf[xx].b.l;
@@ -520,28 +502,20 @@ __DECL_VECTORIZED_LOOP
 						source[(xx << 1) + 0] |= lbuf[xx].b.l;
 						source[(xx << 1) + 1] |= lbuf[xx].b.h;
 					}
-					for(int xx = (__xstart << 1); xx < (__xend << 1); xx++) {
-						vp[xx] = source[xx];
-					}
-				}
+					d_vram->set_buffer_to_vram(vpaddr, source, 16);
 			}
-			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
+			vpaddr = (vpaddr + (256 << 1)) & 0x7ffff;
 		}
 	} else { //halfx &&halfy
-		int __xstart;
+/*		int __xstart;
 		int __xend;
 		if(x < xoffset) {
 			__xstart = ((xoffset - x + 8) >= 0) ? (xoffset - x + 8) : 0;
 			__xend = ((xoffset - x + 8) >= 0)  ? 8 : 0;
 		} else if(x > (xoffset + 256)) {
-			__xstart = x - (xoffset + 256);
-			if(__xstart >= 8) {
-				__xstart = 0;
-				__xend = 0;
-			} else {
-				__xstart = 0;
-				__xend = 8 - __xstart;
-			}
+			__xend = 8 - (x - (xoffset + 256));
+			__xstart = 0;
+			if(__xend < 0) goto __noop;
 		} else { // INSIDE OF WINDOW
 			__xstart = 0;
 			__xend = 8;
@@ -566,6 +540,11 @@ __DECL_VECTORIZED_LOOP
 			__yend = 8;
 		}
 		if(((__ystart <= 0) && (__yend <= 0))) goto __noop;
+*/
+		int __xstart = 0;		
+		int __xend = 8;
+		int __ystart = 0;
+		int __yend = 8;
 		for(int yy = (__ystart << 1); yy < (__yend << 1);  yy += 2) {
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 16; xx++) {
@@ -595,12 +574,8 @@ __DECL_VECTORIZED_LOOP
 			}
 			if(d_vram != NULL) {
 				//d_vram->write_sprite_data(x, y + (yy >>1), xoffset, yoffset, lbuf, 8);
-				uint8_t* vp = d_vram->get_vram_address(vpaddr);
-				__DECL_ALIGNED(16) uint8_t source[16] = {0};
-				if(vp != NULL) {
-					for(int xx = (__xstart << 1); xx < (__xend << 1); xx++) {
-						source[xx] = vp[xx];
-					}
+				__DECL_ALIGNED(16) uint8_t source[32] = {0};
+					d_vram->get_vram_to_buffer(vpaddr, source, 8);
 __DECL_VECTORIZED_LOOP						
 					for(int xx = 0; xx < 8; xx++) {
 						source[(xx << 1) + 0] &= mbuf[xx].b.l;
@@ -611,12 +586,9 @@ __DECL_VECTORIZED_LOOP
 						source[(xx << 1) + 0] |= lbuf[xx].b.l;
 						source[(xx << 1) + 1] |= lbuf[xx].b.h;
 					}
-					for(int xx = (__xstart << 1); xx < (__xend << 1); xx++) {
-						vp[xx] = source[xx];
-					}
-				}
+					d_vram->set_buffer_to_vram(vpaddr, source, 8);
 			}
-			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
+			vpaddr = (vpaddr + (256 << 1)) & 0x7ffff;
 		}
 	}
 __noop:
@@ -653,6 +625,7 @@ void TOWNS_SPRITE::render_full()
 			int xaddr = _nx.w & 0x1ff;
 			int yaddr = _ny.w & 0x1ff;
 			// ToDo: wrap round.This is still bogus implement.
+			//out_debug_log(_T("RENDER %d X=%d Y=%d ATTR=%04X COLOR=%04X"), render_num, xaddr, yaddr, _nattr.w, _ncol.w);
 			render_sprite(render_num, xaddr, yaddr, _nattr.w, _ncol.w);
 			frame_sprite_count++;
 			if((frame_sprite_count >= max_sprite_per_frame) && (max_sprite_per_frame > 0)) break;
@@ -687,6 +660,8 @@ void TOWNS_SPRITE::render_part(int start, int end)
 			int yaddr = _ny.w & 0x1ff;
 			// ToDo: wrap round.This is still bogus implement.
 			// ToDo: wrap round.This is still bogus implement.
+			//out_debug_log(_T("RENDER %d X=%d Y=%d ATTR=%04X COLOR=%04X"), render_num, xaddr, yaddr, _nattr.w, _ncol.w);
+			
 			render_sprite(render_num, xaddr, yaddr, _nattr.w, _ncol.w);
 			frame_sprite_count++;
 			if((frame_sprite_count >= max_sprite_per_frame) && (max_sprite_per_frame > 0)) break;
