@@ -685,9 +685,9 @@ void TOWNS_CDROM::set_delay_ready()
 		cancel_event(this, event_delay_ready);
 	}
 	event_delay_ready = -1;
-//	register_event(this, EVENT_CDROM_DELAY_READY, 1.0e3, false, &event_delay_ready);
+	register_event(this, EVENT_CDROM_DELAY_READY, 1.0e3, false, &event_delay_ready);
 	// 50uS
-	register_event(this, EVENT_CDROM_DELAY_READY, 32.0, false, &event_delay_ready); 
+//	register_event(this, EVENT_CDROM_DELAY_READY, 32.0, false, &event_delay_ready); 
 }
 
 void TOWNS_CDROM::set_delay_ready2()
@@ -696,7 +696,8 @@ void TOWNS_CDROM::set_delay_ready2()
 		cancel_event(this, event_delay_ready);
 	}
 	event_delay_ready = -1;
-	register_event(this, EVENT_CDROM_DELAY_READY2, 32.0, false, &event_delay_ready);
+	register_event(this, EVENT_CDROM_DELAY_READY2, 1.0e3, false, &event_delay_ready);
+//	register_event(this, EVENT_CDROM_DELAY_READY2, 32.0, false, &event_delay_ready);
 }
 
 void TOWNS_CDROM::status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3)
@@ -767,7 +768,6 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 	case CDROM_COMMAND_SET_STATE: // 80h
 		if(req_status) {
 			uint8_t playcode;
-			out_debug_log(_T("CMD SET STATE(%02X)"), command);
 			if((cdda_status == CDDA_PLAYING)
 			   && (current_track >= 0) && (current_track < track_num)
 			   && (toc_table[current_track].is_audio)) { // OK?
@@ -776,6 +776,8 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				playcode = (media_changed) ? 0x09 : 0x01;
 			}
 			media_changed = false;
+			out_debug_log(_T("CMD SET STATE(%02X) REPLY=%d"), command, playcode);
+		   
 			status_accept(0, playcode, 0x00, 0x00);
 		}
 		break;
@@ -944,6 +946,13 @@ uint8_t TOWNS_CDROM::read_status()
 uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
 {
 	data_reg = (uint8_t)(buffer->read() & 0xff);
+	if(buffer->empty()) {
+		if(event_drq > -1) {
+			cancel_event(this, event_drq);
+		}
+		event_drq = -1;
+		dma_transfer_phase = false;
+	}
 	return data_reg;
 }
 
@@ -1013,9 +1022,10 @@ void TOWNS_CDROM::read_cdrom()
 	}
 	// Kick a first
 	double usec = get_seek_time(lba1);
-	if(usec < (1.0e6 / ((double)transfer_speed * 150.0e3))) {
-		usec = (1.0e6 / ((double)transfer_speed * 150.0e3));
+	if(usec < (1.0e6 / ((double)transfer_speed * 150.0e3) * physical_block_size())) {
+		usec = (1.0e6 / ((double)transfer_speed * 150.0e3)) * physical_block_size();
 	}
+//	read_buffer(logical_block_size());
 	register_event(this, EVENT_CDROM_SEEK_COMPLETED, usec, false, &event_seek_completed);
 	if(req_status) {
 		set_status(req_status, 2, 0x00, 0x00, 0x00, 0x00);
@@ -1406,50 +1416,6 @@ bool TOWNS_CDROM::read_buffer(int length)
 				length--;
 				read_length--;
 				// Kick DRQ
-			}
-			if(event_drq < 0) {
-				out_debug_log(_T("KICK DRQ"));
-				register_event(this, EVENT_CDROM_DRQ, 1.0e6 / ((double)transfer_speed * 150.0e3), true, &event_drq);
-			}
-			position++;
-			offset = (offset + 1) % 2352;
-		}
-		access = true;
-	}
-	return true;
-}
-
-/*
-bool TOWNS_CDROM::read_buffer_audio()
-{
-	if(!(mounted())) {
-		status_not_ready();
-		return false;
-	}
-	if(((cddr_buffer_ptr % 2352) == 0) && (cdda_status == CDDA_PLAYING)) {
-		set_subq();
-	}
-	uint32_t offset = (uint32_t)(position % 2352);
-	int n_length = length;
-	if(!(seek_relative_frame_in_image(position / physical_block_size()))) {
-		status_illegal_lba(0, 0x00, 0x00, 0x00);
-		return false;
-	}
-	while(length > 0) {
-		uint8_t tmp_buffer[2352];
-		int tmp_length = 2352 - offset;
-		if(fio_img->Fread(tmp_buffer, tmp_length, 1) != 1) {
-			status_illegal_lba(0, 0x00, 0x00, 0x00);			
-			return false;
-		}
-		for(int i = 0; i < tmp_length; i++) {
-			if((offset >= 16) && (offset < (16 + logical_block_size()))) {
-				int value = tmp_buffer[i];
-				buffer->write(value);
-//				is_data_in = false;
-				length--;
-				read_length--;
-				// Kick DRQ
 				if(event_drq < 0) {
 					out_debug_log(_T("KICK DRQ"));
 					register_event(this, EVENT_CDROM_DRQ, 1.0e6 / ((double)transfer_speed * 150.0e3), true, &event_drq);
@@ -1462,7 +1428,7 @@ bool TOWNS_CDROM::read_buffer_audio()
 	}
 	return true;
 }
-*/
+
 void TOWNS_CDROM::read_a_cdda_sample()
 {
 	if(event_cdda_delay_play > -1) {
