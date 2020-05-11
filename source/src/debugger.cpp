@@ -774,12 +774,37 @@ void* debugger_thread(void *lpx)
 			} else if(_tcsicmp(params[0], _T("UCT")) == 0) {
 				if(target_debugger == NULL) {
 					my_printf(p->osd, _T("debugger is not attached to target device %s\n"), target->this_device_name);
-				} else if(num <= 4) {
+
+				} else {
 					int steps = 1024;
 					int xsteps;
+					_TCHAR log_path[_MAX_PATH] = {0};
+					FILEIO log_fio;
+					bool logging = false;
 					if(num > 1) {
 						xsteps = min((int)atoi(params[1]), MAX_CPU_TRACE - 1);
 						if(xsteps >= 1) steps = xsteps;
+						if(xsteps <= 0) steps = MAX_CPU_TRACE - 1;
+						if(num > 2) {
+							if(strlen(params[2]) > 0) {
+								my_tcscpy_s(log_path, _MAX_PATH - 1, my_absolute_path(params[2]));
+							}
+							if(log_fio.Fopen((const _TCHAR*)log_path, FILEIO_WRITE_APPEND_ASCII)) { // Failed to open
+								logging = true;
+							}
+						}
+					}
+					if(logging && log_fio.IsOpened()) {
+						_TCHAR timestr[512] = {0};
+						struct tm *timedat;
+						time_t nowtime;
+						struct timeval tv;
+								
+						nowtime = time(NULL);
+						gettimeofday(&tv, NULL);
+						timedat = localtime(&nowtime);
+						strftime(timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", timedat);
+						log_fio.Fprintf("**** Start of logging CALL TRACE %d steps for %s at %s.%06ld ****\n\n", steps, target->this_device_name, timestr, tv.tv_usec);
 					}
 					int begin_step = (target_debugger->cpu_trace_ptr - steps) & (MAX_CPU_TRACE - 1);
 					int max_step = target_debugger->cpu_trace_ptr & (MAX_CPU_TRACE - 1);
@@ -806,13 +831,22 @@ void* debugger_thread(void *lpx)
 								const _TCHAR *name = my_get_symbol(target, target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask());
 								if(name != NULL) {
 									my_printf(p->osd, "%s	(%s)", buffer, name);
+									if(logging && log_fio.IsOpened()) {
+										log_fio.Fprintf("%s	(%s)", buffer, name);
+									}
 								} else {
 									my_printf(p->osd, "%s", buffer);
+									if(logging && log_fio.IsOpened()) {
+										log_fio.Fprintf("%s	", buffer);
+									}
 								}
 							}
 						}
 						steps_left--;
 						if(steps_left <= 0) break;
+					}
+					if(logging && log_fio.IsOpened()) {
+						log_fio.Fclose();
 					}
 				}
 			} else if(_tcsicmp(params[0], _T("UT")) == 0) {
