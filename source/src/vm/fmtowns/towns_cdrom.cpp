@@ -480,6 +480,14 @@ void TOWNS_CDROM::release()
 	
 }
 
+void TOWNS_CDROM::clear_event(int& evid)
+{
+	if(evid > -1) {
+		cancel_event(this, evid);
+	}
+	evid = -1;
+}
+
 void TOWNS_CDROM::reset()
 {
 	memset(subq_buffer, 0x00, sizeof(subq_buffer));
@@ -499,22 +507,14 @@ void TOWNS_CDROM::reset()
 
 	cdda_repeat_count = -1;
 	touch_sound();
-	if(event_delay_interrupt != -1) cancel_event(this, event_delay_interrupt);
-	if(event_cdda_delay_play != -1) cancel_event(this, event_cdda_delay_play);
-	if(event_cdda != -1) cancel_event(this, event_cdda);
-	if(event_drq != -1) cancel_event(this, event_drq);
-	if(event_next_sector != -1) cancel_event(this, event_next_sector);
-	if(event_seek_completed != -1) cancel_event(this, event_seek_completed);
-	if(event_seek != -1) cancel_event(this, event_seek);
-	if(event_delay_ready != -1) cancel_event(this, event_delay_ready);
-	event_cdda = -1;
-	event_cdda_delay_play = -1;
-	event_delay_interrupt = -1;
-	event_seek_completed = -1;
-	event_drq = -1;
-	event_next_sector = -1;
-	event_seek = -1;
-	event_delay_ready = -1;
+	clear_event(event_cdda);
+	clear_event(event_cdda_delay_play);
+	clear_event(event_delay_interrupt);
+	clear_event(event_seek_completed);
+	clear_event(event_drq);
+	clear_event(event_next_sector);
+	clear_event(event_seek);
+	clear_event(event_delay_ready);
 	
 	read_length = 0;
 //	read_pos = 0;
@@ -633,15 +633,9 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 		if((data & mask) != 0) {
 			dma_transfer_phase = false;
 			if(dma_transfer) {
-				if(event_drq > -1) {
-					cancel_event(this, event_drq);
-				}
-				event_drq = -1;
-				//read_pos = 0;
-				if(event_next_sector > -1) {
-					cancel_event(this, event_next_sector);
-				}
-				event_next_sector = -1;
+				clear_event(event_drq);
+				clear_event(event_next_sector);
+				clear_event(event_seek_completed);
 				register_event(this, EVENT_CDROM_DMA_EOT,
 							   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 16.0, // OK?
 							   false, &event_next_sector);
@@ -681,10 +675,7 @@ void TOWNS_CDROM::send_mcu_ready()
 
 void TOWNS_CDROM::set_delay_ready()
 {
-	if(event_delay_ready > -1) {
-		cancel_event(this, event_delay_ready);
-	}
-	event_delay_ready = -1;
+	clear_event(event_delay_ready);
 	register_event(this, EVENT_CDROM_DELAY_READY, 1.0e3, false, &event_delay_ready);
 	// 50uS
 //	register_event(this, EVENT_CDROM_DELAY_READY, 32.0, false, &event_delay_ready); 
@@ -692,10 +683,7 @@ void TOWNS_CDROM::set_delay_ready()
 
 void TOWNS_CDROM::set_delay_ready2()
 {
-	if(event_delay_ready > -1) {
-		cancel_event(this, event_delay_ready);
-	}
-	event_delay_ready = -1;
+	clear_event(event_delay_ready);
 	register_event(this, EVENT_CDROM_DELAY_READY2, 1.0e3, false, &event_delay_ready);
 //	register_event(this, EVENT_CDROM_DELAY_READY2, 32.0, false, &event_delay_ready);
 }
@@ -947,10 +935,7 @@ uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
 {
 	data_reg = (uint8_t)(buffer->read() & 0xff);
 	if(buffer->empty()) {
-		if(event_drq > -1) {
-			cancel_event(this, event_drq);
-		}
-		event_drq = -1;
+		clear_event(event_drq);
 		dma_transfer_phase = false;
 	}
 	return data_reg;
@@ -1008,18 +993,10 @@ void TOWNS_CDROM::read_cdrom()
 	extra_status = 0;
 	dma_transfer_phase = dma_transfer;
 	pio_transfer_phase = pio_transfer;
-	if(event_drq > -1) {  
-		cancel_event(this, event_drq);
-		event_drq = -1;
-	}
-	if(event_next_sector > -1) {  
-		cancel_event(this, event_next_sector);
-		event_next_sector = -1;
-	}
-	if(event_seek_completed > -1) {  
-		cancel_event(this, event_seek_completed);
-		event_seek_completed = -1;
-	}
+	clear_event(event_drq);
+	clear_event(event_next_sector);
+	clear_event(event_seek_completed);
+
 	// Kick a first
 	double usec = get_seek_time(lba1);
 	if(usec < (1.0e6 / ((double)transfer_speed * 150.0e3) * physical_block_size())) {
@@ -1320,10 +1297,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		dma_transfer_phase = dma_transfer;
 		event_seek_completed = -1;
 		//read_pos = 0;
-		if(event_next_sector > -1) {
-			cancel_event(this, event_next_sector);
-		}
-		event_next_sector = -1;
+		clear_event(event_next_sector);
 		register_event(this, EVENT_CDROM_NEXT_SECTOR,
 					   (1.0e6 / ((double)transfer_speed * 150.0e3)) * ((double)physical_block_size() + 32), // OK?
 					   false, &event_next_sector);
@@ -1337,10 +1311,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDROM_NEXT_SECTOR:
 		event_next_sector = -1;
-		if(event_seek_completed > -1) {  
-			cancel_event(this, event_seek_completed);
-		}
-		event_seek_completed = -1;
+		clear_event(event_seek_completed);
 		// BIOS FDDFCh(0FC0h:01FCh)-
 		if(read_length > 0) {
 			out_debug_log(_T("READ NEXT SECTOR"));
@@ -1575,15 +1546,10 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 			out_debug_log(_T("Play CDDA from %s.\n"), (cdda_status == CDDA_PAUSED) ? _T("PAUSED") : _T("STOPPED"));
 		}
 	} else {
-		if(event_cdda != -1) {
-			cancel_event(this, event_cdda);
-			event_cdda = -1;
-		}
+		clear_event(event_cdda);
 		if(cdda_status == CDDA_PLAYING) {
 			// Notify to release bus.
 			write_signals(&outputs_mcuint, 0x00000000);
-			//if(event_delay_interrupt >= 0) cancel_event(this, event_delay_interrupt);
-			//register_event(this, EVENT_CDROM_DELAY_INTERRUPT_OFF, 1.0e6 / (44100.0 * 2352), false, &event_delay_interrupt);
 			if(status == CDDA_OFF) {
 				buffer->clear();
 				cdda_buffer_ptr = 0;
@@ -1844,10 +1810,7 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 					  m_start, s_start, f_start, cdda_start_frame,
 					  m_end, s_end, f_end, cdda_end_frame,
 					  is_repeat, repeat_count);
-		if(event_cdda_delay_play >= 0) {
-			cancel_event(this, event_cdda_delay_play);
-			event_cdda_delay_play = -1;
-		}
+		clear_event(event_cdda_delay_play);
 		double usec = get_seek_time(cdda_playing_frame);
 		if(usec < 10.0) usec = 10.0;
 		register_event(this, EVENT_CDDA_DELAY_PLAY, usec, false, &event_cdda_delay_play);

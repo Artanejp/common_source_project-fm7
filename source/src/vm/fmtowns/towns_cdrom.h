@@ -251,6 +251,8 @@ protected:
 
 	virtual void open_from_cmd(const _TCHAR* file_path);
 	virtual void close_from_cmd();
+
+	void clear_event(int& evid);
 	
 	bool __CDROM_DEBUG_LOG;
 	
