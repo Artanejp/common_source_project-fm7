@@ -557,14 +557,15 @@ void TOWNS_CDROM::reset()
 void TOWNS_CDROM::set_dma_intr(bool val)
 {
 	if(val) {
-		dma_intr = true;
-		if(stat_reply_intr) write_signals(&outputs_mcuint, 0xffffffff);
+		if(!(dma_intr_mask)) {
+			dma_intr = true;
+			if(stat_reply_intr) write_signals(&outputs_mcuint, 0xffffffff);
+		}
 	} else {
-//		bool bak = dma_intr;
-		dma_intr = false;
-//		if((mcu_intr) || (bak)) {
+		if(!(dma_intr_mask)) {
+			dma_intr = false;
 			write_signals(&outputs_mcuint, 0x0);
-//		}
+		}
 	}
 }
 
@@ -572,29 +573,15 @@ void TOWNS_CDROM::set_mcu_intr(bool val)
 {
 //	if(!(stat_reply_intr)) return;
 	if(val) {
-		mcu_intr = true;
-#if 0		
-//		if(!(mcu_intr_mask)) {
-			write_signals(&outputs_mcuint, 0xffffffff);
-//		}
-#else
-		if(stat_reply_intr) write_signals(&outputs_mcuint, 0xffffffff);
-#endif
-	} else {
-#if 0		
-		if(!(dma_intr) && (mcu_intr)) {
-			mcu_intr = false;
-			write_signals(&outputs_mcuint, 0x0);
-		} else {
-			mcu_intr = false;
+		if(!(mcu_intr_mask)) {
+			mcu_intr = true;
+			if(stat_reply_intr) write_signals(&outputs_mcuint, 0xffffffff);
 		}
-#else
-//		bool bak = mcu_intr;
-		mcu_intr = false;
-//		if((bak) || (dma_intr)) {
+	} else {
+		if(!(mcu_intr_mask)) {
+			mcu_intr = false;
 			write_signals(&outputs_mcuint, 0x0);
-//		}
-#endif
+		}
 	}
 }
 
