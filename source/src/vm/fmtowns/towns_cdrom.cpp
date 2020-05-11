@@ -678,15 +678,14 @@ void TOWNS_CDROM::set_delay_ready()
 {
 	clear_event(event_delay_ready);
 	register_event(this, EVENT_CDROM_DELAY_READY, 1.0e3, false, &event_delay_ready);
-	// 50uS
-//	register_event(this, EVENT_CDROM_DELAY_READY, 32.0, false, &event_delay_ready); 
+//	register_event(this, EVENT_CDROM_DELAY_READY, 10.0e3, false, &event_delay_ready); 
 }
 
 void TOWNS_CDROM::set_delay_ready2()
 {
 	clear_event(event_delay_ready);
 	register_event(this, EVENT_CDROM_DELAY_READY2, 1.0e3, false, &event_delay_ready);
-//	register_event(this, EVENT_CDROM_DELAY_READY2, 32.0, false, &event_delay_ready);
+//	register_event(this, EVENT_CDROM_DELAY_READY2, 10.0e3, false, &event_delay_ready);
 }
 
 void TOWNS_CDROM::status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3)
