@@ -403,8 +403,8 @@ void RF5C68::mix(int32_t* buffer, int cnt)
 	if(sample_buffer != NULL) {
 		for(int i = 0; i < (cnt << 1); i += 2) {
 			// ToDo: interpoolate.
-			buffer[i]     += (apply_volume(sample_buffer[0], volume_l) >> 2);
-			buffer[i + 1] += (apply_volume(sample_buffer[1], volume_r) >> 2);
+			buffer[i]     += (apply_volume(sample_buffer[0], volume_l) >> 3);
+			buffer[i + 1] += (apply_volume(sample_buffer[1], volume_r) >> 3);
 		}
 	}
 }
