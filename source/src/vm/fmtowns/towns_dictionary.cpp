@@ -59,6 +59,16 @@ void DICTIONARY::release()
 void DICTIONARY::reset()
 {
 	dict_bank = 0;
+	// Write CMOD every resetting. 20200511 K.O
+	if(cmos_dirty) {
+		FILEIO* fio = new FILEIO();
+		if(fio->Fopen(create_local_path(_T("FMT_CMOS.BIN")), FILEIO_WRITE_BINARY)) {
+			fio->Fwrite(dict_ram, sizeof(dict_ram), 1);
+			fio->Fclose();
+		}
+		delete fio;
+		cmos_dirty = false;
+	}
 }
 
 uint32_t DICTIONARY::read_memory_mapped_io8(uint32_t addr)
@@ -151,7 +161,7 @@ void DICTIONARY::write_io8(uint32_t addr, uint32_t data)
 		if((addr & 0x0001) == 0) { // OK?
 //			uint32_t naddr = (addr >> 1) & 0x7ff;
 			cmos_dirty = true;
-			dict_ram[addr & 0xfff] = (uint8_t)data;
+			dict_ram[addr  & 0xfff] = (uint8_t)data;
 		}
 	}
 }
