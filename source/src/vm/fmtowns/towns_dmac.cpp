@@ -237,7 +237,7 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 
 void TOWNS_DMAC::write_via_debugger_data8(uint32_t addr, uint32_t data)
 {
-//	out_debug_log(_T("WRITE 8BIT ADDR %08X to DATA:%02X"), addr, data);
+//	if(addr >= 0x81000000) out_debug_log(_T("WRITE 8BIT ADDR %08X to DATA:%02X"), addr, data);
 	d_mem->write_dma_data8(addr & dma_addr_mask, data);
 }
 
