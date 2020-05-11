@@ -552,36 +552,50 @@ void TOWNS_CDROM::reset()
 	// Q: Does not seek to track 0? 20181118 K.O
 }
 
-// Note: interrupt masks seems not to effect, by MAME 0.216.
-// 20200428 K.O
 void TOWNS_CDROM::set_dma_intr(bool val)
 {
+	out_debug_log(_T("set_dma_intr(%s) MASK=%s stat_reply_intr = %s"),
+				  (val) ? _T("true ") : _T("false"),
+				  (dma_intr_mask) ? _T("ON ") : _T("OFF"),
+				  (stat_reply_intr) ? _T("ON ") : _T("OFF"));				  
 	if(val) {
-		if(!(dma_intr_mask)) {
+		// At least, DMA interrupt mask is needed (by TownsOS v.1.1) 20200511 K.O
+		if(stat_reply_intr) {
+			if(!(dma_intr_mask)) {
+				dma_intr = true;
+				write_signals(&outputs_mcuint, 0xffffffff);
+			}
+		} else {
 			dma_intr = true;
-			if(stat_reply_intr) write_signals(&outputs_mcuint, 0xffffffff);
 		}
 	} else {
-		if(!(dma_intr_mask)) {
-			dma_intr = false;
+		dma_intr = false;
+//		if(!(dma_intr_mask)) {
 			write_signals(&outputs_mcuint, 0x0);
-		}
+//		}
 	}
 }
 
 void TOWNS_CDROM::set_mcu_intr(bool val)
 {
-//	if(!(stat_reply_intr)) return;
+	out_debug_log(_T("set_mcu_intr(%s) MASK=%s stat_reply_intr = %s"),
+				  (val) ? _T("true ") : _T("false"),
+				  (mcu_intr_mask) ? _T("ON ") : _T("OFF"),
+				  (stat_reply_intr) ? _T("ON ") : _T("OFF"));				  
 	if(val) {
-		if(!(mcu_intr_mask)) {
+		if(stat_reply_intr) {
+			if(!(mcu_intr_mask)) {
+				mcu_intr = true;
+				write_signals(&outputs_mcuint, 0xffffffff);
+			}
+		} else {
 			mcu_intr = true;
-			if(stat_reply_intr) write_signals(&outputs_mcuint, 0xffffffff);
 		}
 	} else {
-		if(!(mcu_intr_mask)) {
+//		if(!(mcu_intr_mask)) {
 			mcu_intr = false;
 			write_signals(&outputs_mcuint, 0x0);
-		}
+//		}
 	}
 }
 
@@ -683,6 +697,7 @@ void TOWNS_CDROM::status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s
 void TOWNS_CDROM::execute_command(uint8_t command)
 {
 //	status &= ~0x02;
+	set_mcu_intr(false);
 	latest_command = command;
 	if(!(mounted()))  {
 		status_not_ready();
@@ -921,10 +936,10 @@ uint8_t TOWNS_CDROM::read_status()
 uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
 {
 	data_reg = (uint8_t)(buffer->read() & 0xff);
-	if(buffer->empty()) {
-		clear_event(event_drq);
-		dma_transfer_phase = false;
-	}
+//	if(buffer->empty()) {
+//		clear_event(event_drq);
+//		dma_transfer_phase = false;
+//	}
 	return data_reg;
 }
 
@@ -1300,38 +1315,33 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		event_next_sector = -1;
 		clear_event(event_seek_completed);
 		// BIOS FDDFCh(0FC0h:01FCh)-
-		if(read_length > 0) {
+//		if(read_length > 0) {
 			out_debug_log(_T("READ NEXT SECTOR"));
-//			if(pio_transfer) {
-//				set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
-//			} else {
-//				set_status(true, 0, TOWNS_CD_STATUS_DATA_READY, 0x00, 0x00, 0x00);
-//			}
-			set_status(true, 0, TOWNS_CD_STATUS_DATA_READY, 0x00, 0x00, 0x00);
+			if(pio_transfer) {
+				set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
+			} else {
+				set_status(true, 0, TOWNS_CD_STATUS_DATA_READY, 0x00, 0x00, 0x00);
+			}
+//			set_status(true, 0, TOWNS_CD_STATUS_DATA_READY, 0x00, 0x00, 0x00);
 			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
 						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 16.0, // OK?
 						   false, &event_seek_completed);
-//			event_callback(EVENT_CDROM_SEEK_COMPLETED, 0);
-		} else {
-			out_debug_log(_T("EOT"));
+//		} else {
+//			out_debug_log(_T("EOT"));
 //			if(pio_transfer) {
-				set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
+//				set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
 //			}
-		}			
+//		}			
 		break;
 	case EVENT_CDROM_DMA_EOT:
 		event_next_sector = -1;
 		if(read_length <= 0) {
 			out_debug_log(_T("EOT(DMA)"));
-			if(dma_transfer) {
-//				set_dma_intr(true);
-//				set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
-				dma_transfer = false;
-			}
 			set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
 		} else {
 			event_callback(EVENT_CDROM_NEXT_SECTOR, -1);
 		}
+//		event_callback(EVENT_CDROM_NEXT_SECTOR, -1);
 		break;
 	case EVENT_CDROM_DRQ:
 		// ToDo: Buffer OVERFLOW at PIO mode.
