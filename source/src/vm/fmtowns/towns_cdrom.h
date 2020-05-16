@@ -63,6 +63,19 @@ namespace FMTOWNS {
 
 // From Towns Linux : include/linux/towns_cd.h
 enum {
+	MODE_AUDIO = 0,
+	MODE_MODE1_2352,
+	MODE_MODE1_2048,
+	MODE_CD_G,
+	MODE_MODE2_2336,
+	MODE_MODE2_2352,
+	MODE_CDI_2336,
+	MODE_CDI_2352,
+	MODE_NONE
+};
+		
+
+enum {
 	CDROM_COMMAND_SEEK =			0x00,
 	CDROM_COMMAND_READ_MODE2 =		0x01,
 	CDROM_COMMAND_READ_MODE1 =		0x02,
@@ -123,7 +136,7 @@ protected:
 	bool subq_overrun;
 	bool is_playing;
 	
-	bool read_mode;
+	int read_mode;
 	int stat_track;
 
 	bool is_cue;
@@ -214,6 +227,9 @@ protected:
 	bool seek_relative_frame_in_image(uint32_t frame_no);
     int prefetch_audio_sectors(int read_secs);
 	void read_cdrom();
+	void read_cdrom_mode1();
+	void read_cdrom_mode2();
+	void read_cdrom_raw();
 	
 	virtual void execute_command(uint8_t command);
 	
@@ -271,7 +287,7 @@ public:
 		
 		initialize_output_signals(&outputs_drq);
 		initialize_output_signals(&outputs_mcuint);
-		
+		read_mode = MODE_MODE1_2048;		
 		set_device_name(_T("FM-Towns CD-ROM drive"));
 	}
 	~TOWNS_CDROM() { }
@@ -338,10 +354,6 @@ public:
 	uint8_t get_cdda_status()
 	{
 		return cdda_status;
-	}
-	void set_read_mode(bool is_mode2)
-	{
-		read_mode = is_mode2;
 	}
 
 	void set_context_mpuint_line(DEVICE* dev, int id, uint32_t mask)
