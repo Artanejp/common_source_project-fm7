@@ -892,7 +892,8 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int widt
 //	out_debug_log("RENDER_32768 Y=%d LAYER=%d WIDTH=%d DST=%08X MASK=%08X ALPHA=%d", y, layer, width,dst, mask, do_alpha);
 	if(dst == NULL) return false;
 	
-	int trans = display_linebuf & 3;
+	int trans = (display_linebuf == 0) ? 3 : ((display_linebuf - 1) & 3);
+//	int trans = display_linebuf & 3;
 	int magx = linebuffers[trans][y].mag[layer];
 	int pwidth = linebuffers[trans][y].pixels[layer];
 	int num = linebuffers[trans][y].num[layer];
@@ -1059,7 +1060,8 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y, int width)
 {
 	// 256 colors
 	if(dst == NULL) return false;
-	int trans = display_linebuf & 3;
+	int trans = (display_linebuf == 0) ? 3 : ((display_linebuf - 1) & 3);
+//	int trans = display_linebuf & 3;
 	int magx = linebuffers[trans]->mag[0];
 	int pwidth = linebuffers[trans]->pixels[0];
 	int num = linebuffers[trans]->num[0];
@@ -1139,7 +1141,8 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 {
 	if(dst == NULL) return false;
 
-	int trans = display_linebuf & 3;
+	int trans = (display_linebuf == 0) ? 3 : ((display_linebuf - 1) & 3);
+//	int trans = display_linebuf & 3;
 	int magx = linebuffers[trans][y].mag[layer];
 	int pwidth = linebuffers[trans][y].pixels[layer];
 	//int num = linebuffers[trans][y].num[layer];
