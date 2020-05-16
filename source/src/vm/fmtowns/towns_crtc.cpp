@@ -154,7 +154,7 @@ void TOWNS_CRTC::reset()
 		uint8_t r = (i & 0x38) << 2;
 		uint8_t g = i & 0xc0;
 		uint8_t b = (i & 0x07) << 5;
-		if(r != 0) r |= 0x3f;
+		if(r != 0) r |= 0x1f;
 		if(b != 0) b |= 0x1f;
 		if(g != 0) g |= 0x3f;
 		apalette_256_rgb[i][TOWNS_CRTC_PALETTE_B] = b;
@@ -502,8 +502,11 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 		if(vst_an <= 1) vst_an = 2;
 		uint32_t hst_an = (int)(regs[10] & 0x07ff) - (int)(regs[9] & 0x07ff);
 		if(hst_an <= 8) hst_an = 8;
-		hst_tmp = (hst_tmp < hst_an) ? hst_tmp : hst_an;
-		vst_tmp = (vst_tmp < vst_an) ? vst_tmp : vst_an;
+		if(vst_an > 768) vst_an >>= 1;
+//		hst_tmp = (hst_tmp < hst_an) ? hst_tmp : hst_an;
+//		vst_tmp = (vst_tmp < vst_an) ? vst_tmp : vst_an;
+		hst_tmp = hst_an;
+		vst_tmp = vst_an;
 	} else {
 		uint32_t vst_an = (int)(regs[14] & 0x07ff) - (int)(regs[13] & 0x07ff);
 		if(vst_an <= 1) vst_an = 2;
@@ -516,8 +519,8 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 		if(vst_an < vst_an2) vst_an = vst_an2;
 		if(hst_an < hst_an2) hst_an = hst_an2;
 		vst_an >>= 1;
-		if(vst_tmp > vst_an) vst_tmp = vst_an;
-		if(hst_tmp > hst_an) hst_tmp = hst_an;
+		/*if(vst_tmp > vst_an) */ vst_tmp = vst_an;
+		/*if(hst_tmp > hst_an) */ hst_tmp = hst_an;
 	}
 	req_recalc = false;
 }
@@ -1062,17 +1065,18 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y, int width)
 	if(dst == NULL) return false;
 	int trans = (display_linebuf == 0) ? 3 : ((display_linebuf - 1) & 3);
 //	int trans = display_linebuf & 3;
-	int magx = linebuffers[trans]->mag[0];
-	int pwidth = linebuffers[trans]->pixels[0];
-	int num = linebuffers[trans]->num[0];
-	uint8_t *p = linebuffers[trans]->pixels_layer[0];
+	int magx = linebuffers[trans][y].mag[0];
+	int pwidth = linebuffers[trans][y].pixels[0];
+	int num = linebuffers[trans][y].num[0];
+	uint8_t *p = linebuffers[trans][y].pixels_layer[0];
 	__DECL_ALIGNED(32)  scrntype_t apal256[256];
 	memcpy(apal256, apalette_256_pixel, sizeof(scrntype_t) * 256);
 	
 	__DECL_ALIGNED(16) uint8_t pbuf[16];
 	__DECL_ALIGNED(32) scrntype_t sbuf[16];
+//	out_debug_log(_T("Y=%d MAGX=%d WIDTH=%d"), y, magx, pwidth);
 	if(magx < 1) {
-		return false;;
+		return false;
 	}
 	if(magx == 1) {
 		if(pwidth > width) pwidth = width;
@@ -1084,11 +1088,12 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y, int width)
 			}
 			int xx = x << 4;
 			for(int i = 0; i < 16; i++) {
+//				dst[i] = apal256[pbuf[i]];
 				dst[xx++] = apal256[pbuf[i]];
 			}
 		}
 		if((pwidth & 15) != 0) {
-			int xx = pwidth & ~15;
+			int xx = ((pwidth >> 4) << 4);
 			int w = pwidth & 15;
 			for(int i = 0; i < w; i++) {
 				pbuf[i] = *p++;
@@ -1115,8 +1120,11 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y, int width)
 				scrntype_t s = sbuf[i];
 				for(int j = 0; j < magx; j++) {
 					lbuffer0[k++] = s;
+					if(k >= width) break;
 				}
+				if(k >= width) break;
 			}
+			if(k >= width) break;	
 		}
 		if((pwidth & 15) != 0) {
 			for(int i = 0; i < (pwidth & 15); i++) {
@@ -1131,7 +1139,7 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y, int width)
 					lbuffer0[k++] = s;
 					if(k >= width) break;
 				}
-				if(k > width) break;
+				if(k >= width) break;
 			}
 		}
 	}
@@ -1469,7 +1477,9 @@ void TOWNS_CRTC::draw_screen()
 					break;
 				}
 			}
+
 		} else {
+
 			__DECL_ALIGNED(32)  scrntype_t apal16[2][16];
 			memcpy(apal16[0], apalette_16_pixel[0], sizeof(scrntype_t) * 16);
 			memcpy(apal16[1], apalette_16_pixel[1], sizeof(scrntype_t) * 16);
@@ -1563,6 +1573,7 @@ void TOWNS_CRTC::render_text()
 {
 //	uint32_t linesize = regs[24] * 4;
 	int c = 0;
+	uint32_t plane_offset = 0x40000 + ((r50_pagesel != 0) ? 0x20000 : 0x00000);
 	for(int y = 0; y < 25; y++) {
 		uint32_t linesize = regs[24] * 4;
 		uint32_t addr_of = y * (linesize * 16);
@@ -1605,7 +1616,7 @@ void TOWNS_CRTC::render_text()
 					tmpdata = ~tmpdata;
 				}
 				uint32_t pix = 0;
-				uint8_t *p = d_vram->get_vram_address(of + 0x40000);
+				uint8_t *p = d_vram->get_vram_address(of + plane_offset);
 				if(p != NULL) {
 __DECL_VECTORIZED_LOOP
 					for(int nb = 0; nb < 8; nb += 2) {
@@ -1751,8 +1762,7 @@ void TOWNS_CRTC::transfer_line(int line)
 //			offset = offset - line_offset[l] * vert_offset_tmp[l];
 			
 			offset <<= address_shift[l];
-//			if((linebuffers[trans][line].mode[l] == DISPMODE_16) &&
-//			   (l == 0))
+//			if((linebuffers[trans][line].mode[l] == DISPMODE_16))
 			{ // Display page
 				offset += ((page_16mode != 0) ? 0x20000 : 0);
 			}
@@ -1791,7 +1801,7 @@ void TOWNS_CRTC::transfer_line(int line)
 						linebuffers[trans][line].pixels[0] = words;
 						linebuffers[trans][line].mag[0] = magx;
 						memcpy(&(linebuffers[trans][line].pixels_layer[0][hoffset]), p, words);
-						did_transfer[l] = true;
+						did_transfer[0] = true;
 						break;
 					}
 				}
@@ -1828,9 +1838,9 @@ void TOWNS_CRTC::event_pre_frame()
 		hdisp[i] = false;
 		zoom_count_vert[i] = zoom_factor_vert[i];
 	}
-	if(req_recalc) {
+//	if(req_recalc) {
 		force_recalc_crtc_param();
-	}
+//	}
 	int pb = pixels_per_line;
 	int lb = lines_per_frame;
 	if((voutreg_ctrl & 0x10) == 0) {
