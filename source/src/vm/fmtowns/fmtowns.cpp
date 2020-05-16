@@ -288,6 +288,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(head_up_sound);
 	
 #ifdef USE_DEBUGGER
+	cdrom->set_context_debugger(new DEBUGGER(this, emu));
 	pit0->set_context_debugger(new DEBUGGER(this, emu));
 	pit1->set_context_debugger(new DEBUGGER(this, emu));
 #endif	

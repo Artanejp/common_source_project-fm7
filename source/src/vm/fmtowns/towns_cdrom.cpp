@@ -14,7 +14,7 @@
 #include "./towns_cdrom.h"
 #include "../../fifo.h"
 #include "../../fileio.h"
-//#include "../scsi_host.h"
+#include "../debugger.h"
 
 // SAME AS SCSI_CDROM::
 #define CDDA_OFF	0
@@ -584,10 +584,10 @@ void TOWNS_CDROM::set_mcu_intr(bool val)
 				  (stat_reply_intr) ? _T("ON ") : _T("OFF"));				  
 	if(val) {
 		if(stat_reply_intr) {
-			if(!(mcu_intr_mask)) {
+//			if(!(mcu_intr_mask)) {
 				mcu_intr = true;
 				write_signals(&outputs_mcuint, 0xffffffff);
-			}
+//			}
 		} else {
 			mcu_intr = true;
 		}
@@ -632,8 +632,8 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 		// By DMA/TC, EOT.
 	case SIG_TOWNS_CDROM_DMAINT:
 		if((data & mask) != 0) {
-			dma_transfer_phase = false;
-			if(dma_transfer) {
+			if(dma_transfer_phase) {
+				dma_transfer_phase = false;
 				clear_event(event_drq);
 				clear_event(event_next_sector);
 				clear_event(event_seek_completed);
@@ -725,7 +725,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		break;
 	case CDROM_COMMAND_READ_MODE2: // 01h
 		out_debug_log(_T("CMD READ MODE2(%02X)"), command);
-		status_accept(0, 0xff, 0xff, 0xff);
+		status_not_accept(0, 0xff, 0xff, 0xff);
 		break;
 	case CDROM_COMMAND_READ_MODE1: // 02h
 		out_debug_log(_T("CMD READ MODE1(%02X)"), command);
@@ -1029,11 +1029,11 @@ void TOWNS_CDROM::set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1
 		status_queue->write(s1);
 		status_queue->write(s2);
 		status_queue->write(s3);
-//		out_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
 		set_delay_ready();
 	} else {
 //		mcu_ready = true;
 	}
+		out_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
 }
 
 void TOWNS_CDROM::set_status_not_mcuint(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
@@ -1317,13 +1317,13 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		// BIOS FDDFCh(0FC0h:01FCh)-
 		//pio_transfer_phase = false;
 		//dma_transfer_phase = false;
-		if(pio_transfer) {
+//		if(pio_transfer) {
 			if(read_length <= 0) {
 				out_debug_log(_T("EOT"));
 				set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
 				break;
 			}
-		}
+//		}
 //		if(read_length > 0) {
 		out_debug_log(_T("READ NEXT SECTOR"));
 		if(pio_transfer) {
@@ -1348,7 +1348,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDROM_DRQ:
 		// ToDo: Buffer OVERFLOW at PIO mode.
-		if(dma_transfer) {
+		if(dma_transfer_phase) {
 			write_signals(&outputs_drq, 0xffffffff);
 		}
 		//read_pos++;
@@ -2557,7 +2557,7 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 	case 0x00: // Master control register
 		if((data & 0x04) != 0) {
 			reset();
-			break;
+//			break;
 		}
 		mcu_intr_mask = ((data & 0x02) == 0) ? true : false;
 		dma_intr_mask = ((data & 0x01) == 0) ? true : false;
@@ -2600,6 +2600,68 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
+void TOWNS_CDROM::write_debug_data8(uint32_t addr, uint32_t data)
+{
+	uint32_t nmask = 0x2000 - 1; // ToDo: Will change
+	buffer->write_not_push(addr & nmask, data & 0xff);
+}
+
+uint32_t TOWNS_CDROM::read_debug_data8(uint32_t addr)
+{
+	uint32_t nmask = 0x2000 - 1; // ToDo: Will change
+	return buffer->read_not_remove(addr & nmask) & 0xff;
+}
+
+
+bool TOWNS_CDROM::write_debug_reg(const _TCHAR *reg, uint32_t data)
+{
+	return false;
+}
+
+
+bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	if(buffer == NULL) return false;
+	_TCHAR regs[256] = {0};
+	for(int i = 0; i < 16; i += 2) {
+		_TCHAR tmps[16] = {0};
+		my_stprintf_s(tmps, 16, _T("%02X "), w_regs[i]);
+		my_tcscat_s(regs, sizeof(regs) / sizeof(_TCHAR), tmps);
+	}
+	_TCHAR stat[256] = {0};
+	for(int i = 0; i < 4; i++) {
+		_TCHAR tmps[16] = {0};
+		my_stprintf_s(tmps, 16, _T("%02X "), status_queue->read_not_remove(i) & 0xff);
+		my_tcscat_s(stat, sizeof(regs) / sizeof(_TCHAR), tmps);
+	}
+	_TCHAR param[256] = {0};
+	for(int i = 0; i < 8; i++) {
+		_TCHAR tmps[16] = {0};
+		my_stprintf_s(tmps, 16, _T("%02X "), param_queue[i]);
+		my_tcscat_s(param, sizeof(param) / sizeof(_TCHAR), tmps);
+	}
+	
+	my_stprintf_s(buffer, buffer_len,
+				  _T("TRANSFER MODE=%s %s\n")
+				  _T("MCU INT=%s DMA INT=%s TRANSFER PHASE:%s %s HAS_STATUS=%s MCU=%s\n")
+				  _T("TRACK=%d LBA=%d READ LENGTH=%d\n")
+				  _T("CMD=%02X PARAM=%s PTR=%d\n")
+				  _T("EXTRA STATUS=%d STATUS COUNT=%d QUEUE_VALUE=%s\n")
+				  _T("REGS RAW VALUES=%s\n")
+				  , (pio_transfer) ? _T("PIO") : _T("   ")
+				  , (dma_transfer) ? _T("DMA") : _T("   ")
+				  , (mcu_intr) ? _T("ON ") : _T("OFF"), (dma_intr) ? _T("ON ") : _T("OFF")
+				  , (pio_transfer_phase) ? _T("PIO") : _T("   ")
+				  , (dma_transfer_phase) ? _T("DMA") : _T("   ")
+				  , (has_status) ? _T("ON ") : _T("OFF"), (mcu_ready) ? _T("ON ") : _T("OFF")
+				  , current_track, position / physical_block_size(), read_length
+				  , latest_command, param, param_ptr
+				  , extra_status, status_queue->count(), stat
+				  , regs
+		);
+	return true;
+}
+				  
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */

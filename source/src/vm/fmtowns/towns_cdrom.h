@@ -38,6 +38,7 @@
 class SCSI_HOST;
 class FIFO;
 class FILEIO;
+class DEBUGGER;
 
 namespace FMTOWNS {
 	class CDC;
@@ -104,12 +105,12 @@ class TOWNS_CDROM: public DEVICE {
 protected:
 	outputs_t outputs_drq;
 	outputs_t outputs_mcuint;
+	DEBUGGER *d_debugger;
 
 	FILEIO* fio_img;
 //	FIFO* subq_buffer;
 	FIFO* buffer;
 	FIFO* status_queue;
-
 	uint8_t data_reg;
 	bool dma_transfer;
 	bool pio_transfer;
@@ -295,6 +296,29 @@ public:
 	virtual bool accessed();
 	virtual void open(const _TCHAR* file_path);
 	virtual void close();
+
+	// for debug
+	virtual void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_debug_data8(uint32_t addr);
+	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	virtual bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	bool is_debugger_available()
+	{
+		return true;
+	}
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	uint64_t get_debug_data_addr_space()
+	{
+		return 0x1fff; // Will change
+	}
+	void set_context_debugger(DEBUGGER* dev)
+	{
+		d_debugger = dev;
+	}
+
 	
 	// SCSI SPECIFIC COMMANDS
 	virtual void set_volume(int volume);
