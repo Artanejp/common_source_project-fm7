@@ -442,7 +442,7 @@ void TOWNS_CRTC::set_crtc_clock(uint16_t val)
 	static const double clocks[] = {
 		28.6363e6, 24.5454e6, 25.175e6, 21.0525e6
 	};
-	if(clocks[clksel] != crtc_clock) {
+	if((1.0e6 / clocks[clksel]) != crtc_clock) {
 		crtc_clock = 1.0e6 / clocks[clksel];
 		req_recalc = true;
 	}
