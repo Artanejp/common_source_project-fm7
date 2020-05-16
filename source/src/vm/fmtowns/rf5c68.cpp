@@ -9,13 +9,14 @@
 #include "./rf5c68.h"
 #include "../debugger.h"
 
-#define EVENT_DAC_SAMPLE 1
-
+#define EVENT_DAC_SAMPLE	1
+#define EVENT_ADPCM_CLOCK	2
 void RF5C68::initialize()
 {
 	// DAC
 	memset(wave_memory, 0x00, sizeof(wave_memory));
-
+	event_adpcm_clock = -1;
+	event_dac_sample = -1;
 	dac_on = false;
 	dac_bank = 0;
 	dac_ch = 0;
@@ -46,6 +47,7 @@ void RF5C68::release()
 {
 	if(sample_buffer != NULL) free(sample_buffer);
 	sample_buffer = NULL;
+	event_adpcm_clock = -1;
 }
 
 void RF5C68::reset()
@@ -72,13 +74,20 @@ void RF5C68::reset()
 		cancel_event(this, event_dac_sample);
 		event_dac_sample = -1;
 	}
+	
 	if(mix_rate > 0) {
 		sample_tick_us = 1.0e6 / ((double)mix_rate);
 		register_event(this, EVENT_DAC_SAMPLE, sample_tick_us, true, &event_dac_sample);
 	} else {
 		sample_tick_us = 0;
 	}
+	
 	sample_count = 0;
+	if(event_adpcm_clock > -1) {
+		cancel_event(this, event_adpcm_clock);
+		event_adpcm_clock = -1;
+	}
+//	register_event(this, EVENT_ADPCM_CLOCK, (384.0 * 2.0) / 16.0, true, &event_adpcm_clock);
 }
 
 uint32_t RF5C68::read_signal(int ch)
@@ -149,7 +158,7 @@ __DECL_VECTORIZED_LOOP
 			}
 			for(int ch = 0; ch < 8; ch++) {
 				if(dac_onoff[ch]) {
-					uint32_t addr_old = (dac_addr[ch] & 0x7fffffff) >> 11;
+					uint32_t addr_old = (dac_addr[ch] >> 11) & 0xffff;
 					uint32_t addr_new;
 					if((addr_old & 0x0fff) == 0x0fff) {
 						// Will beyond of boundary
@@ -161,17 +170,17 @@ __DECL_VECTORIZED_LOOP
 					tmpval[ch] = wave_memory[addr_old & 0xffff];
 					if(tmpval[ch] == 0xff) {
 						// Loop
-						dac_addr[ch] = (uint32_t)(dac_ls[ch].w.l) << 11;
-						addr_old = dac_addr[ch] >> 11;
+						dac_addr[ch] = ((uint32_t)(dac_ls[ch].w.l)) << 11;
+						addr_old = ((uint32_t)(dac_ls[ch].w.l));
 						tmpval[ch] = wave_memory[addr_old & 0xffff];
 						if(tmpval[ch] == 0xff) {
 							tmpval[ch] = 0x00;
-							//	dac_onoff[ch] = false; // STOP
+							dac_onoff[ch] = false; // STOP
 							continue; // This channel will stop
 						} 
-					}
+					} 
 					dac_addr[ch] += dac_fd[ch].d;
-					dac_addr[ch] = dac_addr[ch] & 0x7fffffff;
+//					dac_addr[ch] = dac_addr[ch] & ((1 << 28) - 1);
 				}
 			}
 			__DECL_ALIGNED(16) bool sign[16] = {false};
@@ -318,9 +327,9 @@ uint32_t RF5C68::read_memory_mapped_io8(uint32_t addr)
 	if(d_debugger != NULL && d_debugger->now_device_debugging) {
 		return d_debugger->read_via_debugger_data8(addr);
 	} else {
-//		if(dac_on) {
-//			return 0xff;
-//		}
+		if(dac_on) {
+			return 0xff;
+		}
 		return read_via_debugger_data8(addr);	
 	}
 	return 0xff;
@@ -332,9 +341,9 @@ uint32_t RF5C68::read_memory_mapped_io16(uint32_t addr)
 	if(d_debugger != NULL && d_debugger->now_device_debugging) {
 		return d_debugger->read_via_debugger_data16(addr);
 	} else {
-//		if(dac_on) {
-//			return 0xffff;
-//		}
+		if(dac_on) {
+			return 0xffff;
+		}
 		return read_via_debugger_data16(addr);	
 	}
 	return 0xffff;
@@ -349,7 +358,7 @@ void RF5C68::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 	} else {
 //		if(!dac_on) {
 			write_via_debugger_data8(addr, data);
-			return;
+//			return;
 //		}
 	}
 }
@@ -362,7 +371,7 @@ void RF5C68::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	} else {
 //		if(!dac_on) {
 			write_via_debugger_data16(addr, data);
-			return;
+//			return;
 //		}
 	}
 }	
@@ -375,14 +384,16 @@ void RF5C68::set_volume(int ch, int decibel_l, int decibel_r)
 
 void RF5C68::event_callback(int id, int err)
 {
-	if(id == EVENT_DAC_SAMPLE) {
+	if(id == EVENT_ADPCM_CLOCK) {
+		write_signal(SIG_RF5C68_DAC_PERIOD, 1, 1);
+	} else 	if(id == EVENT_DAC_SAMPLE) {
 		__DECL_ALIGNED(16) int32_t val[2] = {0}; // l,r
 		if(sample_count < sample_length) {
-//			if(dac_on) {
+			if(dac_on) {
 				for(int ch = 0; ch < 16; ch++) {
 					val[ch & 1] += (dac_onoff[ch >> 1]) ? dac_tmpval[ch] : 0;
 				}
-//			}
+			}
 			int32_t* p = &(sample_buffer[sample_count << 1]);	
 			for(int i = 0; i < 2; i++) {	
 				p[i] = val[i];
@@ -430,7 +441,7 @@ void RF5C68::initialize_sound(int sample_rate, int samples)
 			// -> RF5C68::event_callback()(=AUDIO MIXING CLOCK by EMU)
 			// -> RF5C68::mix() -> OSD::SOUND
 			sample_tick_us = 1.0e6 / ((double)mix_rate);
-//			register_event(this, EVENT_DAC_SAMPLE, sample_tick_us, true, &event_dac_sample);
+			register_event(this, EVENT_DAC_SAMPLE, sample_tick_us, true, &event_dac_sample);
 		}
 	} else {
 		if(sample_buffer != NULL) {
@@ -535,6 +546,7 @@ bool RF5C68::process_state(FILEIO* state_fio, bool loading)
 	
 	state_fio->StateArray(wave_memory, sizeof(wave_memory), 1);
 	state_fio->StateValue(event_dac_sample);
+	state_fio->StateValue(event_adpcm_clock);
 
 	// Post Process
 	if(loading) {

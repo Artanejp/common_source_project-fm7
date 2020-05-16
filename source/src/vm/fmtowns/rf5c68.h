@@ -60,6 +60,7 @@ protected:
 	int volume_l, volume_r;
 	int32_t* sample_buffer;
 	int event_dac_sample;
+	int event_adpcm_clock;
 
 	int sample_length;
 	int sample_count;

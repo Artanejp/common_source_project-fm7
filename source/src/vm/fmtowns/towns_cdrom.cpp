@@ -563,11 +563,10 @@ void TOWNS_CDROM::set_dma_intr(bool val)
 	if(val) {
 		// At least, DMA interrupt mask is needed (by TownsOS v.1.1) 20200511 K.O
 		if(stat_reply_intr) {
-//			if(!(dma_intr_mask)) {
-			dma_intr = true;
-			if(mcu_intr) write_signals(&outputs_mcuint, 0x0);
-
 			if(!(dma_intr_mask)) {
+			dma_intr = true;
+//			if(mcu_intr) write_signals(&outputs_mcuint, 0x0);
+//			if(!(dma_intr_mask)) {
 				write_signals(&outputs_mcuint, 0xffffffff);
 			}
 		} else {
@@ -587,10 +586,10 @@ void TOWNS_CDROM::set_mcu_intr(bool val)
 				  (stat_reply_intr) ? _T("ON ") : _T("OFF"));				  
 	if(val) {
 		if(stat_reply_intr) {
-//			if(!(mcu_intr_mask)) {
-			mcu_intr = true;
-			if(dma_intr) write_signals(&outputs_mcuint, 0x0);
 			if(!(mcu_intr_mask)) {
+			mcu_intr = true;
+//			if(dma_intr) write_signals(&outputs_mcuint, 0x0);
+//			if(!(mcu_intr_mask)) {
 				write_signals(&outputs_mcuint, 0xffffffff);
 			}
 		} else {
@@ -682,14 +681,18 @@ void TOWNS_CDROM::set_delay_ready()
 {
 	clear_event(event_delay_ready);
 	// From Towns Linux 2.2
-	register_event(this, EVENT_CDROM_DELAY_READY, 300.0, false, &event_delay_ready);
+	// But, some software (i.e. Star Cruiser II) failes to loading at 300uS.
+	// May need *at least* 1000uS. - 20200517 K.O
+	register_event(this, EVENT_CDROM_DELAY_READY, 1000.0, false, &event_delay_ready);
 }
 
 void TOWNS_CDROM::set_delay_ready2()
 {
 	clear_event(event_delay_ready);
 	// From Towns Linux 2.2
-	register_event(this, EVENT_CDROM_DELAY_READY2, 300.0, false, &event_delay_ready);
+	// But, some software (i.e. Star Cruiser II) failes to loading at 300uS.
+	// May need *at least* 1000uS. - 20200517 K.O
+	register_event(this, EVENT_CDROM_DELAY_READY2, 1000.0, false, &event_delay_ready);
 }
 
 void TOWNS_CDROM::status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3)

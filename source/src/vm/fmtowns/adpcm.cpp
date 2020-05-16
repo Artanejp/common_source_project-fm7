@@ -107,6 +107,9 @@ uint32_t ADPCM::read_io8(uint32_t addr)
 		break;
 	case 0x04e9: // Int13 reason
 		val = 0x00 | ((dac_intr != 0) ? 0x08 : 0x00) | ((opx_intr) ? 0x01 : 0x00);
+//		write_signals(&outputs_intr, 0); // Clear Interrupt
+//		dac_intr = 0;
+//		opx_intr = false;
 		break;
 	case 0x04ea: // PCM Interrupt mask
 		val = dac_intr_mask;
@@ -115,11 +118,11 @@ uint32_t ADPCM::read_io8(uint32_t addr)
 		{
 			val = dac_intr;
 			dac_intr = 0x00;
+//			opx_intr = false;
 			if(latest_dac_intr) {
-//				opx_intr = false;
-				write_signals(&outputs_intr, 0); // Clear Interrupt
 				latest_dac_intr = false;
 			}
+			if(!(opx_intr)) write_signals(&outputs_intr, 0); // Clear Interrupt
 		}
 		break;
 	default:
@@ -203,20 +206,20 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 			write_signals(&outputs_intr, 0xffffffff);
 			latest_dac_intr = true;
 		} else if(!(n_onoff) || !(_d)) {
-//			if(!(opx_intr) && (latest_dac_intr)) {
+			if(!(opx_intr)) {
 				write_signals(&outputs_intr, 0x00000000);
-//			}				
+			}				
 			latest_dac_intr = false;
-		}
+		}		
 	} else if(ch == SIG_ADPCM_OPX_INTR) { // SET/RESET INT13
 //		out_debug_log(_T("SIG_ADPCM_OPX_INTR val=%08X mask=%08X"), data ,mask);
 		opx_intr = ((data & mask) != 0);
 		if(opx_intr) {
 			write_signals(&outputs_intr, 0xffffffff);
 		} else {
-//			if(!(latest_dac_intr)) {
+			if(!(latest_dac_intr)) {
 				write_signals(&outputs_intr, 0x00000000);
-//			}
+			}
 		}			
 	} else if(ch == SIG_ADPCM_ADC_INTR) { // Push data to FIFO from ADC.
 		if((data & mask) != 0) {
