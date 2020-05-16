@@ -11,6 +11,7 @@
 #include "./towns_memory.h"
 #include "./towns_dmac.h"
 #include "./towns_vram.h"
+#include "./towns_planevram.h"
 #include "./towns_sprite.h"
 #include "./fontroms.h"
 #include "./serialrom.h"
@@ -32,14 +33,14 @@ void TOWNS_MEMORY::config_page00()
 		set_memory_rw          (0x00000000, 0x000bffff, ram_page0);
 //		set_memory_mapped_io_r (0x000b0000, 0x000bffff, d_msdos); // OK? <- for compatible ROM.
 		set_memory_rw          (0x000c0000, 0x000cffff, ram_pagec);
-		set_memory_mapped_io_rw(0x000c0000, 0x000c7fff, d_vram);
+		set_memory_mapped_io_rw(0x000c0000, 0x000c7fff, d_planevram);
 		set_memory_mapped_io_rw(0x000c8000, 0x000c8fff, d_sprite);
 		set_memory_mapped_io_rw(0x000ca000, 0x000cafff, d_sprite);
 		if(ankcg_enabled) {
 //			set_memory_mapped_io_r(0x000ca000, 0x000ca7ff, d_font);
 			set_memory_mapped_io_r(0x000cb000, 0x000cbfff, d_font);
 		}
-		set_memory_mapped_io_rw(0x000cf000, 0x000cffff, this); // MMIO
+		set_memory_mapped_io_rw(0x000cfc00, 0x000cffff, this); // MMIO
 		set_memory_rw          (0x000d0000, 0x000d7fff, ram_paged);
 		set_memory_mapped_io_rw(0x000d8000, 0x000d9fff, d_dictionary); // CMOS
 	} else {
@@ -388,9 +389,72 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		} else {
 			return 0x00;
 		}
+	case 0xff88:
+		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
+			if(d_crtc != NULL) {
+				val = d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CF882H);
+			}
+		} else  if(d_planevram != NULL) {
+			val = d_planevram->read_io8(addr);
+		}
+		break;
+	case 0xff94:
+		return 0x80;
+		break;
+	case 0xff95:
+		break;
+	case 0xff96:
+		if(d_font != NULL) {
+			return d_font->read_signal(SIG_TOWNS_FONT_KANJI_DATA_LOW);
+		}
+		break;
+	case 0xff97:
+		if(d_font != NULL) {
+			return d_font->read_signal(SIG_TOWNS_FONT_KANJI_DATA_HIGH);
+		}
+		break;
+	case 0xff98:
+		if(d_beep != NULL) {
+			d_beep->write_signal(SIG_PCM1BIT_ON, 1, 1);
+		}
+		break;
+	case 0xff99:
+		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
+			val = (ankcg_enabled) ? 0x01 : 0x00;
+		} else if(d_planevram != NULL) {
+			val = d_planevram->read_memory_mapped_io8(addr);
+		}
+		break;
+	case 0xff9c:
+		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
+			if(d_font != NULL) {
+				val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_HIGH);
+			}
+		} else if(d_planevram != NULL) {
+			val = d_planevram->read_io8(addr);
+		}
+		break;
+	case 0xff9d:
+		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
+			if(d_font != NULL) {
+				val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_LOW);
+			}
+		} else if(d_planevram != NULL) {
+			val = d_planevram->read_io8(addr);
+		}
+		break;
+	case 0xff9e:
+		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
+			if(d_font != NULL) {
+				val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_ROW);
+			}
+		} else if(d_planevram != NULL) {
+			val = d_planevram->read_io8(addr);
+		}
+		break;
 	default:
-		if((addr & 0xffff) >= 0xff80) {
-			return read_memory_mapped_io8((addr & 0xffff) + 0xc0000);
+		if(d_planevram != NULL) {
+			val = d_planevram->read_io8(addr);
 		}
 		break;
 	}
@@ -532,9 +596,40 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 			}
 		}
 		break;
+	case 0xff94:
+		if(d_font != NULL) {
+			d_font->write_signal(SIG_TOWNS_FONT_KANJI_HIGH, data, 0xff);
+		}
+		break;
+	case 0xff95:
+		if(d_font != NULL) {
+			d_font->write_signal(SIG_TOWNS_FONT_KANJI_LOW, data, 0xff);
+		}
+		break;
+	case 0xff96:
+	case 0xff97:
+		break;
+	case 0xff98:
+		if(d_beep != NULL) {
+			d_beep->write_signal(SIG_PCM1BIT_ON, 0, 1);
+		}
+		break;
+	case 0xff99:
+		ankcg_enabled = ((data & 1) != 0) ? true : false;
+		config_page00();
+		break;
+	case 0xff9e:
+		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
+			if(d_font != NULL) {
+				d_font->write_signal(SIG_TOWNS_FONT_KANJI_ROW, data, 0xff);
+			}
+		} else if(d_planevram != NULL) {
+			d_planevram->write_io8(addr , data);
+		}
+		break;
 	default:
-		if((addr & 0xffff) >= 0xff80) {
-			write_memory_mapped_io8((addr & 0xffff) + 0xc0000, data);
+		if(d_planevram != NULL) {
+			d_planevram->write_io8(addr , data);
 		}
 		break;
 	}
@@ -544,97 +639,22 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
-	if((addr < 0xcc000) || (addr >= 0xd0000)) return 0xff;
-	if(addr < 0xcff80) {
-		val = ram_pagec[addr & 0xffff];
-		return val;
-	}
-	switch(addr & 0x7f) {
-	case 0x00:
-	case 0x01:
-	case 0x02:
-	case 0x03:
-		if(d_vram != NULL) {
-			val = d_vram->read_memory_mapped_io8(addr);
-		}
-		break;
-	case 0x04:
-		val = 0x7f; // Reserve.FIRQ
-		break;
-	case 0x06:
-		if(d_vram != NULL) {
-			val = d_vram->read_memory_mapped_io8(addr);
-		}
-		break;
-	case 0x08:
-		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
-			if(d_crtc != NULL) {
-				val = d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CF882H);
-			}
-		} else if(d_vram != NULL) {
-			val = d_vram->read_memory_mapped_io8(addr);
-		}
-		break;
-	case 0x14:
-		val = 0x80;
-		break;
-//	case 0x15:
-	case 0x16:
-		if(d_font != NULL) {
-			val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_DATA_LOW);
-		}
-		break;
-	case 0x17:
-		if(d_font != NULL) {
-			val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_DATA_HIGH);
-		}
-		break;
-	case 0x18:
-		if(d_beep != NULL) {
-			d_beep->write_signal(SIG_PCM1BIT_ON, 1, 1);
-		}
-		break;
-	case 0x19:
-		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
-			val = (ankcg_enabled) ? 0x01 : 0x00;
-		} else if(d_vram != NULL) {
-			val = d_vram->read_memory_mapped_io8(addr);
-		}
-		break;
-	case 0x1c:
-		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
-			if(d_font != NULL) {
-				val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_HIGH);
-			}
-		} else if(d_vram != NULL) {
-			val = d_vram->read_memory_mapped_io8(addr);
-		}
-		break;
-	case 0x1d:
-		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
-			if(d_font != NULL) {
-				val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_LOW);
-			}
-		} else if(d_vram != NULL) {
-			val = d_vram->read_memory_mapped_io8(addr);
-		}
-		break;
-	case 0x1e:
-		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
-			if(d_font != NULL) {
-				val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_ROW);
-			}
-		} else if(d_vram != NULL) {
-			val = d_vram->read_memory_mapped_io8(addr);
-		}
-		break;
-	case 0x20:
-		val = 0xff;
-		val = val & 0x7f;
+	if((addr < 0xcfc00) || (addr >= 0xd0000)) return 0xff;
+	switch(addr) {
+	case 0xcff88:
+	case 0xcff94:
+	case 0xcff96:
+	case 0xcff97:
+	case 0xcff98:
+	case 0xcff99:
+	case 0xcff9c:
+	case 0xcff9d:
+	case 0xcff9e:
+		val = read_io8(addr & 0xffff);
 		break;
 	default:
-		if(d_vram != NULL) {
-			val = d_vram->read_memory_mapped_io8(addr);
+		if(d_planevram != NULL) {
+			val = d_planevram->read_io8(addr & 0xffff);
 		}
 		break;
 	}
@@ -643,64 +663,18 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 
 void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
-	if((addr < 0xcc000) || (addr >= 0xd0000)) return;
-	if(addr < 0xcff80) {
-		ram_pagec[addr & 0xffff] = data;
-		return;
-	}
-	switch(addr & 0x7f) {
-	case 0x00:
-	case 0x01:
-	case 0x02:
-	case 0x03:
-		if(d_vram != NULL) {
-			d_vram->write_memory_mapped_io8(addr , data);
-		}
-		break;
-	case 0x04:
-		break;
-	case 0x06:
-		break;
-	case 0x14:
-		if(d_font != NULL) {
-			d_font->write_signal(SIG_TOWNS_FONT_KANJI_HIGH, data, 0xff);
-		}
-		break;
-	case 0x15:
-		if(d_font != NULL) {
-			d_font->write_signal(SIG_TOWNS_FONT_KANJI_LOW, data, 0xff);
-		}
-		break;
-		/*
-	case 0x16:
-	case 0x17:
-			// KANJI ROM/RAM? WRITE
-		break;
-		*/
-	case 0x18:
-		if(d_beep != NULL) {
-			d_beep->write_signal(SIG_PCM1BIT_ON, 0, 1);
-		}
-		break;
-	case 0x19:
-		ankcg_enabled = ((data & 1) != 0) ? true : false;
-		config_page00();
-		break;
-	case 0x1e:
-		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
-			if(d_font != NULL) {
-				d_font->write_signal(SIG_TOWNS_FONT_KANJI_ROW, data, 0xff);
-			}
-		} else if(d_vram != NULL) {
-			d_vram->write_memory_mapped_io8(addr , data);
-		}
-		break;
-		break;
-	case 0x20:
+	if((addr < 0xcfc00) || (addr >= 0xd0000)) return;
+	switch(addr) {
+	case 0xcff94:
+	case 0xcff95:
+	case 0xcff98:
+	case 0xcff99:
+	case 0xcff9e:
+		write_io8(addr & 0xffff, data);
 		break;
 	default:
-		if(d_vram != NULL) {
-			d_vram->write_memory_mapped_io8(addr , data);
+		if(d_planevram != NULL) {
+			d_planevram->write_io8(addr & 0xffff, data);
 		}
 		break;
 	}
@@ -806,7 +780,6 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(extra_nmi_val);
 	state_fio->StateValue(extra_nmi_mask);
 	state_fio->StateValue(nmi_mask);
-	
 	
 	state_fio->StateArray(ram_page0,  sizeof(ram_page0), 1);
 	state_fio->StateArray(ram_pagec,  sizeof(ram_pagec), 1);

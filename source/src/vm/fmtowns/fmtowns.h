@@ -309,6 +309,7 @@ namespace FMTOWNS {
 	class TOWNS_SCSI_HOST;
 	class TOWNS_SPRITE;
 	class TOWNS_VRAM;
+	class PLANEVRAM;
 
 	class JOYSTICK; // Mouse and Joystick.
 }
@@ -348,6 +349,7 @@ protected:
 	FMTOWNS::KEYBOARD*       keyboard;
 	FMTOWNS::TIMER*          timer;
 	FMTOWNS::TOWNS_VRAM*     vram;
+	FMTOWNS::PLANEVRAM*	     planevram;
 	FMTOWNS::TOWNS_SPRITE*   sprite;
 	FMTOWNS::TOWNS_MEMORY*   memory;
 	FMTOWNS::DICTIONARY*     dictionary;

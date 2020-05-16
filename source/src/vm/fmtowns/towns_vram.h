@@ -65,10 +65,6 @@ protected:
 	
 	bool sprite_busy;            // I/O 044CH (RO) : bit1. Must update from write_signal().
 	bool sprite_disp_page;       // I/O 044CH (RO) : bit0. Must update from write_signal().
-	uint8_t mix_reg;             // MMIO 000CH:FF80H
-	uint8_t r50_readplane;       // MMIO 000CH:FF81H : BIT 7 and 6.
-	uint8_t r50_ramsel;          // MMIO 000CH:FF81H : BIT 3 to 0.
-	uint8_t r50_gvramsel;        // MMIO 000CH:FF83H : bit4 (and 3).
 	// Accessing VRAM. Will be separated.
 	// Memory description:
 	// All of accessing must be little endian.
@@ -91,28 +87,6 @@ protected:
 	bool has_hardware_rendering;
 	bool has_hardware_blending;
 	// End.
-
-	virtual __inline__ void __FASTCALL write_raw_vram8(uint32_t addr, uint32_t data);
-	virtual __inline__ void __FASTCALL write_raw_vram16(uint32_t addr, uint32_t data);
-	virtual __inline__ void __FASTCALL write_raw_vram32(uint32_t addr, uint32_t data);
-	virtual __inline__ void __FASTCALL write_raw_vram16_nowrap(uint32_t addr, uint32_t data);
-	virtual __inline__ void __FASTCALL write_raw_vram32_nowrap(uint32_t addr, uint32_t data);
-	virtual __inline__ uint32_t __FASTCALL read_raw_vram8(uint32_t addr);
-	virtual __inline__ uint32_t __FASTCALL read_raw_vram16(uint32_t addr);
-	virtual __inline__ uint32_t __FASTCALL read_raw_vram32(uint32_t addr);
-	virtual __inline__ uint32_t __FASTCALL read_raw_vram16_nowrap(uint32_t addr);
-	virtual __inline__ uint32_t __FASTCALL read_raw_vram32_nowrap(uint32_t addr);
-	virtual void __FASTCALL write_mmio8(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_mmio8(uint32_t addr);
-
-	virtual uint32_t __FASTCALL read_plane_data8(uint32_t addr);
-	virtual uint32_t __FASTCALL read_plane_data16(uint32_t addr);
-	virtual uint32_t __FASTCALL read_plane_data32(uint32_t addr);
-	virtual void __FASTCALL write_plane_data8(uint32_t addr, uint32_t data);
-	virtual void __FASTCALL write_plane_data16(uint32_t addr, uint32_t data);
-	virtual void __FASTCALL write_plane_data32(uint32_t addr, uint32_t data);
-
-	virtual __inline__ void __FASTCALL make_dirty_vram(uint32_t addr, int bytes);
 
 public:
 	TOWNS_VRAM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -141,6 +115,7 @@ public:
 	virtual uint32_t __FASTCALL read_io16(uint32_t address);
 	
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask); // Do render
+	virtual bool process_state(FILEIO* state_fio, bool loading);
 
 	// Unique Functions
 	virtual uint8_t* __FASTCALL get_vram_address(uint32_t offset)
@@ -184,6 +159,7 @@ public:
 		}
 		return true;
 	}
+	virtual void __FASTCALL make_dirty_vram(uint32_t addr, int bytes);
 	virtual uint32_t __FASTCALL get_vram_size()
 	{
 		return 0x80000; // ToDo

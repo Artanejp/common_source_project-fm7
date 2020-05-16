@@ -39,6 +39,7 @@
 #include "towns_sprite.h"
 #include "towns_sysrom.h"
 #include "towns_vram.h"
+
 // Electric Volume
 //#include "mb87078.h"
 //YM-2612 "OPN2"
@@ -64,6 +65,7 @@
 #include "./scsi.h"
 #include "./serialrom.h"
 #include "./timer.h"
+#include "./towns_planevram.h"
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -88,6 +90,7 @@ using FMTOWNS::TOWNS_MEMORY;
 using FMTOWNS::TOWNS_SCSI_HOST;
 using FMTOWNS::TOWNS_SPRITE;
 using FMTOWNS::TOWNS_VRAM;
+using FMTOWNS::PLANEVRAM;
 
 
 VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
@@ -146,9 +149,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	fontrom_20pix = new FONT_ROM_20PIX(this, emu);
 #endif
 	serialrom = new SERIAL_ROM(this, emu);
+
 	adpcm = new ADPCM(this, emu);
 //	mixer = new MIXER(this, emu); // Pseudo mixer.
-		
+
+	planevram = new PLANEVRAM(this, emu);
+	
 	adc = new AD7820KR(this, emu);
 	rf5c68 = new RF5C68(this, emu);
 //	e_volume[0] = new MB87878(this, emu);
@@ -329,6 +335,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	vram->set_context_sprite(sprite);
 	vram->set_context_crtc(crtc);
 	
+	planevram->set_context_vram(vram);
+	planevram->set_context_sprite(sprite);
+	planevram->set_context_crtc(crtc);
+	
 	crtc->set_context_sprite(sprite);
 	crtc->set_context_vram(vram);
 	crtc->set_context_font(fontrom);
@@ -345,6 +355,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_cpu(cpu);
 	memory->set_context_dmac(dma);
 	memory->set_context_vram(vram);
+	memory->set_context_planevram(planevram);
 	memory->set_context_crtc(crtc);
 	memory->set_context_system_rom(sysrom);
 	memory->set_context_msdos(msdosrom);
@@ -541,17 +552,22 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x0c30, scsi);
 	io->set_iomap_single_rw(0x0c32, scsi);
 
-	io->set_iomap_range_rw(0x3000, 0x3fff, dictionary); // CMOS
+	io->set_iomap_range_rw (0x3000, 0x3fff, dictionary); // CMOS
 	
-	io->set_iomap_range_rw(0xfd90, 0xfda2, crtc);	// Palette and CRTC
+	io->set_iomap_range_rw (0xfd90, 0xfda2, crtc);	// Palette and CRTC
 	io->set_iomap_single_rw(0xfda4, memory);	// memory
 	
-	io->set_iomap_range_rw(0xff80, 0xff87, vram);	// MMIO
-	io->set_iomap_range_rw(0xff88, 0xff94, memory);	// MMIO
-	io->set_iomap_range_w (0xff94, 0xff95, fontrom);
-	io->set_iomap_range_r (0xff96, 0xff97, fontrom);
-	io->set_iomap_range_rw(0xff98, 0xffff, memory);	// MMIO
-	io->set_iomap_range_rw(0xff9c, 0xffa0, memory);	// MMIO
+	io->set_iomap_range_rw (0xff80, 0xff83, planevram);	// MMIO
+	io->set_iomap_single_r (0xff84, planevram);	// MMIO
+	io->set_iomap_single_rw(0xff86, planevram);	// MMIO
+	io->set_iomap_single_rw(0xff88, memory);	// MMIO
+	io->set_iomap_range_rw (0xff94, 0xff99, memory);	// MMIO
+	io->set_iomap_range_r  (0xff9c, 0xff9d, memory);	// MMIO
+	io->set_iomap_single_rw(0xff9e, memory);	// MMIO
+	io->set_iomap_single_rw(0xffa0, planevram);	// MMIO
+	
+//	io->set_iomap_range_w (0xff94, 0xff95, fontrom);
+//	io->set_iomap_range_r (0xff96, 0xff97, fontrom);
 
 	// Vram allocation may be before initialize().
 	// initialize all devices

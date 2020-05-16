@@ -68,6 +68,7 @@ protected:
 	DEVICE* d_beep;
 	DEVICE* d_dmac;
 	DEVICE* d_crtc;
+	DEVICE* d_planevram;
 	I386*   d_cpu;
 	
 	DEVICE* d_dictionary;
@@ -131,15 +132,20 @@ public:
 		extram_size = 0x00200000; // Basically 2MB
 		
 		d_cpu = NULL;
+		
 		d_vram = NULL;
-		d_dmac = NULL;
-		d_pcm = NULL;
 		d_sprite = NULL;
 		d_romcard[0] = d_romcard[1] = NULL;
+		d_pcm = NULL;
 		d_beep = NULL;
-		d_sysrom = NULL;
+		d_dmac = NULL;
+		d_crtc = NULL;
+		d_planevram = NULL;
+		
 		d_dictionary = NULL;
+		d_sysrom = NULL;
 		d_msdos = NULL;
+		d_serialrom = NULL;
 		d_font = NULL;
 		d_font_20pix = NULL;
 		initialized = false;
@@ -287,6 +293,10 @@ public:
 	void set_context_serial_rom(DEVICE* device)
 	{
 		d_serialrom = device;
+	}
+	void set_context_planevram(DEVICE *dev)
+	{
+		d_planevram = dev;
 	}
 	void set_machine_id(uint16_t val)
 	{

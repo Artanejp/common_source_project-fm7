@@ -29,6 +29,7 @@ set(VM_FMTOWNS_DEV_SRCS
 	towns_sprite.cpp
 	towns_sysrom.cpp
 	towns_vram.cpp
+	towns_planevram.cpp
 
 	fmtowns.cpp
 )
