@@ -131,9 +131,22 @@ int FIFO::count()
 	return cnt;
 }
 
+int FIFO::fifo_size()
+{
+	return size;
+}
+
 bool FIFO::full()
 {
 	return (cnt == size);
+}
+
+int FIFO::left()
+{
+	int val = cnt - size;
+	if(val < 0) val = 0;
+	if(val > size) val = size;
+	return val;
 }
 
 bool FIFO::empty()

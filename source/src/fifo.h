@@ -29,6 +29,8 @@ public:
 	virtual int read_not_remove(int pt, bool *p_empty_warn = nullptr);
 	virtual void write_not_push(int pt, int d, bool *p_fill_warn = nullptr);
 	virtual int count();
+	virtual int left();
+	virtual int fifo_size();
 	virtual bool full();
 	virtual bool empty();
 	virtual bool is_fill_warn() { return fill_warn_flag; }
