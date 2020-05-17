@@ -206,6 +206,8 @@ protected:
 	bool access;
 	bool media_changed;
 	uint32_t read_lba;
+
+	bool cdrom_prefetch;
 	
 	int extra_status;
 	void play_cdda_from_cmd();
@@ -272,7 +274,7 @@ protected:
 	void clear_event(int& evid);
 	
 	bool __CDROM_DEBUG_LOG;
-	
+	bool _USE_CDROM_PREFETCH;
 public:
 	TOWNS_CDROM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
