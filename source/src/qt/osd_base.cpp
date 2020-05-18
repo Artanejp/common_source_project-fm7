@@ -41,6 +41,7 @@
 //#include "csp_logger.h"
 #include "osd_base.h"
 #include "gui/dock_disks.h"
+#include "../vm/vm_template.h"
 
 OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QThread(0)
 {
@@ -609,4 +610,16 @@ void OSD_BASE::set_hdd_image_name(int drv, _TCHAR *filename)
 {
 	QString _n = QString::fromLocal8Bit(filename);
 	emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, drv, _n);
+}
+
+double OSD_BASE::get_vm_current_usec()
+{
+	if(vm == NULL) return 0.0;
+	return vm->get_current_usec();
+}
+
+uint64_t OSD_BASE::get_vm_current_clock_uint64()
+{
+	if(vm == NULL) return (uint64_t)0;
+	return vm->get_current_clock_uint64();
 }

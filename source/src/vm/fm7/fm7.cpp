@@ -1298,6 +1298,18 @@ void VM::set_vm_frame_rate(double fps)
    if(event != NULL) event->set_frames_per_sec(fps);
 }
 
+double VM::get_current_usec()
+{
+	if(event == NULL) return 0.0;
+	return event->get_current_usec();
+}
+
+uint64_t VM::get_current_clock_uint64()
+{
+		if(event == NULL) return (uint64_t)0;
+		return event->get_current_clock_uint64();
+}
+
 #define STATE_VERSION	12
 
 bool VM::process_state(FILEIO* state_fio, bool loading)

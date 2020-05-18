@@ -206,6 +206,18 @@ void VM::update_config()
 	}
 }
 
+double VM::get_current_usec()
+{
+	if(event == NULL) return 0.0;
+	return event->get_current_usec();
+}
+
+uint64_t VM::get_current_clock_uint64()
+{
+		if(event == NULL) return (uint64_t)0;
+		return event->get_current_clock_uint64();
+}
+
 #define STATE_VERSION	2
 
 bool VM::process_state(FILEIO* state_fio, bool loading)

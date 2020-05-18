@@ -16,6 +16,92 @@
 #include "menu_flags.h"
 #include "../osd.h"
 
+CSP_LoggerLine::CSP_LoggerLine(int64_t line, int _level, QString _domain, QString time_s, QString s, double us)
+{
+		mainstr = s;
+		linenum = line;
+		level = _level;
+		domain = _domain;
+		timestamp = time_s;
+		vm_usec = us;
+}
+
+CSP_LoggerLine::~CSP_LoggerLine()
+{
+}
+
+int64_t CSP_LoggerLine::get_line_num(void)
+{
+	return linenum;
+}
+
+QString CSP_LoggerLine::get_domain(void)
+{
+	return domain;
+}
+
+QString CSP_LoggerLine::get_element_syslog(void)
+{
+	QString s;
+	_TCHAR secstr[64] = {0};
+	my_stprintf_s(secstr, 63, _T(" (%6.7fSec) "), vm_usec / 1.0e6);
+	if(domain.isEmpty()) {
+		s = timestamp + QString::fromUtf8(secstr) + mainstr;
+	} else {
+		s = timestamp + QString::fromUtf8(secstr) + domain + QString::fromUtf8(" ")  + mainstr;
+	}
+	return s;
+}
+
+QString CSP_LoggerLine::get_element_console(void)
+{
+	QString s;
+	_TCHAR secstr[64] = {0};
+	my_stprintf_s(secstr, 63, _T(" (%6.7fSec) "), vm_usec / 1.0e6);
+	if(domain.isEmpty()) {
+		s = timestamp + QString::fromUtf8(secstr) +  mainstr;
+	} else {
+		s = timestamp + QString::fromUtf8(secstr) + domain + QString::fromUtf8(" ") +  mainstr;
+	}
+	return s;
+}
+
+bool CSP_LoggerLine::check_level(QString _domain, int _level)
+{
+	bool f = true;
+	if(!_domain.isEmpty()) {
+		if(_domain != domain) f = false;
+	}
+	if(_level >= 0) {
+		if(_level != level) {
+			f = false;
+		}
+	}
+	return f;
+}
+
+bool CSP_LoggerLine::contains(QString s, bool case_sensitive)
+{
+	if(!(check_domain(s, case_sensitive))) {
+		return contains_mainstr(s, case_sensitive);
+	}
+	return true;
+}
+
+bool CSP_LoggerLine::check_domain(QString s, bool case_sensitive)
+{
+	Qt::CaseSensitivity _n = (case_sensitive) ? Qt::CaseSensitive : Qt::CaseInsensitive;
+	if(domain.contains(s, _n)) return true;
+	return false;
+}
+
+bool CSP_LoggerLine::contains_mainstr(QString s, bool case_sensitive)
+{
+	Qt::CaseSensitivity _n = (case_sensitive) ? Qt::CaseSensitive : Qt::CaseInsensitive;
+	if(mainstr.contains(s, _n)) return true;
+	return false;
+}
+
 CSP_Logger::CSP_Logger(QObject *parent, bool b_syslog, bool cons, const char *devname) : QObject(parent)
 {
 	lock_mutex = new QMutex(QMutex::Recursive);
@@ -309,7 +395,7 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 		do {
 			if(p != NULL) {
 				CSP_LoggerLine *tmps = NULL;
-				tmps = new CSP_LoggerLine(linenum, level, domain_s, time_s, QString::fromUtf8(p));
+				tmps = new CSP_LoggerLine(linenum, level, domain_s, time_s, QString::fromUtf8(p), get_vm_clocks_usec());
 				//tmps = new CSP_LoggerLine(linenum, level, domain_s, time_s, QString::fromLocal8Bit(p));
 				if(log_onoff) {
 					if(cons_log_level_n != 0) {
@@ -740,6 +826,19 @@ void *CSP_Logger::get_raw_data(bool forget, int64_t start, int64_t *end_line)
 	return (void *)NULL;
 }
 
+uint64_t CSP_Logger::get_vm_clocks()
+{
+	if(p_osd == NULL) return (uint64_t)0;
+	return p_osd->get_vm_current_clock_uint64();
+}
+
+double CSP_Logger::get_vm_clocks_usec()
+{
+	if(p_osd == NULL) return 0.0;
+	return p_osd->get_vm_current_usec();
+}
+
+
 CSP_Log_ConsoleThread::CSP_Log_ConsoleThread(QObject *parent) : QThread(parent)
 {
 	_mutex = new QMutex(QMutex::Recursive);
@@ -777,6 +876,7 @@ void CSP_Log_ConsoleThread::run()
 		msleep(5);
 	} while(!isFinished());
 }
+
 
 #if defined(CSP_OS_WINDOWS)
 CSP_Logger DLL_PREFIX *csp_logger;

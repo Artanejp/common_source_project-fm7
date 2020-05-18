@@ -11,77 +11,8 @@
  * BELOW INCLUDES ARE for run_cpu().
  * ToDo: Minimum include.
  */
-#include "vm.h"
-
-#if defined(USE_CPU_HD6301)
-#include "hd6301.h"
-#endif
-
-#if defined(USE_CPU_HUC6280)
-#include "huc6280.h"
-#endif
-
-#if defined(USE_CPU_I86) || defined(USE_CPU_I186) || defined(USE_CPU_I88) || defined(USE_CPU_V30)
-#include "i86.h"
-#endif
-
-#if defined(USE_CPU_I286)
-#include "i286.h"
-#endif
-
-#if defined(USE_CPU_I386) || defined(USE_CPU_I486) || defined(USE_CPU_PENTIUM)
-#include "i386.h"
-#endif
-
-#if defined(USE_CPU_I8080)
-#include "i8080.h"
-#endif
-
-#if defined(USE_CPU_M6502) || defined(USE_CPU_N2A03)
-#include "m6502.h"
-#endif
-
-#if defined(USE_CPU_MB8861)
-#include "mb8861.h"
-#endif
-
-#if defined(USE_CPU_MC6800)
-#include "mc6800.h"
-#endif
-
-#if defined(USE_CPU_MC6801)
-#include "mc6801.h"
-#endif
-
-#if defined(USE_CPU_MC6809)
-#include "mc6809.h"
-#endif
-
-#if defined(USE_CPU_MCS48)
-#include "mcs48.h"
-#endif
-
-#if defined(USE_CPU_TMS9995)
-#include "tms9995.h"
-#endif
-
-#if defined(USE_CPU_UPD7801)
-#include "upd7801.h"
-#endif
-
-#if defined(USE_CPU_UPD7810)
-#include "upd7810.h"
-#endif
-
-#if defined(USE_CPU_UPD7907)
-#include "upd7907.h"
-#endif
-
-#if defined(USE_CPU_Z80)
-#include "z80.h"
-#endif
-
 #include "event.h"
+#include "vm.h"
 
 #define EVENT_MIX	0
 #define EVENT_VLINE	1
@@ -434,6 +365,15 @@ uint32_t EVENT::get_current_clock()
 uint64_t EVENT::get_current_clock_uint64()
 {
 	return event_clocks;
+}
+
+double EVENT::get_current_usec()
+{
+	double clock = (double)(d_cpu[0].cpu_clocks);
+	if(clock <= 0.0) return 0.0;
+
+	double usec = ((double)event_clocks / clock) * 1.0e6;
+	return usec;
 }
 
 uint32_t EVENT::get_cpu_clock(int index)

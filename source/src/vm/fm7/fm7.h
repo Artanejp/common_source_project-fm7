@@ -631,6 +631,8 @@ public:
 #if defined(USE_MINIMUM_RENDERING)	
 	bool is_screen_changed(void);
 #endif	
+	double get_current_usec();
+	uint64_t get_current_clock_uint64();
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------

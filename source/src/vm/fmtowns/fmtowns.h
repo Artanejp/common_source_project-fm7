@@ -446,6 +446,9 @@ public:
 	int get_sound_in_data(int ch, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
 	int sound_in(int ch, int32_t* src, int samples);
 
+	double get_current_usec();
+	uint64_t get_current_clock_uint64();
+	
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
 	

@@ -2007,7 +2007,7 @@ void EMU::release_debug_log()
 #endif
 
 #ifdef _DEBUG_LOG
-static _TCHAR prev_buffer[1024] = {0};
+static _TCHAR prev_buffer[2048] = {0};
 #endif
 
 void EMU::out_debug_log(const _TCHAR* format, ...)
@@ -2016,22 +2016,24 @@ void EMU::out_debug_log(const _TCHAR* format, ...)
 	
 #ifdef _DEBUG_LOG
 	va_list ap;
-	_TCHAR buffer[1024];
+	_TCHAR buffer[2048];
 	
 	va_start(ap, format);
-	my_vstprintf_s(buffer, 1024, format, ap);
+	my_vstprintf_s(buffer, 2048, format, ap);
 	va_end(ap);
 	
 	if(_tcscmp(prev_buffer, buffer) == 0) {
 		return;
 	}
-	my_tcscpy_s(prev_buffer, 1024, buffer);
+	my_tcscpy_s(prev_buffer, 2048, buffer);
 	
 #if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, "%s", buffer);
+	if(vm != NULL) {
+		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, vm->get_current_usec(), "%s", buffer);
+	}
 #else
 	if(debug_log) {
-		_ftprintf(debug_log, _T("%s"), buffer);
+		_ftprintf(debug_log, _T("(%f uS) %s"), vm->get_current_usec(), buffer);
 		static int size = 0;
 		if((size += _tcslen(buffer)) > 0x8000000) { // 128MB
 			fclose(debug_log);

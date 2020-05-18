@@ -82,63 +82,28 @@ enum {
 	CSP_LOG_TYPE_VM_STATE = 512,
 	CSP_LOG_TYPE_END = 1023,
 };
-	
-	
-	
+
 QT_BEGIN_NAMESPACE
 
 class DLL_PREFIX CSP_LoggerLine {
 private:
 	int64_t linenum;
+    double vm_usec;
 	int level;
 	QString domain;
 	QString mainstr;
 	QString timestamp;
 public:
-	CSP_LoggerLine(int64_t line, int _level, QString _domain, QString time_s, QString s) {
-		mainstr = s;
-		linenum = line;
-		level = _level;
-		domain = _domain;
-		timestamp = time_s;
-	};
-	~CSP_LoggerLine() {};
-	int64_t get_line_num(void) {
-		return linenum;
-	}
-	QString get_domain(void) {
-		return domain;
-	}
-	QString get_element_syslog(void) {
-		QString s;
-		if(domain.isEmpty()) {
-			s = timestamp + QString::fromUtf8(" ") + mainstr;
-		} else {
-			s = timestamp + QString::fromUtf8(" ") + domain + QString::fromUtf8(" ") + mainstr;
-		}
-		return s;
-	};
-	QString get_element_console(void) {
-		QString s;
-		if(domain.isEmpty()) {
-			s = timestamp + QString::fromUtf8(" ") + mainstr;
-		} else {
-			s = timestamp + QString::fromUtf8(" ") + domain + QString::fromUtf8(" ") + mainstr;
-		}
-		return s;
-	};
-	bool check_level(QString _domain, int _level) {
-		bool f = true;
-		if(!_domain.isEmpty()) {
-			if(_domain != domain) f = false;
-		}
-		if(_level >= 0) {
-			if(_level != level) {
-				f = false;
-			}
-		}
-		return f;
-	}
+	CSP_LoggerLine(int64_t line, int _level, QString _domain, QString time_s, QString s, double us = 0.0);
+	~CSP_LoggerLine();
+	int64_t get_line_num(void);
+	QString get_domain(void);
+	QString get_element_syslog(void);
+	QString get_element_console(void);
+	bool check_level(QString _domain, int _level);
+	bool contains(QString s, bool case_sensitive = false);
+	bool contains_mainstr(QString s, bool case_sensitive = false);
+	bool check_domain(QString s, bool case_sensitive = false);
 };
 
 class QMutex;
@@ -203,16 +168,17 @@ private:
 	int max_devices;
 	int max_cpus;
 protected:
-
+	uint64_t get_vm_clocks();
+	double get_vm_clocks_usec();
 public:
 	CSP_Logger(QObject *parent, bool b_syslog, bool cons, const char *devname);
 	~CSP_Logger();
 	void set_osd(OSD *p) { p_osd = p; }
 	void open(bool b_syslog, bool cons, const char *devname);
 	void reset(void);
-	void debug_log(int level, const char *fmt, ...);
-	void debug_log(int level, int domain_num, const char *fmt, ...);
-	void debug_log(int level, int domain_num, char *strbuf);
+	void __FASTCALL debug_log(int level, const char *fmt, ...);
+	void __FASTCALL debug_log(int level, int domain_num, const char *fmt, ...);
+	void __FASTCALL debug_log(int level, int domain_num, char *strbuf);
 	void close(void);
 	void set_log_status(bool sw);
 	void set_log_syslog(int level, bool sw);

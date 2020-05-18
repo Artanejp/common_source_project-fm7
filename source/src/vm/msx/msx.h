@@ -230,6 +230,9 @@ public:
 #endif
 	bool is_frame_skippable();
 	
+	double get_current_usec();
+	uint64_t get_current_clock_uint64();
+	
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
 	

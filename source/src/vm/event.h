@@ -10,7 +10,7 @@
 #ifndef _EVENT_H_
 #define _EVENT_H_
 
-#include "vm.h"
+#include "vm_template.h"
 #include "../emu.h"
 #include "device.h"
 
@@ -29,29 +29,6 @@
 	#define MAX_SOUND_IN_BUFFERS 8
 	#endif
 #endif
-
-enum {
-	EVENT_CPUTYPE_GENERIC = 0,
-	EVENT_CPUTYPE_HD6301,
-	EVENT_CPUTYPE_HUC6280,
-	EVENT_CPUTYPE_I286,
-	EVENT_CPUTYPE_I386,
-	EVENT_CPUTYPE_I8080,
-	EVENT_CPUTYPE_M6502,
-	EVENT_CPUTYPE_N2A03,
-	EVENT_CPUTYPE_MB8861,
-	EVENT_CPUTYPE_MC6800,
-	EVENT_CPUTYPE_MC6801,
-	EVENT_CPUTYPE_MC6809,
-	EVENT_CPUTYPE_MCS48,
-	EVENT_CPUTYPE_TMS9995,
-	EVENT_CPUTYPE_UPD7801,
-	EVENT_CPUTYPE_Z80,
-	EVENT_CPUTYPE_I86,
-	EVENT_CPUTYPE_V30,
-	EVENT_CPUTYPE_UPD7810,
-	EVENT_CPUTYPE_UPD7907,
-};
 
 
 class EVENT : public DEVICE
@@ -253,6 +230,7 @@ public:
 	void touch_sound();
 	void set_realtime_render(DEVICE* device, bool flag);
 	uint64_t get_current_clock_uint64();
+	double get_current_usec();
 	uint32_t get_cpu_clock(int index);
 	// unique functions
 	double get_frame_rate()

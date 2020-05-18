@@ -11,7 +11,7 @@
 #define _LIBCPU_NEWDEV_DEVICE_H_
 
 #include <stdarg.h>
-#include "vm.h"
+//#include "vm_template.h"
 #include "../emu.h"
 #if defined(_USE_QT)
 #include "osd.h"

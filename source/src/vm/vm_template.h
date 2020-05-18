@@ -163,6 +163,13 @@ public:
 	virtual uint32_t get_vk_by_scancode(uint32_t scancode) {
 		return 0xffffffff;
 	}
+	virtual double get_current_usec() {
+		return 0.0;
+	}
+	virtual uint64_t get_current_clock_uint64() {
+		return (uint64_t)0;
+	}
+
 	DEVICE* dummy;
 	DEVICE* first_device;
 	DEVICE* last_device;
