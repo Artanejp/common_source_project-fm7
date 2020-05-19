@@ -34,7 +34,7 @@ void JOYSTICK::reset()
 	if(mouse_sampling_event >= 0) {
 		cancel_event(this, mouse_sampling_event);
 	}
-	register_event(this, EVENT_MOUSE_SAMPLING, 33.0e3, true, &mouse_sampling_event);
+//	register_event(this, EVENT_MOUSE_SAMPLING, 16.0e3, true, &mouse_sampling_event);
 }
 
 void JOYSTICK::initialize()
@@ -63,7 +63,7 @@ void JOYSTICK::event_frame()
 	int stat = 0x00;
 	uint32_t retval = 0x00;
 	uint32_t val;
-#if 0
+#if 1
 	mouse_state = emu->get_mouse_buffer();
 	if(mouse_state != NULL) {
 		dx += mouse_state[0];
