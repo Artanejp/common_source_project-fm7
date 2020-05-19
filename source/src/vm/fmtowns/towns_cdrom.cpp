@@ -591,12 +591,12 @@ void TOWNS_CDROM::set_mcu_intr(bool val)
 				  (stat_reply_intr) ? _T("ON ") : _T("OFF"));				  
 	if(val) {
 		if(stat_reply_intr) {
-//			if(!(mcu_intr_mask)) {
+			if(!(mcu_intr_mask)) {
 			mcu_intr = true;
 //			if(dma_intr) write_signals(&outputs_mcuint, 0x0);
 //			if(!(mcu_intr_mask)) {
 				write_signals(&outputs_mcuint, 0xffffffff);
-//			}
+			}
 		} else {
 			mcu_intr = true;
 		}
@@ -644,16 +644,16 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 				clear_event(event_drq);
 				clear_event(event_next_sector);
 				clear_event(event_seek_completed);
-//				dma_transfer_phase = false;
-//				set_dma_intr(true);
+				dma_transfer_phase = false;
+				set_dma_intr(true);
 				if(read_length <= 0) {
-//					set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
-					register_event(this, EVENT_CDROM_DMA_EOT, 100.0, false, &event_next_sector);
-//					out_debug_log(_T("EOT(DMA)"));
+					set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
+//					register_event(this, EVENT_CDROM_DMA_EOT, 100.0, false, &event_next_sector);
+					out_debug_log(_T("EOT(DMA)"));
 				} else {
-					dma_transfer_phase = false;
-					set_dma_intr(true);
-					register_event(this, EVENT_CDROM_NEXT_SECTOR, 1.0e3, false, &event_next_sector);
+//					dma_transfer_phase = false;
+//					set_dma_intr(true);
+					register_event(this, EVENT_CDROM_NEXT_SECTOR, 10.0, false, &event_next_sector);
 				}
 
 			}
@@ -894,8 +894,10 @@ uint8_t TOWNS_CDROM::read_status()
 	if(status_queue->empty()) {
 		return val;
 	}
-	has_status = false;
 	val = status_queue->read();
+	if(status_queue->empty()) {
+		has_status = false;
+	}
 	if((status_queue->empty()) && (extra_status > 0)) {
 		switch(latest_command & 0x9f) {
 		case CDROM_COMMAND_SEEK: // seek
@@ -1408,13 +1410,14 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		// BIOS FDDFCh(0FC0h:01FCh)-
 		//pio_transfer_phase = false;
 		//dma_transfer_phase = false;
-//		if(pio_transfer) {
+		if(pio_transfer) {
 			if(read_length <= 0) {
 				out_debug_log(_T("EOT"));
 				set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
+				set_dma_intr(true);
 				break;
 			}
-//		}
+		}
 		pio_transfer_phase = pio_transfer;
 		dma_transfer_phase = dma_transfer;
 //		if(read_length > 0) {
@@ -1423,8 +1426,10 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			out_debug_log(_T("READ NEXT SECTOR"));
 			if(pio_transfer) {
 				set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
+				set_dma_intr(true);
 			} else {
 				set_status(true, 0, TOWNS_CD_STATUS_DATA_READY, 0x00, 0x00, 0x00);
+				//set_dma_intr(true);
 			}
 //			set_status(true, 0, TOWNS_CD_STATUS_DATA_READY, 0x00, 0x00, 0x00);
 		register_event(this, EVENT_CDROM_SEEK_COMPLETED,
