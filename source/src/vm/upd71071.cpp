@@ -113,7 +113,7 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 			for(int _ch = 0; _ch < 4; _ch++) {
 				// Check bit of SREQ.
 				if((sreq & (1 << _ch)) != 0) {
-					do_dma_per_channel(_ch);
+					if(do_dma_per_channel(_ch)) break;
 				}
 			}
 		}
@@ -192,6 +192,7 @@ void UPD71071::write_signal(int id, uint32_t data, uint32_t _mask)
 	int ch = id & 3;
 	uint8_t bit = 1 << ch;
 	if((id >= SIG_UPD71071_CH0) && (id <= SIG_UPD71071_CH3)) {
+//		out_debug_log(_T("DRQ#%d %s"), ch, ((data & mask) != 0) ? _T("ON ") : _T("OFF"));
 		if(data & _mask) {
 			if(!(req & bit)) {
 				req |= bit;
@@ -399,7 +400,7 @@ void UPD71071::do_dma_inc_dec_ptr_16bit(int c)
 	}
 }
 
-bool UPD71071::do_dma_prologue(int c)
+bool UPD71071::do_dma_epilogue(int c)
 {
 	uint8_t bit = 1 << c;
 	if(dma[c].creg-- == 0) {  // OK?
@@ -416,7 +417,12 @@ bool UPD71071::do_dma_prologue(int c)
 		tc |= bit;
 						
 		write_signals(&outputs_tc, tc);
-		return true;
+		if((dma[c].mode & 0xc0) == 0x40) {
+			// Single mode
+			return true;
+		} else {
+			return false;
+		}
 	}
 	if(_SINGLE_MODE_DMA) {
 		// Note: At FM-Towns, SCSI's DMAC will be set after
@@ -426,25 +432,40 @@ bool UPD71071::do_dma_prologue(int c)
 		//       DRQ came from SCSI before this state change).
 		// ToDo: Stop correctly before setting.
 		//       -- 20200316 K.O
-		if(((dma[c].mode & 0xc0) == 0x40) || ((dma[c].mode & 0xc0) == 0x00)) {
-			// single mode or demand mode
+		if((dma[c].mode & 0xc0) == 0x40) {
+			// single
 			req &= ~bit;
 			sreq &= ~bit;
 			return true;
+		} else if((dma[c].mode & 0xc0) == 0x00) {
+			// demand mode
+			req &= ~bit;
+			sreq &= ~bit;
+			return false;
 		}
+	} else if((dma[c].mode & 0xc0) == 0x40){
+		// single mode
+		req &= ~bit;
+		sreq &= ~bit;
+		return true;
+	} else if((dma[c].mode & 0xc0) == 0x00){
+		// demand mode
+		req &= ~bit;
+//		sreq &= ~bit;
+		return false;
 	}
 	return false;
 }
 
-void UPD71071::do_dma_per_channel(int c)
+bool UPD71071::do_dma_per_channel(int c)
 {
 	if(cmd & 4) {
-		return;
+		return true;
 	}
 	uint8_t bit = 1 << c;
 	if(((req | sreq) & bit) && !(mask & bit)) {
 		// execute dma
-		while((req | sreq) & bit) {
+		if((req | sreq) & bit) {
 			// Will check WORD transfer mode for FM-Towns.(mode.bit0 = '1).
 			// Note: At FM-Towns, may set bit0 of mode register (B/W),
 			//       but transferring per 8bit from/to SCSI HOST...
@@ -476,12 +497,13 @@ void UPD71071::do_dma_per_channel(int c)
 				}
 				do_dma_inc_dec_ptr_8bit(c);
 			}
-			if(do_dma_prologue(c)) {
-				break;
+			if(do_dma_epilogue(c)) {
+				//break;
+				return true;
 			}
 		}
 	}
-	return;
+	return false;
 }	
 void UPD71071::do_dma()
 {
@@ -492,7 +514,7 @@ void UPD71071::do_dma()
 	
 	// run dma
 	for(int c = 0; c < 4; c++) {
-		do_dma_per_channel(c);
+		if(do_dma_per_channel(c)) break;
 	}
 //#ifdef SINGLE_MODE_DMA
 	if(_SINGLE_MODE_DMA) {
