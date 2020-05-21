@@ -49,6 +49,8 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QThread(0)
 	vm_mutex = new QMutex(QMutex::Recursive);
 	locked_vm = false;
 	screen_mutex = new QMutex(QMutex::Recursive);
+	mouse_mutex = new QMutex(QMutex::Recursive);
+	
 	device_node_list.clear();
 	max_vm_nodes = 0;
 	p_logger = logger;
@@ -67,6 +69,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QThread(0)
 
 OSD_BASE::~OSD_BASE()
 {
+  	delete mouse_mutex;
   	delete vm_mutex;
 	delete screen_mutex;
 }

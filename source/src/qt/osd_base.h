@@ -363,6 +363,7 @@ public:
 	QMutex *screen_mutex;
 	QMutex *vm_mutex;
 	QMutex *debug_mutex;
+	QMutex *mouse_mutex;
 	
 	int host_cpus;
 	bool now_auto_key;

@@ -10,6 +10,8 @@
 #include <Qt>
 #include <QApplication>
 #include <SDL.h>
+#include <QMutex>
+#include <QMutexLocker>
 
 //#include "../emu.h"
 #include "../fifo.h"
@@ -257,9 +259,12 @@ void OSD_BASE::update_input()
 	memset(mouse_status, 0, sizeof(mouse_status));
 	//bool hid = false;
 	if(mouse_enabled) {
+		QMutexLocker n(mouse_mutex);
 		mouse_status[0] = delta_x;
 		mouse_status[1] = delta_y; 
 		mouse_status[2] = mouse_button;
+		mouse_oldx = mouse_ptrx;
+		mouse_oldy = mouse_ptry;
 		//printf("Mouse delta(%d, %d)\n", delta_x, delta_y);
 		delta_x = delta_y = 0;
 	}
@@ -766,6 +771,7 @@ uint32_t* OSD_BASE::get_joy_buffer()
 
 int32_t* OSD_BASE::get_mouse_buffer()
 {
+	QMutexLocker n(mouse_mutex);
 	return mouse_status;
 }
 
@@ -789,6 +795,7 @@ void OSD_BASE::enable_mouse()
 {
 	// enable mouse emulation
 	if(!mouse_enabled) {
+		QMutexLocker n(mouse_mutex);
 		mouse_oldx = mouse_ptrx = get_screen_width() / 2;
 		mouse_oldy = mouse_ptry = get_screen_height() / 2;
 		delta_x = 0;
@@ -828,24 +835,25 @@ bool OSD_BASE::is_mouse_enabled()
 void OSD_BASE::set_mouse_pointer(int x, int y)
 {
 	if(mouse_enabled) {
-		int32_t dw = get_screen_width();
-		int32_t dh = get_screen_height();
+		QMutexLocker n(mouse_mutex);
+//		int32_t dw = get_screen_width();
+//		int32_t dh = get_screen_height();
 		mouse_ptrx = x;
 		mouse_ptry = y;
-		//delta_x = x - (dw / 2);
-		//delta_y = y - (dh / 2);
+//		delta_x = x - (dw / 2);
+//		delta_y = y - (dh / 2);
 		delta_x += (mouse_ptrx - mouse_oldx);
 		delta_y += (mouse_ptry - mouse_oldy);
-/*		if(delta_x > (dw / 2)) {
-			delta_x = dw / 2;
-		} else if(delta_x < -(dw / 2)) {
-			delta_x = -dw / 2;
-		}
-		if(delta_y > (dh / 2)) {
-			delta_y = dh / 2;
-		} else if(delta_y < -(dh / 2)) {
-			delta_y = -dh / 2;
-			}*/
+//		if(delta_x > (dw / 2)) {
+//			delta_x = dw / 2;
+//		} else if(delta_x < -(dw / 2)) {
+//			delta_x = -dw / 2;
+//		}
+//		if(delta_y > (dh / 2)) {
+//			delta_y = dh / 2;
+//		} else if(delta_y < -(dh / 2)) {
+//			delta_y = -dh / 2;
+//		}
 		mouse_oldx = mouse_ptrx;
 		mouse_oldy = mouse_ptry;
 		//printf("Mouse Moved: (%d, %d) -> delta(%d, %d)\n", mouse_ptrx, mouse_ptry, delta_x, delta_y);
@@ -854,11 +862,13 @@ void OSD_BASE::set_mouse_pointer(int x, int y)
 
 void OSD_BASE::set_mouse_button(int button) 
 {
+	QMutexLocker n(mouse_mutex);
 	mouse_button = button;
 }
 
 int OSD_BASE::get_mouse_button() 
 {
+	QMutexLocker n(mouse_mutex);
 	return mouse_button;
 }
 

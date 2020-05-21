@@ -34,7 +34,7 @@ void JOYSTICK::reset()
 	if(mouse_sampling_event >= 0) {
 		cancel_event(this, mouse_sampling_event);
 	}
-//	register_event(this, EVENT_MOUSE_SAMPLING, 16.0e3, true, &mouse_sampling_event);
+//	register_event(this, EVENT_MOUSE_SAMPLING, 8.0e3, true, &mouse_sampling_event);
 }
 
 void JOYSTICK::initialize()
@@ -50,7 +50,6 @@ void JOYSTICK::initialize()
 	set_emulate_mouse();
 	mouse_type = config.mouse_type;
 	register_frame_event(this);
-	
 }
 
 void JOYSTICK::release()
