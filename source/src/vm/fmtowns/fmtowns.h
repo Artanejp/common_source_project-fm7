@@ -19,12 +19,16 @@
 
 #define HAS_MB89311
 
+#define RAM_SIZE_ORDER (1024*1024)
+
 #if defined(_FMTOWNS_1)
 #define DEVICE_NAME		"FUJITSU FM-Towns Model 1"
 #define CONFIG_NAME		"fmtowns1"
 #define MAX_DRIVE       1
 #define _HAS_HDD        4
 #undef HAS_MB89311
+#define USE_VARIABLE_MEMORY 6
+#define MIN_RAM_SIZE 1
 
 #elif defined(_FMTOWNS_2)
 #define DEVICE_NAME		"FUJITSU FM-Towns Model 2"
@@ -32,6 +36,8 @@
 #define MAX_DRIVE       2
 #define _HAS_HDD        4
 #undef HAS_MB89311
+#define USE_VARIABLE_MEMORY 6
+#define MIN_RAM_SIZE 1
 
 #elif defined(_FMTOWNS_2F)
 #define DEVICE_NAME		"FUJITSU FM-Towns 2F"
@@ -39,6 +45,8 @@
 #define MAX_DRIVE       2
 #undef  _HAS_HDD
 #define _FMTOWNS1_2ND_GEN
+#define USE_VARIABLE_MEMORY 8
+#define MIN_RAM_SIZE 2
 
 #elif defined(_FMTOWNS_2H)
 #define DEVICE_NAME		"FUJITSU FM-Towns 2H"
@@ -46,6 +54,8 @@
 #define MAX_DRIVE       2
 #define _HAS_HDD        4
 #define _FMTOWNS1_2ND_GEN
+#define USE_VARIABLE_MEMORY 8
+#define MIN_RAM_SIZE 2
 
 #elif defined(_FMTOWNS_20F)
 #define DEVICE_NAME		"FUJITSU FM-Towns 20F"
@@ -54,6 +64,8 @@
 #undef  _HAS_HDD
 #define TYPE_TOWNS_X0   1
 #define _FMTOWNS1_3RD_GEN
+#define USE_VARIABLE_MEMORY 8
+#define MIN_RAM_SIZE 2
 
 #elif defined(_FMTOWNS_40H)
 #define DEVICE_NAME		"FUJITSU FM-Towns 40H"
@@ -62,6 +74,8 @@
 #define _HAS_HDD        4
 #define TYPE_TOWNS_X0   1
 #define _FMTOWNS1_3RD_GEN
+#define USE_VARIABLE_MEMORY 8
+#define MIN_RAM_SIZE 2
 
 #elif defined(_FMTOWNS2_UX20)
 #define DEVICE_NAME		"FUJITSU FM-Towns II UX20"
@@ -71,6 +85,8 @@
 #define WITH_386SX      1
 #define TYPE_TOWNS2_UX  1
 #define _FMTOWNS_UX_VARIANTS
+#define USE_VARIABLE_MEMORY 9
+#define MIN_RAM_SIZE 2
 
 #elif defined(_FMTOWNS2_UX40)
 #define DEVICE_NAME		"FUJITSU FM-Towns II UX40"
@@ -80,6 +96,8 @@
 #define WITH_386SX      1
 #define TYPE_TOWNS2_UX  1
 #define _FMTOWNS_UX_VARIANTS
+#define USE_VARIABLE_MEMORY 9
+#define MIN_RAM_SIZE 2
 
 #elif defined(_FMTOWNS2_CX20)
 #define DEVICE_NAME		"FUJITSU FM-Towns II CX20"
@@ -88,6 +106,8 @@
 #undef _HAS_HDD
 #define TYPE_TOWNS2_CX  1
 #define _FMTOWNS2_CX_VARIANTS
+#define USE_VARIABLE_MEMORY 15
+#define MIN_RAM_SIZE 2
 
 #elif defined(_FMTOWNS2_CX40)
 #define DEVICE_NAME		"FUJITSU FM-Towns II CX40"
@@ -96,6 +116,8 @@
 #define _HAS_HDD        4
 #define TYPE_TOWNS2_CX  1
 #define _FMTOWNS2_CX_VARIANTS
+#define USE_VARIABLE_MEMORY 15
+#define MIN_RAM_SIZE 2
 
 #elif defined(_FMTOWNS2_CX100)
 #define DEVICE_NAME		"FUJITSU FM-Towns II CX40"
@@ -103,61 +125,97 @@
 #define MAX_DRIVE       2
 #define _HAS_HDD        4
 #define TYPE_TOWNS2_CX  1
+#define USE_VARIABLE_MEMORY 15
+#define MIN_RAM_SIZE 2
 #define _FMTOWNS2_CX_VARIANTS
+
 #elif defined(_FMTOWNS2_UG10)
 #define DEVICE_NAME		"FUJITSU FM-Towns II UG10"
 #define CONFIG_NAME		"fmtowns2UG1"
 #define MAX_DRIVE       2
 #undef  _HAS_HDD        
 #define WITH_386SX      1
+#define USE_VARIABLE_MEMORY 9
+#define MIN_RAM_SIZE 2
+
 #define _FMTOWNS_UG_VARIANTS
+
 #elif defined(_FMTOWNS2_UG20)
 #define DEVICE_NAME		"FUJITSU FM-Towns II UG20"
 #define CONFIG_NAME		"fmtowns2UG20"
 #define MAX_DRIVE       2
 #undef  _HAS_HDD        
 #define WITH_386SX      1
+#define USE_VARIABLE_MEMORY 9
+#define MIN_RAM_SIZE 2
+
 #define _FMTOWNS_UG_VARIANTS
+
 #elif defined(_FMTOWNS2_UG40)
 #define DEVICE_NAME		"FUJITSU FM-Towns II UG40"
 #define CONFIG_NAME		"fmtowns2UG40"
 #define MAX_DRIVE       2
 #define _HAS_HDD        4
 #define WITH_386SX      1
+#define USE_VARIABLE_MEMORY 9
+#define MIN_RAM_SIZE 2
+
 #define _FMTOWNS_UG_VARIANTS
+
 #elif defined(_FMTOWNS2_UG80)
 #define DEVICE_NAME		"FUJITSU FM-Towns II UG80"
 #define CONFIG_NAME		"fmtowns2UG80"
 #define MAX_DRIVE       2
 #define _HAS_HDD        1
 #define WITH_386SX      1
+#define USE_VARIABLE_MEMORY 9
+#define MIN_RAM_SIZE 2
+
 #define _FMTOWNS_UG_VARIANTS
+
 #elif defined(_FMTOWNS2_HG20)
 #define DEVICE_NAME		"FUJITSU FM-Towns II HG20"
 #define CONFIG_NAME		"fmtowns2HG20"
 #define MAX_DRIVE       2
 #undef _HAS_HDD        
+#define USE_VARIABLE_MEMORY 15
+#define MIN_RAM_SIZE 2
+
 #define _FMTOWNS_HG_VARIANTS
 #elif defined(_FMTOWNS2_HG40)
 #define DEVICE_NAME		"FUJITSU FM-Towns II HG40"
 #define CONFIG_NAME		"fmtowns2HG40"
 #define MAX_DRIVE       2
 #define _HAS_HDD          4
+
+#define USE_VARIABLE_MEMORY 15
+#define MIN_RAM_SIZE 2
+
 #define _FMTOWNS_HG_VARIANTS
+
 #elif defined(_FMTOWNS2_HR20)
 #define DEVICE_NAME		"FUJITSU FM-Towns II HR20"
 #define CONFIG_NAME		"fmtowns2HR20"
 #define MAX_DRIVE       2
 #define _HAS_HDD        4
 #define _FMTOWNS_HR_VARIANTS
+
+#define USE_VARIABLE_MEMORY 31
+#define MIN_RAM_SIZE 2
+
 #define WITH_I486SX
 #elif defined(_FMTOWNS2_HR100)
 #define DEVICE_NAME		"FUJITSU FM-Towns II HR100"
 #define CONFIG_NAME		"fmtowns2HR100"
 #define MAX_DRIVE       2
 #define _HAS_HDD        4
+
+#define USE_VARIABLE_MEMORY 31
+#define MIN_RAM_SIZE 2
+
 #define _FMTOWNS_HR_VARIANTS
 #define WITH_I486SX
+
 #elif defined(_FMTOWNS2_HR200)
 #define DEVICE_NAME		"FUJITSU FM-Towns II HR200"
 #define CONFIG_NAME		"fmtowns2HR200"
@@ -165,6 +223,10 @@
 #define _HAS_HDD        4
 #define _FMTOWNS_HR_VARIANTS
 #define WITH_I486SX
+
+#define USE_VARIABLE_MEMORY 31
+#define MIN_RAM_SIZE 2
+
 #endif
 
 #if defined(WITH_386SX)

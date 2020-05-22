@@ -105,3 +105,10 @@ void Ui_MainWindowBase::ConfigCDROMMenu(void)
 {
 	ConfigCDROMMenuSub(); 
 }
+
+void Ui_MainWindowBase::do_swap_cdaudio_byteorder(int drv, bool value)
+{
+	if(drv < 0) return;
+	if(drv > 7) return;
+	p_config->swap_audio_byteorder[drv] = value;
+}

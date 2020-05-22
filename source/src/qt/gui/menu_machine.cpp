@@ -36,6 +36,10 @@ void Ui_MainWindowBase::retranslateMachineMenu(void)
 	QString tmps;
 	QString tmps2;
 	menuMachine->setTitle(QApplication::translate("MenuMachine", "Machine", 0));
+	if(using_flags->is_use_ram_size()) {
+		action_RAMSize->setText(QApplication::translate("MenuMachine", "RAM Size", 0));
+		action_RAMSize->setToolTip(QApplication::translate("MenuMachine", "Set (extra) memory size.\nThis will effect after restarting this emulator.", 0));
+	}	
 	if(using_flags->get_use_device_type() > 0) {
 		menuDeviceType->setTitle(QApplication::translate("MenuMachine", "Device Type", 0));
 		for(i = 0; i < using_flags->get_use_device_type(); i++) {

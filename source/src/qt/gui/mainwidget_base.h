@@ -404,6 +404,7 @@ protected:
 	class Action_Control *action_ResetFixedCpu;
 	class Action_Control *action_SetFixedCpu[128];
 
+	class Action_Control *action_RAMSize;
 	// Screen
 	class Action_Control *actionCapture_Screen;
 	class Action_Control *action_SetRenderMode[8];
@@ -625,6 +626,7 @@ public slots:
 	int set_recent_cdrom(int drv, int num);
 	void do_eject_cdrom(int drv);
 	void do_open_cdrom(int drv, QString path);
+	void do_swap_cdaudio_byteorder(int drv, bool value);
 
 	int set_recent_laserdisc(int drv, int num); 
 	void do_eject_laserdisc(int drv); 
@@ -747,7 +749,8 @@ public slots:
 	void do_select_fixed_cpu(int num);
 	void do_add_keyname_table(uint32_t vk, QString name);
 	void do_clear_keyname_table();
-
+	void do_show_ram_size_dialog(void);
+	
 signals:
 	int message_changed(QString);
 	int quit_emu_thread();

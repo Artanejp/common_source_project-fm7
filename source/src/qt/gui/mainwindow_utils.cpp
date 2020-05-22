@@ -209,6 +209,8 @@ void Ui_MainWindowBase::set_screen_aspect(int num)
 
 void Ui_MainWindowBase::ConfigDeviceType(void)
 {
+//	if(using_flags->is_use_variable_memory()) {
+//	}		
 	if(using_flags->get_use_device_type() > 0) {
 		int ii;
 		menuDeviceType = new QMenu(menuMachine);

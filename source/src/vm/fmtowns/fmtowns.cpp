@@ -575,7 +575,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
 #endif
 	// ToDo : Use config framework
-	int exram_size = -1;
+	int exram_size = config.current_ram_size;
 	if(exram_size < 1) {
 		if(machine_id < 0x0200) { // Model1 - 2H
 			exram_size = 6;
@@ -589,6 +589,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 			exram_size = 31;
 		}
 	}
+	if(exram_size < MIN_RAM_SIZE) {
+		exram_size = MIN_RAM_SIZE;
+	}
+	
 	memory->set_extra_ram_size(exram_size);
 
 #if defined(WITH_I386SX)

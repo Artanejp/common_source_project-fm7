@@ -172,7 +172,7 @@ void Ui_MainWindowBase::do_set_window_focus_type(bool flag)
 
 void Ui_MainWindowBase::do_show_ram_size_dialog(void)
 {
-	CSP_MemoryDialog *dlg = new CSP_MemoryDialog(using_flags, this);
+	CSP_MemoryDialog *dlg = new CSP_MemoryDialog(using_flags, NULL);
 	dlg->show();
 }
 
@@ -582,7 +582,10 @@ void Ui_MainWindowBase::setupUi(void)
 	}
 	if(using_flags->is_use_ram_size()) {
 		action_RAMSize = new Action_Control(this, using_flags);
+		menuMachine->addSeparator();
+		menuMachine->addAction(action_RAMSize);
 		connect(action_RAMSize, SIGNAL(triggered()), this, SLOT(do_show_ram_size_dialog()));
+		menuMachine->addSeparator();
 	}
 		
 
