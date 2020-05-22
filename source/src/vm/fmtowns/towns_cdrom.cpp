@@ -453,7 +453,7 @@ void TOWNS_CDROM::initialize()
 	is_cue = false;
 	current_track = 0;
 	read_sectors = 0;
-
+	
 	transfer_speed = 1;	
 	for(int i = 0; i < 99; i++) {
 		memset(track_data_path[i], 0x00, _MAX_PATH * sizeof(_TCHAR));
@@ -1617,12 +1617,18 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 				return 0;
 			}
 			int bytes = 0;
-			for(int i = 0; i < (2352 * n_sectors); i++) {
+			for(int i = 0; i < (2352 * n_sectors); i += 2) {
 				if(buffer->full()) {
 					break; // Buffer full
 				}
-				buffer->write(((int)tmpbuf[i]) & 0xff);
-				bytes++;
+				if(config.swap_audio_byteorder[0]) {
+					buffer->write(((int)tmpbuf[i + 1]) & 0xff);
+					buffer->write(((int)tmpbuf[i + 0]) & 0xff);
+				} else {
+					buffer->write(((int)tmpbuf[i + 0]) & 0xff);
+					buffer->write(((int)tmpbuf[i + 1]) & 0xff);
+				}
+				bytes += 2;
 			}
 			if(bytes < (2352 * n_sectors)) {
 				return (bytes / 2352);
@@ -2784,7 +2790,8 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		);
 	return true;
 }
-				  
+
+
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */

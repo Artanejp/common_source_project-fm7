@@ -103,4 +103,5 @@ void Ui_MainWindowBase::ConfigMonitorType(void)
 			menuMonitorType->addAction(actionMonitorType[ii]);
 		}
 	}
+
 }

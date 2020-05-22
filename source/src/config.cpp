@@ -112,6 +112,12 @@ void DLL_PREFIX initialize_config()
 			config.baud_high[drv] = true;
 		}
 	#endif
+	#ifdef USE_COMPACT_DISC
+		for(int drv = 0; drv < USE_COMPACT_DISC_TMP; drv++) {
+			config.swap_audio_byteorder[drv] = false;
+		}
+	#endif
+		
 	config.compress_state = true;
 	
 	// screen
@@ -147,6 +153,9 @@ void DLL_PREFIX initialize_config()
 		config.joy_to_key_numpad5 = false;
 		config.joy_to_key_buttons[0] = -('Z');
 		config.joy_to_key_buttons[1] = -('X');
+	#endif
+	#if defined(USE_VARIABLE_MEMORY)
+		config.current_ram_size = USE_VARIABLE_MEMORY;
 	#endif
 	// debug
 	config.special_debug_fdc = false;
@@ -273,6 +282,9 @@ void DLL_PREFIX load_config(const _TCHAR *config_path)
 	#ifdef USE_PRINTER
 		config.printer_type = MyGetPrivateProfileInt(_T("Control"), _T("PrinterType"), config.printer_type, config_path);
 	#endif
+	#if defined(USE_VARIABLE_MEMORY)
+		config.current_ram_size = MyGetPrivateProfileInt(_T("Control"), _T("CurrentRAMSize"), config.current_ram_size, config_path);
+	#endif
 	#ifdef USE_FLOPPY_DISK
 		for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
 			config.correct_disk_timing[drv] = MyGetPrivateProfileBool(_T("Control"), create_string(_T("CorrectDiskTiming%d"), drv + 1), config.correct_disk_timing[drv], config_path);
@@ -393,6 +405,11 @@ void DLL_PREFIX load_config(const _TCHAR *config_path)
 		config.sound_noise_cmt = MyGetPrivateProfileBool(_T("Sound"), _T("NoiseCMT"), config.sound_noise_cmt, config_path);;
 		config.sound_play_tape = MyGetPrivateProfileBool(_T("Sound"), _T("PlayTape"), config.sound_play_tape, config_path);
 	#endif
+	#ifdef USE_COMPACT_DISC
+		for(int drv = 0; drv < USE_COMPACT_DISC; drv++) {
+			config.swap_audio_byteorder[drv] = MyGetPrivateProfileBool(_T("Sound"), create_string(_T("SwapCDByteOrder%d"), drv + 1), config.swap_audio_byteorder[drv], config_path);
+		}
+	#endif
 	#ifdef USE_SOUND_VOLUME
 		for(int i = 0; i < USE_SOUND_VOLUME; i++) {
 			int tmp_l = MyGetPrivateProfileInt(_T("Sound"), create_string(_T("VolumeLeft%d"), i + 1), config.sound_volume_l[i], config_path);
@@ -420,7 +437,6 @@ void DLL_PREFIX load_config(const _TCHAR *config_path)
 		MyGetPrivateProfileString(_T("Sound"), _T("YM2151GenDll"), config.mame2151_dll_path, config.mame2151_dll_path, _MAX_PATH, config_path);
 		MyGetPrivateProfileString(_T("Sound"), _T("YM2608GenDll"), config.mame2608_dll_path, config.mame2608_dll_path, _MAX_PATH, config_path);
  	#endif
-
 	// input
 	#ifdef USE_JOYSTICK
 		for(int i = 0; i < 4; i++) {
@@ -651,6 +667,9 @@ void DLL_PREFIX save_config(const _TCHAR *config_path)
 	#ifdef USE_PRINTER
 		MyWritePrivateProfileInt(_T("Control"), _T("PrinterType"), config.printer_type, config_path);
 	#endif
+	#if defined(USE_VARIABLE_MEMORY)
+		MyWritePrivateProfileInt(_T("Control"), _T("CurrentRAMSize"), config.current_ram_size, config_path);
+	#endif
 	#ifdef USE_FLOPPY_DISK
 		for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
 			MyWritePrivateProfileBool(_T("Control"), create_string(_T("CorrectDiskTiming%d"), drv + 1), config.correct_disk_timing[drv], config_path);
@@ -719,7 +738,9 @@ void DLL_PREFIX save_config(const _TCHAR *config_path)
 			for(int i = 0; i < MAX_HISTORY; i++) {
 				MyWritePrivateProfileString(_T("RecentFiles"), create_string(_T("RecentCompactDiscPath%d_%d"), drv + 1, i + 1), config.recent_compact_disc_path[drv][i], config_path);
 			}
+
  		}
+		
  	#endif
 	#ifdef USE_LASER_DISC
 		MyWritePrivateProfileString(_T("RecentFiles"), _T("InitialLaserDiscDir"), config.initial_laser_disc_dir, config_path);
@@ -772,6 +793,11 @@ void DLL_PREFIX save_config(const _TCHAR *config_path)
 	#ifdef USE_TAPE
 		MyWritePrivateProfileBool(_T("Sound"), _T("NoiseCMT"), config.sound_noise_cmt, config_path);
 		MyWritePrivateProfileBool(_T("Sound"), _T("PlayTape"), config.sound_play_tape, config_path);
+	#endif
+	#ifdef USE_COMPACT_DISC
+		for(int drv = 0; drv < USE_COMPACT_DISC; drv++) {
+			MyWritePrivateProfileBool(_T("Sound"), create_string(_T("SwapCDByteOrder%d"), drv + 1), config.swap_audio_byteorder[drv], config_path);
+		}
 	#endif
 	#ifdef USE_SOUND_VOLUME
 		for(int i = 0; i < USE_SOUND_VOLUME; i++) {

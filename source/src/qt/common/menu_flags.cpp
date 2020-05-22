@@ -66,7 +66,17 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	max_drive = max_d88_banks = 0;
 
 	max_draw_ranges = 0;
-	
+
+	#if defined(USE_VARIABLE_MEMORY)
+	use_ram_size = true;
+	max_ram_size = USE_VARIABLE_MEMORY;
+		#if defined(MIN_RAM_SIZE)
+		min_ram_size = MIN_RAM_SIZE;
+		#endif
+		#if defined(RAM_SIZE_ORDER)
+		ram_size_order = RAM_SIZE_ORDER;
+		#endif
+	#endif
 	use_hd = false;
 	max_hd = 0;
 	base_hd_num = 1;

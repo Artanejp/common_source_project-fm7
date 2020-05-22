@@ -156,6 +156,9 @@ typedef struct {
 		bool direct_load_mzt[USE_TAPE_TMP];
 		bool baud_high[USE_TAPE_TMP];
 	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_VARIABLE_MEMORY)
+	uint32_t current_ram_size;
+	#endif
 	bool compress_state;
 	int cpu_power;
 	bool full_speed;
@@ -185,6 +188,7 @@ typedef struct {
 	#if defined(USE_SHARED_DLL) || defined(USE_COMPACT_DISC)
 		_TCHAR initial_compact_disc_dir[_MAX_PATH];
 		_TCHAR recent_compact_disc_path[USE_COMPACT_DISC_TMP][MAX_HISTORY][_MAX_PATH];
+		bool swap_audio_byteorder[USE_COMPACT_DISC_TMP];
 	#endif
 	#if defined(USE_SHARED_DLL) || defined(USE_LASER_DISC)
 		_TCHAR initial_laser_disc_dir[_MAX_PATH];

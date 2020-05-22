@@ -41,6 +41,7 @@
 #include "menu_laserdisc.h"
 #include "menu_bubble.h"
 #include "dock_disks.h"
+#include "dialog_memory.h"
 
 #include "qt_gldraw.h"
 //#include "emu.h"
@@ -167,6 +168,12 @@ void Ui_MainWindowBase::do_set_window_focus_type(bool flag)
 		graphicsView->setFocusPolicy(Qt::NoFocus);
 		graphicsView->clearFocus();
 	}
+}
+
+void Ui_MainWindowBase::do_show_ram_size_dialog(void)
+{
+	CSP_MemoryDialog *dlg = new CSP_MemoryDialog(using_flags, this);
+	dlg->show();
 }
 
 void Ui_MainWindowBase::do_show_about(void)
@@ -573,6 +580,11 @@ void Ui_MainWindowBase::setupUi(void)
 				actionMouseEnable, SLOT(do_check_grab_mouse(bool)));
 		menuMachine->addAction(actionMouseEnable);
 	}
+	if(using_flags->is_use_ram_size()) {
+		action_RAMSize = new Action_Control(this, using_flags);
+		connect(action_RAMSize, SIGNAL(triggered()), this, SLOT(do_show_ram_size_dialog()));
+	}
+		
 
 	ConfigDeviceType();
 	ConfigMouseType();

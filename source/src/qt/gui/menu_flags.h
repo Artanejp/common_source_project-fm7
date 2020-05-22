@@ -67,6 +67,11 @@ protected:
 	int use_mouse_type;
 	bool use_dipswitch;
 
+	bool use_ram_size;
+	int max_ram_size;
+	int min_ram_size;
+	uint32_t ram_size_order;
+	
 	int use_drive_type;
 
 	bool use_fd;
@@ -221,7 +226,24 @@ public:
 	bool is_use_compact_disc() { return use_compact_disc; }
 	int get_max_cd() { return max_compact_disc; }
 	int get_base_compact_disc_num() { return base_cd_num; }
+	bool is_cdaudio_swap_byteorder(int drv) {
+		if((use_compact_disc) && (p_config != NULL) && (drv < USE_COMPACT_DISC_TMP) && (drv >= 0)) {
+			return p_config->swap_audio_byteorder[drv];
+		}
+		return false;
+	}
 
+	bool is_use_ram_size() { return use_ram_size; }
+	int get_max_ram_size() { return max_ram_size; }
+	int get_min_ram_size() { return min_ram_size; }
+	uint32_t get_ram_size_order() { return ram_size_order; }
+	int get_current_ram_size() {
+		if(p_config != NULL) {
+			return p_config->current_ram_size;
+		}
+		return -1;
+	}
+	
 	bool is_use_debugger() { return use_debugger; }
 
 	int get_use_device_type() { return use_device_type; }

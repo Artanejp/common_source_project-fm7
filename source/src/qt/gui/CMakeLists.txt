@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.22.1)
+set(THIS_LIB_VERSION 2.22.3)
 #include(cotire)
 #include(PrecompiledHeader)
 
@@ -40,6 +40,8 @@ set(s_qt_gui_headers
 	  dialog_set_key.h
 	  dialog_set_key_combo.h
 	  dialog_movie.h
+	  dialog_memory.h
+	  
 	  display_log.h
 	  
 	  tab_movie_general.h
@@ -102,6 +104,8 @@ set(s_qt_gui_srcs
 	  display_about.cpp
 	  display_text_document.cpp
 	  sound_dialog.cpp
+	  dialog_memory.cpp
+	  
 	  dropdown_keyset.cpp
 	  dropdown_joystick.cpp
 	  dropdown_jsbutton.cpp

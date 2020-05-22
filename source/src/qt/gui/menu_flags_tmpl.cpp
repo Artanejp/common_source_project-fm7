@@ -36,6 +36,10 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	max_drive = max_d88_banks = 0;
 
 	max_draw_ranges = 0;
+	use_ram_size = false;
+	max_ram_size = 1;
+	min_ram_size = 0;
+	ram_size_order = 1024 * 1024;
 	
 	use_joystick = use_joy_button_captions = false;
 	num_joy_button_captions = 0;
