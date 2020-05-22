@@ -637,6 +637,7 @@ void TOWNS_SPRITE::render_part(int start, int end)
 	// ToDo: Implement Register #2-5
 	if((start < 0) || (end < 0)) return;
 	if(start > end) return;
+//	out_debug_log(_T("VLINE NUM=%d"),render_num);
 	// ToDo: Implement registers.
 	if(reg_spen) {
 		if((frame_sprite_count >= max_sprite_per_frame) && (max_sprite_per_frame > 0)) return;
@@ -656,7 +657,7 @@ void TOWNS_SPRITE::render_part(int start, int end)
 			int yaddr = _ny.w & 0x1ff;
 			// ToDo: wrap round.This is still bogus implement.
 			// ToDo: wrap round.This is still bogus implement.
-			out_debug_log(_T("RENDER %d X=%d Y=%d ATTR=%04X COLOR=%04X"), render_num, xaddr, yaddr, _nattr.w, _ncol.w);
+			//out_debug_log(_T("RENDER %d X=%d Y=%d ATTR=%04X COLOR=%04X"), render_num, xaddr, yaddr, _nattr.w, _ncol.w);
 			
 			render_sprite(render_num, xaddr, yaddr, _nattr.w, _ncol.w);
 			frame_sprite_count++;
@@ -670,11 +671,14 @@ void TOWNS_SPRITE::render_part(int start, int end)
 void TOWNS_SPRITE::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr == 0x0450) {
-		reg_addr = addr & 7;
+		reg_addr = data & 7;
 	} else if(addr != 0x0452) {
 		return;
+	} else {
+//		if(!sprite_enabled) {
+			write_reg(reg_addr, data);
+//		}
 	}
-	write_reg(reg_addr, data);
 }
 	
 void TOWNS_SPRITE::write_reg(uint32_t addr, uint32_t data)
@@ -790,11 +794,18 @@ void TOWNS_SPRITE::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 bool TOWNS_SPRITE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	_TCHAR regstr[1024] = {0};
-	_TCHAR sstr[32] = {0};
-	my_stprintf_s(sstr, 32, _T("TEXT VRAM:%s \n"), ((tvram_enabled) || (tvram_enabled_bak)) ? _T("WROTE") : _T("NOT WROTE"));
-	memset(sstr, 0x00, sizeof(sstr));
-	my_stprintf_s(sstr, 32, _T("A:%02X \n"), reg_addr & 0x07);
+	_TCHAR sstr[64] = {0};
+	my_stprintf_s(sstr, 63, _T("TEXT VRAM:%s \n"), ((tvram_enabled) || (tvram_enabled_bak)) ? _T("WROTE") : _T("NOT WROTE"));
 	my_tcscat_s(regstr, 1024, sstr);
+	
+	memset(sstr, 0x00, sizeof(sstr));
+	my_stprintf_s(sstr, 63, _T("SPRITE:%s \n"), (sprite_enabled) ? _T("ENABLED ") : _T("DISABLED"));
+	my_tcscat_s(regstr, 1024, sstr);
+	
+	memset(sstr, 0x00, sizeof(sstr));
+	my_stprintf_s(sstr, 64, _T("A:%02X \n"), reg_addr & 0x07);
+	my_tcscat_s(regstr, 1024, sstr);
+	
 	for(int r = 0; r < 8; r++) {
 		memset(sstr, 0x00, sizeof(sstr));
 		my_stprintf_s(sstr, 32, _T("R%d:%02X "), r, reg_data[r]);
@@ -866,17 +877,18 @@ void TOWNS_SPRITE::do_vline_hook(int line)
 	if(!split_rendering) return;
 	if(lot == 0) lot = 1024;
 	if((max_sprite_per_frame > 0) && (max_sprite_per_frame < lot)) lot = max_sprite_per_frame;
-	
-	if((sprite_enabled) /*&& (render_lines > 0)*/) {
-//		int nf = lot / render_lines;
-//		int nm = lot % render_lines;
-//		render_mod += nm;
-//		if(render_mod >= render_lines) {
-//			nf++;
-//			render_mod -= render_lines;
-//		}
-		if(/*(nf >= 1) && */(render_num < lot)) {
-			render_part(render_num, render_num + 1/*+ nf*/);
+//	if(line > 128) sprite_enabled = false; // DEBUG
+
+	if((sprite_enabled) && (render_lines > 0)) {
+		int nf = lot / render_lines;
+		int nm = lot % render_lines;
+		render_mod += nm;
+		if(render_mod >= render_lines) {
+			nf++;
+			render_mod -= render_lines;
+		}
+		if((nf >= 1) && (render_num < lot) && (sprite_enabled)) {
+			render_part(render_num, render_num + nf);
 		} else if(render_num >= lot) {
 			sprite_enabled = false;
 		}
