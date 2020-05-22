@@ -25,14 +25,11 @@ void TOWNS_SPRITE::initialize(void)
 	reg_spen = false;
 	reg_addr = 0;
 	memset(reg_data, 0x00, sizeof(reg_data));
-	render_num = 0;
-	render_mod = 0;
-	render_lines = 0;
-	split_rendering = true;
 
 	max_sprite_per_frame = 224;
 	frame_sprite_count = 0;	
-
+	register_frame_event(this);
+	register_vline_event(this);
 }
 
 void TOWNS_SPRITE::reset()
@@ -48,7 +45,9 @@ void TOWNS_SPRITE::reset()
 	reg_addr = 0;
 	render_num = 0;
 	render_mod = 0;
-//	render_lines = 0;
+	render_lines = 224;
+	split_rendering = true;
+
 	sprite_enabled = false;
 	now_transferring = false;
 	max_sprite_per_frame = 224;
@@ -282,8 +281,8 @@ __DECL_VECTORIZED_LOOP
 			}
 		}
 	}
-		
-	uint32_t vpaddr = (((x - xoffset) % 256 + ((y - yoffset) * 256)) << 1) & 0x7ffff;
+	uint32_t noffset = (disp_page1) ? 0x60000 : 0x40000;
+	uint32_t vpaddr = (((x - xoffset) % 256 + ((y - yoffset) * 256)) << 1) & 0x1ffff;
 	if(!(is_halfx) && !(is_halfy)) { // not halfed
 		int __xstart = 0;		
 		int __xend = 16;
@@ -338,7 +337,7 @@ __DECL_VECTORIZED_LOOP
 			}
 			if(d_vram != NULL) {
 				__DECL_ALIGNED(16) uint8_t source[32] = {0};
-				d_vram->get_vram_to_buffer(vpaddr, source, 16);
+				d_vram->get_vram_to_buffer(vpaddr + noffset, source, 16);
 __DECL_VECTORIZED_LOOP						
 					for(int xx = 0; xx < 16; xx++) {
 						source[(xx << 1) + 0] &= mbuf[xx].b.l;
@@ -349,9 +348,9 @@ __DECL_VECTORIZED_LOOP
 						source[(xx << 1) + 0] |= lbuf[xx].b.l;
 						source[(xx << 1) + 1] |= lbuf[xx].b.h;
 					}
-					d_vram->set_buffer_to_vram(vpaddr, source, 16);
+					d_vram->set_buffer_to_vram(vpaddr + noffset, source, 16);
 			}
-			vpaddr = (vpaddr + (256 << 1)) & 0x7ffff;
+			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
 		}
 	} else if((is_halfx) && !(is_halfy)) { // halfx only
 		/*
@@ -414,7 +413,7 @@ __DECL_VECTORIZED_LOOP
 			}
 			if(d_vram != NULL) {
 				__DECL_ALIGNED(16) uint8_t source[32] = {0};
-				d_vram->get_vram_to_buffer(vpaddr, source, 8);
+				d_vram->get_vram_to_buffer(vpaddr + noffset, source, 8);
 __DECL_VECTORIZED_LOOP						
 					for(int xx = 0; xx < 8; xx++) {
 						source[(xx << 1) + 0] &= mbuf[xx].b.l;
@@ -425,9 +424,9 @@ __DECL_VECTORIZED_LOOP
 						source[(xx << 1) + 0] |= lbuf[xx].b.l;
 						source[(xx << 1) + 1] |= lbuf[xx].b.h;
 					}
-					d_vram->set_buffer_to_vram(vpaddr, source, 8);
+					d_vram->set_buffer_to_vram(vpaddr + noffset, source, 8);
 				}
-			vpaddr = (vpaddr + (256 << 1)) & 0x7ffff;
+			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
 		}
 	} else if(is_halfy) { // halfy only
 /*		int __xstart;
@@ -491,7 +490,7 @@ __DECL_VECTORIZED_LOOP
 			}
 			if(d_vram != NULL) {
 				__DECL_ALIGNED(16) uint8_t source[32] = {0};
-				d_vram->get_vram_to_buffer(vpaddr, source, 16);
+				d_vram->get_vram_to_buffer(vpaddr + noffset, source, 16);
 __DECL_VECTORIZED_LOOP						
 					for(int xx = 0; xx < 16; xx++) {
 						source[(xx << 1) + 0] &= mbuf[xx].b.l;
@@ -502,9 +501,9 @@ __DECL_VECTORIZED_LOOP
 						source[(xx << 1) + 0] |= lbuf[xx].b.l;
 						source[(xx << 1) + 1] |= lbuf[xx].b.h;
 					}
-					d_vram->set_buffer_to_vram(vpaddr, source, 16);
+					d_vram->set_buffer_to_vram(vpaddr + noffset, source, 16);
 			}
-			vpaddr = (vpaddr + (256 << 1)) & 0x7ffff;
+			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
 		}
 	} else { //halfx &&halfy
 /*		int __xstart;
@@ -575,7 +574,7 @@ __DECL_VECTORIZED_LOOP
 			if(d_vram != NULL) {
 				//d_vram->write_sprite_data(x, y + (yy >>1), xoffset, yoffset, lbuf, 8);
 				__DECL_ALIGNED(16) uint8_t source[32] = {0};
-					d_vram->get_vram_to_buffer(vpaddr, source, 8);
+					d_vram->get_vram_to_buffer(vpaddr + noffset, source, 8);
 __DECL_VECTORIZED_LOOP						
 					for(int xx = 0; xx < 8; xx++) {
 						source[(xx << 1) + 0] &= mbuf[xx].b.l;
@@ -586,9 +585,9 @@ __DECL_VECTORIZED_LOOP
 						source[(xx << 1) + 0] |= lbuf[xx].b.l;
 						source[(xx << 1) + 1] |= lbuf[xx].b.h;
 					}
-					d_vram->set_buffer_to_vram(vpaddr, source, 8);
+					d_vram->set_buffer_to_vram(vpaddr + noffset, source, 8);
 			}
-			vpaddr = (vpaddr + (256 << 1)) & 0x7ffff;
+			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
 		}
 	}
 __noop:
@@ -625,7 +624,7 @@ void TOWNS_SPRITE::render_full()
 			int xaddr = _nx.w & 0x1ff;
 			int yaddr = _ny.w & 0x1ff;
 			// ToDo: wrap round.This is still bogus implement.
-			//out_debug_log(_T("RENDER %d X=%d Y=%d ATTR=%04X COLOR=%04X"), render_num, xaddr, yaddr, _nattr.w, _ncol.w);
+			out_debug_log(_T("RENDER %d X=%d Y=%d ATTR=%04X COLOR=%04X"), render_num, xaddr, yaddr, _nattr.w, _ncol.w);
 			render_sprite(render_num, xaddr, yaddr, _nattr.w, _ncol.w);
 			frame_sprite_count++;
 			if((frame_sprite_count >= max_sprite_per_frame) && (max_sprite_per_frame > 0)) break;
@@ -636,10 +635,7 @@ void TOWNS_SPRITE::render_full()
 void TOWNS_SPRITE::render_part(int start, int end)
 {
 	// ToDo: Implement Register #2-5
-	uint16_t lot = reg_index & 0x3ff;
-	if(lot == 0) lot = 1024;
 	if((start < 0) || (end < 0)) return;
-	if(end > lot) end = lot;
 	if(start > end) return;
 	// ToDo: Implement registers.
 	if(reg_spen) {
@@ -660,7 +656,7 @@ void TOWNS_SPRITE::render_part(int start, int end)
 			int yaddr = _ny.w & 0x1ff;
 			// ToDo: wrap round.This is still bogus implement.
 			// ToDo: wrap round.This is still bogus implement.
-			//out_debug_log(_T("RENDER %d X=%d Y=%d ATTR=%04X COLOR=%04X"), render_num, xaddr, yaddr, _nattr.w, _ncol.w);
+			out_debug_log(_T("RENDER %d X=%d Y=%d ATTR=%04X COLOR=%04X"), render_num, xaddr, yaddr, _nattr.w, _ncol.w);
 			
 			render_sprite(render_num, xaddr, yaddr, _nattr.w, _ncol.w);
 			frame_sprite_count++;
@@ -832,36 +828,36 @@ bool TOWNS_SPRITE::write_debug_reg(const _TCHAR *reg, uint32_t data)
 void TOWNS_SPRITE::event_frame()
 {
 	uint16_t lot = reg_index & 0x3ff;
-	if(reg_spen && !(sprite_enabled)) {
-		sprite_enabled = true;
-		render_num = 0;
-	}
+//	if(reg_spen && !(sprite_enabled)) {
+	sprite_enabled = true;
+	render_num = 0;
+	render_mod = 0;
+//	}
 	if(lot == 0) lot = 1024;
 	frame_sprite_count = 0;
 	if(sprite_enabled){
 		if(d_vram != NULL) {
-			if(d_vram->read_signal(SIG_TOWNS_VRAM_FRAMEBUFFER_READY) != 0) {
-				if(render_num >= lot) {
-					d_vram->write_signal(SIG_TOWNS_VRAM_SWAP_FRAMEBUFFER, 0xffffffff, 0xffffffff);
-					render_num = 0;
-					render_mod = 0;
-				}
-				// Set split_rendering from DIPSW.
-				// Set cache_enabled from DIPSW.
-				if(!split_rendering) {
-					render_full();
-				}
-			} else {
-				render_num = 0;
-				render_mod = 0;
-				sprite_enabled = false;
+			// Set split_rendering from DIPSW.
+			// Set cache_enabled from DIPSW.
+			if(!split_rendering) {
+				render_full();
 			}
+			//} else {
+			//render_num = 0;
+			//render_mod = 0;
+			//sprite_enabled = false;
+			//}
 		} else {
 			render_num = 0;
 			render_mod = 0;
 			sprite_enabled = false;
 		}
 	}
+}
+
+void TOWNS_SPRITE::event_vline(int v, int clock)
+{
+	do_vline_hook(v);
 }
 
 void TOWNS_SPRITE::do_vline_hook(int line)
@@ -871,15 +867,19 @@ void TOWNS_SPRITE::do_vline_hook(int line)
 	if(lot == 0) lot = 1024;
 	if((max_sprite_per_frame > 0) && (max_sprite_per_frame < lot)) lot = max_sprite_per_frame;
 	
-	if((sprite_enabled) && (render_lines > 0)) {
-		int nf = lot / render_lines;
-		int nm = lot % render_lines;
-		render_mod += nm;
-		if(render_mod >= render_lines) {
-			nf++;
-			render_mod -= render_lines;
+	if((sprite_enabled) /*&& (render_lines > 0)*/) {
+//		int nf = lot / render_lines;
+//		int nm = lot % render_lines;
+//		render_mod += nm;
+//		if(render_mod >= render_lines) {
+//			nf++;
+//			render_mod -= render_lines;
+//		}
+		if(/*(nf >= 1) && */(render_num < lot)) {
+			render_part(render_num, render_num + 1/*+ nf*/);
+		} else if(render_num >= lot) {
+			sprite_enabled = false;
 		}
-		if((nf >= 1) && (render_num < lot)) render_part(render_num, render_num + nf);
 	}
 }
 // Q: Is changing pages syncing to Frame?
@@ -904,7 +904,12 @@ uint32_t TOWNS_SPRITE::read_signal(int id)
 {
 	/*if(id == SIG_TOWNS_SPRITE_ANKCG) {  // write CFF19
 		 return ((ankcg_enabled) ? 0xffffffff : 0);
-	 } else */ if(id == SIG_TOWNS_SPRITE_TVRAM_ENABLED) {
+	 } else */
+	if(id == SIG_TOWNS_SPRITE_BUSY) {
+		int lot = reg_index & 0x3ff;
+		if(lot == 0) lot = 1024;
+		return (/*(render_num < lot) && */(sprite_enabled)) ? 0xffffffff : 0;
+	} else if(id == SIG_TOWNS_SPRITE_TVRAM_ENABLED) {
 		 uint32_t v = ((tvram_enabled_bak) ? 0xffffffff : 0);
 		 tvram_enabled_bak = false;
 		 return v;

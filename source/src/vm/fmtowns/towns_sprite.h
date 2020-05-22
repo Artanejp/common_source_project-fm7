@@ -128,6 +128,7 @@ public:
 	uint32_t __FASTCALL read_signal(int id);
 	void initialize();
 	void event_frame();
+	void event_vline(int v, int clk);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	void set_context_vram(TOWNS_VRAM *p)
