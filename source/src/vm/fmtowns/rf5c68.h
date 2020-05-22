@@ -43,6 +43,13 @@ protected:
 	uint16_t dac_bank;
 	uint8_t dac_ch;
 	bool is_mute;
+
+	double dac_rate;
+	int mix_factor;
+	int mix_count;
+	int sample_words;
+	int sample_pointer;
+	int read_pointer;
 	
 	__DECL_ALIGNED(16) bool dac_onoff[8];
 	__DECL_ALIGNED(16) pair32_t dac_addr_st[8];
@@ -67,6 +74,10 @@ protected:
 	
 	int mix_rate;
 	double sample_tick_us;
+
+	// ToDo: Work correct LPF.
+	__inline__ int32_t __FASTCALL apply_lpf(int lr);
+
 public:
 	RF5C68(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -80,6 +91,8 @@ public:
 		is_mute = true;
 		initialize_output_signals(&interrupt_boundary);
 		d_debugger = NULL;
+
+		dac_rate = 8000000 / 384;
 		set_device_name(_T("ADPCM RF5C68"));
 	}
 	~RF5C68() {}
@@ -115,7 +128,19 @@ public:
 	uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr);
 	void __FASTCALL write_via_debugger_data16(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_via_debugger_data16(uint32_t addr);
-	
+
+	void set_dac_rate(double freq)
+	{
+		dac_rate = freq;
+		sample_words = 0;
+		sample_pointer = 0;
+		read_pointer = 0;
+		mix_factor = (int)(dac_rate * 4096.0 / (double)mix_rate);
+		mix_count = 0;
+		if((sample_buffer != NULL) && (sample_length > 0)) {
+			memset(sample_buffer, 0x00, sample_length * sizeof(int32_t) * 2);
+		}
+	}
 	void *get_debugger()
 	{
 		return d_debugger;

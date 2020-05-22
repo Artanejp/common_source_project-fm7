@@ -81,6 +81,11 @@ void RF5C68::reset()
 	} else {
 		sample_tick_us = 0;
 	}
+	sample_words = 0;
+	sample_pointer = 0;
+	read_pointer = 0;
+	mix_factor = (int)(dac_rate * 4096.0 / (double)mix_rate);
+	mix_count = 0;
 	
 	sample_count = 0;
 	if(event_adpcm_clock > -1) {
@@ -205,22 +210,40 @@ __DECL_VECTORIZED_LOOP
 				dac_tmpval[chd] = (sign[chd]) ? -val[chd] : val[chd];
 			}
 			// Re-Init sample buffer
+			if((sample_buffer != NULL) /*&& (sample_words < sample_length)*/){
+				int32_t* np = &(sample_buffer[sample_pointer << 1]);
+				__DECL_ALIGNED(8) int32_t lr[2];
+				for(int i = 0; i < 2; i++) {
+					lr[i] = 0;
+				}
+				// ADD or SUB
 __DECL_VECTORIZED_LOOP
-			for(int i = 0; i < 2; i++) {
-				sample_buffer[i] = 0;
-			}
-			// ADD or SUB
+				for(int chd = 0; chd < 16; chd++) {
+					lr[chd & 1] += dac_tmpval[chd];
+				}
+/*
+			static const int32_t uplimit = 127 << 6;
+			static const int32_t lowlimit  = -(127 << 6);
 __DECL_VECTORIZED_LOOP
-			for(int chd = 0; chd < 16; chd++) {
-				sample_buffer[chd & 1] += dac_tmpval[chd];
-			}
-			__DECL_ALIGNED(16) static const int32_t uplimit[16]  = {(127 << 6)};
-			__DECL_ALIGNED(16) static const int32_t lowlimit[16] = {(-127 << 6)};
-			// Limiter
+				for(int chd = 0; chd < 2; chd++) {
+					if(lr[chd] > uplimit) {
+						lr[chd] = uplimit;
+					}
+					if(lr[chd] < lowlimit) {
+						lr[chd] = lowlimit;
+					}
+					lr[chd] >>= 2;
+				}
+*/
 __DECL_VECTORIZED_LOOP
-			for(int chd = 0; chd < 16; chd++) {
-				dac_tmpval[chd] = (dac_tmpval[chd] > uplimit[chd]) ? uplimit[chd] : ((dac_tmpval[chd] < lowlimit[chd]) ? lowlimit[chd] : dac_tmpval[chd]);
+				for(int chd = 0; chd < 2; chd++) {
+					lr[chd] >>= 2;
+				}
+				np[0] = lr[0];
+				np[1] = lr[1];
 			}
+			sample_pointer = (sample_pointer + 1) % sample_length;
+			sample_words++;
 		}
 		break;
 	case SIG_RF5C68_CLEAR_INTR:
@@ -403,6 +426,21 @@ void RF5C68::event_callback(int id, int err)
 	}
 }
 
+// ToDo: Work correct LPF.
+__inline__ int32_t RF5C68::apply_lpf(int lr)
+{
+	lr &= 1;
+	int optr = ((read_pointer - 1) % sample_length) << 1;
+	int optr2 = ((read_pointer - 2) % sample_length) << 1;
+	int32_t val = sample_buffer[(read_pointer << 1) + lr];
+	int32_t val2 = sample_buffer[optr + lr];
+	int32_t val3 = sample_buffer[optr2 + lr];
+	// LPF factor: a[n] * (1 - 6/16) + a[n-1] * (6/16).
+	val = val * ((1 << 10) - (6 << 9)) + (val2 * (4 << 9)) + (val3 * (2 << 9));
+	val >>= (1 + 10);
+	return val;
+}
+
 void RF5C68::mix(int32_t* buffer, int cnt)
 {
 	
@@ -412,10 +450,30 @@ void RF5C68::mix(int32_t* buffer, int cnt)
 	if(is_mute) return;
 	
 	if(sample_buffer != NULL) {
+		int32_t lval;
+		int32_t rval;
+		lval = apply_volume(sample_buffer[(read_pointer << 1) + 0], volume_l) >> 1;
+		rval = apply_volume(sample_buffer[(read_pointer << 1) + 1], volume_r) >> 1;
 		for(int i = 0; i < (cnt << 1); i += 2) {
 			// ToDo: interpoolate.
-			buffer[i]     += (apply_volume(sample_buffer[0], volume_l) >> 3);
-			buffer[i + 1] += (apply_volume(sample_buffer[1], volume_r) >> 3);
+			buffer[i]     += lval;
+			buffer[i + 1] += rval; 
+			mix_count += mix_factor;
+			if(mix_count >= 4096) {
+//				out_debug_log(_T("MIX COUNT=%d FACTOR=%d"), mix_count, mix_factor);
+				int n = mix_count >> 12;
+				sample_words = sample_words - n;
+				if(sample_words > 0) {
+					// Reload data
+					read_pointer = (read_pointer + n) % sample_length;
+					lval = apply_volume(sample_buffer[(read_pointer << 1) + 0], volume_l) >> 1;
+					rval = apply_volume(sample_buffer[(read_pointer << 1) + 1], volume_r) >> 1;
+				} else {
+					read_pointer = sample_pointer;
+				}
+				if(sample_words < 0) sample_words = 0;
+				mix_count -= (n << 12);
+			}
 		}
 	}
 }
@@ -425,6 +483,8 @@ void RF5C68::initialize_sound(int sample_rate, int samples)
 	if((sample_rate > 0) && (samples > 0)) {
 		mix_rate = sample_rate;
 		sample_length = samples;
+		mix_factor = (int)(dac_rate * 4096.0 / (double)mix_rate);
+		mix_count = 0;
 		if(sample_buffer != NULL) {
 			free(sample_buffer);
 		}
@@ -543,6 +603,13 @@ bool RF5C68::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(dac_fd, sizeof(dac_fd), 1);
 	state_fio->StateArray(dac_force_load, sizeof(dac_force_load), 1);
 	state_fio->StateArray(dac_tmpval, sizeof(dac_tmpval), 1);
+
+	state_fio->StateValue(sample_words);
+	state_fio->StateValue(sample_pointer);
+	state_fio->StateValue(read_pointer);
+	state_fio->StateValue(mix_factor);
+	state_fio->StateValue(mix_count);
+	state_fio->StateValue(dac_rate);
 	
 	state_fio->StateArray(wave_memory, sizeof(wave_memory), 1);
 	state_fio->StateValue(event_dac_sample);
