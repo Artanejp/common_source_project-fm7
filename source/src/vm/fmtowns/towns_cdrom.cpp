@@ -589,20 +589,16 @@ void TOWNS_CDROM::set_mcu_intr(bool val)
 				  (val) ? _T("true ") : _T("false"),
 				  (mcu_intr_mask) ? _T("ON ") : _T("OFF"),
 				  (stat_reply_intr) ? _T("ON ") : _T("OFF"));				  
-	if(val) {
-		if(stat_reply_intr) {
-			if(!(mcu_intr_mask)) {
-			mcu_intr = true;
-//			if(dma_intr) write_signals(&outputs_mcuint, 0x0);
+	if(stat_reply_intr) {
 //			if(!(mcu_intr_mask)) {
-				write_signals(&outputs_mcuint, 0xffffffff);
-			}
-		} else {
-			mcu_intr = true;
-		}
+		mcu_intr = val;
+//			if(dma_intr) write_signals(&outputs_mcuint, 0x0);
+//		if(!(mcu_intr_mask)) {
+//		if(!(dma_intr) && !(mcu_intr_mask)) {
+		write_signals(&outputs_mcuint, (val) ? 0xffffffff : 0);
+//		}
 	} else {
-		mcu_intr = false;
-		write_signals(&outputs_mcuint, 0x0);
+		mcu_intr = val;
 	}
 }
 
