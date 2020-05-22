@@ -83,11 +83,11 @@ uint32_t SCSI::read_io8(uint32_t addr)
 	
 	switch(addr & 0xffff) {
 	case 0x0034:
-//		if(machine_id >= 0x0600) { // After UG
-//			value = 0x7f; // Ready to transfer 16bit width DMA, excepts CX/UX.
-//		} else {
+		if(machine_id >= 0x0600) { // After UG
+			value = 0x7f; // Ready to transfer 16bit width DMA, excepts CX/UX.
+		} else {
 			value = 0xff;
-//		}
+		}
 		break;
 	case 0x0c30:
 		// data register
@@ -156,7 +156,7 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 		if(ctrl_reg & CTRL_DMAE) {
 			d_dma->write_signal(SIG_UPD71071_CH1, data, mask);
 		}
-		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
+/*		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
 			if(ex_int_enable) {
 				d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR0, data, mask);
 				exirq_status = ((data & mask) != 0);
@@ -166,7 +166,7 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 					irq_status = false;
 				}
 			}
-		}
+		}*/
 		break;
 	}
 }
