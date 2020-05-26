@@ -1625,7 +1625,8 @@ void (*insttable_2byte[2][256])(void) = {
 		BT_EwGw,
 		SHLD_EwGwIb,
 		SHLD_EwGwCL,
-		CMPXCHG_EbGb,			/* undoc(486) */
+//		CMPXCHG_EbGb,			/* undoc(486) */
+		INT6,			/* undoc(486) */
 		CMPXCHG_EwGw,			/* undoc(486) */
 		PUSH16_GS,		/* A8 */
 		POP16_GS,
@@ -1900,7 +1901,8 @@ void (*insttable_2byte[2][256])(void) = {
 		BT_EdGd,
 		SHLD_EdGdIb,
 		SHLD_EdGdCL,
-		CMPXCHG_EbGb,			/* undoc(486) */
+//		CMPXCHG_EbGb,			/* undoc(486) */
+		INT6,					/* undoc(486) */
 		CMPXCHG_EdGd,			/* undoc(486) */
 		PUSH32_GS,		/* A8 */
 		POP32_GS,

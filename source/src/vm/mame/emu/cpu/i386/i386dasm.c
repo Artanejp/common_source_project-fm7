@@ -694,7 +694,7 @@ static const I386_OPCODE i386_opcode_table2[256] =
 	{_T("bt"),              MODRM,          PARAM_RM,           PARAM_REG,          0               },
 	{_T("shld"),            MODRM,          PARAM_RM,           PARAM_REG,          PARAM_UI8       },
 	{_T("shld"),            MODRM,          PARAM_RM,           PARAM_REG,          PARAM_CL        },
-	{_T("???"),             0,              0,                  0,                  0               },
+	{_T("int 6"),             0,              0,                  0,                  0               },
 	{_T("???"),             0,              0,                  0,                  0               },
 	{_T("push    gs"),      0,              0,                  0,                  0               },
 	{_T("pop     gs"),      0,              0,                  0,                  0               },

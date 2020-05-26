@@ -131,6 +131,7 @@ void IRET(void);
 /*
  * INT
  */
+void INT6(void);
 void INT1(void);
 void INT3(void);
 void INTO(void);

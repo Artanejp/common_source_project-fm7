@@ -1407,6 +1407,14 @@ INT1(void)
 	INTERRUPT(1, INTR_TYPE_SOFTINTR);
 }
 
+/* This is undefined instruction; 0FA6 */
+void
+INT6(void)
+{
+	CPU_WORKCLOCK(33);
+	INTERRUPT(6, INTR_TYPE_SOFTINTR);
+}
+
 void
 INT3(void)
 {
