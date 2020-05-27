@@ -41,6 +41,19 @@ void TIMER::reset()
 	}
 	do_interval();
 }
+void TIMER::write_io16(uint32_t addr, uint32_t data)
+{
+	switch(addr & 0xfffe) {
+	case 0x006a: // Interval control
+		interval_us.w = data;
+		do_interval();
+		break;
+	default:
+		write_io8(addr, data);
+		break;
+	}
+}
+
 void TIMER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
@@ -107,6 +120,21 @@ void TIMER::do_interval(void)
 		}
 	}
 }
+
+uint32_t TIMER::read_io16(uint32_t addr)
+{
+	switch(addr & 0xfffe) {
+	case 0x0026:
+		free_run_counter = (uint16_t)get_passed_usec(0);
+		return free_run_counter & 0xffff;
+		break;
+	case 0x006a: // Interval control
+		return interval_us.w;
+		break;
+	}
+	return read_io8(addr);
+}
+	
 uint32_t TIMER::read_io8(uint32_t addr)
 {
 	switch(addr) {
