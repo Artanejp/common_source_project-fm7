@@ -38,6 +38,7 @@
 
 // Event must be larger than 116.
 
+
 namespace FMTOWNS {
 
 // crc table from vm/disk.cpp
@@ -507,6 +508,7 @@ void TOWNS_CDROM::reset()
 	data_reg = 0x00;
 	position = 0;
 	mcu_ready = true;
+	has_status = false;
 	req_status = false;
 
 	cdda_repeat_count = -1;
@@ -566,15 +568,19 @@ void TOWNS_CDROM::set_dma_intr(bool val)
 				  (stat_reply_intr) ? _T("ON ") : _T("OFF"));				  
 	if(val) {
 		// At least, DMA interrupt mask is needed (by TownsOS v.1.1) 20200511 K.O
-		dma_intr = true;
-		if(!(dma_intr_mask)) {
-			if(stat_reply_intr) {
+		if(stat_reply_intr) {
+			if(!(dma_intr_mask)) {
+			dma_intr = true;
+//			if(mcu_intr) write_signals(&outputs_mcuint, 0x0);
+//			if(!(dma_intr_mask)) {
 				write_signals(&outputs_mcuint, 0xffffffff);
 			}
+		} else {
+			dma_intr = true;
 		}
 	} else {
 		dma_intr = false;
-		/*if(!(mcu_intr)) */write_signals(&outputs_mcuint, 0x0);
+		write_signals(&outputs_mcuint, 0x0);
 	}
 }
 
@@ -583,16 +589,17 @@ void TOWNS_CDROM::set_mcu_intr(bool val)
 	out_debug_log(_T("set_mcu_intr(%s) MASK=%s stat_reply_intr = %s"),
 				  (val) ? _T("true ") : _T("false"),
 				  (mcu_intr_mask) ? _T("ON ") : _T("OFF"),
-				  (stat_reply_intr) ? _T("ON ") : _T("OFF"));
-	if(!((val) && (mcu_intr_mask))) {
-		mcu_intr = val;
-	}
+				  (stat_reply_intr) ? _T("ON ") : _T("OFF"));				  
 	if(stat_reply_intr) {
-		if(!(val) /*&& !(dma_intr)*/) {
-			write_signals(&outputs_mcuint, 0);
-		} else if((val) /*&& !(mcu_intr_mask)*/) {
-			write_signals(&outputs_mcuint, 0xffffffff);
-		}
+//			if(!(mcu_intr_mask)) {
+		mcu_intr = val;
+//			if(dma_intr) write_signals(&outputs_mcuint, 0x0);
+//		if(!(mcu_intr_mask)) {
+//		if(!(dma_intr) && !(mcu_intr_mask)) {
+		write_signals(&outputs_mcuint, (val) ? 0xffffffff : 0);
+//		}
+	} else {
+		mcu_intr = val;
 	}
 }
 
@@ -630,18 +637,19 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_TOWNS_CDROM_DMAINT:
 		if((data & mask) != 0) {
 			if(dma_transfer_phase) {
+//				dma_transfer_phase = false;
 				clear_event(event_drq);
 				clear_event(event_next_sector);
 				clear_event(event_seek_completed);
 				dma_transfer_phase = false;
+				set_dma_intr(true);
 				if(read_length <= 0) {
-					set_dma_intr(true);
 					set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
-//					register_event(this, EVENT_CDROM_DMA_EOT, 10.0, false, &event_next_sector);
-					out_debug_log(_T("EOT(DMA)@SIGNAL"));
+//					register_event(this, EVENT_CDROM_DMA_EOT, 100.0, false, &event_next_sector);
+					out_debug_log(_T("EOT(DMA)"));
 				} else {
 //					dma_transfer_phase = false;
-					set_dma_intr(true);
+//					set_dma_intr(true);
 					register_event(this, EVENT_CDROM_NEXT_SECTOR, 10.0, false, &event_next_sector);
 				}
 
@@ -704,9 +712,9 @@ void TOWNS_CDROM::status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s
 void TOWNS_CDROM::execute_command(uint8_t command)
 {
 //	status &= ~0x02;
-//	set_mcu_intr(false);
+	set_mcu_intr(false);
 	latest_command = command;
-	if(!(mounted()) && ((command & 0x9e) != 0x80))  { // 20200516 Mame 0.216
+	if(!(mounted()) && (command != 0xa0))  { // 20200516 Mame 0.216
 		status_not_ready();
 		return;
 	}
@@ -773,17 +781,13 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 //		case 0x08: // yyy
 //			if(param_queue[1] == 0x01) {
 		if(req_status) {
-			uint8_t playcode = 0;
+			uint8_t playcode;
 			if((cdda_status == CDDA_PLAYING)
 			   && (current_track >= 0) && (current_track < track_num)
 			   && (toc_table[current_track].is_audio)) { // OK?
-				playcode = 0x03;
-			} else if(toc_table[current_track].is_audio) {
-				playcode = 0x01;
-//				playcode = (media_changed) ? 0x09 : 0x00;
-			}
-			if(media_changed) {
-				playcode = 0x09;
+				playcode = (media_changed) ? 0x09 : 0x03;
+			} else {
+				playcode = (media_changed) ? 0x09 : 0x01;
 			}
 			media_changed = false;
 			out_debug_log(_T("CMD SET STATE(%02X) PARAM=%02X %02X %02X %02X %02X %02X %02X %02X REPLY=%d"),
@@ -888,6 +892,9 @@ uint8_t TOWNS_CDROM::read_status()
 		return val;
 	}
 	val = status_queue->read();
+	if(status_queue->empty()) {
+		has_status = false;
+	}
 	if((status_queue->empty()) && (extra_status > 0)) {
 		switch(latest_command & 0x9f) {
 		case CDROM_COMMAND_SEEK: // seek
@@ -1080,7 +1087,7 @@ void TOWNS_CDROM::read_cdrom()
 
 void TOWNS_CDROM::read_cdrom_mode1()
 {
-//	read_mode = MODE_MODE1_2048;
+	read_mode = MODE_MODE1_2048;
 	read_cdrom();
 }
 
@@ -1110,7 +1117,7 @@ void TOWNS_CDROM::set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1
 		status_queue->write(s3);
 		set_delay_ready();
 	} else {
-		set_delay_ready();
+		set_delay_ready2();
 
 	}
 	out_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
@@ -1309,8 +1316,12 @@ int TOWNS_CDROM::logical_block_size()
 {
 	if(current_track <= 0) return 2352; // PAD
 	if(!mounted()) return 2352; // PAD
-	if(toc_table[current_track].logical_size > 0) {
-		return toc_table[current_track].logical_size;
+	if(toc_table[current_track].is_audio) {
+		return 2352;
+	} else if(read_mode == MODE_MODE2_2352) {
+		return 2340;
+	} else if(read_mode == MODE_MODE2_2336) { // MODE2
+		return 2336;
 	}
 	// OK?
 	return 2048;
@@ -1330,6 +1341,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDROM_DELAY_READY:
 		event_delay_ready = -1;
+		has_status = true;
 		mcu_ready = true;
 		set_mcu_intr(true);
 		break;
@@ -1395,11 +1407,19 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		// BIOS FDDFCh(0FC0h:01FCh)-
 		//pio_transfer_phase = false;
 		//dma_transfer_phase = false;
+		if(pio_transfer) {
+			if(read_length <= 0) {
+				out_debug_log(_T("EOT"));
+				set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
+				set_dma_intr(true);
+				break;
+			}
+		}
 		pio_transfer_phase = pio_transfer;
 		dma_transfer_phase = dma_transfer;
-		if(read_length > 0) {
-//		if(((cdrom_prefetch) && (buffer->left() >= logical_block_size())) ||
-//		   (buffer->empty())) {
+//		if(read_length > 0) {
+		if(((cdrom_prefetch) && (buffer->left() >= logical_block_size())) ||
+		   (buffer->empty())) {
 			out_debug_log(_T("READ NEXT SECTOR"));
 			if(pio_transfer) {
 				set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
@@ -1409,28 +1429,17 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				//set_dma_intr(true);
 			}
 //			set_status(true, 0, TOWNS_CD_STATUS_DATA_READY, 0x00, 0x00, 0x00);
-			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
+		register_event(this, EVENT_CDROM_SEEK_COMPLETED,
 					   (1.0e6 / ((double)transfer_speed * 150.0e3)) * /*16.0*/ 1.0, // OK?
 					   false, &event_seek_completed);
-		} else if((read_length <= 0) && (dma_transfer)) {
-			mcu_intr = false;
-			dma_transfer_phase = false;
-			set_dma_intr(true);
-			set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
-			out_debug_log(_T("EOT(DMA)@READ SECTOR"));
-		} else if((pio_transfer) && (read_length <= 0)) {
-			pio_transfer_phase = false;
-			out_debug_log(_T("EOT@PIO"));
-			set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
-			set_dma_intr(true);
 		}
+		
 		break;
 	case EVENT_CDROM_DMA_EOT:
 		event_next_sector = -1;
 		if(read_length <= 0) {
-			pio_transfer_phase = false;
 			dma_transfer_phase = false;
-			out_debug_log(_T("EOT(DMA)@EVENT_CDROM_DMA_EOT"));
+			out_debug_log(_T("EOT(DMA)"));
 			set_dma_intr(true);
 			set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
 		} 
@@ -1462,18 +1471,14 @@ bool TOWNS_CDROM::read_buffer(int length)
 		return false;
 	}
 	while(length > 0) {
-		uint8_t tmp_buffer[2448];
-		int tmp_length = physical_block_size() - offset;
+		uint8_t tmp_buffer[2352];
+		int tmp_length = 2352 - offset;
 		if(fio_img->Fread(tmp_buffer, tmp_length, 1) != 1) {
 			status_illegal_lba(0, 0x00, 0x00, 0x00);			
 			return false;
 		}
-		int noff = 16;
-		if(logical_block_size() >= physical_block_size())  { // Maybe raw
-			noff = 0;
-		}
-		for(int i = 0; i < tmp_length; i++) {
-			if((offset >= noff) && (offset < (noff + logical_block_size()))) {
+		if(logical_block_size() > 2336) { // Maybe raw
+			for(int i = 0; i < tmp_length; i++) {
 				int value = tmp_buffer[i];
 				buffer->write(value);
 //				is_data_in = false;
@@ -1488,9 +1493,28 @@ bool TOWNS_CDROM::read_buffer(int length)
 				}
 			}
 			position++;
-			offset = (offset + 1) % physical_block_size();
+			offset = (offset + 1) % 2352;
+		} else { // MODE1 or MODE2
+			for(int i = 0; i < tmp_length; i++) {
+				if((offset >= 16) && (offset < (16 + logical_block_size()))) {
+					int value = tmp_buffer[i];
+					buffer->write(value);
+//				is_data_in = false;
+					length--;
+					read_length--;
+					// Kick DRQ
+					if(event_drq < 0) {
+						if(dma_transfer) {
+							out_debug_log(_T("KICK DRQ"));
+							register_event(this, EVENT_CDROM_DRQ, 1.0e6 / ((double)transfer_speed * 150.0e3), true, &event_drq);
+						}
+					}
+				}
+				position++;
+				offset = (offset + 1) % 2352;
+			}
+			access = true;
 		}
-		access = true;
 	}
 	return true;
 }
@@ -1586,7 +1610,7 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 			n_sectors++;
 		}
 		if(n_sectors >= 1) {
-			//access = true;
+			access = true;
 			if(fio_img->Fread(tmpbuf, 2352 * n_sectors * sizeof(uint8_t), 1) != 1) {
 				set_cdda_status(CDDA_OFF);
 				set_subq();
@@ -1640,7 +1664,7 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 				access = false;
 			} else if(cdda_status == CDDA_PAUSED) {
 				// Unpause
-				//access = true;
+				access = true;
 			}
 			touch_sound();
 			set_realtime_render(this, true);
@@ -1838,7 +1862,7 @@ bool TOWNS_CDROM::seek_relative_frame_in_image(uint32_t frame_no)
 	if(frame_no >= toc_table[current_track].lba_offset) {
 		if(fio_img->IsOpened()) {
 			if(fio_img->Fseek(
-				   (frame_no  * physical_block_size()) - toc_table[current_track].bytes_offset,
+				(frame_no - toc_table[current_track].lba_offset) * physical_block_size(),
 				FILEIO_SEEK_SET) != 0) {
 				return false;
 			}
@@ -2153,15 +2177,11 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std
 						
 		std::transform(_arg3.begin(), _arg3.end(), _arg3.begin(),
 					   [](unsigned char c) -> unsigned char{ return std::toupper(c); });
-		
-		toc_table[nr_current_track].type = MODE_NONE;
+						
 		toc_table[nr_current_track].is_audio = false;
 		toc_table[nr_current_track].index0 = 0;
 		toc_table[nr_current_track].index1 = 0;
 		toc_table[nr_current_track].pregap = 0;
-		toc_table[nr_current_track].physical_size = 2352;
-		toc_table[nr_current_track].logical_size = 2048;
-//		toc_table[nr_current_track].bytes_offset = 0;
 		int track_type;
 		try {
 			track_type = cue_type.at(_arg3);
@@ -2169,42 +2189,11 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std
 			track_type = MODE_NONE;
 		}
 					
-		toc_table[nr_current_track].type = track_type;
 		switch(track_type) {
 		case MODE_AUDIO:
 			toc_table[nr_current_track].is_audio = true; 
-			toc_table[nr_current_track].physical_size = 2352;
-			toc_table[nr_current_track].logical_size = 2352;
 			break;
 			// ToDo: Set data size.
-		case MODE_MODE1_2048:
-			toc_table[nr_current_track].physical_size = 2048;
-			toc_table[nr_current_track].logical_size = 2048;
-			break;
-		case MODE_MODE1_2352:
-			toc_table[nr_current_track].physical_size = 2352;
-			toc_table[nr_current_track].logical_size = 2048;
-			break;
-		case MODE_MODE2_2336:
-			toc_table[nr_current_track].physical_size = 2336;
-			toc_table[nr_current_track].logical_size = 2336;
-			break;
-		case MODE_MODE2_2352:
-			toc_table[nr_current_track].physical_size = 2352;
-			toc_table[nr_current_track].logical_size = 2336;
-			break;
-		case MODE_CDI_2336:
-			toc_table[nr_current_track].physical_size = 2336;
-			toc_table[nr_current_track].logical_size = 2336;
-			break;
-		case MODE_CDI_2352:
-			toc_table[nr_current_track].physical_size = 2352;
-			toc_table[nr_current_track].logical_size = 2336;
-			break;
-		case MODE_CD_G:
-			toc_table[nr_current_track].physical_size = 2448;
-			toc_table[nr_current_track].logical_size = 2448;
-			break;
 		}
 		if(track_num < (_nr_num + 1)) track_num = _nr_num + 1;
 	} else {
@@ -2425,8 +2414,6 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 			for(int i = 1; i < track_num; i++) {
 				toc_table[i].index0 += toc_table[i].lba_offset;
 				toc_table[i].index1 += toc_table[i].lba_offset;
-				toc_table[i].bytes_offset = toc_table[i].lba_offset * toc_table[i - 1].physical_size;
-
 				out_debug_log(_T("TRACK#%02d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d LBA_OFFSET=%d PATH=%s\n"),
 									i, (toc_table[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352"),
 									toc_table[i].pregap, toc_table[i].index0, toc_table[i].index1,
@@ -2437,7 +2424,6 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 			toc_table[track_num].index0 = toc_table[track_num].index1 = max_logical_block;
 			toc_table[track_num].lba_offset = max_logical_block;
 			toc_table[track_num].lba_size = 0;
-			toc_table[track_num].bytes_offset = toc_table[track_num].lba_offset * toc_table[track_num - 1].physical_size;
 			
 		}
 		fio->Fclose();
@@ -2475,7 +2461,6 @@ void TOWNS_CDROM::open_from_cmd(const _TCHAR* file_path)
 
 	} else if(check_file_extension(file_path, _T(".ccd"))) {
 		// get image file name
-		// ToDo: MODE1/2048
 		my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.img"), get_file_path_without_extensiton(file_path));
 		if(!FILEIO::IsFileExisting(img_file_path)) {
 			my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.gz"), get_file_path_without_extensiton(file_path));
@@ -2505,8 +2490,6 @@ void TOWNS_CDROM::open_from_cmd(const _TCHAR* file_path)
 						} else if((ptr = strstr(line, "Control=0x")) != NULL) {
 							if(track > 0 && track < 0xa0) {
 								toc_table[track - 1].is_audio = (hexatoi(ptr + 10) != 4);
-								toc_table[track - 1].type = (toc_table[track - 1].is_audio) ? MODE_AUDIO : MODE_MODE1_2352;
-
 							}
 						} else if((ptr = strstr(line, "ALBA=-")) != NULL) {
 							if(track > 0 && track < 0xa0) {
@@ -2521,18 +2504,10 @@ void TOWNS_CDROM::open_from_cmd(const _TCHAR* file_path)
 					if(track_num != 0) {
 						toc_table[0].lba_offset = 0;
 						toc_table[0].pregap = 0;
-						toc_table[0].physical_size = 2352;
-						toc_table[0].logical_size = 2048;
-						toc_table[0].bytes_offset = 0;
-						toc_table[0].type = MODE_NONE;
 						for(int i = 1; i < track_num; i++) {
-							toc_table[i].physical_size = 2352;
-							toc_table[i].logical_size = 2048;
-							
 							toc_table[i].index0 = toc_table[i].index1 - toc_table[i].pregap;
 							toc_table[i].lba_offset = toc_table[i].pregap;
 							toc_table[i - 1].lba_size = toc_table[i].pregap - toc_table[i - 1].pregap;
-							toc_table[i].bytes_offset = toc_table[i].lba_offset * toc_table[i - 1].physical_size;
 						}
 						toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
 						toc_table[track_num].index0 = toc_table[track_num].index1 = max_logical_block;
@@ -2541,10 +2516,6 @@ void TOWNS_CDROM::open_from_cmd(const _TCHAR* file_path)
 						} else {
 							toc_table[track_num].lba_size = 0;
 						}
-						toc_table[track_num].physical_size = 2352;
-						toc_table[track_num].logical_size = 2048;
-						toc_table[track_num].bytes_offset = toc_table[track_num].lba_offset * 2352;
-						toc_table[track_num].type = MODE_NONE;
 					} else {
 						fio_img->Fclose();
 					}
@@ -2652,13 +2623,13 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 	uint32_t val = 0;
 	switch(addr & 0x0f) {
 	case 0x00:
-		val = val | ((mcu_intr)							? 0x80 : 0x00);
-		val = val | ((dma_intr)							? 0x40 : 0x00);
+		val = val | ((mcu_intr)					? 0x80 : 0x00);
+		val = val | ((dma_intr)					? 0x40 : 0x00);
 		val = val | ((pio_transfer_phase)				? 0x20 : 0x00);
 //			val = val | ((d_dmac->read_signal(SIG_UPD71071_IS_TRANSFERING + 3) !=0) ? 0x10 : 0x00); // USING DMAC ch.3
 		val = val | ((dma_transfer_phase)				? 0x10 : 0x00); // USING DMAC ch.3
-		val = val | ((!(status_queue->empty()))			? 0x02 : 0x00);
-		val = val | ((mcu_ready)						? 0x01 : 0x00);
+		val = val | ((has_status)				? 0x02 : 0x00);
+		val = val | ((mcu_ready)				? 0x01 : 0x00);
 //		if((mcu_intr) || (dma_intr)) { 
 //			mcu_intr = false;
 //			dma_intr = false;
@@ -2705,14 +2676,26 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 		mcu_intr_mask = ((data & 0x02) == 0) ? true : false;
 		dma_intr_mask = ((data & 0x01) == 0) ? true : false;
 		if((data & 0x80) != 0) {
-			set_mcu_intr(false);
-			mcu_intr = false;
+			if(mcu_intr) set_mcu_intr(false);
+			
+			switch(latest_command & 0x9f) {
+			case CDROM_COMMAND_READ_MODE2:
+			case CDROM_COMMAND_READ_MODE1:
+			case CDROM_COMMAND_READ_RAW:
+				if((read_length > 0) && (event_next_sector < 0) && (event_seek_completed < 0)) {
+					if(((cdrom_prefetch) && (buffer->left() >= logical_block_size())) ||
+					   (buffer->empty())) {
+						register_event(this, EVENT_CDROM_SEEK_COMPLETED,
+									   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 16.0, // OK?
+									   false, &event_seek_completed);
+					}
+				}
+				break;
+			}
 		}
 		if((data & 0x40) != 0) {
-			set_dma_intr(false);
-			dma_intr = false;
+			if(dma_intr) set_dma_intr(false);
 		}
-		out_debug_log(_T("04C0h=%02X"), data);
 		break;
 	case 0x02: // Command
 		if(mcu_ready) {
@@ -2800,7 +2783,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				  , (mcu_intr) ? _T("ON ") : _T("OFF"), (dma_intr) ? _T("ON ") : _T("OFF")
 				  , (pio_transfer_phase) ? _T("PIO") : _T("   ")
 				  , (dma_transfer_phase) ? _T("DMA") : _T("   ")
-				  , (!(status_queue->empty())) ? _T("ON ") : _T("OFF"), (mcu_ready) ? _T("ON ") : _T("OFF")
+				  , (has_status) ? _T("ON ") : _T("OFF"), (mcu_ready) ? _T("ON ") : _T("OFF")
 				  , current_track, position / physical_block_size(), read_length
 				  , latest_command, param, param_ptr
 				  , extra_status, status_queue->count(), stat
@@ -2845,7 +2828,7 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(pio_transfer_phase);
 	state_fio->StateValue(dma_transfer_phase);
 	state_fio->StateValue(mcu_ready);
-
+	state_fio->StateValue(has_status);
 	state_fio->StateValue(mcu_intr_mask);
 	state_fio->StateValue(dma_intr_mask);
 	state_fio->StateValue(transfer_speed);

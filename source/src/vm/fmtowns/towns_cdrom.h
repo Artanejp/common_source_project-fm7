@@ -11,6 +11,7 @@
 #include "../../common.h"
 #include "../device.h"
 
+
 // 0 - 9 : SCSI_CDROM::
 // 100 - : SCSI_DEV::
 #define SIG_TOWNS_CDROM_PLAYING				0
@@ -142,15 +143,11 @@ protected:
 
 	bool is_cue;
 	struct {
-		int type;
 		int32_t index0, index1, pregap;
 		uint32_t lba_offset;
 		uint32_t lba_size;
-		uint64_t bytes_offset;
-		int physical_size;
-		int logical_size;
 		bool is_audio;
-	} toc_table[102];
+	} toc_table[1024];
 	_TCHAR track_data_path[100][_MAX_PATH];
 	_TCHAR img_file_path_bak[_MAX_PATH];
 	bool with_filename[100];
@@ -176,7 +173,7 @@ protected:
 	bool req_status;
 	bool stat_reply_intr;
 	bool mcu_ready;
-
+	bool has_status;
 	bool mcu_intr;
 	bool dma_intr;
 	bool mcu_intr_mask;
@@ -237,7 +234,6 @@ protected:
 	void read_cdrom_mode1();
 	void read_cdrom_mode2();
 	void read_cdrom_raw();
-	void set_data_ready();
 	
 	virtual void execute_command(uint8_t command);
 	
@@ -357,9 +353,6 @@ public:
 	virtual int logical_block_size();
 	virtual const int physical_block_size()
 	{
-		if(toc_table[current_track].physical_size > 0) {
-			return toc_table[current_track].physical_size;
-		}
 		return 2352; // OK?
 	}
 	uint8_t get_cdda_status()
