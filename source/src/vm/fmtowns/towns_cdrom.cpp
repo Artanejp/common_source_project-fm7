@@ -2741,7 +2741,7 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 		mcu_intr_mask = ((data & 0x02) == 0) ? true : false;
 		dma_intr_mask = ((data & 0x01) == 0) ? true : false;
 		if((data & 0x80) != 0) {
-			if(mcu_intr) set_mcu_intr(false);
+			/*if(mcu_intr) */set_mcu_intr(false);
 			
 			switch(latest_command & 0x9f) {
 			case CDROM_COMMAND_READ_MODE2:
@@ -2759,7 +2759,7 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 			}
 		}
 		if((data & 0x40) != 0) {
-			if(dma_intr) set_dma_intr(false);
+			/*if(dma_intr) */set_dma_intr(false);
 		}
 		break;
 	case 0x02: // Command
