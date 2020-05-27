@@ -651,6 +651,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 //					dma_transfer_phase = false;
 //					set_dma_intr(true);
 					register_event(this, EVENT_CDROM_NEXT_SECTOR, 10.0, false, &event_next_sector);
+//					event_callback(EVENT_CDROM_NEXT_SECTOR, 0);
 				}
 
 			}
