@@ -729,10 +729,11 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			s = 2;
 			f = 0;
 			int32_t lba = ((m * (60 * 75)) + (s * 75) + f) - 150;
-			if(lba >= 0) {
-				register_event(this, EVENT_CDROM_SEEK, get_seek_time(lba),
-							   false, &event_seek);
-			}
+			status_accept(1, /*(media_changed) ? 0x09 : */0x00, 0x00, 0x00);
+//			if(lba >= 0) {
+//				register_event(this, EVENT_CDROM_SEEK, get_seek_time(lba),
+//							   false, &event_seek);
+//			}
 			out_debug_log(_T("CMD SEEK(%02X) M S F = %d %d %d  LBA=%d"), command,
 						  TO_BCD(m), TO_BCD(s), TO_BCD(f), lba
 			);
@@ -1249,7 +1250,7 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 			}
 			if(fio_img->IsOpened()) {
 				uint32_t cur_position = (uint32_t)fio_img->Ftell();
-				cur_position = cur_position / logical_block_size();
+				cur_position = cur_position / physical_block_size();
 				if(cur_position >= max_logical_block) {
 					cur_position = max_logical_block;
 				}
@@ -1273,11 +1274,11 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 			}
 			if(fio_img->IsOpened()) {
 				uint32_t cur_position = (uint32_t)fio_img->Ftell();
-				cur_position = cur_position / logical_block_size();
+				cur_position = cur_position / physical_block_size();
 				if(cur_position >= max_logical_block) {
 					cur_position = max_logical_block;
 				}
-				uint32_t msf = lba_to_msf(cur_position + toc_table[current_track].lba_offset);
+				uint32_t msf = lba_to_msf(cur_position + toc_table[current_track].index0);
 				return msf;
 			}
 			return 0;
@@ -1411,8 +1412,9 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_CDROM_SEEK:
 		{
 			event_seek = -1;
-			status_accept(1, (media_changed) ? 0x09 : 0x00, 0x00, 0x00);
-			media_changed = false;
+//			set_status(true, 0, TOWNS_CD_STATUS_SEEK_COMPLETED, 0x00, 0x00, 0x00);
+			status_accept(1, /*(media_changed) ? 0x09 : */0x00, 0x00, 0x00);
+//			media_changed = false;
 		}
 		break;
 	case EVENT_CDROM_SEEK_COMPLETED:
@@ -1568,7 +1570,12 @@ void TOWNS_CDROM::read_a_cdda_sample()
 		cdda_buffer_ptr = 0;
 		
 		if(cdda_playing_frame >= cdda_end_frame) {
-			if(cdda_repeat_count <= 0) {
+			if(cdda_repeat_count < 0) {
+				// Infinity Loop (from Towns Linux v2.2.26)
+				cdda_playing_frame = cdda_start_frame;
+				cdda_loading_frame = cdda_start_frame;
+				force_seek = true;
+			} else if(cdda_repeat_count == 0) {
 				set_cdda_status(CDDA_OFF);
 				set_subq();
 				access = false;
@@ -1576,8 +1583,14 @@ void TOWNS_CDROM::read_a_cdda_sample()
 			} else {
 				cdda_playing_frame = cdda_start_frame;
 				cdda_loading_frame = cdda_start_frame;
-				cdda_repeat_count--;
 				force_seek = true;
+				cdda_repeat_count--;
+				if(cdda_repeat_count == 0) {
+					set_cdda_status(CDDA_OFF);
+					set_subq();
+					access = false;
+					return;
+				}
 			}
 		}
 		check_cdda_track_boundary(cdda_loading_frame);
@@ -1628,7 +1641,7 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 			n_sectors++;
 		}
 		if(n_sectors >= 1) {
-			access = true;
+			//access = true;
 			if(fio_img->Fread(tmpbuf, 2352 * n_sectors * sizeof(uint8_t), 1) != 1) {
 				set_cdda_status(CDDA_OFF);
 				set_subq();
@@ -1682,7 +1695,7 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 				access = false;
 			} else if(cdda_status == CDDA_PAUSED) {
 				// Unpause
-				access = true;
+				//access = true;
 			}
 			touch_sound();
 			set_realtime_render(this, true);
@@ -1930,7 +1943,7 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 			return;
 		}
 		if(is_repeat == 1) {
-			cdda_repeat_count = 0;
+			cdda_repeat_count = -1;
 		} else {
 			// Maybe is_repeat == 9
 			cdda_repeat_count = repeat_count;
