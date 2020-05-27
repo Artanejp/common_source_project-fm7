@@ -105,7 +105,52 @@ void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	uint32_t wrap_addr = 0;
 	mask = ((addr & 0x02) == 0) ? packed_pixel_mask_reg.w.l : packed_pixel_mask_reg.w.h;
 	a.w = data;
-	
+#if 1
+	if((addr & 1) != 0){
+//		write_memory_mapped_io8(addr + 0, data & 0xff);
+		uint32_t addr2 = (addr + 1) & 0x7ffff;
+		switch(addr) {
+		case 0x8003ffff:
+		case 0x8017ffff:
+			addr2 = 0x00000;
+			break;
+		case 0x8007ffff:
+			addr2 = 0x40000;
+			break;
+		}
+		addr = addr & 0x7ffff;
+		b.b.l = vram[addr];
+		b.b.h = vram[addr2];
+		c.w = b.w;
+		b.w = b.w & ~mask;
+		a.w = a.w & mask;
+		a.w = a.w | b.w;
+		vram[addr]  = a.b.l;
+		vram[addr2] = a.b.h;
+		//write_memory_mapped_io8(addr2 , (data >> 8) & 0xff);
+	} else {
+		addr = addr & 0x7ffff;
+#ifdef __LITTLE_ENDIAN__
+		uint16_t* p = (uint16_t* )(&vram[addr]);
+		b.w = *p;
+#else
+		b.read_2bytes_le_from(&vram[addr]);
+#endif
+		c.w = b.w;
+//		if(mask != 0xffff) {
+			b.w = b.w & ~mask;
+			a.w = a.w & mask;
+			a.w = a.w | b.w;
+//		}
+//		if(a.w != c.w) {
+//			make_dirty_vram(addr, 2);
+#ifdef __LITTLE_ENDIAN__
+			*p = a.w;
+#else
+			a.write_2bytes_le_to(&vram[addr]);
+#endif
+	}
+#else
 	if((addr & 0x8013ffff) == 0x8003ffff) {
 		is_wrap = true;
 		wrap_addr = (addr == 0x8007ffff) ? 0x40000 : 0;
@@ -148,6 +193,7 @@ void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 #endif
 //		}
 	}
+#endif
 	return;
 }
 	
@@ -162,7 +208,62 @@ void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 	uint32_t wrap_mask;
 	mask = packed_pixel_mask_reg.d;
 	a.d = data;
-	
+#if 1
+	if((addr & 3) != 0){
+		uint32_t addr2 = addr + 1;
+		uint32_t addr3 = addr + 2;
+		uint32_t addr4 = addr + 3;
+		if((addr >= 0x8007fffd) && (addr <= 0x8007ffff)) {
+			addr2 = (addr2 & 0x3ffff) + 0x40000;
+			addr3 = (addr3 & 0x3ffff) + 0x40000;
+			addr4 = (addr4 & 0x3ffff) + 0x40000;
+		} else if((addr >= 0x8003fffd) && (addr <= 0x8003ffff)) {
+			addr2 = addr2 & 0x3ffff;
+			addr3 = addr3 & 0x3ffff;
+			addr4 = addr4 & 0x3ffff;
+		} else {
+			addr2 = addr2 & 0x7ffff;
+			addr3 = addr3 & 0x7ffff;
+			addr4 = addr4 & 0x7ffff;
+		}
+		addr = addr & 0x7ffff;
+		b.b.l  = vram[addr];
+		b.b.h  = vram[addr2];
+		b.b.h2 = vram[addr3];
+		b.b.h3 = vram[addr4];
+		b.d = b.d & ~(mask);
+		a.d = a.d & mask;
+		a.d = a.d | b.d;
+		vram[addr]  = a.b.l;
+		vram[addr2] = a.b.h;
+		vram[addr3] = a.b.h2;
+		vram[addr4] = a.b.h3;
+		
+	} else {
+		addr = addr & 0x7ffff;
+#ifdef __LITTLE_ENDIAN__
+		uint32_t* p = (uint32_t* )(&vram[addr]);
+		b.d = *p;
+#else
+		b.read_4bytes_le_from(&vram[addr]);
+#endif
+//		c.d = b.d;
+//		if(mask != 0xffffffff) {
+			b.d = b.d & ~(mask);
+			a.d = a.d & mask;
+			a.d = a.d | b.d;
+//		}
+//		if(a.d != c.d) {
+//			make_dirty_vram(addr, 4);
+#ifdef __LITTLE_ENDIAN__
+			*p = a.d;
+#else
+			a.write_4bytes_le_to(&vram[addr]);
+#endif
+//		}
+	}
+		
+#else
 	if((addr & 0x8013fffc) == 0x8003fffc) {
 		if((addr & 0x8003ffff) != 0x8003fffc) {
 			is_wrap = true;
@@ -214,6 +315,7 @@ void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 #endif
 //		}
 	}
+#endif
 	return;
 }
 
@@ -230,6 +332,9 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io16(uint32_t addr)
 	if((addr & 0x8013ffff) == 0x8003ffff) {
 		is_wrap = true;
 		wrap_addr = (addr == 0x8007ffff) ? 0x40000 : 0;
+	} else if(addr > 0x8017fffe) {
+		is_wrap = true;
+		wrap_addr = 0;
 	}
 	addr = addr & 0x7ffff;
 	if(is_wrap) {
@@ -258,7 +363,10 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 			is_wrap = true;
 			wrap_addr = (addr >= 0x80040000) ? 0x40000 : 0;
 		}
-	}
+	} else if(addr > 0x8017fffc) {
+		is_wrap = true;
+		wrap_addr = 0;
+	}		
 	wrap_mask = (addr >= 0x80100000) ? 0x7ffff : 0x3ffff;
 	addr = addr & 0x7ffff;
 	if(is_wrap) {
