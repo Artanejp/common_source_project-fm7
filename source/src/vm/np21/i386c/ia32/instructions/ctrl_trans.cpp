@@ -1403,6 +1403,14 @@ void
 INT1(void)
 {
 
+	uint32_t old_addr;
+	{
+		descriptor_t *sdp = &CPU_CS_DESC;
+		old_addr = sdp->u.seg.segbase + CPU_PREV_EIP;
+	}
+	if(device_debugger != NULL) {
+		device_debugger->add_cpu_trace_irq(old_addr, 1);
+	}
 	CPU_WORKCLOCK(33);
 	INTERRUPT(1, INTR_TYPE_SOFTINTR);
 }
@@ -1411,6 +1419,14 @@ INT1(void)
 void
 INT6(void)
 {
+	uint32_t old_addr;
+	{
+		descriptor_t *sdp = &CPU_CS_DESC;
+		old_addr = sdp->u.seg.segbase + CPU_PREV_EIP;
+	}
+	if(device_debugger != NULL) {
+		device_debugger->add_cpu_trace_irq(old_addr, 6);
+	}
 	CPU_WORKCLOCK(33);
 	INTERRUPT(6, INTR_TYPE_SOFTINTR);
 }
@@ -1435,6 +1451,14 @@ INT3(void)
 #endif
 */
 	CPU_WORKCLOCK(33);
+	uint32_t old_addr;
+	{
+		descriptor_t *sdp = &CPU_CS_DESC;
+		old_addr = sdp->u.seg.segbase + CPU_PREV_EIP;
+	}
+	if(device_debugger != NULL) {
+		device_debugger->add_cpu_trace_irq(old_addr, 3);
+	}
 	INTERRUPT(3, INTR_TYPE_SOFTINTR);
 }
 
@@ -1447,6 +1471,14 @@ INTO(void)
 		return;
 	}
 	CPU_WORKCLOCK(35);
+	uint32_t old_addr;
+	{
+		descriptor_t *sdp = &CPU_CS_DESC;
+		old_addr = sdp->u.seg.segbase + CPU_PREV_EIP;
+	}
+	if(device_debugger != NULL) {
+		device_debugger->add_cpu_trace_irq(old_addr, 4);
+	}
 	INTERRUPT(4, INTR_TYPE_SOFTINTR);
 }
 
@@ -1457,7 +1489,15 @@ INT_Ib(void)
 
 	CPU_WORKCLOCK(37);
 	if (!CPU_STAT_PM || !CPU_STAT_VM86 || (CPU_STAT_IOPL == CPU_IOPL3)) {
+		uint32_t old_addr;
+		{
+			descriptor_t *sdp = &CPU_CS_DESC;
+			old_addr = sdp->u.seg.segbase + CPU_PREV_EIP;
+		}
 		GET_PCBYTE(vect);
+		if(device_debugger != NULL) {
+			device_debugger->add_cpu_trace_irq(old_addr, vect);
+		}
 #if defined(ENABLE_TRAP)
 		softinttrap(CPU_CS, CPU_EIP - 2, vect);
 #endif

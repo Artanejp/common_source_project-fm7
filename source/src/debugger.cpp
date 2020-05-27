@@ -806,27 +806,21 @@ void* debugger_thread(void *lpx)
 						strftime(timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", timedat);
 						log_fio.Fprintf("**** Start of logging CALL TRACE %d steps for %s at %s.%06ld ****\n\n", steps, target->this_device_name, timestr, tv.tv_usec);
 					}
-					int begin_step = (target_debugger->cpu_trace_ptr - steps) & (MAX_CPU_TRACE - 1);
-					int max_step = target_debugger->cpu_trace_ptr & (MAX_CPU_TRACE - 1);
+					int begin_step = (target_debugger->cpu_trace_call_ptr - steps) & (MAX_CPU_TRACE - 1);
+					int max_step = target_debugger->cpu_trace_call_ptr & (MAX_CPU_TRACE - 1);
 					int steps_left = steps;
-					if(!(target_debugger->cpu_trace_overwrap)) {
-						if(steps_left > max_step) {
-							begin_step = 0;
-							steps_left = max_step;
-							steps = max_step;
-						}
-					}
 					for(int i = begin_step; i != max_step; i = ((i + 1) & (MAX_CPU_TRACE - 1)) ) {
 						int index = i;
 
 						if(!(target_debugger->cpu_trace[index] & ~target->get_debug_prog_addr_mask())) {
 							int len = 0;
 							bool hit = target->debug_rewind_call_trace(
-								target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask(),
+								target_debugger->cpu_trace_call[i] & target->get_debug_prog_addr_mask(),
 								len,
 								buffer,
 								array_length(buffer),
-								target_debugger->cpu_trace_userdata[index]);
+								target_debugger->cpu_trace_call_type[i]
+								);
 							if(hit) {
 								const _TCHAR *name = my_get_symbol(target, target_debugger->cpu_trace[index] & target->get_debug_prog_addr_mask());
 								if(name != NULL) {

@@ -420,8 +420,30 @@ Grp5_Ed(void)
 {
 	UINT32 op;
 
+	UINT32 old_eip = CPU_PREV_EIP;
+	UINT32 old_addr = 0;
 	GET_PCBYTE(op);
+	UINT32 op_old = op;
+	switch((op >> 3) & 7) {
+	case 2: //CAll
+	case 3: //CAll
+		{
+			descriptor_t *sdp = &CPU_CS_DESC;
+			old_addr = sdp->u.seg.segbase + old_eip;
+		}
+		break;
+	}
 	(*insttable_G5Ed[(op >> 3) & 7])(op);
+	switch((op >> 3) & 7) {
+	case 2: //CAll
+	case 3: //CAll
+		{
+			descriptor_t *sdp = &CPU_CS_DESC;
+			uint32_t new_addr = sdp->u.seg.segbase + CPU_EIP;
+			device_debugger->add_cpu_trace_call(old_addr, new_addr);
+		}
+		break;
+	}
 }
 
 

@@ -1234,7 +1234,7 @@ public:
 	{
 		return 0;
 	}
-	virtual bool debug_rewind_call_trace(uint32_t pc, int &size, _TCHAR* buffer, size_t buffer_len, uint32_t userdata = 0)
+	virtual bool debug_rewind_call_trace(uint32_t pc, int &size, _TCHAR* buffer, size_t buffer_len, uint64_t userdata = 0)
 	{
 		size = 0;
 		return false;

@@ -157,6 +157,8 @@ exec_1step(void)
 	}
 	ctx[ctx_index].opbytes = 0;
 #endif
+	UINT32 old_eip = CPU_PREV_EIP;
+	UINT32 old_addr = 0;
 	
 	for (prefix = 0; prefix < MAX_PREFIX; prefix++) {
 		check_exception(is_debugging);
@@ -181,31 +183,46 @@ exec_1step(void)
 		} else {
 			switch(op) {
 			case 0x9a: //CAll
+				{
+					descriptor_t *sdp = &CPU_CS_DESC;
+					old_addr = sdp->u.seg.segbase + old_eip;
+				}
 				op_size |= I386_TRACE_DATA_BIT_CALL;
 				break;
 			case 0xc2: // RET far
 			case 0xc3:
+				{
+					descriptor_t *sdp = &CPU_CS_DESC;
+					old_addr = sdp->u.seg.segbase + old_eip;
+				}
 				op_size |= I386_TRACE_DATA_BIT_RET;
 				break;
 			case 0xca: // RET far
 			case 0xcb:
+				{
+					descriptor_t *sdp = &CPU_CS_DESC;
+					old_addr = sdp->u.seg.segbase + old_eip;
+				}
 				op_size |= I386_TRACE_DATA_BIT_RET;
 				break;
-			case 0xcc: // INTr
-			case 0xcd:
-			case 0xce:
-				op_size |= I386_TRACE_DATA_BIT_INT;
-				break;
 			case 0xcf:
+				{
+					descriptor_t *sdp = &CPU_CS_DESC;
+					old_addr = sdp->u.seg.segbase + old_eip;
+				}
 				op_size |= I386_TRACE_DATA_BIT_IRET;
 				break;
 			case 0xe8: //CAll
+				{
+					descriptor_t *sdp = &CPU_CS_DESC;
+					old_addr = sdp->u.seg.segbase + old_eip;
+				}
 				op_size |= I386_TRACE_DATA_BIT_CALL;
 			break;
 			case 0xe9: //JMP
 			case 0xea: //JMP16
 			case 0xeb: //JMP
-				op_size |= I386_TRACE_DATA_BIT_CALL;
+				op_size |= I386_TRACE_DATA_BIT_JMP;
 				break;
 			case 0xe3:
 				op_size |= I386_TRACE_DATA_BIT_JMP_COND;
@@ -220,6 +237,26 @@ exec_1step(void)
 		/* prefix */
 		if (insttable_info[op] & INST_PREFIX) {
 			(*insttable_1byte[0][op])();
+			switch(op) {
+			case 0x9a: //CAll
+			case 0xe8: //CAll
+				{
+					descriptor_t *sdp = &CPU_CS_DESC;
+					uint32_t new_addr = sdp->u.seg.segbase + CPU_EIP;
+					device_debugger->add_cpu_trace_call(old_addr, new_addr);
+				}
+				break;
+			case 0xc2: // RET far
+			case 0xc3:
+			case 0xca: // RET far
+			case 0xcb:
+			case 0xcf: // iRET
+				{
+					// ToDo: Collect intr num.
+					device_debugger->add_cpu_trace_return(old_addr);
+				}
+				break;
+			}
 			continue;
 		}
 		break;
@@ -245,6 +282,26 @@ exec_1step(void)
 		cpu_debug_rep_cont = 0;
 #endif
 		(*insttable_1byte[CPU_INST_OP32][op])();
+		switch(op) {
+		case 0x9a: //CAll
+		case 0xe8: //CAll
+			{
+				descriptor_t *sdp = &CPU_CS_DESC;
+				uint32_t new_addr = sdp->u.seg.segbase + CPU_EIP;
+				device_debugger->add_cpu_trace_call(old_addr, new_addr);
+			}
+			break;
+		case 0xc2: // RET far
+		case 0xc3:
+		case 0xca: // RET far
+		case 0xcb:
+		case 0xcf: // iRET
+			{
+				// ToDo: Collect intr num.
+				device_debugger->add_cpu_trace_return(old_addr);
+			}
+			break;
+		}
 		check_exception(is_debugging);
 		return;
 	}
@@ -457,6 +514,37 @@ exec_allstep(void)
 			/* prefix */
 			if (insttable_info[op] & INST_PREFIX) {
 				(*insttable_1byte[0][op])();
+				switch(op) {
+				case 0x9a: //CAll
+				case 0xe8: //CAll
+					{
+						descriptor_t *sdp = &CPU_CS_DESC;
+						uint32_t new_addr = sdp->u.seg.segbase + CPU_EIP;
+						device_debugger->add_cpu_trace_call(old_addr, new_addr);
+					}
+					break;
+				case 0xcc: // INTr
+				case 0xcd:
+				case 0xce:
+				case 0xf1:
+					{
+						// ToDo: Collect intr num.
+						descriptor_t *sdp = &CPU_CS_DESC;
+						uint32_t new_addr = sdp->u.seg.segbase + CPU_EIP;
+						device_debugger->add_cpu_trace_call(old_addr, new_addr);
+					}
+					break;
+				case 0xc2: // RET far
+				case 0xc3:
+				case 0xca: // RET far
+				case 0xcb:
+				case 0xcf: // iRET
+					{
+						// ToDo: Collect intr num.
+						device_debugger->add_cpu_trace_return(old_addr);
+					}
+					break;
+				}
 				continue;
 			}
 			break;
@@ -482,6 +570,37 @@ exec_allstep(void)
 			cpu_debug_rep_cont = 0;
 	#endif
 			(*insttable_1byte[CPU_INST_OP32][op])();
+			switch(op) {
+			case 0x9a: //CAll
+			case 0xe8: //CAll
+				{
+					descriptor_t *sdp = &CPU_CS_DESC;
+					uint32_t new_addr = sdp->u.seg.segbase + CPU_EIP;
+					device_debugger->add_cpu_trace_call(old_addr, new_addr);
+				}
+				break;
+			case 0xcc: // INTr
+			case 0xcd:
+			case 0xce:
+			case 0xf1:
+				{
+					// ToDo: Collect intr num.
+					descriptor_t *sdp = &CPU_CS_DESC;
+					uint32_t new_addr = sdp->u.seg.segbase + CPU_EIP;
+					device_debugger->add_cpu_trace_call(old_addr, new_addr);
+				}
+				break;
+			case 0xc2: // RET far
+			case 0xc3:
+			case 0xca: // RET far
+			case 0xcb:
+			case 0xcf: // iRET
+				{
+					// ToDo: Collect intr num.
+					device_debugger->add_cpu_trace_return(old_addr);
+				}
+				break;
+			}
 			check_exception(is_debugging);
 			goto cpucontinue; //continue;
 		}

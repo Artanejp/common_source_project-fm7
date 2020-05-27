@@ -315,9 +315,16 @@ int I386::run_one_opecode()
 		CPU_EXEC();
 		if(nmi_pending) {
 			CPU_INTERRUPT(2, 0);
+			if(device_debugger != NULL) {
+				device_debugger->add_cpu_trace_irq(get_pc(), 2);
+			}
 			nmi_pending = false;
 		} else if(irq_pending && CPU_isEI) {
-			CPU_INTERRUPT(device_pic->get_intr_ack(), 0);
+			uint32_t intr_level = device_pic->get_intr_ack();
+			CPU_INTERRUPT(intr_level, 0);
+			if(device_debugger != NULL) {
+				device_debugger->add_cpu_trace_irq(get_pc(), intr_level);
+			}
 			irq_pending = false;
 			device_pic->update_intr();
 		}
@@ -336,9 +343,16 @@ int I386::run_one_opecode()
 		CPU_EXEC();
 		if(nmi_pending) {
 			CPU_INTERRUPT(2, 0);
+			if(device_debugger != NULL) {
+				device_debugger->add_cpu_trace_irq(get_pc(), 2);
+			}
 			nmi_pending = false;
 		} else if(irq_pending && CPU_isEI) {
-			CPU_INTERRUPT(device_pic->get_intr_ack(), 0);
+			uint32_t intr_level = device_pic->get_intr_ack();
+			CPU_INTERRUPT(intr_level, 0);
+			if(device_debugger != NULL) {
+				device_debugger->add_cpu_trace_irq(get_pc(), intr_level);
+			}
 			irq_pending = false;
 			device_pic->update_intr();
 		}
@@ -717,37 +731,25 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	return true;
 }
 
-bool I386::debug_rewind_call_trace(uint32_t pc, int &size, _TCHAR* buffer, size_t buffer_len, uint32_t userdata)
+bool I386::debug_rewind_call_trace(uint32_t pc, int &size, _TCHAR* buffer, size_t buffer_len, uint64_t userdata)
 {
 	size = 0;
 	_TCHAR prefix[128] = {0};
-	if((userdata & 0x8000fff0) != 0) { // Maybe call/ret/jmp/intr
-		if(userdata & I386_TRACE_DATA_BIT_IRQ) {
-			strncpy(prefix, _T("*IRQ HAPPENED*"), 127);
-		} else if(userdata & I386_TRACE_DATA_BIT_EXCEPTION) {
-			strncpy(prefix,  _T("*EXCEPTION HAPPENED*"), 127);
-		} else if(userdata & I386_TRACE_DATA_BIT_INT) {
-			strncpy(prefix, _T("*INTXX*"), 127);
-		} else if(userdata & I386_TRACE_DATA_BIT_RET) {
-			strncpy(prefix, _T("*RETURN*"), 127);
-		} else if(userdata & I386_TRACE_DATA_BIT_JMP) {
-			strncpy(prefix, _T("*JMP*"), 127);
-		} else if(userdata & I386_TRACE_DATA_BIT_CALL) {
-			strncpy(prefix, _T("*CALL*"), 127);
-		} else {
-			// Not meanful
-			return false;
-		}
-		_TCHAR dasmbuf[1024] = {0};
-		size = debug_dasm_with_userdata(pc, dasmbuf, 1023, userdata);
-		if(size <= 0) {
-			strncpy(dasmbuf, 1023, _T("**UNDEFINED BEHAVIOR**"));
-		}
-		my_stprintf_s(buffer, buffer_len, _T("HIT %s	@%08X	%s\n"),
-					  prefix, pc,  dasmbuf);
-		return true;
+	if((userdata & ((uint64_t)0xffffffff << 32)) == ((uint64_t)0x80000000 << 32)) {
+		my_stprintf_s(prefix, 127, _T("*RETURN*"));
+	} else if((userdata & (uint64_t)0xffffffff00000000) != 0) {
+		my_stprintf_s(prefix, 127, _T("*IRQ %X HAPPENED*"), (uint32_t)(userdata >> 32));
+	}  else {
+		my_stprintf_s(prefix, 127, _T("*CALL TO %08X*"), (uint32_t)userdata);
+	}		
+	_TCHAR dasmbuf[1024] = {0};
+	size = debug_dasm_with_userdata(pc, dasmbuf, 1023, userdata);
+	if(size <= 0) {
+		strncpy(dasmbuf, 1023, _T("**UNDEFINED BEHAVIOR**"));
 	}
-	return false;
+	my_stprintf_s(buffer, buffer_len, _T("HIT %s	@%08X	%s\n"),
+				  prefix, pc,  dasmbuf);
+	return true;
 }
 int I386::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {

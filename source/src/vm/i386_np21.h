@@ -145,7 +145,7 @@ public:
 	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	virtual bool get_debug_regs_description(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
-	virtual bool debug_rewind_call_trace(uint32_t pc, int &size, _TCHAR* buffer, size_t buffer_len, uint32_t userdata = 0);
+	virtual bool debug_rewind_call_trace(uint32_t pc, int &size, _TCHAR* buffer, size_t buffer_len, uint64_t userdata = 0);
 //#endif
 	bool process_state(FILEIO* state_fio, bool loading);
 	

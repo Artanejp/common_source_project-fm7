@@ -21,8 +21,7 @@
 #define MAX_COMMAND_HISTORY	32
 //#define MAX_CPU_TRACE		0x01000000 /* 16Msteps */
 #define MAX_CPU_TRACE		0x00100000 /* 1Msteps */
-
-
+#define TRACE_TYPE_CALL		0x00000000
 typedef struct {
 	struct {
 		uint32_t addr, mask;
@@ -100,10 +99,13 @@ public:
 		memset(cpu_trace_exp, 0x00, sizeof(cpu_trace_exp));
 		memset(cpu_trace_exp_map, 0x00, sizeof(cpu_trace_exp_map));
 		memset(cpu_trace_userdata, 0x00, sizeof(cpu_trace_userdata));
+		memset(cpu_trace_call_type, 0x00, sizeof(cpu_trace_call_type));
+		memset(cpu_trace_call, 0x00, sizeof(cpu_trace_call));
 		exception_happened = false;
 		stop_on_exception = true;
 		prev_cpu_trace = 0xffffffff;
 		cpu_trace_ptr = 0;
+		cpu_trace_call_ptr = 0;
 		cpu_trace_overwrap = false;
 		set_device_name(_T("Debugger"));
 	}
@@ -499,17 +501,39 @@ public:
 		}
 		first_symbol = last_symbol = NULL;
 	}
-	void add_cpu_trace_exception(uint64_t exception_code)
+	void __FASTCALL add_cpu_trace_exception(uint64_t exception_code)
 	{
 		cpu_trace_exp[(cpu_trace_ptr - 1) & (MAX_CPU_TRACE - 1)] = exception_code; 
 		cpu_trace_exp_map[(cpu_trace_ptr - 1) & (MAX_CPU_TRACE - 1)] = true; 
 	}
 	// Userdata should after executing instruction.
-	void add_cpu_trace_userdata(uint32_t data, uint32_t mask)
+	void __FASTCALL add_cpu_trace_userdata(uint32_t data, uint32_t mask)
 	{
 		cpu_trace_userdata[(cpu_trace_ptr - 1) & (MAX_CPU_TRACE - 1)] &= ~mask;
 		cpu_trace_userdata[(cpu_trace_ptr - 1) & (MAX_CPU_TRACE - 1)] |= (data & mask);
 	}
+	void __FASTCALL add_cpu_trace_irq(uint32_t pc, uint32_t irq)
+	{
+		cpu_trace_call[cpu_trace_call_ptr] = pc;
+		cpu_trace_call_type[cpu_trace_call_ptr] = ((uint64_t)irq << 32);
+		cpu_trace_call_ptr++;
+		cpu_trace_call_ptr &= (MAX_CPU_TRACE - 1);
+	}
+	void __FASTCALL add_cpu_trace_call(uint32_t pc, uint32_t target)
+	{
+		cpu_trace_call[cpu_trace_call_ptr] = pc;
+		cpu_trace_call_type[cpu_trace_call_ptr] = (uint64_t)target;
+		cpu_trace_call_ptr++;
+		cpu_trace_call_ptr &= (MAX_CPU_TRACE - 1);
+	}
+	void __FASTCALL add_cpu_trace_return(uint32_t pc)
+	{
+		cpu_trace_call[cpu_trace_call_ptr] = pc;
+		cpu_trace_call_type[cpu_trace_call_ptr] = (uint64_t)0x80000000 << 32;
+		cpu_trace_call_ptr++;
+		cpu_trace_call_ptr &= (MAX_CPU_TRACE - 1);
+	}
+	
 	void add_cpu_trace(uint32_t pc)
 	{
 		if(prev_cpu_trace != pc) {
@@ -536,9 +560,12 @@ public:
 	uint32_t cpu_trace[MAX_CPU_TRACE], prev_cpu_trace;
 	uint64_t cpu_trace_exp[MAX_CPU_TRACE];
 	uint32_t cpu_trace_userdata[MAX_CPU_TRACE]; // ToDo: Is need larger userdata?
+	uint32_t cpu_trace_call[MAX_CPU_TRACE]; // ToDo: Is need larger userdata?
+	uint64_t cpu_trace_call_type[MAX_CPU_TRACE]; // ToDo: Is need larger userdata?
 	
 	bool cpu_trace_exp_map[MAX_CPU_TRACE];
 	int cpu_trace_ptr;
+	int cpu_trace_call_ptr;
 	bool cpu_trace_overwrap;
 };
 
