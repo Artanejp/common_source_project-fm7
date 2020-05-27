@@ -507,7 +507,6 @@ void TOWNS_CDROM::reset()
 	data_reg = 0x00;
 	position = 0;
 	mcu_ready = true;
-	has_status = false;
 	req_status = false;
 
 	cdda_repeat_count = -1;
@@ -891,9 +890,6 @@ uint8_t TOWNS_CDROM::read_status()
 		return val;
 	}
 	val = status_queue->read();
-	if(status_queue->empty()) {
-		has_status = false;
-	}
 	if((status_queue->empty()) && (extra_status > 0)) {
 		switch(latest_command & 0x9f) {
 		case CDROM_COMMAND_SEEK: // seek
@@ -1340,7 +1336,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDROM_DELAY_READY:
 		event_delay_ready = -1;
-		has_status = true;
 		mcu_ready = true;
 		set_mcu_intr(true);
 		break;
@@ -2634,13 +2629,13 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 	uint32_t val = 0;
 	switch(addr & 0x0f) {
 	case 0x00:
-		val = val | ((mcu_intr)					? 0x80 : 0x00);
-		val = val | ((dma_intr)					? 0x40 : 0x00);
+		val = val | ((mcu_intr)							? 0x80 : 0x00);
+		val = val | ((dma_intr)							? 0x40 : 0x00);
 		val = val | ((pio_transfer_phase)				? 0x20 : 0x00);
 //			val = val | ((d_dmac->read_signal(SIG_UPD71071_IS_TRANSFERING + 3) !=0) ? 0x10 : 0x00); // USING DMAC ch.3
 		val = val | ((dma_transfer_phase)				? 0x10 : 0x00); // USING DMAC ch.3
-		val = val | ((has_status)				? 0x02 : 0x00);
-		val = val | ((mcu_ready)				? 0x01 : 0x00);
+		val = val | ((!(status_queue->empty()))			? 0x02 : 0x00);
+		val = val | ((mcu_ready)						? 0x01 : 0x00);
 //		if((mcu_intr) || (dma_intr)) { 
 //			mcu_intr = false;
 //			dma_intr = false;
@@ -2795,7 +2790,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				  , (mcu_intr) ? _T("ON ") : _T("OFF"), (dma_intr) ? _T("ON ") : _T("OFF")
 				  , (pio_transfer_phase) ? _T("PIO") : _T("   ")
 				  , (dma_transfer_phase) ? _T("DMA") : _T("   ")
-				  , (has_status) ? _T("ON ") : _T("OFF"), (mcu_ready) ? _T("ON ") : _T("OFF")
+				  , (!(status_queue->empty())) ? _T("ON ") : _T("OFF"), (mcu_ready) ? _T("ON ") : _T("OFF")
 				  , current_track, position / physical_block_size(), read_length
 				  , latest_command, param, param_ptr
 				  , extra_status, status_queue->count(), stat
@@ -2840,7 +2835,7 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(pio_transfer_phase);
 	state_fio->StateValue(dma_transfer_phase);
 	state_fio->StateValue(mcu_ready);
-	state_fio->StateValue(has_status);
+
 	state_fio->StateValue(mcu_intr_mask);
 	state_fio->StateValue(dma_intr_mask);
 	state_fio->StateValue(transfer_speed);

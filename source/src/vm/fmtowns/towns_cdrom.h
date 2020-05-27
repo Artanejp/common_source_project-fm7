@@ -172,7 +172,7 @@ protected:
 	bool req_status;
 	bool stat_reply_intr;
 	bool mcu_ready;
-	bool has_status;
+
 	bool mcu_intr;
 	bool dma_intr;
 	bool mcu_intr_mask;
@@ -233,6 +233,7 @@ protected:
 	void read_cdrom_mode1();
 	void read_cdrom_mode2();
 	void read_cdrom_raw();
+	void set_data_ready();
 	
 	virtual void execute_command(uint8_t command);
 	
