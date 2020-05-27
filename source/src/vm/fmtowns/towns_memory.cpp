@@ -211,6 +211,7 @@ void TOWNS_MEMORY::reset()
 	// reset memory
 	// ToDo
 	is_compatible = true;
+	reset_happened = false;
 #if 1	
 	if(d_cpu != NULL) {
 		d_cpu->set_address_mask(0xffffffff);
@@ -243,7 +244,8 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 	case 0x0020: // Software reset ETC.
 		// reset cause register
 		if(d_cpu != NULL) {
-			val = ((software_reset) ? 1 : 0) | ((d_cpu->get_shutdown_flag() != 0) ? 2 : 0);
+			val = ((software_reset) ? 1 : 0) | ((reset_happened) ? 2 : 0);
+			reset_happened = false;
 		}
 		software_reset = false;
 		if(d_cpu != NULL) {
@@ -509,6 +511,9 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 			if(d_cpu != NULL) {
 				d_cpu->reset();
 			}
+			//dma_is_vram = false;
+			//d_sysrom->reset();
+			//config_page00();
 		}
 		// Towns SEEMS to not set addreess mask (a.k.a A20 mask). 20200131 K.O	
 		if(d_dmac != NULL) {
@@ -712,6 +717,7 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 		}
 	} else if(ch == SIG_FMTOWNS_NOTIFY_RESET) {
 		out_debug_log("RESET FROM CPU!!!\n");
+		reset_happened = true;
 		if(d_cpu != NULL) {
 			d_cpu->set_address_mask(0xffffffff);
 		}
@@ -777,6 +783,7 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(nmi_vector_protect);
 	state_fio->StateValue(software_reset);
 	state_fio->StateValue(poff_status);
+	state_fio->StateValue(reset_happened);
 	
 	state_fio->StateValue(extra_nmi_val);
 	state_fio->StateValue(extra_nmi_mask);

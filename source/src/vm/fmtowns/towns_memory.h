@@ -110,6 +110,7 @@ protected:
 	bool software_reset;
 	bool nmi_vector_protect;
 	bool poff_status;
+	bool reset_happened;
 	
 	// misc
 	uint32_t vram_size; // Normally 512KB.
