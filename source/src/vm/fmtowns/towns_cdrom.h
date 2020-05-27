@@ -143,10 +143,13 @@ protected:
 
 	bool is_cue;
 	struct {
+		uint8_t type;
 		int32_t index0, index1, pregap;
 		uint32_t lba_offset;
 		uint32_t lba_size;
 		bool is_audio;
+		int physical_size;
+		int logical_size;
 	} toc_table[1024];
 	_TCHAR track_data_path[100][_MAX_PATH];
 	_TCHAR img_file_path_bak[_MAX_PATH];
@@ -350,11 +353,8 @@ public:
 	int get_track(uint32_t lba);
 	virtual double get_seek_time(uint32_t lba);
 	virtual uint8_t read_status();
-	virtual int logical_block_size();
-	virtual const int physical_block_size()
-	{
-		return 2352; // OK?
-	}
+	virtual const int logical_block_size();
+	virtual const int physical_block_size();
 	uint8_t get_cdda_status()
 	{
 		return cdda_status;

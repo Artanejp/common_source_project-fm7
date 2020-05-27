@@ -1099,7 +1099,7 @@ void TOWNS_CDROM::read_cdrom_mode2()
 
 void TOWNS_CDROM::read_cdrom_raw()
 {
-	read_mode = MODE_MODE2_2352;
+//	read_mode = MODE_MODE2_2352;
 	read_cdrom();
 }	
 
@@ -1311,17 +1311,50 @@ uint32_t TOWNS_CDROM::cdrom_get_adr(int trk)
 	return 0x14; // return as data
 }
 
-
-int TOWNS_CDROM::logical_block_size()
+const int TOWNS_CDROM::physical_block_size()
 {
 	if(current_track <= 0) return 2352; // PAD
 	if(!mounted()) return 2352; // PAD
-	if(toc_table[current_track].is_audio) {
+	switch(toc_table[current_track].type) {
+	case MODE_AUDIO:
 		return 2352;
-	} else if(read_mode == MODE_MODE2_2352) {
-		return 2340;
-	} else if(read_mode == MODE_MODE2_2336) { // MODE2
+	case MODE_MODE1_2048:
+		return 2048;
+	case MODE_MODE1_2352:
+	case MODE_MODE2_2352:
+	case MODE_CDI_2352:
+		return 2352;
+	case MODE_MODE2_2336:
+	case MODE_CDI_2336:
 		return 2336;
+	case MODE_CD_G:
+		return 2448;
+	default:
+		break;
+	}
+	// OK?
+	return 2352;
+}
+
+const int TOWNS_CDROM::logical_block_size()
+{
+	if(current_track <= 0) return 2352; // PAD
+	if(!mounted()) return 2352; // PAD
+	switch(toc_table[current_track].type) {
+	case MODE_AUDIO:
+		return 2352;
+	case MODE_MODE1_2048:
+	case MODE_MODE1_2352:
+		return 2048;
+	case MODE_MODE2_2336:
+	case MODE_MODE2_2352:
+	case MODE_CDI_2336:
+	case MODE_CDI_2352:
+		return 2336;
+	case MODE_CD_G:
+		return 2448;
+	default:
+		break;
 	}
 	// OK?
 	return 2048;
@@ -1471,14 +1504,18 @@ bool TOWNS_CDROM::read_buffer(int length)
 		return false;
 	}
 	while(length > 0) {
-		uint8_t tmp_buffer[2352];
-		int tmp_length = 2352 - offset;
+		uint8_t tmp_buffer[2448];
+		int tmp_length = physical_block_size() - offset;
 		if(fio_img->Fread(tmp_buffer, tmp_length, 1) != 1) {
 			status_illegal_lba(0, 0x00, 0x00, 0x00);			
 			return false;
 		}
-		if(logical_block_size() > 2336) { // Maybe raw
-			for(int i = 0; i < tmp_length; i++) {
+		int noffset = 16;
+		if(logical_block_size() >= physical_block_size()) { // Maybe raw
+			noffset = 0;
+		}
+		for(int i = 0; i < tmp_length; i++) {
+			if((offset >= noffset) && (offset < (noffset + logical_block_size()))) {
 				int value = tmp_buffer[i];
 				buffer->write(value);
 //				is_data_in = false;
@@ -1493,28 +1530,9 @@ bool TOWNS_CDROM::read_buffer(int length)
 				}
 			}
 			position++;
-			offset = (offset + 1) % 2352;
-		} else { // MODE1 or MODE2
-			for(int i = 0; i < tmp_length; i++) {
-				if((offset >= 16) && (offset < (16 + logical_block_size()))) {
-					int value = tmp_buffer[i];
-					buffer->write(value);
-//				is_data_in = false;
-					length--;
-					read_length--;
-					// Kick DRQ
-					if(event_drq < 0) {
-						if(dma_transfer) {
-							out_debug_log(_T("KICK DRQ"));
-							register_event(this, EVENT_CDROM_DRQ, 1.0e6 / ((double)transfer_speed * 150.0e3), true, &event_drq);
-						}
-					}
-				}
-				position++;
-				offset = (offset + 1) % 2352;
-			}
-			access = true;
+			offset = (offset + 1) % physical_block_size();
 		}
+		access = true;
 	}
 	return true;
 }
@@ -1591,7 +1609,7 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 	if(sectors < 1) {
 		return -1;
 	}
-	uint8_t tmpbuf[sectors * 2352 + 8];
+	uint8_t tmpbuf[sectors * 2448 + 8];
 	int n_sectors = 0;
 	int m_sectors = 0;
 	bool last_read = false;
@@ -2182,16 +2200,45 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std
 		toc_table[nr_current_track].index0 = 0;
 		toc_table[nr_current_track].index1 = 0;
 		toc_table[nr_current_track].pregap = 0;
+		toc_table[nr_current_track].physical_size = 2352;
+		toc_table[nr_current_track].logical_size = 2048;
 		int track_type;
 		try {
 			track_type = cue_type.at(_arg3);
 		} catch (std::out_of_range &e) {
 			track_type = MODE_NONE;
 		}
+		toc_table[nr_current_track].type = track_type;
 					
 		switch(track_type) {
 		case MODE_AUDIO:
 			toc_table[nr_current_track].is_audio = true; 
+			toc_table[nr_current_track].logical_size = 2352;
+			break;
+		case MODE_MODE1_2048:
+			toc_table[nr_current_track].logical_size = 2048;
+			toc_table[nr_current_track].physical_size = 2048;
+			break;
+		case MODE_MODE1_2352:
+			toc_table[nr_current_track].logical_size = 2048;
+			break;
+		case MODE_MODE2_2336:
+			toc_table[nr_current_track].logical_size = 2336;
+			toc_table[nr_current_track].physical_size = 2336;
+			break;
+		case MODE_MODE2_2352:
+			toc_table[nr_current_track].logical_size = 2336;
+			break;
+		case MODE_CDI_2336:
+			toc_table[nr_current_track].logical_size = 2336;
+			toc_table[nr_current_track].physical_size = 2336;
+			break;
+		case MODE_CDI_2352:
+			toc_table[nr_current_track].logical_size = 2336;
+			break;
+		case MODE_CD_G:
+			toc_table[nr_current_track].logical_size = 2448;
+			toc_table[nr_current_track].physical_size = 2448;
 			break;
 			// ToDo: Set data size.
 		}
@@ -2387,7 +2434,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				//}
 				if((strlen(track_data_path[i - 1]) > 0) && (with_filename[i])) {
 					if(fio_img->Fopen(track_data_path[i - 1], FILEIO_READ_BINARY)) {
-						if((_n = fio_img->FileLength() / 2352) > 0) {
+						if((_n = fio_img->FileLength() / physical_block_size()) > 0) {
 							max_logical_block += _n;
 						} else {
 							_n = 0;
@@ -2421,10 +2468,11 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				//#endif
 			}
 			toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
+			toc_table[0].physical_size = 2352;
+			toc_table[0].logical_size = 2048;
 			toc_table[track_num].index0 = toc_table[track_num].index1 = max_logical_block;
 			toc_table[track_num].lba_offset = max_logical_block;
 			toc_table[track_num].lba_size = 0;
-			
 		}
 		fio->Fclose();
 	}
@@ -2505,6 +2553,10 @@ void TOWNS_CDROM::open_from_cmd(const _TCHAR* file_path)
 						toc_table[0].lba_offset = 0;
 						toc_table[0].pregap = 0;
 						for(int i = 1; i < track_num; i++) {
+							// ToDo: Some types.
+							toc_table[i].physical_size = 2352;
+							toc_table[i].logical_size = (toc_table[i].is_audio) ? 2352 : 2048;
+							toc_table[i].type = (toc_table[i].is_audio) ? MODE_AUDIO : MODE_MODE1_2352;
 							toc_table[i].index0 = toc_table[i].index1 - toc_table[i].pregap;
 							toc_table[i].lba_offset = toc_table[i].pregap;
 							toc_table[i - 1].lba_size = toc_table[i].pregap - toc_table[i - 1].pregap;
