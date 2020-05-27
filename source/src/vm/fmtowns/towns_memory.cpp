@@ -254,6 +254,7 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		}
 		break;
 	case 0x0022:
+		val = 0xff;
 //		if(d_dmac != NULL) {
 //			val = d_dmac->read_signal(SIG_TOWNS_DMAC_ADDR_REG);
 //		}
@@ -492,9 +493,9 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		
 		if((data & 0x40) != 0) {
 			poff_status = true;
-//			if(d_cpu != NULL) {
-//				d_cpu->set_shutdown_flag(1);
-//			}
+			if(d_cpu != NULL) {
+				d_cpu->set_shutdown_flag(1);
+			}
 			// Todo: Implement true power off.
 //			emu->power_off();
 		} else {
@@ -516,9 +517,9 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x0022:
 		if((data & 0x40) != 0) {
-//			if(d_cpu != NULL) {
-//				d_cpu->set_shutdown_flag(1);
-//			}
+			if(d_cpu != NULL) {
+				d_cpu->set_shutdown_flag(1);
+			}
 			// Todo: Implement true power off.
 //			emu->power_off();
 		}

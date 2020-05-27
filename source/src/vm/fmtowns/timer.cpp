@@ -49,8 +49,8 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 			tmout0 = false;
 		}
 		intr_reg = data;
-		update_intr();
 		d_pcm->write_signal(SIG_PCM1BIT_ON, data, 4);
+		update_intr();
 		break;
 	case 0x0068: // Interval control
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
@@ -75,7 +75,7 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 			do_interval();
 		}
 	case 0x006c: // Wait register.
-		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
+		/*if(machine_id >= 0x0300) */{ // After UX*/10F/20F/40H/80H
 			if(event_wait_1us != -1) cancel_event(this, event_wait_1us);
 			register_event(this, EVENT_1US_WAIT, 1.0, false, &event_wait_1us);
 			write_signals(&outputs_halt_line, 0xffffffff);
@@ -116,7 +116,7 @@ uint32_t TIMER::read_io8(uint32_t addr)
 	case 0x0027:
 		return free_run_counter >> 8;
 	case 0x0060:
-		return (tmout0 ? 1 : 0) | (tmout1 ? 2 : 0) | ((intr_reg & 7) << 2) | 0xe0;
+		return (tmout0 ? 1 : 0) | (tmout1 ? 2 : 0) | ((intr_reg & 7) << 2) | 0x00;
 	case 0x0068: //
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
 			uint8_t val = (interval_enabled) ? 0x1f : 0x9f;
@@ -126,6 +126,7 @@ uint32_t TIMER::read_io8(uint32_t addr)
 			intv_ov = false;
 			return val;
 		}
+		break;
 	case 0x006a: // Interval control
 	case 0x006b: // Interval control
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
@@ -138,9 +139,13 @@ uint32_t TIMER::read_io8(uint32_t addr)
 		}
 		break;
 	case 0x006c: // Wait register.
-		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-			return 0x00;
+		/*if(machine_id >= 0x0300) */{ // After UX*/10F/20F/40H/80H
+			if(event_wait_1us != -1) cancel_event(this, event_wait_1us);
+			register_event(this, EVENT_1US_WAIT, 1.0, false, &event_wait_1us);
+			write_signals(&outputs_halt_line, 0xffffffff);
+//			return 0x00;
 		}
+		break;
 	case 0x0070:
 		return (rtc_data & 0x7f) | ((rtc_busy) ? 0x80 : 0x00);
 	}
