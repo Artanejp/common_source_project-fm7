@@ -566,19 +566,15 @@ void TOWNS_CDROM::set_dma_intr(bool val)
 				  (stat_reply_intr) ? _T("ON ") : _T("OFF"));				  
 	if(val) {
 		// At least, DMA interrupt mask is needed (by TownsOS v.1.1) 20200511 K.O
-		if(stat_reply_intr) {
-			if(!(dma_intr_mask)) {
-			dma_intr = true;
-//			if(mcu_intr) write_signals(&outputs_mcuint, 0x0);
-//			if(!(dma_intr_mask)) {
+		dma_intr = true;
+		if(!(dma_intr_mask)) {
+			if(stat_reply_intr) {
 				write_signals(&outputs_mcuint, 0xffffffff);
 			}
-		} else {
-			dma_intr = true;
 		}
 	} else {
 		dma_intr = false;
-		write_signals(&outputs_mcuint, 0x0);
+		/*if(!(mcu_intr)) */write_signals(&outputs_mcuint, 0x0);
 	}
 }
 
@@ -587,17 +583,16 @@ void TOWNS_CDROM::set_mcu_intr(bool val)
 	out_debug_log(_T("set_mcu_intr(%s) MASK=%s stat_reply_intr = %s"),
 				  (val) ? _T("true ") : _T("false"),
 				  (mcu_intr_mask) ? _T("ON ") : _T("OFF"),
-				  (stat_reply_intr) ? _T("ON ") : _T("OFF"));				  
+				  (stat_reply_intr) ? _T("ON ") : _T("OFF"));
+	if(!((val) && (mcu_intr_mask))) {
+		mcu_intr = val;
+	}
 	if(stat_reply_intr) {
-//			if(!(mcu_intr_mask)) {
-		mcu_intr = val;
-//			if(dma_intr) write_signals(&outputs_mcuint, 0x0);
-//		if(!(mcu_intr_mask)) {
-//		if(!(dma_intr) && !(mcu_intr_mask)) {
-		write_signals(&outputs_mcuint, (val) ? 0xffffffff : 0);
-//		}
-	} else {
-		mcu_intr = val;
+		if(!(val) /*&& !(dma_intr)*/) {
+			write_signals(&outputs_mcuint, 0);
+		} else if((val) /*&& !(mcu_intr_mask)*/) {
+			write_signals(&outputs_mcuint, 0xffffffff);
+		}
 	}
 }
 
@@ -709,9 +704,9 @@ void TOWNS_CDROM::status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s
 void TOWNS_CDROM::execute_command(uint8_t command)
 {
 //	status &= ~0x02;
-	set_mcu_intr(false);
+//	set_mcu_intr(false);
 	latest_command = command;
-	if(!(mounted()) && (command != 0xa0))  { // 20200516 Mame 0.216
+	if(!(mounted()) && ((command & 0x80) != 0x80))  { // 20200516 Mame 0.216
 		status_not_ready();
 		return;
 	}
@@ -778,14 +773,14 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 //		case 0x08: // yyy
 //			if(param_queue[1] == 0x01) {
 		if(req_status) {
-			uint8_t playcode;
+			uint8_t playcode = 0;
 			if((cdda_status == CDDA_PLAYING)
 			   && (current_track >= 0) && (current_track < track_num)
 			   && (toc_table[current_track].is_audio)) { // OK?
 				playcode = (media_changed) ? 0x09 : 0x03;
-			} else {
-//				playcode = (media_changed) ? 0x09 : 0x01;
-				playcode = (media_changed) ? 0x09 : 0x00;
+			} else if(toc_table[current_track].is_audio) {
+				playcode = (media_changed) ? 0x09 : 0x01;
+//				playcode = (media_changed) ? 0x09 : 0x00;
 			}
 			media_changed = false;
 			out_debug_log(_T("CMD SET STATE(%02X) PARAM=%02X %02X %02X %02X %02X %02X %02X %02X REPLY=%d"),
@@ -1112,7 +1107,7 @@ void TOWNS_CDROM::set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1
 		status_queue->write(s3);
 		set_delay_ready();
 	} else {
-		set_delay_ready2();
+		set_delay_ready();
 
 	}
 	out_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
@@ -1434,15 +1429,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_CDROM_DMA_EOT:
 		event_next_sector = -1;
 		if(read_length <= 0) {
-//			dma_transfer_phase = false;
-//			status_queue->clear();
-//			extra_status = 0;
-//			status_queue->write(TOWNS_CD_STATUS_READ_DONE);
-//			status_queue->write(0x00);
-//			status_queue->write(0x00);
-//			status_queue->write(0x00);
-//			mcu_intr = false;
-//			set_dma_intr(true);
 			pio_transfer_phase = false;
 			dma_transfer_phase = false;
 			out_debug_log(_T("EOT(DMA)@EVENT_CDROM_DMA_EOT"));
@@ -2682,27 +2668,14 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 		mcu_intr_mask = ((data & 0x02) == 0) ? true : false;
 		dma_intr_mask = ((data & 0x01) == 0) ? true : false;
 		if((data & 0x80) != 0) {
-			if(mcu_intr) set_mcu_intr(false);
-/*			
-			switch(latest_command & 0x9f) {
-			case CDROM_COMMAND_READ_MODE2:
-			case CDROM_COMMAND_READ_MODE1:
-			case CDROM_COMMAND_READ_RAW:
-				if((read_length > 0) && (event_next_sector < 0) && (event_seek_completed < 0)) {
-					if(((cdrom_prefetch) && (buffer->left() >= logical_block_size())) ||
-					   (buffer->empty())) {
-						register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-									   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 16.0, // OK?
-									   false, &event_seek_completed);
-					}
-				}
-				break;
-			}
-*/
+			if(!(dma_intr)) set_mcu_intr(false);
+			mcu_intr = false;
 		}
 		if((data & 0x40) != 0) {
-			if(dma_intr) set_dma_intr(false);
+			if(!(mcu_intr)) set_dma_intr(false);
+			dma_intr = false;
 		}
+		out_debug_log(_T("04C0h=%02X"), data);
 		break;
 	case 0x02: // Command
 		if(mcu_ready) {
