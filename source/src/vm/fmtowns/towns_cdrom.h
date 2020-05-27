@@ -142,11 +142,15 @@ protected:
 
 	bool is_cue;
 	struct {
+		int type;
 		int32_t index0, index1, pregap;
 		uint32_t lba_offset;
 		uint32_t lba_size;
+		uint64_t bytes_offset;
+		int physical_size;
+		int logical_size;
 		bool is_audio;
-	} toc_table[1024];
+	} toc_table[102];
 	_TCHAR track_data_path[100][_MAX_PATH];
 	_TCHAR img_file_path_bak[_MAX_PATH];
 	bool with_filename[100];
@@ -353,6 +357,9 @@ public:
 	virtual int logical_block_size();
 	virtual const int physical_block_size()
 	{
+		if(toc_table[current_track].physical_size > 0) {
+			return toc_table[current_track].physical_size;
+		}
 		return 2352; // OK?
 	}
 	uint8_t get_cdda_status()
