@@ -74,8 +74,6 @@ void RF5C68::reset()
 	mix_factor = (int)(dac_rate * 4096.0 / (double)mix_rate);
 	mix_count = 0;
 	dac_on = false;
-	
-	sample_count = 0;
 }
 
 uint32_t RF5C68::read_signal(int ch)
@@ -575,7 +573,6 @@ void RF5C68::initialize_sound(int sample_rate, int samples)
 		mix_rate = 0;
 		sample_tick_us = 0.0;
 	}
-	sample_count = 0;
 }
 
 void RF5C68::write_debug_data8(uint32_t addr, uint32_t data)
@@ -663,24 +660,45 @@ bool RF5C68::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(dac_force_load, sizeof(dac_force_load), 1);
 	state_fio->StateArray(dac_tmpval, sizeof(dac_tmpval), 1);
 
-	state_fio->StateValue(sample_words);
-	state_fio->StateValue(sample_pointer);
-	state_fio->StateValue(read_pointer);
-
-	state_fio->StateValue(mix_factor);
-	state_fio->StateValue(mix_count);
+//	state_fio->StateValue(sample_words);
+//	state_fio->StateValue(sample_pointer);
+//	state_fio->StateValue(read_pointer);
+//	int sample_length_old = sample_length;
+//	state_fio->StateValue(sample_length);
+	
+//	state_fio->StateValue(mix_factor);
+//	state_fio->StateValue(mix_count);
 	state_fio->StateValue(dac_rate);
 	
 	state_fio->StateArray(wave_memory, sizeof(wave_memory), 1);
 
+	// ToDo: Save/Load sample_buffer.
 	// Post Process
 	if(loading) {
+		// ToDo: load sample_length & sample_buffer.
 		if(mix_rate > 0) {
 			sample_tick_us = 1.0e6 / ((double)mix_rate);
+			mix_factor = (int)(dac_rate * 4096.0 / (double)mix_rate);
+			mix_count = 0;
 		} else {
 			sample_tick_us = 0;
+			mix_count = 0;
+			mix_factor = 0;
 		}
-		sample_count = 0;
+		read_pointer = 0;
+		sample_pointer = 0;
+		sample_words = 0;
+		
+		if(sample_buffer != NULL) free(sample_buffer);
+		sample_buffer = NULL;
+		if(sample_length > 0) {
+			sample_buffer = (int32_t*)malloc(sample_length * sizeof(int32_t) * 2);
+			if(sample_buffer != NULL) {
+				memset(sample_buffer, 0x00, sample_length * sizeof(int32_t) * 2);
+			}
+		}
+	} else { // Saving
+		// ToDo: save sample_length & sample_buffer.
 	}
 	return true;
 }

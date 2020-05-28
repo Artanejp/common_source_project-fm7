@@ -68,7 +68,6 @@ protected:
 	int32_t* sample_buffer;
 
 	int sample_length;
-	int sample_count;
 	
 	int mix_rate;
 	double sample_tick_us;
@@ -84,7 +83,6 @@ public:
 		volume_l = volume_r = 1024;
 		sample_buffer = NULL;
 		sample_length = 0;
-		sample_count = 0;
 		mix_rate = 0;
 		sample_tick_us = 0.0;
 		is_mute = true;
