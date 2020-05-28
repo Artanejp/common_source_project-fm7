@@ -244,6 +244,7 @@ __DECL_VECTORIZED_LOOP
 			}
 			sample_pointer = (sample_pointer + 1) % sample_length;
 			sample_words++;
+			sample_words = (sample_words >= sample_length) ? sample_length : sample_words;
 		}
 		break;
 	case SIG_RF5C68_CLEAR_INTR:
@@ -401,8 +402,8 @@ void RF5C68::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 
 void RF5C68::set_volume(int ch, int decibel_l, int decibel_r)
 {
-	volume_l = decibel_to_volume(decibel_l);
-	volume_r = decibel_to_volume(decibel_r);
+	volume_l = decibel_to_volume(decibel_l - 4);
+	volume_r = decibel_to_volume(decibel_r - 4);
 }
 
 void RF5C68::event_callback(int id, int err)
@@ -445,16 +446,70 @@ void RF5C68::mix(int32_t* buffer, int cnt)
 {
 	
 	int32_t lval, rval;
+	int32_t lval2, rval2;
 	// ToDo: supress pop noise.
 	if(cnt <= 0) return;
 	if(is_mute) return;
 	
 	if(sample_buffer != NULL) {
-		int32_t lval;
-		int32_t rval;
-		lval = apply_volume(sample_buffer[(read_pointer << 1) + 0], volume_l) >> 1;
-		rval = apply_volume(sample_buffer[(read_pointer << 1) + 1], volume_r) >> 1;
+		__DECL_ALIGNED(16) int32_t val[4] = {0};
+		if(sample_pointer > read_pointer) {
+			if((sample_pointer - 2) >= (read_pointer)) {
+				val[0] = sample_buffer[(read_pointer << 1) + 2];
+				val[1] = sample_buffer[(read_pointer << 1) + 3];
+				val[2] = sample_buffer[(read_pointer << 1) + 0];
+				val[3] = sample_buffer[(read_pointer << 1) + 1];
+			} else {
+				val[2] = sample_buffer[(read_pointer << 1) + 0];
+				val[3] = sample_buffer[(read_pointer << 1) + 1];
+				if(read_pointer == 0) {
+					val[0] = val[2];
+					val[1] = val[3];
+				} else {
+					val[0] = sample_buffer[((read_pointer + 1) << 1) + 0];
+					val[1] = sample_buffer[((read_pointer + 1) << 1) + 1];
+				}
+			}
+		} else if(sample_pointer == read_pointer) {
+			if(read_pointer < 2) {
+				val[2] = sample_buffer[(read_pointer << 1) + 0];
+				val[3] = sample_buffer[(read_pointer << 1) + 1];
+				val[0] = sample_buffer[(read_pointer << 1) + 0];
+				val[1] = sample_buffer[(read_pointer << 1) + 1];
+			} else {
+				val[2] = sample_buffer[((read_pointer - 2) << 1) + 0];
+				val[3] = sample_buffer[((read_pointer - 2) << 1) + 1];
+				val[0] = sample_buffer[((read_pointer - 1) << 1) + 0];
+				val[1] = sample_buffer[((read_pointer - 1) << 1) + 1];
+			}
+		} else {
+			if(sample_words > 1) {
+				val[2] = sample_buffer[((read_pointer + 0) << 1) + 0];
+				val[3] = sample_buffer[((read_pointer + 0) << 1) + 1];
+				val[0] = sample_buffer[((read_pointer + 1) << 1) + 0];
+				val[1] = sample_buffer[((read_pointer + 1) << 1) + 1];
+			} else {
+				val[0] = sample_buffer[((read_pointer + 0) << 1) + 0];
+				val[1] = sample_buffer[((read_pointer + 0) << 1) + 1];
+				val[2] = sample_buffer[((read_pointer + 0) << 1) + 0];
+				val[3] = sample_buffer[((read_pointer + 0) << 1) + 1];
+			}
+		}
+//		lval = apply_volume(sample_buffer[(read_pointer << 1) + 0], volume_l) >> 1;
+//		rval = apply_volume(sample_buffer[(read_pointer << 1) + 1], volume_r) >> 1;
 		for(int i = 0; i < (cnt << 1); i += 2) {
+			int32_t interp_p = mix_count;
+			int32_t interp_n = 4096 - mix_count;
+			lval2 = (interp_p * (val[0] - val[2])) >> 12;
+			rval2 = (interp_p * (val[1] - val[3])) >> 12;
+//			lval = (val[0] *  ((4096 >> 4) * 3)) + (lval2 * (4096 - ((4096 >> 4) * 3)));
+//			rval = (val[1] *  ((4096 >> 4) * 3)) + (rval2 * (4096 - ((4096 >> 4) * 3)));
+//			lval >>= 12;
+//			rval >>= 12;
+			lval = val[2] + lval2;
+			rval = val[3] + rval2;
+			lval = apply_volume(lval, volume_l) >> 1;
+			rval = apply_volume(rval, volume_r) >> 1;
 			// ToDo: interpoolate.
 			buffer[i]     += lval;
 			buffer[i + 1] += rval; 
@@ -466,8 +521,10 @@ void RF5C68::mix(int32_t* buffer, int cnt)
 				if(sample_words > 0) {
 					// Reload data
 					read_pointer = (read_pointer + n) % sample_length;
-					lval = apply_volume(sample_buffer[(read_pointer << 1) + 0], volume_l) >> 1;
-					rval = apply_volume(sample_buffer[(read_pointer << 1) + 1], volume_r) >> 1;
+					val[0] = val[2];
+					val[1] = val[3];
+					val[2] = sample_buffer[(read_pointer << 1) + 0];
+					val[3] = sample_buffer[(read_pointer << 1) + 1];
 				} else {
 					read_pointer = sample_pointer;
 				}
