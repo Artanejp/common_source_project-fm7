@@ -1119,23 +1119,8 @@ int OSD::add_video_frames()
 	} else {
 		//int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;
-		if(p_glv->is_ready_to_map_vram_texture()) {
-			vm_screen_buffer.is_mapped = true;
-			vm_screen_buffer.glv = p_glv;
-			for(int y = 0; y < vm_screen_buffer.pImage.height(); y++) {
-				scrntype_t *p = vm_screen_buffer.get_buffer(y);
-				if(p != NULL) {
-					if(p != (scrntype_t*)(vm_screen_buffer.pImage.scanLine(y))) {
-						memcpy(vm_screen_buffer.pImage.scanLine(y), p, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
-					}
-				} else {
-					if(vm_screen_buffer.pImage.scanLine(y) != NULL) {
-						memset(vm_screen_buffer.pImage.scanLine(y), 0x00, vm_screen_buffer.pImage.width() * sizeof(scrntype_t));
-					}
-				}
-			}
-		}
-		QImage video_result = QImage(vm_screen_buffer.pImage);
+		QImage video_result;
+		video_result = QImage(vm_screen_buffer.pImage);
 		// Rescaling
 		if(i > 0) {
 			// Enqueue to frame.

@@ -73,10 +73,10 @@ void EmuThreadClass::set_romakana(bool flag)
 
 int EmuThreadClass::get_interval(void)
 {
-	static int accum = 0;
-	accum += p_emu->get_frame_interval();
-	int interval = accum >> 11;
-	accum -= interval << 11;
+	static int64_t accum = 0;
+	accum += (p_emu->get_frame_interval() / 2);
+	int interval = accum >> 10;
+	accum -= interval << 10;
 	return interval;
 }
 
@@ -427,7 +427,7 @@ void EmuThreadClass::doWork(const QString &params)
 	//key_up_queue.clear();
 	//key_down_queue.clear();
 	clear_key_queue();
-
+	bool half_count = false;
 	for(int i = 0; i < using_flags->get_max_qd(); i++) qd_text[i].clear();
 	for(int i = 0; i < using_flags->get_max_drive(); i++) {
 		fd_text[i].clear();
@@ -493,11 +493,13 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 
 			if(bResetReq != false) {
+				half_count = false;
 				resetEmu();
 				bResetReq = false;
 				req_draw = true;
 			}
 			if(bSpecialResetReq != false) {
+				half_count = false;
 				specialResetEmu();
 				bSpecialResetReq = false;
 			}
@@ -580,25 +582,26 @@ void EmuThreadClass::doWork(const QString &params)
 					//printf("%08x %04x %08x %d\n", sp.type, sp.code, sp.mod, sp.repeat); 
 					switch(sp.type) {
 					case KEY_QUEUE_UP:
-							key_mod = sp.mod;
-							p_emu->get_osd()->key_modifiers(sp.mod);
-							p_emu->key_up(sp.code, true); // need decicion of extend.
-							break;
+						key_mod = sp.mod;
+						p_emu->get_osd()->key_modifiers(sp.mod);
+						p_emu->key_up(sp.code, true); // need decicion of extend.
+						break;
 					case KEY_QUEUE_DOWN:
-							if(config.romaji_to_kana) {
-								p_emu->get_osd()->key_modifiers(sp.mod);
-								p_emu->key_char(sp.code);
-							} else {
-								p_emu->get_osd()->key_modifiers(sp.mod);
-								p_emu->key_down(sp.code, true, sp.repeat);
-							}
-							break;
+						if(config.romaji_to_kana) {
+							p_emu->get_osd()->key_modifiers(sp.mod);
+							p_emu->key_char(sp.code);
+						} else {
+							p_emu->get_osd()->key_modifiers(sp.mod);
+							p_emu->key_down(sp.code, true, sp.repeat);
+						}
+						break;
 					default:
 						break;
 					}
 				}
 			}
-			if(multithread_draw) {
+			
+			if(!(half_count)  && (multithread_draw)) {
 				if(nr_fps < 0.0) {
 					nr_fps = get_emu_frame_rate();
 					if(nr_fps >= 1.0) emit sig_set_draw_fps(nr_fps);
@@ -606,50 +609,67 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 			run_frames = p_emu->run();
 			total_frames += run_frames;
-			if(using_flags->is_use_minimum_rendering()) {
+				
+			if(!(half_count)) {
+				if(using_flags->is_use_minimum_rendering()) {
 #if defined(USE_MINIMUM_RENDERING)
-				req_draw |= p_emu->is_screen_changed();
+					req_draw |= p_emu->is_screen_changed();
 #else
-				req_draw = true;
+					req_draw = true;
 #endif
-			} else {
-				req_draw = true;
-			}
+				} else {
+					req_draw = true;
+				}
 
 #if defined(USE_KEY_LOCKED) && !defined(INDEPENDENT_CAPS_KANA_LED)
-			led_data = p_emu->get_caps_locked() ? 0x01 : 0x00;
-			led_data |= (p_emu->get_kana_locked() ? 0x02 : 0x00);
+				led_data = p_emu->get_caps_locked() ? 0x01 : 0x00;
+				led_data |= (p_emu->get_kana_locked() ? 0x02 : 0x00);
 #else
-			led_data = 0x00;
+				led_data = 0x00;
 #endif
 #if defined(USE_LED_DEVICE)
-  #if !defined(INDEPENDENT_CAPS_KANA_LED)
-			led_data <<= USE_LED_DEVICE;
-  #endif
-	   		led_data |= p_emu->get_led_status();
+#if !defined(INDEPENDENT_CAPS_KANA_LED)
+				led_data <<= USE_LED_DEVICE;
+#endif
+				led_data |= p_emu->get_led_status();
 #endif
 
 #if defined(USE_LED_DEVICE) || defined(USE_KEY_LOCKED)
-			if(led_data != led_data_old) {
-				emit sig_send_data_led((quint32)led_data);
-				led_data_old = led_data;
-			}
+				if(led_data != led_data_old) {
+					emit sig_send_data_led((quint32)led_data);
+					led_data_old = led_data;
+				}
 #endif
-			sample_access_drv();
-			now_skip = p_emu->is_frame_skippable() && !p_emu->is_video_recording();
-			if(config.full_speed) {
-				interval = 1;
-			} else {
-				interval = get_interval();
+				sample_access_drv();
+				now_skip = p_emu->is_frame_skippable() && !p_emu->is_video_recording();
+				if(config.full_speed) {
+					interval = 1;
+				} else {
+					interval = get_interval();
+				}
+				if((prev_skip && !now_skip) || next_time == 0) {
+					next_time = tick_timer.elapsed();
+					//next_time = SDL_GetTicks();
+				}
+				if(!now_skip) {
+					next_time += interval;
+				}
+//				prev_skip = now_skip;
+			} else { // (half_count)
+				if(config.full_speed) {
+					interval = 1;
+				} else {
+					interval = get_interval();
+				}
+//				if((prev_skip && !now_skip) || next_time == 0) {
+//					next_time = tick_timer.elapsed();
+//					//next_time = SDL_GetTicks();
+//				}
+				if(!now_skip) {
+					next_time += interval;
+				}
+				prev_skip = now_skip;
 			}
-			if((prev_skip && !now_skip) || next_time == 0) {
-				next_time = tick_timer.elapsed();
-				//next_time = SDL_GetTicks();
-			}
-			if(!now_skip) {
-				next_time += interval;
-			}
-			prev_skip = now_skip;
 #if 0
 			{
 				struct tm *timedat;
@@ -686,20 +706,23 @@ void EmuThreadClass::doWork(const QString &params)
 					no_draw_count = 0;
 					//emit sig_draw_thread(true);
 				}
+				if(!(half_count)) 
 				{
 					double nd;
 					nd = emu->get_frame_rate();
 					if(nr_fps != nd) emit sig_set_draw_fps(nd);
 					nr_fps = nd;
 				}
-				if(multithread_draw) {
-					emit sig_draw_thread(req_draw);
-				} else {
-					emit sig_draw_thread(req_draw);
-					emit sig_draw_one_turn(true);
+				if(!(half_count)) {
+					//printf("DRAW %dmsec\n", tick_timer.elapsed());
+					if(multithread_draw) {
+						emit sig_draw_thread(req_draw);
+					} else {
+						emit sig_draw_thread(req_draw);
+						emit sig_draw_one_turn(true);
+					}
+					skip_frames = 0;
 				}
-				skip_frames = 0;
-			
 				// sleep 1 frame priod if need
 				current_time = tick_timer.elapsed();
 				//current_time = SDL_GetTicks();
@@ -711,17 +734,21 @@ void EmuThreadClass::doWork(const QString &params)
 				}
 			} else if(++skip_frames > MAX_SKIP_FRAMES) {
 				// update window at least once per 10 frames
+				if(!(half_count)) 
 				{
 					double nd;
 					nd = emu->get_frame_rate();
 					if(nr_fps != nd) emit sig_set_draw_fps(nd);
 					nr_fps = nd;
 				}
-				if(multithread_draw) {
-					emit sig_draw_thread(req_draw);
-				} else {
-					emit sig_draw_thread(req_draw);
-					emit sig_draw_one_turn(true);
+				if(!(half_count)) {
+					//printf("DRAW(SKIP) %dmsec\n", tick_timer.elapsed());
+					if(multithread_draw) {
+						emit sig_draw_thread(req_draw);
+					} else {
+						emit sig_draw_thread(req_draw);
+						emit sig_draw_one_turn(true);
+					}
 				}
 				no_draw_count = 0;
 				skip_frames = 0;
@@ -750,6 +777,8 @@ void EmuThreadClass::doWork(const QString &params)
 			msleep(sleep_period);
 			//SDL_Delay(sleep_period);
 		}
+//		printf("HALF=%s %dmsec\n", (half_count) ? "YES" : "NO ", tick_timer.elapsed());
+		half_count = !(half_count);
 		//SDL_Delay(sleep_period);
 	} while(1);
 _exit:
