@@ -34,7 +34,7 @@ void JOYSTICK::reset()
 	if(mouse_sampling_event >= 0) {
 		cancel_event(this, mouse_sampling_event);
 	}
-//	register_event(this, EVENT_MOUSE_SAMPLING, 8.0e3, true, &mouse_sampling_event);
+	register_event(this, EVENT_MOUSE_SAMPLING, 8.0e3, true, &mouse_sampling_event);
 }
 
 void JOYSTICK::initialize()
@@ -49,7 +49,7 @@ void JOYSTICK::initialize()
 	mouse_sampling_event = -1;
 	set_emulate_mouse();
 	mouse_type = config.mouse_type;
-	register_frame_event(this);
+//	register_frame_event(this);
 }
 
 void JOYSTICK::release()
@@ -214,6 +214,27 @@ void JOYSTICK::event_callback(int event_id, int err)
 			mouse_button = 0x00;
 			if((stat & 0x01) == 0) mouse_button |= 0x10; // left
 			if((stat & 0x02) == 0) mouse_button |= 0x20; // right
+		}
+		rawdata = emu->get_joy_buffer();
+		if(rawdata == NULL) return;
+		uint8_t retval;
+		uint8_t val;
+		for(ch = 0; ch < 2; ch++) {
+			if(!emulate_mouse[ch]) { // Joystick
+				val = rawdata[ch];
+				retval = 0x00;	   
+				if(val & 0x01) retval |= 0x01;
+				if(val & 0x02) retval |= 0x02;
+				if(val & 0x04) retval |= 0x04;
+				if(val & 0x08) retval |= 0x08;
+				if(val & 0x10) retval |= 0x10;
+				if(val & 0x20) retval |= 0x20;
+				if(val & 0x40) retval |= 0x40;  // RUN
+				if(val & 0x80) retval |= 0x80;  // SELECT
+//			out_debug_log(_T("JOY DATA[%d]=%02X"), ch, retval);
+				joydata[ch] = retval;
+			}
+			// Note: MOUSE don't update at vsync.
 		}
 		break;
 	}
