@@ -9,15 +9,10 @@
 #include "./rf5c68.h"
 #include "../debugger.h"
 
-#define EVENT_DAC_SAMPLE	1
-#define EVENT_ADPCM_CLOCK	2
 void RF5C68::initialize()
 {
 	// DAC
 	memset(wave_memory, 0x00, sizeof(wave_memory));
-	event_adpcm_clock = -1;
-	event_dac_sample = -1;
-	dac_on = false;
 	dac_bank = 0;
 	dac_ch = 0;
 	for(int i = 0; i < 8; i++) {
@@ -31,11 +26,9 @@ void RF5C68::initialize()
 		dac_addr[i] = 0x00000000;
 		dac_force_load[i] = false;
 	}
-	dac_on = false;
 	dac_bank = 0;
 	dac_ch = 0;
 	sample_buffer = NULL;
-
 	if(d_debugger != NULL) {
 		d_debugger->set_device_name(_T("Debugger (RICOH RF5C68)"));
 		d_debugger->set_context_mem(this);
@@ -47,7 +40,6 @@ void RF5C68::release()
 {
 	if(sample_buffer != NULL) free(sample_buffer);
 	sample_buffer = NULL;
-	event_adpcm_clock = -1;
 }
 
 void RF5C68::reset()
@@ -70,29 +62,20 @@ void RF5C68::reset()
 	if((sample_buffer != NULL) && (sample_length > 0)) {
 		memset(sample_buffer, 0x00, sample_length * sizeof(int32_t) * 2);
 	}
-	if(event_dac_sample != -1) {
-		cancel_event(this, event_dac_sample);
-		event_dac_sample = -1;
-	}
+	read_pointer = 0;
+	sample_pointer = 0;
+	sample_words = 0;
 	
 	if(mix_rate > 0) {
 		sample_tick_us = 1.0e6 / ((double)mix_rate);
-		register_event(this, EVENT_DAC_SAMPLE, sample_tick_us, true, &event_dac_sample);
 	} else {
 		sample_tick_us = 0;
 	}
-	sample_words = 0;
-	sample_pointer = 0;
-	read_pointer = 0;
 	mix_factor = (int)(dac_rate * 4096.0 / (double)mix_rate);
 	mix_count = 0;
+	dac_on = false;
 	
 	sample_count = 0;
-	if(event_adpcm_clock > -1) {
-		cancel_event(this, event_adpcm_clock);
-		event_adpcm_clock = -1;
-	}
-//	register_event(this, EVENT_ADPCM_CLOCK, (384.0 * 2.0) / 16.0, true, &event_adpcm_clock);
 }
 
 uint32_t RF5C68::read_signal(int ch)
@@ -254,7 +237,18 @@ __DECL_VECTORIZED_LOOP
 		write_signals(&interrupt_boundary, 0x80000008);
 		break;
 	case SIG_RF5C68_MUTE:
-		is_mute = ((data & mask) != 0) ? true : false;
+		{
+			bool old_is_mute = is_mute;
+			is_mute = ((data & mask) != 0) ? true : false;
+			if((is_mute != old_is_mute) && !(is_mute)) {
+				sample_words = 0;
+				sample_pointer = 0;
+				read_pointer = 0;
+				if((sample_buffer != NULL) && (sample_length > 0)) {
+					memset(sample_buffer, 0x00, sizeof(int32_t) * 2 * sample_length);
+				}
+			}
+		}
 		break;
 	default:
 		break;
@@ -304,11 +298,22 @@ void RF5C68::write_io8(uint32_t addr, uint32_t data)
 //					  dac_ch, data);
 		break;
 	case 0x07: // Control
-		dac_on = ((data & 0x80) != 0) ? true : false;
-		if((data & 0x40) != 0) { // CB2-0
-			dac_ch = data & 0x07;
-		} else { // WB3-0
-			dac_bank = ((data & 0x0f) << 12);
+		{
+			bool old_dac_on = dac_on;
+			dac_on = ((data & 0x80) != 0) ? true : false;
+			if((data & 0x40) != 0) { // CB2-0
+				dac_ch = data & 0x07;
+			} else { // WB3-0
+				dac_bank = ((data & 0x0f) << 12);
+			}
+			if((dac_on != old_dac_on) && !(dac_on)) {
+				sample_pointer = 0;
+				sample_words = 0;
+				read_pointer = 0;
+				if((sample_buffer != NULL) && (sample_length > 0)) {
+					memset(sample_buffer, 0x00, sizeof(int32_t) * 2 * sample_length);
+				}
+			}
 		}
 //		out_debug_log(_T("DAC REG 07 RAW=%02X ON=%s CH=%d BANK=%04X"),
 //					   data,
@@ -406,130 +411,139 @@ void RF5C68::set_volume(int ch, int decibel_l, int decibel_r)
 	volume_r = decibel_to_volume(decibel_r - 4);
 }
 
-void RF5C68::event_callback(int id, int err)
+
+void RF5C68::get_sample(int32_t *v, int words)
 {
-	if(id == EVENT_ADPCM_CLOCK) {
-		write_signal(SIG_RF5C68_DAC_PERIOD, 1, 1);
-	} else 	if(id == EVENT_DAC_SAMPLE) {
-		__DECL_ALIGNED(16) int32_t val[2] = {0}; // l,r
-		if(sample_count < sample_length) {
-			if(dac_on) {
-				for(int ch = 0; ch < 16; ch++) {
-					val[ch & 1] += (dac_onoff[ch >> 1]) ? dac_tmpval[ch] : 0;
-				}
+	if(words > sample_words) words = sample_words;
+	if(words <= 0) return;
+	if(v == NULL) return;
+	switch(words) {
+	case 1:
+		v[2] = sample_buffer[(read_pointer << 1) + 0];
+		v[3] = sample_buffer[(read_pointer << 1) + 1];
+		break;
+	default:
+		{
+			int nptr = read_pointer - words + 1;
+			int nwords = words << 1;
+			if(nptr < 0) nptr = read_pointer + sample_length - words;
+			for(int i = 0; i < nwords; i += 2) {
+				v[i + 0] = sample_buffer[(nptr << 1) + 0];
+				v[i + 1] = sample_buffer[(nptr << 1) + 1];
+				nptr = (nptr + 1) % sample_length;
 			}
-			int32_t* p = &(sample_buffer[sample_count << 1]);	
-			for(int i = 0; i < 2; i++) {	
-				p[i] = val[i];
-			}
-			sample_count++;
 		}
-	}
+		break;
+	}		
 }
 
-// ToDo: Work correct LPF.
-__inline__ int32_t RF5C68::apply_lpf(int lr)
+void RF5C68::lpf_threetap(int32_t *v, int &lval, int &rval)
 {
-	lr &= 1;
-	int optr = ((read_pointer - 1) % sample_length) << 1;
-	int optr2 = ((read_pointer - 2) % sample_length) << 1;
-	int32_t val = sample_buffer[(read_pointer << 1) + lr];
-	int32_t val2 = sample_buffer[optr + lr];
-	int32_t val3 = sample_buffer[optr2 + lr];
-	// LPF factor: a[n] * (1 - 6/16) + a[n-1] * (6/16).
-	val = val * ((1 << 10) - (6 << 9)) + (val2 * (4 << 9)) + (val3 * (2 << 9));
-	val >>= (1 + 10);
-	return val;
+	if(v == NULL) return ;
+	static const int fact2 = 1800;
+	static const int fact0 = 450;
+	static const int fact4 = 4096 - (fact2 + fact0);
+	lval = (v[4] * fact4 + v[2] * fact2 + v[0] * fact0) >> 12;
+	rval = (v[5] * fact4 + v[3] * fact2 + v[1] * fact0) >> 12;
 }
 
 void RF5C68::mix(int32_t* buffer, int cnt)
 {
 	
-	int32_t lval, rval;
-	int32_t lval2, rval2;
+	int32_t lval, rval = 0;
+	int32_t lval2, rval2 = 0;
 	// ToDo: supress pop noise.
 	if(cnt <= 0) return;
 	if(is_mute) return;
 	
-	if(sample_buffer != NULL) {
-		__DECL_ALIGNED(16) int32_t val[4] = {0};
-		if(sample_pointer > read_pointer) {
-			if((sample_pointer - 2) >= (read_pointer)) {
-				val[0] = sample_buffer[(read_pointer << 1) + 2];
-				val[1] = sample_buffer[(read_pointer << 1) + 3];
-				val[2] = sample_buffer[(read_pointer << 1) + 0];
-				val[3] = sample_buffer[(read_pointer << 1) + 1];
-			} else {
-				val[2] = sample_buffer[(read_pointer << 1) + 0];
-				val[3] = sample_buffer[(read_pointer << 1) + 1];
-				if(read_pointer == 0) {
-					val[0] = val[2];
-					val[1] = val[3];
-				} else {
-					val[0] = sample_buffer[((read_pointer + 1) << 1) + 0];
-					val[1] = sample_buffer[((read_pointer + 1) << 1) + 1];
+	if((sample_buffer != NULL) && (sample_length > 0)) {
+		__DECL_ALIGNED(16) int32_t val[16] = {0}; // 0,1 : before / 2,3 : after
+		// ToDo: mix_freq <= dac_freq ; mix_factor >= 4096.
+		if(mix_factor < 4096) {
+			get_sample(val, 3);
+			lpf_threetap(val, lval, rval);
+			for(int i = 0; i < (cnt << 1); i += 2) {
+				int32_t interp_p = mix_count;
+				int32_t interp_n = 4096 - mix_count;
+				lval2 = (interp_p * (val[4] - lval)) >> 12;
+				rval2 = (interp_p * (val[5] - rval)) >> 12;
+				lval2 = lval + lval2;
+				rval2 = rval + rval2;
+				lval2 = apply_volume(lval2, volume_l) >> 1;
+				rval2 = apply_volume(rval2, volume_r) >> 1;
+				// ToDo: interpoolate.
+				buffer[i]     += lval2;
+				buffer[i + 1] += rval2; 
+				mix_count += mix_factor;
+				if(mix_count >= 4096) {
+//				out_debug_log(_T("MIX COUNT=%d FACTOR=%d"), mix_count, mix_factor);
+					int n = mix_count >> 12;
+					int old_rptr = read_pointer;
+					read_pointer += n;
+					if((old_rptr < sample_pointer) && (read_pointer >= sample_pointer)) {
+						// Overshoot read opinter
+						read_pointer = sample_pointer - 1;
+						if(read_pointer < 0) read_pointer = sample_length - 1;
+						if(read_pointer <= 0) read_pointer = 0;
+					} else if((old_rptr >= sample_pointer)) {
+						if(old_rptr < (sample_pointer + sample_length - sample_words)) {
+							read_pointer = (sample_pointer + sample_length - sample_words);
+						}
+					}
+					read_pointer = read_pointer % sample_length;		
+					if(sample_words > 0) {
+						// Reload data
+						memset(val, 0x00, sizeof(val));
+						get_sample(val, 3);
+					} else {
+						val[0] = val[2];
+						val[1] = val[3];
+						val[2] = 0;
+						val[3] = 0;
+					}
+					lpf_threetap(val, lval, rval);
+//				if(sample_words < 0) sample_words = 0;
+					mix_count -= (n << 12);
 				}
 			}
-		} else if(sample_pointer == read_pointer) {
-			if(read_pointer < 2) {
-				val[2] = sample_buffer[(read_pointer << 1) + 0];
-				val[3] = sample_buffer[(read_pointer << 1) + 1];
-				val[0] = sample_buffer[(read_pointer << 1) + 0];
-				val[1] = sample_buffer[(read_pointer << 1) + 1];
-			} else {
-				val[2] = sample_buffer[((read_pointer - 2) << 1) + 0];
-				val[3] = sample_buffer[((read_pointer - 2) << 1) + 1];
-				val[0] = sample_buffer[((read_pointer - 1) << 1) + 0];
-				val[1] = sample_buffer[((read_pointer - 1) << 1) + 1];
+		} else 	if(mix_factor == 4096) {
+			// ToDo: Interpoolate
+			get_sample(val, 4);
+			lpf_threetap(val, lval, rval);
+			for(int i = 0; i < (cnt << 1); i += 2) {
+				lval2 = apply_volume(lval, volume_l) >> 1;
+				rval2 = apply_volume(rval, volume_r) >> 1;
+				buffer[i]     += lval2;
+				buffer[i + 1] += rval2; 
+				read_pointer = (read_pointer + 1) % sample_length;
+				get_sample(val, 4);
+				lpf_threetap(val, lval, rval);
 			}
-		} else {
-			if(sample_words > 1) {
-				val[2] = sample_buffer[((read_pointer + 0) << 1) + 0];
-				val[3] = sample_buffer[((read_pointer + 0) << 1) + 1];
-				val[0] = sample_buffer[((read_pointer + 1) << 1) + 0];
-				val[1] = sample_buffer[((read_pointer + 1) << 1) + 1];
-			} else {
-				val[0] = sample_buffer[((read_pointer + 0) << 1) + 0];
-				val[1] = sample_buffer[((read_pointer + 0) << 1) + 1];
-				val[2] = sample_buffer[((read_pointer + 0) << 1) + 0];
-				val[3] = sample_buffer[((read_pointer + 0) << 1) + 1];
-			}
-		}
-//		lval = apply_volume(sample_buffer[(read_pointer << 1) + 0], volume_l) >> 1;
-//		rval = apply_volume(sample_buffer[(read_pointer << 1) + 1], volume_r) >> 1;
-		for(int i = 0; i < (cnt << 1); i += 2) {
-			int32_t interp_p = mix_count;
-			int32_t interp_n = 4096 - mix_count;
-			lval2 = (interp_p * (val[0] - val[2])) >> 12;
-			rval2 = (interp_p * (val[1] - val[3])) >> 12;
-//			lval = (val[0] *  ((4096 >> 4) * 3)) + (lval2 * (4096 - ((4096 >> 4) * 3)));
-//			rval = (val[1] *  ((4096 >> 4) * 3)) + (rval2 * (4096 - ((4096 >> 4) * 3)));
-//			lval >>= 12;
-//			rval >>= 12;
-			lval = val[2] + lval2;
-			rval = val[3] + rval2;
-			lval = apply_volume(lval, volume_l) >> 1;
-			rval = apply_volume(rval, volume_r) >> 1;
-			// ToDo: interpoolate.
-			buffer[i]     += lval;
-			buffer[i + 1] += rval; 
-			mix_count += mix_factor;
-			if(mix_count >= 4096) {
-//				out_debug_log(_T("MIX COUNT=%d FACTOR=%d"), mix_count, mix_factor);
+		} else { // MIX_FACTOR > 1.0
+			// ToDo: Correct downsampling.
+			get_sample(val, 8);
+			lpf_threetap(val, lval, rval);
+			for(int i = 0; i < (cnt << 1); i += 2) {
+				lval2 = apply_volume(lval, volume_l) >> 1;
+				rval2 = apply_volume(rval, volume_r) >> 1;
+				buffer[i]     += lval2;
+				buffer[i + 1] += rval2;
+				
 				int n = mix_count >> 12;
-				sample_words = sample_words - n;
+				read_pointer += n;
+				read_pointer = read_pointer % sample_length;
 				if(sample_words > 0) {
 					// Reload data
-					read_pointer = (read_pointer + n) % sample_length;
+					memset(val, 0x00, sizeof(val));
+					get_sample(val, 8);
+				} else {
 					val[0] = val[2];
 					val[1] = val[3];
-					val[2] = sample_buffer[(read_pointer << 1) + 0];
-					val[3] = sample_buffer[(read_pointer << 1) + 1];
-				} else {
-					read_pointer = sample_pointer;
+					val[2] = 0;
+					val[3] = 0;
 				}
-				if(sample_words < 0) sample_words = 0;
 				mix_count -= (n << 12);
+				lpf_threetap(val, lval, rval);
 			}
 		}
 	}
@@ -542,24 +556,16 @@ void RF5C68::initialize_sound(int sample_rate, int samples)
 		sample_length = samples;
 		mix_factor = (int)(dac_rate * 4096.0 / (double)mix_rate);
 		mix_count = 0;
-		if(sample_buffer != NULL) {
-			free(sample_buffer);
-		}
+		read_pointer = 0;
+		sample_pointer = 0;
+		sample_words = 0;
+		
+		if(sample_buffer != NULL) free(sample_buffer);
 		sample_buffer = (int32_t*)malloc(sample_length * sizeof(int32_t) * 2);
 		if(sample_buffer != NULL) {
 			memset(sample_buffer, 0x00, sample_length * sizeof(int32_t) * 2);
 		}
-		if(event_dac_sample != -1) {
-			cancel_event(this, event_dac_sample);
-			event_dac_sample = -1;
-		}
-		if(mix_rate > 0) {
-			// TOWNS::ADPCM::event_callback() -> SIG_RF5C68_DAC_PERIOD(=DRIVE CLOCK from VM)
-			// -> RF5C68::event_callback()(=AUDIO MIXING CLOCK by EMU)
-			// -> RF5C68::mix() -> OSD::SOUND
-			sample_tick_us = 1.0e6 / ((double)mix_rate);
-			register_event(this, EVENT_DAC_SAMPLE, sample_tick_us, true, &event_dac_sample);
-		}
+		sample_tick_us = 1.0e6 / ((double)mix_rate);
 	} else {
 		if(sample_buffer != NULL) {
 			free(sample_buffer);
@@ -567,10 +573,6 @@ void RF5C68::initialize_sound(int sample_rate, int samples)
 		sample_buffer = NULL;
 		sample_length = 0;
 		mix_rate = 0;
-		if(event_dac_sample != -1) {
-			cancel_event(this, event_dac_sample);
-			event_dac_sample = -1;
-		}
 		sample_tick_us = 0.0;
 	}
 	sample_count = 0;
@@ -664,23 +666,17 @@ bool RF5C68::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(sample_words);
 	state_fio->StateValue(sample_pointer);
 	state_fio->StateValue(read_pointer);
+
 	state_fio->StateValue(mix_factor);
 	state_fio->StateValue(mix_count);
 	state_fio->StateValue(dac_rate);
 	
 	state_fio->StateArray(wave_memory, sizeof(wave_memory), 1);
-	state_fio->StateValue(event_dac_sample);
-	state_fio->StateValue(event_adpcm_clock);
 
 	// Post Process
 	if(loading) {
-		if(event_dac_sample != -1) {
-			cancel_event(this, event_dac_sample);
-			event_dac_sample = -1;
-		}
 		if(mix_rate > 0) {
 			sample_tick_us = 1.0e6 / ((double)mix_rate);
-			register_event(this, EVENT_DAC_SAMPLE, sample_tick_us, true, &event_dac_sample);
 		} else {
 			sample_tick_us = 0;
 		}

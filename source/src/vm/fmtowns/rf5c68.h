@@ -66,8 +66,6 @@ protected:
 
 	int volume_l, volume_r;
 	int32_t* sample_buffer;
-	int event_dac_sample;
-	int event_adpcm_clock;
 
 	int sample_length;
 	int sample_count;
@@ -76,8 +74,10 @@ protected:
 	double sample_tick_us;
 
 	// ToDo: Work correct LPF.
-	__inline__ int32_t __FASTCALL apply_lpf(int lr);
 
+	void __FASTCALL get_sample(int32_t *v, int words);
+	void __FASTCALL lpf_threetap(int32_t *v, int &lval, int &rval);
+	
 public:
 	RF5C68(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -86,7 +86,6 @@ public:
 		sample_length = 0;
 		sample_count = 0;
 		mix_rate = 0;
-		event_dac_sample = -1;
 		sample_tick_us = 0.0;
 		is_mute = true;
 		initialize_output_signals(&interrupt_boundary);
@@ -115,8 +114,6 @@ public:
 	uint32_t __FASTCALL read_signal(int ch);
 	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
 
-	void event_callback(int id, int err);
-	
 	void mix(int32_t* buffer, int cnt);
 	void initialize_sound(int sample_rate, int samples);
 
@@ -134,7 +131,6 @@ public:
 		dac_rate = freq;
 		sample_words = 0;
 		sample_pointer = 0;
-		read_pointer = 0;
 		mix_factor = (int)(dac_rate * 4096.0 / (double)mix_rate);
 		mix_count = 0;
 		if((sample_buffer != NULL) && (sample_length > 0)) {
