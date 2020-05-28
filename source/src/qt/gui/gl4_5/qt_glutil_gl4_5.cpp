@@ -73,6 +73,7 @@ GLDraw_4_5::GLDraw_4_5(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	pixel_width = 0;
 	pixel_height = 0;
 	main_texture_buffer = 0;
+	main_read_texture_buffer = 0;
 	map_base_address = NULL;
 	main_mutex = new QMutex();
 	main_texture_ready = false;
@@ -141,6 +142,9 @@ QOpenGLTexture *GLDraw_4_5::createMainTexture(QImage *img)
 		extfunc->glDeleteBuffers(1, &main_texture_buffer);
 		main_texture_buffer = 0;
 
+		extfunc->glDeleteBuffers(1, &main_read_texture_buffer);
+		main_read_texture_buffer = 0;
+		
 		extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
 		extfunc->glDeleteSync(sync_fence);
 		sync_fence = extfunc->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,  0);
@@ -157,8 +161,15 @@ QOpenGLTexture *GLDraw_4_5::createMainTexture(QImage *img)
 		extfunc->glGenBuffers(1, &main_texture_buffer);
 		extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
 		//extfunc->glBufferData(GL_PIXEL_UNPACK_BUFFER, w * h * sizeof(uint32_t), ip->constBits(), GL_DYNAMIC_COPY);
-		extfunc->glBufferStorage(GL_PIXEL_UNPACK_BUFFER, w * h * sizeof(uint32_t), ip->constBits(),  GL_DYNAMIC_STORAGE_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+		extfunc->glBufferStorage(GL_PIXEL_UNPACK_BUFFER, w * h * sizeof(uint32_t), ip->constBits(),  GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
 		//extfunc->glBufferStorage(GL_PIXEL_UNPACK_BUFFER, w * h * sizeof(uint32_t), ip->constBits(),  GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+		extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+		tx->release();
+
+		tx->bind();
+		extfunc->glGenBuffers(1, &main_read_texture_buffer);
+		extfunc->glBindBuffer(GL_PIXEL_PACK_BUFFER, main_read_texture_buffer);
+		extfunc->glBufferStorage(GL_PIXEL_PACK_BUFFER, w * h * sizeof(uint32_t), ip->constBits(),  GL_DYNAMIC_STORAGE_BIT | GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
 		extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 		tx->release();
 		
@@ -1854,6 +1865,43 @@ void GLDraw_4_5::get_screen_geometry(int *w, int *h)
 	if(h != NULL) *h = pixel_height;
 }
 
+bool GLDraw_4_5::copy_screen_buffer(scrntype_t *target, int w, int h, int stride)
+{
+	int hh = h;
+	if(stride <= 0) return false;
+	if(target == NULL) return false;
+	if((w <= 0) || (h <= 0)) return false;
+	if(w >= pixel_width) w = pixel_width;
+	if(h >= pixel_height) h = pixel_height;
+	if(stride >= pixel_width) stride = pixel_width;
+	if(w >= stride) w = stride;
+	
+//	if((map_base_address == NULL) || !(main_texture_ready)) {
+//		return false;
+//	}
+	QMutexLocker Locker_S(main_mutex);	
+	extfunc->glBindBuffer(GL_PIXEL_PACK_BUFFER, main_read_texture_buffer);
+	extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID->textureId());
+	extfunc->glActiveTexture(GL_TEXTURE0);
+	extfunc->glGetTextureImage(uVramTextureID->textureId(), 0,
+							   GL_RGBA, GL_UNSIGNED_BYTE, pixel_width * pixel_height * sizeof(scrntype_t), NULL);
+	scrntype_t*pp = (scrntype_t *)(extfunc->glMapNamedBufferRange(main_read_texture_buffer, 0, pixel_width * pixel_height * sizeof(scrntype_t),  GL_MAP_READ_BIT ));
+	extfunc->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	if(pp == NULL) return false;
+//	printf("READ SCREEN\n");
+	scrntype_t *p = (scrntype_t *)pp;
+	scrntype_t *q = target;
+	for(int y = 0; y < hh; y++) {
+		memcpy(&(pp[y * pixel_width]), q, w * sizeof(uint32_t));
+		q = q + stride;
+	}
+//	extfunc->glBindBuffer(GL_PIXEL_PACK_BUFFER, main_read_texture_buffer);
+//	extfunc->glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+//	extfunc->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	
+	return true;
+}
+
 scrntype_t *GLDraw_4_5::get_screen_buffer(int y)
 {
 	if((y < 0) || (y >= pixel_height)) return NULL;
@@ -1912,7 +1960,8 @@ bool GLDraw_4_5::map_vram_texture(void)
 //	sync_fence = extfunc->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,  0);
 	
 	extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
-	map_base_address = (scrntype_t *)(extfunc->glMapNamedBufferRange(main_texture_buffer, 0, pixel_width * pixel_height * sizeof(scrntype_t),  GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT));
+	map_base_address = (scrntype_t *)(extfunc->glMapNamedBufferRange(main_texture_buffer, 0, pixel_width * pixel_height * sizeof(scrntype_t),  GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT));
+	
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SCREEN, "MAPPED SCREEN TO PHYSICAL ADDRESS:%0llx\n", (uintptr_t)map_base_address);
 	extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	if(map_base_address == NULL) return false;

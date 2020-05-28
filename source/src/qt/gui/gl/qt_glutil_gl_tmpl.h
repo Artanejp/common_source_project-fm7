@@ -321,6 +321,7 @@ public:
 			}
 		}
 	}
+	virtual bool copy_screen_buffer(scrntype_t* target,int w, int h, int stride) { return false;};
 	virtual scrntype_t *get_screen_buffer(int y) { return NULL; }
 	virtual void get_screen_geometry(int *w, int *h) {
 		if(w != NULL) *w = 0;

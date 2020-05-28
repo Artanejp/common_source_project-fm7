@@ -95,6 +95,7 @@ protected:
 	int pixel_width;
 	int pixel_height;
 	GLuint main_texture_buffer;
+	GLuint main_read_texture_buffer;
 	GLsync sync_fence;
 	QMutex *main_mutex;
 	scrntype_t *map_base_address;
@@ -202,6 +203,8 @@ public:
 // Note: Mapping vram from draw_thread does'nt work well.
 // This feature might be disable. 20180728 K.Ohta.
 	void get_screen_geometry(int *w, int *h);
+	bool copy_screen_buffer(scrntype_t* target,int w, int h, int stride);
+
 	scrntype_t *get_screen_buffer(int y);
 	bool is_ready_to_map_vram_texture(void);
 	bool map_vram_texture(void);

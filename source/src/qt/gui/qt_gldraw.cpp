@@ -95,6 +95,12 @@ void GLDrawClass::paintGL(void)
 	SaveToPixmap(); // If save requested, then Save to Pixmap.
 }
 
+bool GLDrawClass::copy_screen_buffer(scrntype_t* target, int w, int h, int stride)
+{
+	if(extfunc == NULL) return false;
+	return extfunc->copy_screen_buffer(target, w, h, stride);
+}
+
 scrntype_t* GLDrawClass::get_screen_buffer(int y)
 {
 	if(extfunc == NULL) return NULL;

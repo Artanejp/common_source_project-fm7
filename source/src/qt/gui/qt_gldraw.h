@@ -114,6 +114,7 @@ public:
 	GLuint get_mapped_buffer_num(int region);
 
 	scrntype_t* get_screen_buffer(int y);
+	bool copy_screen_buffer(scrntype_t* target, int w, int h, int stride);
 
 	virtual QString getRenderString();
 public slots:
