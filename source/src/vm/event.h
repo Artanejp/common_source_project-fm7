@@ -45,7 +45,8 @@ private:
 
 	uint32_t cpu_update_clocks[MAX_CPU][6];
 	int dcount_cpu;
-	
+
+	bool event_half;
 	int frame_clocks;
 	int vline_clocks[MAX_LINES];
 	int power;

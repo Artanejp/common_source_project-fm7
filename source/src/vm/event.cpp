@@ -163,7 +163,7 @@ void EVENT::reset()
 		memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32_t) * 2);
 	}
 //	buffer_ptr = 0;
-	
+	event_half = false;
 #ifdef _DEBUG_LOG
 	initialize_done = true;
 #endif
@@ -171,6 +171,7 @@ void EVENT::reset()
 
 void EVENT::drive()
 {
+	if(event_half) goto skip1;
 	// raise pre frame events to update timing settings
 	for(int i = 0; i < frame_event_count; i++) {
 		frame_event[i]->event_pre_frame();
@@ -204,7 +205,7 @@ void EVENT::drive()
 			}
 		}
 	}
-	
+		
 	// run virtual machine for 1 frame period
 	for(int i = 0; i < frame_event_count; i++) {
 		frame_event[i]->event_frame();
@@ -225,8 +226,18 @@ void EVENT::drive()
 			update_event(-event_remain);
 		}
 	}
-	event_remain += frame_clocks;
-	cpu_remain += frame_clocks << power;
+skip1:
+	int _fclocks;
+	if(event_half) {
+		_fclocks = frame_clocks - (frame_clocks / 2);
+	} else {
+		_fclocks = frame_clocks / 2;
+	}
+	event_half = !(event_half);
+//	event_remain += frame_clocks;
+//	cpu_remain += frame_clocks << power;
+	event_remain += _fclocks;
+	cpu_remain += _fclocks << power;
 	
 	while(event_remain > 0) {
 		int event_done = event_remain;
@@ -717,7 +728,7 @@ uint16_t* EVENT::create_sound(int* extra_frames)
 	// drive extra frames to fill the sound buffer
 	while(sound_samples > buffer_ptr) {
 		drive();
-		frames++;
+		if(!(event_half)) frames++;
 	}
 #ifdef LOW_PASS_FILTER
 	// low-pass filter
@@ -1127,7 +1138,7 @@ void EVENT::update_config()
 }
 
 // Revert clock ratio to 1024 (2^10).STATE_VERSION to 4; 20191013 K.O
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool EVENT::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1185,6 +1196,7 @@ bool EVENT::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(next_lines_per_frame);
 	state_fio->StateArray(dev_need_mix, sizeof(dev_need_mix), 1);
 	state_fio->StateValue(need_mix);
+	state_fio->StateValue(event_half);
  	
  	// post process
 	if(loading) {

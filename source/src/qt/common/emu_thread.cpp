@@ -75,8 +75,8 @@ int EmuThreadClass::get_interval(void)
 {
 	static int accum = 0;
 	accum += p_emu->get_frame_interval();
-	int interval = accum >> 10;
-	accum -= interval << 10;
+	int interval = accum >> 11;
+	accum -= interval << 11;
 	return interval;
 }
 
