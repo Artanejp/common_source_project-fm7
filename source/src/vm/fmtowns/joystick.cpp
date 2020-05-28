@@ -219,7 +219,7 @@ void JOYSTICK::event_callback(int event_id, int err)
 		if(rawdata == NULL) return;
 		uint8_t retval;
 		uint8_t val;
-		for(ch = 0; ch < 2; ch++) {
+		for(int ch = 0; ch < 2; ch++) {
 			if(!emulate_mouse[ch]) { // Joystick
 				val = rawdata[ch];
 				retval = 0x00;	   
