@@ -210,6 +210,7 @@ protected:
 	int bytes_per_sec;
 	bool access;
 	bool media_changed;
+	bool cdda_stopped;
 	uint32_t read_lba;
 
 	bool cdrom_prefetch;
@@ -241,7 +242,7 @@ protected:
 	virtual void execute_command(uint8_t command);
 	
 	void status_not_ready();
-	void status_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
+	void status_accept(int extra, uint8_t s2, uint8_t s3);
 	void status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
 	void status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_delay_ready();
