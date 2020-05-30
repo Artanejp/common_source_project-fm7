@@ -476,7 +476,7 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 		horiz_start_us[layer] = ((double)(regs[(layer << 1) + 9] & 0x07ff)) * crtc_clock ;   // HDSx
 		horiz_end_us[layer] =   ((double)(regs[(layer << 1) + 9 + 1] & 0x07ff)) * crtc_clock ;   // HDEx
 	}
-#if 1
+#if 0
 //	out_debug_log(_T("RECALC: CRTC_CLOCK=%f MHz FPS=%f"), 1.0 / crtc_clock, 1.0e6 / frame_us);
 	_TCHAR sdata[32 * 5];
 	_TCHAR sdata2[8];
@@ -922,6 +922,7 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int widt
 	
 	int k = 0;
 	for(int x = 0; x < (pwidth >> 3); x++) {
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 //			ptmp16.read_2bytes_le_from(p);
 			ptmp16.b.l = *p++;
@@ -929,20 +930,24 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int widt
 			pbuf[i] = ptmp16.w;
 //			p += 2;
 		}
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			rbuf[i] = pbuf[i];
 			gbuf[i] = pbuf[i];
 			bbuf[i] = pbuf[i];
 		}			
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			rbuf[i] = rbuf[i] >> 5;
 			gbuf[i] = gbuf[i] >> 10;
 		}			
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			rbuf[i] = rbuf[i] & 0x1f;
 			gbuf[i] = gbuf[i] & 0x1f;
 			bbuf[i] = bbuf[i] & 0x1f;
 		}
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			rbuf[i] <<= 3;
 			gbuf[i] <<= 3;
@@ -974,15 +979,39 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int widt
 			}
 			k += 8;
 			if(k >= width) break;
+		} else if(magx == 2) {
+			int j = width - (k + 16);
+			if(j < 0) {
+				j = width - k;
+			} else if(j > 16) {
+				j = 16;
+			}
+			j >>= 1;
+__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < j; i++) {
+				q[0] = sbuf[i];
+				q[1] = sbuf[i];
+				q += 2;
+			}
+			if(r2 != NULL) {
+__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < j; i++) {
+					r2[0] = abuf[i];
+					r2[1] = abuf[i];
+					r2 += 2;
+				}
+			}
 		} else {
 			for(int i = 0; i < 8; i++) {
 				int kbak = k;
+__DECL_VECTORIZED_LOOP
 				for(int j = 0; j < magx; j++) {
 					*q++ = sbuf[i];
 					k++;
 					if(k >= width) break;
 				}
 				if(r2 != NULL) {
+__DECL_VECTORIZED_LOOP
 					for(int j = 0; j < magx; j++) {
 						*r2++ = abuf[i];
 						kbak++;
@@ -996,54 +1025,82 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int widt
 	if(k >= width) return true;
 	
 	if((pwidth & 7) != 0) {
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < rwidth; i++) {
 			ptmp16.read_2bytes_le_from(p);
 			pbuf[i] = ptmp16.w;
 			p += 2;
 		}
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < rwidth; i++) {
 			rbuf[i] = pbuf[i];
 			gbuf[i] = pbuf[i];
 			bbuf[i] = pbuf[i];
 		}			
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < rwidth; i++) {
 			rbuf[i] = (rbuf[i] >> 5) & 0x1f;
 			gbuf[i] = (gbuf[i] >> 10) & 0x1f;
 			bbuf[i] = bbuf[i] & 0x1f;
 		}
+__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < rwidth; i++) {
 			rbuf[i] <<= 3;
 			gbuf[i] <<= 3;
 			bbuf[i] <<= 3;
 		}
 		if(do_alpha) {
+__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < rwidth; i++) {
 				a2buf[i] = (pbuf[i] & 0x8000) ? 0 : 255;
 			}
+__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < rwidth; i++) {
 				sbuf[i] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], a2buf[i]);
 			}
 		} else {
+__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < rwidth; i++) {
 				abuf[i] = (pbuf[i] & 0x8000) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
 			}
+__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < rwidth; i++) {
 				sbuf[i] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], 255);
 			}
 		}			
 		if(magx == 1) {
+__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < rwidth; i++) {
 				*q++ = sbuf[i];
 			}
 			if(r2 != NULL) {
+__DECL_VECTORIZED_LOOP
 				for(int i = 0; i < rwidth; i++) {
 					*r2++ = abuf[i];
 				}
 			}
 			k += 8;
 			if(k >= width) return true;
+		} else if(magx == 2) {
+__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < rwidth; i++) {
+				q[0] = sbuf[i];
+				q[1] = sbuf[i];
+				q += 2;
+			}
+			if(r2 != NULL) {
+__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < rwidth; i++) {
+					r2[0] = abuf[i];
+					r2[1] = abuf[i];
+					r2 += 2;
+				}
+			}
+			k += 16;
+			if(k >= width) return true;
 		} else {
 			for(int i = 0; i < rwidth; i++) {
+__DECL_VECTORIZED_LOOP
 				for(int j = 0; j < magx; j++) {
 					*q++ = sbuf[i];
 					if(r2 != NULL) {
@@ -1443,6 +1500,9 @@ void TOWNS_CRTC::draw_screen()
 //	int width = pixels_per_line;
 	int lines = vst[trans];
 	int width = hst[trans];
+	osd->set_vm_screen_size(width, lines, SCREEN_WIDTH, SCREEN_HEIGHT,  -1, -1);
+	//out_debug_log("WxH: %dx%d", width, lines);
+	osd->set_vm_screen_lines(lines);
 	// Will remove.
 	if(lines <= 0) lines = 1;
 	if(width <= 16) width = 16;
@@ -1450,9 +1510,6 @@ void TOWNS_CRTC::draw_screen()
 	if(lines > TOWNS_CRTC_MAX_LINES) lines = TOWNS_CRTC_MAX_LINES;
 	if(width > TOWNS_CRTC_MAX_PIXELS) width = TOWNS_CRTC_MAX_PIXELS;
 	
-	osd->set_vm_screen_size(width, lines, SCREEN_WIDTH, SCREEN_HEIGHT,  -1, -1);
-	//out_debug_log("WxH: %dx%d", width, lines);
-	osd->set_vm_screen_lines(lines);
 	
 	memset(lbuffer1, 0x00, sizeof(lbuffer1));
 	memset(abuffer1, 0xff, sizeof(abuffer1));
@@ -1747,6 +1804,7 @@ void TOWNS_CRTC::transfer_line(int line)
 		if(linebuffers[trans][line].mode[l] == DISPMODE_32768) {
 			pix = 0x80008000;
 		}
+__DECL_VECTORIZED_LOOP		
 		for(int x = 0; x < (TOWNS_CRTC_MAX_PIXELS >> 1); x++) {
 			p[x] = pix; // Clear color
 		}
