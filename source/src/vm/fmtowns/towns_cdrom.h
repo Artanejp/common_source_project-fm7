@@ -159,7 +159,7 @@ protected:
 
 	FILEIO* fio_img;
 //	FIFO* subq_buffer;
-	FIFO* buffer;
+	FIFO* databuffer;
 	FIFO* status_queue;
 	uint8_t data_reg;
 	bool dma_transfer;
@@ -332,7 +332,7 @@ public:
 		bytes_per_sec = 2048 * 75; // speed x1
 		max_logical_block = 0;
 		access = false;
-		buffer = NULL;
+		databuffer = NULL;
 		status_queue = NULL;
 		memset(subq_buffer, 0x00, sizeof(subq_buffer));
 		
