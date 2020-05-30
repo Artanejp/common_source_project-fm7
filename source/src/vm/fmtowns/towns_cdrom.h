@@ -93,6 +93,7 @@ enum {
 };
 
 // STATUS[0].
+// Update from Tsugaru Thanks to Yamakawa-San.
 enum {
 	TOWNS_CD_STATUS_ACCEPT			= 0x00,
 	TOWNS_CD_STATUS_NOT_ACCEPT		= 0x01,
@@ -115,6 +116,40 @@ enum {
 	TOWNS_CD_STATUS_UNKNOWN			= 0xff,
 };
 
+// status[1] @ status[0] == 00h
+// From Tsugaru Thanks to Yamakawa-San.
+// Belows are quote from cdrom/cdrom.h for Tsugaru.
+//00H 04H xx xx   CDROM BIOS re-shoots command A0H if CDROM returns this code.       (0b00000100)
+//00H 08H xx xx   CDROM BIOS re-shoots command A0H if CDROM returns this code.       (0b00001000)
+//00H 0DH xx xx   CDROM BIOS Checking (2ndByte)&0x0D and wait for it to be non zero. (0b00001101)
+enum {
+	TOWNS_CD_ACCEPT_NOERROR			= 0x00,
+	TOWNS_CD_ACCEPT_CDDA_PLAYING	= 0x03,
+	TOWNS_CD_ACCEPT_04H_FOR_CMD_A0H	= 0x04,
+	TOWNS_CD_ACCEPT_08H_FOR_CMD_A0H	= 0x08,
+	TOWNS_CD_ACCEPT_MEDIA_CHANGED	= 0x09,
+	TOWNS_CD_ACCEPT_WAIT			= 0x0d, 
+};
+		
+// status[1] @ status[0] == 21h
+// From Tsugaru Thanks to Yamakawa-San.
+enum {
+	TOWNS_CD_ABEND_PARAMETER_ERROR		= 0x01,
+	TOWNS_CD_ABEND_ERR02				= 0x02,
+	TOWNS_CD_ABEND_HARDWARE_ERROR_03	= 0x03,
+	TOWNS_CD_ABEND_HARDWARE_ERROR_04	= 0x04,
+	TOWNS_CD_ABEND_READ_AUDIO_TRACK		= 0x05,
+	TOWNS_CD_ABEND_MEDIA_ERROR_06		= 0x06,
+	TOWNS_CD_ABEND_DRIVE_NOT_READY		= 0x07,
+	TOWNS_CD_ABEND_MEDIA_CHANGED		= 0x08,
+	TOWNS_CD_ABEND_HARDWARE_ERROR_09	= 0x09,
+	TOWNS_CD_ABEND_ERROR_0C				= 0x0c,
+	TOWNS_CD_ABEND_HARDWARE_ERROR_0D	= 0x0d,
+	TOWNS_CD_ABEND_RETRY				= 0x0f, // Indicate RETRY ?
+};
+
+
+	
 /*class TOWNS_CDROM : public SCSI_CDROM */
 class TOWNS_CDROM: public DEVICE {
 protected:
@@ -137,8 +172,8 @@ protected:
 	int subq_bitwidth;
 	bool subq_overrun;
 	bool is_playing;
-	
-	int read_mode;
+	uint8_t next_status_byte;
+
 	int stat_track;
 
 	bool is_cue;
@@ -188,6 +223,7 @@ protected:
 	int event_seek_completed;
 	int event_cdda;
 	int event_cdda_delay_play;
+	int event_cdda_delay_stop;
 	int event_delay_interrupt;
 	int event_delay_ready;
 
@@ -241,9 +277,16 @@ protected:
 	
 	virtual void execute_command(uint8_t command);
 	
-	void status_not_ready();
+	void status_not_ready(bool forceint);
+	void status_media_changed(bool forceint);
+	void status_hardware_error(bool forceint);
+	void status_parameter_error(bool forceint);
+	void status_read_done(bool forceint);
+	void status_data_ready(bool forceint);
+	
 	void status_accept(int extra, uint8_t s2, uint8_t s3);
 	void status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
+	
 	void status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_delay_ready();
 	void set_delay_ready2();
@@ -295,7 +338,6 @@ public:
 		
 		initialize_output_signals(&outputs_drq);
 		initialize_output_signals(&outputs_mcuint);
-		read_mode = MODE_MODE1_2048;		
 		set_device_name(_T("FM-Towns CD-ROM drive"));
 	}
 	~TOWNS_CDROM() { }
