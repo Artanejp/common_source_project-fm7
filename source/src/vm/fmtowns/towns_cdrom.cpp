@@ -677,7 +677,7 @@ void TOWNS_CDROM::status_accept(int extra, uint8_t s3, uint8_t s4)
 	// 0Dh : After STOPPING CD-DA.Will clear.
 	// 01h and 09h maybe incorrect.
 	uint8_t playcode = 0x01; // OK?
-	/*
+	
 	if((toc_table[current_track].is_audio) && (mounted())) {
 		if(cdda_status == CDDA_PLAYING) {
 			playcode = 0x03;
@@ -685,19 +685,19 @@ void TOWNS_CDROM::status_accept(int extra, uint8_t s3, uint8_t s4)
 			playcode = 0x0d;
 		} else if(media_changed) {
 			playcode = 0x09;
-			} else {
+		} else {
 			playcode = 0x00;
 		}
 	} else {
 		if(media_changed) {
 			playcode = 0x09;
-			}
+		}
 	}
-	*/
+	
 	cdda_stopped = false;
-//	media_changed = false;
+	media_changed = false;
 	set_status(req_status, extra,
-			   TOWNS_CD_STATUS_ACCEPT, next_status_byte, s3, s4);
+			   TOWNS_CD_STATUS_ACCEPT, playcode, s3, s4);
 	next_status_byte = 0x00;
 }
 
@@ -820,9 +820,9 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 	case CDROM_COMMAND_SET_STATE: // 80h
 		if(req_status) {
 //			stat_reply_intr = true; // OK?
-			if((cdda_status == CDDA_PLAYING) && (mounted())) {
-				next_status_byte |= 0x03;
-			}
+//			if((cdda_status == CDDA_PLAYING) && (mounted())) {
+//				next_status_byte |= 0x03;
+//			}
 			if(!(mounted())) {
 				status_not_ready(false);
 				break;
@@ -1463,8 +1463,8 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 //		if((cdrom_prefetch) || (pio_transfer)) {
 			register_event(this, EVENT_CDROM_NEXT_SECTOR,
-//					   (1.0e6 / ((double)transfer_speed * 150.0e3)) * ((double)physical_block_size()), // OK?
-						   5.0e3, // From TSUGARU
+						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * ((double)(physical_block_size())), // OK?
+//						   5.0e3, // From TSUGARU
 						   false, &event_next_sector);
 //		}
 		break;
@@ -1507,7 +1507,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		} else if(read_length > 0) {
 			// Polling to buffer empty.
 			register_event(this, EVENT_CDROM_NEXT_SECTOR,
-						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 16.0, // OK?
+						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 64.0, // OK?
 						   false, &event_next_sector);
 	   }
 		break;
