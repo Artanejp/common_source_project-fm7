@@ -62,8 +62,8 @@ void I386::reset()
 		i386cpuid.cpu_family = CPU_80386_FAMILY;
 		i386cpuid.cpu_model = CPU_80386_MODEL;
 		i386cpuid.cpu_stepping = CPU_80386_STEPPING;
-//		i386cpuid.cpu_feature = CPU_FEATURES_80386; 
-		i386cpuid.cpu_feature = CPU_FEATURES_80386 | CPU_FEATURE_FPU_FLAG; // 20200501 TMP K.O
+		i386cpuid.cpu_feature = CPU_FEATURES_80386; 
+//		i386cpuid.cpu_feature = CPU_FEATURES_80386 | CPU_FEATURE_FPU; // 20200501 TMP K.O
 		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_80386;
 		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_80386;
 		i386cpuid.cpu_brandid = CPU_BRAND_ID_80386;
@@ -75,7 +75,8 @@ void I386::reset()
 		i386cpuid.cpu_family = CPU_I486SX_FAMILY;
 		i386cpuid.cpu_model = CPU_I486SX_MODEL;
 		i386cpuid.cpu_stepping = CPU_I486SX_STEPPING;
-		i386cpuid.cpu_feature = CPU_FEATURES_I486SX;
+//		i386cpuid.cpu_feature = CPU_FEATURES_I486SX;
+		i386cpuid.cpu_feature = CPU_FEATURES_I486SX | CPU_FEATURE_FPU;
 		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_I486SX;
 		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_I486SX;
 		i386cpuid.cpu_brandid = CPU_BRAND_ID_I486SX;
@@ -242,8 +243,8 @@ void I386::reset()
 	}
 	osd->set_vm_node(this_device_id, (char *)this_device_name);
 	
-	i386cpuid.fpu_type = FPU_TYPE_SOFTFLOAT;
-//	i386cpuid.fpu_type = FPU_TYPE_DOSBOX;
+//	i386cpuid.fpu_type = FPU_TYPE_SOFTFLOAT;
+	i386cpuid.fpu_type = FPU_TYPE_DOSBOX;
 //	i386cpuid.fpu_type = FPU_TYPE_DOSBOX2;
 	fpu_initialize();
  	

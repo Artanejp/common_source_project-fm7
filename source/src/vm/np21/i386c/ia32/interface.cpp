@@ -49,7 +49,11 @@ ia32_initreg(void)
 //	CPU_EDX = (CPU_FAMILY << 8) | (CPU_MODEL << 4) | CPU_STEPPING;
 	CPU_EDX = (i386cpuid.cpu_family << 8) | (i386cpuid.cpu_model << 4) | i386cpuid.cpu_stepping;
 	CPU_EFLAG = 2;
-	CPU_CR0 = CPU_CR0_CD | CPU_CR0_NW;
+	if(i386cpuid.cpu_family == CPU_80386_FAMILY) {
+		CPU_CR0 = 0;
+	} else {
+		CPU_CR0 = CPU_CR0_CD | CPU_CR0_NW;
+	}
 #if defined(USE_FPU)
 	if(i386cpuid.cpu_feature & CPU_FEATURE_FPU){
 		CPU_CR0 |= CPU_CR0_ET;	/* FPU present */
