@@ -190,7 +190,7 @@ MOVSB_XbYb_rep(int reptype)
 		case 2: /* repne */
 			for (;;) {
 				MOVSB_XbYb_rep16_part;
-				if (--CPU_CX == 0 || CC_Z) {
+				if (--CPU_CX == 0 /*|| CC_Z*/) { 
 	#if defined(DEBUG)
 					cpu_debug_rep_cont = 0;
 	#endif
@@ -238,7 +238,7 @@ MOVSB_XbYb_rep(int reptype)
 		case 2: /* repne */
 			for (;;) {
 				MOVSB_XbYb_rep32_part;
-				if (--CPU_ECX == 0 || CC_Z) {
+				if (--CPU_ECX == 0 /*|| CC_Z*/) {
 	#if defined(DEBUG)
 					cpu_debug_rep_cont = 0;
 	#endif
@@ -295,7 +295,7 @@ MOVSW_XwYw_rep(int reptype)
 		case 2: /* repne */
 			for (;;) {
 				MOVSW_XwYw_rep16_part;
-				if (--CPU_CX == 0 || CC_Z) {
+				if (--CPU_CX == 0 /*|| CC_Z*/) {
 	#if defined(DEBUG)
 					cpu_debug_rep_cont = 0;
 	#endif
@@ -343,7 +343,7 @@ MOVSW_XwYw_rep(int reptype)
 		case 2: /* repne */
 			for (;;) {
 				MOVSW_XwYw_rep32_part;
-				if (--CPU_ECX == 0 || CC_Z) {
+				if (--CPU_ECX == 0 /*|| CC_Z*/) {
 	#if defined(DEBUG)
 					cpu_debug_rep_cont = 0;
 	#endif
@@ -400,7 +400,7 @@ MOVSD_XdYd_rep(int reptype)
 		case 2: /* repne */
 			for (;;) {
 				MOVSD_XdYd_rep16_part;
-				if (--CPU_CX == 0 || CC_Z) {
+				if (--CPU_CX == 0 /*|| CC_Z*/) {
 	#if defined(DEBUG)
 					cpu_debug_rep_cont = 0;
 	#endif
@@ -448,7 +448,7 @@ MOVSD_XdYd_rep(int reptype)
 		case 2: /* repne */
 			for (;;) {
 				MOVSD_XdYd_rep32_part;
-				if (--CPU_ECX == 0 || CC_Z) {
+				if (--CPU_ECX == 0 /*|| CC_Z*/) {
 	#if defined(DEBUG)
 					cpu_debug_rep_cont = 0;
 	#endif
