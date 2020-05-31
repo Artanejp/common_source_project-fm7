@@ -33,7 +33,6 @@
 #define EVENT_CDROM_NEXT_SECTOR				108
 #define EVENT_CDROM_DELAY_READY				109
 #define EVENT_CDROM_DELAY_READY2			110
-#define EVENT_CDROM_DMA_EOT					111
 #define _CDROM_DEBUG_LOG
 
 // Event must be larger than 116.
@@ -605,7 +604,6 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 			} else {
 //						clear_event(event_next_sector);
 //						clear_event(event_seek_completed);
-				dma_transfer_phase = false;
 				out_debug_log(_T("NEXT(SIGNAL/DMA)"));
 //				if((event_seek_completed < 0) && (event_next_sector < 0)) {
 //					register_event(this, EVENT_CDROM_NEXT_SECTOR, 6000.0, false, &event_next_sector);
@@ -1094,7 +1092,7 @@ void TOWNS_CDROM::read_cdrom()
 	__remain = (lba2 - lba1 + 1);
 	read_length = __remain * logical_block_size();
 
-	dma_transfer_phase = dma_transfer;
+//	dma_transfer_phase = dma_transfer;
 	pio_transfer_phase = pio_transfer;
 	clear_event(event_drq);
 	clear_event(event_next_sector);
@@ -1447,8 +1445,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDROM_SEEK_COMPLETED:
 		// BIOS FDDFCh(0FC0h:01FCh)-
-		pio_transfer_phase = pio_transfer;
-		dma_transfer_phase = dma_transfer;
 		event_seek_completed = -1;
 		//read_pos = 0;
 		clear_event(event_next_sector);
@@ -1459,7 +1455,8 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			} else {
 				read_buffer(read_length);
 			}
-//			status_data_ready(true);
+		pio_transfer_phase = pio_transfer;
+//		dma_transfer_phase = dma_transfer;
 		}
 //		if((cdrom_prefetch) || (pio_transfer)) {
 			register_event(this, EVENT_CDROM_NEXT_SECTOR,
@@ -1477,8 +1474,8 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				out_debug_log(_T("EOT"));
 				pio_transfer_phase = false;
 				dma_transfer_phase = false;
-				status_read_done(true);
-				set_dma_intr(true);
+//				status_read_done(true);
+//				set_dma_intr(true);
 				break;
 			}
 		}
@@ -1493,8 +1490,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		   ((databuffer->empty()) && (read_length > 0))) {
 //		if(/*(databuffer->left() >= logical_block_size()) &&*/ (read_length > 0)) {
 			out_debug_log(_T("READ NEXT SECTOR"));
-			pio_transfer_phase = pio_transfer;
-			dma_transfer_phase = dma_transfer;
 			if(pio_transfer) {
 				set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
 				set_dma_intr(true);
@@ -1510,17 +1505,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 64.0, // OK?
 						   false, &event_next_sector);
 	   }
-		break;
-	case EVENT_CDROM_DMA_EOT:
-		event_next_sector = -1;
-		if(read_length <= 0) {
-			pio_transfer_phase = false;
-			dma_transfer_phase = false;
-			out_debug_log(_T("EOT(DMA)"));
-			set_dma_intr(true);
-//			status_read_done(true);
-//			set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
-		} 
 		break;
 	case EVENT_CDROM_DRQ:
 		// ToDo: Buffer OVERFLOW at PIO mode.
@@ -2836,9 +2820,12 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 		if((pio_transfer_phase) && (pio_transfer)) {
 			val = (databuffer->read() & 0xff);
 			data_reg = val;
-			if((databuffer->empty()) && (read_length <= 0)) {
+			if((databuffer->empty())) {
 				pio_transfer_phase = false;
-				status_read_done(true);
+				if(read_length <= 0) {
+					set_dma_intr(true);
+					status_read_done(true);
+				}
 			}
 		}
 		break;
@@ -2922,18 +2909,11 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 			dma_transfer = true;
 			pio_transfer = false;
 		}
-//		dma_transfer_phase = dma_transfer;
-//		pio_transfer_phase = pio_transfer;
-#if 1
 		if((dma_transfer) && !(dma_transfer_phase)) {
 			dma_transfer_phase = true;
-//			clear_event(event_drq);
-//			if(!(databuffer->empty())) {
-//				out_debug_log(_T("KICK DRQ"));
-//				register_event(this, EVENT_CDROM_DRQ, 1.0e6 / ((double)transfer_speed * 150.0e3), true, &event_drq);
-//			}
+		} else if((pio_transfer) && !(pio_transfer_phase)) {
+			pio_transfer_phase = true;
 		}
-#endif
 		//out_debug_log(_T("SET TRANSFER MODE to %02X"), data);
 		break;
 	}
