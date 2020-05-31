@@ -1809,13 +1809,16 @@ DB2_ESC3(void)
 			break;
 			
 		case 1:	/* FISTTP (DWORD) */
+			if(i386cpuid.cpu_family >= CPU_PENTIUM_4_FAMILY)
 			{
-				FP_RND oldrnd = FPU_STAT.round;
-				FPU_STAT.round = ROUND_Down;
-				FPU_FST_I32(madr);
-				FPU_STAT.round = oldrnd;
+				{
+					FP_RND oldrnd = FPU_STAT.round;
+					FPU_STAT.round = ROUND_Down;
+					FPU_FST_I32(madr);
+					FPU_STAT.round = oldrnd;
+				}
+				FPU_FPOP();
 			}
-			FPU_FPOP();
 			break;
 			
 		case 2:	/* FIST (DWORD) */
@@ -1976,13 +1979,16 @@ DB2_ESC5(void)
 			FPU_FLD_F64(madr,FPU_STAT_TOP);
 			break;
 		case 1:	/* FISTTP (QWORD) */
+			if(i386cpuid.cpu_family >= CPU_PENTIUM_4_FAMILY)
 			{
-				FP_RND oldrnd = FPU_STAT.round;
-				FPU_STAT.round = ROUND_Down;
-				FPU_FST_I64(madr);
-				FPU_STAT.round = oldrnd;
+				{
+					FP_RND oldrnd = FPU_STAT.round;
+					FPU_STAT.round = ROUND_Down;
+					FPU_FST_I64(madr);
+					FPU_STAT.round = oldrnd;
+				}
+				FPU_FPOP();
 			}
-			FPU_FPOP();
 			break;
 		case 2:	/* FST (倍精度実数) */
 			TRACEOUT(("FST double real"));
@@ -2158,13 +2164,16 @@ DB2_ESC7(void)
 			FPU_FLD_I16(madr,FPU_STAT_TOP);
 			break;
 		case 1:	/* FISTTP (WORD) */
+			if(i386cpuid.cpu_family >= CPU_PENTIUM_4_FAMILY)
 			{
-				FP_RND oldrnd = FPU_STAT.round;
-				FPU_STAT.round = ROUND_Down;
-				FPU_FST_I16(madr);
-				FPU_STAT.round = oldrnd;
+				{
+					FP_RND oldrnd = FPU_STAT.round;
+					FPU_STAT.round = ROUND_Down;
+					FPU_FST_I16(madr);
+					FPU_STAT.round = oldrnd;
+				}
+				FPU_FPOP();
 			}
-			FPU_FPOP();
 			break;
 		case 2:	/* FIST (WORD) */
 			TRACEOUT(("FIST SINT16"));

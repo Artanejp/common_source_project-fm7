@@ -1608,13 +1608,16 @@ SF_ESC3(void)
 			break;
 			
 		case 1:	/* FISTTP (DWORD) */
+			if(i386cpuid.cpu_family >= CPU_PENTIUM_4_FAMILY)
 			{
+				{
 				signed char oldrnd = float_rounding_mode;
 				float_rounding_mode = float_round_down;
 				FPU_FST_I32(madr);
 				float_rounding_mode = oldrnd;
+				}
+				FPU_FPOP();
 			}
-			FPU_FPOP();
 			break;
 			
 		case 2:	/* FIST (DWORD) */
@@ -1776,13 +1779,16 @@ SF_ESC5(void)
 			FPU_FLD_F64(madr,FPU_STAT_TOP);
 			break;
 		case 1:	/* FISTTP (QWORD) */
+			if(i386cpuid.cpu_family >= CPU_PENTIUM_4_FAMILY)
 			{
-				signed char oldrnd = float_rounding_mode;
-				float_rounding_mode = float_round_down;
-				FPU_FST_I64(madr);
-				float_rounding_mode = oldrnd;
+				{
+					signed char oldrnd = float_rounding_mode;
+					float_rounding_mode = float_round_down;
+					FPU_FST_I64(madr);
+					float_rounding_mode = oldrnd;
+				}
+				FPU_FPOP();
 			}
-			FPU_FPOP();
 			break;
 		case 2:	/* FST (倍精度実数) */
 			TRACEOUT(("FST double real"));
@@ -1959,13 +1965,16 @@ SF_ESC7(void)
 			FPU_FLD_I16(madr,FPU_STAT_TOP);
 			break;
 		case 1:	/* FISTTP (WORD) */
+			if(i386cpuid.cpu_family >= CPU_PENTIUM_4_FAMILY)
 			{
-				signed char oldrnd = float_rounding_mode;
-				float_rounding_mode = float_round_down;
-				FPU_FST_I16(madr);
-				float_rounding_mode = oldrnd;
+				{
+					signed char oldrnd = float_rounding_mode;
+					float_rounding_mode = float_round_down;
+					FPU_FST_I16(madr);
+					float_rounding_mode = oldrnd;
+				}
+				FPU_FPOP();
 			}
-			FPU_FPOP();
 			break;
 		case 2:	/* FIST (WORD) */
 			TRACEOUT(("FIST SINT16"));
