@@ -90,14 +90,12 @@ void TOWNS_CRTC::reset()
 	display_enabled = true;
 	vblank = true;
 	vsync = hsync = false;
-	
+	fo1_offset_value = 0;	
 //	memset(regs, 0, sizeof(regs));
 	crtc_ch = 0;
 	
 	// initial settings for 1st frame
 	req_recalc = false;
-	sprite_disp_page = 0; // OK?
-	sprite_enabled = false;
 //	crtc_clock = 28.6363e6; // OK?
 	interlace_field = false;
 	is_compatible = true;
@@ -792,7 +790,9 @@ uint32_t TOWNS_CRTC::read_io16(uint32_t addr)
 	}
 	switch(addr & 0xfffe) {
 	case 0x0442:
-		if(crtc_ch == 30) {
+		if(crtc_ch == 21) { // FO1
+			return ((regs[21] & 0x7fff) + fo1_offset_value); 
+		} else if(crtc_ch == 30) {
 			return (uint32_t)read_reg30();
 		} else {
 			return regs[crtc_ch];
@@ -857,8 +857,8 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 			d = d | ((dpalette_changed) ? 0x80 : 0x00);
 			if(d_sprite != NULL) {
 				d = d | ((d_sprite->read_signal(SIG_TOWNS_SPRITE_BUSY) != 0) ? 0x02 : 0x00);
+				d = d | ((d_sprite->read_signal(SIG_TOWNS_SPRITE_DISP_PAGE1) != 0) ? 0x01 : 0x00);
 			}
-			d = d | ((sprite_disp_page != 0) ? 0x01 : 0x00);
 			dpalette_changed = false;
 			return d;
 		}
@@ -1812,21 +1812,26 @@ __DECL_VECTORIZED_LOOP
 	for(int l = 0; l < 2; l++) {
 		if(to_disp[l]) {
 			int  offset = (int)(vstart_addr[l] & 0x0007ffff); // ToDo: Larger VRAM
-			offset = offset + (int)(head_address[l] & 0x0007ffff);;
+			offset = offset + (int)(head_address[l] & 0x0007ffff);
+			offset <<= address_shift[l];
 			offset = offset + (int)hstart_words[l] - (int)(regs[9 + l * 2]);
+			offset = offset + frame_offset[l];
+			if(l == 1) {
+				offset = offset + fo1_offset_value;
+			}
 			int hoffset = 0;
 //			int hoffset = horiz_offset_tmp[l];
 //			offset = offset - hoffset;
 //			offset = offset - line_offset[l] * vert_offset_tmp[l];
 			
-			offset <<= address_shift[l];
+//			offset <<= address_shift[l];
 //			if((linebuffers[trans][line].mode[l] == DISPMODE_16))
 			{ // Display page
 				offset += ((page_16mode != 0) ? 0x20000 : 0);
 			}
 			offset = offset & address_mask[l]; // OK?
 			offset += address_add[l];
-			// ToDo: HAJ0, LO0
+
 			uint16_t _begin = regs[9 + l * 2]; // HDSx
 			uint16_t _end = regs[10 + l * 2];  // HDEx
 			if(_begin < _end) {
@@ -1954,9 +1959,6 @@ void TOWNS_CRTC::event_frame()
 //	out_debug_log(_T("FRAME EVENT LINES=%d FRAMEus=%f Hus=%f VST1us=%f VST2us=%f"),lines_per_frame, frame_us, horiz_us, vst1_us, vst2_us);
 	// ToDo: EET
 	//register_event(this, EVENT_CRTC_VSTART, frame_us, false, &event_id_frame); // EVENT_VSTART MOVED TO event_frame().
-	if(d_sprite != NULL) {
-		d_sprite->write_signal(SIG_TOWNS_SPRITE_CALL_VSTART, 0xffffffff, 0xffffffff);
-	}
 	cancel_event_by_id(event_id_vst1);
 	cancel_event_by_id(event_id_vst2);
 	
@@ -2045,7 +2047,6 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	
 	my_stprintf_s(buffer, buffer_len,
 				  _T("%s")
-				  _T("SPRITE ENABLED=%s / SPRITE DISP=%d \n")
 				  _T("ZOOM[0] V=%d H=%d VCOUNT=%d / ZOOM[1] V=%d H=%d VCOUNT=%d\n")
 				  _T("VSYNC=%s / VBLANK=%s / VDISP=%s / FRAME IN[0]=%s / [1]=%s\n")
 				  _T("HSYNC=%s / HDISP[0]=%s / [1]=%s\n\n")
@@ -2053,7 +2054,6 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				  _T("%s")
 				  , paramstr
 //				  , line_count[0], line_count[1]
-				  , (sprite_enabled) ? _T("YES") : _T("NO"), sprite_disp_page
 				  , zoom_factor_vert[0], zoom_factor_horiz[0], zoom_count_vert[0]
 				  , zoom_factor_vert[1], zoom_factor_horiz[1], zoom_count_vert[1]
 				  ,	(vsync) ? _T("YES") : _T("NO "), (vblank) ? _T("YES") : _T("NO ")
@@ -2106,14 +2106,14 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 	} else if(event_id == EVENT_CRTC_HSTART) {
 		// Do render
 		event_id_hstart = -1;
+		if(d_sprite != NULL) {
+			d_sprite->write_signal(SIG_TOWNS_SPRITE_HOOK_VLINE, vert_line_count, 0xffffffff);
+		}
 		if(frame_in[0] || frame_in[1]) {
 			vert_line_count++;
 			if(vert_line_count < lines_per_frame) {
 				transfer_line(vert_line_count); // Tranfer before line.
 			}
-		}
-		if(d_sprite != NULL) {
-			d_sprite->write_signal(SIG_TOWNS_SPRITE_CALL_HSYNC, vert_line_count, 0xffffffff);
 		}
 		hdisp[0] = false;
 		hdisp[1] = false;
@@ -2204,12 +2204,10 @@ void TOWNS_CRTC::write_signal(int ch, uint32_t data, uint32_t mask)
 //		out_debug_log(_T("CF882H=%02X"), data & 0xff);
 		r50_planemask = ((data & 0x20) >> 2) | (data & 0x07);
 		r50_pagesel = ((data & 0x10) != 0) ? 1 : 0;
-	} else if(ch == SIG_TOWNS_CRTC_SPRITE_DISP) {
-		sprite_disp_page = data & 1; // OK?
-	} else if(ch == SIG_TOWNS_CRTC_SPRITE_USING) {
-		sprite_enabled = ((data & mask) != 0) ? true : false; // OK?
 	} else if(ch == SIG_TOWNS_CRTC_COMPATIBLE_MMIO) {
 		is_compatible = ((data & mask) != 0) ? true : false;
+	} else if(ch == SIG_TOWNS_CRTC_ADD_VAL_FO1) {
+		fo1_offset_value = data & 0xffff; 
 	}
 }
 
@@ -2254,13 +2252,13 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(head_address, sizeof(head_address), 1);
 	state_fio->StateArray(impose_mode,  sizeof(impose_mode), 1);
 	state_fio->StateArray(carry_enable, sizeof(carry_enable), 1);
-
 	
 	state_fio->StateArray(zoom_factor_vert, sizeof(zoom_factor_vert), 1);
 	state_fio->StateArray(zoom_factor_horiz, sizeof(zoom_factor_horiz), 1);
 	state_fio->StateArray(zoom_count_vert, sizeof(zoom_count_vert), 1);
 	state_fio->StateArray(line_count, sizeof(line_count), 1);
 
+	state_fio->StateValue(fo1_offset_value);
 	state_fio->StateValue(vert_line_count);
 	
 	state_fio->StateValue(vdisp);
@@ -2285,8 +2283,6 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(crtout, sizeof(crtout), 1);
 	state_fio->StateArray(crtout_top, sizeof(crtout_top), 1);
 
-	state_fio->StateValue(sprite_disp_page);
-	state_fio->StateValue(sprite_enabled);
 
 	state_fio->StateValue(pixels_per_line);
 	state_fio->StateValue(lines_per_frame);

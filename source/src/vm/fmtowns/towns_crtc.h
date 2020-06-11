@@ -88,18 +88,17 @@
  *   #01 : Priority registers.
  */
 
-#define SIG_TOWNS_CRTC_HSYNC           1
-#define SIG_TOWNS_CRTC_VSYNC           2
-#define SIG_TOWNS_CRTC_FIELD           3
-#define SIG_TOWNS_CRTC_VDISP0          4
-#define SIG_TOWNS_CRTC_VDISP1          5
-#define SIG_TOWNS_CRTC_HDISP0          6
-#define SIG_TOWNS_CRTC_HDISP1          7
-#define SIG_TOWNS_CRTC_MMIO_CF882H     8
-#define SIG_TOWNS_CRTC_SPRITE_BUFFER   9
-#define SIG_TOWNS_CRTC_SPRITE_DISP     10
-#define SIG_TOWNS_CRTC_SPRITE_USING    11
-#define SIG_TOWNS_CRTC_COMPATIBLE_MMIO 12
+#define SIG_TOWNS_CRTC_HSYNC			1
+#define SIG_TOWNS_CRTC_VSYNC			2
+#define SIG_TOWNS_CRTC_FIELD			3
+#define SIG_TOWNS_CRTC_VDISP0			4
+#define SIG_TOWNS_CRTC_VDISP1			5
+#define SIG_TOWNS_CRTC_HDISP0			6
+#define SIG_TOWNS_CRTC_HDISP1			7
+#define SIG_TOWNS_CRTC_MMIO_CF882H		8
+#define SIG_TOWNS_CRTC_SPRITE_BUFFER	9
+#define SIG_TOWNS_CRTC_COMPATIBLE_MMIO	10
+#define SIG_TOWNS_CRTC_ADD_VAL_FO1		11
 
 class DEBUGGER;
 namespace FMTOWNS {
@@ -197,6 +196,7 @@ protected:
 	bool timing_changed[2];
 	bool address_changed[2];
 	bool mode_changed[2];
+	uint32_t fo1_offset_value;
 	
 	uint8_t display_mode[2];
 	bool line_changed[2][TOWNS_CRTC_MAX_LINES];
@@ -264,9 +264,6 @@ protected:
 	bool vdisp, vblank, vsync, hsync, hdisp[2], frame_in[2];
 	bool interlace_field;
 	
-	// around sprite
-	uint8_t sprite_disp_page;
-	bool sprite_enabled;
 	
 	// Around Analog palette.
 	uint8_t apalette_code; // I/O FD90H (RW). 16 or 256 colors.
