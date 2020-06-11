@@ -576,10 +576,11 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_TOWNS_CDROM_DMAINT:
 		if((data & mask) != 0) {
 //			if(dma_transfer_phase) {
-#if 1
 //			if(read_length <= 0) {
 //			clear_event(event_next_sector);
 //			clear_event(event_seek_completed);
+	#if 1
+			if((read_length > 0) || !(databuffer->empty())) {
 			if(!(dma_intr_mask)) {
 				dma_intr = true;
 				mcu_intr = false;
@@ -595,6 +596,9 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 				dma_transfer_phase = false;
 				if(stat_reply_intr) write_signals(&outputs_mcuint, 0xffffffff);
 			}
+			}
+	#endif
+#if 0
 			if(read_length <= 0) {
 				clear_event(event_drq);
 				clear_event(event_next_sector);
@@ -1028,10 +1032,29 @@ uint8_t TOWNS_CDROM::read_status()
 uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
 {
 	data_reg = (uint8_t)(databuffer->read() & 0xff);
-//	if(databuffer->empty()) {
-//		clear_event(event_drq);
+	if((databuffer->empty()) && (read_length <= 0)) {
+		if(!(dma_intr_mask)) {
+			dma_intr = true;
+			mcu_intr = false;
+			dma_transfer_phase = false;
+			write_signals(&outputs_mcuint, 0xffffffff);
+		} else {
+//				mcu_intr = true;
+			mcu_intr = false;
+			dma_intr = true;
+			if(read_length > 0) {
+				mcu_ready = true;
+			}
+			dma_transfer_phase = false;
+			if(stat_reply_intr) write_signals(&outputs_mcuint, 0xffffffff);
+		}
+		clear_event(event_drq);
+		clear_event(event_next_sector);
+		clear_event(event_seek_completed);
+		status_read_done(req_status);
+		out_debug_log(_T("EOT(DMA"));
 //		dma_transfer_phase = false;
-//	}
+	}
 	return data_reg;
 }
 
