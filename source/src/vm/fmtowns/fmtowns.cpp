@@ -328,6 +328,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	sprite->set_context_vram(vram);	
 	sprite->set_context_font(fontrom);
+	sprite->set_context_crtc(crtc);
 #ifdef USE_DEBUGGER
 	sprite->set_context_debugger(new DEBUGGER(this, emu));
 #endif

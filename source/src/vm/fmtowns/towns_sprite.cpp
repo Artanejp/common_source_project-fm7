@@ -10,9 +10,12 @@
 #include "../../common.h"
 #include "./towns_vram.h"
 #include "./towns_sprite.h"
+#include "./towns_crtc.h"
+
+#define EVENT_FALL_DOWN 1
 
 namespace FMTOWNS {
-	
+
 void TOWNS_SPRITE::initialize(void)
 {
 	memset(pattern_ram, 0x00, sizeof(pattern_ram));
@@ -29,7 +32,7 @@ void TOWNS_SPRITE::initialize(void)
 	max_sprite_per_frame = 224;
 	frame_sprite_count = 0;	
 	register_frame_event(this);
-	register_vline_event(this);
+//	register_vline_event(this);
 }
 
 void TOWNS_SPRITE::reset()
@@ -46,7 +49,8 @@ void TOWNS_SPRITE::reset()
 	render_num = 0;
 	render_mod = 0;
 	render_lines = 224;
-	split_rendering = true;
+//	split_rendering = true;
+	split_rendering = false;
 
 	sprite_enabled = false;
 	now_transferring = false;
@@ -65,7 +69,7 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	if(lot == 0) lot = 1024;
 	if(num < 0) return;
 	if(num >= lot) return;
-	if(!(reg_spen) || !(sprite_enabled)) return; 
+	if(/*!(reg_spen) || */!(sprite_enabled)) return; 
 
 	bool is_32768 = ((color & 0x8000) == 0); // CTEN
 	// ToDo: SPYS
@@ -624,7 +628,7 @@ void TOWNS_SPRITE::render_full()
 			int xaddr = _nx.w & 0x1ff;
 			int yaddr = _ny.w & 0x1ff;
 			// ToDo: wrap round.This is still bogus implement.
-			out_debug_log(_T("RENDER %d X=%d Y=%d ATTR=%04X COLOR=%04X"), render_num, xaddr, yaddr, _nattr.w, _ncol.w);
+			//out_debug_log(_T("RENDER %d X=%d Y=%d ATTR=%04X COLOR=%04X"), render_num, xaddr, yaddr, _nattr.w, _ncol.w);
 			render_sprite(render_num, xaddr, yaddr, _nattr.w, _ncol.w);
 			frame_sprite_count++;
 			if((frame_sprite_count >= max_sprite_per_frame) && (max_sprite_per_frame > 0)) break;
@@ -702,14 +706,10 @@ void TOWNS_SPRITE::write_reg(uint32_t addr, uint32_t data)
 		reg_voffset = ((uint16_t)(reg_data[4]) + (((uint16_t)(reg_data[5] & 0x01)) << 8));
 		break;
 	case 6:
-		if(!(now_transferring)) {
+//		if(!(now_transferring)) {
 			disp_page0 = ((data & 0x01) != 0) ? true : false;
 			disp_page1 = ((data & 0x10) != 0) ? true : false;
-			if(d_vram != NULL) {
-				d_vram->write_signal(SIG_TOWNS_VRAM_DP0, (disp_page0) ? 0xffffffff : 0 , 0xffffffff);
-				d_vram->write_signal(SIG_TOWNS_VRAM_DP1, (disp_page1) ? 0xffffffff : 0 , 0xffffffff);
-			}
-		}
+//		}
 		break;
 	default:
 		break;
@@ -799,8 +799,20 @@ bool TOWNS_SPRITE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	my_tcscat_s(regstr, 1024, sstr);
 	
 	memset(sstr, 0x00, sizeof(sstr));
-	my_stprintf_s(sstr, 63, _T("SPRITE:%s \n"), (sprite_enabled) ? _T("ENABLED ") : _T("DISABLED"));
+	my_stprintf_s(sstr, 63, _T("SPRITE:%s LOT=%d HOFFSET=%d VOFFSET=%d DISP0=%d DISP1=%d\n")
+				  , (reg_spen) ? _T("ENABLED ") : _T("DISABLED")
+				  , ((reg_index & 0x3ff) == 0) ? 1024 : (reg_index & 0x3ff)
+				  , reg_hoffset
+				  , reg_voffset
+				  , (disp_page0) ? 1 : 0
+				  , (disp_page1) ? 1 : 0
+		);
 	my_tcscat_s(regstr, 1024, sstr);
+	
+	memset(sstr, 0x00, sizeof(sstr));
+	my_stprintf_s(sstr, 63, _T("TRANSFER:%s \n"), (sprite_enabled) ? _T("ON ") : _T("OFF"));
+	my_tcscat_s(regstr, 1024, sstr);
+
 	
 	memset(sstr, 0x00, sizeof(sstr));
 	my_stprintf_s(sstr, 64, _T("A:%02X \n"), reg_addr & 0x07);
@@ -836,22 +848,39 @@ bool TOWNS_SPRITE::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	return false;
 }
 
+void TOWNS_SPRITE::event_callback(int id, int err)
+{
+	switch(id) {
+	case EVENT_FALL_DOWN:
+		sprite_enabled = false;
+		disp_page1 = !(disp_page1); // Change page
+		break;
+	}
+}
+
 void TOWNS_SPRITE::event_frame()
 {
 	uint16_t lot = reg_index & 0x3ff;
-//	if(reg_spen && !(sprite_enabled)) {
-	sprite_enabled = true;
-	render_num = 0;
-	render_mod = 0;
+//	if(reg_spen /*&& !(sprite_enabled)*/) {
+		sprite_enabled = reg_spen;
+		render_num = 0;
+		render_mod = 0;
+//	} else {
 //	}
 	if(lot == 0) lot = 1024;
 	frame_sprite_count = 0;
 	if(sprite_enabled){
+		if(d_crtc != NULL) {
+			d_crtc->write_signal(SIG_TOWNS_CRTC_ADD_VAL_FO1, (disp_page1) ? 0x00000 : 0x80000, 0xfffff);
+		}
 		if(d_vram != NULL) {
 			// Set split_rendering from DIPSW.
 			// Set cache_enabled from DIPSW.
 			if(!split_rendering) {
 				render_full();
+				register_event(this, EVENT_FALL_DOWN, (double)((lot * 128) / 16), false, NULL);
+//			disp_page1 = !(disp_page1); // Change page
+				
 			}
 			//} else {
 			//render_num = 0;
@@ -862,6 +891,10 @@ void TOWNS_SPRITE::event_frame()
 			render_num = 0;
 			render_mod = 0;
 			sprite_enabled = false;
+		}
+	} else {
+		if(d_crtc != NULL) {
+			d_crtc->write_signal(SIG_TOWNS_CRTC_ADD_VAL_FO1, 0x00000, 0xfffff);
 		}
 	}
 }
@@ -890,6 +923,9 @@ void TOWNS_SPRITE::do_vline_hook(int line)
 		if((nf >= 1) && (render_num < lot) && (sprite_enabled)) {
 			render_part(render_num, render_num + nf);
 		} else if(render_num >= lot) {
+			if(sprite_enabled) {
+				disp_page1 = !(disp_page1); // Change page
+			}
 			sprite_enabled = false;
 		}
 	}
@@ -925,6 +961,10 @@ uint32_t TOWNS_SPRITE::read_signal(int id)
 		 uint32_t v = ((tvram_enabled_bak) ? 0xffffffff : 0);
 		 tvram_enabled_bak = false;
 		 return v;
+	} else if(id == SIG_TOWNS_SPRITE_DISP_PAGE0) {
+		return (disp_page0) ? 0xffffffff : 0;
+	} else if(id == SIG_TOWNS_SPRITE_DISP_PAGE1) {
+		return (disp_page1) ? 0xffffffff : 0;
 	} else {
 		id = id - SIG_TOWNS_SPRITE_PEEK_TVRAM;
 		if((id < 0x1ffff) && (id>= 0)) {

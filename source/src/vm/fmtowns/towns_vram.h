@@ -37,8 +37,6 @@
 #define SIG_TOWNS_VRAM_HSYNC             0x06
 #define SIG_TOWNS_VRAM_SET_VLINE         0x07
 #define SIG_TOWNS_RENDER_FLAG            0x08
-#define SIG_TOWNS_VRAM_DP0               0x0a
-#define SIG_TOWNS_VRAM_DP1               0x0b
 #define SIG_TOWNS_VRAM_FRAMEBUFFER_READY 0x10
 #define SIG_TOWNS_VRAM_SWAP_FRAMEBUFFER  0x11
 

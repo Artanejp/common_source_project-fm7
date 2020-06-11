@@ -7,12 +7,16 @@
 
 #define SIG_TOWNS_SPRITE_HOOK_VLINE     256
 #define SIG_TOWNS_SPRITE_SET_LINES      257
-#define SIG_TOWNS_SPRITE_SHADOW_RAM     258
-#define SIG_TOWNS_SPRITE_BUSY           259
-#define SIG_TOWNS_SPRITE_CALL_HSYNC     260
-#define SIG_TOWNS_SPRITE_CALL_VSTART    261
-#define SIG_TOWNS_SPRITE_ANKCG          262
-#define SIG_TOWNS_SPRITE_TVRAM_ENABLED  263
+#define SIG_TOWNS_SPRITE_TVRAM_ENABLED  258
+
+//#define SIG_TOWNS_SPRITE_ANKCG          259
+
+#define SIG_TOWNS_SPRITE_BUSY           260
+#define SIG_TOWNS_SPRITE_DISP_PAGE0		261
+#define SIG_TOWNS_SPRITE_DISP_PAGE1		262
+//  Belows are reserved values.
+#define SIG_TOWNS_SPRITE_CALL_HSYNC     263
+#define SIG_TOWNS_SPRITE_CALL_VSTART    264
 #define SIG_TOWNS_SPRITE_PEEK_TVRAM     0x00010000
 namespace FMTOWNS {
 	class TOWNS_VRAM;
@@ -26,6 +30,7 @@ class TOWNS_SPRITE : public DEVICE
 protected:
 	TOWNS_VRAM *d_vram;
 	DEVICE *d_font;
+	DEVICE *d_crtc;
 	DEBUGGER *d_debugger;
 	// REGISTERS
 	uint8_t reg_addr;
@@ -69,6 +74,7 @@ public:
 	{
 		d_vram = NULL;
 		d_font = NULL;
+		d_crtc = NULL;
 		set_device_name(_T("SPRITE"));
 	}
 	~TOWNS_SPRITE() {}
@@ -129,6 +135,8 @@ public:
 	void initialize();
 	void event_frame();
 	void event_vline(int v, int clk);
+	void event_callback(int id, int err);
+
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	void set_context_vram(TOWNS_VRAM *p)
@@ -138,6 +146,10 @@ public:
 	void set_context_font(DEVICE *p)
 	{
 		d_font = p;
+	}
+	void set_context_crtc(DEVICE *p)
+	{
+		d_crtc = p;
 	}
 	void set_context_debugger(DEBUGGER *p)
 	{
