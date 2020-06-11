@@ -39,7 +39,7 @@ void TIMER::reset()
 		cancel_event(this, event_wait_1us);
 		event_wait_1us = -1;
 	}
-	do_interval();
+//	do_interval();
 }
 void TIMER::write_io16(uint32_t addr, uint32_t data)
 {
@@ -67,10 +67,11 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x0068: // Interval control
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
+			/*
 			if(!(interval_enabled)) {// OK?
 				intv_ov = false;
 				intv_i = false;
-			}
+			}*/
 			interval_enabled = ((data & 0x80) == 0);
 			do_interval();
 		}
