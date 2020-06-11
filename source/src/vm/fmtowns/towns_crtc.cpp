@@ -1811,29 +1811,23 @@ __DECL_VECTORIZED_LOOP
 	}
 	for(int l = 0; l < 2; l++) {
 		if(to_disp[l]) {
+			uint16_t _begin = regs[9 + l * 2] & 0x3ff; // HDSx
 			int  offset = (int)(vstart_addr[l] & 0x0007ffff); // ToDo: Larger VRAM
 			offset = offset + (int)(head_address[l] & 0x0007ffff);
-			offset <<= address_shift[l];
-			offset = offset + (int)hstart_words[l] - (int)(regs[9 + l * 2]);
 			offset = offset + frame_offset[l];
 			if(l == 1) {
 				offset = offset + fo1_offset_value;
 			}
+			offset <<= address_shift[l];
+			offset = offset + (int)hstart_words[l] - (int)_begin;
 			int hoffset = 0;
-//			int hoffset = horiz_offset_tmp[l];
-//			offset = offset - hoffset;
-//			offset = offset - line_offset[l] * vert_offset_tmp[l];
-			
-//			offset <<= address_shift[l];
-//			if((linebuffers[trans][line].mode[l] == DISPMODE_16))
 			{ // Display page
 				offset += ((page_16mode != 0) ? 0x20000 : 0);
 			}
 			offset = offset & address_mask[l]; // OK?
 			offset += address_add[l];
 
-			uint16_t _begin = regs[9 + l * 2]; // HDSx
-			uint16_t _end = regs[10 + l * 2];  // HDEx
+			uint16_t _end = regs[10 + l * 2] & 0x3ff;  // HDEx
 			if(_begin < _end) {
 				int words = _end - _begin;
 				if(hstart_words[l] >= _begin) {
