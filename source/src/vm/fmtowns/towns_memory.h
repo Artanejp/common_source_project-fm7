@@ -307,7 +307,6 @@ public:
 	{
 		cpu_id = val & 0x07;
 	}
-
 };
 
 }
