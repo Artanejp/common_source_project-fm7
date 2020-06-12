@@ -576,31 +576,21 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 		break;
 		// By DMA/TC, EOT.
 	case SIG_TOWNS_CDROM_DMAINT:
-		if((data & mask) != 0) {
-//			if(dma_transfer_phase) {
-//			if(read_length <= 0) {
-//			clear_event(event_next_sector);
-//			clear_event(event_seek_completed);
-	#if 1
-			if((read_length > 0) || !(databuffer->empty())) {
+		if(((data & mask) != 0) && (dma_transfer_phase)) {
+			dma_transfer_phase = false;
 			if(!(dma_intr_mask)) {
 				dma_intr = true;
 				mcu_intr = false;
-				dma_transfer_phase = false;
-				write_signals(&outputs_mcuint, 0xffffffff);
 			} else {
-//				mcu_intr = true;
 				mcu_intr = false;
 				dma_intr = true;
 				if(read_length > 0) {
 					mcu_ready = true;
 				}
-				dma_transfer_phase = false;
-				if(stat_reply_intr) write_signals(&outputs_mcuint, 0xffffffff);
 			}
+			if((stat_reply_intr) || !(dma_intr_mask)) {
+				write_signals(&outputs_mcuint, 0xffffffff);
 			}
-	#endif
-#if 0
 			if(read_length <= 0) {
 				clear_event(event_drq);
 				clear_event(event_next_sector);
@@ -608,14 +598,8 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 				status_read_done(req_status);
 				out_debug_log(_T("EOT(SIGNAL/DMA"));
 			} else {
-//						clear_event(event_next_sector);
-//						clear_event(event_seek_completed);
 				out_debug_log(_T("NEXT(SIGNAL/DMA)"));
-//				if((event_seek_completed < 0) && (event_next_sector < 0)) {
-//					register_event(this, EVENT_CDROM_NEXT_SECTOR, 6000.0, false, &event_next_sector);
-//				}
 			}
-#endif
 		}
 		break;
 	default:
@@ -1035,27 +1019,25 @@ uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
 {
 	data_reg = (uint8_t)(databuffer->read() & 0xff);
 	if((databuffer->empty()) && (read_length <= 0)) {
+		dma_transfer_phase = false;
 		if(!(dma_intr_mask)) {
 			dma_intr = true;
 			mcu_intr = false;
-			dma_transfer_phase = false;
-			write_signals(&outputs_mcuint, 0xffffffff);
 		} else {
-//				mcu_intr = true;
 			mcu_intr = false;
 			dma_intr = true;
-			if(read_length > 0) {
-				mcu_ready = true;
-			}
-			dma_transfer_phase = false;
-			if(stat_reply_intr) write_signals(&outputs_mcuint, 0xffffffff);
+//			if(read_length > 0) {
+//				mcu_ready = true;
+//			}
+		}
+		if((stat_reply_intr) || !(dma_intr_mask)) {
+			write_signals(&outputs_mcuint, 0xffffffff);
 		}
 		clear_event(event_drq);
 		clear_event(event_next_sector);
 		clear_event(event_seek_completed);
 		status_read_done(req_status);
-		out_debug_log(_T("EOT(DMA"));
-//		dma_transfer_phase = false;
+		out_debug_log(_T("EOT(DMA) by read_dma_io8()"));
 	}
 	return data_reg;
 }
@@ -1504,13 +1486,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				break;
 			}
 		}
-/*		if(!(dma_transfer) && !(pio_transfer)) {
-			status_queue->clear();
-			status_data_ready(false);
-			mcu_intr = true;
-			dma_intr = false;
-			dma_transfer_phase = false;
-			} else 	*/
 		if(((cdrom_prefetch) && (databuffer->left() >= logical_block_size())) ||
 		   ((databuffer->empty()) && (read_length > 0))) {
 //		if(/*(databuffer->left() >= logical_block_size()) &&*/ (read_length > 0)) {
