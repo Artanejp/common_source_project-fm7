@@ -651,6 +651,10 @@ void VM::set_machine_type(uint16_t machine_id, uint16_t cpu_id)
 		timer->set_cpu_id(cpu_id);
 		timer->set_machine_id(machine_id);
 	}
+	if(cdrom != NULL) {
+		cdrom->set_cpu_id(cpu_id);
+		cdrom->set_machine_id(machine_id);
+	}
 	if(scsi != NULL) {
 		scsi->set_cpu_id(cpu_id);
 		scsi->set_machine_id(machine_id);

@@ -161,6 +161,13 @@ protected:
 //	FIFO* subq_buffer;
 	FIFO* databuffer;
 	FIFO* status_queue;
+
+	uint32_t max_fifo_length;
+	uint32_t fifo_length;
+	
+	uint16_t cpu_id;
+	uint16_t machine_id;
+	
 	uint8_t data_reg;
 	bool dma_transfer;
 	bool pio_transfer;
@@ -173,7 +180,7 @@ protected:
 	bool subq_overrun;
 	bool is_playing;
 	uint8_t next_status_byte;
-
+	
 	int stat_track;
 
 	bool is_cue;
@@ -386,11 +393,11 @@ public:
 	}
 
 	
-	// SCSI SPECIFIC COMMANDS
 	virtual void set_volume(int volume);
 	virtual void set_volume(int ch, int decibel_l, int decibel_r);
 	virtual bool read_buffer(int length);
 
+	// unique functions
 	// Towns specified command
 	virtual void set_cdda_status(uint8_t status);
 	int get_track(uint32_t lba);
@@ -398,11 +405,72 @@ public:
 	virtual uint8_t read_status();
 	virtual const int logical_block_size();
 	virtual const int physical_block_size();
+	virtual bool write_a_byte(uint8_t val)
+	{
+		uint32_t n = val;
+		if(databuffer->count() >= fifo_length) {
+			return false;
+		}
+		databuffer->write((int)n);
+		return true;
+	}
+	virtual bool write_bytes(uint8_t* val, int bytes)
+	{
+		int n_count = databuffer->count();
+		if((val == NULL) ||
+		   (n_count >= max_fifo_length) || ((n_count + bytes) >= fifo_length)) {
+			return false;
+		}
+		for(int i = 0; i < bytes; i++) {
+			int d = val[i];
+			databuffer->write(d);
+		}
+		return true;
+	}
+	virtual change_buffer_size(int size)
+	{
+		if((size <= 0) || (size >= max_fifo_length) || (databuffer == NULL)) return;
+		uint8_t tbuf[size];
+		if(fifo_length > size) { // truncate
+			// Dummy read
+			for(int i = 0; i < (fifo_length - size); i++) {
+				uint8_t dummy = (uint8_t)(databuffer->read() & 0xff);
+			}
+			for(int i = 0; i < size; i++) {
+				tbuf[i] = (uint8_t)(databuffer->read() & 0xff);
+			}
+			databuffer->clear();
+			for(int i = 0; i < size; i++) {
+				databuffer->write(tbuf[i]);
+			}
+		} else if(fifo_length < size) {
+			for(int i = 0; i < fifo_length; i++) {
+				tbuf[i] = (uint8_t)(databuffer->read() & 0xff);
+			}
+			databuffer->clear();
+			for(int i = 0; i < fifo_length; i++) {
+				databuffer->write(tbuf[i]);
+			}
+//			for(int i = 0; i < (size - fifo_size); i++) {
+//				databuffer->write(0);
+//			}
+		}
+		fifo_length = size;
+	}
 	uint8_t get_cdda_status()
 	{
 		return cdda_status;
 	}
 
+	void set_machine_id(uint16_t val)
+	{
+		machine_id = val & 0xfff8;
+	}
+	void set_cpu_id(uint16_t val)
+	{
+		cpu_id = val & 0x07;
+	}
+	
 	void set_context_mpuint_line(DEVICE* dev, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_mcuint, dev, id, mask);

@@ -448,7 +448,9 @@ void TOWNS_CDROM::initialize()
 	event_cdda_delay_stop = -1;
 
 	// ToDo: larger buffer for later VMs.
-	databuffer = new FIFO(8192);
+	max_fifo_length = ((machine_id == 0x0700) || (machine_id >= 0x0900)) ? 65536 : 8192;
+	fifo_length = 8192;
+	databuffer = new FIFO(max_fifo_length);
 
 	cdda_status = CDDA_OFF;
 	is_cue = false;
@@ -1554,6 +1556,7 @@ bool TOWNS_CDROM::read_buffer(int length)
 		return false;
 	}
 	uint32_t offset = (uint32_t)(position % physical_block_size());
+	if(length > read_length) length = read_length;
 	int n_length = length;
 	if(!(seek_relative_frame_in_image(position / physical_block_size()))) {
 		status_illegal_lba(0, 0x00, 0x00, 0x00);
@@ -1570,10 +1573,11 @@ bool TOWNS_CDROM::read_buffer(int length)
 		if(logical_block_size() >= physical_block_size()) { // Maybe raw
 			noffset = 0;
 		}
+		
 		for(int i = 0; i < tmp_length; i++) {
 			if((offset >= noffset) && (offset < (noffset + logical_block_size()))) {
-				int value = tmp_buffer[i];
-				databuffer->write(value);
+				uint8_t value = tmp_buffer[i];
+				write_a_byte(value);
 //				is_data_in = false;
 				length--;
 				read_length--;
@@ -1709,19 +1713,48 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 				return 0;
 			}
 			int bytes = 0;
+#if 0
 			for(int i = 0; i < (2352 * n_sectors); i += 2) {
 				if(databuffer->full()) {
 					break; // Buffer full
 				}
+				
 				if(config.swap_audio_byteorder[0]) {
-					databuffer->write(((int)tmpbuf[i + 1]) & 0xff);
-					databuffer->write(((int)tmpbuf[i + 0]) & 0xff);
+//					databuffer->write(((int)tmpbuf[i + 1]) & 0xff);
+//					databuffer->write(((int)tmpbuf[i + 0]) & 0xff);
+					uint8_t tn[2];
+					tn[0] = tmpbuf[i + 1];
+					tn[1] = tmpbuf[i + 0];
+					write_bytes(tn, 2);
 				} else {
-					databuffer->write(((int)tmpbuf[i + 0]) & 0xff);
-					databuffer->write(((int)tmpbuf[i + 1]) & 0xff);
+					write_bytes(&(tmpbuf[i]), 2);
+//					databuffer->write(((int)tmpbuf[i + 0]) & 0xff);
+//					databuffer->write(((int)tmpbuf[i + 1]) & 0xff);
 				}
 				bytes += 2;
 			}
+#else
+			if(config.swap_audio_byteorder[0]) {
+				int ip = 0;
+				for(int i = 0; i < n_sectors; i++) {
+					uint8_t tn[2352];
+					for(int j = 0; j < 2352; j += 2) {
+						tn[j + 0] = tmpbuf[j + ip + 1];
+						tn[j + 1] = tmpbuf[j + ip + 0];
+					}
+					if(!(write_bytes(tn, 2352))) break;
+					ip += 2352;
+					bytes += 2352;
+				}
+			} else {
+				int ip = 0;
+				for(int i = 0; i < n_sectors; i++) {
+					if(!(write_bytes(&(tmpbuf[ip]), 2352))) break;
+					ip += 2352;
+					bytes += 2352;
+				}
+			}
+#endif				
 			if(bytes < (2352 * n_sectors)) {
 				return (bytes / 2352);
 			}
@@ -2944,14 +2977,12 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 
 void TOWNS_CDROM::write_debug_data8(uint32_t addr, uint32_t data)
 {
-	uint32_t nmask = 0x2000 - 1; // ToDo: Will change
-	databuffer->write_not_push(addr & nmask, data & 0xff);
+	databuffer->write_not_push(addr % max_fifo_length, data & 0xff);
 }
 
 uint32_t TOWNS_CDROM::read_debug_data8(uint32_t addr)
 {
-	uint32_t nmask = 0x2000 - 1; // ToDo: Will change
-	return databuffer->read_not_remove(addr & nmask) & 0xff;
+	return databuffer->read_not_remove(addr % max_fifo_length) & 0xff;
 }
 
 
@@ -3028,6 +3059,11 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	for(int i = 0; i < (sizeof(subq_buffer) / sizeof(SUBC_t)); i++) {
 		state_fio->StateValue(subq_buffer[i].byte);
 	}
+	state_fio->StateValue(machine_id);
+	state_fio->StateValue(cpu_id);
+	state_fio->StateValue(max_fifo_length);
+	state_fio->StateValue(fifo_length);
+	
 	state_fio->StateValue(data_reg);
 	state_fio->StateValue(req_status);
 	state_fio->StateValue(stat_reply_intr);
@@ -3045,7 +3081,7 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(dma_intr_mask);
 	state_fio->StateValue(transfer_speed);
 	state_fio->StateValue(read_length);
-//	state_fio->StateValue(read_pos);
+
 	
 	state_fio->StateValue(param_ptr);
 	state_fio->StateArray(param_queue, sizeof(param_queue), 1);
