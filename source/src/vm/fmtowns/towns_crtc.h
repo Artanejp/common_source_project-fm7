@@ -167,7 +167,8 @@ typedef struct {
 	uint8_t r50_planemask; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
 	uint8_t r50_pad[3];   
 #pragma pack(pop)
-	uint32_t pad[3];
+	int32_t  bitshift[2];
+	uint32_t pad;
 	// Align of 4 * (4 + 1 + 3) = 4 * 8 [bytes] = 256 [bits]
 	uint8_t pixels_layer[2][TOWNS_CRTC_MAX_PIXELS * sizeof(uint16_t)]; // RAW VALUE
 	// pixels_lauyer[][] : 1024 * 2 * 8 = 1024 * 16 [bytes]

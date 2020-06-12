@@ -1136,7 +1136,7 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y, int width)
 		return false;
 	}
 	if(magx == 1) {
-		if(pwidth > width) pwidth = width;
+//		if(pwidth < width) pwidth = width;
 		if(pwidth < 1) pwidth = 1;
 		for(int x = 0; x < (pwidth >> 4); x++) {
 			// ToDo: Start position
@@ -1160,10 +1160,10 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y, int width)
 			}
 		}
 	} else {
-		if((pwidth * magx) > width) {
-			pwidth = width / magx;
-			if((width % magx) != 0) pwidth++;
-		}
+//		if((pwidth * magx) < width) {
+//			pwidth = width / magx;
+//			if((pwidth % magx) != 0) pwidth++;
+//		}
 		int k = 0;
 		for(int x = 0; x < (pwidth >> 4); x++) {
 			// ToDo: Start position
@@ -1419,8 +1419,22 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1)
 {
 	if(width >= TOWNS_CRTC_MAX_PIXELS) return;
 	if(width <= 0) return;
+	int trans = (display_linebuf == 0) ? 3 : ((display_linebuf - 1) & 3);
 	
+	int bitshift0 = linebuffers[trans][y].bitshift[0];
+	int bitshift1 = linebuffers[trans][y].bitshift[1];
 	scrntype_t *pp = emu->get_screen_buffer(y);
+	if(width < -(bitshift0)) {
+		do_mix0 = false;
+	} else if(width < bitshift0) {
+		do_mix0 = false;
+	}
+	if(width < -(bitshift1)) {
+		do_mix1 = false;
+	} else if(width < bitshift1) {
+		do_mix1 = false;
+	}
+	
 	if(pp != NULL) {
 		if((do_mix0) && (do_mix1)) {
 			// alpha blending
@@ -1428,18 +1442,59 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1)
 			__DECL_ALIGNED(32) scrntype_t pixbuf1[8];
 			__DECL_ALIGNED(32) scrntype_t maskbuf_front[8];
 			__DECL_ALIGNED(32) scrntype_t maskbuf_back[8];
+			
 			for(int xx = 0; xx < width; xx += 8) {
-				scrntype_t *px1 = &(lbuffer1[xx]);
-				scrntype_t *px0 = &(lbuffer0[xx]);
-				scrntype_t *ax = &(abuffer0[xx]);
 __DECL_VECTORIZED_LOOP
 				for(int ii = 0; ii < 8; ii++) {
-					pixbuf1[ii] = px1[ii];
-					maskbuf_front[ii] = ax[ii];
+					pixbuf1[ii] = 0;
+					pixbuf0[ii] = 0;
+					maskbuf_front[ii] = 0;
 				}
+				scrntype_t *px1 = &(lbuffer1[xx + bitshift1]);
+				if((xx + bitshift1) >= 0) {
+					if((xx + bitshift1 + 7) < width) {
 __DECL_VECTORIZED_LOOP
-				for(int ii = 0; ii < 8; ii++) {
-					pixbuf0[ii] = px0[ii];
+						for(int ii = 0; ii < 8; ii++) {
+							pixbuf1[ii] = px1[ii];
+						}
+					} else if((xx + bitshift1) < width) {
+						int nleft = width - (xx + bitshift1);
+__DECL_VECTORIZED_LOOP
+						for(int ii = 0; ii < nleft; ii++) {
+							pixbuf1[ii] = px1[ii];
+						}
+					}
+				} else if((xx + bitshift1 + 7) >= 0) {
+					int nleft = 8 - (xx + bitshift1 + 8);
+__DECL_VECTORIZED_LOOP
+					for(int ii = nleft; ii < 8; ii++) {
+							pixbuf1[ii] = px1[ii];
+					}
+				}
+				scrntype_t *px0 = &(lbuffer0[xx + bitshift0]);
+				scrntype_t *ax = &(abuffer0[xx + bitshift0]);
+				if((xx + bitshift0) >= 0) {
+					if((xx + bitshift0 + 7) < width) {
+__DECL_VECTORIZED_LOOP
+						for(int ii = 0; ii < 8; ii++) {
+							pixbuf0[ii] = px0[ii];
+							maskbuf_front[ii] = ax[ii];
+						}
+					} else if((xx + bitshift0) < width) {
+						int nleft = width - (xx + bitshift0);
+__DECL_VECTORIZED_LOOP
+						for(int ii = 0; ii < nleft; ii++) {
+							pixbuf0[ii] = px0[ii];
+							maskbuf_front[ii] = ax[ii];
+						}
+					}
+				} else if((xx + bitshift0 + 7) >= 0) {
+					int nleft = 8 - (xx + bitshift0 + 8);
+__DECL_VECTORIZED_LOOP
+					for(int ii = nleft; ii < 8; ii++) {
+							pixbuf0[ii] = px0[ii];
+							maskbuf_front[ii] = ax[ii];
+					}
 				}
 __DECL_VECTORIZED_LOOP
 				for(int ii = 0; ii < 8; ii++) {
@@ -1463,14 +1518,21 @@ __DECL_VECTORIZED_LOOP
 			if(rrwidth > 0) {
 				scrntype_t pix0, pix1, mask0, mask1;
 				int xptr = width & 0x7f8; // Maximum 2048 pixs
-				scrntype_t *px1 = &(lbuffer1[xptr]);
-				scrntype_t *px0 = &(lbuffer0[xptr]);
-				scrntype_t *ax = &(abuffer0[xptr]);
+				scrntype_t *px1 = &(lbuffer1[xptr + bitshift1]);
+				scrntype_t *px0 = &(lbuffer0[xptr + bitshift0]);
+				scrntype_t *ax = &(abuffer0[xptr + bitshift0]);
 __DECL_VECTORIZED_LOOP
 				for(int ii = 0; ii < rrwidth; ii++) {
-					pix0 = px0[ii];
-					pix1 = px1[ii];
-					mask0 = ax[ii];
+					pix0 = 0;
+					pix1 = 0;
+					mask0 = 0;
+					if(((ii + bitshift0) < width) && (ii + bitshift0 >= 0)) {
+						pix0 = px0[ii];
+						mask0 = ax[ii];
+					}
+					if(((ii + bitshift1) < width) && (ii + bitshift1 >= 0)) {
+						pix1 = px1[ii];
+					}
 					mask1 = ~mask0;
 					pix0 = pix0 & mask0;
 					pix1 = pix1 & mask1;
@@ -1479,9 +1541,28 @@ __DECL_VECTORIZED_LOOP
 				}
 			}
 		} else if(do_mix0) {
-			my_memcpy(pp, lbuffer0, width * sizeof(scrntype_t));
+			if(bitshift0 < 0) {
+				if(-(bitshift0) < width) {
+					my_memcpy(pp, &(lbuffer0[-bitshift0]), width * sizeof(scrntype_t));
+				}
+			} else if(bitshift0 > 0) {
+				memset(pp, 0x00, bitshift0 * sizeof(scrntype_t));
+				my_memcpy(&(pp[bitshift0]), lbuffer0, (width - bitshift0) * sizeof(scrntype_t));
+			} else {
+				my_memcpy(pp, lbuffer0, width * sizeof(scrntype_t));
+			}
 		} else if(do_mix1) {
-			my_memcpy(pp, lbuffer1, width * sizeof(scrntype_t));
+			if(bitshift1 < 0) {
+				if(-(bitshift1) < width) {
+					my_memcpy(pp, &(lbuffer1[-bitshift1]), width * sizeof(scrntype_t));
+				}
+//				my_memcpy(pp, lbuffer1, width * sizeof(scrntype_t));
+			} else if(bitshift1 > 0) {
+				memset(pp, 0x00, bitshift1 * sizeof(scrntype_t));
+				my_memcpy(&(pp[bitshift1]), lbuffer1, (width - bitshift1) * sizeof(scrntype_t));
+			} else {
+				my_memcpy(pp, lbuffer1, width * sizeof(scrntype_t));
+			}
 		} else {
 			memset(pp, 0x00, width * sizeof(scrntype_t));
 		}
@@ -1818,8 +1899,12 @@ __DECL_VECTORIZED_LOOP
 			if(l == 1) {
 				offset = offset + fo1_offset_value;
 			}
+			if(_begin > hstart_words[l]) {
+				offset = offset - ((_begin - hstart_words[l]) >> address_shift[l]);
+			} else if(_begin < hstart_words[l]) {
+				offset = offset + ((hstart_words[l] - _begin) >> address_shift[l]);
+			}				
 			offset <<= address_shift[l];
-			offset = offset + (int)hstart_words[l] - (int)_begin;
 			int hoffset = 0;
 			{ // Display page
 				offset += ((page_16mode != 0) ? 0x20000 : 0);
@@ -1830,8 +1915,16 @@ __DECL_VECTORIZED_LOOP
 			uint16_t _end = regs[10 + l * 2] & 0x3ff;  // HDEx
 			if(_begin < _end) {
 				int words = _end - _begin;
-				if(hstart_words[l] >= _begin) {
-					words = words - (hstart_words[l] - _begin);
+//				if(hstart_words[l] >= _begin) {
+//					words = words - (((hstart_words[l] - _begin) >> address_shift[l]) << address_shift[l]);
+//				}
+				int bit_shift = 0;
+				bit_shift = hstart_words[l] - _begin;
+//				linebuffers[trans][line].bitshift[l] = bit_shift;
+				if(bit_shift < 0) {
+					words += (((-bit_shift) >> address_shift[l]) + 1);
+				} else {
+					words += ((bit_shift >> address_shift[l]) + 1);
 				}
 				if(hoffset < 0) {
 					words += hoffset;  // Reduce words.
@@ -1841,6 +1934,7 @@ __DECL_VECTORIZED_LOOP
 				uint8_t *p = d_vram->get_vram_address(offset);
 				if((p != NULL) && (words >= magx) && (magx != 0)){
 					if(words >= TOWNS_CRTC_MAX_PIXELS) words = TOWNS_CRTC_MAX_PIXELS;
+					linebuffers[trans][line].bitshift[l] = bit_shift /** magx*/;
 					switch(linebuffers[trans][line].mode[l]) {
 					case DISPMODE_32768:
 						linebuffers[trans][line].pixels[l] = words;
