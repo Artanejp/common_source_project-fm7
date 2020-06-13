@@ -352,9 +352,9 @@ protected:
 	virtual uint8_t __FASTCALL get_apalette_r();
 	virtual uint8_t __FASTCALL get_apalette_g();
 	
-	bool __FASTCALL render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int width, int layer, bool do_alpha);
-	bool __FASTCALL render_256(scrntype_t* dst, int y, int width);
-	bool __FASTCALL render_32768(scrntype_t* dst, scrntype_t *mask, int y, int width, int layer, bool do_alpha);
+	bool __FASTCALL render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int layer, bool do_alpha);
+	bool __FASTCALL render_256(scrntype_t* dst, int y);
+	bool __FASTCALL render_32768(scrntype_t* dst, scrntype_t *mask, int y, int layer, bool do_alpha);
 	void __FASTCALL transfer_line(int line);
 
 	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1);
