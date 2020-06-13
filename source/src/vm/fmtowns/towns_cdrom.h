@@ -427,9 +427,9 @@ public:
 		}
 		return true;
 	}
-	virtual change_buffer_size(int size)
+	virtual bool change_buffer_size(int size)
 	{
-		if((size <= 0) || (size >= max_fifo_length) || (databuffer == NULL)) return;
+		if((size <= 0) || (size >= max_fifo_length) || (databuffer == NULL)) return false;
 		uint8_t tbuf[size];
 		if(fifo_length > size) { // truncate
 			// Dummy read
@@ -456,6 +456,7 @@ public:
 //			}
 		}
 		fifo_length = size;
+		return true;
 	}
 	uint8_t get_cdda_status()
 	{

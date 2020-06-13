@@ -1652,11 +1652,11 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 {
 	if(!(mounted())) {
 		status_not_ready(false);
-		return;
+		return -1;
 	}
 	if(media_changed) {
 		status_media_changed(false);
-		return;
+		return -1;
 	}
 	if(sectors < 1) {
 		return -1;
