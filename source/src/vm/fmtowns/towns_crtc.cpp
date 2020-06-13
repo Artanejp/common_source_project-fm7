@@ -1928,17 +1928,20 @@ __DECL_VECTORIZED_LOOP
 					if(bit_shift < 0) {
 						bit_shift = -(-bit_shift & shift_mask); 
 						pixels += (-bit_shift * magx);
-						npixels += (-bit_shift);
 					} else if(bit_shift > 0) {
 						bit_shift = (shift_mask + 1) - (bit_shift & shift_mask); 
 						pixels += ((shift_mask + 1) * magx); // OK?
-						npixels += (shift_mask + 1);
 					}
 					if(pixels >= TOWNS_CRTC_MAX_PIXELS) pixels = TOWNS_CRTC_MAX_PIXELS;
-					if(npixels >= TOWNS_CRTC_MAX_PIXELS) npixels = TOWNS_CRTC_MAX_PIXELS;
 					linebuffers[trans][line].bitshift[l] = bit_shift * magx;
 					linebuffers[trans][line].pixels[l] = pixels;
 					linebuffers[trans][line].mag[l] = magx; // ToDo: Real magnif
+					if((pixels % magx) != 0) {
+						npixels = pixels / magx + 2;
+					} else {
+						npixels = pixels / magx;
+					}
+//					if(npixels >= TOWNS_CRTC_MAX_PIXELS) npixels = TOWNS_CRTC_MAX_PIXELS;
 					bool is_256 = false;
 					uint32_t tr_bytes = 0;
 					switch(linebuffers[trans][line].mode[l]) {
@@ -1970,7 +1973,7 @@ __DECL_VECTORIZED_LOOP
 							my_memcpy(&(linebuffers[trans][line].pixels_layer[(is_256) ? 0 : l][__left])
 								   , p
 								   , tr_bytes - __left);
-								   } else {
+						} else {
 							my_memcpy(&(linebuffers[trans][line].pixels_layer[(is_256) ? 0 : l][0]), p, tr_bytes);
 						}
 					}
