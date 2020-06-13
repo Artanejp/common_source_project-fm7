@@ -1445,7 +1445,19 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1)
 			__DECL_ALIGNED(32) scrntype_t pixbuf1[8];
 			__DECL_ALIGNED(32) scrntype_t maskbuf_front[8];
 			__DECL_ALIGNED(32) scrntype_t maskbuf_back[8];
-			
+
+			int of0 = 0;
+			int of1 = 0;
+			if(bitshift0 < 0) {
+				of0 = -bitshift0;
+			} else if(bitshift0 > 0) {
+				of0 = bitshift0;
+			}
+			if(bitshift1 < 0) {
+				of1 = -bitshift1;
+			} else if(bitshift0 > 0) {
+				of1 = bitshift1;
+			}
 			for(int xx = 0; xx < width; xx += 8) {
 __DECL_VECTORIZED_LOOP
 				for(int ii = 0; ii < 8; ii++) {
@@ -1453,51 +1465,16 @@ __DECL_VECTORIZED_LOOP
 					pixbuf0[ii] = 0;
 					maskbuf_front[ii] = 0;
 				}
-				scrntype_t *px1 = &(lbuffer1[xx + bitshift1]);
-				if((xx + bitshift1) >= 0) {
-					if((xx + bitshift1 + 7) < width) {
+				scrntype_t *px1 = &(lbuffer1[xx + of1]);
 __DECL_VECTORIZED_LOOP
-						for(int ii = 0; ii < 8; ii++) {
-							pixbuf1[ii] = px1[ii];
-						}
-					} else if((xx + bitshift1) < width) {
-						int nleft = width - (xx + bitshift1);
-__DECL_VECTORIZED_LOOP
-						for(int ii = 0; ii < nleft; ii++) {
-							pixbuf1[ii] = px1[ii];
-						}
-					}
-				} else if((xx + bitshift1 + 7) >= 0) {
-					int nleft = 8 - (xx + bitshift1 + 8);
-__DECL_VECTORIZED_LOOP
-					for(int ii = nleft; ii < 8; ii++) {
-							pixbuf1[ii] = px1[ii];
-					}
+				for(int ii = 0; ii < 8; ii++) {
+						pixbuf1[ii] = px1[ii];
 				}
-				scrntype_t *px0 = &(lbuffer0[xx + bitshift0]);
-				scrntype_t *ax = &(abuffer0[xx + bitshift0]);
-				if((xx + bitshift0) >= 0) {
-					if((xx + bitshift0 + 7) < width) {
-__DECL_VECTORIZED_LOOP
-						for(int ii = 0; ii < 8; ii++) {
-							pixbuf0[ii] = px0[ii];
-							maskbuf_front[ii] = ax[ii];
-						}
-					} else if((xx + bitshift0) < width) {
-						int nleft = width - (xx + bitshift0);
-__DECL_VECTORIZED_LOOP
-						for(int ii = 0; ii < nleft; ii++) {
-							pixbuf0[ii] = px0[ii];
-							maskbuf_front[ii] = ax[ii];
-						}
-					}
-				} else if((xx + bitshift0 + 7) >= 0) {
-					int nleft = 8 - (xx + bitshift0 + 8);
-__DECL_VECTORIZED_LOOP
-					for(int ii = nleft; ii < 8; ii++) {
-							pixbuf0[ii] = px0[ii];
-							maskbuf_front[ii] = ax[ii];
-					}
+				scrntype_t *px0 = &(lbuffer0[xx + of0]);
+				scrntype_t *ax = &(abuffer0[xx + of0]);
+				for(int ii = 0; ii < 8; ii++) {
+					pixbuf0[ii] = px0[ii];
+					maskbuf_front[ii] = ax[ii];
 				}
 __DECL_VECTORIZED_LOOP
 				for(int ii = 0; ii < 8; ii++) {
@@ -1521,21 +1498,14 @@ __DECL_VECTORIZED_LOOP
 			if(rrwidth > 0) {
 				scrntype_t pix0, pix1, mask0, mask1;
 				int xptr = width & 0x7f8; // Maximum 2048 pixs
-				scrntype_t *px1 = &(lbuffer1[xptr + bitshift1]);
-				scrntype_t *px0 = &(lbuffer0[xptr + bitshift0]);
-				scrntype_t *ax = &(abuffer0[xptr + bitshift0]);
+				scrntype_t *px1 = &(lbuffer1[xptr + of1]);
+				scrntype_t *px0 = &(lbuffer0[xptr + of0]);
+				scrntype_t *ax = &(abuffer0[xptr + of0]);
 __DECL_VECTORIZED_LOOP
 				for(int ii = 0; ii < rrwidth; ii++) {
-					pix0 = 0;
-					pix1 = 0;
-					mask0 = 0;
-					if(((ii + bitshift0) < width) && (ii + bitshift0 >= 0)) {
-						pix0 = px0[ii];
-						mask0 = ax[ii];
-					}
-					if(((ii + bitshift1) < width) && (ii + bitshift1 >= 0)) {
-						pix1 = px1[ii];
-					}
+					pix0 = px0[ii];
+					mask0 = ax[ii];
+					pix1 = px1[ii];
 					mask1 = ~mask0;
 					pix0 = pix0 & mask0;
 					pix1 = pix1 & mask1;
@@ -1549,8 +1519,7 @@ __DECL_VECTORIZED_LOOP
 					my_memcpy(pp, &(lbuffer0[-bitshift0]), width * sizeof(scrntype_t));
 				}
 			} else if(bitshift0 > 0) {
-				memset(pp, 0x00, bitshift0 * sizeof(scrntype_t));
-				my_memcpy(&(pp[bitshift0]), lbuffer0, (width - bitshift0) * sizeof(scrntype_t));
+				my_memcpy(pp, &(lbuffer1[bitshift0]), width * sizeof(scrntype_t));
 			} else {
 				my_memcpy(pp, lbuffer0, width * sizeof(scrntype_t));
 			}
@@ -1559,10 +1528,8 @@ __DECL_VECTORIZED_LOOP
 				if(-(bitshift1) < width) {
 					my_memcpy(pp, &(lbuffer1[-bitshift1]), width * sizeof(scrntype_t));
 				}
-//				my_memcpy(pp, lbuffer1, width * sizeof(scrntype_t));
 			} else if(bitshift1 > 0) {
-				memset(pp, 0x00, bitshift1 * sizeof(scrntype_t));
-				my_memcpy(&(pp[bitshift1]), lbuffer1, (width - bitshift1) * sizeof(scrntype_t));
+				my_memcpy(pp, &(lbuffer1[bitshift1]), width * sizeof(scrntype_t));
 			} else {
 				my_memcpy(pp, lbuffer1, width * sizeof(scrntype_t));
 			}
@@ -1896,66 +1863,91 @@ __DECL_VECTORIZED_LOOP
 	for(int l = 0; l < 2; l++) {
 		if(to_disp[l]) {
 			uint16_t _begin = regs[9 + l * 2] & 0x3ff; // HDSx
+			uint16_t _end = regs[10 + l * 2] & 0x3ff;  // HDEx
+			int ashift = address_shift[l];
+			uint32_t shift_mask = (1 << ashift) - 1;
+			
+			int bit_shift = 0;
+			uint16_t haj = hstart_words[l];
 			int  offset = (int)(vstart_addr[l] & 0x0007ffff); // ToDo: Larger VRAM
+			if(haj < _begin) {
+				bit_shift = -((int)(_begin - haj));
+			} else if(haj > _begin) {
+				bit_shift = haj - _begin;
+				offset--; // Include left one pixel
+			}
+
 			offset = offset + (int)(head_address[l] & 0x0007ffff);
 			if((trans & 1) != 0) offset = offset + frame_offset[l];
 			if(l == 1) {
 				offset = offset + fo1_offset_value;
 			}
-			if(_begin > hstart_words[l]) {
-				offset = offset - ((_begin - hstart_words[l]) >> address_shift[l]);
-			} else if(_begin < hstart_words[l]) {
-				offset = offset + ((hstart_words[l] - _begin) >> address_shift[l]);
-			}
-			uint32_t shift_mask = (1 << address_shift[l]) - 1;
-			int bit_shift = 0;
-			bit_shift = hstart_words[l] - _begin;
-			offset <<= address_shift[l];
-			int hoffset = 0;
+			offset <<= ashift;
 			{ // Display page
 				offset += ((page_16mode != 0) ? 0x20000 : 0);
 			}
 			offset = offset & address_mask[l]; // OK?
 			offset += address_add[l];
 
-			uint16_t _end = regs[10 + l * 2] & 0x3ff;  // HDEx
 			if(_begin < _end) {
 				int pixels = _end - _begin;
-//				linebuffers[trans][line].bitshift[l] = bit_shift;
-				if(hoffset < 0) {
-					pixels += hoffset;  // Reduce words.
-					hoffset = 0;
-				}
 				uint8_t magx = zoom_factor_horiz[l];
 				uint8_t *p = d_vram->get_vram_address(offset);
+				int npixels = pixels;
 				if((p != NULL) && (pixels >= magx) && (magx != 0)){
-					if(pixels >= TOWNS_CRTC_MAX_PIXELS) pixels = TOWNS_CRTC_MAX_PIXELS;
-					linebuffers[trans][line].bitshift[l] = bit_shift * magx;
 					if(bit_shift < 0) {
-						pixels += -(bit_shift * magx);
-					} else {
-						pixels += (bit_shift * magx); // OK?
+						bit_shift = -(-bit_shift & shift_mask); 
+						pixels += (-bit_shift * magx);
+						npixels += (-bit_shift);
+					} else if(bit_shift > 0) {
+						bit_shift = (shift_mask + 1) - (bit_shift & shift_mask); 
+						pixels += ((shift_mask + 1) * magx); // OK?
+						npixels += (shift_mask + 1);
 					}
+					if(pixels >= TOWNS_CRTC_MAX_PIXELS) pixels = TOWNS_CRTC_MAX_PIXELS;
+					if(npixels >= TOWNS_CRTC_MAX_PIXELS) npixels = TOWNS_CRTC_MAX_PIXELS;
+					linebuffers[trans][line].bitshift[l] = bit_shift * magx;
+					linebuffers[trans][line].pixels[l] = pixels;
+					linebuffers[trans][line].mag[l] = magx; // ToDo: Real magnif
+					bool is_256 = false;
+					uint32_t tr_bytes = 0;
 					switch(linebuffers[trans][line].mode[l]) {
 					case DISPMODE_32768:
-						linebuffers[trans][line].pixels[l] = pixels;
-						linebuffers[trans][line].mag[l] = magx; // ToDo: Real magnif
-						memcpy(&(linebuffers[trans][line].pixels_layer[l][hoffset]), p, pixels << 1);
-						did_transfer[l] = true;
+						tr_bytes = npixels << 1;
 						break;
 					case DISPMODE_16:
-						linebuffers[trans][line].pixels[l] = pixels;
-						linebuffers[trans][line].mag[l] = magx;
-						memcpy(&(linebuffers[trans][line].pixels_layer[l][hoffset]), p, pixels >> 1);
-						did_transfer[l] = true;
+						tr_bytes = npixels >> 1;
 						break;
 					case DISPMODE_256:
-						linebuffers[trans][line].pixels[0] = pixels;
-						linebuffers[trans][line].mag[0] = magx;
-						memcpy(&(linebuffers[trans][line].pixels_layer[0][hoffset]), p, pixels);
-						did_transfer[0] = true;
+						is_256 = true;
+						tr_bytes = npixels;
 						break;
 					}
+					if(is_256) {
+						linebuffers[trans][line].pixels[0] = pixels;
+						linebuffers[trans][line].mag[0] = magx; // ToDo: Real magnif
+					} else {
+						linebuffers[trans][line].pixels[l] = pixels;
+						linebuffers[trans][line].mag[l] = magx; // ToDo: Real magnif
+					}
+					if(tr_bytes > 0) {
+						if(((offset & address_mask[l]) + tr_bytes) > address_mask[l]) {
+							// Wrap
+							int __left = (address_mask[l] + 1 - (offset & address_mask[l])); 
+							memcpy(&(linebuffers[trans][line].pixels_layer[(is_256) ? 0 : l][0])
+								   , p
+								   , __left);
+							offset  = ((page_16mode != 0) ? 0x20000 : 0);
+							offset += address_add[l];
+							uint8_t *p = d_vram->get_vram_address(offset);
+							memcpy(linebuffers[trans][line].pixels_layer[(is_256) ? 0 : l][__left]
+								   , p
+								   , tr_bytes - __left);
+						} else {
+							memcpy(&(linebuffers[trans][line].pixels_layer[(is_256) ? 0 : l][0]), p, tr_bytes);
+						}
+					}
+					did_transfer[l] = true;
 				}
 			}
 			if(zoom_count_vert[l] > 0) {
