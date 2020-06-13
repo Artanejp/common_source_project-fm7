@@ -746,7 +746,7 @@ bool I386::debug_rewind_call_trace(uint32_t pc, int &size, _TCHAR* buffer, size_
 	_TCHAR dasmbuf[1024] = {0};
 	size = debug_dasm_with_userdata(pc, dasmbuf, 1023, userdata);
 	if(size <= 0) {
-		strncpy(dasmbuf, 1023, _T("**UNDEFINED BEHAVIOR**"));
+		my_tcscpy_s(dasmbuf, 1023, _T("**UNDEFINED BEHAVIOR**"));
 	}
 	my_stprintf_s(buffer, buffer_len, _T("HIT %s	@%08X	%s\n"),
 				  prefix, pc,  dasmbuf);
