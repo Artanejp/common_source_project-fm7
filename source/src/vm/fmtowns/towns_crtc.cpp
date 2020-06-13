@@ -911,6 +911,12 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int laye
 		if((width % magx) != 0) {
 			pwidth++;
 		}
+	} else {
+		if((pwidth % magx) != 0) {
+			pwidth = pwidth / magx + 1;
+		} else {
+			pwidth = pwidth / magx;
+		}
 	}
 	__DECL_ALIGNED(16) uint16_t pbuf[8];
 	__DECL_ALIGNED(16) uint16_t rbuf[8];
@@ -1136,6 +1142,12 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y)
 		if((width % magx) != 0) {
 			pwidth++;
 		}
+	} else {
+		if((pwidth % magx) != 0) {
+			pwidth = pwidth / magx + 1;
+		} else {
+			pwidth = pwidth / magx;
+		}
 	}
 	
 	__DECL_ALIGNED(32)  scrntype_t apal256[256];
@@ -1234,6 +1246,12 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 		pwidth = width / magx;
 		if((width % magx) != 0) {
 			pwidth++;
+		}
+	} else {
+		if((pwidth % magx) != 0) {
+			pwidth = pwidth / magx + 1;
+		} else {
+			pwidth = pwidth / magx;
 		}
 	}
 	__DECL_ALIGNED(16) uint8_t pbuf[8];
