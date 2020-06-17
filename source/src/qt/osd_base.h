@@ -639,8 +639,8 @@ public:
 
 	void debug_log(int level, const char *fmt, ...);
 	void debug_log(int level, int domain_num, const char *fmt, ...);
-	double get_vm_current_usec();
-	uint64_t get_vm_current_clock_uint64();
+	virtual double get_vm_current_usec() { return 0.0; }
+	virtual uint64_t get_vm_current_clock_uint64() { return 0; }
 	
 	virtual void debug_log(int level, int domain_num, char *strbuf);
 

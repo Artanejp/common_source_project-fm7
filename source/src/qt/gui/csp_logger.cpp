@@ -14,7 +14,7 @@
 #include "emu.h"
 #include "vm/vm.h"
 #include "menu_flags.h"
-#include "../osd.h"
+#include "../osd_base.h"
 
 CSP_LoggerLine::CSP_LoggerLine(int64_t line, int _level, QString _domain, QString time_s, QString s, double us)
 {

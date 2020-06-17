@@ -615,14 +615,3 @@ void OSD_BASE::set_hdd_image_name(int drv, _TCHAR *filename)
 	emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, drv, _n);
 }
 
-double OSD_BASE::get_vm_current_usec()
-{
-	if(vm == NULL) return 0.0;
-	return vm->get_current_usec();
-}
-
-uint64_t OSD_BASE::get_vm_current_clock_uint64()
-{
-	if(vm == NULL) return (uint64_t)0;
-	return vm->get_current_clock_uint64();
-}

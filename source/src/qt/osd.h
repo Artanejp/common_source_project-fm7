@@ -146,6 +146,9 @@ public:
 	void free_sound_file(int id, int16_t **data);
 #endif
 	void debug_log(int level, int domain_num, char *strbuf);
+	double get_vm_current_usec();
+	uint64_t get_vm_current_clock_uint64();
+   
 public slots:
 	void do_decode_movie(int frames);
 	void do_run_movie_audio_callback(uint8_t *data, long len);
