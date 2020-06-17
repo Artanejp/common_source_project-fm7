@@ -61,9 +61,9 @@ static const int dftable[4][4] = {
 	{ 1, 1, 1, 1, },
 };
 
-extern SINT32 exception_set;
-extern UINT32 exception_pc;
-extern UINT64 exception_code;
+extern SINT32 __exception_set;
+extern UINT32 __exception_pc;
+extern UINT64 __exception_code;
 
 void CPUCALL
 exception(int num, int error_code)
@@ -91,9 +91,9 @@ exception(int num, int error_code)
 	}
 	VERBOSE(("%s", cpu_disasm2str(CPU_PREV_EIP)));
 #endif
-	exception_set = 1;
-	exception_pc = CPU_PREV_EIP;
-	exception_code = num;
+	__exception_set = 1;
+	__exception_pc = CPU_PREV_EIP;
+	__exception_code = num;
 	
 	CPU_STAT_EXCEPTION_COUNTER_INC();
 	if ((CPU_STAT_EXCEPTION_COUNTER >= 3) 

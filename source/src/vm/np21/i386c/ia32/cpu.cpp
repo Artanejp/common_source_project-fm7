@@ -76,9 +76,9 @@ int cpu_debug_rep_cont = 0;
 CPU_REGS cpu_debug_rep_regs;
 #endif
 
-extern SINT32 exception_set;
-extern UINT32 exception_pc;
-extern UINT64 exception_code;
+extern SINT32 __exception_set;
+extern UINT32 __exception_pc;
+extern UINT64 __exception_code;
 
 #define I386_TRACE_DATA_BIT_USERDATA_SET	0x80000000
 #define I386_TRACE_DATA_BIT_OP32			0x00000001
@@ -95,12 +95,12 @@ extern UINT64 exception_code;
 static __inline__ void __FASTCALL check_exception(bool is_debugging)
 {
 	if(!(is_debugging)) return;
-	if(exception_set != 0) {
-		device_debugger->exception_code = exception_code;
-		device_debugger->exception_pc = exception_pc;
+	if(__exception_set != 0) {
+		device_debugger->exception_code = __exception_code;
+		device_debugger->exception_pc = __exception_pc;
 		device_debugger->exception_happened = true;
-		device_debugger->add_cpu_trace_exception(exception_code);
-		exception_set = 0;
+		device_debugger->add_cpu_trace_exception(__exception_code);
+		__exception_set = 0;
 	}
 }
 
@@ -112,7 +112,7 @@ exec_1step(void)
 	bool is_debugging = ((device_debugger != NULL) && (device_debugger->now_debugging)) ? true : false; 
 	CPU_PREV_EIP = CPU_EIP;
 	CPU_STATSAVE.cpu_inst = CPU_STATSAVE.cpu_inst_default;
-	exception_set = 0;
+	__exception_set = 0;
 #if defined(ENABLE_TRAP)
 	steptrap(CPU_CS, CPU_EIP);
 #endif
@@ -441,7 +441,7 @@ exec_allstep(void)
 	static int latecount2 = 0;
 	static int hltflag = 0;
 	bool is_debugging = ((device_debugger != NULL) && (device_debugger->now_debugging)) ? true : false; 
-	exception_set = 0;
+	__exception_set = 0;
 	
 	if(latecount2==0){
 		if(latecount > 0){
