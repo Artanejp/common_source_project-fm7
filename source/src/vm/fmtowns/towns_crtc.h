@@ -184,7 +184,6 @@ protected:
 	TOWNS_VRAM* d_vram;
 	TOWNS_SPRITE* d_sprite;
 	FONT_ROMS*       d_font;
-	DEBUGGER*     d_debugger;
 	
 	uint16_t machine_id;
 	uint8_t cpu_id;
@@ -400,10 +399,6 @@ public:
 	{
 		return true;
 	}
-	void *get_debugger()
-	{
-		return d_debugger;
-	}
 	uint64_t get_debug_data_addr_space()
 	{
 		return 0x1;
@@ -429,10 +424,6 @@ public:
 	void set_context_font(FONT_ROMS* dev)
 	{
 		d_font = dev;
-	}
-	void set_context_debugger(DEBUGGER* dev)
-	{
-		d_debugger = dev;
 	}
 	void set_machine_id(uint16_t val)
 	{

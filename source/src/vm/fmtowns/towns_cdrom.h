@@ -155,8 +155,6 @@ class TOWNS_CDROM: public DEVICE {
 protected:
 	outputs_t outputs_drq;
 	outputs_t outputs_mcuint;
-	DEBUGGER *d_debugger;
-
 	FILEIO* fio_img;
 //	FIFO* subq_buffer;
 	FIFO* databuffer;
@@ -379,17 +377,9 @@ public:
 	{
 		return true;
 	}
-	void *get_debugger()
-	{
-		return d_debugger;
-	}
 	uint64_t get_debug_data_addr_space()
 	{
 		return 0x1fff; // Will change
-	}
-	void set_context_debugger(DEBUGGER* dev)
-	{
-		d_debugger = dev;
 	}
 
 	

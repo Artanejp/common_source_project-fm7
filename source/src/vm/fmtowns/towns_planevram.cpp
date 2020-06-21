@@ -130,23 +130,6 @@ __DECL_VECTORIZED_LOOP
 	return val;
 }
 
-uint32_t PLANEVRAM::read_memory_mapped_io16(uint32_t addr)
-{
-	pair16_t d;
-	d.b.l = (uint8_t)(read_memory_mapped_io8(addr + 0));
-	d.b.h = (uint8_t)(read_memory_mapped_io8(addr + 1));
-	return (uint32_t)(d.w);
-}
-
-uint32_t PLANEVRAM::read_memory_mapped_io32(uint32_t addr)
-{
-	pair32_t d;
-	d.b.l  = (uint8_t)(read_memory_mapped_io8(addr + 0));
-	d.b.h  = (uint8_t)(read_memory_mapped_io8(addr + 1));
-	d.b.h2 = (uint8_t)(read_memory_mapped_io8(addr + 2));
-	d.b.h3 = (uint8_t)(read_memory_mapped_io8(addr + 3));
-	return d.d;
-}
 
 void PLANEVRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
@@ -208,25 +191,6 @@ __DECL_VECTORIZED_LOOP
 		*pp = tmp_r1;
 //		d_vram->make_dirty_vram(x_addr + addr, 4);
 //	}
-}
-
-void PLANEVRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
-{
-	pair16_t d;
-	d.w = (uint16_t)data;
-	write_memory_mapped_io8(addr + 0, d.b.l);
-	write_memory_mapped_io8(addr + 1, d.b.h);
-}
-
-
-void PLANEVRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
-{
-	pair32_t d;
-	d.d = data;
-	write_memory_mapped_io8(addr + 0, d.b.l);
-	write_memory_mapped_io8(addr + 1, d.b.h);
-	write_memory_mapped_io8(addr + 2, d.b.h2);
-	write_memory_mapped_io8(addr + 3, d.b.h3);
 }
 
 #define STATE_VERSION	1

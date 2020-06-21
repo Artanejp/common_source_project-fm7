@@ -31,11 +31,7 @@ public:
 	void reset();
 	
 	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
-	virtual uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
-	virtual uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr);
 	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
-	virtual void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
-	virtual void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data);
 
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
 	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);

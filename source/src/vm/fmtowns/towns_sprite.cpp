@@ -766,9 +766,12 @@ uint32_t TOWNS_SPRITE::read_memory_mapped_io8(uint32_t addr)
 {
 	if((addr >= 0x81000000) && (addr < 0x81020000)) {
 		return pattern_ram[addr & 0x1ffff];
-	} else if((addr >= 0xc8000) && (addr < 0xc9000)) {
+	}/* else if((addr >= 0xc8000) && (addr < 0xc9000)) {
 		return pattern_ram[addr - 0xc8000];
 	} else if((addr >= 0xca000) && (addr < 0xcb000)) {
+		return pattern_ram[addr - 0xc8000];
+	}*/
+	else if((addr >= 0xc8000) && (addr < 0xcb000)) { // OK? From TSUGARU
 		return pattern_ram[addr - 0xc8000];
 	}
 	return 0x00;
@@ -779,7 +782,7 @@ void TOWNS_SPRITE::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	if((addr >= 0x81000000) && (addr < 0x81020000)) {
 		pattern_ram[addr & 0x1ffff] = data;
-	} else if((addr >= 0xc8000) && (addr < 0xc9000)) {
+	} /*else if((addr >= 0xc8000) && (addr < 0xc9000)) {
 		tvram_enabled = true;
 		tvram_enabled_bak = true;
 		pattern_ram[addr - 0xc8000] = data;
@@ -787,7 +790,12 @@ void TOWNS_SPRITE::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 		tvram_enabled = true;
 		tvram_enabled_bak = true;
 		pattern_ram[addr - 0xc8000] = data;
-	}
+	}*/
+	 else if((addr >= 0xc8000) && (addr < 0xcb000)) { // OK? From TSUGARU
+		tvram_enabled = true;
+		tvram_enabled_bak = true;
+		pattern_ram[addr - 0xc8000] = data;
+	 }
 	return;
 }
 
