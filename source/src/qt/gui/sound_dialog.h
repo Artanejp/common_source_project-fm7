@@ -38,7 +38,6 @@ class DLL_PREFIX Ui_SndSliderObject : public QSlider
 {
 	Q_OBJECT
 private:
-	EMU *p_emu;
 	USING_FLAGS *using_flags;
 	
 	QWidget *parent_widget;
@@ -65,7 +64,6 @@ class DLL_PREFIX Ui_SoundDialog : public QWidget
 {
 	Q_OBJECT
 private:
-	EMU *p_emu;
 	QWidget *parent_widget;
 	QGridLayout *MasterLayout;
 protected:

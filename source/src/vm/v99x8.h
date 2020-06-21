@@ -161,7 +161,7 @@ private:
 	void __FASTCALL v99x8_refresh_scx(int y, int h);
 	
 public:
-	V99X8(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	V99X8(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_irq);
 		set_device_name(_T("V99x8 VDP"));

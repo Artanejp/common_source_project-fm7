@@ -47,7 +47,7 @@ protected:
 	void __FASTCALL update_irq();
 
 public:
-	M6502_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	M6502_BASE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		total_icount = prev_total_icount = 0;
 		busreq = false;
@@ -119,7 +119,7 @@ class M6502 : public M6502_BASE
 protected:
 	void __FASTCALL OP(uint8_t code);
 public:
-	M6502(VM_TEMPLATE* parent_vm, EMU* parent_emu) : M6502_BASE(parent_vm, parent_emu)
+	M6502(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : M6502_BASE(parent_vm, parent_emu)
 	{
 	}
 	~M6502() {}
@@ -135,7 +135,7 @@ class N2A03 : public M6502_BASE
 protected:
 	void __FASTCALL OP(uint8_t code);
 public:
-	N2A03(VM_TEMPLATE* parent_vm, EMU* parent_emu) : M6502_BASE(parent_vm, parent_emu)
+	N2A03(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : M6502_BASE(parent_vm, parent_emu)
 	{
 	}
 	~N2A03() {}

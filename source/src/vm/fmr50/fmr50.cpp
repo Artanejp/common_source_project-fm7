@@ -61,7 +61,7 @@ using FMR50::MEMORY;
 using FMR50::SCSI;
 using FMR50::TIMER;
 
-VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
+VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 /*
 	Machine ID & CPU ID

@@ -64,7 +64,7 @@ private:
 	void update_intr();
 	
 public:
-	Z80CTC(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	Z80CTC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		memset(counter, 0, sizeof(counter));
 		for(int i = 0; i < 4; i++) {

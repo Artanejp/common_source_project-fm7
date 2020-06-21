@@ -40,7 +40,7 @@ private:
 
 	void process_state_cpustate(FILEIO* state_fio, bool loading);
 public:
-	UPD7810(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	UPD7810(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		total_icount = prev_total_icount = 0;
 		d_debugger = NULL;

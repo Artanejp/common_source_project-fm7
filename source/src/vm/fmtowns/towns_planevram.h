@@ -20,7 +20,7 @@ protected:
 	uint8_t r50_gvramsel;        // MMIO 000CH:FF83H : bit4 (and 3).
 
 public:
-	PLANEVRAM(VM_TEMPLATE* parent_vm, EMU*parent_emu) : DEVICE(parent_vm, parent_emu)
+	PLANEVRAM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE*parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_crtc = NULL;
 		d_sprite = NULL;

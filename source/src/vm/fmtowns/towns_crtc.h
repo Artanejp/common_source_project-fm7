@@ -360,7 +360,7 @@ protected:
 	virtual void render_text();
 
 public:
-	TOWNS_CRTC(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
+	TOWNS_CRTC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_int_vsync);
 		for(int i = 0; i < 4; i++) {

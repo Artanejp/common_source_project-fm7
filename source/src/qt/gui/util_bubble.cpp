@@ -15,8 +15,6 @@
 #include "qt_dialogs.h"
 //#include "csp_logger.h"
 
-extern class EMU *emu;
-
 void Object_Menu_Control::insert_bubble(void) {
 	emit sig_insert_bubble(getDrive());
 }

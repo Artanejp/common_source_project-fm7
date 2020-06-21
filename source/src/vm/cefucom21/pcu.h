@@ -19,7 +19,7 @@ class PCU : public DEVICE
 private:
 	
 public:
-	PCU(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	PCU(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("PCU-I"));
 	}

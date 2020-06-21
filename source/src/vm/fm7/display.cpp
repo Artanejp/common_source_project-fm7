@@ -22,7 +22,7 @@
 
 namespace FM7 {
 	
-DISPLAY::DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+DISPLAY::DISPLAY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	ins_led = NULL;
 	kana_led = NULL;

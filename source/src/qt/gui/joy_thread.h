@@ -15,8 +15,8 @@
 #include "common.h"
 #include "config.h"
 
-class EMU;
-class OSD;
+class EMU_TEMPLATE;
+class OSD_BASE;
 class QString;
 class USING_FLAGS;
 
@@ -32,8 +32,8 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 #endif	
 	SDL_Joystick *joyhandle[16];
 	QString names[16];
-	EMU *p_emu;
-	OSD *p_osd;
+	EMU_TEMPLATE *p_emu;
+	OSD_BASE *p_osd;
 	USING_FLAGS *using_flags;
 	config_t *p_config;
  protected:
@@ -51,10 +51,10 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	int get_joyid_from_instanceID(SDL_JoystickID id);
 # endif
  public:
-	JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, config_t *cfg, CSP_Logger *logger, QObject *parent = 0);
+	JoyThreadClass(EMU_TEMPLATE *p, OSD_BASE *o, USING_FLAGS *pflags, config_t *cfg, CSP_Logger *logger, QObject *parent = 0);
 	~JoyThreadClass();
 	void run() { doWork("");}
-	void SetEmu(EMU *p) {
+	void SetEmu(EMU_TEMPLATE *p) {
 		p_emu = p;
 	}
 public slots:
@@ -62,7 +62,7 @@ public slots:
 	void doExit(void);
  signals:
 	int sig_finished(void);
-	int call_joy_thread(EMU *);
+	int call_joy_thread(EMU_TEMPLATE *);
 };
 
 

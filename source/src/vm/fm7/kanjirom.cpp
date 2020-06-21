@@ -14,7 +14,7 @@
 
 namespace FM7 {
 	
-KANJIROM::KANJIROM(VM_TEMPLATE* parent_vm, EMU* parent_emu, bool type_2std): DEVICE(parent_vm, parent_emu)
+KANJIROM::KANJIROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu, bool type_2std): DEVICE(parent_vm, parent_emu)
 {
 	FILEIO *fio;
 	read_ok = false;

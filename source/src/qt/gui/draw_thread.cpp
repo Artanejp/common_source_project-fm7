@@ -90,7 +90,7 @@ DrawThreadClass::~DrawThreadClass()
 void DrawThreadClass::SetEmu(EMU *p)
 {
 	//p_emu = p;
-	p_osd = p->get_osd();
+	p_osd = (OSD*)(p->get_osd());
 }
 
 void DrawThreadClass::do_set_frames_per_second(double fps)

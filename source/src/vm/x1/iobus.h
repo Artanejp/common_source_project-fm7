@@ -64,7 +64,7 @@ private:
 	int get_vram_wait();
 	
 public:
-	IOBUS(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	IOBUS(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 #ifdef USE_DEBUGGER
 		d_debugger = NULL;

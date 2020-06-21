@@ -16,7 +16,6 @@ Ui_SndSliderObject::Ui_SndSliderObject(USING_FLAGS *p, Qt::Orientation orientati
 	: QSlider(orientation, parent)
 {
 	using_flags = p;
-	p_emu = NULL;
 	bind_num = num;
 	parent_widget = parent;
 	p_config = p->get_config_ptr();
@@ -96,7 +95,6 @@ void Ui_SndSliderObject::resetBalanceValue()
 
 Ui_SoundDialog::Ui_SoundDialog(USING_FLAGS *p, QWidget *parent) : QWidget(0)
 {
-	p_emu = NULL;
 	using_flags = p;
 	p_config = p->get_config_ptr();
 	if(parent != NULL) {

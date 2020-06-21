@@ -50,7 +50,6 @@
 #include "csp_logger.h"
 #include "common.h"
 
-extern EMU *emu;
 //extern USING_FLAGS *using_flags;
 void DLL_PREFIX _resource_init(void)
 {

@@ -12,7 +12,7 @@
 #define _PAC2DEV_H_
 
 #include "../vm_template.h"
-#include "../../emu.h"
+#include "../../emu_template.h"
 
 namespace PASOPIA {
 
@@ -20,10 +20,10 @@ class PAC2DEV
 {
 protected:
 	VM* vm;
-	EMU* emu;
+	EMU_TEMPLATE* emu;
 	
 public:
-	PAC2DEV(VM_TEMPLATE* parent_vm, EMU* parent_emu) : vm((VM *)parent_vm), emu(parent_emu)
+	PAC2DEV(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : vm((VM *)parent_vm), emu(parent_emu)
 	{
 		set_device_name(_T("PAC2 Base Device"));
 	}

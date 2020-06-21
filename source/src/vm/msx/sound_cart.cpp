@@ -12,7 +12,7 @@
 
 namespace MSX {
 
-SOUND_CART::SOUND_CART(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+SOUND_CART::SOUND_CART(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	d_chip[SOUND_CHIP_SCC] = new SCC(parent_vm, parent_emu);
 	enable_chip[SOUND_CHIP_SCC] = false;

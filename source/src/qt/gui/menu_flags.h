@@ -11,6 +11,7 @@
 #endif
 
 class EMU;
+class EMU_TEMPLATE;
 class OSD;
 
 
@@ -187,7 +188,7 @@ protected:
 	
 	button_desc_t *vm_buttons_d;
 	vm_ranges_t *vm_ranges_d;
-	EMU *p_emu;
+	EMU_TEMPLATE *p_emu;
 	OSD *p_osd;
 	config_t *p_config;
 public:
@@ -359,8 +360,8 @@ public:
 	virtual const _TCHAR *get_joy_button_captions(int num);
 	virtual const _TCHAR *get_sound_device_caption(int num);
 	virtual int get_s_freq_table(int num);
-	void set_emu(EMU *p);
-	EMU *get_emu(void);
+	void set_emu(EMU_TEMPLATE *p);
+	EMU_TEMPLATE *get_emu(void);
 	void set_osd(OSD *p);
 	OSD *get_osd(void);
 	virtual const _TCHAR *get_sound_device_name(int num);

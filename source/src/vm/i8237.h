@@ -65,7 +65,7 @@ protected:
 	uint32_t __FASTCALL read_io(int ch);
 	
 public:
-	I8237_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I8237_BASE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 4; i++) {
 			//dma[i].dev = vm->dummy;
@@ -160,7 +160,7 @@ private:
 	DEVICE* d_dma;
 #endif
 public:
-	I8237(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	I8237(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~I8237();
 	
 	void initialize();

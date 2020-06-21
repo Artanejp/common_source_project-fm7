@@ -48,7 +48,7 @@ private:
 	void calc_high_pass_filter(int32_t* dst, int32_t* src, int samples, int is_set_val);
 	
 public:
-	PCM1BIT(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	PCM1BIT(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		volume_l = volume_r = 1024;
 		set_device_name(_T("1BIT PCM SOUND"));

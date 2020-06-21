@@ -250,7 +250,7 @@ protected:
 	int	nsc800_rstc_count;
 
 public:
-	Z80_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	Z80_BASE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		flags_initialized = false;
 		busreq = false;
@@ -374,7 +374,7 @@ protected:
 	void __FASTCALL run_one_opecode() override;
 	void __FASTCALL debugger_hook(void) override;
 public:
-	Z80(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	Z80(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~Z80();
 	void initialize();
 	void reset();

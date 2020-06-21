@@ -55,7 +55,7 @@ private:
 	uint32_t __CHIP_MASK;
 	bool __I8259_PC98_HACK;
 public:
-	I8259(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I8259(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_cpu = NULL;
 		__I8259_MAX_CHIPS = 0;

@@ -182,7 +182,7 @@ protected:
 	void check_interrupt();
 	//void OP(uint8_t code);
 public:
-	I8080(VM_TEMPLATE* parent_vm, EMU* parent_emu) : I8080_BASE(parent_vm, parent_emu)
+	I8080(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : I8080_BASE(parent_vm, parent_emu)
 	{
 #ifdef HAS_I8085
 		set_device_name(_T("i8085 CPU"));

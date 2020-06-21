@@ -7,7 +7,7 @@
 
 #include "vm.h"
 #include "../../fileio.h"
-#include "emu.h"
+#include "emu_template.h"
 
 #include "fm7_common.h"
 
@@ -16,7 +16,7 @@
 
 namespace FM7 {
 
-FM7_JCOMMCARD::FM7_JCOMMCARD(VM_TEMPLATE* parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
+FM7_JCOMMCARD::FM7_JCOMMCARD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	n_bank = 0;
 	rcb_address = 0;

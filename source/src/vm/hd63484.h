@@ -50,7 +50,7 @@ private:
 	void paint(int sx, int sy, int col);
 	
 public:
-	HD63484(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+	HD63484(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("HD63484 ACRTC"));
 	}
 	~HD63484() {}

@@ -165,7 +165,7 @@ protected:
 	bool __SCSI_DEBUG_LOG;
 	bool _OUT_DEBUG_LOG;
 public:
-	SCSI_DEV(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SCSI_DEV(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_dat);
 		initialize_output_signals(&outputs_bsy);

@@ -129,7 +129,7 @@ protected:
 
 	void read_a_sector(int lba, bool req_reply);
 public:
-	CDC(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	CDC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&output_dma_line);
 		initialize_output_signals(&output_dma_intr);

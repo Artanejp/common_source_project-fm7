@@ -91,7 +91,7 @@ private:
 	uint32_t __FASTCALL read_memory(uint32_t addr);
 	
 public:
-	SUB(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
+	SUB(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MEMORY(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Sub System"));
 	}

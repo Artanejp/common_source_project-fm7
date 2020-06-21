@@ -122,7 +122,7 @@ protected:
 	virtual void config_page00();
 	
 public:
-	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu) {
+	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MEMORY(parent_vm, parent_emu) {
 		set_device_name(_T("FMTOWNS_MEMORY"));
 		addr_max = 0x100000000; // 4GiB
 		bank_size = 1024; // 1024

@@ -25,7 +25,7 @@ private:
 	int index;
 
 public:
-	KANJIROM(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	KANJIROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~KANJIROM() {}
 	
 	// common functions

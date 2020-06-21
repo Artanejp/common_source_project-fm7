@@ -257,12 +257,12 @@ _TCHAR *USING_FLAGS::get_vm_node_name(int id)
 	return (_TCHAR *)"NODE";
 }
 
-void USING_FLAGS::set_emu(EMU *p)
+void USING_FLAGS::set_emu(EMU_TEMPLATE *p)
 {
 	p_emu = p;
 }
 
-EMU *USING_FLAGS::get_emu(void)
+EMU_TEMPLATE *USING_FLAGS::get_emu(void)
 {
 	return p_emu;
 }

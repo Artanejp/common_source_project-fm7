@@ -12,12 +12,7 @@
 
 #include <stdarg.h>
 //#include "vm_template.h"
-#include "../emu.h"
-#if defined(_USE_QT)
-#include "osd.h"
-
-//#define USE_DEVICE_NAME
-#endif
+#include "../../emu_template.h"
 // max devices connected to the output port
 #define MAX_OUTPUT	16
 
@@ -57,17 +52,17 @@
 
 class CSP_Logger;
 class VM_TEMPLATE;
-class EMU;
+class EMU_TEMPLATE;
 class OSD;
 class DEVICE
 {
 protected:
 	VM_TEMPLATE* vm;
-	EMU* emu;
-	OSD* osd;
+	EMU_TEMPLATE* emu;
+	OSD_BASE* osd;
 	CSP_Logger *p_logger;
 public:
-	DEVICE(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	DEVICE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~DEVICE() {}
 
 	virtual void initialize() { }

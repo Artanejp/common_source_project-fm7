@@ -74,7 +74,7 @@ private:
 	void update_intr();
 	
 public:
-	Z80DMA(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	Z80DMA(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 6 * 8 + 1 + 1; i++) {
 			regs.t[i] = 0;

@@ -41,7 +41,6 @@ class DLL_PREFIX GLDrawClass: public QOpenGLWidget
 {
 	Q_OBJECT
  private:
-	EMU *p_emu;
 	CSP_Logger *csp_logger;
 	USING_FLAGS *using_flags;
 	config_t *p_config;

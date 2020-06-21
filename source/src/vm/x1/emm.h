@@ -28,7 +28,7 @@ private:
 	uint32_t data_addr;
 	
 public:
-	EMM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	EMM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("EMM"));
 	}

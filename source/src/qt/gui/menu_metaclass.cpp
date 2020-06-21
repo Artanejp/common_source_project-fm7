@@ -455,7 +455,7 @@ void Menu_MetaClass::retranslateUi(void)
 	retranslate_pulldown_menu_device_sub();
 }
 
-void Menu_MetaClass::setEmu(EMU *p)
+void Menu_MetaClass::setEmu(EMU_TEMPLATE *p)
 {
 	p_emu = p;
 }

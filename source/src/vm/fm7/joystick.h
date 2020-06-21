@@ -40,7 +40,7 @@ class JOYSTICK : public DEVICE {
 	void   update_strobe(bool flag);
 	uint32_t mouse_type;
  public:
-	JOYSTICK(VM_TEMPLATE* parent_vm, EMU *parent_emu);
+	JOYSTICK(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~JOYSTICK();
 
 	void initialize(void);

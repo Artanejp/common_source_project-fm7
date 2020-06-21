@@ -52,7 +52,7 @@ protected:
 	int event_adpcm_clock;
 	void initialize_adc_clock(int freq);
 public:
-	ADPCM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	ADPCM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		adc_fifo = NULL;
 		initialize_output_signals(&outputs_intr);

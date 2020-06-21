@@ -154,7 +154,7 @@ protected:
 	void register_event_wait_cmd(uint32_t bytes);
 	
 public:
-	UPD7220(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	UPD7220(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_drq);
 		initialize_output_signals(&outputs_vsync);

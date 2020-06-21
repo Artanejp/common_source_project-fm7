@@ -74,7 +74,7 @@ protected:
 	virtual void update_interrupt();
 	outputs_t outputs_irq;
 public:
-	YM2612(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	YM2612(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		base_decibel_fm = base_decibel_psg = 0;
 		decibel_vol = 0 + 5;

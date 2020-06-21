@@ -34,7 +34,7 @@ private:
 	uint8_t* get_sector(int drv, int trk, int sec);
 	
 public:
-	PTF20(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	PTF20(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_sio);
 		set_device_name(_T("Pseudo TF-20 FDD"));

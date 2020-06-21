@@ -226,7 +226,7 @@ class FM7_MAINMEM : public DEVICE
 		return static_cast<T *>(np)->read_dma_data8(addr);
 	}
  public:
-	FM7_MAINMEM(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	FM7_MAINMEM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~FM7_MAINMEM();
 	uint32_t __FASTCALL read_data8(uint32_t addr);
 	uint32_t __FASTCALL read_dma_data8(uint32_t addr);

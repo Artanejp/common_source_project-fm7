@@ -330,7 +330,7 @@ protected:
 	bool __CDROM_DEBUG_LOG;
 	bool _USE_CDROM_PREFETCH;
 public:
-	TOWNS_CDROM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	TOWNS_CDROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 //		seek_time = 400000; // 400msec (temporary)
 		seek_time = 10.0;

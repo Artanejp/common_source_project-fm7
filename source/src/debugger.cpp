@@ -1732,7 +1732,7 @@ void EMU::open_debugger(int cpu_index)
 		close_debugger();
 		if(vm->get_cpu(cpu_index) != NULL && vm->get_cpu(cpu_index)->get_debugger() != NULL) {
 			debugger_thread_param.emu = this;
-			debugger_thread_param.osd = osd;
+			debugger_thread_param.osd = (OSD*)osd;
 			debugger_thread_param.vm = vm;
 			debugger_thread_param.cpu_index = cpu_index;
 			debugger_thread_param.request_terminate = false;

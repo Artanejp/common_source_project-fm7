@@ -39,7 +39,7 @@ protected:
 	bool bank_size_was_set;
 	bool addr_max_was_set;
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		// Set temporally values.
 		addr_max = 0x10000;

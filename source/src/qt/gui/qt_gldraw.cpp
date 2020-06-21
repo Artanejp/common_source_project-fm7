@@ -134,7 +134,6 @@ GLDrawClass::GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, co
 	csp_logger = logger;
 	save_pixmap_req = false;
 	enable_mouse = true;
-	p_emu = NULL;
 	using_flags = p;
 	p_config = p->get_config_ptr();
 	

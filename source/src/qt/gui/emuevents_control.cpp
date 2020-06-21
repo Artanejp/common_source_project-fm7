@@ -12,8 +12,6 @@
 #include "qt_dialogs.h"
 #include "csp_logger.h"
 
-extern EMU *emu;
-
 void Ui_MainWindowBase::OnReset(void)
 {
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, "Reset");

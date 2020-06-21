@@ -340,7 +340,7 @@ private:
 	bool nippy_patch;
 #endif
 public:
-	PC88(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	PC88(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 #ifdef SUPPORT_PC88_OPN1
 		d_opn1 = NULL;

@@ -4,7 +4,7 @@
 class V30 : public I8086
 {
 	public:
-	V30(VM_TEMPLATE* parent_vm, EMU* parent_emu) : I8086(parent_vm, parent_emu)
+	V30(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : I8086(parent_vm, parent_emu)
 	{
 		set_device_name(_T("NEC V30 CPU"));
 	}

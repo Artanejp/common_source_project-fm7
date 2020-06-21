@@ -47,7 +47,7 @@ protected:
 	int start_day;
 	int start_year;
 public:
-	MSM58321_BASE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MSM58321_BASE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_data);
 		set_device_name(_T("MSM5832 RTC"));
@@ -78,7 +78,7 @@ protected:
 	void __FASTCALL write_to_cur_time();
 	void __FASTCALL set_busy(bool val);
 public:
-	MSM58321(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	MSM58321(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~MSM58321() {}
 	
 	void initialize();
@@ -96,7 +96,7 @@ protected:
 	void __FASTCALL set_busy(bool val);
 
 public:
-	MSM5832(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	MSM5832(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~MSM5832() {}
 	
 	void initialize();

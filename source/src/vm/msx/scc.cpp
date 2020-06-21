@@ -503,7 +503,7 @@ SCC_set_type (SCC * scc, uint32_t type)
 */
 
 
-SCC::SCC(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+SCC::SCC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	emu2212 = SCC_new(3579545, 48000);
 	volume_l = volume_r = 1024;

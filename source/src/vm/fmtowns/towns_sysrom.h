@@ -31,7 +31,7 @@ protected:
 	uint8_t rom[0x40000]; // 256KB
 	
 public:
-	SYSROM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SYSROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name("FM-Towns SYSTEM ROM");
 	}

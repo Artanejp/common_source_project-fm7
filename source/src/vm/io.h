@@ -54,7 +54,7 @@ private:
 	uint32_t __FASTCALL read_port32(uint32_t addr, bool is_dma);
 	
 public:
-	IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	IO(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		__IO_DEBUG_LOG = false;
 //#ifdef _IO_DEBUG_LOG

@@ -17,7 +17,7 @@
 #include "config.h"
 #include "menu_flags.h"
 
-class EMU;
+class EMU_TEMPLATE;
 
 QT_BEGIN_NAMESPACE
 class QMenuBar;
@@ -34,7 +34,7 @@ protected:
 	USING_FLAGS *using_flags;
 	QWidget *p_wid;
 	QMenuBar *menu_root;
-	EMU *p_emu;
+	EMU_TEMPLATE *p_emu;
 	config_t *p_config;
 	
 	QMenu *menu_inner_media;
@@ -88,7 +88,7 @@ public:
 	void create_pulldown_menu(void);
 	void retranslateUi(void);
 	//void setTitle(QString);
-	void setEmu(EMU *p);
+	void setEmu(EMU_TEMPLATE *p);
 
 	bool getWriteProtect(void) {
 		return write_protect;

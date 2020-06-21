@@ -12,9 +12,9 @@
 
 #include <stdarg.h>
 #include "vm_template.h"
-#include "../emu.h"
+#include "../emu_template.h"
 #if defined(_USE_QT)
-#include "osd.h"
+#include "osd_base.h"
 #include "csp_logger.h"
 #define USE_DEVICE_NAME
 #endif
@@ -67,13 +67,13 @@ class DEVICE
 {
 protected:
 	VM_TEMPLATE* vm;
-	EMU* emu;
-	OSD* osd;
+	EMU_TEMPLATE* emu;
+	OSD_BASE* osd;
 #if defined(_USE_QT)
 	CSP_Logger *p_logger;
 #endif
 public:
-	DEVICE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
+	DEVICE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : vm(parent_vm), emu(parent_emu)
 	{
 #if defined(_USE_QT)
 		osd = emu->get_osd();

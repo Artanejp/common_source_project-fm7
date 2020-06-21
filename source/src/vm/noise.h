@@ -31,7 +31,7 @@ private:
 	void __FASTCALL get_sample();
 	
 public:
-	NOISE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	NOISE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		buffer_l = buffer_r = NULL;
 		samples = 0;

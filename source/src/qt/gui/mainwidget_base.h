@@ -754,7 +754,7 @@ public slots:
 signals:
 	int message_changed(QString);
 	int quit_emu_thread();
-	int call_joy_thread(EMU *);
+	int call_joy_thread(EMU_TEMPLATE *);
 	int quit_joy_thread();
 	int quit_draw_thread();
 	int quit_emulator_all();

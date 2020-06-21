@@ -28,8 +28,6 @@
 
 #if defined(OSD_QT)
 #include "qt/osd_base.h"
-#elif defined(OSD_WIN32)
-#include "win32/osd,h"
 #endif
 
 class VM;
@@ -61,8 +59,7 @@ typedef struct {
 
 class DLL_PREFIX EMU_TEMPLATE {
 protected:
-	VM* vm;
-	OSD* osd;
+	OSD_BASE* osd;
 private:
 	uint8_t dummy_key_buffer[256];
 	uint32_t dummy_joy_buffer[8];
@@ -105,7 +102,7 @@ public:
 	// for windows
 	// ----------------------------------------
 	virtual VM_TEMPLATE *get_vm() {	return NULL; }
-	virtual OSD *get_osd() { return NULL; }
+	virtual OSD_BASE *get_osd() { return NULL; }
 
 #ifdef OSD_QT
 	// qt dependent

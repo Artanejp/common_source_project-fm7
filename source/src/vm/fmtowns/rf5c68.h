@@ -78,7 +78,7 @@ protected:
 	void __FASTCALL lpf_threetap(int32_t *v, int &lval, int &rval);
 	
 public:
-	RF5C68(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	RF5C68(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		volume_l = volume_r = 1024;
 		sample_buffer = NULL;

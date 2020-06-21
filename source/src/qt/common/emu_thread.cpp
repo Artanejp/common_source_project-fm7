@@ -38,7 +38,7 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, USING_FLAGS *p, QO
 	emu = new EMU(rMainWindow, rMainWindow->getGraphicsView(), using_flags);
 	p_emu = emu;
 	p->set_emu(emu);
-	p->set_osd(emu->get_osd());
+	p->set_osd((OSD*)emu->get_osd());
 	emu->get_osd()->moveToThread(this);
 
 	connect(this, SIGNAL(sig_open_binary_load(int, QString)), MainWindow, SLOT(_open_binary_load(int, QString)));

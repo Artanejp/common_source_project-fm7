@@ -18,7 +18,7 @@
 
 namespace MSX {
 	
-PSG_STEREO::PSG_STEREO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+PSG_STEREO::PSG_STEREO(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 #if defined(USE_PSG_STEREO_REALLY)
 //	d_psg[1] = new YM2203(parent_vm, parent_emu);

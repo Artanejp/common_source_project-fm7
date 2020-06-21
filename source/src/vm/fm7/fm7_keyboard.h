@@ -123,7 +123,7 @@ private:
 	int repeat_time_long;
 	
  public:
-	KEYBOARD(VM_TEMPLATE* parent_vm, EMU *parent_emu);
+	KEYBOARD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~KEYBOARD();
    
 	void key_up(uint32_t vk);

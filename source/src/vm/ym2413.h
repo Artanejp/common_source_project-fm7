@@ -34,7 +34,7 @@ private:
 	bool __MSX;
 	
 public:
-	YM2413(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	YM2413(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		volume_l = volume_r = 1024;
 		__MSX = false;

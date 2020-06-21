@@ -45,7 +45,7 @@ protected:
 	void get_debug_sregs_info(_TCHAR *buffer, size_t buffer_len);
 	void get_debug_gregs_info(_TCHAR *buffer, size_t buffer_len);
 public:
-	I386(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I386(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 //#ifdef I86_PSEUDO_BIOS
 		d_bios = NULL;

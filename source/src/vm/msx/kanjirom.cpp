@@ -14,7 +14,7 @@
 
 namespace MSX {
 
-KANJIROM::KANJIROM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+KANJIROM::KANJIROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	index = 0;
 	memset(rom, 0xff, sizeof(rom));

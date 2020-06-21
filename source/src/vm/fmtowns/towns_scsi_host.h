@@ -24,7 +24,7 @@ protected:
 
 	bool selected;
 public:
-	TOWNS_SCSI_HOST(VM_TEMPLATE* parent_vm, EMU* parent_emu) : SCSI_HOST(parent_vm, parent_emu)
+	TOWNS_SCSI_HOST(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : SCSI_HOST(parent_vm, parent_emu)
 	{
 		set_device_name(_T("FM-Towns SCSI HOST"));
 		read_queue = NULL;

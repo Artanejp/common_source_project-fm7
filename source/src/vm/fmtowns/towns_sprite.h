@@ -70,7 +70,7 @@ protected:
 	virtual void __FASTCALL write_reg(uint32_t addr, uint32_t data);
 
 public:
-	TOWNS_SPRITE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	TOWNS_SPRITE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_vram = NULL;
 		d_font = NULL;

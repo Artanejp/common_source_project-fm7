@@ -175,7 +175,7 @@ protected:
 	void updateButtonTexture(void);
 
 public:
-	GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);
+	GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu = 0);
 	~GLDraw_ES_2();
 	void drawButtons(void);
 	virtual void initGLObjects();

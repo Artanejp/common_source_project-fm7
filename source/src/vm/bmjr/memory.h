@@ -60,7 +60,7 @@ private:
 
 	_bit_trans_table_t bit_table;
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		volume_l = volume_r = 1024;
 		set_device_name(_T("Memory Bus"));

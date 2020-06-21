@@ -58,7 +58,7 @@ private:
 	void set_pio(int ch, uint8_t data);
 	
 public:
-	I8155(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I8155(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 3; i++) {
 			initialize_output_signals(&pio[i].outputs);

@@ -24,7 +24,7 @@ protected:
 	virtual void __FASTCALL do_dma_inc_dec_ptr_8bit(int c);
 	virtual void __FASTCALL do_dma_inc_dec_ptr_16bit(int c);
 public:
-	TOWNS_DMAC(VM_TEMPLATE* parent_vm, EMU* parent_emu) : UPD71071(parent_vm, parent_emu)
+	TOWNS_DMAC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : UPD71071(parent_vm, parent_emu)
 	{
 		set_device_name(_T("FM-Towns uPD71071 DMAC"));
 	}

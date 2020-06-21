@@ -45,7 +45,7 @@ private:
 	int recv_id, send_id;
 	
 public:
-	I8251(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I8251(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_out);
 		initialize_output_signals(&outputs_rxrdy);

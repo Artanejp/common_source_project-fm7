@@ -244,7 +244,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	objNameStr = QString("EmuThreadClass");
 	hRunEmu->setObjectName(objNameStr);
 	
-	hDrawEmu = new DrawThreadClass(emu->get_osd(), csp_logger, this);
+	hDrawEmu = new DrawThreadClass((OSD*)(emu->get_osd()), csp_logger, this);
 	emu->set_parent_handler((EmuThreadClass*)hRunEmu, hDrawEmu);
 	
 #ifdef ONE_BOARD_MICRO_COMPUTER
@@ -259,7 +259,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 #endif
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Start.");
 	connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
-	//connect(emu->get_osd(), SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
+	//connect((OSD*)(emu->get_osd()), SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
 	connect(hRunEmu, SIGNAL(window_title_changed(QString)), this, SLOT(do_set_window_title(QString)));
 	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(actionCapture_Screen, SIGNAL(triggered()), glv, SLOT(do_save_frame_screen()));
@@ -273,7 +273,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 		connect(hRunEmu, SIGNAL(sig_set_draw_fps(double)), hDrawEmu, SLOT(do_set_frames_per_second(double)));
 		connect(hRunEmu, SIGNAL(sig_draw_one_turn(bool)), hDrawEmu, SLOT(do_draw_one_turn(bool)));
 	}
-	//connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), emu->get_osd(), SLOT(do_draw(bool)));
+	//connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), (OSD*)(emu->get_osd()), SLOT(do_draw(bool)));
 	//connect(hRunEmu, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 	connect(this, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 
@@ -297,7 +297,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hRunEmu, SIGNAL(sig_resize_uibar(int, int)),
 			this, SLOT(resize_statusbar(int, int)));
 
-	connect(emu->get_osd(), SIGNAL(sig_req_encueue_video(int, int, int)),
+	connect((OSD*)(emu->get_osd()), SIGNAL(sig_req_encueue_video(int, int, int)),
 			hDrawEmu, SLOT(do_req_encueue_video(int, int, int)));
 	connect(hRunEmu, SIGNAL(sig_finished()), glv, SLOT(releaseKeyCode(void)));
 	connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
@@ -308,7 +308,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Launch done.");
 
-	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, emu->get_osd(), &config);
+	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, (OSD*)(emu->get_osd()), &config);
 	
 	connect(actionStart_Record_Movie->binds, SIGNAL(sig_start_record_movie(int)), hRunEmu, SLOT(do_start_record_video(int)));
 	connect(this, SIGNAL(sig_start_saving_movie()),
@@ -320,9 +320,9 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hSaveMovieThread, SIGNAL(sig_set_state_saving_movie(bool)), this, SLOT(do_set_state_saving_movie(bool)));
 	connect(actionStop_Record_Movie, SIGNAL(triggered()), this, SLOT(do_stop_saving_movie()));
 
-	connect(emu->get_osd(), SIGNAL(sig_save_as_movie(QString, int, int)),
+	connect((OSD*)(emu->get_osd()), SIGNAL(sig_save_as_movie(QString, int, int)),
 			hSaveMovieThread, SLOT(do_open(QString, int, int)));
-	connect(emu->get_osd(), SIGNAL(sig_stop_saving_movie()), hSaveMovieThread, SLOT(do_close()));
+	connect((OSD*)(emu->get_osd()), SIGNAL(sig_stop_saving_movie()), hSaveMovieThread, SLOT(do_close()));
 	
 	actionStop_Record_Movie->setIcon(QIcon(":/icon_process_stop.png"));
 	actionStop_Record_Movie->setVisible(false);
@@ -330,11 +330,11 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(this, SIGNAL(sig_movie_set_width(int)), hSaveMovieThread, SLOT(do_set_width(int)));
 	connect(this, SIGNAL(sig_movie_set_height(int)), hSaveMovieThread, SLOT(do_set_height(int)));
  
-	connect(emu->get_osd(), SIGNAL(sig_movie_set_width(int)), hSaveMovieThread, SLOT(do_set_width(int)));
-	connect(emu->get_osd(), SIGNAL(sig_movie_set_height(int)), hSaveMovieThread, SLOT(do_set_height(int)));
+	connect((OSD*)(emu->get_osd()), SIGNAL(sig_movie_set_width(int)), hSaveMovieThread, SLOT(do_set_width(int)));
+	connect((OSD*)(emu->get_osd()), SIGNAL(sig_movie_set_height(int)), hSaveMovieThread, SLOT(do_set_height(int)));
    
-	connect(emu->get_osd(), SIGNAL(sig_enqueue_audio(int16_t*, int)), hSaveMovieThread, SLOT(enqueue_audio(int16_t *, int)));
-	connect(emu->get_osd(), SIGNAL(sig_enqueue_video(int, int, int, QImage *)),
+	connect((OSD*)(emu->get_osd()), SIGNAL(sig_enqueue_audio(int16_t*, int)), hSaveMovieThread, SLOT(enqueue_audio(int16_t *, int)));
+	connect((OSD*)(emu->get_osd()), SIGNAL(sig_enqueue_video(int, int, int, QImage *)),
 			hSaveMovieThread, SLOT(enqueue_video(int, int, int, QImage *)), Qt::DirectConnection);
 	connect(glv->extfunc, SIGNAL(sig_push_image_to_movie(int, int, int, QImage *)),
 			hSaveMovieThread, SLOT(enqueue_video(int, int, int, QImage *)));
@@ -349,9 +349,9 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hRunEmu, SIGNAL(sig_change_access_lamp(int, int, QString)), driveData, SLOT(updateLabel(int, int, QString)));
 	connect(hRunEmu, SIGNAL(sig_set_access_lamp(int, bool)), graphicsView, SLOT(do_display_osd_leds(int, bool)));
 	connect(hRunEmu, SIGNAL(sig_change_virtual_media(int, int, QString)), driveData, SLOT(updateMediaFileName(int, int, QString)));
-	connect(emu->get_osd(), SIGNAL(sig_change_virtual_media(int, int, QString)), driveData, SLOT(updateMediaFileName(int, int, QString)));
-	connect(emu->get_osd(), SIGNAL(sig_enable_mouse()), glv, SLOT(do_enable_mouse()));
-	connect(emu->get_osd(), SIGNAL(sig_disable_mouse()), glv, SLOT(do_disable_mouse()));
+	connect((OSD*)(emu->get_osd()), SIGNAL(sig_change_virtual_media(int, int, QString)), driveData, SLOT(updateMediaFileName(int, int, QString)));
+	connect((OSD*)(emu->get_osd()), SIGNAL(sig_enable_mouse()), glv, SLOT(do_enable_mouse()));
+	connect((OSD*)(emu->get_osd()), SIGNAL(sig_disable_mouse()), glv, SLOT(do_disable_mouse()));
 
 	hRunEmu->start(QThread::HighestPriority);
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Launch done.");
@@ -391,7 +391,7 @@ void Ui_MainWindow::do_create_hard_disk(int drv, int sector_size, int sectors, i
 void Ui_MainWindow::LaunchJoyThread(void)
 {
 #if defined(USE_JOYSTICK)
-	hRunJoy = new JoyThreadClass(emu, emu->get_osd(), using_flags, &config, csp_logger);
+	hRunJoy = new JoyThreadClass(emu, (OSD*)(emu->get_osd()), using_flags, &config, csp_logger);
 	connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
 	hRunJoy->setObjectName("JoyThread");
 	hRunJoy->start();
@@ -1290,12 +1290,12 @@ int MainLoop(int argc, char *argv[])
 	pgl->set_emu_launched();
 //	pgl->setFixedSize(pgl->width(), pgl->height());
 	rMainWindow->retranselateUi_Depended_OSD();
-	QObject::connect(emu->get_osd(), SIGNAL(sig_update_device_node_name(int, const _TCHAR *)),
+	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_update_device_node_name(int, const _TCHAR *)),
 					 rMainWindow, SLOT(do_update_device_node_name(int, const _TCHAR *)));
 	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
 		rMainWindow->do_update_device_node_name(i, using_flags->get_vm_node_name(i));
 	}
-	csp_logger->set_osd(emu->get_osd());
+	csp_logger->set_osd((OSD*)(emu->get_osd()));
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "InitInstance() OK.");
 	pgl->do_set_texture_size(NULL, -1, -1);  // It's very ugly workaround (;_;) 20191028 K.Ohta
 	// ToDo: Update raltime.
@@ -1311,8 +1311,8 @@ int MainLoop(int argc, char *argv[])
 	QObject::connect(GuiMain, SIGNAL(lastWindowClosed()),
 					 rMainWindow, SLOT(on_actionExit_triggered()));
 
-	QObject::connect(emu->get_osd(), SIGNAL(sig_clear_keyname_table()),	 rMainWindow, SLOT(do_clear_keyname_table()));
-	QObject::connect(emu->get_osd(), SIGNAL(sig_add_keyname_table(uint32_t, QString)),	 rMainWindow, SLOT(do_add_keyname_table(uint32_t, QString)));
+	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_clear_keyname_table()),	 rMainWindow, SLOT(do_clear_keyname_table()));
+	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_add_keyname_table(uint32_t, QString)),	 rMainWindow, SLOT(do_add_keyname_table(uint32_t, QString)));
 	emu->get_osd()->update_keyname_table();
 	
 	GuiMain->exec();
@@ -1439,10 +1439,10 @@ void Ui_MainWindow::OnOpenDebugger(int no)
 		if(vm->get_cpu(no) != NULL && vm->get_cpu(no)->get_debugger() != NULL) {
 			QString windowName = QString::fromUtf8(vm->get_cpu(no)->get_device_name());
 			windowName = QString::fromUtf8("Debugger ") + windowName;
-			emu->hDebugger = new CSP_Debugger(emu->get_osd(), this);
+			emu->hDebugger = new CSP_Debugger((OSD*)(emu->get_osd()), this);
 			QString objNameStr = QString("EmuDebugThread");
 			emu->hDebugger->setObjectName(objNameStr);
-			emu->hDebugger->debugger_thread_param.osd = emu->get_osd();
+			emu->hDebugger->debugger_thread_param.osd = (OSD*)(emu->get_osd());
 			emu->hDebugger->debugger_thread_param.vm = vm;
 			emu->hDebugger->debugger_thread_param.cpu_index = no;
 			emu->stop_record_sound();

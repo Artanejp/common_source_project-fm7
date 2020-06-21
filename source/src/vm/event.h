@@ -117,7 +117,7 @@ private:
 	bool initialize_done;
 #endif
 public:
-	EVENT(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	EVENT(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		dcount_cpu = dcount_sound = 0;
 		frame_event_count = vline_event_count = 0;

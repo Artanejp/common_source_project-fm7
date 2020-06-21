@@ -104,7 +104,7 @@ private:
 	bool write_one_page(void);
 	
 public:
-	BUBBLECASETTE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	BUBBLECASETTE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		fio = NULL;
 		memset(image_path, 0x00, _MAX_PATH * sizeof(_TCHAR));

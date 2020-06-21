@@ -62,8 +62,8 @@ class DISK
 {
 #ifndef _ANY2D88
 protected:
-	EMU* emu;
-	OSD* osd;
+	EMU_TEMPLATE* emu;
+	OSD_BASE* osd;
 #endif
 private:
 	uint8_t buffer[DISK_BUFFER_SIZE + TRACK_BUFFER_SIZE];
@@ -127,7 +127,7 @@ private:
 	
 public:
 #ifndef _ANY2D88
-	DISK(EMU* parent_emu) : emu(parent_emu)
+	DISK(EMU_TEMPLATE* parent_emu) : emu(parent_emu)
 #else
 	DISK()
 #endif

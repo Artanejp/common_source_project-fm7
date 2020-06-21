@@ -18,7 +18,7 @@
 
 namespace FM7 {
 
-JOYSTICK::JOYSTICK(VM_TEMPLATE* parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
+JOYSTICK::JOYSTICK(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	rawdata = NULL;
 	mouse_state = NULL;

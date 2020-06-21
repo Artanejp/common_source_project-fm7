@@ -54,7 +54,7 @@ struct h6280_Regs
 	DEVICE *program;
 	DEVICE *io;
 //#ifdef USE_DEBUGGER
-	EMU *emu;
+	EMU_TEMPLATE *emu;
 	DEBUGGER *debugger;
 	DEVICE *program_stored;
 	DEVICE *io_stored;

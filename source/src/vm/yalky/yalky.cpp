@@ -29,7 +29,7 @@ using YALKY::IO;
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
+VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	config.sound_play_tape = false;
 	config.wave_shaper[0] = false;

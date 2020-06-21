@@ -1212,7 +1212,7 @@ uint32_t KEYBOARD::get_vk_by_scancode(uint32_t scancode)
 }
 #endif
 
-KEYBOARD::KEYBOARD(VM_TEMPLATE* parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
+KEYBOARD::KEYBOARD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 #if defined(_FM77AV_VARIANTS)
 	beep = NULL;

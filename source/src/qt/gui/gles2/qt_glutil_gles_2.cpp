@@ -40,7 +40,7 @@
 
 //extern USING_FLAGS *using_flags;
 
-GLDraw_ES_2::GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu) : GLDraw_Tmpl(parent, p, logger, emu)
+GLDraw_ES_2::GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu) : GLDraw_Tmpl(parent, p, logger, emu)
 {
 	uTmpTextureID = 0;
 	

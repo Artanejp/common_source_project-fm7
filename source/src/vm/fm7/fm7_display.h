@@ -424,7 +424,7 @@ protected:
 	void __FASTCALL draw_77l4_400l(bool ff);
 #endif
 public:
-	DISPLAY(VM_TEMPLATE* parent_vm, EMU *parent_emu);
+	DISPLAY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~DISPLAY();
 	void event_callback(int event_id, int err);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);

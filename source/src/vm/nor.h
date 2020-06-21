@@ -33,7 +33,7 @@ private:
 	bool prev, first;
 	
 public:
-	NOR(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	NOR(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs);
 		bits_in = 0;

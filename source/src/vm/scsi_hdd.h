@@ -25,7 +25,7 @@ private:
 	_TCHAR image_path[8][_MAX_PATH];
 	int sector_size[8];
 public:
-	SCSI_HDD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : SCSI_DEV(parent_vm, parent_emu) 
+	SCSI_HDD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : SCSI_DEV(parent_vm, parent_emu) 
 	{
 		for(int i = 0; i < 8; i++) {
 			disk[i] = NULL;
@@ -84,7 +84,7 @@ public:
 class SASI_HDD : public SCSI_HDD
 {
 public:
-	SASI_HDD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : SCSI_HDD(parent_vm, parent_emu)
+	SASI_HDD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : SCSI_HDD(parent_vm, parent_emu)
 	{
 		set_device_name(_T("SASI Hard Disk Drive"));
 	}

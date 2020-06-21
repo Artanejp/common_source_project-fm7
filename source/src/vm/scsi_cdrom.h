@@ -68,7 +68,7 @@ protected:
 	uint32_t lba_to_msf_alt(uint32_t lba);
 	bool __CDROM_DEBUG_LOG;
 public:
-	SCSI_CDROM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : SCSI_DEV(parent_vm, parent_emu) 
+	SCSI_CDROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : SCSI_DEV(parent_vm, parent_emu) 
 	{
 		initialize_output_signals(&outputs_done);
 		__CDROM_DEBUG_LOG = false;

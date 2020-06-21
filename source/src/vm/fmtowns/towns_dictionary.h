@@ -35,7 +35,7 @@ protected:
 	bool cmos_dirty;
 
 public:
-	DICTIONARY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	DICTIONARY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		dict_bank = 0x00;
 		cmos_dirty = false;

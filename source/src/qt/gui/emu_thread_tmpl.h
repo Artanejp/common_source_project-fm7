@@ -66,7 +66,6 @@ protected:
 	
 	uint32_t key_mod;
 
-	EMU *p_emu;
 	USING_FLAGS *using_flags;
 	config_t *p_config;
 	

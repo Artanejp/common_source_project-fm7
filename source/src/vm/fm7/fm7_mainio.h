@@ -503,7 +503,7 @@ class FM7_MAINIO : public DEVICE {
 	bool load_state_opn(FILEIO *state_fio, bool loading);
 
 public:
-	FM7_MAINIO(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	FM7_MAINIO(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~FM7_MAINIO();
 	void event_vline(int v, int clock);
 

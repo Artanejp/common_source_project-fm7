@@ -102,7 +102,7 @@ protected:
 	void fade_out(int usec);
 	void reset_adpcm();
 public:
-	ADPCM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	ADPCM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("PC-Engine CD-ROM^2 around ADPCM"));
 	}

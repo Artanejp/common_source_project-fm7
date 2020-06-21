@@ -63,7 +63,7 @@ protected:
 
 	virtual void updateButtonTexture(void);
 public:
-	GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0);
+	GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu = 0);
 	~GLDraw_2_0();
 
 	virtual void initGLObjects();

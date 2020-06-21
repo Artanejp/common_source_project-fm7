@@ -44,7 +44,7 @@ private:
 //#endif
 	bool __HAS_UPD4990A;	
 public:
-	UPD1990A(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	UPD1990A(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_dout);
 		initialize_output_signals(&outputs_tp);

@@ -26,7 +26,7 @@ private:
 	pair32_t kanjiaddr;
 
 public:
-	KANJIROM(VM_TEMPLATE* parent_vm, EMU* parent_emu, bool type_2std);
+	KANJIROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu, bool type_2std);
 	~KANJIROM();
 	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_data8(uint32_t addr);

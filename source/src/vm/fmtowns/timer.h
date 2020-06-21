@@ -48,7 +48,7 @@ private:
 	virtual void update_intr();
 	virtual void do_interval(void);
 public:
-	TIMER(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	TIMER(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		machine_id = 0x0100;   // FM-Towns 1,2
 		initialize_output_signals(&outputs_intr_line);

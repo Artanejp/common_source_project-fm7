@@ -33,7 +33,7 @@ protected:
 	uint8_t rom_addr;
 	uint8_t rom[32];
 public:
-	SERIAL_ROM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+	SERIAL_ROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("FMTOWNS_SERIAL_ROM"));
 	}
 	~SERIAL_ROM() {}

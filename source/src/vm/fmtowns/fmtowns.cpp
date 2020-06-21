@@ -93,7 +93,7 @@ using FMTOWNS::TOWNS_VRAM;
 using FMTOWNS::PLANEVRAM;
 
 
-VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
+VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 /*
 	Machine ID & CPU ID

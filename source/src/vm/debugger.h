@@ -80,7 +80,7 @@ private:
 		}
 	}
 public:
-	DEBUGGER(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	DEBUGGER(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		memset(&bp, 0, sizeof(bp));
 		memset(&rbp, 0, sizeof(rbp));

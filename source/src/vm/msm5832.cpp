@@ -19,7 +19,7 @@
 DLL_PREFIX_I struct cur_time_s cur_time;
 #endif
 
-MSM5832::MSM5832(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MSM58321_BASE(parent_vm, parent_emu)
+MSM5832::MSM5832(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MSM58321_BASE(parent_vm, parent_emu)
 {
 		set_device_name(_T("MSM5832 RTC"));
 }

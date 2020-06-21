@@ -39,7 +39,7 @@ private:
 	uint32_t update_mouse();
 
 public:
-	JOYSTICK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	JOYSTICK(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		mouse_timeout_event = -1;
 		mouse_sampling_event = -1;

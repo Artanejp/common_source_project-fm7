@@ -10,8 +10,8 @@
 #include <Qt>
 #include <QApplication>
 #include <SDL.h>
-#include "emu.h"
-#include "osd.h"
+#include "emu_template.h"
+#include "osd_base.h"
 #include "fifo.h"
 #include "fileio.h"
 #include "qt_input.h"
@@ -21,7 +21,7 @@
 
 #include "joy_thread.h"
 
-JoyThreadClass::JoyThreadClass(EMU *p, OSD *o, USING_FLAGS *pflags, config_t *cfg, CSP_Logger *logger, QObject *parent) : QThread(parent)
+JoyThreadClass::JoyThreadClass(EMU_TEMPLATE *p, OSD_BASE *o, USING_FLAGS *pflags, config_t *cfg, CSP_Logger *logger, QObject *parent) : QThread(parent)
 {
 	//int i, j;
 	int i;

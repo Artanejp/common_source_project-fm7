@@ -81,7 +81,7 @@ private:
 	void __FASTCALL cpu_wait(int clocks);
 
 public:
-	I386(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I386(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 //#ifdef USE_DEBUGGER
 		total_cycles = prev_total_cycles = 0;

@@ -23,7 +23,7 @@
 #include "menu_flags.h"
 
 QT_BEGIN_NAMESPACE
-class EMU;
+class EMU_TEMPLATE;
 class QEvent;
 class GLDrawClass;
 class QOpenGLFramebufferObject;
@@ -37,7 +37,6 @@ class DLL_PREFIX GLDraw_Tmpl : public QObject
 {
 	Q_OBJECT
 protected:
-	EMU *p_emu;
 	GLDrawClass *p_wid;
 	
 	USING_FLAGS *using_flags;
@@ -150,7 +149,7 @@ protected:
 	virtual void set_osd_vertex(int xbit) { }
 
 public:
-	GLDraw_Tmpl(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu = 0) : QObject((QObject *)parent)
+	GLDraw_Tmpl(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu = 0) : QObject((QObject *)parent)
 	{
 		p_wid = parent;
 		using_flags = p;

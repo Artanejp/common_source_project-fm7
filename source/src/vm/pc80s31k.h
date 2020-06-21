@@ -33,7 +33,7 @@ private:
 	bool _debug_pc80s31k;
 	bool pc80s31k_no_wait;
 public:
-	PC80S31K(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	PC80S31K(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("PC-80S31K FDD"));
 		

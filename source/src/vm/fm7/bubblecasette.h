@@ -102,7 +102,7 @@ private:
 	bool read_one_page(void);
 	bool write_one_page(void);
 public:
-	BUBBLECASETTE(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	BUBBLECASETTE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~BUBBLECASETTE();
 
 	void initialize();

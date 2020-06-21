@@ -33,7 +33,7 @@ private:
 	int m_decibel_r;
 
 public:
-	PSG_STEREO(VM_TEMPLATE* parent_vm, EMU* parent_emu);
+	PSG_STEREO(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~PSG_STEREO() {}
 	
 	// common functions

@@ -109,7 +109,7 @@ private:
 	uint8_t m_shift_counter;
 
 public:
-	SY6522(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SY6522(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_a);
 		initialize_output_signals(&outputs_b);

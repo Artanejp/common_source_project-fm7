@@ -87,7 +87,7 @@ protected:
 	// End.
 
 public:
-	TOWNS_VRAM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	TOWNS_VRAM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		memset(vram, 0x00, sizeof(vram));
 		d_sprite = NULL;

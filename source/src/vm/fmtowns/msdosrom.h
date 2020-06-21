@@ -17,7 +17,7 @@ class MSDOSROM : public DEVICE
 private:
 	uint8_t rom[0x80000];   // 0xc2000000 - 0xc207ffff
 public:
-	MSDOSROM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
+	MSDOSROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("MSDOS ROM"));
 	}
 	~MSDOSROM() {}

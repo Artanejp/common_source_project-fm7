@@ -44,6 +44,7 @@ QT_BEGIN_NAMESPACE
 class EmuThreadClass : public EmuThreadClassBase {
 	Q_OBJECT
 protected:
+	EMU *p_emu;
 
 	QMutex uiMutex;
 	char dbg_prev_command[MAX_COMMAND_LEN];

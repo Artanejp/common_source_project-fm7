@@ -15,17 +15,17 @@
 //#include "../emu.h"
 
 class FILEIO;
-class EMU;
+class EMU_TEMPLATE;
 class HARDDISK
 {
 protected:
-	EMU* emu;
+	EMU_TEMPLATE* emu;
 private:
 	FILEIO *fio;
 	int header_size;
 	
 public:
-	HARDDISK(EMU* parent_emu)
+	HARDDISK(EMU_TEMPLATE* parent_emu)
 	{
 		emu = parent_emu;
 		fio = NULL;

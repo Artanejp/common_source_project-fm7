@@ -3,20 +3,20 @@
 
 #include "common.h"
 
-class EMU;
+class EMU_TEMPLATE;
 class EVENT;
 class DEVICE;
 class FILEIO;
 class DLL_PREFIX VM_TEMPLATE {
 protected:
-	EMU* emu;
+	EMU_TEMPLATE* emu;
 	// devices
 	EVENT* event;
 #if defined(__GIT_REPO_VERSION)
 	_TCHAR _git_revision[256];
 #endif	
 public:
-	VM_TEMPLATE(EMU* parent_emu) : emu(parent_emu)
+	VM_TEMPLATE(EMU_TEMPLATE* parent_emu) : emu(parent_emu)
 	{
 		emu = parent_emu;
 #if defined(__GIT_REPO_VERSION)

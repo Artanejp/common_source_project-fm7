@@ -45,7 +45,6 @@ class VM_TEMPLATE;
 class EMU;
 class FIFO;
 class FILEIO;
-class OSD;
 /*
 #ifdef USE_DEBUGGER
 typedef struct {
@@ -60,6 +59,8 @@ typedef struct {
 */
 class EMU : public EMU_TEMPLATE
 {
+protected:
+	VM* vm;
 private:
 	_TCHAR app_path[_MAX_PATH];
 	// debugger
@@ -168,7 +169,7 @@ public:
 	{
 		return (VM_TEMPLATE *)vm;
 	}
-	OSD *get_osd()
+	OSD_BASE *get_osd()
 	{
 		return osd;
 	}

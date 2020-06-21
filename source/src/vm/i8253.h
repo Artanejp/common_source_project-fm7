@@ -68,7 +68,7 @@ private:
 	int __FASTCALL get_next_count(int ch);
 	
 public:
-	I8253(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I8253(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 3; i++) {
 			initialize_output_signals(&counter[i].outputs);

@@ -32,7 +32,7 @@
 #endif
 
 namespace FM7 {
-FM7_MAINIO::FM7_MAINIO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+FM7_MAINIO::FM7_MAINIO(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	int i;
 	for(i = 0; i < 3; i++) {

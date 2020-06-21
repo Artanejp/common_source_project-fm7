@@ -62,7 +62,7 @@ using PC88DEV::PC88;
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
+VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// check configs
 #if defined(PC8001_VARIANT)

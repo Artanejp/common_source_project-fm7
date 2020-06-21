@@ -506,7 +506,7 @@ struct upd7810_state
 	void *outputs_to;
 	void *outputs_txd;
 
-	EMU *emu;
+	EMU_TEMPLATE *emu;
 	DEBUGGER *debugger;
 	DEVICE *program_stored;
 	DEVICE *io_stored;

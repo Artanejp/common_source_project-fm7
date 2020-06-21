@@ -196,7 +196,7 @@ const float chroma_filter[24 + 1] = {
 #endif
 #endif
 
-GLDraw_3_0::GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU *emu) : GLDraw_2_0(parent, p, logger, emu)
+GLDraw_3_0::GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu) : GLDraw_2_0(parent, p, logger, emu)
 {
 	uTmpTextureID = 0;
 	
