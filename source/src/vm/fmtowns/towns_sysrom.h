@@ -6,7 +6,10 @@
 
 	[ SYSTEM rom & RAM area 0x000f8000 - 0x000fffff]
 	* MEMORY :
-	*   0x000f8000 - 0x000fffff : RAM / DICTIONARY (BANKED)
+	*   0x000d0000 - 0x000d7fff : RAM / DICTIONARY (BANKED)
+	*   0x000d8000 - 0x000d9fff : RAM / CMOS
+	*   0x000da000 - 0x000dffff : RAM / RESERVED
+	*   0x000f8000 - 0x000fffff : RAM / SYSTEM
 	*   0xfffc0000 - 0xffffffff : SYSTEM ROM
 	* I/O : 
 	*   0x0480                         : F8 BANK
@@ -25,18 +28,12 @@ class DICTIONARY;
 class SYSROM : public DEVICE
 {
 protected:
-	DEVICE *d_dict;
-
 	uint8_t rom[0x40000]; // 256KB
-	uint8_t ram[0x8000];  // 32KB
-	bool select_f8_rom;
-	bool select_f8_dictram;
 	
 public:
 	SYSROM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		d_dict = NULL;
-		set_device_name("FM-Towns SYSTEM ROM and RAM 0x000f8000 - 0x00fffff");
+		set_device_name("FM-Towns SYSTEM ROM");
 	}
 	~SYSROM() {}
 	void initialize();
@@ -49,19 +46,6 @@ public:
 	void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
 	void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data);
 	
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-
-	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
-	uint32_t __FASTCALL read_signal(int ch);
-
-	bool process_state(FILEIO* state_fio, bool loading);
-
-	// Unique functions
-	void set_context_dictionary(DEVICE *dev)
-	{
-		d_dict = dev;
-	}
 };
 
 }

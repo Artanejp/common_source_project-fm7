@@ -25,7 +25,6 @@ void DICTIONARY::initialize()
 {
 	memset(dict_rom, 0xff, sizeof(dict_rom));
 	memset(dict_ram, 0x00, sizeof(dict_ram));
-//	memset(ram_d0, 0x00, sizeof(ram_d0));
 	
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("FMT_DIC.ROM")), FILEIO_READ_BINARY)) { // DICTIONARIES
@@ -81,10 +80,11 @@ uint32_t DICTIONARY::read_memory_mapped_io8(uint32_t addr)
 		} else if(addr < 0xda000) {
 			return dict_ram[addr & 0x1fff];
 		} else {
+			return 0x00;
 		}			
-	} else if((addr >= 0xc20800000) && (addr < 0xc2100000)) {
+	} else if((addr >= 0xc2080000) && (addr < 0xc2100000)) {
 		n_data = dict_rom[addr & 0x7ffff];
-	} else if((addr >= 0xc21400000) && (addr < 0xc2142000)) {
+	} else if((addr >= 0xc2140000) && (addr < 0xc2142000)) {
 		n_data = dict_ram[addr & 0x1fff];
 	}
 	return n_data;
@@ -102,9 +102,9 @@ void DICTIONARY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 		}
 		// ToDo: address >= 0xda000
 		return;
-	} else if((addr >= 0xc20800000) && (addr < 0xc2100000)) {
+	} else if((addr >= 0xc2080000) && (addr < 0xc2100000)) {
 		return;
-	} else if((addr >= 0xc21400000) && (addr < 0xc2142000)) {
+	} else if((addr >= 0xc2140000) && (addr < 0xc2142000)) {
 		cmos_dirty = true;
 		dict_ram[addr & 0x1fff] = data;
 		return;
@@ -158,11 +158,8 @@ void DICTIONARY::write_io8(uint32_t addr, uint32_t data)
 	if(addr == 0x0484) {
 		dict_bank = data & 0x0f;
 	} else if((addr >= 0x3000) && (addr < 0x4000)) {
-		if((addr & 0x0001) == 0) { // OK?
-//			uint32_t naddr = (addr >> 1) & 0x7ff;
-			cmos_dirty = true;
-			dict_ram[addr  & 0xfff] = (uint8_t)data;
-		}
+		cmos_dirty = true;
+		dict_ram[((addr - 0x3000) >> 1) & 0x7ff] = (uint8_t)data;
 	}
 }
 
@@ -172,12 +169,7 @@ uint32_t DICTIONARY::read_io8(uint32_t addr)
 	if(addr == 0x0484) {
 		data = dict_bank & 0x0f;
 	} else if((addr >= 0x3000) && (addr < 0x4000)) {
-		if((addr & 0x0001) == 0) { // OK?
-//			uint32_t naddr = (addr >> 1) & 0x7ff;
-			data = dict_ram[addr & 0x0fff];
-		} else {
-			data = 0xff;
-		}
+		data = dict_ram[((addr - 0x3000) >> 1) & 0x07ff];
 	} else {
 		data = 0xff;
 	}
@@ -202,6 +194,38 @@ uint32_t DICTIONARY::read_signal(int ch)
 	}
 	return 0x00;
 }
+
+uint32_t DICTIONARY::read_debug_data8(uint32_t addr)
+{
+	// May read ram only
+	return dict_ram[addr & 0x1fff];
+}
+
+void DICTIONARY::write_debug_data8(uint32_t addr, uint32_t data)
+{
+	// May read ram only
+	dict_ram[addr & 0x1fff] = data;
+}
+
+bool DICTIONARY::write_debug_reg(const _TCHAR *reg, uint32_t data)
+{
+	if(reg == NULL) return false;
+	if(strcasecmp(reg, _T("bank")) == 0) {
+		dict_bank = data & 0x0f;
+		return true;
+	}
+	return false;
+}
+
+bool DICTIONARY::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	if(buffer == NULL) return false;
+	if(buffer_len <= 1) return false;
+	my_stprintf_s(buffer, buffer_len - 1,
+				  _T("BANK=%02X WROTE=%s\n"),
+				  dict_bank, (cmos_dirty) ? _T("Yes") : _T("No "));
+	return true;
+}
 	
 #define STATE_VERSION	1
 
@@ -215,7 +239,6 @@ bool DICTIONARY::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateValue(dict_bank);
 	state_fio->StateArray(dict_ram, sizeof(dict_ram), 1);
-//	state_fio->StateArray(ram_d0, sizeof(ram_d0), 1);
 	
 	if(loading) {
 		cmos_dirty = true;

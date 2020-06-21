@@ -30,7 +30,6 @@ class DICTIONARY : public DEVICE
 protected:
 	uint8_t dict_rom[0x80000]; // 512KB
 	uint8_t dict_ram[0x2000];  // 2 + 6KB
-//	uint8_t ram_d0[0x8000];  // 32KB
 
 	uint8_t dict_bank;
 	bool cmos_dirty;
@@ -62,6 +61,21 @@ public:
 	uint32_t __FASTCALL read_signal(int ch);
 
 	bool process_state(FILEIO* state_fio, bool loading);
+
+	bool is_debugger_available()
+	{
+		return true;
+	}
+	uint64_t get_debug_data_addr_space()
+	{
+		return 0x2000;
+	}
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
+	
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+
 };
 
 }

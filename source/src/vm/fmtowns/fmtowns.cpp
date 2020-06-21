@@ -294,7 +294,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(head_up_sound);
 	
 #ifdef USE_DEBUGGER
-	cdrom->set_context_debugger(new DEBUGGER(this, emu));
 	pit0->set_context_debugger(new DEBUGGER(this, emu));
 	pit1->set_context_debugger(new DEBUGGER(this, emu));
 #endif	
@@ -366,7 +365,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_serial_rom(serialrom);
 	memory->set_context_sprite(sprite);
 	memory->set_context_pcm(rf5c68);
-	
+
 	adpcm->set_context_opn2(opn2);
 	adpcm->set_context_rf5c68(rf5c68);
 	adpcm->set_context_adc(adc);
@@ -492,7 +491,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x0458, vram);         // VRAM ACCESS CONTROLLER (ADDRESS)
 	io->set_iomap_range_rw (0x045a, 0x045f, vram); // VRAM ACCESS CONTROLLER (DATA)
 	
-	io->set_iomap_single_rw(0x0480, sysrom); //  MEMORY REGISTER
+	io->set_iomap_single_rw(0x0480, memory); //  MEMORY REGISTER
 	io->set_iomap_single_rw(0x0484, dictionary); // Dictionary
 	
 	//io->set_iomap_alias_r(0x48a, memory_card, 0); //

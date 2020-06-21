@@ -83,7 +83,9 @@ protected:
 	
 	bool bankc0_vram;
 	bool ankcg_enabled;
-
+	bool select_d0_rom;
+	bool select_d0_dict;
+	
 	uint16_t machine_id;
 	uint8_t cpu_id;
 	bool is_compatible;
@@ -92,9 +94,9 @@ protected:
 	// RAM
 	uint8_t ram_page0[0xc0000];       // 0x00000000 - 0x000bffff : RAM
 	uint8_t ram_pagec[0x10000];       // 0x000c0000 - 0x000cffff : URA? RAM
-	uint8_t ram_paged[0x0a000];       // 0x000d0000 - 0x000d9fff : RAM
-	uint8_t ram_pagee[0x16000];       // 0x000da000 - 0x000effff : RAM
-	uint8_t ram_pagef[0x08000];       // 0x000f0000 - 0x000f7fff : RAM
+	uint8_t ram_paged[0x10000];       // 0x000d0000 - 0x000dffff : RAM
+	uint8_t ram_pagee[0x10000];       // 0x000e0000 - 0x000effff : RAM
+	uint8_t ram_pagef[0x10000];       // 0x000f0000 - 0x000f8fff : RAM
 
 	uint8_t *extra_ram;                  // 0x00100000 - (0x3fffffff) : Size is defined by extram_size;
 	uint32_t extram_size;
@@ -191,11 +193,21 @@ public:
 	uint32_t __FASTCALL read_data32w(uint32_t addr, int* wait);
 	void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int* wait);
 	void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int* wait);
-	
 
 	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
+//	virtual void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
+//	virtual void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
-	
+//	virtual uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
+//	virtual uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr);
+
+	uint32_t __FASTCALL read_dma_data8(uint32_t addr);
+	uint32_t __FASTCALL read_dma_data16(uint32_t addr);
+	uint32_t __FASTCALL read_dma_data32(uint32_t addr);
+	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_dma_data16(uint32_t addr, uint32_t data);
+	void __FASTCALL write_dma_data32(uint32_t addr, uint32_t data);
+
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int ch);
 	
