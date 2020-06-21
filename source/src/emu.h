@@ -10,6 +10,7 @@
 #ifndef _EMU_H_
 #define _EMU_H_
 
+#include "./emu_template.h"
 // for debug
 //#define _DEBUG_LOG
 #ifdef _DEBUG_LOG
@@ -20,25 +21,6 @@
 	// output i/o debug log
 //	#define _IO_DEBUG_LOG
 #endif
-
-#include <stdio.h>
-#include <assert.h>
-#include "common.h"
-#include "config.h"
-//#include "vm/vm_template.h"
-
-#if defined(_USE_QT)
-#include <pthread.h>
-#define OSD_QT
-#elif defined(_USE_SDL)
-#include <pthread.h>
-#define OSD_SDL
-#elif defined(_WIN32)
-#define OSD_WIN32
-#else
-// oops!
-#endif
-
 
 // OS dependent header files should be included in each osd.h
 // Please do not include them in emu.h
@@ -64,34 +46,20 @@ class EMU;
 class FIFO;
 class FILEIO;
 class OSD;
-
+/*
 #ifdef USE_DEBUGGER
-#if defined(OSD_QT)
-class CSP_Debugger;
-class CSP_DebuggerThread;
-#endif
 typedef struct {
 	EMU *emu;
 	OSD *osd;
-	VM_TEMPLATE *vm;
+	VM *vm;
 	int cpu_index;
 	bool running;
 	bool request_terminate;
 } debugger_thread_t;
 #endif
-
-#if defined(OSD_QT)
-class USING_FLAGS;
-class GLDrawClass;
-class EmuThreadClass;
-class DrawThreadClass;
-#endif
-
-class EMU
+*/
+class EMU : public EMU_TEMPLATE
 {
-protected:
-	VM* vm;
-	OSD* osd;
 private:
 	_TCHAR app_path[_MAX_PATH];
 	// debugger
@@ -99,7 +67,6 @@ private:
 	void initialize_debugger();
 	void release_debugger();
 #endif
-	
 	
 	// misc
 	int sound_frequency, sound_latency;
@@ -188,7 +155,7 @@ public:
 #if defined(OSD_QT)
 	EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, USING_FLAGS *p);
 #elif defined(OSD_WIN32)
- 	EMU(HWND hwnd, HINSTANCE hinst);
+	EMU(HWND hwnd, HINSTANCE hinst);
 #else
 	EMU();
 #endif
@@ -234,9 +201,6 @@ public:
 	bool is_vm_locked();
    
 	// input
-#ifdef OSD_QT
-	void key_modifiers(uint32_t mod);
-#endif
 	void key_down(int code, bool extended, bool repeat);
 	void key_up(int code, bool extended);
 	void key_char(char code);
@@ -380,30 +344,17 @@ public:
 #ifdef USE_DEBUGGER
 	void open_debugger(int cpu_index);
 	void close_debugger();
-	bool now_debugging;
-	debugger_thread_t debugger_thread_param;
 	bool is_debugger_enabled(int cpu_index);
-#if defined(OSD_QT)
-	pthread_t debugger_thread_id;
-	CSP_Debugger *hDebugger;
-#elif defined(OSD_WIN32)
-	HANDLE hDebuggerThread;
-#else
-	int debugger_thread_id;
-#endif
 #endif
 	void start_waiting_in_debugger();
 	void finish_waiting_in_debugger();
 	void process_waiting_in_debugger();
-	bool now_waiting_in_debugger;
 	
 	// debug log
 	void out_debug_log(const _TCHAR* format, ...);
 	void force_out_debug_log(const _TCHAR* format, ...);
    
 	void out_message(const _TCHAR* format, ...);
-	int message_count;
-	_TCHAR message[1024];
  	
 	// misc
 	void sleep(uint32_t ms);
@@ -412,7 +363,6 @@ public:
 #ifdef _DEBUG_LOG
 	void initialize_debug_log();
 	void release_debug_log();
-	FILE* debug_log;
 #endif
 	
 	// media

@@ -10,6 +10,7 @@
 #if defined(_USE_QT)
 #include <string>
 #endif
+
 #include "emu.h"
 #include "vm/vm.h"
 #include "fifo.h"
@@ -37,11 +38,11 @@ extern CSP_Logger *csp_logger;
 #endif
 
 #if defined(_USE_QT)
-EMU::EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, USING_FLAGS *p)
+EMU::EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, USING_FLAGS *p) : EMU_TEMPLATE(hwnd, hinst, p)
 #elif defined(OSD_WIN32)
-EMU::EMU(HWND hwnd, HINSTANCE hinst)
+EMU::EMU(HWND hwnd, HINSTANCE hinst) : EMU_TEMPLATE(hwnd, hinst)
 #else
-EMU::EMU()
+EMU::EMU() : EMU()
 #endif
 {
 	message_count = 0;
