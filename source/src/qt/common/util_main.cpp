@@ -26,6 +26,7 @@
 #include "../gui/csp_logger.h"
 
 extern CSP_Logger *csp_logger;
+extern EMU* emu;
 
 Ui_MainWindow::Ui_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent) : Ui_MainWindowBase(p, logger, parent)
 {

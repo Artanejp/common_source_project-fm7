@@ -13,7 +13,5 @@
 //#include "emu.h"
 #include "fileio.h"
 #include "config.h"
-class EMU;
-extern EMU *emu;
 
 #endif // End

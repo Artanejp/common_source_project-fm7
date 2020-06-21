@@ -535,7 +535,7 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 					file_offset += fio->FgetUint32_LE();
 					p_emu->d88_file[drv].bank_num++;
 				}
-				strcpy(emu->d88_file[drv].path, path.toUtf8().constData());
+				strcpy(p_emu->d88_file[drv].path, path.toUtf8().constData());
 				if(bank >= p_emu->d88_file[drv].bank_num) bank = p_emu->d88_file[drv].bank_num - 1;
 				if(bank < 0) bank = 0;
 				p_emu->d88_file[drv].cur_bank = bank;
