@@ -110,7 +110,7 @@ protected:
 	//csp_state_utils *state_entry;
 	
 	// devices
-	EVENT* event;
+//	EVENT* event;
 	
 	DATAREC* drec;
 	HD46505* crtc;
