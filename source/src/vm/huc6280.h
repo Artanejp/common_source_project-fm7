@@ -11,8 +11,6 @@
 #ifndef _HUC6280_H_ 
 #define _HUC6280_H_
 
-#include "vm.h"
-#include "../emu.h"
 #include "device.h"
 
 //#ifdef USE_DEBUGGER

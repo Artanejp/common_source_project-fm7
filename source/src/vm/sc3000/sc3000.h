@@ -47,7 +47,7 @@ static const _TCHAR *sound_device_caption[] = {
 };
 #endif
 
-class EMU;
+class EMU_TEMPLATE;
 class DEVICE;
 class EVENT;
 
@@ -91,7 +91,7 @@ public:
 	// initialize
 	// ----------------------------------------
 	
-	VM(EMU* parent_emu);
+	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
 	
 	// ----------------------------------------

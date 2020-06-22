@@ -21,8 +21,6 @@
 #define SIG_I8251_LOOPBACK	4
 
 class FIFO;
-class VM;
-class EMU;
 class I8251 : public DEVICE
 {
 private:

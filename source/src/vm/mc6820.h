@@ -21,8 +21,6 @@
 #define SIG_MC6820_C2_A		4
 #define SIG_MC6820_C2_B		5
 
-class VM;
-class EMU;
 class MC6820 : public DEVICE
 {
 private:

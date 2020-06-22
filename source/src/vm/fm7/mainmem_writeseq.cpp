@@ -6,7 +6,6 @@
  *
  */
 #include "vm.h"
-#include "emu.h"
 #include "fm7_mainmem.h"
 #include "fm7_mainio.h"
 #include "fm7_display.h"

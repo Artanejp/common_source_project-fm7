@@ -24,9 +24,7 @@
 //#include "../../emu.h"
 
 class META_MainWindow;
-class EMU;
 extern class META_MainWindow *rMainWindow;
-//extern EMU* emu;
 // menu
 extern std::string DLL_PREFIX cpp_homedir;
 extern std::string DLL_PREFIX cpp_confdir;

@@ -8,7 +8,7 @@
 	[ MCS48 ]
 */
 #include "vm.h"
-#include "../emu.h"
+//#include "../emu.h"
 
 #include "mcs48_flags.h"
 #include "mcs48.h"

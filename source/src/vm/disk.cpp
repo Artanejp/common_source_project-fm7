@@ -8,7 +8,7 @@
 */
 
 #ifndef _ANY2D88
-#include "../emu.h"
+#include "../emu_template.h"
 #endif
 
 #include "disk.h"

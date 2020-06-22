@@ -14,8 +14,6 @@
 //#include "../emu.h"
 #include "device.h"
 
-class VM;
-class EMU;
 class UPD4991A : public DEVICE
 {
 private:

@@ -22,8 +22,6 @@
 
 #define SIG_YM2151_MUTE		0
 
-class VM;
-class EMU;
 class DEBUGGER;
 class YM2151 : public DEVICE
 {

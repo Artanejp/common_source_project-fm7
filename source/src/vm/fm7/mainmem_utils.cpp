@@ -6,7 +6,6 @@
  *
  */
 #include "vm.h"
-#include "emu.h"
 #include "fm7_mainmem.h"
 
 namespace FM7 {

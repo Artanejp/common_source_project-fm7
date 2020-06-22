@@ -80,7 +80,7 @@ private:
 	void __FASTCALL draw_char(int x, int y, int pow, int rot, int code);
 	
 public:
-	DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	DISPLAY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Display"));
 	}

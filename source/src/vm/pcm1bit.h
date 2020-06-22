@@ -18,8 +18,6 @@
 #define SIG_PCM1BIT_ON		1
 #define SIG_PCM1BIT_MUTE	2
 
-class VM;
-class EMU;
 class PCM1BIT : public DEVICE
 {
 private:

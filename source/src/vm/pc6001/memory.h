@@ -169,7 +169,7 @@ private:
 #endif
 
 public:
-	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		inserted = false;
 		set_device_name(_T("Memory Bus"));

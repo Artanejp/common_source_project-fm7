@@ -55,9 +55,6 @@ enum {
 	EVENT_MB61VH010_BUSY_OFF
 };
 
-class VM;
-class EMU;
-
 class MB61VH010: public DEVICE {
  protected:
 	DEVICE *target;

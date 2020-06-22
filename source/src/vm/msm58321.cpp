@@ -8,7 +8,7 @@
 */
 
 #include "vm.h"
-#include "../emu.h"
+//#include "../emu.h"
 #include "msm58321.h"
 
 #define EVENT_BUSY	0

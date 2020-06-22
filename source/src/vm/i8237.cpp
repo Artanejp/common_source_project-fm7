@@ -9,7 +9,6 @@
 */
 
 #include "vm.h"
-#include "../emu.h"
 #include "i8237.h"
 #ifdef USE_DEBUGGER
 #include "debugger.h"

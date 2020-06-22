@@ -23,7 +23,7 @@ private:
 	uint8_t rom[0x20000];
 	uint32_t ptr;
 public:
-	KANJIPAC2(VM_TEMPLATE* parent_vm, EMU* parent_emu) : PAC2DEV(parent_vm, parent_emu)
+	KANJIPAC2(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : PAC2DEV(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Kanji ROM PAC2"));
 	}

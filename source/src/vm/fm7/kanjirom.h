@@ -13,8 +13,8 @@
 #include "fm7_common.h"
 #include "../device.h"
 
-class EMU;
-class VM;
+class EMU_TEMPLATE;
+class VM_TEMPLATE;
 
 namespace FM7 {
 

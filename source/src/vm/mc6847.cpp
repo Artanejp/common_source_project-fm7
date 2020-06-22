@@ -8,7 +8,7 @@
 */
 
 #include "vm.h"
-#include "emu.h"
+//#include "emu.h"
 #include "mc6847.h"
 
 #ifndef MC6847_VRAM_OFS

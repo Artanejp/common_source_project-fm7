@@ -19,8 +19,6 @@
 #define SIG_I8155_PORT_C	2
 #define SIG_I8155_CLOCK		3
 
-class VM;
-class EMU;
 class I8155 : public DEVICE
 {
 private:

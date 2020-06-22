@@ -10,12 +10,11 @@
 #ifndef _VM_FM_BUBBLECASETTE_H_
 #define _VM_FM_BUBBLECASETTE_H_
 
-
 #include "device.h"
 #include "common.h"
 
-class EMU;
-class VM;
+class EMU_TEMPLATE;
+class VM_TEMPLATE;
 class FILEIO;
 
 namespace FM7 {

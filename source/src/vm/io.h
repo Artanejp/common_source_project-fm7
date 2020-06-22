@@ -10,8 +10,6 @@
 #ifndef _IO_H_
 #define _IO_H_
 
-#include "vm.h"
-#include "../emu.h"
 #include "device.h"
 
 //#ifndef IO_ADDR_MAX

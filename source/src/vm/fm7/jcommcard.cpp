@@ -5,7 +5,7 @@
  * Based on XM7 L70 , with permittion from Ryu Takegami. 
  */
 
-#include "vm.h"
+
 #include "../../fileio.h"
 #include "emu_template.h"
 

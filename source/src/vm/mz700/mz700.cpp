@@ -67,7 +67,7 @@ using MZ700::QUICKDISK;
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
+VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 #if defined(_MZ800)
 	boot_mode = config.boot_mode;

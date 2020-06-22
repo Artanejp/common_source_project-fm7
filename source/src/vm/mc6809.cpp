@@ -16,8 +16,8 @@
 
 // Fixed IRQ/FIRQ by Mr.Sasaji at 2011.06.17
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "mc6809.h"
 #include "mc6809_consts.h"
 

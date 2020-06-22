@@ -18,9 +18,6 @@
 #include "common.h"
 #include "config.h"
 #include "menu_flags.h"
-class EMU;
-//class USING_FLAGS;
-//extern class EMU* emu;
 
 QT_BEGIN_NAMESPACE
 typedef class DLL_PREFIX Object_Menu_Control: public QObject {

@@ -11,8 +11,6 @@
 #ifndef _I86_H_
 #define _I86_H_
 
-#include "vm.h"
-#include "../emu.h"
 #include "device.h"
 
 #define SIG_I86_TEST	0

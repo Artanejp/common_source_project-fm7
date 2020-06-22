@@ -24,7 +24,7 @@ private:
 	DEVICE *d_pcm, *d_psg;
 	
 public:
-	SPEAKER(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SPEAKER(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Speaker"));
 	}

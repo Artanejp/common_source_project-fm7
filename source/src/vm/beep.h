@@ -17,8 +17,8 @@
 #define SIG_BEEP_ON	0
 #define SIG_BEEP_MUTE	1
 
-class VM;
-class EMU;
+class VM_TEMPLATE;
+class EMU_TEMPLATE;
 class BEEP : public DEVICE
 {
 private:

@@ -24,8 +24,6 @@
 #define SIG_MSM5832_ADDR	5
 #define SIG_MSM5832_HOLD	6
 
-class VM;
-class EMU;
 class MSM58321_BASE : public DEVICE
 {
 protected:

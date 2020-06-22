@@ -10,8 +10,8 @@
 #ifndef _SCSI_DEV_H_
 #define _SCSI_DEV_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SCSI_BUFFER_SIZE	0x10000

@@ -13,8 +13,7 @@
 //#include "vm.h"
 //#include "../emu.h"
 #include "device.h"
-class VM;
-class EMU;
+
 class TF20 : public DEVICE
 {
 private:

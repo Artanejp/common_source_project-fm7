@@ -47,7 +47,7 @@ using PASOPIA::PAC2;
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
+VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	boot_mode = config.boot_mode;
 	

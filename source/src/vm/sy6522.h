@@ -37,8 +37,6 @@
 #define SIG_SY6522_PORT_CB1	4
 #define SIG_SY6522_PORT_CB2	5
 
-class VM;
-class EMU;
 class SY6522 : public DEVICE
 {
 private:

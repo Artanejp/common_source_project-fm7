@@ -60,7 +60,7 @@ private:
 	
 	void check_fifo_position();
 public:
-	FMSOUND(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	FMSOUND(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_int_pcm);
 #if defined(SUPPORT_PC98_OPNA)

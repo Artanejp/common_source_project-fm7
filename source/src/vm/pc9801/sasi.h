@@ -52,7 +52,7 @@ private:
 	void update_signal();
 	
 public:
-	SASI(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SASI(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		control = 0x00;
 		bsy_status = prev_bsy_status = false;

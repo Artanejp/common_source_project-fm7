@@ -11,8 +11,8 @@
 #ifndef _UPD7220_H_
 #define _UPD7220_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define MODE_MIX	((sync[0] & 0x22) == 0x00)

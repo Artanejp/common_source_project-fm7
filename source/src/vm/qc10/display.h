@@ -10,8 +10,8 @@
 #ifndef _DISPLAY_H_
 #define _DISPLAY_H_
 
-#include "../vm.h"
-#include "../../emu.h"
+#include "../vm_template.h"
+#include "../../emu_template.h"
 #include "../device.h"
 
 #define VRAM_SIZE	0x20000
@@ -44,7 +44,7 @@ private:
 	int blink;
 	
 public:
-	DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	DISPLAY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Display"));
 	}

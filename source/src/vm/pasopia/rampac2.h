@@ -26,7 +26,7 @@ private:
 	bool opened, modified;
 	
 public:
-	RAMPAC2(VM_TEMPLATE* parent_vm, EMU* parent_emu) : PAC2DEV(parent_vm, parent_emu)
+	RAMPAC2(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : PAC2DEV(parent_vm, parent_emu)
 	{
 		set_device_name(_T("RAM PAC2"));
 	}

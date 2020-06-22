@@ -24,7 +24,7 @@ private:
 	uint8_t ch, regs[16];
 	
 public:
-	NOTE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	NOTE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("98NOTE I/O"));
 	}

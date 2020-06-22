@@ -21,7 +21,6 @@
 #include <QString>
 #include <QPair>
 
-class EMU;
 class QEvent;
 class GLDraw_Tmpl;
 class CSP_KeyTables;

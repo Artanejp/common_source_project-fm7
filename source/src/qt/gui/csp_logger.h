@@ -107,7 +107,7 @@ public:
 };
 
 class QMutex;
-class OSD;
+class OSD_BASE;
 
 class DLL_PREFIX CSP_Log_ConsoleThread: public QThread {
 	Q_OBJECT
@@ -163,7 +163,7 @@ private:
 	
 	QVector<CSP_LoggerLine *> squeue;
 	QMutex *lock_mutex;
-	OSD *p_osd;
+	OSD_BASE *p_osd;
 
 	int max_devices;
 	int max_cpus;
@@ -173,7 +173,7 @@ protected:
 public:
 	CSP_Logger(QObject *parent, bool b_syslog, bool cons, const char *devname);
 	~CSP_Logger();
-	void set_osd(OSD *p) { p_osd = p; }
+	void set_osd(OSD_BASE *p) { p_osd = p; }
 	void open(bool b_syslog, bool cons, const char *devname);
 	void reset(void);
 	void __FASTCALL debug_log(int level, const char *fmt, ...);

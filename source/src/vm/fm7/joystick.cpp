@@ -13,7 +13,7 @@
 #include "../ym2203.h"
 #include "./joystick.h"
 #include "../../config.h"
-#include "../../emu.h"
+//#include "../../emu.h"
 
 
 namespace FM7 {

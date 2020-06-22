@@ -15,13 +15,23 @@
 #include <fcntl.h>
 #include "vm/device.h"
 #include "vm/debugger.h"
+
 #include "vm/vm.h"
+#include "emu.h"
 #include "fileio.h"
+
 #include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
 #include <string>
 #include <list>
+
+#if defined(OSD_QT)
+#include "qt/osd.h"
+#else /* WIN32 */
+#include "win32/osd.h"
+#endif
+
 #ifdef USE_DEBUGGER
 
 static FILEIO* logfile = NULL;

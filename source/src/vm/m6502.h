@@ -11,8 +11,6 @@
 #ifndef _M6502_H_ 
 #define _M6502_H_
 
-//#include "vm.h"
-//#include "../emu.h"
 #include "device.h"
 
 #define SIG_M6502_OVERFLOW	0

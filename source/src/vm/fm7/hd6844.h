@@ -14,8 +14,6 @@
 
 #include "../device.h"
 
-class EMU;
-class VM;
 enum {
 	HD6844_EVENT_START_TRANSFER = 0,
 	HD6844_EVENT_DO_TRANSFER = 4,
@@ -51,8 +49,8 @@ enum {
 	HD6844_ACK_BUSREQ_HOST,
 
 };
-class VM;
-class EMU;
+class VM_TEMPLATE;
+class EMU_TEMPLATE;
 class HD6844: public DEVICE {
 protected:
 	// HACKs

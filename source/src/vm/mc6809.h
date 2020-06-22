@@ -32,8 +32,6 @@ enum {
 
 
 // Note: Below is ugly hack cause of CPU#0 cannot modify clock.
-class VM;
-class EMU;
 class DEBUGGER;
 class MC6809_BASE : public DEVICE
 {

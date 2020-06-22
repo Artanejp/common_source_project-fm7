@@ -23,8 +23,8 @@
 #define SIG_AND_BIT_6	0x40
 #define SIG_AND_BIT_7	0x80
 
-class VM;
-class EMU;
+class VM_TEMPLATE;
+class EMU_TEMPLATE;
 class AND : public DEVICE
 {
 private:

@@ -10,14 +10,14 @@
 #ifndef _SCSI_HOST_H_
 #define _SCSI_HOST_H_
 
+// Wip host wide or narron.
 #include "vm.h"
-#include "../emu.h"
+#include "../emu_template.h"
 #include "device.h"
-//class EMU;
-//class VM;
-class FIFO;
 
 #define SIG_SCSI_HOST_DMAE 1
+
+class FIFO;
 class SCSI_HOST : public DEVICE
 {
 protected: // Make pcotected because TOWNS's DMAC may transfer 16bit around SCSI.

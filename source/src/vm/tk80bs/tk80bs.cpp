@@ -47,7 +47,7 @@ using TK80::MEMBUS;
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
+VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 #if defined(_TK80BS)
 	// check configs

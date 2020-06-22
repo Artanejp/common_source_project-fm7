@@ -11,8 +11,8 @@
 #ifndef _UPD7810_H_ 
 #define _UPD7810_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define SIG_UPD7810_INTF1	0

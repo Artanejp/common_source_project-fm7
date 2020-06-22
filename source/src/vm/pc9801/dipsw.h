@@ -39,7 +39,7 @@ protected:
 	void update_dipswitch();
 	void update_ports();
 public:
-	DIPSWITCH(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	DIPSWITCH(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		sw1 = 0;
 		sw2 = 0;

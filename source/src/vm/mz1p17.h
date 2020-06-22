@@ -15,8 +15,8 @@
 #ifndef _MZ1P17_H_
 #define _MZ1P17_H_
 
-#include "vm.h"
-#include "../emu.h"
+//#include "vm.h"
+//#include "../emu.h"
 #include "device.h"
 
 #define MZ1P17_MODE_MZ1		0

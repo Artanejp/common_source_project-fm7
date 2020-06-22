@@ -246,7 +246,7 @@ public:
 	// initialize
 	// ----------------------------------------
 	
-	VM(EMU* parent_emu);
+	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
 	
 	// ----------------------------------------

@@ -16,8 +16,6 @@
 
 #define SIG_NOT_INPUT	0
 
-class VM;
-class EMU;
 class NOT : public DEVICE
 {
 private:

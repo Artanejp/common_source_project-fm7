@@ -10,8 +10,8 @@
 #ifndef _MEMORY_H_
 #define _MEMORY_H_
 
-#include "vm.h"
-#include "../emu.h"
+#include "vm_template.h"
+#include "../emu_template.h"
 #include "device.h"
 
 //#ifndef MEMORY_ADDR_MAX
@@ -21,8 +21,6 @@
 //#define MEMORY_BANK_SIZE 0x1000
 //#endif
 
-class VM;
-class EMU;
 class MEMORY : public DEVICE
 {
 protected:

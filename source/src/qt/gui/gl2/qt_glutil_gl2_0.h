@@ -21,7 +21,6 @@
 #include "../gl/qt_glutil_gl_tmpl.h"
 
 QT_BEGIN_NAMESPACE
-class EMU;
 class QEvent;
 class GLDrawClass;
 class QOpenGLFramebufferObject;

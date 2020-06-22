@@ -10,8 +10,8 @@
 #ifndef _EVENT_H_
 #define _EVENT_H_
 
-#include "vm_template.h"
-#include "../emu.h"
+//#include "vm_template.h"
+//#include "../emu_template.h"
 #include "device.h"
 
 #include <typeinfo>

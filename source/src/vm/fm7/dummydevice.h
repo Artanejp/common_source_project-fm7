@@ -50,8 +50,8 @@ enum {
 	SIG_DUMMYDEVICE_CLEAR_ON_RESET,
 	SIG_DUMMYDEVICE_CLEAR_WITH_ZERO,
 };
-class VM;
-class EMU;
+class VM_TEMPLATE;
+class EMU_TEMPLATE;
 class DUMMYDEVICE : public DEVICE {
 private:
 	uint32_t status;

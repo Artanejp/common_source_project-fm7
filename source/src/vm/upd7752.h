@@ -58,8 +58,6 @@ typedef	int	D7752_FIXED;
 #define	D7752E_ERR	(0x10)	// b4 ERR -	1 when error
 #define	D7752E_IDL	(0x00)	// waiting
 
-class VM;
-class EMU;
 class UPD7752 : public DEVICE
 {
 private:

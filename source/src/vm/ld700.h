@@ -10,8 +10,6 @@
 #ifndef _LD700_H_
 #define _LD700_H_
 
-#include "vm.h"
-#include "../emu.h"
 #include "device.h"
 
 #define SIG_LD700_REMOTE	0

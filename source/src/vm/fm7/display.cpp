@@ -6,7 +6,7 @@
  */
 
 #include "vm.h"
-#include "emu.h"
+#include "emu_template.h"
 #include "../../fileio.h"
 #include "fm7_display.h"
 #if defined(_FM77AV_VARIANTS)

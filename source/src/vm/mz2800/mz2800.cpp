@@ -66,7 +66,7 @@ using MZ2800::SYSPORT;
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
+VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices
 	first_device = last_device = NULL;

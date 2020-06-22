@@ -6,7 +6,6 @@
  */
 
 #include "vm.h"
-#include "emu.h"
 #include "fm7_display.h"
 #if defined(_FM77L4)
 #include "../hd46505.h"

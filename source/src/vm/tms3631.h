@@ -20,8 +20,6 @@
 #define SIG_TMS3631_DATAREG	2
 #define SIG_TMS3631_MASKREG	3
 
-class VM;
-class EMU;
 class TMS3631 : public DEVICE
 {
 private:

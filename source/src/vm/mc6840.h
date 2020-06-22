@@ -22,8 +22,6 @@
 #define SIG_MC6840_GATE_1	4
 #define SIG_MC6840_GATE_2	5
 
-class VM;
-class EMU;
 class MC6840 : public DEVICE
 {
 private:

@@ -49,7 +49,7 @@
 	Unset receiver (within some DEVICEs) port.This DON'T allow multiple device.
 */
 class VM_TEMPLATE;
-class EMU;
+class EMU_TEMPLATE;
 class FIFO;
 class MIDI_REDIRECTOR : public DEVICE {
 protected:

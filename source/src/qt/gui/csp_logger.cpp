@@ -11,8 +11,8 @@
 
 #include "csp_logger.h"
 #include <string.h>
-#include "emu.h"
-#include "vm/vm.h"
+#include "emu_template.h"
+#include "../../vm/vm_template.h"
 #include "menu_flags.h"
 #include "../osd_base.h"
 

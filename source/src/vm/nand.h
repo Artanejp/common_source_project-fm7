@@ -23,8 +23,6 @@
 #define SIG_NAND_BIT_6	0x40
 #define SIG_NAND_BIT_7	0x80
 
-class VM;
-class EMU;
 class NAND : public DEVICE
 {
 private:
