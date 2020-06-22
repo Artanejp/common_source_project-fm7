@@ -1444,6 +1444,14 @@ __DECL_VECTORIZED_LOOP
 	return true;
 }
 
+inline void TOWNS_CRTC::transfer_pixels(scrntype_t* dst, scrntype_t* src, int w)
+{
+	if((dst == NULL) || (src == NULL) || (w <= 0)) return;
+//	for(int i = 0; i < w; i++) {
+//		dst[i] = src[i];
+//	}
+	my_memcpy(dst, src, w * sizeof(scrntype_t));
+}
 // This function does alpha-blending.
 // If CSP support hardware-accelalations, will support.
 // (i.e: Hardware Alpha blending, Hardware rendaring...)
@@ -1456,6 +1464,7 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1)
 	int bitshift0 = linebuffers[trans][y].bitshift[0];
 	int bitshift1 = linebuffers[trans][y].bitshift[1];
 	scrntype_t *pp = emu->get_screen_buffer(y);
+//	out_debug_log(_T("MIX_SCREEN Y=%d DST=%08X"), y, pp);
 	/*
 	if(width < -(bitshift0)) {
 		do_mix0 = false;
@@ -1543,25 +1552,25 @@ __DECL_VECTORIZED_LOOP
 					*pp++ = pix0;
 				}
 			}
-			} if(do_mix0) {
+		} else if(do_mix0) {
 			if(bitshift0 < 0) {
 				if(-(bitshift0) < width) {
-					my_memcpy(pp, &(lbuffer0[-bitshift0]), width * sizeof(scrntype_t));
+					transfer_pixels(pp, &(lbuffer0[-bitshift0]), width);
 				}
 			} else if(bitshift0 > 0) {
-				my_memcpy(pp, &(lbuffer1[bitshift0]), width * sizeof(scrntype_t));
+				transfer_pixels(pp, &(lbuffer1[bitshift0]), width);
 			} else {
-				my_memcpy(pp, lbuffer0, width * sizeof(scrntype_t));
+				transfer_pixels(pp, lbuffer0, width);
 			}
 		} else if(do_mix1) {
 			if(bitshift1 < 0) {
 				if(-(bitshift1) < width) {
-					my_memcpy(pp, &(lbuffer1[-bitshift1]), width * sizeof(scrntype_t));
+					transfer_pixels(pp, &(lbuffer1[-bitshift1]), width);
 				}
 			} else if(bitshift1 > 0) {
-				my_memcpy(pp, &(lbuffer1[bitshift1]), width * sizeof(scrntype_t));
+				transfer_pixels(pp, &(lbuffer1[bitshift1]), width);
 			} else {
-				my_memcpy(pp, lbuffer1, width * sizeof(scrntype_t));
+				transfer_pixels(pp, lbuffer1, width);
 			}
 		} else {
 			memset(pp, 0x00, width * sizeof(scrntype_t));

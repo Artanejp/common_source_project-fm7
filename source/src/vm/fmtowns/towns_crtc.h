@@ -355,6 +355,7 @@ protected:
 	bool __FASTCALL render_256(scrntype_t* dst, int y);
 	bool __FASTCALL render_32768(scrntype_t* dst, scrntype_t *mask, int y, int layer, bool do_alpha);
 	void __FASTCALL transfer_line(int line);
+	inline void __FASTCALL transfer_pixels(scrntype_t* dst, scrntype_t* src, int w);
 
 	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1);
 	virtual void render_text();
