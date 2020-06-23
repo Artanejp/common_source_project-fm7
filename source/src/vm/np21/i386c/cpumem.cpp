@@ -1,4 +1,5 @@
 //#include	"compiler.h"
+
 #if 1
 #undef	TRACEOUT
 #define USE_TRACEOUT_VS
@@ -35,6 +36,7 @@ static void __FASTCALL trace_fmt_ex(const char *fmt, ...)
 #include	"i386hax/haxfunc.h"
 #include	"i386hax/haxcore.h"
 #endif
+#include "./cpumem.h"
 
 DEVICE *device_cpu = NULL;
 DEVICE *device_mem = NULL;
@@ -52,183 +54,10 @@ SINT32 __exception_set;
 UINT32 __exception_pc;
 UINT64 __exception_code;
 // ----
-REG8 MEMCALL memp_read8(UINT32 address) {
-	
-	address = address & CPU_ADRSMASK;
-	int wait = 0;
-	REG8 val;
-	val = device_mem->read_data8w(address, &wait);
-	i386_memory_wait += wait;
-	return val;
-}
-
-REG16 MEMCALL memp_read16(UINT32 address) {
-
-	address = address & CPU_ADRSMASK;
-	int wait = 0;
-	REG16 val;
-	val = device_mem->read_data16w(address, &wait);
-	i386_memory_wait += wait;
-	return val;
-//	return device_mem->read_data16(address);
-}
-
-UINT32 MEMCALL memp_read32(UINT32 address) {
-	address = address & CPU_ADRSMASK;
-	int wait = 0;
-	UINT32 val;
-	val = device_mem->read_data32w(address, &wait);
-	i386_memory_wait += wait;
-	return val;
-//	return device_mem->read_data32(address);
-}
-
-// ----
-REG8 MEMCALL memp_read8_codefetch(UINT32 address) {
-	
-	address = address & CPU_ADRSMASK;
-	int wait = 0;
-	REG8 val;
-	if(device_debugger != NULL) {
-		codefetch_address = address & CPU_ADRSMASK;
-		val = device_mem->read_data8w(codefetch_address, &wait);
-	} else {
-		val = device_mem->read_data8w(address, &wait);
-	}
-	i386_memory_wait += wait;
-	return val;
-//	return device_mem->read_data8(address);
-}
-
-REG16 MEMCALL memp_read16_codefetch(UINT32 address) {
-
-	address = address & CPU_ADRSMASK;
-	int wait = 0;
-	REG16 val;
-	if(device_debugger != NULL) {
-		codefetch_address = address & CPU_ADRSMASK;
-		val = device_mem->read_data16w(codefetch_address, &wait);
-	} else {
-		val = device_mem->read_data16w(address, &wait);
-	}
-	i386_memory_wait += wait;
-	return val;
-//	return device_mem->read_data16(address);
-}
-
-UINT32 MEMCALL memp_read32_codefetch(UINT32 address) {
-
-	address = address & CPU_ADRSMASK;
-	int wait = 0;
-	UINT32 val;
-	if(device_debugger != NULL) {
-		codefetch_address = address & CPU_ADRSMASK;
-		val = device_mem->read_data32w(codefetch_address, &wait);
-	} else {
-		val = device_mem->read_data32w(address, &wait);
-	}
-	i386_memory_wait += wait;
-	return val;
-//	return device_mem->read_data32(address);
-}
-
-// ----
-REG8 MEMCALL memp_read8_paging(UINT32 address) {
-	
-	return memp_read8_codefetch(address);
-}
-REG16 MEMCALL memp_read16_paging(UINT32 address) {
-	
-	return memp_read16_codefetch(address);
-}
-
-UINT32 MEMCALL memp_read32_paging(UINT32 address) {
-	
-	return memp_read32_codefetch(address);
-}
-
-void MEMCALL memp_write8(UINT32 address, REG8 value) {
-	
-	address = address & CPU_ADRSMASK;
-	int wait = 0;
-	device_mem->write_data8w(address, value, &wait);
-	i386_memory_wait += wait;
-}
-
-void MEMCALL memp_write16(UINT32 address, REG16 value) {
-	
-	address = address & CPU_ADRSMASK;
-	int wait = 0;
-	device_mem->write_data16w(address, value, &wait);
-	i386_memory_wait += wait;
-//	device_mem->write_data16(address, value);
-}
-
-void MEMCALL memp_write32(UINT32 address, UINT32 value) {
-	
-	address = address & CPU_ADRSMASK;
-	int wait = 0;
-	device_mem->write_data32w(address, value, &wait);
-	i386_memory_wait += wait;
-//	device_mem->write_data32(address, value);
-}
-
-void MEMCALL memp_write8_paging(UINT32 address, REG8 value) {
-	
-	address = address & CPU_ADRSMASK;
-	int wait = 0;
-	device_mem->write_data8w(address, value, &wait);
-	i386_memory_wait += wait;
-//	device_mem->write_data8(address, value);
-}
-
-void MEMCALL memp_write16_paging(UINT32 address, REG16 value) {
-	
-	address = address & CPU_ADRSMASK;
-	int wait = 0;
-	device_mem->write_data16w(address, value, &wait);
-	i386_memory_wait += wait;
-//	device_mem->write_data16(address, value);
-}
-
-void MEMCALL memp_write32_paging(UINT32 address, UINT32 value) {
-	
-	address = address & CPU_ADRSMASK;
-//	device_mem->write_data32(address, value);
-	int wait = 0;
-	device_mem->write_data32w(address, value, &wait);
-	i386_memory_wait += wait;
-}
-
-
-void MEMCALL memp_reads(UINT32 address, void *dat, UINT leng) {
-
-	UINT8 *out = (UINT8 *)dat;
-	
-	//address = address & CPU_ADRSMASK;
-
-	/* slow memory access */
-	while (leng-- > 0) {
-		*out++ = memp_read8(address++);
-	}
-}
-
-void MEMCALL memp_writes(UINT32 address, const void *dat, UINT leng) {
-
-	const UINT8 *out = (UINT8 *)dat;
-
-	//address = address & CPU_ADRSMASK;
-
-	/* slow memory access */
-	while (leng-- > 0) {
-		memp_write8(address++, *out++);
-	}
-}
-
 
 // ---- Logical Space (BIOS)
-
-static UINT32 MEMCALL physicaladdr(UINT32 addr, BOOL wr) {
+#if 1
+static inline UINT32 MEMCALL physicaladdr(UINT32 addr, BOOL wr) {
 
 	UINT32	a;
 	UINT32	pde;
@@ -399,60 +228,5 @@ void MEMCALL memr_writes(UINT seg, UINT off, const void *dat, UINT leng) {
 	}
 }
 
-void IOOUTCALL iocore_out8(UINT port, REG8 dat)
-{
-	int wait = 0;
-	device_io->write_io8w(port, dat, &wait);
-	i386_memory_wait += wait;
-}
-
-REG8 IOINPCALL iocore_inp8(UINT port)
-{
-	int wait = 0;
-	REG8 val = device_io->read_io8w(port, &wait);
-	i386_memory_wait += wait;
-	return val;
-}
-
-void IOOUTCALL iocore_out16(UINT port, REG16 dat)
-{
-	int wait = 0;
-	device_io->write_io16w(port, dat, &wait);
-	i386_memory_wait += wait;
-//	device_io->write_io16(port, dat);	
-}
-
-REG16 IOINPCALL iocore_inp16(UINT port)
-{
-	int wait = 0;
-	REG16 val = device_io->read_io16w(port, &wait);
-	i386_memory_wait += wait;
-	return val;
-//	return device_io->read_io16(port);
-}
-
-void IOOUTCALL iocore_out32(UINT port, UINT32 dat)
-{
-	int wait = 0;
-	device_io->write_io32w(port, dat, &wait);
-	i386_memory_wait += wait;
-//	device_io->write_io32(port, dat);	
-}
-
-UINT32 IOINPCALL iocore_inp32(UINT port)
-{
-	int wait = 0;
-	UINT32 val = device_io->read_io32w(port, &wait);
-	i386_memory_wait += wait;
-	return val;
-//	return device_io->read_io32(port);
-}
-
-void dmax86(void)
-{
-//#ifdef SINGLE_MODE_DMA
-	if(device_dma != NULL) device_dma->do_dma();
-//#endif
-}
-
+#endif
 #endif

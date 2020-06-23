@@ -23,7 +23,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-//#include "compiler.h"
 #include "cpu.h"
 #include "../cpumem.h"
 
@@ -367,66 +366,6 @@ exc:
 }
 
 
-/*
- * code fetch
- */
-UINT8 MEMCALL
-cpu_codefetch(UINT32 offset)
-{
-	const int ucrw = CPU_PAGE_READ_CODE | CPU_STAT_USER_MODE;
-	descriptor_t *sdp;
-	UINT32 addr;
-
-	sdp = &CPU_CS_DESC;
-	addr = sdp->u.seg.segbase + offset;
-
-	if (!CPU_STAT_PM)
-		return cpu_memoryread_codefetch(addr);
-	if (offset <= sdp->u.seg.limit)
-		return cpu_lmemoryread_codefetch(addr, ucrw);
-
-	EXCEPTION(GP_EXCEPTION, 0);
-	return 0;	/* compiler happy */
-}
-
-UINT16 MEMCALL
-cpu_codefetch_w(UINT32 offset)
-{
-	const int ucrw = CPU_PAGE_READ_CODE | CPU_STAT_USER_MODE;
-	descriptor_t *sdp;
-	UINT32 addr;
-
-	sdp = &CPU_CS_DESC;
-	addr = sdp->u.seg.segbase + offset;
-
-	if (!CPU_STAT_PM)
-		return cpu_memoryread_w_codefetch(addr);
-	if (offset <= sdp->u.seg.limit - 1)
-		return cpu_lmemoryread_w_codefetch(addr, ucrw);
-
-	EXCEPTION(GP_EXCEPTION, 0);
-	return 0;	/* compiler happy */
-}
-
-UINT32 MEMCALL
-cpu_codefetch_d(UINT32 offset)
-{
-	const int ucrw = CPU_PAGE_READ_CODE | CPU_STAT_USER_MODE;
-	descriptor_t *sdp;
-	UINT32 addr;
-
-	sdp = &CPU_CS_DESC;
-	addr = sdp->u.seg.segbase + offset;
-
-	if (!CPU_STAT_PM)
-		return cpu_memoryread_d_codefetch(addr);
-
-	if (offset <= sdp->u.seg.limit - 3)
-		return cpu_lmemoryread_d_codefetch(addr, ucrw);
-
-	EXCEPTION(GP_EXCEPTION, 0);
-	return 0;	/* compiler happy */
-}
 
 /*
  * additional physical address memory access functions
@@ -562,4 +501,65 @@ range_failure:
 	exc = CHOOSE_EXCEPTION(idx);
 err:
 	EXCEPTION(exc, 0);
+}
+
+/*
+ * code fetch
+ */
+UINT8 MEMCALL
+cpu_codefetch(UINT32 offset)
+{
+	const int ucrw = CPU_PAGE_READ_CODE | CPU_STAT_USER_MODE;
+	descriptor_t *sdp;
+	UINT32 addr;
+
+	sdp = &CPU_CS_DESC;
+	addr = sdp->u.seg.segbase + offset;
+
+	if (!CPU_STAT_PM)
+		return cpu_memoryread_codefetch(addr);
+	if (offset <= sdp->u.seg.limit)
+		return cpu_lmemoryread_codefetch(addr, ucrw);
+
+	EXCEPTION(GP_EXCEPTION, 0);
+	return 0;	/* compiler happy */
+}
+
+UINT16 MEMCALL
+cpu_codefetch_w(UINT32 offset)
+{
+	const int ucrw = CPU_PAGE_READ_CODE | CPU_STAT_USER_MODE;
+	descriptor_t *sdp;
+	UINT32 addr;
+
+	sdp = &CPU_CS_DESC;
+	addr = sdp->u.seg.segbase + offset;
+
+	if (!CPU_STAT_PM)
+		return cpu_memoryread_w_codefetch(addr);
+	if (offset <= sdp->u.seg.limit - 1)
+		return cpu_lmemoryread_w_codefetch(addr, ucrw);
+
+	EXCEPTION(GP_EXCEPTION, 0);
+	return 0;	/* compiler happy */
+}
+
+UINT32 MEMCALL
+cpu_codefetch_d(UINT32 offset)
+{
+	const int ucrw = CPU_PAGE_READ_CODE | CPU_STAT_USER_MODE;
+	descriptor_t *sdp;
+	UINT32 addr;
+
+	sdp = &CPU_CS_DESC;
+	addr = sdp->u.seg.segbase + offset;
+
+	if (!CPU_STAT_PM)
+		return cpu_memoryread_d_codefetch(addr);
+
+	if (offset <= sdp->u.seg.limit - 3)
+		return cpu_lmemoryread_d_codefetch(addr, ucrw);
+
+	EXCEPTION(GP_EXCEPTION, 0);
+	return 0;	/* compiler happy */
 }

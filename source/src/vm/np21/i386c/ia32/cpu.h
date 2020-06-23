@@ -1089,7 +1089,6 @@ extern UINT32		codefetch_address;
 void CPUCALL set_flags(UINT16 new_flags, UINT16 mask);
 void CPUCALL set_eflags(UINT32 new_flags, UINT32 mask);
 
-
 #define	CPU_INST_OP32		CPU_STATSAVE.cpu_inst.op_32
 #define	CPU_INST_AS32		CPU_STATSAVE.cpu_inst.as_32
 #define	CPU_INST_REPUSE		CPU_STATSAVE.cpu_inst.rep_used

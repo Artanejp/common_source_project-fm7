@@ -265,8 +265,7 @@ modify_eflags(UINT32 new_flags, UINT32 mask)
 	}
 }
 
-void CPUCALL
-set_flags(UINT16 new_flags, UINT16 mask)
+void CPUCALL set_flags(UINT16 new_flags, UINT16 mask)
 {
 
 	mask &= I_FLAG|IOPL_FLAG;
@@ -274,8 +273,7 @@ set_flags(UINT16 new_flags, UINT16 mask)
 	modify_eflags(new_flags, mask);
 }
 
-void CPUCALL
-set_eflags(UINT32 new_flags, UINT32 mask)
+void CPUCALL set_eflags(UINT32 new_flags, UINT32 mask)
 {
 
 	mask &= I_FLAG|IOPL_FLAG|RF_FLAG|VM_FLAG|VIF_FLAG|VIP_FLAG;
