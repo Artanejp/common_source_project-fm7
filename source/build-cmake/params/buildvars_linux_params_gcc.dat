@@ -156,6 +156,9 @@ case ${USE_SHRINK_DEBUG_SYMBOL} in
        MAKEFLAGS_BASE3DLL="-gsplit-dwarf ${MAKEFLAGS_BASE3}"
        MAKEFLAGS_BASE3="-gsplit-dwarf ${MAKEFLAGS_BASE3}"
        ;;
+   * )
+       MAKEFLAGS_BASE3DLL="${MAKEFLAGS_BASE3}"
+       ;; 
 esac
 
 case ${CSP_DEBUG} in
@@ -175,14 +178,16 @@ if [ -n "${LTO_THREADS}" ] ;  then
    LTO_FLAGS="-flto=${LTO_THREADS} -flto-compression-level=9 ${LTO_FLAGS}"
    LTO_FLAGS2="-flto -ffat-lto-objects"
 else
-   LTO_FLAGS=""
-   LTO_FLAGS2=""
+   LTO_FLAGS="-flto -flto-compression-level=9 ${LTO_FLAGS}"
+   LTO_FLAGS2="-flto -ffat-lto-objects"
 fi
 
 case ${USE_LTO} in
    "Yes" | "yes" | "YES" )
        MAKEFLAGS_LINK_BASE2="${EXTRA_LINKER_FLAGS} ${LTO_FLAGS} ${MAKEFLAGS_BASE2}"
        MAKEFLAGS_BASE2="${LTO_FLAGS2} ${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_DLL_LINK_BASE="${LTO_FLAGS2} ${MAKEFLAGS_DLL_LINK_BASE}"
+       MAKEFLAGS_DLL_BASE="${LTO_FLAGS} ${MAKEFLAGS_DLL_BASE}"
        ;;
    "No" | "no" | "NO" | * )
        MAKEFLAGS_LINK_BASE2="${EXTRA_LINKER_FLAGS} ${MAKEFLAGS_BASE2}"
