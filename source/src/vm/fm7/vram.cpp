@@ -10,8 +10,9 @@
 #if defined(_FM77L4)
 #include "../hd46505.h"
 #endif
+#include "../../config.h"
 
-extern config_t config;
+//extern config_t config;
 
 namespace FM7 {
 

@@ -246,6 +246,7 @@ skip1:
 			int cpu_done_tmp;
 			if(dcount_cpu == 1) {
 				// run one opecode on primary cpu
+//				cpu_done_tmp = d_cpu[0].device->run(-1);
 				cpu_done_tmp = d_cpu[0].device->run(-1);
 			} else {
 				// sync to sub cpus
