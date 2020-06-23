@@ -143,8 +143,16 @@ fi
 
 case ${USE_SHRINK_DEBUG_SYMBOL} in
    "Yes" | "yes" | "YES" )
-       EXTRA_LINKER_FLAGS="-L${EXTRA_DLL_DIR} -fuse-ld=gold -Wl,--gdb-index -Wl,--compress-debug-sections,zlib ${EXTRA_LINKER_FLAGS}"
-       EXTRA_LINKER_DLL_FLAGS="-L${EXTRA_DLL_DIR} -fuse-ld=gold -Wl,--gdb-index -Wl,--compress-debug-sections,zlib ${EXTRA_LINKER_DLL_FLAGS}"
+       EXTRA_LINKER_FLAGS="-L${EXTRA_DLL_DIR} -fuse-ld=gold \
+                           -Wl,--gdb-index \
+			   -Wl,--compress-debug-sections,zlib \
+			   ${EXTRA_LINKER_FLAGS}"
+			   
+       EXTRA_LINKER_DLL_FLAGS="-L${EXTRA_DLL_DIR} -fuse-ld=gold \
+                               -Wl,--gdb-index \
+			       -Wl,--compress-debug-sections,zlib \
+			       ${EXTRA_LINKER_DLL_FLAGS}"
+			       
        MAKEFLAGS_BASE3DLL="-gsplit-dwarf ${MAKEFLAGS_BASE3}"
        MAKEFLAGS_BASE3="-gsplit-dwarf ${MAKEFLAGS_BASE3}"
        ;;
@@ -152,9 +160,9 @@ esac
 
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
-      MAKEFLAGS_DLL_LINK_BASE="-ggdb ${EXTRA_LINKER_DLL_FLAGS} ${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3DLL} -DNDEBUG"
-      MAKEFLAGS_DLL_BASE="-ggdb ${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3DLL} -DNDEBUG"
-      MAKEFLAGS_BASE2="-ggdb ${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3} -DNDEBUG"
+      MAKEFLAGS_DLL_LINK_BASE="-ggdb1 ${EXTRA_LINKER_DLL_FLAGS} ${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3DLL} -DNDEBUG"
+      MAKEFLAGS_DLL_BASE="-ggdb1 ${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3DLL} -DNDEBUG"
+      MAKEFLAGS_BASE2="-ggdb1 ${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3} -DNDEBUG"
       ;;
    "No" | "no" | "NO" | * )
       MAKEFLAGS_DLL_LINK_BASE="${COMPRESS_CFLAGS} ${MAKEFLAGS_BASE3}"
@@ -177,7 +185,7 @@ case ${USE_LTO} in
        MAKEFLAGS_BASE2="${LTO_FLAGS2} ${MAKEFLAGS_BASE2}"
        ;;
    "No" | "no" | "NO" | * )
-       MAKEFLAGS_LINK_BASE2="${MAKEFLAGS_BASE2}"
+       MAKEFLAGS_LINK_BASE2="${EXTRA_LINKER_FLAGS} ${MAKEFLAGS_BASE2}"
        MAKEFLAGS_BASE2="${MAKEFLAGS_BASE2}"
        ;;
 esac
