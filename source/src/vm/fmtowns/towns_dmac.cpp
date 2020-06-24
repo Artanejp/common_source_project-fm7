@@ -16,6 +16,7 @@ void TOWNS_DMAC::reset()
 	dma_addr_mask = 0xffffffff; // OK?
 	for(int i = 0; i < 4; i++) {
 		dma_high_address[i] = 0x00000000;
+		dma_high_address_bak[i] = 0x00000000;
 		creg_set[i] = false;
 		bcreg_set[i] = false;
 	}
@@ -33,84 +34,18 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x02:
 	case 0x03:
-		naddr = (addr & 0x0f) - 2;
+		// Note: This is *temporaly* workaround for 16bit transfer mode with 8bit bus.
+		// 20200318 K.O
 		if(base == 0) {
-			pair16_t nc;
-			nc.w = dma[selch].creg;
-			switch(naddr) {
-			case 0:
-				nc.b.l = data;
-				break;
-			case 1:
-				nc.b.h = data;
-				break;
-			}
-			
-			dma[selch].creg = nc.w;
-			// Note: This is *temporaly* workaround for 16bit transfer mode with 8bit bus.
-			// 20200318 K.O
 			creg_set[selch] = true;
-			//out_debug_log(_T("CH%d CREG=%04X"), selch, dma[selch].creg);
 		}
-		{
-			pair16_t nc;
-			nc.w = dma[selch].bcreg;
-			switch(naddr) {
-			case 0:
-				nc.b.l = data;
-				break;
-			case 1:
-				nc.b.h = data;
-				break;
-			}
-			dma[selch].bcreg = nc.w;
-			// Note: This is *temporaly* workaround for 16bit transfer mode with 8bit bus.
-			// 20200318 K.O
-			bcreg_set[selch] = true;
-			//out_debug_log(_T("CH%d BCREG=%04X"), selch, dma[selch].bcreg);
-		}
-		return;
-		break;
-	case 0x04:
-	case 0x05:
-	case 0x06:
-		naddr = (addr & 0x0f) - 4;
-		if(base == 0) {
-			pair32_t na;
-			na.d = dma[selch].areg;
-			switch(naddr) {
-			case 0:
-				na.b.l = data;
-				break;
-			case 1:
-				na.b.h = data;
-				break;
-			case 2:
-				na.b.h2 = data;
-				break;
-			}
-			dma[selch].areg = na.d;
-		}
-		{
-			pair32_t na;
-			na.d = dma[selch].bareg;
-			switch(naddr) {
-			case 0:
-				na.b.l = data;
-				break;
-			case 1:
-				na.b.h = data;
-				break;
-			case 2:
-				na.b.h2 = data;
-				break;
-			}
-			dma[selch].bareg = na.d;
-		}
-		return;
+		bcreg_set[selch] = true;
 		break;
 	case 0x07:
-		dma_high_address[selch] = (data & 0xff) << 24;
+		if(base == 0) {
+			dma_high_address[selch] = (data & 0xff) << 24;
+		}
+		dma_high_address_bak[selch] = (data & 0xff) << 24;
 		return;
 		break;
 	case 0x0a:
@@ -157,7 +92,10 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 		return (base << 3) | (1 << (selch & 3));
 		break;
 	case 0x07:
-		return (dma_high_address[selch] >> 24);
+		if(base == 0) {
+			return (dma_high_address[selch] >> 24);
+		}
+		return (dma_high_address_bak[selch] >> 24);
 		break;
 	}
 	return UPD71071::read_io8(addr);
@@ -183,6 +121,17 @@ void TOWNS_DMAC::do_dma_inc_dec_ptr_16bit(int c)
 	}
 }
 
+bool TOWNS_DMAC::do_dma_epilogue(int c)
+{
+	if(dma[c].creg == 0) {  // OK?
+		// TC
+		if(dma[c].mode & 0x10) {
+			dma_high_address[c] = dma_high_address_bak[c];
+		}
+	}
+	return UPD71071::do_dma_epilogue(c);
+}
+	
 uint32_t TOWNS_DMAC::read_signal(int id)
 {
 	if(id == SIG_TOWNS_DMAC_ADDR_REG) {
@@ -302,7 +251,7 @@ bool TOWNS_DMAC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	return false;
 }
 	
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 	
 bool TOWNS_DMAC::process_state(FILEIO *state_fio, bool loading)
 {
@@ -319,6 +268,7 @@ bool TOWNS_DMAC::process_state(FILEIO *state_fio, bool loading)
 	state_fio->StateValue(dma_wrap_reg);
 	state_fio->StateValue(dma_addr_mask);
 	state_fio->StateArray(dma_high_address, sizeof(dma_high_address), 1);
+	state_fio->StateArray(dma_high_address_bak, sizeof(dma_high_address_bak), 1);
 	
 	state_fio->StateArray(creg_set, sizeof(creg_set), 1);
 	state_fio->StateArray(bcreg_set, sizeof(bcreg_set), 1);

@@ -47,6 +47,10 @@ void UPD71071::reset()
 
 void UPD71071::write_io8(uint32_t addr, uint32_t data)
 {
+	pair32_t _d;
+	pair32_t _bd;
+	_d.d = 0;
+	_bd.d = 0;
 	switch(addr & 0x0f) {
 	case 0x00:
 		if(data & 1) {
@@ -68,34 +72,47 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 		base = data & 4;
 		break;
 	case 0x02:
-		dma[selch].bcreg = (dma[selch].bcreg & 0xff00) | data;
-//		if(!base) {
-			dma[selch].creg = (dma[selch].creg & 0xff00) | data;
-//		}
-		break;
 	case 0x03:
-		dma[selch].bcreg = (dma[selch].bcreg & 0x00ff) | (data << 8);
-//		if(!base) {
-			dma[selch].creg = (dma[selch].creg & 0x00ff) | (data << 8);
-//		}
+		_d.w.l  = dma[selch].creg;
+		_bd.w.l = dma[selch].bcreg;
+		switch(addr & 0x0f) {
+		case 0x02:
+			_d.b.l  = data;
+			_bd.b.l = data;
+			break;
+		case 0x03:
+			_d.b.h  = data;
+			_bd.b.h = data;
+			break;
+		}			
+		if(base == 0) {
+			dma[selch].creg = _d.w.l;
+		}
+		dma[selch].bcreg = _bd.w.l;
 		break;
 	case 0x04:
-		dma[selch].bareg = (dma[selch].bareg & 0xffff00) | data;
-//		if(!base) {
-			dma[selch].areg = (dma[selch].areg & 0xffff00) | data;
-//		}
-		break;
 	case 0x05:
-		dma[selch].bareg = (dma[selch].bareg & 0xff00ff) | (data << 8);
-//		if(!base) {
-			dma[selch].areg = (dma[selch].areg & 0xff00ff) | (data << 8);
-//		}
-		break;
 	case 0x06:
-		dma[selch].bareg = (dma[selch].bareg & 0x00ffff) | (data << 16);
-//		if(!base) {
-			dma[selch].areg = (dma[selch].areg & 0x00ffff) | (data << 16);
-//		}
+		_d.d  = dma[selch].areg;
+		_bd.d = dma[selch].bareg;
+		switch(addr & 0x0f) {
+		case 0x04:
+			_d.b.l   = data;
+			_bd.b.l  = data;
+			break;
+		case 0x05:
+			_d.b.h   = data;
+			_bd.b.h  = data;
+			break;
+		case 0x06:
+			_d.b.h2  = data;
+			_bd.b.h2 = data;
+			break;
+		}
+		if(base == 0) {
+			dma[selch].areg = _d.d;
+		}
+		dma[selch].bareg = _bd.d;
 		break;
 	case 0x08:
 		cmd = (cmd & 0xff00) | data;
@@ -128,7 +145,10 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 uint32_t UPD71071::read_io8(uint32_t addr)
 {
 	uint32_t val;
-	
+//	pair32_t _d;
+//	pair32_t _bd;
+//	_d.d = 0;
+//	_bd.d = 0;
 	switch(addr & 0x0f) {
 	case 0x00:
 		return b16;

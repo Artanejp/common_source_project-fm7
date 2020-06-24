@@ -17,12 +17,15 @@ protected:
 	uint8_t dma_wrap_reg;
 	uint32_t dma_addr_mask;
 	uint32_t dma_high_address[4];
+	uint32_t dma_high_address_bak[4];
 
 	// Temporally workaround for SCSI.20200318 K.O
 	bool creg_set[4];
 	bool bcreg_set[4];
 	virtual void __FASTCALL do_dma_inc_dec_ptr_8bit(int c);
 	virtual void __FASTCALL do_dma_inc_dec_ptr_16bit(int c);
+	virtual bool __FASTCALL do_dma_epilogue(int c);
+
 public:
 	TOWNS_DMAC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : UPD71071(parent_vm, parent_emu)
 	{
