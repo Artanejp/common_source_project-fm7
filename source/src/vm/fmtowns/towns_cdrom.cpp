@@ -666,8 +666,8 @@ void TOWNS_CDROM::status_accept(int extra, uint8_t s3, uint8_t s4)
 	// 09h : MEDIA CHANGED? (from Towns Linux)
 	// 0Dh : After STOPPING CD-DA.Will clear.
 	// 01h and 09h maybe incorrect.
-	uint8_t playcode = 0x01; // OK?
-	
+	uint8_t playcode = next_status_byte; // OK?
+/*	
 	if((toc_table[current_track].is_audio) && (mounted())) {
 		if(cdda_status == CDDA_PLAYING) {
 			playcode = 0x03;
@@ -683,7 +683,7 @@ void TOWNS_CDROM::status_accept(int extra, uint8_t s3, uint8_t s4)
 			playcode = 0x09;
 		}
 	}
-	
+*/	
 	cdda_stopped = false;
 	media_changed = false;
 	set_status(req_status, extra,
@@ -733,6 +733,10 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 	switch(command & 0x9f) {
 	case CDROM_COMMAND_SEEK: // 00h (RESTORE?)
 		if((mounted()) && !(media_changed)) {
+			status_accept((req_status) ? 1 : 0, 0x00, 0x00);
+			if((cdda_status != CDDA_OFF)) {
+				next_status_byte |= 0x03;
+			}
 			uint8_t m, s, f;
 			m = FROM_BCD(param_queue[0]);
 			s = FROM_BCD(param_queue[1]);
@@ -750,7 +754,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			current_track = get_track(lba);
 			clear_event(event_seek);
 			seek_relative_frame_in_image(lba);
-			register_event(this, EVENT_CDROM_SEEK, usec, false, &event_seek);
+//			register_event(this, EVENT_CDROM_SEEK, usec, false, &event_seek);
 //			status_accept(1, 0x00, 0x00);
 //			set_status(true, 1, TOWNS_CD_STATUS_ACCEPT, 0x01, 0x00, 0x00);
 		}
@@ -834,6 +838,16 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 						  param_queue[6],
 						  param_queue[7]
 				);
+			if(cdda_status != CDDA_OFF) {
+				set_cdda_status(CDDA_OFF);
+				set_subq();
+				next_status_byte |= 0x03;
+//				set_status(true, 0, 0x00, 0x03, 0x00, 0x00);
+			} else {
+//				next_status_byte |= 0x00;
+//			status_accept(0, 0x00, 0x00);
+//				set_status(true, 0, 0x00, 0x01, 0x00, 0x00);
+			}
 			status_accept(0, 0x00, 0x00);
 		}
 //				register_event(this, EVENT_CDROM_SETSTATE,  1.0e3, false, NULL);
@@ -1445,12 +1459,13 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_CDDA_DELAY_STOP:
 		event_cdda_delay_stop = -1;
 		stop_cdda_from_cmd();
-//		next_status_byte = 0x0d;
+		next_status_byte = 0x0d;
 		break;
 	case EVENT_CDROM_SEEK:
 		{
 			event_seek = -1;
-			set_status(req_status, (req_status) ? 1 : 0, TOWNS_CD_STATUS_ACCEPT, 0x01, 0x00, 0x00);
+//			set_status(req_status, (req_status) ? 1 : 0, TOWNS_CD_STATUS_ACCEPT, 0x01, 0x00, 0x00);
+			status_accept((req_status) ? 1 : 0, 0x00, 0x00);
 		}
 		break;
 	case EVENT_CDROM_SEEK_COMPLETED:
@@ -1470,7 +1485,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 //		if((cdrom_prefetch) || (pio_transfer)) {
 			register_event(this, EVENT_CDROM_NEXT_SECTOR,
-						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * ((double)(physical_block_size() + 1024)), // OK?
+						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * ((double)(physical_block_size() )), // OK?
 //						   5.0e3, // From TSUGARU
 						   false, &event_next_sector);
 //		}
@@ -1990,7 +2005,6 @@ void TOWNS_CDROM::unpause_cdda_from_cmd()
 	}
 	set_subq();
 	status_accept(1, 0x00, 0x00);
-
 }
 
 void TOWNS_CDROM::stop_cdda_from_cmd()
@@ -2004,13 +2018,16 @@ void TOWNS_CDROM::stop_cdda_from_cmd()
 		status_media_changed(false);
 		return;
 	}
-	if(/*(status != CDDA_OFF) && */
+	if((cdda_status != CDDA_OFF) &&
 		(current_track >= 0) && (current_track < track_num)
-		&& (toc_table[current_track].is_audio)) { // OK?
+		&& (toc_table[current_track].is_audio))  { // OK?
+		status_accept(0, 0x00, 0x00);
 		set_cdda_status(CDDA_OFF);
 	}
 	set_subq();
-	status_accept(1, 0x00, 0x00);
+	next_status_byte = 0x0d;
+//	status_accept(1, 0x00, 0x00);
+
 }
 
 void TOWNS_CDROM::pause_cdda_from_cmd()
