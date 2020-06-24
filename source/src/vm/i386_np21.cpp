@@ -349,6 +349,7 @@ int I386::run_one_opecode()
 			}
 			nmi_pending = false;
 		} else if(irq_pending && CPU_isEI) {
+			// ToDo: Multiple interrupt within rep prefix.
 			uint32_t intr_level = device_pic->get_intr_ack();
 			CPU_INTERRUPT(intr_level, 0);
 			if(device_debugger != NULL) {
