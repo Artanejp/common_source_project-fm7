@@ -732,14 +732,14 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 //	}
 	switch(command & 0x9f) {
 	case CDROM_COMMAND_SEEK: // 00h (RESTORE?)
-		{
+		if((mounted()) && !(media_changed)) {
 			uint8_t m, s, f;
-//			m = FROM_BCD(param_queue[0]);
-//			s = FROM_BCD(param_queue[1]);
-//			f = FROM_BCD(param_queue[2]);
-			m = 0;
-			s = 2;
-			f = 0;
+			m = FROM_BCD(param_queue[0]);
+			s = FROM_BCD(param_queue[1]);
+			f = FROM_BCD(param_queue[2]);
+//			m = 0;
+//			s = 2;
+//			f = 0;
 			int32_t lba = ((m * (60 * 75)) + (s * 75) + f) - 150;
 			if(lba < 0) lba = 0;
 			out_debug_log(_T("CMD SEEK(%02X) M S F = %d %d %d  LBA=%d"), command,
@@ -747,10 +747,12 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			);
 			double usec = get_seek_time(lba);
 			if(usec < 10.0) usec = 10.0;
+			current_track = get_track(lba);
 			clear_event(event_seek);
+			seek_relative_frame_in_image(lba);
 			register_event(this, EVENT_CDROM_SEEK, usec, false, &event_seek);
 //			status_accept(1, 0x00, 0x00);
-//			set_status(req_status, 0, TOWNS_CD_STATUS_SEEK_COMPLETED, 0x00, 0x00, 0x00);
+//			set_status(true, 1, TOWNS_CD_STATUS_ACCEPT, 0x01, 0x00, 0x00);
 		}
 		break;
 	case CDROM_COMMAND_READ_MODE2: // 01h
@@ -1448,8 +1450,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_CDROM_SEEK:
 		{
 			event_seek = -1;
-  			status_accept(1, 0x00, 0x00);
-//			set_status(req_status, 0, TOWNS_CD_STATUS_SEEK_COMPLETED, 0x00, 0x00, 0x00);
+			set_status(req_status, (req_status) ? 1 : 0, TOWNS_CD_STATUS_ACCEPT, 0x01, 0x00, 0x00);
 		}
 		break;
 	case EVENT_CDROM_SEEK_COMPLETED:
