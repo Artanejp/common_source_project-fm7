@@ -527,23 +527,6 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 void TOWNS_CRTC::write_io8(uint32_t addr, uint32_t data)
 {
 //	out_debug_log(_T("WRITE8  ADDR=%04x DATA=%04x"), addr, data);
-	if((addr >= 0xfd90) && (addr <= 0xfd97)) {
-		switch(addr) {
-		case 0xfd90:
-			set_apalette_num(data);
-			break;
-		case 0xfd92:
-			set_apalette_b(data);
-			break;
-		case 0xfd94:
-			set_apalette_r(data);
-			break;
-		case 0xfd96:
-			set_apalette_g(data);
-			break;
-		}
-		return;
-	}
 	switch(addr) {
 	case 0x0440:
 		crtc_ch = data & 0x1f;
@@ -564,6 +547,7 @@ void TOWNS_CRTC::write_io8(uint32_t addr, uint32_t data)
 			write_io16(addr, rdata.w);
 		}
 		break;
+		
 	case 0x0448:
 		voutreg_num = data & 0x01;
 		break;
@@ -578,6 +562,26 @@ void TOWNS_CRTC::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x05ca:
 		write_signals(&outputs_int_vsync, 0x00000000); // Clear VSYNC
+		break;
+	case 0xfd90:
+		set_apalette_num(data);
+		break;
+	case 0xfd91:
+		break;
+	case 0xfd92:
+		set_apalette_b(data);
+		break;
+	case 0xfd93:
+		break;
+	case 0xfd94:
+		set_apalette_r(data);
+		break;
+	case 0xfd95:
+		break;
+	case 0xfd96:
+		set_apalette_g(data);
+		break;
+	case 0xfd97:
 		break;
 	case 0xfd98:
 	case 0xfd99:
@@ -610,23 +614,6 @@ void TOWNS_CRTC::write_io8(uint32_t addr, uint32_t data)
 void TOWNS_CRTC::write_io16(uint32_t addr, uint32_t data)
 {
 //	out_debug_log(_T("WRITE16 ADDR=%04x DATA=%04x"), addr, data);
-	if((addr >= 0xfd90) && (addr <= 0xfd97)) {
-		switch(addr & 0xfffe) {
-		case 0xfd90:
-			set_apalette_num(data);
-			break;
-		case 0xfd92:
-			set_apalette_b(data);
-			break;
-		case 0xfd94:
-			set_apalette_r(data);
-			break;
-		case 0xfd96:
-			set_apalette_g(data);
-			break;
-		}
-		return;
-	}
 	switch(addr & 0xfffe) {
 	case 0x0442:
 		{
@@ -758,13 +745,14 @@ uint16_t TOWNS_CRTC::read_reg30()
 	data |= ((hdisp[1])      ?  0x2000 : 0);
 	data |= ((hdisp[0])      ?  0x1000 : 0);
 	//data |= ((eet)          ?  0x0800 : 0);
-	data |= (!(vsync)         ?  0x0400 : 0);
-	data |= (!(hsync)        ?  0x0200 : 0);
+	data |= ((vsync)         ?  0x0400 : 0);
+	data |= ((hsync)         ?  0x0200 : 0);
 	//data |= ((video_in)     ? 0x0100 : 0);
 	//data |= ((half_tone)    ? 0x0008 : 0);
 	//data |= ((sync_enable)  ? 0x0004 : 0);
 	//data |= ((vcard_enable) ? 0x0002 : 0);
 	//data |= ((sub_carry)    ? 0x0001 : 0);
+	data = (data & 0xff00 ) | (regs[30] & 0x00ff);
 	return data;
 }
 
@@ -808,23 +796,6 @@ uint32_t TOWNS_CRTC::read_io16(uint32_t addr)
 uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 {
 //	out_debug_log(_T("READ8 ADDR=%04x"), addr);
-	if((addr >= 0xfd90) && (addr <= 0xfd97)) {
-		switch(addr) {
-		case 0xfd90:
-			return apalette_code;
-			break;
-		case 0xfd92:
-			return get_apalette_b();
-			break;
-		case 0xfd94:
-			return get_apalette_r();
-			break;
-		case 0xfd96:
-			return get_apalette_g();
-			break;
-		}
-		return 0xff;
-	}
 	switch(addr) {
 	case 0x0440:
 		return (uint32_t)crtc_ch;
@@ -851,9 +822,20 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 			return (uint32_t)(d.b.h);
 		}
 		break;
+	case 0x0448:
+		return voutreg_num;
+		break;
+	case 0x044a:
+		if(voutreg_num == 0) {
+			return voutreg_ctrl;
+		} else if(voutreg_num == 1) {
+			return voutreg_prio;
+		}			
+		break;
 	case 0x044c:
 		{
-			uint16_t d = 0x7c;
+//			uint16_t d = 0x7c;
+			uint16_t d = 0x00;
 			d = d | ((dpalette_changed) ? 0x80 : 0x00);
 			if(d_sprite != NULL) {
 				d = d | ((d_sprite->read_signal(SIG_TOWNS_SPRITE_BUSY) != 0) ? 0x02 : 0x00);
@@ -862,6 +844,18 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 			dpalette_changed = false;
 			return d;
 		}
+		break;
+	case 0xfd90:
+		return apalette_code;
+		break;
+	case 0xfd92:
+		return get_apalette_b();
+		break;
+	case 0xfd94:
+		return get_apalette_r();
+		break;
+	case 0xfd96:
+		return get_apalette_g();
 		break;
 	case 0xfd98:
 	case 0xfd99:
