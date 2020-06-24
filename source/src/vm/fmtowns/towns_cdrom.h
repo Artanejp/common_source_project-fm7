@@ -194,7 +194,7 @@ protected:
 	_TCHAR track_data_path[100][_MAX_PATH];
 	_TCHAR img_file_path_bak[_MAX_PATH];
 	bool with_filename[100];
-	
+
 	uint32_t cdda_start_frame;
 	uint32_t cdda_end_frame;
 	uint32_t cdda_playing_frame;
@@ -231,7 +231,7 @@ protected:
 	int event_cdda_delay_stop;
 	int event_delay_interrupt;
 	int event_delay_ready;
-
+	
 	int cdda_sample_l;
 	int cdda_sample_r;
 		

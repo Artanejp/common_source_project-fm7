@@ -441,6 +441,7 @@ void TOWNS_CDROM::initialize()
 	event_cdda_delay_play = -1;
 	event_delay_interrupt = -1;
 	event_drq = -1;
+
 	event_next_sector = -1;
 	event_seek_completed = -1;
 	event_seek = -1;
@@ -596,7 +597,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 				clear_event(event_next_sector);
 				clear_event(event_seek_completed);
 				status_read_done(req_status);
-				out_debug_log(_T("EOT(SIGNAL/DMA"));
+				out_debug_log(_T("EOT(SIGNAL/DMA)"));
 			} else {
 				out_debug_log(_T("NEXT(SIGNAL/DMA)"));
 			}
@@ -3068,6 +3069,7 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(stat_track);
 	state_fio->StateValue(media_changed);
 	state_fio->StateValue(next_status_byte);
+	
 	// SCSI_CDROM
 	uint32_t offset = 0;
 	state_fio->StateValue(read_sectors);

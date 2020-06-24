@@ -131,7 +131,9 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 				dma[selch].bcreg++;
 				bcreg_set[selch] = false;
 			}
-			}
+		}
+		bcreg_set[selch] = false;
+		creg_set[selch] = false;
 #endif
 #if 0
 		if((data & 0x02) == 0) {
