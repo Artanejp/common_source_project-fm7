@@ -599,6 +599,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 				status_read_done(req_status);
 				out_debug_log(_T("EOT(SIGNAL/DMA)"));
 			} else {
+				clear_event(event_drq);
 				out_debug_log(_T("NEXT(SIGNAL/DMA)"));
 			}
 		}
@@ -1457,7 +1458,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		//read_pos = 0;
 		clear_event(event_next_sector);
 		if(read_length > 0) {
-			out_debug_log(_T("READ DATA SIZE=%d BUFFER COUNT=%d"), logical_block_size(), databuffer->count());
+//			out_debug_log(_T("READ DATA SIZE=%d BUFFER COUNT=%d"), logical_block_size(), databuffer->count());
 			if(read_length >= logical_block_size()) {
 				read_buffer(logical_block_size());
 			} else {
@@ -1468,8 +1469,8 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 //		if((cdrom_prefetch) || (pio_transfer)) {
 			register_event(this, EVENT_CDROM_NEXT_SECTOR,
-						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * ((double)(physical_block_size())), // OK?
-//						   5.0e3, // From TSUGARU
+//						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * ((double)(physical_block_size())), // OK?
+						   5.0e3, // From TSUGARU
 						   false, &event_next_sector);
 //		}
 		break;
@@ -1490,7 +1491,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		if(((cdrom_prefetch) && (databuffer->left() >= logical_block_size())) ||
 		   ((databuffer->empty()) && (read_length > 0))) {
 //		if(/*(databuffer->left() >= logical_block_size()) &&*/ (read_length > 0)) {
-			out_debug_log(_T("READ NEXT SECTOR"));
+			//out_debug_log(_T("READ NEXT SECTOR"));
 			if(pio_transfer) {
 				set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
 				set_dma_intr(true);
