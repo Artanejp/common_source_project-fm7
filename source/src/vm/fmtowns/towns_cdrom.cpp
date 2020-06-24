@@ -1469,8 +1469,8 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 //		if((cdrom_prefetch) || (pio_transfer)) {
 			register_event(this, EVENT_CDROM_NEXT_SECTOR,
-//						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * ((double)(physical_block_size())), // OK?
-						   5.0e3, // From TSUGARU
+						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * ((double)(physical_block_size() + 1024)), // OK?
+//						   5.0e3, // From TSUGARU
 						   false, &event_next_sector);
 //		}
 		break;
@@ -1504,7 +1504,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		} else if(read_length > 0) {
 			// Polling to buffer empty.
 			register_event(this, EVENT_CDROM_NEXT_SECTOR,
-						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 64.0, // OK?
+						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 8.0, // OK?
 						   false, &event_next_sector);
 	   }
 		break;
