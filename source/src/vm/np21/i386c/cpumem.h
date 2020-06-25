@@ -20,8 +20,9 @@
 //#endif
 #include "../../common.h"
 #include "../device.h"
+class I386;
 
-extern DEVICE *device_cpu;
+extern I386   *device_cpu;
 extern DEVICE *device_mem;
 extern DEVICE *device_io;
 //#ifdef I386_PSEUDO_BIOS

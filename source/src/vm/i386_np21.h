@@ -178,6 +178,7 @@ public:
 	{
 		register_output_signal(&outputs_extreset, dev, id, mask);
 	}
+	bool check_interrupts();
 
 	void set_address_mask(uint32_t mask);
 	uint32_t get_address_mask();

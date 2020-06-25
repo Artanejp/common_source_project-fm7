@@ -8,8 +8,9 @@
 #ifdef USE_TRACEOUT_VS
 #include "../../common.h"
 #include "../device.h"
+#include "../i386_np21.h"
 
-extern DEVICE *device_cpu;
+extern I386 *device_cpu;
 static void __FASTCALL trace_fmt_ex(const char *fmt, ...)
 {
 	if(device_cpu != NULL) {
@@ -38,7 +39,7 @@ static void __FASTCALL trace_fmt_ex(const char *fmt, ...)
 #endif
 #include "./cpumem.h"
 
-DEVICE *device_cpu = NULL;
+I386   *device_cpu = NULL;
 DEVICE *device_mem = NULL;
 DEVICE *device_io = NULL;
 //#ifdef I386_PSEUDO_BIOS

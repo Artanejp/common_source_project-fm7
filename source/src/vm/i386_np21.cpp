@@ -286,6 +286,17 @@ void I386::cpu_wait(int clocks)
 	waitcount = wcount;
 	i386_memory_wait = 0;
 }
+
+bool I386::check_interrupts()
+{
+	if(nmi_pending) {
+		return true;
+	} else if(irq_pending && CPU_isEI) {
+		return true;
+	}
+	return false;
+}
+
 int I386::run_one_opecode()
 {
 //#ifdef USE_DEBUGGER
@@ -329,6 +340,7 @@ int I386::run_one_opecode()
 			irq_pending = false;
 			device_pic->update_intr();
 		}
+		check_interrupts();
 		if(now_debugging) {
 			if(!device_debugger->now_going) {
 				device_debugger->now_suspended = true;

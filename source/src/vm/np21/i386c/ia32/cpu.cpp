@@ -48,6 +48,7 @@
 #include	"cbus/smpu98.h"
 #endif
 #endif
+#include "../i386_np21.h"
 
 #ifndef __cplusplus
 sigjmp_buf exec_1step_jmpbuf;
@@ -102,6 +103,7 @@ static __inline__ void __FASTCALL check_exception(bool is_debugging)
 		device_debugger->add_cpu_trace_exception(__exception_code);
 		__exception_set = 0;
 	}
+	//device_cpu->check_interrupts();
 }
 
 void
@@ -237,6 +239,7 @@ exec_1step(void)
 		/* prefix */
 		if (insttable_info[op] & INST_PREFIX) {
 			(*insttable_1byte[0][op])();
+			check_exception(is_debugging);
 			switch(op) {
 			case 0x9a: //CAll
 			case 0xe8: //CAll
@@ -264,7 +267,6 @@ exec_1step(void)
 	if (prefix == MAX_PREFIX) {
 		EXCEPTION(UD_EXCEPTION, 0);
 	}
-	check_exception(is_debugging);
 
 #if defined(IA32_INSTRUCTION_TRACE)
 	if (op == 0x0f) {
@@ -282,6 +284,7 @@ exec_1step(void)
 		cpu_debug_rep_cont = 0;
 #endif
 		(*insttable_1byte[CPU_INST_OP32][op])();
+		check_exception(is_debugging);
 		switch(op) {
 		case 0x9a: //CAll
 		case 0xe8: //CAll
@@ -302,7 +305,6 @@ exec_1step(void)
 			}
 			break;
 		}
-		check_exception(is_debugging);
 		return;
 	}
 
@@ -331,6 +333,10 @@ exec_1step(void)
 						CPU_EIP = CPU_PREV_EIP;
 						break;
 					}
+					if(device_cpu->check_interrupts()) {
+						CPU_EIP = CPU_PREV_EIP;
+						break;
+					}
 				}
 			} else if (CPU_INST_REPUSE != 0xf2) {
 				/* repe */
@@ -347,6 +353,10 @@ exec_1step(void)
 						CPU_EIP = CPU_PREV_EIP;
 						break;
 					}
+					if(device_cpu->check_interrupts()) {
+						CPU_EIP = CPU_PREV_EIP;
+						break;
+					}
 				}
 			} else {
 				/* repne */
@@ -360,6 +370,10 @@ exec_1step(void)
 						break;
 					}
 					if (CPU_REMCLOCK <= 0) {
+						CPU_EIP = CPU_PREV_EIP;
+						break;
+					}
+					if(device_cpu->check_interrupts()) {
 						CPU_EIP = CPU_PREV_EIP;
 						break;
 					}
@@ -383,6 +397,10 @@ exec_1step(void)
 						CPU_EIP = CPU_PREV_EIP;
 						break;
 					}
+					if(device_cpu->check_interrupts()) {
+						CPU_EIP = CPU_PREV_EIP;
+						break;
+					}
 				}
 			} else if (CPU_INST_REPUSE != 0xf2) {
 				/* repe */
@@ -399,6 +417,10 @@ exec_1step(void)
 						CPU_EIP = CPU_PREV_EIP;
 						break;
 					}
+					if(device_cpu->check_interrupts()) {
+						CPU_EIP = CPU_PREV_EIP;
+						break;
+					}
 				}
 			} else {
 				/* repne */
@@ -412,6 +434,10 @@ exec_1step(void)
 						break;
 					}
 					if (CPU_REMCLOCK <= 0) {
+						CPU_EIP = CPU_PREV_EIP;
+						break;
+					}
+					if(device_cpu->check_interrupts()) {
 						CPU_EIP = CPU_PREV_EIP;
 						break;
 					}
@@ -643,6 +669,10 @@ exec_allstep(void)
 									CPU_EIP = CPU_PREV_EIP;
 									break;
 								}
+								if(device_cpu->check_interrupts()) {
+									CPU_EIP = CPU_PREV_EIP;
+									break;
+								}
 							}
 						}
 					} else if (CPU_INST_REPUSE != 0xf2) {
@@ -664,6 +694,10 @@ exec_allstep(void)
 									CPU_EIP = CPU_PREV_EIP;
 									break;
 								}
+								if(device_cpu->check_interrupts()) {
+									CPU_EIP = CPU_PREV_EIP;
+									break;
+								}
 							}
 						}
 					} else {
@@ -682,6 +716,10 @@ exec_allstep(void)
 									break;
 								}
 								if (CPU_REMCLOCK <= 0) {
+									CPU_EIP = CPU_PREV_EIP;
+									break;
+								}
+								if(device_cpu->check_interrupts()) {
 									CPU_EIP = CPU_PREV_EIP;
 									break;
 								}
@@ -716,6 +754,10 @@ exec_allstep(void)
 									CPU_EIP = CPU_PREV_EIP;
 									break;
 								}
+								if(device_cpu->check_interrupts()) {
+									CPU_EIP = CPU_PREV_EIP;
+									break;
+								}
 							}
 						}
 					} else if (CPU_INST_REPUSE != 0xf2) {
@@ -737,6 +779,10 @@ exec_allstep(void)
 									CPU_EIP = CPU_PREV_EIP;
 									break;
 								}
+								if(device_cpu->check_interrupts()) {
+									CPU_EIP = CPU_PREV_EIP;
+									break;
+								}
 							}
 						}
 					} else {
@@ -755,6 +801,10 @@ exec_allstep(void)
 									break;
 								}
 								if (CPU_REMCLOCK <= 0) {
+									CPU_EIP = CPU_PREV_EIP;
+									break;
+								}
+								if(device_cpu->check_interrupts()) {
 									CPU_EIP = CPU_PREV_EIP;
 									break;
 								}

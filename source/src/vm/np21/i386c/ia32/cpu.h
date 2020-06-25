@@ -45,6 +45,7 @@
 //#ifdef USE_DEBUGGER
 #include "../../../debugger.h"
 //#endif
+class I386;
 
 #ifdef __BIG_ENDIAN__
 	#define BYTESEX_BIG
@@ -580,7 +581,7 @@ extern I386MSR		i386msr;
 extern sigjmp_buf	exec_1step_jmpbuf;
 #endif
 extern UINT32		realclock;
-extern DEVICE		*device_cpu;
+extern I386			*device_cpu;
 extern DEVICE		*device_mem;
 extern DEVICE		*device_io;
 //#ifdef I386_PSEUDO_BIOS

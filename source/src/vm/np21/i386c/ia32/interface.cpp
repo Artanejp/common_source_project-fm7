@@ -38,6 +38,7 @@
 #include "i386hax/haxfunc.h"
 #include "i386hax/haxcore.h"
 #endif
+#include "../../../i386_np21.h"
 
 void
 ia32_initreg(void)
