@@ -267,12 +267,13 @@ protected:
 	void read_a_cdda_sample();
 
 	void send_mcu_ready();
+	void set_extra_status();
+
 	void set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-	void set_status_not_mcuint(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra_toc_addr(uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra_toc_data(uint8_t s1, uint8_t s2, uint8_t s3);
-	bool check_cdda_track_boundary(uint32_t &frame_no);
+	bool __FASTCALL check_cdda_track_boundary(uint32_t &frame_no);
 	bool seek_relative_frame_in_image(uint32_t frame_no);
     int prefetch_audio_sectors(int read_secs);
 	void read_cdrom();
@@ -282,17 +283,17 @@ protected:
 	
 	virtual void execute_command(uint8_t command);
 	
-	void status_not_ready(bool forceint);
-	void status_media_changed(bool forceint);
-	void status_hardware_error(bool forceint);
-	void status_parameter_error(bool forceint);
-	void status_read_done(bool forceint);
-	void status_data_ready(bool forceint);
+	void __FASTCALL status_not_ready(bool forceint);
+	void __FASTCALL status_media_changed(bool forceint);
+	void __FASTCALL status_hardware_error(bool forceint);
+	void __FASTCALL status_parameter_error(bool forceint);
+	void __FASTCALL status_read_done(bool forceint);
+	void __FASTCALL status_data_ready(bool forceint);
 	
-	void status_accept(int extra, uint8_t s2, uint8_t s3);
-	void status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
+	void __FASTCALL status_accept(int extra, uint8_t s2, uint8_t s3);
+	void __FASTCALL status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
 	
-	void status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
+	void __FASTCALL status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_delay_ready();
 	void set_delay_ready2();
 	
@@ -317,10 +318,10 @@ protected:
 	int get_track_noop(uint32_t lba);
 	void get_track_by_track_num(int track);
 
-	uint32_t lba_to_msf(uint32_t lba);
-	uint32_t lba_to_msf_alt(uint32_t lba);
-	int get_frames_from_msf(const char *s);
-	int hexatoi(const char *s);
+	uint32_t __FASTCALL lba_to_msf(uint32_t lba);
+	uint32_t __FASTCALL lba_to_msf_alt(uint32_t lba);
+	int __FASTCALL get_frames_from_msf(const char *s);
+	int __FASTCALL hexatoi(const char *s);
 
 	virtual void open_from_cmd(const _TCHAR* file_path);
 	virtual void close_from_cmd();
