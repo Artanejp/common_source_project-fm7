@@ -59,6 +59,14 @@ void TOWNS_MEMORY::config_page00()
 	} else {
 		set_memory_rw          (0x000f8000, 0x000fffff, &(ram_pagef[0x8000]));
 	}		
+	set_wait_rw(0x00000000, 0x000bffff, mem_wait_val);
+	set_wait_rw(0x000d0000, 0x000fffff, mem_wait_val);
+	if(dma_is_vram) {
+		set_wait_rw(0x000c0000, 0x000cffff, vram_wait_val);
+	} else {
+		set_wait_rw(0x000c0000, 0x000cffff, mem_wait_val);
+	}
+
 }
 	
 void TOWNS_MEMORY::initialize()
@@ -124,6 +132,7 @@ void TOWNS_MEMORY::initialize()
 	
 //	set_memory_mapped_io_rw(0xc0000000, 0xc0ffffff, d_iccard[0]);
 //	set_memory_mapped_io_rw(0xc1000000, 0xc1ffffff, d_iccard[1]);
+	set_wait_rw(0x00000000, 0xffffffff,  vram_wait_val);
 	
 	set_memory_mapped_io_r (0xc2000000, 0xc207ffff, d_msdos);
 	set_memory_mapped_io_r (0xc2080000, 0xc20fffff, d_dictionary);
@@ -196,14 +205,22 @@ void TOWNS_MEMORY::set_wait_values()
 	}
 	d_cpu->write_signal(SIG_CPU_WAIT_FACTOR, waitfactor, 0xffffffff);
 	
-	set_wait_rw(0x00000000, 0x00100000 + (extram_size & 0x3ff00000) - 1, mem_wait_val);
+	set_wait_rw(0x00000000, 0x000bffff, mem_wait_val);
+	set_wait_rw(0x000d0000, 0x000fffff, mem_wait_val);
+	if(dma_is_vram) {
+		set_wait_rw(0x000c0000, 0x000cffff, vram_wait_val);
+	} else {
+		set_wait_rw(0x000c0000, 0x000cffff, mem_wait_val);
+	}
+	set_wait_rw(0x00100000, 0x00100000 + (extram_size & 0x3ff00000) - 1, mem_wait_val);
+   
 	// ToDo: Extend I/O Slots
 	set_wait_rw(0x80000000, 0x800fffff, vram_wait_val);
 	set_wait_rw(0x80100000, 0x801fffff, vram_wait_val);
-	// ToDo: pattern RAM
+	set_wait_rw(0x81000000, 0x8101ffff, vram_wait_val);
 	// ToDo: ROM CARDS
-	set_wait_rw(0xc2000000, 0xc213ffff, mem_wait_val);
-	// ToDo: DICT RAM and PCM RAM
+	set_wait_rw(0xc2000000, 0xc2141fff, mem_wait_val);
+	set_wait_rw(0xc2200000, 0xc2200fff, mem_wait_val);
 	set_wait_rw(0xfffc0000, 0xffffffff, mem_wait_val);
 }
 
