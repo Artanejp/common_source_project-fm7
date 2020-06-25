@@ -932,7 +932,7 @@ uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
 	if((databuffer->empty()) && (read_length <= 0)) {
 		//out_debug_log(_T("EOT(DMA) by read_dma_io8()"));
 		dma_transfer_phase = false;
-#if 1
+#if 0
 		register_event(this,
 					   EVENT_CDROM_EOT,
 					   1.0 * 
