@@ -667,23 +667,29 @@ void TOWNS_CDROM::status_accept(int extra, uint8_t s3, uint8_t s4)
 	// 0Dh : After STOPPING CD-DA.Will clear.
 	// 01h and 09h maybe incorrect.
 	uint8_t playcode = next_status_byte; // OK?
-/*	
+	
 	if((toc_table[current_track].is_audio) && (mounted())) {
 		if(cdda_status == CDDA_PLAYING) {
-			playcode = 0x03;
+			playcode |= 0x03;
 		} else if(cdda_stopped) {
-			playcode = 0x0d;
+			playcode |= 0x0d;
 		} else if(media_changed) {
-			playcode = 0x09;
+			playcode |= 0x09;
 		} else {
-			playcode = 0x00;
+			playcode |= 0x00;
+		}
+	} else 	if(!(toc_table[current_track].is_audio) && (mounted())) {
+		if(media_changed) {
+			playcode |= 0x09;
+		} else {
+			playcode |= 0x01;
 		}
 	} else {
 		if(media_changed) {
 			playcode = 0x09;
 		}
 	}
-*/	
+	
 	cdda_stopped = false;
 	media_changed = false;
 	set_status(req_status, extra,
@@ -733,10 +739,10 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 	switch(command & 0x9f) {
 	case CDROM_COMMAND_SEEK: // 00h (RESTORE?)
 		if((mounted()) && !(media_changed)) {
-			status_accept((req_status) ? 1 : 0, 0x00, 0x00);
-			if((cdda_status != CDDA_OFF)) {
-				next_status_byte |= 0x03;
-			}
+//			status_accept((req_status) ? 1 : 0, 0x00, 0x00);
+//			if((cdda_status != CDDA_OFF)) {
+//				next_status_byte |= 0x03;
+//			}
 			uint8_t m, s, f;
 			m = FROM_BCD(param_queue[0]);
 			s = FROM_BCD(param_queue[1]);
@@ -754,7 +760,13 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			current_track = get_track(lba);
 			clear_event(event_seek);
 			seek_relative_frame_in_image(lba);
-//			register_event(this, EVENT_CDROM_SEEK, usec, false, &event_seek);
+//			if(req_status) {
+//				status_accept(1, 0x00, 0x00);
+//				if((cdda_status != CDDA_OFF)) {
+//					next_status_byte |= 0x03;
+//				}
+//			}
+			register_event(this, EVENT_CDROM_SEEK, usec, false, &event_seek);
 //			status_accept(1, 0x00, 0x00);
 //			set_status(true, 1, TOWNS_CD_STATUS_ACCEPT, 0x01, 0x00, 0x00);
 		}
@@ -930,7 +942,8 @@ uint8_t TOWNS_CDROM::read_status()
 	if((status_queue->empty()) && (extra_status > 0)) {
 		switch(latest_command & 0x9f) {
 		case CDROM_COMMAND_SEEK: // seek
-			set_status_extra(TOWNS_CD_STATUS_SEEK_COMPLETED, 0x00, 0x00, 0x00);
+			set_status_extra(TOWNS_CD_STATUS_SEEK_COMPLETED, next_status_byte, 0x00, 0x00);
+			next_status_byte = 0x00;
 			extra_status = 0;
 			break;
 		case CDROM_COMMAND_READ_MODE1: // seek
@@ -1163,19 +1176,18 @@ void TOWNS_CDROM::set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1
 {
 	status_queue->clear();
 	extra_status = 0;
-	if(extra > 0) extra_status = extra;
 	if(_req_status) {
+		if(extra > 0) extra_status = extra;
 //		mcu_ready = true;
 		status_queue->write(s0);
 		status_queue->write(s1);
 		status_queue->write(s2);
 		status_queue->write(s3);
+		out_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
 		set_delay_ready();
 	} else {
 		set_delay_ready2();
-
 	}
-	out_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
 }
 
 void TOWNS_CDROM::set_status_not_mcuint(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
@@ -1435,6 +1447,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDROM_DELAY_READY2: // WITHOUT STATUS
 		event_delay_ready = -1;
+		has_status = false;
 		mcu_ready = true;
 		set_mcu_intr(true);
 		break;
@@ -1464,9 +1477,26 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_CDROM_SEEK:
 		{
 			event_seek = -1;
-//			set_status(req_status, (req_status) ? 1 : 0, TOWNS_CD_STATUS_ACCEPT, 0x01, 0x00, 0x00);
-			status_accept((req_status) ? 1 : 0, 0x00, 0x00);
+			//req_status = true;
+			//status_accept(1 , 0x00, 0x00);
+			set_status(req_status, (req_status) ? 1 : 0, TOWNS_CD_STATUS_ACCEPT, 0x01, 0x00, 0x00);
+			if(req_status) {
+				if((cdda_status != CDDA_OFF)) {
+					next_status_byte |= 0x03;
+				}
+			}
+//			set_status(true, /*(req_status) ? 1 : 0*/ 1, TOWNS_CD_STATUS_ACCEPT, 0x01, 0x00, 0x00);
+/*			if(req_status) {
+				status_accept(1 , 0x00, 0x00);
+				if((cdda_status != CDDA_OFF)) {
+					next_status_byte |= 0x03;
+				}
+			} else {
+				set_delay_ready2();
+			}
+*/
 		}
+
 		break;
 	case EVENT_CDROM_SEEK_COMPLETED:
 		// BIOS FDDFCh(0FC0h:01FCh)-
@@ -1485,7 +1515,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 //		if((cdrom_prefetch) || (pio_transfer)) {
 			register_event(this, EVENT_CDROM_NEXT_SECTOR,
-						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * ((double)(physical_block_size() )), // OK?
+						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * ((double)(physical_block_size() + 256 )), // OK?
 //						   5.0e3, // From TSUGARU
 						   false, &event_next_sector);
 //		}
