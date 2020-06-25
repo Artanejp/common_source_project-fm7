@@ -209,7 +209,8 @@ protected:
 	int read_sectors;
 	int transfer_speed;
 	int read_length;
-//	int read_pos;
+	int read_length_bak;
+
 	int position;
 	
 	uint8_t latest_command;
