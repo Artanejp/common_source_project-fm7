@@ -598,10 +598,10 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 				clear_event(event_next_sector);
 				clear_event(event_seek_completed);
 				status_read_done(req_status);
-				out_debug_log(_T("EOT(SIGNAL/DMA)"));
+				//out_debug_log(_T("EOT(SIGNAL/DMA)"));
 			} else {
 				clear_event(event_drq);
-				out_debug_log(_T("NEXT(SIGNAL/DMA)"));
+				//out_debug_log(_T("NEXT(SIGNAL/DMA)"));
 			}
 		}
 		break;
@@ -893,7 +893,7 @@ void TOWNS_CDROM::set_status_extra(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s
 	status_queue->write(s1);
 	status_queue->write(s2);
 	status_queue->write(s3);
-	out_debug_log(_T("SET EXTRA STATUS %02x: %02x %02x %02x %02x EXTRA COUNT=%d"), latest_command, s0, s1, s2, s3, extra_status);
+	//out_debug_log(_T("SET EXTRA STATUS %02x: %02x %02x %02x %02x EXTRA COUNT=%d"), latest_command, s0, s1, s2, s3, extra_status);
 	set_delay_ready();
 }
 
@@ -947,7 +947,7 @@ uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
 		clear_event(event_next_sector);
 		clear_event(event_seek_completed);
 		status_read_done(req_status);
-		out_debug_log(_T("EOT(DMA) by read_dma_io8()"));
+		//out_debug_log(_T("EOT(DMA) by read_dma_io8()"));
 	}
 	return data_reg;
 }
@@ -1065,7 +1065,7 @@ void TOWNS_CDROM::set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1
 	} else {
 		set_delay_ready2();
 	}
-	out_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
+//	out_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
 }
 
 void TOWNS_CDROM::set_extra_status()
@@ -1474,7 +1474,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 //		if((cdrom_prefetch) || (pio_transfer)) {
 			register_event(this, EVENT_CDROM_NEXT_SECTOR,
-						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * ((double)(physical_block_size() + 16)), // OK?
+						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * ((double)(physical_block_size())) * 4.0, // OK?
 //						   5.0e3, // From TSUGARU
 						   false, &event_next_sector);
 //		}
@@ -1504,7 +1504,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				status_data_ready(true);
 			}
 			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * /*16.0*/ 1.0, // OK?
+						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 32.0, // OK?
 						   false, &event_seek_completed);
 		} else if(read_length > 0) {
 			// Polling to buffer empty.
@@ -1568,7 +1568,7 @@ bool TOWNS_CDROM::read_buffer(int length)
 				if(event_drq < 0) {
 					if(dma_transfer) {
 //						out_debug_log(_T("KICK DRQ"));
-						register_event(this, EVENT_CDROM_DRQ, 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
+						register_event(this, EVENT_CDROM_DRQ, 1.0 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
 					}
 				}
 #endif
@@ -1952,7 +1952,7 @@ double TOWNS_CDROM::get_seek_time(uint32_t lba)
 			distance = abs((int)(lba * physical_block_size()) - (int)cur_position);
 		}
 		double _seek = ((double)distance / 333000.0) / physical_block_size(); // 333000: sectors in media
-		_seek = 400.0e3 * 2.0 * _seek;
+		_seek = 400.0e3 * 8.0 * _seek;
 //		double _seek = (double)distance * 1.0e6 / (150.0e3 * (double)transfer_speed);
 		if(_seek < ((1.0e6 * 16.0) / (150.0e3 * (double)transfer_speed))) {
 			_seek = (1.0e6 * 16.0) / (150.0e3 * (double)transfer_speed);
