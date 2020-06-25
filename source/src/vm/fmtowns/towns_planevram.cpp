@@ -101,10 +101,10 @@ uint32_t PLANEVRAM::read_io8(uint32_t addr)
 uint32_t PLANEVRAM::read_memory_mapped_io8(uint32_t addr)
 {
 	// Plane Access
-	uint32_t x_addr = 0;
+	uint32_t x_addr = 0x00000;
 	// ToDo: Writing plane.
+//	if(r50_gvramsel != 0) x_addr = 0x20000; //?
 	if(r50_gvramsel != 0) x_addr = 0x20000; //?
-//	if(r50_gvramsel != 0) x_addr = 0x40000; //?
 	addr = (addr & 0x7fff) << 2;
 	if(d_vram == NULL) return 0xff;
 	
@@ -134,11 +134,11 @@ __DECL_VECTORIZED_LOOP
 void PLANEVRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	// Plane Access
-	uint32_t x_addr = 0;
+	uint32_t x_addr = 0x00000;
 
 	// ToDo: Writing plane.
+//	if(r50_gvramsel != 0) x_addr = 0x20000; //?
 	if(r50_gvramsel != 0) x_addr = 0x20000; //?
-//	if(r50_gvramsel != 0) x_addr = 0x40000; //?
 	addr = (addr & 0x7fff) << 2;
 
 	if(d_vram == NULL) return;

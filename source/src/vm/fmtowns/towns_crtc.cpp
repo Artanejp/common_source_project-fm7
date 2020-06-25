@@ -81,6 +81,7 @@ void TOWNS_CRTC::release()
 	for(int i = 0; i < 4; i++) {
 		// ToDo: Allocate at external buffer (when using compute shaders).
 		if(linebuffers[i] != NULL) free(linebuffers[i]);
+		linebuffers[i] = NULL;
 	}
 }
 
@@ -1605,8 +1606,8 @@ void TOWNS_CRTC::draw_screen()
 		bool do_mix0 = false;
 		bool do_mix1 = false;
 		if(is_single) {
-			if((crtout[0]) || (crtout[1])) {
-				switch(linebuffers[trans]->mode[0]) {
+			if(linebuffers[trans][y].crtout[0] != 0) {
+				switch(linebuffers[trans][y].mode[0]) {
 				case DISPMODE_256:
 					do_mix0 = render_256(lbuffer0, y);
 					break;
@@ -1623,26 +1624,26 @@ void TOWNS_CRTC::draw_screen()
 			__DECL_ALIGNED(32)  scrntype_t apal16[2][16];
 			my_memcpy(apal16[0], apalette_16_pixel[0], sizeof(scrntype_t) * 16);
 			my_memcpy(apal16[1], apalette_16_pixel[1], sizeof(scrntype_t) * 16);
-			if(crtout[linebuffers[trans]->num[1]]) {
-				switch(linebuffers[trans]->mode[linebuffers[trans]->num[1]]) {
+			if(linebuffers[trans][y].crtout[linebuffers[trans][y].num[1]] != 0) {
+				switch(linebuffers[trans][y].mode[linebuffers[trans][y].num[1]]) {
 				case DISPMODE_16:
-					do_mix1 = render_16(lbuffer1, abuffer1, &(apal16[linebuffers[trans]->num[1]][0]), y, linebuffers[trans]->num[1], do_alpha);
+					do_mix1 = render_16(lbuffer1, abuffer1, &(apal16[linebuffers[trans][y].num[1]][0]), y, linebuffers[trans][y].num[1], do_alpha);
 					break;
 				case DISPMODE_32768:
-					do_mix1 = render_32768(lbuffer1, abuffer1, y, linebuffers[trans]->num[1], do_alpha);
+					do_mix1 = render_32768(lbuffer1, abuffer1, y, linebuffers[trans][y].num[1], do_alpha);
 					break;
 				default: // 256 Colors mode don't allow in 2 layers mode.
 					break;
 				}
 			}
 			// Upper layer
-			if(crtout[linebuffers[trans]->num[0]]){
-				switch(linebuffers[trans]->mode[linebuffers[trans]->num[0]]) {
+			if(linebuffers[trans][y].crtout[linebuffers[trans][y].num[0]] != 0){
+				switch(linebuffers[trans][y].mode[linebuffers[trans][y].num[0]]) {
 				case DISPMODE_16:
-					do_mix0 = render_16(lbuffer0, abuffer0, &(apal16[linebuffers[trans]->num[0]][0]), y, linebuffers[trans]->num[0], do_alpha);
+					do_mix0 = render_16(lbuffer0, abuffer0, &(apal16[linebuffers[trans][y].num[0]][0]), y, linebuffers[trans][y].num[0], do_alpha);
 					break;
 				case DISPMODE_32768:
-					do_mix0 = render_32768(lbuffer0, abuffer0, y, linebuffers[trans]->num[0], do_alpha);
+					do_mix0 = render_32768(lbuffer0, abuffer0, y, linebuffers[trans][y].num[0], do_alpha);
 					break;
 				default: // 256 Colors mode don't allow in 2 layers mode.
 					do_mix0 = false;
@@ -1820,6 +1821,8 @@ void TOWNS_CRTC::transfer_line(int line)
 		if((ctrl & 0x10) == 0) { // One layer mode
 			linebuffers[trans][line].num[0] = 0;
 			linebuffers[trans][line].num[1] = 0;
+			linebuffers[trans][line].crtout[0] = (crtout_top[0]) ? 0xff : 0x00;
+			linebuffers[trans][line].crtout[1] = 0;
 			bool disp = frame_in[0];
 			if((horiz_end_us[0] <= 0.0) || (horiz_end_us[0] <= horiz_start_us[0])) {
 				disp = false;
@@ -1851,6 +1854,8 @@ void TOWNS_CRTC::transfer_line(int line)
 		} else { // Two layer mode
 			linebuffers[trans][line].num[0] = page0;
 			linebuffers[trans][line].num[1] = page1;
+			linebuffers[trans][line].crtout[page0] = (crtout_top[page0]) ? 0xff : 0x00;
+			linebuffers[trans][line].crtout[page1] = (crtout_top[page1]) ? 0xff : 0x00;
 			bool disp = frame_in[l];
 			if((horiz_end_us[l] <= 0.0) || (horiz_end_us[l] <= horiz_start_us[l])) {
 				disp = false;
@@ -1880,18 +1885,30 @@ void TOWNS_CRTC::transfer_line(int line)
 			ctrl_b >>= 2;
 		}
 	}
+	/*
+	if(linebuffers[trans][line].crtout[0] == 0) {
+		linebuffers[trans][line].mode[page0] = DISPMODE_NONE;
+		to_disp[0] = false;
+	}					
+	if(linebuffers[trans][line].crtout[1] == 0) {
+		linebuffers[trans][line].mode[page1] = DISPMODE_NONE;
+		to_disp[1] = false;
+		}*/					
 	// Fill by skelton colors;
 	for(int l = 0; l < 2; l++) {
 		uint32_t *p = (uint32_t*)(&(linebuffers[trans][line].pixels_layer[l][0]));
 		uint32_t pix = 0x00000000;
-		if(linebuffers[trans][line].mode[l] == DISPMODE_32768) {
-			pix = 0x80008000;
-		}
+		if(!(to_disp[l])) {
+			if(linebuffers[trans][line].mode[l] == DISPMODE_32768) {
+				pix = 0x80008000;
+			}
 __DECL_VECTORIZED_LOOP		
-		for(int x = 0; x < (TOWNS_CRTC_MAX_PIXELS >> 1); x++) {
-			p[x] = pix; // Clear color
+			for(int x = 0; x < (TOWNS_CRTC_MAX_PIXELS >> 1); x++) {
+				p[x] = pix; // Clear color
+			}
 		}
 	}
+
 	for(int l = 0; l < 2; l++) {
 		if(to_disp[l]) {
 			uint16_t _begin = regs[9 + l * 2] & 0x3ff; // HDSx

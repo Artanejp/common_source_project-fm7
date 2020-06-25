@@ -165,7 +165,8 @@ typedef struct {
 	uint32_t prio;
 #pragma pack(push, 1)
 	uint8_t r50_planemask; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
-	uint8_t r50_pad[3];   
+	uint8_t crtout[2];
+	uint8_t r50_pad;   
 #pragma pack(pop)
 	int32_t  bitshift[2];
 	uint32_t pad;
