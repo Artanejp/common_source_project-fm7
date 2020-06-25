@@ -102,7 +102,6 @@ uint32_t PLANEVRAM::read_memory_mapped_io8(uint32_t addr)
 {
 	// Plane Access
 	uint32_t x_addr = 0;
-
 	// ToDo: Writing plane.
 	if(r50_gvramsel != 0) x_addr = 0x20000; //?
 //	if(r50_gvramsel != 0) x_addr = 0x40000; //?
@@ -117,16 +116,17 @@ uint32_t PLANEVRAM::read_memory_mapped_io8(uint32_t addr)
 	uint8_t tmp = 0;
 	uint8_t val = 0;
 	uint8_t nmask[4] = {0x11, 0x22, 0x44, 0x88};
-	uint8_t ntmp = nmask[r50_readplane & 3];
+	uint8_t hmask = nmask[r50_readplane & 3] & 0xf0;
+	uint8_t lmask = nmask[r50_readplane & 3] & 0x0f;
+	uint8_t hval = 0x80;
+	uint8_t lval = 0x40;
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 4; i++) {
-		tmp = *p++;
-		tmp >>= r50_readplane;
-		val |= (((tmp & 0x10) != 0) ? 0x02 : 0x00);
-		val |= (((tmp & 0x01) != 0) ? 0x01 : 0x00);
-		val <<= 2;
+		val |= ((p[i] & hmask) != 0) ? hval : 0x00; 
+		val |= ((p[i] & lmask) != 0) ? lval : 0x00;
+		hval >>= 2;
+		lval >>= 2;
 	}
-
 	return val;
 }
 
