@@ -761,6 +761,12 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			double usec = get_seek_time(0);
 			if(usec < 10.0) usec = 10.0;
 			clear_event(event_seek);
+			// 20200626 K.O
+			// At first, SEEK to LBA0.
+			// Next, SEEK TO ARG's LBA.
+			// Then, If set status to queue if (CMD & 20h) == 20h.
+			// Last, *FORCE TO MAKE* interrupt even (CMD & 20h) != 20h..
+			// See event_callback(EVENT_CDROM_RESTORE, foo).
 			register_event(this,
 						   EVENT_CDROM_RESTORE,
 						   usec, false, &event_seek);
