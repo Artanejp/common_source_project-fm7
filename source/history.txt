@@ -1,3 +1,8 @@
+4/6/2020
+
+[VM/I386_NP21] update to Neko Project 21/W ver0.86 rev72
+
+
 2/21/2020
 
 [VM/I386_NP21] update to Neko Project 21/W ver0.86 rev71 beta4
