@@ -23,17 +23,22 @@ class SERIAL_ROM : public DEVICE
 {
 private:
 	uint8_t read_rom_bits(uint8_t pos);
-	void store_reversed_byte(uint8_t pos, uint8_t c);
-
 protected:
 	bool cs;
 	bool clk;
 	bool reset_reg;
 	int reset_state;
+	
 	uint8_t rom_addr;
 	uint8_t rom[32];
+
+	uint16_t machine_id;
+	uint8_t cpu_id;
 public:
-	SERIAL_ROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu) {
+	SERIAL_ROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		machine_id = 0x0100;
+		cpu_id = 0x01;
 		set_device_name(_T("FMTOWNS_SERIAL_ROM"));
 	}
 	~SERIAL_ROM() {}
@@ -51,6 +56,15 @@ public:
 
 	bool process_state(FILEIO* state_fio, bool loading);
 
+	// unique function
+	void set_machine_id(uint16_t val)
+	{
+		machine_id = val & 0xfff8;
+	}
+	void set_cpu_id(uint16_t val)
+	{
+		cpu_id = val & 0x07;
+	}
 };
 
 }

@@ -658,6 +658,10 @@ void VM::set_machine_type(uint16_t machine_id, uint16_t cpu_id)
 		scsi->set_cpu_id(cpu_id);
 		scsi->set_machine_id(machine_id);
 	}
+	if(serialrom != NULL) {
+		serialrom->set_cpu_id(cpu_id);
+		serialrom->set_machine_id(machine_id);
+	}
 #if defined(HAS_20PIX_FONTS)
 	if(fontrom_20pix != NULL) {
 		fontrom_20pix->set_cpu_id(cpu_id);
