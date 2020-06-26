@@ -1,3 +1,39 @@
+commit d2322eb3793c06a3056ed10245d49c6a865a79d4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 27 01:46:01 2020 +0900
+
+    [VM][FMTOWNS][SERIALROM] Implement correctness.Thanks to Soji Yamakawa-San.
+
+commit d1ddd00625f3ac0512ad03f6c2d4c0470dae18d1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jun 27 01:43:14 2020 +0900
+
+    [VM][FMTOWNS] Re-adjust around interrupt with COMMAND 80h, 81h.
+
+commit b0deb0dce04b848db2f5c455995affdac5c08078
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 26 23:48:48 2020 +0900
+
+    [BUILD][CMAKE] Fix around optimize.
+
+commit f55e633d01cd2ef1190a3fef54892c39301c85aa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 26 23:45:22 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Add comment for CMD 00h (SEEK).
+
+commit 2253898c1386a393dcd5758168935b344e7e04c7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 26 23:38:58 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Implement CMD 00h (SEEK) correctness.May work Fractal engine.
+
+commit e691abda53b535f493b2bc7690fa3fa8d20ba5ea
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jun 26 19:56:13 2020 +0900
+
+    [GENERAL][DOC] Update documents.
+
 commit f5a2505cb38b92ae68df12f306ba03eeb5b836cd
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Jun 26 19:05:07 2020 +0900
