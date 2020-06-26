@@ -20,8 +20,14 @@ esac
 
 case ${CSP_DEBUG} in
    "Yes" | "yes" | "YES" )
-         MAKEFLAGS_BASE2="-g -ggdb ${MAKEFLAGS_BASE} -DNDEBUG"
-         MAKEFLAGS_LINK_BASE="-g -ggdb ${MAKEFLAGS_BASE}"
+         MAKEFLAGS_BASE2="-g -ggdb \
+	                  ${MAKEFLAGS_BASE} \
+	                  -O2 -std=c++11 \
+	                  -DNDEBUG"
+         MAKEFLAGS_LINK_BASE="-g -ggdb \
+	                  ${MAKEFLAGS_BASE} \
+	                  -O2 -std=c++11 \
+	                  -DNDEBUG"
          ;;
    "No" | "no" | "NO" | * )
          MAKEFLAGS_BASE2="-O3 ${MAKEFLAGS_BASE} -DNDEBUG \
