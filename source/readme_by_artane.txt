@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         March 03, 2020
+                                         June 26, 2020
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20200303
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_2020626
 
    追加情報:
    
@@ -159,144 +159,90 @@ Special thanks to:
   Ryu Takegamiさん     : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
   はせりんさん         : eFM-8/7/77/AV/40/EX のデバッグに協力していただいています。
   Ootake 開発者の皆さん: ePCENGINEの改善のヒントをソースコードから勉強させていただいてます。
-
+  Soji Yamakawaさん    : eFM-Townsの開発で「津軽」を参考にさせていただいたり、
+                         アドバイスを頂いたりしています。
 Changes:
 
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
 
-* SNAPSHOT March 03, 2020
+* SNAPSHOT June 26, 2020
  * Upstream 2020-02-21.
- * [VM/FMTOWNS] Work initially.
-                See STATUS section for doc/VMs/fmtowns.txt and
-		000_gitlog.txt .
- * [VM/I386_NP21] Merge Upstream 2020-02-21 's I386::/NP21.Belows are differ from upstream:
-      - Implement memory wait to change CPU speed.
-      - Implement extra reset wire to notify CPU reset.
-      - Some headers are changed due to cause FTBFS with GCC.
-      - Character encoding chenged to UTF-8 at most of source files(not all?)
- * [VM/I386] IMPORTANT: libcpu_newdev/i386 has removed.I386:: porting from NP21 seems to be working nice, no need to porting from MAME/C++.
- * [UI/Qt] Add HARDDISK CREATION feature.
- * [VM/HARDDISK] Calculate correctness C/H/S of HDD.
- * [VM/SCSI_HDD][WIP] Implement RECALIBRATE SCSI command.
- * [VM/SCSI_HDD][VM/SCSI_DEV] Implement some command.But still not active.
- * [VM/BMJr] Fix Break sequence. Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/648 .
- * [VM/BMJr] Fix reset-key (EIKIGOU + BREAK) sequence.
- * [VM/BMJr] Alse assume Back Space key to DELETE key.
- * [VM/BMJr] Also assume Esc key to BREAK key.
- * [VM/FMGEN] Initial implemantation of YM2612 (OPN2).
- * [VM/UPD71071] Make some functions make virtual to prepare overwrap by TOWNS_DMAC.
- * [VM/DEVICE] Add update_signal_mask() to modify signal mask for SIG_SCSI_DAT for SCSI/SASI devices.
- * [VM/COMMON_VM] Include SCSI devices to libCSPcommon_vm, excepts SCSI_HOST::.
- * [VM/PCENGINE] ADPCM: Fix em-bugged freeze ADPCM DMA after CDC STATUS (write to I/O 1800h.)
- * [VM/PC9801] 86PCM: Fix Initial value of PCM_MUTE(A66Eh).Adjust volume multiply factor.
- * [BUILD/Windows] LLVM: Update Qt version to 5.14.
- * [VM/PC9801] DISPLAY: Re-Backport from Upstream 2020-02-01.Kakinoki Syougi works fine.
- * [VM/SCSI_CDROM] Fix freeze some PC-Engine's CD-ROM^2 games and SCSI HDD for FM-Towns.
- * [Qt/OpenGL_ES] Win32: Fix shader compilation errors with Angle Project.
- * [Qt/OpenGL] Correctness texture magnitude calculating.
- * [UI/Qt] Win32: Fix closing D77/D88 image when select another slot.
- * [UI/Qt] Harddisk: Add *.h0-*.h9 , they are Unz (Towns emulator)'s virtual harddisk images.
- * [OSD/SOUND] Fix crash when effective sound sink don't exists.
- * [Qt/OpenGL] Fix FTBFS if don't have libglu.
- * [UI/Qt] Add "USE_CUSTOM_SCREEN_ZOOM_FACTOR" flag to fooVM.h.
- * [UI/Qt] Try: Make GUI core (QApplication -> QCoreApplication) to be non-Global.
-   Thanks to https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/719 .
- * Built with fd1687a197f8e25788c8231a08e73fb3a5667763 (or later).
+ * [EMULATION] Now, emulation period is half of one frame.
+               Because some devices (i.e. mouse) seems to need a short period.
+               This may change to 1/4 of one frame (or not).
+	       See event.cpp and qt/common/emu_thread.cpp (& more).
+ * [VM/EMU] Important: now EMU:: class inherits EMU_TEMPLATE:: .
+ * [VM/FMTOWNS] Still works initially.
+                See source/src/vm/fmtowns/00_status.ja.md, 
+                STATUS section of doc/VMs/fmtowns.txt
+		and 000_gitlog.txt .
+ * [VM/DEVICE][DEBUGGER] Add Call trace feature to I386_NP21.
+                         DEVICE::'s API HAS CHANGED.
+ * [VM/EVENT][Qt] execute event->drive() (or event->run()) by half frame.
+                  This is workaround for choppy mouse pointer/joystick.
+ * [VM/DEBUGGER] Add logging to "UCT" (Call trace) command.
+ * [VM][CONFIG] Add variable memory size feature to some VMs.See eFMTOWNS. 
+ * [Qt/OpenGL4_5] Draw: Fix crash with external mapping (using immutable storage).
+                        Still not implement reading buffer.
+ * [COMMON/FIFO] Add FIFO::fifo_size() and FIFO::left().Update SOVERSION.
+ * [BUILD/CMake] Win32: Update toolchain for LLVM10.x and Ubuntu20.04 
+                 (Has uploaded to 
+		 https://hub.docker.com/repository/docker/artanejp/mingw-w64-llvm10-ubuntu20.04/general ).
+ * [VM/FMGEN][VM/YM2612][VM/FMTOWNS] Fix prescaler value, calculating for own OPN2.
+ * [VM/I386_NP21] Merge Upstream 2020-04-06 's I386::/NP21.Belows are differ from upstream:
+      - Make some memory access functions inline (these are bottoleneck of emulation).
+      - And some modifies are same as SNAPSHOT March 03, 2020. 
+ * [VM/I386_NP21] Optimise for speed, make some functions __inline__ .
+ * [VM/I386_NP21] Fix EDX value at resetting.
+ * [VM/I386_NP21] Temporally enable FPU for i386.
+ * [VM/I386_NP21][DEBUGGER] WIP: Adding exception handling.
+ * [VM/I386_NP21] Log when made panic.
+ * [VM/I386_NP21] Add undefined instruction "0F A6".
+                  This may act as "int 6".Thanks to Soji Yamakawa-San.
+ * [VM/I386_NP21] FPU: FISTTP INSNs (prefix DF) are only later than Pentium 4, 
+                  not exists I386/486/Pentium.
+ * [VM/I386_NP21] Disable FPU with I386, enable with I486SX.
+ * [VM/I386_NP21] Change FPUemul to DOSBOX2 (temporally).
+ * [VM/I386_NP21] Initialize CR0 to 0x00000000 (+some bits) for i386.
+ * [VM/I386_NP21] *Perhaps* REPNE MOVS[B|W|D] don't dedicate Z flag, 
+                  Thanks to Soji Yamakawa-San.
+ * [VM/I386_NP21] Fix FTBFS with LLVM CLANG++.
+ * [VM/I386_NP21] Add interrupt within rep prefix'ed ops.
+ * [VM/UPD71071] Modify handling of 16bit transfer mode.
+ * [VM/UPD71071] TOWNS_DMAC: Implement *truely* 16bit transfer feature 
+                             from Renesas(NEC Electronics)'s DATA SHEET.
+ * [VM/UPD71071] TOWNS_DMAC: Ugly workaround for 16bit transfer DMAC command.
+                             Will fix.
+ * [VM/UPD71071] Change mean of TC bus bits (per channel).See mz2800.cpp.
+ * [VM/UPD71071] TOWNS_DMAC: Fix mandatory name with "mask" variable/arg.
+ * [VM/UPD71071] Adjust status of on-demand-mode.
+ * [VM/I8253] Add debugger feature, still reading only.
+ * [VM/DEBUGGER] Add "RH" command to debugger and 
+                 bool get_debug_regs_description(_TCHAR *, size_t) to API.
+ * [VM/FMTOWNS] FONTROMS: Add API read_direct_data8() to reading faster by CRTC.
+ * [VM/FM8] Fix warning from EVENT:: when resetting.
+ * [VM/SCSI] Add new (pseudo) SIGNAL for preparing to use buffered transfer.
+ * [Qt/LOGGER] Shrink redundant title.
+ * [VM/LOGGER][OSD][VM_TEMPLATE] Add API to log with VM's time.
+ * [OSD/Qt]Remove mouse position limiter.
+ * [UI/Qt] Virtual media: Adjust width of "HDx:".
+ * [UI/Qt] Add filename feature to Virtual-Media indicator.
+ * [UI/Qt] Adjust width for HDD.
+ * [UI/Qt][OSD] Add tooltip for virtual medias.
+ * [UI/Qt] CDROM: Add "SWAP BYTE ORDER for AUDIO" config entry.
+ * [OSD/Qt][LOGGER] Fix linkage error for LLD 10.x and Win32 cross.
+ * Built with f5a2505cb38b92ae68df12f306ba03eeb5b836cd (or later).
 
--- Mar 03, 2020 15:13:25 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Jun 26, 2020 19:41:26 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
 
-2/21/2020
+4/6/2020
 
-[VM/I386_NP21] update to Neko Project 21/W ver0.86 rev71 beta4
+[VM/I386_NP21] update to Neko Project 21/W ver0.86 rev72
 
-[PC9801VX] support to switch cpu mode to V30
-
-[PC9801RA] support to switch cpu mode to V30
-
-
-2/17/2020
-
-[EMU] add is_floppy_disk_connected() and is_quick_disk_connected()
-
-[WINMAIN] disable floppy/quick disk drive menus when drives are disconnected
-
-[VM/I8080] improve disassembler to distinguish 8080 and 8085
-
-[VM/I86] split i86/i88/i186/v30 from I286 class
-
-[VM/I86] fix aam in v30
-
-[VM/I86] support 8080 emulation mode in V30
-
-[VM/I386_NP21] improve not to explicitly accept irq while executing opecode
-
-[VM/I386_DASM] split i386 disassembler from I286/I386 class
-
-[VM/V30_DASM] split v30 disassembler from I286 class
-
-[VM/V30_DASM] add 8080 disassebler for 8080 emulation mode
-
-[VM/VM_TEMPLATE] add is_floppy_disk_connected() and is_quick_disk_connected()
-
-[PC9801] support to enable/disable 1MB/640K/320KB-FDD interfaces
-
-
-2/1/2020
-
-[EMU] support to create blank hard disk image (*.hdi/*.nhd)
-
-[WINMAIN] add menu items to mount blank hard disk image
-
-[VM/DEVICE] improve memory/io bus interfaces for 16/32bit access
-
-[VM/DEVICE] add get_event_clocks() and get_cpu_clocks()
-
-[VM/EVENT] add get_event_clocks() and get_cpu_clocks()
-
-[VM/I386_NP21] support 80386 (based on Neko Project 21/W i386 core)
-
-[VM/I8259] make update_intr() public
-
-[VM/MEMORY] improve memory bus interfaces for 16/32bit access
-
-[VM/MEMORY] make rd_table/wr_table/addr_shift public
-
-[VM/UPD7220] fix stop command (thanks Neko Project 21/W)
-
-[FMR50] change i386 core from MAME to Neko Project 21/W
-
-[FMR50] support to mount blank hard disk image
-
-[MZ2500] support to mount blank hard disk image
-
-[MZ2800] support to mount blank hard disk image
-
-[PC9801] change i386 core from MAME to Neko Project 21/W
-
-[PC9801] support to mount blank hard disk image
-
-[PC9801/DISPLAY] improve code for big-endian host machine
-
-[PC9801/FMSOUND] support 86-type PCM (thanks Neko Project 21/W)
-
-[PC9801/MEMBUS] improve memory bus interfaces for 16/32bit access
-
-[PC9801/MOUSE] fix irq number in hireso mode
-
-[PC9801/SASI] improve irq/drq signals to generate from sasi bus signals
-
-[X1TURBO] support to mount blank hard disk image
-
-[X1TURBO/IOBUS] fix not to clear vram in reset()
-
-
-1/23/2020
-
-[VM/Z80DMA] fix byte counter read by read mask follows command (thanks Mr.Sato)
 
 -----
 

@@ -1,5 +1,5 @@
 "eFMTowns" - FUJITSU FM-Towns series emulator for some platforms.
-									2/29/2020
+									6/26/2020
 
 --- Internal ROM images
 
@@ -17,21 +17,22 @@
 	- Pseudo BIOS *DON'T* include these emulators.
 	  This may be policy of eFM-Towns (maybe not change). 
 
---- STATUS (3/03/2020)
+--- STATUS (6/24/2020)
 
-	- MS-DOS 3.1 Booting from FLOPPY works mostly.
-	- MS-DOS 6.1 and MS-DOS 3.1 *don't* boot from SCSI HDD.
-	- SCSI using from MS-DOS6.1 based OS don't works.Only within FLOPPY.
-	- CD-ROM still does not work.
-	- SPRITE, OPN2, PCM and some devices are not still working.
+	- Bootable from SCSI HDD.
+	- Softwares using SPRITE are not working YET. 
+	- Unable to boot TownsOS v1.1 excepts v1.1L10.
+	- CD-ROM still does not work well.
+	- E-Volumes are not implement yet.
+	- See source/src/vm/fmtowns/00_status.ja.md for more information.
 
 --- Key maps
 	Virtual			PC
 	--------------------------------
 	BREAK			Pause Break
-	ALT				Left ALT
-	HIRAGANA/ROMAJI	HIRAGANA
-	HANKAKU/ZENKAKU	HANKAKU/ZENKAKU
+	ALT/GRAPH		Left ALT
+	HIRAGANA/ROMAJI		HIRAGANA
+	HANKAKU/ZENKAKU		HANKAKU/ZENKAKU
 	HENKAN			HENKAN
 	MUHENKAN		MUHENKAN
 	KANA/KANJI		F11
@@ -42,8 +43,8 @@
 	JIKKOU			Right WIN
 	TORIKESHI		Left WIN
 	KANJI JISHO		Right ALT + Print Screen
-	TANGO MASSHOU	Right ALT + Scroll Lock
-	TANGO TOUROKU	Right ALT + Pause Break
+	TANGO MASSHOU		Right ALT + Scroll Lock
+	TANGO TOUROKU		Right ALT + Pause Break
 	PF11			Right ALT + F1
 	PF12			Right ALT + F2
 	PF13			Right ALT + F3
@@ -56,7 +57,7 @@
 	PF20			Right ALT + F10
 
 	Tips:
-		1. Romaji-Kana conversion (at some OSs) will enable "Ctrl + HIRAGANA".
+	  1. Romaji-Kana conversion (at some OSs) will enable "Ctrl + HIRAGANA".
 
 --- Have fun!
 
