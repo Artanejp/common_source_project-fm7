@@ -824,14 +824,17 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		break;
 	case CDROM_COMMAND_1F:
 		out_debug_log(_T("CMD UNKNOWN 1F(%02X)"), command);
+		stat_reply_intr = true; // OK?
 		status_parameter_error(false); // ToDo: Will implement
 		break;
 	case CDROM_COMMAND_SET_STATE: // 80h
+//		stat_reply_intr = true; // OK?
 		if(req_status) {
 //			stat_reply_intr = true; // OK?
 			if((cdda_status == CDDA_PLAYING) && (mounted())) {
 				next_status_byte |= 0x03;
 			}
+			// ToDo: 
 			if(!(mounted())) {
 				status_not_ready(false);
 				break;
@@ -851,7 +854,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 						  param_queue[6],
 						  param_queue[7]
 				);
-			status_accept(0, 0x00, 0x00);
+			status_accept(/*(cdda_status == CDDA_OFF) ? 0x01 :*/ 0x00, 0x00, 0x00);
 		}
 //				register_event(this, EVENT_CDROM_SETSTATE,  1.0e3, false, NULL);
 //			}
@@ -862,6 +865,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 //		}
 		break;
 	case CDROM_COMMAND_SET_CDDASET: // 81h
+//		stat_reply_intr = true; // OK?
 		out_debug_log(_T("CMD CDDA SET(%02X)"), command);
 		if(req_status) {
 			if(!(mounted())) {
@@ -891,6 +895,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		break;
 	default:
 		out_debug_log(_T("CMD Illegal(%02X)"), command);
+		stat_reply_intr = true; // OK?
 		status_not_accept(0, 0x00, 0x00, 0x00); // ToDo: Will implement
 		break;
 	}
@@ -1126,6 +1131,12 @@ void TOWNS_CDROM::set_extra_status()
 				}
 				break;
 			}
+		break;
+	case CDROM_COMMAND_SET_STATE: // 80h Thank to Yamakawa-San.20200626 K.O
+		if(extra_status > 0) {
+			set_status_extra(TOWNS_CD_STATUS_PLAY_DONE, 0x00, 0x00, 0x00);
+			extra_status = 0;
+		}
 		break;
 	case CDROM_COMMAND_READ_CDDA_STATE: // READ CDDA status
 			switch(extra_status) {
@@ -1459,9 +1470,11 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			set_subq();
 		}
 		write_signals(&outputs_mcuint, 0xffffffff);
+
 		break;
 	case EVENT_CDROM_SEEK:
 		event_seek = -1;
+//		stat_reply_intr = true;
 		status_accept(1, 0x00, 0x00);
 		if((cdda_status != CDDA_OFF) && (mounted())) {
 			if((current_track >= 0) && (current_track < track_num)
