@@ -210,6 +210,7 @@ protected:
 	int transfer_speed;
 	int read_length;
 	int read_length_bak;
+	int next_seek_lba;
 
 	int position;
 	

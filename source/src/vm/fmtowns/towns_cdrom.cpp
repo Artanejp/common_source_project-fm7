@@ -35,6 +35,7 @@
 #define EVENT_CDROM_DELAY_READY2			110
 #define EVENT_CDROM_SEEK_NOINT				111
 #define EVENT_CDROM_EOT						112
+#define EVENT_CDROM_RESTORE					113
 #define _CDROM_DEBUG_LOG
 
 // Event must be larger than 116.
@@ -751,16 +752,17 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 //			f = 0;
 			int32_t lba = ((m * (60 * 75)) + (s * 75) + f) - 150;
 			if(lba < 0) lba = 0;
+			next_seek_lba = lba;
 			out_debug_log(_T("CMD SEEK(%02X) M/S/F = %d/%d/%d  M2/S2/F2 = %d/%d/%d LBA=%d"), command,
 						  TO_BCD(m), TO_BCD(s), TO_BCD(f),
 						  TO_BCD(param_queue[3]), TO_BCD(param_queue[4]), TO_BCD(param_queue[5]),
 						  lba
 			);
-			double usec = get_seek_time(lba);
+			double usec = get_seek_time(0);
 			if(usec < 10.0) usec = 10.0;
 			clear_event(event_seek);
 			register_event(this,
-						   (req_status) ? EVENT_CDROM_SEEK : EVENT_CDROM_SEEK_NOINT,
+						   EVENT_CDROM_RESTORE,
 						   usec, false, &event_seek);
 		}
 		break;
@@ -1016,7 +1018,6 @@ void TOWNS_CDROM::read_cdrom()
 	// Kick a first
 	double usec = get_seek_time(lba1);
 	register_event(this, EVENT_CDROM_SEEK_COMPLETED, usec, false, &event_seek_completed);
-//	register_event(this, EVENT_CDROM_NEXT_SECTOR, usec, false, &event_seek_completed);
 	if(req_status) {
 		set_status(req_status, 2, 0x00, 0x00, 0x00, 0x00);
 	} else {
@@ -1426,6 +1427,20 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		stop_cdda_from_cmd();
 		next_status_byte = 0x0d;
 		break;
+	case EVENT_CDROM_RESTORE:
+		// Seek0
+		event_seek = -1;
+		if(next_seek_lba > 2) {
+			double usec = get_seek_time(next_seek_lba);
+			if(usec < 10.0) usec = 10.0;
+			register_event(this,
+						   (req_status) ? EVENT_CDROM_SEEK : EVENT_CDROM_SEEK_NOINT,
+						   usec, false, &event_seek);
+			next_seek_lba = 0;
+		} else {
+			event_callback((req_status) ? EVENT_CDROM_SEEK : EVENT_CDROM_SEEK_NOINT, 0);
+		}
+		break;
 	case EVENT_CDROM_SEEK_NOINT:
 		event_seek = -1;
 		mcu_ready = true;
@@ -1437,6 +1452,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			}
 			set_subq();
 		}
+		write_signals(&outputs_mcuint, 0xffffffff);
 		break;
 	case EVENT_CDROM_SEEK:
 		event_seek = -1;
@@ -1467,10 +1483,10 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 //		if((cdrom_prefetch) || (pio_transfer)) {
 			register_event(this, EVENT_CDROM_NEXT_SECTOR,
-						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
-						   ((double)(physical_block_size())) * 
-						   4.0, // OK?
-//						   5.0e3, // From TSUGARU
+//						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
+//						   ((double)(physical_block_size())) * 
+//						   0.2, // OK?
+						   5.0e3, // From TSUGARU
 						   false, &event_next_sector);
 //		}
 		break;
@@ -1499,7 +1515,9 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				status_data_ready(true);
 			}
 			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 1.0, // OK?
+						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
+						   ((double)(physical_block_size())) *
+						   1.0, // OK?
 						   false, &event_seek_completed);
 		} else if(read_length > 0) {
 			// Polling to buffer empty.
@@ -1579,14 +1597,12 @@ bool TOWNS_CDROM::read_buffer(int length)
 				length--;
 				read_length--;
 				// Kick DRQ
-#if 1
 				if(event_drq < 0) {
 					if(dma_transfer) {
 //						out_debug_log(_T("KICK DRQ"));
-						register_event(this, EVENT_CDROM_DRQ, 1.0 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
+						register_event(this, EVENT_CDROM_DRQ, 0.5 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
 					}
 				}
-#endif
 			}
 			position++;
 			offset = (offset + 1) % physical_block_size();
@@ -1825,7 +1841,8 @@ void TOWNS_CDROM::reset_device()
 	param_ptr = 0;
 	subq_overrun = false;
 	stat_track = current_track;
-
+	next_seek_lba = 0;
+	
 	extra_status = 0;
 	data_reg = 0x00;
 	position = 0;
@@ -1959,18 +1976,18 @@ double TOWNS_CDROM::get_seek_time(uint32_t lba)
 					break;
 				}
 			}
-			distance = abs((int)(lba * physical_block_size()) - (int)(cur_position + toc_table[current_track].lba_offset * physical_block_size()));
+			distance = abs((int)lba - (int)(cur_position / physical_block_size() + toc_table[current_track].index0));
 			if(track != current_track) {
 				current_track = get_track(lba);
 			}
 		} else {
-			distance = abs((int)(lba * physical_block_size()) - (int)cur_position);
+			distance = abs((int)lba - (int)(cur_position / physical_block_size()));
 		}
-		if(distance < (physical_block_size() * 64)) {
-			distance = physical_block_size() * 64; // Seek penalty.
+		if(distance < 100) {
+			distance = 100; // Seek penalty.
 		}
-		double _seek = ((double)distance / 333000.0) / physical_block_size(); // 333000: sectors in media
-		_seek = 400.0e3 * 60.0 * _seek;
+		double _seek = (double)distance / 333000.0 ; // 333000: sectors in media
+		_seek = 400.0e3 * 100.0 * _seek;
 		return _seek;
 	} else {
 		return 400000; // 400msec
@@ -3078,7 +3095,7 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(transfer_speed);
 	state_fio->StateValue(read_length);
 	state_fio->StateValue(read_length_bak);
-
+	state_fio->StateValue(next_seek_lba);
 	
 	state_fio->StateValue(param_ptr);
 	state_fio->StateArray(param_queue, sizeof(param_queue), 1);
