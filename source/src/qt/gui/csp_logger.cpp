@@ -104,6 +104,7 @@ bool CSP_LoggerLine::contains_mainstr(QString s, bool case_sensitive)
 
 CSP_Logger::CSP_Logger(QObject *parent, bool b_syslog, bool cons, const char *devname) : QObject(parent)
 {
+	p_osd = NULL;
 	lock_mutex = new QMutex(QMutex::Recursive);
 	this->reset();
 	this->open(b_syslog, cons, devname);
