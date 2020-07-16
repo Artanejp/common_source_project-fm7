@@ -841,7 +841,7 @@ void I386::set_context_dma(DEVICE* device)
 	device_dma = device;
 }
 //#endif
-void I386::set_context_intr(DEVICE* device)
+void I386::set_context_intr(DEVICE* device, uint32_t bit)
 {
 	device_pic = device;
 }

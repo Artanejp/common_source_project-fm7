@@ -124,7 +124,7 @@ public:
 //	{
 //		device_io = device;
 //	}
-	void set_context_intr(DEVICE* device)
+	void set_context_intr(DEVICE* device, uint32_t bit = 0xfffffffff)
 	{
 		device_pic = device;
 	}

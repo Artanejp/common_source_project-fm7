@@ -114,7 +114,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_port3(memory, SIG_MEMORY_PORT_3, 0xff, 0);
 	cpu->set_context_port4(memory, SIG_MEMORY_PORT_4, 0xff, 0);
 	cpu->set_context_sio(memory, SIG_MEMORY_SIO_MAIN);
-	rtc->set_context_intr(memory, SIG_MEMORY_RTC_IRQ, 1);
+	rtc->set_context_intr_line(memory, SIG_MEMORY_RTC_IRQ, 1);
 	
 	memory->set_context_beep(beep);
 	memory->set_context_cpu(cpu);

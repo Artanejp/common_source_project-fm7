@@ -349,7 +349,7 @@ public:
 	{
 		return d_pic;
 	}
-	void set_context_intr(DEVICE* device)
+	void set_context_intr(DEVICE* device, uint32_t bit = 0xfffffffff)
 	{
 		d_pic = device;
 	}

@@ -52,7 +52,7 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
-	void set_context_intr(DEVICE* device, int id, uint32_t mask)
+	void set_context_intr_line(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_intr, device, id, mask);
 	}

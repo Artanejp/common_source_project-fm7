@@ -99,7 +99,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
 	
-	rtc->set_context_intr(pic, SIG_I8259_IR2 | SIG_I8259_CHIP1, 1);
+	rtc->set_context_intr_line(pic, SIG_I8259_IR2 | SIG_I8259_CHIP1, 1);
 	dma0->set_context_memory(memory);
 	dma0->set_context_ch0(fdc);
 	dma0->set_context_ch1(gdc);

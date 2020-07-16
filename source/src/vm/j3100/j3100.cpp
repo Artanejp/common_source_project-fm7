@@ -183,7 +183,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #else
 	io->set_iomap_alias_w(0x70, rtc, 1);	// bit7 = nmi mask
 	io->set_iomap_alias_rw(0x71, rtc, 0);
-	rtc->set_context_intr(pic, SIG_I8259_IR0 | SIG_I8259_CHIP1, 1);	// to PIC#1 IR0 (IR8)
+	rtc->set_context_intr_line(pic, SIG_I8259_IR0 | SIG_I8259_CHIP1, 1);	// to PIC#1 IR0 (IR8)
 #endif
 	
 	// nmi mask register

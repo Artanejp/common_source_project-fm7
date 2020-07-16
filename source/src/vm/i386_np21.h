@@ -158,7 +158,7 @@ public:
 //	{
 //		device_io = device;
 //	}
-	void set_context_intr(DEVICE* device);
+	void set_context_intr(DEVICE* device, uint32_t bit = 0xffffffff);
 //#ifdef I386_PSEUDO_BIOS
 	void set_context_bios(DEVICE* device);
 //	{
