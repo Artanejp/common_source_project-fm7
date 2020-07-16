@@ -18,9 +18,6 @@ if(USE_DEVICES_SHARED_LIB)
 #	libcpu_newdev/libcpu_i386/i386op16_real.cpp
 #	libcpu_newdev/libcpu_i386/i386dasm.cpp
 #	)
-  set(MC6809_CPPS 
-	mc6809.cpp
-  )
   set(MCS48_CPPS
 	mcs48.cpp
 	)
@@ -32,7 +29,6 @@ if(USE_DEVICES_SHARED_LIB)
   )
 else()
   set(I386_CPPS i386.cpp)
-  set(MC6809_CPPS mc6809_base.cpp mc6809.cpp)
   set(MCS48_CPPS mcs48_base.cpp mcs48.cpp)
   set(IX86_CPPS i86.cpp)
   set(Z80_CPPS   z80_base.cpp z80.cpp)
@@ -47,9 +43,6 @@ if(FLAG_USE_I286)
 endif()
 if(FLAG_USE_Z80)
   set(VMFILES ${VMFILES} z80.cpp)
-endif()
-if(FLAG_USE_MC6809)
-  set(VMFILES ${VMFILES} ${MC6809_CPPS})
 endif()
 if(FLAG_USE_MCS48)
   set(VMFILES ${VMFILES} ${MCS48_CPPS})

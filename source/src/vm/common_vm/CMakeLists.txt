@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 2.29.3)
+SET(THIS_LIB_VERSION 2.29.4)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
@@ -41,8 +41,7 @@ set(s_vm_common_vm_srcs
 	../mc6801.cpp
 	../hd6301.cpp
 	../mb8861.cpp
-	# MC6809 is temporally.
-	../mc6809_base.cpp
+	../mc6809.cpp
 	../mc6820.cpp
 	../mc6840.cpp
 	../mc6844.cpp

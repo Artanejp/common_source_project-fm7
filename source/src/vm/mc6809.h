@@ -33,7 +33,8 @@ enum {
 
 // Note: Below is ugly hack cause of CPU#0 cannot modify clock.
 class DEBUGGER;
-class MC6809_BASE : public DEVICE
+
+class MC6809 : public DEVICE
 {
 protected:
 	// context
@@ -70,14 +71,19 @@ protected:
 
 	int icount;
 	int extra_icount;
-	void __FASTCALL WM16(uint32_t Addr, pair32_t *p);
-	void __FASTCALL cpu_irq_push(void);
-	void __FASTCALL cpu_firq_push(void);
-	void __FASTCALL cpu_nmi_push(void);
-	void __FASTCALL cpu_irq_fetch_vector_address(void);
-	void __FASTCALL cpu_firq_fetch_vector_address(void);
-	void __FASTCALL cpu_nmi_fetch_vector_address(void);
-	void __FASTCALL cpu_wait(int clocks = 1);
+	bool __USE_DEBUGGER;
+	
+	uint64_t cycles_tmp_count;
+	uint32_t insns_count;
+	uint32_t extra_tmp_count;
+	uint32_t nmi_count;
+	uint32_t firq_count;
+	uint32_t irq_count;
+	int frames_count;
+
+	// Op table
+	void (__FASTCALL  MC6809::*m6809_main[0x100]) (void);
+	static void (__FASTCALL  MC6809::*m6809_optable[0x100]) (void);
 	// Tables
 /* increment */
 	const uint8_t flags8i[256] = {
@@ -162,11 +168,17 @@ protected:
 		/*E*/ 4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
 		/*F*/ 5, 5, 5, 7, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6
 	};
-	// opcodes
-	virtual void __FASTCALL run_one_opecode();
-	void __FASTCALL op(uint8_t ireg);
-	void __FASTCALL fetch_effective_address();
-	void __FASTCALL fetch_effective_address_IDX(uint8_t upper, uint8_t lower);
+
+	// Primitives
+	void __FASTCALL WM16(uint32_t Addr, pair32_t *p);
+	void __FASTCALL cpu_irq_push(void);
+	void __FASTCALL cpu_firq_push(void);
+	void __FASTCALL cpu_nmi_push(void);
+	void __FASTCALL cpu_irq_fetch_vector_address(void);
+	void __FASTCALL cpu_firq_fetch_vector_address(void);
+	void __FASTCALL cpu_nmi_fetch_vector_address(void);
+	void __FASTCALL cpu_wait(int clocks = 1);
+	
 	// Useful routines.
 	inline void __FASTCALL BRANCH(bool cond);
 	inline void __FASTCALL LBRANCH(bool cond);
@@ -218,7 +230,8 @@ protected:
 	inline uint16_t CMP16_REG(uint16_t reg, uint16_t data);
 	inline uint16_t LOAD16_REG(uint16_t reg);
 	inline void __FASTCALL STORE16_REG(pair32_t *p);
- public:
+	
+	// Instructions.
 	void __FASTCALL abx();
 	void __FASTCALL adca_di();
 	void __FASTCALL adca_ex();
@@ -515,17 +528,17 @@ protected:
 	void __FASTCALL tst_ex();
 	void __FASTCALL tst_ix();
 
-	bool __USE_DEBUGGER;
-	uint64_t cycles_tmp_count;
-	uint32_t insns_count;
-	uint32_t extra_tmp_count;
-	uint32_t nmi_count;
-	uint32_t firq_count;
-	uint32_t irq_count;
-	int frames_count;
+	// opcodes
+	virtual void __FASTCALL run_one_opecode();
+	void __FASTCALL op(uint8_t ireg);
+	void __FASTCALL fetch_effective_address();
+	void __FASTCALL fetch_effective_address_IDX(uint8_t upper, uint8_t lower);
 
+	virtual uint32_t cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram);
+	virtual void __FASTCALL debugger_hook(void);
+	
 public:
-	MC6809_BASE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu) 
+	MC6809(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu) 
 	{
 
 		total_icount = prev_total_icount = 0;
@@ -533,11 +546,35 @@ public:
 		insns_count = 0;
 		__USE_DEBUGGER = false;
 		d_debugger = NULL;
+		for(int i = 0; i < 0x100; i++) {
+			m6809_main[i] = &MC6809::nop;
+		}
+		
 		initialize_output_signals(&outputs_bus_ba);
 		initialize_output_signals(&outputs_bus_bs);
 		set_device_name(_T("MC6809 MPU"));
 	}
-	~MC6809_BASE() {}
+	~MC6809() {}
+	
+	// common functions
+	virtual void initialize();
+	virtual void reset();
+	void event_frame();
+	
+	int __FASTCALL run(int clock);
+	
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
+	
+	void set_extra_clock(int clock)
+	{
+		extra_icount += clock;
+	}
+	int get_extra_clock()
+	{
+		return extra_icount;
+	}
+
 	
 	bool is_cpu()
 	{
@@ -561,17 +598,20 @@ public:
 	}
 	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
+	
 	void __FASTCALL write_debug_data16(uint32_t addr, uint32_t data)
 	{
 		write_debug_data8(addr, (data >> 8) & 0xff);
 		write_debug_data8(addr + 1, data & 0xff);
 	}
+	
 	uint32_t __FASTCALL read_debug_data16(uint32_t addr)
 	{
 		uint32_t val = read_debug_data8(addr) << 8;
 		val |= read_debug_data8(addr + 1);
 		return val;
 	}
+	
 	void __FASTCALL write_debug_data32(uint32_t addr, uint32_t data)
 	{
 		write_debug_data16(addr, (data >> 16) & 0xffff);
@@ -583,24 +623,29 @@ public:
 		val |= read_debug_data16(addr + 2);
 		return val;
 	}
+	
 	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
+	
 	void __FASTCALL write_debug_io16(uint32_t addr, uint32_t data)
 	{
 		write_debug_io8(addr, (data >> 8) & 0xff);
 		write_debug_io8(addr + 1, data & 0xff);
 	}
+	
 	uint32_t __FASTCALL read_debug_io16(uint32_t addr)
 	{
 		uint32_t val = read_debug_io8(addr) << 8;
 		val |= read_debug_io8(addr + 1);
 		return val;
 	}
+	
 	void __FASTCALL write_debug_io32(uint32_t addr, uint32_t data)
 	{
 		write_debug_io16(addr, (data >> 16) & 0xffff);
 		write_debug_io16(addr + 2, data & 0xffff);
 	}
+	
 	uint32_t __FASTCALL read_debug_io32(uint32_t addr)
 	{
 		uint32_t val = read_debug_io16(addr) << 16;
@@ -611,23 +656,7 @@ public:
 	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	virtual bool get_debug_regs_description(_TCHAR *buffer, size_t buffer_len);
 	virtual int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
-	virtual uint32_t cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram);
-	virtual void __FASTCALL debugger_hook(void);
-	// common functions
-	void reset();
-	virtual void initialize();
-	int __FASTCALL run(int clock);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	bool process_state(FILEIO* state_fio, bool loading);
-	
-	void set_extra_clock(int clock)
-	{
-		extra_icount += clock;
-	}
-	int get_extra_clock()
-	{
-		return extra_icount;
-	}
+
 	uint32_t get_pc()
 	{
 		return ppc.w.l;
@@ -688,22 +717,7 @@ public:
 	{
 		d_debugger = device;
 	}
-	void event_frame();
-};
 
-class MC6809 : public MC6809_BASE
-{
-
- public:
-	MC6809(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MC6809_BASE(parent_vm, parent_emu) 
-	{
-	}
-	~MC6809() {}
-	void initialize();
-	void __FASTCALL run_one_opecode();
-	uint32_t cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram);
-	virtual int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
-	void __FASTCALL debugger_hook(void);
 };
 #endif
 
