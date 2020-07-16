@@ -6,7 +6,7 @@
 #include	"i386hax/haxcore.h"
 #endif
 
-#ifdef NP2_MEMORY_ASM			// アセンブラ版は 必ずfastcallで
+#ifdef NP2_MEMORY_ASM			// 繧｢繧ｻ繝ｳ繝悶Λ迚医�ｯ 蠢�縺喃astcall縺ｧ
 #undef	MEMCALL
 #define	MEMCALL	FASTCALL
 #endif
@@ -179,12 +179,8 @@ inline REG8 MEMCALL memp_read8_codefetch(UINT32 address) {
 	address = address & CPU_ADRSMASK;
 	int wait = 0;
 	REG8 val;
-	if(device_debugger != NULL) {
-		codefetch_address = address & CPU_ADRSMASK;
-		val = device_mem->read_data8w(codefetch_address, &wait);
-	} else {
-		val = device_mem->read_data8w(address, &wait);
-	}
+	codefetch_address = address;
+	val = device_mem->read_data8w(codefetch_address, &wait);
 	i386_memory_wait += wait;
 	return val;
 //	return device_mem->read_data8(address);
@@ -195,12 +191,8 @@ inline REG16 MEMCALL memp_read16_codefetch(UINT32 address) {
 	address = address & CPU_ADRSMASK;
 	int wait = 0;
 	REG16 val;
-	if(device_debugger != NULL) {
-		codefetch_address = address & CPU_ADRSMASK;
-		val = device_mem->read_data16w(codefetch_address, &wait);
-	} else {
-		val = device_mem->read_data16w(address, &wait);
-	}
+	codefetch_address = address;
+	val = device_mem->read_data16w(codefetch_address, &wait);
 	i386_memory_wait += wait;
 	return val;
 //	return device_mem->read_data16(address);
@@ -211,12 +203,8 @@ inline UINT32 MEMCALL memp_read32_codefetch(UINT32 address) {
 	address = address & CPU_ADRSMASK;
 	int wait = 0;
 	UINT32 val;
-	if(device_debugger != NULL) {
-		codefetch_address = address & CPU_ADRSMASK;
-		val = device_mem->read_data32w(codefetch_address, &wait);
-	} else {
-		val = device_mem->read_data32w(address, &wait);
-	}
+	codefetch_address = address;
+	val = device_mem->read_data32w(codefetch_address, &wait);
 	i386_memory_wait += wait;
 	return val;
 //	return device_mem->read_data32(address);
@@ -299,6 +287,7 @@ inline void MEMCALL memp_reads(UINT32 address, void *dat, UINT leng) {
 
 	/* slow memory access */
 	while (leng-- > 0) {
+		address = address & CPU_ADRSMASK;
 		*out++ = memp_read8(address++);
 	}
 }
@@ -307,10 +296,9 @@ inline void MEMCALL memp_writes(UINT32 address, const void *dat, UINT leng) {
 
 	const UINT8 *out = (UINT8 *)dat;
 
-	//address = address & CPU_ADRSMASK;
-
 	/* slow memory access */
 	while (leng-- > 0) {
+		address = address & CPU_ADRSMASK;
 		memp_write8(address++, *out++);
 	}
 }

@@ -24,7 +24,7 @@
  */
 
 #define	DECLARE_VIRTUAL_ADDRESS_MEMORY_RW_FUNCTIONS(width, valtype, length) \
-valtype MEMCALL \
+__inline__ valtype MEMCALL \
 cpu_vmemoryread_##width(int idx, UINT32 offset) \
 { \
 	descriptor_t *sdp; \
@@ -60,7 +60,7 @@ err: \
 	return 0;	/* compiler happy */ \
 } \
 \
-void MEMCALL \
+__inline__ void MEMCALL \
 cpu_vmemorywrite_##width(int idx, UINT32 offset, valtype value) \
 { \
 	descriptor_t *sdp; \
@@ -99,7 +99,7 @@ err: \
 }
 
 #define	DECLARE_VIRTUAL_ADDRESS_MEMORY_RMW_FUNCTIONS(width, valtype, length) \
-UINT32 MEMCALL \
+__inline__ UINT32 MEMCALL \
 cpu_vmemory_RMW_##width(int idx, UINT32 offset, UINT32 (CPUCALL *func)(UINT32, void *), void *arg) \
 { \
 	descriptor_t *sdp; \

@@ -25,7 +25,7 @@
 
 #include "cpu.h"
 #include "../cpumem.h"
-
+#if 0
 /*
  * memory access check
  */
@@ -213,7 +213,8 @@ exc:
 #endif
 	EXCEPTION(e, 0);
 }
-
+#endif
+#if 0
 void MEMCALL
 cpu_stack_push_check(UINT16 s, descriptor_t *sdp, UINT32 sp, UINT len,
     BOOL is32bit)
@@ -364,7 +365,7 @@ exc:
 #endif
 	EXCEPTION(SS_EXCEPTION, s & 0xfffc);
 }
-
+#endif
 
 
 /*
@@ -414,6 +415,7 @@ cpu_memorywrite_f(UINT32 paddr, const REG80 *value)
 /*
  * virtual address memory access functions
  */
+#if 0
 #define	CHOOSE_EXCEPTION(sreg) \
 	(((sreg) == CPU_SS_INDEX) ? SS_EXCEPTION : GP_EXCEPTION)
 
@@ -426,7 +428,8 @@ DECLARE_VIRTUAL_ADDRESS_MEMORY_RMW_FUNCTIONS(w, UINT16, 2)
 DECLARE_VIRTUAL_ADDRESS_MEMORY_RW_FUNCTIONS(d, UINT32, 4)
 DECLARE_VIRTUAL_ADDRESS_MEMORY_RMW_FUNCTIONS(d, UINT32, 4)
 DECLARE_VIRTUAL_ADDRESS_MEMORY_RW_FUNCTIONS(q, UINT64, 8)
-
+#endif
+#if 0
 REG80 MEMCALL
 cpu_vmemoryread_f(int idx, UINT32 offset)
 {
@@ -563,3 +566,4 @@ cpu_codefetch_d(UINT32 offset)
 	EXCEPTION(GP_EXCEPTION, 0);
 	return 0;	/* compiler happy */
 }
+#endif
