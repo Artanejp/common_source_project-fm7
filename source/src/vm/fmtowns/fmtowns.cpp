@@ -438,6 +438,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	keyboard->set_context_nmi_line(memory, SIG_CPU_NMI, 0xffffffff);
 	
 	// i/o bus
+	io->set_iowait_range_rw(0x0000, 0xffff, 6); // ToDo: May variable wait.
+		
 	io->set_iomap_alias_rw (0x0000, pic, I8259_ADDR_CHIP0 | 0);
 	io->set_iomap_alias_rw (0x0002, pic, I8259_ADDR_CHIP0 | 1);
 	io->set_iomap_alias_rw (0x0010, pic, I8259_ADDR_CHIP1 | 0);
