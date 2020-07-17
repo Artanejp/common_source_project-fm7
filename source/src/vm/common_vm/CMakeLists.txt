@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 2.29.4)
+SET(THIS_LIB_VERSION 2.29.5)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
@@ -99,7 +99,7 @@ set(s_vm_common_vm_srcs
 	../ym2151.cpp
 	../ym2203.cpp
 	../ym2413.cpp
-	../z80_base.cpp
+	../z80.cpp
 	../z80ctc.cpp
 	../z80dma.cpp
 	../z80pio.cpp

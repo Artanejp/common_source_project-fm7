@@ -112,7 +112,6 @@ void DrawThreadClass::doDrawMain(bool flag)
 		draw_frames = p_osd->no_draw_screen();
 	}
 	//req_unmap_screen_texture();
-
 	emit sig_draw_frames(draw_frames);
 }
 void DrawThreadClass::doDraw(bool flag)
@@ -121,7 +120,11 @@ void DrawThreadClass::doDraw(bool flag)
 	if(!use_separate_thread_draw) {
 		doDrawMain(flag);
 	} else {
-		if(renderSemaphore != NULL) renderSemaphore->release(1);
+		if(renderSemaphore != NULL) {
+			if(renderSemaphore->available() < 1) {
+				renderSemaphore->release(1);
+			}
+		}
 	}
 }
 
@@ -170,7 +173,8 @@ void DrawThreadClass::doWork(const QString &param)
 		renderSemaphore = s;
 	}
 	do {
-		vrate = 1.0e3 / p_osd->vm_frame_rate(); // FPS to msec
+		double __fps = p_osd->vm_frame_rate(); // FPS; 
+		vrate = 1.0e3 / __fps; // to Msec
 		_rate = (wait_refresh < emu_frame_rate) ? emu_frame_rate : wait_refresh;
 		if((vrate * 2.0) > _rate) _rate = vrate * 2.0; 
 		drate = (double)elapsed / 1.0e6; // nsec to msec
@@ -180,6 +184,7 @@ void DrawThreadClass::doWork(const QString &param)
 //		} else {
 //			wait_factor = (int)_rate;
 //		}
+//		msleep(1);
 		if(renderSemaphore->tryAcquire(1, wait_factor)) { // Success
 			if(!bRunThread) goto __exit;
 			volatile bool _b = bRecentRenderStatus;

@@ -27,7 +27,7 @@
 //#ifdef USE_DEBUGGER
 class DEBUGGER;
 //#endif
-class Z80_BASE : public DEVICE
+class Z80 : public DEVICE
 {
 protected:
 	/* ---------------------------------------------------------------------------
@@ -47,6 +47,8 @@ protected:
 //#endif
 	outputs_t outputs_busack;
 
+	uint32_t __CPU_START_ADDR;
+	bool __USE_DEBUGGER;
 	bool has_nsc800;
 	bool has_memory_wait;
 	bool has_io_wait;
@@ -249,8 +251,10 @@ protected:
 	int	nsc800_rstb_count;
 	int	nsc800_rstc_count;
 
+	void check_interrupt();
+
 public:
-	Z80_BASE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
+	Z80(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		flags_initialized = false;
 		busreq = false;
@@ -276,7 +280,7 @@ public:
 		set_device_name(_T("Z80 CPU"));
 
 	}
-	~Z80_BASE() {}
+	~Z80() {}
 	
 	// common functions
 	virtual void initialize();
@@ -288,6 +292,7 @@ public:
 	
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int id);
+	
 	void set_intr_line(bool line, bool pending, uint32_t bit)
 	{
 		uint32_t mask = 1 << bit;
@@ -332,6 +337,12 @@ public:
 	{
 		return 0xffff;
 	}
+	
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
+	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
+	
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	virtual int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
@@ -344,6 +355,18 @@ public:
 	void set_context_io(DEVICE* device)
 	{
 		d_io = device;
+	}
+	void set_context_bios(DEVICE* device)
+	{
+		d_bios = device;
+	}
+	void set_context_dma(DEVICE* device)
+	{
+		d_dma = device;
+	}
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
 	}
 	DEVICE *get_context_child()
 	{
@@ -365,46 +388,6 @@ public:
 	{
 		sp.w.l = value;
 	}
-};
-
-class Z80 : public Z80_BASE 
-{
-protected:
-	void check_interrupt();
-	void __FASTCALL run_one_opecode() override;
-	void __FASTCALL debugger_hook(void) override;
-public:
-	Z80(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
-	~Z80();
-	void initialize();
-	void reset();
-	int __FASTCALL run(int clock) override;
-
-	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
-#ifdef USE_DEBUGGER
-	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
-	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
-#endif
-#ifdef Z80_PSEUDO_BIOS
-	void set_context_bios(DEVICE* device)
-	{
-		d_bios = device;
-	}
-#endif
-#ifdef SINGLE_MODE_DMA
-	void set_context_dma(DEVICE* device)
-	{
-		d_dma = device;
-	}
-#endif
-#ifdef USE_DEBUGGER
-	void set_context_debugger(DEBUGGER* device)
-	{
-		d_debugger = device;
-	}
-#endif
 };
 
 
