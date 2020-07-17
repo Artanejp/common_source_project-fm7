@@ -158,6 +158,9 @@ void DISPLAY::reset()
 	mode1 = 0;//3;
 	mode2 = 0;
 	hireso = true;
+	emu->set_vm_screen_lines(400);
+#else
+	emu->set_vm_screen_lines(200);
 #endif
 #ifdef _X1TURBOZ
 	zmode1 = 0;
@@ -584,14 +587,17 @@ void DISPLAY::event_frame()
 	hz_disp = regs[1];
 	vt_disp = regs[6] & 0x7f;
 	st_addr = (regs[12] << 8) | regs[13];
-	
 #ifdef _X1TURBO_FEATURE
 	int vt_total = ((regs[4] & 0x7f) + 1) * ch_height + (regs[5] & 0x1f);
-	hireso = (vt_total > 400);
+	bool hireso_old = hireso;
+	hireso = (vt_total >= 400);
 #endif
 	int vlen;
 #ifdef _X1TURBO_FEATURE
 	vlen = (hireso) ? 400 : 200;
+//	if(hireso_old != hireso) {
+//		emu->set_vm_screen_lines(vlen);
+//	}
 #else
 	vlen = 200;
 #endif
@@ -858,7 +864,7 @@ void DISPLAY::draw_screen()
 			draw_line(v);
 		}
 	}
-	
+
 	// copy to real screen
 #ifdef _X1TURBOZ
 	dr_zpalette_pc[8 + 0] = dr_zpalette_pc[16 + 0x000];
@@ -870,10 +876,11 @@ void DISPLAY::draw_screen()
 	dr_zpalette_pc[8 + 6] = dr_zpalette_pc[16 + 0xff0];
 	dr_zpalette_pc[8 + 7] = dr_zpalette_pc[16 + 0xfff];
 #endif
+	__DECL_ALIGNED(16) scrntype_t dbuf[640];
 #ifdef _X1TURBO_FEATURE
 	if(hireso) {
 		// 400 lines
-		emu->set_vm_screen_lines(400);
+//		emu->set_vm_screen_lines(400);
 		if(column40) {
 			// 40 columns
 			for(int y = 0; y < 400; y++) {
@@ -886,7 +893,7 @@ void DISPLAY::draw_screen()
 					for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 						uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
 						
-						dest[x2] = dest[x2 + 1] = get_zpriority(src_text[x], cg00, cg00);
+						dbuf[x2] = dbuf[x2 + 1] = get_zpriority(src_text[x], cg00, cg00);
 					}
 				} else {
 #endif
@@ -894,14 +901,18 @@ void DISPLAY::draw_screen()
 					
 					for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 #ifdef _X1TURBOZ
-						dest[x2] = dest[x2 + 1] = dr_zpalette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
+						dbuf[x2] = dbuf[x2 + 1] = dr_zpalette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
 #else
-						dest[x2] = dest[x2 + 1] =  dr_palette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
+						dbuf[x2] = dbuf[x2 + 1] =  dr_palette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
 #endif
 					}
 #ifdef _X1TURBOZ
 				}
 #endif
+__DECL_VECTORIZED_LOOP
+				for(int xx = 0; xx < 640; xx++) {
+					dest[xx] = dbuf[xx];
+				}
 			}
 		} else {
 			// 80 columns
@@ -915,7 +926,7 @@ void DISPLAY::draw_screen()
 					for(int x = 0; x < 640; x++) {
 						uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
 						
-						dest[x] = get_zpriority(src_text[x], cg00, cg00);
+						dbuf[x] = get_zpriority(src_text[x], cg00, cg00);
 					}
 				} else {
 #endif
@@ -923,29 +934,33 @@ void DISPLAY::draw_screen()
 					
 					for(int x = 0; x < 640; x++) {
 #ifdef _X1TURBOZ
-						dest[x] = dr_zpalette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
+						dbuf[x] = dr_zpalette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
 #else
-						dest[x] =  dr_palette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
+						dbuf[x] =  dr_palette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
 #endif
 					}
 #ifdef _X1TURBOZ
 				}
 #endif
+__DECL_VECTORIZED_LOOP
+				for(int xx = 0; xx < 640; xx++) {
+					dest[xx] = dbuf[xx];
+				}
 			}
 		}
 		emu->screen_skip_line(false);
 	} else {
 #endif
-		emu->set_vm_screen_lines(200);
+//		emu->set_vm_screen_lines(200);
 		// 200 lines
-		emu->set_vm_screen_lines(200);
+//		emu->set_vm_screen_lines(200);
 		
 		if(column40) {
 			// 40 columns
 			for(int y = 0; y < 200; y++) {
+				uint8_t* src_text = dr_text[y];
 				scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
 				scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
-				uint8_t* src_text = dr_text[y];
 #ifdef _X1TURBOZ
 				if(dr_aen_line[y]) {
 					uint16_t* src_cg0 = dr_zcg[0][y];
@@ -956,32 +971,40 @@ void DISPLAY::draw_screen()
 							uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
 							uint16_t cg11 = src_cg1[x] | (src_cg1[x] >> 2);
 							
-							dest0[x2] = dest0[x2 + 1] = get_zpriority(src_text[x], cg00, cg11);
+							dbuf[x2] = dbuf[x2 + 1] = get_zpriority(src_text[x], cg00, cg11);
 						}
 					} else {
 						for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 							uint16_t cg01 = src_cg0[x] | (src_cg1[x] >> 2);
 							
-							dest0[x2] = dest0[x2 + 1] = get_zpriority(src_text[x], cg01, cg01);
+							dbuf[x2] = dbuf[x2 + 1] = get_zpriority(src_text[x], cg01, cg01);
 						}
+
 					}
 				} else {
 #endif
-					scrntype_t* dest = emu->get_screen_buffer(y);
+//					scrntype_t* dest = emu->get_screen_buffer(y);
 					uint8_t* src_cg = dr_cg[y];
 				
 					for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 #ifdef _X1TURBOZ
-						dest0[x2] = dest0[x2 + 1] = dr_zpalette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
+						dbuf[x2] = dbuf[x2 + 1] = dr_zpalette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
 #else
-						dest0[x2] = dest0[x2 + 1] =  dr_palette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
+						dbuf[x2] = dbuf[x2 + 1] =  dr_palette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
 #endif
 					}
 #ifdef _X1TURBOZ
 				}
 #endif
+__DECL_VECTORIZED_LOOP
+				for(int xx = 0; xx < 640; xx++) {
+					dest0[xx] = dbuf[xx];
+				}
 				if(!config.scan_line) {
-					my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+__DECL_VECTORIZED_LOOP
+					for(int xx = 0; xx < 640; xx++) {
+						dest1[xx] = dbuf[xx];
+					}
 				} else {
 					memset(dest1, 0, 640 * sizeof(scrntype_t));
 				}
@@ -999,27 +1022,34 @@ void DISPLAY::draw_screen()
 					for(int x = 0; x < 640; x++) {
 						uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
 						
-						dest0[x] = get_zpriority(src_text[x], cg00, cg00);
+						dbuf[x] = get_zpriority(src_text[x], cg00, cg00);
 					}
 				} else {
 #endif
 					uint8_t* src_cg = dr_cg[y];
-					
+__DECL_VECTORIZED_LOOP
 					for(int x = 0; x < 640; x++) {
 #ifdef _X1TURBOZ
-						dest0[x] = dr_zpalette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
+						dbuf[x] = dr_zpalette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
 #else
-						dest0[x] =  dr_palette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
+						dbuf[x] =  dr_palette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
 #endif
 					}
+__DECL_VECTORIZED_LOOP
+		for(int xx = 0; xx < 640; xx++) {
+			dest0[xx] = dbuf[xx];
+		}
+		if(!config.scan_line) {
+__DECL_VECTORIZED_LOOP
+			for(int xx = 0; xx < 640; xx++) {
+				dest1[xx] = dbuf[xx];
+			}
+		} else {
+			memset(dest1, 0, 640 * sizeof(scrntype_t));
+		}
 #ifdef _X1TURBOZ
 				}
 #endif
-				if(!config.scan_line) {
-					my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
-				} else {
-					memset(dest1, 0, 640 * sizeof(scrntype_t));
-				}
 			}
 		}
 		emu->screen_skip_line(true);

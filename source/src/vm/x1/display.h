@@ -34,22 +34,22 @@ private:
 #endif
 	HD46505 *d_crtc;
 	uint8_t* regs;
-	uint8_t vram_t[0x800];
-	uint8_t vram_a[0x800];
+	__DECL_ALIGNED(16) uint8_t vram_t[0x800];
+	__DECL_ALIGNED(16) uint8_t vram_a[0x800];
 #ifdef _X1TURBO_FEATURE
-	uint8_t vram_k[0x800];
+	__DECL_ALIGNED(16) uint8_t vram_k[0x800];
 #endif
 	uint8_t* vram_ptr;
-	uint8_t pcg_b[256][8];
-	uint8_t pcg_r[256][8];
-	uint8_t pcg_g[256][8];
+	__DECL_ALIGNED(8) uint8_t pcg_b[256][8];
+	__DECL_ALIGNED(8) uint8_t pcg_r[256][8];
+	__DECL_ALIGNED(8) uint8_t pcg_g[256][8];
 #ifdef _X1TURBO_FEATURE
-	uint8_t gaiji_b[128][16];
-	uint8_t gaiji_r[128][16];
-	uint8_t gaiji_g[128][16];
+	__DECL_ALIGNED(16) uint8_t gaiji_b[128][16];
+	__DECL_ALIGNED(16) uint8_t gaiji_r[128][16];
+	__DECL_ALIGNED(16) uint8_t gaiji_g[128][16];
 #endif
-	uint8_t font[0x800];
-	uint8_t kanji[0x4bc00];
+	__DECL_ALIGNED(16) uint8_t font[0x800];
+	__DECL_ALIGNED(16) uint8_t kanji[0x4bc00];
 	
 	uint8_t cur_code, cur_line;
 	
@@ -57,7 +57,8 @@ private:
 	uint8_t* kanji_ptr;
 	
 	uint8_t pal[3];
-	uint8_t priority, pri[8][8];	// pri[cg][txt]
+	uint8_t priority;
+	__DECL_ALIGNED(32) uint8_t pri[8][8];	// pri[cg][txt]
 	uint8_t dr_priority;
 	
 	bool column40;
@@ -76,41 +77,40 @@ private:
 	uint8_t ztpal[8];
 	uint8_t dr_zpriority;
 
-	struct {
+	__DECL_ALIGNED(32) struct {
 		uint8_t b, r, g;
 	} zpal[4096];
 	int zpal_num;
 #endif
 	
 #ifdef _X1TURBO_FEATURE
-	uint8_t text[400][640];
-	uint8_t cg[400][640];
-	uint8_t pri_line[400][8][8];
+	__DECL_ALIGNED(32) uint8_t text[400][640];
+	__DECL_ALIGNED(32) uint8_t cg[400][640];
+	__DECL_ALIGNED(32) uint8_t pri_line[400][8][8];
 
-	
-	uint8_t dr_text[400][640];
-	uint8_t dr_cg[400][640];
-	uint8_t dr_pri_line[400][8][8];
+	__DECL_ALIGNED(32) uint8_t dr_text[400][640];
+	__DECL_ALIGNED(32) uint8_t dr_cg[400][640];
+	__DECL_ALIGNED(32) uint8_t dr_pri_line[400][8][8];
 #else
-	uint8_t text[200][640+8];
-	uint8_t cg[200][640];
-	uint8_t pri_line[200][8][8];
+	__DECL_ALIGNED(32) uint8_t text[200][640+8];
+	__DECL_ALIGNED(32) uint8_t cg[200][640];
+	__DECL_ALIGNED(32) uint8_t pri_line[200][8][8];
 
-	uint8_t dr_text[200][640+8];
-	uint8_t dr_cg[200][640];
-	uint8_t dr_pri_line[200][8][8];
+	__DECL_ALIGNED(32) uint8_t dr_text[200][640+8];
+	__DECL_ALIGNED(32) uint8_t dr_cg[200][640];
+	__DECL_ALIGNED(32) uint8_t dr_pri_line[200][8][8];
 #endif
 #ifdef _X1TURBOZ
-	uint16_t zcg[2][400][640];
-	bool aen_line[400];
-	scrntype_t zpalette_pc[8+8+4096];	// 0-7:text, 8-15:cg, 16-:4096cg
+	__DECL_ALIGNED(32) uint16_t zcg[2][400][640];
+	__DECL_ALIGNED(16) bool aen_line[400];
+	__DECL_ALIGNED(32) scrntype_t zpalette_pc[8+8+4096];	// 0-7:text, 8-15:cg, 16-:4096cg
 
-	uint16_t dr_zcg[2][400][640];
-	bool dr_aen_line[400];
-	scrntype_t dr_zpalette_pc[8+8+4096];	// 0-7:text, 8-15:cg, 16-:4096cg
+	__DECL_ALIGNED(32) uint16_t dr_zcg[2][400][640];
+	__DECL_ALIGNED(16) bool dr_aen_line[400];
+	__DECL_ALIGNED(32) scrntype_t dr_zpalette_pc[8+8+4096];	// 0-7:text, 8-15:cg, 16-:4096cg
 #endif
-	scrntype_t palette_pc[8+8];		// 0-7:text, 8-15:cg
-	scrntype_t dr_palette_pc[8+8];		// 0-7:text, 8-15:cg
+	__DECL_ALIGNED(16) scrntype_t palette_pc[8+8];		// 0-7:text, 8-15:cg
+	__DECL_ALIGNED(16) scrntype_t dr_palette_pc[8+8];		// 0-7:text, 8-15:cg
 	bool prev_vert_double;
 	int raster, cblink;
 	
@@ -150,9 +150,9 @@ private:
 
 	int tmp_kanji_ptr;
 
-	_bit_trans_table_t bit_trans_table_b0;
-	_bit_trans_table_t bit_trans_table_r0;
-	_bit_trans_table_t bit_trans_table_g0;
+	__DECL_ALIGNED(16) _bit_trans_table_t bit_trans_table_b0;
+	__DECL_ALIGNED(16) _bit_trans_table_t bit_trans_table_r0;
+	__DECL_ALIGNED(16) _bit_trans_table_t bit_trans_table_g0;
 public:
 	DISPLAY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
