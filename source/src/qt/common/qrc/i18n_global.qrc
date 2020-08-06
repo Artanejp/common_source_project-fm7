@@ -1,7 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-    <file alias="csp_qt_gui_ja.qm">../../../res/i18n/ja/csp_qt_gui.qm</file>
-    <file alias="csp_qt_common_ja.qm">../../../res/i18n/ja/csp_qt_common.qm</file>
-    <file alias="csp_qt_debugger_ja.qm">../../../res/i18n/ja/csp_qt_debugger.qm</file>
+    <file alias="gui.ja_JP.qm">../../../res/i18n/ja/gui.ja_JP.qm</file>
+    <file alias="common.ja_JP.qm">../../../res/i18n/ja/common.ja_JP.qm</file>
+    <file alias="debugger.ja_JP.qm">../../../res/i18n/ja/debugger.ja_JP.qm</file>
 </qresource>
 </RCC>

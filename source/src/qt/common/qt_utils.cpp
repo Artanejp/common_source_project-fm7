@@ -1245,20 +1245,22 @@ int MainLoop(int argc, char *argv[])
 
 	//SetupTranslators();
 	QTranslator local_translator;
-	QLocale s_locale;
-	if(local_translator.load(s_locale, QLatin1String("csp_qt_machine"), QLatin1String("_"), QLatin1String(":/"))) {
+	QLocale s_locale = QLocale::system();
+
+	if(local_translator.load(s_locale, "machine", ".", ":/", ".qm")) {
 		GuiMain->installTranslator(&local_translator);
 	}
 	QTranslator s_translator;
-	if(s_translator.load(s_locale, QLatin1String("csp_qt_gui"), QLatin1String("_"), QLatin1String(":/"))) {
+	if(s_translator.load(s_locale, "gui", ".", ":/", ".qm")) {
 		GuiMain->installTranslator(&s_translator);
 	}
+
 	QTranslator common_translator;
-	if(common_translator.load(s_locale, QLatin1String("csp_qt_common"), QLatin1String("_"), QLatin1String(":/"))) {
+	if(common_translator.load(s_locale, "common", ".", ":/", ".qm")) {
 		GuiMain->installTranslator(&common_translator);
 	}
 	QTranslator debugger_translator;
-	if(debugger_translator.load(s_locale, QLatin1String("csp_qt_debugger"), QLatin1String("_"), QLatin1String(":/"))) {
+	if(debugger_translator.load(s_locale, "debugger", ".", ":/", ".qm")) {
 		GuiMain->installTranslator(&debugger_translator);
 	}
 	//QProcessEnvironment::systemEnvironment() = _envvers;
