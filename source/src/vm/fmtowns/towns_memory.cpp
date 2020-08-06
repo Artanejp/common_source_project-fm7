@@ -30,8 +30,6 @@ namespace FMTOWNS {
 void TOWNS_MEMORY::config_page00()
 {
 	if(dma_is_vram) {
-		set_memory_rw          (0x00000000, 0x000bffff, ram_page0);
-		set_memory_rw          (0x000cc000, 0x000cffff, &(ram_pagec[0xc000]));
 		 // OK? From TSUGARU
 		set_memory_mapped_io_rw(0x000c0000, 0x000c7fff, d_planevram);
 		set_memory_mapped_io_rw(0x000c8000, 0x000cbfff, d_sprite);
@@ -41,10 +39,9 @@ void TOWNS_MEMORY::config_page00()
 			set_memory_r          (0x000ca800, 0x000cafff, rd_dummy);
 			set_memory_mapped_io_r(0x000cb000, 0x000cbfff, d_font);
 		}
-//		set_memory_mapped_io_rw(0x000c0000, 0x000cbfff, this); // BANKED
+		set_memory_rw          (0x000cc000, 0x000cffff, &(ram_pagec[0xc000]));
 		set_memory_mapped_io_rw(0x000cfc00, 0x000cffff, this); // MMIO
 	} else {
-		set_memory_rw          (0x00000000, 0x000bffff, ram_page0);
 		set_memory_rw          (0x000c0000, 0x000cffff, ram_pagec);
 	}
 	if((select_d0_rom) && (select_d0_dict)) { 
@@ -52,15 +49,11 @@ void TOWNS_MEMORY::config_page00()
 	} else {
 		set_memory_rw          (0x000d0000, 0x000dffff, ram_paged);
 	}
-	set_memory_rw          (0x000e0000, 0x000effff, ram_pagee);
-	set_memory_rw          (0x000f0000, 0x000f7fff, ram_pagef);
 	if(select_d0_rom) {
 		set_memory_mapped_io_rw(0x000f8000, 0x000fffff, d_sysrom);
 	} else {
 		set_memory_rw          (0x000f8000, 0x000fffff, &(ram_pagef[0x8000]));
 	}		
-	set_wait_rw(0x00000000, 0x000bffff, mem_wait_val);
-	set_wait_rw(0x000d0000, 0x000fffff, mem_wait_val);
 	if(dma_is_vram) {
 		set_wait_rw(0x000c0000, 0x000cffff, vram_wait_val);
 	} else {
@@ -124,6 +117,12 @@ void TOWNS_MEMORY::initialize()
 	select_d0_rom = true;
 	
 	dma_is_vram = true;
+	// Lower 100000h
+	set_memory_rw          (0x00000000, 0x000bffff, ram_page0);
+	set_memory_rw          (0x000d0000, 0x000dffff, ram_paged);
+	set_memory_rw          (0x000e0000, 0x000effff, ram_pagee);
+	set_memory_rw          (0x000f0000, 0x000f7fff, ram_pagef);
+	set_memory_mapped_io_rw(0x000f8000, 0x000fffff, d_sysrom);
 	config_page00();
 	
 	set_memory_mapped_io_rw(0x80000000, 0x8007ffff, d_vram);
@@ -143,6 +142,7 @@ void TOWNS_MEMORY::initialize()
 	}
 	set_memory_mapped_io_rw(0xc2200000, 0xc2200fff, d_pcm);
 	set_memory_mapped_io_r (0xfffc0000, 0xffffffff, d_sysrom);
+	
 	set_wait_values();
 	// Another devices are blank
 	
