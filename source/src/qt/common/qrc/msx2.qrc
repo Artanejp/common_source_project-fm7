@@ -2,6 +2,6 @@
 <qresource>
     <file alias="default.ico">../../../res/msx2.ico</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/px7.txt</file>
-    <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/msx.qm</file>
+    <file alias="machine.ja_JP.qm">../../../res/i18n/ja/msx.ja_JP.qm</file>
 </qresource>
 </RCC>

@@ -2,6 +2,6 @@
 <qresource>
     <file alias="default.ico">../../../res/hc20.ico</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/hc20.txt</file>
-    <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/hc20.qm</file>
+    <file alias="machine.ja_JP.qm">../../../res/i18n/ja/hc20.ja_JP.qm</file>
 </qresource>
 </RCC>

@@ -1,7 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-    <file alias="default.ico">../../../res/pc9801vx.ico</file>
+    <file alias="default.ico">../../../res/pc9801ra.ico</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/pc9801.txt</file>
-    <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/pc9801.qm</file>
+    <file alias="machine.ja_JP.qm">../../../res/i18n/ja/pc9801.ja_JP.qm</file>
 </qresource>
 </RCC>

@@ -2,5 +2,6 @@
 <qresource>
     <file alias="default.ico">../../../res/bmjr.ico</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/bmjr.txt</file>
+	<file alias="machine.ja_JP.qm">../../../res/i18n/ja/bmjr.ja_JP.qm</file>
 </qresource>
 </RCC>

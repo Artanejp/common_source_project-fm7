@@ -3,7 +3,7 @@
     <file alias="default.ico">../../../res/smb80te.ico</file>
     <file alias="background.png">../../../res/smb80te/board.png</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/smb80te.txt</file>
-    <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/smb80te.qm</file>
+    <file alias="machine.ja_JP.qm">../../../res/i18n/ja/smb80te.ja_JP.qm</file>
     <file alias="button00.png">../../../res/smb80te/button00.png</file>
     <file alias="button01.png">../../../res/smb80te/button01.png</file>
     <file alias="button02.png">../../../res/smb80te/button02.png</file>

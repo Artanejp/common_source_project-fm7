@@ -23,6 +23,6 @@
     <file alias="button18.png">../../../res/ys6464a/button18.png</file>
     <file alias="button19.png">../../../res/ys6464a/button19.png</file>
     <file alias="button20.png">../../../res/ys6464a/button20.png</file>
-    <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/ys6464a.qm</file>
+    <file alias="machine.ja_JP.qm">../../../res/i18n/ja/ys6464a.ja_JP.qm</file>
 </qresource>
 </RCC>

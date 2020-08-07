@@ -3,7 +3,7 @@
     <file alias="default.ico">../../../res/tk85.ico</file>
     <file alias="background.png">../../../res/tk85/board.png</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/tk80bs.txt</file>
-    <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/tk80bs.qm</file>
+    <file alias="machine.ja_JP.qm">../../../res/i18n/ja/tk80bs.ja_JP.qm</file>
     <file alias="button00.png">../../../res/tk85/button00.png</file>
     <file alias="button01.png">../../../res/tk85/button01.png</file>
     <file alias="button02.png">../../../res/tk85/button02.png</file>

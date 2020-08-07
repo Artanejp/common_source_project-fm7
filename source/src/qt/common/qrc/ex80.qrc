@@ -3,7 +3,7 @@
     <file alias="background.png">../../../res/ex80/board.png</file>
     <file alias="default.ico">../../../res/ex80.ico</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/ex80.txt</file>
-    <file alias="csp_qt_machine_ja.qm">../../../res/i18n/ja/ex80.qm</file>
+    <file alias="machine.ja_JP.qm">../../../res/i18n/ja/ex80.ja_JP.qm</file>
     <file alias="button00.png">../../../res/ex80/button00.png</file>
     <file alias="button01.png">../../../res/ex80/button01.png</file>
     <file alias="button02.png">../../../res/ex80/button02.png</file>
