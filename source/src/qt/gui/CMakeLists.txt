@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 2.24.0)
+set(THIS_LIB_VERSION 2.24.1)
 #include(cotire)
 #include(PrecompiledHeader)
 
@@ -140,13 +140,11 @@ add_definitions(-D__GUI_LIBRARY_NAME=\"libCSPgui.${THIS_LIB_VERSION}\")
 
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
-#    QT5_ADD_RESOURCES(s_qt_gui_RCC ${RESOURCE}
-#                      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
-#		      ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc
-#		      )
-    QT5_ADD_RESOURCES(s_qt_gui_RCC ${RESOURCE}
-                      ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/commontexts.qrc
+  QT5_ADD_RESOURCES(s_qt_gui_RCC ${RESOURCE}
+              ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/commontexts.qrc
 		      ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/shaders.qrc
+  		      ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/i18n_global.qrc
+		      ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/icons.qrc
 		      )
 else()
   QT4_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})

@@ -34,9 +34,9 @@ set(QT_COMMON_BASE
 )
 
 
- QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
-		      ${CMAKE_CURRENT_SOURCE_DIR}/qrc/i18n_global.qrc
-		      ${CMAKE_CURRENT_SOURCE_DIR}/qrc/icons.qrc)
+# QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
+#		      ${CMAKE_CURRENT_SOURCE_DIR}/qrc/i18n_global.qrc
+#		      ${CMAKE_CURRENT_SOURCE_DIR}/qrc/icons.qrc)
 
 if(WIN32)
 	set(QT_COMMON_BASE ../gui/qt_main.cpp ${QT_COMMON_BASE} )
@@ -45,13 +45,13 @@ if(WIN32)
 	  WIN32
 	  ${QT_COMMON_BASE}
 	  ${s_qt_common_headers_MOC}
-	  ${s_qt_common_RCC}
+#	  ${s_qt_common_RCC}
 	  )
  else()
   add_executable(${EXEC_TARGET}
 	  ${QT_COMMON_BASE}
 	  ${s_qt_common_headers_MOC}
-	  ${s_qt_common_RCC}
+#	  ${s_qt_common_RCC}
 	  )
 #  add_precompiled_header(${EXEC_TARGET} pch_list
 #	  SOURCE_CXX pch.cpp FORCEINCLUDE
