@@ -372,8 +372,8 @@ void DISPLAY::reset()
 #if defined(SUPPORT_16_COLORS)
 	memset(modereg2, 0, sizeof(modereg2));
 	if((config.dipswitch & (1 << DIPSWITCH_POSITION_GDC_FAST)) != 0) {
-//		modereg2[0x82 >> 1] = 1;
-//		modereg2[0x84 >> 1] = 1;
+		modereg2[0x82 >> 1] = 1;
+		modereg2[0x84 >> 1] = 1;
 		d_gdc_chr->set_clock_freq(5000 * 1000);
 		d_gdc_gfx->set_clock_freq(5000 * 1000);
 //		write_signals(&output_gdc_freq, 0xff);
