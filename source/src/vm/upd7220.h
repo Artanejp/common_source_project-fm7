@@ -45,6 +45,7 @@ protected:
 	DEVICE* d_vram_bus;
 	uint8_t* vram;
 	uint32_t vram_size;
+	uint32_t vram_plane_addr_mask; // Normally 32KB
 	uint16_t vram_data_mask;
 	
 	// feature flags
@@ -108,7 +109,8 @@ protected:
 	
 	// draw
 	int rt[RT_TABLEMAX + 1];
-	int dx, dy;	// from ead, dad
+	int dx;
+	int64_t dy;	// from ead, dad
 	int dir, dif, sl, dc, d, d2, d1, dm;
 	uint16_t pattern;
 	
@@ -165,6 +167,7 @@ public:
 		width = 80;
 		height = 25; // ToDo
 		clock_freq = 2500 * 1000; // Hz
+		vram_plane_addr_mask = 0x7fff; // Normally 32KB/plane
 		set_device_name(_T("uPD7220 GDC"));
 	}
 	~UPD7220() {}

@@ -367,11 +367,11 @@ void UPD7220::register_event_wait_cmd(uint32_t bytes)
 	event_cmdready = -1;
 	// BY uPD7220 GDC Design manual; Clock divided by 2 at internal logic.
 	double usec = (1.0e6  * 2.0 * (double)bytes) / (double)clock_freq;
-	if(usec < 1.0) {
-	    cmd_drawing = false;
-	} else {
+//	if(usec < 1.0) {
+//	    cmd_drawing = false;
+//	} else {
 		register_event(this, EVENT_CMD_READY, usec, false, &event_cmdready);
-	}
+//	}
 }
 
 void UPD7220::write_signal(int ch, uint32_t data, uint32_t mask)
@@ -798,13 +798,13 @@ void UPD7220::cmd_vecte()
 {
 	cmd_drawing = true;
 	dx = ((ead % pitch) << 4) | (dad & 0x0f);
-	dy = ead / pitch;
+	dy = (ead << 16) / pitch;
 	wrote_bytes = 1;
 	
 	// execute command
 	if(!(vect[0] & 0x78)) { // R, C, T, L
 		pattern = ra[8] | (ra[9] << 8);
-		draw_pset(dx, dy);
+		draw_pset(dx, dy >> 16);
 	}
 	if(vect[0] & 0x08) { // L (Line)
 		draw_vectl();
@@ -827,13 +827,13 @@ void UPD7220::cmd_texte()
 {
 	cmd_drawing = true;
 	dx = ((ead % pitch) << 4) | (dad & 0x0f);
-	dy = ead / pitch;
+	dy = (ead << 16) / pitch;
 	wrote_bytes = 1;
 	
 	// execute command
 	if(!(vect[0] & 0x78)) {
 		pattern = ra[8] | (ra[9] << 8);
-		draw_pset(dx, dy);
+		draw_pset(dx, dy >> 16);
 	}
 	if(vect[0] & 0x08) {
 		draw_vectl();
@@ -1084,7 +1084,7 @@ void UPD7220::draw_vectl()
 	
 	if(dc) {
 		int x = dx;
-		int y = dy;
+		int y = dy >> 16;
 		
 		switch(dir) {
 		case 0:
@@ -1138,7 +1138,7 @@ void UPD7220::draw_vectl()
 		}
 	} else {
 		wrote_bytes++;
-		draw_pset(dx, dy);
+		draw_pset(dx, dy >> 16);
 	}
 }
 
@@ -1157,15 +1157,15 @@ void UPD7220::draw_vectt()
 		       (draw & 0x8000 ? 0x0002 : 0) | (draw & 0x8000 ? 0x0001 : 0);
 	}
 	int vx1 = vectdir[dir][0];
-	int vy1 = vectdir[dir][1];
+	int vy1 = (vectdir[dir][1] << 16);
 	int vx2 = vectdir[dir][2];
-	int vy2 = vectdir[dir][3];
+	int vy2 = (vectdir[dir][3] << 16);
 	int muly = zw + 1;
 	pattern = 0xffff;
 	
 	while(muly--) {
 		int cx = dx;
-		int cy = dy;
+		int64_t cy = dy;
 		int xrem = d;
 		while(xrem--) {
 			int mulx = zw + 1;
@@ -1173,7 +1173,7 @@ void UPD7220::draw_vectt()
 				draw >>= 1;
 				draw |= 0x8000;
 				while(mulx--) {
-					draw_pset(cx, cy);
+					draw_pset(cx, cy >> 16);
 					cx += vx1;
 					cy += vy1;
 				}
@@ -1188,7 +1188,7 @@ void UPD7220::draw_vectt()
 		dx += vx2;
 		dy += vy2;
 	}
-	ead = (dx >> 4) + dy * pitch;
+	ead = (dx >> 4) + (dy >> 16) * pitch;
 	dad = dx & 0x0f;
 }
 
@@ -1204,95 +1204,95 @@ void UPD7220::draw_vectc()
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset((dx + s), (dy + i));
+				draw_pset((dx + s), ((dy >> 16) + i));
 			}
 			break;
 		case 1:
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset((dx + i), (dy + s));
+				draw_pset((dx + i), ((dy >> 16) + s));
 			}
 			break;
 		case 2:
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset((dx + i), (dy - s));
+				draw_pset((dx + i), ((dy >> 16) - s));
 			}
 			break;
 		case 3:
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset((dx + s), (dy - i));
+				draw_pset((dx + s), ((dy >> 16) - i));
 			}
 			break;
 		case 4:
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset((dx - s), (dy - i));
+				draw_pset((dx - s), ((dy >> 16) - i));
 			}
 			break;
 		case 5:
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset((dx - i), (dy - s));
+				draw_pset((dx - i), ((dy >> 16) - s));
 			}
 			break;
 		case 6:
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset((dx - i), (dy + s));
+				draw_pset((dx - i), ((dy >> 16) + s));
 			}
 			break;
 		case 7:
 			for(int i = dm; i <= t; i++) {
 				int s = (rt[(i << RT_TABLEBIT) / m] * d);
 				s = (s + (1 << (RT_MULBIT - 1))) >> RT_MULBIT;
-				draw_pset((dx - s), (dy + i));
+				draw_pset((dx - s), ((dy >> 16) + i));
 			}
 			break;
 		}
 	} else {
-		draw_pset(dx, dy);
+		draw_pset(dx, dy >> 16);
 	}
 }
 
 void UPD7220::draw_vectr()
 {
 	int vx1 = vectdir[dir][0];
-	int vy1 = vectdir[dir][1];
+	int vy1 = vectdir[dir][1] << 16;
 	int vx2 = vectdir[dir][2];
-	int vy2 = vectdir[dir][3];
+	int vy2 = vectdir[dir][3] << 16;
 	pattern = ra[8] | (ra[9] << 8);
 
 //	out_debug_log(_T("VECTR D=%d D2=%d START=%d,%d VX1,VY1,VX2,VY2 = %d,%d,%d,%d"),
 //				  d, d1, dx, dy, vx1, vy1, vx2,vy2);
 	for(int i = 0; i < d; i++) {
-		draw_pset(dx, dy);
+		draw_pset(dx, dy >> 16);
 		dx += vx1;
 		dy += vy1;
 	}
 	for(int i = 0; i < d2; i++) {
-		draw_pset(dx, dy);
+		draw_pset(dx, dy >> 16);
 		dx += vx2;
 		dy += vy2;
 	}
 	for(int i = 0; i < d; i++) {
-		draw_pset(dx, dy);
+		draw_pset(dx, dy >> 16);
 		dx -= vx1;
 		dy -= vy1;
 	}
 	for(int i = 0; i < d2; i++) {
-		draw_pset(dx, dy);
+		draw_pset(dx, dy >> 16);
 		dx -= vx2;
 		dy -= vy2;
 	}
-	ead = (dx >> 4) + dy * pitch;
+	ead = (dx >> 4) + (dy >> 16) * pitch;
 	dad = dx & 0x0f;
 }
 
@@ -1300,9 +1300,9 @@ void UPD7220::draw_text()
 {
 	int dir2 = dir + (sl ? 8 : 0);
 	int vx1 = vectdir[dir2][0];
-	int vy1 = vectdir[dir2][1];
+	int vy1 = vectdir[dir2][1] << 16;
 	int vx2 = vectdir[dir2][2];
-	int vy2 = vectdir[dir2][3];
+	int vy2 = vectdir[dir2][3] << 16;
 	int sx = d;
 	int sy = dc + 1;
 	if(__QC10) {
@@ -1317,7 +1317,7 @@ void UPD7220::draw_text()
 		int muly = zw + 1;
 		while(muly--) {
 			int cx = dx;
-			int cy = dy;
+			int64_t cy = dy;
 			uint8_t bit = ra[index];
 			int xrem = sx;
 			while(xrem--) {
@@ -1325,7 +1325,7 @@ void UPD7220::draw_text()
 				bit = (bit >> 1) | ((bit & 1) ? 0x80 : 0);
 				int mulx = zw + 1;
 				while(mulx--) {
-					draw_pset(cx, cy);
+					draw_pset(cx, cy >> 16);
 					cx += vx1;
 					cy += vy1;
 				}
@@ -1335,7 +1335,7 @@ void UPD7220::draw_text()
 		}
 		index = ((index - 1) & 7) | 8;
 	}
-	ead = (dx >> 4) + dy * pitch;
+	ead = (dx >> 4) + (dy >> 16) * pitch;
 	dad = dx & 0x0f;
 }
 
@@ -1343,7 +1343,7 @@ void UPD7220::draw_pset(int x, int y)
 {
 	uint16_t dot = pattern & 1;
 	pattern = (pattern >> 1) | (dot << 15);
-	uint32_t addr = y * width + (x >> 3);
+	int32_t addr = y * width + (x >> 3);
 
 	uint8_t bit;
 	if(_UPD7220_MSB_FIRST) {
@@ -1351,6 +1351,10 @@ void UPD7220::draw_pset(int x, int y)
 	} else {
 		bit = 1 << (x & 7);
 	}
+	//if(addr < 0) return; // Dummy;
+	//if(addr >= vram_plane_size) return; // Dummy
+	addr = addr & vram_plane_addr_mask;
+	wrote_bytes++;
 	uint8_t cur = read_vram(addr);
 	
 	switch(mod) {
@@ -1369,7 +1373,7 @@ void UPD7220::draw_pset(int x, int y)
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3 /* Change mean of DY 20200808 K.O */
 
 bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 {
