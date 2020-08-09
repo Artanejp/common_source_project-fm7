@@ -47,9 +47,11 @@ protected:
 	uint16_t reg_hoffset;
 	bool disp_page0;
 	bool disp_page1;
-
+	bool draw_page1;
+	
 	bool sprite_enabled;
 	bool sprite_busy;
+	bool page_changed;
 	
 	bool now_transferring;
 	
@@ -68,6 +70,7 @@ protected:
 	void __FASTCALL render_sprite(int num,  int x, int y, uint16_t attr, uint16_t color);
 	void render_part();
 	virtual void __FASTCALL write_reg(uint32_t addr, uint32_t data);
+	void check_and_clear_vram();
 
 public:
 	TOWNS_SPRITE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -133,7 +136,7 @@ public:
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int id);
 	void initialize();
-	void event_frame();
+	void event_pre_frame();
 	void event_vline(int v, int clk);
 	void event_callback(int id, int err);
 

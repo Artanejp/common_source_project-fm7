@@ -26,6 +26,7 @@ void TOWNS_SPRITE::initialize(void)
 	reg_hoffset = 0x0000; // REG#04, #05
 	reg_index = 0x0000;
 	disp_page1 = false;
+	draw_page1 = false;
 	disp_page0 = false;
 	reg_spen = false;
 	reg_addr = 0;
@@ -33,6 +34,7 @@ void TOWNS_SPRITE::initialize(void)
 
 	max_sprite_per_frame = 224;
 	event_busy = -1;
+	page_changed = true;
 	
 	register_frame_event(this);
 	register_vline_event(this);
@@ -46,6 +48,7 @@ void TOWNS_SPRITE::reset()
 	reg_hoffset = 0x0000; // REG#04, #05
 	reg_index = 0x0000;
 	disp_page1 = false;
+	draw_page1 = false;
 	disp_page0 = false;
 	reg_spen = false;
 	reg_addr = 0;
@@ -61,6 +64,8 @@ void TOWNS_SPRITE::reset()
 	tvram_enabled_bak = false;
 
 	sprite_busy = false;
+	page_changed = true;
+
 	memset(reg_data, 0x00, sizeof(reg_data)); // OK?
 
 	if(event_busy > -1) {
@@ -186,8 +191,14 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	}
 	now_transferring = true;
 	__DECL_ALIGNED(32) uint16_t sbuf[16][16];
-	__DECL_ALIGNED(32) pair16_t lbuf[16];
-	__DECL_ALIGNED(32) pair16_t mbuf[16];
+	__DECL_ALIGNED(16) union {
+		pair16_t pw[16];
+		uint8_t b[32];
+	} lbuf;
+	__DECL_ALIGNED(16) union {
+		pair16_t pw[16];
+		uint8_t  b[32];
+	} mbuf;
 	__DECL_ALIGNED(16) uint16_t pixel_h[8];
 	__DECL_ALIGNED(16) uint16_t pixel_l[8];
 	__DECL_ALIGNED(16) uint16_t color_table[16] = {0};
@@ -196,34 +207,54 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 			// get from ram.
 			for(int yy = 0; yy < 16; yy++) {
 				uint32_t addr = ((ybegin + yy * yinc) << 5) + (xbegin << 1) + ram_offset;
-				pair16_t nn;
+				__DECL_ALIGNED(16) union {
+					pair16_t pw[16];
+					uint8_t b[32];
+				} nnw;
+				if(xinc > 0) {
+__DECL_VECTORIZED_LOOP						
+					for(int xx = 0; xx < 32; xx++) {
+						nnw.b[xx] = pattern_ram[(addr + xx) & 0x1ffff];
+					}
+				} else {
+__DECL_VECTORIZED_LOOP						
+					for(int xx = 0; xx < 32; xx++) {
+						nnw.b[xx] = pattern_ram[(addr - xx) & 0x1ffff];
+					}
+				}
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 16; xx++) {
-					nn.b.l = pattern_ram[(addr + 0) & 0x1ffff];
-					nn.b.h = pattern_ram[(addr + 1) & 0x1ffff];
-					sbuf[yy][xx] = nn.w;
-					addr = (addr + (xinc << 1)) & 0x1ffff;
+					sbuf[yy][xx] = nnw.pw[xx].w;
+//					addr = (addr + (xinc << 1)) & 0x1ffff;
 				}
 			}
 		} else { // 16 colors
-			pair16_t nn;
+			__DECL_ALIGNED(16) union {
+				pair16_t pw[16];
+				uint8_t  b[32];
+			} nnw;
+__DECL_VECTORIZED_LOOP						
+			for(int i = 0; i < 32; i++) {
+				nnw.b[i] = pattern_ram[(color_offset + i) & 0x1ffff];
+//				color_offset += 2;
+			}
 __DECL_VECTORIZED_LOOP						
 			for(int i = 0; i < 16; i++) {
-				nn.b.l = pattern_ram[(color_offset + 0) & 0x1ffff];
-				nn.b.h = pattern_ram[(color_offset + 1) & 0x1ffff];
-				color_offset += 2;
-				color_table[i] = nn.w;
+				color_table[i] = nnw.pw[i].w;
 			}
 			color_table[0] = 0x8000; // Clear color
 			for(int yy = 0; yy < 16; yy++) {
 				uint32_t addr = ((ybegin + yy * yinc) << 3) + (xbegin >> 1) + ram_offset;
 				uint8_t nnh, nnl;
-				uint8_t nn;
-__DECL_VECTORIZED_LOOP						
+				__DECL_ALIGNED(8) uint8_t nnb[8];
+__DECL_VECTORIZED_LOOP
 				for(int xx = 0; xx < 8; xx++ ) {
-					nn = pattern_ram[(addr + xx * xinc) & 0x1ffff];
-					nnh = nn >> 4;
-					nnl = nn & 0x0f;
+					nnb[xx] = pattern_ram[(addr + xx * xinc) & 0x1ffff];
+				}
+__DECL_VECTORIZED_LOOP
+				for(int xx = 0; xx < 8; xx++ ) {
+					nnh = nnb[xx] & 0x0f;
+					nnl = nnb[xx] >> 4;
 					pixel_h[xx] = color_table[nnh];
 					pixel_l[xx] = color_table[nnl];
 				}
@@ -247,34 +278,34 @@ __DECL_VECTORIZED_LOOP
 			// get from ram.
 			for(int yy = 0; yy < 16; yy++) {
 				uint32_t addr = ((ybegin + yy * yinc) << 5) + (xbegin << 1) + ram_offset;
-				pair16_t nn;
+				pair16_t nnp;
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 16; xx++) {
-					nn.b.l = pattern_ram[(addr + 0) & 0x1ffff];
-					nn.b.h = pattern_ram[(addr + 1) & 0x1ffff];
-					sbuf[xx][yy] = nn.w;
+					nnp.b.l = pattern_ram[(addr + 0) & 0x1ffff];
+					nnp.b.h = pattern_ram[(addr + 1) & 0x1ffff];
+					sbuf[xx][yy] = nnp.w;
 					addr = (addr + (xinc << 1)) & 0x1ffff;
 				}
 			}
 		} else { // 16 colors
-			pair16_t nn;
+			pair16_t nnp;
 __DECL_VECTORIZED_LOOP						
 			for(int i = 0; i < 16; i++) {
-				nn.b.l = pattern_ram[(color_offset + 0) & 0x1ffff];
-				nn.b.h = pattern_ram[(color_offset + 1) & 0x1ffff];
+				nnp.b.l = pattern_ram[(color_offset + 0) & 0x1ffff];
+				nnp.b.h = pattern_ram[(color_offset + 1) & 0x1ffff];
 				color_offset += 2;
-				color_table[i] = nn.w;
+				color_table[i] = nnp.w;
 			}
 			color_table[0] = 0x8000; // Clear color
 			for(int yy = 0; yy < 16; yy++) {
 				uint32_t addr = ((ybegin + yy * yinc) << 3) + (xbegin >> 1) + ram_offset;
 				uint8_t nnh, nnl;
-				uint8_t nn;
+				uint8_t nnb;
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 8; xx++ ) {
-					nn = pattern_ram[(addr + xx * xinc) & 0x1ffff];
-					nnh = nn >> 4;
-					nnl = nn & 0x0f;
+					nnb = pattern_ram[(addr + xx * xinc) & 0x1ffff];
+					nnh = nnb & 0x0f;
+					nnl = nnb >> 4;
 					pixel_h[xx] = color_table[nnh];
 					pixel_l[xx] = color_table[nnl];
 				}
@@ -294,188 +325,93 @@ __DECL_VECTORIZED_LOOP
 			}
 		}
 	}
-	uint32_t noffset = (disp_page1) ? 0x60000 : 0x40000;
+	uint32_t noffset = (draw_page1) ? 0x40000 : 0x60000;
 	uint32_t vpaddr = (((x - xoffset) % 256 + ((y - yoffset) * 256)) << 1) & 0x1ffff;
 	if(!(is_halfx) && !(is_halfy)) { // not halfed
 		int __xstart = 0;		
 		int __xend = 16;
 		int __ystart = 0;
 		int __yend = 16;
-		/*
-		if(x < xoffset) {
-			__xstart = ((xoffset - x + 16) >= 0) ? (xoffset - x + 16) : 0;
-			__xend = ((xoffset - x + 16) >= 0)  ? 16 : 0;
-		} else if(x > (xoffset + 256)) {
-			__xend = 16 - (x - (xoffset + 256));
-			__xstart = 0;
-			if(__xend < 0) goto __noop;
-		} else { // INSIDE OF WINDOW
-			__xstart = 0;
-			__xend = 16;
-		}
-		if(((__xstart <= 0) && (__xend <= 0))) goto __noop;
-		int __ystart;
-		int __yend;
-		if(y < yoffset) {
-			__ystart = ((yoffset - y + 16) >= 0) ? (yoffset - y + 16) : 0;  
-			__yend = ((yoffset - y + 16) >= 0) ? 16 : 0;
-		} else if(y > (yoffset + 256)) {
-			__ystart = y - (yoffset + 256);
-			if(__ystart >= 16) {
-				__ystart = 0;
-				__yend = 0;
-			} else {
-				__ystart = 0;
-				__yend = 16 - __ystart;
-			}
-		} else { // INSIDE OF WINDOW
-			__ystart = 0;
-			__yend = 16;
-		}
-		if(((__ystart <= 0) && (__yend <= 0))) goto __noop;
-		*/
-		for(int yy = __ystart; yy < __yend;  yy++) {
+		for(int yy = 0; yy < 16;  yy++) {
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 16; xx++) {
-				lbuf[xx].w = 0;
-				mbuf[xx].w = 0;
+				lbuf.pw[xx].w = 0x8000;
+				mbuf.pw[xx].w = 0;
 			}
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 16; xx++) {
-				lbuf[xx].w = sbuf[yy][xx];
+				lbuf.pw[xx].w = sbuf[yy][xx];
 			}
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 16; xx++) {
-				mbuf[xx].w = (lbuf[xx].w == 0) ? 0xffff :  0x0000;
+//				mbuf.pw[xx].w = (lbuf.pw[xx].w == 0) ? 0xffff :  0x0000
+				mbuf.pw[xx].w = ((lbuf.pw[xx].w & 0x8000) != 0) ? 0xffff : 0x0000;
+//				mbuf.pw[xx].w = (lbuf.pw[xx].w == 0x8000) ? 0xffff :  0x0000;
+			}
+__DECL_VECTORIZED_LOOP						
+			for(int xx = 0; xx < 16; xx++) {
+				lbuf.pw[xx].w &= 0x7fff;
 			}
 			if(d_vram != NULL) {
 				__DECL_ALIGNED(16) uint8_t source[32] = {0};
 				d_vram->get_vram_to_buffer(vpaddr + noffset, source, 16);
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 16; xx++) {
-						source[(xx << 1) + 0] &= mbuf[xx].b.l;
-						source[(xx << 1) + 1] &= mbuf[xx].b.h;
+					for(int xx = 0; xx < 32; xx++) {
+						source[xx] &= mbuf.b[xx];
 					}
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 16; xx++) {
-						source[(xx << 1) + 0] |= lbuf[xx].b.l;
-						source[(xx << 1) + 1] |= lbuf[xx].b.h;
+					for(int xx = 0; xx < 32; xx++) {
+						source[xx] |= lbuf.b[xx];
 					}
 					d_vram->set_buffer_to_vram(vpaddr + noffset, source, 16);
 			}
 			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
 		}
 	} else if((is_halfx) && !(is_halfy)) { // halfx only
-		/*
-		int __xstart;
-		int __xend;
-		if(x < xoffset) {
-			__xstart = ((xoffset - x + 8) >= 0) ? (xoffset - x + 8) : 0;
-			__xend = ((xoffset - x + 8) >= 0)  ? 8 : 0;
-		} else if(x > (xoffset + 256)) {
-			__xend = 8 - (x - (xoffset + 256));
-			__xstart = 0;
-			if(__xend < 0) goto __noop;
-		} else { // INSIDE OF WINDOW
-			__xstart = 0;
-			__xend = 8;
-		}
-		if(((__xstart <= 0) && (__xend <= 0))) goto __noop;
-		int __ystart;
-		int __yend;
-		if(y < yoffset) {
-			__ystart = ((yoffset - y + 16) >= 0) ? (yoffset - y + 16) : 0;  
-			__yend = ((yoffset - y + 16) >= 0) ? 16 : 0;
-		} else if(y > (yoffset + 256)) {
-			__ystart = y - (yoffset + 256);
-			if(__ystart >= 16) {
-				__ystart = 0;
-				__yend = 0;
-			} else {
-				__ystart = 0;
-				__yend = 16 - __ystart;
-			}
-		} else { // INSIDE OF WINDOW
-			__ystart = 0;
-			__yend = 16;
-		}
-		if(((__ystart <= 0) && (__yend <= 0))) goto __noop;
-		*/
 		int __xstart = 0;		
 		int __xend = 8;
 		int __ystart = 0;
 		int __yend = 16;
-		for(int yy = __ystart; yy < __yend;  yy++) {
+		for(int yy = 0; yy < 16;  yy++) {
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 16; xx++) {
-				lbuf[xx].w = 0;
-				mbuf[xx].w = 0;
+				lbuf.pw[xx].w = 0x8000;
+				mbuf.pw[xx].w = 0;
 			}
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 16; xx++) {
-				lbuf[xx >> 1].w += (sbuf[yy][xx] & 0x7fff);
-				mbuf[xx >> 1].w |= (sbuf[yy][xx] & 0x8000);
+				lbuf.pw[xx >> 1].w += (sbuf[yy][xx] & 0x7fff);
+				mbuf.pw[xx >> 1].w |= (sbuf[yy][xx] & 0x8000);
 			}
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 8; xx++) {
-				lbuf[xx].w = ((lbuf[xx].w >> 1) & 0x7fff) | mbuf[xx].w;
+				lbuf.pw[xx].w = ((lbuf.pw[xx].w >> 1) & 0x7fff) | mbuf.pw[xx].w;
 			}
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 8; xx += 1) {
-				mbuf[xx].w = (lbuf[xx].w == 0) ? 0xffff : 0x0000;
+				mbuf.pw[xx].w = ((lbuf.pw[xx].w & 0x8000) != 0) ? 0xffff : 0x0000;
+			}
+__DECL_VECTORIZED_LOOP						
+			for(int xx = 0; xx < 8; xx++) {
+				lbuf.pw[xx].w &= (~(mbuf.pw[xx].w) & 0x7fff);
+//				lbuf.pw[xx].w &= ~(mbuf.pw[xx].w);
 			}
 			if(d_vram != NULL) {
-				__DECL_ALIGNED(16) uint8_t source[32] = {0};
+				__DECL_ALIGNED(16) uint8_t source[16] = {0};
 				d_vram->get_vram_to_buffer(vpaddr + noffset, source, 8);
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 8; xx++) {
-						source[(xx << 1) + 0] &= mbuf[xx].b.l;
-						source[(xx << 1) + 1] &= mbuf[xx].b.h;
-					}
-__DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 8; xx++) {
-						source[(xx << 1) + 0] |= lbuf[xx].b.l;
-						source[(xx << 1) + 1] |= lbuf[xx].b.h;
-					}
-					d_vram->set_buffer_to_vram(vpaddr + noffset, source, 8);
+				for(int xx = 0; xx < 16; xx++) {
+					source[xx] &= mbuf.b[xx];
 				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+					source[xx] |= lbuf.b[xx];
+				}
+				d_vram->set_buffer_to_vram(vpaddr + noffset, source, 8);
+			}
 			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
 		}
 	} else if(is_halfy) { // halfy only
-/*		int __xstart;
-		int __xend;
-		if(x < xoffset) {
-			__xstart = ((xoffset - x + 16) >= 0) ? (xoffset - x + 16) : 0;
-			__xend = ((xoffset - x + 16) >= 0)  ? 16 : 0;
-		} else if(x > (xoffset + 256)) {
-			__xend = 16 - (x - (xoffset + 256));
-			__xstart = 0;
-			if(__xend < 0) goto __noop;
-		} else { // INSIDE OF WINDOW
-			__xstart = 0;
-			__xend = 16;
-		}
-		if(((__xstart <= 0) && (__xend <= 0))) goto __noop;
-		int __ystart;
-		int __yend;
-		if(y < yoffset) {
-			__ystart = ((yoffset - y + 8) >= 0) ? (yoffset - y + 8) : 0;  
-			__yend = ((yoffset - y + 8) >= 0) ? 8 : 0;
-		} else if(y > (yoffset + 256)) {
-			__ystart = y - (yoffset + 256);
-			if(__ystart >= 8) {
-				__ystart = 0;
-				__yend = 0;
-			} else {
-				__ystart = 0;
-				__yend = 8 - __ystart;
-			}
-		} else { // INSIDE OF WINDOW
-			__ystart = 0;
-			__yend = 8;
-		}
-		if(((__ystart <= 0) && (__yend <= 0))) goto __noop;
-*/
 		int __xstart = 0;		
 		int __xend = 16;
 		int __ystart = 0;
@@ -483,76 +419,45 @@ __DECL_VECTORIZED_LOOP
 		for(int yy = (__ystart << 1); yy < (__yend << 1);  yy += 2) {
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 16; xx++) {
-				lbuf[xx].w = 0;
-				mbuf[xx].w = 0;
+				lbuf.pw[xx].w = 0x8000;
+				mbuf.pw[xx].w = 0;
 			}
 			for(int yy2 = 0; yy2 < 2; yy2++) {
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 16; xx++) {
-					lbuf[xx].w += (sbuf[yy + yy2][xx] & 0x7fff);
-					mbuf[xx].w |= (sbuf[yy + yy2][xx] & 0x8000);
+					lbuf.pw[xx].w += (sbuf[yy + yy2][xx] & 0x7fff);
+					mbuf.pw[xx].w |= (sbuf[yy + yy2][xx] & 0x8000);
 				}
 			}
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 16; xx++) {
-				lbuf[xx].w = ((lbuf[xx].w >> 1) & 0x7fff) | mbuf[xx].w;
+				lbuf.pw[xx].w = ((lbuf.pw[xx].w >> 1) & 0x7fff) | mbuf.pw[xx].w;
 			}
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 16; xx++) {
-				mbuf[xx].w = (lbuf[xx].w == 0) ? 0xffff : 0x0000;
+//				mbuf.pw[xx].w = (lbuf.pw[xx].w == 0) ? 0xffff : 0x0000;
+				mbuf.pw[xx].w = ((lbuf.pw[xx].w & 0x8000) != 0) ? 0xffff : 0x0000;
+			}
+__DECL_VECTORIZED_LOOP						
+			for(int xx = 0; xx < 16; xx++) {
+				lbuf.pw[xx].w &= (~(mbuf.pw[xx].w) & 0x7fff);
 			}
 			if(d_vram != NULL) {
 				__DECL_ALIGNED(16) uint8_t source[32] = {0};
 				d_vram->get_vram_to_buffer(vpaddr + noffset, source, 16);
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 16; xx++) {
-						source[(xx << 1) + 0] &= mbuf[xx].b.l;
-						source[(xx << 1) + 1] &= mbuf[xx].b.h;
+					for(int xx = 0; xx < 32; xx++) {
+						source[xx] &= mbuf.b[xx];
 					}
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 16; xx++) {
-						source[(xx << 1) + 0] |= lbuf[xx].b.l;
-						source[(xx << 1) + 1] |= lbuf[xx].b.h;
+					for(int xx = 0; xx < 32; xx++) {
+						source[xx] |= lbuf.b[xx];
 					}
 					d_vram->set_buffer_to_vram(vpaddr + noffset, source, 16);
 			}
 			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
 		}
 	} else { //halfx &&halfy
-/*		int __xstart;
-		int __xend;
-		if(x < xoffset) {
-			__xstart = ((xoffset - x + 8) >= 0) ? (xoffset - x + 8) : 0;
-			__xend = ((xoffset - x + 8) >= 0)  ? 8 : 0;
-		} else if(x > (xoffset + 256)) {
-			__xend = 8 - (x - (xoffset + 256));
-			__xstart = 0;
-			if(__xend < 0) goto __noop;
-		} else { // INSIDE OF WINDOW
-			__xstart = 0;
-			__xend = 8;
-		}
-		if(((__xstart <= 0) && (__xend <= 0))) goto __noop;
-		int __ystart;
-		int __yend;
-		if(y < yoffset) {
-			__ystart = ((yoffset - y + 8) >= 0) ? (yoffset - y + 8) : 0;  
-			__yend = ((yoffset - y + 8) >= 0) ? 8 : 0;
-		} else if(y > (yoffset + 256)) {
-			__ystart = y - (yoffset + 256);
-			if(__ystart >= 8) {
-				__ystart = 0;
-				__yend = 0;
-			} else {
-				__ystart = 0;
-				__yend = 8 - __ystart;
-			}
-		} else { // INSIDE OF WINDOW
-			__ystart = 0;
-			__yend = 8;
-		}
-		if(((__ystart <= 0) && (__yend <= 0))) goto __noop;
-*/
 		int __xstart = 0;		
 		int __xend = 8;
 		int __ystart = 0;
@@ -560,43 +465,46 @@ __DECL_VECTORIZED_LOOP
 		for(int yy = (__ystart << 1); yy < (__yend << 1);  yy += 2) {
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 16; xx++) {
-				lbuf[xx].w = 0;
-				mbuf[xx].w = 0;
+				lbuf.pw[xx].w = 0x8000;
+				mbuf.pw[xx].w = 0;
 			}
 			for(int yy2 = 0; yy2 < 2; yy2++) {
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 16; xx += 2) {
-					lbuf[xx >> 1].w += (sbuf[yy + yy2][xx] & 0x7fff);
-					lbuf[xx >> 1].w += (sbuf[yy + yy2][xx + 1] & 0x7fff);
-					mbuf[xx >> 1].w |= (sbuf[yy + yy2][xx] & 0x8000);
-					mbuf[xx >> 1].w |= (sbuf[yy + yy2][xx + 1] & 0x8000);
+					lbuf.pw[xx >> 1].w += (sbuf[yy + yy2][xx] & 0x7fff);
+					lbuf.pw[xx >> 1].w += (sbuf[yy + yy2][xx + 1] & 0x7fff);
+					mbuf.pw[xx >> 1].w |= (sbuf[yy + yy2][xx] & 0x8000);
+					mbuf.pw[xx >> 1].w |= (sbuf[yy + yy2][xx + 1] & 0x8000);
 				}
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 8; xx++) {
-					lbuf[xx].w >>= 1;
+					lbuf.pw[xx].w >>= 1;
 				}
 			}
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 8; xx++) {
-				lbuf[xx].w = ((lbuf[xx].w >> 2) & 0x7fff) | mbuf[xx].w;
+				lbuf.pw[xx].w = ((lbuf.pw[xx].w >> 2) & 0x7fff) | mbuf.pw[xx].w;
 			}
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 8; xx++) {
-				mbuf[xx].w = (lbuf[xx].w == 0x0000) ? 0xffff : 0x0000;
+				mbuf.pw[xx].w = ((lbuf.pw[xx].w & 0x8000) != 0) ? 0xffff : 0x0000;
+//				mbuf.pw[xx].w = (lbuf.pw[xx].w == 0x0000) ? 0xffff : 0x0000;
+			}
+__DECL_VECTORIZED_LOOP						
+			for(int xx = 0; xx < 8; xx++) {
+				lbuf.pw[xx].w &= (~(mbuf.pw[xx].w) & 0x7fff);
 			}
 			if(d_vram != NULL) {
 				//d_vram->write_sprite_data(x, y + (yy >>1), xoffset, yoffset, lbuf, 8);
-				__DECL_ALIGNED(16) uint8_t source[32] = {0};
+				__DECL_ALIGNED(16) uint8_t source[16] = {0};
 					d_vram->get_vram_to_buffer(vpaddr + noffset, source, 8);
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 8; xx++) {
-						source[(xx << 1) + 0] &= mbuf[xx].b.l;
-						source[(xx << 1) + 1] &= mbuf[xx].b.h;
+					for(int xx = 0; xx < 16; xx++) {
+						source[xx] &= mbuf.b[xx];
 					}
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 8; xx++) {
-						source[(xx << 1) + 0] |= lbuf[xx].b.l;
-						source[(xx << 1) + 1] |= lbuf[xx].b.h;
+					for(int xx = 0; xx < 16; xx++) {
+						source[xx] |= lbuf.b[xx];
 					}
 					d_vram->set_buffer_to_vram(vpaddr + noffset, source, 8);
 			}
@@ -678,11 +586,13 @@ void TOWNS_SPRITE::write_reg(uint32_t addr, uint32_t data)
 		reg_voffset = ((uint16_t)(reg_data[4]) + (((uint16_t)(reg_data[5] & 0x01)) << 8));
 		break;
 	case 6:
-//		if(!(now_transferring)) {
-		// From Tsugaru
-		disp_page0 = ((data & 0x08) != 0) ? true : false;
-		disp_page1 = ((data & 0x80) != 0) ? true : false;
-//		}
+		{
+			// From Tsugaru
+			bool _bak = disp_page1;
+			disp_page0 = ((data & 0x08) != 0) ? true : false;
+			disp_page1 = ((data & 0x80) != 0) ? true : false;
+			/*if(_bak != disp_page1) */page_changed = true;
+		}
 		break;
 	default:
 		break;
@@ -853,71 +763,35 @@ void TOWNS_SPRITE::event_callback(int id, int err)
 			int lot = reg_index & 0x3ff;
 			if(lot == 0) lot = 1024;
 			render_num = lot;
+			if(lot < 1024) {
+				disp_page1 = !(disp_page1);
+			}
 		}
 		break;
 	case EVENT_RENDER:
 		event_busy = -1;
 		if((sprite_enabled) && (sprite_busy)) {
-			if(render_num < 1024) {
+			int _bak = render_num;
+			for(; render_num < 1024; render_num++) {
 				render_part();
-				render_num++;
+//				render_num++;
 			}
-			if(render_num < 1024) {
-				register_event(this, EVENT_RENDER, 75.0, false, &event_busy);
-			}else {
-				register_event(this, EVENT_BUSY_OFF, 75.0, false, &event_busy);
+			if(_bak < 1024) {
+				register_event(this, EVENT_BUSY_OFF, 75.0 * (1024 - _bak), false, &event_busy);
+			} else {
+				sprite_busy = false;
+				int lot = reg_index & 0x3ff;
+				if(lot == 0) lot = 1024;
+				render_num = lot;
+				if(lot < 1024) {
+					disp_page1 = !(disp_page1);
+				}
 			}
 		}
 	}
 }
 
-void TOWNS_SPRITE::event_frame()
-{
-	/*
-	uint16_t lot = reg_index & 0x3ff;
-	if(lot == 0) lot = 1024;
-	if(!(sprite_busy) && (sprite_enabled)) {
-		render_num = 0;
-		render_mod = 0;
-		sprite_busy = true;
-		if(event_busy > -1) {
-			cancel_event(this, event_busy);
-			event_busy = -1;
-		}
-		double us = 32000.0 + 75000.0 * (double)lot;
-		register_event(this, EVENT_BUSY_OFF, us, false, &event_busy);
-	}
-//	}
-
-	frame_sprite_count = 0;
-	if((sprite_enabled) && (sprite_busy) ){
-		if(d_crtc != NULL) {
-			d_crtc->write_signal(SIG_TOWNS_CRTC_ADD_VAL_FO1, (disp_page1) ? 0x00000 : 0x80000, 0xfffff);
-		}
-		if(d_vram != NULL) {
-			// Set split_rendering from DIPSW.
-			// Set cache_enabled from DIPSW.
-			if(!split_rendering) {
-				render_full();
-				register_event(this, EVENT_FALL_DOWN, (double)((lot * 128) / 16), false, NULL);
-//			disp_page1 = !(disp_page1); // Change page
-				
-			}
-			//} else {
-			//render_num = 0;
-			//render_mod = 0;
-			//sprite_enabled = false;
-			//}
-		}
-	} else {
-		if(d_crtc != NULL) {
-			d_crtc->write_signal(SIG_TOWNS_CRTC_ADD_VAL_FO1, 0x00000, 0xfffff);
-		}
-	}
-	*/
-}
-
-void TOWNS_SPRITE::event_vline(int v, int clock)
+void TOWNS_SPRITE::check_and_clear_vram()
 {
 	if(sprite_enabled != reg_spen) {
 		if(event_busy > -1) {
@@ -927,7 +801,6 @@ void TOWNS_SPRITE::event_vline(int v, int clock)
 		sprite_busy = false;
 	}
 	sprite_enabled = reg_spen;
-	
 	if(!(sprite_busy) && (sprite_enabled)) {
 		uint16_t lot = reg_index & 0x3ff;
 		if(lot == 0) lot = 1024;
@@ -937,10 +810,34 @@ void TOWNS_SPRITE::event_vline(int v, int clock)
 			cancel_event(this, event_busy);
 			event_busy = -1;
 		}
-		register_event(this, EVENT_RENDER, 32.0, false, &event_busy);
-	}
+		
+		{
+			uint32_t noffset = (disp_page1) ? 0x40000 : 0x60000;
+			draw_page1 = disp_page1;
+			if((d_vram != NULL) && (render_num < 1024)) {
+				pair16_t *p = (pair16_t*)(d_vram->get_vram_address(noffset));
+				if(p != NULL) {
+					for(int x = 0; x < 0x10000; x++) {
+						p[x].w = 0x8000; //
+					}
+				}
+			}
+		
+			page_changed = false;
+			register_event(this, EVENT_RENDER, 32.0, false, &event_busy);
 
-//	do_vline_hook(v);
+//			register_event(this, EVENT_RENDER, 1.0, false, &event_busy);
+		}
+	}
+}
+void TOWNS_SPRITE::event_pre_frame()
+{
+//	check_and_clear_vram();
+}
+
+void TOWNS_SPRITE::event_vline(int v, int clock)
+{
+	check_and_clear_vram();
 }
 
 // Q: Is changing pages syncing to Frame?
@@ -982,7 +879,7 @@ uint32_t TOWNS_SPRITE::read_signal(int id)
 	return 0;
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1005,9 +902,11 @@ bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(reg_hoffset);
 	state_fio->StateValue(disp_page0);
 	state_fio->StateValue(disp_page1);
+	state_fio->StateValue(draw_page1);
 
 	state_fio->StateValue(sprite_busy);
 	state_fio->StateValue(sprite_enabled);
+	state_fio->StateValue(page_changed);
 	
 	state_fio->StateValue(render_num);
 	state_fio->StateValue(render_lines);
