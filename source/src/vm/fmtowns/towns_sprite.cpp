@@ -53,12 +53,9 @@ void TOWNS_SPRITE::reset()
 	reg_spen = false;
 	reg_addr = 0;
 	render_num = 1024;
-	render_lines = 224;
-//	split_rendering = true;
-	split_rendering = false;
 
 	sprite_enabled = false;
-	now_transferring = false;
+
 	max_sprite_per_frame = 224;
 	tvram_enabled = false;
 	tvram_enabled_bak = false;
@@ -109,6 +106,7 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	int xbegin, xend;
 	int ybegin, yend;
 	int xinc, yinc;
+	bool is_mirror;
 	switch(rot & 3) { // ROT1, ROT0
 	case 0:
 		// 0deg, not mirror
@@ -118,6 +116,7 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 		yend = 15;
 		xinc = 1;
 		yinc = 1;
+		is_mirror = false;
 		break;
 	case 1:
 		// 180deg, mirror
@@ -127,6 +126,7 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 		yend = 0;
 		xinc = 1;
 		yinc = -1;
+		is_mirror = true;
 		break;
 	case 2:
 		// 0deg, mirror
@@ -136,6 +136,7 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 		yend = 15;
 		xinc = -1;
 		yinc = 1;
+		is_mirror = true;
 		break;
 	case 3:
 		// 180deg, not mirror
@@ -145,51 +146,25 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 		yend = 0;
 		xinc = -1;
 		yinc = -1;
+		is_mirror = false;
 		break;
 		/*
 	case 4:
 		// 270deg, mirror
-		xbegin = 0;
-		xend   = 15;
-		ybegin = 0;
-		yend = 15;
-		xinc = 1;
-		yinc = 1;
-		swap_v_h = true;
 		break;
 	case 5:
 		// 90deg, not mirror
-		xbegin = 0;
-		xend   = 15;
-		ybegin = 15;
-		yend = 0;
-		xinc = 1;
-		yinc = -1;
-		swap_v_h = true;
 		break;
 	case 6:
 		// 270deg, not mirror
-		xbegin = 15;
-		xend   = 0;
-		ybegin = 0;
-		yend = 15;
-		xinc = -1;
-		yinc = 1;
-		swap_v_h = true;
 		break;
 	case 7:
 		// 90deg, mirror
-		xbegin = 15;
-		xend   = 0;
-		ybegin = 15;
-		yend = 0;
-		xinc = -1;
-		yinc = -1;
-		swap_v_h = true;
 		break;
 		*/
 	}
-	now_transferring = true;
+	if(swap_v_h) is_mirror = !(is_mirror);
+	
 	__DECL_ALIGNED(32) uint16_t sbuf[16][16];
 	__DECL_ALIGNED(16) union {
 		pair16_t pw[16];
@@ -225,7 +200,6 @@ __DECL_VECTORIZED_LOOP
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 16; xx++) {
 					sbuf[yy][xx] = nnw.pw[xx].w;
-//					addr = (addr + (xinc << 1)) & 0x1ffff;
 				}
 			}
 		} else { // 16 colors
@@ -258,7 +232,7 @@ __DECL_VECTORIZED_LOOP
 					pixel_h[xx] = color_table[nnh];
 					pixel_l[xx] = color_table[nnl];
 				}
-				if(yinc < 0) {
+				if(xinc < 0) {
 __DECL_VECTORIZED_LOOP						
 					for(int xx = 0; xx < 16; xx += 2 ) {
 						sbuf[yy][xx    ] = pixel_l[xx >> 1];
@@ -278,13 +252,31 @@ __DECL_VECTORIZED_LOOP
 			// get from ram.
 			for(int yy = 0; yy < 16; yy++) {
 				uint32_t addr = ((ybegin + yy * yinc) << 5) + (xbegin << 1) + ram_offset;
-				pair16_t nnp;
+				__DECL_ALIGNED(16) union {
+					pair16_t pw[16];
+					uint8_t  b[32];
+				} nnw;
+				if(xinc > 0) {
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 16; xx++) {
-					nnp.b.l = pattern_ram[(addr + 0) & 0x1ffff];
-					nnp.b.h = pattern_ram[(addr + 1) & 0x1ffff];
-					sbuf[xx][yy] = nnp.w;
-					addr = (addr + (xinc << 1)) & 0x1ffff;
+					for(int xx = 0; xx < 32; xx++) {
+						nnw.b[xx] = pattern_ram[(addr + xx) & 0x1ffff];
+					}
+				} else {
+__DECL_VECTORIZED_LOOP						
+					for(int xx = 0; xx < 32; xx++) {
+						nnw.b[xx] = pattern_ram[(addr - xx) & 0x1ffff];
+					}
+				}
+				if(yinc > 0) {
+__DECL_VECTORIZED_LOOP						
+					for(int xx = 0; xx < 16; xx++) {
+						sbuf[xx][yy] = nnw.pw[xx].w;
+					}
+				} else {
+__DECL_VECTORIZED_LOOP						
+					for(int xx = 0; xx < 16; xx++) {
+						sbuf[15 - xx][yy] = nnw.pw[xx].w;
+					}
 				}
 			}
 		} else { // 16 colors
@@ -511,9 +503,6 @@ __DECL_VECTORIZED_LOOP
 			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
 		}
 	}
-__noop:
-	now_transferring = false;
-
 }
 	
 void TOWNS_SPRITE::render_part()
@@ -844,12 +833,9 @@ void TOWNS_SPRITE::event_vline(int v, int clock)
 // ToDo: Implement VRAM.
 void TOWNS_SPRITE::write_signal(int id, uint32_t data, uint32_t mask)
 {
-if(id == SIG_TOWNS_SPRITE_SET_LINES) {
-		int line = data & 0x7ff; // 2048 - 1
-		render_lines = line;
-	} /*else if(id == SIG_TOWNS_SPRITE_ANKCG) {  // write CFF19
+	 /*else if(id == SIG_TOWNS_SPRITE_ANKCG) {  // write CFF19
 		ankcg_enabled = ((data & mask) != 0);
-	} */else if(id == SIG_TOWNS_SPRITE_TVRAM_ENABLED) {  // write CFF19
+	} else */if(id == SIG_TOWNS_SPRITE_TVRAM_ENABLED) {  // write CFF19
 		tvram_enabled = ((data & mask) != 0);
 		tvram_enabled_bak = tvram_enabled;
 	}
@@ -879,7 +865,7 @@ uint32_t TOWNS_SPRITE::read_signal(int id)
 	return 0;
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 {
@@ -909,8 +895,6 @@ bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(page_changed);
 	
 	state_fio->StateValue(render_num);
-	state_fio->StateValue(render_lines);
-	state_fio->StateValue(now_transferring);
 	
 	state_fio->StateValue(max_sprite_per_frame);
 	state_fio->StateValue(tvram_enabled);

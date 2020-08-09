@@ -53,12 +53,7 @@ protected:
 	bool sprite_busy;
 	bool page_changed;
 	
-	bool now_transferring;
-	
 	int render_num;
-	int render_lines;
-	
-	bool split_rendering;
 	int max_sprite_per_frame;
 
 	bool tvram_enabled;
