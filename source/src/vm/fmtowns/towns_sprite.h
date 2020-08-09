@@ -47,13 +47,13 @@ protected:
 	uint16_t reg_hoffset;
 	bool disp_page0;
 	bool disp_page1;
-	int frame_sprite_count;
+
 	bool sprite_enabled;
+	bool sprite_busy;
 	
 	bool now_transferring;
 	
 	int render_num;
-	int render_mod;
 	int render_lines;
 	
 	bool split_rendering;
@@ -63,10 +63,10 @@ protected:
 	bool tvram_enabled_bak;
 
 	bool ankcg_enabled;
+	int event_busy;
+	
 	void __FASTCALL render_sprite(int num,  int x, int y, uint16_t attr, uint16_t color);
-	void render_full();
-	void render_part(int start, int end);
-	void do_vline_hook(int line);
+	void render_part();
 	virtual void __FASTCALL write_reg(uint32_t addr, uint32_t data);
 
 public:
