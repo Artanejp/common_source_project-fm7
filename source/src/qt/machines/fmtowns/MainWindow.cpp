@@ -16,6 +16,7 @@
 #include "qt_main.h"
 #include "../../vm/fmtowns/fmtowns.h"
 #include "menu_binary.h"
+#include "menu_cart.h"
 
 //QT_BEGIN_NAMESPACE
 
@@ -40,6 +41,14 @@ void META_MainWindow::retranslateUi(void)
 	actionJoystickType[1]->setText(QApplication::translate("Machine", "6 buttons", 0));
 	actionJoystickType[1]->setToolTip(QApplication::translate("Machine", "Connect 6 buttons Towns PAD to PORTs.", 0));
 	menuJoystickType->setTitle(QApplication::translate("Machine", "Towns PAD", 0));
+#endif
+#if defined(USE_CART)
+	if(menu_Cart[0] != NULL) {
+		menu_Cart[0]->setTitle(QApplication::translate("MainWindow", "IC1", 0));
+	}
+	if(menu_Cart[1] != NULL) {
+		menu_Cart[1]->setTitle(QApplication::translate("MainWindow", "IC2", 0));
+	}
 #endif
 //	menu_BINs[0]->setTitle(QApplication::translate("MenuBABBAGE", "RAM", 0));
 	//menuMachine->setVisible(false);

@@ -132,6 +132,9 @@ void TOWNS_MEMORY::initialize()
 //	set_memory_mapped_io_rw(0xc0000000, 0xc0ffffff, d_iccard[0]);
 //	set_memory_mapped_io_rw(0xc1000000, 0xc1ffffff, d_iccard[1]);
 	set_wait_rw(0x00000000, 0xffffffff,  vram_wait_val);
+
+	set_memory_mapped_io_rw(0xc0000000, 0xc0ffffff, d_iccard[0]);
+	set_memory_mapped_io_rw(0xc1000000, 0xc1ffffff, d_iccard[1]);
 	
 	set_memory_mapped_io_r (0xc2000000, 0xc207ffff, d_msdos);
 	set_memory_mapped_io_r (0xc2080000, 0xc20fffff, d_dictionary);
@@ -219,6 +222,12 @@ void TOWNS_MEMORY::set_wait_values()
 	set_wait_rw(0x80100000, 0x801fffff, vram_wait_val);
 	set_wait_rw(0x81000000, 0x8101ffff, vram_wait_val);
 	// ToDo: ROM CARDS
+	if(d_iccard[0] != NULL) {
+		set_wait_rw(0xc0000000, 0xc0ffffff, mem_wait_val); // OK?
+	}
+	if(d_iccard[0] != NULL) {
+		set_wait_rw(0xc1000000, 0xc1ffffff, mem_wait_val); // OK?
+	}
 	set_wait_rw(0xc2000000, 0xc2141fff, mem_wait_val);
 	set_wait_rw(0xc2200000, 0xc2200fff, mem_wait_val);
 	set_wait_rw(0xfffc0000, 0xffffffff, mem_wait_val);

@@ -65,6 +65,8 @@
 #include "./scsi.h"
 #include "./serialrom.h"
 #include "./timer.h"
+#include "./iccard.h"
+
 #include "./towns_planevram.h"
 
 // ----------------------------------------------------------------------------
@@ -82,6 +84,7 @@ using FMTOWNS::SCSI;
 using FMTOWNS::SERIAL_ROM;
 using FMTOWNS::SYSROM;
 using FMTOWNS::TIMER;
+using FMTOWNS::TOWNS_ICCARD;
 
 using FMTOWNS::TOWNS_CDROM;
 using FMTOWNS::TOWNS_CRTC;
@@ -199,6 +202,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	joystick = new JOYSTICK(this, emu);
 	scsi = new SCSI(this, emu);
 	timer = new TIMER(this, emu);
+
+	iccard1 = new TOWNS_ICCARD(this, emu);
+#if 0
+	iccard2 = new TOWNS_ICCARD(this, emu);
+#else
+	iccard2 = NULL;
+#endif
 	
 	uint16_t machine_id = 0x0100; // FM-Towns1
 	uint16_t cpu_id = 0x0001;     // i386DX
@@ -365,6 +375,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_serial_rom(serialrom);
 	memory->set_context_sprite(sprite);
 	memory->set_context_pcm(rf5c68);
+	memory->set_context_iccard(iccard1, 0);
+	memory->set_context_iccard(iccard2, 1);
 
 	adpcm->set_context_opn2(opn2);
 	adpcm->set_context_rf5c68(rf5c68);
@@ -496,7 +508,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x0480, memory); //  MEMORY REGISTER
 	io->set_iomap_single_rw(0x0484, dictionary); // Dictionary
 	
-	//io->set_iomap_alias_r(0x48a, memory_card, 0); //
+	io->set_iomap_alias_r(0x48a, iccard1, 0); //
 	//io->set_iomap_alias_rw(0x490, memory_card); // After Towns2
 	//io->set_iomap_alias_rw(0x491, memory_card); // After Towns2
 	
@@ -981,6 +993,54 @@ void VM::key_up(int code)
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------
+void VM::open_cart(int drv, const _TCHAR* file_path)
+{
+	switch(drv) {
+	case 0:
+		if(iccard1 != NULL) {
+			iccard1->open_cart(file_path);
+		}
+		break;
+	case 1:
+		if(iccard2 != NULL) {
+			iccard2->open_cart(file_path);
+		}
+		break;
+	}
+}
+
+void VM::close_cart(int drv)
+{
+	switch(drv) {
+	case 0:
+		if(iccard1 != NULL) {
+			iccard1->close_cart();
+		}
+		break;
+	case 1:
+		if(iccard2 != NULL) {
+			iccard2->close_cart();
+		}
+		break;
+	}		
+}
+
+bool VM::is_cart_inserted(int drv)
+{
+	switch(drv) {
+	case 0:
+		if(iccard1 != NULL) {
+			return iccard1->is_cart_inserted();
+		}
+		break;
+	case 1:
+		if(iccard2 != NULL) {
+			return iccard2->is_cart_inserted();
+		}
+		break;
+	}
+	return false;
+}
 
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {

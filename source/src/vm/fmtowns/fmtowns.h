@@ -270,6 +270,8 @@
 // device informations for win32
 #define USE_CPU_TYPE		2
 #define USE_FLOPPY_DISK     4 // ??
+#define USE_CART			2
+
 #define NOTIFY_KEY_DOWN
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
@@ -295,6 +297,7 @@
 #define USE_STATE
 #define USE_CPU_I386
 #define HAS_I386
+#define BASE_FLOPPY_DISK_NUM 0
 //#define USE_QUEUED_SCSI_TRANSFER
 
 #include "../../common.h"
@@ -368,6 +371,7 @@ namespace FMTOWNS {
 	class TOWNS_CRTC;
 	class TOWNS_CDROM;
 	class TOWNS_DMAC;    // DMAC
+	class TOWNS_ICCARD;
 	class TOWNS_MEMORY;
 	class TOWNS_SCSI_HOST;
 	class TOWNS_SPRITE;
@@ -419,6 +423,8 @@ protected:
 	FMTOWNS::SYSROM*         sysrom;
 	FMTOWNS::MSDOSROM*       msdosrom;
 	FMTOWNS::FONT_ROMS*      fontrom;
+	FMTOWNS::TOWNS_ICCARD*   iccard1;
+	FMTOWNS::TOWNS_ICCARD*   iccard2;
 #if defined(HAS_20PIX_FONTS)
 	FMTOWNS::FONT_ROM_20PIX* fontrom_20pix;
 #endif
@@ -485,6 +491,11 @@ public:
 	void key_up(int code);
 	
 	// user interface
+	// CARTs are IC CARD.Will implement something :-)
+	void open_cart(int drv, const _TCHAR* file_path);
+	void close_cart(int drv);
+	bool is_cart_inserted(int drv);
+	
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
 	uint32_t is_floppy_disk_accessed();

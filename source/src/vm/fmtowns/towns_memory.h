@@ -78,6 +78,8 @@ protected:
 	DEVICE* d_font;
 	DEVICE* d_font_20pix;
 
+	DEVICE* d_iccard[2];
+
 	outputs_t outputs_ram_wait;
 	outputs_t outputs_rom_wait;
 	
@@ -144,6 +146,8 @@ public:
 		d_dmac = NULL;
 		d_crtc = NULL;
 		d_planevram = NULL;
+		d_iccard[0] = NULL;
+		d_iccard[1] = NULL;
 		
 		d_dictionary = NULL;
 		d_sysrom = NULL;
@@ -310,6 +314,12 @@ public:
 	void set_context_planevram(DEVICE *dev)
 	{
 		d_planevram = dev;
+	}
+	void set_context_iccard(DEVICE* device, int num)
+	{
+		if((num >= 0) && (num < 2)) {
+			d_iccard[num] = device;
+		}
 	}
 	void set_machine_id(uint16_t val)
 	{
