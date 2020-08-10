@@ -1494,18 +1494,18 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 //			out_debug_log(_T("READ DATA SIZE=%d BUFFER COUNT=%d"), logical_block_size(), databuffer->count());
 			if(read_length >= logical_block_size()) {
 				read_buffer(logical_block_size());
-			} else {
+			} else if(read_length > 0) {
 				read_buffer(read_length);
 			}
-		pio_transfer_phase = pio_transfer;
+			pio_transfer_phase = pio_transfer;
 //		dma_transfer_phase = dma_transfer;
 		}
 //		if((cdrom_prefetch) || (pio_transfer)) {
 			register_event(this, EVENT_CDROM_NEXT_SECTOR,
-//						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
-//						   ((double)(physical_block_size())) * 
-//						   0.2, // OK?
-						   5.0e3, // From TSUGARU
+						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
+						   ((double)(physical_block_size())) * 
+						   1.0, // OK?
+//						   5.0e3, // From TSUGARU
 						   false, &event_next_sector);
 //		}
 		break;
@@ -1534,14 +1534,23 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				status_data_ready(true);
 			}
 			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
-						   ((double)(physical_block_size())) *
-						   1.0, // OK?
+//						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
+//						   ((double)(physical_block_size())) *
+//						   1.0, // OK?
+						   5.0, // OK?
 						   false, &event_seek_completed);
 		} else if(read_length > 0) {
 			// Polling to buffer empty.
+//			if(event_drq < 0) {
+//				if(dma_transfer) {
+//						out_debug_log(_T("KICK DRQ"));
+//					dma_transfer_phase = true;
+//					register_event(this, EVENT_CDROM_DRQ, 0.5 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
+//				}
+//			}
 			register_event(this, EVENT_CDROM_NEXT_SECTOR,
-						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 8.0, // OK?
+//						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 8.0, // OK?
+						   1.0e6, // OK?
 						   false, &event_next_sector);
 	   }
 		break;
@@ -1619,7 +1628,7 @@ bool TOWNS_CDROM::read_buffer(int length)
 				if(event_drq < 0) {
 					if(dma_transfer) {
 //						out_debug_log(_T("KICK DRQ"));
-						register_event(this, EVENT_CDROM_DRQ, 0.5 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
+						register_event(this, EVENT_CDROM_DRQ, 1.0 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
 					}
 				}
 			}
