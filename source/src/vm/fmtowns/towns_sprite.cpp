@@ -165,7 +165,7 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	}
 	if(swap_v_h) is_mirror = !(is_mirror);
 	
-	__DECL_ALIGNED(32) uint16_t sbuf[16][16];
+	__DECL_ALIGNED(32) uint16_t sbuf[16][16] = {0}; 
 	__DECL_ALIGNED(16) union {
 		pair16_t pw[16];
 		uint8_t b[32];
@@ -221,15 +221,35 @@ __DECL_VECTORIZED_LOOP
 				uint32_t addr = ((ybegin + yy * yinc) << 3) + (xbegin >> 1) + ram_offset;
 				uint8_t nnh, nnl;
 				__DECL_ALIGNED(8) uint8_t nnb[8];
+				if(xinc > 0) {
 __DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 8; xx++ ) {
-					nnb[xx] = pattern_ram[(addr + xx * xinc) & 0x1ffff];
+					for(int xx = 0; xx < 8; xx++ ) {
+						nnb[xx] = pattern_ram[(addr + xx) & 0x1ffff];
+					}
+				} else {
+__DECL_VECTORIZED_LOOP
+					for(int xx = 0; xx < 8; xx++ ) {
+						nnb[xx] = pattern_ram[(addr - xx) & 0x1ffff];
+					}
 				}
 __DECL_VECTORIZED_LOOP
 				for(int xx = 0; xx < 8; xx++ ) {
 					nnh = nnb[xx] & 0x0f;
-					nnl = nnb[xx] >> 4;
 					pixel_h[xx] = color_table[nnh];
+				}	
+__DECL_VECTORIZED_LOOP
+				for(int xx = 0; xx < 8; xx++ ) {
+					nnh = nnb[xx] & 0x0f;
+					pixel_h[xx] = color_table[nnh];
+				}	
+__DECL_VECTORIZED_LOOP
+				for(int xx = 0; xx < 8; xx++ ) {
+					nnh = nnb[xx] & 0x0f;
+					pixel_h[xx] = color_table[nnh];
+				}	
+__DECL_VECTORIZED_LOOP
+				for(int xx = 0; xx < 8; xx++ ) {
+					nnl = nnb[xx] >> 4;
 					pixel_l[xx] = color_table[nnl];
 				}
 				if(xinc < 0) {
@@ -293,13 +313,24 @@ __DECL_VECTORIZED_LOOP
 				uint32_t addr = ((ybegin + yy * yinc) << 3) + (xbegin >> 1) + ram_offset;
 				uint8_t nnh, nnl;
 				uint8_t nnb;
+				if(xinc > 0) {
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 8; xx++ ) {
-					nnb = pattern_ram[(addr + xx * xinc) & 0x1ffff];
-					nnh = nnb & 0x0f;
-					nnl = nnb >> 4;
-					pixel_h[xx] = color_table[nnh];
-					pixel_l[xx] = color_table[nnl];
+					for(int xx = 0; xx < 8; xx++ ) {
+						nnb = pattern_ram[(addr + xx) & 0x1ffff];
+						nnh = nnb & 0x0f;
+						nnl = nnb >> 4;
+						pixel_h[xx] = color_table[nnh];
+						pixel_l[xx] = color_table[nnl];
+					}
+				} else {
+__DECL_VECTORIZED_LOOP						
+					for(int xx = 0; xx < 8; xx++ ) {
+						nnb = pattern_ram[(addr - xx) & 0x1ffff];
+						nnh = nnb & 0x0f;
+						nnl = nnb >> 4;
+						pixel_h[xx] = color_table[nnh];
+						pixel_l[xx] = color_table[nnl];
+					}
 				}
 				if(yinc < 0) {
 __DECL_VECTORIZED_LOOP						
@@ -325,37 +356,48 @@ __DECL_VECTORIZED_LOOP
 		int __ystart = 0;
 		int __yend = 16;
 		for(int yy = 0; yy < 16;  yy++) {
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 16; xx++) {
-				lbuf.pw[xx].w = 0x8000;
-				mbuf.pw[xx].w = 0;
-			}
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 16; xx++) {
-				lbuf.pw[xx].w = sbuf[yy][xx];
-			}
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 16; xx++) {
-//				mbuf.pw[xx].w = (lbuf.pw[xx].w == 0) ? 0xffff :  0x0000
-				mbuf.pw[xx].w = ((lbuf.pw[xx].w & 0x8000) != 0) ? 0xffff : 0x0000;
-//				mbuf.pw[xx].w = (lbuf.pw[xx].w == 0x8000) ? 0xffff :  0x0000;
-			}
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 16; xx++) {
-				lbuf.pw[xx].w &= 0x7fff;
-			}
 			if(d_vram != NULL) {
-				__DECL_ALIGNED(16) uint8_t source[32] = {0};
+				__DECL_ALIGNED(16) uint8_t source[32];
 				d_vram->get_vram_to_buffer(vpaddr + noffset, source, 16);
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 32; xx++) {
-						source[xx] &= mbuf.b[xx];
-					}
+				for(int xx = 0; xx < 16; xx++) {
+					mbuf.pw[xx].w = 0;
+				}
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 32; xx++) {
-						source[xx] |= lbuf.b[xx];
-					}
-					d_vram->set_buffer_to_vram(vpaddr + noffset, source, 16);
+				for(int xx = 0; xx < 16; xx++) {
+					lbuf.pw[xx].w = sbuf[yy][xx];
+				}
+				__DECL_ALIGNED(16) uint16_t mbuf2[16];
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+					mbuf2[xx] = mbuf.pw[xx].w;
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+					mbuf2[xx] = (lbuf.pw[xx].w  >> 15);  // All values are either 1 or 0.
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+					mbuf2[xx] = mbuf2[xx] * 0xffff;
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+					mbuf.pw[xx].w = mbuf2[xx];
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+//					lbuf.pw[xx].w &= 0x7fff;
+					lbuf.pw[xx].w &= (~(mbuf2[xx]) & 0x7fff); // OK?
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 32; xx++) {
+					source[xx] &= mbuf.b[xx];
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 32; xx++) {
+					source[xx] |= lbuf.b[xx];
+				}
+				d_vram->set_buffer_to_vram(vpaddr + noffset, source, 16);
 			}
 			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
 		}
@@ -365,32 +407,49 @@ __DECL_VECTORIZED_LOOP
 		int __ystart = 0;
 		int __yend = 16;
 		for(int yy = 0; yy < 16;  yy++) {
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 16; xx++) {
-				lbuf.pw[xx].w = 0x8000;
-				mbuf.pw[xx].w = 0;
-			}
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 16; xx++) {
-				lbuf.pw[xx >> 1].w += (sbuf[yy][xx] & 0x7fff);
-				mbuf.pw[xx >> 1].w |= (sbuf[yy][xx] & 0x8000);
-			}
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 8; xx++) {
-				lbuf.pw[xx].w = ((lbuf.pw[xx].w >> 1) & 0x7fff) | mbuf.pw[xx].w;
-			}
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 8; xx += 1) {
-				mbuf.pw[xx].w = ((lbuf.pw[xx].w & 0x8000) != 0) ? 0xffff : 0x0000;
-			}
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 8; xx++) {
-				lbuf.pw[xx].w &= (~(mbuf.pw[xx].w) & 0x7fff);
-//				lbuf.pw[xx].w &= ~(mbuf.pw[xx].w);
-			}
 			if(d_vram != NULL) {
-				__DECL_ALIGNED(16) uint8_t source[16] = {0};
+				__DECL_ALIGNED(16) uint8_t source[16];
 				d_vram->get_vram_to_buffer(vpaddr + noffset, source, 8);
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+					lbuf.pw[xx].w = 0x0;
+					mbuf.pw[xx].w = 0;
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+					lbuf.pw[xx >> 1].w += (sbuf[yy][xx] & 0x7fff);
+					mbuf.pw[xx >> 1].w |= (sbuf[yy][xx] & 0x8000);
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 8; xx++) {
+					lbuf.pw[xx].w = ((lbuf.pw[xx].w >> 1) & 0x7fff) | mbuf.pw[xx].w;
+				}
+				__DECL_ALIGNED(16) uint16_t mbuf2[8];
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 8; xx++) {
+					mbuf2[xx] = mbuf.pw[xx].w;
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 8; xx++) {
+					mbuf2[xx] = (lbuf.pw[xx].w  >> 15); // All values are either 1 or 0.
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 8; xx++) {
+					mbuf2[xx] = mbuf2[xx] * 0xffff;
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 8; xx++) {
+					mbuf.pw[xx].w = mbuf2[xx];
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 8; xx++) {
+					lbuf.pw[xx].w &= (~(mbuf2[xx]));
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 8; xx++) {
+					lbuf.pw[xx].w &= 0x7fff;
+//					lbuf.pw[xx].w &= ~(mbuf.pw[xx].w);
+				}
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 16; xx++) {
 					source[xx] &= mbuf.b[xx];
@@ -409,43 +468,56 @@ __DECL_VECTORIZED_LOOP
 		int __ystart = 0;
 		int __yend = 8;
 		for(int yy = (__ystart << 1); yy < (__yend << 1);  yy += 2) {
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 16; xx++) {
-				lbuf.pw[xx].w = 0x8000;
-				mbuf.pw[xx].w = 0;
-			}
-			for(int yy2 = 0; yy2 < 2; yy2++) {
-__DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 16; xx++) {
-					lbuf.pw[xx].w += (sbuf[yy + yy2][xx] & 0x7fff);
-					mbuf.pw[xx].w |= (sbuf[yy + yy2][xx] & 0x8000);
-				}
-			}
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 16; xx++) {
-				lbuf.pw[xx].w = ((lbuf.pw[xx].w >> 1) & 0x7fff) | mbuf.pw[xx].w;
-			}
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 16; xx++) {
-//				mbuf.pw[xx].w = (lbuf.pw[xx].w == 0) ? 0xffff : 0x0000;
-				mbuf.pw[xx].w = ((lbuf.pw[xx].w & 0x8000) != 0) ? 0xffff : 0x0000;
-			}
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 16; xx++) {
-				lbuf.pw[xx].w &= (~(mbuf.pw[xx].w) & 0x7fff);
-			}
 			if(d_vram != NULL) {
-				__DECL_ALIGNED(16) uint8_t source[32] = {0};
+				__DECL_ALIGNED(16) uint8_t source[32];
 				d_vram->get_vram_to_buffer(vpaddr + noffset, source, 16);
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 32; xx++) {
-						source[xx] &= mbuf.b[xx];
-					}
+				for(int xx = 0; xx < 16; xx++) {
+					lbuf.pw[xx].w = 0x0;
+					mbuf.pw[xx].w = 0;
+				}
+				for(int yy2 = 0; yy2 < 2; yy2++) {
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 32; xx++) {
-						source[xx] |= lbuf.b[xx];
+					for(int xx = 0; xx < 16; xx++) {
+						lbuf.pw[xx].w += (sbuf[yy + yy2][xx] & 0x7fff);
+						mbuf.pw[xx].w |= (sbuf[yy + yy2][xx] & 0x8000);
 					}
-					d_vram->set_buffer_to_vram(vpaddr + noffset, source, 16);
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+					lbuf.pw[xx].w = ((lbuf.pw[xx].w >> 1) & 0x7fff) | mbuf.pw[xx].w;
+				}
+				__DECL_ALIGNED(16) uint16_t mbuf2[16];
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+					mbuf2[xx] = mbuf.pw[xx].w;
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+					mbuf2[xx] = (lbuf.pw[xx].w  >> 15);  // All values are either 1 or 0.
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+					mbuf2[xx] = mbuf2[xx] * 0xffff;
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+					mbuf.pw[xx].w = mbuf2[xx];
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+//					lbuf.pw[xx].w &= (~(mbuf.pw[xx].w) & 0x7fff);
+					lbuf.pw[xx].w &= (~mbuf2[xx] & 0x7fff);
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 32; xx++) {
+					source[xx] &= mbuf.b[xx];
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 32; xx++) {
+					source[xx] |= lbuf.b[xx];
+				}
+				d_vram->set_buffer_to_vram(vpaddr + noffset, source, 16);
 			}
 			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
 		}
@@ -455,50 +527,65 @@ __DECL_VECTORIZED_LOOP
 		int __ystart = 0;
 		int __yend = 8;
 		for(int yy = (__ystart << 1); yy < (__yend << 1);  yy += 2) {
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 16; xx++) {
-				lbuf.pw[xx].w = 0x8000;
-				mbuf.pw[xx].w = 0;
-			}
-			for(int yy2 = 0; yy2 < 2; yy2++) {
-__DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 16; xx += 2) {
-					lbuf.pw[xx >> 1].w += (sbuf[yy + yy2][xx] & 0x7fff);
-					lbuf.pw[xx >> 1].w += (sbuf[yy + yy2][xx + 1] & 0x7fff);
-					mbuf.pw[xx >> 1].w |= (sbuf[yy + yy2][xx] & 0x8000);
-					mbuf.pw[xx >> 1].w |= (sbuf[yy + yy2][xx + 1] & 0x8000);
-				}
-__DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 8; xx++) {
-					lbuf.pw[xx].w >>= 1;
-				}
-			}
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 8; xx++) {
-				lbuf.pw[xx].w = ((lbuf.pw[xx].w >> 2) & 0x7fff) | mbuf.pw[xx].w;
-			}
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 8; xx++) {
-				mbuf.pw[xx].w = ((lbuf.pw[xx].w & 0x8000) != 0) ? 0xffff : 0x0000;
-//				mbuf.pw[xx].w = (lbuf.pw[xx].w == 0x0000) ? 0xffff : 0x0000;
-			}
-__DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx < 8; xx++) {
-				lbuf.pw[xx].w &= (~(mbuf.pw[xx].w) & 0x7fff);
-			}
 			if(d_vram != NULL) {
 				//d_vram->write_sprite_data(x, y + (yy >>1), xoffset, yoffset, lbuf, 8);
 				__DECL_ALIGNED(16) uint8_t source[16] = {0};
-					d_vram->get_vram_to_buffer(vpaddr + noffset, source, 8);
+				d_vram->get_vram_to_buffer(vpaddr + noffset, source, 8);
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 16; xx++) {
-						source[xx] &= mbuf.b[xx];
+				for(int xx = 0; xx < 16; xx++) {
+					lbuf.pw[xx].w = 0x8000;
+					mbuf.pw[xx].w = 0;
+				}
+				for(int yy2 = 0; yy2 < 2; yy2++) {
+__DECL_VECTORIZED_LOOP						
+					for(int xx = 0; xx < 16; xx += 2) {
+						lbuf.pw[xx >> 1].w += (sbuf[yy + yy2][xx] & 0x7fff);
+						lbuf.pw[xx >> 1].w += (sbuf[yy + yy2][xx + 1] & 0x7fff);
 					}
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 16; xx++) {
-						source[xx] |= lbuf.b[xx];
+					for(int xx = 0; xx < 16; xx += 2) {
+						mbuf.pw[xx >> 1].w |= (sbuf[yy + yy2][xx] & 0x8000);
+						mbuf.pw[xx >> 1].w |= (sbuf[yy + yy2][xx + 1] & 0x8000);
 					}
-					d_vram->set_buffer_to_vram(vpaddr + noffset, source, 8);
+__DECL_VECTORIZED_LOOP						
+					for(int xx = 0; xx < 8; xx++) {
+						lbuf.pw[xx].w >>= 1;
+					}
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 8; xx++) {
+					lbuf.pw[xx].w = ((lbuf.pw[xx].w >> 2) & 0x7fff) | mbuf.pw[xx].w;
+				}
+				__DECL_ALIGNED(16) uint16_t mbuf2[8];
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 8; xx++) {
+					mbuf2[xx] = mbuf.pw[xx].w;
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 8; xx++) {
+					mbuf2[xx] = (lbuf.pw[xx].w  >> 15);  // All values are either 1 or 0.
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 8; xx++) {
+					mbuf2[xx] = mbuf2[xx] * 0xffff;
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 8; xx++) {
+					mbuf.pw[xx].w = mbuf2[xx];
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 8; xx++) {
+					lbuf.pw[xx].w &= (~mbuf2[xx] & 0x7fff);
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+					source[xx] &= mbuf.b[xx];
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+					source[xx] |= lbuf.b[xx];
+				}
+				d_vram->set_buffer_to_vram(vpaddr + noffset, source, 8);
 			}
 			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
 		}
