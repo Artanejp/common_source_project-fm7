@@ -35,7 +35,8 @@ void PLANEVRAM::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0xff82:
 		if(d_crtc != NULL) {
-			d_crtc->write_signal(SIG_TOWNS_CRTC_MMIO_CF882H, data, 0xffffffff);
+			d_crtc->write_signal(SIG_TOWNS_CRTC_MMIO_CFF82H, data, 0xffffffff);
+			out_debug_log(_T("WRITE CFF82h <- %02X"), data);
 		}
 		break;
 	case 0xff83:
@@ -64,7 +65,7 @@ uint32_t PLANEVRAM::read_io8(uint32_t addr)
 		return ((r50_readplane << 6) | r50_ramsel);
 		break;
 	case 0xff82:
-		return d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CF882H);
+		return d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CFF82H);
 		break;
 	case 0xff83:
 		return (r50_gvramsel << 4);

@@ -75,50 +75,53 @@ void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 
 void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 {
-	__DECL_ALIGNED(8) uint8_t mask[4];
-	uint32_t naddr = addr & 0x7ffff;
-	pair16_t nd;
+	uint32_t naddr1 = addr & 0x7ffff;
+	uint32_t naddr2 = (addr + 1) & 0x7ffff;;
+	pair16_t nd, md;
 	pair16_t xmask;
-	if((naddr & 1) != 0) {
-		packed_pixel_mask_reg.write_4bytes_le_to(mask);
-		xmask.b.l = mask[addr & 3];
-		xmask.b.h = mask[(addr + 1) & 3];
-		if(addr == 0x8003ffff) {
-			nd.b.l = vram[naddr];
-			nd.b.h = vram[0x00000];
-		} else 	if(addr == 0x8007ffff) {
-			nd.b.l = vram[naddr];
-			nd.b.h = vram[0x40000];
-		} else 	if(addr == 0x8017ffff) {
-			// ToDo: Extra VRAM.
-			write_memory_mapped_io8(addr, data);
-			return;
-		} else {
-			nd.read_2bytes_le_from(&(vram[naddr]));
+
+	switch(naddr1 & 3) {
+	case 0:
+		xmask.w =  packed_pixel_mask_reg.w.l;
+		break;
+	case 1:
+		xmask.b.l =  packed_pixel_mask_reg.b.h;
+		xmask.b.h =  packed_pixel_mask_reg.b.h2;
+		break;
+	case 2:
+		xmask.w =  packed_pixel_mask_reg.w.h;
+		break;
+	case 3:
+		xmask.b.l =  packed_pixel_mask_reg.b.h3;
+		xmask.b.h =  packed_pixel_mask_reg.b.l;
+		if((addr == 0x8003ffff) || (addr == 0x8007ffff)) { // Wrap1
+			naddr2 = (addr == 0x8003ffff) ? 0x00000 : 0x40000;
+		} else if(addr == 0x8017ffff) { // wrap 2
+			naddr2 = 0x00000;
 		}
-		data = data & xmask.w;
-		nd.w = nd.w & ~(xmask.w);
-		nd.w = nd.w | data;
-		if(addr == 0x8003ffff) {
-			vram[naddr] = nd.b.l;
-			vram[0x00000] = nd.b.h;
-		} else 	if(addr == 0x8007ffff) {
-			vram[naddr] = nd.b.l;
-			vram[0x40000] = nd.b.h;
-		} else {
-			// ToDo: Extra VRAM.
-			nd.write_2bytes_le_to(&(vram[naddr]));
-			return;
-		}
+		break;
+	}
+
+	if(naddr2 <= naddr1) { // Wrap
+		nd.w = (uint16_t)data;
+		md.b.l = vram[naddr1];
+		md.b.h = vram[naddr2];
+		nd.w = nd.w & xmask.w;
+		md.w = md.w & ~(xmask.w);
+		md.w = md.w | nd.w;
+		vram[naddr1] = md.b.l;
+		vram[naddr2] = md.b.h;
 	} else {
-		xmask.w = ((addr & 2) == 0) ? packed_pixel_mask_reg.w.l : packed_pixel_mask_reg.w.h;
-		uint16_t *p = (uint16_t*)(&(vram[naddr]));
-		uint16_t n = *p;
-		data = data & xmask.w;
-		n = n & ~(xmask.w);
-		n = n | data;
-		*p = n;
-	}		
+		md.read_2bytes_le_from(&(vram[naddr1]));
+		
+		nd.w = (uint16_t)data;
+		
+		nd.w = nd.w & xmask.w;
+		md.w = md.w & ~(xmask.w);
+		md.w = md.w | nd.w;
+		
+		md.write_2bytes_le_to(&(vram[naddr1]));
+	}
 	return;
 }
 	
@@ -127,68 +130,120 @@ void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 
 	__DECL_ALIGNED(8) uint8_t mask[4];
 	uint32_t naddr = addr & 0x7ffff;
-	pair32_t nd;
+	pair32_t nd, md;
 	pair32_t xmask;
-	if((naddr & 3) != 0) {
-		packed_pixel_mask_reg.write_4bytes_le_to(mask);
-		xmask.b.l  = mask[addr & 3];
-		xmask.b.h  = mask[(addr + 1) & 3];
-		xmask.b.h2 = mask[(addr + 1) & 3];
-		xmask.b.h3 = mask[(addr + 1) & 3];
-		if((addr >= 0x8003fffd) && (addr <= 0x8003ffff)) {
-			nd.b.l  = vram[(naddr & 0x3ffff)];
-			nd.b.h  = vram[((naddr + 1) & 0x3ffff)];
-			nd.b.h2 = vram[((naddr + 2) & 0x3ffff)];
-			nd.b.h3 = vram[((naddr + 3) & 0x3ffff)];
-		} else 	if((addr >= 0x8007fffd) && (addr <= 0x8007ffff)) {
-			nd.b.l  = vram[(naddr & 0x3ffff) + 0x40000];
-			nd.b.h  = vram[((naddr + 1) & 0x3ffff) + 0x40000];
-			nd.b.h2 = vram[((naddr + 2) & 0x3ffff) + 0x40000];
-			nd.b.h3 = vram[((naddr + 3) & 0x3ffff) + 0x40000];
-		} else 	if(addr >= 0x8017fffd) {
-			// ToDo: Extra VRAM.
-			__DECL_ALIGNED(8) uint8_t tmp[4];
-			int i = 0;
-			for(uint32_t na = (addr & 0x7ffff); na < 0x80000; na++, i++) {
-				tmp[i] = vram[na];
-			}
-			nd.read_4bytes_le_from(tmp);
+	
+	nd.d = data;
+	switch(naddr & 3) {
+	case 0:
+		xmask.d =  packed_pixel_mask_reg.d;
+		break;
+	case 1:
+		xmask.b.l  =  packed_pixel_mask_reg.b.h;
+		xmask.b.h  =  packed_pixel_mask_reg.b.h2;
+		xmask.b.h2 =  packed_pixel_mask_reg.b.h3;
+		xmask.b.h3 =  packed_pixel_mask_reg.b.l;
+		break;
+	case 2:
+		xmask.b.l  =  packed_pixel_mask_reg.b.h2;
+		xmask.b.h  =  packed_pixel_mask_reg.b.h3;
+		xmask.b.h2 =  packed_pixel_mask_reg.b.l;
+		xmask.b.h3 =  packed_pixel_mask_reg.b.h;
+		break;
+	case 3:
+		xmask.b.l  =  packed_pixel_mask_reg.b.h3;
+		xmask.b.h  =  packed_pixel_mask_reg.b.l;
+		xmask.b.h2 =  packed_pixel_mask_reg.b.h;
+		xmask.b.h3 =  packed_pixel_mask_reg.b.h2;
+		break;
+	}
+	
+	if((addr & 3) != 0) {
+		
+		uint32_t xaddr = addr & 0x0017ffff;
+		uint32_t naddr2 = naddr + 1;
+		uint32_t naddr3 = naddr + 2;
+		uint32_t naddr4 = naddr + 3;
+		uint32_t offmask;
+		if((addr & 0x3ffff) < 0x3fffd) {
+			// Maybe not wrapped.
+			md.read_4bytes_le_from(&(vram[naddr]));
+			
+			nd.d = nd.d & xmask.d;
+			md.d = md.d & ~(xmask.d);
+			md.d = md.d | nd.d;
+			
+			md.write_4bytes_le_to(&(vram[naddr]));
 		} else {
-			nd.read_4bytes_le_from(&(vram[naddr]));
-		}
-		data = data & xmask.d;
-		nd.d = nd.d & ~(xmask.d);
-		nd.d = nd.d | data;
-		if((addr >= 0x8003fffd) && (addr <= 0x8003ffff)) {
-			vram[(naddr & 0x3ffff)] = nd.b.l;
-			vram[((naddr + 1) & 0x3ffff)] = nd.b.h;
-			vram[((naddr + 2) & 0x3ffff)] = nd.b.h2;
-			vram[((naddr + 3) & 0x3ffff)] = nd.b.h3;
-		} else 	if((addr >= 0x8007fffd) && (addr <= 0x8007ffff)) {
-			vram[(naddr & 0x3ffff) + 0x40000] = nd.b.l;
-			vram[((naddr + 1) & 0x3ffff) + 0x40000] = nd.b.h;
-			vram[((naddr + 2) & 0x3ffff) + 0x40000] = nd.b.h2;
-			vram[((naddr + 3) & 0x3ffff) + 0x40000] = nd.b.h3;
-		} else if((addr >= 0x8017fffd)) {
-			__DECL_ALIGNED(8) uint8_t tmp[4];
-			nd.write_4bytes_le_to(tmp);
-			int i = 0;
-			for(uint32_t na = (addr & 0x7ffff); na < 0x80000; na++, i++) {
-				vram[na] = tmp[i];
+			// Maybe not wrapped.
+			switch(xaddr) {
+			case 0x17fffd:
+			case 0x17fffe:
+			case 0x17ffff:
+				naddr2 = naddr2 & 0x7ffff;
+				naddr3 = naddr3 & 0x7ffff;
+				naddr4 = naddr4 & 0x7ffff;
+				
+				md.b.l   = vram[naddr];
+				md.b.h   = vram[naddr2];
+				md.b.h2  = vram[naddr3];
+				md.b.h3  = vram[naddr4];
+				
+				nd.d = nd.d & xmask.d;
+				md.d = md.d & ~(xmask.d);
+				md.d = md.d | nd.d;
+			
+				vram[naddr] = md.b.l;
+				vram[naddr2] = md.b.h;
+				vram[naddr3] = md.b.h2;
+				vram[naddr4] = md.b.h3;
+				break;
+			case 0x03fffd:
+			case 0x03fffe:
+			case 0x03ffff:
+			case 0x07fffd:
+			case 0x07fffe:
+			case 0x07ffff:
+				offmask = ((addr & 0x00040000) != 0) ? 0x40000 : 0x00000;
+				naddr2 = (naddr2 & 0x3ffff) + offmask;
+				naddr3 = (naddr3 & 0x3ffff) + offmask;
+				naddr4 = (naddr4 & 0x3ffff) + offmask;
+			
+				md.b.l   = vram[naddr];
+				md.b.h   = vram[naddr2];
+				md.b.h2  = vram[naddr3];
+				md.b.h3  = vram[naddr4];
+
+				nd.d = nd.d & xmask.d;
+				md.d = md.d & ~(xmask.d);
+				md.d = md.d | nd.d;
+			
+				vram[naddr]  = md.b.l;
+				vram[naddr2] = md.b.h;
+				vram[naddr3] = md.b.h2;
+				vram[naddr4] = md.b.h3;
+				break;
+			default:
+				md.read_4bytes_le_from(&(vram[naddr]));
+			
+				nd.d = nd.d & xmask.d;
+				md.d = md.d & ~(xmask.d);
+				md.d = md.d | nd.d;
+			
+				md.write_4bytes_le_to(&(vram[naddr]));
+				break;
 			}
-		} else {
-			// ToDo: Extra VRAM.
-			nd.write_4bytes_le_to(&(vram[naddr]));
 		}
 	} else {
-		xmask.d = packed_pixel_mask_reg.d;
-		uint32_t *p = (uint32_t*)(&(vram[naddr]));
-		uint32_t n = *p;
-		data = data & xmask.d;
-		n = n & ~(xmask.d);
-		n = n | data;
-		*p = n;
-	}		
+		// Aligned
+		md.read_4bytes_le_from(&(vram[naddr]));
+		
+		nd.d = nd.d & xmask.d;
+		md.d = md.d & (~(xmask.d));
+		md.d = md.d | nd.d;
+		
+		md.write_4bytes_le_to(&(vram[naddr]));
+	}
 	return;
 }
 
@@ -200,27 +255,28 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io8(uint32_t addr)
 uint32_t TOWNS_VRAM::read_memory_mapped_io16(uint32_t addr)
 {
 	pair16_t a;
-	bool is_wrap = false;
-	uint32_t wrap_addr;
-	if((addr & 0x8013ffff) == 0x8003ffff) {
-		is_wrap = true;
-		wrap_addr = (addr == 0x8007ffff) ? 0x40000 : 0;
-	} else if(addr > 0x8017fffe) {
-		is_wrap = true;
-		wrap_addr = 0;
-	}
-	addr = addr & 0x7ffff;
-	if(is_wrap) {
-		a.b.l = vram[addr];
-		a.b.h = vram[wrap_addr];
+
+	uint32_t naddr = addr & 0x7ffff;
+	if((addr & 1) == 0) { // Aligned
+		a.read_2bytes_le_from(&(vram[naddr]));
 	} else {
-#ifdef __LITTLE_ENDIAN__
-		// SAME endian
-		uint16_t* p = (uint16_t *)(&vram[addr]);
-		a.w = *p;
-#else
-		a.read_2bytes_le_from(&vram[addr]);
-#endif
+		switch(addr) {
+		case 0x8003ffff:
+			a.b.l = vram[0x3ffff];
+			a.b.h = vram[0x00000];
+			break;
+		case 0x8007ffff:
+			a.b.l = vram[0x7ffff];
+			a.b.h = vram[0x40000];
+			break;
+		case 0x8017ffff:
+			a.b.l = vram[0x7ffff];
+			a.b.h = vram[0x00000];
+			break;
+		default:
+			a.read_2bytes_le_from(&(vram[naddr]));
+			break;
+		}
 	}
 	return (uint32_t)(a.w);
 }
@@ -228,32 +284,55 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io16(uint32_t addr)
 uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 {
 	pair32_t a;
-	bool is_wrap = false;
-	uint32_t wrap_addr = 0;
-	uint32_t wrap_mask;
-	if((addr & 0x8013fffc) == 0x8003fffc) {
-		if((addr & 0x8003ffff) != 0x8003fffc) {
-			is_wrap = true;
-			wrap_addr = (addr >= 0x80040000) ? 0x40000 : 0;
+
+	uint32_t naddr = addr & 0x7ffff;
+	if((addr & 3) == 0) { // Aligned
+		a.read_4bytes_le_from(&(vram[naddr]));
+	} else { // Unaligned
+		if((addr & 0x3ffff) < 0x3fffd) {
+			// Maybe not wrapped.
+			a.read_4bytes_le_from(&(vram[naddr]));
+		} else	{
+			uint32_t xaddr = addr & 0x0017ffff;
+			uint32_t naddr2 = naddr + 1;
+			uint32_t naddr3 = naddr + 2;
+			uint32_t naddr4 = naddr + 3;
+			uint32_t offmask;
+			switch(xaddr) {
+			case 0x17fffd:
+			case 0x17fffe:
+			case 0x17ffff:
+				naddr2 = naddr2 & 0x7ffff;
+				naddr3 = naddr3 & 0x7ffff;
+				naddr4 = naddr4 & 0x7ffff;
+				
+				a.b.l   = vram[naddr];
+				a.b.h   = vram[naddr2];
+				a.b.h2  = vram[naddr3];
+				a.b.h3  = vram[naddr4];
+				break;
+			case 0x03fffd:
+			case 0x03fffe:
+			case 0x03ffff:
+			case 0x07fffd:
+			case 0x07fffe:
+			case 0x07ffff:
+				offmask = ((addr & 0x00040000) != 0) ? 0x40000 : 0x00000;
+				naddr2 = (naddr2 & 0x3ffff) + offmask;
+				naddr3 = (naddr3 & 0x3ffff) + offmask;
+				naddr4 = (naddr4 & 0x3ffff) + offmask;
+			
+				a.b.l   = vram[naddr];
+				a.b.h   = vram[naddr2];
+				a.b.h2  = vram[naddr3];
+				a.b.h3  = vram[naddr4];
+				break;
+			default:
+			// Maybe not wrapped.
+				a.read_4bytes_le_from(&(vram[naddr]));
+				break;
+			}
 		}
-	} else if(addr > 0x8017fffc) {
-		is_wrap = true;
-		wrap_addr = 0;
-	}		
-	wrap_mask = (addr >= 0x80100000) ? 0x7ffff : 0x3ffff;
-	addr = addr & 0x7ffff;
-	if(is_wrap) {
-		a.b.l  = vram[addr];
-		a.b.h  = vram[((addr + 1) & wrap_mask) | wrap_addr];
-		a.b.h2 = vram[((addr + 2) & wrap_mask) | wrap_addr];
-		a.b.h3 = vram[((addr + 3) & wrap_mask) | wrap_addr];
-	} else {
-#ifdef __LITTLE_ENDIAN__
-		uint32_t* p = (uint32_t*)(&vram[addr]);
-		a.d = *p;
-#else
-		a.read_4bytes_le_from(&vram[addr]);
-#endif
 	}
 	return a.d;
 }
