@@ -1624,26 +1624,29 @@ void TOWNS_CRTC::draw_screen()
 			__DECL_ALIGNED(32)  scrntype_t apal16[2][16];
 			my_memcpy(apal16[0], apalette_16_pixel[0], sizeof(scrntype_t) * 16);
 			my_memcpy(apal16[1], apalette_16_pixel[1], sizeof(scrntype_t) * 16);
-			if(linebuffers[trans][y].crtout[linebuffers[trans][y].num[1]] != 0) {
-				switch(linebuffers[trans][y].mode[linebuffers[trans][y].num[1]]) {
+			int prio0 = linebuffers[trans][y].num[0];
+			int prio1 = linebuffers[trans][y].num[1];
+			if(linebuffers[trans][y].crtout[prio1] != 0) {
+				switch(linebuffers[trans][y].mode[prio1]) {
 				case DISPMODE_16:
-					do_mix1 = render_16(lbuffer1, abuffer1, &(apal16[linebuffers[trans][y].num[1]][0]), y, linebuffers[trans][y].num[1], do_alpha);
+					do_mix1 = render_16(lbuffer1, abuffer1, &(apal16[prio1][0]), y, linebuffers[trans][y].num[1], do_alpha);
 					break;
 				case DISPMODE_32768:
-					do_mix1 = render_32768(lbuffer1, abuffer1, y, linebuffers[trans][y].num[1], do_alpha);
+					do_mix1 = render_32768(lbuffer1, abuffer1, y, prio1, do_alpha);
 					break;
 				default: // 256 Colors mode don't allow in 2 layers mode.
+					do_mix1 = false;
 					break;
 				}
 			}
 			// Upper layer
-			if(linebuffers[trans][y].crtout[linebuffers[trans][y].num[0]] != 0){
-				switch(linebuffers[trans][y].mode[linebuffers[trans][y].num[0]]) {
+			if(linebuffers[trans][y].crtout[prio0] != 0){
+				switch(linebuffers[trans][y].mode[prio0]) {
 				case DISPMODE_16:
-					do_mix0 = render_16(lbuffer0, abuffer0, &(apal16[linebuffers[trans][y].num[0]][0]), y, linebuffers[trans][y].num[0], do_alpha);
+					do_mix0 = render_16(lbuffer0, abuffer0, &(apal16[prio0][0]), y, prio0, do_alpha);
 					break;
 				case DISPMODE_32768:
-					do_mix0 = render_32768(lbuffer0, abuffer0, y, linebuffers[trans][y].num[0], do_alpha);
+					do_mix0 = render_32768(lbuffer0, abuffer0, y, prio0, do_alpha);
 					break;
 				default: // 256 Colors mode don't allow in 2 layers mode.
 					do_mix0 = false;
@@ -2316,7 +2319,7 @@ uint32_t TOWNS_CRTC::read_signal(int ch)
 	case SIG_TOWNS_CRTC_HDISP1:
 		return (hdisp[1]) ? 0xffffffff : 0;
 		break;
-	case SIG_TOWNS_CRTC_MMIO_CF882H:
+	case SIG_TOWNS_CRTC_MMIO_CFF82H:
 		{
 			uint8_t d;
 			d = ((r50_planemask & 0x08) != 0) ? 0x60 : 0x40;
@@ -2334,7 +2337,7 @@ uint32_t TOWNS_CRTC::read_signal(int ch)
 		
 void TOWNS_CRTC::write_signal(int ch, uint32_t data, uint32_t mask)
 {
-	if(ch == SIG_TOWNS_CRTC_MMIO_CF882H) {
+	if(ch == SIG_TOWNS_CRTC_MMIO_CFF82H) {
 //		out_debug_log(_T("CF882H=%02X"), data & 0xff);
 		r50_planemask = ((data & 0x20) >> 2) | (data & 0x07);
 		r50_pagesel = ((data & 0x10) != 0) ? 1 : 0;

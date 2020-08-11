@@ -440,7 +440,7 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 	case 0xff88:
 		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
 			if(d_crtc != NULL) {
-				val = d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CF882H);
+				val = d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CFF82H);
 			}
 		} else  if(d_planevram != NULL) {
 			val = d_planevram->read_io8(addr);
