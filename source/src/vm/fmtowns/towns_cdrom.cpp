@@ -2015,7 +2015,7 @@ double TOWNS_CDROM::get_seek_time(uint32_t lba)
 			distance = 100; // Seek penalty.
 		}
 		double _seek = (double)distance / 333000.0 ; // 333000: sectors in media
-		_seek = 400.0e3 * 100.0 * _seek;
+		_seek = 400.0e3 * /*100.0 * */ _seek;
 		return _seek;
 	} else {
 		return 400000; // 400msec
