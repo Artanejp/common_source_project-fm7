@@ -1454,11 +1454,12 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1)
 {
 	if(width >= TOWNS_CRTC_MAX_PIXELS) return;
 	if(width <= 0) return;
+
 	int trans = (display_linebuf == 0) ? 3 : ((display_linebuf - 1) & 3);
 	
 	int bitshift0 = linebuffers[trans][y].bitshift[0];
 	int bitshift1 = linebuffers[trans][y].bitshift[1];
-	scrntype_t *pp = emu->get_screen_buffer(y);
+	scrntype_t *pp = osd->get_vm_screen_buffer(y);
 //	out_debug_log(_T("MIX_SCREEN Y=%d DST=%08X"), y, pp);
 	/*
 	if(width < -(bitshift0)) {
@@ -1525,8 +1526,9 @@ __DECL_VECTORIZED_LOOP
 				}
 __DECL_VECTORIZED_LOOP
 				for(int ii = 0; ii < 8; ii++) {
-					*pp++ = pixbuf0[ii];
+					pp[ii] = pixbuf0[ii];
 				}
+				pp += 8;
 			}
 			int rrwidth = width & 7;
 			if(rrwidth > 0) {
@@ -1544,7 +1546,7 @@ __DECL_VECTORIZED_LOOP
 					pix0 = pix0 & mask0;
 					pix1 = pix1 & mask1;
 					pix0 = pix0 | pix1;
-					*pp++ = pix0;
+					pp[ii]	= pix0;
 				}
 			}
 		} else if(do_mix0) {
@@ -1576,24 +1578,24 @@ __DECL_VECTORIZED_LOOP
 void TOWNS_CRTC::draw_screen()
 {
 	int trans = (display_linebuf == 0) ? 3 : ((display_linebuf - 1) & 3);
+	int trans2 = ((display_linebuf - 2) & 3);
 	bool do_alpha = false; // ToDo: Hardware alpha rendaring.
 	if((linebuffers[trans] == NULL) || (d_vram == NULL)) {
-		//display_linebuf = (display_linebuf + 1) & 3;
 		return;
 	}
-//	int lines = lines_per_frame;
-//	int width = pixels_per_line;
 	int lines = vst[trans];
 	int width = hst[trans];
-	osd->set_vm_screen_size(width, lines, SCREEN_WIDTH, SCREEN_HEIGHT,  -1, -1);
-	//out_debug_log("WxH: %dx%d", width, lines);
-	osd->set_vm_screen_lines(lines);
 	// Will remove.
 	if(lines <= 0) lines = 1;
 	if(width <= 16) width = 16;
 	
 	if(lines > TOWNS_CRTC_MAX_LINES) lines = TOWNS_CRTC_MAX_LINES;
 	if(width > TOWNS_CRTC_MAX_PIXELS) width = TOWNS_CRTC_MAX_PIXELS;
+	osd->set_vm_screen_size(width, lines, SCREEN_WIDTH, SCREEN_HEIGHT,  -1, -1);
+	osd->set_vm_screen_lines(lines);
+//	if((lines != vst[trans2]) || (width != hst[trans])) {
+//		return; // Wait (a frame) if surface attributes are changed
+//	}
 	
 	memset(lbuffer1, 0x00, sizeof(lbuffer1));
 	memset(abuffer1, 0xff, sizeof(abuffer1));
