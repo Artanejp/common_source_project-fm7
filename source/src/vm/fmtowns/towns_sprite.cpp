@@ -938,9 +938,9 @@ void TOWNS_SPRITE::event_callback(int id, int err)
 		if((sprite_enabled) /*&& (render_num < 1024) */&& (sprite_busy)) {
 //			sprite_busy = true;
 			int _bak = render_num;
-			for(; render_num < 1024; render_num++){
+			for(; render_num < 1024; ){
 				render_part();
-			//	render_num++;
+				render_num++;
 			}
 			if(_bak >= 1024) {
 				_bak = 1023;
@@ -1000,12 +1000,12 @@ void TOWNS_SPRITE::check_and_clear_vram()
 }
 void TOWNS_SPRITE::event_pre_frame()
 {
-//	check_and_clear_vram();
+	check_and_clear_vram();
 }
 
 void TOWNS_SPRITE::event_vline(int v, int clock)
 {
-	check_and_clear_vram();
+//	check_and_clear_vram();
 }
 
 // Q: Is changing pages syncing to Frame?
