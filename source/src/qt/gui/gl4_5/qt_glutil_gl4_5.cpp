@@ -83,6 +83,11 @@ GLDraw_4_5::GLDraw_4_5(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 GLDraw_4_5::~GLDraw_4_5()
 {
 
+	// 20200812 K.O: MUST WAIT when changing texture feature.
+	extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
+	extfunc->glDeleteSync(sync_fence);
+	sync_fence = extfunc->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,  0);
+	
 	if(main_pass  != NULL) delete main_pass;
 	if(std_pass   != NULL) delete std_pass;
 	if(ntsc_pass1 != NULL) delete ntsc_pass1;
@@ -1897,7 +1902,7 @@ bool GLDraw_4_5::copy_screen_buffer(scrntype_t *target, int w, int h, int stride
 scrntype_t *GLDraw_4_5::get_screen_buffer(int y)
 {
 	QMutexLocker Locker_S(main_mutex);
-	if((y < 0) || (y >= pixel_height)) return NULL;
+	if((y < 0) || (y >= pixel_height) || (pixel_width < 0)) return NULL;
 	if((map_base_address == NULL) || !(main_texture_ready)) {
 		return NULL;
 	} else {
@@ -1952,10 +1957,10 @@ bool GLDraw_4_5::map_vram_texture(void)
 #if 0
 	return false;
 #else
-
-//	extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
-//	extfunc->glDeleteSync(sync_fence);
-//	sync_fence = extfunc->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,  0);
+	// 20200812 K.O: MUST WAIT when changing texture feature.
+	extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
+	extfunc->glDeleteSync(sync_fence);
+	sync_fence = extfunc->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,  0);
 	
 	extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
 	map_base_address =
@@ -1964,20 +1969,14 @@ bool GLDraw_4_5::map_vram_texture(void)
 						   pixel_width * pixel_height * sizeof(scrntype_t),
 						   GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT));
 	
+	// 20200812 K.O: MUST WAIT when changing texture feature.
+	extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
+	extfunc->glDeleteSync(sync_fence);
+	sync_fence = extfunc->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,  0);
+	
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SCREEN, "MAPPED SCREEN TO PHYSICAL ADDRESS:%0llx\n", (uintptr_t)map_base_address);
 	extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	if(map_base_address == NULL) return false;
-
-//	extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
-//	map_base_address =
-//		(scrntype_t *)(extfunc->glMapNamedBufferRange(
-//						   main_read_texture_buffer, 0,
-//						   pixel_width * pixel_height * sizeof(scrntype_t),
-//						   GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT));
-	
-//	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SCREEN, "MAPPED SCREEN(READ) TO PHYSICAL ADDRESS:%0llx\n", (uintptr_t)map_base_address);
-//	extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-//	if(map_base_address == NULL) return false;
 	
 	return true;
 #endif
@@ -1992,6 +1991,7 @@ bool GLDraw_4_5::unmap_vram_texture(void)
 		extfunc->glDeleteSync(sync_fence);
 	}
 	sync_fence = extfunc->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,  0);
+	map_base_address = NULL;
 	
 	extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, main_texture_buffer);
 	extfunc->glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
@@ -2003,6 +2003,5 @@ bool GLDraw_4_5::unmap_vram_texture(void)
 	extfunc->glDeleteBuffers(1, &main_read_texture_buffer);
 	main_read_texture_buffer = 0;
 
-	map_base_address = NULL;
 	return true;
 }
