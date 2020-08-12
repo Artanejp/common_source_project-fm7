@@ -947,7 +947,7 @@ void TOWNS_SPRITE::event_callback(int id, int err)
 			}
 			register_event(this, EVENT_BUSY_OFF, 75.0 * (1024 - _bak), false, &event_busy);
 //			register_event(this, EVENT_BUSY_OFF, 75.0 / 2, false, &event_busy);
-		} else {
+		} /*else {
 			sprite_busy = false;
 			int lot = reg_index & 0x3ff;
 			if(lot == 0) lot = 1024;
@@ -955,7 +955,7 @@ void TOWNS_SPRITE::event_callback(int id, int err)
 			if(lot < 1024) {
 				disp_page1 = !(disp_page1);
 			}
-		}
+		}*/
 	}
 }
 
