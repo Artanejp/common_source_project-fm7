@@ -1278,6 +1278,30 @@ __DECL_VECTORIZED_LOOP
 		}
 	}
 	palbuf[0] = RGBA_COLOR(0, 0, 0, 0);
+	static const __DECL_ALIGNED(32) scrntype_t maskdata[16] =
+	{
+		RGBA_COLOR(0, 0, 0, 0),
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+		
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255)
+	};
+
+		
 	int k = 0;
 	for(int x = 0; x < (pwidth >> 3); x++) {
 __DECL_VECTORIZED_LOOP
@@ -1293,8 +1317,8 @@ __DECL_VECTORIZED_LOOP
 			hlbuf[i + 1] = hlbuf[i];
 		}			
 __DECL_VECTORIZED_LOOP
-		for(int i = 1; i < 16; i += 2) {
-			hlbuf[i] >>= 4;
+		for(int i = 0; i < 16; i += 2) {
+			hlbuf[i + 1] >>= 4;
 		}
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
@@ -1308,54 +1332,70 @@ __DECL_VECTORIZED_LOOP
 		} else {
 __DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 16; i++) {
-				abuf[i] = (hlbuf[i] == 0) ? RGBA_COLOR(0, 0, 0, 0): RGBA_COLOR(255, 255, 255, 255);
+//				abuf[i] = (hlbuf[i] == 0) ? RGBA_COLOR(0, 0, 0, 0): RGBA_COLOR(255, 255, 255, 255);
+				abuf[i] = maskdata[hlbuf[i]];
+			}
+__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < 16; i++) {
 				sbuf[i] = palbuf[hlbuf[i]];
 			}
 		}
 		
 		if(do_alpha) {
 			if(magx == 1) {
+__DECL_VECTORIZED_LOOP
 				for(int i = 0; i < 16; i++) {
-					*q++ = sbuf[i];
+					q[i] = sbuf[i];
 				}
 				k += 16;
+				q += 16;
 				if(k >= width) break;
 			} else {
 				for(int i = 0; i < 16; i++) {
+__DECL_VECTORIZED_LOOP
 					for(int j = 0; j < magx; j++) {
-						*q++ = sbuf[i];
+						q[j] = sbuf[i];
 						k++;
 						if(k >= width) break;
 					}
+					q += magx;
 				}
 				if(k >= width) break;
 			}
 		} else {
 			if(magx == 1) {
+__DECL_VECTORIZED_LOOP
 				for(int i = 0; i < 16; i++) {
-					*q++ = sbuf[i];
+					q[i] = sbuf[i];
 				}
+				q += 16;
 				if(r2 != NULL) {
+__DECL_VECTORIZED_LOOP
 					for(int i = 0; i < 16; i++) {
-						*r2++ = abuf[i];
+						r2[i] = abuf[i];
 					}
+					r2 += 16;
 				}
 				k += 16;
 				if(k >= width) break;
 			} else {
 				for(int i = 0; i < 16; i++) {
 					int kbak = k;
+__DECL_VECTORIZED_LOOP
 					for(int j = 0; j < magx; j++) {
-						*q++ = sbuf[i];
+						q[j] = sbuf[i];
 						k++;
 						if(k >= width) break;
 					}
+					q += magx;
 					if(r2 != NULL) {
+__DECL_VECTORIZED_LOOP
 						for(int j = 0; j < magx; j++) {
-							*r2++ = abuf[i];
+							r2[j] = abuf[i];
 							kbak++;
 							if(kbak >= width) break;
 						}
+						r2 += magx;
 					}
 					if(k >= width) break;
 				}
