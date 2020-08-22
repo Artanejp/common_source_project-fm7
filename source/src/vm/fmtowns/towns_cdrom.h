@@ -160,6 +160,9 @@ protected:
 	FIFO* databuffer;
 	FIFO* status_queue;
 
+	// For Debugging, will remove 20200822 K.O
+	DEVICE* d_cpu;
+
 	uint32_t max_fifo_length;
 	uint32_t fifo_length;
 	
@@ -171,6 +174,8 @@ protected:
 	bool pio_transfer;
 	bool dma_transfer_phase;
 	bool pio_transfer_phase;
+
+	bool cdrom_halted;
 	
 	SUBC_t subq_buffer[98]; // OK?
 	int subq_bitptr;
@@ -233,6 +238,7 @@ protected:
 	int event_cdda_delay_stop;
 	int event_delay_interrupt;
 	int event_delay_ready;
+	int event_halt;
 	
 	int cdda_sample_l;
 	int cdda_sample_r;
@@ -245,6 +251,7 @@ protected:
 	static const uint16_t crc_table[256];
 
 	int param_ptr;
+	bool command_received;
 	uint8_t param_queue[8];
 
 	double seek_time;
@@ -347,6 +354,9 @@ public:
 		initialize_output_signals(&outputs_drq);
 		initialize_output_signals(&outputs_mcuint);
 		set_device_name(_T("FM-Towns CD-ROM drive"));
+		
+		// For Debugging, will remove 20200822 K.O
+		d_cpu = NULL;
 	}
 	~TOWNS_CDROM() { }
 	virtual void initialize();
@@ -472,6 +482,11 @@ public:
 	void set_context_drq_line(DEVICE* dev, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_drq, dev, id, mask);
+	}
+	// For Debugging, will remove 20200822 K.O
+	void set_context_cpu(DEVICE* d)
+	{
+		d_cpu = d;
 	}
 };
 

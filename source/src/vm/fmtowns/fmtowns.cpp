@@ -448,7 +448,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// NMI0 : KEYBOARD (RAS)
 	// NMI1 : Extra SLOT (Maybe not implement)
 	keyboard->set_context_nmi_line(memory, SIG_CPU_NMI, 0xffffffff);
-	
+
+	// For Debugging, will remove 20200822 K.O
+	cdrom->set_context_cpu(cpu);
+
 	// i/o bus
 	io->set_iowait_range_rw(0x0000, 0xffff, 6); // ToDo: May variable wait.
 		
