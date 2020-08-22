@@ -1971,6 +1971,25 @@ __DECL_VECTORIZED_LOOP
 			}
 
 			offset = offset + (int)(head_address[l] & 0x0007ffff);
+			if(bit_shift < 0) {
+				int _n = -bit_shift;
+//				_n = (-bit_shift) & ~shift_mask;
+				switch(linebuffers[trans][line].mode[l]) {
+				case DISPMODE_256:
+					break;
+				case DISPMODE_16:
+					_n >>= 1;
+//					_n &= ~1;
+					break;
+				case DISPMODE_32768:
+					_n >>= 1;
+					break;
+				}
+
+				_n >>= ashift;
+				offset += _n;
+			}
+
 			if((trans & 1) != 0) offset = offset + frame_offset[l];
 			if(l == 1) {
 				offset = offset + fo1_offset_value;
@@ -1990,11 +2009,12 @@ __DECL_VECTORIZED_LOOP
 //				if((npixels % magx) != 0) npixels++;
 				if((p != NULL) && (pixels >= magx) && (magx != 0)){
 					if(bit_shift < 0) {
-						//bit_shift = -(-bit_shift & shift_mask); 
+//						bit_shift = -((-bit_shift) & shift_mask); 
 						pixels += (-bit_shift * magx);
+						bit_shift = -((-bit_shift) & shift_mask);
 					} else if(bit_shift > 0) {
-						bit_shift = (shift_mask + 1) - (bit_shift & shift_mask); 
 						pixels += ((shift_mask + 1) * magx); // OK?
+						bit_shift = (shift_mask + 1) - (bit_shift & shift_mask); 
 					}
 					if(pixels >= TOWNS_CRTC_MAX_PIXELS) pixels = TOWNS_CRTC_MAX_PIXELS;
 					linebuffers[trans][line].bitshift[l] = bit_shift * magx;
