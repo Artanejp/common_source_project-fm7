@@ -92,6 +92,8 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	if((attr & 0x8000) != 0) { // OFFS
 		xoffset = reg_hoffset & 0x1ff;
 		yoffset = reg_voffset & 0x1ff;
+		if(xoffset >= 256) xoffset = -xoffset;
+		if(yoffset >= 256) yoffset = -yoffset;
 	}
 	bool swap_v_h = false;
 	if((attr & 0x4000) != 0) { // ROT2
@@ -349,7 +351,7 @@ __DECL_VECTORIZED_LOOP
 		}
 	}
 	uint32_t noffset = (draw_page1) ? 0x40000 : 0x60000;
-	uint32_t vpaddr = (((x - xoffset) % 256 + ((y - yoffset) * 256)) << 1) & 0x1ffff;
+	uint32_t vpaddr = (((x + xoffset) % 256 + ((y + yoffset) * 256)) << 1) & 0x1ffff;
 	if(!(is_halfx) && !(is_halfy)) { // not halfed
 		int __xstart = 0;		
 		int __xend = 16;
