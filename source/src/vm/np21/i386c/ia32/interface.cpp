@@ -60,7 +60,7 @@ ia32_initreg(void)
 		CPU_CR0 |= CPU_CR0_ET;	/* FPU present */
 		CPU_CR0 &= ~CPU_CR0_EM;
 	}else{
-		CPU_CR0 |= CPU_CR0_EM | CPU_CR0_NE;
+		CPU_CR0 |= (CPU_CR0_EM | CPU_CR0_NE);
 		CPU_CR0 &= ~(CPU_CR0_MP | CPU_CR0_ET);
 	}
 #else
