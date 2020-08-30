@@ -290,8 +290,8 @@ void META_MainWindow::retranslateUi(void)
 	{	
 	}
 
-	actionSpecial_Reset->setText(QApplication::translate("Machine", "Hot Start(BREAK+RESET)", 0));
-	actionSpecial_Reset->setToolTip(QApplication::translate("Machine", "Do HOT START.\nReset with pressing BREAK key.", 0));
+	actionSpecial_Reset[0]->setText(QApplication::translate("Machine", "Hot Start(BREAK+RESET)", 0));
+	actionSpecial_Reset[0]->setToolTip(QApplication::translate("Machine", "Do HOT START.\nReset with pressing BREAK key.", 0));
 	
 #if defined(USE_PRINTER_TYPE)
 	actionPrintDevice[1]->setText(QApplication::translate("Machine", "Dempa Joystick with #1", 0));

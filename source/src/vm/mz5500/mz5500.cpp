@@ -296,7 +296,7 @@ void VM::reset()
 	pio->write_signal(SIG_I8255_PORT_C, 0x40, 0x40);	// ack = high
 }
 
-void VM::special_reset()
+void VM::special_reset(int num)
 {
 	// nmi
 	cpu->write_signal(SIG_CPU_NMI, 1, 1);

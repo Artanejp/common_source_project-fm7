@@ -94,7 +94,7 @@ public:
 	
 	// control
 	virtual void reset() {}
-	virtual void special_reset()
+	virtual void special_reset(int num)
 	{
 		reset();
 	}

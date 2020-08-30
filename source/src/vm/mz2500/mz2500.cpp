@@ -319,13 +319,13 @@ void VM::reset()
 	opn->write_signal(SIG_YM2203_PORT_B, (monitor_type & 2) ? 0x77 : 0x37, 0xff);
 }
 
-void VM::special_reset()
+void VM::special_reset(int num)
 {
 	// reset all devices
 //	for(DEVICE* device = first_device; device; device = device->next_device) {
 //		device->special_reset();
 //	}
-	memory->special_reset();
+	memory->special_reset(num);
 	cpu->reset();
 }
 

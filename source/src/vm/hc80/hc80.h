@@ -22,7 +22,7 @@
 #define MAX_DRIVE		4
 
 // device informations for win32
-#define USE_SPECIAL_RESET
+#define USE_SPECIAL_RESET	1
 #define USE_DEVICE_TYPE		3
 // Nonintelligent ram disk
 #define DEVICE_TYPE_DEFAULT	2
@@ -88,7 +88,7 @@ public:
 	
 	// drive virtual machine
 	void reset();
-	void special_reset();
+	void special_reset(int num);
 	void run();
 	double get_frame_rate()
 	{

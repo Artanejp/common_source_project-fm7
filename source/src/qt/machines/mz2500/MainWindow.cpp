@@ -51,8 +51,8 @@ void META_MainWindow::retranslateUi(void)
 	retranslateControlMenu("Reset",  true);
 	actionReset->setText(QApplication::translate("MachineMZ2500", "IPL Reset", 0));
 	actionReset->setToolTip(QApplication::translate("MachineMZ2500", "Do IPL reset.", 0));
-	actionSpecial_Reset->setText(QApplication::translate("MachineMZ2500", "Reset", 0));
-	actionSpecial_Reset->setToolTip(QApplication::translate("MachineMZ2500", "Do system reset.", 0));
+	actionSpecial_Reset[0]->setText(QApplication::translate("MachineMZ2500", "Reset", 0));
+	actionSpecial_Reset[0]->setToolTip(QApplication::translate("MachineMZ2500", "Do system reset.", 0));
 #ifdef USE_CPU_TYPE
 	menuCpuType->setTitle(QApplication::translate("MachineMZ2500", "CPU Frequency", 0));
 	actionCpuType[0]->setText(QString::fromUtf8("4MHz"));

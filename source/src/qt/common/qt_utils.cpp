@@ -137,7 +137,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	
 	//connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
 	connect(this, SIGNAL(sig_vm_reset()), hRunEmu, SLOT(do_reset()));
-	connect(this, SIGNAL(sig_vm_specialreset()), hRunEmu, SLOT(do_special_reset()));
+	connect(this, SIGNAL(sig_vm_specialreset(int)), hRunEmu, SLOT(do_special_reset(int)));
 
 	connect(this, SIGNAL(sig_emu_update_config()), hRunEmu, SLOT(do_update_config()));
 	connect(this, SIGNAL(sig_emu_update_volume_level(int, int)), hRunEmu, SLOT(do_update_volume_level(int, int)));

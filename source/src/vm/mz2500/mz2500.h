@@ -36,7 +36,7 @@
 #define Z80_IO_WAIT
 
 // device informations for win32
-#define USE_SPECIAL_RESET
+#define USE_SPECIAL_RESET	1
 #define USE_FLOPPY_DISK		4
 #define USE_TAPE		1
 #define USE_HARD_DISK		2
@@ -162,7 +162,7 @@ public:
 	
 	// drive virtual machine
 	void reset();
-	void special_reset();
+	void special_reset(int num);
 	void run();
 	double get_frame_rate();
 	

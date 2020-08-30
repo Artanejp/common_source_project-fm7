@@ -107,7 +107,7 @@ void MEMORY::reset()
 	update_vram_map();
 }
 
-void MEMORY::special_reset()
+void MEMORY::special_reset(int num)
 {
 	// reset
 	SET_BANK(0x0000, 0xffff, ram, ram, false);
@@ -294,7 +294,7 @@ void MEMORY::load_dat_image(const _TCHAR* file_path)
 		
 		fio->Fread(ram, sizeof(ram), 1);
 		fio->Fclose();
-		vm->special_reset();
+		vm->special_reset(0);
 	}
 	delete fio;
 }
@@ -319,7 +319,7 @@ bool MEMORY::load_mzt_image(const _TCHAR* file_path)
 				memset(tvram, 0, sizeof(tvram));
 				
 				fio->Fread(ram, size, 1);
-				vm->special_reset();
+				vm->special_reset(0);
 				result = true;
 			}
 			fio->Fclose();

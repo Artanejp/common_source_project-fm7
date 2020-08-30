@@ -322,13 +322,13 @@ void VM::reset()
 	}
 }
 
-void VM::special_reset()
+void VM::special_reset(int num)
 {
 	// reset all devices
 //	for(DEVICE* device = first_device; device; device = device->next_device) {
-//		device->special_reset();
+//		device->special_reset(num);
 //	}
-	memory->special_reset();
+	memory->special_reset(num);
 	cpu->reset();
 #ifdef SUPPORT_16BIT_BOARD
 	pio_to16->reset();

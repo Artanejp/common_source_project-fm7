@@ -389,7 +389,7 @@ protected:
 	QActionGroup *actionGroup_BootMode;
 	QActionGroup *actionGroup_CpuType;
 	class Action_Control *actionReset;
-	class Action_Control *actionSpecial_Reset;
+	class Action_Control *actionSpecial_Reset[16];
 	class Action_Control *actionExit_Emulator;
 	class Action_Control *actionCpuType[8];
 	class Action_Control *actionBootMode[8];
@@ -592,7 +592,8 @@ public slots:
 	void set_screen_size(int w, int h);
 	void do_set_screen_rotate(int type);
 	void OnReset(void);
-	void OnSpecialReset(void);
+	void do_special_reset(int);	
+
 	virtual void do_set_mouse_enable(bool flag);
 	virtual void do_toggle_mouse(void);
 	void do_set_sound_device(int);
@@ -772,7 +773,7 @@ signals:
 	int closed(void);
 	int sig_quit_all(void);
 	int sig_vm_reset(void);
-	int sig_vm_specialreset(void);
+	int sig_vm_specialreset(int);
 	int sig_check_grab_mouse(bool);
 	int sig_resize_uibar(int, int);
 	int sig_resize_screen(int, int);

@@ -38,7 +38,7 @@
 #define USE_BOOT_MODE		3
 #define BOOT_MODE_DEFAULT	1
 #endif
-#define USE_SPECIAL_RESET
+#define USE_SPECIAL_RESET	1
 #define USE_FLOPPY_DISK		2
 #define USE_TAPE		1
 #define USE_KEY_LOCKED
@@ -196,7 +196,7 @@ public:
 	
 	// drive virtual machine
 	void reset();
-	void special_reset();
+	void special_reset(int num);
 	void run();
 	double get_frame_rate();
 	

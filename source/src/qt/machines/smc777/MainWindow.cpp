@@ -31,7 +31,8 @@ void META_MainWindow::retranslateUi(void)
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("RESET",  true);
 	actionReset->setVisible(false);
-	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do reset.", 0));
+	actionSpecial_Reset[0]->setToolTip(QApplication::translate("MainWindow", "RESET", 0));
+	actionSpecial_Reset[0]->setToolTip(QApplication::translate("MainWindow", "Do reset.", 0));
 	
 #if defined(_SMC70)
 	menuBootMode->setTitle(QApplication::translate("MainWindow", "Auto Start SW:", 0));

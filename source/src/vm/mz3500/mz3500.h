@@ -28,7 +28,7 @@
 #define PRINTER_STROBE_RISING_EDGE
 
 // device informations for win32
-#define USE_SPECIAL_RESET
+#define USE_SPECIAL_RESET	1
 #define USE_DIPSWITCH
 #define DIPSWITCH_DEFAULT	0x1fd
 #define USE_FLOPPY_DISK		4
@@ -133,7 +133,7 @@ public:
 	
 	// drive virtual machine
 	void reset();
-	void special_reset();
+	void special_reset(int num);
 	void run();
 	double get_frame_rate();
 	

@@ -18,12 +18,6 @@ void Ui_MainWindowBase::OnReset(void)
 	emit sig_vm_reset();
 }
 
-void Ui_MainWindowBase::OnSpecialReset(void)
-{
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, "Special reset");
-	emit sig_vm_specialreset();
-}
-
 void Ui_MainWindowBase::do_emu_full_speed(bool flag)
 {
 	p_config->full_speed = flag;

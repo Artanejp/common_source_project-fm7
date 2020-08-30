@@ -258,9 +258,12 @@ void EmuThreadClassBase::do_reset()
 	bResetReq = true;
 }
 
-void EmuThreadClassBase::do_special_reset()
+void EmuThreadClassBase::do_special_reset(int num)
 {
+	if(num < 0) return;
+	if(num >= using_flags->get_use_special_reset_num()) return;
 	bSpecialResetReq = true;
+	specialResetNum = num;
 }
 
 void EmuThreadClassBase::do_load_state(QString s)

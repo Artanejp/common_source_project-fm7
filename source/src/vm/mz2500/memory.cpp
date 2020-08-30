@@ -87,7 +87,7 @@ void MEMORY::reset()
 	extra_wait = 0;
 }
 
-void MEMORY::special_reset()
+void MEMORY::special_reset(int num)
 {
 	// reset
 	bank = 0;

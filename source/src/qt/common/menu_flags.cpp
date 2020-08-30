@@ -432,6 +432,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #endif
 #if defined(USE_SPECIAL_RESET)
 	use_special_reset = true;
+	special_reset_num = USE_SPECIAL_RESET;
 #endif	
 #if defined(USE_VM_AUTO_KEY_TABLE)
 	use_vm_auto_key_table = true;

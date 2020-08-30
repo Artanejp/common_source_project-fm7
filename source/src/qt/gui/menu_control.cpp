@@ -24,6 +24,12 @@ void Object_Menu_Control::do_set_monitor_type()
 	emit sig_monitor_type(getValue1());
 }
 
+void Object_Menu_Control::do_special_reset(void)
+{
+//	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, _T("Special reset #%d"), getValue1());
+	emit sig_specialreset(getValue1());
+}
+
 void Object_Menu_Control::set_boot_mode(void) {
 	emit on_boot_mode(bindValue);
 }
@@ -68,6 +74,12 @@ void Action_Control::do_load_state(void)
 void Action_Control::do_save_state(void)
 {
 	emit sig_save_state(binds->getStringValue());
+}
+
+void Ui_MainWindowBase::do_special_reset(int num)
+{
+//	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, _T("Special reset #%d"), getValue1());
+	emit sig_vm_specialreset(num);
 }
 
 void Ui_MainWindowBase::ConfigCpuSpeed(void)
@@ -215,12 +227,22 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 	actionReset = new Action_Control(this, using_flags);
 	actionReset->setObjectName(QString::fromUtf8("actionReset"));
 	connect(actionReset, SIGNAL(triggered()),
-		this, SLOT(OnReset())); // OK?  
+		this, SLOT(OnReset())); // OK?
+	
 	if(using_flags->is_use_special_reset()) {
-		actionSpecial_Reset = new Action_Control(this, using_flags);
-		actionSpecial_Reset->setObjectName(QString::fromUtf8("actionSpecial_Reset"));
-		connect(actionSpecial_Reset, SIGNAL(triggered()),
-				this, SLOT(OnSpecialReset())); // OK?
+		for(int i = 0; i < using_flags->get_use_special_reset_num(); i++) {
+			QString tmps;
+			tmps.setNum(i);
+			tmps = QString::fromUtf8("actionSpecial_Reset") + tmps;
+			actionSpecial_Reset[i] = new Action_Control(this, using_flags);
+			actionSpecial_Reset[i]->setObjectName(tmps);
+			actionSpecial_Reset[i]->binds->setValue1(i);
+			connect(actionSpecial_Reset[i], SIGNAL(triggered()),
+					actionSpecial_Reset[i]->binds, SLOT(do_special_reset())); // OK?
+			connect(actionSpecial_Reset[i]->binds, SIGNAL(sig_specialreset(int)),
+					this, SLOT(do_special_reset(int))); // OK?
+			if(i >= 15) break;
+		}
 	}
 
 	actionExit_Emulator = new Action_Control(this, using_flags);
@@ -287,7 +309,10 @@ void Ui_MainWindowBase::connectActions_ControlMenu(void)
 {
 	menuControl->addAction(actionReset);
 	if(using_flags->is_use_special_reset()) {
-		menuControl->addAction(actionSpecial_Reset);
+		for(int i = 0; i < using_flags->get_use_special_reset_num(); i++) {
+			menuControl->addAction(actionSpecial_Reset[i]);
+			if(i >= 15) break;
+		}
 	}
 	menuControl->addSeparator();
 	menuControl->addAction(menuCpu_Speed->menuAction());
@@ -339,8 +364,9 @@ void Ui_MainWindowBase::createContextMenu(void)
 {
 	addAction(actionReset);
 
-	if(using_flags->is_use_special_reset()) {
-		addAction(actionSpecial_Reset);
+	for(int i = 0; i < using_flags->get_use_special_reset_num(); i++) {
+		addAction(actionSpecial_Reset[i]);
+		if(i >= 15) break;
 	}
 	addAction(menuCpu_Speed->menuAction());
 
@@ -362,8 +388,11 @@ void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  b
 	actionReset->setToolTip(QApplication::translate("MenuControl", "Reset virtual machine.", 0));
 	actionReset->setIcon(ResetIcon);
 	if(using_flags->is_use_special_reset()) {
-		actionSpecial_Reset->setText(QApplication::translate("MenuControl", SpecialResetTitle, 0));
-		actionSpecial_Reset->setIcon(QIcon(":/icon_reset.png"));
+		for(int i = 0; i < using_flags->get_use_special_reset_num(); i++) {
+			actionSpecial_Reset[i]->setText(QApplication::translate("MenuControl", SpecialResetTitle, 0));
+			actionSpecial_Reset[i]->setIcon(QIcon(":/icon_reset.png"));
+			if(i >= 15) break;
+		}
 	}
 
 	actionExit_Emulator->setText(QApplication::translate("MenuControl", "Exit Emulator", 0));

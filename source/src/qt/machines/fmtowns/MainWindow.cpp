@@ -24,7 +24,33 @@
 void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
-	retranslateControlMenu("", false);
+	retranslateControlMenu("Reset with CD", true);
+	actionSpecial_Reset[0]->setText(QApplication::translate("Machine", "Reset with CD", 0));
+	actionSpecial_Reset[0]->setToolTip(QApplication::translate("Machine", "Reset and boot from CD-ROM", 0));
+	for(int i = 1; i < 5; i++) {
+		QString tmps, tmps2, tmps3;
+		tmps.setNum(i - 1);
+		tmps2 = QApplication::translate("Machine", "Reset with F", 0);
+		tmps2 = tmps2 + tmps;
+		tmps3 = QApplication::translate("Machine", "Reset and boot from FLOPPY #", 0);
+		tmps3 = tmps3 + tmps;
+		actionSpecial_Reset[i]->setText(tmps2);
+		actionSpecial_Reset[i]->setToolTip(tmps3);
+	}
+	for(int i = 5; i < 10; i++) {
+		QString tmps, tmps2, tmps3;
+		tmps.setNum(i - 5);
+		tmps2 = QApplication::translate("Machine", "Reset with H", 0);
+		tmps2 = tmps2 + tmps;
+		tmps3 = QApplication::translate("Machine", "Reset and boot from HDD #", 0);
+		tmps3 = tmps3 + tmps;
+		actionSpecial_Reset[i]->setText(tmps2);
+		actionSpecial_Reset[i]->setToolTip(tmps3);
+	}
+	actionSpecial_Reset[10]->setText(QApplication::translate("Machine", "Reset with ICM", 0));
+	actionSpecial_Reset[10]->setToolTip(QApplication::translate("Machine", "Reset with boot from IC CARD #0", 0));
+	actionSpecial_Reset[11]->setText(QApplication::translate("Machine", "Reset with DEBUG", 0));
+	actionSpecial_Reset[11]->setToolTip(QApplication::translate("Machine", "Reset with DEBUGGING MODE", 0));
 # if defined(USE_MOUSE_TYPE)
 	menuMouseType->setTitle(QApplication::translate("Machine", "Mouse", 0));
 	menuMouseType->setToolTipsVisible(true);

@@ -29,7 +29,7 @@
 #define MEMORY_BANK_SIZE	0x100
 
 // device informations for win32
-#define USE_SPECIAL_RESET
+#define USE_SPECIAL_RESET	1
 #define USE_TAPE		1
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
@@ -95,7 +95,7 @@ public:
 	
 	// drive virtual machine
 	void reset();
-	void special_reset();
+	void special_reset(int num);
 	void run();
 	double get_frame_rate()
 	{

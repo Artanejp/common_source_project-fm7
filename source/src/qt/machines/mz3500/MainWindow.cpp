@@ -84,7 +84,8 @@ void META_MainWindow::retranslateUi(void)
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("Halt",  true);
 	actionReset->setToolTip(QApplication::translate("MainWindow", "Do system reset.", 0));
-	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "HALT a machine.", 0));
+	actionSpecial_Reset[0]->setText(QApplication::translate("MainWindow", "Halt", 0));
+	actionSpecial_Reset[0]->setToolTip(QApplication::translate("MainWindow", "HALT a machine.", 0));
    
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	menu_Emu_DipSw->setTitle(QApplication::translate("MainWindow", "Dip Switches", 0));

@@ -88,6 +88,7 @@ static const int key_table[256] = {
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 /*fx*/
 };
 }
+#define SIG_KEYBOARD_BOOTSEQ_END		1
 
 class FIFO;
 
@@ -100,7 +101,7 @@ protected:
 	
 	FIFO *key_buf;
 	FIFO *cmd_buf;
-	
+
 	uint8_t kbstat, kbdata, kbint, kbmsk;
 	int repeat_start_ms;
 	int repeat_tick_ms;
@@ -110,10 +111,24 @@ protected:
 	bool nmi_status;
 	uint8_t table[256];
 
+	uint8_t last_cmd;
+	
+	uint8_t boot_code[8];
+	bool boot_seq;
+	int boot_code_ptr;
+	int boot_ptr;
+	int special_boot_num;
+	
 	int event_keycode;
+	int event_key_reset;
+	int reserved_key_num;
+	int key_count_phase;
 	
 	virtual void do_common_command(uint8_t cmd);
 	void register_key_interrupt(bool first);
+	void enqueue_key(uint8_t code);
+	void enqueue_key2(uint8_t code);
+	void reset_device();
 
 public:
 	KEYBOARD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -131,8 +146,11 @@ public:
 	void initialize();
 	void release();
 	void reset();
+	void special_reset(int num);
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	
 	void event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	

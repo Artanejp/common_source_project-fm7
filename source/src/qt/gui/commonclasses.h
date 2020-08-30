@@ -77,6 +77,7 @@ public slots:
 	void do_set_ignore_crc_error(bool flag);
 	void do_set_correct_disk_timing(bool flag);
 	void do_set_disk_count_immediate(bool flag);
+	void do_special_reset(void);
 	// Bubble
 	void insert_bubble(void);
 	void eject_bubble(void);
@@ -128,7 +129,7 @@ signals:
 	int on_cpu_type(int);   
 	int on_cpu_power(int); 
 	int on_open_debugger(int);
-	
+	int sig_specialreset(int);	
 	int sig_insert_fd(int);
 	int sig_eject_fd(int);
 	int set_d88_slot(int, int);

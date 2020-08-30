@@ -317,7 +317,7 @@ void VM::reset()
 	pio->write_signal(SIG_I8255_PORT_C, 0x40, 0x40);	// ack = high
 }
 
-void VM::special_reset()
+void VM::special_reset(int num)
 {
 	// halt key is pressed (mz3500sm p.80)
 	halt = 8;

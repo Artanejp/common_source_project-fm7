@@ -111,7 +111,7 @@ void VM::reset()
 	}
 }
 
-void VM::special_reset()
+void VM::special_reset(int num)
 {
 	// system reset
 	for(DEVICE* device = first_device; device; device = device->next_device) {

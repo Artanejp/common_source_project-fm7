@@ -696,9 +696,23 @@ void VM::set_machine_type(uint16_t machine_id, uint16_t cpu_id)
 void VM::reset()
 {
 	// reset all devices
+	boot_seq = true;
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
+//	cpu->set_address_mask(0xffffffff);
+}
+
+void VM::special_reset(int num)
+{
+	// reset all devices
+	boot_seq = true;
+	
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->reset();
+	}
+	keyboard->special_reset(num);
+
 //	cpu->set_address_mask(0xffffffff);
 }
 
@@ -732,7 +746,14 @@ void VM::draw_screen()
 
 uint32_t VM::is_floppy_disk_accessed()
 {
-	return fdc->read_signal(0);
+	uint32_t val = fdc->read_signal(0);
+	if(boot_seq) {
+		if(val != 0) {
+			keyboard->write_signal(SIG_KEYBOARD_BOOTSEQ_END, 0xffffffff, 0xffffffff);
+			boot_seq = false;
+		}
+	}
+	return val;
 }
 
 // ----------------------------------------------------------------------------
@@ -882,6 +903,12 @@ uint32_t VM::is_hard_disk_accessed()
 			}
 		}
 	}
+	if(boot_seq) {
+		if(status != 0) {
+			keyboard->write_signal(SIG_KEYBOARD_BOOTSEQ_END, 0xffffffff, 0xffffffff);
+			boot_seq = false;
+		}
+	}
 	return status;
 }
 #endif // USE_HARD_DISK
@@ -903,7 +930,14 @@ bool VM::is_compact_disc_inserted(int drv)
 
 uint32_t VM::is_compact_disc_accessed()
 {
-	return cdrom->accessed();
+	uint32_t status = cdrom->accessed();
+	if(boot_seq) {
+		if(status != 0) {
+			keyboard->write_signal(SIG_KEYBOARD_BOOTSEQ_END, 0xffffffff, 0xffffffff);
+			boot_seq = false;
+		}
+	}
+	return status;
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -1130,6 +1164,7 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(modem_mix_ch);
 	state_fio->StateValue(mic_mix_ch);
 
+	state_fio->StateValue(boot_seq);
 	
 	return true;
 }

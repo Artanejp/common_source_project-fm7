@@ -547,7 +547,7 @@ void VM::reset()
 	psg->set_reg(0x2e, 0);	// set prescaler
 }
 
-void VM::special_reset()
+void VM::special_reset(int num)
 {
 	// nmi reset
 	cpu->write_signal(SIG_CPU_NMI, 1, 1);

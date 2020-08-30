@@ -189,7 +189,7 @@ public:
 
 	void reset();
 #ifdef USE_SPECIAL_RESET
-	void special_reset();
+	void special_reset(int num);
 #endif
 #ifdef USE_NOTIFY_POWER_OFF
 	void notify_power_off();

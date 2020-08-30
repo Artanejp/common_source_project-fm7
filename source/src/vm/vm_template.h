@@ -26,7 +26,7 @@ public:
 	virtual ~VM_TEMPLATE() {} // OK?
 	// drive virtual machine
 	virtual void reset() { }
-	virtual void special_reset() { }
+	virtual void special_reset(int num) { }
 	virtual void run() { }
 	virtual void notify_power_off() { }
 	

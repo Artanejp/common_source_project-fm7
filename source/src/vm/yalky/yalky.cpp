@@ -131,7 +131,7 @@ void VM::reset()
 	memset(vram, 0, sizeof(vram));
 }
 
-void VM::special_reset()
+void VM::special_reset(int num)
 {
 	cpu->reset();
 }

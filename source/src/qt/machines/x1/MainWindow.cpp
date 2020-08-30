@@ -50,8 +50,8 @@ void META_MainWindow::retranslateUi(void)
 	retranslateFloppyMenu(0, 0, QApplication::translate("MachineX1", "FDD", 0));
 	retranslateFloppyMenu(1, 1, QApplication::translate("MachineX1", "FDD", 0));
 
-	actionSpecial_Reset->setText(QApplication::translate("Machine", "NMI Reset", 0));
-	actionSpecial_Reset->setToolTip(QApplication::translate("MachineX1", "Do NMI reset.", 0));
+	actionSpecial_Reset[0]->setText(QApplication::translate("Machine", "NMI Reset", 0));
+	actionSpecial_Reset[0]->setToolTip(QApplication::translate("MachineX1", "Do NMI reset.", 0));
 
 	// Set Labels
 	menuSoundDevice->setTitle(QApplication::translate("MachineX1", "Sound Device", 0));

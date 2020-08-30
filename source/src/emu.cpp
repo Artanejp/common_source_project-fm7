@@ -309,8 +309,10 @@ void EMU::reset()
 }
 
 #ifdef USE_SPECIAL_RESET
-void EMU::special_reset()
+void EMU::special_reset(int num)
 {
+	if(num < 0) return;
+	if(num >= USE_SPECIAL_RESET) return;
 #ifdef USE_AUTO_KEY
 	stop_auto_key();
 	config.romaji_to_kana = false;
@@ -318,7 +320,7 @@ void EMU::special_reset()
 	
 	// reset virtual machine
 	osd->lock_vm();		
-	vm->special_reset();
+	vm->special_reset(num);
 	osd->unlock_vm();
 	// restart recording
 #if !defined(_USE_QT) // Temporally

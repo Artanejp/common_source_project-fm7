@@ -136,6 +136,7 @@ protected:
 	bool use_sound_files_relay;
 	
 	bool use_special_reset;
+	int	special_reset_num;
 
 	bool use_state;
 
@@ -309,6 +310,7 @@ public:
 	bool is_use_sound_files_fdd() { return use_sound_files_fdd; }
 	bool is_use_sound_files_relay() { return use_sound_files_relay; }
 	bool is_use_special_reset() { return use_special_reset; }
+	int get_use_special_reset_num() { return special_reset_num; }
 
 	bool is_use_state() { return use_state; }
 

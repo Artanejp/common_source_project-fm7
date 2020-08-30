@@ -347,10 +347,10 @@ void EmuThreadClass::resetEmu()
 	p_emu->reset();
 }
 
-void EmuThreadClass::specialResetEmu()
+void EmuThreadClass::specialResetEmu(int num)
 {
 #ifdef USE_SPECIAL_RESET
-	p_emu->special_reset();
+	p_emu->special_reset(num);
 #endif
 }
 
@@ -412,6 +412,7 @@ void EmuThreadClass::doWork(const QString &params)
 	bStartRecordSoundReq = false;
 	bStopRecordSoundReq = false;
 	bStartRecordMovieReq = false;
+	specialResetNum = 0;
 	sStateFile.clear();
 	lStateFile.clear();
 	thread_id = this->currentThreadId();
@@ -500,8 +501,9 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 			if(bSpecialResetReq != false) {
 				half_count = false;
-				specialResetEmu();
+				specialResetEmu(specialResetNum);
 				bSpecialResetReq = false;
+				specialResetNum = 0;
 			}
 			if(bSaveStateReq != false) {
 				saveState();

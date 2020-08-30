@@ -94,6 +94,7 @@ protected:
 	int volume_balance[32];
 	int volume_avg[32];
 	int record_fps;
+	int  specialResetNum;
 
 	qint64 next_time;
 	qint64 update_fps_time;
@@ -134,7 +135,7 @@ protected:
 	virtual bool get_power_state(void);
 
 	virtual void resetEmu() { }
-	virtual void specialResetEmu() { }
+	virtual void specialResetEmu(int num) { }
 	virtual void loadState() { }
 	virtual void saveState() { }
 
@@ -212,7 +213,7 @@ public slots:
 	void doExit(void);
 	
 	void do_reset();
-	void do_special_reset();
+	void do_special_reset(int num);
 	void do_load_state(QString name);
 	void do_save_state(QString name);
 	void do_update_config();

@@ -182,7 +182,7 @@ void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 		pa = data;
 	} else if(id == SIG_CMT_PIO_PC) {
 		if(!(pc & 2) && (data & 2)) {
-			vm->special_reset();
+			vm->special_reset(0);
 		}
 #ifdef _MZ2500
 		if(!(pc & 8) && (data & 8)) {

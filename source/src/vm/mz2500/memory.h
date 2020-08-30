@@ -61,7 +61,7 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void special_reset();
+	void special_reset(int num);
 	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_data8(uint32_t addr);
 	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait);

@@ -74,6 +74,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	use_sound_files_relay = false;
 	
 	use_special_reset = false;
+	special_reset_num = 0;
 
 	use_state = false;
 

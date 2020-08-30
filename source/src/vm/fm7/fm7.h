@@ -15,7 +15,7 @@
 #define USE_SCANLINE
 #define USE_DIPSWITCH
 #define USE_CPU_TYPE 2
-#define USE_SPECIAL_RESET
+#define USE_SPECIAL_RESET		1
 #define USE_LED_DEVICE			3
 #define USE_MINIMUM_RENDERING 1
 #define USE_MOUSE
@@ -554,7 +554,7 @@ public:
 	
 	// drive virtual machine
 	void reset();
-	void special_reset();
+	void special_reset(int num);
 	void run();
 	double get_frame_rate();
 	

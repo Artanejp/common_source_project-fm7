@@ -117,7 +117,7 @@ public:
 	virtual int run() { return 1; }
 
 	virtual void reset() {}
-	virtual void special_reset() {}
+	virtual void special_reset(int num) {}
 	virtual void notify_power_off() {}
 	virtual void power_off() {}
 	virtual void suspend() {}

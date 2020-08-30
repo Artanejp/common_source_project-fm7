@@ -271,6 +271,7 @@
 #define USE_CPU_TYPE		2
 #define USE_FLOPPY_DISK     4 // ??
 #define USE_CART			2
+#define USE_SPECIAL_RESET	12 /* 'CD' 'F0' - 'F3' 'H0' - 'H4' 'ICM' 'DEBUG' */
 
 #define NOTIFY_KEY_DOWN
 #define USE_ALT_F10_KEY
@@ -438,6 +439,8 @@ protected:
 	SCSI_HOST* scsi_host;
 	SCSI_HDD*      scsi_hdd[8]; //
 
+	bool boot_seq;
+	
 	int adc_in_ch;
 	int line_in_ch;
 	int modem_in_ch;
@@ -468,6 +471,7 @@ public:
 	
 	// drive virtual machine
 	void reset();
+	void special_reset(int num);
 	void run();
 	
 #ifdef USE_DEBUGGER

@@ -65,7 +65,7 @@ protected:
 	const _TCHAR *get_device_name(void);
 	bool get_power_state(void);
 	void resetEmu();
-	void specialResetEmu();
+	void specialResetEmu(int num);
 	void loadState();
 	void saveState();
 	

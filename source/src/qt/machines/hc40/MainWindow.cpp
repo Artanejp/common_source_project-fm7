@@ -26,7 +26,8 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("System Reset",  true);
-	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do system reset.", 0));
+	actionSpecial_Reset[0]->setText(QApplication::translate("MainWindow", "System Reset", 0));
+	actionSpecial_Reset[0]->setToolTip(QApplication::translate("MainWindow", "Do system reset.", 0));
 
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);

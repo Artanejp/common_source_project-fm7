@@ -39,8 +39,8 @@ void META_MainWindow::retranslateUi(void)
 #endif   
 	
 	actionReset->setText(QApplication::translate("MainWindow", "Reset", 0));
-	actionSpecial_Reset->setText(QApplication::translate("MainWindow", "NMI Reset", 0));
-	actionSpecial_Reset->setToolTip(QApplication::translate("MainWindow", "Do NMI reset.", 0));
+	actionSpecial_Reset[0]->setText(QApplication::translate("MainWindow", "NMI Reset", 0));
+	actionSpecial_Reset[0]->setToolTip(QApplication::translate("MainWindow", "Do NMI reset.", 0));
 #if defined(USE_DEBUGGER)
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

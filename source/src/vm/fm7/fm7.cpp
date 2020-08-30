@@ -778,7 +778,7 @@ void VM::reset()
 	//display->reset(); // 20180618 K.O for RELICS
 }
 
-void VM::special_reset()
+void VM::special_reset(int num)
 {
 	// BREAK + RESET
 	mainio->reset();

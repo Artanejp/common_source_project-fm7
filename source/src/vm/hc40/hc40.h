@@ -23,7 +23,7 @@
 
 // device informations for win32
 #define WINDOW_MODE_BASE	3
-#define USE_SPECIAL_RESET
+#define USE_SPECIAL_RESET	1
 #define USE_FLOPPY_DISK		4
 #define USE_TAPE		1
 #define NOTIFY_KEY_DOWN
@@ -89,7 +89,7 @@ public:
 	
 	// drive virtual machine
 	void reset();
-	void special_reset();
+	void special_reset(int num);
 	void run();
 	double get_frame_rate()
 	{
