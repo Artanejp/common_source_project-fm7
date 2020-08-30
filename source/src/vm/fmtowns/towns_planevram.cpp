@@ -36,7 +36,7 @@ void PLANEVRAM::write_io8(uint32_t addr, uint32_t data)
 	case 0xff82:
 		if(d_crtc != NULL) {
 			d_crtc->write_signal(SIG_TOWNS_CRTC_MMIO_CFF82H, data, 0xffffffff);
-			out_debug_log(_T("WRITE CFF82h <- %02X"), data);
+//			out_debug_log(_T("WRITE CFF82h <- %02X"), data);
 		}
 		break;
 	case 0xff83:
