@@ -221,6 +221,7 @@ protected:
 	int position;
 	
 	uint8_t latest_command;
+	uint8_t reserved_command;
 	bool req_status;
 	bool stat_reply_intr;
 	bool mcu_ready;
@@ -253,7 +254,9 @@ protected:
 	static const uint16_t crc_table[256];
 
 	int param_ptr;
-	bool command_received;
+	bool command_entered;
+	bool param_filled;
+	uint8_t param_pre_queue[8];
 	uint8_t param_queue[8];
 
 	double seek_time;
@@ -291,6 +294,7 @@ protected:
 	void read_cdrom_mode1();
 	void read_cdrom_mode2();
 	void read_cdrom_raw();
+	bool check_notready_and_changed(bool force_int);
 	
 	virtual void execute_command(uint8_t command);
 	
