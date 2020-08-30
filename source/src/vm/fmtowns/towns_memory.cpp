@@ -51,6 +51,7 @@ void TOWNS_MEMORY::config_page00()
 	}
 	if(select_d0_rom) {
 		set_memory_mapped_io_rw(0x000f8000, 0x000fffff, d_sysrom);
+//		set_memory_w	       (0x000f8000, 0x000fffff, &(ram_pagef[0x8000]));
 	} else {
 		set_memory_rw          (0x000f8000, 0x000fffff, &(ram_pagef[0x8000]));
 	}		
