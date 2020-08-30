@@ -186,7 +186,7 @@ void TOWNS_CRTC::reset()
 	crtout_reg = 0x0f;
 	for(int i = 0; i < 4; i++) {
 		frame_offset[i] = 0;
-		line_offset[i] = 640;
+		line_offset[i] = 80;
 	}
 	for(int i = 0; i < 2; i++) {
 		vstart_addr[i] = 0;
@@ -741,13 +741,13 @@ void TOWNS_CRTC::write_io16(uint32_t addr, uint32_t data)
 uint16_t TOWNS_CRTC::read_reg30()
 {
 	uint16_t data = 0x00f0;
-	data |= ((frame_in[1])   ?  0x8000 : 0);
-	data |= ((frame_in[0])   ?  0x4000 : 0);
-	data |= ((hdisp[1])      ?  0x2000 : 0);
-	data |= ((hdisp[0])      ?  0x1000 : 0);
-	//data |= ((eet)          ?  0x0800 : 0);
-	data |= ((vsync)         ?  0x0400 : 0);
-	data |= ((hsync)         ?  0x0200 : 0);
+	data |= ((frame_in[1])     ?  0x8000 : 0);
+	data |= ((frame_in[0])     ?  0x4000 : 0);
+	data |= ((hdisp[1])        ?  0x2000 : 0);
+	data |= ((hdisp[0])        ?  0x1000 : 0);
+	data |= ((interlace_field) ?  0x0800 : 0);
+	data |= ((vsync)           ?  0x0400 : 0);
+	data |= ((hsync)           ?  0x0200 : 0);
 	//data |= ((video_in)     ? 0x0100 : 0);
 	//data |= ((half_tone)    ? 0x0008 : 0);
 	//data |= ((sync_enable)  ? 0x0004 : 0);
@@ -2091,6 +2091,7 @@ void TOWNS_CRTC::update_timing(int new_clocks, double new_frames_per_sec, int ne
 
 void TOWNS_CRTC::event_pre_frame()
 {
+	interlace_field = !interlace_field;
 	for(int i = 0; i < 2; i++) {
 		crtout_top[i] = crtout[i];
 		hdisp[i] = false;
@@ -2167,7 +2168,10 @@ void TOWNS_CRTC::event_frame()
 	}
 	if((vst2_us > 0.0) && (vst2_us > vst1_us)) {
 		register_event(this, EVENT_CRTC_VST2, vst2_us, false, &event_id_vst2);
+	} else if((vst1_us <= 0.0) && (vst2_us <= 0.0)) {
+		set_vsync(false, true);
 	}
+	
 	for(int i = 0; i < 2; i++) {
 		frame_in[i] = false;
 		cancel_event_by_id(event_id_vds[i]);
@@ -2238,9 +2242,11 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				  _T("R50:    PAGESEL=%d  PLANEMASK=%01X DPALETTE CHANGED=%s\n")
 				  _T("CRT:    OUT0=%s OUT1=%s ")
 				  _T("OUTREG: CTRL=%02X PRIO=%02X\n")
+				  _T("CRTC CH=%d\n")
 				  , r50_pagesel, r50_planemask, (dpalette_changed) ? _T("YES") : _T("NO ")
 				  , (crtout[0]) ? _T("ON ") : _T("OFF"), (crtout[1]) ? _T("ON ") : _T("OFF")
 				  , voutreg_ctrl, voutreg_prio
+				  , crtc_ch
 		);
 	
 	my_stprintf_s(buffer, buffer_len,
@@ -2282,9 +2288,7 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 	int eid2 = (event_id / 2) * 2;
 	// EVENT_VSTART MOVED TO event_frame().
 	if(event_id == EVENT_CRTC_VST1) { // VSYNC
-		if(event_id_vst2 <= -1) {
-			set_vsync(false, false);
-		}
+		set_vsync(false, false);
 		event_id_vst1 = -1;
 	} else if (event_id == EVENT_CRTC_VST2) {
 		set_vsync(false, false);
@@ -2338,7 +2342,7 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 		}
 		register_event(this, EVENT_CRTC_HSTART, horiz_us, false, &event_id_hstart); // HSTART
 	} else if(event_id == EVENT_CRTC_HSW) {
-//		hsync = false;
+		hsync = false;
 		event_id_hsw = -1;
 	} else if(eid2 == EVENT_CRTC_HDS) {
 		int layer = event_id & 1;
@@ -2350,7 +2354,7 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 	} else if(eid2 == EVENT_CRTC_HDE) {
 		int layer = event_id & 1;
 		hdisp[layer] = false;
-		if(!(hdisp[0]) && !(hdisp[1])) hsync = false;
+//		if(!(hdisp[0]) && !(hdisp[1])) hsync = false;
 		event_id_hde[layer] = -1;
 	}
 
