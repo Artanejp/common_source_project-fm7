@@ -1755,27 +1755,6 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 				return 0;
 			}
 			int bytes = 0;
-#if 0
-			for(int i = 0; i < (2352 * n_sectors); i += 2) {
-				if(databuffer->full()) {
-					break; // Buffer full
-				}
-				
-				if(config.swap_audio_byteorder[0]) {
-//					databuffer->write(((int)tmpbuf[i + 1]) & 0xff);
-//					databuffer->write(((int)tmpbuf[i + 0]) & 0xff);
-					uint8_t tn[2];
-					tn[0] = tmpbuf[i + 1];
-					tn[1] = tmpbuf[i + 0];
-					write_bytes(tn, 2);
-				} else {
-					write_bytes(&(tmpbuf[i]), 2);
-//					databuffer->write(((int)tmpbuf[i + 0]) & 0xff);
-//					databuffer->write(((int)tmpbuf[i + 1]) & 0xff);
-				}
-				bytes += 2;
-			}
-#else
 			if(config.swap_audio_byteorder[0]) {
 				int ip = 0;
 				for(int i = 0; i < n_sectors; i++) {
@@ -1796,7 +1775,6 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 					bytes += 2352;
 				}
 			}
-#endif				
 			if(bytes < (2352 * n_sectors)) {
 				return (bytes / 2352);
 			}
@@ -2234,7 +2212,9 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 		clear_event(event_cdda_delay_play);
 		double usec = get_seek_time(cdda_playing_frame);
 		if(usec < 10.0) usec = 10.0;
+		set_cdda_status(CDDA_PLAYING);
 		register_event(this, EVENT_CDDA_DELAY_PLAY, usec, false, &event_cdda_delay_play);
+//		register_event(this, EVENT_CDDA_DELAY_PLAY, 100.0, false, &event_cdda_delay_play);
 	}
 	set_subq(); // First
 	status_accept(1, 0x00, 0x00);
