@@ -587,14 +587,14 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 			} else {
 				mcu_intr = false;
 				dma_intr = true;
-				if(read_length > 0) {
+				if(read_sectors > 0) {
 					mcu_ready = true;
 				}
 			}
 			if(/*(stat_reply_intr) ||*/ !(dma_intr_mask)) {
 				write_signals(&outputs_mcuint, 0xffffffff);
 			}
-			if(read_length <= 0) {
+			if(read_sectors <= 0) {
 				clear_event(event_drq);
 				clear_event(event_next_sector);
 				clear_event(event_seek_completed);
@@ -602,7 +602,15 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 				out_debug_log(_T("EOT(SIGNAL/DMA)"));
 			} else {
 				clear_event(event_drq);
+				clear_event(event_next_sector);
+				clear_event(event_seek_completed);
 				out_debug_log(_T("NEXT(SIGNAL/DMA)"));
+				register_event(this, EVENT_CDROM_SEEK_COMPLETED,
+//						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
+//						   ((double)(physical_block_size())) *
+//						   0.5, // OK?
+						   1.0, // OK?
+						   false, &event_seek_completed);
 			}
 		}
 		break;
@@ -935,7 +943,7 @@ uint8_t TOWNS_CDROM::read_status()
 uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
 {
 	data_reg = (uint8_t)(databuffer->read() & 0xff);
-	if((databuffer->empty()) && (read_length <= 0)) {
+	if((databuffer->empty()) && (read_sectors <= 0)) {
 		//out_debug_log(_T("EOT(DMA) by read_dma_io8()"));
 		dma_transfer_phase = false;
 		event_callback(EVENT_CDROM_EOT, 0);
@@ -995,6 +1003,7 @@ void TOWNS_CDROM::read_cdrom()
 	int track = 0;
 	extra_status = 0;
 	read_length = 0;
+	read_sectors = 0;
 	read_length_bak = 0;
 	
 	if((lba1 > lba2) || (lba1 < 0) || (lba2 < 0)) { // NOOP?
@@ -1016,6 +1025,7 @@ void TOWNS_CDROM::read_cdrom()
 	position = lba1 * physical_block_size();
 	__remain = (lba2 - lba1 + 1);
 	read_length = __remain * logical_block_size();
+	read_sectors = __remain;
 	read_length_bak = read_length;
 
 //	dma_transfer_phase = dma_transfer;
@@ -1518,14 +1528,16 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		if(check_notready_and_changed(false)) {
 			break;
 		}
-		if(read_length > 0) {
+		if(read_sectors > 0) {
 //			out_debug_log(_T("READ DATA SIZE=%d BUFFER COUNT=%d"), logical_block_size(), databuffer->count());
 			if(read_length >= logical_block_size()) {
 				read_buffer(logical_block_size());
+				read_sectors--;
 			} else if(read_length > 0) {
 				read_buffer(read_length);
+				read_sectors--;
 			}
-			pio_transfer_phase = pio_transfer;
+//			pio_transfer_phase = pio_transfer;
 //		dma_transfer_phase = dma_transfer;
 		}
 //		if((cdrom_prefetch) || (pio_transfer)) {
@@ -1533,7 +1545,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
 						   ((double)(physical_block_size())) * 
 						   1.0, // OK?
-//						   5.0e3, // From TSUGARU
+//						   1.0e3, // From TSUGARU
 						   false, &event_next_sector);
 //		}
 		break;
@@ -1545,7 +1557,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 		// BIOS FDDFCh(0FC0h:01FCh)-
 		if(pio_transfer) {
-			if(read_length <= 0) {
+			if(read_sectors <= 0) {
 				out_debug_log(_T("EOT"));
 				pio_transfer_phase = false;
 				dma_transfer_phase = false;
@@ -1554,29 +1566,32 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				break;
 			}
 		}
-		if(((cdrom_prefetch) && (databuffer->left() >= logical_block_size())) ||
-		   ((databuffer->empty()) && (read_length > 0))) {
+/*		if(((cdrom_prefetch) && (databuffer->left() >= logical_block_size())) ||
+		((databuffer->empty()) && (read_sectors > 0))) */
+		/*if(read_sectors > 0) */{
 //		if(/*(databuffer->left() >= logical_block_size()) &&*/ (read_length > 0)) {
 			//out_debug_log(_T("READ NEXT SECTOR"));
 			if(pio_transfer) {
 				set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
 				set_dma_intr(true);
+				if(read_sectors > 0) {
+					register_event(this, EVENT_CDROM_SEEK_COMPLETED,
+								   //(1.0e6 / ((double)transfer_speed * 150.0e3)) *
+								   //((double)(physical_block_size())) *
+								   //0.5, // OK?
+								   5.0e3, // OK?
+								   false, &event_seek_completed);
+				}
 			} else {
 				status_data_ready(true);
 			}
-			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-//						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
-//						   ((double)(physical_block_size())) *
-//						   1.0, // OK?
-						   5.0, // OK?
-						   false, &event_seek_completed);
-		} else if(read_length > 0) {
+		} /*else if(read_sectors > 0) {
 			// Polling to buffer empty.
 			register_event(this, EVENT_CDROM_NEXT_SECTOR,
 //						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 8.0, // OK?
-						   1.0e6, // OK?
+						   100.0, // OK?
 						   false, &event_next_sector);
-	   }
+	   }*/
 		break;
 	case EVENT_CDROM_DRQ:
 		// ToDo: Buffer OVERFLOW at PIO mode.
@@ -1969,6 +1984,7 @@ void TOWNS_CDROM::reset_device()
 	clear_event(event_delay_ready);
 	
 	read_length = 0;
+	read_sectors = 0;
 	read_length_bak = 0;
 
 	media_changed = false;
@@ -2997,7 +3013,7 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 			if((databuffer->empty())) {
 				out_debug_log(_T("PIO READ END FROM 04C4h"));
 				pio_transfer_phase = false;
-				if(read_length <= 0) {
+				if(read_sectors <= 0) {
 					set_dma_intr(true);
 					status_read_done(true);
 				}

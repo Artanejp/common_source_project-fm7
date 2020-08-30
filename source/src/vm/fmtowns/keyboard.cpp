@@ -21,6 +21,7 @@ void KEYBOARD::initialize()
 	key_buf = new FIFO(64);
 	cmd_buf = new FIFO(16);
 	event_keycode = -1;
+	memset(table, 0, sizeof(table));
 }
 
 void KEYBOARD::release()
