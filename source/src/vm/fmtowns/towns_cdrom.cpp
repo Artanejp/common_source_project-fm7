@@ -519,7 +519,6 @@ void TOWNS_CDROM::set_dma_intr(bool val)
 		if(stat_reply_intr) {
 			dma_intr = true;
 			if(!(dma_intr_mask)) {
-			dma_intr = true;
 //			if(mcu_intr) write_signals(&outputs_mcuint, 0x0);
 //			if(!(dma_intr_mask)) {
 				write_signals(&outputs_mcuint, 0xffffffff);
@@ -856,7 +855,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			} else {
 				status_accept(0, 0x00, 0x00);
 			}
-			if(stat_reply_intr) set_mcu_intr(true);
+//			if(stat_reply_intr) set_mcu_intr(true);
 		}
 		break;
 	case CDROM_COMMAND_SET_CDDASET: // 81h
@@ -1488,6 +1487,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_CDROM_SEEK_COMPLETED:
 		// BIOS FDDFCh(0FC0h:01FCh)-
 		event_seek_completed = -1;
+		first_read_seq = false;
 		//read_pos = 0;
 		clear_event(event_next_sector);
 		if(read_length > 0) {
@@ -1498,61 +1498,59 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				read_buffer(read_length);
 			}
 			pio_transfer_phase = pio_transfer;
-//		dma_transfer_phase = dma_transfer;
-		}
-//		if((cdrom_prefetch) || (pio_transfer)) {
 			register_event(this, EVENT_CDROM_NEXT_SECTOR,
 						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
 						   ((double)(physical_block_size())) * 
 						   1.0, // OK?
 //						   5.0e3, // From TSUGARU
 						   false, &event_next_sector);
-//		}
+		} else {
+			status_read_done(true);
+		}
 		break;
 	case EVENT_CDROM_NEXT_SECTOR:
 		event_next_sector = -1;
 		clear_event(event_seek_completed);
 		// BIOS FDDFCh(0FC0h:01FCh)-
-		if(pio_transfer) {
-			if(read_length <= 0) {
-				out_debug_log(_T("EOT"));
-				pio_transfer_phase = false;
-				dma_transfer_phase = false;
-				status_read_done(true);
-//				set_dma_intr(true);
-				break;
-			}
-		}
-		if(((cdrom_prefetch) && (databuffer->left() >= logical_block_size())) ||
-		   ((databuffer->empty()) && (read_length > 0))) {
-//		if(/*(databuffer->left() >= logical_block_size()) &&*/ (read_length > 0)) {
-			//out_debug_log(_T("READ NEXT SECTOR"));
+		if(!(first_read_seq)) {
 			if(pio_transfer) {
 				set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
 				set_dma_intr(true);
 			} else {
 				status_data_ready(true);
 			}
-			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
+			first_read_seq = true;
+		}
+		{
+			if(read_length > 0) {
+				bool _n = false;
+				if(cdrom_prefetch) {
+					_n = (databuffer->left() >= logical_block_size()) ? true : false;
+				} else {
+					_n = databuffer->empty();
+				}
+				if(_n) {
+					register_event(this, EVENT_CDROM_SEEK_COMPLETED,
 //						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
 //						   ((double)(physical_block_size())) *
 //						   1.0, // OK?
-						   5.0, // OK?
-						   false, &event_seek_completed);
-		} else if(read_length > 0) {
-			// Polling to buffer empty.
-//			if(event_drq < 0) {
-//				if(dma_transfer) {
-//						out_debug_log(_T("KICK DRQ"));
-//					dma_transfer_phase = true;
-//					register_event(this, EVENT_CDROM_DRQ, 0.5 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
-//				}
-//			}
-			register_event(this, EVENT_CDROM_NEXT_SECTOR,
-//						   (1.0e6 / ((double)transfer_speed * 150.0e3)) * 8.0, // OK?
-						   100.0, // OK?
-						   false, &event_next_sector);
-	   }
+								   0.5, // OK?
+								   false, &event_seek_completed);
+				} else {
+					register_event(this, EVENT_CDROM_NEXT_SECTOR,
+								   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
+								   16.0,
+								   false, &event_seek_completed);
+				}
+			} else { // EOT
+				if(pio_transfer) {
+					out_debug_log(_T("EOT"));
+					pio_transfer_phase = false;
+					dma_transfer_phase = false;
+					status_read_done(true);
+				}
+			}
+		}
 		break;
 	case EVENT_CDROM_DRQ:
 		// ToDo: Buffer OVERFLOW at PIO mode.
@@ -3148,6 +3146,8 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(read_length);
 	state_fio->StateValue(read_length_bak);
 	state_fio->StateValue(next_seek_lba);
+	state_fio->StateValue(first_read_seq);
+
 	
 	state_fio->StateValue(param_ptr);
 	state_fio->StateArray(param_queue, sizeof(param_queue), 1);
