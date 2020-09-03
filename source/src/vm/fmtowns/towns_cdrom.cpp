@@ -593,7 +593,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 			if((stat_reply_intr) || !(dma_intr_mask)) {
 				write_signals(&outputs_mcuint, 0xffffffff);
 			}
-			if(read_length <= 0) {
+			if((read_length <= 0) && (databuffer->empty())) {
 				clear_event(event_drq);
 				clear_event(event_next_sector);
 				clear_event(event_seek_completed);
@@ -938,9 +938,9 @@ uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
 	data_reg = (uint8_t)(databuffer->read() & 0xff);
 	if((databuffer->empty()) && (read_length <= 0)) {
 		//out_debug_log(_T("EOT(DMA) by read_dma_io8()"));
-		dma_transfer_phase = false;
-		event_callback(EVENT_CDROM_EOT, 0);
 		read_length_bak = 0;
+		register_event(this, EVENT_CDROM_EOT,
+					   0.2 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), false, NULL);
 	}
 	return data_reg;
 }
@@ -1560,25 +1560,27 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		//read_pos++;
 		break;
 	case EVENT_CDROM_EOT:
-		dma_transfer_phase = false;
-		if(!(dma_intr_mask)) {
-			dma_intr = true;
-			mcu_intr = false;
-		} else {
-			dma_intr = true;
-			mcu_intr = false;
-//			if(read_length > 0) {
-//				mcu_ready = true;
-//			}
+		if(dma_transfer_phase) {
+			dma_transfer_phase = false;
+			if(!(dma_intr_mask)) {
+				dma_intr = true;
+				mcu_intr = false;
+			} else {
+				dma_intr = true;
+				mcu_intr = false;
+				if(read_length > 0) {
+					mcu_ready = true;
+				}
+			}
+			if((stat_reply_intr) || !(dma_intr_mask)) {
+				write_signals(&outputs_mcuint, 0xffffffff);
+			}
+			clear_event(event_drq);
+			clear_event(event_next_sector);
+			clear_event(event_seek_completed);
+			status_read_done(req_status);
+			out_debug_log(_T("EOT(EVENT/DMAIO)"));
 		}
-		if((stat_reply_intr) || !(dma_intr_mask)) {
-			write_signals(&outputs_mcuint, 0xffffffff);
-		}
-		clear_event(event_drq);
-		clear_event(event_next_sector);
-		clear_event(event_seek_completed);
-		status_read_done(req_status);
-		out_debug_log(_T("EOT(EVENT/DMAIO)"));
 		break;
 	default:
 		// ToDo: Another events.
