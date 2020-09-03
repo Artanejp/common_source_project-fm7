@@ -1629,13 +1629,14 @@ bool TOWNS_CDROM::read_buffer(int length)
 				if(event_drq < 0) {
 					if(dma_transfer) {
 //						out_debug_log(_T("KICK DRQ"));
-						register_event(this, EVENT_CDROM_DRQ, 1.0 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
+						register_event(this, EVENT_CDROM_DRQ, 0.5 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
 					}
 				}
 			}
 			position++;
 			offset = (offset + 1) % physical_block_size();
 		}
+		
 		access = true;
 	}
 	return true;

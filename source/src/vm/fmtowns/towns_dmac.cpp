@@ -26,7 +26,7 @@ void TOWNS_DMAC::reset()
 void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 {
 //	if((addr & 0x0f) == 0x0c) out_debug_log("WRITE REG: %08X %08X", addr, data);
-//	out_debug_log("WRITE REG: %04X %02X", addr, data);
+	out_debug_log("WRITE REG: %04X %02X", addr, data);
 	uint naddr;
 	switch(addr & 0x0f) {
 	case 0x00:
@@ -48,8 +48,18 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		dma_high_address_bak[selch] = (data & 0xff) << 24;
 		return;
 		break;
+	case 0x08:
+		if((data & 0x04) != (cmd & 0x04)) {
+			out_debug_log(_T("TRANSFER: CMD=%04X -> %04X"), cmd, (cmd & 0xff00) | (data & 0xff));
+		}
+		break;
 	case 0x0a:
 //		out_debug_log(_T("SET MODE[%d] to %02X"), selch, data);
+		break;
+	case 0x0e:
+		if(((data | req) & 0x08) != 0) {
+			out_debug_log(_T("TRANSFER ENABLE@REG0E DATA=%02X"), data);
+		}
 		break;
 	case 0x0f:
 		// Note: This is *temporaly* workaround for 16bit transfer mode with 8bit bus.
@@ -71,10 +81,10 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		creg_set[selch] = false;
 #endif
 #if 0
-		if((data & 0x02) == 0) {
-			out_debug_log(_T("START SCSI DMA MODE=%02X ADDR=%08X COUNT=%04X"),
-						  dma[1].mode, (dma[1].areg & 0xffffff) | dma_high_address[1],
-						  dma[1].creg);
+		if((data & 0x08) == 0) {
+			out_debug_log(_T("START CDROM DMA MODE=%02X ADDR=%08X COUNT=%04X"),
+						  dma[3].mode, (dma[3].areg & 0xffffff) | dma_high_address[3],
+						  dma[3].creg);
 		}
 #endif
 		break;
