@@ -163,7 +163,8 @@ protected:
 
 	// For Debugging, will remove 20200822 K.O
 	DEVICE* d_cpu;
-
+	DEVICE* d_dmac;
+	
 	uint32_t max_fifo_length;
 	uint32_t fifo_length;
 	
@@ -212,16 +213,18 @@ protected:
 	
 	int mix_loop_num;
 	int current_track;
-	int read_sectors;
+	int read_sector;
 	int transfer_speed;
 	int read_length;
 	int read_length_bak;
 	int next_seek_lba;
 
 	bool first_read_seq;
+	bool wait_for_dts;
 	
 	int position;
 	
+	uint8_t prev_command;
 	uint8_t latest_command;
 	uint8_t reserved_command;
 	bool req_status;
@@ -232,6 +235,8 @@ protected:
 	bool dma_intr;
 	bool mcu_intr_mask;
 	bool dma_intr_mask;
+
+	bool mcuint_val;
 	
 	int event_drq;
 	int event_seek;
@@ -244,6 +249,7 @@ protected:
 	int event_delay_ready;
 	int event_halt;
 	int event_delay_command;
+	int event_time_out;
 	
 	int cdda_sample_l;
 	int cdda_sample_r;
@@ -286,6 +292,9 @@ protected:
 	void set_extra_status();
 
 	void set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+	void set_status_2(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+	void set_status_3(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+	void set_status_immediate(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra_toc_addr(uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra_toc_data(uint8_t s1, uint8_t s2, uint8_t s3);
@@ -313,6 +322,8 @@ protected:
 	void __FASTCALL status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_delay_ready();
 	void set_delay_ready2();
+	void set_delay_ready3();
+	void set_delay_ready4();
 	
 	uint32_t cdrom_get_adr(int trk);
 
@@ -342,9 +353,15 @@ protected:
 
 	virtual void open_from_cmd(const _TCHAR* file_path);
 	virtual void close_from_cmd();
+	virtual void do_dma_eot(bool by_signal);
 
 	void clear_event(int& evid);
-	
+
+	void __FASTCALL write_mcuint_signals(uint32_t val)
+	{
+		mcuint_val = (val != 0) ? true : false;
+		write_signals(&outputs_mcuint, val);
+	}
 	bool __CDROM_DEBUG_LOG;
 	bool _USE_CDROM_PREFETCH;
 public:
@@ -362,7 +379,7 @@ public:
 		initialize_output_signals(&outputs_drq);
 		initialize_output_signals(&outputs_mcuint);
 		set_device_name(_T("FM-Towns CD-ROM drive"));
-		
+		d_dmac = NULL;
 		// For Debugging, will remove 20200822 K.O
 		d_cpu = NULL;
 	}
@@ -490,6 +507,10 @@ public:
 	void set_context_drq_line(DEVICE* dev, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_drq, dev, id, mask);
+	}
+	void set_context_dmac(DEVICE* d)
+	{
+		d_dmac = d;
 	}
 	// For Debugging, will remove 20200822 K.O
 	void set_context_cpu(DEVICE* d)

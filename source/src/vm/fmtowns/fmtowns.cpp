@@ -449,6 +449,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// NMI1 : Extra SLOT (Maybe not implement)
 	keyboard->set_context_nmi_line(memory, SIG_CPU_NMI, 0xffffffff);
 
+	cdrom->set_context_dmac(dma);
 	// For Debugging, will remove 20200822 K.O
 	cdrom->set_context_cpu(cpu);
 
