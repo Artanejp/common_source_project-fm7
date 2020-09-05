@@ -2192,13 +2192,11 @@ uint32_t TOWNS_CDROM::lba_to_msf_alt(uint32_t lba)
 	return ret;
 }
 
-	
-
 void TOWNS_CDROM::unpause_cdda_from_cmd()
 {
 	if((cdda_status == CDDA_PAUSED) &&
 	   (current_track >= 0) && (current_track < track_num)
-	   && (toc_table[current_track].is_audio)) { // OK?
+	   /*&& (toc_table[current_track].is_audio)*/) { // OK?
 		set_cdda_status(CDDA_PLAYING);
 		set_subq();
 		status_accept(1, 0x00, 0x00);
@@ -2242,7 +2240,7 @@ void TOWNS_CDROM::pause_cdda_from_cmd()
 		return;
 	}
 	if((current_track >= 0) && (current_track < track_num)
-	   && (toc_table[current_track].is_audio)) { // OK?
+	   /*&& (toc_table[current_track].is_audio)*/) { // OK?
 		set_cdda_status(CDDA_PAUSED);
 		set_subq();
 		status_accept(1, 0x00, 0x00);
