@@ -57,7 +57,7 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 			// dma reset
 			for(int i = 0; i < 4; i++) {
 				dma[i].mode = 0x04;
-				dma[selch].is_16bit = false;
+				dma[i].is_16bit = false;
 				reset_ube(i);
 			}
 			selch = base = 0;
@@ -274,7 +274,7 @@ uint32_t UPD71071::read_signal(int ch)
 	if((ch >= (SIG_UPD71071_IS_TRANSFERING + 0)) && (ch < (SIG_UPD71071_IS_TRANSFERING + 4))) {
 		int _nch = ch - SIG_UPD71071_IS_TRANSFERING;
 		if((cmd & 0x04) != 0) return 0x00; // Not transfering
-		if((dma[_nch].creg == 0)) return 0x00; //
+		if((dma[_nch].creg == 0xffffffff)) return 0x00; //
 		return 0xffffffff;
 	} else if((ch >= (SIG_UPD71071_IS_16BITS_TRANSFER + 0)) && (ch < (SIG_UPD71071_IS_16BITS_TRANSFER + 4))) {
 		int _nch = ch - SIG_UPD71071_IS_16BITS_TRANSFER;
@@ -282,6 +282,14 @@ uint32_t UPD71071::read_signal(int ch)
 		return (stat) ? 0xffffffff : 0;
 	} else if((ch >= SIG_UPD71071_UBE_CH0) && (ch <= SIG_UPD71071_UBE_CH3)) {
 		return (inputs_ube[ch - SIG_UPD71071_UBE_CH0]) ? 0xffffffff : 0x00000000;
+	} else if((ch >= (SIG_UPD71071_CREG + 0)) && (ch < (SIG_UPD71071_CREG + 4))) {
+		return dma[ch - SIG_UPD71071_CREG].creg;
+	} else if((ch >= (SIG_UPD71071_BCREG + 0)) && (ch < (SIG_UPD71071_BCREG + 4))) {
+		return dma[ch - SIG_UPD71071_BCREG].creg;
+	} else if((ch >= (SIG_UPD71071_AREG + 0)) && (ch < (SIG_UPD71071_AREG + 4))) {
+		return dma[ch - SIG_UPD71071_AREG].creg;
+	} else if((ch >= (SIG_UPD71071_BAREG + 0)) && (ch < (SIG_UPD71071_BAREG + 4))) {
+		return dma[ch - SIG_UPD71071_BAREG].creg;
 	}
 	return 0;
 }
@@ -443,6 +451,8 @@ bool UPD71071::do_dma_epilogue(int c)
 		} else {
 			return false;
 		}
+	} else {
+		tc &= ~bit;
 	}
 	if(_SINGLE_MODE_DMA) {
 		// Note: At FM-Towns, SCSI's DMAC will be set after

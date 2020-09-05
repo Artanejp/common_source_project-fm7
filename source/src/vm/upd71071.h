@@ -25,6 +25,10 @@
 #define SIG_UPD71071_UBE_CH3			7
 #define SIG_UPD71071_IS_TRANSFERING		16 /* 16 - 19 */
 #define SIG_UPD71071_IS_16BITS_TRANSFER	20 /* 20 - 23 */
+#define SIG_UPD71071_CREG				24 /* 24 - 27 */
+#define SIG_UPD71071_BCREG				28 /* 28 - 31 */
+#define SIG_UPD71071_AREG				32 /* 32 - 35 */
+#define SIG_UPD71071_BAREG				36 /* 36 - 39 */
 
 class DEBUGGER;
 class UPD71071 : public DEVICE
