@@ -219,9 +219,6 @@ protected:
 	int read_length_bak;
 	int next_seek_lba;
 
-	bool first_read_seq;
-	bool wait_for_dts;
-	
 	int position;
 	
 	uint8_t prev_command;

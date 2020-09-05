@@ -917,6 +917,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 					status_accept(0, 0x00, 0x00);
 				}
 			} else { // DATA
+//				status_accept(1, 0x00, 0x00);
 				status_accept(0, 0x00, 0x00);
 //				set_status_3(true, 0, 0x00, 0x00, 0x00, 0x00);
 			}
@@ -1082,9 +1083,10 @@ void TOWNS_CDROM::read_cdrom()
 	// Kick a first
 	double usec = get_seek_time(lba1);
 	register_event(this, EVENT_CDROM_SEEK_COMPLETED, usec, false, &event_seek_completed);
-	wait_for_dts = false;
 	if(req_status) {
-		set_status(req_status, 2, 0x00, 0x00, 0x00, 0x00);
+		// May not need extra status, integrated after reading. 20200906 K.O
+		set_status(req_status, 0, 0x00, 0x00, 0x00, 0x00);
+//		set_status(req_status, 2, 0x00, 0x00, 0x00, 0x00);
 	} else {
 		if(pio_transfer) {
 			set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
@@ -1634,7 +1636,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		
 	case EVENT_CDROM_SEEK_COMPLETED:
 		event_seek_completed = -1;
-		first_read_seq = false;
 		//read_pos = 0;
 		clear_event(event_next_sector);
 		clear_event(event_time_out);
@@ -1671,14 +1672,11 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_CDROM_NEXT_SECTOR:
 		event_next_sector = -1;
 		// BIOS FDDFCh(0FC0h:01FCh)-
-		if(!(first_read_seq)) {
-			if(pio_transfer) {
-				set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
-				set_dma_intr(true);
-			} else {
+		if(pio_transfer) {
+			set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
+			set_dma_intr(true);
+		} else {
 				status_data_ready(true);
-			}
-			first_read_seq = true;
 		}
 		register_event(this, EVENT_CDROM_SEEK_COMPLETED,
 					   10.0,
@@ -2056,8 +2054,6 @@ void TOWNS_CDROM::reset_device()
 	}
 	current_track = 0;
 
-	wait_for_dts = false;
-	
 	read_sector = 0;
 	write_signals(&outputs_drq, 0);
 	mcu_intr = false;
@@ -3157,15 +3153,14 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 			pio_transfer = false;
 		}
 		if((dma_transfer) && !(dma_transfer_phase)) {
-			wait_for_dts = false;
 			dma_transfer_phase = true;
 //			clear_event(event_seek_completed);
 //			clear_event(event_time_out);
 			
 //			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-//						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
-//						   ((double)(physical_block_size())) * 
-//						   1.0, // OK?
+////						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
+////						   ((double)(physical_block_size())) * 
+////						   1.0, // OK?
 //						   10.0, //OK?
 //						   false, &event_seek_completed);
 //			register_event(this, EVENT_CDROM_TIMEOUT, 100.0e3, false, &event_time_out);
@@ -3286,7 +3281,7 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(read_length);
 	state_fio->StateValue(read_length_bak);
 	state_fio->StateValue(next_seek_lba);
-	state_fio->StateValue(first_read_seq);
+
 	state_fio->StateValue(mcuint_val);
 	
 	state_fio->StateValue(param_ptr);
@@ -3300,7 +3295,6 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(media_changed);
 	state_fio->StateValue(next_status_byte);
 
-	state_fio->StateValue(wait_for_dts);
 	
 	// SCSI_CDROM
 	uint32_t offset = 0;
