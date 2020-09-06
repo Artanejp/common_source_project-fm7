@@ -23,6 +23,10 @@
 #define SIG_UPD71071_UBE_CH1			5
 #define SIG_UPD71071_UBE_CH2			6
 #define SIG_UPD71071_UBE_CH3			7
+#define SIG_UPD71071_EOT_CH0			8
+#define SIG_UPD71071_EOT_CH1			9
+#define SIG_UPD71071_EOT_CH2			10
+#define SIG_UPD71071_EOT_CH3			11
 #define SIG_UPD71071_IS_TRANSFERING		16 /* 16 - 19 */
 #define SIG_UPD71071_IS_16BITS_TRANSFER	20 /* 20 - 23 */
 #define SIG_UPD71071_CREG				24 /* 24 - 27 */
@@ -39,7 +43,7 @@ protected:
 	DEVICE* d_dma;
 //#endif
 	DEBUGGER *d_debugger;
-	outputs_t outputs_tc;
+	outputs_t outputs_tc[4];
 	outputs_t outputs_ube[4]; // If "1" word transfer, "0" byte transfer (OUT)
 	
 	struct {
@@ -72,6 +76,9 @@ protected:
 	virtual void __FASTCALL do_dma_inc_dec_ptr_16bit(int c);
 	virtual bool __FASTCALL do_dma_epilogue(int c);
 	virtual bool __FASTCALL do_dma_per_channel(int c);
+	virtual void __FASTCALL reset_tc(int ch);
+	virtual void __FASTCALL set_tc(int ch);
+	virtual void reset_all_tc();
 
 public:
 	UPD71071(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -93,8 +100,8 @@ public:
 		d_debugger = NULL;
 		_SINGLE_MODE_DMA = false;
 		_USE_DEBUGGER = false;
-		initialize_output_signals(&outputs_tc);
 		for(int i = 0; i < 4; i++) {
+			initialize_output_signals(&outputs_tc[i]);
 			initialize_output_signals(&outputs_ube[i]);
 		}
 		set_device_name(_T("uPD71071 DMAC"));
@@ -155,9 +162,21 @@ public:
 	{
 		d_debugger = device;
 	}
-	void set_context_tc(DEVICE* device, int id, uint32_t _mask)
+	void set_context_tc0(DEVICE* device, int id, uint32_t _mask)
 	{
-		register_output_signal(&outputs_tc, device, id, _mask);
+		register_output_signal(&outputs_tc[0], device, id, _mask);
+	}	
+	void set_context_tc1(DEVICE* device, int id, uint32_t _mask)
+	{
+		register_output_signal(&outputs_tc[1], device, id, _mask);
+	}	
+	void set_context_tc2(DEVICE* device, int id, uint32_t _mask)
+	{
+		register_output_signal(&outputs_tc[2], device, id, _mask);
+	}	
+	void set_context_tc3(DEVICE* device, int id, uint32_t _mask)
+	{
+		register_output_signal(&outputs_tc[3], device, id, _mask);
 	}	
 	void set_context_ube0(DEVICE* device, int id, uint32_t _mask)
 	{

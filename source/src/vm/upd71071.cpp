@@ -40,9 +40,35 @@ void UPD71071::reset()
 	}
 	b16 = selch = base = 0;
 	cmd = tmp = 0;
-	req = sreq = tc = 0;
+	req = sreq = 0;
 	mask = 0x0f;
-	write_signals(&outputs_tc, 0x0);  // RESET TC
+	reset_all_tc();
+}
+
+void UPD71071::reset_all_tc()
+{
+	for(int i = 0; i < 4; i++) {
+		tc = 0;
+		write_signals(&(outputs_tc[i]), 0);
+	}
+}
+
+void UPD71071::reset_tc(int ch)
+{
+	if((ch < 0) || (ch > 3)) return;
+	uint8_t bit = (1 << ch);
+	uint8_t tc_bak = tc;
+	tc &= ~bit;
+	/*if(tc != tc_bak) */ write_signals(&(outputs_tc[ch]), 0);
+}
+
+void UPD71071::set_tc(int ch)
+{
+	if((ch < 0) || (ch > 3)) return;
+	uint8_t bit = (1 << ch);
+	uint8_t tc_bak = tc;
+	tc |= bit;
+	/*if(tc != tc_bak) */write_signals(&(outputs_tc[ch]), 0xffffffff);
 }
 
 void UPD71071::write_io8(uint32_t addr, uint32_t data)
@@ -62,8 +88,9 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 			}
 			selch = base = 0;
 			cmd = tmp = 0;
-			sreq = tc = 0;
+			sreq = 0;
 			mask = 0x0f;
+			reset_all_tc();
 		}
 		b16 = data & 2;
 		break;
@@ -89,6 +116,7 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 			dma[selch].creg = _d.w.l;
 		}
 		dma[selch].bcreg = _bd.w.l;
+		reset_tc(selch);
 		break;
 	case 0x04:
 	case 0x05:
@@ -193,7 +221,7 @@ uint32_t UPD71071::read_io8(uint32_t addr)
 		return dma[selch].mode;
 	case 0x0b:
 		val = (req << 4) | tc;
-		tc = 0;
+		reset_all_tc();
 		return val;
 	case 0x0c:
 		return tmp & 0xff;
@@ -227,6 +255,8 @@ void UPD71071::write_signal(int id, uint32_t data, uint32_t _mask)
 		}
 	} else if((id >= SIG_UPD71071_UBE_CH0) && (id <= SIG_UPD71071_UBE_CH3)) {
 		inputs_ube[ch] = ((data & _mask) != 0) ? true : false;
+	} else if((id >= SIG_UPD71071_EOT_CH0) && (id <= SIG_UPD71071_EOT_CH3)) {
+		set_tc(ch);
 	}
 }
 
@@ -442,17 +472,15 @@ bool UPD71071::do_dma_epilogue(int c)
 		}
 		req &= ~bit;
 		sreq &= ~bit;
-		tc |= bit;
-						
-		write_signals(&outputs_tc, tc);
+//		if(dma[c].bcreg < dma[c].creg) {
+		set_tc(c);
+//		}
 		if((dma[c].mode & 0xc0) == 0x40) {
 			// Single mode
 			return true;
 		} else {
 			return false;
 		}
-	} else {
-		tc &= ~bit;
 	}
 	if(_SINGLE_MODE_DMA) {
 		// Note: At FM-Towns, SCSI's DMAC will be set after
