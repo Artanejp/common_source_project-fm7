@@ -266,6 +266,7 @@
 //#define _SCSI_DEBUG_LOG
 //#define SCSI_DEV_IMMEDIATE_SELECT
 #define _CDROM_DEBUG_LOG
+#define _IO_DEBUG_LOG
 
 // device informations for win32
 #define USE_CPU_TYPE		2
