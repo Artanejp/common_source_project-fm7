@@ -80,7 +80,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		bcreg_set[selch] = false;
 		creg_set[selch] = false;
 #endif
-#if 0
+#if 1
 		if((data & 0x08) == 0) {
 			out_debug_log(_T("START CDROM DMA MODE=%02X ADDR=%08X COUNT=%04X"),
 						  dma[3].mode, (dma[3].areg & 0xffffff) | dma_high_address[3],
