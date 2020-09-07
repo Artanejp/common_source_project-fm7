@@ -910,16 +910,71 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				break;;
 			}
 			if(toc_table[current_track].is_audio) {
-				if(cdda_status == CDDA_ENDED) {
-					status_accept(1, 0x00, 0x00);
-					set_cdda_status(CDDA_OFF);
+				if((param_queue[0] == 0x08)) {
+					switch(prev_command & 0x9f)
+					{
+					case CDROM_COMMAND_SEEK:
+						set_status(true, 0, TOWNS_CD_STATUS_SEEK_COMPLETED, 0x00, 0x00, 0x00);
+						break;
+					case CDROM_COMMAND_PLAY_TRACK:
+						if(cdda_status == CDDA_PLAYING) {
+							set_status(true, 0, TOWNS_CD_STATUS_PLAY_DONE, 0x00, 0x00, 0x00);
+						} else {
+							set_status(true, 0, TOWNS_CD_STATUS_PLAY_DONE, 0x00, 0x00, 0x00);
+//							status_accept(0, 0x00, 0x00);
+						}
+						break;
+					case CDROM_COMMAND_STOP_CDDA:
+						if(cdda_status == CDDA_ENDED) {
+							set_status(true, 1, TOWNS_CD_STATUS_STOP_DONE, 0x00, 0x00, 0x00);
+							set_cdda_status(CDDA_OFF);
+						} else {
+//							status_accept(0, 0x00, 0x00);
+							set_status(true, 1, TOWNS_CD_STATUS_STOP_DONE, 0x00, 0x00, 0x00);
+						}
+						break;
+					case CDROM_COMMAND_PAUSE_CDDA:
+						set_status(true, 0, TOWNS_CD_STATUS_PAUSE_DONE, 0x00, 0x00, 0x00);
+						break;
+					case CDROM_COMMAND_RESUME_CDDA:
+						set_status(true, 0, TOWNS_CD_STATUS_RESUME_DONE, 0x00, 0x00, 0x00);
+						break;
+					default:
+						if(cdda_status == CDDA_ENDED) {
+							status_accept(1, 0x00, 0x00);
+							set_cdda_status(CDDA_OFF);
+						} else {
+							status_accept(0, 0x00, 0x00);
+						}
+						break;
+					}
 				} else {
-					status_accept(0, 0x00, 0x00);
+					if(cdda_status == CDDA_ENDED) {
+						status_accept(1, 0x00, 0x00);
+						set_cdda_status(CDDA_OFF);
+					} else {
+						status_accept(0, 0x00, 0x00);
+					}
 				}
 			} else { // DATA
 //				status_accept(1, 0x00, 0x00);
-				status_accept(0, 0x00, 0x00);
-//				set_status_3(true, 0, 0x00, 0x00, 0x00, 0x00);
+				if((param_queue[0] == 0x08) && (param_queue[1] == 0x00)) {
+					switch(prev_command & 0x9f) {
+					case CDROM_COMMAND_SEEK:
+						set_status(true, 0, TOWNS_CD_STATUS_SEEK_COMPLETED, 0x00, 0x00, 0x00);
+						break;
+					case CDROM_COMMAND_READ_MODE1:
+					case CDROM_COMMAND_READ_MODE2:
+					case CDROM_COMMAND_READ_RAW:
+						set_status(true, 0, TOWNS_CD_STATUS_READ_DONE, 0x00, 0x00, 0x00);
+						break;
+					default:
+						status_accept(0, 0x00, 0x00);
+						break;
+					}
+				} else {
+					status_accept(0, 0x00, 0x00);
+				}
 			}
 //			if(stat_reply_intr) set_mcu_intr(true);
 		}
@@ -1181,8 +1236,8 @@ void TOWNS_CDROM::set_status_immediate(bool _req_status, int extra, uint8_t s0, 
 	mcu_ready = true;
 	mcu_intr = false;
 	dma_intr = false;
-	dma_transfer_phase = true;
-	pio_transfer_phase = false;
+//	dma_transfer_phase = true;
+//	pio_transfer_phase = false;
 //	out_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
 }
 

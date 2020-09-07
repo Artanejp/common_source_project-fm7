@@ -18,6 +18,7 @@
 #include "./towns_crtc.h"
 
 #include "../i386_np21.h"
+//#include "../i386.h"
 #include "../pcm1bit.h"
 
 #include <math.h>
