@@ -20,6 +20,7 @@
 #include "../i8259.h"
 
 #include "../i386_np21.h"
+//#include "../i386.h"
 
 #include "../io.h"
 #include "../mb8877.h"
