@@ -33,7 +33,28 @@ void I8259::initialize()
 void I8259::reset()
 {
 	for(uint32_t c = 0; c < __I8259_MAX_CHIPS; c++) {
+		pic[c].imr = 0xff;
+		pic[c].isr = 0;
+		pic[c].irr = 0;
 		pic[c].irr_tmp = 0;
+		pic[c].prio = 0;
+		
+		pic[c].icw1 = 0;
+		pic[c].icw2 = 0;
+		pic[c].icw3 = 0;
+		pic[c].icw4 = 0;
+		if(__I8259_PC98_HACK) {
+			pic[c].icw4 = 0x01;
+		}
+		pic[c].ocw3 = 2;
+
+		pic[c].icw2_r = 0;
+		pic[c].icw3_r = 0;
+		pic[c].icw4_r = 0;
+		
+		if(pic[c].irr_tmp_id != -1) {
+			cancel_event(this, pic[c].irr_tmp_id);
+		}
 		pic[c].irr_tmp_id = -1;
 	}
 }
