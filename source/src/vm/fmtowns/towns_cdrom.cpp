@@ -910,7 +910,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				break;;
 			}
 			if(toc_table[current_track].is_audio) {
-				if((param_queue[0] == 0x08)) {
+//				if((param_queue[0] == 0x08)) {
 					switch(prev_command & 0x9f)
 					{
 					case CDROM_COMMAND_SEEK:
@@ -920,8 +920,8 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 						if(cdda_status == CDDA_PLAYING) {
 							set_status(true, 0, TOWNS_CD_STATUS_PLAY_DONE, 0x00, 0x00, 0x00);
 						} else {
-							set_status(true, 0, TOWNS_CD_STATUS_PLAY_DONE, 0x00, 0x00, 0x00);
-//							status_accept(0, 0x00, 0x00);
+//							set_status(true, 0, TOWNS_CD_STATUS_PLAY_DONE, 0x00, 0x00, 0x00);
+							status_accept(0, 0x00, 0x00);
 						}
 						break;
 					case CDROM_COMMAND_STOP_CDDA:
@@ -929,8 +929,8 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 							set_status(true, 1, TOWNS_CD_STATUS_STOP_DONE, 0x00, 0x00, 0x00);
 							set_cdda_status(CDDA_OFF);
 						} else {
-//							status_accept(0, 0x00, 0x00);
-							set_status(true, 1, TOWNS_CD_STATUS_STOP_DONE, 0x00, 0x00, 0x00);
+							status_accept(0, 0x00, 0x00);
+//							set_status(true, 1, TOWNS_CD_STATUS_STOP_DONE, 0x00, 0x00, 0x00);
 						}
 						break;
 					case CDROM_COMMAND_PAUSE_CDDA:
@@ -948,14 +948,14 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 						}
 						break;
 					}
-				} else {
-					if(cdda_status == CDDA_ENDED) {
-						status_accept(1, 0x00, 0x00);
-						set_cdda_status(CDDA_OFF);
-					} else {
-						status_accept(0, 0x00, 0x00);
-					}
-				}
+//				} else {
+//					if(cdda_status == CDDA_ENDED) {
+//						status_accept(1, 0x00, 0x00);
+//						set_cdda_status(CDDA_OFF);
+//					} else {
+//						status_accept(0, 0x00, 0x00);
+//					}
+//				}
 			} else { // DATA
 //				status_accept(1, 0x00, 0x00);
 				if((param_queue[0] == 0x08) && (param_queue[1] == 0x00)) {
@@ -1795,12 +1795,12 @@ bool TOWNS_CDROM::read_buffer(int length)
 				length--;
 				read_length--;
 				// Kick DRQ
-				if(event_drq < 0) {
-					if(dma_transfer) {
-//						out_debug_log(_T("KICK DRQ"));
-						register_event(this, EVENT_CDROM_DRQ, 0.5 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
-					}
-				}
+//				if(event_drq < 0) {
+//					if(dma_transfer) {
+////						out_debug_log(_T("KICK DRQ"));
+//						register_event(this, EVENT_CDROM_DRQ, 0.5 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
+//					}
+//				}
 			}
 			position++;
 			offset = (offset + 1) % physical_block_size();
@@ -3209,15 +3209,12 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 		}
 		if((dma_transfer) && !(dma_transfer_phase)) {
 			dma_transfer_phase = true;
+			if(event_drq < 0) {
+				register_event(this, EVENT_CDROM_DRQ, 0.5 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
+			}
 //			clear_event(event_seek_completed);
 //			clear_event(event_time_out);
 			
-//			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-////						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
-////						   ((double)(physical_block_size())) * 
-////						   1.0, // OK?
-//						   10.0, //OK?
-//						   false, &event_seek_completed);
 //			register_event(this, EVENT_CDROM_TIMEOUT, 100.0e3, false, &event_time_out);
 
 		} else if((pio_transfer) && !(pio_transfer_phase)) {
