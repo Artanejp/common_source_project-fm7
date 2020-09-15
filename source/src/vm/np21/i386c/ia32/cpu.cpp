@@ -95,7 +95,7 @@ extern UINT64 __exception_code;
 
 static __inline__ void __FASTCALL check_exception(bool is_debugging)
 {
-	if(!(is_debugging)) return;
+//	if(!(is_debugging)) return;
 	if(__exception_set != 0) {
 		device_debugger->exception_code = __exception_code;
 		device_debugger->exception_pc = __exception_pc;
@@ -163,7 +163,6 @@ exec_1step(void)
 	UINT32 old_addr = 0;
 	
 	for (prefix = 0; prefix < MAX_PREFIX; prefix++) {
-		check_exception(is_debugging);
 		GET_PCBYTE(op);
 //#ifdef USE_DEBUGGER
 		UINT32 op_size = I386_TRACE_DATA_BIT_USERDATA_SET; 
@@ -239,7 +238,6 @@ exec_1step(void)
 		/* prefix */
 		if (insttable_info[op] & INST_PREFIX) {
 			(*insttable_1byte[0][op])();
-			check_exception(is_debugging);
 			switch(op) {
 			case 0x9a: //CAll
 			case 0xe8: //CAll
@@ -530,7 +528,6 @@ exec_allstep(void)
 	#endif
 
 		for (prefix = 0; prefix < MAX_PREFIX; prefix++) {
-			check_exception(is_debugging);
 			GET_PCBYTE(op);
 	#if defined(IA32_INSTRUCTION_TRACE)
 			ctx[ctx_index].op[prefix] = op;
@@ -540,6 +537,7 @@ exec_allstep(void)
 			/* prefix */
 			if (insttable_info[op] & INST_PREFIX) {
 				(*insttable_1byte[0][op])();
+				check_exception(is_debugging);	
 				switch(op) {
 				case 0x9a: //CAll
 				case 0xe8: //CAll
@@ -596,6 +594,7 @@ exec_allstep(void)
 			cpu_debug_rep_cont = 0;
 	#endif
 			(*insttable_1byte[CPU_INST_OP32][op])();
+			check_exception(is_debugging);
 			switch(op) {
 			case 0x9a: //CAll
 			case 0xe8: //CAll
@@ -627,7 +626,6 @@ exec_allstep(void)
 				}
 				break;
 			}
-			check_exception(is_debugging);
 			goto cpucontinue; //continue;
 		}
 
