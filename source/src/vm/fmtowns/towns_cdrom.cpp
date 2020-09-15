@@ -582,6 +582,10 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 		clear_event(event_seek_completed);
 		status_read_done(false);
 		out_debug_log(_T("EOT(%s/DMA)"), (by_signal) ? by_dma : by_event);
+		if((stat_reply_intr) || !(dma_intr_mask)) {
+		//if((stat_reply_intr) && !(dma_intr_mask)) {
+			write_mcuint_signals(0xffffffff);
+		}
 	} else {
 //		clear_event(event_next_sector);
 //		clear_event(event_seek_completed);
@@ -720,7 +724,8 @@ void TOWNS_CDROM::status_accept(int extra, uint8_t s3, uint8_t s4)
 			playcode = TOWNS_CD_ACCEPT_MEDIA_CHANGED;
 		} else if(((latest_command & 0xa0) == 0xa0) && (param_queue[0] == 0x08)) {
 //			playcode = TOWNS_CD_ACCEPT_08H_FOR_CMD_A0H;
-			playcode = 0x06;
+			playcode = TOWNS_CD_ACCEPT_NOERROR;
+//			playcode = 0x06;
 		} else if(((latest_command & 0xa0) == 0xa0) && (param_queue[0] == 0x04)) {
 			playcode = TOWNS_CD_ACCEPT_04H_FOR_CMD_A0H;
 		} else {
@@ -909,7 +914,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				status_media_changed(false);
 				break;;
 			}
-			if(toc_table[current_track].is_audio) {
+/*			if(toc_table[current_track].is_audio) {
 //				if((param_queue[0] == 0x08)) {
 					switch(prev_command & 0x9f)
 					{
@@ -975,8 +980,9 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				} else {
 					status_accept(0, 0x00, 0x00);
 				}
-			}
-//			if(stat_reply_intr) set_mcu_intr(true);
+				}*/
+			status_accept(0, 0x00, 0x00);
+			if(stat_reply_intr) set_mcu_intr(true);
 		}
 		break;
 	case CDROM_COMMAND_SET_CDDASET: // 81h
@@ -2115,7 +2121,8 @@ void TOWNS_CDROM::reset_device()
 	dma_intr = false;
 	mcu_intr_mask = false;
 	dma_intr_mask = false;
-	dma_transfer = true;
+//	dma_transfer = true;
+	dma_transfer = false;
 	pio_transfer = false;
 	dma_transfer_phase = false;
 	pio_transfer_phase = false;

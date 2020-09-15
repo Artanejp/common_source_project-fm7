@@ -14,6 +14,7 @@ void TOWNS_DMAC::reset()
 	dma_wrap_reg = 0;
 	dma_addr_reg = 0;
 	dma_addr_mask = 0xffffffff; // OK?
+//	dma_addr_mask = 0x000fffff; // OK?
 	for(int i = 0; i < 4; i++) {
 		dma_high_address[i] = 0x00000000;
 		dma_high_address_bak[i] = 0x00000000;
