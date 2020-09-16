@@ -39,6 +39,7 @@ void SCSI::reset()
 	irq_status_bak = false;
 	exirq_status = false;
 	ex_int_enable = false;
+	dma_enabled = true;
 }
 
 void SCSI::write_io8(uint32_t addr, uint32_t data)
@@ -63,6 +64,7 @@ void SCSI::write_io8(uint32_t addr, uint32_t data)
 			this->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
 		#endif
 		ctrl_reg = data;
+		if((data & CTRL_DMAE) != 0) dma_enabled = true;
 		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
 			ex_int_enable = ((data & 0x20) != 0) ? true : false;
 			// Set host to 16bit bus width. BIT3 ,= '1'.
@@ -153,7 +155,7 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 		break;
 		
 	case SIG_SCSI_DRQ:
-		if(ctrl_reg & CTRL_DMAE) {
+		if(((ctrl_reg & CTRL_DMAE) != 0) /*&& (dma_enabled)*/) {
 			d_dma->write_signal(SIG_UPD71071_CH1, data, mask);
 		}
 /*		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
@@ -168,10 +170,13 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 			}
 		}*/
 		break;
+	case SIG_SCSI_EOT:
+		dma_enabled = ((data & mask) == 0) ? true : false;
+		break;
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool SCSI::process_state(FILEIO* state_fio, bool loading)
 {
@@ -187,6 +192,7 @@ bool SCSI::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(ctrl_reg);
 	state_fio->StateValue(irq_status);
 	state_fio->StateValue(irq_status_bak);
+	state_fio->StateValue(dma_enabled);
 	
 	if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
 		state_fio->StateValue(ex_int_enable);

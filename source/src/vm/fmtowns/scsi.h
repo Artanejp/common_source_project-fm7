@@ -18,6 +18,7 @@
 #define SIG_SCSI_IRQ			0
 #define SIG_SCSI_DRQ			1
 #define SIG_SCSI_16BIT_TRANSFER	2
+#define SIG_SCSI_EOT			3
 
 namespace FMTOWNS {
 class SCSI : public DEVICE
@@ -30,6 +31,8 @@ private:
 	bool irq_status_bak;
 	bool exirq_status;
 	bool ex_int_enable;
+	bool dma_enabled;
+	
 	uint16_t machine_id;
 	uint8_t cpu_id;
 	
