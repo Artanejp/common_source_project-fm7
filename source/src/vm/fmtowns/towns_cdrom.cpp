@@ -982,7 +982,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				}
 				}*/
 			status_accept(0, 0x00, 0x00);
-			if(stat_reply_intr) set_mcu_intr(true);
+//			if(stat_reply_intr) set_mcu_intr(true);
 		}
 		break;
 	case CDROM_COMMAND_SET_CDDASET: // 81h
@@ -1700,7 +1700,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		//read_pos = 0;
 		clear_event(event_next_sector);
 		clear_event(event_time_out);
-		if(!(databuffer->empty())) {
+		if(!(databuffer->empty())/* && (read_length > 0)*/) {
 			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
 						   10.0,
 						   false,
@@ -1715,8 +1715,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			} else if(read_length > 0) {
 				read_buffer(read_length);
 			}
-			pio_transfer_phase = false;
-//			dma_transfer_phase = false;
 			
 			register_event(this, EVENT_CDROM_NEXT_SECTOR,
 						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
@@ -3135,12 +3133,26 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 			}
 			val = (databuffer->read() & 0xff);
 			data_reg = val;
-			if((databuffer->empty())) {
-				out_debug_log(_T("PIO READ END FROM 04C4h"));
+			if((read_length <= 0) && (databuffer->empty())) {
 				pio_transfer_phase = false;
-				if(read_length <= 0) {
-					set_dma_intr(true);
-					status_read_done(false);
+				mcu_ready = false;
+				clear_event(event_next_sector);
+				clear_event(event_seek_completed);
+				clear_event(event_time_out);
+				status_read_done(false);
+				out_debug_log(_T("EOT(PIO)"));
+				if((stat_reply_intr) || !(dma_intr_mask)) {
+					//if((stat_reply_intr) && !(dma_intr_mask)) {
+					write_mcuint_signals(0xffffffff);
+				}
+			} else if(databuffer->empty()) {
+				pio_transfer_phase = false;
+				mcu_ready = false;
+				clear_event(event_time_out);
+				out_debug_log(_T("NEXT(PIO)"));
+				if((stat_reply_intr) || !(dma_intr_mask)) {
+					//if((stat_reply_intr) && !(dma_intr_mask)) {
+					write_mcuint_signals(0xffffffff);
 				}
 			}
 		}
@@ -3215,15 +3227,11 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 			pio_transfer = false;
 		}
 		if((dma_transfer) && !(dma_transfer_phase)) {
+			//		clear_event(event_drq);
 			dma_transfer_phase = true;
 			if(event_drq < 0) {
 				register_event(this, EVENT_CDROM_DRQ, 0.5 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
 			}
-//			clear_event(event_seek_completed);
-//			clear_event(event_time_out);
-			
-//			register_event(this, EVENT_CDROM_TIMEOUT, 100.0e3, false, &event_time_out);
-
 		} else if((pio_transfer) && !(pio_transfer_phase)) {
 			pio_transfer_phase = true;
 		}
