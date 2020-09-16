@@ -461,8 +461,13 @@ void UPD71071::do_dma_inc_dec_ptr_16bit(int c)
 bool UPD71071::do_dma_epilogue(int c)
 {
 	uint8_t bit = 1 << c;
-	if(dma[c].creg-- == 0) {  // OK?
+	if(dma[c].creg == 0) {  // OK?
+		dma[c].creg--;
 		// TC
+		bool is_tc = false;
+		if(dma[c].bcreg < dma[c].creg) {
+			is_tc = true;
+		}
 		if(dma[c].mode & 0x10) {
 			// auto initialize
 			dma[c].areg = dma[c].bareg;
@@ -472,9 +477,9 @@ bool UPD71071::do_dma_epilogue(int c)
 		}
 		req &= ~bit;
 		sreq &= ~bit;
-//		if(dma[c].bcreg < dma[c].creg) {
-		set_tc(c);
-//		}
+		if(is_tc) {
+			set_tc(c);
+		}
 		if((dma[c].mode & 0xc0) == 0x40) {
 			// Single mode
 			return true;
@@ -482,6 +487,7 @@ bool UPD71071::do_dma_epilogue(int c)
 			return false;
 		}
 	}
+	dma[c].creg--;
 	if(_SINGLE_MODE_DMA) {
 		// Note: At FM-Towns, SCSI's DMAC will be set after
 		//       SCSI bus phase become DATA IN/DATA OUT.
