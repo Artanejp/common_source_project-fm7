@@ -42,6 +42,7 @@ void UPD71071::reset()
 	cmd = tmp = 0;
 	req = sreq = 0;
 	mask = 0x0f;
+//	mask = 0x00;
 	reset_all_tc();
 }
 
@@ -90,6 +91,7 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 			cmd = tmp = 0;
 			sreq = 0;
 			mask = 0x0f;
+//			mask = 0x00;
 			reset_all_tc();
 		}
 		b16 = data & 2;
