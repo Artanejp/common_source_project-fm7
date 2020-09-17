@@ -63,8 +63,8 @@ void SCSI::write_io8(uint32_t addr, uint32_t data)
 		#ifdef _SCSI_DEBUG_LOG
 			this->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
 		#endif
-		ctrl_reg = data;
-		if((data & CTRL_DMAE) != 0) dma_enabled = true;
+//		ctrl_reg = data;
+//		if((data & CTRL_DMAE) != 0) dma_enabled = true;
 		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
 			ex_int_enable = ((data & 0x20) != 0) ? true : false;
 			// Set host to 16bit bus width. BIT3 ,= '1'.
@@ -75,6 +75,8 @@ void SCSI::write_io8(uint32_t addr, uint32_t data)
 			d_host->write_signal(SIG_SCSI_SEL, data, CTRL_SEL);
 			d_host->write_signal(SIG_SCSI_HOST_DMAE, data, CTRL_DMAE);
 		}
+		ctrl_reg = data;
+		if((data & CTRL_DMAE) != 0) dma_enabled = true;
 		break;
 	}
 }
