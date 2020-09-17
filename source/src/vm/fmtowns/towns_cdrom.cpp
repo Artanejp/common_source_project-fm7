@@ -749,7 +749,7 @@ void TOWNS_CDROM::set_delay_ready2()
 void TOWNS_CDROM::set_delay_ready3()
 {
 	clear_event(event_delay_ready);
-	register_event(this, EVENT_CDROM_DELAY_READY3, 100.0, false, &event_delay_ready);
+	register_event(this, EVENT_CDROM_DELAY_READY3, 1000.0, false, &event_delay_ready);
 }
 
 void TOWNS_CDROM::set_delay_ready4()
@@ -1684,7 +1684,8 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		clear_event(event_time_out);
 		if(!(databuffer->empty())/* && (read_length > 0)*/) {
 			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-						   10.0,
+						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
+						   16.0,
 						   false,
 						   &event_seek_completed);
 			break; // EXIT
@@ -1720,7 +1721,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			status_data_ready(true);
 		}
 		register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-					   1100.0,
+					   10.0,
 					   false,
 					   &event_seek_completed);
 		break;
