@@ -561,20 +561,11 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 	static const _TCHAR by_event[] =  _T("EVENT");
 	
 	dma_transfer_phase = false;
+	dma_transfer = false;
 	mcu_ready = false;
-	if(!(dma_intr_mask)) {
-		dma_intr = true;
-		mcu_intr = false;
-	} else {
-		mcu_intr = false;
-		dma_intr = true;
-		if(read_length > 0) {
-			mcu_ready = true;
-		}
-	}
-//	if((stat_reply_intr) || !(dma_intr_mask)) {
-//		write_mcuint_signals(0xffffffff);
-//	}
+	drq_tick = false;
+	dma_intr = true;
+//	mcu_intr = false;
 	clear_event(event_time_out);
 	clear_event(event_drq);
 	if((read_length <= 0) && (databuffer->empty())) {
@@ -582,27 +573,13 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 		clear_event(event_seek_completed);
 		status_read_done(false);
 		out_debug_log(_T("EOT(%s/DMA)"), (by_signal) ? by_dma : by_event);
-		if((stat_reply_intr) || !(dma_intr_mask)) {
-		//if((stat_reply_intr) && !(dma_intr_mask)) {
-			write_mcuint_signals(0xffffffff);
-		}
 	} else {
-//		clear_event(event_next_sector);
-//		clear_event(event_seek_completed);
 		out_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
-		if((stat_reply_intr) || !(dma_intr_mask)) {
-		//if((stat_reply_intr) && !(dma_intr_mask)) {
-			write_mcuint_signals(0xffffffff);
-		}
-//		if(event_seek_completed < 0) {
-//			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-////					   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
-////					   ((double)(physical_block_size())) *
-////					   1.0, // OK?
-//						   10.0,
-//						   false, &event_seek_completed);
-//		}
 	}
+	if(!(dma_intr_mask) || (stat_reply_intr)) {
+		write_mcuint_signals(0xffffffff);
+	}
+	
 }
 
 void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
@@ -1615,7 +1592,12 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		event_delay_ready = -1;
 		mcu_ready = true;
 		has_status = (req_status) ? true : false;
-		set_mcu_intr(stat_reply_intr);
+//		if(!(has_status)) {
+//			status_queue->clear();
+//		}
+		if((req_status) && (stat_reply_intr)) {
+			set_mcu_intr(true);
+		}
 		break;
 	case EVENT_CDROM_DELAY_READY4: // WITHOUT STATUS
 		event_delay_ready = -1;
@@ -1735,17 +1717,18 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
 			set_dma_intr(true);
 		} else {
-				status_data_ready(true);
+			status_data_ready(true);
 		}
 		register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-					   10.0,
+					   1100.0,
 					   false,
 					   &event_seek_completed);
 		break;
 	case EVENT_CDROM_DRQ:
 		// ToDo: Buffer OVERFLOW at PIO mode.
-		if((dma_transfer_phase) && !(databuffer->empty())) {
-			write_signals(&outputs_drq, 0xffffffff);
+		if((dma_transfer_phase) /*&& !(databuffer->empty())*/) {
+			write_signals(&outputs_drq, (drq_tick) ? 0xffffffff : 0x00000000);
+			drq_tick = !(drq_tick);
 		}
 		//read_pos++;
 		break;
@@ -2097,6 +2080,8 @@ void TOWNS_CDROM::reset_device()
 	read_length_bak = 0;
 
 	media_changed = false;
+
+	drq_tick = false;
 	
 	databuffer->clear();
 	status_queue->clear();
@@ -3230,7 +3215,8 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 			//		clear_event(event_drq);
 			dma_transfer_phase = true;
 			if(event_drq < 0) {
-				register_event(this, EVENT_CDROM_DRQ, 0.5 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
+				register_event(this, EVENT_CDROM_DRQ, 0.25 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
+				drq_tick = true;
 			}
 		} else if((pio_transfer) && !(pio_transfer_phase)) {
 			pio_transfer_phase = true;
@@ -3304,7 +3290,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3348,6 +3334,7 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(read_length);
 	state_fio->StateValue(read_length_bak);
 	state_fio->StateValue(next_seek_lba);
+	state_fio->StateValue(drq_tick);
 
 	state_fio->StateValue(mcuint_val);
 	

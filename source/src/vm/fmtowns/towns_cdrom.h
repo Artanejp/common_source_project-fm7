@@ -232,7 +232,8 @@ protected:
 	bool dma_intr;
 	bool mcu_intr_mask;
 	bool dma_intr_mask;
-
+	bool drq_tick;
+	
 	bool mcuint_val;
 	
 	int event_drq;
