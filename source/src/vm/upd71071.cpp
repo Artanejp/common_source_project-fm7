@@ -156,17 +156,24 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 		set_ube(selch);
 		break;
 	case 0x0e:
-		if(((sreq = data) != 0) && !(_SINGLE_MODE_DMA)) {
-			for(int _ch = 0; _ch < 4; _ch++) {
-				// Check bit of SREQ.
-				if((sreq & (1 << _ch)) != 0) {
-					if(do_dma_per_channel(_ch)) break;
-				}
+		sreq = data;
+		for(int _ch = 0; _ch < 4; _ch++) {
+			if((sreq & (1 << _ch)) != 0) {
+				//if((dma[_ch].mode & 0xc0) == 0x40) { // Single
+				do_dma_per_channel(_ch);
+				//}
 			}
 		}
 		break;
 	case 0x0f:
 		mask = data;
+		for(int _ch = 0; _ch < 4; _ch++) {
+			if(((sreq | req) & (1 << _ch)) != 0) {
+				if((mask & (1 << _ch)) == 0) {
+					do_dma_per_channel(_ch);
+				}
+			}
+		}
 		set_ube(selch);
 		break;
 	}
@@ -242,15 +249,18 @@ void UPD71071::write_signal(int id, uint32_t data, uint32_t _mask)
 	int ch = id & 3;
 	uint8_t bit = 1 << ch;
 	if((id >= SIG_UPD71071_CH0) && (id <= SIG_UPD71071_CH3)) {
-//		out_debug_log(_T("DRQ#%d %s"), ch, ((data & mask) != 0) ? _T("ON ") : _T("OFF"));
+//		out_debug_log(_T("DRQ#%d %s"), ch, ((data & _mask) != 0) ? _T("ON ") : _T("OFF"));
 		if(data & _mask) {
 			if(!(req & bit)) {
 				req |= bit;
-				if(!_SINGLE_MODE_DMA) {
+#if 1				
+				if((mask & (1 << ch)) == 0) { // MASK register MASKS DRQ.20200918 K.O
 					// Without #define SINGLE_MODE_DMA ,
 					// DMA trasfer is triggerd by SIGNAL or writing I/O 0Eh.
 					do_dma_per_channel(ch);
+//					req &= ~bit;
 				}
+#endif
 			}
 		} else {
 			req &= ~bit;
@@ -490,26 +500,14 @@ bool UPD71071::do_dma_epilogue(int c)
 		}
 	}
 	dma[c].creg--;
-	if(_SINGLE_MODE_DMA) {
-		// Note: At FM-Towns, SCSI's DMAC will be set after
-		//       SCSI bus phase become DATA IN/DATA OUT.
-		//       Before bus phase became DATA IN/DATA OUT,
-		//       DMAC mode and state was unstable (and ASSERTED
-		//       DRQ came from SCSI before this state change).
-		// ToDo: Stop correctly before setting.
-		//       -- 20200316 K.O
-		if((dma[c].mode & 0xc0) == 0x40) {
-			// single
-			req &= ~bit;
-			sreq &= ~bit;
-			return true;
-		} else if((dma[c].mode & 0xc0) == 0x00) {
-			// demand mode
-			req &= ~bit;
-			sreq &= ~bit;
-			return false;
-		}
-	} else if((dma[c].mode & 0xc0) == 0x40){
+	// Note: At FM-Towns, SCSI's DMAC will be set after
+	//       SCSI bus phase become DATA IN/DATA OUT.
+	//       Before bus phase became DATA IN/DATA OUT,
+	//       DMAC mode and state was unstable (and ASSERTED
+	//       DRQ came from SCSI before this state change).
+	// ToDo: Stop correctly before setting.
+	//       -- 20200316 K.O
+	if((dma[c].mode & 0xc0) == 0x40){
 		// single mode
 		req &= ~bit;
 		sreq &= ~bit;
@@ -517,7 +515,7 @@ bool UPD71071::do_dma_epilogue(int c)
 	} else if((dma[c].mode & 0xc0) == 0x00){
 		// demand mode
 		req &= ~bit;
-//		sreq &= ~bit;
+		sreq &= ~bit;
 		return false;
 	}
 	return false;
@@ -529,9 +527,9 @@ bool UPD71071::do_dma_per_channel(int c)
 		return true;
 	}
 	uint8_t bit = 1 << c;
-	if(((req | sreq) & bit) && !(mask & bit)) {
+	if(((req | sreq) & bit) /*&& !(mask & bit)*/) {
 		// execute dma
-		if((req | sreq) & bit) {
+		{ // SINGLE
 			// Will check WORD transfer mode for FM-Towns.(mode.bit0 = '1).
 			// Note: At FM-Towns, may set bit0 of mode register (B/W),
 			//       but transferring per 8bit from/to SCSI HOST...
@@ -564,7 +562,7 @@ bool UPD71071::do_dma_per_channel(int c)
 				do_dma_inc_dec_ptr_8bit(c);
 			}
 			if(do_dma_epilogue(c)) {
-				//break;
+//				//break;
 				return true;
 			}
 		}
@@ -580,7 +578,9 @@ void UPD71071::do_dma()
 	
 	// run dma
 	for(int c = 0; c < 4; c++) {
-		if(do_dma_per_channel(c)) break;
+		if(((dma[c].mode & 0xc0) == 0x40) && ((mask & (1 << c)) == 0)) { // Single
+			if(do_dma_per_channel(c)) break;
+		}
 	}
 //#ifdef SINGLE_MODE_DMA
 	if(_SINGLE_MODE_DMA) {
