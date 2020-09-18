@@ -126,8 +126,12 @@ uint32_t TIMER::read_io16(uint32_t addr)
 {
 	switch(addr & 0xfffe) {
 	case 0x0026:
-		free_run_counter = (uint16_t)get_passed_usec(0);
-		return free_run_counter & 0xffff;
+		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
+			free_run_counter = (uint16_t)get_passed_usec(0);
+			return free_run_counter & 0xffff;
+		} else {
+			return 0xffff;
+		}
 		break;
 	case 0x006a: // Interval control
 		return interval_us.w;
@@ -140,10 +144,20 @@ uint32_t TIMER::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0x0026:
-		free_run_counter = (uint16_t)get_passed_usec(0);
-		return free_run_counter & 0xff;
+		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
+			free_run_counter = (uint16_t)get_passed_usec(0);
+			return free_run_counter & 0xff;
+		} else {
+			return 0xff;
+		}
+		break;
 	case 0x0027:
-		return free_run_counter >> 8;
+		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
+			return free_run_counter >> 8;
+		} else {
+			return 0xff;
+		}
+		break;
 	case 0x0060:
 		return (tmout0 ? 1 : 0) | (tmout1 ? 2 : 0) | ((intr_reg & 7) << 2) | 0x00;
 	case 0x0068: //
