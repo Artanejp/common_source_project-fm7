@@ -662,13 +662,13 @@ void TOWNS_CDROM::status_read_done(bool forceint)
 {
 	if(forceint) stat_reply_intr = true;
 	set_status_2(req_status, 0, TOWNS_CD_STATUS_READ_DONE, 0, 0, 0);
-	out_debug_log(_T("READ DONE"));
+//	out_debug_log(_T("READ DONE"));
 }
 
 void TOWNS_CDROM::status_data_ready(bool forceint)
 {
 	set_status((forceint) ? true : req_status, 0, TOWNS_CD_STATUS_DATA_READY, 0, 0, 0);
-	out_debug_log(_T("DATA READY"));
+//	out_debug_log(_T("DATA READY"));
 }
 
 void TOWNS_CDROM::status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3)
