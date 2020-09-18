@@ -563,9 +563,12 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 	dma_transfer_phase = false;
 	dma_transfer = false;
 	mcu_ready = false;
-	drq_tick = false;
+	
 	dma_intr = true;
 //	mcu_intr = false;
+	
+	drq_tick = false;
+	
 	clear_event(event_time_out);
 	clear_event(event_drq);
 	if((read_length <= 0) && (databuffer->empty())) {
@@ -1725,11 +1728,9 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDROM_DRQ:
 		// ToDo: Buffer OVERFLOW at PIO mode.
-		event_drq = -1;
 		if((dma_transfer_phase) && !(databuffer->empty())) {
-			write_signals(&outputs_drq, (drq_tick) ? 0xffffffff : 0x00000000);
-			drq_tick = !(drq_tick);
-			register_event(this, EVENT_CDROM_DRQ, 0.25 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), false, &event_drq);
+			write_signals(&outputs_drq, /*(drq_tick) ? 0xffffffff : 0x00000000*/ 0xffffffff);
+			//drq_tick = !(drq_tick);
 		}
 		//read_pos++;
 		break;
@@ -1782,13 +1783,6 @@ bool TOWNS_CDROM::read_buffer(int length)
 //				is_data_in = false;
 				length--;
 				read_length--;
-				// Kick DRQ
-//				if(event_drq < 0) {
-//					if(dma_transfer) {
-////						out_debug_log(_T("KICK DRQ"));
-//						register_event(this, EVENT_CDROM_DRQ, 0.5 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), true, &event_drq);
-//					}
-//				}
 			}
 			position++;
 			offset = (offset + 1) % physical_block_size();
@@ -3216,7 +3210,7 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 			clear_event(event_drq);
 			dma_transfer_phase = true;
 			if(event_drq < 0) {
-				register_event(this, EVENT_CDROM_DRQ, 0.25 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), false, &event_drq);
+				register_event(this, EVENT_CDROM_DRQ, /*0.25 * 1.0e6 / ((double)transfer_speed * 150.0e3 )*/ 1.0 / 8.0, true, &event_drq);
 				drq_tick = true;
 			}
 		} else if((pio_transfer) && !(pio_transfer_phase)) {
