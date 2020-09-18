@@ -35,7 +35,9 @@ void UPD71071::reset()
 {
 	for(int i = 0; i < 4; i++) {
 		dma[i].mode = 0x04;
-		dma[selch].is_16bit = false;
+		dma[i].is_16bit = false;
+		dma[i].end = false;
+		dma[i].endreq = false;
 		reset_ube(i);
 	}
 	b16 = selch = base = 0;
@@ -85,6 +87,8 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 			for(int i = 0; i < 4; i++) {
 				dma[i].mode = 0x04;
 				dma[i].is_16bit = false;
+				dma[i].end = false;
+				dma[i].endreq = false;
 				reset_ube(i);
 			}
 			selch = base = 0;
@@ -118,6 +122,8 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 			dma[selch].creg = _d.w.l;
 		}
 		dma[selch].bcreg = _bd.w.l;
+		dma[selch].end = false; // OK?
+		dma[selch].endreq = false; // OK?
 		reset_tc(selch);
 		break;
 	case 0x04:
@@ -153,6 +159,10 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 	case 0x0a:
 		dma[selch].mode = data;
 		dma[selch].is_16bit = ((data & 1) != 0) ? true : false;
+		if((data & 0x04) == 0) {
+			dma[selch].end = false;
+			dma[selch].endreq = false;
+		}
 		set_ube(selch);
 		break;
 	case 0x0e:
@@ -268,7 +278,20 @@ void UPD71071::write_signal(int id, uint32_t data, uint32_t _mask)
 	} else if((id >= SIG_UPD71071_UBE_CH0) && (id <= SIG_UPD71071_UBE_CH3)) {
 		inputs_ube[ch] = ((data & _mask) != 0) ? true : false;
 	} else if((id >= SIG_UPD71071_EOT_CH0) && (id <= SIG_UPD71071_EOT_CH3)) {
-		set_tc(ch);
+		if((cmd & 0x04) == 0) {
+			switch(dma[ch].mode & 0xc0) {
+			case 0x00: // Demand
+				dma[ch].endreq = true;
+				break;
+			case 0x40: // Single -> Noop
+				break;
+			case 0x80: // Demand
+				dma[ch].endreq = true;
+				break;
+			default:
+				break;
+			}
+		}
 	}
 }
 
@@ -473,10 +496,13 @@ void UPD71071::do_dma_inc_dec_ptr_16bit(int c)
 bool UPD71071::do_dma_epilogue(int c)
 {
 	uint8_t bit = 1 << c;
-	if(dma[c].creg == 0) {  // OK?
-		dma[c].creg--;
-		// TC
+//	if(dma[c].end) return true; // OK?
+	if((dma[c].creg == 0) || ((dma[c].endreq) && !(dma[c].end) && ((dma[c].mode & 0xc0) != 0x40))) {  // OK?
+		if(dma[c].endreq) dma[c].end = true;
 		bool is_tc = false;
+		dma[c].creg--;
+		if(dma[c].end) is_tc = true;
+		// TC
 		if(dma[c].bcreg < dma[c].creg) {
 			is_tc = true;
 		}
@@ -525,6 +551,11 @@ bool UPD71071::do_dma_per_channel(int c)
 {
 	if(cmd & 4) {
 		return true;
+	}
+	if(dma[c].end) {
+		if((dma[c].mode & 0xc0) != 0x40) { // Without Single
+			return true;
+		}
 	}
 	uint8_t bit = 1 << c;
 	if(((req | sreq) & bit) /*&& !(mask & bit)*/) {
@@ -578,8 +609,16 @@ void UPD71071::do_dma()
 	
 	// run dma
 	for(int c = 0; c < 4; c++) {
-		if(((dma[c].mode & 0xc0) == 0x40) && ((mask & (1 << c)) == 0)) { // Single
-			if(do_dma_per_channel(c)) break;
+		if((mask & (1 << c)) == 0) { // MASK
+			if((dma[c].mode & 0xc0) == 0x00) { // Demand
+				if(!(dma[c].end)) {
+					do_dma_per_channel(c);
+				}
+			} else if((dma[c].mode & 0xc0) == 0x40) { // Single
+				if(do_dma_per_channel(c)) break;
+			} else if((dma[c].mode & 0xc0) == 0x40) { // Block (ToDo)
+				if(do_dma_per_channel(c)) break;
+			}
 		}
 	}
 //#ifdef SINGLE_MODE_DMA
@@ -620,7 +659,7 @@ CH3 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF REQ=1 MASK=1 MODE=FF INVALID
 	return true;
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool UPD71071::process_state(FILEIO* state_fio, bool loading)
 {
@@ -637,6 +676,8 @@ bool UPD71071::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateValue(dma[i].bcreg);
 		state_fio->StateValue(dma[i].mode);
 		state_fio->StateValue(dma[i].is_16bit);
+		state_fio->StateValue(dma[i].endreq);
+		state_fio->StateValue(dma[i].end);
 	}
 	state_fio->StateValue(b16);
 	state_fio->StateValue(selch);

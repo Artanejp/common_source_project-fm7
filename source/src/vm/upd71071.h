@@ -52,6 +52,8 @@ protected:
 		uint32_t creg, bcreg; // 20200318 K.O (Temporally workaround for Towns)
 		uint8_t mode;
 		bool is_16bit;
+		bool endreq;
+		bool end;
 	} dma[4];
 	
 	uint8_t b16, selch, base;
