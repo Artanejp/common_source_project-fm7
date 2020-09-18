@@ -35,7 +35,7 @@
 #define EVENT_CDROM_NEXT_SECTOR				108
 #define EVENT_CDROM_DELAY_READY				109
 #define EVENT_CDROM_DELAY_READY2			110
-#define EVENT_CDROM_SEEK_NOINT				111
+
 #define EVENT_CDROM_EOT						112
 #define EVENT_CDROM_RESTORE					113
 #define EVENT_CDROM_WAIT					114
@@ -658,11 +658,13 @@ void TOWNS_CDROM::status_read_done(bool forceint)
 {
 	if(forceint) stat_reply_intr = true;
 	set_status_2(req_status, 0, TOWNS_CD_STATUS_READ_DONE, 0, 0, 0);
+	out_debug_log(_T("READ DONE"));
 }
 
 void TOWNS_CDROM::status_data_ready(bool forceint)
 {
 	set_status((forceint) ? true : req_status, 0, TOWNS_CD_STATUS_DATA_READY, 0, 0, 0);
+	out_debug_log(_T("DATA READY"));
 }
 
 void TOWNS_CDROM::status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3)
@@ -788,8 +790,9 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 						  TO_BCD(param_queue[3]), TO_BCD(param_queue[4]), TO_BCD(param_queue[5]),
 						  lba
 			);
-			double usec = get_seek_time(0);
+			double usec = get_seek_time(0); // At first, seek to track 0.
 			if(usec < 10.0) usec = 10.0;
+			usec *= 2.0;
 			clear_event(event_seek);
 			// 20200626 K.O
 			// At first, SEEK to LBA0.
@@ -1632,36 +1635,24 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_CDROM_RESTORE:
 		// Seek0
 		event_seek = -1;
-		if(next_seek_lba > 2) {
+		if(next_seek_lba <= 2) {
+			next_seek_lba = 2;
+		}
+		{
 			double usec = get_seek_time(next_seek_lba);
 			if(usec < 10.0) usec = 10.0;
+			usec *= 2.0;
 			register_event(this,
-						   (req_status) ? EVENT_CDROM_SEEK : EVENT_CDROM_SEEK_NOINT,
+						   EVENT_CDROM_SEEK,
 						   usec, false, &event_seek);
-			next_seek_lba = 0;
-		} else {
-			event_callback((req_status) ? EVENT_CDROM_SEEK : EVENT_CDROM_SEEK_NOINT, 0);
 		}
-		break;
-	case EVENT_CDROM_SEEK_NOINT:
-		event_seek = -1;
-		mcu_ready = true;
-		if((cdda_status != CDDA_OFF) && (mounted())) {
-			if((current_track >= 0) && (current_track < track_num)
-			   && (toc_table[current_track].is_audio)) { // OK?
-				next_status_byte |= 0x03;
-				set_cdda_status(CDDA_OFF);
-			}
-			set_subq();
-		}
-		write_mcuint_signals(0xffffffff);
-//		write_signals(&outputs_mcuint, 0xffffffff);
-
 		break;
 	case EVENT_CDROM_SEEK:
 		event_seek = -1;
 //		stat_reply_intr = true;
-		status_accept(1, 0x00, 0x00);
+		if(req_status) {
+			status_accept(1, 0x00, 0x00);
+		}
 		if((cdda_status != CDDA_OFF) && (mounted())) {
 			if((current_track >= 0) && (current_track < track_num)
 			   && (toc_table[current_track].is_audio)) { // OK?
@@ -1669,6 +1660,11 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				set_cdda_status(CDDA_OFF);
 			}
 			set_subq();
+		}
+		if(!(req_status)) {
+			mcu_ready = true;
+			mcu_intr = true;
+			write_mcuint_signals(0xffffffff);
 		}
 		break;
 	case EVENT_CDROM_TIMEOUT:
@@ -1718,10 +1714,10 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
 			set_dma_intr(true);
 		} else {
-			status_data_ready(true);
+			status_data_ready(false);
 		}
 		register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-					   10.0,
+					   1100.0,
 					   false,
 					   &event_seek_completed);
 		break;
