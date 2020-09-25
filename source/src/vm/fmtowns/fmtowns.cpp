@@ -682,6 +682,10 @@ void VM::set_machine_type(uint16_t machine_id, uint16_t cpu_id)
 		serialrom->set_cpu_id(cpu_id);
 		serialrom->set_machine_id(machine_id);
 	}
+	if(floppy != NULL) {
+		floppy->set_cpu_id(cpu_id);
+		floppy->set_machine_id(machine_id);
+	}
 #if defined(HAS_20PIX_FONTS)
 	if(fontrom_20pix != NULL) {
 		fontrom_20pix->set_cpu_id(cpu_id);
@@ -1084,8 +1088,11 @@ bool VM::is_cart_inserted(int drv)
 
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
+	
 	fdc->open_disk(drv, file_path, bank);
-//	floppy->change_disk(drv);
+	if(fdc->is_disk_inserted(drv)) {
+		floppy->change_disk(drv);
+	}
 }
 
 void VM::close_floppy_disk(int drv)

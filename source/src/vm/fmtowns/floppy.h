@@ -28,12 +28,19 @@ private:
 	int drvreg, drvsel;
 	bool irq, irqmsk;
 	bool drive_swapped;
-	void update_intr();
+	uint16_t machine_id;
+	uint8_t cpu_id;
+	bool is_removed;
+	bool is_inserted[4];
 	
+	void update_intr();
+
 public:
 	FLOPPY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&output_intr_line);
+		machine_id = 0x0100;
+		cpu_id = 0x01;
 	}
 	~FLOPPY() {}
 	
@@ -54,6 +61,18 @@ public:
 	void set_context_intr_line(DEVICE* dev, int id, uint32_t mask)
 	{
 		register_output_signal(&output_intr_line, dev, id, mask);
+	}
+	void set_machine_id(uint16_t val)
+	{
+		machine_id = val & 0xfff8;
+	}
+	void set_cpu_id(uint16_t val)
+	{
+		cpu_id = val & 0x07;
+	}
+	void change_disk(int drv)
+	{
+		is_inserted[drv] = true;
 	}
 };
 }
