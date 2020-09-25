@@ -673,7 +673,7 @@ void TOWNS_CDROM::status_data_ready(bool forceint)
 
 void TOWNS_CDROM::status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3)
 {
-	out_debug_log(_T("Error on reading (ILLGLBLKADDR): EXTRA=%d s0=%02X s1=%02X s2=%02X s3=%02X\n"), extra, TOWNS_CD_STATUS_CMD_ABEND, s1, s2, s3);
+	out_debug_log(_T("Error on reading (ILLGLBLKADDR): EXTRA=%d s0=%02X s1=%02X s2=%02X s3=%02X POSITION=%d\n"), extra, TOWNS_CD_STATUS_CMD_ABEND, s1, s2, s3, position);
 	set_status(req_status, extra, TOWNS_CD_STATUS_CMD_ABEND, s1, s2, s3);
 }
 
@@ -782,6 +782,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 	switch(command & 0x9f) {
 	case CDROM_COMMAND_SEEK: // 00h (RESTORE?)
 		{
+			set_cdda_status(CDDA_OFF);
 			uint8_t m, s, f;
 			m = FROM_BCD(param_queue[0]);
 			s = FROM_BCD(param_queue[1]);
@@ -1070,6 +1071,7 @@ void TOWNS_CDROM::read_cdrom()
 {
 //	read_pos = 0;
 //	databuffer->clear();
+	set_cdda_status(CDDA_OFF);
 	if(!(is_device_ready())) {
 		out_debug_log(_T("DEVICE NOT READY"));
 		status_not_ready(false);
@@ -1114,7 +1116,6 @@ void TOWNS_CDROM::read_cdrom()
 				  param_queue[0], param_queue[1], param_queue[2],
 				  param_queue[3], param_queue[4], param_queue[5],
 				  pad1, dcmd);
-	set_cdda_status(CDDA_OFF);
 	position = lba1 * physical_block_size();
 	__remain = (lba2 - lba1 + 1);
 	read_length = __remain * logical_block_size();
@@ -1693,19 +1694,21 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 		if(read_length > 0) {
 			mcu_ready = false;
+			bool stat = false;
 //			out_debug_log(_T("READ DATA SIZE=%d BUFFER COUNT=%d"), logical_block_size(), databuffer->count());
 			if(read_length >= logical_block_size()) {
-				read_buffer(logical_block_size());
+				stat = read_buffer(logical_block_size());
 			} else if(read_length > 0) {
-				read_buffer(read_length);
+				stat = read_buffer(read_length);
 			}
-			
-			register_event(this, EVENT_CDROM_NEXT_SECTOR,
-						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
-						   ((double)(physical_block_size())) * 
-						   1.0, // OK?
+			if((stat)) {
+				register_event(this, EVENT_CDROM_NEXT_SECTOR,
+							   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
+							   ((double)(physical_block_size())) * 
+							   1.0, // OK?
 //						   5.0e3, // From TSUGARU
-						   false, &event_next_sector);
+							   false, &event_next_sector);
+			}
 			register_event(this, EVENT_CDROM_TIMEOUT, 1000.0e3, false, &event_time_out);
 		} /*else {
 			status_read_done(false);
