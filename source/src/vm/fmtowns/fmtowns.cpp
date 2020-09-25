@@ -324,6 +324,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	rtc->set_context_busy(timer, SIG_TIMER_RTC_BUSY, 0x80);
 	scsi_host->set_context_irq(scsi, SIG_SCSI_IRQ, 1);
 	scsi_host->set_context_drq(scsi, SIG_SCSI_DRQ, 1);
+	scsi_host->set_context_drq(keyboard, SIG_KEYBOARD_BOOTSEQ_END, 1);
+	
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
 	dma->set_context_ch1(scsi_host);
@@ -445,7 +447,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// EXTRA DMA2 : Reserved
 	// EXTRA DMA3 : Reserved
 	fdc->set_context_drq(dma, SIG_UPD71071_CH0, 1);
+	fdc->set_context_drq(keyboard, SIG_KEYBOARD_BOOTSEQ_END, 1);
 	cdrom->set_context_drq_line(dma, SIG_UPD71071_CH3, 0xff);
+	cdrom->set_context_drq_line(keyboard, SIG_KEYBOARD_BOOTSEQ_END, 1);
 
 	// NMI0 : KEYBOARD (RAS)
 	// NMI1 : Extra SLOT (Maybe not implement)
