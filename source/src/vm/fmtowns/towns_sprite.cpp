@@ -958,6 +958,7 @@ void TOWNS_SPRITE::event_callback(int id, int err)
 				disp_page1 = !(disp_page1);
 			}
 		}*/
+		break;
 	}
 }
 
