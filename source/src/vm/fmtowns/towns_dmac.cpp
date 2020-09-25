@@ -51,7 +51,8 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x08:
 		if((data & 0x04) != (cmd & 0x04)) {
-			out_debug_log(_T("TRANSFER: CMD=%04X -> %04X"), cmd, (cmd & 0xff00) | (data & 0xff));
+			out_debug_log(_T("TRANSFER: CMD=%04X -> %04X CH=%d\nADDR=%08X"), cmd, (cmd & 0xff00) | (data & 0xff), selch, (dma[selch].areg & 0x00ffffff) | (dma_high_address[selch]));
+			
 		}
 		break;
 	case 0x0a:
@@ -168,6 +169,8 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 //		this->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, data, mask);
 	} else if(id == SIG_TOWNS_DMAC_ADDR_MASK) {
 		// From eFMR50 / memory.cpp / update_dma_addr_mask()
+		
+#if 0
 		switch(dma_addr_reg & 3) {
 		case 0:
 			dma_addr_mask = data;
@@ -187,6 +190,9 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 			}
 			break;
 		}
+#else
+		dma_addr_mask = data;
+#endif
 	} else {
 		// Fallthrough.
 //		if(id == SIG_UPD71071_CH1) {
@@ -199,24 +205,28 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 
 void TOWNS_DMAC::write_via_debugger_data8(uint32_t addr, uint32_t data)
 {
-//	if(addr >= 0x81000000) out_debug_log(_T("WRITE 8BIT ADDR %08X to DATA:%02X"), addr, data);
-	d_mem->write_dma_data8(addr & dma_addr_mask, data);
+	addr = (dma_high_address[selch] & 0xff000000) | (addr & 0x00ffffff);
+//	if(addr == 0xD000) out_debug_log(_T("WRITE 8BIT ADDR %08X to DATA:%02X"), addr, data);
+	d_mem->write_dma_data8(addr, data);
 }
 
 uint32_t TOWNS_DMAC::read_via_debugger_data8(uint32_t addr)
 {
-	return d_mem->read_dma_data8(addr & dma_addr_mask);
+	addr = (dma_high_address[selch] & 0xff000000) | (addr & 0x00ffffff);
+	return d_mem->read_dma_data8(addr);
 }
 
 void TOWNS_DMAC::write_via_debugger_data16(uint32_t addr, uint32_t data)
 {
 //	out_debug_log(_T("WRITE 16BIT DATA:%04X"), data);
-	d_mem->write_dma_data16(addr & dma_addr_mask, data);
+	addr = (dma_high_address[selch] & 0xff000000) | (addr & 0x00ffffff);
+	d_mem->write_dma_data16(addr, data);
 }
 
 uint32_t TOWNS_DMAC::read_via_debugger_data16(uint32_t addr)
 {
-	return d_mem->read_dma_data16(addr & dma_addr_mask);
+	addr = (dma_high_address[selch] & 0xff000000) | (addr & 0x00ffffff);
+	return d_mem->read_dma_data16(addr);
 }
 
 // note: if SINGLE_MODE_DMA is defined, do_dma() is called in every machine cycle

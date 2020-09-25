@@ -202,7 +202,9 @@ protected:
 	inline void __FASTCALL write_primitive_byte(uint32_t addr, uint32_t data)
 	{
 		int bank = (addr & addr_mask) >> addr_shift;
-		
+//		if(addr == 0xd000) {
+//			out_debug_log(_T("WRITE  %02X to D000 / DEV=%08X"), data, wr_table[bank].device);
+//		}
 		if(wr_table[bank].device != NULL) {
 			wr_table[bank].device->write_memory_mapped_io8(addr, data);
 		} else {
