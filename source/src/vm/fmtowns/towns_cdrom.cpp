@@ -782,7 +782,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 	switch(command & 0x9f) {
 	case CDROM_COMMAND_SEEK: // 00h (RESTORE?)
 		{
-			set_cdda_status(CDDA_OFF);
+//			set_cdda_status(CDDA_OFF);
 			uint8_t m, s, f;
 			m = FROM_BCD(param_queue[0]);
 			s = FROM_BCD(param_queue[1]);
