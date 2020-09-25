@@ -26,7 +26,7 @@
 //#include "compiler.h"
 #include "cpu.h"
 #include "ia32.mcr"
-
+#include "../../../i386_np21.h"
 const char *exception_str[EXCEPTION_NUM] = {
 	"DE_EXCEPTION",
 	"DB_EXCEPTION",
@@ -152,6 +152,7 @@ exception(int num, int error_code)
 		ia32_panic("exception: unknown exception (%d)", num);
 		break;
 	}
+	device_cpu->out_debug_log("EXCEPTION: %s PC=%08X", exception_str[num], device_cpu->get_pc());
 
 	if (CPU_STAT_EXCEPTION_COUNTER >= 2) {
 		if (dftable[exctype[CPU_STAT_PREV_EXCEPTION]][exctype[num]]) {
