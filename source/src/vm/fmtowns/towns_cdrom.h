@@ -421,7 +421,7 @@ public:
 	
 	virtual void set_volume(int volume);
 	virtual void set_volume(int ch, int decibel_l, int decibel_r);
-	virtual bool read_buffer(int length);
+	virtual bool read_buffer(int sectors);
 
 	// unique functions
 	// Towns specified command

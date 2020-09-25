@@ -1696,11 +1696,20 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			mcu_ready = false;
 			bool stat = false;
 //			out_debug_log(_T("READ DATA SIZE=%d BUFFER COUNT=%d"), logical_block_size(), databuffer->count());
+#if 0
 			if(read_length >= logical_block_size()) {
 				stat = read_buffer(logical_block_size());
 			} else if(read_length > 0) {
 				stat = read_buffer(read_length);
 			}
+#else
+			// Note: Still error with reading D000h at TownsOS v1.1L30.
+			// Maybe data has changed to 1Fh from 8Eh.
+			/// 20200926 K.O
+			if(read_length > 0) {
+				stat = read_buffer(1);
+			}
+#endif
 			if((stat)) {
 				register_event(this, EVENT_CDROM_NEXT_SECTOR,
 							   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
@@ -1750,7 +1759,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	}
 }
 
-bool TOWNS_CDROM::read_buffer(int length)
+bool TOWNS_CDROM::read_buffer(int sectors)
 {
 	if(!(mounted())) {
 		status_not_ready(false);
@@ -1760,6 +1769,7 @@ bool TOWNS_CDROM::read_buffer(int length)
 		status_media_changed(false);
 		return false;
 	}
+#if 0
 	uint32_t offset = (uint32_t)(position % physical_block_size());
 	if(length > read_length) length = read_length;
 	int n_length = length;
@@ -1793,6 +1803,40 @@ bool TOWNS_CDROM::read_buffer(int length)
 		
 		access = true;
 	}
+#else
+	uint32_t offset = 0;
+	if(!(seek_relative_frame_in_image(position / physical_block_size()))) {
+		status_illegal_lba(0, 0x00, 0x00, 0x00);
+		return false;
+	}
+	while(sectors > 0) {
+		uint8_t tmp_buffer[2448];
+		int tmp_length = physical_block_size() - offset;
+		
+		if(fio_img->Fread(tmp_buffer, tmp_length, 1) != 1) {
+			status_illegal_lba(0, 0x00, 0x00, 0x00);			
+			return false;
+		}
+		int noffset = 16;
+		if(logical_block_size() >= physical_block_size()) { // Maybe raw
+			noffset = 0;
+		}
+		for(int i = 0; i < tmp_length; i++) {
+			if((offset >= noffset) && (offset < (noffset + logical_block_size()))) {
+				uint8_t value = tmp_buffer[i];
+				write_a_byte(value);
+//				is_data_in = false;
+//				length--;
+				read_length--;
+			}
+			position++;
+			offset = (offset + 1) % physical_block_size();
+		}
+		sectors--;
+		access = true;
+	}
+#endif		
+		
 	return true;
 }
 
