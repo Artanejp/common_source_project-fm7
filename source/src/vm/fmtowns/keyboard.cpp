@@ -15,6 +15,8 @@
 #define EVENT_KEY_CODE				1
 #define EVENT_DELAY_PUSH			2
 #define EVENT_BOOT_TIMEOUT			3
+#define EVENT_REPEAT1				4
+#define EVENT_REPEAT2				5
 
 namespace FMTOWNS {
 void KEYBOARD::initialize()
@@ -24,6 +26,8 @@ void KEYBOARD::initialize()
 	cmd_buf = new FIFO(16);
 	event_keycode = -1;
 	event_key_reset = -1;
+	event_repeat = -1;
+	
 	memset(table, 0, sizeof(table));
 	memset(boot_code, 0x00, sizeof(boot_code));
 	boot_ptr = 0;
@@ -46,7 +50,7 @@ void KEYBOARD::release()
 	
 void KEYBOARD::reset()
 {
-//	boot_seq = true;
+	boot_seq = false;
 	reset_device();
 }
 
@@ -66,12 +70,16 @@ void KEYBOARD::reset_device()
 	reserved_key_num = -1;
 	if(event_keycode > -1) {
 		cancel_event(this, event_keycode);
-		event_keycode = -1;
 	}
 	if(event_key_reset > -1) {
 		cancel_event(this, event_key_reset);
 	}
+	if(event_keycode > -1) {
+		cancel_event(this, event_keycode);
+	}
 	event_key_reset = -1;
+	event_repeat = -1;
+	event_keycode = -1;
 	write_signals(&output_intr_line, 0);
 	write_signals(&output_nmi_line, 0);
 	memset(boot_code, 0x00, sizeof(boot_code));
@@ -99,66 +107,46 @@ void KEYBOARD::special_reset(int num)
 	reset_device();
 	special_boot_num = num;
 	boot_seq = true;
-	kbstat |= 1;
+//	kbstat |= 1;
 
 	static const uint8_t bootcode_debug[] = {0x20, 0x13, 0x2E, 0x17, 0x22};
 	static const uint8_t bootcode_cd[] = {0x2C, 0x20};
-	static const uint8_t bootcode_icm[] = {0x18, 0x2C, 0x30};
+	static const uint8_t bootcode_icm[] = {0x18, 0x2C, 0x30, 0x18, 0x2C};
 	static const uint8_t dnum[] = {0x0B, 0x02, 0x03, 0x04, 0x05};
 	switch(num) {
 	case 0: // CD
-		enqueue_key(0x7f);
-//		memcpy(boot_code, bootcode_cd, sizeof(bootcode_cd));
-		key_down('C');
-		key_down('D');
-		key_down('C');
-		key_down('D');
-		key_down('C');
-		key_down('D');
+//		enqueue_key(0x7f);
+		memcpy(boot_code, bootcode_cd, sizeof(bootcode_cd));
 		break;
 	case 1:
 	case 2:
 	case 3:
 	case 4:
-		enqueue_key(0x7f);
-//		boot_code[0] = 0x21;
-//		boot_code[1] = dnum[num - 1];
-		key_down('F');
-		key_down('0' + special_boot_num - 1);
+//		enqueue_key(0x7f);
+		boot_code[0] = 0x21;
+		boot_code[1] = dnum[num - 1];
 		break;
 	case 5:
 	case 6:
 	case 7:
 	case 8:
 	case 9:
-		enqueue_key(0x7f);
-		key_down('H');
-		key_down('0' + special_boot_num - 5);
+		boot_code[0] = 0x23;
+		boot_code[1] = dnum[num - 5];
 		break;
-//		boot_code[0] = 0x23;
-//		boot_code[1] = dnum[num - 5];
-//		break;
 	case 10: // ICM
-		enqueue_key(0x7f);
-		key_down('I');
-		key_down('C');
-		key_down('M');
-		//
-//		memcpy(boot_code, bootcode_icm, sizeof(bootcode_icm));
+//		enqueue_key(0x7f);
+		memcpy(boot_code, bootcode_icm, sizeof(bootcode_icm));
 		break;;
 	case 11: // DEBUG
-		enqueue_key(0x7f);
-		key_down('D');
-		key_down('E');
-		key_down('B');
-		key_down('U');
-		key_down('G');
-		
-//		memcpy(boot_code, bootcode_debug, sizeof(bootcode_debug));
+//		enqueue_key(0x7f);
+		memcpy(boot_code, bootcode_debug, sizeof(bootcode_debug));
 		break;;
 	}
-	
-	register_key_interrupt(false); // NEXT BYTE
+	if((num >= 0) && (num < 12)) {
+//		register_event(this, EVENT_REPEAT1, (double)repeat_start_ms * 1.0e3, false, &event_repeat);
+		register_key_interrupt(false); // NEXT BYTE
+	}
 //	register_event(this, EVENT_BOOT_TIMEOUT, 30.0e6, false, &event_key_reset);
 }
 	
@@ -283,7 +271,7 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 	case 0x600:
 		kbint &= ~1;
 		write_signals(&output_intr_line, 0);
-		if((key_buf->empty()) /*&& !(boot_seq)*/) {
+		if((key_buf->empty()) && !(boot_seq)) {
 			kbstat &= ~1;
 		} else {
 			register_key_interrupt(false); // NEXT BYTE
@@ -305,14 +293,14 @@ void KEYBOARD::event_callback(int event_id, int err)
 {
 	switch(event_id) {
 	case EVENT_KEY_CODE:
-/*		if(boot_seq) {
+		if(boot_seq) {
 			if((boot_code_ptr & 1) == 0) {
 				kbdata = (boot_code_ptr < 12) ? 0xA0 : 0xF0;
 				if(boot_code_ptr >= 12) {
 					//boot_seq = false;
 				}
 			} else {
-				if((boot_code_ptr >> 1) == 0) {
+				if(((boot_code_ptr >> 1) == 0) || (boot_code_ptr >= 12)) {
 					kbdata = 0x7F;
 				} else {
 				    switch(special_boot_num) {
@@ -341,15 +329,47 @@ void KEYBOARD::event_callback(int event_id, int err)
 				}
 			}
 			boot_code_ptr++;
-			} else {*/
+		} else {
 			kbdata = key_buf->read();
-//		}
+		}
 		kbstat |= 1;
 		if(kbmsk & 1) {
 			kbint |= 1;
 			write_signals(&output_intr_line, 0xffffffff);
 		}
 		event_keycode = -1;
+		break;
+	case EVENT_REPEAT1:
+		event_repeat = -1;
+		if(boot_seq) {
+			/*if(is_repeat)*/ {
+				register_event(this, EVENT_REPEAT2, (double)repeat_tick_ms * 1.0e3, true, &event_repeat);
+				out_debug_log("REPEAT");
+				for(int i = 0; i < 256; i++) {
+					if((table[i] != 0) && (key_table[i] >= 0x5b) && (key_table[i] < 0x52)) {
+						key_up2(i);
+						key_down2(i);
+					}
+				}
+			}
+		}
+		break;
+	case EVENT_REPEAT2:
+		{
+			if(!(boot_seq)) {
+				if(event_repeat > -1) {
+					cancel_event(this, event_repeat);
+					event_repeat = -1;
+				}
+			} else {
+				for(int i = 0; i < 256; i++) {
+					if((table[i] != 0) && (key_table[i] >= 0x5b) && (key_table[i] < 0x52)) {
+						key_up2(i);
+						key_down2(i);
+					}
+				}
+			}
+		}
 		break;
 	case EVENT_BOOT_TIMEOUT:
 		event_key_reset = -1;
@@ -358,48 +378,58 @@ void KEYBOARD::event_callback(int event_id, int err)
 	}
 }
 	
-
 void KEYBOARD::key_down(int code)
 {
-//	if(!table[code]) {
+	if(!table[code]) {
 		table[code] = 1;
-		if(code = key_table[code]) {
-			// $11:CTRL, $10:SHIFT
-			if((code >= 0x70) && (code < 0x7a)) {
-				// If PFkey, press with /*SHIFT or */RALT, PF += 10.
-				if((table[0xa5]) /*|| (table[0x10])*/) { // RALT /*or SHIFT*/
-					static const int pf1xtbl[] = { 0x69, 0x5b, 0x74, 0x75, 0x76,
-												   0x77, 0x78, 0x79, 0x7a, 0x7b};
-					code = pf1xtbl[code - 0x70];
-				}
-			} else if((code == 0x7d)) { // Print Screen + RALT -> Kanji Jisho
-				if(table[0xa5]) { // RALT
-					code = 0x6b;
-				}
-			} else if((code == 0x7c)) { // Pause Break + RALT -> Tango Touroku
-				if(table[0xa5]) { // RALT
-					code = 0x6d;
-				}
-			} else if((code == 0x6c)) { // Scroll Lock + RALT -> Tango Massyou.
-				if(table[0xa5]) { // RALT
-					code = 0x6c;
-				}
-			}
-			if(boot_seq) {
-				key_buf->write(0xa0);
-			} else {
-				key_buf->write(0xc0 | (table[0x11] ? 8 : 0) | (table[0x10] ? 4 : 0));
-			}
-			key_buf->write(code & 0x7f);
-			register_key_interrupt(true);
-		}
-//	}
+		key_down2(code);
+	}
 }
+
+void KEYBOARD::key_down2(int code)
+{
+	if(code = key_table[code]) {
+		// $11:CTRL, $10:SHIFT
+		if((code >= 0x70) && (code < 0x7a)) {
+			// If PFkey, press with /*SHIFT or */RALT, PF += 10.
+			if((table[0xa5]) /*|| (table[0x10])*/) { // RALT /*or SHIFT*/
+				static const int pf1xtbl[] = { 0x69, 0x5b, 0x74, 0x75, 0x76,
+											   0x77, 0x78, 0x79, 0x7a, 0x7b};
+				code = pf1xtbl[code - 0x70];
+			}
+		} else if((code == 0x7d)) { // Print Screen + RALT -> Kanji Jisho
+			if(table[0xa5]) { // RALT
+				code = 0x6b;
+			}
+		} else if((code == 0x7c)) { // Pause Break + RALT -> Tango Touroku
+			if(table[0xa5]) { // RALT
+				code = 0x6d;
+			}
+		} else if((code == 0x6c)) { // Scroll Lock + RALT -> Tango Massyou.
+			if(table[0xa5]) { // RALT
+				code = 0x6c;
+			}
+		}
+		if(boot_seq) {
+			key_buf->write(0xa0);
+		} else {
+			key_buf->write(0xc0 | (table[0x11] ? 8 : 0) | (table[0x10] ? 4 : 0));
+		}
+		key_buf->write(code & 0x7f);
+		register_key_interrupt(true);
+	}
+}
+
 
 void KEYBOARD::key_up(int code)
 {
+	table[code] = 0;
+	key_up2(code);
+}
+
+void KEYBOARD::key_up2(int code)
+{
 //	if(table[code]) {
-		table[code] = 0;
 		if(code = key_table[code]) {
 			if((code >= 0x70) && (code < 0x7a)) {
 				// If PFkey, press with /*SHIFT or */RALT, PF += 10.
@@ -434,7 +464,7 @@ void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_KEYBOARD_BOOTSEQ_END:
 		if(((data & mask) != 0) && (boot_seq)) {
 			out_debug_log(_T("SIG_KEYBOARD_BOOTSEQ_END"));
-			switch(special_boot_num) {
+/*			switch(special_boot_num) {
 			case 0: // CD
 //		memcpy(boot_code, bootcode_cd, sizeof(bootcode_cd));
 				key_up('C');
@@ -468,13 +498,14 @@ void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 				key_up('G');
 				break;
 			}
+*/
 			boot_seq = false;
 		}
 		break;
 	}
 }
 	
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 {
@@ -515,6 +546,7 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	
 	state_fio->StateValue(event_keycode);
 	state_fio->StateValue(event_key_reset);
+	state_fio->StateValue(event_repeat);
 	return true;
 }
 
