@@ -417,7 +417,6 @@ void EmuThreadClass::doWork(const QString &params)
 	lStateFile.clear();
 	thread_id = this->currentThreadId();
 	record_fps = -1;
-
 	tick_timer.start();
 	update_fps_time = tick_timer.elapsed();
 	//update_fps_time = SDL_GetTicks();
@@ -433,6 +432,9 @@ void EmuThreadClass::doWork(const QString &params)
 	for(int i = 0; i < using_flags->get_max_drive(); i++) {
 		fd_text[i].clear();
 		fd_lamp[i] = QString::fromUtf8("×");
+		fd_open_wait_count[i] = 0;
+		fd_reserved_path[i].clear();
+		fd_reserved_bank[i] = 0;
 	}
 	for(int i = 0; i < using_flags->get_max_tape(); i++) {
 		cmt_text[i].clear();
@@ -611,7 +613,18 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 			run_frames = p_emu->run();
 			total_frames += run_frames;
-				
+			// After frame, delayed open
+			for(int i = 0; i < using_flags->get_max_drive(); i++) {
+				if(fd_open_wait_count[i] > 0) {
+					fd_open_wait_count[i] -= run_frames;
+					if(fd_open_wait_count[i] <= 0) {
+						do_open_disk(i, fd_reserved_path[i], fd_reserved_bank[i]);
+						fd_reserved_path[i].clear();
+						fd_reserved_bank[i] = 0;
+						fd_open_wait_count[i] = 0;
+					}
+				}
+			}
 			if(!(half_count)) {
 				if(using_flags->is_use_minimum_rendering()) {
 #if defined(USE_MINIMUM_RENDERING)

@@ -48,7 +48,10 @@ protected:
 
 	QMutex uiMutex;
 	char dbg_prev_command[MAX_COMMAND_LEN];
-  
+	int fd_open_wait_count[8];
+	QString fd_reserved_path[8];
+	int fd_reserved_bank[8];
+	
 	void button_pressed_mouse_sub(Qt::MouseButton button);
 	void button_released_mouse_sub(Qt::MouseButton button);
 	void get_qd_string(void);

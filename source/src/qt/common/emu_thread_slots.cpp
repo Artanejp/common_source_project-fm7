@@ -505,6 +505,7 @@ void EmuThreadClass::do_close_disk(int drv)
 	p_emu->close_floppy_disk(drv);
 	p_emu->d88_file[drv].bank_num = 0;
 	p_emu->d88_file[drv].cur_bank = -1;
+	fd_open_wait_count[drv] = (int)(get_emu_frame_rate() * 1.0);
 	emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, drv, QString::fromUtf8(""));
 #endif	
 }
@@ -513,6 +514,11 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 {
 #ifdef USE_FLOPPY_DISK
 	QByteArray localPath = path.toLocal8Bit();
+	if(fd_open_wait_count[drv] > 0) {
+		fd_reserved_path[drv] = localPath;
+		fd_reserved_bank[drv] = bank;
+		return;
+	}
    
 	//p_emu->d88_file[drv].bank_num = 0;
 	//p_emu->d88_file[drv].cur_bank = -1;
@@ -550,6 +556,7 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 	} else {
 	   bank = 0;
 	}
+//	do_close_disk(drv);
 	p_emu->open_floppy_disk(drv, localPath.constData(), bank);
 	emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, drv, path);
 	emit sig_update_recent_disk(drv);

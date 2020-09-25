@@ -2441,7 +2441,7 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 		if(vm->is_floppy_disk_inserted(drv)) {
 			vm->close_floppy_disk(drv);
 			// wait 0.5sec
-			floppy_disk_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
+			floppy_disk_status[drv].wait_count = (int)(vm->get_frame_rate() / 1);
 #if USE_FLOPPY_DISK > 1
 			out_message(_T("FD%d: Ejected"), drv + BASE_FLOPPY_DISK_NUM);
 #else
