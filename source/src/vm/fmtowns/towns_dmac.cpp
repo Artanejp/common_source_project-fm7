@@ -50,17 +50,17 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		return;
 		break;
 	case 0x08:
-		if((data & 0x04) != (cmd & 0x04)) {
-			out_debug_log(_T("TRANSFER: CMD=%04X -> %04X CH=%d\nADDR=%08X"), cmd, (cmd & 0xff00) | (data & 0xff), selch, (dma[selch].areg & 0x00ffffff) | (dma_high_address[selch]));
+//		if((data & 0x04) != (cmd & 0x04)) {
+//			out_debug_log(_T("TRANSFER: CMD=%04X -> %04X CH=%d\nADDR=%08X"), cmd, (cmd & 0xff00) | (data & 0xff), selch, (dma[selch].areg & 0x00ffffff) | (dma_high_address[selch]));
 			
-		}
+//		}
 		break;
 	case 0x0a:
 //		out_debug_log(_T("SET MODE[%d] to %02X"), selch, data);
 		break;
 	case 0x0e:
 		if(((data | req) & 0x08) != 0) {
-			out_debug_log(_T("TRANSFER ENABLE@REG0E DATA=%02X"), data);
+			//	out_debug_log(_T("TRANSFER ENABLE@REG0E DATA=%02X"), data);
 		}
 		break;
 	case 0x0f:
@@ -82,7 +82,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		bcreg_set[selch] = false;
 		creg_set[selch] = false;
 #endif
-#if 1
+#if 0
 		if((data & 0x08) == 0) {
 			out_debug_log(_T("START CDROM DMA MODE=%02X ADDR=%08X COUNT=%04X"),
 						  dma[3].mode, (dma[3].areg & 0xffffff) | dma_high_address[3],

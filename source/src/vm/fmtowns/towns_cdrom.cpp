@@ -17,6 +17,9 @@
 #include "../../fileio.h"
 #include "../debugger.h"
 
+//#include <iostream>
+//#include <utility>
+
 // SAME AS SCSI_CDROM::
 #define CDDA_OFF		0
 #define CDDA_PLAYING	1
@@ -43,7 +46,7 @@
 #define EVENT_CDROM_DELAY_READY3			116
 #define EVENT_CDROM_DELAY_READY4			117
 
-#define _CDROM_DEBUG_LOG
+//#define _CDROM_DEBUG_LOG
 
 // Event must be larger than 116.
 
@@ -70,6 +73,8 @@ const uint16_t TOWNS_CDROM::crc_table[256] = {
 	0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8, 0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
 };
 
+
+	
 uint16_t TOWNS_CDROM::calc_subc_crc16(uint8_t *databuf, int bytes, uint16_t initval)
 {
 	uint16_t crc16 = initval;
@@ -79,366 +84,30 @@ uint16_t TOWNS_CDROM::calc_subc_crc16(uint8_t *databuf, int bytes, uint16_t init
 	return crc16;
 }
 	
-/*
- * Note: 20200411 K.O
- *
- * 1. MCU of CDC is driven by 8MHz clock maximum, 1.5us per insn (?).
- * 2. DATA QUEUE RAM may be 8KiB.
- * 3. CDC seems not to be SCSI, raw davice (?)
- *
- * *NOTE IN NOTE:
- *   - SECTOR SIZE OF DATA TRACK maybe 2048 bytes (excepts SUB TRACK and CRC).
- *     WHEN READ A SECTOR, THEN START DRQ.
- *   - ToDo: Will implement MODE2/2352. 
- *   - ALL OF SEQUENCES are EVENT-DRIVEN.
- *   - SUB MPU (MCU) INTERRUPT HAPPENED AT SOME ERRORs and COMPLETED ?
- *   - DMA END INTERRUPT HAPPENED AT COMPLETED TO TRANSTER ALL OF DATA.
- *   - MASTER STATUS REGISTER (04C0h:R) WILL SHOW SOME STATUS.
- *   - IF SET 04C2h:W:BIT5, WILL INTERRUPT AT SOME **END.
- *   - PARAMETER REGISTER(04C4h:W) HAS 8BYTES DEPTH FIFO,
- *     ALL OF COMMAND-PARAMETERS MUST HAVE 8 BYTES LONG.
- *   - STATUS REGISTER (04C2h:R) HAS 4 BYTES DEPTH FIFO,
- *     ALL OF STATUSS MUST HAVE 4 BYTES LONG.
- *   - 04C6h:W WILL SET DMA TRANSFER or PIO TRANSTER,
- *     DATA REGISTER (04C4h:R) WILL CONNECT TO DATA RAM,
- *     WHEN PIO TRANSFER.
-
-https://www.wdic.org/w/TECH/サブコード
- *
- * REGISTERS:
- * 04C0h:W : MASTER CONTROL REGISTER.
- *         BIT7: SMIC      : IF WRITE '1', CLEAR SUB MCU IRQ.
- *         BIT6: DEIC      : IF WRITE '1', CLEAR DMA END IRQ.
- *         ...
- *         BIT2: SRST      : IF WRITE '1', RESET SUB MCU (MAY DISCARD SOME DATA).
- *         BIT1: SMIM      : IF WRITE '1', ALLOW SUB MCU IRQ, '0', NOT ALLOW SUB MCU IRQ. 
- *         BIT2: DEIM      : IF WRITE '1', ALLOW DMA END IRQ, '0', NOT ALLOW DMA END IRQ. 
- *
- * 04C2h:W : COMMAND REGISTER.
- *         BIT7: TYPE      : COMMAND TYPE; '1' IS AROUND PLAYING, '0' IS AROUND STATE.
- *         BIT6: IRQ       : IF WRITE '1', DO MCU INTERRUPT WHEN STATUS PHASE.
- *         BIT5: STATUS    : IF WRITE '1', REPLY STATUS FROM MCU, '0', NOT REPLY (excepts IRQ?) 
- *         BIT4-0: CMD     : COMMAND CODE.
- *
- * 04C4h:W : PARAMETER FIFO.DEPTH IS 8 BYTES.
- *
- * 04C6h:W : TRANSFER CONTROL REGISTER.
- *         BIT4: DTS       :  WRITE '1' IS DMA TRANSFER MODE, '0' IS PIO TRANSFER MODE.
- *         BIT3: STS       : IF PIO TRANSFER MODE AND WRITE TO '1', START TRANSFERRING.
- * 
- * 04C0h:R : MASTER STATUS REGISTER.
- *         BIT7: SIRQ      : IF '1', INTERRUPTS FROM SUB MCU.
- *         BIT6: DEI       : IF '1', INTERRUPTS FROM DMA BY ENDED TO TRANSFER.
- *         BIT5: STSF      : IF '1', END OF PIO TRANSFER.
- *         BIT4: DTSF      : IF '1', STILL IN DMA TRANSFER, '0' IS NOT.
- *         ...
- *         BIT1: SRQ       : IF '1', SUB MCU HAS STATUS CODES AFTER COMPLETED.
- *         BIT0: DRY       : IF '1', SUB MCU ACCEPTS ANY COMMAND, '0' IS NOT.
- * 
- * 04C2h:R : STATUS REGISTER.HAS 4 BYTES DEPTH FIFO.
- * 
- * 04C4h:R : DATA REGISTER.THIS IS NOT MEANFUL AT DMA TRANSFERRING.
- * 
- * 04CCh:R : CD SUBCODE REGISTER.
- *         BIT1: OVER RUN  : IF '1', BEFORE SUB CODE DATA IS NOT READ AT BEFORE CYCLE.
- *         BIT0: SUBC DATR : IF '1', SUB CODE HAS ANY DATA, SHOULD READ FROM 04CDh.
- *
- * 04CDh:R :CD SUB CODE REGISTER.
- *         BIT7: SUBC P-DATA : IF '0', IN GAP (NO SOUND)
- *         BIT6: SUBC Q-DATA : BIT SLICE OF SUBQ DATA (98bits=2bits+12bytes). i.e. TOC 
- *         BIT5: SUBC R-DATA : R-W IS 6bits data of,
- *         BIT4: SUBC S-DATA :   READ IN  : CD TEXT
- *         BIT3: SUBC T-DATA :   DATA     : CD-G OR CD-MIDI
- *         BIT2: SUBC U-DATA :   READ OUT : UNUSED.
- *         BIT1: SUBC V-DATA :
- *         BIT0: SUBC W-DATA :
- *
- * SEE, https://www.wdic.org/w/TECH/TOC .
- *       ONE SECTOR HAS ONE SUB FRAME, 98BYTES.
- * 
- * SUBQ IS MOSTLY TIMING:
- * BIT +0        : S0 BIT
- *     +1        : S1 BIT
- *     +2  - +5  : CNT : TYPE OF TRACK
- *     +6  - +9  : ADR : 1 = TIME / 2 = CATALOGUE DATA / 3 = ISR CODE
- *     +10 - +81 : DATA-Q : SEE *TOC_DATA
- *     +82 - +97 : CRC16 
- *
- * *TOC_DATA IN SUBQ: 
- * BYTE +0 : TNO          : MOSTLY 00
- *      +1 : POINT        : TRACK NUMBER or A0h - A2h
- *      +2 : MIN   (BCD)  : START ABS MIN of THIS TRACK
- *      +3 : SEC   (BCD)  : START ABS SEC of THIS TRACK
- *      +4 : FRAME (BCD)  : START ABS FRAME of THIS TRACK. 1 FRAME IS 1/75 sec.
- *      +5 : ZERO         : MOSTLY 00
- *      +6 : PMIN   (BCD) : START REL MIN of THIS TRACK
- *      +7 : PSEC   (BCD) : START REL SEC of THIS TRACK
- *      +8 : PFRAME (BCD) : START REL FRAME of THIS TRACK. 1 FRAME IS 1/75 sec.
- *
- * *POINT = A0h: FOR FIRST TRACK
- * BYTE +0 : TNO          : MOSTLY 00
- *      +1 : POINT        : A0h
- *      +2 : MIN   (BCD)  : START ABS MIN of FIRST TRACK
- *      +3 : SEC   (BCD)  : START ABS SEC of FIRST TRACK
- *      +4 : FRAME (BCD)  : START ABS FRAME of FIRST TRACK. 1 FRAME IS 1/75 sec.
- *      +5 : ZERO         : MOSTLY 00
- *      +6 : PMIN   (BCD) : FIRST TRACK NUMBER
- *      +7 : PSEC   (BCD) : DISC TYPE, MOSTLY 00
- *      +8 : PFRAME (BCD) : MOSTLY 00
- *      
- * *POINT = A1h: FOR LAST TRACK
- * BYTE +0 : TNO          : MOSTLY 00
- *      +1 : POINT        : A1h
- *      +2 : MIN   (BCD)  : START ABS MIN of LAST TRACK
- *      +3 : SEC   (BCD)  : START ABS SEC of LAST TRACK
- *      +4 : FRAME (BCD)  : START ABS FRAME of LAST TRACK. 1 FRAME IS 1/75 sec.
- *      +5 : ZERO         : MOSTLY 00
- *      +6 : PMIN   (BCD) : LAST TRACK NUMBER
- *      +7 : PSEC   (BCD) : MOSTLY 00
- *      +8 : PFRAME (BCD) : MOSTLY 00
- *
- * *POINT = A2h: FOR READOUT
- * BYTE +0 : TNO          : MOSTLY 00
- *      +1 : POINT        : A2h
- *      +2 : MIN   (BCD)  : START ABS MIN of READOUT
- *      +3 : SEC   (BCD)  : START ABS SEC of READOUT
- *      +4 : FRAME (BCD)  : START ABS FRAME of READOUT. 1 FRAME IS 1/75 sec.
- *      +5 : ZERO         : MOSTLY 00
- *      +6 : PMIN   (BCD) : START REL MIN of READOUT
- *      +7 : PSEC   (BCD) : START REL SEC of READOUT
- *      +8 : PFRAME (BCD) : START REL FRAME of READOUT
- *
- * *DMA DATA TRANSFER FLOW:
- * HOST                      CDC/DRIVE
- * POLL READY                [DO COMMAND]
- *            <------------- CMD READY
- * SEEK CMD   -------------> 
- *            <------------- ACCEPT_NORMAL
- *                           [CHECK READY]
- *                           IF ERROR THEN 
- *                              GOTO *NOTREADY_1
- *                           FI
- *                           [CHECK LBA]
- *                           IF ERROR THEN 
- *                              GOTO *SEEK_ERROR_1
- *                           FI
- *                           [WAIT FOR SEEK]
- *                           [COMPLETED]
- * [POLL READY]
- *            <-------------- SEND STATUS (SEEK COMPLETED)
- * [PREPARE DMA]
- * READ CMD(DMA,BLOCKS)-----> 
- *                            // ToDo: DATA READ FROM CDDA TRACK.
- *                            // THIS SEQUENCE STILL BE FOR DATA TRACK MAINLY.
- *            <-------------- ACCEPT_DMA
- * [DMA START]
- *                            **LOOP_READ: 
- *                            [READ A SECTOR]
- *                            [ENQUEUE 1 BLOCK to BUFFER]
- * [START DMA] <------------- [1St DRQ]
- * [DMAACK   ] ------------->
- *                            IF END OF A SECTOR THEN
- *             <------------    [NEXT-SECTOR INTERRUPT]
- *                            FI
- *                            IF REMAIN BLOCKS THEN
- *                                GOTO *LOOP_READ
- *                            ELSE [IF ALL OF SECTORS ARE READ THEN]
- *             <-------------    STATUS END OF TRANSFER
- *                            FI
- * POLL READY 
- * IF DMA COMPLETED
- * THEN REPLY EOT ----------> 
- *                <---------- SEND STATUS (OK)
- * IF ABORT THEN BUS ABORT ->
- *                <---------- SEND STATUS (OK)
- * **END.
- *
- *                           **NOTREADY_1:
- *                <---------- SEND STATUS (NOT READY)
- * **END.
- *
- *                           **SEEK_ERROR_1:
- *                <---------- SEND STATUS (SEEK ERROR)
- * **END.
- *
- * *CDDA PLAYING FLOW:
- * HOST                      CDC/DRIVE
- * POLL READY                [DO COMMAND]
- *            <------------- CMD READY
- * SEEK CMD   -------------> 
- *            <------------- ACCEPT_NORMAL
- *                           **LOOP_CDDA:
- *                           [CHECK READY]
- *                           IF ERROR 
- *                             GOTO *NOTREADY_1
- *                           FI
- *                           [CHECK LBA]
- *                           IF ERROR THEN
- *                              GOTO *SEEK_ERROR_1
- *                           FI
- *                           [WAIT FOR SEEK]
- *                           [COMPLETED]
- * [POLL READY]
- *            <-------------- SEND STATUS (SEEK COMPLETED)
- * CMD PLAY CDDA ------------> 
- *                            IF TRACK IS DATA THEN 
- *                                GOTO *ERROR_DATA_TRACK_PLAY
- *                            FI
- *                            [WAIT FOR START PLAYING]
- * [POLL READY]
- *            <-------------- SEND STATUS (PLAY STARTED)
- * [POLL READY]
- * [ENQUEUE ANOTHER CMDs]
- * [POLL READY]
- *                            AT END OF TRACK,
- *           <---------------    SEND STATUS (END OF TRACK)
- *                               IF NOT LOOP THEN 
- *                                  GOTO *COMPLETED_CDDA;
- *                               ELSE 
- *                                  SEEK TO HEAD OF TRACK ;
- *                                  GOTO *LOOP_CDDA ;
- *                               FI
- *                            END AT
- *                            **COMPLETED_CDDA:
- *           <--------------- SEND STATUS (CDDA STOPPED)
- * **END. 
-  *                            **ERROR_DATA_TRACK_PLAY:
- *           <--------------- SEND STATUS (NOT CDDA TRACK)
- * **END.
- *
- * *CDDA PAUSING FLOW:
- * HOST                       CDC/DRIVE
- * [POLL READY]
- * PAUSE CMD(ON) ----------->
- * [POLL READY]
- *                            IF TRACK IS DATA THEN 
- *                               GOTO *ERROR_DATA_TRACK_PAUSE1
- *                            FI
- *                            IF ALREADY PAUSED THEN
- *               <----------    SEND STATUS (ALREADY PAUSED)
- *                            ELSE IF STOPPED THEN
- *               <----------    SEND STATUS (STOPPED)
- *                            ELSE
- *               <----------    SEND STATUS (PAUSING SUCCEEDED)
- *                            FI
- *                            **ERROR_DATA_TRACK_PAUSE1:
- *               <----------   SEND STATUS (NOT CDDA TRACK)
- * **END.
- *
- * [POLL READY]
- * PAUSE CMD(OFF)---------->
- * [POLL READY]
- *                            IF TRACK IS DATA THEN 
- *                              GOTO *ERROR_DATA_TRACK_PAUSE2
- *                            FI
- *                            IF ALREADY PAUSED THEN
- *               <----------    SEND STATUS (UNPAUSING SUCCEEDED)
- *                            ELSE IF STOPPED THEN
- *               <----------    SEND STATUS (STOPPED)
- *                            ELSE
- *               <----------    SEND STATUS (ALREADY PAUSED)
- *                            FI
- *                            **ERROR_DATA_TRACK_PAUSE2:
- *               <----------   SEND STATUS (NOT CDDA TRACK)
- * **END.
- *      
- * *CDDA STOPPING FLOW:
- * ToDo: CD-DA AUDIO, Initialize etc.
- * STOP CMD      ---------->
- * [POLL READY]
- *                            IF TRACK IS DATA THEN
- *                              GOTO *ERROR_DATA_TRACK_STOP
- *                            FI
- *                            IF NOT READY THEN
- *               <----------    SEND STATUS (NOT READY)
- *                            ELSE IF STOPPED THEN
- *               <----------    SEND STATUS (ALREADY STOPPED)
- *                            ELSE
- *                              SEEK TO TRACK0, BLOCK0 (LBA0) ;
- *                            FI
- *               <----------    SEND STATUS (OK)
- *                            **ERROR_DATA_TRACK_STOP:
- *               <----------   SEND STATUS (NOT CDDA TRACK)
- * **END.
- *
- * // ToDo: Implement TOC, SUBC...
- * **SUBC SEQUENCE (TEMPORALLY):
- *      WHEN READING SECTOR OR PLAYING CD-DA:
- *           AT BEGIN OF SECTOR: 
- *              IF (SUBC DATA (98 BYTES) HAVEN'T READ COMPLETLY) AND (FLAG OF SUBC DATA IN) THEN
- *                 SET BIT1 OF 04CCh:R TO '1';
- *              ELSE
- *                 SET BIT1 OF 04CCh:R TO '0';
- *              FI
- *              RESET FLAG OF SUBC DATA IN;
- *              CALCURATE SUBQ FIELD ;
- *              SET SUBP FIELD TO '1' (FIXED) ;
- *              SET SUBR - SUBW TO '0' (TEMPORALLY, WILL IMPLEMENT CD-TEXT etc) ;
- *              SET FLAG OF SUBC DATA IN;
- *              SET BYTECOUNT TO 98;
- *              SET BIT0 OF 04CCH:R TO '1';
- *           END AT
- *      GOTO *END_OF_SUBC_1;
- *
- *      WHEN NOT READING SECTOR AND NOT PLAYING CD-DA:
- *              IF (SUBC DATA (98 BYTES) HAVEN'T READ COMPLETLY) AND (FLAG OF SUBC DATA IN) THEN
- *                 SET BIT1 OF 04CCh:R TO '1';
- *              ELSE
- *                 SET BIT1 OF 04CCh:R TO '0';
- *              FI
- *              RESET FLAG OF SUBC DATA IN;
- *              IF (LAST TRACK),
- *                 THEN CALCURATE SUBQ FIELD ;
- *              ELSEIF (SEEKED TO FIRST TRACK),
- *                 THEN CALCURATE SUBQ FIELD ;
- *              ELSE // (STOPPED),
- *                 THEN CLEAR SUBQ FIELD;
- *                 SET SUBP FIELD TO '0' (FIXED) ;
- *                 SET SUBR - SUBW TO '0' (TEMPORALLY, WILL IMPLEMENT CD-TEXT etc) ;
- *                 SET FLAG OF SUBC DATA IN;
- *                 SET BYTECOUNT TO 0;
- *                 SET BIT0 OF 04CCH:R TO '0';
- *                 GOTO *END_OF_SUBC_1;
- *              FI
- *              SET SUBP FIELD TO '0' (FIXED) ;
- *              SET SUBR - SUBW TO '0' (TEMPORALLY, WILL IMPLEMENT CD-TEXT etc) ;
- *              SET BYTECOUNT TO 98;
- *              SET FLAG OF SUBC DATA IN;
- *              SET BIT0 OF 04CCH:R TO '1';
- *  **END_OF_SUBC_1:
- *  **END.              
- *  
- *   WHEN (FLAG OF SUBC DATA IN) IS SET ;
- *        IF BYTECOUNT > 0 THEN
- *             WHEN 04CDh:R has READ,
- *                 BYTECOUNT--;
- *                 IF BYTECOUNT <= 0 THEN
- *                    RESET FLAG OF SUBC DATA IN;
- *                    CLEAR 04CDh:R TO 0
- *                    SET BIT1 OF 04CCh:R TO '0'
- *                    SET BIT0 OF 04CCh:R TO '0'
- *                 ELSE
- *                    SET NEXT BITS TO 04CDh:R
- *                    SET BIT1 OF 04CCh:R TO '0'
- *                    SET BIT0 OF 04CCh:R TO '1'
- *                 FI
- *              END WHEN
- *        FI
- *   END WHEN
- * 
- */
+void TOWNS_CDROM::cdrom_debug_log(const char *fmt, ...)
+{
+		char strbuf[4096];
+		va_list ap;
+		va_start(ap, fmt);
+		vsnprintf(strbuf, 4095, fmt, ap);
+		out_debug_log_with_switch(((__CDROM_DEBUG_LOG) || (force_logging)),
+								  "%s",
+								  strbuf);
+		va_end(ap);
+}
 
 void TOWNS_CDROM::initialize()
 {
+   	DEVICE::initialize();
+	__CDROM_DEBUG_LOG = osd->check_feature(_T("_CDROM_DEBUG_LOG"));
+	_USE_CDROM_PREFETCH = osd->check_feature(_T("USE_CDROM_PREFETCH"));
+	force_logging = false;
+
 	subq_overrun = false;
 	stat_track = 0;
 	status_queue = new FIFO(4); // 4 * (6 + 100 + 2) // With PAD
-	
-//   	SCSI_DEV::initialize();
 	// ToDo: MasterDevice::initialize()
 	fio_img = new FILEIO();
-	__CDROM_DEBUG_LOG = osd->check_feature(_T("_CDROM_DEBUG_LOG"));
-	_USE_CDROM_PREFETCH = osd->check_feature(_T("USE_CDROM_PREFETCH"));
 	
 	memset(img_file_path_bak, 0x00, sizeof(img_file_path_bak));
 	
@@ -509,14 +178,14 @@ void TOWNS_CDROM::clear_event(int& evid)
 
 void TOWNS_CDROM::reset()
 {
-	out_debug_log("RESET");
+	cdrom_debug_log("RESET");
 	reset_device();
 	// Q: Does not seek to track 0? 20181118 K.O
 }
 
 void TOWNS_CDROM::set_dma_intr(bool val)
 {
-//	out_debug_log(_T("set_dma_intr(%s) MASK=%s stat_reply_intr = %s"),
+//	cdrom_debug_log(_T("set_dma_intr(%s) MASK=%s stat_reply_intr = %s"),
 //				  (val) ? _T("true ") : _T("false"),
 //				  (dma_intr_mask) ? _T("ON ") : _T("OFF"),
 //				  (stat_reply_intr) ? _T("ON ") : _T("OFF"));				  
@@ -542,7 +211,7 @@ void TOWNS_CDROM::set_dma_intr(bool val)
 
 void TOWNS_CDROM::set_mcu_intr(bool val)
 {
-//	out_debug_log(_T("set_mcu_intr(%s) MASK=%s stat_reply_intr = %s"),
+//	cdrom_debug_log(_T("set_mcu_intr(%s) MASK=%s stat_reply_intr = %s"),
 //				  (val) ? _T("true ") : _T("false"),
 //				  (mcu_intr_mask) ? _T("ON ") : _T("OFF"),
 //				  (stat_reply_intr) ? _T("ON ") : _T("OFF"));				  
@@ -575,9 +244,9 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 		clear_event(event_next_sector);
 		clear_event(event_seek_completed);
 		status_read_done(false);
-		out_debug_log(_T("EOT(%s/DMA)"), (by_signal) ? by_dma : by_event);
+		cdrom_debug_log(_T("EOT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 	} else {
-		out_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
+		cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 	}
 	write_signals(&outputs_drq, 0x00000000);
 	if(!(dma_intr_mask) || (stat_reply_intr)) {
@@ -632,7 +301,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 
 void TOWNS_CDROM::status_not_ready(bool forceint)
 {
-	out_debug_log(_T("CMD (%02X) BUT DISC NOT ACTIVE"), latest_command);
+	cdrom_debug_log(_T("CMD (%02X) BUT DISC NOT ACTIVE"), latest_command);
 	set_status((forceint) ? true : req_status, 0,
 			   TOWNS_CD_STATUS_CMD_ABEND, TOWNS_CD_ABEND_DRIVE_NOT_READY, 0, 0);
 }
@@ -662,18 +331,18 @@ void TOWNS_CDROM::status_read_done(bool forceint)
 {
 	if(forceint) stat_reply_intr = true;
 	set_status_2(req_status, 0, TOWNS_CD_STATUS_READ_DONE, 0, 0, 0);
-//	out_debug_log(_T("READ DONE"));
+//	cdrom_debug_log(_T("READ DONE"));
 }
 
 void TOWNS_CDROM::status_data_ready(bool forceint)
 {
 	set_status((forceint) ? true : req_status, 0, TOWNS_CD_STATUS_DATA_READY, 0, 0, 0);
-//	out_debug_log(_T("DATA READY"));
+//	cdrom_debug_log(_T("DATA READY"));
 }
 
 void TOWNS_CDROM::status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3)
 {
-	out_debug_log(_T("Error on reading (ILLGLBLKADDR): EXTRA=%d s0=%02X s1=%02X s2=%02X s3=%02X POSITION=%d\n"), extra, TOWNS_CD_STATUS_CMD_ABEND, s1, s2, s3, position);
+	cdrom_debug_log(_T("Error on reading (ILLGLBLKADDR): EXTRA=%d s0=%02X s1=%02X s2=%02X s3=%02X POSITION=%d\n"), extra, TOWNS_CD_STATUS_CMD_ABEND, s1, s2, s3, position);
 	set_status(req_status, extra, TOWNS_CD_STATUS_CMD_ABEND, s1, s2, s3);
 }
 
@@ -790,7 +459,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			int32_t lba = ((m * (60 * 75)) + (s * 75) + f) - 150;
 			if(lba < 0) lba = 0;
 			next_seek_lba = lba;
-			out_debug_log(_T("CMD SEEK(%02X) M/S/F = %d/%d/%d  M2/S2/F2 = %d/%d/%d LBA=%d"), command,
+			cdrom_debug_log(_T("CMD SEEK(%02X) M/S/F = %d/%d/%d  M2/S2/F2 = %d/%d/%d LBA=%d"), command,
 						  TO_BCD(m), TO_BCD(s), TO_BCD(f),
 						  TO_BCD(param_queue[3]), TO_BCD(param_queue[4]), TO_BCD(param_queue[5]),
 						  lba
@@ -811,25 +480,25 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		}
 		break;
 	case CDROM_COMMAND_READ_MODE2: // 01h
-		out_debug_log(_T("CMD READ MODE2(%02X)"), command);
+		cdrom_debug_log(_T("CMD READ MODE2(%02X)"), command);
 		read_cdrom_mode2();
 //		status_not_accept(0, 0xff, 0xff, 0xff);
 		break;
 	case CDROM_COMMAND_READ_MODE1: // 02h
-		out_debug_log(_T("CMD READ MODE1(%02X)"), command);
+		cdrom_debug_log(_T("CMD READ MODE1(%02X)"), command);
 		read_cdrom_mode1();
 		break;
 	case CDROM_COMMAND_READ_RAW: // 03h
-		out_debug_log(_T("CMD READ RAW(%02X)"), command);
+		cdrom_debug_log(_T("CMD READ RAW(%02X)"), command);
 		read_cdrom_raw();
 		break;
 	case CDROM_COMMAND_PLAY_TRACK: // 04h
-		out_debug_log(_T("CMD PLAY TRACK(%02X)"), command);
+		cdrom_debug_log(_T("CMD PLAY TRACK(%02X)"), command);
 		play_cdda_from_cmd(); // ToDo : Re-Implement.
 //		play_cdda(req_status);
 		break;
 	case CDROM_COMMAND_READ_TOC: // 05h
-		out_debug_log(_T("CMD READ TOC(%02X)"), command);
+		cdrom_debug_log(_T("CMD READ TOC(%02X)"), command);
 		if(req_status) {
 			if(!(mounted())) {
 				status_not_ready(false);
@@ -858,10 +527,10 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			}
 			status_accept(1, 0x00, 0x00);
 		}
-		out_debug_log(_T("CMD SET CDDA STATE(%02X)"), command);
+		cdrom_debug_log(_T("CMD SET CDDA STATE(%02X)"), command);
 		break;
 	case CDROM_COMMAND_1F:
-		out_debug_log(_T("CMD UNKNOWN 1F(%02X)"), command);
+		cdrom_debug_log(_T("CMD UNKNOWN 1F(%02X)"), command);
 		if(req_status) {
 			if(!(mounted())) {
 				status_not_ready(false);
@@ -878,7 +547,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 //		set_mcu_intr(true);
 		break;
 	case CDROM_COMMAND_SET_STATE: // 80h
-		out_debug_log(_T("CMD SET STATE(%02X) PARAM=%02X %02X %02X %02X %02X %02X %02X %02X"),
+		cdrom_debug_log(_T("CMD SET STATE(%02X) PARAM=%02X %02X %02X %02X %02X %02X %02X %02X"),
 					  command,
 					  param_queue[0],
 					  param_queue[1],
@@ -973,7 +642,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		break;
 	case CDROM_COMMAND_SET_CDDASET: // 81h
 //		stat_reply_intr = true; // OK?
-		out_debug_log(_T("CMD CDDA SET(%02X)"), command);
+		cdrom_debug_log(_T("CMD CDDA SET(%02X)"), command);
 		if(req_status) {
 			if(!(mounted())) {
 				status_not_ready(false);
@@ -987,21 +656,21 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		}
 		break;
 	case CDROM_COMMAND_STOP_CDDA: // 84h
-		out_debug_log(_T("CMD STOP CDDA(%02X)"), command);
+		cdrom_debug_log(_T("CMD STOP CDDA(%02X)"), command);
 		// From Tsugaru : 20200530 K.O
 		clear_event(event_cdda_delay_stop);
 		register_event(this, EVENT_CDDA_DELAY_STOP, 1000.0, false, &event_cdda_delay_stop);
 		break;
 	case CDROM_COMMAND_PAUSE_CDDA: // 85h
-		out_debug_log(_T("CMD PAUSE CDDA2(%02X)"), command);
+		cdrom_debug_log(_T("CMD PAUSE CDDA2(%02X)"), command);
 		pause_cdda_from_cmd(); // ToDo : Re-Implement.
 		break;
 	case CDROM_COMMAND_RESUME_CDDA: // 87h
-		out_debug_log(_T("CMD RESUME CDDA(%02X)"), command);
+		cdrom_debug_log(_T("CMD RESUME CDDA(%02X)"), command);
 		unpause_cdda_from_cmd();
 		break;
 	default:
-		out_debug_log(_T("CMD Illegal(%02X)"), command);
+		cdrom_debug_log(_T("CMD Illegal(%02X)"), command);
 		stat_reply_intr = true; // OK?
 		status_not_accept(0, 0x00, 0x00, 0x00); // ToDo: Will implement
 		break;
@@ -1014,7 +683,7 @@ void TOWNS_CDROM::set_status_extra(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s
 	status_queue->write(s1);
 	status_queue->write(s2);
 	status_queue->write(s3);
-	//out_debug_log(_T("SET EXTRA STATUS %02x: %02x %02x %02x %02x EXTRA COUNT=%d"), latest_command, s0, s1, s2, s3, extra_status);
+	//cdrom_debug_log(_T("SET EXTRA STATUS %02x: %02x %02x %02x %02x EXTRA COUNT=%d"), latest_command, s0, s1, s2, s3, extra_status);
 	set_delay_ready();
 }
 
@@ -1041,7 +710,7 @@ uint8_t TOWNS_CDROM::read_status()
 		has_status = false;
 	}
 	if((latest_command & 0x9f) == 0x80) {
-		out_debug_log(_T("STAT: %02X"), val);
+		cdrom_debug_log(_T("STAT: %02X"), val);
 	}
 	if((status_queue->empty()) && (extra_status > 0)) {
 		set_extra_status();
@@ -1053,7 +722,7 @@ uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
 {
 	data_reg = (uint8_t)(databuffer->read() & 0xff);
 	if((databuffer->empty()) && (read_length <= 0)) {
-		//out_debug_log(_T("EOT(DMA) by read_dma_io8()"));
+		//cdrom_debug_log(_T("EOT(DMA) by read_dma_io8()"));
 		read_length_bak = 0;
 		register_event(this, EVENT_CDROM_EOT,
 					   0.2 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), false, NULL);
@@ -1073,7 +742,7 @@ void TOWNS_CDROM::read_cdrom()
 //	databuffer->clear();
 	set_cdda_status(CDDA_OFF);
 	if(!(is_device_ready())) {
-		out_debug_log(_T("DEVICE NOT READY"));
+		cdrom_debug_log(_T("DEVICE NOT READY"));
 		status_not_ready(false);
 		return;
 	}
@@ -1112,7 +781,7 @@ void TOWNS_CDROM::read_cdrom()
 //		status_not_accept(0, 0x00, 0x00, 0x00);
 		return;
 	}
-	out_debug_log(_T("READ_CDROM TRACK=%d LBA1=%d LBA2=%d M1/S1/F1=%02X/%02X/%02X M2/S2/F2=%02X/%02X/%02X PAD=%02X DCMD=%02X"), track, lba1, lba2,
+	cdrom_debug_log(_T("READ_CDROM TRACK=%d LBA1=%d LBA2=%d M1/S1/F1=%02X/%02X/%02X M2/S2/F2=%02X/%02X/%02X PAD=%02X DCMD=%02X"), track, lba1, lba2,
 				  param_queue[0], param_queue[1], param_queue[2],
 				  param_queue[3], param_queue[4], param_queue[5],
 				  pad1, dcmd);
@@ -1173,7 +842,7 @@ void TOWNS_CDROM::set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1
 	} else {
 		set_delay_ready2();
 	}
-//	out_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
+//	cdrom_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
 }
 
 void TOWNS_CDROM::set_status_2(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
@@ -1190,7 +859,7 @@ void TOWNS_CDROM::set_status_2(bool _req_status, int extra, uint8_t s0, uint8_t 
 	} else {
 		set_delay_ready3();
 	}
-//	out_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
+//	cdrom_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
 }
 
 void TOWNS_CDROM::set_status_3(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
@@ -1207,7 +876,7 @@ void TOWNS_CDROM::set_status_3(bool _req_status, int extra, uint8_t s0, uint8_t 
 	} else {
 		set_delay_ready4();
 	}
-//	out_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
+//	cdrom_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
 }
 
 void TOWNS_CDROM::set_status_immediate(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
@@ -1230,7 +899,7 @@ void TOWNS_CDROM::set_status_immediate(bool _req_status, int extra, uint8_t s0, 
 	dma_intr = false;
 //	dma_transfer_phase = true;
 //	pio_transfer_phase = false;
-//	out_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
+//	cdrom_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
 }
 
 void TOWNS_CDROM::set_extra_status()
@@ -1283,7 +952,7 @@ void TOWNS_CDROM::set_extra_status()
 				} else {
 					pair32_t msf;
 					msf.d = read_signal(SIG_TOWNS_CDROM_START_MSF);
-					out_debug_log(_T("TRACK=%d M:S:F=%02X:%02X:%02X"), stat_track - 1, msf.b.h2, msf.b.h, msf.b.l);
+					cdrom_debug_log(_T("TRACK=%d M:S:F=%02X:%02X:%02X"), stat_track - 1, msf.b.h2, msf.b.h, msf.b.l);
 					set_status_extra_toc_data(msf.b.h2, msf.b.h, msf.b.l); // OK?
 					if((track_num <= 0) || (stat_track >= track_num)) {
 						extra_status = 0; // It's end.
@@ -1676,7 +1345,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_CDROM_TIMEOUT:
 		event_time_out = -1;
 		set_status_immediate(req_status, 0, TOWNS_CD_STATUS_CMD_ABEND, TOWNS_CD_ABEND_RETRY, 0x00, 0x00);
-		out_debug_log(_T("READ TIME OUT"));
+		cdrom_debug_log(_T("READ TIME OUT"));
 		break;
 		
 	case EVENT_CDROM_SEEK_COMPLETED:
@@ -1695,7 +1364,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		if(read_length > 0) {
 			mcu_ready = false;
 			bool stat = false;
-//			out_debug_log(_T("READ DATA SIZE=%d BUFFER COUNT=%d"), logical_block_size(), databuffer->count());
+//			cdrom_debug_log(_T("READ DATA SIZE=%d BUFFER COUNT=%d"), logical_block_size(), databuffer->count());
 #if 0
 			if(read_length >= logical_block_size()) {
 				stat = read_buffer(logical_block_size());
@@ -2027,7 +1696,7 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 				pp = _T("END");
 				break;
 			}
-			out_debug_log(_T("Play CDDA from %s.\n"), pp);
+			cdrom_debug_log(_T("Play CDDA from %s.\n"), pp);
 		}
 		cdda_stopped = false;
 	} else {
@@ -2077,7 +1746,7 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 				pp = _T("END");
 				break;
 			}
-			out_debug_log(_T("Change CDDA status: %s%s"), pp, sp);
+			cdrom_debug_log(_T("Change CDDA status: %s%s"), pp, sp);
 		}
 	}
 	cdda_status = status;
@@ -2180,7 +1849,7 @@ void TOWNS_CDROM::get_track_by_track_num(int track)
 			if(fio_img->IsOpened()) {
 				fio_img->Fclose();
 			}
-			out_debug_log(_T("LOAD TRK #%02d from %s\n"), track, track_data_path[track - 1]);
+			cdrom_debug_log(_T("LOAD TRK #%02d from %s\n"), track, track_data_path[track - 1]);
 			
 			if((track > 0) && (track < 100) && (track < track_num)) {
 				if((strlen(track_data_path[track - 1]) <= 0) ||
@@ -2352,7 +2021,7 @@ bool TOWNS_CDROM::check_cdda_track_boundary(uint32_t &frame_no)
 	if((frame_no >= toc_table[current_track + 1].index0) ||
 	   (frame_no < toc_table[current_track].index0)) {
 		current_track = get_track(frame_no);
-		out_debug_log(_T("CDDA: BEYOND OF TRACK BOUNDARY, FRAME=%d"), frame_no);
+		cdrom_debug_log(_T("CDDA: BEYOND OF TRACK BOUNDARY, FRAME=%d"), frame_no);
 		if(frame_no < toc_table[current_track].index0) {
 			frame_no = toc_table[current_track].index0;
 		}
@@ -2409,7 +2078,7 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 		cdda_playing_frame = cdda_start_frame;
 		cdda_loading_frame = cdda_start_frame;
 		seek_relative_frame_in_image(cdda_playing_frame);
-		out_debug_log(_T("PLAY_CDROM TRACK=%d START=%02X:%02X:%02X(%d) END=%02X:%02X:%02X(%d) IS_REPEAT=%d REPEAT_COUNT=%d"),
+		cdrom_debug_log(_T("PLAY_CDROM TRACK=%d START=%02X:%02X:%02X(%d) END=%02X:%02X:%02X(%d) IS_REPEAT=%d REPEAT_COUNT=%d"),
 					  track,
 					  m_start, s_start, f_start, cdda_start_frame,
 					  m_end, s_end, f_end, cdda_end_frame,
@@ -2615,7 +2284,7 @@ bool TOWNS_CDROM::parse_cue_file_args(std::string& _arg2, const _TCHAR *parent_d
 	imgpath = std::string(parent_dir);
 	imgpath.append(_arg2);
 	
-//	out_debug_log(_T("**FILE %s\n"), imgpath.c_str());
+//	cdrom_debug_log(_T("**FILE %s\n"), imgpath.c_str());
 
 	return true;
 }
@@ -2923,7 +2592,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 			for(int i = 1; i < track_num; i++) {
 				toc_table[i].index0 += toc_table[i].lba_offset;
 				toc_table[i].index1 += toc_table[i].lba_offset;
-				out_debug_log(_T("TRACK#%02d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d LBA_OFFSET=%d PATH=%s\n"),
+				cdrom_debug_log(_T("TRACK#%02d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d LBA_OFFSET=%d PATH=%s\n"),
 									i, (toc_table[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352"),
 									toc_table[i].pregap, toc_table[i].index0, toc_table[i].index1,
 									toc_table[i].lba_size, toc_table[i].lba_offset, track_data_path[i - 1]);
@@ -3046,7 +2715,7 @@ void TOWNS_CDROM::open_from_cmd(const _TCHAR* file_path)
 			uint32_t idx0_msf = lba_to_msf(toc_table[i].index0);
 			uint32_t idx1_msf = lba_to_msf(toc_table[i].index1);
 			uint32_t pgap_msf = lba_to_msf(toc_table[i].pregap);
-			this->out_debug_log(_T("Track%02d: Index0=%02x:%02x:%02x Index1=%02x:%02x:%02x PreGap=%02x:%02x:%02x\n"), i + 1,
+			this->cdrom_debug_log(_T("Track%02d: Index0=%02x:%02x:%02x Index1=%02x:%02x:%02x PreGap=%02x:%02x:%02x\n"), i + 1,
 			(idx0_msf >> 16) & 0xff, (idx0_msf >> 8) & 0xff, idx0_msf & 0xff,
 			(idx1_msf >> 16) & 0xff, (idx1_msf >> 8) & 0xff, idx1_msf & 0xff,
 			(pgap_msf >> 16) & 0xff, (pgap_msf >> 8) & 0xff, pgap_msf & 0xff);
@@ -3147,7 +2816,7 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 //			mcu_intr = false;
 //			dma_intr = false;
 //			write_signals(&outputs_mcuint, 0x00000000);
-//			out_debug_log(_T("FALL DOWN INTs@04C0h"));
+//			cdrom_debug_log(_T("FALL DOWN INTs@04C0h"));
 //		}
 		break;
 	case 0x02:
@@ -3156,7 +2825,7 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 	case 0x04:
 		if((pio_transfer_phase) && (pio_transfer)) {
 			if(databuffer->left() == logical_block_size()) {
-				out_debug_log(_T("PIO READ START FROM 04C4h"));
+				cdrom_debug_log(_T("PIO READ START FROM 04C4h"));
 			}
 			val = (databuffer->read() & 0xff);
 			data_reg = val;
@@ -3167,7 +2836,7 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 				clear_event(event_seek_completed);
 				clear_event(event_time_out);
 				status_read_done(false);
-				out_debug_log(_T("EOT(PIO)"));
+				cdrom_debug_log(_T("EOT(PIO)"));
 				if((stat_reply_intr) || !(dma_intr_mask)) {
 					//if((stat_reply_intr) && !(dma_intr_mask)) {
 					write_mcuint_signals(0xffffffff);
@@ -3176,7 +2845,7 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 				pio_transfer_phase = false;
 				mcu_ready = false;
 				clear_event(event_time_out);
-				out_debug_log(_T("NEXT(PIO)"));
+				cdrom_debug_log(_T("NEXT(PIO)"));
 				if((stat_reply_intr) || !(dma_intr_mask)) {
 					//if((stat_reply_intr) && !(dma_intr_mask)) {
 					write_mcuint_signals(0xffffffff);
@@ -3206,7 +2875,7 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 	w_regs[addr & 0x0f] = data;
 	switch(addr & 0x0f) {
 	case 0x00: // Master control register
-		//out_debug_log(_T("PORT 04C0h <- %02X"), data);
+		//cdrom_debug_log(_T("PORT 04C0h <- %02X"), data);
 		mcu_intr_mask = ((data & 0x02) == 0) ? true : false;
 		dma_intr_mask = ((data & 0x01) == 0) ? true : false;
 		if((data & 0x80) != 0) {
@@ -3216,13 +2885,13 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 			/*if(dma_intr) */set_dma_intr(false);
 		}
 		if((data & 0x04) != 0) {
-			out_debug_log(_T("RESET FROM CMDREG: 04C0h"));
+			cdrom_debug_log(_T("RESET FROM CMDREG: 04C0h"));
 			reset_device();
 //			break;
 		}
 		break;
 	case 0x02: // Command
-		//out_debug_log(_T("PORT 04C2h <- %02X"), data);
+		//cdrom_debug_log(_T("PORT 04C2h <- %02X"), data);
 		if(mcu_ready) {
 			stat_reply_intr	= ((data & 0x40) != 0) ? true : false;
 			req_status		= ((data & 0x20) != 0) ? true : false;
@@ -3232,9 +2901,9 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 			dma_transfer_phase = false;
 			pio_transfer_phase = false;
 			if(d_cpu == NULL) {
-				out_debug_log(_T("CMD=%02X"), data);
+				cdrom_debug_log(_T("CMD=%02X"), data);
 			} else {
-				out_debug_log(_T("CMD=%02X from PC=%08X"), data, d_cpu->get_pc());
+				cdrom_debug_log(_T("CMD=%02X from PC=%08X"), data, d_cpu->get_pc());
 			}
 			prev_command = latest_command;
 			execute_command(data);
@@ -3263,7 +2932,7 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 		} else if((pio_transfer) && !(pio_transfer_phase)) {
 			pio_transfer_phase = true;
 		}
-		out_debug_log(_T("SET TRANSFER MODE to %02X"), data);
+		cdrom_debug_log(_T("SET TRANSFER MODE to %02X"), data);
 		break;
 	}
 }
@@ -3332,7 +3001,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3391,7 +3060,7 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(media_changed);
 	state_fio->StateValue(next_status_byte);
 
-	
+	state_fio->StateValue(force_logging);
 	// SCSI_CDROM
 	uint32_t offset = 0;
 	state_fio->StateValue(read_sector);

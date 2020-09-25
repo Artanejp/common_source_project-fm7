@@ -92,7 +92,7 @@ exception(int num, int error_code)
 	VERBOSE(("%s", cpu_disasm2str(CPU_PREV_EIP)));
 #endif
 	__exception_set = 1;
-	__exception_pc = CPU_PREV_EIP;
+	__exception_pc = device_cpu->get_pc();
 	__exception_code = num;
 	
 	CPU_STAT_EXCEPTION_COUNTER_INC();
@@ -152,7 +152,7 @@ exception(int num, int error_code)
 		ia32_panic("exception: unknown exception (%d)", num);
 		break;
 	}
-	device_cpu->out_debug_log("EXCEPTION: %s PC=%08X", exception_str[num], device_cpu->get_pc());
+//	device_cpu->out_debug_log("EXCEPTION: %s PC=%08X", exception_str[num], device_cpu->get_pc());
 
 	if (CPU_STAT_EXCEPTION_COUNTER >= 2) {
 		if (dftable[exctype[CPU_STAT_PREV_EXCEPTION]][exctype[num]]) {

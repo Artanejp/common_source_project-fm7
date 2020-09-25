@@ -1106,6 +1106,28 @@ public:
 		emu->out_debug_log("%s", strbuf);
 		va_end(ap);
 	}
+	virtual void DEVICE::out_debug_log_with_switch(bool logging, const char *fmt, ...)
+	{
+		if(!(logging)) return;
+#if defined(_USE_QT)
+		if(p_logger == NULL) return;
+		char strbuf[4096];
+		va_list ap;
+		
+		va_start(ap, fmt);
+		vsnprintf(strbuf, 4095, fmt, ap);
+		p_logger->debug_log(CSP_LOG_DEBUG, this_device_id + CSP_LOG_TYPE_VM_DEVICE_0, "%s", strbuf);
+		va_end(ap);
+#else
+		char strbuf[4096];
+		va_list ap;
+		
+		va_start(ap, fmt);
+		vsnprintf(strbuf, 4095, fmt, ap);
+		emu->out_debug_log("%s", strbuf);
+		va_end(ap);
+#endif
+	}
 	virtual void force_out_debug_log(const char *fmt, ...)
 	{
 		char strbuf[4096];

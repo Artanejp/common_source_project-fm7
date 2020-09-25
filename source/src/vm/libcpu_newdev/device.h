@@ -801,6 +801,7 @@ public:
 	virtual void __FASTCALL write_via_debugger_io32w(uint32_t addr, uint32_t data, int* wait);
 	virtual uint32_t __FASTCALL read_via_debugger_io32w(uint32_t addr, int* wait);
 	virtual void out_debug_log(const char *fmt, ...);
+	virtual void out_debug_log_with_switch(bool logging, const char *fmt, ...);
 	virtual void force_out_debug_log(const char *fmt, ...);
 
 	// misc

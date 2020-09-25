@@ -360,8 +360,11 @@ protected:
 		mcuint_val = (val != 0) ? true : false;
 		write_signals(&outputs_mcuint, val);
 	}
+	void cdrom_debug_log(const char *fmt, ...);
+
 	bool __CDROM_DEBUG_LOG;
 	bool _USE_CDROM_PREFETCH;
+	bool force_logging;
 public:
 	TOWNS_CDROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
