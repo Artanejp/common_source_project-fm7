@@ -88,12 +88,14 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 			}
 			do_interval();
 		}
+		break;
 	case 0x006c: // Wait register.
-		/*if(machine_id >= 0x0300) */{ // After UX*/10F/20F/40H/80H
+		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
 			if(event_wait_1us != -1) cancel_event(this, event_wait_1us);
 			register_event(this, EVENT_1US_WAIT, 1.0, false, &event_wait_1us);
 			write_signals(&outputs_halt_line, 0xffffffff);
 		}
+		break;
 	case 0x0070:
 		d_rtc->write_signal(SIG_MSM58321_DATA, data, 0x0f);
 		break;
@@ -182,11 +184,11 @@ uint32_t TIMER::read_io8(uint32_t addr)
 		}
 		break;
 	case 0x006c: // Wait register.
-		/*if(machine_id >= 0x0300) */{ // After UX*/10F/20F/40H/80H
-			if(event_wait_1us != -1) cancel_event(this, event_wait_1us);
-			register_event(this, EVENT_1US_WAIT, 1.0, false, &event_wait_1us);
-			write_signals(&outputs_halt_line, 0xffffffff);
-//			return 0x00;
+		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
+			//if(event_wait_1us != -1) cancel_event(this, event_wait_1us);
+			//register_event(this, EVENT_1US_WAIT, 1.0, false, &event_wait_1us);
+			//write_signals(&outputs_halt_line, 0xffffffff);
+			return 0x00;
 		}
 		break;
 	case 0x0070:
