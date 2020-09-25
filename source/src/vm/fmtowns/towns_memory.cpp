@@ -396,6 +396,7 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		} else {
 			return 0x00;
 		}
+		break;
 	case 0xff88:
 		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
 			if(d_crtc != NULL) {
@@ -549,7 +550,6 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 			d_serialrom->write_signal(SIG_SERIALROM_RESET, data, 0x80);
 		}
 		break;
-		break;
 	case 0x0404: // System Status Reg.
 		dma_is_vram = ((data & 0x80) == 0);
 		config_page00();
@@ -622,6 +622,7 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0xff96:
+		break;
 	case 0xff97:
 		break;
 	case 0xff98:
