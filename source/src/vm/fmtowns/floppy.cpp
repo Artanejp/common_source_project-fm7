@@ -125,6 +125,7 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 		}
 		d_fdc->set_drive_type(drvreg & 3, ((data & 0x40) != 0) ? DRIVE_TYPE_2HD : DRIVE_TYPE_2DD);
 		drvreg = data;
+		break;
 	case 0x20e:
 		drive_swapped = ((data & 0x01) != 0);
 		break;
