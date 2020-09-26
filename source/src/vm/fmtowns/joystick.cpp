@@ -197,8 +197,28 @@ void JOYSTICK::write_signal(int id, uint32_t data, uint32_t _mask)
 	uint32_t type = (id >> 8) & 15;
 	uint32_t line = id & 0xff;
 	//if(type != connected_type[num]) return;
-	//out_debug_log(_T("SIGNAL SENT, NUM=%d TYPE=%d LINE=%d VALUE=%08X"), num, type << 8, line, data);
-	if((data & _mask) != 0) {
+//	out_debug_log(_T("SIGNAL SENT, NUM=%d TYPE=%d LINE=%d VALUE=%08X"), num, type << 8, line, data);
+	switch(line) {
+	case SIG_JOYPORT_LINE_UP:
+		joydata[num] &= ~0x01;
+		break;
+	case SIG_JOYPORT_LINE_DOWN:
+		joydata[num] &= ~0x02;
+		break;
+	case SIG_JOYPORT_LINE_LEFT:
+		joydata[num] &= ~0x04;
+		break;
+	case SIG_JOYPORT_LINE_RIGHT:
+		joydata[num] &= ~0x08;
+		break;
+	case SIG_JOYPORT_LINE_A:
+		joydata[num] &= ~0x10;
+		break;
+	case SIG_JOYPORT_LINE_B:
+		joydata[num] &= ~0x20;
+		break;
+	}
+	if(data != 0) {
 		switch(line) {
 		case SIG_JOYPORT_LINE_UP:
 			joydata[num] |= 0x01;
@@ -220,26 +240,6 @@ void JOYSTICK::write_signal(int id, uint32_t data, uint32_t _mask)
 			break;
 		}
 	} else {
-		switch(line) {
-		case SIG_JOYPORT_LINE_UP:
-			joydata[num] &= ~0x01;
-			break;
-		case SIG_JOYPORT_LINE_DOWN:
-			joydata[num] &= ~0x02;
-			break;
-		case SIG_JOYPORT_LINE_LEFT:
-			joydata[num] &= ~0x04;
-			break;
-		case SIG_JOYPORT_LINE_RIGHT:
-			joydata[num] &= ~0x08;
-			break;
-		case SIG_JOYPORT_LINE_A:
-			joydata[num] &= ~0x10;
-			break;
-		case SIG_JOYPORT_LINE_B:
-			joydata[num] &= ~0x20;
-			break;
-		}
 	}
 }	
 

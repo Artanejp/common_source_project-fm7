@@ -30,7 +30,42 @@ protected:
 	int pad_num;
 	bool enabled;
 	bool enabled_bak;
+
+	uint32_t a_status;
+	uint32_t b_status;
+	
+	uint32_t c_status;
+	uint32_t x_status;
+	uint32_t y_status;
+	uint32_t z_status;
+	
+	uint32_t up_status;
+	uint32_t down_status;
+	uint32_t left_status;
+	uint32_t right_status;
+	
+	uint32_t run_status;
+	uint32_t sel_status;
+
+
+	uint32_t a_status_bak;
+	uint32_t b_status_bak;
+	
+	uint32_t c_status_bak;
+	uint32_t x_status_bak;
+	uint32_t y_status_bak;
+	uint32_t z_status_bak;
+	
+	uint32_t up_status_bak;
+	uint32_t down_status_bak;
+	uint32_t left_status_bak;
+	uint32_t right_status_bak;
+	
+	uint32_t run_status_bak;
+	uint32_t sel_status_bak;
+	
 	const uint32_t* rawdata;
+	virtual void backup_status();
 
 public:
 	JOYPAD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -53,6 +88,7 @@ public:
 	}
 	~JOYPAD() {}
 
+	virtual void reset(void);
 	virtual void initialize(void);
 	virtual void event_pre_frame(void);
 	virtual void event_frame(void);
