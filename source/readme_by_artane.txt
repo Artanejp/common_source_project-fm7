@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         June 27, 2020
+                                         September 26, 2020
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_2020627
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_2020926
 
    追加情報:
    
@@ -165,78 +165,65 @@ Changes:
 
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
 
-* SNAPSHOT June 27, 2020
- * Upstream 2020-02-21.
- * [EMULATION] Now, emulation period is half of one frame.
-               Because some devices (i.e. mouse) seems to need a short period.
-               This may change to 1/4 of one frame (or not).
-	       See event.cpp and qt/common/emu_thread.cpp (& more).
- * [VM/EMU] Important: now EMU:: class inherits EMU_TEMPLATE:: .
- * [VM/EVENT][Qt] execute event->drive() (or event->run()) by half frame.
-                  This is workaround for choppy mouse pointer/joystick.
- * [VM/FMTOWNS] Still works initially.
-                See source/src/vm/fmtowns/00_status.ja.md,
-                STATUS section of doc/VMs/fmtowns.txt
-		and 000_gitlog.txt .
- * [VM/FMTOWNS] CDROM: Implement CMD 00h (SEEK) correctness.
-                May Fractal engine works..
- * [VM/DEVICE][DEBUGGER] Add Call trace feature to I386_NP21.
-                         DEVICE::'s API HAS CHANGED.
- * [VM/DEBUGGER] Add logging to "UCT" (Call trace) command.
- * [VM][CONFIG] Add variable memory size feature to some VMs.See eFMTOWNS.
- * [Qt/OpenGL4_5] Draw: Fix crash with external mapping (immutable storage).
-                        Still not implement reading buffer.
- * [COMMON/FIFO] Add FIFO::fifo_size() and FIFO::left().Update SOVERSION.
- * [BUILD/CMake] Win32: Update toolchain for LLVM10.x and Ubuntu20.04
-                 (Has uploaded to
-		 https://hub.docker.com/repository/docker/artanejp/mingw-w64-llvm10-ubuntu20.04/general ).
- * [BUILD/Linux] Debian Sid: Now, build with CLANG 10 and Qt5.14.
- * [VM/FMGEN][VM/YM2612][VM/FMTOWNS] Fix prescaler value, calculating for own OPN2.
- * [VM/I386_NP21] Merge Upstream 2020-04-06 's I386::/NP21.Belows are differ from upstream:
-      - Make some memory access functions inline (these are bottoleneck of emulation).
-      - And some modifies are same as SNAPSHOT March 03, 2020.
- * [VM/I386_NP21] Optimise for speed, make some functions __inline__ .
- * [VM/I386_NP21] Fix EDX value at resetting.
- * [VM/I386_NP21] Temporally enable FPU for i386.
- * [VM/I386_NP21][DEBUGGER] WIP: Adding exception handling.
- * [VM/I386_NP21] Log when made panic.
- * [VM/I386_NP21] Add undefined instruction "0F A6".
-                  This may act as "int 6".Thanks to Soji Yamakawa-San.
- * [VM/I386_NP21] FPU: FISTTP INSNs (prefix DF) are only later than Pentium 4,
-                  not exists I386/486/Pentium.
- * [VM/I386_NP21] Disable FPU with I386, enable with I486SX.
- * [VM/I386_NP21] Change FPUemul to DOSBOX2 (temporally).
- * [VM/I386_NP21] Initialize CR0 to 0x00000000 (+some bits) for i386.
- * [VM/I386_NP21] *Perhaps* REPNE MOVS[B|W|D] don't dedicate Z flag,
-                  Thanks to Soji Yamakawa-San.
- * [VM/I386_NP21] Fix FTBFS with LLVM CLANG++.
- * [VM/I386_NP21] Add interrupt within rep prefix'ed ops.
- * [VM/UPD71071] Modify handling of 16bit transfer mode.
- * [VM/UPD71071] TOWNS_DMAC: Implement *truely* 16bit transfer feature
-                             from Renesas(NEC Electronics)'s DATA SHEET.
- * [VM/UPD71071] TOWNS_DMAC: Ugly workaround for 16bit transfer DMAC command.
-                             Will fix.
- * [VM/UPD71071] Change mean of TC bus bits (per channel).See mz2800.cpp.
- * [VM/UPD71071] TOWNS_DMAC: Fix mandatory name with "mask" variable/arg.
- * [VM/UPD71071] Adjust status of on-demand-mode.
- * [VM/I8253] Add debugger feature, still reading only.
- * [VM/DEBUGGER] Add "RH" command to debugger and
-                 bool get_debug_regs_description(_TCHAR *, size_t) to API.
- * [VM/FMTOWNS] FONTROMS: Add API read_direct_data8() to reading faster by CRTC.
- * [VM/FM8] Fix warning from EVENT:: when resetting.
- * [VM/SCSI] Add new (pseudo) SIGNAL for preparing to use buffered transfer.
- * [Qt/LOGGER] Shrink redundant title.
- * [VM/LOGGER][OSD][VM_TEMPLATE] Add API to log with VM's time.
- * [OSD/Qt]Remove mouse position limiter.
- * [UI/Qt] Virtual media: Adjust width of "HDx:".
- * [UI/Qt] Add filename feature to Virtual-Media indicator.
- * [UI/Qt] Adjust width for HDD.
- * [UI/Qt][OSD] Add tooltip for virtual medias.
- * [UI/Qt] CDROM: Add "SWAP BYTE ORDER for AUDIO" config entry.
- * [OSD/Qt][LOGGER] Fix linkage error for LLD 10.x and Win32 cross.
- * Built with d2322eb3793c06a3056ed10245d49c6a865a79d4 (or later).
+* SNAPSHOT September 26, 2020
+ * Upstream 2020-04-06.
+ * [FMTOWNS/DMAC] Bootable TownsOS v1.1L30 based softwares.
+                  Fix around DMA address mask.
+		  See source/src/vm/fmtowns/00_status.ja.md.
+ * [General] Now, version of all DLLs/SOLIBs are 3.0.x.		  
+ * [DEVICE] Change API: special_reset(num).
+            This aimes to support FM-Towns's multiple special resetting.
+ * [I18N] Prepare to support multiple languages.
+ * [Draw/GL4_5] Wait until complete to mapping.
+                Fix crash with QUAZZLE (FMTOWNS;FSW Collection 10).
+ * [VM/FMTOWNS][OOPs] Fix fallthroughs.
+ * [VM/FMTOWNS] Add IC CARD feature.
+ * [FMTOWNS/CRTC] More simple logic at rendering.
+ * [FMTOWNS/CDROM] RESTORE/SEEK COMMAND (00h) must seek to lba0, then aimed lba.
+ * [FMTOWNS/CDROM] PAUSE COMMAND (85h) : Return extra status even isn't audio track.
+ * [FMTOWNS/CDROM] READ MODE1: May not need extra status, integrated after reading.
+ * [FMTOWNS/MEMORY] Integrate memory accessing to primitive inline functions.
+ * [FMTOWNS/CDROM][WIP] Status around CMD A0h. This is working-in-progress.
+ * [FMTOWNS/CDROM][WIP] TRY: Implement PIO transfer.
+ * [FMTOWNS/CDROM] Should read per a sector, not variable length.
+ * [FMTOWNS/CDROM] Implement pseudo burst transfer for DMA.
+ * [FMTOWNS/CDROM] Set CDDA_STATUS=CDDA_OFF before reading data.
+                   Fix スーパーリアル麻雀PIV.
+ * [FMTOWNS/SPRITE] Initially works.
+ * [FMTOWNS/VRAM] Faster write access via write_memory_mapped_io[16|32]() .
+ * [FMTOWNS/TIMER] Disable free run counter before 1H/2H/1F/2F.
+ * [FMTOWNS/FLOPPY] Implement some bits and disk changed feature 
+                    (0208h:bit0:R after Towns2H/2F/1H/1F).
+ * [FMTOWNS/TIMER] Didable 1uS wait feature wait before xxF/xxH.
+ * [FMTOWNS/KEYBOARD] TRY: Boot with 'CD' 'H0' etc.Still works only with 'DEBUG'.
+ * [FMTOWNS/SCSI] Add SIG_SCSI_EOT signal.
+ * [FMTOWNS/SCSI] Set ctr_reg after sending command to host.
+ * [Qt/LOGGER] Fix not initialize (internal)osd_pointer;
+               wish to fix below issue (@Fedora Linux) 
+	       https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/935
+               by this.
+ * [VM/I386_NP21] Memory access:Make functions inline to be faster processing.
+ * [VM/COMMON_VM] Fix warining of 'set_context_intr' hides overloaded 
+                  virtual function [-Woverloaded-virtual] with LLVM Clang++.
+ * [VM/MC6809] Remove MC6809_BASE::, integrated to MC6809:: .
+ * [VM/Z80] Remove Z80_BASE::, integrate to Z80:: .
+ * [VM/UPD7220] Limit address of PSET.More correctness clock feature.
+ * [VM/UPD71071] Fix tc bit down.
+ * [VM/UPD71071] Add some signals.
+ * [VM/UPD71071][FMTOWNS][MZ2800] Update API; Separate TC signals per a channel.
+ * [VM/UPD71071] SREQ is prior than MASK.Don't auto transfer at demand mode.
+ * [VM/UPD71071] Implement ENDx signal for stopping DMA from some devices.
 
--- Jun 27, 2020 01:51:03 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+ * [VM/I8259] Initialize registers by reset().
+ * [EMU][UI/FLOPPY] Implement 1sec delayed open() for floppy, 
+                    fix not detect when changing from HISTORY.
+ * [X1/DRAW] Fix spending a lot of host CPU usage on draw_screen().
+             This issue has happened at only X1 (not turbo) due to
+             memory aligns and cache lines.
+             Set alignment of RAM and some values.
+ * Built with 97db8d7a26eb8eeb7722b009456d7c9bcadda0f7 (or later).
+
+-- Sep 26, 2020 18:29:40 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
