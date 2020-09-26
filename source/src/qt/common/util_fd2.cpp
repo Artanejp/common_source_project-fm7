@@ -144,4 +144,10 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 	}
 }
 
+void Ui_MainWindowBase::do_update_d88_list(int drv, int bank)
+{
+	UPDATE_D88_LIST(drv, listD88[drv]);
+	menu_fds[drv]->do_update_inner_media(listD88[drv], bank);
+}
+ 
 //#endif

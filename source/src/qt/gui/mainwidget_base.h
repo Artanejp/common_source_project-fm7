@@ -672,6 +672,7 @@ public slots:
 	void eject_hard_disk(int drv);
 	virtual void do_create_d88_media(int drv, quint8 media_type, QString name) { }
 	virtual void do_create_hard_disk(int drv, int sector_size, int sectors, int surfaces, int cylinders, QString name) { }
+	void do_update_d88_list(int drv, int bank);
 
 	// Bubble Casette
 	int write_protect_bubble(int drv, bool flag);

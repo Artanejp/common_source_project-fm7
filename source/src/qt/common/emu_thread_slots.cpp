@@ -514,14 +514,16 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 {
 #ifdef USE_FLOPPY_DISK
 	QByteArray localPath = path.toLocal8Bit();
+
 	if(fd_open_wait_count[drv] > 0) {
 		fd_reserved_path[drv] = localPath;
 		fd_reserved_bank[drv] = bank;
 		return;
 	}
-   
-	//p_emu->d88_file[drv].bank_num = 0;
-	//p_emu->d88_file[drv].cur_bank = -1;
+	bool multiple_disk = false;
+	bool past_update = false;
+	p_emu->d88_file[drv].bank_num = 0;
+	p_emu->d88_file[drv].cur_bank = -1;
 	if(check_file_extension(localPath.constData(), ".d88") || check_file_extension(localPath.constData(), ".d77")) {
 		
 		FILEIO *fio = new FILEIO();
@@ -550,16 +552,27 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 				bank = 0;
 				p_emu->d88_file[drv].bank_num = 0;
 			}
+			past_update = true;
 		   	fio->Fclose();
+			if(((drv + 1) < USE_FLOPPY_DISK) && ((bank + 1) < p_emu->d88_file[drv].bank_num)) {
+				multiple_disk = true;
+			}
 		}
 	   	delete fio;
 	} else {
 	   bank = 0;
 	}
+	if(multiple_disk) {
+		do_close_disk(drv + 1);
+		do_open_disk(drv + 1, path, bank + 1);  
+	}
 //	do_close_disk(drv);
 	p_emu->open_floppy_disk(drv, localPath.constData(), bank);
 	emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, drv, path);
 	emit sig_update_recent_disk(drv);
+	if(past_update) {
+		emit sig_update_d88_list(drv, bank);
+	}
 #endif	
 }
 void EmuThreadClass::do_play_tape(int drv, QString name)

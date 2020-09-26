@@ -129,6 +129,8 @@ public slots:
 signals:
 	int sig_set_draw_fps(double);
 	int sig_draw_one_turn(bool);
+	int sig_update_d88_list(int, int);
+
 };
 
 QT_END_NAMESPACE
