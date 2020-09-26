@@ -4,7 +4,7 @@
 	Author : Kyuma.Ohta <whatisthis.sowhat _at_ gmail.com>
 	Date   : 2020.01.28 -
     History : 2020.01.28 Initial from FM7.
-	[ Towns PAD ]
+	[ Towns Joystick ports]
 
 */
 

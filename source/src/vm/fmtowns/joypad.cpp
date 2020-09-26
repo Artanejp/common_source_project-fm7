@@ -1,3 +1,12 @@
+/*
+	FUJITSU FM Towns Emulator 'eFMTowns'
+
+	Author : Kyuma.Ohta <whatisthis.sowhat _at_ gmail.com>
+	Date   : 2020.00.26 -
+    History : 2020.09.26 Separate from joystick.cpp/joystick.h .
+	[ Towns PAD ]
+
+*/
 
 #include "./joystick.h"
 #include "./joypad.h"
