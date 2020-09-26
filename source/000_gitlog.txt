@@ -1,3 +1,45 @@
+commit cdfc81b7398812d0f9206d5b978808fcbc5ebf0e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 27 00:32:11 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Re-Disable value handling around command 80h.
+
+commit 122d13863dd8fdf7a16dc0f4d473f534d353265b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 27 00:31:49 2020 +0900
+
+    [VM][FMTOWNS][JOYPAD] Fix around input.
+
+commit a246d9479b9cbff883077b23f4952cb2a37efcf8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 27 00:31:18 2020 +0900
+
+    [UI][Qt] Fix not update around virtual media display.
+
+commit 1afadd48f6e652f877152480c47fe6a994455de4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Sep 26 21:14:07 2020 +0900
+
+    [TOOLS][PATCH][LKAME] .
+
+commit 303a5ecdb6686d51d1742188d4c82689d6d4a6e0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Sep 26 21:13:42 2020 +0900
+
+    [TOOL] I forgot to add pathes for Qt5.15 X-)
+
+commit 014ee89021e07f39d9fc95257f83392fd1d85869
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Sep 26 21:02:59 2020 +0900
+
+    [INSTALLER] Update Installer.
+
+commit cc57316ff34c63bef1e79cccb2f7b440c2c70dd6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Sep 26 18:33:07 2020 +0900
+
+    [DOC] Update to release.
+
 commit 97db8d7a26eb8eeb7722b009456d7c9bcadda0f7
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Sep 26 17:47:47 2020 +0900
