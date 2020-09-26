@@ -1,0 +1,17 @@
+--- lame.c.orig	2019-09-24 18:52:27.674563658 +0000
++++ lame.c	2019-09-24 18:52:39.572621949 +0000
+@@ -2376,10 +2376,10 @@
+ }
+ 
+ /* initialize mp3 encoder */
+-#if DEPRECATED_OR_OBSOLETE_CODE_REMOVED
+-static
+-#else
+-#endif
++//#if DEPRECATED_OR_OBSOLETE_CODE_REMOVED
++//static
++//#else
++//#endif
+ int
+ lame_init_old(lame_global_flags * gfp)
+ {
