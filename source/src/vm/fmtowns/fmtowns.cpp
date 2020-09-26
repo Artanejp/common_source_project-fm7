@@ -61,6 +61,7 @@
 #include "./floppy.h"
 #include "./fontroms.h"
 #include "./joystick.h"
+#include "./joypad.h"
 #include "./keyboard.h"
 #include "./msdosrom.h"
 #include "./scsi.h"
@@ -79,6 +80,7 @@ using FMTOWNS::DICTIONARY;
 using FMTOWNS::FLOPPY;
 using FMTOWNS::FONT_ROMS;
 using FMTOWNS::JOYSTICK;
+using FMTOWNS::JOYPAD;
 using FMTOWNS::KEYBOARD;
 using FMTOWNS::MSDOSROM;
 using FMTOWNS::SCSI;
@@ -210,7 +212,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #else
 	iccard2 = NULL;
 #endif
-	
+	joypad[0] = new JOYPAD(this, emu);
+	joypad[1] = new JOYPAD(this, emu);
+
 	uint16_t machine_id = 0x0100; // FM-Towns1
 	uint16_t cpu_id = 0x0001;     // i386DX
 	uint32_t cpu_clock = 16000 * 1000; // 16MHz
@@ -402,7 +406,26 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	timer->set_context_pcm(beep);
 	timer->set_context_rtc(rtc);
 	timer->set_context_halt_line(cpu, SIG_CPU_HALTREQ, 0xffffffff);
-	
+
+	joystick->set_context_enable0(joypad[0],
+								  SIG_JOYPAD_ENABLE,
+								  (1 << (SIG_JOYPORT_TYPE_2BUTTONS >> 8)) | (1 << (SIG_JOYPORT_TYPE_6BUTTONS >> 8)));
+	joystick->set_context_enable1(joypad[1],
+								  SIG_JOYPAD_ENABLE,
+								  (1 << (SIG_JOYPORT_TYPE_2BUTTONS >> 8)) | (1 << (SIG_JOYPORT_TYPE_6BUTTONS >> 8)));
+	joystick->set_context_mask(joypad[0], SIG_JOYPAD_SELECT_BUS, 0x10); // Mouse0 or joypad0
+	joystick->set_context_mask(joypad[1], SIG_JOYPAD_SELECT_BUS, 0x20); // Mouse0 or joypad0
+	for(int i = 0; i < 2; i++) {
+		uint32_t ch = (i == 0) ? SIG_JOYPORT_CH0 : SIG_JOYPORT_CH1;
+		joypad[i]->set_context_a_button(joystick, ch | SIG_JOYPORT_LINE_A, 0xffffffff);
+		joypad[i]->set_context_b_button(joystick, ch | SIG_JOYPORT_LINE_B, 0xffffffff);
+		joypad[i]->set_context_up(joystick,    ch | SIG_JOYPORT_LINE_UP, 0xffffffff);
+		joypad[i]->set_context_down(joystick,  ch | SIG_JOYPORT_LINE_DOWN, 0xffffffff);
+		joypad[i]->set_context_left(joystick,  ch | SIG_JOYPORT_LINE_LEFT, 0xffffffff);
+		joypad[i]->set_context_right(joystick, ch | SIG_JOYPORT_LINE_RIGHT, 0xffffffff);
+
+		joypad[i]->set_context_port_num(i);
+	}
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);

@@ -283,7 +283,7 @@
 #define USE_SOUND_FILES_FDD
 #define USE_JOYSTICK
 #define USE_JOY_BUTTON_CAPTIONS
-#define USE_JOYSTICK_TYPE	2
+#define USE_JOYSTICK_TYPE	3
 #define JOYSTICK_TYPE_DEFAULT	0
 #define USE_MOUSE
 #define USE_MOUSE_TYPE      3
@@ -379,7 +379,7 @@ namespace FMTOWNS {
 	class TOWNS_SPRITE;
 	class TOWNS_VRAM;
 	class PLANEVRAM;
-
+	class JOYPAD;
 	class JOYSTICK; // Mouse and Joystick.
 }
 
@@ -415,6 +415,7 @@ protected:
 	FMTOWNS::TOWNS_CRTC*     crtc;
 	FMTOWNS::FLOPPY*         floppy;
 	FMTOWNS::JOYSTICK*       joystick;
+	FMTOWNS::JOYPAD*	     joypad[2];
 	FMTOWNS::KEYBOARD*       keyboard;
 	FMTOWNS::TIMER*          timer;
 	FMTOWNS::TOWNS_VRAM*     vram;

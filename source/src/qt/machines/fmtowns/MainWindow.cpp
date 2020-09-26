@@ -62,10 +62,12 @@ void META_MainWindow::retranslateUi(void)
 	actionMouseType[2]->setToolTip(QApplication::translate("Machine", "Connect mouse to PAD port #2.", 0));
 # endif	
 #if defined(USE_JOYSTICK_TYPE)
-	actionJoystickType[0]->setText(QApplication::translate("Machine", "2 buttons", 0));
-	actionJoystickType[0]->setToolTip(QApplication::translate("Machine", "Connect 2 buttons Towns PAD to PORTs.", 0));
-	actionJoystickType[1]->setText(QApplication::translate("Machine", "6 buttons", 0));
-	actionJoystickType[1]->setToolTip(QApplication::translate("Machine", "Connect 6 buttons Towns PAD to PORTs.", 0));
+	actionJoystickType[0]->setText(QApplication::translate("Machine", "None", 0));
+	actionJoystickType[0]->setToolTip(QApplication::translate("Machine", "NotConnected.", 0));
+	actionJoystickType[1]->setText(QApplication::translate("Machine", "2 buttons", 0));
+	actionJoystickType[1]->setToolTip(QApplication::translate("Machine", "Connect 2 buttons Towns PAD to PORTs.", 0));
+	actionJoystickType[2]->setText(QApplication::translate("Machine", "6 buttons", 0));
+	actionJoystickType[2]->setToolTip(QApplication::translate("Machine", "Connect 6 buttons Towns PAD to PORTs.", 0));
 	menuJoystickType->setTitle(QApplication::translate("Machine", "Towns PAD", 0));
 #endif
 #if defined(USE_CART)
