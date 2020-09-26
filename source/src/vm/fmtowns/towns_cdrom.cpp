@@ -568,6 +568,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				status_media_changed(false);
 				break;;
 			}
+#if 0			
 			if(toc_table[current_track].is_audio) {
 //				if((param_queue[0] == 0x08)) {
 					switch(prev_command & 0x9f)
@@ -634,9 +635,10 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				} else {
 					status_accept(0, 0x00, 0x00);
 				}
-				}
+			}
+#endif
 //			stat_reply_intr = true;
-//			status_accept(0, 0x00, 0x00);
+			status_accept(0, 0x00, 0x00);
 //			if(stat_reply_intr) set_mcu_intr(true);
 		}
 		break;
