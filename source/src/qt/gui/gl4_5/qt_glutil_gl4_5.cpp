@@ -78,6 +78,11 @@ GLDraw_4_5::GLDraw_4_5(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	main_mutex = new QMutex();
 	main_texture_ready = false;
 	sync_fence = 0;
+
+	// ToDo
+	screen_texture_width = -1 ;
+	screen_texture_height = -1;
+
 }
 
 GLDraw_4_5::~GLDraw_4_5()
@@ -823,6 +828,8 @@ void GLDraw_4_5::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mappe
 		uVramTextureID = createMainTexture(p);
 	} else 
 	{
+		if((screen_texture_width <= 0) || (screen_texture_height <= 0)) return;
+
 		// Upload to main texture
 		bool is_dummy = false;
 		
@@ -939,6 +946,7 @@ void GLDraw_4_5::drawMain(QOpenGLShaderProgram *prg,
 						  QVector3D chromakey)
 {
 	int ii;
+	if((screen_texture_width <= 0) || (screen_texture_height <= 0)) return;
 
 	if(sync_fence != 0) {
 		extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
@@ -1523,6 +1531,7 @@ void GLDraw_4_5::set_led_vertex(int xbit)
 void GLDraw_4_5::do_set_screen_multiply(float mul)
 {
 	screen_multiply = mul;
+	if((screen_texture_width <= 0) || (screen_texture_height <= 0)) return;
 	do_set_texture_size(imgptr, screen_texture_width, screen_texture_height);
 }
 
@@ -1540,7 +1549,9 @@ void GLDraw_4_5::do_set_texture_size(QImage *p, int w, int h)
 		ih = (float)using_flags->get_real_screen_height();
 	}
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SCREEN, "%dx%d -> %fx%f\n", w, h, iw, ih);
-	if(p_wid != NULL) {
+	if((p_wid != NULL) &&
+	   ((screen_texture_width != w) || (screen_texture_height != h)) &&
+	   (w > 0) && (h > 0)) {
 		screen_texture_width = w;
 		screen_texture_height = h;
 		
