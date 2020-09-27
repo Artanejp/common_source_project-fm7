@@ -15,6 +15,7 @@
 #include <QWidget>
 #include <QString>
 #include <QList>
+#include <QStringList>
 #include <QOpenGLTexture>
 
 #include "config.h"
@@ -33,6 +34,148 @@ class CSP_Logger;
 class QOpenGLBuffer;
 class QOpenGLVertexArrayObject;
 class QOpenGLShaderProgram;
+class GLScreenPack;
+
+namespace GLShader {
+class ShaderDesc {
+protected:
+	QString vertex_shader_name;
+	QString fragment_shader_name;
+	QString description;
+public:	
+	ShaderDesc(QString _vname = QString::fromUtf8(""), QString _fname = QString::fromUtf8(""), QString _desc = QString::fromUtf8("")) {
+		vertex_shader_name = _vname;
+		fragment_shader_name = _fname;
+		description = _desc;
+	}
+	~ShaderDesc() {}
+	void setShaders(QString _vname, QString _fname, QString _desc = QString::fromUtf8("")) {
+		vertex_shader_name = _vname;
+		fragment_shader_name = _fname;
+		description = _desc;
+	}
+	QString getVertexShaderName() {
+		return vertex_shader_name;
+	}
+	QString getFragmentShaderName() {
+		return fragment_shader_name;
+	}
+	QString getDesc() {
+		return description;
+	}
+	bool matchVertex(QString s, bool caseSensitive = true) {
+		return (vertex_shader_name.compare(s, (caseSensitive) ? Qt::CaseSensitive : Qt::CaseInsensitive) == 0) ? true : false;
+	}
+	bool matchFragment(QString s, bool caseSensitive = true) {
+		return (fragment_shader_name.compare(s, (caseSensitive) ? Qt::CaseSensitive : Qt::CaseInsensitive) == 0) ? true : false;
+	}
+	bool matchDesc(QString s, bool caseSensitive = true) {
+		return (description.compare(s, (caseSensitive) ? Qt::CaseSensitive : Qt::CaseInsensitive) == 0) ? true : false;
+	}
+};
+
+class ShaderAttr {
+protected:
+	bool is_multiple_pass; // Shader needs multiple pass.
+	bool is_multiple_frame_buffers; // Shader needs multiple frame buffer.
+	int num_multiple_pass; // Nubmers of multiple pass.
+	int num_multiple_frame_buffers; // Number of frame_buffers;
+	QList<ShaderDesc> picture_shader_pair;
+	QStringList compute_shader_name; // ToDo: Will change with some code.
+public:		
+	ShaderAttr(bool mupass = false, bool mbuf = false, int npass = 1, int nfbs = 2)
+	{
+		is_multiple_pass = false;
+		is_multiple_frame_buffers = false;
+		num_multiple_pass = 1;
+		num_multiple_frame_buffers = 2;
+		if(mupass) {
+			is_multiple_pass = true;
+			num_multiple_pass = npass;
+		}
+		if(mbuf) {
+			is_multiple_frame_buffers = true;
+			num_multiple_frame_buffers = nfbs;
+		}
+		picture_shader_pair.clear();
+		compute_shader_name.clear();		
+	}
+	~ShaderAttr() {}
+
+	QList<ShaderDesc> getShadersList() {
+		return picture_shader_pair;
+	}
+	QStringList getComputeShadersList() {
+		return compute_shader_name;
+	}
+	
+	void addShaderPair(ShaderDesc n) {
+		return picture_shader_pair.append(n);
+	}
+	ShaderDesc getShaderPair(int n) {
+		return picture_shader_pair.at(n);
+	}
+	int numShaderPairs() {
+		return picture_shader_pair.size();		
+	}
+	bool isEmptyShaderPairs() {
+		return picture_shader_pair.isEmpty();		
+	}
+	void addComputeShader(QString name) {
+		compute_shader_name.append(name);		
+	}
+	QString getComputeShader(int num) {
+		if((num < 0) || (num >= compute_shader_name.size())) return QString::fromUtf8(""); 
+		return compute_shader_name.at(num);		
+	}
+	int numComputeShaders() {
+		return compute_shader_name.size();		
+	}
+	bool isEmptyComputeShaders() {
+		return compute_shader_name.isEmpty();		
+	}
+	
+};
+
+class ShaderGroup {
+protected:
+	ShaderAttr attr;
+	QList<GLScreenPack*> effect_shaders; //Compiled Pixel shaders
+public:
+	ShaderGroup(ShaderAttr _a, GLScreenPack* p = NULL) {
+		attr = _a;
+		effect_shaders.clear();
+		if(p != NULL) {
+			effect_shaders.append(p);
+		}
+	}
+	~ShaderGroup() { }
+
+	QList<GLScreenPack*> getShaders() {
+		return effect_shaders;
+	}
+	ShaderAttr attribute() {
+		return attr;
+	}
+	void append(GLScreenPack* p) {
+		if(p != NULL) {
+			effect_shaders.append(p);
+		}
+	}
+	GLScreenPack *at(int num) {
+		if((num < 0) || (num >= effect_shaders.size())) return nullptr;
+		return effect_shaders.at(num);
+	}
+	int size() {
+		return effect_shaders.size();
+	}
+	bool isEmpty() {
+		return effect_shaders.isEmpty();
+	}
+};
+}
+// End namespace GLShader
+	
 class DLL_PREFIX GLDraw_Tmpl : public QObject
 {
 	Q_OBJECT
