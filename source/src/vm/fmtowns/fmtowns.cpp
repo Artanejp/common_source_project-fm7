@@ -407,25 +407,20 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	timer->set_context_rtc(rtc);
 	timer->set_context_halt_line(cpu, SIG_CPU_HALTREQ, 0xffffffff);
 
-	joystick->set_context_enable0(joypad[0],
-								  SIG_JOYPAD_ENABLE,
-								  (1 << (SIG_JOYPORT_TYPE_2BUTTONS >> 8)) | (1 << (SIG_JOYPORT_TYPE_6BUTTONS >> 8)));
-	joystick->set_context_enable1(joypad[1],
-								  SIG_JOYPAD_ENABLE,
-								  (1 << (SIG_JOYPORT_TYPE_2BUTTONS >> 8)) | (1 << (SIG_JOYPORT_TYPE_6BUTTONS >> 8)));
+	joystick->set_context_enable0(joypad[0], SIG_JOYPAD_ENABLE, 0xffffffff);
+	joystick->set_context_enable1(joypad[1], SIG_JOYPAD_ENABLE, 0xffffffff);
 	joystick->set_context_mask(joypad[0], SIG_JOYPAD_SELECT_BUS, 0x10); // Mouse0 or joypad0
-	joystick->set_context_mask(joypad[1], SIG_JOYPAD_SELECT_BUS, 0x20); // Mouse0 or joypad0
-	for(int i = 0; i < 2; i++) {
-		uint32_t ch = (i == 0) ? SIG_JOYPORT_CH0 : SIG_JOYPORT_CH1;
-		joypad[i]->set_context_a_button(joystick, ch | SIG_JOYPORT_LINE_A, 0xffffffff);
-		joypad[i]->set_context_b_button(joystick, ch | SIG_JOYPORT_LINE_B, 0xffffffff);
-		joypad[i]->set_context_up(joystick,    ch | SIG_JOYPORT_LINE_UP, 0xffffffff);
-		joypad[i]->set_context_down(joystick,  ch | SIG_JOYPORT_LINE_DOWN, 0xffffffff);
-		joypad[i]->set_context_left(joystick,  ch | SIG_JOYPORT_LINE_LEFT, 0xffffffff);
-		joypad[i]->set_context_right(joystick, ch | SIG_JOYPORT_LINE_RIGHT, 0xffffffff);
-
-		joypad[i]->set_context_port_num(i);
-	}
+	joystick->set_context_mask(joypad[1], SIG_JOYPAD_SELECT_BUS, 0x20); // Mouse1 or joypad1
+	joystick->set_context_query(joypad[0], SIG_JOYPAD_QUERY, 0x1);
+	joystick->set_context_query(joypad[1], SIG_JOYPAD_QUERY, 0x2);
+	
+	joypad[0]->set_context_port_num(0);
+	joypad[1]->set_context_port_num(1);
+	joypad[0]->set_context_data(joystick, SIG_JOYPORT_CH0 | SIG_JOYPORT_TYPE_2BUTTONS | SIG_JOYPORT_DATA, 0xffffffff);
+	joypad[1]->set_context_data(joystick, SIG_JOYPORT_CH1 | SIG_JOYPORT_TYPE_2BUTTONS | SIG_JOYPORT_DATA, 0xffffffff);
+	
+	joypad[0]->set_context_com(joystick, SIG_JOYPORT_CH0 | SIG_JOYPORT_TYPE_2BUTTONS | SIG_JOYPORT_COM, 0xffffffff);
+	joypad[1]->set_context_com(joystick, SIG_JOYPORT_CH1 | SIG_JOYPORT_TYPE_2BUTTONS | SIG_JOYPORT_COM, 0xffffffff);
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);

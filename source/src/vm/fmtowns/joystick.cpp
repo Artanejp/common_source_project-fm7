@@ -17,6 +17,7 @@ namespace FMTOWNS {
 void JOYSTICK::reset()
 {
 	joydata[0] = joydata[1] = 0x00;
+	stat_com[0] = stat_com[1] = false;
 	dx = dy = 0;
 	lx = ly = 0;
 	mouse_state = emu->get_mouse_buffer();
@@ -29,12 +30,18 @@ void JOYSTICK::reset()
 		cancel_event(this, mouse_timeout_event);
 	}
 	mouse_timeout_event = -1;
+
+	// Force reset pads.
+	connected_type[0] = 0xffffffff;
+	connected_type[1] = 0xffffffff;
+	
 	update_config(); // Update MOUSE PORT.
 	
 	if(mouse_sampling_event >= 0) {
 		cancel_event(this, mouse_sampling_event);
 	}
 	register_event(this, EVENT_MOUSE_SAMPLING, 8.0e3, true, &mouse_sampling_event);
+//	register_frame_event(this);
 }
 
 void JOYSTICK::initialize()
@@ -55,37 +62,11 @@ void JOYSTICK::initialize()
 void JOYSTICK::release()
 {
 }
-	
-void JOYSTICK::event_frame()
+void JOYSTICK::event_pre_frame()
 {
-	int ch;
-	int stat = 0x00;
-	uint32_t retval = 0x00;
-	uint32_t val;
-#if 1
-	mouse_state = emu->get_mouse_buffer();
-	if(mouse_state != NULL) {
-		dx += mouse_state[0];
-		dy += mouse_state[1];
-		if(dx < -127) {
-			dx = -127;
-		} else if(dx > 127) {
-			dx = 127;
-		}
-		if(dy < -255) {
-			dy = -255;
-		} else if(dy > 255) {
-			dy = 255;
-		}
-	}		
-	if(mouse_state != NULL) {
-		stat = mouse_state[2];
-		mouse_button = 0x00;
-		if((stat & 0x01) == 0) mouse_button |= 0x10; // left
-		if((stat & 0x02) == 0) mouse_button |= 0x20; // right
-	}
-#endif
+//	joydata[0] = joydata[1] = 0x00;
 }
+
 void JOYSTICK::write_io8(uint32_t address, uint32_t data)
 {
 	// ToDo: Mouse
@@ -108,7 +89,6 @@ uint32_t JOYSTICK::read_io8(uint32_t address)
 	// ToDo: Implement 6 buttons pad. & mouse
 	uint8_t retval = 0;
 	uint8_t port_num = (address & 0x02) >> 1;
-	uint8_t trig = (mask >> (address & 0x02)) & 0x03;
 	switch(address) {
 	case 0x04d0:
 	case 0x04d2:
@@ -124,35 +104,44 @@ uint32_t JOYSTICK::read_io8(uint32_t address)
 			}
 			retval = rval;
 		} else {
-			if((mask & (0x10 << port_num)) != 0) {
+			write_signals(&outputs_query, 1 << (port_num + 0));
+			uint8_t trig = (mask >> (port_num << 1)) & 0x03;
+			if(((mask & (0x10 << port_num)) != 0) && (stat_com[port_num])) {
 				retval = 0xff; // COM ON
 			} else {
 				retval = 0xbf; // COM OFF
 			}			
 			//if((mask & (0x10 << port_num)) == 0) {
-			if((joydata[port_num] & 0x04) != 0) { // LEFT
+			if((joydata[port_num] & LINE_JOYPORT_LEFT) != 0) { // LEFT
 				retval = retval & ~0x04; // LEFT
-			} else if((joydata[port_num] & 0x08) != 0) { // RIGHT
+			}
+			if((joydata[port_num] & LINE_JOYPORT_RIGHT) != 0) { // RIGHT
 				retval = retval & ~0x08; // RIGHT
 			}				
-			if((joydata[port_num] & 0x01) != 0) { // UP
+			if((joydata[port_num] & LINE_JOYPORT_UP) != 0) { // UP
 				retval = retval & ~0x01; // FWD
-			} else if((joydata[port_num] & 0x02) != 0) { // DOWN
+			}
+			if((joydata[port_num] & LINE_JOYPORT_DOWN) != 0) { // DOWN
 				retval = retval & ~0x02; // BACK
-			}				
-			if(((trig & 0x01) != 0) && ((joydata[port_num] & 0x10) != 0)) { // TRIGGER1
+			}
+			if((trig & 0x01) == 0) {
+				retval = retval & ~0x10;
+			} else if((joydata[port_num] & LINE_JOYPORT_A) != 0) {
 				retval = retval & ~0x10;
 			}
-			if(((trig & 0x02) != 0) && ((joydata[port_num] & 0x20) != 0)) { // TRIGGER2
+			if((trig & 0x02) == 0) {
+				retval = retval & ~0x20;
+			} else if((joydata[port_num] & LINE_JOYPORT_B) != 0) {
 				retval = retval & ~0x20;
 			}
 		}
+		//joydata[port_num] = 0;
 		return retval;
 		break;
 	default:
 		break;
 	}
-	return 0x00;
+	return 0xff;
 }
 
 void JOYSTICK::event_callback(int event_id, int err)
@@ -193,54 +182,21 @@ void JOYSTICK::event_callback(int event_id, int err)
 
 void JOYSTICK::write_signal(int id, uint32_t data, uint32_t _mask)
 {
-	uint32_t num = (id >> 12) & 1;
-	uint32_t type = (id >> 8) & 15;
-	uint32_t line = id & 0xff;
-	//if(type != connected_type[num]) return;
-//	out_debug_log(_T("SIGNAL SENT, NUM=%d TYPE=%d LINE=%d VALUE=%08X"), num, type << 8, line, data);
-	switch(line) {
-	case SIG_JOYPORT_LINE_UP:
-		joydata[num] &= ~0x01;
-		break;
-	case SIG_JOYPORT_LINE_DOWN:
-		joydata[num] &= ~0x02;
-		break;
-	case SIG_JOYPORT_LINE_LEFT:
-		joydata[num] &= ~0x04;
-		break;
-	case SIG_JOYPORT_LINE_RIGHT:
-		joydata[num] &= ~0x08;
-		break;
-	case SIG_JOYPORT_LINE_A:
-		joydata[num] &= ~0x10;
-		break;
-	case SIG_JOYPORT_LINE_B:
-		joydata[num] &= ~0x20;
-		break;
-	}
-	if(data != 0) {
-		switch(line) {
-		case SIG_JOYPORT_LINE_UP:
-			joydata[num] |= 0x01;
+	int ch = (id >> 24) & 1;
+	int bustype = id  & 0x300;
+	int num = id & 0xff;
+	//out_debug_log(_T("SIGNAL SENT, CH=%d TYPE=%d  VALUE=%08X"), ch, num, data);
+	if(num == connected_type[ch]) {
+		switch(bustype) {
+		case SIG_JOYPORT_DATA:
+			joydata[ch] = data;
 			break;
-		case SIG_JOYPORT_LINE_DOWN:
-			joydata[num] |= 0x02;
-			break;
-		case SIG_JOYPORT_LINE_LEFT:
-			joydata[num] |= 0x04;
-			break;
-		case SIG_JOYPORT_LINE_RIGHT:
-			joydata[num] |= 0x08;
-			break;
-		case SIG_JOYPORT_LINE_A:
-			joydata[num] |= 0x10;
-			break;
-		case SIG_JOYPORT_LINE_B:
-			joydata[num] |= 0x20;
+		case SIG_JOYPORT_COM:
+			stat_com[ch] = ((data & mask) != 0) ? true : false;
 			break;
 		}
-	} else {
 	}
+	//if(type != connected_type[num]) return;
 }	
 
 void JOYSTICK::update_config(void)
@@ -267,10 +223,18 @@ void JOYSTICK::update_config(void)
 		ntype[1] = SIG_JOYPORT_TYPE_MOUSE;
 	}
 	for(int i = 0; i < 2; i++) {
-		if(connected_type[i] != ntype[i]) {
-			write_signals(&outputs_enable[i], 1 << (ntype[i] >> 8));
+//		if(connected_type[i] != ntype[i]) {
+			write_signals(&outputs_enable[i], 1 << ntype[i]);
+//		}
+		switch(ntype[i]) {
+		case SIG_JOYPORT_TYPE_2BUTTONS:
+		case SIG_JOYPORT_TYPE_6BUTTONS:
+			connected_type[i] = SIG_JOYPORT_TYPE_2BUTTONS;
+			break;
+		default:
+			connected_type[i] = ntype[i];
+			break;
 		}
-		connected_type[i] = ntype[i];
 	}
 	mouse_type = config.mouse_type;
 }
@@ -340,7 +304,7 @@ uint32_t JOYSTICK::update_mouse()
 	return mouse_data;
 }
 
-#define STATE_VERSION 4
+#define STATE_VERSION 5
 
 bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 {
@@ -355,6 +319,7 @@ bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 	state_fio->StateArray(connected_type, sizeof(connected_type), 1);
 	
 	state_fio->StateArray(emulate_mouse, sizeof(emulate_mouse), 1);
+	state_fio->StateArray(stat_com, sizeof(stat_com), 1);
 	state_fio->StateValue(dx);
 	state_fio->StateValue(dy);
 	state_fio->StateValue(lx);

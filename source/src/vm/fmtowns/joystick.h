@@ -13,31 +13,44 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_JOYPORT_LINE_UP			1
-#define SIG_JOYPORT_LINE_DOWN		2
-#define SIG_JOYPORT_LINE_LEFT		3
-#define SIG_JOYPORT_LINE_RIGHT		4
-#define SIG_JOYPORT_LINE_A			5
-#define SIG_JOYPORT_LINE_B			6
 #define SIG_JOYPORT_CH0				0
-#define SIG_JOYPORT_CH1				4096
+#define SIG_JOYPORT_CH1				(65536 * 256)
+#define SIG_JOYPORT_DATA			256
+#define SIG_JOYPORT_COM				512
+
 #define SIG_JOYPORT_TYPE_NULL		0
-#define SIG_JOYPORT_TYPE_2BUTTONS	256
-#define SIG_JOYPORT_TYPE_6BUTTONS	512
-#define SIG_JOYPORT_TYPE_ANALOG		768 /* ToDo: For CYBER STICK */
-#define SIG_JOYPORT_TYPE_MOUSE		1024
-#define SIG_JOYPORT_TYPE_TWIN_2B_0	1280 /* ToDo: For RIBBLE RABBLE */
-#define SIG_JOYPORT_TYPE_TWIN_2B_1	1536 /* ToDo: For RIBBLE RABBLE */
-#define SIG_JOYPORT_CONNECT			65536 /* ToDo: RESET */
+#define SIG_JOYPORT_TYPE_2BUTTONS	1
+#define SIG_JOYPORT_TYPE_6BUTTONS	2
+#define SIG_JOYPORT_TYPE_ANALOG		3 /* ToDo: For CYBER STICK */
+#define SIG_JOYPORT_TYPE_MOUSE		4
+#define SIG_JOYPORT_TYPE_TWIN_2B_0	5 /* ToDo: For RIBBLE RABBLE */
+#define SIG_JOYPORT_TYPE_TWIN_2B_1	6 /* ToDo: For RIBBLE RABBLE */
+#define SIG_JOYPORT_CONNECT			7 /* ToDo: RESET */
+
+// MSX RELATED PORT CONFIGURATION
+// https://www.msx.org/wiki/General_Purpose_port
+#define LINE_JOYPORT_UP				(1 << 0) /* IN 1 */
+#define LINE_JOYPORT_DOWN			(1 << 1) /* IN 2 */
+#define LINE_JOYPORT_LEFT			(1 << 2) /* IN 3 */
+#define LINE_JOYPORT_RIGHT			(1 << 3) /* IN 4 */
+#define LINE_JOYPORT_A				(1 << 4) /* IN 6 */
+#define LINE_JOYPORT_B				(1 << 5) /* IN 7 */
+#define LINE_JOYPORT_TRIGGER		(1 << 6) /* OUT 8 */
+#define LINE_JOYPORT_DUMMY			(1 << 7) /* DUMMY */
+// Belows are dummy define
+#define LINE_JOYPORT_POW_PLUS		(1 << 8) /* +5V PIN 5*/
+#define LINE_JOYPORT_POW_GND		(1 << 9) /* GND PIN 8*/
 
 namespace FMTOWNS {
 class JOYSTICK : public DEVICE
 {
 private:
 	outputs_t outputs_mask;
+	outputs_t outputs_query;
 	outputs_t outputs_enable[2];
 	bool emulate_mouse[2];
 	uint32_t joydata[2];
+	bool stat_com[2];
 	
 	const uint32_t *rawdata;
 	const int32_t *mouse_state;
@@ -63,6 +76,7 @@ public:
 	{
 		mouse_timeout_event = -1;
 		mouse_sampling_event = -1;
+		initialize_output_signals(&outputs_query);
 		initialize_output_signals(&outputs_mask);
 		initialize_output_signals(&outputs_enable[0]);
 		initialize_output_signals(&outputs_enable[1]);
@@ -74,7 +88,7 @@ public:
 	
 	// common functions
 	void initialize(void);
-	void event_frame(void);
+	void event_pre_frame(void);
 	void release();
 	void reset();
 	
@@ -98,6 +112,10 @@ public:
 	void set_context_mask(DEVICE* dev, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_mask, dev, id, mask);
+	}
+	void set_context_query(DEVICE* dev, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_query, dev, id, mask);
 	}
 
 			
