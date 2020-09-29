@@ -35,10 +35,11 @@ set(VM_FMTOWNS_DEV_SRCS
 	fmtowns.cpp
 )
 
+#ToDo
 if(BUILD_WITH_20PIX)
   set(VM_FMTOWNS_DEV_SRCS ${VM_FMTOWNS_DEV_SRCS} fontrom_20pix.cpp)
 endif()
 
-add_library(vm_fmtowns
+add_library(vm_${EXE_NAME}
 	${VM_FMTOWNS_DEV_SRCS}
 )	

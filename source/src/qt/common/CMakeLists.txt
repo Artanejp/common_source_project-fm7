@@ -1,8 +1,4 @@
 message("* qt/common")
-
-#include(cotire)
-#include(PrecompiledHeader)
-
 set(s_qt_common_headers
 	  emu_thread.h
 	  mainwidget.h
@@ -19,7 +15,7 @@ else()
 endif()
 
 set(QT_COMMON_BASE
-      main.cpp 
+#      main.cpp 
       qt_utils.cpp
 	  menu_flags.cpp
 	  
@@ -33,11 +29,16 @@ set(QT_COMMON_BASE
 	  ../osd_wrapper.cpp
 )
 
+if(0)
+	if(WIN32)
+		set(QT_COMMON_BASE ../gui/qt_main.cpp ${QT_COMMON_BASE} )
+	endif()
+	add_library(common
+		${QT_COMMON_BASE}
+		${s_qt_common_headers_MOC}
+	)
 
-# QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
-#		      ${CMAKE_CURRENT_SOURCE_DIR}/qrc/i18n_global.qrc
-#		      ${CMAKE_CURRENT_SOURCE_DIR}/qrc/icons.qrc)
-
+else()
 if(WIN32)
 	set(QT_COMMON_BASE ../gui/qt_main.cpp ${QT_COMMON_BASE} )
 
@@ -45,17 +46,12 @@ if(WIN32)
 	  WIN32
 	  ${QT_COMMON_BASE}
 	  ${s_qt_common_headers_MOC}
-#	  ${s_qt_common_RCC}
 	  )
  else()
-  add_executable(${EXEC_TARGET}
+	add_executable(${EXEC_TARGET}
 	  ${QT_COMMON_BASE}
 	  ${s_qt_common_headers_MOC}
-#	  ${s_qt_common_RCC}
 	  )
-#  add_precompiled_header(${EXEC_TARGET} pch_list
-#	  SOURCE_CXX pch.cpp FORCEINCLUDE
-#	  )
 endif()
 #cotire(${EXEC_TARGET})
 
@@ -88,4 +84,4 @@ else()
  target_link_libraries(${EXEC_TARGET} ${LOCAL_LIBS} ${BUNDLE_LIBS} -lpthread)
 endif()
 install(TARGETS ${EXEC_TARGET} DESTINATION bin)
-
+endif()

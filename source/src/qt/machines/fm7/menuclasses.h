@@ -4,6 +4,7 @@
 
 #include "commonclasses.h"
 #include "mainwidget.h"
+#include "vm.h"
 // This extends class CSP_MainWindow as Ui_MainWindow.
 // You may use this as 
 QT_BEGIN_NAMESPACE
@@ -20,30 +21,22 @@ signals:
 	//  int sig_sound_device(int);
 	int sig_emu_update_config(void);
 public slots:
-# if defined(WITH_Z80)
+
 	void do_set_z80card_on(bool flag);
 	void do_set_z80_irq(bool flag);
 	void do_set_z80_firq(bool flag);
 	void do_set_z80_nmi(bool flag);
-# endif	
-
 	void do_set_hsync(bool flag);
 
-# if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 	void do_set_kanji_rom(bool flag);
 	void do_set_320kFloppy(bool flag);
-# endif
-# if defined(HAS_2HD)
+	
 	void do_set_1MFloppy(bool flag);
-# endif   
-# if defined(_FM8)
 	void do_set_protect_ram(bool flag);
-# else   
+
 	void do_set_cyclesteal(bool flag);
-# endif
-#if defined(CAPABLE_JCOMMCARD)
 	void do_set_jcommcard(bool flag);
-#endif
+
 	void do_set_uart(bool flag);
 	void do_set_autokey_5_8(void);
 };

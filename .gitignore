@@ -164,6 +164,8 @@ ipch/
 node_modules/
 packages/*
 publish/
+source/*/build/*
+source/build/*
 source/build-cmake/*/build-win32/*
 source/build-cmake/*/build/*
 source/src/vm/libcpu_newdev/mame0185/*

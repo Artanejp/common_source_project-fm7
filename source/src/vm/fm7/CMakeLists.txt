@@ -1,8 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 
 message("* vm/fm7")
-#include(cotire)
-
 set(VM_FM7_LIB_SRCS
 	display.cpp
 	vram.cpp
@@ -22,41 +20,65 @@ set(VM_FM7_LIB_SRCS
 	fm7.cpp
 )
 
-if(BUILD_FM8)
-  set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} fm_bubblecasette.cpp fm8_mainio.cpp)
-elseif(BUILD_FM7)
-  set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} jcommcard.cpp)
-elseif(BUILD_FMNEW7)
-  set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} jcommcard.cpp)
-elseif(BUILD_FM77)
-  set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} jcommcard.cpp 	floppy_2HD.cpp)
-elseif(BUILD_FM77L2)
-  set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} jcommcard.cpp 	floppy_2HD.cpp)
-elseif(BUILD_FM77L4)
-  set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} jcommcard.cpp 	floppy_2HD.cpp)
-elseif(BUILD_FM77AV)
-  set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} jcommcard.cpp)
+if(${EXE_NAME} STREQUAL emufm8)
+	add_library(vm_emufm8
+		${VM_FM7_LIB_SRCS}
+		fm_bubblecasette.cpp
+		fm8_mainio.cpp
+	)
+elseif(${EXE_NAME} STREQUAL emufm7)
+	add_library(vm_emufm7
+		${VM_FM7_LIB_SRCS}
+		jcommcard.cpp
+	)		
+elseif(${EXE_NAME} STREQUAL emufm77)
+	add_library(vm_emufm77
+		${VM_FM7_LIB_SRCS}
+		jcommcard.cpp
+		floppy_2HD.cpp
+	)
+elseif(${EXE_NAME} STREQUAL emufm77l2)
+	add_library(vm_emufm77l2
+		${VM_FM7_LIB_SRCS}
+		jcommcard.cpp
+		floppy_2HD.cpp
+	)
+elseif(${EXE_NAME} STREQUAL emufm77l4)
+	add_library(vm_emufm77l4
+		${VM_FM7_LIB_SRCS}
+		jcommcard.cpp
+		floppy_2HD.cpp
+	)
+elseif(${EXE_NAME} STREQUAL emufm77av)
+	add_library(vm_emufm77av
+		${VM_FM7_LIB_SRCS}
+		jcommcard.cpp
+	)
+else()
+	add_library(vm_${EXE_NAME}
+		${VM_FM7_LIB_SRCS}
+	)		
 endif()
 
-if(USE_DEVICES_SHARED_LIB)
-else()
+if(NOT USE_DEVICES_SHARED_LIB)
 	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} dummydevice.cpp)
-	if(FM77AV_VARIANTS)
+	if(${EXE_NAME} STREQUAL emufm77av)
 		set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} mb61vh010.cpp)
 	endif()
-	  
-	if(BUILD_FM77AV20EX)
-		set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)
-	elseif(BUILD_FM77AV40)
-		set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)
-	elseif(BUILD_FM77AV40EX)
-		set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)
-	elseif(BUILD_FM77AV40SX)
-		set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)
+	if(${EXE_NAME} STREQUAL emufm77av20)
+		set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} mb61vh010.cpp)
 	endif()
-	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} dummydevice.cpp)
+	if(${EXE_NAME} STREQUAL emufm77av20ex)
+		set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} mb61vh010.cpp hd6844.cpp)
+	endif()
+	if(${EXE_NAME} STREQUAL emufm77av40)
+		set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} mb61vh010.cpp hd6844.cpp)
+	endif()
+	if(${EXE_NAME} STREQUAL emufm77av40ex)
+		set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} mb61vh010.cpp hd6844.cpp)
+	endif()
+	if(${EXE_NAME} STREQUAL emufm77av40sx)
+		set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} mb61vh010.cpp hd6844.cpp)
+	endif()
 endif()
-add_library(vm_fm7
-	${VM_FM7_LIB_SRCS}
-)
-#cotire(vm_fm7)
+

@@ -32,7 +32,6 @@ Object_Menu_Control_7::~Object_Menu_Control_7()
 {
 }
 
-#if defined(WITH_Z80)
 void Object_Menu_Control_7::do_set_z80card_on(bool flag)
 {
 	if(flag) {
@@ -71,7 +70,7 @@ void Object_Menu_Control_7::do_set_z80_nmi(bool flag)
 	}
 	emit sig_emu_update_config();
 }
-#endif
+
 void Object_Menu_Control_7::do_set_uart(bool flag)
 {
 	uint32_t nval;
@@ -98,7 +97,6 @@ void Object_Menu_Control_7::do_set_uart(bool flag)
 	}
 }
 
-#if defined(CAPABLE_JCOMMCARD)
 void Object_Menu_Control_7::do_set_jcommcard(bool flag)
 {
 	if(flag) {
@@ -107,9 +105,7 @@ void Object_Menu_Control_7::do_set_jcommcard(bool flag)
 		config.dipswitch = config.dipswitch & ~FM7_DIPSW_JSUBCARD_ON;
 	}
 }
-#endif
 
-#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 void Object_Menu_Control_7::do_set_kanji_rom(bool flag)
 {
 	if(flag) {
@@ -118,9 +114,7 @@ void Object_Menu_Control_7::do_set_kanji_rom(bool flag)
 		config.dipswitch = config.dipswitch & ~FM7_DIPSW_CONNECT_KANJIROM;
 	}
 }
-#endif
 
-#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 void Object_Menu_Control_7::do_set_320kFloppy(bool flag)
 {
 	if(flag) {
@@ -129,9 +123,7 @@ void Object_Menu_Control_7::do_set_320kFloppy(bool flag)
 		config.dipswitch = config.dipswitch & ~FM7_DIPSW_CONNECT_320KFDC;
 	}
 }
-#endif
 
-#if defined(HAS_2HD)
 void Object_Menu_Control_7::do_set_1MFloppy(bool flag)
 {
 	if(flag) {
@@ -140,7 +132,6 @@ void Object_Menu_Control_7::do_set_1MFloppy(bool flag)
 		config.dipswitch = config.dipswitch & ~FM7_DIPSW_CONNECT_1MFDC;
 	}
 }
-#endif
 
 
 void Object_Menu_Control_7::do_set_autokey_5_8(void)
@@ -162,10 +153,6 @@ void Object_Menu_Control_7::do_set_autokey_5_8(void)
 	}
 }
 
-
-
-
-#if defined(_FM8)
 void Object_Menu_Control_7::do_set_protect_ram(bool flag)
 {
 	if(flag) {
@@ -175,7 +162,7 @@ void Object_Menu_Control_7::do_set_protect_ram(bool flag)
 	}
 	emit sig_emu_update_config();
 }
-#else
+
 void Object_Menu_Control_7::do_set_cyclesteal(bool flag)
 {
 	if(flag) {
@@ -185,7 +172,7 @@ void Object_Menu_Control_7::do_set_cyclesteal(bool flag)
 	}
 	emit sig_emu_update_config();
 }
-#endif
+
 void Object_Menu_Control_7::do_set_hsync(bool flag)
 {
 	if(flag) {
@@ -230,6 +217,7 @@ void META_MainWindow::do_set_extram(bool flag)
 	}
 #endif
 }
+
 #if defined(CAPABLE_DICTROM) && !defined(_FM77AV40EX) && !defined(_FM77AV40SX)
 void META_MainWindow::do_set_use_dictcard(bool flag)
 {

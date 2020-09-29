@@ -302,10 +302,8 @@
 #endif
 #define BASE_FLOPPY_DISK_NUM 0
 
-#ifdef BUILD_Z80
-# ifdef CAPABLE_Z80
+#ifdef CAPABLE_Z80
 #  define WITH_Z80
-# endif
 #endif
 
 // DIP Switch description
