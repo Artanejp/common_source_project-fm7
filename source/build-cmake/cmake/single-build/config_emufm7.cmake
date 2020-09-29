@@ -33,18 +33,21 @@ set(BUILD_FM7 ON CACHE BOOL "Build for FM7")
 set(BUILD_FMNEW7 ON CACHE BOOL "Build for FM7")
 set(BUILD_FM8 ON CACHE BOOL "Build for FM8")
 set(BUILD_FM77 ON CACHE BOOL "Build for FM77")
-set(BUILD_FM77L2 ON CACHE BOOL "Build for FM77L2")
+#set(BUILD_FM77L2 ON CACHE BOOL "Build for FM77L2")
 set(BUILD_FM77L4 ON CACHE BOOL "Build for FM77L4")
 set(BUILD_FM77AV ON CACHE BOOL "Build for FM77AV")
-set(BUILD_FM77AV20 ON CACHE BOOL "Build for FM77AV20")
+#set(BUILD_FM77AV20 ON CACHE BOOL "Build for FM77AV20")
 set(BUILD_FM77AV40 ON CACHE BOOL "Build for FM77AV40")
 set(BUILD_FM77AV40SX ON CACHE BOOL "Build for FM77AV40SX")
 set(BUILD_FM77AV40EX ON CACHE BOOL "Build for FM77AV40EX")
-set(FM77_EXTRAM_PAGES  "12" CACHE STRING "Set banks of EXTRAM of FM77/FM77AV40, bank = 64Kbytes")
+set(FM77_EXTRAM_PAGES  "3" CACHE STRING "Set banks of EXTRAM of FM77, bank = 64Kbytes")
+#set(FM77L2_EXTRAM_PAGES  "3" CACHE STRING "Set banks of EXTRAM of FM77L2, bank = 64Kbytes")
+set(FM77L4_EXTRAM_PAGES  "3" CACHE STRING "Set banks of EXTRAM of FM77L4, bank = 64Kbytes")
+set(FM77AV40_EXTRAM_PAGES  "12" CACHE STRING "Set banks of EXTRAM of FM77AV40, bank = 64Kbytes")
+set(FM77AV40SX_EXTRAM_PAGES  "12" CACHE STRING "Set banks of EXTRAM of FM77AV40SX, bank = 64Kbytes")
+set(FM77AV40EX_EXTRAM_PAGES  "12" CACHE STRING "Set banks of EXTRAM of FM77AV40SX, bank = 64Kbytes")
 
 set(FM7_DEBUG_FDC  OFF CACHE BOOL "With debug FDC")
-set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
-set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 
 include(detect_target_cpu)
 # set entry
@@ -83,7 +86,7 @@ if(BUILD_FM77L4)
 	set(RESOURCE ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/qt/common/qrc/fm77l4.qrc)
 	ADD_VM(fm7 emufm77l4 _FM77L4)
 	target_compile_definitions(emufm77l4
-		PRIVATE -DFM77_EXRAM_BANKS=${FM77_EXTRAM_PAGES}
+		PRIVATE -DFM77_EXRAM_BANKS=${FM77L4_EXTRAM_PAGES}
 	)
 endif()
 if(BUILD_FM77AV)
@@ -106,7 +109,7 @@ if(BUILD_FM77AV40)
 	set(RESOURCE ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/qt/common/qrc/fm77av40.qrc)
 	ADD_VM(fm7 emufm77av40 _FM77AV40)
 	target_compile_definitions(emufm77av40
-		PRIVATE -DFM77_EXRAM_BANKS=${FM77_EXTRAM_PAGES}
+		PRIVATE -DFM77_EXRAM_BANKS=${FM77AV40_EXTRAM_PAGES}
 	)
 endif()
 if(BUILD_FM77AV40SX)
@@ -114,7 +117,7 @@ if(BUILD_FM77AV40SX)
 	set(RESOURCE ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/qt/common/qrc/fm77av40sx.qrc)
 	ADD_VM(fm7 emufm77av40sx _FM77AV40SX)
 	target_compile_definitions(emufm77av40sx
-		PRIVATE -DFM77_EXRAM_BANKS=${FM77_EXTRAM_PAGES}
+		PRIVATE -DFM77_EXRAM_BANKS=${FM77AV40SX_EXTRAM_PAGES}
 	)
 endif()
 if(BUILD_FM77AV40EX)
@@ -122,7 +125,7 @@ if(BUILD_FM77AV40EX)
 	set(RESOURCE ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/qt/common/qrc/fm77av40ex.qrc)
 	ADD_VM(fm7 emufm77av40ex _FM77AV40EX)
 	target_compile_definitions(emufm77av40ex
-		PRIVATE -DFM77_EXRAM_BANKS=${FM77_EXTRAM_PAGES}
+		PRIVATE -DFM77_EXRAM_BANKS=${FM77AV40EX_EXTRAM_PAGES}
 	)
 endif()
 

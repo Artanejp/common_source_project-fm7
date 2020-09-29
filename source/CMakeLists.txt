@@ -17,7 +17,7 @@ project (CSP
 #set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 set(USE_DEVICES_SHARED_LIB ON CACHE BOOL "Make devices as one shared library.")
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/build-cmake/cmake/single-build")
-set(BUILD_FM7 ON CACHE BOOL "Build for FM7")
+
 
 include(config)
 
