@@ -15,7 +15,8 @@ void main ()
 		pixel = vec4(pixel_r_1.rgb, 1.0);
 		gl_FragColor = pixel;
 	} else {
-	    discard;
+//	    discard;
+	    pixel = vec4(0.0);
 	}
 }
 

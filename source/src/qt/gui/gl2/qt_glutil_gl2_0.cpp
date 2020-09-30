@@ -800,7 +800,7 @@ void GLDraw_2_0::drawScreenTexture(void)
 				 buffer_screen_vertex,
 				 vertexFormat,
 				 uVramTextureID->textureId(), // v2.0
-				 color, smoosing);
+				 color, smoosing, false);
 	}		
 }
 
@@ -831,7 +831,7 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 			extfunc_2->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			extfunc_2->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 		}
-
+#if 1
 		if((bp != NULL) && (vp != NULL) && (prg != NULL)) {
 			if((bp->isCreated()) && (vp->isCreated()) && (prg->isLinked())) {
 				bp->bind();
@@ -896,7 +896,7 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 				return;
 			}
 		}
-		
+#endif		
 		{ // Fallback
 			int i;
 			extfunc_2->glDisable(GL_DEPTH_TEST);
