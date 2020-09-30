@@ -1,4 +1,4 @@
-
+#
 include(CheckFunctionExists)
 
 # Still not as one shared lib with win32
@@ -12,7 +12,7 @@ endif()
 cmake_host_system_information(RESULT OSNAME QUERY OS_NAME)
 cmake_host_system_information(RESULT OSVERSION QUERY OS_VERSION)
 cmake_host_system_information(RESULT OSARCH QUERY OS_PLATFORM)
-message("* OSNAME=" ${OSNAME} " RELEASE=" ${OSVERSION} " ARCH=" ${OSARCH} " OSARCH=" ${CMAKE_LIBRARY_ARCHITECTURE})
+message("*HOST: OSNAME=" ${OSNAME} " RELEASE=" ${OSVERSION} " ARCH=" ${OSARCH} " OSARCH=" ${CMAKE_LIBRARY_ARCHITECTURE})
 
 set(NEED_REPLACE_LIBDIR OFF)
 #if((UNIX) AND (NOT DEFINED LIBCSP_INSTALL_DIR)) 
@@ -22,7 +22,7 @@ set(NEED_REPLACE_LIBDIR OFF)
 		file(READ "/etc/lsb-release" TMPDATA)
 		string(REGEX MATCH "ID.*Ubuntu" STR_UBUNTU TMPDATA)
 		string(REGEX MATCH "DESCRIPTION.*Debian" STR_DEBIAN TMPDATA)
-#		message("*UBUNTU=" ${STR_UBUNTU} " DEBIAN=" STR_DEBIAN)
+		message("*BUILD: UBUNTU=" ${STR_UBUNTU} " DEBIAN=" STR_DEBIAN)
 	endif()
 	if(("${STR_DEBIAN}") OR ("${STR_UBUNTU}"))
 		set(NEED_REPLACE_LIBDIR ON)
