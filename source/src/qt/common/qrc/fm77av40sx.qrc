@@ -1,6 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-    <file alias="default.ico">../../../res/fm77av40sx.ico</file>
+    <file alias="default.ico">../../../res/fm77av40wx1.ico</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/fm77av.txt</file>
 	<file alias="machine.ja_JP.qm">../../../res/i18n/ja/fm7.ja_JP.qm</file>
 </qresource>

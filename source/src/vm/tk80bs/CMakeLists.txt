@@ -7,11 +7,17 @@ set(VMFILES_TK
 	keyboard.cpp
 
 	membus.cpp
+#	./memory.cpp
 	../i8080.cpp
 	tk80bs.cpp
 )
 if(${EXE_NAME} STREQUAL emutk80bs)
 	add_library(vm_emutk80bs
+		cmt.cpp
+		${VMFILES_TK}
+	)
+elseif(${EXE_NAME} STREQUAL emutk80)
+	add_library(vm_emutk80
 		cmt.cpp
 		${VMFILES_TK}
 	)

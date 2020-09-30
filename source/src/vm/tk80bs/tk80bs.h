@@ -193,7 +193,7 @@ class I8255;
 class PCM1BIT;
 
 namespace TK80 {
-#if defined(_TK80BS)
+#if defined(_TK80BS) || defined(_TK80)
 	class CMT;
 #endif
 	//class MEMORY;
@@ -222,7 +222,7 @@ protected:
 	PCM1BIT* pcm0;
 	PCM1BIT* pcm1;
 	
-#if defined(_TK80BS)
+#if defined(_TK80BS) || defined(_TK80)
 	TK80::CMT* cmt;
 #endif
 	TK80::DISPLAY* display;

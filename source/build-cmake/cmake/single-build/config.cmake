@@ -184,7 +184,7 @@ endif()
 
 include(FindZLIB)
 if(ZLIB_FOUND)
-  add_definitions(-DUSE_ZLIB)
+	add_definitions(-DUSE_ZLIB)
    include_directories(${ZLIB_INCLUDE_DIRS})
 endif()
 
@@ -284,6 +284,7 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 	if(USE_SOCKET)
 		set(s_qt_common_headers ${s_qt_common_headers} ${COMMON_DIRECTORY}/../osd_socket.h)
 	endif()
+	QT5_ADD_RESOURCES(RESOURCE_${EXE_NAME} ${RESOURCE})
 	QT5_WRAP_CPP(s_qt_common_headers_MOC ${s_qt_common_headers})
 	set(QT_COMMON_BASE
 		${COMMON_DIRECTORY}/main.cpp
@@ -296,7 +297,7 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 		${COMMON_DIRECTORY}/../osd.cpp
 		${COMMON_DIRECTORY}/../osd_wrapper.cpp
 	)
-
+	
 	if(WIN32)
 		add_executable(${EXE_NAME} WIN32
 			${PROJECT_SOURCE_DIR}/src/vm/event.cpp
@@ -305,14 +306,15 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 			${COMMON_DIRECTORY}/../gui/qt_main.cpp
 			${QT_COMMON_BASE}
 			${s_qt_common_headers_MOC}
+			${RESOURCE_${EXE_NAME}}
 		)
 	else()
 		add_executable(${EXE_NAME} 
 			${PROJECT_SOURCE_DIR}/src/vm/event.cpp
-			${VMFILES}
 			${PROJECT_SOURCE_DIR}/src/emu.cpp
 			${QT_COMMON_BASE}
 			${s_qt_common_headers_MOC}
+			${RESOURCE_${EXE_NAME}}
 		)
     endif()
 	if(USE_SOCKET)

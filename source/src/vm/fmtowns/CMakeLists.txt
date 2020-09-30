@@ -31,7 +31,8 @@ set(VM_FMTOWNS_DEV_SRCS
 	towns_sysrom.cpp
 	towns_vram.cpp
 	towns_planevram.cpp
-
+	../scsi_host.cpp
+	../msm58321.cpp
 	fmtowns.cpp
 )
 
