@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/fm7")
+message("* vm/${EXE_NAME}")
 set(VM_FM7_LIB_SRCS
 	display.cpp
 	vram.cpp

@@ -1,4 +1,4 @@
-message("* qt/debugger")
+message("* qt/debugger_${EXE_NAME}")
 
 set(s_qt_debugger_headers
 	  qt_debugger.h

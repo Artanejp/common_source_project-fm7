@@ -1,4 +1,4 @@
-message("* qt/fmtowns")
+message("* qt/${EXE_NAME}")
 
 set(s_qt_fmtowns_headers
 	  menuclasses.h

@@ -3,12 +3,10 @@ message("* qt/smb80te")
 set(s_qt_smb80te_headers
 	  menuclasses.h
 )
-if(USE_QT_5)
-  QT5_WRAP_CPP(s_qt_smb80te_headers_MOC ${s_qt_smb80te_headers})
-else()
-  QT4_WRAP_CPP(s_qt_smb80te_headers_MOC ${s_qt_smb80te_headers})
-endif()
-add_library(qt_smb80te
+
+QT5_WRAP_CPP(s_qt_smb80te_headers_MOC ${s_qt_smb80te_headers})
+
+add_library(qt_emusmb80te
 	  MainWindow.cpp
 	  ${s_qt_smb80te_headers_MOC}
 )

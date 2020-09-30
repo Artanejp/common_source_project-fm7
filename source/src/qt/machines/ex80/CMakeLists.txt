@@ -4,13 +4,9 @@ set(s_qt_ex80_headers
 	  menuclasses.h
 )
 
-if(USE_QT_5)
-  QT5_WRAP_CPP(s_qt_ex80_headers_MOC ${s_qt_ex80_headers})
-else()
-  QT4_WRAP_CPP(s_qt_ex80_headers_MOC ${s_qt_ex80_headers})
-endif()
+QT5_WRAP_CPP(s_qt_ex80_headers_MOC ${s_qt_ex80_headers})
 
-add_library(qt_ex80
+add_library(qt_emuex80
 	  MainWindow.cpp
 	  ${s_qt_ex80_headers_MOC}
 )

@@ -4,14 +4,9 @@ set(s_qt_yalky_headers
 	  menuclasses.h
 )
 
-if(USE_QT_5)
-  QT5_WRAP_CPP(s_qt_yalky_headers_MOC ${s_qt_yalky_headers})
-#  QT5_ADD_RESOURCES(s_qt_fm7_headers_RCC ${RESOURCE})
-else()
-  QT4_WRAP_CPP(s_qt_yalky_headers_MOC ${s_qt_yalky_headers})
-endif()
+QT5_WRAP_CPP(s_qt_yalky_headers_MOC ${s_qt_yalky_headers})
 
-add_library(qt_yalky
+add_library(qt_emuyalky
 	  MainWindow.cpp
 	  ${s_qt_yalky_headers_MOC}
 )

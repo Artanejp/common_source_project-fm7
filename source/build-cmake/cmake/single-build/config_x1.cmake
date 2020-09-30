@@ -1,0 +1,27 @@
+set(BUILD_X1 ON CACHE BOOL "Build for X1")
+set(BUILD_X1TURBO ON CACHE BOOL "Build for X1 Turbo")
+set(BUILD_X1TURBOZ ON CACHE BOOL "Build for X1 TurboZ")
+set(BUILD_X1TWIN ON CACHE BOOL "Build for X1 twin")
+
+
+set(USE_FMGEN ON)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE ON)
+if(BUILD_X1)
+	set(RESOURCE ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/qt/common/qrc/x1.qrc)
+	ADD_VM(x1 emux1 _X1)
+endif()
+
+if(BUILD_X1TURBO)
+	set(RESOURCE ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/qt/common/qrc/x1turbo.qrc)
+	ADD_VM(x1 emux1turbo _X1TURBO)
+endif()
+if(BUILD_X1TURBOZ)
+	set(RESOURCE ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/qt/common/qrc/x1turboz.qrc)
+	ADD_VM(x1 emux1turboz _X1TURBOZ)
+endif()
+
+if(BUILD_X1TWIN)
+	set(RESOURCE ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/qt/common/qrc/x1twin.qrc)
+	ADD_VM(x1 emux1twin _X1TWIN)
+endif()

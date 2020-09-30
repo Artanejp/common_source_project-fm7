@@ -1,4 +1,4 @@
-message("* qt/fm7")
+message("* qt/${EXE_NAME}")
 
 set(s_qt_fm7_headers
 	  menuclasses.h

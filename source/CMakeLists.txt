@@ -22,7 +22,10 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/build-cmake/cmake/single-build")
 include(config)
 
 include(config_emufm7)
-
 include(config_fmtowns)
 
+include(config_pc8801)
+include(config_x1)
+
+include(config_singleboards)
 
