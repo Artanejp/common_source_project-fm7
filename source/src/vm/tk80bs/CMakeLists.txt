@@ -7,15 +7,16 @@ set(VMFILES_TK
 	keyboard.cpp
 
 	membus.cpp
+	../i8080.cpp
+	tk80bs.cpp
 )
 if(${EXE_NAME} STREQUAL emutk80bs)
 	add_library(vm_emutk80bs
-		${VMFILES_TK} cmt.cpp
-		tk80bs.cpp
+		cmt.cpp
+		${VMFILES_TK}
 	)
 else()
 	add_library(vm_${EXE_NAME}
 		${VMFILES_TK}
-		tk80bs.cpp
 	)
 endif()

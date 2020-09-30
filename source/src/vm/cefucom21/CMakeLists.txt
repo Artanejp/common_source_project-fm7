@@ -7,4 +7,5 @@ add_library(vm_emucefucom21
 	
 	mcu.cpp
 	pcu.cpp
+	../mc6847.cpp
 )
