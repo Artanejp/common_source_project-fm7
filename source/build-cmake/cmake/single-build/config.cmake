@@ -1,12 +1,26 @@
 
-
 include(CheckFunctionExists)
 
 # Still not as one shared lib with win32
 if(WIN32)
 	set(USE_DEVICES_SHARED_LIB OFF)
 endif()
-
+if(UNIX)
+	include(GNUInstallDirs)
+endif()
+# Check HOST NAME
+cmake_host_system_information(RESULT OSNAME QUERY OS_NAME)
+cmake_host_system_information(RESULT OSVERSION QUERY OS_VERSION)
+cmake_host_system_information(RESULT OSARCH QUERY OS_PLATFORM)
+message("* OSNAME=" ${OSNAME} " RELEASE=" ${OSVERSION} " ARCH=" ${OSARCH} " OSARCH=" ${CMAKE_LIBRARY_ARCHITECTURE})
+if((UNIX) AND (NOT DEFINED LIBCSP_INSTALL_DIR)) 
+	# Modify LIBDIR if supports MULTI-ARCH.
+	# ToDo: Another OSs
+	if(("${OSVERSION}" MATCHES "^.*Debian.*$") OR ("${OSVERSION}" MATCHES "^.*Ubuntu.*$"))
+		set(LIBCSP_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_LIBRARY_ARCHITECTURE}")
+		message("* CHANGE LIB_CSP_INSTALL_DIR TO " ${LIBCSP_INSTALL_DIR})
+	endif()
+endif()
 if(USE_DEVICES_SHARED_LIB)
   add_definitions(-DUSE_SHARED_DLL)
   add_definitions(-DUSE_SHARED_UI_DLL)
@@ -354,18 +368,20 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 	if(USE_DEVICES_SHARED_LIB)
 		set(BUNDLE_LIBS
 			${BUNDLE_LIBS}
-			-lCSPosd
-			-lCSPcommon_vm
-			-lCSPfmgen
-			-lCSPgui
-			-lCSPemu_utils
-			-lCSPavio)
+			CSPosd
+			CSPcommon_vm
+			CSPfmgen
+			CSPgui
+			CSPemu_utils
+			CSPavio
+		)
 	else()
 		set(BUNDLE_LIBS
 			${BUNDLE_LIBS}
-			-lCSPosd
-			-lCSPgui
-			-lCSPavio)
+#			-lCSPosd
+#			-lCSPgui
+#			-lCSPavio
+		)
 	endif()
 
 	# Subdirectories
@@ -420,7 +436,11 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 			${BUNDLE_LIBS}
 			-lpthread)
 	endif()
-	install(TARGETS ${EXE_NAME} DESTINATION bin)
+	install(TARGETS ${EXE_NAME} 
+		RUNTIME DESTINATION bin
+		LIBRARY DESTINATION "${CMAKE_LIBRARY_ARCHITECTURE}"
+		ARCHIVE DESTINATION "${CMAKE_LIBRARY_ARCHITECTURE}"
+	)
 endfunction()
 
 
