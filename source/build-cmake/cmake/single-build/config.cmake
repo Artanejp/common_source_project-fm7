@@ -281,13 +281,12 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 	set(s_qt_common_headers
 		${COMMON_DIRECTORY}/emu_thread.h
 		${COMMON_DIRECTORY}/mainwidget.h
-		${COMMON_DIRECTORY}/../osd.h
+		${PROJECT_SOURCE_DIR}/src/qt/osd.h
 	)
-	if(${USE_SOCKET_${EXE_NAME}})
-		set(s_qt_common_headers ${s_qt_common_headers} ${PROJECT_SOURCE_DIR}/src/qt/osd_socket.h)
-	endif()
+	
 	QT5_ADD_RESOURCES(RESOURCE_${EXE_NAME} ${RESOURCE})
 	QT5_WRAP_CPP(s_qt_common_headers_MOC ${s_qt_common_headers})
+	
 	set(QT_COMMON_BASE
 		${COMMON_DIRECTORY}/main.cpp
 		${COMMON_DIRECTORY}/qt_utils.cpp
@@ -299,17 +298,22 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 		${COMMON_DIRECTORY}/../osd.cpp
 		${COMMON_DIRECTORY}/../osd_wrapper.cpp
 	)
-	
+	if(${USE_SOCKET_${EXE_NAME}})
+			set(QT_COMMON_BASE
+				${QT_COMMON_BASE}
+				${s_qt_net_headers_MOC}
+			)
+	endif()
 	if(WIN32)
 		add_executable(${EXE_NAME} WIN32
 			${PROJECT_SOURCE_DIR}/src/vm/event.cpp
 			${VMFILES}
 			${PROJECT_SOURCE_DIR}/src/emu.cpp
 			${COMMON_DIRECTORY}/../gui/qt_main.cpp
-			${QT_COMMON_BASE}
 			${s_qt_common_headers_MOC}
 			${RESOURCE_${EXE_NAME}}
-		)
+			${QT_COMMON_BASE}
+	)
 	else()
 		add_executable(${EXE_NAME} 
 			${PROJECT_SOURCE_DIR}/src/vm/event.cpp
@@ -319,11 +323,7 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 			${RESOURCE_${EXE_NAME}}
 		)
     endif()
-	if(${USE_SOCKET_${EXE_NAME}})
-		QT5_USE_MODULES(${EXE_NAME} Widgets Core Gui OpenGL Network)
-	else()
-		QT5_USE_MODULES(${EXE_NAME} Widgets Core Gui OpenGL)
-	endif()
+	QT5_USE_MODULES(${EXE_NAME} Widgets Core Gui OpenGL Network)
 	target_include_directories(${EXE_NAME} 
 		PRIVATE "${PROJECT_SOURCE_DIR}/src/qt/machines/${VM_NAME}"
 		PRIVATE "${PROJECT_SOURCE_DIR}/src/vm/${VM_NAME}"

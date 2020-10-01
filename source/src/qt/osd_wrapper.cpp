@@ -580,6 +580,9 @@ void OSD::reset_vm_node()
 
 #if defined(USE_SOCKET)
 #include <QHostAddress>
+#include <QTcpSocket>
+#include <QUdpSocket>
+
 #include "osd_socket.h"
 #endif
 // Socket
@@ -889,65 +892,6 @@ int OSD::get_socket(int ch)
 }
 
 //
-#if defined(USE_SOCKET)
-QTcpSocket2::QTcpSocket2(int channel, QObject *parent) : QTcpSocket(parent)
-{
-	ch = channel;
-}
-
-QTcpSocket2::~QTcpSocket2()
-{
-}
-
-void QTcpSocket2::do_connected(void)
-{
-	emit sig_connected(ch);
-}
-
-void QTcpSocket2::do_disconnected(void)
-{
-	emit sig_disconnected(ch);
-}
-
-void QTcpSocket2::setChannel(int channel)
-{
-	ch = channel;
-}
-
-int QTcpSocket2::getChannel(void)
-{
-	return ch;
-}
-
-QUdpSocket2::QUdpSocket2(int channel, QObject *parent) : QUdpSocket(parent)
-{
-	ch = channel;
-}
-
-QUdpSocket2::~QUdpSocket2()
-{
-}
-
-void QUdpSocket2::do_connected(void)
-{
-	emit sig_connected(ch);
-}
-
-void QUdpSocket2::do_disconnected(void)
-{
-	emit sig_disconnected(ch);
-}
-
-void QUdpSocket2::setChannel(int channel)
-{
-	ch = channel;
-}
-
-int QUdpSocket2::getChannel(void)
-{
-	return ch;
-}
-#endif
 
 // Screen
 scrntype_t* OSD::get_buffer(bitmap_t *p, int y)

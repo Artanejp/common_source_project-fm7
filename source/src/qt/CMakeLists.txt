@@ -1,16 +1,12 @@
 message("* qt/osd")
-SET(THIS_LIB_VERSION 3.0.2)
+SET(THIS_LIB_VERSION 3.1.0)
 
 set(s_qt_osd_headers
 	osd_base.h
+	osd_socket.h
 )
-#include(PrecompiledHeader)
 
-if(USE_QT_5)
-  QT5_WRAP_CPP(s_qt_osd_headers_MOC ${s_qt_osd_headers})
-else()
-  QT4_WRAP_CPP(s_qt_osd_headers_MOC ${s_qt_osd_headers})
-endif()
+QT5_WRAP_CPP(s_qt_osd_headers_MOC ${s_qt_osd_headers})
 
 SET(s_qt_osd_srcs
 #	  pch.cpp
@@ -22,23 +18,20 @@ SET(s_qt_osd_srcs
 	  osd_socket.cpp
 	  osd_sound.cpp
 	  osd_video.cpp
+	  qudpsocket2.cpp
+	  qtcpsocket2.cpp
 	  ${s_qt_osd_headers_MOC}
 
 )
 add_definitions(-D__LIBOSD_VERSION=\"libCSPosd.${THIS_LIB_VERSION}\")
 
-if(WIN32)
-#add_library(qt_osd
-#    ${s_qt_osd_srcs}
-#    ${s_qt_osd_headers_MOC}
-#    )
-#set_property(TARGET qt_osd PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
 include (GenerateExportHeader)
   add_library(CSPosd SHARED
     ${s_qt_osd_srcs}
     ${s_qt_osd_headers_MOC}
   )
 
+if(WIN32)
 target_link_libraries(CSPosd PUBLIC
           PRIVATE ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a
 #          INTERFACE ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPgui.dll.a
@@ -47,6 +40,7 @@ target_link_libraries(CSPosd PUBLIC
 	  Qt5::Gui
 	  Qt5::OpenGL
 	  Qt5::Widgets
+	  Qt5::Network
 	  ${SDL2_LIBRARIES}
 	  )
 generate_export_header(CSPosd
@@ -62,11 +56,6 @@ generate_export_header(CSPosd
 
 else()
 	#if(USE_DEVICES_SHARED_LIB)
-	  add_library(CSPosd SHARED
-		${s_qt_osd_srcs}
-		${s_qt_osd_headers_MOC}
-#		pch.cpp
-		)
 #	  add_precompiled_header(CSPosd pch_list
 #		SOURCE_CXX pch.cpp FORCEINCLUDE
 #		)
@@ -74,6 +63,7 @@ else()
 		Qt5::Core
 		Qt5::Gui
 		Qt5::Widgets
+		Qt5::Network
 		${SDL2_LIBRARIES}
 		)
 	  set_target_properties(CSPosd PROPERTIES 

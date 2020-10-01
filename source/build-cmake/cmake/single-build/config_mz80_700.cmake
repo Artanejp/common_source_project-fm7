@@ -5,7 +5,7 @@ set(BUILD_MZ1200 ON CACHE BOOL "Build for SHARP MZ-1200")
 set(BUILD_MZ80B ON CACHE BOOL "Build for SHARP MZ-80B")
 #set(BUILD_MZ2000 ON CACHE BOOL "Build for SHARP MZ-2000")
 set(BUILD_MZ2200 ON CACHE BOOL "Build for SHARP MZ-2200")
-#set(BUILD_MZ2500 ON CACHE BOOL "Build for SHARP MZ-2500")
+set(BUILD_MZ2500 ON CACHE BOOL "Build for SHARP MZ-2500")
 
 set(BUILD_MZ700 ON CACHE BOOL "Build for SHARP MZ-700")
 set(BUILD_MZ800 ON CACHE BOOL "Build for SHARP MZ-800")
@@ -59,9 +59,22 @@ if(BUILD_MZ2200)
 	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/mz2200.qrc)
 	ADD_VM(mz2500 emumz2200 _MZ2200)
 endif()
+
 if(BUILD_MZ2500)
 	set(USE_SOCKET_emumz2500 ON)
 	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/mz2500.qrc)
 	ADD_VM(mz2500 emumz2500 _MZ2500)
+	# Set soicket flags
+	# ToDo: To be separated.
+	target_compile_definitions(common_emumz2500
+		PRIVATE  ${USE_SOCKET}
+	)
+	target_compile_definitions(qt_emumz2500
+		PUBLIC ${USE_SOCKET}
+	)
+	target_compile_definitions(emumz2500
+		PUBLIC ${USE_SOCKET}
+	)
+
 endif()
 

@@ -17,7 +17,6 @@
 
 #include "osd_base.h"
 
-#if defined(USE_SOCKET)
 #include <QTcpSocket>
 #include <QUdpSocket>
 
@@ -59,5 +58,4 @@ signals:
 };
 QT_END_NAMESPACE
 
-#endif
 #endif
