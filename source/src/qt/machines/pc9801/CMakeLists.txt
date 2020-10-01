@@ -1,4 +1,4 @@
-message("* qt/pc9801")
+message("* qt/${EXE_NAME}")
 
 set(s_qt_pc9801_headers
 	  menuclasses.h

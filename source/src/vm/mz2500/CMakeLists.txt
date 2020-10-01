@@ -1,8 +1,10 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/mz2500")
+message("* vm/${EXE_NAME}")
 
 set(MZ2500_SRCS
+	../mz1p17.cpp
+	
 	calendar.cpp
 	cmt.cpp
 	floppy.cpp
@@ -23,6 +25,8 @@ set(MZ2500_SRCS
 	)
 
 set(MZ80B_SRCS
+	../mz1p17.cpp
+	
 	cmt.cpp
 	floppy.cpp
 	keyboard.cpp
@@ -35,19 +39,28 @@ set(MZ80B_SRCS
 	serial.cpp
 	timer.cpp
 	)
+string(TOUPPER "${EXE_NAME}" U_EXE_NAME)
 
-if(BUILD_MZ2500)
-
-add_library(vm_mz2500 ${MZ2500_SRCS})
-
-elseif(BUILD_MZ80B)
-
-add_library(vm_mz2500 ${MZ80B_SRCS})
-
-elseif(BUILD_MZ2000)
-add_library(vm_mz2500 ${MZ80B_SRCS}  mz1m01.cpp)
-
-elseif(BUILD_MZ2200)
-add_library(vm_mz2500 ${MZ80B_SRCS}  mz1m01.cpp)
-
+if("${U_EXE_NAME}" STREQUAL "EMUMZ2500")
+	add_library(vm_${EXE_NAME}
+		../scsi_host.cpp
+		../w3100a.cpp
+		${MZ2500_SRCS}
+	)
+elseif("${U_EXE_NAME}" STREQUAL "EMUMZ80B")
+	add_library(vm_${EXE_NAME}
+			${MZ80B_SRCS}
+	)
+elseif("${U_EXE_NAME}" STREQUAL "EMUMZ2000")
+	add_library(vm_${EXE_NAME}
+		../mz700/quickdisk.cpp
+		mz1m01.cpp
+		${MZ80B_SRCS}
+	)
+elseif("${U_EXE_NAME}" STREQUAL "EMUMZ2200")
+	add_library(vm_${EXE_NAME}
+		../mz700/quickdisk.cpp
+		mz1m01.cpp
+		${MZ80B_SRCS}
+	)
 endif()

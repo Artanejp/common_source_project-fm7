@@ -24,6 +24,7 @@ include(config)
 include(config_emufm7)
 include(config_fmtowns)
 
+include(config_mz80_700)
 include(config_pc6001)
 include(config_pc8801)
 include(config_x1)

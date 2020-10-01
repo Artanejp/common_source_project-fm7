@@ -1,47 +1,50 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/mz700")
+message("* vm/${EXE_NAME}")
 
-if(BUILD_MZ800)
+string(TOUPPER "${EXE_NAME}" U_EXE_NAME)
 
-add_library(vm_mz700
-	cmos.cpp
-	emm.cpp
-	kanji.cpp
-	keyboard.cpp
-	memory.cpp
-	mz700.cpp
-	ramfile.cpp
-	floppy.cpp
-	quickdisk.cpp
+if("${U_EXE_NAME}" STREQUAL "EMUMZ800")
+add_library(vm_${EXE_NAME}
+	./cmos.cpp
+	./emm.cpp
+	./kanji.cpp
+	./keyboard.cpp
+	./memory.cpp
+	./ramfile.cpp
+	./floppy.cpp
+	./quickdisk.cpp
+	
+	./mz700.cpp
 )
+elseif("${U_EXE_NAME}" STREQUAL "EMUMZ1500")
+add_library(vm_${EXE_NAME}
+	../mz1p17.cpp
 
-elseif(BUILD_MZ1500)
-
-add_library(vm_mz700
-	cmos.cpp
-	emm.cpp
-	kanji.cpp
-	keyboard.cpp
-	memory.cpp
-	mz700.cpp
-	ramfile.cpp
-	floppy.cpp
-	quickdisk.cpp
-	ramfile.cpp
-	psg.cpp
+	./cmos.cpp
+	./emm.cpp
+	./kanji.cpp
+	./keyboard.cpp
+	./memory.cpp
+	./ramfile.cpp
+	./floppy.cpp
+	./quickdisk.cpp
+	./ramfile.cpp
+	./psg.cpp
+	
+	./mz700.cpp
 )
-
 else()
-
-add_library(vm_mz700
-	cmos.cpp
-	emm.cpp
-	kanji.cpp
-	keyboard.cpp
-	memory.cpp
-	mz700.cpp
-	ramfile.cpp
+# MZ700
+add_library(vm_${EXE_NAME}
+	./cmos.cpp
+	./emm.cpp
+	./kanji.cpp
+	./keyboard.cpp
+	./memory.cpp
+	./ramfile.cpp
+	
+	./mz700.cpp
 )
 
 
