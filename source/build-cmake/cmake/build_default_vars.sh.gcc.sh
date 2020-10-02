@@ -1,6 +1,7 @@
 cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../build-cmake/cmake/toolchain_native_gcc.cmake" \
       -DCMAKE_BUILD_TYPE=Relwithdebinfo \
       -DCMAKE_C_FLAGS_RELWITHDEBINFO=" \
+      		-gz=zlib \
       		-g2 \
 		-gno-inline-points \
 		-O3 \
@@ -8,6 +9,7 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../build-cmake/cmake/toolchain_native_gcc.
 		-mfpmath=sse \
 		" \
       -DCMAKE_CXX_FLAGS_RELWITHDEBINFO=" \
+      		-gz=zlib \
       		-g2 \
 		-O3 \
 		-msse2 \
