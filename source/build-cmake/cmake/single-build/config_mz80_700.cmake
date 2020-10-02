@@ -78,3 +78,12 @@ if(BUILD_MZ2500)
 
 endif()
 
+if(BUILD_MZ2800)
+	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/mz2800.qrc)
+	ADD_VM(mz2800 emumz2800 _MZ2800)
+endif()
+
+#if(BUILD_MZ3500)
+#	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/mz3500.qrc)
+#	ADD_VM(mz3500 emumz3500 _MZ3500)
+#endif()
