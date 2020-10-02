@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/pv1000")
+message("* vm/${EXE_NAME}")
 
 set(VM_PV1000_LIB_SRCS
 	pv1000.cpp
@@ -11,6 +11,6 @@ set(VM_PV1000_LIB_SRCS
 )
 
 
-add_library(vm_pv1000
+add_library(vm_${EXE_NAME}
 	${VM_PV1000_LIB_SRCS}
 )
