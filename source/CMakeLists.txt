@@ -21,21 +21,21 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/build-cmake/cmake/single-build")
 
 include(config)
 
-#include(config_emufm7)
-#include(config_fm16)
-#include(config_fmr)
-#include(config_fmtowns)
+include(config_emufm7)
+include(config_fm16)
+include(config_fmr)
+include(config_fmtowns)
 
-#include(config_casio)
-#include(config_msx)
-#include(config_mz80_700)
-#include(config_pc6001)
+include(config_casio)
+include(config_msx)
+include(config_mz80_700)
+include(config_pc6001)
 include(config_pc8801)
 include(config_pc9801)
-#include(config_x1)
+include(config_x1)
 
-#include(config_necmisc)
-#include(config_misccom)
+include(config_necmisc)
+include(config_misccom)
 
-#include(config_singleboards)
+include(config_singleboards)
 
