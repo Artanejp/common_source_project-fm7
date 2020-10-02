@@ -87,12 +87,9 @@ set(USE_LTO ON CACHE BOOL "Use link-time-optimization to build.")
 set(USE_OPENMP OFF CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 
-if(USE_LTO)
-   set_property(TARGET PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
-else()
-   set_property(TARGET PROPERTY INTERPROCEDURAL_OPTIMIZATION OFF)
-endif()
-
+#if(USE_LTO) 
+#	include(CheckIPOSupported)
+#endif()
 add_definitions(-D_USE_QT5)
 
 if(USE_QT5_4_APIS)
@@ -240,34 +237,57 @@ include_directories(
 )
 
 # Additional flags from toolchain.
-string(TOUPPER "${CMAKE_BUILD_TYPE}" U_BUILD_TYPE)
-if("${U_BUILD_TYPE}" MATCHES "RELWITHDEBINFO")
-#	if("${CSP_ADDTIONAL_FLAGS_COMPILE_RELWITHDEBINFO}")
-		add_compile_options(${CSP_ADDTIONAL_FLAGS_COMPILE_RELWITHDEBINFO})
-#	endif()
-#	if("${CSP_ADDTIONAL_FLAGS_LINK_RELWITHDEBINFO}")
-		add_link_options(${CSP_ADDTIONAL_FLAGS_LINK_RELWITHDEBINFO})
-#	endif()
-elseif("${U_BUILD_TYPE}" MATCHES "RELEASE")
-	if("${CSP_ADDTIONAL_FLAGS_COMPILE_RELEASE}")
-		add_compile_options(${CSP_ADDTIONAL_FLAGS_COMPILE_RELEASE}")
+function(additional_link_options n_target)
+	string(TOUPPER "${CMAKE_BUILD_TYPE}" U_BUILD_TYPE)
+	if("${U_BUILD_TYPE}" STREQUAL "RELWITHDEBINFO")
+		if(DEFINED CSP_ADDTIONAL_FLAGS_LINK_RELWITHDEBINFO)
+			target_link_options(${n_target}
+				PRIVATE ${CSP_ADDTIONAL_FLAGS_COMPILE_RELWITHDEBINFO}
+			)
+		endif()
+	elseif("${U_BUILD_TYPE}" STREQUAL "RELEASE")
+		if(DEFINED CSP_ADDTIONAL_FLAGS_LINK_RELEASE)
+			target_link_options(${n_target}
+				PRIVATE ${CSP_ADDTIONAL_FLAGS_COMPILE_RELEASE}
+			)
+		endif()
+	elseif("${U_BUILD_TYPE}" STREQUAL "DEBUG")
+		if(DEFINED CSP_ADDTIONAL_FLAGS_LINK_DEBUG)
+			target_link_options(${n_target}
+				PRIVATE ${CSP_ADDTIONAL_FLAGS_COMPILE_DEBUG}
+			)
+		endif()
 	endif()
-	if("${CSP_ADDTIONAL_FLAGS_LINK_RELEASE}")
-		add_link_options(${CSP_ADDTIONAL_FLAGS_LINK_RELEASE})
+endfunction(additional_link_options)
+
+function(additional_options n_target)
+	string(TOUPPER "${CMAKE_BUILD_TYPE}" U_BUILD_TYPE)
+	if("${U_BUILD_TYPE}" STREQUAL "RELWITHDEBINFO")
+		if(DEFINED CSP_ADDTIONAL_FLAGS_COMPILE_RELWITHDEBINFO)
+			target_compile_options(${n_target}
+				PRIVATE ${CSP_ADDTIONAL_FLAGS_COMPILE_RELWITHDEBINFO}
+			)
+		endif()
+	elseif("${U_BUILD_TYPE}" STREQUAL "RELEASE")
+		if(DEFINED CSP_ADDTIONAL_FLAGS_COMPILE_RELEASE)
+			target_compile_options(${n_target}
+				PRIVATE ${CSP_ADDTIONAL_FLAGS_COMPILE_RELEASE}
+			)
+		endif()
+	elseif("${U_BUILD_TYPE}" STREQUAL "DEBUG")
+		if(DEFINED CSP_ADDTIONAL_FLAGS_COMPILE_DEBUG)
+			target_compile_options(${n_target}
+				PRIVATE ${CSP_ADDTIONAL_FLAGS_COMPILE_DEBUG}
+			)
+		endif()
 	endif()
-elseif("${U_BUILD_TYPE}" MATCHES "DEBUG")
-	if("${CSP_ADDTIONAL_FLAGS_COMPILE_DEBUG}")
-		add_compile_options(${CSP_ADDTIONAL_FLAGS_COMPILE_DEBUG}")
-	endif()
-	if("${CSP_ADDTIONAL_FLAGS_LINK_DEBUG}")
-		add_link_options(${CSP_ADDTIONAL_FLAGS_LINK_DEBUG})
-	endif()
-endif()
+endfunction(additional_options)
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/qt" osd)
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/qt/avio" qt/avio)
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/qt/gui" qt/gui)
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/qt/emuutils" emu_utils)
+
 if(USE_DEVICES_SHARED_LIB)
 	add_subdirectory("${PROJECT_SOURCE_DIR}/src/vm/common_vm" vm/)
 	add_subdirectory("${PROJECT_SOURCE_DIR}/src/vm/fmgen" vm/fmgen)
@@ -468,6 +488,14 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 	target_compile_definitions(common_${EXE_NAME}
 		PRIVATE  ${VMDEF}
 	)
+
+#	additional_options(common_${EXE_NAME})
+#	additional_options(vm_${EXE_NAME})
+#	additional_options(qt_${EXE_NAME})
+#	additional_options(qt_debug_${EXE_NAME})
+
+#	additional_options(${EXE_NAME})
+#	additional_link_options(${EXE_NAME})
 
 	if(WIN32)
 		target_link_libraries(${EXE_NAME}
