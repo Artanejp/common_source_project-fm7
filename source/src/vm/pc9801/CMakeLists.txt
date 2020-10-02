@@ -50,6 +50,8 @@ elseif("${U_EXE_NAME}" STREQUAL "EMUPC98DO")
 	)
 elseif("${U_EXE_NAME}" STREQUAL "EMUPC9801VX")
 	add_library(vm_${EXE_NAME}
+		../scsi_host.cpp
+		
 		cpureg.cpp
 		sasi.cpp
 		sasi_bios.cpp
@@ -58,6 +60,8 @@ elseif("${U_EXE_NAME}" STREQUAL "EMUPC9801VX")
 	)
 elseif("${U_EXE_NAME}" STREQUAL "EMUPC98XL")
 	add_library(vm_${EXE_NAME}
+		../scsi_host.cpp
+		
 		cpureg.cpp
 		sasi.cpp
 		sasi_bios.cpp
@@ -66,6 +70,8 @@ elseif("${U_EXE_NAME}" STREQUAL "EMUPC98XL")
 	)
 elseif("${U_EXE_NAME}" STREQUAL "EMUPC9801RA")
 	add_library(vm_${EXE_NAME}
+		../scsi_host.cpp
+		
 		cpureg.cpp
 		sasi.cpp
 		sasi_bios.cpp
@@ -74,6 +80,8 @@ elseif("${U_EXE_NAME}" STREQUAL "EMUPC9801RA")
 	)
 elseif("${U_EXE_NAME}" STREQUAL "EMUPC98RL")
 	add_library(vm_${EXE_NAME}
+		../scsi_host.cpp
+		
 		cpureg.cpp
 		sasi.cpp
 		sasi_bios.cpp
@@ -82,6 +90,8 @@ elseif("${U_EXE_NAME}" STREQUAL "EMUPC98RL")
 	)
 elseif("${U_EXE_NAME}" STREQUAL "EMUPC98XA")
 	add_library(vm_${EXE_NAME}
+		../scsi_host.cpp
+		
 		cpureg.cpp
 		sasi.cpp
 		sasi_bios.cpp
@@ -89,6 +99,8 @@ elseif("${U_EXE_NAME}" STREQUAL "EMUPC98XA")
 	)
 elseif("${U_EXE_NAME}" STREQUAL "EMUPC98DOPLUS")
 	add_library(vm_${EXE_NAME}
+		../scsi_host.cpp
+		
 		../pc8801/pc88.cpp
 		cpureg.cpp
 		sasi.cpp
