@@ -1,8 +1,10 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/emumz3500")
+message("* vm/${EXE_NAME}")
 
-set(BASIC_VM_FILES 
+set(BASIC_VM_FILES
+	../mz1p17.cpp
+	
 	keyboard.cpp
 	main.cpp
 	sub.cpp
@@ -10,5 +12,4 @@ set(BASIC_VM_FILES
     mz3500.cpp
 )
 	   
-
-add_library(vm_mz3500  ${BASIC_VM_FILES})
+add_library(vm_${EXE_NAME}  ${BASIC_VM_FILES})

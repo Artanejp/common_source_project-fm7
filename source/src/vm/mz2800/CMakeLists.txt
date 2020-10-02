@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/mz2800")
+message("* vm/${EXE_NAME}")
 
 set(BASIC_VM_FILES 
 
