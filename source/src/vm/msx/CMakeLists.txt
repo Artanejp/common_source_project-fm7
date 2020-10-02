@@ -1,9 +1,10 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/msx1")
+message("* vm/${EXE_NAME}")
 
-if(BUILD_PX7)
-  add_library(vm_msx
+string(TOUPPER "${EXE_NAME}" U_EXE_NAME)
+
+set(MSX_BASE_SRCS
 	joystick.cpp
 	kanjirom.cpp
 	keyboard.cpp
@@ -13,65 +14,52 @@ if(BUILD_PX7)
 	sound_cart.cpp
 	msx_ex.cpp
   )
-elseif(BUILD_MSX2)
-  add_library(vm_msx
-	joystick.cpp
-	kanjirom.cpp
-	keyboard.cpp
-	memory_ex.cpp
-	rtcif.cpp
-	printer.cpp
-	scc.cpp
-	sound_cart.cpp
-	msx_ex.cpp
+
+if("${U_EXE_NAME}" STREQUAL "EMUHBF1XDJ")
+	add_library(vm_${EXE_NAME}
+		rtcif.cpp
+		${MSX_BASE_SRCS}
 	)
-elseif(BUILD_MSX2PLUS)
-  add_library(vm_msx
-	joystick.cpp
-	kanjirom.cpp
-	keyboard.cpp
-	memory_ex.cpp
-	rtcif.cpp
-	printer.cpp
-	scc.cpp
-	sound_cart.cpp
-	msx_ex.cpp
+	target_compile_definitions(vm_${EXE_NAME} PRIVATE -D_MSX_VDP_MESS)
+elseif("${U_EXE_NAME}" STREQUAL "EMUPX7")
+	add_library(vm_${EXE_NAME}
+		../ld700.cpp
+		${MSX_BASE_SRCS}
 	)
-elseif(BUILD_FSA1)
-  add_library(vm_msx
-	joystick.cpp
-	keyboard.cpp
-	kanjirom.cpp
-	memory_ex.cpp
-	rtcif.cpp
-	printer.cpp
-	scc.cpp
-	sound_cart.cpp
-	msx_ex.cpp
+elseif("${U_EXE_NAME}" STREQUAL "EMUMSX2PLUS")
+	add_library(vm_${EXE_NAME}
+		rtcif.cpp
+		${MSX_BASE_SRCS}
 	)
-elseif(BUILD_HX20)
-  add_library(vm_msx
-	joystick.cpp
-	keyboard.cpp
-	kanjirom.cpp
-	memory_ex.cpp
-	rtcif.cpp
-	printer.cpp
-	scc.cpp
-	sound_cart.cpp
-	psg_stereo.cpp
-	msx_ex.cpp
+	target_compile_definitions(vm_${EXE_NAME} PRIVATE -D_MSX_VDP_MESS)
+elseif("${U_EXE_NAME}" STREQUAL "EMUMSX2P")
+	add_library(vm_${EXE_NAME}
+		rtcif.cpp
+		${MSX_BASE_SRCS}
 	)
+	target_compile_definitions(vm_${EXE_NAME} PRIVATE -D_MSX_VDP_MESS)
+elseif("${U_EXE_NAME}" STREQUAL "EMUMSX2")
+	add_library(vm_${EXE_NAME}
+		rtcif.cpp
+		${MSX_BASE_SRCS}
+	)
+	target_compile_definitions(vm_${EXE_NAME} PRIVATE -D_MSX_VDP_MESS)
+elseif("${U_EXE_NAME}" STREQUAL "EMUFSA1")
+	add_library(vm_${EXE_NAME}
+		rtcif.cpp
+		${MSX_BASE_SRCS}
+	)
+	target_compile_definitions(vm_${EXE_NAME} PRIVATE -D_MSX_VDP_MESS)
+elseif("${U_EXE_NAME}" STREQUAL "EMUHX20")
+	add_library(vm_${EXE_NAME}
+		psg_stereo.cpp
+		rtcif.cpp
+		${MSX_BASE_SRCS}
+	)
+	target_compile_definitions(vm_${EXE_NAME} PRIVATE -D_MSX_VDP_MESS)
 else()
-  add_library(vm_msx
-	joystick.cpp
-	kanjirom.cpp
-	keyboard.cpp
-	memory_ex.cpp
-	printer.cpp
-	scc.cpp
-	sound_cart.cpp
-	msx_ex.cpp
-  )
+	# standard MSX1
+	add_library(vm_${EXE_NAME}
+		${MSX_BASE_SRCS}
+	)
 endif()
-
