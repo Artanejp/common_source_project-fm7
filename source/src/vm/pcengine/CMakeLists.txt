@@ -1,16 +1,13 @@
 cmake_minimum_required (VERSION 2.8)
 
-message("* vm/pce")
+message("* vm/emupcengine")
 
-if(BUILD_X1TWIN)
-add_library(vm_pcengine
-           pce.cpp
-		   
+add_library(vm_emupcengine
+	../scsi_host.cpp
+	../huc6280.cpp
+	
+	pce.cpp
+	adpcm.cpp	   
+	pcengine.cpp
 )
-else()
-add_library(vm_pcengine
-       pce.cpp
-	   adpcm.cpp	   
-	   pcengine.cpp
-)
-endif()
+

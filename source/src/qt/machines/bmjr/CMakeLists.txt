@@ -1,14 +1,14 @@
-message("* qt/bmjr")
+message("* qt/${EXE_NAME}")
 
 set(s_qt_bmjr_headers
 	  menuclasses.h
 )
 
-QT5_WRAP_CPP(s_qt_bmjr_headers_MOC ${s_qt_bmjr_headers})
+QT5_WRAP_CPP(s_qt_${EXE_NAME}_headers_MOC ${s_qt_bmjr_headers})
 
-add_library(qt_emubmjr
+add_library(qt_${EXE_NAME}
 	MainWindow.cpp
-	${s_qt_bmjr_headers_MOC}
+	${s_qt_${EXE_NAME}_headers_MOC}
 )
 
 

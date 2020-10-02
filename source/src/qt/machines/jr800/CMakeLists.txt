@@ -1,18 +1,14 @@
-message("* qt/jr800")
+message("* qt/${EXE_NAME}")
 
 set(s_qt_jr800_headers
 	  menuclasses.h
 )
 
-if(USE_QT_5)
-  QT5_WRAP_CPP(s_qt_jr800_headers_MOC ${s_qt_jr800_headers})
-else()
-  QT4_WRAP_CPP(s_qt_jr800_headers_MOC ${s_qt_jr800_headers})
-endif()
+QT5_WRAP_CPP(s_qt_${EXE_NAME}_headers_MOC ${s_qt_jr800_headers})
 
-add_library(qt_jr800
+add_library(qt_${EXE_NAME}
 	  MainWindow.cpp
-	  ${s_qt_jr800_headers_MOC}
+	  ${s_qt_${EXE_NAME}_headers_MOC}
 )
 
 

@@ -1,16 +1,18 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/pc98ha")
+message("* vm/${EXE_NAME}")
 
-set(BASIC_VM_FILES 
-       pc98ha.cpp
-	   bios.cpp
-	   calendar.cpp
-	   floppy.cpp
-	   keyboard.cpp
-	   memory.cpp
-	   note.cpp
-	   )
+set(BASIC_VM_FILES_PC98HA 
+
+	bios.cpp
+	calendar.cpp
+	floppy.cpp
+	keyboard.cpp
+	./memory.cpp
+	note.cpp
+
+	pc98ha.cpp
+)
 	   
 
-add_library(vm_pc98ha  ${BASIC_VM_FILES})
+add_library(vm_${EXE_NAME}  ${BASIC_VM_FILES_PC98HA})

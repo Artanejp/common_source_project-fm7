@@ -1,11 +1,12 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/jr100")
+message("* vm/emujr100")
 
-set(BASIC_VM_FILES 
-           jr100.cpp
-	   memory.cpp
-	   )
+set(BASIC_VM_FILES
+	../sy6522.cpp
+	
+	./memory.cpp
+	jr100.cpp
+)
 	   
-
-add_library(vm_jr100  ${BASIC_VM_FILES})
+add_library(vm_emujr100  ${BASIC_VM_FILES})

@@ -1,12 +1,14 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/scv")
+message("* vm/emuscv")
 
-add_library(vm_scv
-	scv.cpp
+add_library(vm_emuscv
+	../upd7801.cpp
 	
 	io.cpp
 	memory.cpp
 	sound.cpp
 	vdp.cpp
+	
+	scv.cpp
 )

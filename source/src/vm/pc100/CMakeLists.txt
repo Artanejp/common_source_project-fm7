@@ -1,15 +1,17 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/pc100")
+message("* vm/emupc100")
 
-set(VM_pc100_LIB_SRCS
-	pc100.cpp
+set(VM_emupc100_LIB_SRCS
+	../msm58321.cpp
 	
 	crtc.cpp
 	ioctrl.cpp
 	kanji.cpp
+
+	pc100.cpp
 )
 
-add_library(vm_pc100
-	${VM_pc100_LIB_SRCS}
+add_library(vm_emupc100
+	${VM_emupc100_LIB_SRCS}
 )

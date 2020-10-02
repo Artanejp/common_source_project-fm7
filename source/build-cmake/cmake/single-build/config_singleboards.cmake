@@ -1,26 +1,15 @@
 set(BUILD_BABBAGE2ND ON CACHE BOOL "Build Gijutsu-Hyoron-Sha Babbage-2nd")
-
-set(BUILD_CEFUCOM21 ON CACHE BOOL "Build Hino Electronics CEFUCOM-21")
-
 set(BUILD_EX80 ON CACHE BOOL "Build TOSHIBA EX-80")
-
 set(BUILD_SMB80TE ON CACHE BOOL "Build SHARP SM-B-80TE")
-
 set(BUILD_TK80 ON CACHE BOOL "Build NEC TK-80")
 set(BUILD_TK80BS ON CACHE BOOL "Build NEC TK-80BS")
 set(BUILD_TK85 ON CACHE BOOL "Build NEC TK-85")
-
-set(BUILD_YALKY ON CACHE BOOL "Build Yuasa Kyouiku System YALKY")
 set(BUILD_YS6464A ON CACHE BOOL "Build SHINKO SANGYO YS-6464A")
 
 
 if(BUILD_BABBAGE2ND)
 	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/babbage2nd.qrc)
 	ADD_VM(babbage2nd emubabbage2nd _BABBAGE2ND)
-endif()
-if(BUILD_CEFUCOM21)
-	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/cefucom21.qrc)
-	ADD_VM(cefucom21 emucefucom21 _CEFUCOM21)
 endif()
 if(BUILD_EX80)
 	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/ex80.qrc)
@@ -44,11 +33,6 @@ endif()
 if(BUILD_TK85)
 	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/tk85.qrc)
 	ADD_VM(tk80bs emutk85 _TK85)
-endif()
-
-if(BUILD_YALKY)
-	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/yalky.qrc)
-	ADD_VM(yalky emuyalky _YALKY)
 endif()
 
 if(BUILD_YS6464A)

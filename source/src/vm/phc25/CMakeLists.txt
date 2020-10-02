@@ -1,16 +1,19 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/phc25")
+message("* vm/${EXE_NAME}")
 
 set(VM_PHC25_LIB_SRCS
-	phc25.cpp
-	memory.cpp
+	../mc6847.cpp
+
+	./memory.cpp
 	joystick.cpp
 	keyboard.cpp
 	system.cpp
+	
+	phc25.cpp
 )
 
 
-add_library(vm_phc25
+add_library(vm_${EXE_NAME}
 	${VM_PHC25_LIB_SRCS}
 )

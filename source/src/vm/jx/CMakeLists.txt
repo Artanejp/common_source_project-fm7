@@ -1,14 +1,14 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/jx")
+message("* vm/emujx")
 
 set(BASIC_VM_FILES 
-           jx.cpp
-	   display.cpp
-	   floppy.cpp
-	   keyboard.cpp
-	   speaker.cpp
-	   ./i86.cpp
-	   )
+	./i86.cpp
+	display.cpp
+	floppy.cpp
+	keyboard.cpp
+	speaker.cpp
+	jx.cpp
+)
 
-add_library(vm_jx  ${BASIC_VM_FILES})
+add_library(vm_emujx  ${BASIC_VM_FILES})
