@@ -2,8 +2,8 @@ set(BUILD_HC20 ON CACHE BOOL "Build for Epson HC-20")
 set(BUILD_HC40 ON CACHE BOOL "Build for Epson HC-40")
 set(BUILD_HC80 ON CACHE BOOL "Build for Epson HC-80")
 
-set(BUILD_QC10 OFF CACHE BOOL "Build for Epson QC-10 (Monochrome)")
-set(BUILD_QC10COLOR OFF CACHE BOOL "Build for Epson QC-10 (Color) ")
+set(BUILD_QC10 ON CACHE BOOL "Build for Epson QC-10 (Monochrome)")
+set(BUILD_QC10COLOR ON CACHE BOOL "Build for Epson QC-10 (Color) ")
 
 if(BUILD_QC10)
 	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/qc10cms.qrc)
