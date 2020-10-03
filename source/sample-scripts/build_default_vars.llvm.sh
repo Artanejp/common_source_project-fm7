@@ -1,4 +1,4 @@
-cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../build-cmake/cmake/toolchain_native_llvm.cmake" \
+cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_llvm.cmake" \
       -DCMAKE_BUILD_TYPE=Relwithdebinfo \
       -DCMAKE_C_FLAGS_RELWITHDEBINFO=" \
       		-g2 \

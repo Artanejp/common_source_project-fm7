@@ -42,6 +42,9 @@ if(USE_DEVICES_SHARED_LIB)
   add_definitions(-DUSE_SHARED_DLL)
   add_definitions(-DUSE_SHARED_UI_DLL)
   add_definitions(-DUSE_SHARED_DEVICES_DLL)
+elseif(WIN32)
+  add_definitions(-DUSE_SHARED_DLL)
+  add_definitions(-DUSE_SHARED_UI_DLL)
 endif()
 
 set(USE_FMGEN ON)
@@ -192,7 +195,7 @@ endif()
 include(FindZLIB)
 if(ZLIB_FOUND)
 	add_definitions(-DUSE_ZLIB)
-   include_directories(${ZLIB_INCLUDE_DIRS})
+	include_directories(${ZLIB_INCLUDE_DIRS})
 endif()
 
 # GCC Only?
@@ -301,7 +304,8 @@ if(USE_DEVICES_SHARED_LIB)
 	add_subdirectory("${PROJECT_SOURCE_DIR}/src/vm/fmgen" vm/fmgen)
 else()
 	add_subdirectory("${PROJECT_SOURCE_DIR}/src" common)
-	add_subdirectory("${PROJECT_SOURCE_DIR}/src/vm" vm)
+	add_subdirectory("${PROJECT_SOURCE_DIR}/src/vm/common_vm" vm/)
+	add_subdirectory("${PROJECT_SOURCE_DIR}/src/vm/fmgen" vm/fmgen)
 endif()
 
 function(ADD_VM VM_NAME EXE_NAME VMDEF)
@@ -371,30 +375,10 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 #	endif()
 	if(NOT USE_DEVICES_SHARED_LIB)
 		if(USE_FMGEN)
-			set(VM_APPEND_LIBS fmgen)
+			set(VM_APPEND_LIBS CSPfmgen)
 		else()
 			set(VM_APPEND_LIBS)
 		endif()
-	endif()
-	if(WIN32)
-		set(LOCAL_LIBS     
-			common_emu
-			qt_${EXE_NAME}
-			vm_${EXE_NAME}
-			vm_vm
-			${VM_APPEND_LIBS}
-			${DEBUG_LIBS}
-			common_${EXE_NAME}
-		)
-	else()
-		set(LOCAL_LIBS
-			qt_${EXE_NAME}
-			vm_${EXE_NAME}
-			vm_vm
-			${VM_APPEND_LIBS}
-			${DEBUG_LIBS}
-			common_${EXE_NAME}
-		)
 	endif()
 	if(WIN32)
 		set(BUNDLE_LIBS
@@ -424,7 +408,7 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 	   set(LOCAL_LIBS     
            qt_${EXE_NAME}
 		   vm_${EXE_NAME}
-		   vm_vm
+		   vm_common_vm
 		   ${VM_APPEND_LIBS}
 		   ${DEBUG_LIBS}
 		   common_${EXE_NAME}
@@ -450,10 +434,12 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 		)
 	else()
 		set(BUNDLE_LIBS
+			CSPosd
+#			CSPfmgen
+			CSPgui
+			CSPemu_utils
+			CSPavio
 			${BUNDLE_LIBS}
-#			-lCSPosd
-#			-lCSPgui
-#			-lCSPavio
 		)
 	endif()
 
@@ -462,7 +448,7 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 	add_subdirectory("${PROJECT_SOURCE_DIR}/src/vm/${VM_NAME}" vm/${EXE_NAME} EXCLUDE_FROM_ALL)
 	if(NOT USE_DEVICES_SHARED_LIB)
 		if(USE_FMGEN)
-			add_subdirectory("${PROJECT_SOURCE_DIR}/src/vm/fmgen" vm/fmgen_${EXE_NAME}  EXCLUDE_FROM_ALL)
+#			add_subdirectory("${PROJECT_SOURCE_DIR}/src/vm/fmgen" vm/fmgen_${EXE_NAME}  EXCLUDE_FROM_ALL)
 		endif()
 	endif()
 	add_subdirectory("${PROJECT_SOURCE_DIR}/src/qt/machines/${VM_NAME}" qt/${EXE_NAME}  EXCLUDE_FROM_ALL)

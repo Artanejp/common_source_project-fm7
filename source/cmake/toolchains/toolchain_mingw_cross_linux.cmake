@@ -5,7 +5,7 @@ SET(CMAKE_SYSTEM_NAME Windows)
 SET(CMAKE_C_COMPILER i686-w64-mingw32-gcc)
 SET(CMAKE_CXX_COMPILER i686-w64-mingw32-g++)
 SET(CMAKE_RC_COMPILER i686-w64-mingw32-windres)
-SET(CMAKE_AR  i686-w64-mingw32-gcc-ar)
+SET(CMAKE_AR  i686-w64-mingw32-ar)
 
 
 #set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
@@ -17,7 +17,7 @@ SET(CMAKE_AR  i686-w64-mingw32-gcc-ar)
 #SET(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET> --plugin==$(i686-w64-mingw32-gcc --print-file-name=liblto_plugin.so) <LINK_FLAGS> <OBJECTS>")
 #SET(CMAKE_CXX_ARCHIVE_FINISH   true)
 
-set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-4.1")
+#set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-4.1")
 
 # here is the target environment located
 set(USE_SDL2 ON)
@@ -25,13 +25,13 @@ if(USE_SDL2)
    SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
                           /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32
-			  /usr/local/i586-mingw-msvc/Qt5.12/mingw_82x
+			  /usr/local/i586-mingw-msvc/Qt5.15/mingw_82x
 			  )
 else()
    SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
                           /usr/local/i586-mingw-msvc/SDL1/
-			  /usr/local/i586-mingw-msvc/Qt5.12/mingw_82x
+			  /usr/local/i586-mingw-msvc/Qt5.15/mingw_82x
 			  )
 endif()
 SET(CSP_CROSS_BUILD 1)

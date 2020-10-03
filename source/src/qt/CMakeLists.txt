@@ -33,16 +33,17 @@ include (GenerateExportHeader)
 
 if(WIN32)
 target_link_libraries(CSPosd PUBLIC
-          PRIVATE ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a
+#          PRIVATE ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a
 #          INTERFACE ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPgui.dll.a
 #          ${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPavio.dll.a
-	  Qt5::Core
-	  Qt5::Gui
-	  Qt5::OpenGL
-	  Qt5::Widgets
-	  Qt5::Network
-	  ${SDL2_LIBRARIES}
-	  )
+	CSPemu_utils
+	Qt5::Core
+	Qt5::Gui
+	Qt5::OpenGL
+	Qt5::Widgets
+	Qt5::Network
+	${SDL2_LIBRARIES}
+	)
 generate_export_header(CSPosd
        BASE_NAME CSPosd
        EXPORT_MACRO_NAME CSPosd_EXPORT

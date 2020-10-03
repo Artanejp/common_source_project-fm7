@@ -30,7 +30,7 @@ add_library(CSPemu_utils SHARED
 
 target_link_libraries(CSPemu_utils PRIVATE
 		Qt5::Core
-		libz.dll.a
+		${ZLIB_LIBRARIES}
 		${SDL2_LIBRARIES}
 	  )
 	  
