@@ -1,5 +1,4 @@
-#message(FATAL_ERROR, "This CMakefile is still imcompleted, please use build/foo.sh, older build system")
-
+message("* Note: Recommended default values are placed at source/sample-scripts/ , please use them.")
 message("* common/common")
 # Build Common Sourcecode Project, Agar.
 # (C) 2014 K.Ohta <whatisthis.sowhat@gmail.com>
