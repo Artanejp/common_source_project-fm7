@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/pasopia7")
+message("* vm/${EXE_NAME}")
 
 set(VM_PASOPIA7_LIB_SRCS
 	pasopia7.cpp
@@ -17,6 +17,6 @@ set(VM_PASOPIA7_LIB_SRCS
 	rampac2.cpp
 )
 
-add_library(vm_pasopia7
+add_library(vm_${EXE_NAME}
 	${VM_PASOPIA7_LIB_SRCS}
 )

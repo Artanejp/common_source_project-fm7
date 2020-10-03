@@ -4,12 +4,16 @@ set(s_qt_sc3000_headers
 	  menuclasses.h
 )
 
+message("* qt/${EXE_NAME}")
 
-QT5_WRAP_CPP(s_qt_emusc3000_headers_MOC ${s_qt_sc3000_headers})
+set(s_qt_gamegear_headers
+	  menuclasses.h
+)
 
-add_library(qt_emusc3000
+QT5_WRAP_CPP(s_qt_${EXE_NAME}_headers_MOC ${s_qt_sc3000_headers})
+add_library(qt_${EXE_NAME}
 	  MainWindow.cpp
-	  ${s_qt_emusc3000_headers_MOC}
+	  ${s_qt_${EXE_NAME}_headers_MOC}
 )
 
 

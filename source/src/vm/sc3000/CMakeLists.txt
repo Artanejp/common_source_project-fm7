@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/sc3000")
+message("* vm/${EXE_NAME}")
 
 set(VM_SC3000_LIB_SRCS
 	sc3000.cpp
@@ -9,6 +9,6 @@ set(VM_SC3000_LIB_SRCS
 )
 
 
-add_library(vm_sc3000
+add_library(vm_${EXE_NAME}
 	${VM_SC3000_LIB_SRCS}
 )

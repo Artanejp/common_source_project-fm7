@@ -1,12 +1,14 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/qc10")
+message("* vm/${EXE_NAME}")
 
-add_library(vm_qc10
-	qc10.cpp
+add_library(vm_${EXE_NAME}
+	../i8237.cpp
+	
 	display.cpp
 	floppy.cpp
 	keyboard.cpp
-	memory.cpp
 	mfont.cpp
+	./memory.cpp
+	qc10.cpp
 )

@@ -1,30 +1,51 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/j3100")
+message("* vm/${EXE_NAME}")
 
 set(VM_J3100_LIB_SRCS
+#	../i286.cpp
+	../i8237.cpp
+	../scsi_host.cpp
+	
 	display.cpp
 	dmareg.cpp
 	floppy.cpp
-	j3100.cpp
 	sasi.cpp
+	
+	j3100.cpp
 )
 
-if(BUILD_J3100GT) 
-  set(VM_J3100_LIB_SRCS ${VM_J3100_LIB_SRCS}
-			  memory.cpp
-			  system.cpp
-			  keyboard.cpp
-			  )
-elseif(BUILD_J3100SL)
-  set(VM_J3100_LIB_SRCS ${VM_J3100_LIB_SRCS}
-			  slmemory.cpp
-			  slsystem.cpp
-			  slkeyboard.cpp
-			  )
+string(TOUPPER "${EXE_NAME}" U_EXE_NAME)
+if("${U_EXE_NAME}" STREQUAL "EMUJ3100GT")
+	add_library(vm_${EXE_NAME}
+
+		./memory.cpp
+		./system.cpp
+		./keyboard.cpp
+		${VM_J3100_LIB_SRCS}
+	)
+elseif("${U_EXE_NAME}" STREQUAL "EMUJ3100SL")
+	add_library(vm_${EXE_NAME}
+		
+		slmemory.cpp
+		slsystem.cpp
+		slkeyboard.cpp
+		${VM_J3100_LIB_SRCS}
+	)
+elseif("${U_EXE_NAME}" STREQUAL "EMUJ3100SS")
+	add_library(vm_${EXE_NAME}
+
+		./memory.cpp
+		system.cpp
+		keyboard.cpp
+		${VM_J3100_LIB_SRCS}
+	)
+elseif("${U_EXE_NAME}" STREQUAL "EMUJ3100SE")
+	add_library(vm_${EXE_NAME}
+
+		./memory.cpp
+		system.cpp
+		keyboard.cpp
+		${VM_J3100_LIB_SRCS}
+	)
 endif()
-
-
-add_library(vm_j3100
-	${VM_J3100_LIB_SRCS}
-)

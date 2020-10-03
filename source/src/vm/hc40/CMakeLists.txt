@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 2.6)
 
-message("* vm/hc40")
+message("* vm/${EXE_NAME}")
 
-add_library(vm_hc40
-	memory.cpp
+add_library(vm_${EXE_NAME}
+	./io.cpp
+	./memory.cpp
 	hc40.cpp
-	io.cpp
 )
