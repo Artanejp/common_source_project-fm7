@@ -34,7 +34,13 @@ include(config_pc9801)
 include(config_x1)
 
 include(config_necmisc)
+
+include(config_toshiba)
+include(config_epson)
+include(config_sega)
+
 include(config_misccom)
 
 include(config_singleboards)
+
 

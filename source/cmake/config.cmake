@@ -44,7 +44,15 @@ if(USE_DEVICES_SHARED_LIB)
   add_definitions(-DUSE_SHARED_DEVICES_DLL)
 endif()
 
+set(USE_FMGEN ON)
+set(WITH_DEBUGGER ON)
+set(WITH_MOUSE ON)
+set(WITH_JOYSTICK ON)
 
+include(detect_target_cpu)
+# set entry
+
+add_definitions(-D_CONFIGURE_WITH_CMAKE)
 #ccache
 find_program(USE_CCACHE ccache)
 if(USE_CCACHE)

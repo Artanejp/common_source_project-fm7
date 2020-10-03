@@ -1,0 +1,31 @@
+set(BUILD_HC20 ON CACHE BOOL "Build for Epson HC-20")
+set(BUILD_HC40 ON CACHE BOOL "Build for Epson HC-40")
+set(BUILD_HC80 ON CACHE BOOL "Build for Epson HC-80")
+
+set(BUILD_QC10 OFF CACHE BOOL "Build for Epson QC-10 (Monochrome)")
+set(BUILD_QC10COLOR OFF CACHE BOOL "Build for Epson QC-10 (Color) ")
+
+if(BUILD_QC10)
+	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/qc10cms.qrc)
+	ADD_VM(qc10 emuqc10 _QC10)
+endif()
+if(BUILD_QC10COLOR)
+	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/qc10cms.qrc)
+	ADD_VM(qc10 emuqc10_cms _QC10)
+	target_compile_definitions(emuqc10_cms
+		PRIVATE -D_COLOR_MONITOR
+	)
+endif()
+if(BUILD_HC20)
+	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/hc20.qrc)
+	ADD_VM(hc20 emuhc20 _HC20)
+endif()
+if(BUILD_HC40)
+	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/hc40.qrc)
+	ADD_VM(hc40 emuhc40 _HC40)
+endif()
+if(BUILD_HC80)
+	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/hc80.qrc)
+	ADD_VM(hc80 emuhc80 _HC80)
+endif()
+

@@ -7,11 +7,6 @@ message("")
 message("** Start of configure CommonSourceProject,FM-8/7/77/AV, Qt **")
 message("")
 
-set(USE_FMGEN ON)
-set(WITH_DEBUGGER ON)
-set(WITH_MOUSE ON)
-set(WITH_JOYSTICK ON)
-
 #set(VMFILES_FM7
 #	   event.cpp
 #)
@@ -48,11 +43,6 @@ set(FM77AV40SX_EXTRAM_PAGES  "12" CACHE STRING "Set banks of EXTRAM of FM77AV40S
 set(FM77AV40EX_EXTRAM_PAGES  "12" CACHE STRING "Set banks of EXTRAM of FM77AV40SX, bank = 64Kbytes")
 
 set(FM7_DEBUG_FDC  OFF CACHE BOOL "With debug FDC")
-
-include(detect_target_cpu)
-# set entry
-
-add_definitions(-D_CONFIGURE_WITH_CMAKE)
 
 if(FM7_DEBUG_FDC)
   add_definitions(-D_FM7_FDC_DEBUG)
