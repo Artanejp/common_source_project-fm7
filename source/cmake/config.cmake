@@ -388,8 +388,8 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 			${OPENMP_LIBRARY}
 			${LIBAV_LIBRARIES}
 			${SDL_LIBS}
-			${LIBAV_LIBRARIES}
 			${ADDITIONAL_LIBRARIES}
+			${QT_LIBRARIES}
 			${ZLIB_LIBRARIES}
 		)
 	else()		
@@ -434,12 +434,12 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 		)
 	else()
 		set(BUNDLE_LIBS
+			${BUNDLE_LIBS}
 			CSPosd
 #			CSPfmgen
 			CSPgui
 			CSPemu_utils
 			CSPavio
-			${BUNDLE_LIBS}
 		)
 	endif()
 

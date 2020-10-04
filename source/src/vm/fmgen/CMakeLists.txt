@@ -14,17 +14,14 @@ SET(s_vm_fmgen_srcs
 )
 
 if(WIN32)
-	add_library(vm_fmgen SHARED
-		${s_vm_fmgen_srcs}
-	)
-
 	include (GenerateExportHeader)
 	add_library(CSPfmgen SHARED
 		${s_vm_fmgen_srcs}
 	)
 	target_link_libraries(CSPfmgen
-		PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPemu_utils.dll.a
+		PRIVATE CSPemu_utils
 	)
+
 	set_target_properties(CSPfmgen PROPERTIES
 		SOVERSION ${THIS_LIB_VERSION}
 		VERSION ${THIS_LIB_VERSION}

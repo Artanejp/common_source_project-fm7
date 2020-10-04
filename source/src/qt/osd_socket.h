@@ -21,7 +21,7 @@
 #include <QUdpSocket>
 
 QT_BEGIN_NAMESPACE
-class QTcpSocket2 : public QTcpSocket
+class DLL_PREFIX QTcpSocket2 : public QTcpSocket
 {
 	Q_OBJECT
 protected:
@@ -39,7 +39,7 @@ signals:
 	int sig_disconnected(int);
 };
 
-class QUdpSocket2 : public QUdpSocket
+class DLL_PREFIX QUdpSocket2 : public QUdpSocket
 {
 	Q_OBJECT
 protected:
