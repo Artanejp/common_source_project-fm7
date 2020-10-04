@@ -9,8 +9,10 @@ cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
 
-project (CSP
-		DESCRIPTION "Common Source Code Project/Qt")
+# Note: Belows are temporally disabled, not implemented older CMake.
+#project (CSP
+#		DESCRIPTION "Common Source Code Project/Qt")
+project (CSP)
 
 #ToDo
 #set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")

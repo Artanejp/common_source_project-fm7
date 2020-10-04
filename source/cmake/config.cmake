@@ -8,11 +8,12 @@ endif()
 if(UNIX)
 	include(GNUInstallDirs)
 endif()
+# Note: Belows are temporally disabled, not implemented older CMake.
 # Check HOST NAME
-cmake_host_system_information(RESULT OSNAME QUERY OS_NAME)
-cmake_host_system_information(RESULT OSVERSION QUERY OS_VERSION)
-cmake_host_system_information(RESULT OSARCH QUERY OS_PLATFORM)
-message("* HOST: OSNAME=" ${OSNAME} " RELEASE=" ${OSVERSION} " ARCH=" ${OSARCH} " OSARCH=" ${CMAKE_LIBRARY_ARCHITECTURE})
+#cmake_host_system_information(RESULT OSNAME QUERY OS_NAME)
+#cmake_host_system_information(RESULT OSVERSION QUERY OS_VERSION)
+#cmake_host_system_information(RESULT OSARCH QUERY OS_PLATFORM)
+#message("* HOST: OSNAME=" ${OSNAME} " RELEASE=" ${OSVERSION} " ARCH=" ${OSARCH} " OSARCH=" ${CMAKE_LIBRARY_ARCHITECTURE})
 
 set(NEED_REPLACE_LIBDIR OFF)
 if((UNIX) AND (NOT DEFINED LIBCSP_INSTALL_DIR)) 
