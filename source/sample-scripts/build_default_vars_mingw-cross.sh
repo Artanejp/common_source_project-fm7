@@ -9,7 +9,9 @@ cmake .. \
 		-ggdb \
 		-gz=zlib \
 		-O3 \
-		-msse2 \
+		-march=i686 \
+		-msse -msse2 \
+		-mtune=sandybridge \
 		-mfpmath=sse \
  	        -Wreserved-user-defined-literal \
  	        -fslp-vectorize \
@@ -22,7 +24,9 @@ cmake .. \
 		-ggdb \
 		-gz=zlib \
 		-O3 \
-		-msse2 \
+		-march=i686 \
+		-msse -msse2 \
+		-mtune=sandybridge \
 		-mfpmath=sse \
  	        -Wreserved-user-defined-literal \
  	        -fslp-vectorize \
@@ -30,13 +34,41 @@ cmake .. \
 		-fstrict-vtable-pointers \
 		-fstrict-enums \
 		" \
-	-DCMAKE_EXE_LINKER_FLAGS="\
+	-DCMAKE_C_FLAGS_RELEASE=" \
+		-O3 \
+		-march=i686 \
+		-msse -msse2 \
+		-mtune=sandybridge \
+		-mfpmath=sse \
+ 	        -Wreserved-user-defined-literal \
+ 	        -fslp-vectorize \
+ 	        -fvectorize \
+		-fstrict-vtable-pointers \
+		-fstrict-enums \
+		" \
+	-DCMAKE_CXX_FLAGS_RELEASE=" \
+		-O3 \
+		-march=i686 \
+		-msse -msse2 \
+		-mtune=sandybridge \
+		-mfpmath=sse \
+ 	        -Wreserved-user-defined-literal \
+ 	        -fslp-vectorize \
+ 	        -fvectorize \
+		-fstrict-vtable-pointers \
+		-fstrict-enums \
+		" \
+	-DCMAKE_EXE_LINKER_FLAGS_RELEASE="\
+		" \
+	-DCMAKE_MODULE_LINKER_FLAGS_RELEASE="\
+		" \
+	-DCMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO="\
       		-g2 \
 		-ggdb \
 		-gz=zlib \
 		-L/usr/i686-w64-mingw32/lib \
 		" \
-	-DCMAKE_MODULE_LINKER_FLAGS="\
+	-DCMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO="\
       		-g2 \
 		-ggdb \
 		-gz=zlib \
