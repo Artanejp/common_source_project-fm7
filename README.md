@@ -5,7 +5,7 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
 </div>
 
 ## *If you can't read Japanese, [english writing is here](/README.en.md/).*
-
+## *ビルドやインストールをされたい方は、[こちらを](/INSTALL.md/)。
 
 概要
 ======
