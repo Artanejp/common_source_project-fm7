@@ -438,7 +438,7 @@ void GLDraw_4_5::initLocalGLObjects(void)
 		initPackedGLObject(&main_pass,
 						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
 						   ":/gl4_5/vertex_shader.glsl" , ":/gl4_5/chromakey_fragment_shader2.glsl",
-						   "Main Shader", true, false, true);
+						   "Main Shader", false, false, true);
 	} else {
 		initPackedGLObject(&main_pass,
 						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
@@ -497,16 +497,15 @@ void GLDraw_4_5::initLocalGLObjects(void)
 #if 1
 
 	initPackedGLObject(&ntsc_pass1,
-//					   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
-					   _width, _height,
+					   _width * 4, _height * 2,
 					   ":/gl4_5/vertex_shader.glsl" , ":/gl4_5/ntsc_pass1.glsl",
-					   "NTSC Shader Pass1", true, false, false);
+					   "NTSC Shader Pass1", true, false);
 	initPackedGLObject(&ntsc_pass2,
-//					   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
-					   _width / 2, _height,
+					   _width, _height,
 					   ":/gl4_5/vertex_shader.glsl" , ":/gl4_5/ntsc_pass2.glsl",
-					   "NTSC Shader Pass2", false, false, true);
-	if(!(((gl_major_version >= 3) && (gl_minor_version >= 1)) || (gl_major_version >= 4))){
+					   "NTSC Shader Pass2", false, false);
+	#if 0
+	{
 		int ii;
 		QOpenGLShaderProgram *shader = ntsc_pass2->getShader();
 		shader->bind();
@@ -520,7 +519,7 @@ void GLDraw_4_5::initLocalGLObjects(void)
 		}
 		shader->release();
 	}
-
+	#endif
 #endif   
 	if(using_flags->is_use_one_board_computer()) {
 		initBitmapVertex();
@@ -723,12 +722,12 @@ void GLDraw_4_5::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 				{
 					ii = shader->uniformLocation("source_size");
 					if(ii >= 0) {
-						QVector4D source_size = QVector4D((float)src_w, (float)src_h, 0, 0);
+						QVector2D source_size = QVector2D((float)src_w, (float)src_h);
 						shader->setUniformValue(ii, source_size);
 					}
 					ii = shader->uniformLocation("target_size");
 					if(ii >= 0) {
-						QVector4D target_size = QVector4D((float)dst_w, (float)dst_h, 0, 0);
+						QVector2D target_size = QVector2D((float)dst_w, (float)dst_h);
 						shader->setUniformValue(ii, target_size);
 					}
 					ii = shader->uniformLocation("phase");
@@ -794,6 +793,7 @@ void GLDraw_4_5::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 							shader->setUniformValue(ii, GL_FALSE);
 						}
 					}
+					
 				}
 
 				shader->enableAttributeArray("texcoord");
@@ -889,15 +889,15 @@ void GLDraw_4_5::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mappe
 									 screen_texture_width,
 									 screen_texture_height,
 									 ntsc_pass1,
-									 ntsc_pass1->getViewportWidth(),
-									 ntsc_pass1->getViewportHeight());
+									 ntsc_pass1->getTextureWidth(),
+									 ntsc_pass1->getTextureHeight());
 		
 		renderToTmpFrameBuffer_nPass(ntsc_pass1->getTexture(),
-									 ntsc_pass1->getViewportWidth(),
-									 ntsc_pass1->getViewportHeight(),
+									 ntsc_pass1->getTextureWidth(),
+									 ntsc_pass1->getTextureHeight(),
 									 ntsc_pass2,
-									 ntsc_pass2->getViewportWidth(),
-									 ntsc_pass2->getViewportHeight());
+									 ntsc_pass2->getTextureWidth(),
+									 ntsc_pass2->getTextureHeight());
 		uTmpTextureID = ntsc_pass2->getTexture();
 	} else
 #endif
@@ -930,6 +930,7 @@ void GLDraw_4_5::drawScreenTexture(void)
 				 true, QVector3D(0.0, 0.0, 0.0));	
 		extfunc->glDisable(GL_BLEND);
 	} else {
+//		extfunc->glEnable(GL_DEPTH_TEST);
 		drawMain(main_pass,
 				 uTmpTextureID, // v2.0
 				 color, smoosing);	
@@ -1012,7 +1013,9 @@ void GLDraw_4_5::drawMain(QOpenGLShaderProgram *prg,
 		//} else {
 		//prg->setUniformValue("rotate", GL_FALSE);
 		//}
-
+		if(!(using_flags->is_use_one_board_computer())) {
+			prg->setUniformValue("distortion_v", 0.08f, 0.08f); // ToDo: Change val
+		}
 		if(do_chromakey) {
 			ii = prg->uniformLocation("chromakey");
 			if(ii >= 0) {
@@ -1080,6 +1083,9 @@ void GLDraw_4_5::drawMain(QOpenGLShaderProgram *prg,
 		}
 		prg->setUniformValue("rotate_mat", rot);
 		prg->setUniformValue("v_ortho", ortho);
+		if(!(using_flags->is_use_one_board_computer())) {
+			prg->setUniformValue("distortion_v", 0.08f, 0.08f); // ToDo: Change val
+		}
 
 		if(do_chromakey) {
 			ii = prg->uniformLocation("chromakey");

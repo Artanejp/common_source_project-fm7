@@ -1,6 +1,7 @@
 //precision  mediump float;
 
-in mediump vec2 v_texcoord;
+in vec2 v_texcoord;
+
 out vec4 opixel;
 
 uniform vec4 color;
@@ -14,7 +15,6 @@ void main ()
 	vec4 pixel;
 
 	pixel_r_1 = texture(a_texture, v_texcoord);
-	
 	if(do_chromakey) {
 		if(pixel_r_1.rgb != chromakey.rgb) {
 			pixel_r_1 = pixel_r_1 * color;

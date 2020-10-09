@@ -1,6 +1,9 @@
 //precision  mediump float;
 
 in vec2 v_texcoord;
+in mediump float luminance;
+in mediump float lum_offset;
+
 out vec4 opixel;
 
 uniform vec4 color;
