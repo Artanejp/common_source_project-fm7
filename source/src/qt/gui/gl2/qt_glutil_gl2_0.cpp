@@ -864,6 +864,11 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 					break;
 				}
 				prg->setUniformValue("rotate_mat", rot);
+				if(!(using_flags->is_use_one_board_computer())) {
+					prg->setUniformValue("distortion_v", 0.08f, 0.08f); // ToDo: Change val
+				}
+				prg->setUniformValue("luminance", 0.9f); // ToDo: Change val
+				prg->setUniformValue("lum_offset", 0.08f); // ToDo: Change val
 				if(do_chromakey) {
 					prg->setUniformValue("chromakey", chromakey);
 					prg->setUniformValue("do_chromakey", GL_TRUE);

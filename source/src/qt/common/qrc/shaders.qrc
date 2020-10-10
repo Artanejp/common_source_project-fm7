@@ -1,64 +1,21 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
+	<file alias="gl/shaders/vertex_shader.glsl">../../gui/gl/shaders/vertex_shader.glsl</file>
+	<file alias="gl/shaders/fragment_shader.glsl">../../gui/gl/shaders/fragment_shader.glsl</file>
+	<file alias="gl/shaders/ntsc_pass1.glsl">../../gui/gl/shaders/ntsc_pass1.glsl</file>
+	<file alias="gl/shaders/ntsc_pass2.glsl">../../gui/gl/shaders/ntsc_pass2.glsl</file>
+    <file alias="gl/shaders/chromakey_fragment_shader.glsl">../../gui/gl/shaders/chromakey_fragment_shader.glsl</file>
+    <file alias="gl/shaders/chromakey_fragment_shader2.glsl">../../gui/gl/shaders/chromakey_fragment_shader2.glsl</file>
+    <file alias="gl/shaders/icon_fragment_shader.glsl">../../gui/gl/shaders/icon_fragment_shader.glsl</file>	
+    <file alias="gl/shaders/normal_fragment_shader.glsl">../../gui/gl/shaders/normal_fragment_shader.glsl</file>
+    <file alias="gl/shaders/led_fragment_shader.glsl">../../gui/gl/shaders/led_fragment_shader.glsl</file>
+    <file alias="gl/shaders/led_vertex_shader.glsl">../../gui/gl/shaders/led_vertex_shader.glsl</file>
+    <file alias="gl/shaders/grids_fragment_shader.glsl">../../gui/gl/shaders/grids_fragment_shader.glsl</file>
+    <file alias="gl/shaders/grids_vertex_shader.glsl">../../gui/gl/shaders/grids_vertex_shader.glsl</file>
+    <file alias="gl/shaders/grids_vertex_shader_fixed.glsl">../../gui/gl/shaders/grids_vertex_shader_fixed.glsl</file>
+	
     <file alias="gl2/chromakey_fragment_shader2.glsl">../../gui/gl2/chromakey_fragment_shader2.glsl</file>
     <file alias="gl2/vertex_shader.glsl">../../gui/gl2/vertex_shader.glsl</file>
     <file alias="gl2/normal_fragment_shader.glsl">../../gui/gl2/normal_fragment_shader.glsl</file>
-    <file alias="gl2/icon_fragment_shader.glsl">../../gui/gl2/icon_fragment_shader.glsl</file>	
-
-    <file alias="gl3/chromakey_fragment_shader.glsl">../../gui/gl3/chromakey_fragment_shader.glsl</file>
-    <file alias="gl3/chromakey_fragment_shader2.glsl">../../gui/gl3/chromakey_fragment_shader2.glsl</file>
-    <file alias="gl3/fragment_shader.glsl">../../gui/gl3/fragment_shader.glsl</file>
-    <file alias="gl3/icon_fragment_shader.glsl">../../gui/gl3/icon_fragment_shader.glsl</file>	
-    <file alias="gl3/normal_fragment_shader.glsl">../../gui/gl3/normal_fragment_shader.glsl</file>
-	
-    <file alias="gl3/vertex_shader.glsl">../../gui/gl3/vertex_shader.glsl</file>
-    <file alias="gl3/tmp_vertex_shader.glsl">../../gui/gl3/tmp_vertex_shader.glsl</file>
-	
-    <file alias="gl3/led_fragment_shader.glsl">../../gui/gl3/led_fragment_shader.glsl</file>
-    <file alias="gl3/led_vertex_shader.glsl">../../gui/gl3/led_vertex_shader.glsl</file>
-
-    <file alias="gl3/grids_fragment_shader.glsl">../../gui/gl3/grids_fragment_shader.glsl</file>
-    <file alias="gl3/grids_vertex_shader.glsl">../../gui/gl3/grids_vertex_shader.glsl</file>
-    <file alias="gl3/grids_vertex_shader_fixed.glsl">../../gui/gl3/grids_vertex_shader_fixed.glsl</file>
-    <file alias="gl3/ntsc_pass1.glsl">../../gui/gl3/ntsc_pass1.glsl</file>
-    <file alias="gl3/ntsc_pass2.glsl">../../gui/gl3/ntsc_pass2.glsl</file>
-
-    <file alias="gles2/chromakey_fragment_shader.glsl">../../gui/gles2/chromakey_fragment_shader.glsl</file>
-    <file alias="gles2/chromakey_fragment_shader2.glsl">../../gui/gles2/chromakey_fragment_shader2.glsl</file>
-    <file alias="gles2/fragment_shader.glsl">../../gui/gles2/fragment_shader.glsl</file>
-    <file alias="gles2/icon_fragment_shader.glsl">../../gui/gles2/icon_fragment_shader.glsl</file>	
-    <file alias="gles2/normal_fragment_shader.glsl">../../gui/gles2/normal_fragment_shader.glsl</file>
-	
-    <file alias="gles2/vertex_shader.glsl">../../gui/gles2/vertex_shader.glsl</file>
-    <file alias="gles2/tmp_vertex_shader.glsl">../../gui/gles2/tmp_vertex_shader.glsl</file>
-	
-    <file alias="gles2/led_fragment_shader.glsl">../../gui/gles2/led_fragment_shader.glsl</file>
-    <file alias="gles2/led_vertex_shader.glsl">../../gui/gles2/led_vertex_shader.glsl</file>
-
-    <file alias="gles2/grids_fragment_shader.glsl">../../gui/gles2/grids_fragment_shader.glsl</file>
-    <file alias="gles2/grids_vertex_shader.glsl">../../gui/gles2/grids_vertex_shader.glsl</file>
-    <file alias="gles2/grids_vertex_shader_fixed.glsl">../../gui/gles2/grids_vertex_shader_fixed.glsl</file>
-
-    <file alias="gles2/ntsc_pass1.glsl">../../gui/gles2/ntsc_pass1.glsl</file>
-    <file alias="gles2/ntsc_pass2.glsl">../../gui/gles2/ntsc_pass2.glsl</file>
-
-    <file alias="gl4_5/chromakey_fragment_shader.glsl">../../gui/gl4_5/chromakey_fragment_shader.glsl</file>
-    <file alias="gl4_5/chromakey_fragment_shader2.glsl">../../gui/gl4_5/chromakey_fragment_shader2.glsl</file>
-    <file alias="gl4_5/fragment_shader.glsl">../../gui/gl4_5/fragment_shader.glsl</file>
-    <file alias="gl4_5/icon_fragment_shader.glsl">../../gui/gl4_5/icon_fragment_shader.glsl</file>	
-    <file alias="gl4_5/normal_fragment_shader.glsl">../../gui/gl4_5/normal_fragment_shader.glsl</file>
-	
-    <file alias="gl4_5/vertex_shader.glsl">../../gui/gl4_5/vertex_shader.glsl</file>
-    <file alias="gl4_5/tmp_vertex_shader.glsl">../../gui/gl4_5/tmp_vertex_shader.glsl</file>
-	
-    <file alias="gl4_5/led_fragment_shader.glsl">../../gui/gl4_5/led_fragment_shader.glsl</file>
-    <file alias="gl4_5/led_vertex_shader.glsl">../../gui/gl4_5/led_vertex_shader.glsl</file>
-
-    <file alias="gl4_5/grids_fragment_shader.glsl">../../gui/gl4_5/grids_fragment_shader.glsl</file>
-    <file alias="gl4_5/grids_vertex_shader.glsl">../../gui/gl4_5/grids_vertex_shader.glsl</file>
-    <file alias="gl4_5/grids_vertex_shader_fixed.glsl">../../gui/gl4_5/grids_vertex_shader_fixed.glsl</file>
-    <file alias="gl4_5/ntsc_pass1.glsl">../../gui/gl4_5/ntsc_pass1.glsl</file>
-    <file alias="gl4_5/ntsc_pass2.glsl">../../gui/gl4_5/ntsc_pass2.glsl</file>
-
-</qresource>
+    <file alias="gl2/icon_fragment_shader.glsl">../../gui/gl2/icon_fragment_shader.glsl</file>	</qresource>
 </RCC>

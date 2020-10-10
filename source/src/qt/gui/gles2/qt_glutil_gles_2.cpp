@@ -332,12 +332,12 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 	if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
 		initPackedGLObject(&main_pass,
 						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
-						   ":/gles2/vertex_shader.glsl" , ":/gles2/chromakey_fragment_shader2.glsl",
+						   ":/gl/shaders/vertex_shader.glsl" , ":/gl/shaders/chromakey_fragment_shader2.glsl",
 						   "Main Shader", false, false, true);
 	} else {
 		initPackedGLObject(&main_pass,
 						   using_flags->get_screen_width() * 2, using_flags->get_screen_height() * 2,
-						   ":/gles2/vertex_shader.glsl" , ":/gles2/fragment_shader.glsl",
+						   ":/gl/shaders/vertex_shader.glsl" , ":/gl/shaders/fragment_shader.glsl",
 						   "Main Shader", false, false, true);
 	}		
 	if(main_pass != NULL) {
@@ -348,12 +348,12 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 #if 0
 	initPackedGLObject(&std_pass,
 					   using_flags->get_screen_width(), using_flags->get_screen_height(),
-					   ":/gles2/vertex_shader.glsl" , ":/gles2/chromakey_fragment_shader.glsl",
+					   ":/gl/shaders/vertex_shader.glsl" , ":/gl/shaders/chromakey_fragment_shader.glsl",
 					   "Standard Shader");
 #endif
 	initPackedGLObject(&led_pass,
 					   10, 10,
-					   ":/gles2/led_vertex_shader.glsl" , ":/gles2/led_fragment_shader.glsl",
+					   ":/gl/shaders/led_vertex_shader.glsl" , ":/gl/shaders/led_fragment_shader.glsl",
 					   "LED Shader", false, false);
 	for(int i = 0; i < 32; i++) {
 		led_pass_vao[i] = new QOpenGLVertexArrayObject;
@@ -372,7 +372,7 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 	}
 	initPackedGLObject(&osd_pass,
 					   48.0, 48.0,
-					   ":/gles2/vertex_shader.glsl" , ":/gles2/icon_fragment_shader.glsl",
+					   ":/gl/shaders/vertex_shader.glsl" , ":/gl/shaders/icon_fragment_shader.glsl",
 					   "OSD Shader", false, false);
 	for(int i = 0; i < 32; i++) {
 		osd_pass_vao[i] = new QOpenGLVertexArrayObject;
@@ -393,12 +393,12 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 
 	initPackedGLObject(&ntsc_pass1,
 					   _width, _height,
-					   ":/gles2/vertex_shader.glsl" , ":/gles2/ntsc_pass1.glsl",
-					   "NTSC Shader Pass1", true, false, true);
+					   ":/gl/shaders/vertex_shader.glsl" , ":/gl/shaders/ntsc_pass1.glsl",
+					   "NTSC Shader Pass1", true, false);
 	initPackedGLObject(&ntsc_pass2,
 					   _width / 2, _height,
-					   ":/gles2/vertex_shader.glsl" , ":/gles2/ntsc_pass2.glsl",
-					   "NTSC Shader Pass2", true, false, true);
+					   ":/gl/shaders/vertex_shader.glsl" , ":/gl/shaders/ntsc_pass2.glsl",
+					   "NTSC Shader Pass2", true, false);
 	if(!(((gl_major_version >= 3) && (gl_minor_version >= 1)) || (gl_major_version >= 4))){
 		int ii;
 		QOpenGLShaderProgram *shader = ntsc_pass2->getShader();
@@ -419,7 +419,7 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 		initBitmapVertex();
 		initPackedGLObject(&bitmap_block,
 						   _width * 2, _height * 2,
-						   ":/gles2/vertex_shader.glsl", ":/gles2/normal_fragment_shader.glsl",
+						   ":/gl/shaders/vertex_shader.glsl", ":/gl/shaders/normal_fragment_shader.glsl",
 						   "Background Bitmap Shader", false, false);
 		if(bitmap_block != NULL) {
 			setNormalVAO(bitmap_block->getShader(), bitmap_block->getVAO(),
@@ -428,7 +428,7 @@ void GLDraw_ES_2::initLocalGLObjects(void)
 		}
 	}
 
-	initGridShaders(":/gles2/grids_vertex_shader_fixed.glsl", ":/gles2/grids_vertex_shader.glsl", ":/gles2/grids_fragment_shader.glsl");
+	initGridShaders(":/gl/shaders/grids_vertex_shader_fixed.glsl", ":/gl/shaders/grids_vertex_shader.glsl", ":/gl/shaders/grids_fragment_shader.glsl");
 	
 	initGridVertexObject(&grids_horizonal_buffer, &grids_horizonal_vertex, using_flags->get_real_screen_height() + 3);
 	doSetGridsHorizonal(using_flags->get_real_screen_height(), true);
@@ -615,17 +615,17 @@ void GLDraw_ES_2::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 				{
 					ii = shader->uniformLocation("source_size");
 					if(ii >= 0) {
-						QVector4D source_size = QVector4D((float)src_w, (float)src_h, 0, 0);
+						QVector2D source_size = QVector2D((float)src_w, (float)src_h);
 						shader->setUniformValue(ii, source_size);
 					}
 					ii = shader->uniformLocation("target_size");
 					if(ii >= 0) {
-						QVector4D target_size = QVector4D((float)dst_w, (float)dst_h, 0, 0);
+						QVector2D target_size = QVector2D((float)dst_w, (float)dst_h);
 						shader->setUniformValue(ii, target_size);
 					}
 					ii = shader->uniformLocation("phase");
 					if(ii >= 0) {
-						ringing_phase = ringing_phase + 0.093;
+						ringing_phase = ringing_phase + 0.063;
 						if(ringing_phase > 1.0) ringing_phase = ringing_phase - 1.0;
 						shader->setUniformValue(ii,  ringing_phase);
 					}
@@ -731,15 +731,15 @@ void GLDraw_ES_2::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mapp
 									 screen_texture_width,
 									 screen_texture_height,
 									 ntsc_pass1,
-									 ntsc_pass1->getViewportWidth(),
-									 ntsc_pass1->getViewportHeight());
+									 ntsc_pass1->getTextureWidth(),
+									 ntsc_pass1->getTextureHeight());
 		
 		renderToTmpFrameBuffer_nPass(ntsc_pass1->getTexture(),
-									 ntsc_pass1->getViewportWidth(),
-									 ntsc_pass1->getViewportHeight(),
+									 ntsc_pass1->getTextureWidth(),
+									 ntsc_pass1->getTextureHeight(),
 									 ntsc_pass2,
-									 ntsc_pass2->getViewportWidth(),
-									 ntsc_pass2->getViewportHeight());
+									 ntsc_pass2->getTextureWidth(),
+									 ntsc_pass2->getTextureHeight());
 		uTmpTextureID = ntsc_pass2->getTexture();
 	} else
 #endif
@@ -848,6 +848,11 @@ void GLDraw_ES_2::drawMain(QOpenGLShaderProgram *prg,
 		//prg->setUniformValue("rotate", GL_FALSE);
 		//}
 
+		if(!(using_flags->is_use_one_board_computer())) {
+			prg->setUniformValue("distortion_v", 0.08f, 0.08f); // ToDo: Change val
+		}
+		prg->setUniformValue("luminance", 0.9f); // ToDo: Change val
+		prg->setUniformValue("lum_offset", 0.08f); // ToDo: Change val
 		if(do_chromakey) {
 			ii = prg->uniformLocation("chromakey");
 			if(ii >= 0) {
@@ -1526,7 +1531,7 @@ void GLDraw_ES_2::initButtons(void)
 		button_shader = new QOpenGLShaderProgram(p_wid);
 		if(button_shader != NULL) {
 			bool f = false;
-			QFile vertex_src(QString::fromUtf8(":/gles2/vertex_shader.glsl"));
+			QFile vertex_src(QString::fromUtf8(":/gl/shaders/vertex_shader.glsl"));
 			if (vertex_src.open(QIODevice::ReadOnly | QIODevice::Text)) {
 				QString srcs = versionext;
 				srcs = srcs + QString::fromUtf8(vertex_src.readAll());
@@ -1535,7 +1540,7 @@ void GLDraw_ES_2::initButtons(void)
 			} else {
 				return;
 			}
-			QFile fragment_src(QString::fromUtf8(":/gles2/normal_fragment_shader.glsl"));
+			QFile fragment_src(QString::fromUtf8(":/gl/shaders/normal_fragment_shader.glsl"));
 			if (fragment_src.open(QIODevice::ReadOnly | QIODevice::Text)) {
 				QString srcs = versionext;
 				srcs = srcs + QString::fromUtf8(fragment_src.readAll());
