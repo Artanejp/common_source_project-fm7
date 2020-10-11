@@ -17,7 +17,7 @@
 #include <QWaitCondition>
 #include <QElapsedTimer>
 
-#include "emu.h"
+#include "emu_template.h"
 #include "osd.h"
 #include "vm/vm.h"
 
@@ -87,7 +87,7 @@ DrawThreadClass::~DrawThreadClass()
 
 }
 
-void DrawThreadClass::SetEmu(EMU *p)
+void DrawThreadClass::SetEmu(EMU_TEMPLATE *p)
 {
 	//p_emu = p;
 	p_osd = (OSD*)(p->get_osd());

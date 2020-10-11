@@ -17,7 +17,7 @@
 #include "qt_gldraw.h"
 
 class Ui_MainWindowBase;
-class EMU;
+class EMU_TEMPLATE;
 class OSD;
 class CSP_Logger;
 class QSemaphore;
@@ -71,7 +71,7 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	QSemaphore *textureMappingSemaphore;
 	
 	void run() { doWork("");}
-	void SetEmu(EMU *p);
+	void SetEmu(EMU_TEMPLATE *p);
 public slots:
 	void doWork(const QString &);
 	void doExit(void);

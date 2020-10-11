@@ -2,9 +2,9 @@
 include(CheckFunctionExists)
 
 # Still not as one shared lib with win32
-if(WIN32)
-	set(USE_DEVICES_SHARED_LIB OFF)
-endif()
+#if(WIN32)
+#	set(USE_DEVICES_SHARED_LIB OFF)
+#endif()
 if(UNIX)
 	include(GNUInstallDirs)
 endif()
