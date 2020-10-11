@@ -1,3 +1,9 @@
+8/10/2020
+
+[OSD/WIN32] support x64 (thank Marukun)
+[OSD/WIN32] support Direct2D
+
+
 4/6/2020
 
 [VM/I386_NP21] update to Neko Project 21/W ver0.86 rev72

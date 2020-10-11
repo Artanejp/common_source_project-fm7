@@ -582,13 +582,13 @@ void SCSI_DEV::start_command()
 		for(int i = 0; i < (int)strlen(vendor_id) && i < 8; i++) {
 			buffer->write(vendor_id[i]);
 		}
-		for(int i = strlen(vendor_id); i < 8; i++) {
+		for(int i = (int)strlen(vendor_id); i < 8; i++) {
 			buffer->write(0x20);
 		}
 		for(int i = 0; i < (int)strlen(product_id) && i < 16; i++) {
 			buffer->write(vendor_id[i]);
 		}
-		for(int i = strlen(product_id); i < 16; i++) {
+		for(int i = (int)strlen(product_id); i < 16; i++) {
 			buffer->write(0x20);
 		}
 		// change to data in phase

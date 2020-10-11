@@ -36,13 +36,20 @@ void OSD::initialize_screen()
 //#endif
 	memset(&stretched_screen_buffer, 0, sizeof(bitmap_t));
 	memset(&shrinked_screen_buffer, 0, sizeof(bitmap_t));
+	memset(&reversed_screen_buffer, 0, sizeof(bitmap_t));
 	memset(&video_screen_buffer, 0, sizeof(bitmap_t));
 	
+#ifdef SUPPORT_D2D1
+	pD2d1Factory = NULL;
+	pD2d1RenderTarget = NULL;
+	pD2d1Bitmap = NULL;
+#endif
+#ifdef SUPPORT_D3D9
 	lpd3d9 = NULL;
 	lpd3d9Device = NULL;
 	lpd3d9Surface = NULL;
 	lpd3d9OffscreenSurface = NULL;
-	
+#endif
 	now_record_video = false;
 	pAVIStream = NULL;
 	pAVICompressed = NULL;
@@ -57,7 +64,12 @@ void OSD::release_screen()
 {
 	stop_record_video();
 	
+#ifdef SUPPORT_D2D1
+	release_d2d1();
+#endif
+#ifdef SUPPORT_D3D9
 	release_d3d9();
+#endif
 	release_screen_buffer(&vm_screen_buffer);
 #ifdef USE_SCREEN_FILTER
 	release_screen_buffer(&filtered_screen_buffer);
@@ -68,6 +80,7 @@ void OSD::release_screen()
 //#endif
 	release_screen_buffer(&stretched_screen_buffer);
 	release_screen_buffer(&shrinked_screen_buffer);
+	release_screen_buffer(&reversed_screen_buffer);
 	release_screen_buffer(&video_screen_buffer);
 }
 
@@ -292,36 +305,75 @@ int OSD::draw_screen()
 		draw_screen_buffer = &stretched_screen_buffer;
 	}
 	
-	// initialize d3d9 surface
+	// initialize d2d1/d3d9 surface
+#ifdef SUPPORT_D2D1
+	static bool prev_use_d2d1 = config.use_d2d1;
+#endif
+#ifdef SUPPORT_D3D9
 	static bool prev_use_d3d9 = config.use_d3d9;
+#endif
 	static bool prev_wait_vsync = config.wait_vsync;
 	static int prev_window_width = 0, prev_window_height = 0;
 	static int prev_screen_width = 0, prev_screen_height = 0;
 	
-	if(prev_use_d3d9 != config.use_d3d9 || prev_wait_vsync != config.wait_vsync || prev_window_width != host_window_width || prev_window_height != host_window_height) {
+	if(
+#ifdef SUPPORT_D2D1
+		prev_use_d2d1 != config.use_d2d1 ||
+#endif
+#ifdef SUPPORT_D3D9
+		prev_use_d3d9 != config.use_d3d9 ||
+#endif
+		prev_wait_vsync != config.wait_vsync || prev_window_width != host_window_width || prev_window_height != host_window_height
+	) {
+#ifdef SUPPORT_D2D1
+		if(config.use_d2d1) {
+			config.use_d2d1 = initialize_d2d1();
+		} else {
+			release_d2d1();
+		}
+		prev_use_d2d1 = config.use_d2d1;
+#endif
+#ifdef SUPPORT_D3D9
 		if(config.use_d3d9) {
 			config.use_d3d9 = initialize_d3d9();
 		} else {
 			release_d3d9();
 		}
 		prev_use_d3d9 = config.use_d3d9;
+#endif
 		prev_wait_vsync = config.wait_vsync;
 		prev_window_width = host_window_width;
 		prev_window_height = host_window_height;
 		prev_screen_width = prev_screen_height = 0;
 	}
 	if(prev_screen_width != draw_screen_buffer->width || prev_screen_height != draw_screen_buffer->height) {
+#ifdef SUPPORT_D2D1
+		if(config.use_d2d1) {
+			config.use_d2d1 = initialize_d2d1_surface(draw_screen_buffer);
+		}
+#endif
+#ifdef SUPPORT_D3D9
 		if(config.use_d3d9) {
 			config.use_d3d9 = initialize_d3d9_surface(draw_screen_buffer);
 		}
+#endif
 		prev_screen_width = draw_screen_buffer->width;
 		prev_screen_height = draw_screen_buffer->height;
 	}
 	
+#ifdef SUPPORT_D2D1
+	if(config.use_d2d1) {
+		// copy screen to d2d1 offscreen surface
+		copy_to_d2d1_surface(draw_screen_buffer);
+	} else
+#endif
+#ifdef SUPPORT_D3D9
 	if(config.use_d3d9) {
 		// copy screen to d3d9 offscreen surface
 		copy_to_d3d9_surface(draw_screen_buffer);
-	} else {
+	} else
+#endif
+	{
 		if(draw_screen_buffer->width != draw_screen_width || draw_screen_buffer->height != draw_screen_height) {
 			if(shrinked_screen_buffer.width != draw_screen_width || shrinked_screen_buffer.height != draw_screen_height) {
 				initialize_screen_buffer(&shrinked_screen_buffer, draw_screen_width, draw_screen_height, HALFTONE);
@@ -447,20 +499,17 @@ void OSD::update_screen(HDC hdc)
 		int dest_x = (host_window_width - draw_screen_width) / 2;
 		int dest_y = (host_window_height - draw_screen_height) / 2;
 		
+#ifdef SUPPORT_D2D1
+		if(config.use_d2d1) {
+			update_d2d1_screen(dest_x, dest_y);
+		} else
+#endif
+#ifdef SUPPORT_D3D9
 		if(config.use_d3d9) {
-			LPDIRECT3DSURFACE9 lpd3d9BackSurface = NULL;
-			if(lpd3d9Device != NULL && lpd3d9Device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &lpd3d9BackSurface) == D3D_OK && lpd3d9BackSurface != NULL) {
-				RECT rectSrc = { 0, 0, draw_screen_buffer->width, draw_screen_buffer->height };
-				RECT rectDst = { dest_x, dest_y, dest_x + draw_screen_width, dest_y + draw_screen_height };
-				RECT rectWin = { 0, 0, host_window_width, host_window_height };
-				bool stretch_screen = !(draw_screen_buffer->width == draw_screen_width && draw_screen_buffer->height == draw_screen_height);
-				
-				lpd3d9Device->UpdateSurface(lpd3d9OffscreenSurface, NULL, lpd3d9Surface, NULL);
-				lpd3d9Device->StretchRect(lpd3d9Surface, &rectSrc, lpd3d9BackSurface, &rectDst, stretch_screen ? D3DTEXF_LINEAR : D3DTEXF_POINT);
-				lpd3d9BackSurface->Release();				
-				lpd3d9Device->Present(&rectWin, &rectWin, NULL, NULL);
-			}
-		} else {
+			update_d3d9_screen(dest_x, dest_y);
+		} else
+#endif
+		{
 			BitBlt(hdc, dest_x, dest_y, draw_screen_width, draw_screen_height, draw_screen_buffer->hdcDib, 0, 0, SRCCOPY);
 		}
 		first_invalidate = self_invalidate = false;
@@ -1034,13 +1083,98 @@ void OSD::stretch_screen_buffer(bitmap_t *source, bitmap_t *dest)
 }
 
 #if defined(_RGB555)
+	#define DXGI_FORMAT_TMP DXGI_FORMAT_B5G5R5A1_UNORM
 	#define D3DFMT_TMP D3DFMT_X1R5G5B5
 #elif defined(_RGB565)
+	#define DXGI_FORMAT_TMP DXGI_FORMAT_B5G6R5_UNORM
 	#define D3DFMT_TMP D3DFMT_R5G6B5
 #elif defined(_RGB888)
+	#define DXGI_FORMAT_TMP DXGI_FORMAT_B8G8R8A8_UNORM
 	#define D3DFMT_TMP D3DFMT_X8R8G8B8
 #endif
 
+#ifdef SUPPORT_D2D1
+bool OSD::initialize_d2d1()
+{
+	release_d2d1();
+	
+	if(!FAILED(D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, &pD2d1Factory))) {
+		if(!FAILED(pD2d1Factory->CreateHwndRenderTarget(
+			D2D1::RenderTargetProperties(),
+			D2D1::HwndRenderTargetProperties(main_window_handle, D2D1::SizeU(host_window_width, host_window_height)),
+			&pD2d1RenderTarget
+		))) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool OSD::initialize_d2d1_surface(bitmap_t *buffer)
+{
+	if(!FAILED(pD2d1RenderTarget->CreateBitmap(
+		D2D1::SizeU(buffer->width, buffer->height),
+		D2D1::BitmapProperties(D2D1::PixelFormat(DXGI_FORMAT_TMP, D2D1_ALPHA_MODE_IGNORE)),
+		&pD2d1Bitmap
+	))) {
+		return true;
+	}
+	return false;
+}
+
+void OSD::release_d2d1()
+{
+	release_d2d1_surface();
+	
+	if(pD2d1RenderTarget != NULL) {
+		pD2d1RenderTarget->Release();
+		pD2d1RenderTarget = NULL;
+	}
+	if(pD2d1Factory != NULL) {
+		pD2d1Factory->Release();
+		pD2d1Factory = NULL;
+	}
+}
+
+void OSD::release_d2d1_surface()
+{
+	if(pD2d1Bitmap != NULL) {
+		pD2d1Bitmap->Release();
+		pD2d1Bitmap = NULL;
+	}
+}
+
+void OSD::copy_to_d2d1_surface(bitmap_t *buffer)
+{
+	if(reversed_screen_buffer.width != buffer->width || reversed_screen_buffer.height != buffer->height) {
+		initialize_screen_buffer(&reversed_screen_buffer, buffer->width, buffer->height, HALFTONE);
+	}
+	for(int y = 0; y < buffer->height; y++) {
+		scrntype_t* source_buffer = buffer->get_buffer(y);
+		scrntype_t* dest_buffer = reversed_screen_buffer.get_buffer(reversed_screen_buffer.height - y - 1);
+		
+		for(int x = 0; x < buffer->width; x++) {
+			dest_buffer[x] = source_buffer[x];
+		}
+	}
+	pD2d1Bitmap->CopyFromMemory(nullptr, reinterpret_cast< const void* >(reversed_screen_buffer.lpBmp), sizeof(scrntype_t) * reversed_screen_buffer.width);
+}
+
+void OSD::update_d2d1_screen(int dest_x, int dest_y)
+{
+	D2D1_RECT_F rect = { (FLOAT)dest_x, (FLOAT)dest_y, (FLOAT)(dest_x + draw_screen_width), (FLOAT)(dest_y + draw_screen_height) };
+	
+	pD2d1RenderTarget->BeginDraw();
+	pD2d1RenderTarget->DrawBitmap(pD2d1Bitmap, &rect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+	HRESULT hr = pD2d1RenderTarget->EndDraw();
+	
+	if(hr == D2DERR_RECREATE_TARGET) {
+		set_host_window_size(-1, -1, host_window_mode);
+	}
+}
+#endif
+
+#ifdef SUPPORT_D3D9
 bool OSD::initialize_d3d9()
 {
 	release_d3d9();
@@ -1144,6 +1278,24 @@ void OSD::copy_to_d3d9_surface(bitmap_t *buffer)
 	}
 	
 }
+
+void OSD::update_d3d9_screen(int dest_x, int dest_y)
+{
+	LPDIRECT3DSURFACE9 lpd3d9BackSurface = NULL;
+	
+	if(lpd3d9Device != NULL && lpd3d9Device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &lpd3d9BackSurface) == D3D_OK && lpd3d9BackSurface != NULL) {
+		RECT rectSrc = { 0, 0, draw_screen_buffer->width, draw_screen_buffer->height };
+		RECT rectDst = { dest_x, dest_y, dest_x + draw_screen_width, dest_y + draw_screen_height };
+		RECT rectWin = { 0, 0, host_window_width, host_window_height };
+		bool stretch_screen = !(draw_screen_buffer->width == draw_screen_width && draw_screen_buffer->height == draw_screen_height);
+		
+		lpd3d9Device->UpdateSurface(lpd3d9OffscreenSurface, NULL, lpd3d9Surface, NULL);
+		lpd3d9Device->StretchRect(lpd3d9Surface, &rectSrc, lpd3d9BackSurface, &rectDst, stretch_screen ? D3DTEXF_LINEAR : D3DTEXF_POINT);
+		lpd3d9BackSurface->Release();
+		lpd3d9Device->Present(&rectWin, &rectWin, NULL, NULL);
+	}
+}
+#endif
 
 void OSD::capture_screen()
 {
@@ -1422,9 +1574,9 @@ int OSD::get_text_width(bitmap_t *bitmap, font_t *font, const char *text)
 #ifdef _UNICODE
 	_TCHAR unicode[1024];
 	MultiByteToWideChar(CP_ACP, 0, text, -1, unicode, 1024);
-	GetTextExtentPoint32(bitmap->hdcDib, unicode, wcslen(unicode), &size);
+	GetTextExtentPoint32(bitmap->hdcDib, unicode, (int)wcslen(unicode), &size);
 #else
-	GetTextExtentPoint32(bitmap->hdcDib, text, strlen(text), &size);
+	GetTextExtentPoint32(bitmap->hdcDib, text, (int)strlen(text), &size);
 #endif
 	SelectObject(bitmap->hdcDib, hFontOld);
 	return (int)size.cx;
@@ -1438,9 +1590,9 @@ void OSD::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, cons
 #ifdef _UNICODE
 	_TCHAR unicode[1024];
 	MultiByteToWideChar(CP_ACP, 0, text, -1, unicode, 1024);
-	ExtTextOut(bitmap->hdcDib, x, y, NULL, NULL, unicode, wcslen(unicode), NULL);
+	ExtTextOut(bitmap->hdcDib, x, y, NULL, NULL, unicode, (UINT)wcslen(unicode), NULL);
 #else
-	ExtTextOut(bitmap->hdcDib, x, y, NULL, NULL, text, strlen(text), NULL);
+	ExtTextOut(bitmap->hdcDib, x, y, NULL, NULL, text, (UINT)strlen(text), NULL);
 #endif
 	SelectObject(bitmap->hdcDib, hFontOld);
 }

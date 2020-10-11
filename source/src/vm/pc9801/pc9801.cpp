@@ -2124,7 +2124,7 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
  		// const char *name = typeid(*device).name();
 		//       But, using get_device_name() instead of typeid(foo).name() 20181008 K.O
 		const char *name = device->get_device_name();
-		int len = strlen(name);
+		int len = (int)strlen(name);
 		if(!state_fio->StateCheckInt32(len)) {
 			if(loading) {
 				printf("Class name len Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);

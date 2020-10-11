@@ -312,12 +312,13 @@
 #define ID_HOST_REC_SOUND               41204
 #define ID_HOST_REC_STOP                41205
 #define ID_HOST_CAPTURE_SCREEN          41206
-#define ID_HOST_USE_D3D9                41207
-#define ID_HOST_WAIT_VSYNC              41208
-#define ID_HOST_USE_DINPUT              41209
-#define ID_HOST_DISABLE_DWM             41210
-#define ID_HOST_SHOW_STATUS_BAR         41211
-#define ID_HOST_MENU_END                41211
+#define ID_HOST_USE_D2D1                41207
+#define ID_HOST_USE_D3D9                41208
+#define ID_HOST_WAIT_VSYNC              41209
+#define ID_HOST_USE_DINPUT              41210
+#define ID_HOST_DISABLE_DWM             41211
+#define ID_HOST_SHOW_STATUS_BAR         41212
+#define ID_HOST_MENU_END                41212
 
 #define ID_SCREEN_MENU_START            41301
 #define ID_SCREEN_WINDOW                41301 // 41601-41610

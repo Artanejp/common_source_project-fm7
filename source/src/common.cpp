@@ -1341,7 +1341,7 @@ const _TCHAR *DLL_PREFIX get_initial_current_path()
 #else
 		getcwd(current_path, _MAX_PATH);
 #endif
-		int len = strlen(current_path);
+		size_t len = strlen(current_path);
 		if(current_path[len - 1] != '\\' && current_path[len - 1] != '/') {
 #if defined(_WIN32) || defined(Q_OS_WIN)
 			current_path[len] = '\\';
@@ -1437,8 +1437,8 @@ bool DLL_PREFIX check_file_extension(const _TCHAR *file_path, const _TCHAR *ext)
 	if((pos != (int)std::string::npos) && (pos >= ((int)s_fpath.length() - (int)s_ext.length()))) return true; 
 	return false;
 #else
-	int nam_len = _tcslen(file_path);
-	int ext_len = _tcslen(ext);
+	size_t nam_len = _tcslen(file_path);
+	size_t ext_len = _tcslen(ext);
 	
 	return (nam_len >= ext_len && _tcsncicmp(&file_path[nam_len - ext_len], ext, ext_len) == 0);
 #endif

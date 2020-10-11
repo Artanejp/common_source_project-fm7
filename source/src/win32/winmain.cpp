@@ -136,12 +136,13 @@ void start_auto_key();
 #endif
 
 // dialog
+// thanks Marukun (64bit)
 #ifdef USE_SOUND_VOLUME
-BOOL CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
+INT_PTR CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
 #endif
 #ifdef USE_JOYSTICK
-BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
-BOOL CALLBACK JoyToKeyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
+INT_PTR CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
+INT_PTR CALLBACK JoyToKeyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
 #endif
 
 // buttons
@@ -299,7 +300,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 	// open command line path
 	if(szCmdLine[0]) {
 		if(szCmdLine[0] == _T('"')) {
-			int len = _tcslen(szCmdLine);
+			int len = (int)_tcslen(szCmdLine);
 			szCmdLine[len - 1] = _T('\0');
 			szCmdLine++;
 		}
@@ -329,7 +330,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 				_CrtDumpMemoryLeaks();
 #endif
 				ExitProcess(0);	// trick
-				return msg.wParam;
+				return (int)msg.wParam;
 			}
 			if(!TranslateAccelerator(hWnd, hAccel, &msg)) {
 				TranslateMessage(&msg);
@@ -445,7 +446,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 #ifdef SUPPORT_DRAG_DROP
 		DragAcceptFiles(hWnd, TRUE);
 #endif
+#ifdef _M_AMD64
+		// thanks Marukun (64bit)
+		hInstance = (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE);
+#else
 		hInstance = (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE);
+#endif
 		timeBeginPeriod(1);
 		break;
 	case WM_CLOSE:
@@ -857,12 +863,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				emu->capture_screen();
 			}
 			break;
+#ifdef SUPPORT_D2D1
+		case ID_HOST_USE_D2D1:
+			config.use_d2d1 = !config.use_d2d1;
+			config.use_d3d9 = 0;
+			if(emu) {
+				if(config.use_d2d1 && config.show_status_bar) {
+					config.show_status_bar = 0;
+					if(!now_fullscreen) {
+						set_window(hWnd, prev_window_mode);
+					}
+				}
+				emu->set_host_window_size(-1, -1, !now_fullscreen);
+			}
+			break;
+#endif
+#ifdef SUPPORT_D3D9
 		case ID_HOST_USE_D3D9:
+			config.use_d2d1 = 0;
 			config.use_d3d9 = !config.use_d3d9;
 			if(emu) {
 				emu->set_host_window_size(-1, -1, !now_fullscreen);
 			}
 			break;
+#endif
 		case ID_HOST_WAIT_VSYNC:
 			config.wait_vsync = !config.wait_vsync;
 			if(emu) {
@@ -876,10 +900,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			config.disable_dwm = !config.disable_dwm;
 			break;
 		case ID_HOST_SHOW_STATUS_BAR:
-			config.show_status_bar = !config.show_status_bar;
-			if(emu) {
-				if(!now_fullscreen) {
-					set_window(hWnd, prev_window_mode);
+#ifdef SUPPORT_D2D1
+			if(!config.use_d2d1)
+#endif
+			{
+				config.show_status_bar = !config.show_status_bar;
+				if(emu) {
+					if(!now_fullscreen) {
+						set_window(hWnd, prev_window_mode);
+					}
 				}
 			}
 			break;
@@ -967,21 +996,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break;
 #ifdef USE_SOUND_VOLUME
 		case ID_SOUND_VOLUME:
-			DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_VOLUME), hWnd, VolumeWndProc, 0);
+			// thanks Marukun (64bit)
+			DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_VOLUME), hWnd, reinterpret_cast<DLGPROC>(VolumeWndProc), 0);
 			break;
 #endif
 #ifdef USE_JOYSTICK
 		case ID_INPUT_JOYSTICK0: case ID_INPUT_JOYSTICK1: case ID_INPUT_JOYSTICK2: case ID_INPUT_JOYSTICK3:
 		case ID_INPUT_JOYSTICK4: case ID_INPUT_JOYSTICK5: case ID_INPUT_JOYSTICK6: case ID_INPUT_JOYSTICK7:
 			{
+				// thanks Marukun (64bit)
 				LONG index = LOWORD(wParam) - ID_INPUT_JOYSTICK0;
-				DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_JOYSTICK), hWnd, JoyWndProc, (LPARAM)&index);
+				DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_JOYSTICK), hWnd, reinterpret_cast<DLGPROC>(JoyWndProc), (LPARAM)&index);
 			}
 			break;
 		case ID_INPUT_JOYTOKEY:
 			{
+				// thanks Marukun (64bit)
 				LONG index = 0;
-				DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_JOYTOKEY), hWnd, JoyToKeyWndProc, (LPARAM)&index);
+				DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_JOYTOKEY), hWnd, reinterpret_cast<DLGPROC>(JoyToKeyWndProc), (LPARAM)&index);
 			}
 			break;
 #endif
@@ -1872,9 +1904,19 @@ void update_host_menu(HMENU hMenu)
 	EnableMenuItem(hMenu, ID_HOST_REC_SOUND, now_rec ? MF_GRAYED : MF_ENABLED);
 	EnableMenuItem(hMenu, ID_HOST_REC_STOP, now_stop ? MF_GRAYED : MF_ENABLED);
 	
+#ifdef SUPPORT_D2D1
+	CheckMenuItem(hMenu, ID_HOST_USE_D2D1, config.use_d2d1 ? MF_CHECKED : MF_UNCHECKED);
+#else
+	EnableMenuItem(hMenu, ID_HOST_USE_D2D1, MF_GRAYED);
+#endif
+#ifdef SUPPORT_D3D9
 	CheckMenuItem(hMenu, ID_HOST_USE_D3D9, config.use_d3d9 ? MF_CHECKED : MF_UNCHECKED);
 	CheckMenuItem(hMenu, ID_HOST_WAIT_VSYNC, config.wait_vsync ? MF_CHECKED : MF_UNCHECKED);
 	EnableMenuItem(hMenu, ID_HOST_WAIT_VSYNC, config.use_d3d9 ? MF_ENABLED : MF_GRAYED);
+#else
+	EnableMenuItem(hMenu, ID_HOST_USE_D3D9, MF_GRAYED);
+	EnableMenuItem(hMenu, ID_HOST_WAIT_VSYNC, MF_GRAYED);
+#endif
 	
 	CheckMenuItem(hMenu, ID_HOST_USE_DINPUT, config.use_dinput ? MF_CHECKED : MF_UNCHECKED);
 	
@@ -1882,6 +1924,9 @@ void update_host_menu(HMENU hMenu)
 	EnableMenuItem(hMenu, ID_HOST_DISABLE_DWM, win8_or_later ? MF_ENABLED : MF_GRAYED);
 	
 	CheckMenuItem(hMenu, ID_HOST_SHOW_STATUS_BAR, config.show_status_bar ? MF_CHECKED : MF_UNCHECKED);
+#ifdef SUPPORT_D2D1
+	EnableMenuItem(hMenu, ID_HOST_SHOW_STATUS_BAR, !config.use_d2d1 ? MF_ENABLED : MF_GRAYED);
+#endif
 }
 
 #ifndef ONE_BOARD_MICRO_COMPUTER
@@ -2586,7 +2631,7 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 		TextOut(lpDrawItem->hDC, draw_left, text_top, _T("CMT:"), 4);
 		GetTextExtentPoint32(lpDrawItem->hDC, _T("CMT:"), 4, &size);
 		draw_left += size.cx + 4;
-		TextOut(lpDrawItem->hDC, draw_left, text_top, tape_status, _tcslen(tape_status));
+		TextOut(lpDrawItem->hDC, draw_left, text_top, tape_status, (int)_tcslen(tape_status));
 	}
 	#endif
 }
@@ -3361,7 +3406,7 @@ void start_auto_key()
 		HANDLE hClip = GetClipboardData(CF_TEXT);
 		if(hClip) {
 			char* buf = (char*)GlobalLock(hClip);
-			int size = strlen(buf);
+			int size = (int)strlen(buf);
 			
 			if(size > 0) {
 				emu->stop_auto_key();
@@ -3380,7 +3425,7 @@ void start_auto_key()
 // ----------------------------------------------------------------------------
 
 #ifdef USE_SOUND_VOLUME
-BOOL CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch(iMsg) {
 	case WM_CLOSE:
@@ -3404,8 +3449,8 @@ BOOL CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		switch(LOWORD(wParam)) {
 		case IDOK:
 			for(int i = 0; i < USE_SOUND_VOLUME; i++) {
-				config.sound_volume_l[i] = SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_GETPOS, 0, 0);
-				config.sound_volume_r[i] = SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_GETPOS, 0, 0);
+				config.sound_volume_l[i] = (int)SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_GETPOS, 0, 0);
+				config.sound_volume_r[i] = (int)SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_GETPOS, 0, 0);
 				emu->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
 			}
 			EndDialog(hDlg, IDOK);
@@ -3665,7 +3710,7 @@ LRESULT CALLBACK JoySubProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	return CallWindowProc(JoyOldProc[index], hWnd, iMsg, wParam, lParam);
 }
 
-BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch(iMsg) {
 	case WM_CLOSE:
@@ -3685,8 +3730,14 @@ BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 #endif
 				SetDlgItemText(hDlg, IDC_JOYSTICK_CAPTION0 + i, joy_button_names[i]);
 				set_joy_button_text(i);
+#ifdef _M_AMD64
+				// thanks Marukun (64bit)
+				JoyOldProc[i] = (WNDPROC)GetWindowLongPtr(hJoyEdit[i], GWLP_WNDPROC);
+				SetWindowLongPtr(hJoyEdit[i], GWLP_WNDPROC, (LONG_PTR)JoySubProc);
+#else
 				JoyOldProc[i] = (WNDPROC)GetWindowLong(hJoyEdit[i], GWL_WNDPROC);
 				SetWindowLong(hJoyEdit[i], GWL_WNDPROC, (LONG)JoySubProc);
+#endif
 			}
 		}
 		memset(joy_status, 0, sizeof(joy_status));
@@ -3729,12 +3780,12 @@ BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	default:
-		return FALSE;
+		return (INT_PTR)FALSE;
 	}
-	return TRUE;
+	return (INT_PTR)TRUE;
 }
 
-BOOL CALLBACK JoyToKeyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK JoyToKeyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch(iMsg) {
 	case WM_CLOSE:
@@ -3753,8 +3804,14 @@ BOOL CALLBACK JoyToKeyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam
 			joy_button_params[i] = config.joy_to_key_buttons[i];
 			if((hJoyEdit[i] = GetDlgItem(hDlg, IDC_JOYSTICK_PARAM0 + i)) != NULL) {
 				set_joy_button_text(i);
+#ifdef _M_AMD64
+				// thanks Marukun (64bit)
+				JoyOldProc[i] = (WNDPROC)GetWindowLongPtr(hJoyEdit[i], GWLP_WNDPROC);
+				SetWindowLongPtr(hJoyEdit[i], GWLP_WNDPROC, (LONG_PTR)JoySubProc);
+#else
 				JoyOldProc[i] = (WNDPROC)GetWindowLong(hJoyEdit[i], GWL_WNDPROC);
 				SetWindowLong(hJoyEdit[i], GWL_WNDPROC, (LONG)JoySubProc);
+#endif
 			}
 		}
 		memset(joy_status, 0, sizeof(joy_status));
@@ -3789,7 +3846,7 @@ BOOL CALLBACK JoyToKeyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam
 			}
 			break;
 		default:
-			return FALSE;
+			return (INT_PTR)FALSE;
 		}
 		break;
 	case WM_TIMER:
@@ -3809,9 +3866,9 @@ BOOL CALLBACK JoyToKeyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam
 		}
 		break;
 	default:
-		return FALSE;
+		return (INT_PTR)FALSE;
 	}
-	return TRUE;
+	return (INT_PTR)TRUE;
 }
 #endif
 

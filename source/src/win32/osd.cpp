@@ -127,8 +127,14 @@ void OSD::start_waiting_in_debugger()
 			}
 		}
 	}
+#ifdef _M_AMD64
+	// thanks Marukun (64bit)
+	hWndProc = (FARPROC)GetWindowLongPtr(main_window_handle, GWLP_WNDPROC);
+	SetWindowLongPtr(main_window_handle, GWLP_WNDPROC, (LONG_PTR)MyWndProc);
+#else
 	hWndProc = (FARPROC)GetWindowLong(main_window_handle, GWL_WNDPROC);
 	SetWindowLong(main_window_handle, GWL_WNDPROC, (LONG)MyWndProc);
+#endif
 	my_osd = this;
 }
 
@@ -143,7 +149,12 @@ void OSD::finish_waiting_in_debugger()
 			}
 		}
 	}
+#ifdef _M_AMD64
+	// thanks Marukun (64bit)
+	SetWindowLongPtr(main_window_handle, GWLP_WNDPROC, (LONG_PTR)hWndProc);
+#else
 	SetWindowLong(main_window_handle, GWL_WNDPROC, (LONG)hWndProc);
+#endif
 	my_osd = NULL;
 }
 

@@ -1333,7 +1333,8 @@ void EMU::set_auto_key_char(char code)
 			return;
 		}
 		for(int i = 0;; i++) {
-			int len = strlen(romaji_table[i].romaji), comp = -1;
+			size_t len = strlen(romaji_table[i].romaji);
+			int comp = -1;
 			if(len == 0) {
 				// end of table
 				if(!(is_alphabet(codes[3])) /*&& !((codes[3] >= 0x2c) && (codes[3] <= 0x2e)) && !((codes[3] == 0x5b) || (codes[3] == 0x5d))*/) {
@@ -1896,7 +1897,7 @@ void EMU::write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path)
 // ----------------------------------------------------------------------------
 
 #ifdef USE_SOCKET
-int EMU::get_socket(int ch)
+SOCKET EMU::get_socket(int ch)
 {
 	return osd->get_socket(ch);
 }

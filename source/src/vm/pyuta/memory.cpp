@@ -296,12 +296,12 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 	
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 		// 8kb
-		ctype = fio->Fread(cart, 0x2000, 1);
+		ctype  = (int)fio->Fread(cart, 0x2000, 1);
 		memcpy(cart + 0x2000, cart, 0x2000);
 		// 16kb
-		ctype += fio->Fread(cart + 0x2000, 0x2000, 1);
+		ctype += (int)fio->Fread(cart + 0x2000, 0x2000, 1);
 		// 32kb
-		ctype += fio->Fread(cart + 0x4000, 0x4000, 1);
+		ctype += (int)fio->Fread(cart + 0x4000, 0x4000, 1);
 		fio->Fclose();
 		
 		ENABLE_CART();

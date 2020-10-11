@@ -249,6 +249,7 @@ BEGIN
             MENUITEM "Volume",                  ID_SOUND_VOLUME
         END
         MENUITEM SEPARATOR
+        MENUITEM "Use Direct2D1",               ID_HOST_USE_D2D1
         MENUITEM "Use Direct3D9",               ID_HOST_USE_D3D9
         MENUITEM "Wait Vsync",                  ID_HOST_WAIT_VSYNC
         MENUITEM "Use DirectInput",             ID_HOST_USE_DINPUT

@@ -328,7 +328,7 @@ public:
 #endif
 	// socket
 #ifdef USE_SOCKET
-	int get_socket(int ch);
+	SOCKET get_socket(int ch);
 	void notify_socket_connected(int ch);
 	void notify_socket_disconnected(int ch);
 	bool initialize_socket_tcp(int ch);

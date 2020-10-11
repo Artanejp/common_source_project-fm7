@@ -329,7 +329,7 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		const char *name = typeid(*device).name() + 6; // skip "class "
-		int len = strlen(name);
+		int len = (int)strlen(name);
 		
 		if(!state_fio->StateCheckInt32(len)) {
 			return false;

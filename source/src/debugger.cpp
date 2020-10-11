@@ -61,7 +61,7 @@ void my_printf(OSD *osd, const _TCHAR *format, ...)
 	if(logfile != NULL && logfile->IsOpened()) {
 		logfile->Fwrite(buffer, _tcslen(buffer) * sizeof(_TCHAR), 1);
 	}
-	osd->write_console(buffer, _tcslen(buffer));
+	osd->write_console(buffer, (unsigned int)_tcslen(buffer));
 }
 
 void my_putch(OSD *osd, _TCHAR c)
@@ -536,7 +536,7 @@ void* debugger_thread(void *lpx)
 								}
 								memcpy(command, cpu_debugger->history[index], sizeof(command));
 								my_printf(p->osd, _T("%s"), command);
-								enter_ptr = _tcslen(command);
+								enter_ptr = (int)_tcslen(command);
 							} else {
 								history_ptr = history_ptr_stored;
 							}
@@ -648,7 +648,7 @@ void* debugger_thread(void *lpx)
 					uint32_t addr = my_hexatoi(target, params[1]) % target->get_debug_data_addr_space();
 					my_tcscpy_s(buffer, array_length(buffer), prev_command);
 					if((token = my_tcstok_s(buffer, _T("\""), &context)) != NULL && (token = my_tcstok_s(NULL, _T("\""), &context)) != NULL) {
-						int len = _tcslen(token);
+						int len = (int)_tcslen(token);
 						for(int i = 0; i < len; i++) {
 							target->write_debug_data8(addr, token[i] & 0xff);
 							addr = (addr + 1) % target->get_debug_data_addr_space();

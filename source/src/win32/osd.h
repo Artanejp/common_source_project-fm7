@@ -20,6 +20,11 @@
 //#define DIRECTINPUT_VERSION	0x500
 #define DIRECTINPUT_VERSION	0x800
 
+#if defined(_MSC_VER) && (_MSC_VER >= 1910)
+#define SUPPORT_D2D1
+#endif
+#define SUPPORT_D3D9
+
 #include <windows.h>
 #include <windowsx.h>
 #include <mmsystem.h>
@@ -27,9 +32,14 @@
 #include <commctrl.h>
 #include <wingdi.h>
 #include <gdiplus.h>
+#ifdef SUPPORT_D2D1
+#include <d2d1.h>
+#endif
+#ifdef SUPPORT_D3D9
 #include <d3d9.h>
-#include <d3dx9.h>
+//#include <d3dx9.h>
 #include <d3d9types.h>
+#endif
 #include <vfw.h>
 #include <dsound.h>
 #include <dinput.h>
@@ -39,8 +49,23 @@
 #include "../config.h"
 
 #ifdef USE_ZLIB
-// relative path from *.vcproj/*.vcxproj, not from this directory :-(
-	#if defined(_MSC_VER) && (_MSC_VER >= 1800)
+	// relative path from *.vcproj/*.vcxproj, not from this directory :-(
+	#if defined(_MSC_VER) && (_MSC_VER >= 1910)
+		// thanks Marukun
+		#ifdef _M_AMD64
+			#ifdef _DEBUG
+				#pragma comment(lib, "../src/zlib-1.2.11/vc++2017/debug/x64/zlibstat.lib")
+			#else
+				#pragma comment(lib, "../src/zlib-1.2.11/vc++2017/release/x64/zlibstat.lib")
+			#endif
+		#else
+			#ifdef _DEBUG
+				#pragma comment(lib, "../src/zlib-1.2.11/vc++2017/debug/zlibstat.lib")
+			#else
+				#pragma comment(lib, "../src/zlib-1.2.11/vc++2017/release/zlibstat.lib")
+			#endif
+		#endif
+	#elif defined(_MSC_VER) && (_MSC_VER >= 1800)
 		#ifdef _DEBUG
 			#pragma comment(lib, "../src/zlib-1.2.11/vc++2013/debug/zlibstat.lib")
 		#else
@@ -63,8 +88,13 @@
 #pragma comment(lib, "msimg32.lib")
 #pragma comment(lib, "gdiplus.lib")
 using namespace Gdiplus;
+#ifdef SUPPORT_D2D1
+#pragma comment(lib, "d2d1.lib")
+#endif
+#ifdef SUPPORT_D3D9
 #pragma comment(lib, "d3d9.lib")
-#pragma comment(lib, "d3dx9.lib")
+//#pragma comment(lib, "d3dx9.lib")
+#endif
 #pragma comment(lib, "vfw32.lib")
 #pragma comment(lib, "dsound.lib")
 #if DIRECTINPUT_VERSION >= 0x0800
@@ -152,7 +182,9 @@ public:
 #define MAX_CAPTURE_DEVS 8
 #endif
 
+#ifndef _M_AMD64
 #define SUPPORT_WIN32_DLL
+#endif
 
 #define SCREEN_FILTER_NONE	0
 #define SCREEN_FILTER_RGB	1
@@ -311,11 +343,22 @@ private:
 	void rotate_screen_buffer(bitmap_t *source, bitmap_t *dest);
 //#endif
 	void stretch_screen_buffer(bitmap_t *source, bitmap_t *dest);
+#ifdef SUPPORT_D2D1
+	bool initialize_d2d1();
+	bool initialize_d2d1_surface(bitmap_t *buffer);
+	void release_d2d1();
+	void release_d2d1_surface();
+	void copy_to_d2d1_surface(bitmap_t *buffer);
+	void update_d2d1_screen(int dest_x, int dest_y);
+#endif
+#ifdef SUPPORT_D3D9
 	bool initialize_d3d9();
 	bool initialize_d3d9_surface(bitmap_t *buffer);
 	void release_d3d9();
 	void release_d3d9_surface();
 	void copy_to_d3d9_surface(bitmap_t *buffer);
+	void update_d3d9_screen(int dest_x, int dest_y);
+#endif
 	int add_video_frames();
 	
 	bitmap_t vm_screen_buffer;
@@ -328,6 +371,7 @@ private:
 //#endif
 	bitmap_t stretched_screen_buffer;
 	bitmap_t shrinked_screen_buffer;
+	bitmap_t reversed_screen_buffer;
 	bitmap_t video_screen_buffer;
 	
 	bitmap_t* draw_screen_buffer;
@@ -342,10 +386,17 @@ private:
 	Gdiplus::GdiplusStartupInput gdiSI;
 	ULONG_PTR gdiToken;
 	
+#ifdef SUPPORT_D2D1
+	ID2D1Factory* pD2d1Factory;
+	ID2D1HwndRenderTarget* pD2d1RenderTarget;
+	ID2D1Bitmap* pD2d1Bitmap;
+#endif
+#ifdef SUPPORT_D3D9
 	LPDIRECT3D9 lpd3d9;
 	LPDIRECT3DDEVICE9 lpd3d9Device;
 	LPDIRECT3DSURFACE9 lpd3d9Surface;
 	LPDIRECT3DSURFACE9 lpd3d9OffscreenSurface;
+#endif
 	
 	_TCHAR video_file_path[_MAX_PATH];
 	int rec_video_fps;
@@ -426,7 +477,7 @@ private:
 	void initialize_socket();
 	void release_socket();
 	
-	int soc[SOCKET_MAX];
+	SOCKET soc[SOCKET_MAX];
 	bool is_tcp[SOCKET_MAX];
 	struct sockaddr_in udpaddr[SOCKET_MAX];
 	int socket_delay[SOCKET_MAX];
@@ -629,7 +680,7 @@ public:
 	
 	// common socket
 #ifdef USE_SOCKET
-	int get_socket(int ch)
+	SOCKET get_socket(int ch)
 	{
 		return soc[ch];
 	}
