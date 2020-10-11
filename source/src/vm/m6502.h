@@ -19,7 +19,7 @@
 class DEBUGGER;
 //#endif
 
-class M6502_BASE : public DEVICE
+class  DLL_PREFIX M6502_BASE : public DEVICE
 {
 protected:
 	DEVICE *d_mem, *d_pic;

@@ -18,7 +18,7 @@
 #define SIG_PCM1BIT_ON		1
 #define SIG_PCM1BIT_MUTE	2
 
-class PCM1BIT : public DEVICE
+class  DLL_PREFIX PCM1BIT : public DEVICE
 {
 private:
 	bool signal, on, mute;

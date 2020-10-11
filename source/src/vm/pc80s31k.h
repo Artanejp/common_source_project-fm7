@@ -16,7 +16,7 @@
 
 class UPD765A;
 
-class PC80S31K : public DEVICE
+class  DLL_PREFIX PC80S31K : public DEVICE
 {
 private:
 	UPD765A *d_fdc;

@@ -15,6 +15,6 @@
 
 class DEBUGGER;
 
-int v30_dasm(DEBUGGER *debugger, uint8_t *oprom, uint32_t eip, bool emulation_mode, _TCHAR *buffer, size_t buffer_len);
+int  DLL_PREFIX v30_dasm(DEBUGGER *debugger, uint8_t *oprom, uint32_t eip, bool emulation_mode, _TCHAR *buffer, size_t buffer_len);
 
 #endif

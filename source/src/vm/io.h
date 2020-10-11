@@ -16,7 +16,7 @@
 //#define IO_ADDR_MAX 0x100
 //#endif
 
-class IO : public DEVICE
+class  DLL_PREFIX IO : public DEVICE
 {
 private:
 	// i/o map

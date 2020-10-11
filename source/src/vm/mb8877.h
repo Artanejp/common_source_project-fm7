@@ -23,7 +23,7 @@
 class DISK;
 class NOISE;
 
-class MB8877 : public DEVICE
+class  DLL_PREFIX MB8877 : public DEVICE
 {
 private:
 	// output signals

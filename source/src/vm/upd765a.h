@@ -27,7 +27,7 @@
 class DISK;
 class NOISE;
 
-class UPD765A : public DEVICE
+class  DLL_PREFIX UPD765A : public DEVICE
 {
 private:
 	// output signals

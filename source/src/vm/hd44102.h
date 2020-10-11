@@ -17,7 +17,7 @@
 
 //#define SIG_HD44102_CS2	0
 
-class HD44102 : public DEVICE
+class  DLL_PREFIX HD44102 : public DEVICE
 {
 private:
 	uint8_t m_ram[4][50];            // display memory

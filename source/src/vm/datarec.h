@@ -21,7 +21,7 @@
 class FILEIO;
 class NOISE;
 
-class DATAREC : public DEVICE
+class  DLL_PREFIX DATAREC : public DEVICE
 {
 private:
 	// output signals

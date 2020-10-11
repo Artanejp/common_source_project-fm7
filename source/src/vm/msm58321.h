@@ -24,7 +24,7 @@
 #define SIG_MSM5832_ADDR	5
 #define SIG_MSM5832_HOLD	6
 
-class MSM58321_BASE : public DEVICE
+class  DLL_PREFIX MSM58321_BASE : public DEVICE
 {
 protected:
 	// output signals

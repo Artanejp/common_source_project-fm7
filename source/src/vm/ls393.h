@@ -14,7 +14,7 @@
 
 #define SIG_LS393_CLK	0
 
-class LS393 : public DEVICE
+class  DLL_PREFIX LS393 : public DEVICE
 {
 private:
 	// output signals

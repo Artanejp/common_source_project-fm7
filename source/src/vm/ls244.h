@@ -14,7 +14,7 @@
 
 #define SIG_LS244_INPUT	0
 
-class LS244 : public DEVICE
+class  DLL_PREFIX LS244 : public DEVICE
 {
 private:
 	// output signals

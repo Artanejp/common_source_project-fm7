@@ -28,7 +28,7 @@
 class DEBUGGER;
 class FIFO;
 //#endif
-class MC6801 : public MC6800
+class  DLL_PREFIX MC6801 : public MC6800
 {
 private:
 protected:

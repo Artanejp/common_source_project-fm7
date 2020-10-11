@@ -51,7 +51,7 @@
 class VM_TEMPLATE;
 class EMU_TEMPLATE;
 class FIFO;
-class MIDI_REDIRECTOR : public DEVICE {
+class  DLL_PREFIX MIDI_REDIRECTOR : public DEVICE {
 protected:
 	FIFO* send_queue;
 	FIFO* recv_queue;

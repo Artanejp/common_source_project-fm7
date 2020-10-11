@@ -35,7 +35,7 @@
 #define SIG_UPD71071_BAREG				36 /* 36 - 39 */
 
 class DEBUGGER;
-class UPD71071 : public DEVICE
+class  DLL_PREFIX UPD71071 : public DEVICE
 {
 protected:
 	DEVICE* d_mem;

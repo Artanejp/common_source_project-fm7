@@ -19,7 +19,7 @@
 #define SIG_SN76489AN_CS	2
 #define SIG_SN76489AN_WE	3
 
-class SN76489AN : public DEVICE
+class  DLL_PREFIX SN76489AN : public DEVICE
 {
 private:
 	// register

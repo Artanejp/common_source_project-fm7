@@ -33,7 +33,7 @@
 
 class DEBUGGER;
 
-class AY_3_891X : public DEVICE
+class  DLL_PREFIX AY_3_891X : public DEVICE
 {
 private:
 	DEBUGGER *d_debugger;

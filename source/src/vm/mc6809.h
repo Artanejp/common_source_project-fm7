@@ -34,7 +34,7 @@ enum {
 // Note: Below is ugly hack cause of CPU#0 cannot modify clock.
 class DEBUGGER;
 
-class MC6809 : public DEVICE
+class  DLL_PREFIX MC6809 : public DEVICE
 {
 protected:
 	// context

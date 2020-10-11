@@ -15,7 +15,7 @@
 //#include "../emu.h"
 #include "device.h"
 
-class AM9511 : public DEVICE
+class  DLL_PREFIX AM9511 : public DEVICE
 {
 private:
 	uint8_t _apu_stack[16];

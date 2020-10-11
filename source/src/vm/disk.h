@@ -58,7 +58,7 @@ typedef struct {
 class CSP_Logger;
 class FILEIO;
 class OSD;
-class DISK
+class  DLL_PREFIX DISK
 {
 #ifndef _ANY2D88
 protected:

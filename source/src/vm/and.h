@@ -25,7 +25,7 @@
 
 class VM_TEMPLATE;
 class EMU_TEMPLATE;
-class AND : public DEVICE
+class DLL_PREFIX AND : public DEVICE
 {
 private:
 	outputs_t outputs;

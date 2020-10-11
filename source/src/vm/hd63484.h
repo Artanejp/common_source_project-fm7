@@ -15,7 +15,7 @@
 //#include "../emu.h"
 #include "device.h"
 
-class HD63484 : public DEVICE
+class  DLL_PREFIX HD63484 : public DEVICE
 {
 private:
 	// vram

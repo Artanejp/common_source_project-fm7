@@ -13,6 +13,6 @@
 
 #include "../common.h"
 
-int i386_dasm(uint8_t *oprom, uint32_t eip, bool is_ia32, _TCHAR *buffer, size_t buffer_len);
+int  DLL_PREFIX i386_dasm(uint8_t *oprom, uint32_t eip, bool is_ia32, _TCHAR *buffer, size_t buffer_len);
 
 #endif

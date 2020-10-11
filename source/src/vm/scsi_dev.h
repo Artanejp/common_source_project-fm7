@@ -134,7 +134,7 @@ static const _TCHAR* scsi_phase_name[9] = {
 
 class FIFO;
 
-class SCSI_DEV : public DEVICE
+class  DLL_PREFIX SCSI_DEV : public DEVICE
 {
 protected:
 	outputs_t outputs_dat;

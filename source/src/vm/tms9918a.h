@@ -19,7 +19,7 @@
 #define SIG_TMS9918A_SUPER_IMPOSE	0
 
 class DEBUGGER;
-class TMS9918A : public DEVICE
+class  DLL_PREFIX TMS9918A : public DEVICE
 {
 private:
 	DEBUGGER *d_debugger;

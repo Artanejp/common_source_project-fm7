@@ -19,7 +19,7 @@
 #define SIG_Z80CTC_TRIG_2	2
 #define SIG_Z80CTC_TRIG_3	3
 
-class Z80CTC : public DEVICE
+class  DLL_PREFIX Z80CTC : public DEVICE
 {
 private:
 	struct {

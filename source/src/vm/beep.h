@@ -19,7 +19,7 @@
 
 class VM_TEMPLATE;
 class EMU_TEMPLATE;
-class BEEP : public DEVICE
+class  DLL_PREFIX BEEP : public DEVICE
 {
 private:
 	int gen_rate;

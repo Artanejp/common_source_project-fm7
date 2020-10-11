@@ -31,7 +31,7 @@
 class DEBUGGER;
 //#endif
 
-class UPD7801 : public DEVICE
+class  DLL_PREFIX UPD7801 : public DEVICE
 {
 private:
 	/* ---------------------------------------------------------------------------

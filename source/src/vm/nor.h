@@ -23,7 +23,7 @@
 #define SIG_NOR_BIT_6	0x40
 #define SIG_NOR_BIT_7	0x80
 
-class NOR : public DEVICE
+class  DLL_PREFIX NOR : public DEVICE
 {
 private:
 	outputs_t outputs;

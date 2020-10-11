@@ -16,7 +16,7 @@
 
 #define SIG_NOT_INPUT	0
 
-class NOT : public DEVICE
+class  DLL_PREFIX NOT : public DEVICE
 {
 private:
 	outputs_t outputs;

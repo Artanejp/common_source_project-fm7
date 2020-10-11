@@ -14,7 +14,7 @@
 
 class HARDDISK;
 
-class SCSI_HDD : public SCSI_DEV
+class  DLL_PREFIX SCSI_HDD : public SCSI_DEV
 {
 private:
 	HARDDISK* disk[8];

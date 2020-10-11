@@ -28,7 +28,7 @@ enum {
 class DEBUGGER;
 //#endif
 
-class I286 : public DEVICE
+class  DLL_PREFIX I286 : public DEVICE
 {
 private:
 	bool _SINGLE_MODE_DMA;

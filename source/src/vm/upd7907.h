@@ -23,7 +23,7 @@
 
 class DEBUGGER;
 
-class UPD7907 : public DEVICE
+class  DLL_PREFIX UPD7907 : public DEVICE
 {
 private:
 	DEVICE *d_mem, *d_io;

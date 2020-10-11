@@ -17,7 +17,7 @@
 class DEBUGGER;
 //#endif
 
-class HUC6280_BASE : public DEVICE
+class  DLL_PREFIX HUC6280_BASE : public DEVICE
 {
 protected:
 	DEVICE *d_mem, *d_io;

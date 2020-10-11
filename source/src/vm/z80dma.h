@@ -19,7 +19,7 @@
 
 class DEBUGGER;
 
-class Z80DMA : public DEVICE
+class  DLL_PREFIX Z80DMA : public DEVICE
 {
 private:
 	DEVICE *d_mem, *d_io;

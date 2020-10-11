@@ -21,7 +21,7 @@
 
 class FIFO;
 
-class MC6850 : public DEVICE
+class  DLL_PREFIX MC6850 : public DEVICE
 {
 private:
 	uint8_t recv, status, ctrl;

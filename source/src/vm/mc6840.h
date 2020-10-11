@@ -22,7 +22,7 @@
 #define SIG_MC6840_GATE_1	4
 #define SIG_MC6840_GATE_2	5
 
-class MC6840 : public DEVICE
+class  DLL_PREFIX MC6840 : public DEVICE
 {
 private:
 	enum

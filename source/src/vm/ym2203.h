@@ -39,7 +39,7 @@
 
 class DEBUGGER;
 
-class YM2203 : public DEVICE
+class  DLL_PREFIX YM2203 : public DEVICE
 {
 private:
 	DEBUGGER *d_debugger;

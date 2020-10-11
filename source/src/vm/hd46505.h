@@ -14,7 +14,7 @@
 //#include "../emu.h"
 #include "device.h"
 
-class HD46505 : public DEVICE
+class  DLL_PREFIX HD46505 : public DEVICE
 {
 
 private:

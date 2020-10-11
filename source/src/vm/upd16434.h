@@ -15,7 +15,7 @@
 //#include "../emu.h"
 #include "device.h"
 
-class UPD16434 : public DEVICE
+class  DLL_PREFIX UPD16434 : public DEVICE
 {
 private:
 	uint8_t pointer;

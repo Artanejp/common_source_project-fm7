@@ -23,7 +23,7 @@
 #define SIG_NAND_BIT_6	0x40
 #define SIG_NAND_BIT_7	0x80
 
-class NAND : public DEVICE
+class  DLL_PREFIX NAND : public DEVICE
 {
 private:
 	outputs_t outputs;

@@ -21,7 +21,7 @@
 //#define MEMORY_BANK_SIZE 0x1000
 //#endif
 
-class MEMORY : public DEVICE
+class  DLL_PREFIX MEMORY : public DEVICE
 {
 protected:
 	typedef struct {

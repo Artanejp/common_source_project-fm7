@@ -14,7 +14,7 @@
 //#include "../emu.h"
 #include "device.h"
 
-class NOISE : public DEVICE
+class  DLL_PREFIX NOISE : public DEVICE
 {
 private:
 	int16_t *buffer_l;

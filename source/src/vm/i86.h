@@ -26,7 +26,7 @@ enum {
 	NEC_V30,
 };
 
-class I86 : public DEVICE
+class  DLL_PREFIX I86 : public DEVICE
 {
 private:
 	bool _SINGLE_MODE_DMA;

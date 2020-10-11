@@ -51,7 +51,7 @@ enum {
 //#ifdef USE_DEBUGGER
 class DEBUGGER;
 //#endif
-class I386 : public DEVICE
+class  DLL_PREFIX I386 : public DEVICE
 {
 private:
 	DEVICE *device_pic;

@@ -19,7 +19,7 @@
 #define SIG_I8155_PORT_C	2
 #define SIG_I8155_CLOCK		3
 
-class I8155 : public DEVICE
+class  DLL_PREFIX I8155 : public DEVICE
 {
 private:
 	uint16_t count, countreg;

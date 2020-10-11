@@ -14,7 +14,7 @@
 //#include "../emu.h"
 #include "device.h"
 
-class HD146818P : public DEVICE
+class  DLL_PREFIX HD146818P : public DEVICE
 {
 private:
 	// output signals

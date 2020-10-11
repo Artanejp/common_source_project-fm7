@@ -23,7 +23,7 @@
 #define SIG_OR_BIT_6	0x40
 #define SIG_OR_BIT_7	0x80
 
-class OR : public DEVICE
+class  DLL_PREFIX OR : public DEVICE
 {
 private:
 	outputs_t outputs;

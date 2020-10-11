@@ -25,7 +25,7 @@
 class DISK;
 class NOISE;
 
-class PC6031 : public DEVICE
+class  DLL_PREFIX PC6031 : public DEVICE
 {
 private:
 	DISK* disk[2];

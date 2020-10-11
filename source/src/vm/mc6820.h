@@ -21,7 +21,7 @@
 #define SIG_MC6820_C2_A		4
 #define SIG_MC6820_C2_B		5
 
-class MC6820 : public DEVICE
+class  DLL_PREFIX MC6820 : public DEVICE
 {
 private:
 	struct {

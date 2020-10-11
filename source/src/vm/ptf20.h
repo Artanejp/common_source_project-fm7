@@ -18,7 +18,7 @@
 
 class DISK;
 
-class PTF20 : public DEVICE
+class  DLL_PREFIX PTF20 : public DEVICE
 {
 private:
 	outputs_t outputs_sio;

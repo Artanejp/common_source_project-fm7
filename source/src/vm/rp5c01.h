@@ -14,7 +14,7 @@
 //#include "../emu.h"
 #include "device.h"
 
-class RP5C01 : public DEVICE
+class  DLL_PREFIX RP5C01 : public DEVICE
 {
 private:
 	// output signals

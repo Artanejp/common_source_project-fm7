@@ -18,7 +18,7 @@
 #define SIG_I8255_PORT_B	1
 #define SIG_I8255_PORT_C	2
 
-class I8255 : public DEVICE
+class  DLL_PREFIX I8255 : public DEVICE
 {
 private:
 	struct {

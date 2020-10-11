@@ -23,7 +23,7 @@
 #define SIG_MC6847_ENABLE	6
 #define SIG_MC6847_DISABLE	7
 
-class MC6847_BASE : public DEVICE
+class  DLL_PREFIX MC6847_BASE : public DEVICE
 {
 protected:
 	DEVICE *d_cpu;

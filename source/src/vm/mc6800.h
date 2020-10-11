@@ -31,7 +31,7 @@
 class DEBUGGER;
 //#endif
 
-class MC6800 : public DEVICE
+class  DLL_PREFIX MC6800 : public DEVICE
 {
 private:
 

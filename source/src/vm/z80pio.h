@@ -19,7 +19,7 @@
 #define SIG_Z80PIO_STROBE_A	2
 #define SIG_Z80PIO_STROBE_B	3
 
-class Z80PIO : public DEVICE
+class  DLL_PREFIX Z80PIO : public DEVICE
 {
 private:
 	struct {

@@ -74,7 +74,7 @@
 
 // ======================> v99x8_device
 
-class v99x8_device :    public DEVICE
+class  DLL_PREFIX v99x8_device :    public DEVICE
 {
 protected:
 	int __SCREEN_WIDTH;
@@ -324,7 +324,7 @@ public:
 };
 
 
-class v9938_device : public v99x8_device
+class  DLL_PREFIX v9938_device : public v99x8_device
 {
 public:
 	v9938_device(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
@@ -335,7 +335,7 @@ protected:
 	void init_palette();
 };
 
-class v9958_device : public v99x8_device
+class  DLL_PREFIX v9958_device : public v99x8_device
 {
 public:
 	v9958_device(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);

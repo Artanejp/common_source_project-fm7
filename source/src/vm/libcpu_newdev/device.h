@@ -54,7 +54,7 @@ class CSP_Logger;
 class VM_TEMPLATE;
 class EMU_TEMPLATE;
 class OSD;
-class DEVICE
+class DLL_PREFIX DEVICE
 {
 protected:
 	VM_TEMPLATE* vm;

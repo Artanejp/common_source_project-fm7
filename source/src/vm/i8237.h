@@ -29,7 +29,7 @@
 #define SIG_I8237_MASK3	11
 
 class DEBUGGER;
-class I8237_BASE : public DEVICE
+class  DLL_PREFIX I8237_BASE : public DEVICE
 {
 protected:
 	DEVICE* d_mem;

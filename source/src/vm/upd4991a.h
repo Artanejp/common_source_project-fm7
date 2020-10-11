@@ -14,7 +14,7 @@
 //#include "../emu.h"
 #include "device.h"
 
-class UPD4991A : public DEVICE
+class  DLL_PREFIX UPD4991A : public DEVICE
 {
 private:
 	dll_cur_time_t cur_time;

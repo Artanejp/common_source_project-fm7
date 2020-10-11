@@ -16,7 +16,7 @@
 
 class FILEIO;
 
-class PRNFILE : public DEVICE
+class  DLL_PREFIX PRNFILE : public DEVICE
 {
 private:
 	outputs_t outputs_busy;

@@ -37,7 +37,7 @@
 #define MSM6585_S80   (6+8)  /* prescaler 1/80 (8KHz), data 4bit */
 #define MSM6585_S20   (7+8)  /* prescaler 1/20(32KHz), data 4bit */
 
-class MSM5205 : public DEVICE
+class  DLL_PREFIX MSM5205 : public DEVICE
 {
 private:
 	int32_t m_mod_clock;          /* clock rate                   */

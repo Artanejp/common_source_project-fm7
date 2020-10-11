@@ -32,7 +32,7 @@
 class DISK;
 class NOISE;
 
-class T3444A : public DEVICE
+class  DLL_PREFIX T3444A : public DEVICE
 {
 private:
 	// output signals

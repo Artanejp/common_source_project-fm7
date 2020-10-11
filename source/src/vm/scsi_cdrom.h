@@ -21,7 +21,7 @@
 
 class FILEIO;
 
-class SCSI_CDROM : public SCSI_DEV
+class  DLL_PREFIX SCSI_CDROM : public SCSI_DEV
 {
 protected:
 	outputs_t outputs_done;

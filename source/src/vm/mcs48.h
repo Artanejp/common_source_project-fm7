@@ -107,7 +107,7 @@ struct mcs48_state
 #define __MCS48_OPHANDLER(_name) int MCS48_BASE::_name(mcs48_state *cpustate)
 #define __MCS48_OPHANDLER_D(_name) int __FASTCALL _name(mcs48_state *cpustate)
 
-class MCS48MEM : public DEVICE
+class  DLL_PREFIX MCS48MEM : public DEVICE
 {
 private:
 	uint8_t ram[0x100];
@@ -130,7 +130,7 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 };
 
-class MCS48_BASE : public DEVICE
+class  DLL_PREFIX MCS48_BASE : public DEVICE
 {
 protected:
 	inline UINT8 __FASTCALL argument_fetch(mcs48_state *cpustate);

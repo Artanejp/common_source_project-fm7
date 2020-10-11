@@ -22,7 +22,7 @@
 //#include "../emu.h"
 #include "device.h"
 
-class UPD1990A : public DEVICE
+class  DLL_PREFIX UPD1990A : public DEVICE
 {
 private:
 	// output signals

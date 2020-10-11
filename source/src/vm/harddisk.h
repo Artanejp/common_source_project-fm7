@@ -16,7 +16,7 @@
 
 class FILEIO;
 class EMU_TEMPLATE;
-class HARDDISK
+class  DLL_PREFIX HARDDISK
 {
 protected:
 	EMU_TEMPLATE* emu;

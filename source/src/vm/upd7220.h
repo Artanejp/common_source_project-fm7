@@ -33,7 +33,7 @@
 
 class FIFO;
 
-class UPD7220 : public DEVICE
+class  DLL_PREFIX UPD7220 : public DEVICE
 {
 protected:
 	// output signals

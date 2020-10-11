@@ -51,7 +51,7 @@ enum {
 };
 class VM_TEMPLATE;
 class EMU_TEMPLATE;
-class HD6844: public DEVICE {
+class  DLL_PREFIX HD6844: public DEVICE {
 protected:
 	// HACKs
 	bool __USE_CHAINING;

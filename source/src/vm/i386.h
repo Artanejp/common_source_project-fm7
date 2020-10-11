@@ -27,7 +27,7 @@
 class DEBUGGER;
 //#endif
 
-class I386 : public DEVICE
+class  DLL_PREFIX I386 : public DEVICE
 {
 protected:
 	DEVICE *d_mem, *d_io, *d_pic;

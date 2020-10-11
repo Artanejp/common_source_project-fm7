@@ -28,7 +28,7 @@
 class DEBUGGER;
 //#endif
 
-class I8080_BASE : public DEVICE
+class  DLL_PREFIX I8080_BASE : public DEVICE
 {
 protected:
 	bool _HAS_I8085;

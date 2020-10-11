@@ -7,7 +7,7 @@
 class DEBUGGER;
 class FIFO;
 //#endif
-class MB8861 : public MC6800
+class  DLL_PREFIX MB8861 : public MC6800
 {
 private:
 #define XX 5 // invalid opcode unknown cc

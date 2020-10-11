@@ -19,7 +19,7 @@
 
 class DEBUGGER;
 
-class I286 : public DEVICE
+class  DLL_PREFIX I286 : public DEVICE
 {
 private:
 	DEVICE *d_mem, *d_io, *d_pic;

@@ -21,7 +21,7 @@
 #define SIG_I8251_LOOPBACK	4
 
 class FIFO;
-class I8251 : public DEVICE
+class  DLL_PREFIX I8251 : public DEVICE
 {
 private:
 	// i8251

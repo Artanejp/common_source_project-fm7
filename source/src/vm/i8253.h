@@ -23,7 +23,7 @@
 
 class DEBUGGER;
 
-class I8253 : public DEVICE
+class  DLL_PREFIX I8253 : public DEVICE
 {
 private:
 	struct {

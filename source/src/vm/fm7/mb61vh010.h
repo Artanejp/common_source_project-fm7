@@ -55,7 +55,7 @@ enum {
 	EVENT_MB61VH010_BUSY_OFF
 };
 
-class MB61VH010: public DEVICE {
+class  DLL_PREFIX MB61VH010: public DEVICE {
  protected:
 	DEVICE *target;
 

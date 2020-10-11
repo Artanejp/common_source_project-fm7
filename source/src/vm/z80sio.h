@@ -34,7 +34,7 @@
 
 class FIFO;
 
-class Z80SIO : public DEVICE
+class  DLL_PREFIX Z80SIO : public DEVICE
 {
 private:
 	struct {

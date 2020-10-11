@@ -21,7 +21,7 @@
 #define SIG_SIO_REMAIN_SEND					5
 #define SIG_SIO_REMAIN_RECEIVE				6
 
-class SIO_REDIRECTOR : public MIDI_REDIRECTOR {
+class  DLL_PREFIX SIO_REDIRECTOR : public MIDI_REDIRECTOR {
 public:
 	SIO_REDIRECTOR(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MIDI_REDIRECTOR(parent_vm, parent_emu)
 	{

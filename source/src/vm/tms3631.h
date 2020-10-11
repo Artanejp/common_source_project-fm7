@@ -20,7 +20,7 @@
 #define SIG_TMS3631_DATAREG	2
 #define SIG_TMS3631_MASKREG	3
 
-class TMS3631 : public DEVICE
+class  DLL_PREFIX TMS3631 : public DEVICE
 {
 private:
 	uint8_t envelop1, envelop2, datareg, maskreg;

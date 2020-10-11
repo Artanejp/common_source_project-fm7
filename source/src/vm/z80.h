@@ -27,7 +27,7 @@
 //#ifdef USE_DEBUGGER
 class DEBUGGER;
 //#endif
-class Z80 : public DEVICE
+class  DLL_PREFIX Z80 : public DEVICE
 {
 protected:
 	/* ---------------------------------------------------------------------------

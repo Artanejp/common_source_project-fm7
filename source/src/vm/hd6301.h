@@ -7,7 +7,7 @@
 class DEBUGGER;
 class FIFO;
 //#endif
-class HD6301 : public MC6801
+class  DLL_PREFIX HD6301 : public MC6801
 {
 protected:
 #define XX 5

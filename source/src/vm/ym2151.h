@@ -23,7 +23,7 @@
 #define SIG_YM2151_MUTE		0
 
 class DEBUGGER;
-class YM2151 : public DEVICE
+class  DLL_PREFIX YM2151 : public DEVICE
 {
 private:
 	// output signals

@@ -43,7 +43,7 @@ struct  i8259_pic_t {
 	int irr_tmp_id;
 };
 
-class I8259 : public DEVICE
+class  DLL_PREFIX I8259 : public DEVICE
 {
 private:
 	DEVICE* d_cpu;

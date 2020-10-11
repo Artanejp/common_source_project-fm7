@@ -21,7 +21,7 @@
 
 class DEBUGGER;
 
-class MC6844 : public DEVICE
+class  DLL_PREFIX MC6844 : public DEVICE
 {
 private:
 	DEVICE* d_memory;

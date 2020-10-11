@@ -25,7 +25,7 @@
 namespace GAMEGEAR {
 	class KEYBOARD;
 }
-class _315_5124 : public DEVICE
+class  DLL_PREFIX _315_5124 : public DEVICE
 {
 private:
 	GAMEGEAR::KEYBOARD *d_key;
