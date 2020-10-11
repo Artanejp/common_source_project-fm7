@@ -180,6 +180,7 @@ generate_export_header(CSPgui
         EXPORT_FILE_NAME CSPgui_Export.h
         STATIC_DEFINE CSPgui_BUILT_AS_STATIC
 )
+	set_std(CSPgui)
 else()
 set(s_qt_gui_srcs ${s_qt_gui_srcs} qt_main.cpp)
 
@@ -204,7 +205,6 @@ set_target_properties(CSPgui PROPERTIES
 			     VERSION ${THIS_LIB_VERSION}
 			     )
 INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
+	set_std(CSPgui)
 
 endif()
-
-#cotire(CSPgui)

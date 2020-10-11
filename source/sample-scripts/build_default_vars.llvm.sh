@@ -1,8 +1,7 @@
 cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_llvm.cmake" \
       -DCMAKE_BUILD_TYPE=Relwithdebinfo \
       -DCMAKE_C_FLAGS_RELWITHDEBINFO=" \
-      		-g2 \
-		-ggdb \
+      		-g \
 		-gz=zlib \
 		-O3 \
 		-msse2 \
@@ -14,8 +13,7 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_llvm.
 		-fstrict-enums \
 		" \
       -DCMAKE_CXX_FLAGS_RELWITHDEBINFO=" \
-      		-g2 \
-		-ggdb \
+      		-g \
 		-gz=zlib \
 		-O3 \
 		-msse2 \
@@ -27,7 +25,6 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_llvm.
 		-fstrict-enums \
 		" \
       -DCMAKE_EXE_LINKER_FLAGS="\
-      		-g2 \
-		-ggdb \
+      		-g \
 		-gz=zlib \
 		" \

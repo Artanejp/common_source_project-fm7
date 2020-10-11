@@ -197,6 +197,7 @@ set_target_properties(CSPcommon_vm PROPERTIES
 			     VERSION ${THIS_LIB_VERSION}
 			     LINK_INTERFACE_LIBRARIES ""
 			     )
+	set_std(CSPcommon_vm)
 generate_export_header(CSPcommon_vm
        BASE_NAME CSPcommon_vm
         EXPORT_MACRO_NAME CSPcommon_vm_EXPORT
@@ -215,6 +216,8 @@ else()
      SOVERSION ${THIS_LIB_VERSION}
      VERSION ${THIS_LIB_VERSION}
   )
+	set_std(CSPcommon_vm)
 #  cotire(CSPcommon_vm)
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()
+

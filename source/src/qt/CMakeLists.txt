@@ -30,6 +30,7 @@ add_library(CSPosd SHARED
 	${s_qt_osd_srcs}
 	${s_qt_osd_headers_MOC}
 )
+set_std(CSPosd)
 
 if(WIN32)
 target_link_libraries(CSPosd PUBLIC

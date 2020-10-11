@@ -21,3 +21,5 @@ else()
 	ringbuffer.cpp
 	)
 endif()
+
+set_std(common_${EXE_NAME})

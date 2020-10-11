@@ -55,12 +55,14 @@ generate_export_header(CSPavio
         EXPORT_FILE_NAME CSPavio_Export.h
         STATIC_DEFINE CSPavio_BUILT_AS_STATIC
 )
+	set_std(CSPavio)
 
 else()
 add_library(CSPavio SHARED
 	  ${s_qt_avio_srcs}
 	  ${s_qt_avio_headers_MOC}
 	  )
+	set_std(CSPavio)
 
 target_link_libraries(CSPavio PUBLIC
 		   ${LIBAV_LIBRARIES}

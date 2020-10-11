@@ -33,6 +33,7 @@ if(WIN32)
         	EXPORT_FILE_NAME CSPfmgen_Export.h
         	STATIC_DEFINE CSPfmgen_BUILT_AS_STATIC
 	)
+	set_std(CSPfmgen)
 
 else()
   if(USE_DEVICES_SHARED_LIB)
@@ -44,9 +45,11 @@ else()
 			VERSION ${THIS_LIB_VERSION}
 			)
       INSTALL(TARGETS CSPfmgen DESTINATION ${LIBCSP_INSTALL_DIR})
+	set_std(CSPfmgen)
   else()
       add_library(fmgen STATIC
                   ${s_vm_fmgen_srcs}
 		  )
+	set_std(fmgen)
   endif()
 endif()

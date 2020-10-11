@@ -46,6 +46,7 @@ generate_export_header(CSPemu_utils
         EXPORT_FILE_NAME CSPemu_utils_Export.h
         STATIC_DEFINE CSPemu_utils_BUILT_AS_STATIC
 )
+	set_std(CSPemu_utils)
 
 else()
 add_library(CSPemu_utils SHARED
@@ -57,8 +58,8 @@ set_target_properties(CSPemu_utils PROPERTIES
 			     SOVERSION ${THIS_LIB_VERSION}
 			     VERSION ${THIS_LIB_VERSION}
 			     )
+	set_std(CSPemu_utils)
 
 INSTALL(TARGETS CSPemu_utils DESTINATION ${LIBCSP_INSTALL_DIR})
 
 endif()
-

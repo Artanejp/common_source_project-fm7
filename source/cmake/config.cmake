@@ -39,6 +39,7 @@ if(NEED_REPLACE_LIBDIR)
 	message("* CHANGE LIB_CSP_INSTALL_DIR TO " ${LIBCSP_INSTALL_DIR})
 endif()
 
+
 if(USE_DEVICES_SHARED_LIB)
   add_definitions(-DUSE_SHARED_DLL)
   add_definitions(-DUSE_SHARED_UI_DLL)
@@ -296,6 +297,20 @@ function(additional_options n_target)
 	endif()
 endfunction(additional_options)
 
+#ToDo: MSVC.
+#if(CMAKE_VERSION VERSION_LESS "3.1")
+		set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+		set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+#endif()
+
+function(set_std TARGET)
+#	if(CMAKE_VERSION VERSION_LESS "3.1")
+#	else()
+#		set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 11)
+#		set_property(TARGET ${TARGET} PROPERTY C_STANDARD 11)
+#	endif()
+endfunction(SET_STD)
+
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/qt" osd)
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/qt/avio" qt/avio)
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/qt/gui" qt/gui)
@@ -448,16 +463,20 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 	# Subdirectories
 	add_subdirectory("${PROJECT_SOURCE_DIR}/src" common/${EXE_NAME} EXCLUDE_FROM_ALL)
 	add_subdirectory("${PROJECT_SOURCE_DIR}/src/vm/${VM_NAME}" vm/${EXE_NAME} EXCLUDE_FROM_ALL)
+	set_std(vm_${EXE_NAME})
 	if(NOT USE_DEVICES_SHARED_LIB)
 		if(USE_FMGEN)
 #			add_subdirectory("${PROJECT_SOURCE_DIR}/src/vm/fmgen" vm/fmgen_${EXE_NAME}  EXCLUDE_FROM_ALL)
 		endif()
 	endif()
 	add_subdirectory("${PROJECT_SOURCE_DIR}/src/qt/machines/${VM_NAME}" qt/${EXE_NAME}  EXCLUDE_FROM_ALL)
+	set_std(qt_${EXE_NAME})
+
 #	if(WITH_DEBUGGER)
 		add_subdirectory("${PROJECT_SOURCE_DIR}/src/qt/debugger" qt/debugger_${EXE_NAME} EXCLUDE_FROM_ALL)
 #	endif()
 #	add_subdirectory("${PROJECT_SOURCE_DIR}/src/qt/common" qt/common EXCLUDE_FROM_ALL)
+	set_std(${EXE_NAME})
 	add_dependencies(${EXE_NAME}
 		CSPosd
 		CSPcommon_vm
