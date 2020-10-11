@@ -21,9 +21,8 @@ extern CSP_Logger *csp_logger;
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "common.h"
+#include "vm/vm.h"
 #include "config.h"
-#include "fileio.h"
 
 #ifndef CONFIG_NAME
 #define CONFIG_NAME "conf"
