@@ -142,16 +142,22 @@ void HARDDISK::open(const _TCHAR* file_path, int default_sector_size)
 					sector_size = default_sector_size;
 					sector_num = fio->FileLength() / sector_size;
 					return;
-				}						
-				// solid
-				header_size = 0;
-				// sectors = 33, surfaces = 4, cylinders = 153, sector_size = 256	// 5MB
-				// sectors = 33, surfaces = 8, cylinders = 310, sector_size = 256	// 10MB
-				surfaces = (default_sector_size == 256 && fio->FileLength() <= 33 * 4 * 310 * 256) ? 4 : 8;
-				cylinders = (surfaces == 4) ? 153 : 310;
-				sectors = 33;
-				sector_size = default_sector_size;
-				sector_num = fio->FileLength() / sector_size;
+				} else {						
+					// solid
+					header_size = 0;
+					// sectors = 33/17, surfaces = 4, cylinders = 153, sector_size = 256/512	// 5MB
+					// sectors = 33/17, surfaces = 4, cylinders = 310, sector_size = 256/512	// 10MB
+					// sectors = 33/17, surfaces = 4, cylinders = 615, sector_size = 256/512	// 20MB
+					// sectors = 33/17, surfaces = 8, cylinders = 615, sector_size = 256/512	// 40MB
+#if 0
+					surfaces = (fio->FileLength() <= 17 * 4 * 615 * 512) ? 4 : 8;
+#else
+					surfaces = ((int)(fio->FileLength() / 1024 / 1024) < 24) ? 4 : 8;
+#endif
+					sectors = (default_sector_size == 1024) ? 8 : (default_sector_size == 512) ? 17 : 33;
+					sector_size = default_sector_size;
+					sector_num = fio->FileLength() / sector_size;
+				}
 			}
 		}
 	}

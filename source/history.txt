@@ -1,3 +1,19 @@
+8/16/2020
+
+[VM/SCSI_DEV] improve to specify data req signal delay (thanks Mr.Sato)
+[VM/SCSI_DEV] fix read6/write6 command in 0 length case (thanks Mr.Sato)
+[VM/SISI_HDD] change drive type to hot swappable
+[VM/SISI_HDD] improve seek time (thanks Mr.Sato)
+[VM/SASI_HDD] support winchester drive parameters command
+[VM/Z80DMA] improve to sense rdy signal as level, not edge (thanks Mr.Sato)
+
+[MZ2500/CRTC] fix sub plane address in 640x200 16colors mode (thanks Mr.856)
+[SVI3X8] support SPECTRAVIDEO SVI-3x8 (thanks Mr.tanam)
+[X1] add menu items for FD2/FD3 (thanks Mr.Sato)
+[X1/DISPLAY] fix high speed pcg definition (thanks Mr.YAT)
+[X1TURBOZ/DISPLAY] improve palette update timing (thanks Mr.Sato)
+
+
 8/14/2020
 
 [OSD/WIN32] support x64 build (thank Mr.Marukun)
@@ -111,6 +127,13 @@
 [MZ2500/CRTC] apply crtc patch (thanks Mr.Koucha-Youkan)
 [PC8801MA] improve to enable/disable cmdsing and pcg
 [PC8801MA] improve to enable/disable changing palette for each scan line
+
+
+2/19/2019-2
+
+[VM/DEVICE] revirt fixes in 2/19/2019
+[VM/EVENT] revirt fixes in 2/19/2019
+[VM/Z80] revirt fixes in 2/19/2019
 
 
 2/19/2019

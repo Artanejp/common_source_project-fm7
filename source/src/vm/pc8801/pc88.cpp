@@ -2808,7 +2808,7 @@ void PC88::draw_text()
 		uint8_t buffer[120 * 200];
 		memset(buffer, 0, sizeof(buffer));
 		
-		for(int i = 0; i < dmac.ch[3].count.sd + 1; i++) {
+		for(int i = 0; i < dmac.ch[3].count.sd + 1 && i < 120 * 200; i++) {
 			buffer[i] = this->read_dma_data8(dmac.ch[3].addr.w.l + i);
 		}
 		

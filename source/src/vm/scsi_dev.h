@@ -95,6 +95,8 @@ static const _TCHAR* scsi_phase_name[9] = {
 #define SCSI_CMD_SUBCHANNEL	0x42 	// Read Subchannel (O)
 #define SCSI_CMD_READ_TOC	0x43 	// Read TOC (O)
 
+#define SASI_CMD_SPECIFY	0xC2	// Winchester Drive Parameters
+
 #define SCSI_STATUS_GOOD	0x00	// Status Good
 #define SCSI_STATUS_CHKCOND	0x02	// Check Condition
 #define SCSI_STATUS_CONDMET	0x04	// Condition Met
@@ -259,6 +261,10 @@ public:
 	{
 		return 0;
 	}
+	virtual double get_seek_time(uint64_t new_position, uint64_t length)
+	{
+		return seek_time;
+	}
 	virtual int get_command_length(int value);
 	virtual void start_command();
 	virtual bool read_buffer(int length);
@@ -285,6 +291,7 @@ public:
 	bool is_hot_swappable;
 	double seek_time;
 	int bytes_per_sec;
+	double data_req_delay;
 	
 	int scsi_id;
 };

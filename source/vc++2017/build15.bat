@@ -1,4 +1,4 @@
-rem echo off
+echo off
 
 if exist "%ProgramFiles(x86)%" goto is_x64
 set path="%ProgramFiles%\Microsoft Visual Studio\2017\WDExpress\MSBuild\15.0\Bin";%PATH%
@@ -374,6 +374,10 @@ msbuild.exe smc777.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="W
 mkdir build_vc15\smc777
 copy bin\x86\Release\smc70.exe build_vc15\smc777\.
 copy bin\x86\Release\smc777.exe build_vc15\smc777\.
+
+msbuild.exe svi3x8.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
+mkdir build_vc15\svi3x8
+copy bin\x86\Release\svi3x8.exe build_vc15\svi3x8\.
 
 msbuild.exe tk80bs.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
 mkdir build_vc15\tk80bs

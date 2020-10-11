@@ -1200,12 +1200,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break; \
 		case ID_OPEN_BLANK_20MB_HD: \
 			if(emu) { \
-				open_blank_hard_disk_dialog(hWnd, drv, 256, 33, 8, 310); \
+				open_blank_hard_disk_dialog(hWnd, drv, 256, 33, 4, 615); \
 			} \
 			break; \
 		case ID_OPEN_BLANK_20MB_1024_HD: \
 			if(emu) { \
-				open_blank_hard_disk_dialog(hWnd, drv, 1024, 8, 8, 320); \
+				open_blank_hard_disk_dialog(hWnd, drv, 1024, 8, 4, 615); \
 			} \
 			break; \
 		case ID_OPEN_BLANK_40MB_HD: \

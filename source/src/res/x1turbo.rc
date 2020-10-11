@@ -158,6 +158,34 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD2
     END
+    POPUP "FD2"
+    BEGIN
+        MENUITEM "Insert",                      ID_OPEN_FD3
+        MENUITEM "Eject",                       ID_CLOSE_FD3
+        MENUITEM "Insert Blank 2D Disk",        ID_OPEN_BLANK_2D_FD3
+        MENUITEM "Insert Blank 2DD Disk",       ID_OPEN_BLANK_2DD_FD3
+        MENUITEM "Insert Blank 2HD Disk",       ID_OPEN_BLANK_2HD_FD3
+        MENUITEM SEPARATOR
+        MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD3
+        MENUITEM "Correct Timing",              ID_CORRECT_TIMING_FD3
+        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC_FD3
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_FD3
+    END
+    POPUP "FD3"
+    BEGIN
+        MENUITEM "Insert",                      ID_OPEN_FD4
+        MENUITEM "Eject",                       ID_CLOSE_FD4
+        MENUITEM "Insert Blank 2D Disk",        ID_OPEN_BLANK_2D_FD4
+        MENUITEM "Insert Blank 2DD Disk",       ID_OPEN_BLANK_2DD_FD4
+        MENUITEM "Insert Blank 2HD Disk",       ID_OPEN_BLANK_2HD_FD4
+        MENUITEM SEPARATOR
+        MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD4
+        MENUITEM "Correct Timing",              ID_CORRECT_TIMING_FD4
+        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC_FD4
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_FD4
+    END
     POPUP "CMT"
     BEGIN
         MENUITEM "Play",                        ID_PLAY_TAPE1

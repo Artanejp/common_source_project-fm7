@@ -147,6 +147,7 @@ void SCSI_HDD::reset()
 			if(disk[drv] != NULL) {
 				if(image_path[drv][0] != _T('\0') && FILEIO::IsFileExisting(image_path[drv])) {
 					disk[drv]->open(image_path[drv], sector_size[drv]);
+					cur_position[drv] = 0;
 				} else {
 					disk[drv]->close();
 				}
@@ -164,6 +165,7 @@ void SCSI_HDD::open(int drv, const _TCHAR* file_path, int default_sector_size)
 			sector_size[drv] = default_sector_size;
 		} else {
 			disk[drv]->open(file_path, default_sector_size);
+			cur_position[drv] = 0;
 		}
 	}
 }
@@ -249,7 +251,8 @@ bool SCSI_HDD::read_buffer(int length)
 		set_sense_code(SCSI_SENSE_NOSENSE);
 		return true;
 	}
-	HARDDISK *unit = disk[get_logical_unit_number()];
+	uint8_t drv = get_logical_unit_number();
+	HARDDISK *unit = disk[drv];
 	
 	if(!(unit != NULL && unit->mounted())) {
 		set_sense_code(SCSI_SENSE_NOTREADY);
@@ -268,6 +271,7 @@ bool SCSI_HDD::read_buffer(int length)
  		}
 		length -= tmp_length;
 		position += tmp_length;
+		cur_position[drv] = position - 1;
  	}
 	set_sense_code(SCSI_SENSE_NOSENSE);
 	return true;
@@ -283,7 +287,8 @@ bool SCSI_HDD::write_buffer(int length)
 		set_sense_code(SCSI_SENSE_NOSENSE);
 		return true;
 	}
-	HARDDISK *unit = disk[get_logical_unit_number()];
+	uint8_t drv = get_logical_unit_number();
+	HARDDISK *unit = disk[drv];
 	
 	if(!(unit != NULL && unit->mounted())) {
 		set_sense_code(SCSI_SENSE_NOTREADY);
@@ -302,12 +307,32 @@ bool SCSI_HDD::write_buffer(int length)
 		}
 		length -= tmp_length;
 		position += tmp_length;
+		cur_position[drv] = position - 1;
  	}
 	set_sense_code(SCSI_SENSE_NOSENSE);
 	return true;
 }
 
-#define STATE_VERSION	3
+double SCSI_HDD::get_seek_time(uint64_t new_position, uint64_t length)
+{
+	uint8_t drv = get_logical_unit_number();
+	HARDDISK *unit = disk[drv];
+	
+	if(unit != NULL && unit->mounted()) {
+		// thanks Mr.Sato
+		int bytes_per_cylinder = unit->sector_size * unit->sectors * unit->surfaces;
+		int cur_cylinder = (int)(cur_position[drv] / bytes_per_cylinder);
+		int start_cylinder = (int)(new_position / bytes_per_cylinder);
+		int end_cylinder = (int)((new_position + length - 1) / bytes_per_cylinder);
+		int cylinders = abs(start_cylinder - cur_cylinder) + (end_cylinder - start_cylinder);
+		double rot_per_sec = bytes_per_sec / unit->sector_size / unit->sectors;
+		
+		return step_period * cylinders + 1000000.0 / rot_per_sec / 2;
+	}
+	return seek_time;
+}
+
+#define STATE_VERSION	4
 
 bool SCSI_HDD::process_state(FILEIO* state_fio, bool loading)
 {
@@ -328,6 +353,7 @@ bool SCSI_HDD::process_state(FILEIO* state_fio, bool loading)
 	*/
 	state_fio->StateArray(&image_path[0][0], sizeof(image_path), 1);
 	state_fio->StateArray(sector_size, sizeof(sector_size), 1);
+	state_fio->StateArray(cur_position, sizeof(cur_position), 1);
 	return SCSI_DEV::process_state(state_fio, loading);
 }
 
@@ -367,10 +393,10 @@ void SASI_HDD::start_command()
 		set_sense_code(SCSI_SENSE_NOSENSE);
 		return;
 		
-	case 0xc2:
-		out_debug_log(_T("Command: SASI Command 0xC2\n"));
+	case SASI_CMD_SPECIFY:
+		this->out_debug_log(_T("[SASI_HDD:ID=%d] Command: Winchester Drive Parameters\n"), scsi_id);
 		// transfer length
-		remain = 10; // DTC系 (トランジスタ技術SPECIAL No.27, P.88)
+		remain = 10; // DTC-510B (トランジスタ技術SPECIAL No.27, P.88)
 		// clear data buffer
 		buffer->clear();
 		// change to data in phase
@@ -379,4 +405,27 @@ void SASI_HDD::start_command()
 	}
 	// start standard command
 	SCSI_HDD::start_command();
+}
+
+bool SASI_HDD::write_buffer(int length)
+{
+	if(command[0] == SASI_CMD_SPECIFY) {
+		// DTC-510B
+		int params[10];
+		for(int i = 0; i < 10; i++) {
+			params[i] = buffer->read();
+			position++;
+		}
+		if(params[2] == 0) {
+			// MZ-2500 specifies 1, but 50ms is too short
+			if(params[1] >= 20) {
+				step_period = params[1] * 50;
+			}
+		} else {
+//			step_period = 13;
+		}
+		set_sense_code(SCSI_SENSE_NOSENSE);
+		return true;
+	}
+	return SCSI_HDD::write_buffer(length);
 }

@@ -101,8 +101,10 @@ private:
 	__DECL_ALIGNED(32) uint8_t dr_pri_line[200][8][8];
 #endif
 #ifdef _X1TURBOZ
+	bool zpalette_changed;
 	__DECL_ALIGNED(32) uint16_t zcg[2][400][640];
 	__DECL_ALIGNED(16) bool aen_line[400];
+	__DECL_ALIGNED(32) scrntype_t zpalette_tmp[8+8+4096];
 	__DECL_ALIGNED(32) scrntype_t zpalette_pc[8+8+4096];	// 0-7:text, 8-15:cg, 16-:4096cg
 
 	__DECL_ALIGNED(32) uint16_t dr_zcg[2][400][640];
@@ -133,6 +135,7 @@ private:
 	
 #ifdef _X1TURBOZ
 	int __FASTCALL get_zpal_num(uint32_t addr, uint32_t data);
+	void update_zpalette();
 	scrntype_t __FASTCALL get_zpriority(uint8_t text, uint16_t cg0, uint16_t cg1);
 #endif
 	

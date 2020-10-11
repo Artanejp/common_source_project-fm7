@@ -1626,7 +1626,7 @@ void CRTC::draw_640x200x16screen(uint8_t pl)
 		create_addr_map(80, 200);
 	}
 	ex = (cgreg[0x0e] & 0x80) << 7;
-	subplane = (pl & 1) ? 0x2000 : 0x0000;
+	subplane = (pl & 1) ? 0x4000 : 0x0000; // thanks Mr.856
 	for(int y = 0; y < 200; y++) {
 		for(int x = 0; x < 80; x++) {
 			uint16_t src = (map_addr[y][x] ^ subplane) | ex;

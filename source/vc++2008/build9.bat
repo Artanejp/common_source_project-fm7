@@ -379,6 +379,10 @@ mkdir build_xp\smc777
 copy Release\smc70.exe build_xp\smc777\.
 copy Release\smc777.exe build_xp\smc777\.
 
+devenv.com svi3x8.vcproj /Rebuild Release
+mkdir build_xp\svi3x8
+copy Release\svi3x8.exe build_xp\svi3x8\.
+
 devenv.com tk80bs.vcproj /Rebuild Release
 mkdir build_xp\tk80bs
 copy Release\tk80bs.exe build_xp\tk80bs\.

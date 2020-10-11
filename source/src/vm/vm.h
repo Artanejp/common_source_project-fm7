@@ -570,6 +570,11 @@
 #include "smc777/smc777.h"
 #endif
 
+// SPECTRAVIDEO SVI-3x8
+#ifdef _SVI3X8
+#include "svi3x8/msx_ex.h"
+#endif
+
 // NEC TK-80BS (COMPO BS/80)
 #ifdef _TK80BS
 #include "tk80bs/tk80bs.h"

@@ -83,6 +83,7 @@ public:
 //		seek_time = 400000; // 400msec (temporary)
 		seek_time = 10.0;
 		bytes_per_sec = 2048 * 75; // speed x1
+		data_req_delay = 0.1;
 		max_logical_block = 0;
 		access = false;
 

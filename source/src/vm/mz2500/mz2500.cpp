@@ -106,7 +106,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	sasi_hdd = new SASI_HDD(this, emu);
 	sasi_hdd->set_device_name(_T("SASI Hard Disk Drive"));
 	sasi_hdd->scsi_id = 0;
-	sasi_hdd->bytes_per_sec = 32 * 1024; // 32KB/s
+//	sasi_hdd->bytes_per_sec = 32 * 1024; // 32KB/s
+	sasi_hdd->bytes_per_sec = 3600 / 60 * 256 * 33; // 3600rpm, 256bytes x 33sectors in track (thanks Mr.Sato)
 	for(int i = 0; i < USE_HARD_DISK; i++) {
 		sasi_hdd->set_disk_handler(i, new HARDDISK(emu));
 	}

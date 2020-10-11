@@ -187,7 +187,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 					buffer->write(data_bus);
 					break;
 				}
-				set_req_delay(0, 0.1);
+				set_req_delay(0, data_req_delay); // thanks Mr.Sato
 			} else if(prev_status && !ack_status) {
 				// H -> L
 				if(atn_pending) {
@@ -525,6 +525,7 @@ int SCSI_DEV::get_command_length(int value)
 void SCSI_DEV::start_command()
 {
 	local_data_pos = 0;
+	double delay;
 	switch(command[0]) {
 	case SCSI_CMD_TST_U_RDY:
 		out_debug_log(_T("Command: Test Unit Ready\n"));
@@ -654,7 +655,9 @@ void SCSI_DEV::start_command()
 		out_debug_log(_T("Command: Read 6-byte LBA=%d BLOCKS=%d\n"), position, command[4]);
 		position *= physical_block_size();
 		// transfer length
-		remain = command[4] * logical_block_size();
+		remain = (command[4] > 0 ? command[4] : 0x100) * logical_block_size(); // thanks Mr.Sato
+		// seek time
+		delay = get_seek_time(position, remain);
 		if(remain != 0) {
 			// read data buffer
 			buffer->clear();
@@ -667,7 +670,7 @@ void SCSI_DEV::start_command()
 			}
 			// change to data in phase
 			set_dat(buffer->read());
-			set_phase_delay(SCSI_PHASE_DATA_IN, seek_time);
+			set_phase_delay(SCSI_PHASE_DATA_IN, delay);
 		} else {
 			// transfer length is zero, change to status phase
 			set_dat(SCSI_STATUS_GOOD);
@@ -682,12 +685,14 @@ void SCSI_DEV::start_command()
 		out_debug_log(_T("Command: Write 6-byte LBA=%d BLOCKS=%d\n"), position, command[4]);
 		position *= physical_block_size();
 		// transfer length
-		remain = command[4] * logical_block_size();
+		remain = (command[4] > 0 ? command[4] : 0x100) * logical_block_size(); // thanks Mr.Sato
+		// seek time
+		delay = get_seek_time(position, remain);
 		if(remain != 0) {
 			// clear data buffer
 			buffer->clear();
 			// change to data in phase
-			set_phase_delay(SCSI_PHASE_DATA_OUT, seek_time);
+			set_phase_delay(SCSI_PHASE_DATA_OUT, delay);
 		} else {
 			// transfer length is zero, change to status phase
 			set_dat(SCSI_STATUS_GOOD);
@@ -704,6 +709,8 @@ void SCSI_DEV::start_command()
 		// transfer length
 		remain = command[7] * 0x100 + command[8];
 		remain *= logical_block_size();
+		// seek time
+		delay = get_seek_time(position, remain);
 		if(remain != 0) {
 			// read data buffer
 			buffer->clear();
@@ -716,7 +723,7 @@ void SCSI_DEV::start_command()
 			}
 			// change to data in phase
 			set_dat(buffer->read());
-			set_phase_delay(SCSI_PHASE_DATA_IN, seek_time);
+			set_phase_delay(SCSI_PHASE_DATA_IN, delay);
 		} else {
 			// transfer length is zero, change to status phase
 			set_dat(SCSI_STATUS_GOOD);
@@ -736,11 +743,13 @@ void SCSI_DEV::start_command()
 		// transfer length
 		remain = command[7] * 0x100 + command[8];
 		remain *= logical_block_size();
+		// seek time
+		delay = get_seek_time(position, remain);
 		if(remain != 0) {
 			// clear data buffer
 			buffer->clear();
 			// change to data in phase
-			set_phase_delay(SCSI_PHASE_DATA_OUT, seek_time);
+			set_phase_delay(SCSI_PHASE_DATA_OUT, delay);
 		} else {
 			// transfer length is zero, change to status phase
 			set_dat(SCSI_STATUS_GOOD);
@@ -757,6 +766,8 @@ void SCSI_DEV::start_command()
 		out_debug_log(_T("Command: Read 12-byte LBA=%d BLOCKS=%d PBS=%d LBS=%d\n"), position, remain, physical_block_size(), logical_block_size());
 		position *= physical_block_size();
 		remain *= logical_block_size();
+		// seek time
+		delay = get_seek_time(position, remain);
 		if(remain != 0) {
 			// read data buffer
 			buffer->clear();
@@ -770,7 +781,7 @@ void SCSI_DEV::start_command()
 			}
 			// change to data in phase
 			set_dat(buffer->read());
-			set_phase_delay(SCSI_PHASE_DATA_IN, seek_time);
+			set_phase_delay(SCSI_PHASE_DATA_IN, delay);
 		} else {
 			// transfer length is zero, change to status phase
 			set_dat(SCSI_STATUS_GOOD);
@@ -787,11 +798,13 @@ void SCSI_DEV::start_command()
 		// transfer length
 		remain = command[6] * 0x1000000 + command[7] * 0x10000 + command[8] * 0x100 + command[9];
 		remain *= logical_block_size();
+		// seek time
+		delay = get_seek_time(position, remain);
 		if(remain != 0) {
 			// clear data buffer
 			buffer->clear();
 			// change to data in phase
-			set_phase_delay(SCSI_PHASE_DATA_OUT, seek_time);
+			set_phase_delay(SCSI_PHASE_DATA_OUT, delay);
 		} else {
 			// transfer length is zero, change to status phase
 			set_dat(SCSI_STATUS_GOOD);
