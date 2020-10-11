@@ -352,7 +352,7 @@ typedef struct {
 	
 } config_t;
 
-extern config_t DLL_PREFIX config;
+extern config_t DLL_PREFIX_I config;
 
 #if defined(_USE_QT)
 # include <string>

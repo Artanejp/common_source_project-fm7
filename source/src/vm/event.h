@@ -12,6 +12,7 @@
 
 //#include "vm_template.h"
 //#include "../emu_template.h"
+#include "./vm.h"
 #include "device.h"
 
 #include <typeinfo>
