@@ -43,7 +43,7 @@
 #define INT_MATCH		1
 #define INT_END_OF_BLOCK	2
 
-#define GET_REGNUM(r)		(&(r) - &(WR0))
+#define GET_REGNUM(r)		(int)(&(r) - &(WR0))
 
 #define WR0			regs.m[0][0]
 #define WR1			regs.m[1][0]

@@ -388,7 +388,8 @@ private:
 	
 #ifdef SUPPORT_D2D1
 	ID2D1Factory* pD2d1Factory;
-	ID2D1HwndRenderTarget* pD2d1RenderTarget;
+	ID2D1DCRenderTarget *pD2d1DCRenderTarget;
+	ID2D1HwndRenderTarget* pD2d1HwndRenderTarget;
 	ID2D1Bitmap* pD2d1Bitmap;
 #endif
 #ifdef SUPPORT_D3D9

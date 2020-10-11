@@ -866,33 +866,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 #ifdef SUPPORT_D2D1
 		case ID_HOST_USE_D2D1:
 			config.use_d2d1 = !config.use_d2d1;
-			config.use_d3d9 = 0;
+			#ifdef SUPPORT_D3D9
+				config.use_d3d9 = 0;
+			#endif
 			if(emu) {
-				if(config.use_d2d1 && config.show_status_bar) {
-					config.show_status_bar = 0;
-					if(!now_fullscreen) {
-						set_window(hWnd, prev_window_mode);
-					}
-				}
 				emu->set_host_window_size(-1, -1, !now_fullscreen);
 			}
 			break;
 #endif
 #ifdef SUPPORT_D3D9
 		case ID_HOST_USE_D3D9:
-			config.use_d2d1 = 0;
+			#ifdef SUPPORT_D2D1
+				config.use_d2d1 = 0;
+			#endif
 			config.use_d3d9 = !config.use_d3d9;
 			if(emu) {
 				emu->set_host_window_size(-1, -1, !now_fullscreen);
 			}
 			break;
-#endif
 		case ID_HOST_WAIT_VSYNC:
 			config.wait_vsync = !config.wait_vsync;
 			if(emu) {
 				emu->set_host_window_size(-1, -1, !now_fullscreen);
 			}
 			break;
+#endif
 		case ID_HOST_USE_DINPUT:
 			config.use_dinput = !config.use_dinput;
 			break;
@@ -900,16 +898,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			config.disable_dwm = !config.disable_dwm;
 			break;
 		case ID_HOST_SHOW_STATUS_BAR:
-#ifdef SUPPORT_D2D1
-			if(!config.use_d2d1)
-#endif
-			{
-				config.show_status_bar = !config.show_status_bar;
-				if(emu) {
-					if(!now_fullscreen) {
-						set_window(hWnd, prev_window_mode);
-					}
+			config.show_status_bar = !config.show_status_bar;
+			if(emu) {
+				if(!now_fullscreen) {
+					set_window(hWnd, prev_window_mode);
 				}
+				#ifdef SUPPORT_D2D1
+					emu->set_host_window_size(-1, -1, !now_fullscreen);
+				#endif
 			}
 			break;
 		case ID_SCREEN_WINDOW + 0: case ID_SCREEN_WINDOW + 1: case ID_SCREEN_WINDOW + 2: case ID_SCREEN_WINDOW + 3: case ID_SCREEN_WINDOW + 4:
@@ -1924,9 +1920,6 @@ void update_host_menu(HMENU hMenu)
 	EnableMenuItem(hMenu, ID_HOST_DISABLE_DWM, win8_or_later ? MF_ENABLED : MF_GRAYED);
 	
 	CheckMenuItem(hMenu, ID_HOST_SHOW_STATUS_BAR, config.show_status_bar ? MF_CHECKED : MF_UNCHECKED);
-#ifdef SUPPORT_D2D1
-	EnableMenuItem(hMenu, ID_HOST_SHOW_STATUS_BAR, !config.use_d2d1 ? MF_ENABLED : MF_GRAYED);
-#endif
 }
 
 #ifndef ONE_BOARD_MICRO_COMPUTER
@@ -3932,8 +3925,13 @@ void create_buttons(HWND hWnd)
 		                          vm_buttons[i].x, vm_buttons[i].y,
 		                          vm_buttons[i].width, vm_buttons[i].height,
 		                          hWnd, (HMENU)(ID_BUTTON + i), (HINSTANCE)GetModuleHandle(0), NULL);
+#ifdef _M_AMD64
+		ButtonOldProc[i] = (WNDPROC)GetWindowLongPtr(hButton[i], GWLP_WNDPROC);
+		SetWindowLongPtr(hButton[i], GWLP_WNDPROC, (LONG_PTR)ButtonSubProc);
+#else
 		ButtonOldProc[i] = (WNDPROC)(LONG_PTR)GetWindowLong(hButton[i], GWL_WNDPROC);
 		SetWindowLong(hButton[i], GWL_WNDPROC, (LONG)(LONG_PTR)ButtonSubProc);
+#endif
 	}
 }
 

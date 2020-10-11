@@ -313,13 +313,16 @@ public:
 		d_debugger = NULL;
 		d_mem_stored = NULL;
 		__USE_DEBUGGER = false;
-//#if defined(HAS_MC6801) || defined(HAS_HD6301)
-//		for(int i = 0; i < 4; i++) {
-//			initialize_output_signals(&port[i].outputs);
-//			port[i].wreg = port[i].rreg = 0;//0xff;
-//		}
+		for(int i = 0; i < 4; i++) {
+			initialize_output_signals(&port[i].outputs);
+			port[i].ddr = 0;
+			port[i].latched_data = 0;
+			port[i].latched = false;
+			port[i].first_write = false;
+			port[i].wreg = port[i].rreg = 0;//0xff;
+		}
+		memset(ram, 0x00, sizeof(ram));
 //		initialize_output_signals(&outputs_sio);
-//#endif
 //#if defined(HAS_MC6801)
 //		set_device_name(_T("MC6801 MPU"));
 //#elif defined(HAS_HD6301)
@@ -331,6 +334,17 @@ public:
 	~MC6800() {}
 	
 	// common functions
+	struct {
+		uint8_t wreg;
+		uint8_t rreg;
+		uint8_t ddr;
+		uint8_t latched_data;
+		bool latched;
+		outputs_t outputs;
+		bool first_write;
+	} port[4];
+	uint8_t ram[128];
+
 	virtual void initialize();
 	virtual void reset();
 	virtual int __FASTCALL run(int clock);

@@ -141,6 +141,10 @@ devenv.com mastersystem.vcproj /Rebuild Release
 mkdir build_xp\mastersystem
 copy Release\mastersystem.exe build_xp\mastersystem\.
 
+devenv.com micom_mahjong.vcproj /Rebuild Release
+mkdir build_xp\micom_mahjong
+copy Release\micom_mahjong.exe build_xp\micom_mahjong\.
+
 devenv.com msx1.vcproj /Rebuild Release
 devenv.com msx2.vcproj /Rebuild Release
 devenv.com msx2p.vcproj /Rebuild Release
@@ -382,6 +386,10 @@ copy Release\tk80bs.exe build_xp\tk80bs\.
 devenv.com tk85.vcproj /Rebuild Release
 mkdir build_xp\tk85
 copy Release\tk85.exe build_xp\tk85\.
+
+devenv.com tvboy.vcproj /Rebuild Release
+mkdir build_xp\tvboy
+copy Release\tvboy.exe build_xp\tvboy\.
 
 devenv.com x07.vcproj /Rebuild Release
 mkdir build_xp\x07

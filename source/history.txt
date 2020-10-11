@@ -1,7 +1,10 @@
-8/10/2020
+8/14/2020
 
-[OSD/WIN32] support x64 (thank Marukun)
+[OSD/WIN32] support x64 build (thank Mr.Marukun)
 [OSD/WIN32] support Direct2D
+
+[MICOM_MAHJONG] support Nippon Mail Service MICOM MAHJONG (thanks Mr.GORRY)
+[TVBOY] support GAKKEN TV BOY (thanks Mr.tanam)
 
 
 4/6/2020

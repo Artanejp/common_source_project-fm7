@@ -41,7 +41,8 @@ void OSD::initialize_screen()
 	
 #ifdef SUPPORT_D2D1
 	pD2d1Factory = NULL;
-	pD2d1RenderTarget = NULL;
+	pD2d1DCRenderTarget = NULL;
+	pD2d1HwndRenderTarget = NULL;
 	pD2d1Bitmap = NULL;
 #endif
 #ifdef SUPPORT_D3D9
@@ -308,22 +309,23 @@ int OSD::draw_screen()
 	// initialize d2d1/d3d9 surface
 #ifdef SUPPORT_D2D1
 	static bool prev_use_d2d1 = config.use_d2d1;
+	static bool prev_use_dcrender = (host_window_mode && config.show_status_bar);
 #endif
 #ifdef SUPPORT_D3D9
 	static bool prev_use_d3d9 = config.use_d3d9;
-#endif
 	static bool prev_wait_vsync = config.wait_vsync;
+#endif
 	static int prev_window_width = 0, prev_window_height = 0;
 	static int prev_screen_width = 0, prev_screen_height = 0;
 	
 	if(
 #ifdef SUPPORT_D2D1
-		prev_use_d2d1 != config.use_d2d1 ||
+		prev_use_d2d1 != config.use_d2d1 || prev_use_dcrender != (host_window_mode && config.show_status_bar) ||
 #endif
 #ifdef SUPPORT_D3D9
-		prev_use_d3d9 != config.use_d3d9 ||
+		prev_use_d3d9 != config.use_d3d9 || prev_wait_vsync != config.wait_vsync ||
 #endif
-		prev_wait_vsync != config.wait_vsync || prev_window_width != host_window_width || prev_window_height != host_window_height
+		prev_window_width != host_window_width || prev_window_height != host_window_height
 	) {
 #ifdef SUPPORT_D2D1
 		if(config.use_d2d1) {
@@ -332,6 +334,7 @@ int OSD::draw_screen()
 			release_d2d1();
 		}
 		prev_use_d2d1 = config.use_d2d1;
+		prev_use_dcrender = (host_window_mode && config.show_status_bar);
 #endif
 #ifdef SUPPORT_D3D9
 		if(config.use_d3d9) {
@@ -340,8 +343,8 @@ int OSD::draw_screen()
 			release_d3d9();
 		}
 		prev_use_d3d9 = config.use_d3d9;
-#endif
 		prev_wait_vsync = config.wait_vsync;
+#endif
 		prev_window_width = host_window_width;
 		prev_window_height = host_window_height;
 		prev_screen_width = prev_screen_height = 0;
@@ -1099,12 +1102,30 @@ bool OSD::initialize_d2d1()
 	release_d2d1();
 	
 	if(!FAILED(D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, &pD2d1Factory))) {
-		if(!FAILED(pD2d1Factory->CreateHwndRenderTarget(
-			D2D1::RenderTargetProperties(),
-			D2D1::HwndRenderTargetProperties(main_window_handle, D2D1::SizeU(host_window_width, host_window_height)),
-			&pD2d1RenderTarget
-		))) {
-			return true;
+		if(host_window_mode && config.show_status_bar) {
+			D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+				D2D1_RENDER_TARGET_TYPE_DEFAULT,
+				D2D1::PixelFormat(DXGI_FORMAT_TMP, D2D1_ALPHA_MODE_IGNORE),
+				0, 0,
+				D2D1_RENDER_TARGET_USAGE_NONE,
+				D2D1_FEATURE_LEVEL_DEFAULT
+			);
+			if(!FAILED(pD2d1Factory->CreateDCRenderTarget(&props, &pD2d1DCRenderTarget))) {
+				int dest_x = (host_window_width - draw_screen_width) / 2;
+				int dest_y = (host_window_height - draw_screen_height) / 2;
+				RECT rect = { dest_x, dest_y, dest_x + draw_screen_width, dest_y + draw_screen_height };
+				if(!FAILED(pD2d1DCRenderTarget->BindDC(GetDC(main_window_handle), &rect))) {
+					return true;
+				}
+			}
+		} else {
+			if(!FAILED(pD2d1Factory->CreateHwndRenderTarget(
+				D2D1::RenderTargetProperties(),
+				D2D1::HwndRenderTargetProperties(main_window_handle, D2D1::SizeU(host_window_width, host_window_height)),
+				&pD2d1HwndRenderTarget
+			))) {
+				return true;
+			}
 		}
 	}
 	return false;
@@ -1112,12 +1133,26 @@ bool OSD::initialize_d2d1()
 
 bool OSD::initialize_d2d1_surface(bitmap_t *buffer)
 {
-	if(!FAILED(pD2d1RenderTarget->CreateBitmap(
-		D2D1::SizeU(buffer->width, buffer->height),
-		D2D1::BitmapProperties(D2D1::PixelFormat(DXGI_FORMAT_TMP, D2D1_ALPHA_MODE_IGNORE)),
-		&pD2d1Bitmap
-	))) {
-		return true;
+	if(host_window_mode && config.show_status_bar) {
+		if(pD2d1DCRenderTarget != NULL) {
+			if(!FAILED(pD2d1DCRenderTarget->CreateBitmap(
+				D2D1::SizeU(buffer->width, buffer->height),
+				D2D1::BitmapProperties(D2D1::PixelFormat(DXGI_FORMAT_TMP, D2D1_ALPHA_MODE_IGNORE)),
+				&pD2d1Bitmap
+			))) {
+				return true;
+			}
+		}
+	} else {
+		if(pD2d1HwndRenderTarget != NULL) {
+			if(!FAILED(pD2d1HwndRenderTarget->CreateBitmap(
+				D2D1::SizeU(buffer->width, buffer->height),
+				D2D1::BitmapProperties(D2D1::PixelFormat(DXGI_FORMAT_TMP, D2D1_ALPHA_MODE_IGNORE)),
+				&pD2d1Bitmap
+			))) {
+				return true;
+			}
+		}
 	}
 	return false;
 }
@@ -1126,9 +1161,13 @@ void OSD::release_d2d1()
 {
 	release_d2d1_surface();
 	
-	if(pD2d1RenderTarget != NULL) {
-		pD2d1RenderTarget->Release();
-		pD2d1RenderTarget = NULL;
+	if(pD2d1DCRenderTarget != NULL) {
+		pD2d1DCRenderTarget->Release();
+		pD2d1DCRenderTarget = NULL;
+	}
+	if(pD2d1HwndRenderTarget != NULL) {
+		pD2d1HwndRenderTarget->Release();
+		pD2d1HwndRenderTarget = NULL;
 	}
 	if(pD2d1Factory != NULL) {
 		pD2d1Factory->Release();
@@ -1150,8 +1189,8 @@ void OSD::copy_to_d2d1_surface(bitmap_t *buffer)
 		initialize_screen_buffer(&reversed_screen_buffer, buffer->width, buffer->height, HALFTONE);
 	}
 	for(int y = 0; y < buffer->height; y++) {
-		scrntype_t* source_buffer = buffer->get_buffer(y);
-		scrntype_t* dest_buffer = reversed_screen_buffer.get_buffer(reversed_screen_buffer.height - y - 1);
+		scrntype_t* source_buffer = buffer->get_buffer(buffer->height - y - 1);
+		scrntype_t* dest_buffer = reversed_screen_buffer.get_buffer(y);
 		
 		for(int x = 0; x < buffer->width; x++) {
 			dest_buffer[x] = source_buffer[x];
@@ -1163,11 +1202,21 @@ void OSD::copy_to_d2d1_surface(bitmap_t *buffer)
 void OSD::update_d2d1_screen(int dest_x, int dest_y)
 {
 	D2D1_RECT_F rect = { (FLOAT)dest_x, (FLOAT)dest_y, (FLOAT)(dest_x + draw_screen_width), (FLOAT)(dest_y + draw_screen_height) };
+	HRESULT hr = 0;
 	
-	pD2d1RenderTarget->BeginDraw();
-	pD2d1RenderTarget->DrawBitmap(pD2d1Bitmap, &rect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
-	HRESULT hr = pD2d1RenderTarget->EndDraw();
-	
+	if(host_window_mode && config.show_status_bar) {
+		if(pD2d1DCRenderTarget != NULL) {
+			pD2d1DCRenderTarget->BeginDraw();
+			pD2d1DCRenderTarget->DrawBitmap(pD2d1Bitmap, &rect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+			hr = pD2d1DCRenderTarget->EndDraw();
+		}
+	} else {
+		if(pD2d1HwndRenderTarget != NULL) {
+			pD2d1HwndRenderTarget->BeginDraw();
+			pD2d1HwndRenderTarget->DrawBitmap(pD2d1Bitmap, &rect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+			hr = pD2d1HwndRenderTarget->EndDraw();
+		}
+	}
 	if(hr == D2DERR_RECREATE_TARGET) {
 		set_host_window_size(-1, -1, host_window_mode);
 	}

@@ -2104,8 +2104,8 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 		egc_inptr = egc_buf + inptr_ofs;
 		egc_outptr = egc_buf + outptr_ofs;
 	} else {
-		int inptr_ofs = egc_inptr - egc_buf;
-		int outptr_ofs = egc_outptr - egc_buf;
+		int inptr_ofs = (int)(egc_inptr - egc_buf);
+		int outptr_ofs = (int)(egc_outptr - egc_buf);
 		state_fio->FputInt32_LE(inptr_ofs);
 		state_fio->FputInt32_LE(outptr_ofs);
 	}

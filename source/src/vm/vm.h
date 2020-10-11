@@ -242,6 +242,11 @@
 #include "gamegear/mastersystem.h"
 #endif
 
+// Nippon Mail Service MICOM MAHJONG
+#ifdef _MICOM_MAHJONG
+#include "micom_mahjong/micom_mahjong.h"
+#endif
+
 // ASCII MSX
 #ifdef _MSX1
 //#include "msx/msx.h"
@@ -578,6 +583,11 @@
 // NEC TK-85
 #ifdef _TK85
 #include "tk80bs/tk80bs.h"
+#endif
+
+// GAKKEN TV BOY
+#ifdef _TVBOY
+#include "tvboy/tvboy.h"
 #endif
 
 // CANON X-07

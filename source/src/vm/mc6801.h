@@ -56,17 +56,7 @@ protected:
 #undef XX
 	//#if defined(HAS_MC6801) || defined(HAS_HD6301)
 	// data
-	struct {
-		uint8_t wreg;
-		uint8_t rreg;
-		uint8_t ddr;
-		uint8_t latched_data;
-		bool latched;
-		// output signals
-		outputs_t outputs;
-		bool first_write;
-	} port[4];
-	
+
 	uint8_t p3csr;
 	bool p3csr_is3_flag_read;
 	bool sc1_state;
@@ -94,9 +84,7 @@ protected:
 	
 	// memory controller
 	uint8_t ram_ctrl;
-	uint8_t ram[128];
 	
-
 	uint32_t __FASTCALL mc6801_io_r(uint32_t offset);
 	virtual void __FASTCALL mc6801_io_w(uint32_t offset, uint32_t data);
 	void __FASTCALL increment_counter(int amount);

@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								4/30/2019
+								8/14/2020
 
 --- What's this ?
 
@@ -42,6 +42,8 @@ This archive includes the binaries of the emulators listed below:
 		eFMR-60		FMR-60
 		eFMR-70		FMR-70
 		eFMR-80		FMR-80
+	GAKKEN
+		yaTVBOY		TV BOY (by Mr.tanam)
 	Gijutsu Hyoron Sha
 		eBabbage-2nd	Babbage-2nd
 	HITACHI
@@ -94,6 +96,8 @@ This archive includes the binaries of the emulators listed below:
 		ePCEngine	PC Engine / SuperGrafx + CD-ROM^2
 	Nintendo
 		eFamilyBASIC	Family BASIC
+	Nippon Mail Service
+		eMuCom Mahjong	MICOM MAHJONG (by Mr.GORRY)
 	Pioneer
 		ePX-7		PX-7 (MSX1 + LaserDisc)
 	SANYO
@@ -452,6 +456,8 @@ Save/Load State info:
 - vm/m5/*
 	MESS sord driver
 	Mr.Moriya for Sord M5 hardware design info
+- vm/micom_mahjong/*
+	eMuCom Mahjong by Mr.GORRY
 - vm/msx/*
 	yaMSX1 and yaMSX2 by Mr.tanam
 - vm/msx/memory.*
@@ -496,6 +502,8 @@ Save/Load State info:
 	Mr.Fred Han Kraan for EPSON QC-10/QX-10 hardware design info
 - vm/scv/*
 	Mr.Enri and Mr.333 for Epoch Super Cassette Vision hardware info
+- vm/tvboy/*
+	yaTVBOY by Mr.tanam
 - vm/x07/io.*
 	x07_emul by Mr.Jacques Brigaud
 - vm/x1/*

@@ -456,14 +456,14 @@ bool SLOT_CART::process_state(FILEIO* state_fio, bool loading)
 		}
 	} else {
 		if(inserted) {
-			state_fio->FputInt32_LE(rbank[0]==rdmy ? (-1) : rbank[0] - rom);
-			state_fio->FputInt32_LE(rbank[1]==rdmy ? (-1) : rbank[1] - rom);
-			state_fio->FputInt32_LE(rbank[2]==rdmy ? (-1) : rbank[2] - rom);
-			state_fio->FputInt32_LE(rbank[3]==rdmy ? (-1) : rbank[3] - rom);
-			state_fio->FputInt32_LE(rbank[4]==rdmy ? (-1) : rbank[4] - rom);
-			state_fio->FputInt32_LE(rbank[5]==rdmy ? (-1) : rbank[5] - rom);
-			state_fio->FputInt32_LE(rbank[6]==rdmy ? (-1) : rbank[6] - rom);
-			state_fio->FputInt32_LE(rbank[7]==rdmy ? (-1) : rbank[7] - rom);
+			state_fio->FputInt32_LE(rbank[0]==rdmy ? (-1) : (int)(rbank[0] - rom));
+			state_fio->FputInt32_LE(rbank[1]==rdmy ? (-1) : (int)(rbank[1] - rom));
+			state_fio->FputInt32_LE(rbank[2]==rdmy ? (-1) : (int)(rbank[2] - rom));
+			state_fio->FputInt32_LE(rbank[3]==rdmy ? (-1) : (int)(rbank[3] - rom));
+			state_fio->FputInt32_LE(rbank[4]==rdmy ? (-1) : (int)(rbank[4] - rom));
+			state_fio->FputInt32_LE(rbank[5]==rdmy ? (-1) : (int)(rbank[5] - rom));
+			state_fio->FputInt32_LE(rbank[6]==rdmy ? (-1) : (int)(rbank[6] - rom));
+			state_fio->FputInt32_LE(rbank[7]==rdmy ? (-1) : (int)(rbank[7] - rom));
 		}
 	}
 #else
