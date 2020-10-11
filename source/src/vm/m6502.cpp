@@ -1030,10 +1030,10 @@ int M6502::run(int clock)
 #define offs_t UINT16
 
 #define CPU_DISASSEMBLE_NAME(name)		cpu_disassemble_##name
-#define CPU_DISASSEMBLE(name)			int CPU_DISASSEMBLE_NAME(name)(_TCHAR *buffer, offs_t pc, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol)
+#define CPU_DISASSEMBLE(name)			int DLL_PREFIX CPU_DISASSEMBLE_NAME(name)(_TCHAR *buffer, offs_t pc, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol)
 #define CPU_DISASSEMBLE_CALL(name)		CPU_DISASSEMBLE_NAME(name)(buffer, pc, oprom, oprom, d_debugger->first_symbol)
 const UINT32 DASMFLAG_LENGTHMASK    = 0x0000ffff;   // the low 16-bits contain the actual length
-extern CPU_DISASSEMBLE(m6502);
+extern DLL_PREFIX_I CPU_DISASSEMBLE(m6502);
 
 int M6502::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata)
 {

@@ -246,7 +246,7 @@ bool M6502_BASE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 
 // CPU interface functions
 #define CPU_DISASSEMBLE_NAME(name)		cpu_disassemble_##name
-#define CPU_DISASSEMBLE(name)			int CPU_DISASSEMBLE_NAME(name)(_TCHAR *buffer, offs_t pc, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol)
+#define CPU_DISASSEMBLE(name)			int  DLL_PREFIX CPU_DISASSEMBLE_NAME(name)(_TCHAR *buffer, offs_t pc, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol)
 #define CPU_DISASSEMBLE_CALL(name)		CPU_DISASSEMBLE_NAME(name)(buffer, pc, oprom, oprom, d_debugger->first_symbol)
 
 /*****************************************************************************/

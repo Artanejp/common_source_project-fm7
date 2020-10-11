@@ -14,7 +14,7 @@
 //#include "../emu.h"
 #include "device.h"
 
-class TF20 : public DEVICE
+class DLL_PREFIX TF20 : public DEVICE
 {
 private:
 	DEVICE *d_cpu, *d_fdc, *d_pio, *d_sio;
