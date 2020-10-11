@@ -7,7 +7,7 @@ message("* common/common")
 #)
 if(USE_DEVICES_SHARED_LIB)
   add_library(common_${EXE_NAME}
-	config.cpp
+#	config.cpp
 	debugger.cpp
 	)
 else()

@@ -179,8 +179,10 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 
 	screen_x_zoom = 1.0f;
 	screen_y_zoom = 1.0f;
-	screen_width_aspect = WINDOW_WIDTH_ASPECT;
-	screen_height_aspect = WINDOW_HEIGHT_ASPECT;
+#define _WINDOW_WIDTH_ASPECT 640   
+#define _WINDOW_HEIGHT_ASPECT 480   
+	screen_width_aspect = _WINDOW_WIDTH_ASPECT;
+	screen_height_aspect = _WINDOW_HEIGHT_ASPECT;
 	max_button = 0;
 	vm_buttons_d = NULL;
 	max_ranges = 0;

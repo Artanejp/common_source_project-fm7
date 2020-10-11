@@ -159,10 +159,10 @@ add_library(CSPgui SHARED
 	  )
 
 target_link_libraries(CSPgui 
-	  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPosd.dll.a
-#	  ${LIBAV_LIBRARIES}
-	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPavio.dll.a
-	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPemu_utils.dll.a
+	  PRIVATE CSPosd
+	  #	  ${LIBAV_LIBRARIES}
+	  CSPavio
+	  CSPemu_utils
 	  Qt5::Core
 	  Qt5::Gui
 	  Qt5::OpenGL

@@ -10,7 +10,8 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
-#include "vm/vm.h"
+#include "common.h"
+#include "vm/vm_template.h"
 #include "fileio.h"
 #if defined(_USE_QT)
 #define USE_FIXED_CONFIG 1
@@ -351,7 +352,7 @@ typedef struct {
 	
 } config_t;
 
-extern config_t config;
+extern config_t DLL_PREFIX config;
 
 #if defined(_USE_QT)
 # include <string>

@@ -28,7 +28,7 @@ extern CSP_Logger *csp_logger;
 #include "agar_main.h"
 #endif
 
-config_t config;
+config_t DLL_PREFIX config;
 
 #ifndef CONFIG_NAME
 #define CONFIG_NAME "conf"

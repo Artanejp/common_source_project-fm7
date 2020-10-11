@@ -11,6 +11,7 @@
 #define _EMU_H_
 
 #include "./emu_template.h"
+#include "vm/vm.h"
 // for debug
 //#define _DEBUG_LOG
 #ifdef _DEBUG_LOG

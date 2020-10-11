@@ -8,6 +8,7 @@ set(s_qt_emuutils_headers
 	
 set(s_qt_emuutils_srcs
 	  ../../common.cpp
+	  ../../config.cpp
 	  ../../fifo.cpp
 	  ../../fileio.cpp
 	  ../../ringbuffer.cpp
