@@ -8,6 +8,7 @@
 #ifndef _FM7_MAINMEM_H_
 #define _FM7_MAINMEM_H_
 
+#include "../vm.h"
 #include "fm7_common.h"
 
 #include "../device.h"

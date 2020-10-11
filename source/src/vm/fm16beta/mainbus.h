@@ -10,6 +10,7 @@
 #ifndef _MAINBUS_H_
 #define _MAINBUS_H_
 
+#include "../vm.h"
 #include "../memory.h"
 
 #define SIG_MAIN_IRQ0_TX	0	// RS-232C

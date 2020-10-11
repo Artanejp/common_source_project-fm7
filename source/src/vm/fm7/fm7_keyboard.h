@@ -12,6 +12,7 @@
 #define _VM_FM7_KEYBOARD_H_
 
 #include "../device.h"
+#include "../vm.h"
 #include "../memory.h"
 #include "../../fileio.h"
 

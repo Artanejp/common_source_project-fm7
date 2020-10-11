@@ -11,6 +11,7 @@
 #ifndef _VM_FM7_MAINIO_H_
 #define _VM_FM7_MAINIO_H_
 
+#include "../vm.h"
 #include "./fm7.h"
 #include "fm7_common.h"
 

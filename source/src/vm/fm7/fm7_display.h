@@ -8,6 +8,7 @@
 #ifndef _CSP_FM7_DISPLAY_H
 #define _CSP_FM7_DISPLAY_H
 
+#include "../vm.h"
 #include "../../common.h"
 #include "../device.h"
 #include "../mc6809.h"

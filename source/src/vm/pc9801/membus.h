@@ -20,6 +20,7 @@
 #ifndef _MEMBUS_H_
 #define _MEMBUS_H_
 
+#include "../vm.h"
 #include "../memory.h"
 
 namespace PC9801 {
