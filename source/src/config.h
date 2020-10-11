@@ -306,6 +306,7 @@ typedef struct {
 	bool use_direct_input;
 	bool disable_dwm;
 
+	bool use_d2d1;
 	bool use_d3d9;
 	bool wait_vsync;
 	bool use_dinput;

@@ -274,7 +274,9 @@
 		typedef unsigned int UINT;
 	#endif
 #endif
-
+#ifdef _USE_QT
+	typedef int SOCKET;
+#endif
 typedef union {
 	struct {
 #ifdef __BIG_ENDIAN__
