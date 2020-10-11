@@ -81,7 +81,7 @@ public:
 	virtual void start_command();
 };
 
-class SASI_HDD : public SCSI_HDD
+class DLL_PREFIX SASI_HDD : public SCSI_HDD
 {
 public:
 	SASI_HDD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : SCSI_HDD(parent_vm, parent_emu)
