@@ -24,11 +24,6 @@ extern CSP_Logger *csp_logger;
 #include "common.h"
 #include "config.h"
 #include "fileio.h"
-#if defined(_USE_AGAR)
-#include "agar_main.h"
-#endif
-
-config_t DLL_PREFIX config;
 
 #ifndef CONFIG_NAME
 #define CONFIG_NAME "conf"
@@ -49,7 +44,7 @@ bool MyGetPrivateProfileBool(LPCTSTR lpAppName, LPCTSTR lpKeyName, bool bDefault
 	return (MyGetPrivateProfileInt(lpAppName, lpKeyName, bDefault ? 1 : 0, lpFileName) != 0);
 }
 
-void DLL_PREFIX initialize_config()
+void initialize_config()
 {
 	// initial settings
 	memset(&config, 0, sizeof(config_t));
@@ -239,7 +234,7 @@ void DLL_PREFIX initialize_config()
 #endif	
 }
 
-void DLL_PREFIX load_config(const _TCHAR *config_path)
+void load_config(const _TCHAR *config_path)
 {
 	int drv, i;
 	// initial settings
@@ -615,7 +610,7 @@ void DLL_PREFIX load_config(const _TCHAR *config_path)
 	#endif
 }
 		
-void DLL_PREFIX save_config(const _TCHAR *config_path)
+void save_config(const _TCHAR *config_path)
 {
 	int drv, i;
 #if !defined(_MSC_VER)
@@ -938,7 +933,7 @@ void DLL_PREFIX save_config(const _TCHAR *config_path)
 
 #define STATE_VERSION	6
 
-bool DLL_PREFIX process_config_state(void *f, bool loading)
+bool process_config_state(void *f, bool loading)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	

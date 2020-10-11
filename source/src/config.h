@@ -99,10 +99,10 @@ enum {
 	#endif
 #endif
 
-void DLL_PREFIX initialize_config();
-void DLL_PREFIX load_config(const _TCHAR* config_path);
-void DLL_PREFIX save_config(const _TCHAR* config_path);
-bool DLL_PREFIX process_config_state(void *f, bool loading);
+void initialize_config();
+void load_config(const _TCHAR* config_path);
+void save_config(const _TCHAR* config_path);
+bool process_config_state(void *f, bool loading);
 
 /*
  * 20160407 Ohta:
