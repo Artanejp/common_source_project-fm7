@@ -566,7 +566,7 @@ public:
 	void write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path);
 
 	// common socket
-	virtual int get_socket(int ch);
+	virtual SOCKET get_socket(int ch);
 	virtual void notify_socket_connected(int ch);
 	virtual void notify_socket_disconnected(int ch);
 	virtual void update_socket();

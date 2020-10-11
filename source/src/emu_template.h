@@ -256,7 +256,7 @@ public:
 	virtual void write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path) {}
 
 	// socket
-	virtual int get_socket(int ch) { return 0; }
+	virtual SOCKET get_socket(int ch) { return (SOCKET)0; }
 	virtual void notify_socket_connected(int ch) {}
 	virtual void notify_socket_disconnected(int ch) {}
 	virtual bool initialize_socket_tcp(int ch) { return false; }

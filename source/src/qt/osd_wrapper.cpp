@@ -879,16 +879,18 @@ void OSD::recv_socket_data(int ch)
 	// This is dummy.
 }
 
-int OSD::get_socket(int ch)
+SOCKET OSD::get_socket(int ch)
 {
 #ifdef USE_SOCKET
 	if(is_tcp[ch]) {
-		if(tcp_socket[ch] == NULL) return -1;
+		if(tcp_socket[ch] == NULL) return (SOCKET)0;
+		return (SOCKET)tcp_socket[ch];
 	} else {
-		if(udp_socket[ch] == NULL) return -1;
+		if(udp_socket[ch] == NULL) return (SOCKET)0;
+		return (SOCKET)udp_socket[ch];
 	}
-#endif	
-	return ch;
+#endif
+	return (SOCKET)0;
 }
 
 //

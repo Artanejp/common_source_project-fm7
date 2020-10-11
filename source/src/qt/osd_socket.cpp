@@ -86,8 +86,8 @@ void OSD_BASE::recv_socket_data(int ch)
 {
 }
 
-int OSD_BASE::get_socket(int ch)
+SOCKET OSD_BASE::get_socket(int ch)
 {
-	return ch;
+	return (SOCKET)0;
 }
 

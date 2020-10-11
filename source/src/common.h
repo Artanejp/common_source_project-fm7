@@ -275,8 +275,8 @@
 		typedef unsigned int UINT;
 	#endif
 #endif
-#ifdef _USE_QT
-	typedef int SOCKET;
+#if /*!defined(_WIN32) || */!defined(SOCKET)
+	typedef uintptr_t SOCKET;
 #endif
 typedef union {
 	struct {

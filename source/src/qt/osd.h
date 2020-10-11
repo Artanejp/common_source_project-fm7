@@ -139,7 +139,7 @@ public:
 	void send_socket_data_udp(int ch, uint32_t ipaddr, int port);
 	void send_socket_data(int ch);
 	void recv_socket_data(int ch);
-	int get_socket(int ch);
+	SOCKET get_socket(int ch);
 
 	// Sound
 #ifdef USE_SOUND_FILES
