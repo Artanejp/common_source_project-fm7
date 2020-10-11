@@ -1,4 +1,4 @@
-﻿Option Strict On
+Option Strict On
 Option Explicit On
 
 Public Class Form1
