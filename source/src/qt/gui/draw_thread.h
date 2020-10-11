@@ -18,7 +18,7 @@
 
 class Ui_MainWindowBase;
 class EMU_TEMPLATE;
-class OSD;
+class OSD_BASE;
 class CSP_Logger;
 class QSemaphore;
 class QScreen;
@@ -30,7 +30,7 @@ QT_BEGIN_NAMESPACE
 class DLL_PREFIX DrawThreadClass : public QThread {
 	Q_OBJECT
  private:
-	OSD *p_osd;
+	OSD_BASE *p_osd;
 	Ui_MainWindowBase *MainWindow;
 	GLDrawClass *glv;
 	
@@ -65,7 +65,7 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	bool mapped_drawn;
 	void doDrawMain(bool flag);
  public:
-	DrawThreadClass(OSD *o, CSP_Logger *logger, QObject *parent = 0);
+	DrawThreadClass(OSD_BASE *o, CSP_Logger *logger, QObject *parent = 0);
 	~DrawThreadClass();
 	QSemaphore *renderSemaphore;
 	QSemaphore *textureMappingSemaphore;

@@ -18,7 +18,7 @@
 #include <QElapsedTimer>
 
 #include "emu_template.h"
-#include "osd.h"
+#include "osd_base.h"
 #include "vm/vm.h"
 
 #include "qt_main.h"
@@ -29,7 +29,7 @@
 #include "config.h"
 
 
-DrawThreadClass::DrawThreadClass(OSD *o, CSP_Logger *logger,QObject *parent) : QThread(parent) {
+DrawThreadClass::DrawThreadClass(OSD_BASE *o, CSP_Logger *logger,QObject *parent) : QThread(parent) {
 	MainWindow = (Ui_MainWindowBase *)parent;
 	glv = MainWindow->getGraphicsView();
 	p_osd = o;
@@ -90,7 +90,7 @@ DrawThreadClass::~DrawThreadClass()
 void DrawThreadClass::SetEmu(EMU_TEMPLATE *p)
 {
 	//p_emu = p;
-	p_osd = (OSD*)(p->get_osd());
+	p_osd = (OSD_BASE*)(p->get_osd());
 }
 
 void DrawThreadClass::do_set_frames_per_second(double fps)
