@@ -10,6 +10,7 @@
 #ifndef _SUB_H_
 #define _SUB_H_
 
+#include "../vm.h"
 #include "../memory.h"
 
 #define SIG_SUB_DISP	0
