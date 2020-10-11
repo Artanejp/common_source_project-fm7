@@ -410,7 +410,7 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 	   set(LOCAL_LIBS     
            qt_${EXE_NAME}
 		   vm_${EXE_NAME}
-		   vm_common_vm
+#		   vm_common_vm
 		   ${VM_APPEND_LIBS}
 		   ${DEBUG_LIBS}
 		   common_${EXE_NAME}
@@ -495,8 +495,8 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 
 	if(WIN32)
 		target_link_libraries(${EXE_NAME}
-			${LOCAL_LIBS}
 			${BUNDLE_LIBS}
+			${LOCAL_LIBS}
 			-lpthread
 		)
 	else()	
