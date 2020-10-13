@@ -10,4 +10,4 @@ export LDFLAGS="-L/opt/llvm-mingw/lib -lc++"
 	    --enable-pic \
 	    --enable-shared \
 	    --enable-static \
-	    --prefix=/usr/local/i586-mingw-msvc/lame-3.100
+	    --prefix=/usr/local/i586-mingw-msvc/lame
