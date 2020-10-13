@@ -45,7 +45,7 @@ set(CMAKE_SHARED_LINKER_FLAGS "-L/usr/i686-w64-mingw32/lib -target i686-w64-ming
 
 #set(CMAKE_EXE_LINKER_FLAGS "")
 
-set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-4.2")
+set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-4.3")
 
 
 # here is the target environment located

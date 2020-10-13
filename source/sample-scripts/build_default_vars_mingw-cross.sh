@@ -1,4 +1,4 @@
-FFMPEG_DIR="/usr/local/i586-mingw-msvc/ffmpeg-4.2"
+FFMPEG_DIR="/usr/local/i586-mingw-msvc/ffmpeg-4.3"
 QT5_DIR="/usr/local/i586-mingw-msvc/Qt5.15/mingw_82x"
 PATH=/opt/llvm-mingw/bin:$PATH
 cmake .. \
