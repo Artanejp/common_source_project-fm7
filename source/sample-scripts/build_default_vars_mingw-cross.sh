@@ -11,7 +11,6 @@ cmake .. \
 		-O3 \
 		-march=i686 \
 		-msse -msse2 \
-		-mtune=sandybridge \
 		-mfpmath=sse \
  	        -Wreserved-user-defined-literal \
  	        -fslp-vectorize \
@@ -26,7 +25,6 @@ cmake .. \
 		-O3 \
 		-march=i686 \
 		-msse -msse2 \
-		-mtune=sandybridge \
 		-mfpmath=sse \
  	        -Wreserved-user-defined-literal \
  	        -fslp-vectorize \
@@ -38,7 +36,6 @@ cmake .. \
 		-O3 \
 		-march=i686 \
 		-msse -msse2 \
-		-mtune=sandybridge \
 		-mfpmath=sse \
  	        -Wreserved-user-defined-literal \
  	        -fslp-vectorize \
@@ -50,7 +47,6 @@ cmake .. \
 		-O3 \
 		-march=i686 \
 		-msse -msse2 \
-		-mtune=sandybridge \
 		-mfpmath=sse \
  	        -Wreserved-user-defined-literal \
  	        -fslp-vectorize \
