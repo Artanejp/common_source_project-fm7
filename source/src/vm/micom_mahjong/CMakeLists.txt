@@ -8,5 +8,5 @@ add_library(vm_${EXE_NAME}
 		./memory.cpp
 		./keyboard.cpp
 
-		./micom_mehjong.cpp
+		./micom_mahjong.cpp
 	)

@@ -44,11 +44,12 @@ class DEVICE;
 class EVENT;
 
 class MC6847;
-class MC6800;
+class MC6801;
 class PCM1BIT;
 
-class TVBOY::MEMORY;
-
+namespace TVBOY {
+	class MEMORY;
+}
 class VM : public VM_TEMPLATE
 {
 protected:
@@ -58,7 +59,7 @@ protected:
 	EVENT* event;
 	
 	MC6847* vdp;
-	MC6800* cpu;
+	MC6801* cpu;
 	PCM1BIT* pcm;
 
 	TVBOY::MEMORY* memory;
@@ -68,7 +69,7 @@ public:
 	// initialize
 	// ----------------------------------------
 	
-	VM(EMU* parent_emu);
+	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
 	
 	// ----------------------------------------

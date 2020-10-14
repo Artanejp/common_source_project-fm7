@@ -10,8 +10,8 @@
 	[ memory ]
 */
 
-#ifndef _MEMORY_EX_H_
-#define _MEMORY_EX_H_
+#ifndef _MEMORY_EX_SVI3X8_H_
+#define _MEMORY_EX_SVI3X8_H_
 
 #include "../vm.h"
 #include "../../emu.h"
@@ -54,10 +54,10 @@ private:
 	int done;
 	int tapePos;
 	int tapeLen;
-	byte tapedata[MAX_TAPE_LEN];
+	uint8_t tapedata[MAX_TAPE_LEN];
 
 public:
-	MEMORY_EX(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY_EX(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}

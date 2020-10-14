@@ -12,6 +12,8 @@ set(SVI3X8_BASE_SRCS
 #	../msx/printer.cpp
 #	../msx/slot_cart.cpp
 #	../msx/slot_mainrom.cpp
+
+	./msx_ex.cpp
 )
 
 if("${U_EXE_NAME}" STREQUAL "EMUSVI3X8")

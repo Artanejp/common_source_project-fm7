@@ -10,8 +10,8 @@
 	[ virtual machine ]
 */
 
-#ifndef _MSX_EX_H_
-#define _MSX_EX_H_
+#ifndef _MSX_EX_SVI3X8_H_
+#define _MSX_EX_SVI3X8_H_
 
 #if defined(_SVI3X8)
 #define DEVICE_NAME		"SPECTRAVIDEO SVI-3x8"
@@ -85,14 +85,18 @@ class PCM1BIT;
 class TMS9918A;
 class Z80;
 
-class SVI_3X8::JOYSTICK;
-class SVI_3X8::KEYBOARD;
-class SVI_3X8::MEMORY_EX;
-class MSX::SLOT_MAINROM;
-class MSX::SLOT_CART;
+namespace SVI_3X8 {
+	class JOYSTICK;
+	class KEYBOARD;
+	class MEMORY_EX;
+}
+namespace MSX {
+	class SLOT_MAINROM;
+	class SLOT_CART;
 #if defined(USE_PRINTER)
-class MSX::PRINTER;
+	class PRINTER;
 #endif
+}
 //#if defined(FDD_PATCH_SLOT)
 //class SLOT_FDD_PATCH;
 //#endif
@@ -128,7 +132,7 @@ public:
 	// initialize
 	// ----------------------------------------
 	
-	VM(EMU* parent_emu);
+	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
 	
 	// ----------------------------------------

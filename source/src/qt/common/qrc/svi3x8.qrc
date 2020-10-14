@@ -1,0 +1,7 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="default.ico">../../../res/svi3x8.ico</file>
+    <file alias="bios_and_keys.txt">../../../../../doc/VMs/00_still_not_written.txt</file>
+    <file alias="machine.ja_JP.qm">../../../res/i18n/ja/svi3x8.ja_JP.qm</file>
+</qresource>
+</RCC>

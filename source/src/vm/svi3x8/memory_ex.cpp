@@ -9,12 +9,12 @@
 
 	[ memory ]
 */
-namespace SVI_3X8 {
 
 #include "./memory_ex.h"
 #if defined(FDD_PATCH_SLOT)
 #include "../disk.h"
 #define MSX_SECTOR_SIZE 512
+namespace SVI_3X8 {
 char dskPath[64]="";		/* Disk image path                 	*/
 /** Floppy drive *********/
 unsigned char fdc_drive = 0;
@@ -24,7 +24,7 @@ unsigned char fdc_status = 0;
 unsigned char svi_disk_heads[2];
 unsigned char svi_disk_tracks=40;
 unsigned char svi_UseDisk = 0;
-
+}
 #ifndef UINT16
 #define UINT16  unsigned short int
 #endif
@@ -111,6 +111,7 @@ unsigned char svi_UseDisk = 0;
 /* Type IV commands */
 #define FDC_FORCE_INT   0xd0    /* force interrupt */
 
+namespace SVI_3X8 {
 typedef struct {
 	UINT8	 track;
 	UINT8	 sector;

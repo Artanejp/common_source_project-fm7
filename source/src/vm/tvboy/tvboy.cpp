@@ -13,7 +13,7 @@
 #include "../event.h"
 
 #include "../mc6847.h"
-#include "../mc6800.h"
+#include "../mc6801.h"
 #include "../pcm1bit.h"
 
 #ifdef USE_DEBUGGER
@@ -27,7 +27,7 @@
 // ----------------------------------------------------------------------------
 using TVBOY::MEMORY;
 
-VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
+VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices
 	first_device = last_device = NULL;
@@ -35,7 +35,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	vdp = new MC6847(this, emu);
-	cpu = new MC6800(this, emu);
+	cpu = new MC6801(this, emu);
 	
 	memory = new MEMORY(this, emu);
 	memory->set_context_cpu(cpu);

@@ -8,6 +8,8 @@
 */
 
 #include "./memory.h"
+#include "../mc6847.h"
+#include "../mc6801.h"
 
 namespace TVBOY {
 

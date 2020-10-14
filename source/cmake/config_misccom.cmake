@@ -8,8 +8,10 @@ set(BUILD_JR100 ON CACHE BOOL "Build Matsushita JR-100.")
 set(BUILD_JR800 ON CACHE BOOL "Build Matsushita JR-800.")
 
 set(BUILD_JX ON CACHE BOOL "Build IBM JX.")
+
 set(BUILD_M5 ON CACHE BOOL "Build SORD M5.")
 set(BUILD_MAP1010 ON CACHE BOOL "Build SEIKO MAP-1010.")
+set(BUILD_MICOM_MAHJONG ON CACHE BOOL "Build MICOM MAHJONG.")
 set(BUILD_MULTI8 ON CACHE BOOL "Build Mitsubishi Multi 8.")
 set(BUILD_MYCOMZ80A ON CACHE BOOL "Build Japan Electronics College MYCOM Z-80A.")
 
@@ -21,6 +23,8 @@ set(BUILD_SCV ON CACHE BOOL "Build EPOCH Cuper Casette Vision.")
 
 set(BUILD_SMC70 ON CACHE BOOL "Build SONY SMC-70")
 set(BUILD_SMC777 ON CACHE BOOL "Build SONY SMC-777")
+
+set(BUILD_TVBOY ON CACHE BOOL "Build GAKKEN TV BOY")
 
 set(BUILD_X07 ON CACHE BOOL "Build CANON X07")
 set(BUILD_YALKY ON CACHE BOOL "Build Yuasa Kyouiku System YALKY")
@@ -71,7 +75,10 @@ if(BUILD_MAP1010)
 	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/map1010.qrc)
 	ADD_VM(phc25 emumap1010 _MAP1010)
 endif()
-
+if(BUILD_MICOM_MAHJONG)
+	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/micom_mahjong.qrc)
+	ADD_VM(micom_mahjong emumicom_mahjong _MICOM_MAHJONG)
+endif()
 
 if(BUILD_MULTI8)
 	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/multi8.qrc)
@@ -111,6 +118,10 @@ endif()
 if(BUILD_SMC777)
 	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/smc777.qrc)
 	ADD_VM(smc777 emusmc777 _SMC777)
+endif()
+if(BUILD_TVBOY)
+	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/tvboy.qrc)
+	ADD_VM(tvboy emutvboy _TVBOY)
 endif()
 
 if(BUILD_X07)

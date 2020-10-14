@@ -49,8 +49,10 @@ class AND;
 class PCM1BIT;
 class Z80;
 
-class MICOM_MAHJONG::KEYBOARD;
-class MICOM_MAHJONG::MEMORY;
+namespace MICOM_MAHJONG {
+	class KEYBOARD;
+	class MEMORY;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -71,7 +73,7 @@ public:
 	// initialize
 	// ----------------------------------------
 	
-	VM(EMU* parent_emu);
+	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
 	
 	// ----------------------------------------
