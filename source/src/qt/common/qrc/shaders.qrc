@@ -2,6 +2,8 @@
 <qresource>
 	<file alias="gl/shaders/vertex_shader.glsl">../../gui/gl/shaders/vertex_shader.glsl</file>
 	<file alias="gl/shaders/fragment_shader.glsl">../../gui/gl/shaders/fragment_shader.glsl</file>
+	<file alias="gl/shaders/distortion_fragment.frag">../../gui/gl/shaders/distortion_fragment.frag</file>
+	<file alias="gl/shaders/afterglow.frag">../../gui/gl/shaders/afterglow.frag</file>
 	<file alias="gl/shaders/ntsc_pass1.glsl">../../gui/gl/shaders/ntsc_pass1.glsl</file>
 	<file alias="gl/shaders/ntsc_pass2.glsl">../../gui/gl/shaders/ntsc_pass2.glsl</file>
     <file alias="gl/shaders/chromakey_fragment_shader.glsl">../../gui/gl/shaders/chromakey_fragment_shader.glsl</file>

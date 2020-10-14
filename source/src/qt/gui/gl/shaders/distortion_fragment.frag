@@ -1,4 +1,4 @@
-// Fragmant shader for standard screen.
+// Fragmant shader for distortion screen.
 // Oct 15, 2020 Kyuma Ohta <whatisthis.sowhat@gmail.com>
 // License: GPLv2
 //
@@ -6,6 +6,7 @@
 // a_texture: source texture (sampler2D).
 // v_texcoord: source texture coordinate (vec2(s, t)).
 // color: Color multiply value (vec4(R, G, B, A)) .
+// distortion_v: CRT Distortion factor, vec2(H, V). 
 // luminance: CRT luminance multiply factor(float).
 // lum_offset: Luminance offset (float).
 //
@@ -45,19 +46,36 @@ varying vec2 v_texcoord;
 
 uniform sampler2D a_texture;
 uniform vec4 color;
+uniform vec2 distortion_v;
 uniform mediump float luminance;
 uniform mediump float lum_offset;
 
+// Note: This distortion shading from:
+// CRT-Geom.shader/curvature.fs , https://github.com/hizzlekizzle/quark-shaders 
+vec2 radialDistortion(vec2 coord)
+{
+	vec2 cc = coord - vec2(0.5);
+	vec2 dist = dot(cc, cc) * distortion_v; // H, V
+	return coord + cc * (vec2(1.0) - dist) * dist;
+}
+
 void main ()
 {
-	vec2 dist = v_texcoord;
+	vec2 dist = radialDistortion(v_texcoord);
 	bvec4 d;
 #if (__VERSION__ >= 300)
 	vec4 pixel	= texture(a_texture, dist);
 #else
 	vec4 pixel	= texture2D(a_texture, dist);
 #endif
-	{
+	// Edge clipping is needed.
+	_CONST vec2 high = vec2(1.0, 1.0);
+	_CONST vec2 low  = vec2(0.0, 0.0);
+	d.xy = lessThan(dist, low);
+	d.zw = greaterThan(dist, high);
+	if(any(d)) {
+		pixel = vec4(0.0, 0.0, 0.0, 0.0);
+	} else {
 #if (__VERSION__ < 400)
 		pixel = vec4(pixel.rgb, 1.0) * vec4(luminance, luminance, luminance, 1.0) + vec4(lum_offset, lum_offset, lum_offset, 0.0);
 #else
