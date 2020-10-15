@@ -100,7 +100,7 @@ public:
 	uint32_t __FASTCALL read_data8(uint32_t addr);
 	bool process_state(FILEIO* state_fio, bool loading);
 #ifdef USE_MEGAROM
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	int event_register_id;
 #endif
 	
@@ -181,7 +181,7 @@ public:
 	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_data8(uint32_t addr);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

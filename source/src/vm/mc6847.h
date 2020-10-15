@@ -73,7 +73,7 @@ public:
 	void reset();
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void event_vline(int v, int clock);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	bool process_state(FILEIO* state_fio, bool loading);
 

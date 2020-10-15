@@ -74,19 +74,19 @@ public:
 	// this function may be before (or after) initialize().
 	virtual int release_sound_in_source(int bank);
 	virtual bool is_sound_in_source_exists(int bank);
-	virtual int increment_sound_in_passed_data(int bank, double passed_usec);
+	virtual int __FASTCALL increment_sound_in_passed_data(int bank, double passed_usec);
 	virtual int get_sound_in_buffers_count();
-	virtual int get_sound_in_samples(int bank);
-	virtual int get_sound_in_rate(int bank);
-	virtual int get_sound_in_channels(int bank);
+	virtual int __FASTCALL get_sound_in_samples(int bank);
+	virtual int __FASTCALL get_sound_in_rate(int bank);
+	virtual int __FASTCALL get_sound_in_channels(int bank);
 	// this function may be before (or after) initialize().
 	virtual int16_t* get_sound_in_buf_ptr(int bank);
 
 	virtual int write_sound_in_buffer(int bank, int32_t* src, int samples);
 	// Add sampled values to sample buffer;value may be -32768 to +32767.
 	// this function may be before (or after) initialize().
-	virtual int get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels);
-	virtual int get_sound_in_data(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
+	virtual int __FASTCALL get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels);
+	virtual int __FASTCALL get_sound_in_data(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
 	virtual void set_high_pass_filter_freq(int freq, double quality) { } // If freq < 0 disable HPF.
 	virtual void set_low_pass_filter_freq(int freq, double quality) { }  // If freq <= 0 disable LPF.
 	
@@ -602,10 +602,10 @@ public:
 	}
 	
 	// interrupt device to device
-	virtual void set_intr_iei(bool val) {}
+	virtual void __FASTCALL set_intr_iei(bool val) {}
 	
 	// interrupt device to cpu
-	virtual void set_intr_line(bool line, bool pending, uint32_t bit) {}
+	virtual void __FASTCALL set_intr_line(bool line, bool pending, uint32_t bit) {}
 	
 	// interrupt cpu to device
 	virtual uint32_t get_intr_ack()
@@ -625,7 +625,7 @@ public:
 		// when clock == -1, run one opecode
 		return (clock == -1 ? 1 : clock);
 	}
-	virtual void set_extra_clock(int clock) {}
+	virtual void __FASTCALL set_extra_clock(int clock) {}
 	virtual int get_extra_clock()
 	{
 		return 0;
@@ -664,7 +664,7 @@ public:
 	{
 		return (const _TCHAR *)this_device_name;
 	}
-	virtual bool address_translate(int space, int intention, uint64_t &taddress);
+	virtual bool __FASTCALL address_translate(int space, int intention, uint64_t &taddress);
    
 	// event manager
 	DEVICE* event_manager;
@@ -676,25 +676,25 @@ public:
 	virtual int get_event_manager_id();
 	virtual uint32_t get_event_clocks();
 	virtual bool is_primary_cpu(DEVICE* device);
-	virtual uint32_t get_cpu_clocks(DEVICE* device);
-	virtual void update_extra_event(int clock);
+	virtual uint32_t __FASTCALL get_cpu_clocks(DEVICE* device);
+	virtual void __FASTCALL update_extra_event(int clock);
 	virtual void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id);
 	virtual void register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id);
 	virtual void cancel_event(DEVICE* device, int register_id);
 	virtual void register_frame_event(DEVICE* device);
 	virtual void register_vline_event(DEVICE* device);
-	virtual uint32_t get_event_remaining_clock(int register_id);
-	virtual double get_event_remaining_usec(int register_id);
+	virtual uint32_t __FASTCALL get_event_remaining_clock(int register_id);
+	virtual double __FASTCALL get_event_remaining_usec(int register_id);
 	virtual uint32_t get_current_clock();
-	virtual uint32_t get_passed_clock(uint32_t prev);
-	virtual double get_passed_usec(uint32_t prev);
+	virtual uint32_t __FASTCALL get_passed_clock(uint32_t prev);
+	virtual double __FASTCALL get_passed_usec(uint32_t prev);
 	virtual uint32_t get_passed_clock_since_vline();
 	virtual double get_passed_usec_since_vline();
 	virtual int get_cur_vline();
 	virtual int get_cur_vline_clocks();
-	virtual uint32_t get_cpu_pc(int index);
+	virtual uint32_t __FASTCALL get_cpu_pc(int index);
 	virtual uint64_t get_current_clock_uint64();
-	virtual uint32_t get_cpu_clock(int index);
+	virtual uint32_t __FASTCALL get_cpu_clock(int index);
 	
 	virtual void request_skip_frames();
 	virtual void set_frames_per_sec(double frames);
@@ -718,14 +718,14 @@ public:
 	virtual void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame) {}
 	
 	// event callback
-	virtual void event_callback(int event_id, int err) {}
+	virtual void __FASTCALL event_callback(int event_id, int err) {}
 	virtual void event_pre_frame() {}	// this event is to update timing settings
 	virtual void event_frame() {}
 	virtual void event_vline(int v, int clock) {}
 	virtual void event_hsync(int v, int h, int clock) {}
 	
 	// sound
-	virtual void mix(int32_t* buffer, int cnt) {}
+	virtual void __FASTCALL mix(int32_t* buffer, int cnt) {}
 	virtual void set_volume(int ch, int decibel_l, int decibel_r) {} // +1 equals +0.5dB (same as fmgen)
 	virtual void set_device_name(const _TCHAR *format, ...);
 

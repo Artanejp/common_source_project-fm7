@@ -118,7 +118,7 @@ class  DLL_PREFIX MB61VH010: public DEVICE {
 
 	bool process_state(FILEIO *state_fio, bool loading);
 	
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void __FASTCALL write_data8(uint32_t id, uint32_t data);
 	uint32_t __FASTCALL read_data8(uint32_t addr);
 	uint32_t __FASTCALL read_signal(int id); 

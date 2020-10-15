@@ -72,8 +72,8 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void event_callback(int event_id, int err);
-	void mix(int32_t* buffer, int cnt);
+	void __FASTCALL event_callback(int event_id, int err);
+	void __FASTCALL mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	bool process_state(FILEIO* state_fio, bool loading);
 	

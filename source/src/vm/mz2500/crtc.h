@@ -41,7 +41,7 @@ private:
 	uint8_t *pcg0, *pcg1, *pcg2, *pcg3;
 	
 	// crtc
-	void set_hsync(int h);
+	void __FASTCALL set_hsync(int h);
 	uint8_t textreg_num, textreg[16];
 	uint8_t cgreg_num, cgreg[32];
 	uint8_t scrn_size, cg_mask, cg_mask256;
@@ -77,18 +77,18 @@ private:
 	void draw_text();
 	void draw_80column_screen();
 	void draw_40column_screen();
-	void draw_80column_font(uint16_t src, int dest, int y);
-	void draw_40column_font(uint16_t src, int dest, int y);
+	void __FASTCALL draw_80column_font(uint16_t src, int dest, int y);
+	void __FASTCALL draw_40column_font(uint16_t src, int dest, int y);
 	uint8_t text[640*480*2];
 	
 	// draw cg
 	void draw_cg();
-	void draw_320x200x16screen(uint8_t pl);
-	void draw_320x200x256screen(int ymax);
-	void draw_640x200x16screen(uint8_t pl);
+	void __FASTCALL draw_320x200x16screen(uint8_t pl);
+	void __FASTCALL draw_320x200x256screen(int ymax);
+	void __FASTCALL draw_640x200x16screen(uint8_t pl);
 	void draw_640x400x4screen();
 	void draw_640x400x16screen();
-	void create_addr_map(int xmax, int ymax);
+	void __FASTCALL create_addr_map(int xmax, int ymax);
 	uint8_t cg[640*400*2];
 	uint16_t map_addr[400][80];
 	uint8_t map_hdsc[400][80];
@@ -118,7 +118,7 @@ public:
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void event_vline(int v, int clock);
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);

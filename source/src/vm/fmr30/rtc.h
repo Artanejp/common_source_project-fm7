@@ -51,7 +51,7 @@ public:
 	}
 	void  __FASTCALL write_io16(uint32_t addr, uint32_t data);
 	uint32_t  __FASTCALL read_io16(uint32_t addr);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function

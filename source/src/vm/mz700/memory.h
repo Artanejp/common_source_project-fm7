@@ -72,8 +72,8 @@ private:
 	void update_map_middle();
 	void update_map_high();
 #if defined(_MZ800)
-	int vram_page_mask(uint8_t f);
-	int vram_addr(int addr);
+	int __FASTCALL vram_page_mask(uint8_t f);
+	int __FASTCALL vram_addr(int addr);
 #endif
 	
 	// crtc
@@ -93,8 +93,8 @@ private:
 #if defined(_MZ1500)
 	bool hblank_pcg;
 #endif
-	void set_vblank(bool val);
-	void set_hblank(bool val);
+	void __FASTCALL set_vblank(bool val);
+	void __FASTCALL set_hblank(bool val);
 	
 	// renderer
 #if defined(_MZ800)
@@ -106,13 +106,13 @@ private:
 	scrntype_t palette_pc[8];
 	
 #if defined(_MZ800)
-	void draw_line_320x200_2bpp(int v);
-	void draw_line_320x200_4bpp(int v);
-	void draw_line_640x200_1bpp(int v);
-	void draw_line_640x200_2bpp(int v);
-	void draw_line_mz700(int v);
+	void __FASTCALL draw_line_320x200_2bpp(int v);
+	void __FASTCALL draw_line_320x200_4bpp(int v);
+	void __FASTCALL draw_line_640x200_1bpp(int v);
+	void __FASTCALL draw_line_640x200_2bpp(int v);
+	void __FASTCALL draw_line_mz700(int v);
 #endif
-	void draw_line(int v);
+	void __FASTCALL draw_line(int v);
 	
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -128,7 +128,7 @@ public:
 	void update_config();
 #endif
 	void event_vline(int v, int clock);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_data8(uint32_t addr);
 	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait);

@@ -36,7 +36,7 @@ public:
 	virtual void reset();
 	virtual void initialize();
 	virtual void release();
-	virtual void event_callback(int event_id, int err);
+	virtual void __FASTCALL event_callback(int event_id, int err);
 	
 	virtual void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_dma_io16(uint32_t addr);

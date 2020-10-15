@@ -65,7 +65,7 @@ public:
 		d_cpu = device;
 		intr_bit = bit;
 	}
-	void set_intr_iei(bool val);
+	void __FASTCALL set_intr_iei(bool val);
 	uint32_t get_intr_ack();
 	void notify_intr_reti();
 	

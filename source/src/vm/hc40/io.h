@@ -39,7 +39,7 @@ private:
 	uint8_t vadr, yoff;
 	
 	// sub cpu
-	void send_to_7508(uint8_t val);
+	void __FASTCALL send_to_7508(uint8_t val);
 	uint8_t rec_from_7508();
 	FIFO *cmd_buf, *rsp_buf;
 	// rtc
@@ -49,7 +49,7 @@ private:
 	bool alarm_intr, alarm_intr_enb;
 	uint8_t alarm[6];
 	// keyboard
-	void update_key(int code);
+	void __FASTCALL update_key(int code);
 	FIFO *key_buf;
 	bool kb_intr_enb;
 	bool kb_rep_enb, kb_caps;
@@ -86,7 +86,7 @@ public:
 	void sysreset();
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 	uint32_t get_intr_ack();

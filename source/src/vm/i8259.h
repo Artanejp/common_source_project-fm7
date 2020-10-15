@@ -76,10 +76,10 @@ public:
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int id);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	// interrupt common functions
-	void set_intr_line(bool line, bool pending, uint32_t bit)
+	void __FASTCALL set_intr_line(bool line, bool pending, uint32_t bit)
 	{
 		// request from Z80 familly
 		write_signal(bit, line ? 1 : 0, 1);

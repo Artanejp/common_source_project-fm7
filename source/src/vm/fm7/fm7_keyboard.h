@@ -94,14 +94,14 @@ private:
 	FIFO *key_fifo;
 	int event_int;
    
-	uint16_t vk2scancode(uint32_t vk);
-	bool isModifier(uint8_t sc);
-	void set_modifiers(uint8_t sc, bool flag);
-	uint16_t scan2fmkeycode(uint8_t sc);
-	void do_repeatkey(uint8_t sc);
+	uint16_t __FASTCALL vk2scancode(uint32_t vk);
+	bool __FASTCALL isModifier(uint8_t sc);
+	void __FASTCALL set_modifiers(uint8_t sc, bool flag);
+	uint16_t __FASTCALL scan2fmkeycode(uint8_t sc);
+	void __FASTCALL do_repeatkey(uint8_t sc);
 	void reset_unchange_mode(void);
-	void key_down_main(bool repeat_auto_key);
-	void key_up_main(uint8_t bak_scancode);
+	void __FASTCALL key_down_main(bool repeat_auto_key);
+	void __FASTCALL key_up_main(uint8_t bak_scancode);
    
 #if defined(_FM77AV_VARIANTS)   
 	void set_mode(void);
@@ -144,7 +144,7 @@ private:
 	uint32_t get_scancode_by_vk(uint32_t vk);
 	uint32_t get_vk_by_scancode(uint32_t scancode);
 #endif
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int id);
 

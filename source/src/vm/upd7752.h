@@ -87,9 +87,9 @@ private:
 	void AbortVoice(void);
 	void CancelVoice(void);
 	int VoiceOn(void);
-	void VSetMode(uint8_t mode);
-	void VSetCommand(uint8_t comm);
-	void VSetData(uint8_t data);
+	void __FASTCALL VSetMode(uint8_t mode);
+	void __FASTCALL VSetCommand(uint8_t comm);
+	void __FASTCALL VSetData(uint8_t data);
 	int VGetStatus(void);
 	
 	// filter coefficients
@@ -109,7 +109,7 @@ private:
 	
 	int UPD7752_Start(int mode);
 	int GetFrameSize(void);
-	int Synth(uint8_t *param, D7752_SAMPLE *frame);
+	int __FASTCALL Synth(uint8_t *param, D7752_SAMPLE *frame);
 	
 	int volume_l, volume_r;
 	
@@ -128,7 +128,7 @@ public:
 	void reset();
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void mix(int32_t* buffer, int cnt);
+	void __FASTCALL mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	bool process_state(FILEIO* state_fio, bool loading);
 	

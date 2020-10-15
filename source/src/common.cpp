@@ -1891,7 +1891,7 @@ int DLL_PREFIX decibel_to_volume(int decibel)
 	return (int)(1024.0 * pow(10.0, decibel / 40.0) + 0.5);
 }
 
-int32_t DLL_PREFIX apply_volume(int32_t sample, int volume)
+int32_t DLL_PREFIX __FASTCALL apply_volume(int32_t sample, int volume)
 {
 //	int64_t output;
 	int32_t output;

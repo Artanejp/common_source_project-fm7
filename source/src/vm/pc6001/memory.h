@@ -145,11 +145,11 @@ private:
 	void RefreshScr61();
 	void RefreshScr62();
 	void RefreshScr63();
-	void do_palet(int dest,int src);
+	void __FASTCALL do_palet(int dest,int src);
 	void make_semigraph(void);
-	int chk_gvram(uint32_t A,int flag);
-	uint8_t gvram_read(uint32_t A);
-	void gvram_write(uint32_t A, uint32_t V);
+	int __FASTCALL chk_gvram(uint32_t A,int flag);
+	uint8_t __FASTCALL gvram_read(uint32_t A);
+	void __FASTCALL gvram_write(uint32_t A, uint32_t V);
 #endif
 #endif
 	
@@ -191,7 +191,7 @@ public:
 	void __FASTCALL write_io8w(uint32_t addr, uint32_t data, int* wait);
 	uint32_t __FASTCALL read_io8w(uint32_t addr, int* wait);
 	void event_vline(int v, int clock);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
 	

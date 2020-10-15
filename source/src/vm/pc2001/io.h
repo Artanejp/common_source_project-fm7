@@ -37,7 +37,7 @@ private:
 	uint16_t key_strobe;
 	
 	uint8_t get_key();
-	bool key_hit(int code);
+	bool __FASTCALL key_hit(int code);
 	
 public:
 	IO(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -53,7 +53,7 @@ public:
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void __FASTCALL write_io16(uint32_t addr, uint32_t data);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

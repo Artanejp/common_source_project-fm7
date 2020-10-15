@@ -59,7 +59,7 @@ public:
 	// common functions
 	virtual void initialize();
 	virtual void reset();
-	virtual void event_callback(int id, int err);
+	virtual void __FASTCALL event_callback(int id, int err);
 
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	void __FASTCALL write_io16(uint32_t addr, uint32_t data);

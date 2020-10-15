@@ -73,7 +73,7 @@ public:
 	virtual void reset();
 	virtual void initialize();
 	virtual void release();
-	virtual void event_callback(int id, int err);
+	virtual void __FASTCALL event_callback(int id, int err);
 /*
 #ifdef SCSI_HOST_WIDE
 	virtual void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data);

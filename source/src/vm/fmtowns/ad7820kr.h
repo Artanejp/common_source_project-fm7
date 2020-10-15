@@ -68,7 +68,7 @@ public:
 	void release();
 	void reset();
 
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	
 	uint32_t __FASTCALL read_signal(int ch);
 	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);

@@ -81,8 +81,8 @@ public:
 	void reset();
 	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	void event_callback(int event_id, int err);
-	void mix(int32_t* buffer, int cnt);
+	void __FASTCALL event_callback(int event_id, int err);
+	void __FASTCALL mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	bool process_state(FILEIO* state_fio, bool loading);
 	

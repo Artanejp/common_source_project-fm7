@@ -71,7 +71,7 @@ public:
 	{
 		return dout;
 	}
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	// unique functions
 	void set_context_dout(DEVICE* device, int id, uint32_t mask)

@@ -57,10 +57,10 @@ private:
 	double _HD46505_CHAR_CLOCK;
 	double _HD46505_HORIZ_FREQ;
 	
-	void set_display(bool val);
-	void set_vblank(bool val);
-	void set_vsync(bool val);
-	void set_hsync(bool val);
+	void __FASTCALL set_display(bool val);
+	void __FASTCALL set_vblank(bool val);
+	void __FASTCALL set_vsync(bool val);
+	void __FASTCALL set_hsync(bool val);
 	
 public:
 	HD46505(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -89,7 +89,7 @@ public:
 	void event_pre_frame();
 	void event_frame();
 	void event_vline(int v, int clock);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	bool process_state(FILEIO* state_fio, bool loading);
 	

@@ -95,8 +95,8 @@ public:
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	virtual uint32_t __FASTCALL read_signal(int id);
 	virtual void event_vline(int v, int clock);
-	virtual void event_callback(int event_id, int error);
-	virtual void mix(int32_t* buffer, int cnt);
+	virtual void __FASTCALL event_callback(int event_id, int error);
+	virtual void __FASTCALL mix(int32_t* buffer, int cnt);
 	virtual void set_volume(int _ch, int decibel_l, int decibel_r);
 	virtual void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	// for debugging

@@ -298,24 +298,24 @@ typedef union {
 	uint16_t w;
 	int16_t sw;
 
-	inline void read_2bytes_le_from(uint8_t *t)
+	inline void __FASTCALL read_2bytes_le_from(uint8_t *t)
 	{
 		b.l = t[0]; b.h = t[1];
 	}
-	inline void write_2bytes_le_to(uint8_t *t)
+	inline void __FASTCALL write_2bytes_le_to(uint8_t *t)
 	{
 		t[0] = b.l; t[1] = b.h;
 	}
-	inline void read_2bytes_be_from(uint8_t *t)
+	inline void __FASTCALL read_2bytes_be_from(uint8_t *t)
 	{
 		b.h = t[0]; b.l = t[1];
 	}
-	inline void write_2bytes_be_to(uint8_t *t)
+	inline void __FASTCALL write_2bytes_be_to(uint8_t *t)
 	{
 		t[0] = b.h; t[1] = b.l;
 	}
 	
-	inline void set_2bytes_be_from(uint16_t n)
+	inline void __FASTCALL set_2bytes_be_from(uint16_t n)
 	{
 		union {
 			uint16_t w;
@@ -326,7 +326,7 @@ typedef union {
 		bigv.w = n;
 		b.l = bigv.b.l; b.h = bigv.b.h;
 	}
-	inline void set_2bytes_le_from(uint16_t n)
+	inline void __FASTCALL set_2bytes_le_from(uint16_t n)
 	{
 		union {
 			uint16_t w;
@@ -337,7 +337,7 @@ typedef union {
 		littlev.w = n;
 		b.l = littlev.b.l; b.h = littlev.b.h;
 	}
-	inline uint16_t get_2bytes_be_to()
+	inline uint16_t __FASTCALL get_2bytes_be_to()
 	{
 		union {
 			uint16_t w;
@@ -348,7 +348,7 @@ typedef union {
 		bigv.b.l = b.l; bigv.b.h = b.h;
 		return bigv.w;
 	}
-	inline uint16_t get_2bytes_le_to()
+	inline uint16_t __FASTCALL get_2bytes_le_to()
 	{
 		union {
 			uint16_t w;
@@ -402,40 +402,40 @@ typedef union {
 	int32_t sd;
 	float f; // single float
   
-	inline void read_2bytes_le_from(uint8_t *t)
+	inline void __FASTCALL read_2bytes_le_from(uint8_t *t)
 	{
 		b.l = t[0]; b.h = t[1]; b.h2 = b.h3 = 0;
 	}
-	inline void write_2bytes_le_to(uint8_t *t)
+	inline void __FASTCALL write_2bytes_le_to(uint8_t *t)
 	{
 		t[0] = b.l; t[1] = b.h;
 	}
-	inline void read_2bytes_be_from(uint8_t *t)
+	inline void __FASTCALL read_2bytes_be_from(uint8_t *t)
 	{
 		b.h3 = b.h2 = 0; b.h = t[0]; b.l = t[1];
 	}
-	inline void write_2bytes_be_to(uint8_t *t)
+	inline void __FASTCALL write_2bytes_be_to(uint8_t *t)
 	{
 		t[0] = b.h; t[1] = b.l;
 	}
-	inline void read_4bytes_le_from(uint8_t *t)
+	inline void __FASTCALL read_4bytes_le_from(uint8_t *t)
 	{
 		b.l = t[0]; b.h = t[1]; b.h2 = t[2]; b.h3 = t[3];
 	}
-	inline void write_4bytes_le_to(uint8_t *t)
+	inline void __FASTCALL write_4bytes_le_to(uint8_t *t)
 	{
 		t[0] = b.l; t[1] = b.h; t[2] = b.h2; t[3] = b.h3;
 	}
-	inline void read_4bytes_be_from(uint8_t *t)
+	inline void __FASTCALL read_4bytes_be_from(uint8_t *t)
 	{
 		b.h3 = t[0]; b.h2 = t[1]; b.h = t[2]; b.l = t[3];
 	}
-	inline void write_4bytes_be_to(uint8_t *t)
+	inline void __FASTCALL write_4bytes_be_to(uint8_t *t)
 	{
 		t[0] = b.h3; t[1] = b.h2; t[2] = b.h; t[3] = b.l;
 	}
 
-	inline void set_2bytes_be_from(uint16_t n)
+	inline void __FASTCALL set_2bytes_be_from(uint16_t n)
 	{
 		union {
 			uint16_t w;
@@ -447,7 +447,7 @@ typedef union {
 		b.l = bigv.b.l; b.h = bigv.b.h;
 		b.h2 = 0; b.h3 = 0;
 	}
-	inline void set_2bytes_le_from(uint16_t n)
+	inline void __FASTCALL set_2bytes_le_from(uint16_t n)
 	{
 		union {
 			uint16_t w;
@@ -459,7 +459,7 @@ typedef union {
 		b.l = littlev.b.l; b.h = littlev.b.h;
 		b.h2 = 0; b.h3 = 0;
 	}
-	inline uint16_t get_2bytes_be_to()
+	inline uint16_t __FASTCALL get_2bytes_be_to()
 	{
 		union {
 			uint16_t w;
@@ -470,7 +470,7 @@ typedef union {
 		bigv.b.l = b.l; bigv.b.h = b.h;
 		return bigv.w;
 	}
-	inline uint16_t get_2bytes_le_to()
+	inline uint16_t __FASTCALL get_2bytes_le_to()
 	{
 		union {
 			uint16_t w;
@@ -482,7 +482,7 @@ typedef union {
 		return littlev.w;
 	}
 	
-	inline void set_4bytes_be_from(uint32_t n)
+	inline void __FASTCALL set_4bytes_be_from(uint32_t n)
 	{
 		union {
 			uint32_t dw;
@@ -493,7 +493,7 @@ typedef union {
 		bigv.dw = n;
 		b.l = bigv.b.l; b.h = bigv.b.h; b.h2 = bigv.b.h2; b.h3 = bigv.b.h3;
 	}
-	inline void set_4bytes_le_from(uint32_t n)
+	inline void __FASTCALL set_4bytes_le_from(uint32_t n)
 	{
 		union {
 			uint32_t dw;
@@ -504,7 +504,7 @@ typedef union {
 		littlev.dw = n;
 		b.l = littlev.b.l; b.h = littlev.b.h; b.h2 = littlev.b.h2; b.h3 = littlev.b.h3;
 	}
-	inline uint32_t get_4bytes_be_to()
+	inline uint32_t __FASTCALL get_4bytes_be_to()
 	{
 		union {
 			uint32_t dw;
@@ -515,7 +515,7 @@ typedef union {
 		bigv.b.l = b.l; bigv.b.h = b.h; bigv.b.h2 = b.h2; bigv.b.h3 = b.h3;
 		return bigv.dw;
 	}
-	inline uint32_t get_4bytes_le_to()
+	inline uint32_t __FASTCALL get_4bytes_le_to()
 	{
 		union {
 			uint32_t dw;
@@ -596,65 +596,65 @@ typedef union {
 	uint64_t q;
 	int64_t sq;
 	double df; // double float
-	inline void read_2bytes_le_from(uint8_t *t)
+	inline void __FASTCALL read_2bytes_le_from(uint8_t *t)
 	{
 		b.l = t[0]; b.h = t[1]; b.h2 = b.h3 = 0;
 		b.h4 = 0; b.h5 = 0; b.h6 = 0; b.h7 = 0;
 	}
-	inline void write_2bytes_le_to(uint8_t *t)
+	inline void __FASTCALL write_2bytes_le_to(uint8_t *t)
 	{
 		t[0] = b.l; t[1] = b.h;
 	}
-	inline void read_2bytes_be_from(uint8_t *t)
+	inline void __FASTCALL read_2bytes_be_from(uint8_t *t)
 	{
 		b.h3 = b.h2 = 0; b.h = t[0]; b.l = t[1];
 		b.h4 = 0; b.h5 = 0; b.h6 = 0; b.h7 = 0;
 	}
-	inline void write_2bytes_be_to(uint8_t *t)
+	inline void __FASTCALL write_2bytes_be_to(uint8_t *t)
 	{
 		t[0] = b.h; t[1] = b.l;
 	}
-	inline void read_4bytes_le_from(uint8_t *t)
+	inline void __FASTCALL read_4bytes_le_from(uint8_t *t)
 	{
 		b.l = t[0]; b.h = t[1]; b.h2 = t[2]; b.h3 = t[3];
 		b.h4 = 0; b.h5 = 0; b.h6 = 0; b.h7 = 0;
 	}
-	inline void write_4bytes_le_to(uint8_t *t)
+	inline void __FASTCALL write_4bytes_le_to(uint8_t *t)
 	{
 		t[0] = b.l; t[1] = b.h; t[2] = b.h2; t[3] = b.h3;
 	}
-	inline void read_4bytes_be_from(uint8_t *t)
+	inline void __FASTCALL read_4bytes_be_from(uint8_t *t)
 	{
 		b.h3 = t[0]; b.h2 = t[1]; b.h = t[2]; b.l = t[3];
 		b.h4 = 0; b.h5 = 0; b.h6 = 0; b.h7 = 0;
 	}
-	inline void write_4bytes_be_to(uint8_t *t)
+	inline void __FASTCALL write_4bytes_be_to(uint8_t *t)
 	{
 		t[0] = b.h3; t[1] = b.h2; t[2] = b.h; t[3] = b.l;
 	}
 	
-	inline void read_8bytes_le_from(uint8_t *t)
+	inline void __FASTCALL read_8bytes_le_from(uint8_t *t)
 	{
 		b.l = t[0];  b.h = t[1];  b.h2 = t[2]; b.h3 = t[3];
 		b.h4 = t[4]; b.h5 = t[5]; b.h6 = t[6]; b.h7 = t[7];
 	}
-	inline void write_8bytes_le_to(uint8_t *t)
+	inline void __FASTCALL write_8bytes_le_to(uint8_t *t)
 	{
 		t[0] = b.l;  t[1] = b.h;  t[2] = b.h2; t[3] = b.h3;
 		t[4] = b.h4; t[5] = b.h5; t[6] = b.h6; t[7] = b.h7;
 	}
-	inline void read_8bytes_be_from(uint8_t *t)
+	inline void __FASTCALL read_8bytes_be_from(uint8_t *t)
 	{
 		b.h7 = t[0]; b.h6 = t[1]; b.h5 = t[2]; b.h4 = t[3];
 		b.h3 = t[4]; b.h2 = t[5]; b.h = t[6];  b.l = t[7];
 	}
-	inline void write_8bytes_be_to(uint8_t *t)
+	inline void __FASTCALL write_8bytes_be_to(uint8_t *t)
 	{
 		t[0] = b.h7; t[1] = b.h6; t[2] = b.h5; t[3] = b.h4;
 		t[4] = b.h3; t[5] = b.h2; t[6] = b.h;  t[7] = b.l;
 	}
 
-	inline void set_2bytes_be_from(uint16_t n)
+	inline void __FASTCALL set_2bytes_be_from(uint16_t n)
 	{
 		union {
 			uint16_t w;
@@ -667,7 +667,7 @@ typedef union {
 		b.h2 = 0; b.h3 = 0;
 		b.h4 = 0; b.h5 = 0; b.h6 = 0; b.h7 = 0;
 	}
-	inline void set_2bytes_le_from(uint16_t n)
+	inline void __FASTCALL set_2bytes_le_from(uint16_t n)
 	{
 		union {
 			uint16_t w;
@@ -680,7 +680,7 @@ typedef union {
 		b.h2 = 0; b.h3 = 0;
 		b.h4 = 0; b.h5 = 0; b.h6 = 0; b.h7 = 0;
 	}
-	inline uint16_t get_2bytes_be_to()
+	inline uint16_t __FASTCALL get_2bytes_be_to()
 	{
 		union {
 			uint16_t w;
@@ -691,7 +691,7 @@ typedef union {
 		bigv.b.l = b.l; bigv.b.h = b.h;
 		return bigv.w;
 	}
-	inline uint16_t get_2bytes_le_to()
+	inline uint16_t __FASTCALL get_2bytes_le_to()
 	{
 		union {
 			uint16_t w;
@@ -703,7 +703,7 @@ typedef union {
 		return littlev.w;
 	}
 	
-	inline void set_4bytes_be_from(uint32_t n)
+	inline void __FASTCALL set_4bytes_be_from(uint32_t n)
 	{
 		union {
 			uint32_t dw;
@@ -715,7 +715,7 @@ typedef union {
 		b.l = bigv.b.l; b.h = bigv.b.h; b.h2 = bigv.b.h2; b.h3 = bigv.b.h3;
 		b.h4 = 0;       b.h5 = 0;       b.h6 = 0;         b.h7 = 0;
 	}
-	inline void set_4bytes_le_from(uint32_t n)
+	inline void __FASTCALL set_4bytes_le_from(uint32_t n)
 	{
 		union {
 			uint32_t dw;
@@ -727,7 +727,7 @@ typedef union {
 		b.l = littlev.b.l; b.h = littlev.b.h; b.h2 = littlev.b.h2; b.h3 = littlev.b.h3;
 		b.h4 = 0;          b.h5 = 0;          b.h6 = 0;            b.h7 = 0;
 	}
-	inline uint32_t get_4bytes_be_to()
+	inline uint32_t __FASTCALL  get_4bytes_be_to()
 	{
 		union {
 			uint32_t dw;
@@ -738,7 +738,7 @@ typedef union {
 		bigv.b.l = b.l; bigv.b.h = b.h; bigv.b.h2 = b.h2; bigv.b.h3 = b.h3;
 		return bigv.dw;
 	}
-	inline uint32_t get_4bytes_le_to()
+	inline uint32_t __FASTCALL get_4bytes_le_to()
 	{
 		union {
 			uint32_t dw;
@@ -750,7 +750,7 @@ typedef union {
 		return littlev.dw;
 	}
 
-	inline void set_8bytes_be_from(uint64_t n)
+	inline void __FASTCALL set_8bytes_be_from(uint64_t n)
 	{
 		union {
 			uint64_t qw;
@@ -762,7 +762,7 @@ typedef union {
 		b.l = bigv.b.l;   b.h = bigv.b.h;   b.h2 = bigv.b.h2; b.h3 = bigv.b.h3;
 		b.h4 = bigv.b.h4; b.h5 = bigv.b.h5; b.h6 = bigv.b.h6; b.h7 = bigv.b.h7;
 	}
-	inline void set_8bytes_le_from(uint64_t n)
+	inline void __FASTCALL set_8bytes_le_from(uint64_t n)
 	{
 		union {
 			uint64_t qw;
@@ -774,7 +774,7 @@ typedef union {
 		b.l = littlev.b.l;   b.h = littlev.b.h;   b.h2 = littlev.b.h2; b.h3 = littlev.b.h3;
 		b.h4 = littlev.b.h4; b.h5 = littlev.b.h5; b.h6 = littlev.b.h6; b.h7 = littlev.b.h7;
 	}
-	inline uint64_t get_8bytes_be_to()
+	inline uint64_t __FASTCALL get_8bytes_be_to()
 	{
 		union {
 			uint64_t qw;
@@ -786,7 +786,7 @@ typedef union {
 		bigv.b.h4 = b.h4; bigv.b.h5 = b.h5; bigv.b.h6 = b.h6; bigv.b.h7 = b.h7;
 		return bigv.qw;
 	}
-	inline uint64_t get_8bytes_le_to()
+	inline uint64_t __FASTCALL get_8bytes_le_to()
 	{
 		union {
 			uint64_t qw;
@@ -987,7 +987,7 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 	#define _RGB888
 #endif
 
-inline uint16_t swap_endian_u16(uint16_t n)
+inline uint16_t __FASTCALL swap_endian_u16(uint16_t n)
 {
 	pair16_t r1, r2;
 	r1.w = n;
@@ -1006,7 +1006,7 @@ inline uint16_t swap_endian_u16(uint16_t n)
 	uint8_t DLL_PREFIX B_OF_COLOR(scrntype_t c);
 	uint8_t DLL_PREFIX A_OF_COLOR(scrntype_t c);
 	#if defined(_RGB565)
-inline scrntype_t rgb555le_to_scrntype_t(uint16_t n)
+inline scrntype_t __FASTCALL rgb555le_to_scrntype_t(uint16_t n)
 {
 	#if !defined(__LITTLE_ENDIAN__)
 	n = swap_endian_u16(n);
@@ -1019,7 +1019,7 @@ inline scrntype_t rgb555le_to_scrntype_t(uint16_t n)
 	return r;
 }
 	#else // RGB555
-inline scrntype_t rgb555le_to_scrntype_t(uint16_t n)
+inline scrntype_t __FASTCALL rgb555le_to_scrntype_t(uint16_t n)
 {
 	#if !defined(__LITTLE_ENDIAN__)
 	n = swap_endian_u16(n);
@@ -1028,7 +1028,7 @@ inline scrntype_t rgb555le_to_scrntype_t(uint16_t n)
 }
 	#endif
 
-inline scrntype_t msb_to_mask_u16le(uint16_t n)
+inline scrntype_t __FASTCALL msb_to_mask_u16le(uint16_t n)
 {
 	// bit15: '0' = NOT TRANSPARENT
 	//        '1' = TRANSPARENT
@@ -1039,7 +1039,7 @@ inline scrntype_t msb_to_mask_u16le(uint16_t n)
 	return _n;
 }
 
-inline scrntype_t msb_to_alpha_mask_u16le(uint16_t n)
+inline scrntype_t __FASTCALL msb_to_alpha_mask_u16le(uint16_t n)
 {
 	// bit15: '0' = NOT TRANSPARENT
 	//        '1' = TRANSPARENT
@@ -1085,7 +1085,7 @@ inline scrntype_t msb_to_alpha_mask_u16le(uint16_t n)
 	#define __DECL_ALIGNED(foo)
 #endif
 
-inline scrntype_t rgb555le_to_scrntype_t(uint16_t n)
+inline scrntype_t __FASTCALL rgb555le_to_scrntype_t(uint16_t n)
 {
 	scrntype_t r, g, b;
 	#if defined(__LITTLE_ENDIAN__)
@@ -1103,7 +1103,7 @@ inline scrntype_t rgb555le_to_scrntype_t(uint16_t n)
 	#endif
 }
 
-inline scrntype_t msb_to_mask_u16le(uint16_t n)
+inline scrntype_t __FASTCALL msb_to_mask_u16le(uint16_t n)
 {
 	// bit15: '0' = NOT TRANSPARENT
 	//        '1' = TRANSPARENT
@@ -1116,7 +1116,7 @@ inline scrntype_t msb_to_mask_u16le(uint16_t n)
 	return _n;
 }
 
-inline scrntype_t msb_to_alpha_mask_u16le(uint16_t n)
+inline scrntype_t __FASTCALL msb_to_alpha_mask_u16le(uint16_t n)
 {
 	// bit15: '0' = NOT TRANSPARENT
 	//        '1' = TRANSPARENT
@@ -1388,7 +1388,7 @@ void DLL_PREFIX Convert8ColorsToByte_Line(_render_command_data_t *src, uint8_t *
 void DLL_PREFIX Convert2NColorsToByte_Line(_render_command_data_t *src, uint8_t *dst, int planes);
 void DLL_PREFIX Convert2NColorsToByte_LineZoom2(_render_command_data_t *src, uint8_t *dst, int planes);
 
-inline uint64_t ExchangeEndianU64(uint64_t __in)
+inline uint64_t __FASTCALL ExchangeEndianU64(uint64_t __in)
 {
 	pair64_t __i, __o;
 	__i.q = __in;
@@ -1403,7 +1403,7 @@ inline uint64_t ExchangeEndianU64(uint64_t __in)
 	return __o.q;
 }
 
-inline int64_t ExchangeEndianS64(uint64_t __in)
+inline int64_t __FASTCALL ExchangeEndianS64(uint64_t __in)
 {
 	pair64_t __i, __o;
 	__i.q = __in;
@@ -1417,7 +1417,7 @@ inline int64_t ExchangeEndianS64(uint64_t __in)
 	__o.b.l   = __i.b.h7;
 	return __o.sq;
 }
-inline uint32_t ExchangeEndianU32(uint32_t __in)
+inline uint32_t __FASTCALL ExchangeEndianU32(uint32_t __in)
 {
 	pair32_t __i, __o;
 	__i.d = __in;
@@ -1428,7 +1428,7 @@ inline uint32_t ExchangeEndianU32(uint32_t __in)
 	return __o.d;
 }
 
-inline int32_t ExchangeEndianS32(uint32_t __in)
+inline int32_t __FASTCALL ExchangeEndianS32(uint32_t __in)
 {
 	pair32_t __i, __o;
 	__i.d = __in;
@@ -1439,7 +1439,7 @@ inline int32_t ExchangeEndianS32(uint32_t __in)
 	return __o.sd;
 }
 
-inline uint16_t ExchangeEndianU16(uint16_t __in)
+inline uint16_t __FASTCALL ExchangeEndianU16(uint16_t __in)
 {
 	pair16_t __i, __o;
 	__i.u16 = __in;
@@ -1448,7 +1448,7 @@ inline uint16_t ExchangeEndianU16(uint16_t __in)
 	return __o.u16;
 }
 
-inline int16_t ExchangeEndianS16(uint16_t __in)
+inline int16_t __FASTCALL ExchangeEndianS16(uint16_t __in)
 {
 	pair16_t __i, __o;
 	__i.u16 = __in;
@@ -1547,7 +1547,7 @@ uint32_t DLL_PREFIX calc_crc32(uint32_t seed, uint8_t data[], int size);
 uint16_t DLL_PREFIX jis_to_sjis(uint16_t jis);
 
 int DLL_PREFIX decibel_to_volume(int decibel);
-int32_t DLL_PREFIX apply_volume(int32_t sample, int volume);
+int32_t DLL_PREFIX __FASTCALL apply_volume(int32_t sample, int volume);
 
 // High pass filter and Low pass filter.
 void DLL_PREFIX calc_high_pass_filter(int32_t* dst, int32_t* src, int sample_freq, int hpf_freq, int samples, double quality = 1.0, bool is_add = true);

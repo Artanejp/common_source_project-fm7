@@ -109,10 +109,10 @@ private:
 	void cmd_read_write();
 	void cmd_write_id();
 	void cmd_sence();
-	void update_head_flag(int drv, bool head_load);
+	void __FASTCALL update_head_flag(int drv, bool head_load);
 	
 	// rqm
-	void set_rqm(bool val);
+	void __FASTCALL set_rqm(bool val);
 
 public:
 	T3444A(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -140,7 +140,7 @@ public:
 	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int ch);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
 	

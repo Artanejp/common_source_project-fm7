@@ -117,22 +117,22 @@ private:
 	void process_cmd(int cmd);
 	void cmd_sence_devstat();
 	void cmd_sence_intstat();
-	uint8_t get_devstat(int drv);
+	uint8_t __FASTCALL get_devstat(int drv);
 	void cmd_seek();
 	void cmd_recalib();
-	void seek(int drv, int trk);
-	void seek_event(int drv);
+	void __FASTCALL seek(int drv, int trk);
+	void __FASTCALL seek_event(int drv);
 	void cmd_read_data();
 	void cmd_write_data();
 	void cmd_scan();
 	void cmd_read_diagnostic();
-	void read_data(bool deleted, bool scan);
-	void write_data(bool deleted);
+	void __FASTCALL read_data(bool deleted, bool scan);
+	void __FASTCALL write_data(bool deleted);
 	void read_diagnostic();
 	uint32_t read_sector();
-	uint32_t write_sector(bool deleted);
+	uint32_t __FASTCALL write_sector(bool deleted);
 	uint32_t find_id();
-	uint32_t check_cond(bool write);
+	uint32_t __FASTCALL check_cond(bool write);
 	void get_sector_params();
 	bool id_incr();
 	void cmd_read_id();
@@ -141,7 +141,7 @@ private:
 	uint32_t write_id();
 	void cmd_specify();
 	void cmd_invalid();
-	void update_head_flag(int drv, bool head_load);
+	void __FASTCALL update_head_flag(int drv, bool head_load);
 
 	void process_state_fdc(int ch, FILEIO* state_fio, bool loading);
 public:
@@ -176,7 +176,7 @@ public:
 	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int ch);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void update_config();
 	//#ifdef USE_DEBUGGER
 	bool is_debugger_available()

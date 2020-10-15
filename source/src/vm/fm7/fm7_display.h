@@ -427,7 +427,7 @@ protected:
 public:
 	DISPLAY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~DISPLAY();
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int id);
 	

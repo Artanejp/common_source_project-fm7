@@ -54,18 +54,18 @@ protected:
 
 	bool read_mode;
 	
-	void set_cdda_status(uint8_t status);
+	void __FASTCALL set_cdda_status(uint8_t status);
 	int get_track(uint32_t lba);
-	double get_seek_time(uint32_t lba);
+	double __FASTCALL get_seek_time(uint32_t lba);
 	
 	int volume_m;
 	int volume_l, volume_r;
 
 	bool open_cue_file(const _TCHAR *file_path);
-	void get_track_by_track_num(int track);
-	int get_track_noop(uint32_t lba);
-	uint32_t lba_to_msf(uint32_t lba);
-	uint32_t lba_to_msf_alt(uint32_t lba);
+	void __FASTCALL get_track_by_track_num(int track);
+	int __FASTCALL get_track_noop(uint32_t lba);
+	uint32_t __FASTCALL lba_to_msf(uint32_t lba);
+	uint32_t __FASTCALL lba_to_msf_alt(uint32_t lba);
 	bool __CDROM_DEBUG_LOG;
 public:
 	SCSI_CDROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : SCSI_DEV(parent_vm, parent_emu) 
@@ -97,8 +97,8 @@ public:
 	virtual void reset();
 	virtual uint32_t __FASTCALL read_signal(int id);
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	virtual void event_callback(int event_id, int err);
-	virtual void mix(int32_t* buffer, int cnt);
+	virtual void __FASTCALL event_callback(int event_id, int err);
+	virtual void __FASTCALL mix(int32_t* buffer, int cnt);
 	virtual void set_volume(int ch, int decibel_l, int decibel_r);
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 	virtual void out_debug_log(const _TCHAR *format, ...);

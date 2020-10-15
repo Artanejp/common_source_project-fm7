@@ -397,7 +397,7 @@ public:
 	uint32_t __FASTCALL read_signal(int ch);
 	
 	//void event_frame();
-	virtual void set_intr_line(bool line, bool pending, uint32_t bit);
+	virtual void __FASTCALL set_intr_line(bool line, bool pending, uint32_t bit);
 	
 	bool process_state(FILEIO* state_fio, bool loading);
 	

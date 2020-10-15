@@ -92,11 +92,11 @@ protected:
 	bool __FASTCALL do_dma(uint8_t data);
 	void do_cmd(uint8_t cmd);
 	void do_play();
-	void do_pause(bool pause);
-	void do_stop(bool do_notify);
+	void __FASTCALL do_pause(bool pause);
+	void __FASTCALL do_stop(bool do_notify);
 	void update_length();
-	void set_ack(int clocks);
-	void clear_ack(int clocks);
+	void __FASTCALL set_ack(int clocks);
+	void __FASTCALL clear_ack(int clocks);
 	void set_dma_status(bool flag);
 	void fade_in(int usec);
 	void fade_out(int usec);
@@ -114,8 +114,8 @@ public:
 	uint32_t __FASTCALL read_signal(int ch);
 	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
 	
-	void event_callback(int id, int err);
-	void mix(int32_t* buffer, int cnt);
+	void __FASTCALL event_callback(int id, int err);
+	void __FASTCALL mix(int32_t* buffer, int cnt);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	void set_context_msm(MSM5205* dev)

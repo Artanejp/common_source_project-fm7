@@ -53,10 +53,10 @@ private:
 	int tmp_datap;
 	void update_intr();
 	void process_cmd();
-	void set_ibf(bool val);
-	void set_obf(bool val);
+	void __FASTCALL set_ibf(bool val);
+	void __FASTCALL set_obf(bool val);
 	uint8_t get_key_low();
-	uint16_t get_key(int code, bool repeat);
+	uint16_t __FASTCALL get_key(int code, bool repeat);
 	
 public:
 	PSUB(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -72,7 +72,7 @@ public:
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// interrupt common functions
@@ -81,7 +81,7 @@ public:
 		d_cpu = device;
 		intr_bit = bit;
 	}
-	void set_intr_iei(bool val);
+	void __FASTCALL set_intr_iei(bool val);
 	uint32_t get_intr_ack();
 	void notify_intr_reti();
 	

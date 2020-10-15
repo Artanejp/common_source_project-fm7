@@ -101,7 +101,7 @@ protected:
 		set_device_name(_T("HD6844 DMAC"));
 	}
 	~HD6844(){}
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void __FASTCALL write_data8(uint32_t id, uint32_t data);
 	uint32_t __FASTCALL read_data8(uint32_t addr);
 	

@@ -58,7 +58,7 @@ public:
 	void reset();
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
-	void mix(int32_t* buffer, int cnt);
+	void __FASTCALL mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void set_high_pass_filter_freq(int freq, double quality = 1.0);
 	void set_low_pass_filter_freq(int freq, double quality = 1.0);

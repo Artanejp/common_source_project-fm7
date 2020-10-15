@@ -144,8 +144,8 @@ public:
 		return in_signal ? 1 : 0;
 	}
 	void event_frame();
-	void event_callback(int event_id, int err);
-	void mix(int32_t* buffer, int cnt);
+	void __FASTCALL event_callback(int event_id, int err);
+	void __FASTCALL mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);

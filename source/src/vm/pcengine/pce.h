@@ -246,9 +246,9 @@ public:
 #ifdef SUPPORT_CDROM
 	uint32_t __FASTCALL read_signal(int id);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 #endif
-	void mix(int32_t* buffer, int cnt);
+	void __FASTCALL mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	bool process_state(FILEIO* state_fio, bool loading);
 	

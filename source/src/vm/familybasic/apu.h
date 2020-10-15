@@ -174,7 +174,7 @@ public:
 	uint32_t __FASTCALL read_data8(uint32_t addr);
 	void event_frame();
 	void event_vline(int v, int clock);
-	void mix(int32_t* buffer, int cnt);
+	void __FASTCALL mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	bool process_state(FILEIO* state_fio, bool loading);
 	

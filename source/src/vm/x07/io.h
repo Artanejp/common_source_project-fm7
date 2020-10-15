@@ -102,7 +102,7 @@ public:
 	void reset();
 	void event_frame();
 	void event_vline(int v, int clock);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 	bool process_state(FILEIO* state_fio, bool loading);

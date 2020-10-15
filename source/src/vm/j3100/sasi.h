@@ -69,7 +69,7 @@ public:
 	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
 	uint32_t __FASTCALL read_signal(int ch);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	
 	// unique function
 	void set_context_pic(DEVICE* device)

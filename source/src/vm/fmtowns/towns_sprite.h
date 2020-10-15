@@ -133,7 +133,7 @@ public:
 	void initialize();
 	void event_pre_frame();
 	void event_vline(int v, int clk);
-	void event_callback(int id, int err);
+	void __FASTCALL event_callback(int id, int err);
 
 	bool process_state(FILEIO* state_fio, bool loading);
 	

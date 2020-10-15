@@ -90,8 +90,8 @@ private:
 	void update_sound();
 	void update_keyboard();
 	void update_intr();
-	void send_to_slave(uint8_t val);
-	void send_to_main(uint8_t val);
+	void __FASTCALL send_to_slave(uint8_t val);
+	void __FASTCALL send_to_main(uint8_t val);
 	
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -107,7 +107,7 @@ public:
 	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_data8(uint32_t addr);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

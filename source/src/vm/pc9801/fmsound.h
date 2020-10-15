@@ -77,8 +77,8 @@ public:
 	void reset();
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void mix(int32_t* buffer, int cnt);
-	void event_callback(int id, int err);
+	void __FASTCALL mix(int32_t* buffer, int cnt);
+	void __FASTCALL event_callback(int id, int err);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void initialize_sound(int rate, int samples);
 #if defined(SUPPORT_PC98_OPNA)

@@ -111,8 +111,8 @@ private:
 	bool dev_need_mix[MAX_DEVICE];
 	int need_mix;
 	
-	void mix_sound(int samples);
-	void* get_event(int index);
+	void __FASTCALL mix_sound(int samples);
+	void* __FASTCALL get_event(int index);
 
 #ifdef _DEBUG_LOG
 	bool initialize_done;
@@ -166,7 +166,7 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
 	
@@ -183,7 +183,7 @@ public:
 	{
 		return (d_cpu[0].device == device);
 	}
-	uint32_t get_cpu_clocks(DEVICE* device)
+	uint32_t __FASTCALL get_cpu_clocks(DEVICE* device)
 	{
 		for(int index = 0; index < dcount_cpu; index++) {
 			if(d_cpu[index].device == device) {
@@ -206,17 +206,17 @@ public:
 	{
 		return next_lines_per_frame;
 	}
-	void update_extra_event(int clock);
+	void __FASTCALL update_extra_event(int clock);
 	void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id);
 	void register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id);
 	void cancel_event(DEVICE* device, int register_id);
 	void register_frame_event(DEVICE* device);
 	void register_vline_event(DEVICE* device);
-	uint32_t get_event_remaining_clock(int register_id);
-	double get_event_remaining_usec(int register_id);
+	uint32_t __FASTCALL get_event_remaining_clock(int register_id);
+	double __FASTCALL get_event_remaining_usec(int register_id);
 	uint32_t get_current_clock();
-	uint32_t get_passed_clock(uint32_t prev);
-	double get_passed_usec(uint32_t prev);
+	uint32_t __FASTCALL get_passed_clock(uint32_t prev);
+	double __FASTCALL get_passed_usec(uint32_t prev);
 	uint32_t get_passed_clock_since_vline();
 	double get_passed_usec_since_vline();
 	int get_cur_vline()
@@ -227,13 +227,13 @@ public:
 	{
 		return vline_clocks[cur_vline];
 	}
-	uint32_t get_cpu_pc(int index);
+	uint32_t __FASTCALL get_cpu_pc(int index);
 	void request_skip_frames();
 	void touch_sound();
 	void set_realtime_render(DEVICE* device, bool flag);
 	uint64_t get_current_clock_uint64();
 	double get_current_usec();
-	uint32_t get_cpu_clock(int index);
+	uint32_t __FASTCALL get_cpu_clock(int index);
 	// unique functions
 	double get_frame_rate()
 	{
@@ -242,7 +242,7 @@ public:
 	void drive();
 	
 	void initialize_sound(int rate, int samples);
-	uint16_t* create_sound(int* extra_frames);
+	uint16_t* __FASTCALL create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 	// Sound input functions
 	void clear_sound_in_source(int bank);
@@ -252,14 +252,14 @@ public:
 	bool is_sound_in_source_exists(int bank);
 	int increment_sound_in_passed_data(int bank, double passed_usec);
 	int get_sound_in_buffers_count();
-	int get_sound_in_samples(int bank);
-	int get_sound_in_rate(int bank);
-	int get_sound_in_channels(int bank);
+	int __FASTCALL get_sound_in_samples(int bank);
+	int __FASTCALL get_sound_in_rate(int bank);
+	int __FASTCALL get_sound_in_channels(int bank);
 	int16_t* get_sound_in_buf_ptr(int bank);
 	int write_sound_in_buffer(int bank, int32_t* src, int samples);
 	// Add sampled values to sample buffer;value may be -32768 to +32767.
-	int get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels);
-	int get_sound_in_data(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
+	int __FASTCALL get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels);
+	int __FASTCALL get_sound_in_data(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
 	int rechannel_sound_in_data(int32_t*dst, int16_t* src, int dst_channels, int src_channels, int samples);
 	
 	int set_context_cpu(DEVICE* device, uint32_t clocks = CPU_CLOCKS)

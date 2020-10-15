@@ -38,7 +38,7 @@ private:
 	uint8_t vadr, yoff;
 	
 	// 7508
-	void send_to_7508(uint8_t val);
+	void __FASTCALL send_to_7508(uint8_t val);
 	uint8_t rec_from_7508();
 	FIFO *cmd7508_buf, *rsp7508_buf;
 	// rtc
@@ -48,7 +48,7 @@ private:
 	bool alarm_intr, alarm_intr_enb;
 	uint8_t alarm[6];
 	// keyboard
-	void update_key(int code);
+	void __FASTCALL update_key(int code);
 	FIFO *key_buf;
 	bool kb_intr_enb;
 	bool kb_rep_enb, kb_caps;
@@ -60,9 +60,9 @@ private:
 	
 	// 6303
 	void process_6303();
-	uint8_t get_point(int x, int y);
-	void draw_point(int x, int y, uint16_t dot);
-	void draw_line(int sx, int sy, int ex, int ey, uint16_t ope, uint8_t mode);
+	uint8_t __FASTCALL get_point(int x, int y);
+	void __FASTCALL draw_point(int x, int y, uint16_t dot);
+	void __FASTCALL draw_line(int sx, int sy, int ex, int ey, uint16_t ope, uint8_t mode);
 	uint8_t cmd6303, psr;
 	FIFO *cmd6303_buf, *rsp6303_buf;
 	uint8_t ram[0x10000];
@@ -126,7 +126,7 @@ public:
 	void sysreset();
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 	uint32_t get_intr_ack();

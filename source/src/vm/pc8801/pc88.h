@@ -112,9 +112,9 @@ typedef struct {
 	
 	void  __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t  __FASTCALL read_io8(uint32_t addr);
-	void start(int c);
+	void __FASTCALL start(int c);
 	void __FASTCALL run(int c, int nbytes);
-	void finish(int c);
+	void __FASTCALL finish(int c);
 } pc88_dmac_t;
 
 class PC88 : public DEVICE
@@ -305,7 +305,7 @@ private:
 	bool intr_req_opn2;
 #endif
 	uint8_t intr_mask1, intr_mask2;
-	void request_intr(int level, bool status);
+	void __FASTCALL request_intr(int level, bool status);
 	void update_intr();
 	
 	// data recorder
@@ -391,7 +391,7 @@ public:
 	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
 	
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void event_frame();
 	void event_vline(int v, int clock);
 	uint32_t get_intr_ack();

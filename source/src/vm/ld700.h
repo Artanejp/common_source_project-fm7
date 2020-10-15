@@ -77,8 +77,8 @@ public:
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int id);
 	void event_frame();
-	void event_callback(int event_id, int err);
-	void mix(int32_t* buffer, int cnt);
+	void __FASTCALL event_callback(int event_id, int err);
+	void __FASTCALL mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	
 	// unique functions

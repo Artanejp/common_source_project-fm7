@@ -47,7 +47,7 @@ public:
 #ifdef _X1TURBO_FEATURE
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 #endif
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

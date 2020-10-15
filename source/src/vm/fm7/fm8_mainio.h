@@ -55,7 +55,7 @@ public:
 	uint32_t __FASTCALL read_data8(uint32_t addr);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void reset() override;
 	void initialize();
 	void update_config();

@@ -102,12 +102,12 @@ private:
 	scrntype_t palette_line_graph_pc[200][16];
 #endif
 	
-	void draw_text_80x25(int v);
-	void draw_text_40x25(int v);
-	void draw_graph_640x400(int v);
-	void draw_graph_640x200(int v);
-	void draw_graph_320x200(int v);
-	void draw_graph_160x100(int v);
+	void __FASTCALL draw_text_80x25(int v);
+	void __FASTCALL draw_text_40x25(int v);
+	void __FASTCALL draw_graph_640x400(int v);
+	void __FASTCALL draw_graph_640x200(int v);
+	void __FASTCALL draw_graph_320x200(int v);
+	void __FASTCALL draw_graph_160x100(int v);
 	
 	// kanji rom
 	uint8_t kanji[0x23400];
@@ -145,7 +145,7 @@ public:
 	uint32_t __FASTCALL read_io8_debug(uint32_t addr);
 #endif
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void event_frame();
 	void event_vline(int v, int clock);
 	bool process_state(FILEIO* state_fio, bool loading);

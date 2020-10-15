@@ -91,7 +91,7 @@ private:
 	uint8_t pcg_addr;
 	uint8_t pcg_ctrl;
 	
-	void draw_line(int v);
+	void __FASTCALL draw_line(int v);
 	
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -104,7 +104,7 @@ public:
 	void initialize();
 	void reset();
 	void event_vline(int v, int clock);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_data8(uint32_t addr);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);

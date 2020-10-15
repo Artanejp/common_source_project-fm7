@@ -67,7 +67,7 @@ public:
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void event_frame();
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	uint32_t get_intr_ack();
 	bool process_state(FILEIO* state_fio, bool loading);
 	

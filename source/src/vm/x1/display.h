@@ -129,9 +129,9 @@ private:
 	void __FASTCALL get_cur_pcg(uint32_t addr);
 	void __FASTCALL get_cur_code_line();
 	
-	void draw_line(int v);
-	void draw_text(int y);
-	void draw_cg(int line, int plane);
+	void __FASTCALL draw_line(int v);
+	void __FASTCALL draw_text(int y);
+	void __FASTCALL draw_cg(int line, int plane);
 	
 #ifdef _X1TURBOZ
 	int __FASTCALL get_zpal_num(uint32_t addr, uint32_t data);
@@ -172,7 +172,7 @@ public:
 	void event_frame();
 	void event_vline(int v, int clock);
 #ifdef _X1TURBO_FEATURE
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 #endif
 	bool process_state(FILEIO* state_fio, bool loading);
 	

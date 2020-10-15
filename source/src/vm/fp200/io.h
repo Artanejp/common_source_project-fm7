@@ -148,7 +148,7 @@ private:
 	_TCHAR cmt_rec_file_path[_MAX_PATH];
 	int cmt_bufcnt;
 	uint8_t cmt_buffer[0x10000];
-	void cmt_write_buffer(uint8_t value, int samples);
+	void __FASTCALL cmt_write_buffer(uint8_t value, int samples);
 	
 	// from FP-1100
 	uint8_t cmt_clock;
@@ -179,7 +179,7 @@ public:
 	void __FASTCALL write_io8w(uint32_t addr, uint32_t data, int* wait);
 	uint32_t __FASTCALL read_io8w(uint32_t addr, int* wait);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions

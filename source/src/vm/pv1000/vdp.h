@@ -32,8 +32,8 @@ private:
 	int tmp_pcg_size;
 	int tmp_pattern_size;
 	
-	void draw_pattern(int x8, int y8, uint16_t top);
-	void draw_pcg(int x8, int y8, uint16_t top);
+	void __FASTCALL draw_pattern(int x8, int y8, uint16_t top);
+	void __FASTCALL draw_pcg(int x8, int y8, uint16_t top);
 	
 public:
 	VDP(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -46,7 +46,7 @@ public:
 	void initialize();
 	void reset();
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	void event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err);
 	void event_vline(int v, int clock);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
