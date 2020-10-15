@@ -66,13 +66,13 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32_t addr, uint32_t data);
-	uint32_t read_data8(uint32_t addr);
-	uint32_t fetch_op(uint32_t addr, int* wait);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_data8(uint32_t addr);
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int* wait);
 	bool process_state(FILEIO* state_fio, bool loading);
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_io8(uint32_t addr);
-	void write_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	// unique functions
 	void open_cart(const _TCHAR *file_path);
 	void close_cart();
