@@ -513,13 +513,13 @@ void EmuThreadClass::do_close_disk(int drv)
 void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 {
 #ifdef USE_FLOPPY_DISK
-	QByteArray localPath = path.toLocal8Bit();
 
 	if(fd_open_wait_count[drv] > 0) {
-		fd_reserved_path[drv] = localPath;
+		fd_reserved_path[drv] = path.toUtf8();
 		fd_reserved_bank[drv] = bank;
 		return;
 	}
+	QByteArray localPath = path.toLocal8Bit();
 	bool multiple_disk = false;
 	bool past_update = false;
 	p_emu->d88_file[drv].bank_num = 0;
