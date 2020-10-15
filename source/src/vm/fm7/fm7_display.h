@@ -56,10 +56,10 @@ private:
 	uint32_t yoff_d1, yoff_d2;
 	uint32_t yoff_d;
 protected:
-	uint32_t (__FASTCALL DISPLAY::*read_cpu_func_table[512])(uint32_t);
-	uint32_t (__FASTCALL DISPLAY::*read_dma_func_table[512])(uint32_t);
-	void (__FASTCALL DISPLAY::*write_cpu_func_table[512])(uint32_t, uint8_t);
-	void (__FASTCALL DISPLAY::*write_dma_func_table[512])(uint32_t, uint8_t);
+	__DECL_ALIGNED(32) uint32_t (__FASTCALL DISPLAY::*read_cpu_func_table[512])(uint32_t);
+	__DECL_ALIGNED(32) uint32_t (__FASTCALL DISPLAY::*read_dma_func_table[512])(uint32_t);
+	__DECL_ALIGNED(32) void (__FASTCALL DISPLAY::*write_cpu_func_table[512])(uint32_t, uint8_t);
+	__DECL_ALIGNED(32) void (__FASTCALL DISPLAY::*write_dma_func_table[512])(uint32_t, uint8_t);
 	
 	bool delay_busy;
 	bool screen_update_flag;
@@ -69,14 +69,14 @@ protected:
 	void halt_subcpu();
 	void setup_display_mode(void);
    
-	void do_nmi(bool);
-	void do_irq(bool);
-	void do_firq(bool);
-	void set_multimode(uint8_t val);
+	void __FASTCALL do_nmi(bool);
+	void __FASTCALL do_irq(bool);
+	void __FASTCALL do_firq(bool);
+	void __FASTCALL set_multimode(uint8_t val);
 	uint8_t get_multimode(void);
 	uint8_t get_cpuaccessmask(void);
-	void set_dpalette(uint32_t addr, uint8_t val);
-	uint8_t get_dpalette(uint32_t addr);
+	void __FASTCALL set_dpalette(uint32_t addr, uint8_t val);
+	uint8_t __FASTCALL get_dpalette(uint32_t addr);
 	void enter_display(void);
 	void leave_display(void);
 	void halt_subsystem(void);
@@ -86,7 +86,7 @@ protected:
 	uint8_t acknowledge_irq(void);
 	uint8_t beep(void);
 	uint8_t attention_irq(void);
-	void set_cyclesteal(uint8_t val);
+	void __FASTCALL set_cyclesteal(uint8_t val);
 	uint8_t set_vramaccess(void);
 	void reset_vramaccess(void);
 	uint8_t reset_subbusy(void);
@@ -96,27 +96,27 @@ protected:
 	void setup_400linemode(uint8_t val);
    
 #if defined(_FM77AV_VARIANTS)
-	void alu_write_cmdreg(uint32_t val);
-	void alu_write_logical_color(uint8_t val);
-	void alu_write_mask_reg(uint8_t val);
-	void alu_write_cmpdata_reg(int addr, uint8_t val);
-	void alu_write_disable_reg(uint8_t val);
-	void alu_write_tilepaint_data(uint32_t addr, uint8_t val);
-	void alu_write_offsetreg_hi(uint8_t val);
-	void alu_write_offsetreg_lo(uint8_t val);
-	void alu_write_linepattern_hi(uint8_t val);
-	void alu_write_linepattern_lo(uint8_t val);
-	void alu_write_line_position(int addr, uint8_t val);
+	void __FASTCALL alu_write_cmdreg(uint32_t val);
+	void __FASTCALL alu_write_logical_color(uint8_t val);
+	void __FASTCALL alu_write_mask_reg(uint8_t val);
+	void __FASTCALL alu_write_cmpdata_reg(int addr, uint8_t val);
+	void __FASTCALL alu_write_disable_reg(uint8_t val);
+	void __FASTCALL alu_write_tilepaint_data(uint32_t addr, uint8_t val);
+	void __FASTCALL alu_write_offsetreg_hi(uint8_t val);
+	void __FASTCALL alu_write_offsetreg_lo(uint8_t val);
+	void __FASTCALL alu_write_linepattern_hi(uint8_t val);
+	void __FASTCALL alu_write_linepattern_lo(uint8_t val);
+	void __FASTCALL alu_write_line_position(int addr, uint8_t val);
 	
 	uint8_t get_miscreg(void);
-	void set_miscreg(uint8_t val);
-	void set_monitor_bank(uint8_t var);
-	void set_apalette_index_hi(uint8_t val);
-	void set_apalette_index_lo(uint8_t val);
-	void set_apalette_b(uint8_t val);
-	void set_apalette_r(uint8_t val);
-	void set_apalette_g(uint8_t val);
-	void calc_apalette(uint16_t idx);
+	void __FASTCALL set_miscreg(uint8_t val);
+	void __FASTCALL set_monitor_bank(uint8_t var);
+	void __FASTCALL set_apalette_index_hi(uint8_t val);
+	void __FASTCALL set_apalette_index_lo(uint8_t val);
+	void __FASTCALL set_apalette_b(uint8_t val);
+	void __FASTCALL set_apalette_r(uint8_t val);
+	void __FASTCALL set_apalette_g(uint8_t val);
+	void __FASTCALL calc_apalette(uint16_t idx);
 
 #endif // _FM77AV_VARIANTS
 	
@@ -222,11 +222,11 @@ protected:
 	uint8_t dpalette_data[8];
 #if defined(_FM77AV_VARIANTS)
 	pair32_t apalette_index;
-	uint8_t analog_palette_r[4096];
-	uint8_t analog_palette_g[4096];
-	uint8_t analog_palette_b[4096];
-	scrntype_t analog_palette_pixel[4096];
-	scrntype_t analog_palette_pixel_tmp[4096];
+	__DECL_ALIGNED(16) uint8_t analog_palette_r[4096];
+	__DECL_ALIGNED(16) uint8_t analog_palette_g[4096];
+	__DECL_ALIGNED(16) uint8_t analog_palette_b[4096];
+	__DECL_ALIGNED(32) scrntype_t analog_palette_pixel[4096];
+	__DECL_ALIGNED(32) scrntype_t analog_palette_pixel_tmp[4096];
 #endif // FM77AV etc...
 #if defined(_FM77AV_VARIANTS)
 	uint8_t io_w_latch[0x40];
@@ -262,9 +262,9 @@ protected:
 	__DECL_ALIGNED(16) uint8_t gvram[__FM7_GVRAM_PAG_SIZE];
 	__DECL_ALIGNED(16) uint8_t gvram_shadow[__FM7_GVRAM_PAG_SIZE];
 	
-	uint8_t console_ram[0x1000];
-	uint8_t work_ram[0x380];
-	uint8_t shared_ram[0x80];
+	__DECL_ALIGNED(32) uint8_t console_ram[0x1000];
+	__DECL_ALIGNED(32) uint8_t work_ram[0x380];
+	__DECL_ALIGNED(32) uint8_t shared_ram[0x80];
    
 	uint8_t subsys_c[0x2800];
 #if defined(_FM77AV_VARIANTS)
@@ -278,9 +278,9 @@ protected:
 	bool vram_accessflag;
 	bool is_cyclesteal;
 #if defined(_FM77L4)
-	uint8_t subsys_cg_l4[0x1000];
+	__DECL_ALIGNED(16) uint8_t subsys_cg_l4[0x1000];
 	uint8_t subsys_l4[0x4800];
-	uint8_t text_vram[0x1000];
+	__DECL_ALIGNED(16) uint8_t text_vram[0x1000];
 	uint8_t crtc_regs[18];
 	uint8_t text_scroll_count;
 	bool workram_l4;
@@ -305,9 +305,9 @@ protected:
 #endif
 	
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	uint8_t submem_cgram[0x4000];
-	uint8_t submem_console_av40[0x2000];
-	uint8_t subsys_ram[0x2000];
+	__DECL_ALIGNED(16) uint8_t submem_cgram[0x4000];
+	__DECL_ALIGNED(16) uint8_t submem_console_av40[0x2000];
+	__DECL_ALIGNED(16) uint8_t subsys_ram[0x2000];
 	uint8_t cgram_bank;
 	bool kanji_level2;
 	FM7::KANJIROM *kanjiclass1;
@@ -317,11 +317,11 @@ protected:
 #endif
 	bool force_update;
 	bool vram_wrote_shadow;
-	bool vram_wrote_table[411 * 5];
-	bool vram_draw_table[411];
+	__DECL_ALIGNED(16) bool vram_wrote_table[411 * 5];
+	__DECL_ALIGNED(16) bool vram_draw_table[411];
 	//uint8_t vram_wrote_pages[411];
-	uint32_t vram_wrote_addr_1[411];
-	uint32_t vram_wrote_addr_2[411];
+	__DECL_ALIGNED(16) uint32_t vram_wrote_addr_1[411];
+	__DECL_ALIGNED(16) uint32_t vram_wrote_addr_2[411];
 #if defined(_FM77AV_VARIANTS)
 	bool use_alu;
 	MB61VH010 *alu;
@@ -391,7 +391,7 @@ protected:
 	void event_callback_hblank(void);
 
 	template <class T>
-	void call_write_signal(T *np, int id, uint32_t data, uint32_t mask)
+	void __FASTCALL call_write_signal(T *np, int id, uint32_t data, uint32_t mask)
 	{
 		//T *nnp = static_cast<T *>(np);
 		static_cast<T *>(np)->write_signal(id, data, mask);
