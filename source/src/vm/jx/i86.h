@@ -62,8 +62,8 @@ public:
 	void reset();
 	int __FASTCALL run(int icount);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void set_intr_line(bool line, bool pending, uint32_t bit);
-	void set_extra_clock(int icount);
+	void __FASTCALL set_intr_line(bool line, bool pending, uint32_t bit);
+	void __FASTCALL set_extra_clock(int icount);
 	int get_extra_clock();
 	uint32_t get_pc();
 	uint32_t get_next_pc();
