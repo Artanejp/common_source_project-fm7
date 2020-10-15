@@ -63,7 +63,7 @@ public:
 	virtual int __FASTCALL run(int clock);
 	
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void set_intr_line(bool line, bool pending, uint32_t bit)
+	void __FASTCALL set_intr_line(bool line, bool pending, uint32_t bit)
 	{
 		write_signal(SIG_CPU_IRQ, line ? 1 : 0, 1);
 	}

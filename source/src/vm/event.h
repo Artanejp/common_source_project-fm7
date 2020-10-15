@@ -250,7 +250,7 @@ public:
 	int release_sound_in_source(int bank);
 	
 	bool is_sound_in_source_exists(int bank);
-	int increment_sound_in_passed_data(int bank, double passed_usec);
+	int __FASTCALL increment_sound_in_passed_data(int bank, double passed_usec);
 	int get_sound_in_buffers_count();
 	int __FASTCALL get_sound_in_samples(int bank);
 	int __FASTCALL get_sound_in_rate(int bank);

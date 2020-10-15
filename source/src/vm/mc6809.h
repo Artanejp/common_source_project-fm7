@@ -566,7 +566,7 @@ public:
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 	
-	void set_extra_clock(int clock)
+	void __FASTCALL set_extra_clock(int clock)
 	{
 		extra_icount += clock;
 	}
