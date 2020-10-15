@@ -293,14 +293,14 @@ public:
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int id);
 	
-	void set_intr_line(bool line, bool pending, uint32_t bit)
+	void __FASTCALL set_intr_line(bool line, bool pending, uint32_t bit)
 	{
 		uint32_t mask = 1 << bit;
 		intr_req_bit = line ? (intr_req_bit | mask) : (intr_req_bit & ~mask);
 		intr_pend_bit = pending ? (intr_pend_bit | mask) : (intr_pend_bit & ~mask);
 		if(line) irq_count++;
 	}
-	void set_extra_clock(int clock)
+	void __FASTCALL set_extra_clock(int clock)
 	{
 		extra_icount += clock;
 	}
