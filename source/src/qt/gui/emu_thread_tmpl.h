@@ -269,10 +269,12 @@ signals:
 	int sig_open_cmt_load(int, QString);
 	int sig_open_cmt_write(int, QString);
 	int sig_open_fd(int, QString);
+	int sig_open_d88_fd(int, QString, int);
 	int sig_open_hdd(int, QString);
 	
 	int sig_open_quick_disk(int, QString);
 	int sig_open_bubble(int, QString);
+	int sig_open_b77_bubble(int, QString, int);
 	int sig_open_cdrom(int, QString);
 	int sig_open_laser_disc(int, QString);
 	
