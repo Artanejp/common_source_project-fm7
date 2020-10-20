@@ -31,7 +31,7 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-sudo mkdir -p "$PREFIX"
+ mkdir -p "$PREFIX"
 PREFIX="$(cd "$PREFIX" && pwd)"
 
 if [ -z "$PREFIX" ]; then
@@ -159,8 +159,8 @@ cmake \
 
 #if [ -n "$NINJA" ]; then
 #    ninja -j$CORES
-#    sudo ninja -j$CORES install/strip
+#     ninja -j$CORES install/strip
 #else
 #    make -j$CORES 
-    sudo make -j$CORES install/strip
+     make -j$CORES install/strip
 #fi

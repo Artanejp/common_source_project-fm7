@@ -28,7 +28,7 @@ if [ -z "$PREFIX" ]; then
     exit 1
 fi
 
-sudo mkdir -p "$PREFIX"
+ mkdir -p "$PREFIX"
 PREFIX="$(cd "$PREFIX" && pwd)"
 
 export PATH=$PREFIX/bin:$PATH
@@ -66,7 +66,7 @@ build_all() {
 
     cd libunwind
     for arch in $ARCHS; do
-        sudo mkdir -p build-$arch-$type
+         mkdir -p build-$arch-$type
         cd build-$arch-$type
         # CXX_SUPPORTS_CXX11 is not strictly necessary here. But if building
         # with a stripped llvm install, and the system happens to have an older
@@ -97,10 +97,10 @@ build_all() {
             -DCMAKE_SHARED_LINKER_FLAGS="-lpsapi" \
             ..
         make -j$CORES
-        sudo make install
+         make install
         if [ "$type" = "shared" ]; then
-            sudo mkdir -p $PREFIX/$arch-w64-mingw32/bin
-            sudo cp lib/libunwind.dll $PREFIX/$arch-w64-mingw32/bin
+             mkdir -p $PREFIX/$arch-w64-mingw32/bin
+             cp lib/libunwind.dll $PREFIX/$arch-w64-mingw32/bin
         else
             # Merge libpsapi.a into the static library libunwind.a, to
             # avoid having to specify -lpsapi when linking to it.
@@ -114,7 +114,7 @@ build_all() {
 
     cd libcxxabi
     for arch in $ARCHS; do
-        sudo mkdir -p build-$arch-$type
+         mkdir -p build-$arch-$type
         cd build-$arch-$type
         if [ "$type" = "shared" ]; then
             LIBCXXABI_VISIBILITY_FLAGS="-D_LIBCPP_BUILDING_LIBRARY= -U_LIBCXXABI_DISABLE_VISIBILITY_ANNOTATIONS"
@@ -152,7 +152,7 @@ build_all() {
 
     cd libcxx
     for arch in $ARCHS; do
-        sudo mkdir -p build-$arch-$type
+         mkdir -p build-$arch-$type
         cd build-$arch-$type
         if [ "$type" = "shared" ]; then
             LIBCXX_VISIBILITY_FLAGS="-D_LIBCXXABI_BUILDING_LIBRARY"
@@ -195,12 +195,12 @@ build_all() {
             -DLIBCXX_ENABLE_ABI_LINKER_SCRIPT=FALSE \
             ..
         make -j$CORES
-        sudo make install
+         make install
         if [ "$type" = "shared" ]; then
             llvm-ar qcsL \
                 $PREFIX/$arch-w64-mingw32/lib/libc++.dll.a \
                 $PREFIX/$arch-w64-mingw32/lib/libunwind.dll.a
-            sudo cp lib/libc++.dll $PREFIX/$arch-w64-mingw32/bin
+             cp lib/libc++.dll $PREFIX/$arch-w64-mingw32/bin
         else
             llvm-ar qcsL \
                 $PREFIX/$arch-w64-mingw32/lib/libc++.a \

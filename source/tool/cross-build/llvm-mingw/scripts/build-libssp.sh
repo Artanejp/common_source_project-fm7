@@ -16,7 +16,7 @@ while [ $# -gt 0 ]; do
     fi
     shift
 done
-sudo mkdir -p "$PREFIX"
+ mkdir -p "$PREFIX"
 PREFIX="$(cd "$PREFIX" && pwd)"
 export PATH=$PREFIX/bin:$PATH
 
@@ -48,13 +48,13 @@ done
 cat ssp/ssp.h.in | sed 's/@ssp_have_usable_vsnprintf@/define/' > ssp/ssp.h
 
 for arch in $ARCHS; do
-    sudo mkdir -p build-$arch
+     mkdir -p build-$arch
     cd build-$arch
     make -f ../Makefile -j$CORES CROSS=$arch-w64-mingw32-
     mkdir -p $PREFIX/$arch-w64-mingw32/bin
-    sudo cp libssp.a $PREFIX/$arch-w64-mingw32/lib
-    sudo cp libssp_nonshared.a $PREFIX/$arch-w64-mingw32/lib
-    sudo cp libssp.dll.a $PREFIX/$arch-w64-mingw32/lib
-    sudo cp libssp-0.dll $PREFIX/$arch-w64-mingw32/bin
+     cp libssp.a $PREFIX/$arch-w64-mingw32/lib
+     cp libssp_nonshared.a $PREFIX/$arch-w64-mingw32/lib
+     cp libssp.dll.a $PREFIX/$arch-w64-mingw32/lib
+     cp libssp-0.dll $PREFIX/$arch-w64-mingw32/bin
     cd ..
 done

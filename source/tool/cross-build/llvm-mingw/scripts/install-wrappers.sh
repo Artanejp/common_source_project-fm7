@@ -10,7 +10,7 @@ fi
 WORKDIR="$1"
 PREFIX="$2"
 
-sudo mkdir -p "$PREFIX"
+ mkdir -p "$PREFIX"
 PREFIX="$(cd "$PREFIX" && pwd)"
 
 : ${ARCHS:=${TOOLCHAIN_ARCHS-i686 x86_64 armv7 aarch64}}
@@ -32,8 +32,8 @@ if [ -n "$EXEEXT" ]; then
     WRAPPER_FLAGS="$WRAPPER_FLAGS -municode -DCLANG=\"clang-$CLANG_MAJOR\""
 fi
 
-sudo mkdir -p $PREFIX/bin
-sudo install ${WORKDIR}/scripts/wrappers/*-wrapper.sh $PREFIX/bin
+ mkdir -p $PREFIX/bin
+ install ${WORKDIR}/scripts/wrappers/*-wrapper.sh $PREFIX/bin
 if [ -n "$HOST" ]; then
     # TODO: If building natively on msys, pick up the default HOST value from there.
     WRAPPER_FLAGS="$WRAPPER_FLAGS -DDEFAULT_TARGET=\"$HOST\""
@@ -65,27 +65,27 @@ for arch in $ARCHS; do
             else
                 link_target=llvm-$exec
             fi
-            sudo ln -sf $link_target$EXEEXT $arch-w64-$target_os-$exec$EXEEXT || true
+             ln -sf $link_target$EXEEXT $arch-w64-$target_os-$exec$EXEEXT || true
         done
         for exec in windres; do
-            sudo ln -sf $exec-wrapper$EXEEXT $arch-w64-$target_os-$exec$EXEEXT
+             ln -sf $exec-wrapper$EXEEXT $arch-w64-$target_os-$exec$EXEEXT
         done
         for exec in ld objdump dlltool; do
-            sudo ln -sf $exec-wrapper.sh $arch-w64-$target_os-$exec
+             ln -sf $exec-wrapper.sh $arch-w64-$target_os-$exec
         done
     done
 done
 if [ -n "$EXEEXT" ]; then
     if [ ! -L clang$EXEEXT ] && [ -f clang$EXEEXT ] && [ ! -f clang-$CLANG_MAJOR$EXEEXT ]; then
-        sudo mv clang$EXEEXT clang-$CLANG_MAJOR$EXEEXT
+         mv clang$EXEEXT clang-$CLANG_MAJOR$EXEEXT
     fi
     if [ -z "$HOST" ]; then
         HOST=$(./clang-$CLANG_MAJOR -dumpmachine | sed 's/-.*//')-w64-mingw32
     fi
     for exec in clang clang++ gcc g++ cc c99 c11 c++ addr2line ar ranlib nm objcopy strings strip windres; do
-        sudo ln -sf $HOST-$exec$EXEEXT $exec$EXEEXT
+         ln -sf $HOST-$exec$EXEEXT $exec$EXEEXT
     done
     for exec in ld objdump dlltool; do
-        sudo ln -sf $HOST-$exec $exec
+         ln -sf $HOST-$exec $exec
     done
 fi

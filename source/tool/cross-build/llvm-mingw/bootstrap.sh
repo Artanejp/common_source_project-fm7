@@ -1,6 +1,5 @@
 #!/usr/bin/bash
 
-LLVM_VERSION=
 TOOLCHAIN_PREFIX=/opt/llvm-mingw-11
 TOOLCHAIN_ARCHS="i686 x86_64 armv7 aarch64"
 TOOLCHAIN_TARGET_OSES="mingw32 mings32uwp"
@@ -45,6 +44,7 @@ ${WORKDIR}/scripts/build-llvm.sh \
                --llvm-version ${LLVM_VERSION} \
 	       ${THREAD_PARAM} \
 	       ${TOOLCHAIN_PREFIX}
+
 #if [ $? -ne 0 ] ; then
 #   echo "PHASE ${ncount}: script: ${_sc} failed. Abort building"
 #   exit $?
@@ -80,8 +80,8 @@ ${WORKDIR}/scripts/build-mingw-w64.sh \
 	       
 cd "${WORKDIR}/build"
 ${WORKDIR}/scripts/build-compiler-rt.sh \
-                   ${TOOLCHAIN_PREFIX} \
-#		   --build-sanitizers
+                   ${TOOLCHAIN_PREFIX} 
+
 
 cd "${WORKDIR}/build/build"
 ${WORKDIR}/scripts/build-mingw-w64-libraries.sh \
@@ -93,8 +93,8 @@ ${WORKDIR}/scripts/build-mingw-w64-libraries.sh \
 cd "${WORKDIR}/build"
 ${WORKDIR}/scripts/build-libcxx.sh \
                ${THREAD_PARAM} \
-	       ${TOOLCHAIN_PREFIX}  \
-#	       --enable-shared
+	       ${TOOLCHAIN_PREFIX}
+
 
 #cd "${WORKDIR}/build/test"
 #for arch in $TOOLCHAIN_ARCHS; do
@@ -110,14 +110,14 @@ ${WORKDIR}/scripts/build-libcxx.sh \
 #    done;
 #done
 
+# Build sanitizers. Ubsan includes <typeinfo> from the C++ headers, so
+# we need to build this after libcxx.
+# Sanitizers on windows only support x86.
 cd "${WORKDIR}/build"
 ${WORKDIR}/scripts/build-compiler-rt.sh \
                    ${TOOLCHAIN_PREFIX} \
 		   --build-sanitizers
 
-# Build sanitizers. Ubsan includes <typeinfo> from the C++ headers, so
-# we need to build this after libcxx.
-# Sanitizers on windows only support x86.
 
 #cd "${WORKDIR}/build/test"
 #for arch in $TOOLCHAIN_ARCHS; do
@@ -156,7 +156,7 @@ ${WORKDIR}/scripts/build-libssp.sh \
 #done
 #cd "${WORKDIR}/build/test"
 #for arch in $TOOLCHAIN_ARCHS; do
-#    sudo cp $TOOLCHAIN_PREFIX/$arch-w64-mingw32/bin/*.dll $arch || exit 1
+#     cp $TOOLCHAIN_PREFIX/$arch-w64-mingw32/bin/*.dll $arch || exit 1
 #done
 
 # Clear build data

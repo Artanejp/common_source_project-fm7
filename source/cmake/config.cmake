@@ -136,8 +136,9 @@ if(USE_OPENMP)
   endif()
 endif()
 
-find_package(Threads)
-include_directories(${THREADS_INCLUDE_PATH})
+#find_package(Threads)
+#include_directories(${THREADS_INCLUDE_PATH})
+include(FindThreads)
 
 include(FindPkgConfig)
 
@@ -516,6 +517,7 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 		target_link_libraries(${EXE_NAME}
 			${BUNDLE_LIBS}
 			${LOCAL_LIBS}
+#			libpthread.a
 			-lpthread
 		)
 	else()	

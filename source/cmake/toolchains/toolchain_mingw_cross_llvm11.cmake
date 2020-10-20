@@ -1,13 +1,14 @@
 # the name of the target operating system
 SET(CMAKE_SYSTEM_NAME Windows)
 
-#SET(TARGET_ARCH i686-w64-mingw32)
-#SET(LIBS_PREFIX /usr/local/i586-mingw-msvc)
+SET(TARGET_ARCH i686-w64-mingw32)
+SET(LIBS_PREFIX /usr/local/i586-mingw-msvc)
 # which compilers to use for C and C++
-SET(CMAKE_C_COMPILER ${TARGET_ARCH}-gcc)
-SET(CMAKE_CXX_COMPILER ${TARGET_ARCH}-g++)
+SET(CMAKE_C_COMPILER ${TARGET_ARCH}-clang)
+SET(CMAKE_CXX_COMPILER ${TARGET_ARCH}-clang++)
 SET(CMAKE_RC_COMPILER ${TARGET_ARCH}-windres)
 SET(CMAKE_AR  ${TARGET_ARCH}-ar)
+SET(CMAKE_LD  ${TARGET_ARCH}-ld)
 
 
 #set(LIBAV_ROOT_DIR "${LIBS_PREFIX}/ffmpeg-4.1")

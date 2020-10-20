@@ -12,7 +12,6 @@ while [ $# -gt 0 ]; do
 	shift
     else
         PREFIX="$1"
-	break
     fi
     shift
 done
@@ -33,7 +32,7 @@ for lib in winpthreads winstorecompat; do
         cd build-$arch
         ../configure --host=$arch-w64-mingw32 --prefix=$PREFIX/$arch-w64-mingw32
         make -j$CORES
-        sudo make install
+        make install
         cd ..
     done
     cd ..
