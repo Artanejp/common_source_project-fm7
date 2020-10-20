@@ -72,6 +72,7 @@ ncount=$((${ncount}+1))
 
 export PATH="${TOOLCHAIN_PREFIX}/bin:${PATH}"
 
+mkdir -p "${WORKDIR}/build/build"
 cd "${WORKDIR}/build/build"
 ${WORKDIR}/scripts/build-mingw-w64.sh \
                ${THREAD_PARAM} \
