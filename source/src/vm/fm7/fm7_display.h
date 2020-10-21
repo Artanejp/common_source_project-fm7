@@ -211,15 +211,15 @@ protected:
 #endif
 	bool diag_load_subrom_c;
 
-	scrntype_t dpalette_pixel[8];
-	scrntype_t dpalette_pixel_tmp[8];
+	__DECL_ALIGNED(16) scrntype_t dpalette_pixel[8];
+	__DECL_ALIGNED(16) scrntype_t dpalette_pixel_tmp[8];
 #if defined(USE_GREEN_DISPLAY)
-	scrntype_t dpalette_pixel_green[8];
-	scrntype_t dpalette_green_tmp[8];
+	__DECL_ALIGNED(16) scrntype_t dpalette_pixel_green[8];
+	__DECL_ALIGNED(16) scrntype_t dpalette_green_tmp[8];
 	bool use_green_monitor;
 #endif
 	
-	uint8_t dpalette_data[8];
+	__DECL_ALIGNED(16) uint8_t dpalette_data[8];
 #if defined(_FM77AV_VARIANTS)
 	pair32_t apalette_index;
 	__DECL_ALIGNED(16) uint8_t analog_palette_r[4096];
@@ -237,8 +237,8 @@ protected:
 #endif
 	uint8_t multimode_accessmask;
 	uint8_t multimode_dispmask;
-	bool multimode_accessflags[4];
-	bool multimode_dispflags[4];
+	__DECL_ALIGNED(8) bool multimode_accessflags[4];
+	__DECL_ALIGNED(8) bool multimode_dispflags[4];
    
 	uint32_t offset_point;
 	pair32_t tmp_offset_point[2];
@@ -262,9 +262,9 @@ protected:
 	__DECL_ALIGNED(16) uint8_t gvram[__FM7_GVRAM_PAG_SIZE];
 	__DECL_ALIGNED(16) uint8_t gvram_shadow[__FM7_GVRAM_PAG_SIZE];
 	
-	__DECL_ALIGNED(32) uint8_t console_ram[0x1000];
-	__DECL_ALIGNED(32) uint8_t work_ram[0x380];
-	__DECL_ALIGNED(32) uint8_t shared_ram[0x80];
+	__DECL_ALIGNED(16) uint8_t console_ram[0x1000];
+	__DECL_ALIGNED(16) uint8_t work_ram[0x380];
+	__DECL_ALIGNED(16) uint8_t shared_ram[0x80];
    
 	uint8_t subsys_c[0x2800];
 #if defined(_FM77AV_VARIANTS)
