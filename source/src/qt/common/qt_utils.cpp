@@ -1285,10 +1285,10 @@ int MainLoop(int argc, char *argv[])
 	rMainWindow->getWindow()->show();
 			
 	// main loop
+	rMainWindow->LaunchEmuThread();
 #if defined(USE_JOYSTICK)
 	rMainWindow->LaunchJoyThread();
 #endif	
-	rMainWindow->LaunchEmuThread();
 	GLDrawClass *pgl = rMainWindow->getGraphicsView();
 	pgl->set_emu_launched();
 //	pgl->setFixedSize(pgl->width(), pgl->height());
