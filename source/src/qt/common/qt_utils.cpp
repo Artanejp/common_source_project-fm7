@@ -353,11 +353,12 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect((OSD*)(emu->get_osd()), SIGNAL(sig_enable_mouse()), glv, SLOT(do_enable_mouse()));
 	connect((OSD*)(emu->get_osd()), SIGNAL(sig_disable_mouse()), glv, SLOT(do_disable_mouse()));
 
-	hRunEmu->start(QThread::HighestPriority);
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Launch done.");
+//	hRunEmu->start(QThread::HighestPriority);
 	this->set_screen_aspect(config.window_stretch_type);
 	emit sig_movie_set_width(SCREEN_WIDTH);
 	emit sig_movie_set_height(SCREEN_HEIGHT);
+	hRunEmu->start(QThread::HighestPriority);
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Launch done.");
 }
 
 void Ui_MainWindow::do_create_d88_media(int drv, quint8 media_type, QString name)
@@ -1284,10 +1285,10 @@ int MainLoop(int argc, char *argv[])
 	rMainWindow->getWindow()->show();
 			
 	// main loop
-	rMainWindow->LaunchEmuThread();
 #if defined(USE_JOYSTICK)
 	rMainWindow->LaunchJoyThread();
 #endif	
+	rMainWindow->LaunchEmuThread();
 	GLDrawClass *pgl = rMainWindow->getGraphicsView();
 	pgl->set_emu_launched();
 //	pgl->setFixedSize(pgl->width(), pgl->height());
