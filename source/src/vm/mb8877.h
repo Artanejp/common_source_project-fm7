@@ -166,6 +166,9 @@ public:
 		mb8877_no_busy_after_seek = false;
 		_max_drive = 4;
 		_drive_mask = _max_drive - 1;
+		for(int i = 0; i < 16; i++) {
+			disk[i] = NULL;
+		}
 //#if defined(HAS_MB89311)
 //		set_device_name(_T("MB89311 FDC"));
 //#elif defined(HAS_MB8866)
