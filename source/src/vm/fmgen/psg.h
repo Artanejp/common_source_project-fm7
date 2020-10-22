@@ -100,8 +100,8 @@ protected:
 	uint enveloptable_l[16][64];
 	uint enveloptable_r[16][64];
 	uint noisetable[noisetablesize];
-	int EmitTableL[32];
-	int EmitTableR[32];
+	int EmitTableL[64];
+	int EmitTableR[64];
 };
 
 #endif // PSG_H
