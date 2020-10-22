@@ -73,6 +73,7 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	void run() { doWork("");}
 	void SetEmu(EMU_TEMPLATE *p);
 public slots:
+	void do_start_draw_thread(void);
 	void doWork(const QString &);
 	void doExit(void);
 	void doDraw(bool flag);

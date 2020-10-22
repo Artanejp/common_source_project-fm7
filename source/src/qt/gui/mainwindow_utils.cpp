@@ -32,6 +32,12 @@ void Ui_MainWindowBase::do_unblock_task(void)
 void Ui_MainWindowBase::do_start_emu_thread(void)
 {
 	emit sig_start_emu_thread();
+	emit sig_emu_launched();
+}
+
+void Ui_MainWindowBase::do_start_draw_thread(void)
+{
+	emit sig_start_draw_thread();
 }
 
 void Ui_MainWindowBase::set_latency(int num)

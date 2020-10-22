@@ -87,6 +87,17 @@ DrawThreadClass::~DrawThreadClass()
 
 }
 
+void DrawThreadClass::do_start_draw_thread(void)
+{
+	bool _separate = false;
+	if(using_flags->get_config_ptr() != NULL) {
+		if(using_flags->get_config_ptr()->use_separate_thread_draw) {
+			_separate = true;
+		}
+	}
+	if(_separate) start(QThread::HighPriority);
+}
+
 void DrawThreadClass::SetEmu(EMU_TEMPLATE *p)
 {
 	//p_emu = p;

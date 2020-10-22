@@ -264,6 +264,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hRunEmu, SIGNAL(window_title_changed(QString)), this, SLOT(do_set_window_title(QString)));
 	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(actionCapture_Screen, SIGNAL(triggered()), glv, SLOT(do_save_frame_screen()));
+	connect(this, SIGNAL(sig_emu_launched()), glv, SLOT(set_emu_launched()));
 
 	/*if(config.use_separate_thread_draw) {
 		connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), hDrawEmu, SLOT(doDraw(bool)), Qt::QueuedConnection);
@@ -304,8 +305,6 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
 	objNameStr = QString("EmuDrawThread");
 	hDrawEmu->setObjectName(objNameStr);
-
-	if(config.use_separate_thread_draw) hDrawEmu->start();
 
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Launch done.");
 
@@ -357,7 +356,9 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(this, SIGNAL(sig_unblock_task()), hRunEmu, SLOT(do_unblock()));
 	connect(this, SIGNAL(sig_block_task()), hRunEmu, SLOT(do_block()));
 	connect(this, SIGNAL(sig_start_emu_thread()), hRunEmu, SLOT(do_start_emu_thread()));
-	
+	connect(this, SIGNAL(sig_start_draw_thread()), hDrawEmu, SLOT(do_start_draw_thread()));
+
+
 //	hRunEmu->start(QThread::HighestPriority);
 	this->set_screen_aspect(config.window_stretch_type);
 	emit sig_movie_set_width(SCREEN_WIDTH);
@@ -1316,7 +1317,6 @@ int MainLoop(int argc, char *argv[])
 	emu->get_osd()->update_keyname_table();
 	
 	GLDrawClass *pgl = rMainWindow->getGraphicsView();
-	pgl->set_emu_launched();
 	pgl->do_set_texture_size(NULL, -1, -1);  // It's very ugly workaround (;_;) 20191028 K.Ohta
 //	pgl->setFixedSize(pgl->width(), pgl->height());
 	// main loop
@@ -1325,6 +1325,7 @@ int MainLoop(int argc, char *argv[])
 #endif
 	rMainWindow->do_start_emu_thread();
 	rMainWindow->do_unblock_task();
+	rMainWindow->do_start_draw_thread();
 	GuiMain->exec();
 	return 0;
 }
