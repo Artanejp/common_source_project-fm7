@@ -1289,8 +1289,6 @@ int MainLoop(int argc, char *argv[])
 #if defined(USE_JOYSTICK)
 	rMainWindow->LaunchJoyThread();
 #endif	
-	GLDrawClass *pgl = rMainWindow->getGraphicsView();
-	pgl->set_emu_launched();
 //	pgl->setFixedSize(pgl->width(), pgl->height());
 	rMainWindow->retranselateUi_Depended_OSD();
 	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_update_device_node_name(int, const _TCHAR *)),
@@ -1300,7 +1298,6 @@ int MainLoop(int argc, char *argv[])
 	}
 	csp_logger->set_osd((OSD*)(emu->get_osd()));
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "InitInstance() OK.");
-	pgl->do_set_texture_size(NULL, -1, -1);  // It's very ugly workaround (;_;) 20191028 K.Ohta
 	// ToDo: Update raltime.
 	for(int i = 0; i < 16; i++) {
 		const _TCHAR* sp = emu->get_osd()->get_sound_device_name(i);
@@ -1318,6 +1315,9 @@ int MainLoop(int argc, char *argv[])
 	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_add_keyname_table(uint32_t, QString)),	 rMainWindow, SLOT(do_add_keyname_table(uint32_t, QString)));
 	emu->get_osd()->update_keyname_table();
 	
+	GLDrawClass *pgl = rMainWindow->getGraphicsView();
+	pgl->set_emu_launched();
+	pgl->do_set_texture_size(NULL, -1, -1);  // It's very ugly workaround (;_;) 20191028 K.Ohta
 	GuiMain->exec();
 	return 0;
 }
