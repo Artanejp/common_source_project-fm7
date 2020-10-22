@@ -404,13 +404,6 @@ void FM7_MAINMEM::release()
  	 defined(_FM77_VARIANTS)
 	if(fm7_mainmem_extram != NULL) free(fm7_mainmem_extram);
 #endif  
-#if !defined(_FM77AV_VARIANTS)
-	int i;
-	for(i = 0; i < 4; i++) {
-		if(fm7_bootroms[i] != NULL) free(fm7_bootroms[i]);
-		fm7_bootroms[i] = NULL;
-	}
-#endif
 #if defined(CAPABLE_DICTROM)
 	write_bios(_T("USERDIC.DAT"), fm7_mainmem_learndata, 0x2000);
 #endif

@@ -18,9 +18,6 @@ namespace FM7 {
 
 FM7_MAINMEM::FM7_MAINMEM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
-#if !defined(_FM77AV_VARIANTS)
-	for(int i = 0; i < 8; i++) fm7_bootroms[i] = (uint8_t *)malloc(0x200);
-#endif
 	mainio = NULL;
 	display = NULL;
 	maincpu = NULL;
@@ -38,9 +35,6 @@ FM7_MAINMEM::FM7_MAINMEM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEV
 
 FM7_MAINMEM::~FM7_MAINMEM()
 {
-#if !defined(_FM77AV_VARIANTS)
-	for(int i = 0; i < 8; i++) if(fm7_bootroms[i] != NULL) free(fm7_bootroms[i]);
-#endif
 }
 
 void FM7_MAINMEM::reset()
@@ -521,7 +515,7 @@ void FM7_MAINMEM::update_config()
 	setclock(config.cpu_type);
 }
 
-#define STATE_VERSION 8
+#define STATE_VERSION 9
 
 bool FM7_MAINMEM::process_state(FILEIO *state_fio, bool loading)
 {
@@ -553,8 +547,6 @@ bool FM7_MAINMEM::process_state(FILEIO *state_fio, bool loading)
 	state_fio->StateArray(fm7_mainmem_bootrom_vector, sizeof(fm7_mainmem_bootrom_vector), 1);
 	state_fio->StateArray(fm7_mainmem_reset_vector, sizeof(fm7_mainmem_reset_vector), 1);
  	
-	state_fio->StateArray(fm7_mainmem_null, sizeof(fm7_mainmem_null), 1);
-
 #if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 	state_fio->StateArray(fm7_bootram, sizeof(fm7_bootram), 1);
 #endif	

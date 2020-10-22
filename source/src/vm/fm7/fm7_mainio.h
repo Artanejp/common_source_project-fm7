@@ -470,35 +470,30 @@ class FM7_MAINIO : public DEVICE {
 #if defined(CAPABLE_JCOMMCARD)
 	FM7::FM7_JCOMMCARD *jcommcard;
 #endif
-	template <class T>
-	void call_write_signal(T *np, int id, uint32_t data, uint32_t mask)
+	void __FASTCALL call_write_signal(DEVICE *np, int id, uint32_t data, uint32_t mask)
 	{
 		//T *nnp = static_cast<T *>(np);
-		static_cast<T *>(np)->write_signal(id, data, mask);
+		np->write_signal(id, data, mask);
 	}
-	template <class T>
-		void call_write_data8(T *np, uint32_t addr, uint32_t data)
+	void __FASTCALL call_write_data8(DEVICE *np, uint32_t addr, uint32_t data)
 	{
 		//T *nnp = static_cast<T *>(np);
-		static_cast<T *>(np)->write_data8(addr, data);
+		np->write_data8(addr, data);
 	}
-	template <class T>
-		uint32_t call_read_data8(T *np, uint32_t addr)
+	uint32_t __FASTCALL call_read_data8(DEVICE *np, uint32_t addr)
 	{
 		//T *nnp = static_cast<T *>(np);
-		return static_cast<T *>(np)->read_data8(addr);
+		return np->read_data8(addr);
 	}
-	template <class T>
-		void call_write_dma_data8(T *np, uint32_t addr, uint32_t data)
+	void __FASTCALL call_write_dma_data8(DEVICE *np, uint32_t addr, uint32_t data)
 	{
 		//T *nnp = static_cast<T *>(np);
-		static_cast<T *>(np)->write_dma_data8(addr, data);
+		np->write_dma_data8(addr, data);
 	}
-	template <class T>
-		uint32_t call_read_dma_data8(T *np, uint32_t addr)
+	uint32_t __FASTCALL call_read_dma_data8(DEVICE *np, uint32_t addr)
 	{
 		//T *nnp = static_cast<T *>(np);
-		return static_cast<T *>(np)->read_dma_data8(addr);
+		return np->read_dma_data8(addr);
 	}
 
 	bool load_state_opn(FILEIO *state_fio, bool loading);
