@@ -172,8 +172,8 @@ void PCM1BIT::calc_low_pass_filter(int32_t* dst, int32_t* src, int samples, int 
 		memset(dst, 0x00, sizeof(int32_t) * samples * 2);
 		return;
 	}
-	__DECL_ALIGNED(16) float tval[(samples + 1) * 2];
-	__DECL_ALIGNED(16) float oval[(samples + 1) * 2];
+	__DECL_ALIGNED(16) float tval[(samples + 1) * 2 + 2];
+	__DECL_ALIGNED(16) float oval[(samples + 1) * 2 + 2];
 	int __begin = 0;
 	
 	tval[0] = before_filter_l;
@@ -230,8 +230,8 @@ void PCM1BIT::calc_high_pass_filter(int32_t* dst, int32_t* src, int samples, int
 		memset(dst, 0x00, sizeof(int32_t) * samples * 2);
 		return;
 	}
-	__DECL_ALIGNED(16) float tval[(samples + 1) * 2];
-	__DECL_ALIGNED(16) float oval[(samples + 1) * 2];
+	__DECL_ALIGNED(16) float tval[(samples + 1) * 2 + 2];
+	__DECL_ALIGNED(16) float oval[(samples + 1) * 2 + 2];
 	int __begin = 0;
 
 	tval[0] = before_filter_l;
