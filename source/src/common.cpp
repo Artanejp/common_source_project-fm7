@@ -2486,8 +2486,8 @@ void DLL_PREFIX calc_high_pass_filter(int32_t* dst, int32_t* src, int sample_fre
 	if(alpha <= 0.0f) alpha = 0.0f;
 	float ialpha = 1.0f - alpha;
 	
-	__DECL_ALIGNED(16) float tmp_v[samples * 2]; // 2ch stereo
-	__DECL_ALIGNED(16) float tmp_h[samples * 2];
+	__DECL_ALIGNED(16) float tmp_v[samples * 2 + 4]; // 2ch stereo
+	__DECL_ALIGNED(16) float tmp_h[samples * 2 + 4];
 	for(int i = 0; i < (samples * 2); i ++) {
 		tmp_h[i] = (float)(src[i]);
 	}
@@ -2523,8 +2523,8 @@ void DLL_PREFIX calc_low_pass_filter(int32_t* dst, int32_t* src, int sample_freq
 	if(alpha <= 0.0f) alpha = 0.0f;
 	float ialpha = 1.0f - alpha;
 	
-	__DECL_ALIGNED(16) float tmp_v[samples * 2]; // 2ch stereo
-	__DECL_ALIGNED(16) float tmp_h[samples * 2];
+	__DECL_ALIGNED(16) float tmp_v[samples * 2 + 4]; // 2ch stereo
+	__DECL_ALIGNED(16) float tmp_h[samples * 2 + 4];
 	
 	for(int i = 0; i < (samples * 2); i++) {
 		tmp_h[i] = (float)(src[i]);
