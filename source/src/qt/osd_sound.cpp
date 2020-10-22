@@ -162,7 +162,8 @@ const _TCHAR *OSD_BASE::get_sound_device_name(int num)
 	if(num >= sound_device_list.count()) return NULL;
 	QString sdev = sound_device_list.value(num);
 	sdev.truncate(64);
-	return (const _TCHAR*)(sdev.toUtf8().constData());
+	static QByteArray _n = sdev.toUtf8(); 
+	return (const _TCHAR*)(_n.constData());
 }
 
 int OSD_BASE::get_sound_device_num()
