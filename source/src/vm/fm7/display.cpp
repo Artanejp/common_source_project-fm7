@@ -172,9 +172,11 @@ void DISPLAY::reset_some_devices()
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 #if defined(USE_GREEN_DISPLAY)
-	memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+	//memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+	for(i = 0; i < 8; i++) dpalette_pixel_green[i] = dpalette_green_tmp[i];
 #endif
-	memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
+	//memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
+	for(i = 0; i < 8; i++) dpalette_pixel[i] = dpalette_pixel_tmp[i];
 	//do_firq(!firq_mask && key_firq_req);
 
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
@@ -290,7 +292,8 @@ void DISPLAY::reset()
 # endif
 #endif	
 #if defined(USE_GREEN_DISPLAY) && defined(USE_MONITOR_TYPE)
-	memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+	for(i = 0; i < 8; i++) dpalette_pixel_green[i] = dpalette_green_tmp[i];
+//	memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
 	switch(config.monitor_type) {
 	case FM7_MONITOR_GREEN:
 		use_green_monitor = true;
@@ -305,7 +308,8 @@ void DISPLAY::reset()
 #endif
 	force_update = true;
 	
-	memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
+	//memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
+	for(i = 0; i < 8; i++) dpalette_pixel[i] = dpalette_pixel_tmp[i];
 	//enter_display();
 	
 	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
@@ -1476,9 +1480,11 @@ void DISPLAY::event_callback_vsync(void)
 		memcpy(analog_palette_pixel, analog_palette_pixel_tmp, sizeof(analog_palette_pixel));
 #endif
 #if defined(USE_GREEN_DISPLAY)
-		memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+		//memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+		for(int i = 0; i < 8; i++) dpalette_green_tmp[i] = dpalette_pixel_green[i];
 #endif
-		memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
+		//memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
+		for(int i = 0; i < 8; i++) dpalette_pixel[i] = dpalette_pixel_tmp[i];
 		vram_wrote_shadow = true;
 		for(int yy = 0; yy < 400; yy++) {
 			vram_draw_table[yy] = true;
@@ -3461,11 +3467,13 @@ void DISPLAY::initialize()
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 #if defined(USE_GREEN_DISPLAY)
-	memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+	for(i = 0; i < 8; i++) dpalette_pixel_green[i] = dpalette_green_tmp[i];	
+	//memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
 	use_green_monitor = false;
 #endif
 	
-	memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
+	for(i = 0; i < 8; i++) dpalette_pixel[i] = dpalette_pixel_tmp[i];	
+	//memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
 //#if defined(_FM77AV_VARIANTS)
 	hblank_event_id = -1;
 	hdisp_event_id = -1;
@@ -3680,9 +3688,11 @@ bool DISPLAY::process_state(FILEIO *state_fio, bool loading)
 		for(i = 0; i < 411; i++) vram_draw_table[i] = true;
 #if defined(_FM8)
 		for(addr = 0; addr < 8; addr++) set_dpalette(addr, addr);
-		memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
+		//memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
+		for(i = 0; i < 8; i++) dpalette_pixel[i] = dpalette_pixel_tmp[i];	
   #if defined(USE_GREEN_DISPLAY)
-		memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+		//memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+		for(i = 0; i < 8; i++) dpalette_pixel_green[i] = dpalette_green_tmp[i];	
   #endif
 #else
 	

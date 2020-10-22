@@ -211,22 +211,22 @@ protected:
 #endif
 	bool diag_load_subrom_c;
 
-	__DECL_ALIGNED(16) scrntype_t dpalette_pixel[8];
-	__DECL_ALIGNED(16) scrntype_t dpalette_pixel_tmp[8];
+	scrntype_t dpalette_pixel[8];
+	scrntype_t dpalette_pixel_tmp[8];
 #if defined(USE_GREEN_DISPLAY)
-	__DECL_ALIGNED(16) scrntype_t dpalette_pixel_green[8];
-	__DECL_ALIGNED(16) scrntype_t dpalette_green_tmp[8];
+	scrntype_t dpalette_pixel_green[8];
+	scrntype_t dpalette_green_tmp[8];
 	bool use_green_monitor;
 #endif
 	
-	__DECL_ALIGNED(16) uint8_t dpalette_data[8];
+	uint8_t dpalette_data[8];
 #if defined(_FM77AV_VARIANTS)
 	pair32_t apalette_index;
-	__DECL_ALIGNED(16) uint8_t analog_palette_r[4096];
-	__DECL_ALIGNED(16) uint8_t analog_palette_g[4096];
-	__DECL_ALIGNED(16) uint8_t analog_palette_b[4096];
-	__DECL_ALIGNED(32) scrntype_t analog_palette_pixel[4096];
-	__DECL_ALIGNED(32) scrntype_t analog_palette_pixel_tmp[4096];
+	uint8_t analog_palette_r[4096];
+	uint8_t analog_palette_g[4096];
+	uint8_t analog_palette_b[4096];
+	scrntype_t analog_palette_pixel[4096];
+	scrntype_t analog_palette_pixel_tmp[4096];
 #endif // FM77AV etc...
 #if defined(_FM77AV_VARIANTS)
 	uint8_t io_w_latch[0x40];
