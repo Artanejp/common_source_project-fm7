@@ -31,6 +31,7 @@
 
 EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, USING_FLAGS *p, QObject *parent) : QThread(parent) {
 	MainWindow = rootWindow;
+	bBlockTask = true;
 	using_flags = p;
 	p_config = p->get_config_ptr();
 
@@ -256,6 +257,16 @@ void EmuThreadClassBase::do_stop_record_sound()
 void EmuThreadClassBase::do_reset()
 {
 	bResetReq = true;
+}
+
+void EmuThreadClassBase::do_unblock()
+{
+	bBlockTask = false;
+}
+
+void EmuThreadClassBase::do_block()
+{
+	bBlockTask = true;
 }
 
 void EmuThreadClassBase::do_special_reset(int num)

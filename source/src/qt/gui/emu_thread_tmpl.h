@@ -76,6 +76,7 @@ protected:
 	Ui_MainWindowBase *MainWindow;
 	QElapsedTimer tick_timer;
 	
+	bool bBlockTask;
 	bool bRunThread;
 	bool bResetReq;
 	bool bSpecialResetReq;
@@ -230,7 +231,8 @@ public slots:
 	void do_key_up(uint32_t vk, uint32_t mod);
 	void print_framerate(int frames);
 	void set_emu_thread_to_fixed_cpu(int cpunum);
-
+	void do_block();
+	void do_unblock();
 signals:
 	int message_changed(QString);
 	int window_title_changed(QString);

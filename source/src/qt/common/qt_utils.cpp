@@ -120,6 +120,7 @@ void Ui_MainWindow::rise_movie_dialog(void)
 	dlg->setWindowTitle(QApplication::translate("CSP_DialogMovie", "Configure movie encodings", 0));
 	dlg->show();
 }
+
 void Ui_MainWindow::LaunchEmuThread(void)
 {
 	QString objNameStr;
@@ -353,6 +354,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect((OSD*)(emu->get_osd()), SIGNAL(sig_enable_mouse()), glv, SLOT(do_enable_mouse()));
 	connect((OSD*)(emu->get_osd()), SIGNAL(sig_disable_mouse()), glv, SLOT(do_disable_mouse()));
 
+	connect(this, SIGNAL(sig_unblock_task()), hRunEmu, SLOT(do_unblock()));
+	connect(this, SIGNAL(sig_block_task()), hRunEmu, SLOT(do_block()));
 //	hRunEmu->start(QThread::HighestPriority);
 	this->set_screen_aspect(config.window_stretch_type);
 	emit sig_movie_set_width(SCREEN_WIDTH);
@@ -1317,7 +1320,8 @@ int MainLoop(int argc, char *argv[])
 	// main loop
 #if defined(USE_JOYSTICK)
 	rMainWindow->LaunchJoyThread();
-#endif	
+#endif
+	rMainWindow->do_unblock_task();
 	GuiMain->exec();
 	return 0;
 }

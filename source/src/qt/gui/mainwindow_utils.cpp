@@ -18,6 +18,15 @@
 #include "qt_dialogs.h"
 //#include "csp_logger.h"
 
+void Ui_MainWindowBase::do_block_task(void)
+{
+	emit sig_block_task();
+}
+
+void Ui_MainWindowBase::do_unblock_task(void)
+{
+	emit sig_unblock_task();
+}
 void Ui_MainWindowBase::set_latency(int num)
 {
 	if((num < 0) || (num >= 8)) return;

@@ -461,7 +461,7 @@ void EmuThreadClass::doWork(const QString &params)
 	
 	do {
 		//p_emu->SetHostCpus(this->idealThreadCount());
-   		if(MainWindow == NULL) {
+   		if((MainWindow == NULL) || (bBlockTask)) {
 			if(bRunThread == false){
 				goto _exit;
 			}

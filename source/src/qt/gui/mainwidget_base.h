@@ -752,6 +752,8 @@ public slots:
 	void do_add_keyname_table(uint32_t vk, QString name);
 	void do_clear_keyname_table();
 	void do_show_ram_size_dialog(void);
+	void do_block_task();
+	void do_unblock_task();
 	
 signals:
 	int message_changed(QString);
@@ -831,6 +833,9 @@ signals:
 	int sig_save_state(QString);
 	int sig_emu_thread_to_fixed_cpu(int);
 	int sig_add_keyname_table(uint32_t, QString);
+
+	int sig_block_task();
+	int sig_unblock_task();
 };
 
 QT_END_NAMESPACE
