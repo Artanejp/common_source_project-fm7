@@ -233,6 +233,7 @@ public slots:
 	void set_emu_thread_to_fixed_cpu(int cpunum);
 	void do_block();
 	void do_unblock();
+	void do_start_emu_thread();
 signals:
 	int message_changed(QString);
 	int window_title_changed(QString);

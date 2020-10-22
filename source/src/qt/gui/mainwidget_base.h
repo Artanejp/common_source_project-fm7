@@ -754,7 +754,7 @@ public slots:
 	void do_show_ram_size_dialog(void);
 	void do_block_task();
 	void do_unblock_task();
-	
+	void do_start_emu_thread();
 signals:
 	int message_changed(QString);
 	int quit_emu_thread();
@@ -836,6 +836,7 @@ signals:
 
 	int sig_block_task();
 	int sig_unblock_task();
+	int sig_start_emu_thread(void);
 };
 
 QT_END_NAMESPACE

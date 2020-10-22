@@ -9,6 +9,7 @@
 #include <QApplication>
 #include <QMenu>
 #include <QMenuBar>
+#include <QThread>
 
 #include "commonclasses.h"
 #include "mainwidget_base.h"
@@ -27,6 +28,12 @@ void Ui_MainWindowBase::do_unblock_task(void)
 {
 	emit sig_unblock_task();
 }
+
+void Ui_MainWindowBase::do_start_emu_thread(void)
+{
+	emit sig_start_emu_thread();
+}
+
 void Ui_MainWindowBase::set_latency(int num)
 {
 	if((num < 0) || (num >= 8)) return;

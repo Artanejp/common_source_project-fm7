@@ -268,7 +268,10 @@ void EmuThreadClassBase::do_block()
 {
 	bBlockTask = true;
 }
-
+void EmuThreadClassBase::do_start_emu_thread()
+{
+	start(QThread::TimeCriticalPriority);
+}
 void EmuThreadClassBase::do_special_reset(int num)
 {
 	if(num < 0) return;

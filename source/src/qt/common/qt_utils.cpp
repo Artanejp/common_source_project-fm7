@@ -356,11 +356,13 @@ void Ui_MainWindow::LaunchEmuThread(void)
 
 	connect(this, SIGNAL(sig_unblock_task()), hRunEmu, SLOT(do_unblock()));
 	connect(this, SIGNAL(sig_block_task()), hRunEmu, SLOT(do_block()));
+	connect(this, SIGNAL(sig_start_emu_thread()), hRunEmu, SLOT(do_start_emu_thread()));
+	
 //	hRunEmu->start(QThread::HighestPriority);
 	this->set_screen_aspect(config.window_stretch_type);
 	emit sig_movie_set_width(SCREEN_WIDTH);
 	emit sig_movie_set_height(SCREEN_HEIGHT);
-	hRunEmu->start(QThread::HighestPriority);
+//	hRunEmu->start(QThread::HighestPriority);
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Launch done.");
 }
 
@@ -1321,6 +1323,7 @@ int MainLoop(int argc, char *argv[])
 #if defined(USE_JOYSTICK)
 	rMainWindow->LaunchJoyThread();
 #endif
+	rMainWindow->do_start_emu_thread();
 	rMainWindow->do_unblock_task();
 	GuiMain->exec();
 	return 0;
