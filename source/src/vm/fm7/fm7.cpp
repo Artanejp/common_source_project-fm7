@@ -261,13 +261,12 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 
 
 	keyboard = new KEYBOARD(this, emu);
-	//display = new DISPLAY(this, emu);
+	display = new DISPLAY(this, emu);
 #if defined(_FM8)
 	mainio  = new FM8_MAINIO(this, emu);
 #else
 	mainio  = new FM7_MAINIO(this, emu);
 #endif
-	display = new DISPLAY(this, emu);
 	mainmem = new FM7_MAINMEM(this, emu);
 //	display = new DISPLAY(this, emu);
 
