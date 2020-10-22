@@ -267,8 +267,9 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 #else
 	mainio  = new FM7_MAINIO(this, emu);
 #endif
-	mainmem = new FM7_MAINMEM(this, emu);
 	display = new DISPLAY(this, emu);
+	mainmem = new FM7_MAINMEM(this, emu);
+//	display = new DISPLAY(this, emu);
 
 
 # if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
