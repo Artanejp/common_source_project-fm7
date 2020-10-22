@@ -1282,14 +1282,9 @@ int MainLoop(int argc, char *argv[])
 	rMainWindow = new META_MainWindow(using_flags, csp_logger);
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));
 	rMainWindow->setCoreApplication(GuiMain);
-	rMainWindow->getWindow()->show();
-			
-	// main loop
 	rMainWindow->LaunchEmuThread();
-#if defined(USE_JOYSTICK)
-	rMainWindow->LaunchJoyThread();
-#endif	
-//	pgl->setFixedSize(pgl->width(), pgl->height());
+
+	rMainWindow->getWindow()->show();
 	rMainWindow->retranselateUi_Depended_OSD();
 	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_update_device_node_name(int, const _TCHAR *)),
 					 rMainWindow, SLOT(do_update_device_node_name(int, const _TCHAR *)));
@@ -1318,6 +1313,11 @@ int MainLoop(int argc, char *argv[])
 	GLDrawClass *pgl = rMainWindow->getGraphicsView();
 	pgl->set_emu_launched();
 	pgl->do_set_texture_size(NULL, -1, -1);  // It's very ugly workaround (;_;) 20191028 K.Ohta
+//	pgl->setFixedSize(pgl->width(), pgl->height());
+	// main loop
+#if defined(USE_JOYSTICK)
+	rMainWindow->LaunchJoyThread();
+#endif	
 	GuiMain->exec();
 	return 0;
 }
