@@ -286,11 +286,10 @@ void DISPLAY::reset()
 	power_on_reset = false;
 	for(i = 0; i < 411 * 5; i++) vram_wrote_table[i] = false;
 	nmi_enable = true;
-#else
-# if defined(_FM8)
-	for(i = 0; i < 8; i++) set_dpalette(i, i);
-# endif
+//	for(i = 0; i < 8; i++) set_dpalette(i, i);
 #endif	
+
+	for(i = 0; i < 8; i++) set_dpalette(i, i);
 #if defined(USE_GREEN_DISPLAY) && defined(USE_MONITOR_TYPE)
 	for(i = 0; i < 8; i++) dpalette_pixel_green[i] = dpalette_green_tmp[i];
 //	memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
@@ -467,7 +466,7 @@ void DISPLAY::set_dpalette(uint32_t addr, uint8_t val)
 {
 	scrntype_t r, g, b;
 	addr &= 7;
-	if(dpalette_data[addr] != (val | 0xf8)) { 
+//	if(dpalette_data[addr] != (val | 0xf8)) { 
 		dpalette_data[addr] = val | 0xf8; //0b11111000;
 		b =  ((val & 0x01) != 0x00)? 255 : 0x00;
 		r =  ((val & 0x02) != 0x00)? 255 : 0x00;
@@ -481,7 +480,7 @@ void DISPLAY::set_dpalette(uint32_t addr, uint8_t val)
 		dpalette_green_tmp[addr] = RGB_COLOR(r, g, b);
 #endif
 		palette_changed = true;
-	}
+//	}
 }
 
 uint8_t DISPLAY::get_dpalette(uint32_t addr)
@@ -3689,27 +3688,21 @@ bool DISPLAY::process_state(FILEIO *state_fio, bool loading)
 #if defined(_FM8)
 		for(addr = 0; addr < 8; addr++) set_dpalette(addr, addr);
 		//memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
-		for(i = 0; i < 8; i++) dpalette_pixel[i] = dpalette_pixel_tmp[i];	
-  #if defined(USE_GREEN_DISPLAY)
-		//memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
-		for(i = 0; i < 8; i++) dpalette_pixel_green[i] = dpalette_green_tmp[i];	
-  #endif
 #else
-	
 		for(addr = 0; addr < 8; addr++) set_dpalette(addr, dpalette_data[addr]);
-		memcpy(dpalette_pixel, dpalette_pixel_tmp, sizeof(dpalette_pixel));
-#if defined(USE_GREEN_DISPLAY)
-		memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
-#endif
 		for(i = 0; i < 4; i++) {
 			multimode_accessflags[i] = ((multimode_accessmask & (1 << i)) != 0) ? true : false;
 			multimode_dispflags[i] = ((multimode_dispmask & (1 << i)) != 0) ? true : false;
 		}
 #endif
-#if defined(_FM77_VARIANTS)
-# if defined(_FM77L4)		
-# endif		
-#elif defined(_FM77AV_VARIANTS)
+
+		for(i = 0; i < 8; i++) dpalette_pixel[i] = dpalette_pixel_tmp[i];	
+#if defined(USE_GREEN_DISPLAY)
+		//memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
+		for(i = 0; i < 8; i++) dpalette_pixel_green[i] = dpalette_green_tmp[i];	
+#endif
+
+#if defined(_FM77AV_VARIANTS)
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX) || \
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 #endif		
@@ -3726,7 +3719,6 @@ bool DISPLAY::process_state(FILEIO *state_fio, bool loading)
 		frame_skip_count_transfer = 3;
 		need_transfer_line = true;
 #if defined(USE_GREEN_DISPLAY) && defined(USE_MONITOR_TYPE)
-		memcpy(dpalette_pixel_green, dpalette_green_tmp, sizeof(dpalette_pixel_green));
 		switch(config.monitor_type) {
 		case FM7_MONITOR_GREEN:
 			use_green_monitor = true;
