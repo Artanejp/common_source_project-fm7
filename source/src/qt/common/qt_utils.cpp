@@ -121,14 +121,14 @@ void Ui_MainWindow::rise_movie_dialog(void)
 	dlg->show();
 }
 
-void Ui_MainWindow::LaunchEmuThread(void)
+void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 {
 	QString objNameStr;
 	GLDrawClass *glv = this->getGraphicsView();
 
 	int drvs;
 	
-	hRunEmu = new EmuThreadClass(rMainWindow, using_flags);
+	hRunEmu = m;
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(hRunEmu, SIGNAL(sig_is_enable_mouse(bool)), glv, SLOT(do_set_mouse_enabled(bool)));
 	connect(glv, SIGNAL(sig_key_down(uint32_t, uint32_t, bool)), hRunEmu, SLOT(do_key_down(uint32_t, uint32_t, bool)));
@@ -1290,9 +1290,9 @@ int MainLoop(int argc, char *argv[])
 	rMainWindow->setCoreApplication(GuiMain);
 	rMainWindow->getWindow()->show();
 	rMainWindow->retranselateUi_Depended_OSD();
-	QThread::msleep(1000);
-	rMainWindow->LaunchEmuThread();
+   	EmuThreadClass hRunEmu = new EmuThreadClass(rMainWindow, using_flags);
 
+   
 	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_update_device_node_name(int, const _TCHAR *)),
 					 rMainWindow, SLOT(do_update_device_node_name(int, const _TCHAR *)));
 	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
@@ -1321,6 +1321,8 @@ int MainLoop(int argc, char *argv[])
 	pgl->do_set_texture_size(NULL, -1, -1);  // It's very ugly workaround (;_;) 20191028 K.Ohta
 //	pgl->setFixedSize(pgl->width(), pgl->height());
 	// main loop
+	rMainWindow->LaunchEmuThread(hRunEmu);
+
 #if defined(USE_JOYSTICK)
 	rMainWindow->LaunchJoyThread();
 #endif
