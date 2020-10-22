@@ -246,7 +246,6 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 	l4crtc = new HD46505(this, emu);;
 #endif
 
-	display = new DISPLAY(this, emu);
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 	if((config.dipswitch & FM7_DIPSW_CONNECT_KANJIROM) != 0) {
 		kanjiclass1 = new KANJIROM(this, emu, false);
@@ -269,7 +268,7 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 	mainio  = new FM7_MAINIO(this, emu);
 #endif
 	mainmem = new FM7_MAINMEM(this, emu);
-//	display = new DISPLAY(this, emu);
+	display = new DISPLAY(this, emu);
 
 
 # if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
