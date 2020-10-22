@@ -42,8 +42,8 @@ class FM7_MAINMEM : public DEVICE
 		void (__FASTCALL FM7_MAINMEM::*write_func)(uint32_t, uint32_t, bool);
 	} data_func_table_t;
 	
-	//data_func_table_t data_table[ADDRESS_SPACE / 0x80];
-	data_func_table_t data_table[0x100000 / 0x80];
+	data_func_table_t data_table[ADDRESS_SPACE / 0x80];
+	//data_func_table_t data_table[0x100000 / 0x80];
 #if defined(HAS_MMR)
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)	
 	data_func_table_t mmr_update_table_ext[(0x80 * 0x1000) / 0x80];
