@@ -13,6 +13,7 @@
 QT_BEGIN_NAMESPACE
 
 class USING_FLAGS;
+class EmuThreadClassBase;
 
 #ifndef _SCREEN_MODE_NUM
 #define _SCREEN_MODE_NUM 32
@@ -34,7 +35,7 @@ public:
 	//void retranslateUI_Help(void);
 	// EmuThread
 	void StopEmuThread(void);
-	void LaunchEmuThread(void);
+	void LaunchEmuThread(EmuThreadClassBase *m);
 	// JoyThread
 	void StopJoyThread(void);
 	void LaunchJoyThread(void);

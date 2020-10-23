@@ -1290,7 +1290,7 @@ int MainLoop(int argc, char *argv[])
 	rMainWindow->setCoreApplication(GuiMain);
 	rMainWindow->getWindow()->show();
 	rMainWindow->retranselateUi_Depended_OSD();
-   	EmuThreadClass hRunEmu = new EmuThreadClass(rMainWindow, using_flags);
+   	EmuThreadClass *hRunEmu = new EmuThreadClass(rMainWindow, using_flags);
 
    
 	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_update_device_node_name(int, const _TCHAR *)),

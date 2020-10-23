@@ -549,7 +549,7 @@ public:
 	virtual void initStatusBar(void);
 	// EmuThread
 	void StopEmuThread(void);
-	virtual void LaunchEmuThread(void);
+	virtual void LaunchEmuThread(EmuThreadClassBase *m);
 	// JoyThread
 	virtual void StopJoyThread(void);
 	virtual void LaunchJoyThread(void);

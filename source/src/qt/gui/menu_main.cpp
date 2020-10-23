@@ -1050,7 +1050,7 @@ void Ui_MainWindowBase::do_toggle_mouse(void)
 {
 }
 
-void Ui_MainWindowBase::LaunchEmuThread(void)
+void Ui_MainWindowBase::LaunchEmuThread(EmuThreadClassBase *m)
 {
 }
 
