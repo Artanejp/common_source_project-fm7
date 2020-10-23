@@ -1,0 +1,30 @@
+cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_llvm11.cmake" \
+      -DCMAKE_BUILD_TYPE=Relwithdebinfo \
+      -DCMAKE_C_FLAGS_RELWITHDEBINFO=" \
+      		-g \
+		-gz=zlib \
+		-O3 \
+		-msse2 \
+		-mfpmath=sse \
+ 	        -Wreserved-user-defined-literal \
+ 	        -fslp-vectorize \
+ 	        -fvectorize \
+		-fstrict-vtable-pointers \
+		-fstrict-enums \
+		" \
+      -DCMAKE_CXX_FLAGS_RELWITHDEBINFO=" \
+      		-g \
+		-gz=zlib \
+		-O3 \
+		-msse2 \
+		-mfpmath=sse \
+ 	        -Wreserved-user-defined-literal \
+ 	        -fslp-vectorize \
+ 	        -fvectorize \
+		-fstrict-vtable-pointers \
+		-fstrict-enums \
+		" \
+      -DCMAKE_EXE_LINKER_FLAGS="\
+      		-g \
+		-gz=zlib \
+		" \
