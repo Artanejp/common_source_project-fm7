@@ -36,6 +36,8 @@
 #include "../config.h"
 #include "../fileio.h"
 #include "../fifo.h"
+#include "../vm/device.h"
+
 #include "qt_input.h"
 //#include "qt_main.h"
 //#include "csp_logger.h"
@@ -111,10 +113,6 @@ void OSD_BASE::release()
 {
 }
 
-void OSD_BASE::power_off()
-{
-}
-
 void OSD_BASE::suspend()
 {
 	if(get_use_movie_player()) {
@@ -156,10 +154,6 @@ void OSD_BASE::debug_log(int level, int domain_num, const char *fmt, ...)
 	vsnprintf(strbuf, 4095, fmt, ap);
 	debug_log(level, domain_num, strbuf);
 	va_end(ap);
-}
-
-void OSD_BASE::debug_log(int level, int domain_num, char *strbuf)
-{
 }
 
 _TCHAR *OSD_BASE::get_app_path(void)
@@ -213,21 +207,6 @@ _TCHAR* OSD_BASE::application_path()
 	return app_path;
 }
 
-void OSD_BASE::vm_draw_screen(void)
-{
-
-}
-
-double OSD_BASE::vm_frame_rate(void)
-{
-	return 59.94;
-}
-
-Sint16* OSD_BASE::create_sound(int *extra_frames)
-{
-	return (Sint16 *)NULL;
-}
-
 
 bool OSD_BASE::get_use_socket(void)
 {
@@ -264,17 +243,26 @@ bool OSD_BASE::get_use_video_capture(void)
 	return false;
 }
 
+
 void OSD_BASE::vm_key_down(int code, bool flag)
 {
+	if(vm != NULL) {
+		vm->key_down(code, flag);
+	}
 }
 
 void OSD_BASE::vm_key_up(int code)
 {
+	if(vm != NULL) {
+		vm->key_up(code);
+	}
 }
 
 void OSD_BASE::vm_reset(void)
 {
-
+	if(vm != NULL) {
+		vm->reset();
+	}
 }
 
 int OSD_BASE::get_vm_buttons_code(int num)
@@ -304,10 +292,16 @@ int OSD_BASE::get_screen_height(void)
 void OSD_BASE::lock_vm(void)
 {
 	locked_vm = true;
+	if(vm_mutex != NULL) {
+		vm_mutex->lock();
+	}
 }
 
 void OSD_BASE::unlock_vm(void)
 {
+	if(vm_mutex != NULL) {
+		vm_mutex->unlock();
+	}
 	locked_vm = false;
 }
 
@@ -319,6 +313,10 @@ bool OSD_BASE::is_vm_locked(void)
 
 void OSD_BASE::force_unlock_vm(void)
 {
+	if(vm_mutex != NULL) {
+		vm_mutex->unlock();
+	}
+	locked_vm = false;
 }
 
 void OSD_BASE::set_draw_thread(DrawThreadClass *handler)
@@ -358,13 +356,33 @@ double OSD_BASE::get_window_mode_power(int mode)
 
 void OSD_BASE::reset_vm_node(void)
 {
+	device_node_t sp;
 	device_node_list.clear();
-//	p_logger->reset();
+	p_logger->reset();
 	max_vm_nodes = 0;
+	if(vm == NULL) return;
+	for(DEVICE *p = vm->first_device; p != NULL; p = p->next_device) {
+		sp.id = p->this_device_id;
+		sp.name = p->this_device_name;
+		p_logger->set_device_name(sp.id, (char *)sp.name);
+		p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL,  "Device %d :%s", sp.id, sp.name);
+		device_node_list.append(sp);
+		if(max_vm_nodes <= p->this_device_id) max_vm_nodes = p->this_device_id + 1;
+	}
+	for(DEVICE *p = vm->first_device; p != NULL; p = p->next_device) {
+		emit sig_update_device_node_name(p->this_device_id, p->this_device_name);
+	}
 }
+
+void OSD_BASE::debug_log(int level, int domain_num, char *strbuf)
+{
+	if(p_logger != NULL) p_logger->debug_log(level, domain_num, strbuf);
+}
+
 
 void OSD_BASE::set_device_name(int id, char *name)
 {
+	if(p_logger != NULL)	p_logger->set_device_name(id, (char *)name);
 }
 
 void OSD_BASE::set_vm_node(int id, const _TCHAR *name)
@@ -407,6 +425,19 @@ int OSD_BASE::get_vm_node_size(void)
 {
 	return max_vm_nodes;
 }
+
+double OSD_BASE::get_vm_current_usec()
+{
+	if(vm == NULL) return 0.0;
+	return vm->get_current_usec();
+}
+
+uint64_t OSD_BASE::get_vm_current_clock_uint64()
+{
+	if(vm == NULL) return (uint64_t)0;
+	return vm->get_current_clock_uint64();
+}
+
 
 void OSD_BASE::add_feature(const _TCHAR *key, double value)
 {
@@ -613,5 +644,37 @@ void OSD_BASE::set_hdd_image_name(int drv, _TCHAR *filename)
 {
 	QString _n = QString::fromLocal8Bit(filename);
 	emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, drv, _n);
+}
+
+// Moved from OSD_WRAPPER.
+const _TCHAR *OSD_BASE::get_lib_common_vm_version()
+{
+	if(vm->first_device != NULL) {
+		return vm->first_device->get_lib_common_vm_version();
+	} else {
+		return (const _TCHAR *)"\0";
+	}
+}
+
+const _TCHAR *OSD_BASE::get_lib_common_vm_git_version()
+{
+	return vm->get_vm_git_version();
+}
+
+
+// Screen
+void OSD_BASE::vm_draw_screen(void)
+{
+	vm->draw_screen();
+}
+
+double OSD_BASE::vm_frame_rate(void)
+{
+	return vm->get_frame_rate();
+}
+
+Sint16* OSD_BASE::create_sound(int *extra_frames)
+{
+	return (Sint16 *)vm->create_sound(extra_frames);
 }
 

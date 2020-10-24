@@ -393,10 +393,5 @@ public:
 	virtual void save_state(const _TCHAR* file_path) {}
 	virtual void load_state(const _TCHAR* file_path) {}
 
-#ifdef OSD_QT
-	// New APIs
-	virtual void load_sound_file(int id, const _TCHAR *name, int16_t **data, int *dst_size) {}
-	virtual void free_sound_file(int id, int16_t **data) {}
-#endif
 };
 

@@ -32,17 +32,6 @@ OSD::~OSD()
 {
 }
 
-void OSD::debug_log(int level, int domain_num, char *strbuf)
-{
-	if(p_logger != NULL) p_logger->debug_log(level, domain_num, strbuf);
-}
-
-
-void OSD::set_device_name(int id, char *name)
-{
-	if(p_logger != NULL)	p_logger->set_device_name(id, (char *)name);
-}
-
 void OSD::set_features_machine(void)
 {
 // GIJUTSU-HYORON-SHA Babbase-2nd
@@ -1199,9 +1188,6 @@ void OSD::initialize(int rate, int samples, int* presented_rate, int* presented_
 	initialize_printer();
 	initialize_screen();
 	initialize_sound(rate, samples, presented_rate, presented_samples);
-#if defined(USE_SOUND_FILES)
-	init_sound_files();
-#endif
 	if(get_use_movie_player() || get_use_video_capture()) initialize_video();
 	if(get_use_socket()) initialize_socket();
 
@@ -1215,13 +1201,5 @@ void OSD::release()
 	release_sound();
 	if(get_use_movie_player() || get_use_video_capture()) release_video();
 	if(get_use_socket()) release_socket();
-#if defined(USE_SOUND_FILES)
-	release_sound_files();
-#endif
-}
-
-void OSD::power_off()
-{
-	emit sig_close_window();
 }
 

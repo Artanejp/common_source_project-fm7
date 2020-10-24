@@ -46,171 +46,10 @@
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 #include "avio/movie_loader.h"
 #endif
-#if defined(USE_SOUND_FILES)
-#include "avio/sound_loader.h"
-#endif
 #include "qt_gldraw.h"
 #include "csp_logger.h"
 
 
-int OSD::get_key_name_table_size(void)
-{
-#ifdef SUPPORT_QUERY_PHY_KEY_NAME
-	if(vm != NULL) {
-		return vm->get_key_name_table_size();
-	}
-#endif
-	return 0;
-}
-	
-const _TCHAR *OSD::get_key_name_by_scancode(uint32_t scancode)
-{
-#ifdef SUPPORT_QUERY_PHY_KEY_NAME
-	if(vm != NULL) {
-		return vm->get_phy_key_name_by_scancode(scancode);
-	}
-#endif
-	return (const _TCHAR *)NULL;
-}
-
-const _TCHAR *OSD::get_key_name_by_vk(uint32_t vk)
-{
-#ifdef SUPPORT_QUERY_PHY_KEY_NAME
-	if(vm != NULL) {
-		return vm->get_phy_key_name_by_vk(vk);
-	}
-#endif
-	return (const _TCHAR *)NULL;
-}
-
-uint32_t OSD::get_scancode_by_vk(uint32_t vk)
-{
-#ifdef SUPPORT_QUERY_PHY_KEY_NAME
-	if(vm != NULL) {
-		return vm->get_scancode_by_vk(vk);
-	}
-#endif
-	return 0xffffffff;
-}
-
-uint32_t OSD::get_vk_by_scancode(uint32_t scancode)
-{
-#ifdef SUPPORT_QUERY_PHY_KEY_NAME
-	if(vm != NULL) {
-		return vm->get_vk_by_scancode(scancode);
-	}
-#endif
-	return 0xffffffff;
-}
-
-const _TCHAR *OSD::get_lib_common_vm_version()
-{
-	if(vm->first_device != NULL) {
-		return vm->first_device->get_lib_common_vm_version();
-	} else {
-		return (const _TCHAR *)"\0";
-	}
-}
-
-const _TCHAR *OSD::get_lib_common_vm_git_version()
-{
-	return vm->get_vm_git_version();
-}
-
-
-// Screen
-void OSD::vm_draw_screen(void)
-{
-	vm->draw_screen();
-}
-
-double OSD::vm_frame_rate(void)
-{
-	return vm->get_frame_rate();
-}
-
-Sint16* OSD::create_sound(int *extra_frames)
-{
-	return (Sint16 *)vm->create_sound(extra_frames);
-}
-
-
-#ifdef USE_SOUND_FILES
-void OSD::load_sound_file(int id, const _TCHAR *name, int16_t **data, int *dst_size)
-{
-	int i = 0;
-	if(data != NULL) *data = NULL;
-	if(dst_size != NULL) *dst_size = 0;
-	if(id <= 0) return;
-
-	for(i = 0; i < USE_SOUND_FILES; i++) {
-		SOUND_LOADER *p = sound_file_obj[i];
-		if(p != NULL) {
-			if(p->get_id() == id) break;
-		}
-	}
-	
-	if(i >= USE_SOUND_FILES) {
-		for(i = 0; i < USE_SOUND_FILES; i++) {
-			SOUND_LOADER *p = sound_file_obj[i];
-			if(p != NULL) {
-				if(p->get_id() < 0) {
-					p->set_id(id);
-					break;
-				}
-			}
-		}
-	}
-	if(i >= USE_SOUND_FILES) return;
-	SOUND_LOADER *p = sound_file_obj[i];
-	if(p != NULL) {
-		p->free_sound_buffer(NULL);
-		p->set_sound_rate(this->get_sound_rate());
-		if(p->open(id, QString::fromUtf8(name))) {
-			p->do_decode_frames();
-			p->close();
-			if(data != NULL) *data = (int16_t *)(p->get_sound_buffer());
-			if(dst_size != NULL) *dst_size = p->get_dst_size();
-		}
-	}
-}
-
-void OSD::free_sound_file(int id, int16_t **data)
-{
-	if(data == NULL) return;
-	for(int i = 0; i < USE_SOUND_FILES; i++) {
-		SOUND_LOADER *p = sound_file_obj[i];
-		if(p != NULL) {
-			if(p->get_id() == id) {
-				p->free_sound_buffer(*data);
-				*data = NULL;
-				break;
-			}
-		}
-	}
-}
-
-void OSD::init_sound_files()
-{
-	for(int i = 0; i < USE_SOUND_FILES; i++) {
-		sound_file_obj[i] = NULL;
-		SOUND_LOADER *p = new SOUND_LOADER((void *)tail_sound_file, p_logger);
-		if(p != NULL) {
-			sound_file_obj[i] = p;
-		}
-		tail_sound_file = p;
-	}
-}
-
-void OSD::release_sound_files()
-{
-	for(int i = 0; i < USE_SOUND_FILES; i++) {
-		SOUND_LOADER *p = sound_file_obj[i];
-		if(p != NULL) delete p;
-		sound_file_obj[i] = NULL;
-	}
-}
-#endif
 bool OSD::get_use_socket(void)
 {
 #ifdef USE_SOCKET
@@ -275,20 +114,6 @@ bool OSD::get_use_video_capture(void)
 #endif
 }
 
-void OSD::vm_key_down(int code, bool flag)
-{
-	vm->key_down(code, flag);
-}
-
-void OSD::vm_key_up(int code)
-{
-	vm->key_up(code);
-}
-
-void OSD::vm_reset(void)
-{
-	vm->reset();
-}
 
 int OSD::get_vm_buttons_code(int num)
 {
@@ -343,41 +168,6 @@ int OSD::get_screen_height(void)
 	return SCREEN_HEIGHT;
 }
 
-void OSD::lock_vm(void)
-{
-	locked_vm = true;
-	vm_mutex->lock();
-	//if(parent_thread != NULL) { 
-		//if(!parent_thread->now_debugging()) VMSemaphore->acquire(1);
-		//VMSemaphore->acquire(1);
-	//} else {
-	//	VMSemaphore->acquire(1);
-	//}
-}
-
-void OSD::unlock_vm(void)
-{
-	vm_mutex->unlock();
-	//if(parent_thread != NULL) { 
-	//	//if(!parent_thread->now_debugging()) VMSemaphore->release(1);
-	//	VMSemaphore->release(1);
-	//} else {
-	//	VMSemaphore->release(1);
-	//}
-	locked_vm = false;
-}
-
-
-bool OSD::is_vm_locked(void)
-{
-	return locked_vm;
-}
-
-void OSD::force_unlock_vm(void)
-{
-	vm_mutex->unlock();
-	locked_vm = false;
-}
 
 void OSD::set_draw_thread(DrawThreadClass *handler)
 {
@@ -557,25 +347,6 @@ int OSD::get_movie_sound_rate()
 	return movie_loader->get_movie_sound_rate();
 #endif
 	return 44100;
-}
-
-void OSD::reset_vm_node()
-{
-	device_node_t sp;
-	device_node_list.clear();
-	p_logger->reset();
-	max_vm_nodes = 0;
-	for(DEVICE *p = vm->first_device; p != NULL; p = p->next_device) {
-		sp.id = p->this_device_id;
-		sp.name = p->this_device_name;
-		p_logger->set_device_name(sp.id, (char *)sp.name);
-		p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL,  "Device %d :%s", sp.id, sp.name);
-		device_node_list.append(sp);
-		if(max_vm_nodes <= p->this_device_id) max_vm_nodes = p->this_device_id + 1;
-	}
-	for(DEVICE *p = vm->first_device; p != NULL; p = p->next_device) {
-		emit sig_update_device_node_name(p->this_device_id, p->this_device_name);
-	}
 }
 
 #if defined(USE_SOCKET)
@@ -1078,14 +849,3 @@ int OSD::add_video_frames()
 	return counter;
 }
 
-double OSD::get_vm_current_usec()
-{
-	if(vm == NULL) return 0.0;
-	return vm->get_current_usec();
-}
-
-uint64_t OSD::get_vm_current_clock_uint64()
-{
-	if(vm == NULL) return (uint64_t)0;
-	return vm->get_current_clock_uint64();
-}

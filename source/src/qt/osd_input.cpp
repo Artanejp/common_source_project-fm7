@@ -874,6 +874,9 @@ int OSD_BASE::get_mouse_button()
 
 int OSD_BASE::get_key_name_table_size(void)
 {
+	if(vm != NULL) {
+		return vm->get_key_name_table_size();
+	}
 	return 0;
 }
 
@@ -893,21 +896,33 @@ void OSD_BASE::update_keyname_table(void)
 	
 const _TCHAR *OSD_BASE::get_key_name_by_scancode(uint32_t scancode)
 {
+	if(vm != NULL) {
+		return vm->get_phy_key_name_by_scancode(scancode);
+	}
 	return (const _TCHAR *)NULL;
 }
 
 const _TCHAR *OSD_BASE::get_key_name_by_vk(uint32_t vk)
 {
+	if(vm != NULL) {
+		return vm->get_phy_key_name_by_vk(vk);
+	}
 	return (const _TCHAR *)NULL;
 }
 
 uint32_t OSD_BASE::get_scancode_by_vk(uint32_t vk)
 {
+	if(vm != NULL) {
+		return vm->get_scancode_by_vk(vk);
+	}
 	return 0xffffffff;
 }
 
 uint32_t OSD_BASE::get_vk_by_scancode(uint32_t scancode)
 {
+	if(vm != NULL) {
+		return vm->get_vk_by_scancode(scancode);
+	}
 	return 0xffffffff;
 }
 

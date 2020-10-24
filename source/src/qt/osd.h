@@ -42,8 +42,6 @@ private:
 protected:
 	GLDrawClass *p_glv;
 	
-	void vm_draw_screen(void);
-	Sint16* create_sound(int *extra_frames);
 	bool get_use_socket(void);
 	bool get_use_auto_key(void);
 	bool get_dont_keeep_key_pressed(void);
@@ -51,9 +49,6 @@ protected:
 	bool get_use_screen_rotate(void);
 	bool get_use_movie_player(void);
 	bool get_use_video_capture(void);
-	void vm_key_down(int code, bool flag);
-	void vm_key_up(int code);
-	void vm_reset(void);
 	void update_buttons(bool press_flag, bool release_flag);
 	int get_screen_width(void);
 	int get_screen_height(void);
@@ -68,26 +63,11 @@ protected:
 	QTcpSocket2 *tcp_socket[SOCKET_MAX];
 	QUdpSocket2 *udp_socket[SOCKET_MAX];
 
-#ifdef USE_SOUND_FILES
-	SOUND_LOADER *tail_sound_file;
-	SOUND_LOADER *sound_file_obj[USE_SOUND_FILES];
-	
-	void init_sound_files();
-	void release_sound_files();
-#endif
 public:
 	OSD(USING_FLAGS *p, CSP_Logger *logger);
 	~OSD();
 	void initialize(int rate, int samples, int* presented_rate, int* presented_samples);
 	void release();
-	void power_off();
-
-	// Wrapper
-	// Locker
-	void lock_vm(void);
-	void unlock_vm(void);
-	void force_unlock_vm(void);
-	bool is_vm_locked(void);
 
 	// Screen
 	void set_draw_thread(DrawThreadClass *handler);
@@ -97,7 +77,6 @@ public:
 	int get_window_mode_height(int mode);
 	double get_window_mode_power(int mode);
 	QString get_vm_config_name(void);
-	double vm_frame_rate(void);
 
 	// Movie/Video
 	void get_video_buffer();
@@ -107,22 +86,12 @@ public:
 	void close_movie_file();
 	uint32_t get_cur_movie_frame();
 	int get_movie_sound_rate();
-
 	
 	int draw_screen();
 	bool set_glview(GLDrawClass *glv);
 	GLDrawClass *get_gl_view() { return p_glv; }
 	int add_video_frames();
 
-	// Misc
-	void reset_vm_node(void);
-	const _TCHAR *get_lib_common_vm_version();
-	const _TCHAR *get_lib_common_vm_git_version();
-	int get_key_name_table_size(void);
-	uint32_t get_scancode_by_vk(uint32_t vk);
-	uint32_t get_vk_by_scancode(uint32_t scancode);
-	const _TCHAR *get_key_name_by_scancode(uint32_t scancode);
-	const _TCHAR *get_key_name_by_vk(uint32_t vk);
 	
 	// Socket
 	void initialize_socket();
@@ -141,14 +110,6 @@ public:
 	void recv_socket_data(int ch);
 	SOCKET get_socket(int ch);
 
-	// Sound
-#ifdef USE_SOUND_FILES
-	void load_sound_file(int id, const _TCHAR *name, int16_t **data, int *dst_size);
-	void free_sound_file(int id, int16_t **data);
-#endif
-	void debug_log(int level, int domain_num, char *strbuf);
-	double get_vm_current_usec();
-	uint64_t get_vm_current_clock_uint64();
    
 public slots:
 	void do_decode_movie(int frames);

@@ -333,8 +333,9 @@ protected:
 	// wrapper
 	int max_vm_nodes;
 	QList<device_node_t> device_node_list;
-	virtual void vm_draw_screen(void);
-	virtual Sint16* create_sound(int *extra_frames);
+	void vm_draw_screen(void);
+	Sint16* create_sound(int *extra_frames);
+	
 	virtual bool get_use_socket(void);
 	virtual bool get_use_auto_key(void);
 	virtual bool get_dont_keeep_key_pressed(void);
@@ -342,16 +343,14 @@ protected:
 	virtual bool get_use_screen_rotate(void);
 	virtual bool get_use_movie_player(void);
 	virtual bool get_use_video_capture(void);
-	virtual void vm_key_down(int code, bool flag);
-	virtual void vm_key_up(int code);
-	virtual void vm_reset(void);
+	void vm_key_down(int code, bool flag);
+	void vm_key_up(int code);
+	void vm_reset(void);
 	virtual void update_buttons(bool press_flag, bool release_flag);
 	virtual int get_screen_width(void);
 	virtual int get_screen_height(void);
 	virtual int get_vm_buttons_code(int num);
 
-	virtual void init_sound_files();
-	virtual void release_sound_files();
 public:
 	OSD_BASE(USING_FLAGS *p, CSP_Logger *logger);
 	~OSD_BASE();
@@ -412,7 +411,7 @@ public:
 	}
 
 	virtual void release();
-	virtual void power_off();
+	void power_off();
 	void suspend();
 	void restore();
 	_TCHAR* application_path();
@@ -519,10 +518,6 @@ public:
 	bool open_sound_capture_device(int num, int req_rate, int req_channels);
 	bool close_sound_capture_device(int num, bool force);
 
-	// Wrapper : Sound
-	virtual void load_sound_file(int id, const _TCHAR *name, int16_t **data, int *dst_size);
-	virtual void free_sound_file(int id, int16_t **data);
-	
 	// common video device
 	virtual void get_video_buffer();
 	void mute_video_dev(bool l, bool r);
@@ -564,6 +559,7 @@ public:
 
 	void stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width, int dest_height, bitmap_t *source, int source_x, int source_y, int source_width, int source_height);
 	void write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path);
+	double vm_frame_rate(void);
 
 	// common socket
 	virtual SOCKET get_socket(int ch);
@@ -587,30 +583,31 @@ public:
 
 	_TCHAR *console_input_string(void);
 	void clear_console_input_string(void);
-	// Wrapper
-	virtual void lock_vm(void);
-	virtual void unlock_vm(void);
-	virtual void force_unlock_vm(void);
-	virtual bool is_vm_locked(void);
-	virtual void set_draw_thread(DrawThreadClass *handler);
-	virtual QString get_vm_config_name(void);
-	virtual double vm_frame_rate(void);
-	virtual void reset_vm_node(void);
-	virtual const _TCHAR *get_lib_common_vm_version() { return (const _TCHAR *)"\0"; }
-	virtual const _TCHAR *get_lib_common_vm_git_version() { return (const _TCHAR *)"\0"; }
+	
+	void lock_vm(void);
+	void unlock_vm(void);
+	void force_unlock_vm(void);
+	bool is_vm_locked(void);
+	const _TCHAR *get_lib_common_vm_version();
+	const _TCHAR *get_lib_common_vm_git_version();
 	const _TCHAR *get_lib_osd_version();
 	
-	virtual void set_device_name(int id, char *name);
+	// Wrapper
+	virtual void set_draw_thread(DrawThreadClass *handler);
+	virtual QString get_vm_config_name(void);
+	void reset_vm_node(void);
 	
-	virtual void set_vm_node(int id, const _TCHAR *name);
-	virtual const _TCHAR *get_vm_node_name(int id);
-	virtual int get_vm_node_size(void);
+	void set_device_name(int id, char *name);
 	
-	virtual int get_key_name_table_size(void);
-	virtual uint32_t get_scancode_by_vk(uint32_t vk);
-	virtual uint32_t get_vk_by_scancode(uint32_t scancode);
-	virtual const _TCHAR *get_key_name_by_scancode(uint32_t scancode);
-	virtual const _TCHAR *get_key_name_by_vk(uint32_t vk);
+	void set_vm_node(int id, const _TCHAR *name);
+	const _TCHAR *get_vm_node_name(int id);
+	int get_vm_node_size(void);
+	
+	int get_key_name_table_size(void);
+	uint32_t get_scancode_by_vk(uint32_t vk);
+	uint32_t get_vk_by_scancode(uint32_t scancode);
+	const _TCHAR *get_key_name_by_scancode(uint32_t scancode);
+	const _TCHAR *get_key_name_by_vk(uint32_t vk);
 	
 	// Get #define S to value.You may use inside of VM/ .
 	virtual void set_features(void) {}
@@ -639,10 +636,10 @@ public:
 
 	void debug_log(int level, const char *fmt, ...);
 	void debug_log(int level, int domain_num, const char *fmt, ...);
-	virtual double get_vm_current_usec() { return 0.0; }
-	virtual uint64_t get_vm_current_clock_uint64() { return 0; }
+	void debug_log(int level, int domain_num, char *strbuf);
+	double get_vm_current_usec();
+	uint64_t get_vm_current_clock_uint64();
 	
-	virtual void debug_log(int level, int domain_num, char *strbuf);
 
 	USING_FLAGS *get_config_flags(void) { return using_flags; }
 

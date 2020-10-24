@@ -464,3 +464,8 @@ void OSD_BASE::reload_bitmap()
 	first_invalidate = true;
 }
 
+void OSD_BASE::power_off()
+{
+	emit sig_close_window();
+}
+
