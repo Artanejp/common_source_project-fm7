@@ -588,7 +588,7 @@ void OSD_BASE::finish_waiting_in_debugger()
 void OSD_BASE::process_waiting_in_debugger()
 {
 	// ToDo: Check sequence
-	this->msleep(10);
+	QThread::msleep(10);
 }
 
 void OSD_BASE::set_dbg_completion_list(std::list<std::string> *p)
