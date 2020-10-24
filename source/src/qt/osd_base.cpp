@@ -43,7 +43,7 @@
 #include "gui/dock_disks.h"
 #include "../vm/vm_template.h"
 
-OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QThread(0)
+OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QObject(0)
 {
 	using_flags = p;
 	vm_mutex = new QMutex(QMutex::Recursive);

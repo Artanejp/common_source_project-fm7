@@ -153,7 +153,7 @@ typedef struct {
 	uint8_t *out_buffer;
 } osd_snd_capture_desc_t;
 
-class DLL_PREFIX OSD_BASE : public QThread
+class DLL_PREFIX OSD_BASE : public /*QThread*/ QObject
 {
 	Q_OBJECT
 protected:
