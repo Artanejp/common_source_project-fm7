@@ -159,8 +159,7 @@ add_library(CSPgui SHARED
 	  )
 
 target_link_libraries(CSPgui 
-	  PRIVATE CSPosd
-	  #	  ${LIBAV_LIBRARIES}
+	  PRIVATE 	  CSPosd
 	  CSPavio
 	  CSPemu_utils
 	  Qt5::Core

@@ -426,18 +426,6 @@ int OSD_BASE::get_vm_node_size(void)
 	return max_vm_nodes;
 }
 
-double OSD_BASE::get_vm_current_usec()
-{
-	if(vm == NULL) return 0.0;
-	return vm->get_current_usec();
-}
-
-uint64_t OSD_BASE::get_vm_current_clock_uint64()
-{
-	if(vm == NULL) return (uint64_t)0;
-	return vm->get_current_clock_uint64();
-}
-
 
 void OSD_BASE::add_feature(const _TCHAR *key, double value)
 {
