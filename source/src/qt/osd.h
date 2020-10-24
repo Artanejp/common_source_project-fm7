@@ -77,6 +77,8 @@ public:
 	int get_window_mode_height(int mode);
 	double get_window_mode_power(int mode);
 	QString get_vm_config_name(void);
+	void reset_vm_node(void);
+	const _TCHAR *get_lib_common_vm_version();
 
 	// Movie/Video
 	void get_video_buffer();

@@ -360,18 +360,6 @@ void OSD_BASE::reset_vm_node(void)
 	device_node_list.clear();
 	p_logger->reset();
 	max_vm_nodes = 0;
-	if(vm == NULL) return;
-	for(DEVICE *p = vm->first_device; p != NULL; p = p->next_device) {
-		sp.id = p->this_device_id;
-		sp.name = p->this_device_name;
-		p_logger->set_device_name(sp.id, (char *)sp.name);
-		p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL,  "Device %d :%s", sp.id, sp.name);
-		device_node_list.append(sp);
-		if(max_vm_nodes <= p->this_device_id) max_vm_nodes = p->this_device_id + 1;
-	}
-	for(DEVICE *p = vm->first_device; p != NULL; p = p->next_device) {
-		emit sig_update_device_node_name(p->this_device_id, p->this_device_name);
-	}
 }
 
 void OSD_BASE::debug_log(int level, int domain_num, char *strbuf)
@@ -637,11 +625,7 @@ void OSD_BASE::set_hdd_image_name(int drv, _TCHAR *filename)
 // Moved from OSD_WRAPPER.
 const _TCHAR *OSD_BASE::get_lib_common_vm_version()
 {
-	if(vm->first_device != NULL) {
-		return vm->first_device->get_lib_common_vm_version();
-	} else {
-		return (const _TCHAR *)"\0";
-	}
+	return (const _TCHAR *)"\0";
 }
 
 const _TCHAR *OSD_BASE::get_lib_common_vm_git_version()

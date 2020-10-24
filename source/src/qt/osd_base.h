@@ -588,14 +588,14 @@ public:
 	void unlock_vm(void);
 	void force_unlock_vm(void);
 	bool is_vm_locked(void);
-	const _TCHAR *get_lib_common_vm_version();
+	virtual const _TCHAR *get_lib_common_vm_version();
 	const _TCHAR *get_lib_common_vm_git_version();
 	const _TCHAR *get_lib_osd_version();
 	
 	// Wrapper
 	virtual void set_draw_thread(DrawThreadClass *handler);
 	virtual QString get_vm_config_name(void);
-	void reset_vm_node(void);
+	virtual void reset_vm_node(void);
 	
 	void set_device_name(int id, char *name);
 	
