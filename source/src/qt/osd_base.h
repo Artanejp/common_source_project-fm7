@@ -12,7 +12,7 @@
 
 
 #include <QList>
-#include <QThread>
+#include <QObject>
 #include <QString>
 #include <QStringList>
 #include <QImage>
@@ -153,7 +153,7 @@ typedef struct {
 	uint8_t *out_buffer;
 } osd_snd_capture_desc_t;
 
-class DLL_PREFIX OSD_BASE : public /*QThread*/ QObject
+class DLL_PREFIX OSD_BASE : public  QObject
 {
 	Q_OBJECT
 protected:
