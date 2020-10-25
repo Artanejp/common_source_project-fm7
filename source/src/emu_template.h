@@ -60,6 +60,41 @@ typedef struct {
 class DLL_PREFIX EMU_TEMPLATE {
 protected:
 	OSD_BASE* osd;
+
+	_TCHAR app_path[_MAX_PATH];
+	// misc
+	int sound_frequency, sound_latency;
+	int sound_rate, sound_samples;
+	
+	int cpu_type;
+	uint32_t dipswitch;
+	int sound_type;
+	int printer_type;
+	
+	bool now_suspended;
+	// input
+	FIFO* auto_key_buffer;
+	int auto_key_phase, auto_key_shift;
+	bool shift_pressed;
+	
+	uint32_t joy_status[4];
+
+	typedef struct {
+		_TCHAR path[_MAX_PATH];
+		bool play;
+		int bank;
+		int wait_count;
+	} media_status_t;
+	
+	media_status_t cart_status[16];
+	media_status_t floppy_disk_status[16];
+	media_status_t quick_disk_status[16];
+	media_status_t hard_disk_status[16];
+	media_status_t tape_status[16];
+	media_status_t compact_disc_status[16];
+	media_status_t laser_disc_status[16];
+	media_status_t bubble_casette_status[16];
+
 private:
 	uint8_t dummy_key_buffer[256];
 	uint32_t dummy_joy_buffer[8];
@@ -84,6 +119,37 @@ public:
 		now_debugging = false;
 		memset(&debugger_thread_param, 0x00, sizeof(debugger_thread_t));
 
+		memset(app_path, 0x00, sizeof(app_path));
+		
+		sound_frequency = 44100;
+		sound_latency = 100;
+		sound_rate = 44100;
+		sound_samples = 4410;
+	
+		cpu_type = 0;
+		dipswitch = 0x00000000;
+		sound_type = 0;
+		printer_type = 0;
+		
+		now_suspended = false;
+		
+		auto_key_buffer = NULL;
+		auto_key_phase = 0;
+		auto_key_shift = 0;
+		shift_pressed = false;
+		
+		memset(joy_status, 0x00, sizeof(joy_status));
+		for(int i = 0; i < 16; i++) {
+			memset(&(cart_status[i]), 0x00, sizeof(media_status_t));
+			memset(&(floppy_disk_status[i]), 0x00, sizeof(media_status_t));
+			memset(&(quick_disk_status[i]), 0x00, sizeof(media_status_t));
+			memset(&(hard_disk_status[i]), 0x00, sizeof(media_status_t));
+			memset(&(tape_status[i]), 0x00, sizeof(media_status_t));
+			memset(&(compact_disc_status[i]), 0x00, sizeof(media_status_t));
+			memset(&(laser_disc_status[i]), 0x00, sizeof(media_status_t));
+			memset(&(bubble_casette_status[i]), 0x00, sizeof(media_status_t));
+		}
+		
 #if defined(OSD_QT)
 		debugger_thread_id = (pthread_t)0;
 		hDebugger = NULL;
@@ -311,6 +377,12 @@ public:
 
 	// media
 	// floppy disk
+	struct {
+		_TCHAR path[_MAX_PATH];
+		_TCHAR disk_name[64][128];  // Convert to UTF8
+ 		int bank_num;
+		int cur_bank;
+	} d88_file[16];
 	virtual bool create_blank_floppy_disk(const _TCHAR* file_path, uint8_t type) { return false;}
 	virtual void open_floppy_disk(int drv, const _TCHAR* file_path, int bank) {}
 	virtual void close_floppy_disk(int drv) {}
@@ -374,6 +446,12 @@ public:
 	virtual void save_binary(int drv, const _TCHAR* file_path) {}
 
 	// bubble casette
+	struct {
+		_TCHAR path[_MAX_PATH];
+		_TCHAR bubble_name[16][128];  // Convert to UTF8
+ 		int bank_num;
+		int cur_bank;
+	} b77_file[16];
 	virtual void open_bubble_casette(int drv, const _TCHAR* file_path, int bank) {}
 	virtual void close_bubble_casette(int drv) {}
 	virtual bool is_bubble_casette_inserted(int drv) { return false; }

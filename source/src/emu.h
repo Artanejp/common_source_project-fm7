@@ -63,34 +63,13 @@ class EMU : public EMU_TEMPLATE
 protected:
 	VM* vm;
 private:
-	_TCHAR app_path[_MAX_PATH];
 	// debugger
 #ifdef USE_DEBUGGER
 	void initialize_debugger();
 	void release_debugger();
 #endif
-	
-	// misc
-	int sound_frequency, sound_latency;
-	int sound_rate, sound_samples;
-#ifdef USE_CPU_TYPE
-	int cpu_type;
-#endif
-#ifdef USE_DIPSWITCH
-	uint32_t dipswitch;
-#endif
-#ifdef USE_SOUND_TYPE
-	int sound_type;
-#endif
-#ifdef USE_PRINTER_TYPE
-	int printer_type;
-#endif
-	bool now_suspended;
 	// input
 #ifdef USE_AUTO_KEY
-	FIFO* auto_key_buffer;
-	int auto_key_phase, auto_key_shift;
-	bool shift_pressed;
 	void initialize_auto_key();
 	void release_auto_key();
 	int get_auto_key_code(int code);
@@ -98,43 +77,10 @@ private:
 	void update_auto_key();
 #endif
 #ifdef USE_JOYSTICK
-	uint32_t joy_status[4];
 	void update_joystick();
 #endif
 	
 	// media
-	typedef struct {
-		_TCHAR path[_MAX_PATH];
-		bool play;
-		int bank;
-		int wait_count;
-	} media_status_t;
-	
-#ifdef USE_CART
-	media_status_t cart_status[USE_CART];
-#endif
-#ifdef USE_FLOPPY_DISK
-	media_status_t floppy_disk_status[USE_FLOPPY_DISK];
-#endif
-#ifdef USE_QUICK_DISK
-	media_status_t quick_disk_status[USE_QUICK_DISK];
-#endif
-#ifdef USE_HARD_DISK
-	media_status_t hard_disk_status[USE_HARD_DISK];
-#endif
-#ifdef USE_TAPE
-	media_status_t tape_status[USE_TAPE];
-#endif
-#ifdef USE_COMPACT_DISC
-	media_status_t compact_disc_status[USE_COMPACT_DISC];
-#endif
-#ifdef USE_LASER_DISC
-	media_status_t laser_disc_status[USE_LASER_DISC];
-#endif
-#ifdef USE_BUBBLE
-	media_status_t bubble_casette_status[USE_BUBBLE];
-#endif
-	
 	void initialize_media();
 	void update_media();
 	void restore_media();
@@ -369,12 +315,6 @@ public:
 	
 	// media
 #ifdef USE_FLOPPY_DISK
-	struct {
-		_TCHAR path[_MAX_PATH];
-		_TCHAR disk_name[MAX_D88_BANKS][128];  // Convert to UTF8
- 		int bank_num;
-		int cur_bank;
-	} d88_file[USE_FLOPPY_DISK];
 	bool create_blank_floppy_disk(const _TCHAR* file_path, uint8_t type);
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
@@ -438,12 +378,6 @@ public:
 	void save_binary(int drv, const _TCHAR* file_path);
 #endif
 #ifdef USE_BUBBLE
-	struct {
-		_TCHAR path[_MAX_PATH];
-		_TCHAR bubble_name[MAX_B77_BANKS][128];  // Convert to UTF8
- 		int bank_num;
-		int cur_bank;
-	} b77_file[USE_BUBBLE];
 	void open_bubble_casette(int drv, const _TCHAR* file_path, int bank);
 	void close_bubble_casette(int drv);
 	bool is_bubble_casette_inserted(int drv);

@@ -14,11 +14,11 @@
 
 #include <SDL.h>
 
-#include "emu_thread.h"
+#include "../gui/emu_thread_tmpl.h"
 
 #include "qt_gldraw.h"
 #include "csp_logger.h"
-#include "menu_flags.h"
+#include "../gui/menu_flags.h"
 #include "dock_disks.h"
 // buttons
 #ifdef MAX_BUTTONS
@@ -447,9 +447,10 @@ const int auto_key_table_50on_base[][2] = {
 	{-1, -1},
 };
 
-void EmuThreadClass::do_start_auto_key(QString ctext)
+void EmuThreadClassBase::do_start_auto_key(QString ctext)
 {
-#ifdef USE_AUTO_KEY
+	//QMutexLocker _locker(&uiMutex);
+	
 	if(using_flags->is_use_auto_key()) {
 		QTextCodec *codec = QTextCodec::codecForName("Shift-Jis");
 		QByteArray array;
@@ -480,40 +481,44 @@ void EmuThreadClass::do_start_auto_key(QString ctext)
 			p_emu->start_auto_key();
 		}
 	}
-#endif	
+
 }
 
-void EmuThreadClass::do_stop_auto_key(void)
+void EmuThreadClassBase::do_stop_auto_key(void)
 {
+	//QMutexLocker _locker(&uiMutex);
 	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL,
 	//					  "AutoKey: stop\n");
-#if defined(USE_AUTO_KEY)   
-	p_emu->stop_auto_key();
-#endif   
+	if(using_flags->is_use_auto_key()) {
+		p_emu->stop_auto_key();
+	}
 }
 
-void EmuThreadClass::do_write_protect_disk(int drv, bool flag)
+void EmuThreadClassBase::do_write_protect_disk(int drv, bool flag)
 {
-#ifdef USE_FLOPPY_DISK
-	p_emu->is_floppy_disk_protected(drv, flag);
-#endif	
+	//QMutexLocker _locker(&uiMutex);
+	if(using_flags->is_use_fd()) {
+		p_emu->is_floppy_disk_protected(drv, flag);
+	}
 }
 
-void EmuThreadClass::do_close_disk(int drv)
+void EmuThreadClassBase::do_close_disk(int drv)
 {
-#ifdef USE_FLOPPY_DISK
-	p_emu->close_floppy_disk(drv);
-	p_emu->d88_file[drv].bank_num = 0;
-	p_emu->d88_file[drv].cur_bank = -1;
-	fd_open_wait_count[drv] = (int)(get_emu_frame_rate() * 1.0);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, drv, QString::fromUtf8(""));
-#endif	
+	//QMutexLocker _locker(&uiMutex);
+	if(using_flags->is_use_fd()) {
+		p_emu->close_floppy_disk(drv);
+		p_emu->d88_file[drv].bank_num = 0;
+		p_emu->d88_file[drv].cur_bank = -1;
+		fd_open_wait_count[drv] = (int)(get_emu_frame_rate() * 1.0);
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, drv, QString::fromUtf8(""));
+	}
 }
 
-void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
+void EmuThreadClassBase::do_open_disk(int drv, QString path, int bank)
 {
-#ifdef USE_FLOPPY_DISK
-
+	if(!(using_flags->is_use_fd())) return;
+	
+	//QMutexLocker _locker(&uiMutex);
 	if(fd_open_wait_count[drv] > 0) {
 		fd_reserved_path[drv] = path.toUtf8();
 		fd_reserved_bank[drv] = bank;
@@ -531,7 +536,7 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 			try {
 				fio->Fseek(0, FILEIO_SEEK_END);
 				int file_size = fio->Ftell(), file_offset = 0;
-				while(file_offset + 0x2b0 <= file_size && p_emu->d88_file[drv].bank_num < MAX_D88_BANKS) {
+				while(file_offset + 0x2b0 <= file_size && p_emu->d88_file[drv].bank_num < using_flags->get_max_d88_banks()) {
 					fio->Fseek(file_offset, FILEIO_SEEK_SET);
 					char tmp[18];
 					memset(tmp, 0x00, sizeof(tmp));
@@ -554,7 +559,7 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 			}
 			past_update = true;
 		   	fio->Fclose();
-			if(((drv + 1) < USE_FLOPPY_DISK) && ((bank + 1) < p_emu->d88_file[drv].bank_num)) {
+			if(((drv + 1) < using_flags->get_max_drive()) && ((bank + 1) < p_emu->d88_file[drv].bank_num)) {
 				multiple_disk = true;
 			}
 		}
@@ -573,199 +578,225 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 	if(past_update) {
 		emit sig_update_d88_list(drv, bank);
 	}
-#endif	
+
 }
-void EmuThreadClass::do_play_tape(int drv, QString name)
+void EmuThreadClassBase::do_play_tape(int drv, QString name)
 {
-#if defined(USE_TAPE)
-	p_emu->play_tape(drv, name.toLocal8Bit().constData());
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, name);
-#endif
+	if(using_flags->is_use_tape()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->play_tape(drv, name.toLocal8Bit().constData());
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, name);
+	}
 }
 
-void EmuThreadClass::do_rec_tape(int drv, QString name)
+void EmuThreadClassBase::do_rec_tape(int drv, QString name)
 {
-#if defined(USE_TAPE)
-	p_emu->rec_tape(drv, name.toLocal8Bit().constData());
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, name);
-#endif
+	if(using_flags->is_use_tape()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->rec_tape(drv, name.toLocal8Bit().constData());
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, name);
+	}
 }
 
-void EmuThreadClass::do_close_tape(int drv)
+void EmuThreadClassBase::do_close_tape(int drv)
 {
-#if defined(USE_TAPE)
-	p_emu->close_tape(drv);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, QString::fromUtf8(""));
-#endif
+	if(using_flags->is_use_tape()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->close_tape(drv);
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, QString::fromUtf8(""));
+	}
 }
 
-void EmuThreadClass::do_cmt_push_play(int drv)
+void EmuThreadClassBase::do_cmt_push_play(int drv)
 {
-#ifdef USE_TAPE
-	p_emu->push_play(drv);
-#endif
+	if(using_flags->is_use_tape()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->push_play(drv);
+	}
 }
 
-void EmuThreadClass::do_cmt_push_stop(int drv)
+void EmuThreadClassBase::do_cmt_push_stop(int drv)
 {
-#ifdef USE_TAPE
-	p_emu->push_stop(drv);
-#endif
+	if(using_flags->is_use_tape()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->push_stop(drv);
+	}
 }
 
-void EmuThreadClass::do_cmt_push_fast_forward(int drv)
+void EmuThreadClassBase::do_cmt_push_fast_forward(int drv)
 {
-#ifdef USE_TAPE
-	p_emu->push_fast_forward(drv);
-#endif
+	if(using_flags->is_use_tape()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->push_fast_forward(drv);
+	}
 }
 
-void EmuThreadClass::do_cmt_push_fast_rewind(int drv)
+void EmuThreadClassBase::do_cmt_push_fast_rewind(int drv)
 {
-#ifdef USE_TAPE
-	p_emu->push_fast_rewind(drv);
-#endif
+	if(using_flags->is_use_tape()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->push_fast_rewind(drv);
+	}
 }
 
-void EmuThreadClass::do_cmt_push_apss_forward(int drv)
+void EmuThreadClassBase::do_cmt_push_apss_forward(int drv)
 {
-#ifdef USE_TAPE
-	p_emu->push_apss_forward(drv);
-#endif
+	if(using_flags->is_use_tape()) {
+		////QMutexLocker _locker(&uiMutex);
+		p_emu->push_apss_forward(drv);
+	}
 }
 
-void EmuThreadClass::do_cmt_push_apss_rewind(int drv)
+void EmuThreadClassBase::do_cmt_push_apss_rewind(int drv)
 {
-#ifdef USE_TAPE
-	p_emu->push_apss_rewind(drv);
-#endif
-}
-
-
-void EmuThreadClass::do_write_protect_quickdisk(int drv, bool flag)
-{
-#ifdef USE_QUICK_DISK
-	//p_emu->write_protect_Qd(drv, flag);
-#endif	
-}
-
-void EmuThreadClass::do_close_quickdisk(int drv)
-{
-#ifdef USE_QUICK_DISK
-	p_emu->close_quick_disk(drv);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_QD, drv, QString::fromUtf8(""));
-#endif	
-}
-
-void EmuThreadClass::do_open_quickdisk(int drv, QString path)
-{
-#ifdef USE_QUICK_DISK
-	p_emu->open_quick_disk(drv, path.toLocal8Bit().constData());
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_QD, drv, path);
-#endif	
-}
-
-void EmuThreadClass::do_open_cdrom(int drv, QString path)
-{
-#ifdef USE_COMPACT_DISC
-	p_emu->open_compact_disc(drv, path.toLocal8Bit().constData());
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_CD, drv, path);
-#endif	
-}
-void EmuThreadClass::do_eject_cdrom(int drv)
-{
-#ifdef USE_COMPACT_DISC
-	p_emu->close_compact_disc(drv);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_CD, drv, QString::fromUtf8(""));
-#endif	
-}
-
-void EmuThreadClass::do_close_hard_disk(int drv)
-{
-#ifdef USE_HARD_DISK
-	p_emu->close_hard_disk(drv);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, drv, QString::fromUtf8(""));
-#endif	
-}
-
-void EmuThreadClass::do_open_hard_disk(int drv, QString path)
-{
-#ifdef USE_HARD_DISK
-	p_emu->open_hard_disk(drv, path.toLocal8Bit().constData());
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, drv, path);
-#endif	
-}
-
-void EmuThreadClass::do_close_cart(int drv)
-{
-#ifdef USE_CART
-	p_emu->close_cart(drv);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_Cart, drv, QString::fromUtf8(""));
-#endif	
-}
-
-void EmuThreadClass::do_open_cart(int drv, QString path)
-{
-#ifdef USE_CART
-	p_emu->open_cart(drv, path.toLocal8Bit().constData());
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_Cart, drv, path);
-#endif	
+	if(using_flags->is_use_tape()) {
+		////QMutexLocker _locker(&uiMutex);
+		p_emu->push_apss_rewind(drv);
+	}
 }
 
 
-void EmuThreadClass::do_close_laser_disc(int drv)
+void EmuThreadClassBase::do_write_protect_quickdisk(int drv, bool flag)
 {
-#ifdef USE_LASER_DISC
-	p_emu->close_laser_disc(drv);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, drv, QString::fromUtf8(""));
-#endif
+	if(using_flags->is_use_qd()) {
+		////QMutexLocker _locker(&uiMutex);
+		//p_emu->write_protect_Qd(drv, flag);
+	}
 }
 
-void EmuThreadClass::do_open_laser_disc(int drv, QString path)
+void EmuThreadClassBase::do_close_quickdisk(int drv)
 {
-#ifdef USE_LASER_DISC
-	p_emu->open_laser_disc(drv, path.toLocal8Bit().constData());
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, drv, path);
-#endif	
+	if(using_flags->is_use_qd()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->close_quick_disk(drv);
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_QD, drv, QString::fromUtf8(""));
+	}
 }
 
-void EmuThreadClass::do_load_binary(int drv, QString path)
+void EmuThreadClassBase::do_open_quickdisk(int drv, QString path)
 {
-#ifdef USE_BINARY_FILE
-	p_emu->load_binary(drv, path.toLocal8Bit().constData());
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, drv, path);
-#endif	
+	if(using_flags->is_use_qd()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->open_quick_disk(drv, path.toLocal8Bit().constData());
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_QD, drv, path);
+	}
 }
 
-void EmuThreadClass::do_save_binary(int drv, QString path)
+void EmuThreadClassBase::do_open_cdrom(int drv, QString path)
 {
-#ifdef USE_BINARY_FILE
-	p_emu->save_binary(drv, path.toLocal8Bit().constData());
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, drv, QString::fromUtf8(""));
-#endif	
+	if(using_flags->is_use_compact_disc()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->open_compact_disc(drv, path.toLocal8Bit().constData());
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_CD, drv, path);
+	}
+}
+void EmuThreadClassBase::do_eject_cdrom(int drv)
+{
+	if(using_flags->is_use_compact_disc()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->close_compact_disc(drv);
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_CD, drv, QString::fromUtf8(""));
+	}
+}
+
+void EmuThreadClassBase::do_close_hard_disk(int drv)
+{
+	if(using_flags->is_use_hdd()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->close_hard_disk(drv);
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, drv, QString::fromUtf8(""));
+	}
+}
+
+void EmuThreadClassBase::do_open_hard_disk(int drv, QString path)
+{
+	if(using_flags->is_use_hdd()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->open_hard_disk(drv, path.toLocal8Bit().constData());
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, drv, path);
+	}
+}
+
+void EmuThreadClassBase::do_close_cart(int drv)
+{
+	if(using_flags->is_use_cart()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->close_cart(drv);
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_Cart, drv, QString::fromUtf8(""));
+	}
+}
+
+void EmuThreadClassBase::do_open_cart(int drv, QString path)
+{
+	if(using_flags->is_use_cart()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->open_cart(drv, path.toLocal8Bit().constData());
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_Cart, drv, path);
+	}
 }
 
 
-void EmuThreadClass::do_write_protect_bubble_casette(int drv, bool flag)
+void EmuThreadClassBase::do_close_laser_disc(int drv)
 {
-#ifdef USE_BUBBLE
-	p_emu->is_bubble_casette_protected(drv, flag);
-#endif	
+	if(using_flags->is_use_laser_disc()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->close_laser_disc(drv);
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, drv, QString::fromUtf8(""));
+	}
 }
 
-void EmuThreadClass::do_close_bubble_casette(int drv)
+void EmuThreadClassBase::do_open_laser_disc(int drv, QString path)
 {
-#ifdef USE_BUBBLE
-	p_emu->close_bubble_casette(drv);
-	p_emu->b77_file[drv].bank_num = 0;
-	p_emu->b77_file[drv].cur_bank = -1;
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drv, QString::fromUtf8(""));
-#endif	
+	if(using_flags->is_use_laser_disc()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->open_laser_disc(drv, path.toLocal8Bit().constData());
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, drv, path);
+	}
 }
 
-void EmuThreadClass::do_open_bubble_casette(int drv, QString path, int bank)
+void EmuThreadClassBase::do_load_binary(int drv, QString path)
 {
-#ifdef USE_BUBBLE
+	if(using_flags->is_use_binary_file()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->load_binary(drv, path.toLocal8Bit().constData());
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, drv, path);
+	}
+}
+
+void EmuThreadClassBase::do_save_binary(int drv, QString path)
+{
+	if(using_flags->is_use_binary_file()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->save_binary(drv, path.toLocal8Bit().constData());
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, drv, QString::fromUtf8(""));
+	}
+}
+
+
+void EmuThreadClassBase::do_write_protect_bubble_casette(int drv, bool flag)
+{
+	if(using_flags->is_use_bubble()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->is_bubble_casette_protected(drv, flag);
+	}
+}
+
+void EmuThreadClassBase::do_close_bubble_casette(int drv)
+{
+	if(using_flags->is_use_bubble()) {
+		//QMutexLocker _locker(&uiMutex);
+		p_emu->close_bubble_casette(drv);
+		p_emu->b77_file[drv].bank_num = 0;
+		p_emu->b77_file[drv].cur_bank = -1;
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drv, QString::fromUtf8(""));
+	}
+}
+
+void EmuThreadClassBase::do_open_bubble_casette(int drv, QString path, int bank)
+{
+	if(!(using_flags->is_use_bubble())) return;
+	
+	//QMutexLocker _locker(&uiMutex);
 	QByteArray localPath = path.toLocal8Bit();
    
 	p_emu->b77_file[drv].bank_num = 0;
@@ -778,7 +809,7 @@ void EmuThreadClass::do_open_bubble_casette(int drv, QString path, int bank)
 			try {
 				fio->Fseek(0, FILEIO_SEEK_END);
 				int file_size = fio->Ftell(), file_offset = 0;
-				while(file_offset + 0x2b0 <= file_size && p_emu->b77_file[drv].bank_num < MAX_B77_BANKS) {
+				while(file_offset + 0x2b0 <= file_size && p_emu->b77_file[drv].bank_num < using_flags->get_max_b77_banks()) {
 					fio->Fseek(file_offset, FILEIO_SEEK_SET);
 					char tmp[18];
 					memset(tmp, 0x00, sizeof(tmp));
@@ -808,23 +839,93 @@ void EmuThreadClass::do_open_bubble_casette(int drv, QString path, int bank)
 	p_emu->open_bubble_casette(drv, localPath.constData(), bank);
 	emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drv, path);
 	emit sig_update_recent_bubble(drv);
-#endif	
+	
 }
 
 // Debugger
 
-void EmuThreadClass::do_close_debugger(void)
+void EmuThreadClassBase::do_close_debugger(void)
 {
-#if defined(USE_DEBUGGER)
-	emit sig_quit_debugger();
-#endif
+	if(using_flags->is_use_debugger()) {
+		emit sig_quit_debugger();
+	}
 }
 
-bool EmuThreadClass::now_debugging() {
-#if defined(USE_DEBUGGER)
-	return p_emu->now_debugging;
-#else
-	return false;
-#endif
+void EmuThreadClassBase::set_romakana(bool flag)
+{
+	if(using_flags->is_use_auto_key()) {
+		p_emu->set_auto_key_char(flag ? 1 : 0);
+	}
 }
+
+void EmuThreadClassBase::moved_mouse(int x, int y)
+{
+	if(!(using_flags->is_use_mouse())) return;
+	
+	mouse_x = x;
+	mouse_y = y;
+	//printf("Moved Mouse %d, %d\n", x, y);
+	bool flag = p_osd->is_mouse_enabled();
+	if(!flag) return;
+	//printf("Mouse Moved: %d, %d\n", x, y);
+	p_osd->set_mouse_pointer(x, y);
+}
+
+void EmuThreadClassBase::button_pressed_mouse_sub(Qt::MouseButton button)
+{
+	if(!(using_flags->is_use_mouse())) return;
+	
+	int stat = p_osd->get_mouse_button();
+	bool flag = p_osd->is_mouse_enabled();
+	switch(button) {
+	case Qt::LeftButton:
+		stat |= 0x01;
+		break;
+	case Qt::RightButton:
+		stat |= 0x02;
+		break;
+	case Qt::MiddleButton:
+		flag = !flag;
+		emit sig_mouse_enable(flag);
+		return;
+		break;
+	default:
+		break;
+	}
+	if(!flag) return;
+	p_osd->set_mouse_button(stat);
+}	
+
+void EmuThreadClassBase::button_released_mouse_sub(Qt::MouseButton button)
+{
+	if(!(using_flags->is_use_mouse())) return;
+	   
+	int stat = p_osd->get_mouse_button();
+	switch(button) {
+	case Qt::LeftButton:
+		stat &= 0x7ffffffe;
+		break;
+	case Qt::RightButton:
+		stat &= 0x7ffffffd;
+		break;
+	case Qt::MiddleButton:
+		//emit sig_mouse_enable(false);
+		break;
+	default:
+		break;
+	}
+	p_osd->set_mouse_button(stat);
+}
+
+void EmuThreadClassBase::do_set_display_size(int w, int h, int ww, int wh)
+{
+	p_emu->suspend();
+	p_emu->set_host_window_size(w, h, true);
+}
+
+void EmuThreadClassBase::dec_message_count(void)
+{
+	p_emu->message_count--;
+}
+
 

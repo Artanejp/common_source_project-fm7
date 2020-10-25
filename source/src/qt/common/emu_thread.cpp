@@ -35,11 +35,11 @@ extern CSP_Logger *csp_logger;
 EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, USING_FLAGS *p, QObject *parent)
 	: EmuThreadClassBase(rootWindow, p, parent)
 {
-	emu = new EMU(rMainWindow, rMainWindow->getGraphicsView(), using_flags);
+	emu = new EMU((Ui_MainWindow *)rootWindow, rootWindow->getGraphicsView(), using_flags);
 	p_emu = emu;
+	p_osd = emu->get_osd();
 	p->set_emu(emu);
-	p->set_osd((OSD*)emu->get_osd());
-	emu->get_osd()->moveToThread(this);
+	p->set_osd((OSD*)p_osd);
 
 	connect(this, SIGNAL(sig_open_binary_load(int, QString)), MainWindow, SLOT(_open_binary_load(int, QString)));
 	connect(this, SIGNAL(sig_open_binary_save(int, QString)), MainWindow, SLOT(_open_binary_save(int, QString)));
@@ -49,8 +49,6 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, USING_FLAGS *p, QO
 	connect(this, SIGNAL(sig_open_fd(int, QString)), MainWindow, SLOT(_open_disk(int, QString)));
 	connect(this, SIGNAL(sig_update_d88_list(int, int)), MainWindow, SLOT(do_update_d88_list(int, int)));
 	connect(this, SIGNAL(sig_open_d88_fd(int, QString, int)), this, SLOT(do_open_disk(int, QString, int)));
-
-	
 	connect(this, SIGNAL(sig_open_quick_disk(int, QString)), MainWindow, SLOT(_open_quick_disk(int, QString)));
 	connect(this, SIGNAL(sig_open_bubble(int, QString)), MainWindow, SLOT(_open_bubble(int, QString)));
 	connect(this, SIGNAL(sig_open_b77_bubble(int, QString, int)), this, SLOT(do_open_bubble_casette(int, QString, int)));
@@ -63,18 +61,13 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, USING_FLAGS *p, QO
 	connect(this, SIGNAL(sig_set_d88_num(int, int)), MainWindow, SLOT(set_d88_slot(int, int)));
 	connect(this, SIGNAL(sig_set_b77_num(int, int)), MainWindow, SLOT(set_b77_slot(int, int)));
 
+	p_osd->moveToThread(this);
 }
 
 EmuThreadClass::~EmuThreadClass()
 {
 }
 
-void EmuThreadClass::set_romakana(bool flag)
-{
-#if defined(USE_AUTO_KEY)
-	p_emu->set_auto_key_char(flag ? 1 : 0);
-#endif
-}
 
 int EmuThreadClass::get_interval(void)
 {
@@ -83,262 +76,6 @@ int EmuThreadClass::get_interval(void)
 	int interval = accum >> 10;
 	accum -= interval << 10;
 	return interval;
-}
-
-void EmuThreadClass::moved_mouse(int x, int y)
-{
-	mouse_x = x;
-	mouse_y = y;
-	//printf("Moved Mouse %d, %d\n", x, y);
-#if defined(USE_MOUSE)
-	bool flag = p_emu->get_osd()->is_mouse_enabled();
-	if(!flag) return;
-	//printf("Mouse Moved: %d, %d\n", x, y);
-	p_emu->get_osd()->set_mouse_pointer(x, y);
-#endif   
-}
-
-void EmuThreadClass::button_pressed_mouse_sub(Qt::MouseButton button)
-{
-#if defined(USE_MOUSE)   
-	int stat = p_emu->get_osd()->get_mouse_button();
-	bool flag = p_emu->get_osd()->is_mouse_enabled();
-	switch(button) {
-	case Qt::LeftButton:
-		stat |= 0x01;
-		break;
-	case Qt::RightButton:
-		stat |= 0x02;
-		break;
-	case Qt::MiddleButton:
-		flag = !flag;
-		emit sig_mouse_enable(flag);
-		return;
-		break;
-	default:
-		break;
-	}
-	if(!flag) return;
-	p_emu->get_osd()->set_mouse_button(stat);
-#endif	   
-}	
-
-void EmuThreadClass::button_released_mouse_sub(Qt::MouseButton button)
-{
-#if defined(USE_MOUSE)   
-	int stat = p_emu->get_osd()->get_mouse_button();
-		switch(button) {
-		case Qt::LeftButton:
-			stat &= 0x7ffffffe;
-			break;
-		case Qt::RightButton:
-			stat &= 0x7ffffffd;
-			break;
-		case Qt::MiddleButton:
-			//emit sig_mouse_enable(false);
-			break;
-		default:
-			break;
-		}
-		p_emu->get_osd()->set_mouse_button(stat);
-#endif
-}
-
-void EmuThreadClass::get_fd_string(void)
-{
-#if defined(USE_FLOPPY_DISK)
-	int i;
-	QString tmpstr;
-	QString iname;
-	QString alamp;
-	uint32_t access_drv = 0;
-	bool lamp_stat = false;
-	access_drv = p_emu->is_floppy_disk_accessed();
-	{
-		for(i = 0; i < (int)using_flags->get_max_drive(); i++) {
-			tmpstr.clear();
-			alamp.clear();
-			lamp_stat = false;
-			if(p_emu->is_floppy_disk_inserted(i)) {
-				if(i == (access_drv - 1)) {
-					lamp_stat = true;
-					alamp = QString::fromUtf8("<FONT COLOR=FIREBRICK>●</FONT>"); // 💾U+1F4BE Floppy Disk
-				} else {
-					alamp = QString::fromUtf8("<FONT COLOR=BLUE>○</FONT>"); // 💾U+1F4BE Floppy Disk
-				}
-				if(emu->d88_file[i].bank_num > 0) {
-					iname = QString::fromUtf8(emu->d88_file[i].disk_name[emu->d88_file[i].cur_bank]);
-				} else {
-					iname = QString::fromUtf8("*Inserted*");
-				}
-				tmpstr = iname;
-			} else {
-				tmpstr.clear();
-				alamp = QString::fromUtf8("×");
-			}
-			if(alamp != fd_lamp[i]) {
-				emit sig_set_access_lamp(i + 2, lamp_stat);
-				emit sig_change_access_lamp(CSP_DockDisks_Domain_FD, i, alamp);
-				fd_lamp[i] = alamp;
-			}
-			if(tmpstr != fd_text[i]) {
-				emit sig_set_access_lamp(i + 2, lamp_stat);
-				emit sig_change_osd(CSP_DockDisks_Domain_FD, i, tmpstr);
-				fd_text[i] = tmpstr;
-			}
-			lamp_stat = false;
-		}
-	}
-#endif
-}
-
-void EmuThreadClass::get_qd_string(void)
-{
-#if defined(USE_QUICK_DISK)
-	int i;
-	QString iname;
-	QString alamp;
-	QString tmpstr;
-	uint32_t access_drv = 0;
-	bool lamp_stat = false;
-	access_drv = p_emu->is_quick_disk_accessed();
-	for(i = 0; i < using_flags->get_max_qd(); i++) {
-		tmpstr.clear();
-		lamp_stat = false;
-		if(p_emu->is_quick_disk_inserted(i)) {
-			if(i == (access_drv - 1)) {
-				alamp = QString::fromUtf8("<FONT COLOR=MAGENTA>●</FONT>"); // 💽　U+1F4BD MiniDisc
-				lamp_stat = true;
-			} else {
-				alamp = QString::fromUtf8("<FONT COLOR=BLUE>○</FONT>"); // 💽U+1F4BD MiniDisc
-			}
-			tmpstr = alamp;
-			//tmpstr = tmpstr + QString::fromUtf8(" ");
-			//iname = QString::fromUtf8("*Inserted*");
-			//tmpstr = tmpstr + iname;
-		} else {
-			tmpstr = QString::fromUtf8("×");
-		}
-		if(tmpstr != qd_text[i]) {
-			emit sig_set_access_lamp(i + 10, lamp_stat);
-			emit sig_change_access_lamp(CSP_DockDisks_Domain_QD, i, tmpstr);
-			qd_text[i] = tmpstr;
-		}
-		lamp_stat = false;
-	}
-#endif
-}	
-
-void EmuThreadClass::get_tape_string()
-{
-	QString tmpstr;
-	bool readwrite;
-	bool inserted;
-#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
-	for(int i = 0; i < USE_TAPE; i++) {
-		inserted = p_emu->is_tape_inserted(i);
-		readwrite = false;
-		if(inserted) {
-			tmpstr.clear();
-			const _TCHAR *ts = p_emu->get_tape_message(i);
-			if(ts != NULL) {
-				tmpstr = QString::fromUtf8(ts);
-				readwrite = p_emu->is_tape_recording(i);
-				if(readwrite) {
-					tmpstr = QString::fromUtf8("<FONT COLOR=RED><B>") + tmpstr + QString::fromUtf8("</B></FONT>");
-				} else {
-					tmpstr = QString::fromUtf8("<FONT COLOR=GREEN><B>") + tmpstr + QString::fromUtf8("</B></FONT>");
-				}					
-			}
-		} else {
-			tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>   EMPTY   </FONT>");
-		}
-		if(tmpstr != cmt_text[i]) {
-			//emit sig_set_access_lamp(i + 12 + ((readwrite) ? 2 : 0), inserted);
-			emit sig_change_osd(CSP_DockDisks_Domain_CMT, i, tmpstr);
-			cmt_text[i] = tmpstr;
-		}
-	}
-#endif
-}
-
-void EmuThreadClass::get_hdd_string(void)
-{
-#if defined(USE_HARD_DISK)
-	QString tmpstr, alamp;
-	uint32_t access_drv = p_emu->is_hard_disk_accessed();
-	bool lamp_stat = false;
-	alamp.clear();
-	tmpstr.clear();
-	for(int i = 0; i < (int)using_flags->get_max_hdd(); i++) {
-		if(p_emu->is_hard_disk_inserted(i)) {
-			if((access_drv & (1 << i)) != 0) {
-				alamp = QString::fromUtf8("<FONT COLOR=LIME>■</FONT>");  // 
-				lamp_stat = true;
-			} else {
-				alamp = QString::fromUtf8("<FONT COLOR=BLUE>□</FONT>");  // 
-			}
-		} else {
-			alamp = QString::fromUtf8("×");
-		}
-		if(tmpstr != hdd_text[i]) {
-			emit sig_set_access_lamp(i + 16, lamp_stat);
-			emit sig_change_osd(CSP_DockDisks_Domain_HD, i, tmpstr);
-			hdd_text[i] = tmpstr;
-		}
-		if(alamp != hdd_lamp[i]) {
-			emit sig_set_access_lamp(i + 16, lamp_stat); 
-			emit sig_change_access_lamp(CSP_DockDisks_Domain_HD, i, alamp);
-			hdd_lamp[i] = alamp;
-		}
-		lamp_stat = false;
-	}
-#endif
-}
-void EmuThreadClass::get_cd_string(void)
-{
-#if defined(USE_COMPACT_DISC)
-	QString tmpstr;
-	uint32_t access_drv = p_emu->is_compact_disc_accessed();
-	for(int i = 0; i < (int)using_flags->get_max_cd(); i++) {
-		if(p_emu->is_compact_disc_inserted(i)) {
-			if((access_drv & (1 << i)) != 0) {
-				tmpstr = QString::fromUtf8("<FONT COLOR=DEEPSKYBLUE>●</FONT>");  // U+1F4BF OPTICAL DISC
-			} else {
-				tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>○</FONT>");  // U+1F4BF OPTICAL DISC
-			}				
-		} else {
-			tmpstr = QString::fromUtf8("×");
-		}
-		if(tmpstr != cdrom_text[i]) {
-			emit sig_change_access_lamp(CSP_DockDisks_Domain_CD, i, tmpstr);
-			cdrom_text[i] = tmpstr;
-		}
-	}
-#endif
-}
-
-void EmuThreadClass::get_bubble_string(void)
-{
-#if defined(USE_BUBBLE)
-	uint32_t access_drv;
-	int i;
-	QString alamp;
-	QString tmpstr;
-	for(i = 0; i < using_flags->get_max_bubble() ; i++) {
-		if(p_emu->is_bubble_casette_inserted(i)) {
-			alamp = QString::fromUtf8("● ");
-			//tmpstr = alamp + QString::fromUtf8(" ");
-		} else {
-			tmpstr = QString::fromUtf8("×");
-			//tmpstr = tmpstr + QString::fromUtf8(" ");
-		}
-		if(alamp != bubble_text[i]) {
-			emit sig_change_access_lamp(CSP_DockDisks_Domain_Bubble, i, tmpstr);
-			bubble_text[i] = alamp;
-		}
-	}
-#endif
 }
 
 #include <QStringList>
@@ -354,29 +91,30 @@ void EmuThreadClass::resetEmu()
 
 void EmuThreadClass::specialResetEmu(int num)
 {
-#ifdef USE_SPECIAL_RESET
-	p_emu->special_reset(num);
-#endif
+	if(using_flags->is_use_special_reset()) {
+		p_emu->special_reset(num);
+	}
 }
 
 void EmuThreadClass::loadState()
 {
-#ifdef USE_STATE
+	if(!(using_flags->is_use_state())) return;
+
 	if(!lStateFile.isEmpty()) {
 		p_emu->load_state(lStateFile.toLocal8Bit().constData());
 		lStateFile.clear();
 	}
-#endif
 }
 
 void EmuThreadClass::saveState()
 {
-#ifdef USE_STATE
+	if(!(using_flags->is_use_state())) return;
+
 	if(!sStateFile.isEmpty()) {
 		p_emu->save_state(sStateFile.toLocal8Bit().constData());
 		sStateFile.clear();
 	}
-#endif
+
 }
 
 void EmuThreadClass::doWork(const QString &params)
@@ -592,15 +330,15 @@ void EmuThreadClass::doWork(const QString &params)
 					switch(sp.type) {
 					case KEY_QUEUE_UP:
 						key_mod = sp.mod;
-						p_emu->get_osd()->key_modifiers(sp.mod);
+						p_osd->key_modifiers(sp.mod);
 						p_emu->key_up(sp.code, true); // need decicion of extend.
 						break;
 					case KEY_QUEUE_DOWN:
 						if(config.romaji_to_kana) {
-							p_emu->get_osd()->key_modifiers(sp.mod);
+							p_osd->key_modifiers(sp.mod);
 							p_emu->key_char(sp.code);
 						} else {
-							p_emu->get_osd()->key_modifiers(sp.mod);
+							p_osd->key_modifiers(sp.mod);
 							p_emu->key_down(sp.code, true, sp.repeat);
 						}
 						break;
@@ -803,36 +541,12 @@ void EmuThreadClass::doWork(const QString &params)
 	} while(1);
 _exit:
 	//emit quit_draw_thread();
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
-						  "EmuThread : EXIT");
+	if(csp_logger != NULL) {
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
+							  "EmuThread : EXIT");
+	}
 	emit sig_finished();
 	this->quit();
-}
-
-void EmuThreadClass::do_set_display_size(int w, int h, int ww, int wh)
-{
-	p_emu->suspend();
-	p_emu->set_host_window_size(w, h, true);
-}
-
-const _TCHAR *EmuThreadClass::get_emu_message(void)
-{
-	return (const _TCHAR *)(p_emu->message);
-}
-
-double EmuThreadClass::get_emu_frame_rate(void)
-{
-	return emu->get_frame_rate();
-}
-
-int EmuThreadClass::get_message_count(void)
-{
-	return p_emu->message_count;	
-}
-
-void EmuThreadClass::dec_message_count(void)
-{
-	p_emu->message_count--;
 }
 
 const _TCHAR *EmuThreadClass::get_device_name(void)
@@ -840,80 +554,5 @@ const _TCHAR *EmuThreadClass::get_device_name(void)
 	return (const _TCHAR *)_T(DEVICE_NAME);
 }
 
-bool EmuThreadClass::get_power_state(void)
-{
-	return MainWindow->GetPowerState();
-}
-
-int EmuThreadClass::get_d88_file_cur_bank(int drive)
-{
-#ifdef USE_FLOPPY_DISK
-	if(drive < USE_FLOPPY_DISK) {
-		QMutexLocker _locker(&uiMutex);
-		return p_emu->d88_file[drive].cur_bank;
-	}
-#endif
-	return -1;
-}
-
-int EmuThreadClass::get_d88_file_bank_num(int drive)
-{
-#ifdef USE_FLOPPY_DISK
-	if(drive < USE_FLOPPY_DISK) {
-		QMutexLocker _locker(&uiMutex);
-		return p_emu->d88_file[drive].bank_num;
-	}
-#endif
-	return -1;
-}
-
-
-QString EmuThreadClass::get_d88_file_disk_name(int drive, int banknum)
-{
-#ifdef USE_FLOPPY_DISK
-	if(drive < 0) return QString::fromUtf8("");
-	if((drive < USE_FLOPPY_DISK) && (banknum < get_d88_file_bank_num(drive))) {
-		QMutexLocker _locker(&uiMutex);
-		QString _n = QString::fromLocal8Bit((const char *)(&(p_emu->d88_file[drive].disk_name[banknum][0])));
-		return _n;
-	}
-#endif
-	return QString::fromUtf8("");
-}
-
-
-bool EmuThreadClass::is_floppy_disk_protected(int drive)
-{
-
-#ifdef USE_FLOPPY_DISK
-	QMutexLocker _locker(&uiMutex);
-
-	bool _b = p_emu->is_floppy_disk_protected(drive);
-	return _b;
-#endif
-	return false;
-}
-
-void EmuThreadClass::set_floppy_disk_protected(int drive, bool flag)
-{
-#ifdef USE_FLOPPY_DISK
-	QMutexLocker _locker(&uiMutex);
-
-	p_emu->is_floppy_disk_protected(drive, flag);
-#endif
-}
-
-QString EmuThreadClass::get_d88_file_path(int drive)
-{
-#ifdef USE_FLOPPY_DISK
-	if(drive < 0) return QString::fromUtf8("");
-	if(drive < USE_FLOPPY_DISK) {
-		QMutexLocker _locker(&uiMutex);
-		QString _n = QString::fromUtf8((const char *)(&(p_emu->d88_file[drive].path)));
-		return _n;
-	}
-#endif
-	return QString::fromUtf8("");
-}
 
 
