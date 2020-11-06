@@ -149,7 +149,16 @@ enum {
 	TOWNS_CD_ABEND_RETRY				= 0x0f, // Indicate RETRY ?
 };
 
-
+enum {
+	TOWNS_CD_READ_NONE = 0,
+	TOWNS_CD_READ_MODE1,
+	TOWNS_CD_READ_MODE2,
+	TOWNS_CD_READ_RAW,
+	TOWNS_CD_READ_CDDA,
+	TOWNS_CD_STOP_CDDA,
+	TOWNS_CD_PAUSE_CDDA,
+	TOWNS_CD_UNPAUSE_CDDA,
+};
 	
 /*class TOWNS_CDROM : public SCSI_CDROM */
 class TOWNS_CDROM: public DEVICE {
@@ -218,7 +227,7 @@ protected:
 	int read_length;
 	int read_length_bak;
 	int next_seek_lba;
-
+	int read_mode;
 	int position;
 	
 	uint8_t prev_command;
@@ -352,8 +361,6 @@ protected:
 	virtual void open_from_cmd(const _TCHAR* file_path);
 	virtual void close_from_cmd();
 	virtual void do_dma_eot(bool by_signal);
-
-	void clear_event(int& evid);
 
 	void __FASTCALL write_mcuint_signals(uint32_t val)
 	{
