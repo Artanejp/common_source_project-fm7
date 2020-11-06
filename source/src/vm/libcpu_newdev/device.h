@@ -681,6 +681,16 @@ public:
 	virtual void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id);
 	virtual void register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id);
 	virtual void cancel_event(DEVICE* device, int register_id);
+	
+	// Clear and DE-Register EVENT at slot evid.
+	virtual void clear_event(DEVICE* device, int& evid);
+	// Register a EVENT to evid (and update evid) , even if evid's slot is used.
+	virtual void force_register_event(DEVICE* device, int event_num, double usec, bool loop, int& evid);
+	virtual void force_register_event_by_clock(DEVICE* device, int event_num, uint64_t clock, bool loop, int& evid);
+	// Register a EVENT to evid , if evid slot isn't used.
+	virtual void check_and_update_event(DEVICE* device, int event_num, double usec, bool loop, int& evid);
+	virtual void check_and_update_event_by_clock(DEVICE* device, int event_num, uint64_t clock, bool loop, int& evid);
+	
 	virtual void register_frame_event(DEVICE* device);
 	virtual void register_vline_event(DEVICE* device);
 	virtual uint32_t __FASTCALL get_event_remaining_clock(int register_id);

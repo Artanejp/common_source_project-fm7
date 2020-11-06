@@ -202,6 +202,7 @@ void DEVICE::update_extra_event(int clock)
 	}
 	event_manager->update_extra_event(clock);
 }
+
 void DEVICE::register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id)
 {
 	if(event_manager == NULL) {
@@ -216,6 +217,41 @@ void DEVICE::register_event_by_clock(DEVICE* device, int event_id, uint64_t cloc
 		event_manager = vm->first_device->next_device;
 	}
 	event_manager->register_event_by_clock(device, event_id, clock, loop, register_id);
+}
+
+// Clear and DE-Register EVENT at slot evid.
+void DEVICE::clear_event(DEVICE* dev, int& evid)
+{
+	if(evid > -1) {
+		cancel_event(dev, evid);
+	}
+	evid = -1;
+}
+
+// Register a EVENT to evid (and update evid) , even if evid's slot is used.
+void DEVICE::force_register_event(DEVICE* dev, int event_num, double usec, bool loop, int& evid)
+{
+	clear_event(dev, evid);
+	register_event(dev, event_num, usec, loop, &evid);
+}
+
+void DEVICE::force_register_event_by_clock(DEVICE* dev, int event_num, uint64_t clock, bool loop, int& evid)
+{
+	clear_event(dev, evid);
+	register_event_by_clock(dev, event_num, clock, loop, &evid);
+}
+
+// Register a EVENT to evid , if evid slot isn't used.
+void DEVICE::check_and_update_event(DEVICE* dev, int event_num, double usec, bool loop, int& evid)
+{
+	if(evid > -1) return;
+	register_event(dev, event_num, usec, loop, &evid);
+}
+
+void DEVICE::check_and_update_event_by_clock(DEVICE* dev, int event_num, uint64_t clock, bool loop, int& evid)
+{
+	if(evid > -1) return;
+	register_event_by_clock(dev, event_num, clock, loop, &evid);
 }
 
 void DEVICE::cancel_event(DEVICE* device, int register_id)
