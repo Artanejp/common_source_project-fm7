@@ -860,61 +860,63 @@ void EmuThreadClassBase::set_romakana(bool flag)
 
 void EmuThreadClassBase::moved_mouse(int x, int y)
 {
-	if(!(using_flags->is_use_mouse())) return;
-	
-	mouse_x = x;
-	mouse_y = y;
-	//printf("Moved Mouse %d, %d\n", x, y);
-	bool flag = p_osd->is_mouse_enabled();
-	if(!flag) return;
-	//printf("Mouse Moved: %d, %d\n", x, y);
-	p_osd->set_mouse_pointer(x, y);
+	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse() || (using_flags->get_max_button() > 0)) {
+		mouse_x = x;
+		mouse_y = y;
+		printf("Moved Mouse %d, %d\n", x, y);
+		bool flag = p_osd->is_mouse_enabled();
+		if(!flag) return;
+		//printf("Mouse Moved: %d, %d\n", x, y);
+		p_osd->set_mouse_pointer(x, y);
+	}
 }
 
 void EmuThreadClassBase::button_pressed_mouse_sub(Qt::MouseButton button)
 {
-	if(!(using_flags->is_use_mouse())) return;
 	
-	int stat = p_osd->get_mouse_button();
-	bool flag = p_osd->is_mouse_enabled();
-	switch(button) {
-	case Qt::LeftButton:
-		stat |= 0x01;
-		break;
-	case Qt::RightButton:
-		stat |= 0x02;
-		break;
-	case Qt::MiddleButton:
-		flag = !flag;
-		emit sig_mouse_enable(flag);
-		return;
-		break;
-	default:
-		break;
+	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse() || (using_flags->get_max_button() > 0)) {
+		int stat = p_osd->get_mouse_button();
+		bool flag = p_osd->is_mouse_enabled();
+		switch(button) {
+		case Qt::LeftButton:
+			stat |= 0x01;
+			break;
+		case Qt::RightButton:
+			stat |= 0x02;
+			break;
+		case Qt::MiddleButton:
+			flag = !flag;
+			emit sig_mouse_enable(flag);
+			return;
+			break;
+		default:
+			break;
+		}
+		if(!flag) return;
+		p_osd->set_mouse_button(stat);
 	}
-	if(!flag) return;
-	p_osd->set_mouse_button(stat);
 }	
 
 void EmuThreadClassBase::button_released_mouse_sub(Qt::MouseButton button)
 {
-	if(!(using_flags->is_use_mouse())) return;
 	   
-	int stat = p_osd->get_mouse_button();
-	switch(button) {
-	case Qt::LeftButton:
-		stat &= 0x7ffffffe;
-		break;
-	case Qt::RightButton:
-		stat &= 0x7ffffffd;
-		break;
-	case Qt::MiddleButton:
-		//emit sig_mouse_enable(false);
-		break;
-	default:
-		break;
+	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse() || (using_flags->get_max_button() > 0)) {
+		int stat = p_osd->get_mouse_button();
+		switch(button) {
+		case Qt::LeftButton:
+			stat &= 0x7ffffffe;
+			break;
+		case Qt::RightButton:
+			stat &= 0x7ffffffd;
+			break;
+		case Qt::MiddleButton:
+			//emit sig_mouse_enable(false);
+			break;
+		default:
+			break;
+		}
+		p_osd->set_mouse_button(stat);
 	}
-	p_osd->set_mouse_button(stat);
 }
 
 void EmuThreadClassBase::do_set_display_size(int w, int h, int ww, int wh)

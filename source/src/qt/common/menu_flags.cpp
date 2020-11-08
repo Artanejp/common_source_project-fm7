@@ -64,7 +64,9 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	use_fd = false;
 	base_fd_num = 1;
 	max_drive = max_d88_banks = 0;
-
+	#if defined(USE_FLOPPY_TYPE_BIT)
+	floppy_type_bit = USE_FLOPPY_TYPE_BIT;
+	#endif
 	max_draw_ranges = 0;
 
 	#if defined(USE_VARIABLE_MEMORY)

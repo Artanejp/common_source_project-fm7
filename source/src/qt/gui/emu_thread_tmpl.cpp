@@ -680,8 +680,8 @@ void EmuThreadClassBase::get_tape_string()
 		} else {
 			tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>   EMPTY   </FONT>");
 		}
+		emit sig_set_access_lamp(i + 12 + ((readwrite) ? 2 : 0), inserted);
 		if(tmpstr != cmt_text[i]) {
-			//emit sig_set_access_lamp(i + 12 + ((readwrite) ? 2 : 0), inserted);
 			emit sig_change_osd(CSP_DockDisks_Domain_CMT, i, tmpstr);
 			cmt_text[i] = tmpstr;
 		}
@@ -740,6 +740,7 @@ void EmuThreadClassBase::get_cd_string(void)
 			tmpstr = QString::fromUtf8("×");
 		}
 		if(tmpstr != cdrom_text[i]) {
+			emit sig_set_access_lamp(i + 24, ((access_drv & (1 << i)) != 0));
 			emit sig_change_access_lamp(CSP_DockDisks_Domain_CD, i, tmpstr);
 			cdrom_text[i] = tmpstr;
 		}
