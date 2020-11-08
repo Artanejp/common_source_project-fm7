@@ -863,7 +863,7 @@ void EmuThreadClassBase::moved_mouse(int x, int y)
 	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse() || (using_flags->get_max_button() > 0)) {
 		mouse_x = x;
 		mouse_y = y;
-		printf("Moved Mouse %d, %d\n", x, y);
+		//printf("Moved Mouse %d, %d\n", x, y);
 		bool flag = p_osd->is_mouse_enabled();
 		if(!flag) return;
 		//printf("Mouse Moved: %d, %d\n", x, y);
