@@ -342,7 +342,7 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 		${COMMON_DIRECTORY}/qt_utils.cpp
 		${COMMON_DIRECTORY}/menu_flags.cpp
 		${COMMON_DIRECTORY}/emu_thread.cpp
-		${COMMON_DIRECTORY}/emu_thread_slots.cpp
+#		${COMMON_DIRECTORY}/emu_thread_slots.cpp
 		${COMMON_DIRECTORY}/util_bubble2.cpp
 		${COMMON_DIRECTORY}/util_main.cpp
 		${COMMON_DIRECTORY}/../osd.cpp
