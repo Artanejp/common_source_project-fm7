@@ -303,7 +303,7 @@ public:
 		screen_texture_width_old = using_flags->get_screen_width();
 		screen_texture_height = using_flags->get_screen_height();
 		screen_texture_height_old = using_flags->get_screen_height();
-		
+#if 0		
 		if(using_flags->is_use_fd()) {
 			osd_led_bit_width = 10;
 		}
@@ -316,7 +316,15 @@ public:
 		if(using_flags->get_max_scsi() > 0) {
 			osd_led_bit_width = 24;
 		}
-		
+		if(using_flags->is_use_compact_disc()) {
+			osd_led_bit_width = 26;
+		}
+		if(using_flags->is_use_laser_disc()) {
+			osd_led_bit_width = 28;
+		}
+#else
+		osd_led_bit_width = 32;
+#endif		
 		int i;
 		// Will fix: Must fix setup of vm_buttons[].
 		button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();

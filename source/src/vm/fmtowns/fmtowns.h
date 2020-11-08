@@ -273,6 +273,7 @@
 #define USE_FLOPPY_DISK     4 // ??
 #define USE_CART			2
 #define USE_SPECIAL_RESET	12 /* 'CD' 'F0' - 'F3' 'H0' - 'H4' 'ICM' 'DEBUG' */
+#define USE_FLOPPY_TYPE_BIT 0x0003 /* 5.0, 5.0, 3.5, 3.5 */
 
 #define NOTIFY_KEY_DOWN
 #define USE_ALT_F10_KEY

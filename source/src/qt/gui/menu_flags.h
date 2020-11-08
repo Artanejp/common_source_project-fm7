@@ -79,7 +79,8 @@ protected:
 	int base_fd_num;
 	int max_drive;
 	int max_d88_banks;
-
+	uint32_t floppy_type_bit;
+	
 	int max_draw_ranges;
 	
 	bool use_joystick;
@@ -258,6 +259,7 @@ public:
 	int get_max_drive() { return max_drive; }
 	int get_max_d88_banks() { return max_d88_banks; }
 	int get_base_floppy_disk_num() { return base_fd_num; }
+	uint32_t get_floppy_type_bit() { return floppy_type_bit; }
 
 	bool is_use_joystick() { return use_joystick; }
 	bool is_use_joy_button_captions() { return use_joy_button_captions; }

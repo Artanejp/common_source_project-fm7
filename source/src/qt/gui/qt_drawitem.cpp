@@ -97,13 +97,23 @@ void CSP_DrawItem::drawFloppy5Inch(QColor &BGColor, QColor &FGColor, QColor &FGC
 	this->fill(BGColor);
 	{
 		double _nwidth = (__width > __height) ? (__height - 2.0) : (__width - 2.0) ;
-		_nwidth = _nwidth * (0.88 * 0.90);
+		//_nwidth = _nwidth * (0.88 * 0.90);
+		_nwidth = _nwidth * 0.88;
 		painter.begin(this);
 		int xbase = (int)((__width - _nwidth) / 2.0);
 		int ybase = (int)((__height - _nwidth) * 0.5);
 		int wbase = (int)_nwidth;
 		int hbase = wbase;
-		drawRectItem(xbase, ybase, wbase, hbase, fill_brush, FGColor, FGColor);
+		{
+			//QPointF points[4] = {
+			//	QPointF((float)xbase, (float)ybase),
+			//	QPointF((float)(xbase + wbase), (float)ybase),
+			//	QPointF((float)(xbase + wbase), (float)(ybase + hbase)),
+			//	QPointF((float)(xbase), (float)(ybase + hbase))
+			//};
+			//drawPolygonItem(points, 4, fill_brush, FGColor, FGColor);
+			drawRectItem(xbase, ybase, wbase, hbase, fill_brush, FGColor, FGColor);
+		}
 		{
 			int r = (int)((_nwidth * 0.35) / 2.0);
 			int x = xbase + wbase / 2 - r;
@@ -122,6 +132,13 @@ void CSP_DrawItem::drawFloppy5Inch(QColor &BGColor, QColor &FGColor, QColor &FGC
 			int x = (xbase + wbase / 2) - (int)(w / 2.0); 
 			int y = (ybase + wbase / 2) + (int)(_nwidth * 0.45 / 2.0); 
 			drawRectItem(x, y, w, h, fill_brush, FGColor2, FGColor2);
+//			QPointF points[4] = {
+//				QPointF((float)x, (float)y),
+//				QPointF((float)(x+ w), (float)y),
+//				QPointF((float)(x + w), (float)(y + h)),
+//				QPointF((float)(x), (float)(y + h))
+//			};
+//			drawPolygonItem(points, 4, fill_brush, FGColor2, FGColor2);
 		}
 		if(!text.isEmpty()) {
 			int x = xbase + (int)(_nwidth * 0.65); 

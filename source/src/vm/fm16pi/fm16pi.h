@@ -29,6 +29,7 @@
 
 // device informations for win32
 #define USE_FLOPPY_DISK		2
+#define USE_FLOPPY_TYPE_BIT 0x0003 /* 3.5, 3.5 */
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_NOTIFY_POWER_OFF

@@ -34,7 +34,8 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 
 	use_fd = false;
 	max_drive = max_d88_banks = 0;
-
+	floppy_type_bit = 0x00000000;
+	
 	max_draw_ranges = 0;
 	use_ram_size = false;
 	max_ram_size = 1;

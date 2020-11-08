@@ -1213,16 +1213,27 @@ void GLDraw_3_0::drawOsdIcons()
 				} else if((i >= 14) && (i < 16)) { // CMT(W)
 					major = 5;
 					minor = i - 14;
+				} else if((i >= 16) && (i < 24)) { // HDD
+					major = 8;
+					minor = i - 16;
+				} else if((i >= 24) && (i < 26)) { // CD
+					major = 6;
+					minor = i - 24;
+				} else if((i >= 26) && (i < 28)) { // LD
+					major = 7;
+					minor = i - 26;
 				} else {
 					major = 0;
 					minor = 0;
 				}
 				// ToDo: CD(6),LD(7) and HDD(8).
 				if((major != 0) && (icon_texid[major][minor] != NULL)) {
-					drawMain(osd_pass->getShader(), osd_pass_vao[i], osd_pass_vbuffer[i],
-							 icon_texid[major][minor]->textureId(),
-							 ((osd_led_status & bit) != 0) ? color_on : color_off,
-							 false, false, QVector3D(0.0, 0.0, 0.0));
+					if(icon_texid[major][minor] != NULL) {
+						drawMain(osd_pass->getShader(), osd_pass_vao[i], osd_pass_vbuffer[i],
+								 icon_texid[major][minor]->textureId(),
+								 ((osd_led_status & bit) != 0) ? color_on : color_off,
+								 false, false, QVector3D(0.0, 0.0, 0.0));
+					}
 				}
  				bit <<= 1;
 			}

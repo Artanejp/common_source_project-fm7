@@ -251,14 +251,21 @@ void GLDraw_2_0::drawOsdIcons()
 			} else if((ii >= 14) && (ii < 16)) { // CMT(W)
 				major = 5;
 				minor = ii - 14;
-			} else if(ii >= 16) {
-				major = 4 + (ii / 8) - 2;
-				minor = ii % 8;
+			}  else if((ii >= 16) && (ii < 24)) { // HDD
+				major = 8;
+				minor = ii - 16;
+			} else if((ii >= 24) && (ii < 26)) { // CD
+				major = 6;
+				minor = ii - 24;
+			} else if((ii >= 26) && (ii < 28)) { // LD
+				major = 7;
+				minor = ii - 26;
 			} else {
 				major = 0;
 				minor = 0;
 			}
 			// ToDo: CD,LD and HDD.
+			if(icon_texid[major][minor] != NULL) {
 			if(checkf) {
 				drawMain(osd_shader, vertex_osd[ii],
 						 buffer_osd[ii],
@@ -271,7 +278,8 @@ void GLDraw_2_0::drawOsdIcons()
 						 vertexOSD[ii],
 						 icon_texid[major][minor]->textureId(),
 						 color_off, false);
-			}			
+			}
+			}
 			_bit <<= 1;
 		}
 		osd_led_status_bak = osd_led_status;

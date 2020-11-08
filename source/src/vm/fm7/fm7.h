@@ -339,7 +339,11 @@
 #define MB8877_NO_BUSY_AFTER_SEEK
 
 //#define ENABLE_OPENCL // If OpenCL renderer is enabled, define here.
-
+#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+	#define USE_FLOPPY_TYPE_BIT 0x0003 /* 5.0, 5.0, 3.5, 3.5 */
+#else
+	#define USE_FLOPPY_TYPE_BIT 0x0000 /* 5.0, 5.0, 5.0, 5.0 */
+#endif
 //#include "../../config.h"
 #include "../../common.h"
 #include "../../fileio.h"

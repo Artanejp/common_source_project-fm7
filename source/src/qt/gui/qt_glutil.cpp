@@ -81,7 +81,8 @@ void GLDrawClass::do_update_icon(int icon_type, int localnum, QString message, Q
 			draw_item->clearCanvas(nullColor);
 			break;
 		case 1: 
-			draw_item->drawFloppy5Inch(bg, fg, fg2, tg, pt, message);
+			draw_item->drawFloppy5Inch(bg, fg3, fg2, tg, pt, message);
+			icon_type = 2; // Workaround
 			break;
 		case 2:
 			draw_item->drawFloppy3_5Inch(bg, fg3, fg2, fg, tg, pt, message);
@@ -151,13 +152,17 @@ void GLDrawClass::initializeGL(void)
 	}
 	if(using_flags->is_use_fd()) {
 		int drvs = using_flags->get_max_drive();
+		uint32_t drvbit = using_flags->get_floppy_type_bit();
 		QString ts, tmps;
 		for(int i = 0; i < drvs; i++) {
 			tmps = QString::fromUtf8("");
 			ts.setNum(i);
 			tmps = tmps + ts + QString::fromUtf8(":");
-			do_update_icon(1, i, tmps, BG, FG, FG2, FG3, LG, TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
-			do_update_icon(2, i, tmps, BG, FG, FG2, FG3, LG, TG2, 12.0f); // Dedicate to 3.5/5/8? and startnum.
+			if((drvbit & (1 << i)) == 0) {
+				do_update_icon(1, i, tmps, BG, FG, FG2, FG3, LG, TG2, 12.0f); // Dedicate to 3.5/5/8? and startnum.
+			} else {
+				do_update_icon(2, i, tmps, BG, FG, FG2, FG3, LG, TG2, 12.0f); // Dedicate to 3.5/5/8? and startnum.
+			}
 		}
 	}
 	if(using_flags->is_use_qd()) {
@@ -183,8 +188,8 @@ void GLDrawClass::initializeGL(void)
 			tmps = QString::fromUtf8("");
 			ts.setNum(i + 1);
 			tmps = tmps + ts;
-			do_update_icon(4, i, tmps, R_BG, C_FG, C_FG2, C_FG3, LG, C_TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
-			do_update_icon(5, i, tmps, W_BG, C_FG, C_FG2, C_FG3, LG, C_TG, 12.0f); // Dedicate to 3.5/5/8? and startnum.
+			do_update_icon(4, i, tmps, R_BG, C_FG, C_FG2, C_FG3, LG, C_TG, 12.0f);
+			do_update_icon(5, i, tmps, W_BG, C_FG, C_FG2, C_FG3, LG, C_TG, 12.0f);
 		}
 	}	
 }

@@ -83,6 +83,8 @@
 // device informations for win32
 #define USE_CPU_TYPE		2
 #define USE_FLOPPY_DISK		4
+#define USE_FLOPPY_TYPE_BIT 0x0003 /* 3.5, 3.5, 5.0, 5.0 */
+
 #define USE_HARD_DISK		7
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
