@@ -180,12 +180,92 @@ class DLL_PREFIX GLDraw_Tmpl : public QObject
 {
 	Q_OBJECT
 protected:
+	EMU_TEMPLATE* p_emu;
 	GLDrawClass *p_wid;
 	
 	USING_FLAGS *using_flags;
 	QImage *imgptr;
 	CSP_Logger *csp_logger;
 	config_t *p_config;
+
+	const float luma_filter[24 + 1] = {
+		-0.000012020,
+		-0.000022146,
+		-0.000013155,
+		-0.000012020,
+		-0.000049979,
+		-0.000113940,
+		-0.000122150,
+		-0.000005612,
+		0.000170516,
+		0.000237199,
+		0.000169640,
+		0.000285688,
+		0.000984574,
+		0.002018683,
+		0.002002275,
+		-0.000909882,
+		-0.007049081,
+		-0.013222860,
+		-0.012606931,
+		0.002460860,
+		0.035868225,
+		0.084016453,
+		0.135563500,
+		0.175261268,
+		0.190176552
+	};
+	const float chroma_filter[24 + 1] = {
+		-0.000118847,
+		-0.000271306,
+		-0.000502642,
+		-0.000930833,
+		-0.001451013,
+		-0.002064744,
+		-0.002700432,
+		-0.003241276,
+		-0.003524948,
+		-0.003350284,
+		-0.002491729,
+		-0.000721149,
+		0.002164659,
+		0.006313635,
+		0.011789103,
+		0.018545660,
+		0.026414396,
+		0.035100710,
+		0.044196567,
+		0.053207202,
+		0.061590275,
+		0.068803602,
+		0.074356193,
+		0.077856564,
+		0.079052396
+	};
+	const float rot0[4] =   {1, -0,  0, 1};
+	const float rot90[4] =  {0,  1, -1,  0};
+	const float rot180[4] = {-1, 0,  0, -1};
+	const float rot270[4] = {0, -1,  1, 0};
+	
+	int gl_major_version;
+	int gl_minor_version;
+
+	GLScreenPack *main_pass;
+	GLScreenPack *std_pass;
+	GLScreenPack *ntsc_pass1;
+	GLScreenPack *ntsc_pass2;
+	GLScreenPack *bitmap_block;
+	
+	QOpenGLShaderProgram *grids_shader;
+	QOpenGLBuffer *grids_horizonal_buffer;
+	QOpenGLVertexArrayObject *grids_horizonal_vertex;
+	QOpenGLBuffer *grids_vertical_buffer;
+	QOpenGLVertexArrayObject *grids_vertical_vertex;
+	
+	GLuint uTmpTextureID;
+	bool swap_byteorder;
+	bool main_texture_ready;
+	float ringing_phase;
 	
 	bool smoosing;
 	bool gl_grid_horiz;
@@ -236,10 +316,6 @@ protected:
 	QOpenGLVertexArrayObject *vertex_osd[32];
 	QOpenGLBuffer *buffer_osd[32];
 	QOpenGLShaderProgram *osd_shader;
-	const float rot0[4] =   {1, -0,  0, 1};
-	const float rot90[4] =  {0,  1, -1,  0};
-	const float rot180[4] = {-1, 0,  0, -1};
-	const float rot270[4] = {0, -1,  1, 0};
 
 	QOpenGLTexture *uVramTextureID;
 	QOpenGLTexture *uButtonTextureID[128];
@@ -305,133 +381,8 @@ protected:
 	virtual void set_osd_vertex(int xbit) { }
 
 public:
-	GLDraw_Tmpl(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu = 0) : QObject((QObject *)parent)
-	{
-		p_wid = parent;
-		using_flags = p;
-		p_config = p->get_config_ptr();
-		vert_lines = using_flags->get_real_screen_height();
-		horiz_pixels = using_flags->get_real_screen_width();
-		screen_texture_width = using_flags->get_screen_width();
-		screen_texture_width_old = using_flags->get_screen_width();
-		screen_texture_height = using_flags->get_screen_height();
-		screen_texture_height_old = using_flags->get_screen_height();
-		
-		osd_pass = NULL;
-		led_pass = NULL;
-		for(int i = 0; i < 32; i++) {
-			led_pass_vao[i] = NULL;
-			led_pass_vbuffer[i] = NULL;
-			osd_pass_vao[i] = NULL;
-			osd_pass_vbuffer[i] = NULL;
-		}
-
-#if 0		
-		if(using_flags->is_use_fd()) {
-			osd_led_bit_width = 10;
-		}
-		if(using_flags->is_use_qd()) {
-			osd_led_bit_width = 12;
-		}
-		if(using_flags->is_use_tape()) {
-			osd_led_bit_width = 16;
-		}
-		if(using_flags->get_max_scsi() > 0) {
-			osd_led_bit_width = 24;
-		}
-		if(using_flags->is_use_compact_disc()) {
-			osd_led_bit_width = 26;
-		}
-		if(using_flags->is_use_laser_disc()) {
-			osd_led_bit_width = 28;
-		}
-#else
-		osd_led_bit_width = 32;
-#endif		
-		int i;
-		// Will fix: Must fix setup of vm_buttons[].
-		button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
-		if(vm_buttons_d != NULL) {
-			for(i = 0; i < using_flags->get_max_button(); i++) {
-				uButtonTextureID[i] = new QOpenGLTexture(QOpenGLTexture::Target2D);;
-				fButtonX[i] = -1.0 + (float)(vm_buttons_d[i].x * 2) / (float)using_flags->get_screen_width();
-				fButtonY[i] = 1.0 - (float)(vm_buttons_d[i].y * 2) / (float)using_flags->get_screen_height();
-				fButtonWidth[i] = (float)(vm_buttons_d[i].width * 2) / (float)using_flags->get_screen_width();
-				fButtonHeight[i] = (float)(vm_buttons_d[i].height * 2) / (float)using_flags->get_screen_height();
-			} // end of will fix.
-		}
-		
-		for(int i = 0; i < 10; i++) {
-			for(int j = 0; j < 10; j++) {
-				icon_texid[i][j] = NULL;
-			}
-		}
-		
-		rec_width  = using_flags->get_screen_width();
-		rec_height = using_flags->get_screen_height();
-		ButtonImages.clear();
-		
-		csp_logger = logger;
-		
-		gl_grid_horiz = false;
-		gl_grid_vert = false;
-		glVertGrids = NULL;
-		glHorizGrids = NULL;
-		
-		set_brightness = false;
-		crt_flag = false;
-		smoosing = false;
-		uVramTextureID = NULL;
-		emu_launched = false;
-		
-		imgptr = NULL;
-		screen_multiply = 1.0f;
-		redraw_required = false;
-		
-		osd_led_status = 0x00000000;
-		osd_led_status_bak = 0x00000000;
-		osd_led_bit_width = 12;
-
-		osd_onoff = true;
-		
-		uBitmapTextureID = NULL;
-		bitmap_uploaded = false;
-		texture_max_size = 128;
-		low_resolution_screen = false;
-
-		button_updated = false;
-		button_drawn = false;
-		
-		fBrightR = 1.0; // 輝度の初期化
-		fBrightG = 1.0;
-		fBrightB = 1.0;
-		set_brightness = false;
-		crt_flag = false;
-		smoosing = false;
-		
-		screen_width = 1.0;
-		screen_height = 1.0;
-
-		buffer_screen_vertex = NULL;
-		vertex_screen = NULL;
-		
-		offscreen_frame_buffer = NULL;
-		offscreen_frame_buffer_format = NULL;
-		rec_count = 0;
-
-	}
-	~GLDraw_Tmpl()
-	{
-		if(osd_pass   != NULL) delete osd_pass;
-		if(led_pass   != NULL) delete led_pass;
-		for(int i = 0; i < 32; i++) {
-			if(led_pass_vao[i] != NULL) delete led_pass_vao[i];	
-			if(led_pass_vbuffer[i] != NULL) delete led_pass_vbuffer[i];
-			if(osd_pass_vao[i] != NULL) delete osd_pass_vao[i];	
-			if(osd_pass_vbuffer[i] != NULL) delete osd_pass_vbuffer[i];
-		}
-	}
-
+	GLDraw_Tmpl(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu = 0);
+	~GLDraw_Tmpl();
 	virtual void initGLObjects() {}
 	virtual void initFBO(void) {}
 	virtual void initLocalGLObjects(void) {}
@@ -464,60 +415,9 @@ public:
 						  QVector4D color, bool f_smoosing,
 						  bool do_chromakey = false,
 						  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f)) {}
-	virtual void doSetGridsHorizonal(int lines, bool force)
-	{
-		int i;
-		GLfloat yf;
-		GLfloat delta;
 	
-		if((lines == vert_lines) && !force) return;
-		//printf("lines: %d\n", lines);
-		vert_lines = lines;
-		yf = -screen_height;
-		if(vert_lines <= 0) return;
-		if(vert_lines > using_flags->get_real_screen_height()) vert_lines = using_flags->get_real_screen_height();
-	
-		delta = (2.0f * screen_height) / (float)vert_lines;
-		yf = yf - delta * 1.0f;
-		if(glHorizGrids != NULL) {
-			for(i = 0; i < (vert_lines + 1) ; i++) {
-				glHorizGrids[i * 6]     = -screen_width; // XBegin
-				glHorizGrids[i * 6 + 3] = +screen_width; // XEnd
-				glHorizGrids[i * 6 + 1] = yf; // YBegin
-				glHorizGrids[i * 6 + 4] = yf; // YEnd
-				glHorizGrids[i * 6 + 2] = -0.95f; // ZBegin
-				glHorizGrids[i * 6 + 5] = -0.95f; // ZEnd
-				yf = yf + delta;
-			}
-		}
-	}
-	virtual void doSetGridsVertical(int pixels, bool force) 
-	{
-		int i;
-		GLfloat xf;
-		GLfloat delta;
-	
-		if((pixels == horiz_pixels) && !force) return;
-		horiz_pixels = pixels;
-		if(horiz_pixels <= 0) return;
-		if(horiz_pixels > using_flags->get_real_screen_width()) horiz_pixels = using_flags->get_real_screen_width();
-	
-		xf = -screen_width;
-		delta = (2.0f * screen_width) / (float)horiz_pixels;
-		xf = xf - delta * 0.75f;
-		if(glVertGrids != NULL) {
-			if(horiz_pixels > using_flags->get_real_screen_width()) horiz_pixels = using_flags->get_real_screen_width();
-			for(i = 0; i < (horiz_pixels + 1) ; i++) {
-				glVertGrids[i * 6]     = xf; // XBegin
-				glVertGrids[i * 6 + 3] = xf; // XEnd
-				glVertGrids[i * 6 + 1] = -screen_height; // YBegin
-				glVertGrids[i * 6 + 4] =  screen_height; // YEnd
-				glVertGrids[i * 6 + 2] = -0.95f; // ZBegin
-				glVertGrids[i * 6 + 5] = -0.95f; // ZEnd
-				xf = xf + delta;
-			}
-		}
-	}
+	virtual void doSetGridsHorizonal(int lines, bool force);
+	virtual void doSetGridsVertical(int pixels, bool force);
 	virtual bool copy_screen_buffer(scrntype_t* target,int w, int h, int stride) { return false;};
 	virtual scrntype_t *get_screen_buffer(int y) { return NULL; }
 	virtual void get_screen_geometry(int *w, int *h) {
@@ -527,6 +427,7 @@ public:
 	virtual bool is_ready_to_map_vram_texture(void) { return false; }
 	virtual bool map_vram_texture(void) { return false; }
 	virtual bool unmap_vram_texture(void) { return false; }
+
 public slots:
 	virtual void paintGL(void) { }
 	virtual void resizeGL(int width, int height) { }

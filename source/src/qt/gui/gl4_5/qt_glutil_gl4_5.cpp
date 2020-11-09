@@ -44,27 +44,14 @@
 
 GLDraw_4_5::GLDraw_4_5(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu) : GLDraw_Tmpl(parent, p, logger, emu)
 {
-	uTmpTextureID = 0;
-	
-	grids_shader = NULL;
-	
-	main_pass = NULL;
-	std_pass = NULL;
-	ntsc_pass1 = NULL;
-	ntsc_pass2 = NULL;
-	grids_horizonal_buffer = NULL;
-	grids_horizonal_vertex = NULL;
-	
-	grids_vertical_buffer = NULL;
-	grids_vertical_vertex = NULL;
 	ringing_phase = 0.0f;
+	pixel_width = 0;
+	pixel_height = 0;
 #if defined(__LITTLE_ENDIAN__)
 	swap_byteorder = true;
 #else
 	swap_byteorder = false;
 #endif
-	pixel_width = 0;
-	pixel_height = 0;
 	main_texture_buffer = 0;
 	main_read_texture_buffer = 0;
 	map_base_address = NULL;
@@ -75,34 +62,14 @@ GLDraw_4_5::GLDraw_4_5(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	// ToDo
 	screen_texture_width = -1 ;
 	screen_texture_height = -1;
-
 }
 
 GLDraw_4_5::~GLDraw_4_5()
 {
-
 	// 20200812 K.O: MUST WAIT when changing texture feature.
 	extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
 	extfunc->glDeleteSync(sync_fence);
 	sync_fence = extfunc->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,  0);
-	
-	if(main_pass  != NULL) delete main_pass;
-	if(std_pass   != NULL) delete std_pass;
-	if(ntsc_pass1 != NULL) delete ntsc_pass1;
-	if(ntsc_pass2 != NULL) delete ntsc_pass2;
-	
-	if(grids_horizonal_buffer != NULL) {
-		if(grids_horizonal_buffer->isCreated()) grids_horizonal_buffer->destroy();
-	}
-	if(grids_horizonal_vertex != NULL) {
-		if(grids_horizonal_vertex->isCreated()) grids_horizonal_vertex->destroy();
-	}
-	if(grids_vertical_buffer != NULL) {
-		if(grids_vertical_buffer->isCreated()) grids_vertical_buffer->destroy();
-	}
-	if(grids_horizonal_vertex != NULL) {
-		if(grids_vertical_vertex->isCreated()) grids_vertical_vertex->destroy();
-	}
 }
 
 void GLDraw_4_5::epilogueBlending()

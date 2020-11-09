@@ -42,19 +42,6 @@
 
 GLDraw_ES_2::GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu) : GLDraw_Tmpl(parent, p, logger, emu)
 {
-	uTmpTextureID = 0;
-	
-	grids_shader = NULL;
-	
-	main_pass = NULL;
-	std_pass = NULL;
-	ntsc_pass1 = NULL;
-	ntsc_pass2 = NULL;
-	grids_horizonal_buffer = NULL;
-	grids_horizonal_vertex = NULL;
-	
-	grids_vertical_buffer = NULL;
-	grids_vertical_vertex = NULL;
 	ringing_phase = 0.0f;
 #if defined(__LITTLE_ENDIAN__)
 	swap_byteorder = true;

@@ -23,26 +23,8 @@ class DLL_PREFIX GLDraw_3_0 : public GLDraw_Tmpl
 	Q_OBJECT
 private:
 	QOpenGLFunctions_3_0 *extfunc;
-	float ringing_phase;
 protected:
-	GLScreenPack *main_pass;
-	GLScreenPack *std_pass;
-	GLScreenPack *ntsc_pass1;
-	GLScreenPack *ntsc_pass2;
-	GLScreenPack *bitmap_block;
-	
-	QOpenGLShaderProgram *grids_shader;
-	QOpenGLBuffer *grids_horizonal_buffer;
-	QOpenGLVertexArrayObject *grids_horizonal_vertex;
-	QOpenGLBuffer *grids_vertical_buffer;
-	QOpenGLVertexArrayObject *grids_vertical_vertex;
 
-	GLuint uTmpTextureID;
-	const float rot0[4] =   {1, -0,  0, 1};
-	const float rot90[4] =  {0,  1, -1,  0};
-	const float rot180[4] = {-1, 0,  0, -1};
-	const float rot270[4] = {0, -1,  1, 0};
-	
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 							  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
 	virtual bool initGridShaders(const QString vertex_fixed, const QString vertex_rotate, const QString fragment);
