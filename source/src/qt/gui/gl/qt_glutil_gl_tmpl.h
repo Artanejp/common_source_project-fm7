@@ -354,10 +354,11 @@ protected:
 	bool osd_onoff;
 
 	virtual void drawBitmapTexture(void) { }
-	virtual void initButtons(void) { }
-	virtual void initBitmapVertex(void) { }
+	virtual void initButtons(void);
+	
+	virtual void initBitmapVertex(void);
 	virtual void initBitmapVAO(void) { }
-	virtual void updateButtonTexture(void) { }
+	virtual void updateButtonTexture(void);
 
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 							  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4) { }
@@ -392,7 +393,7 @@ public:
 
 	virtual void drawScreenTexture(void) {}
 	virtual void drawGrids(void) { }
-	virtual void uploadBitmapTexture(QImage *p) {}
+	virtual void uploadBitmapTexture(QImage *p);
 
 	virtual void drawMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 						  QOpenGLBuffer *bp,
@@ -446,9 +447,9 @@ public slots:
 	virtual void setChangeBrightness(bool) { }
 	virtual void do_set_screen_multiply(float mul) { }
 	
-	virtual void updateBitmap(QImage *) { }
+	virtual void updateBitmap(QImage *);
 	virtual void paintGL_OffScreen(int count, int w, int h) { }
-	virtual void uploadIconTexture(QPixmap *p, int icon_type, int localnum) { }
+	virtual void uploadIconTexture(QPixmap *p, int icon_type, int localnum);
 	
 	virtual void set_emu_launched(void) { }
 	virtual void do_set_display_osd(bool onoff);

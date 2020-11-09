@@ -439,35 +439,6 @@ void GLDraw_2_0::initButtons(void)
 	}
 }
 
-void GLDraw_2_0::initBitmapVertex(void)
-{
-	if(using_flags->is_use_one_board_computer()) {
-		vertexBitmap[0].x = -1.0f;
-		vertexBitmap[0].y = -1.0f;
-		vertexBitmap[0].z = -0.1f;
-		vertexBitmap[0].s = 0.0f;
-		vertexBitmap[0].t = 1.0f;
-		
-		vertexBitmap[1].x = +1.0f;
-		vertexBitmap[1].y = -1.0f;
-		vertexBitmap[1].z = -0.1f;
-		vertexBitmap[1].s = 1.0f;
-		vertexBitmap[1].t = 1.0f;
-		
-		vertexBitmap[2].x = +1.0f;
-		vertexBitmap[2].y = +1.0f;
-		vertexBitmap[2].z = -0.1f;
-		vertexBitmap[2].s = 1.0f;
-		vertexBitmap[2].t = 0.0f;
-		
-		vertexBitmap[3].x = -1.0f;
-		vertexBitmap[3].y = +1.0f;
-		vertexBitmap[3].z = -0.1f;
-		vertexBitmap[3].s = 0.0f;
-		vertexBitmap[3].t = 0.0f;
-		
-	}
-}
 
 void GLDraw_2_0::initBitmapVAO(void)
 {
@@ -685,23 +656,6 @@ void GLDraw_2_0::drawGrids(void)
 	}
 }
 
-void GLDraw_2_0::updateButtonTexture(void)
-{
-	int i;
-	button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
-	if(button_updated) return;
-	if(vm_buttons_d != NULL) {
-		for(i = 0; i < using_flags->get_max_button(); i++) {
-			QImage img = ButtonImages.at(i);
-			if(uButtonTextureID[i] != NULL) {
-				delete uButtonTextureID[i];
-			}
-			uButtonTextureID[i] = new QOpenGLTexture(img);
-		}
-	}
-	button_updated = true;
-}
-
 void GLDraw_2_0::drawButtons()
 {
 	int i;
@@ -904,46 +858,6 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 			extfunc_2->glDisable(GL_TEXTURE_2D);
 		}
 	}
-}
-
-void GLDraw_2_0::uploadBitmapTexture(QImage *p)
-{
-	if(!using_flags->is_use_one_board_computer()) return;
-	if(p == NULL) return;
-	if(!bitmap_uploaded) {
-		p_wid->makeCurrent();
-		if(uBitmapTextureID != NULL) {
-	  		delete uBitmapTextureID;
-		}
-		uBitmapTextureID = new QOpenGLTexture(*p);
-		p_wid->doneCurrent();
-		bitmap_uploaded = true;
-		crt_flag = true;
-	}
-}
-
-void GLDraw_2_0::uploadIconTexture(QPixmap *p, int icon_type, int localnum)
-{
-	if((icon_type >  8) || (icon_type < 0)) return;
-	if((localnum  >= 9) || (localnum  <  0)) return;
-	if(p == NULL) return;
-	p_wid->makeCurrent();
-	QImage image = p->toImage();
-
-	if(icon_texid[icon_type][localnum] != NULL) delete icon_texid[icon_type][localnum];
-	{
-		icon_texid[icon_type][localnum] = new QOpenGLTexture(image);
-	}
-	p_wid->doneCurrent();
-
-}
-
-void GLDraw_2_0::updateBitmap(QImage *p)
-{
-	if(!using_flags->is_use_one_board_computer()) return;
-	redraw_required = true;
-	bitmap_uploaded = false;
-	uploadBitmapTexture(p);
 }
 
 void GLDraw_2_0::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mapped)

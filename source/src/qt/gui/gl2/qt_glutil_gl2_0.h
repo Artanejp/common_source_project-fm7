@@ -39,7 +39,7 @@ private:
 	QOpenGLFunctions_2_0 *extfunc_2;
 protected:
 	virtual void initButtons(void);
-	virtual void initBitmapVertex(void);
+
 	virtual void initBitmapVAO(void);
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 							  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
@@ -60,7 +60,6 @@ protected:
 	virtual void drawOsdIcons();
 	virtual void set_osd_vertex(int xbit);
 
-	virtual void updateButtonTexture(void);
 public:
 	GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu = 0);
 	~GLDraw_2_0();
@@ -74,7 +73,6 @@ public:
 
 	virtual void drawScreenTexture(void);
 	void drawGrids(void);
-	void uploadBitmapTexture(QImage *p);
 
 	virtual void drawMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 						  QOpenGLBuffer *bp,
@@ -88,7 +86,6 @@ public slots:
 	virtual void do_set_texture_size(QImage *p, int w, int h);
 	virtual void do_set_horiz_lines(int lines);
 	virtual void do_set_screen_multiply(float mul);
-	virtual void uploadIconTexture(QPixmap *p, int icon_type, int localnum);
 	
 	void initializeGL();
 	virtual void paintGL();
@@ -100,7 +97,7 @@ public slots:
 	void setDrawGLGridHoriz(bool);
 	void setVirtualVramSize(int ,int);	
 	void setChangeBrightness(bool);
-	void updateBitmap(QImage *);
+
 	void paintGL_OffScreen(int count, int w, int h);
 	void set_emu_launched(void);
 	void do_set_led_width(int bitwidth);

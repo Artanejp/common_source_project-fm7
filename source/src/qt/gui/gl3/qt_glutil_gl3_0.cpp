@@ -311,7 +311,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 		initPackedGLObject(&bitmap_block,
 						   _width * 2, _height * 2,
 						   ":/gl/shaders/vertex_shader.glsl", ":/gl/shaders/normal_fragment_shader.glsl",
-						   "Background Bitmap Shader", false, false);
+						   "Background Bitmap Shader", true, true, true);
 		if(bitmap_block != NULL) {
 			setNormalVAO(bitmap_block->getShader(), bitmap_block->getVAO(),
 						 bitmap_block->getVertexBuffer(),
@@ -556,19 +556,6 @@ void GLDraw_3_0::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 	}
 }
 
-void GLDraw_3_0::uploadIconTexture(QPixmap *p, int icon_type, int localnum)
-{
-	if((icon_type >  7) || (icon_type < 0)) return;
-	if((localnum  >= 9) || (localnum  <  0)) return;
-	if(p == NULL) return;
-	p_wid->makeCurrent();
-	QImage image = p->toImage();
-	if(icon_texid[icon_type][localnum] != NULL) delete icon_texid[icon_type][localnum];
-	{
-		icon_texid[icon_type][localnum] = new QOpenGLTexture(image);
-	}
-	p_wid->doneCurrent();
-}
 
 void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mapped)
 {
@@ -650,6 +637,21 @@ void GLDraw_3_0::drawScreenTexture(void)
 				 uTmpTextureID, // v2.0
 				 color, smoosing);	
 	}
+}
+
+void GLDraw_3_0::drawMain(GLScreenPack *obj,
+						  GLuint texid,
+						  QVector4D color,
+						  bool f_smoosing,
+						  bool do_chromakey,
+						  QVector3D chromakey)
+						   
+{
+	QOpenGLShaderProgram *prg = obj->getShader();
+	QOpenGLVertexArrayObject *vp = obj->getVAO();
+	QOpenGLBuffer *bp = obj->getVertexBuffer();
+
+	drawMain(prg, vp, bp, texid, color, f_smoosing, do_chromakey, chromakey);
 }
 
 void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
@@ -813,21 +815,6 @@ void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
 	}
 }
 
-void GLDraw_3_0::drawMain(GLScreenPack *obj,
-						  GLuint texid,
-						  QVector4D color,
-						  bool f_smoosing,
-						  bool do_chromakey,
-						  QVector3D chromakey)
-						   
-{
-	QOpenGLShaderProgram *prg = obj->getShader();
-	QOpenGLVertexArrayObject *vp = obj->getVAO();
-	QOpenGLBuffer *bp = obj->getVertexBuffer();
-
-	drawMain(prg, vp, bp, texid, color, f_smoosing, do_chromakey, chromakey);
-}
-
 void GLDraw_3_0::drawButtonsMain(int num, bool f_smoosing)
 {
 	GLuint texid;
@@ -918,7 +905,8 @@ void GLDraw_3_0::drawBitmapTexture(void)
 	smoosing = p_config->use_opengl_filters;
 	if(uBitmapTextureID == NULL) return;
 	if(using_flags->is_use_one_board_computer()) {
-		extfunc->glDisable(GL_BLEND);
+		
+//		extfunc->glDisable(GL_BLEND);
 		drawMain(bitmap_block,
 				 uBitmapTextureID->textureId(),
 				 color, smoosing);

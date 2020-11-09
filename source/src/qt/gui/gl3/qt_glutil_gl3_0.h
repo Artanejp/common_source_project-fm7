@@ -91,8 +91,6 @@ public:
 	//virtual void initBitmapVertex(void);
 	
 	virtual void uploadMainTexture(QImage *p, bool chromakey, bool was_mapped);
-	virtual void uploadIconTexture(QPixmap *p, int icon_type, int localnum);
-
 	virtual void drawScreenTexture(void);
 	virtual void do_set_screen_multiply(float mul);
 	virtual void doSetGridsHorizonal(int lines, bool force);

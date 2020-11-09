@@ -96,10 +96,8 @@ protected:
 	virtual void drawPolygon(int vertex_loc, uintptr_t p = 0);
 	virtual void set_led_vertex(int bit);
 	virtual void set_osd_vertex(int bit);
-	virtual void initBitmapVertex(void);
-	virtual QOpenGLTexture *createMainTexture(QImage *img);
-	void updateButtonTexture(void);
 
+	virtual QOpenGLTexture *createMainTexture(QImage *img);
 public:
 	GLDraw_4_5(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu = 0);
 	~GLDraw_4_5();
@@ -107,7 +105,7 @@ public:
 	virtual void initGLObjects();
 	virtual void initLocalGLObjects(void);
 	virtual void initFBO(void);
-	void initButtons(void);
+
 	//virtual void initBitmapVertex(void);
 	
 	virtual void uploadMainTexture(QImage *p, bool chromakey, bool was_mapped);
@@ -115,7 +113,6 @@ public:
 	virtual void do_set_screen_multiply(float mul);
 	virtual void doSetGridsHorizonal(int lines, bool force);
 	virtual void doSetGridsVertical(int pixels, bool force);
-	void uploadBitmapTexture(QImage *p);
 	
 // Note: Mapping vram from draw_thread does'nt work well.
 // This feature might be disable. 20180728 K.Ohta.
@@ -138,8 +135,6 @@ public:
 	}
 
 public slots:
-	void updateBitmap(QImage *);
-	void uploadIconTexture(QPixmap *p, int icon_type, int localnum);
 	void setBrightness(GLfloat r, GLfloat g, GLfloat b);
 	void do_set_texture_size(QImage *p, int w, int h);
 	void do_set_horiz_lines(int lines);

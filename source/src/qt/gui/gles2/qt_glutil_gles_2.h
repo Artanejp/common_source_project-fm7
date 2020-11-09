@@ -87,10 +87,8 @@ protected:
 //	virtual void drawLedMain(GLScreenPack *obj, int num, QVector4D color);
 	virtual void set_led_vertex(int bit);
 	virtual void set_osd_vertex(int bit);
-	virtual void initBitmapVertex(void);
-	virtual QOpenGLTexture *createMainTexture(QImage *img);
-	void updateButtonTexture(void);
 
+	virtual QOpenGLTexture *createMainTexture(QImage *img);
 public:
 	GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu = 0);
 	~GLDraw_ES_2();
@@ -98,7 +96,7 @@ public:
 	virtual void initGLObjects();
 	virtual void initLocalGLObjects(void);
 	virtual void initFBO(void);
-	void initButtons(void);
+
 	//virtual void initBitmapVertex(void);
 	virtual void prologueBlending();
 	virtual void epilogueBlending();
@@ -109,10 +107,8 @@ public:
 	virtual void do_set_screen_multiply(float mul);
 	virtual void doSetGridsHorizonal(int lines, bool force);
 	virtual void doSetGridsVertical(int pixels, bool force);
-	void uploadBitmapTexture(QImage *p);
+
 public slots:
-	void updateBitmap(QImage *);
-	void uploadIconTexture(QPixmap *p, int icon_type, int localnum);
 	void setBrightness(GLfloat r, GLfloat g, GLfloat b);
 	void do_set_texture_size(QImage *p, int w, int h);
 	void do_set_horiz_lines(int lines);
