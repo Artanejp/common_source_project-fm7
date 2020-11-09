@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 3.2.2)
+set(THIS_LIB_VERSION 3.2.3)
 #include(cotire)
 #include(PrecompiledHeader)
 
@@ -64,6 +64,7 @@ set(s_qt_gui_srcs
 	  qt_gldraw.cpp
 	  qt_glutil.cpp
 	  qt_glpack.cpp
+	  gl/qt_glutil_gl_tmpl.cpp
 	  gl2/qt_glutil_gl2_0.cpp
 	  gl3/qt_glutil_gl3_0.cpp
 	  gl4_5/qt_glutil_gl4_5.cpp

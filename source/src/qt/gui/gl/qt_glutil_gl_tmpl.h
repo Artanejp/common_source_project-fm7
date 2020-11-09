@@ -217,6 +217,14 @@ protected:
 	QOpenGLVertexArrayObject *vertex_screen;
 	QOpenGLBuffer *buffer_screen_vertex;
 	
+	GLScreenPack *led_pass;
+	GLScreenPack *osd_pass;
+	QOpenGLBuffer *led_pass_vbuffer[32];
+	QOpenGLVertexArrayObject *led_pass_vao[32];
+	QOpenGLBuffer *osd_pass_vbuffer[32];
+	QOpenGLVertexArrayObject *osd_pass_vao[32];
+
+	VertexTexCoord_t vertexTmpTexture[4];
 	VertexTexCoord_t vertexBitmap[4];
 	QOpenGLShaderProgram *bitmap_shader;
 	QOpenGLBuffer *buffer_bitmap_vertex;
@@ -283,12 +291,17 @@ protected:
 	virtual void drawGridsHorizonal(void) { }
 	virtual void drawGridsVertical(void) { }
 	virtual void drawGridsMain(GLfloat *tp,
-					   int number,
-					   GLfloat lineWidth = 0.2f,
+							   int number,
+							   GLfloat lineWidth = 0.2f,
 							   QVector4D color = QVector4D(0.0f, 0.0f, 0.0f, 1.0f)) { }
 	virtual void drawButtons() { }
-	virtual void drawOsdLeds() { }
-	virtual void drawOsdIcons() { }
+	virtual void prologueBlending() {}
+	virtual void epilogueBlending() {}
+	virtual void drawPolygon(int vertex_loc, uintptr_t p = 0) {}
+	
+	virtual void drawLedMain(GLScreenPack *obj, int num, QVector4D color);
+	virtual void drawOsdLeds();
+	virtual void drawOsdIcons();
 	virtual void set_osd_vertex(int xbit) { }
 
 public:
@@ -303,6 +316,16 @@ public:
 		screen_texture_width_old = using_flags->get_screen_width();
 		screen_texture_height = using_flags->get_screen_height();
 		screen_texture_height_old = using_flags->get_screen_height();
+		
+		osd_pass = NULL;
+		led_pass = NULL;
+		for(int i = 0; i < 32; i++) {
+			led_pass_vao[i] = NULL;
+			led_pass_vbuffer[i] = NULL;
+			osd_pass_vao[i] = NULL;
+			osd_pass_vbuffer[i] = NULL;
+		}
+
 #if 0		
 		if(using_flags->is_use_fd()) {
 			osd_led_bit_width = 10;
@@ -397,7 +420,17 @@ public:
 		rec_count = 0;
 
 	}
-	~GLDraw_Tmpl() {}
+	~GLDraw_Tmpl()
+	{
+		if(osd_pass   != NULL) delete osd_pass;
+		if(led_pass   != NULL) delete led_pass;
+		for(int i = 0; i < 32; i++) {
+			if(led_pass_vao[i] != NULL) delete led_pass_vao[i];	
+			if(led_pass_vbuffer[i] != NULL) delete led_pass_vbuffer[i];
+			if(osd_pass_vao[i] != NULL) delete osd_pass_vao[i];	
+			if(osd_pass_vbuffer[i] != NULL) delete osd_pass_vbuffer[i];
+		}
+	}
 
 	virtual void initGLObjects() {}
 	virtual void initFBO(void) {}
@@ -413,6 +446,20 @@ public:
 	virtual void drawMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 						  QOpenGLBuffer *bp,
 						  VertexTexCoord_t *vertex_data,
+						  GLuint texid,
+						  QVector4D color, bool f_smoosing,
+						  bool do_chromakey = false,
+						  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f)) {}
+	virtual void drawMain(QOpenGLShaderProgram *prg,
+						  QOpenGLVertexArrayObject *vp,
+						  QOpenGLBuffer *bp,
+						  GLuint texid,
+						  QVector4D color,
+						  bool f_smoosing,
+						  bool do_chromakey = false,
+						  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f)) {}
+	
+	virtual void drawMain(GLScreenPack *obj,
 						  GLuint texid,
 						  QVector4D color, bool f_smoosing,
 						  bool do_chromakey = false,
@@ -503,8 +550,8 @@ public slots:
 	virtual void uploadIconTexture(QPixmap *p, int icon_type, int localnum) { }
 	
 	virtual void set_emu_launched(void) { }
-	virtual void do_set_display_osd(bool onoff) { }
-	virtual void do_display_osd_leds(int lednum, bool onoff) { }
+	virtual void do_set_display_osd(bool onoff);
+	virtual void do_display_osd_leds(int lednum, bool onoff);
 	virtual void do_set_led_width(int bitwidth) { }
 	virtual bool is_mapped_buffer(void) { return false; }
 	virtual GLuint get_mapped_buffer_num(int region) { return (GLuint)0; }

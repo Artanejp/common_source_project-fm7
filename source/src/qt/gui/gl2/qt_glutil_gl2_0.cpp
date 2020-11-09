@@ -60,10 +60,6 @@ void GLDraw_2_0::initializeGL(void)
 {
 }
 
-void GLDraw_2_0::do_set_display_osd(bool onoff)
-{
-	osd_onoff = onoff;
-}
 
 void GLDraw_2_0::set_osd_vertex(int xbit)
 {
@@ -128,21 +124,6 @@ void GLDraw_2_0::set_osd_vertex(int xbit)
 				 &(vertexOSD[i][0]), 4);
 }
 
-
-void GLDraw_2_0::do_display_osd_leds(int lednum, bool onoff)
-{
-	if(lednum == -1) {
-		osd_led_status = (onoff) ? 0xffffffff : 0x00000000;
-	} else if((lednum >= 0) && (lednum < 32)) {
-		uint32_t nn;
-		nn = 0x00000001 << lednum;
-		if(onoff) {
-			osd_led_status |= nn;
-		} else {
-			osd_led_status &= ~nn;
-		}
-	}
-}
 
 void GLDraw_2_0::drawOsdLeds()
 {

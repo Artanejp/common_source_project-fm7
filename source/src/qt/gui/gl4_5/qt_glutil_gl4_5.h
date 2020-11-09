@@ -105,14 +105,6 @@ protected:
 	GLScreenPack *ntsc_pass1;
 	GLScreenPack *ntsc_pass2;
 	GLScreenPack *bitmap_block;
-	GLScreenPack *led_pass;
-	GLScreenPack *osd_pass;
-	QOpenGLBuffer *led_pass_vbuffer[32];
-	QOpenGLVertexArrayObject *led_pass_vao[32];
-	QOpenGLBuffer *osd_pass_vbuffer[32];
-	QOpenGLVertexArrayObject *osd_pass_vao[32];
-
-	VertexTexCoord_t vertexTmpTexture[4];
 	
 	QOpenGLShaderProgram *grids_shader;
 	QOpenGLBuffer *grids_horizonal_buffer;
@@ -174,9 +166,12 @@ protected:
 										  bool use_chromakey = false);
 	virtual void drawBitmapTexture(void);
 	virtual void drawButtonsMain(int num, bool f_smoosing);
-	virtual void drawOsdLeds();
-	virtual void drawOsdIcons();
-	virtual void drawLedMain(GLScreenPack *obj, int num, QVector4D color);
+//	virtual void drawOsdLeds();
+//	virtual void drawOsdIcons();
+//	virtual void drawLedMain(GLScreenPack *obj, int num, QVector4D color);
+	virtual void prologueBlending();
+	virtual void epilogueBlending();
+	virtual void drawPolygon(int vertex_loc, uintptr_t p = 0);
 	virtual void set_led_vertex(int bit);
 	virtual void set_osd_vertex(int bit);
 	virtual void initBitmapVertex(void);
@@ -228,8 +223,6 @@ public slots:
 	void do_set_horiz_lines(int lines);
 	virtual void paintGL(void);
 	virtual void resizeGL(int width, int height);
-	void do_set_display_osd(bool onoff);
-	void do_display_osd_leds(int lednum, bool onoff);
 
 };
 QT_END_NAMESPACE

@@ -196,7 +196,7 @@ const float chroma_filter[24 + 1] = {
 #endif
 #endif
 
-GLDraw_3_0::GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu) : GLDraw_2_0(parent, p, logger, emu)
+GLDraw_3_0::GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu) : GLDraw_Tmpl(parent, p, logger, emu)
 {
 	uTmpTextureID = 0;
 	
@@ -206,13 +206,6 @@ GLDraw_3_0::GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	std_pass = NULL;
 	ntsc_pass1 = NULL;
 	ntsc_pass2 = NULL;
-	led_pass = NULL;
-	for(int i = 0; i < 32; i++) {
-		led_pass_vao[i] = NULL;
-		led_pass_vbuffer[i] = NULL;
-		osd_pass_vao[i] = NULL;
-		osd_pass_vbuffer[i] = NULL;
-	}
 	grids_horizonal_buffer = NULL;
 	grids_horizonal_vertex = NULL;
 	
@@ -229,13 +222,6 @@ GLDraw_3_0::~GLDraw_3_0()
 	if(std_pass   != NULL) delete std_pass;
 	if(ntsc_pass1 != NULL) delete ntsc_pass1;
 	if(ntsc_pass2 != NULL) delete ntsc_pass2;
-	if(led_pass   != NULL) delete led_pass;
-	for(int i = 0; i < 32; i++) {
-		if(led_pass_vao[i] != NULL) delete led_pass_vao[i];	
-		if(led_pass_vbuffer[i] != NULL) delete led_pass_vbuffer[i];
-		if(osd_pass_vao[i] != NULL) delete osd_pass_vao[i];	
-		if(osd_pass_vbuffer[i] != NULL) delete osd_pass_vbuffer[i];
-	}
 	
 	if(grids_horizonal_buffer != NULL) {
 		if(grids_horizonal_buffer->isCreated()) grids_horizonal_buffer->destroy();
@@ -251,6 +237,31 @@ GLDraw_3_0::~GLDraw_3_0()
 	}
 
 }
+
+void GLDraw_3_0::epilogueBlending()
+{
+	extfunc->glDisable(GL_TEXTURE_2D);
+	extfunc->glDisable(GL_BLEND);
+}
+
+void GLDraw_3_0::prologueBlending()
+{
+	extfunc->glDisable(GL_TEXTURE_2D);
+	extfunc->glEnable(GL_BLEND);
+	extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+	extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+}
+
+void GLDraw_3_0::drawPolygon(int vertex_loc, uintptr_t p)
+{
+	extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(VertexTexCoord_t), (void*)p); 
+
+	extfunc->glEnableVertexAttribArray(vertex_loc);
+	extfunc->glEnable(GL_VERTEX_ARRAY);
+	extfunc->glDrawArrays(GL_POLYGON, 0, 4);
+}
+
 
 void GLDraw_3_0::initFBO(void)
 {
@@ -755,6 +766,19 @@ void GLDraw_3_0::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 	}
 }
 
+void GLDraw_3_0::uploadIconTexture(QPixmap *p, int icon_type, int localnum)
+{
+	if((icon_type >  7) || (icon_type < 0)) return;
+	if((localnum  >= 9) || (localnum  <  0)) return;
+	if(p == NULL) return;
+	p_wid->makeCurrent();
+	QImage image = p->toImage();
+	if(icon_texid[icon_type][localnum] != NULL) delete icon_texid[icon_type][localnum];
+	{
+		icon_texid[icon_type][localnum] = new QOpenGLTexture(image);
+	}
+	p_wid->doneCurrent();
+}
 
 void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mapped)
 {
@@ -1111,136 +1135,6 @@ void GLDraw_3_0::drawBitmapTexture(void)
 	}
 }
 
-void GLDraw_3_0::drawLedMain(GLScreenPack *obj, int num, QVector4D color)
-{
-	QOpenGLShaderProgram *prg = obj->getShader();
-	QOpenGLVertexArrayObject *vp = led_pass_vao[num];
-	QOpenGLBuffer *bp = led_pass_vbuffer[num];
-	int ii;
-		
-	{
-		extfunc->glDisable(GL_TEXTURE_2D);
-		extfunc->glEnable(GL_BLEND);
-		extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		vp->bind();
-		bp->bind();
-		prg->bind();
-		extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
-		extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
-		ii = prg->uniformLocation("color");
-		if(ii >= 0) {
-			prg->setUniformValue(ii,  color);
-		}
-		
-		prg->enableAttributeArray("vertex");
-		int vertex_loc = prg->attributeLocation("vertex");
-		prg->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3, sizeof(VertexTexCoord_t));
-		extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(VertexTexCoord_t), 0); 
-
-		extfunc->glEnableVertexAttribArray(vertex_loc);
-		extfunc->glEnable(GL_VERTEX_ARRAY);
-		extfunc->glDrawArrays(GL_POLYGON, 0, 4);
-		bp->release();
-		vp->release();
-		
-		prg->release();
-		extfunc->glDisable(GL_TEXTURE_2D);
-		extfunc->glDisable(GL_BLEND);
-	}
-
-}
-
-
-void GLDraw_3_0::drawOsdLeds()
-{
-	QVector4D color_on;
-	QVector4D color_off;
-	uint32_t bit = 0x00000001;
-	if(osd_onoff) {
-		color_on = QVector4D(0.95, 0.0, 0.05, 1.0);
-		color_off = QVector4D(0.05,0.05, 0.05, 0.10);
-	} else {
-		color_on = QVector4D(0.00,0.00, 0.00, 0.0);
-		color_off = QVector4D(0.00,0.00, 0.00, 0.0);
-	}
-	if(osd_onoff) {
-		//if(osd_led_status_bak != osd_led_status) {
-			for(int i = 0; i < osd_led_bit_width; i++) {
-				if((bit & osd_led_status) == (bit & osd_led_status_bak)) {
-					bit <<= 1;
-					continue;
-				}
-				drawLedMain(led_pass, i,
-							((osd_led_status & bit) != 0) ? color_on : color_off);
-				bit <<= 1;
-			}
-			osd_led_status_bak = osd_led_status;
-		//}
-	}
-}
-
-void GLDraw_3_0::drawOsdIcons()
-{
-	QVector4D color_on;
-	QVector4D color_off;
-	uint32_t bit = 0x00000001;
-	if(osd_onoff) {
-		color_on = QVector4D(1.0,  1.0, 1.0, 0.8);
-		color_off = QVector4D(1.0, 1.0, 1.0, 0.00);
-	} else {
-		color_on = QVector4D(0.00,0.00, 0.00, 0.0);
-		color_off = QVector4D(0.00,0.00, 0.00, 0.0);
-	}
-	if(osd_onoff) {
-		int major, minor;
-		//if(osd_led_status_bak != osd_led_status) {
-			for(int i = 0; i < osd_led_bit_width; i++) {
-				if((bit & osd_led_status) == (bit & osd_led_status_bak)) {
-					if((bit & osd_led_status) == 0) { 
-						bit <<= 1;
-						continue;
-					}
-				}
-				if((i >= 2) && (i < 10)) { // FD
-					major = 2;
-					minor = i - 2;
-				} else if((i >= 10) && (i < 12)) { // QD
-					major = 3;
-					minor = i - 10;
-				} else if((i >= 12) && (i < 14)) { // CMT(R)
-					major = 4;
-					minor = i - 12;
-				} else if((i >= 14) && (i < 16)) { // CMT(W)
-					major = 5;
-					minor = i - 14;
-				} else if((i >= 16) && (i < 24)) { // HDD
-					major = 8;
-					minor = i - 16;
-				} else if((i >= 24) && (i < 26)) { // CD
-					major = 6;
-					minor = i - 24;
-				} else if((i >= 26) && (i < 28)) { // LD
-					major = 7;
-					minor = i - 26;
-				} else {
-					major = 0;
-					minor = 0;
-				}
-				// ToDo: CD(6),LD(7) and HDD(8).
-				if((major != 0) && (icon_texid[major][minor] != NULL)) {
-					if(icon_texid[major][minor] != NULL) {
-						drawMain(osd_pass->getShader(), osd_pass_vao[i], osd_pass_vbuffer[i],
-								 icon_texid[major][minor]->textureId(),
-								 ((osd_led_status & bit) != 0) ? color_on : color_off,
-								 false, false, QVector3D(0.0, 0.0, 0.0));
-					}
-				}
- 				bit <<= 1;
-			}
-			osd_led_status_bak = osd_led_status;
-		//}
-	}
-}
 
 void GLDraw_3_0::paintGL(void)
 {

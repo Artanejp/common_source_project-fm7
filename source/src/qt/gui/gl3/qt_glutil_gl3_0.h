@@ -11,14 +11,14 @@
 #define _QT_COMMON_GLUTIL_3_0_H
 
 #include <QString>
-#include "../gl2/qt_glutil_gl2_0.h"
-//#include "../gl/qt_glutil_gl_tmpl.h"
+//#include "../gl2/qt_glutil_gl2_0.h"
+#include "../gl/qt_glutil_gl_tmpl.h"
 
 QT_BEGIN_NAMESPACE
 class GLScreenPack;
 class QOpenGLFunctions_3_0;
 class GLDrawClass;
-class DLL_PREFIX GLDraw_3_0 : public GLDraw_2_0
+class DLL_PREFIX GLDraw_3_0 : public GLDraw_Tmpl
 {
 	Q_OBJECT
 private:
@@ -30,14 +30,6 @@ protected:
 	GLScreenPack *ntsc_pass1;
 	GLScreenPack *ntsc_pass2;
 	GLScreenPack *bitmap_block;
-	GLScreenPack *led_pass;
-	GLScreenPack *osd_pass;
-	QOpenGLBuffer *led_pass_vbuffer[32];
-	QOpenGLVertexArrayObject *led_pass_vao[32];
-	QOpenGLBuffer *osd_pass_vbuffer[32];
-	QOpenGLVertexArrayObject *osd_pass_vao[32];
-
-	VertexTexCoord_t vertexTmpTexture[4];
 	
 	QOpenGLShaderProgram *grids_shader;
 	QOpenGLBuffer *grids_horizonal_buffer;
@@ -98,9 +90,13 @@ protected:
 										  bool use_chromakey = false);
 	virtual void drawBitmapTexture(void);
 	virtual void drawButtonsMain(int num, bool f_smoosing);
-	virtual void drawOsdLeds();
-	virtual void drawOsdIcons();
-	virtual void drawLedMain(GLScreenPack *obj, int num, QVector4D color);
+	virtual void prologueBlending();
+	virtual void epilogueBlending();
+	virtual void drawPolygon(int vertex_loc, uintptr_t p = 0);
+	
+//	virtual void drawOsdLeds();
+//	virtual void drawOsdIcons();
+//	virtual void drawLedMain(GLScreenPack *obj, int num, QVector4D color);
 	virtual void set_led_vertex(int bit);
 	virtual void set_osd_vertex(int bit);
 public:
@@ -113,6 +109,8 @@ public:
 	//virtual void initBitmapVertex(void);
 	
 	virtual void uploadMainTexture(QImage *p, bool chromakey, bool was_mapped);
+	virtual void uploadIconTexture(QPixmap *p, int icon_type, int localnum);
+
 	virtual void drawScreenTexture(void);
 	virtual void do_set_screen_multiply(float mul);
 	virtual void doSetGridsHorizonal(int lines, bool force);

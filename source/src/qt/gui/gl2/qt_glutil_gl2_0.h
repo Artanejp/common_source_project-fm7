@@ -103,8 +103,6 @@ public slots:
 	void updateBitmap(QImage *);
 	void paintGL_OffScreen(int count, int w, int h);
 	void set_emu_launched(void);
-	void do_set_display_osd(bool onoff);
-	void do_display_osd_leds(int lednum, bool onoff);
 	void do_set_led_width(int bitwidth);
 };
 QT_END_NAMESPACE
