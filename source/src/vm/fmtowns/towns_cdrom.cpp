@@ -572,14 +572,14 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				break;
 			} if((cdda_status == CDDA_PAUSED) &&
 				((prev_command & 0x9f) == CDROM_COMMAND_PAUSE_CDDA)) {
-				/// @note SUPER READ MAHJONG PIII (and maybe others) polls until below status.
+				/// @note SUPER READ MAHJONG PIV (and maybe others) polls until below status.
 				/// @note 20201110 K.O
 				set_status(req_status, 0, TOWNS_CD_STATUS_ACCEPT, TOWNS_CD_ACCEPT_WAIT, 0x00, 0x00);
 				break;
 			}
 			if(status_seek) {
 				if(!(toc_table[current_track].is_audio)) {
-					// @note In SUPER REAL MAHJONG PIII, maybe check below.
+					// @note In SUPER REAL MAHJONG PIV, maybe check below.
 					// @note 20201110 K.O
 					set_status(req_status, 0, TOWNS_CD_STATUS_ACCEPT, TOWNS_CD_ACCEPT_DATA_TRACK, 0x00, 0x00);
 				} else {
@@ -696,7 +696,7 @@ void TOWNS_CDROM::read_cdrom()
 //	read_pos = 0;
 	databuffer->clear();
 	if((cdda_status != CDDA_OFF) && (cdda_status != CDDA_ENDED)) {
-		// @note In SUPER REAL MAHJONG PIII, use PAUSE (A5h) command before reading.
+		// @note In SUPER REAL MAHJONG PIV, use PAUSE (A5h) command before reading.
 		// @note 20201110 K.O
 		set_cdda_status(CDDA_ENDED);
 	} else {
