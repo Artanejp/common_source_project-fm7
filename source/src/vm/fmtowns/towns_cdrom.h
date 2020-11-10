@@ -187,6 +187,7 @@ protected:
 	bool pio_transfer_phase;
 
 	bool cdrom_halted;
+	bool status_seek;
 	
 	SUBC_t subq_buffer[98]; // OK?
 	int subq_bitptr;
