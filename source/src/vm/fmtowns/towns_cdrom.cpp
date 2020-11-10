@@ -558,7 +558,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				break;;
 			}
 			if(((cdda_status == CDDA_ENDED) || (cdda_status == CDDA_OFF))
-			   /*((prev_command & 0x9f) == CDROM_COMMAND_STOP_CDDA)*/) {
+			   && ((prev_command & 0x9f) == CDROM_COMMAND_STOP_CDDA)) {
 				/// @note RANCEIII (and maybe others) polls until below status.
 				/// @note 20201110 K.O
 				set_status(req_status, 0, TOWNS_CD_STATUS_ACCEPT, TOWNS_CD_ACCEPT_WAIT, 0x00, 0x00);
