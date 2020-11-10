@@ -562,7 +562,6 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				/// @note RANCEIII (and maybe others) polls until below status.
 				/// @note 20201110 K.O
 				set_status(req_status, 0, TOWNS_CD_STATUS_ACCEPT, TOWNS_CD_ACCEPT_WAIT, 0x00, 0x00);
-				   
 				if((cdda_status == CDDA_ENDED)) {
 					set_cdda_status(CDDA_OFF);
 				}
@@ -588,22 +587,6 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				}
 				break;
 			}
-//			if(param_queue[0] == 0x08) {
-//				set_status(req_status, 0, 0x00, TOWNS_CD_ACCEPT_08H_FOR_CMD_A0H, 0x00, 0x00);
-//				break;
-//			} else if(param_queue[0] == 0x04) {
-//				set_status(req_status, 0, 0x00, TOWNS_CD_ACCEPT_04H_FOR_CMD_A0H, 0x00, 0x00);
-//				break;
-//			}				
-			
-//			if(((prev_command & 0x9f) == CDROM_COMMAND_READ_MODE1) ||
-//			   ((prev_command & 0x9f) == CDROM_COMMAND_READ_MODE2) ||
-//			   ((prev_command & 0x9f) == CDROM_COMMAND_READ_RAW)) {
-//				if(!(toc_table[current_track].is_audio)) {
-//					set_status(req_status, 0, 0x00, TOWNS_CD_ACCEPT_DATA_TRACK, 0x00, 0x00);
-//					break;
-//				}
-//			}
 			status_accept(0, 0x00, 0x00);
 		}
 		break;
