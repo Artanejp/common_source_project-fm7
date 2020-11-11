@@ -60,8 +60,6 @@ void OSD_BASE::initialize_input()
 	mouse_enabled = false;
 	mouse_ptrx = mouse_oldx = get_screen_width() / 2;
 	mouse_ptry = mouse_oldy = get_screen_height() / 2;
-	delta_x = 0;
-	delta_y = 0;
 	// initialize keycode convert table
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(bios_path(_T("keycode.cfg")), FILEIO_READ_BINARY)) {
@@ -260,13 +258,14 @@ void OSD_BASE::update_input()
 	//bool hid = false;
 	if(mouse_enabled) {
 		QMutexLocker n(mouse_mutex);
-		mouse_status[0] = delta_x;
-		mouse_status[1] = delta_y; 
+		mouse_status[0] = mouse_ptrx - mouse_oldx;
+		mouse_status[1] = mouse_ptry - mouse_oldy; 
 		mouse_status[2] = mouse_button;
 		mouse_oldx = mouse_ptrx;
 		mouse_oldy = mouse_ptry;
 		//printf("Mouse delta(%d, %d)\n", delta_x, delta_y);
-		delta_x = delta_y = 0;
+		mouse_oldx = mouse_ptrx;
+		mouse_oldy = mouse_ptry;
 	}
 	//}
 	// move mouse cursor to the center of window
@@ -798,8 +797,6 @@ void OSD_BASE::enable_mouse()
 		QMutexLocker n(mouse_mutex);
 		mouse_oldx = mouse_ptrx = get_screen_width() / 2;
 		mouse_oldy = mouse_ptry = get_screen_height() / 2;
-		delta_x = 0;
-		delta_y = 0;
 		mouse_status[0] = 0;
 		mouse_status[1] = 0;
 		mouse_status[2] = mouse_button;
@@ -836,26 +833,13 @@ void OSD_BASE::set_mouse_pointer(int x, int y)
 {
 	if(mouse_enabled) {
 		QMutexLocker n(mouse_mutex);
-//		int32_t dw = get_screen_width();
-//		int32_t dh = get_screen_height();
+		
 		mouse_ptrx = x;
 		mouse_ptry = y;
-//		delta_x = x - (dw / 2);
-//		delta_y = y - (dh / 2);
-		delta_x += (mouse_ptrx - mouse_oldx);
-		delta_y += (mouse_ptry - mouse_oldy);
-//		if(delta_x > (dw / 2)) {
-//			delta_x = dw / 2;
-//		} else if(delta_x < -(dw / 2)) {
-//			delta_x = -dw / 2;
-//		}
-//		if(delta_y > (dh / 2)) {
-//			delta_y = dh / 2;
-//		} else if(delta_y < -(dh / 2)) {
-//			delta_y = -dh / 2;
-//		}
-		mouse_oldx = mouse_ptrx;
-		mouse_oldy = mouse_ptry;
+		delta_x += ((mouse_ptrx - mouse_oldx) / 3);
+		delta_y += ((mouse_ptry - mouse_oldy) / 3);
+//		mouse_oldx = mouse_ptrx;
+//		mouse_oldy = mouse_ptry;
 		//printf("Mouse Moved: (%d, %d) -> delta(%d, %d)\n", mouse_ptrx, mouse_ptry, delta_x, delta_y);
 	}
 }
