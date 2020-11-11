@@ -214,8 +214,6 @@ protected:
 	int mouse_button;
 	int mouse_oldx;
 	int mouse_oldy;
-	int delta_x;
-	int delta_y;
 	//Qt::CursorShape mouse_shape;
 	
 	QImage background_image;

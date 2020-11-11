@@ -73,6 +73,8 @@ void initialize_config()
 	#if defined(USE_MOUSE_TYPE) && defined(MOUSE_TYPE_DEFAULT)
 		config.mouse_type = MOUSE_TYPE_DEFAULT;
 	#endif
+		config.mouse_sensitivity_x = 1 << 12; // 1.0
+		config.mouse_sensitivity_y = 1 << 12; // 1.0
 	#if defined(USE_JOYSTICK_TYPE) && defined(JOYSTICK_TYPE_DEFAULT)
 		config.joystick_type = JOYSTICK_TYPE_DEFAULT;
 	#endif
@@ -449,6 +451,8 @@ void load_config(const _TCHAR *config_path)
 			config.joy_to_key_buttons[i] = MyGetPrivateProfileInt(_T("Input"), create_string(_T("JoyToKeyButtons%d"), i + 1), config.joy_to_key_buttons[i], config_path);
 		}
 	#endif
+		config.mouse_sensitivity_x = MyGetPrivateProfileInt(_T("Control"), _T("MouseSensitivityX"), config.mouse_sensitivity_x, config_path);
+		config.mouse_sensitivity_y = MyGetPrivateProfileInt(_T("Control"), _T("MouseSensitivityY"), config.mouse_sensitivity_y, config_path);
 	// debug
 	#ifdef USE_FLOPPY_DISK
 		config.special_debug_fdc =	MyGetPrivateProfileInt(_T("Debug"), _T("SpecialDebugFDC"), config.special_debug_fdc, config_path);
@@ -820,6 +824,8 @@ void save_config(const _TCHAR *config_path)
 			MyWritePrivateProfileInt(_T("Input"), create_string(_T("JoyToKeyButtons%d"), i + 1), config.joy_to_key_buttons[i], config_path);
 		}
 	#endif
+		MyWritePrivateProfileInt(_T("Control"), _T("MouseSensitivityX"), config.mouse_sensitivity_x, config_path);
+		MyWritePrivateProfileInt(_T("Control"), _T("MouseSensitivityY"), config.mouse_sensitivity_y, config_path);
 
 	// debug
 	#ifdef USE_FLOPPY_DISK
@@ -933,7 +939,7 @@ void save_config(const _TCHAR *config_path)
 	#endif	
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 
 bool process_config_state(void *f, bool loading)
 {
@@ -942,47 +948,63 @@ bool process_config_state(void *f, bool loading)
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	#ifdef USE_BOOT_MODE
+	#if defined(USE_FIXED_CONFIG) || defined(USE_BOOT_MODE)
 		state_fio->StateValue(config.boot_mode);
 	#endif
-	#ifdef USE_CPU_TYPE
+	#if defined(USE_FIXED_CONFIG) || defined(USE_CPU_TYPE)
 		state_fio->StateValue(config.cpu_type);
 	#endif
-	#ifdef USE_DIPSWITCH
+	#if defined(USE_FIXED_CONFIG) || defined(USE_DIPSWITCH)
 		state_fio->StateValue(config.dipswitch);
 	#endif
-	#ifdef USE_DEVICE_TYPE
+	#if defined(USE_FIXED_CONFIG) || defined(USE_DEVICE_TYPE)
 		state_fio->StateValue(config.device_type);
 	#endif
-	#ifdef USE_DRIVE_TYPE
+	#if defined(USE_FIXED_CONFIG) || defined(USE_DRIVE_TYPE)
 		state_fio->StateValue(config.drive_type);
 	#endif
-	#ifdef USE_KEYBOARD_TYPE
+	#if defined(USE_FIXED_CONFIG) || defined(USE_KEYBOARD_TYPE)
 		state_fio->StateValue(config.keyboard_type);
 	#endif
-	#ifdef USE_MOUSE_TYPE
+	#if defined(USE_FIXED_CONFIG) || defined(USE_MOUSE_TYPE)
 		state_fio->StateValue(config.mouse_type);
 	#endif
-	#ifdef USE_JOYSTICK_TYPE
+	#if defined(USE_FIXED_CONFIG) || defined(USE_JOYSTICK_TYPE)
 		state_fio->StateValue(config.joystick_type);
 	#endif
-	#ifdef USE_SOUND_TYPE
+	#if defined(USE_FIXED_CONFIG) || defined(USE_SOUND_TYPE)
 		state_fio->StateValue(config.sound_type);
 	#endif
-	#ifdef USE_MONITOR_TYPE
+	#if defined(USE_FIXED_CONFIG) || defined(USE_MONITOR_TYPE)
 		state_fio->StateValue(config.monitor_type);
 	#endif
-	#ifdef USE_PRINTER_TYPE
+	#if defined(USE_FIXED_CONFIG) || defined(USE_PRINTER_TYPE)
 		state_fio->StateValue(config.printer_type);
 	#endif
-	#ifdef USE_FLOPPY_DISK
-		for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
+	#if  defined(USE_SHARED_DLL) || defined(USE_FLOPPY_DISK)
+		for(int drv = 0; drv < 16; drv++) {
 			state_fio->StateValue(config.correct_disk_timing[drv]);
 			state_fio->StateValue(config.ignore_disk_crc[drv]);
 		}
 	#endif
 	state_fio->StateValue(config.sound_frequency);
 	state_fio->StateValue(config.sound_latency);
+	
+	#if defined(USE_FIXED_CONFIG) || defined(USE_SCANLINE)
+	state_fio->StateValue(config.scan_line);
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_TAPE)
+	for(int i = 0; i < USE_TAPE_TMP; i++) {
+		state_fio->StateValue(config.wave_shaper[i]);
+		state_fio->StateValue(config.direct_load_mzt[i]);
+		state_fio->StateValue(config.baud_high[i]);
+	}
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_VARIABLE_MEMORY)
+	state_fio->StateValue(config.current_ram_size);
+	#endif
+	state_fio->StateValue(config.cpu_power);
+	
 	return true;
 }
 

@@ -258,14 +258,14 @@ void OSD_BASE::update_input()
 	//bool hid = false;
 	if(mouse_enabled) {
 		QMutexLocker n(mouse_mutex);
-		mouse_status[0] = mouse_ptrx - mouse_oldx;
-		mouse_status[1] = mouse_ptry - mouse_oldy; 
+		int xx = (p_config->mouse_sensitivity_x & ((1 << 16) - 1)) * mouse_ptrx;
+		int yy = (p_config->mouse_sensitivity_y & ((1 << 16) - 1)) * mouse_ptry;
+		mouse_status[0] = (xx - mouse_oldx) >> 12;
+		mouse_status[1] = (yy - mouse_oldy) >> 12; 
 		mouse_status[2] = mouse_button;
-		mouse_oldx = mouse_ptrx;
-		mouse_oldy = mouse_ptry;
 		//printf("Mouse delta(%d, %d)\n", delta_x, delta_y);
-		mouse_oldx = mouse_ptrx;
-		mouse_oldy = mouse_ptry;
+		mouse_oldx = xx;
+		mouse_oldy = yy;
 	}
 	//}
 	// move mouse cursor to the center of window
@@ -795,8 +795,13 @@ void OSD_BASE::enable_mouse()
 	// enable mouse emulation
 	if(!mouse_enabled) {
 		QMutexLocker n(mouse_mutex);
-		mouse_oldx = mouse_ptrx = get_screen_width() / 2;
-		mouse_oldy = mouse_ptry = get_screen_height() / 2;
+		int xx = (p_config->mouse_sensitivity_x & ((1 << 16) - 1)) * get_screen_width() / 2;
+		int yy = (p_config->mouse_sensitivity_y & ((1 << 16) - 1)) * get_screen_height() / 2;
+		
+		mouse_oldx = xx;
+		mouse_oldy = yy;
+		mouse_ptrx = get_screen_width() / 2;
+		mouse_ptry = get_screen_height() / 2;
 		mouse_status[0] = 0;
 		mouse_status[1] = 0;
 		mouse_status[2] = mouse_button;
@@ -836,8 +841,7 @@ void OSD_BASE::set_mouse_pointer(int x, int y)
 		
 		mouse_ptrx = x;
 		mouse_ptry = y;
-		delta_x += ((mouse_ptrx - mouse_oldx) / 3);
-		delta_y += ((mouse_ptry - mouse_oldy) / 3);
+		
 //		mouse_oldx = mouse_ptrx;
 //		mouse_oldy = mouse_ptry;
 		//printf("Mouse Moved: (%d, %d) -> delta(%d, %d)\n", mouse_ptrx, mouse_ptry, delta_x, delta_y);

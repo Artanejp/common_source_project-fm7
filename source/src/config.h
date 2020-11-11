@@ -131,10 +131,10 @@ typedef struct {
 		int keyboard_type;
 	#endif
 	#if defined(USE_FIXED_CONFIG) || defined(USE_MOUSE_TYPE)
-		int mouse_type;
+		int mouse_type; /*!< Emulated type of mouse by VM */ 
 	#endif
 	#if defined(USE_FIXED_CONFIG) || defined(USE_JOYSTICK_TYPE)
-		int joystick_type;
+		int joystick_type; /*!< Emulated type of joystick by VM */ 
 	#endif
 	#if defined(USE_FIXED_CONFIG) || defined(USE_SOUND_TYPE)
 		int sound_type;
@@ -217,6 +217,8 @@ typedef struct {
 		int filter_type;
 	#endif
 
+	uint32_t mouse_sensitivity_x; /*!< SENSITIVITY of MOUSE , X Value * 2^12, limit is 2^16-1 */
+	uint32_t mouse_sensitivity_y; /*!< SENSITIVITY of MOUSE , Y Value * 2^12, limit is 2^16 - 1 */
 	// NOTE: Belows contain STAGED CONFIGURATION.
 #if defined(_USE_QT)
 	bool use_separate_thread_draw;

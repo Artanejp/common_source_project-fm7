@@ -43,13 +43,15 @@ void GLDrawClass::setEnableMouse(bool enable)
 
 void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 {
-	double xx;
-	double yy;
+	double xx, gxx;
+	double yy, gyy;
 	int d_ww = using_flags->get_screen_width();
 	int d_hh = using_flags->get_screen_height();
 	QPointF pos = event->localPos();
 	double xpos = (double)(pos.x()) / (double)width();
 	double ypos = (double)(pos.y()) / (double)height();
+	double gxpos = (double)(event->globalPos().x()) / (double)width();
+	double gypos = (double)(event->globalPos().y()) / (double)height();
 	//printf("@@ %d %d\n", pos.x(), pos.y());
 	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse() || (using_flags->get_max_button() > 0)) {
 		if(!enable_mouse) return;
@@ -60,31 +62,43 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 			case 0:
 				xx = xpos * (double)d_ww;
 				yy = ypos * (double)d_hh;
+				gxx = gxpos * (double)d_ww;
+				gyy = gypos * (double)d_hh;
 				break;
 			case 2:
 				xx = (1.0 - xpos) * (double)d_ww;
 				yy = (1.0 - ypos) * (double)d_hh;
+				gxx = (1.0 - gxpos) * (double)d_ww;
+				gyy = (1.0 - gypos) * (double)d_hh;
 				break;
 			case 1:
 				xx = ypos * (double)d_ww;
 				yy = (1.0 - xpos) * (double)d_hh;
+				gxx = gypos * (double)d_ww;
+				gyy = (1.0 - gxpos) * (double)d_hh;
 				break;
 			case 3:
 				xx = (1.0 - ypos) * (double)d_ww;
 				yy = xpos * (double)d_hh;
+				gxx = (1.0 - gypos) * (double)d_ww;
+				gyy = gxpos * (double)d_hh;
 				break;
 			default:
 				xx = xpos * (double)d_ww;
 				yy = ypos * (double)d_hh;
+				gxx = gxpos * (double)d_ww;
+				gyy = gypos * (double)d_hh;
 				break;
 		}
 	} else {
 		xx = xpos * (double)d_ww;
 		yy = ypos * (double)d_hh;
+		gxx = gxpos * (double)d_ww;
+		gyy = gypos * (double)d_hh;
 	}
 
 	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Mouse Move: (%f,%f) -> (%d, %d)\n", xpos, ypos, (int)xx, (int)yy);
-	emit do_notify_move_mouse((int)xx, (int)yy);
+	emit do_notify_move_mouse((int)xx, (int)yy, (int)gxx, (int)gyy);
 
 }
 // Will fix. zap of emu-> or ??
