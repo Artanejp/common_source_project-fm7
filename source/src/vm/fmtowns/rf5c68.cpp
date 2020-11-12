@@ -328,9 +328,9 @@ void RF5C68::write_io8(uint32_t addr, uint32_t data)
 				} else {
 					dac_onoff[i] = false;
 				}
-//				if(!(onoff) && (dac_onoff[i])) { // Force reload
-//					dac_addr[ch] = (uint32_t)(dac_addr_st[ch].w.l) << 11;
-//				}
+				if(!(onoff) && (dac_onoff[i])) { // Force reload
+					dac_addr[i] = (uint32_t)(dac_addr_st[i].w.l) << 11;
+				}
 				mask <<= 1;
 			}
 		}
@@ -570,7 +570,7 @@ void RF5C68::initialize_sound(int sample_rate, int samples)
 		}
 		sample_buffer = NULL;
 		sample_length = 0;
-		mix_rate = 0;
+		mix_rate = 1;
 		sample_tick_us = 0.0;
 	}
 }

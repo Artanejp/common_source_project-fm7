@@ -83,13 +83,13 @@ public:
 		volume_l = volume_r = 1024;
 		sample_buffer = NULL;
 		sample_length = 0;
-		mix_rate = 0;
+		mix_rate = 1; // For Error
 		sample_tick_us = 0.0;
 		is_mute = true;
 		initialize_output_signals(&interrupt_boundary);
 		d_debugger = NULL;
 
-		dac_rate = 8000000 / 384;
+		dac_rate = 8.0e6 / 384;
 		set_device_name(_T("ADPCM RF5C68"));
 	}
 	~RF5C68() {}
