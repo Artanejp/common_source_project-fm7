@@ -94,7 +94,8 @@ void TOWNS_CRTC::reset()
 	fo1_offset_value = 0;	
 //	memset(regs, 0, sizeof(regs));
 	crtc_ch = 0;
-	
+	sprite_offset = 0x00000;
+	is_sprite = false;
 	// initial settings for 1st frame
 	req_recalc = false;
 //	crtc_clock = 28.6363e6; // OK?
@@ -1963,13 +1964,17 @@ __DECL_VECTORIZED_LOOP
 			int bit_shift = 0;
 			uint16_t haj = hstart_words[l];
 			int  offset = (int)(vstart_addr[l] & 0x0007ffff); // ToDo: Larger VRAM
+			if(l == 1) {
+				if((is_sprite) && (linebuffers[trans][line].mode[l] == DISPMODE_32768)) {
+					offset = sprite_offset >>  ashift;
+				}
+			}
 			if(haj < _begin) {
 				bit_shift = -((int)(_begin - haj));
 			} else if(haj > _begin) {
 				bit_shift = haj - _begin;
 				offset--; // Include left one pixel
 			}
-
 			offset = offset + (int)(head_address[l] & 0x0007ffff);
 			if(bit_shift < 0) {
 				int _n = -bit_shift;
@@ -1985,7 +1990,6 @@ __DECL_VECTORIZED_LOOP
 					_n >>= 1;
 					break;
 				}
-
 				_n >>= ashift;
 				offset += _n;
 			}
@@ -2000,7 +2004,6 @@ __DECL_VECTORIZED_LOOP
 			}
 			offset = offset & address_mask[l]; // OK?
 			offset += address_add[l];
-
 			if(_begin < _end) {
 				int pixels = _end - _begin;
 				uint8_t magx = zoom_factor_horiz[l];
@@ -2154,8 +2157,13 @@ void TOWNS_CRTC::event_frame()
 	line_count[0] = line_count[1] = 0;
 	vert_line_count = -1;
 	hsync = false;
-
-//	out_debug_log(_T("FRAME EVENT LINES=%d FRAMEus=%f Hus=%f VST1us=%f VST2us=%f"),lines_per_frame, frame_us, horiz_us, vst1_us, vst2_us);
+	//! @note at event_pre_frame() at SPRITE, clear VRAM if enabled.
+	is_sprite = (d_sprite->read_signal(SIG_TOWNS_SPRITE_ENABLED) != 0) ? true : false;
+	if(is_sprite) {
+		sprite_offset = (d_sprite->read_signal(SIG_TOWNS_SPRITE_DISP_PAGE1) != 0) ? 0x20000 : 0x00000;
+	} else {
+		sprite_offset = 0x00000;
+	}
 	// ToDo: EET
 	//register_event(this, EVENT_CRTC_VSTART, frame_us, false, &event_id_frame); // EVENT_VSTART MOVED TO event_frame().
 	cancel_event_by_id(event_id_vst1);
@@ -2414,7 +2422,7 @@ void TOWNS_CRTC::write_signal(int ch, uint32_t data, uint32_t mask)
 }
 
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2506,6 +2514,9 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateValue(apalette_256_rgb[i][TOWNS_CRTC_PALETTE_B]);
 	}
 
+	state_fio->StateValue(is_sprite);
+	state_fio->StateValue(sprite_offset);
+		
 	state_fio->StateValue(event_id_hsync);
 	state_fio->StateValue(event_id_hsw);
 	state_fio->StateValue(event_id_vsync);

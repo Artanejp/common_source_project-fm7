@@ -1028,7 +1028,11 @@ uint32_t TOWNS_SPRITE::read_signal(int id)
 	/*if(id == SIG_TOWNS_SPRITE_ANKCG) {  // write CFF19
 		 return ((ankcg_enabled) ? 0xffffffff : 0);
 	 } else */
-	if(id == SIG_TOWNS_SPRITE_BUSY) {
+	if(id == SIG_TOWNS_SPRITE_RENDER_ENABLED) {
+		return ((sprite_enabled) && (sprite_busy)) ? 0xffffffff : 0;
+	} else if(id == SIG_TOWNS_SPRITE_ENABLED) {
+		return (sprite_enabled) ? 0xffffffff : 0;
+	} else if(id == SIG_TOWNS_SPRITE_BUSY) {
 		return (sprite_busy) ? 0xffffffff : 0;
 	} else if(id == SIG_TOWNS_SPRITE_TVRAM_ENABLED) {
 		 uint32_t v = ((tvram_enabled_bak) ? 0xffffffff : 0);
@@ -1038,7 +1042,7 @@ uint32_t TOWNS_SPRITE::read_signal(int id)
 		return (disp_page0) ? 0xffffffff : 0;
 	} else if(id == SIG_TOWNS_SPRITE_DISP_PAGE1) {
 		return (disp_page1) ? 0xffffffff : 0;
-	} else {
+	} else if(id >= SIG_TOWNS_SPRITE_PEEK_TVRAM) {
 		id = id - SIG_TOWNS_SPRITE_PEEK_TVRAM;
 		if((id < 0x1ffff) && (id>= 0)) {
 			return pattern_ram[id];

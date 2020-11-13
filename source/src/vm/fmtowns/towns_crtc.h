@@ -240,6 +240,9 @@ protected:
 	int vert_offset_tmp[2];
 	bool impose_mode[2]; // OK?
 	bool carry_enable[2]; //OK?
+
+	bool is_sprite;
+	uint32_t sprite_offset;
 	
 	uint8_t zoom_factor_vert[2]; // Related display resolutions of two layers and zoom factors.
 	uint8_t zoom_factor_horiz[2]; // Related display resolutions of two layers and zoom factors.
@@ -371,6 +374,7 @@ public:
 		d_sprite = NULL;
 		d_vram = NULL;
 		d_font = NULL;
+		is_sprite = false;
 		set_device_name(_T("FM-Towns CRTC"));
 	}
 	~TOWNS_CRTC() {}
