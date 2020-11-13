@@ -419,7 +419,7 @@ void TOWNS_CDROM::set_delay_ready3()
 
 void TOWNS_CDROM::set_delay_ready4()
 {
-	force_register_event(this, EVENT_CDROM_DELAY_READY4, 1000.0, false, event_delay_ready);
+	force_register_event(this, EVENT_CDROM_DELAY_READY4, 100.0, false, event_delay_ready);
 }
 
 void TOWNS_CDROM::status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3)
@@ -1253,7 +1253,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		mcu_ready = true;
 		has_status = true;
 		mcu_intr = true;
-//		set_mcu_intr(stat_reply_intr);
+		if(stat_reply_intr) set_mcu_intr(true);
 		break;
 	case EVENT_CDDA_DELAY_PLAY:
 		if(cdda_status != CDDA_PLAYING) {
@@ -1886,12 +1886,19 @@ void TOWNS_CDROM::unpause_cdda_from_cmd()
 	   (current_track >= 0) && (current_track < track_num)
 	   /*&& (toc_table[current_track].is_audio)*/) { // OK?
 		set_cdda_status(CDDA_PLAYING);
-		set_subq();
-		status_accept(1, 0x00, 0x00);
-		return;
+		/*!
+		 * @note This may solve halt incident of Kyukyoku Tiger, but something are wrong.
+		 * @note 20201113 K.O
+		 */
+	   if((stat_reply_intr) && !(req_status)) {
+		   set_subq();
+//			set_status_3(true, 1, 0x00, 0, 0x00, 0x00);
+		   set_status_3(true, 0, TOWNS_CD_STATUS_RESUME_DONE, 0, 0x00, 0x00);
+		   return;
+		}
 	}
 	set_subq();
-	status_accept(0, 0x00, 0x00);
+	status_accept(1, 0x00, 0x00);
 }
 
 void TOWNS_CDROM::stop_cdda_from_cmd()
@@ -1929,7 +1936,19 @@ void TOWNS_CDROM::pause_cdda_from_cmd()
 		status_media_changed(false);
 		return;
 	}
-	set_cdda_status(CDDA_PAUSED);
+	if((cdda_status == CDDA_PLAYING)) {
+	   set_cdda_status(CDDA_PAUSED);
+		/*!
+		 * @note This may solve halt incident of Kyukyoku Tiger, but something are wrong.
+		 * @note 20201113 K.O
+		 */
+	   if((stat_reply_intr) && !(req_status)) {
+		   set_subq();
+//		   status_accept(0, 0x00, 0x00);
+		   set_status_3(true, 1, TOWNS_CD_STATUS_ACCEPT, 0, 0x00, 0x00);
+		   return;
+	   }
+	}
 	set_subq();
 	status_accept(1, 0x00, 0x00);
 	return;
@@ -2024,8 +2043,12 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 //		register_event(this, EVENT_CDDA_DELAY_PLAY, 100.0, false, &event_cdda_delay_play);
 	}
 	set_subq(); // First
-	status_accept(1, 0x00, 0x00);
-//	send_mcu_ready();	
+	/*!
+	 * @note This may solve halt incident of Kyukyoku Tiger, but something are wrong.
+	 * @note 20201113 K.O
+	 */
+    set_status_3(true, 1, TOWNS_CD_STATUS_ACCEPT, 0, 0x00, 0x00);
+//	status_accept(1, 0x00, 0x00);
 }
 
 void TOWNS_CDROM::make_bitslice_subc_q(uint8_t *data, int bitwidth)
