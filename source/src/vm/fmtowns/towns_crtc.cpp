@@ -1963,44 +1963,62 @@ __DECL_VECTORIZED_LOOP
 			
 			int bit_shift = 0;
 			uint16_t haj = hstart_words[l];
-			int  offset = (int)(vstart_addr[l] & 0x0007ffff); // ToDo: Larger VRAM
+			// FAx
+			int  offset = (int)vstart_addr[l]; // ToDo: Larger VRAM
+			bit_shift = (int)haj - (int)_begin;
+
+			offset = (offset + ((-bit_shift) >> ashift)) & (((ctrl & 0x10) == 0) ? 0x7ffff : 0x3ffff);
+#if 0
+			int _x = (int)max((unsigned int)_begin, (unsigned int)haj);
+			int _y = (int)(regs[13 + l * 2] & 0x3ff); // VDSx
+			switch(clksel) {
+			case 0:
+				_x = (_x - 0x129) >> 1;
+				_y = (_y - 0x2a) >> 1;
+				break;
+			case 1:
+				if((regs[4] & 0x3ff) == 0x31f) { // HST
+					_x = _x - 0x8a;
+				} else {
+					_x = (_x - 0xe7) >> 1;
+				}
+				_y = (_y - 0x2a) >> 1;
+				break;
+			case 2:
+				_x = _x - 0x8a;
+				_y = (_y - 0x46) >> 1;
+				break;
+			case 3:
+				if((regs[4] & 0x3ff) != 0x29d) { // HST
+					_x = _x - 0x9c;
+					_y = (_y - 0x40) >> 1;
+				} else {
+					_x = _x - 0x8a;
+					_y = (_y - 0x46) >> 1;
+				}					
+				break;
+			default:
+				_x = 0;
+				_y = 0;
+				break;
+			}
+			if(_x < 0) _x = 0;
+			if(_y < 0) _y = 0;
+#endif
+			offset = offset + (int)head_address[l];
+			offset <<= ashift;
+//			bit_shift = _x >> ashift;
+			if((trans & 1) != 0) offset = offset + (frame_offset[l] <<= ashift);
+			if(l == 1) {
+				offset = offset + (fo1_offset_value <<= ashift);
+			}
+			if(linebuffers[trans][line].mode[l] == DISPMODE_16) {
+				offset += ((page_16mode != 0) ? 0x20000 : 0);
+			}
 			if(l == 1) {
 				if((is_sprite) && (linebuffers[trans][line].mode[l] == DISPMODE_32768)) {
-					offset = sprite_offset >>  ashift;
+					offset += sprite_offset;
 				}
-			}
-			if(haj < _begin) {
-				bit_shift = -((int)(_begin - haj));
-			} else if(haj > _begin) {
-				bit_shift = haj - _begin;
-				offset--; // Include left one pixel
-			}
-			offset = offset + (int)(head_address[l] & 0x0007ffff);
-			if(bit_shift < 0) {
-				int _n = -bit_shift;
-//				_n = (-bit_shift) & ~shift_mask;
-				switch(linebuffers[trans][line].mode[l]) {
-				case DISPMODE_256:
-					break;
-				case DISPMODE_16:
-					_n >>= 1;
-//					_n &= ~1;
-					break;
-				case DISPMODE_32768:
-					_n >>= 1;
-					break;
-				}
-				_n >>= ashift;
-				offset += _n;
-			}
-
-			if((trans & 1) != 0) offset = offset + frame_offset[l];
-			if(l == 1) {
-				offset = offset + fo1_offset_value;
-			}
-			offset <<= ashift;
-			{ // Display page
-				offset += ((page_16mode != 0) ? 0x20000 : 0);
 			}
 			offset = offset & address_mask[l]; // OK?
 			offset += address_add[l];
@@ -2012,12 +2030,11 @@ __DECL_VECTORIZED_LOOP
 //				if((npixels % magx) != 0) npixels++;
 				if((p != NULL) && (pixels >= magx) && (magx != 0)){
 					if(bit_shift < 0) {
-//						bit_shift = -((-bit_shift) & shift_mask); 
-						pixels += (-bit_shift * magx);
-						bit_shift = -((-bit_shift) & shift_mask);
+//						pixels += (-bit_shift * magx);
+						bit_shift = 0;
 					} else if(bit_shift > 0) {
-						pixels += ((shift_mask + 1) * magx); // OK?
-						bit_shift = (shift_mask + 1) - (bit_shift & shift_mask); 
+						//pixels += (bit_shift * magx);
+						bit_shift = 0;
 					}
 					if(pixels >= TOWNS_CRTC_MAX_PIXELS) pixels = TOWNS_CRTC_MAX_PIXELS;
 					linebuffers[trans][line].bitshift[l] = bit_shift * magx;
