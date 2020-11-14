@@ -1364,7 +1364,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 		status_seek = true;
 		register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-					   1100.0,
+					   5000.0,
 					   false,
 					   &event_seek_completed);
 		break;
@@ -2869,7 +2869,7 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 		}
 		if((dma_transfer) && !(dma_transfer_phase)) {
 			dma_transfer_phase = true;
-			force_register_event(this, EVENT_CDROM_DRQ, /*0.25 * 1.0e6 / ((double)transfer_speed * 150.0e3 ) */1.0 / 8.0, true, event_drq);
+			force_register_event(this, EVENT_CDROM_DRQ, /*0.25 * 1.0e6 / ((double)transfer_speed * 150.0e3 ) */ 1.0 / 4.0, true, event_drq);
 			drq_tick = true;
 		} else if((pio_transfer) && !(pio_transfer_phase)) {
 			pio_transfer_phase = true;
