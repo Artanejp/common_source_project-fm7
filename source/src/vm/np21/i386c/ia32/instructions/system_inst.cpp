@@ -1181,13 +1181,16 @@ RDPMC(void)
 void
 MOV_TdRd(void)
 {
-
+	UINT32 op, src;
+//	PREPART_EA_REG32(op, src);
 	ia32_panic("MOV_TdRd: not implemented yet!");
 }
 
 void
 MOV_RdTd(void)
 {
+	UINT32 op, src;
+//	PREPART_EA_REG32(op, src);
 
 	ia32_panic("MOV_RdTd: not implemented yet!");
 }
