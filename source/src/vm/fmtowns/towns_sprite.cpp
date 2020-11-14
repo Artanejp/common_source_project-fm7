@@ -965,9 +965,7 @@ void TOWNS_SPRITE::event_callback(int id, int err)
 			int lot = reg_index & 0x3ff;
 			if(lot == 0) lot = 1024;
 			render_num = lot;
-			if(lot < 1024) {
-				disp_page1 = !(disp_page1);
-			}
+			disp_page1 = !(disp_page1);
 		}
 		break;
 	case EVENT_RENDER:
@@ -975,24 +973,20 @@ void TOWNS_SPRITE::event_callback(int id, int err)
 		if((sprite_enabled) /*&& (render_num < 1024) */&& (sprite_busy)) {
 //			sprite_busy = true;
 			int _bak = render_num;
-			for(; render_num < 1024; ){
+//			for(; render_num < 1024; ){
 				render_part();
 				render_num++;
+//			}
+//			if(_bak >= 1024) {
+//				_bak = 1023;
+//			}
+//			register_event(this, EVENT_BUSY_OFF, 75.0 * (1024 - _bak), false, &event_busy);
+			if(render_num >= 1024) {
+				register_event(this, EVENT_BUSY_OFF, 75.0 / 2, false, &event_busy);
+			} else {
+				register_event(this, EVENT_RENDER, 75.0, false, &event_busy);
 			}
-			if(_bak >= 1024) {
-				_bak = 1023;
-			}
-			register_event(this, EVENT_BUSY_OFF, 75.0 * (1024 - _bak), false, &event_busy);
-//			register_event(this, EVENT_BUSY_OFF, 75.0 / 2, false, &event_busy);
-		} /*else {
-			sprite_busy = false;
-			int lot = reg_index & 0x3ff;
-			if(lot == 0) lot = 1024;
-			render_num = lot;
-			if(lot < 1024) {
-				disp_page1 = !(disp_page1);
-			}
-		}*/
+		}
 		break;
 	}
 }
@@ -1000,10 +994,7 @@ void TOWNS_SPRITE::event_callback(int id, int err)
 void TOWNS_SPRITE::check_and_clear_vram()
 {
 	if(sprite_enabled != reg_spen) {
-		if(event_busy > -1) {
-			cancel_event(this, event_busy);
-			event_busy = -1;
-		}
+		clear_event(this, event_busy);
 		sprite_busy = false;
 	}
 	sprite_enabled = reg_spen;
@@ -1012,11 +1003,7 @@ void TOWNS_SPRITE::check_and_clear_vram()
 		if(lot == 0) lot = 1024;
 		render_num = lot;
 		sprite_busy = true;
-		if(event_busy > -1) {
-			cancel_event(this, event_busy);
-			event_busy = -1;
-		}
-		
+		clear_event(this, event_busy);
 		{
 			uint32_t noffset = (disp_page1) ? 0x40000 : 0x60000;
 			draw_page1 = disp_page1;
@@ -1028,11 +1015,8 @@ void TOWNS_SPRITE::check_and_clear_vram()
 					}
 				}
 			}
-		
 			page_changed = false;
 			register_event(this, EVENT_RENDER, 32.0, false, &event_busy);
-
-//			register_event(this, EVENT_RENDER, 1.0, false, &event_busy);
 		}
 	}
 }
