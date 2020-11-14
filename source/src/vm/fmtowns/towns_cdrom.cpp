@@ -568,7 +568,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				break;
 			} else if(cdda_status == CDDA_PLAYING) {
 				status_accept(1, 0x00, 0x00);
-				//set_status(req_status, 0, 0x00, TOWNS_CD_ACCEPT_CDDA_PLAYING, 0x00, 0x00);
+				//set_status(req_status, 1, 0x00, TOWNS_CD_ACCEPT_CDDA_PLAYING, 0x00, 0x00);
 				break;
 			} if((cdda_status == CDDA_PAUSED) &&
 				((prev_command & 0x9f) == CDROM_COMMAND_PAUSE_CDDA)) {
@@ -932,7 +932,7 @@ void TOWNS_CDROM::set_extra_status()
 	case CDROM_COMMAND_READ_CDDA_STATE: // READ CDDA status
 			switch(extra_status) {
 			case 1: // Get current track
-				set_status_extra(TOWNS_CD_STATUS_SUBQ_READ, TOWNS_CD_STATUS_ACCEPT, read_signal(SIG_TOWNS_CDROM_CURRENT_TRACK), 0x00);
+				set_status_extra(TOWNS_CD_STATUS_SUBQ_READ, 0x00, read_signal(SIG_TOWNS_CDROM_CURRENT_TRACK), 0x00);
 				extra_status++;
 				break;
 			case 2: // Get current position
@@ -957,7 +957,6 @@ void TOWNS_CDROM::set_extra_status()
 				}
 				break;
 			}
-   	
 		break;
 	case CDROM_COMMAND_STOP_CDDA:
 		switch(extra_status) {
@@ -1112,27 +1111,19 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 		}
 		break;
 	case SIG_TOWNS_CDROM_ABSOLUTE_MSF:
-		if(toc_table[current_track].is_audio) {
-			if(!(is_device_ready())) {
-				return 0;
-			}
+		if(!(is_device_ready())) {
+			return 75 * 2;
+		}
+		if(cdda_status == CDDA_PLAYING) {
 			uint32_t msf;
-			msf = lba_to_msf(cdda_playing_frame);
+			if(cdda_end_frame > max_logical_block) {
+				msf = lba_to_msf(cdda_end_frame + 75 * 2); // With start gap
+			} else {
+				msf = lba_to_msf(cdda_playing_frame + 75 * 2); // With start gap
+			}
 			return msf;
 		} else {
-			if(!(is_device_ready())) {
-				return 0;
-			}
-			if(fio_img->IsOpened()) {
-				uint32_t cur_position = (uint32_t)fio_img->Ftell();
-				cur_position = cur_position / physical_block_size();
-				if(cur_position >= max_logical_block) {
-					cur_position = max_logical_block;
-				}
-				uint32_t msf = lba_to_msf(cur_position + toc_table[current_track].index0);
-				return msf;
-			}
-			return 0;
+			return lba_to_msf(cdda_end_frame + 75 * 2); // With start gap
 		}
 		break;
 	case SIG_TOWNS_CDROM_GET_ADR:
@@ -1256,6 +1247,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		if(stat_reply_intr) set_mcu_intr(true);
 		break;
 	case EVENT_CDDA_DELAY_PLAY:
+		status_seek = false;
 		if(cdda_status != CDDA_PLAYING) {
 			set_cdda_status(CDDA_PLAYING);
 		}
@@ -1281,6 +1273,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_CDROM_RESTORE:
 		// Seek0
 		event_seek = -1;
+		status_seek = true;
 		if(next_seek_lba <= 2) {
 			next_seek_lba = 2;
 		}
@@ -1296,6 +1289,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_CDROM_SEEK:
 		event_seek = -1;
 //		stat_reply_intr = true;
+		status_seek = false;
 		if(req_status) {
 			status_accept(1, 0x00, 0x00);
 		}
@@ -1314,6 +1308,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 		break;
 	case EVENT_CDROM_TIMEOUT:
+		status_seek = false;
 		event_time_out = -1;
 		set_status_immediate(req_status, 0, TOWNS_CD_STATUS_CMD_ABEND, TOWNS_CD_ABEND_RETRY, 0x00, 0x00);
 		cdrom_debug_log(_T("READ TIME OUT"));
@@ -1337,20 +1332,13 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			mcu_ready = false;
 			bool stat = false;
 //			cdrom_debug_log(_T("READ DATA SIZE=%d BUFFER COUNT=%d"), logical_block_size(), databuffer->count());
-#if 0
-			if(read_length >= logical_block_size()) {
-				stat = read_buffer(logical_block_size());
-			} else if(read_length > 0) {
-				stat = read_buffer(read_length);
-			}
-#else
+			/// Below has already resolved! Issue of DMAC.20201114 K.O
 			// Note: Still error with reading D000h at TownsOS v1.1L30.
 			// Maybe data has changed to 1Fh from 8Eh.
 			/// 20200926 K.O
 			if(read_length > 0) {
 				stat = read_buffer(1);
 			}
-#endif
 			if((stat)) {
 				register_event(this, EVENT_CDROM_NEXT_SECTOR,
 							   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
@@ -2030,6 +2018,7 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 		track = current_track;
 		cdda_playing_frame = cdda_start_frame;
 		cdda_loading_frame = cdda_start_frame;
+		status_seek = true;
 		seek_relative_frame_in_image(cdda_playing_frame);
 		cdrom_debug_log(_T("PLAY_CDROM TRACK=%d START=%02X:%02X:%02X(%d) END=%02X:%02X:%02X(%d) IS_REPEAT=%d REPEAT_COUNT=%d"),
 					  track,
