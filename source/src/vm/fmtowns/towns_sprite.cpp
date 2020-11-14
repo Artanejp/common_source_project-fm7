@@ -92,8 +92,6 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	if((attr & 0x8000) != 0) { // OFFS
 		xoffset = reg_hoffset & 0x1ff;
 		yoffset = reg_voffset & 0x1ff;
-		if(xoffset >= 256) xoffset = -xoffset;
-		if(yoffset >= 256) yoffset = -yoffset;
 	}
 	bool swap_v_h = false;
 	if((attr & 0x4000) != 0) { // ROT2
@@ -166,7 +164,12 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 		*/
 	}
 	if(swap_v_h) is_mirror = !(is_mirror);
-	
+	int rx = (x + xoffset) & 0x1ff;
+	int ry = (y + yoffset) & 0x1ff;
+	int ww = (is_halfx) ? 8 : 16;
+	int hh = (is_halfy) ? 8 : 16;
+	if((rx >= 256) && ((rx + ww) < 512)) return;
+	if((ry >= 256) && ((ry + hh) < 512)) return;
 	__DECL_ALIGNED(32) uint16_t sbuf[16][16] = {0}; 
 	__DECL_ALIGNED(16) union {
 		pair16_t pw[16];
@@ -351,29 +354,32 @@ __DECL_VECTORIZED_LOOP
 		}
 	}
 	uint32_t noffset = (draw_page1) ? 0x40000 : 0x60000;
-	uint32_t vpaddr = (((x + xoffset) % 256 + ((y + yoffset) * 256)) << 1) & 0x1ffff;
+	uint32_t vpaddr = ((rx + (ry * 256)) << 1) & 0x1ffff;
 	if(!(is_halfx) && !(is_halfy)) { // not halfed
-		int __xstart = 0;		
+		int __xstart = rx;		
 		int __xend = 16;
 		int __ystart = 0;
 		int __yend = 16;
+		int __xstart2 = 0;
+		if((rx + __xend) > 512) {
+			__xstart = 0;
+			__xstart2 = 512 - rx;
+			__xend = (rx + __xend) - 512;
+		} else if(rx > (256 - __xend)) {
+			__xend = 256 - rx;
+		}
+		if(__xend <= 0) return;
 		for(int yy = 0; yy < 16;  yy++) {
-			if(d_vram != NULL) {
-				__DECL_ALIGNED(32) uint8_t source[32];
-				d_vram->get_vram_to_buffer(vpaddr + noffset, source, 16);
+			int yoff = (yy + ry) & 0x1ff;
+			if((d_vram != NULL) && (yoff < 256)) {
+				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
+				__DECL_ALIGNED(32) uint8_t source[32] = {0};
+				d_vram->get_vram_to_buffer(vpaddr + noffset, source, __xend);
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 16; xx++) {
-					mbuf.pw[xx].w = 0;
+				for(int xx = 0, xx2 = __xstart2; xx < __xend; xx++, xx2++) {
+					lbuf.pw[xx].w = sbuf[yy][xx2];
 				}
-__DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 16; xx++) {
-					lbuf.pw[xx].w = sbuf[yy][xx];
-				}
-				__DECL_ALIGNED(16) uint16_t mbuf2[16];
-__DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 16; xx++) {
-					mbuf2[xx] = mbuf.pw[xx].w;
-				}
+				__DECL_ALIGNED(16) uint16_t mbuf2[16] = {0};
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 16; xx++) {
 					mbuf2[xx] = (lbuf.pw[xx].w  >> 15);  // All values are either 1 or 0.
@@ -399,29 +405,40 @@ __DECL_VECTORIZED_LOOP
 				for(int xx = 0; xx < 32; xx++) {
 					source[xx] |= lbuf.b[xx];
 				}
-				d_vram->set_buffer_to_vram(vpaddr + noffset, source, 16);
+				d_vram->set_buffer_to_vram(vpaddr + noffset, source, __xend);
 			}
-			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
 		}
 	} else if((is_halfx) && !(is_halfy)) { // halfx only
-		int __xstart = 0;		
+		int __xstart = rx;		
 		int __xend = 8;
 		int __ystart = 0;
 		int __yend = 16;
+		int __xstart2 = 0;
+
+		if((rx + __xend) > 512) {
+			__xstart = 0;
+			__xstart2 = 512 - rx;
+			__xend = (rx + __xend) - 512;
+		} else if(rx > (256 - __xend)) {
+			__xend = 256 - rx;
+		}
+		if(__xend <= 0) return;
 		for(int yy = 0; yy < 16;  yy++) {
-			if(d_vram != NULL) {
-				__DECL_ALIGNED(16) uint8_t source[16];
-				d_vram->get_vram_to_buffer(vpaddr + noffset, source, 8);
+			int yoff = (yy + ry) & 0x1ff;
+			if((d_vram != NULL) && (yoff < 256)) {
+				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
+				__DECL_ALIGNED(16) uint8_t source[16] = {0};
+				d_vram->get_vram_to_buffer(vpaddr + noffset, source, __xend);
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 16; xx++) {
 					lbuf.pw[xx].w = 0x0;
 					mbuf.pw[xx].w = 0;
 				}
-				__DECL_ALIGNED(16) uint16_t sbuf2[16];
+				__DECL_ALIGNED(16) uint16_t sbuf2[16] = {0};
 				__DECL_ALIGNED(16) uint16_t sbuf3[16];
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 16; xx++) {
-					sbuf2[xx] = sbuf[yy][xx];
+				for(int xx = 0, xx2 = __xstart2; xx < __xend; xx++, xx2++) {
+					sbuf2[xx] = sbuf[yy][xx2];
 				}
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 16; xx++) {
@@ -485,32 +502,42 @@ __DECL_VECTORIZED_LOOP
 				for(int xx = 0; xx < 16; xx++) {
 					source[xx] |= lbuf.b[xx];
 				}
-				d_vram->set_buffer_to_vram(vpaddr + noffset, source, 8);
+				d_vram->set_buffer_to_vram(vpaddr + noffset, source, __xend);
 			}
-			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
 		}
 	} else if(is_halfy) { // halfy only
-		int __xstart = 0;		
+		int __xstart = rx;		
 		int __xend = 16;
 		int __ystart = 0;
 		int __yend = 8;
+		int __xstart2 = 0;
+		if((rx + __xend) > 512) {
+			__xstart = 0;
+			__xstart2 = 512 - rx;
+			__xend = (rx + __xend) - 512;
+		} else if(rx > (256 - __xend)) {
+			__xend = 256 - rx;
+		}
+		if(__xend <= 0) return;
 		for(int yy = (__ystart << 1); yy < (__yend << 1);  yy += 2) {
-			if(d_vram != NULL) {
-				__DECL_ALIGNED(32) uint8_t source[32];
-				d_vram->get_vram_to_buffer(vpaddr + noffset, source, 16);
+			int yoff = (yy + ry) & 0x1ff;
+			if((d_vram != NULL) && (yoff < 256)) {
+				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
+				__DECL_ALIGNED(32) uint8_t source[32] = {0};
+				d_vram->get_vram_to_buffer(vpaddr + noffset, source, __xend);
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 16; xx++) {
 					lbuf.pw[xx].w = 0x0;
 					mbuf.pw[xx].w = 0;
 				}
-				__DECL_ALIGNED(32) uint16_t sbuf2[32];
+				__DECL_ALIGNED(32) uint16_t sbuf2[32] = {0};
 				__DECL_ALIGNED(32) uint16_t sbuf3[32];
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 16; xx++) {
-					sbuf2[xx] = sbuf[yy][xx];
+				for(int xx = 0, xx2 = __xstart2; xx < __xend; xx++, xx2++) {
+					sbuf2[xx] = sbuf[yy][xx2];
 				}
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 16, xx2 = 0; xx < 32; xx++, xx2++) {
+				for(int xx = 16, xx2 = (__xstart2 + 16); xx < (16 + __xend); xx++, xx2++) {
 					sbuf2[xx] = sbuf[yy + 1][xx2];
 				}
 __DECL_VECTORIZED_LOOP						
@@ -563,21 +590,30 @@ __DECL_VECTORIZED_LOOP
 				for(int xx = 0; xx < 32; xx++) {
 					source[xx] |= lbuf.b[xx];
 				}
-				d_vram->set_buffer_to_vram(vpaddr + noffset, source, 16);
+				d_vram->set_buffer_to_vram(vpaddr + noffset, source, __xend);
 			}
-			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
 		}
 	} else { //halfx &&halfy
-		int __xstart = 0;		
+		int __xstart = rx;		
 		int __xend = 8;
 		int __ystart = 0;
 		int __yend = 8;
+		int __xstart2 = 0;
+		if((rx + __xend) > 512) {
+			__xstart = 0;
+			__xstart2 = 512 - rx;
+			__xend = (rx + __xend) - 512;
+		} else if(rx > (256 - __xend)) {
+			__xend = 256 - rx;
+		}
+		if(__xend <= 0) return;
 		for(int yy = (__ystart << 1); yy < (__yend << 1);  yy += 2) {
-			if(d_vram != NULL) {
-				//d_vram->write_sprite_data(x, y + (yy >>1), xoffset, yoffset, lbuf, 8);
-				__DECL_ALIGNED(16) uint8_t source[16];
-				d_vram->get_vram_to_buffer(vpaddr + noffset, source, 8);
-				__DECL_ALIGNED(32) uint16_t sbuf2[32];
+			int yoff = (yy + ry) & 0x1ff;
+			if((d_vram != NULL) && (yoff < 256)) {
+				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
+				__DECL_ALIGNED(16) uint8_t source[16] = {0};
+				d_vram->get_vram_to_buffer(vpaddr + noffset, source, __xend);
+				__DECL_ALIGNED(32) uint16_t sbuf2[32] = {0};
 				__DECL_ALIGNED(32) uint16_t sbuf3[32];
 				__DECL_ALIGNED(16) uint16_t lbuf4[16];
 				__DECL_ALIGNED(16) uint16_t mbuf5[16];
@@ -591,12 +627,12 @@ __DECL_VECTORIZED_LOOP
 				// Phase.1 Get RAW DATA
 				// Get Column 0
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 16; xx++) {
-					sbuf2[xx] = sbuf[yy][xx];
+				for(int xx = 0, xx2 = __xstart2; xx < __xend; xx++, xx2++) {
+					sbuf2[xx] = sbuf[yy][xx2];
 				}
 				// Get Column 1
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 16, xx2 = 0; xx < 32; xx++, xx2++) {
+				for(int xx = 16, xx2 = (__xstart + 16); xx < (16 + __xend); xx++, xx2++) {
 					sbuf2[xx] = sbuf[yy + 1][xx2];
 				}
 __DECL_VECTORIZED_LOOP						
@@ -676,9 +712,8 @@ __DECL_VECTORIZED_LOOP
 				for(int xx = 0; xx < 16; xx++) {
 					source[xx] |= lbuf.b[xx];
 				}
-				d_vram->set_buffer_to_vram(vpaddr + noffset, source, 8);
+				d_vram->set_buffer_to_vram(vpaddr + noffset, source, __xend);
 			}
-			vpaddr = (vpaddr + (256 << 1)) & 0x1ffff;
 		}
 	}
 }
