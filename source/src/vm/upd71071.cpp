@@ -616,7 +616,7 @@ void UPD71071::do_dma()
 				}
 			} else if((dma[c].mode & 0xc0) == 0x40) { // Single
 				if(do_dma_per_channel(c)) break;
-			} else if((dma[c].mode & 0xc0) == 0x40) { // Block (ToDo)
+			} else if((dma[c].mode & 0xc0) == 0xc0) { // Block (ToDo)
 				if(do_dma_per_channel(c)) break;
 			}
 		}
