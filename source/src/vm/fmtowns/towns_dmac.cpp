@@ -202,33 +202,107 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 	}
 }		
 
-
-void TOWNS_DMAC::write_via_debugger_data8(uint32_t addr, uint32_t data)
+void TOWNS_DMAC::do_dma_dev_to_mem_8bit(int c)
 {
-	addr = (dma_high_address[selch] & 0xff000000) | (addr & 0x00ffffff);
-//	if(addr == 0xD000) out_debug_log(_T("WRITE 8BIT ADDR %08X to DATA:%02X"), addr, data);
-	d_mem->write_dma_data8(addr, data);
+	// io -> memory
+	uint32_t val;
+	uint32_t addr = (dma_high_address[c] & 0xff000000) | (dma[c].areg & 0x00ffffff);
+	reset_ube(c);
+	val = dma[c].dev->read_dma_io8(0);
+	if(_USE_DEBUGGER) {
+		if(d_debugger != NULL && d_debugger->now_device_debugging) {
+			d_debugger->write_via_debugger_data8(addr, val);
+		} else {
+			write_via_debugger_data8(addr, val);
+		}
+	} else {
+		write_via_debugger_data8(addr, val);
+	}							
+	// update temporary register
+	tmp = (tmp >> 8) | (val << 8);
+
 }
 
-uint32_t TOWNS_DMAC::read_via_debugger_data8(uint32_t addr)
+void TOWNS_DMAC::do_dma_mem_to_dev_8bit(int c)
 {
-	addr = (dma_high_address[selch] & 0xff000000) | (addr & 0x00ffffff);
-	return d_mem->read_dma_data8(addr);
+	// memory -> io
+	uint32_t val;
+	uint32_t addr = (dma_high_address[c] & 0xff000000) | (dma[c].areg & 0x00ffffff);
+	reset_ube(c);
+	if(_USE_DEBUGGER) {
+		if(d_debugger != NULL && d_debugger->now_device_debugging) {
+			val = d_debugger->read_via_debugger_data8(addr);
+		} else {
+			val = read_via_debugger_data8(addr);
+		}
+	} else {
+		val = read_via_debugger_data8(addr);
+	}
+	dma[c].dev->write_dma_io8(0, val);
+	// update temporary register
+	tmp = (tmp >> 8) | (val << 8);
 }
 
-void TOWNS_DMAC::write_via_debugger_data16(uint32_t addr, uint32_t data)
+void TOWNS_DMAC::do_dma_dev_to_mem_16bit(int c)
 {
-//	out_debug_log(_T("WRITE 16BIT DATA:%04X"), data);
-	addr = (dma_high_address[selch] & 0xff000000) | (addr & 0x00ffffff);
-	d_mem->write_dma_data16(addr, data);
+	// io -> memory
+	uint32_t val;
+	uint32_t addr = (dma_high_address[c] & 0xff000000) | (dma[c].areg & 0x00ffffff);
+	set_ube(c);
+	val = dma[c].dev->read_dma_io16(0);
+	if((addr & 1) != 0) {
+		// If odd address, write a byte.
+		uint32_t tval = (val >> 8) & 0xff;
+		if(_USE_DEBUGGER) {
+			if(d_debugger != NULL && d_debugger->now_device_debugging) {
+				d_debugger->write_via_debugger_data8(addr, tval);
+			} else {
+				write_via_debugger_data8(addr, tval);
+			}
+		} else {
+			write_via_debugger_data8(addr, tval);
+		}
+	} else {
+		// 16bit
+		if(_USE_DEBUGGER) {
+			if(d_debugger != NULL && d_debugger->now_device_debugging) {
+				d_debugger->write_via_debugger_data16(addr, val);
+			} else {
+				write_via_debugger_data16(addr, val);
+			}
+		} else {
+			write_via_debugger_data16(addr, val);
+		}
+	}
+	// update temporary register
+	tmp = val;
 }
 
-uint32_t TOWNS_DMAC::read_via_debugger_data16(uint32_t addr)
+void TOWNS_DMAC::do_dma_mem_to_dev_16bit(int c)
 {
-	addr = (dma_high_address[selch] & 0xff000000) | (addr & 0x00ffffff);
-	return d_mem->read_dma_data16(addr);
+	// memory -> io
+	uint32_t val;
+	uint32_t addr = (dma_high_address[c] & 0xff000000) | (dma[c].areg & 0x00ffffff);
+	set_ube(c);
+	if(_USE_DEBUGGER) {
+		if(d_debugger != NULL && d_debugger->now_device_debugging) {
+			val = d_debugger->read_via_debugger_data16(addr);
+		} else {
+			val = this->read_via_debugger_data16(addr);
+		}
+	} else {
+		val = this->read_via_debugger_data16(addr);
+	}
+	if((addr & 1) != 0) {
+		// If odd address, read a high byte.
+		val = (val >> 8) & 0xff;
+	}
+	dma[c].dev->write_dma_io16(0, val);
+	// update temporary register
+	tmp = val;
 }
 
+	
 // note: if SINGLE_MODE_DMA is defined, do_dma() is called in every machine cycle
 bool TOWNS_DMAC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {	

@@ -26,6 +26,11 @@ protected:
 	virtual void __FASTCALL do_dma_inc_dec_ptr_16bit(int c);
 	virtual bool __FASTCALL do_dma_epilogue(int c);
 
+	virtual void __FASTCALL do_dma_dev_to_mem_8bit(int c);
+	virtual void __FASTCALL do_dma_mem_to_dev_8bit(int c);
+	virtual void __FASTCALL do_dma_dev_to_mem_16bit(int c);
+	virtual void __FASTCALL do_dma_mem_to_dev_16bit(int c);
+
 public:
 	TOWNS_DMAC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : UPD71071(parent_vm, parent_emu)
 	{
@@ -41,15 +46,10 @@ public:
 	
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t _mask);
 	virtual uint32_t __FASTCALL read_signal(int id);
+	
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 
-	// for debug
-	virtual void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr);
-	virtual void __FASTCALL write_via_debugger_data16(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_via_debugger_data16(uint32_t addr);
 	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	
 };
 
 }

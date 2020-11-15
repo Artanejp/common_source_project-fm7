@@ -263,14 +263,12 @@ void UPD71071::write_signal(int id, uint32_t data, uint32_t _mask)
 		if(data & _mask) {
 			if(!(req & bit)) {
 				req |= bit;
-#if 1				
 				if((mask & (1 << ch)) == 0) { // MASK register MASKS DRQ.20200918 K.O
 					// Without #define SINGLE_MODE_DMA ,
 					// DMA trasfer is triggerd by SIGNAL or writing I/O 0Eh.
 					do_dma_per_channel(ch);
 //					req &= ~bit;
 				}
-#endif
 			}
 		} else {
 			req &= ~bit;
@@ -378,10 +376,10 @@ void UPD71071::do_dma_dev_to_mem_8bit(int c)
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
 			d_debugger->write_via_debugger_data8(dma[c].areg, val);
 		} else {
-			this->write_via_debugger_data8(dma[c].areg, val);
+			write_via_debugger_data8(dma[c].areg, val);
 		}
 	} else {
-		this->write_via_debugger_data8(dma[c].areg, val);
+		write_via_debugger_data8(dma[c].areg, val);
 	}							
 	// update temporary register
 	tmp = (tmp >> 8) | (val << 8);
@@ -397,10 +395,10 @@ void UPD71071::do_dma_mem_to_dev_8bit(int c)
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
 			val = d_debugger->read_via_debugger_data8(dma[c].areg);
 		} else {
-			val = this->read_via_debugger_data8(dma[c].areg);
+			val = read_via_debugger_data8(dma[c].areg);
 		}
 	} else {
-		val = this->read_via_debugger_data8(dma[c].areg);
+		val = read_via_debugger_data8(dma[c].areg);
 	}
 	dma[c].dev->write_dma_io8(0, val);
 	// update temporary register
