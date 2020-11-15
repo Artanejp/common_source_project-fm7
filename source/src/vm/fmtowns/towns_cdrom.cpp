@@ -1991,9 +1991,22 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 		status_media_changed(false);
 		return;
 	}
+	uint32_t start_tmp = FROM_BCD(f_start) + (FROM_BCD(s_start) + FROM_BCD(m_start) * 60) * 75;
+	uint32_t end_tmp = FROM_BCD(f_end)   + (FROM_BCD(s_end)   + FROM_BCD(m_end) * 60) * 75;
+	/*!
+	 * @note Workaround for command SPAM, i.e. Puyo Puyo.
+	 * @note 20201115 K.O
+	 */
+	if(cdda_status == CDDA_PLAYING) {
+		if((start_tmp == cdda_start_frame) && (end_tmp == cdda_end_frame)) {
+			// Dummy
+		    set_status_3(true, 1, TOWNS_CD_STATUS_ACCEPT, 0, 0x00, 0x00);
+			return;
+		}
+	}
 	{
-		cdda_start_frame = FROM_BCD(f_start) + (FROM_BCD(s_start) + FROM_BCD(m_start) * 60) * 75;
-		cdda_end_frame   = FROM_BCD(f_end)   + (FROM_BCD(s_end)   + FROM_BCD(m_end) * 60) * 75;
+		cdda_start_frame = start_tmp;
+		cdda_end_frame   = end_tmp;
 		int track = get_track(cdda_start_frame);
 		if(!(toc_table[track].is_audio)) {
 			status_hardware_error(false); // OK?
