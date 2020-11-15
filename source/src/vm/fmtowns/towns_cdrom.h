@@ -445,9 +445,9 @@ public:
 	virtual bool write_a_byte(uint8_t val)
 	{
 		uint32_t n = val;
-		if(databuffer->count() >= fifo_length) {
-			return false;
-		}
+//		if(databuffer->count() >= fifo_length) {
+//			return false;
+//		}
 		databuffer->write((int)n);
 		return true;
 	}

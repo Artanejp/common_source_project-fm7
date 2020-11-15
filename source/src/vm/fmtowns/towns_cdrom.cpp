@@ -233,6 +233,7 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 	
 	clear_event(this, event_time_out);
 	clear_event(this, event_drq);
+
 	if((read_length <= 0) && (databuffer->empty())) {
 		clear_event(this, event_next_sector);
 		clear_event(this, event_seek_completed);
@@ -335,7 +336,7 @@ void TOWNS_CDROM::status_data_ready(bool forceint)
 
 void TOWNS_CDROM::status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3)
 {
-	cdrom_debug_log(_T("Error on reading (ILLGLBLKADDR): EXTRA=%d s0=%02X s1=%02X s2=%02X s3=%02X POSITION=%d\n"), extra, TOWNS_CD_STATUS_CMD_ABEND, s1, s2, s3, position);
+	cdrom_debug_log(_T("Error on reading (ILLGLBLKADDR): EXTRA=%d s1=%02X s2=%02X s3=%02X LBA=%d POSITION=%d\n"), extra, s1, s2, s3, read_sector, position);
 	set_status(req_status, extra, TOWNS_CD_STATUS_CMD_ABEND, s1, s2, s3);
 }
 
@@ -694,7 +695,6 @@ void TOWNS_CDROM::write_dma_io8(uint32_t addr, uint32_t data)
 void TOWNS_CDROM::read_cdrom()
 {
 //	read_pos = 0;
-	databuffer->clear();
 	if((cdda_status != CDDA_OFF) && (cdda_status != CDDA_ENDED)) {
 		// @note In SUPER REAL MAHJONG PIV, use PAUSE (A5h) command before reading.
 		// @note 20201110 K.O
@@ -742,6 +742,7 @@ void TOWNS_CDROM::read_cdrom()
 //		status_not_accept(0, 0x00, 0x00, 0x00);
 		return;
 	}
+	databuffer->clear();
 	cdrom_debug_log(_T("READ_CDROM TRACK=%d LBA1=%d LBA2=%d M1/S1/F1=%02X/%02X/%02X M2/S2/F2=%02X/%02X/%02X PAD=%02X DCMD=%02X"), track, lba1, lba2,
 				  param_queue[0], param_queue[1], param_queue[2],
 				  param_queue[3], param_queue[4], param_queue[5],
@@ -1320,14 +1321,16 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		//read_pos = 0;
 		clear_event(this, event_next_sector);
 		clear_event(this, event_time_out);
-//		if(!(databuffer->empty())/* && (read_length > 0)*/) {
-//			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-//						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
-//						   16.0,
-//						   false,
-//						   &event_seek_completed);
-//			break; // EXIT
-//		}
+		// ToDo: Prefetch 20201116
+//		if((databuffer->left() < logical_block_size()) && (read_length > 0)) {
+		if(!(databuffer->empty()) && (read_length > 0)) {
+			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
+						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
+						   2.0,
+						   false,
+						   &event_seek_completed);
+			break; // EXIT
+		}
 		if(read_length > 0) {
 			mcu_ready = false;
 			bool stat = false;
@@ -1364,7 +1367,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 		status_seek = true;
 		register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-					   5000.0,
+					   100.0,
 					   false,
 					   &event_seek_completed);
 		break;
@@ -1400,12 +1403,13 @@ bool TOWNS_CDROM::read_buffer(int sectors)
 		return false;
 	}
 	uint32_t offset = 0;
-	if(!(seek_relative_frame_in_image(position / physical_block_size()))) {
+//	if(!(seek_relative_frame_in_image(position / physical_block_size()))) {
+	if(!(seek_relative_frame_in_image(read_sector))) {
 		status_illegal_lba(0, 0x00, 0x00, 0x00);
 		return false;
 	}
 	while(sectors > 0) {
-		uint8_t tmp_buffer[2448];
+		uint8_t tmp_buffer[2448] = {0};
 		int tmp_length = physical_block_size() - offset;
 		
 		if(fio_img->Fread(tmp_buffer, tmp_length, 1) != 1) {
@@ -1420,13 +1424,13 @@ bool TOWNS_CDROM::read_buffer(int sectors)
 			if((offset >= noffset) && (offset < (noffset + logical_block_size()))) {
 				uint8_t value = tmp_buffer[i];
 				write_a_byte(value);
-//				is_data_in = false;
 //				length--;
 				read_length--;
 			}
 			position++;
 			offset = (offset + 1) % physical_block_size();
 		}
+		read_sector++;
 		sectors--;
 		access = true;
 	}
@@ -1732,7 +1736,11 @@ void TOWNS_CDROM::reset_device()
 		}
 	}
 	current_track = 0;
-
+	cdda_start_frame = 0;
+	cdda_end_frame = 0;
+	cdda_playing_frame = 0;
+	cdda_loading_frame = 0;
+   
 	read_sector = 0;
 	write_signals(&outputs_drq, 0);
 	mcu_intr = false;
@@ -2546,6 +2554,10 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				if(toc_table[i].pregap <= 150) {
 					toc_table[i].pregap = 150; // Default PREGAP must be 2Sec. From OoTake.(Only with PCE? Not with FM-Towns?)
 				}
+			}
+		   	if((track_num == 2) && (max_logical_block > 0)) {
+				toc_table[track_num - 1].lba_size -= 1;
+				max_logical_block--;
 			}
 			for(int i = 1; i < track_num; i++) {
 				toc_table[i].index0 += toc_table[i].lba_offset;
