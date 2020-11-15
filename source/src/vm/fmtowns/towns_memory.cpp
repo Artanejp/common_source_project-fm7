@@ -1007,6 +1007,15 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 	} else if(ch == SIG_FMTOWNS_NOTIFY_RESET) {
 		out_debug_log("RESET FROM CPU!!!\n");
 		reset_happened = true;
+		dma_is_vram = true;
+		nmi_vector_protect = false;
+		ankcg_enabled = false;
+		nmi_mask = false;
+		select_d0_dict = false;
+		select_d0_rom = true;
+		config_page00();
+		set_wait_values();
+
 		if(d_cpu != NULL) {
 			d_cpu->set_address_mask(0xffffffff);
 		}
