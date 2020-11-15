@@ -1320,14 +1320,14 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		//read_pos = 0;
 		clear_event(this, event_next_sector);
 		clear_event(this, event_time_out);
-		if(!(databuffer->empty())/* && (read_length > 0)*/) {
-			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
-						   16.0,
-						   false,
-						   &event_seek_completed);
-			break; // EXIT
-		}
+//		if(!(databuffer->empty())/* && (read_length > 0)*/) {
+//			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
+//						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
+//						   16.0,
+//						   false,
+//						   &event_seek_completed);
+//			break; // EXIT
+//		}
 		if(read_length > 0) {
 			mcu_ready = false;
 			bool stat = false;
