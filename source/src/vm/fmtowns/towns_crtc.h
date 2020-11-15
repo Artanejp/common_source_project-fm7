@@ -265,7 +265,7 @@ protected:
 	
 	// Not Saved?.
 	// End.
-	bool vdisp, vblank, vsync, hsync, hdisp[2], frame_in[2];
+	bool vsync, hsync, hdisp[2], frame_in[2];
 	bool interlace_field;
 	
 	
@@ -314,7 +314,6 @@ protected:
 	int event_id_vstart;
 	int event_id_vst1;
 	int event_id_vst2;
-	int event_id_vblank;
 	int event_id_hstart;
 	int event_id_vds[2];
 	int event_id_vde[2];

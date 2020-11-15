@@ -47,7 +47,6 @@ void TOWNS_CRTC::initialize()
 	event_id_vsync = -1;
 	event_id_vst1 = -1;
 	event_id_vst2 = -1;
-	event_id_vblank = -1;
 	event_id_vstart = -1;
 	event_id_hstart = -1;
 	for(int i = 0; i < 2; i++) {
@@ -89,7 +88,6 @@ void TOWNS_CRTC::reset()
 {
 	// initialize
 	display_enabled = true;
-	vblank = true;
 	vsync = hsync = false;
 	fo1_offset_value = 0;	
 //	memset(regs, 0, sizeof(regs));
@@ -202,9 +200,7 @@ void TOWNS_CRTC::reset()
 	cancel_event_by_id(event_id_vstart);
 	cancel_event_by_id(event_id_vst1);
 	cancel_event_by_id(event_id_vst2);	
-	cancel_event_by_id(event_id_vblank);
 	cancel_event_by_id(event_id_hstart);
-
 
 	for(int i = 0; i < 2; i++) {
 		cancel_event_by_id(event_id_vds[i]);
@@ -888,7 +884,6 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 
 bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int layer, bool do_alpha)
 {
-//	out_debug_log("RENDER_32768 Y=%d LAYER=%d WIDTH=%d DST=%08X MASK=%08X ALPHA=%d", y, layer, width,dst, mask, do_alpha);
 	if(dst == NULL) return false;
 	
 	int trans = (display_linebuf == 0) ? 3 : ((display_linebuf - 1) & 3);
@@ -914,6 +909,9 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int laye
 			pwidth = pwidth / magx;
 		}
 	}
+//	if(y == 128) {
+//		out_debug_log("RENDER_32768 Y=%d LAYER=%d WIDTH=%d DST=%08X MASK=%08X ALPHA=%d", y, layer, pwidth, dst, mask, do_alpha);
+//	}
 	__DECL_ALIGNED(16) uint16_t pbuf[8];
 	__DECL_ALIGNED(16) uint16_t rbuf[8];
 	__DECL_ALIGNED(16) uint16_t gbuf[8];
@@ -1833,6 +1831,7 @@ void TOWNS_CRTC::transfer_line(int line)
 	//int trans = (display_linebuf - 1) & 3;
 	int trans = display_linebuf & 3;
 	if(linebuffers[trans] == NULL) return;
+
 	for(int i = 0; i < 4; i++) {
 		linebuffers[trans][line].mode[i] = 0;
 		linebuffers[trans][line].pixels[i] = 0;
@@ -1862,6 +1861,7 @@ void TOWNS_CRTC::transfer_line(int line)
 	linebuffers[trans][line].mode[0] = DISPMODE_16;
 	linebuffers[trans][line].mode[1] = DISPMODE_16;
 	uint8_t page_16mode = r50_pagesel;
+
 	for(int l = 0; l < 2; l++) {
 		if((ctrl & 0x10) == 0) { // One layer mode
 			linebuffers[trans][line].num[0] = 0;
@@ -1956,8 +1956,8 @@ __DECL_VECTORIZED_LOOP
 
 	for(int l = 0; l < 2; l++) {
 		if(to_disp[l]) {
-			uint16_t _begin = regs[9 + l * 2] & 0x3ff; // HDSx
-			uint16_t _end = regs[10 + l * 2] & 0x3ff;  // HDEx
+			uint16_t _begin = regs[9 + l * 2] & 0x7ff; // HDSx
+			uint16_t _end = regs[10 + l * 2] & 0x7ff;  // HDEx
 			int ashift = address_shift[l];
 			uint32_t shift_mask = (1 << ashift) - 1;
 			
@@ -1966,7 +1966,10 @@ __DECL_VECTORIZED_LOOP
 			// FAx
 			int  offset = (int)vstart_addr[l]; // ToDo: Larger VRAM
 			bit_shift = (int)haj - (int)_begin;
-
+			if(horiz_us >= (1.0e6 / 16.6e3)) {
+				// Maybe LOW RESOLUTION, Will fix.20201115 K.O
+				bit_shift >>= 1;
+			}
 			offset = (offset + ((-bit_shift) >> ashift)) & (((ctrl & 0x10) == 0) ? 0x7ffff : 0x3ffff);
 #if 0
 			int _x = (int)max((unsigned int)_begin, (unsigned int)haj);
@@ -2022,6 +2025,7 @@ __DECL_VECTORIZED_LOOP
 			}
 			offset = offset & address_mask[l]; // OK?
 			offset += address_add[l];
+//			out_debug_log(_T("LINE=%d BEGIN=%d END=%d"), line, _begin, _end);
 			if(_begin < _end) {
 				int pixels = _end - _begin;
 				uint8_t magx = zoom_factor_horiz[l];
@@ -2277,7 +2281,7 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	my_stprintf_s(buffer, buffer_len,
 				  _T("%s")
 				  _T("ZOOM[0] V=%d H=%d VCOUNT=%d / ZOOM[1] V=%d H=%d VCOUNT=%d\n")
-				  _T("VSYNC=%s / VBLANK=%s / VDISP=%s / FRAME IN[0]=%s / [1]=%s\n")
+				  _T("VSYNC=%s / FRAME IN[0]=%s / [1]=%s\n")
 				  _T("HSYNC=%s / HDISP[0]=%s / [1]=%s\n\n")
 				  _T("%s")
 				  _T("%s")
@@ -2285,8 +2289,7 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 //				  , line_count[0], line_count[1]
 				  , zoom_factor_vert[0], zoom_factor_horiz[0], zoom_count_vert[0]
 				  , zoom_factor_vert[1], zoom_factor_horiz[1], zoom_count_vert[1]
-				  ,	(vsync) ? _T("YES") : _T("NO "), (vblank) ? _T("YES") : _T("NO ")
-				  , (vdisp) ? _T("YES") : _T("NO ")
+				  ,	(vsync) ? _T("YES") : _T("NO ")
 				  , (frame_in[0]) ? _T("YES") : _T("NO ")
 				  , (frame_in[1]) ? _T("YES") : _T("NO ")
 				  , (hsync) ? _T("YES") : _T("NO ")
@@ -2439,7 +2442,7 @@ void TOWNS_CRTC::write_signal(int ch, uint32_t data, uint32_t mask)
 }
 
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2488,8 +2491,6 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(fo1_offset_value);
 	state_fio->StateValue(vert_line_count);
 	
-	state_fio->StateValue(vdisp);
-	state_fio->StateValue(vblank);
 	state_fio->StateValue(vsync);
 	state_fio->StateValue(hsync);
 	state_fio->StateArray(hdisp, sizeof(hdisp), 1);
@@ -2539,7 +2540,6 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(event_id_vsync);
 	state_fio->StateValue(event_id_vst1);
 	state_fio->StateValue(event_id_vst2);
-	state_fio->StateValue(event_id_vblank);
 	state_fio->StateValue(event_id_vstart);
 	state_fio->StateValue(event_id_hstart);
 	
