@@ -397,6 +397,7 @@ protected:
 	int parse_cue_index(std::string &_arg2, int nr_current_track);
 
 	virtual bool open_iso_file(const _TCHAR* file_path);
+	virtual bool open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path);
 	
 	virtual uint8_t read_subq();
 	virtual uint8_t get_subq_status();

@@ -244,7 +244,7 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 		cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 	}
 	write_signals(&outputs_drq, 0x00000000);
-	if(!(dma_intr_mask) || (stat_reply_intr)) {
+	if(!(dma_intr_mask) && (stat_reply_intr)) {
 		write_mcuint_signals(0xffffffff);
 	}
 	
@@ -737,7 +737,9 @@ void TOWNS_CDROM::read_cdrom()
 //		status_not_accept(0, 0x00, 0x00, 0x00);
 		return;
 	}
+	set_cdda_status(CDDA_OFF);
 	track = get_track(lba1);
+	
 	if((track <= 0) || (track >= track_num)) {
  		status_parameter_error(false);
 //		status_not_accept(0, 0x00, 0x00, 0x00);
@@ -2161,17 +2163,35 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 	 * @note Workaround for command SPAM, i.e. Puyo Puyo.
 	 * @note 20201115 K.O
 	 */
-	if(cdda_status == CDDA_PLAYING) {
-		if((start_tmp == cdda_start_frame) && (end_tmp == cdda_end_frame)) {
-			// Dummy
-		    set_status_3(true, 1, TOWNS_CD_STATUS_ACCEPT, 0, 0x00, 0x00);
-			return;
-		}
-	}
 	{
+		int track;
+		track = get_track_noop(start_tmp);
+		if(start_tmp >= toc_table[track].pregap) {
+			start_tmp -= toc_table[track].pregap;
+		}
+		if(start_tmp < toc_table[track].index1) {
+			start_tmp = toc_table[track].index1; // don't play pregap
+		} else if(start_tmp >= max_logical_block) {
+			start_tmp = max_logical_block - 1;
+		}
+		if(end_tmp >= toc_table[track + 1].index0) {
+			end_tmp = toc_table[track + 1].index0 - 1;
+		} else if(end_tmp >= max_logical_block) {
+			end_tmp = max_logical_block - 1;
+		} else if(end_tmp == 0) { //! Workaround of Puyo Puyo 20201116 K.O
+			end_tmp = toc_table[track + 1].index0 - 1;
+		}			
+		if(cdda_status == CDDA_PLAYING) {
+			if((start_tmp == cdda_start_frame) && (end_tmp == cdda_end_frame)) {
+				// Dummy
+				set_status_3(true, 1, TOWNS_CD_STATUS_ACCEPT, 0, 0x00, 0x00);
+				return;
+			}
+		}
 		cdda_start_frame = start_tmp;
 		cdda_end_frame   = end_tmp;
-		int track = get_track(cdda_start_frame);
+		
+		track = get_track(cdda_start_frame);
 		if(!(toc_table[track].is_audio)) {
 			status_hardware_error(false); // OK?
 //			status_not_accept(0, 0x0, 0x00, 0x00);
@@ -2183,14 +2203,6 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 			// Maybe is_repeat == 9
 			cdda_repeat_count = repeat_count;
 			cdda_repeat_count++;
-		}
-		if(cdda_start_frame >= toc_table[track].pregap) {
-			cdda_start_frame -= toc_table[track].pregap;
-		}
-		if(cdda_start_frame < toc_table[track].index0) {
-			cdda_start_frame = toc_table[track].index0; // don't play pregap
-		} else if(cdda_start_frame > max_logical_block) {
-			cdda_start_frame = 0;
 		}
 		track = current_track;
 		cdda_playing_frame = cdda_start_frame;
@@ -2593,7 +2605,146 @@ bool TOWNS_CDROM::open_iso_file(const _TCHAR* file_path)
 	delete fio;
 	return true;
 }
-		
+
+bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
+{
+	my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.img"), get_file_path_without_extensiton(file_path));
+	if(!FILEIO::IsFileExisting(img_file_path)) {
+		my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.gz"), get_file_path_without_extensiton(file_path));
+		if(!FILEIO::IsFileExisting(img_file_path)) {
+			my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.img.gz"), get_file_path_without_extensiton(file_path));
+		}
+		if(!FILEIO::IsFileExisting(img_file_path)) {
+			memset(img_file_path, 0x00, _MAX_PATH);
+			return false;
+		}
+	}
+	if(fio_img->Fopen(img_file_path, FILEIO_READ_BINARY)) {
+		is_cue = false;
+		is_iso = false;
+		current_track = 0;
+		// get image file size
+		if((max_logical_block = fio_img->FileLength() / 2352) > 0) {
+			// read cue file
+			FILEIO* fio = new FILEIO();
+			if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
+				char line[1024] = {0};
+				char *ptr;
+				int track = -1;
+				while(fio->Fgets(line, 1024) != NULL) {
+					if(strstr(line, "[Session ") != NULL) {
+						track = -1;
+					} else if((ptr = strstr(line, "Point=0x")) != NULL) {
+						if((track = hexatoi(ptr + 8)) > 0 && track < 0xa0) {
+							if((track + 1) > track_num) {
+								track_num = track + 1;
+							}
+						}
+					} else if((ptr = strstr(line, "Control=0x")) != NULL) {
+						if(track > 0 && track < 0xa0) {
+							toc_table[track].is_audio = (hexatoi(ptr + 10) != 4);
+						}
+					} else if((ptr = strstr(line, "ALBA=-")) != NULL) {
+						if(track > 0 && track < 0xa0) {
+							toc_table[track].pregap = atoi(ptr + 6);
+						}
+					} else if((ptr = strstr(line, "PLBA=")) != NULL) {
+						if(track > 0 && track < 0xa0) {
+							toc_table[track + 1].index0 = atoi(ptr + 5);
+						}
+					} else if((ptr = strstr(line, "[TRACK ")) != NULL) {
+						char* ptr2 = ptr;
+						if((ptr2 = strstr(ptr + 7, "]")) != NULL) {
+							uintptr_t n = (uintptr_t)ptr2;
+							uintptr_t m = (uintptr_t)ptr;
+							n = n - m;
+							if(n > 2) n = 2;
+							char numbuf[3] = {0};
+							strncpy(numbuf, ptr + 7, (size_t)n);
+							track = atoi(numbuf);
+							if((track + 1) > track_num) {
+								track_num = track + 1;
+							}
+						}
+					} else if((ptr = strstr(line, "INDEX 0=")) != NULL) {
+						if(track > 0 && track < 0xa0) {
+							toc_table[track].index0 = atoi(ptr + 8);
+						}
+					} else if((ptr = strstr(line, "INDEX 1=")) != NULL) {
+						if(track > 0 && track < 0xa0) {
+							toc_table[track].index1 = atoi(ptr + 8);
+						}
+					} else if((ptr = strstr(line, "MODE=")) != NULL) {
+						if(track > 0 && track < 0xa0) {
+							int mode;
+							mode = atoi(ptr + 5);
+							switch(mode) {
+							case 0:
+								toc_table[track].type = MODE_AUDIO;
+								toc_table[track].is_audio = true;
+								toc_table[track].logical_size = 2352;
+								break;
+							case 1:
+								toc_table[track].type = MODE_MODE1_2352;
+								toc_table[track].is_audio = false;
+								toc_table[track].logical_size = 2048;
+								break;
+							case 2:
+								toc_table[track].type = MODE_MODE2_2336;
+								toc_table[track].is_audio = false;
+								toc_table[track].logical_size = 2336;
+								break;
+							default: // ???
+								toc_table[track].type = MODE_AUDIO;
+								toc_table[track].is_audio = true;
+								toc_table[track].logical_size = 2352;
+								break;
+							}
+						}
+					}
+				}
+				toc_table[0].lba_offset = 0;
+				toc_table[0].lba_size = 0;
+				toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
+				toc_table[0].physical_size = 0;
+				toc_table[0].logical_size = 0;
+				if(track_num > 0) {
+					for(int i = 1; i < track_num; i++) {
+						// ToDo: Some types.
+						toc_table[i].physical_size = 2352;
+
+						if(toc_table[i].index0 == 0) {
+							toc_table[i].index0 = toc_table[i].index1;
+						}
+						if(toc_table[i].pregap == 0) {
+							toc_table[i].pregap = toc_table[i].index1 - toc_table[i].index0;
+						}
+						if(toc_table[i].pregap <= 150) toc_table[i].pregap = 150;
+					}
+					toc_table[track_num].index0 = toc_table[track_num].index1 = max_logical_block;
+					for(int i = 1; i < track_num; i++) {
+						toc_table[i].lba_offset = toc_table[i].index1;
+						toc_table[i].lba_size = toc_table[i + 1].index1 - toc_table[i].index1;
+						if(toc_table[i].lba_size > 0) toc_table[i].lba_size -= 1;
+					}
+					toc_table[track_num].lba_size = 0;
+					toc_table[track_num].physical_size = 0;
+					toc_table[track_num].logical_size = 0;
+				} else {
+					fio_img->Fclose();
+					fio->Fclose();
+					delete fio;
+					return false;
+				}
+				fio->Fclose();
+			}
+			delete fio;
+			return true;
+		}
+	}
+	return false;
+}
+
 bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 {
 	std::string line_buf;
@@ -2753,7 +2904,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				}
 				toc_table[i].lba_offset = max_logical_block - _n;
 				if(!(with_filename[i + 1]) && (toc_table[i + 1].index1 > toc_table[i].index1)) {
-					toc_table[i].lba_size = toc_table[i + 1].index1 - toc_table[i].index1;
+					toc_table[i].lba_size = toc_table[i + 1].index1 - toc_table[i].index0;
 				}
 				if(toc_table[i].index0 == 0) {
 					toc_table[i].index0 = toc_table[i].index1;
@@ -2832,73 +2983,8 @@ void TOWNS_CDROM::open_from_cmd(const _TCHAR* file_path)
 		}
 	} else if(check_file_extension(file_path, _T(".ccd"))) {
 		// get image file name
-		my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.img"), get_file_path_without_extensiton(file_path));
-		if(!FILEIO::IsFileExisting(img_file_path)) {
-			my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.gz"), get_file_path_without_extensiton(file_path));
-			if(!FILEIO::IsFileExisting(img_file_path)) {
-				my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.img.gz"), get_file_path_without_extensiton(file_path));
-			}
-		}
-		if(fio_img->Fopen(img_file_path, FILEIO_READ_BINARY)) {
-			is_cue = false;
-			current_track = 0;
-			// get image file size
-			if((max_logical_block = fio_img->FileLength() / 2352) > 0) {
-				// read cue file
-				FILEIO* fio = new FILEIO();
-				if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
-					char line[1024], *ptr;
-					int track = -1;
-					while(fio->Fgets(line, 1024) != NULL) {
-						if(strstr(line, "[Session ") != NULL) {
-							track = -1;
-						} else if((ptr = strstr(line, "Point=0x")) != NULL) {
-							if((track = hexatoi(ptr + 8)) > 0 && track < 0xa0) {
-								if(track > track_num) {
-									track_num = track;
-								}
-							}
-						} else if((ptr = strstr(line, "Control=0x")) != NULL) {
-							if(track > 0 && track < 0xa0) {
-								toc_table[track - 1].is_audio = (hexatoi(ptr + 10) != 4);
-							}
-						} else if((ptr = strstr(line, "ALBA=-")) != NULL) {
-							if(track > 0 && track < 0xa0) {
-								toc_table[track - 1].pregap = atoi(ptr + 6);
-							}
-						} else if((ptr = strstr(line, "PLBA=")) != NULL) {
-							if(track > 0 && track < 0xa0) {
-								toc_table[track - 1].index1 = atoi(ptr + 5);
-							}
-						}
-					}
-					if(track_num != 0) {
-						toc_table[0].lba_offset = 0;
-						toc_table[0].pregap = 0;
-						for(int i = 1; i < track_num; i++) {
-							// ToDo: Some types.
-							toc_table[i].physical_size = 2352;
-							toc_table[i].logical_size = (toc_table[i].is_audio) ? 2352 : 2048;
-							toc_table[i].type = (toc_table[i].is_audio) ? MODE_AUDIO : MODE_MODE1_2352;
-							toc_table[i].index0 = toc_table[i].index1 - toc_table[i].pregap;
-							toc_table[i].lba_offset = toc_table[i].pregap;
-							toc_table[i - 1].lba_size = toc_table[i].pregap - toc_table[i - 1].pregap;
-						}
-						toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
-						toc_table[track_num].index0 = toc_table[track_num].index1 = max_logical_block;
-						if(track_num > 0) {
-							toc_table[track_num].lba_size = max_logical_block - toc_table[track_num - 1].lba_offset;
-						} else {
-							toc_table[track_num].lba_size = 0;
-						}
-					} else {
-						fio_img->Fclose();
-					}
-					strncpy(img_file_path_bak, file_path, _MAX_PATH - 1);
-					fio->Fclose();
-				}
-				delete fio;
-			}
+		if(open_ccd_file(file_path, img_file_path)) {
+			strncpy(img_file_path_bak, img_file_path, _MAX_PATH - 1);
 		}
 	}
  
