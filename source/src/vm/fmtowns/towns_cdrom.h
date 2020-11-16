@@ -502,6 +502,7 @@ public:
 	virtual bool write_a_byte(uint8_t val)
 	{
 		uint32_t n = val;
+		n = n & 0xff;
 //		if(databuffer->count() >= fifo_length) {
 //			return false;
 //		}
@@ -516,7 +517,7 @@ public:
 			return false;
 		}
 		for(int i = 0; i < bytes; i++) {
-			int d = val[i];
+			int d = ((int)val[i]) & 0xff ;
 			databuffer->write(d);
 		}
 		return true;
