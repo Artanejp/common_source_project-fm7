@@ -95,6 +95,10 @@ uint32_t ADPCM::read_io8(uint32_t addr)
 	*/
 	uint8_t val = 0x00;
 	switch(addr) {
+	case 0x04d5: // Mute reg
+		val |= ((opn2_mute) ? 0 : 0x02);
+		val |= ((adpcm_mute) ? 0 : 0x01);
+		break;
 	case 0x04e7: // ADC data register
 		if(!(adc_fifo->empty())) {
 			val = (uint8_t)(adc_fifo->read() & 0xff);
@@ -118,7 +122,6 @@ uint32_t ADPCM::read_io8(uint32_t addr)
 		{
 			val = dac_intr;
 			dac_intr = 0x00;
-//			opx_intr = false;
 			if(latest_dac_intr) {
 				latest_dac_intr = false;
 			}
