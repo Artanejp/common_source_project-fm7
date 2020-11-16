@@ -138,6 +138,7 @@ void TOWNS_CDROM::initialize()
 
 	cdda_status = CDDA_OFF;
 	is_cue = false;
+	is_iso = false;
 	current_track = 0;
 	read_sector = 0;
 	
@@ -747,7 +748,7 @@ void TOWNS_CDROM::read_cdrom()
 				  param_queue[0], param_queue[1], param_queue[2],
 				  param_queue[3], param_queue[4], param_queue[5],
 				  pad1, dcmd);
-	position = lba1 * physical_block_size();
+	position = lba1 * ((is_iso) ? 2048 : physical_block_size());
 	__remain = (lba2 - lba1 + 1);
 	read_length = __remain * logical_block_size();
 	read_length_bak = read_length;
@@ -777,19 +778,21 @@ void TOWNS_CDROM::read_cdrom()
 
 void TOWNS_CDROM::read_cdrom_mode1()
 {
+	read_mode = CDROM_READ_MODE1;
 	read_cdrom();
 }
 
 void TOWNS_CDROM::read_cdrom_mode2()
 {
+	read_mode = CDROM_READ_MODE2;
 	read_cdrom();
 }	
 
 void TOWNS_CDROM::read_cdrom_raw()
 {
+	read_mode = CDROM_READ_RAW;
 	read_cdrom();
 }	
-
 
 void TOWNS_CDROM::set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
 {
@@ -1101,7 +1104,7 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 			}
 			if(fio_img->IsOpened()) {
 				uint32_t cur_position = (uint32_t)fio_img->Ftell();
-				cur_position = cur_position / physical_block_size();
+				cur_position = cur_position / (is_iso) ? 2048 : physical_block_size();
 				if(cur_position >= max_logical_block) {
 					cur_position = max_logical_block;
 				}
@@ -1159,6 +1162,7 @@ const int TOWNS_CDROM::physical_block_size()
 {
 	if(current_track <= 0) return 2352; // PAD
 	if(!mounted()) return 2352; // PAD
+	if(is_iso) return 2352;
 	switch(toc_table[current_track].type) {
 	case MODE_AUDIO:
 		return 2352;
@@ -1184,6 +1188,7 @@ const int TOWNS_CDROM::logical_block_size()
 {
 	if(current_track <= 0) return 2352; // PAD
 	if(!mounted()) return 2352; // PAD
+	if(is_iso) return 2048;
 	switch(toc_table[current_track].type) {
 	case MODE_AUDIO:
 		return 2352;
@@ -1323,14 +1328,14 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		clear_event(this, event_time_out);
 		// ToDo: Prefetch 20201116
 //		if((databuffer->left() < logical_block_size()) && (read_length > 0)) {
-		if(!(databuffer->empty()) && (read_length > 0)) {
-			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
-						   2.0,
-						   false,
-						   &event_seek_completed);
-			break; // EXIT
-		}
+//		if(!(databuffer->empty()) && (read_length > 0)) {
+//			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
+//						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
+//						   2.0,
+//						   false,
+//						   &event_seek_completed);
+//			break; // EXIT
+//		}
 		if(read_length > 0) {
 			mcu_ready = false;
 			bool stat = false;
@@ -1339,9 +1344,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			// Note: Still error with reading D000h at TownsOS v1.1L30.
 			// Maybe data has changed to 1Fh from 8Eh.
 			/// 20200926 K.O
-			if(read_length > 0) {
-				stat = read_buffer(1);
-			}
+			stat = read_buffer(1);
 			if((stat)) {
 				register_event(this, EVENT_CDROM_NEXT_SECTOR,
 							   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
@@ -1392,6 +1395,175 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	}
 }
 
+bool TOWNS_CDROM::read_mode1_iso(int sectors)
+{
+	while(sectors > 0) {
+		cd_data_iso_t tmpbuf;
+		memset(&tmpbuf, 0x00, sizeof(tmpbuf));
+		int tmp_length = sizeof(cd_data_iso_t);
+		if(!(seek_relative_frame_in_image(read_sector))) {
+			status_illegal_lba(0, 0x00, 0x00, 0x00);			
+			return false;
+		}
+		if(fio_img->Fread(&tmpbuf, tmp_length, 1) != 1) {
+			status_illegal_lba(0, 0x00, 0x00, 0x00);			
+			return false;
+		}
+		for(int i = 0; i < sizeof(tmpbuf.data); i++) {
+//			if(read_length < 0) {
+				// ToDo: Change to sector error.
+//				status_illegal_lba(0, 0x00, 0x00, 0x00);			
+//				return false;
+//			}
+//			if(databuffer->full()) {
+				// ToDo: Change to buffer overflow
+//				status_illegal_lba(0, 0x00, 0x00, 0x00);			
+//				return false;
+//			}
+			uint8_t value = tmpbuf.data[i];
+			write_a_byte(value);
+			read_length--;
+		}
+		position += 2048;
+		read_sector++;
+		sectors--;
+		access = true;
+	}
+	return true;
+}
+
+bool TOWNS_CDROM::read_mode1(int sectors)
+{
+	while(sectors > 0) {
+		cd_data_mode1_t tmpbuf;
+		int tmp_length = sizeof(cd_data_mode1_t);
+		memset(&tmpbuf, 0x00, sizeof(tmpbuf));
+		if(!(seek_relative_frame_in_image(read_sector))) {
+			status_illegal_lba(0, 0x00, 0x00, 0x00);
+			return false;
+		}
+		if(fio_img->Fread(&tmpbuf, tmp_length, 1) != 1) {
+			status_illegal_lba(0, 0x00, 0x00, 0x00);			
+			return false;
+		}
+		//! ToDo: Check header address.
+		pair32_t msf;
+		msf.d = lba_to_msf(read_sector + toc_table[current_track].pregap);
+		if((tmpbuf.header.addr_m != msf.b.h2) ||
+		   (tmpbuf.header.addr_s != msf.b.h) ||
+		   (tmpbuf.header.addr_f != msf.b.l)) {
+			out_debug_log(_T("WARNING: Reading from different sector MSF\nEXPECTED=%02X/%02X/%02X\nREAD    =%02X/%02X/%02X"),
+						  tmpbuf.header.addr_m, tmpbuf.header.addr_s, tmpbuf.header.addr_f,
+						  msf.b.h2, msf.b.h, msf.b.l);
+		}
+		for(int i = 0; i < sizeof(tmpbuf.data); i++) {
+			if(read_length < 0) {
+				// ToDo: Change to sector error.
+				status_illegal_lba(0, 0x00, 0x00, 0x00);			
+				return false;
+			}
+			if(databuffer->full()) {
+				// ToDo: Change to buffer overflow
+				status_illegal_lba(0, 0x00, 0x00, 0x00);			
+				return false;
+			}
+			uint8_t value = tmpbuf.data[i];
+			write_a_byte(value);
+			read_length--;
+		}
+		position += physical_block_size();
+		read_sector++;
+		sectors--;
+		access = true;
+	}
+	return true;
+}
+
+bool TOWNS_CDROM::read_mode2(int sectors)
+{
+	while(sectors > 0) {
+		cd_data_mode2_t tmpbuf;
+		memset(&tmpbuf, 0x00, sizeof(tmpbuf));
+		int tmp_length = sizeof(cd_data_mode2_t);
+		if(!(seek_relative_frame_in_image(read_sector))) {
+			status_illegal_lba(0, 0x00, 0x00, 0x00);
+			return false;
+		}
+		if(fio_img->Fread(&tmpbuf, tmp_length, 1) != 1) {
+			status_illegal_lba(0, 0x00, 0x00, 0x00);			
+			return false;
+		}
+		//! ToDo: Check header address.
+		pair32_t msf;
+		msf.d = lba_to_msf(read_sector + toc_table[current_track].pregap);
+		if((tmpbuf.header.addr_m != msf.b.h2) ||
+		   (tmpbuf.header.addr_s != msf.b.h) ||
+		   (tmpbuf.header.addr_f != msf.b.l)) {
+			out_debug_log(_T("WARNING: Reading from different sector MSF\nEXPECTED=%02X/%02X/%02X\nREAD    =%02X/%02X/%02X"),
+						  tmpbuf.header.addr_m, tmpbuf.header.addr_s, tmpbuf.header.addr_f,
+						  msf.b.h2, msf.b.h, msf.b.l);
+		}
+		for(int i = 0; i < sizeof(tmpbuf.data); i++) {
+			if(read_length < 0) {
+				// ToDo: Change to sector error.
+				status_illegal_lba(0, 0x00, 0x00, 0x00);			
+				return false;
+			}
+			if(databuffer->full()) {
+				// ToDo: Change to buffer overflow
+				status_illegal_lba(0, 0x00, 0x00, 0x00);			
+				return false;
+			}
+			uint8_t value = tmpbuf.data[i];
+			write_a_byte(value);
+			read_length--;
+		}
+		position += physical_block_size();
+		read_sector++;
+		sectors--;
+		access = true;
+	}
+	return true;
+}
+
+
+bool TOWNS_CDROM::read_raw(int sectors)
+{
+	while(sectors > 0) {
+		uint8_t tmpbuf[2352];
+		int tmp_length = 2352;
+		memset(tmpbuf, 0x00, sizeof(tmpbuf));
+		if(!(seek_relative_frame_in_image(read_sector))) {
+			status_illegal_lba(0, 0x00, 0x00, 0x00);
+			return false;
+		}
+		if(fio_img->Fread(tmpbuf, tmp_length, 1) != 1) {
+			status_illegal_lba(0, 0x00, 0x00, 0x00);			
+			return false;
+		}
+		for(int i = 0; i < 2352; i++) {
+			if(read_length < 0) {
+				// ToDo: Change to sector error.
+				status_illegal_lba(0, 0x00, 0x00, 0x00);			
+				return false;
+			}
+			if(databuffer->full()) {
+				// ToDo: Change to buffer overflow
+				status_illegal_lba(0, 0x00, 0x00, 0x00);			
+				return false;
+			}
+			uint8_t value = tmpbuf[i];
+			write_a_byte(value);
+			read_length--;
+		}
+		position += physical_block_size();
+		read_sector++;
+		sectors--;
+		access = true;
+	}
+	return true;
+}
+
 bool TOWNS_CDROM::read_buffer(int sectors)
 {
 	if(!(mounted())) {
@@ -1402,39 +1574,22 @@ bool TOWNS_CDROM::read_buffer(int sectors)
 		status_media_changed(false);
 		return false;
 	}
-	uint32_t offset = 0;
-//	if(!(seek_relative_frame_in_image(position / physical_block_size()))) {
-	if(!(seek_relative_frame_in_image(read_sector))) {
-		status_illegal_lba(0, 0x00, 0x00, 0x00);
+	if(is_iso) return read_mode1_iso(sectors);
+	switch(read_mode) {
+	case CDROM_READ_MODE1:
+		return read_mode1(sectors);
+		break; // Below
+	case CDROM_READ_MODE2:
+		return read_mode2(sectors);
+		break; // Below
+	case CDROM_READ_RAW:
+		return read_raw(sectors);
+		break; // Below
+	default:
 		return false;
+		break;
 	}
-	while(sectors > 0) {
-		uint8_t tmp_buffer[2448] = {0};
-		int tmp_length = physical_block_size() - offset;
-		
-		if(fio_img->Fread(tmp_buffer, tmp_length, 1) != 1) {
-			status_illegal_lba(0, 0x00, 0x00, 0x00);			
-			return false;
-		}
-		int noffset = 16;
-		if(logical_block_size() >= physical_block_size()) { // Maybe raw
-			noffset = 0;
-		}
-		for(int i = 0; i < tmp_length; i++) {
-			if((offset >= noffset) && (offset < (noffset + logical_block_size()))) {
-				uint8_t value = tmp_buffer[i];
-				write_a_byte(value);
-//				length--;
-				read_length--;
-			}
-			position++;
-			offset = (offset + 1) % physical_block_size();
-		}
-		read_sector++;
-		sectors--;
-		access = true;
-	}
-	return true;
+	return false;
 }
 
 void TOWNS_CDROM::read_a_cdda_sample()
@@ -1836,12 +1991,12 @@ double TOWNS_CDROM::get_seek_time(uint32_t lba)
 					break;
 				}
 			}
-			distance = abs((int)lba - (int)(cur_position / physical_block_size() + toc_table[current_track].index0));
+			distance = abs((int)lba - (int)(cur_position / ((is_iso) ? 2048 : physical_block_size()) + toc_table[current_track].index0));
 			if(track != current_track) {
 				current_track = get_track(lba);
 			}
 		} else {
-			distance = abs((int)lba - (int)(cur_position / physical_block_size()));
+			distance = abs((int)lba - (int)(cur_position / ((is_iso) ? 2048 : physical_block_size())));
 		}
 //		if(distance < 100) {
 //			distance = 100; // Seek penalty.
@@ -1952,11 +2107,12 @@ void TOWNS_CDROM::pause_cdda_from_cmd()
 
 bool TOWNS_CDROM::seek_relative_frame_in_image(uint32_t frame_no)
 {
+	int phys_size = (is_iso) ? 2048 : physical_block_size();
 	if(frame_no >= toc_table[current_track].lba_offset) {
 		if(fio_img->IsOpened()) {
 			if(fio_img->Fseek(
-				(frame_no - toc_table[current_track].lba_offset) * physical_block_size(),
-				FILEIO_SEEK_SET) != 0) {
+				   (frame_no - toc_table[current_track].lba_offset) * phys_size,
+				   FILEIO_SEEK_SET) != 0) {
 				return false;
 			}
 		}
@@ -2093,10 +2249,10 @@ void TOWNS_CDROM::set_subq(void)
 			if(fio_img->IsOpened()) {
 				uint32_t cur_position = (uint32_t)(fio_img->Ftell());
 				if(is_cue) {
-					frame = (cur_position / physical_block_size()) + toc_table[track].lba_offset;
+					frame = (cur_position / ((is_iso) ? 2048 : physical_block_size())) + toc_table[track].lba_offset;
 					msf_rel = lba_to_msf_alt(frame - toc_table[track].lba_offset);
 				} else {
-					frame = cur_position / physical_block_size();
+					frame = cur_position / ((is_iso) ? 2048 : physical_block_size());
 					if(frame > toc_table[track].lba_offset) {
 						msf_rel = lba_to_msf_alt(frame - toc_table[track].lba_offset);
 					} else {
@@ -2383,6 +2539,61 @@ int TOWNS_CDROM::parse_cue_index(std::string &_arg2, int nr_current_track)
 	return index;
 }
 
+bool TOWNS_CDROM::open_iso_file(const _TCHAR* file_path)
+{
+	_TCHAR full_path_iso[_MAX_PATH] = {0};
+
+	int nr_current_track = 0;
+	FILEIO* fio = new FILEIO();
+	if(fio == NULL) return false;
+	
+	get_long_full_path_name(file_path, full_path_iso, sizeof(full_path_iso));
+	const _TCHAR *parent_dir = get_parent_dir((const _TCHAR *)full_path_iso);
+	memset(track_data_path[0], 0x00, _MAX_PATH * sizeof(_TCHAR));
+	
+	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) { // 
+		uint64_t total_size = (uint64_t)fio->FileLength();
+		uint64_t sectors = total_size / 2048; //! @note Support only MODE1/2352.
+		toc_table[0].lba_offset = 0;
+		toc_table[0].lba_size = 0;
+		toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
+		if(sectors > 1) {
+			track_num = 2;
+			max_logical_block = sectors - 1;
+			
+			toc_table[1].lba_offset = 0;
+			toc_table[1].lba_size = sectors - 1;
+			toc_table[1].is_audio = false;
+			toc_table[1].index0 = 0;
+			toc_table[1].index1 = 0;
+			toc_table[1].pregap = 150;
+			toc_table[1].physical_size = 2352;
+			toc_table[1].logical_size = 2048;
+
+			toc_table[2].lba_offset = sectors;
+			toc_table[2].lba_size = 0;
+			toc_table[2].is_audio = false;
+			toc_table[2].index0 = sectors;
+			toc_table[2].index1 = sectors;
+			toc_table[2].pregap = 150;
+			toc_table[2].physical_size = 0;
+			toc_table[2].logical_size = 0;
+			with_filename[1] = true;
+			strncpy(track_data_path[0], full_path_iso, _MAX_PATH - 1);
+		} else {
+			track_num = 0;
+			max_logical_block = 0;
+			with_filename[1] = false;
+		}
+		fio->Fclose();
+	} else {
+		delete fio;
+		return false;
+	}
+	delete fio;
+	return true;
+}
+		
 bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 {
 	std::string line_buf;
@@ -2607,7 +2818,18 @@ void TOWNS_CDROM::open_from_cmd(const _TCHAR* file_path)
 		if(open_cue_file(file_path)) {
 			strncpy(img_file_path_bak, file_path, _MAX_PATH - 1);
 		}
-
+	} else if(check_file_extension(file_path, _T(".iso"))) {
+		is_cue = false;
+		current_track = 0;
+		if(open_iso_file(file_path)) {
+			strncpy(img_file_path, file_path, _MAX_PATH - 1);
+			strncpy(img_file_path_bak, file_path, _MAX_PATH - 1);
+		}
+		if(fio_img->Fopen(img_file_path, FILEIO_READ_BINARY)) {
+			is_cue = false;
+			current_track = 0;
+			is_iso = true;
+		}
 	} else if(check_file_extension(file_path, _T(".ccd"))) {
 		// get image file name
 		my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.img"), get_file_path_without_extensiton(file_path));
@@ -2681,11 +2903,11 @@ void TOWNS_CDROM::open_from_cmd(const _TCHAR* file_path)
 	}
  
 	if(mounted() /*&& (__SCSI_DEBUG_LOG)*/) {
-		for(int i = 0; i < track_num + 1; i++) {
+		for(int i = 1; i < track_num + 1; i++) {
 			uint32_t idx0_msf = lba_to_msf(toc_table[i].index0);
 			uint32_t idx1_msf = lba_to_msf(toc_table[i].index1);
 			uint32_t pgap_msf = lba_to_msf(toc_table[i].pregap);
-			this->cdrom_debug_log(_T("Track%02d: Index0=%02x:%02x:%02x Index1=%02x:%02x:%02x PreGap=%02x:%02x:%02x\n"), i + 1,
+			this->cdrom_debug_log(_T("Track%02d: Index0=%02x:%02x:%02x Index1=%02x:%02x:%02x PreGap=%02x:%02x:%02x\n"), i,
 			(idx0_msf >> 16) & 0xff, (idx0_msf >> 8) & 0xff, idx0_msf & 0xff,
 			(idx1_msf >> 16) & 0xff, (idx1_msf >> 8) & 0xff, idx1_msf & 0xff,
 			(pgap_msf >> 16) & 0xff, (pgap_msf >> 8) & 0xff, pgap_msf & 0xff);
@@ -2713,6 +2935,8 @@ void TOWNS_CDROM::close_from_cmd()
 	is_cue = false;
 	current_track = 0;
 	set_cdda_status(CDDA_OFF);
+	is_iso = false;
+	read_mode = CDROM_READ_NONE;
 }
 
 bool TOWNS_CDROM::mounted()

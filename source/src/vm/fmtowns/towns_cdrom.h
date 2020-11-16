@@ -42,10 +42,6 @@ class FILEIO;
 class DEBUGGER;
 
 namespace FMTOWNS {
-	class CDC;
-}
-
-namespace FMTOWNS {
 	#pragma pack(1)
 	typedef union {
 		struct {
@@ -61,7 +57,56 @@ namespace FMTOWNS {
 		uint8_t byte;
 	} SUBC_t;
 #pragma pack()
-
+	/*!
+	 * @note Belows are CD-ROM sector structuer.
+	 * @note See https://en.wikipedia.org/wiki/CD-ROM#Sector_structure .
+	 */
+#pragma pack(1)
+	typedef struct {
+		uint8_t sync[12];
+		uint8_t addr_m;
+		uint8_t addr_s;
+		uint8_t addr_f;
+		uint8_t sector_type; //! 1 = MODE1, 2=MODE2
+	} cd_data_head_t;
+#pragma pack()
+#pragma pack(1)
+	/*!
+	 * @note ToDo: Still not implement crc32 and ecc.
+	 * @note 20201116 K.O
+	 */
+	typedef struct {
+		cd_data_head_t header;
+		uint8_t data[2048];
+		uint8_t crc32[4]; //! CRC32 checksum.
+		uint8_t reserved[8];
+		uint8_t ecc[276]; //! ERROR CORRECTIOM DATA; by read solomon code.
+	} cd_data_mode1_t;
+#pragma pack()
+#pragma pack(1)
+	/*!
+	 * 
+	 * 
+	 */
+	typedef struct {
+		cd_data_head_t header;
+		uint8_t data[2336];
+	} cd_data_mode2_t;
+#pragma pack()
+#pragma pack(1)
+	typedef struct {
+		uint8_t data[2352];
+	} cd_audio_sector_t;
+#pragma pack()
+#pragma pack(1)
+	/*!
+	 * @note ToDo: Add fake header and crc and ecc.
+	 * @note 20201116 K.O
+	 */
+	typedef struct {
+		uint8_t data[2048];
+	} cd_data_iso_t;
+#pragma pack()
 // From Towns Linux : include/linux/towns_cd.h
 enum {
 	MODE_AUDIO = 0,
@@ -74,8 +119,12 @@ enum {
 	MODE_CDI_2352,
 	MODE_NONE
 };
-		
-
+enum {
+	CDROM_READ_MODE1 = 1,
+	CDROM_READ_MODE2 = 2,
+	CDROM_READ_RAW   = 3,
+	CDROM_READ_NONE = 0
+};
 enum {
 	CDROM_COMMAND_SEEK =			0x00,
 	CDROM_COMMAND_READ_MODE2 =		0x01,
@@ -199,6 +248,7 @@ protected:
 	int stat_track;
 
 	bool is_cue;
+	bool is_iso;
 	struct {
 		uint8_t type;
 		int32_t index0, index1, pregap;
@@ -346,6 +396,7 @@ protected:
 	void parse_cue_track(std::string &_arg2, int& nr_current_track, std::string imgpath);
 	int parse_cue_index(std::string &_arg2, int nr_current_track);
 
+	virtual bool open_iso_file(const _TCHAR* file_path);
 	
 	virtual uint8_t read_subq();
 	virtual uint8_t get_subq_status();
@@ -433,6 +484,11 @@ public:
 	virtual void set_volume(int volume);
 	virtual void set_volume(int ch, int decibel_l, int decibel_r);
 	virtual bool read_buffer(int sectors);
+	
+	virtual bool read_raw(int sectors);
+	virtual bool read_mode1(int sectors);
+	virtual bool read_mode2(int sectors);
+	virtual bool read_mode1_iso(int sectors);
 
 	// unique functions
 	// Towns specified command
