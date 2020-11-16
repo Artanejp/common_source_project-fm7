@@ -263,11 +263,13 @@ void UPD71071::write_signal(int id, uint32_t data, uint32_t _mask)
 		if(data & _mask) {
 			if(!(req & bit)) {
 				req |= bit;
-				if((mask & (1 << ch)) == 0) { // MASK register MASKS DRQ.20200918 K.O
-					// Without #define SINGLE_MODE_DMA ,
-					// DMA trasfer is triggerd by SIGNAL or writing I/O 0Eh.
-					do_dma_per_channel(ch);
-//					req &= ~bit;
+				if(!(_SINGLE_MODE_DMA)) {
+					if((mask & (1 << ch)) == 0) { // MASK register MASKS DRQ.20200918 K.O
+						// Without #define SINGLE_MODE_DMA ,
+						// DMA trasfer is triggerd by SIGNAL or writing I/O 0Eh.
+						do_dma_per_channel(ch);
+						req &= ~bit;
+					}
 				}
 			}
 		} else {
