@@ -56,7 +56,9 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x0a:
-//		out_debug_log(_T("SET MODE[%d] to %02X"), selch, data);
+		if((selch == 3)) {
+			out_debug_log(_T("SET MODE[%d] to %02X"), selch, data);
+		}
 		break;
 	case 0x0e:
 		if(((data | req) & 0x08) != 0) {
@@ -137,6 +139,15 @@ bool TOWNS_DMAC::do_dma_epilogue(int c)
 {
 	if(dma[c].creg == 0) {  // OK?
 		// TC
+		if(c == 3) {
+			out_debug_log(_T("TRANSFER COMPLETED CH.3: AREG=%08X BAREG=%08X CREG=%08X BCREG=%08X"),
+						  (dma[c].areg & 0x00ffffff) | (dma_high_address[c] & 0xff000000),
+						  (dma[c].bareg & 0x00ffffff) | (dma_high_address_bak[c] & 0xff000000),
+						  dma[c].creg & 0x00ffffff,
+						  dma[c].bcreg & 0x00ffffff
+				);
+						  
+		}
 		if(dma[c].mode & 0x10) {
 			dma_high_address[c] = dma_high_address_bak[c];
 		}
