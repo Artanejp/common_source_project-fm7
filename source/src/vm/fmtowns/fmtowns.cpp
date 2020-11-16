@@ -542,11 +542,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	io->set_iomap_range_rw(0x04c0, 0x04cf, cdrom); // CDROM
 	// PAD, Sound
-#if 1
+
 	io->set_iomap_single_r(0x04d0, joystick); // Pad1
 	io->set_iomap_single_r(0x04d2, joystick); // Pad 2
 	io->set_iomap_single_w(0x04d6, joystick); // Pad out
-#endif	
+
 	io->set_iomap_single_rw(0x04d5, adpcm); // mute 
 	// OPN2(YM2612)
 	io->set_iomap_alias_rw(0x04d8, opn2, 0); // STATUS(R)/Addrreg 0(W)
