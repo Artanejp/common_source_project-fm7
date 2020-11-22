@@ -37,14 +37,14 @@
 #define EVENT_CDROM_DRQ						107
 #define EVENT_CDROM_NEXT_SECTOR				108
 #define EVENT_CDROM_DELAY_READY				109
-#define EVENT_CDROM_DELAY_READY2			110
+#define EVENT_CDROM_READY_NOSTATUS			110
 
 #define EVENT_CDROM_EOT						112
 #define EVENT_CDROM_RESTORE					113
 #define EVENT_CDROM_WAIT					114
 #define EVENT_CDROM_TIMEOUT					115
-#define EVENT_CDROM_DELAY_READY3			116
-#define EVENT_CDROM_DELAY_READY4			117
+#define EVENT_CDROM_READY_EOT				116
+#define EVENT_CDROM_READY_CDDAREPLY			117
 
 //#define _CDROM_DEBUG_LOG
 
@@ -128,6 +128,7 @@ void TOWNS_CDROM::initialize()
 	event_delay_ready = -1;
 	event_cdda_delay_stop = -1;
 	event_time_out = -1;
+	event_eot = -1;
 
 	// ToDo: larger buffer for later VMs.
 	max_fifo_length = ((machine_id == 0x0700) || (machine_id >= 0x0900)) ? 65536 : 8192;
@@ -225,10 +226,10 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 	dma_intr = true;
 //	mcu_intr = false;
 	
-	drq_tick = false;
 	
 	clear_event(this, event_time_out);
 	clear_event(this, event_drq);
+	clear_event(this, event_eot);
 
 	if((read_length <= 0) && (databuffer->empty())) {
 		clear_event(this, event_next_sector);
@@ -237,6 +238,13 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 		cdrom_debug_log(_T("EOT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 	} else {
 		cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
+		// TRY: Register after EOT. 20201123 K.O
+//		status_seek = true;
+//		register_event(this, EVENT_CDROM_SEEK_COMPLETED,
+//					   1000.0,
+//					   false,
+//					   &event_seek_completed);
+//			status_data_ready(false);
 	}
 	write_signals(&outputs_drq, 0x00000000);
 	if(!(dma_intr_mask) && (stat_reply_intr)) {
@@ -319,7 +327,7 @@ void TOWNS_CDROM::status_parameter_error(bool forceint)
 void TOWNS_CDROM::status_read_done(bool forceint)
 {
 	if(forceint) stat_reply_intr = true;
-	set_status_2(req_status, 0, TOWNS_CD_STATUS_READ_DONE, 0, 0, 0);
+	set_status_read_done(req_status, 0, TOWNS_CD_STATUS_READ_DONE, 0, 0, 0);
 //	cdrom_debug_log(_T("READ DONE"));
 }
 
@@ -399,22 +407,22 @@ void TOWNS_CDROM::set_delay_ready()
   	force_register_event(this, EVENT_CDROM_DELAY_READY, 1000.0, false, event_delay_ready);
 }
 
-void TOWNS_CDROM::set_delay_ready2()
+void TOWNS_CDROM::set_delay_ready_nostatus()
 {
 	// From Towns Linux 2.2
 	// But, some software (i.e. Star Cruiser II) failes to loading at 300uS.
 	// May need *at least* 1000uS. - 20200517 K.O
-	force_register_event(this, EVENT_CDROM_DELAY_READY2, 1000.0, false, event_delay_ready);
+	force_register_event(this, EVENT_CDROM_READY_NOSTATUS, 1000.0, false, event_delay_ready);
 }
 
-void TOWNS_CDROM::set_delay_ready3()
+void TOWNS_CDROM::set_delay_ready_eot()
 {
-	force_register_event(this, EVENT_CDROM_DELAY_READY3, 1000.0, false, event_delay_ready);
+	force_register_event(this, EVENT_CDROM_READY_EOT, 1000.0, false, event_delay_ready);
 }
 
-void TOWNS_CDROM::set_delay_ready4()
+void TOWNS_CDROM::set_delay_ready_cddareply()
 {
-	force_register_event(this, EVENT_CDROM_DELAY_READY4, 100.0, false, event_delay_ready);
+	force_register_event(this, EVENT_CDROM_READY_CDDAREPLY, 100.0, false, event_delay_ready);
 }
 
 void TOWNS_CDROM::status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3)
@@ -674,8 +682,11 @@ uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
 	if((databuffer->empty()) && (read_length <= 0)) {
 		//cdrom_debug_log(_T("EOT(DMA) by read_dma_io8()"));
 		read_length_bak = 0;
+		// Fallback
 		register_event(this, EVENT_CDROM_EOT,
-					   0.2 * 1.0e6 / ((double)transfer_speed * 150.0e3 ), false, NULL);
+//					   0.2 * 1.0e6 / ((double)transfer_speed * 150.0e3 ),
+					   1.0e3,
+					   false, &event_eot);
 	}
 	return data_reg;
 }
@@ -758,8 +769,8 @@ void TOWNS_CDROM::read_cdrom()
 	register_event(this, EVENT_CDROM_SEEK_COMPLETED, usec, false, &event_seek_completed);
 	if(req_status) {
 		// May not need extra status, integrated after reading. 20200906 K.O
-		set_status(req_status, 0, 0x00, 0x00, 0x00, 0x00);
-//		set_status(req_status, 2, 0x00, 0x00, 0x00, 0x00);
+//		set_status(req_status, 0, 0x00, 0x00, 0x00, 0x00);
+		set_status(req_status, 2, 0x00, 0x00, 0x00, 0x00);
 	} else {
 		if(pio_transfer) {
 			set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
@@ -799,12 +810,28 @@ void TOWNS_CDROM::set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1
 		status_queue->write(s3);
 		set_delay_ready();
 	} else {
-		set_delay_ready2();
+		set_delay_ready_nostatus();
 	}
-//	cdrom_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
 }
 
-void TOWNS_CDROM::set_status_2(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
+void TOWNS_CDROM::set_status_read_done(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
+{
+	status_queue->clear();
+	extra_status = 0;
+//	if(_req_status) {
+		if(extra > 0) extra_status = extra;
+		status_queue->write(s0);
+		status_queue->write(s1);
+		status_queue->write(s2);
+		status_queue->write(s3);
+//	} else {
+//		set_delay_ready_eot();
+//	}
+	set_delay_ready_eot();
+
+}
+
+void TOWNS_CDROM::set_status_cddareply(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
 {
 	status_queue->clear();
 	extra_status = 0;
@@ -814,28 +841,8 @@ void TOWNS_CDROM::set_status_2(bool _req_status, int extra, uint8_t s0, uint8_t 
 		status_queue->write(s1);
 		status_queue->write(s2);
 		status_queue->write(s3);
-		set_delay_ready3();
-	} else {
-		set_delay_ready3();
 	}
-//	cdrom_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
-}
-
-void TOWNS_CDROM::set_status_3(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
-{
-	status_queue->clear();
-	extra_status = 0;
-	if(_req_status) {
-		if(extra > 0) extra_status = extra;
-		status_queue->write(s0);
-		status_queue->write(s1);
-		status_queue->write(s2);
-		status_queue->write(s3);
-		set_delay_ready4();
-	} else {
-		set_delay_ready4();
-	}
-//	cdrom_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
+	set_delay_ready_cddareply();
 }
 
 void TOWNS_CDROM::set_status_immediate(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
@@ -867,7 +874,9 @@ void TOWNS_CDROM::set_extra_status()
 		set_status_extra(TOWNS_CD_STATUS_SEEK_COMPLETED, 0x00, 0x00, 0x00);
 		extra_status = 0;
 		break;
-	case CDROM_COMMAND_READ_MODE1: // seek
+	case CDROM_COMMAND_READ_MODE1:
+	case CDROM_COMMAND_READ_MODE2:
+	case CDROM_COMMAND_READ_RAW:
 		if(extra_status == 2) {
 			set_status_extra(TOWNS_CD_STATUS_DATA_READY, 0, 0, 0);
 		}
@@ -1213,23 +1222,21 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		mcu_ready = true;
 		set_mcu_intr(true);
 		break;
-	case EVENT_CDROM_DELAY_READY2: // WITHOUT STATUS
+	case EVENT_CDROM_READY_NOSTATUS: // WITHOUT STATUS
 		event_delay_ready = -1;
 		mcu_ready = true;
 		set_mcu_intr(true);
 		break;
-	case EVENT_CDROM_DELAY_READY3: // WITHOUT STATUS
+	case EVENT_CDROM_READY_EOT:
 		event_delay_ready = -1;
 		mcu_ready = true;
-		has_status = (req_status) ? true : false;
-//		if(!(has_status)) {
-//			status_queue->clear();
-//		}
-		if((req_status) && (stat_reply_intr)) {
+		has_status = true;
+//		has_status = (req_status) ? true : false;
+		if(/*(req_status) && */(stat_reply_intr)) {
 			set_mcu_intr(true);
 		}
 		break;
-	case EVENT_CDROM_DELAY_READY4: // WITHOUT STATUS
+	case EVENT_CDROM_READY_CDDAREPLY: 
 		event_delay_ready = -1;
 		mcu_ready = true;
 		has_status = true;
@@ -1330,14 +1337,19 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			/// 20200926 K.O
 			stat = read_buffer(1);
 			if((stat)) {
+#if 1
 				register_event(this, EVENT_CDROM_NEXT_SECTOR,
 							   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
 							   ((double)(physical_block_size())) * 
 							   1.0, // OK?
-//						   5.0e3, // From TSUGARU
 							   false, &event_next_sector);
+#else
+				register_event(this, EVENT_CDROM_NEXT_SECTOR,
+							   5.0e3, // From TSUGARU
+							   false, &event_next_sector);
+#endif
 			}
-			register_event(this, EVENT_CDROM_TIMEOUT, 1000.0e3, false, &event_time_out);
+			//register_event(this, EVENT_CDROM_TIMEOUT, 1000.0e3, false, &event_time_out);
 		} /*else {
 			status_read_done(false);
 		}*/
@@ -1352,6 +1364,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		} else {
 			status_data_ready(false);
 		}
+		// ToDo: Prefetch
 		status_seek = true;
 		register_event(this, EVENT_CDROM_SEEK_COMPLETED,
 					   100.0,
@@ -1360,13 +1373,14 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDROM_DRQ:
 		// ToDo: Buffer OVERFLOW at PIO mode.
+		
 		if((dma_transfer_phase) && !(databuffer->empty())) {
 			write_signals(&outputs_drq, /*(drq_tick) ? 0xffffffff : 0x00000000*/ 0xffffffff);
-			//drq_tick = !(drq_tick);
 		}
 		//read_pos++;
 		break;
 	case EVENT_CDROM_EOT:
+		event_eot = -1;
 		clear_event(this, event_time_out);
 		if(dma_transfer_phase) {
 			do_dma_eot(false);
@@ -1851,14 +1865,13 @@ void TOWNS_CDROM::reset_device()
 	clear_event(this, event_seek);
 	clear_event(this, event_delay_ready);
 	clear_event(this, event_time_out);
+	clear_event(this, event_eot);
 	
 	read_length = 0;
 	read_length_bak = 0;
 
 	media_changed = false;
 
-	drq_tick = false;
-	
 	databuffer->clear();
 	status_queue->clear();
 	latest_command = 0x00;
@@ -2023,8 +2036,8 @@ void TOWNS_CDROM::unpause_cdda_from_cmd()
 		 */
 	   if((stat_reply_intr) && !(req_status)) {
 		   set_subq();
-//			set_status_3(true, 1, 0x00, 0, 0x00, 0x00);
-		   set_status_3(true, 0, TOWNS_CD_STATUS_RESUME_DONE, 0, 0x00, 0x00);
+//			set_status_cddareply(true, 1, 0x00, 0, 0x00, 0x00);
+		   set_status_cddareply(true, 0, TOWNS_CD_STATUS_RESUME_DONE, 0, 0x00, 0x00);
 		   return;
 		}
 	}
@@ -2076,7 +2089,7 @@ void TOWNS_CDROM::pause_cdda_from_cmd()
 	   if((stat_reply_intr) && !(req_status)) {
 		   set_subq();
 //		   status_accept(0, 0x00, 0x00);
-		   set_status_3(true, 1, TOWNS_CD_STATUS_ACCEPT, 0, 0x00, 0x00);
+		   set_status_cddareply(true, 1, TOWNS_CD_STATUS_ACCEPT, 0, 0x00, 0x00);
 		   return;
 	   }
 	}
@@ -2162,7 +2175,7 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 		if(cdda_status == CDDA_PLAYING) {
 			if((start_tmp == cdda_start_frame) && (end_tmp == cdda_end_frame)) {
 				// Dummy
-				set_status_3(true, 1, TOWNS_CD_STATUS_ACCEPT, 0, 0x00, 0x00);
+				set_status_cddareply(true, 1, TOWNS_CD_STATUS_ACCEPT, 0, 0x00, 0x00);
 				return;
 			}
 		}
@@ -2203,7 +2216,7 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 	 * @note This may solve halt incident of Kyukyoku Tiger, but something are wrong.
 	 * @note 20201113 K.O
 	 */
-    set_status_3(true, 1, TOWNS_CD_STATUS_ACCEPT, 0, 0x00, 0x00);
+    set_status_cddareply(true, 1, TOWNS_CD_STATUS_ACCEPT, 0, 0x00, 0x00);
 //	status_accept(1, 0x00, 0x00);
 }
 
@@ -3156,8 +3169,8 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 			param_ptr = 0;
 			mcu_ready = false;
 			extra_status = 0;
-			dma_transfer_phase = false;
-			pio_transfer_phase = false;
+			//dma_transfer_phase = false;
+			//pio_transfer_phase = false;
 			if(d_cpu == NULL) {
 				cdrom_debug_log(_T("CMD=%02X"), data);
 			} else {
@@ -3180,10 +3193,9 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 			dma_transfer = true;
 			pio_transfer = false;
 		}
-		if((dma_transfer) && !(dma_transfer_phase)) {
+		if((dma_transfer) /*&& !(dma_transfer_phase)*/) {
 			dma_transfer_phase = true;
-			force_register_event(this, EVENT_CDROM_DRQ, /*0.25 * 1.0e6 / ((double)transfer_speed * 150.0e3 ) */ 1.0 / 4.0, true, event_drq);
-			drq_tick = true;
+			force_register_event(this, EVENT_CDROM_DRQ, /*0.25 * 1.0e6 / ((double)transfer_speed * 150.0e3 ) */ 1.0 / 8.0, true, event_drq);
 		} else if((pio_transfer) && !(pio_transfer_phase)) {
 			pio_transfer_phase = true;
 		}
@@ -3256,7 +3268,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3300,7 +3312,6 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(read_length);
 	state_fio->StateValue(read_length_bak);
 	state_fio->StateValue(next_seek_lba);
-	state_fio->StateValue(drq_tick);
 
 	state_fio->StateValue(mcuint_val);
 	
@@ -3384,12 +3395,10 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(event_seek_completed);	
 	state_fio->StateValue(event_delay_ready);
 	state_fio->StateValue(event_time_out);
+	state_fio->StateValue(event_eot);
 	
 	// SCSI_DEV
 	state_fio->StateValue(position);
-//	state_fio->StateValue(remain);
-//	state_fio->StateValue(local_data_pos);
-//	state_fio->StateValue(sense_code);
  	return true;
 }
 	

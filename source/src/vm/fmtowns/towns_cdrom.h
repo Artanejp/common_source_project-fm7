@@ -292,7 +292,6 @@ protected:
 	bool dma_intr;
 	bool mcu_intr_mask;
 	bool dma_intr_mask;
-	bool drq_tick;
 	
 	bool mcuint_val;
 	
@@ -308,6 +307,7 @@ protected:
 	int event_halt;
 	int event_delay_command;
 	int event_time_out;
+	int event_eot;
 	
 	int cdda_sample_l;
 	int cdda_sample_r;
@@ -350,8 +350,8 @@ protected:
 	void set_extra_status();
 
 	void set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-	void set_status_2(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-	void set_status_3(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+	void set_status_read_done(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+	void set_status_cddareply(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_immediate(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra_toc_addr(uint8_t s1, uint8_t s2, uint8_t s3);
@@ -379,9 +379,9 @@ protected:
 	
 	void __FASTCALL status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_delay_ready();
-	void set_delay_ready2();
-	void set_delay_ready3();
-	void set_delay_ready4();
+	void set_delay_ready_nostatus();
+	void set_delay_ready_eot();
+	void set_delay_ready_cddareply();
 	
 	uint32_t cdrom_get_adr(int trk);
 
