@@ -2,9 +2,9 @@
 include(CheckFunctionExists)
 
 # Still not as one shared lib with win32
-#if(WIN32)
-#	set(USE_DEVICES_SHARED_LIB OFF)
-#endif()
+if(WIN32)
+	set(USING_TOOLCHAIN_GCC_DEBIAN OFF CACHE BOOL "Workaround for Debian's mingw-w64 linker.")
+endif()
 if(UNIX)
 	include(GNUInstallDirs)
 endif()
@@ -514,9 +514,15 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 #	additional_link_options(${EXE_NAME})
 
 	if(WIN32)
+		# Note: With Debian's foo-mingw-w64-g++, needs below workaround
+		# due to problems of linker.
+		if(USING_TOOLCHAIN_GCC_DEBIAN)
+			set(DUPLICATE_LINK_LIB CSPcommon_vm CSPgui)
+		endif()
 		target_link_libraries(${EXE_NAME}
 			${BUNDLE_LIBS}
 			${LOCAL_LIBS}
+			${DUPLICATE_LINK_LIB}
 #			libpthread.a
 			-lpthread
 		)
