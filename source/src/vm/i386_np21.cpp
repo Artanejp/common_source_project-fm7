@@ -695,6 +695,42 @@ uint32_t I386::read_debug_reg(const _TCHAR *reg)
 		return CPU_DL;
 	} else if(_tcsicmp(reg, _T("DH")) == 0) {
 		return CPU_DH;
+	} else if(_tcsicmp(reg, _T("ES")) == 0) {
+		return CPU_REGS_SREG(CPU_ES_INDEX);
+	} else if(_tcsicmp(reg, _T("CS")) == 0) {
+		return CPU_REGS_SREG(CPU_CS_INDEX);
+	} else if(_tcsicmp(reg, _T("SS")) == 0) {
+		return CPU_REGS_SREG(CPU_SS_INDEX);
+	} else if(_tcsicmp(reg, _T("DS")) == 0) {
+		return CPU_REGS_SREG(CPU_DS_INDEX);
+	} else if(_tcsicmp(reg, _T("FS")) == 0) {
+		return CPU_REGS_SREG(CPU_FS_INDEX);
+	} else if(_tcsicmp(reg, _T("GS")) == 0) {
+		return CPU_REGS_SREG(CPU_GS_INDEX);
+	} else if(_tcsicmp(reg, _T("ES.LIMIT")) == 0) {
+		return CPU_STAT_SREGLIMIT(CPU_ES_INDEX);
+	} else if(_tcsicmp(reg, _T("CS.LIMIT")) == 0) {
+		return CPU_STAT_SREGLIMIT(CPU_CS_INDEX);
+	} else if(_tcsicmp(reg, _T("SS.LIMIT")) == 0) {
+		return CPU_STAT_SREGLIMIT(CPU_SS_INDEX);
+	} else if(_tcsicmp(reg, _T("DS.LIMIT")) == 0) {
+		return CPU_STAT_SREGLIMIT(CPU_DS_INDEX);
+	} else if(_tcsicmp(reg, _T("FS.LIMIT")) == 0) {
+		return CPU_STAT_SREGLIMIT(CPU_FS_INDEX);
+	} else if(_tcsicmp(reg, _T("GS.LIMIT")) == 0) {
+		return CPU_STAT_SREGLIMIT(CPU_GS_INDEX);
+	} else if(_tcsicmp(reg, _T("ES.BASE")) == 0) {
+		return CPU_STAT_SREGBASE(CPU_ES_INDEX);
+	} else if(_tcsicmp(reg, _T("CS.BASE")) == 0) {
+		return CPU_STAT_SREGBASE(CPU_CS_INDEX);
+	} else if(_tcsicmp(reg, _T("SS.BASE")) == 0) {
+		return CPU_STAT_SREGBASE(CPU_SS_INDEX);
+	} else if(_tcsicmp(reg, _T("DS.BASE")) == 0) {
+		return CPU_STAT_SREGBASE(CPU_DS_INDEX);
+	} else if(_tcsicmp(reg, _T("FS.BASE")) == 0) {
+		return CPU_STAT_SREGBASE(CPU_FS_INDEX);
+	} else if(_tcsicmp(reg, _T("GS.BASE")) == 0) {
+		return CPU_STAT_SREGBASE(CPU_GS_INDEX);
 	}
 	return 0;
 }
@@ -728,31 +764,112 @@ bool I386::get_debug_regs_description(_TCHAR *buffer, size_t buffer_len)
 }
 bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
+	const _TCHAR sregname[][8] =
+		{ _T("ES"), _T("CS"),
+		_T("SS"), _T("DS"),
+		_T("FS"), _T("GS")}
+		;
+	_TCHAR sregstr[512] = {0};
+	_TCHAR dbgregstr[512] = {0};
+	_TCHAR testregstr[512] = {0};
+	for(int i = 0; i < 6; i++) {
+		_TCHAR segdesc[128] = {0};
+		my_stprintf_s(segdesc, 127, _T("%s: %04X BASE=%08X LIMIT=%08X"),
+					  sregname[i],
+					  CPU_REGS_SREG(i),
+					  (CPU_STAT_PM) ? CPU_STAT_SREGBASE(i) : (CPU_STAT_SREGBASE(i) & 0xfffff),
+					  (CPU_STAT_PM) ? CPU_STAT_SREGLIMIT(i) : (CPU_STAT_SREGLIMIT(i) & 0xffff)
+			);
+		my_tcscat_s(sregstr, 511, segdesc);
+		if((i & 1) == 0) {
+			my_tcscat_s(sregstr, 511, _T(" / "));
+		} else {
+			my_tcscat_s(sregstr, 511, _T("\n"));
+		}			
+	}
+	my_stprintf_s(dbgregstr, 511, _T("DEBUG REG:"));
+	for(int i = 0; i < CPU_DEBUG_REG_NUM; i++) {
+		_TCHAR ddesc[128] = {0};
+		my_stprintf_s(ddesc, 31, _T(" %08X"), CPU_DR(i));
+		my_tcscat_s(dbgregstr, 511, ddesc);
+	}
+	my_stprintf_s(testregstr, 511, _T("TEST  REG:"));
+	for(int i = 0; i < CPU_TEST_REG_NUM; i++) {
+		_TCHAR tdesc[32] = {0};
+		my_stprintf_s(tdesc, 31, _T(" %08X"), CPU_STATSAVE.cpu_regs.tr[i]);
+		my_tcscat_s(testregstr, 511, tdesc);
+	}
+		
 	if(CPU_STAT_PM) {
 		my_stprintf_s(buffer, buffer_len,
+		_T("PM %s %s %s %s MODE=%01X CPL=%02X\n")
+		_T("EFLAGS=%08X FLAG=[%s%s%s%s][%c%c%c%c%c%c%c%c%c]\n")
 		_T("EAX=%08X  EBX=%08X  ECX=%08X  EDX=%08X\n")
 		_T("ESP=%08X  EBP=%08X  ESI=%08X  EDI=%08X\n")
-		_T("SS=%04X  CS=%04X  DS=%04X  ES=%04X  FS=%04X  GS=%04X\n")
-		_T("EIP=%08X PREV_EIP=%08X PREV_ESP=%08X EFLAGS=%08X FLAG=[%c%c%c%c%c%c%c%c%c%s]\n")
+	    _T("%s")
+	    _T("PC=%08X ")			  
+		_T("EIP=%08X PREV_EIP=%08X PREV_ESP=%08X\n")
+		_T("CRx=%08X %08X %08X %08X %08X MXCSR=%08X\n")
+		_T("GDTR: BASE=%08X LIMIT=%08X / LDTR: BASE=%08X LIMIT=%08X\n") 
+		_T("IDTR: BASE=%08X LIMIT=%08X / TR:   BASE=%08X LIMIT=%08X\n")
+	    _T("%s\n%s\n")
 		_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+		(CPU_STAT_VM86) ? _T("VM86") : _T("    "),
+		(CPU_STAT_PAGING) ? _T("PAGE") : _T("    "),   
+		(CPU_STAT_SS32) ? _T("SS32") : _T("    "),   
+		(CPU_STAT_WP) ? _T("WP") : _T("  "),   
+		CPU_STAT_USER_MODE, CPU_STAT_CPL,
+		CPU_EFLAG,
+		(CPU_EFLAG & RF_FLAG)  ? _T("RF  ") : _T("    "),
+		(CPU_EFLAG & VM_FLAG)  ? _T("VM  ") : _T("    "),
+		(CPU_EFLAG & VIF_FLAG) ? _T("VIF ") : _T("    "),
+		(CPU_EFLAG & VIP_FLAG) ? _T("VIP ") : _T("    "),
+		(CPU_FLAG & O_FLAG) ? _T('O') : _T('-'),
+		(CPU_FLAG & D_FLAG) ? _T('D') : _T('-'),
+		(CPU_FLAG & I_FLAG) ? _T('I') : _T('-'),
+		(CPU_FLAG & T_FLAG) ? _T('T') : _T('-'),
+		(CPU_FLAG & S_FLAG) ? _T('S') : _T('-'),
+		(CPU_FLAG & Z_FLAG) ? _T('Z') : _T('-'),
+		(CPU_FLAG & A_FLAG) ? _T('A') : _T('-'),
+		(CPU_FLAG & P_FLAG) ? _T('P') : _T('-'),
+		(CPU_FLAG & C_FLAG) ? _T('C') : _T('-'),
+
 		CPU_EAX, CPU_EBX, CPU_ECX, CPU_EDX, CPU_ESP, CPU_EBP, CPU_ESI, CPU_EDI,
-		CPU_SS, CPU_CS, CPU_DS, CPU_ES,  CPU_FS, CPU_GS,
- 	    CPU_EIP, CPU_PREV_EIP, CPU_PREV_ESP, CPU_FLAG,
-		(CPU_FLAG & O_FLAG) ? _T('O') : _T('-'), (CPU_FLAG & D_FLAG) ? _T('D') : _T('-'), (CPU_FLAG & I_FLAG) ? _T('I') : _T('-'), (CPU_FLAG & T_FLAG) ? _T('T') : _T('-'), (CPU_FLAG & S_FLAG) ? _T('S') : _T('-'),
-		(CPU_FLAG & Z_FLAG) ? _T('Z') : _T('-'), (CPU_FLAG & A_FLAG) ? _T('A') : _T('-'), (CPU_FLAG & P_FLAG) ? _T('P') : _T('-'), (CPU_FLAG & C_FLAG) ? _T('C') : _T('-'), (CPU_STAT_VM86) ? _T(":VM86") : _T(""),
+		sregstr,
+		((CPU_STAT_SREGBASE(CPU_CS_INDEX) + CPU_EIP) & 0xffffffff),
+ 	    CPU_EIP, CPU_PREV_EIP, CPU_PREV_ESP,
+		CPU_CR0, CPU_CR1, CPU_CR2, CPU_CR3, CPU_CR4, CPU_MXCSR,
+	    CPU_GDTR_BASE, CPU_GDTR_LIMIT, CPU_LDTR_BASE, CPU_LDTR_LIMIT,
+	    CPU_IDTR_BASE, CPU_IDTR_LIMIT, CPU_TR_BASE, CPU_TR_LIMIT,
+		dbgregstr, testregstr,
 		total_cycles, total_cycles - prev_total_cycles,
 		get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 	} else {
 		my_stprintf_s(buffer, buffer_len,
-		_T("AX=%04X  BX=%04X  CX=%04X  DX=%04X  SP=%04X  BP=%04X  SI=%04X  DI=%04X\n")
-		_T("SS=%04X  CS=%04X  DS=%04X  ES=%04X  FS=%04X GS=%04X\n")
-		_T("IP=%04X  PREV_IP=%04X PREV_SP=%04X  EFLAGS=%08X FLAG=[%c%c%c%c%c%c%c%c%c]\n")
+		_T("-- %s %s %s %s MODE=%01X CPL=%02X\n")
+		_T("EFLAGS=%08X FLAG=[%s%s%s%s][%c%c%c%c%c%c%c%c%c]\n")
+		_T("EAX=%08X  EBX=%08X  ECX=%08X  EDX=%08X  \nESP=%08X  EBP=%08X  ESI=%08X  EDI=%08X\n")
+	    _T("%s")
+	    _T("PC=%08X ")			  
+		_T("IP=%04X  PREV_IP=%04X PREV_SP=%04X\n")
+		_T("CRx=%08X %08X %08X %08X %08X MXCSR=%08X\n")			  
+	    _T("%s\n%s\n")
 		_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
-		CPU_AX, CPU_BX, CPU_CX, CPU_DX, CPU_SP, CPU_BP, CPU_SI, CPU_DI,
-		CPU_SS, CPU_CS, CPU_DS, CPU_ES, CPU_FS, CPU_GS,
-		CPU_IP, CPU_STATSAVE.cpu_regs.prev_eip.w.w, CPU_STATSAVE.cpu_regs.prev_esp.w.w, CPU_FLAG,
+		(CPU_STAT_VM86) ? _T("VM86 ") : _T("     "),
+		(CPU_STAT_PAGING) ? _T("PAGE ") : _T("     "),   
+		(CPU_STAT_SS32) ? _T("SS32 ") : _T("     "),   
+		(CPU_STAT_WP) ? _T("WP ") : _T("   "),   
+		CPU_STAT_USER_MODE, CPU_STAT_CPL,
+		CPU_EFLAG,					  
+		(CPU_EFLAG & RF_FLAG) ? _T("RF  ") : _T("    "), (CPU_EFLAG & VM_FLAG) ? _T("VM  ") : _T("    "), (CPU_EFLAG & VIF_FLAG) ? _T("VIF ") : _T("    "), (CPU_EFLAG & VIP_FLAG) ? _T("VIP ") : _T("    "),
 		(CPU_FLAG & O_FLAG) ? _T('O') : _T('-'), (CPU_FLAG & D_FLAG) ? _T('D') : _T('-'), (CPU_FLAG & I_FLAG) ? _T('I') : _T('-'), (CPU_FLAG & T_FLAG) ? _T('T') : _T('-'), (CPU_FLAG & S_FLAG) ? _T('S') : _T('-'),
 		(CPU_FLAG & Z_FLAG) ? _T('Z') : _T('-'), (CPU_FLAG & A_FLAG) ? _T('A') : _T('-'), (CPU_FLAG & P_FLAG) ? _T('P') : _T('-'), (CPU_FLAG & C_FLAG) ? _T('C') : _T('-'),
+		CPU_EAX, CPU_EBX, CPU_ECX, CPU_EDX, CPU_ESP, CPU_EBP, CPU_ESI, CPU_EDI,
+		sregstr,
+		(((CPU_STAT_SREGBASE(CPU_CS_INDEX) & 0xfffff ) + CPU_IP) & 0x000fffff),
+		CPU_IP, CPU_STATSAVE.cpu_regs.prev_eip.w.w, CPU_STATSAVE.cpu_regs.prev_esp.w.w, 
+		CPU_CR0, CPU_CR1, CPU_CR2, CPU_CR3, CPU_CR4, CPU_MXCSR,			  
+		dbgregstr, testregstr,
 		total_cycles, total_cycles - prev_total_cycles,
 		get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 	}

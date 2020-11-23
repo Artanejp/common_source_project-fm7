@@ -58,6 +58,7 @@ cpu_reg2str(void)
 	static char buf[512];
 
 	my_sprintf_s (buf, sizeof(buf),
+		"At pc=%08x\n"		  
 	    "eax=%08x ecx=%08x edx=%08x ebx=%08x\n"
 	    "esp=%08x ebp=%08x esi=%08x edi=%08x\n"
 	    "eip=%08x prev_eip=%08x\n"
@@ -68,6 +69,7 @@ cpu_reg2str(void)
 	    "gdtr=%08x:%04x idtr=%08x:%04x\n"
 	    "ldtr=%04x(%08x:%04x) tr=%04x(%08x:%04x)\n"
 	    "cr0=%08x cr1=%08x cr2=%08x cr3=%08x cr4=%08x mxcsr=%08x",
+				  (CPU_STAT_PM) ? ((CPU_STAT_SREGBASE(CPU_CS_INDEX) + CPU_PREV_EIP) & 0xffffffff) : (((CPU_STAT_SREGBASE(CPU_CS_INDEX) & 0xfffff) + (CPU_PREV_EIP & 0xffff)) & 0x000fffff),
 	    CPU_EAX, CPU_ECX, CPU_EDX, CPU_EBX,
 	    CPU_ESP, CPU_EBP,CPU_ESI, CPU_EDI,
 	    CPU_EIP, CPU_PREV_EIP,
@@ -92,7 +94,7 @@ cpu_reg2str(void)
 	    CPU_EFLAG & C_FLAG ? "CY" : "NC",
 	    CPU_GDTR_BASE, CPU_GDTR_LIMIT, CPU_IDTR_BASE, CPU_IDTR_LIMIT,
 	    CPU_LDTR, CPU_LDTR_BASE, CPU_LDTR_LIMIT,
-	      CPU_TR, CPU_TR_BASE, CPU_TR_LIMIT,
+	    CPU_TR, CPU_TR_BASE, CPU_TR_LIMIT,
 	    CPU_CR0, CPU_CR1, CPU_CR2, CPU_CR3, CPU_CR4, CPU_MXCSR);
 
 	return buf;
