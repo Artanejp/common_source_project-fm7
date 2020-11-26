@@ -94,23 +94,21 @@ void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	case 3:
 		xmask.b.l =  packed_pixel_mask_reg.b.h3;
 		xmask.b.h =  packed_pixel_mask_reg.b.l;
-		if((addr == 0x8003ffff) || (addr == 0x8007ffff)) { // Wrap1
-			naddr2 = (addr == 0x8003ffff) ? 0x00000 : 0x40000;
-		} else if(addr == 0x8017ffff) { // wrap 2
-			naddr2 = 0x00000;
-		}
+//		if((addr == 0x8003ffff) || (addr == 0x8007ffff)) { // Wrap1
+//			naddr2 = (addr == 0x8003ffff) ? 0x00000 : 0x40000;
+//		} else if(addr == 0x8017ffff) { // wrap 2
+//			naddr2 = 0x00000;
+//		}
 		break;
 	}
 
-	if(naddr2 <= naddr1) { // Wrap
+	if(naddr1 == 0x7ffff) { // Wrap
 		nd.w = (uint16_t)data;
 		md.b.l = vram[naddr1];
-		md.b.h = vram[naddr2];
 		nd.w = nd.w & xmask.w;
 		md.w = md.w & ~(xmask.w);
 		md.w = md.w | nd.w;
 		vram[naddr1] = md.b.l;
-		vram[naddr2] = md.b.h;
 	} else {
 		md.read_2bytes_le_from(&(vram[naddr1]));
 		
@@ -159,81 +157,119 @@ void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 	}
 	
 	if((addr & 3) != 0) {
-		
-		uint32_t xaddr = addr & 0x0017ffff;
-		uint32_t naddr2 = naddr + 1;
-		uint32_t naddr3 = naddr + 2;
-		uint32_t naddr4 = naddr + 3;
-		uint32_t offmask;
-		if((addr & 0x3ffff) < 0x3fffd) {
-			// Maybe not wrapped.
+		if(naddr <= 0x7fffc) {
 			md.read_4bytes_le_from(&(vram[naddr]));
-			
 			nd.d = nd.d & xmask.d;
 			md.d = md.d & ~(xmask.d);
 			md.d = md.d | nd.d;
-			
 			md.write_4bytes_le_to(&(vram[naddr]));
 		} else {
-			// Maybe not wrapped.
-			switch(xaddr) {
-			case 0x17fffd:
-			case 0x17fffe:
-			case 0x17ffff:
-				naddr2 = naddr2 & 0x7ffff;
-				naddr3 = naddr3 & 0x7ffff;
-				naddr4 = naddr4 & 0x7ffff;
-				
-				md.b.l   = vram[naddr];
-				md.b.h   = vram[naddr2];
-				md.b.h2  = vram[naddr3];
-				md.b.h3  = vram[naddr4];
-				
-				nd.d = nd.d & xmask.d;
-				md.d = md.d & ~(xmask.d);
-				md.d = md.d | nd.d;
-			
-				vram[naddr] = md.b.l;
-				vram[naddr2] = md.b.h;
-				vram[naddr3] = md.b.h2;
-				vram[naddr4] = md.b.h3;
+			switch(naddr & 3) {
+			case 1: // 7fffd
+				md.b.l  = vram[naddr];
+				md.b.h  = vram[naddr + 1];
+				md.b.h2 = vram[naddr + 2];
 				break;
-			case 0x03fffd:
-			case 0x03fffe:
-			case 0x03ffff:
-			case 0x07fffd:
-			case 0x07fffe:
-			case 0x07ffff:
-				offmask = ((addr & 0x00040000) != 0) ? 0x40000 : 0x00000;
-				naddr2 = (naddr2 & 0x3ffff) + offmask;
-				naddr3 = (naddr3 & 0x3ffff) + offmask;
-				naddr4 = (naddr4 & 0x3ffff) + offmask;
-			
-				md.b.l   = vram[naddr];
-				md.b.h   = vram[naddr2];
-				md.b.h2  = vram[naddr3];
-				md.b.h3  = vram[naddr4];
-
-				nd.d = nd.d & xmask.d;
-				md.d = md.d & ~(xmask.d);
-				md.d = md.d | nd.d;
-			
-				vram[naddr]  = md.b.l;
-				vram[naddr2] = md.b.h;
-				vram[naddr3] = md.b.h2;
-				vram[naddr4] = md.b.h3;
+			case 2: // 7fffe
+				md.b.l  = vram[naddr];
+				md.b.h  = vram[naddr + 1];
 				break;
-			default:
-				md.read_4bytes_le_from(&(vram[naddr]));
-			
-				nd.d = nd.d & xmask.d;
-				md.d = md.d & ~(xmask.d);
-				md.d = md.d | nd.d;
-			
-				md.write_4bytes_le_to(&(vram[naddr]));
+			case 3: // 7fffe
+				md.b.l  = vram[naddr];
 				break;
 			}
+			nd.d = nd.d & xmask.d;
+			md.d = md.d & ~(xmask.d);
+			md.d = md.d | nd.d;
+			switch(naddr & 3) {
+			case 1: // 7fffd
+				vram[naddr] = md.b.l;
+				vram[naddr + 1] = md.b.h;
+				vram[naddr + 2] = md.b.h2;
+				break;
+			case 2: // 7fffe
+				vram[naddr] = md.b.l;
+				vram[naddr + 1] = md.b.h;
+				break;
+			case 3: // 7fffe
+				vram[naddr] = md.b.l;
+				break;
+			}	
 		}
+//		uint32_t xaddr = addr & 0x0017ffff;
+//		uint32_t naddr2 = naddr + 1;
+//		uint32_t naddr3 = naddr + 2;
+//		uint32_t naddr4 = naddr + 3;
+//		uint32_t offmask;
+//		if((addr & 0x3ffff) < 0x3fffd) {
+//			// Maybe not wrapped.
+//			md.read_4bytes_le_from(&(vram[naddr]));
+//			
+//			nd.d = nd.d & xmask.d;
+//			md.d = md.d & ~(xmask.d);
+//			md.d = md.d | nd.d;
+//			
+//			md.write_4bytes_le_to(&(vram[naddr]));
+//		} else {
+			// Maybe not wrapped.
+//			switch(xaddr) {
+//			case 0x17fffd:
+//			case 0x17fffe:
+//			case 0x17ffff:
+//				naddr2 = naddr2 & 0x7ffff;
+//				naddr3 = naddr3 & 0x7ffff;
+//				naddr4 = naddr4 & 0x7ffff;
+///				
+//				md.b.l   = vram[naddr];
+//				md.b.h   = vram[naddr2];
+//				md.b.h2  = vram[naddr3];
+//				md.b.h3  = vram[naddr4];
+				
+//				nd.d = nd.d & xmask.d;
+//				md.d = md.d & ~(xmask.d);
+//				md.d = md.d | nd.d;
+			
+//				vram[naddr] = md.b.l;
+//				vram[naddr2] = md.b.h;
+//				vram[naddr3] = md.b.h2;
+//				vram[naddr4] = md.b.h3;
+//				break;
+//			case 0x03fffd:
+//			case 0x03fffe:
+//			case 0x03ffff:
+//			case 0x07fffd:
+//			case 0x07fffe:
+//			case 0x07ffff:
+//				offmask = ((addr & 0x00040000) != 0) ? 0x40000 : 0x00000;
+//				naddr2 = (naddr2 & 0x3ffff) + offmask;
+//				naddr3 = (naddr3 & 0x3ffff) + offmask;
+//				naddr4 = (naddr4 & 0x3ffff) + offmask;
+//			
+//				md.b.l   = vram[naddr];
+//				md.b.h   = vram[naddr2];
+//				md.b.h2  = vram[naddr3];
+//				md.b.h3  = vram[naddr4];
+
+//				nd.d = nd.d & xmask.d;
+//				md.d = md.d & ~(xmask.d);
+//				md.d = md.d | nd.d;
+			
+//				vram[naddr]  = md.b.l;
+//				vram[naddr2] = md.b.h;
+//				vram[naddr3] = md.b.h2;
+//				vram[naddr4] = md.b.h3;
+//				break;
+//			default:
+//				md.read_4bytes_le_from(&(vram[naddr]));
+//			
+//				nd.d = nd.d & xmask.d;
+//				md.d = md.d & ~(xmask.d);
+//				md.d = md.d | nd.d;
+//			
+//				md.write_4bytes_le_to(&(vram[naddr]));
+//				break;
+//			}
+//		}
 	} else {
 		// Aligned
 		md.read_4bytes_le_from(&(vram[naddr]));
@@ -260,6 +296,7 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io16(uint32_t addr)
 	if((addr & 1) == 0) { // Aligned
 		a.read_2bytes_le_from(&(vram[naddr]));
 	} else {
+		/*
 		switch(addr) {
 		case 0x8003ffff:
 			a.b.l = vram[0x3ffff];
@@ -277,6 +314,14 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io16(uint32_t addr)
 			a.read_2bytes_le_from(&(vram[naddr]));
 			break;
 		}
+		*/
+		if(naddr == 0x7ffff) {
+			a.b.l = vram[naddr];
+			a.b.h = 0xff;
+		} else {
+			a.b.l = vram[naddr];
+			a.b.h = vram[naddr + 1];
+		}
 	}
 	return (uint32_t)(a.w);
 }
@@ -289,10 +334,27 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 	if((addr & 3) == 0) { // Aligned
 		a.read_4bytes_le_from(&(vram[naddr]));
 	} else { // Unaligned
-		if((addr & 0x3ffff) < 0x3fffd) {
+		if((addr & 0x7ffff) < 0x7fffd) {
 			// Maybe not wrapped.
 			a.read_4bytes_le_from(&(vram[naddr]));
 		} else	{
+			a.d = 0xffffffff;
+			switch(naddr & 3) {
+			case 1:
+				a.b.l  = vram[naddr];
+				a.b.h  = vram[naddr + 1];
+				a.b.h2 = vram[naddr + 2];
+				break;
+			case 2:
+				a.b.l  = vram[naddr];
+				a.b.h  = vram[naddr + 1];
+				break;
+			case 3:
+				a.b.l  = vram[naddr];
+				break;
+				
+			}
+			/*
 			uint32_t xaddr = addr & 0x0017ffff;
 			uint32_t naddr2 = naddr + 1;
 			uint32_t naddr3 = naddr + 2;
@@ -332,6 +394,7 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 				a.read_4bytes_le_from(&(vram[naddr]));
 				break;
 			}
+			*/
 		}
 	}
 	return a.d;
