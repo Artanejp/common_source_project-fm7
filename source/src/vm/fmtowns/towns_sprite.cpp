@@ -984,7 +984,7 @@ void TOWNS_SPRITE::event_callback(int id, int err)
 			if(render_num >= 1024) {
 				register_event(this, EVENT_BUSY_OFF, 75.0 / 2, false, &event_busy);
 			} else {
-				register_event(this, EVENT_RENDER, 75.0, false, &event_busy);
+				register_event(this, EVENT_RENDER, 75.0 / 2, false, &event_busy);
 			}
 		}
 		break;
