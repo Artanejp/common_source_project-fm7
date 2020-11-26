@@ -315,7 +315,7 @@ uint32_t JOYSTICK::update_mouse()
 		mouse_data = (ly >> 4) & 0x0f;
 		break;
 	default:
-		mouse_data = 0;
+		mouse_data = 0x0f;
 		break;
 	}
 //	out_debug_log(_T("READ MOUSE DATA=%01X PHASE=%d STROBE=%d"), mouse_data, mouse_phase, (mouse_strobe) ? 1 : 0);
