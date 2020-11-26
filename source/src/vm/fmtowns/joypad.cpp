@@ -25,8 +25,9 @@ void JOYPAD::initialize()
 void JOYPAD::reset()
 {
 	sel_line = true;
-	write_signals(&line_dat,   0);
-	write_signals(&line_com,   0xffffffff);
+//	write_signals(&line_dat,   0);
+	query_joystick();
+	write_signals(&line_com,   (enabled) ? 0xffffffff : 0x00000000);
 }
 
 
@@ -45,7 +46,8 @@ void JOYPAD::query_joystick(void)
 	uint32_t stat = 0;
 	if((rawdata != NULL) && (enabled)) {
 		uint32_t d = rawdata[pad_num];
-		if((sel_line) && (type_6buttons)) { // 6Buttons Multiplied
+		if((type_6buttons) && (sel_line)) { // 6Buttons Multiplied
+			// If COM == 1 THEN CHECK BUTTONS
 			// 6Buttons PAD is seems to be this schematic:
 			// http://www.awa.or.jp/home/shimojo/towpadx.htm
 			// RIGHT <-> C  / LEFT <-> X / UP <-> Z / DOWN <->Y
@@ -55,7 +57,7 @@ void JOYPAD::query_joystick(void)
 			if((buttons & 0x04) != 0) stat |= LINE_JOYPORT_DOWN;
 			if((buttons & 0x08) != 0) stat |= LINE_JOYPORT_UP;
 		} else {
-			// 2 Buttons PAD
+			// If ((COM != 0) OR (PAD IS 2BUTTONS))  THEN CHECK AXIS
 			uint8_t axis = rawdata[pad_num] & 0x0f;
 			if((axis & 0x01) != 0) stat |= LINE_JOYPORT_UP;
 			if((axis & 0x02) != 0) stat |= LINE_JOYPORT_DOWN;
@@ -67,10 +69,11 @@ void JOYPAD::query_joystick(void)
 		// SEL = UP + DOWN, RUN = LEFT + RIGHT 
 		if((rawdata[pad_num] & 0x40) != 0) stat |= (LINE_JOYPORT_LEFT | LINE_JOYPORT_RIGHT);
 		if((rawdata[pad_num] & 0x80) != 0) stat |= (LINE_JOYPORT_UP | LINE_JOYPORT_DOWN); 
+	} else {
+		// None Connected
+		stat = 0x00;
 	}
-	if(enabled) {
-		write_signals(&line_dat, stat);
-	}
+	write_signals(&line_dat, stat);
 }
 
 void JOYPAD::write_signal(int id, uint32_t data, uint32_t mask)

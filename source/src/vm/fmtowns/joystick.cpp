@@ -25,11 +25,8 @@ void JOYSTICK::reset()
 	mouse_type = -1; // Force update data.
 	mouse_phase = 0;
 	mouse_strobe = false;
-	mouse_data = 0x0f;
-	if(mouse_timeout_event >= 0) {
-		cancel_event(this, mouse_timeout_event);
-	}
-	mouse_timeout_event = -1;
+	mouse_data = 0x00;
+	clear_event(this, mouse_timeout_event);
 
 	// Force reset pads.
 	connected_type[0] = 0xffffffff;
@@ -37,11 +34,10 @@ void JOYSTICK::reset()
 	
 	update_config(); // Update MOUSE PORT.
 	
-	if(mouse_sampling_event >= 0) {
-		cancel_event(this, mouse_sampling_event);
-	}
-	register_event(this, EVENT_MOUSE_SAMPLING, 8.0e3, true, &mouse_sampling_event);
-//	register_frame_event(this);
+//	if(mouse_sampling_event >= 0) {
+//		cancel_event(this, mouse_sampling_event);
+//	}
+//	register_event(this, EVENT_MOUSE_SAMPLING, 16.7e3, true, &mouse_sampling_event);
 }
 
 void JOYSTICK::initialize()
@@ -50,21 +46,22 @@ void JOYSTICK::initialize()
 	mouse_state = emu->get_mouse_buffer();
 	joydata[0] = joydata[1] = 0x00;
 	dx = dy = 0;
-	lx = ly = -1;
+	lx = ly = 0;
 	mouse_button = 0x00;
 	mouse_timeout_event = -1;
 	mouse_sampling_event = -1;
 	set_emulate_mouse();
 	mouse_type = config.mouse_type;
-//	register_frame_event(this);
+	register_frame_event(this);
 }
 
 void JOYSTICK::release()
 {
 }
-void JOYSTICK::event_pre_frame()
+	
+void JOYSTICK::event_frame()
 {
-//	joydata[0] = joydata[1] = 0x00;
+	event_callback(EVENT_MOUSE_SAMPLING, 0);
 }
 
 void JOYSTICK::write_io8(uint32_t address, uint32_t data)
@@ -72,10 +69,7 @@ void JOYSTICK::write_io8(uint32_t address, uint32_t data)
 	// ToDo: Mouse
 	if(address == 0x04d6) {
 		if(emulate_mouse[0]) {
-//			update_strobe(((data & 0x10) != 0));
-//			if((data & 0x10) != 0) {
 			update_strobe(((data & 0x10) != 0));
-//			}
 		} else if(emulate_mouse[1]) {
 			update_strobe(((data & 0x20) != 0));
 		}
@@ -93,9 +87,26 @@ uint32_t JOYSTICK::read_io8(uint32_t address)
 	case 0x04d0:
 	case 0x04d2:
 		if(emulate_mouse[port_num]) {
-//			uint8_t rval = 0xb0;
-			uint8_t rval = 0xf0;
-			rval |= update_mouse() & 0x0f; 
+			uint8_t trig = (mask >> (port_num << 1)) & 0x03;
+			uint8_t mask2 = (mask >> (port_num + 4)) & 0x01;
+			uint8_t rval = 0x70;
+			rval |= (update_mouse() & 0x0f);
+			mouse_state = emu->get_mouse_buffer();
+			if(mouse_state != NULL) {
+				uint32_t stat = mouse_state[2];
+				mouse_button = 0x00;
+				if((stat & 0x01) == 0) mouse_button |= 0x10; // left
+				if((stat & 0x02) == 0) mouse_button |= 0x20; // right
+			}
+			if((mask2 & 0x01) == 0) { // COM
+				rval = rval & ~0x40;
+			}
+			if((trig & 0x02) == 0) { // TRIG2
+				rval = rval & ~0x20;
+			}
+			if((trig & 0x01) == 0) { // TRIG1
+				rval = rval & ~0x10;
+			}				
 			if((mouse_button & 0x10) != 0) {
 				rval &= ~0x10; // Button LEFT
 			}
@@ -106,11 +117,28 @@ uint32_t JOYSTICK::read_io8(uint32_t address)
 		} else {
 			write_signals(&outputs_query, 1 << (port_num + 0));
 			uint8_t trig = (mask >> (port_num << 1)) & 0x03;
-			if(((mask & (0x10 << port_num)) != 0) && (stat_com[port_num])) {
-				retval = 0xff; // COM ON
-			} else {
-				retval = 0xbf; // COM OFF
-			}			
+			uint8_t mask2 = (mask >> (port_num + 4)) & 0x01;
+			retval = 0x7f;
+			if((mask2 & 0x01) == 0) { // COM
+				retval = retval & ~0x40;
+			}
+			if((trig & 0x02) == 0) { // TRIG2
+				retval = retval & ~0x20;
+			}
+			if((trig & 0x01) == 0) { // TRIG1
+				retval = retval & ~0x10;
+			}				
+			if(connected_type[port_num] == SIG_JOYPORT_TYPE_NULL) {
+				// None Connected
+				return retval;
+			}
+			// Trigger independents from direction keys.
+			if((joydata[port_num] & LINE_JOYPORT_B) != 0) {
+				retval = retval & ~0x20;
+			}
+			if((joydata[port_num] & LINE_JOYPORT_A) != 0) {
+				retval = retval & ~0x10;
+			}
 			//if((mask & (0x10 << port_num)) == 0) {
 			if((joydata[port_num] & LINE_JOYPORT_LEFT) != 0) { // LEFT
 				retval = retval & ~0x04; // LEFT
@@ -124,18 +152,7 @@ uint32_t JOYSTICK::read_io8(uint32_t address)
 			if((joydata[port_num] & LINE_JOYPORT_DOWN) != 0) { // DOWN
 				retval = retval & ~0x02; // BACK
 			}
-			if((trig & 0x01) == 0) {
-				retval = retval & ~0x10;
-			} else if((joydata[port_num] & LINE_JOYPORT_A) != 0) {
-				retval = retval & ~0x10;
-			}
-			if((trig & 0x02) == 0) {
-				retval = retval & ~0x20;
-			} else if((joydata[port_num] & LINE_JOYPORT_B) != 0) {
-				retval = retval & ~0x20;
-			}
 		}
-		//joydata[port_num] = 0;
 		return retval;
 		break;
 	default:
@@ -151,32 +168,26 @@ void JOYSTICK::event_callback(int event_id, int err)
 		mouse_phase = 0;
 		mouse_strobe = false;
 		mouse_timeout_event = -1;
-		dx = dy = lx = ly = 0;
-		mouse_data = 0x0f;
+		dx = dy = 0;
+		lx = ly = 0;
+		mouse_data = 0x00;
 		break;
 	case EVENT_MOUSE_SAMPLING:
 		mouse_state = emu->get_mouse_buffer();
 		if(mouse_state != NULL) {
 			dx += mouse_state[0];
 			dy += mouse_state[1];
-			if(dx < -127) {
-				dx = -127;
-			} else if(dx > 127) {
-				dx = 127;
+			if(dx < -255) {
+				dx = -255;
+			} else if(dx > 255) {
+				dx = 255;
 			}
-			if(dy < -127) {
-				dy = -127;
-			} else if(dy > 127) {
-				dy = 127;
+			if(dy < -255) {
+				dy = -255;
+			} else if(dy > 255) {
+				dy = 255;
 			}
 		}		
-		if(mouse_state != NULL) {
-			uint32_t stat = mouse_state[2];
-			mouse_button = 0x00;
-			if((stat & 0x01) == 0) mouse_button |= 0x10; // left
-			if((stat & 0x02) == 0) mouse_button |= 0x20; // right
-			break;
-		}
 	}
 }
 
@@ -268,36 +279,41 @@ void JOYSTICK::update_strobe(bool flag)
 			ly = -dy;
 			dx = 0;
 			dy = 0;
-			if(mouse_timeout_event >= 0) {
-				cancel_event(this, mouse_timeout_event);
+			clear_event(this, mouse_timeout_event);
+			register_event(this, EVENT_MOUSE_TIMEOUT, 600.0, false, &mouse_timeout_event);
+			if(mouse_strobe) {
+				mouse_phase = 1; // SYNC from MAME 0.225. 20201126 K.O
 			}
-			register_event(this, EVENT_MOUSE_TIMEOUT, 2000.0, false, &mouse_timeout_event);
 		}
 		mouse_phase++;
-		if(mouse_phase >= 4) {
-			mouse_phase = 0;
-			if(mouse_timeout_event >= 0) {
-				cancel_event(this, mouse_timeout_event);
-				mouse_timeout_event = -1;
-			}
-		}
+//		if(mouse_phase > 5) {
+//			mouse_phase = 0;
+//			mouse_strobe = false;
+//			clear_event(this, mouse_timeout_event);
+//		}
 	}
 }
 
 uint32_t JOYSTICK::update_mouse()
 {
 	switch(mouse_phase) {
-	case 1:
+//	case 1: // SYNC
+//		mouse_data = 0x0f;
+//		break;
+	case 2: // X_HIGH
 		mouse_data = (lx >> 0) & 0x0f;
 		break;
-	case 2:
+	case 3: // X_LOW
 		mouse_data = (lx >> 4) & 0x0f;
 		break;
-	case 3:
+	case 4: // Y_HIGH
 		mouse_data = (ly >> 0) & 0x0f;
 		break;
-	case 0:
+	case 5: // Y_LOW
 		mouse_data = (ly >> 4) & 0x0f;
+		break;
+	default:
+		mouse_data = 0;
 		break;
 	}
 //	out_debug_log(_T("READ MOUSE DATA=%01X PHASE=%d STROBE=%d"), mouse_data, mouse_phase, (mouse_strobe) ? 1 : 0);

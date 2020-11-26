@@ -88,7 +88,7 @@ public:
 	
 	// common functions
 	void initialize(void);
-	void event_pre_frame(void);
+	void event_frame(void);
 	void release();
 	void reset();
 	
