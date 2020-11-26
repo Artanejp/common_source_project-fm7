@@ -166,28 +166,30 @@ void JOYSTICK::event_callback(int event_id, int err)
 	switch(event_id) {
 	case EVENT_MOUSE_TIMEOUT:
 		mouse_phase = 0;
-		mouse_strobe = false;
 		mouse_timeout_event = -1;
 		dx = dy = 0;
 		lx = ly = 0;
 		mouse_data = 0x00;
 		break;
 	case EVENT_MOUSE_SAMPLING:
-		mouse_state = emu->get_mouse_buffer();
-		if(mouse_state != NULL) {
-			dx += mouse_state[0];
-			dy += mouse_state[1];
-			if(dx < -255) {
-				dx = -255;
-			} else if(dx > 255) {
-				dx = 255;
+		if((emulate_mouse[0]) || (emulate_mouse[1])) {
+			mouse_state = emu->get_mouse_buffer();
+			if(mouse_state != NULL) {
+				dx += mouse_state[0];
+				dy += mouse_state[1];
+				if(dx < -127) {
+					dx = -127;
+				} else if(dx > 127) {
+					dx = 127;
+				}
+				if(dy < -127) {
+					dy = -127;
+				} else if(dy > 127) {
+					dy = 127;
+				}
 			}
-			if(dy < -255) {
-				dy = -255;
-			} else if(dy > 255) {
-				dy = 255;
-			}
-		}		
+		}
+		break;
 	}
 }
 
@@ -272,7 +274,7 @@ void JOYSTICK::update_strobe(bool flag)
 {
 	bool _bak = mouse_strobe;
 	mouse_strobe = flag;
-	if((_bak != flag)/* && (flag)*/) {
+	if((_bak != mouse_strobe)/* && (flag)*/) {
 		if((mouse_phase == 0)) {
 			// Sample data from MOUSE to registers.
 			lx = -dx;
