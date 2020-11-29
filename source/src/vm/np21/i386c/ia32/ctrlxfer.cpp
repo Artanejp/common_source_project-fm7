@@ -38,6 +38,7 @@ static void CPUCALL JMPfar_pm_call_gate(const selector_t *callgate_sel);
 static void CPUCALL JMPfar_pm_task_gate(selector_t *taskgate_sel);
 static void CPUCALL JMPfar_pm_tss(selector_t *tss_sel);
 
+
 void CPUCALL
 JMPfar_pm(UINT16 selector, UINT32 new_ip)
 {

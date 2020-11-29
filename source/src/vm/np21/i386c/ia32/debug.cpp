@@ -62,7 +62,9 @@ cpu_reg2str(void)
 	    "eax=%08x ecx=%08x edx=%08x ebx=%08x\n"
 	    "esp=%08x ebp=%08x esi=%08x edi=%08x\n"
 	    "eip=%08x prev_eip=%08x\n"
-	    "cs=%04x ss=%04x ds=%04x es=%04x fs=%04x gs=%04x\n"
+	    "cs=%04x (%08x:%08x) ss=%04x (%08x:%08x) \n"
+		"ds=%04x (%08x:%08x) es=%04x (%08x:%08x) \n"
+		"fs=%04x (%08x:%08x) gs=%04x (%08x:%08x) \n"
 	    "eflag=%08x "
 	    /* ID VIP VIF AC VM RF NT IOPL OF DF IF TF SF ZF AF PF CF */
 	    "[ ID=%d VIP=%d VIF=%d AC=%d VM=%d RF=%d NT=%d IOPL=%d %s %s %s TF=%d %s %s %s %s %s ]\n"
@@ -73,8 +75,13 @@ cpu_reg2str(void)
 	    CPU_EAX, CPU_ECX, CPU_EDX, CPU_EBX,
 	    CPU_ESP, CPU_EBP,CPU_ESI, CPU_EDI,
 	    CPU_EIP, CPU_PREV_EIP,
-	    CPU_CS, CPU_SS, CPU_DS, CPU_ES, CPU_FS, CPU_GS,
-	    CPU_EFLAG,
+	    CPU_CS, CPU_STAT_SREGBASE(CPU_CS_INDEX), CPU_STAT_SREGLIMIT(CPU_CS_INDEX),
+		CPU_SS, CPU_STAT_SREGBASE(CPU_SS_INDEX), CPU_STAT_SREGLIMIT(CPU_SS_INDEX),
+		CPU_DS, CPU_STAT_SREGBASE(CPU_DS_INDEX), CPU_STAT_SREGLIMIT(CPU_DS_INDEX),
+		CPU_ES, CPU_STAT_SREGBASE(CPU_ES_INDEX), CPU_STAT_SREGLIMIT(CPU_ES_INDEX),
+		CPU_FS, CPU_STAT_SREGBASE(CPU_FS_INDEX), CPU_STAT_SREGLIMIT(CPU_FS_INDEX),
+		CPU_GS, CPU_STAT_SREGBASE(CPU_GS_INDEX), CPU_STAT_SREGLIMIT(CPU_GS_INDEX),
+		CPU_EFLAG,
 	    (CPU_EFLAG & ID_FLAG) != 0,
 	    (CPU_EFLAG & VIP_FLAG) != 0,
 	    (CPU_EFLAG & VIF_FLAG) != 0,

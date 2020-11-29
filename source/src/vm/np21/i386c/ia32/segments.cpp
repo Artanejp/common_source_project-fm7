@@ -190,6 +190,8 @@ load_ldtr(UINT16 selector, int exc)
 	CPU_LDTR_DESC = sel.desc;
 }
 
+#include "../../../i386_np21.h" // ToDo: Remove after debug 20201129 K.O
+
 void CPUCALL
 load_descriptor(descriptor_t *sdp, UINT32 addr)
 {
@@ -210,7 +212,6 @@ load_descriptor(descriptor_t *sdp, UINT32 addr)
 	sdp->type = (UINT8)((h & CPU_DESC_H_TYPE) >> CPU_DESC_H_TYPE_SHIFT);
 	sdp->dpl = (UINT8)((h & CPU_DESC_H_DPL) >> CPU_DESC_H_DPL_SHIFT);
 	sdp->s = (h & CPU_DESC_H_S) ? 1 : 0;
-
 	if (!SEG_IS_SYSTEM(sdp)) {
 		/* code/data */
 		sdp->valid = 1;
@@ -299,6 +300,8 @@ load_descriptor(descriptor_t *sdp, UINT32 addr)
 			break;
 		}
 	}
+//	device_cpu->out_debug_log("LOAD SEGMENT FROM %08X BASE:LIMIT=%08X:%08X\n",
+//							  addr, sdp->u.seg.segbase, sdp->u.seg.limit);
 #if defined(DEBUG)
 	segdesc_dump(sdp);
 #endif
