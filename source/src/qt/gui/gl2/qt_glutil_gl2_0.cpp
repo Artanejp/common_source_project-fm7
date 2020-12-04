@@ -146,7 +146,7 @@ void GLDraw_2_0::drawOsdLeds()
 	extfunc_2->glDisable(GL_TEXTURE_2D);
 	extfunc_2->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	extfunc_2->glDisable(GL_DEPTH_TEST);
-	extfunc_2->glViewport(0, 0, p_wid->width(), p_wid->height());
+	extfunc_2->glViewport(0, 0, p_wid->width() * get_screen_scaling_factor(), p_wid->height() * get_screen_scaling_factor());
 	extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 	if(osd_led_status != osd_led_status_bak) {
 		if(osd_onoff) {
@@ -207,7 +207,7 @@ void GLDraw_2_0::drawOsdIcons()
 	extfunc_2->glEnable(GL_TEXTURE_2D);
 	extfunc_2->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	extfunc_2->glDisable(GL_DEPTH_TEST);
-	extfunc_2->glViewport(0, 0, p_wid->width(), p_wid->height());
+	extfunc_2->glViewport(0, 0, p_wid->width() * get_screen_scaling_factor(), p_wid->height() * get_screen_scaling_factor());
 	extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 	if(osd_onoff) {
 		uint32_t _bit = 0x00000001;
@@ -341,7 +341,7 @@ void GLDraw_2_0::initGLObjects()
 {
 	extfunc_2 = new QOpenGLFunctions_2_0;
 	extfunc_2->initializeOpenGLFunctions();
-	extfunc_2->glViewport(0, 0, p_wid->width(), p_wid->height());
+	extfunc_2->glViewport(0, 0, p_wid->width() * get_screen_scaling_factor(), p_wid->height() * get_screen_scaling_factor());
 	extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 	extfunc_2->glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texture_max_size);
 }	
@@ -762,7 +762,7 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 		QImage *p = imgptr;
 		extfunc_2->glEnable(GL_TEXTURE_2D);
 
-		extfunc_2->glViewport(0, 0, p_wid->width(), p_wid->height());
+		extfunc_2->glViewport(0, 0, p_wid->width() * get_screen_scaling_factor(), p_wid->height() * get_screen_scaling_factor());
 //		extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 		extfunc_2->glOrtho(1.0f, -1.0f, 1.0f, -1.0f, 1.0, -1.0);
 		extfunc_2->glBindTexture(GL_TEXTURE_2D, texid);
@@ -960,7 +960,7 @@ void GLDraw_2_0::paintGL(void)
 			crt_flag = false;
 		}
 		redraw_required = false;
-		extfunc_2->glViewport(0, 0, p_wid->width(), p_wid->height());
+		extfunc_2->glViewport(0, 0, p_wid->width() * get_screen_scaling_factor(), p_wid->height() * get_screen_scaling_factor());
 		extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 		
 		extfunc_2->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
