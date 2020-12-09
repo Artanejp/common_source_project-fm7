@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 3.2.0)
+SET(THIS_LIB_VERSION 3.3.0)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
@@ -108,8 +108,10 @@ set(s_vm_common_vm_srcs
 	# FM-7/77/AV
 	../fm7/hd6844.cpp
 	../fm7/mb61vh010.cpp
-#	../fm7/dummydevice.cpp
-#	../fmtowns/ym2612.cpp
+
+	../fmtowns/ad7820kr.cpp
+	../fmtowns/rf5c68.cpp
+	../fmtowns/ym2612.cpp
 
 #	../i286_np21.cpp
 #	../np21/i286c/cpumem.cpp

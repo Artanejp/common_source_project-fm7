@@ -3,9 +3,9 @@ cmake_minimum_required (VERSION 2.6)
 message("* vm/fm-towns")
 
 set(VM_FMTOWNS_DEV_SRCS
-	ad7820kr.cpp
-	rf5c68.cpp
-	ym2612.cpp
+#	ad7820kr.cpp
+#	rf5c68.cpp
+#	ym2612.cpp
 	
 	adpcm.cpp
 
