@@ -85,7 +85,7 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	// ToDo: SPYS
 	if((color & 0x2000) != 0) return; // DISP
 //	out_debug_log(_T("RENDER #%d"), render_num);
-	uint32_t color_offset = ((uint32_t)((color & 0xfff) << 5)) & 0x1ffff; // COL11 - COL0
+	uint32_t color_offset = (((uint32_t)(color & 0xfff)) << 5) & 0x1ffff; // COL11 - COL0
 
 	int xoffset = 0;
 	int yoffset = 0;
@@ -93,15 +93,12 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 		xoffset = reg_hoffset & 0x1ff;
 		yoffset = reg_voffset & 0x1ff;
 	}
-	bool swap_v_h = false;
-	if((attr & 0x4000) != 0) { // ROT2
-		swap_v_h = true;
-	}
 	uint8_t rot = attr >> 12;
 	bool is_halfy = ((attr & 0x0800) != 0);
 	bool is_halfx = ((attr & 0x0400) != 0); // SUX
 	// From MAME 0.209, mame/drivers/video/fmtowns.cpp
-	uint32_t ram_offset =  ((uint32_t)(attr & 0x3ff) << 7) & 0x1ffff; // PAT9 - PAT0
+	uint32_t ram_offset;
+	ram_offset =  (((uint32_t)(attr & 0x3ff)) << 7) & 0x1ffff; // PAT9 - PAT0
 
 	int xbegin, xend;
 	int ybegin, yend;
@@ -188,7 +185,7 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 			
 			// P1 get data
 __DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx != 16; xx++) {
+			for(int xx = 0; xx != 32; xx++) {
 				nnw.b[xx] = pattern_ram[(addr + xx) & 0x1ffff];
 			}
 __DECL_VECTORIZED_LOOP						

@@ -907,6 +907,8 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int laye
 			pwidth = pwidth / magx;
 		}
 	}
+	if(pwidth > TOWNS_CRTC_MAX_PIXELS) pwidth = TOWNS_CRTC_MAX_PIXELS;
+	if(pwidth <= 0) return false;
 //	if(y == 128) {
 //		out_debug_log("RENDER_32768 Y=%d LAYER=%d WIDTH=%d DST=%08X MASK=%08X ALPHA=%d", y, layer, pwidth, dst, mask, do_alpha);
 //	}
@@ -1141,7 +1143,9 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y)
 			pwidth = pwidth / magx;
 		}
 	}
-	
+	if(pwidth > TOWNS_CRTC_MAX_PIXELS) pwidth = TOWNS_CRTC_MAX_PIXELS;
+	if(pwidth <= 0) return false;
+
 	__DECL_ALIGNED(32)  scrntype_t apal256[256];
 	my_memcpy(apal256, apalette_256_pixel, sizeof(scrntype_t) * 256);
 	
@@ -1246,6 +1250,9 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 			pwidth = pwidth / magx;
 		}
 	}
+	if(pwidth > TOWNS_CRTC_MAX_PIXELS) pwidth = TOWNS_CRTC_MAX_PIXELS;
+	if(pwidth <= 0) return false;
+
 	__DECL_ALIGNED(16) uint8_t pbuf[8];
 	__DECL_ALIGNED(16) uint8_t hlbuf[16];
 	__DECL_ALIGNED(16) uint8_t mbuf[16];
@@ -1300,6 +1307,37 @@ __DECL_VECTORIZED_LOOP
 
 		
 	int k = 0;
+#if 1
+__DECL_VECTORIZED_LOOP
+	for(int x = 0; x < pwidth; x++) {
+		uint8_t h = (p[x] >> 4) & 0x0f;
+		uint8_t l = p[x] & 0x0f;
+		h &= pmask;
+		l &= pmask;
+
+		scrntype_t hpix = palbuf[h];
+		scrntype_t lpix = palbuf[l];
+		scrntype_t hmask = maskdata[h];
+		scrntype_t lmask = maskdata[l];
+		
+__DECL_VECTORIZED_LOOP
+		for(int xx = 0; xx < magx; xx++) {
+			q[k] = lpix;
+			r2[k] = lmask;
+			k++;
+			if(k >= width) return true;
+		}
+		if(k >= width)  return true;
+__DECL_VECTORIZED_LOOP
+		for(int xx = 0; xx < magx; xx++) {
+			q[k] = hpix;
+			r2[k] = hmask;
+			k++;
+			if(k >= width)  return true;
+		}
+		if(k >= width)  return true;
+	}
+#else
 	for(int x = 0; x < (pwidth >> 3); x++) {
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
@@ -1337,7 +1375,6 @@ __DECL_VECTORIZED_LOOP
 				sbuf[i] = palbuf[hlbuf[i]];
 			}
 		}
-		
 		if(do_alpha) {
 			if(magx == 1) {
 __DECL_VECTORIZED_LOOP
@@ -1382,7 +1419,7 @@ __DECL_VECTORIZED_LOOP
 					for(int j = 0; j < magx; j++) {
 						q[j] = sbuf[i];
 						k++;
-						if(k >= width) break;
+						if(k >= TOWNS_CRTC_MAX_PIXELS) break;
 					}
 					q += magx;
 					if(r2 != NULL) {
@@ -1390,11 +1427,11 @@ __DECL_VECTORIZED_LOOP
 						for(int j = 0; j < magx; j++) {
 							r2[j] = abuf[i];
 							kbak++;
-							if(kbak >= width) break;
+							if(kbak >= TOWNS_CRTC_MAX_PIXELS) break;
 						}
 						r2 += magx;
 					}
-					if(k >= width) break;
+					if(k >= TOWNS_CRTC_MAX_PIXELS) break;
 				}
 			}
 		}
@@ -1417,23 +1454,23 @@ __DECL_VECTORIZED_LOOP
 				if(magx == 1) {
 					*q++ = sbuf[0];
 					k++;
-					if(k >= width) break;
+					if(k >= TOWNS_CRTC_MAX_PIXELS) break;
 					*q++ = sbuf[1];
 					k++;
-					if(k >= width) break;
+					if(k >= TOWNS_CRTC_MAX_PIXELS) break;
 				} else {
 					for(int xx = 0; xx < magx; xx++) {
 						*q++ = sbuf[0];
 						k++;
-						if(k >= width) break;
+						if(k >= TOWNS_CRTC_MAX_PIXELS) break;
 					}
 					if(k >= width) break;
 					for(int xx = 0; xx < magx; xx++) {
 						*q++ = sbuf[1];
 						k++;
-						if(k >= width) break;
+						if(k >= TOWNS_CRTC_MAX_PIXELS) break;
 					}
-					if(k >= width) break;
+					if(k >= TOWNS_CRTC_MAX_PIXELS) break;
 				}					
 			} else {				
 				ah = (tmph == 0) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
@@ -1444,13 +1481,13 @@ __DECL_VECTORIZED_LOOP
 						*r2++ = ah;
 					}
 					k++;
-					if(k >= width) break;
+					if(k >= TOWNS_CRTC_MAX_PIXELS) break;
 					*q++ = sbuf[1];
 					if(r2 != NULL) {
 						*r2++ = al;
 					}
 					k++;
-					if(k >= width) break;
+					if(k >= TOWNS_CRTC_MAX_PIXELS) break;
 				} else {
 					for(int j = 0; j < magx; j++) {
 						*q++ = sbuf[0];
@@ -1458,7 +1495,7 @@ __DECL_VECTORIZED_LOOP
 							*r2++ = ah;
 						}
 						k++;
-						if(k >= width) break;
+						if(k >= TOWNS_CRTC_MAX_PIXELS) break;
 					}
 					for(int j = 0; j < magx; j++) {
 						*q++ = sbuf[1];
@@ -1466,13 +1503,14 @@ __DECL_VECTORIZED_LOOP
 							*r2++ = al;
 						}
 						k++;
-						if(k >= width) break;
+						if(k >= TOWNS_CRTC_MAX_PIXELS) break;
 					}
-					if(k >= width) break;
+					if(k >= TOWNS_CRTC_MAX_PIXELS) break;
 				}
 			}
 		}
 	}
+#endif
 	return true;
 }
 
@@ -2046,7 +2084,8 @@ __DECL_VECTORIZED_LOOP
 					} else {
 						npixels = pixels / magx;
 					}
-//					if(npixels >= TOWNS_CRTC_MAX_PIXELS) npixels = TOWNS_CRTC_MAX_PIXELS;
+//					out_debug_log(_T("LAYER=%d Y=%d NPIXELS=%d"), l, line, npixels);
+					if(npixels >= TOWNS_CRTC_MAX_PIXELS) npixels = TOWNS_CRTC_MAX_PIXELS;
 					bool is_256 = false;
 					uint32_t tr_bytes = 0;
 					switch(linebuffers[trans][line].mode[l]) {
