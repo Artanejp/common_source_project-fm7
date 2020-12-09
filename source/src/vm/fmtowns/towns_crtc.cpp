@@ -1488,7 +1488,7 @@ inline void TOWNS_CRTC::transfer_pixels(scrntype_t* dst, scrntype_t* src, int w)
 // (i.e: Hardware Alpha blending, Hardware rendaring...)
 void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1)
 {
-	if(width > TOWNS_CRTC_MAX_PIXELS) return;
+	if(width > TOWNS_CRTC_MAX_PIXELS) width = TOWNS_CRTC_MAX_PIXELS;
 	if(width <= 0) return;
 
 	int trans = (display_linebuf == 0) ? 3 : ((display_linebuf - 1) & 3);
