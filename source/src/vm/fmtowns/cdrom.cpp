@@ -11,8 +11,8 @@
  * Note: Re-Write CD-ROM from SCSI_CDROM, but not related from SCSI_DEV.
  * -- 20200411 K.O
  */
-#include "./towns_cdrom.h"
-#include "./towns_dmac.h"
+#include "./cdrom.h"
+#include "./dmac.h"
 #include "../../fifo.h"
 #include "../../fileio.h"
 #include "../debugger.h"

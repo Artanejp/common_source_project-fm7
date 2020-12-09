@@ -1,8 +1,6 @@
 
 #pragma once
 
-#include "../vm.h"
-#include "../../emu.h"
 #include "../device.h"
 
 #define SIG_TOWNS_SPRITE_HOOK_VLINE     256

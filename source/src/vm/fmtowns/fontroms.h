@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include "../vm.h"
 #include "../device.h"
 
 #define SIG_TOWNS_FONT_DMA_IS_VRAM      2

@@ -11,8 +11,6 @@
 #ifndef _SCSI_H_
 #define _SCSI_H_
 
-#include "../vm.h"
-#include "../../emu.h"
 #include "../device.h"
 
 #define SIG_SCSI_IRQ			0

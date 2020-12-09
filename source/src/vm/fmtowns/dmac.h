@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../vm.h"
 #include "../upd71071.h"
 
 // Using original signal using after 1 << 12.

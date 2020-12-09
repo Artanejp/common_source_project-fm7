@@ -11,8 +11,6 @@
 #ifndef _KEYBOARD_H_
 #define _KEYBOARD_H_
 
-#include "../vm.h"
-#include "../../emu.h"
 #include "../device.h"
 #include "../../fifo.h"
 

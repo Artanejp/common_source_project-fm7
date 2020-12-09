@@ -8,9 +8,9 @@
 */
 
 #include "../../common.h"
-#include "./towns_vram.h"
-#include "./towns_sprite.h"
-#include "./towns_crtc.h"
+#include "./vram.h"
+#include "./sprite.h"
+#include "./crtc.h"
 
 #define EVENT_FALL_DOWN	1
 #define EVENT_BUSY_OFF	2

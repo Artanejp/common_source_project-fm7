@@ -7,11 +7,12 @@
 	[ FM-Towns CRTC ]
 	History: 2016.12.28 Initial from HD46505 .
 */
+#include "../vm.h"
 #include "../../common.h"
 
-#include "towns_crtc.h"
-#include "towns_vram.h"
-#include "towns_sprite.h"
+#include "crtc.h"
+#include "vram.h"
+#include "sprite.h"
 #include "fontroms.h"
 #include "../debugger.h"
 

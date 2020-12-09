@@ -13,8 +13,8 @@
 */
 
 #include "./towns_common.h"
-#include "./towns_sysrom.h"
-#include "./towns_dictionary.h"
+#include "./sysrom.h"
+#include "./dictionary.h"
 #include "../../fileio.h"
 
 namespace FMTOWNS {

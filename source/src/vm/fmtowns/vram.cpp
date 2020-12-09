@@ -11,15 +11,12 @@
 
 #include "common.h"
 #include "./towns_common.h"
-#include "./towns_crtc.h"
-#include "./towns_vram.h"
-#include "./towns_planevram.h"
+#include "./crtc.h"
+#include "./vram.h"
+#include "./planevram.h"
 
 #define _CLEAR_COLOR RGBA_COLOR(0,0,0,0)
 
-#if defined(_RGB888)
-#define _USE_ALPHA_CHANNEL
-#endif
 
 namespace FMTOWNS {
 

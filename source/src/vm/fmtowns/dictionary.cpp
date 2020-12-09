@@ -17,7 +17,7 @@
 */
 
 #include "./towns_common.h"
-#include "./towns_dictionary.h"
+#include "./dictionary.h"
 #include "../../fileio.h"
 
 namespace FMTOWNS {

@@ -11,8 +11,6 @@
 #ifndef _TOWNS_VRAM_H_
 #define _TOWNS_VRAM_H_
 
-#include "../vm.h"
-#include "../../emu.h"
 #include "device.h"
 #include "../../common.h"
 #include "towns_common.h"

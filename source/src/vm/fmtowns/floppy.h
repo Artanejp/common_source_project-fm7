@@ -11,8 +11,6 @@
 #ifndef _FLOPPY_H_
 #define _FLOPPY_H_
 
-#include "../vm.h"
-#include "../../emu.h"
 #include "../device.h"
 
 #define SIG_FLOPPY_IRQ	0

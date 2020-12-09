@@ -9,8 +9,7 @@
 */
 
 #pragma once
-#include "../vm.h"
-#include "../../emu.h"
+
 #include "../device.h"
 
 #define SIG_JOYPORT_CH0				0

@@ -32,14 +32,14 @@
 #include "./towns_scsi_host.h"
 #include "../upd71071.h"
 
-#include "towns_cdrom.h"
-#include "towns_crtc.h"
-#include "towns_dictionary.h"
-#include "towns_dmac.h"
-#include "towns_memory.h"
-#include "towns_sprite.h"
-#include "towns_sysrom.h"
-#include "towns_vram.h"
+#include "./cdrom.h"
+#include "./crtc.h"
+#include "./dictionary.h"
+#include "./dmac.h"
+#include "./towns_memory.h"
+#include "./sprite.h"
+#include "./sysrom.h"
+#include "./vram.h"
 
 // Electric Volume
 //#include "mb87078.h"
@@ -69,7 +69,7 @@
 #include "./timer.h"
 #include "./iccard.h"
 
-#include "./towns_planevram.h"
+#include "./planevram.h"
 
 // ----------------------------------------------------------------------------
 // initialize

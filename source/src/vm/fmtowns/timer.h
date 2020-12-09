@@ -11,8 +11,6 @@
 #ifndef _TIMER_H_
 #define _TIMER_H_
 
-#include "../vm.h"
-#include "../../emu.h"
 #include "../device.h"
 
 #define SIG_TIMER_CH0	    0

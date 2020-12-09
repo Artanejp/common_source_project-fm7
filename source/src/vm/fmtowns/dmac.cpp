@@ -1,5 +1,5 @@
 
-#include "./towns_dmac.h"
+#include "./dmac.h"
 #include "debugger.h"
 
 namespace FMTOWNS {

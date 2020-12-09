@@ -1,9 +1,9 @@
 
-#include "./towns_planevram.h"
-#include "./towns_vram.h"
+#include "./planevram.h"
+#include "./vram.h"
 
-#include "./towns_crtc.h"
-#include "./towns_sprite.h"
+#include "./crtc.h"
+#include "./sprite.h"
 
 #include "../../fileio.h"
 

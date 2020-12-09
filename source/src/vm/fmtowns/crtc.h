@@ -11,8 +11,6 @@
 #ifndef _TOWNS_CRTC_H_
 #define _TOWNS_CRTC_H_
 
-#include "../vm.h"
-#include "../emu.h"
 #include "device.h"
 
 #include "towns_common.h"

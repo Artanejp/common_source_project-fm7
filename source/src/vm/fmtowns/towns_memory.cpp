@@ -9,13 +9,13 @@
 
 #include "../../fileio.h"
 #include "./towns_memory.h"
-#include "./towns_dmac.h"
-#include "./towns_vram.h"
-#include "./towns_planevram.h"
-#include "./towns_sprite.h"
+#include "./dmac.h"
+#include "./vram.h"
+#include "./planevram.h"
+#include "./sprite.h"
 #include "./fontroms.h"
 #include "./serialrom.h"
-#include "./towns_crtc.h"
+#include "./crtc.h"
 
 #include "../i386_np21.h"
 //#include "../i386.h"

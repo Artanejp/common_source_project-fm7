@@ -10,8 +10,6 @@
 #ifndef _TOWNS_MEMORY_H_
 #define _TOWNS_MEMORY_H_
 
-#include "../vm.h"
-#include "../../emu.h"
 #include "device.h"
 #include "../../common.h"
 #include "../memory.h"
@@ -50,7 +48,8 @@ enum {
 #define TOWNS_EXTRAM_PAGES 6
 
 class BEEP;
-	
+class I386;
+
 namespace FMTOWNS {
 	class TOWNS_VRAM;
 	class TOWNS_SPRITE;

@@ -11,7 +11,7 @@
 #include "scsi.h"
 #include "../i8259.h"
 #include "../scsi_host.h"
-#include "./towns_dmac.h"
+#include "./dmac.h"
 
 #undef _SCSI_DEBUG_LOG
 // control register

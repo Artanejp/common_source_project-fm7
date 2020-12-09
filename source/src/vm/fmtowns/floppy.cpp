@@ -8,6 +8,7 @@
 	[ floppy ]
 */
 
+#include "vm.h"
 #include "floppy.h"
 #include "../disk.h"
 #include "../i8259.h"

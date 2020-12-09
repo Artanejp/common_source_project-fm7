@@ -8,12 +8,12 @@ set(VM_FMTOWNS_DEV_SRCS
 	ym2612.cpp
 	
 	adpcm.cpp
-#	cdc.cpp
+
 	floppy.cpp
 	keyboard.cpp
 	scsi.cpp
 	timer.cpp
-	towns_dmac.cpp
+	dmac.cpp
 	
 	fontroms.cpp
 	iccard.cpp
@@ -21,16 +21,16 @@ set(VM_FMTOWNS_DEV_SRCS
 	joypad.cpp
 	msdosrom.cpp
 	serialrom.cpp
-	towns_dictionary.cpp
+	dictionary.cpp
 	
-	towns_cdrom.cpp
-	towns_crtc.cpp
+	cdrom.cpp
+	crtc.cpp
 	towns_memory.cpp
 	towns_scsi_host.cpp
-	towns_sprite.cpp
-	towns_sysrom.cpp
-	towns_vram.cpp
-	towns_planevram.cpp
+	sprite.cpp
+	sysrom.cpp
+	vram.cpp
+	planevram.cpp
 	../scsi_host.cpp
 	../msm58321.cpp
 	fmtowns.cpp
