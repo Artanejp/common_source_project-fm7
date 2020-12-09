@@ -106,7 +106,6 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	int xbegin, xend;
 	int ybegin, yend;
 	int xinc, yinc;
-	bool is_mirror;
 	switch(rot & 3) { // ROT1, ROT0
 	case 0:
 		// 0deg, not mirror
@@ -116,7 +115,6 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 		yend = 15;
 		xinc = 1;
 		yinc = 1;
-		is_mirror = false;
 		break;
 	case 1:
 		// 180deg, mirror
@@ -126,7 +124,6 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 		yend = 0;
 		xinc = 1;
 		yinc = -1;
-		is_mirror = true;
 		break;
 	case 2:
 		// 0deg, mirror
@@ -136,7 +133,6 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 		yend = 15;
 		xinc = -1;
 		yinc = 1;
-		is_mirror = true;
 		break;
 	case 3:
 		// 180deg, not mirror
@@ -146,7 +142,6 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 		yend = 0;
 		xinc = -1;
 		yinc = -1;
-		is_mirror = false;
 		break;
 		/*
 	case 4:
@@ -163,13 +158,14 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 		break;
 		*/
 	}
-	if(swap_v_h) is_mirror = !(is_mirror);
+
 	int rx = (x + xoffset) & 0x1ff;
 	int ry = (y + yoffset) & 0x1ff;
 	int ww = (is_halfx) ? 8 : 16;
 	int hh = (is_halfy) ? 8 : 16;
 	if((rx >= 256) && ((rx + ww) < 512)) return;
 	if((ry >= 256) && ((ry + hh) < 512)) return;
+	__DECL_ALIGNED(32) uint16_t tbuf[16][16] = {0}; 
 	__DECL_ALIGNED(32) uint16_t sbuf[16][16] = {0}; 
 	__DECL_ALIGNED(16) union {
 		pair16_t pw[16];
@@ -182,177 +178,141 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	__DECL_ALIGNED(16) uint16_t pixel_h[8];
 	__DECL_ALIGNED(16) uint16_t pixel_l[8];
 	__DECL_ALIGNED(16) uint16_t color_table[16] = {0};
-	if(!(swap_v_h)) {
-		if(is_32768) {
-			// get from ram.
-			for(int yy = 0; yy < 16; yy++) {
-				uint32_t addr = ((ybegin + yy * yinc) << 5) + (xbegin << 1) + ram_offset;
-				__DECL_ALIGNED(16) union {
-					pair16_t pw[16];
-					uint8_t b[32];
-				} nnw;
-				if(xinc > 0) {
+	if(is_32768) {
+		__DECL_ALIGNED(16) union {
+			pair16_t pw[16];
+			uint8_t b[32];
+		} nnw;
+		for(int yy = 0; yy < 16; yy++) {
+			uint32_t addr = (yy << 5) + ram_offset;
+			
+			// P1 get data
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 32; xx++) {
-						nnw.b[xx] = pattern_ram[(addr + xx) & 0x1ffff];
-					}
-				} else {
-__DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 32; xx++) {
-						nnw.b[xx] = pattern_ram[(addr - xx) & 0x1ffff];
-					}
-				}
-__DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 16; xx++) {
-					sbuf[yy][xx] = nnw.pw[xx].w;
-				}
-			}
-		} else { // 16 colors
-			__DECL_ALIGNED(16) union {
-				pair16_t pw[16];
-				uint8_t  b[32];
-			} nnw;
-__DECL_VECTORIZED_LOOP						
-			for(int i = 0; i < 32; i++) {
-				nnw.b[i] = pattern_ram[(color_offset + i) & 0x1ffff];
-//				color_offset += 2;
+			for(int xx = 0; xx != 16; xx++) {
+				nnw.b[xx] = pattern_ram[(addr + xx) & 0x1ffff];
 			}
 __DECL_VECTORIZED_LOOP						
-			for(int i = 0; i < 16; i++) {
-				color_table[i] = nnw.pw[i].w;
-			}
-			color_table[0] = 0x8000; // Clear color
-			for(int yy = 0; yy < 16; yy++) {
-				uint32_t addr = ((ybegin + yy * yinc) << 3) + (xbegin >> 1) + ram_offset;
-				uint8_t nnh, nnl;
-				__DECL_ALIGNED(8) uint8_t nnb[8];
-				if(xinc > 0) {
-__DECL_VECTORIZED_LOOP
-					for(int xx = 0; xx < 8; xx++ ) {
-						nnb[xx] = pattern_ram[(addr + xx) & 0x1ffff];
-					}
-				} else {
-__DECL_VECTORIZED_LOOP
-					for(int xx = 0; xx < 8; xx++ ) {
-						nnb[xx] = pattern_ram[(addr - xx) & 0x1ffff];
-					}
-				}
-__DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 8; xx++ ) {
-					nnh = nnb[xx] & 0x0f;
-					pixel_h[xx] = color_table[nnh];
-				}	
-__DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 8; xx++ ) {
-					nnh = nnb[xx] & 0x0f;
-					pixel_h[xx] = color_table[nnh];
-				}	
-__DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 8; xx++ ) {
-					nnh = nnb[xx] & 0x0f;
-					pixel_h[xx] = color_table[nnh];
-				}	
-__DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 8; xx++ ) {
-					nnl = nnb[xx] >> 4;
-					pixel_l[xx] = color_table[nnl];
-				}
-				if(xinc < 0) {
-__DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 16; xx += 2 ) {
-						sbuf[yy][xx    ] = pixel_l[xx >> 1];
-						sbuf[yy][xx + 1] = pixel_h[xx >> 1];
-					}
-				} else {
-__DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 16; xx += 2 ) {
-						sbuf[yy][xx    ] = pixel_h[xx >> 1];
-						sbuf[yy][xx + 1] = pixel_l[xx >> 1];
-					}
-				}
+			for(int xx = 0; xx < 16; xx++) {
+				tbuf[yy][xx] = nnw.pw[xx].w;
 			}
 		}
-	} else { // swap v and h
-		if(is_32768) {
-			// get from ram.
-			for(int yy = 0; yy < 16; yy++) {
-				uint32_t addr = ((ybegin + yy * yinc) << 5) + (xbegin << 1) + ram_offset;
-				__DECL_ALIGNED(16) union {
-					pair16_t pw[16];
-					uint8_t  b[32];
-				} nnw;
-				if(xinc > 0) {
+	} else {
+		__DECL_ALIGNED(16) union {
+			pair16_t pw[16];
+			uint8_t b[32];
+		} nnw;
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 32; xx++) {
-						nnw.b[xx] = pattern_ram[(addr + xx) & 0x1ffff];
-					}
-				} else {
+		for(int i = 0; i < 32; i++) {
+			nnw.b[i] = pattern_ram[(color_offset + i) & 0x1ffff];
+//			color_offset += 2;
+		}
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 32; xx++) {
-						nnw.b[xx] = pattern_ram[(addr - xx) & 0x1ffff];
-					}
-				}
-				if(yinc > 0) {
-__DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 16; xx++) {
-						sbuf[xx][yy] = nnw.pw[xx].w;
-					}
-				} else {
-__DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 16; xx++) {
-						sbuf[15 - xx][yy] = nnw.pw[xx].w;
-					}
-				}
+		for(int i = 0; i < 16; i++) {
+			color_table[i] = nnw.pw[i].w;
+		}
+		color_table[0] = 0x8000; // Clear color
+		for(int yy = 0; yy < 16; yy++) {
+			uint32_t addr = (yy << 3) + ram_offset;
+			uint8_t nnh, nnl;
+			__DECL_ALIGNED(8) uint8_t nnb[8];
+__DECL_VECTORIZED_LOOP
+			for(int xx = 0; xx != 8; xx++) {
+				nnb[xx] = pattern_ram[(addr + xx) & 0x1ffff];
 			}
-		} else { // 16 colors
-			pair16_t nnp;
-__DECL_VECTORIZED_LOOP						
-			for(int i = 0; i < 16; i++) {
-				nnp.b.l = pattern_ram[(color_offset + 0) & 0x1ffff];
-				nnp.b.h = pattern_ram[(color_offset + 1) & 0x1ffff];
-				color_offset += 2;
-				color_table[i] = nnp.w;
+			
+__DECL_VECTORIZED_LOOP
+			for(int xx = 0; xx < 8; xx++ ) {
+				nnh = nnb[xx] & 0x0f;
+				pixel_h[xx] = color_table[nnh];
+			}	
+__DECL_VECTORIZED_LOOP
+			for(int xx = 0; xx < 8; xx++ ) {
+				nnl = nnb[xx] >> 4;
+				pixel_l[xx] = color_table[nnl];
 			}
-			color_table[0] = 0x8000; // Clear color
-			for(int yy = 0; yy < 16; yy++) {
-				uint32_t addr = ((ybegin + yy * yinc) << 3) + (xbegin >> 1) + ram_offset;
-				uint8_t nnh, nnl;
-				uint8_t nnb;
-				if(xinc > 0) {
 __DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 8; xx++ ) {
-						nnb = pattern_ram[(addr + xx) & 0x1ffff];
-						nnh = nnb & 0x0f;
-						nnl = nnb >> 4;
-						pixel_h[xx] = color_table[nnh];
-						pixel_l[xx] = color_table[nnl];
-					}
-				} else {
-__DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 8; xx++ ) {
-						nnb = pattern_ram[(addr - xx) & 0x1ffff];
-						nnh = nnb & 0x0f;
-						nnl = nnb >> 4;
-						pixel_h[xx] = color_table[nnh];
-						pixel_l[xx] = color_table[nnl];
-					}
-				}
-				if(yinc < 0) {
-__DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 16; xx += 2 ) {
-						sbuf[xx    ][yy] = pixel_l[xx >> 1];
-						sbuf[xx + 1][yy] = pixel_h[xx >> 1];
-					}
-				} else {
-__DECL_VECTORIZED_LOOP						
-					for(int xx = 0; xx < 16; xx += 2 ) {
-						sbuf[xx    ][yy] = pixel_h[xx >> 1];
-						sbuf[xx + 1][yy] = pixel_l[xx >> 1];
-					}
-				}
+			for(int xx = 0; xx < 16; xx += 2 ) {
+				tbuf[yy][xx    ] = pixel_h[xx >> 1];
+				tbuf[yy][xx + 1] = pixel_l[xx >> 1];
 			}
 		}
 	}
+	// Rotate
+	switch(rot & 7) { // ROT1, ROT0
+	case 0:
+		// 0deg, not mirror
+		for(int yy = 0; yy < 16; yy++) {
+__DECL_VECTORIZED_LOOP						
+			for(int xx = 0; xx < 16; xx++) {
+				sbuf[yy][xx] = tbuf[yy][xx];
+			}
+		}
+		break;
+	case 1:
+		// 180deg, mirror
+		for(int yy = 0; yy < 16; yy++) {
+__DECL_VECTORIZED_LOOP						
+			for(int xx = 0; xx < 16; xx++) {
+				sbuf[15 - yy][xx] = tbuf[yy][xx];
+			}
+		}
+		break;
+	case 2:
+		// 0deg, mirror
+		for(int yy = 0; yy < 16; yy++) {
+__DECL_VECTORIZED_LOOP						
+			for(int xx = 0; xx < 16; xx++) {
+				sbuf[yy][15 - xx] = tbuf[yy][xx];
+			}
+		}
+		break;
+	case 3:
+		// 180deg, not mirror
+		for(int yy = 0; yy < 16; yy++) {
+__DECL_VECTORIZED_LOOP						
+			for(int xx = 0; xx < 16; xx++) {
+				sbuf[15 - yy][15 - xx] = tbuf[yy][xx];
+			}
+		}
+		break;
+	case 4:
+		// 270deg, mirror
+		for(int xx = 0; xx < 16; xx++) {
+__DECL_VECTORIZED_LOOP						
+			for(int yy = 0; yy < 16; yy++) {
+				sbuf[xx][yy] = tbuf[yy][xx];
+			}
+		}
+		break;
+	case 5:
+		// 90deg, not mirror
+		for(int xx = 0; xx < 16; xx++) {
+__DECL_VECTORIZED_LOOP						
+			for(int yy = 0; yy < 16; yy++) {
+				sbuf[xx][15 - yy] = tbuf[yy][xx];
+			}
+		}
+		break;
+	case 6:
+		// 270deg, not mirror
+		for(int xx = 0; xx < 16; xx++) {
+__DECL_VECTORIZED_LOOP						
+			for(int yy = 0; yy < 16; yy++) {
+				sbuf[15 - xx][yy] = tbuf[yy][xx];
+			}
+		}
+		break;
+	case 7:
+		// 90deg, mirror
+		for(int xx = 0; xx < 16; xx++) {
+__DECL_VECTORIZED_LOOP						
+			for(int yy = 0; yy < 16; yy++) {
+				sbuf[15 - xx][15 - yy] = tbuf[yy][xx];
+			}
+		}
+		break;
+	}
+	// Zoom and rendering.
 	uint32_t noffset = (draw_page1) ? 0x40000 : 0x60000;
 	uint32_t vpaddr = ((rx + (ry * 256)) << 1) & 0x1ffff;
 	if(!(is_halfx) && !(is_halfy)) { // not halfed
@@ -449,17 +409,17 @@ __DECL_VECTORIZED_LOOP
 					sbuf2[xx] = sbuf2[xx] & 0x7fff;
 				}
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 16; xx++) {
-					lbuf.pw[xx >> 1].w += sbuf2[xx];
-				}
-__DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 16; xx++) {
-					mbuf.pw[xx >> 1].w |= sbuf3[xx];
+				for(int xx = 0; xx < 8; xx++) {
+					lbuf.pw[xx].w = sbuf2[xx << 1];
 				}
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 8; xx++) {
-					lbuf.pw[xx].w = (lbuf.pw[xx].w >> 1);
+					mbuf.pw[xx].w = sbuf3[xx << 1];
 				}
+//__DECL_VECTORIZED_LOOP						
+//				for(int xx = 0; xx < 8; xx++) {
+//					lbuf.pw[xx].w = (lbuf.pw[xx].w >> 1);
+//				}
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 8; xx++) {
 					lbuf.pw[xx].w &= 0x7fff;
@@ -520,7 +480,7 @@ __DECL_VECTORIZED_LOOP
 		}
 		if(__xend <= 0) return;
 		for(int yy = (__ystart << 1); yy < (__yend << 1);  yy += 2) {
-			int yoff = (yy + ry) & 0x1ff;
+			int yoff = ((yy >> 1) + ry) & 0x1ff;
 			if((d_vram != NULL) && (yoff < 256)) {
 				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
 				__DECL_ALIGNED(32) uint8_t source[32] = {0};
@@ -537,28 +497,24 @@ __DECL_VECTORIZED_LOOP
 					sbuf2[xx] = sbuf[yy][xx2];
 				}
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 16, xx2 = (__xstart2 + 16); xx < (16 + __xend); xx++, xx2++) {
-					sbuf2[xx] = sbuf[yy + 1][xx2];
-				}
-__DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 32; xx++) {
+				for(int xx = 0; xx < 16; xx++) {
 					sbuf3[xx] = sbuf2[xx] & 0x8000;
 				}
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 32; xx++) {
+				for(int xx = 0; xx < 16; xx++) {
 					sbuf2[xx] = sbuf2[xx] & 0x7fff;
 				}
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 32; xx++) {
-					lbuf.pw[xx >> 1].w += sbuf2[xx];
-				}
-__DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 32; xx++) {
-					mbuf.pw[xx >> 1].w |= sbuf3[xx];
+				for(int xx = 0; xx < 16; xx++) {
+					lbuf.pw[xx].w = sbuf2[xx];
 				}
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 16; xx++) {
-					lbuf.pw[xx].w = ((lbuf.pw[xx].w >> 1) & 0x7fff) | mbuf.pw[xx].w;
+					mbuf.pw[xx].w = sbuf3[xx];
+				}
+__DECL_VECTORIZED_LOOP						
+				for(int xx = 0; xx < 16; xx++) {
+					lbuf.pw[xx].w = (lbuf.pw[xx].w & 0x7fff) | mbuf.pw[xx].w;
 				}
 				__DECL_ALIGNED(16) uint16_t mbuf2[16];
 __DECL_VECTORIZED_LOOP						
@@ -608,7 +564,7 @@ __DECL_VECTORIZED_LOOP
 		}
 		if(__xend <= 0) return;
 		for(int yy = (__ystart << 1); yy < (__yend << 1);  yy += 2) {
-			int yoff = (yy + ry) & 0x1ff;
+			int yoff = ((yy >> 1) + ry) & 0x1ff;
 			if((d_vram != NULL) && (yoff < 256)) {
 				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
 				__DECL_ALIGNED(16) uint8_t source[16] = {0};
@@ -632,62 +588,36 @@ __DECL_VECTORIZED_LOOP
 				}
 				// Get Column 1
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 16, xx2 = (__xstart + 16); xx < (16 + __xend); xx++, xx2++) {
-					sbuf2[xx] = sbuf[yy + 1][xx2];
-				}
-__DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 32; xx++) {
+				for(int xx = 0; xx < 16; xx++) {
 					sbuf3[xx] = sbuf2[xx] & 0x8000;
 				}
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 32; xx++) {
+				for(int xx = 0; xx < 16; xx++) {
 					sbuf2[xx] = sbuf2[xx] & 0x7fff;
 				}
 				// Phase.2 Shrink X
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 32; xx++) {
-					lbuf4[xx >> 1] += sbuf2[xx];
+				for(int xx = 0; xx < 8; xx++) {
+					lbuf4[xx] = sbuf2[xx << 1];
 				}
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 16; xx++) {
-					lbuf4[xx] >>= 1;
-				}
-__DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 16; xx++) {
+				for(int xx = 0; xx < 8; xx++) {
 					lbuf4[xx] &= 0x7fff;
 				}
 __DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 32; xx++) {
-					mbuf5[xx >> 1] |= sbuf3[xx];
-				}
-
-				// Phase.3 Shrink Y
-__DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 8; xx++) {
-					lbuf.pw[xx].w = lbuf4[xx] + lbuf4[xx + 8];
-				}
-__DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 8; xx++) {
-					lbuf.pw[xx].w >>= 1;
-				}
-__DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 8; xx++) {
-					lbuf.pw[xx].w &= 0x7fff;
+					mbuf5[xx] = sbuf3[xx << 1];
 				}
 
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 8; xx++) {
-					mbuf.pw[xx].w = mbuf5[xx] | mbuf5[xx + 8];
+					mbuf.pw[xx].w = mbuf5[xx];
 				}
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 8; xx++) {
-					lbuf.pw[xx].w |= mbuf.pw[xx].w;
+					lbuf.pw[xx].w = mbuf.pw[xx].w;
 				}
 				__DECL_ALIGNED(16) uint16_t mbuf2[8];
-__DECL_VECTORIZED_LOOP						
-				for(int xx = 0; xx < 8; xx++) {
-					mbuf2[xx] = mbuf.pw[xx].w;
-				}
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 8; xx++) {
 					mbuf2[xx] = (lbuf.pw[xx].w  >> 15);  // All values are either 1 or 0.
