@@ -1249,9 +1249,8 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 		} else {
 			pwidth = pwidth / magx;
 		}
-	}
-	if(pwidth > TOWNS_CRTC_MAX_PIXELS) pwidth = TOWNS_CRTC_MAX_PIXELS;
-	if(pwidth <= 0) return false;
+	}	if(pwidth > TOWNS_CRTC_MAX_PIXELS) pwidth = TOWNS_CRTC_MAX_PIXELS;
+	if(pwidth <= 1) return false;
 
 	__DECL_ALIGNED(16) uint8_t pbuf[8];
 	__DECL_ALIGNED(16) uint8_t hlbuf[16];
@@ -1304,40 +1303,9 @@ __DECL_VECTORIZED_LOOP
 		RGBA_COLOR(255, 255, 255, 255),
 		RGBA_COLOR(255, 255, 255, 255)
 	};
-
-		
+	
 	int k = 0;
-#if 1
-__DECL_VECTORIZED_LOOP
-	for(int x = 0; x < pwidth; x++) {
-		uint8_t h = (p[x] >> 4) & 0x0f;
-		uint8_t l = p[x] & 0x0f;
-		h &= pmask;
-		l &= pmask;
-
-		scrntype_t hpix = palbuf[h];
-		scrntype_t lpix = palbuf[l];
-		scrntype_t hmask = maskdata[h];
-		scrntype_t lmask = maskdata[l];
-		
-__DECL_VECTORIZED_LOOP
-		for(int xx = 0; xx < magx; xx++) {
-			q[k] = lpix;
-			r2[k] = lmask;
-			k++;
-			if(k >= width) return true;
-		}
-		if(k >= width)  return true;
-__DECL_VECTORIZED_LOOP
-		for(int xx = 0; xx < magx; xx++) {
-			q[k] = hpix;
-			r2[k] = hmask;
-			k++;
-			if(k >= width)  return true;
-		}
-		if(k >= width)  return true;
-	}
-#else
+	pwidth = pwidth / 2; // 20201210 K.O
 	for(int x = 0; x < (pwidth >> 3); x++) {
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
@@ -1510,7 +1478,6 @@ __DECL_VECTORIZED_LOOP
 			}
 		}
 	}
-#endif
 	return true;
 }
 
