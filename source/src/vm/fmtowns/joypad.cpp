@@ -46,6 +46,7 @@ void JOYPAD::query_joystick(void)
 	uint32_t stat = 0;
 	if((rawdata != NULL) && (enabled)) {
 		uint32_t d = rawdata[pad_num];
+//		out_debug_log(_T("DATA: %08X"), d);
 		if((type_6buttons) && (sel_line)) { // 6Buttons Multiplied
 			// If COM == 1 THEN CHECK BUTTONS
 			// 6Buttons PAD is seems to be this schematic:
@@ -88,12 +89,12 @@ void JOYPAD::write_signal(int id, uint32_t data, uint32_t mask)
 		break;
 	case SIG_JOYPAD_ENABLE:
 		if((ndata & (1 << SIG_JOYPORT_TYPE_2BUTTONS)) != 0) {
-			out_debug_log(_T("SELECT 2BUTTONS PAD"));
+			//out_debug_log(_T("SELECT 2BUTTONS PAD"));
 			enabled = true;
 			type_6buttons = false;
 			reset();
 		} else if((ndata & (1 << SIG_JOYPORT_TYPE_6BUTTONS)) != 0) {
-			out_debug_log(_T("SELECT 6BUTTONS PAD"));
+			//out_debug_log(_T("SELECT 6BUTTONS PAD"));
 			enabled = true;
 			type_6buttons = true;
 			reset();
