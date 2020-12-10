@@ -77,6 +77,7 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	bool search_joydb_by_guid(QString guid, QString& answer);
 	QString make_guid(SDL_JoystickGUID guid);
 	QString joystick_guid(int num);
+	QString joystick_name(int num);
 	QString default_joyassign();
 	
 	void debug_log(int level, int domain_num, const char *fmt, ...);
@@ -94,6 +95,9 @@ public slots:
 	int sig_finished(void);
 	int sig_debug_log(int, int, QString);
 	int sig_state_dpad(int, bool);
+	// ToDo
+	int sig_update_joystick_guid(int, QString);
+	int sig_update_joystick_name(int, QString);
 };
 
 

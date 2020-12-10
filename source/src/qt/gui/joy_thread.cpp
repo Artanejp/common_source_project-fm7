@@ -106,7 +106,9 @@ JoyThreadClass::~JoyThreadClass()
 	if(using_flags->is_use_joystick()) {
 # if defined(USE_SDL2)
 		for(i = 0; i < 16; i++) {
-			SDL_GameControllerClose(controller_table[i]);
+			if(controller_table[i] != NULL) {
+				SDL_GameControllerClose(controller_table[i]);
+			}
 			controller_table[i] = NULL;
 		}
 # else
@@ -149,6 +151,7 @@ int JoyThreadClass::read_joydb()
 		}
 		delete fp;
 	}
+	joydb.removeDuplicates();
 	return count;
 }
 
@@ -200,14 +203,18 @@ bool JoyThreadClass::replace_joydb_by_guid(QString guid, QString after)
 {
 	if(guid.size() >= 32) {
 		QString n = after;
+		QString m = n.remove("\n");
+		QString l = m.remove("\r");
 		if(joydb.contains(guid.left(32))) {
 			int i = joydb.indexOf(guid.left(32));
 			if(i >= 0) {
-				joydb.replace(i, n);
+				joydb.replace(i, l);
+				joydb.removeDuplicates();
 				return true;
 			}
 		}
-		joydb.append(n);
+		joydb.append(l);
+		joydb.removeDuplicates();
 		return true;
 	}
 	return false;
@@ -257,6 +264,16 @@ QString JoyThreadClass::joystick_guid(int num)
 	guid = SDL_JoystickGetDeviceGUID(num);
 	QString guid_str = make_guid(guid);
 	return guid_str;
+}
+
+QString JoyThreadClass::joystick_name(int num)
+{
+	const char *p = SDL_JoystickNameForIndex(num);
+	if(p != NULL) {
+		return QString::fromLocal8Bit(p);
+	}
+
+	return QString::fromUtf8("");
 }
 
 void JoyThreadClass::joystick_plugged(int num)
@@ -344,19 +361,18 @@ void JoyThreadClass::joystick_unplugged(int num)
 	//int i, j;
 	if(num < 0) return;
 # if defined(USE_SDL2)
-	if(SDL_IsGameController(num)) {
-		if(controller_table[num] != NULL) {
-			SDL_GameControllerClose(controller_table[num]);
-			controller_table[num] = NULL;
-			debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "JoyThread : Controller %d : %s : is removed.", num, names[num].toUtf8().data());
-			joy_num[num] = -1;
-			is_controller[num] = false;
-		}
+	if(controller_table[num] != NULL) {
+		SDL_GameControllerClose(controller_table[num]);
+		controller_table[num] = NULL;
+		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "JoyThread : Controller %d : %s : is removed.", num, names[num].toUtf8().data());
+		joy_num[num] = -1;
+		is_controller[num] = false;
 		joyhandle[num] = NULL;
 	} else 
 # endif
 	{
 		if(joyhandle[num] != NULL) {
+			controller_table[num] = NULL;
 			is_controller[joy_num[num]] = false;
 			SDL_JoystickClose(joyhandle[num]);
 			joyhandle[num] = NULL;
