@@ -12,13 +12,15 @@
 #include "dropdown_jsbutton.h"
 #include "dropdown_jspage.h"
 #include "dropdown_joystick.h"
+#include "joy_thread.h"
 
-CSP_DropDownJoysticks::CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, USING_FLAGS *p) : QWidget(parent)
+
+CSP_DropDownJoysticks::CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, USING_FLAGS *p,JoyThreadClass *joy) : QWidget(parent)
 {
 	p_wid = parent;
 	using_flags = p;
 	p_config = p->get_config_ptr();
-	
+	p_joy = joy;
 	layout = new QHBoxLayout(this);
 	int i;
 
@@ -32,6 +34,11 @@ CSP_DropDownJoysticks::CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, 
 		tabBox->addTab(pages[i], tmps);
 	}
 	layout->addWidget(tabBox);
+	if(p_joy != NULL) {
+		connect(p_joy, SIGNAL(sig_state_dpad(int, bool)), this, SLOT(do_check_dpademu(int, bool)));
+		connect(this, SIGNAL(sig_set_emulate_dpad(int, bool)), p_joy, SLOT(do_set_emulate_dpad(int, bool)));
+		connect(this, SIGNAL(sig_assign_joynum(int, int)), p_joy, SLOT(do_map_joy_num(int, int)));
+	}			
 
 	if(p_wid == NULL) this->setWindowIcon(QIcon(":/icon_gamepad.png"));
 	this->setLayout(layout);
@@ -58,3 +65,25 @@ void CSP_DropDownJoysticks::do_set_js_button_idx(int jsnum, int button_num, int 
 	p_config->joy_buttons[jsnum][button_num] = assigned_value;
 }
 
+void CSP_DropDownJoysticks::do_check_dpademu(int num, bool val)
+{
+	if(num < 0) return;
+	if(num >= 4) return;
+	if(pages[num]) {
+		pages[num]->do_set_dpademu_state(val);
+	}
+}
+
+void CSP_DropDownJoysticks::do_changed_state_dpademu(int num, bool val)
+{
+	if(p_joy != NULL) {
+		emit sig_set_emulate_dpad(num, val);
+	}
+}
+
+void CSP_DropDownJoysticks::do_assign_joynum(int joynum, int num)
+{
+	if(p_joy != NULL) {
+		emit sig_assign_joynum(joynum, num);
+	}
+}

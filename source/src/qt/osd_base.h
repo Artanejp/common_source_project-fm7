@@ -203,9 +203,17 @@ protected:
 
 	uint32_t modkey_status;
 	bool lost_focus;
-	uint32_t joy_status[4];	// joystick #1, #2 (b0 = up, b1 = down, b2 = left, b3 = right, b4- = buttons
-	int joy_num;
-	uint32_t joy_mask[4];
+	/*
+	 * 0  - 3:
+	 * joystick #1, - #4 (b0 = up, b1 = down, b2 = left, b3 = right, b4- = buttons)
+	 * 4  - 11:
+	 * ANALOG #1 - #4 AXIS LEFT X,Y : VALUE 65536 - 0 (RAW VALUE PLUS 32768) 
+	 * 12 - 19:
+	 * ANALOG #1 - #4 AXIS RIGHT X,Y : VALUE = 65536 - 0 (RAW VALUE PLUS 32768)
+	 * 20 - 23:
+	 * ANALOG #1 - #4 DIGITAL DIR (b0 = UP, b1 = DOWN, b2 = LEFT, b3 = RIGHT)
+	 */
+	uint32_t joy_status[32];
 	
 	int32_t mouse_status[3];	// x, y, button (b0 = left, b1 = right)
 	bool mouse_enabled;

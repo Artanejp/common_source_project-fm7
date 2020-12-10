@@ -2032,8 +2032,8 @@ void EMU::out_debug_log(const _TCHAR* format, ...)
 	my_tcscpy_s(prev_buffer, 2048, buffer);
 	
 #if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
-	if((vm != NULL) && (csp_logger != NULL)) {
-		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, vm->get_current_usec(), "%s", buffer);
+	if((csp_logger != NULL)) {
+		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, "%s", buffer);
 	}
 #else
 	if(debug_log) {

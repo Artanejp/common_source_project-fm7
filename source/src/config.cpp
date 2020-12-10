@@ -149,6 +149,13 @@ void initialize_config()
 		config.joy_to_key_numpad5 = false;
 		config.joy_to_key_buttons[0] = -('Z');
 		config.joy_to_key_buttons[1] = -('X');
+		for(int j = 0; j < 16; j++) {
+			config.assigned_joystick_num[j] = j;
+			memset(config.assigned_joystick_name[j], 0x00, sizeof(_TCHAR) * 256);
+		}
+		for(int j = 0; j < 4; j++) {
+			config.emulated_joystick_dpad[j] = true;
+		}
 	#endif
 	#if defined(USE_VARIABLE_MEMORY)
 		config.current_ram_size = USE_VARIABLE_MEMORY;
@@ -444,6 +451,13 @@ void load_config(const _TCHAR *config_path)
 				config.joy_buttons[i][j] = MyGetPrivateProfileInt(_T("Input"), create_string(_T("JoyButtonsEx%d_%d"), i + 1, j + 1), old, config_path);
  			}
  		}
+		for(int j = 0; j < 16; j++) {
+			config.assigned_joystick_num[j] = MyGetPrivateProfileInt(_T("Input"), create_string(_T("JoyAssignNum%d"), j), config.assigned_joystick_num[j], config_path);
+		}
+		for(int j = 0; j < 4; j++) {
+			config.emulated_joystick_dpad[j] = MyGetPrivateProfileBool(_T("Input"), create_string(_T("JoyEmulateDpad%d"), j), config.emulated_joystick_dpad[j], config_path);
+		}
+
 		config.use_joy_to_key = MyGetPrivateProfileBool(_T("Input"), _T("UseJoyToKey"), config.use_joy_to_key, config_path);
 		config.joy_to_key_type = MyGetPrivateProfileInt(_T("Input"), _T("JoyToKeyType"), config.joy_to_key_type, config_path);
 		config.joy_to_key_numpad5 = MyGetPrivateProfileBool(_T("Input"), _T("JoyToKeyNumPad5"), config.joy_to_key_numpad5, config_path);
@@ -507,6 +521,7 @@ void load_config(const _TCHAR *config_path)
 		config.logwindow_width = MyGetPrivateProfileInt(_T("Qt"), _T("LogWindowWidth"), 800, config_path);
 		config.logwindow_height = MyGetPrivateProfileInt(_T("Qt"), _T("LogWindowHeight"), 500, config_path);
 		// Assigning joysticks.
+	#if defined(USE_FIXED_CONFIG) || defined(USE_JOYSTICK)
 		for(i = 0; i < 16; i++) {
 			_TCHAR name[256];
 			my_stprintf_s(name, 255, _T("AssignedJoystick%d"), i + 1);
@@ -514,6 +529,7 @@ void load_config(const _TCHAR *config_path)
 									  config.assigned_joystick_name[i], 255, config_path);
 //			printf("%d->%s\n", i, config.assigned_joystick_name[i]);
 		}
+	#endif
 		// Movie load/save.
 		config.video_width   = MyGetPrivateProfileInt(_T("Qt"), _T("VideoWidth"), 640, config_path);
 		if(config.video_width < 128) config.video_width = 128;
@@ -817,6 +833,13 @@ void save_config(const _TCHAR *config_path)
 				MyWritePrivateProfileInt(_T("Input"), create_string(_T("JoyButtonsEx%d_%d"), i + 1, j + 1), config.joy_buttons[i][j], config_path);
 			}
 		}
+		for(int j = 0; j < 16; j++) {
+			MyWritePrivateProfileInt(_T("Input"), create_string(_T("JoyAssignNum%d"), j), config.assigned_joystick_num[j], config_path);
+		}
+		for(int j = 0; j < 4; j++) {
+			MyWritePrivateProfileBool(_T("Input"), create_string(_T("JoyEmulateDpad%d"), j), config.emulated_joystick_dpad[j], config_path);
+		}
+		
 		MyWritePrivateProfileBool(_T("Input"), _T("UseJoyToKey"), config.use_joy_to_key, config_path);
 		MyWritePrivateProfileInt(_T("Input"), _T("JoyToKeyType"), config.joy_to_key_type, config_path);
 		MyWritePrivateProfileBool(_T("Input"), _T("JoyToKeyNumPad5"), config.joy_to_key_numpad5, config_path);
@@ -877,12 +900,14 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileInt(_T("Qt"), _T("LogWindowWidth"), config.logwindow_width, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("LogWindowHeight"), config.logwindow_height, config_path);
 
+	#if defined(USE_FIXED_CONFIG) || defined(USE_JOYSTICK)
 		for(i = 0; i < 16; i++) {
 			_TCHAR name[256];
 			my_stprintf_s(name, 255, _T("AssignedJoystick%d"), i + 1);
 			MyWritePrivateProfileString(_T("Qt"), (const _TCHAR *)name, 
 										config.assigned_joystick_name[i], config_path);
 		}
+	#endif	
 		MyWritePrivateProfileInt(_T("Qt"), _T("VideoWidth"), config.video_width, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("VideoHeight"), config.video_height, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("VideoCodecType"), config.video_codec_type, config_path);

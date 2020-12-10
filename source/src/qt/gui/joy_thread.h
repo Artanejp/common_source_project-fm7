@@ -32,6 +32,10 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 #endif	
 	SDL_Joystick *joyhandle[16];
 	QString names[16];
+	int joy_assign[16];
+	bool emulate_dpad[4];
+	bool is_controller[16];
+	
 	EMU_TEMPLATE *p_emu;
 	OSD_BASE *p_osd;
 	USING_FLAGS *using_flags;
@@ -42,27 +46,36 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	void joystick_plugged(int num);
 	void joystick_unplugged(int num);
 	bool EventSDL(SDL_Event *);
-	void x_axis_changed(int, int);
-	void y_axis_changed(int, int);
+	void x_axis_changed(int, int, int);
+	void y_axis_changed(int, int, int);
 	void button_down(int, unsigned int);
 	void button_up(int, unsigned int);
+	void controller_button_down(int, unsigned int);
+	void controller_button_up(int, unsigned int);
 	int get_joy_num(int id);
 # if defined(USE_SDL2)
 	int get_joyid_from_instanceID(SDL_JoystickID id);
 # endif
  public:
-	JoyThreadClass(EMU_TEMPLATE *p, OSD_BASE *o, USING_FLAGS *pflags, config_t *cfg, CSP_Logger *logger, QObject *parent = 0);
+	JoyThreadClass(EMU_TEMPLATE *p, USING_FLAGS *pflags, config_t *cfg, QObject *parent = 0);
 	~JoyThreadClass();
 	void run() { doWork("");}
 	void SetEmu(EMU_TEMPLATE *p) {
 		p_emu = p;
 	}
+	void debug_log(int level, int domain_num, const char *fmt, ...);
+	void debug_log(int level, int domain_num, QString msg);
+	
 public slots:
 	void doWork(const QString &);
 	void doExit(void);
+	void do_map_joy_num(int num, int assign);
+	void do_set_emulate_dpad(int num, bool val);
+	
  signals:
 	int sig_finished(void);
-	int call_joy_thread(EMU_TEMPLATE *);
+	int sig_debug_log(int, int, QString);
+	int sig_state_dpad(int, bool);
 };
 
 

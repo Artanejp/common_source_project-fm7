@@ -76,6 +76,7 @@ Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, CSP_Logger *logger, QWidget
 	ui_retranslate_completed = false;
 	//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "GUI OK");
 	phys_key_name_map.clear();
+	hRunJoy = NULL;
 }
 
 Ui_MainWindowBase::~Ui_MainWindowBase()

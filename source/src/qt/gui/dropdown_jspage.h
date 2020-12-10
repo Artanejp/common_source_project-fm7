@@ -12,10 +12,13 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QStringList>
+#include <QCheckBox>
 #include <QString>
 #include "common.h"
 
 #include "dropdown_jsbutton.h"
+
+class QComboBox;
 
 QT_BEGIN_NAMESPACE
 class USING_FLAGS;
@@ -28,14 +31,16 @@ protected:
 	//QLabel *label[4];
 	QLabel *label_buttons;
 	QLabel *label_axis;
-
+	QLabel *label_select;
+	QCheckBox *dpademu;
+	QComboBox *combo_select;
 	CSP_DropDownJSButton *combo_js[4];
 	
 	CSP_DropDownJSButton *js_button[12];
 	QLabel *label_button[12];
 	int bind_jsnum;
 	USING_FLAGS *using_flags;
-	void do_select_common(int index, int axes);
+
 public:
 	CSP_DropDownJSPage(USING_FLAGS *pp, QWidget *parent = 0, QStringList *lst = 0, int jsnum = 0);
 	~CSP_DropDownJSPage();
@@ -47,9 +52,15 @@ public slots:
 	void do_select_right(int index);
 	void do_select_js_button(int jsnum, int button_num, int assigned_value);
 	void do_select_js_button_idx(int jsnum, int button_num, int assigned_value);
+	void do_set_dpademu_state(bool val);
+	void do_changed_state_dpademu(int state);
+	void do_select_common(int index, int axes);
+	void do_assign_joynum(int num);
 signals:
 	int sig_set_js_button(int jsnum, int button_num, int assigned_value);
 	int sig_set_js_button_idx(int jsnum, int button_num, int assigned_value);
+	int sig_changed_state_dpademu(int, bool);
+	int sig_assign_joynum(int, int);
 };	
 
 QT_END_NAMESPACE

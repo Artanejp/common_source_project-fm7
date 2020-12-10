@@ -398,7 +398,7 @@ void Ui_MainWindow::do_create_hard_disk(int drv, int sector_size, int sectors, i
 void Ui_MainWindow::LaunchJoyThread(void)
 {
 #if defined(USE_JOYSTICK)
-	hRunJoy = new JoyThreadClass(emu, (OSD*)(emu->get_osd()), using_flags, &config, csp_logger);
+	hRunJoy = new JoyThreadClass(emu, using_flags, &config);
 	connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
 	hRunJoy->setObjectName("JoyThread");
 	hRunJoy->start();

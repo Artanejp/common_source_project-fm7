@@ -291,6 +291,9 @@ typedef struct {
 		int joy_to_key_type; // Note: ADD "1235" as type 3.20181218 K.O
 		bool joy_to_key_numpad5;
 		int joy_to_key_buttons[16];
+		_TCHAR assigned_joystick_name[16][256];
+		int assigned_joystick_num[16];
+		bool emulated_joystick_dpad[4];
 	#endif
 	#if defined(USE_FIXED_CONFIG) || defined(USE_AUTO_KEY)
 		bool romaji_to_kana;
@@ -316,7 +319,6 @@ typedef struct {
 #endif
 
 #ifdef _USE_QT
-	_TCHAR assigned_joystick_name[16][256];
 
 	int video_width;
 	int video_height;
