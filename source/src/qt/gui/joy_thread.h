@@ -12,16 +12,19 @@
 
 #include <QThread>
 #include <SDL.h>
+#include <QStringList>
+#include <QString>
 #include "common.h"
 #include "config.h"
 
 class EMU_TEMPLATE;
 class OSD_BASE;
-class QString;
 class USING_FLAGS;
 
 QT_BEGIN_NAMESPACE
-
+#ifndef JOY_DB_NAME
+#define JOY_DB_NAME "joydb.ini"
+#endif
 class DLL_PREFIX JoyThreadClass : public QThread {
 	Q_OBJECT
  private:
@@ -40,9 +43,16 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	OSD_BASE *p_osd;
 	USING_FLAGS *using_flags;
 	config_t *p_config;
+	QStringList joydb;
+	QString default_assign;
+
+	int write_joydb();
+	int read_joydb();
+
  protected:
 	bool bRunThread;
 	CSP_Logger *csp_logger;
+	
 	void joystick_plugged(int num);
 	void joystick_unplugged(int num);
 	bool EventSDL(SDL_Event *);
@@ -63,6 +73,12 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	void SetEmu(EMU_TEMPLATE *p) {
 		p_emu = p;
 	}
+	bool search_joydb(QString str, QString& answer);
+	bool search_joydb_by_guid(QString guid, QString& answer);
+	QString make_guid(SDL_JoystickGUID guid);
+	QString joystick_guid(int num);
+	QString default_joyassign();
+	
 	void debug_log(int level, int domain_num, const char *fmt, ...);
 	void debug_log(int level, int domain_num, QString msg);
 	
@@ -71,7 +87,9 @@ public slots:
 	void doExit(void);
 	void do_map_joy_num(int num, int assign);
 	void do_set_emulate_dpad(int num, bool val);
-	
+	bool replace_joydb(QString after);
+	bool replace_joydb_by_guid(QString guid, QString after);
+	void do_replace_default_assign(QString new_assign);
  signals:
 	int sig_finished(void);
 	int sig_debug_log(int, int, QString);
