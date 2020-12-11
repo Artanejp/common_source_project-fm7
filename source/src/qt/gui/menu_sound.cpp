@@ -135,7 +135,6 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 	menuOutput_Frequency = new QMenu(menuSound);
 	menuOutput_Frequency->setObjectName(QString::fromUtf8("menuOutput_Frequency"));
 	menuSound->addAction(menuOutput_Frequency->menuAction());
-	menuSound->addSeparator();
 	for(i = 0; i < 8; i++) {
 		menuOutput_Frequency->addAction(action_Freq[i]);
 		connect(action_Freq[i], SIGNAL(triggered()),
@@ -152,6 +151,19 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 			action_Latency[i]->binds, SLOT(on_set_latency()));
 		connect(action_Latency[i]->binds, SIGNAL(sig_latency(int)),
 			this, SLOT(set_latency(int)));
+	}
+
+	menuSound->addSeparator();
+	if(using_flags->is_use_sound_files_fdd()) {
+		SET_ACTION_SINGLE(action_SoundFilesFDD, true, true, (p_config->sound_noise_fdd != 0));
+	}
+	if(using_flags->is_use_sound_files_relay()) {
+		SET_ACTION_SINGLE(action_SoundFilesRelay, true, true, (p_config->sound_noise_cmt != 0));
+	}
+	if(using_flags->is_use_sound_files_fdd() || using_flags->is_use_sound_files_relay()) {
+		if(using_flags->is_use_sound_files_fdd())     menuSound->addAction(action_SoundFilesFDD);
+		if(using_flags->is_use_sound_files_relay())   menuSound->addAction(action_SoundFilesRelay);
+		menuSound->addSeparator();
 	}
 	menuSound->addAction(action_VolumeDialog);
 }
@@ -278,6 +290,15 @@ void Ui_MainWindowBase::retranslateSoundMenu(void)
 	
 	action_VolumeDialog->setText(QApplication::translate("MenuSound", "Set Volumes", 0));
 	action_VolumeDialog->setToolTip(QApplication::translate("MenuSound", "Open a VOLUME dialog.", 0));
+	if(using_flags->is_use_sound_files_fdd()) {
+		action_SoundFilesFDD->setText(QApplication::translate("MenuSound", "Sound FDD Seek", 0));
+		action_SoundFilesFDD->setToolTip(QApplication::translate("MenuSound", "Enable FDD HEAD seeking sound.\nNeeds sound file.\nSee HELP->READMEs->Bios and Key assigns", 0));
+	}
+	if(using_flags->is_use_sound_files_relay()) {
+		action_SoundFilesRelay->setText(QApplication::translate("MenuSound", "Sound CMT Relay and Buttons", 0));
+		action_SoundFilesRelay->setToolTip(QApplication::translate("MenuSound", "Enable CMT relay's sound and buttons's sounds.\nNeeds sound file.\nSee HELP->READMEs->Bios and Key assigns", 0));
+		if(using_flags->is_tape_binary_only()) action_SoundFilesRelay->setEnabled(false);
+	}
 
 	menuSound->setToolTipsVisible(true);
 	do_update_volume(p_config->general_sound_level);

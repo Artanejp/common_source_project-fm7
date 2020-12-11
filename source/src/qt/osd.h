@@ -34,13 +34,18 @@ class OSD : public OSD_BASE
 {
 	Q_OBJECT
 private:
+	GLDrawClass *p_glv;
+	MOVIE_LOADER *movie_loader;
+
+	QTcpSocket2 *tcp_socket[SOCKET_MAX];
+	QUdpSocket2 *udp_socket[SOCKET_MAX];
+
 	void set_features_machine(void);
 	void set_features_cpu(void);
 	void set_features_vm(void);
 	void set_features_misc(void);
 	void set_features_debug(void);
 protected:
-	GLDrawClass *p_glv;
 	
 	bool get_use_socket(void);
 	bool get_use_auto_key(void);
@@ -58,11 +63,6 @@ protected:
 	
 	void set_features(void);
 	void set_device_name(int id, char *name);
-	MOVIE_LOADER *movie_loader;
-
-	QTcpSocket2 *tcp_socket[SOCKET_MAX];
-	QUdpSocket2 *udp_socket[SOCKET_MAX];
-
 public:
 	OSD(USING_FLAGS *p, CSP_Logger *logger);
 	~OSD();

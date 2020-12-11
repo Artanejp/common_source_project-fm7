@@ -258,10 +258,10 @@ void OSD_BASE::update_input()
 	//bool hid = false;
 	if(mouse_enabled) {
 		QMutexLocker n(mouse_mutex);
-		int xx = (p_config->mouse_sensitivity_x & ((1 << 16) - 1)) * mouse_ptrx;
-		int yy = (p_config->mouse_sensitivity_y & ((1 << 16) - 1)) * mouse_ptry;
-		mouse_status[0] = (xx - mouse_oldx) >> 12;
-		mouse_status[1] = (yy - mouse_oldy) >> 12; 
+		int xx = mouse_ptrx;
+		int yy = mouse_ptry;
+		mouse_status[0] = xx - mouse_oldx;
+		mouse_status[1] = yy - mouse_oldy; 
 		mouse_status[2] = mouse_button;
 		//printf("Mouse delta(%d, %d)\n", delta_x, delta_y);
 		mouse_oldx = xx;
@@ -795,13 +795,13 @@ void OSD_BASE::enable_mouse()
 	// enable mouse emulation
 	if(!mouse_enabled) {
 		QMutexLocker n(mouse_mutex);
-		int xx = (p_config->mouse_sensitivity_x & ((1 << 16) - 1)) * get_screen_width() / 2;
-		int yy = (p_config->mouse_sensitivity_y & ((1 << 16) - 1)) * get_screen_height() / 2;
+		int xx = get_screen_width() / 2;
+		int yy = get_screen_height() / 2;
 		
 		mouse_oldx = xx;
 		mouse_oldy = yy;
-		mouse_ptrx = get_screen_width() / 2;
-		mouse_ptry = get_screen_height() / 2;
+		mouse_ptrx = xx;
+		mouse_ptry = yy;
 		mouse_status[0] = 0;
 		mouse_status[1] = 0;
 		mouse_status[2] = mouse_button;

@@ -480,6 +480,9 @@ public:
 	void set_host_window_size(int window_width, int window_height, bool window_mode);
 	void set_vm_screen_size(int width, int height, int width_aspect, int height_aspect, int window_width, int window_height);
 	void set_vm_screen_lines(int lines); // 20170118
+	int get_vm_screen_width();
+	int get_vm_screen_height();
+
 	int get_vm_window_width();
 	int get_vm_window_height();
 	int get_vm_window_width_aspect();

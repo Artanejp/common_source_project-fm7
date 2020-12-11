@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 3.3.1)
+set(THIS_LIB_VERSION 3.4.0)
 #include(cotire)
 #include(PrecompiledHeader)
 
@@ -17,6 +17,8 @@ set(s_qt_gui_headers
 	  
 	  commonclasses.h
 	  sound_dialog.h
+	  mouse_dialog.h
+	  
 	  mainwidget_base.h
 	  menu_metaclass.h
 	  menu_disk.h
@@ -105,6 +107,7 @@ set(s_qt_gui_srcs
 	  display_about.cpp
 	  display_text_document.cpp
 	  sound_dialog.cpp
+	  mouse_dialog.cpp
 	  dialog_memory.cpp
 	  
 	  dropdown_keyset.cpp

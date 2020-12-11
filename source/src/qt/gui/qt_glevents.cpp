@@ -14,6 +14,7 @@
 #include "common.h"
 //#include "emu.h"
 #include "osd_types.h"
+#include "../osd_base.h"
 #include "qt_gldraw.h"
 #include "gl2/qt_glutil_gl2_0.h"
 
@@ -45,9 +46,17 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 {
 	double xx, gxx;
 	double yy, gyy;
-	int d_ww = using_flags->get_screen_width();
-	int d_hh = using_flags->get_screen_height();
-	QPointF pos = event->localPos();
+	OSD_BASE *p_osd = using_flags->get_osd();
+	int d_ww, d_hh;
+	if(p_osd != NULL) {
+		d_ww = p_osd->get_vm_screen_width();
+		d_hh = p_osd->get_vm_screen_height();
+	} else {
+		d_ww = using_flags->get_screen_width();
+		d_hh = using_flags->get_screen_height();
+	}
+//	QPointF pos = event->localPos();
+	QPointF pos = event->screenPos();
 	double xpos = (double)(pos.x()) / (double)width();
 	double ypos = (double)(pos.y()) / (double)height();
 	double gxpos = (double)(event->globalPos().x()) / (double)width();
@@ -98,7 +107,7 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 	}
 
 	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Mouse Move: (%f,%f) -> (%d, %d)\n", xpos, ypos, (int)xx, (int)yy);
-	emit do_notify_move_mouse((int)xx, (int)yy, (int)gxx, (int)gyy);
+	emit sig_notify_move_mouse(xx, yy, gxx, gyy);
 
 }
 // Will fix. zap of emu-> or ??

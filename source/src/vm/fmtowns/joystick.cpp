@@ -16,8 +16,6 @@ namespace FMTOWNS {
 	
 void JOYSTICK::reset()
 {
-	joydata[0] = joydata[1] = 0x00;
-	stat_com[0] = stat_com[1] = false;
 	dx = dy = 0;
 	lx = ly = 0;
 	mouse_state = emu->get_mouse_buffer();
@@ -26,18 +24,8 @@ void JOYSTICK::reset()
 	mouse_phase = 0;
 	mouse_strobe = false;
 	mouse_data = 0x00;
-	clear_event(this, mouse_timeout_event);
-
-	// Force reset pads.
-	connected_type[0] = 0xffffffff;
-	connected_type[1] = 0xffffffff;
-	
 	update_config(); // Update MOUSE PORT.
-	
-//	if(mouse_sampling_event >= 0) {
-//		cancel_event(this, mouse_sampling_event);
-//	}
-//	register_event(this, EVENT_MOUSE_SAMPLING, 16.7e3, true, &mouse_sampling_event);
+
 }
 
 void JOYSTICK::initialize()
@@ -52,14 +40,19 @@ void JOYSTICK::initialize()
 	mouse_sampling_event = -1;
 	set_emulate_mouse();
 	mouse_type = config.mouse_type;
-	register_frame_event(this);
+	// Force reset pads.
+	connected_type[0] = 0xffffffff;
+	connected_type[1] = 0xffffffff;
+	stat_com[0] = stat_com[1] = false;
+
+//	register_frame_event(this);
 }
 
 void JOYSTICK::release()
 {
 }
 	
-void JOYSTICK::event_frame()
+void JOYSTICK::event_pre_frame()
 {
 	event_callback(EVENT_MOUSE_SAMPLING, 0);
 }
@@ -178,14 +171,14 @@ void JOYSTICK::event_callback(int event_id, int err)
 				dx += mouse_state[0];
 				dy += mouse_state[1];
 				if(dx < -127) {
-					dx = -127;
+					dx += 128;
 				} else if(dx > 127) {
-					dx = 127;
+					dx -= 128;
 				}
 				if(dy < -127) {
-					dy = -127;
+					dy += 128;
 				} else if(dy > 127) {
-					dy = 127;
+					dy -= 128;
 				}
 			}
 		}
@@ -234,6 +227,11 @@ void JOYSTICK::update_config(void)
 	}
 	if(emulate_mouse[1]) {
 		ntype[1] = SIG_JOYPORT_TYPE_MOUSE;
+	}
+	if((emulate_mouse[0]) || (emulate_mouse[1])) {
+		force_register_event(this, EVENT_MOUSE_SAMPLING, 8.0e3, true, mouse_sampling_event);
+	} else {
+		clear_event(this, mouse_sampling_event);
 	}
 	for(int i = 0; i < 2; i++) {
 //		if(connected_type[i] != ntype[i]) {

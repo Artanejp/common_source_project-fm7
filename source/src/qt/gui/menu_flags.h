@@ -191,7 +191,7 @@ protected:
 	button_desc_t *vm_buttons_d;
 	vm_ranges_t *vm_ranges_d;
 	EMU_TEMPLATE *p_emu;
-	OSD *p_osd;
+	OSD_BASE *p_osd;
 	config_t *p_config;
 public:
 	USING_FLAGS(config_t *cfg);
@@ -366,8 +366,8 @@ public:
 	virtual int get_s_freq_table(int num);
 	void set_emu(EMU_TEMPLATE *p);
 	EMU_TEMPLATE *get_emu(void);
-	void set_osd(OSD *p);
-	OSD *get_osd(void);
+	void set_osd(OSD_BASE *p);
+	OSD_BASE *get_osd(void);
 	virtual const _TCHAR *get_sound_device_name(int num);
 	virtual int get_sound_device_num();
 	

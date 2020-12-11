@@ -145,11 +145,21 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_right()
 }
 
 #include "display_log.h"
+#include "mouse_dialog.h"
 
 void Ui_MainWindowBase::rise_log_viewer(void)
 {
 	Dlg_LogViewer *dlg = new Dlg_LogViewer(using_flags, csp_logger, NULL);
 	dlg->show();
+}
+
+void Ui_MainWindowBase::rise_mouse_dialog(void)
+{
+	if(using_flags->is_use_mouse()) {
+		Ui_MouseDialog* dlg = new Ui_MouseDialog(using_flags);
+		dlg->setWindowTitle(QApplication::translate("Ui_MouseDialog", "Configure Mouse", 0));
+		dlg->show();
+	}
 }
 
 void Ui_MainWindowBase::rise_joystick_dialog(void)
@@ -300,15 +310,12 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	
 	SET_ACTION_CHECKABLE_SINGLE_CONNECT_NOMENU(actionSpeed_FULL, "actionSpeed_FULL", p_config->full_speed, SIGNAL(toggled(bool)), SLOT(do_emu_full_speed(bool)));
 	
+	if(using_flags->is_use_mouse()) {
+		action_SetupMouse = new Action_Control(this, using_flags);
+	}
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick = new Action_Control(this, using_flags);
 		action_SetupJoykey = new Action_Control(this, using_flags);
-	}
-	if(using_flags->is_use_sound_files_fdd()) {
-		SET_ACTION_SINGLE(action_SoundFilesFDD, true, true, (p_config->sound_noise_fdd != 0));
-	}
-	if(using_flags->is_use_sound_files_relay()) {
-		SET_ACTION_SINGLE(action_SoundFilesRelay, true, true, (p_config->sound_noise_cmt != 0));
 	}
 	
 	SET_ACTION_CHECKABLE_SINGLE_CONNECT_NOMENU(action_FocusWithClick, "actionFocus_With_Click", p_config->focus_with_click, SIGNAL(toggled(bool)), SLOT(do_set_window_focus_type(bool)));
@@ -499,13 +506,11 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	menuEmulator->addSeparator();
 	menuEmulator->addAction(action_LogView);
 	menuEmulator->addSeparator();
-	if(using_flags->is_use_sound_files_fdd() || using_flags->is_use_sound_files_relay()) {
-		if(using_flags->is_use_sound_files_fdd())     menuEmulator->addAction(action_SoundFilesFDD);
-		if(using_flags->is_use_sound_files_relay())   menuEmulator->addAction(action_SoundFilesRelay);
-		menuEmulator->addSeparator();
-	}
 	menuEmulator->addAction(menu_SetRenderPlatform->menuAction());
 	
+	if(using_flags->is_use_mouse()) {
+		menuEmulator->addAction(action_SetupMouse);
+	}		
 	if(using_flags->is_use_joystick()) {
 		menuEmulator->addAction(action_SetupJoystick);
 		menuEmulator->addAction(action_SetupJoykey);
@@ -516,6 +521,10 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 
 void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 {
+	if(using_flags->is_use_mouse()) {
+		action_SetupMouse->setText(QApplication::translate("MenuEmulator", "Configure Mouse", 0));
+		action_SetupMouse->setToolTip(QApplication::translate("MenuEmulator", "Setup mouse sensitivity.", 0));
+	}
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick->setText(QApplication::translate("MenuEmulator", "Configure Joysticks", 0));
 		action_SetupJoystick->setToolTip(QApplication::translate("MenuEmulator", "Configure assigning buttons/directions of joysticks.", 0));
@@ -568,15 +577,6 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	action_LogToSyslog->setToolTip(QApplication::translate("MenuEmulator", "Enable logging to SYSTEM log.\nMay be having permission to system and using *nix OS.", 0));
 	//action_LogRecord->setText(QApplication::translate("MenuEmulator", "Recording Log", 0));
 #endif
-	if(using_flags->is_use_sound_files_fdd()) {
-		action_SoundFilesFDD->setText(QApplication::translate("MenuEmulator", "Sound FDD Seek", 0));
-		action_SoundFilesFDD->setToolTip(QApplication::translate("MenuEmulator", "Enable FDD HEAD seeking sound.\nNeeds sound file.\nSee HELP->READMEs->Bios and Key assigns", 0));
-	}
-	if(using_flags->is_use_sound_files_relay()) {
-		action_SoundFilesRelay->setText(QApplication::translate("MenuEmulator", "Sound CMT Relay and Buttons", 0));
-		action_SoundFilesRelay->setToolTip(QApplication::translate("MenuEmulator", "Enable CMT relay's sound and buttons's sounds.\nNeeds sound file.\nSee HELP->READMEs->Bios and Key assigns", 0));
-		if(using_flags->is_tape_binary_only()) action_SoundFilesRelay->setEnabled(false);
-	}
 	menuDevLogToConsole->setTitle(QApplication::translate("MenuEmulator", "Per Device", 0));
 #if !defined(Q_OS_WIN)
 	menuDevLogToSyslog->setTitle(QApplication::translate("MenuEmulator", "Per Device", 0));

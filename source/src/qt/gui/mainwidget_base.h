@@ -246,6 +246,7 @@ private:
 	class Action_Control *action_DevLogToConsole[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
 	class Action_Control *action_DevLogRecord[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
 	// Emulator
+	class Action_Control *action_SetupMouse;
 	class Action_Control *action_SetupJoystick;
 	class Action_Control *action_SetupJoykey;
 	class Action_Control *action_SetupKeyboard;
@@ -601,6 +602,7 @@ public slots:
 	void do_emu_update_volume_level(int num, int level);
 	void rise_log_viewer(void);
 	void rise_volume_dialog(void);
+	void rise_mouse_dialog(void);
 	void rise_joystick_dialog(void);
 	void rise_joykey_dialog(void);
 	void rise_keyboard_dialog(void);

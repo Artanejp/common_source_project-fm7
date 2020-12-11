@@ -770,6 +770,9 @@ void Ui_MainWindowBase::setupUi(void)
 		double nd = actionScreenSize[p_config->window_mode]->binds->getDoubleValue();
 		graphicsView->do_set_screen_multiply(nd);
 	}
+	if(using_flags->is_use_mouse()) {
+		connect(action_SetupMouse, SIGNAL(triggered()), this, SLOT(rise_mouse_dialog()));
+	}
 	if(using_flags->is_use_joystick()) {
 		connect(action_SetupJoykey, SIGNAL(triggered()), this, SLOT(rise_joykey_dialog()));
 		connect(action_SetupJoystick, SIGNAL(triggered()), this, SLOT(rise_joystick_dialog()));

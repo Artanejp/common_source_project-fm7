@@ -227,12 +227,12 @@ const _TCHAR *USING_FLAGS::get_sound_device_caption(int num)
 }
 
 
-void USING_FLAGS::set_osd(OSD *p)
+void USING_FLAGS::set_osd(OSD_BASE *p)
 {
 	p_osd = p;
 }
 
-OSD *USING_FLAGS::get_osd(void)
+OSD_BASE *USING_FLAGS::get_osd(void)
 {
 	return p_osd;
 }

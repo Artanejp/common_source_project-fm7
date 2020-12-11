@@ -73,8 +73,7 @@ void initialize_config()
 	#if defined(USE_MOUSE_TYPE) && defined(MOUSE_TYPE_DEFAULT)
 		config.mouse_type = MOUSE_TYPE_DEFAULT;
 	#endif
-		config.mouse_sensitivity_x = 1 << 12; // 1.0
-		config.mouse_sensitivity_y = 1 << 12; // 1.0
+		config.mouse_sensitivity = 1 << 12; // 1.0
 	#if defined(USE_JOYSTICK_TYPE) && defined(JOYSTICK_TYPE_DEFAULT)
 		config.joystick_type = JOYSTICK_TYPE_DEFAULT;
 	#endif
@@ -465,8 +464,7 @@ void load_config(const _TCHAR *config_path)
 			config.joy_to_key_buttons[i] = MyGetPrivateProfileInt(_T("Input"), create_string(_T("JoyToKeyButtons%d"), i + 1), config.joy_to_key_buttons[i], config_path);
 		}
 	#endif
-		config.mouse_sensitivity_x = MyGetPrivateProfileInt(_T("Control"), _T("MouseSensitivityX"), config.mouse_sensitivity_x, config_path);
-		config.mouse_sensitivity_y = MyGetPrivateProfileInt(_T("Control"), _T("MouseSensitivityY"), config.mouse_sensitivity_y, config_path);
+		config.mouse_sensitivity = MyGetPrivateProfileInt(_T("Control"), _T("MouseSensitivity"), config.mouse_sensitivity, config_path);
 	// debug
 	#ifdef USE_FLOPPY_DISK
 		config.special_debug_fdc =	MyGetPrivateProfileInt(_T("Debug"), _T("SpecialDebugFDC"), config.special_debug_fdc, config_path);
@@ -847,8 +845,7 @@ void save_config(const _TCHAR *config_path)
 			MyWritePrivateProfileInt(_T("Input"), create_string(_T("JoyToKeyButtons%d"), i + 1), config.joy_to_key_buttons[i], config_path);
 		}
 	#endif
-		MyWritePrivateProfileInt(_T("Control"), _T("MouseSensitivityX"), config.mouse_sensitivity_x, config_path);
-		MyWritePrivateProfileInt(_T("Control"), _T("MouseSensitivityY"), config.mouse_sensitivity_y, config_path);
+		MyWritePrivateProfileInt(_T("Control"), _T("MouseSensitivity"), config.mouse_sensitivity, config_path);
 
 	// debug
 	#ifdef USE_FLOPPY_DISK

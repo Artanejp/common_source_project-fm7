@@ -254,7 +254,7 @@ public slots:
 
 	// From emu_thread_slots.cpp .
 	void do_set_display_size(int w, int h, int ww, int wh);
-	void moved_mouse(int x, int y, int globalx, int globaly);
+	void moved_mouse(double x, double y, double globalx, double globaly);
 
 	void do_write_protect_disk(int drv, bool flag);
 	void do_close_disk(int);

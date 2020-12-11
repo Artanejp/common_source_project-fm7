@@ -279,8 +279,8 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	//connect(hRunEmu, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 	connect(this, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 
-	connect(glv, SIGNAL(do_notify_move_mouse(int, int, int, int)),
-			hRunEmu, SLOT(moved_mouse(int, int, int, int)));
+	connect(glv, SIGNAL(sig_notify_move_mouse(double, double, double, double)),
+			hRunEmu, SLOT(moved_mouse(double, double, double, double)));
 	connect(glv, SIGNAL(do_notify_button_pressed(Qt::MouseButton)),
 	        hRunEmu, SLOT(button_pressed_mouse(Qt::MouseButton)));
 	connect(glv, SIGNAL(do_notify_button_released(Qt::MouseButton)),

@@ -449,6 +449,16 @@ int OSD_BASE::get_vm_window_height()
 	return vm_window_height;
 }
 
+int OSD_BASE::get_vm_screen_width()
+{
+	return vm_screen_width;
+}
+
+int OSD_BASE::get_vm_screen_height()
+{
+	return vm_screen_height;
+}
+
 int OSD_BASE::get_vm_window_width_aspect()
 {
 	return vm_window_width_aspect;
