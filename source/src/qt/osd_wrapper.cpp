@@ -852,12 +852,14 @@ int OSD::add_video_frames()
 double OSD::get_vm_current_usec()
 {
 	if(vm == NULL) return 0.0;
+	QMutexLocker l(log_mutex);
 	return vm->get_current_usec();
 }
 
 uint64_t OSD::get_vm_current_clock_uint64()
 {
 	if(vm == NULL) return (uint64_t)0;
+	QMutexLocker l(log_mutex);
 	return vm->get_current_clock_uint64();
 }
 

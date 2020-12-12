@@ -507,7 +507,9 @@ protected:
 	
 	int max_vm_nodes;
 	bool ui_retranslate_completed;
-
+	bool about_to_close;
+	
+	virtual void closeEvent(QCloseEvent *event);
 	// CPU Type
 	void ConfigCPUTypes(int num);
 	void ConfigCPUBootMode(int num);

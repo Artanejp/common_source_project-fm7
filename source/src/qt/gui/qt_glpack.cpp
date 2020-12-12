@@ -59,24 +59,39 @@ GLScreenPack::GLScreenPack(int _width, int _height, QString _name, QObject *pare
 GLScreenPack::~GLScreenPack()
 {
 	if(vertex != NULL) {
-		if(vertex->isCreated()) vertex->destroy();
+		QOpenGLContext *context = QOpenGLContext::currentContext();
+		if(context != NULL) {
+			if(context->isValid()) {
+				if(vertex->isCreated()) vertex->destroy();
+			}
+		}
 		delete vertex;
 	}
 	if(vertex_buffer != NULL) {
-		if(vertex_buffer->isCreated()) vertex_buffer->destroy();
+		QOpenGLContext *context = QOpenGLContext::currentContext();
+		if(context != NULL) {
+			if(context->isValid()) {
+				if(vertex_buffer->isCreated()) vertex_buffer->destroy();
+			}
+		}
 		delete vertex_buffer;
 	}
 	if(program != NULL) {
 		delete program;
 	}
 	QOpenGLContext *context = QOpenGLContext::currentContext();
-	QOpenGLFunctions _fn(context);
-	
-	if(Texture != 0) {
-		_fn.glDeleteTextures(1, &Texture);
-	}
-	if(frame_buffer_num != 0) {
-		_fn.glDeleteFramebuffers(1, &frame_buffer_num);
+
+	if(context != NULL) {
+		if(context->isValid()) {
+			QOpenGLFunctions _fn(context);
+		
+			if(Texture != 0) {
+				_fn.glDeleteTextures(1, &Texture);
+			}
+			if(frame_buffer_num != 0) {
+				_fn.glDeleteFramebuffers(1, &frame_buffer_num);
+			}
+		}
 	}
 }
 

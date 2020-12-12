@@ -14,6 +14,7 @@
 #include <QWidget>
 
 #include <QMutex>
+#include <QMutexLocker>
 #include <QSemaphore>
 #include <QPainter>
 #include <QElapsedTimer>
@@ -52,6 +53,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QObject(0)
 	locked_vm = false;
 	screen_mutex = new QMutex(QMutex::Recursive);
 	mouse_mutex = new QMutex(QMutex::Recursive);
+	log_mutex = new QMutex(QMutex::Recursive);
 	
 	device_node_list.clear();
 	max_vm_nodes = 0;
@@ -71,9 +73,14 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QObject(0)
 
 OSD_BASE::~OSD_BASE()
 {
+	if(p_logger != NULL) {
+		QMutexLocker l(log_mutex);
+		p_logger->set_osd(NULL);
+	}
   	delete mouse_mutex;
   	delete vm_mutex;
 	delete screen_mutex;
+	delete log_mutex;
 }
 
 extern std::string cpp_homedir;

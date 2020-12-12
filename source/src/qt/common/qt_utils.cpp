@@ -1290,6 +1290,7 @@ int MainLoop(int argc, char *argv[])
 	rMainWindow->setCoreApplication(GuiMain);
 	rMainWindow->getWindow()->show();
 	rMainWindow->retranselateUi_Depended_OSD();
+//	QMetaObject::connectSlotsByName(rMainWindow);
    	EmuThreadClass *hRunEmu = new EmuThreadClass(rMainWindow, using_flags);
 
    

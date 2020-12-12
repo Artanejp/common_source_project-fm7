@@ -25,6 +25,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QStyle>
+#include <QMessageBox>
 
 #include "commonclasses.h"
 #include "display_about.h"
@@ -77,6 +78,8 @@ Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, CSP_Logger *logger, QWidget
 	//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "GUI OK");
 	phys_key_name_map.clear();
 	hRunJoy = NULL;
+	about_to_close = false;
+
 }
 
 Ui_MainWindowBase::~Ui_MainWindowBase()
@@ -356,12 +359,34 @@ bool Ui_MainWindowBase::get_dipsw(int num)
 	return true;
 }
 
+void Ui_MainWindowBase::closeEvent(QCloseEvent *event)
+{
+	if(about_to_close) {
+//		event->accept();
+		return;
+	}
+	QMessageBox::StandardButton ret =
+		QMessageBox::question(this,
+							  QApplication::translate("MainWindow", "Exit EMULATOR", 0),
+							  QApplication::translate("MainWindow", "Do you QUIT this emulator?", 0),
+							  QMessageBox::Yes | QMessageBox::No,
+							  QMessageBox::No);
+	if(ret == QMessageBox::Yes) {
+		about_to_close = true;
+		event->accept();
+		emit quit_emulator_all();
+		return;
+	} else {
+		event->ignore();
+	}
+}
 
 void Ui_MainWindowBase::setupUi(void)
 {
 	int w, h;
 	//   QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-	MainWindow = new QMainWindow();
+//	MainWindow = new QMainWindow();
+	MainWindow = this;
 	if (MainWindow->objectName().isEmpty())
 		MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
 	//MainWindow->resize(1288, 862);
@@ -810,7 +835,6 @@ void Ui_MainWindowBase::setupUi(void)
 	
 	ExitIcon = QIcon(":/icon_exit.png");
 
-	QMetaObject::connectSlotsByName(MainWindow);
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "setupUI() OK");
 } // setupUi
 
@@ -927,6 +951,7 @@ void Ui_MainWindowBase::retranslateUi(void)
 void Ui_MainWindowBase::doBeforeCloseMainWindow(void)
 {
 	//emit quit_debugger_thread();
+//	about_to_close = true;
 	emit quit_emulator_all();
 }
 
