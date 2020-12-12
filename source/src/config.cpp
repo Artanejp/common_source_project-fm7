@@ -73,7 +73,7 @@ void initialize_config()
 	#if defined(USE_MOUSE_TYPE) && defined(MOUSE_TYPE_DEFAULT)
 		config.mouse_type = MOUSE_TYPE_DEFAULT;
 	#endif
-		config.mouse_sensitivity = 1 << 12; // 1.0
+		config.mouse_sensitivity = 1 << 13; // 1.0
 	#if defined(USE_JOYSTICK_TYPE) && defined(JOYSTICK_TYPE_DEFAULT)
 		config.joystick_type = JOYSTICK_TYPE_DEFAULT;
 	#endif
