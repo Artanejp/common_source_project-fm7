@@ -476,38 +476,12 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	menuEmulator->addAction(action_FocusWithClick);
 	menuEmulator->addAction(menu_DispVirtualMedias->menuAction());
 	menuEmulator->addSeparator();
-	if(using_flags->is_use_auto_key()) {
-		menuEmulator->addAction(action_UseRomaKana);
-	}
-	if(using_flags->is_use_joystick()) {
-		menuEmulator->addAction(action_UseJoykey);
-	}		
-	menuEmulator->addAction(action_NumPadEnterAsFullkey);
-	menuEmulator->addSeparator();
 	menuEmulator->addAction(actionSpeed_FULL);
 	if(menu_SetFixedCpu != NULL) {
 		menuEmulator->addAction(menu_SetFixedCpu->menuAction());
 	}
-	menuEmulator->addSeparator();
-	menuEmulator->addAction(menu_EmulateCursorAs->menuAction());
-	if(action_Logging_FDC != NULL) {
-		menuEmulator->addSeparator();
-		menuEmulator->addAction(action_Logging_FDC);
-	}
-	menuEmulator->addAction(action_PrintCpuStatistics);
-	menuEmulator->addSeparator();
-	menuEmulator->addAction(action_LogToConsole);
-	menuEmulator->addAction(menuDevLogToConsole->menuAction());
-	menuEmulator->addSeparator();
-#if !defined(Q_OS_WIN)
-	menuEmulator->addAction(action_LogToSyslog);
-	menuEmulator->addAction(menuDevLogToSyslog->menuAction());
-#endif
-	menuEmulator->addSeparator();
-	menuEmulator->addAction(action_LogView);
-	menuEmulator->addSeparator();
 	menuEmulator->addAction(menu_SetRenderPlatform->menuAction());
-	
+	menuEmulator->addSeparator();
 	if(using_flags->is_use_mouse()) {
 		menuEmulator->addAction(action_SetupMouse);
 	}		
@@ -517,6 +491,32 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	}
 	menuEmulator->addAction(action_SetupKeyboard);
 	menuEmulator->addAction(action_SetupMovie);
+	menuEmulator->addSeparator();
+	if(using_flags->is_use_auto_key()) {
+		menuEmulator->addAction(action_UseRomaKana);
+	}
+	if(using_flags->is_use_joystick()) {
+		menuEmulator->addAction(action_UseJoykey);
+	}		
+	menuEmulator->addAction(action_NumPadEnterAsFullkey);
+	menuEmulator->addSeparator();
+	menuEmulator->addAction(menu_EmulateCursorAs->menuAction());
+	if(action_Logging_FDC != NULL) {
+		menuEmulator->addSeparator();
+		menuEmulator->addAction(action_Logging_FDC);
+	}
+	menuEmulator->addAction(action_PrintCpuStatistics);
+	menuEmulator->addSeparator();
+	menuEmulator->addAction(action_LogView);
+	menuEmulator->addSeparator();
+	menuEmulator->addAction(action_LogToConsole);
+	menuEmulator->addAction(menuDevLogToConsole->menuAction());
+	menuEmulator->addSeparator();
+#if !defined(Q_OS_WIN)
+	menuEmulator->addAction(action_LogToSyslog);
+	menuEmulator->addAction(menuDevLogToSyslog->menuAction());
+#endif
+	menuEmulator->addSeparator();
 }
 
 void Ui_MainWindowBase::retranslateEmulatorMenu(void)
