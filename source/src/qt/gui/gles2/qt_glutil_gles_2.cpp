@@ -54,24 +54,6 @@ GLDraw_ES_2::GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger
 
 GLDraw_ES_2::~GLDraw_ES_2()
 {
-
-	if(main_pass  != NULL) delete main_pass;
-	if(std_pass   != NULL) delete std_pass;
-	if(ntsc_pass1 != NULL) delete ntsc_pass1;
-	if(ntsc_pass2 != NULL) delete ntsc_pass2;
-	
-	if(grids_horizonal_buffer != NULL) {
-		if(grids_horizonal_buffer->isCreated()) grids_horizonal_buffer->destroy();
-	}
-	if(grids_horizonal_vertex != NULL) {
-		if(grids_horizonal_vertex->isCreated()) grids_horizonal_vertex->destroy();
-	}
-	if(grids_vertical_buffer != NULL) {
-		if(grids_vertical_buffer->isCreated()) grids_vertical_buffer->destroy();
-	}
-	if(grids_horizonal_vertex != NULL) {
-		if(grids_vertical_vertex->isCreated()) grids_vertical_vertex->destroy();
-	}
 	if(TextureTransferParam != NULL) delete TextureTransferParam;
 }
 void GLDraw_ES_2::epilogueBlending()
