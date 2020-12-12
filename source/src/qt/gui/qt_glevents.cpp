@@ -48,15 +48,24 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 	double yy, gyy;
 	OSD_BASE *p_osd = using_flags->get_osd();
 	int d_ww, d_hh;
-	if(p_osd != NULL) {
-		d_ww = p_osd->get_vm_screen_width();
-		d_hh = p_osd->get_vm_screen_height();
-	} else {
+	if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
 		d_ww = using_flags->get_screen_width();
 		d_hh = using_flags->get_screen_height();
+	} else {
+		if(p_osd != NULL) {
+			d_ww = p_osd->get_vm_screen_width();
+			d_hh = p_osd->get_vm_screen_height();
+		} else {
+			d_ww = using_flags->get_screen_width();
+			d_hh = using_flags->get_screen_height();
+		}
 	}
-//	QPointF pos = event->localPos();
-	QPointF pos = event->screenPos();
+	QPointF pos;
+	if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
+		pos = event->localPos();
+	} else {
+		pos = event->screenPos();
+	}
 	double xpos = (double)(pos.x()) / (double)width();
 	double ypos = (double)(pos.y()) / (double)height();
 	double gxpos = (double)(event->globalPos().x()) / (double)width();

@@ -860,7 +860,12 @@ void EmuThreadClassBase::set_romakana(bool flag)
 
 void EmuThreadClassBase::moved_mouse(double x, double y, double globalx, double globaly)
 {
-	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse() || (using_flags->get_max_button() > 0)) {
+	if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
+//		bool flag = p_osd->is_mouse_enabled();
+//		if(!flag) return;
+//		printf("Mouse Moved: %g, %g\n", x, y);
+		p_osd->set_mouse_pointer(floor(x), floor(y));
+	} else if(using_flags->is_use_mouse()) {
 		double factor = (double)(p_config->mouse_sensitivity & ((1 << 16) - 1));
 		mouse_x = (int)(floor((x * factor) / 8192.0));
 		mouse_y = (int)(floor((y * factor) / 8192.0));
@@ -877,7 +882,7 @@ void EmuThreadClassBase::button_pressed_mouse_sub(Qt::MouseButton button)
 	
 	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse() || (using_flags->get_max_button() > 0)) {
 		int stat = p_osd->get_mouse_button();
-		bool flag = p_osd->is_mouse_enabled();
+		bool flag = (p_osd->is_mouse_enabled() || using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0));
 		switch(button) {
 		case Qt::LeftButton:
 			stat |= 0x01;

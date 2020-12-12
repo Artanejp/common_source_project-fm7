@@ -58,6 +58,7 @@ void OSD_BASE::initialize_input()
 	memset(mouse_status, 0, sizeof(mouse_status));
 	// mouse emulation is disenabled
 	mouse_enabled = false;
+
 	mouse_ptrx = mouse_oldx = get_screen_width() / 2;
 	mouse_ptry = mouse_oldy = get_screen_height() / 2;
 	// initialize keycode convert table
@@ -836,7 +837,7 @@ bool OSD_BASE::is_mouse_enabled()
 
 void OSD_BASE::set_mouse_pointer(int x, int y)
 {
-	if(mouse_enabled) {
+	if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0) || (mouse_enabled)) {
 		QMutexLocker n(mouse_mutex);
 		
 		mouse_ptrx = x;
@@ -844,7 +845,7 @@ void OSD_BASE::set_mouse_pointer(int x, int y)
 		
 //		mouse_oldx = mouse_ptrx;
 //		mouse_oldy = mouse_ptry;
-		//printf("Mouse Moved: (%d, %d) -> delta(%d, %d)\n", mouse_ptrx, mouse_ptry, delta_x, delta_y);
+//		printf("Mouse Moved: (%d, %d)\n", mouse_ptrx, mouse_ptry);
 	}
 }
 
