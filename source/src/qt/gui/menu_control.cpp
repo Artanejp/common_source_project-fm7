@@ -396,7 +396,7 @@ void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  b
 	}
 
 	actionExit_Emulator->setText(QApplication::translate("MenuControl", "Exit Emulator", 0));
-	actionExit_Emulator->setToolTip(QApplication::translate("MenuControl", "Exit emulator.\n**WARN: WITHOUT confirming.**", 0));
+	actionExit_Emulator->setToolTip(QApplication::translate("MenuControl", "Exit emulator.", 0));
 	actionExit_Emulator->setIcon(ExitIcon);
 
 	actionSpeed_x1->setText(QApplication::translate("MenuControl", "Speed x1", 0));

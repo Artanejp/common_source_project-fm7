@@ -63,6 +63,14 @@
         <source>&lt;B&gt;Physical Buttons:&lt;/B&gt;</source>
         <translation>&lt;B&gt;ボタン&lt;/B&gt;</translation>
     </message>
+    <message>
+        <source>Emulate Digital PAD</source>
+        <translation>デジタル方向キーをエミュレートする</translation>
+    </message>
+    <message>
+        <source>&lt;B&gt;Assign from:&lt;/B&gt;</source>
+        <translation>&lt;B&gt;割り当てる物理ジョイスティック：&lt;/B&gt;</translation>
+    </message>
 </context>
 <context>
     <name>KeySetDialog</name>
@@ -988,27 +996,35 @@ OpenGL 2.0では無効です。</translation>
         <source>Quick Disk </source>
         <translation type="vanished">クイックディスク</translation>
     </message>
+    <message>
+        <source>Exit EMULATOR</source>
+        <translation>エミュレータを終了する</translation>
+    </message>
+    <message>
+        <source>Do you QUIT this emulator?</source>
+        <translation>このエミュレータを終了しますか？</translation>
+    </message>
 </context>
 <context>
     <name>MemoryDialog</name>
     <message>
         <source>Reset</source>
-        <translation type="unfinished">リセット</translation>
+        <translation>リセット</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">戻る</translation>
+        <translation>戻る</translation>
     </message>
     <message>
         <source>Save Options</source>
-        <translation type="unfinished">設定を保存する</translation>
+        <translation>設定を保存する</translation>
     </message>
 </context>
 <context>
     <name>MemorySetDialog</name>
     <message>
         <source>&lt;B&gt;Memory Size&lt;/B&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;B&gt;メモリサイズ&lt;/B&gt;</translation>
     </message>
 </context>
 <context>
@@ -1028,7 +1044,7 @@ OpenGL 2.0では無効です。</translation>
     <message>
         <source>Exit emulator.
 **WARN: WITHOUT confirming.**</source>
-        <translation>エミュレータを終了します。
+        <translation type="vanished">エミュレータを終了します。
 ＊注意：確認せずに終了します＊</translation>
     </message>
     <message>
@@ -1131,6 +1147,10 @@ Press RIGHT Application key (or another) to toggle enable/disable.</source>
         <translation>ホスト側のマウスを取り込みます。
 右アプリケーション&#x3000;キー（もしくはその他）を押す度に、
 トグル動作します。</translation>
+    </message>
+    <message>
+        <source>Exit emulator.</source>
+        <translation>エミュレータを終了します。</translation>
     </message>
 </context>
 <context>
@@ -1279,19 +1299,19 @@ May be having permission to system and using *nix OS.</source>
     </message>
     <message>
         <source>Sound FDD Seek</source>
-        <translation>FDシーク音を鳴らす</translation>
+        <translation type="vanished">FDシーク音を鳴らす</translation>
     </message>
     <message>
         <source>Enable FDD HEAD seeking sound.
 Needs sound file.
 See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
-        <translation>フロッピーディスクのシーク音を鳴らします。
+        <translation type="vanished">フロッピーディスクのシーク音を鳴らします。
 音声ファイルが必要です。
 ヘルプのREADMEsの「BIOSとキー割り当て」項目をお読み下さい</translation>
     </message>
     <message>
         <source>Sound CMT Relay and Buttons</source>
-        <translation>テープのリレーと音のボタンを鳴らす</translation>
+        <translation type="vanished">テープのリレーと音のボタンを鳴らす</translation>
     </message>
     <message>
         <source>Enable CMT relay&apos;s sound and buttons&apos;s sounds.
@@ -1300,7 +1320,7 @@ See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
         <translatorcomment>カセットレコーダーのリレーとボタンの音を再生します。
 サウンドファイルが必要です。
 HELP-&gt;READMEs-&gt;BIOSとキー割当&#x3000;をお読み下さい。</translatorcomment>
-        <translation>カセットテープレコーダのボタンの音と、リレーの音を鳴らします。
+        <translation type="vanished">カセットテープレコーダのボタンの音と、リレーの音を鳴らします。
 音声ファイルが必要です。
 詳しくは、「ヘルプ」→「READMEs」→「BIOSとキー割り当て」の項目をお読みください。</translation>
     </message>
@@ -1417,11 +1437,19 @@ If changed, need to restart this emulator.</source>
     </message>
     <message>
         <source>OpenGL ES v2.0</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>OpenGL ES v3.1</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Configure Mouse</source>
+        <translation>マウスを設定する</translation>
+    </message>
+    <message>
+        <source>Setup mouse sensitivity.</source>
+        <translation>マウスの感度を設定します。</translation>
     </message>
 </context>
 <context>
@@ -1609,12 +1637,13 @@ Maybe output only ascii text.</source>
     </message>
     <message>
         <source>RAM Size</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>Set (extra) memory size.
 This will effect after restarting this emulator.</source>
-        <translation type="unfinished"></translation>
+        <translation>(拡張)メモリのサイズを設定します。
+エミュレータの再起動後に有効になります。</translation>
     </message>
 </context>
 <context>
@@ -1928,12 +1957,13 @@ You *can* write datas to this media.</source>
     </message>
     <message>
         <source>Swap byte order</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>Swap audio track&apos;s byte order.
 This is effects some ripped (not dedicated to AUDIO&apos;s endian) CD-ROMs.</source>
-        <translation type="unfinished"></translation>
+        <translation>オーディオトラックのバイトオーダを入れ替えます。
+幾つかのエンディアンを考慮しないでリッピングされたCD-ROMに効果があるはずです。</translation>
     </message>
 </context>
 <context>
@@ -2178,6 +2208,30 @@ This effects after re-start this emulator.</source>
         <source>Open a VOLUME dialog.</source>
         <translation>音量調整ダイアログを開きます。</translation>
     </message>
+    <message>
+        <source>Sound FDD Seek</source>
+        <translation>FDシーク音を鳴らす</translation>
+    </message>
+    <message>
+        <source>Enable FDD HEAD seeking sound.
+Needs sound file.
+See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
+        <translation>フロッピーディスクのシーク音を鳴らします。
+音声ファイルが必要です。
+ヘルプのREADMEsの「BIOSとキー割り当て」項目をお読み下さい</translation>
+    </message>
+    <message>
+        <source>Sound CMT Relay and Buttons</source>
+        <translation>テープのリレーと音のボタンを鳴らす</translation>
+    </message>
+    <message>
+        <source>Enable CMT relay&apos;s sound and buttons&apos;s sounds.
+Needs sound file.
+See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
+        <translation>カセットテープレコーダのボタンの音と、リレーの音を鳴らします。
+音声ファイルが必要です。
+詳しくは、「ヘルプ」→「READMEs」→「BIOSとキー割り当て」の項目をお読みください。</translation>
+    </message>
 </context>
 <context>
     <name>MovieDialog</name>
@@ -2386,6 +2440,17 @@ Larger value is better, but slowly.</source>
     <message>
         <source>Start Recording Sound</source>
         <translation>録音開始する</translation>
+    </message>
+</context>
+<context>
+    <name>Ui_MouseDialog</name>
+    <message>
+        <source>Configure Mouse</source>
+        <translation>マウスを設定する</translation>
+    </message>
+    <message>
+        <source>Mouse Sensitivity</source>
+        <translation>マウスの感度</translation>
     </message>
 </context>
 <context>
