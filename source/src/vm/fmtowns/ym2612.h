@@ -21,7 +21,7 @@
 
 class DEBUGGER;
 
-class YM2612 : public DEVICE
+class DLL_PREFIX YM2612 : public DEVICE
 {
 protected:
 	DEBUGGER *d_debugger;

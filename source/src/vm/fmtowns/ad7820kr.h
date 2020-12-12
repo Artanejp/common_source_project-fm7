@@ -23,7 +23,7 @@
 #define SIG_AD7820_SAMPLE_RATE        6  // READ/SET SAMPLE RATE
 
 // ToDo: Adjust sample rate.
-class AD7820KR : public DEVICE {
+class DLL_PREFIX AD7820KR : public DEVICE {
 	// ADC
 	// Note: AD7820KR controls/outputs *INT and *OFL as NEGATIVE logic, but this outputs POSITIVE logic 20190307 K.O
 	outputs_t outputs_intr;

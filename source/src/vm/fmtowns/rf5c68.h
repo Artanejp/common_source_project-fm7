@@ -31,7 +31,7 @@
 #define SIG_RF5C68_FORCE_LOAD     0x60
 
 class DEBUGGER;
-class RF5C68 : public DEVICE {
+class DLL_PREFIX RF5C68 : public DEVICE {
 protected:
 	DEBUGGER *d_debugger;
 	outputs_t interrupt_boundary;
