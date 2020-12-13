@@ -1957,7 +1957,7 @@ You *can* write datas to this media.</source>
     </message>
     <message>
         <source>Swap byte order</source>
-        <translation></translation>
+        <translation>Byte順序を入れ替える</translation>
     </message>
     <message>
         <source>Swap audio track&apos;s byte order.
