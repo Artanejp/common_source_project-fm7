@@ -250,7 +250,7 @@ __DECL_VECTORIZED_LOOP
 		for(int yy = 0; yy < 16; yy++) {
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 16; xx++) {
-				sbuf[15 - yy][xx] = tbuf[yy][xx];
+				sbuf[yy][xx] = tbuf[15 - yy][xx];
 			}
 		}
 		break;
@@ -259,7 +259,7 @@ __DECL_VECTORIZED_LOOP
 		for(int yy = 0; yy < 16; yy++) {
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 16; xx++) {
-				sbuf[yy][15 - xx] = tbuf[yy][xx];
+				sbuf[yy][xx] = tbuf[yy][15 - xx];
 			}
 		}
 		break;
@@ -268,43 +268,43 @@ __DECL_VECTORIZED_LOOP
 		for(int yy = 0; yy < 16; yy++) {
 __DECL_VECTORIZED_LOOP						
 			for(int xx = 0; xx < 16; xx++) {
-				sbuf[15 - yy][15 - xx] = tbuf[yy][xx];
+				sbuf[yy][xx] = tbuf[15 - yy][15 - xx];
 			}
 		}
 		break;
 	case 4:
 		// 270deg, mirror
-		for(int xx = 0; xx < 16; xx++) {
+		for(int yy = 0; yy < 16; yy++) {
 __DECL_VECTORIZED_LOOP						
-			for(int yy = 0; yy < 16; yy++) {
-				sbuf[xx][yy] = tbuf[yy][xx];
+			for(int xx = 0; xx < 16; xx++) {
+				sbuf[yy][xx] = tbuf[xx][yy];
 			}
 		}
 		break;
 	case 5:
 		// 90deg, not mirror
-		for(int xx = 0; xx < 16; xx++) {
+		for(int yy = 0; yy < 16; yy++) {
 __DECL_VECTORIZED_LOOP						
-			for(int yy = 0; yy < 16; yy++) {
-				sbuf[xx][15 - yy] = tbuf[yy][xx];
+			for(int xx = 0; xx < 16; xx++) {
+				sbuf[yy][xx] = tbuf[xx][15 - yy];
 			}
 		}
 		break;
 	case 6:
 		// 270deg, not mirror
-		for(int xx = 0; xx < 16; xx++) {
+		for(int yy = 0; yy < 16; yy++) {
 __DECL_VECTORIZED_LOOP						
-			for(int yy = 0; yy < 16; yy++) {
-				sbuf[15 - xx][yy] = tbuf[yy][xx];
+			for(int xx = 0; xx < 16; xx++) {
+				sbuf[yy][xx] = tbuf[15 - xx][yy];
 			}
 		}
 		break;
 	case 7:
 		// 90deg, mirror
-		for(int xx = 0; xx < 16; xx++) {
+		for(int yy = 0; yy < 16; yy++) {
 __DECL_VECTORIZED_LOOP						
-			for(int yy = 0; yy < 16; yy++) {
-				sbuf[15 - xx][15 - yy] = tbuf[yy][xx];
+			for(int xx = 0; xx < 16; xx++) {
+				sbuf[xx][yy] = tbuf[15 - yy][15 - xx];
 			}
 		}
 		break;
