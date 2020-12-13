@@ -251,7 +251,7 @@ void OSD_BASE::update_input()
 	}
 	lost_focus = false;
 
-	update_buttons(press_flag, release_flag);
+
 	// update mouse status
 
 	//if(mouse_enabled) {
@@ -279,7 +279,6 @@ void OSD_BASE::key_down(int code, bool extended, bool repeat)
 //#ifdef USE_AUTO_KEY
 	if(!__USE_AUTO_KEY || (!now_auto_key && !p_config->romaji_to_kana)) {
 //#endif
-		//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_OSD, "KEY DOWN %d", code);
 		//if(!dinput_key_available) {
 			if(code == VK_SHIFT) {
 				if(!(key_status[VK_RSHIFT] & 0x80) && (GetAsyncKeyState(VK_RSHIFT) & 0x8000)) {
@@ -837,7 +836,7 @@ bool OSD_BASE::is_mouse_enabled()
 
 void OSD_BASE::set_mouse_pointer(int x, int y)
 {
-	if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0) || (mouse_enabled)) {
+	if((mouse_enabled)) {
 		QMutexLocker n(mouse_mutex);
 		
 		mouse_ptrx = x;

@@ -54,7 +54,7 @@ protected:
 	bool get_use_screen_rotate(void);
 	bool get_use_movie_player(void);
 	bool get_use_video_capture(void);
-	void update_buttons(bool press_flag, bool release_flag);
+
 	int get_screen_width(void);
 	int get_screen_height(void);
 	int get_vm_buttons_code(int num);

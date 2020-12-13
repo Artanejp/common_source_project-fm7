@@ -125,44 +125,6 @@ int OSD::get_vm_buttons_code(int num)
 #endif
 }	
 
-void OSD::update_buttons(bool press_flag, bool release_flag)
-{
-#if defined(MAX_BUTTONS)
-		if((mouse_button & 1) != 0) {
-			mouse_oldx = mouse_oldy = 0;
-			return;
-		}
-	if(!press_flag && !release_flag) {
-		if((mouse_button & 1) != 0) {
-			mouse_oldx = mouse_oldy = 0;
-			return;
-		}
-		if((mouse_oldx == mouse_ptrx) || (mouse_oldy == mouse_ptry)) return;
-		int ii;
-		ii = 0;
-		for(ii = 0; vm_buttons[ii].code != 0x00; ii++) { 
-			if((mouse_ptrx >= vm_buttons[ii].x) && (mouse_ptrx < (vm_buttons[ii].x + vm_buttons[ii].width))) {
-				
-				if((mouse_ptry >= vm_buttons[ii].y) && (mouse_ptry < (vm_buttons[ii].y + vm_buttons[ii].height))) {
-					if((key_status[vm_buttons[ii].code] & 0x7f) == 0) this->press_button(ii);
-					mouse_oldx = mouse_ptrx;
-					mouse_oldy = mouse_ptry;
-					return;
-				}
-			}
-		}
-		if((mouse_ptrx >= vm_buttons[ii].x) && (mouse_ptrx < (vm_buttons[ii].x + vm_buttons[ii].width))) {
-			if((mouse_ptry >= vm_buttons[ii].y) && (mouse_ptry < (vm_buttons[ii].y + vm_buttons[ii].height))) {
-				this->press_button(ii);
-				mouse_oldx = mouse_ptrx;
-				mouse_oldy = mouse_ptry;
-			}
-		}
-//		mouse_ptrx = mouse_ptry = 0;
-	}
-	//return;
-#endif			
-}	
 
 QString OSD::get_vm_config_name(void)
 {

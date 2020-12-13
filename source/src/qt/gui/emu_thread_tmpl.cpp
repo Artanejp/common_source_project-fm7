@@ -136,7 +136,7 @@ void EmuThreadClassBase::button_pressed_mouse(Qt::MouseButton button)
 			if(vm_buttons_d == NULL) return;
 			switch(button) {
 			case Qt::LeftButton:
-			case Qt::RightButton:
+//			case Qt::RightButton:
 				for(int i = 0; i < using_flags->get_max_button(); i++) {
 					if((mouse_x >= vm_buttons_d[i].x) &&
 					   (mouse_x < (vm_buttons_d[i].x + vm_buttons_d[i].width))) {
@@ -173,7 +173,7 @@ void EmuThreadClassBase::button_released_mouse(Qt::MouseButton button)
 			
 			switch(button) {
 			case Qt::LeftButton:
-			case Qt::RightButton:
+//			case Qt::RightButton:
 				for(int i = 0; i < using_flags->get_max_button(); i++) {
 					if((mouse_x >= vm_buttons_d[i].x) &&
 					   (mouse_x < (vm_buttons_d[i].x + vm_buttons_d[i].width))) {

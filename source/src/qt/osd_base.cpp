@@ -277,10 +277,6 @@ int OSD_BASE::get_vm_buttons_code(int num)
 	return 0;
 }	
 
-void OSD_BASE::update_buttons(bool press_flag, bool release_flag)
-{
-}	
-
 QString OSD_BASE::get_vm_config_name(void)
 {
 	return QString::fromUtf8(" ");

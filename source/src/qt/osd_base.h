@@ -352,7 +352,7 @@ protected:
 	void vm_key_down(int code, bool flag);
 	void vm_key_up(int code);
 	void vm_reset(void);
-	virtual void update_buttons(bool press_flag, bool release_flag);
+
 	virtual int get_screen_width(void);
 	virtual int get_screen_height(void);
 	virtual int get_vm_buttons_code(int num);
