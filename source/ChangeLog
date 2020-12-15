@@ -1,5 +1,86 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT December 16, 2020
+  * Upstream 2020-08-16.
+  * Important: Build system moved to CMake *perfectly*.See INSTALL.md or INSTALL.en.md.
+  * eFM-Towns: Works more softwares.See 00_status_ja.md .
+  * [Qt/JOYSTICK] Add mapping gamecontroller settings.
+	Read from $CONFIG_DIR/joydb.ini as SDL_GAMECONTROLLER format.
+	See https://wiki.libsdl.org/SDL_GameControllerAddMapping .
+  * [VM/I386_NP21] Improve CPU registers message.
+  * [VM/I386_NP21] Print PC address on PANIC.
+  * [VM/DEVICE] Add APIs to DEVICE::; clear_event(), force_register_event(), check_and_update_event() and variants.
+  * [VM/FMTOWNS] CDROM: Implement around commands.
+  * [VM/FMTOWNS] CDROM: Fix around command 80h (SET STATE).May work RANCE III and SUPER REAL MAHJONG PIV.
+  * [VM/FMTOWNS] CDROM: Command A0h: TOWNS_CD_ACCEPT_WAIT must be only after CDROM_COMMAND_STOP_CDDA.
+  * [VM/FMTOWNS] CDROM: Reply status immediately with PLAY/PAUSE/UNPAUSE without STATUS BIT (44h/C5h/C7h).
+  * [VM/FMTOWNS] CDROM: Maybe working with CCD image.
+  * [VM/FMTOWNS] CDROM: Rename delay/status methods to unique name.
+  * [VM/FMTOWNS] CDROM: Don't occure duplicated EOT.
+  * [VM/FMTOWNS] CDROM: Fix not play CDDA with command SPAM.
+  * [VM/FMTOWNS] CDROM: Fix wrong sector size with single track.
+  * [VM/FMTOWNS] CDROM: Implement ISO file feature, MODE1/2/RAW read feature.
+  * [VM/FMTOWNS] CDROM: Fix wrong response at PAUSE/RESUME CDDA (85h/87h).
+  * [VM/FMTOWNS] SPRITE: Fix around zooming and rotating.
+  * [VM/FMTOWNS] CRTC: Available to display LOW RESOLUTION.
+  * [VM/FMTOWNS] MEMORY: Disable shadow write at F8000h-FFFFFh.
+  * [VM/FMTOWNS] MEMORY: Reset memory map when reset from CPU (i.e.Triple fault).
+  * [VM/FMTOWNS] SPRITE: Implement correct offset handling and clipping feature.
+  * [VM/FMTOWNS] SPRITE: Event driven sprite.
+  * [VM/FMTOWNS] VRAM: TRY: Don't wrap around boundary of VRAM (i.e.8107ffff).
+  * [VM/UPD71071] eFM-Towns works without SINGLE_MODE_DMA.
+  * [VM/UPD71071/TOWNS_DMAC] Add debug message for issues, i.e.Bubble Bobble for FM-Towns.
+  * [VM/UPD71071/TOWNS_DMAC] More correctness addressing on R/W.
+  * [VM/FM7] DISPLAY: Optimize to be faster.
+  * [VM/FM7] DISPLAY: Adjust alignment of some variables.
+  * [VM/FM7] MAINMEM: Fix crash at DISPLAY::initialize().
+             Seems to break memory at FM7_MAINMEM::initialize().
+  * [VM/FM7] MAINMEM: Fixing MEMORY LEAK.
+  * [VM/FM7] DISPLAY: Fix not resume digital palette on loading state.
+  * [VM/PCM1BIT][COMMON] Fix memory access violation in high-pass/low-pass filter.
+  * [VM/MB8877] Fix memory leak on state saving/loading.
+  * [VM/COMMON_VM] Move AD78820KR::, RF6C68::, YM2612:: to libCSPcommon_vm.
+  * [VM] Make event() and mix() (and some functions) with __FASTCALL.
+  * [EMU/Qt] Block execution EMU until prepering GUIs.
+  * [EMU/Qt] Don't out LOG until logger set up.
+  * [Qt/Draw] DO not start thread at Ui_MainWindow::LaunchEmuThread().
+  * [Qt/OSD] Inherit OSD_BASE to QObject.Maybe not needed threading.
+  * [Qt/EMU] MOVE a lot of methods to EMU_TEMPLATE:: and EmuThreadClassBase::.
+  * [UI/Qt] MOUSE: Add mouse sensitivities config GUI.
+  * [UI/Qt] Integrate to single MainWindow object.
+            Fix https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/80 .
+  * [UI/Qt] Add confirm on quitting emulator.
+  * [Qt/LOGGER] Add mutex locking to some functions called from logger.
+                Fix crash on quitting a emulator.
+  * [UI/Qt] Change orders of "Emulator Menu".
+  * [Qt/MOUSE] Fix mouse clicking on one-board-computers.
+  * [COMMON] Make method of pairXX_t with __FASTCALL.
+  * [UI/Qt] FLOPPY: Use 5inch icon when using 5inch floppy.
+  * [OSD/Qt] Fix using pointer after freeing.
+  * [DOC] Add INSTALL.md and INSTALL.en.md.
+  * [NET/Qt] Re-implement around TCP/IP, UDP/IP.MZ-2500 works.
+  * [Qt/OpenGL] SHADER: Stop to use discard.
+  * [Qt/OpenGL] Make shaders abstraction.
+  * [Qt/OpenGL 4.5] Reduce create/destroy buffers at same screen size.
+  * [Qt/OpenGL4_5] Fix around TV-Rendering.
+  * [QT/OpenGL4.5] Prepare to implement screen distortion.
+  * [Qt/OpenGL] Integrate shaders beyond GL version and GL/GLES.
+  * [UI/Qt] Fix not update around virtual media display.
+  * [UI/Qt] Fix not found disk file include kanji (or another non-latin character)
+             as filename.This issue maybe happen at non-UTF-8 locale.
+  * [Qt/COMMAND_LINE] Fix failure starting args "--fdx" "--bubx" with  D88/D77/B77 file.
+                      Maybe fixed https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/30 .
+  * [BUILD/CMAKE] Support multiarch LIBDIR.
+	          Maybe fixed https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/21-24.
+  * [BUILD/CMAKE] Try to resolve https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/33.
+  * [BUILD/Win32] Make CSPcommon_vm DLL.
+  * [BUILD/CMAKE] FORCE SET C++ STANDARD to C++11.
+  * [TOOLCHAIN/WIN32] Update cross-build X264 script.
+  * [TOOLCHAIN/WIN32] Update cross building scripts for some external libraries.
+  * Built with 46662e26995354caf47739a7723cd5b96dc67a26 (or later).
+
+-- Dec 16, 2020 00:40:21 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT September 26, 2020
  * Upstream 2020-04-06.
  * [FMTOWNS/DMAC] Bootable TownsOS v1.1L30 based softwares.

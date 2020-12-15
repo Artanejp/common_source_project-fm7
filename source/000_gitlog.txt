@@ -1,3 +1,1335 @@
+commit 46662e26995354caf47739a7723cd5b96dc67a26
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 15 23:46:27 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Fix wrong response at PAUSE/RESUME CDDA (85h/87h).
+
+commit f33a5f151db764af1ef33c6e2311a4ee10d15a58
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 14 05:11:03 2020 +0900
+
+    [VM][FMTOWNS][SPRITE] .
+
+commit 616fb9f02c804a7ab6065c1c2c729395121c8bb5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 13 22:24:25 2020 +0900
+
+    [VM][FMTOWNS][SPRITE] Apply SIMD to rotation.
+
+commit 2b78609d396ae1bae7ba1279eabe1f1fe68879a9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 13 20:57:08 2020 +0900
+
+    [UI][Qt][I18N][OOPs] I missed update a entry, fixed X-)
+
+commit 0c3922d8f8a936af35af4eb2c618a830c0c43c27
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 13 20:56:53 2020 +0900
+
+    [VM][FMTOWNS][SPRITE] Fix around rotation.
+
+commit 8b70c9d1b16eaeb22f5a2d185daa29d2c883b1c4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 13 15:45:56 2020 +0900
+
+    [Qt][OSD][EMU][INPUT] Fix duplicated key in with one-board-computers.
+
+commit 525f70e1a510190c80f87950a95f65c81428f70f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 13 06:37:26 2020 +0900
+
+    [UI][Qt][MOUSE][WIP] Fixing mouse clicking on one-board-computers.
+
+commit bed7cf4f59aa60d02087bd5576ad18d9fa4a3405
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 13 05:08:49 2020 +0900
+
+    [DRAW][OpenGLES] Fix double delete some objects, Fix crash on quit.
+
+commit 5295de444e866f65592716c78e38463ee8e20d20
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 13 04:24:12 2020 +0900
+
+    [UI][Qt] Update Japanese translates.
+
+commit 262c2e8dc2add3d7dba14a05e0e101bce64989a1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 13 04:06:51 2020 +0900
+
+    [UI][Qt] Change orders of "Emulator Menu".
+
+commit 5e1a4619f449ca000c6be753e6b4a1b800860c01
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 13 03:59:21 2020 +0900
+
+    [UI][Qt] Integrate to single MainWindow object.Fix https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/80 .
+    
+    [UI][Qt] Add confirm on quitting emulator.
+    [OSD][Qt][LOGGER] Add mutex locking to some functions called from logger.Fix crash on quitting a emulator.
+
+commit 16f76ce6ad5197485f4969bdf8513dce730ea6b2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Dec 12 16:10:19 2020 +0900
+
+    [CONFIG][OOPS] I missed initial value of MOUSE SENSITIVITY.
+
+commit 27b620dc70616d7497aba4dfe3c8c7f8bf1b5981
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Dec 12 16:08:17 2020 +0900
+
+    [VM][AD7820KR][RF5C68][YM2612] Fix linkage error for eFM-Towns.
+
+commit 665e630c6556c6d06d7d7f4009d96ffc52d68e3b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Dec 11 16:03:53 2020 +0900
+
+    [UI][Qt] Add a mouse sensitivity dialog.Adjust mouse cursor handling.
+
+commit 25d1c4a604d667a85bb433e8fb1cb7279ad9c7f2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Dec 11 03:27:35 2020 +0900
+
+    [Qt][JOYSTICK] Remove duplicated lines from joydb.ini .
+
+commit 4d863171a4e89ad9a7b9ea66bba1a674ff4b2170
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Dec 11 02:53:57 2020 +0900
+
+    [VM][FMTOWNS][JOYPAD] .
+
+commit 2af3b6597743885b346c3db28a735b4b065f98d8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Dec 11 02:52:02 2020 +0900
+
+    [UI][Qt][JOYSTICK] Add mapping gamecontroller settings.Read from $CONFIG_DIR/joydb.ini as SDL_GAMECONTROLLER format.See https://wiki.libsdl.org/SDL_GameControllerAddMapping .
+
+commit 92f079e9fb90300b525b899a079939387be416e1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 10 23:07:50 2020 +0900
+
+    [Qt][JOYSTICK][UI] .
+
+commit 57e19dfd315beaa9ddf572c7a7eb1b0d1d6399b6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 10 04:27:53 2020 +0900
+
+    [VM][FMTOWNS][CRTC] Fix crash at render_16() with Super Street Fighter II truely.
+
+commit ce154c57589ed5411d9791755565dffeddc35004
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 10 03:56:47 2020 +0900
+
+    [BUILD][CMAKE] Update sample scripts.
+
+commit 4ab552e8dc027dc9c68585c477b26e089fc3c535
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 10 03:49:08 2020 +0900
+
+    [VM][FMTOWNS][CRTC] Fix memory leak of render_16().Will improve rendering speed.
+
+commit 1fdda1628b5e1057a0ce69f1aa4670b71e5a90c3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 10 01:53:30 2020 +0900
+
+    [VM][FMTOWNS][SPRITE] Fix around zooming.Re-write around rotating(still somthing wrong).
+
+commit a79977eb0a30d0e45ef3ba5402fca0078cdb8608
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 10 00:01:45 2020 +0900
+
+    [VM][FMTOWNS][CRTC] Update status.
+
+commit df35ca16fe320a4b09f1346ff2f2dba88f13d2b2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 10 00:00:51 2020 +0900
+
+    [VM][FMTOWNS][COMMON_VM] Move AD78820KR::, RF6C68::, YM2612:: to libCSPcommon_vm.
+
+commit c02fa525bb6834af6b890815560574fde057d500
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 9 23:45:26 2020 +0900
+
+    [VM][FMTOWNS] Rename some files.
+
+commit 9bb09495b102bdba255713e7f548a2585ae443ea
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 9 22:57:03 2020 +0900
+
+    [VM][FMTOWNS][CRTC] Fix not rendering at width > TOWNS_CRTC_MAX_PIXELS.
+
+commit c2d5a0be78cd4f7b3d05420577913128819411a1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 9 22:56:51 2020 +0900
+
+    [VM][FMTOWNS] Update status DOC.
+
+commit a3b23b6359aef9ecd06a13ecb07b54a2c9124828
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 9 22:22:24 2020 +0900
+
+    [VM][FMTOWNS][CRTC] Change VSYNC api and timing.Fix not rendering if display width == 1024 pixels.
+
+commit fb6ada179716e1fef9c3f60c3d7fe122a3a3f5dc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 30 01:51:26 2020 +0900
+
+    [VM][I386_NP21] Improve CPU registers information.
+
+commit ead91a0a8d7c683d94c5591451c2f8b71e38430f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 27 02:52:27 2020 +0900
+
+    [VM][FMTOWNS][VRAM] TRY: Don't wrap around boundary of VRAM (i.e.8107ffff).
+
+commit b18aa66f2e0c195fd71371f14116f66fba870739
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 27 02:52:06 2020 +0900
+
+    [VM][FMTOWNS][SPRITE] Adjust rendering timing.
+
+commit eb08275f78903f06bd09ce3f214d8608be92be6a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 27 02:03:04 2020 +0900
+
+    [VM][FMTOWNS][MOUSE] .
+
+commit e58c0962f1df34b659a268bdd5128b0802d5e03b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 27 01:33:32 2020 +0900
+
+    [VM][FMTOWNS][MOUSE] Fix mouse moving limit.
+
+commit 02bd9595eedf48d39246370616a01b5efa3608cb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 27 00:54:59 2020 +0900
+
+    [VM][FMTOWNS][MEMORY] Disable shadow write at F8000h-FFFFFh.
+
+commit 512d58df37bebc6def4cf6cb4819644f7dc27948
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 27 00:54:44 2020 +0900
+
+    [VM][FMTOWNS][JOYSTICK] .
+
+commit 2eab7e949a5c1ddc03f855b10397d8cfcb2dda00
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 26 05:40:44 2020 +0900
+
+    [BUILD][CROSS-BUILD] Update scripts to build Win32/64 version of Qt.
+
+commit b3f17c477eb728ecb1d2b8f9f375a6c5d6890259
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 23 17:29:47 2020 +0900
+
+    [VM][I386_NP21][DEBUGGER] Improve register message.Print PC address on PANIC.
+
+commit 1fa982e2951aa68bbd6fcbdebd1bc7a7cc82f621
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 23 00:36:08 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Rename delay/status methods to unique name.
+    
+    [VM][FMTOWNS][CDROM] Don't occure duplicated EOT.
+
+commit d37263f97c2d805729ae67973a802a40ddf713c0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 22 15:31:54 2020 +0900
+
+    [BUILD][CMAKE][WIN32] Add bootstrap and toolchain for i686-w64-mingw64-gcc .
+
+commit df18152eadf84386c3066900cd7ffa9081c24c0a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 17 03:05:37 2020 +0900
+
+    [VM][FMTOWNS][CDC] Remove FMTOWNS::CDC:: Class already not be used.
+
+commit c500e2882aaf3194882f63ce1f4162f55648e8bd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 17 03:02:06 2020 +0900
+
+    [VM][FMTOWNS][ADPCM][OOPs] I forgot to implement MUTE register (04d5:R) X-)
+
+commit a8db2933e82269786e1aa2aa605fd9156b966d0d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 17 02:55:42 2020 +0900
+
+    [VM][FMTOWNS] .
+
+commit bb209f0b47321458d68a41feed63b3507d5c632b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 17 02:54:44 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Revert before commit.
+
+commit cf4ee14addee23ed1fb4aa7a5a317bb10a360156
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 17 02:23:46 2020 +0900
+
+    [VM][FMTOWNS][CDROM] .
+
+commit 2cea70a7c68b6e70b949397d13134ea55f00e4c0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 16 20:02:55 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Maybe working with CCD image.Still be imcomplete.
+    
+    [VM][FMTOWNS][CDROM] Fix around playing CDDA.
+
+commit 299d33d01e2fd712bfc94aa2d3eab148fba46de7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 16 20:02:28 2020 +0900
+
+    [VM][FMTOWNS][TOWNS_DMAC] Add debug messages.
+
+commit 85bfa01c38d81fa9bb0e1a8b2d203defb77d65ba
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 16 20:01:56 2020 +0900
+
+    [VM][UPD71071] Works without SINGLE_MODE_DMA.
+
+commit 153e10b4100fa65f426b3c2a9ee123ced5d33290
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 16 17:00:08 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Implement ISO file feature, MODE1/2/RAW read feature.
+    
+    [VM][FMTOWNS][CDROM] check sector status per sector.
+
+commit ab0be171184615bbff0ecc918ad80eb396b811b7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 16 04:20:41 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Fix wrong sector size with single track.
+
+commit a9949b68c3aadef06050d016423c66070ebd2296
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 15 21:25:45 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Fix not play CDDA with command SPAM.
+
+commit 291c5987e43f92f58c9a949a6f8f95679c82565c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 15 21:25:04 2020 +0900
+
+    [VM][FMTOWNS][CRTC] Available to display LOW RESOLUTION.This still be imcompleted.
+
+commit 7344bc30b982ff73e96140db4c6f2e9b29b6e19c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 15 17:17:03 2020 +0900
+
+    [VM][UPD71071][TOWNS_DMAC] More correctness addressing on R/W.
+
+commit cc4cd052eb024598f14b433a515a1b7989bea492
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 15 17:16:23 2020 +0900
+
+    [VM][FMTOWNS][MEMORY] Reset memory map when reset from CPU (i.e.Triple fault).
+
+commit 1cff0494d9981dbe7406e1119991d38b71761eb0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 15 14:51:31 2020 +0900
+
+    [VM][UPD71071][TOWNS_DMAC] Add debug message for issues, i.e.Bubble Bobble for FM-Towns.
+
+commit 1466935eb6a399b13fc0f401077d76ad8b11aec2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 15 14:50:59 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Comment out waiting for buffer empty after seek.
+
+commit 241178ccd9cf4957eaa108db563f4e7ebe4f4927
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 15 03:31:27 2020 +0900
+
+    [VM][I366_NP21] .
+
+commit 0cf418151e3cdfa0427ba93f39ffe10d238aea0e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 15 03:03:02 2020 +0900
+
+    [VM][FMTOWNS][CDROM][WIP] Adjusting transfer timings.
+
+commit 00b311c5e8c710647d272e058237cb05dcc1ee2c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 15 02:33:29 2020 +0900
+
+    [VM][FMTOWNS][SPRITE] Event driven sprite.
+
+commit 984e8f0423f547641dbd100a4b3b982d78c6d63c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 15 01:51:52 2020 +0900
+
+    [VM][FMTOWNS][DOC] Update 00_status.ja.md.
+
+commit ea9aa246d872b6cc2ca72b84cd7a9e7ea5e73d76
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 15 01:35:19 2020 +0900
+
+    [VM][FMTOWNS][SPRITE] Implement correct offset handling and clipping feature.
+
+commit c8e4b46f0a9a4a306350fb626bc6c3a43f234ddf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 14 23:39:44 2020 +0900
+
+    [VM][FMTOWNS][CRTC] (Maybe) Fix around offset.Fix Kyukyoku Tiger, but some softwares still be wrong.
+
+commit f93bcea0d2367119b463837f874c5b1f3266c328
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 14 14:36:06 2020 +0900
+
+    [VM][FMTOWNS][CDROM] .
+
+commit 337ee71154feac5bce092ce3f1c4296f2c1792c3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 13 16:48:11 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Reply status immediately with PLAY/PAUSE/UNPAUSE without STATUS BIT (44h/C5h/C7h).
+
+commit 84dfa8dce2b914950307a8d24468d7c6423144d3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 13 16:46:46 2020 +0900
+
+    [VM][FMTOWNS][SPRITE][WIP] Fix not alignment Via background and sprite.This still be imcomplete.
+
+commit ac35580804ff9206377a8b87fab3d02d43e576ae
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 13 02:54:13 2020 +0900
+
+    [VM][FMTOWNS][RF5C68] Reload data pointer when re-enable a channel. Fix not voice at SUPER REAL MAHJONG PIV.
+
+commit 0f7840df1b5ea0eb5bff7a519c77d66aaffe612a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 12 14:23:43 2020 +0900
+
+    [DRAW][GL][OOPS] I FORGOT ADD qt_glutil_gl_tmpl.cpp TO GIT (T_T) Sorry for https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/62 .
+
+commit bcbea74fa8d49dc87046983aa9e214f6a737c04b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Nov 11 13:19:56 2020 +0900
+
+    [UI][Qt][MOUSE] Add mouse sensitivities config.Still not implement GUIs.
+    
+    [UI][Qt][MOUSE] Send global position when capturing.
+
+commit 6b472046aa67397a13d2c713ee66b36e7058e81a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Nov 11 12:17:35 2020 +0900
+
+    [OSD][Qt][MOUSE] Calculate delta only in update_input().Stop to calculate per move_mouse() event.
+
+commit 30e076ad879616b14b690a96903eaefdb32295c6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 20:27:55 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Command A0h: TOWNS_CD_ACCEPT_WAIT must be only after CDROM_COMMAND_STOP_CDDA.
+
+commit 9d70c06944696b94e7b10a82930f8b140cf497d4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 19:51:59 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Re-Enable fast DMA transfer.
+
+commit 680eea58b119987eea3ac2df1a1347c4bfbe20a4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 19:41:10 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Fix TYPOs on comment.
+
+commit 3af1f30e062d319c7ebdd645c27bd4168758143e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 19:40:28 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Remove unused comments.
+
+commit 27f1b3055050a4019fb3feec030ad668c1c03c96
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 19:33:42 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Fix around command 80h (SET STATE).May work RANCE III and SUPER REAL MAHJONG PIV.
+
+commit 5b1379482d3e2d0f93ab3ef3247b8cf7f2f6da2b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 16:07:20 2020 +0900
+
+    [VM][FMTOWNS][CDROM] towns_cdrom.cpp: Revert to cdfc81b7398812d0f9206d5b978808fcbc5ebf0e and fit to new APIs.
+
+commit 5bf00bb380f2cd9412e07e7fbaf09efc73c9bd65
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 15:51:13 2020 +0900
+
+    [VM][FMTOWNS][CDROM] towns_cdrom.cpp: Prepare to revert commit cdfc81b7398812d0f9206d5b978808fcbc5ebf0e.
+
+commit 10384afbdbfa5f582e0eb56a70f135c8dbf81f3b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 00:42:31 2020 +0900
+
+    [DRAW][OpenGL][Qt] Move more methods to GLDraw_Tmpl::.
+
+commit ba7e31091ef957cad2f6a0fbe931a3b87d47cdac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 9 23:44:50 2020 +0900
+
+    [DRAW][Qt] Move more methods to GLDraw_Tmpl:: .
+
+commit 0e9909a74c42ef624c8bc9bfd57675a6123a0d14
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 9 15:23:50 2020 +0900
+
+    [Qt][DRAW][OpenGL] Move duplicated methods to GLDraw_Tmpl::.Make GLDraw_3_0:: to child of GLDRaw_Tmpl::.
+
+commit db6cd745ae274788130860cb7d9afcf45922a42c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 9 05:02:56 2020 +0900
+
+    [VUILD][CMAKE] Remove duplicated compilation : emu_thread_slots.cpp .
+
+commit 7618fc2b2c08d725869e38f61cce34d3b00b0840
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 9 04:19:15 2020 +0900
+
+    [UI][Qt][MOUSE] .
+
+commit 114e8bbc4d8f44758a90a0e62bf4ec0723b32a0e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 9 04:16:31 2020 +0900
+
+    [UI][Qt][DISPLAY] FLOPPY: Use 5inch icon using 5inch floppy.
+
+commit fb3efb9bdcf20e86b6a4ba9af3ffeb7d78d1b0dc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 9 04:15:44 2020 +0900
+
+    [UI][Qt][MOUSE] Fix not press buttons via mouse for one-board-computers.
+
+commit 1d90ba9d4d2989b1ffcf617221639b826726c0f7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 8 14:16:12 2020 +0900
+
+    [BUILD][LINUX] Compress debug symbols.
+
+commit f80cb48e2e586deb2d51c45e07ee7ab3d1153f65
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 6 15:42:06 2020 +0900
+
+    [VM][FMTOWNS][CDROM][WIP] Implementing around command; CDDA STOP (84h).
+
+commit e65ac6840d1497d5acc7222937f11e3ad4510344
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 6 13:51:28 2020 +0900
+
+    [VM][DEVICE] Add APIs to DEVICE::; clear_event(), force_register_event(), check_and_update_event() and variants.
+
+commit 083a7227470e26c71c36ebd1178e33b69d41b9af
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 25 20:38:27 2020 +0900
+
+    [Qt][EMU][EMU_THREAD] MOVE a lot of methods to EMU_TEMPLATE:: and EmuThreadClassBase::.
+
+commit 6b38c9b37cbc16cc4a5cac6d54c4540a65484da8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 24 18:05:51 2020 +0900
+
+    [Qt][OSD] Fix linkage error for OSD, WIN32.
+
+commit 72f9093133b9cb9afc2052a7346476b1dcac0990
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 24 17:55:12 2020 +0900
+
+    [OSD][Qt] Fix linkage error at WIN32.
+
+commit a7c59461161ea8ae62917556943c8b4eb87d1fda
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 24 17:35:05 2020 +0900
+
+    [Qt][OSD] Mostly move functions to libCSPosd.
+
+commit d0e4c7095f81d634cc1528c7f6dfbd4b5811b6fc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 24 16:37:58 2020 +0900
+
+    [Qt][OSD] Inherit OSD_BASE to QObject.Maybe not needed threading.
+
+commit 4bb37df00b61f4fae9a07adb6a19afcf2b22651c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 24 16:28:47 2020 +0900
+
+    [Qt][OSD] Fix FTBFS.
+
+commit 5ca54ec7ee1fc09a5e77bcb2507e084cde2901ba
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 24 16:25:55 2020 +0900
+
+    [Qt][OSD] TRY: Change inherit from QThread to QObject.
+
+commit 820f9ce3e53e2e34b3da5d50eb8f393a7a82b8fc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 23 09:17:01 2020 +0900
+
+    [BUILD][CMAKE] Update toolchains and bootstrap scripts.
+
+commit aa7210694d6885a3d260f8d36d57a19ccd592a00
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 23 09:10:39 2020 +0900
+
+    [Qt][VM] .
+
+commit e847cb693700870953ade905e7aa4d468d7755ab
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 23 08:54:52 2020 +0900
+
+    [VM][Qt] Update Qt_Utils.
+
+commit 7ba92fbb4ab3d51dd4f689589455f9a74911b5dd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 23 08:44:03 2020 +0900
+
+    [Qt][VM] Adjust launching timing.
+
+commit 6cdfc713f3d4d14e95223acddd69cf9f94477c3e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 23 08:42:24 2020 +0900
+
+    [Qt] .
+
+commit efecbda33c146a66b2ceae63e9f202fc5591d3b5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 23 08:33:53 2020 +0900
+
+    [VM][Qt] EmuThread/DrawThread: Wait (not start) until complete to prepare GUI.
+
+commit 39ebf91da47b36f554a6f5c5720eb2569d5aa875
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 23 08:03:56 2020 +0900
+
+    [Qt][Draw][BOOTUP] Not start thread at Ui_MainWindow::LaunchEmuThread().
+
+commit 9b5def43aa33867efec474597fd0ca0ffd64cff6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 23:48:04 2020 +0900
+
+    [EMU][Qt] Don't out LOG until logger set up.
+
+commit 811d8e996efee712c01c405ed2d8317d17b269cb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 23:35:56 2020 +0900
+
+    [EMU][Qt] Block execution EMU until prepering GUIs.
+
+commit 62b9cce2aec2d1d1eb70d0f23df2f8bb2db28fd1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 23:02:51 2020 +0900
+
+    .
+
+commit 5bfdeb058b469afc450c34b30b0c4a8bfe739e34
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 22:57:52 2020 +0900
+
+    [UI][Qt] Re-Order around GLView.
+
+commit c8614634fbeaecbf52e0beaaa90098526f7f7f1d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 22:52:02 2020 +0900
+
+    [VM][Qt] .
+
+commit 0fc03673899f0597c094173ab06c35a4e261912b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 22:48:33 2020 +0900
+
+    [Qt][MAIN] Re-Order launching threads.
+
+commit ef044b05b1586a567591e29632fba92c3839f70c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 22:14:57 2020 +0900
+
+    [VM][FMGEN] .
+
+commit f3a98ce361c1e8f8cd6df757bc3296326de79de2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 22:12:39 2020 +0900
+
+    [VM][FMGEN] .
+
+commit 615459762132b390df0c0395b75d726b293d1b32
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 22:02:35 2020 +0900
+
+    [VM][FM7] .
+
+commit d8f00d6f12bc705c25fca94e56abf4919a94759a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 21:59:14 2020 +0900
+
+    [VM][FM7] .
+
+commit 3aa936b093f26faf0aad278de11a22971be27504
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 21:48:00 2020 +0900
+
+    [VM][FM7] .
+
+commit 7a9ee48b83d9f38a1f5059fb84e2f7456d97d31a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 21:45:57 2020 +0900
+
+    [VM][FM7] .
+
+commit f32dad5af3853dba3eee8022db5a07477f8d5ed4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 21:43:46 2020 +0900
+
+    [VM][FM7] .
+
+commit 366828f06391d39b4f9817b7f49476696695dc63
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 21:37:32 2020 +0900
+
+    [VM][MB8877] Fix memory leak on state saving/loading.
+
+commit 2f3ae11563d9e91bb21bb38ef1f4e5c1713a914b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 21:36:56 2020 +0900
+
+    [VM][FM7][DISPLAY] Fix not resume digital palette on loading state.
+
+commit 767d21b9ff4734420f61923774cdb0dddd9b44d4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 21:12:50 2020 +0900
+
+    [VM][FM7][MAINMEM] Fixing MEMORY LEAK.
+
+commit 8f4b0405bcdc6c1461eca4f4381970c28824bc8b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 20:30:25 2020 +0900
+
+    [COMMON] Fix access violation in high/low pass filters.
+
+commit 375d77cba6c3295fb48c7ea4d25d669ceed15138
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 20:25:22 2020 +0900
+
+    [VM][PCM1BIT] Fix memory access violation in high-pass/low-pass filter.
+
+commit 70cc123bc713dfd08d534189b81a3b13c06628da
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 19:59:05 2020 +0900
+
+    [VM][FM7] Resume allocate order of device classes.
+
+commit 3ce2572e3698a0e05bfaa6c45075cb273a52ac47
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 19:52:59 2020 +0900
+
+    [OSD][Qt] Fix using pointer after freeing.
+
+commit b99fadf3dea99a71a997a6aa2ab7e82714e29966
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 16:17:17 2020 +0900
+
+    [VM][FM7][DISPLAY][MAINMEM] Seems to break memory at FM7_MAINMEM::initialize().Will fix.
+
+commit fde17baa886666854c81cbd0e72c86cef8543736
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 16:13:57 2020 +0900
+
+    [VM][FM7] .
+
+commit 996f9047c96ca7be0eb8f141612f57a65a720214
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 22 16:10:27 2020 +0900
+
+    [VM][FM7][MAINMEM] TRY: Fixing crash at DISPLAY::initialize().This is experiment.
+
+commit f8cea81a469da60f20b153b2df9ea86dfad5e98d
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 21 20:44:04 2020 +0900
+
+    [VM][FM7][DISPLAY] Adjust alignment of some variables.
+
+commit c420b5b9927309bd097bc17bffedb3112d9f1153
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 21 05:42:12 2020 +0900
+
+    [BUILD][CROSS_LLVM][WIN32] Fix Linkage error on build.
+
+commit d9f080c5d0920643eb4ebf4b8a7d4a6ed1314d85
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 21 03:42:21 2020 +0900
+
+    [BUILD][CROSS_LLVM] .
+
+commit 6718a56ef3471f24125e23abc2964054651050a2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 21 03:17:04 2020 +0900
+
+    [BUILD][CMAKE][WIN32] Add sample bootstrap script and toolchains for LLVM11.
+
+commit 8cffffc9a3ced37c1cee0aa7a76b4b6e08963226
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 21 02:51:43 2020 +0900
+
+    [BUILD][CMAKE] Remove older build scripts.
+
+commit dea090b99efe78d5d67df04b429ee367593469c6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 21 02:39:28 2020 +0900
+
+    [SCRIPT][LLVM_TOOLCHAIN] Add README.md *temporally*.
+
+commit 0df74e30eed0bebdad9f3b6e6c131e7fa4287ba7
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 21 02:21:54 2020 +0900
+
+    [VM][PC9801][CPUREG] Fix FTBFS with Win32.
+
+commit 89978d26371b8e9ebc385ce856a95d645bb54330
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 21 02:20:46 2020 +0900
+
+    [TOOL] Add cross-build tool for llvm-clang-win32.
+
+commit 392c34aab27da29fec373d38cbc34c059835801a
+Merge: e79394c7 4389a813
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 16 04:56:00 2020 +0900
+
+    Merge branch 'master' of github.com:Artanejp/common_source_project-fm7
+
+commit e79394c70df0ea14e1e3bb67f843f477127cfe11
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 16 04:53:46 2020 +0900
+
+    [VM][JX][I86] Fix FTBFS.
+
+commit 4389a8138b1954af0f66f698da3525596870755b
+Merge: d23256db 8e9defad
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 16 04:36:02 2020 +0900
+
+    Merge branch 'master' of github.com:Artanejp/common_source_project-fm7 into master
+
+commit 8e9defad2ee0183cd68f7fd03809725bd32c9b5a
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 16 04:34:57 2020 +0900
+
+    [VM][WIN32] Fix FTBFSs.
+
+commit d23256db7826a760c32938803a8bc774141a73c2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 16 04:13:21 2020 +0900
+
+    [VM][FM7][DISPLAY] Optimize to be faster.
+
+commit 798bb9b208ac1ba623b5654ced79d75db78594d3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 16 04:03:03 2020 +0900
+
+    [VM] Make event() and mix() (and some functions) with __FASTCALL.
+    
+    [COMMON] Make method of pairXX_t with __FASTCALL.
+
+commit 3ab5dbeb8054b803cc3f492b4279ed0251eea069
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 15 18:25:34 2020 +0900
+
+    [VM][MICOM_MAHJONG][SVI3X8][TVBOY] WIN32: Fix FTBFS around __FASTCALL .
+
+commit 6048b0425148b7980fc62c07746153c2d5359b27
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 15 17:24:26 2020 +0900
+
+    [BUILD][CMAKE][libCSPgui] Update SOVERSION.
+
+commit 56438d5878861c3c2e93f2877895b9dd971bfee7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 15 17:22:08 2020 +0900
+
+    [Qt] Fix failure starting args "--fdx" "--bubx" with  D88/D77/B77 file. Maybe fixed https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/30 .
+
+commit e24cb117e00bfc8dc997f15ef3cd9dbd5b39176c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 15 16:33:47 2020 +0900
+
+    [UI][Qt][WIP] TRY: Fixing not found disk file include kanji (or another non-latin character) as filename.This issue maybe happen at non-UTF-8 locale.
+
+commit 1a5e1c06e3eab97d012f5a6bad308f182c384a4e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 15 00:44:52 2020 +0900
+
+    [Draw][OpenGL][SHADER] Split distortion shader to a shader.
+
+commit 4166dba81e016c003a7b4d1562a1dba8b9e2ec70
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 15 00:15:01 2020 +0900
+
+    [Qt][OPenGL][DRAW] Add fragment shader for aftergrowing, This still be WIP.
+
+commit e19e37e3ed7ea60323a3fce542371fcb659f78a2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 14 23:36:51 2020 +0900
+
+    [VM][MICOM_MAHJONG][SVI3X8][TVBOY] Add VMs and UIs for them.Fix some FTBFS.
+
+commit f431e1362345e18ca76fc3a12ee2b25fe364823d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 14 22:02:14 2020 +0900
+
+    [DOC] Update upstrem revision.
+
+commit 858b78e2dae4ba0ff0628ef21bb0daa62c3f8ddb
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Oct 14 13:52:43 2020 +0900
+
+    [BUILD][WIN32] Update bootstrap script.
+
+commit dc68b1d0952883268abd36933e9345028c510a7c
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 13 11:47:14 2020 +0900
+
+    [BUILD][CMAKE][WIN32] Update build toolchain and script.
+
+commit f3b5663943c7614e86948303d0c441df8fc7aa72
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Oct 13 11:40:37 2020 +0900
+
+    [BUILD][WIN32] Update cross building scripts for some external libraries.
+
+commit f53f9f9e28b4bef49c12580d97ffbf0e9eb40b63
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 12 07:34:12 2020 +0000
+
+    [BUILD][TOOLCHAIN][WIN32] Update cross-build X264 script.
+
+commit a1af439551e6ea4dfec85d854b0fb0bd984e0297
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 12 02:34:54 2020 +0900
+
+    [BUILD][CMAKE] FORCE SET C++ STANDARD to C++11.
+
+commit 378606dc9267c49f3214c5056a777273cb21385b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 12 01:52:08 2020 +0900
+
+    [OSD][Qt] Expect to fix FTBFS for Win32/64 build.
+
+commit 11a0ca9a9c30ea1f3301d25fec4dbfcc3cf1fc5c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 12 00:43:10 2020 +0900
+
+    [General] Add RESOURCES, and some license documents convert character code to UTF-8.
+
+commit c75506b47d1ba79e7859ea71c4d44d697d2513b1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 12 00:35:29 2020 +0900
+
+    [VM][SVI3X8][General] Merge Upstream 2020-08-16, UIs hasn't implement yet.
+
+commit dd9f7ad32ed9667f16d6a58ea92878c2b53b3920
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 12 00:03:31 2020 +0900
+
+    [BUILD][CMake] Update TVBOY.
+
+commit f162c21d1f960fe91e594db5f622be648cc0a900
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Oct 12 00:01:30 2020 +0900
+
+    [VM] Merge Upstream 2020-08-14.
+
+commit fe6b1e11da1fa29d1e8c0abfa6b1e48afebdfe5e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 23:37:17 2020 +0900
+
+    [General] Maybe fex FTBFS.
+
+commit 613717947af5068a9bf4477d6e4510576609b790
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 23:30:32 2020 +0900
+
+    [General] Merge Updtream 2020-08-10.
+
+commit dc5fa295505532b74f1c54516db506c05469d0ac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 22:16:02 2020 +0900
+
+    [VM][HUC6280][TMS9995] Fix FTBFS.
+
+commit 5c870d14b87fe0b1b6178536d05518e6c2ed7107
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 22:11:42 2020 +0900
+
+    [VM][M6502_DASM][TF20] Fix FTBFS more.
+
+commit 373e507543d7bb93c25bf7e24191fc6407ef0a7c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 20:42:05 2020 +0900
+
+    [VM][SCSI_HDD] Fix FTBFS.
+
+commit ac2564cd7e7b8e74221f3c8790bc1bdc953ac41c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 20:16:17 2020 +0900
+
+    [OSD][Qt] Fis FTBFS.
+
+commit b3bf4870c89bd60565168d77d406fcc422259ac0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 20:02:56 2020 +0900
+
+    [VM][SY6522] .
+
+commit 07f7e17a7e9fe80e8e0a30d333e2642e4f389ae8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 19:58:45 2020 +0900
+
+    [VM][MZ1P17] .
+
+commit 411dab0150d68cc029740c158e2b4c2d8a856857
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 19:51:43 2020 +0900
+
+    [VM][COMMON_VM] Maybe FIX FTBFS.
+
+commit b9be4448efd5be245ff8afd946491e116c731198
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 19:16:05 2020 +0900
+
+    [VM][FM16BETA] Fix FTBFS.
+
+commit 8decc191c340194ecf061abe2912d912912eaf3b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 18:41:08 2020 +0900
+
+    [CONFIG] Truely fixed forgetting configulations.(´・ω・｀)
+
+commit 1c1cacdf70f75361336edde85befa141b1d1909a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 18:33:56 2020 +0900
+
+    [CONFIG] Fix forgetting data of config file.Maybe fixed (；´Д｀)
+
+commit b5bbf961d4922c2c11766a624b86834b26b19e67
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 09:16:20 2020 +0000
+
+     [BUILD][WIN32] At last, libCSPcommon_vm made DLL  （＾＿＾）
+
+commit 1242a73db74c5f86c72a681d7608ad399fb2f14b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 18:07:39 2020 +0900
+
+    [BUILD][WIN32][COMMON_VM] Add DLL_PREFIX to classes, including CSPcommon_vm.
+
+commit be08f51458d35052ba14c7c991bba403f7db99ce
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 17:44:32 2020 +0900
+
+    [BUILD][WIN32] TRI:WIN32: Make CSPcommon_vm DLL(3).
+
+commit e6ef28e20e4479db8b217c83bf6e232c9a61bd98
+Merge: 5a825395 96659987
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 08:40:10 2020 +0000
+
+    Merge branch 'master' of github.com:Artanejp/common_source_project-fm7
+
+commit 5a8253956dc19604ec9a05d22663f780c0fddfd3
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 08:34:43 2020 +0000
+
+    [BUILD][WIN32] TRY:WIN32: Make libCSPcommon_vm DLL.(2)
+
+commit 966599872c1a9a7b1fed02195a6c91e169cbddfc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 17:32:22 2020 +0900
+
+    [BUILD][Win32] TRY:WIN32: Make CSPcommon_vm DLL (1).
+
+commit dd380f3802d482631206b4e7c59d587291d1c31a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 00:48:41 2020 +0900
+
+    [Draw][OpenGL] Delete unused shaders.
+
+commit 18eaed4572486e6482a2b024327bd0e6f40b0ce5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 11 00:42:35 2020 +0900
+
+    [DRAW][OPenGL] Integrate shaders beyond GL version, excepts GL2.x.
+
+commit 422550232b926ab9ac3685f9e23b374fb1b1c119
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 10 00:50:32 2020 +0900
+
+    [DRAW][Qt][GL4_5] Fix around TV-Rendering.WIP.
+    
+    [DRAW][QT][GL4_5] Prepare to implement screen distortion.
+
+commit dd5af559c7bf83a5af642e249fb087e6432977a4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 8 04:53:12 2020 +0900
+
+    [DOC] Add INSTALL.md .
+
+commit 9dea83733f6070be8c40a71057d04e0a98bc460d
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 4 17:02:35 2020 +0900
+
+    [BUILD][CMAKE] Available to build for Ubuntu Xenial (16.04LTS).
+
+commit ac4b1bffa3fffaa6acb9952fce046ae17ea5ac12
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 4 06:55:58 2020 +0000
+
+    [BUILD][CMAKE][WIN32] Adjust optimize vaules.
+
+commit c7a2060a6f8f7d9bb9ef2fe4220883308f54a1f3
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Oct 4 06:08:49 2020 +0000
+
+    [BUILD][CMAKE][WIN32] Fix FTBFS for emumz2500.
+
+commit c42971bc3639779c5abf0bc0215e24191f7aee41
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 3 16:50:36 2020 +0000
+
+    [BUILD][CMAKE][WIN32] Available to cross build for Win32, with CLANG/Docker.
+
+commit d38ffb56c834792b46e3cb11e90cce1a9f964e6e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 3 16:33:09 2020 +0900
+
+    [BUILD][CMAKE] Add lacked VMs.
+
+commit 11c710bbb1186c7dfa44a34b98f6a9ac9e88d776
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 3 16:07:12 2020 +0900
+
+    [BUILD][CMAKE] I forgot to commit vm/CmakeLists.txt and machines/ X-)
+
+commit 836e2c6ba80dbbb3144d45d15b4d3d5c788d45f7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 3 16:06:17 2020 +0900
+
+    [BUILD][CMAKE] Add EPSON, TOSHIBA and SEGA.Maybe all VMs are buildable again.
+
+commit 87c23f3ae7114b78774f0e3338453ef3f8c610bc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 3 16:04:58 2020 +0900
+
+    [BUILD][SCRIPT][GCC] Add LTO.
+
+commit d074211803c254506ac4cbfce900929ebe4dce24
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 3 15:03:20 2020 +0900
+
+    [BUILD][CMAKE] Move scripts to source/sample-scripts/ .
+
+commit dd1878b4792c821cfe829811e56de9a18d992060
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 3 15:00:52 2020 +0900
+
+    [BUILD][CMAKE] Scripts moved to under source/cmake/ .
+
+commit ce36d64d63a5739b1a45ddebf07cc5ccfaccfb0c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 2 23:40:02 2020 +0900
+
+    [BUILD][CMAKE] .
+
+commit b584302fe8f1b872d9d085ec49bef8602147c285
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 2 23:33:48 2020 +0900
+
+    [BUILD][CMAKE] Add sample script for gcc.
+
+commit c786b08f779da361b1ca8bb4f46c9481492766c8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 2 22:12:08 2020 +0900
+
+    [VM][Z80] REduce warning.
+
+commit 27092b2bb9aa8c92ee6e6df10fcd62de07c96f6c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 2 22:11:34 2020 +0900
+
+    [BUILD][CMAKE] Fix FTBFS with CLANG.
+
+commit 3016ef4cb5b05ba43f2f880270ef038317ee80f4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 2 19:17:57 2020 +0900
+
+    [BUILD_DEFAULT] Fix TOOLCHAIN's path.
+
+commit d54c978b59f00d6593bbaf1ca0d6e4fa6e462abe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 2 19:00:07 2020 +0900
+
+    [BUILD][CMAKE] TRY: Adding LTO, use build-cmake/cmake/build_default_vars.sh to set default vars fo GNU/Linux.
+
+commit a989fdc07f4abeefad66bc70b486c795a63a0f52
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 2 17:51:37 2020 +0900
+
+    [BUILD][CMAKE][PC9801] Fix FTBFSs.
+
+commit feeff5ee3c6c8f09fd4b4f29356cb1b07b097102
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 2 17:48:54 2020 +0900
+
+    [BUILD][CMAKE] Add PC-9801 series and misc computerc.
+
+commit ab3c7e688f1fb4da7e834e703169efb85ba51004
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 2 15:50:43 2020 +0900
+
+    [BUILD][CMAKE] Add FM R series.
+
+commit 8de2135a9d44b18ba895bf701afcd9007af3e29d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 2 15:42:28 2020 +0900
+
+    [BUILD][CMAKE] Add MZ-2800, 3500 , 5500, 6500 and 6550.
+
+commit ed2371933c5f53af29cc32ef5c94417892e83534
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 2 15:38:55 2020 +0900
+
+    [BUILD][CMAKE] Add FM16β and FM16π.
+
+commit f1d18af69b822c45f293703e2833bc694cb08cb2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 2 15:38:30 2020 +0900
+
+    [BUILD][CMAKE] ADD MSXs.
+
+commit 6fc80dc9e606487f466c2f6224e5f08cc896193c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 2 15:37:34 2020 +0900
+
+    [BUILD][CMAKE] Add CASIO's machines (FP-1100, FP-200, PV-1000 and PV-2000).
+
+commit b80d038760b3dc937d40956de200aa8847036c78
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 2 12:36:54 2020 +0900
+
+    [UI][Qt][MZ2800] Fix crash on start.
+
+commit 78c13dec92475493e8d2b84f13dfcf7f7c6f2511
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 2 04:47:26 2020 +0900
+
+    [NET][Qt] Re-implement around TCP/IP, UDP/IP.MZ-2500 works.
+
+commit 47f355de2cb8b35bfdec9a121d14c986d20ba3bb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 1 17:12:51 2020 +0900
+
+    [BUILD][CMAKE] Add some MZs.Excepts MZ2500 due to linking.
+
+commit b0611a3cd67b76ca19ecc43b7136cc5a12f95fc1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 1 06:30:31 2020 +0900
+
+    [Qt][DRAW][GL2][GL3] SHADER: Stop to use discard.
+
+commit 8bae5f4e20b145ce805a9dbf5bb4e83d9bc0b4af
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 1 04:25:00 2020 +0900
+
+    [BUILD][CMAKE] Fix FTBFSs.Add RESOURCE per VM.Add emutk80.
+
+commit c02de91bfe17b625d3dc32d80a4c0b9a69a476fb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 1 01:01:30 2020 +0900
+
+    [BUILD][CMAKE] .
+
+commit 3ce016bfef1b83f61d203b8ec3b7658cb4f0ff18
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 1 00:53:24 2020 +0900
+
+    [BUILD][CMAKE] Add pc-6001 series.
+
+commit 2186fdd09bc08d894875917f2abd2df2c4c9c119
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 1 00:34:33 2020 +0900
+
+    [BUILD][CMAKE][TEST] Try to resolve https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/33.
+
+commit d4a1429757474c7747bd236f2f3a9b6c34757e07
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 1 00:31:33 2020 +0900
+
+    [BUILD][CMAKE] Add X1 series and PC-8001/8801 series and Single board computers.
+
+commit 2525e95d71517c6b87c676a4bf17995f5556eed2
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 30 22:41:13 2020 +0900
+
+    [BUILD][CMAKE] May success to detect both Ubuntu and Debian.
+
+commit fb270d67e615d6266fbed31e70a65d22fec0ad8c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 30 22:18:52 2020 +0900
+
+    [BUILD][CMAKE] .
+
+commit 6497525268dbd3a14d2aa7eaf7e02e8de51d5811
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 30 22:16:53 2020 +0900
+
+    [BUILD][CMAKE] TRY: Detect from /etc/lsb-release.
+
+commit db2acbec2c2bb4cd4d0db7f2b448787b5bb06b83
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 30 18:33:26 2020 +0900
+
+    [BUILD][CMAKE] Support multiarch LIBDIR.Maybe fixed https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/21-24.
+
+commit 96e153aa1e65b3f907efb827f896a76736105bab
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 30 00:50:54 2020 +0900
+
+    [BUILD][CMAKE] Add toolchain for CLANG10: toolchain_native_llvm.cmake .
+
+commit 3054ccd8404f1e3527a9635d0d21488cf19e7a8b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 30 00:50:15 2020 +0900
+
+    [BUILD][CMAKE] Adjust default values.
+
+commit 27382cee365942bc23f61ca460ec254458e56b98
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Sep 30 00:04:44 2020 +0900
+
+    [BUILD][CMAKE][WIP] TRY: Not using build script, only cmake.
+
+commit acfe1d88c35e1cd1e3f135cae2a91fff6bb2058d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Sep 28 03:25:14 2020 +0900
+
+    [VM][FMTOWNS][JOYSTICK][JOYPAD] More correctness emulation.
+
+commit 0d09c2bd89f6a534f2d54a5b9346722b443e5d1a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 27 23:34:10 2020 +0900
+
+    [Qt][DRAW][OpenGL][GL4_5] Reduce create/destroy buffers at same screen size.
+
+commit 793f7bac811e18cf94be5a15c052c25117d34c25
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 27 23:06:01 2020 +0900
+
+    [Qt][DRAW][OpenGL][WIP] WIP:Make shaders abstraction.
+
+commit 95f99f444a64b708914fa78da3cdffb6620fe3ca
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Sep 27 00:35:10 2020 +0900
+
+    [DOC] Update gitlog.
+
 commit cdfc81b7398812d0f9206d5b978808fcbc5ebf0e
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Sep 27 00:32:11 2020 +0900

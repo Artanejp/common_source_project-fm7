@@ -9,6 +9,7 @@ K.Ohta <whatisthis.sowhat _at_ gmail.com></H3>
 ========
 この文章では、Qt porting for Common Source Code Project (CSP/Qt)のビルド手順について記述します。
 
+
 用意すべきもの(標準)
 =======
 --GCC又はCLANGなどの、コンパイラツールチェイン
@@ -45,9 +46,9 @@ $ `make`
 $ `cd ${SRCROOT}/source`
 $ `mkdir build`
 $ `cd build/`
-$ `cp ../sample-scripts/build_default_vars.llvm.sh .`
+$ `cp ../sample-scripts/${SCRIPT_NAME}.sh .`
 とビルドディレクトリに取って来た後で、
-$ `sh ./build_default_vars.llvm.sh`
+$ `sh ./${SCRIPT_NAME}.sh`
 などとしてブートストラップ設定をして、CMakeがエラー起こさなかったら、
 $ `make {色々オプション}`
 としてビルドしてみましょう。
@@ -56,4 +57,5 @@ $ `make {色々オプション}`
 ===============
 
 普通は、 # `make install`で可能なはずです。Windowsビルドの場合は、まだToDoです。
-							                   Last Update: Oct 08, 2020 04:52:37
+
+                                      Last Update: Dec 16, 2020 00:07:53

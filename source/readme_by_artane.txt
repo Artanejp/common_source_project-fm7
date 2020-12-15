@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         September 26, 2020
+                                         December 16, 2020
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_2020926
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_2021216
 
    追加情報:
    
@@ -165,73 +165,113 @@ Changes:
 
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
 
-* SNAPSHOT September 26, 2020
- * Upstream 2020-04-06.
- * [FMTOWNS/DMAC] Bootable TownsOS v1.1L30 based softwares.
-                  Fix around DMA address mask.
-		  See source/src/vm/fmtowns/00_status.ja.md.
- * [General] Now, version of all DLLs/SOLIBs are 3.0.x.		  
- * [DEVICE] Change API: special_reset(num).
-            This aimes to support FM-Towns's multiple special resetting.
- * [I18N] Prepare to support multiple languages.
- * [Draw/GL4_5] Wait until complete to mapping.
-                Fix crash with QUAZZLE (FMTOWNS;FSW Collection 10).
- * [VM/FMTOWNS][OOPs] Fix fallthroughs.
- * [VM/FMTOWNS] Add IC CARD feature.
- * [FMTOWNS/CRTC] More simple logic at rendering.
- * [FMTOWNS/CDROM] RESTORE/SEEK COMMAND (00h) must seek to lba0, then aimed lba.
- * [FMTOWNS/CDROM] PAUSE COMMAND (85h) : Return extra status even isn't audio track.
- * [FMTOWNS/CDROM] READ MODE1: May not need extra status, integrated after reading.
- * [FMTOWNS/MEMORY] Integrate memory accessing to primitive inline functions.
- * [FMTOWNS/CDROM][WIP] Status around CMD A0h. This is working-in-progress.
- * [FMTOWNS/CDROM][WIP] TRY: Implement PIO transfer.
- * [FMTOWNS/CDROM] Should read per a sector, not variable length.
- * [FMTOWNS/CDROM] Implement pseudo burst transfer for DMA.
- * [FMTOWNS/CDROM] Set CDDA_STATUS=CDDA_OFF before reading data.
-                   Fix スーパーリアル麻雀PIV.
- * [FMTOWNS/SPRITE] Initially works.
- * [FMTOWNS/VRAM] Faster write access via write_memory_mapped_io[16|32]() .
- * [FMTOWNS/TIMER] Disable free run counter before 1H/2H/1F/2F.
- * [FMTOWNS/FLOPPY] Implement some bits and disk changed feature 
-                    (0208h:bit0:R after Towns2H/2F/1H/1F).
- * [FMTOWNS/TIMER] Didable 1uS wait feature wait before xxF/xxH.
- * [FMTOWNS/KEYBOARD] TRY: Boot with 'CD' 'H0' etc.Still works only with 'DEBUG'.
- * [FMTOWNS/SCSI] Add SIG_SCSI_EOT signal.
- * [FMTOWNS/SCSI] Set ctr_reg after sending command to host.
- * [Qt/LOGGER] Fix not initialize (internal)osd_pointer;
-               wish to fix below issue (@Fedora Linux) 
-	       https://matsuri.5ch.net/test/read.cgi/i4004/1526806551/935
-               by this.
- * [VM/I386_NP21] Memory access:Make functions inline to be faster processing.
- * [VM/COMMON_VM] Fix warining of 'set_context_intr' hides overloaded 
-                  virtual function [-Woverloaded-virtual] with LLVM Clang++.
- * [VM/MC6809] Remove MC6809_BASE::, integrated to MC6809:: .
- * [VM/Z80] Remove Z80_BASE::, integrate to Z80:: .
- * [VM/UPD7220] Limit address of PSET.More correctness clock feature.
- * [VM/UPD71071] Fix tc bit down.
- * [VM/UPD71071] Add some signals.
- * [VM/UPD71071][FMTOWNS][MZ2800] Update API; Separate TC signals per a channel.
- * [VM/UPD71071] SREQ is prior than MASK.Don't auto transfer at demand mode.
- * [VM/UPD71071] Implement ENDx signal for stopping DMA from some devices.
+* SNAPSHOT December 16, 2020
+  * Upstream 2020-08-16.
+  * Important: Build system moved to CMake *perfectly*.See INSTALL.md or INSTALL.en.md.
+  * eFM-Towns: Works more softwares.See 00_status_ja.md .
+  * [Qt/JOYSTICK] Add mapping gamecontroller settings.
+	Read from $CONFIG_DIR/joydb.ini as SDL_GAMECONTROLLER format.
+	See https://wiki.libsdl.org/SDL_GameControllerAddMapping .
+  * [VM/I386_NP21] Improve CPU registers message.
+  * [VM/I386_NP21] Print PC address on PANIC.
+  * [VM/DEVICE] Add APIs to DEVICE::; clear_event(), force_register_event(), check_and_update_event() and variants.
+  * [VM/FMTOWNS] CDROM: Implement around commands.
+  * [VM/FMTOWNS] CDROM: Fix around command 80h (SET STATE).May work RANCE III and SUPER REAL MAHJONG PIV.
+  * [VM/FMTOWNS] CDROM: Command A0h: TOWNS_CD_ACCEPT_WAIT must be only after CDROM_COMMAND_STOP_CDDA.
+  * [VM/FMTOWNS] CDROM: Reply status immediately with PLAY/PAUSE/UNPAUSE without STATUS BIT (44h/C5h/C7h).
+  * [VM/FMTOWNS] CDROM: Maybe working with CCD image.
+  * [VM/FMTOWNS] CDROM: Rename delay/status methods to unique name.
+  * [VM/FMTOWNS] CDROM: Don't occure duplicated EOT.
+  * [VM/FMTOWNS] CDROM: Fix not play CDDA with command SPAM.
+  * [VM/FMTOWNS] CDROM: Fix wrong sector size with single track.
+  * [VM/FMTOWNS] CDROM: Implement ISO file feature, MODE1/2/RAW read feature.
+  * [VM/FMTOWNS] CDROM: Fix wrong response at PAUSE/RESUME CDDA (85h/87h).
+  * [VM/FMTOWNS] SPRITE: Fix around zooming and rotating.
+  * [VM/FMTOWNS] CRTC: Available to display LOW RESOLUTION.
+  * [VM/FMTOWNS] MEMORY: Disable shadow write at F8000h-FFFFFh.
+  * [VM/FMTOWNS] MEMORY: Reset memory map when reset from CPU (i.e.Triple fault).
+  * [VM/FMTOWNS] SPRITE: Implement correct offset handling and clipping feature.
+  * [VM/FMTOWNS] SPRITE: Event driven sprite.
+  * [VM/FMTOWNS] VRAM: TRY: Don't wrap around boundary of VRAM (i.e.8107ffff).
+  * [VM/UPD71071] eFM-Towns works without SINGLE_MODE_DMA.
+  * [VM/UPD71071/TOWNS_DMAC] Add debug message for issues, i.e.Bubble Bobble for FM-Towns.
+  * [VM/UPD71071/TOWNS_DMAC] More correctness addressing on R/W.
+  * [VM/FM7] DISPLAY: Optimize to be faster.
+  * [VM/FM7] DISPLAY: Adjust alignment of some variables.
+  * [VM/FM7] MAINMEM: Fix crash at DISPLAY::initialize().
+             Seems to break memory at FM7_MAINMEM::initialize().
+  * [VM/FM7] MAINMEM: Fixing MEMORY LEAK.
+  * [VM/FM7] DISPLAY: Fix not resume digital palette on loading state.
+  * [VM/PCM1BIT][COMMON] Fix memory access violation in high-pass/low-pass filter.
+  * [VM/MB8877] Fix memory leak on state saving/loading.
+  * [VM/COMMON_VM] Move AD78820KR::, RF6C68::, YM2612:: to libCSPcommon_vm.
+  * [VM] Make event() and mix() (and some functions) with __FASTCALL.
+  * [EMU/Qt] Block execution EMU until prepering GUIs.
+  * [EMU/Qt] Don't out LOG until logger set up.
+  * [Qt/Draw] DO not start thread at Ui_MainWindow::LaunchEmuThread().
+  * [Qt/OSD] Inherit OSD_BASE to QObject.Maybe not needed threading.
+  * [Qt/EMU] MOVE a lot of methods to EMU_TEMPLATE:: and EmuThreadClassBase::.
+  * [UI/Qt] MOUSE: Add mouse sensitivities config GUI.
+  * [UI/Qt] Integrate to single MainWindow object.
+            Fix https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/80 .
+  * [UI/Qt] Add confirm on quitting emulator.
+  * [Qt/LOGGER] Add mutex locking to some functions called from logger.
+                Fix crash on quitting a emulator.
+  * [UI/Qt] Change orders of "Emulator Menu".
+  * [Qt/MOUSE] Fix mouse clicking on one-board-computers.
+  * [COMMON] Make method of pairXX_t with __FASTCALL.
+  * [UI/Qt] FLOPPY: Use 5inch icon when using 5inch floppy.
+  * [OSD/Qt] Fix using pointer after freeing.
+  * [DOC] Add INSTALL.md and INSTALL.en.md.
+  * [NET/Qt] Re-implement around TCP/IP, UDP/IP.MZ-2500 works.
+  * [Qt/OpenGL] SHADER: Stop to use discard.
+  * [Qt/OpenGL] Make shaders abstraction.
+  * [Qt/OpenGL 4.5] Reduce create/destroy buffers at same screen size.
+  * [Qt/OpenGL4_5] Fix around TV-Rendering.
+  * [QT/OpenGL4.5] Prepare to implement screen distortion.
+  * [Qt/OpenGL] Integrate shaders beyond GL version and GL/GLES.
+  * [UI/Qt] Fix not update around virtual media display.
+  * [UI/Qt] Fix not found disk file include kanji (or another non-latin character)
+             as filename.This issue maybe happen at non-UTF-8 locale.
+  * [Qt/COMMAND_LINE] Fix failure starting args "--fdx" "--bubx" with  D88/D77/B77 file.
+                      Maybe fixed https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/30 .
+  * [BUILD/CMAKE] Support multiarch LIBDIR.
+	          Maybe fixed https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/21-24.
+  * [BUILD/CMAKE] Try to resolve https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/33.
+  * [BUILD/Win32] Make CSPcommon_vm DLL.
+  * [BUILD/CMAKE] FORCE SET C++ STANDARD to C++11.
+  * [TOOLCHAIN/WIN32] Update cross-build X264 script.
+  * [TOOLCHAIN/WIN32] Update cross building scripts for some external libraries.
+  * Built with 46662e26995354caf47739a7723cd5b96dc67a26 (or later).
 
- * [VM/I8259] Initialize registers by reset().
- * [EMU][UI/FLOPPY] Implement 1sec delayed open() for floppy, 
-                    fix not detect when changing from HISTORY.
- * [X1/DRAW] Fix spending a lot of host CPU usage on draw_screen().
-             This issue has happened at only X1 (not turbo) due to
-             memory aligns and cache lines.
-             Set alignment of RAM and some values.
- * Built with 97db8d7a26eb8eeb7722b009456d7c9bcadda0f7 (or later).
-
--- Sep 26, 2020 18:29:40 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Dec 16, 2020 00:40:21 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
 
-4/6/2020
+8/16/2020
 
-[VM/I386_NP21] update to Neko Project 21/W ver0.86 rev72
+[VM/SCSI_DEV] improve to specify data req signal delay (thanks Mr.Sato)
+[VM/SCSI_DEV] fix read6/write6 command in 0 length case (thanks Mr.Sato)
+[VM/SISI_HDD] change drive type to hot swappable
+[VM/SISI_HDD] improve seek time (thanks Mr.Sato)
+[VM/SASI_HDD] support winchester drive parameters command
+[VM/Z80DMA] improve to sense rdy signal as level, not edge (thanks Mr.Sato)
 
+[MZ2500/CRTC] fix sub plane address in 640x200 16colors mode (thanks Mr.856)
+[SVI3X8] support SPECTRAVIDEO SVI-3x8 (thanks Mr.tanam)
+[X1] add menu items for FD2/FD3 (thanks Mr.Sato)
+[X1/DISPLAY] fix high speed pcg definition (thanks Mr.YAT)
+[X1TURBOZ/DISPLAY] improve palette update timing (thanks Mr.Sato)
+
+
+8/14/2020
+
+[OSD/WIN32] support x64 build (thank Mr.Marukun)
+[OSD/WIN32] support Direct2D
+
+[MICOM_MAHJONG] support Nippon Mail Service MICOM MAHJONG (thanks Mr.GORRY)
+[TVBOY] support GAKKEN TV BOY (thanks Mr.tanam)
 
 -----
 
