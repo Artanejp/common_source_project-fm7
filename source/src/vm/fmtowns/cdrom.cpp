@@ -977,19 +977,13 @@ void TOWNS_CDROM::set_extra_status()
 		break;
 	case CDROM_COMMAND_PAUSE_CDDA:
 		if(extra_status == 1) {
-			set_status_extra(TOWNS_CD_STATUS_ACCEPT, 0x01, 0x00, 0x00); // From Tsugaru
-			extra_status++;
-		} else if(extra_status == 2) {
 			set_status_extra(TOWNS_CD_STATUS_PAUSE_DONE, 0x00, 0x00, 0x00);
 			extra_status = 0;
 		}
 		break;
 	case CDROM_COMMAND_RESUME_CDDA:
 		if(extra_status == 1) {
-			set_status_extra(TOWNS_CD_STATUS_ACCEPT, 0x00, 0x00, 0x00); // From Tsugaru
-			extra_status++;
-		} else if(extra_status == 2) {
-			set_status_extra(TOWNS_CD_STATUS_RESUME_DONE, 0x00, 0x00, 0x00);
+			set_status_extra(TOWNS_CD_STATUS_RESUME_DONE, 0, 0x00, 0x00); // From Tsugaru
 			extra_status = 0;
 		}
 		break;
@@ -2026,23 +2020,26 @@ uint32_t TOWNS_CDROM::lba_to_msf_alt(uint32_t lba)
 
 void TOWNS_CDROM::unpause_cdda_from_cmd()
 {
-	if((cdda_status == CDDA_PAUSED) &&
-	   (current_track >= 0) && (current_track < track_num)
-	   /*&& (toc_table[current_track].is_audio)*/) { // OK?
+	if(!(mounted())) {
+		status_not_ready(false);
+		return;
+	}
+	if((media_changed)) {
+		status_media_changed(false);
+		return;
+	}
+	if(cdda_status == CDDA_PAUSED) {
 		set_cdda_status(CDDA_PLAYING);
 		/*!
 		 * @note This may solve halt incident of Kyukyoku Tiger, but something are wrong.
 		 * @note 20201113 K.O
 		 */
-	   if((stat_reply_intr) && !(req_status)) {
-		   set_subq();
-//			set_status_cddareply(true, 1, 0x00, 0, 0x00, 0x00);
-		   set_status_cddareply(true, 0, TOWNS_CD_STATUS_RESUME_DONE, 0, 0x00, 0x00);
-		   return;
+		set_subq();
+		if(req_status) {
+			set_status_cddareply(true, 1, TOWNS_CD_STATUS_ACCEPT, 0x01, 0x00, 0x00);
+			return;
 		}
 	}
-	set_subq();
-	status_accept(1, 0x00, 0x00);
 }
 
 void TOWNS_CDROM::stop_cdda_from_cmd()
@@ -2056,18 +2053,12 @@ void TOWNS_CDROM::stop_cdda_from_cmd()
 		//next_status_byte = 0x0d;
 		return;
 	}
-//	if(/*(status != CDDA_OFF) && */
-//		(current_track >= 0) && (current_track < track_num)
-//		&& (toc_table[current_track].is_audio)) { // OK?
 	/// @note Even make additional status even stop.Workaround for RANCEIII.
 	/// @note - 20201110 K.O
-		set_cdda_status(CDDA_ENDED);
-		set_subq();
-		status_accept(1, 0x00, 0x00);
-		return;
-//	}
-//	set_subq();
-//	status_accept(0, 0x00, 0x00);
+	set_cdda_status(CDDA_ENDED);
+	set_subq();
+	status_accept(1, 0x00, 0x00);
+	return;
 }
 
 void TOWNS_CDROM::pause_cdda_from_cmd()
@@ -2086,15 +2077,12 @@ void TOWNS_CDROM::pause_cdda_from_cmd()
 		 * @note This may solve halt incident of Kyukyoku Tiger, but something are wrong.
 		 * @note 20201113 K.O
 		 */
-	   if((stat_reply_intr) && !(req_status)) {
-		   set_subq();
-//		   status_accept(0, 0x00, 0x00);
-		   set_status_cddareply(true, 1, TOWNS_CD_STATUS_ACCEPT, 0, 0x00, 0x00);
+	   set_subq();
+	   if(req_status) {
+		   set_status_cddareply(true, 1, TOWNS_CD_STATUS_ACCEPT, 0x01, 0x00, 0x00);
 		   return;
 	   }
 	}
-	set_subq();
-	status_accept(1, 0x00, 0x00);
 	return;
 }
 
