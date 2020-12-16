@@ -362,7 +362,6 @@ bool Ui_MainWindowBase::get_dipsw(int num)
 void Ui_MainWindowBase::closeEvent(QCloseEvent *event)
 {
 	if(about_to_close) {
-//		event->accept();
 		return;
 	}
 	QMessageBox::StandardButton ret =
@@ -373,8 +372,8 @@ void Ui_MainWindowBase::closeEvent(QCloseEvent *event)
 							  QMessageBox::No);
 	if(ret == QMessageBox::Yes) {
 		about_to_close = true;
-		event->accept();
 		emit quit_emulator_all();
+		event->accept();
 		return;
 	} else {
 		event->ignore();
@@ -950,9 +949,17 @@ void Ui_MainWindowBase::retranslateUi(void)
 
 void Ui_MainWindowBase::doBeforeCloseMainWindow(void)
 {
-	//emit quit_debugger_thread();
-//	about_to_close = true;
-	emit quit_emulator_all();
+	QMessageBox::StandardButton ret =
+		QMessageBox::question(this,
+							  QApplication::translate("MainWindow", "Exit EMULATOR", 0),
+							  QApplication::translate("MainWindow", "Do you QUIT this emulator?", 0),
+							  QMessageBox::Yes | QMessageBox::No,
+							  QMessageBox::No);
+	if(ret == QMessageBox::Yes) {
+		about_to_close = true;
+		emit quit_emulator_all();
+	}
+//	emit quit_emulator_all();
 }
 
 void Ui_MainWindowBase::setCoreApplication(QApplication *p)
