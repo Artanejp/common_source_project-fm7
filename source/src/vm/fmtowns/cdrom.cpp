@@ -2028,18 +2028,15 @@ void TOWNS_CDROM::unpause_cdda_from_cmd()
 		status_media_changed(false);
 		return;
 	}
-	if(cdda_status == CDDA_PAUSED) {
-		set_cdda_status(CDDA_PLAYING);
-		/*!
-		 * @note This may solve halt incident of Kyukyoku Tiger, but something are wrong.
-		 * @note 20201113 K.O
-		 */
-		set_subq();
-		if(req_status) {
-			set_status_cddareply(true, 1, TOWNS_CD_STATUS_ACCEPT, 0x01, 0x00, 0x00);
-			return;
-		}
-	}
+
+	set_cdda_status(CDDA_PLAYING);
+	/*!
+	 * @note This may solve halt incident of Kyukyoku Tiger, but something are wrong.
+	 * @note 20201113 K.O
+	 */
+	set_subq();
+	set_status_cddareply(true, 1, TOWNS_CD_STATUS_ACCEPT, 0x01, 0x00, 0x00);
+	return;
 }
 
 void TOWNS_CDROM::stop_cdda_from_cmd()
@@ -2071,19 +2068,14 @@ void TOWNS_CDROM::pause_cdda_from_cmd()
 		status_media_changed(false);
 		return;
 	}
-	if((cdda_status == CDDA_PLAYING)) {
-	   set_cdda_status(CDDA_PAUSED);
-		/*!
-		 * @note This may solve halt incident of Kyukyoku Tiger, but something are wrong.
-		 * @note 20201113 K.O
-		 */
-	   set_subq();
-	   if(req_status) {
-		   set_status_cddareply(true, 1, TOWNS_CD_STATUS_ACCEPT, 0x01, 0x00, 0x00);
-		   return;
-	   }
-	}
-	return;
+	set_cdda_status(CDDA_PAUSED);
+   /*!
+	 * @note This may solve halt incident of Kyukyoku Tiger, but something are wrong.
+	 * @note 20201113 K.O
+	 */
+   set_subq();
+   set_status_cddareply(true, 1, TOWNS_CD_STATUS_ACCEPT, 0x01, 0x00, 0x00);
+   return;
 }
 
 bool TOWNS_CDROM::seek_relative_frame_in_image(uint32_t frame_no)
