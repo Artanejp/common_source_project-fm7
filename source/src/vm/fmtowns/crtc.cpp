@@ -971,6 +971,7 @@ __DECL_VECTORIZED_LOOP
 			}
 		}
 		if(magx == 1) {
+__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
 				*q++ = sbuf[i];
 			}
@@ -989,14 +990,12 @@ __DECL_VECTORIZED_LOOP
 				j = 16;
 			}
 			j >>= 1;
-__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < j; i++) {
 				q[0] = sbuf[i];
 				q[1] = sbuf[i];
 				q += 2;
 			}
 			if(r2 != NULL) {
-__DECL_VECTORIZED_LOOP
 				for(int i = 0; i < j; i++) {
 					r2[0] = abuf[i];
 					r2[1] = abuf[i];
@@ -1004,16 +1003,15 @@ __DECL_VECTORIZED_LOOP
 				}
 			}
 		} else {
+__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
 				int kbak = k;
-__DECL_VECTORIZED_LOOP
 				for(int j = 0; j < magx; j++) {
 					*q++ = sbuf[i];
 					k++;
 					if(k >= width) break;
 				}
 				if(r2 != NULL) {
-__DECL_VECTORIZED_LOOP
 					for(int j = 0; j < magx; j++) {
 						*r2++ = abuf[i];
 						kbak++;
@@ -1091,7 +1089,6 @@ __DECL_VECTORIZED_LOOP
 				q += 2;
 			}
 			if(r2 != NULL) {
-__DECL_VECTORIZED_LOOP
 				for(int i = 0; i < rwidth; i++) {
 					r2[0] = abuf[i];
 					r2[1] = abuf[i];
@@ -1101,8 +1098,8 @@ __DECL_VECTORIZED_LOOP
 			k += 16;
 			if(k >= width) return true;
 		} else {
-			for(int i = 0; i < rwidth; i++) {
 __DECL_VECTORIZED_LOOP
+			for(int i = 0; i < rwidth; i++) {
 				for(int j = 0; j < magx; j++) {
 					*q++ = sbuf[i];
 					if(r2 != NULL) {
@@ -1202,15 +1199,12 @@ __DECL_VECTORIZED_LOOP
 			if(k >= width) break;	
 		}
 		if((pwidth & 15) != 0) {
-__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < (pwidth & 15); i++) {
 				pbuf[i] = p[i];
 			}
-__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < (pwidth & 15); i++) {
 				sbuf[i] = apal256[pbuf[i]];
 			}
-__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < (pwidth & 15); i++) {
 				scrntype_t s = sbuf[i];
 				for(int j = 0; j < magx; j++) {
@@ -1353,8 +1347,8 @@ __DECL_VECTORIZED_LOOP
 				q += 16;
 				if(k >= width) break;
 			} else {
-				for(int i = 0; i < 16; i++) {
 __DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 16; i++) {
 					for(int j = 0; j < magx; j++) {
 						q[j] = sbuf[i];
 						k++;
@@ -1383,7 +1377,6 @@ __DECL_VECTORIZED_LOOP
 			} else {
 				for(int i = 0; i < 16; i++) {
 					int kbak = k;
-__DECL_VECTORIZED_LOOP
 					for(int j = 0; j < magx; j++) {
 						q[j] = sbuf[i];
 						k++;
@@ -1391,7 +1384,6 @@ __DECL_VECTORIZED_LOOP
 					}
 					q += magx;
 					if(r2 != NULL) {
-__DECL_VECTORIZED_LOOP
 						for(int j = 0; j < magx; j++) {
 							r2[j] = abuf[i];
 							kbak++;
