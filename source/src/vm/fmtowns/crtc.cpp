@@ -923,6 +923,7 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int laye
 	int rwidth = pwidth & 7;
 	
 	int k = 0;
+	
 	for(int x = 0; x < (pwidth >> 3); x++) {
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
@@ -970,56 +971,93 @@ __DECL_VECTORIZED_LOOP
 				sbuf[i] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], 255);
 			}
 		}
-		if(magx == 1) {
+		if(((magx << 3) + k) <= width) {
+			switch(magx) {
+			case 1:
 __DECL_VECTORIZED_LOOP
-			for(int i = 0; i < 8; i++) {
-				*q++ = sbuf[i];
-			}
-			if(r2 != NULL) {
-				for(int i = 0; i < rwidth; i++) {
-					*r2++ = abuf[i];
+				for(int i = 0; i < 8; i++) {
+					q[i] = sbuf[i];
 				}
-			}
-			k += 8;
-			if(k >= width) break;
-		} else if(magx == 2) {
-			int j = pwidth - (k + 16);
-			if(j < 0) {
-				j = pwidth - k;
-			} else if(j > 16) {
-				j = 16;
-			}
-			j >>= 1;
-			for(int i = 0; i < j; i++) {
-				q[0] = sbuf[i];
-				q[1] = sbuf[i];
-				q += 2;
-			}
-			if(r2 != NULL) {
-				for(int i = 0; i < j; i++) {
-					r2[0] = abuf[i];
-					r2[1] = abuf[i];
-					r2 += 2;
-				}
-			}
-		} else {
+				q += 8;
+				if(r2 != NULL) {
 __DECL_VECTORIZED_LOOP
-			for(int i = 0; i < 8; i++) {
-				int kbak = k;
-				for(int j = 0; j < magx; j++) {
-					*q++ = sbuf[i];
-					k++;
-					if(k >= width) break;
+					for(int i = 0; i < 8; i++) {
+						r2[i] = abuf[i];
+					}
+					r2 += 8;
+				}
+				k += 8;
+				break;
+			case 2:
+__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 16; i++) {
+					q[i] = sbuf[i >> 1];
+				}
+				q += 16;
+				if(r2 != NULL) {
+__DECL_VECTORIZED_LOOP
+					for(int i = 0; i < 16; i++) {
+						r2[i] = abuf[i >> 1];
+					}
+					r2 += 16;
+				}
+				k += 16;
+				break;
+			case 4:
+__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 32; i++) {
+					q[i] = sbuf[i >> 2];
+				}
+				q += 32;
+				if(r2 != NULL) {
+__DECL_VECTORIZED_LOOP
+					for(int i = 0; i < 32; i++) {
+						r2[i] = abuf[i >> 2];
+					}
+					r2 += 32;
+				}
+				k += 32;
+				break;
+			default:
+				for(int i = 0; i < 8; i++) {
+					for(int ii = 0; ii < magx; ii++) {
+						*q++ = sbuf[i];
+					}
+					
 				}
 				if(r2 != NULL) {
-					for(int j = 0; j < magx; j++) {
-						*r2++ = abuf[i];
-						kbak++;
-						if(kbak >= width) break;
+__DECL_VECTORIZED_LOOP
+					for(int i = 0; i < 8; i++) {
+						for(int ii = 0; ii < magx; ii++) {
+							*r2++ = abuf[i];
+						}
 					}
 				}
-				if(k >= width) break;
+				k += (magx << 3);
+				break;
 			}
+		} else {
+			int kbak = k;
+__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < 8; i++) {
+				for(int j = 0; j < magx; j++) {
+					*q++ = sbuf[i];
+					kbak++;
+					if(kbak >= width) break;
+				}
+			}
+			if(r2 != NULL) {
+__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 8; i++) {
+					for(int j = 0; j < magx; j++) {
+						*r2++ = abuf[i];
+						k++;
+						if(k >= width) break;
+					}
+				}
+			}
+			k = kbak;
+			if(k >= width) return true;
 		}
 	}
 	if(k >= width) return true;
@@ -1126,6 +1164,7 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y)
 	int num = linebuffers[trans][y].num[0];
 	uint8_t *p = linebuffers[trans][y].pixels_layer[0];
 	int bitshift0 = linebuffers[trans][y].bitshift[0];
+	scrntype_t* q = dst;
 	if(pwidth <= 0) return false;
 	const int width = ((hst[trans] + 16 * magx) > TOWNS_CRTC_MAX_PIXELS) ? TOWNS_CRTC_MAX_PIXELS : (hst[trans] + 16 * magx);
 	if((pwidth * magx) > width) {
@@ -1152,71 +1191,132 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y)
 	if(magx < 1) {
 		return false;
 	}
-	if(magx == 1) {
-//		if(pwidth < width) pwidth = width;
-		if(pwidth < 1) pwidth = 1;
-		int xx = 0;
-		for(int x = 0; x < (pwidth >> 4); x++) {
-			// ToDo: Start position
-			for(int i = 0; i < 16; i++) {
-				pbuf[i] = *p++;
-			}
-			for(int i = 0; i < 16; i++) {
-				dst[xx++] = apal256[pbuf[i]];
-			}
+	if(pwidth < 1) pwidth = 1;
+	int xx = 0;
+	int k = 0;
+	for(int x = 0; x < (pwidth >> 4); x++) {
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 16; i++) {
+			pbuf[i] = p[i];
 		}
-		if((pwidth & 15) != 0) {
-			int w = pwidth & 15;
-			for(int i = 0; i < w; i++) {
-				pbuf[i] = *p++;
-			}
-			for(int i = 0; i < w; i++) {
-				dst[xx++] = apal256[pbuf[i]];
-			}
+		p += 16;
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 16; i++) {
+			sbuf[i] = apal256[pbuf[i]];
 		}
-	} else {
-		int k = 0;
-		for(int x = 0; x < (pwidth >> 4); x++) {
-			// ToDo: Start position
+		int kbak = k;
+		if(((magx << 4) + k) <= width) {
+			switch(magx) {
+			case 1:
 __DECL_VECTORIZED_LOOP
-			for(int i = 0; i < 16; i++) {
-				pbuf[i] = p[i];
+				for(int i = 0; i < 16; i++) {
+					q[i] = sbuf[i];
+				}
+				k += 16;
+				q += 16;
+				break;
+			case 2:
+__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 32; i++) {
+					q[i] = sbuf[i >> 1];
+				}
+				k += 32;
+				q += 32;
+				break;
+			case 4:
+__DECL_VECTORIZED_LOOP
+				for(int i = 0, j = 0; i < 16; i++, j += 4) {
+					q[j + 0] = sbuf[i];
+					q[j + 1] = sbuf[i];
+					q[j + 2] = sbuf[i];
+					q[j + 3] = sbuf[i];
+				}
+				k += 64;
+				q += 64;
+				break;
+			default:
+				for(int i = 0; i < 16; i++) {
+					for(int j = 0; j < magx; j++) {
+						q[j] = sbuf[i];
+					}
+					q += magx;
+					k += magx;
+				}
+				break;
 			}
-			p += 16;
-__DECL_VECTORIZED_LOOP
+		} else {
 			for(int i = 0; i < 16; i++) {
-				sbuf[i] = apal256[pbuf[i]];
-			}
-__DECL_VECTORIZED_LOOP
-			for(int i = 0; i < 16; i++) {
-				scrntype_t s = sbuf[i];
 				for(int j = 0; j < magx; j++) {
-					lbuffer0[k++] = s;
+					q[j] = sbuf[i];
+					k++;
 					if(k >= width) break;
 				}
 				if(k >= width) break;
+				q += magx;
 			}
-			if(k >= width) break;	
 		}
-		if((pwidth & 15) != 0) {
-			for(int i = 0; i < (pwidth & 15); i++) {
-				pbuf[i] = p[i];
+	}
+	if(k >= width) return true;
+	int w = pwidth & 0x0f;
+	if(w != 0) {
+		for(int i = 0; i < w; i++) {
+			pbuf[i] = p[i];
+		}
+		for(int i = 0; i < w; i++) {
+			sbuf[i] = apal256[pbuf[i]];
+		}
+		if(((magx * w) + k) <= width) {
+			switch(magx) {
+			case 1:
+				for(int i = 0; i < w; i++) {
+					q[i] = sbuf[i];
+				}
+				k += w;
+				q += w;
+				break;
+			case 2:
+				for(int i = 0, j = 0; i < w; i++, j += 2) {
+					q[j + 0] = sbuf[i];
+					q[j + 1] = sbuf[i];
+				}
+				k += (w << 1);
+				q += (w << 1);
+				break;
+			case 4:
+				for(int i = 0, j = 0; i < w; i++, j += 4) {
+					q[j + 0] = sbuf[i];
+					q[j + 1] = sbuf[i];
+					q[j + 2] = sbuf[i];
+					q[j + 3] = sbuf[i];
+				}
+				k += (w << 2);
+				q += (w << 2);
+				break;
+			default:
+				for(int i = 0; i < w; i++) {
+					for(int j = 0; j < magx; j++) {
+						q[j] = sbuf[i];
+					}
+					q += magx;
+					k += magx;
+				}
+				break;
 			}
-			for(int i = 0; i < (pwidth & 15); i++) {
-				sbuf[i] = apal256[pbuf[i]];
-			}
-			for(int i = 0; i < (pwidth & 15); i++) {
-				scrntype_t s = sbuf[i];
+		} else {
+			for(int i = 0; i < w; i++) {
 				for(int j = 0; j < magx; j++) {
-					lbuffer0[k++] = s;
+					q[j] = sbuf[i];
+					k++;
 					if(k >= width) break;
 				}
 				if(k >= width) break;
+				q += magx;
 			}
 		}
 	}
 	return true;
 }
+
 bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int layer, bool do_alpha)
 {
 	if(dst == NULL) return false;
@@ -1260,13 +1360,18 @@ __DECL_VECTORIZED_LOOP
 		mbuf[i] = pmask;
 	}	
 	if(pal == NULL) {
+		__DECL_ALIGNED(16) uint8_t tmp_r[16];
+		__DECL_ALIGNED(16) uint8_t tmp_g[16];
+		__DECL_ALIGNED(16) uint8_t tmp_b[16];
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
-			uint8_t r, g,b;
-			r = ((i & 2) != 0) ? (((i & 8) != 0) ? 255 : 128) : 0;
-			g = ((i & 4) != 0) ? (((i & 8) != 0) ? 255 : 128) : 0;
-			b = ((i & 1) != 0) ? (((i & 8) != 0) ? 255 : 128) : 0;
-			palbuf[i] = RGBA_COLOR(r, g, b, 255);
+			tmp_r[i] = ((i & 2) != 0) ? (((i & 8) != 0) ? 255 : 128) : 0;
+			tmp_g[i] = ((i & 4) != 0) ? (((i & 8) != 0) ? 255 : 128) : 0;
+			tmp_b[i] = ((i & 1) != 0) ? (((i & 8) != 0) ? 255 : 128) : 0;
+		}
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 16; i++) {
+			palbuf[i] = RGBA_COLOR(tmp_r[i], tmp_g[i], tmp_b[i], 255);
 		}
 	} else {
 __DECL_VECTORIZED_LOOP
@@ -1337,64 +1442,109 @@ __DECL_VECTORIZED_LOOP
 				sbuf[i] = palbuf[hlbuf[i]];
 			}
 		}
-		if(do_alpha) {
-			if(magx == 1) {
+		int kbak = k;
+		if(((magx << 4) + k) <= width) {
+			switch(magx) {
+			case 1:
 __DECL_VECTORIZED_LOOP
 				for(int i = 0; i < 16; i++) {
 					q[i] = sbuf[i];
 				}
 				k += 16;
 				q += 16;
-				if(k >= width) break;
-			} else {
+				break;
+			case 2:
+__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 32; i++) {
+					q[i] = sbuf[i >> 1];
+				}
+				k += 32;
+				q += 32;
+				break;
+			case 4:
+__DECL_VECTORIZED_LOOP
+				for(int i = 0, j = 0; i < 16; i++, j+= 4) {
+					q[j + 0] = sbuf[i];
+					q[j + 1] = sbuf[i];
+					q[j + 2] = sbuf[i];
+					q[j + 3] = sbuf[i];
+				}
+				k += 64;
+				q += 64;
+				break;
+			default:
 __DECL_VECTORIZED_LOOP
 				for(int i = 0; i < 16; i++) {
 					for(int j = 0; j < magx; j++) {
-						q[j] = sbuf[i];
-						k++;
-						if(k >= width) break;
+						*q++ = sbuf[i];
 					}
-					q += magx;
+					k += magx;
+					if(k >= width) break;
+				}
+				break;
+			}
+		} else {
+__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < 16; i++) {
+				for(int j = 0; j < magx; j++) {
+					*q++ = sbuf[i];
+					k++;
+					if(k >= width) break;
 				}
 				if(k >= width) break;
 			}
-		} else {
-			if(magx == 1) {
-__DECL_VECTORIZED_LOOP
-				for(int i = 0; i < 16; i++) {
-					q[i] = sbuf[i];
-				}
-				q += 16;
-				if(r2 != NULL) {
+		}
+		if(!(do_alpha) && (r2 != NULL)) {
+			if(((magx << 4) + k) <= width) {
+				switch(magx) {
+				case 1:
 __DECL_VECTORIZED_LOOP
 					for(int i = 0; i < 16; i++) {
 						r2[i] = abuf[i];
 					}
 					r2 += 16;
-				}
-				k += 16;
-				if(k >= width) break;
-			} else {
-				for(int i = 0; i < 16; i++) {
-					int kbak = k;
-					for(int j = 0; j < magx; j++) {
-						q[j] = sbuf[i];
-						k++;
-						if(k >= TOWNS_CRTC_MAX_PIXELS) break;
+					break;
+				case 2:
+__DECL_VECTORIZED_LOOP
+					for(int i = 0; i < 32; i++) {
+						r2[i] = abuf[i >> 1];
 					}
-					q += magx;
-					if(r2 != NULL) {
+					r2 += 32;
+					break;
+				case 4:
+__DECL_VECTORIZED_LOOP
+					for(int i = 0, j = 0; i < 16; i++, j += 4) {
+						r2[j + 0] = abuf[i];
+						r2[j + 1] = abuf[i];
+						r2[j + 2] = abuf[i];
+						r2[j + 3] = abuf[i];
+					}
+					r2 += 64;
+					break;
+				default:
+__DECL_VECTORIZED_LOOP
+					for(int i = 0; i < 16; i++) {
 						for(int j = 0; j < magx; j++) {
-							r2[j] = abuf[i];
-							kbak++;
-							if(kbak >= TOWNS_CRTC_MAX_PIXELS) break;
+							*r2++ = abuf[i];
 						}
-						r2 += magx;
+						kbak += magx;
+						if(kbak >= width) break;
 					}
-					if(k >= TOWNS_CRTC_MAX_PIXELS) break;
+					break;
+				}
+			} else {
+__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 16; i++) {
+					for(int j = 0; j < magx; j++) {
+						*r2++ = abuf[i];
+						kbak++;
+						if(kbak >= width) break;
+					}
+					if(kbak >= width) break;
 				}
 			}
 		}
+		if(k >= width) return true;
 	}
 	if(k >= width) return true;
 	uint8_t tmpp;
