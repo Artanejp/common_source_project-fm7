@@ -211,6 +211,9 @@ void TOWNS_CDROM::set_mcu_intr(bool val)
 		write_mcuint_signals((val) ? 0xffffffff : 0);
 	} else {
 		mcu_intr = val;
+		if(!(val)) {
+			write_mcuint_signals(0);
+		}
 	}
 }
 
@@ -700,6 +703,7 @@ void TOWNS_CDROM::write_dma_io8(uint32_t addr, uint32_t data)
 void TOWNS_CDROM::read_cdrom()
 {
 //	read_pos = 0;
+	databuffer->clear();
 	if((cdda_status != CDDA_OFF) && (cdda_status != CDDA_ENDED)) {
 		// @note In SUPER REAL MAHJONG PIV, use PAUSE (A5h) command before reading.
 		// @note 20201110 K.O
@@ -747,7 +751,7 @@ void TOWNS_CDROM::read_cdrom()
  		status_parameter_error(false);
 		return;
 	}
-	databuffer->clear();
+//	databuffer->clear();
 	cdrom_debug_log(_T("READ_CDROM TRACK=%d LBA1=%d LBA2=%d M1/S1/F1=%02X/%02X/%02X M2/S2/F2=%02X/%02X/%02X PAD=%02X DCMD=%02X"), track, lba1, lba2,
 				  param_queue[0], param_queue[1], param_queue[2],
 				  param_queue[3], param_queue[4], param_queue[5],
@@ -766,6 +770,7 @@ void TOWNS_CDROM::read_cdrom()
 	// Kick a first
 	double usec = get_seek_time(lba1);
 	status_seek = true;
+	if(usec < 1100.0) usec = 1100.0;
 	register_event(this, EVENT_CDROM_SEEK_COMPLETED, usec, false, &event_seek_completed);
 	if(req_status) {
 		// May not need extra status, integrated after reading. 20200906 K.O
@@ -1985,11 +1990,8 @@ double TOWNS_CDROM::get_seek_time(uint32_t lba)
 		} else {
 			distance = abs((int)lba - (int)(cur_position / ((is_iso) ? 2048 : physical_block_size())));
 		}
-//		if(distance < 100) {
-//			distance = 100; // Seek penalty.
-//		}
-		if(distance < 4) {
-			distance = 4; // Seek penalty.
+		if(distance < 0) {
+			distance = 0; // Seek penalty.
 		}
 		double _seek = (double)distance / 333000.0 ; // 333000: sectors in media
 		_seek = 400.0e3 *  _seek;
@@ -2088,9 +2090,10 @@ bool TOWNS_CDROM::seek_relative_frame_in_image(uint32_t frame_no)
 				   FILEIO_SEEK_SET) != 0) {
 				return false;
 			}
+			return true;
 		}
 	}
-	return true;
+	return false;
 }
 
 
@@ -3161,8 +3164,12 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x04: // Param
-		param_queue[param_ptr] = data;
-		param_ptr = (param_ptr + 1) & 0x07;
+//		param_queue[param_ptr] = data;
+//		param_ptr = (param_ptr + 1) & 0x07;
+		for(int xx = 1; xx < 8; xx++) {
+			param_queue[xx - 1] = param_queue[xx];
+		}
+		param_queue[7] = data;
 		break;
 	case 0x06:
 		if((data & 0x08) != 0) {
