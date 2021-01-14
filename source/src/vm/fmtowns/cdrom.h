@@ -279,7 +279,6 @@ protected:
 	int read_length_bak;
 	int next_seek_lba;
 	int read_mode;
-	int position;
 	
 	uint8_t prev_command;
 	uint8_t latest_command;

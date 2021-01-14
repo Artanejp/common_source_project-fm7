@@ -342,7 +342,7 @@ void TOWNS_CDROM::status_data_ready(bool forceint)
 
 void TOWNS_CDROM::status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3)
 {
-	cdrom_debug_log(_T("Error on reading (ILLGLBLKADDR): EXTRA=%d s1=%02X s2=%02X s3=%02X LBA=%d POSITION=%d\n"), extra, s1, s2, s3, read_sector, position);
+	cdrom_debug_log(_T("Error on reading (ILLGLBLKADDR): EXTRA=%d s1=%02X s2=%02X s3=%02X LBA=%d\n"), extra, s1, s2, s3, read_sector);
 	set_status(req_status, extra, TOWNS_CD_STATUS_CMD_ABEND, s1, s2, s3);
 }
 
@@ -756,7 +756,6 @@ void TOWNS_CDROM::read_cdrom()
 				  param_queue[0], param_queue[1], param_queue[2],
 				  param_queue[3], param_queue[4], param_queue[5],
 				  pad1, dcmd);
-	position = lba1 * ((is_iso) ? 2048 : physical_block_size());
 	__remain = (lba2 - lba1 + 1);
 	read_length = __remain * logical_block_size();
 	read_length_bak = read_length;
@@ -1336,17 +1335,11 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			/// 20200926 K.O
 			stat = read_buffer(1);
 			if((stat)) {
-#if 1
 				register_event(this, EVENT_CDROM_NEXT_SECTOR,
 							   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
 							   ((double)(physical_block_size())) * 
-							   1.0, // OK?
+							   0.5, // OK?
 							   false, &event_next_sector);
-#else
-				register_event(this, EVENT_CDROM_NEXT_SECTOR,
-							   5.0e3, // From TSUGARU
-							   false, &event_next_sector);
-#endif
 			}
 			//register_event(this, EVENT_CDROM_TIMEOUT, 1000.0e3, false, &event_time_out);
 		} /*else {
@@ -1366,7 +1359,9 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		// ToDo: Prefetch
 		status_seek = true;
 		register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-					   100.0,
+					   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
+					   ((double)(physical_block_size())) * 
+					   0.5, // OK?
 					   false,
 					   &event_seek_completed);
 		break;
@@ -1421,7 +1416,6 @@ bool TOWNS_CDROM::read_mode1_iso(int sectors)
 			write_a_byte(value);
 			read_length--;
 		}
-		position += 2048;
 		read_sector++;
 		sectors--;
 		access = true;
@@ -1431,14 +1425,18 @@ bool TOWNS_CDROM::read_mode1_iso(int sectors)
 
 bool TOWNS_CDROM::read_mode1(int sectors)
 {
+	if(!(seek_relative_frame_in_image(read_sector))) {
+		status_illegal_lba(0, 0x00, 0x00, 0x00);
+		return false;
+	}
 	while(sectors > 0) {
 		cd_data_mode1_t tmpbuf;
 		int tmp_length = sizeof(cd_data_mode1_t);
 		memset(&tmpbuf, 0x00, sizeof(tmpbuf));
-		if(!(seek_relative_frame_in_image(read_sector))) {
-			status_illegal_lba(0, 0x00, 0x00, 0x00);
-			return false;
-		}
+//		if(!(seek_relative_frame_in_image(read_sector))) {
+//			status_illegal_lba(0, 0x00, 0x00, 0x00);
+//			return false;
+//		}
 		if(fio_img->Fread(&tmpbuf, tmp_length, 1) != 1) {
 			status_illegal_lba(0, 0x00, 0x00, 0x00);			
 			return false;
@@ -1468,7 +1466,6 @@ bool TOWNS_CDROM::read_mode1(int sectors)
 			write_a_byte(value);
 			read_length--;
 		}
-		position += physical_block_size();
 		read_sector++;
 		sectors--;
 		access = true;
@@ -1515,7 +1512,6 @@ bool TOWNS_CDROM::read_mode2(int sectors)
 			write_a_byte(value);
 			read_length--;
 		}
-		position += physical_block_size();
 		read_sector++;
 		sectors--;
 		access = true;
@@ -1553,7 +1549,6 @@ bool TOWNS_CDROM::read_raw(int sectors)
 			write_a_byte(value);
 			read_length--;
 		}
-		position += physical_block_size();
 		read_sector++;
 		sectors--;
 		access = true;
@@ -1846,7 +1841,6 @@ void TOWNS_CDROM::reset_device()
 	
 	extra_status = 0;
 	data_reg = 0x00;
-	position = 0;
 	mcu_ready = true;
 	has_status = false;
 	req_status = false;
@@ -3243,7 +3237,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				  , (pio_transfer_phase) ? _T("PIO") : _T("   ")
 				  , (dma_transfer_phase) ? _T("DMA") : _T("   ")
 				  , (has_status) ? _T("ON ") : _T("OFF"), (mcu_ready) ? _T("ON ") : _T("OFF")
-				  , current_track, position / physical_block_size(), read_length, databuffer->count()
+				  , current_track, read_sector, read_length, databuffer->count()
 				  , latest_command, param, param_ptr
 				  , extra_status, status_queue->count(), stat
 				  , regs
@@ -3255,7 +3249,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	7
+#define STATE_VERSION	8
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3385,7 +3379,6 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(event_eot);
 	
 	// SCSI_DEV
-	state_fio->StateValue(position);
  	return true;
 }
 	
