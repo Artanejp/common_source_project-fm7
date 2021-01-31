@@ -1,3 +1,10 @@
+12/21/2020
+
+[VM/SCSI_CDROM] fix start frame of CD-DA playing when track number is specified
+
+[PCENGINE/PCE] fix issue that ADPCM is mistakenly looped
+
+
 12/19/2020
 
 [VM/SCSI_CDROM] fix pre-gap of first track when it is audio track

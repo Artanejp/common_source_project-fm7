@@ -2072,10 +2072,12 @@ uint8_t PCE::cdrom_read(uint16_t addr)
 			return data & ~0x40; // Clear REQ
 		}				
 		data = 0;
-//		if(d_cpu->get_pc() == 0xf34b) {
-//			// XXX: Hack to wait the CD-DA will be finished for the Manhole
-//			data |= d_scsi_cdrom->read_signal(SIG_SCSI_CDROM_PLAYING) ? 0x80 : 0;
-//		}
+#ifdef _PCENGINE
+		if(d_cpu->get_pc() == 0xf34b) {
+			// XXX: Hack to wait the CD-DA will be finished for the Manhole
+			data |= d_scsi_cdrom->read_signal(SIG_SCSI_CDROM_PLAYING) ? 0x80 : 0;
+		}
+#endif
 		data |= d_scsi_host->read_signal(SIG_SCSI_BSY) ? 0x80 : 0;
 		data |= d_scsi_host->read_signal(SIG_SCSI_REQ) ? 0x40 : 0;
 		data |= d_scsi_host->read_signal(SIG_SCSI_MSG) ? 0x20 : 0;

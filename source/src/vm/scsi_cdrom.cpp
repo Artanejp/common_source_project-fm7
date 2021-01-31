@@ -648,15 +648,15 @@ void SCSI_CDROM::start_command()
 				register_event(this, EVENT_CDROM_DELAY_INTERRUPT_ON, delay_time, false, &event_delay_interrupt);
 				//set_phase_delay(SCSI_PHASE_STATUS, delay_time + 10.0);
 				//write_signals(&outputs_done, 0xffffffff);
-				set_phase_delay(SCSI_PHASE_STATUS, 10.0);
+				set_phase_delay(SCSI_PHASE_STATUS, delay_time);
+				if(__SCSI_DEBUG_LOG) {
+					uint32_t s_msf = lba_to_msf(cdda_start_frame);
+					uint32_t e_msf = lba_to_msf(cdda_end_frame);
+					this->out_debug_log(_T("[SCSI_DEV:ID=%d] Start=%02x:%02x:%02x End=%02x:%02x:%02x Mode=%d\n"), scsi_id,
+										(s_msf >> 16) & 0xff, (s_msf >> 8) & 0xff, s_msf & 0xff,
+										(e_msf >> 16) & 0xff, (e_msf >> 8) & 0xff, e_msf & 0xff, cdda_play_mode);
+				}
 				return;
-			}
-			if(__SCSI_DEBUG_LOG) {
-				uint32_t s_msf = lba_to_msf(cdda_start_frame);
-				uint32_t e_msf = lba_to_msf(cdda_end_frame);
-				this->out_debug_log(_T("[SCSI_DEV:ID=%d] Start=%02x:%02x:%02x End=%02x:%02x:%02x Mode=%d\n"), scsi_id,
-					(s_msf >> 16) & 0xff, (s_msf >> 8) & 0xff, s_msf & 0xff,
-					(e_msf >> 16) & 0xff, (e_msf >> 8) & 0xff, e_msf & 0xff, cdda_play_mode);
 			}
 		}
 		// change to status phase
@@ -708,11 +708,12 @@ void SCSI_CDROM::start_command()
 					}
 					int _track = FROM_BCD(command[2]) - 1;
 					if((_track >= 0) && ((_track + 1) <= track_num)) {
-						cdda_end_frame = toc_table[_track].index0;
+						//cdda_end_frame = toc_table[_track].index0;
 						if(is_cue) {
 							if(current_track != _track) {
 								get_track_by_track_num(_track);
-								cdda_start_frame = toc_table[_track].index0;
+								cdda_start_frame = toc_table[_track].index1;
+//								cdda_start_frame = toc_table[_track].index0;
 								cdda_end_frame = toc_table[_track].lba_size + toc_table[_track].lba_offset;
 								cdda_playing_frame = cdda_start_frame;
 								if(is_cue) {
@@ -725,7 +726,8 @@ void SCSI_CDROM::start_command()
 							}
 						}
 					} else {
-						cdda_end_frame = toc_table[track_num].index0;
+//						cdda_end_frame = toc_table[track_num].index0;
+						cdda_start_frame = toc_table[track_num].index0;
 					}
 				}
 				break;
