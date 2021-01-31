@@ -1202,9 +1202,15 @@ bool SCSI_CDROM::open_cue_file(const _TCHAR* file_path)
 		// Finish
 		max_logical_block = 0;
 		if(track_num > 0) {
-			toc_table[0].lba_offset = 0;
-			toc_table[0].lba_size = 0;
-			toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
+			if(toc_table[0].is_audio) {
+				toc_table[0].index0 = 0;
+				toc_table[0].index1 = toc_table[0].pregap;
+			} else{
+				toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
+			}
+//			toc_table[0].lba_offset = 0;
+//			toc_table[0].lba_size = 0;
+//			toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
 			// P1: Calc
 			int _n = 0;
 			for(int i = 1; i < track_num; i++) {
@@ -1256,10 +1262,6 @@ bool SCSI_CDROM::open_cue_file(const _TCHAR* file_path)
 									toc_table[i].lba_size, toc_table[i].lba_offset, track_data_path[i - 1]);
 				//#endif
 			}
-			toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
-//			toc_table[track_num].index0 = toc_table[track_num].index1 = max_logical_block;
-//			toc_table[track_num].lba_offset = max_logical_block;
-//			toc_table[track_num].lba_size = 0;
 			
 		}
 		fio->Fclose();
@@ -1326,6 +1328,7 @@ void SCSI_CDROM::open(const _TCHAR* file_path)
 						}
 					}
 					if(track_num != 0) {
+#if 0
 						toc_table[0].lba_offset = 0;
 						toc_table[0].pregap = 0;
 						for(int i = 1; i < track_num; i++) {
@@ -1340,6 +1343,7 @@ void SCSI_CDROM::open(const _TCHAR* file_path)
 						} else {
 							toc_table[track_num].lba_size = 0;
 						}
+#endif
 					} else {
 						fio_img->Fclose();
 					}
@@ -1350,15 +1354,35 @@ void SCSI_CDROM::open(const _TCHAR* file_path)
 		}
 	}
  
+ 	if(mounted()) {
+		if(!is_cue) {
+			if(toc_table[0].is_audio) {
+				toc_table[0].index0 = 0;
+				toc_table[0].index1 = toc_table[0].pregap;
+			} else{
+				toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
+			}
+			for(int i = 1; i < track_num; i++) {
+				if(toc_table[i].index0 == 0) {
+					toc_table[i].index0 = toc_table[i].index1 - toc_table[i].pregap;
+				} else if(toc_table[i].pregap == 0) {
+					toc_table[i].pregap = toc_table[i].index1 - toc_table[i].index0;
+				}
+			}
+			toc_table[track_num].index0 = toc_table[track_num].index1 = max_logical_block;
+			toc_table[track_num].pregap = 0;
+		}
+	}
 	if(mounted() && (__SCSI_DEBUG_LOG)) {
 		for(int i = 0; i < track_num + 1; i++) {
 			uint32_t idx0_msf = lba_to_msf(toc_table[i].index0);
 			uint32_t idx1_msf = lba_to_msf(toc_table[i].index1);
 			uint32_t pgap_msf = lba_to_msf(toc_table[i].pregap);
-			this->out_debug_log(_T("Track%02d: Index0=%02x:%02x:%02x Index1=%02x:%02x:%02x PreGap=%02x:%02x:%02x\n"), i + 1,
+			this->out_debug_log(_T("Track%02d: Index0=%02x:%02x:%02x Index1=%02x:%02x:%02x PreGap=%02x:%02x:%02x Audio=%d\n"), i + 1,
 			(idx0_msf >> 16) & 0xff, (idx0_msf >> 8) & 0xff, idx0_msf & 0xff,
 			(idx1_msf >> 16) & 0xff, (idx1_msf >> 8) & 0xff, idx1_msf & 0xff,
-			(pgap_msf >> 16) & 0xff, (pgap_msf >> 8) & 0xff, pgap_msf & 0xff);
+			(pgap_msf >> 16) & 0xff, (pgap_msf >> 8) & 0xff, pgap_msf & 0xff,
+			toc_table[i].is_audio);
 		}
 	}
 }
