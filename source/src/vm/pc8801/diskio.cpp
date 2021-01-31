@@ -180,7 +180,7 @@ void DiskIO::CmdReadFile()
 		if (file->Fopen(char_to_tchar((char*) filename), FILEIO_READ_BINARY))
 		{
 			file->Fseek(0, FILEIO_SEEK_END);
-			size = min(0xffff, file->Ftell());
+			size = min((uint32_t)0xffff, (uint32_t)file->Ftell());
 			file->Fseek(0, FILEIO_SEEK_SET);
 			buf[0] = size & 0xff;
 			buf[1] = (size >> 8) & 0xff;

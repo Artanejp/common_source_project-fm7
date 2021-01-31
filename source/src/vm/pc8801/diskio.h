@@ -84,7 +84,7 @@ private:
 	uint8_t cmd;
 	uint8_t err;
 	uint8_t arg[5];
-	uint8_t filename[MAX_PATH];
+	uint8_t filename[_MAX_PATH];
 	uint8_t buf[1024];
 };
 }

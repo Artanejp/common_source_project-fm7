@@ -431,7 +431,7 @@ void PC88::initialize()
 		cdbios_loaded = true;
 	}
 #endif
-#endif
+
 //#ifdef SUPPORT_PC88_KANJI1
 	if(fio->Fopen(create_local_path(_T("KANJI1.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(kanji1, 0x20000, 1);
