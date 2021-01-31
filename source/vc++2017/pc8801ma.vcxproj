@@ -340,6 +340,7 @@
     <ClCompile Include="..\src\vm\i8255.cpp" />
     <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\pc80s31k.cpp" />
+    <ClCompile Include="..\src\vm\pc8801\diskio.cpp" />
     <ClCompile Include="..\src\vm\pc8801\pc88.cpp" />
     <ClCompile Include="..\src\vm\pc8801\pc8801.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
@@ -385,6 +386,7 @@
     <ClInclude Include="..\src\vm\i8255.h" />
     <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\pc80s31k.h" />
+    <ClInclude Include="..\src\vm\pc8801\diskio.h" />
     <ClInclude Include="..\src\vm\pc8801\pc88.h" />
     <ClInclude Include="..\src\vm\pc8801\pc8801.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />

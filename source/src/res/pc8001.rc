@@ -162,6 +162,10 @@ BEGIN
     END
     POPUP "Device"
     BEGIN
+        POPUP "Floppy Drive"
+        BEGIN
+            MENUITEM "5inch FD",                    ID_VM_DIPSWITCH6
+        END
         POPUP "Sound"
         BEGIN
             MENUITEM "GSX-8800",                    ID_VM_DIPSWITCH2
@@ -181,6 +185,10 @@ BEGIN
             MENUITEM "Write Printer to File",       ID_VM_PRINTER_TYPE0
             MENUITEM "PC-PR201",                    ID_VM_PRINTER_TYPE1, GRAYED
             MENUITEM "None",                        ID_VM_PRINTER_TYPE2
+        END
+        POPUP "Special Features"
+        BEGIN
+            MENUITEM "QUASIS88 Pesudo CMT",         ID_VM_DIPSWITCH9
         END
     END
     POPUP "Host"

@@ -79,32 +79,40 @@
 		#define PC88_EXRAM_BANKS	4
 	#endif
 	#define HAS_UPD4990A
+	#define SUPPORT_M88_DISKDRV
 #elif defined(_PC8801MK2)
 	#define SUPPORT_PC88_KANJI1
 //	#define SUPPORT_PC88_KANJI2
 	#define SUPPORT_PC88_OPN2
 	#define SUPPORT_PC88_FDD_8INCH
+	#define SUPPORT_M88_DISKDRV
 #elif defined(_PC8801)
 	#define SUPPORT_PC88_KANJI1
 //	#define SUPPORT_PC88_KANJI2
 	#define SUPPORT_PC88_OPN2
 	#define SUPPORT_PC88_FDD_8INCH
+	#define SUPPORT_M88_DISKDRV
 #elif defined(_PC8001SR)
 	#define SUPPORT_PC88_KANJI1
 //	#define SUPPORT_PC88_KANJI2
 	#define SUPPORT_PC88_OPN1
 	#define SUPPORT_PC88_OPN2
 	#define PC88_EXRAM_BANKS	1
+	#define SUPPORT_M88_DISKDRV
 #elif defined(_PC8001MK2)
 	#define SUPPORT_PC88_KANJI1
 //	#define SUPPORT_PC88_KANJI2
 	#define SUPPORT_PC88_OPN2
 	#define PC88_EXRAM_BANKS	1
+	#define SUPPORT_M88_DISKDRV
 #elif defined(_PC8001)
 //	#define SUPPORT_PC88_KANJI1
 //	#define SUPPORT_PC88_KANJI2
+//	#define SUPPORT_M88_DISKDRV
 #endif
+#define SUPPORT_PC88_GSX8800
 #define SUPPORT_PC88_PCG8100
+#define SUPPORT_QUASIS88_CMT
 
 // device informations for virtual machine
 #define FRAMES_PER_SEC		62.422
@@ -144,8 +152,12 @@
 #define DIPSWITCH_GSX8800	0x04
 #define DIPSWITCH_PCG8100	0x08
 #define DIPSWITCH_CMDSING	0x10
-#define DIPSWITCH_DEFAULT	(DIPSWITCH_HMB20 + DIPSWITCH_GSX8800 + DIPSWITCH_PCG8100 + DIPSWITCH_CMDSING)
 #define DIPSWITCH_PALETTE	0x20
+#define DIPSWITCH_FDD_5INCH	0x40
+#define DIPSWITCH_FDD_8INCH	0x80
+#define DIPSWITCH_M88_DISKDRV	0x100
+#define DIPSWITCH_QUASIS88_CMT	0x200
+#define DIPSWITCH_DEFAULT	(DIPSWITCH_HMB20 + DIPSWITCH_GSX8800 + DIPSWITCH_PCG8100 + DIPSWITCH_CMDSING + DIPSWITCH_FDD_5INCH)
 #define USE_JOYSTICK_TYPE	2
 #if defined(SUPPORT_PC88_FDD_8INCH)
 #define USE_FLOPPY_DISK		4
@@ -273,6 +285,7 @@ class EMU;
 class DEVICE;
 class EVENT;
 
+class DISK;
 class I8251;
 class I8255;
 class NOISE;
@@ -304,6 +317,9 @@ class I8253;
 #endif
 namespace PC88DEV {
 	class PC88;
+	#ifdef SUPPORT_M88_DISKDRV
+	class DiskIO;
+	#endif
 }
 class VM : public VM_TEMPLATE
 {
@@ -366,9 +382,17 @@ protected:
 	PCM1BIT* pc88pcg_pcm3;
 #endif
 	
+#ifdef SUPPORT_M88_DISKDRV
+	PC88DEV::DiskIO* pc88diskio;
+#endif
+	
 	PC88DEV::PC88* pc88;
 	
 	int boot_mode;
+	
+	// drives
+	UPD765A *get_floppy_disk_controller(int drv);
+	DISK *get_floppy_disk_handler(int drv);
 	
 public:
 	// ----------------------------------------
@@ -412,6 +436,7 @@ public:
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
+	bool is_floppy_disk_connected(int drv);
 	bool is_floppy_disk_inserted(int drv);
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);

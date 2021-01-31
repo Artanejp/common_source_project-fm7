@@ -1,6 +1,15 @@
+12/15/2020
+
+[PC8801/DISKIO] support M88 DiskDrv (thanks Mr.CISC and Mr.apaslothy)
+[PC8801/PC88] support PC-8001mkIISR hiragana font
+[PC8801/PC88] support to disable 5inch/8inch-FDD interfaces
+[PC8801/PC88] support to disable updating scan line setting automatically
+[PC8801/PC88] fix mouse data when position is not latched
+
+
 12/14/2020
 
-[PC8801] support 8inch DMA-type floppy drives
+[PC8801/PC88] support 8inch DMA-type floppy drives
 
 
 12/13/2020

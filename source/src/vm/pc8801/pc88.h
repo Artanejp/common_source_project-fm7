@@ -127,12 +127,6 @@ typedef struct {
 class PC88 : public DEVICE
 {
 private:
-#ifdef SUPPORT_PC88_OPN1
-	YM2203 *d_opn1;
-#endif
-#ifdef SUPPORT_PC88_OPN2
-	YM2203 *d_opn2;
-#endif
 	Z80 *d_cpu;
 	DEVICE *d_pcm, *d_pio, *d_prn, *d_rtc, *d_sio;
 #ifdef SUPPORT_PC88_FDD_8INCH
@@ -141,6 +135,12 @@ private:
 #ifdef SUPPORT_PC88_CDROM
 	SCSI_HOST* d_scsi_host;
 	SCSI_CDROM* d_scsi_cdrom;
+#endif
+#ifdef SUPPORT_PC88_OPN1
+	YM2203 *d_opn1;
+#endif
+#ifdef SUPPORT_PC88_OPN2
+	YM2203 *d_opn2;
 #endif
 #ifdef SUPPORT_PC88_HMB20
 	DEVICE *d_opm;
@@ -151,6 +151,9 @@ private:
 #endif
 #ifdef SUPPORT_PC88_PCG8100
 	DEVICE *d_pcg_pit, *d_pcg_pcm1, *d_pcg_pcm2, *d_pcg_pcm3;
+#endif
+#ifdef SUPPORT_M88_DISKDRV
+	DEVICE *d_diskio;
 #endif
 	
 	uint8_t* rbank[16];
@@ -171,13 +174,19 @@ private:
 #endif
 #if defined(PC8001_VARIANT)
 	uint8_t n80rom[0x8000];
+#if defined(_PC8001MK2) || defined(_PC8001SR)
+	uint8_t n80erom[0x2000];
+#endif
 #if defined(_PC8001SR)
 	uint8_t n80srrom[0xa000];
+	uint8_t hiragana[0x200];
+	uint8_t katakana[0x200];
 #endif
 #else
 	uint8_t n88rom[0x8000];
 	uint8_t n88exrom[0x8000];
 	uint8_t n80rom[0x8000];
+	uint8_t n88erom[9][0x2000];
 #endif
 //#ifdef SUPPORT_PC88_KANJI1
 	uint8_t kanji1[0x20000];
@@ -352,6 +361,9 @@ private:
 public:
 	PC88(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+#ifdef SUPPORT_PC88_FDD_8INCH
+		d_fdc_8inch = NULL;
+#endif
 #ifdef SUPPORT_PC88_OPN1
 		d_opn1 = NULL;
 #endif
@@ -373,6 +385,9 @@ public:
 		d_pcg_pcm1 = NULL;
 		d_pcg_pcm2 = NULL;
 		d_pcg_pcm3 = NULL;
+#endif
+#ifdef SUPPORT_M88_DISKDRV
+		d_diskio = NULL;
 #endif
 #if defined(PC8001_VARIANT)
 		set_device_name(_T("PC-8001 Core"));
@@ -419,18 +434,6 @@ public:
 	{
 		d_cpu = device;
 	}
-#ifdef SUPPORT_PC88_OPN1
-	void set_context_opn1(YM2203* device)
-	{
-		d_opn1 = device;
-	}
-#endif
-#ifdef SUPPORT_PC88_OPN2
-	void set_context_opn2(YM2203* device)
-	{
-		d_opn2 = device;
-	}
-#endif
 	void set_context_pcm(DEVICE* device)
 	{
 		d_pcm = device;
@@ -465,6 +468,18 @@ public:
 	void set_context_scsi_cdrom(SCSI_CDROM* device)
 	{
 		d_scsi_cdrom = device;
+	}
+#endif
+#ifdef SUPPORT_PC88_OPN1
+	void set_context_opn1(YM2203* device)
+	{
+		d_opn1 = device;
+	}
+#endif
+#ifdef SUPPORT_PC88_OPN2
+	void set_context_opn2(YM2203* device)
+	{
+		d_opn2 = device;
 	}
 #endif
 #ifdef SUPPORT_PC88_HMB20
@@ -511,6 +526,12 @@ public:
 	void set_context_pcg_pcm3(DEVICE* device)
 	{
 		d_pcg_pcm3 = device;
+	}
+#endif
+#ifdef SUPPORT_M88_DISKDRV
+	void set_context_diskio(DEVICE* device)
+	{
+		d_diskio = device;
 	}
 #endif
 	void key_down(int code, bool repeat);

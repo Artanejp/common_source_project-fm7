@@ -133,6 +133,9 @@ using PC9801::IDE;
 #include "../pc80s31k.h"
 #include "../z80.h"
 #include "../pc8801/pc88.h"
+#ifdef SUPPORT_M88_DISKDRV
+#include "../pc8801/diskio.h"
+#endif
 #endif
 
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
@@ -405,6 +408,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		event->set_context_cpu(cpu_sub, 4000000);
 	}
 #endif
+	
+	// set sound device contexts
 	event->set_context_sound(beep);
 	if(sound_type == 0 || sound_type == 1) {
 		event->set_context_sound(opn);
@@ -418,6 +423,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(noise_head_down);
 	event->set_context_sound(noise_head_up);
 	
+	// set other device contexts
 	dma->set_context_memory(memory);
 	// dma ch.0: sasi
 	// dma ch.1: memory refresh
@@ -987,6 +993,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// ToDo: MIDI@0xe0d0 - e0d3
 	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
+	// create devices
 	pc88event = new EVENT(this, emu);
 	pc88event->set_device_name(_T("Event Manager (PC-8801)"));
 	pc88event->set_frames_per_sec(60);
@@ -1054,30 +1061,48 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88cpu_sub->set_device_name(_T("Z80 CPU (PC-8801 Sub)"));
 	pc88cpu_sub->set_context_event_manager(pc88event);
 	
+#ifdef SUPPORT_M88_DISKDRV
+	if(config.dipswitch & DIPSWITCH_M88_DISKDRV) {
+		pc88diskio = new DiskIO(this, emu);
+		pc88diskio->set_context_event_manager(pc88event);
+	} else {
+		pc88diskio = NULL;
+	}
+#endif
+	
+	// set cpu device contexts
 	pc88event->set_context_cpu(pc88cpu, (config.cpu_type == 1) ? 3993624 : 7987248);
 	pc88event->set_context_cpu(pc88cpu_sub, 3993624);
+	
+	// set sound device contexts
 	pc88event->set_context_sound(pc88opn1);
 	pc88event->set_context_sound(pc88pcm);
 	pc88event->set_context_sound(pc88noise_seek);
 	pc88event->set_context_sound(pc88noise_head_down);
 	pc88event->set_context_sound(pc88noise_head_up);
 	
+	// set other device contexts
 	pc88->set_context_cpu(pc88cpu);
-	pc88->set_context_opn1(pc88opn1);
 	pc88->set_context_pcm(pc88pcm);
 	pc88->set_context_pio(pc88pio);
 	pc88->set_context_prn(pc88prn);
 	pc88->set_context_rtc(pc88rtc);
 	pc88->set_context_sio(pc88sio);
+	pc88->set_context_opn1(pc88opn1);
+#ifdef SUPPORT_M88_DISKDRV
+	if(config.dipswitch & DIPSWITCH_M88_DISKDRV) {
+		pc88->set_context_diskio(pc88diskio);
+	}
+#endif
 	pc88cpu->set_context_mem(pc88);
 	pc88cpu->set_context_io(pc88);
 	pc88cpu->set_context_intr(pc88);
 #ifdef USE_DEBUGGER
 	pc88cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	pc88opn1->set_context_irq(pc88, SIG_PC88_OPN1_IRQ, 1);
 	pc88sio->set_context_rxrdy(pc88, SIG_PC88_USART_IRQ, 1);
 	pc88sio->set_context_out(pc88, SIG_PC88_USART_OUT);
+	pc88opn1->set_context_irq(pc88, SIG_PC88_OPN1_IRQ, 1);
 	
 	pc88sub->set_context_cpu(pc88cpu_sub);
 	pc88sub->set_context_fdc(pc88fdc_sub);
@@ -2112,7 +2137,7 @@ uint64_t VM::get_current_clock_uint64()
 		return event->get_current_clock_uint64();
 }
 
-#define STATE_VERSION	18
+#define STATE_VERSION	19
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

@@ -292,7 +292,8 @@
 #define ID_VM_MONITOR_TYPE6             41137
 #define ID_VM_MONITOR_TYPE7             41138
 #define ID_VM_MONITOR_SCANLINE          41139
-#define ID_VM_MONITOR_MENU_END          41139
+#define ID_VM_MONITOR_SCANLINE_AUTO     41140
+#define ID_VM_MONITOR_MENU_END          41140
 
 #define ID_VM_PRINTER_MENU_START        41141
 #define ID_VM_PRINTER_TYPE0             41141

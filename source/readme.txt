@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								12/13/2020
+								12/15/2020
 
 --- What's this ?
 
@@ -342,7 +342,7 @@ See also COPYING.txt for more details about the license.
 - vm/pc6001/*
 	yaPC-6001/yaPC-6201/yaPC-6601 by Mr.tanam
 - vm/pc8801/pc88.*
-	M88 by Mr.CISC
+	M88/cdif/diskdrv by Mr.CISC
 	XM8 by Mr.PI.
 	X88000 by Mr.Manuke
 	MESS PC-8801 driver

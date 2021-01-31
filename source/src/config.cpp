@@ -83,6 +83,9 @@ void initialize_config()
 	#if defined(USE_MONITOR_TYPE) && defined(MONITOR_TYPE_DEFAULT)
 		config.monitor_type = MONITOR_TYPE_DEFAULT;
 	#endif
+	#if defined(USE_SCANLINE)
+		config.scan_line_auto = true;
+	#endif
 	#if defined(USE_PRINTER_TYPE) && defined(PRINTER_TYPE_DEFAULT)
 		config.printer_type = PRINTER_TYPE_DEFAULT;
 	#endif
@@ -281,6 +284,7 @@ void load_config(const _TCHAR *config_path)
 	#endif
 	#ifdef USE_SCANLINE
 		config.scan_line = MyGetPrivateProfileBool(_T("Control"), _T("ScanLine"), config.scan_line, config_path);
+		config.scan_line_auto = MyGetPrivateProfileBool(_T("Control"), _T("ScanLineAuto"), config.scan_line_auto, config_path);
 	#endif
 	#ifdef USE_PRINTER
 		config.printer_type = MyGetPrivateProfileInt(_T("Control"), _T("PrinterType"), config.printer_type, config_path);
@@ -677,6 +681,7 @@ void save_config(const _TCHAR *config_path)
 	#endif
 	#ifdef USE_SCANLINE
 		MyWritePrivateProfileBool(_T("Control"), _T("ScanLine"), config.scan_line, config_path);
+		MyWritePrivateProfileBool(_T("Control"), _T("ScanLineAuto"), config.scan_line_auto, config_path);
 	#endif
 	#ifdef USE_PRINTER
 		MyWritePrivateProfileInt(_T("Control"), _T("PrinterType"), config.printer_type, config_path);

@@ -144,6 +144,7 @@ typedef struct {
 	#endif
 	#if defined(USE_FIXED_CONFIG) || defined(USE_SCANLINE)
 		bool scan_line;
+		bool scan_line_auto;
 	#endif
 	#if defined(USE_FIXED_CONFIG) || defined(USE_PRINTER_TYPE)
 		int printer_type;

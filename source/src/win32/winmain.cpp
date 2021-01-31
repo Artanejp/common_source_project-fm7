@@ -831,6 +831,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				emu->update_config();
 			}
 			break;
+		case ID_VM_MONITOR_SCANLINE_AUTO:
+			config.scan_line_auto = !config.scan_line_auto;
+			break;
 #endif
 #ifdef USE_PRINTER_TYPE
 		case ID_VM_PRINTER_TYPE0: case ID_VM_PRINTER_TYPE1: case ID_VM_PRINTER_TYPE2: case ID_VM_PRINTER_TYPE3:
@@ -1874,6 +1877,7 @@ void update_vm_monitor_menu(HMENU hMenu)
 #endif
 #ifdef USE_SCANLINE
 	CheckMenuItem(hMenu, ID_VM_MONITOR_SCANLINE, config.scan_line ? MF_CHECKED : MF_UNCHECKED);
+	CheckMenuItem(hMenu, ID_VM_MONITOR_SCANLINE_AUTO, config.scan_line_auto ? MF_CHECKED : MF_UNCHECKED);
 #endif
 }
 #endif

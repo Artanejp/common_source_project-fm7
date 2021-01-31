@@ -1200,6 +1200,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\pc8801\diskio.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\pc8801\pc88.cpp"
 					>
 					<FileConfiguration
@@ -1466,6 +1486,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\pc9801\mouse.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\pc8801\diskio.h"
 					>
 				</File>
 				<File

@@ -172,6 +172,10 @@ BEGIN
         BEGIN
             MENUITEM "Memory Wait",                 ID_VM_DIPSWITCH0
         END
+        POPUP "Floppy Drive"
+        BEGIN
+            MENUITEM "5inch FD",                    ID_VM_DIPSWITCH6
+        END
         POPUP "Sound"
         BEGIN
             MENUITEM "OPN",                         ID_VM_SOUND_TYPE0
@@ -194,6 +198,11 @@ BEGIN
             MENUITEM "Write Printer to File",       ID_VM_PRINTER_TYPE0
             MENUITEM "PC-PR201",                    ID_VM_PRINTER_TYPE1, GRAYED
             MENUITEM "None",                        ID_VM_PRINTER_TYPE2
+        END
+        POPUP "Special Features"
+        BEGIN
+            MENUITEM "M88 DiskDrv",                 ID_VM_DIPSWITCH8
+            MENUITEM "QUASIS88 Pesudo CMT",         ID_VM_DIPSWITCH9
         END
     END
     POPUP "Host"
