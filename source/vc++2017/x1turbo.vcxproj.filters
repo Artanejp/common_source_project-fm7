@@ -171,6 +171,9 @@
     <ClCompile Include="..\src\vm\fmgen\psg.cpp">
       <Filter>Source Files\VM Common Source Files\fmgen Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\x1\cz8rb.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\x1\display.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
@@ -331,6 +334,9 @@
     </ClInclude>
     <ClInclude Include="..\src\vm\fmgen\psg.h">
       <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\x1\cz8rb.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\x1\display.h">
       <Filter>Header Files\VM Driver Header Files</Filter>

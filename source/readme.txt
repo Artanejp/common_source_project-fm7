@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								8/16/2020
+								12/6/2020
 
 --- What's this ?
 
@@ -328,6 +328,9 @@ See also COPYING.txt for more details about the license.
 	Mr.Enri for SHARP MZ-80FIO and MZ-80FD hardware design info
 - vm/mz80k/printer.*
 	The printer interface by Mr.Suga
+- vm/mz700/quickdisk.*
+	Improved for QDF format by Mr.kitahei88
+	Improved for BSD record by Mr.Yuushi
 - vm/mz2500/sasi.*
 	X millenium by Mr.Punyu
 - vm/mz3500/keyboard.*
@@ -372,6 +375,8 @@ See also COPYING.txt for more details about the license.
 - vm/x1/display.*
 	KANJI ROM support by X1EMU
 	X1tuboZ graphic info by Mr.Sato
+- vm/x1/cz8rb.*
+	CZ-8RB ROM board support by Mr.Meister
 - vm/yis/*
 	YAMAHA provided me some YIS manuals and software disks
 	Mr.Moriya analyzed the YIS hardware

@@ -51,6 +51,7 @@
 #include "mouse.h"
 #include "psub.h"
 #include "sasi.h"
+#include "cz8rb.h"
 
 #include "../mcs48.h"
 #include "../upd1990a.h"
@@ -65,6 +66,7 @@
 DLL_PREFIX_I struct cur_time_s cur_time;
 #endif
 
+using X1::CZ8RB;
 using X1::DISPLAY;
 using X1::EMM;
 using X1::FLOPPY;
@@ -169,6 +171,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory = new MEMORY(this, emu);
 	mouse = new MOUSE(this, emu);
 	sasi = new SASI(this, emu);
+	cz8rb = new CZ8RB(this, emu);
 	
 	if(pseudo_sub_cpu) {
 		psub = new PSUB(this, emu);
@@ -390,6 +393,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0xb00, memory);
 #endif
 	io->set_iomap_range_rw(0xd00, 0xd03, emm);
+	io->set_iomap_range_rw(0xe00, 0xe03, cz8rb);
 	io->set_iomap_range_r(0xe80, 0xe81, display);
 	io->set_iomap_range_w(0xe80, 0xe82, display);
 	io->set_iomap_range_rw(0xfd0, 0xfd3, sasi);

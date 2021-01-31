@@ -359,6 +359,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_w(0xe0, 0xe6, memory);
 #elif defined(_MZ1500)
 	io->set_iomap_range_w(0xe0, 0xe6, memory);
+	io->set_iovalue_single_r(0xe8, 0xef); // bit4=0: voice board is missing
 #else
 	io->set_iomap_range_w(0xe0, 0xe4, memory);
 #endif

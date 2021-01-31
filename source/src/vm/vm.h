@@ -25,6 +25,11 @@
 #include "bubcom80/bubcom80.h"
 #endif
 
+// CANON BX-1
+#ifdef _BX1
+#include "bx1/bx1.h"
+#endif
+
 // Hino Electronics CEFUCOM-21
 #ifdef _CEFUCOM21
 #include "cefucom21/cefucom21.h"

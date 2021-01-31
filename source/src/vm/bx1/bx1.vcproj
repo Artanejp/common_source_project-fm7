@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="x1"
-	ProjectGUID="{19C8A87D-7B65-471E-A65C-CC967B2DCAFC}"
-	RootNamespace="x1"
+	Name="bx1"
+	ProjectGUID="{E189B8CC-341D-4715-9266-08610C61015A}"
+	RootNamespace="bx1"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -43,17 +43,17 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/x1.tlb"
+				TypeLibraryName=".\Debug/bx1.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_X1"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_BX1"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug/x1.pch"
+				PrecompiledHeaderFile=".\Debug/bx1.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -76,12 +76,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib imm32.lib"
-				OutputFile=".\Debug/x1.exe"
+				OutputFile=".\Debug/bx1.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				GenerateManifest="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/x1.pdb"
+				GenerateManifest="false"
+				ProgramDatabaseFile=".\Debug/bx1.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -99,7 +99,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Debug/x1.bsc"
+				OutputFile=".\Debug/bx1.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -139,19 +139,19 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Release/x1.tlb"
+				TypeLibraryName=".\Release/bx1.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="2"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_X1"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_BX1"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="2"
-				PrecompiledHeaderFile=".\Release/x1.pch"
+				PrecompiledHeaderFile=".\Release/bx1.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -173,11 +173,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib imm32.lib"
-				OutputFile=".\Release/x1.exe"
+				OutputFile=".\Release/bx1.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				ProgramDatabaseFile=".\Release/x1.pdb"
+				ProgramDatabaseFile=".\Release/bx1.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -195,7 +195,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Release/x1.bsc"
+				OutputFile=".\Release/bx1.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -470,27 +470,7 @@
 				Filter="cpp"
 				>
 				<File
-					RelativePath="..\src\vm\ay_3_891x.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\datarec.cpp"
+					RelativePath="..\src\vm\beep.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -550,66 +530,6 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\harddisk.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\hd46505.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\i8255.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath="..\src\vm\io.cpp"
 					>
 					<FileConfiguration
@@ -630,7 +550,29 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\mb8877.cpp"
+					RelativePath="..\src\vm\mc6800.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BasicRuntimeChecks="3"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\mc6843.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -650,7 +592,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\mcs48.cpp"
+					RelativePath="..\src\vm\mc6844.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -670,7 +612,27 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\mz1p17.cpp"
+					RelativePath="..\src\vm\mc6850.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\memory.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -729,278 +691,13 @@
 						/>
 					</FileConfiguration>
 				</File>
-				<File
-					RelativePath="..\src\vm\scsi_dev.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\scsi_hdd.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\scsi_host.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\upd1990a.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\ym2151.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\z80.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\z80ctc.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\z80sio.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<Filter
-					Name="fmgen Source Files"
-					Filter="cpp"
-					>
-					<File
-						RelativePath="..\src\vm\fmgen\fmgen.cpp"
-						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								PreprocessorDefinitions=""
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								PreprocessorDefinitions=""
-							/>
-						</FileConfiguration>
-					</File>
-					<File
-						RelativePath="..\src\vm\fmgen\fmtimer.cpp"
-						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								PreprocessorDefinitions=""
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								PreprocessorDefinitions=""
-							/>
-						</FileConfiguration>
-					</File>
-					<File
-						RelativePath="..\src\vm\fmgen\opm.cpp"
-						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								PreprocessorDefinitions=""
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								PreprocessorDefinitions=""
-							/>
-						</FileConfiguration>
-					</File>
-					<File
-						RelativePath="..\src\vm\fmgen\opna.cpp"
-						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								PreprocessorDefinitions=""
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								PreprocessorDefinitions=""
-							/>
-						</FileConfiguration>
-					</File>
-					<File
-						RelativePath="..\src\vm\fmgen\psg.cpp"
-						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								PreprocessorDefinitions=""
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								PreprocessorDefinitions=""
-							/>
-						</FileConfiguration>
-					</File>
-				</Filter>
 			</Filter>
 			<Filter
 				Name="VM Driver Source Files"
 				Filter="cpp"
 				>
 				<File
-					RelativePath="..\src\vm\x1\cz8rb.cpp"
+					RelativePath="..\src\vm\bx1\bx1.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -1020,7 +717,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\x1\display.cpp"
+					RelativePath="..\src\vm\bx1\display.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -1040,207 +737,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\x1\emm.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\floppy.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\iobus.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\joystick.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\keyboard.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\memory.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\mouse.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\psub.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\sasi.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\sub.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\x1.cpp"
+					RelativePath="..\src\vm\bx1\keyboard.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -1304,11 +801,7 @@
 				Filter="h"
 				>
 				<File
-					RelativePath="..\src\vm\ay_3_891x.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\datarec.h"
+					RelativePath="..\src\vm\beep.h"
 					>
 				</File>
 				<File
@@ -1328,31 +821,27 @@
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\harddisk.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\hd46505.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\i8255.h"
-					>
-				</File>
-				<File
 					RelativePath="..\src\vm\io.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\mb8877.h"
+					RelativePath="..\src\vm\mc6800.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\mcs48.h"
+					RelativePath="..\src\vm\mc6843.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\mz1p17.h"
+					RelativePath="..\src\vm\mc6844.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\mc6850.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\memory.h"
 					>
 				</File>
 				<File
@@ -1364,22 +853,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\scsi_dev.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\scsi_hdd.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\scsi_host.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\upd1990a.h"
-					>
-				</File>
-				<File
 					RelativePath="..\src\vm\vm.h"
 					>
 				</File>
@@ -1387,121 +860,21 @@
 					RelativePath="..\src\vm\vm_template.h"
 					>
 				</File>
-				<File
-					RelativePath="..\src\vm\ym2151.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\z80.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\z80ctc.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\z80sio.h"
-					>
-				</File>
-				<Filter
-					Name="fmgen Header Files"
-					>
-					<File
-						RelativePath="..\src\vm\fmgen\diag.h"
-						>
-					</File>
-					<File
-						RelativePath="..\src\vm\fmgen\fmgen.h"
-						>
-					</File>
-					<File
-						RelativePath="..\src\vm\fmgen\fmgeninl.h"
-						>
-					</File>
-					<File
-						RelativePath="..\src\vm\fmgen\fmtimer.h"
-						>
-					</File>
-					<File
-						RelativePath="..\src\vm\fmgen\headers.h"
-						>
-					</File>
-					<File
-						RelativePath="..\src\vm\fmgen\misc.h"
-						>
-					</File>
-					<File
-						RelativePath="..\src\vm\fmgen\opm.h"
-						>
-					</File>
-					<File
-						RelativePath="..\src\vm\fmgen\opna.h"
-						>
-					</File>
-					<File
-						RelativePath="..\src\vm\fmgen\psg.h"
-						>
-					</File>
-				</Filter>
 			</Filter>
 			<Filter
 				Name="VM Driver Header Files"
 				Filter="h"
 				>
 				<File
-					RelativePath="..\src\vm\x1\cz8rb.h"
+					RelativePath="..\src\vm\bx1\bx1.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\x1\display.h"
+					RelativePath="..\src\vm\bx1\display.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\x1\emm.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\floppy.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\io_wait.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\iobus.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\joystick.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\keyboard.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\memory.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\mouse.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\psub.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\sasi.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\sub.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\x1\x1.h"
+					RelativePath="..\src\vm\bx1\keyboard.h"
 					>
 				</File>
 			</Filter>
@@ -1511,23 +884,11 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
-				RelativePath="..\src\res\indicator\access_off.bmp"
+				RelativePath="..\src\res\bx1.ico"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\indicator\access_on.bmp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\res\resource.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\res\x1.ico"
-				>
-			</File>
-			<File
-				RelativePath="..\src\res\x1.rc"
+				RelativePath="..\src\res\bx1.rc"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -1547,6 +908,18 @@
 						AdditionalIncludeDirectories="..\src\res"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\res\indicator\access_off.bmp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\indicator\access_on.bmp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\resource.h"
+				>
 			</File>
 		</Filter>
 	</Files>

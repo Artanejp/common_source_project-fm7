@@ -91,7 +91,7 @@
 #define KEYBOARD_TYPE_DEFAULT	1
 #define USE_DRIVE_TYPE		3
 #endif
-#define USE_FLOPPY_DISK		2
+#define USE_FLOPPY_DISK		4
 #define BASE_FLOPPY_DISK_NUM	0
 #define USE_HARD_DISK		4
 #define USE_TAPE		1
@@ -277,6 +277,7 @@ namespace X1 {
 	class MOUSE;
 	class PSUB;
 	class SASI;
+	class CZ8RB;
 }
 class MCS48;
 class UPD1990A;
@@ -321,6 +322,7 @@ protected:
 #ifdef _X1TURBO_FEATURE
 	Z80DMA* dma;
 #endif
+	X1::CZ8RB* cz8rb;
 	X1::DISPLAY* display;
 	X1::EMM* emm;
 	X1::FLOPPY* floppy;

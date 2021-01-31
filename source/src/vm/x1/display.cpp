@@ -218,7 +218,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 				}
 				int num = get_zpal_num(addr, data);
-				if(zpal[num].b != data & 0x0f) {
+				if(zpal[num].b != (data & 0x0f)) {
 					zpal[num].b = data & 0x0f;
 					zpalette_tmp[num + 16] = RGB_COLOR((zpal[num].r * 255) / 15, (zpal[num].g * 255) / 15, (zpal[num].b * 255) / 15);
 					zpalette_changed = true;
@@ -242,7 +242,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 				}
 				int num = get_zpal_num(addr, data);
-				if(zpal[num].r != data & 0x0f) {
+				if(zpal[num].r != (data & 0x0f)) {
 					zpal[num].r = data & 0x0f;
 					zpalette_tmp[num + 16] = RGB_COLOR((zpal[num].r * 255) / 15, (zpal[num].g * 255) / 15, (zpal[num].b * 255) / 15);
 					zpalette_changed = true;
@@ -266,7 +266,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 				}
 				int num = get_zpal_num(addr, data);
-				if(zpal[num].g != data & 0x0f) {
+				if(zpal[num].g != (data & 0x0f)) {
 					zpal[num].g = data & 0x0f;
 					zpalette_tmp[num + 16] = RGB_COLOR((zpal[num].r * 255) / 15, (zpal[num].g * 255) / 15, (zpal[num].b * 255) / 15);
 					zpalette_changed = true;
@@ -654,7 +654,8 @@ void DISPLAY::event_frame()
 void DISPLAY::event_vline(int v, int clock)
 {
 #ifdef _X1TURBOZ
-	if(zpalette_changed && v == (hireso ? 400 : 200)) {
+//	if(zpalette_changed && v == (hireso ? 400 : 200)) {
+	if(zpalette_changed && v == 0) {
 		update_zpalette();
 		zpalette_changed = false;
 	}

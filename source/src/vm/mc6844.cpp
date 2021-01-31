@@ -223,7 +223,7 @@ CH2 ADDR=FFFF COUNT=FFFF CTRL=FF ENABLE=1 MEM->I/O
 CH3 ADDR=FFFF COUNT=FFFF CTRL=FF ENABLE=1 I/O->MEM
 */
 	static const _TCHAR *dir[2] = {
-		_T("MEM->I/O"), _T("I/O->MEM")
+		_T("I/O->MEM"), _T("MEM->I/O")
 	};
 	my_stprintf_s(buffer, buffer_len,
 	_T("CH0 ADDR=%04X COUNT=%04X CTRL=%02X ENABLE=%d %s\n")

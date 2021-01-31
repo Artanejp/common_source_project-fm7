@@ -4,6 +4,7 @@ message("* vm/${EXE_NAME}")
 
 if(${EXE_NAME} STREQUAL emux1twin)
 	add_library(vm_${EXE_NAME}
+		cz8rb.cpp
 		display.cpp
 		emm.cpp
 		floppy.cpp
@@ -26,6 +27,7 @@ if(${EXE_NAME} STREQUAL emux1twin)
 	)
 else()
 	add_library(vm_${EXE_NAME}
+		cz8rb.cpp
 		display.cpp
 		emm.cpp
 		floppy.cpp

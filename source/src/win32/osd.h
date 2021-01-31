@@ -23,7 +23,10 @@
 #if defined(_MSC_VER) && (_MSC_VER >= 1910)
 #define SUPPORT_D2D1
 #endif
+
+#ifndef _UNITY			// MARU
 #define SUPPORT_D3D9
+#endif
 
 #include <windows.h>
 #include <windowsx.h>
@@ -48,34 +51,25 @@
 #include "../common.h"
 #include "../config.h"
 
-#ifdef USE_ZLIB
+#if defined(USE_ZLIB) && !defined(USE_VCPKG)				// zlib not installed by vcpkg
 	// relative path from *.vcproj/*.vcxproj, not from this directory :-(
-	#if defined(_MSC_VER) && (_MSC_VER >= 1910)
-		// thanks Marukun
-		#ifdef _M_AMD64
-			#ifdef _DEBUG
-				#pragma comment(lib, "../src/zlib-1.2.11/vc++2017/debug/x64/zlibstat.lib")
-			#else
-				#pragma comment(lib, "../src/zlib-1.2.11/vc++2017/release/x64/zlibstat.lib")
-			#endif
-		#else
-			#ifdef _DEBUG
-				#pragma comment(lib, "../src/zlib-1.2.11/vc++2017/debug/zlibstat.lib")
-			#else
-				#pragma comment(lib, "../src/zlib-1.2.11/vc++2017/release/zlibstat.lib")
-			#endif
-		#endif
-	#elif defined(_MSC_VER) && (_MSC_VER >= 1800)
+	#ifdef _M_AMD64
+		// these zlibstat.lib were built with VC++2017 (thanks Marukun)
 		#ifdef _DEBUG
-			#pragma comment(lib, "../src/zlib-1.2.11/vc++2013/debug/zlibstat.lib")
+			#pragma comment(lib, "../src/zlib-1.2.11/debug/x64/zlibstat.lib")
 		#else
-			#pragma comment(lib, "../src/zlib-1.2.11/vc++2013/release/zlibstat.lib")
+			#pragma comment(lib, "../src/zlib-1.2.11/release/x64/zlibstat.lib")
 		#endif
 	#else
+		// these zlibstat.lib were built with VC++2008
 		#ifdef _DEBUG
-			#pragma comment(lib, "../src/zlib-1.2.11/vc++2008/debug/zlibstat.lib")
+			#pragma comment(lib, "../src/zlib-1.2.11/debug/zlibstat.lib")
 		#else
-			#pragma comment(lib, "../src/zlib-1.2.11/vc++2008/release/zlibstat.lib")
+			#pragma comment(lib, "../src/zlib-1.2.11/release/zlibstat.lib")
+		#endif
+		// for vsnprintf() and snprintf() in zlibstat.lib
+		#if defined(_MSC_VER) && (_MSC_VER >= 1900)
+			#pragma comment(lib, "legacy_stdio_definitions.lib")
 		#endif
 	#endif
 #endif
@@ -616,6 +610,9 @@ public:
 	void stop_record_sound();
 	void restart_record_sound();
 	bool now_record_sound;
+#ifdef _UNITY	// MARU
+	int16_t	* get_sound_buffer();
+#endif // !_UNITY
 	
 	// common video device
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)

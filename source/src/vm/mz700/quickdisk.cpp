@@ -34,6 +34,11 @@
 
 namespace MZ700 {
 
+#define BSD_HEADER_BLOCK_ID	2
+#define BSD_DATA_BLOCK_ID	3
+#define BSD_DATA_BLOCK_SIZE	1026
+#define BSD_ATTR_ID		3
+
 void QUICKDISK::initialize()
 {
 	insert = protect = false;
@@ -256,6 +261,26 @@ retry:
 	}
 }
 
+unsigned short QUICKDISK::calc_crc(int* buff, int size)
+{
+	unsigned short crc = 0;
+	const unsigned short crc16poly = 0xa001;
+	// calculate crc-16/ARC
+	int i, j;
+	for (i = 0; i < size; i++) {
+		crc = crc ^ (unsigned short)buff[i];
+		for (j = 0; j < 8; j++) {
+			if (crc & (unsigned short)0x1) {
+				crc = (crc >> 1) ^ crc16poly;
+			}
+			else {
+				crc = (crc >> 1);
+			}
+		}
+	}
+	return crc;
+}
+
 void QUICKDISK::write_crc()
 {
 	if(!wrga && write_ptr != 0) {
@@ -394,7 +419,14 @@ void QUICKDISK::open_disk(const _TCHAR* path)
 				buffer[buffer_ptr++] = DATA_SYNC;
 				buffer[buffer_ptr++] = DATA_SYNC;
 				buffer[buffer_ptr++] = DATA_MARK;
-				buffer[buffer_ptr++] = HEADER_BLOCK_ID;
+				
+				//buffer[buffer_ptr++] = HEADER_BLOCK_ID;
+				if (header[0] != BSD_ATTR_ID) {
+					buffer[buffer_ptr++] = HEADER_BLOCK_ID;
+				} else {
+					buffer[buffer_ptr++] = BSD_HEADER_BLOCK_ID;
+				}
+				
 				buffer[buffer_ptr++] = HEADER_SIZE;
 				buffer[buffer_ptr++] = 0;
 				buffer[buffer_ptr++] = header[0];	// attribute
@@ -418,25 +450,49 @@ void QUICKDISK::open_disk(const _TCHAR* path)
 				buffer[buffer_ptr++] = DATA_SYNC;
 				buffer[buffer_ptr++] = DATA_BREAK;
 				
-				// copy data
-				buffer[block_num_ptr] = ++num_block;
-				
-				buffer[buffer_ptr++] = DATA_SYNC;
-				buffer[buffer_ptr++] = DATA_SYNC;
-				buffer[buffer_ptr++] = DATA_MARK;
-				buffer[buffer_ptr++] = DATA_BLOCK_ID;
-				buffer[buffer_ptr++] = (uint8_t)(size & 0xff);
-				buffer[buffer_ptr++] = (uint8_t)(size >> 8);
-				for(int i = 0; i < size; i++) {
-					buffer[buffer_ptr++] = ram[offs + i];
+				if (header[0] != BSD_ATTR_ID) {
+					// copy data
+					buffer[block_num_ptr] = ++num_block;
+					
+					buffer[buffer_ptr++] = DATA_SYNC;
+					buffer[buffer_ptr++] = DATA_SYNC;
+					buffer[buffer_ptr++] = DATA_MARK;
+					buffer[buffer_ptr++] = DATA_BLOCK_ID;
+					buffer[buffer_ptr++] = (uint8_t)(size & 0xff);
+					buffer[buffer_ptr++] = (uint8_t)(size >> 8);
+					for(int i = 0; i < size; i++) {
+						buffer[buffer_ptr++] = ram[offs + i];
+					}
+					buffer[buffer_ptr++] = DATA_CRC;
+					buffer[buffer_ptr++] = DATA_CRC;
+					buffer[buffer_ptr++] = DATA_SYNC;
+					buffer[buffer_ptr++] = DATA_SYNC;
+					buffer[buffer_ptr++] = DATA_BREAK;
+				} else {
+					int outsize = 0;
+					do {
+						buffer[block_num_ptr] = ++num_block;
+						
+						buffer[buffer_ptr++] = DATA_SYNC;
+						buffer[buffer_ptr++] = DATA_SYNC;
+						buffer[buffer_ptr++] = DATA_MARK;
+						buffer[buffer_ptr++] = BSD_DATA_BLOCK_ID;
+						buffer[buffer_ptr++] = (uint8_t)(BSD_DATA_BLOCK_SIZE & 0xff);
+						buffer[buffer_ptr++] = (uint8_t)(BSD_DATA_BLOCK_SIZE >> 8);
+						for(int i = 0; i < BSD_DATA_BLOCK_SIZE; i++) {
+							buffer[buffer_ptr++] = ram[offs + i];
+						}
+						buffer[buffer_ptr++] = DATA_CRC;
+						buffer[buffer_ptr++] = DATA_CRC;
+						buffer[buffer_ptr++] = DATA_SYNC;
+						buffer[buffer_ptr++] = DATA_SYNC;
+						buffer[buffer_ptr++] = DATA_BREAK;
+						outsize += BSD_DATA_BLOCK_SIZE;
+						offs += BSD_DATA_BLOCK_SIZE;
+					} while(outsize < size);
 				}
-				buffer[buffer_ptr++] = DATA_CRC;
-				buffer[buffer_ptr++] = DATA_CRC;
-				buffer[buffer_ptr++] = DATA_SYNC;
-				buffer[buffer_ptr++] = DATA_SYNC;
-				buffer[buffer_ptr++] = DATA_BREAK;
 			}
-		} else {
+		} else { // qdf file
 			// check header
 			uint8_t header[16];
 			fio->Fread(header, sizeof(header), 1);
@@ -444,39 +500,109 @@ void QUICKDISK::open_disk(const _TCHAR* path)
 				fio->Fseek(0, FILEIO_SEEK_SET);
 			}
 			
-			// load raw file
-			bool in_gap = true;
-			int sync_top_ptr = 0, sync_num = 0, sync_num_prev = 0, data;
-			
+			int data, i, temp_data_size=0;
+			bool block_file = true;
 			buffer[buffer_ptr++] = DATA_BREAK;
 			
-			while((data = fio->Fgetc()) != EOF) {
-				if(data == DATA_SYNC) {
-					if(sync_num == 0) {
-						sync_top_ptr = buffer_ptr;
+			// skip 2700 bytes from file top (GAP or gabage)
+			fio->Fseek(2700, FILEIO_SEEK_SET);
+			while ((data = fio->Fgetc()) != EOF) {
+				//skip block top BiSync
+				do {
+					data = fio->Fgetc();
+				} while (data == DATA_SYNC);
+				if (data == 0) continue; // garbage BiSync data
+				// Check Data_Mark
+				if (data != 0xa5) {	// Abnormal block Data Mark
+					int sync_top_ptr = 0, sync_num = 0, sync_num_prev = 0;
+					int temp_block_buff[65535];
+					int temp_block_ptr = 0;
+					unsigned short cal_crc = 0, temp_crc = 0;
+					const unsigned short crc16poly = 0xa001;
+					
+					memset(temp_block_buff, 0, sizeof(temp_block_buff));
+					temp_block_buff[temp_block_ptr++] = data;
+					
+					while ((data = fio->Fgetc()) != EOF) {
+						if(data == DATA_SYNC) {
+							if(sync_num == 0) {
+								sync_top_ptr = temp_block_ptr;
+							}
+							sync_num++;
+						} else {
+							sync_num_prev = sync_num;
+							sync_num = 0;
+						}
+						// TODO: This code will misread 0x00 last over 4 bytes BiSync data as Block end.
+						if (sync_num_prev >= 4 && sync_num == 0 && data == 0x00) { 
+							temp_data_size = sync_top_ptr;
+							temp_block_ptr = sync_top_ptr;
+							temp_crc = (unsigned short)temp_block_buff[temp_block_ptr - 2] + (unsigned short)(temp_block_buff[temp_block_ptr - 1] << 8);
+							cal_crc = calc_crc(temp_block_buff, temp_data_size - 2);
+							
+							// CRC unmatch (lack 1 byte Bisync error), add one more 0x16 data
+							if (cal_crc != temp_crc) {
+								temp_block_buff[temp_block_ptr++] = 0x16;
+								temp_data_size++;
+							}
+							// put data to main buffer
+							buffer[buffer_ptr++] = DATA_SYNC;
+							buffer[buffer_ptr++] = DATA_SYNC;
+							for (i = 0; i < temp_data_size; i++) {
+								buffer[buffer_ptr++] = temp_block_buff[i];
+							}
+							buffer[buffer_ptr++] = DATA_SYNC;
+							buffer[buffer_ptr++] = DATA_SYNC;
+							buffer[buffer_ptr++] = DATA_BREAK;
+							break;
+						} else {
+							temp_block_buff[temp_block_ptr++] = data;
+							if (temp_block_ptr > (QUICKDISK_BUFFER_SIZE - 2)) break;
+						}
 					}
-					sync_num++;
-				} else {
-					sync_num_prev = sync_num;
-					sync_num = 0;
-				}
-				if(in_gap) {
-					if(sync_num_prev >= 4 && sync_num == 0) {
+				} else { // normal data_mark 0xa5
+					if (block_file == true) {
+						// BLOCK-FILE area has 4 bytes data
 						buffer[buffer_ptr++] = DATA_SYNC;
 						buffer[buffer_ptr++] = DATA_SYNC;
-						buffer[buffer_ptr++] = data;
-						in_gap = false;
-					}
-				} else {
-					if(sync_num_prev >= 4 && sync_num == 0 && data == 0x00) {
-						buffer_ptr = sync_top_ptr;
+						for (i = 0; i < 4; i++) {
+							buffer[buffer_ptr++] = data;
+							data = fio->Fgetc();
+						}
 						buffer[buffer_ptr++] = DATA_SYNC;
 						buffer[buffer_ptr++] = DATA_SYNC;
 						buffer[buffer_ptr++] = DATA_BREAK;
-						in_gap = true;
+						block_file = false;
 					} else {
-						buffer[buffer_ptr++] = data;
+						// Other areas have data size.
+						buffer[buffer_ptr++] = DATA_SYNC;
+						buffer[buffer_ptr++] = DATA_SYNC;
+						buffer[buffer_ptr++] = data;	// DATA MARK
+						data = fio->Fgetc();
+						buffer[buffer_ptr++] = data;	// BLOCK FLAG
+						data = fio->Fgetc();
+						buffer[buffer_ptr++] = data;	// DATA SIZE(L)
+						temp_data_size = data;
+						data = fio->Fgetc();
+						buffer[buffer_ptr++] = data;	// DATA SIZE(H)
+						temp_data_size |= (data << 8);
+						for (i = 0; i < temp_data_size; i++) {
+							data = fio->Fgetc();
+							buffer[buffer_ptr++] = data;	// data
+						}
+						data = fio->Fgetc();
+						buffer[buffer_ptr++] = data;	// CRC(L)
+						data = fio->Fgetc();
+						buffer[buffer_ptr++] = data;	// CRC(H)
+						buffer[buffer_ptr++] = DATA_SYNC;
+						buffer[buffer_ptr++] = DATA_SYNC;
+						buffer[buffer_ptr++] = DATA_BREAK;
 					}
+					// skip block end BiSync
+					do {
+						data = fio->Fgetc();
+					} while (data == DATA_SYNC);
+					buffer[buffer_ptr] = DATA_EMPTY;
 				}
 			}
 		}
@@ -506,53 +632,180 @@ void QUICKDISK::release_disk()
 	if(insert && !protect && modified) {
 		// check extension
 		_TCHAR file_path_tmp[_MAX_PATH];
-		if(check_file_extension(file_path, _T(".mzt")) || check_file_extension(file_path, _T(".q20"))) {
+		if(check_file_extension(file_path, _T(".mzt")) || check_file_extension(file_path, _T(".q20")) || check_file_extension(file_path, _T(".qdf"))) {
 			my_tcscpy_s(file_path_tmp, _MAX_PATH, file_path);
 		} else {
 			my_stprintf_s(file_path_tmp, _MAX_PATH, _T("%s.mzt"), get_file_path_without_extensiton(file_path));
 		}
+		
 		// save blocks as mzt file
 		FILEIO* fio = new FILEIO();
 		if(!fio->Fopen(file_path_tmp, FILEIO_WRITE_BINARY)) {
-			fio->Fopen(create_local_path(_T("temporary_saved_quick_disk.mzt")), FILEIO_WRITE_BINARY);
+			my_tcscpy_s(file_path_tmp, _MAX_PATH, "temporary_saved_quick_disk.mzt");
+			fio->Fopen(create_local_path(file_path_tmp), FILEIO_WRITE_BINARY);
 		}
 		if(fio->IsOpened()) {
-			int block_num = buffer[4];
-			buffer_ptr = 10;
-			
-			for(int i = 0; i < block_num; i++) {
-				if(buffer[buffer_ptr] == DATA_EMPTY) {
-					break;
-				}
-				int id = buffer[buffer_ptr + 3] & 3;
-				int size = buffer[buffer_ptr + 4] | (buffer[buffer_ptr + 5] << 8);
-				buffer_ptr += 6;
+			if (!check_file_extension(file_path_tmp, _T(".qdf"))) {
+				int block_num = buffer[4];
+				buffer_ptr = 10;
+				uint8_t header[MZT_HEADER_SIZE];
 				
-				if(id == HEADER_BLOCK_ID) {
-					// create mzt header
-					uint8_t header[MZT_HEADER_SIZE];
-					memset(header, 0, sizeof(header));
-					
-					header[0x00] = (uint8_t)buffer[buffer_ptr + 0];	// attribute
-					for(int i = 1; i <= 17; i++) {
-						header[i] = (uint8_t)buffer[buffer_ptr + i];	// file name
+				bool bLastBSD = false;
+				static uint8_t BSDBuffer[0x10000];
+				int BSDTotal = 0;
+				
+				for(int i = 0; i < block_num; i++) {
+					if(buffer[buffer_ptr] == DATA_EMPTY) {
+						break;
 					}
-					header[0x3e] = (uint8_t)buffer[buffer_ptr + 18];	// lock
-					header[0x3f] = (uint8_t)buffer[buffer_ptr + 19];	// lock
-					header[0x12] = (uint8_t)buffer[buffer_ptr + 20];	// file size
-					header[0x13] = (uint8_t)buffer[buffer_ptr + 21];
-					header[0x14] = (uint8_t)buffer[buffer_ptr + 22];	// load addr
-					header[0x15] = (uint8_t)buffer[buffer_ptr + 23];
-					header[0x16] = (uint8_t)buffer[buffer_ptr + 24];	// exec addr
-					header[0x17] = (uint8_t)buffer[buffer_ptr + 25];
+					int bsd_id = buffer[buffer_ptr + 3] & 3;
+					int id = buffer[buffer_ptr + 3] & 1;
+					int size = buffer[buffer_ptr + 4] | (buffer[buffer_ptr + 5] << 8);
+					
+					buffer_ptr += 6;
+					
+					if(id == HEADER_BLOCK_ID) {
+						if (bLastBSD) {
+							header[0x13] = (uint8_t)(BSDTotal >> 8);	// file size
+							header[0x12] = (uint8_t)BSDTotal;
+							fio->Fwrite(header, MZT_HEADER_SIZE, 1);
+							for(int i = 0; i < BSDTotal; i++) {
+								fio->Fputc(BSDBuffer[i]);
+							}
+							bLastBSD = false;
+						}
+						
+						// create mzt header
+						memset(header, 0, sizeof(header));
+						
+						header[0x00] = (uint8_t)buffer[buffer_ptr + 0];	// attribute
+						for(int i = 1; i <= 17; i++) {
+							header[i] = (uint8_t)buffer[buffer_ptr + i];	// file name
+						}
+						header[0x3e] = (uint8_t)buffer[buffer_ptr + 18];	// lock
+						header[0x3f] = (uint8_t)buffer[buffer_ptr + 19];	// lock
+						header[0x12] = (uint8_t)buffer[buffer_ptr + 20];	// file size
+						header[0x13] = (uint8_t)buffer[buffer_ptr + 21];
+						header[0x14] = (uint8_t)buffer[buffer_ptr + 22];	// load addr
+						header[0x15] = (uint8_t)buffer[buffer_ptr + 23];
+						header[0x16] = (uint8_t)buffer[buffer_ptr + 24];	// exec addr
+						header[0x17] = (uint8_t)buffer[buffer_ptr + 25];
+						
+						//fio->Fwrite(header, MZT_HEADER_SIZE, 1);
+						if (bsd_id != BSD_HEADER_BLOCK_ID) {
+							fio->Fwrite(header, MZT_HEADER_SIZE, 1);
+						} else {
+							BSDTotal = 0;
+							bLastBSD = true;
+						}
+					} else {
+						// data
+						//for(int i = 0; i < size; i++) {
+						//	fio->Fputc(buffer[buffer_ptr + i]);
+						//}
+						if (bsd_id == BSD_DATA_BLOCK_ID) {
+							for(int i = 0; i < size; i++) {
+								BSDBuffer[BSDTotal + i] = (uint8_t)buffer[buffer_ptr + i];
+							}
+							BSDTotal += size;
+						} else {
+							for(int i = 0; i < size; i++) {
+								fio->Fputc(buffer[buffer_ptr + i]);
+							}
+						}
+					}
+					buffer_ptr += size + 5;
+				}
+				
+				if (bLastBSD) {
+					header[0x13] = (uint8_t)(BSDTotal >> 8);	// file size
+					header[0x12] = (uint8_t)BSDTotal;
 					fio->Fwrite(header, MZT_HEADER_SIZE, 1);
-				} else {
-					// data
-					for(int i = 0; i < size; i++) {
-						fio->Fputc(buffer[buffer_ptr + i]);
+					for(int i = 0; i < BSDTotal; i++) {
+						fio->Fputc(BSDBuffer[i]);
+					}
+					bLastBSD = false;
+				}
+			}
+			else // save as qdf file
+			// TODO: This code will create over size qdf files because QD buffer can store many blocks.
+			{
+				buffer_ptr = 0;
+				int i, file_size = 0;
+				bool block_file = true;
+				int block_data_size = 0;
+				unsigned short cal_crc =0;
+				const int max_file_size = 0x14010;
+				int temp_block_buff[65535];
+				int temp_block_ptr = 0;
+				
+				// add header 
+				fio->Fwrite("-QD format-", 11, 1);
+				fio->Fputc(0xff);
+				fio->Fputc(0xff);
+				fio->Fputc(0xff);
+				fio->Fputc(0xff);
+				fio->Fputc(0xff);
+				file_size += 16;
+				
+				// add media top gap (2032 bytes)+long send break gap(2793) before block file area 
+				for (i = 0; i < (2032 + 2793); i++) {
+					fio->Fputc(0x00);
+					file_size++;
+				}
+				
+				while (buffer[++buffer_ptr] != DATA_EMPTY || file_size > max_file_size) { 
+					memset(temp_block_buff, 0, sizeof(temp_block_buff));
+					temp_block_ptr = 0;
+					block_data_size = 0;
+					while ( (buffer[buffer_ptr] != DATA_BREAK) && (buffer_ptr < QUICKDISK_BUFFER_SIZE) ) {
+						temp_block_buff[temp_block_ptr++] = buffer[buffer_ptr++];
+						block_data_size++;
+					}
+					if (buffer_ptr >= QUICKDISK_BUFFER_SIZE) break; // end of buffer, garbage block 
+					if ( ((temp_block_buff[0] != DATA_SYNC) && (temp_block_buff[1] != DATA_SYNC)) || (block_data_size < 5) ) continue;
+					
+					// cal crc
+					cal_crc = calc_crc((temp_block_buff+2), (block_data_size - 6));
+					temp_block_buff[block_data_size - 4] = ((int)cal_crc & 0xff);
+					temp_block_buff[block_data_size - 3] = (int)(cal_crc >> 8);
+					
+					// write buff to file
+					temp_block_ptr = 0;
+					// add start bisync total 10bytes
+					for (i = 0; i < 8; i++) { // 2 bytes bisync data is in temp buff.
+						fio->Fputc(DATA_SYNC);
+						file_size++;
+					}
+					// while (temp_block_ptr < data_size || file_size > max_file_size) {
+					while (temp_block_ptr < block_data_size ) {
+						fio->Fputc(temp_block_buff[temp_block_ptr++]);
+						file_size++;
+					}
+					// add end bisync total 6bytes
+					for (i = 0; i < 4; i++) { // 2 bytes bisync data is in temp buff.
+						fio->Fputc(DATA_SYNC);
+						file_size++;
+					}
+					// add send break gap for block end
+					int gap_size = 0;
+					if (block_file) {
+						gap_size = 2793;
+						block_file = false;
+					}
+					else {
+						gap_size = 254;
+					}
+					for (i = 0; i < gap_size; i++) {
+						fio->Fputc(0x00);
+						file_size++;
 					}
 				}
-				buffer_ptr += size + 5;
+				// add gap to file end
+				while (file_size < max_file_size) {
+					fio->Fputc(0x00);
+					file_size++;
+				}
 			}
 			fio->Fclose();
 		}

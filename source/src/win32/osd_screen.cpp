@@ -9,6 +9,11 @@
 
 #include "osd.h"
 
+#ifdef _UNITY
+#include "..\winplugin\emuwrap.h"
+extern emuwrap g_emucore;
+#endif
+
 #define REC_VIDEO_SUCCESS	1
 #define REC_VIDEO_FULL		2
 #define REC_VIDEO_ERROR		3
@@ -153,8 +158,10 @@ void OSD::set_vm_screen_size(int screen_width, int screen_height, int window_wid
 			vm_window_width_aspect = window_width_aspect;
 			vm_window_height_aspect = window_height_aspect;
 			
+#ifndef _UNITY		// MARU
 			// change the window size
 			PostMessage(main_window_handle, WM_RESIZE, 0L, 0L);
+#endif
 		} else {
 			// to make sure
 			set_host_window_size(-1, -1, host_window_mode);
@@ -387,6 +394,8 @@ int OSD::draw_screen()
 	}
 #endif
 	
+#ifndef _UNITY
+	// MARU: ここが実質的なウィンドウ描画？
 	// invalidate window
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	if(first_invalidate) {
@@ -413,6 +422,7 @@ int OSD::draw_screen()
 	InvalidateRect(main_window_handle, &rect, first_invalidate);
 #endif
 	UpdateWindow(main_window_handle);
+#endif
 	first_draw_screen = self_invalidate = true;
 	
 	// record avi file
@@ -425,9 +435,11 @@ int OSD::draw_screen()
 
 void OSD::invalidate_screen()
 {
+#ifndef _UNITY
 //	InvalidateRect(main_window_handle, NULL, TRUE);
 	RECT rect = { 0, 0, host_window_width, host_window_height };
 	InvalidateRect(main_window_handle, &rect, TRUE);
+#endif
 }
 
 void OSD::update_screen(HDC hdc)
@@ -499,6 +511,7 @@ void OSD::update_screen(HDC hdc)
 	}
 #else
 	if(first_draw_screen) {
+#ifndef _UNITY			// MARU
 		int dest_x = (host_window_width - draw_screen_width) / 2;
 		int dest_y = (host_window_height - draw_screen_height) / 2;
 		
@@ -515,6 +528,7 @@ void OSD::update_screen(HDC hdc)
 		{
 			BitBlt(hdc, dest_x, dest_y, draw_screen_width, draw_screen_height, draw_screen_buffer->hdcDib, 0, 0, SRCCOPY);
 		}
+#endif				// _UNITY
 		first_invalidate = self_invalidate = false;
 	}
 #endif

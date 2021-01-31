@@ -1,3 +1,22 @@
+12/6/2020-2
+
+[MZ1500] fix inp(0xe8) to detect voice board is missing (thanks Mr.kitahei88)
+[X1TURBOZ/DISPLAY] fix to update zpalette at vline=0 (thanks Mr.Sato)
+
+
+12/6/2020
+
+[OSD/WIN32] import Unity plug-in code (thanks Mr.Marukun)
+
+[VM/I386_NP21] update to Neko Project 21/W ver0.86 rev79 beta4
+[VM/UPD765A] fix transfer size to 128 << min(N, 7) (thanks Mr.Kugimoto)
+
+[MZ1500/QUICKDISK] improve for QDF format (thanks Mr.kitahei88)
+[MZ1500/QUICKDISK] improve for BSD record (thanks Mr.Yuushi)
+[PC9801/MEMORY] fix switching BIOS ROM/RAM
+[X1/CZ8RB] support CZ-8RB (thanks Mr.Meister)
+
+
 8/16/2020
 
 [VM/SCSI_DEV] improve to specify data req signal delay (thanks Mr.Sato)

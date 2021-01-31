@@ -123,7 +123,6 @@ void MEMBUS::initialize()
 #endif
 #endif
 #if defined(SUPPORT_BIOS_RAM)
-	memset(bios_ram, 0x00, sizeof(bios_ram));
 	shadow_ram_selected = true;
 #else
 	shadow_ram_selected = false;
@@ -749,14 +748,14 @@ void MEMBUS::update_bios_ipl_and_itf()
 {
 #if defined(SUPPORT_ITF_ROM)
 	if(itf_selected) {
-		unset_memory_w(0x00100000 - sizeof(bios), 0x000fffff);
+//		unset_memory_w(0x00100000 - sizeof(bios), 0x000fffff);
 		set_memory_r(0x00100000 - sizeof(itf), 0x000fffff, itf);
 	} else
 #endif
 	{	
 #if defined(SUPPORT_BIOS_RAM)
 		if(bios_ram_selected) {
-			set_memory_rw(0x00100000 - sizeof(bios_ram), 0x000fffff, bios_ram);
+			set_memory_rw(0x100000 - sizeof(bios), 0xfffff, ram + 0x100000 - sizeof(bios));
 		} else
 #endif
 		{
@@ -804,13 +803,13 @@ void MEMBUS::update_bios_window(uint32_t window_addr, uint32_t begin)
 	#if defined(SUPPORT_SHADOW_RAM)
 			if(shadow_ram_selected) {
 				set_memory_rw(begin, head_address - 1, &(ram[window_addr]));
-				set_memory_rw(head_address, end, &(bios_ram[0x00000]));
+				set_memory_rw(head_address, end, ram + 0x100000 - sizeof(bios));
 			} else
 	#endif
 	#if defined(SUPPORT_BIOS_RAM)
 			if(bios_ram_selected) {
 				unset_memory_rw(begin, head_address - 1);
-				set_memory_rw(head_address, end, &(bios_ram[0x00000]));  // Q? Will appear BIOS/ITF ROM? 20190730 K.O
+				set_memory_rw(head_address, end, ram + 0x100000 - sizeof(bios)); // Q? Will appear BIOS/ITF ROM? 20190730 K.O
 			} else
 		#endif
 			{
@@ -930,13 +929,13 @@ void MEMBUS::update_bios()
 				//copy_table_rw(0xa0000, 0xe0000, 0xe7fff); 
 				set_memory_rw(0xa0000, 0xa7fff, &(ram[window_a0000h]));
 		#if defined(SUPPORT_BIOS_RAM)
-				set_memory_rw(0xa8000, 0xbffff, bios_ram);
+				set_memory_rw(0xa8000, 0xbffff, ram + 0x100000 - sizeof(bios));
 		#endif
 	#else
 				//copy_table_rw(0xa0000, 0xe0000, 0xeffff); 
 				set_memory_rw(0xa0000, 0xaffff, &(ram[window_a0000h]));
 		#if defined(SUPPORT_BIOS_RAM)
-				set_memory_rw(0xb0000, 0xbffff, bios_ram);
+				set_memory_rw(0xb0000, 0xbffff, ram + 0x100000 - sizeof(bios));
 		#endif
 	#endif
 			} else {
@@ -995,13 +994,14 @@ void MEMBUS::update_sound_bios()
 {
 	if((sound_bios_selected) && (sound_bios_load) && (using_sound_bios)){
 //		if(sound_bios_selected) {
-//			set_memory_r(0xcc000, 0xcffff, sound_bios_ram);
+//			set_memory_rw(0xcc000, 0xcffff, sound_bios_ram);
 //		} else {
 			set_memory_r(0xcc000, 0xcffff, sound_bios);
 			unset_memory_w(0xcc000, 0xcffff);
 //		}
 	} else {
-		unset_memory_rw(0xcc000, 0xcffff);
+		set_memory_r(0xcc000, 0xcffff, sound_bios);
+		unset_memory_w(0xcc000, 0xcffff);
 	}
 	set_wait_rw(0xcc000, 0xcffff, exboards_wait);
 }
@@ -1073,7 +1073,7 @@ void MEMBUS::update_nec_ems()
 #endif
 
 
-#define STATE_VERSION	13
+#define STATE_VERSION	14
 
 bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1085,7 +1085,6 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
  	}
 	state_fio->StateArray(ram, sizeof(ram), 1);
  #if defined(SUPPORT_BIOS_RAM)
-	state_fio->StateArray(bios_ram, sizeof(bios_ram), 1);
 	state_fio->StateValue(bios_ram_selected);
  #endif
  #if defined(SUPPORT_ITF_ROM)
