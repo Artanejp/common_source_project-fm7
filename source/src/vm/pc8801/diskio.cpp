@@ -177,7 +177,7 @@ void DiskIO::CmdReadFile()
 	case idlephase:
 		writebuffer = false;
 //		LOG1("ReadFile(%s) - ", filename);
-		if (file->Fopen(char_to_tchar((char*) filename), FILEIO_READ_BINARY))
+		if (file->Fopen(create_absolute_path(char_to_tchar((char*) filename)), FILEIO_READ_BINARY))
 		{
 			file->Fseek(0, FILEIO_SEEK_END);
 			size = min((uint32_t)0xffff, (uint32_t)file->Ftell());
@@ -224,7 +224,7 @@ void DiskIO::CmdWriteFile()
 	case idlephase:
 		writebuffer = true;
 //		LOG1("WriteFile(%s) - ", filename);
-		if (file->Fopen(char_to_tchar((char*) filename), FILEIO_WRITE_BINARY))
+		if (file->Fopen(create_absolute_path(char_to_tchar((char*) filename)), FILEIO_WRITE_BINARY))
 			ArgPhase(2);
 		else
 		{

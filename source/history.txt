@@ -1,3 +1,10 @@
+12/16/2020
+
+[PC8801/DISKIO] improve to read/write files in initial current directory
+[PC8801/PC88] support force ready/drq mask register for DMA-type FDD
+[PC8801/PC88] fix PC-8001mkIISR hiragana font when PCG-8100 is enabled
+
+
 12/15/2020
 
 [PC8801/DISKIO] support M88 DiskDrv (thanks Mr.CISC and Mr.apaslothy)

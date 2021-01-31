@@ -37,18 +37,6 @@
 static FILEIO* logfile = NULL;
 static FILEIO* cmdfile = NULL;
 
-const _TCHAR *my_absolute_path(const _TCHAR *file_name)
-{
-	static _TCHAR file_path[_MAX_PATH];
-	
-	if(is_absolute_path(file_name)) {
-		my_tcscpy_s(file_path, _MAX_PATH, file_name);
-	} else {
-		my_stprintf_s(file_path, _MAX_PATH, _T("%s%s"), get_initial_current_path(), file_name);
-	}
-	return (const _TCHAR *)file_path;
-}
-
 void my_printf(OSD *osd, const _TCHAR *format, ...)
 {
 	_TCHAR buffer[8192];
@@ -1009,12 +997,12 @@ void* debugger_thread(void *lpx)
 				if(num >= 2 && params[1][0] == _T('\"')) {
 					my_tcscpy_s(buffer, array_length(buffer), prev_command);
 					if((token = my_tcstok_s(buffer, _T("\""), &context)) != NULL && (token = my_tcstok_s(NULL, _T("\""), &context)) != NULL) {
-						my_tcscpy_s(cpu_debugger->file_path, _MAX_PATH, my_absolute_path(token));
+						my_tcscpy_s(cpu_debugger->file_path, _MAX_PATH, create_absolute_path(token));
 					} else {
 						my_printf(p->osd, _T("invalid parameter\n"));
 					}
 				} else if(num == 2) {
-					my_tcscpy_s(cpu_debugger->file_path, _MAX_PATH, my_absolute_path(params[1]));
+					my_tcscpy_s(cpu_debugger->file_path, _MAX_PATH, create_absolute_path(params[1]));
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
@@ -1509,7 +1497,7 @@ RESTART_GO:
 						logfile = NULL;
 					}
 					logfile = new FILEIO();
-					logfile->Fopen(my_absolute_path(params[1]), FILEIO_WRITE_ASCII);
+					logfile->Fopen(create_absolute_path(params[1]), FILEIO_WRITE_ASCII);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
@@ -1522,7 +1510,7 @@ RESTART_GO:
 					} else {
 						cmdfile = new FILEIO();
 					}
-					if(!cmdfile->Fopen(my_absolute_path(params[1]), FILEIO_READ_ASCII)) {
+					if(!cmdfile->Fopen(create_absolute_path(params[1]), FILEIO_READ_ASCII)) {
 						delete cmdfile;
 						cmdfile = NULL;
 						my_printf(p->osd, _T("can't open %s\n"), params[1]);

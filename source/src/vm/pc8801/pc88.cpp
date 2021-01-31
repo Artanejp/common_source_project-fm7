@@ -1500,6 +1500,11 @@ void PC88::write_io8(uint32_t addr, uint32_t data)
 		break;
 #endif
 #ifdef SUPPORT_PC88_FDD_8INCH
+	case 0xf3:
+		if(d_fdc_8inch != NULL) {
+			d_fdc_8inch->write_signal(SIG_UPD765A_FREADY, data, 0x20);
+		}
+		break;
 	case 0xf7:
 		if(d_fdc_8inch != NULL) {
 			d_fdc_8inch->write_io8(addr, data);
@@ -2304,7 +2309,7 @@ void PC88::write_signal(int id, uint32_t data, uint32_t mask)
 		}
 	} else if(id == SIG_PC88_8INCH_DRQ) {
 		if(d_fdc_8inch != NULL) {
-			if(data & mask) {
+			if((port[0xf3] & 0x02) && (data & mask)) {
 				if(!dmac.ch[1].running) {
 					dmac.start(1);
 				}
@@ -3087,7 +3092,11 @@ void PC88::draw_text()
 	}
 #if defined(_PC8001SR)
 	// select katakana or hiragana
-	memcpy(kanji1 + 0x1500, Port33_HIRA ? hiragana : katakana, 0x200);
+	if(config.dipswitch & DIPSWITCH_PCG8100) {
+		memcpy(pcg_pattern + 0x500, Port33_HIRA ? hiragana : katakana, 0x200);
+	} else {
+		memcpy(kanji1 + 0x1500, Port33_HIRA ? hiragana : katakana, 0x200);
+	}
 #endif
 //	for(int cy = 0, ytop = 0; cy < 64 && ytop < 400; cy++, ytop += char_height) {
 	for(int cy = 0, ytop = 0; cy < crtc.height && ytop < 400; cy++, ytop += char_height) {
