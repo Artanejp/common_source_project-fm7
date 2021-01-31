@@ -145,6 +145,10 @@ devenv.com micom_mahjong.vcproj /Rebuild Release
 mkdir build_xp\micom_mahjong
 copy Release\micom_mahjong.exe build_xp\micom_mahjong\.
 
+devenv.com mp85.vcproj /Rebuild Release
+mkdir build_xp\mp85
+copy Release\mp85.exe build_xp\mp85\.
+
 devenv.com msx1.vcproj /Rebuild Release
 devenv.com msx2.vcproj /Rebuild Release
 devenv.com msx2p.vcproj /Rebuild Release

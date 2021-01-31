@@ -1,3 +1,10 @@
+1/24/2021
+
+[VM/I8279] support 8279 (based on MAME)
+
+[MP85] support MITEC MP-85
+
+
 1/17/2021
 
 [VM/UPD765A] improve for the case tc is asserted while reading/writing sector

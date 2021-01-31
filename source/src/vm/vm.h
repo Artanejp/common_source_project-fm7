@@ -252,6 +252,11 @@
 #include "micom_mahjong/micom_mahjong.h"
 #endif
 
+// MITEC MP85
+#ifdef _MP85
+#include "mp85/mp85.h"
+#endif
+
 // ASCII MSX
 #ifdef _MSX1
 //#include "msx/msx.h"

@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 3.5.2)
+SET(THIS_LIB_VERSION 3.5.3)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
@@ -29,6 +29,7 @@ set(s_vm_common_vm_srcs
 	../i8253.cpp
 	../i8255.cpp
 	../i8259.cpp
+	../i8279.cpp
 	../i86.cpp
 	../io.cpp
 #	../ld700.cpp

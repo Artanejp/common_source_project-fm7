@@ -141,6 +141,10 @@ msbuild.exe micom_mahjong.vcxproj /t:clean;rebuild /p:Configuration=Release;Plat
 mkdir build_vc15\micom_mahjong
 copy bin\x86\Release\micom_mahjong.exe build_vc15\micom_mahjong\.
 
+msbuild.exe mp85.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
+mkdir build_vc15\mp85
+copy bin\x86\Release\mp85.exe build_vc15\mp85\.
+
 msbuild.exe msx1.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
 msbuild.exe msx2.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
 msbuild.exe msx2p.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
