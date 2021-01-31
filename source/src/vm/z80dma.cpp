@@ -736,7 +736,7 @@ void Z80DMA::request_bus()
 //#ifdef SINGLE_MODE_DMA
 			if(_SINGLE_MODE_DMA) d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 //#endif
-			d_cpu->set_extra_clock(2);
+			d_cpu->set_extra_clock(3);
 		}
 		bus_master = true;
 	}

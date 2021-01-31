@@ -65,7 +65,7 @@ void Z80CTC::write_io8(uint32_t addr, uint32_t data)
 			counter[ch].slope = ((data & 0x10) != 0);
 			if((data & 0x02) && (counter[ch].req_intr || counter[ch].in_service)) {
 				counter[ch].req_intr = false;
-				counter[ch].in_service = false;
+//				counter[ch].in_service = false;
 				update_intr();
 			}
 			if(!(data & 0x80) && counter[ch].req_intr) {

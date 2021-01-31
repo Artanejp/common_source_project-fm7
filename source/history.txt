@@ -1,3 +1,13 @@
+12/8/2020
+
+[COMMON] fix build error on VC++2019 (thanks Mr.Sato)
+
+[VM/Z80CTC] fix not to clear in-service at software reset (thanks Mr.Sato)
+[VM/Z80DMA] fix stall cycles at BUSACK in byte mode (thanks Mr.Sato)
+
+[X1TURBOZ/DISPLAY] fix zpalette in 64 colors, 2 screens mode (thanks Mr.Sato)
+
+
 12/6/2020-2
 
 [MZ1500] fix inp(0xe8) to detect voice board is missing (thanks Mr.kitahei88)

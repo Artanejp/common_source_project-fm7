@@ -982,8 +982,8 @@ __DECL_VECTORIZED_LOOP
 					
 					if(C64) {
 						for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
-							uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
-							uint16_t cg11 = src_cg1[x] | (src_cg1[x] >> 2);
+							uint16_t cg00 = src_cg0[x];// | (src_cg0[x] >> 2);
+							uint16_t cg11 = src_cg1[x];// | (src_cg1[x] >> 2);
 							
 							dbuf[x2] = dbuf[x2 + 1] = get_zpriority(src_text[x], cg00, cg11);
 						}
@@ -1034,7 +1034,7 @@ __DECL_VECTORIZED_LOOP
 					uint16_t* src_cg0 = dr_zcg[0][y];
 					
 					for(int x = 0; x < 640; x++) {
-						uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
+						uint16_t cg00 = src_cg0[x];// | (src_cg0[x] >> 2);
 						
 						dbuf[x] = get_zpriority(src_text[x], cg00, cg00);
 					}
@@ -1308,6 +1308,25 @@ void DISPLAY::draw_cg(int line, int plane)
 			d[6] = ((b0 & 0x02) << 2) | ((b1 & 0x02) << 1) | ((r0 & 0x02) << 6) | ((r1 & 0x02) << 5) | ((g0 & 0x02) << 10) | ((g1 & 0x02) <<  9);
 			d[7] = ((b0 & 0x01) << 3) | ((b1 & 0x01) << 2) | ((r0 & 0x01) << 7) | ((r1 & 0x01) << 6) | ((g0 & 0x01) << 11) | ((g1 & 0x01) << 10);
 		}
+#if 1
+		// zpriorityで処理すると、プレーンの取得に遅延がでるので
+		// ここで２ビット下へ移動してしまおう
+		if(!hireso && column40 && C64 && page) {
+			for(int x = 0; x < hz_disp && x < width; x++) {
+				uint16_t* d = &zcg[plane][line][x << 3];
+				
+				// MSB <- G0,G1,0,0, R0,R1,0,0, B0,B1,0,0 -> LSB
+				d[0] >>= 2;
+				d[1] >>= 2;
+				d[2] >>= 2;
+				d[3] >>= 2;
+				d[4] >>= 2;
+				d[5] >>= 2;
+				d[6] >>= 2;
+				d[7] >>= 2;
+			}
+		}
+#endif
 	} else
 #endif
 	{
@@ -1367,6 +1386,28 @@ int DISPLAY::get_zpal_num(uint32_t addr, uint32_t data)
 {
 	int num = ((data >> 4) & 0x0f) | ((addr << 4) & 0xff0);
 	
+#if 1
+	if(hireso) {
+		if(!column40) {
+			// 8 colors (use asic palette ram)
+			num &= 0x888;
+			num |= num >> 1;
+			num |= num >> 2;
+		} else {
+			// 64 colors (single set)
+			num &= 0xccc;
+			num |= num >> 2;
+		}
+	} else {
+		if(!column40 || C64) {
+			// 64 colors (dual set)
+			num &= 0xccc;  // BANK0 GRAM
+			if(C64 && (mode1 & 0x10)) {
+				num >>=2;  // BANK1 GRAM
+			}
+		}
+	}
+#else
 	if(hireso && !column40) {
 		// 8 colors
 		num &= 0x888;
@@ -1377,6 +1418,7 @@ int DISPLAY::get_zpal_num(uint32_t addr, uint32_t data)
 		num &= 0xccc;
 		num |= num >> 2;
 	}
+#endif
 	return num;
 }
 
