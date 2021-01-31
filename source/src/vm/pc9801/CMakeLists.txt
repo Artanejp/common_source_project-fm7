@@ -45,6 +45,7 @@ elseif("${U_EXE_NAME}" STREQUAL "EMUPC9801VM")
 	)
 elseif("${U_EXE_NAME}" STREQUAL "EMUPC98DO")
 	add_library(vm_${EXE_NAME}
+		../pc8801/diskio.cpp
 		../pc8801/pc88.cpp
 		${BASIC_VM_FILES}
 	)
@@ -101,6 +102,7 @@ elseif("${U_EXE_NAME}" STREQUAL "EMUPC98DOPLUS")
 	add_library(vm_${EXE_NAME}
 		../scsi_host.cpp
 		
+		../pc8801/diskio.cpp
 		../pc8801/pc88.cpp
 		cpureg.cpp
 		sasi.cpp

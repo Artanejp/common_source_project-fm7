@@ -489,13 +489,15 @@ namespace PC9801 {
 // 320kb fdd drives
 class PC80S31K;
 class Z80;
-#ifdef SUPPORT_M88_DISKDRV
-class DiskIO;
-#endif
 #endif
 
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 class PC80S31K;
+#ifdef SUPPORT_M88_DISKDRV
+namespace PC88DEV {
+	class DiskIO;
+}
+#endif
 namespace PC88DEV {
 	class PC88;
 }
@@ -638,7 +640,7 @@ protected:
 	Z80* pc88cpu_sub;
 	
 #ifdef SUPPORT_M88_DISKDRV
-	DiskIO* pc88diskio;
+	PC88DEV::DiskIO* pc88diskio;
 #endif
 	
 	int boot_mode;

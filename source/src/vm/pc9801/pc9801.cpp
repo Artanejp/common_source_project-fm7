@@ -140,6 +140,9 @@ using PC9801::IDE;
 
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 using PC88DEV::PC88;
+#ifdef SUPPORT_M88_DISKDRV
+	using PC88DEV::DiskIO;
+#endif
 #endif
 // ----------------------------------------------------------------------------
 // initialize

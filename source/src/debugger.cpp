@@ -785,7 +785,7 @@ void* debugger_thread(void *lpx)
 						if(xsteps <= 0) steps = MAX_CPU_TRACE - 1;
 						if(num > 2) {
 							if(strlen(params[2]) > 0) {
-								my_tcscpy_s(log_path, _MAX_PATH - 1, my_absolute_path(params[2]));
+								my_tcscpy_s(log_path, _MAX_PATH - 1, create_absolute_path(params[2]));
 							}
 							if(log_fio.Fopen((const _TCHAR*)log_path, FILEIO_WRITE_APPEND_ASCII)) { // Failed to open
 								logging = true;
@@ -863,7 +863,7 @@ void* debugger_thread(void *lpx)
 					if(steps > 0) {  // Workaround for gcc-9. 
 						_TCHAR log_path[_MAX_PATH];
 						if(xnum < num) {
-							my_tcscpy_s(log_path, _MAX_PATH, my_absolute_path(params[xnum]));
+							my_tcscpy_s(log_path, _MAX_PATH, create_absolute_path(params[xnum]));
 							logging = true;
 						}
 						if(logging) {
