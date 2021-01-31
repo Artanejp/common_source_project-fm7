@@ -1,3 +1,9 @@
+12/11/2020
+
+[PC8801/PC88] fix to run dma from memory to crtc when (rd,wr)=(0,0)
+[PC8801/PC88] fix to run dma from scsi to memory only when count > 0
+
+
 12/8/2020
 
 [COMMON] fix build error on VC++2019 (thanks Mr.Sato)

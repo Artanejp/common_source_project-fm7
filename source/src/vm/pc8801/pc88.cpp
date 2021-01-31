@@ -2142,11 +2142,13 @@ void PC88::write_signal(int id, uint32_t data, uint32_t mask)
 #ifdef SUPPORT_PC88_CDROM
 	} else if(id == SIG_PC88_SCSI_DRQ) {
 		if(config.boot_mode == MODE_PC88_V2CD && cdbios_loaded && (data & mask)) {
-			if(!dmac.ch[1].running) {
-				dmac.start(1);
-			}
-			if(dmac.ch[1].running) {
-				dmac.run(1, 1);
+			if(dmac.ch[1].count.sd > 0){
+				if(!dmac.ch[1].running) {
+					dmac.start(1);
+				}
+				if(dmac.ch[1].running) {
+					dmac.run(1, 1);
+				}
 			}
 		}
 #endif
@@ -3832,12 +3834,14 @@ void pc88_dmac_t::run(int c, int nbytes)
 {
 	if(ch[c].running) {
 		while(nbytes > 0 && ch[c].count.sd >= 0) {
-			if(ch[c].mode == 0x80) {
+			switch(ch[c].mode) {
+			case 0x80:
+			case 0x00: // Misty Blue
 				ch[c].io->write_dma_io8(0, mem->read_dma_data8(ch[c].addr.w.l));
-			} else if(ch[c].mode == 0x40) {
+				break;
+			case 0x40:
 				mem->write_dma_data8(ch[c].addr.w.l, ch[c].io->read_dma_io8(0));
-			} else if(ch[c].mode == 0x00) {
-				ch[c].io->read_dma_io8(0); // verify
+				break;
 			}
 			ch[c].addr.sd++;
 			ch[c].count.sd--;
@@ -3853,12 +3857,14 @@ void pc88_dmac_t::finish(int c)
 {
 	if(ch[c].running) {
 		while(ch[c].count.sd >= 0) {
-			if(ch[c].mode == 0x80) {
+			switch(ch[c].mode) {
+			case 0x80:
+			case 0x00: // Misty Blue
 				ch[c].io->write_dma_io8(0, mem->read_dma_data8(ch[c].addr.w.l));
-			} else if(ch[c].mode == 0x40) {
+				break;
+			case 0x40:
 				mem->write_dma_data8(ch[c].addr.w.l, ch[c].io->read_dma_io8(0));
-			} else if(ch[c].mode == 0x00) {
-				ch[c].io->read_dma_io8(0); // verify
+				break;
 			}
 			ch[c].addr.sd++;
 			ch[c].count.sd--;

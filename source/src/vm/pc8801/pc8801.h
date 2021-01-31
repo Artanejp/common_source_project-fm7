@@ -70,8 +70,10 @@
 	#define SUPPORT_PC88_JOYSTICK
 	#if defined(SUPPORT_PC88_VAB)
 		// X88000
-		#define PC88_EXRAM_BANKS	8
-		#define PC88_VAB_PAGE		1
+//		#define PC88_EXRAM_BANKS	8
+//		#define PC88_VAB_PAGE		1
+		#define PC88_EXRAM_BANKS	4
+		#define PC88_VAB_PAGE		0
 	#else
 		#define PC88_EXRAM_BANKS	4
 	#endif
