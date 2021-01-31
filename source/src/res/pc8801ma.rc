@@ -128,7 +128,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Exit",                        ID_EXIT
     END
-    POPUP "FD1"
+    POPUP "5inch-FD1"
     BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD1
         MENUITEM "Eject",                       ID_CLOSE_FD1
@@ -153,6 +153,30 @@ BEGIN
         MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC_FD2
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD2
+    END
+    POPUP "8inch-FD1"
+    BEGIN
+        MENUITEM "Insert",                      ID_OPEN_FD3
+        MENUITEM "Eject",                       ID_CLOSE_FD3
+        MENUITEM "Insert Blank 8inch-2D Disk",  ID_OPEN_BLANK_2HD_FD3
+        MENUITEM SEPARATOR
+        MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD3
+        MENUITEM "Correct Timing",              ID_CORRECT_TIMING_FD3
+        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC_FD3
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_FD3
+    END
+    POPUP "FD2"
+    BEGIN
+        MENUITEM "Insert",                      ID_OPEN_FD4
+        MENUITEM "Eject",                       ID_CLOSE_FD4
+        MENUITEM "Insert Blank 8inch-2D Disk",  ID_OPEN_BLANK_2HD_FD4
+        MENUITEM SEPARATOR
+        MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD4
+        MENUITEM "Correct Timing",              ID_CORRECT_TIMING_FD4
+        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC_FD4
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_FD4
     END
     POPUP "CMT"
     BEGIN

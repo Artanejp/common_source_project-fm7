@@ -27,13 +27,17 @@
 #ifdef SUPPORT_PC88_OPN2
 #define SIG_PC88_OPN2_IRQ	2
 #endif
+#ifdef SUPPORT_PC88_FDD_8INCH
+#define SIG_PC88_8INCH_IRQ	3
+#define SIG_PC88_8INCH_DRQ	4
+#endif
 #ifdef SUPPORT_PC88_CDROM
-#define SIG_PC88_SCSI_DRQ	3
+#define SIG_PC88_SCSI_DRQ	5
 #endif
 #ifdef SUPPORT_PC88_GSX8800
-#define SIG_PC88_GSX_IRQ	4
+#define SIG_PC88_GSX_IRQ	6
 #endif
-#define SIG_PC88_USART_OUT	5
+#define SIG_PC88_USART_OUT	7
 
 #define CMT_BUFFER_SIZE		0x40000
 
@@ -49,6 +53,9 @@
 class YM2203;
 #endif
 class Z80;
+#ifdef SUPPORT_PC88_FDD_8INCH
+class UPD765A;
+#endif
 #ifdef SUPPORT_PC88_CDROM
 class SCSI_HOST;
 class SCSI_CDROM;
@@ -128,6 +135,9 @@ private:
 #endif
 	Z80 *d_cpu;
 	DEVICE *d_pcm, *d_pio, *d_prn, *d_rtc, *d_sio;
+#ifdef SUPPORT_PC88_FDD_8INCH
+	UPD765A *d_fdc_8inch;
+#endif
 #ifdef SUPPORT_PC88_CDROM
 	SCSI_HOST* d_scsi_host;
 	SCSI_CDROM* d_scsi_cdrom;
@@ -441,6 +451,12 @@ public:
 	{
 		d_sio = device;
 	}
+#ifdef SUPPORT_PC88_FDD_8INCH
+	void set_context_fdc_8inch(UPD765A* device)
+	{
+		d_fdc_8inch = device;
+	}
+#endif
 #ifdef SUPPORT_PC88_CDROM
 	void set_context_scsi_host(SCSI_HOST* device)
 	{

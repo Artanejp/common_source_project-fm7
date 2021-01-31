@@ -64,6 +64,7 @@
 	#define SUPPORT_PC88_OPN1
 	#define SUPPORT_PC88_OPN2
 	#define SUPPORT_PC88_OPNA
+	#define SUPPORT_PC88_FDD_8INCH
 	#define SUPPORT_PC88_CDROM
 	#define SUPPORT_PC88_VAB
 	#define SUPPORT_PC88_HMB20
@@ -82,10 +83,12 @@
 	#define SUPPORT_PC88_KANJI1
 //	#define SUPPORT_PC88_KANJI2
 	#define SUPPORT_PC88_OPN2
+	#define SUPPORT_PC88_FDD_8INCH
 #elif defined(_PC8801)
 	#define SUPPORT_PC88_KANJI1
 //	#define SUPPORT_PC88_KANJI2
 	#define SUPPORT_PC88_OPN2
+	#define SUPPORT_PC88_FDD_8INCH
 #elif defined(_PC8001SR)
 	#define SUPPORT_PC88_KANJI1
 //	#define SUPPORT_PC88_KANJI2
@@ -144,14 +147,18 @@
 #define DIPSWITCH_DEFAULT	(DIPSWITCH_HMB20 + DIPSWITCH_GSX8800 + DIPSWITCH_PCG8100 + DIPSWITCH_CMDSING)
 #define DIPSWITCH_PALETTE	0x20
 #define USE_JOYSTICK_TYPE	2
+#if defined(SUPPORT_PC88_FDD_8INCH)
+#define USE_FLOPPY_DISK		4
+#else
 #define USE_FLOPPY_DISK		2
+#endif
 #define USE_TAPE		1
 #define TAPE_BINARY_ONLY
 #if defined(SUPPORT_PC88_CDROM)
 #define USE_COMPACT_DISC	1
 #endif
 #define USE_KEY_LOCKED
-// slow enough for N88-“ú–{ŒêBASIC
+// slow enough for N88-æ—¥æœ¬èªžBASIC
 #define USE_AUTO_KEY		8
 #define USE_AUTO_KEY_RELEASE	10
 #define USE_AUTO_KEY_NUMPAD
@@ -328,6 +335,12 @@ protected:
 	NOISE* pc88noise_head_down;
 	NOISE* pc88noise_head_up;
 	Z80* pc88cpu_sub;
+#ifdef SUPPORT_PC88_FDD_8INCH
+	UPD765A* pc88fdc_8inch;
+	NOISE* pc88noise_8inch_seek;
+	NOISE* pc88noise_8inch_head_down;
+	NOISE* pc88noise_8inch_head_up;
+#endif
 
 #ifdef SUPPORT_PC88_CDROM
 	SCSI_HOST* pc88scsi_host;

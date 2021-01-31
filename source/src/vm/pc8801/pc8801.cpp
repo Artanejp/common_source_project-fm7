@@ -208,6 +208,18 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88noise_head_up = new NOISE(this, emu);
 	pc88cpu_sub = new Z80(this, emu);
 	pc88cpu_sub->set_device_name(_T("Z80 CPU (Sub)"));
+#ifdef SUPPORT_PC88_FDD_8INCH
+	pc88fdc_8inch = new UPD765A(this, emu);
+	pc88fdc_8inch->set_device_name(_T("uPD765A FDC (8inch)"));
+//	pc88fdc_8inch->set_context_event_manager(pc88event);
+	pc88noise_8inch_seek = new NOISE(this, emu);
+//	pc88noise_8inch_seek->set_context_event_manager(pc88event);
+	pc88noise_8inch_head_down = new NOISE(this, emu);
+//	pc88noise_8inch_head_down->set_context_event_manager(pc88event);
+	pc88noise_8inch_head_up = new NOISE(this, emu);
+//	pc88noise_8inch_head_up->set_context_event_manager(pc88event);
+#endif
+
 #ifdef SUPPORT_PC88_CDROM
 	pc88scsi_host = new SCSI_HOST(this, emu);
 	pc88scsi_cdrom = new SCSI_CDROM(this, emu);
@@ -309,6 +321,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88event->set_context_sound(pc88noise_seek);
 	pc88event->set_context_sound(pc88noise_head_down);
 	pc88event->set_context_sound(pc88noise_head_up);
+#ifdef SUPPORT_PC88_FDD_8INCH
+	pc88event->set_context_sound(pc88noise_8inch_seek);
+	pc88event->set_context_sound(pc88noise_8inch_head_down);
+	pc88event->set_context_sound(pc88noise_8inch_head_up);
+#endif
 	
 	pc88->set_context_cpu(pc88cpu);
 #ifdef SUPPORT_PC88_OPN1
@@ -326,6 +343,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88->set_context_prn(pc88prn);
 	pc88->set_context_rtc(pc88rtc);
 	pc88->set_context_sio(pc88sio);
+#ifdef SUPPORT_PC88_FDD_8INCH
+	pc88->set_context_fdc_8inch(pc88fdc_8inch);
+#endif
 #ifdef SUPPORT_PC88_CDROM
 	pc88->set_context_scsi_host(pc88scsi_host);
 	pc88->set_context_scsi_cdrom(pc88scsi_cdrom);
@@ -395,6 +415,26 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88cpu_sub->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	
+#ifdef SUPPORT_PC88_FDD_8INCH
+	pc88fdc_8inch = new UPD765A(this, emu);
+	pc88fdc_8inch->set_device_name(_T("uPD765A FDC (8inch)"));
+//	pc88fdc_8inch->set_context_event_manager(pc88event);
+	pc88noise_8inch_seek = new NOISE(this, emu);
+//	pc88noise_8inch_seek->set_context_event_manager(pc88event);
+	pc88noise_8inch_head_down = new NOISE(this, emu);
+//	pc88noise_8inch_head_down->set_context_event_manager(pc88event);
+	pc88noise_8inch_head_up = new NOISE(this, emu);
+//	pc88noise_8inch_head_up->set_context_event_manager(pc88event);
+#endif
+	
+#ifdef SUPPORT_PC88_FDD_8INCH
+	pc88fdc_8inch->set_context_irq(pc88, SIG_PC88_8INCH_IRQ, 1);
+	pc88fdc_8inch->set_context_drq(pc88, SIG_PC88_8INCH_DRQ, 1);
+	pc88fdc_8inch->set_context_noise_seek(pc88noise_8inch_seek);
+	pc88fdc_8inch->set_context_noise_head_down(pc88noise_8inch_head_down);
+	pc88fdc_8inch->set_context_noise_head_up(pc88noise_8inch_head_up);
+#endif
+	
 #ifdef SUPPORT_PC88_CDROM
 	pc88scsi_cdrom->scsi_id = 0;
 	pc88scsi_cdrom->set_context_interface(pc88scsi_host);
@@ -425,6 +465,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //		printf("DEV NAME=%s ID=%d\n", device->this_device_name, device->this_device_id);
 		device->initialize();
 	}
+#ifdef SUPPORT_PC88_FDD_8INCH
+	pc88fdc_8inch->set_drive_type(0, DRIVE_TYPE_2HD);
+	pc88fdc_8inch->set_drive_type(1, DRIVE_TYPE_2HD);
+//	pc88fdc_8inch->write_signal(SIG_UPD765A_MOTOR, 1, 1);
+#endif
 }
 
 VM::~VM()
@@ -680,6 +725,11 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		pc88noise_seek->set_volume(0, decibel_l, decibel_r);
 		pc88noise_head_down->set_volume(0, decibel_l, decibel_r);
 		pc88noise_head_up->set_volume(0, decibel_l, decibel_r);
+#ifdef SUPPORT_PC88_FDD_8INCH
+		pc88noise_8inch_seek->set_volume(0, decibel_l, decibel_r);
+		pc88noise_8inch_head_down->set_volume(0, decibel_l, decibel_r);
+		pc88noise_8inch_head_up->set_volume(0, decibel_l, decibel_r);
+#endif
 		return;
 	}
 }
@@ -714,32 +764,60 @@ bool VM::get_kana_locked()
 
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
+#ifdef SUPPORT_PC88_FDD_8INCH
+	if(drv >= 2) {
+		pc88fdc_8inch->open_disk(drv - 2, file_path, bank);
+	} else
+#endif
 	pc88fdc_sub->open_disk(drv, file_path, bank);
 }
 
 void VM::close_floppy_disk(int drv)
 {
+#ifdef SUPPORT_PC88_FDD_8INCH
+	if(drv >= 2) {
+		pc88fdc_8inch->close_disk(drv - 2);
+	} else
+#endif
 	pc88fdc_sub->close_disk(drv);
 }
 
 bool VM::is_floppy_disk_inserted(int drv)
 {
+#ifdef SUPPORT_PC88_FDD_8INCH
+	if(drv >= 2) {
+		return pc88fdc_8inch->is_disk_inserted(drv - 2);
+	} else
+#endif
 	return pc88fdc_sub->is_disk_inserted(drv);
 }
 
 void VM::is_floppy_disk_protected(int drv, bool value)
 {
+#ifdef SUPPORT_PC88_FDD_8INCH
+	if(drv >= 2) {
+		pc88fdc_8inch->is_disk_protected(drv - 2, value);
+	} else
+#endif
 	pc88fdc_sub->is_disk_protected(drv, value);
 }
 
 bool VM::is_floppy_disk_protected(int drv)
 {
+#ifdef SUPPORT_PC88_FDD_8INCH
+	if(drv >= 2) {
+		return pc88fdc_8inch->is_disk_protected(drv - 2);
+	} else
+#endif
 	return pc88fdc_sub->is_disk_protected(drv);
 }
 
 uint32_t VM::is_floppy_disk_accessed()
 {
-	return pc88fdc_sub->read_signal(0);
+#ifdef SUPPORT_PC88_FDD_8INCH
+	return (pc88fdc_8inch->read_signal(0) << 2) | (pc88fdc_sub->read_signal(0) & 3);
+#endif
+	return pc88fdc_sub->read_signal(0) & 3;
 }
 
 void VM::play_tape(int drv, const _TCHAR* file_path)

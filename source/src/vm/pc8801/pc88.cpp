@@ -23,6 +23,10 @@
 #endif
 #include "../z80.h"
 
+#ifdef SUPPORT_PC88_FDD_8INCH
+#include "../upd765a.h"
+#endif
+
 #ifdef SUPPORT_PC88_CDROM
 #include "../scsi_cdrom.h"
 #include "../scsi_host.h"
@@ -45,8 +49,11 @@
 #define IRQ_USART	0
 #define IRQ_VRTC	1
 #define IRQ_TIMER	2
-#define IRQ_INT3	3
+#define IRQ_INT4	3
 #define IRQ_SOUND	4
+#define IRQ_INT2	5
+#define IRQ_FDINT1	6
+#define IRQ_FDINT2	7
 
 namespace PC88DEV 
 {
@@ -563,7 +570,11 @@ void PC88::reset()
 		dmac.ch[1].io = d_scsi_host;
 	} else
 #endif
-	dmac.ch[1].io = vm->dummy;;
+#ifdef SUPPORT_PC88_FDD_8INCH
+	dmac.ch[1].io = d_fdc_8inch;
+#else
+	dmac.ch[1].io = vm->dummy;
+#endif
 	dmac.ch[2].io = dmac.mem = this;
 	dmac.ch[0].addr.b.l = 0x56;	// XM8 version 1.10
 	dmac.ch[0].addr.b.h = 0x56;
@@ -1379,6 +1390,16 @@ void PC88::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 #endif
+#ifdef SUPPORT_PC88_FDD_8INCH
+	case 0xf7:
+#ifdef SUPPORT_PC88_CDROM
+		if(!(config.boot_mode == MODE_PC88_V2CD && cdbios_loaded))
+#endif
+		{
+			d_fdc_8inch->write_io8(addr, data);
+		}
+		break;
+#endif
 	case 0xfc:
 	case 0xfd:
 	case 0xfe:
@@ -1529,7 +1550,7 @@ uint32_t PC88::read_io8_debug(uint32_t addr)
 					case 3:
 						return ((mouse_ly >> 0) & 0x0f) | 0xf0;
 					}
-					return 0xf0; // ???
+					return 0xff; // ???
 				}
 #endif
 				return 0xff;
@@ -1751,6 +1772,25 @@ uint32_t PC88::read_io8_debug(uint32_t addr)
 		return kanji2[PortECED_KANJI2 * 2 + 1];
 	case 0xed:
 		return kanji2[PortECED_KANJI2 * 2];
+#endif
+#ifdef SUPPORT_PC88_FDD_8INCH
+	case 0xf4:
+#ifdef SUPPORT_PC88_CDROM
+		if(!(config.boot_mode == MODE_PC88_V2CD && cdbios_loaded))
+#endif
+		{
+			return 0xfe; // bit0: 0 = DMA-Type 8inch FDD existing
+		}
+		break;
+	case 0xf6:
+	case 0xf7:
+#ifdef SUPPORT_PC88_CDROM
+		if(!(config.boot_mode == MODE_PC88_V2CD && cdbios_loaded))
+#endif
+		{
+			return d_fdc_8inch->read_io8(addr);
+		}
+		break;
 #endif
 	case 0xfc:
 	case 0xfd:
@@ -2139,6 +2179,29 @@ void PC88::write_signal(int id, uint32_t data, uint32_t mask)
 			request_intr(IRQ_SOUND, true);
 		}
 #endif
+#ifdef SUPPORT_PC88_FDD_8INCH
+	} else if(id == SIG_PC88_8INCH_IRQ) {
+#ifdef SUPPORT_PC88_CDROM
+		if(!(config.boot_mode == MODE_PC88_V2CD && cdbios_loaded))
+#endif
+		{
+			request_intr(IRQ_FDINT2, (data & mask) != 0);
+		}
+	} else if(id == SIG_PC88_8INCH_DRQ) {
+#ifdef SUPPORT_PC88_CDROM
+		if(!(config.boot_mode == MODE_PC88_V2CD && cdbios_loaded))
+#endif
+		{
+			if(data & mask) {
+				if(!dmac.ch[1].running) {
+					dmac.start(1);
+				}
+				if(dmac.ch[1].running) {
+					dmac.run(1, 1);
+				}
+			}
+		}
+#endif
 #ifdef SUPPORT_PC88_CDROM
 	} else if(id == SIG_PC88_SCSI_DRQ) {
 		if(config.boot_mode == MODE_PC88_V2CD && cdbios_loaded && (data & mask)) {
@@ -2155,7 +2218,7 @@ void PC88::write_signal(int id, uint32_t data, uint32_t mask)
 #ifdef SUPPORT_PC88_GSX8800
 	} else if(id == SIG_PC88_GSX_IRQ) {
 		if(data & mask) {
-			request_intr(IRQ_INT3, true);
+			request_intr(IRQ_INT4, true);
 		}
 #endif
 	} else if(id == SIG_PC88_USART_OUT) {
