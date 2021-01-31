@@ -299,6 +299,7 @@ void PC88::initialize()
 	memset(n88exrom, 0xff, sizeof(n88exrom));
 	memset(n80rom, 0xff, sizeof(n80rom));
 	memset(n88erom, 0xff, sizeof(n88erom));
+	n88erom_loaded = 0;
 #ifdef SUPPORT_PC88_DICTIONARY
 	memset(dicrom, 0xff, sizeof(dicrom));
 #endif
@@ -411,6 +412,7 @@ void PC88::initialize()
 			fio->Fread(n88erom[i], 0x2000, 1);
 			fio->Fclose();
 			if(length < 0x2000) memset(&n88erom[i][length], 0xff, 0x2000 - length);
+			n88erom_loaded |= (1 << i);
 		}
 	}
 #ifdef SUPPORT_M88_DISKDRV
@@ -605,7 +607,7 @@ void PC88::reset()
 #else
 #ifdef SUPPORT_M88_DISKDRV
 	if(d_diskio != NULL) {
-		if(config.boot_mode == MODE_PC88_N) {
+		if(config.boot_mode == MODE_PC88_N && (n88erom_loaded & 0x100)) {
 			// diskdv80/n80patch.cpp
 			static const uint8_t code[4] = { 0xc3, 0x07, 0x60, 0x55 };
 			size_t length = *((short*)(&n88erom[8][5]));
@@ -1269,14 +1271,14 @@ void PC88::write_io8(uint32_t addr, uint32_t data)
 #if defined(PC8001_VARIANT)
 #if defined(_PC8001SR)
 	case 0x71:
-		if((mod & 1) && Port33_N80SR) {
+		if((mod & 0x01) && Port33_N80SR) {
 			update_n80_read();
 		}
 		break;
 #endif
 #else
 	case 0x71:
-		if(mod) {
+		if(mod & 0x03) {
 			update_low_read();
 		}
 		break;
@@ -2244,7 +2246,7 @@ void PC88::update_low_read()
 		SET_BANK_R(0x0000, 0x5fff, n88rom);
 		if(Port71_EROM & 1) {
 #ifdef SUPPORT_M88_DISKDRV
-			if(d_diskio != NULL && Port71_EROM == 0xfd) {
+			if(d_diskio != NULL && (n88erom_loaded & 2) && Port71_EROM == 0xfd) {
 				SET_BANK_R(0x6000, 0x7fff, n88erom[1]);
 			} else
 #endif

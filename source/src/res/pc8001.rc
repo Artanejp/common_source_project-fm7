@@ -178,7 +178,7 @@ BEGIN
         POPUP "Display"
         BEGIN
             MENUITEM "Scanline",                    ID_VM_MONITOR_SCANLINE
-            MENUITEM "Real Palettes",               ID_VM_DIPSWITCH5
+            MENUITEM "Ignore Palette Changed Outside VBLANK", ID_VM_DIPSWITCH5
         END
         POPUP "Printer"
         BEGIN

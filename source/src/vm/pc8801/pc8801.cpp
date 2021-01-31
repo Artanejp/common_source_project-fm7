@@ -77,13 +77,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	if(config.boot_mode != MODE_PC80_N) {
 		config.boot_mode = MODE_PC80_N;
 	}
+	// 8inch floppy drives are not supported
+	config.dipswitch &= ~DIPSWITCH_FDD_8INCH;
 #elif defined(_PC8001MK2)
 	if(config.boot_mode == MODE_PC80_V2) {
 		config.boot_mode = MODE_PC80_V1;
 	}
 #endif
-	// 8inch floppy drives are not supported
-	config.dipswitch &= ~DIPSWITCH_FDD_8INCH;
 #else
 #if !defined(PC8801SR_VARIANT)
 	if(config.boot_mode == MODE_PC88_V1H || config.boot_mode == MODE_PC88_V2 || config.boot_mode == MODE_PC88_V2CD) {

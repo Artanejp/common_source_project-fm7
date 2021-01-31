@@ -1915,8 +1915,9 @@ void PCE::cdrom_write(uint16_t addr, uint8_t data)
 		// From Ootake v2.38
 		d_adpcm->write_signal(SIG_ADPCM_DMA_ENABLED, 0x00000000, 0xffffffff);
 		//adpcm_dma_enabled = false;
-		cdrom_regs[0x03] = 0x00; // Reset IRQ status at al.
-		set_cdrom_irq_line(0x0, 0x0); // Update IRQ
+//		cdrom_regs[0x03] = 0x00; // Reset IRQ status at al.
+//		set_cdrom_irq_line(0x0, 0x0); // Update IRQ
+		set_cdrom_irq_line(0x70, CLEAR_LINE);
 		out_debug_log(_T("CMD=$00 CDC STATUS\n"));
 		break;
 		

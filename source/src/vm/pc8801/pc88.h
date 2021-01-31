@@ -187,6 +187,7 @@ private:
 	uint8_t n88exrom[0x8000];
 	uint8_t n80rom[0x8000];
 	uint8_t n88erom[9][0x2000];
+	int n88erom_loaded;
 #endif
 //#ifdef SUPPORT_PC88_KANJI1
 	uint8_t kanji1[0x20000];

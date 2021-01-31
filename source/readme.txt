@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								12/15/2020
+								12/18/2020
 
 --- What's this ?
 
@@ -348,6 +348,7 @@ See also COPYING.txt for more details about the license.
 	MESS PC-8801 driver
 - vm/pc9801/display.*
 	Neko Project 2 by Mr.Yui
+	Improved for EGC by Mr.Ryuji Okamoto (qemu/9821‰ü‘¢”Å)
 - vm/pcengine/pce.*
 	Ootake (joypad)
 	xpce (psg)

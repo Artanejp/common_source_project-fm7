@@ -23,11 +23,35 @@ void __FASTCALL DISPLAY::egc_shift()
 	src8 = egc_srcbit & 0x07;
 	dst8 = egc_dstbit & 0x07;
 	if(src8 < dst8) {
+// dir:inc
+// ****---4 -------8 --------
+// ******-- -4------ --8----- --
+// 1st -> data[0] >> (dst - src)
+// 2nd -> (data[0] << (8 - (dst - src))) | (data[1] >> (dst - src))
+
+// dir:dec
+//          -------- 8------- 6-----**
+//      --- -----8-- -----6-- ---*****
+// 1st -> data[0] << (dst - src)
+// 2nd -> (data[0] >> (8 - (dst - src))) | (data[1] << (dst - src))
+		
 		egc_func += 2;
 		egc_sft8bitr = dst8 - src8;
 		egc_sft8bitl = 8 - egc_sft8bitr;
-	}
-	else if(src8 > dst8) {
+	} else if(src8 > dst8) {
+
+// dir:inc
+// ****---4 -------8 --------
+// **---4-- -----8-- ------
+// 1st -> (data[0] << (src - dst)) | (data[1] >> (8 - (src - dst))
+// 2nd -> (data[0] << (src - dst)) | (data[1] >> (8 - (src - dst))
+
+// dir:dec
+//          -------- 8------- 3--*****
+//             ----- ---8---- ---3--**
+// 1st -> (data[0] >> (dst - src)) | (data[-1] << (8 - (src - dst))
+// 2nd -> (data[0] >> (dst - src)) | (data[-1] << (8 - (src - dst))
+
 		egc_func += 4;
 		egc_sft8bitl = src8 - dst8;
 		egc_sft8bitr = 8 - egc_sft8bitl;
@@ -100,6 +124,7 @@ void __FASTCALL DISPLAY::egc_sftw_dnn0()
 	egc_shift();
 }
 
+// dir:up srcbit < dstbit
 void __FASTCALL DISPLAY::egc_sftb_upr0(uint32_t ext)
 {
 	if(egc_stack < (uint32_t)(8 - egc_dstbit)) {
@@ -113,6 +138,7 @@ void __FASTCALL DISPLAY::egc_sftb_upr0(uint32_t ext)
 	}
 }
 
+// dir:up srcbit < dstbit
 void __FASTCALL DISPLAY::egc_sftw_upr0()
 {
 	if(egc_stack < (uint32_t)(16 - egc_dstbit)) {
@@ -132,6 +158,7 @@ void __FASTCALL DISPLAY::egc_sftw_upr0()
 	egc_shift();
 }
 
+// dir:up srcbit < dstbit
 void __FASTCALL DISPLAY::egc_sftb_dnr0(uint32_t ext)
 {
 	if(egc_stack < (uint32_t)(8 - egc_dstbit)) {
@@ -145,6 +172,7 @@ void __FASTCALL DISPLAY::egc_sftb_dnr0(uint32_t ext)
 	}
 }
 
+// dir:up srcbit < dstbit
 void __FASTCALL DISPLAY::egc_sftw_dnr0()
 {
 	if(egc_stack < (uint32_t)(16 - egc_dstbit)) {
@@ -164,6 +192,7 @@ void __FASTCALL DISPLAY::egc_sftw_dnr0()
 	egc_shift();
 }
 
+// dir:up srcbit > dstbit
 void __FASTCALL DISPLAY::egc_sftb_upl0(uint32_t ext)
 {
 	if(egc_stack < (uint32_t)(8 - egc_dstbit)) {
@@ -177,6 +206,7 @@ void __FASTCALL DISPLAY::egc_sftb_upl0(uint32_t ext)
 	}
 }
 
+// dir:up srcbit > dstbit
 void __FASTCALL DISPLAY::egc_sftw_upl0()
 {
 	if(egc_stack < (uint32_t)(16 - egc_dstbit)) {
@@ -196,6 +226,7 @@ void __FASTCALL DISPLAY::egc_sftw_upl0()
 	egc_shift();
 }
 
+// dir:up srcbit > dstbit
 void __FASTCALL DISPLAY::egc_sftb_dnl0(uint32_t ext)
 {
 	if(egc_stack < (uint32_t)(8 - egc_dstbit)) {
@@ -209,6 +240,7 @@ void __FASTCALL DISPLAY::egc_sftb_dnl0(uint32_t ext)
 	}
 }
 
+// dir:up srcbit > dstbit
 void __FASTCALL DISPLAY::egc_sftw_dnl0()
 {
 	if(egc_stack < (uint32_t)(16 - egc_dstbit)) {
@@ -386,6 +418,10 @@ uint64_t __FASTCALL DISPLAY::egc_ope_nd(uint8_t ope, uint32_t addr)
 		pat.q = egc_fgc.q;
 //		pat.d[0] = egc_fgc.d[0];
 //		pat.d[1] = egc_fgc.d[1];
+		break;
+	case 0x6000:
+		pat.d[0] = egc_fgc.d[0];
+		pat.d[1] = egc_bgc.d[1];
 		break;
 //	default:
 	case 0x0000:

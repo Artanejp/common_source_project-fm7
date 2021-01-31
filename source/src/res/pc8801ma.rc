@@ -248,7 +248,7 @@ BEGIN
             MENUITEM SEPARATOR
             MENUITEM "Set Scanline Automatically",  ID_VM_MONITOR_SCANLINE_AUTO
             MENUITEM "Scanline",                    ID_VM_MONITOR_SCANLINE
-            MENUITEM "Real Palettes",               ID_VM_DIPSWITCH5
+            MENUITEM "Ignore Palette Changed Outside VBLANK", ID_VM_DIPSWITCH5
         END
         POPUP "Printer"
         BEGIN
