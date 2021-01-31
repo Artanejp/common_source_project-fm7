@@ -324,19 +324,36 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 	
 	while(1) {
 		// check window message
-		if(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
-			if(!GetMessage(&msg, NULL, 0, 0)) {
+		DWORD start_time = timeGetTime();
+		DWORD end_time = start_time;
+		
+		while(1) {
+			if(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
+				if(!GetMessage(&msg, NULL, 0, 0)) {
 #ifdef _DEBUG
-				_CrtDumpMemoryLeaks();
+					_CrtDumpMemoryLeaks();
 #endif
-				ExitProcess(0);	// trick
-				return (int)msg.wParam;
+					ExitProcess(0);	// trick
+					return (int)msg.wParam;
+				}
+				if(msg.message == WM_KEYUP) {
+					if(LOBYTE(msg.wParam) == 0x10) {
+						end_time = start_time + 10;
+					}
+				} else if(msg.message == WM_KEYDOWN) {
+					if(LOBYTE(msg.wParam) != 0x10) {
+						end_time = start_time;
+					}
+				}
+				if(!TranslateAccelerator(hWnd, hAccel, &msg)) {
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+				}
+			} else if(end_time == start_time || end_time <= timeGetTime()) {
+				break;
 			}
-			if(!TranslateAccelerator(hWnd, hAccel, &msg)) {
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-		} else if(emu) {
+		}
+		if(emu) {
 			// drive machine
 			int run_frames = emu->run();
 			total_frames += run_frames;

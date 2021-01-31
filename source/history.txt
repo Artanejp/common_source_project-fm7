@@ -1,3 +1,11 @@
+1/3/2021
+
+[WINMAIN] improve for pressing shift key and numpad key
+
+[MZ80K] fix roman/kana conversion
+[MZ80K/KEYBOARD] improve for pressing right shift key and numpad key
+
+
 12/31/2020
 
 [PC8801/PC88] improve crtc to refer reverse setting in start display command
