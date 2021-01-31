@@ -64,6 +64,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	fdc->set_context_drq(dma, SIG_MC6844_TX_RQ_0, 1);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
+	dma->set_context_ch1(display);
 
 
 /*
@@ -71,12 +72,48 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 */
 
 	display->set_context_cpu(cpu);
+	display->set_context_dma(dma);
 	display->set_context_ram(ram);
 	
 	// cpu bus
 	cpu->set_context_mem(memory);
 #ifdef USE_DEBUGGER
-	cpu->set_context_debugger(new DEBUGGER(this, emu));
+	DEBUGGER *debugger = new DEBUGGER(this, emu);
+	cpu->set_context_debugger(debugger);
+
+	debugger->add_symbol(0x015c, _T("VRAM_TOP"));
+
+	debugger->add_symbol(0xe140, _T("DMA[0].ADDR_HI"));
+	debugger->add_symbol(0xe141, _T("DMA[0].ADDR_LO"));
+	debugger->add_symbol(0xe142, _T("DMA[0].COUNT_HI"));
+	debugger->add_symbol(0xe143, _T("DMA[0].COUNT_LO"));
+	debugger->add_symbol(0xe144, _T("DMA[1].ADDR_HI"));
+	debugger->add_symbol(0xe145, _T("DMA[1].ADDR_LO"));
+	debugger->add_symbol(0xe146, _T("DMA[1].COUNT_HI"));
+	debugger->add_symbol(0xe147, _T("DMA[1].COUNT_LO"));
+	debugger->add_symbol(0xe148, _T("DMA[2].ADDR_HI"));
+	debugger->add_symbol(0xe149, _T("DMA[2].ADDR_LO"));
+	debugger->add_symbol(0xe14a, _T("DMA[2].COUNT_HI"));
+	debugger->add_symbol(0xe14b, _T("DMA[2].COUNT_LO"));
+	debugger->add_symbol(0xe14c, _T("DMA[3].ADDR_HI"));
+	debugger->add_symbol(0xe14d, _T("DMA[3].ADDR_LO"));
+	debugger->add_symbol(0xe14e, _T("DMA[3].COUNT_HI"));
+	debugger->add_symbol(0xe14f, _T("DMA[3].COUNT_LO"));
+	debugger->add_symbol(0xe150, _T("DMA[0].CH_CTRL"));
+	debugger->add_symbol(0xe151, _T("DMA[1].CH_CTRL"));
+	debugger->add_symbol(0xe152, _T("DMA[2].CH_CTRL"));
+	debugger->add_symbol(0xe153, _T("DMA[3].CH_CTRL"));
+	debugger->add_symbol(0xe154, _T("DMA.PRIORITY_CTRL"));
+	debugger->add_symbol(0xe155, _T("DMA.INTERRUPT_CTRL"));
+	debugger->add_symbol(0xe156, _T("DMA.DATA_CHAIN"));
+	debugger->add_symbol(0xe180, _T("FDC.DATA"));
+	debugger->add_symbol(0xe181, _T("FDC.CUR_TRACK"));
+	debugger->add_symbol(0xe182, _T("FDC.INTSTAT_CMD"));
+	debugger->add_symbol(0xe183, _T("FDC.STATA_SETUP"));
+	debugger->add_symbol(0xe184, _T("FDC.STATB_SECTOR"));
+	debugger->add_symbol(0xe185, _T("FDC.GEN_COUNT"));
+	debugger->add_symbol(0xe186, _T("FDC.CRC_CTRL"));
+	debugger->add_symbol(0xe187, _T("FDC.LOGIC_TRACK"));
 #endif
 	
 	// memory bus
@@ -118,6 +155,23 @@ dma[1]	15chから10hバイト	メモリ→DISPLAY？
 	
 	
 /*
+
+$E121		ram[$016e]
+$E122
+$E124
+$E128	w
+
+$E189	r
+$E18a	w
+
+$E210	rw
+$E211	rw
+$E212	rw
+
+$E387
+
+$E700
+
 outp(0xe210, 0x03);
 a  = inp(0xe211);
 a &= 0x1c;

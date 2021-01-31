@@ -18,8 +18,11 @@ class DISPLAY : public DEVICE
 {
 private:
 	DEVICE *d_cpu;
+	DEVICE *d_dma;
 	uint8_t *ram;
 	uint8_t font[8*256];
+	int ptr;
+	uint8_t buffer[16];
 	
 public:
 	DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -34,6 +37,7 @@ public:
 	void reset();
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
+	void write_dma_io8(uint32_t addr, uint32_t data);
 	void event_frame();
 	bool process_state(FILEIO* state_fio, bool loading);
 	
@@ -41,6 +45,10 @@ public:
 	void set_context_cpu(DEVICE* device)
 	{
 		d_cpu = device;
+	}
+	void set_context_dma(DEVICE* device)
+	{
+		d_dma = device;
 	}
 	void set_context_ram(uint8_t* ptr)
 	{

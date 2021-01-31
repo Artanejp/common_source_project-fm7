@@ -62,22 +62,30 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0xffc:	// FM
-//		d_fdc->set_drive_mfm(prev & 3, false);
+//		for(int drv = 0; drv < 4; drv++) {
+//			d_fdc->set_drive_mfm(drv, false);
+//		}
 		return 0xff;
 	case 0xffd:	// MFM
-//		d_fdc->set_drive_mfm(prev & 3, true);
+//		for(int drv = 0; drv < 4; drv++) {
+//			d_fdc->set_drive_mfm(drv, true);
+//		}
 		return 0xff;
 	case 0xffe:	// 2HD
-		d_fdc->set_drive_type(prev & 3, DRIVE_TYPE_2HD);
-//		d_fdc->set_drive_rpm(prev & 3, 360);
+		for(int drv = 0; drv < 4; drv++) {
+			d_fdc->set_drive_type(drv, DRIVE_TYPE_2HD);
+//			d_fdc->set_drive_rpm(drv, 360);
+		}
 		return 0xff;
 	case 0xfff:	// 2D/2DD
-		if(d_fdc->get_media_type(prev & 3) == MEDIA_TYPE_2DD) {
-			d_fdc->set_drive_type(prev & 3, DRIVE_TYPE_2DD);
-		} else {
-			d_fdc->set_drive_type(prev & 3, DRIVE_TYPE_2D);
+		for(int drv = 0; drv < 4; drv++) {
+			if(d_fdc->get_media_type(drv) == MEDIA_TYPE_2DD) {
+				d_fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
+			} else {
+				d_fdc->set_drive_type(drv, DRIVE_TYPE_2D);
+			}
+//			d_fdc->set_drive_rpm(drv, 300);
 		}
-//		d_fdc->set_drive_rpm(prev & 3, 300);
 		return 0xff;
 	}
 	return 0xff;

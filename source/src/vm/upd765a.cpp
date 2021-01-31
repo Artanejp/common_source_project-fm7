@@ -449,9 +449,23 @@ void UPD765A::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_UPD765A_TC) {
 		if(phase == PHASE_EXEC || phase == PHASE_READ || phase == PHASE_WRITE || phase == PHASE_SCAN || (phase == PHASE_RESULT && count == 7)) {
 			if(data & mask) {
-				prevphase = phase;
-				phase = PHASE_TC;
-				process_cmd(command & 0x1f);
+				if((phase == PHASE_READ  && ((command & 0x1f) == 0x06 || (command & 0x1f) == 0x0c) && count > 0) ||
+				   (phase == PHASE_WRITE && ((command & 0x1f) == 0x05 || (command & 0x1f) == 0x09) && count > 0)) {
+					if(status & S_RQM) {
+						if(no_dma_mode) {
+							write_signals(&outputs_irq, 0);
+						} else {
+							write_signals(&outputs_drq, 0);
+						}
+						status &= ~S_RQM;
+					}
+					CANCEL_EVENT();
+					REGISTER_PHASE_EVENT_NEW(PHASE_TC, disk[hdu & DRIVE_MASK]->get_usec_per_bytes(count));
+				} else {
+					prevphase = phase;
+					phase = PHASE_TC;
+					process_cmd(command & 0x1f);
+				}
 			}
 		}
 	} else if(id == SIG_UPD765A_MOTOR) {
@@ -496,6 +510,7 @@ void UPD765A::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_PHASE) {
 		phase_id = -1;
+		prevphase = phase;
 		phase = event_phase;
 		process_cmd(command & 0x1f);
 	} else if(event_id == EVENT_DRQ) {
@@ -1374,9 +1389,21 @@ void UPD765A::cmd_write_id()
 		fdc[hdu & DRIVE_MASK].next_trans_position = get_cur_position(hdu & DRIVE_MASK);
 		shift_to_write(4 * eot);
 		break;
-	case PHASE_TC:
 	case PHASE_WRITE:
 		REGISTER_PHASE_EVENT(PHASE_TIMER, 4000000);
+		break;
+	case PHASE_TC:
+#if 1
+		if((result = check_cond(true)) == 0) {
+			if(disk[hdu & DRIVE_MASK]->write_protected) {
+				result = ST0_AT | ST1_NW;
+			}
+		}
+		CANCEL_EVENT();
+		shift_to_result7();
+#else
+		REGISTER_PHASE_EVENT(PHASE_TIMER, 4000000);
+#endif
 		break;
 	case PHASE_TIMER:
 		// XM8 version 1.20
@@ -1384,7 +1411,7 @@ void UPD765A::cmd_write_id()
 			REGISTER_PHASE_EVENT(PHASE_TIMER, 1000000);
 			break;
 		}
-		result =  write_id();
+		result = write_id();
 		shift_to_result7();
 		break;
 	}

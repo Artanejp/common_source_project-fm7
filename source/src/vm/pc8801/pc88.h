@@ -205,6 +205,7 @@ private:
 	
 	// i/o port
 	uint8_t port[256];
+	uint8_t prev_port[256];
 	
 	pc88_crtc_t crtc;
 	pc88_dmac_t dmac;

@@ -8,6 +8,7 @@
 */
 
 #include "display.h"
+#include "../mc6844.h"
 
 void DISPLAY::initialize()
 {
@@ -16,6 +17,12 @@ void DISPLAY::initialize()
 	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(font, sizeof(font), 1);
 		fio->Fclose();
+	}
+	for(int i = 0x20; i < 0x100; i++) {
+		memcpy(font + (i - 0x20) * 8, font + i * 8, 8);
+	}
+	for (int i = 0x20; i < 0x40; i++) {
+		memcpy(font + (i + 0x60) * 8, font + i * 8, 8);
 	}
 	delete fio;
 	
@@ -40,16 +47,25 @@ uint32_t DISPLAY::read_io8(uint32_t addr)
 	return 0xff;
 }
 
+void DISPLAY::write_dma_io8(uint32_t addr, uint32_t data)
+{
+	buffer[ptr++ & 0x0f] = data;
+}
+
 void DISPLAY::event_frame()
 {
+	memset(buffer, 0, sizeof(buffer));
+	ptr = 0;
+	for(int i = 0; i < 16; i++) {
+		d_dma->write_signal(SIG_MC6844_TX_RQ_1, 1, 1);
+	}
 	d_cpu->write_signal(SIG_CPU_IRQ, 1, 1);
 }
 
 void DISPLAY::draw_screen()
 {
 	for(int c = 0; c < 16; c++) {
-//		uint8_t d = ram[0x15c + c];
-		uint8_t d = ram[0x63 + c];
+		uint8_t d = buffer[c];
 		
 		for(int l = 0; l < 8; l++) {
 			scrntype_t* dest = emu->get_screen_buffer(l) + 8 * c;

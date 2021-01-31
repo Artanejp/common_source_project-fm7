@@ -47,14 +47,24 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 	case 0xe121:
 		{
 			const uint8_t* key_stat = emu->get_key_buffer();
-			if(key_stat[VK_F1]) value &= ~0x01;
-			if(key_stat[VK_F2]) value &= ~0x02;
-			if(key_stat[VK_F3]) value &= ~0x04;
-			if(key_stat[VK_F4]) value &= ~0x08;
-			if(key_stat[VK_F5]) value &= ~0x10;
-			if(key_stat[VK_F6]) value &= ~0x20;
-			if(key_stat[VK_F7]) value &= ~0x40;
-			if(key_stat[VK_F8]) value &= ~0x80;
+			static int c = 0, p = 0;
+			if(key_stat[VK_F7]) {
+				value = (c | 0x80) & 0xbf;
+				if(p == 0) {
+					c++;
+					p = 1;
+				}
+			} else {
+				p = 0;
+				if(key_stat[VK_F1]) value &= ~0x01;
+				if(key_stat[VK_F2]) value &= ~0x02;
+				if(key_stat[VK_F3]) value &= ~0x04;
+				if(key_stat[VK_F4]) value &= ~0x08;
+				if(key_stat[VK_F5]) value &= ~0x10;
+				if(key_stat[VK_F6]) value &= ~0x20;
+				if(key_stat[VK_F7]) value &= ~0x40;
+				if(key_stat[VK_F8]) value &= ~0x80;
+			}
 		}
 		
 		
@@ -70,6 +80,7 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 			if(key_stat['6']) value &= ~0x20;
 			if(key_stat['7']) value &= ~0x40;
 			if(key_stat['8']) value &= ~0x80;
+			value^=0xff;
 		}
 		break;
 	}

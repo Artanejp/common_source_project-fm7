@@ -1,3 +1,11 @@
+1/17/2021
+
+[VM/UPD765A] improve for the case tc is asserted while reading/writing sector
+
+[PC8801/PC88] improve to render screen with port params at end of disp timing
+[X1TURBO/FLOPPY] fix to change type of all drives (thanks Mr.Sato)
+
+
 1/3/2021
 
 [WINMAIN] improve for pressing shift key and numpad key
