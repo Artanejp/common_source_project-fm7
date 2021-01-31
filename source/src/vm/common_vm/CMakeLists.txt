@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 3.5.0)
+SET(THIS_LIB_VERSION 3.5.1)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
@@ -44,6 +44,7 @@ set(s_vm_common_vm_srcs
 	../mc6809.cpp
 	../mc6820.cpp
 	../mc6840.cpp
+	../mc6843.cpp
 	../mc6844.cpp
 	../mc6847_base.cpp
 	../mc6850.cpp

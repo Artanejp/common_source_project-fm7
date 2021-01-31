@@ -1,3 +1,13 @@
+12/13/2020
+
+[VM/MC6843] support MC6843 (based on MAME)
+[[VM/SCSI_CDROM] fix to reset logical block size in Test Unit Ready command
+
+[BX1] support CANON BX-1 (not work)
+[MZ1500/QUICKDISK] improve for BSD record (thanks Mr.Motochan1500)
+[PC8801/PC88] fix hireso graphic screen when scan line is disabled
+
+
 12/12/2020
 
 [PC8801/PC88] fix to clear attibutes at starting new frame

@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								12/6/2020
+								12/13/2020
 
 --- What's this ?
 
@@ -12,6 +12,7 @@ This archive includes the all source codes of emulators listed below:
 	BANDAI
 		eRX-78		RX-78
 	CANON
+		eBX-1		BX-1
 		eX-07		X-07
 	CASIO
 		eFP-200		FP-200
@@ -229,6 +230,8 @@ See also COPYING.txt for more details about the license.
 	MAME mc6809 core and improved by Mr.Artane.
 - vm/mc6840.*
 	MAME Motorola 6840 (PTM) by Mr.James Wallace
+- vm/mc6843.*
+	MAME Motorola 6843 (FDC) by Mr.Antoine Mine
 - vm/mc6847.*
 	MAME mc6847 core
 - vm/msm5205.*
@@ -330,7 +333,7 @@ See also COPYING.txt for more details about the license.
 	The printer interface by Mr.Suga
 - vm/mz700/quickdisk.*
 	Improved for QDF format by Mr.kitahei88
-	Improved for BSD record by Mr.Yuushi
+	Improved for BSD record by Mr.Yuushi and Mr.Motochan1500
 - vm/mz2500/sasi.*
 	X millenium by Mr.Punyu
 - vm/mz3500/keyboard.*

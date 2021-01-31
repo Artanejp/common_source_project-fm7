@@ -3099,7 +3099,7 @@ void PC88::draw_320x200_attrib_graph()
 				uint8_t color = text_color[y >> 1][cx];
 				uint8_t brg0 = gvram_b0[addr] | gvram_r0[addr] | gvram_g0[addr] |
 				               gvram_b1[addr] | gvram_r1[addr] | gvram_g1[addr];
-				uint8_t brg1 = 0;
+				uint8_t brg1 = config.scan_line ? 0 : brg0;
 				if(text_reverse[y >> 1][cx]) {
 					brg0 ^= 0xff;
 					brg1 ^= 0xff;
@@ -3140,7 +3140,7 @@ void PC88::draw_320x200_attrib_graph()
 				uint8_t color_r = text_color[y >> 1][cx + 1];
 				uint8_t brg0 = gvram_b0[addr] | gvram_r0[addr] | gvram_g0[addr] |
 				               gvram_b1[addr] | gvram_r1[addr] | gvram_g1[addr];
-				uint8_t brg1 = 0;
+				uint8_t brg1 = config.scan_line ? 0 : brg0;
 				if(text_reverse[y >> 1][cx + 0]) {
 					brg0 ^= 0xf0;
 					brg0 ^= 0xf0;
@@ -3267,7 +3267,7 @@ void PC88::draw_640x200_attrib_graph()
 		for(int x = 0, cx = 0; x < 640; x += 8, cx++) {
 			uint8_t color = text_color[y >> 1][cx];
 			uint8_t brg0 = gvram_b[addr] | gvram_r[addr] | gvram_g[addr];
-			uint8_t brg1 = 0;
+			uint8_t brg1 = config.scan_line ? 0 : brg0;
 			if(text_reverse[y >> 1][cx]) {
 				brg0 ^= 0xff;
 				brg1 ^= 0xff;

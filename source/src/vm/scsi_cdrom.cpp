@@ -438,6 +438,9 @@ void SCSI_CDROM::start_command()
 	touch_sound();
 	//out_debug_log(_T("Command: #%02x %02x %02x %02x %02x %02x\n"), command[0], command[1], command[2], command[3], command[4], command[5]);
 	switch(command[0]) {
+	case SCSI_CMD_TST_U_RDY:
+		read_mode = 0;
+		break;
 	case SCSI_CMD_READ6:
 		seek_time = get_seek_time((command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3]);
 		set_cdda_status(CDDA_OFF);
@@ -467,7 +470,6 @@ void SCSI_CDROM::start_command()
 			seek_time = 10.0;
 		}
 		break;
-		
 	case SCSI_CMD_MODE_SEL6:
 		out_debug_log(_T("Command: NEC Read Mode Select 6-byte\n"), scsi_id);
 		// start position

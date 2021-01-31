@@ -86,6 +86,7 @@ PCENGINE
 	by Mr.Yoshikun
 	http://yspixel.jpn.org/
 
+BX1 (MZ6500)
 FM16BETA (FM77)
 FM16PI (PC60mk2SR)
 FMR30 (PC-AT)

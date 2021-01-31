@@ -351,7 +351,7 @@ void MC6801::reset()
 	CC = 0xc0;
 	SEI; /* IRQ disabled */
 	PCD = RM16(0xfffe);
-	S = X = D = EA = 0;
+	SD = X = D = EA = 0;
 	
 	wai_state = 0;
 	int_state = 0;

@@ -30,12 +30,14 @@
 #define DATA_EMPTY	0x101
 
 #define HEADER_BLOCK_ID	0
-#define DATA_BLOCK_ID	1
+//#define DATA_BLOCK_ID	1
+#define DATA_BLOCK_ID	5
 
 namespace MZ700 {
 
 #define BSD_HEADER_BLOCK_ID	2
 #define BSD_DATA_BLOCK_ID	3
+#define BSD_DATA_BLOCK_ID_LAST	7
 #define BSD_DATA_BLOCK_SIZE	1026
 #define BSD_ATTR_ID		3
 
@@ -470,12 +472,14 @@ void QUICKDISK::open_disk(const _TCHAR* path)
 					buffer[buffer_ptr++] = DATA_BREAK;
 				} else {
 					int outsize = 0;
+					int blkflg_pos = 0;
 					do {
 						buffer[block_num_ptr] = ++num_block;
 						
 						buffer[buffer_ptr++] = DATA_SYNC;
 						buffer[buffer_ptr++] = DATA_SYNC;
 						buffer[buffer_ptr++] = DATA_MARK;
+						blkflg_pos = buffer_ptr;
 						buffer[buffer_ptr++] = BSD_DATA_BLOCK_ID;
 						buffer[buffer_ptr++] = (uint8_t)(BSD_DATA_BLOCK_SIZE & 0xff);
 						buffer[buffer_ptr++] = (uint8_t)(BSD_DATA_BLOCK_SIZE >> 8);
@@ -490,6 +494,7 @@ void QUICKDISK::open_disk(const _TCHAR* path)
 						outsize += BSD_DATA_BLOCK_SIZE;
 						offs += BSD_DATA_BLOCK_SIZE;
 					} while(outsize < size);
+					buffer[blkflg_pos] = BSD_DATA_BLOCK_ID_LAST;
 				}
 			}
 		} else { // qdf file
@@ -658,7 +663,8 @@ void QUICKDISK::release_disk()
 					if(buffer[buffer_ptr] == DATA_EMPTY) {
 						break;
 					}
-					int bsd_id = buffer[buffer_ptr + 3] & 3;
+					//int bsd_id = buffer[buffer_ptr + 3] & 3;
+					int bsd_id = buffer[buffer_ptr + 3] & 7;
 					int id = buffer[buffer_ptr + 3] & 1;
 					int size = buffer[buffer_ptr + 4] | (buffer[buffer_ptr + 5] << 8);
 					
@@ -696,18 +702,22 @@ void QUICKDISK::release_disk()
 							fio->Fwrite(header, MZT_HEADER_SIZE, 1);
 						} else {
 							BSDTotal = 0;
-							bLastBSD = true;
+							//bLastBSD = true;
 						}
 					} else {
 						// data
 						//for(int i = 0; i < size; i++) {
 						//	fio->Fputc(buffer[buffer_ptr + i]);
 						//}
-						if (bsd_id == BSD_DATA_BLOCK_ID) {
+						//if (bsd_id == BSD_DATA_BLOCK_ID) {
+						if ((bsd_id == BSD_DATA_BLOCK_ID) || (bsd_id == BSD_DATA_BLOCK_ID_LAST)) {
 							for(int i = 0; i < size; i++) {
 								BSDBuffer[BSDTotal + i] = (uint8_t)buffer[buffer_ptr + i];
 							}
 							BSDTotal += size;
+							if (bsd_id == BSD_DATA_BLOCK_ID_LAST) {
+								bLastBSD = true;
+							}
 						} else {
 							for(int i = 0; i < size; i++) {
 								fio->Fputc(buffer[buffer_ptr + i]);
