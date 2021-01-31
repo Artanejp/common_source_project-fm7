@@ -3002,7 +3002,7 @@ void PC88::draw_text()
 				crtc.text.expand[cy][cx] = buffer[ofs + cx];
 			}
 		}
-		crtc.attrib.data = 0xe0; // Misty Blue
+		crtc.attrib.data = 0xe0 | crtc.reverse; // Misty Blue
 		
 		if(crtc.mode & 4) {
 			// non transparent
@@ -3838,7 +3838,7 @@ void pc88_crtc_t::expand_buffer(bool hireso, bool line400)
 //			goto underrun;
 		}
 	}
-	attrib.data = 0xe0; // Misty Blue
+	attrib.data = 0xe0 | reverse; // Misty Blue
 	
 	if(mode & 4) {
 		// non transparent
