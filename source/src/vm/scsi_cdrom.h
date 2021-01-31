@@ -41,9 +41,13 @@ protected:
 	uint32_t max_logical_block;
 	bool access;
 	
-	uint32_t cdda_start_frame, cdda_end_frame, cdda_playing_frame;
+	uint32_t cdda_start_frame, cdda_start_pregap;
+	uint32_t cdda_end_frame;
+	uint32_t cdda_playing_frame;
 	uint8_t cdda_status;
-	bool cdda_repeat, cdda_interrupt;
+//	bool cdda_repeat, cdda_interrupt;
+	uint8_t cdda_play_mode;
+	
 	uint8_t cdda_buffer[2352 * 75];
 	int read_sectors;
 	int cdda_buffer_ptr;
