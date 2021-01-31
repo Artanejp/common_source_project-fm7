@@ -1718,7 +1718,7 @@ uint32_t PC88::read_io8_debug(uint32_t addr)
 	case 0xac:
 	case 0xad:
 		if(d_opn2 != NULL && d_opn2->is_ym2608) {
-			d_opn2->read_io8(addr | 2);
+			return d_opn2->read_io8(addr | 2);
 		}
 		break;
 #endif
@@ -2820,6 +2820,8 @@ void PC88::draw_text()
 				crtc.text.expand[cy][cx] = buffer[ofs + cx];
 			}
 		}
+		crtc.attrib.data = 0xe0; // Misty Blue
+		
 		if(crtc.mode & 4) {
 			// non transparent
 			for(int cy = 0, ofs = 0; cy < crtc.height; cy++, ofs += 80 + crtc.attrib.num * 2) {
@@ -3646,6 +3648,8 @@ void pc88_crtc_t::expand_buffer(bool hireso, bool line400)
 //			goto underrun;
 		}
 	}
+	attrib.data = 0xe0; // Misty Blue
+	
 	if(mode & 4) {
 		// non transparent
 		for(int cy = 0, ytop = 0, ofs = 0; cy < height && ytop < 200; cy++, ytop += char_height_tmp, ofs += 80 + attrib.num * 2) {
@@ -3712,17 +3716,20 @@ underrun:
 void pc88_crtc_t::set_attrib(uint8_t code)
 {
 	if(mode & 2) {
-		// color
+		// color mode
 		if(code & 8) {
+			// set color
 			attrib.data = (attrib.data & 0x0f) | (code & 0xf0);
 		} else {
+			// set attrib
 			attrib.data = (attrib.data & 0xf0) | ((code >> 2) & 0x0d) | ((code << 1) & 2);
-			attrib.data ^= reverse;
+			attrib.data ^= mode & reverse;
 			attrib.data ^= ((code & 2) && !(code & 1)) ? blink.attrib : 0;
 		}
 	} else {
+		// b/w mode
 		attrib.data = 0xe0 | ((code >> 3) & 0x10) | ((code >> 2) & 0x0d) | ((code << 1) & 2);
-		attrib.data ^= reverse;
+		attrib.data ^= mode & reverse;
 		attrib.data ^= ((code & 2) && !(code & 1)) ? blink.attrib : 0;
 	}
 }
@@ -3768,7 +3775,7 @@ void pc88_dmac_t::write_io8(uint32_t addr, uint32_t data)
 			if((mode & 0x80) && c == 2) {
 				ch[3].count.b.h = data & 0x3f;
 				ch[3].count.b.h2 = ch[3].count.b.h3 = 0;
-				ch[3].mode = data & 0xc0;
+//				ch[3].mode = data & 0xc0;
 			}
 			ch[c].count.b.h = data & 0x3f;
 			ch[c].count.b.h2 = ch[c].count.b.h3 = 0;
@@ -3872,7 +3879,7 @@ void pc88_dmac_t::finish(int c)
 		if((mode & 0x80) && c == 2) {
 			ch[2].addr.sd = ch[3].addr.sd;
 			ch[2].count.sd = ch[3].count.sd;
-			ch[2].mode = ch[3].mode;
+//			ch[2].mode = ch[3].mode;
 		} else if(mode & 0x40) {
 			mode &= ~(1 << c);
 		}

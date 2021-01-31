@@ -1,3 +1,9 @@
+12/12/2020
+
+[PC8801/PC88] fix to clear attibutes at starting new frame
+[PC8801/PC88] fix to read status of 2nd OPNA
+
+
 12/11/2020
 
 [PC8801/PC88] fix to run dma from memory to crtc when (rd,wr)=(0,0)
