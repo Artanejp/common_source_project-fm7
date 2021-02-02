@@ -27,10 +27,10 @@ void I286::initialize()
 	_USE_DEBUGGER = osd->check_feature("USE_DEBUGGER");
 	I286_NP21::device_cpu = this;
 //#ifdef USE_DEBUGGER
-	I286_NP21::device_mem_stored = device_mem;
-	I286_NP21::device_io_stored = device_io;
-	I286_NP21::device_debugger->set_context_mem(device_mem);
-	I286_NP21::device_debugger->set_context_io(device_io);
+	device_mem_stored = I286_NP21::device_mem;
+	device_io_stored = I286_NP21::device_io;
+	I286_NP21::device_debugger->set_context_mem(I286_NP21::device_mem);
+	I286_NP21::device_debugger->set_context_io(I286_NP21::device_io);
 //#endif
 	CPU_INITIALIZE();
 	CPU_ADRSMASK = 0x000fffff;
@@ -100,20 +100,20 @@ void I286::cpu_wait(int clocks)
 int I286::run_one_opecode()
 {
 //#ifdef USE_DEBUGGER
-	bool now_debugging = device_debugger->now_debugging;
+	bool now_debugging = I286_NP21::device_debugger->now_debugging;
 	if(now_debugging) {
-		device_debugger->check_break_points(get_next_pc());
-		if(device_debugger->now_suspended) {
-			device_debugger->now_waiting = true;
+		I286_NP21::device_debugger->check_break_points(get_next_pc());
+		if(I286_NP21::device_debugger->now_suspended) {
+			I286_NP21::device_debugger->now_waiting = true;
 			emu->start_waiting_in_debugger();
-			while(device_debugger->now_debugging && device_debugger->now_suspended) {
+			while(I286_NP21::device_debugger->now_debugging && I286_NP21::device_debugger->now_suspended) {
 				emu->process_waiting_in_debugger();
 			}
 			emu->finish_waiting_in_debugger();
-			device_debugger->now_waiting = false;
+			I286_NP21::device_debugger->now_waiting = false;
 		}
-		if(device_debugger->now_debugging) {
-			device_mem = device_io = device_debugger;
+		if(I286_NP21::device_debugger->now_debugging) {
+			I286_NP21::device_mem = I286_NP21::device_io = I286_NP21::device_debugger;
 		} else {
 			now_debugging = false;
 		}
@@ -135,11 +135,11 @@ int I286::run_one_opecode()
 			device_pic->update_intr();
 		}
 		if(now_debugging) {
-			if(!device_debugger->now_going) {
-				device_debugger->now_suspended = true;
+			if(!I286_NP21::device_debugger->now_going) {
+				I286_NP21::device_debugger->now_suspended = true;
 			}
-			device_mem = device_mem_stored;
-			device_io = device_io_stored;
+			I286_NP21::device_mem = device_mem_stored;
+			I286_NP21::device_io = device_io_stored;
 		}
 		return CPU_BASECLOCK - CPU_REMCLOCK;
 	} else {
@@ -174,7 +174,7 @@ int I286::run(int cycles)
 			// don't run cpu!
 //#ifdef SINGLE_MODE_DMA
 			if(_SINGLE_MODE_DMA) {
-				if(device_dma != NULL) device_dma->do_dma();
+				if(I286_NP21::device_dma != NULL) I286_NP21::device_dma->do_dma();
 			}
 //#endif
 			passed_cycles = max(5, extra_cycles); // 80286 CPI: 4.8
@@ -254,49 +254,49 @@ uint32_t I286::get_next_pc()
 void I286::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
-	device_mem->write_data8w(addr, data, &wait);
+	I286_NP21::device_mem->write_data8w(addr, data, &wait);
 }
 
 uint32_t I286::read_debug_data8(uint32_t addr)
 {
 	int wait;
-	return device_mem->read_data8w(addr, &wait);
+	return I286_NP21::device_mem->read_data8w(addr, &wait);
 }
 
 void I286::write_debug_data16(uint32_t addr, uint32_t data)
 {
 	int wait;
-	device_mem->write_data16w(addr, data, &wait);
+	I286_NP21::device_mem->write_data16w(addr, data, &wait);
 }
 
 uint32_t I286::read_debug_data16(uint32_t addr)
 {
 	int wait;
-	return device_mem->read_data16w(addr, &wait);
+	return I286_NP21::device_mem->read_data16w(addr, &wait);
 }
 
 void I286::write_debug_io8(uint32_t addr, uint32_t data)
 {
 	int wait;
-	device_io->write_io8w(addr, data, &wait);
+	I286_NP21::device_io->write_io8w(addr, data, &wait);
 }
 
 uint32_t I286::read_debug_io8(uint32_t addr)
 {
 	int wait;
-	return device_io->read_io8w(addr, &wait);
+	return I286_NP21::device_io->read_io8w(addr, &wait);
 }
 
 void I286::write_debug_io16(uint32_t addr, uint32_t data)
 {
 	int wait;
-	device_io->write_io16w(addr, data, &wait);
+	I286_NP21::device_io->write_io16w(addr, data, &wait);
 }
 
 uint32_t I286::read_debug_io16(uint32_t addr)
 {
 	int wait;
-	return device_io->read_io16w(addr, &wait);
+	return I286_NP21::device_io->read_io16w(addr, &wait);
 }
 
 bool I286::write_debug_reg(const _TCHAR *reg, uint32_t data)
@@ -404,7 +404,7 @@ int I286::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	
 	for(int i = 0; i < 16; i++) {
 		int wait;
-		oprom[i] = device_mem->read_data8w((pc + i) & CPU_ADRSMASK, &wait);
+		oprom[i] = I286_NP21::device_mem->read_data8w((pc + i) & CPU_ADRSMASK, &wait);
 	}
 	if(device_model == NEC_V30) {
 		return v30_dasm(oprom, eip, buffer, buffer_len);
@@ -438,37 +438,37 @@ int I286::get_shutdown_flag()
 
 void I286::set_context_mem(DEVICE* device)
 {
-	device_mem = device;
+	I286_NP21::device_mem = device;
 }
 
 void I286::set_context_io(DEVICE* device)
 {
-	device_io = device;
+	I286_NP21::device_io = device;
 }
 
 //#ifdef I86_PSEUDO_BIOS
 void I286::set_context_bios(DEVICE* device)
 {
-	device_bios = device;
+	I286_NP21::device_bios = device;
 }
 //#endif
 
 //#ifdef SINGLE_MODE_DMA
 void I286::set_context_dma(DEVICE* device)
 {
-	device_dma = device;
+	I286_NP21::device_dma = device;
 }
 //#endif
 
 //#ifdef USE_DEBUGGER
 void I286::set_context_debugger(DEBUGGER* device)
 {
-	device_debugger = device;
+	I286_NP21::device_debugger = device;
 }
 
 void *I286::get_debugger()
 {
-	return device_debugger;
+	return I286_NP21::device_debugger;
 }
 //#endif
 

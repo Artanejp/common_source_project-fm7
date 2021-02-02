@@ -859,9 +859,11 @@ void v30c(void) {
 #if defined(ENABLE_TRAP)
 			steptrap(CPU_CS, CPU_IP);
 #endif
-#ifdef USE_DEBUGGER
-			device_debugger->add_cpu_trace(CS_BASE + I286_IP);
-#endif
+//#ifdef USE_DEBUGGER
+			if(device_debugger != NULL) {
+				device_debugger->add_cpu_trace(CS_BASE + I286_IP);
+			}
+//#endif
 			GET_PCBYTE(opcode);
 			v30op[opcode]();
 			if (I286_TRAP) {
@@ -875,9 +877,11 @@ void v30c(void) {
 #if defined(ENABLE_TRAP)
 			steptrap(CPU_CS, CPU_IP);
 #endif
-#ifdef USE_DEBUGGER
-			device_debugger->add_cpu_trace(CS_BASE + I286_IP);
-#endif
+//#ifdef USE_DEBUGGER
+			if(device_debugger != NULL) {
+				device_debugger->add_cpu_trace(CS_BASE + I286_IP);
+			}
+//#endif
 			GET_PCBYTE(opcode);
 			v30op[opcode]();
 			dmav30();
@@ -906,9 +910,11 @@ void v30c_step(void) {
 	I286_OV = I286_FLAG & O_FLAG;
 	I286_FLAG &= ~(O_FLAG);
 
-#ifdef USE_DEBUGGER
-	device_debugger->add_cpu_trace(CS_BASE + I286_IP);
-#endif
+//#ifdef USE_DEBUGGER
+	if(device_debugger != NULL) {
+		device_debugger->add_cpu_trace(CS_BASE + I286_IP);
+	}
+//#endif
 	GET_PCBYTE(opcode);
 	v30op[opcode]();
 

@@ -28,6 +28,7 @@
 //#include "../i286_np21.h"
 #include "../i286.h"
 #else
+//#include "../i286_np21.h"
 #include "../i86.h"
 #endif
 #if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
@@ -210,7 +211,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->device_model = NEC_V30;
 #elif defined(HAS_I286)
 	cpu = new I286(this, emu);
-//	cpu->device_model = INTEL_80286;
+	cpu->device_model = INTEL_80286;
 #elif defined(HAS_I386)
 	cpu = new I386(this, emu);
 	cpu->device_model = INTEL_80386;
