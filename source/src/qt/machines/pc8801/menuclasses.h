@@ -15,7 +15,6 @@ class Object_Menu_Control_88: public Object_Menu_Control
  public:
 	Object_Menu_Control_88(QObject *parent, USING_FLAGS *p);
 	~Object_Menu_Control_88();
-signals:
 public slots:
 	void do_set_memory_wait(bool flag);
 	void do_set_hmb20(bool flag);
