@@ -121,7 +121,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 
 #if defined(HAS_I286)
 	cpu = new I286(this, emu);
-//	cpu->device_model = INTEL_80286;
+	cpu->device_model = I286_MAME::INTEL_80286;
 #elif defined(HAS_I386)
 	cpu = new I386(this, emu);
 	cpu->device_model = INTEL_80386;

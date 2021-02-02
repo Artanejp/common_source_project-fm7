@@ -16,6 +16,15 @@
 
 #define SIG_I86_TEST	0
 #define SIG_I286_A20	1
+namespace I286_MAME {
+enum {
+	INTEL_80286 = 0,
+	NEC_V30,
+	INTEL_8086,
+	INTEL_80186,
+	INTEL_8088,
+};
+}
 
 class DEBUGGER;
 
@@ -44,6 +53,7 @@ public:
 		d_dma = NULL;
 		d_debugger = NULL;
 		opaque = NULL;
+		device_model = I286_MAME::INTEL_80286;
 
 		set_device_name(_T("80286 CPU"));
 	}
@@ -108,7 +118,7 @@ public:
 	{
 		d_io = device;
 	}
-	void set_context_intr(DEVICE* device, uint32_t bit = 0xfffffffff)
+	void set_context_intr(DEVICE* device, uint32_t bit = 0xffffffff)
 	{
 		d_pic = device;
 	}
@@ -133,6 +143,7 @@ public:
 	uint32_t get_address_mask();
 	void set_shutdown_flag(int shutdown);
 	int get_shutdown_flag();
+	int device_model;
 };
 
 #endif

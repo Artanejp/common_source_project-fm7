@@ -20,10 +20,11 @@ class DEBUGGER;
 //#endif
 
 enum {
-	INTEL_8086 = 0,
-	INTEL_8088,
-	INTEL_80186,
+	INTEL_80286 = 0,
 	NEC_V30,
+	INTEL_8086,
+	INTEL_80186,
+	INTEL_8088,
 };
 
 class  DLL_PREFIX I86 : public DEVICE
@@ -52,6 +53,7 @@ public:
 //#ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
 //#endif
+		device_model = INTEL_8086;
 	}
 	~I86() {}
 	
@@ -111,7 +113,7 @@ public:
 	{
 		d_io = device;
 	}
-	void set_context_intr(DEVICE* device, uint32_t bit = 0xfffffffff)
+	void set_context_intr(DEVICE* device, uint32_t bit = 0xffffffff)
 	{
 		d_pic = device;
 	}
