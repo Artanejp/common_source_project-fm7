@@ -55,6 +55,36 @@ void Object_Menu_Control_98::do_set_enable_v30(bool flag)
 	emit sig_set_dipsw(DIPSWITCH_POSITION_USE_V30, flag);
 }
 
+void Object_Menu_Control_98::do_set_cmd_sing(bool flag)
+{
+	emit sig_set_dipsw(4, flag);
+	emit sig_emu_update_config();
+}
+void Object_Menu_Control_98::do_set_palette_vblank(bool flag)
+{
+	emit sig_set_dipsw(5, flag);
+	emit sig_emu_update_config();
+}
+
+void Object_Menu_Control_98::do_set_fdd_5inch(bool flag)
+{
+	emit sig_set_dipsw(6, flag);
+	emit sig_emu_update_config();
+}
+
+void Object_Menu_Control_98::do_set_m88drv(bool flag)
+{
+	emit sig_set_dipsw(8, flag);
+	emit sig_emu_update_config();
+}
+
+void Object_Menu_Control_98::do_set_quasis88_cmt(bool flag)
+{
+	emit sig_set_dipsw(9, flag);
+	emit sig_emu_update_config();
+}
+
+
 
 void Object_Menu_Control_98::do_set_egc(bool flag)
 {
@@ -227,9 +257,27 @@ void META_MainWindow::retranslateUi(void)
 	actionBootMode[4]->setToolTip(QApplication::translate("MainWindow", "PC8801 N Mode.\nYou can run softwares of PC-8001/mk2.", 0));
 # endif
 #endif
-#ifdef _PC98DO
+	
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
    	actionMemoryWait->setText(QApplication::translate("MainWindow", "Memory Wait", 0));
 	actionMemoryWait->setToolTip(QApplication::translate("MainWindow", "Simulate waiting memory.", 0));
+	
+	actionCMD_Sing->setText(QApplication::translate("MainWindow", "Support CMD SING", 0));
+	actionCMD_Sing->setToolTip(QApplication::translate("MainWindow", "Enable PCM supporting for \"CMD SING\" command.", 0));
+	actionPalette->setText(QApplication::translate("MainWindow", "Change palette only within VBLANK.", 0));
+	actionPalette->setToolTip(QApplication::translate("MainWindow", "Ignore Palette Changed Outside VBLANK.", 0));
+	actionFDD_5Inch->setText(QApplication::translate("MainWindow", "5.25Inch FDD(Need to restart)", 0));
+	actionFDD_5Inch->setToolTip(QApplication::translate("MainWindow", "Enable 5.25 inch FDDs.\nThis effects only after restarting this emulator.", 0));
+
+#if defined(SUPPORT_M88_DISKDRV)
+	actionM88DRV->setText(QApplication::translate("MainWindow", "M88 DiskDrv(Need to restart)", 0));
+	actionM88DRV->setToolTip(QApplication::translate("MainWindow", "Enable M88 stile Disk Drives.\nThis effects only after restarting this emulator.", 0));
+#endif
+#if defined(SUPPORT_QUASIS88_CMT)
+	actionQuasiS88CMT->setText(QApplication::translate("MainWindow", "Enable QUASIS88 CMT", 0));
+	actionQuasiS88CMT->setToolTip(QApplication::translate("MainWindow", "Enable loading QuasiS88 style CMT images.", 0));
+#endif
+	
 #endif
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
@@ -380,7 +428,7 @@ void META_MainWindow::setupUI_Emu(void)
 			this, SLOT(do_emu_update_config()));
 #endif
 	
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	actionMemoryWait = new Action_Control_98(this, using_flags);
 	actionMemoryWait->setCheckable(true);
 	actionMemoryWait->setVisible(true);
@@ -390,6 +438,86 @@ void META_MainWindow::setupUI_Emu(void)
 			actionMemoryWait->pc98_binds, SLOT(do_set_memory_wait(bool)));
 	connect(actionMemoryWait->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
 			this, SLOT(set_dipsw(int, bool)));
+	connect(actionMemoryWait->pc98_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
+	
+	actionPalette = new Action_Control_98(this, using_flags);
+	actionPalette->setCheckable(true);
+	actionPalette->setVisible(true);
+	actionPalette->setChecked(false);
+	   
+	menuMachine->addAction(actionPalette);
+	if((config.dipswitch & (1 << 5)) != 0) actionPalette->setChecked(true);
+	connect(actionPalette, SIGNAL(toggled(bool)),
+			actionPalette->pc98_binds, SLOT(do_set_palette_vblank(bool)));
+	connect(actionPalette->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+	connect(actionPalette->pc98_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
+	menuMachine->addSeparator();
+
+	actionFDD_5Inch = new Action_Control_98(this, using_flags);
+	actionFDD_5Inch->setCheckable(true);
+	actionFDD_5Inch->setVisible(true);
+	actionFDD_5Inch->setChecked(false);
+   
+	menuMachine->addAction(actionFDD_5Inch);
+	if((config.dipswitch & (1 << 6)) != 0) actionFDD_5Inch->setChecked(true);
+	connect(actionFDD_5Inch, SIGNAL(toggled(bool)),
+			actionFDD_5Inch->pc98_binds, SLOT(do_set_fdd_5inch(bool)));
+	connect(actionFDD_5Inch->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+	connect(actionFDD_5Inch->pc98_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
+	
+#if defined(SUPPORT_M88_DISKDRV)
+	actionM88DRV = new Action_Control_98(this, using_flags);
+	actionM88DRV->setCheckable(true);
+	actionM88DRV->setVisible(true);
+	actionM88DRV->setChecked(false);
+   
+	menuMachine->addAction(actionM88DRV);
+	if((config.dipswitch & (1 << 8)) != 0) actionM88DRV->setChecked(true);
+	connect(actionM88DRV, SIGNAL(toggled(bool)),
+			actionM88DRV->pc98_binds, SLOT(do_set_m88drv(bool)));
+	connect(actionM88DRV->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+	connect(actionM88DRV->pc98_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
+#endif
+#if defined(SUPPORT_QUASIS88_CMT)
+	actionQuasiS88CMT = new Action_Control_98(this, using_flags);
+	actionQuasiS88CMT->setCheckable(true);
+	actionQuasiS88CMT->setVisible(true);
+	actionQuasiS88CMT->setChecked(false);
+   
+	menuMachine->addAction(actionQuasiS88CMT);
+	if((config.dipswitch & (1 << 9)) != 0) actionQuasiS88CMT->setChecked(true);
+	connect(actionQuasiS88CMT, SIGNAL(toggled(bool)),
+			actionQuasiS88CMT->pc98_binds, SLOT(do_set_quasis88_cmt(bool)));
+	connect(actionQuasiS88CMT->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+	connect(actionQuasiS88CMT->pc98_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
+#endif
+#if defined(SUPPORT_QUASIS88_CMT) || defined(SUPPORT_M88_DISKDRV)
+	menuMachine->addSeparator();
+#endif
+	actionCMD_Sing = new Action_Control_98(this, using_flags);
+	actionCMD_Sing->setCheckable(true);
+	actionCMD_Sing->setVisible(true);
+	actionCMD_Sing->setChecked(false);
+   
+	menuMachine->addAction(actionCMD_Sing);
+	if((config.dipswitch & DIPSWITCH_CMDSING) != 0) actionCMD_Sing->setChecked(true);
+	connect(actionCMD_Sing, SIGNAL(toggled(bool)),
+			actionCMD_Sing->pc98_binds, SLOT(do_set_cmd_sing(bool)));
+	connect(actionCMD_Sing->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+	connect(actionCMD_Sing->pc98_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
+	menuMachine->addSeparator();
+
 #endif   
 #if defined(SUPPORT_320KB_FDD_IF)
 	actionConnect2D = new Action_Control_98(this, using_flags);

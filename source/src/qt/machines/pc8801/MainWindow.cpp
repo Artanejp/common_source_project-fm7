@@ -35,21 +35,61 @@ Object_Menu_Control_88::~Object_Menu_Control_88()
 void Object_Menu_Control_88::do_set_memory_wait(bool flag)
 {
 	emit sig_set_dipsw(0, flag);
+	emit sig_emu_update_config();
 }
 
 void Object_Menu_Control_88::do_set_hmb20(bool flag)
 {
 	emit sig_set_dipsw(1, flag);
+	emit sig_emu_update_config();
 }
 
 void Object_Menu_Control_88::do_set_gsx8800(bool flag)
 {
 	emit sig_set_dipsw(2, flag);
+	emit sig_emu_update_config();
 }
 
 void Object_Menu_Control_88::do_set_pcg8100(bool flag)
 {
 	emit sig_set_dipsw(3, flag);
+	emit sig_emu_update_config();
+}
+
+void Object_Menu_Control_88::do_set_cmd_sing(bool flag)
+{
+	emit sig_set_dipsw(4, flag);
+	emit sig_emu_update_config();
+}
+
+void Object_Menu_Control_88::do_set_palette_vblank(bool flag)
+{
+	emit sig_set_dipsw(5, flag);
+	emit sig_emu_update_config();
+}
+
+void Object_Menu_Control_88::do_set_fdd_5inch(bool flag)
+{
+	emit sig_set_dipsw(6, flag);
+	emit sig_emu_update_config();
+}
+
+void Object_Menu_Control_88::do_set_fdd_8inch(bool flag)
+{
+	emit sig_set_dipsw(7, flag);
+	emit sig_emu_update_config();
+}
+
+void Object_Menu_Control_88::do_set_m88drv(bool flag)
+{
+	emit sig_set_dipsw(8, flag);
+	emit sig_emu_update_config();
+}
+
+void Object_Menu_Control_88::do_set_quasis88_cmt(bool flag)
+{
+	emit sig_set_dipsw(9, flag);
+	emit sig_emu_update_config();
 }
 
 Action_Control_88::Action_Control_88(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
@@ -243,26 +283,50 @@ void META_MainWindow::retranslateUi(void)
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MenuPC88", "NEC PC-PR201 kanji serial printer.", 0));
 	actionPrintDevice[1]->setEnabled(false);
 #endif
+
 	
-#if defined(USE_DIPSWITCH)
+#if defined(_PC8001SR) || defined(PC8801SR_VARIANT)
 	actionMemoryWait->setText(QApplication::translate("MenuPC88", "Wait Memory", 0));
 	actionMemoryWait->setToolTip(QApplication::translate("MenuPC88", "Simulate waiting memory.", 0));
+#endif
 
-	#if defined(SUPPORT_PC88_HMB20)
+#if defined(SUPPORT_QUASIS88_CMT)
+	actionQuasiS88CMT->setText(QApplication::translate("MenuPC88", "Enable QUASIS88 CMT", 0));
+	actionQuasiS88CMT->setToolTip(QApplication::translate("MenuPC88", "Enable loading QuasiS88 style CMT images.", 0));
+#endif
+#if defined(PC8801_VARIANT)
+	actionCMD_Sing->setText(QApplication::translate("MenuPC88", "Support CMD SING", 0));
+	actionCMD_Sing->setToolTip(QApplication::translate("MenuPC88", "Enable PCM supporting for \"CMD SING\" command.", 0));
+#endif
+	actionPalette->setText(QApplication::translate("MenuPC88", "Change palette only within VBLANK.", 0));
+	actionPalette->setToolTip(QApplication::translate("MenuPC88", "Ignore Palette Changed Outside VBLANK.", 0));
+	
+	actionFDD_5Inch->setText(QApplication::translate("MenuPC88", "5.25Inch FDD(Need to restart)", 0));
+	actionFDD_5Inch->setToolTip(QApplication::translate("MenuPC88", "Enable 5.25 inch FDDs.\nThis effects only after restarting this emulator.", 0));
+#if defined(SUPPORT_PC88_FDD_8INCH)
+	actionFDD_8Inch->setText(QApplication::translate("MenuPC88", "8Inch FDD(Need to restart)", 0));
+	actionFDD_8Inch->setToolTip(QApplication::translate("MenuPC88", "Enable 8 inch FDDs for 3: and 4:.\nThis effects only after restarting this emulator.", 0));
+#endif
+#if defined(SUPPORT_M88_DISKDRV)
+	actionM88DRV->setText(QApplication::translate("MenuPC88", "M88 DiskDrv(Need to restart)", 0));
+	actionM88DRV->setToolTip(QApplication::translate("MenuPC88", "Enable M88 stile Disk Drives.\nThis effects only after restarting this emulator.", 0));
+#endif
+	
+#if defined(SUPPORT_PC88_HMB20)
 	actionHMB20->setText(QApplication::translate("MenuPC88", "Use HMB20(Need RESTART)", 0));
 	actionHMB20->setToolTip(QApplication::translate("MenuPC88", "Using HMB20 OPM sound board.\nRe-start emulator when changed.", 0));
-	#endif
-	#if defined(SUPPORT_PC88_GSX8800)
+#endif
+
+#if defined(SUPPORT_PC88_GSX8800)
 	actionGSX8800->setText(QApplication::translate("MenuPC88", "Use GSX8800(Need RESTART)", 0));
 	actionGSX8800->setToolTip(QApplication::translate("MenuPC88", "Using GSX8800 PSGs sound board.\nRe-start emulator when changed.", 0));
-	#endif
-	#if defined(SUPPORT_PC88_PCG8100)
+#endif
+#if defined(SUPPORT_PC88_PCG8100)
 	actionPCG8100->setText(QApplication::translate("MenuPC88", "Use PCG8100(Need RESTART)", 0));
 	actionPCG8100->setToolTip(QApplication::translate("MenuPC88", "Using PCG8100 programmable character generator board.\nRe-start emulator when changed.", 0));
-	#endif
-	
-
 #endif
+
+
 #if defined(USE_MONITOR_TYPE)
 	actionMonitorType[0]->setText(QApplication::translate("MenuPC88", "High Resolution", 0));
 	actionMonitorType[1]->setText(QApplication::translate("MenuPC88", "Standard", 0));
@@ -284,20 +348,120 @@ void META_MainWindow::setupUI_Emu(void)
 #else
 	ConfigCPUBootMode(4);
 #endif
-#if defined(USE_DIPSWITCH)
+
+#if defined(_PC8001SR) || defined(PC8801SR_VARIANT)
 	actionMemoryWait = new Action_Control_88(this, using_flags);
 	actionMemoryWait->setCheckable(true);
 	actionMemoryWait->setVisible(true);
 	actionMemoryWait->setChecked(false);
    
 	menuMachine->addAction(actionMemoryWait);
-	if((config.dipswitch & 0x0001) != 0) actionMemoryWait->setChecked(true);
+	if((config.dipswitch & DIPSWITCH_MEMWAIT) != 0) actionMemoryWait->setChecked(true);
 	connect(actionMemoryWait, SIGNAL(toggled(bool)),
 			actionMemoryWait->pc88_binds, SLOT(do_set_memory_wait(bool)));
 	connect(actionMemoryWait->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
 			this, SLOT(set_dipsw(int, bool)));
+	connect(actionMemoryWait->pc88_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
+#endif
+	actionPalette = new Action_Control_88(this, using_flags);
+	actionPalette->setCheckable(true);
+	actionPalette->setVisible(true);
+	actionPalette->setChecked(false);
+   
+	menuMachine->addAction(actionPalette);
+	if((config.dipswitch & DIPSWITCH_PALETTE) != 0) actionPalette->setChecked(true);
+	connect(actionPalette, SIGNAL(toggled(bool)),
+			actionPalette->pc88_binds, SLOT(do_set_palette_vblank(bool)));
+	connect(actionPalette->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+	connect(actionPalette->pc88_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
 
-	#ifdef SUPPORT_PC88_HMB20
+	menuMachine->addSeparator();
+
+#if defined(SUPPORT_M88_DISKDRV)
+	actionM88DRV = new Action_Control_88(this, using_flags);
+	actionM88DRV->setCheckable(true);
+	actionM88DRV->setVisible(true);
+	actionM88DRV->setChecked(false);
+   
+	menuMachine->addAction(actionM88DRV);
+	if((config.dipswitch & DIPSWITCH_M88_DISKDRV) != 0) actionM88DRV->setChecked(true);
+	connect(actionM88DRV, SIGNAL(toggled(bool)),
+			actionM88DRV->pc88_binds, SLOT(do_set_m88drv(bool)));
+	connect(actionM88DRV->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+	connect(actionM88DRV->pc88_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
+#endif
+#if defined(SUPPORT_QUASIS88_CMT)
+	actionQuasiS88CMT = new Action_Control_88(this, using_flags);
+	actionQuasiS88CMT->setCheckable(true);
+	actionQuasiS88CMT->setVisible(true);
+	actionQuasiS88CMT->setChecked(false);
+   
+	menuMachine->addAction(actionQuasiS88CMT);
+	if((config.dipswitch & DIPSWITCH_QUASIS88_CMT) != 0) actionQuasiS88CMT->setChecked(true);
+	connect(actionQuasiS88CMT, SIGNAL(toggled(bool)),
+			actionQuasiS88CMT->pc88_binds, SLOT(do_set_quasis88_cmt(bool)));
+	connect(actionQuasiS88CMT->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+	connect(actionQuasiS88CMT->pc88_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
+#endif
+#if defined(SUPPORT_QUASIS88_CMT) || defined(SUPPORT_M88_DISKDRV)
+	menuMachine->addSeparator();
+#endif
+	
+#if defined(PC8801_VARIANT)
+	actionCMD_Sing = new Action_Control_88(this, using_flags);
+	actionCMD_Sing->setCheckable(true);
+	actionCMD_Sing->setVisible(true);
+	actionCMD_Sing->setChecked(false);
+   
+	menuMachine->addAction(actionCMD_Sing);
+	if((config.dipswitch & DIPSWITCH_CMDSING) != 0) actionCMD_Sing->setChecked(true);
+	connect(actionCMD_Sing, SIGNAL(toggled(bool)),
+			actionCMD_Sing->pc88_binds, SLOT(do_set_cmd_sing(bool)));
+	connect(actionCMD_Sing->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+	connect(actionCMD_Sing->pc88_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
+	menuMachine->addSeparator();
+#endif
+
+	actionFDD_5Inch = new Action_Control_88(this, using_flags);
+	actionFDD_5Inch->setCheckable(true);
+	actionFDD_5Inch->setVisible(true);
+	actionFDD_5Inch->setChecked(false);
+   
+	menuMachine->addAction(actionFDD_5Inch);
+	if((config.dipswitch & DIPSWITCH_FDD_5INCH) != 0) actionFDD_5Inch->setChecked(true);
+	connect(actionFDD_5Inch, SIGNAL(toggled(bool)),
+			actionFDD_5Inch->pc88_binds, SLOT(do_set_fdd_5inch(bool)));
+	connect(actionFDD_5Inch->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+	connect(actionFDD_5Inch->pc88_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
+	
+#if defined(SUPPORT_PC88_FDD_8INCH)
+	actionFDD_8Inch = new Action_Control_88(this, using_flags);
+	actionFDD_8Inch->setCheckable(true);
+	actionFDD_8Inch->setVisible(true);
+	actionFDD_8Inch->setChecked(false);
+   
+	menuMachine->addAction(actionFDD_8Inch);
+	if((config.dipswitch & DIPSWITCH_FDD_8INCH) != 0) actionFDD_8Inch->setChecked(true);
+	connect(actionFDD_8Inch, SIGNAL(toggled(bool)),
+			actionFDD_8Inch->pc88_binds, SLOT(do_set_fdd_8inch(bool)));
+	connect(actionFDD_8Inch->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+	connect(actionFDD_8Inch->pc88_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
+#endif
+	menuMachine->addSeparator();
+#ifdef SUPPORT_PC88_HMB20
 	actionHMB20 = new Action_Control_88(this, using_flags);
 	actionHMB20->setCheckable(true);
 	actionHMB20->setVisible(true);
@@ -309,8 +473,10 @@ void META_MainWindow::setupUI_Emu(void)
 			actionHMB20->pc88_binds, SLOT(do_set_hmb20(bool)));
 	connect(actionHMB20->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
 			this, SLOT(set_dipsw(int, bool)));
-	#endif	
-	#ifdef SUPPORT_PC88_GSX8800
+	connect(actionHMB20->pc88_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
+#endif	
+#ifdef SUPPORT_PC88_GSX8800
 	actionGSX8800 = new Action_Control_88(this, using_flags);
 	actionGSX8800->setCheckable(true);
 	actionGSX8800->setVisible(true);
@@ -322,8 +488,10 @@ void META_MainWindow::setupUI_Emu(void)
 			actionGSX8800->pc88_binds, SLOT(do_set_gsx8800(bool)));
 	connect(actionGSX8800->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
 			this, SLOT(set_dipsw(int, bool)));
-	#endif
-	#ifdef SUPPORT_PC88_PCG8100
+	connect(actionGSX8800->pc88_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
+#endif
+#ifdef SUPPORT_PC88_PCG8100
 	actionPCG8100 = new Action_Control_88(this, using_flags);
 	actionPCG8100->setCheckable(true);
 	actionPCG8100->setVisible(true);
@@ -335,8 +503,10 @@ void META_MainWindow::setupUI_Emu(void)
 			actionPCG8100->pc88_binds, SLOT(do_set_pcg8100(bool)));
 	connect(actionPCG8100->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
 			this, SLOT(set_dipsw(int, bool)));
-	#endif
+	connect(actionPCG8100->pc88_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
 #endif
+
 }
 
 

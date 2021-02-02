@@ -29,6 +29,12 @@ public slots:
 	void do_set_connect_2d(bool flag);
 	void do_set_connect_2dd(bool flag);
 	void do_set_connect_2hd(bool flag);
+	void do_set_palette_vblank(bool flag);
+	void do_set_fdd_5inch(bool flag);
+//	void do_set_fdd_8inch(bool flag);
+	void do_set_cmd_sing(bool flag);
+	void do_set_m88drv(bool flag);
+	void do_set_quasis88_cmt(bool flag);
 signals:
 	int sig_emu_update_config();
 };
@@ -59,6 +65,13 @@ protected:
 #endif
 #if defined(_PC98DO)
 	Action_Control_98 *actionMemoryWait;
+	Action_Control_98 *actionCMD_Sing; //
+	Action_Control_98 *actionPalette; //
+	Action_Control_98 *actionFDD_5Inch; //
+//	Action_Control_98 *actionFDD_8Inch; //
+	
+	Action_Control_98 *actionM88DRV; //
+	Action_Control_98 *actionQuasiS88CMT; //
 #endif
 #if defined(SUPPORT_320KB_FDD_IF)
 	Action_Control_98 *actionConnect2D;
