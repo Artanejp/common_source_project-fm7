@@ -57,9 +57,10 @@ class MC6843;
 class MC6844;
 class MC6850;
 
-class BX1::DISPLAY;
-class BX1::KEYBOARD;
-
+namespace BX1 {
+	class DISPLAY;
+	class KEYBOARD;
+}
 class VM : public VM_TEMPLATE
 {
 protected:

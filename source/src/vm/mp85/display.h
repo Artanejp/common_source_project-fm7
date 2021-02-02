@@ -10,7 +10,7 @@
 #ifndef _DISPLAY_H_
 #define _DISPLAY_H_
 
-#include "../vm_template.h"
+#include "../vm.h"
 #include "../../emu_template.h"
 #include "../device.h"
 

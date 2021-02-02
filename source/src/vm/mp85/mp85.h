@@ -119,9 +119,11 @@ class I8255;
 class I8279;
 class IO;
 
-class MP85::DISPLAY;
-class MP85::KEYBOARD;
-class MP85::MEMBUS;
+namespace MP85 {
+	class DISPLAY;
+	class KEYBOARD;
+	class MEMBUS;
+}
 
 class VM : public VM_TEMPLATE
 {
