@@ -10,6 +10,7 @@
 #include "keyboard.h"
 #include "../i8279.h"
 
+namespace MP85 {
 void KEYBOARD::initialize()
 {
 	memset(key_stat, 0, sizeof(key_stat));
@@ -89,4 +90,5 @@ void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 		}
 		d_kdc->write_signal(SIG_I8279_RL, val, 0xff);
 	}
+}
 }

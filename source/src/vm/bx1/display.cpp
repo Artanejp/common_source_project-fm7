@@ -10,6 +10,7 @@
 #include "display.h"
 #include "../mc6844.h"
 
+namespace BX1 {
 void DISPLAY::initialize()
 {
 	// load rom image
@@ -95,4 +96,4 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	}
 	return true;
 }
-
+}

@@ -10,12 +10,13 @@
 #ifndef _KEYBOARD_H_
 #define _KEYBOARD_H_
 
-#include "../vm.h"
-#include "../../emu.h"
+#include "../vm_template.h"
+#include "../../emu_template.h"
 #include "../device.h"
 
 #define SIG_KEYBOARD_SEL	0
 
+namespace MP85 {
 class KEYBOARD : public DEVICE
 {
 private:
@@ -23,7 +24,7 @@ private:
 	uint8_t key_stat[256];
 	
 public:
-	KEYBOARD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	KEYBOARD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Keyboard"));
 	}
@@ -48,6 +49,7 @@ public:
 		key_stat[code] = 0;
 	}
 };
+}
 
 #endif
 

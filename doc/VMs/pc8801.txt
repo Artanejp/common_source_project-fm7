@@ -4,7 +4,7 @@
 "ePC-8001" - NEC PC-8001 emulator for Win32
 "ePC-8001mkII" - NEC PC-8001mkII emulator for Win32
 "ePC-8001mkIISR" - NEC PC-8001mkIISR emulator for Win32
-								1/11/2018
+								12/18/2020
 
 --- Internal ROM images
 
@@ -23,6 +23,9 @@
 	N80_1.ROM	PC-8001
 	N80_2.ROM	PC-8001mkII
 	N80_3.ROM	PC-8001mkIISR
+	---
+	E1.ROM		DiskDrv
+	E8.ROM		DiskDrv80
 
 --- Key maps
 

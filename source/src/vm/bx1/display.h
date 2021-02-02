@@ -10,10 +10,11 @@
 #ifndef _DISPLAY_H_
 #define _DISPLAY_H_
 
-#include "../vm.h"
-#include "../../emu.h"
+#include "../vm_template.h"
+#include "../../emu_template.h"
 #include "../device.h"
 
+namespace BX1 {
 class DISPLAY : public DEVICE
 {
 private:
@@ -25,7 +26,7 @@ private:
 	uint8_t buffer[16];
 	
 public:
-	DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	DISPLAY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Display"));
 	}
@@ -56,5 +57,5 @@ public:
 	}
 	void draw_screen();
 };
-
+}
 #endif

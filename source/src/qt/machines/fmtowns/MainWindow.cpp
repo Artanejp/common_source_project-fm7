@@ -28,22 +28,18 @@ void META_MainWindow::retranslateUi(void)
 	actionSpecial_Reset[0]->setText(QApplication::translate("Machine", "Reset with CD", 0));
 	actionSpecial_Reset[0]->setToolTip(QApplication::translate("Machine", "Reset and boot from CD-ROM", 0));
 	for(int i = 1; i < 5; i++) {
-		QString tmps, tmps2, tmps3;
-		tmps.setNum(i - 1);
-		tmps2 = QApplication::translate("Machine", "Reset with F", 0);
-		tmps2 = tmps2 + tmps;
-		tmps3 = QApplication::translate("Machine", "Reset and boot from FLOPPY #", 0);
-		tmps3 = tmps3 + tmps;
+		QString tmps2, tmps3;
+		QString numname = QString::number(i - 1);
+		tmps2 = QApplication::translate("Machine", "Reset with F%1", 0).arg(numname);
+		tmps3 = QApplication::translate("Machine", "Reset and boot from FLOPPY #%1", 0).arg(numname);
 		actionSpecial_Reset[i]->setText(tmps2);
 		actionSpecial_Reset[i]->setToolTip(tmps3);
 	}
 	for(int i = 5; i < 10; i++) {
-		QString tmps, tmps2, tmps3;
-		tmps.setNum(i - 5);
-		tmps2 = QApplication::translate("Machine", "Reset with H", 0);
-		tmps2 = tmps2 + tmps;
-		tmps3 = QApplication::translate("Machine", "Reset and boot from HDD #", 0);
-		tmps3 = tmps3 + tmps;
+		QString tmps2, tmps3;
+		QString numname = QString::number(i - 5);
+		tmps2 = QApplication::translate("Machine", "Reset with H%1", 0).arg(numname);
+		tmps3 = QApplication::translate("Machine", "Reset and boot from HDD #%1", 0).arg(numname);
 		actionSpecial_Reset[i]->setText(tmps2);
 		actionSpecial_Reset[i]->setToolTip(tmps3);
 	}

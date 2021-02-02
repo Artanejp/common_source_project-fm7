@@ -346,5 +346,59 @@ Re-start emulator when changed.</source>
         <translation>HAL研究所 PCG-8100 PCGボードボードを使います。
 変更後はエミュレータの再起動が必要です。</translation>
     </message>
+    <message>
+        <source>Enable QUASIS88 CMT</source>
+        <translation>QUASIS88 CMTを有効にする</translation>
+    </message>
+    <message>
+        <source>Enable loading QuasiS88 style CMT images.</source>
+        <translation>QUASI S88タイプの仮想カセットテープイメージを有効にします。</translation>
+    </message>
+    <message>
+        <source>Support CMD SING</source>
+        <translation>CMD SING機能を有効にする</translation>
+    </message>
+    <message>
+        <source>Enable PCM supporting for &quot;CMD SING&quot; command.</source>
+        <translation>&quot;CMD SING&quot;タイプのPCMを有効にします。</translation>
+    </message>
+    <message>
+        <source>Change palette only within VBLANK.</source>
+        <translation>VBLANK期間のみパレット変更可</translation>
+    </message>
+    <message>
+        <source>Ignore Palette Changed Outside VBLANK.</source>
+        <translation>VBLANK以外の期間でのパレット変更を無視します。</translation>
+    </message>
+    <message>
+        <source>5.25Inch FDD(Need to restart)</source>
+        <translation>5.25インチFDD(再起動が必要)</translation>
+    </message>
+    <message>
+        <source>Enable 5.25 inch FDDs.
+This effects only after restarting this emulator.</source>
+        <translation>5.25インチFDDを有効にします。
+エミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>8Inch FDD(Need to restart)</source>
+        <translation>8インチFDD(再起動が必要)</translation>
+    </message>
+    <message>
+        <source>Enable 8 inch FDDs for 3: and 4:.
+This effects only after restarting this emulator.</source>
+        <translation>3:と4で8インチFDDを有効にします。
+エミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>M88 DiskDrv(Need to restart)</source>
+        <translation>M88仮想ディスクドライバ(再起動が必要)</translation>
+    </message>
+    <message>
+        <source>Enable M88 stile Disk Drives.
+This effects only after restarting this emulator.</source>
+        <translation>M88スタイルの仮想ドライブ機能を有効にします。
+エミュレータの再起動が必要です。</translation>
+    </message>
 </context>
 </TS>

@@ -1586,6 +1586,14 @@ NHD形式とHDI形式のみ作成可能です。</translation>
 Translated to Japanese.</source>
         <translation>日本語に翻訳されたライセンスを読みます(GPL2)。</translation>
     </message>
+    <message>
+        <source>By Mr. GORRY</source>
+        <translation>GORRYさんによる文書</translation>
+    </message>
+    <message>
+        <source>By Mr. Meister</source>
+        <translation>Meisterさんによる文書</translation>
+    </message>
 </context>
 <context>
     <name>MenuMachine</name>
@@ -1637,7 +1645,7 @@ Maybe output only ascii text.</source>
     </message>
     <message>
         <source>RAM Size</source>
-        <translation></translation>
+        <translation>RAMサイズ</translation>
     </message>
     <message>
         <source>Set (extra) memory size.
@@ -2403,7 +2411,7 @@ Larger value is dirty picture, but making smaller file.
     </message>
     <message>
         <source>Full RD: disable all early terminations</source>
-        <translation>最大Bフレーム</translation>
+        <translation>フルRD:全ての早期終了を向こうにします</translation>
     </message>
     <message>
         <source>Set motion estimation.

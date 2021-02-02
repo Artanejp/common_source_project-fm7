@@ -262,6 +262,8 @@ private:
 	class Action_Control *actionHelp_README;
 	class Action_Control *actionHelp_README_QT;
 	class Action_Control *actionHelp_README_MR_TANAM;
+	class Action_Control *actionHelp_README_MR_GORRY;
+	class Action_Control *actionHelp_README_MR_MEISTER;
 	class Action_Control *actionHelp_README_Artane;
 	class Action_Control *actionHelp_README_Umaiboux;
 	class Action_Control *actionHelp_README_FAQ;

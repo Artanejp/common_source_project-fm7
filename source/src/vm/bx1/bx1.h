@@ -36,6 +36,7 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
+#include "../../emu_template.h"
 #include "../vm_template.h"
 
 #ifdef USE_SOUND_VOLUME
@@ -56,8 +57,8 @@ class MC6843;
 class MC6844;
 class MC6850;
 
-class DISPLAY;
-class KEYBOARD;
+class BX1::DISPLAY;
+class BX1::KEYBOARD;
 
 class VM : public VM_TEMPLATE
 {
@@ -75,8 +76,8 @@ protected:
 	MC6844* dma;
 	MC6850* acia;
 	
-	DISPLAY* display;
-	KEYBOARD* keyboard;
+	BX1::DISPLAY* display;
+	BX1::KEYBOARD* keyboard;
 	
 	uint8_t basic[0x5000];
 	uint8_t boot[0x1000];
@@ -87,7 +88,7 @@ public:
 	// initialize
 	// ----------------------------------------
 	
-	VM(EMU* parent_emu);
+	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
 	
 	// ----------------------------------------

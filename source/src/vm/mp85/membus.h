@@ -14,6 +14,7 @@
 
 #define SIG_MEMBUS_PC	0
 
+namespace MP85 {
 class MEMBUS : public MEMORY
 {
 private:
@@ -21,7 +22,7 @@ private:
 	uint8_t pc;
 	
 public:
-	MEMBUS(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
+	MEMBUS(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MEMORY(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
@@ -45,5 +46,5 @@ public:
 	void key_down(int code);
 	void key_up(int code);
 };
-
+}
 #endif

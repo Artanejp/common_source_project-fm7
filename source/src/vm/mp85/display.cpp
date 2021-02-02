@@ -9,6 +9,7 @@
 
 #include "display.h"
 
+namespace MP85 {
 static const int led_pattern[LED_SIZE_Y][LED_SIZE_X] = {
 	{9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9},
 	{9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9},
@@ -119,4 +120,4 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(sel);
 	return true;
 }
-
+}

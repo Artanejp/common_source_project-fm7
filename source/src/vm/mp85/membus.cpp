@@ -10,6 +10,7 @@
 #include "membus.h"
 #include "../i8255.h"
 
+namespace MP85 {
 void MEMBUS::reset()
 {
 	d_pio->write_signal(SIG_I8255_PORT_B, 0xff, 0x80 | 0x20); // PB5 = PB7 = 1
@@ -65,4 +66,4 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(pc);
 	return MEMORY::process_state(state_fio, loading);
 }
-
+}

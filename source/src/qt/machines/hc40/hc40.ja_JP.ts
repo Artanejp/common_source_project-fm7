@@ -5,6 +5,11 @@
     <name>MainWindow</name>
     <message>
         <location filename="MainWindow.cpp" line="29"/>
+        <source>System Reset</source>
+        <translation>システムリセット</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="30"/>
         <source>Do system reset.</source>
         <translation>システムリセットします。</translation>
     </message>

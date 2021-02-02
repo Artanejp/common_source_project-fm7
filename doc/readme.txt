@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								4/30/2019
+								1/24/2021
 
 --- What's this ?
 
@@ -42,18 +42,20 @@ This archive includes the binaries of the emulators listed below:
 		eFMR-60		FMR-60
 		eFMR-70		FMR-70
 		eFMR-80		FMR-80
+	GAKKEN
+		yaTVBOY		TV BOY (by Mr.tanam)
 	Gijutsu Hyoron Sha
 		eBabbage-2nd	Babbage-2nd
 	HITACHI
 		eBASICMasterJr	BASIC Master Jr
-	Hino Electronics
-		eCEFUCOM-21	CEFUCOM-21
 	Homebrew
 		eZ80TVGAME	Homebrew Z80 TV GAME SYSTEM
 	IBM Japan Ltd
 		eJX		PC/JX
 	Japan Electronics College
 		eMYCOMZ-80A	MYCOMZ-80A
+	MITEC
+		eMP-85		MP-85
 	MITSUBISHI Electric
 		EmuLTI8		MULTI8
 	National/Panasonic
@@ -94,6 +96,8 @@ This archive includes the binaries of the emulators listed below:
 		ePCEngine	PC Engine / SuperGrafx + CD-ROM^2
 	Nintendo
 		eFamilyBASIC	Family BASIC
+	Nippon Mail Service
+		eMuCom Mahjong	MICOM MAHJONG (by Mr.GORRY)
 	Pioneer
 		ePX-7		PX-7 (MSX1 + LaserDisc)
 	SANYO
@@ -131,6 +135,8 @@ This archive includes the binaries of the emulators listed below:
 		eSMC-777	SMC-777
 	SORD
 		Emu5		m5
+	SPECTRAVIDEO
+		yaSVI-3x8	SVI-3x8 (by Mr.tanam)
 	Systems Formulate
 		eBUBCOM80	BUBCOM80
 	TOMY
@@ -267,6 +273,7 @@ Host
 	Input
 		Joystcik #1/#2	Setup Joystick buttons
 	--------
+	Use Direct2D1		Enable Direct2D1 to render screen
 	Use Direct3D9		Enable Direct3D9 to render screen
 	Wait Vsync		Wait Vsync when Direct3D9 is enabled
 	Use DirectInput		Enable DirectInput for keyboard
@@ -352,8 +359,12 @@ Save/Load State info:
 	MAME i286 core
 - vm/i386.*
 	MAME i386 core
+- vm/i386_np21.*
+	Neko Project 21/W i386 core
 - vm/i8259.*
-	Neko Project 2 and MESS 8259 core
+	Neko Project 2 and MESS i8259 core
+- vm/i8279.*
+	MAME i8279 core
 - vm/ld700.*
 	openMSX LD-700
 - vm/m6502.*
@@ -366,6 +377,8 @@ Save/Load State info:
 	MAME mc6809 core and improved by Mr.Artane.
 - vm/mc6840.*
 	MAME Motorola 6840 (PTM) by Mr.James Wallace
+- vm/mc6843.*
+	MAME Motorola 6843 (FDC) by Mr.Antoine Mine
 - vm/mc6847.*
 	MAME mc6847 core
 - vm/msm5205.*
@@ -450,6 +463,8 @@ Save/Load State info:
 - vm/m5/*
 	MESS sord driver
 	Mr.Moriya for Sord M5 hardware design info
+- vm/micom_mahjong/*
+	eMuCom Mahjong by Mr.GORRY
 - vm/msx/*
 	yaMSX1 and yaMSX2 by Mr.tanam
 - vm/msx/memory.*
@@ -463,6 +478,9 @@ Save/Load State info:
 	Mr.Enri for SHARP MZ-80FIO and MZ-80FD hardware design info
 - vm/mz80k/printer.*
 	The printer interface by Mr.Suga
+- vm/mz700/quickdisk.*
+	Improved for QDF format by Mr.kitahei88
+	Improved for BSD record by Mr.Yuushi and Mr.Motochan1500
 - vm/mz2500/sasi.*
 	X millenium by Mr.Punyu
 - vm/mz3500/keyboard.*
@@ -471,12 +489,13 @@ Save/Load State info:
 - vm/pc6001/*
 	yaPC-6001/yaPC-6201/yaPC-6601 by Mr.tanam
 - vm/pc8801/pc88.*
-	M88 by Mr.CISC
+	M88/cdif/diskdrv by Mr.CISC
 	XM8 by Mr.PI.
 	X88000 by Mr.Manuke
 	MESS PC-8801 driver
 - vm/pc9801/display.*
 	Neko Project 2 by Mr.Yui
+	Improved for EGC by Mr.Ryuji Okamoto (qemu/9821‰ü‘¢”Å)
 - vm/pcengine/pce.*
 	Ootake (joypad)
 	xpce (psg)
@@ -494,6 +513,10 @@ Save/Load State info:
 	Mr.Fred Han Kraan for EPSON QC-10/QX-10 hardware design info
 - vm/scv/*
 	Mr.Enri and Mr.333 for Epoch Super Cassette Vision hardware info
+- vm/svi3x8/*
+	yaSVI-3x8 by Mr.tanam
+- vm/tvboy/*
+	yaTVBOY by Mr.tanam
 - vm/x07/io.*
 	x07_emul by Mr.Jacques Brigaud
 - vm/x1/*
@@ -503,6 +526,8 @@ Save/Load State info:
 - vm/x1/display.*
 	KANJI ROM support by X1EMU
 	X1tuboZ graphic info by Mr.Sato
+- vm/x1/cz8rb.*
+	CZ-8RB ROM board support by Mr.Meister
 - vm/yis/*
 	YAMAHA provided me some YIS manuals and software disks
 	Mr.Moriya analyzed the YIS hardware

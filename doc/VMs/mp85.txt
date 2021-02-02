@@ -1,0 +1,27 @@
+"eMP-85" - MITEC MP-85 Emulator for Win32
+								1/24/2021
+
+--- Internal ROM images
+
+	MON.ROM		$0000-$07FF
+	EXT.ROM		$0800-$0FFF
+
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	RUN		F1
+	STEP		F2
+	MONI IN		F3
+	ADRS SET	F4
+	INCR READ	F5 or PgUp
+	DECR READ	F6 or PgDn
+	FUNC		F7
+	INCR WRITE	F8 or Enter
+	0-9,A-F		0-9,A-F
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://takeda-toshiya.my.coocan.jp/

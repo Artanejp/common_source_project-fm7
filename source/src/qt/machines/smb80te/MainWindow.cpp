@@ -96,10 +96,10 @@ void META_MainWindow::setupUI_Emu(void)
 
 	menuAddrBase = new QMenu(menuMachine);
 	menuAddrBase->setObjectName(QString::fromUtf8("menuAddrBase"));
-	menuMachine->addAction(menuAddrBasee->menuAction());
+	menuMachine->addAction(menuAddrBase->menuAction());
 	menuAddrBase->setToolTipsVisible(true);
 	for(int i = 0; i < 4; i++) {
-		actionAddressBase[i] = Action_Control_SMB(this, using_flags);
+		actionAddressBase[i] = new Action_Control_SMB(this, using_flags);
 		actionAddressBase[i]->setCheckable(true);
 		actionAddressBase[i]->setVisible(true);
 		actionAddressBase[i]->setChecked(false);

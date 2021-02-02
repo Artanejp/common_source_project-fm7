@@ -119,9 +119,9 @@ class I8255;
 class I8279;
 class IO;
 
-class DISPLAY;
-class KEYBOARD;
-class MEMBUS;
+class MP85::DISPLAY;
+class MP85::KEYBOARD;
+class MP85::MEMBUS;
 
 class VM : public VM_TEMPLATE
 {
@@ -137,9 +137,9 @@ protected:
 	I8279* kdc;
 	IO* io;
 	
-	DISPLAY* display;
-	KEYBOARD* keyboard;
-	MEMBUS* memory;
+	MP85::DISPLAY* display;
+	MP85::KEYBOARD* keyboard;
+	MP85::MEMBUS* memory;
 	
 	// memory
 	uint8_t mon[0x800];
@@ -151,7 +151,7 @@ public:
 	// initialize
 	// ----------------------------------------
 	
-	VM(EMU* parent_emu);
+	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
 	
 	// ----------------------------------------

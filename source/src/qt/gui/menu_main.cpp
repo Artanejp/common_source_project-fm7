@@ -727,6 +727,8 @@ void Ui_MainWindowBase::setupUi(void)
 	SET_HELP_MENUENTRY(menuHelp_Readme, actionHelp_README_BIOS, "menuHelp_README_BIOS", "bios_and_keys.txt");
 	menuHelp_Readme->addSeparator();
 	SET_HELP_MENUENTRY(menuHelp_Readme, actionHelp_README_MR_TANAM, "menuHelp_README_MR_TANAM", "readme_by_mr_tanam.txt");
+	SET_HELP_MENUENTRY(menuHelp_Readme, actionHelp_README_MR_GORRY, "menuHelp_README_MR_GORRY", "readme_by_mr_gorry.txt");
+	SET_HELP_MENUENTRY(menuHelp_Readme, actionHelp_README_MR_MEISTER, "menuHelp_README_MR_MEISTER", "readme_by_mr_meister.txt");
 	menuHelp_Readme->addSeparator();
 	SET_HELP_MENUENTRY(menuHelp_Readme, actionHelp_README_FAQ, "menuHelp_README_FAQ", "FAQ.html");
 	SET_HELP_MENUENTRY(menuHelp_Readme, actionHelp_README_FAQ_JP, "menuHelp_README_FAQ_JP", "FAQ.ja.html");
@@ -867,6 +869,8 @@ void Ui_MainWindowBase::retranslateUI_Help(void)
 	actionHelp_README_Artane->setText(QApplication::translate("MenuHelp", "About Qt ports (Japanese).", 0));
 	actionHelp_README_Umaiboux->setText(QApplication::translate("MenuHelp", "By Mr. Umaiboux.", 0));
 	actionHelp_README_MR_TANAM->setText(QApplication::translate("MenuHelp", "By Mr. tanam", 0));
+	actionHelp_README_MR_GORRY->setText(QApplication::translate("MenuHelp", "By Mr. GORRY", 0));
+	actionHelp_README_MR_MEISTER->setText(QApplication::translate("MenuHelp", "By Mr. Meister", 0));
 	actionHelp_README_FM7->setText(QApplication::translate("MenuHelp", "About eFM-7/8/77/AV.", 0));
 	actionHelp_README_FM7_JP->setText(QApplication::translate("MenuHelp", "About eFM-7/8/77/AV (Japanese).", 0));
 	actionHelp_README_FAQ->setText(QApplication::translate("MenuHelp", "FAQs(English)", 0));

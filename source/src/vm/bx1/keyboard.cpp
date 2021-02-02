@@ -9,6 +9,7 @@
 
 #include "keyboard.h"
 
+namespace BX1 {
 void KEYBOARD::reset()
 {
 	key_code = -1;
@@ -96,4 +97,4 @@ void KEYBOARD::key_up(int code)
 {
 	key_code = -1;
 }
-
+}

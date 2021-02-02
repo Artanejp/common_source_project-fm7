@@ -36,7 +36,7 @@
     <message>
         <location filename="MainWindow.cpp" line="42"/>
         <source>CD-ROM^2</source>
-        <translation type="unfinished"></translation>
+        <translation>CD-ROM^2</translation>
     </message>
 </context>
 </TS>

@@ -4,22 +4,22 @@
 <context>
     <name>Machine</name>
     <message>
-        <location filename="MainWindow.cpp" line="29"/>
+        <location filename="MainWindow.cpp" line="30"/>
         <source>Option Cartridge</source>
         <translation>オプションカートリッジ</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="31"/>
+        <location filename="MainWindow.cpp" line="32"/>
         <source>None</source>
         <translation>なし</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="32"/>
+        <location filename="MainWindow.cpp" line="33"/>
         <source>Intelligent RAM Disk</source>
         <translation>インテリジェントRAMディスク</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="33"/>
+        <location filename="MainWindow.cpp" line="34"/>
         <source>Non-intelligent RAM Disk</source>
         <translation>RAMディスク</translation>
     </message>
@@ -28,6 +28,11 @@
     <name>MainWindow</name>
     <message>
         <location filename="MainWindow.cpp" line="28"/>
+        <source>System Reset</source>
+        <translation>システムリセット</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="29"/>
         <source>Do system reset.</source>
         <translation>システムリセットします。</translation>
     </message>

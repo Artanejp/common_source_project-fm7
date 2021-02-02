@@ -11,7 +11,7 @@
     <message>
         <location filename="MainWindow.cpp" line="37"/>
         <source>MainWindow</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 </TS>

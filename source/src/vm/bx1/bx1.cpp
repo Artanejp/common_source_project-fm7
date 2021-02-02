@@ -29,6 +29,9 @@
 #include "display.h"
 #include "keyboard.h"
 
+using BX1::DISPLAY;
+using BX1::KEYBOARD;
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -136,18 +139,18 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 /*
 	ram
-	0062		‰æ–Ê‚ÌŒ…”H
-	0063-0072	‰æ–ÊH
+	0062		ç”»é¢ã®æ¡æ•°ï¼Ÿ
+	0063-0072	ç”»é¢ï¼Ÿ
 
-dma[3]	15ch‚©‚ç10hƒoƒCƒg
+dma[3]	15chã‹ã‚‰10hãƒã‚¤ãƒˆ
 
-	chain reg‚Ådma[3]¨dma[1]‚ÉÝ’è‚ðƒRƒs[
+	chain regã§dma[3]â†’dma[1]ã«è¨­å®šã‚’ã‚³ãƒ”ãƒ¼
 
-dma[2]	bfd5h‚©‚ç09hƒoƒCƒg	ƒƒ‚ƒŠ¨
+dma[2]	bfd5hã‹ã‚‰09hãƒã‚¤ãƒˆ	ãƒ¡ãƒ¢ãƒªâ†’
 
 	c7h c7h c7h c7h e2h d9h d9h d9h d9h
 
-dma[1]	15ch‚©‚ç10hƒoƒCƒg	ƒƒ‚ƒŠ¨DISPLAYH
+dma[1]	15chã‹ã‚‰10hãƒã‚¤ãƒˆ	ãƒ¡ãƒ¢ãƒªâ†’DISPLAYï¼Ÿ
 
 */
 
@@ -183,11 +186,11 @@ outp(0xe210, a);
 //	io->set_iovalue_single_r(0xe212, 0);
 
 /*
-	e121	ƒXƒCƒbƒ`H
+	e121	ã‚¹ã‚¤ãƒƒãƒï¼Ÿ
 
 
-	e122	ƒXƒCƒbƒ`H
-		bit5 ƒtƒƒbƒs[“Ç‚Ýž‚ÝH
+	e122	ã‚¹ã‚¤ãƒƒãƒï¼Ÿ
+		bit5 ãƒ•ãƒ­ãƒƒãƒ”ãƒ¼èª­ã¿è¾¼ã¿ï¼Ÿ
 
 
 

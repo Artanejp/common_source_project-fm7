@@ -1,7 +1,8 @@
 "eX1" - SHARP X1 emulator for Win32
 "eX1twin" - SHARP X1twin emulator for Win32
 "eX1turbo" - SHARP X1turbo emulator for Win32
-								8/1/2013
+"eX1turboZ" - SHARP X1turboZ emulator for Win32
+								12/6/2020
 
 --- Internal ROM images
 
@@ -11,6 +12,8 @@
 	FNT0808.X1 / ANK8.ROM	8x8 ANK Font ROM
 	FNT0816.X1 / ANK16.ROM	8x16 ANK Font ROM
 	FNT1616.X1 / KANJI.ROM	16x16 Kanji Font ROM
+
+	CZ8RB.ROM		CZ-8RB ROM Board
 
 --- Sub CPU and Keyboard CPU Internal ROM images
 

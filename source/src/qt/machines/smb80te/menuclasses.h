@@ -2,6 +2,7 @@
 #ifndef _CSP_QT_MENUCLASSES_H
 #define _CSP_QT_MENUCLASSES_H
 
+#include <QMenu>
 #include "commonclasses.h"
 #include "mainwidget.h"
 // This extends class CSP_MainWindow as Ui_MainWindow.
@@ -28,8 +29,8 @@ class Action_Control_SMB : public Action_Control
 	Q_OBJECT
 public:
 	Object_Menu_Control_SMB *smb_binds;
-	Action_Control_88(QObject *parent, USING_FLAGS *p);
-	~Action_Control_88();
+	Action_Control_SMB(QObject *parent, USING_FLAGS *p);
+	~Action_Control_SMB();
 };
 
 class META_MainWindow : public Ui_MainWindow {
@@ -37,6 +38,7 @@ class META_MainWindow : public Ui_MainWindow {
 protected:
 	void setupUI_Emu(void);
 	void retranslateUi(void);
+	QMenu *menuAddrBase;
 	QAction *actionAddress8000;
 	Action_Control_SMB *actionAddressBase[4]; //
 public:

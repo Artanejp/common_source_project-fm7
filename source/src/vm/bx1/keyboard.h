@@ -10,17 +10,18 @@
 #ifndef _KEYBOARD_H_
 #define _KEYBOARD_H_
 
-#include "../vm.h"
-#include "../../emu.h"
+#include "../vm_template.h"
+#include "../../emu_template.h"
 #include "../device.h"
 
+namespace BX1 {
 class KEYBOARD : public DEVICE
 {
 private:
 	int key_code;
 	
 public:
-	KEYBOARD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	KEYBOARD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Keyboard"));
 	}
@@ -35,6 +36,7 @@ public:
 	void key_down(int code);
 	void key_up(int code);
 };
+}
 
 #endif
 
