@@ -2732,10 +2732,10 @@ bool PC88::check_data_carrier()
 void PC88::draw_screen()
 {
 	// copy port data at starting vblank
-	uint8_t cur_port[256];
+//	uint8_t cur_port[256];
 	
-	memcpy(cur_port, port, sizeof(port));
-	memcpy(port, prev_port, sizeof(port));
+//	memcpy(cur_port, port, sizeof(port));
+//	memcpy(port, prev_port, sizeof(port));
 	
 	// render text screen
 	draw_text();
@@ -2980,7 +2980,7 @@ void PC88::draw_screen()
 	}
 	
 	// restore port
-	memcpy(port, cur_port, 256);
+//	memcpy(port, cur_port, 256);
 }
 
 /*
