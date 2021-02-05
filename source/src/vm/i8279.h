@@ -51,7 +51,7 @@
 #define SIG_I8279_SHIFT	1
 #define SIG_I8279_CTRL	2
 
-class I8279 :  public DEVICE
+class DLL_PREFIX I8279 :  public DEVICE
 {
 private:
 	// read & write handlers
@@ -59,14 +59,14 @@ private:
 	uint8_t status_r();
 	uint8_t data_r();
 //	void write(offs_t offset, uint8_t data);
-	void cmd_w(uint8_t data);
-	void data_w(uint8_t data);
+	void __FASTCALL cmd_w(uint8_t data);
+	void __FASTCALL data_w(uint8_t data);
 	void timer_mainloop();
 
 	void timer_adjust();
 	void clear_display();
 	void new_fifo(uint8_t data);
-	void set_irq(bool state);
+	void __FASTCALL set_irq(bool state);
 
 	outputs_t           m_out_irq_cb;       // IRQ
 	outputs_t           m_out_sl_cb;        // Scanlines SL0-3
@@ -109,15 +109,15 @@ public:
 	~I8279() {}
 	
 	// common functions
-	void initialize();
-//	void release();
-	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	virtual void initialize();
+//	virtual void release();
+	virtual void reset();
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 //	uint32_t read_signal(int ch);
-	void event_callback(int event_id, int err);
-	bool process_state(FILEIO* state_fio, bool loading);
+	virtual void __FASTCALL event_callback(int event_id, int err);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)

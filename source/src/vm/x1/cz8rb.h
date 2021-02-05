@@ -34,26 +34,26 @@ public:
 	~CZ8RB() {}
 	
 	// common functions
-	void initialize();
-	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	virtual void initialize();
+	virtual void reset();
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
 //#ifdef USE_DEBUGGER
-	bool is_debugger_available()
+	virtual bool is_debugger_available()
 	{
 		return true;
 	}
-	uint64_t get_debug_data_addr_space()
+	virtual uint64_t get_debug_data_addr_space()
 	{
 		return CZ8RB_BUFFER_SIZE;
 	}
-	void write_debug_data8(uint32_t addr, uint32_t data)
+	virtual void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data)
 	{
 		if(addr < CZ8RB_BUFFER_SIZE) {
 			data_buffer[addr] = data;
 		}
 	}
-	uint32_t read_debug_data8(uint32_t addr)
+	virtual uint32_t __FASTCALL read_debug_data8(uint32_t addr)
 	{
 		if(addr < CZ8RB_BUFFER_SIZE) {
 			return data_buffer[addr];
@@ -61,7 +61,7 @@ public:
 		return 0;
 	}
 //#endif
-	bool process_state(FILEIO* state_fio, bool loading);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
 };
 }
 #endif

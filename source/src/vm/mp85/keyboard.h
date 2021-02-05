@@ -31,20 +31,20 @@ public:
 	~KEYBOARD() {}
 	
 	// common functions
-	void initialize();
-	void reset();
-	void write_signal(int id, uint32_t data, uint32_t mask);
+	virtual void initialize();
+	virtual void reset();
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	
 	// unique functions
 	void set_context_kdc(DEVICE* device)
 	{
 		d_kdc = device;
 	}
-	void key_down(int code)
+	virtual void __FASTCALL key_down(int code)
 	{
 		key_stat[code] = 1;
 	}
-	void key_up(int code)
+	virtual void __FASTCALL key_up(int code)
 	{
 		key_stat[code] = 0;
 	}

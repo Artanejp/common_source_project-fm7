@@ -21,8 +21,8 @@
 #ifndef _MC6843_H_ 
 #define _MC6843_H_
 
-#include "vm_template.h"
-#include "../emu_template.h"
+//#include "vm_template.h"
+//#include "../emu_template.h"
 #include "device.h"
 
 #ifndef offs_t
@@ -35,13 +35,13 @@
 class DISK;
 class NOISE;
 
-class MC6843 : public DEVICE
+class DLL_PREFIX MC6843 : public DEVICE
 {
 private:
 //	optional_device_array<legacy_floppy_image_device, 4> m_floppy;
 	// drive info
-	int _MAX_DRIVE;
-	int _DRIVE_MASK;
+	int __MAX_DRIVE;
+	int __DRIVE_MASK;
 	struct {
 		int target_track;
 		int track;
@@ -138,25 +138,25 @@ public:
 		// these parameters may be modified before calling initialize()
 		m_drive = m_side = 0;
 
-		_MAX_DRIVE = 2;
-		_DRIVE_MASK = 1;
+		__MAX_DRIVE = 2;
+		__DRIVE_MASK = 1;
 		set_device_name(_T("MC6843 FDC"));
 	}
 	~MC6843() {}
 	
 	// common functions
-	void initialize();
-	void release();
-	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_dma_io8(uint32_t addr, uint32_t data);
-	uint32_t read_dma_io8(uint32_t addr);
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int ch);
-	void event_callback(int event_id, int err);
-	void update_config();
-	bool process_state(FILEIO* state_fio, bool loading);
+	virtual void initialize();
+	virtual void release();
+	virtual void reset();
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
+	virtual void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_dma_io8(uint32_t addr);
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	virtual uint32_t __FASTCALL read_signal(int ch);
+	virtual void __FASTCALL event_callback(int event_id, int err);
+	virtual void update_config();
+	virtual bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)
@@ -195,18 +195,22 @@ public:
 	{
 		return disk[drv];
 	}
-	void open_disk(int drv, const _TCHAR* file_path, int bank);
-	void close_disk(int drv);
-	bool is_disk_inserted(int drv);
-	void is_disk_protected(int drv, bool value);
-	bool is_disk_protected(int drv);
-	uint8_t get_media_type(int drv);
-	void set_drive_type(int drv, uint8_t type);
-	uint8_t get_drive_type(int drv);
-	void set_drive_rpm(int drv, int rpm);
-	void set_drive_mfm(int drv, bool mfm);
-	void set_track_size(int drv, int size);
-	uint8_t fdc_status();
+	virtual void open_disk(int drv, const _TCHAR* file_path, int bank);
+	virtual void close_disk(int drv);
+	virtual bool __FASTCALL is_disk_inserted(int drv);
+	virtual void __FASTCALL is_disk_protected(int drv, bool value);
+	virtual bool __FASTCALL is_disk_protected(int drv);
+	virtual uint8_t __FASTCALL get_media_type(int drv);
+	virtual void __FASTCALL set_drive_type(int drv, uint8_t type);
+	virtual uint8_t __FASTCALL get_drive_type(int drv);
+	virtual void __FASTCALL set_drive_rpm(int drv, int rpm);
+	virtual void __FASTCALL set_drive_mfm(int drv, bool mfm);
+	virtual void __FASTCALL set_track_size(int drv, int size);
+	/*
+	 * @note: Return value is temporally value.
+	 * 20210205 K.O
+	 */
+	virtual uint8_t fdc_status();
 };
 
 #endif

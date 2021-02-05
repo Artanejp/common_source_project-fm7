@@ -28,13 +28,13 @@ public:
 	~KEYBOARD() {}
 	
 	// common functions
-	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	virtual void reset();
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
 	
 	// unique functions
-	void key_down(int code);
-	void key_up(int code);
+	virtual void __FASTCALL key_down(int code);
+	virtual void __FASTCALL key_up(int code);
 };
 }
 

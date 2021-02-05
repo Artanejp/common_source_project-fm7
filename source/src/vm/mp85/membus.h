@@ -29,10 +29,10 @@ public:
 	~MEMBUS() {}
 	
 	// common functions
-	void reset();
-	uint32_t fetch_op(uint32_t addr, int *wait);
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	bool process_state(FILEIO* state_fio, bool loading);
+	virtual void reset();
+	virtual uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait);
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	virtual bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)
@@ -43,8 +43,8 @@ public:
 	{
 		d_pio = device;
 	}
-	void key_down(int code);
-	void key_up(int code);
+	virtual void __FASTCALL key_down(int code);
+	virtual void __FASTCALL key_up(int code);
 };
 }
 #endif

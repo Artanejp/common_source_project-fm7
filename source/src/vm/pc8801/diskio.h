@@ -40,18 +40,18 @@ public:
 	~DiskIO() {}
 
 	// common functions
-	void initialize();
-	void release();
-	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
+	virtual void initialize();
+	virtual void release();
+	virtual void reset();
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
 
 private:
 	void Reset(uint32_t a, uint32_t d);
 	void SetCommand(uint32_t a, uint32_t d);
-	void SetData(uint32_t a, uint32_t d);
-	uint32_t GetStatus(uint32_t a);
-	uint32_t GetData(uint32_t a);
+	void __FASTCALL SetData(uint32_t a, uint32_t d);
+	uint32_t __FASTCALL GetStatus(uint32_t a);
+	uint32_t __FASTCALL GetData(uint32_t a);
 
 	enum Phase
 	{

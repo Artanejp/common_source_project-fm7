@@ -36,7 +36,6 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
-#include "../../emu_template.h"
 #include "../vm_template.h"
 
 #ifdef USE_SOUND_VOLUME

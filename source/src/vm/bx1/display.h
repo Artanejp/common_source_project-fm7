@@ -33,14 +33,14 @@ public:
 	~DISPLAY() {}
 	
 	// common functions
-	void initialize();
-	void release();
-	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	void write_dma_io8(uint32_t addr, uint32_t data);
-	void event_frame();
-	bool process_state(FILEIO* state_fio, bool loading);
+	virtual void initialize();
+	virtual void release();
+	virtual void reset();
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
+	virtual void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	virtual void event_frame();
+	virtual bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)

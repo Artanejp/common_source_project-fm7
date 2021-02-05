@@ -904,18 +904,18 @@ void MC6843::initialize()
 	// initialize d88 handler
 	DEVICE::initialize();
 	if(osd->check_feature(_T("MAX_DRIVE"))) {
-		_MAX_DRIVE = osd->get_feature_int_value(_T("MAX_DRIVE"));
+		__MAX_DRIVE = osd->get_feature_int_value(_T("MAX_DRIVE"));
 	} else if(osd->check_feature(_T("MAX_FD"))) {
-		_MAX_DRIVE = osd->get_feature_int_value(_T("MAX_FD"));
+		__MAX_DRIVE = osd->get_feature_int_value(_T("MAX_FD"));
 	} else {
-		_MAX_DRIVE = 1;
+		__MAX_DRIVE = 1;
 	}
-	if(_MAX_DRIVE > 8) {
-		_MAX_DRIVE = 8;
+	if(__MAX_DRIVE > 8) {
+		__MAX_DRIVE = 8;
 	}
-	_DRIVE_MASK = _MAX_DRIVE - 1;
+	__DRIVE_MASK = __MAX_DRIVE - 1;
 	
-	for(int i = 0; i < _MAX_DRIVE; i++) {
+	for(int i = 0; i < __MAX_DRIVE; i++) {
 		disk[i] = new DISK(emu);
 		disk[i]->drive_type = DRIVE_TYPE_2D;
 		disk[i]->drive_rpm = 300;
@@ -956,7 +956,7 @@ void MC6843::initialize()
 void MC6843::release()
 {
 	// release d88 handler
-	for(int i = 0; i < _MAX_DRIVE; i++) {
+	for(int i = 0; i < __MAX_DRIVE; i++) {
 		if(disk[i]) {
 			disk[i]->close();
 			delete disk[i];
@@ -966,7 +966,7 @@ void MC6843::release()
 
 void MC6843::reset()
 {
-	for(int i = 0; i < _MAX_DRIVE; i++) {
+	for(int i = 0; i < __MAX_DRIVE; i++) {
 		fdc[i].searching = false;
 		fdc[i].access = false;
 //		fdc[i].head_load = false;
@@ -998,7 +998,7 @@ uint32_t MC6843::read_dma_io8(uint32_t addr)
 void MC6843::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MC6843_DRIVEREG) {
-		this->set_drive(data & _DRIVE_MASK);
+		this->set_drive(data & __DRIVE_MASK);
 	} else if(id == SIG_MC6843_SIDEREG) {
 		this->set_side((data & mask) ? 1 : 0);
 	}
@@ -1007,14 +1007,14 @@ void MC6843::write_signal(int id, uint32_t data, uint32_t mask)
 uint32_t MC6843::read_signal(int ch)
 {
 	if(ch == SIG_MC6843_DRIVEREG) {
-		return m_drive & _DRIVE_MASK;
+		return m_drive & __DRIVE_MASK;
 	} else if(ch == SIG_MC6843_SIDEREG) {
 		return m_side & 1;
 	}
 	
 	// get access status
 	uint32_t stat = 0;
-	for(int i = 0; i < _MAX_DRIVE; i++) {
+	for(int i = 0; i < __MAX_DRIVE; i++) {
 		if(fdc[i].searching || fdc[i].access) {
 			stat |= 1 << i;
 		}
@@ -1078,14 +1078,14 @@ void MC6843::update_head_flag(int drv, bool head_load)
 
 void MC6843::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
-	if(drv < _MAX_DRIVE) {
+	if(drv < __MAX_DRIVE) {
 		disk[drv]->open(file_path, bank);
 	}
 }
 
 void MC6843::close_disk(int drv)
 {
-	if(drv < _MAX_DRIVE) {
+	if(drv < __MAX_DRIVE) {
 		disk[drv]->close();
 		update_head_flag(drv, false);
 	}
@@ -1093,7 +1093,7 @@ void MC6843::close_disk(int drv)
 
 bool MC6843::is_disk_inserted(int drv)
 {
-	if(drv < _MAX_DRIVE) {
+	if(drv < __MAX_DRIVE) {
 		return disk[drv]->inserted;
 	}
 	return false;
@@ -1101,14 +1101,14 @@ bool MC6843::is_disk_inserted(int drv)
 
 void MC6843::is_disk_protected(int drv, bool value)
 {
-	if(drv < _MAX_DRIVE) {
+	if(drv < __MAX_DRIVE) {
 		disk[drv]->write_protected = value;
 	}
 }
 
 bool MC6843::is_disk_protected(int drv)
 {
-	if(drv < _MAX_DRIVE) {
+	if(drv < __MAX_DRIVE) {
 		return disk[drv]->write_protected;
 	}
 	return false;
@@ -1116,7 +1116,7 @@ bool MC6843::is_disk_protected(int drv)
 
 uint8_t MC6843::get_media_type(int drv)
 {
-	if(drv < _MAX_DRIVE) {
+	if(drv < __MAX_DRIVE) {
 		if(disk[drv]->inserted) {
 			return disk[drv]->media_type;
 		}
@@ -1126,36 +1126,48 @@ uint8_t MC6843::get_media_type(int drv)
 
 void MC6843::set_drive_type(int drv, uint8_t type)
 {
-	if(drv < _MAX_DRIVE) {
+	if(drv < __MAX_DRIVE) {
 		disk[drv]->drive_type = type;
 	}
 }
 
 uint8_t MC6843::get_drive_type(int drv)
 {
-	if(drv < _MAX_DRIVE) {
+	if(drv < __MAX_DRIVE) {
 		return disk[drv]->drive_type;
 	}
 	return DRIVE_TYPE_UNK;
 }
 
+/*
+ * @note: Return value is temporally value.
+ * 20210205 K.O
+ */
+uint8_t MC6843::fdc_status()
+{
+	if((m_drive < __MAX_DRIVE) && (disk[m_drive] != NULL)){
+		return disk[m_drive]->inserted ? 2 : 0;
+	}
+	return 0;
+}
+
 void MC6843::set_drive_rpm(int drv, int rpm)
 {
-	if(drv < _MAX_DRIVE) {
+	if(drv < __MAX_DRIVE) {
 		disk[drv]->drive_rpm = rpm;
 	}
 }
 
 void MC6843::set_drive_mfm(int drv, bool mfm)
 {
-	if(drv < _MAX_DRIVE) {
+	if(drv < __MAX_DRIVE) {
 		disk[drv]->drive_mfm = mfm;
 	}
 }
 
 void MC6843::set_track_size(int drv, int size)
 {
-	if(drv < _MAX_DRIVE) {
+	if(drv < __MAX_DRIVE) {
 		disk[drv]->track_size = size;
 	}
 }

@@ -60,7 +60,7 @@ void KEYBOARD::initialize()
 {
 #if defined(_MZ80K) || defined(_MZ1200)
 	memset(key_buf, 0, sizeof(key_buf));
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(_USE_QT)
 	if(config.use_dinput) {
 		key_map[8][0] = 0xa0; // LSHIFT
 		key_map[8][5] = 0xa1; // RSHIFT
