@@ -6,17 +6,13 @@
 #define SIG_TOWNS_DMAC_ADDR_REG     4096
 #define SIG_TOWNS_DMAC_WRAP_REG     4100
 #define SIG_TOWNS_DMAC_ADDR_MASK    4104
-#define SIG_TOWNS_DMAC_HIGH_ADDRESS 4108 /* 4108 - 4111 */
 
 namespace FMTOWNS {
 class TOWNS_DMAC : public UPD71071
 {
 protected:
-	uint8_t dma_addr_reg;
 	uint8_t dma_wrap_reg;
 	uint32_t dma_addr_mask;
-	uint32_t dma_high_address[4];
-	uint32_t dma_high_address_bak[4];
 
 	// Temporally workaround for SCSI.20200318 K.O
 	bool creg_set[4];

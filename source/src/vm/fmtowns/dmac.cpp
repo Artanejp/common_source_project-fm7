@@ -11,13 +11,10 @@ void TOWNS_DMAC::initialize()
 void TOWNS_DMAC::reset()
 {
 	UPD71071::reset();
-	dma_wrap_reg = 0;
-	dma_addr_reg = 0;
+	dma_wrap_reg = 0xff;
 	dma_addr_mask = 0xffffffff; // OK?
 //	dma_addr_mask = 0x000fffff; // OK?
 	for(int i = 0; i < 4; i++) {
-		dma_high_address[i] = 0x00000000;
-		dma_high_address_bak[i] = 0x00000000;
 		creg_set[i] = false;
 		bcreg_set[i] = false;
 	}
@@ -29,6 +26,8 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 //	if((addr & 0x0f) == 0x0c) out_debug_log("WRITE REG: %08X %08X", addr, data);
 //	out_debug_log("WRITE REG: %04X %02X", addr, data);
 	uint naddr;
+	pair32_t _d;
+	pair32_t _bd;
 	switch(addr & 0x0f) {
 	case 0x00:
 //		out_debug_log(_T("RESET REG(00h) to %02X"), data);
@@ -42,17 +41,40 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		}
 		bcreg_set[selch] = true;
 		break;
+	case 0x04:
+	case 0x05:
+	case 0x06:
 	case 0x07:
-		if(base == 0) {
-			dma_high_address[selch] = (data & 0xff) << 24;
+		_d.d  = dma[selch].areg;
+		_bd.d = dma[selch].bareg;
+		switch(addr & 0x0f) {
+		case 0x04:
+			_d.b.l   = data;
+			_bd.b.l  = data;
+			break;
+		case 0x05:
+			_d.b.h   = data;
+			_bd.b.h  = data;
+			break;
+		case 0x06:
+			_d.b.h2  = data;
+			_bd.b.h2 = data;
+			break;
+		case 0x07:
+			_d.b.h3  = data;
+			_bd.b.h3 = data;
+			break;
 		}
-		dma_high_address_bak[selch] = (data & 0xff) << 24;
+		if(base == 0) {
+			dma[selch].areg = _d.d;
+		}
+		dma[selch].bareg = _bd.d;
 		return;
 		break;
 	case 0x08:
 		if(((data & 0x04) != (cmd & 0x04)) && (selch == 3)) {
 			if((data & 0x04) != 0) break;
-			out_debug_log(_T("TRANSFER: CMD=%04X -> %04X CH=%d\nADDR=%08X"), cmd, (cmd & 0xff00) | (data & 0xff), selch, (dma[selch].areg & 0x00ffffff) | (dma_high_address[selch]));
+			out_debug_log(_T("TRANSFER: CMD=%04X -> %04X CH=%d\nADDR=%08X"), cmd, (cmd & 0xff00) | (data & 0xff), selch, dma[selch].areg);
 		}
 		break;
 	case 0x0a:
@@ -84,13 +106,6 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		bcreg_set[selch] = false;
 		creg_set[selch] = false;
 #endif
-#if 0
-		if((data & 0x08) == 0) {
-			out_debug_log(_T("START CDROM DMA MODE=%02X ADDR=%08X COUNT=%04X"),
-						  dma[3].mode, (dma[3].areg & 0xffffff) | dma_high_address[3],
-						  dma[3].creg);
-		}
-#endif
 		break;
 	default:
 		break;
@@ -105,11 +120,31 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 	case 0x01:
 		return (base << 3) | (1 << (selch & 3));
 		break;
-	case 0x07:
-		if(base == 0) {
-			return (dma_high_address[selch] >> 24);
+	case 0x04:
+		if(base) {
+			return dma[selch].bareg & 0xff;
+		} else {
+			return dma[selch].areg & 0xff;
 		}
-		return (dma_high_address_bak[selch] >> 24);
+	case 0x05:
+		if(base) {
+			return (dma[selch].bareg >> 8) & 0xff;
+		} else {
+			return (dma[selch].areg >> 8) & 0xff;
+		}
+	case 0x06:
+		if(base) {
+			return (dma[selch].bareg >> 16) & 0xff;
+		} else {
+			return (dma[selch].areg >> 16) & 0xff;
+		}
+		break;
+	case 0x07:
+		if(base) {
+			return (dma[selch].bareg >> 24) & 0xff;
+		} else {
+			return (dma[selch].areg >> 24) & 0xff;
+		}
 		break;
 	}
 	return UPD71071::read_io8(addr);
@@ -118,20 +153,40 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 void TOWNS_DMAC::do_dma_inc_dec_ptr_8bit(int c)
 {
 	// Note: FM-Towns may extend to 32bit.
-	if(dma[c].mode & 0x20) {
-		dma[c].areg = (((dma[c].areg - 1) & 0x00ffffff) | dma_high_address[c]) & dma_addr_mask;
+	if(dma_wrap_reg != 0) {
+		uint32_t high_a = dma[c].areg & 0xff000000;
+		if(dma[c].mode & 0x20) {
+			dma[c].areg = dma[c].areg - 1;
+		} else {
+			dma[c].areg = dma[c].areg + 1;
+		}
+		dma[c].areg = ((dma[c].areg & 0x00ffffff) | high_a) & dma_addr_mask;
 	} else {
-		dma[c].areg = (((dma[c].areg + 1) & 0x00ffffff) | dma_high_address[c]) & dma_addr_mask;
+		if(dma[c].mode & 0x20) {
+			dma[c].areg = (dma[c].areg - 1) & dma_addr_mask;
+		} else {
+			dma[c].areg = (dma[c].areg + 1) & dma_addr_mask;
+		}
 	}
 }
 
 void TOWNS_DMAC::do_dma_inc_dec_ptr_16bit(int c)
 {
 	// Note: FM-Towns may extend to 32bit.
-	if(dma[c].mode & 0x20) {
-		dma[c].areg = (((dma[c].areg - 2) & 0x00ffffff) | dma_high_address[c]) & dma_addr_mask;
+	if(dma_wrap_reg != 0) {
+		uint32_t high_a = dma[c].areg & 0xff000000;
+		if(dma[c].mode & 0x20) {
+			dma[c].areg = dma[c].areg - 2;
+		} else {
+			dma[c].areg = dma[c].areg + 2;
+		}
+		dma[c].areg = ((dma[c].areg & 0x00ffffff) | high_a) & dma_addr_mask;
 	} else {
-		dma[c].areg = (((dma[c].areg + 2) & 0x00ffffff) | dma_high_address[c]) & dma_addr_mask;
+		if(dma[c].mode & 0x20) {
+			dma[c].areg = (dma[c].areg - 2) & dma_addr_mask;
+		} else {
+			dma[c].areg = (dma[c].areg + 2) & dma_addr_mask;
+		}
 	}
 }
 
@@ -141,15 +196,12 @@ bool TOWNS_DMAC::do_dma_epilogue(int c)
 		// TC
 		if(c == 3) {
 			out_debug_log(_T("TRANSFER COMPLETED CH.3: AREG=%08X BAREG=%08X CREG=%08X BCREG=%08X"),
-						  (dma[c].areg & 0x00ffffff) | (dma_high_address[c] & 0xff000000),
-						  (dma[c].bareg & 0x00ffffff) | (dma_high_address_bak[c] & 0xff000000),
+						  (dma[c].areg & 0xffffffff) ,
+						  (dma[c].bareg & 0xffffffff) ,
 						  dma[c].creg & 0x00ffffff,
 						  dma[c].bcreg & 0x00ffffff
 				);
 						  
-		}
-		if(dma[c].mode & 0x10) {
-			dma_high_address[c] = dma_high_address_bak[c];
 		}
 	}
 	return UPD71071::do_dma_epilogue(c);
@@ -157,53 +209,22 @@ bool TOWNS_DMAC::do_dma_epilogue(int c)
 	
 uint32_t TOWNS_DMAC::read_signal(int id)
 {
-	if(id == SIG_TOWNS_DMAC_ADDR_REG) {
-		return dma_addr_reg;
-	} else if(SIG_TOWNS_DMAC_WRAP_REG) {
+	if(SIG_TOWNS_DMAC_WRAP_REG) {
 		return dma_wrap_reg;
 	} else if(id == SIG_TOWNS_DMAC_ADDR_MASK) {
 		return dma_addr_mask;
-	} else if((id >= SIG_TOWNS_DMAC_HIGH_ADDRESS) && (id <= (SIG_TOWNS_DMAC_HIGH_ADDRESS + 3))) {
-		int ch = id - SIG_TOWNS_DMAC_HIGH_ADDRESS;
-		return dma_high_address[ch];
 	}
 	return UPD71071::read_signal(id);
 }
 
 void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 {
-	if(id == SIG_TOWNS_DMAC_ADDR_REG) {
-		dma_addr_reg = data & 3;
-//		this->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, data, mask);
-	} else if(id == SIG_TOWNS_DMAC_WRAP_REG) {
+	if(id == SIG_TOWNS_DMAC_WRAP_REG) {
 		dma_wrap_reg = data;
 //		this->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, data, mask);
 	} else if(id == SIG_TOWNS_DMAC_ADDR_MASK) {
 		// From eFMR50 / memory.cpp / update_dma_addr_mask()
-		
-#if 0
-		switch(dma_addr_reg & 3) {
-		case 0:
-			dma_addr_mask = data;
-			break;
-		case 1:
-			if(!(dma_wrap_reg & 1) && (data == 0x000fffff)) {
-				dma_addr_mask = 0x000fffff;
-			} else {
-				dma_addr_mask = 0x00ffffff;
-			}
-			break;
-		default:
-			if(!(dma_wrap_reg & 1) && (data == 0x000fffff)) {
-				dma_addr_mask = 0x000fffff;
-			} else {
-				dma_addr_mask = 0xffffffff;
-			}
-			break;
-		}
-#else
 		dma_addr_mask = data;
-#endif
 	} else {
 		// Fallthrough.
 //		if(id == SIG_UPD71071_CH1) {
@@ -217,9 +238,11 @@ void TOWNS_DMAC::do_dma_dev_to_mem_8bit(int c)
 {
 	// io -> memory
 	uint32_t val;
-	uint32_t addr = (dma_high_address[c] & 0xff000000) | (dma[c].areg & 0x00ffffff);
+	uint32_t addr = dma[c].areg;
 	reset_ube(c);
 	val = dma[c].dev->read_dma_io8(0);
+	// update temporary register
+	tmp = (tmp >> 8) | (val << 8);
 	if(_USE_DEBUGGER) {
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
 			d_debugger->write_via_debugger_data8(addr, val);
@@ -229,16 +252,13 @@ void TOWNS_DMAC::do_dma_dev_to_mem_8bit(int c)
 	} else {
 		write_via_debugger_data8(addr, val);
 	}							
-	// update temporary register
-	tmp = (tmp >> 8) | (val << 8);
-
 }
 
 void TOWNS_DMAC::do_dma_mem_to_dev_8bit(int c)
 {
 	// memory -> io
 	uint32_t val;
-	uint32_t addr = (dma_high_address[c] & 0xff000000) | (dma[c].areg & 0x00ffffff);
+	uint32_t addr = dma[c].areg;
 	reset_ube(c);
 	if(_USE_DEBUGGER) {
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
@@ -258,7 +278,7 @@ void TOWNS_DMAC::do_dma_dev_to_mem_16bit(int c)
 {
 	// io -> memory
 	uint32_t val;
-	uint32_t addr = (dma_high_address[c] & 0xff000000) | (dma[c].areg & 0x00ffffff);
+	uint32_t addr = dma[c].areg;
 	set_ube(c);
 	val = dma[c].dev->read_dma_io16(0);
 	if((addr & 1) != 0) {
@@ -293,7 +313,7 @@ void TOWNS_DMAC::do_dma_mem_to_dev_16bit(int c)
 {
 	// memory -> io
 	uint32_t val;
-	uint32_t addr = (dma_high_address[c] & 0xff000000) | (dma[c].areg & 0x00ffffff);
+	uint32_t addr = dma[c].areg;
 	set_ube(c);
 	if(_USE_DEBUGGER) {
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
@@ -326,9 +346,9 @@ bool TOWNS_DMAC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		my_stprintf_s(sbuf[i], 512,
 		  _T("CH%d AREG=%08X CREG=%04X BAREG=%08X BCREG=%04X REQ=%d MASK=%d MODE=%02X %s\n"),
 					  i,
-					  (dma_high_address[i] & 0xff000000) | (dma[i].areg & 0x00ffffff),
+					  dma[i].areg,
 					  dma[i].creg,
-					  (dma_high_address[i] & 0xff000000) | (dma[i].bareg & 0x00ffffff),
+					  dma[i].bareg,
 					  dma[i].bcreg,
 					  ((req | sreq) >> 0) & 1,
 					  (mask >> 0) & 1,
@@ -338,14 +358,14 @@ bool TOWNS_DMAC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	}
 	{
 		my_stprintf_s(buffer, buffer_len,
-					  _T("16Bit=%s ADDR_MASK=%08X ADDR_REG=%02X ADDR_WRAP=%02X \n")
+					  _T("16Bit=%s ADDR_MASK=%08X ADDR_WRAP=%02X \n")
 					  _T("SELECT CH=%d BASE=%02X REQ=%02X SREQ=%02X MASK=%02X TC=%02X ")
 					  _T("CMD=%04X TMP=%04X\n")
 					  _T("%s")
 					  _T("%s")
 					  _T("%s")
 					  _T("%s"),
-					  (b16) ? _T("YES") : _T("NO"), dma_addr_mask, dma_addr_reg, dma_wrap_reg,
+					  (b16) ? _T("YES") : _T("NO"), dma_addr_mask, dma_wrap_reg,
 					  selch, base, req, sreq, mask, tc,
 					  cmd, tmp,
 					  sbuf[0],
@@ -357,7 +377,7 @@ bool TOWNS_DMAC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	return false;
 }
 	
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 	
 bool TOWNS_DMAC::process_state(FILEIO *state_fio, bool loading)
 {
@@ -370,12 +390,8 @@ bool TOWNS_DMAC::process_state(FILEIO *state_fio, bool loading)
 	if(!(UPD71071::process_state(state_fio, loading))) {
 		return false;
 	}
-	state_fio->StateValue(dma_addr_reg);
 	state_fio->StateValue(dma_wrap_reg);
 	state_fio->StateValue(dma_addr_mask);
-	state_fio->StateArray(dma_high_address, sizeof(dma_high_address), 1);
-	state_fio->StateArray(dma_high_address_bak, sizeof(dma_high_address_bak), 1);
-	
 	state_fio->StateArray(creg_set, sizeof(creg_set), 1);
 	state_fio->StateArray(bcreg_set, sizeof(bcreg_set), 1);
 

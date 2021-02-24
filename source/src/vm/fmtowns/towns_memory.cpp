@@ -75,6 +75,7 @@ void TOWNS_MEMORY::initialize()
 	extra_nmi_mask = true;
 	extra_nmi_val = false;
 	poff_status = false;
+	reset_happened = false;
 
 //	vram_wait_val = 6;
 //	mem_wait_val = 3;
@@ -210,14 +211,6 @@ void TOWNS_MEMORY::reset()
 	// ToDo
 	is_compatible = true;
 	reset_happened = false;
-#if 1	
-	if(d_cpu != NULL) {
-		d_cpu->set_address_mask(0xffffffff);
-	}
-	if(d_dmac != NULL) {
-		d_dmac->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, 0xffffffff, 0xffffffff);
-	}
-#endif
 	dma_is_vram = true;
 	nmi_vector_protect = false;
 	ankcg_enabled = false;
@@ -227,6 +220,19 @@ void TOWNS_MEMORY::reset()
 	config_page00();
 //	cpu_clock_val = 16000 * 1000;
 	set_wait_values();
+#if 1	
+	if(d_cpu != NULL) {
+		d_cpu->set_address_mask(0xffffffff);
+	}
+	if(d_dmac != NULL) {
+		d_dmac->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, 0xffffffff, 0xffffffff);
+		uint8_t wrap_val = 0xff; // WRAP OFF
+		if(machine_id >= 0x0b00) { // After MA/MX/ME
+			wrap_val = 0x00;
+		}
+		d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP_REG, wrap_val, 0xff);
+	}
+#endif
 }
 // Address (TOWNS BASIC):
 // 0x0020 - 0x0022, 0x0030-0x0031,
@@ -245,8 +251,8 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		// reset cause register
 		if(d_cpu != NULL) {
 			val = ((software_reset) ? 1 : 0) | ((reset_happened) ? 2 : 0);
-			reset_happened = false;
 		}
+		reset_happened = false;
 		software_reset = false;
 		if(d_cpu != NULL) {
 			d_cpu->set_shutdown_flag(0);
@@ -256,7 +262,7 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		}
 		break;
 	case 0x0022:
-		val = 0xff;
+//		val = 0xff;
 //		if(d_dmac != NULL) {
 //			val = d_dmac->read_signal(SIG_TOWNS_DMAC_ADDR_REG);
 //		}
@@ -264,8 +270,11 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 	case 0x0024:
 		// CPU MISC3
 		val = 0xff;
+		if(machine_id >= 0x0b00) { // After MA/MX/ME
+			val &= ~0x04; // DMACMD
+		}
 		if(machine_id >= 0x0700) { // After HR/HG
-			val &= ~0x08; // POFFEN (
+			val &= ~0x08; // POFFEN
 		}
 		if(machine_id >= 0x0700) { // After HR/HG
 			val &= ~0x10; // Free run counter
@@ -516,14 +525,15 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 			if(d_cpu != NULL) {
 				d_cpu->reset();
 			}
-			//dma_is_vram = false;
-			//d_sysrom->reset();
-			//config_page00();
+			uint8_t wrap_val = 0xff; // WRAP OFF
+			if(machine_id >= 0x0b00) { // After MA/MX/ME
+				wrap_val = 0x00;
+			}
+			if(d_dmac != NULL) {
+				d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP_REG, wrap_val, 0xff);
+			}
 		}
 		// Towns SEEMS to not set addreess mask (a.k.a A20 mask). 20200131 K.O	
-		if(d_dmac != NULL) {
-			d_dmac->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, 0xffffffff, 0xffffffff);
-		}
 		break;
 	case 0x0022:
 		if((data & 0x40) != 0) {
@@ -532,9 +542,6 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 			}
 			// Todo: Implement true power off.
 //			emu->power_off();
-		}
-		if(d_dmac != NULL) {
-			d_dmac->write_signal(SIG_TOWNS_DMAC_ADDR_REG, data, 0xff);
 		}
 		// Power register
 		break;
@@ -1021,6 +1028,11 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 		}
 		if(d_dmac != NULL) {
 			d_dmac->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, 0xffffffff, 0xffffffff);
+			uint8_t wrap_val = 0xff; // WRAP OFF
+			if(machine_id >= 0x0b00) { // After MA/MX/ME
+				wrap_val = 0x00;
+			}
+			d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP_REG, wrap_val, 0xff);
 		}
 	} else if(ch == SIG_FMTOWNS_RAM_WAIT) {
 		mem_wait_val = (int)data;
