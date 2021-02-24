@@ -1,8 +1,6 @@
 message("* qt/gui")
 
 set(THIS_LIB_VERSION 3.5.0)
-#include(cotire)
-#include(PrecompiledHeader)
 
 set(s_qt_gui_headers
 	  qt_dialogs.h
