@@ -244,6 +244,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	machine_id = 0x0700; // OK?
 	cpu_id = 0x0002;      // i486SX
 	cpu_clock = 20000 * 1000; // 20MHz
+#elif defined(_FMTOWNS_UR_VARIANTS)
+	machine_id = 0x0900;  // UR10/20/40/80
+	cpu_id = 0x0002;      // i486DX
+	cpu_clock = 20000 * 1000; // ToDo: Correct frequency.
 #elif defined(_FMTOWNS_MA_VARIANTS)
 	machine_id = 0x0b00; // OK?
 	cpu_id = 0x0002;      // i486SX
@@ -260,14 +264,18 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	machine_id = 0x0c00; // OK?
 	cpu_id = 0x0002;      // i486DX (With FPU?)
 	cpu_clock = 66000 * 1000; // 66MHz
-#elif defined(_FMTOWNS_MX_VARIANTS)
-	machine_id = 0x0c00; // OK?
-	cpu_id = 0x0002;      // i486DX (With FPU?)
-	cpu_clock = 66000 * 1000; // 66MHz
+#elif defined(_FMTOWNS_HC_VARIANTS)
+	// 20210227 K.O
+	// From FMTowns::MachineID()  of TSUGARU,
+	// git 83d4ec2309ac9fcbb8c01f26061ff0d49c5321e4.
+	machine_id = 0x1100; // OK?
+	cpu_id = 0x0002;      // Pentium (With FPU?)
+	cpu_clock = 50000 * 1000; // ToDo: Correctness frequency.
 #else
 	// ToDo: Pentium Model (After HB).
 
 #endif
+
 	event->set_frames_per_sec(FRAMES_PER_SEC);
 	event->set_lines_per_frame(LINES_PER_FRAME);
 	
@@ -379,7 +387,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_msdos(msdosrom);
 	memory->set_context_dictionary(dictionary);
 	memory->set_context_font_rom(fontrom);
-	memory->set_context_beep(beep);
+	memory->set_context_timer(timer);
 	memory->set_context_serial_rom(serialrom);
 	memory->set_context_sprite(sprite);
 	memory->set_context_pcm(rf5c68);
@@ -523,7 +531,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x020e, floppy);  // Towns drive SW
 	
 	io->set_iomap_range_rw (0x0400, 0x0404, memory); // System Status
-	io->set_iomap_range_rw (0x0406, 0x403f, memory); // Reserved
+//	io->set_iomap_range_rw (0x0406, 0x043f, memory); // Reserved
 	
 	io->set_iomap_range_rw(0x0440, 0x0443, crtc); // CRTC
 	io->set_iomap_range_rw(0x0448, 0x044f, crtc); // VIDEO OUT (CRTC)
@@ -531,7 +539,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0x0450, 0x0452, sprite); // SPRITE
 	
 	io->set_iomap_single_rw(0x0458, vram);         // VRAM ACCESS CONTROLLER (ADDRESS)
-	io->set_iomap_range_rw (0x045a, 0x045f, vram); // VRAM ACCESS CONTROLLER (DATA)
+	io->set_iomap_range_rw (0x045a, 0x045b, vram); // VRAM ACCESS CONTROLLER (DATA)
 	
 	io->set_iomap_single_rw(0x0480, memory); //  MEMORY REGISTER
 	io->set_iomap_single_rw(0x0484, dictionary); // Dictionary
@@ -540,7 +548,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	//io->set_iomap_alias_rw(0x490, memory_card); // After Towns2
 	//io->set_iomap_alias_rw(0x491, memory_card); // After Towns2
 	
-	io->set_iomap_range_rw(0x04c0, 0x04cf, cdrom); // CDROM
+	io->set_iomap_range_rw(0x04c0, 0x04c6, cdrom); // CDROM
+	io->set_iomap_range_r (0x04cc, 0x04cd, cdrom); // CDROM
 	// PAD, Sound
 
 	io->set_iomap_single_r(0x04d0, joystick); // Pad1
@@ -560,18 +569,15 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //	io->set_iomap_alias_rw(0x04e3, e_volume[1], 1);
 
 	// ADPCM
-	io->set_iomap_range_rw(0x04e7, 0x04ef, adpcm); // A/D SAMPLING DATA REG 
+	io->set_iomap_range_rw(0x04e7, 0x04ec, adpcm); // A/D SAMPLING DATA REG 
 	io->set_iomap_range_rw(0x04f0, 0x04f8, rf5c68); // A/D SAMPLING DATA REG 
 
 	io->set_iomap_single_rw(0x05c0, memory); // NMI MASK
 	io->set_iomap_single_r (0x05c2, memory);  // NMI STATUS
 	io->set_iomap_single_r (0x05c8, sprite); // TVRAM EMULATION
 	io->set_iomap_single_w (0x05ca, crtc); // VSYNC INTERRUPT
-	if(machine_id < 0x0200) {
-		io->set_iomap_single_rw(0x05e0, memory); //  MEMORY WAIT REGISTER ffrom AB.COM 
-	} else {
-		io->set_iomap_single_rw(0x05e2, memory); // MEMORY WAIT REGISTER ffrom AB.COM 
-	}
+	io->set_iomap_single_rw(0x05e0, memory); //  MEMORY WAIT REGISTER ffrom AB.COM 
+	io->set_iomap_single_rw(0x05e2, memory); // MEMORY WAIT REGISTER ffrom AB.COM 
 	io->set_iomap_single_rw(0x05e8, memory); // RAM capacity register.(later Towns1H/2H/1F/2F).
 	io->set_iomap_single_rw(0x05ec, memory); // RAM Wait register , ofcially after Towns2, but exists after Towns1H.
 	io->set_iomap_single_r (0x05ed, memory); // RAM Wait register , ofcially after Towns2, but exists after Towns1H.
@@ -596,7 +602,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	io->set_iomap_range_rw (0x3000, 0x3fff, dictionary); // CMOS
 	
-	io->set_iomap_range_rw (0xfd90, 0xfda2, crtc);	// Palette and CRTC
+	io->set_iomap_range_rw (0xfd90, 0xfda0, crtc);	// Palette and CRTC
+	io->set_iomap_single_r (0xfda2, crtc);	// CRTC
 	io->set_iomap_single_rw(0xfda4, memory);	// memory
 	
 	io->set_iomap_range_rw (0xff80, 0xff83, planevram);	// MMIO

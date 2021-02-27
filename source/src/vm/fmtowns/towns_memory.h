@@ -64,7 +64,7 @@ protected:
 	DEVICE* d_sprite;       // 0x81000000 - 0x8101ffff ?
 	DEVICE* d_romcard[2]; // 0xc0000000 - 0xc0ffffff / 0xc1000000 - 0xc1ffffff
 	DEVICE* d_pcm;             // 0xc2200000 - 0xc2200fff 
-	DEVICE* d_beep;
+	DEVICE* d_timer;
 	DEVICE* d_dmac;
 	DEVICE* d_crtc;
 	DEVICE* d_planevram;
@@ -305,7 +305,7 @@ public:
 		d_sprite = NULL;
 		d_romcard[0] = d_romcard[1] = NULL;
 		d_pcm = NULL;
-		d_beep = NULL;
+		d_timer = NULL;
 		d_dmac = NULL;
 		d_crtc = NULL;
 		d_planevram = NULL;
@@ -467,9 +467,9 @@ public:
 	{
 		d_msdos = device;
 	}
-	void set_context_beep(DEVICE* device)
+	void set_context_timer(DEVICE* device)
 	{
-		d_beep = device;
+		d_timer = device;
 	}
 	void set_context_sprite(DEVICE* device)
 	{

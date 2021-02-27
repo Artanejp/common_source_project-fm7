@@ -34,6 +34,12 @@ void TIMER::reset()
 	interval_us.w = 0;
 	intv_i = false;
 	intv_ov = false;
+	beepon_cff98h = false;
+	beepon_60h = false;
+	if(d_pcm != NULL) {
+		d_pcm->write_signal(SIG_PCM1BIT_MUTE, 0, 1);
+	}
+	update_beep();
 
 	if(event_wait_1us >= 0) {
 		cancel_event(this, event_wait_1us);
@@ -62,7 +68,8 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 			tmout0 = false;
 		}
 		intr_reg = data;
-		d_pcm->write_signal(SIG_PCM1BIT_ON, data, 4);
+		beepon_60h = ((data & 0x04) != 0) ? true : false;
+		update_beep();
 		update_intr();
 		break;
 	case 0x0068: // Interval control
@@ -91,8 +98,7 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x006c: // Wait register.
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-			if(event_wait_1us != -1) cancel_event(this, event_wait_1us);
-			register_event(this, EVENT_1US_WAIT, 1.0, false, &event_wait_1us);
+			force_register_event(this, EVENT_1US_WAIT, 1.0, false, event_wait_1us);
 			write_signals(&outputs_halt_line, 0xffffffff);
 		}
 		break;
@@ -105,6 +111,16 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 		d_rtc->write_signal(SIG_MSM58321_WRITE, data, 0x02);
 		d_rtc->write_signal(SIG_MSM58321_ADDR_WRITE, data, 0x01);
 		break;
+	}
+}
+
+void TIMER::update_beep()
+{
+	if(d_pcm == NULL) return;
+	if((beepon_60h) || (beepon_cff98h)) {
+		d_pcm->write_signal(SIG_PCM1BIT_ON, 1, 1);
+	} else {
+		d_pcm->write_signal(SIG_PCM1BIT_ON, 0, 1);
 	}
 }
 
@@ -155,7 +171,7 @@ uint32_t TIMER::read_io8(uint32_t addr)
 		break;
 	case 0x0027:
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-			return free_run_counter >> 8;
+			return (free_run_counter >> 8) & 0xff;
 		} else {
 			return 0xff;
 		}
@@ -184,11 +200,13 @@ uint32_t TIMER::read_io8(uint32_t addr)
 		}
 		break;
 	case 0x006c: // Wait register.
+		// 20210227 K.O
+		// At TSUGARU, written below:
+		// Supposed to be 1us wait when written.
+		// But, mouse BIOS is often reading from this register.
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-			//if(event_wait_1us != -1) cancel_event(this, event_wait_1us);
-			//register_event(this, EVENT_1US_WAIT, 1.0, false, &event_wait_1us);
-			//write_signals(&outputs_halt_line, 0xffffffff);
-			return 0x00;
+			force_register_event(this, EVENT_1US_WAIT, 1.0, false, event_wait_1us);
+			write_signals(&outputs_halt_line, 0xffffffff);
 		}
 		break;
 	case 0x0070:
@@ -215,6 +233,9 @@ void TIMER::write_signal(int id, uint32_t data, uint32_t mask)
 		rtc_data = data & mask;
 	} else if(id == SIG_TIMER_RTC_BUSY) {
 		rtc_busy = ((data & mask) == 0);
+	}  else if(id == SIG_TIMER_BEEP_ON) {
+		beepon_cff98h = ((data & mask) != 0) ? true : false;
+		update_beep();
 	}
 }
 
@@ -246,7 +267,7 @@ void TIMER::event_callback(int id, int err)
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool TIMER::process_state(FILEIO* state_fio, bool loading)
 {
@@ -270,6 +291,8 @@ bool TIMER::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(interval_us);
 	state_fio->StateValue(intv_i);
 	state_fio->StateValue(intv_ov);
+	state_fio->StateValue(beepon_60h);
+	state_fio->StateValue(beepon_cff98h);
 
 	state_fio->StateValue(event_wait_1us);
 	state_fio->StateValue(event_interval_us);

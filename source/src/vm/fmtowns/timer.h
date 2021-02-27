@@ -18,6 +18,7 @@
 #define SIG_TIMER_CH2	    2
 #define SIG_TIMER_RTC	    3
 #define SIG_TIMER_RTC_BUSY  4
+#define SIG_TIMER_BEEP_ON	5
 
 namespace FMTOWNS {
 class TIMER : public DEVICE
@@ -42,8 +43,12 @@ private:
 	
 	uint16_t machine_id;
 	uint8_t cpu_id;
+
+	bool beepon_60h;
+	bool beepon_cff98h;
 	
-	virtual void update_intr();
+	virtual void update_intr(void);
+	virtual void update_beep(void);
 	virtual void do_interval(void);
 public:
 	TIMER(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -51,6 +56,8 @@ public:
 		machine_id = 0x0100;   // FM-Towns 1,2
 		initialize_output_signals(&outputs_intr_line);
 		initialize_output_signals(&outputs_halt_line);
+		d_pcm = NULL;
+		d_rtc = NULL;
 	}
 	~TIMER() {}
 	

@@ -872,8 +872,10 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 		}
 		break;
 	case 0xfda2:
-		if(machine_id >= 0x0700) { // After HR/HG
+		if((machine_id >= 0x0700) && !(is_compatible)) { // After UG
 			return (crtout_reg & 0x0f);
+		} else {
+			return 0x00;
 		}
 		break;
 	} 

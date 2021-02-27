@@ -16,10 +16,10 @@
 #include "./fontroms.h"
 #include "./serialrom.h"
 #include "./crtc.h"
+#include "./timer.h"
 
 #include "../i386_np21.h"
 //#include "../i386.h"
-#include "../pcm1bit.h"
 
 #include <math.h>
 
@@ -77,8 +77,6 @@ void TOWNS_MEMORY::initialize()
 	poff_status = false;
 	reset_happened = false;
 
-//	vram_wait_val = 6;
-//	mem_wait_val = 3;
 	vram_wait_val = 6;
 	mem_wait_val = 3;
 	if((cpu_id == 0x01) || (cpu_id == 0x03)) {
@@ -86,8 +84,6 @@ void TOWNS_MEMORY::initialize()
 	} else {
 		wait_register = 0x83;
 	}
-//	mem_wait_val >>= 1;
-//	vram_wait_val >>= 1;
 	cpu_clock_val = 16000 * 1000;
 
 	// Initialize R/W table
@@ -218,7 +214,7 @@ void TOWNS_MEMORY::reset()
 	select_d0_dict = false;
 	select_d0_rom = true;
 	config_page00();
-//	cpu_clock_val = 16000 * 1000;
+
 	set_wait_values();
 #if 1	
 	if(d_cpu != NULL) {
@@ -245,19 +241,18 @@ void TOWNS_MEMORY::reset()
 
 uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 {
-	uint32_t val = 0x00;  // MAY NOT FILL to "1" for unused bit 20200129 K.O
+//	uint32_t val = 0x00;  // MAY NOT FILL to "1" for unused bit 20200129 K.O
+	uint32_t val = 0xff;  //
 	switch(addr & 0xffff) {
 	case 0x0020: // Software reset ETC.
 		// reset cause register
-		if(d_cpu != NULL) {
-			val = ((software_reset) ? 1 : 0) | ((reset_happened) ? 2 : 0);
-		}
+		val = ((software_reset) ? 1 : 0) | ((reset_happened) ? 2 : 0);
 		reset_happened = false;
 		software_reset = false;
 		if(d_cpu != NULL) {
 			d_cpu->set_shutdown_flag(0);
 		}
-		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
+		if((machine_id >= 0x0300) && ((machine_id & 0xff00) != 0x0400)) { // After UX
 			val = val | ((poff_status) ? 0x04 : 0x00);
 		}
 		break;
@@ -304,8 +299,14 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		}
 		break;
 	case 0x0030:
-		val = ((machine_id & 0xf8) | (cpu_id & 7));
-		// SPEED: bit0/Write
+		// 20210227 K.O
+		// From FMTowns::MachineID()  of TSUGARU,
+		// git 83d4ec2309ac9fcbb8c01f26061ff0d49c5321e4.
+//		if((config.dipswitch & TOWNS_DIPSW_PRETEND_I386) != 0) {
+//			val = ((machine_id & 0xf8) | 0x01);
+//		} else {
+			val = ((machine_id & 0xf8) | (cpu_id & 7));
+//		}
 		break;
 	case 0x0031:
 		val = ((machine_id >> 8) & 0xff);
@@ -316,12 +317,12 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 			bool __clk = (d_serialrom->read_signal(SIG_SERIALROM_CLK) != 0);
 			bool __reset = (d_serialrom->read_signal(SIG_SERIALROM_RESET) != 0);
 			bool __dat = (d_serialrom->read_signal(SIG_SERIALROM_DATA) != 0);
-			val = ((__reset) ? 0x80 : 0x00) | ((__clk) ? 0x40 : 0x00) | 0x3e | ((__dat) ? 0x01 : 0x00);
+			val = ((__reset) ? 0x80 : 0x00) | ((__clk) ? 0x40 : 0x00) | /*0x3e |*/ ((__dat) ? 0x01 : 0x00);
 		}
 		break;
 	case 0x0400: // Resolution:
-//		val = 0xfe;
-		val = 0x00;
+		val = 0xfe;
+//		val = 0x00;
 		break;
 	case 0x0404: // System Status Reg.
 //		val = (dma_is_vram) ? 0x7f : 0xff;
@@ -352,36 +353,25 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 	case 0x05e8:
 		// After Towns1F/2F/1H/2H
 		{
-			switch(machine_id & 0xff00) {
-			case 0x0000:
-			case 0x0100:
-				val = 0xff;
-				break;
-			case 0x0200:
-			case 0x0300:
-			case 0x0400:
-			case 0x0500:
-			case 0x0600:
-			case 0x0700:
-			case 0x0800:
-			case 0x0a00:
-				val = ((extram_size >> 20) & 0x1f);
-				break;
-			case 0x0b00:
-			case 0x0c00:
-			case 0x0d00:
-			case 0x0f00:
-				val = ((extram_size >> 20) & 0x7f);
-				break;
-			default:
-				val = 0x00; // ???
-				break;
+			uint16_t nid = machine_id & 0xff00;
+			if(nid >= 0x1000) {
+				val = (extram_size >> 20) & 0x7f; // MAX 128MB
+			} else if(nid >= 0x0900) { // UR,MA,MX,ME,MF
+				val = (extram_size >> 20) & 0x1f; // MAX 32MB
+			} else if(nid == 0x0800) { // HG
+				val = (extram_size >> 20) & 0x0f; // MAX 15MB
+			} else if(nid == 0x0700) { // HR
+				val = (extram_size >> 20) & 0x1f; // MAX 32MB
+			} else if(nid >= 0x0200) { // 2nd GEN,3rd Gen, UX/UG, CX
+				val = (extram_size >> 20) & 0x0f; // MAX 15MB
+			} else {
+				val = 0xff; // NOT SUPPORTED
 			}
 		}
 		break;
 	   
 	case 0x05ec:
-		if(machine_id >= 0x0200) { // Towns2 CX : Is this hidden register after Towns 1F/2F/1H/2H? -> Yes
+		if(machine_id >= 0x0200) { // Towns2H/2F : Is this hidden register after Towns 1F/2F/1H/2H? -> Yes
 			val = 0x00;
 			if(mem_wait_val < 1) val |= 0x01;
 		} else {
@@ -389,7 +379,7 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		}
 		break;
 	case 0x05ed:
-		if(machine_id >= 0x0500) { // Towns2 CX : Is this hidden register after Towns 1F/2F/1H/2H? -> Yes
+		if(machine_id >= 0x0700) { // After HR/HG
 			uint32_t clk = get_cpu_clocks(d_cpu);
 			clk = clk / (1000 * 1000);
 			if(clk < 16) clk = 16;
@@ -431,8 +421,8 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		}
 		break;
 	case 0xff98:
-		if(d_beep != NULL) {
-			d_beep->write_signal(SIG_PCM1BIT_ON, 1, 1);
+		if(d_timer != NULL) {
+			d_timer->write_signal(SIG_TIMER_BEEP_ON, 1, 1);
 		}
 		break;
 	case 0xff99:
@@ -582,7 +572,7 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x05e2:
-		if(machine_id >= 0x0200) { // After Towns 1H/2F.
+		if(machine_id >= 0x0200) { // After Towns 1H/2F. Hidden wait register.
 			if(data != 0x83) {
 				uint8_t nval = data & 7;
 				if(machine_id <= 0x0200) { // Towns 1H/2F.
@@ -601,14 +591,12 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x05ec:
-		if(machine_id >= 0x0500) { // Towns2 CX : Is this hidden register after Towns 1F/2F/1H/2H? -> Yes
+		if(machine_id >= 0x0500) { // Towns2 CX :
 			vram_wait_val = ((data & 0x01) != 0) ? 3 : 6;
 			mem_wait_val = ((data & 0x01) != 0) ? 0 : 3;
-//			mem_wait_val >>= 1;
-//			vram_wait_val >>= 1;
 			cpu_clock_val = ((data & 0x01) != 0) ? (get_cpu_clocks(d_cpu)) : (16 * 1000 * 1000);
+			set_wait_values();
 		}
-		set_wait_values();
 		break;
 	case 0xfda4:
 		if(machine_id >= 0x0700) { // After HR/HG
@@ -633,8 +621,8 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	case 0xff97:
 		break;
 	case 0xff98:
-		if(d_beep != NULL) {
-			d_beep->write_signal(SIG_PCM1BIT_ON, 0, 1);
+		if(d_timer != NULL) {
+			d_timer->write_signal(SIG_TIMER_BEEP_ON, 0, 1);
 		}
 		break;
 	case 0xff99:
