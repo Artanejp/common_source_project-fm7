@@ -599,6 +599,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	io->set_iomap_single_rw(0x0c30, scsi);
 	io->set_iomap_single_rw(0x0c32, scsi);
+	io->set_iomap_single_r (0x0c34, scsi);
 
 	io->set_iomap_range_rw (0x3000, 0x3fff, dictionary); // CMOS
 	
