@@ -8,17 +8,15 @@
  * @copyright GPLv2
  */
 #include "./cdrom_skelton.h"
-#include <list>
 
-
-class DLL_PREFIX CDIMAGE_CUE : public CDIMAGE_META {
+class DLL_PREFIX CDIMAGE_CUE : public CDIMAGE_SKELTON {
 protected:
 	/*!
 	 * @brief Parse CUE/CCD sheet, check track data and construct tracks table.
 	 * @param filename filename (absolute full path) of sheet (or ISO data).
 	 * @return true if succeeded.
 	 */
-	virtual bool parse_sheet(_TCHAR *filename);
+	virtual bool parse_sheet();
 	
 public:
 	CDIMAGE_CUE();
@@ -33,7 +31,7 @@ public:
 	 * @see parse_sheet
 	 * @see check_type
 	 */
-	virtual bool open(_TCHAR *filename, enum CDIMAGE_OPEN_MODE req_type);
+	virtual bool open(_TCHAR *filename, enum CDROM_META::CDIMAGE_OPEN_MODE req_type);
 	/*!
 	 * @brief Close virtual disc image.
 	 * @return true if succeeded.
@@ -86,56 +84,7 @@ public:
 	 * @note Changing size of data by type of Virtual image.
 	 */
 	virtual ssize_t read_raw(uint8_t *buf, ssize_t buflen, size_t sectors = 1, bool _clear = false);
-		/*!
-	 * @brief Try to seek to expected LBA.
-	 * @param m minutes of LBA (absolute)
-	 * @param s seconds of LBA (absolute)
-	 * @param f frames  of LBA (absolute)
-	 * @param in_track Set true if within track, set false if seek to another track.
-	 * @return true if succeeded.
-	 * @note need to implement accross another tracks.
-	 */	
-	virtual bool seek(uint8_t m, uint8_t s, uint8_t f, bool& in_track);
-		/*!
-	 * @brief Try to seek to expected LBA.
-	 * @param lba Position of LBA (absolute)
-	 * @param in_track Set true if within track, set false if seek to another track.
-	 * @return true if succeeded.
-	 * @note need to implement accross another tracks.
-	 */	
-	virtual bool seek_absolute_lba(int64_t lba, bool& in_track);
-		/*!
-	 * @brief Try to seek to expected LBA.
-	 * @param lba Position of LBA (relative)
-	 * @param in_track Set true if within track, set false if seek to another track.
-	 * @return true if succeeded.
-	 * @note need to implement accross another tracks.
-	 */	
-	virtual bool seek_relative_lba(int64_t lba, bool& in_track);
-		/*!
-	 * @brief Calculate seek time to expected LBA.
-	 * @param m minutes of LBA (absolute)
-	 * @param s seconds of LBA (absolute)
-	 * @param f frames  of LBA (absolute)
-	 * @return seek time as usec.
-	 * If error, return NaN. 
-	 */	
-	virtual double get_seek_time(uint8_t m, uint8_t s, uint8_t f);
 	/*!
-	 * @brief Calculate seek time to expected LBA.
-	 * @param lba Position of LBA (absolute)
-	 * @return seek time as usec.
-	 * If error, return NaN. 
-	 */	
-	virtual double get_seek_time_absolute_lba(int64_t lba);
-	/*!
-	 * @brief Calculate seek time to expected LBA.
-	 * @param lba Position of LBA (relative)
-	 * @return seek time as usec.
-	 * If error, return NaN. 
-	 */	
-	virtual double get_seek_time_relative_lba(int64_t lba);
-		/*!
 	 * @brief Load / Save state to VM.
 	 * @param state_fio FILE IO for state loading/saving.
 	 * @param loading If true loading, false is saving.
