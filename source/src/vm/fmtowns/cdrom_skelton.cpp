@@ -240,22 +240,22 @@ bool CDROM_SKELTON::close()
  */
 ssize_t CDROM_SKELTON::read_mode1(uint8_t *buf, ssize_t buflen, size_t sectors, bool _clear)
 {
+	if(buf == nullptr) return -1;
+	if(buflen <= 0) return -1;
+	if(_clear) {
+		memset(buf, 0x00, buflen);
+	}
+	
 	if((now_track == 0) || (now_track >= 100)) return -1;
 	if(now_track >= tracks) return -1;
 		
-	if(buf == nullptr) return -1;
-	if(buflen <= 0) return -1;
 	if(sectors <= 0) return -1;
 	if(current_fio == nullptr) return -1;
-	if(!(curent_fio->ISOpened())) return -1;
+	if(!(curent_fio->IsOpened())) return -1;
 	
 	int64_t logical_size = (int64_t)(sectors * logical_bytes_per_block);
 	if(logical_size >= buflen) logical_size = buflen;
-
 	if(logical_size <= 0) return -1;
-	if(_clear) {
-		memset(buf, 0x00, logical_size);
-	}
 
 	int xptr = 0;
 	/*!
@@ -325,22 +325,22 @@ ssize_t CDROM_SKELTON::read_mode1(uint8_t *buf, ssize_t buflen, size_t sectors, 
  */
 ssize_t CDROM_SKELTON::read_mode2(uint8_t *buf, ssize_t buflen, size_t sectors, bool _clear)
 {
+	if(buf == nullptr) return -1;
+	if(buflen <= 0) return -1;
+	if(_clear) {
+		memset(buf, 0x00, buflen);
+	}
+	
 	if((now_track == 0) || (now_track >= 100)) return -1;
 	if(now_track >= tracks) return -1;
 		
-	if(buf == nullptr) return -1;
-	if(buflen <= 0) return -1;
 	if(sectors <= 0) return -1;
 	if(current_fio == nullptr) return -1;
-	if(!(curent_fio->ISOpened())) return -1;
+	if(!(curent_fio->IsOpened())) return -1;
 
 	int64_t logical_size = (int64_t)(sectors * logical_bytes_per_block);
-	if(logiacal_size >= buflen) logical_size = buflen;
-
-	if(physical_size <= 0) return -1;
-	if(_clear) {
-		memset(buf, 0x00, logical_size);
-	}
+	if(logical_size >= buflen) logical_size = buflen;
+	if(logical_size <= 0) return -1;
 
 	int xptr = 0;
 	/*!
@@ -412,23 +412,23 @@ ssize_t CDROM_SKELTON::read_mode2(uint8_t *buf, ssize_t buflen, size_t sectors, 
  */
 ssize_t CDROM_SKELTON::read_cdda(pair16_t *buf, ssize_t buflen, size_t sectors, bool swap_byte, bool _clear)
 {
+	if(buf == nullptr) return -1;
+	if(buflen <= 0) return -1;
+	if(_clear) {
+		memset(buf, 0x00, buflen);
+	}
+	
 	if((now_track == 0) || (now_track >= 100)) return -1;
 	if(now_track >= tracks) return -1;
 		
-	if(buf == nullptr) return -1;
-	if(buflen <= 0) return -1;
 	if(sectors <= 0) return -1;
 	if(current_fio == nullptr) return -1;
-	if(!(curent_fio->ISOpened())) return -1;
+	if(!(curent_fio->IsOpened())) return -1;
 
 	int64_t physical_size = ((int64_t)sectors) * (2352 / 4);
 	buflen >>= 2;
-	if(physiacal_size >= buflen) physical_size = buflen;
-
+	if(physical_size >= buflen) physical_size = buflen;
 	if(physical_size <= 0) return -1;
-	if(_clear) {
-		memset(buf, 0x00, physical_size * 2 * 2);
-	}
 	
 	int xptr = 0;
 	int64_t xbptr = 0;
@@ -505,22 +505,22 @@ __DECL_VECTORIZED_LOOP
  */
 ssize_t CDROM_SKELTON::read_raw(uint8_t *buf, ssize_t buflen, size_t sectors, bool _clear)
 {
+	if(buf == nullptr) return -1;
+	if(buflen <= 0) return -1;
+	if(_clear) {
+		memset(buf, 0x00, buflen);
+	}
+	
 	if((now_track == 0) || (now_track >= 100)) return -1;
 	if(now_track >= tracks) return -1;
 		
-	if(buf == nullptr) return -1;
-	if(buflen <= 0) return -1;
 	if(sectors <= 0) return -1;
 	if(current_fio == nullptr) return -1;
-	if(!(curent_fio->ISOpened())) return -1;
+	if(!(curent_fio->IsOpened())) return -1;
 
 	int64_t physical_size = (int64_t)(sectors * physical_bytes_per_block);
 	if(physical_size >= buflen) physical_size = buflen;
-
 	if(physical_size <= 0) return -1;
-	if(_clear) {
-		memset(buf, 0x00, physical_size);
-	}
 	int xptr = 0;
 	uint8_t secbuf[2352];
 	int ps = physical_bytes_per_block;
