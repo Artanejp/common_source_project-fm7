@@ -11,7 +11,7 @@
 #include <string>
 class FILEIO;
 
-namespace CDROM_META {
+namespace CDROM_META {  // BEGIN OF NAMESPACE CDROM_META .
 /*!
  * @enum Image type of current virtual CD image.
  */
@@ -29,9 +29,11 @@ typedef enum CDIMAGE_TRACK_TYPE {
 	TRACKTYPE_AUDIO,      //!< Open as audio
 	TRACKTYPE_MODE1_2048, //!< MODE1/2048
 	TRACKTYPE_MODE1_2352, //!< MODE1/2352
-	TRACKTYPE_MODE1_ISO,  //!< MODE1/ISO
+	TRACKTYPE_MODE1_ISO,  //!< MODE1/ISO (2048 bytes/sector)
 	TRACKTYPE_MODE2_2336, //!< MODE2/2336
 	TRACKTYPE_MODE2_2352, //!< MODE2/2352
+	TRACKTYPE_MODE2_ISO,  //!< MODE2/ISO (2336 bytes/sector)
+	TRACKTYPE_2352_ISO,   //!< ISO (2352 bytes/sector)
 	TRACKTYPE_CDI_2336,   //!< CD-I/2336
 	TRACKTYPE_CDI_2352,   //!< CD-I/2352
 	TRACKTYPE_CDG,        //!< CD/G
@@ -77,11 +79,11 @@ typedef union {
  * @struct definition of CD-ROM data header (excepts audio track).
  */
 typedef struct {
-	uint8_t sync[12];
-	uint8_t addr_m;
-	uint8_t addr_s;
-	uint8_t addr_f;
-	uint8_t sector_type; //! 1 = MODE1, 2=MODE2
+	uint8_t sync[12];	 //!< SYNC BYTES (Mostly 00h * 12?)
+	uint8_t addr_m;		 //!< Minute as BCD
+	uint8_t addr_s;      //!< Second as BCD
+	uint8_t addr_f;      //!< Frame as BCD
+	uint8_t sector_type; //!< 1 = MODE1, 2=MODE2
 } cdrom_data_head_t;
 #pragma pack()
 
@@ -92,11 +94,11 @@ typedef struct {
  * @note 20201116 K.O
  */
 typedef struct {
-	cdrom_data_head_t header;
-	uint8_t data[2048];
-	uint8_t crc32[4]; //! CRC32 checksum.
-	uint8_t reserved[8];
-	uint8_t ecc[276]; //! ERROR CORRECTIOM DATA; by read solomon code.
+	cdrom_data_head_t header;	//!< HEADER
+	uint8_t data[2048];			//!< DATA field (2048bytes)
+	uint8_t crc32[4];			//!< CRC32 checksum.
+	uint8_t reserved[8];		//!< Reserved
+	uint8_t ecc[276];			//! ERROR CORRECTIOM DATA; by read solomon code.
 } cdrom_data_mode1_t;
 #pragma pack()
 
@@ -105,8 +107,8 @@ typedef struct {
  * @struct definition of CD-ROM MODE2 sector struct (excepts ISO image).
  */
 typedef struct {
-	cd_data_head_t header;
-	uint8_t data[2336];
+	cdrom_data_head_t header;	//!< HEADER
+	uint8_t data[2336];			//!< DATA field 2336 bytes
 } cdrom_data_mode2_t;
 #pragma pack()
 
@@ -115,8 +117,17 @@ typedef struct {
  * @struct definition of CD-DA sector struct (excepts ISO image).
  */
 typedef struct {
-	uint8_t data[2352];
+	uint8_t data[2352]; //!< DATA field (without HEADER) 2352 bytes, without ECCs.
 } cdrom_audio_sector_t;
+#pragma pack()
+
+#pragma pack(1)
+/*!
+ * @struct definition of CDROM RAW sector struct (excepts ISO image).
+ */
+typedef struct {
+	uint8_t data[2352];  //!< RAW DATA field.
+} cdrom_raw_sector_t;
 #pragma pack()
 
 #pragma pack(1)
@@ -126,7 +137,7 @@ typedef struct {
  * @note 20201116 K.O
  */
 typedef struct {
-	uint8_t data[2048];
+	uint8_t data[2048]; //!< AT ISO virtual image, contains only data sector.
 } cdrom_iso_data_t;
 #pragma pack()
 
@@ -148,7 +159,8 @@ typedef struct {
 	uint32_t logial_size;        //!< Logical sector size
 	_TCHAR filename[_MAX_PATH];  //!< Image file name.
 } cdrom_toc_table_t;
-}
+
+} // END OF NAMESPACE CDROM_META .
 
 /*! 
  * @class BASIC class of CD Image.
@@ -213,6 +225,99 @@ protected:
 	 */
 	virtual void init_toc_table(uint8_t num);
 	/*!
+	 * @brief Convert BCD value to binary value.
+	 * @param n BCD value
+	 * @return Binarized value.-1 if error.
+	 */
+	inline int bcd_to_bin(uint8_t n, bool& __error);
+	/*!
+	 * @brief Convert POSITIVE BINARY value to BCD.
+	 * @param n Binary value.
+	 * @param _error Set true if available range (0 to 99) at n.
+	 * @return BCDed value.
+	 */
+	inline uint8_t bin_to_bcd(uint8_t n, bool& __error);
+
+	/*!
+	 * @brief Get track position now accessing.
+	 * @return track value.-1 if not avaiable image.
+	 */
+	inline int __get_track() const;
+	/*!
+	 * @brief Get LBA position of now accessing.
+	 * @return LBA position of now accessing.
+	 */
+	inline int64_t __get_lba() const;
+	/*!
+	 * @brief Get Relative LBA offset value (at head of this track) of this image.
+	 * @return Relative LBA offset value (in image).
+	 */
+	inline int64_t __get_lba_offset() const;
+	/*!
+	 * @brief Get number of sectors at this track.
+	 * @return Number of sectors at this track.
+	 */
+	inline int64_t __get_sectors_of_this_track() const;
+	/*!
+	 * @brief Get current position-offset in this sector.
+	 * @return Offset position.
+	 */
+	inline int __get_offset_of_this_sector() const;
+	/*!
+	 * @brief Whether this track is available.
+	 * @return true if available.
+	 */
+	inline bool __is_available() const;
+	/*!
+	 * @brief Get blocks of this virtual CD.
+	 * @return Blocks (sectors) of this virtual CD.
+	 */
+	inline int64_t __get_blocks() const;
+	/*!
+	 * @brief Get physical block size of this virtual CD.
+	 * @return Physical block size of this virtual CD.
+	 */
+	inline uint32_t __get_physical_block_size() const;
+	/*!
+	 * @brief Get REAL (in VIRTUAL IMAGE) physical block size of this virtual CD.
+	 * @return Physical block size of this virtual CD.
+	 */
+	inline uint32_t __get_real_physical_block_size() const;
+	/*!
+	 * @brief Get logical block size of this virtual CD.
+	 * @return Logical block size of this virtual CD.
+	 */
+	inline uint32_t __get_logical_block_size() const;
+	/*!
+	 * @brief Get image type of this virtual CD.
+	 * @return Image type of virtual CD.
+	 */
+	inline enum CDROM_META::CDIMAGE_TYPE __get_type() const;
+	/*!
+	 * @brief Get full path of this virtual image.
+	 * @param var Returned full path of opened file.Erase if not opened.
+	 * @return true if already opened.
+	 */
+	inline bool __get_track_image_file_name(std::string& var);
+	
+	
+	/*!
+	 * @brief Set seek speed.
+	 * @param usec Basic transfer time normally 1.0 / 150.0KHz.
+	 */
+	inline void __set_transfer_time_us(double usec);
+	/*!
+	 * @brief Get transfer time per byte.
+	 * @return transfer time as uSec.
+	 */
+	inline double __get_transfer_time_us();
+	/*!
+	 * @brief Get seek multiply rate.
+	 * @return Seek rate.
+	 */
+	inline double __get_seek_speed();
+	
+	/*!
 	 * @brief Seek assigned position in track.
 	 * @param lba *Relative* LBA in this track.
 	 * @return true if success.
@@ -232,114 +337,43 @@ public:
 	/*!
 	 * @brief constructor
 	 */
-	CDIMAGE_SKELTON()
-	{
-		max_blocks = 0;
-		tracks = 0;
-		type = CDROM_META::IMAGETYPE_NONE;
-		tracktype = CDROM_META::TRACKTYPE_NONE;
-		openmode = CDROM_META::OPENMODE_AUTO;
-		logical_bytes_per_block = 2048;
-		physical_bytes_per_block = 2352;
-		real_physical_bytes_per_block = 2352; //!< 2048 if MODE1/ISO.
-		allow_beyond_track = false;
-		transfer_rate_us = 1.0e6 / 150.0e3; //!< 1.0x 150s
-
-		seek_speed = 1.0;
-		
-		now_lba = 0;
-		now_track = 0;
-		offset_in_sector = 0;
-		lba_offset_of_this_track = 0;
-		sectors_of_this_track = 0;
-		pregap_of_this_track = 150;
-		track_is_available = false;
-		bytes_position = 0;
-		__filename.erase();
-		for(int t = 0; t < 102; i++) {
-			init_toc_table(t);
-		}
-		
-		current_fio = NULL;
-		sheet_fio = NULL;
-	}
+	CDIMAGE_SKELTON();
 	/*!
 	 * @brief de-constructor
 	 * @note Please implement de-allocating tracks list 
 	 * in de-constructor if you need.
 	 */
-	~CDIMAGE_SKELTON()
-	{
-		reset_sheet_fio();
-	}
+	~CDIMAGE_SKELTON();
+
 	/*!
-	 * @brief Get track position now accessing.
-	 * @return track value.-1 if not avaiable image.
+	 * @brief initialize function (blank skelton)
 	 */
-	inline int get_track() const;
+	virtual void initialize();
 	/*!
-	 * @brief Get LBA position of now accessing.
-	 * @return LBA position of now accessing.
+	 * @brief de-initialize function (blank skelton)
 	 */
-	inline int64_t get_lba() const;
+	virtual void release();
+	/*!
+	 * @brief reset status function (blank skelton)
+	 */
+	virtual void reset();
+	
 	/*!
 	 * @brief Get Relative LBA offset value (at head of this track) of this image.
 	 * @return Relative LBA offset value (in image).
 	 */
-	inline int64_t get_lba_offset() const;
-	/*!
-	 * @brief Get number of sectors at this track.
-	 * @return Number of sectors at this track.
-	 */
-	inline int64_t get_sectors_of_this_track() const;
-	/*!
-	 * @brief Get current position-offset in this sector.
-	 * @return Offset position.
-	 */
-	inline int get_offset_of_this_sector() const;
-	/*!
-	 * @brief Whether this track is available.
-	 * @return true if available.
-	 */
-	inline bool is_available() const;
-	/*!
-	 * @brief Get blocks of this virtual CD.
-	 * @return Blocks (sectors) of this virtual CD.
-	 */
-	inline int64_t  get_blocks() const;
-	/*!
-	 * @brief Get physical block size of this virtual CD.
-	 * @return Physical block size of this virtual CD.
-	 */
-	inline uint32_t  get_physical_block_size() const;
-	/*!
-	 * @brief Get REAL (in VIRTUAL IMAGE) physical block size of this virtual CD.
-	 * @return Physical block size of this virtual CD.
-	 */
-	inline uint32_t  get_real_physical_block_size() const;
-	/*!
-	 * @brief Get logical block size of this virtual CD.
-	 * @return Logical block size of this virtual CD.
-	 */
-	inline uint32_t get_logical_block_size() const;
+	virtual int64_t get_lba_offset() const;
 	/*!
 	 * @brief Get image type of this virtual CD.
 	 * @return Image type of virtual CD.
 	 */
-	inline enum CDROM_META::CDIMAGE_TYPE get_type() const;
+	virtual enum CDROM_META::CDIMAGE_TYPE get_type() const;
 	/*!
 	 * @brief Get full path of this virtual image.
 	 * @param var Returned full path of opened file.Erase if not opened.
 	 * @return true if already opened.
 	 */
-	inline bool get_track_image_file_name(std::string& var);
-	
-	/*!
-	 * @brief Check type of virtual disc image by filename.
-	 * @param filename Filename of image (absolute path).
-	 * @return Type of CD image.
-	 */
-	static enum CDROM_META::CDIMAGE_TYPE check_type(_TCHAR *filename);
+	virtual bool get_track_image_file_name(std::string& var);
 	
 	/*!
 	 * @brief Set seek speed.
@@ -350,17 +384,17 @@ public:
 	 * @brief Get transfer time per byte.
 	 * @return transfer time as uSec.
 	 */
-	inline double get_transfer_time_us();
+	virtual double get_transfer_time_us();
 	/*!
 	 * @brief Get seek multiply rate.
 	 * @return Seek rate.
 	 */
-	inline double get_seek_speed();
+	virtual double get_seek_speed();
 	/*!
 	 * @brief Get seek time per block.
 	 * @return seek time as uSec.
 	 */
-	inline double get_single_seek_time_us();
+	virtual double get_single_seek_time_us();
 	/*!
 	 * @brief Set seek speed.
 	 * @param speed Transfer speed multiply rate, normally 1.0.
@@ -381,48 +415,20 @@ public:
 	 * @param bytes bytes per block.
 	 */
 	virtual void set_logical_bytes_per_block(uint32_t bytes);
-	/*!
-	 * @brief Calculate seek time to expected LBA.
-	 * @param m minutes of LBA (absolute)
-	 * @param s seconds of LBA (absolute)
-	 * @param f frames  of LBA (absolute)
-	 * @return seek time as usec.
-	 * If error, return NaN. 
-	 */	
-	virtual double get_seek_time(uint8_t m, uint8_t s, uint8_t f);
-	/*!
-	 * @brief Calculate seek time to expected LBA.
-	 * @param lba Position of LBA (absolute)
-	 * @return seek time as usec.
-	 * If error, return NaN. 
-	 */	
-	virtual double get_seek_time_absolute_lba(int64_t lba);
-	/*!
-	 * @brief Calculate seek time to expected LBA.
-	 * @param lba Position of LBA (relative)
-	 * @return seek time as usec.
-	 * If error, return NaN. 
-	 */	
-	virtual double get_seek_time_relative_lba(int64_t lba);
-	/*!
-	 * @brief Set enable/disable beyond track reading.
-	 * @param val enable when setting true.
-	 */
-	void enable_beyond_track_reading(bool val);
 	
 	/*!
 	 * @brief Convert BCD value to binary value.
 	 * @param n BCD value
 	 * @return Binarized value.-1 if error.
 	 */
-	inline int bcd_to_bin(uint8_t n);
+	virtual int bcd2bin(uint8_t n, bool& __error);
 	/*!
 	 * @brief Convert POSITIVE BINARY value to BCD.
 	 * @param n Binary value.
 	 * @param _error Set true if available range (0 to 99) at n.
 	 * @return BCDed value.
 	 */
-	inline uint8_t bin_to_bcd(int n, bool& _error);
+	virtual uint8_t bin2bcd(uint8_t n, bool& __error);
 	/*!
 	 * @brief Calculate LBA position of M,S,F.
 	 * @param m minutes of LBA.
@@ -482,21 +488,20 @@ public:
 	 * @return size of reading.
 	 * @note Override and inherit this to implement real method.
 	 * @note Stop when reaches END of CURRENT TRACK.
-	 * @note Changing size of data by type of Virtual image.
 	 */
 	virtual ssize_t read_mode2(uint8_t *buf, ssize_t buflen, size_t sectors = 1, bool _clear = false);
+
 	/*!
 	 * @brief Read image data to buffer as CD-DA from current LBA position.
-	 * @param buf Destination pointer of read buffer.
-	 * @param buflen Size of read buffer.
+	 * @param buf Destination pointer of read buffer.Must be pair16_t[(2352 / 4) * 2].
+	 * @param buflen bytes of read buffer.
 	 * @param sectors Count of sectors (LBAs).
+	 * @param swap_byte true if swap byte order.
 	 * @param _clear true if expect to clear buffer.
-	 * @return size of reading.
+	 * @return read samples.
 	 * @note Override and inherit this to implement real method.
-	 * @note Stop when reaches END of CURRENT TRACK.
-	 * @note Changing size of data by type of Virtual image.
 	 */
-	virtual ssize_t read_cdda(uint8_t *buf, ssize_t buflen, size_t sectors = 1, bool _clear = false);
+	virtual ssize_t read_cdda(pair16_t *buf, ssize_t buflen, size_t sectors = 1, bool swap_byte = false, bool _clear = false);
 	/*!
 	 * @brief Read raw image data to buffer from current LBA position.
 	 * @param buf Destination pointer of read buffer.
@@ -535,6 +540,96 @@ public:
 	 * @note need to implement accross another tracks.
 	 */	
 	virtual bool seek_relative_lba(int64_t lba, bool& in_track);
+
+	/*!
+	 * @brief Read TOC table by TRACK.
+	 * @param trk TRACK NUM (0 to 99).
+	 * @param pointer of Destination TOC buffer.
+	 *        MUST allocate more than sizeof(CDROM_META::cdrom_toc_table_t).
+	 * @return true if success.
+	 */
+	virtual bool get_toc_table(int trk, CDROM_META::cdrom_toc_table_t* data);
+	/*!
+	 * @brief Get track position now accessing.
+	 * @return track value.-1 if not avaiable image.
+	 */
+	virtual int get_track() const;
+	/*!
+	 * @brief Get LBA position of now accessing.
+	 * @return LBA position of now accessing.
+	 */
+	virtual int64_t get_lba() const;
+	/*!
+	 * @brief Get number of sectors at this track.
+	 * @return Number of sectors at this track.
+	 */
+	virtual int64_t get_sectors_of_this_track() const;
+	/*!
+	 * @brief Get current position-offset in this sector.
+	 * @return Offset position.
+	 */
+	virtual int get_offset_of_this_sector() const;
+	/*!
+	 * @brief Whether this track is available.
+	 * @return true if available.
+	 */
+	virtual bool is_available() const;
+	/*!
+	 * @brief Get blocks of this virtual CD.
+	 * @return Blocks (sectors) of this virtual CD.
+	 */
+	virtual int64_t get_blocks() const;
+	/*!
+	 * @brief Get physical block size of this virtual CD.
+	 * @return Physical block size of this virtual CD.
+	 */
+	virtual uint32_t get_physical_block_size() const;
+	/*!
+	 * @brief Get REAL (in VIRTUAL IMAGE) physical block size of this virtual CD.
+	 * @return Physical block size of this virtual CD.
+	 */
+	virtual uint32_t get_real_physical_block_size() const;
+	/*!
+	 * @brief Get logical block size of this virtual CD.
+	 * @return Logical block size of this virtual CD.
+	 */
+	virtual uint32_t get_logical_block_size() const;
+	/*!
+	 * @brief Calculate seek time to expected LBA.
+	 * @param m minutes of LBA (absolute)
+	 * @param s seconds of LBA (absolute)
+	 * @param f frames  of LBA (absolute)
+	 * @return seek time as usec.
+	 * If error, return NaN. 
+	 */	
+	virtual double get_seek_time(uint8_t m, uint8_t s, uint8_t f);
+	/*!
+	 * @brief Calculate seek time to expected LBA.
+	 * @param lba Position of LBA (absolute)
+	 * @return seek time as usec.
+	 * If error, return NaN. 
+	 */	
+	virtual double get_seek_time_absolute_lba(int64_t lba);
+	/*!
+	 * @brief Calculate seek time to expected LBA.
+	 * @param lba Position of LBA (relative)
+	 * @return seek time as usec.
+	 * If error, return NaN. 
+	 */	
+	virtual double get_seek_time_relative_lba(int64_t lba);
+	/*!
+	 * @brief Set enable/disable beyond track reading.
+	 * @param val enable when setting true.
+	 */
+	virtual void enable_beyond_track_reading(bool val);
+	
+	/*!
+	 * @brief Check type of virtual disc image by filename.
+	 * @param filename Filename of image (absolute path).
+	 * @return Type of CD image.
+	 */
+	static enum CDROM_META::CDIMAGE_TYPE check_type(_TCHAR *filename);
+
 	/*!
 	 * @brief Load / Save state to VM.
 	 * @param state_fio FILE IO for state loading/saving.
@@ -547,12 +642,49 @@ public:
 /*!
  * Inline functions.
  */
+/*!
+ * @brief Convert BCD value to binary value.
+ * @param n BCD value
+ * @return Binarized value.-1 if error.
+ */
+inline int CDROM_SKELTON::bcd_to_bin(uint8_t n, bool& __error)
+{
+	uint8_t n1 = n >> 4;
+	uint8_t n2 = n & 0x0f;
+	if(n1 >= 10) {
+		__error = true;
+		return 0;
+	}
+	if(n2 >= 10) {
+		__error = true;
+		return 0;
+	}
+	__error = false;
+	return (((int)(n1 * 10)) + (int)n2);
+}
+/*!
+ * @brief Convert POSITIVE BINARY value to BCD.
+ * @param n Binary value.
+ * @param _error Set true if available range (0 to 99) at n.
+ * @return BCDed value.
+ */
+inline uint8_t CDROM_SKELTON::bin_to_bcd(uint8_t n, bool& __error)
+{
+	if((n < 0) || (n >= 100)) {
+		__error = true;
+		return 0;
+	}
+	uint8_t n1 = ((uint8_t)(n / 10));
+	uint8_t n2 = ((uint8_t)(n % 10));
+	__error = false;
+	return ((n1 << 8) | n2);
+}
 
 /*!
  * @brief Get track position now accessing.
  * @return track value.-1 if not avaiable image.
  */
-inline int CDROM_SKELTON::get_track() const
+inline int CDROM_SKELTON::__get_track() const
 {
 	return now_track;
 }
@@ -561,7 +693,7 @@ inline int CDROM_SKELTON::get_track() const
  * @brief Get LBA position of now accessing.
  * @return LBA position of now accessing.
  */
-inline int64_t CDROM_SKELTON::get_lba() const
+inline int64_t CDROM_SKELTON::__get_lba() const
 {
 	return now_lba;
 }
@@ -569,7 +701,7 @@ inline int64_t CDROM_SKELTON::get_lba() const
  * @brief Get Relative LBA offset value (at head of this track) of this image.
  * @return Relative LBA offset value (in image).
  */
-inline int64_t CDROM_SKELTON::get_lba_offset() const
+inline int64_t CDROM_SKELTON::__get_lba_offset() const
 {
 	return lba_offset_of_this_track;
 }
@@ -577,7 +709,7 @@ inline int64_t CDROM_SKELTON::get_lba_offset() const
  * @brief Get number of sectors at this track.
  * @return Number of sectors at this track.
  */
-inline int64_t CDROM_SKELTON::get_sectors_of_this_track() const
+inline int64_t CDROM_SKELTON::__get_sectors_of_this_track() const
 {
 	return sectors_of_this_track;
 }
@@ -585,7 +717,7 @@ inline int64_t CDROM_SKELTON::get_sectors_of_this_track() const
  * @brief Get current position-offset in this sector.
  * @return Offset position.
  */
-inline int CDROM_SKELTON::get_offset_of_this_sector() const
+inline int CDROM_SKELTON::__get_offset_of_this_sector() const
 {
 	return (int)offset_in_sector;
 }
@@ -593,7 +725,7 @@ inline int CDROM_SKELTON::get_offset_of_this_sector() const
  * @brief Whether this track is available.
  * @return true if available.
  */
-inline bool CDROM_SKELTON::is_available() const
+inline bool CDROM_SKELTON::__is_available() const
 {
 	return track_is_available;
 }
@@ -601,7 +733,7 @@ inline bool CDROM_SKELTON::is_available() const
  * @brief Get blocks of this virtual CD.
  * @return Blocks (sectors) of this virtual CD.
  */
-inline int64_t  CDROM_SKELTON::get_blocks() const
+inline int64_t  CDROM_SKELTON::__get_blocks() const
 {
 	return max_blocks;
 }
@@ -609,7 +741,7 @@ inline int64_t  CDROM_SKELTON::get_blocks() const
  * @brief Get physical block size of this virtual CD.
  * @return Physical block size of this virtual CD.
  */
-inline uint32_t CDROM_SKELTON::get_physical_block_size() const
+inline uint32_t CDROM_SKELTON::__get_physical_block_size() const
 {
 	return physical_bytes_per_block;
 }
@@ -617,7 +749,7 @@ inline uint32_t CDROM_SKELTON::get_physical_block_size() const
  * @brief Get REAL (in VIRTUAL IMAGE) physical block size of this virtual CD.
  * @return Physical block size of this virtual CD.
  */
-inline uint32_t CDROM_SKELTON::get_real_physical_block_size() const
+inline uint32_t CDROM_SKELTON::__get_real_physical_block_size() const
 {
 	return real_physical_bytes_per_block;
 }
@@ -625,7 +757,7 @@ inline uint32_t CDROM_SKELTON::get_real_physical_block_size() const
  * @brief Get logical block size of this virtual CD.
  * @return Logical block size of this virtual CD.
  */
-inline uint32_t CDROM_SKELTON::get_logical_block_size() const
+inline uint32_t CDROM_SKELTON::__get_logical_block_size() const
 {
 	return logical_bytes_per_block;
 }
@@ -634,7 +766,7 @@ inline uint32_t CDROM_SKELTON::get_logical_block_size() const
  * @brief Get transfer time per byte.
  * @return transfer time as uSec.
  */
-inline double CDROM_SKELTON::get_transfer_time_us()
+inline double CDROM_SKELTON::__get_transfer_time_us()
 {
 	double _speed = seek_speed;
 	if(_speed <= 0.0) _speed = 1.0;
@@ -646,7 +778,7 @@ inline double CDROM_SKELTON::get_transfer_time_us()
  * @brief Get seek multiply rate.
  * @return Seek rate.
  */
-inline double CDROM_SKELTON::get_seek_speed()
+inline double CDROM_SKELTON::__get_seek_speed()
 {
 	double _speed = seek_speed;
 	if(_speed <= 0.0) {
@@ -659,44 +791,89 @@ inline double CDROM_SKELTON::get_seek_speed()
  * @brief Get seek time per block.
  * @return seek time as uSec.
  */
-inline double CDROM_SKELTON::get_single_seek_time_us()
+inline double CDROM_SKELTON::__get_single_seek_time_us()
 {
 	double bytes = (double)physical_bytes_per_block;
 	if(bytes < 1.0) bytes = 1.0;
-	double usec = get_transfer_time_us();
+	double usec = __get_transfer_time_us();
 
 	if(usec < (1.0 / 32.0)) usec = 1.0 / 32.0;
 	return usec * bytes;
 }
 
 /*!
- * @brief Convert BCD value to binary value.
- * @param n BCD value
- * @return Binarized value.-1 if error.
+ * @brief Set seek speed.
+ * @param usec Basic transfer time normally 1.0 / 150.0KHz.
  */
-inline int CDROM_SKELTON::bcd_to_bin(uint8_t n)
+inline void CDROM_SKELTON::__set_transfer_time_us(double usec)
 {
-	uint8_t n1 = n >> 8;
-	uint8_t n2 = n & 0x0f;
-	if(n1 >= 10) return -1;
-	if(n2 >= 10) return -1;
-	return (((int)(n1 * 10)) + (int)n2);
+	if(usec <= 0.0) {
+		usec = 1.0e6 / 150.0e3;
+	}
+	transfer_time_us = usec;
+	if(transfer_time_us <= (1.0 / 32.0)) {
+		transfer_time_us = 1.0 / 32.0;
+	}
 }
 /*!
- * @brief Convert POSITIVE BINARY value to BCD.
- * @param n Binary value.
- * @param _error Set true if available range (0 to 99) at n.
- * @return BCDed value.
+ * @brief Set seek speed.
+ * @param speed Transfer speed multiply rate, normally 1.0.
  */
-inline uint8_t CDROM_SKELTON::bin_to_bcd(int n, bool& _error)
+inline void CDROM_SKELTON::__set_seek_speed(double speed)
 {
-	if((n < 0) || (n >= 100)) {
-		_error = true;
-		return 0;
+	if(speed <= 0.0) {
+		speed = 1.0;
 	}
-	uint8_t n1 = ((uint8_t)(n / 10));
-	uint8_t n2 = ((uint8_t)(n % 10));
-	_error = false;
-	return ((n1 << 8) | n2);
+	seek_speed = speed;
+}
+/*!
+ * @brief Set physical bytes per block (in emulation).
+ * @param bytes bytes per block.
+ */
+inline void CDROM_SKELTON::__set_physical_bytes_per_block(uint32_t bytes)
+{
+	if(bytes == 0) bytes = 2352; // Default value
+	physical_bytes_per_block = bytes;
+}
+/*!
+ * @brief Set physical bytes per block (in image).
+ * @param bytes bytes per block.
+ */
+inline void CDROM_SKELTON::__set_real_physical_bytes_per_block(uint32_t bytes)
+{
+	if(bytes == 0) bytes = 2352; // Default value
+	real_physical_bytes_per_block = bytes;
+}
+/*!
+ * @brief Set logical bytes per block (in emulation).
+ * @param bytes bytes per block.
+ */
+inline void CDROM_SKELTON::__set_logical_bytes_per_block(uint32_t bytes)
+{
+	if(bytes == 0) bytes = 2048; // Default value
+	logical_bytes_per_block = bytes;
+}
+
+/*!
+ * @brief Get image type of this virtual CD.
+ * @return Image type of virtual CD.
+ */
+inline enum CDROM_META::CDIMAGE_TYPE CDROM_SKELTON::__get_type() const
+{
+	return ((CDROM_META::CDIMAGE_TYPE)type);
+}
+/*!
+ * @brief Get full path of this virtual image.
+ * @param var Returned full path of opened file.Erase if not opened.
+ * @return true if already opened.
+ */
+inline bool CDROM_SKELTON::__get_track_image_file_name(std::string& var)
+{
+	if(__filename.empty()) {
+		var.erase();
+		return false;
+	}
+	var = __filename;
+	return true;
 }
 
