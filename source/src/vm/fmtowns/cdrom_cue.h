@@ -11,86 +11,56 @@
 
 class DLL_PREFIX CDIMAGE_CUE : public CDIMAGE_SKELTON {
 protected:
+	int parsed_track;
+	uint64_t current_lba_offset;
+	uint64_t current_lba_size;
+	uint64_t absolute_lba;
+	uint64_t current_bytes_offset;
+	std::string current_file_name;
 	/*!
-	 * @brief Parse CUE/CCD sheet, check track data and construct tracks table.
+	 * @brief Parse CUE sheet, check track data and construct tracks table.
 	 * @param filename filename (absolute full path) of sheet (or ISO data).
 	 * @return true if succeeded.
+	 * @todo Implement re-calculate multiple tracks inside of ONE IMAGE.
 	 */
 	virtual bool parse_sheet();
+	/*!
+	 * @brief Parse arguments for filename.
+	 * @param line source line.
+	 * @param arg1 answer arg1.
+	 * @param arg_filename answer arg2 (filename).
+	 * @param arg_type answer arg3 (type).
+	 * @return Numbers of arguments.
+	 * @note arg_filename don't remove delimiters this is for filename contains some space characters.
+	 */
+	virtual int parse_args_filename(std::string line, std::string& arg1, std::string& arg_filename, std::string& arg_type);
+	/*!
+	 * @brief Parse arguments.
+	 * @param line source line.
+	 * @param arg1 answer arg1.
+	 * @param arg2 answer arg2.
+	 * @param arg2 answer arg3.
+	 * @return Numbers of arguments.
+	 * @note arguments should be less-equal than 3.
+	 */
+	virtual int parse_args_std(std::string line, std::string& arg1, std::string arg2, std::string arg3);
+	/*!
+	 * @brief RE-Calcurate TOC table.
+	 * @param num track number.
+	 */
+	virtual void recalc_index_table(int num);
 	
 public:
+	/*!
+	 * @brief constructor
+	 */
 	CDIMAGE_CUE();
+	/*!
+	 * @brief de-constructor
+	 * @note Please implement de-allocating tracks list 
+	 * in de-constructor if you need.
+	 */
 	~CDIMAGE_CUE();	
-	/*!
-	 * @brief Open virtual disc image.
-	 * @param filename Filename of image (absolute path).
-	 * @param req_type Opening mode.
-	 * @return true if succeeded.
-	 *
-	 * @note Must set disc parameters list only at this function (or sub-functions).
-	 * @see parse_sheet
-	 * @see check_type
-	 */
-	virtual bool open(_TCHAR *filename, enum CDROM_META::CDIMAGE_OPEN_MODE req_type);
-	/*!
-	 * @brief Close virtual disc image.
-	 * @return true if succeeded.
-	 */
-	virtual bool close();
-	/*!
-	 * @brief Read image data to buffer as CD-ROM/MODE1 from current LBA position.
-	 * @param buf Destination pointer of read buffer.
-	 * @param buflen Size of read buffer.
-	 * @param sectors Count of sectors (LBAs).
-	 * @param _clear true if expect to clear buffer.
-	 * @return size of reading.
-	 * @note Override and inherit this to implement real method.
-	 * @note Stop when reaches END of CURRENT TRACK.
-	 */
-	virtual ssize_t read_mode1(uint8_t *buf, ssize_t buflen, size_t sectors = 1, bool _clear = false);
-		/*!
-	 * @brief Read image data to buffer as CD-ROM/MODE2 from current LBA position.
-	 * @param buf Destination pointer of read buffer.
-	 * @param buflen Size of read buffer.
-	 * @param sectors Count of sectors (LBAs).
-	 * @param _clear true if expect to clear buffer.
-	 * @return size of reading.
-	 * @note Override and inherit this to implement real method.
-	 * @note Stop when reaches END of CURRENT TRACK.
-	 * @note Changing size of data by type of Virtual image.
-	 */
-	virtual ssize_t read_mode2(uint8_t *buf, ssize_t buflen, size_t sectors = 1, bool _clear = false);
-		/*!
-	 * @brief Read image data to buffer as CD-DA from current LBA position.
-	 * @param buf Destination pointer of read buffer.
-	 * @param buflen Size of read buffer.
-	 * @param sectors Count of sectors (LBAs).
-	 * @param _clear true if expect to clear buffer.
-	 * @return size of reading.
-	 * @note Override and inherit this to implement real method.
-	 * @note Stop when reaches END of CURRENT TRACK.
-	 * @note Changing size of data by type of Virtual image.
-	 */
-	virtual ssize_t read_cdda(uint8_t *buf, ssize_t buflen, size_t sectors = 1, bool _clear = false);
-		/*!
-	 * @brief Read raw image data to buffer from current LBA position.
-	 * @param buf Destination pointer of read buffer.
-	 * @param buflen Size of read buffer.
-	 * @param sectors Count of sectors (LBAs).
-	 * @param _clear true if expect to clear buffer.
-	 * @return size of reading.
-	 * @note Override and inherit this to implement real method.
-	 * @note Stop when reaches END of CURRENT TRACK.
-	 * @note Changing size of data by type of Virtual image.
-	 */
-	virtual ssize_t read_raw(uint8_t *buf, ssize_t buflen, size_t sectors = 1, bool _clear = false);
-	/*!
-	 * @brief Load / Save state to VM.
-	 * @param state_fio FILE IO for state loading/saving.
-	 * @param loading If true loading, false is saving.
-	 * @return true if succeeded.
-	 */
-	virtual bool process_state(FILEIO* state_fio, bool loading);
 };
 
 

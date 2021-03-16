@@ -147,7 +147,119 @@ bool  CDROM_SKELTON::lba_to_msf(int64_t lba, uint8_t& m, uint8_t& s, uint8_t& f)
 }
 
 /*!
- * @brief Read TOC table by TRACK.
+ * @brief Read TOC/Playing position of used track (BCD Format)
+ * @param trk TRACK NUM (0 to 99). If -1 get informations of track now playing.
+ * @param pointer of Destination Playing status table buffer.
+ *        MUST allocate more than sizeof(CDROM_META::cdrom_position_bcd_t).
+ * @return true if available this track.
+ */
+bool CDROM_SKELTON::get_position_by_bcd(int trk, CDROM_META::cdrom_position_bcd_t* data)
+{
+	if(data == nullptr) return false;
+	if(trk == -1) {
+		if(now_track > 99) return -false;
+		if(now_track < 1)  return false;
+		trk = now_track;
+	}
+	if((trk < 0) || (trk > 99)) return false;
+	if(trk >= tracks) return false;
+	if(!(toc_table[trk].available)) return false;
+	CDROM_META::cdrom_position_binary_t __data;
+
+	memset(((uint8_t*)data), 0x00, sizeof(cdrom_position_bcd_t));
+	if(get_position_by_bynary(trk, &__data)) {
+		uint8_t m, s, f;
+		
+		data->trk = __data.trk;
+		data->type = __data.type;
+		
+//		if(!(lba_to_msf(__data.pregap, m, s, f))) {
+//			return false;
+//		}
+		data->pregap_m = m;
+		data->pregap_s = s;
+		data->pregap_f = f;
+		
+//		if(!(lba_to_msf(__data.start, m, s, f))) {
+//			return false;
+//		}
+		data->start_m = m;
+		data->start_s = s;
+		data->start_f = f;
+
+//		if(!(lba_to_msf(__data.end, m, s, f))) {
+//			return false;
+//		}
+		data->end_m = m;
+		data->end_s = s;
+		data->end_f = f;
+		
+//		if(!(lba_to_msf(__data.abs_pos, m, s, f))) {
+//			return false;
+//		}
+		data->abs_m = m;
+		data->abs_s = s;
+		data->abs_f = f;
+
+//		if(!(lba_to_msf(__data.rel_pos, m, s, f))) {
+//			return false;
+//		}
+		data->rel_m = m;
+		data->rel_s = s;
+		data->rel_f = f;
+		return true;
+	}
+	return false;
+}
+
+/*!
+ * @brief Read TOC/Playing position of used track (BINARY Format)
+ * @param trk TRACK NUM (0 to 99). If -1 get informations of track now playing.
+ * @param pointer of Destination Playing status table buffer.
+ *        MUST allocate more than sizeof(CDROM_META::cdrom_position_bcd_t).
+ * @return true if available this track.
+ */
+bool CDROM_SKELTON::get_position_by_binary(int trk, CDROM_META::cdrom_position_binary_t* data)
+{
+	if(data == nullptr) return false;
+	if(trk == -1) {
+		if(now_track > 99) return -false;
+		if(now_track < 1)  return false;
+		trk = now_track;
+	}
+	if((trk < 0) || (trk > 99)) return false;
+	if(trk >= tracks) return false;
+	if(!(toc_table[trk].available)) return false;
+	
+	memset(((uint8_t*)data), 0x00, sizeof(cdrom_position_binary_t));
+
+	int64_t _pregap = toc_table[trk].pregap;
+	
+	if(_pregap < 0) _pregap = 0; // OK?
+	data->trk = trk;
+	data->type = toc_table[trk].type;
+	data->pregap = _pregap;
+	data->start = toc_table[trk].absolute_lba;
+
+	int64_t n_size = toc_table[trk].lba_size;
+	if(n_size < 1) n_size = 1;
+
+	data->end = toc_table[trk].absolute_lba + n_size - 1;
+
+	data->abs_pos = 0;
+	data->rel_pos = 0;
+	
+	int64_t rel_lba = now_lba;
+	if(rel_lba > 0) {
+		if(trk == now_track) {
+			data->abs_pos = toc_table[trk].absolute_lba + rel_lba;
+			data->rel_pos = rel_lba;
+		}
+	}
+	return true;
+}
+/*!
+ * @brief Get TOC table by TRACK (RAW format).
  * @param trk TRACK NUM (0 to 99).
  * @param pointer of Destination TOC buffer.
  *        MUST allocate more than sizeof(CDROM_META::cdrom_toc_table_t).
@@ -159,17 +271,18 @@ bool CDROM_SKELTON::get_toc_table(int trk, CDROM_META::cdrom_toc_table_t* data)
 	if((trk < 0) || (track > 99)) return false;
 	if(trk >= tracks) return false;
 		
-	data->available          = toc_table[trk].available;
-	data->type               = toc_table[trk].type;
-	data->absolute_lba       = toc_table[trk].absolute_lba;
-	data->lba_offset         = toc_table[trk].lba_offset;
-	data->lba_size           = toc_table[trk].lba_size;
-	data->index0             = toc_table[trk].index0;
-	data->index1             = toc_table[trk].index1;
-	data->pregap             = toc_table[trk].pregap;
-	data->physical_size      = toc_table[trk].physical_size;
-	data->real_physical_size = toc_table[trk].real_physical_size;
-	data->logical_size       = toc_table[trk].logical_size;
+	data->available            = toc_table[trk].available;
+	data->type                 = toc_table[trk].type;
+	data->absolute_lba         = toc_table[trk].absolute_lba;
+	data->lba_offset           = toc_table[trk].lba_offset;
+	data->lba_size             = toc_table[trk].lba_size;
+	data->index0               = toc_table[trk].index0;
+	data->index1               = toc_table[trk].index1;
+	data->current_bytes_offset = toc_table[trk].current_bytes_offset;
+	data->pregap               = toc_table[trk].pregap;
+	data->physical_size        = toc_table[trk].physical_size;
+	data->real_physical_size   = toc_table[trk].real_physical_size;
+	data->logical_size         = toc_table[trk].logical_size;
 		
 	memset(&(data->filename[0]), 0x00, sizeof(_TCHAR) * _MAX_PATH);
 	my_tcscpy_s(&(data->filename[0]), _MAX_PATH - 1, &(toc_table[trk].filename[0]));
@@ -190,12 +303,16 @@ bool CDROM_SKELTON::open(_TCHAR *filename, enum CDROM_META::CDIMAGE_OPEN_MODE re
 {
 	close();
 	if(FILEIO::IsFileExisting(filename)) {
+		bool stat = false;
 		sheet_fio = new FILEIO();
 		if(sheet_fio != nullptr) {
 			if(sheet_fio->Fopen(filename, FILEIO_READ_BINARY)) {
-				return parse_sheet();
+				parse_sheet();
 			}
+			delete sheet_fio;
+			sheet_fio = NULL;
 		}
+		return stat;
 	}
 	return false;
 }
@@ -903,17 +1020,6 @@ uint32_t CDROM_SKELTON::get_logical_block_size() const
  */
 bool CDROM_SKELTON::parse_sheet()
 {
-	if(sheet_fio == nullptr) return false;
-	if(!(sheet_fio->IsOpened())) {
-		return false;
-	}
-	if(current_fio != nullptr) {
-		if(current_fio->IsOpened()) {
-			current_fio->Fclose();
-		}
-		delete current_fio;
-		current_fio = NULL;
-	}
 	return true;
 }
 
@@ -1102,6 +1208,144 @@ void CDROM_SKELTON::reset_sheet_fio()
 	}
 }
 
+/*!
+ * @brief To be Upper characters from string.
+ * @param s source string.
+ * @return ToUpper'ed string.
+ */
+static std::string CDROM_SKELTON::to_upper(std::string s)
+{
+	std::string rets;
+
+	rets.clear();
+	if(!(s.empty())) {
+		for(auto c = s.begin(); c != s.end(); ++c) {
+			_TCHAR n = std::toupper(*c);
+			rets.push_back(n);
+		}
+	}
+	return rets;
+}
+/*!
+ * @brief Get uint value from BCD string.
+ * @param s source string
+ * @param errorval set true if wrong string value.
+ * @return Value if success, 0 if not.
+ */
+static uint64_t CDROM_SKELTON::get_val_from_bcdstr(std::string s, bool& errorval)
+{
+	int pos = 0;
+	uint64_t rval = 0;
+	int pval;
+	for(auto c = s.begin(); c != s.end() ; ++c) {
+		char cc = *c;
+		if((cc < '0') || (cc > '9')) {
+			break;
+		}
+		rval = rval * 10;
+		pval = cc - '0';
+		rval = rval + pval;
+		pos++;
+	}
+	if(pos < 1) {
+		errorval = true;
+		return 0;
+	}
+	errorval = false;
+	return rval;
+}
+
+/*!
+ * @brief Get uint value from HEXADECIMAL string.
+ * @param s source string
+ * @param errorval set true if wrong string value.
+ * @return Value if success, 0 if not.
+ */
+static uint64_t CDROM_SKELTON::get_val_from_hexstr(std::string s, bool& errorval)
+{
+	int pos = 0;
+	uint64_t rval = 0;
+	int pval;
+	for(auto c = s.begin(); c != s.end() ; ++c) {
+		char cc = *c;
+		bool is_val = false;
+		if((cc >= '0') && (cc <= '9')) {
+			is_val = true;
+			pval = cc - '0';
+		} else if((cc >= 'A') && (cc <= 'F')) {
+			is_val = true;
+			pval = cc - 'A';
+		} else if((cc >= 'a') && (cc <= 'f')) {
+			is_val = true;
+			pval = cc - 'a';
+		}
+		if(!(is_val)) {
+			break;
+		}
+		rval = rval << 4;
+		rval = rval + pval;
+		pos++;
+	}
+	if(pos < 1) {
+		errorval = true;
+		return 0;
+	}
+	errorval = false;
+	return rval;
+}
+
+/*!
+ * @brief Decode frame value from MSF string.
+ * @param timestr Time string. Encoded by "xx:xx:xx". xx must be BCD value.
+ * @param errorval true if wrong string.
+ * @return value if success, 0 when failed.
+ */
+static uint64_t CDROM_SKELTON::get_frames_from_msfstr(std::string timestr, bool &errorval)
+{
+	if(timestr.size() < 8) { //xx:xx:xx
+		errorval = true;
+		return 0;
+	}
+	std::string s_m = timnestr.substr(0, 2);
+	std::string _d1 = timnestr.substr(2, 1);
+	std::string s_s = timnestr.substr(3, 2);
+	std::string _d2 = timnestr.substr(5, 1);
+	std::string s_f = timnestr.substr(6, 2);
+
+	if((_d1 != ":") || (_d2 != ":")) {
+		// delimiter(s) not found
+		errorval = true;
+		return 0;
+	}
+	bool error1, error2, error3;
+	error1 = false;
+	error2 = false;
+	error3 = false;
+	uint64_t mm = get_val_from_bcdstr(s_m, error1);
+	uint64_t ss = get_val_from_bcdstr(s_s, error2);
+	uint64_t ff = get_val_from_bcdstr(s_f, error3);
+	if((error1) || (error2) || (error3)) {
+		errorval = true;
+		return 0;
+	}
+	if(mm > 99) {
+		errorval = true;
+		return 0;
+	}
+	if(ss > 59) {
+		errorval = true;
+		return 0;
+	}
+	if(ff > 74) {
+		errorval = true;
+		return 0;
+	}
+	uint64_t nt = (mm * 60 * 75) + (ss * 75) + ff;
+	errorval = false;
+	return nt;
+}
+
+
 #define STATE_VERSION 1
 /*!
  * @brief Load / Save state(main part) to VM.
@@ -1173,7 +1417,11 @@ void CDROM_SKELTON::init_toc_table(uint8_t num)
 	toc_table[num].lba_size = 0;
 	toc_table[num].index0 = 0;
 	toc_table[num].index1 = 0;
-	toc_table[num].physical_size = 0;
+	toc_table[num].physical_size = 2352;
+	toc_table[num].logical_size = 2048;
+	toc_table[num].real_physical_size = 2352;
+	toc_table[num].current_bytes_offset = 0;
+	
 	memset(toc_table[num].filename, 0x00, sizeof(_TCHAR) * _MAX_PATH);
 }
 

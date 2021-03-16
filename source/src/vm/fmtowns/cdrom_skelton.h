@@ -146,20 +146,66 @@ typedef struct {
  * @note 20210311 K.O
  */
 typedef struct {
-	bool available;	             //!< indicate this track is available.
-	uint8_t type;	             //!< track type (enum CDIMAGE_TRACK_TYPE)
-	int64_t pregap;              //!< pregap value
-	int64_t absolute_lba;        //!< absolute lba position.
-	int64_t lba_offset;          //!< LBA offset Within a image.
-	int64_t lba_size;            //!< LBA size of track.
-	int64_t index0;              //!< INDEX0 (relative)
-	int64_t index1;              //!< INDEX1 (relative)
-	uint32_t physical_size;      //!< Physical sector size
-	uint32_t real_physical_size; //!< Real physical sector size
-	uint32_t logial_size;        //!< Logical sector size
-	_TCHAR filename[_MAX_PATH];  //!< Image file name.
+	bool available;	               //!< indicate this track is available.
+	uint8_t type;	               //!< track type (enum CDIMAGE_TRACK_TYPE)
+	int64_t pregap;                //!< pregap value
+	int64_t absolute_lba;          //!< absolute lba position.
+	int64_t lba_offset;            //!< LBA offset Within a image.
+	int64_t lba_size;              //!< LBA size of track.
+	int64_t index0;                //!< INDEX0 (relative)
+	int64_t index1;                //!< INDEX1 (relative)
+	uint64_t current_bytes_offset; //!< CURRENT BYTES OFFSET INSIDE OF THIS IMAGE.
+	uint32_t physical_size;        //!< Physical sector size
+	uint32_t real_physical_size;   //!< Real physical sector size
+	uint32_t logial_size;          //!< Logical sector size
+	_TCHAR filename[_MAX_PATH];    //!< Image file name.
 } cdrom_toc_table_t;
 
+/*!
+ * Information of PLaying position and a track (BCD Format).
+ * This is useful to read TOC and to make SUBQ.
+ */
+typedef struct {
+	//!< Current track information.
+	uint8_t trk;      //!< 0-99 : Available / 0xff: Unavailable (BCD Value).
+	uint8_t type;     //!< enum CDROM_META::CDIMAGE_TRACK_TYPE
+	
+	uint8_t pregap_m; //!< Pregap of track ; minutes (BCD Value).
+	uint8_t pregap_s; //!< Pregap of track ; seconds (BCD Value).
+	uint8_t pregap_f; //!< Pregap of track ; frames  (BCD Value).
+	
+	uint8_t start_m;  //!< Start of track ; minutes (BCD Value).
+	uint8_t start_s;  //!< Start of track ; seconds (BCD Value).
+	uint8_t start_f;  //!< Start of track ; frames  (BCD Value).
+	
+	uint8_t end_m;    //!< End of track ; minutes   (BCD Value).
+	uint8_t end_s;    //!< End of track ; seconds   (BCD Value).
+	uint8_t end_f;    //!< End of track ; frames    (BCD Value).
+	//!< Belows are frame position(s).
+	uint8_t abs_m;    //!< Relative minutes from start of track (BCD Value).  
+	uint8_t abs_s;    //!< Relative seconds from start of track (BCD Value). 
+	uint8_t abs_f;    //!< Relative frames from start of track  (BCD Value).
+	
+	uint8_t rel_m;    //!< Relative minutes from start of track (BCD Value).  
+	uint8_t rel_s;    //!< Relative seconds from start of track (BCD Value). 
+	uint8_t rel_f;    //!< Relative frames from start of track  (BCD Value). 
+} cdrom_position_bcd_t;
+
+/*!
+ * Information of PLaying position and a track (Binary Format).
+ * This is useful to read TOC and to make SUBQ.
+ */
+typedef struct {
+	uint8_t  trk;     //!< 0-99 : Available / 0xff: Unavailable (BCD Value).
+	uint8_t  type;    //!< enum CDROM_META::CDIMAGE_TRACK_TYPE
+	int      pregap;  //!< Pregap value.
+	int64_t  start;   //!< Start LBA Position.
+	int64_t  end;     //!< End LBA Position. (start + SIZE - 1).
+	//!< Belows are frame position(s).
+	uint64_t abs_pos; //!< Absolute LBA Position.
+	uint64_t rel_pos; //!< Relative LBA Position.
+} cdrom_position_binary_t;
+	
 } // END OF NAMESPACE CDROM_META .
 
 /*! 
@@ -171,10 +217,10 @@ protected:
 	FILEIO* current_fio;
 	FILEIO* sheet_fio;
 	
-	uint8_t type; //!< enum CDIMAGE_TYPE 
-	uint8_t tracks;	
+	uint8_t type;      //!< enum CDIMAGE_TYPE 
+	uint8_t tracks;	   //!< 00-99. (Maybe)
 	uint8_t tracktype; //!< enum CDIMAGE_TRACK_TYPE 
-	uint8_t openmode; //!< enum CDIMAGE_OPENMODE 
+	uint8_t openmode;  //!< enum CDIMAGE_OPENMODE 
 	
 	CDROM_META::cdrom_toc_table_t toc_table[102];
 	uint32_t logical_bytes_per_block;
@@ -550,6 +596,22 @@ public:
 	 */
 	virtual bool get_toc_table(int trk, CDROM_META::cdrom_toc_table_t* data);
 	/*!
+	 * @brief Read TOC/Playing position of used track (BCD Format)
+	 * @param trk TRACK NUM (0 to 99). If -1 get informations of track now playing.
+	 * @param pointer of Destination Playing status table buffer.
+	 *        MUST allocate more than sizeof(CDROM_META::cdrom_position_bcd_t).
+	 * @return true if available this track.
+	 */
+	virtual bool get_position_by_bcd(int trk, CDROM_META::cdrom_position_bcd_t* data);
+	/*!
+	 * @brief Read TOC/Playing position of used track (BINARY Format)
+	 * @param trk TRACK NUM (0 to 99). If -1 get informations of track now playing.
+	 * @param pointer of Destination Playing status table buffer.
+	 *        MUST allocate more than sizeof(CDROM_META::cdrom_position_bcd_t).
+	 * @return true if available this track.
+	 */
+	virtual bool get_position_by_binary(int trk, CDROM_META::cdrom_position_binary_t* data);
+	/*!
 	 * @brief Get track position now accessing.
 	 * @return track value.-1 if not avaiable image.
 	 */
@@ -629,6 +691,34 @@ public:
 	 * @return Type of CD image.
 	 */
 	static enum CDROM_META::CDIMAGE_TYPE check_type(_TCHAR *filename);
+
+	/*!
+	 * @brief Get uint value from BCD string.
+	 * @param s source string
+	 * @param errorval set true if wrong string value.
+	 * @return Value if success, 0 if not.
+	 */
+	static uint64_t get_val_from_bcdstr(std::string s, bool& errorval);
+	/*!
+	 * @brief Get uint value from HEXADECIMAL string.
+	 * @param s source string
+	 * @param errorval set true if wrong string value.
+	 * @return Value if success, 0 if not.
+	 */
+	static uint64_t get_val_from_hexstr(std::string s, bool& errorval);
+	/*!
+	 * @brief Decode frame value from MSF string.
+	 * @param timestr Time string. Encoded by "xx:xx:xx". xx must be BCD value.
+	 * @param errorval true if wrong string.
+	 * @return value if success, 0 when failed.
+	 */
+	static uint64_t get_frames_from_msfstr(std::string timestr, bool &errorval);
+	/*!
+	 * @brief To be Upper characters from string.
+	 * @param s source string.
+	 * @return ToUpper'ed string.
+	 */
+	static std::string to_upper(std::string s);
 
 	/*!
 	 * @brief Load / Save state to VM.
