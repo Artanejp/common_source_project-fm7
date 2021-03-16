@@ -249,6 +249,7 @@ protected:
 	 * @brief Parse CUE/CCD sheet, check track data and construct tracks table.
 	 * @return true if succeeded.
 	 * @note Must open sheet file before using.
+	 * @note Initialize TOC table when calling.
 	 */
 	virtual bool parse_sheet();
 	/*!

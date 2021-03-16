@@ -1017,9 +1017,13 @@ uint32_t CDROM_SKELTON::get_logical_block_size() const
  * @brief Parse CUE/CCD sheet, check track data and construct tracks table.
  * @return true if succeeded.
  * @note Must open sheet file before using.
+ * @note Initialize TOC table when calling.
  */
 bool CDROM_SKELTON::parse_sheet()
 {
+	for(int trk = 0; trk < 102; trk++) {
+		init_toc_table(trk);
+	}
 	return true;
 }
 

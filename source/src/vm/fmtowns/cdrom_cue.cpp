@@ -273,9 +273,6 @@ void CDROM_CUE::recalc_index_table(int num)
 	toc_table[num].index0 = index0;
 	toc_table[num].index1 = index1;
 	
-	toc_table[num].physical_size = physical_size;
-	toc_table[num].logical_size = logical_size;
-	toc_table[num].real_physical_size = real_physical_size;
 	memset(toc_table[num].filename, 0x00, sizeof(_TCHAR) * _MAX_PATH);
 	if(!(current_filename.empty())) {
 		current_filename.copy(toc_table[num].filename, _MAX_PATH - 1);
