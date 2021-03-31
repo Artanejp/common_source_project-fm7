@@ -341,6 +341,11 @@ protected:
 	 */
 	inline enum CDROM_META::CDIMAGE_TYPE __get_type() const;
 	/*!
+	 * @brief Get track type of this track.
+	 * @return TRACK TYPE.
+	 */
+	inline enum CDROM_META::CDIMAGE_TRACK_TYPE __get_track_type() const;
+	/*!
 	 * @brief Get full path of this virtual image.
 	 * @param var Returned full path of opened file.Erase if not opened.
 	 * @return true if already opened.
@@ -410,6 +415,11 @@ public:
 	 * @return Relative LBA offset value (in image).
 	 */
 	virtual int64_t get_lba_offset() const;
+	/*!
+	 * @brief Get track type of this track.
+	 * @return TRACK TYPE.
+	 */
+	virtual enum CDROM_META::CDIMAGE_TRACK_TYPE get_track_type() const;
 	/*!
 	 * @brief Get image type of this virtual CD.
 	 * @return Image type of virtual CD.
@@ -945,6 +955,14 @@ inline void CDROM_SKELTON::__set_logical_bytes_per_block(uint32_t bytes)
 	logical_bytes_per_block = bytes;
 }
 
+/*!
+ * @brief Get track type of this track.
+ * @return TRACK TYPE.
+ */
+inline enum CDROM_META::CDIMAGE_TRACK_TYPE CDROM_SKELTON::__get_track_type() const
+{
+	return ((CDROM_META::CDIMAGE_TRACK_TYPE)tracktype);
+}
 /*!
  * @brief Get image type of this virtual CD.
  * @return Image type of virtual CD.

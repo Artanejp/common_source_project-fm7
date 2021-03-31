@@ -857,6 +857,14 @@ enum CDROM_META::CDIMAGE_TYPE CDROM_SKELTON::get_type() const
 	return __get_type();
 }
 /*!
+ * @brief Get track type of this track.
+ * @return TRACK TYPE.
+ */
+enum CDROM_META::CDIMAGE_TRACK_TYPE CDROM_SKELTON::get_track_type() const
+{
+	return __get_track_type();
+}
+/*!
  * @brief Get full path of this virtual image.
  * @param var Returned full path of opened file.Erase if not opened.
  * @return true if already opened.
