@@ -125,6 +125,7 @@ pair16_t CDROM_CDC::read_cdda_sample()
 uint32_t CDROM_CDC::read_dma_io8(uint32_t addr)
 {
 	uint8_t dat = 0x00;
+	int count_bak = data_count;
 	if(data_count > 0) {
 		dat = ram[read_ptr];
 		read_ptr++;
@@ -136,16 +137,107 @@ uint32_t CDROM_CDC::read_dma_io8(uint32_t addr)
 	// Check DRQ status.
 	if(data_count <= 0) {
 		// Make EOT
+		if(count_bak > 0) {
+			register_delay_dma_eot();
+		}
 	}
 	return (uint32_t)dat;
 }
 
 uint32_t CDROM_CDC::read_io8(uint32_t addr)
 {
+	/*
+	 * 04C0h : Master status
+	 * 04C2h : CDC status
+	 * 04C4h : DATA
+	 * 04CCh : SUBQ CODE
+	 * 04CDh : SUBQ STATUS 
+	 */
+	uint8_t val = 0x00;
+	switch(addr & 0x0f) {
+	case 0x00:
+		val = val | ((mcu_intr)					? 0x80 : 0x00);
+		val = val | ((dma_intr)					? 0x40 : 0x00);
+		val = val | ((pio_transfer_phase)		? 0x20 : 0x00);
+		val = val | ((dma_transfer_phase)		? 0x10 : 0x00); // USING DMAC ch.3
+		val = val | ((has_status)				? 0x02 : 0x00);
+		val = val | ((mcu_ready)				? 0x01 : 0x00);
+		break;
+	case 0x02:
+		val = read_status();
+		break;
+	case 0x04:
+		if(pio_transfer_phase) {
+			if(data_count > 0) {
+				val = ram[read_ptr];
+				read_ptr++;
+				if(read_ptr >= fifo_size) {
+					read_ptr = 0;
+				}
+				data_count--;
+			}
+			// Check DRQ status.
+			if(data_count <= 0) {
+				// Make EOT
+				pio_transfer_phase = false;
+				pio_transfer = false; // OK?
+				// Q: Will interrupt?
+				mcu_ready = false;
+				dma_intr = true;
+				mcu_intr = false;
+				clear_event(this, event_time_out);
+				clear_event(this, event_eot);
+				clear_event(this, event_drq);
+
+			}
+		}
+		break;
+	case 0x0c: // SUBQ STATUS
+		break;
+	case 0x0d: // SUBQ DATA
+		break;
+	}
+	return (uint32_t)val;
 }
 
 void CDROM_CDC::write_io8(uint32_t addr, uint32_t data)
 {
+	/*
+	 * 04C0h : Master control register
+	 * 04C2h : Command register
+	 * 04C4h : Parameter register
+	 * 04C6h : Transfer control register.
+	 */
+	uint32_t naddr = addr & 0x0f;
+	w_regs[naddr] = data;
+	switch(naddr) {
+	case 0x00: // Master control register
+		break;
+	case 0x02: // Command
+		break;
+	case 0x04: // Param
+		break;
+	case 0x06:
+		dma_transfer = ((data & 0x10) != 0) ? true : false;
+		pio_transfer = ((data & 0x08) != 0) ? true : false;
+		if(dma_transfer) {
+			wait_for_dma = false; // From TSUGARU.
+			if(data_count > 0) {
+				if(!(dma_transfer_phase)) {
+					dma_transfer_phase = true;
+					force_register_event(this, EVENT_CDROM_DRQ,
+										 /*0.25 * 1.0e6 / ((double)transfer_speed * 150.0e3 ) */ 1.0 / 8.0,
+										 true, event_drq);
+				}
+			}
+		} else if(pio_transfer) {
+			if(data_count > 0) {
+				if(!(pio_transfer_phase)) {
+					pio_transfer_phase = true;
+				}
+			}
+		}
+	}
 }
 
 void CDROM_CDC::write_signal(int id, uint32_t data, uint32_t mask)
@@ -295,6 +387,31 @@ void CDROM_CDC::event_callback(int event_id, int err)
 		// -> SIGNAL TO DMAC
 		// -> DMA:READ FROM CDC(CDROM_CDC::read_dma_io8())
 		// -> Check DRQ STATUS.
+		break;
+	case EVENT_DMA_EOT:
+		if(dma_transfer_phase) {
+			dma_transfer = false; // OK?
+			dma_transfer_phase = false;
+			mcu_ready = false;
+			dma_intr = true;
+			mcu_intr = false;
+			clear_event(this, event_time_out);
+			clear_event(this, event_eot);
+			clear_event(this, event_drq);
+			if((data_count <= 0) && (srctors_remain <= 0)) {
+				clear_event(this, event_next_sector);
+				clear_event(this, event_seek_completed);
+				status_read_done(false);
+				cdrom_debug_log(_T("EOT(DMA)"));
+				
+			} else {
+				cdrom_debug_log(_T("NEXT(DMA)"));
+
+			}
+ 			if(!(dma_intr_mask) && (stat_reply_intr)) {
+				write_signals(&outputs_mcuint, 0xffffffff);
+			}
+		}
 		break;
 	case EVENT_START_CDDA:
 		event_data_in = -1;
