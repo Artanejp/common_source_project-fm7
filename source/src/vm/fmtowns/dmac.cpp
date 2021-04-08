@@ -21,6 +21,64 @@ void TOWNS_DMAC::reset()
 //	b16 = 2; // Fixed 16bit.
 }
 
+void TOWNS_DMAC::write_io16(uint32_t addr, uint32_t data)
+{
+	pair32_t _d, _bd;
+	if(b16 != 0) {
+		switch(addr & 0x0f) {
+		case 0x02:
+		case 0x03:
+			if(base == 0) {
+				creg_set[selch] = true;
+				dma[selch].creg = data & 0xffff;
+			}
+			dma[selch].bcreg = data & 0xffff;
+			bcreg_set[selch] = true;
+			return;
+			break;
+		case 0x04:
+		case 0x05:
+		case 0x06:
+		case 0x07:
+			_d.d = dma[selch].areg;
+			_bd.d = dma[selch].bareg;
+			if((addr & 0x0f) < 6) {
+				if(base == 0) {
+					_d.w.l = (data & 0xffff);
+					dma[selch].areg = _d.d;
+				}
+				_bd.w.l = (data & 0xffff);
+				dma[selch].bareg = _bd.d;
+			} else {
+				if(base == 0) {
+					_d.w.h = (data & 0xffff);
+					dma[selch].areg = _d.d;
+				}
+				_bd.w.h = (data & 0xffff);
+				dma[selch].bareg = _bd.d;
+			}
+			break;
+		case 0x08:
+		case 0x09:
+			cmd = data & 0xffff;
+			if(((data & 0x04) != (cmd & 0x04)) && (selch == 3)) {
+				if((data & 0x04) == 0) {
+					out_debug_log(_T("TRANSFER: CMD=%04X -> %04X CH=%d\nADDR=%08X"), cmd, (cmd & 0xff00) | (data & 0xff), selch, dma[selch].areg);
+				}
+			}
+			break;
+		default:
+//			write_io8(addr & 0x0e, data);
+			write_io8(addr, data);
+			break;
+		}
+	} else {
+		write_io8(addr, data);
+//		write_io8((addr & 0x0e) + 0, data);
+//		write_io8((addr & 0x0e) + 1, data);
+	}
+}
+
 void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 {
 //	if((addr & 0x0f) == 0x0c) out_debug_log("WRITE REG: %08X %08X", addr, data);
@@ -41,30 +99,11 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		}
 		bcreg_set[selch] = true;
 		break;
-	case 0x04:
-	case 0x05:
-	case 0x06:
 	case 0x07:
 		_d.d  = dma[selch].areg;
 		_bd.d = dma[selch].bareg;
-		switch(addr & 0x0f) {
-		case 0x04:
-			_d.b.l   = data;
-			_bd.b.l  = data;
-			break;
-		case 0x05:
-			_d.b.h   = data;
-			_bd.b.h  = data;
-			break;
-		case 0x06:
-			_d.b.h2  = data;
-			_bd.b.h2 = data;
-			break;
-		case 0x07:
-			_d.b.h3  = data;
-			_bd.b.h3 = data;
-			break;
-		}
+		_d.b.h3  = data;
+		_bd.b.h3 = data;
 		if(base == 0) {
 			dma[selch].areg = _d.d;
 		}
@@ -91,7 +130,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		// Note: This is *temporaly* workaround for 16bit transfer mode with 8bit bus.
 		// 20200318 K.O
 #if !defined(USE_QUEUED_SCSI_TRANSFER)
-		if((dma[selch].is_16bit) && (b16)) {
+		if((dma[selch].is_16bit) && !(inputs_ube[selch])) {
 			if(creg_set[selch]) {
 				dma[selch].creg <<= 1;
 				dma[selch].creg++;
@@ -112,39 +151,99 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 	}
 	UPD71071::write_io8(addr, data);
 }
+
+uint32_t TOWNS_DMAC::read_io16(uint32_t addr)
+{
+	if(b16 != 0) {
+		switch(addr & 0x0f) {
+		case 0x02:
+		case 0x03:
+			if(base == 0) {
+				return (dma[selch].creg & 0xffff);
+			} else {
+				return (dma[selch].bcreg & 0xffff);
+			}
+			break;
+		case 0x04:
+		case 0x05:
+			if(base == 0) {
+				return (dma[selch].areg & 0xffff);
+			} else {
+				return (dma[selch].bareg & 0xffff);
+			}
+			break;
+		case 0x06:
+		case 0x07:
+			if(base == 0) {
+				return ((dma[selch].areg >> 16) & 0xffff);
+			} else {
+				return ((dma[selch].bareg >> 16) & 0xffff);
+			}
+			break;
+		case 0x08:
+		case 0x09:
+			return (uint32_t)(cmd & 0xffff);
+			break;
+		default:
+			return read_io8(addr);
+//			return read_io8(addr & 0x0e);
+			break;
+		}
+	} else {
+		pair16_t _d;
+		_d.w = 0;
+		_d.b.l = read_io8(addr);
+//		_d.b.l = read_io8((addr & 0x0e) + 0);
+//		_d.b.h = read_io8((addr & 0x0e) + 1);
+		return (uint32_t)(_d.w);
+	}
+}
+
 uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 {
 	uint32_t val;
-	pair32_t nval;
+	pair32_t _d;
 	switch(addr & 0x0f) {
 	case 0x01:
 		return (base << 3) | (1 << (selch & 3));
 		break;
-	case 0x04:
-		if(base) {
-			return dma[selch].bareg & 0xff;
+	case 0x02:
+	case 0x03:
+		if(base == 0) {
+			_d.d = dma[selch].creg;
+#if !defined(USE_QUEUED_SCSI_TRANSFER)
+			if((dma[selch].is_16bit) && !(inputs_ube[selch])) {
+				if(!(creg_set[selch])) {
+					_d.d >>= 1;
+				}
+			}
+#endif
 		} else {
-			return dma[selch].areg & 0xff;
+			_d.d = dma[selch].bcreg;
+#if !defined(USE_QUEUED_SCSI_TRANSFER)
+			if((dma[selch].is_16bit) && !(inputs_ube[selch])) {
+				if(!(bcreg_set[selch])) {
+					_d.d >>= 1;
+				}
+			}
+#endif
 		}
-	case 0x05:
-		if(base) {
-			return (dma[selch].bareg >> 8) & 0xff;
-		} else {
-			return (dma[selch].areg >> 8) & 0xff;
-		}
-	case 0x06:
-		if(base) {
-			return (dma[selch].bareg >> 16) & 0xff;
-		} else {
-			return (dma[selch].areg >> 16) & 0xff;
+		switch(addr & 0x0f) {
+		case 2:
+			return _d.b.l;
+			break;
+		case 3:
+			return _d.b.h;
+			break;
 		}
 		break;
 	case 0x07:
-		if(base) {
-			return (dma[selch].bareg >> 24) & 0xff;
+		if(base == 0) {
+			_d.d = dma[selch].areg;
 		} else {
-			return (dma[selch].areg >> 24) & 0xff;
+			_d.d = dma[selch].bareg;
 		}
+		return (uint32_t)(_d.b.h3);
 		break;
 	}
 	return UPD71071::read_io8(addr);
@@ -241,8 +340,10 @@ void TOWNS_DMAC::do_dma_dev_to_mem_8bit(int c)
 	uint32_t addr = dma[c].areg;
 	reset_ube(c);
 	val = dma[c].dev->read_dma_io8(0);
+	
 	// update temporary register
 	tmp = (tmp >> 8) | (val << 8);
+	
 	if(_USE_DEBUGGER) {
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
 			d_debugger->write_via_debugger_data8(addr, val);
@@ -269,9 +370,10 @@ void TOWNS_DMAC::do_dma_mem_to_dev_8bit(int c)
 	} else {
 		val = read_via_debugger_data8(addr);
 	}
-	dma[c].dev->write_dma_io8(0, val);
 	// update temporary register
 	tmp = (tmp >> 8) | (val << 8);
+	
+	dma[c].dev->write_dma_io8(0, val);
 }
 
 void TOWNS_DMAC::do_dma_dev_to_mem_16bit(int c)
@@ -281,6 +383,9 @@ void TOWNS_DMAC::do_dma_dev_to_mem_16bit(int c)
 	uint32_t addr = dma[c].areg;
 	set_ube(c);
 	val = dma[c].dev->read_dma_io16(0);
+	// update temporary register
+	tmp = val;
+/*	
 	if((addr & 1) != 0) {
 		// If odd address, write a byte.
 		uint32_t tval = (val >> 8) & 0xff;
@@ -294,6 +399,7 @@ void TOWNS_DMAC::do_dma_dev_to_mem_16bit(int c)
 			write_via_debugger_data8(addr, tval);
 		}
 	} else {
+*/
 		// 16bit
 		if(_USE_DEBUGGER) {
 			if(d_debugger != NULL && d_debugger->now_device_debugging) {
@@ -304,9 +410,7 @@ void TOWNS_DMAC::do_dma_dev_to_mem_16bit(int c)
 		} else {
 			write_via_debugger_data16(addr, val);
 		}
-	}
-	// update temporary register
-	tmp = val;
+//	}
 }
 
 void TOWNS_DMAC::do_dma_mem_to_dev_16bit(int c)
@@ -324,13 +428,14 @@ void TOWNS_DMAC::do_dma_mem_to_dev_16bit(int c)
 	} else {
 		val = this->read_via_debugger_data16(addr);
 	}
-	if((addr & 1) != 0) {
-		// If odd address, read a high byte.
-		val = (val >> 8) & 0xff;
-	}
-	dma[c].dev->write_dma_io16(0, val);
+//	if((addr & 1) != 0) {
+//		// If odd address, read a high byte.
+//		val = (val >> 8) & 0xff;
+//	}
 	// update temporary register
 	tmp = val;
+	
+	dma[c].dev->write_dma_io16(0, val);
 }
 
 	
@@ -365,7 +470,7 @@ bool TOWNS_DMAC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 					  _T("%s")
 					  _T("%s")
 					  _T("%s"),
-					  (b16) ? _T("YES") : _T("NO"), dma_addr_mask, dma_wrap_reg,
+					  (b16 != 0) ? _T("YES") : _T("NO"), dma_addr_mask, dma_wrap_reg,
 					  selch, base, req, sreq, mask, tc,
 					  cmd, tmp,
 					  sbuf[0],
