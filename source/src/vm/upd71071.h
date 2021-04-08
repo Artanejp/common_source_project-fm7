@@ -45,6 +45,7 @@ protected:
 	DEBUGGER *d_debugger;
 	outputs_t outputs_tc[4];
 	outputs_t outputs_ube[4]; // If "1" word transfer, "0" byte transfer (OUT)
+	outputs_t outputs_ack[4]; // Acknoledge
 	
 	struct {
 		DEVICE* dev;
@@ -80,6 +81,8 @@ protected:
 	virtual bool __FASTCALL do_dma_per_channel(int c);
 	virtual void __FASTCALL reset_tc(int ch);
 	virtual void __FASTCALL set_tc(int ch);
+	virtual void __FASTCALL reset_dma_ack(int ch);
+	virtual void __FASTCALL set_dma_ack(int ch);
 	virtual void reset_all_tc();
 
 public:
@@ -105,6 +108,7 @@ public:
 		for(int i = 0; i < 4; i++) {
 			initialize_output_signals(&outputs_tc[i]);
 			initialize_output_signals(&outputs_ube[i]);
+			initialize_output_signals(&outputs_ack[i]);
 		}
 		set_device_name(_T("uPD71071 DMAC"));
 	}
@@ -115,6 +119,9 @@ public:
 	virtual void reset();
 	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
+	virtual void __FASTCALL write_io16(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_io16(uint32_t addr);
+	
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t _mask);
 	virtual uint32_t __FASTCALL read_signal(int id);
 	virtual void __FASTCALL do_dma();
@@ -179,6 +186,22 @@ public:
 	void set_context_tc3(DEVICE* device, int id, uint32_t _mask)
 	{
 		register_output_signal(&outputs_tc[3], device, id, _mask);
+	}	
+	void set_context_ack0(DEVICE* device, int id, uint32_t _mask)
+	{
+		register_output_signal(&outputs_ack[0], device, id, _mask);
+	}	
+	void set_context_ack1(DEVICE* device, int id, uint32_t _mask)
+	{
+		register_output_signal(&outputs_ack[1], device, id, _mask);
+	}	
+	void set_context_ack2(DEVICE* device, int id, uint32_t _mask)
+	{
+		register_output_signal(&outputs_ack[2], device, id, _mask);
+	}	
+	void set_context_ack3(DEVICE* device, int id, uint32_t _mask)
+	{
+		register_output_signal(&outputs_ack[3], device, id, _mask);
 	}	
 	void set_context_ube0(DEVICE* device, int id, uint32_t _mask)
 	{
