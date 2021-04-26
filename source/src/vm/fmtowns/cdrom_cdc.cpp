@@ -22,17 +22,9 @@ namespace FMTOWNS {
 #define EVENT_TIMEOUT		5 //!< GENERIC TIMEOUT
 #define EVENT_NEXT_SECTOR	6 //!< TO NEXT SECTOR
 	
-CDROM_CDC::CDROM_CDC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
-{
-}
-
-CDROM_CDC::~CDROM_CDC()
-{
-}
 
 void CDROM_CDC::initialize()
 {
-	cdrom = NULL;
 	fifo_size = 8192;
 	max_address = (uint32_t)(sizeof(ram));
 	event_seek = -1;
@@ -42,6 +34,9 @@ void CDROM_CDC::initialize()
 	volume_l = 0; // OK?
 	volume_r = 0; // OK?
 	enable_prefetch = false;
+
+
+	status_queue = new FIFO(100 * 8 + 4);
 }
 
 void CDROM_CDC::release()
@@ -50,12 +45,17 @@ void CDROM_CDC::release()
 		delete cdrom;
 		cdrom = NULL;
 	}
+	if(status_queue != nullptr) {
+		delete status_queue;
+		status_queue = NULL;
+	}
 }
 
 void CDROM_CDC::reset()
 {
 	// Reset FIFO until data.
 	memset(ram, 0x00, sizeof(ram));
+	
 	read_ptr = 0x0000;
 	write_ptr = 0x0000;
 	data_count = 0;
@@ -70,6 +70,8 @@ void CDROM_CDC::reset()
 	in_track = false;
 	target_lba = 0;
 	
+	status_seek = false;
+	
 	cdda_samples[0].w = 0;
 	cdda_samples[1].w = 0;
 	clear_event(event_seek);
@@ -77,8 +79,16 @@ void CDROM_CDC::reset()
 	clear_event(event_read_wait);
 	clear_event(event_timeout);
 
+	memset(regs, 0x00, sizeof(regs));
+	memset(param_queue, 0x00, sizeof(param_queue));
+	memset(param_queue_bak, 0x00, sizeof(param_queue_bak));
+	last_commnd = 0x00;
+	
 	if(cdrom != nullptr) {
 		cdrom->seek_absolute_lba(target_lba, in_track);
+	}
+	if(status_queue != nullptr) {
+		status_queue->clear();
 	}
 	
 }
@@ -121,26 +131,13 @@ pair16_t CDROM_CDC::read_cdda_sample()
 	}
 	return sample;
 }
-	
+
 uint32_t CDROM_CDC::read_dma_io8(uint32_t addr)
 {
-	uint8_t dat = 0x00;
+	uint8_t dat;
 	int count_bak = data_count;
-	if(data_count > 0) {
-		dat = ram[read_ptr];
-		read_ptr++;
-		if(read_ptr >= fifo_size) {
-			read_ptr = 0;
-		}
-		data_count--;
-	}
+	dat = read_data_from_ram();
 	// Check DRQ status.
-	if(data_count <= 0) {
-		// Make EOT
-		if(count_bak > 0) {
-			register_delay_dma_eot();
-		}
-	}
 	return (uint32_t)dat;
 }
 
@@ -154,41 +151,44 @@ uint32_t CDROM_CDC::read_io8(uint32_t addr)
 	 * 04CDh : SUBQ STATUS 
 	 */
 	uint8_t val = 0x00;
+	
 	switch(addr & 0x0f) {
-	case 0x00:
+	case 0x00: // Read master status.
 		val = val | ((mcu_intr)					? 0x80 : 0x00);
 		val = val | ((dma_intr)					? 0x40 : 0x00);
 		val = val | ((pio_transfer_phase)		? 0x20 : 0x00);
 		val = val | ((dma_transfer_phase)		? 0x10 : 0x00); // USING DMAC ch.3
-		val = val | ((has_status)				? 0x02 : 0x00);
+		val = val | ((has_status())				? 0x02 : 0x00);
 		val = val | ((mcu_ready)				? 0x01 : 0x00);
 		break;
-	case 0x02:
-		val = read_status();
+	case 0x02:  // Read from Status queue.
+		val = 0x00;
+		if(status_queue != nullptr) {
+			if(!(status_queue->empty())) {
+				val = status_queue->read() & 0xff;
+			}
+		}
 		break;
 	case 0x04:
-		if(pio_transfer_phase) {
-			if(data_count > 0) {
-				val = ram[read_ptr];
-				read_ptr++;
-				if(read_ptr >= fifo_size) {
-					read_ptr = 0;
+		{
+			int count_bak = data_count;
+			val = read_data_from_ram();
+			if(pio_transfer_phase) {
+				// Check DRQ status.
+				if(data_count <= 0) {
+					// Make EOT
+					pio_transfer_phase = false;
+					// Q: Will interrupt?
+					if(count_bak > 0) {
+						//mcu_ready = false;
+						//dma_intr = true;
+						//mcu_intr = false;
+						//clear_event(this, event_time_out);
+						//clear_event(this, event_eot);
+						//clear_event(this, event_drq);
+						set_pio_eot();
+					}
 				}
-				data_count--;
-			}
-			// Check DRQ status.
-			if(data_count <= 0) {
-				// Make EOT
-				pio_transfer_phase = false;
-				pio_transfer = false; // OK?
-				// Q: Will interrupt?
-				mcu_ready = false;
-				dma_intr = true;
-				mcu_intr = false;
-				clear_event(this, event_time_out);
-				clear_event(this, event_eot);
-				clear_event(this, event_drq);
-
 			}
 		}
 		break;
@@ -209,43 +209,130 @@ void CDROM_CDC::write_io8(uint32_t addr, uint32_t data)
 	 * 04C6h : Transfer control register.
 	 */
 	uint32_t naddr = addr & 0x0f;
-	w_regs[naddr] = data;
+	regs[naddr] = data;
 	switch(naddr) {
 	case 0x00: // Master control register
+		if((data & 0x80) != 0) {
+			/*if(mcu_intr) */set_mcu_intr(false);
+		}
+		if((data & 0x40) != 0) {
+			/*if(dma_intr) */set_dma_intr(false);
+		}
+		if((data & 0x04) != 0) {
+			cdrom_debug_log(_T("RESET FROM CMDREG: 04C0h"));
+			reset_device();
+//			break;
+		}
+		mcu_intr_mask = ((data & 0x02) == 0) ? true : false;
+		dma_intr_mask = ((data & 0x01) == 0) ? true : false;
 		break;
 	case 0x02: // Command
+		execute_command(data);
 		break;
 	case 0x04: // Param
+		for(int i = 1; i < 8; i++) {
+			param_queue[i - 1] = param_queue[i];
+		}
+		param_queue[7] = data;
 		break;
 	case 0x06:
-		dma_transfer = ((data & 0x10) != 0) ? true : false;
-		pio_transfer = ((data & 0x08) != 0) ? true : false;
-		if(dma_transfer) {
-			wait_for_dma = false; // From TSUGARU.
-			if(data_count > 0) {
+		if(dma_transfer()) {
+//			if(data_count > 0) {
 				if(!(dma_transfer_phase)) {
 					dma_transfer_phase = true;
 					force_register_event(this, EVENT_CDROM_DRQ,
 										 /*0.25 * 1.0e6 / ((double)transfer_speed * 150.0e3 ) */ 1.0 / 8.0,
 										 true, event_drq);
 				}
-			}
-		} else if(pio_transfer) {
-			if(data_count > 0) {
+//			}
+		} else if(pio_transfer()) {
+//			if(data_count > 0) {
 				if(!(pio_transfer_phase)) {
 					pio_transfer_phase = true;
 				}
-			}
+//			}
 		}
 	}
 }
 
+bool CDROM_CDC::execute_command(uint8_t cmd)
+{
+	if(!(mcu_ready)) {
+		return false;
+	}
+	// Accepted: Copy to backup. 
+	memcpy(param_queue_bak, param_queue, sizeof(param_queue));
+	memset(param_queue, 0x00, sizeof(param_queue));
+	last_command = cmd;
+	mcu_ready = false;
+	clear_event(this, event_time_out);
+	
+	bool _err;
+	//
+	
+	switch(last_command & 0x9f) {
+	case 0x00: // Seek
+		if(!(status_seek)) {
+			status_seek = true;
+			double seek_time = 1.0;
+			if(d_cdrom != nullptr) {
+				uint8_t m, s, f;
+				m = d_cdrom->bcd_to_bin(param_queue_bak[0], _err);
+				s = d_cdrom->bcd_to_bin(param_queue_bak[1], _err);
+				f = d_cdrom->bcd_to_bin(param_queue_bak[2], _err);
+				seek_time = cdrom->get_seek_time(m, s, f);
+				target_lba = cdrom->msf_to_lba(m, s, f);
+				if(seek_time < 1.0) {
+					seek_time = 1.0;
+				}
+				// ToDo: Debug LOG
+			}
+			force_register_event(this, EVENT_CMD_SEEK, usec, false, event_seek);
+		}
+		break;
+	case 0x01: // Read MODE2
+		break;
+	case 0x02: // Read MODE1
+		break;
+	case 0x03: // Read RAW
+		break;
+	case 0x04: // PLAY TRACK
+		break;
+	}
+	return true;
+}
+	
 void CDROM_CDC::write_signal(int id, uint32_t data, uint32_t mask)
 {
+	switch(id) {
+	case SIG_CDC_DMA_EOT:
+		if((data & mask) != 0) {
+			dma_intr = true;
+			dma_transfer_phase = false;
+			clear_event(this, event_time_out);
+			clear_event(this, event_eot);
+			clear_event(this, event_drq);
+			if((data_count <= 0) && (sectors_remain <= 0)) {
+				clear_event(this, event_next_sector);
+				clear_event(this, event_seek_completed);
+				status_read_done(false);
+				cdrom_debug_log(_T("EOT(DMA)"));
+			} else {
+				cdrom_debug_log(_T("NEXT(DMA)"));
+			}
+			if(!(dma_intr_mask) && (stat_reply_intr())) {
+				write_interrupt(true);
+			}
+		}
+		break;
+	}
+}
+
 }
 
 uint32_t CDROM_CDC::read_signal(int id)
 {
+	return 0;
 }
 
 void CDROM_CDC::event_callback(int event_id, int err)
@@ -257,18 +344,23 @@ void CDROM_CDC::event_callback(int event_id, int err)
 		if(cdrom != nullptr) {
 			cdrom->seek_absolute_lba(target_lba, in_track);
 		}
-		if(req_status) {
-			status_accept(1, 0x00, 0x00);
-		}
-		if(cdda_playing) {
+		if(check_cdda_playing()) {
 			set_cdda_status(CDDA_OFF);
 			set_subq();
 		}
-		if(!(req_status)) {
-			mcu_ready = true;
+		if(!(req_status())) {
 			mcu_intr = true;
 			write_interrupt(0xffffffff);
 		}
+		if(req_status()) {
+			clear_status();
+			push_status_accept(0x00, 0x00); // s1 = CD_STATUS_ACCEPT, s2 = playcode
+			push_status(TOWNS_CD_STATUS_SEEK_COMPLETED, 0x00, 0x00, 0x00);
+			delay_ready();
+		} else {
+			delay_ready_nostatus();
+		}
+		
 		break;
 	case EVENT_READ_SEEK:
 		event_seek = -1;
@@ -282,11 +374,11 @@ void CDROM_CDC::event_callback(int event_id, int err)
 		tmp_bytes_count = 0;
 		if(!(enable_prefetch) && (data_count > 0)) {
 			// Retry after some uSecs.
-			double usec = 1.0 / 150.0e3;
+			double usec = 1.0e6 / 150.0e3;
 			if(cdrom != nullptr) {
 				usec = cdrom->get_transfer_time_us();
 				if(usec <= 0.0) {
-					usec = 1.0 / 150.0e3;
+					usec = 1.0e6 / 150.0e3;
 				}
 			}
 			force_register_event(this, EVENT_DATA_SEEK, 16.0 * usec, false, event_seek);
@@ -295,7 +387,7 @@ void CDROM_CDC::event_callback(int event_id, int err)
 		
 		// OK. Try to read from sector(s).
 		if(sectors_remain > 0) {
-			double usec = 1.0 / 150.0e3;
+			double usec = 1.0e6 / 150.0e3;
 			uint32_t bytes = 2352;
 			uint32_t lbytes = 2048;
 			if(cdrom != nullptr) {
@@ -350,11 +442,11 @@ void CDROM_CDC::event_callback(int event_id, int err)
 			}
 			if(event_drq < 0) {
 				// Register DRQ
-				double usec = 1.0 / 150.0e3;
+				double usec = 1.0e6 / 150.0e3;
 				if(cdrom != nullptr) {
 					usec = cdrom->get_transfer_time_us();
 				}
-				if(usec <= 0.0) usec = 1.0 / 150.0e3;
+				if(usec <= 0.0) usec = 1.0e6 / 150.0e3;
 				usec = usec / 4.0; // OK?
 				force_register_event(this, EVENT_DRQ, usec, true, event_drq);
 			}
@@ -362,7 +454,7 @@ void CDROM_CDC::event_callback(int event_id, int err)
 		tmp_bytes_count = 0;
 		// ToDo: Make status to DATA IN.
 		if(sectors_remain > 0) {
-			double usec = 1.0 / 150.0e3;
+			double usec = 1.0e6 / 150.0e3;
 			uint32_t bytes = 2352;
 			// Go To Next sector.
 			if(cdrom != nullptr) {
@@ -370,7 +462,7 @@ void CDROM_CDC::event_callback(int event_id, int err)
 				usec = cdrom->get_transfer_time_us();
 				if((bytes <= 0) || (usec <= 0.0)) {
 					bytes = 2352;
-					usec = 1.0 / 150.0e3;
+					usec = 1.0e6 / 150.0e3;
 				}
 			}
 			usec = (usec * (double)bytes) / 2.0; // OK?
@@ -382,36 +474,13 @@ void CDROM_CDC::event_callback(int event_id, int err)
 		}
 		break;
 	case EVENT_DRQ:
-		write_drq_signal();
+		if(data_count > 0) {
+			write_drq_signal();
+		}
 		// MAKE DRQ
 		// -> SIGNAL TO DMAC
 		// -> DMA:READ FROM CDC(CDROM_CDC::read_dma_io8())
 		// -> Check DRQ STATUS.
-		break;
-	case EVENT_DMA_EOT:
-		if(dma_transfer_phase) {
-			dma_transfer = false; // OK?
-			dma_transfer_phase = false;
-			mcu_ready = false;
-			dma_intr = true;
-			mcu_intr = false;
-			clear_event(this, event_time_out);
-			clear_event(this, event_eot);
-			clear_event(this, event_drq);
-			if((data_count <= 0) && (srctors_remain <= 0)) {
-				clear_event(this, event_next_sector);
-				clear_event(this, event_seek_completed);
-				status_read_done(false);
-				cdrom_debug_log(_T("EOT(DMA)"));
-				
-			} else {
-				cdrom_debug_log(_T("NEXT(DMA)"));
-
-			}
- 			if(!(dma_intr_mask) && (stat_reply_intr)) {
-				write_signals(&outputs_mcuint, 0xffffffff);
-			}
-		}
 		break;
 	case EVENT_START_CDDA:
 		event_data_in = -1;
@@ -423,20 +492,20 @@ void CDROM_CDC::event_callback(int event_id, int err)
 			cdda_samples[1].w = 0;
 		}
 		update_subq();
+		fadeout_level = 16;
 		if(event_cdda < 0) {
 			// Register DRQ
-			double usec = 1.0 / 150.0e3;
+			double usec = 1.0e6 / 150.0e3;
 			force_register_event(this, EVENT_CDDA, usec, true, event_cdda);
 		}
 		if(sectors_remain > 0) {
-			double usec = (2352.0 * (1.0 / 150.0e3)) / 2.0;
+			double usec = (2352.0 * (1.0e6 / 150.0e3)) / 2.0;
 			force_register_event(this, EVENT_DATA_SEEK,
 								 usec, false, event_seek);
 		}			
 		break;
 	case EVENT_CDDA:
 		// Check if CDDA is end.
-		fadeout_level = 16;
 		if(!(check_cdda_playing())) {
 			// End.
 			clear_event(event_cdda);
@@ -474,17 +543,16 @@ void CDROM_CDC::event_callback(int event_id, int err)
 
 void CDROM_CDC::mix(int32_t* buffer, int cnt)
 {
-	if((is_playing) && (fadeout_level > 0)) {
-		int32_t l = (int32_t)(cdda_sample[0].sw);
-		int32_t r = (int32_t)(cdda_sample[1].sw);
-		int flevel = (fadeout_level * 3) - 48.0;
+	if(check_cdda_playing() && (fadeout_level >= 0)) {
+		int32_t l = (int32_t)(cdda_samples[0].sw);
+		int32_t r = (int32_t)(cdda_samples[1].sw);
+		int flevel = (fadeout_level * 3) - 48;
 		l = apply_volume(l, flevel + volume_l);
 		r = apply_volume(r, flevel + volume_r);
-		
 		for(int i = 0, j = 0; i < cnt; i++, j += 2) {
 			int32_t sl, sr;
-			sl = l + buf[j + 0];
-			sr = r + buf[j + 1];
+			sl = l + buffer[j + 0];
+			sr = r + buffer[j + 1];
 			if(sl > 32767) {
 				sl = 32767;
 			} else if(sl < -32768) {
@@ -495,8 +563,8 @@ void CDROM_CDC::mix(int32_t* buffer, int cnt)
 			} else if(sr < -32768) {
 				sr = -32768;
 			}
-			buf[j + 0] = sl;
-			buf[j + 1] = sr;
+			buffer[j + 0] = sl;
+			buffer[j + 1] = sr;
 		}
 	}
 }
