@@ -801,65 +801,12 @@ void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 	return;
 }
 
-void TOWNS_MEMORY::write_data8(uint32_t addr, uint32_t data)
-{
-//	write_primitive_byte(addr, data);
-	MEMORY::write_data8(addr, data);
-}
-
-void TOWNS_MEMORY::write_data16(uint32_t addr, uint32_t data)
-{
-	MEMORY::write_data16(addr, data);
-//	write_primitive_word(addr, data);
-}
-
-void TOWNS_MEMORY::write_data32(uint32_t addr, uint32_t data)
-{
-	MEMORY::write_data32(addr, data);
-//	write_primitive_dword(addr, data);
-}
-
-uint32_t TOWNS_MEMORY::read_data8(uint32_t addr)
-{
-	return MEMORY::read_data8(addr);
-//	return read_primitive_byte(addr);
-}
-
-uint32_t TOWNS_MEMORY::read_data16(uint32_t addr)
-{
-	return MEMORY::read_data16(addr);
-//	return read_primitive_word(addr);
-}
-
-uint32_t TOWNS_MEMORY::read_data32(uint32_t addr)
-{
-	return MEMORY::read_data32(addr);
-//	return read_primitive_dword(addr);
-}
-
-void TOWNS_MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
-{
-//	int bank = (addr & addr_mask) >> addr_shift;
-//	if(wait != NULL) {
-//		*wait = wr_table[bank].wait; // OK? AT BOUNDARY 20200906 K.O
-//	}
-//	write_primitive_byte(addr, data);
-//	int dummy;
-	MEMORY::write_data8w(addr, data, wait);
-//	if(wait != NULL) {
-//		*wait = wr_table[bank].wait;
-//	}
-}
-
 void TOWNS_MEMORY::write_data16w(uint32_t addr, uint32_t data, int* wait)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
-//	if(wait != NULL) {
-//		*wait = wr_table[bank].wait; // OK? AT BOUNDARY 20200906 K.O
-//	}
-//	write_primitive_word(addr, data);
 	int dummy;
 	MEMORY::write_data16w(addr, data, &dummy);
+	// Note: WAIT valus may be same as 1 bytes r/w.
 	if(wait != NULL) {
 		*wait = wr_table[bank].wait;
 	}
@@ -868,34 +815,18 @@ void TOWNS_MEMORY::write_data16w(uint32_t addr, uint32_t data, int* wait)
 void TOWNS_MEMORY::write_data32w(uint32_t addr, uint32_t data, int* wait)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
-//	if(wait != NULL) {
-//		*wait = wr_table[bank].wait; // OK? AT BOUNDARY 20200906 K.O
-//	}
-//	write_primitive_dword(addr, data);
 	int dummy;
 	MEMORY::write_data32w(addr, data, &dummy);
+	// Note: WAIT valus may be same as 1 bytes r/w.
 	if(wait != NULL) {
 		*wait = wr_table[bank].wait;
 	}
 }
 
-uint32_t TOWNS_MEMORY::read_data8w(uint32_t addr, int* wait)
-{
-//	int bank = (addr & addr_mask) >> addr_shift;
-//	if(wait != NULL) {
-//		*wait = rd_table[bank].wait; // OK? AT BOUNDARY 20200906 K.O
-//	}
-//	return read_primitive_byte(addr);
-	return MEMORY::read_data8w(addr, wait);
-}
 
 uint32_t TOWNS_MEMORY::read_data16w(uint32_t addr, int* wait)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
-//	if(wait != NULL) {
-//		*wait = rd_table[bank].wait; // OK? AT BOUNDARY 20200906 K.O
-///	}
-//	return read_primitive_word(addr);
 	int dummy;
 	uint32_t val = MEMORY::read_data16w(addr, &dummy);
 	// Note: WAIT valus may be same as 1 bytes r/w.
@@ -908,10 +839,6 @@ uint32_t TOWNS_MEMORY::read_data16w(uint32_t addr, int* wait)
 uint32_t TOWNS_MEMORY::read_data32w(uint32_t addr, int* wait)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
-//	if(wait != NULL) {
-//		*wait = rd_table[bank].wait; // OK? AT BOUNDARY 20200906 K.O
-//	}
-//	return read_primitive_dword(addr);
 	// Note: WAIT valus may be same as 1 bytes r/w.
 	int dummy;
 	uint32_t val = MEMORY::read_data32w(addr, &dummy);
@@ -921,92 +848,6 @@ uint32_t TOWNS_MEMORY::read_data32w(uint32_t addr, int* wait)
 	return val;
 	
 }
-#if 0
-void TOWNS_MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
-{
-	write_primitive_byte(addr, data);
-}
-
-void TOWNS_MEMORY::write_dma_data16(uint32_t addr, uint32_t data)
-{
-	write_primitive_word(addr, data);
-}
-
-void TOWNS_MEMORY::write_dma_data32(uint32_t addr, uint32_t data)
-{
-	write_primitive_dword(addr, data);
-}
-
-uint32_t TOWNS_MEMORY::read_dma_data8(uint32_t addr)
-{
-	return read_primitive_byte(addr);
-}
-
-uint32_t TOWNS_MEMORY::read_dma_data16(uint32_t addr)
-{
-	return read_primitive_word(addr);
-}
-
-uint32_t TOWNS_MEMORY::read_dma_data32(uint32_t addr)
-{
-	return read_primitive_dword(addr);
-}
-
-
-void TOWNS_MEMORY::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
-{
-	int bank = (addr & addr_mask) >> addr_shift;
-	if(wait != NULL) {
-		*wait = wr_table[bank].wait; // OK? AT BOUNDARY 20200906 K.O
-	}
-	write_primitive_byte(addr, data);
-}
-
-void TOWNS_MEMORY::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
-{
-	int bank = (addr & addr_mask) >> addr_shift;
-	if(wait != NULL) {
-		*wait = wr_table[bank].wait; // OK? AT BOUNDARY 20200906 K.O
-	}
-	write_primitive_word(addr, data);
-}
-
-void TOWNS_MEMORY::write_dma_data32w(uint32_t addr, uint32_t data, int* wait)
-{
-	int bank = (addr & addr_mask) >> addr_shift;
-	if(wait != NULL) {
-		*wait = wr_table[bank].wait; // OK? AT BOUNDARY 20200906 K.O
-	}
-	write_primitive_dword(addr, data);
-}
-
-uint32_t TOWNS_MEMORY::read_dma_data8w(uint32_t addr, int* wait)
-{
-	int bank = (addr & addr_mask) >> addr_shift;
-	if(wait != NULL) {
-		*wait = rd_table[bank].wait;
-	}
-	return read_primitive_byte(addr);
-}
-
-uint32_t TOWNS_MEMORY::read_dma_data16w(uint32_t addr, int* wait)
-{
-	int bank = (addr & addr_mask) >> addr_shift;
-	if(wait != NULL) {
-		*wait = rd_table[bank].wait; // OK? AT BOUNDARY 20200906 K.O
-	}
-	return read_primitive_word(addr);
-}
-
-uint32_t TOWNS_MEMORY::read_dma_data32w(uint32_t addr, int* wait)
-{
-	int bank = (addr & addr_mask) >> addr_shift;
-	if(wait != NULL) {
-		*wait = rd_table[bank].wait; // OK? AT BOUNDARY 20200906 K.O
-	}
-	return read_primitive_dword(addr);
-}
-#else
 uint32_t TOWNS_MEMORY::read_dma_data8(uint32_t addr)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
@@ -1090,7 +931,7 @@ void TOWNS_MEMORY::write_dma_data32(uint32_t addr, uint32_t data)
 		wr_table[bank].memory[(addr & bank_mask) + 3] = n.b.h3;
 	}
 }
-#endif
+
 
 void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 {

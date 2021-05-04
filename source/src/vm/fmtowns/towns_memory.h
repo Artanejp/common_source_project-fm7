@@ -122,170 +122,6 @@ protected:
 	virtual void set_wait_values();
 	virtual void config_page00();
 
-	inline uint32_t __FASTCALL read_primitive_byte(uint32_t addr)
-	{
-		int bank = (addr & addr_mask) >> addr_shift;
-		if(rd_table[bank].device != NULL) {
-			return rd_table[bank].device->read_memory_mapped_io8(addr);
-		} else {
-			return rd_table[bank].memory[addr & bank_mask];
-		}
-	}
-	
-	inline uint32_t __FASTCALL read_primitive_word(uint32_t addr)
-	{
-		int bank = (addr & addr_mask) >> addr_shift;
-		pair32_t n;
-		uint32_t naddr = addr & bank_mask;
-		n.d = 0;
-
-		if((addr & bank_mask) == bank_mask) {
-			if(rd_table[bank].device != NULL) {
-				n.b.l = rd_table[bank].device->read_memory_mapped_io8(addr);
-			} else {
-				n.b.l = rd_table[bank].memory[naddr + 0];
-			}
-			n.b.h = read_primitive_byte(addr + 1);
-		} else {
-			if(rd_table[bank].device != NULL) {
-				n.w.l = rd_table[bank].device->read_memory_mapped_io16(addr);
-			} else {
-				n.b.l = rd_table[bank].memory[naddr + 0];
-				n.b.h = rd_table[bank].memory[naddr + 1];
-			}
-		}
-		return n.d;
-	}
-	inline uint32_t __FASTCALL read_primitive_dword(uint32_t addr)
-	{
-		int bank = (addr & addr_mask) >> addr_shift;
-		pair32_t n;
-		uint32_t naddr = addr & bank_mask;
-		n.d = 0;
-		if((addr & bank_mask) > (bank_mask - 3)) {
-			switch(addr & 3) {
-			case 0:
-				n.w.l = read_primitive_word(addr + 0);
-				n.w.h = read_primitive_word(addr + 2);
-				break;
-			case 1:
-				n.b.l  = read_primitive_byte(addr + 0);
-				n.b.h  = read_primitive_byte(addr + 1);
-				n.b.h2 = read_primitive_byte(addr + 2);
-				n.b.h3 = read_primitive_byte(addr + 3);
-				break;
-			case 2:
-				n.w.l = read_primitive_word(addr + 0);
-				n.w.h = read_primitive_word(addr + 2);
-				break;
-			case 3:
-				n.b.l  = read_primitive_byte(addr + 0);
-				n.b.h  = read_primitive_byte(addr + 1);
-				n.b.h2 = read_primitive_byte(addr + 2);
-				n.b.h3 = read_primitive_byte(addr + 3);
-				break;
-			}
-			return n.d;
-		} else { // Inside of boundary
-			if(rd_table[bank].device != NULL) {
-				return rd_table[bank].device->read_memory_mapped_io32(addr);
-			} else {
-				n.b.l  = rd_table[bank].memory[naddr + 0];
-				n.b.h  = rd_table[bank].memory[naddr + 1];
-				n.b.h2 = rd_table[bank].memory[naddr + 2];
-				n.b.h3 = rd_table[bank].memory[naddr + 3];
-			}
-			return n.d;
-		}
-	}
-	inline void __FASTCALL write_primitive_byte(uint32_t addr, uint32_t data)
-	{
-		int bank = (addr & addr_mask) >> addr_shift;
-//		if(addr == 0xd000) {
-//			out_debug_log(_T("WRITE  %02X to D000 / DEV=%08X"), data, wr_table[bank].device);
-//		}
-		if(wr_table[bank].device != NULL) {
-			wr_table[bank].device->write_memory_mapped_io8(addr, data);
-		} else {
-			wr_table[bank].memory[addr & bank_mask] = data;
-		}
-	}
-	
-	inline void __FASTCALL write_primitive_word(uint32_t addr, uint32_t data)
-	{
-		int bank = (addr & addr_mask) >> addr_shift;
-		
-		if(wr_table[bank].device != NULL) {
-			if((addr & bank_mask) == bank_mask) {
-				pair32_t n;
-				n.d = data;
-				wr_table[bank].device->write_memory_mapped_io8(addr + 0, n.b.l);
-				write_primitive_byte(addr + 1, n.b.h);
-			} else {
-				wr_table[bank].device->write_memory_mapped_io16(addr, data);
-			}
-		} else {
-			pair32_t n;
-			uint32_t naddr = addr & bank_mask;
-			n.d = data;
-			if((addr & bank_mask) == bank_mask) {
-				wr_table[bank].memory[naddr + 0] = n.b.l;
-				write_primitive_byte(addr + 1, n.b.h);
-			} else {
-				wr_table[bank].memory[naddr + 0] = n.b.l;
-				wr_table[bank].memory[naddr + 1] = n.b.h;
-			}
-		}
-	}
-	inline void __FASTCALL write_primitive_dword(uint32_t addr, uint32_t data)
-	{
-		int bank = (addr & addr_mask) >> addr_shift;
-		uint32_t naddr = addr & bank_mask;
-		pair32_t n;
-		n.d = data;
-		if((addr & bank_mask) <= (bank_mask - 3)) {
-			if(wr_table[bank].device != NULL) {
-				wr_table[bank].device->write_memory_mapped_io32(addr, data);
-			} else {
-				wr_table[bank].memory[naddr + 0] = n.b.l;
-				wr_table[bank].memory[naddr + 1] = n.b.h;
-				wr_table[bank].memory[naddr + 2] = n.b.h2;
-				wr_table[bank].memory[naddr + 3] = n.b.h3;
-			}
-		} else {
-			// BEYOND BOUNDARY
-			switch(addr & 3) {
-			case 0:
-				write_primitive_word(addr + 0, n.w.l);
-				write_primitive_word(addr + 2, n.w.h);
-				break;
-			case 1:
-				{
-					write_primitive_byte(addr + 0, n.b.l);
-					pair16_t nn;
-					nn.b.l = n.b.h;
-					nn.b.h = n.b.h2;
-					write_primitive_word(addr + 1, nn.w);
-					write_primitive_byte(addr + 3, n.b.h3);
-				}
-				break;
-			case 2:
-				write_primitive_word(addr + 0, n.w.l);
-				write_primitive_word(addr + 2, n.w.h);
-				break;
-			case 3:
-				{
-					write_primitive_byte(addr + 0, n.b.l);
-					pair16_t nn;
-					nn.b.l = n.b.h;
-					nn.b.h = n.b.h2;
-					write_primitive_word(addr + 1, nn.w);
-					write_primitive_word(addr + 3, n.b.h3);
-				}
-				break;
-			}
-		}
-	}
 public:
 	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MEMORY(parent_vm, parent_emu) {
 		set_device_name(_T("FMTOWNS_MEMORY"));
@@ -356,26 +192,12 @@ public:
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
 	virtual uint32_t __FASTCALL read_io16(uint32_t addr);
 
-	uint32_t __FASTCALL read_data8(uint32_t addr);
-	uint32_t __FASTCALL read_data16(uint32_t addr);
-	uint32_t __FASTCALL read_data32(uint32_t addr);
-	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
-	void __FASTCALL write_data16(uint32_t addr, uint32_t data);
-	void __FASTCALL write_data32(uint32_t addr, uint32_t data);
 	
-	uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait);
 	uint32_t __FASTCALL read_data16w(uint32_t addr, int* wait);
 	uint32_t __FASTCALL read_data32w(uint32_t addr, int* wait);
-	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait);
 	void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int* wait);
 	void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int* wait);
 
-//	uint32_t __FASTCALL read_dma_data8w(uint32_t addr, int* wait);
-//	uint32_t __FASTCALL read_dma_data16w(uint32_t addr, int* wait);
-//	uint32_t __FASTCALL read_dma_data32w(uint32_t addr, int* wait);
-//	void __FASTCALL write_dma_data8w(uint32_t addr, uint32_t data, int* wait);
-//	void __FASTCALL write_dma_data16w(uint32_t addr, uint32_t data, int* wait);
-//	void __FASTCALL write_dma_data32w(uint32_t addr, uint32_t data, int* wait);
 	
 	uint32_t __FASTCALL read_dma_data8(uint32_t addr);
 	uint32_t __FASTCALL read_dma_data16(uint32_t addr);
@@ -385,11 +207,7 @@ public:
 	void __FASTCALL write_dma_data32(uint32_t addr, uint32_t data);
 	
 	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
-//	virtual void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
-//	virtual void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
-//	virtual uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
-//	virtual uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr);
 
 
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
