@@ -591,7 +591,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				/// @note RANCEIII (and maybe others) polls until below status.
 				/// @note 20201110 K.O
 				set_status(req_status, 0, TOWNS_CD_STATUS_ACCEPT, TOWNS_CD_ACCEPT_WAIT, 0x00, 0x00);
-				if((cdda_status == CDDA_ENDED)) {
+				if(cdda_status == CDDA_ENDED) {
 					set_cdda_status(CDDA_OFF);
 				}
 				break;
@@ -1130,7 +1130,7 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 			}
 			if(fio_img->IsOpened()) {
 				uint32_t cur_position = (uint32_t)fio_img->Ftell();
-				cur_position = cur_position / (is_iso) ? 2048 : physical_block_size();
+				cur_position = cur_position / ((is_iso) ? 2048 : physical_block_size());
 				if(cur_position >= max_logical_block) {
 					cur_position = max_logical_block;
 				}
@@ -1371,7 +1371,8 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				register_event(this, EVENT_CDROM_NEXT_SECTOR,
 							   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
 							   ((double)(physical_block_size())) * 
-							   1.0, // OK?
+							   0.5, 
+//							   1.0, // OK?
 							   false, &event_next_sector);
 			}
 			//register_event(this, EVENT_CDROM_TIMEOUT, 1000.0e3, false, &event_time_out);
@@ -1393,8 +1394,9 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		status_seek = true;
 		register_event(this, EVENT_CDROM_SEEK_COMPLETED,
 					   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
-					   ((double)(physical_block_size())) * 
-					   1.0, // OK?
+					   ((double)(physical_block_size())) *
+					   0.5, 
+//					   1.0, // OK?
 //					   5.0e3,
 					   false,
 					   &event_seek_completed);
@@ -1793,7 +1795,7 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 			}
 			touch_sound();
 			set_realtime_render(this, true);
-			_TCHAR *pp = _T("");
+			const _TCHAR *pp = _T("");
 			switch(cdda_status) {
 			case CDDA_OFF:
 				pp = _T("STOP");
@@ -1826,8 +1828,8 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 			}
 			touch_sound();
 			set_realtime_render(this, false);
-			_TCHAR *sp = _T("");
-			_TCHAR *pp = _T("");
+			const _TCHAR *sp = _T("");
+			const _TCHAR *pp = _T("");
 			
 			switch(status) {
 			case CDDA_OFF:
@@ -3071,14 +3073,10 @@ void TOWNS_CDROM::mix(int32_t* buffer, int cnt)
 
 void TOWNS_CDROM::set_volume(int ch, int decibel_l, int decibel_r)
 {
-	volume_l = decibel_to_volume(decibel_l + 3.0);
-	volume_r = decibel_to_volume(decibel_r + 3.0);
+	volume_l = decibel_to_volume(decibel_l + 6.0);
+	volume_r = decibel_to_volume(decibel_r + 6.0);
 }
 
-void TOWNS_CDROM::set_volume(int volume)
-{
-	volume_m = (int)(1024.0 * (max(0, min(100, volume)) / 100.0));
-}
 
 uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 {
@@ -3291,7 +3289,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	8
+#define STATE_VERSION	9
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3377,7 +3375,6 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	
 	state_fio->StateValue(volume_l);
 	state_fio->StateValue(volume_r);
-	state_fio->StateValue(volume_m);
 	
 	if(loading) {
 		offset = state_fio->FgetUint32_LE();

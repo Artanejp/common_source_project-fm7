@@ -314,7 +314,6 @@ protected:
 		
 	int volume_l;
 	int volume_r;
-	int volume_m;
 
 	uint8_t w_regs[16];
 	static const uint16_t crc_table[256];
@@ -482,7 +481,6 @@ public:
 	}
 
 	
-	virtual void set_volume(int volume);
 	virtual void set_volume(int ch, int decibel_l, int decibel_r);
 	virtual bool read_buffer(int sectors);
 	

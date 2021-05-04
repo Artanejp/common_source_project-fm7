@@ -1,0 +1,55 @@
+c8e4b46f0a9a4a306350fb626bc6c3a43f234ddf -> NO LTO, NG
+---
+4ea5cea3fa68554a5126d2c968741627d2dc599d -> NG
+Author:     K.Ohta <whatisthis.sowhat@gmail.com>
+AuthorDate: Sat Sep 26 03:19:28 2020 +0900
+Commit:     K.Ohta <whatisthis.sowhat@gmail.com>
+CommitDate: Sat Sep 26 03:19:28 2020 +0900
+[VM][FMTOWNS][CDROM] Should read per a sector, not variable length.
+---
+51efc809aa22520030361dcb19a5955b672af80e -> OK
+Author:     K.Ohta <whatisthis.sowhat@gmail.com>
+AuthorDate: Sun Aug 30 17:23:02 2020 +0900
+Commit:     K.Ohta <whatisthis.sowhat@gmail.com>
+CommitDate: Sun Aug 30 17:23:02 2020 +0900
+
+Parent:     c446b69f [VM][FMTOWNS][CDROM] Re-check around command queue.
+---
+3b1be96ae8ef088e7f45b00bb3a3e6c01196b931 -> OK
+Author:     K.Ohta <whatisthis.sowhat@gmail.com>
+AuthorDate: Sun Sep 6 03:32:07 2020 +0900
+Commit:     K.Ohta <whatisthis.sowhat@gmail.com>
+CommitDate: Sun Sep 6 03:32:07 2020 +0900
+
+[VM][FMTOWNS][CDROM] READ MODE1: May not need extra status, integrated after reading.
+---
+9bf46a566cbce93556eab44afae46a83853374fb -> NG
+Author:     K.Ohta <whatisthis.sowhat@gmail.com>
+AuthorDate: Wed Sep 16 16:13:09 2020 +0900
+Commit:     K.Ohta <whatisthis.sowhat@gmail.com>
+CommitDate: Wed Sep 16 16:13:09 2020 +0900
+
+[VM][FMTOWNS][CDROM] TRY: Implement PIO transfer.
+---
+25fbdc5bdacffb377c1794a99e284091630a5345 -> NG
+Author:     K.Ohta <whatisthis.sowhat@gmail.com>
+AuthorDate: Sun Sep 6 18:25:38 2020 +0900
+Commit:     K.Ohta <whatisthis.sowhat@gmail.com>
+CommitDate: Sun Sep 6 18:25:38 2020 +0900
+
+[VM][FMTOWNS][MEMORY] Integrate memory accessing to primitive inline functions.
+---
+
+中間結論:
+3b1be96ae8ef088e7f45b00bb3a3e6c01196b931 -> 25fbdc5bdacffb377c1794a99e284091630a5345
+の変更でバグってる。メモリアクセス関係。
+
+-> 以下で、対策した。
+commit 674ead2edf9bec70283d90fe8282e1a33e372c49
+(origin/towns_cdrom_rev3, towns_cdrom_rev3)
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 5 00:30:01 2021 +0900
+
+[VM][FMTOWNS][MEMORY] Revert to use primitive_[read|write]. Fix　CDROM's some issues (i.e. Crashing Ayay
+o4).Revert before 3b1be96ae8ef088e7f45b00bb3a3e6c01196b931
+
