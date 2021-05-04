@@ -188,6 +188,7 @@ public:
 	void initialize();
 	void release();
 	void reset();
+	
 	virtual void     __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
 	virtual uint32_t __FASTCALL read_io16(uint32_t addr);
@@ -205,10 +206,16 @@ public:
 	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data);
 	void __FASTCALL write_dma_data16(uint32_t addr, uint32_t data);
 	void __FASTCALL write_dma_data32(uint32_t addr, uint32_t data);
+
+	uint32_t __FASTCALL read_dma_data8w(uint32_t addr, int* wait);
+	uint32_t __FASTCALL read_dma_data16w(uint32_t addr, int* wait);
+	uint32_t __FASTCALL read_dma_data32w(uint32_t addr, int* wait);
+	void __FASTCALL write_dma_data8w(uint32_t addr, uint32_t data, int* wait);
+	void __FASTCALL write_dma_data16w(uint32_t addr, uint32_t data, int* wait);
+	void __FASTCALL write_dma_data32w(uint32_t addr, uint32_t data, int* wait);
 	
 	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
-
 
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int ch);
