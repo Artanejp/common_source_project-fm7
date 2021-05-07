@@ -230,22 +230,8 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 	
 	clear_event(this, event_time_out);
 	clear_event(this, event_eot);
-
-#if 0
-	if((stat_reply_intr) || !(dma_intr_mask)) {
-		write_signals(&outputs_mcuint, 0xffffffff);
-	}
 	clear_event(this, event_drq);
-	if((read_length <= 0)) {
-		clear_event(this, event_next_sector);
-		clear_event(this, event_seek_completed);
-		status_read_done(false);
-		cdrom_debug_log(_T("EOT(%s/DMA)"), (by_signal) ? by_dma : by_event);
-	} else {
-		cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
-	}
-#else
-	clear_event(this, event_drq);
+	
 	if((read_length <= 0) && (databuffer->empty())) {
 		clear_event(this, event_next_sector);
 		clear_event(this, event_seek_completed);
@@ -270,7 +256,6 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 			write_mcuint_signals(0xffffffff);
 		}
 	}
-#endif	
 }
 
 void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)

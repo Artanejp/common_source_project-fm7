@@ -229,20 +229,8 @@ void TOWNS_CRTC::reset()
 	//emu->set_vm_screen_lines(vst);
 	// For DEBUG Only
 	// Mode 19
-#if 0
-	const uint16_t reg_default[] =
-		{ 0x0060, 0x02c0, 0x0000, 0x0000, 0x031f, 0x0000, 0x0004, 0x0000,
-		  0x0419, 0x008a, 0x018a, 0x008a, 0x030a, 0x0046, 0x0246, 0x0046,
-		  0x0406, 0x0000, 0x008a, 0x0000, 0x0080, 0x0000, 0x008a, 0x0000,
-		  0x0080, 0x0058, 0x0001, 0x0000, 0x000d, 0x0002, 0x0000, 0x0192};
-	for(int i = 0; i < 32; i++) {
-		write_io16(0x0440, i);
-		write_io16(0x0442, reg_default[i]);
-	}
-	write_io16(0x0440, 0);
-#else
 	force_recalc_crtc_param();
-#endif
+
 //	register_event(this, EVENT_CRTC_VSTART, vstart_us, false, &event_id_vstart);
 }
 
@@ -470,24 +458,7 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 		horiz_start_us[layer] = ((double)(regs[(layer << 1) + 9] & 0x07ff)) * crtc_clock ;   // HDSx
 		horiz_end_us[layer] =   ((double)(regs[(layer << 1) + 9 + 1] & 0x07ff)) * crtc_clock ;   // HDEx
 	}
-#if 0
-//	out_debug_log(_T("RECALC: CRTC_CLOCK=%f MHz FPS=%f"), 1.0 / crtc_clock, 1.0e6 / frame_us);
-	_TCHAR sdata[32 * 5];
-	_TCHAR sdata2[8];
-	for(int q = 0; q < 4; q++) {
-		memset(sdata, 0x00, sizeof(sdata));
-		for(int r = 0; r < 8; r++) {
-			my_sprintf_s(sdata2, 8, "%04X ", regs[r + q * 8]);
-			my_tcscat_s(sdata, sizeof(sdata) / sizeof(_TCHAR), sdata2);
-		}
-//		out_debug_log(_T("RECALC: regs[%02d..%02d]= %s"), q * 8, q * 8 + 7, sdata);
-	}
-//	out_debug_log(_T("RECALC: HORIZ_us=%f HORIZ_WIDTH_P_us=%f HORIZ_WIDTH_N_us=%f"), horiz_us, horiz_width_posi_us, horiz_width_nega_us);
-//	out_debug_log(_T("RECALC: VST1_us=%f VST2_us=%f EET_us=%f frame_us=%f"), vst1_us, vst2_us, eet_us, frame_us);
-	for(int q = 0; q < 2; q++) {
-//		out_debug_log(_T("RECALC: LAYER%d: VERT_START_us=%f VERT_END_us=%f HORIZ_START_us=%f HORIZ_END_us=%f"), q, vert_start_us[q], vert_end_us[q], horiz_start_us[q], horiz_end_us[q]);
-	}
-#endif
+	
 	hst_tmp = (regs[4] & 0x7fe) + 1;
 	vst_tmp =  (regs[8] & 0x7ff) + 1;
 	if((voutreg_ctrl & 0x10) == 0) {
