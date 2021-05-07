@@ -52,7 +52,7 @@ public:
 	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 
 	virtual bool open_cart(const _TCHAR *file_path);
-	virtual bool close_cart();
+	virtual void close_cart();
 
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 

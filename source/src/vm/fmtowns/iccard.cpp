@@ -31,19 +31,16 @@ void TOWNS_ICCARD::initialize()
 
 void TOWNS_ICCARD::release()
 {
-	if(!(is_rom) && (is_dirty) && (card_state == 0x00)) {
-		close_cart();
-	}
-	if(mem != NULL) {
-		free(mem);
-		mem = NULL;
-	}
+	close_cart();
 }
 	
 bool TOWNS_ICCARD::open_cart(const _TCHAR *file_path)
 {
+	close_cart();
+
 	if(file_path == NULL) return false;
 	if(strlen(file_path) <= 0) return false;
+	
    	FILEIO* fio = new FILEIO();
 	uint32_t file_size;
 	
@@ -66,47 +63,49 @@ bool TOWNS_ICCARD::open_cart(const _TCHAR *file_path)
 			} else {
 				if(mem != NULL) free(mem);
 				mem = NULL;
+				card_state = 0x02; // Imcomplete.
 			}
 		}
 		is_dirty = false;
 		mem_size = 0;
+		fio->Fclose();
 	}
-	fio->Fclose();
 	delete fio;
 	return false; // file not exists, keep data.
 }
 
-bool TOWNS_ICCARD::close_cart()
+void TOWNS_ICCARD::close_cart()
 {
-	if((mem == NULL) || (mem_size == 0)) return false; // Nothing to save.
-	if(card_state != 0x00) return false; // Not using card.
-	
-	FILEIO* fio = new FILEIO();
+	bool is_mem_null = (mem == nullptr) ? true : false;
+	bool is_mem_empty = (mem_size == 0) ? true : false;
+	bool is_card_not_inserted = (card_state != 0x00) ? true : false;
+	bool __state = ((is_mem_null) || (is_mem_empty) || (is_card_not_inserted)) ? true : false;
 
-	card_changed = true;
 	if((is_dirty) && !(is_rom)) {
-		if(fio->Fopen(filename, FILEIO_WRITE_BINARY)) {
-			fio->Fwrite(mem, mem_size, 1);
-			is_dirty = false;
-			free(mem);
-			mem = NULL;
-			mem_size = 0;
-			memset(filename, 0x00, sizeof(filename));
-			fio->Fclose();
+		if((strlen(filename) > 0) && !(__state)) {
+			FILEIO* fio = new FILEIO();
+			if(fio->Fopen(filename, FILEIO_WRITE_BINARY)) {
+				fio->Fwrite(mem, mem_size, 1);
+				is_dirty = false;
+				fio->Fclose();
+			}
 			delete fio;
-			return true;
 		}
-	} else {
-		// Discard only
-		is_dirty = false;
+	}
+	
+	if(mem != nullptr) {
 		free(mem);
 		mem = NULL;
-		mem_size = 0;
-		memset(filename, 0x00, sizeof(filename));
-		return true;
 	}
-	delete fio;
-	return false;
+	mem_size = 0;
+	card_state = 0x03; // Empty
+	card_changed = false;
+	is_rom = true;
+	is_dirty = false;
+	
+	memset(filename, 0x00, sizeof(filename));
+
+	return;
 }
 	
 bool TOWNS_ICCARD::new_alloc(uint32_t new_size)
