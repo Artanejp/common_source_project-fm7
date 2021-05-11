@@ -2620,7 +2620,7 @@ bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, in
 				d88_sct.r = s + 1;
 				d88_sct.n = n;
 				d88_sct.nsec = nsec;
-				d88_sct.dens = 0;
+				d88_sct.dens = mfm ? 0 : 0x40;
 				d88_sct.del = 0;
 				d88_sct.stat = 0;
 				d88_sct.size = size;

@@ -18,6 +18,7 @@ void OSD::initialize(int rate, int samples)
 	vista_or_later = (os_info.dwPlatformId == 2 && (os_info.dwMajorVersion > 6 || (os_info.dwMajorVersion == 6 && os_info.dwMinorVersion >= 0)));
 	
 	GdiplusStartup(&gdiToken, &gdiSI, NULL);
+	initialize_console();
 	initialize_input();
 	initialize_screen();
 	initialize_sound(rate, samples);
@@ -32,6 +33,7 @@ void OSD::initialize(int rate, int samples)
 
 void OSD::release()
 {
+	release_console();
 	release_input();
 	release_screen();
 	release_sound();

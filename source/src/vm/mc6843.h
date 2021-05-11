@@ -29,8 +29,9 @@
 	typedef UINT32	offs_t;
 #endif
 
-#define SIG_MC6843_DRIVEREG	0
-#define SIG_MC6843_SIDEREG	1
+#define SIG_MC6843_ACCESS	0
+#define SIG_MC6843_DRIVEREG	1
+#define SIG_MC6843_SIDEREG	2
 
 class DISK;
 class NOISE;
@@ -42,6 +43,8 @@ private:
 	// drive info
 	int __MAX_DRIVE;
 	int __DRIVE_MASK;
+	bool __FDC_DEBUG_LOG;
+	
 	struct {
 		int target_track;
 		int track;

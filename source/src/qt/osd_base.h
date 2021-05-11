@@ -428,7 +428,7 @@ public:
 	void create_date_file_name(_TCHAR *name, int length, const _TCHAR *extension);
 	_TCHAR  *get_app_path(void);
 	// common console
-	void open_console(_TCHAR* title);
+	void open_console(int width, int height, const _TCHAR* title);
 	void close_console();
 	unsigned int get_console_code_page();
 	bool is_console_active();
@@ -512,7 +512,9 @@ public:
 	void stop_record_sound();
 	void restart_record_sound();
 
+	const _TCHAR *get_vm_device_name();
 	const _TCHAR *get_sound_device_name(int num);
+	
 	int get_sound_device_num();
 	
 	bool now_record_sound;

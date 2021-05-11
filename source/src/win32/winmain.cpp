@@ -572,26 +572,42 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		if(emu) {
 			bool extended = ((HIWORD(lParam) & 0x100) != 0);
 			bool repeat = ((HIWORD(lParam) & 0x4000) != 0);
-			emu->key_down(LOBYTE(wParam), extended, repeat);
+			int code = LOBYTE(wParam);
+			if(code == VK_PROCESSKEY) {
+				code = MapVirtualKey(HIWORD(lParam) & 0xff, 3);
+			}
+			emu->key_down(code, extended, repeat);
 		}
 		break;
 	case WM_KEYUP:
 		if(emu) {
 			bool extended = ((HIWORD(lParam) & 0x100) != 0);
-			emu->key_up(LOBYTE(wParam), extended);
+			int code = LOBYTE(wParam);
+			if(code == VK_PROCESSKEY) {
+				code = MapVirtualKey(HIWORD(lParam) & 0xff, 3);
+			}
+			emu->key_up(code, extended);
 		}
 		break;
 	case WM_SYSKEYDOWN:
 		if(emu) {
 			bool extended = ((HIWORD(lParam) & 0x100) != 0);
 			bool repeat = ((HIWORD(lParam) & 0x4000) != 0);
-			emu->key_down(LOBYTE(wParam), extended, repeat);
+			int code = LOBYTE(wParam);
+			if(code == VK_PROCESSKEY) {
+				code = MapVirtualKey(HIWORD(lParam) & 0xff, 3);
+			}
+			emu->key_down(code, extended, repeat);
 		}
 		return 0;	// not activate menu when hit ALT/F10
 	case WM_SYSKEYUP:
 		if(emu) {
 			bool extended = ((HIWORD(lParam) & 0x100) != 0);
-			emu->key_up(LOBYTE(wParam), extended);
+			int code = LOBYTE(wParam);
+			if(code == VK_PROCESSKEY) {
+				code = MapVirtualKey(HIWORD(lParam) & 0xff, 3);
+			}
+			emu->key_up(code, extended);
 		}
 		return 0;	// not activate menu when hit ALT/F10
 	case WM_CHAR:
@@ -3904,26 +3920,42 @@ LRESULT CALLBACK ButtonSubProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lPara
 				if(emu) {
 					bool extended = ((HIWORD(lParam) & 0x100) != 0);
 					bool repeat = ((HIWORD(lParam) & 0x4000) != 0);
-					emu->key_down(LOBYTE(wParam), extended, repeat);
+					int code = LOBYTE(wParam);
+					if(code == VK_PROCESSKEY) {
+						code = MapVirtualKey(HIWORD(lParam) & 0xff, 3);
+					}
+					emu->key_down(code, extended, repeat);
 				}
 				break;
 			case WM_SYSKEYDOWN:
 				if(emu) {
 					bool extended = ((HIWORD(lParam) & 0x100) != 0);
 					bool repeat = ((HIWORD(lParam) & 0x4000) != 0);
-					emu->key_down(LOBYTE(wParam), extended, repeat);
+					int code = LOBYTE(wParam);
+					if(code == VK_PROCESSKEY) {
+						code = MapVirtualKey(HIWORD(lParam) & 0xff, 3);
+					}
+					emu->key_down(code, extended, repeat);
 				}
 				return 0;	// not activate menu when hit ALT/F10
 			case WM_KEYUP:
 				if(emu) {
 					bool extended = ((HIWORD(lParam) & 0x100) != 0);
-					emu->key_up(LOBYTE(wParam), extended);
+					int code = LOBYTE(wParam);
+					if(code == VK_PROCESSKEY) {
+						code = MapVirtualKey(HIWORD(lParam) & 0xff, 3);
+					}
+					emu->key_up(code, extended);
 				}
 				break;
 			case WM_SYSKEYUP:
 				if(emu) {
 					bool extended = ((HIWORD(lParam) & 0x100) != 0);
-					emu->key_up(LOBYTE(wParam), extended);
+					int code = LOBYTE(wParam);
+					if(code == VK_PROCESSKEY) {
+						code = MapVirtualKey(HIWORD(lParam) & 0xff, 3);
+					}
+					emu->key_up(code, extended);
 				}
 				return 0;	// not activate menu when hit ALT/F10
 			case WM_CHAR:

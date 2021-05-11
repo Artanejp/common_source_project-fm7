@@ -6,4 +6,5 @@ add_library(vm_emubx1
 	bx1.cpp
 	display.cpp
 	keyboard.cpp
+	printer.cpp
 )

@@ -1,3 +1,396 @@
+commit 03edc20ce74dff97ac38b3f433a259c3fee73e31
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 5 01:42:32 2021 +0900
+
+    [VM][FMTOWNS][CDROM] Fix compilation warnings.
+
+commit f06da209a58da593d91b4199222c5f221e5ef472
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 5 01:23:35 2021 +0900
+
+    [VM][FMTOWNS][MEMORY] Add dma read/write functions with wait.
+
+commit d5db7328d5fd5d84bf9094344835b4b62c3d5964
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 5 00:50:58 2021 +0900
+
+    [VM][FMTOWNS][MEMORY] Remove premitive read/write functions completely.
+
+commit 72caad91759d87a7281a992a8c85d5d3a7e1def8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 5 00:50:32 2021 +0900
+
+    [VM][FMTOWNS][DMAC] Remove debugging logs.
+
+commit 674ead2edf9bec70283d90fe8282e1a33e372c49
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 5 00:30:01 2021 +0900
+
+    [VM][FMTOWNS][MEMORY] Revert to use primitive_[read|write]. Fix CDROM's some issues (i.e. Crashing Ayayo4).Revert before 3b1be96ae8ef088e7f45b00bb3a3e6c01196b931
+
+commit ec1b9550b8da6bf4333641a20bb24a1cefe799d5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Apr 26 23:06:22 2021 +0900
+
+    [VM][FMTOWNS][CDROM_CDC] Add header of CDC.Still implementing this.
+
+commit e91b26d50e7e281e56fac3024293cb9f5bf87f47
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 9 01:39:20 2021 +0900
+
+    [VM][FMTOWNS][CDROM_CDC] Implement around I/O.This still be imcomplete.
+
+commit 04a2c954331d7f7cd2a4b0d4255a7dcc1a76edd1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 9 01:38:27 2021 +0900
+
+    [VM][FMTOWNS][CDROM][DMAC] Apply before commit: Use ACK bus arbiytation to transfer.
+
+commit 0e105de996eba27ddacf6c333482cf2ac22a7d2e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 9 01:37:24 2021 +0900
+
+    [VM][UPD71071] Add read_io16(), write_io16() and ACK feature.
+
+commit 280a3cf21f5352ea624bd506def76612ee9af1a2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 1 03:01:55 2021 +0900
+
+    [VM][FMTOWNS][CDROM] Start to implement CDC DEVICE class.
+
+commit 6f36095aba222d09dbf9584ebc2e123089a160b2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 17 00:51:36 2021 +0900
+
+    [VM][FMTOWNS][CDROM] Fix around re-calculate TOC table.
+
+commit b54c4d63ed9cc31b45eebf18c385ca5eadc29e51
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 17 00:41:35 2021 +0900
+
+    [VM][FMTOWNS][CDROM] Add NEW CDROM_CUE:: class.Update CDROM_SKELTON::.
+
+commit 182d87a12c32b4d25bbc734e899e05c4da0b458d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 12 20:25:56 2021 +0900
+
+    [VM][FMTOWNS][CDROM] Fix around read functions.
+
+commit 6c2273261a1c2ee3f13477f090eb6d884cfa0974
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 12 20:08:58 2021 +0900
+
+    [VM][FMTOWNS][CDROM] Implement reading functions.
+
+commit 4687c6cebb4fc25edaa7147bc55c4196bedf0d1f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 12 17:28:06 2021 +0900
+
+    [VM][FMTOWNS][CDROM] Move methods to cdrom_skelton.cpp .
+
+commit c2c6b8cd5963411b642b4975e1dfc1a30fbe8463
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 12 02:27:00 2021 +0900
+
+    [VM][FMTOWNS][CDROM] Update skelton.Add definition of CUE/BIN image.
+
+commit 3a26f89e4fab83a9809c1600f3ee4083432475d0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 4 20:28:13 2021 +0900
+
+    [VM][FMTOWNS][CDROM] Start to re-implement new CDROM class.Implement skelton of virtual CD-ROM image(s).
+
+commit 2d1e86a1a5ab542b6e23dba8bfe6e7505f06d48b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 28 01:47:18 2021 +0900
+
+    [VM][FMTOWNS][SCSI] Add a PORT: 0C34h.
+
+commit bd9e04cc515e1d4f7d6b6a8e3f384e70942de50f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 28 01:35:09 2021 +0900
+
+    [VM][FMTOWNS][CRTC][TIMER][MEMORY] Improve around I/O.
+
+commit 4ee8bb1d1ea8b3df195f5aaf6fd338435a1ba032
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 01:43:10 2021 +0900
+
+    [BUILD][CMAKE] .
+
+commit 5d111e48d2cf0ba3060a315e6041f90bec287c59
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 01:42:37 2021 +0900
+
+    [BUILD][CMAKE] Remove PrecompileHeader.cmake .
+
+commit 129180c816959f1267a9b119e8ecca72398d8dda
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 01:22:57 2021 +0900
+
+    [VM][FMTOWNS][CDROM][WIP] Fixing around booting from some version(s?) of TOWNS OS. i.e)AYAYO 4.
+
+commit 333b1f7f0e4d364c5029f3aa8e31eecc4b81ea2e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 01:22:09 2021 +0900
+
+    [VM][FMTOWNS][DMAC] Remove some variables.Update state save version.
+
+commit 62df76d22b4958d47d17c524d5848503eca30a8c
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 5 16:22:46 2021 +0900
+
+    [VM][WIN32] Fix FTBFSs with LLVM/MinGW32.
+
+commit 157ebfef5f075eefe591ab0a9485683631a9ad9f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 3 01:11:00 2021 +0900
+
+    [VM][I286][I86][V30][FMR][PC9801] Separate namespace CPUTYPE ENUMS.
+    
+    [VM][I286][I86] Fix weird bitmask default value.
+
+commit c2a10e82a94eac13c7693f5ab5aba2301eca5ad3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 3 00:36:45 2021 +0900
+
+    [VM][I286_NP21] Prepare to include.
+
+commit ba630c71e28f9866411a1bafd3eb46a1574c03c2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 2 23:52:37 2021 +0900
+
+    [UI][Qt][VM] Add EMUs: Canon BX1 and MITEC MP85.
+
+commit fd98b9aa503796c176a31119b43f5007b659f941
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 2 23:37:56 2021 +0900
+
+    [UI][Qt][I18N] Update translations.
+    
+    [UI][Qt][SMB80TE] Add DISPLAY BASE ADRESS config.
+    [VM][BX1][MP85] Add unique namespace to VMs.
+
+commit b3281dcabf908af0778683fc959144c5eb7ddb70
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 2 21:48:57 2021 +0900
+
+    [UI][Qt][SMB80TE] Add more DIPSWs.
+    
+    [UI][Qt][PC8801] Remove a unneeded line.
+
+commit a24ff88a7f29f16332a9c5f58f6658da837cf384
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 2 15:24:08 2021 +0900
+
+    [VM][PC8801] Revert changes upstream 2021-01-17; for draw_screen().These make unstable VM running when changing GUI (with Qt).
+
+commit 723c6c5923b9012ddd3423479c7d730b6e047155
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 2 14:59:44 2021 +0900
+
+    [UI][Qt][PC8801][PC98DO] Update UIs.
+
+commit 8e550323e1a0ba80db975dd4888374127956351c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 23:38:15 2021 +0900
+
+    [General] Update revisions.
+
+commit 235f06c8519b61fce8fc3d40bf9e46c589e62b60
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 23:37:17 2021 +0900
+
+    [VM][General] Merge Upstream 2021-01-21.
+
+commit 0fd5162e652d312a025a0622e5dc15c36c890e4f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 23:31:25 2021 +0900
+
+    [VM] Merge Updtream 2021-01-17.
+
+commit 52398867297e9d3011a7b4b6de9800b800b0fcb7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 23:28:10 2021 +0900
+
+    [VM][MZ80K] Merge Upstream 2021-01-03.
+
+commit 77e9ed795ff8e692711f5732cf283504a9bd02bd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 23:26:23 2021 +0900
+
+    [VM][PC8801] Merge Upstream 2020-12-31.
+
+commit 5dd05938002061bcd22e1d54a920e49ea6e0776a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 23:25:25 2021 +0900
+
+    [VM][PCENGINE][SCSI_CDROM] Merge Upstream 2020-12-21.
+
+commit 4605f38017f1dad6c636ff698bc6f1aa00e7e5a9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 22:58:12 2021 +0900
+
+    [VM][General] Update revision.
+
+commit 1f0dcebdaa75bc669593b3ba804ba4c60f3c25c6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 22:56:57 2021 +0900
+
+    [VM][SCSI_CDROM] Merge Upstream 2020-12-19 for SCSI_CDROM::.
+
+commit 604c343dd3b881165d82a86c128df73d239c4c94
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 22:43:55 2021 +0900
+
+    [VM][SCSI_CDROM] Merge Upstream 2020-12-18.
+
+commit a194c79c280f6b52d7f9676e9b1190b1c5fac154
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 21:48:17 2021 +0900
+
+    [VM][PC8801][PC9801] Merge Upstream 2020-12-16 and 2020-12-18 *excepts SCSI_CDROM*.
+
+commit 2d14e5e1f1c11c4fb2ca771802c68fc5e31b7e14
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 17:31:35 2021 +0900
+
+    [VM][General][PC9801] Fix FTBFS.
+
+commit d4de99cd5e02c48ed7c6bd85b675dce885cab12b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 16:06:46 2021 +0900
+
+    [COMMON] Update SOVERSION.
+
+commit 5f7e505399843ff91aec3f5fe0abc3d7e8af59b0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 16:06:15 2021 +0900
+
+    [VM][COMMON][General] Merge Upstream 2020-12-16.
+
+commit 8b221fb720e8bcdea5fe37890729f417082ff3d4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 16:00:21 2021 +0900
+
+    [VM][PC8801] Fix FTBFS.
+
+commit 090d1ddb4fa80b5230cad33b57914b49e2b79f87
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 15:41:51 2021 +0900
+
+    [VM][PC8801] Merge Upstream 2020-12-15.Still not implement UIs.
+
+commit 1eebcf664b3ded5320599c8327c63f2f43acef8a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 14:58:37 2021 +0900
+
+    [VM][PC8801] Merge Upstream 2020-12-14. Still not implement (inch FDD UIs.
+
+commit f756eb45b5ad8d2f2181b3f5f384fb692a89a951
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 14:47:56 2021 +0900
+
+    [VM][General] Merge Upstream 2020-12-13. Still not implement UIs for Canon BX2.
+
+commit 84763ac4827ad3d47782153211fd2550a8431ff5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 14:29:18 2021 +0900
+
+    [VM][PC8801] Merge Upstream 2020-12-12.
+
+commit 5f8932f1f9ac5e3037967970d4f87b93794d3058
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 14:27:34 2021 +0900
+
+    [VM][General] Merge Upstaream 2020-12-11.
+
+commit 3feab9e9d88e666212b4053d5a7db9f8b51311b2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 14:25:37 2021 +0900
+
+    [VM][General] Merge Upstream 2020-12-08.
+
+commit 30752b1f148f5dfc0c921e3c9373315c43c6c3c5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 13:36:50 2021 +0900
+
+    [VM][X1] Fix FTBFS.
+
+commit 98cfd2dab8e5b28ec6c20c3d571903c6bcdb4ecb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 13:31:58 2021 +0900
+
+    [UI][RES] Update Icons, and board of MP85.
+
+commit a23209e9b559d8a504bfa97ea27a52d1d4abaa3b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 31 13:13:30 2021 +0900
+
+    [General][VM] Merge Upstream 2020-12-06.Still not implement UIs for Canon BX1.
+
+commit 57a14b08a2c24faa0a01ad1de0087b17bb7d91cc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 14 23:49:35 2021 +0900
+
+    [VM][FMTOWNS][CDROM] Adjust seek timing.
+
+commit ad8027459894b28f3d20f0a15e4e987977a7cf26
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 14 14:01:27 2021 +0900
+
+    [VM][FMTOWNS][CDROM] Falldown intr even stat_reply_intr (04C2:bit6) == 0 on MCU interrupt.
+    
+    [VM][FMTOWNS][CDROM] Reply error when reading beyond track on READ_SECTOR.
+
+commit 43949217b85a510189d9402490eaf57a1bd8082b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 20 23:23:26 2020 +0900
+
+    [VM][FMTOWNS][CRTC] Use more SIMDs to be faster rendering.
+
+commit e77cd0c4179495dc852b8025d154367d8fdf9fa1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 20 21:10:45 2020 +0900
+
+    [VM][FMTOWNS][CDROM] Even reply without REQ_STATUS bit (0x20) with PAUSE/RESUME CDDA (85h/87h).
+
+commit 87926647b474cc9828a4c120d15cd1578b6f229e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 20 21:10:14 2020 +0900
+
+    [VM][FMTOWNS][CRTC] Temporally: Reduce warning on LTO.
+
+commit 734577439a7b0c2c1f2b3c183ec710656e4373e4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 16 17:13:20 2020 +0900
+
+    [BUILD][CMAKE] Re-Enable LTO with LLVM CLANG++.
+
+commit 5ae1c2a5802b42d4554e87a8c9fe10395258ef44
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 16 17:12:48 2020 +0900
+
+    [UI][Qt] TRY: Re-Order exiting sequence.
+
+commit 89d68d5242ea733a4aaa9be3d65a342c46e0b2ed
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 16 01:51:56 2020 +0900
+
+    [DOC][OOPS] Fix TYPO (;_;)
+
+commit 25c79bcaf30b3d062e844fd6f10b0f5c30248bd6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 16 01:40:52 2020 +0900
+
+    [UNIX] Update installer.
+
+commit 63e6af77b422e7bbb8bb614cbcb90e5b075facdf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 16 00:53:29 2020 +0900
+
+    [DOC] Update for release.
+
 commit 46662e26995354caf47739a7723cd5b96dc67a26
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Dec 15 23:46:27 2020 +0900

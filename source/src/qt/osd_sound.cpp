@@ -156,6 +156,16 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 	} while(len > 0);
 }
 
+const _TCHAR *OSD_BASE::get_vm_device_name()
+{
+	if(using_flags != NULL) {
+		QString s = using_flags->get_device_name();
+		static QByteArray __n = s.toUtf8();
+		return (const _TCHAR*)(__n.constData());
+	}
+	return (const _TCHAR*)"";
+}
+
 const _TCHAR *OSD_BASE::get_sound_device_name(int num)
 {
 	if(num < 0) return NULL;

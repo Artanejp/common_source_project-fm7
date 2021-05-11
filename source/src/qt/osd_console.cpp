@@ -51,7 +51,7 @@ void OSD_BASE::clear_console_input_string(void)
 	//DebugSemaphore->release();
 }
 
-void OSD_BASE::open_console(_TCHAR* title)
+void OSD_BASE::open_console(int width, int height, const _TCHAR* title)
 {
 	if(osd_console_opened) return;
 	//DebugSemaphore->acquire(1);

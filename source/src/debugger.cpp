@@ -394,7 +394,7 @@ void* debugger_thread(void *lpx)
 	_TCHAR buffer[8192];
 	bool cp932 = (p->osd->get_console_code_page() == 932);
 	
-	p->osd->open_console((_TCHAR *)create_string(_T("Debugger - %s"), _T(DEVICE_NAME)));
+	p->osd->open_console(120, 30, (_TCHAR *)create_string(_T("Debugger - %s"), _T(DEVICE_NAME)));
 	
 	// break cpu
 	DEVICE *cpu = p->vm->get_cpu(p->cpu_index);

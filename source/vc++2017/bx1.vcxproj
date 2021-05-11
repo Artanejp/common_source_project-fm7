@@ -327,10 +327,10 @@
     <ClCompile Include="..\src\emu.cpp" />
     <ClCompile Include="..\src\fifo.cpp" />
     <ClCompile Include="..\src\fileio.cpp" />
-    <ClCompile Include="..\src\vm\beep.cpp" />
     <ClCompile Include="..\src\vm\bx1\bx1.cpp" />
     <ClCompile Include="..\src\vm\bx1\display.cpp" />
     <ClCompile Include="..\src\vm\bx1\keyboard.cpp" />
+    <ClCompile Include="..\src\vm\bx1\printer.cpp" />
     <ClCompile Include="..\src\vm\disk.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
@@ -340,7 +340,6 @@
     </ClCompile>
     <ClCompile Include="..\src\vm\mc6843.cpp" />
     <ClCompile Include="..\src\vm\mc6844.cpp" />
-    <ClCompile Include="..\src\vm\mc6850.cpp" />
     <ClCompile Include="..\src\vm\memory.cpp" />
     <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\prnfile.cpp" />
@@ -358,10 +357,10 @@
     <ClInclude Include="..\src\fifo.h" />
     <ClInclude Include="..\src\fileio.h" />
     <ClInclude Include="..\src\res\resource.h" />
-    <ClInclude Include="..\src\vm\beep.h" />
     <ClInclude Include="..\src\vm\bx1\bx1.h" />
     <ClInclude Include="..\src\vm\bx1\display.h" />
     <ClInclude Include="..\src\vm\bx1\keyboard.h" />
+    <ClInclude Include="..\src\vm\bx1\printer.h" />
     <ClInclude Include="..\src\vm\debugger.h" />
     <ClInclude Include="..\src\vm\device.h" />
     <ClInclude Include="..\src\vm\disk.h" />
@@ -370,7 +369,6 @@
     <ClInclude Include="..\src\vm\mc6800.h" />
     <ClInclude Include="..\src\vm\mc6843.h" />
     <ClInclude Include="..\src\vm\mc6844.h" />
-    <ClInclude Include="..\src\vm\mc6850.h" />
     <ClInclude Include="..\src\vm\memory.h" />
     <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\prnfile.h" />

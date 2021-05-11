@@ -83,9 +83,6 @@
     <ClCompile Include="..\src\win32\winmain.cpp">
       <Filter>Source Files\OSD Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\beep.cpp">
-      <Filter>Source Files\VM Common Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\vm\disk.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
@@ -104,9 +101,6 @@
     <ClCompile Include="..\src\vm\mc6844.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\mc6850.cpp">
-      <Filter>Source Files\VM Common Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\vm\memory.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
@@ -123,6 +117,9 @@
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\bx1\keyboard.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\bx1\printer.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -144,9 +141,6 @@
     </ClInclude>
     <ClInclude Include="..\src\win32\osd.h">
       <Filter>Header Files\OSD Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\vm\beep.h">
-      <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\debugger.h">
       <Filter>Header Files\VM Common Header Files</Filter>
@@ -172,9 +166,6 @@
     <ClInclude Include="..\src\vm\mc6844.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\mc6850.h">
-      <Filter>Header Files\VM Common Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\vm\memory.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
@@ -197,6 +188,9 @@
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\bx1\keyboard.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\bx1\printer.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\res\resource.h">

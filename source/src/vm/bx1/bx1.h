@@ -15,8 +15,8 @@
 #define FRAMES_PER_SEC		30
 #define LINES_PER_FRAME		64
 #define CPU_CLOCKS		500000 // 4MHz / ???
-#define SCREEN_WIDTH		128
-#define SCREEN_HEIGHT		8
+#define SCREEN_WIDTH		((6 * 15 + 5) * 5)
+#define SCREEN_HEIGHT		(7 * 5)
 #define MAX_DRIVE		1
 #define MEMORY_ADDR_MAX		0x10000
 #define MEMORY_BANK_SIZE	0x1000
@@ -24,8 +24,8 @@
 #define HAS_MC6800
 
 // device informations for win32
-#define WINDOW_MODE_BASE	4
 #define USE_FLOPPY_DISK		1
+#define USE_NUMPAD_ENTER
 #define USE_AUTO_KEY		6
 #define USE_AUTO_KEY_RELEASE	12
 #define USE_AUTO_KEY_CAPS
@@ -40,7 +40,7 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("Beep"), _T("Noise (FDD)"),
+	_T("Noise (FDD)"),
 };
 #endif
 
@@ -51,14 +51,13 @@ class EVENT;
 class MC6800;
 class IO;
 class MEMORY;
-class BEEP;
 class MC6843;
 class MC6844;
-class MC6850;
 
 namespace BX1 {
 	class DISPLAY;
 	class KEYBOARD;
+	class PRINTER;
 }
 class VM : public VM_TEMPLATE
 {
@@ -71,16 +70,15 @@ protected:
 	MC6800* cpu;
 	IO* io;
 	MEMORY* memory;
-	BEEP* beep;
 	MC6843* fdc;
 	MC6844* dma;
-	MC6850* acia;
 	
 	BX1::DISPLAY* display;
 	BX1::KEYBOARD* keyboard;
+	BX1::PRINTER* printer;
 	
-	uint8_t basic[0x5000];
-	uint8_t boot[0x1000];
+	uint8_t bios_9000[0x5000]; // 9000h-DFFFh
+	uint8_t bios_f000[0x1000]; // F000h-FFFFh
 	uint8_t ram[0x4000];
 	
 public:

@@ -23,6 +23,10 @@ msbuild.exe bubcom80.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform=
 mkdir build_vc15\bubcom80
 copy bin\x86\Release\bubcom80.exe build_vc15\bubcom80\.
 
+msbuild.exe bx1.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
+mkdir build_vc15\bx1
+copy bin\x86\Release\bx1.exe build_vc15\bx1\.
+
 msbuild.exe colecovision.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
 mkdir build_vc15\colecovision
 copy bin\x86\Release\colecovision.exe build_vc15\colecovision\.

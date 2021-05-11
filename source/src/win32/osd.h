@@ -266,7 +266,11 @@ private:
 	int lock_count;
 	
 	// console
+	void initialize_console();
+	void release_console();
+	
 	HANDLE hStdIn, hStdOut;
+	int console_count;
 	
 	// input
 	void initialize_input();
@@ -512,7 +516,7 @@ public:
 #endif
 	
 	// common console
-	void open_console(const _TCHAR* title);
+	void open_console(int width, int height, const _TCHAR* title);
 	void close_console();
 	unsigned int get_console_code_page();
 	bool is_console_active();

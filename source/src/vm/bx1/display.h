@@ -10,7 +10,7 @@
 #ifndef _DISPLAY_H_
 #define _DISPLAY_H_
 
-#include "../vm_template.h"
+#include "../vm.h" // ToDo:
 #include "../../emu_template.h"
 #include "../device.h"
 
@@ -18,11 +18,9 @@ namespace BX1 {
 class DISPLAY : public DEVICE
 {
 private:
-	DEVICE *d_cpu;
 	DEVICE *d_dma;
-	uint8_t *ram;
-	uint8_t font[8*256];
-	int ptr;
+	
+	int buffer_ptr;
 	uint8_t buffer[16];
 	
 public:
@@ -34,26 +32,13 @@ public:
 	
 	// common functions
 	virtual void initialize();
-	virtual void release();
-	virtual void reset();
-	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
 	virtual void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
 	virtual void event_frame();
-	virtual bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
-	void set_context_cpu(DEVICE* device)
-	{
-		d_cpu = device;
-	}
 	void set_context_dma(DEVICE* device)
 	{
 		d_dma = device;
-	}
-	void set_context_ram(uint8_t* ptr)
-	{
-		ram = ptr;
 	}
 	void draw_screen();
 };
