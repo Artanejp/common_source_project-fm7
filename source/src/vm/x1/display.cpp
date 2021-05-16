@@ -599,11 +599,13 @@ void DISPLAY::event_frame()
 	hz_total = regs[0] + 1;
 	hz_disp = regs[1];
 	vt_disp = regs[6] & 0x7f;
+	vt_ofs = regs[5] & 0x1f;
 	st_addr = (regs[12] << 8) | regs[13];
 #ifdef _X1TURBO_FEATURE
 	int vt_total = ((regs[4] & 0x7f) + 1) * ch_height + (regs[5] & 0x1f);
 	bool hireso_old = hireso;
 	hireso = (vt_total >= 400);
+	if(!hireso) vt_ofs = max(vt_ofs - 2, 0);
 #endif
 	int vlen;
 #ifdef _X1TURBO_FEATURE
@@ -889,6 +891,16 @@ void DISPLAY::draw_screen()
 #endif
 	}
 
+	// total raster_adjust
+#ifdef _X1TURBO_FEATURE
+	for(int y = 0; y < vt_ofs * (hireso ? 1 : 2); y++) {
+#else
+	for(int y = 0; y < vt_ofs * 2; y++) {
+#endif
+		scrntype_t* dest = emu->get_screen_buffer(y);
+		memset(dest, 0, 640 * sizeof(scrntype_t));
+	}
+	
 	// copy to real screen
 	__DECL_ALIGNED(16) scrntype_t dbuf[640];
 #ifdef _X1TURBO_FEATURE
@@ -897,8 +909,8 @@ void DISPLAY::draw_screen()
 //		emu->set_vm_screen_lines(400);
 		if(column40) {
 			// 40 columns
-			for(int y = 0; y < 400; y++) {
-				scrntype_t* dest = emu->get_screen_buffer(y);
+			for(int y = 0; (y + vt_ofs) < 400; y++) {
+				scrntype_t* dest = emu->get_screen_buffer(y + vt_ofs);
 				uint8_t* src_text = dr_text[y];
 #ifdef _X1TURBOZ
 				if(dr_aen_line[y]) {
@@ -930,8 +942,8 @@ __DECL_VECTORIZED_LOOP
 			}
 		} else {
 			// 80 columns
-			for(int y = 0; y < 400; y++) {
-				scrntype_t* dest = emu->get_screen_buffer(y);
+			for(int y = 0; (y + vt_ofs) < 400; y++) {
+				scrntype_t* dest = emu->get_screen_buffer(y + vt_ofs);
 				uint8_t* src_text = dr_text[y];
 #ifdef _X1TURBOZ
 				if(dr_aen_line[y]) {
@@ -971,10 +983,10 @@ __DECL_VECTORIZED_LOOP
 		
 		if(column40) {
 			// 40 columns
-			for(int y = 0; y < 200; y++) {
+			for(int y = 0; (y + vt_ofs) < 200; y++) {
+				scrntype_t* dest0 = emu->get_screen_buffer((y + vt_ofs) * 2 + 0);
+				scrntype_t* dest1 = emu->get_screen_buffer((y + vt_ofs) * 2 + 1);
 				uint8_t* src_text = dr_text[y];
-				scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
-				scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
 #ifdef _X1TURBOZ
 				if(dr_aen_line[y]) {
 					uint16_t* src_cg0 = dr_zcg[0][y];
@@ -1025,9 +1037,9 @@ __DECL_VECTORIZED_LOOP
 			}
 		} else {
 			// 80 columns
-			for(int y = 0; y < 200; y++) {
-				scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
-				scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+			for(int y = 0; (y + vt_ofs) < 200; y++) {
+				scrntype_t* dest0 = emu->get_screen_buffer((y + vt_ofs) * 2 + 0);
+				scrntype_t* dest1 = emu->get_screen_buffer((y + vt_ofs) * 2 + 1);
 				uint8_t* src_text = dr_text[y];
 #ifdef _X1TURBOZ
 				if(aen_line[y]) {
@@ -1666,7 +1678,7 @@ uint16_t DISPLAY::jis2sjis(uint16_t jis)
 	return (c1 << 8) | c2;
 }
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 
 bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1735,6 +1747,7 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(hz_total);
 	state_fio->StateValue(hz_disp);
 	state_fio->StateValue(vt_disp);
+	state_fio->StateValue(vt_ofs);
 	state_fio->StateValue(st_addr);
 	state_fio->StateValue(vblank_clock);
 	state_fio->StateValue(cur_blank);

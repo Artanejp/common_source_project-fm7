@@ -1,3 +1,23 @@
+5/2/2021
+
+[VM/DATAREC] fix mixing sound track
+[VM/HD46505] support smooth vertical scroll
+[VM/MC6843] fix seek command
+[VM/MC6844] fix data chain register to consider 2/4 channel select bit
+[VM/MC6844] fix to transfer 64K when byte count register is zero
+[VM/Z80CTC] fix to apply written time constant just after reset bit is cleared
+
+[BX1] fix memory map around ram
+[BX1] support cartridge rom images
+[BX1/DISPLAY] add missing font patterns
+[BX1/FLOPPY] support i/o ports around fdc
+[BX1/KEYBOARD] support PROG.SELECT switch
+[BX1/PRINTER] support AUTO PRINT switch
+[MZ1500/JOTSTICK] support joystick (thanks Mr.Koucha-Youkan)
+[PC6001] remove some codes from iP6 Plus
+[X1TURBO/DISPLAY] support smooth vertical scroll
+
+
 2/7/2021
 
 [WINMAIN] improve WM_KEYDOW/WM_KEYUP events for VK_PROCESSKEY case

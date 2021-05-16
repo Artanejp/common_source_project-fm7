@@ -8,8 +8,13 @@
 #ifndef _BX1_H_
 #define _BX1_H_
 
+#if defined(_AX1)
+#define DEVICE_NAME		"CANON AX-1"
+#define CONFIG_NAME		"ax1"
+#elif defined(_BX1)
 #define DEVICE_NAME		"CANON BX-1"
 #define CONFIG_NAME		"bx1"
+#endif
 
 // device informations for virtual machine
 #define FRAMES_PER_SEC		30
@@ -19,11 +24,12 @@
 #define SCREEN_HEIGHT		(7 * 5)
 #define MAX_DRIVE		1
 #define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x1000
+#define MEMORY_BANK_SIZE	0x400
 #define IO_ADDR_MAX		0x10000
 #define HAS_MC6800
 
 // device informations for win32
+#define USE_DIPSWITCH
 #define USE_FLOPPY_DISK		1
 #define USE_NUMPAD_ENTER
 #define USE_AUTO_KEY		6
@@ -31,6 +37,8 @@
 #define USE_AUTO_KEY_CAPS
 #define DONT_KEEEP_KEY_PRESSED
 #define USE_SOUND_VOLUME	2
+#define USE_PRINTER
+#define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
 
@@ -56,6 +64,7 @@ class MC6844;
 
 namespace BX1 {
 	class DISPLAY;
+	class FLOPPY;
 	class KEYBOARD;
 	class PRINTER;
 }
@@ -74,12 +83,17 @@ protected:
 	MC6844* dma;
 	
 	BX1::DISPLAY* display;
+	BX1::FLOPPY* floppy;
 	BX1::KEYBOARD* keyboard;
 	BX1::PRINTER* printer;
 	
-	uint8_t bios_9000[0x5000]; // 9000h-DFFFh
-	uint8_t bios_f000[0x1000]; // F000h-FFFFh
-	uint8_t ram[0x4000];
+	uint8_t cart_5000[0x1000]; // 5000h-5FFFh
+	uint8_t cart_6000[0x1000]; // 6000h-6FFFh
+	uint8_t cart_7000[0x1000]; // 7000h-7FFFh
+	uint8_t cart_8000[0x1000]; // 8000h-8FFFh
+	uint8_t bios_9000[0x5000]; // 9000h-DFFFh (Integrated)
+	uint8_t bios_f000[0x1000]; // F000h-FFFFh (Integrated)
+	uint8_t ram[0x5000];
 	
 public:
 	// ----------------------------------------

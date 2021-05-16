@@ -9,8 +9,10 @@ set(BASIC_VM_FILES_PC6001
 	psub.cpp
 	sub.cpp
 	timer.cpp
+	
 	pc6001.cpp
 )
+
 if(${EXE_NAME} STREQUAL emupc6001)
 	add_library(vm_${EXE_NAME}
 		../mc6847.cpp
@@ -19,19 +21,16 @@ if(${EXE_NAME} STREQUAL emupc6001)
 	)
 elseif(${EXE_NAME} STREQUAL emupc6601)
 	add_library(vm_${EXE_NAME}
-		floppy.cpp
-		memory_draw.cpp
+		./floppy.cpp
 		${BASIC_VM_FILES_PC6001}
 	)
 elseif(${EXE_NAME} STREQUAL emupc6601sr)
 	add_library(vm_${EXE_NAME}
-		floppy.cpp
-		memory_draw.cpp
+		./floppy.cpp
 		${BASIC_VM_FILES_PC6001}
 	)
 else()
 	add_library(vm_${EXE_NAME}
-		memory_draw.cpp
 		${BASIC_VM_FILES_PC6001}
 	)
 endif()

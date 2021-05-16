@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								1/24/2021
+								2/7/2021
 
 --- What's this ?
 
@@ -12,6 +12,7 @@ This archive includes the binaries of the emulators listed below:
 	BANDAI
 		eRX-78		RX-78
 	CANON
+		eBX-1		BX-1
 		eX-07		X-07
 	CASIO
 		eFP-200		FP-200
@@ -495,7 +496,7 @@ Save/Load State info:
 	MESS PC-8801 driver
 - vm/pc9801/display.*
 	Neko Project 2 by Mr.Yui
-	Improved for EGC by Mr.Ryuji Okamoto (qemu/9821‰ü‘¢”Å)
+	Improved for EGC by Mr.Ryuji Okamoto (qemu/9821æ”¹é€ ç‰ˆ)
 - vm/pcengine/pce.*
 	Ootake (joypad)
 	xpce (psg)

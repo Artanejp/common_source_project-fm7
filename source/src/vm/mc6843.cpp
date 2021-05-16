@@ -319,7 +319,11 @@ int MC6843::address_search( chrn_id* id )
 
 	fdc[m_drive].searching = false;
 
-	if ( !disk[m_drive]->get_track(fdc[m_drive].track, m_side) )
+#if 0
+	if ( !(fdc[m_drive].track >= 0 && fdc[m_drive].track < 70 && disk[m_drive]->get_track(fdc[m_drive].track >> 1, m_side)) )
+#else
+	if ( !disk[m_drive]->get_track(m_LTAR, m_side) )
+#endif
 	{
 		m_STRB |= 0x08; /* set Sector Address Undetected */
 		cmd_end( );
@@ -331,7 +335,11 @@ int MC6843::address_search( chrn_id* id )
 		// fixme: need to get current head position to determin next sector
 		int sector = (fdc[m_drive].sector++) % disk[m_drive]->sector_num.sd;
 
-		if ( !disk[m_drive]->get_sector(fdc[m_drive].track, m_side, sector) )
+#if 0
+		if ( !disk[m_drive]->get_sector(fdc[m_drive].track >> 1, m_side, sector) )
+#else
+		if ( !disk[m_drive]->get_sector(m_LTAR, m_side, sector) )
+#endif
 		{
 			/* read address error */
 //			LOG( "%f mc6843_address_search: get_next_id failed\n", machine().time().as_double() );
@@ -872,7 +880,11 @@ void MC6843::write(offs_t offset, uint8_t data)
 				}
 				register_event(this, EVENT_SEEK, 64 * ((m_SUR >> 4) + 1), false, &m_seek_id);
 				// set target track number
-				fdc[m_drive].target_track = (cmd == CMD_STZ) ? 0 : m_GCR - (m_CTAR & 0x7F);
+				if(cmd == CMD_STZ) {
+					fdc[m_drive].target_track = 0;
+				} else {
+					fdc[m_drive].target_track = fdc[m_drive].track + m_GCR - (m_CTAR & 0x7F);
+				}
 				if(__FDC_DEBUG_LOG) {
 					this->out_debug_log(_T("FDC: SEEK DRIVE=%d TARGET=%d\n"), m_drive, fdc[m_drive].target_track);
 				}

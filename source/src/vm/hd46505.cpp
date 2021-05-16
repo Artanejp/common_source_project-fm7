@@ -98,6 +98,12 @@ void HD46505::write_io8(uint32_t addr, uint32_t data)
 			if(ch < 10 && regs[ch] != data) {
 				timing_changed = true;
 			}
+			if(ch == 5 && !regs_written[5]) {
+				reg5_bottom = data;
+			}
+			if(ch == 9 && !regs_written[9]) {
+				reg9_bottom = data;
+			}
 			regs[ch] = data;
 			regs_written[ch] = true;
 		}
@@ -120,13 +126,15 @@ void HD46505::event_pre_frame()
 	if(timing_changed) {
 		if(regs_written[0] && regs_written[1] && regs_written[2] && regs_written[3] && regs_written[4] && regs_written[5] && regs_written[6] && regs_written[7] && regs_written[9]) {
 			int ch_height = (regs[9] & 0x1f) + 1;
+			int ch_height_bottom = (reg9_bottom & 0x1f) + 1;
 			
 			hz_total = regs[0] + 1;
 			hz_disp = regs[1];
 			hs_start = regs[2];
 			hs_end = hs_start + (regs[3] & 0x0f);
 			
-			vt_total = ((regs[4] & 0x7f) + 1) * ch_height + (regs[5] & 0x1f);
+//			vt_total = ((regs[4] & 0x7f) + 1) * ch_height + (regs[5] & 0x1f);
+			vt_total = (regs[4] & 0x7f) * ch_height + ch_height_bottom + (reg5_bottom & 0x1f);
 			vt_disp = (regs[6] & 0x7f) * ch_height;
 			vs_start = ((regs[7] & 0x7f) + 1) * ch_height;
 			vs_end = vs_start + ((regs[3] & 0xf0) ? (regs[3] >> 4) : 16);
@@ -201,6 +209,12 @@ void HD46505::event_vline(int v, int clock)
 		new_vblank = false;
 	}
 	
+	// virtical smooth scroll
+	if(v == vt_disp) {
+		reg5_bottom = regs[5];
+		reg9_bottom = regs[9];
+	}
+	
 	// display
 	if(outputs_disp.count) {
 		set_display(new_vblank);
@@ -266,7 +280,7 @@ void HD46505::set_hsync(bool val)
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool HD46505::process_state(FILEIO* state_fio, bool loading)
 {
@@ -278,6 +292,8 @@ bool HD46505::process_state(FILEIO* state_fio, bool loading)
  	}
 	state_fio->StateArray(regs, sizeof(regs), 1);
 	state_fio->StateArray(regs_written, sizeof(regs_written), 1);
+	state_fio->StateValue(reg5_bottom);
+	state_fio->StateValue(reg9_bottom);
 	state_fio->StateValue(ch);
 	state_fio->StateValue(timing_changed);
 	state_fio->StateValue(cpu_clocks);

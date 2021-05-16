@@ -25,10 +25,12 @@
 #endif
 
 #include "display.h"
+#include "floppy.h"
 #include "keyboard.h"
 #include "printer.h"
 
 using BX1::DISPLAY;
+using BX1::FLOPPY;
 using BX1::KEYBOARD;
 using BX1::PRINTER;
 
@@ -53,6 +55,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma = new MC6844(this, emu);	// HD46504
 	
 	display = new DISPLAY(this, emu);
+	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	printer = new PRINTER(this, emu);
 	
@@ -62,13 +65,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
 	
-//	fdc->set_context_irq(cpu, SIG_CPU_IRQ, 1);
 	fdc->set_context_drq(dma, SIG_MC6844_TX_RQ_0, 1);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
 	dma->set_context_ch1(display);
 	
 	display->set_context_dma(dma);
+	floppy->set_context_fdc(fdc);
 	printer->set_context_ram(ram);
 	
 	// cpu bus
@@ -77,7 +80,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	DEBUGGER *debugger = new DEBUGGER(this, emu);
 	cpu->set_context_debugger(debugger);
 	
-//	debugger->add_symbol(0x015c, _T("VRAM_TOP"));
+	debugger->add_symbol(0x015c, _T("VRAM_TOP"));
+	
 	debugger->add_symbol(0xe121, _T("KEY_DOWN"));
 	debugger->add_symbol(0xe122, _T("KEY_UP"));
 	debugger->add_symbol(0xe140, _T("DMA[0].ADDR_HI"));
@@ -111,25 +115,44 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	debugger->add_symbol(0xe185, _T("FDC.GEN_COUNT"));
 	debugger->add_symbol(0xe186, _T("FDC.CRC_CTRL"));
 	debugger->add_symbol(0xe187, _T("FDC.LOGIC_TRACK"));
+	debugger->add_symbol(0xe18a, _T("FDD.MOTOR_ON")); // ???
 #endif
 	
 	// memory bus
 	memset(ram, 0x00, sizeof(ram));
+	memset(cart_5000, 0xff, sizeof(cart_5000));
+	memset(cart_6000, 0xff, sizeof(cart_6000));
+	memset(cart_7000, 0xff, sizeof(cart_7000));
+	memset(cart_8000, 0xff, sizeof(cart_8000));
 	memset(bios_9000, 0xff, sizeof(bios_9000));
 	memset(bios_f000, 0xff, sizeof(bios_f000));
 	
+	memory->read_bios(_T("CART_5000.ROM"), cart_5000, sizeof(cart_5000));
+	memory->read_bios(_T("CART_6000.ROM"), cart_6000, sizeof(cart_6000));
+	memory->read_bios(_T("CART_7000.ROM"), cart_7000, sizeof(cart_7000));
+	memory->read_bios(_T("CART_8000.ROM"), cart_8000, sizeof(cart_8000));
 	memory->read_bios(_T("BIOS_9000.ROM"), bios_9000, sizeof(bios_9000));
 	memory->read_bios(_T("BIOS_F000.ROM"), bios_f000, sizeof(bios_f000));
 	
-	memory->set_memory_rw(0x0000, 0x3fff, ram);
+#if defined(_AX1)
+	memory->set_memory_rw(0x0000, 0x07ff, ram + 0x0000);
+#elif defined(_BX1)
+	memory->set_memory_rw(0x0000, 0x03ff, ram + 0x0000);
+#endif
+	memory->set_memory_rw(0x1000, 0x4fff, ram + 0x1000);
+	memory->set_memory_r(0x5000, 0x5fff, cart_5000);
+	memory->set_memory_r(0x6000, 0x6fff, cart_6000);
+	memory->set_memory_r(0x7000, 0x7fff, cart_7000);
+	memory->set_memory_r(0x8000, 0x8fff, cart_8000);
 	memory->set_memory_r(0x9000, 0xdfff, bios_9000);
 	memory->set_memory_mapped_io_rw(0xe000, 0xefff, io);
 	memory->set_memory_r(0xf000, 0xffff, bios_f000);
 	
 	// io bus
-	io->set_iomap_range_rw(0xe121, 0xe122, keyboard);
+	io->set_iomap_range_r (0xe121, 0xe122, keyboard);
 	io->set_iomap_range_rw(0xe140, 0xe156, dma);
 	io->set_iomap_range_rw(0xe180, 0xe187, fdc);
+	io->set_iomap_range_rw(0xe188, 0xe18f, floppy);
 	io->set_iomap_range_rw(0xe210, 0xe212, printer); // ?????
 
 //! @note Not remove below comment. 20210511 K.O	
@@ -305,14 +328,11 @@ void VM::key_down(int code, bool repeat)
 {
 	if(!repeat) {
 		keyboard->key_down(code);
-//		printer->key_down(code);
 	}
 }
 
 void VM::key_up(int code)
 {
-	keyboard->key_up(code);
-//	printer->key_up(code);
 }
 
 // ----------------------------------------------------------------------------
@@ -322,6 +342,30 @@ void VM::key_up(int code)
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
+	
+	// unformatted disk image is inserted
+	if(fdc->is_disk_inserted(drv)) {
+		DISK *disk = fdc->get_disk_handler(drv);
+		bool formatted = false;
+		
+		for(int trk = 0; trk < 35; trk++) {
+			if(disk->get_track(trk, 0)) {
+				formatted = true;
+				break;
+			}
+		}
+		if(!formatted) {
+			// format disk image
+			for(int trk = 0; trk < 35; trk++) {
+				disk->format_track(trk, 0);
+				disk->track_mfm = false;
+				
+				for(int sec = 1; sec <= 16; sec++) {
+					disk->insert_sector(trk, 0, sec, 0, false, false, 0x00, 128);
+				}
+			}
+		}
+	}
 }
 
 void VM::close_floppy_disk(int drv)
@@ -361,7 +405,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

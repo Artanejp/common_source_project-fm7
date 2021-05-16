@@ -743,7 +743,7 @@ uint64_t VM::get_current_clock_uint64()
 		return event->get_current_clock_uint64();
 }
 
-#define STATE_VERSION	7
+#define STATE_VERSION	8
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

@@ -335,6 +335,7 @@
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\mz700\cmos.cpp" />
     <ClCompile Include="..\src\vm\mz700\emm.cpp" />
+    <ClCompile Include="..\src\vm\mz700\joystick.cpp" />
     <ClCompile Include="..\src\vm\mz700\kanji.cpp" />
     <ClCompile Include="..\src\vm\mz700\keyboard.cpp" />
     <ClCompile Include="..\src\vm\mz700\memory.cpp" />
@@ -367,6 +368,7 @@
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\mz700\cmos.h" />
     <ClInclude Include="..\src\vm\mz700\emm.h" />
+    <ClInclude Include="..\src\vm\mz700\joystick.h" />
     <ClInclude Include="..\src\vm\mz700\kanji.h" />
     <ClInclude Include="..\src\vm\mz700\keyboard.h" />
     <ClInclude Include="..\src\vm\mz700\memory.h" />

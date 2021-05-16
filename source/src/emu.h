@@ -19,6 +19,8 @@
 //	#define _FDC_DEBUG_LOG
 	// output scsi debug log
 //	#define _SCSI_DEBUG_LOG
+	// output dma debug log
+//	#define _DMA_DEBUG_LOG
 	// output i/o debug log
 //	#define _IO_DEBUG_LOG
 #endif

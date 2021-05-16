@@ -8,7 +8,7 @@
 	[ MCS48 ]
 */
 
-#ifndef _MCS84_H_ 
+#ifndef _MCS48_H_ 
 #define _MCS48_H_
 
 //#include "vm.h"

@@ -797,7 +797,7 @@ int DATAREC::load_wav_image(int offset)
 					pair.b.h = tmp_buffer[tmp_ptr++]; \
 					sample[ch] = pair.s16; \
 				} else { \
-					sample[ch] = (tmp_buffer[tmp_ptr++] - 128) * 256; \
+					sample[ch] = ((int)tmp_buffer[tmp_ptr++] - 128) * 256; \
 				} \
 			} \
 			if(tmp_ptr == TMP_LENGTH) { \
@@ -1762,11 +1762,12 @@ void DATAREC::mix(int32_t* buffer, int cnt)
 			sound_last_vol_r = apply_volume(sound_sample, sound_volume_r);
 			buffer = buffer_tmp; // restore
 			for(int i = 0; i < cnt; i++) {
-				*buffer += sound_last_vol_l; // L
-				*buffer += sound_last_vol_r; // R
+				*buffer++ += sound_last_vol_l; // L
+				*buffer++ += sound_last_vol_r; // R
 			}
 		} else if(sound_last_vol_l || sound_last_vol_r) {
 			// suppress petite noise when go to mute
+			buffer = buffer_tmp; // restore
 			for(int i = 0; i < cnt; i++) {
 				*buffer++ += sound_last_vol_l; // L
 				*buffer++ += sound_last_vol_r; // R

@@ -139,6 +139,12 @@ BEGIN
     END
     POPUP "Device"
     BEGIN
+        POPUP "Mode Switch"
+        BEGIN
+            MENUITEM "AUTO PRINT Switch",       ID_VM_DIPSWITCH0
+            MENUITEM "PROG.SELECT Switch",      ID_VM_DIPSWITCH1
+            MENUITEM "JPN/ENG Jumper",          ID_VM_DIPSWITCH2
+        END
         POPUP "Sound"
         BEGIN
             MENUITEM "Play FDD Noise",          ID_VM_SOUND_NOISE_FDD, GRAYED

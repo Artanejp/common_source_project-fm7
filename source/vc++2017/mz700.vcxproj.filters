@@ -116,6 +116,9 @@
     <ClCompile Include="..\src\vm\mz700\emm.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\mz700\joystick.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\mz700\kanji.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
@@ -194,6 +197,9 @@
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\mz700\emm.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\mz700\joystick.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\mz700\kanji.h">

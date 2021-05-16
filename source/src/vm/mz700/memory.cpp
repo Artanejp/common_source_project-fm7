@@ -509,7 +509,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 				case 4: case 5: case 6: case 7:
 					return d_pit->read_io8(addr & 3);
 				case 8:
-					return (hblank ? 0 : 0x80) | (tempo ? 1 : 0) | 0x7e;
+					return (hblank ? 0 : 0x80) | (tempo ? 1 : 0) | d_joystick->read_io8(0);
 				}
 				return 0xff;
 			}

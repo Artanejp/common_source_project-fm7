@@ -1,0 +1,50 @@
+"eBX-1" - CANON BX-1 emulator for Win32
+								5/2/2021
+
+--- Internal ROM image
+
+	BIOS_5000.ROM	ROM CART #1 ($5000 - $5FFF)
+	BIOS_6000.ROM	ROM CART #2 ($6000 - $6FFF)
+	BIOS_7000.ROM	ROM CART #3 ($7000 - $7FFF)
+	BIOS_8000.ROM	ROM CART #4 ($8000 - $8FFF)
+	BIOS_9000.ROM	INTEGRATED BIOS ($9000 - $DFFF)
+	BIOS_F000.ROM	INTEGRATED BIOS ($F000 - $FFFF)
+
+--- Key maps
+
+	PC		Virtual
+	--------------------------------
+	Left Ctrl	CAP
+	Right Ctrl	UC
+	Left Shift	SML
+	Caps		CTRL
+	Tab		INST
+	Escape		CLEAR
+	F1		RUN
+	+ Righit Shift	PROGRAM
+	F2		RENAME
+	+ Righit Shift	NEW
+	F3		PROTECT
+	+ Righit Shift	SECURE
+	F4		PROG-LIST
+	+ Righit Shift	OPERATE
+	F5		STOP
+	+ Righit Shift	TRACE
+	F6		CONDENSE
+	+ Righit Shift	DISK LIST
+	F7		LINE-NO.
+	+ Righit Shift	RECALL
+	F9		EXP
+	F10		SIGH CHG
+	F11		CE
+	F12		START
+	Home		ALPHA^X
+	End		(
+	Page Up		SQR
+	Page Down	)
+	Scroll Lock	PAPER FEED
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://takeda-toshiya.my.coocan.jp/

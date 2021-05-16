@@ -24,7 +24,7 @@ private:
 	outputs_t outputs_vsync;
 	outputs_t outputs_hsync;
 	
-	uint8_t regs[18];
+	uint8_t regs[18], reg5_bottom, reg9_bottom;
 	bool regs_written[18];
 	int ch;
 	bool timing_changed;

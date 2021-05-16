@@ -695,6 +695,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\mz700\joystick.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\mz700\kanji.cpp"
 					>
 					<FileConfiguration
@@ -901,6 +921,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\mz700\emm.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\mz700\joystick.h"
 					>
 				</File>
 				<File

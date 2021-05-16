@@ -17,8 +17,7 @@ void PRINTER::initialize()
 	fio = new FILEIO();
 
 	osd->open_console(80, 30, create_string(_T("Printer - %s"), osd->get_vm_device_name()));
-					  
-	register_frame_event(this);
+
 	register_vline_event(this);
 }
 
@@ -38,7 +37,7 @@ void PRINTER::reset()
 	}
 	column = htab = 0;
 	
-	e210 = e211 = 0;//0xff;
+	strobe = outdata = 0;
 }
 
 /*
@@ -51,11 +50,14 @@ void PRINTER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	case 0xe210:
-	case 0xe212:
-		e210 = data;
+		// C1 -> A1で$E211のデータが出力される？
+		if((strobe & 0xe1) == 0xc1 && (data & 0xe1) == 0xa1) {
+//			output(outdata);
+		}
+		strobe = data;
 		break;
 	case 0xe211:
-		e211 = data;
+		outdata = data;
 		break;
 	}
 }
@@ -66,23 +68,19 @@ uint32_t PRINTER::read_io8(uint32_t addr)
 	
 	switch(addr & 0xffff) {
 	case 0xe210:
-		value = e210;
+		// 0x00, 0x80, 0x81 ?
+		// bit7: 1=AUTO PRINT ?
+		// bit0: PE or BUSY ?
+		value = (config.dipswitch & 1) ? 0 : 0x80;
 		break;
 	case 0xe211:
-//		value = e211;
+		value = outdata;
 		break;
 	case 0xe212:
-		value = e210;
-//		e210 ^= 1;
+		value = strobe;
 		break;
 	}
 	return value;
-}
-
-void PRINTER::event_frame()
-{
-	// ?????
-	e210 ^= 1;
 }
 
 void PRINTER::event_vline(int v, int clock)
@@ -134,13 +132,14 @@ void PRINTER::event_vline(int v, int clock)
 
 void PRINTER::output(uint8_t value)
 {
-	if(!fio->IsOpened()) {
-		_TCHAR file_path[_MAX_PATH];
-		create_date_file_path(file_path, _MAX_PATH, _T("txt"));
-		fio->Fopen(file_path, FILEIO_WRITE_BINARY);
+	if(config.printer_type == 0) {
+		if(!fio->IsOpened()) {
+			_TCHAR file_path[_MAX_PATH];
+			create_date_file_path(file_path, _MAX_PATH, _T("txt"));
+			fio->Fopen(file_path, FILEIO_WRITE_BINARY);
+		}
+		fio->Fputc(value);
 	}
-	fio->Fputc(value);
-	
 	char temp[2];
 	temp[0] = (char)value;
 	temp[1] = 0;
@@ -150,8 +149,9 @@ void PRINTER::output(uint8_t value)
 void PRINTER::key_down(int code)
 {
 	// ugly patch for PAPER FEED
-	if(code == 0x66) {
+	if(code == 0x91) {
 		output(0x0d);
+		output(0x0a);
 	}
 }
 
@@ -171,8 +171,8 @@ bool PRINTER::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateValue(column);
 	state_fio->StateValue(htab);
-	state_fio->StateValue(e210);
-	state_fio->StateValue(e211);
+	state_fio->StateValue(strobe);
+	state_fio->StateValue(outdata);
 	return true;
 }
 

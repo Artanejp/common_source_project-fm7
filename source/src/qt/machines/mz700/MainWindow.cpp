@@ -70,6 +70,14 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ",  true);
+#if defined(USE_JOYSTICK_TYPE)
+	actionJoystickType[0]->setText(QApplication::translate("MachineMZ700", "MZ-1X03", 0));
+	actionJoystickType[0]->setToolTip(QApplication::translate("MachineMZ700", "Use Sharp MZ-1X03 Joystick unit.", 0));
+	actionJoystickType[1]->setText(QApplication::translate("MachineMZ700", "JOY-700", 0));
+	actionJoystickType[1]->setToolTip(QApplication::translate("MachineMZ700", "Use Tsukumo JOY-700 Joystick unit.", 0));
+	actionJoystickType[2]->setText(QApplication::translate("MachineMZ700", "AM7J", 0));
+	actionJoystickType[2]->setToolTip(QApplication::translate("MachineMZ700", "Use AM7J ATARI-Joystick adapter.", 0));
+#endif
 #if defined(_MZ800)
 	menuBootMode->setTitle(QApplication::translate("Machine", "BOOT Mode", 0));
 	actionBootMode[0]->setText(QString::fromUtf8("MZ-800"));
@@ -90,6 +98,11 @@ void META_MainWindow::retranslateUi(void)
 #if defined(_MZ1500)
 	actionPrintDevice[1]->setText(QString::fromUtf8("MZ-1P17"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MachineMZ700", "Sharp MZ-1P17 kanji thermal printer.", 0));
+	actionPrintDevice[2]->setText(QString::fromUtf8("PC-PR201"));
+	actionPrintDevice[2]->setToolTip(QApplication::translate("MenuMZ700", "NEC PC-PR201 kanji serial printer.", 0));
+	actionPrintDevice[2]->setEnabled(false);
+	
+	actionPrintDevice[3]->setText(QString::fromUtf8("None"));
 #endif
 #if defined(USE_DRIVE_TYPE)
 	menuDriveType->setTitle(QApplication::translate("MachineMZ700", "Floppy Type", 0));

@@ -117,7 +117,7 @@ private:
 	int raster, cblink;
 	
 	int ch_height; // HD46505
-	int hz_total, hz_disp, vt_disp;
+	int hz_total, hz_disp, vt_disp, vt_ofs;
 	int st_addr;
 	uint32_t vblank_clock;
 	int cur_vline;

@@ -1,14 +1,14 @@
 message("* qt/emux07")
 
-set(s_qt_bx1_headers
+set(s_qt_${EXE_NAME}_headers
 	  menuclasses.h
 )
 
-QT5_WRAP_CPP(s_qt_emubx1_headers_MOC ${s_qt_bx1_headers})
+QT5_WRAP_CPP(s_qt_${EXE_NAME}_headers_MOC ${s_qt_${EXE_NAME}_headers})
   
-add_library(qt_emubx1
+add_library(qt_${EXE_NAME}
 	  MainWindow.cpp
-	  ${s_qt_emubx1_headers_MOC}
+	  ${s_qt_${EXE_NAME}_headers_MOC}
 )
 
 

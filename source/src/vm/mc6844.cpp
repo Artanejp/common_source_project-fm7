@@ -47,24 +47,36 @@ void MC6844::write_io8(uint32_t addr, uint32_t data)
 	case 0x08:
 	case 0x0c:
 		dma[(addr >> 2) & 3].address_reg.b.h = data;
+#ifdef _DMA_DEBUG_LOG
+		this->out_debug_log(_T("DMA: OUT CH=%d ADDRESS=%04X\n"), (addr >> 2) & 3, dma[(addr >> 2) & 3].address_reg.w.l);
+#endif
 		break;
 	case 0x01:
 	case 0x05:
 	case 0x09:
 	case 0x0d:
 		dma[(addr >> 2) & 3].address_reg.b.l = data;
+#ifdef _DMA_DEBUG_LOG
+		this->out_debug_log(_T("DMA: OUT CH=%d ADDRESS=%04X\n"), (addr >> 2) & 3, dma[(addr >> 2) & 3].address_reg.w.l);
+#endif
 		break;
 	case 0x02:
 	case 0x06:
 	case 0x0a:
 	case 0x0e:
 		dma[(addr >> 2) & 3].byte_count_reg.b.h = data;
+#ifdef _DMA_DEBUG_LOG
+		this->out_debug_log(_T("DMA: OUT CH=%d BYTECOUNT=%04X\n"), (addr >> 2) & 3, dma[(addr >> 2) & 3].byte_count_reg.w.l);
+#endif
 		break;
 	case 0x03:
 	case 0x07:
 	case 0x0b:
 	case 0x0f:
 		dma[(addr >> 2) & 3].byte_count_reg.b.l = data;
+#ifdef _DMA_DEBUG_LOG
+		this->out_debug_log(_T("DMA: OUT CH=%d BYTECOUNT=%04X\n"), (addr >> 2) & 3, dma[(addr >> 2) & 3].byte_count_reg.w.l);
+#endif
 		break;
 	case 0x10:
 	case 0x11:
@@ -72,16 +84,28 @@ void MC6844::write_io8(uint32_t addr, uint32_t data)
 	case 0x13:
 		dma[addr & 3].channel_ctrl_reg &= (STAT_BUSY | STAT_DEND);
 		dma[addr & 3].channel_ctrl_reg |= data & ~(STAT_BUSY | STAT_DEND);
+#ifdef _DMA_DEBUG_LOG
+		this->out_debug_log(_T("DMA: OUT CH=%d CH_CTRL=%02X\n"), addr & 3, dma[addr & 3].channel_ctrl_reg);
+#endif
 		break;
 	case 0x14:
 		priority_ctrl_reg = data;
+#ifdef _DMA_DEBUG_LOG
+		this->out_debug_log(_T("DMA: OUT PRI_CTRL=%02X\n"), priority_ctrl_reg);
+#endif
 		break;
 	case 0x15:
 		interrupt_ctrl_reg &= IRQ_FLAG;
 		interrupt_ctrl_reg |= data & ~IRQ_FLAG;
+#ifdef _DMA_DEBUG_LOG
+		this->out_debug_log(_T("DMA: OUT INT_CTRL=%02X\n"), interrupt_ctrl_reg);
+#endif
 		break;
 	case 0x16:
 		data_chain_reg = data;
+#ifdef _DMA_DEBUG_LOG
+		this->out_debug_log(_T("DMA: OUT DAT_CHAIN=%02X\n"), data_chain_reg);
+#endif
 		break;
 	}
 }
@@ -156,7 +180,7 @@ uint32_t MC6844::read_via_debugger_data8(uint32_t addr)
 void MC6844::transfer(int ch)
 {
 	if(priority_ctrl_reg & (1 << ch)) {
-		if(dma[ch].byte_count_reg.w.l != 0) {
+//		if(dma[ch].byte_count_reg.w.l != 0) {
 			if(dma[ch].channel_ctrl_reg & 0x01) {
 				uint8_t data;
 				if(d_debugger != NULL && d_debugger->now_device_debugging) {
@@ -179,9 +203,10 @@ void MC6844::transfer(int ch)
 				dma[ch].address_reg.d++;
 			}
 			if(--dma[ch].byte_count_reg.w.l == 0) {
-				if(data_chain_reg & 0x01) {
-					dma[(data_chain_reg >> 1) & 3].address_reg.w.l = dma[3].address_reg.w.l;
-					dma[(data_chain_reg >> 1) & 3].byte_count_reg.w.l = dma[3].byte_count_reg.w.l;
+				static const int dest[8] = {0, 1, 0, 1, 0, 1, 2, 3};
+				if((data_chain_reg & 0x01) && ch == dest[(data_chain_reg >> 1) & 3]) {
+					dma[ch].address_reg.w.l = dma[3].address_reg.w.l;
+					dma[ch].byte_count_reg.w.l = dma[3].byte_count_reg.w.l;
 				}
 				dma[ch].channel_ctrl_reg |=  STAT_DEND;
 				update_irq();
@@ -189,7 +214,7 @@ void MC6844::transfer(int ch)
 			} else {
 				dma[ch].channel_ctrl_reg |=  STAT_BUSY;
 			}
-		}
+//		}
 	}
 }
 

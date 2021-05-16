@@ -60,7 +60,7 @@ private:
 
 	bool _SINGLE_MODE_DMA;
 	bool _DMA_DEBUG;
-	bool _X1TURBO_FEATURE;
+
 	bool now_ready();
 	void request_bus();
 	void release_bus();

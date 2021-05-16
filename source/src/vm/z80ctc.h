@@ -31,6 +31,7 @@ private:
 		int clocks;
 		int prescaler;
 		bool freeze;
+		bool freezed;
 		bool start;
 		bool latch;
 		bool prev_in;

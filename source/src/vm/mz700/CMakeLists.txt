@@ -9,6 +9,7 @@ add_library(vm_${EXE_NAME}
 	./cmos.cpp
 	./emm.cpp
 	./kanji.cpp
+	./joystick.cpp
 	./keyboard.cpp
 	./memory.cpp
 	./ramfile.cpp
@@ -23,6 +24,7 @@ add_library(vm_${EXE_NAME}
 
 	./cmos.cpp
 	./emm.cpp
+	./joystick.cpp
 	./kanji.cpp
 	./keyboard.cpp
 	./memory.cpp
@@ -39,6 +41,7 @@ else()
 add_library(vm_${EXE_NAME}
 	./cmos.cpp
 	./emm.cpp
+	./joystick.cpp
 	./kanji.cpp
 	./keyboard.cpp
 	./memory.cpp
