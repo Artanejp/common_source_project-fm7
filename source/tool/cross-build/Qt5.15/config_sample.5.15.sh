@@ -7,13 +7,13 @@ SDK_PREFIX="/usr/local/i586-mingw-msvc"
 SDK_PREFIX_DIRECTX="/usr/local/i586-mingw-msvc/DirectX_June_2010"
 
 VULKAN_SDK="${SDK_PREFIX}/Vulkan"
-LLVM_INSTALL_DIR="/opt/llvm-mingw-11"
+LLVM_INSTALL_DIR="/opt/llvm-mingw-12"
 
 ADDITIONAL_FLAGS=""
 BUILD_WITH_VULKAN=1
 
 #export PATH="$PATH:~/src/fxc2"
-export PATH="/opt/llvm-mingw/bin:$PATH:$SDK_PREFIX"
+export PATH="${LLVM_INSTALL_DIR}/bin:$PATH:$SDK_PREFIX"
 export PATH="$PATH:$SDK_PREFIX/icu/bin"
 export PATH="$PATH:$SDK_PREFIX/icu/lib"
 export PATH="$PATH:$SDK_PREFIX/Angle/bin"
@@ -74,6 +74,16 @@ fi
 	    -device-option QMAKE_DXSDK_DIR=${SDK_PREFIX_DIRECTX} \
 	    -device-option DXSDK_DIR=${SDK_PREFIX_DIRECTX} \
 	    -device-option QSG_RHI=1 \
+	    -device-option QMAKE_CFLAGS+="-fno-builtin-stpcpy" \
+	    -D"stpcpy\(d,s\)=__builtin_stpcpy\(d,s\)" \
+	    -D"_aligned_malloc\(s,a\)=__mingw_aligned_malloc\(s,a\)" \
+	    -D"_aligned_free\(m\)=__mingw_aligned_free\(m\)" \
+	    -D"_aligned_offset_realloc\(m,s,a,o\)=__mingw_aligned_offset_realloc\(m,s,a,o\)" \
+	    -D"_aligned_realloc\(m,s,o\)=__mingw_aligned_realloc\(m,s,o\)" \
+	    \
+	    -device-option QMAKE_CXXFLAGS+="-fno-builtin-stpcpy" \
+	    -device-option QMAKE_LFLAGS+="-lc++abi -lunwind -lssp" \
+	    \
 	    -opengl dynamic \
 	    -no-eglfs \
 	    -no-evr \
@@ -88,11 +98,12 @@ fi
 	    -skip qtwebengine \
 	    -skip qtwebview \
 	    -skip qtconnectivity \
-	    -nomake tests \
 	    -c++std c++17 \
+	    -nomake tests \
 	    ${ADDITIONAL_FLAGS} \
 	    $@ 
 
+#	    -c++std c++17 \
 #	    -angle \
 #	    -device-option QMAKE_INCDIR_OPENGL_ES2="${SDK_PREFIX}/Angle/include" \
 #	    -device-option QMAKE_LIBDIR_OPENGL_ES2="${SDK_PREFIX}/Angle/lib" \
