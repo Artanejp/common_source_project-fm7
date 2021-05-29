@@ -7,25 +7,37 @@ L_LIB_CLANGPP_FLAGS=""
 ARCH_TRIPLE=i686-w64-mingw32
 LIBS_PREFIX="/usr/local/i586-mingw-msvc"
 
+# Issue; 
+# 1. clang-12 emits stpcpy() as __builtin_stpcpy() with some case of sprintf().
+#    But, MinGW-w64 has no stpcpy().
+ADDITIONAL_DEFINES=" \
+		-fno-builtin-stpcpy \
+		"
 
-#ADDITIONAL_DEFINES=" \
-#		-D_MSC_VER=1800 \
-#		-D_MSC_FULL_VER=180021114 \
-#		-DSDL_DISABLE_ANALYZE_MACROS=1 \
-#		"
-I_LIB_CLANG_FLAGS=" \
-                     --sysroot=/opt/llvm-mingw-11 \
-		     "
-L_LIB_CLANG_FLAGS=" \
-                     --sysroot=/opt/llvm-mingw-11 \
-		     "
+# 2. clang-12/libc++12 for MinGW calls _aligned_ prefixed
+#    memory allocation/free functions,
+#    but these MinGW-w64 has no them.Should use __mingw_aigned_ prefix. 
+ADDITIONAL_DEFINES=" \
+		${ADDITIONAL_DEFINES} \
+		-Dstpcpy\(d,s\)=__builtin_stpcpy\(d,s\) \
+		-D_aligned_malloc\(s,a\)=__mingw_aligned_malloc\(s,a\) \
+		-D_aligned_free\(m\)=__mingw_aligned_free\(m\) \
+		-D_aligned_offset_realloc\(m,s,a,o\)=__mingw_aligned_offset_realloc\(m,s,a,o\) \
+		-D_aligned_realloc\(m,s,o\)=__mingw_aligned_realloc\(m,s,o\) \
+		"
+#I_LIB_CLANG_FLAGS=" \
+#                     --sysroot=/opt/llvm-mingw-11 \
+#		     "
+#L_LIB_CLANG_FLAGS=" \
+#                     --sysroot=/opt/llvm-mingw-11 \
+#		     "
 
-I_LIB_CLANGPP_FLAGS=" \
-                     --sysroot=/opt/llvm-mingw-11 \
-		     "
-L_LIB_CLANGPP_FLAGS=" \
-                     --sysroot=/opt/llvm-mingw-11 \
-		     "
+#I_LIB_CLANGPP_FLAGS=" \
+#                     --sysroot=/opt/llvm-mingw-11 \
+#		     "
+#L_LIB_CLANGPP_FLAGS=" \
+#                     --sysroot=/opt/llvm-mingw-11 \
+#		     "
 
 I_ADDITIONAL_DEFINES="${I_LIB_CLANG_FLAGS} ${I_LIB_CLANGPP_FLAGS} ${ADDITIONAL_DEFINES}"
 L_ADDITIONAL_DEFINES="${I_LIB_CLANG_FLAGS} ${I_LIB_CLANGPP_FLAGS} \
@@ -38,7 +50,7 @@ QT5_DIR="${LIBS_PREFIX}/Qt5.15/mingw_82x"
 PATH=/opt/llvm-mingw-12/bin:$PATH
 cmake .. \
 	-DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_mingw_cross_llvm12.cmake" \
-	-DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_BUILD_TYPE=Relwithdebinfo \
 	-DCMAKE_C_FLAGS_RELWITHDEBINFO=" \
       		-g2 \
 		-ggdb \

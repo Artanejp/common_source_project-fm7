@@ -74,5 +74,5 @@ set(SDL_INCLUDE_DIRS /usr/local/i586-mingw-msvc/SDL1/include/SDL)
 
 set(SDLMAIN_LIBRARY "")
 
-set(ADDITIONAL_LIBRARIES libwinmm.a)
+set(ADDITIONAL_LIBRARIES -lssp -lc++abi -lunwind libwinmm.a)
 
