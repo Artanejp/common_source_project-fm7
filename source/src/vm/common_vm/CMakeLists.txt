@@ -195,6 +195,7 @@ target_link_libraries(CSPcommon_vm PRIVATE
 #	  Qt5::OpenGL
 #	  Qt5::Widgets
 	  ${SDL2_LIBRARIES}
+	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
 set_target_properties(CSPcommon_vm PROPERTIES
 			     SOVERSION ${THIS_LIB_VERSION}

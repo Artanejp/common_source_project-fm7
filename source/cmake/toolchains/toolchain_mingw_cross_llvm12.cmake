@@ -47,4 +47,5 @@ set(SDL_INCLUDE_DIRS ${LIBS_PREFIX}/SDL1/include/SDL)
 
 set(SDLMAIN_LIBRARY "")
 
-set(ADDITIONAL_LIBRARIES libwinmm.a)
+set(ADDITIONAL_LIBRARIES -lssp -lc++abi -lunwind libwinmm.a)
+set(ADDITIONAL_DLL_LIBRARIES -lssp -lc++abi -lunwind)

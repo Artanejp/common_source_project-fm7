@@ -41,6 +41,7 @@ target_link_libraries(CSPosd PUBLIC
 	Qt5::Widgets
 	Qt5::Network
 	${SDL2_LIBRARIES}
+	${ADDITIONAL_DLL_LIBRARIES}
 	)
 generate_export_header(CSPosd
        BASE_NAME CSPosd
@@ -64,6 +65,7 @@ else()
 		Qt5::Widgets
 		Qt5::Network
 		${SDL2_LIBRARIES}
+		${ADDITIONAL_DLL_LIBRARIES}
 		)
 	  set_target_properties(CSPosd PROPERTIES 
 		SOVERSION ${THIS_LIB_VERSION}

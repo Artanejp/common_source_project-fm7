@@ -172,6 +172,7 @@ target_link_libraries(CSPgui
 	  Qt5::OpenGL
 	  Qt5::Widgets
 	  ${SDL2_LIBRARIES}
+	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
 set_target_properties(CSPgui PROPERTIES
 			     SOVERSION ${THIS_LIB_VERSION}
@@ -202,6 +203,7 @@ target_link_libraries(CSPgui PUBLIC
 	  Qt5::OpenGL
 	  Qt5::Widgets
 	  ${SDL2_LIBRARIES}
+	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
 
 set_target_properties(CSPgui PROPERTIES 

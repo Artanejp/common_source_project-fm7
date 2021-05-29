@@ -36,12 +36,13 @@ add_library(CSPavio SHARED
 )
 
 target_link_libraries(CSPavio PUBLIC
-		   PRIVATE ${LIBAV_LIBRARIES}
+		 PRIVATE ${LIBAV_LIBRARIES}
 		 CSPosd
 	  	 CSPemu_utils
-		   Qt5::Core
-		   Qt5::Gui
-		   Qt5::Widgets
+		 Qt5::Core
+		 Qt5::Gui
+		 Qt5::Widgets
+		 ${ADDITIONAL_DLL_LIBRARIES}
 	  )
 #QT5_USE_MODULES(CSPavio Widgets Core Gui OpenGL)
 set_target_properties(CSPavio PROPERTIES 
@@ -69,6 +70,7 @@ target_link_libraries(CSPavio PUBLIC
 		   Qt5::Core
 		   Qt5::Gui
 		   Qt5::Widgets
+		   ${ADDITIONAL_DLL_LIBRARIES}
 	  )
 
 set_target_properties(CSPavio PROPERTIES 

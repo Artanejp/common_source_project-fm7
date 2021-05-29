@@ -33,6 +33,7 @@ target_link_libraries(CSPemu_utils PRIVATE
 		Qt5::Core
 		${ZLIB_LIBRARIES}
 		${SDL2_LIBRARIES}
+		${ADDITIONAL_DLL_LIBRARIES}
 	  )
 	  
 set_target_properties(CSPemu_utils PROPERTIES

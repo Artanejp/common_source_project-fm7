@@ -20,6 +20,7 @@ if(WIN32)
 	)
 	target_link_libraries(CSPfmgen
 		PRIVATE CSPemu_utils
+		 ${ADDITIONAL_DLL_LIBRARIES}
 	)
 
 	set_target_properties(CSPfmgen PROPERTIES

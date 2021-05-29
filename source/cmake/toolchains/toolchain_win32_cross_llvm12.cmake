@@ -28,7 +28,6 @@ set(CMAKE_C_FLAGS "-target i686-w64-mingw32 -I/opt/llvm-mingw-12/${CMAKE_TOOLCHA
 
 set(CMAKE_EXE_LINKER_FLAGS "-L/usr/i686-w64-mingw32/lib -target i686-w64-mingw32 ")
 set(CMAKE_SHARED_LINKER_FLAGS "-L/usr/i686-w64-mingw32/lib -target i686-w64-mingw32 ")
-
 #set(CMAKE_EXE_LINKER_FLAGS "")
 
 set(LIBAV_ROOT_DIR "/usr/local/i586-mingw-msvc/ffmpeg-4.3")
@@ -75,4 +74,5 @@ set(SDL_INCLUDE_DIRS /usr/local/i586-mingw-msvc/SDL1/include/SDL)
 set(SDLMAIN_LIBRARY "")
 
 set(ADDITIONAL_LIBRARIES -lssp -lc++abi -lunwind libwinmm.a)
+set(ADDITIONAL_DLL_LIBRARIES -lssp -lc++abi -lunwind)
 
