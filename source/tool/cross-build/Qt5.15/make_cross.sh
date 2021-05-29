@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export LLVM_INSTALL_DIR="/opt/llvm-mingw-11"
+export LLVM_INSTALL_DIR="/opt/llvm-mingw-12"
 export __QT_SDK_PREFIX="/usr/local/i586-mingw-msvc"
 export __CROSS_ARCH=i686-w64-mingw32-
 export __QT_SDK_PREFIX_DIRECTX="/usr/local/i586-mingw-msvc/DirectX_June_2010"
