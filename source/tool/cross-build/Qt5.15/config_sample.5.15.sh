@@ -62,6 +62,7 @@ fi
 	    -L ${SDK_PREFIX_DIRECTX}/Lib/${DIRECTX_ARCH} \
 	    -I $SDK_PREFIX/icu/include \
 	    -L $SDK_PREFIX/icu/lib \
+	    -L ${LLVM_INSTALL_DIR}/i686-w64-mingw32/lib \
 	    -device-option SDL_PREFIX=$SDK_PREFIX/SDL/i686-w64-mingw32 \
 	    -device-option SDL2_PREFIX=$SDK_PREFIX/SDL/i686-w64-mingw32 \
 	    -device-option LIBS_SDL2+=SDLmain \
@@ -74,15 +75,16 @@ fi
 	    -device-option QMAKE_DXSDK_DIR=${SDK_PREFIX_DIRECTX} \
 	    -device-option DXSDK_DIR=${SDK_PREFIX_DIRECTX} \
 	    -device-option QSG_RHI=1 \
-	    -device-option QMAKE_CFLAGS+="-fno-builtin-stpcpy" \
+	    -device-option QMAKE_CFLAGS="-fno-builtin-stpcpy" \
+	    -device-option QMAKE_CXXFLAGS="-fno-builtin-stpcpy" \
+	    \
 	    -D"stpcpy\(d,s\)=__builtin_stpcpy\(d,s\)" \
 	    -D"_aligned_malloc\(s,a\)=__mingw_aligned_malloc\(s,a\)" \
 	    -D"_aligned_free\(m\)=__mingw_aligned_free\(m\)" \
 	    -D"_aligned_offset_realloc\(m,s,a,o\)=__mingw_aligned_offset_realloc\(m,s,a,o\)" \
 	    -D"_aligned_realloc\(m,s,o\)=__mingw_aligned_realloc\(m,s,o\)" \
 	    \
-	    -device-option QMAKE_CXXFLAGS+="-fno-builtin-stpcpy" \
-	    -device-option QMAKE_LFLAGS+="-lc++abi -lunwind -lssp" \
+	    -device-option QMAKE_LFLAGS="-lc++abi -lunwind -lssp" \
 	    \
 	    -opengl dynamic \
 	    -no-eglfs \
