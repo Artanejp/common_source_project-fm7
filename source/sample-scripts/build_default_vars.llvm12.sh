@@ -1,6 +1,18 @@
 #!/bin/sh
 SANITRIZER_FLAGS=""
+
+I_LIB_CLANG_FLAGS=""
+L_LIB_CLANG_FLAGS=""
+I_LIB_CLANGPP_FLAGS=""
+L_LIB_CLANGPP_FLAGS=""
+
 #SANITRIZER_FLAGS="-fsanitize=address"
+#I_LIB_CLANG_FLAGS=""
+#L_LIB_CLANG_FLAGS=""
+#I_LIB_CLANGPP_FLAGS="-stdlib=libc++"
+#L_LIB_CLANGPP_FLAGS="-stdlib=libc++"
+#I_LIB_CLANGPP_FLAGS="-stdlib=libstdc++"
+#L_LIB_CLANGPP_FLAGS="-stdlib=libstdc++"
 
 cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_llvm12.cmake" \
       -DCMAKE_BUILD_TYPE=Relwithdebinfo \
@@ -16,6 +28,8 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_llvm1
 		-fstrict-vtable-pointers \
 		-fstrict-enums \
 		${SANITIZER_FLAGS} \
+		${I_LIB_CLANG_FLAGS} \
+		${L_LIB_CLANG_FLAGS} \
 		-Wa,--compress-debug-sections=zlib \
 		" \
       -DCMAKE_CXX_FLAGS_RELWITHDEBINFO=" \
@@ -29,6 +43,8 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_llvm1
  	        -fvectorize \
 		-fstrict-vtable-pointers \
 		-fstrict-enums \
+		${I_LIB_CLANGPP_FLAGS} \
+		${L_LIB_CLANGPP_FLAGS} \
 		${SANITIZER_FLAGS} \
 		-Wa,--compress-debug-sections=zlib \
 		" \
@@ -37,6 +53,10 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_llvm1
 		-gz=zlib \
 		-O3 \
 		-msse2 \
+		${I_LIB_CLANG_FLAGS} \
+		${L_LIB_CLANG_FLAGS} \
+		${I_LIB_CLANGPP_FLAGS} \
+		${L_LIB_CLANGPP_FLAGS} \
 		${SANITIZER_FLAGS} \
 		-Wl,--compress-debug-sections=zlib \
 		" \
@@ -45,6 +65,10 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_llvm1
 		-gz \
 		-O3 \
 		-msse2 \
+		${I_LIB_CLANG_FLAGS} \
+		${L_LIB_CLANG_FLAGS} \
+		${I_LIB_CLANGPP_FLAGS} \
+		${L_LIB_CLANGPP_FLAGS} \
 		${SANITIZER_FLAGS} \
 		-Wl,--compress-debug-sections=zlib \
 		" \
