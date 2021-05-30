@@ -87,8 +87,10 @@ fi
 	    -device-option QMAKE_LFLAGS="-lc++abi -lunwind -lssp" \
 	    \
 	    -opengl dynamic \
+	    \
 	    -no-eglfs \
 	    -no-evr \
+	    -no-d3d12 \
 	    -feature-direct3d9 \
 	    -feature-dxguid \
 	    -feature-direct3d11 \
