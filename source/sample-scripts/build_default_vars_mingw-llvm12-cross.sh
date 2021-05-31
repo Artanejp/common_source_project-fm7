@@ -46,7 +46,7 @@ L_ADDITIONAL_DEFINES="${I_LIB_CLANG_FLAGS} ${I_LIB_CLANGPP_FLAGS} \
                       ${L_LIB_CLANG_FLAGS} ${L_LIB_CLANGPP_FLAGS} \
                       ${ADDITIONAL_DEFINES}"
 
-FFMPEG_DIR="${LIBS_PREFIX}/ffmpeg-4.3"
+FFMPEG_DIR="${LIBS_PREFIX}/ffmpeg-4.4"
 QT5_DIR="${LIBS_PREFIX}/Qt5.15/mingw_82x"
 
 PATH=/opt/llvm-mingw-12/bin:$PATH
