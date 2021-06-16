@@ -63,6 +63,7 @@
 #include "./joystick.h"
 #include "./joypad.h"
 #include "./keyboard.h"
+#include "./mouse.h"
 #include "./msdosrom.h"
 #include "./scsi.h"
 #include "./serialrom.h"
@@ -82,6 +83,7 @@ using FMTOWNS::FONT_ROMS;
 using FMTOWNS::JOYSTICK;
 using FMTOWNS::JOYPAD;
 using FMTOWNS::KEYBOARD;
+using FMTOWNS::MOUSE;
 using FMTOWNS::MSDOSROM;
 using FMTOWNS::SCSI;
 using FMTOWNS::SERIAL_ROM;
@@ -214,6 +216,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	joypad[0] = new JOYPAD(this, emu);
 	joypad[1] = new JOYPAD(this, emu);
+	mouse = new MOUSE(this, emu);
 
 	uint16_t machine_id = 0x0100; // FM-Towns1
 	uint16_t cpu_id = 0x0001;     // i386DX
@@ -417,6 +420,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	timer->set_context_rtc(rtc);
 	timer->set_context_halt_line(cpu, SIG_CPU_HALTREQ, 0xffffffff);
 
+	joystick->set_context_mouse(mouse, SIG_MOUSE_STROBE, 0xff);
+	
 	joystick->set_context_enable0(joypad[0], SIG_JOYPAD_ENABLE, 0xffffffff);
 	joystick->set_context_enable1(joypad[1], SIG_JOYPAD_ENABLE, 0xffffffff);
 	joystick->set_context_mask(joypad[0], SIG_JOYPAD_SELECT_BUS, 0x10); // Mouse0 or joypad0

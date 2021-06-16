@@ -19,6 +19,8 @@ set(VM_FMTOWNS_DEV_SRCS
 	iccard.cpp
 	joystick.cpp
 	joypad.cpp
+	mouse.cpp
+	
 	msdosrom.cpp
 	serialrom.cpp
 	dictionary.cpp
