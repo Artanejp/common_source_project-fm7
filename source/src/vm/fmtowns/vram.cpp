@@ -76,7 +76,6 @@ void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	uint32_t naddr2 = (addr + 1) & 0x7ffff;;
 	pair16_t nd, md;
 	pair16_t xmask;
-
 	switch(naddr1 & 3) {
 	case 0:
 		xmask.w =  packed_pixel_mask_reg.w.l;
@@ -117,6 +116,7 @@ void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 		
 		md.write_2bytes_le_to(&(vram[naddr1]));
 	}
+
 	return;
 }
 	
