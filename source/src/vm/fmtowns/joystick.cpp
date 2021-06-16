@@ -19,7 +19,7 @@ void JOYSTICK::reset()
 	dx = dy = 0;
 	lx = ly = 0;
 	mouse_state = emu->get_mouse_buffer();
-	mask = 0x00;
+	mouse_mask = 0x00;
 	mouse_type = -1; // Force update data.
 	mouse_phase = 0;
 	mouse_strobe = false;
@@ -66,7 +66,7 @@ void JOYSTICK::write_io8(uint32_t address, uint32_t data)
 		} else if(emulate_mouse[1]) {
 			update_strobe(((data & 0x20) != 0));
 		}
-		mask = data;
+		mouse_mask = data;
 		write_signals(&outputs_mask, data);
 	}
 }
@@ -80,8 +80,8 @@ uint32_t JOYSTICK::read_io8(uint32_t address)
 	case 0x04d0:
 	case 0x04d2:
 		if(emulate_mouse[port_num]) {
-			uint8_t trig = (mask >> (port_num << 1)) & 0x03;
-			uint8_t mask2 = (mask >> (port_num + 4)) & 0x01;
+			uint8_t trig = (mouse_mask >> (port_num << 1)) & 0x03;
+			uint8_t mask2 = (mouse_mask >> (port_num + 4)) & 0x01;
 			uint8_t rval = 0x70;
 			rval |= (update_mouse() & 0x0f);
 			mouse_state = emu->get_mouse_buffer();
@@ -109,8 +109,8 @@ uint32_t JOYSTICK::read_io8(uint32_t address)
 			retval = rval;
 		} else {
 			write_signals(&outputs_query, 1 << (port_num + 0));
-			uint8_t trig = (mask >> (port_num << 1)) & 0x03;
-			uint8_t mask2 = (mask >> (port_num + 4)) & 0x01;
+			uint8_t trig = (mouse_mask >> (port_num << 1)) & 0x03;
+			uint8_t mask2 = (mouse_mask >> (port_num + 4)) & 0x01;
 			retval = 0x7f;
 			if((mask2 & 0x01) == 0) { // COM
 				retval = retval & ~0x40;
@@ -186,7 +186,7 @@ void JOYSTICK::event_callback(int event_id, int err)
 	}
 }
 
-void JOYSTICK::write_signal(int id, uint32_t data, uint32_t _mask)
+void JOYSTICK::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	int ch = (id >> 24) & 1;
 	int bustype = id  & 0x300;
@@ -330,7 +330,7 @@ bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->StateValue(mask);
+	state_fio->StateValue(mouse_mask);
 	state_fio->StateArray(joydata, sizeof(joydata), 1);
 	state_fio->StateArray(connected_type, sizeof(connected_type), 1);
 	

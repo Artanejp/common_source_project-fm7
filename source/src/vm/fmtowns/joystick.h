@@ -63,7 +63,7 @@ private:
 	int mouse_timeout_event;
 	int mouse_sampling_event;
 	int mouse_type;
-	uint8_t mask;
+	uint8_t mouse_mask;
 	uint32_t connected_type[2];
 	
 	void set_emulate_mouse();
