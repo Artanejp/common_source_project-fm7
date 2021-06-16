@@ -269,13 +269,20 @@ void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 //		}
 	} else {
 		// Aligned
+#ifdef __LITTLE_ENDIAN__
+		md.d = *((uint32_t*)(&(vram[naddr])));
+#else			
 		md.read_4bytes_le_from(&(vram[naddr]));
-		
+#endif		
 		nd.d = nd.d & xmask.d;
 		md.d = md.d & (~(xmask.d));
 		md.d = md.d | nd.d;
 		
+#ifdef __LITTLE_ENDIAN__
+		*((uint32_t*)(&(vram[naddr]))) = md.d;
+#else
 		md.write_4bytes_le_to(&(vram[naddr]));
+#endif
 	}
 	return;
 }
@@ -329,7 +336,11 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 
 	uint32_t naddr = addr & 0x7ffff;
 	if((addr & 3) == 0) { // Aligned
+#ifdef __LITTLE_ENDIAN__
+		a.d = *((uint32_t*)(&(vram[naddr])));
+#else
 		a.read_4bytes_le_from(&(vram[naddr]));
+#endif
 	} else { // Unaligned
 		if((addr & 0x7ffff) < 0x7fffd) {
 			// Maybe not wrapped.
