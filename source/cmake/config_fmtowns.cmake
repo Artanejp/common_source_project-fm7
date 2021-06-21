@@ -123,6 +123,22 @@ if(BUILD_FMTOWNS2_CX100)
   ## ToDo
 endif()
 
+if(BUILD_FMTOWNS2_HG20)
+  set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/fmtowns.qrc)
+  ADD_VM(fmtowns emufmtowns2HG20 _FMTOWNS2_HG20)
+  ## ToDo
+endif()
+if(BUILD_FMTOWNS2_HG40)
+  set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/fmtowns.qrc)
+  ADD_VM(fmtowns emufmtowns2HG40 _FMTOWNS2_HG40)
+  ## ToDo
+endif()
+if(BUILD_FMTOWNS2_HG100)
+  set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/fmtowns.qrc)
+  ADD_VM(fmtowns emufmtowns2HG100 _FMTOWNS2_HG100)
+  ## ToDo
+endif()
+
 if(BUILD_FMTOWNS2_HR20)
   set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/fmtowns.qrc)
   ADD_VM(fmtowns emufmtowns2HR20 _FMTOWNS2_HR20)
