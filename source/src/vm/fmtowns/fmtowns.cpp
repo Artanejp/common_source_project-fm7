@@ -529,12 +529,16 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw (0x00a0, 0x00af, dma);
 	io->set_iomap_range_rw (0x00b0, 0x00bf, extra_dma);
 	
+	io->set_iomap_single_rw(0x00c0, memory);   // CACHE CONTROLLER
+	io->set_iomap_single_rw(0x00c2, memory);   // CACHE CONTROLLER
+	
 	io->set_iomap_alias_rw (0x0200, fdc, 0);  // STATUS/COMMAND
 	io->set_iomap_alias_rw (0x0202, fdc, 1);  // TRACK
 	io->set_iomap_alias_rw (0x0204, fdc, 2);  // SECTOR
 	io->set_iomap_alias_rw (0x0206, fdc, 3);  // DATA
 	io->set_iomap_single_rw(0x0208, floppy);  // DRIVE STATUS / DRIVE CONTROL
 	io->set_iomap_single_rw(0x020c, floppy);  // DRIVE SELECT
+	io->set_iomap_single_r (0x020d, floppy);  // FDDVEXT (after HG/HR).
 	io->set_iomap_single_rw(0x020e, floppy);  // Towns drive SW
 	
 	io->set_iomap_range_rw (0x0400, 0x0404, memory); // System Status
@@ -583,11 +587,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_r (0x05c2, memory);  // NMI STATUS
 	io->set_iomap_single_r (0x05c8, sprite); // TVRAM EMULATION
 	io->set_iomap_single_w (0x05ca, crtc); // VSYNC INTERRUPT
-	io->set_iomap_single_rw(0x05e0, memory); //  MEMORY WAIT REGISTER ffrom AB.COM 
-	io->set_iomap_single_rw(0x05e2, memory); // MEMORY WAIT REGISTER ffrom AB.COM 
+	
+	io->set_iomap_single_rw(0x05e0, memory); // Hidden MEMORY WAIT REGISTER from AB.COM (Towns 1/2)
+	io->set_iomap_single_rw(0x05e2, memory); // Hidden MEMORY WAIT REGISTER from AB.COM (After Towns 1H/1F/2H/2F )
 	io->set_iomap_single_rw(0x05e8, memory); // RAM capacity register.(later Towns1H/2H/1F/2F).
 	io->set_iomap_single_rw(0x05ec, memory); // RAM Wait register , ofcially after Towns2, but exists after Towns1H.
-	io->set_iomap_single_r (0x05ed, memory); // RAM Wait register , ofcially after Towns2, but exists after Towns1H.
+	io->set_iomap_single_r (0x05ed, memory); // Maximum clock register (After HR/HG).
+	io->set_iomap_single_rw(0x05ee, vram);   // VRAM CACHE CONTROLLER
 	
 	io->set_iomap_single_rw(0x0600, keyboard);
 	io->set_iomap_single_rw(0x0602, keyboard);
@@ -729,6 +735,10 @@ void VM::set_machine_type(uint16_t machine_id, uint16_t cpu_id)
 		fontrom_20pix->set_machine_id(machine_id);
 	}
 #endif
+	if(vram != NULL) {
+		vram->set_cpu_id(cpu_id);
+		vram->set_machine_id(machine_id);
+	}
 	
 }		
 
@@ -1127,14 +1137,13 @@ void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	
 	fdc->open_disk(drv, file_path, bank);
-	if(fdc->is_disk_inserted(drv)) {
-		floppy->change_disk(drv);
-	}
+	floppy->change_disk(drv);
 }
 
 void VM::close_floppy_disk(int drv)
 {
 	fdc->close_disk(drv);
+//	floppy->change_disk(drv);
 }
 
 bool VM::is_floppy_disk_inserted(int drv)

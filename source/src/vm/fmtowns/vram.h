@@ -84,12 +84,16 @@ protected:
 	bool has_hardware_blending;
 	// End.
 
+	uint8_t cpu_id;
+	uint16_t machine_id;
 public:
 	TOWNS_VRAM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		memset(vram, 0x00, sizeof(vram));
 		d_sprite = NULL;
 		d_crtc = NULL;
+		cpu_id = 0x01; // for 05EEh
+		machine_id = 0x0100;
 		set_device_name(_T("FM-Towns VRAM"));
 	}
 	~TOWNS_VRAM() {}
@@ -179,6 +183,14 @@ public:
 	void set_context_crtc(DEVICE *dev)
 	{
 		d_crtc = dev;
+	}
+	void set_cpu_id(uint16_t val)
+	{
+		cpu_id = val & 0x07;
+	}
+	void set_machine_id(uint16_t val)
+	{
+		machine_id = val & 0xfff8;
 	}
 	// New APIs?
 	// End.

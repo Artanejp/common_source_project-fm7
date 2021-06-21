@@ -230,6 +230,37 @@ void TOWNS_MEMORY::reset()
 	}
 #endif
 }
+
+void TOWNS_MEMORY::update_machine_features()
+{
+	// 0024h: MISC3
+	reg_misc3 = 0xff;
+	if(machine_id >= 0x0b00) { // After MA/MX/ME
+		reg_misc3 &= ~0x04; // DMACMD
+	}
+	if(machine_id >= 0x0700) { // After HR/HG
+		reg_misc3 &= ~0x08; // POFFEN
+	}
+	if(machine_id >= 0x0700) { // After HR/HG
+		reg_misc3 &= ~0x10; // Free run counter
+	}
+	if(machine_id >= 0x0700) { // After HR/HG
+		reg_misc3 &= ~0x20; // CRTPOWOFF (0022h)
+	}
+	if(machine_id >= 0x0700) { // After HR/HG
+		reg_misc3 &= ~0x40; // RCREN
+	}
+	if(machine_id >= 0x0700) { // After HR/HG
+		reg_misc3 &= ~0x80; // ENPOFF
+	}
+	// 0025h: NMICNT
+	if(machine_id >= 0x0500) { // After CX
+		reg_misc4 = 0x7f; 
+	} else {
+		reg_misc4 = 0xff;
+	}
+}
+
 // Address (TOWNS BASIC):
 // 0x0020 - 0x0022, 0x0030-0x0031,
 // 0x0400 - 0x0404,
@@ -238,7 +269,6 @@ void TOWNS_MEMORY::reset()
 // 0x05ec (Wait register)
 // 0x05ed (CPU SPEED REGISTER)
 // Is set extra NMI (0x05c0 - 0x05c2)?
-
 uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 {
 //	uint32_t val = 0x00;  // MAY NOT FILL to "1" for unused bit 20200129 K.O
@@ -264,33 +294,11 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		break;
 	case 0x0024:
 		// CPU MISC3
-		val = 0xff;
-		if(machine_id >= 0x0b00) { // After MA/MX/ME
-			val &= ~0x04; // DMACMD
-		}
-		if(machine_id >= 0x0700) { // After HR/HG
-			val &= ~0x08; // POFFEN
-		}
-		if(machine_id >= 0x0700) { // After HR/HG
-			val &= ~0x10; // Free run counter
-		}
-		if(machine_id >= 0x0700) { // After HR/HG
-			val &= ~0x20; // CRTPOWOFF (0022h)
-		}
-		if(machine_id >= 0x0700) { // After HR/HG
-			val &= ~0x40; // RCREN
-		}
-		if(machine_id >= 0x0700) { // After HR/HG
-			val &= ~0x80; // ENPOFF
-		}
+		return reg_misc3;
 		break;
 	case 0x0025:
 		// CPU MISC4
-		if(machine_id >= 0x0500) { // After CX
-			val = 0x7f;
-		} else {
-			val = 0xff;
-		}
+		return reg_misc4;
 		break;
 	case 0x0028:
 		// NMI MASK
@@ -318,6 +326,25 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 			bool __reset = (d_serialrom->read_signal(SIG_SERIALROM_RESET) != 0);
 			bool __dat = (d_serialrom->read_signal(SIG_SERIALROM_DATA) != 0);
 			val = ((__reset) ? 0x80 : 0x00) | ((__clk) ? 0x40 : 0x00) | /*0x3e |*/ ((__dat) ? 0x01 : 0x00);
+		}
+		break;
+	case 0x00c0: // Cache
+		val = 0x00;
+		if((cpu_id == 0x02) || (cpu_id >= 0x04)) { // i486 SX/DX or After Pentium.
+			// ToDo: Implement around cache.
+			// Modified by this register and (05ECh:bit0 / Wait register).
+			// Now, cache is always disabled.
+			// RPNH = 0 (Disabled) : Bit1
+			// CMEN = 0 (Disabled) : Bit0
+			val = 0x00;
+		}
+		break;
+	case 0x00c2: // Cache Diagnostic
+		val = 0x00;
+		if((cpu_id == 0x02) || (cpu_id >= 0x04)) { // i486 SX/DX or After Pentium.
+			// ToDo: Implement cache disgnostic.
+			// SDMOD (Not diagnostic) : Bit3
+			val = 0x00;
 		}
 		break;
 	case 0x0400: // Resolution:
@@ -1164,6 +1191,8 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpu_clock_val);
 
 	if(loading) {
+		update_machine_features(); // Update MISC3, MISC4 by MACHINE ID.
+		
 		uint32_t length_tmp = state_fio->FgetUint32_LE();
 		if(extra_ram != NULL) {
 			free(extra_ram);
