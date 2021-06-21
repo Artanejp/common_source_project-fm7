@@ -22,6 +22,7 @@ namespace FMTOWNS {
 class MOUSE : public DEVICE
 {
 private:
+	DEVICE* d_joyport;
 	const int32_t* mouse_state;
 	
 	int phase;
@@ -43,6 +44,7 @@ private:
 public:
 	MOUSE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		d_joyport = NULL;
 		set_device_name(_T("FM-Towns MOUSE"));
 	}
 	~MOUSE() {}
@@ -58,6 +60,11 @@ public:
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 
 	bool process_state(FILEIO* state_fio, bool loading);
+	
+	void set_context_com(DEVICE* dev)
+	{
+		d_joyport = dev;
+	}
 };
 
 }

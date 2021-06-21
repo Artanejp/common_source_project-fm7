@@ -20,11 +20,12 @@ void JOYPAD::initialize()
 	set_device_name(_T("%s"), tmps);
 //	rawdata = emu->get_joy_buffer();
 	register_frame_event(this);
+	sel_line = false;
 }
 
 void JOYPAD::reset()
 {
-	sel_line = true;
+//	sel_line = true;
 //	write_signals(&line_dat,   0);
 	query_joystick();
 	write_signals(&line_com,   (enabled) ? 0xffffffff : 0x00000000);
@@ -108,12 +109,14 @@ void JOYPAD::write_signal(int id, uint32_t data, uint32_t mask)
 		break;
 	case SIG_JOYPAD_SELECT_BUS:
 //		out_debug_log(_T("SIG_JOYPAD_SELECT_BUS, VALUE=%08X"), ndata);
-		if(ndata != 0) {
-			sel_line = true;
-		} else {
-			sel_line = false;
+		if(enabled) {
+			if(ndata != 0) {
+				sel_line = true;
+			} else {
+				sel_line = false;
+			}
+			write_signals(&line_com, (sel_line) ? 0xffffffff : 0x00000000);
 		}
-		write_signals(&line_com, (sel_line) ? 0xffffffff : 0x00000000);
 		break;
 	}
 }

@@ -9,6 +9,7 @@
 */
 
 #include "./mouse.h"
+#include "./joystick.h"
 
 namespace FMTOWNS {
 
@@ -46,13 +47,34 @@ void MOUSE::reset()
 	// Values around mouse aren't initialized on reset.
 //	mouse_state = emu->get_mouse_buffer();
 //	update_config(); // Update MOUSE PORT.
+	if(mouse_connected) {
+		uint32_t com_d = SIG_JOYPORT_TYPE_MOUSE;
+		if(port_num != 0) {
+			com_d |= SIG_JOYPORT_CH1;
+		}
+		if(strobe) {
+			com_d |= SIG_JOYPORT_COM;
+		}
+		if(d_joyport != nullptr) {
+			d_joyport->write_signal(com_d, 0xffffffff, 0xffffffff);
+		}
+	}
 }
 
 void MOUSE::update_strobe()
 {
+
 	bool _bak = strobe;
 	uint8_t _mask = ((port_num & 1) != 0) ? 0x20 : 0x10;
 	strobe = ((mouse_mask & _mask) != 0) ? true : false;
+	
+	uint32_t com_d = SIG_JOYPORT_TYPE_MOUSE;
+	if(port_num != 0) {
+		com_d |= SIG_JOYPORT_CH1;
+	}
+	if(strobe) {
+		com_d |= SIG_JOYPORT_COM;
+	}
 	if((_bak != strobe)/* && (flag)*/) {
 		if(phase == 0) {
 			if(strobe) {
@@ -67,9 +89,15 @@ void MOUSE::update_strobe()
 				force_register_event(this, EVENT_MOUSE_TIMEOUT, 2000.0, false, event_timeout);
 				phase = 2; // SYNC from MAME 0.225. 20201126 K.O
 			}
+			if(d_joyport != nullptr) {
+				d_joyport->write_signal(com_d, 0xffffffff, 0xffffffff);
+			}
 			return;
 		}
 		phase++;
+		if(d_joyport != nullptr) {
+			d_joyport->write_signal(com_d, 0xffffffff, 0xffffffff);
+		}
 	}
 }
 
@@ -112,17 +140,19 @@ uint32_t MOUSE::read_signal(int ch)
 			
 			rval |= (update_mouse() & 0x0f);
 			mouse_state = emu->get_mouse_buffer();
+			if((trig & 0x01) == 0) {
+				rval &= ~0x10; // Button LEFT
+			}
+			if((trig & 0x02) == 0) {
+				rval &= ~0x20; // Button RIGHT
+			}
 			if(mouse_state != NULL) {
 				uint32_t stat = mouse_state[2];
-				if((trig & 0x01) != 0) {
-					if((stat & 0x01) == 0) {
-						rval &= ~0x10; // Button LEFT
-					}
+				if((stat & 0x01) == 0) {
+					rval &= ~0x10; // Button LEFT
 				}
-				if((trig & 0x02) != 0) {
-					if((stat & 0x02) == 0) {
-						rval &= ~0x20; // Button LEFT
-					}
+				if((stat & 0x02) == 0) {
+					rval &= ~0x20; // Button RIGHT
 				}
 			}
 			if(!(strobe)) { // COM

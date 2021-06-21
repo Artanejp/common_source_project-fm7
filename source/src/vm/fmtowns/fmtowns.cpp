@@ -436,6 +436,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	joypad[0]->set_context_com(joystick, SIG_JOYPORT_CH0 | SIG_JOYPORT_TYPE_2BUTTONS | SIG_JOYPORT_COM, 0xffffffff);
 	joypad[1]->set_context_com(joystick, SIG_JOYPORT_CH1 | SIG_JOYPORT_TYPE_2BUTTONS | SIG_JOYPORT_COM, 0xffffffff);
+	mouse->set_context_com(joystick);
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);

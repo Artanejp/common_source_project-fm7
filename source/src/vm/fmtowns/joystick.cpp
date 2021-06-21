@@ -66,31 +66,44 @@ uint32_t JOYSTICK::read_io8(uint32_t address)
 	case 0x04d0:
 	case 0x04d2:
 		{
-			retval = 0xff;
-			uint8_t mask2 = (mouse_mask >> (port_num + 4)) & 0x01;
-			if((mask2 & 0x01) == 0) { // COM
-				retval = retval & ~0x40;
-			}
 			if(emulate_mouse[port_num]) {
+				uint8_t mask2 = (mouse_mask >> (port_num + 4)) & 0x01;
+				retval = 0x00;
+				if((mask2 & 0x01) != 0) { // COM
+					retval = 0x40;
+				}
+				if(!(stat_com[port_num])) { // COM
+					retval &= ~0x40;
+				}
 				if(d_mouse != nullptr) {
-					retval &= d_mouse->read_signal(SIG_MOUSE_DATA);
+					retval |= d_mouse->read_signal(SIG_MOUSE_DATA);
 				}
 			} else {
 				uint8_t trig = (mouse_mask >> (port_num << 1)) & 0x03;
+				retval = 0xff;
+				uint8_t mask2 = (mouse_mask >> (port_num + 4)) & 0x01;
+				if((mask2 & 0x01) == 0) { // COM
+					retval &= ~0x40;
+				}
 				if(connected_type[port_num] == SIG_JOYPORT_TYPE_NULL) {
 					// None Connected
 					return retval;
 				}
+				if(!(stat_com[port_num])) { // COM
+					retval &= ~0x40;
+				}
 				// Trigger independents from direction keys.
+				if((trig & 0x02) == 0) { // TRIG2
+					retval = retval & ~0x20;
+				}
 				if((joydata[port_num] & LINE_JOYPORT_B) != 0) {
-					if((trig & 0x02) != 0) { // TRIG2
-						retval = retval & ~0x20;
-					}
+					retval = retval & ~0x20;
+				}
+				if((trig & 0x01) == 0) { // TRIG1
+					retval = retval & ~0x10;
 				}
 				if((joydata[port_num] & LINE_JOYPORT_A) != 0) {
-					if((trig & 0x01) != 0) { // TRIG1
-						retval = retval & ~0x10;
-					}
+					retval = retval & ~0x10;
 				}
 				//if((mask & (0x10 << port_num)) == 0) {
 //				if((mask2 & 0x01) == 0) { // COM
