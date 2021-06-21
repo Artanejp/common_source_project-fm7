@@ -4,7 +4,8 @@
 
 	Author : Takeda.Toshiya
 	Date   : 2008.04.30 -
-
+	
+	Note: Still not detect disk changing. 20210622 K.O
 	[ floppy ]
 */
 
@@ -33,6 +34,7 @@ void FLOPPY::reset()
 	}
 }
 
+	
 void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	int nextdrv = drvsel;
@@ -122,10 +124,24 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 			nextdrv = (nextdrv + 2) & 3;
 		}
 		if(drvsel != nextdrv) {
-			d_fdc->write_signal(SIG_MB8877_DRIVEREG, drvsel = nextdrv, 3);
+			drvsel = nextdrv;
+			d_fdc->write_signal(SIG_MB8877_DRIVEREG, nextdrv, 3);
 		}
-		d_fdc->set_drive_type(drvreg & 3, ((data & 0x40) != 0) ? DRIVE_TYPE_2HD : DRIVE_TYPE_2DD);
-		drvreg = data;
+		switch(data & 0xc0) {
+		case 0x00:
+			d_fdc->set_drive_type(drvsel & 3, DRIVE_TYPE_2DD);
+			break;
+		case 0x40:
+			d_fdc->set_drive_type(drvsel & 3, DRIVE_TYPE_2HD);
+			break;
+		case 0x80: // 
+			d_fdc->set_drive_type(drvsel & 3, DRIVE_TYPE_2HD);
+			break;
+		case 0xc0: // 
+			d_fdc->set_drive_type(drvsel & 3, DRIVE_TYPE_144);
+			break;
+		}
+		drvreg = data & 0xdf; 
 		break;
 	case 0x20e:
 		drive_swapped = ((data & 0x01) != 0);
@@ -154,6 +170,14 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 		return val;
 	case 0x20c:
 		return drvreg;
+	case 0x20d:
+		if(machine_id >= 0x0700) {
+			// ToDo: Implement FDDVEXT (After HG/HR).
+			return 0xff;
+		} else {
+			return 0xff;
+		}
+		break;
 	case 0x20e:
 		val = (drive_swapped) ? 1 : 0;
 		return val;
