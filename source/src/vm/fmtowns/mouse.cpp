@@ -29,8 +29,9 @@ void MOUSE::initialize()
 	lx = ly = 0;
 	event_timeout = -1;
 	event_sampling = -1;
-
-	register_frame_event(this);
+	axisdata = 0x0f;
+	
+//	register_frame_event(this);
 }
 
 void MOUSE::release()
@@ -45,20 +46,7 @@ void MOUSE::event_pre_frame()
 void MOUSE::reset()
 {
 	// Values around mouse aren't initialized on reset.
-//	mouse_state = emu->get_mouse_buffer();
-//	update_config(); // Update MOUSE PORT.
-	if(mouse_connected) {
-		uint32_t com_d = SIG_JOYPORT_TYPE_MOUSE;
-		if(port_num != 0) {
-			com_d |= SIG_JOYPORT_CH1;
-		}
-		if(strobe) {
-			com_d |= SIG_JOYPORT_COM;
-		}
-		if(d_joyport != nullptr) {
-			d_joyport->write_signal(com_d, 0xffffffff, 0xffffffff);
-		}
-	}
+	update_config(); // Update MOUSE PORT.
 }
 
 void MOUSE::update_strobe()
@@ -105,28 +93,32 @@ void MOUSE::update_strobe()
 
 uint32_t MOUSE::update_mouse()
 {
-	uint32_t mouse_data = 0x0f;
+	uint32_t mouse_data = 0x00;
 	switch(phase) {
 //	case 1: // SYNC
 //		mouse_data = 0x0f;
 //		break;
 	case 2: // X_HIGH
-		mouse_data = (lx >> 0) & 0x0f;
+		mouse_data = lx >> 0;
 		break;
 	case 3: // X_LOW
-		mouse_data = (lx >> 4) & 0x0f;
+		mouse_data = lx >> 4;
 		break;
 	case 4: // Y_HIGH
-		mouse_data = (ly >> 0) & 0x0f;
+		mouse_data = ly >> 0;
 		break;
 	case 5: // Y_LOW
-		mouse_data = (ly >> 4) & 0x0f;
+		mouse_data = ly >> 4;
 		// From FM Towns Technical book, Sec.1-7, P.241.
 		// Ti(min)
 		force_register_event(this, EVENT_MOUSE_TIMEOUT, 150.0, false, event_timeout);
+		phase++;
+		break;
+	case 6: // END
+		mouse_data = ly >> 4;
+//		phase = 0;
 		break;
 	}
-
 //	out_debug_log(_T("READ MOUSE DATA=%01X PHASE=%d STROBE=%d"), mouse_data, mouse_phase, (mouse_strobe) ? 1 : 0);
 	return mouse_data;
 }
@@ -146,14 +138,12 @@ uint32_t MOUSE::read_signal(int ch)
 			if((trig & 0x02) == 0) {
 				rval &= ~0x20; // Button RIGHT
 			}
-			if(mouse_state != NULL) {
-				int32_t stat = emu->get_mouse_button();
-				if((stat & 0x01) == 0) {
-					rval &= ~0x10; // Button LEFT
-				}
-				if((stat & 0x02) == 0) {
-					rval &= ~0x20; // Button RIGHT
-				}
+			int32_t stat = emu->get_mouse_button();
+			if((stat & 0x01) == 0) {
+				rval &= ~0x10; // Button LEFT
+			}
+			if((stat & 0x02) == 0) {
+				rval &= ~0x20; // Button RIGHT
 			}
 			if(!(strobe)) { // COM
 				rval = rval & ~0x40;
@@ -169,6 +159,29 @@ uint32_t MOUSE::read_signal(int ch)
 		break;
 	}
 	return 0xffffffff;
+}
+
+uint32_t MOUSE::check_mouse_data(bool is_send_data)
+{
+	axisdata = axisdata & 0x0f;
+	int32_t stat = emu->get_mouse_button();
+	uint8_t trig = (mouse_mask >> (port_num << 1)) & 0x03;
+	if(((stat & 0x01) == 0) && ((trig & 0x01) != 0)) {
+		axisdata |= LINE_JOYPORT_A; // Button LEFT
+	}
+	if(((stat & 0x02) == 0) && ((trig & 0x02) != 0)) {
+		axisdata |= LINE_JOYPORT_B; // Button RIGHT
+	}
+	if(strobe) { // COM
+		axisdata |= 0x40;
+	}
+	
+	if((d_joyport != nullptr) && (is_send_data)) {
+		int _id = SIG_JOYPORT_DATA | ((port_num & 0x01) << 24)
+			| SIG_JOYPORT_TYPE_MOUSE;
+		d_joyport->write_signal(_id , axisdata, 0xffffffff);
+	}
+	return axisdata;
 }
 	
 void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
@@ -196,10 +209,23 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 			}
 		}
 		break;
+	case SIG_MOUSE_QUERY:
+		if(mouse_connected) {
+			if(((data & mask) & 0x0c) == 0x04) {
+				int num = (data & mask) & 1;
+				if(num == port_num) {
+//					axisdata = ~(update_mouse());
+					check_mouse_data(true);
+				}
+			}
+		}
+		break;
 	case SIG_MOUSE_STROBE:
 		mouse_mask = data;
 		if(mouse_connected) {
 			update_strobe();
+			axisdata = ~(update_mouse());
+			check_mouse_data(true);
 		}
 		break;
 	}
@@ -236,6 +262,7 @@ void MOUSE::event_callback(int event_id, int err)
 		event_timeout = -1;
 		dx = dy = 0;
 		lx = ly = 0;
+		axisdata = 0x0f;
 		break;
 	case EVENT_MOUSE_SAMPLING:
 		sample_mouse_xy();
@@ -243,7 +270,7 @@ void MOUSE::event_callback(int event_id, int err)
 	}
 }
 	
-#define STATE_VERSION 1
+#define STATE_VERSION 2
 
 bool MOUSE::process_state(FILEIO *state_fio, bool loading)
 {
@@ -256,6 +283,7 @@ bool MOUSE::process_state(FILEIO *state_fio, bool loading)
 	
 	state_fio->StateValue(mouse_connected);
 	state_fio->StateValue(port_num);
+	state_fio->StateValue(axisdata);
 	
 	state_fio->StateValue(phase);
 	state_fio->StateValue(strobe);

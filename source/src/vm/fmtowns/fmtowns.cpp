@@ -428,6 +428,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	joystick->set_context_mask(joypad[1], SIG_JOYPAD_SELECT_BUS, 0x20); // Mouse1 or joypad1
 	joystick->set_context_query(joypad[0], SIG_JOYPAD_QUERY, 0x1);
 	joystick->set_context_query(joypad[1], SIG_JOYPAD_QUERY, 0x2);
+	joystick->set_context_query(mouse, SIG_MOUSE_QUERY, (0x03 | 0x04));
 	
 	joypad[0]->set_context_port_num(0);
 	joypad[1]->set_context_port_num(1);

@@ -90,26 +90,34 @@ void JOYPAD::write_signal(int id, uint32_t data, uint32_t mask)
 	switch(id) {
 	case SIG_JOYPAD_QUERY:
 		if(ndata == (1 << pad_num)) {
-			if(enabled) query_joystick();
+			if((enabled) && ((ndata & 0x0c) == 0)) {
+				query_joystick();
+			}
 		}
 		break;
 	case SIG_JOYPAD_ENABLE:
 		if((ndata & (1 << SIG_JOYPORT_TYPE_2BUTTONS)) != 0) {
 			//out_debug_log(_T("SELECT 2BUTTONS PAD"));
-			enabled = true;
-			type_6buttons = false;
-			reset();
+			if(!(enabled) || (type_6buttons)) {
+				enabled = true;
+				type_6buttons = false;
+				reset();
+			}
 		} else if((ndata & (1 << SIG_JOYPORT_TYPE_6BUTTONS)) != 0) {
 			//out_debug_log(_T("SELECT 6BUTTONS PAD"));
-			enabled = true;
-			type_6buttons = true;
-			reset();
+			if(!(enabled) || !(type_6buttons)) {
+				enabled = true;
+				type_6buttons = true;
+				reset();
+			}
 		} else {
 			out_debug_log(_T("DISCONNECTED"));
-			enabled = false;
-			type_6buttons = false;
-			sel_line = false;
-			reset();
+			if((enabled) || (sel_line)) {
+				enabled = false;
+				type_6buttons = false;
+				sel_line = false;
+				reset();
+			}
 		}
 		break;
 	case SIG_JOYPAD_SELECT_BUS:
