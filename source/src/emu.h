@@ -187,7 +187,7 @@ public:
 	// Mouse buffer should be with locking and sampling.
 	const int32_t* get_mouse_buffer();
 	const int32_t  get_mouse_button();
-	void release_mouse_buffer(const uint32_t* ptr);
+	void release_mouse_buffer(const int32_t* ptr);
 	void enable_mouse();
 	void disable_mouse();
 	void toggle_mouse();

@@ -356,6 +356,7 @@ protected:
 	virtual int get_screen_width(void);
 	virtual int get_screen_height(void);
 	virtual int get_vm_buttons_code(int num);
+	virtual void update_input_mouse();
 
 public:
 	OSD_BASE(USING_FLAGS *p, CSP_Logger *logger);

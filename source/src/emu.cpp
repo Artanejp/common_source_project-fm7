@@ -210,9 +210,9 @@ int EMU::run()
 #ifdef USE_AUTO_KEY
 	update_auto_key();
 #endif
-#ifdef USE_JOYSTICK
-	update_joystick();
-#endif
+//#ifdef USE_JOYSTICK
+//	update_joystick();
+//#endif
 	
 #ifdef USE_SOCKET
 #if !defined(_USE_QT) // Temporally
@@ -1552,7 +1552,7 @@ const int32_t* EMU::get_mouse_buffer()
 void EMU::release_mouse_buffer(const int32_t* ptr)
 {
 	// ToDo: Unlock buffer.
-	osd->release_mouse_buffer(ptr);
+	osd->release_mouse_buffer((int32_t*)ptr);
 }
 const int32_t EMU::get_mouse_button()
 {

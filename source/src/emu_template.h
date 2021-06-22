@@ -221,7 +221,7 @@ public:
 	// Mouse buffer should be with locking and sampling.
 	virtual const int32_t* get_mouse_buffer() { return dummy_mouse_buffer; }
 	virtual const int32_t  get_mouse_button() { return 0; }
-	virtual void release_mouse_buffer(const int* ptr) { };
+	virtual void release_mouse_buffer(const int32_t* ptr) { };
 	virtual void enable_mouse() {}
 	virtual void disable_mouse() {}
 	virtual void toggle_mouse() {}

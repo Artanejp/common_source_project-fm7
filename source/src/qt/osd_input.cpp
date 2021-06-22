@@ -285,7 +285,7 @@ void OSD_BASE::update_input()
 	lost_focus = false;
 
 	// update mouse status
-	update_input_mouse();
+	//update_input_mouse();
 	
 }
 
