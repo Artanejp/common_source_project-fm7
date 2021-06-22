@@ -38,6 +38,7 @@ private:
 	int event_timeout;
 	int event_sampling;
 
+	void sample_mouse_xy();
 	void update_strobe();
 	uint32_t update_mouse();
 	
