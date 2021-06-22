@@ -33,7 +33,7 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 		            ((stat[2] & 1) ? 1 : 0) | ((stat[2] & 2) ? 2 : 0);
 		uint32_t d1 = (uint8_t)stat[0];
 		uint32_t d2 = (uint8_t)stat[1];
-		emu->release_mouse_buffer();
+		emu->release_mouse_buffer(stat);
 		
 		d_sio->write_signal(SIG_Z80SIO_CLEAR_CH1, 1, 1);
 		d_sio->write_signal(SIG_Z80SIO_RECV_CH1, d0, 0xff);
