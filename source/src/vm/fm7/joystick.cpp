@@ -33,8 +33,8 @@ JOYSTICK::~JOYSTICK()
 
 void JOYSTICK::initialize()
 {
-	rawdata = emu->get_joy_buffer();
-	mouse_state = emu->get_mouse_buffer();
+//	rawdata = emu->get_joy_buffer();
+//	mouse_state = emu->get_mouse_buffer();
 	emulate_mouse[0] = emulate_mouse[1] = false;
 	joydata[0] = joydata[1] = 0xff;
 	dx = dy = 0;
@@ -72,7 +72,7 @@ void JOYSTICK::reset()
 		emulate_mouse[1] = false;
 		break;
 	}
-	mouse_state = emu->get_mouse_buffer();
+
 #endif	
 	if(opn != NULL) {
 		opn->write_signal(SIG_YM2203_PORT_A, 0xff, 0xff);
@@ -101,16 +101,9 @@ void JOYSTICK::event_frame()
 			dy = 127;
 		}
 	}		
-	if(mouse_state != NULL) {
-		stat = mouse_state[2];
-		mouse_button = 0x00;
-		if((stat & 0x01) == 0) mouse_button |= 0x10; // left
-		if((stat & 0x02) == 0) mouse_button |= 0x20; // right
-	}
-#endif	
+	emu->release_mouse_buffer(mouse_state);
+#endif
 	rawdata = emu->get_joy_buffer();
-	if(rawdata == NULL) return;
-   
 	for(ch = 0; ch < 2; ch++) {
 		if(!emulate_mouse[ch]) { // Joystick
 			val = rawdata[ch];
@@ -128,13 +121,19 @@ void JOYSTICK::event_frame()
 		} else { // MOUSE
 		}
 	}
+	emu->release_joy_buffer(rawdata);
 }
 
 
 uint32_t JOYSTICK::update_mouse(uint32_t mask)
 {
 #if !defined(_FM8)
+	int stat = emu->get_mouse_button();
+	mouse_button = 0x00;
+	if((stat & 0x01) == 0) mouse_button |= 0x10; // left
+	if((stat & 0x02) == 0) mouse_button |= 0x20; // right
 	uint32_t button = mouse_button;
+	
 	switch(mouse_phase) {
 			case 1:
 				mouse_data = lx & 0x0f;
@@ -226,7 +225,9 @@ uint32_t JOYSTICK::read_data8(uint32_t addr)
 	case 3: // Get Printer Joystick (CH1)
 		int ch = addr - 1;
 		if(lpt_type == ch) {
+			rawdata = emu->get_joy_buffer();
 			uint8_t raw = rawdata[ch - 1];
+			emu->release_joy_buffer(rawdata);
 			bool f = false;
 			f |= ((raw & 0x08) && !(lpmask & 0x01));	
 			f |= ((raw & 0x04) && !(lpmask & 0x02));	

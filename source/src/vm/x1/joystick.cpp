@@ -17,7 +17,7 @@ namespace X1 {
 
 void JOYSTICK::initialize()
 {
-	joy_stat = emu->get_joy_buffer();
+//	joy_stat = emu->get_joy_buffer();
 	
 	// register event
 	register_frame_event(this);
@@ -30,12 +30,14 @@ void JOYSTICK::event_frame()
 #ifdef _X1TWIN
 		if(!vm->is_cart_inserted(0)) {
 #endif
+			joy_stat = emu->get_joy_buffer();
 			if(joy_stat[i] & 0x01) val &= ~0x01;
 			if(joy_stat[i] & 0x02) val &= ~0x02;
 			if(joy_stat[i] & 0x04) val &= ~0x04;
 			if(joy_stat[i] & 0x08) val &= ~0x08;
 			if(joy_stat[i] & 0x10) val &= ~0x20;
 			if(joy_stat[i] & 0x20) val &= ~0x40;
+			emu->release_joy_buffer(joy_stat);
 #ifdef _X1TWIN
 		}
 #endif

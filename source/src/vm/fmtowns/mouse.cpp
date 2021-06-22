@@ -39,7 +39,7 @@ void MOUSE::release()
 
 void MOUSE::event_pre_frame()
 {
-	event_callback(EVENT_MOUSE_SAMPLING, 0);
+//	event_callback(EVENT_MOUSE_SAMPLING, 0);
 }
 	
 void MOUSE::reset()
@@ -79,6 +79,7 @@ void MOUSE::update_strobe()
 		if(phase == 0) {
 			if(strobe) {
 				// Sample data from MOUSE to registers.
+				sample_mouse_xy(); // Sample next value.
 				lx = -dx;
 				ly = -dy;
 				dx = 0;
@@ -139,7 +140,6 @@ uint32_t MOUSE::read_signal(int ch)
 			uint8_t rval = 0xf0;
 			
 			rval |= (update_mouse() & 0x0f);
-			mouse_state = emu->get_mouse_buffer();
 			if((trig & 0x01) == 0) {
 				rval &= ~0x10; // Button LEFT
 			}
@@ -147,7 +147,7 @@ uint32_t MOUSE::read_signal(int ch)
 				rval &= ~0x20; // Button RIGHT
 			}
 			if(mouse_state != NULL) {
-				uint32_t stat = mouse_state[2];
+				int32_t stat = emu->get_mouse_button();
 				if((stat & 0x01) == 0) {
 					rval &= ~0x10; // Button LEFT
 				}
@@ -184,6 +184,7 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 					phase = 0;
 					dx = dy = 0;
 					lx = ly = 0;
+					sample_mouse_xy();
 					strobe = false;
 					clear_event(this, event_timeout);
 //					force_register_event(this, EVENT_MOUSE_SAMPLING,
@@ -204,6 +205,25 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
+void MOUSE::sample_mouse_xy()
+{
+	mouse_state = emu->get_mouse_buffer();
+	if(mouse_state != NULL) {
+		dx += mouse_state[0];
+		dy += mouse_state[1];
+		if(dx < -127) {
+			dx += 128;
+		} else if(dx > 127) {
+			dx -= 128;
+		}
+		if(dy < -127) {
+			dy += 128;
+		} else if(dy > 127) {
+			dy -= 128;
+		}
+	}
+	emu->release_mouse_buffer(mouse_state);
+}
 void MOUSE::event_callback(int event_id, int err)
 {
 	switch(event_id) {
@@ -218,21 +238,7 @@ void MOUSE::event_callback(int event_id, int err)
 		lx = ly = 0;
 		break;
 	case EVENT_MOUSE_SAMPLING:
-		mouse_state = emu->get_mouse_buffer();
-		if(mouse_state != NULL) {
-			dx += mouse_state[0];
-			dy += mouse_state[1];
-			if(dx < -127) {
-				dx += 128;
-			} else if(dx > 127) {
-				dx -= 128;
-			}
-			if(dy < -127) {
-				dy += 128;
-			} else if(dy > 127) {
-				dy -= 128;
-			}
-		}
+		sample_mouse_xy();
 		break;
 	}
 }

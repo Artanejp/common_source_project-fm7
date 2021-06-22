@@ -528,8 +528,8 @@ void PC88::initialize()
 #endif
 	
 #ifdef SUPPORT_PC88_JOYSTICK
-	joystick_status = emu->get_joy_buffer();
-	mouse_status = emu->get_mouse_buffer();
+//	joystick_status = emu->get_joy_buffer();
+//	mouse_status = emu->get_mouse_buffer();
 	mouse_strobe_clock_lim = (int)((cpu_clock_low ? 720 : 1440) * 1.25);
 #endif
 	
@@ -1652,7 +1652,10 @@ uint32_t PC88::read_io8_debug(uint32_t addr)
 			if(Port44_OPNCH == 14) {
 #ifdef SUPPORT_PC88_JOYSTICK
 				if(config.joystick_type == DEVICE_JOYSTICK) {
-					return (~(joystick_status[0] >> 0) & 0x0f) | 0xf0;
+					joystick_status = emu->get_joy_buffer();
+					uint8_t _n = (~(joystick_status[0] >> 0) & 0x0f) | 0xf0;
+					emu->release_joy_buffer(joystick_status);
+					return _n;
 				} else if(config.joystick_type == DEVICE_MOUSE) {
 					switch(mouse_phase) {
 					case 0:
@@ -1671,9 +1674,13 @@ uint32_t PC88::read_io8_debug(uint32_t addr)
 			} else if(Port44_OPNCH == 15) {
 #ifdef SUPPORT_PC88_JOYSTICK
 				if(config.joystick_type == DEVICE_JOYSTICK) {
-					return (~(joystick_status[0] >> 4) & 0x03) | 0xfc;
+					joystick_status = emu->get_joy_buffer();
+					uint8_t _n = (~(joystick_status[0] >> 4) & 0x03) | 0xfc;
+					emu->release_joy_buffer(joystick_status);
+					return _n;
 				} else if(config.joystick_type == DEVICE_MOUSE) {
-					return (~mouse_status[2] & 0x03) | 0xfc;
+					int _m = emu->get_mouse_button();
+					return (~_m & 0x03) | 0xfc;
 				}
 #endif
 				return 0xff;
@@ -1818,7 +1825,10 @@ uint32_t PC88::read_io8_debug(uint32_t addr)
 			if(PortA8_OPNCH == 14) {
 #ifdef SUPPORT_PC88_JOYSTICK
 				if(config.joystick_type == DEVICE_JOYSTICK) {
-					return (~(joystick_status[0] >> 0) & 0x0f) | 0xf0;
+					joystick_status = emu->get_joy_buffer();
+					uint8_t _n =  (~(joystick_status[0] >> 0) & 0x0f) | 0xf0;
+					emu->release_joy_buffer(joystick_status);
+					return _n;
 				} else if(config.joystick_type == DEVICE_MOUSE) {
 					switch(mouse_phase) {
 					case 0:
@@ -1837,9 +1847,13 @@ uint32_t PC88::read_io8_debug(uint32_t addr)
 			} else if(PortA8_OPNCH == 15) {
 #ifdef SUPPORT_PC88_JOYSTICK
 				if(config.joystick_type == DEVICE_JOYSTICK) {
-					return (~(joystick_status[0] >> 4) & 0x03) | 0xfc;
+					joystick_status = emu->get_joy_buffer();
+					uint8_t _n = (~(joystick_status[0] >> 4) & 0x03) | 0xfc;
+					emu->release_joy_buffer(joystick_status);
+					return _n;
 				} else if(config.joystick_type == DEVICE_MOUSE) {
-					return (~mouse_status[2] & 0x03) | 0xfc;
+					int _m = emu->get_mouse_button();
+					return (~_m & 0x03) | 0xfc;
 				}
 #endif
 				return 0xff;
@@ -2439,8 +2453,10 @@ void PC88::event_frame()
 	crtc.update_blink();
 	
 #ifdef SUPPORT_PC88_JOYSTICK
+	mouse_status = emu->get_mouse_buffer();
 	mouse_dx += mouse_status[0];
 	mouse_dy += mouse_status[1];
+	emu->release_mouse_buffer(mouse_status);
 #endif
 }
 

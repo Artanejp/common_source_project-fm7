@@ -15,7 +15,7 @@ namespace SCV {
 void IO::initialize()
 {
 	key = emu->get_key_buffer();
-	joy = emu->get_joy_buffer();
+//	joy = emu->get_joy_buffer();
 }
 
 void IO::reset()
@@ -53,6 +53,7 @@ uint32_t IO::read_io8(uint32_t addr)
 	case P_A:
 		return pa;
 	case P_B:
+		joy = emu->get_joy_buffer();
 		if(!(pa & 0x01)) {
 			if(joy[0] & 0x04) val &= ~0x01;	// P1-L
 			if(joy[0] & 0x01) val &= ~0x02;	// P1-U
@@ -69,6 +70,7 @@ uint32_t IO::read_io8(uint32_t addr)
 			if(joy[1] & 0x08) val &= ~0x10;	// P2-R
 			if(joy[1] & 0x20) val &= ~0x20;	// P2-TR2
 		}
+		emu->release_joy_buffer(joy);
 		if(!(pa & 0x04)) {
 			if(key[0x30] || key[0x60]) val &= ~0x40;	// 0
 			if(key[0x31] || key[0x61]) val &= ~0x80;	// 1

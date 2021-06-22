@@ -82,7 +82,7 @@ enum
 void PCE::initialize()
 {
 	// get context
-	joy_stat = emu->get_joy_buffer();
+//	joy_stat = emu->get_joy_buffer();
 	
 	// register event
 	register_vline_event(this);
@@ -1812,6 +1812,7 @@ uint8_t PCE::joy_2btn_pad_r(uint8_t index)
 {
 	uint8_t data = 0x0f;
 	
+	joy_stat = emu->get_joy_buffer();
 	if(joy_high_nibble) {
 		if(joy_stat[index - 1] & 0x001) data &= ~0x01;	// Up
 		if(joy_stat[index - 1] & 0x008) data &= ~0x02;	// Right
@@ -1823,6 +1824,7 @@ uint8_t PCE::joy_2btn_pad_r(uint8_t index)
 		if(joy_stat[index - 1] & 0x040) data &= ~0x04;	// Select
 		if(joy_stat[index - 1] & 0x080) data &= ~0x08;	// Run
 	}
+	emu->release_joy_buffer(joy_stat);
 	return data;
 }
 
@@ -1831,6 +1833,7 @@ uint8_t PCE::joy_6btn_pad_r(uint8_t index)
 	uint8_t data = 0x0f;
 	
 	if(joy_second_byte) {
+		joy_stat = emu->get_joy_buffer();
 		if(joy_high_nibble) {
 			if(joy_stat[index - 1] & 0x001) data &= ~0x01;	// Up
 			if(joy_stat[index - 1] & 0x008) data &= ~0x02;	// Right
@@ -1842,14 +1845,17 @@ uint8_t PCE::joy_6btn_pad_r(uint8_t index)
 			if(joy_stat[index - 1] & 0x040) data &= ~0x04;	// Select
 			if(joy_stat[index - 1] & 0x080) data &= ~0x08;	// Run
 		}
+		emu->release_joy_buffer(joy_stat);
 	} else {
 		if(joy_high_nibble) {
 			return 0x00;
 		} else {
+			joy_stat = emu->get_joy_buffer();
 			if(joy_stat[index - 1] & 0x100) data &= ~0x01;	// Button #3
 			if(joy_stat[index - 1] & 0x200) data &= ~0x02;	// Button #4
 			if(joy_stat[index - 1] & 0x400) data &= ~0x04;	// Button #5
 			if(joy_stat[index - 1] & 0x800) data &= ~0x08;	// Button #6
+			emu->release_joy_buffer(joy_stat);
 		}
 	}
 	if(!support_multi_tap) {

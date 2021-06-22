@@ -25,7 +25,7 @@ namespace MSX {
 
 void JOYSTICK::initialize()
 {
-	joy_stat = emu->get_joy_buffer();
+//	joy_stat = emu->get_joy_buffer();
 	select = 0;
 	
 	// register event to update the key status
@@ -34,7 +34,10 @@ void JOYSTICK::initialize()
 
 void JOYSTICK::event_frame()
 {
-	d_psg->write_signal(SIG_AY_3_891X_PORT_A, PSG14_MASK & ~(joy_stat[select] & 0x3f), 0x7f);
+	joy_stat = emu->get_joy_buffer();
+	uint8_t n = joy_stat[select];
+	emu->release_joy_buffer(joy_stat);
+	d_psg->write_signal(SIG_AY_3_891X_PORT_A, PSG14_MASK & ~(n & 0x3f), 0x7f);
 }
 
 void JOYSTICK::write_signal(int id, uint32_t data, uint32_t mask)
@@ -42,7 +45,10 @@ void JOYSTICK::write_signal(int id, uint32_t data, uint32_t mask)
 	if(id == SIG_JOYSTICK_SEL) {
 		if(select != ((data & mask) != 0)) {
 			select = ((data & mask) != 0);
-			d_psg->write_signal(SIG_AY_3_891X_PORT_A, PSG14_MASK & ~(joy_stat[select] & 0x3f), 0x7f);
+			joy_stat = emu->get_joy_buffer();
+			uint8_t n = joy_stat[select];
+			emu->release_joy_buffer(joy_stat);
+			d_psg->write_signal(SIG_AY_3_891X_PORT_A, PSG14_MASK & ~(n & 0x3f), 0x7f);
 		}
 	}
 }

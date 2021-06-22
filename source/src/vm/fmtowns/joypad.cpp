@@ -43,9 +43,11 @@ void JOYPAD::event_frame(void)
 void JOYPAD::query_joystick(void)
 {
 	// enabled
+	bool __sigf = false;
 	rawdata = emu->get_joy_buffer();
 	uint32_t stat = 0;
 	if((rawdata != NULL) && (enabled)) {
+		__sigf = true;
 		uint32_t d = rawdata[pad_num];
 //		out_debug_log(_T("DATA: %08X"), d);
 		if((type_6buttons) && (sel_line)) { // 6Buttons Multiplied
@@ -75,7 +77,10 @@ void JOYPAD::query_joystick(void)
 		// None Connected
 		stat = 0x00;
 	}
-	write_signals(&line_dat, stat);
+	emu->release_joy_buffer(rawdata);
+	if(__sigf) {
+		write_signals(&line_dat, stat);
+	}
 }
 
 void JOYPAD::write_signal(int id, uint32_t data, uint32_t mask)

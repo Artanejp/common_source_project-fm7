@@ -21,7 +21,6 @@ void JOYSTICK::reset()
 
 void JOYSTICK::initialize()
 {
-	rawdata = emu->get_joy_buffer();
 	joydata[0] = joydata[1] = 0x00;
 
 	// Force reset pads.

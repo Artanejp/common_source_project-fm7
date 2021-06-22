@@ -24,7 +24,7 @@ namespace PC9801 {
 
 void JOYSTICK::initialize()
 {
-	joy_status = emu->get_joy_buffer();
+//	joy_status = emu->get_joy_buffer();
 	select = 0xff;
 	
 	register_frame_event(this);
@@ -39,7 +39,10 @@ void JOYSTICK::write_signal(int id, uint32_t data, uint32_t mask)
 void JOYSTICK::event_frame()
 {
 	if(select & 0x80) {
-		d_opn->write_signal(SIG_YM2203_PORT_A, ~joy_status[(select & 0x40) >> 6], 0x3f);
+		joy_status = emu->get_joy_buffer();
+		uint8_t _n = joy_status[(select & 0x40) >> 6];
+		emu->release_joy_buffer(joy_status);
+		d_opn->write_signal(SIG_YM2203_PORT_A, ~_n, 0x3f);
 	}
 }
 

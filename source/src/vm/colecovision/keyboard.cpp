@@ -13,16 +13,22 @@ namespace COLECOVISION {
 void KEYBOARD::initialize()
 {
 	key_stat = emu->get_key_buffer();
-	joy_stat = emu->get_joy_buffer();
+//	joy_stat = emu->get_joy_buffer();
 	// register event to update the key status
 //	register_frame_event(this); // is this needed?
 }
 
 void KEYBOARD::event_frame()
 {
-	if (joy_stat[0] & 0x04 || joy_stat[0] & 0x08) {
+	joy_stat = emu->get_joy_buffer();
+	uint32_t _n[2];
+	_n[0] = joy_stat[0];
+	_n[1] = joy_stat[1];
+	emu->release_joy_buffer(joy_stat);
+	if (_n[0] & 0x04 || _n[0] & 0x08) {
 		d_cpu->write_signal(SIG_CPU_IRQ, 1, 1);
 	}
+
 }
 
 void KEYBOARD::write_io8(uint32_t addr, uint32_t data)
@@ -39,18 +45,23 @@ void KEYBOARD::write_io8(uint32_t addr, uint32_t data)
 uint32_t KEYBOARD::read_io8(uint32_t addr)
 {
 	// Controller 1
+	joy_stat = emu->get_joy_buffer();
+	uint32_t __joy_stat[2];
+	__joy_stat[0] = joy_stat[0];
+	__joy_stat[1] = joy_stat[1];
+	emu->release_joy_buffer(joy_stat);
 	if ((addr & 0x000000ff)==0xfc) {
 		uint32_t button=0x70;//0xf0;
 		if (!tenkey) {
 			uint32_t joystick=0x7f;//0xff;
-			if (joy_stat[0] & 0x01) joystick &= 0xfe;	// U
-			if (joy_stat[0] & 0x02) joystick &= 0xfb;	// D
-			if (joy_stat[0] & 0x04) joystick &= 0xf7;	// L
-			if (joy_stat[0] & 0x08) joystick &= 0xfd;	// R
-			if (joy_stat[0] & 0x20) joystick &= 0xbf;	// F1
+			if (__joy_stat[0] & 0x01) joystick &= 0xfe;	// U
+			if (__joy_stat[0] & 0x02) joystick &= 0xfb;	// D
+			if (__joy_stat[0] & 0x04) joystick &= 0xf7;	// L
+			if (__joy_stat[0] & 0x08) joystick &= 0xfd;	// R
+			if (__joy_stat[0] & 0x20) joystick &= 0xbf;	// F1
 			return joystick;
 		}
-		if (joy_stat[0] & 0x10)
+		if (__joy_stat[0] & 0x10)
 			button &= 0xbf;         // F2
 		if ((key_stat[0x31] & 0x80) || (key_stat[0x61] & 0x80))
 			return (button | 0x0d); // 1
@@ -87,14 +98,14 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 		uint32_t button=0x70;//0xf0;
 		if (!tenkey) {
 			uint32_t joystick=0x7f;//0xff;
-			if (joy_stat[1] & 0x01) joystick &= 0xfe;	// U
-			if (joy_stat[1] & 0x02) joystick &= 0xfb;	// D
-			if (joy_stat[1] & 0x04) joystick &= 0xf7;	// L
-			if (joy_stat[1] & 0x08) joystick &= 0xfd;	// R
-			if (joy_stat[1] & 0x20) joystick &= 0xbf;	// F1
+			if (__joy_stat[1] & 0x01) joystick &= 0xfe;	// U
+			if (__joy_stat[1] & 0x02) joystick &= 0xfb;	// D
+			if (__joy_stat[1] & 0x04) joystick &= 0xf7;	// L
+			if (__joy_stat[1] & 0x08) joystick &= 0xfd;	// R
+			if (__joy_stat[1] & 0x20) joystick &= 0xbf;	// F1
 			return joystick;
 		}
-		if (joy_stat[1] & 0x10)
+		if (__joy_stat[1] & 0x10)
 			button &= 0xbf;         // F2
 		if (key_stat[0x51] & 0x80)
 			return (button | 0x0d); // 1 'q'

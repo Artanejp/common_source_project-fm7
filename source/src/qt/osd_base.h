@@ -368,6 +368,7 @@ public:
 	QMutex *screen_mutex;
 	QMutex *vm_mutex;
 	QMutex *debug_mutex;
+	QMutex *joystick_mutex;
 	QMutex *mouse_mutex;
 	QMutex *log_mutex;
 	
@@ -458,11 +459,13 @@ public:
 	//QImage *getPseudoVramClass(void) { return pPseudoVram;}
 	void set_mouse_pointer(int x, int y);
 	void set_mouse_button(int button);
-	int get_mouse_button();
 	void modify_key_buffer(int code, uint8_t val);
 	uint8_t* get_key_buffer();
 	uint32_t* get_joy_buffer();
+	void release_joy_buffer(uint32_t* ptr);
+	int32_t get_mouse_button();
 	int32_t* get_mouse_buffer();
+	void release_mouse_buffer(int32_t* ptr);
 	// common printer
 	void reset_printer();
 	void update_printer();

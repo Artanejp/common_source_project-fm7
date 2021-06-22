@@ -552,13 +552,27 @@ public:
 #ifdef USE_JOYSTICK
 	uint32_t* get_joy_buffer()
 	{
+		// ToDo: Lock
 		return joy_status;
+	}
+	void release_joy_buffer(uint32_t* ptr)
+	{
+		// ToDo: Unlock
 	}
 #endif
 #ifdef USE_MOUSE
 	int32_t* get_mouse_buffer()
 	{
+		// ToDo: Lock
 		return mouse_status;
+	}
+	void release_mouse_buffer(int32_t* ptr)
+	{
+		// ToDo: Unlock
+	}
+	int32_t get_mouse_button()
+	{
+		return mouse_status[2];
 	}
 #endif
 #ifdef USE_AUTO_KEY

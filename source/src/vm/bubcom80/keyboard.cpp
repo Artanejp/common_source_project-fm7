@@ -50,18 +50,24 @@ static const uint32_t joy_bits[5] = {
 void KEYBOARD::initialize()
 {
 	key_stat = emu->get_key_buffer();
-	joy_stat = emu->get_joy_buffer();
+//	joy_stat = emu->get_joy_buffer();
 }
 
 uint32_t KEYBOARD::read_io8(uint32_t addr)
 {
+	joy_stat = emu->get_joy_buffer();
+	uint32_t __joy_stat[2];
+	__joy_stat[0] = joy_stat[0];
+	__joy_stat[1] = joy_stat[1];
+	emu->release_joy_buffer(joy_stat);
+
 	switch(addr & 0x7f) {
 	case 0x70:
 	case 0x71:
 	case 0x72:
 	case 0x73:
 	case 0x74:
-		if(joy_stat[0] & joy_bits[addr - 0x70]) {
+		if(__joy_stat[0] & joy_bits[addr - 0x70]) {
 			return 0xff;
 		}
 		break;
@@ -70,7 +76,7 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 	case 0x77:
 	case 0x78:
 	case 0x79:
-		if(joy_stat[1] & joy_bits[addr - 0x75]) {
+		if(__joy_stat[1] & joy_bits[addr - 0x75]) {
 			return 0xff;
 		}
 		break;

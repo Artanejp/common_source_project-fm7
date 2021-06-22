@@ -53,7 +53,7 @@ void MEMORY::initialize()
 	
 	// initialize inputs
 	key_stat = emu->get_key_buffer();
-	joy_stat = emu->get_joy_buffer();
+//	joy_stat = emu->get_joy_buffer();
 	
 	// initialize display
 	palette_pc[0] = RGB_COLOR(0, 0, 0);
@@ -92,12 +92,16 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 			return d_via->read_io8(addr);
 		case 0xcc00:
 			if((addr & 0xffff) == 0xcc02) {
-				return ((joy_stat[0] & 0x08) >> 3) |	// bit0: right
+				joy_stat = emu->get_joy_buffer();
+				uint8_t _ret;
+				_ret = ((joy_stat[0] & 0x08) >> 3) |	// bit0: right
 				       ((joy_stat[0] & 0x04) >> 1) |	// bit1: left
 				       ((joy_stat[0] & 0x01) << 2) |	// bit2: up
 				       ((joy_stat[0] & 0x02) << 2) |	// bit3: down
 				       ((joy_stat[0] & 0x10)     ) |	// bit4: switch
 				       ((joy_stat[0] & 0x20) >> 1);
+				emu->release_joy_buffer(joy_stat);
+				return _ret;
 			}
 			break;
 		}

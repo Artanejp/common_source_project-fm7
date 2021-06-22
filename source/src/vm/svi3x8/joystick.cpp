@@ -23,7 +23,7 @@ namespace SVI_3X8 {
 
 void JOYSTICK::initialize()
 {
-	joy_stat = emu->get_joy_buffer();
+//	joy_stat = emu->get_joy_buffer();
 	select = 0;
 	
 	// register event to update the key status
@@ -32,9 +32,14 @@ void JOYSTICK::initialize()
 
 void JOYSTICK::event_frame()
 {
-///	d_psg->write_signal(SIG_AY_3_891X_PORT_A, PSG14_MASK & ~(joy_stat[select] & 0x3f), 0x7f);
-	d_psg->write_signal(SIG_AY_3_891X_PORT_A, ~((joy_stat[0] & 0x0f)|(joy_stat[1] & 0x0f)<<4), 0xff);
-	d_memory->write_io8(select, ~((joy_stat[0] & 0x10)|(joy_stat[1] & 0x10)<<1));
+	uint32_t _n[2];
+	joy_stat = emu->get_joy_buffer();
+	_n[0] = joy_stat[0];
+	_n[1] = joy_stat[1];
+	emu->release_joy_buffer(joy_stat);
+///	d_psg->write_signal(SIG_AY_3_891X_PORT_A, PSG14_MASK & ~(_n[select] & 0x3f), 0x7f);
+	d_psg->write_signal(SIG_AY_3_891X_PORT_A, ~((_n[0] & 0x0f)|(_n[1] & 0x0f)<<4), 0xff);
+	d_memory->write_io8(select, ~((_n[0] & 0x10)|(_n[1] & 0x10)<<1));
 }
 
 #define STATE_VERSION	1

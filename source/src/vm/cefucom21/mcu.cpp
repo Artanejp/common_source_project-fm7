@@ -73,8 +73,12 @@ void MCU::event_frame()
 		}
 		key_status[i] = val;
 	}
-	d_psg->write_signal(SIG_AY_3_891X_PORT_A, ~(joy_stat[0] & 0x1f), 0xff);
-	d_psg->write_signal(SIG_AY_3_891X_PORT_B, ~(joy_stat[1] & 0x1f), 0xff);
+	uint32_t _n[2];
+	_n[0] = joy_stat[0];
+	_n[1] = joy_stat[1];
+	emu->release_joy_buffer(joy_stat);
+	d_psg->write_signal(SIG_AY_3_891X_PORT_A, ~(_n[0] & 0x1f), 0xff);
+	d_psg->write_signal(SIG_AY_3_891X_PORT_B, ~(_n[1] & 0x1f), 0xff);
 }
 
 void MCU::write_signal(int id, uint32_t data, uint32_t mask)

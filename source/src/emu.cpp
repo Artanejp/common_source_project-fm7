@@ -1495,10 +1495,15 @@ void EMU::update_auto_key()
 #ifdef USE_JOYSTICK
 void EMU::update_joystick()
 {
-	uint32_t *joy_buffer = osd->get_joy_buffer();
 	uint8_t *key_buffer = osd->get_key_buffer();
 	
+	uint32_t *joyp = osd->get_joy_buffer();
+	uint32_t joy_buffer[4];
 	memset(joy_status, 0, sizeof(joy_status));
+	for(int i = 0; i < 4; i++) {
+		joy_buffer[i] = joyp[i];
+	}
+	osd->release_joy_buffer(joyp);
 	
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < 16; j++) {
@@ -1529,7 +1534,13 @@ const uint8_t* EMU::get_key_buffer()
 #ifdef USE_JOYSTICK
 const uint32_t* EMU::get_joy_buffer()
 {
+	// Update joystick data per query joystick buffer.
+	update_joystick();
 	return (const uint32_t*)joy_status;
+}
+void EMU::release_joy_buffer(const uint32_t* ptr)
+{
+	// ToDo: Unlock buffer.
 }
 #endif
 
@@ -1538,6 +1549,16 @@ const int32_t* EMU::get_mouse_buffer()
 {
 	return (const int32_t*)osd->get_mouse_buffer();
 }
+void EMU::release_mouse_buffer(const int32_t* ptr)
+{
+	// ToDo: Unlock buffer.
+	osd->release_mouse_buffer(ptr);
+}
+const int32_t EMU::get_mouse_button()
+{
+	return (const int32_t)osd->get_mouse_button();
+}
+
 #endif
 
 // ----------------------------------------------------------------------------

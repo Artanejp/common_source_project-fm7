@@ -27,7 +27,7 @@ static const int key_map[7][8] = {
 void KEYBOARD::initialize()
 {
 	key_stat = emu->get_key_buffer();
-	joy_stat = emu->get_joy_buffer();
+//	joy_stat = emu->get_joy_buffer();
 }
 
 uint32_t KEYBOARD::read_io8(uint32_t addr)
@@ -56,13 +56,16 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 		for(int i = 0; i < 8; i++) {
 			val |= key_stat[key_map[1][i]] ? (1 << i) : 0;
 		}
+		joy_stat = emu->get_joy_buffer();
 		val |= (joy_stat[0] & 0x10) ? 0x01 : 0;
 		val |= (joy_stat[0] & 0x20) ? 0x02 : 0;
 		val |= (joy_stat[1] & 0x10) ? 0x10 : 0;
 		val |= (joy_stat[1] & 0x20) ? 0x20 : 0;
+		emu->release_joy_buffer(joy_stat);
 		return val;
 	case 0x37:
 //	case 0x3f:
+		joy_stat = emu->get_joy_buffer();
 		val |= (joy_stat[0] & 0x08) ? 0x01 : 0;
 		val |= (joy_stat[0] & 0x01) ? 0x02 : 0;
 		val |= (joy_stat[0] & 0x04) ? 0x04 : 0;
@@ -71,6 +74,7 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 		val |= (joy_stat[1] & 0x01) ? 0x20 : 0;
 		val |= (joy_stat[1] & 0x04) ? 0x40 : 0;
 		val |= (joy_stat[1] & 0x02) ? 0x80 : 0;
+		emu->release_joy_buffer(joy_stat);
 		return val;
 	}
 	return 0xff;

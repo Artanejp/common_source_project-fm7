@@ -26,7 +26,7 @@ static const int key_map[9][8] = {
 void KEYBOARD::initialize()
 {
 	key_stat = emu->get_key_buffer();
-	joy_stat = emu->get_joy_buffer();
+//	joy_stat = emu->get_joy_buffer();
 	
 	// register event to update the key status
 	register_frame_event(this);
@@ -60,6 +60,7 @@ void KEYBOARD::event_frame()
 	}
 	
 	// joystick #1
+	joy_stat = emu->get_joy_buffer();
 	switch(joy_stat[0] & 0x0f) {
 		case 0x1: status[ 9] |= 0x11; break;	// u
 		case 0x2: status[11] |= 0x11; break;	// d
@@ -85,7 +86,7 @@ void KEYBOARD::event_frame()
 	}
 	if(joy_stat[1] & 0x10) status[12] |= 0x88;	// b1
 	if(joy_stat[1] & 0x20) status[14] |= 0x88;	// b2
-	
+	emu->release_joy_buffer(joy_stat);
 	// $30
 	uint8_t total = 0;
 	for(int i = 0; i < 15; i++) {

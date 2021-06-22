@@ -158,7 +158,7 @@ void MEMORY::initialize()
 	initialize_key();
 	caps = kana = false;
 	key_stat = emu->get_key_buffer();
-	joy_stat = emu->get_joy_buffer();
+//	joy_stat = emu->get_joy_buffer();
 	
 	// initialize display
 	static const uint8_t color_table[16][3] = {
@@ -599,7 +599,9 @@ uint32_t MEMORY::read_io8_debug(uint32_t addr)
 			// bit1: ~B		0 = joystick back on
 			// bit0: ~F		0 = joystick forward on
 			{
+				joy_stat = emu->get_joy_buffer();
 				uint32_t stat = joy_stat[(addr & 0x100) ? 0 : 1];
+				emu->release_joy_buffer(joy_stat);
 				if(addr & 0x100) {
 					if(key_stat[0x26]) stat |= 0x01; // up
 					if(key_stat[0x28]) stat |= 0x02; // down

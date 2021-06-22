@@ -52,6 +52,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QObject(0)
 	vm_mutex = new QMutex(QMutex::Recursive);
 	locked_vm = false;
 	screen_mutex = new QMutex(QMutex::Recursive);
+	joystick_mutex = new QMutex(QMutex::Recursive);
 	mouse_mutex = new QMutex(QMutex::Recursive);
 	log_mutex = new QMutex(QMutex::Recursive);
 	
@@ -77,6 +78,7 @@ OSD_BASE::~OSD_BASE()
 		QMutexLocker l(log_mutex);
 		p_logger->set_osd(NULL);
 	}
+  	delete joystick_mutex;
   	delete mouse_mutex;
   	delete vm_mutex;
 	delete screen_mutex;

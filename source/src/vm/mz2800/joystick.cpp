@@ -14,7 +14,7 @@ namespace MZ2800 {
 void JOYSTICK::initialize()
 {
 	mode = 0xf;
-	joy_stat = emu->get_joy_buffer();
+//	joy_stat = emu->get_joy_buffer();
 }
 
 void JOYSTICK::write_io8(uint32_t addr, uint32_t data)
@@ -40,6 +40,7 @@ uint32_t JOYSTICK::read_io8(uint32_t addr)
 	}
 	
 	// direction
+	joy_stat = emu->get_joy_buffer();
 	if(dir) {
 		if(joy_stat[num] & 0x08) val &= ~0x08;
 		if(joy_stat[num] & 0x04) val &= ~0x04;
@@ -50,6 +51,7 @@ uint32_t JOYSTICK::read_io8(uint32_t addr)
 	// trigger
 	if(joy_stat[num] & 0x10) val &= ~0x20;
 	if(joy_stat[num] & 0x20) val &= ~0x10;
+	emu->release_joy_buffer(joy_stat);
 	return val;
 }
 

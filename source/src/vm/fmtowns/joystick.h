@@ -54,8 +54,6 @@ private:
 	uint32_t joydata[2];
 	bool stat_com[2];
 	
-	const uint32_t *rawdata;
-
 	uint8_t mouse_mask;
 	uint32_t connected_type[2];
 	
