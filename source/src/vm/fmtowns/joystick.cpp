@@ -74,9 +74,10 @@ uint32_t JOYSTICK::read_io8(uint32_t address)
 				}
 			} else { 
 				// None Connected
-				if((mask2 != 0) && (stat_com[port_num])) { // COM
+				if(mask2 != 0) { // COM
 					retval |= 0x40;
 				}
+				retval |= 0x30;
 				return retval;
 			}
 			if((mask2 != 0) && (stat_com[port_num])) { // COM

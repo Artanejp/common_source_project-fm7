@@ -18,27 +18,18 @@ void JOYPAD::initialize()
 	_TCHAR tmps[128] = {0};
 	my_stprintf_s(tmps, sizeof(tmps), _T("FM-Towns JOY PAD #%d"), pad_num);
 	set_device_name(_T("%s"), tmps);
-//	rawdata = emu->get_joy_buffer();
-	register_frame_event(this);
+
 	sel_line = false;
 }
 
 void JOYPAD::reset()
 {
-//	sel_line = true;
-//	write_signals(&line_dat,   0);
 	query_joystick();
-	write_signals(&line_com,   (enabled) ? 0xffffffff : 0x00000000);
+	if(enabled) {
+		write_signals(&line_com,   (sel_line) ? 0xffffffff : 0x00000000);
+	}
 }
 
-
-void JOYPAD::event_pre_frame(void)
-{
-}
-
-void JOYPAD::event_frame(void)
-{
-}
 
 void JOYPAD::query_joystick(void)
 {
@@ -92,6 +83,7 @@ void JOYPAD::write_signal(int id, uint32_t data, uint32_t mask)
 		if(ndata == (1 << pad_num)) {
 			if((enabled) && ((ndata & 0x0c) == 0)) {
 				query_joystick();
+				write_signals(&line_com,   (sel_line) ? 0xffffffff : 0x00000000);
 			}
 		}
 		break;
@@ -112,9 +104,9 @@ void JOYPAD::write_signal(int id, uint32_t data, uint32_t mask)
 			}
 		} else {
 			out_debug_log(_T("DISCONNECTED"));
+			type_6buttons = false;
 			if((enabled) || (sel_line)) {
 				enabled = false;
-				type_6buttons = false;
 				sel_line = false;
 				reset();
 			}
@@ -128,6 +120,7 @@ void JOYPAD::write_signal(int id, uint32_t data, uint32_t mask)
 			} else {
 				sel_line = false;
 			}
+			query_joystick();
 			write_signals(&line_com, (sel_line) ? 0xffffffff : 0x00000000);
 		}
 		break;

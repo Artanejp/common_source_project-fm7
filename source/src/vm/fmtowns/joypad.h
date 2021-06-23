@@ -46,8 +46,6 @@ public:
 
 	virtual void reset(void);
 	virtual void initialize(void);
-	virtual void event_pre_frame(void);
-	virtual void event_frame(void);
 
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 

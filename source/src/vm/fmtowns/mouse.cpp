@@ -29,8 +29,7 @@ void MOUSE::initialize()
 	lx = ly = 0;
 	event_timeout = -1;
 	event_sampling = -1;
-	axisdata = 0x00;
-	
+	axisdata = 0x0f;
 }
 
 void MOUSE::release()
@@ -188,7 +187,7 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 					lx = ly = 0;
 					sample_mouse_xy();
 					strobe = false;
-					axisdata = 0x00;
+					axisdata = 0x0f;
 					clear_event(this, event_timeout);
 					
 //					sample_mouse_xy(); // Sample next value.
@@ -212,7 +211,7 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 					dx = dy = 0;
 					lx = ly = 0;
 					strobe = false;
-					axisdata = 0x0f;
+					axisdata = 0x00;
 					mouse_mask = 0xff;
 					clear_event(this, event_timeout);
 				}
