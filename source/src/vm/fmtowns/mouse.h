@@ -58,7 +58,6 @@ public:
 
 	void reset();
 	void __FASTCALL event_callback(int event_id, int err);
-	void event_pre_frame();
 	
 	uint32_t __FASTCALL read_signal(int ch);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);

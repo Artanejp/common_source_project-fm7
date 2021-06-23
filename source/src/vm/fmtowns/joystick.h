@@ -16,6 +16,7 @@
 #define SIG_JOYPORT_CH1				(65536 * 256)
 #define SIG_JOYPORT_DATA			256
 #define SIG_JOYPORT_COM				512
+#define SIG_JOYPORT_MASK			768
 
 #define SIG_JOYPORT_TYPE_NULL		0
 #define SIG_JOYPORT_TYPE_2BUTTONS	1
@@ -76,11 +77,12 @@ public:
 	void initialize(void);
 	void release();
 	void reset();
-	void event_pre_frame();
 	
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t __FASTCALL read_signal(int id);
+
 	void update_config();
 	
 	bool process_state(FILEIO* state_fio, bool loading);

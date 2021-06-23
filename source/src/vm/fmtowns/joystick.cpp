@@ -37,20 +37,10 @@ void JOYSTICK::initialize()
 	connected_type[1] = 0xffffffff;
 	stat_com[0] = stat_com[1] = false;
 
-//	register_frame_event(this);
 }
 
 void JOYSTICK::release()
 {
-}
-	
-void JOYSTICK::event_pre_frame()
-{
-	for(int i = 0; i < 2; i++) {
-		if(connected_type[i] == SIG_JOYPORT_TYPE_2BUTTONS) {
-			write_signals(&outputs_query, 1 << i);
-		}
-	}
 }
 	
 void JOYSTICK::write_io8(uint32_t address, uint32_t data)
@@ -142,6 +132,25 @@ void JOYSTICK::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 	//if(type != connected_type[num]) return;
 }	
+uint32_t JOYSTICK::read_signal(int id)
+{
+	int ch = (id >> 24) & 1;
+	int bustype = id  & 0x300;
+	int num = id & 0xff;
+	uint32_t data = 0;
+	switch(bustype) {
+	case SIG_JOYPORT_DATA:
+		data = joydata[ch];
+		break;
+	case SIG_JOYPORT_COM:
+		data = (stat_com[ch]) ? 0xffffffff : 0;
+		break;
+	case SIG_JOYPORT_MASK:
+		data = mouse_mask;
+		break;
+	}
+	return data;
+}
 
 void JOYSTICK::update_config(void)
 {

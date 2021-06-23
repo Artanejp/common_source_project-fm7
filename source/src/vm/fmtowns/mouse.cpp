@@ -29,19 +29,14 @@ void MOUSE::initialize()
 	lx = ly = 0;
 	event_timeout = -1;
 	event_sampling = -1;
-	axisdata = 0x0f;
+	axisdata = 0x00;
 	
-//	register_frame_event(this);
 }
 
 void MOUSE::release()
 {
 }
 
-void MOUSE::event_pre_frame()
-{
-//	event_callback(EVENT_MOUSE_SAMPLING, 0);
-}
 	
 void MOUSE::reset()
 {
@@ -51,18 +46,15 @@ void MOUSE::reset()
 
 void MOUSE::update_strobe()
 {
-
 	bool _bak = strobe;
 	uint8_t _mask = ((port_num & 1) != 0) ? 0x20 : 0x10;
 	strobe = ((mouse_mask & _mask) != 0) ? true : false;
 	
-	uint32_t com_d = SIG_JOYPORT_TYPE_MOUSE;
+	int com_d = SIG_JOYPORT_TYPE_MOUSE;
 	if(port_num != 0) {
 		com_d |= SIG_JOYPORT_CH1;
 	}
-	if(strobe) {
-		com_d |= SIG_JOYPORT_COM;
-	}
+	com_d |= SIG_JOYPORT_COM;
 	if((_bak != strobe)/* && (flag)*/) {
 		if(phase == 0) {
 			if(strobe) {
@@ -78,14 +70,11 @@ void MOUSE::update_strobe()
 				force_register_event(this, EVENT_MOUSE_TIMEOUT, 2000.0, false, event_timeout);
 				phase = 2; // SYNC from MAME 0.225. 20201126 K.O
 			}
-			if(d_joyport != nullptr) {
-				d_joyport->write_signal(com_d, 0xffffffff, 0xffffffff);
-			}
-			return;
+		} else {
+			phase++;
 		}
-		phase++;
 		if(d_joyport != nullptr) {
-			d_joyport->write_signal(com_d, 0xffffffff, 0xffffffff);
+			d_joyport->write_signal(com_d, !(strobe) ? 0x00000000 : 0xffffffff, 0xffffffff);
 		}
 	}
 }
@@ -199,12 +188,33 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 					lx = ly = 0;
 					sample_mouse_xy();
 					strobe = false;
+					axisdata = 0x00;
 					clear_event(this, event_timeout);
-//					force_register_event(this, EVENT_MOUSE_SAMPLING,
-//										 4.0e3, true, event_sampling);
+					
+//					sample_mouse_xy(); // Sample next value.
+					if(d_joyport != nullptr) {
+						int com_d = SIG_JOYPORT_TYPE_MOUSE;
+						if(port_num != 0) {
+							com_d |= SIG_JOYPORT_CH1;
+						}
+						// First, Set 0 to port
+						d_joyport->write_signal(com_d | SIG_JOYPORT_COM, 0x00000000, 0xffffffff);
+						d_joyport->write_signal(com_d | SIG_JOYPORT_DATA, 0xffffffff, 0xffffffff);
+						// Second, read port value.
+						mouse_mask = d_joyport->read_signal(com_d | SIG_JOYPORT_MASK);
+						
+						update_strobe();
+						axisdata = ~(update_mouse());
+						check_mouse_data(true);
+					}
 				} else { // on -> off
+					phase = 0;
+					dx = dy = 0;
+					lx = ly = 0;
+					strobe = false;
+					axisdata = 0x0f;
+					mouse_mask = 0xff;
 					clear_event(this, event_timeout);
-//					clear_event(this, event_sampling);
 				}
 			}
 		}
