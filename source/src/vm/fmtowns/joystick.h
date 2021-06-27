@@ -46,10 +46,7 @@ class JOYSTICK : public DEVICE
 {
 private:
 	DEVICE* d_mouse;
-	
-	outputs_t outputs_mask;
-	outputs_t outputs_query;
-	outputs_t outputs_enable[2];
+	DEVICE* d_joypad[2];
 	
 	bool emulate_mouse[2];
 	uint32_t joydata[2];
@@ -59,16 +56,17 @@ private:
 	uint32_t connected_type[2];
 	
 	void set_emulate_mouse();
+	void __FASTCALL send_signals(int ch, uint32_t data);
+
 public:
 	JOYSTICK(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_mouse = NULL;
-		initialize_output_signals(&outputs_query);
-		initialize_output_signals(&outputs_mask);
-		initialize_output_signals(&outputs_enable[0]);
-		initialize_output_signals(&outputs_enable[1]);
+		d_joypad[0] = NULL;
+		d_joypad[1] = NULL;
 		connected_type[0] = SIG_JOYPORT_CH0 | SIG_JOYPORT_TYPE_NULL;
 		connected_type[1] = SIG_JOYPORT_CH1 | SIG_JOYPORT_TYPE_NULL;
+
 		set_device_name(_T("FM-Towns PAD Port"));
 	}
 	~JOYSTICK() {}
@@ -84,31 +82,19 @@ public:
 	uint32_t __FASTCALL read_signal(int id);
 
 	void update_config();
-	
 	bool process_state(FILEIO* state_fio, bool loading);
 
 	// unique functions
-	void set_context_enable0(DEVICE* dev, int id, uint32_t mask)
+	void set_context_joypad(int num, DEVICE* dev)
 	{
-		register_output_signal(&outputs_enable[0], dev, id, mask);
+		if((d_joypad[num] == nullptr) && (dev != nullptr)) {
+			d_joypad[num] = dev;
+		}
 	}
-	void set_context_enable1(DEVICE* dev, int id, uint32_t mask)
-	{
-		register_output_signal(&outputs_enable[1], dev, id, mask);
-	}
-	void set_context_mask(DEVICE* dev, int id, uint32_t mask)
-	{
-		register_output_signal(&outputs_mask, dev, id, mask);
-	}
-	void set_context_query(DEVICE* dev, int id, uint32_t mask)
-	{
-		register_output_signal(&outputs_query, dev, id, mask);
-	}
-	void set_context_mouse(DEVICE* dev, int id, uint32_t mask)
+	void set_context_mouse(DEVICE* dev)
 	{
 		if((d_mouse == nullptr) && (dev != nullptr)) {
 			d_mouse = dev;
-			register_output_signal(&outputs_mask, dev, id, mask);
 		}
 	}
 

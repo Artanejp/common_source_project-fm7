@@ -19,8 +19,7 @@ namespace FMTOWNS {
 
 class JOYPAD : public DEVICE {
 protected:
-	outputs_t line_dat;
-	outputs_t line_com;
+	DEVICE* d_joyport;
 
 	bool sel_line;
 	bool type_6buttons;
@@ -36,9 +35,8 @@ public:
 		type_6buttons = false;
 		enabled = true;
 		pad_num = 0;
-
-		initialize_output_signals(&line_dat);
-		initialize_output_signals(&line_com);
+		
+		d_joyport = NULL;
 		rawdata = NULL;
 		//set_device name moved to initialize().
 	}
@@ -59,13 +57,9 @@ public:
 			pad_num = num;
 		}
 	}
-	void set_context_data(DEVICE* dev, int id, uint32_t mask)
+	void set_context_joyport(DEVICE* dev)
 	{
-		register_output_signal(&line_dat, dev, id, mask);
-	}
-	void set_context_com(DEVICE* dev, int id, uint32_t mask)
-	{
-		register_output_signal(&line_com, dev, id, mask);
+		d_joyport = dev;
 	}
 
 };

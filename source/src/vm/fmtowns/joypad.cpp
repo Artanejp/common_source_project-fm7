@@ -26,7 +26,13 @@ void JOYPAD::reset()
 {
 	query_joystick();
 	if(enabled) {
-		write_signals(&line_com,   (sel_line) ? 0xffffffff : 0x00000000);
+		if(d_joyport != nullptr) {
+			int com_d = SIG_JOYPORT_TYPE_2BUTTONS;
+			com_d |= (SIG_JOYPORT_CH1 & ((pad_num & 1) << 24));
+			d_joyport->write_signal(com_d | SIG_JOYPORT_COM,
+									(sel_line) ? 0xffffffff : 0x00000000,
+									0xffffffff);
+		}
 	}
 }
 
@@ -70,7 +76,13 @@ void JOYPAD::query_joystick(void)
 	}
 	emu->release_joy_buffer(rawdata);
 	if(__sigf) {
-		write_signals(&line_dat, stat);
+		if(d_joyport != nullptr) {
+			int com_d = SIG_JOYPORT_TYPE_2BUTTONS;
+			com_d |= (SIG_JOYPORT_CH1 & ((pad_num & 1) << 24));
+			d_joyport->write_signal(com_d | SIG_JOYPORT_DATA,
+									stat,
+									0xffffffff);
+		}
 	}
 }
 
@@ -83,7 +95,13 @@ void JOYPAD::write_signal(int id, uint32_t data, uint32_t mask)
 		if(ndata == (1 << pad_num)) {
 			if((enabled) && ((ndata & 0x0c) == 0)) {
 				query_joystick();
-				write_signals(&line_com,   (sel_line) ? 0xffffffff : 0x00000000);
+				if(d_joyport != nullptr) {
+					int com_d = SIG_JOYPORT_TYPE_2BUTTONS;
+					com_d |= (SIG_JOYPORT_CH1 & ((pad_num & 1) << 24));
+					d_joyport->write_signal(com_d | SIG_JOYPORT_COM,
+								  (sel_line) ? 0xffffffff : 0x00000000,
+								  0xffffffff);
+				}
 			}
 		}
 		break;
@@ -115,13 +133,20 @@ void JOYPAD::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_JOYPAD_SELECT_BUS:
 //		out_debug_log(_T("SIG_JOYPAD_SELECT_BUS, VALUE=%08X"), ndata);
 		if(enabled) {
-			if(ndata != 0) {
+			if(data & 0x04 != 0) {
 				sel_line = true;
 			} else {
 				sel_line = false;
 			}
 			query_joystick();
-			write_signals(&line_com, (sel_line) ? 0xffffffff : 0x00000000);
+			if(d_joyport != nullptr) {
+				int com_d = SIG_JOYPORT_TYPE_2BUTTONS;
+				com_d |= (SIG_JOYPORT_CH1 & ((pad_num & 1) << 24));
+				d_joyport->write_signal(com_d | SIG_JOYPORT_COM,
+										(sel_line) ? 0xffffffff : 0x00000000,
+										0xffffffff);
+			}
+
 		}
 		break;
 	}

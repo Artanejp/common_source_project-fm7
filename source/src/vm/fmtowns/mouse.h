@@ -13,7 +13,6 @@
 #include "../device.h"
 
 #define SIG_MOUSE_ENABLE	1
-#define SIG_MOUSE_STROBE	2
 #define SIG_MOUSE_NUM		3
 #define SIG_MOUSE_DATA		4
 #define SIG_MOUSE_QUERY		5
@@ -28,22 +27,24 @@ private:
 	
 	int phase;
 	bool strobe;
+	bool trig_a;
+	bool trig_b;
 	int dx, dy;
 	int lx, ly;
 	
 	bool mouse_connected;
 	int port_num;
 
-	uint8_t mouse_mask;
+
 	uint8_t axisdata;
 	
 	int event_timeout;
 	int event_sampling;
 
 	void sample_mouse_xy();
-	void update_strobe();
+	void __FASTCALL update_strobe(uint8_t data, bool force = false);
 	uint32_t update_mouse();
-	uint32_t check_mouse_data(bool is_send_data);
+	uint32_t __FASTCALL check_mouse_data(bool is_send_data);
 	
 public:
 	MOUSE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -56,7 +57,6 @@ public:
 	void initialize();
 	void release();
 
-	void reset();
 	void __FASTCALL event_callback(int event_id, int err);
 	
 	uint32_t __FASTCALL read_signal(int ch);
@@ -64,7 +64,7 @@ public:
 
 	bool process_state(FILEIO* state_fio, bool loading);
 	
-	void set_context_com(DEVICE* dev)
+	void set_context_joyport(DEVICE* dev)
 	{
 		d_joyport = dev;
 	}

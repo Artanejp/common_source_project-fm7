@@ -420,24 +420,16 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	timer->set_context_rtc(rtc);
 	timer->set_context_halt_line(cpu, SIG_CPU_HALTREQ, 0xffffffff);
 
-	joystick->set_context_mouse(mouse, SIG_MOUSE_STROBE, 0xff);
+	joystick->set_context_mouse(mouse);
+	joystick->set_context_joypad(0, joypad[0]);
+	joystick->set_context_joypad(1, joypad[1]);
 	
-	joystick->set_context_enable0(joypad[0], SIG_JOYPAD_ENABLE, 0xffffffff);
-	joystick->set_context_enable1(joypad[1], SIG_JOYPAD_ENABLE, 0xffffffff);
-	joystick->set_context_mask(joypad[0], SIG_JOYPAD_SELECT_BUS, 0x10); // Mouse0 or joypad0
-	joystick->set_context_mask(joypad[1], SIG_JOYPAD_SELECT_BUS, 0x20); // Mouse1 or joypad1
-	joystick->set_context_query(joypad[0], SIG_JOYPAD_QUERY, 0x1);
-	joystick->set_context_query(joypad[1], SIG_JOYPAD_QUERY, 0x2);
-	joystick->set_context_query(mouse, SIG_MOUSE_QUERY, (0x03 | 0x04));
 	
 	joypad[0]->set_context_port_num(0);
 	joypad[1]->set_context_port_num(1);
-	joypad[0]->set_context_data(joystick, SIG_JOYPORT_CH0 | SIG_JOYPORT_TYPE_2BUTTONS | SIG_JOYPORT_DATA, 0xffffffff);
-	joypad[1]->set_context_data(joystick, SIG_JOYPORT_CH1 | SIG_JOYPORT_TYPE_2BUTTONS | SIG_JOYPORT_DATA, 0xffffffff);
-	
-	joypad[0]->set_context_com(joystick, SIG_JOYPORT_CH0 | SIG_JOYPORT_TYPE_2BUTTONS | SIG_JOYPORT_COM, 0xffffffff);
-	joypad[1]->set_context_com(joystick, SIG_JOYPORT_CH1 | SIG_JOYPORT_TYPE_2BUTTONS | SIG_JOYPORT_COM, 0xffffffff);
-	mouse->set_context_com(joystick);
+	joypad[0]->set_context_joyport(joystick);
+	joypad[1]->set_context_joyport(joystick);
+	mouse->set_context_joyport(joystick);
 
 	// cpu bus
 	cpu->set_context_mem(memory);
