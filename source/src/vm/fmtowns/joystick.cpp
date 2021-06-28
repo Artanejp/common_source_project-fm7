@@ -26,7 +26,7 @@ void JOYSTICK::reset()
 
 void JOYSTICK::initialize()
 {
-	joydata[0] = joydata[1] = 0x00;
+	joydata[0] = joydata[1] = 0x7f;
 
 	// Force reset pads.
 	connected_type[0] = 0xffffffff;
@@ -87,40 +87,22 @@ uint32_t JOYSTICK::read_io8(uint32_t address)
 					d_joypad[port_num]->write_signal(SIG_JOYPAD_QUERY, (1 << port_num) | 0x00, 0x0f);
 				}
 			} else if(connected_type[port_num] == SIG_JOYPORT_TYPE_MOUSE) {
-				if(emulate_mouse[port_num]) {
+//				if(emulate_mouse[port_num]) {
 					if(d_mouse != nullptr) {
 						d_mouse->write_signal(SIG_MOUSE_QUERY, (1 << port_num) | 0x04, 0x0f);
 					}
-				}
+//				}
 			} else { 
 				// None Connected
 				return retval;
 			}
-			
+
+			uint8_t _j = joydata[port_num];
+			_j = (~(_j) & 0x3f) | 0x40;
 			if(!(stat_com[port_num])) { // COM
-				retval &= ~0x40;
+				_j &= ~0x40;
 			}
-			// Trigger independents from direction keys.
-			if(((joydata[port_num] & LINE_JOYPORT_B) != 0)) {
-				retval = retval & ~0x20;
-			}
-			if(((joydata[port_num] & LINE_JOYPORT_A) != 0)) {
-				retval = retval & ~0x10;
-			}
-			//if((mask & (0x10 << port_num)) == 0) {
-//				if((mask2 & 0x01) == 0) { // COM
-			if((joydata[port_num] & LINE_JOYPORT_LEFT) != 0) { // LEFT
-				retval = retval & ~0x04; // LEFT
-			}
-			if((joydata[port_num] & LINE_JOYPORT_RIGHT) != 0) { // RIGHT
-				retval = retval & ~0x08; // RIGHT
-			}				
-			if((joydata[port_num] & LINE_JOYPORT_UP) != 0) { // UP
-				retval = retval & ~0x01; // FWD
-			}
-			if((joydata[port_num] & LINE_JOYPORT_DOWN) != 0) { // DOWN
-				retval = retval & ~0x02; // BACK
-			}
+			retval &= _j;
 //				}
 			return retval;
 		}
@@ -135,36 +117,45 @@ uint32_t JOYSTICK::read_io8(uint32_t address)
 void JOYSTICK::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	int ch = (id >> 24) & 1;
-	int bustype = id  & 0x300;
+	int bustype = id  & 0xf00;
 	int num = id & 0xff;
 	//out_debug_log(_T("SIGNAL SENT, CH=%d TYPE=%d  VALUE=%08X"), ch, num, data);
-	if(num == connected_type[ch]) {
+//	if(num == connected_type[ch]) {
 		switch(bustype) {
 		case SIG_JOYPORT_DATA:
-			joydata[ch] = data;
+			joydata[ch] = data & 0x3f;
 			break;
 		case SIG_JOYPORT_COM:
 			stat_com[ch] = ((data & mask) != 0) ? true : false;
 			break;
 		}
-	}
+//	}
 	//if(type != connected_type[num]) return;
 }	
 uint32_t JOYSTICK::read_signal(int id)
 {
 	int ch = (id >> 24) & 1;
-	int bustype = id  & 0x300;
+	int bustype = id  & 0xf00;
 	int num = id & 0xff;
 	uint32_t data = 0;
 	switch(bustype) {
+	case SIG_JOYPORT_RAWREG:
+		data = mouse_mask & 0xff;
+		break;
 	case SIG_JOYPORT_DATA:
-		data = joydata[ch];
+		{
+			uint8_t trig  = ((mouse_mask >> (ch << 1)) & 0x03) << 4; 
+			uint8_t __com = ((mouse_mask >> 1) & 0x10) << 2;
+			data = data & (trig | __com | 0x0f);
+			data = (joydata[ch] & 0x3f) | ((stat_com[ch]) ? 0x40 : 0x00);
+		}
 		break;
 	case SIG_JOYPORT_COM:
 		data = (stat_com[ch]) ? 0xffffffff : 0;
 		break;
 	case SIG_JOYPORT_MASK:
-		data = mouse_mask;
+		data  = (mouse_mask >> (ch << 1)) & 0x03; 
+		data |= ((mouse_mask >> (ch + 2)) & 0x04);
 		break;
 	}
 	return data;
@@ -189,20 +180,27 @@ void JOYSTICK::update_config(void)
 	set_emulate_mouse();
 	if(emulate_mouse[0]) {
 		ntype[0] = SIG_JOYPORT_TYPE_MOUSE;
-	}
-	if(emulate_mouse[1]) {
+	} else if(emulate_mouse[1]) {
 		ntype[1] = SIG_JOYPORT_TYPE_MOUSE;
 	}
 	
 	for(int i = 0; i < 2; i++) {
+		stat_com[i] = (((mouse_mask >> (i + 2)) & 0x04) != 0) ? true : false;
+		uint32_t _d = (mouse_mask >> (i + 2)) & 0x04; // COM
+		_d |= ((mouse_mask >> (i << 1)) & 0x03); // TRIG
+		
 		switch(ntype[i]) {
 			// Already disabled a mouse.
 		case SIG_JOYPORT_TYPE_2BUTTONS:
 		case SIG_JOYPORT_TYPE_6BUTTONS:
 			connected_type[i] = SIG_JOYPORT_TYPE_2BUTTONS;
+			// Disable mouse
+			if(d_mouse != nullptr) {
+				d_mouse->write_signal(SIG_MOUSE_ENABLE, (0x00000000 | (i & 1)) , 0xffffffff);
+				d_mouse->write_signal(SIG_MOUSE_DATA, 0x07, 0x07);
+			}
+			// Enable Joypad
 			if(d_joypad[i] != nullptr) {
-				uint32_t _d = (mouse_mask >> (i + 2)) & 0x04; // COM
-				_d |= ((mouse_mask >> (i << 1)) & 0x03); // TRIG
 				d_joypad[i]->write_signal(SIG_JOYPAD_ENABLE,
 										(1 << SIG_JOYPORT_TYPE_2BUTTONS),
 										0x0f);
@@ -211,14 +209,32 @@ void JOYSTICK::update_config(void)
 			break;
 		case SIG_JOYPORT_TYPE_MOUSE:
 			// Already disabled a joypad.
-			connected_type[i] = ntype[i];
+			connected_type[i] = SIG_JOYPORT_TYPE_MOUSE;
+			// Disable Joypad
+			if(d_joypad[i] != nullptr) {
+				d_joypad[i]->write_signal(SIG_JOYPAD_ENABLE,
+										0,
+										0x0f);
+				d_joypad[i]->write_signal(SIG_JOYPAD_SELECT_BUS, 0x07, 0x07);
+			}
+			// Enable mouse
+			if(d_mouse != nullptr) {
+				d_mouse->write_signal(SIG_MOUSE_ENABLE, (0xfffffffe | (i & 1)) , 0xffffffff);
+				d_mouse->write_signal(SIG_MOUSE_DATA, _d, 0x07);
+			}
 			break;
 		default:
-			connected_type[i] = ntype[i];
+			connected_type[i] = SIG_JOYPORT_TYPE_NULL;
+			// Disable mouse
+			if(d_mouse != nullptr) {
+				d_mouse->write_signal(SIG_MOUSE_ENABLE, (0x00000000 | (i & 1)) , 0xffffffff);
+				d_mouse->write_signal(SIG_MOUSE_DATA, 0x07, 0x07);
+			}
 			if(d_joypad[i] != nullptr) {
 				d_joypad[i]->write_signal(SIG_JOYPAD_ENABLE,
 										0x00,
 										0x0f);
+				d_joypad[i]->write_signal(SIG_JOYPAD_SELECT_BUS, 0x07, 0x07);
 			}
 			break;
 		}
@@ -232,33 +248,14 @@ void JOYSTICK::set_emulate_mouse()
 	case 1:
 		emulate_mouse[0] = true;
 		emulate_mouse[1] = false;
-		if(d_joypad[0] != nullptr) {
-			d_joypad[0]->write_signal(SIG_JOYPAD_ENABLE,
-									  0x00,
-									  0x0f);
-		}
-		if(d_mouse != nullptr) {
-			d_mouse->write_signal(SIG_MOUSE_ENABLE, 0xfffffffe, 0xffffffff);
-		}
 		break;
 	case 2:
 		emulate_mouse[0] = false;
 		emulate_mouse[1] = true;
-		if(d_joypad[1] != nullptr) {
-			d_joypad[1]->write_signal(SIG_JOYPAD_ENABLE,
-									  0x00,
-									  0x0f);
-		}
-		if(d_mouse != nullptr) {
-			d_mouse->write_signal(SIG_MOUSE_ENABLE, 0xffffffff, 0xffffffff);
-		}
 		break;
 	default:
 		emulate_mouse[0] = false;
 		emulate_mouse[1] = false;
-		if(d_mouse != nullptr) {
-			d_mouse->write_signal(SIG_MOUSE_ENABLE, 0x00000000, 0xffffffff);
-		}
 		break;
 	}
 }

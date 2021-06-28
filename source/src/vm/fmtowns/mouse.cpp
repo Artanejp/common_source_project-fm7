@@ -66,9 +66,9 @@ void MOUSE::update_strobe(uint8_t data, bool force)
 		} else {
 			phase++;
 		}
-		if(d_joyport != nullptr) {
-			d_joyport->write_signal(com_d | SIG_JOYPORT_COM, (strobe) ? 0xffffffff : 0x00000000, 0xffffffff);
-		}
+//		if(d_joyport != nullptr) {
+//			d_joyport->write_signal(com_d | SIG_JOYPORT_COM, (strobe) ? 0xffffffff : 0x00000000, 0xffffffff);
+//		}
 	}
 }
 
@@ -135,21 +135,21 @@ uint32_t MOUSE::read_signal(int ch)
 uint32_t MOUSE::check_mouse_data(bool is_send_data)
 {
 	// Do Not reply COM (0x40) : 20210627 K.O
-	axisdata = axisdata & 0x0f;
+	uint8_t data = ~(axisdata) & 0x0f;
 	int32_t stat = emu->get_mouse_button();
 
 	if(((stat & 0x01) == 0) && (trig_a)) {
-		axisdata |= LINE_JOYPORT_A; // Button LEFT
+		data |= LINE_JOYPORT_A; // Button LEFT
 	}
 	if(((stat & 0x02) == 0) && (trig_b)) {
-		axisdata |= LINE_JOYPORT_B; // Button RIGHT
+		data |= LINE_JOYPORT_B; // Button RIGHT
 	}
 	if((d_joyport != nullptr) && (is_send_data)) {
 		int _id = SIG_JOYPORT_DATA | ((port_num & 0x01) << 24)
 			| SIG_JOYPORT_TYPE_MOUSE;
-		d_joyport->write_signal(_id , axisdata, 0xffffffff);
+		d_joyport->write_signal(_id , data, 0xffffffff);
 	}
-	return axisdata;
+	return data;
 }
 	
 void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
@@ -160,6 +160,7 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 			bool _bak = mouse_connected;
 			mouse_connected = (((data & mask) & 0xfffffffe) != 0) ? true : false;
 			port_num = (data & mask) & 0x01;
+			
 			if(_bak != mouse_connected) {
 				if(!(_bak)) { // off -> on
 					phase = 0;
@@ -167,7 +168,7 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 					lx = ly = 0;
 					sample_mouse_xy();
 
-					axisdata = 0x0f;
+					axisdata = 0x00;
 					clear_event(this, event_timeout);
 					
 //					sample_mouse_xy(); // Sample next value.
@@ -175,25 +176,14 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 						int com_d = SIG_JOYPORT_TYPE_MOUSE;
 						com_d |= ((port_num & 1) << 24);
 						// First, Set 0 to port
-						d_joyport->write_signal(com_d | SIG_JOYPORT_COM, 0x00000000, 0xffffffff);
-//						d_joyport->write_signal(com_d | SIG_JOYPORT_DATA, 0xffffffff, 0xffffffff);
 						d_joyport->write_signal(com_d | SIG_JOYPORT_DATA, 0x00000000, 0xffffffff);
-						// Second, read port value.
-						uint8_t mouse_mask = d_joyport->read_signal(com_d | SIG_JOYPORT_MASK);
-						uint8_t trig = (mouse_mask >> (port_num << 1)) & 0x03;
-						uint8_t mask2 = (mouse_mask >> (port_num + 4)) & 0x01;
-						trig_a = ((trig & 0x01) != 0) ? true : false;	
-						trig_b = ((trig & 0x02) != 0) ? true : false;
-						update_strobe(mask2, true);
-						axisdata = ~(update_mouse());
-						check_mouse_data(true);
 					}
 				} else { // on -> off
 					phase = 0;
 					dx = dy = 0;
 					lx = ly = 0;
 					strobe = false;
-					axisdata = 0x0f;
+					axisdata = 0x00;
 
 					trig_a = false;
 					trig_b = false;
@@ -208,7 +198,7 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 			if(((data & mask) & 0x0c) == 0x04) {
 				int num = (data & mask) & 1;
 				if(num == port_num) {
-					//axisdata = ~(update_mouse());
+					axisdata = update_mouse();
 					check_mouse_data(true);
 				}
 			}
@@ -221,7 +211,7 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 			trig_a = ((trig & 0x01) != 0) ? true : false;	
 			trig_b = ((trig & 0x02) != 0) ? true : false;
 			update_strobe(mask2, false);
-			axisdata = ~(update_mouse());
+			axisdata = update_mouse();
 			check_mouse_data(true);
 		}
 		break;
@@ -259,7 +249,7 @@ void MOUSE::event_callback(int event_id, int err)
 		event_timeout = -1;
 		dx = dy = 0;
 		lx = ly = 0;
-		axisdata = 0x0f;
+		axisdata = 0x00;
 		break;
 	case EVENT_MOUSE_SAMPLING:
 		sample_mouse_xy();

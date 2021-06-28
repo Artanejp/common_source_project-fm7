@@ -29,9 +29,9 @@ void JOYPAD::reset()
 		if(d_joyport != nullptr) {
 			int com_d = SIG_JOYPORT_TYPE_2BUTTONS;
 			com_d |= (SIG_JOYPORT_CH1 & ((pad_num & 1) << 24));
-			d_joyport->write_signal(com_d | SIG_JOYPORT_COM,
-									(sel_line) ? 0xffffffff : 0x00000000,
-									0xffffffff);
+//			d_joyport->write_signal(com_d | SIG_JOYPORT_COM,
+//									(sel_line) ? 0xffffffff : 0x00000000,
+//									0xffffffff);
 		}
 	}
 }
@@ -98,9 +98,9 @@ void JOYPAD::write_signal(int id, uint32_t data, uint32_t mask)
 				if(d_joyport != nullptr) {
 					int com_d = SIG_JOYPORT_TYPE_2BUTTONS;
 					com_d |= (SIG_JOYPORT_CH1 & ((pad_num & 1) << 24));
-					d_joyport->write_signal(com_d | SIG_JOYPORT_COM,
-								  (sel_line) ? 0xffffffff : 0x00000000,
-								  0xffffffff);
+//					d_joyport->write_signal(com_d | SIG_JOYPORT_COM,
+//								  (sel_line) ? 0xffffffff : 0x00000000,
+//								  0xffffffff);
 				}
 			}
 		}
@@ -142,9 +142,9 @@ void JOYPAD::write_signal(int id, uint32_t data, uint32_t mask)
 			if(d_joyport != nullptr) {
 				int com_d = SIG_JOYPORT_TYPE_2BUTTONS;
 				com_d |= (SIG_JOYPORT_CH1 & ((pad_num & 1) << 24));
-				d_joyport->write_signal(com_d | SIG_JOYPORT_COM,
-										(sel_line) ? 0xffffffff : 0x00000000,
-										0xffffffff);
+//				d_joyport->write_signal(com_d | SIG_JOYPORT_COM,
+//										(sel_line) ? 0xffffffff : 0x00000000,
+//										0xffffffff);
 			}
 
 		}
