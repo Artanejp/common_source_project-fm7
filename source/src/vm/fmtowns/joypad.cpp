@@ -20,30 +20,23 @@ void JOYPAD::initialize()
 	set_device_name(_T("%s"), tmps);
 
 	sel_line = false;
+	trig_a = false;
+	trig_b = false;
 }
 
 void JOYPAD::reset()
 {
-	query_joystick();
-	if(enabled) {
-		if(d_joyport != nullptr) {
-			int com_d = SIG_JOYPORT_TYPE_2BUTTONS;
-			com_d |= (SIG_JOYPORT_CH1 & ((pad_num & 1) << 24));
-//			d_joyport->write_signal(com_d | SIG_JOYPORT_COM,
-//									(sel_line) ? 0xffffffff : 0x00000000,
-//									0xffffffff);
-		}
-	}
+	query_joystick(true);
 }
 
 
-void JOYPAD::query_joystick(void)
+void JOYPAD::query_joystick(bool _force)
 {
 	// enabled
-	bool __sigf = false;
-	rawdata = emu->get_joy_buffer();
+	bool __sigf = _force;
+	const uint32_t* rawdata = emu->get_joy_buffer();
 	uint32_t stat = 0;
-	if((rawdata != NULL) && (enabled)) {
+	if((rawdata != nullptr) && (enabled)) {
 		__sigf = true;
 		uint32_t d = rawdata[pad_num];
 //		out_debug_log(_T("DATA: %08X"), d);
@@ -60,13 +53,20 @@ void JOYPAD::query_joystick(void)
 		} else {
 			// If ((COM != 0) OR (PAD IS 2BUTTONS))  THEN CHECK AXIS
 			uint8_t axis = rawdata[pad_num] & 0x0f;
-			if((axis & 0x01) != 0) stat |= LINE_JOYPORT_UP;
-			if((axis & 0x02) != 0) stat |= LINE_JOYPORT_DOWN;
-			if((axis & 0x04) != 0) stat |= LINE_JOYPORT_LEFT;
-			if((axis & 0x08) != 0) stat |= LINE_JOYPORT_RIGHT;
+			//if((axis & 0x01) != 0) stat |= LINE_JOYPORT_UP;
+			//if((axis & 0x02) != 0) stat |= LINE_JOYPORT_DOWN;
+			//if((axis & 0x04) != 0) stat |= LINE_JOYPORT_LEFT;
+			//if((axis & 0x08) != 0) stat |= LINE_JOYPORT_RIGHT;
+			stat |= axis;
 		}
-		if((rawdata[pad_num] & 0x10) != 0) stat |= LINE_JOYPORT_A; 
-		if((rawdata[pad_num] & 0x20) != 0) stat |= LINE_JOYPORT_B; 
+		if(trig_a) {
+			stat |= (rawdata[pad_num] & 0x10);
+			//if((rawdata[pad_num] & 0x10) != 0) stat |= LINE_JOYPORT_A;
+		}
+		if(trig_b) {
+			stat |= (rawdata[pad_num] & 0x20);
+			//if((rawdata[pad_num] & 0x20) != 0) stat |= LINE_JOYPORT_B;
+		}
 		// SEL = UP + DOWN, RUN = LEFT + RIGHT 
 		if((rawdata[pad_num] & 0x40) != 0) stat |= (LINE_JOYPORT_LEFT | LINE_JOYPORT_RIGHT);
 		if((rawdata[pad_num] & 0x80) != 0) stat |= (LINE_JOYPORT_UP | LINE_JOYPORT_DOWN); 
@@ -77,8 +77,7 @@ void JOYPAD::query_joystick(void)
 	emu->release_joy_buffer(rawdata);
 	if(__sigf) {
 		if(d_joyport != nullptr) {
-			int com_d = SIG_JOYPORT_TYPE_2BUTTONS;
-			com_d |= (SIG_JOYPORT_CH1 & ((pad_num & 1) << 24));
+			int com_d = (SIG_JOYPORT_CH1 & ((pad_num & 1) << 24));
 			d_joyport->write_signal(com_d | SIG_JOYPORT_DATA,
 									stat,
 									0xffffffff);
@@ -94,14 +93,7 @@ void JOYPAD::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_JOYPAD_QUERY:
 		if(ndata == (1 << pad_num)) {
 			if((enabled) && ((ndata & 0x0c) == 0)) {
-				query_joystick();
-				if(d_joyport != nullptr) {
-					int com_d = SIG_JOYPORT_TYPE_2BUTTONS;
-					com_d |= (SIG_JOYPORT_CH1 & ((pad_num & 1) << 24));
-//					d_joyport->write_signal(com_d | SIG_JOYPORT_COM,
-//								  (sel_line) ? 0xffffffff : 0x00000000,
-//								  0xffffffff);
-				}
+				query_joystick(false);
 			}
 		}
 		break;
@@ -126,6 +118,8 @@ void JOYPAD::write_signal(int id, uint32_t data, uint32_t mask)
 			if((enabled) || (sel_line)) {
 				enabled = false;
 				sel_line = false;
+				trig_a = false;
+				trig_b = false;
 				reset();
 			}
 		}
@@ -133,32 +127,17 @@ void JOYPAD::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_JOYPAD_SELECT_BUS:
 //		out_debug_log(_T("SIG_JOYPAD_SELECT_BUS, VALUE=%08X"), ndata);
 		if(enabled) {
-			if(data & 0x04 != 0) {
-				sel_line = true;
-			} else {
-				sel_line = false;
-			}
-			query_joystick();
-			if(d_joyport != nullptr) {
-				int com_d = SIG_JOYPORT_TYPE_2BUTTONS;
-				com_d |= (SIG_JOYPORT_CH1 & ((pad_num & 1) << 24));
-//				d_joyport->write_signal(com_d | SIG_JOYPORT_COM,
-//										(sel_line) ? 0xffffffff : 0x00000000,
-//										0xffffffff);
-			}
-
+			trig_a   = ((data & 0x01) != 0) ? true : false;
+			trig_b   = ((data & 0x02) != 0) ? true : false;
+			sel_line = ((data & 0x04) != 0) ? true : false;
+			query_joystick(false);
 		}
 		break;
 	}
 }
 
 	
-void JOYPAD::update_config()
-{
-}
-
-
-#define STATE_VERSION 3
+#define STATE_VERSION 4
 	
 bool JOYPAD::process_state(FILEIO *state_fio, bool loading)
 {
@@ -169,6 +148,8 @@ bool JOYPAD::process_state(FILEIO *state_fio, bool loading)
 		return false;
 	}
 	state_fio->StateValue(sel_line);
+	state_fio->StateValue(trig_a);
+	state_fio->StateValue(trig_b);
 	state_fio->StateValue(type_6buttons);
 	state_fio->StateValue(pad_num);
 	state_fio->StateValue(enabled);

@@ -21,23 +21,22 @@ class JOYPAD : public DEVICE {
 protected:
 	DEVICE* d_joyport;
 
+	// From PORT
 	bool sel_line;
+	bool trig_a;
+	bool trig_b;
+
+	// State values.
 	bool type_6buttons;
 	int pad_num;
 	bool enabled;
 	
-	const uint32_t* rawdata;
-	virtual void query_joystick();
+	virtual void __FASTCALL query_joystick(bool _force = false);
 public:
 	JOYPAD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		sel_line = false;
-		type_6buttons = false;
-		enabled = true;
 		pad_num = 0;
-		
 		d_joyport = NULL;
-		rawdata = NULL;
 		//set_device name moved to initialize().
 	}
 	~JOYPAD() {}
@@ -47,7 +46,6 @@ public:
 
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 
-	virtual void update_config();
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 	
 	// Unique functions

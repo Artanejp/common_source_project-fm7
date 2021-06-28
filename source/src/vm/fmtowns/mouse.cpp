@@ -66,9 +66,6 @@ void MOUSE::update_strobe(uint8_t data, bool force)
 		} else {
 			phase++;
 		}
-//		if(d_joyport != nullptr) {
-//			d_joyport->write_signal(com_d | SIG_JOYPORT_COM, (strobe) ? 0xffffffff : 0x00000000, 0xffffffff);
-//		}
 	}
 }
 
@@ -145,9 +142,8 @@ uint32_t MOUSE::check_mouse_data(bool is_send_data)
 		data |= LINE_JOYPORT_B; // Button RIGHT
 	}
 	if((d_joyport != nullptr) && (is_send_data)) {
-		int _id = SIG_JOYPORT_DATA | ((port_num & 0x01) << 24)
-			| SIG_JOYPORT_TYPE_MOUSE;
-		d_joyport->write_signal(_id , data, 0xffffffff);
+		int _id = SIG_JOYPORT_DATA | (SIG_JOYPORT_CH1 & ((port_num & 1) << 24));
+		d_joyport->write_signal(_id , data, 0x3f);
 	}
 	return data;
 }
@@ -173,8 +169,7 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 					
 //					sample_mouse_xy(); // Sample next value.
 					if(d_joyport != nullptr) {
-						int com_d = SIG_JOYPORT_TYPE_MOUSE;
-						com_d |= ((port_num & 1) << 24);
+						int com_d = (SIG_JOYPORT_CH1 & ((port_num & 1) << 24));
 						// First, Set 0 to port
 						d_joyport->write_signal(com_d | SIG_JOYPORT_DATA, 0x00000000, 0xffffffff);
 					}

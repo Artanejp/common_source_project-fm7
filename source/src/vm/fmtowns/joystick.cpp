@@ -118,25 +118,19 @@ void JOYSTICK::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	int ch = (id >> 24) & 1;
 	int bustype = id  & 0xf00;
-	int num = id & 0xff;
-	//out_debug_log(_T("SIGNAL SENT, CH=%d TYPE=%d  VALUE=%08X"), ch, num, data);
-//	if(num == connected_type[ch]) {
-		switch(bustype) {
-		case SIG_JOYPORT_DATA:
-			joydata[ch] = data & 0x3f;
-			break;
-		case SIG_JOYPORT_COM:
-			stat_com[ch] = ((data & mask) != 0) ? true : false;
-			break;
-		}
-//	}
-	//if(type != connected_type[num]) return;
+	switch(bustype) {
+	case SIG_JOYPORT_DATA:
+		joydata[ch] = data & 0x3f;
+		break;
+	case SIG_JOYPORT_COM:
+		stat_com[ch] = ((data & mask) != 0) ? true : false;
+		break;
+	}
 }	
 uint32_t JOYSTICK::read_signal(int id)
 {
 	int ch = (id >> 24) & 1;
 	int bustype = id  & 0xf00;
-	int num = id & 0xff;
 	uint32_t data = 0;
 	switch(bustype) {
 	case SIG_JOYPORT_RAWREG:
@@ -202,7 +196,7 @@ void JOYSTICK::update_config(void)
 			// Enable Joypad
 			if(d_joypad[i] != nullptr) {
 				d_joypad[i]->write_signal(SIG_JOYPAD_ENABLE,
-										(1 << SIG_JOYPORT_TYPE_2BUTTONS),
+										(1 << ntype[i]),
 										0x0f);
 				d_joypad[i]->write_signal(SIG_JOYPAD_SELECT_BUS, _d, 0x07);
 			}
