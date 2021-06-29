@@ -113,6 +113,7 @@ protected:
 	
 	uint8_t boot_code[8];
 	bool boot_seq;
+
 	int boot_code_ptr;
 	int boot_ptr;
 	int special_boot_num;
@@ -120,8 +121,7 @@ protected:
 	int event_keycode;
 	int event_key_reset;
 	int event_repeat;
-	int reserved_key_num;
-	int key_count_phase;
+
 	
 	virtual void do_common_command(uint8_t cmd);
 	void register_key_interrupt(bool first);
@@ -130,6 +130,7 @@ protected:
 	void reset_device();
 	void key_down2(int code);
 	void key_up2(int code);
+	uint8_t get_key_code();
 
 public:
 	KEYBOARD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
