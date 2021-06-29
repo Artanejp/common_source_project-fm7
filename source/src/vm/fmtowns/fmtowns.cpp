@@ -745,7 +745,7 @@ void VM::set_machine_type(uint16_t machine_id, uint16_t cpu_id)
 void VM::reset()
 {
 	// reset all devices
-	boot_seq = true;
+	boot_seq = false;
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}

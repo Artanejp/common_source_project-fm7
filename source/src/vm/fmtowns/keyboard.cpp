@@ -45,7 +45,6 @@ void KEYBOARD::release()
 	
 void KEYBOARD::reset()
 {
-	boot_seq = false;
 	reset_device();
 }
 
@@ -94,7 +93,6 @@ void KEYBOARD::special_reset(int num)
 	reset_device();
 	special_boot_num = num;
 	boot_seq = true;
-//	kbstat |= 1;
 
 	static const uint8_t bootcode_debug[] = {0x20, 0x13, 0x2E, 0x17, 0x22};
 	static const uint8_t bootcode_cd[] = {0x2C, 0x20};
@@ -131,7 +129,8 @@ void KEYBOARD::special_reset(int num)
 		break;;
 	}
 	if((num >= 0) && (num < 12)) {
-		register_key_interrupt(true); // NEXT BYTE
+		kbstat |= 1;
+//		register_key_interrupt(true); // NEXT BYTE
 	}
 //	register_event(this, EVENT_BOOT_TIMEOUT, 30.0e6, false, &event_key_reset);
 }
@@ -248,10 +247,12 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 		kbtmp = get_key_code();
 		kbint &= ~1;
 		write_signals(&output_intr_line, 0);
-		if((key_buf->empty()) && !(boot_seq)) {
-			kbstat &= ~1;
-		} else {
-			register_key_interrupt(false); // NEXT BYTE
+		if(!(boot_seq)) {
+			if(key_buf->empty()) {
+				kbstat &= ~1;
+			} else {
+				register_key_interrupt(false); // NEXT BYTE
+			}
 		}
 		out_debug_log(_T("READ I/O ADDR=%04X VAL=%02X"), addr, kbdata);
 		return kbtmp;
@@ -270,7 +271,11 @@ uint8_t KEYBOARD::get_key_code()
 {
 	if(boot_seq) {
 		if((boot_code_ptr & 1) == 0) {
-			kbdata = ((boot_code_ptr >> 1) < 6) ? 0xA0 : 0xF0;
+			int xlimit = 6;
+//			if(special_boot_num < 10) {
+//				xlimit = 3;
+//			}
+			kbdata = ((boot_code_ptr >> 1) < xlimit) ? 0xA0 : 0xF0;
 		} else {
 			if((boot_code_ptr >> 1) == 0) {
 				kbdata = 0x7F;
@@ -368,6 +373,7 @@ void KEYBOARD::event_callback(int event_id, int err)
 	case EVENT_BOOT_TIMEOUT:
 		event_key_reset = -1;
 		boot_seq = false;
+		kbstat &= ~0x1;
 		break;
 	}
 }
@@ -484,6 +490,7 @@ void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 		if(((data & mask) != 0) && (boot_seq)) {
 			out_debug_log(_T("SIG_KEYBOARD_BOOTSEQ_END"));
 			boot_seq = false;
+			kbstat &= ~0x1;
 		}
 		break;
 	}
