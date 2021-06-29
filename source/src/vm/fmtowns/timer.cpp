@@ -80,6 +80,10 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 				intv_i = false;
 			}*/
 			interval_enabled = ((data & 0x80) == 0);
+			if(interval_enabled) {// OK?
+				intv_ov = false;
+				intv_i = false;
+			}
 			do_interval();
 		}
 		break;
