@@ -82,7 +82,7 @@ void GLDraw_4_5::prologueBlending()
 	extfunc->glDisable(GL_TEXTURE_2D);
 	extfunc->glEnable(GL_BLEND);
 	extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+	extfunc->glViewport(0, 0, p_wid->width() * get_screen_scaling_factor(), p_wid->height() * get_screen_scaling_factor());
 //	extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 }
 
@@ -579,7 +579,7 @@ void GLDraw_4_5::drawGridsMain(QOpenGLShaderProgram *prg,
 		prg->enableAttributeArray("vertex");
 		int vertex_loc = prg->attributeLocation("vertex");
 		
-		extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+		extfunc->glViewport(0, 0, p_wid->width() * get_screen_scaling_factor(), p_wid->height() * get_screen_scaling_factor());
 		extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, 0); 
 		extfunc->glEnableVertexAttribArray(vertex_loc);
 		
@@ -909,7 +909,7 @@ void GLDraw_4_5::drawMain(QOpenGLShaderProgram *prg,
 		vp->bind();
 		bp->bind();
 		prg->bind();
-		extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+		extfunc->glViewport(0, 0, p_wid->width() * get_screen_scaling_factor(), p_wid->height() * get_screen_scaling_factor());
 		QMatrix4x4 ortho;
 		ortho.ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 
@@ -1008,7 +1008,7 @@ void GLDraw_4_5::drawMain(QOpenGLShaderProgram *prg,
 		vp->bind();
 		bp->bind();
 		prg->bind();
-		extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+		extfunc->glViewport(0, 0, p_wid->width() * get_screen_scaling_factor(), p_wid->height() * get_screen_scaling_factor());
 		QMatrix4x4 ortho;
 		ortho.ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 		//extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
@@ -1100,7 +1100,7 @@ void GLDraw_4_5::drawButtonsMain(int num, bool f_smoosing)
 			prg->bind();
 			QMatrix4x4 ortho;
 			ortho.ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
-			extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+			extfunc->glViewport(0, 0, p_wid->width() * get_screen_scaling_factor(), p_wid->height() * get_screen_scaling_factor());
 
 			extfunc->glActiveTexture(GL_TEXTURE0);
 			extfunc->glBindTexture(GL_TEXTURE_2D, texid);
@@ -1190,7 +1190,7 @@ void GLDraw_4_5::paintGL(void)
 			crt_flag = false;
 		}
 		redraw_required = false;
-		extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+		extfunc->glViewport(0, 0, p_wid->width() * get_screen_scaling_factor(), p_wid->height() * get_screen_scaling_factor());
 		//extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 
 		extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
