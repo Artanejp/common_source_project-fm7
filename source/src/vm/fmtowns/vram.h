@@ -75,8 +75,8 @@ protected:
 	// I/O 045AH (RW) : VRAM ACCESS CONTROLLER reg data (LOW).
 	// I/O 045BH (RW) : VRAM ACCESS CONTROLLER reg data (HIGH).
 	uint8_t vram_access_reg_addr;
-	pair32_t packed_pixel_mask_reg; // '1' = Write. I/O 0458H - 045BH.
-	uint8_t vram[0x80000]; // Related by machine.
+	__DECL_ALIGNED(16) uint8_t packed_pixel_mask_reg[8]; // '1' = Write. I/O 0458H - 045BH.
+	__DECL_ALIGNED(16) uint8_t vram[0x80000 + 8]; // Related by machine.
 	// End.
 
 	// Flags related by host renderer. Not saved.
