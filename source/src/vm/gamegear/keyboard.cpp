@@ -28,7 +28,7 @@ static const uint8_t key_map[8][12] = {
 void KEYBOARD::initialize()
 {
 	key_stat = emu->get_key_buffer();
-	joy_stat = emu->get_joy_buffer();
+//	joy_stat = emu->get_joy_buffer();
 	
 	column = 0;
 	break_pressed = false;
@@ -80,6 +80,7 @@ void KEYBOARD::update_keyboard()
 		}
 	} else {
 		// joystick
+		joy_stat = emu->get_joy_buffer();
 		for(int i = 0; i < 12; i++) {
 			uint8_t map = key_map[7][i];
 			uint8_t stat = (map & 0x80) ? joy_stat[1] : joy_stat[0];
@@ -93,6 +94,7 @@ void KEYBOARD::update_keyboard()
 		} else {
 			start_pressed=false;
 		}
+		emu->release_joy_buffer(joy_stat);
 	}
 	d_pio->write_signal(SIG_I8255_PORT_A, ~data, 0xff);
 	data >>= 8;

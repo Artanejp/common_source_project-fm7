@@ -54,10 +54,16 @@ void OSD_BASE::initialize_input()
 {
 	// initialize status
 	memset(key_status, 0, sizeof(key_status));
-	memset(joy_status, 0, sizeof(joy_status));
-	memset(mouse_status, 0, sizeof(mouse_status));
-	// mouse emulation is disenabled
-	mouse_enabled = false;
+	{
+		QMutexLocker n(joystick_mutex);
+		memset(joy_status, 0, sizeof(joy_status));
+	}
+	{
+		QMutexLocker n(mouse_mutex);
+		memset(mouse_status, 0, sizeof(mouse_status));
+		// mouse emulation is disenabled
+		mouse_enabled = false;
+	}
 
 	mouse_ptrx = mouse_oldx = get_screen_width() / 2;
 	mouse_ptry = mouse_oldy = get_screen_height() / 2;
@@ -97,7 +103,27 @@ void OSD_BASE::do_assign_js_setting(int jsnum, int axis_idx, int assigned_value)
 	if((jsnum < 0) || (jsnum >= 4)) return;
 	if((axis_idx < 0) || (axis_idx >= 16)) return;
 	if((assigned_value < -256) || (assigned_value >= 0x10000)) return;
+
+	QMutexLocker n(joystick_mutex);
 	p_config->joy_buttons[jsnum][axis_idx] = assigned_value;
+}
+
+void OSD_BASE::update_input_mouse()
+{
+	QMutexLocker n(mouse_mutex);
+	memset(mouse_status, 0, sizeof(mouse_status));
+	//bool hid = false;
+	if(mouse_enabled) {
+		int xx = mouse_ptrx;
+		int yy = mouse_ptry;
+		mouse_status[0] = xx - mouse_oldx;
+		mouse_status[1] = yy - mouse_oldy; 
+		mouse_status[2] = mouse_button;
+		//printf("Mouse delta(%d, %d)\n", delta_x, delta_y);
+		mouse_oldx = xx;
+		mouse_oldy = yy;
+	}
+
 }
 
 void OSD_BASE::update_input()
@@ -136,6 +162,7 @@ void OSD_BASE::update_input()
 	if(p_config->use_joy_to_key) {
 		int status[256] = {0};
 		if(p_config->joy_to_key_type == 0) { // Cursor
+			QMutexLocker n(joystick_mutex);
 			static const int vk[] = {VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT};
 			for(int i = 0; i < 4; i++) {
 				if(joy_status[0] & (1 << i)) {
@@ -143,6 +170,7 @@ void OSD_BASE::update_input()
 				}
 			}
 		} else if(p_config->joy_to_key_type == 1) { // 2468			
+			QMutexLocker n(joystick_mutex);
 			static const int vk[] = {VK_NUMPAD8, VK_NUMPAD2, VK_NUMPAD4, VK_NUMPAD6};
 			for(int i = 0; i < 4; i++) {
 				if(joy_status[0] & (1 << i)) {
@@ -151,6 +179,7 @@ void OSD_BASE::update_input()
 			}
 		} else if(p_config->joy_to_key_type == 2) { // 24681379
 			// numpad key (8-directions)
+			QMutexLocker n(joystick_mutex);
 			switch(joy_status[0] & 0x0f) {
 			case 0x02 + 0x04: status[VK_NUMPAD1] = 1; break; // down-left
 			case 0x02       : status[VK_NUMPAD2] = 1; break; // down
@@ -164,6 +193,7 @@ void OSD_BASE::update_input()
 			}
 		} else if(p_config->joy_to_key_type == 3) { // 1235			
 			static const int vk[] = {VK_NUMPAD5, VK_NUMPAD2, VK_NUMPAD1, VK_NUMPAD3};
+			QMutexLocker n(joystick_mutex);
 			for(int i = 0; i < 4; i++) {
 				if(joy_status[0] & (1 << i)) {
 					status[vk[i]] = 1;
@@ -172,6 +202,7 @@ void OSD_BASE::update_input()
 		}
 		if(p_config->joy_to_key_type == 1 || p_config->joy_to_key_type == 2) {
 			// numpad key
+			QMutexLocker n(joystick_mutex);
 			if(p_config->joy_to_key_numpad5 && !(joy_status[0] & 0x0f)) {
 				if(!numpad_5_pressed) {
 					status[VK_NUMPAD5] = 1;
@@ -180,6 +211,7 @@ void OSD_BASE::update_input()
 			}
 		} else if(p_config->joy_to_key_type == 3) {
 			// numpad key
+			QMutexLocker n(joystick_mutex);
 			if(p_config->joy_to_key_numpad5 && !(joy_status[0] & 0x0f)) {
 				if(!numpad_5_pressed) {
 					status[VK_NUMPAD8] = 1;
@@ -189,6 +221,7 @@ void OSD_BASE::update_input()
 		}
 
 		for(int i = 0; i < 16; i++) {
+			QMutexLocker n(joystick_mutex);
 			if(joy_status[0] & (1 << (i + 4))) {
 				if(p_config->joy_to_key_buttons[i] < 0 && -p_config->joy_to_key_buttons[i] < 256) {
 					status[-p_config->joy_to_key_buttons[i]] = 1;
@@ -251,25 +284,8 @@ void OSD_BASE::update_input()
 	}
 	lost_focus = false;
 
-
 	// update mouse status
-
-	//if(mouse_enabled) {
-	memset(mouse_status, 0, sizeof(mouse_status));
-	//bool hid = false;
-	if(mouse_enabled) {
-		QMutexLocker n(mouse_mutex);
-		int xx = mouse_ptrx;
-		int yy = mouse_ptry;
-		mouse_status[0] = xx - mouse_oldx;
-		mouse_status[1] = yy - mouse_oldy; 
-		mouse_status[2] = mouse_button;
-		//printf("Mouse delta(%d, %d)\n", delta_x, delta_y);
-		mouse_oldx = xx;
-		mouse_oldy = yy;
-	}
-	//}
-	// move mouse cursor to the center of window
+	//update_input_mouse();
 	
 }
 
@@ -765,13 +781,28 @@ uint8_t* OSD_BASE::get_key_buffer()
 
 uint32_t* OSD_BASE::get_joy_buffer()
 {
+	if(joystick_mutex != NULL) {
+		joystick_mutex->lock();
+	}
 	return joy_status;
+}
+
+void OSD_BASE::release_joy_buffer(uint32_t* ptr)
+{
+//	if(ptr != nullptr) {
+		if(joystick_mutex != NULL) {
+			joystick_mutex->unlock();
+		}
+//	}
 }
 
 int32_t* OSD_BASE::get_mouse_buffer()
 {
-	QMutexLocker n(mouse_mutex);
+	update_input_mouse();
 	return mouse_status;
+}
+void OSD_BASE::release_mouse_buffer(int32_t* ptr)
+{
 }
 
 void OSD_BASE::press_button(int num)
@@ -854,7 +885,7 @@ void OSD_BASE::set_mouse_button(int button)
 	mouse_button = button;
 }
 
-int OSD_BASE::get_mouse_button() 
+int32_t OSD_BASE::get_mouse_button() 
 {
 	QMutexLocker n(mouse_mutex);
 	return mouse_button;

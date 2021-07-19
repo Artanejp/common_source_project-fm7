@@ -45,7 +45,7 @@ void IOCTRL::initialize()
 {
 	// init keyboard
 	key_stat = emu->get_key_buffer();
-	mouse_stat = emu->get_mouse_buffer();
+//	mouse_stat = emu->get_mouse_buffer();
 	key_buf = new FIFO(64);
 	caps = kana = false;
 	
@@ -147,6 +147,7 @@ void IOCTRL::event_callback(int event_id, int err)
 		// mouse
 		if(key_buf->empty()) {
 			uint8_t val = 0;
+			mouse_stat = emu->get_mouse_buffer();
 			if(!(mouse_stat[2] & 1)) val |= 1;
 			if(!(mouse_stat[2] & 2)) val |= 2;
 			if(caps) val |= 0x10;
@@ -164,6 +165,7 @@ void IOCTRL::event_callback(int event_id, int err)
 				update_key();
 				key_prev = val;
 			}
+			emu->release_mouse_buffer(mouse_stat);
 		}
 	} else if(event_id == EVENT_10HZ) {
 		if(ts == 3) {

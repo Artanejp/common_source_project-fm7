@@ -14,7 +14,7 @@ namespace PV1000 {
 void JOYSTICK::initialize()
 {
 	key = emu->get_key_buffer();
-	joy = emu->get_joy_buffer();
+//	joy = emu->get_joy_buffer();
 	
 	// register event to interrupt
 	register_frame_event(this);
@@ -50,6 +50,7 @@ uint32_t JOYSTICK::read_io8(uint32_t addr)
 		break;
 	case 0xfd:
 		val = 0;
+		joy = emu->get_joy_buffer();
 		if(column & 1) {
 			if(joy[0] & 0x40) val |= 1;	// #1 select
 			if(joy[0] & 0x80) val |= 2;	// #1 start
@@ -74,6 +75,7 @@ uint32_t JOYSTICK::read_io8(uint32_t addr)
 			if(joy[1] & 0x10) val |= 4;	// #2 trig1
 			if(joy[1] & 0x20) val |= 8;	// #2 trig2
 		}
+		emu->release_joy_buffer(joy);
 //		status &= ~2;
 		break;
 	}

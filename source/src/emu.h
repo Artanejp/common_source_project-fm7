@@ -179,10 +179,15 @@ public:
 	
 	const uint8_t* get_key_buffer();
 #ifdef USE_JOYSTICK
+	// Joystick buffer should be with locking and sampling.
 	const uint32_t* get_joy_buffer();
+	void release_joy_buffer(const uint32_t* ptr);
 #endif	
 #ifdef USE_MOUSE
-	const int* get_mouse_buffer();
+	// Mouse buffer should be with locking and sampling.
+	const int32_t* get_mouse_buffer();
+	const int32_t  get_mouse_button();
+	void release_mouse_buffer(const int32_t* ptr);
 	void enable_mouse();
 	void disable_mouse();
 	void toggle_mouse();

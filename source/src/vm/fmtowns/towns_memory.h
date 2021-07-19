@@ -119,8 +119,12 @@ protected:
 	uint32_t vram_size; // Normally 512KB.
 	bool initialized;
 
+	// MISC1-MISC4
+	uint8_t reg_misc3; // 0024
+	uint8_t reg_misc4; // 0025
 	virtual void set_wait_values();
 	virtual void config_page00();
+	virtual void update_machine_features();
 
 public:
 	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MEMORY(parent_vm, parent_emu) {
@@ -179,7 +183,8 @@ public:
 		// cpu_id = 0x01; // 80386DX. 
 		// cpu_id = 0x02; // 80486SX/DX. 
 		// cpu_id = 0x03; // 80386SX. 
-		cpu_id = 0x01; // 80386DX. 
+		cpu_id = 0x01; // 80386DX.
+		update_machine_features();
 		extra_ram = NULL;
 	}
 	~TOWNS_MEMORY() {}
@@ -329,6 +334,7 @@ public:
 	void set_machine_id(uint16_t val)
 	{
 		machine_id = val & 0xfff8;
+		update_machine_features();
 	}
 	void set_cpu_id(uint16_t val)
 	{

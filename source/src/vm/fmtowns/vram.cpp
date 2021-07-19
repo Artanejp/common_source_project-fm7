@@ -76,7 +76,6 @@ void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	uint32_t naddr2 = (addr + 1) & 0x7ffff;;
 	pair16_t nd, md;
 	pair16_t xmask;
-
 	switch(naddr1 & 3) {
 	case 0:
 		xmask.w =  packed_pixel_mask_reg.w.l;
@@ -117,6 +116,7 @@ void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 		
 		md.write_2bytes_le_to(&(vram[naddr1]));
 	}
+
 	return;
 }
 	
@@ -269,13 +269,20 @@ void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 //		}
 	} else {
 		// Aligned
+#ifdef __LITTLE_ENDIAN__
+		md.d = *((uint32_t*)(&(vram[naddr])));
+#else			
 		md.read_4bytes_le_from(&(vram[naddr]));
-		
+#endif		
 		nd.d = nd.d & xmask.d;
 		md.d = md.d & (~(xmask.d));
 		md.d = md.d | nd.d;
 		
+#ifdef __LITTLE_ENDIAN__
+		*((uint32_t*)(&(vram[naddr]))) = md.d;
+#else
 		md.write_4bytes_le_to(&(vram[naddr]));
+#endif
 	}
 	return;
 }
@@ -329,7 +336,11 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 
 	uint32_t naddr = addr & 0x7ffff;
 	if((addr & 3) == 0) { // Aligned
+#ifdef __LITTLE_ENDIAN__
+		a.d = *((uint32_t*)(&(vram[naddr])));
+#else
 		a.read_4bytes_le_from(&(vram[naddr]));
+#endif
 	} else { // Unaligned
 		if((addr & 0x7ffff) < 0x7fffd) {
 			// Maybe not wrapped.
@@ -432,6 +443,10 @@ void TOWNS_VRAM::write_io8(uint32_t address,  uint32_t data)
 		}			
 //		out_debug_log(_T("VRAM MASK(045Bh)=%08X"), packed_pixel_mask_reg.d);
 		break;
+	case 0x05ee:
+		// ToDo: Implement around VRAM cache.
+		// VCMEN (Disabled) : Bit0
+		break;
 	}
 }
 
@@ -454,6 +469,13 @@ void TOWNS_VRAM::write_io16(uint32_t address,  uint32_t data)
 			break;
 		}			
 //		out_debug_log(_T("VRAM MASK(045Ah)=%08X"), packed_pixel_mask_reg.d);
+		break;
+	case 0x5ee:
+		{
+			pair16_t n;
+			n.w = data;
+			write_io8(0x05ee, n.b.l);
+		}
 		break;
 	}
 }
@@ -484,6 +506,16 @@ uint32_t TOWNS_VRAM::read_io8(uint32_t address)
 			break;
 		}			
 		break;
+	case 0x5ee:
+		// ToDo: Implement around VRAM cache.
+		// Bit7 = 0 if ready to turn on/off VRAM cache.
+		// VCMEN (Disabled) : Bit0
+		if((cpu_id == 0x02) || (cpu_id >= 0x04)) { // i486 SX/DX and after Pentium.
+			// Still Disabled VRAM feature and disable VCMEN.
+			return 0xff;
+		}
+		return 0xff;
+		break;
 	}
 	return 0xff;
 }
@@ -503,6 +535,14 @@ uint32_t TOWNS_VRAM::read_io16(uint32_t address)
 			return packed_pixel_mask_reg.w.h;
 			break;
 		}			
+		break;
+	case 0x05ee:
+		{
+			pair16_t n;
+			n.b.l = read_io8(0x05ee);
+			n.b.h = 0xff;
+			return n.w;
+		}
 		break;
 	}
 	return 0xffff;

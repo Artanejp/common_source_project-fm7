@@ -20,7 +20,7 @@ namespace FAMILYBASIC {
 void MEMORY::initialize()
 {
 	key_stat = emu->get_key_buffer();
-	joy_stat = emu->get_joy_buffer();
+//	joy_stat = emu->get_joy_buffer();
 	
 	// register event
 	register_vline_event(this);
@@ -144,6 +144,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 			pad_strobe = false;
 			// joypad #1
 			pad1_bits = 0;
+			joy_stat = emu->get_joy_buffer();
 			if(joy_stat[0] & 0x10) pad1_bits |= 0x01;	// A
 			if(joy_stat[0] & 0x20) pad1_bits |= 0x02;	// B
 			if(joy_stat[0] & 0x40) pad1_bits |= 0x04;	// SEL
@@ -160,6 +161,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 			if(joy_stat[1] & 0x02) pad2_bits |= 0x20;	// DOWN
 			if(joy_stat[1] & 0x04) pad2_bits |= 0x40;	// LEFT
 			if(joy_stat[1] & 0x08) pad2_bits |= 0x80;	// RIGHT
+			emu->release_joy_buffer(joy_stat);
 		}
 		// keyboard
 		if((data & 0x07) == 0x04) {

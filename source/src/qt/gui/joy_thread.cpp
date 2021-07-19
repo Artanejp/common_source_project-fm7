@@ -418,6 +418,7 @@ void JoyThreadClass::x_axis_changed(int idx, int type, int value)
 			break;
 		}
 	}
+	p_osd->release_joy_buffer(joy_status);
 	p_osd->unlock_vm();
 }
 	   
@@ -430,7 +431,6 @@ void JoyThreadClass::y_axis_changed(int idx, int type, int value)
 	if((true_index < 0) || (true_index >= 4)) return;
 	p_osd->lock_vm();
 	uint32_t *joy_status = p_osd->get_joy_buffer();
-   
 	//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "Y AXIS Changed #%d/%d, TYPE=%d VAL=%d", idx, true_index, type, value);
 	if(joy_status != NULL) {
 		switch(type) {
@@ -451,6 +451,7 @@ void JoyThreadClass::y_axis_changed(int idx, int type, int value)
 			break;
 		}
 	}
+	p_osd->release_joy_buffer(joy_status);
 	p_osd->unlock_vm();
 }
 
@@ -475,6 +476,7 @@ void JoyThreadClass::button_down(int idx, unsigned int button)
 			break;
 		}
 	}
+	p_osd->release_joy_buffer(joy_status);
 	p_osd->unlock_vm();
 }
 
@@ -519,6 +521,7 @@ void JoyThreadClass::controller_button_down(int idx, unsigned int button)
 			break;
 		}
 	}
+	p_osd->release_joy_buffer(joy_status);
 	p_osd->unlock_vm();
 }
 
@@ -541,6 +544,7 @@ void JoyThreadClass::button_up(int idx, unsigned int button)
 			break;
 		}
 	}
+	p_osd->release_joy_buffer(joy_status);
 	p_osd->unlock_vm();
 }
 
@@ -580,6 +584,7 @@ void JoyThreadClass::controller_button_up(int idx, unsigned int button)
 			break;
 		}
 	}
+	p_osd->release_joy_buffer(joy_status);
 	p_osd->unlock_vm();
 }
 

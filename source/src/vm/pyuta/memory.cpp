@@ -75,7 +75,7 @@ void MEMORY::initialize()
 	
 	// get keyboard and joystick buffers
 	key = emu->get_key_buffer();
-	joy = emu->get_joy_buffer();
+//	joy = emu->get_joy_buffer();
 	
 	ctype = 0;
 }
@@ -145,12 +145,14 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 		return 0;	// tutor 0x42 ???
 	} else if(addr == 0xe800) {
 		// PyuTa Jr. JOY1
+		joy = emu->get_joy_buffer();
 		if(joy[0] & 0x10) val |= 0x04;	// JOY1 B1
 		if(joy[0] & 0x20) val |= 0x08;	// JOY1 B2
 		if(joy[0] & 0x02) val |= 0x10;	// JOY1 DOWN
 		if(joy[0] & 0x04) val |= 0x20;	// JOY1 LEFT
 		if(joy[0] & 0x01) val |= 0x40;	// JOY1 UP
 		if(joy[0] & 0x08) val |= 0x80;	// JOY1 RIGHT
+		emu->release_joy_buffer(joy);
 		return val;
 	} else if(addr == 0xe820) {
 		// printer busy
@@ -175,12 +177,14 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 		return val;
 	} else if(addr == 0xee00) {
 		// PyuTa Jr. JOY2
+		joy = emu->get_joy_buffer();
 		if(joy[1] & 0x10) val |= 0x04;	// JOY2 B1
 		if(joy[1] & 0x20) val |= 0x08;	// JOY2 B2
 		if(joy[1] & 0x02) val |= 0x10;	// JOY2 DOWN
 		if(joy[1] & 0x04) val |= 0x20;	// JOY2 LEFT
 		if(joy[1] & 0x01) val |= 0x40;	// JOY2 UP
 		if(joy[1] & 0x08) val |= 0x80;	// JOY2 RIGHT
+		emu->release_joy_buffer(joy);
 		return val;
 	} else {
 		return 0xff;	// pull up ?
@@ -239,6 +243,7 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 		if(key[0x4d]             ) val |= 0x80;	// M
 		return val;
 	case 0xec4:
+		joy = emu->get_joy_buffer();
 		if(key[0x30] || key[0x60]      ) val |= 0x01;	// 0
 		if(key[0xbd]                   ) val |= 0x02;	// -
 		if(key[0x4f] || (joy[0] & 0x10)) val |= 0x04;	// O	JOY1 B1
@@ -247,14 +252,17 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 		if(key[0xbb] || (joy[0] & 0x04)) val |= 0x20;	// ;	JOY1 LEFT
 		if(key[0xbc] || (joy[0] & 0x01)) val |= 0x40;	// ,	JOY1 UP
 		if(key[0xbe] || (joy[0] & 0x08)) val |= 0x80;	// .	JOY1 RIGHT
+		emu->release_joy_buffer(joy);
 		return val;
 	case 0xec5:
+		joy = emu->get_joy_buffer();
 		if(key[0xdc] || (joy[1] & 0x10)) val |= 0x04;	// YEN	JOY2 B1
 		if(key[0xc0] || (joy[1] & 0x20)) val |= 0x08;	// @	JOY2 B2
 		if(key[0xba] || (joy[1] & 0x02)) val |= 0x10;	// :	JOY2 DOWN
 		if(key[0xdd] || (joy[1] & 0x04)) val |= 0x20;	// ]	JOY2 LEFT
 		if(key[0xbf] || (joy[1] & 0x01)) val |= 0x40;	// /	JOY2 UP
 		if(key[0xe2] || (joy[1] & 0x08)) val |= 0x80;	// _	JOY2 RIGHT
+		emu->release_joy_buffer(joy);
 		return val;
 	case 0xec6:
 		if(key[0x11]) val |= 0x02;	// EISUU -> CTRL

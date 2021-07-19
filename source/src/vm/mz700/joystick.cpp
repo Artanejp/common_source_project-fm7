@@ -15,7 +15,7 @@ namespace MZ700 {
 void JOYSTICK::initialize()
 {
 	val_1x03 = 0x7e;
-	joy_stat = emu->get_joy_buffer();
+//	joy_stat = emu->get_joy_buffer();
 
 	// register event
 	register_vline_event(this);
@@ -41,7 +41,9 @@ uint32_t JOYSTICK::read_AM7J(int jnum)
 	bool y0, y1;
 
 	clk = get_current_clock() & 0x007f;
+	joy_stat = emu->get_joy_buffer();
 	js = joy_stat[jnum];
+	emu->release_joy_buffer(joy_stat);
 	y0 = y1 = false;
 
 	switch (js & 0xc0) {
@@ -106,12 +108,14 @@ uint32_t JOYSTICK::read_io8(uint32_t addr)
 			break;
 
 		case DEVICE_JOYSTICK_JOY700:		// TSUKUMO JOY-700
+			joy_stat = emu->get_joy_buffer();
 			if(joy_stat[0] & 0x01) val &= ~0x10;  // up    : JB2
 			if(joy_stat[0] & 0x02) val &= ~0x08;  // down  : JB1
 			if(joy_stat[0] & 0x04) val &= ~0x02;  // left  : JA1
 			if(joy_stat[0] & 0x08) val &= ~0x04;  // right : JA2
 			if(joy_stat[0] & 0x10) val &= ~0x1e;  // trigger A : ALL
 			if(joy_stat[0] & 0x20) val &= ~0x1e;  // trigger B : ALL
+			emu->release_joy_buffer(joy_stat);
 			break;
 
 		case DEVICE_JOYSTICK_AM7J:		// AM7J ATARI Joystick adaptor
@@ -144,17 +148,21 @@ void JOYSTICK::event_vline(int v, int clock)
 		if (v == 0) {
 			// trigger
 			val_1x03 = 0x7e;
+			joy_stat = emu->get_joy_buffer();
 			if(joy_stat[0] & 0x10) val_1x03 &= ~0x02;
 			if(joy_stat[0] & 0x20) val_1x03 &= ~0x04;
 			if(joy_stat[1] & 0x10) val_1x03 &= ~0x08;
 			if(joy_stat[1] & 0x20) val_1x03 &= ~0x10;
+			emu->release_joy_buffer(joy_stat);
 		} else if (v == 200) {
 			// stick (PWM)
 			val_1x03 &= ~(0x06 | 0x18);
+			joy_stat = emu->get_joy_buffer();
 			register_event_by_clock(this, EVENT_1X03_X1, pulse_width_1x03(joy_stat[0], 0x04, 0x08), false, NULL);
 			register_event_by_clock(this, EVENT_1X03_Y1, pulse_width_1x03(joy_stat[0], 0x01, 0x02), false, NULL);
 			register_event_by_clock(this, EVENT_1X03_X2, pulse_width_1x03(joy_stat[1], 0x04, 0x08), false, NULL);
 			register_event_by_clock(this, EVENT_1X03_Y2, pulse_width_1x03(joy_stat[1], 0x01, 0x02), false, NULL);
+			emu->release_joy_buffer(joy_stat);
 		}
 	}
 }

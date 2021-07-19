@@ -212,10 +212,16 @@ public:
 	virtual void stop_auto_key() {}
 	virtual bool is_auto_key_running() { return false; }
 	virtual FIFO* get_auto_key_buffer() { return NULL; }
-	// Mouse
+	// Keyboard
 	virtual const uint8_t* get_key_buffer() { return dummy_key_buffer; }
+	// Joystick buffer should be with locking and sampling.
 	virtual const uint32_t* get_joy_buffer() { return dummy_joy_buffer; }
-	virtual const int* get_mouse_buffer() { return dummy_mouse_buffer; }
+	virtual void release_joy_buffer(const uint32_t* ptr) { };
+	
+	// Mouse buffer should be with locking and sampling.
+	virtual const int32_t* get_mouse_buffer() { return dummy_mouse_buffer; }
+	virtual const int32_t  get_mouse_button() { return 0; }
+	virtual void release_mouse_buffer(const int32_t* ptr) { };
 	virtual void enable_mouse() {}
 	virtual void disable_mouse() {}
 	virtual void toggle_mouse() {}

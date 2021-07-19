@@ -289,8 +289,10 @@ void I386::cpu_wait(int clocks)
 	int64_t ncount;
 	if(wfactor > 65536) {
 		wcount += ((wfactor - 65536) * clocks); // Append wait due to be slower clock.
+		wcount += (wfactor * mwait);  // memory wait
+	} else {
+		wcount += (mwait << 16);
 	}
-	wcount += (wfactor * mwait);  // memory wait
 	if(wcount >= 65536) {
 		ncount = wcount >> 16;
 		wcount = wcount - (ncount << 16);

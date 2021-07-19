@@ -188,7 +188,7 @@ static const int key_table_graph_shift[256] = {
 void KEYBOARD::initialize()
 {
 	key_stat = emu->get_key_buffer();
-	mouse_stat = emu->get_mouse_buffer();
+//	mouse_stat = emu->get_mouse_buffer();
 	key_buf = new FIFO(64);
 	rsp_buf = new FIFO(16);
 	caps = kana = graph = false;
@@ -447,9 +447,11 @@ void KEYBOARD::process(int cmd)
 	switch(cmd) {
 	case 1:
 		// mouse ???
+		mouse_stat = emu->get_mouse_buffer();
 		mx = mouse_stat[0]; mx = (mx > 126) ? 126 : (mx < -128) ? -128 : mx;
 		my = mouse_stat[1]; my = (my > 126) ? 126 : (my < -128) ? -128 : my;
 		mb = mouse_stat[2];
+		emu->release_mouse_buffer(mouse_stat);
 //		rsp_buf->clear();
 		rsp_buf->write(0x140 | (mx & 0x3f));
 		rsp_buf->write(0x140 | (my & 0x3f));

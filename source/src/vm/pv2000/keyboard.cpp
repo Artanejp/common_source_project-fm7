@@ -32,7 +32,7 @@ static const int key_map[16][8] = {
 
 void KEYBOARD::initialize()
 {
-	joy_stat = emu->get_joy_buffer();
+//	joy_stat = emu->get_joy_buffer();
 }
 
 void KEYBOARD::reset()
@@ -64,6 +64,7 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 		if(key_stat[key_map[key_no][2]]) val |= 2;
 		if(key_stat[key_map[key_no][1]]) val |= 4;
 		if(key_stat[key_map[key_no][0]]) val |= 8;
+		joy_stat = emu->get_joy_buffer();
 		if(key_no == 6) {
 			if(joy_stat[0] & 0x02) val |= 1;
 			if(joy_stat[0] & 0x08) val |= 2;
@@ -80,6 +81,7 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 			if(joy_stat[1] & 0x10) val |= 4;
 			if(joy_stat[1] & 0x20) val |= 8;
 		}
+		emu->release_joy_buffer(joy_stat);
 		return val;
 	case 0x40:
 		if(key_stat[0x11]) val |= 1;	// COLOR (CTRL)
