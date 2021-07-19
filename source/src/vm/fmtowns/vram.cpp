@@ -142,8 +142,13 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io16(uint32_t addr)
 {
 	uint32_t naddr = addr & 0x7ffff;
 	pair16_t data;
-	data.b.l = vram[naddr + 0];
-	data.b.h = vram[naddr + 1];
+	if(naddr != 0x7ffff) {
+		data.b.l = vram[naddr + 0];
+		data.b.h = vram[naddr + 1];
+	} else {
+		data.b.l = vram[naddr + 0];
+		data.b.h = 0xff;
+	}	
 	return (uint32_t)(data.w);
 }
 
@@ -151,10 +156,17 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 {
 	uint32_t naddr = addr & 0x7ffff;
 	pair32_t data;
-	data.b.l  = vram[naddr + 0];
-	data.b.h  = vram[naddr + 1];
-	data.b.h2 = vram[naddr + 2];
-	data.b.h3 = vram[naddr + 3];
+	if(naddr < 0x7fffd) {
+		data.b.l  = vram[naddr + 0];
+		data.b.h  = vram[naddr + 1];
+		data.b.h2 = vram[naddr + 2];
+		data.b.h3 = vram[naddr + 3];
+	} else {
+		data.b.l  = vram[naddr + 0];
+		data.b.h  = (naddr == 0x7ffff) ? 0xff : vram[naddr + 1];
+		data.b.h2 = (naddr >= 0x7fffe) ? 0xff : vram[naddr + 2];
+		data.b.h3 = 0xff;
+	}
 	return data.d;
 }
 
