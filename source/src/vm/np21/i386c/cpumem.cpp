@@ -13,7 +13,7 @@
 extern I386 *device_cpu;
 static void __FASTCALL trace_fmt_ex(const char *fmt, ...)
 {
-	if(device_cpu != NULL) {
+	__LIKELY_IF(device_cpu != NULL) {
 		char stmp[2048];
 		va_list ap;
 		va_start(ap, fmt);

@@ -306,7 +306,7 @@ inline void MEMCALL memp_writes(UINT32 address, const void *dat, UINT leng) {
 inline void dmax86(void)
 {
 //#ifdef SINGLE_MODE_DMA
-	if(device_dma != NULL) device_dma->do_dma();
+	__LIKELY_IF(device_dma != NULL) device_dma->do_dma();
 //#endif
 }
 

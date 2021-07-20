@@ -96,7 +96,7 @@ extern UINT64 __exception_code;
 static __inline__ void __FASTCALL check_exception(bool is_debugging)
 {
 //	if(!(is_debugging)) return;
-	if(__exception_set != 0) {
+	__UNLIKELY_IF(__exception_set != 0) {
 		device_debugger->exception_code = __exception_code;
 		device_debugger->exception_pc = __exception_pc;
 		device_debugger->exception_happened = true;
@@ -167,7 +167,7 @@ exec_1step(void)
 //#ifdef USE_DEBUGGER
 		UINT32 op_size = I386_TRACE_DATA_BIT_USERDATA_SET; 
 		if (prefix == 0) {
-			if(device_debugger != NULL) {
+			__LIKELY_IF(device_debugger != NULL) {
 				device_debugger->add_cpu_trace(codefetch_address);
 				op_size |= ((CPU_INST_AS32) ? I386_TRACE_DATA_BIT_OP32 : 0);
 //				device_debugger->add_cpu_trace_userdata(op_size, (I386_TRACE_DATA_BIT_USERDATA_SET | I386_TRACE_DATA_BIT_OP32));

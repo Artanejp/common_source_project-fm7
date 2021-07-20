@@ -113,7 +113,7 @@ cpu_stack_push_check(UINT16 s, descriptor_t *sdp, UINT32 sp, UINT len,
 
 	len--;
 
-	if (!SEG_IS_VALID(sdp)
+	__UNLIKELY_IF(!SEG_IS_VALID(sdp)
 	 || !SEG_IS_PRESENT(sdp)
 	 || SEG_IS_SYSTEM(sdp)
 	 || SEG_IS_CODE(sdp)
@@ -128,10 +128,10 @@ cpu_stack_push_check(UINT16 s, descriptor_t *sdp, UINT32 sp, UINT len,
 	start = (sp - len) & limit;
 
 
-	if (SEG_IS_EXPANDDOWN_DATA(sdp)) {
+	__UNLIKELY_IF(SEG_IS_EXPANDDOWN_DATA(sdp)) {
 		/* expand-down stack */
 		if (!SEG_IS_32BIT(sdp)) {
-			if (sp > limit) {			/* [*] */
+			__UNLIKELY_IF(sp > limit) {			/* [*] */
 				goto exc;
 			}
 		}
@@ -147,7 +147,7 @@ cpu_stack_push_check(UINT16 s, descriptor_t *sdp, UINT32 sp, UINT len,
 			 * +-------+   +-------+ 00000000h
 			 */
 			if (!SEG_IS_32BIT(sdp)) {
-				if (sp > limit) {		/* [1] */
+				__UNLIKELY_IF(sp > limit) {		/* [1] */
 					goto exc;
 				}
 			} else {
@@ -166,7 +166,7 @@ cpu_stack_push_check(UINT16 s, descriptor_t *sdp, UINT32 sp, UINT len,
 			 * |       |   |       |
 			 * +-------+   +-------+ 00000000h
 			 */
-			if ((len > limit - sdp->u.seg.limit)	/* len check */
+			__UNLIKELY_IF((len > limit - sdp->u.seg.limit)	/* len check */
 			 || (start > sp)			/* wrap check */
 			 || (start < sdp->u.seg.limit)) {	/* [1] */
 				goto exc;
@@ -186,7 +186,7 @@ cpu_stack_push_check(UINT16 s, descriptor_t *sdp, UINT32 sp, UINT len,
 			 * +-------+   +-------+ 00000000h
 			 */
 			if (!SEG_IS_32BIT(sdp)) {
-				if (sp > limit) {		/* [1] */
+				__UNLIKELY_IF(sp > limit) {		/* [1] */
 					goto exc;
 				}
 			} else {
@@ -207,7 +207,7 @@ cpu_stack_push_check(UINT16 s, descriptor_t *sdp, UINT32 sp, UINT len,
 			 *
 			 * [+]: wrap check
 			 */
-			if ((len > sdp->u.seg.limit)		/* len check */
+			__UNLIKELY_IF((len > sdp->u.seg.limit)		/* len check */
 			 || (start > sp)			/* wrap check */
 			 || (sp > sdp->u.seg.limit + 1)) {	/* [1] */
 				goto exc;
@@ -232,7 +232,7 @@ cpu_stack_pop_check(UINT16 s, descriptor_t *sdp, UINT32 sp, UINT len,
 	__ASSERT(sdp != NULL);
 	__ASSERT(len > 0);
 
-	if (!SEG_IS_VALID(sdp)
+	__UNLIKELY_IF(!SEG_IS_VALID(sdp)
 	 || !SEG_IS_PRESENT(sdp)
 	 || SEG_IS_SYSTEM(sdp)
 	 || SEG_IS_CODE(sdp)
@@ -240,7 +240,7 @@ cpu_stack_pop_check(UINT16 s, descriptor_t *sdp, UINT32 sp, UINT len,
 		goto exc;
 	}
 
-	if (!check_limit_upstairs(sdp, sp, len, is32bit))
+	__UNLIKELY_IF(!check_limit_upstairs(sdp, sp, len, is32bit))
 		goto exc;
 	return;
 
@@ -292,7 +292,7 @@ check_limit_upstairs(descriptor_t *sdp, UINT32 offset, UINT len, BOOL is32bit)
 			 * +-------+   +-------+ 00000000h
 			 */
 			if (!SEG_IS_32BIT(sdp)) {
-				if ((len > limit)		/* len check */
+				__UNLIKELY_IF((len > limit)		/* len check */
 				 || (end > limit)) {		/* [1] */
 					goto exc;
 				}
@@ -314,7 +314,7 @@ check_limit_upstairs(descriptor_t *sdp, UINT32 offset, UINT len, BOOL is32bit)
 			 * |  [1]  |   |  [1]  |
 			 * +-------+   +-------+ 00000000h
 			 */
-			if ((len > limit - sdp->u.seg.limit)	/* len check */
+			__UNLIKELY_IF((len > limit - sdp->u.seg.limit)	/* len check */
 			 || (end < offset)			/* wrap check */
 			 || (offset < sdp->u.seg.limit) 	/* [1] */
 			 || (end > limit)) {			/* [2] */
@@ -348,7 +348,7 @@ check_limit_upstairs(descriptor_t *sdp, UINT32 offset, UINT len, BOOL is32bit)
 			 * | valid |
 			 * +-------+ 00000000h
 			 */
-			if ((len > sdp->u.seg.limit)		/* len check */
+			__UNLIKELY_IF((len > sdp->u.seg.limit)		/* len check */
 			 || (end < offset)			/* wrap check */
 			 || (end > sdp->u.seg.limit + 1)) {	/* [1] */
 				goto exc;
@@ -372,11 +372,11 @@ cpu_memoryread_check(descriptor_t *sdp, UINT32 offset, UINT len, int e)
 	__ASSERT(sdp != NULL);
 	__ASSERT(len > 0);
 
-	if (!SEG_IS_VALID(sdp)) {
+	__UNLIKELY_IF(!SEG_IS_VALID(sdp)) {
 		e = GP_EXCEPTION;
 		goto exc;
 	}
-	if (!SEG_IS_PRESENT(sdp)
+	__UNLIKELY_IF(!SEG_IS_PRESENT(sdp)
 	 || SEG_IS_SYSTEM(sdp)
 	 || (SEG_IS_CODE(sdp) && !SEG_IS_READABLE_CODE(sdp))) {
 		goto exc;
@@ -389,7 +389,7 @@ cpu_memoryread_check(descriptor_t *sdp, UINT32 offset, UINT len, int e)
 	case 6:  case 7:	/* rw (expand down) */
 	case 10: case 11:	/* rx */
 	case 14: case 15:	/* rxc */
-		if (!check_limit_upstairs(sdp, offset, len, SEG_IS_32BIT(sdp)))
+		__UNLIKELY_IF(!check_limit_upstairs(sdp, offset, len, SEG_IS_32BIT(sdp)))
 			goto exc;
 		break;
 
@@ -414,11 +414,11 @@ cpu_memorywrite_check(descriptor_t *sdp, UINT32 offset, UINT len, int e)
 	__ASSERT(sdp != NULL);
 	__ASSERT(len > 0);
 
-	if (!SEG_IS_VALID(sdp)) {
+	__UNLIKELY_IF(!SEG_IS_VALID(sdp)) {
 		e = GP_EXCEPTION;
 		goto exc;
 	}
-	if (!SEG_IS_PRESENT(sdp)
+	__UNLIKELY_IF(!SEG_IS_PRESENT(sdp)
 	 || SEG_IS_SYSTEM(sdp)
 	 || SEG_IS_CODE(sdp)
 	 || (SEG_IS_DATA(sdp) && !SEG_IS_WRITABLE_DATA(sdp))) {
@@ -428,7 +428,7 @@ cpu_memorywrite_check(descriptor_t *sdp, UINT32 offset, UINT len, int e)
 	switch (sdp->type) {
 	case 2: case 3:	/* rw */
 	case 6: case 7:	/* rw (expand down) */
-		if (!check_limit_upstairs(sdp, offset, len, SEG_IS_32BIT(sdp)))
+		__UNLIKELY_IF(!check_limit_upstairs(sdp, offset, len, SEG_IS_32BIT(sdp)))
 			goto exc;
 		break;
 
@@ -469,17 +469,17 @@ cpu_vmemoryread_f(int idx, UINT32 offset)
 	sdp = &CPU_STAT_SREG(idx);
 	addr = sdp->u.seg.segbase + offset;
 
-	if (!CPU_STAT_PM)
+	__UNLIKELY_IF(!CPU_STAT_PM)
 		return cpu_memoryread_f(addr);
 
-	if (!SEG_IS_VALID(sdp)) {
+	__UNLIKELY_IF(!SEG_IS_VALID(sdp)) {
 		exc = GP_EXCEPTION;
 		goto err;
 	}
-	if (!(sdp->flag & CPU_DESC_FLAG_READABLE)) {
+	__UNLIKELY_IF(!(sdp->flag & CPU_DESC_FLAG_READABLE)) {
 		cpu_memoryread_check(sdp, offset, 10, CHOOSE_EXCEPTION(idx));
 	} else if (!(sdp->flag & CPU_DESC_FLAG_WHOLEADR)) {
-		if (!check_limit_upstairs(sdp, offset, 10, SEG_IS_32BIT(sdp)))
+		__UNLIKELY_IF(!check_limit_upstairs(sdp, offset, 10, SEG_IS_32BIT(sdp)))
 			goto range_failure;
 	} 
 	return cpu_lmemoryread_f(addr, CPU_PAGE_READ_DATA | CPU_STAT_USER_MODE);
@@ -508,19 +508,19 @@ cpu_vmemorywrite_f(int idx, UINT32 offset, const REG80 *value)
 	sdp = &CPU_STAT_SREG(idx);
 	addr = sdp->u.seg.segbase + offset;
 
-	if (!CPU_STAT_PM) {
+	__UNLIKELY_IF(!CPU_STAT_PM) {
 		cpu_memorywrite_f(addr, value);
 		return;
 	}
 
-	if (!SEG_IS_VALID(sdp)) {
+	__UNLIKELY_IF(!SEG_IS_VALID(sdp)) {
 		exc = GP_EXCEPTION;
 		goto err;
 	}
-	if (!(sdp->flag & CPU_DESC_FLAG_WRITABLE)) {
+	__UNLIKELY_IF(!(sdp->flag & CPU_DESC_FLAG_WRITABLE)) {
 		cpu_memorywrite_check(sdp, offset, 10, CHOOSE_EXCEPTION(idx));
 	} else if (!(sdp->flag & CPU_DESC_FLAG_WHOLEADR)) {
-		if (!check_limit_upstairs(sdp, offset, 10, SEG_IS_32BIT(sdp)))
+		__UNLIKELY_IF(!check_limit_upstairs(sdp, offset, 10, SEG_IS_32BIT(sdp)))
 			goto range_failure;
 	}
 	cpu_lmemorywrite_f(addr, value, CPU_PAGE_WRITE_DATA | CPU_STAT_USER_MODE);
@@ -546,9 +546,9 @@ cpu_codefetch(UINT32 offset)
 	sdp = &CPU_CS_DESC;
 	addr = sdp->u.seg.segbase + offset;
 
-	if (!CPU_STAT_PM)
+	__UNLIKELY_IF(!CPU_STAT_PM)
 		return cpu_memoryread_codefetch(addr);
-	if (offset <= sdp->u.seg.limit)
+	__LIKELY_IF(offset <= sdp->u.seg.limit)
 		return cpu_lmemoryread_codefetch(addr, ucrw);
 
 	EXCEPTION(GP_EXCEPTION, 0);
@@ -565,9 +565,9 @@ cpu_codefetch_w(UINT32 offset)
 	sdp = &CPU_CS_DESC;
 	addr = sdp->u.seg.segbase + offset;
 
-	if (!CPU_STAT_PM)
+	__UNLIKELY_IF(!CPU_STAT_PM)
 		return cpu_memoryread_w_codefetch(addr);
-	if (offset <= sdp->u.seg.limit - 1)
+	__LIKELY_IF(offset <= sdp->u.seg.limit - 1)
 		return cpu_lmemoryread_w_codefetch(addr, ucrw);
 
 	EXCEPTION(GP_EXCEPTION, 0);
@@ -584,10 +584,10 @@ cpu_codefetch_d(UINT32 offset)
 	sdp = &CPU_CS_DESC;
 	addr = sdp->u.seg.segbase + offset;
 
-	if (!CPU_STAT_PM)
+	__UNLIKELY_IF(!CPU_STAT_PM)
 		return cpu_memoryread_d_codefetch(addr);
 
-	if (offset <= sdp->u.seg.limit - 3)
+	__LIKELY_IF(offset <= sdp->u.seg.limit - 3)
 		return cpu_lmemoryread_d_codefetch(addr, ucrw);
 
 	EXCEPTION(GP_EXCEPTION, 0);

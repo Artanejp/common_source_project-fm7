@@ -36,18 +36,18 @@ cpu_vmemoryread_##width(int idx, UINT32 offset) \
 	sdp = &CPU_STAT_SREG(idx); \
 	addr = sdp->u.seg.segbase + offset; \
 \
-	if (!CPU_STAT_PM) \
+	__UNLIKELY_IF(!CPU_STAT_PM) \
 		return cpu_memoryread_##width(addr); \
 \
-	if (!SEG_IS_VALID(sdp)) { \
+	__UNLIKELY_IF(!SEG_IS_VALID(sdp)) { \
 		exc = GP_EXCEPTION; \
 		goto err; \
 	} \
-	if (!(sdp->flag & CPU_DESC_FLAG_READABLE)) { \
+	__UNLIKELY_IF(!(sdp->flag & CPU_DESC_FLAG_READABLE)) { \
 		cpu_memoryread_check(sdp, offset, (length), \
 		    CHOOSE_EXCEPTION(idx)); \
 	} else if (!(sdp->flag & CPU_DESC_FLAG_WHOLEADR)) { \
-		if (!check_limit_upstairs(sdp, offset, (length), SEG_IS_32BIT(sdp))) \
+		__UNLIKELY_IF(!check_limit_upstairs(sdp, offset, (length), SEG_IS_32BIT(sdp))) \
 			goto range_failure; \
 	} \
 	return cpu_lmemoryread_##width(addr, CPU_PAGE_READ_DATA | CPU_STAT_USER_MODE); \
@@ -72,7 +72,7 @@ cpu_vmemorywrite_##width(int idx, UINT32 offset, valtype value) \
 	sdp = &CPU_STAT_SREG(idx); \
 	addr = sdp->u.seg.segbase + offset; \
 \
-	if (!CPU_STAT_PM) { \
+	__UNLIKELY_IF(!CPU_STAT_PM) { \
 		cpu_memorywrite_##width(addr, value); \
 		return; \
 	} \
@@ -113,22 +113,22 @@ cpu_vmemory_RMW_##width(int idx, UINT32 offset, UINT32 (CPUCALL *func)(UINT32, v
 	sdp = &CPU_STAT_SREG(idx); \
 	addr = sdp->u.seg.segbase + offset; \
 \
-	if (!CPU_STAT_PM) { \
+	__UNLIKELY_IF(!CPU_STAT_PM) { \
 		value = cpu_memoryread_##width(addr); \
 		result = (*func)(value, arg); \
 		cpu_memorywrite_##width(addr, (valtype)result); \
 		return value; \
 	} \
 \
-	if (!SEG_IS_VALID(sdp)) { \
+	__UNLIKELY_IF(!SEG_IS_VALID(sdp)) { \
 		exc = GP_EXCEPTION; \
 		goto err; \
 	} \
-	if (!(sdp->flag & CPU_DESC_FLAG_WRITABLE)) { \
+	__UNLIKELY_IF(!(sdp->flag & CPU_DESC_FLAG_WRITABLE)) { \
 		cpu_memorywrite_check(sdp, offset, (length), \
 		    CHOOSE_EXCEPTION(idx)); \
 	} else if (!(sdp->flag & CPU_DESC_FLAG_WHOLEADR)) { \
-		if (!check_limit_upstairs(sdp, offset, (length), SEG_IS_32BIT(sdp))) \
+		__UNLIKELY_IF(!check_limit_upstairs(sdp, offset, (length), SEG_IS_32BIT(sdp))) \
 			goto range_failure; \
 	} \
 	return cpu_lmemory_RMW_##width(addr, func, arg); \

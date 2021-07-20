@@ -96,7 +96,7 @@ exception(int num, int error_code)
 	__exception_code = num;
 	
 	CPU_STAT_EXCEPTION_COUNTER_INC();
-	if ((CPU_STAT_EXCEPTION_COUNTER >= 3) 
+	__UNLIKELY_IF((CPU_STAT_EXCEPTION_COUNTER >= 3) 
 	 || (CPU_STAT_EXCEPTION_COUNTER == 2 && CPU_STAT_PREV_EXCEPTION == DF_EXCEPTION)) {
 		/* Triple fault */
 		ia32_panic("exception: catch triple fault!");
@@ -154,7 +154,7 @@ exception(int num, int error_code)
 	}
 //	device_cpu->out_debug_log("EXCEPTION: %s PC=%08X", exception_str[num], device_cpu->get_pc());
 
-	if (CPU_STAT_EXCEPTION_COUNTER >= 2) {
+	__UNLIKELY_IF(CPU_STAT_EXCEPTION_COUNTER >= 2) {
 		if (dftable[exctype[CPU_STAT_PREV_EXCEPTION]][exctype[num]]) {
 			num = DF_EXCEPTION;
 			errorp = 1;
@@ -245,7 +245,7 @@ interrupt(int num, int intrtype, int errorp, int error_code)
 	VERBOSE(("interrupt: num = 0x%02x, intrtype = %s, errorp = %s, error_code = %08x", num, (intrtype == INTR_TYPE_EXTINTR) ? "external" : (intrtype == INTR_TYPE_EXCEPTION ? "exception" : "softint"), errorp ? "on" : "off", error_code));
 
 //#ifdef I86_PSEUDO_BIOS
-	if ((!CPU_STAT_PM || CPU_STAT_VM86) && intrtype == INTR_TYPE_SOFTINTR && device_bios != NULL) {
+	__LIKELY_IF((!CPU_STAT_PM || CPU_STAT_VM86) && intrtype == INTR_TYPE_SOFTINTR && device_bios != NULL) {
 //		uint16_t regs[8] = {CPU_AX, CPU_CX, CPU_DX, CPU_BX, CPU_SP, CPU_BP, CPU_SI, CPU_DI};
 		uint32_t regs[8] = {CPU_EAX, CPU_ECX, CPU_EDX, CPU_EBX, CPU_ESP, CPU_EBP, CPU_ESI, CPU_EDI};
 		uint16_t sregs[4] = {CPU_ES, CPU_CS, CPU_SS, CPU_DS};
@@ -282,17 +282,17 @@ interrupt(int num, int intrtype, int errorp, int error_code)
 
 	CPU_SET_PREV_ESP();
 
-	if (!CPU_STAT_PM) {
+	__UNLIKELY_IF(!CPU_STAT_PM) {
 		/* real mode */
 		CPU_WORKCLOCK(20);
 
 		idt_idx = num * 4;
-		if (idt_idx + 3 > CPU_IDTR_LIMIT) {
+		__UNLIKELY_IF(idt_idx + 3 > CPU_IDTR_LIMIT) {
 			VERBOSE(("interrupt: real-mode IDTR limit check failure (idx = 0x%04x, limit = 0x%08x", idt_idx, CPU_IDTR_LIMIT));
 			EXCEPTION(GP_EXCEPTION, idt_idx + 2);
 		}
 
-		if ((intrtype == INTR_TYPE_EXTINTR) && CPU_STAT_HLT) {
+		__UNLIKELY_IF((intrtype == INTR_TYPE_EXTINTR) && CPU_STAT_HLT) {
 			VERBOSE(("interrupt: reset HTL in real mode"));
 			CPU_EIP++;
 			CPU_STAT_HLT = 0;
@@ -328,7 +328,7 @@ interrupt(int num, int intrtype, int errorp, int error_code)
 		if (intrtype == INTR_TYPE_EXTINTR)
 			exc_errcode++;
 
-		if (idt_idx + 7 > CPU_IDTR_LIMIT) {
+		__UNLIKELY_IF(idt_idx + 7 > CPU_IDTR_LIMIT) {
 			VERBOSE(("interrupt: IDTR limit check failure (idx = 0x%04x, limit = 0x%08x", idt_idx, CPU_IDTR_LIMIT));
 			EXCEPTION(GP_EXCEPTION, exc_errcode);
 		}
@@ -336,11 +336,11 @@ interrupt(int num, int intrtype, int errorp, int error_code)
 		/* load a gate descriptor from interrupt descriptor table */
 		memset(&gsd, 0, sizeof(gsd));
 		load_descriptor(&gsd, CPU_IDTR_BASE + idt_idx);
-		if (!SEG_IS_VALID(&gsd)) {
+		__UNLIKELY_IF(!SEG_IS_VALID(&gsd)) {
 			VERBOSE(("interrupt: gate descripter is invalid."));
 			EXCEPTION(GP_EXCEPTION, exc_errcode);
 		}
-		if (!SEG_IS_SYSTEM(&gsd)) {
+		__UNLIKELY_IF(!SEG_IS_SYSTEM(&gsd)) {
 			VERBOSE(("interrupt: gate descriptor is not system segment."));
 			EXCEPTION(GP_EXCEPTION, exc_errcode);
 		}
@@ -360,17 +360,17 @@ interrupt(int num, int intrtype, int errorp, int error_code)
 		}
 
 		/* 5.10.1.1. 例外／割り込みハンドラ・プロシージャの保護 */
-		if ((intrtype == INTR_TYPE_SOFTINTR) && (gsd.dpl < CPU_STAT_CPL)) {
+		__UNLIKELY_IF((intrtype == INTR_TYPE_SOFTINTR) && (gsd.dpl < CPU_STAT_CPL)) {
 			VERBOSE(("interrupt: intrtype(softint) && DPL(%d) < CPL(%d)", gsd.dpl, CPU_STAT_CPL));
 			EXCEPTION(GP_EXCEPTION, exc_errcode);
 		}
 
-		if (!SEG_IS_PRESENT(&gsd)) {
+		__UNLIKELY_IF(!SEG_IS_PRESENT(&gsd)) {
 			VERBOSE(("interrupt: gate descriptor is not present."));
 			EXCEPTION(NP_EXCEPTION, exc_errcode);
 		}
 
-		if ((intrtype == INTR_TYPE_EXTINTR) && CPU_STAT_HLT) {
+		__UNLIKELY_IF((intrtype == INTR_TYPE_EXTINTR) && CPU_STAT_HLT) {
 			VERBOSE(("interrupt: reset HTL in protected mode"));
 			CPU_EIP++;
 			CPU_STAT_HLT = 0;
@@ -408,7 +408,7 @@ interrupt_task_gate(const descriptor_t *gsdp, int intrtype, int errorp, int erro
 	VERBOSE(("interrupt: TASK-GATE"));
 
 	rv = parse_selector(&task_sel, gsdp->u.gate.selector);
-	if (rv < 0 || task_sel.ldt || !SEG_IS_SYSTEM(&task_sel.desc)) {
+	__UNLIKELY_IF(rv < 0 || task_sel.ldt || !SEG_IS_SYSTEM(&task_sel.desc)) {
 		VERBOSE(("interrupt: parse_selector (selector = %04x, rv = %d, %cDT, type = %s)", gsdp->u.gate.selector, rv, task_sel.ldt ? 'L' : 'G', task_sel.desc.s ? "code/data" : "system"));
 		EXCEPTION(TS_EXCEPTION, task_sel.idx);
 	}
@@ -430,7 +430,7 @@ interrupt_task_gate(const descriptor_t *gsdp, int intrtype, int errorp, int erro
 	}
 
 	/* not present */
-	if (selector_is_not_present(&task_sel)) {
+	__UNLIKELY_IF(selector_is_not_present(&task_sel)) {
 		VERBOSE(("interrupt: selector is not present"));
 		EXCEPTION(NP_EXCEPTION, task_sel.idx);
 	}
@@ -439,7 +439,7 @@ interrupt_task_gate(const descriptor_t *gsdp, int intrtype, int errorp, int erro
 
 	CPU_SET_PREV_ESP();
 
-	if (errorp) {
+	__UNLIKELY_IF(errorp) {
 		VERBOSE(("interrupt: push error code (%08x)", error_code));
 		if (task_sel.desc.type == CPU_SYSDESC_TYPE_TSS_32) {
 			PUSH0_32(error_code);
@@ -449,7 +449,7 @@ interrupt_task_gate(const descriptor_t *gsdp, int intrtype, int errorp, int erro
 	}
 
 	/* out of range */
-	if (CPU_EIP > CPU_STAT_CS_LIMIT) {
+	__UNLIKELY_IF(CPU_EIP > CPU_STAT_CS_LIMIT) {
 		VERBOSE(("interrupt: new_ip is out of range. new_ip = %08x, limit = %08x", CPU_EIP, CPU_STAT_CS_LIMIT));
 		EXCEPTION(GP_EXCEPTION, 0);
 	}
@@ -503,35 +503,35 @@ interrupt_intr_or_trap(const descriptor_t *gsdp, int intrtype, int errorp, int e
 		exc_errcode++;
 
 	rv = parse_selector(&cs_sel, gsdp->u.gate.selector);
-	if (rv < 0) {
+	__UNLIKELY_IF(rv < 0) {
 		VERBOSE(("interrupt: parse_selector (selector = %04x, rv = %d)", gsdp->u.gate.selector, rv));
 		EXCEPTION(GP_EXCEPTION, exc_errcode);
 	}
 
 	/* check segment type */
-	if (SEG_IS_SYSTEM(&cs_sel.desc)) {
+	__UNLIKELY_IF(SEG_IS_SYSTEM(&cs_sel.desc)) {
 		VERBOSE(("interrupt: code segment is system segment"));
 		EXCEPTION(GP_EXCEPTION, exc_errcode);
 	}
-	if (SEG_IS_DATA(&cs_sel.desc)) {
+	__UNLIKELY_IF(SEG_IS_DATA(&cs_sel.desc)) {
 		VERBOSE(("interrupt: code segment is data segment"));
 		EXCEPTION(GP_EXCEPTION, exc_errcode);
 	}
 
 	/* check privilege level */
-	if (cs_sel.desc.dpl > CPU_STAT_CPL) {
+	__UNLIKELY_IF(cs_sel.desc.dpl > CPU_STAT_CPL) {
 		VERBOSE(("interrupt: DPL(%d) > CPL(%d)", cs_sel.desc.dpl, CPU_STAT_CPL));
 		EXCEPTION(GP_EXCEPTION, exc_errcode);
 	}
 
 	/* not present */
-	if (selector_is_not_present(&cs_sel)) {
+	__UNLIKELY_IF(selector_is_not_present(&cs_sel)) {
 		VERBOSE(("interrupt: selector is not present"));
 		EXCEPTION(NP_EXCEPTION, exc_errcode);
 	}
 
 	is32bit = gsdp->type & CPU_SYSDESC_TYPE_32BIT;
-	if (!SEG_IS_CONFORMING_CODE(&cs_sel.desc) && (cs_sel.desc.dpl < CPU_STAT_CPL)) {
+	__UNLIKELY_IF(!SEG_IS_CONFORMING_CODE(&cs_sel.desc) && (cs_sel.desc.dpl < CPU_STAT_CPL)) {
 		stacksize = errorp ? 12 : 10;
 		if (!CPU_STAT_VM86) {
 			VERBOSE(("interrupt: INTER-PRIVILEGE-LEVEL-INTERRUPT"));
@@ -545,7 +545,7 @@ interrupt_intr_or_trap(const descriptor_t *gsdp, int intrtype, int errorp, int e
 			}
 			stacksize += 8;
 		}
-		if (is32bit) {
+		__LIKELY_IF(is32bit) {
 			stacksize *= 2;
 		}
 
@@ -560,37 +560,37 @@ interrupt_intr_or_trap(const descriptor_t *gsdp, int intrtype, int errorp, int e
 		if (intrtype == INTR_TYPE_EXTINTR)
 			exc_errcode++;
 
-		if (rv < 0) {
+		__UNLIKELY_IF(rv < 0) {
 			VERBOSE(("interrupt: parse_selector (selector = %04x, rv = %d)", new_ss, rv));
 			EXCEPTION(TS_EXCEPTION, exc_errcode);
 		}
 
 		/* check privilege level */
-		if (ss_sel.rpl != cs_sel.desc.dpl) {
+		__UNLIKELY_IF(ss_sel.rpl != cs_sel.desc.dpl) {
 			VERBOSE(("interrupt: selector RPL[SS](%d) != DPL[CS](%d)", ss_sel.rpl, cs_sel.desc.dpl));
 			EXCEPTION(TS_EXCEPTION, exc_errcode);
 		}
-		if (ss_sel.desc.dpl != cs_sel.desc.dpl) {
+		__UNLIKELY_IF(ss_sel.desc.dpl != cs_sel.desc.dpl) {
 			VERBOSE(("interrupt: descriptor DPL[SS](%d) != DPL[CS](%d)", ss_sel.desc.dpl, cs_sel.desc.dpl));
 			EXCEPTION(TS_EXCEPTION, exc_errcode);
 		}
 
 		/* stack segment must be writable data segment. */
-		if (SEG_IS_SYSTEM(&ss_sel.desc)) {
+		__UNLIKELY_IF(SEG_IS_SYSTEM(&ss_sel.desc)) {
 			VERBOSE(("interrupt: stack segment is system segment"));
 			EXCEPTION(TS_EXCEPTION, exc_errcode);
 		}
-		if (SEG_IS_CODE(&ss_sel.desc)) {
+		__UNLIKELY_IF(SEG_IS_CODE(&ss_sel.desc)) {
 			VERBOSE(("interrupt: stack segment is code segment"));
 			EXCEPTION(TS_EXCEPTION, exc_errcode);
 		}
-		if (!SEG_IS_WRITABLE_DATA(&ss_sel.desc)) {
+		__UNLIKELY_IF(!SEG_IS_WRITABLE_DATA(&ss_sel.desc)) {
 			VERBOSE(("interrupt: stack segment is read-only data segment"));
 			EXCEPTION(TS_EXCEPTION, exc_errcode);
 		}
 
 		/* not present */
-		if (selector_is_not_present(&ss_sel)) {
+		__UNLIKELY_IF(selector_is_not_present(&ss_sel)) {
 			VERBOSE(("interrupt: selector is not present"));
 			EXCEPTION(SS_EXCEPTION, exc_errcode);
 		}
@@ -599,7 +599,7 @@ interrupt_intr_or_trap(const descriptor_t *gsdp, int intrtype, int errorp, int e
 		cpu_stack_push_check(ss_sel.idx, &ss_sel.desc, new_sp, stacksize, ss_sel.desc.d);
 
 		/* out of range */
-		if (new_ip > cs_sel.desc.u.seg.limit) {
+		__UNLIKELY_IF(new_ip > cs_sel.desc.u.seg.limit) {
 			VERBOSE(("interrupt: new_ip is out of range. new_ip = %08x, limit = %08x", new_ip, cs_sel.desc.u.seg.limit));
 			EXCEPTION(GP_EXCEPTION, 0);
 		}
@@ -610,8 +610,8 @@ interrupt_intr_or_trap(const descriptor_t *gsdp, int intrtype, int errorp, int e
 		load_cs(cs_sel.selector, &cs_sel.desc, cs_sel.desc.dpl);
 		CPU_EIP = new_ip;
 
-		if (is32bit) {
-			if (CPU_STAT_VM86) {
+		__LIKELY_IF(is32bit) {
+			__UNLIKELY_IF(CPU_STAT_VM86) {
 				PUSH0_32(CPU_GS);
 				PUSH0_32(CPU_FS);
 				PUSH0_32(CPU_DS);
@@ -635,7 +635,7 @@ interrupt_intr_or_trap(const descriptor_t *gsdp, int intrtype, int errorp, int e
 				PUSH0_32(error_code);
 			}
 		} else {
-			if (CPU_STAT_VM86) {
+			__UNLIKELY_IF(CPU_STAT_VM86) {
 				ia32_panic("interrupt: 16bit gate && VM86");
 			}
 			PUSH0_16(old_ss);
@@ -648,11 +648,11 @@ interrupt_intr_or_trap(const descriptor_t *gsdp, int intrtype, int errorp, int e
 			}
 		}
 	} else {
-		if (CPU_STAT_VM86) {
+		__UNLIKELY_IF(CPU_STAT_VM86) {
 			VERBOSE(("interrupt: VM86"));
 			EXCEPTION(GP_EXCEPTION, exc_errcode);
 		}
-		if (!SEG_IS_CONFORMING_CODE(&cs_sel.desc) && (cs_sel.desc.dpl != CPU_STAT_CPL)) {
+		__UNLIKELY_IF(!SEG_IS_CONFORMING_CODE(&cs_sel.desc) && (cs_sel.desc.dpl != CPU_STAT_CPL)) {
 			VERBOSE(("interrupt: %sCONFORMING-CODE-SEGMENT(%d) && DPL[CS](%d) != CPL", SEG_IS_CONFORMING_CODE(&cs_sel.desc) ? "" : "NON-", cs_sel.desc.dpl, CPU_STAT_CPL));
 			EXCEPTION(GP_EXCEPTION, exc_errcode);
 		}
@@ -660,12 +660,12 @@ interrupt_intr_or_trap(const descriptor_t *gsdp, int intrtype, int errorp, int e
 		VERBOSE(("interrupt: INTRA-PRIVILEGE-LEVEL-INTERRUPT"));
 
 		stacksize = errorp ? 8 : 6;
-		if (is32bit) {
+		__LIKELY_IF(is32bit) {
 			stacksize *= 2;
 		}
 
 		/* check stack room size */
-		if (CPU_STAT_SS32) {
+		__LIKELY_IF(CPU_STAT_SS32) {
 			sp = CPU_ESP;
 		} else {
 			sp = CPU_SP;
@@ -681,7 +681,7 @@ interrupt_intr_or_trap(const descriptor_t *gsdp, int intrtype, int errorp, int e
 		SS_PUSH_CHECK1(sp, stacksize, is32bit);
 
 		/* out of range */
-		if (new_ip > cs_sel.desc.u.seg.limit) {
+		__UNLIKELY_IF(new_ip > cs_sel.desc.u.seg.limit) {
 			VERBOSE(("interrupt: new_ip is out of range. new_ip = %08x, limit = %08x", new_ip, cs_sel.desc.u.seg.limit));
 			EXCEPTION(GP_EXCEPTION, 0);
 		}
@@ -689,7 +689,7 @@ interrupt_intr_or_trap(const descriptor_t *gsdp, int intrtype, int errorp, int e
 		load_cs(cs_sel.selector, &cs_sel.desc, CPU_STAT_CPL);
 		CPU_EIP = new_ip;
 
-		if (is32bit) {
+		__LIKELY_IF(is32bit) {
 			PUSH0_32(old_flags);
 			PUSH0_32(old_cs);
 			PUSH0_32(old_ip);
