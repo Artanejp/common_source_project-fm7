@@ -107,10 +107,10 @@ uint32_t PLANEVRAM::read_memory_mapped_io8(uint32_t addr)
 //	if(r50_gvramsel != 0) x_addr = 0x20000; //?
 	if(r50_gvramsel != 0) x_addr = 0x20000; //?
 	addr = (addr & 0x7fff) << 2;
-	if(d_vram == NULL) return 0xff;
+	__UNLIKELY_IF(d_vram == NULL) return 0xff;
 	
 	uint8_t *p = d_vram->get_vram_address(x_addr + addr);
-	if(p == NULL) return 0xff;
+	__UNLIKELY_IF(p == NULL) return 0xff;
 //	p = &(p[x_addr + addr]); 
 	
 	// 8bit -> 32bit
@@ -142,9 +142,9 @@ void PLANEVRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 	if(r50_gvramsel != 0) x_addr = 0x20000; //?
 	addr = (addr & 0x7fff) << 2;
 
-	if(d_vram == NULL) return;
+	__UNLIKELY_IF(d_vram == NULL) return;
 	uint8_t *p = d_vram->get_vram_address(x_addr + addr);
-	if(p == NULL) return;
+	__UNLIKELY_IF(p == NULL) return;
 	
 	// 8bit -> 32bit
 	uint32_t *pp = (uint32_t *)p;

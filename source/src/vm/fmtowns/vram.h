@@ -129,13 +129,13 @@ public:
 //		if(words > 16) return false;
 		if(words <= 0) return false;
 		uint8_t* p = &(vram[offset]);
-		if((offset + (words << 1)) <= 0x80000) {
+		__LIKELY_IF((offset + (words << 1)) <= 0x80000) {
 			memcpy(p, buf, words << 1);
 		} else {
 			int nb = 0x80000 - offset;
 			memcpy(p, buf, nb);
 			int nnb = (words << 1) - nb;
-			if(nnb > 0) {
+			__LIKELY_IF(nnb > 0) {
 				memcpy(vram, &(buf[nb]), nnb);
 			}
 		}
@@ -147,13 +147,13 @@ public:
 //		if(words > 16) return false;
 		if(words <= 0) return false;
 		uint8_t* p = &(vram[offset]);
-		if((offset + (words << 1)) <= 0x80000) {
+		__LIKELY_IF((offset + (words << 1)) <= 0x80000) {
 			memcpy(buf, p, words << 1);
 		} else {
 			uint32_t nb = 0x80000 - offset;
 			memcpy(buf, p, nb);
 			int nnb = (words << 1) - nb;
-			if(nnb > 0) {
+			__LIKELY_IF(nnb > 0) {
 				memcpy(&(buf[nb]), vram, nnb);
 			}
 		}

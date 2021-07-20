@@ -282,6 +282,7 @@ __DECL_VECTORIZED_LOOP
 	
 	// Zoom and rendering.
 #if 0
+	__UNLIKELY_IF(d_vram == NULL) return; // Skip if VRAM not exists.
 	typedef union {
 		pair16_t pw[16];
 		uint8_t  b[32];
@@ -317,7 +318,7 @@ __DECL_VECTORIZED_LOOP
 	
 	for(int yy = 0; yy < 16; yy++) {
 		int yoff = (yy + ry) & 0x1ff;
-		if((d_vram != NULL) && (yoff < 256)) {
+		if(yoff < 256) {
 
 __DECL_VECTORIZED_LOOP						
 			for(int ii = 0; ii < 16; ii++) {
@@ -416,7 +417,7 @@ __DECL_VECTORIZED_LOOP
 	if((is_halfx) && !(is_halfy)) {
 		for(int yy = 0; yy < 16; yy++) {
 			int yoff = (yy + ry) & 0x1ff;
-			if((d_vram != NULL) && (yoff < 256)) {
+			if(yoff < 256) {
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 8; xx++) {
 					dist_data[yy].pw[xx].w &= mask16x8_1[yy][xx];
@@ -428,7 +429,7 @@ __DECL_VECTORIZED_LOOP
 	} else if(!(is_halfx) && (is_halfy)) {
 		for(int yy = 0; yy < 8; yy++) {
 			int yoff = (yy + ry) & 0x1ff;
-			if((d_vram != NULL) && (yoff < 256)) {
+			if(yoff < 256) {
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 16; xx++) {
 					dist_data[yy].pw[xx].w &= mask8x16_1[yy][xx];
@@ -440,7 +441,7 @@ __DECL_VECTORIZED_LOOP
 	} else if((is_halfx) && (is_halfy)) {
 		for(int yy = 0; yy < 8; yy++) {
 			int yoff = (yy + ry) & 0x1ff;
-			if((d_vram != NULL) && (yoff < 256)) {
+			if(yoff < 256) {
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 8; xx++) {
 					dist_data[yy].pw[xx].w &= mask8x8_1[yy][xx];
@@ -452,7 +453,7 @@ __DECL_VECTORIZED_LOOP
 	} else {
 		for(int yy = 0; yy < 16; yy++) {
 			int yoff = (yy + ry) & 0x1ff;
-			if((d_vram != NULL) && (yoff < 256)) {
+			if(yoff < 256) {
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 16; xx++) {
 					dist_data[yy].pw[xx].w &= mask16x16_1[yy][xx];
@@ -470,7 +471,8 @@ __DECL_VECTORIZED_LOOP
 		d_vram->set_buffer_to_vram(vpaddr + noffset, &(dist_data[yy].b[0]), ww);
 	}
 
-#else			
+#else
+	__UNLIKELY_IF(d_vram == NULL) return; // Skip if VRAM not exists.
 	uint32_t noffset = (draw_page1) ? 0x40000 : 0x60000;
 	uint32_t vpaddr = ((rx + (ry * 256)) << 1) & 0x1ffff;
 	if(!(is_halfx) && !(is_halfy)) { // not halfed
@@ -489,7 +491,7 @@ __DECL_VECTORIZED_LOOP
 		if(__xend <= 0) return;
 		for(int yy = 0; yy < 16;  yy++) {
 			int yoff = (yy + ry) & 0x1ff;
-			if((d_vram != NULL) && (yoff < 256)) {
+			if(yoff < 256) {
 				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
 				__DECL_ALIGNED(32) uint8_t source[32] = {0};
 				d_vram->get_vram_to_buffer(vpaddr + noffset, source, __xend);
@@ -543,7 +545,7 @@ __DECL_VECTORIZED_LOOP
 		if(__xend <= 0) return;
 		for(int yy = 0; yy < 16;  yy++) {
 			int yoff = (yy + ry) & 0x1ff;
-			if((d_vram != NULL) && (yoff < 256)) {
+			if(yoff < 256) {
 				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
 				__DECL_ALIGNED(16) uint8_t source[16] = {0};
 				d_vram->get_vram_to_buffer(vpaddr + noffset, source, __xend);
@@ -639,7 +641,7 @@ __DECL_VECTORIZED_LOOP
 		if(__xend <= 0) return;
 		for(int yy = (__ystart << 1); yy < (__yend << 1);  yy += 2) {
 			int yoff = ((yy >> 1) + ry) & 0x1ff;
-			if((d_vram != NULL) && (yoff < 256)) {
+			if(yoff < 256) {
 				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
 				__DECL_ALIGNED(32) uint8_t source[32] = {0};
 				d_vram->get_vram_to_buffer(vpaddr + noffset, source, __xend);
@@ -723,7 +725,7 @@ __DECL_VECTORIZED_LOOP
 		if(__xend <= 0) return;
 		for(int yy = (__ystart << 1); yy < (__yend << 1);  yy += 2) {
 			int yoff = ((yy >> 1) + ry) & 0x1ff;
-			if((d_vram != NULL) && (yoff < 256)) {
+			if(yoff < 256) {
 				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
 				__DECL_ALIGNED(16) uint8_t source[16] = {0};
 				d_vram->get_vram_to_buffer(vpaddr + noffset, source, __xend);
@@ -944,7 +946,7 @@ uint32_t TOWNS_SPRITE::read_io8(uint32_t addr)
 
 uint32_t TOWNS_SPRITE::read_memory_mapped_io8(uint32_t addr)
 {
-	if((addr >= 0x81000000) && (addr < 0x81020000)) {
+	__LIKELY_IF((addr >= 0x81000000) && (addr < 0x81020000)) {
 		return pattern_ram[addr & 0x1ffff];
 	}/* else if((addr >= 0xc8000) && (addr < 0xc9000)) {
 		return pattern_ram[addr - 0xc8000];
@@ -960,7 +962,7 @@ uint32_t TOWNS_SPRITE::read_memory_mapped_io8(uint32_t addr)
 
 void TOWNS_SPRITE::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
-	if((addr >= 0x81000000) && (addr < 0x81020000)) {
+	__LIKELY_IF((addr >= 0x81000000) && (addr < 0x81020000)) {
 		pattern_ram[addr & 0x1ffff] = data;
 	} /*else if((addr >= 0xc8000) && (addr < 0xc9000)) {
 		tvram_enabled = true;
@@ -1093,20 +1095,20 @@ void TOWNS_SPRITE::check_and_clear_vram()
 		render_num = lot;
 		sprite_busy = true;
 		clear_event(this, event_busy);
-		{
+		__LIKELY_IF(d_vram != NULL){
 			uint32_t noffset = (disp_page1) ? 0x40000 : 0x60000;
 			draw_page1 = disp_page1;
-			if((d_vram != NULL) && (render_num < 1024)) {
+			__LIKELY_IF(render_num < 1024) {
 				pair16_t *p = (pair16_t*)(d_vram->get_vram_address(noffset));
-				if(p != NULL) {
+				__LIKELY_IF(p != NULL) {
 					for(int x = 0; x < 0x10000; x++) {
 						p[x].w = 0x8000; //
 					}
 				}
 			}
 			page_changed = false;
-			register_event(this, EVENT_RENDER, 32.0, false, &event_busy);
 		}
+		register_event(this, EVENT_RENDER, 32.0, false, &event_busy);
 	}
 }
 void TOWNS_SPRITE::event_pre_frame()
