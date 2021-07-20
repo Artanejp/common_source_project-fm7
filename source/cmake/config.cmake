@@ -8,6 +8,9 @@ endif()
 if(UNIX)
 	include(GNUInstallDirs)
 endif()
+
+set(CSP_BUILD_WITH_CXX20 OFF CACHE BOOL "Build with C++20 specification compilers.This is a very experimental feature.If not set, will build with C++11 specification.")
+
 # Note: Belows are temporally disabled, not implemented older CMake.
 # Check HOST NAME
 #cmake_host_system_information(RESULT OSNAME QUERY OS_NAME)
@@ -300,9 +303,13 @@ endfunction(additional_options)
 
 #ToDo: MSVC.
 #if(CMAKE_VERSION VERSION_LESS "3.1")
+if(CSP_BUILD_WITH_CXX20)
+		set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
+		set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+else()
 		set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 		set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
-#endif()
+endif()
 
 function(set_std TARGET)
 #	if(CMAKE_VERSION VERSION_LESS "3.1")
