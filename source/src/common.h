@@ -958,6 +958,44 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 	#define __DECL_VECTORIZED_LOOP
 #endif
 
+// hint for branch-optimize. 20210720 K.O
+// Usage:
+// __LIKELY_IF(expr) : Mostly (expr) will be effected.
+// __UNLIKELY_IF(expr) : Mostly (expr) will not be effected.
+#undef __LIKELY_IF
+#undef __UNLIKELY_IF
+
+#if defined(__cplusplus)
+	#if (__cplusplus >= 202000L)
+	#define __LIKELY_IF(foo) if(foo) [[likely]]
+	#define __UNLIKELY_IF(foo) if(foo) [[unlikely]]
+	#endif
+#endif
+
+#if !defined(__LIKELY_IF) || !defined(__UNLIKELY_IF)
+	#undef __HAS_LIKELY_UNLIKELY_TYPE1__
+	#if defined(__clang__)
+		#define __HAS_LIKELY_UNLIKELY_TYPE1__
+	#elif defined(__GNUC__)
+		#if __GNUC__ >= 3
+			#define __HAS_LIKELY_UNLIKELY_TYPE1__
+		#endif
+	#endif
+	// ToDo: Implement for other compilers.
+	#if defined(__HAS_LIKELY_UNLIKELY_TYPE1__)
+	// OK, This compiler seems to have __builtin_expect(foo, bar).
+		#define __LIKELY_IF(foo) if(__builtin_expect((foo), 1))
+		#define __UNLIKELY_IF(foo) if(__builtin_expect((foo), 0))
+	#else
+		// Fallthrough: maybe not have __builtin_expect()
+		#define __LIKELY_IF(foo) if(foo)
+		#define __UNLIKELY_IF(foo) if(foo)
+	#endif
+	#undef __HAS_LIKELY_UNLIKELY_TYPE1__
+#endif
+
+
+
 // C99 math functions
 #ifdef _MSC_VER
 	#define my_isfinite  _finite

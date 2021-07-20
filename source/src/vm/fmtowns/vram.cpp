@@ -130,6 +130,7 @@ void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 	vram[naddr + 1] = xdata.b.h;
 	vram[naddr + 2] = xdata.b.h2;
 	vram[naddr + 3] = xdata.b.h3;
+
 	return;
 }
 
@@ -142,7 +143,7 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io16(uint32_t addr)
 {
 	uint32_t naddr = addr & 0x7ffff;
 	pair16_t data;
-	if(naddr != 0x7ffff) {
+	__LIKELY_IF(naddr != 0x7ffff) {
 		data.b.l = vram[naddr + 0];
 		data.b.h = vram[naddr + 1];
 	} else {
@@ -156,16 +157,14 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 {
 	uint32_t naddr = addr & 0x7ffff;
 	pair32_t data;
-	if(naddr < 0x7fffd) {
-		data.b.l  = vram[naddr + 0];
-		data.b.h  = vram[naddr + 1];
-		data.b.h2 = vram[naddr + 2];
-		data.b.h3 = vram[naddr + 3];
-	} else {
-		data.b.l  = vram[naddr + 0];
-		data.b.h  = (naddr == 0x7ffff) ? 0xff : vram[naddr + 1];
-		data.b.h2 = (naddr >= 0x7fffe) ? 0xff : vram[naddr + 2];
-		data.b.h3 = 0xff;
+	
+	data.b.l  = vram[naddr + 0];
+	data.b.h  = vram[naddr + 1];
+	data.b.h2 = vram[naddr + 2];
+	data.b.h3 = vram[naddr + 3];
+	__UNLIKELY_IF(naddr > 0x7fffc) {
+		static const uint32_t mask[4] = {0x00000000, 0xff000000, 0xffff0000, 0xffffff00};
+		data.d |= mask[naddr & 3];
 	}
 	return data.d;
 }
