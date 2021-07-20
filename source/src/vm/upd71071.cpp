@@ -77,7 +77,7 @@ void UPD71071::set_tc(int ch)
 void UPD71071::write_io16(uint32_t addr, uint32_t data)
 {
 	pair32_t _d, _bd;
-	if(b16 != 0) {
+//	if(b16 != 0) {
 		switch(addr & 0x0f) {
 		case 0x02:
 		case 0x03:
@@ -117,11 +117,11 @@ void UPD71071::write_io16(uint32_t addr, uint32_t data)
 			write_io8(addr, data);
 			break;
 		}
-	} else {
-		write_io8(addr, data);
-//		write_io8((addr & 0x0e) + 0, data & 0xff);
-//		write_io8((addr & 0x0e) + 1, (data >> 8) & 0xff);
-	}
+//	} else {
+//		write_io8(addr, data);
+////		write_io8((addr & 0x0e) + 0, data & 0xff);
+////		write_io8((addr & 0x0e) + 1, (data >> 8) & 0xff);
+//	}
 }
 
 void UPD71071::write_io8(uint32_t addr, uint32_t data)
@@ -240,7 +240,7 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 
 uint32_t UPD71071::read_io16(uint32_t addr)
 {
-	if(b16 != 0) {
+//	if(b16 != 0) {
 		switch(addr & 0x0f) {
 		case 0x02:
 		case 0x03:
@@ -274,14 +274,14 @@ uint32_t UPD71071::read_io16(uint32_t addr)
 //			return read_io8(addr & 0x0e);
 			break;
 		}
-	} else {
-		pair16_t _d;
-		_d.w = 0;
-		_d.b.l = read_io8(addr);
-//		_d.b.l = read_io8((addr & 0x0e) + 0);
-//		_d.b.h = read_io8((addr & 0x0e) + 1);
-		return (uint32_t)(_d.w);
-	}
+//	} else {
+//		pair16_t _d;
+//		_d.w = 0;
+//		_d.b.l = read_io8(addr);
+////		_d.b.l = read_io8((addr & 0x0e) + 0);
+////		_d.b.h = read_io8((addr & 0x0e) + 1);
+//		return (uint32_t)(_d.w);
+//	}
 }
 
 uint32_t UPD71071::read_io8(uint32_t addr)

@@ -11,7 +11,8 @@ void TOWNS_DMAC::initialize()
 void TOWNS_DMAC::reset()
 {
 	UPD71071::reset();
-	dma_wrap_reg = 0xff;
+  	dma_wrap_reg = 0xff;
+//	dma_wrap_reg = 0x00;
 	dma_addr_mask = 0xffffffff; // OK?
 //	dma_addr_mask = 0x000fffff; // OK?
 	for(int i = 0; i < 4; i++) {
@@ -24,7 +25,7 @@ void TOWNS_DMAC::reset()
 void TOWNS_DMAC::write_io16(uint32_t addr, uint32_t data)
 {
 	pair32_t _d, _bd;
-	if(b16 != 0) {
+//	if(b16 != 0) {
 		switch(addr & 0x0f) {
 		case 0x02:
 		case 0x03:
@@ -72,11 +73,11 @@ void TOWNS_DMAC::write_io16(uint32_t addr, uint32_t data)
 			write_io8(addr, data);
 			break;
 		}
-	} else {
-		write_io8(addr, data);
-//		write_io8((addr & 0x0e) + 0, data);
-//		write_io8((addr & 0x0e) + 1, data);
-	}
+//	} else {
+//		write_io8(addr, data);
+////	write_io8((addr & 0x0e) + 0, data);
+////	write_io8((addr & 0x0e) + 1, data);
+//	}
 }
 
 void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
@@ -154,7 +155,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 
 uint32_t TOWNS_DMAC::read_io16(uint32_t addr)
 {
-	if(b16 != 0) {
+//	if(b16 != 0) {
 		switch(addr & 0x0f) {
 		case 0x02:
 		case 0x03:
@@ -189,14 +190,14 @@ uint32_t TOWNS_DMAC::read_io16(uint32_t addr)
 //			return read_io8(addr & 0x0e);
 			break;
 		}
-	} else {
-		pair16_t _d;
-		_d.w = 0;
-		_d.b.l = read_io8(addr);
-//		_d.b.l = read_io8((addr & 0x0e) + 0);
-//		_d.b.h = read_io8((addr & 0x0e) + 1);
-		return (uint32_t)(_d.w);
-	}
+//	} else {
+//		pair16_t _d;
+//		_d.w = 0;
+//		_d.b.l = read_io8(addr);
+////		_d.b.l = read_io8((addr & 0x0e) + 0);
+////		_d.b.h = read_io8((addr & 0x0e) + 1);
+//		return (uint32_t)(_d.w);
+//	}
 }
 
 uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
@@ -252,7 +253,7 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 void TOWNS_DMAC::do_dma_inc_dec_ptr_8bit(int c)
 {
 	// Note: FM-Towns may extend to 32bit.
-	if(dma_wrap_reg != 0) {
+	__LIKELY_IF(dma_wrap_reg != 0) {
 		uint32_t high_a = dma[c].areg & 0xff000000;
 		if(dma[c].mode & 0x20) {
 			dma[c].areg = dma[c].areg - 1;
@@ -272,7 +273,7 @@ void TOWNS_DMAC::do_dma_inc_dec_ptr_8bit(int c)
 void TOWNS_DMAC::do_dma_inc_dec_ptr_16bit(int c)
 {
 	// Note: FM-Towns may extend to 32bit.
-	if(dma_wrap_reg != 0) {
+	__LIKELY_IF(dma_wrap_reg != 0) {
 		uint32_t high_a = dma[c].areg & 0xff000000;
 		if(dma[c].mode & 0x20) {
 			dma[c].areg = dma[c].areg - 2;
@@ -308,7 +309,7 @@ bool TOWNS_DMAC::do_dma_epilogue(int c)
 	
 uint32_t TOWNS_DMAC::read_signal(int id)
 {
-	if(SIG_TOWNS_DMAC_WRAP_REG) {
+	if(id == SIG_TOWNS_DMAC_WRAP_REG) {
 		return dma_wrap_reg;
 	} else if(id == SIG_TOWNS_DMAC_ADDR_MASK) {
 		return dma_addr_mask;
