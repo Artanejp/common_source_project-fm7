@@ -103,7 +103,7 @@ void TOWNS_MEMORY::initialize()
 	set_extra_ram_size(extram_size >> 20); // Check extra ram size.
 	if(extram_size >= 0x00100000) {
 		extra_ram = (uint8_t*)malloc(extram_size);
-		if(extra_ram != NULL) {
+		__UNLIKELY_IF(extra_ram != NULL) {
 			set_memory_rw(0x00100000, (extram_size + 0x00100000) - 1, extra_ram);
 			memset(extra_ram, 0x00, extram_size);
 		}
@@ -217,7 +217,7 @@ void TOWNS_MEMORY::reset()
 
 	set_wait_values();
 #if 1	
-	if(d_cpu != NULL) {
+	__LIKELY_IF(d_cpu != NULL) {
 		d_cpu->set_address_mask(0xffffffff);
 	}
 	if(d_dmac != NULL) {
@@ -279,7 +279,7 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		val = ((software_reset) ? 1 : 0) | ((reset_happened) ? 2 : 0);
 		reset_happened = false;
 		software_reset = false;
-		if(d_cpu != NULL) {
+		__UNLIKELY_IF(d_cpu != NULL) {
 			d_cpu->set_shutdown_flag(0);
 		}
 		if((machine_id >= 0x0300) && ((machine_id & 0xff00) != 0x0400)) { // After UX
@@ -409,8 +409,8 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		if(machine_id >= 0x0700) { // After HR/HG
 			uint32_t clk = get_cpu_clocks(d_cpu);
 			clk = clk / (1000 * 1000);
-			if(clk < 16) clk = 16;
-			if(clk > 127) clk = 127; // ToDo
+			__UNLIKELY_IF(clk < 16) clk = 16;
+			__UNLIKELY_IF(clk > 127) clk = 127; // ToDo
 			val = 0x00 | clk;
 		} else {
 			val = 0xff;
@@ -425,10 +425,10 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		break;
 	case 0xff88:
 		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
-			if(d_crtc != NULL) {
+			__LIKELY_IF(d_crtc != NULL) {
 				val = d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CFF82H);
 			}
-		} else  if(d_planevram != NULL) {
+		} else  __LIKELY_IF(d_planevram != NULL) {
 			val = d_planevram->read_io8(addr);
 		}
 		break;
@@ -438,56 +438,56 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 	case 0xff95:
 		break;
 	case 0xff96:
-		if(d_font != NULL) {
+		__LIKELY_IF(d_font != NULL) {
 			return d_font->read_signal(SIG_TOWNS_FONT_KANJI_DATA_LOW);
 		}
 		break;
 	case 0xff97:
-		if(d_font != NULL) {
+		__LIKELY_IF(d_font != NULL) {
 			return d_font->read_signal(SIG_TOWNS_FONT_KANJI_DATA_HIGH);
 		}
 		break;
 	case 0xff98:
-		if(d_timer != NULL) {
+		__LIKELY_IF(d_timer != NULL) {
 			d_timer->write_signal(SIG_TIMER_BEEP_ON, 1, 1);
 		}
 		break;
 	case 0xff99:
 		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
 			val = (ankcg_enabled) ? 0x01 : 0x00;
-		} else if(d_planevram != NULL) {
+		} else __LIKELY_IF(d_planevram != NULL) {
 			val = d_planevram->read_memory_mapped_io8(addr);
 		}
 		break;
 	case 0xff9c:
 		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
-			if(d_font != NULL) {
+			__LIKELY_IF(d_font != NULL) {
 				val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_HIGH);
 			}
-		} else if(d_planevram != NULL) {
+		} else __LIKELY_IF(d_planevram != NULL) {
 			val = d_planevram->read_io8(addr);
 		}
 		break;
 	case 0xff9d:
 		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
-			if(d_font != NULL) {
+			__LIKELY_IF(d_font != NULL) {
 				val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_LOW);
 			}
-		} else if(d_planevram != NULL) {
+		} else __LIKELY_IF(d_planevram != NULL) {
 			val = d_planevram->read_io8(addr);
 		}
 		break;
 	case 0xff9e:
 		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
-			if(d_font != NULL) {
+			__LIKELY_IF(d_font != NULL) {
 				val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_ROW);
 			}
-		} else if(d_planevram != NULL) {
+		} else __LIKELY_IF(d_planevram != NULL) {
 			val = d_planevram->read_io8(addr);
 		}
 		break;
 	default:
-		if(d_planevram != NULL) {
+		__LIKELY_IF(d_planevram != NULL) {
 			val = d_planevram->read_io8(addr);
 		}
 		break;
@@ -526,27 +526,27 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		
 		if((data & 0x40) != 0) {
 			poff_status = true;
-			if(d_cpu != NULL) {
+			__LIKELY_IF(d_cpu != NULL) {
 				d_cpu->set_shutdown_flag(1);
 			}
 			// Todo: Implement true power off.
 //			emu->power_off();
 		} else {
 			poff_status = false;
-			if(d_cpu != NULL) {
+			__LIKELY_IF(d_cpu != NULL) {
 				d_cpu->set_shutdown_flag(0);
 			}
 		}
 		
 		if(software_reset) {
-			if(d_cpu != NULL) {
+			__LIKELY_IF(d_cpu != NULL) {
 				d_cpu->reset();
 			}
 			uint8_t wrap_val = 0xff; // WRAP OFF
 			if(machine_id >= 0x0b00) { // After MA/MX/ME
 				wrap_val = 0x00;
 			}
-			if(d_dmac != NULL) {
+			__LIKELY_IF(d_dmac != NULL) {
 				d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP_REG, wrap_val, 0xff);
 			}
 		}
@@ -554,7 +554,7 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x0022:
 		if((data & 0x40) != 0) {
-			if(d_cpu != NULL) {
+			__LIKELY_IF(d_cpu != NULL) {
 				d_cpu->set_shutdown_flag(1);
 			}
 			// Todo: Implement true power off.
@@ -628,18 +628,18 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	case 0xfda4:
 		if(machine_id >= 0x0700) { // After HR/HG
 			is_compatible = ((data & 0x01) == 0x00) ? true : false;
-			if(d_crtc != NULL) {
+			__LIKELY_IF(d_crtc != NULL) {
 				d_crtc->write_signal(SIG_TOWNS_CRTC_COMPATIBLE_MMIO, (is_compatible) ? 0xffffffff : 0x00000000, 0xffffffff);
 			}
 		}
 		break;
 	case 0xff94:
-		if(d_font != NULL) {
+		__LIKELY_IF(d_font != NULL) {
 			d_font->write_signal(SIG_TOWNS_FONT_KANJI_HIGH, data, 0xff);
 		}
 		break;
 	case 0xff95:
-		if(d_font != NULL) {
+		__LIKELY_IF(d_font != NULL) {
 			d_font->write_signal(SIG_TOWNS_FONT_KANJI_LOW, data, 0xff);
 		}
 		break;
@@ -648,7 +648,7 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	case 0xff97:
 		break;
 	case 0xff98:
-		if(d_timer != NULL) {
+		__LIKELY_IF(d_timer != NULL) {
 			d_timer->write_signal(SIG_TIMER_BEEP_ON, 0, 1);
 		}
 		break;
@@ -658,15 +658,15 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0xff9e:
 		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
-			if(d_font != NULL) {
+			__LIKELY_IF(d_font != NULL) {
 				d_font->write_signal(SIG_TOWNS_FONT_KANJI_ROW, data, 0xff);
 			}
-		} else if(d_planevram != NULL) {
+		} else __LIKELY_IF(d_planevram != NULL) {
 			d_planevram->write_io8(addr , data);
 		}
 		break;
 	default:
-		if(d_planevram != NULL) {
+		__LIKELY_IF(d_planevram != NULL) {
 			d_planevram->write_io8(addr , data);
 		}
 		break;
@@ -704,27 +704,27 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io32(uint32_t addr)
 uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
-	if((addr >= 0xc0000) && (addr <= 0xc7fff)) {
-		if(d_planevram != NULL) {
+	__UNLIKELY_IF((addr >= 0xc0000) && (addr <= 0xc7fff)) {
+		__LIKELY_IF(d_planevram != NULL) {
 			return d_planevram->read_memory_mapped_io8(addr);
 		}
 		return 0xff;
-	} else if((addr >= 0xc8000) && (addr <= 0xc9fff)) {
-		if(d_sprite != NULL) {
+	} else __UNLIKELY_IF((addr >= 0xc8000) && (addr <= 0xc9fff)) {
+		__LIKELY_IF(d_sprite != NULL) {
 			d_sprite->read_memory_mapped_io8(addr);
 		} else {
 			return 0xff;
 		}
-	} else if((addr >= 0xca000) && (addr <= 0xcbfff)) {
+	} else __UNLIKELY_IF((addr >= 0xca000) && (addr <= 0xcbfff)) {
 		if(ankcg_enabled) {
 			if((addr >= 0xca000) && (addr <= 0xca7ff)) {
-				if(d_font != NULL) {
+				__LIKELY_IF(d_font != NULL) {
 					d_font->read_memory_mapped_io8(addr);
 				} else {
 					return 0xff;
 				}
 			} else if((addr >= 0xcb000) && (addr <= 0xcbfff)) {
-				if(d_font != NULL) {
+				__LIKELY_IF(d_font != NULL) {
 					d_font->read_memory_mapped_io8(addr);
 				} else {
 					return 0xff;
@@ -733,14 +733,14 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 				return 0xff;
 			}
 		}
-		if(d_sprite != NULL) {
+		__LIKELY_IF(d_sprite != NULL) {
 			d_sprite->read_memory_mapped_io8(addr);
 		} else {
 			return 0xff;
 		}
 	}
 	
-	if((addr < 0xcfc00) || (addr >= 0xd0000)) return 0xff;
+	__UNLIKELY_IF((addr < 0xcfc00) || (addr >= 0xd0000)) return 0xff;
 	switch(addr) {
 	case 0xcff88:
 	case 0xcff94:
@@ -791,22 +791,22 @@ void TOWNS_MEMORY::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	if((addr >= 0xc0000) && (addr <= 0xc7fff)) {
-		if(d_planevram != NULL) {
+		__LIKELY_IF(d_planevram != NULL) {
 			d_planevram->write_memory_mapped_io8(addr, data);
 		}
 		return;
 	} else if((addr >= 0xc8000) && (addr <= 0xc9fff)) {
-		if(d_sprite != NULL) {
+		__LIKELY_IF(d_sprite != NULL) {
 			d_sprite->write_memory_mapped_io8(addr, data);
 		}
 		return;
 	} else if((addr >= 0xca000) && (addr <= 0xcbfff)) {
-		if(d_sprite != NULL) {
+		__LIKELY_IF(d_sprite != NULL) {
 			d_sprite->write_memory_mapped_io8(addr, data);
 		}
 		return;
 	}
-	if((addr < 0xcfc00) || (addr >= 0xd0000)) return;
+	__LIKELY_IF((addr < 0xcfc00) || (addr >= 0xd0000)) return;
 	switch(addr) {
 	case 0xcff94:
 	case 0xcff95:
@@ -820,7 +820,7 @@ void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 			ram_pagec[addr & 0xffff] = data;
 			return;
 		}
-		if(d_planevram != NULL) {
+		__LIKELY_IF(d_planevram != NULL) {
 			d_planevram->write_io8(addr & 0xffff, data);
 		}
 		break;
@@ -834,7 +834,7 @@ void TOWNS_MEMORY::write_data16w(uint32_t addr, uint32_t data, int* wait)
 	int dummy;
 	MEMORY::write_data16w(addr, data, &dummy);
 	// Note: WAIT valus may be same as 1 bytes r/w.
-	if(wait != NULL) {
+	__LIKELY_IF(wait != NULL) {
 		*wait = wr_table[bank].wait;
 	}
 }
@@ -845,7 +845,7 @@ void TOWNS_MEMORY::write_data32w(uint32_t addr, uint32_t data, int* wait)
 	int dummy;
 	MEMORY::write_data32w(addr, data, &dummy);
 	// Note: WAIT valus may be same as 1 bytes r/w.
-	if(wait != NULL) {
+	__LIKELY_IF(wait != NULL) {
 		*wait = wr_table[bank].wait;
 	}
 }
@@ -857,7 +857,7 @@ uint32_t TOWNS_MEMORY::read_data16w(uint32_t addr, int* wait)
 	int dummy;
 	uint32_t val = MEMORY::read_data16w(addr, &dummy);
 	// Note: WAIT valus may be same as 1 bytes r/w.
-	if(wait != NULL) {
+	__LIKELY_IF(wait != NULL) {
 		*wait = wr_table[bank].wait;
 	}
 	return val;
@@ -869,7 +869,7 @@ uint32_t TOWNS_MEMORY::read_data32w(uint32_t addr, int* wait)
 	// Note: WAIT valus may be same as 1 bytes r/w.
 	int dummy;
 	uint32_t val = MEMORY::read_data32w(addr, &dummy);
-	if(wait != NULL) {
+	__LIKELY_IF(wait != NULL) {
 		*wait = wr_table[bank].wait;
 	}
 	return val;
@@ -880,7 +880,7 @@ uint32_t TOWNS_MEMORY::read_dma_data8(uint32_t addr)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
 	
-	if(rd_table[bank].device != NULL) {
+	__UNLIKELY_IF(rd_table[bank].device != NULL) {
 		return rd_table[bank].device->read_memory_mapped_io8(addr);
 	} else {
 		return rd_table[bank].memory[addr & bank_mask];
@@ -891,14 +891,14 @@ uint32_t TOWNS_MEMORY::read_dma_data16(uint32_t addr)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
 	
-	if(rd_table[bank].device != NULL) {
+	__UNLIKELY_IF(rd_table[bank].device != NULL) {
 		return rd_table[bank].device->read_memory_mapped_io16(addr);
 	} else {
 		uint32_t naddr = addr & bank_mask;
 		pair32_t n;
 		n.d = 0;
 
-		if((naddr + 1) > bank_mask) {
+		__UNLIKELY_IF((naddr + 1) > bank_mask) {
 			n.b.l = rd_table[bank].memory[naddr];
 			n.b.h = read_dma_data8(addr + 1);
 		} else {
@@ -913,14 +913,14 @@ uint32_t TOWNS_MEMORY::read_dma_data32(uint32_t addr)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
 	
-	if(rd_table[bank].device != NULL) {
+	__UNLIKELY_IF(rd_table[bank].device != NULL) {
 		return rd_table[bank].device->read_memory_mapped_io32(addr);
 	} else {
 		uint32_t naddr = addr & bank_mask;
 		pair32_t n;
 		n.d = 0;
 		
-		if((naddr + 3) > bank_mask) {
+		__UNLIKELY_IF((naddr + 3) > bank_mask) {
 			n.b.l  = rd_table[bank].memory[naddr];
 			n.b.h  = read_dma_data8(addr + 1);
 			n.b.h2 = read_dma_data8(addr + 2);
@@ -939,7 +939,7 @@ void TOWNS_MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
 	
-	if(wr_table[bank].device != NULL) {
+	__UNLIKELY_IF(wr_table[bank].device != NULL) {
 		wr_table[bank].device->write_memory_mapped_io8(addr, data);
 	} else {
 		wr_table[bank].memory[addr & bank_mask] = data;
@@ -950,14 +950,14 @@ void TOWNS_MEMORY::write_dma_data16(uint32_t addr, uint32_t data)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
 	
-	if(wr_table[bank].device != NULL) {
+	__UNLIKELY_IF(wr_table[bank].device != NULL) {
 		wr_table[bank].device->write_memory_mapped_io16(addr, data);
 	} else {
 		uint32_t naddr = addr & bank_mask;
 		pair32_t n;
 		n.d = data;
 		
-		if((naddr + 1) > bank_mask) {
+		__UNLIKELY_IF((naddr + 1) > bank_mask) {
 			wr_table[bank].memory[naddr] = n.b.l;
 			write_dma_data8(addr + 1, n.b.h);
 		} else {
@@ -971,14 +971,14 @@ void TOWNS_MEMORY::write_dma_data32(uint32_t addr, uint32_t data)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
 	
-	if(wr_table[bank].device != NULL) {
+	__UNLIKELY_IF(wr_table[bank].device != NULL) {
 		wr_table[bank].device->write_memory_mapped_io32(addr, data);
 	} else {
 		uint32_t naddr = addr & bank_mask;
 		pair32_t n;
 		n.d = data;
 		
-		if((naddr + 3) > bank_mask) {
+		__UNLIKELY_IF((naddr + 3) > bank_mask) {
 			wr_table[bank].memory[naddr] = n.b.l;
 			write_dma_data8(addr + 1, n.b.h);
 			write_dma_data8(addr + 2, n.b.h2);
@@ -996,7 +996,7 @@ uint32_t TOWNS_MEMORY::read_dma_data8w(uint32_t addr, int* wait)
 {
 	uint32_t val = read_dma_data8(addr);
 	
-	if(wait != NULL) {
+	__LIKELY_IF(wait != NULL) {
 		int bank = (addr & addr_mask) >> addr_shift;
 		*wait = wr_table[bank].wait;
 	}
@@ -1007,7 +1007,7 @@ uint32_t TOWNS_MEMORY::read_dma_data16w(uint32_t addr, int* wait)
 {
 	uint32_t val = read_dma_data16(addr);
 	
-	if(wait != NULL) {
+	__LIKELY_IF(wait != NULL) {
 		int bank = (addr & addr_mask) >> addr_shift;
 		*wait = wr_table[bank].wait;
 	}
@@ -1018,7 +1018,7 @@ uint32_t TOWNS_MEMORY::read_dma_data32w(uint32_t addr, int* wait)
 {
 	uint32_t val = read_dma_data32(addr);
 	
-	if(wait != NULL) {
+	__LIKELY_IF(wait != NULL) {
 		int bank = (addr & addr_mask) >> addr_shift;
 		*wait = wr_table[bank].wait;
 	}
@@ -1029,7 +1029,7 @@ void TOWNS_MEMORY::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
 {
 	write_dma_data8(addr, data);
 	
-	if(wait != NULL) {
+	__LIKELY_IF(wait != NULL) {
 		int bank = (addr & addr_mask) >> addr_shift;
 		*wait = wr_table[bank].wait;
 	}
@@ -1040,7 +1040,7 @@ void TOWNS_MEMORY::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
 {
 	write_dma_data16(addr, data);
 	
-	if(wait != NULL) {
+	__LIKELY_IF(wait != NULL) {
 		int bank = (addr & addr_mask) >> addr_shift;
 		*wait = wr_table[bank].wait;
 	}
@@ -1051,7 +1051,7 @@ void TOWNS_MEMORY::write_dma_data32w(uint32_t addr, uint32_t data, int* wait)
 {
 	write_dma_data32(addr, data);
 	
-	if(wait != NULL) {
+	__LIKELY_IF(wait != NULL) {
 		int bank = (addr & addr_mask) >> addr_shift;
 		*wait = wr_table[bank].wait;
 	}
@@ -1064,27 +1064,27 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 		extra_nmi_val = ((data & mask) != 0);
 		if(!(extra_nmi_mask)) {
 			// Not MASK
-			if(d_cpu != NULL) {
+			__LIKELY_IF(d_cpu != NULL) {
 				d_cpu->write_signal(SIG_CPU_NMI, data, mask);
 			}
 		}			
 	} else if(ch == SIG_CPU_NMI) {
 		// Check protect
 		if(!(nmi_mask)) {
-			if(d_cpu != NULL) {
+			__LIKELY_IF(d_cpu != NULL) {
 				d_cpu->write_signal(SIG_CPU_NMI, data, mask);
 			}
 		}
 	} else if(ch == SIG_CPU_IRQ) {
-		if(d_cpu != NULL) {
+		__LIKELY_IF(d_cpu != NULL) {
 			d_cpu->write_signal(SIG_CPU_IRQ, data, mask);
 		}
 	} else if(ch == SIG_CPU_BUSREQ) {
-		if(d_cpu != NULL) {
+		__LIKELY_IF(d_cpu != NULL) {
 			d_cpu->write_signal(SIG_CPU_BUSREQ, data, mask);
 		}
 	} else if(ch == SIG_I386_A20) {
-		if(d_cpu != NULL) {
+		__LIKELY_IF(d_cpu != NULL) {
 			d_cpu->write_signal(SIG_I386_A20, data, mask);
 		}
 	} else if(ch == SIG_FMTOWNS_NOTIFY_RESET) {
@@ -1099,10 +1099,10 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 		config_page00();
 		set_wait_values();
 
-		if(d_cpu != NULL) {
+		__LIKELY_IF(d_cpu != NULL) {
 			d_cpu->set_address_mask(0xffffffff);
 		}
-		if(d_dmac != NULL) {
+		__LIKELY_IF(d_dmac != NULL) {
 			d_dmac->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, 0xffffffff, 0xffffffff);
 			uint8_t wrap_val = 0xff; // WRAP OFF
 			if(machine_id >= 0x0b00) { // After MA/MX/ME
@@ -1139,7 +1139,7 @@ uint32_t TOWNS_MEMORY::read_signal(int ch)
 
 void TOWNS_MEMORY::set_intr_line(bool line, bool pending, uint32_t bit)
 {
-	if(d_cpu != NULL) {
+	__LIKELY_IF(d_cpu != NULL) {
 		d_cpu->set_intr_line(line, pending, bit);
 	}
 }
