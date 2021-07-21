@@ -482,8 +482,8 @@ __DECL_VECTORIZED_LOOP
 #if 1
 #define EGC_OPE_SHIFTB(addr, value)					\
 	{												\
-		register uint8_t* __p = &(egc_inptr[0]);	\
-		register uint8_t __tmp = (uint8_t)value;	\
+		uint8_t* __p = &(egc_inptr[0]);	\
+		uint8_t __tmp = (uint8_t)value;	\
 		if(egc_ope & 0x400) {						\
 			__p[ 0] = __tmp;						\
 			__p[ 4] = __tmp;						\
