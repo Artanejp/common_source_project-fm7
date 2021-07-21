@@ -1,5 +1,7 @@
 #
 include(CheckFunctionExists)
+include(CheckCXXSourceCompiles)
+include(CheckCXXCompilerFlag)
 
 # Still not as one shared lib with win32
 if(WIN32)
@@ -9,8 +11,12 @@ if(UNIX)
 	include(GNUInstallDirs)
 endif()
 
-set(CSP_BUILD_WITH_CXX20 OFF CACHE BOOL "Build with C++20 specification compilers.This is a very experimental feature.If not set, will build with C++11 specification.")
-
+check_cxx_compiler_flag("-std=c++20" HAS_STD_CXX20)
+if(HAS_STD_CXX20)
+	set(CSP_BUILD_WITH_CXX20 OFF CACHE BOOL "Build with C++20 specification compilers.This is a very experimental feature.If not set, will build with C++11 specification.")
+else()
+	set(CSP_BUILD_WITH_CXX20 OFF)
+endif()					 
 # Note: Belows are temporally disabled, not implemented older CMake.
 # Check HOST NAME
 #cmake_host_system_information(RESULT OSNAME QUERY OS_NAME)
