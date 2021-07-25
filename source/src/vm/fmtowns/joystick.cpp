@@ -17,6 +17,7 @@ namespace FMTOWNS {
 void JOYSTICK::reset()
 {
 	mouse_mask = 0x00;
+	_first = true;
 	update_config(); // Update MOUSE PORT.
 	
 	for(int i = 0; i < 2; i++) {
@@ -32,7 +33,7 @@ void JOYSTICK::initialize()
 	connected_type[0] = 0xffffffff;
 	connected_type[1] = 0xffffffff;
 	stat_com[0] = stat_com[1] = true;
-
+	_first = true;
 }
 
 void JOYSTICK::release()
@@ -59,8 +60,9 @@ void JOYSTICK::write_io8(uint32_t address, uint32_t data)
 {
 	// ToDo: Mouse
 	if(address == 0x04d6) {
-		if(mouse_mask != data) {
+		if((mouse_mask != data) || (_first)) {
 			mouse_mask = data;
+			_first = false;
 			for(int ch = 0; ch < 2; ch++) {
 				send_signals(ch, data);
 			}
@@ -254,7 +256,7 @@ void JOYSTICK::set_emulate_mouse()
 	}
 }
 
-#define STATE_VERSION 6
+#define STATE_VERSION 7
 
 bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 {
@@ -264,6 +266,9 @@ bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
+	
+	state_fio->StateValue(_first);
+
 	state_fio->StateValue(mouse_mask);
 	state_fio->StateArray(joydata, sizeof(joydata), 1);
 	state_fio->StateArray(connected_type, sizeof(connected_type), 1);

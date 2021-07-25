@@ -53,6 +53,8 @@ private:
 	bool emulate_mouse[2];
 	uint32_t joydata[2];
 	bool stat_com[2];
+
+	bool _first;
 	
 	uint8_t mouse_mask;
 	uint32_t connected_type[2];
