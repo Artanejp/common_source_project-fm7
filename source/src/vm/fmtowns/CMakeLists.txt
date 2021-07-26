@@ -18,8 +18,9 @@ set(VM_FMTOWNS_DEV_SRCS
 	fontroms.cpp
 	iccard.cpp
 	joystick.cpp
-	joypad.cpp
-	mouse.cpp
+	joypad_2btn.cpp
+	joypad_6btn.cpp
+#	mouse.cpp
 	
 	msdosrom.cpp
 	serialrom.cpp

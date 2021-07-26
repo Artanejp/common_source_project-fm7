@@ -61,9 +61,10 @@
 #include "./floppy.h"
 #include "./fontroms.h"
 #include "./joystick.h"
-#include "./joypad.h"
+#include "./joypad_2btn.h"
+#include "./joypad_6btn.h"
 #include "./keyboard.h"
-#include "./mouse.h"
+//#include "./mouse.h"
 #include "./msdosrom.h"
 #include "./scsi.h"
 #include "./serialrom.h"
@@ -81,9 +82,11 @@ using FMTOWNS::DICTIONARY;
 using FMTOWNS::FLOPPY;
 using FMTOWNS::FONT_ROMS;
 using FMTOWNS::JOYSTICK;
-using FMTOWNS::JOYPAD;
+using FMTOWNS::JOYPAD_2BTN;
+using FMTOWNS::JOYPAD_6BTN;
+
 using FMTOWNS::KEYBOARD;
-using FMTOWNS::MOUSE;
+//using FMTOWNS::MOUSE;
 using FMTOWNS::MSDOSROM;
 using FMTOWNS::SCSI;
 using FMTOWNS::SERIAL_ROM;
@@ -214,9 +217,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #else
 	iccard2 = NULL;
 #endif
-	joypad[0] = new JOYPAD(this, emu);
-	joypad[1] = new JOYPAD(this, emu);
-	mouse = new MOUSE(this, emu);
+	for(int i = 0; i < 2; i++) {
+		joypad_2btn[i] = new JOYPAD_2BTN(this, emu);
+		joypad_6btn[i] = new JOYPAD_6BTN(this, emu);
+	}
+	//mouse = new MOUSE(this, emu);
 
 	uint16_t machine_id = 0x0100; // FM-Towns1
 	uint16_t cpu_id = 0x0001;     // i386DX
@@ -420,16 +425,25 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	timer->set_context_rtc(rtc);
 	timer->set_context_halt_line(cpu, SIG_CPU_HALTREQ, 0xffffffff);
 
-	joystick->set_context_mouse(mouse);
-	joystick->set_context_joypad(0, joypad[0]);
-	joystick->set_context_joypad(1, joypad[1]);
-	
-	
-	joypad[0]->set_context_port_num(0);
-	joypad[1]->set_context_port_num(1);
-	joypad[0]->set_context_joyport(joystick);
-	joypad[1]->set_context_joyport(joystick);
-	mouse->set_context_joyport(joystick);
+	for(int i = 0; i < 2; i++) {
+		joystick->set_context_joystick(i, joypad_2btn[i]);
+		joystick->set_context_joystick(i, joypad_6btn[i]);
+	}
+	// ToDo: Selective by config.
+	for(int i = 0; i < 2; i++) {
+		joypad_2btn[i]->set_context_pad_num(i);
+		joypad_2btn[i]->set_context_parent_port(i, joystick, 0, 0xff);
+		joypad_2btn[i]->set_negative_logic(true);
+		joypad_2btn[i]->set_enable(true);
+	}
+	for(int i = 0; i < 2; i++) {
+		joypad_6btn[i]->set_context_pad_num(i);
+		joypad_6btn[i]->set_context_parent_port(i, joystick, 0, 0xff);
+		joypad_6btn[i]->set_negative_logic(true);
+		joypad_6btn[i]->set_enable(false);
+	}
+	joystick->set_using_pad(0, 0);
+	joystick->set_using_pad(1, 0);
 
 	// cpu bus
 	cpu->set_context_mem(memory);

@@ -380,8 +380,9 @@ namespace FMTOWNS {
 	class TOWNS_SPRITE;
 	class TOWNS_VRAM;
 	class PLANEVRAM;
-	class JOYPAD;
-	class MOUSE;
+	class JOYPAD_2BTN;
+	class JOYPAD_6BTN;
+//	class MOUSE;
 }
 
 class VM : public VM_TEMPLATE
@@ -416,8 +417,9 @@ protected:
 	FMTOWNS::TOWNS_CRTC*     crtc;
 	FMTOWNS::FLOPPY*         floppy;
 	FMTOWNS::JOYSTICK*       joystick;
-	FMTOWNS::JOYPAD*	     joypad[2];
-	FMTOWNS::MOUSE*			 mouse;
+	FMTOWNS::JOYPAD_2BTN*    joypad_2btn[2];
+	FMTOWNS::JOYPAD_6BTN*    joypad_6btn[2];
+//	FMTOWNS::MOUSE*			 mouse;
 	FMTOWNS::KEYBOARD*       keyboard;
 	FMTOWNS::TIMER*          timer;
 	FMTOWNS::TOWNS_VRAM*     vram;

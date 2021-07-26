@@ -11,23 +11,20 @@
 #pragma once
 
 #include "../device.h"
+#include <mutex>
 
-#define SIG_JOYPORT_CH0				0
-#define SIG_JOYPORT_CH1				(65536 * 256)
+// OUTPUT TO PARENT PORT (SOME JOYSTICK DEVICES -> JOYSTICK PORT)
+#define SIG_JSPORT_COM		0x01001
+#define SIG_JSPORT_DATA		0x01002
 
-#define SIG_JOYPORT_DATA			0x0100
-#define SIG_JOYPORT_COM				0x0200
-#define SIG_JOYPORT_MASK			0x0300
-#define SIG_JOYPORT_RAWREG			0x1000
-
-#define SIG_JOYPORT_TYPE_NULL		0
-#define SIG_JOYPORT_TYPE_2BUTTONS	1
-#define SIG_JOYPORT_TYPE_6BUTTONS	2
-#define SIG_JOYPORT_TYPE_ANALOG		3 /* ToDo: For CYBER STICK */
-#define SIG_JOYPORT_TYPE_MOUSE		4
-#define SIG_JOYPORT_TYPE_TWIN_2B_0	5 /* ToDo: For RIBBLE RABBLE */
-#define SIG_JOYPORT_TYPE_TWIN_2B_1	6 /* ToDo: For RIBBLE RABBLE */
-#define SIG_JOYPORT_CONNECT			7 /* ToDo: RESET */
+#define SIG_JSPORT_PORT1	0x00000000
+#define SIG_JSPORT_PORT2	0x00010000
+#define SIG_JSPORT_PORT3	0x00020000
+#define SIG_JSPORT_PORT4	0x00030000
+#define SIG_JSPORT_PORT5	0x00040000
+#define SIG_JSPORT_PORT6	0x00050000
+#define SIG_JSPORT_PORT7	0x00060000
+#define SIG_JSPORT_PORT8	0x00070000
 
 // MSX RELATED PORT CONFIGURATION
 // https://www.msx.org/wiki/General_Purpose_port
@@ -44,34 +41,50 @@
 #define LINE_JOYPORT_POW_GND		(1 << 9) /* GND PIN 8*/
 
 namespace FMTOWNS {
+class JSDEV_TEMPLATE;
+	
 class JOYSTICK : public DEVICE
 {
 private:
-	DEVICE* d_mouse;
-	DEVICE* d_joypad[2];
+	JSDEV_TEMPLATE* d_port[2][8];
+
+	std::mutex _locker;
 	
-	bool emulate_mouse[2];
-	uint32_t joydata[2];
+	int port_count[2];
+	int port_using[2];
+
+	uint8_t reg_val;
+	uint8_t data_reg[2];
+	uint8_t data_mask[2];
+	
 	bool stat_com[2];
-
-	bool _first;
+	bool stat_triga[2];
+	bool stat_trigb[2];
 	
-	uint8_t mouse_mask;
-	uint32_t connected_type[2];
 	
-	void set_emulate_mouse();
-	void __FASTCALL send_signals(int ch, uint32_t data);
-
+	virtual void __FASTCALL write_data_to_port(uint8_t data);
+	std::unique_lock<std::mutex> lock_device()
+	{
+		return  std::unique_lock<std::mutex>(_locker, std::adopt_lock);
+	}
+	void unlock_device(std::unique_lock<std::mutex> _l)
+	{
+		std::mutex* p = _l.release();
+		if(p != nullptr) {
+			p->unlock();
+		}
+	}
 public:
 	JOYSTICK(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		d_mouse = NULL;
-		d_joypad[0] = NULL;
-		d_joypad[1] = NULL;
-		connected_type[0] = SIG_JOYPORT_CH0 | SIG_JOYPORT_TYPE_NULL;
-		connected_type[1] = SIG_JOYPORT_CH1 | SIG_JOYPORT_TYPE_NULL;
-
-		set_device_name(_T("FM-Towns PAD Port"));
+		for(int j = 0; j < 2; j++) {
+			for(int i = 0; i < 8; i++) {
+				d_port[j][i] = NULL;
+			}
+			port_count[j] = 0;
+			port_using[j] = -1;
+		}
+		set_device_name(_T("FM-Towns JOYSTICK Port"));
 	}
 	~JOYSTICK() {}
 	
@@ -89,17 +102,19 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 
 	// unique functions
-	void set_context_joypad(int num, DEVICE* dev)
+	void set_context_joystick(int portnum, JSDEV_TEMPLATE* dev)
 	{
-		if((d_joypad[num] == nullptr) && (dev != nullptr)) {
-			d_joypad[num] = dev;
+		std::unique_lock<std::mutex> _l = lock_device();
+		
+		if((portnum < 0) || (portnum > 1)) return;
+		if(port_count[portnum] < 8) {
+			d_port[portnum][port_count[portnum]] = dev;
+			port_count[portnum]++;
 		}
 	}
-	void set_context_mouse(DEVICE* dev)
+	void set_using_pad(int portnum, int num)
 	{
-		if((d_mouse == nullptr) && (dev != nullptr)) {
-			d_mouse = dev;
-		}
+		port_using[portnum] = num;
 	}
 
 			
