@@ -29,7 +29,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	use_joystick_type = -1;
 	use_keyboard_type = -1;
 	use_dipswitch = false;
-
+	use_machine_features = 0;
 	use_drive_type = 0;
 
 	use_fd = false;
@@ -255,6 +255,7 @@ int USING_FLAGS::get_vm_node_size(void)
 void USING_FLAGS::set_vm_node_name(int id, const _TCHAR *name)
 {
 }
+
 
 _TCHAR *USING_FLAGS::get_vm_node_name(int id)
 {

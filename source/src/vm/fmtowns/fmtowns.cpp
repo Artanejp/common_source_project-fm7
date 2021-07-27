@@ -426,8 +426,15 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	timer->set_context_halt_line(cpu, SIG_CPU_HALTREQ, 0xffffffff);
 
 	for(int i = 0; i < 2; i++) {
+		// type =
+		// 0: Towns PAD 2buttons
+		// 1: Towns PAD 6buttons
+		// 2: Towns MOUSE
+		// 3: Analog Pad (reserved)
+		// 4: Libble Rabble stick (reserved)
 		joystick->set_context_joystick(i, joypad_2btn[i]);
 		joystick->set_context_joystick(i, joypad_6btn[i]);
+		
 	}
 	// ToDo: Selective by config.
 	for(int i = 0; i < 2; i++) {

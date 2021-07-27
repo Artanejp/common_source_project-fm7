@@ -269,12 +269,12 @@
 //#define _IO_DEBUG_LOG
 
 // device informations for win32
-#define USE_CPU_TYPE		2
-#define USE_FLOPPY_DISK     4 // ??
-#define USE_CART			2
-#define USE_SPECIAL_RESET	12 /* 'CD' 'F0' - 'F3' 'H0' - 'H4' 'ICM' 'DEBUG' */
-#define USE_FLOPPY_TYPE_BIT 0x0003 /* 5.0, 5.0, 3.5, 3.5 */
-
+#define USE_CPU_TYPE			2
+#define USE_FLOPPY_DISK			4 // ??
+#define USE_CART				2
+#define USE_SPECIAL_RESET		12 /* 'CD' 'F0' - 'F3' 'H0' - 'H4' 'ICM' 'DEBUG' */
+#define USE_FLOPPY_TYPE_BIT		0x0003 /* 5.0, 5.0, 3.5, 3.5 */
+#define USE_MACHINE_FEATURES	8
 #define NOTIFY_KEY_DOWN
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
@@ -284,10 +284,7 @@
 #define USE_SOUND_FILES_FDD
 #define USE_JOYSTICK
 #define USE_JOY_BUTTON_CAPTIONS
-#define USE_JOYSTICK_TYPE	3
-#define JOYSTICK_TYPE_DEFAULT	0
 #define USE_MOUSE
-#define USE_MOUSE_TYPE      3
 #define USE_CUSTOM_SCREEN_ZOOM_FACTOR 1.25
 
 #if defined(USE_SOUND_FILES)

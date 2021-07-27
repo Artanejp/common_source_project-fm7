@@ -36,7 +36,7 @@ void JOYSTICK::release()
 
 void JOYSTICK::write_data_to_port(uint8_t data)
 {
-	//std::unique_lock<std::mutex> _l = lock_device();
+	std::unique_lock<std::mutex> _l = lock_device();
 	
 	reg_val = data;
 	for(int num = 0; num < 2; num++) {
@@ -139,14 +139,61 @@ uint32_t JOYSTICK::read_signal(int id)
 
 void JOYSTICK::update_config(void)
 {
+	std::unique_lock<std::mutex> _l = lock_device();
+	// BEGIN JOYPORT.
+	// config.machine_features[0,1] : JOYPORT 1,2
+	// value =
+	// 0: None connected
+	// 1: Towns PAD 2buttons
+	// 2: Towns PAD 6buttons
+	// 3: Towns MOUSE
+	// 4: Analog Pad (reserved)
+	// 5: Libble Rabble stick (reserved)
+	bool change_jsport = false;
+	const int js_limit = 2;
+	for(int i = 0; i < 2; i++) {
+		if((port_using[i] + 1) != config.machine_features[i]) {
+			change_jsport = true ;
+			if((port_using[i] >= 0) && (port_using[i] < port_count[i])) {
+				JSDEV_TEMPLATE* p = d_port[i][port_using[i]];
+				if(p != nullptr) {
+					p->set_enable(false); // Disconnect
+				}
+			}
+			if((config.machine_features[i] > 0) && (config.machine_features[i] <= js_limit)) {
+				JSDEV_TEMPLATE* p = d_port[i][config.machine_features[i] - 1];
+				if(p != nullptr) {
+					p->set_enable(true);
+					p->reset_device();
+					p->query(_stat); // Query Twice.
+				}
+			}
+		}
+	}
+//	if(change_jsport) {
+	write_data_to_port(reg_val);
+//	}
+	for(int i = 0; i < 2; i++) {
+		if((config.machine_features[i] > 0) && (config.machine_features[i] <= js_limit)) {
+			JSDEV_TEMPLATE* p = d_port[i][config.machine_features[i] - 1];
+			if(p != nullptr) {
+				port_using[i] = ((int)config.machine_features[i]) - 1;
+			} else {
+				port_using[i] = -1;
+			}
+		} else {
+			port_using[i] = -1;
+		}
+	}
+	// END JOYPORT.
 }
 
 
-#define STATE_VERSION 16
+#define STATE_VERSION 17
 
 bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 {
-	//std::unique_lock<std::mutex> _l = lock_device();
+	std::unique_lock<std::mutex> _l = lock_device();
 	
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -158,6 +205,8 @@ bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 	state_fio->StateValue(reg_val);
 	state_fio->StateArray(data_reg, sizeof(data_reg), 1);
 	state_fio->StateArray(stat_com, sizeof(stat_com), 1);
+	
+	state_fio->StateArray(port_using, sizeof(port_using), 1);
 
 	if(loading) {
 		for(int i = 0; i < 2; i++) {

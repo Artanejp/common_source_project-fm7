@@ -67,7 +67,8 @@ protected:
 	int use_device_type;
 	int use_mouse_type;
 	bool use_dipswitch;
-
+	int use_machine_features;
+	
 	bool use_ram_size;
 	int max_ram_size;
 	int min_ram_size;
@@ -252,6 +253,8 @@ public:
 	int get_use_device_type() { return use_device_type; }
 	int get_use_mouse_type() { return use_mouse_type; }
 	bool is_use_dipswitch() { return use_dipswitch; }
+	int get_use_machine_features() { return use_machine_features; }
+
 
 	int get_use_drive_type() { return use_drive_type; }
 

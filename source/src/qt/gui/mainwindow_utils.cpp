@@ -285,6 +285,18 @@ void Ui_MainWindowBase::ConfigJoystickType(void)
 	}
 }
 
+// Note: YOU MUST ADD OWN ACTION ENTRIES TO MENU; menuMachineFeatures[foo].
+void Ui_MainWindowBase::ConfigMachineFeatures(void)
+{
+	for(int i = 0; i < using_flags->get_use_machine_features(); i++) {
+		
+		menuMachineFeatures[i] = new QMenu(menuMachine);
+		menuMachineFeatures[i]->setObjectName(QString::fromUtf8("menuMachineFeatures"));
+		menuMachine->addAction(menuMachineFeatures[i]->menuAction());
+		menuMachineFeatures[i]->setToolTipsVisible(true);
+	}
+}
+
 void Ui_MainWindowBase::ConfigKeyboardType(void)
 {
 	if(using_flags->get_use_keyboard_type() > 0) {

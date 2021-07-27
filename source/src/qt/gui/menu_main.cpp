@@ -173,6 +173,7 @@ void Ui_MainWindowBase::do_set_window_focus_type(bool flag)
 	}
 }
 
+
 void Ui_MainWindowBase::do_show_ram_size_dialog(void)
 {
 	CSP_MemoryDialog *dlg = new CSP_MemoryDialog(using_flags, NULL);
@@ -340,6 +341,13 @@ void Ui_MainWindowBase::do_select_render_platform(int num)
 		p_config->render_major_version = _major;
 		p_config->render_minor_version = _minor;
 	}
+}
+
+void Ui_MainWindowBase::do_set_machine_feature(int devnum, uint32_t value)
+{
+	if((devnum < 0) || (devnum >= using_flags->get_use_machine_features())) return;
+	p_config->machine_features[devnum] = value;
+	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::set_dipsw(int num, bool flag)

@@ -443,6 +443,7 @@ protected:
 	class Action_Control *actionSoundDevice[32]; //
 	class Action_Control *actionPrintDevice[16];
 	class Action_Control *action_SetRenderPlatform[MAX_RENDER_PLATFORMS];
+
 	
 	class Action_Control *actionStart_Record_Movie;
 	class Action_Control *actionStop_Record_Movie;
@@ -656,8 +657,10 @@ public slots:
 
 	void _open_cart(int drv, const QString fname);
 	void eject_cmt(int drv);
+	
 	void do_change_boot_mode(int mode);
 	void do_change_cpu_type(int mode);
+	
 	void do_write_protect_cmt(int drv, bool flag);
 	int  set_recent_cmt(int drv, int num);
 	void set_wave_shaper(int drive, bool f);
@@ -760,7 +763,9 @@ public slots:
 	void do_show_ram_size_dialog(void);
 	void do_block_task();
 	void do_unblock_task();
-	
+
+	void do_select_machine_feature(int devnum, uint32_t value);
+
 	void do_start_emu_thread();
 	void do_start_draw_thread();
 signals:

@@ -67,13 +67,6 @@ private:
 	{
 		return  std::unique_lock<std::mutex>(_locker, std::adopt_lock);
 	}
-	void unlock_device(std::unique_lock<std::mutex> _l)
-	{
-		std::mutex* p = _l.release();
-		if(p != nullptr) {
-			p->unlock();
-		}
-	}
 public:
 	JOYSTICK(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

@@ -242,7 +242,12 @@ void initialize_config()
 		config.numpad_enter_as_fullkey = true;
 	#endif
 		config.host_keyboard_type = CONFIG_HOST_KEYBOARD_AT_109JP;
-#endif	
+	#endif
+	#if defined(USE_MACHINE_FEATURES)
+		for(int i = 0; i < 32; i++) {
+			config.machine_features[i] = 0;
+		}
+	#endif
 }
 
 void load_config(const _TCHAR *config_path)
@@ -260,6 +265,16 @@ void load_config(const _TCHAR *config_path)
 	#endif
 	#ifdef USE_DIPSWITCH
 		config.dipswitch = MyGetPrivateProfileInt(_T("Control"), _T("DipSwitch"), config.dipswitch, config_path);
+	#endif
+	#ifdef USE_MACHINE_FEATURES
+		for(int ii = 0; ii < USE_MACHINE_FEATURES; ii++) {
+			if(ii >= 32) break;
+			config.machine_features[ii] =
+				MyGetPrivateProfileInt(_T("Control"),
+									   create_string(_T("MachineFeatures%d"), ii),
+									   config.machine_features[ii], config_path);
+			
+		}
 	#endif
 	#ifdef USE_DEVICE_TYPE
 		config.device_type = MyGetPrivateProfileInt(_T("Control"), _T("DeviceType"), config.device_type, config_path);
@@ -657,6 +672,15 @@ void save_config(const _TCHAR *config_path)
 	#endif
 	#ifdef USE_DIPSWITCH
 		MyWritePrivateProfileInt(_T("Control"), _T("DipSwitch"), config.dipswitch, config_path);
+	#endif
+	#ifdef USE_MACHINE_FEATURES
+		for(int ii = 0; ii < USE_MACHINE_FEATURES; ii++) {
+			if(ii >= 32) break;
+			MyWritePrivateProfileInt(_T("Control"),
+									   create_string(_T("MachineFeatures%d"), ii),
+									   config.machine_features[ii], config_path);
+			
+		}
 	#endif
 	#ifdef USE_DEVICE_TYPE
 		MyWritePrivateProfileInt(_T("Control"), _T("DeviceType"), config.device_type, config_path);

@@ -123,6 +123,8 @@ public slots:
 	void do_stop_saving_movie(void);
 	void do_set_monitor_type();
 	void do_select_fixed_cpu(void);
+
+	void do_select_machine_feature_single(void);
 	
 signals:
 	int on_boot_mode(int);   
@@ -143,7 +145,8 @@ signals:
 	int sig_printer_device(int);
 	int sig_drive_type(int);
 	int sig_emu_update_config(void);
-
+	int sig_set_machine_feature(int, uint32_t);
+	
 	int set_recent_quick_disk(int, int);
 	int sig_write_protect_Qd(int, bool);
 	int sig_eject_Qd(int);
@@ -180,7 +183,7 @@ signals:
 	int sig_screen_size(int, int);
 	int sig_screen_multiply(float);
 	int sig_screen_rotate(int);
-	
+
 	int sig_monitor_type(int);
 	int sig_set_fixed_cpu(int);
 	

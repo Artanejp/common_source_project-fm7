@@ -19,6 +19,15 @@ void Object_Menu_Control::do_select_fixed_cpu(void)
 	emit sig_set_fixed_cpu(getValue1());
 }
 
+// ToDo: Call dialogs.
+void Object_Menu_Control::do_select_machine_feature_single(void)
+{
+	int devnum = getNumber();
+	uint32_t value = (uint32_t)getValue1();
+	emit sig_set_machine_feature(devnum, value);
+	// Not NEED to call sig_emu_update_config()
+}
+
 void Object_Menu_Control::do_set_monitor_type()
 {
 	emit sig_monitor_type(getValue1());

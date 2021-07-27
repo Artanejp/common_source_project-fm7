@@ -93,14 +93,6 @@ protected:
 		}
 	}
 
-	// @note: DEVICE MUST NOT RESET WITHIN reset(), must reset within reset_device().
-	virtual void reset_device()
-	{
-		
-		initialize_status();
-		output_port_signals(false);
-		output_port_com(val_com, false);
-	}
 	virtual void initialize_status()
 	{
 		//std::unique_lock<std::mutex> _l = lock_device();
@@ -422,14 +414,13 @@ public:
 		//std::unique_lock<std::mutex> _l = lock_device();
 
 		parent_port_num = -1;
+		d_parent_device = NULL;
 		pad_num = -1;
 		pad_type = 0;
 		signal_shift = 0;
 		signal_mask = 0xffffffff;
 		
-		d_parent_device = NULL;
 		is_connected = false;
-		is_negative_logic = false;
 		force_output_on_change  = false;
 
 		//unlock_device(_l);
@@ -443,6 +434,13 @@ public:
 
 		force_output_on_change = val;
 
+	}
+	// @note: DEVICE MUST NOT RESET WITHIN reset(), must reset within reset_device().
+	virtual void reset_device()
+	{
+		initialize_status();
+		output_port_signals(false);
+		output_port_com(val_com, false);
 	}
 	virtual void set_enable(bool is_enable)
 	{

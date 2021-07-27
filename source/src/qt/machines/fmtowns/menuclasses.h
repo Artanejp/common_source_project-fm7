@@ -14,11 +14,16 @@ class CSP_Logger;
 class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
 protected:
+	QActionGroup *actionGroup_JOYPortType[2];
+	Action_Control *actionJOYPORT_TYPE[2][8];
+	
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 public:
 	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~META_MainWindow();
+
+public slots:
 };
 
 QT_END_NAMESPACE

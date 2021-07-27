@@ -355,6 +355,9 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_DIPSWITCH)
 	use_dipswitch = true;
 #endif
+#if defined(USE_MACHINE_FEATURES)	
+	use_machine_features = USE_MACHINE_FEATURES;
+#endif
 #if defined(USE_DRIVE_TYPE)
 	use_drive_type = USE_DRIVE_TYPE;
 #endif

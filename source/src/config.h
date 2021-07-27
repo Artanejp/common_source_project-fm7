@@ -354,7 +354,11 @@ typedef struct {
 
 	int virtual_media_position; // -1 = none, 1, 2, 3, 4 = LRUD
 #endif
-	
+	// 20210728 K.O
+	// Belows are machine features config (without DIPSW. I.E. joystick ports
+#if defined(USE_FIXED_CONFIG) || defined(USE_MACHINE_FEATURES)
+	uint32_t machine_features[32];
+#endif
 } config_t;
 
 extern config_t DLL_PREFIX_I config;
