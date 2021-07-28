@@ -436,6 +436,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		joystick->set_context_joystick(i, joypad_6btn[i]);
 		
 	}
+#ifdef USE_DEBUGGER
+	joystick->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	// ToDo: Selective by config.
 	for(int i = 0; i < 2; i++) {
 		joypad_2btn[i]->set_context_pad_num(i);

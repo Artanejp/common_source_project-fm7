@@ -238,7 +238,7 @@ public:
 	virtual void initialize(void)
 	{
 		pad_type = PAD_TYPE_NULL;
-		reset_device();
+		reset_device(false);
 	}
 	
 	virtual void release()
@@ -285,7 +285,7 @@ public:
 			break;
 		case SIG_JS_DEVICE_RESET:
 			if((data & mask) != 0) {
-				reset_device();
+				reset_device(true);
 			}
 			break;
 		}
@@ -405,7 +405,7 @@ public:
 		signal_mask = mask;
 
 		force_output_on_change  = false;
-		reset_device();
+		reset_device(false); // OK?
 	}
 
 	virtual void remove_from_parent_port()
@@ -436,11 +436,13 @@ public:
 
 	}
 	// @note: DEVICE MUST NOT RESET WITHIN reset(), must reset within reset_device().
-	virtual void reset_device()
+	virtual void reset_device(bool port_out)
 	{
 		initialize_status();
-		output_port_signals(false);
-		output_port_com(val_com, false);
+		if(port_out) {
+			output_port_signals(false);
+			output_port_com(val_com, false);
+		}
 	}
 	virtual void set_enable(bool is_enable)
 	{

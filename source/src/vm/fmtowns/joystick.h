@@ -40,14 +40,15 @@
 #define LINE_JOYPORT_POW_PLUS		(1 << 8) /* +5V PIN 5*/
 #define LINE_JOYPORT_POW_GND		(1 << 9) /* GND PIN 8*/
 
+class DEBUGGER;
 namespace FMTOWNS {
 class JSDEV_TEMPLATE;
 	
 class JOYSTICK : public DEVICE
 {
 private:
+	DEBUGGER* d_debugger;
 	JSDEV_TEMPLATE* d_port[2][8];
-
 	std::mutex _locker;
 	
 	int port_count[2];
@@ -61,8 +62,10 @@ private:
 	bool stat_triga[2];
 	bool stat_trigb[2];
 	
-	
-	virtual void __FASTCALL write_data_to_port(uint8_t data);
+	virtual void __FASTCALL reset_input_data(int num);
+	virtual void __FASTCALL make_mask(int num, uint8_t data);
+	virtual void __FASTCALL write_data_to_port(int num, JSDEV_TEMPLATE *target_dev, uint8_t data);
+	virtual void __FASTCALL write_port(uint8_t data);
 	std::unique_lock<std::mutex> lock_device()
 	{
 		return  std::unique_lock<std::mutex>(_locker, std::adopt_lock);
@@ -77,6 +80,7 @@ public:
 			port_count[j] = 0;
 			port_using[j] = -1;
 		}
+		d_debugger = NULL;
 		set_device_name(_T("FM-Towns JOYSTICK Port"));
 	}
 	~JOYSTICK() {}
@@ -93,6 +97,24 @@ public:
 
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
+
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	bool is_debugger_available()
+	{
+		return ((d_debugger != NULL) ? true : false);
+	}
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
+	virtual uint32_t get_debug_data_addr_mask()
+	{
+		return 0x1;
+	}
 
 	// unique functions
 	void set_context_joystick(int portnum, JSDEV_TEMPLATE* dev)
