@@ -346,6 +346,7 @@ private:
 	void ConfigDeviceType(void);
 	void ConfigKeyboardType(void);
 	void ConfigJoystickType(void);
+	void ConfigMachineFeatures(void);
 	void ConfigMouseType(void);
 	void ConfigDriveType(void);
 	void ConfigSoundDeviceType(void);
@@ -479,6 +480,9 @@ protected:
 	QMenu *menuHELP;
 	QMenu *menuHelp_Readme;
 	QMenu *menuHelp_Histories;
+
+	QMenu *menuMachineFeatures[32];
+	
 	Menu_FDClass *menu_fds[16];
 	Menu_QDClass *menu_QDs[8];
 	Menu_CMTClass *menu_CMT[8];
@@ -764,7 +768,7 @@ public slots:
 	void do_block_task();
 	void do_unblock_task();
 
-	void do_select_machine_feature(int devnum, uint32_t value);
+	void do_set_machine_feature(int devnum, uint32_t value);
 
 	void do_start_emu_thread();
 	void do_start_draw_thread();

@@ -629,6 +629,7 @@ void Ui_MainWindowBase::setupUi(void)
 	ConfigSoundDeviceType();
 	ConfigPrinterType();
 	ConfigMonitorType();
+	ConfigMachineFeatures();
 	
 	if(!using_flags->is_without_sound()) {
 		menuSound = createMenuNode(menubar, QString::fromUtf8("menuSound"));

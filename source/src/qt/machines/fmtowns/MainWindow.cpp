@@ -48,8 +48,8 @@ void META_MainWindow::retranslateUi(void)
 	actionSpecial_Reset[11]->setText(QApplication::translate("Machine", "Reset with DEBUG", 0));
 	actionSpecial_Reset[11]->setToolTip(QApplication::translate("Machine", "Reset with DEBUGGING MODE", 0));
 
-	menuMAchineFeatures[0]->setTitle(QApplication::translate("Machine", "Joystick Port #1", 0));
-	menuMAchineFeatures[1]->setTitle(QApplication::translate("Machine", "Joystick Port #2", 0));
+	menuMachineFeatures[0]->setTitle(QApplication::translate("Machine", "Joystick Port #1", 0));
+	menuMachineFeatures[1]->setTitle(QApplication::translate("Machine", "Joystick Port #2", 0));
 #if defined(USE_MACHINE_FEATURES)
 	for(int i = 0; i < 2; i++) {
 		actionJOYPORT_TYPE[i][0]->setText(QApplication::translate("Machine", "none", 0));
@@ -108,7 +108,6 @@ void META_MainWindow::setupUI_Emu(void)
 		actionGroup_JOYPortType[i] = new QActionGroup(this);
 		actionGroup_JOYPortType[i]->setExclusive(true);
 		actionGroup_JOYPortType[i]->setObjectName(QString("actionGroupJOYPort%1").arg(i + 1));
-		menuMachineFeatures[i]->addAction(actionGroup_JOYPortType[i]);
 		for(int j = 0; j < 8; j++) {
 			actionJOYPORT_TYPE[i][j] = new Action_Control(this, using_flags);
 			actionJOYPORT_TYPE[i][j]->setCheckable(true);
@@ -121,6 +120,7 @@ void META_MainWindow::setupUI_Emu(void)
 			actionJOYPORT_TYPE[i][j]->binds->setNumber(i);
 			actionJOYPORT_TYPE[i][j]->binds->setValue1(j);
 			actionGroup_JOYPortType[i]->addAction(actionJOYPORT_TYPE[i][j]);
+			menuMachineFeatures[i]->addAction(actionJOYPORT_TYPE[i][j]);
 			connect(actionJOYPORT_TYPE[i][j], SIGNAL(triggered()),
 					actionJOYPORT_TYPE[i][j]->binds, SLOT(do_select_machine_feature_single()));
 			connect(actionJOYPORT_TYPE[i][j]->binds,
@@ -131,10 +131,12 @@ void META_MainWindow::setupUI_Emu(void)
 			actionJOYPORT_TYPE[i][j]->setVisible(true);
 		}
 	}
+	/*
 	for(int i = 2; i < 6; i++) {
 		menuMachineFeatures[i]->setVisible(false);
 		menuMachineFeatures[i]->setEnabled(false);
 	}		
+	*/
 #endif
 }
 
