@@ -50,8 +50,8 @@ JoyThreadClass::JoyThreadClass(EMU_TEMPLATE *p, USING_FLAGS *pflags, config_t *c
 	}
 	
 	char tmp_string[2048] = {0};
-	my_tcscat_s(tmp_string, 2047, "a:b0,b:b1,x:b2,y:b3,start:b9,select:b8,");
-	my_tcscat_s(tmp_string, 2047, "l1:b4,l2:b6,r1:b5,r2:b7,trigl:b10,trigr:b11,");
+	my_tcscat_s(tmp_string, 2047, "a:b0,b:b1,x:b2,y:b3,start:b9,guide:b8,");
+	my_tcscat_s(tmp_string, 2047, "rightshoulder:b7,leftshoulder:b6,leftstick:b5,rightstick:b4,");
 	my_tcscat_s(tmp_string, 2047, "dpup:h0.1,dpleft:h0.8,dpdown:h0.4,dpright:h0.2,");
 	my_tcscat_s(tmp_string, 2047, "leftx:a0,lefty:a1,rightx:a2,righty:a3");
 	default_assign = QString::fromLocal8Bit(tmp_string);
@@ -513,6 +513,36 @@ void JoyThreadClass::controller_button_down(int idx, unsigned int button)
 			joy_status[true_index + 20] |= 0x08; // DPAD DIR
 			//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "DPAD RIGHT #%d", true_index);
 			break;
+		case SDL_CONTROLLER_BUTTON_A:
+			joy_status[true_index] |= 0x10;
+			break;
+		case SDL_CONTROLLER_BUTTON_B:
+			joy_status[true_index] |= 0x20;
+			break;
+		case SDL_CONTROLLER_BUTTON_X:
+			joy_status[true_index] |= 0x40;
+			break;
+		case SDL_CONTROLLER_BUTTON_Y:
+			joy_status[true_index] |= 0x80;
+			break;
+		case SDL_CONTROLLER_BUTTON_LEFTSTICK:
+			joy_status[true_index] |= 0x100;
+			break;
+		case SDL_CONTROLLER_BUTTON_RIGHTSTICK:
+			joy_status[true_index] |= 0x200;
+			break;
+		case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+			joy_status[true_index] |= 0x400;
+			break;
+		case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+			joy_status[true_index] |= 0x800;
+			break;
+		case SDL_CONTROLLER_BUTTON_GUIDE:
+			joy_status[true_index] |= 0x1000;
+			break;
+		case SDL_CONTROLLER_BUTTON_START:
+			joy_status[true_index] |= 0x2000;
+			break;
 		default:
 			if(button < 24) {
 				joy_status[true_index] |= (1 << (button + 4));
@@ -532,7 +562,7 @@ void JoyThreadClass::button_up(int idx, unsigned int button)
 	int true_index = get_joy_num(idx);
 	
 	if((true_index < 0) || (true_index >= 4)) return;
-	if(button >= 12) return;
+	if(button >= 16) return;
 	p_osd->lock_vm();
 	uint32_t *joy_status = p_osd->get_joy_buffer();
 	if(joy_status != NULL) {
@@ -576,6 +606,36 @@ void JoyThreadClass::controller_button_up(int idx, unsigned int button)
 		case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
 			joy_status[true_index] &= ~0x08;
 			joy_status[true_index + 20] &= ~0x08; // DPAD DIR
+			break;
+		case SDL_CONTROLLER_BUTTON_A:
+			joy_status[true_index] &= ~0x10;
+			break;
+		case SDL_CONTROLLER_BUTTON_B:
+			joy_status[true_index] &= ~0x20;
+			break;
+		case SDL_CONTROLLER_BUTTON_X:
+			joy_status[true_index] &= ~0x40;
+			break;
+		case SDL_CONTROLLER_BUTTON_Y:
+			joy_status[true_index] &= ~0x80;
+			break;
+		case SDL_CONTROLLER_BUTTON_LEFTSTICK:
+			joy_status[true_index] &= ~0x100;
+			break;
+		case SDL_CONTROLLER_BUTTON_RIGHTSTICK:
+			joy_status[true_index] &= ~0x200;
+			break;
+		case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+			joy_status[true_index] &= ~0x400;
+			break;
+		case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+			joy_status[true_index] &= ~0x800;
+			break;
+		case SDL_CONTROLLER_BUTTON_GUIDE:
+			joy_status[true_index] &= ~0x1000;
+			break;
+		case SDL_CONTROLLER_BUTTON_START:
+			joy_status[true_index] &= ~0x2000;
 			break;
 		default:
 			if(button < 24) {
@@ -621,7 +681,7 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 	//uint32_t mod;
 # if defined(USE_SDL2)
 	SDL_JoystickID id;
-	//SDL_GameControllerButton cont_button;
+	uint8_t cont_button;
 # endif   
 	//int i, j;
 	int i;
@@ -652,18 +712,18 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 			} 
 			break;
 		case SDL_CONTROLLERBUTTONDOWN:
-			button = eventQueue->cbutton.button;
+			cont_button = eventQueue->cbutton.button;
 			id = eventQueue->cbutton.which;
 			i = get_joyid_from_instanceID(id);
 			//button = SDL_GameControllerGetButton(controller_table[i], cont_button);
-			controller_button_down(i, button);
+			debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "Press button: %d", cont_button);
+			controller_button_down(i, cont_button);
 			break;
 		case SDL_CONTROLLERBUTTONUP:
-			button = eventQueue->cbutton.button;
+			cont_button = eventQueue->cbutton.button;
 			id = eventQueue->cbutton.which;
 			i = get_joyid_from_instanceID(id);
-			//button = SDL_GameControllerGetButton(controller_table[i], cont_button);
-			controller_button_up(i, button);
+			controller_button_up(i, cont_button);
 			break;
 		case SDL_CONTROLLERDEVICEADDED:
 			i = eventQueue->cdevice.which;
