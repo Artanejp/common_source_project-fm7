@@ -274,7 +274,7 @@
 #define USE_CART				2
 #define USE_SPECIAL_RESET		12 /* 'CD' 'F0' - 'F3' 'H0' - 'H4' 'ICM' 'DEBUG' */
 #define USE_FLOPPY_TYPE_BIT		0x0003 /* 5.0, 5.0, 3.5, 3.5 */
-#define USE_MACHINE_FEATURES	8
+#define USE_MACHINE_FEATURES	2
 #define NOTIFY_KEY_DOWN
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
@@ -379,7 +379,7 @@ namespace FMTOWNS {
 	class PLANEVRAM;
 	class JOYPAD_2BTN;
 	class JOYPAD_6BTN;
-//	class MOUSE;
+	class MOUSE;
 }
 
 class VM : public VM_TEMPLATE
@@ -416,7 +416,7 @@ protected:
 	FMTOWNS::JOYSTICK*       joystick;
 	FMTOWNS::JOYPAD_2BTN*    joypad_2btn[2];
 	FMTOWNS::JOYPAD_6BTN*    joypad_6btn[2];
-//	FMTOWNS::MOUSE*			 mouse;
+	FMTOWNS::MOUSE*			 mouse[2];
 	FMTOWNS::KEYBOARD*       keyboard;
 	FMTOWNS::TIMER*          timer;
 	FMTOWNS::TOWNS_VRAM*     vram;

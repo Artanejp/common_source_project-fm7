@@ -9,63 +9,88 @@
 */
 
 #include "./mouse.h"
-#include "./joystick.h"
 
 namespace FMTOWNS {
 
 #define EVENT_MOUSE_TIMEOUT		1
 #define EVENT_MOUSE_SAMPLING	2
-#define EVENT_MOUSE_RESET		3
 	
 void MOUSE::initialize()
 {
-	phase = 0;
-
+	pad_type = PAD_TYPE_MOUSE;
 	mouse_state = NULL;
-	mouse_connected = false;
-	port_num = 0;
+	sig_com = true;
+	val_com = true;
+	
+	event_timeout = -1;
+	event_sampling = -1;
+
+	initialize_status();
+}
+
+void MOUSE::initialize_status()
+{
+	JSDEV_TEMPLATE::initialize_status();
+	phase = 0;
+	
+	portval_data = 0x00;
+	val_trig_a = false;
+	val_trig_b = false;
+	val_com = false;
 	
 	dx = dy = 0;
 	lx = ly = 0;
-	event_timeout = -1;
-	event_sampling = -1;
-	axisdata = 0x0f;
-	strobe = false;
-	trig_a = false;
-	trig_b = false;
+}	
 	
-}
-
 void MOUSE::release()
 {
 }
 
-	
-void MOUSE::update_strobe(uint8_t data, bool force)
+uint8_t MOUSE::output_port_com(bool val, bool force)
 {
-	bool _bak = strobe;
-	uint8_t _mask = ((port_num & 1) != 0) ? 0x20 : 0x10;
-	int com_d = SIG_JOYPORT_TYPE_MOUSE;
-	strobe = ((data & 0x01) != 0) ? true : false;
-	com_d |= ((port_num & 1) << 24);
-	if((_bak != strobe) || (force)) {
-		if(phase == 0) {
-			if(strobe) {
-				// Sample data from MOUSE to registers.
-				sample_mouse_xy(); // Sample next value.
-				lx = -dx;
-				ly = -dy;
-				dx = 0;
-				dy = 0;
-				// From FM Towns Technical book, Sec.1-7, P.241.
-				// (Ta + Tj * 3 + Ti) <= 920.0uS 
-				//force_register_event(this, EVENT_MOUSE_TIMEOUT, 920.0, false, event_timeout);
-				force_register_event(this, EVENT_MOUSE_TIMEOUT, 2000.0, false, event_timeout);
-				phase = 2; // SYNC from MAME 0.225. 20201126 K.O
-			}
-		} else {
-			phase++;
+	// Mouse don't output to com.
+	val_com = sig_com;
+	return (val_com) ? 0x01 : 0x00;
+	//return JSDEV_TEMPLATE::output_port_com(val, force);
+}
+
+void MOUSE::reset_device(bool port_out)
+{
+	initialize_status();
+	val_com = false;
+	sample_mouse_xy();
+	
+	if(port_out) {
+		output_port_signals(true);
+		output_port_com(val_com, true);
+	}
+}
+
+uint8_t MOUSE::query(bool& status)
+{
+	check_mouse_data();
+
+	status = true;
+	return portval_data;
+}
+void MOUSE::update_strobe()
+{
+	if(phase == 0) {
+		if(sig_com) {
+			// Sample data from MOUSE to registers.
+			sample_mouse_xy(); // Sample next value.
+			lx = -dx;
+			ly = -dy;
+			dx = 0;
+			dy = 0;
+			// From FM Towns Technical book, Sec.1-7, P.241.
+			// (Ta + Tj * 3 + Ti) <= 920.0uS 
+			//force_register_event(this, EVENT_MOUSE_TIMEOUT, 920.0, false, event_timeout);
+			force_register_event(this, EVENT_MOUSE_TIMEOUT, 2000.0, false, event_timeout);
+			phase = 2; // SYNC from MAME 0.225. 20201126 K.O
 		}
+	} else {
+		phase++;
 	}
 }
 
@@ -102,115 +127,51 @@ uint32_t MOUSE::update_mouse()
 	return mouse_data;
 }
 
-uint32_t MOUSE::read_signal(int ch)
-{
-	switch(ch) {
-	case SIG_MOUSE_DATA:
-		if(mouse_connected) {
-			uint8_t rval = 0x70;
-			rval |= (update_mouse() & 0x0f);
-			int32_t stat = emu->get_mouse_button();
-			if((stat & 0x01) == 0) {
-				rval &= ~0x10; // Button LEFT
-			}
-			if((stat & 0x02) == 0) {
-				rval &= ~0x20; // Button RIGHT
-			}
-			return rval;
-		}
-		break;
-	case SIG_MOUSE_ENABLE:
-		return ((mouse_connected) ? 0xffffffff : 0);
-		break;
-	case SIG_MOUSE_NUM:
-		return port_num & 1;
-		break;
-	}
-	return 0xffffffff;
-}
 
-uint32_t MOUSE::check_mouse_data(bool is_send_data)
+void MOUSE::check_mouse_data()
 {
 	// Do Not reply COM (0x40) : 20210627 K.O
-	uint8_t data = ~(axisdata) & 0x0f;
+	portval_data = update_mouse() & 0x0f;
 	int32_t stat = emu->get_mouse_button();
 
-	if(((stat & 0x01) == 0) && (trig_a)) {
-		data |= LINE_JOYPORT_A; // Button LEFT
-	}
-	if(((stat & 0x02) == 0) && (trig_b)) {
-		data |= LINE_JOYPORT_B; // Button RIGHT
-	}
-	if((d_joyport != nullptr) && (is_send_data)) {
-		int _id = SIG_JOYPORT_DATA | (SIG_JOYPORT_CH1 & ((port_num & 1) << 24));
-		d_joyport->write_signal(_id , data, 0x3f);
-	}
-	return data;
+	val_trig_a = ((stat & 0x01) != 0) ? true : false;
+	val_trig_b = ((stat & 0x02) != 0) ? true : false;
+
+	output_port_signals(true);
 }
-	
+
+void MOUSE::set_enable(bool is_enable)
+{
+	if(is_enable != is_connected) {
+		clear_event(this, event_timeout);
+		clear_event(this, event_sampling);
+
+		if(is_enable) { // disconnect->connect
+			initialize_status();
+			reset_device(true);
+			sig_com = false;
+		} else { // connect->disconnect
+			initialize_status();
+			sig_com = true;
+		}
+	}
+	is_connected = is_enable;
+}
 void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	switch(id) {
-	case SIG_MOUSE_ENABLE:
-		{
-			bool _bak = mouse_connected;
-			mouse_connected = (((data & mask) & 0xfffffffe) != 0) ? true : false;
-			port_num = (data & mask) & 0x01;
-			
-			if(_bak != mouse_connected) {
-				if(!(_bak)) { // off -> on
-					phase = 0;
-					dx = dy = 0;
-					lx = ly = 0;
-					sample_mouse_xy();
-
-					axisdata = 0x00;
-					clear_event(this, event_timeout);
-					
-//					sample_mouse_xy(); // Sample next value.
-					if(d_joyport != nullptr) {
-						int com_d = (SIG_JOYPORT_CH1 & ((port_num & 1) << 24));
-						// First, Set 0 to port
-						d_joyport->write_signal(com_d | SIG_JOYPORT_DATA, 0x00000000, 0xffffffff);
-					}
-				} else { // on -> off
-					phase = 0;
-					dx = dy = 0;
-					lx = ly = 0;
-					strobe = false;
-					axisdata = 0x00;
-
-					trig_a = false;
-					trig_b = false;
-
-					clear_event(this, event_timeout);
-				}
+	if(id == SIG_JS_COM) {
+		if(is_connected) {
+			bool bak = sig_com;
+			sig_com = ((data & mask) != 0) ? true : false;
+			val_com = sig_com;
+			//out_debug_log(_T("SIG_JS_COM: BEFORE=%d AFTER=%d"), (bak) ? 1 : 0, (sig_com) ? 1 : 0);
+			if(bak != sig_com) {
+				update_strobe();
 			}
 		}
-		break;
-	case SIG_MOUSE_QUERY:
-		if(mouse_connected) {
-			if(((data & mask) & 0x0c) == 0x04) {
-				int num = (data & mask) & 1;
-				if(num == port_num) {
-					axisdata = update_mouse();
-					check_mouse_data(true);
-				}
-			}
-		}
-		break;
-	case SIG_MOUSE_DATA:
-		if(mouse_connected) {
-			uint8_t trig = data & 0x03;
-			uint8_t mask2 = (data  & 0x04) >> 2;
-			trig_a = ((trig & 0x01) != 0) ? true : false;	
-			trig_b = ((trig & 0x02) != 0) ? true : false;
-			update_strobe(mask2, false);
-			axisdata = update_mouse();
-			check_mouse_data(true);
-		}
-		break;
+		return;
 	}
+	JSDEV_TEMPLATE::write_signal(id, data, mask);
 }
 
 void MOUSE::sample_mouse_xy()
@@ -235,16 +196,9 @@ void MOUSE::sample_mouse_xy()
 void MOUSE::event_callback(int event_id, int err)
 {
 	switch(event_id) {
-	case EVENT_MOUSE_RESET:
-		event_timeout = -1;
-		phase = 0;
-		break;
 	case EVENT_MOUSE_TIMEOUT:
-		phase = 0;
 		event_timeout = -1;
-		dx = dy = 0;
-		lx = ly = 0;
-		axisdata = 0x00;
+		reset_device(true);
 		break;
 	case EVENT_MOUSE_SAMPLING:
 		sample_mouse_xy();
@@ -252,10 +206,13 @@ void MOUSE::event_callback(int event_id, int err)
 	}
 }
 	
-#define STATE_VERSION 3
+#define STATE_VERSION 16
 
 bool MOUSE::process_state(FILEIO *state_fio, bool loading)
 {
+	if(!(JSDEV_TEMPLATE::process_state(state_fio, loading))) {
+		return false;
+	}
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
@@ -263,20 +220,12 @@ bool MOUSE::process_state(FILEIO *state_fio, bool loading)
 		return false;
 	}
 	
-	state_fio->StateValue(mouse_connected);
-	state_fio->StateValue(port_num);
-	state_fio->StateValue(axisdata);
-	
 	state_fio->StateValue(phase);
-	state_fio->StateValue(strobe);
-	state_fio->StateValue(trig_a);
-	state_fio->StateValue(trig_b);
 	
 	state_fio->StateValue(dx);
 	state_fio->StateValue(dy);
 	state_fio->StateValue(lx);
 	state_fio->StateValue(ly);
-	
 
 	state_fio->StateValue(event_timeout);
 	state_fio->StateValue(event_sampling);

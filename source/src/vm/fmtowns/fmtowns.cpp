@@ -64,7 +64,7 @@
 #include "./joypad_2btn.h"
 #include "./joypad_6btn.h"
 #include "./keyboard.h"
-//#include "./mouse.h"
+#include "./mouse.h"
 #include "./msdosrom.h"
 #include "./scsi.h"
 #include "./serialrom.h"
@@ -86,7 +86,7 @@ using FMTOWNS::JOYPAD_2BTN;
 using FMTOWNS::JOYPAD_6BTN;
 
 using FMTOWNS::KEYBOARD;
-//using FMTOWNS::MOUSE;
+using FMTOWNS::MOUSE;
 using FMTOWNS::MSDOSROM;
 using FMTOWNS::SCSI;
 using FMTOWNS::SERIAL_ROM;
@@ -220,8 +220,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(int i = 0; i < 2; i++) {
 		joypad_2btn[i] = new JOYPAD_2BTN(this, emu);
 		joypad_6btn[i] = new JOYPAD_6BTN(this, emu);
+		mouse[i] = new MOUSE(this, emu);
 	}
-	//mouse = new MOUSE(this, emu);
 
 	uint16_t machine_id = 0x0100; // FM-Towns1
 	uint16_t cpu_id = 0x0001;     // i386DX
@@ -434,7 +434,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		// 4: Libble Rabble stick (reserved)
 		joystick->set_context_joystick(i, joypad_2btn[i]);
 		joystick->set_context_joystick(i, joypad_6btn[i]);
-		
+		joystick->set_context_joystick(i, mouse[i]);
 	}
 #ifdef USE_DEBUGGER
 	joystick->set_context_debugger(new DEBUGGER(this, emu));
@@ -452,8 +452,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		joypad_6btn[i]->set_negative_logic(true);
 		joypad_6btn[i]->set_enable(false);
 	}
-	joystick->set_using_pad(0, 0);
-	joystick->set_using_pad(1, 0);
+	for(int i = 0; i < 2; i++) {
+		mouse[i]->set_context_pad_num(i);
+		mouse[i]->set_context_parent_port(i, joystick, 0, 0xff);
+		mouse[i]->set_negative_logic(false);
+		mouse[i]->set_enable(false);
+	}
+	joystick->set_using_pad(0, -1);
+	joystick->set_using_pad(1, -1);
 
 	// cpu bus
 	cpu->set_context_mem(memory);

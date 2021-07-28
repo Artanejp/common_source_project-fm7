@@ -25,13 +25,22 @@ uint8_t JOYPAD_6BTN::query(bool& status)
 	if(sig_com) { // 6 BUTTONS
 		uint8_t buttons = (data >> 8) & 0x0f;
 		portval_data = 0x00;
-		if((buttons & 0x01) != 0) portval_data |= LINE_JOYPORT_RIGHT;
-		if((buttons & 0x02) != 0) portval_data |= LINE_JOYPORT_LEFT;
-		if((buttons & 0x04) != 0) portval_data |= LINE_JOYPORT_DOWN;
-		if((buttons & 0x08) != 0) portval_data |= LINE_JOYPORT_UP;
+		if((buttons & 0x01) != 0) {
+			portval_data |= 0x08;
+		}
+		if((buttons & 0x02) != 0) {
+			portval_data |= 0x04;
+		}
+		if((buttons & 0x04) != 0) {
+			portval_data |= 0x02;
+		}
+		if((buttons & 0x08) != 0) {
+			portval_data |= 0x01;
+		}
+		val_trig_a = false;
+		val_trig_b = false;
 	} else {
 		portval_data = data & 0x0f; // AXIS
-
 		bool _sel = ((data & 0x40) != 0) ? true : false;
 		bool _run = ((data & 0x80) != 0) ? true : false;
 		if(_sel) {
@@ -40,14 +49,14 @@ uint8_t JOYPAD_6BTN::query(bool& status)
 		if(_run) {
 			portval_data |= (LINE_JOYPORT_UP | LINE_JOYPORT_DOWN);
 		}
+		val_trig_a = ((data & 0x10) != 0) ? true : false;
+		val_trig_b = ((data & 0x20) != 0) ? true : false;
 	}
-	val_trig_a = ((data & 0x10) != 0) ? true : false;
-	val_trig_b = ((data & 0x20) != 0) ? true : false;
 
 	status = true;
 	//unlock_device(_l);
 	
-	return output_port_signals(false);  // Push results to port;
+	return output_port_signals(true);  // Push results to port;
 }
 	
 

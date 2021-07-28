@@ -117,7 +117,7 @@ protected:
 			val = val & sig_com;
 		}
 		if(is_negative_logic) {
-			val = ~(val);
+			val = !(val);
 		}
 		if((d_parent_device != nullptr) && (is_connected)) {
 			if((parent_port_num >= 0) && (parent_port_num < 8)) {
@@ -139,12 +139,11 @@ protected:
 			if((parent_port_num >= 0) && (parent_port_num < 8)) {
 				uint32_t r_data;
 				r_data =  (uint32_t)(portval_data & 0x0f);
-				if(force) {
-					r_data |= ((val_trig_a == true) ? 0x10 : 0x00);
-					r_data |= ((val_trig_b == true) ? 0x20 : 0x00);
-				} else {
-					r_data |= ((((val_trig_a) && (sig_trig_a)) == true) ? 0x10 : 0x00);
-					r_data |= ((((val_trig_b) && (sig_trig_b)) == true) ? 0x20 : 0x00);
+				r_data |= ((val_trig_a == true) ? 0x10 : 0x00);
+				r_data |= ((val_trig_b == true) ? 0x20 : 0x00);
+				if(!(force)) {
+					if(!(sig_trig_a)) r_data &= ~0x10;
+					if(!(sig_trig_b)) r_data &= ~0x20;
 				}
 				if(is_negative_logic) {
 					r_data = (~(r_data) & 0x3f);

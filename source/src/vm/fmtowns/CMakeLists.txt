@@ -20,7 +20,7 @@ set(VM_FMTOWNS_DEV_SRCS
 	joystick.cpp
 	joypad_2btn.cpp
 	joypad_6btn.cpp
-#	mouse.cpp
+	mouse.cpp
 	
 	msdosrom.cpp
 	serialrom.cpp
