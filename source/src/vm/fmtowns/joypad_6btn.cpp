@@ -6,6 +6,7 @@ void JOYPAD_6BTN::initialize()
 {
 	JSDEV_TEMPLATE::initialize();
 	pad_type = PAD_TYPE_6BUTTONS;
+	set_device_name(_T("FM-Towns 6Buttons PAD #%d"), pad_num + 1);
 }
 
 uint8_t JOYPAD_6BTN::query(bool& status)

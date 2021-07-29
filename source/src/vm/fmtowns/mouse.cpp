@@ -24,8 +24,10 @@ void MOUSE::initialize()
 	
 	event_timeout = -1;
 	event_sampling = -1;
-
+	is_connected = false;
+	
 	initialize_status();
+	set_device_name(_T("FM-Towns Mouse #%d"), parent_port_num + 1);
 }
 
 void MOUSE::initialize_status()
@@ -37,9 +39,10 @@ void MOUSE::initialize_status()
 	val_trig_a = false;
 	val_trig_b = false;
 	val_com = false;
-	
+	sig_com = false;
 	dx = dy = 0;
 	lx = ly = 0;
+	sample_mouse_xy();
 }	
 	
 void MOUSE::release()
@@ -49,20 +52,19 @@ void MOUSE::release()
 uint8_t MOUSE::output_port_com(bool val, bool force)
 {
 	// Mouse don't output to com.
-	val_com = sig_com;
-	return (val_com) ? 0x01 : 0x00;
-	//return JSDEV_TEMPLATE::output_port_com(val, force);
+	val_com = val;
+//	return (val_com) ? 0x01 : 0x00;
+	return JSDEV_TEMPLATE::output_port_com(val, force);
 }
 
 void MOUSE::reset_device(bool port_out)
 {
 	initialize_status();
 	val_com = false;
-	sample_mouse_xy();
 	
 	if(port_out) {
-		output_port_signals(true);
-		output_port_com(val_com, true);
+		output_port_signals(false);
+		output_port_com(val_com, false);
 	}
 }
 
@@ -123,7 +125,7 @@ uint32_t MOUSE::update_mouse()
 //		phase = 0;
 		break;
 	}
-//	out_debug_log(_T("READ MOUSE DATA=%01X PHASE=%d STROBE=%d"), mouse_data, mouse_phase, (mouse_strobe) ? 1 : 0);
+	out_debug_log(_T("READ MOUSE DATA=%01X PHASE=%d STROBE=%d"), mouse_data, phase, (val_com) ? 1 : 0);
 	return mouse_data;
 }
 
@@ -131,13 +133,14 @@ uint32_t MOUSE::update_mouse()
 void MOUSE::check_mouse_data()
 {
 	// Do Not reply COM (0x40) : 20210627 K.O
-	portval_data = update_mouse() & 0x0f;
+	portval_data = ~(update_mouse()) & 0x0f;
 	int32_t stat = emu->get_mouse_button();
 
 	val_trig_a = ((stat & 0x01) != 0) ? true : false;
 	val_trig_b = ((stat & 0x02) != 0) ? true : false;
 
-	output_port_signals(true);
+	output_port_signals(false);
+	output_port_com(false, false);
 }
 
 void MOUSE::set_enable(bool is_enable)
@@ -147,9 +150,11 @@ void MOUSE::set_enable(bool is_enable)
 		clear_event(this, event_sampling);
 
 		if(is_enable) { // disconnect->connect
-			initialize_status();
+			sample_mouse_xy();
 			reset_device(true);
 			sig_com = false;
+			// OK?
+//			register_event(this, EVENT_MOUSE_SAMPLING, 30.0e3, true, &event_sampling);
 		} else { // connect->disconnect
 			initialize_status();
 			sig_com = true;
@@ -159,7 +164,9 @@ void MOUSE::set_enable(bool is_enable)
 }
 void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	if(id == SIG_JS_COM) {
+	int e_num = (id >> 16) & 3; // OK?
+	int n_id = id & 0xffff;
+	if((n_id == SIG_JS_COM) && (parent_port_num >= 0) && (e_num == parent_port_num)) {
 		if(is_connected) {
 			bool bak = sig_com;
 			sig_com = ((data & mask) != 0) ? true : false;
@@ -190,6 +197,7 @@ void MOUSE::sample_mouse_xy()
 		} else if(dy > 127) {
 			dy -= 128;
 		}
+		//out_debug_log(_T("SAMPLING: dx=%d dy=%d"), dx, dy);
 	}
 	emu->release_mouse_buffer(mouse_state);
 }
@@ -199,6 +207,7 @@ void MOUSE::event_callback(int event_id, int err)
 	case EVENT_MOUSE_TIMEOUT:
 		event_timeout = -1;
 		reset_device(true);
+		phase = 0;
 		break;
 	case EVENT_MOUSE_SAMPLING:
 		sample_mouse_xy();

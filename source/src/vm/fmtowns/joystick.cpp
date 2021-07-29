@@ -57,7 +57,7 @@ void JOYSTICK::make_mask(int num, uint8_t data)
 		_com  >>= 1;
 		_trig >>= 2;
 	}
-	data_mask[num] = ((_com & 1) << 2) | ((_trig & 3) << 4) | 0x0f;
+	data_mask[num] = ((_com & 1) << 2) | ((_trig & 3) << 4) | 0x8f;
 }
 
 void JOYSTICK::write_data_to_port(int num, JSDEV_TEMPLATE *target_dev, uint8_t data)
@@ -142,10 +142,10 @@ void JOYSTICK::write_signal(int id, uint32_t data, uint32_t mask)
 	switch(sigtype) {
 	case SIG_JSPORT_COM:
 		stat_com[ch] = ((data & mask) != 0) ? true : false;
-		data_reg[ch] = (data_reg[ch] & 0x3f) | ((stat_com[ch]) ? 0x40 : 0x00);
+		data_reg[ch] = (data_reg[ch] & 0x3f) | ((stat_com[ch]) ? 0xc0 : 0x80);
 		break;
 	case SIG_JSPORT_DATA:
-		data_reg[ch] = (data & 0x3f) | ((stat_com[ch]) ? 0x40 : 0x00);
+		data_reg[ch] = (data & 0x3f) | ((stat_com[ch]) ? 0xc0 : 0x80);
 		stat_triga[ch] = ((data_reg[ch] & 0x10) == 0) ? true : false;
 		stat_trigb[ch] = ((data_reg[ch] & 0x20) == 0) ? true : false;
 		break;
@@ -162,7 +162,7 @@ uint32_t JOYSTICK::read_signal(int id)
 		data = (stat_com[ch]) ? 0xffffffff : 0;
 		break;
 	case SIG_JSPORT_DATA:
-		data = data_reg[ch] & 0x7f;
+		data = data_reg[ch] & 0xff;
 		break;
 	}
 	return data;

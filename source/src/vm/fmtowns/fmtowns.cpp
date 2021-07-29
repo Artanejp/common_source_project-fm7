@@ -455,7 +455,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(int i = 0; i < 2; i++) {
 		mouse[i]->set_context_pad_num(i);
 		mouse[i]->set_context_parent_port(i, joystick, 0, 0xff);
-		mouse[i]->set_negative_logic(false);
+		mouse[i]->set_negative_logic(true);
 		mouse[i]->set_enable(false);
 	}
 	joystick->set_using_pad(0, -1);
