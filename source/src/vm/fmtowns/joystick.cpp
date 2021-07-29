@@ -16,7 +16,7 @@ namespace FMTOWNS {
 void JOYSTICK::reset()
 {
 	update_config(); // Update MOUSE PORT.
-	write_port(0xff);
+	write_port(0x00);
 }
 
 void JOYSTICK::initialize()
@@ -24,6 +24,11 @@ void JOYSTICK::initialize()
 	for(int i = 0; i < 2; i++) {
 		reset_input_data(i);
 	}
+	reg_val = 0x00;
+	data_mask[0] = 0x00;
+	data_mask[1] = 0x00;
+	
+	
 	if(d_debugger != NULL) {
 		d_debugger->set_device_name(_T("Debugger (RICOH RF5C68)"));
 		d_debugger->set_context_mem(this);
