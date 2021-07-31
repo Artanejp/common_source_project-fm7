@@ -57,21 +57,15 @@ void JOYSTICK::make_mask(int num, uint8_t data)
 		_com  >>= 1;
 		_trig >>= 2;
 	}
-	data_mask[num] = ((_com & 1) << 2) | ((_trig & 3) << 4) | 0x8f;
+	data_mask[num] = ((_com & 0x10) << 2) | ((_trig & 3) << 4) | 0x8f;
 }
 
 void JOYSTICK::write_data_to_port(int num, JSDEV_TEMPLATE *target_dev, uint8_t data)
 {
-	uint32_t triga_mask = 0x01;
-	uint32_t trigb_mask = 0x02;
-	uint32_t com_mask   = 0x10;
-	if(num != 0) {
-		triga_mask <<= 2;
-		trigb_mask <<= 2;
-		com_mask   <<= 1;
-	}
-	
 	JSDEV_TEMPLATE *p = target_dev;
+	uint8_t com_mask = (num == 0) ? 0x10 : 0x20;
+	uint8_t triga_mask = (num == 0) ? 0x01 : 0x04;
+	uint8_t trigb_mask = (num == 0) ? 0x02 : 0x08;
 	if(p != nullptr) {
 		uint32_t e_num = num << 16;
 		p->write_signal(e_num | SIG_JS_COM, data, com_mask);
@@ -89,7 +83,7 @@ void JOYSTICK::write_port(uint8_t data)
 	
 	reg_val = data;
 	for(int num = 0; num < 2; num++) {
-		make_mask(num, reg_val);
+		make_mask(num, data);
 		if((port_using[num] >= 0) && (port_using[num] < port_count[num])) {
 			JSDEV_TEMPLATE *p = d_port[num][port_using[num]];
 			if(p != nullptr) {
@@ -216,6 +210,7 @@ void JOYSTICK::update_config(void)
 				port_using[i] = config.machine_features[i] - 1;
 				p->set_enable(true);
 				p->reset_device(false);
+				make_mask(i, reg_val);
 				write_data_to_port(i, p, reg_val);
 				bool _stat;
 				p->query(_stat); // Query Twice.

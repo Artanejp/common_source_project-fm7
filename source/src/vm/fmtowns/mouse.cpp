@@ -39,7 +39,6 @@ void MOUSE::initialize_status()
 	val_trig_a = false;
 	val_trig_b = false;
 	val_com = false;
-	sig_com = true;
 	dx = dy = 0;
 	lx = ly = 0;
 	sample_mouse_xy();
@@ -52,24 +51,25 @@ void MOUSE::release()
 uint8_t MOUSE::output_port_com(bool val, bool force)
 {
 	// Mouse don't output to com.
-	val_com = val;
-	return (val_com) ? 0x01 : 0x00;
-//	return JSDEV_TEMPLATE::output_port_com(val, force);
+//	val_com = val;
+//	return (val_com) ? 0x01 : 0x00;
+	return JSDEV_TEMPLATE::output_port_com(val, force);
 }
 
 void MOUSE::reset_device(bool port_out)
 {
 	initialize_status();
-	val_com = false;
+	val_com = sig_com;
 	
 	if(port_out) {
-		output_port_signals(false);
-		output_port_com(val_com, false);
+		output_port_signals(true);
+		output_port_com(val_com, true);
 	}
 }
 
 uint8_t MOUSE::query(bool& status)
 {
+	portval_data = ~(update_mouse()) & 0x0f;
 	check_mouse_data();
 
 	status = true;
@@ -90,13 +90,13 @@ void MOUSE::update_strobe()
 			//force_register_event(this, EVENT_MOUSE_TIMEOUT, 920.0, false, event_timeout);
 			//force_register_event(this, EVENT_MOUSE_TIMEOUT, 2000.0 false, event_timeout);
 			phase = 2; // SYNC from MAME 0.225. 20201126 K.O
-			output_port_com(sig_com, false);
+//			output_port_com(sig_com, true);
 		}
 	} else {
 		phase++;
-		output_port_com(sig_com, false);
+//		output_port_com(sig_com, true);
 		if(phase >= 6) {
-			val_com = false;
+			val_com = sig_com;
 			phase = 0;
 			clear_event(this, event_timeout);
 		}
@@ -140,13 +140,12 @@ uint32_t MOUSE::update_mouse()
 void MOUSE::check_mouse_data()
 {
 	// Do Not reply COM (0x40) : 20210627 K.O
-	portval_data = ~(update_mouse()) & 0x0f;
 	int32_t stat = emu->get_mouse_button();
 
 	val_trig_a = ((stat & 0x01) != 0) ? true : false;
 	val_trig_b = ((stat & 0x02) != 0) ? true : false;
 
-	output_port_signals(false);
+	output_port_signals(true);
 }
 
 void MOUSE::set_enable(bool is_enable)
@@ -174,10 +173,14 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 	int n_id = id & 0xffff;
 	if((n_id == SIG_JS_COM) && (parent_port_num >= 0) && (e_num == parent_port_num)) {
 		if(is_connected) {
+			bool bak = sig_com;
+			val_com = bak;
 			sig_com = ((data & mask) != 0) ? true : false;
 			out_debug_log(_T("SIG_JS_COM: PHASE=%d BEFORE=%d AFTER=%d"), phase, (val_com) ? 1 : 0, (sig_com) ? 1 : 0);
-			if(val_com != sig_com) {
+			if(bak != sig_com) {
 				update_strobe();
+				portval_data = ~(update_mouse()) & 0x0f;
+				check_mouse_data();
 			}
 		}
 		return;
