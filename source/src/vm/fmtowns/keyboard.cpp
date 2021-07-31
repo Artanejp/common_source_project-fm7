@@ -17,6 +17,7 @@
 #define EVENT_REPEAT_UP				3
 #define EVENT_REPEAT_DOWN			4
 
+
 namespace FMTOWNS {
 void KEYBOARD::initialize()
 {
@@ -32,6 +33,9 @@ void KEYBOARD::initialize()
 	repeat_tick_ms = 30;
 	
 	special_boot_num = -1;
+	boot_seq = false;
+	memset(table, 0, sizeof(table));
+	memset(boot_code, 0x00, sizeof(boot_code));
 }
 
 void KEYBOARD::release()
@@ -45,18 +49,16 @@ void KEYBOARD::release()
 	
 void KEYBOARD::reset()
 {
-	reset_device();
+//	reset_device();
 }
 
 void KEYBOARD::reset_device()
 {
 	out_debug_log("RESET\n");
-	
+
 	last_cmd = 0x00;
-	memset(table, 0, sizeof(table));
 	key_buf->clear();
 	cmd_buf->clear();
-	
 	kbstat = kbdata = kbint = kbmsk = 0;
 	device_order = false;
 	enable_double_pressed_cursor = true;
@@ -64,12 +66,10 @@ void KEYBOARD::reset_device()
 	
 	clear_event(this, event_keycode);
 	clear_event(this, event_key_reset);
-	clear_event(this, event_keycode);
+	clear_event(this, event_repeat);
 
 	write_signals(&output_intr_line, 0);
 	write_signals(&output_nmi_line, 0);
-	memset(boot_code, 0x00, sizeof(boot_code));
-	boot_seq = false;
 	boot_code_ptr = 0;
 }
 
@@ -84,7 +84,32 @@ void KEYBOARD::enqueue_key2(uint8_t code)
 	key_buf->write(0xf0);
 	key_buf->write(code);
 }
-	
+
+void KEYBOARD::make_auto_key(_TCHAR *vks)
+{
+	if(vks == NULL) return;
+	int l = strlen(vks);
+	int i = 0;
+	if(l <= 0) return;
+	enqueue_key(0x7f);
+	while(vks[i] != 0x00) {
+		uint8_t code = (uint8_t)(vks[i] & 0xff);
+		//int scan_code = key_table[code];
+		//table[scan_code] = 1;
+		//enqueue_key((uint8_t)scan_code);
+		key_down2(code);
+		i++;
+		if(i >= 5) break; // SAFEGUARD
+	}
+	out_debug_log(_T("PUSH AUTO KEYS: %s"), vks);
+	kbstat |= 1;
+	register_key_interrupt(true);
+	if(event_repeat < 0) {
+		double usec = ((double)repeat_start_ms) * 1000.0;
+		register_event(this, EVENT_REPEAT_UP, usec, false, &event_repeat);
+	}
+}
+
 void KEYBOARD::special_reset(int num)
 {
 	out_debug_log("SPECIAL RESET %d\n", num);	
@@ -94,43 +119,36 @@ void KEYBOARD::special_reset(int num)
 	special_boot_num = num;
 	boot_seq = true;
 
-	static const uint8_t bootcode_debug[] = {0x20, 0x13, 0x2E, 0x17, 0x22};
-	static const uint8_t bootcode_cd[] = {0x2C, 0x20};
-	static const uint8_t bootcode_icm[] = {0x18, 0x2C, 0x30, 0x18, 0x2C};
-	static const uint8_t dnum[] = {0x0B, 0x02, 0x03, 0x04, 0x05};
+	memset(boot_code, 0x00, sizeof(boot_code));
 	switch(num) {
 	case 0: // CD
-//		enqueue_key(0x7f);
-		memcpy(boot_code, bootcode_cd, sizeof(bootcode_cd));
+		strncpy(boot_code, "CD", sizeof(boot_code));
 		break;
 	case 1:
 	case 2:
 	case 3:
 	case 4:
-//		enqueue_key(0x7f);
-		boot_code[0] = 0x21;
-		boot_code[1] = dnum[num - 1];
+		boot_code[0] = 'F';
+		boot_code[1] = '0' + num - 1;
 		break;
 	case 5:
 	case 6:
 	case 7:
 	case 8:
 	case 9:
-		boot_code[0] = 0x23;
-		boot_code[1] = dnum[num - 5];
+		boot_code[0] = 'H';
+		boot_code[1] = '0' + num - 5;
 		break;
 	case 10: // ICM
-//		enqueue_key(0x7f);
-		memcpy(boot_code, bootcode_icm, sizeof(bootcode_icm));
+		strncpy(boot_code,  "ICM", sizeof(boot_code));
 		break;;
 	case 11: // DEBUG
-//		enqueue_key(0x7f);
-		memcpy(boot_code, bootcode_debug, sizeof(bootcode_debug));
+		strncpy(boot_code,  "DEBUG", sizeof(boot_code));
 		break;;
 	}
-	if((num >= 0) && (num < 12)) {
-		kbstat |= 1;
-//		register_key_interrupt(true); // NEXT BYTE
+
+   if((num >= 0) && (num < 12)) {
+		make_auto_key(boot_code);
 	}
 //	register_event(this, EVENT_BOOT_TIMEOUT, 30.0e6, false, &event_key_reset);
 }
@@ -146,17 +164,27 @@ void KEYBOARD::do_common_command(uint8_t cmd)
 {
 	static const int type_start_ms[] = {400, 500, 300};
 	static const int type_repeat_ms[] = {50, 30, 20};
-	out_debug_log(_T("CMD %02X"), cmd);
+	//out_debug_log(_T("CMD %02X"), cmd);
 	switch(cmd) {
 	case 0xa0:
-		this->reset_device(); // RESET
-		special_boot_num = -1;
+		if(boot_seq) {
+			this->reset_device(); // RESET
+			make_auto_key(boot_code);
+		} else {
+			this->reset_device(); // RESET
+		}
 		break;
 	case 0xa1:
 		if(last_cmd != 0xa0) {
-			this->reset_device(); // RESET
-			special_boot_num = -1;
-			memset(boot_code, 0x00, sizeof(boot_code));
+			if(boot_seq) {
+				this->reset_device(); // RESET
+				make_auto_key(boot_code);
+			} else {
+				this->reset_device(); // RESET
+				special_boot_num = -1;
+				memset(boot_code, 0x00, sizeof(boot_code));
+//			memset(table, 0, sizeof(table));
+			}
 		}
 		break;
 	case 0xa4:
@@ -194,7 +222,7 @@ void KEYBOARD::do_common_command(uint8_t cmd)
 // Mame 0.216
 void KEYBOARD::write_io8(uint32_t addr, uint32_t data)
 {
-//	out_debug_log(_T("WRITE I/O ADDR=%04X VAL=%02X"), addr, data);
+	//out_debug_log(_T("WRITE I/O ADDR=%04X VAL=%02X"), addr, data);
 	switch(addr) {
 	case 0x0600:
 		// data
@@ -213,7 +241,7 @@ void KEYBOARD::write_io8(uint32_t addr, uint32_t data)
 				device_order = false;
 			}
 			kbstat |= 0x08;
-		} else if(data & 0xe0 == 0xc0) {
+		} else if((data & 0xe0) == 0xc0) {
 			// Device order
 			if((cmd_buf->count() > 0) && (device_order)){
 				// DO DEVICE ORDER
@@ -222,7 +250,7 @@ void KEYBOARD::write_io8(uint32_t addr, uint32_t data)
 			cmd_buf->write(data & 0xff);
 			device_order = false;
 			kbstat |= 0x08;
-		} else if(data & 0xe0 == 0xa0) {
+		} else if((data & 0xe0) == 0xa0) {
 			// Common order
 			if((cmd_buf->count() > 0) && (device_order)){
 				// DO DEVICE ORDER
@@ -247,14 +275,12 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 		kbtmp = get_key_code();
 		kbint &= ~1;
 		write_signals(&output_intr_line, 0);
-		if(!(boot_seq)) {
-			if(key_buf->empty()) {
-				kbstat &= ~1;
-			} else {
-				register_key_interrupt(false); // NEXT BYTE
-			}
+		if(key_buf->empty()) {
+			kbstat &= ~1;
+		} else {
+			register_key_interrupt(false); // NEXT BYTE
 		}
-		out_debug_log(_T("READ I/O ADDR=%04X VAL=%02X"), addr, kbdata);
+		//out_debug_log(_T("READ I/O ADDR=%04X VAL=%02X"), addr, kbdata);
 		return kbtmp;
 	case 0x602:
 //		out_debug_log(_T("READ I/O ADDR=%04X VAL=%02X"), addr, kbstat);
@@ -269,49 +295,10 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 
 uint8_t KEYBOARD::get_key_code()
 {
-	if(boot_seq) {
-		if((boot_code_ptr & 1) == 0) {
-			int xlimit = 6;
-//			if(special_boot_num < 10) {
-//				xlimit = 3;
-//			}
-			kbdata = ((boot_code_ptr >> 1) < xlimit) ? 0xA0 : 0xF0;
-		} else {
-			if((boot_code_ptr >> 1) == 0) {
-				kbdata = 0x7F;
-			} else {
-				switch(special_boot_num) {
-				case 0: // CD
-				case 1: // F0
-				case 2: // F1
-				case 3: // F2
-				case 4: // F3
-				case 5: // H0
-				case 6: // H1
-				case 7: // H2
-				case 8: // H3
-				case 9: // H4
-					kbdata = boot_code[(boot_code_ptr >> 1) & 1];
-					break;
-				case 10: // ICM
-					kbdata = boot_code[(boot_code_ptr >> 1) % 3];
-					break;
-				case 11: // DEBUG
-					kbdata = boot_code[(boot_code_ptr >> 1) % 5];
-					break;
-				default:
-					kbdata = key_buf->read();
-					break;
-				}
-			}
-		}
-		boot_code_ptr++;
+	if(key_buf->empty()) {
+		kbdata = 0x00;
 	} else {
-		if(key_buf->empty()) {
-			kbdata = 0x00;
-		} else {
-			kbdata = key_buf->read();
-		}
+		kbdata = key_buf->read();
 	}
 	return kbdata;
 }
@@ -319,7 +306,7 @@ void KEYBOARD::event_callback(int event_id, int err)
 {
 	switch(event_id) {
 	case EVENT_KEY_CODE:
-		if((boot_seq) || !(key_buf->empty())) {
+		if(!(key_buf->empty())) {
 			kbstat |= 1;
 			if(kbmsk & 1) {
 				kbint |= 1;
@@ -477,7 +464,11 @@ void KEYBOARD::key_up2(int code)
 					code = 0x6c;
 				}
 			}
-			key_buf->write(0xd0 | (table[0x11] ? 8 : 0) | (table[0x10] ? 4 : 0));
+			if(boot_seq) {
+				key_buf->write(0xb0);
+			} else {
+				key_buf->write(0xd0 | (table[0x11] ? 8 : 0) | (table[0x10] ? 4 : 0));
+			}
 			key_buf->write(code & 0x7f);
 		}
 //	}
@@ -489,6 +480,10 @@ void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_KEYBOARD_BOOTSEQ_END:
 		if(((data & mask) != 0) && (boot_seq)) {
 			out_debug_log(_T("SIG_KEYBOARD_BOOTSEQ_END"));
+			clear_event(this, event_repeat);
+			memset(table, 0, sizeof(table));
+			memset(boot_code, 0x00, sizeof(boot_code));
+			key_buf->clear();
 			boot_seq = false;
 			kbstat &= ~0x1;
 		}

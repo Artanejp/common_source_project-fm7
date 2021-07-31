@@ -111,7 +111,7 @@ protected:
 
 	uint8_t last_cmd;
 	
-	uint8_t boot_code[8];
+	char boot_code[8];
 	bool boot_seq;
 
 	int boot_code_ptr;
@@ -131,6 +131,7 @@ protected:
 	void key_down2(int code);
 	void key_up2(int code);
 	uint8_t get_key_code();
+	void make_auto_key(_TCHAR *vks);
 
 public:
 	KEYBOARD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
