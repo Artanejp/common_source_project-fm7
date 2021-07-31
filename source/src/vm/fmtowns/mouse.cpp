@@ -132,7 +132,6 @@ uint32_t MOUSE::update_mouse()
 		mouse_data = ly >> 4;
 		break;
 	}
-//	out_debug_log(_T("READ MOUSE DATA=%01X PHASE=%d STROBE=%d"), mouse_data, phase, (sig_com) ? 1 : 0);
 	return mouse_data;
 }
 
@@ -176,7 +175,6 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 			bool bak = sig_com;
 			val_com = bak;
 			sig_com = ((data & mask) != 0) ? true : false;
-			out_debug_log(_T("SIG_JS_COM: PHASE=%d BEFORE=%d AFTER=%d"), phase, (val_com) ? 1 : 0, (sig_com) ? 1 : 0);
 			if(bak != sig_com) {
 				update_strobe();
 				portval_data = ~(update_mouse()) & 0x0f;
@@ -204,7 +202,6 @@ void MOUSE::sample_mouse_xy()
 		} else if(dy > 127) {
 			dy -= 128;
 		}
-		//out_debug_log(_T("SAMPLING: dx=%d dy=%d"), dx, dy);
 	}
 	emu->release_mouse_buffer(mouse_state);
 }

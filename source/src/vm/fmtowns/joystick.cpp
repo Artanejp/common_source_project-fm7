@@ -45,8 +45,6 @@ void JOYSTICK::reset_input_data(int num)
 	if((num >= 0) && (num < 2)) {
 		stat_com[num] = true; // Wire disconnected.
 		data_reg[num] = 0xff;
-		stat_triga[num] = true;
-		stat_trigb[num] = true;
 	}
 }
 void JOYSTICK::make_mask(int num, uint8_t data)
@@ -140,8 +138,6 @@ void JOYSTICK::write_signal(int id, uint32_t data, uint32_t mask)
 		break;
 	case SIG_JSPORT_DATA:
 		data_reg[ch] = (data & 0x3f) | ((stat_com[ch]) ? 0xc0 : 0x80);
-		stat_triga[ch] = ((data_reg[ch] & 0x10) == 0) ? true : false;
-		stat_trigb[ch] = ((data_reg[ch] & 0x20) == 0) ? true : false;
 		break;
 	}
 }	
@@ -232,8 +228,8 @@ bool JOYSTICK::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 					  data_mask[i],
 					  data_reg[i],
 					  (stat_com[i])   ? 1 : 0,
-					  (stat_triga[i]) ? 1 : 0,
-					  (stat_trigb[i]) ? 1 : 0
+					  (((data_reg[i] & data_mask[i]) & 0x10) != 0) ? 1 : 0,
+					  (((data_reg[i] & data_mask[i]) & 0x20) != 0) ? 1 : 0
 			);
 	}
 	my_stprintf_s(buffer, buffer_len,
@@ -242,7 +238,7 @@ bool JOYSTICK::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	return true;
 }
 
-#define STATE_VERSION 18
+#define STATE_VERSION 19
 
 bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 {
@@ -261,8 +257,6 @@ bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 	state_fio->StateArray(data_reg, sizeof(data_mask), 1);
 	
 	state_fio->StateArray(stat_com, sizeof(stat_com), 1);
-	state_fio->StateArray(stat_com, sizeof(stat_triga), 1);
-	state_fio->StateArray(stat_com, sizeof(stat_trigb), 1);
 	
 	state_fio->StateArray(port_using, sizeof(port_using), 1);
 

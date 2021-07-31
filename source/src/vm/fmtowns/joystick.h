@@ -59,9 +59,7 @@ private:
 	uint8_t data_mask[2];
 	
 	bool stat_com[2];
-	bool stat_triga[2];
-	bool stat_trigb[2];
-	
+
 	virtual void __FASTCALL reset_input_data(int num);
 	virtual void __FASTCALL make_mask(int num, uint8_t data);
 	virtual void __FASTCALL write_data_to_port(int num, JSDEV_TEMPLATE *target_dev, uint8_t data);

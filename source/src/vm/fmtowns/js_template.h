@@ -113,11 +113,11 @@ protected:
 		//std::unique_lock<std::mutex> _l = lock_device();
 
 		val_com = val;
-		if(!(force)) {
-			val = val & sig_com;
-		}
 		if(is_negative_logic) {
 			val = !(val);
+		}
+		if(!(force)) {
+			val = val & sig_com;
 		}
 		if((d_parent_device != nullptr) && (is_connected)) {
 			if((parent_port_num >= 0) && (parent_port_num < 8)) {
@@ -141,12 +141,12 @@ protected:
 				r_data =  (uint32_t)(portval_data & 0x0f);
 				r_data |= ((val_trig_a == true) ? 0x10 : 0x00);
 				r_data |= ((val_trig_b == true) ? 0x20 : 0x00);
-				if(!(force)) {
-					if(!(sig_trig_a)) r_data &= ~0x10;
-					if(!(sig_trig_b)) r_data &= ~0x20;
-				}
 				if(is_negative_logic) {
 					r_data = (~(r_data) & 0x3f);
+				}
+				if(!(force)) {
+					uint8_t __mask = ((sig_trig_a == false) ? 0x10 : 0x00) | ((sig_trig_b == false) ? 0x20 : 0x00) | 0xcf; 
+					r_data &= __mask;
 				}
 				int signum = (parent_port_num << 16) & 0x70000;
 				signum = signum | SIG_JSPORT_DATA;

@@ -41,7 +41,7 @@ uint8_t JOYPAD_2BTN::query(bool& status)
 	//unlock_device(_l);
 	
 	status = true;
-	return output_port_signals(false);  // Push results to port;
+	return output_port_signals(true);  // Push results to port;
 }
 	
 uint8_t JOYPAD_2BTN::hook_changed_com(bool changed)
