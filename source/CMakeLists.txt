@@ -7,6 +7,7 @@ message("* common/common")
 
 cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
+cmake_policy(SET CMP0043 OLD)
 
 
 # Note: Belows are temporally disabled, not implemented older CMake.
