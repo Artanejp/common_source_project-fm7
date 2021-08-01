@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                         December 16, 2020
+                                         August 01, 2021
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -12,7 +12,7 @@
    
    ソースコード：
    
-     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20201216
+     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20210801
 
    追加情報:
    
@@ -165,113 +165,207 @@ Changes:
 
 * 前の変更点をお読みになる場合には、ChangeLogと000_gitlog.txtをお読み下さい。
 
-* SNAPSHOT December 16, 2020
-  * Upstream 2020-08-16.
-  * Important: Build system moved to CMake *perfectly*.See INSTALL.md or INSTALL.en.md.
-  * eFM-Towns: Works more softwares.See 00_status_ja.md .
-  * [Qt/JOYSTICK] Add mapping gamecontroller settings.
-	Read from $CONFIG_DIR/joydb.ini as SDL_GAMECONTROLLER format.
-	See https://wiki.libsdl.org/SDL_GameControllerAddMapping .
-  * [VM/I386_NP21] Improve CPU registers message.
-  * [VM/I386_NP21] Print PC address on PANIC.
-  * [VM/DEVICE] Add APIs to DEVICE::; clear_event(), force_register_event(), check_and_update_event() and variants.
-  * [VM/FMTOWNS] CDROM: Implement around commands.
-  * [VM/FMTOWNS] CDROM: Fix around command 80h (SET STATE).May work RANCE III and SUPER REAL MAHJONG PIV.
-  * [VM/FMTOWNS] CDROM: Command A0h: TOWNS_CD_ACCEPT_WAIT must be only after CDROM_COMMAND_STOP_CDDA.
-  * [VM/FMTOWNS] CDROM: Reply status immediately with PLAY/PAUSE/UNPAUSE without STATUS BIT (44h/C5h/C7h).
-  * [VM/FMTOWNS] CDROM: Maybe working with CCD image.
-  * [VM/FMTOWNS] CDROM: Rename delay/status methods to unique name.
-  * [VM/FMTOWNS] CDROM: Don't occure duplicated EOT.
-  * [VM/FMTOWNS] CDROM: Fix not play CDDA with command SPAM.
-  * [VM/FMTOWNS] CDROM: Fix wrong sector size with single track.
-  * [VM/FMTOWNS] CDROM: Implement ISO file feature, MODE1/2/RAW read feature.
-  * [VM/FMTOWNS] CDROM: Fix wrong response at PAUSE/RESUME CDDA (85h/87h).
-  * [VM/FMTOWNS] SPRITE: Fix around zooming and rotating.
-  * [VM/FMTOWNS] CRTC: Available to display LOW RESOLUTION.
-  * [VM/FMTOWNS] MEMORY: Disable shadow write at F8000h-FFFFFh.
-  * [VM/FMTOWNS] MEMORY: Reset memory map when reset from CPU (i.e.Triple fault).
-  * [VM/FMTOWNS] SPRITE: Implement correct offset handling and clipping feature.
-  * [VM/FMTOWNS] SPRITE: Event driven sprite.
-  * [VM/FMTOWNS] VRAM: TRY: Don't wrap around boundary of VRAM (i.e.8107ffff).
-  * [VM/UPD71071] eFM-Towns works without SINGLE_MODE_DMA.
-  * [VM/UPD71071/TOWNS_DMAC] Add debug message for issues, i.e.Bubble Bobble for FM-Towns.
-  * [VM/UPD71071/TOWNS_DMAC] More correctness addressing on R/W.
-  * [VM/FM7] DISPLAY: Optimize to be faster.
-  * [VM/FM7] DISPLAY: Adjust alignment of some variables.
-  * [VM/FM7] MAINMEM: Fix crash at DISPLAY::initialize().
-             Seems to break memory at FM7_MAINMEM::initialize().
-  * [VM/FM7] MAINMEM: Fixing MEMORY LEAK.
-  * [VM/FM7] DISPLAY: Fix not resume digital palette on loading state.
-  * [VM/PCM1BIT][COMMON] Fix memory access violation in high-pass/low-pass filter.
-  * [VM/MB8877] Fix memory leak on state saving/loading.
-  * [VM/COMMON_VM] Move AD78820KR::, RF6C68::, YM2612:: to libCSPcommon_vm.
-  * [VM] Make event() and mix() (and some functions) with __FASTCALL.
-  * [EMU/Qt] Block execution EMU until prepering GUIs.
-  * [EMU/Qt] Don't out LOG until logger set up.
-  * [Qt/Draw] DO not start thread at Ui_MainWindow::LaunchEmuThread().
-  * [Qt/OSD] Inherit OSD_BASE to QObject.Maybe not needed threading.
-  * [Qt/EMU] MOVE a lot of methods to EMU_TEMPLATE:: and EmuThreadClassBase::.
-  * [UI/Qt] MOUSE: Add mouse sensitivities config GUI.
-  * [UI/Qt] Integrate to single MainWindow object.
-            Fix https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/80 .
-  * [UI/Qt] Add confirm on quitting emulator.
-  * [Qt/LOGGER] Add mutex locking to some functions called from logger.
-                Fix crash on quitting a emulator.
-  * [UI/Qt] Change orders of "Emulator Menu".
-  * [Qt/MOUSE] Fix mouse clicking on one-board-computers.
-  * [COMMON] Make method of pairXX_t with __FASTCALL.
-  * [UI/Qt] FLOPPY: Use 5inch icon when using 5inch floppy.
-  * [OSD/Qt] Fix using pointer after freeing.
-  * [DOC] Add INSTALL.md and INSTALL.en.md.
-  * [NET/Qt] Re-implement around TCP/IP, UDP/IP.MZ-2500 works.
-  * [Qt/OpenGL] SHADER: Stop to use discard.
-  * [Qt/OpenGL] Make shaders abstraction.
-  * [Qt/OpenGL 4.5] Reduce create/destroy buffers at same screen size.
-  * [Qt/OpenGL4_5] Fix around TV-Rendering.
-  * [QT/OpenGL4.5] Prepare to implement screen distortion.
-  * [Qt/OpenGL] Integrate shaders beyond GL version and GL/GLES.
-  * [UI/Qt] Fix not update around virtual media display.
-  * [UI/Qt] Fix not found disk file include kanji (or another non-latin character)
-             as filename.This issue maybe happen at non-UTF-8 locale.
-  * [Qt/COMMAND_LINE] Fix failure starting args "--fdx" "--bubx" with  D88/D77/B77 file.
-                      Maybe fixed https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/30 .
-  * [BUILD/CMAKE] Support multiarch LIBDIR.
-	          Maybe fixed https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/21-24.
-  * [BUILD/CMAKE] Try to resolve https://matsuri.5ch.net/test/read.cgi/i4004/1601147054/33.
-  * [BUILD/Win32] Make CSPcommon_vm DLL.
-  * [BUILD/CMAKE] FORCE SET C++ STANDARD to C++11.
-  * [TOOLCHAIN/WIN32] Update cross-build X264 script.
-  * [TOOLCHAIN/WIN32] Update cross building scripts for some external libraries.
-  * Built with 46662e26995354caf47739a7723cd5b96dc67a26 (or later).
+* SNAPSHOT August 01, 2021
+  * Upstream 2021-05-02.
+  * [BUILD/CMAKE] Add *Very Experimental* C++20 build settings.
+  * [OSD/EMU][MOUSE/JOYSTICK] Should LOCK/UNLOCK per referring buffers of joystick/mouse.
+    Note: This is MAJOR API CHANGE around mouse and joystick.
+  * [CONFIG/FMTOWNS] Add config.machine_features[32] to use machine configuration (w/o DIP SWITCH).Still not be bulidable.
+    Note: See vm/fmtowns/joystick.cpp, FMTOWNS::JOYSTICK::update_config().
+  * [FMTOWNS/KEYBOARD] SPECIAL_RESET: Available to boot with special key code (i.e. "CD" "DEBUG").
+  * [FMTOWNS/CDROM] Re-implement parsing CCD image file.Still ugly.
+  * [FMTOWNS/VRAM] Add __LIKELY_IF() and __UNLIKELY_IF() to assist compiler's optimization.
+    See [read|write]_memory_mapped_io32() and read_memory_mapped_io16() at FMTOWNS::TOWNS_VRAM class.
+  * [VM/I386_NP21] Add hints of branch-prediction whether accessing memory (and some of interrupts) is legal.
+    This reduces HOST CPU USAGE especially high-VM-clocks.
+  * [FMTOWNS/VRAM] More faster vram accessing.
+  * [FMTOWNS/MEMORY/VRAM] Add features around CACHE for after i486.Still be dummy.
+  * [FMTOWNS/CRTC] Use more SIMDs to be faster rendering.
+  * [FMTOWNS/KEYBOARD] Implement AUTO REPEAT.
+  * [FMTOWNS/TIMER] Clear OV and INTR when enabling interval timer.
+  * [FMTOWNS/VRAM] More faster VRAM access for packed pixel mode.
+  * [FMTOWNS/CDROM] Even reply without REQ_STATUS bit (0x20) with PAUSE/RESUME CDDA (85h/87h).
+  * [FMTOWNS/CDROM] Falldown intr even stat_reply_intr (04C2:bit6) == 0 on MCU interrupt.
+  * [FMTOWNS/CDROM] Reply error when reading beyond track on READ_SECTOR.
+  * [FMTOWNS/CDROM] Fix around booting from some version(s?) of TOWNS OS.
+	 i.e)AYAYO 4.
+  * [FMTOWNS/CRTC/TIMER/MEMORY] Improve around I/O.
+  * [FMTOWNS/DMAC] Remove some variables.Update state save version.
+  * [FMTOWNS/SCSI] Add a PORT: 0C34h.
+  * [FMTOWNS/MEMORY] Revert to use primitive_[read|write]. Fix CDROM's some issues (i.e. Crashing Ayayo4).
+  * [FMTOWNS/MEMORY] Add dma read/write functions with wait.
+  * [FMTOWNS/ICCARD] Improve logic around open/close.
+  * [FMTOWNS/JOYSTICK] Fix confused mouse mask.
+  * [FMTOWNS] Split MOUSE and JOYPADs to separate class.
+  * [FMTOWNS/FLOPPY] Add support for 1.44MB 2HD (2HC).
+  * [I286/I86/V30] Separate namespace CPUTYPE ENUMS.
+  * [I286/I86] Fix weird bitmask default value.
+  * [VM/UPD71071] Add read_io16(), write_io16() and ACK feature.
+  * [PC9801/EGC] Fix FTBFS with C++20 ; "error: ISO C++17 does not allow 'register' storage class specifier".
+  * [BUILD/CMake] Add samplescripts supports GCC-11 initially.
+  * [BUILD/CMake] Prepare to support LLVM12, but now unable to build Win32 version with llvm12 due to _aligned_alloc() and _aligned_free().
+  * [Build/Win32] LLVM12/MinGW-w64/Cross : Add libc++abi and others to toolchain.
+  * [Build/Win32] Update revision of ffmpeg to 4.4.
+  * [JOY_THREAD/SDL2/GAMECONTROLLER] Fix sample initial value.
+  * Built with ab2601af3b0de22bd806ce5312ebf06823a16405 (or later).
 
--- Dec 16, 2020 00:40:21 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- August 01, 2021 22:34:13 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 本家の変更:
 * 前の変更点をお読みになる場合には、history.txtをお読み下さい。
 
-8/16/2020
+5/2/2021
 
-[VM/SCSI_DEV] improve to specify data req signal delay (thanks Mr.Sato)
-[VM/SCSI_DEV] fix read6/write6 command in 0 length case (thanks Mr.Sato)
-[VM/SISI_HDD] change drive type to hot swappable
-[VM/SISI_HDD] improve seek time (thanks Mr.Sato)
-[VM/SASI_HDD] support winchester drive parameters command
-[VM/Z80DMA] improve to sense rdy signal as level, not edge (thanks Mr.Sato)
+[VM/DATAREC] fix mixing sound track
+[VM/HD46505] support smooth vertical scroll
+[VM/MC6843] fix seek command
+[VM/MC6844] fix data chain register to consider 2/4 channel select bit
+[VM/MC6844] fix to transfer 64K when byte count register is zero
+[VM/Z80CTC] fix to apply written time constant just after reset bit is cleared
 
-[MZ2500/CRTC] fix sub plane address in 640x200 16colors mode (thanks Mr.856)
-[SVI3X8] support SPECTRAVIDEO SVI-3x8 (thanks Mr.tanam)
-[X1] add menu items for FD2/FD3 (thanks Mr.Sato)
-[X1/DISPLAY] fix high speed pcg definition (thanks Mr.YAT)
-[X1TURBOZ/DISPLAY] improve palette update timing (thanks Mr.Sato)
+[BX1] fix memory map around ram
+[BX1] support cartridge rom images
+[BX1/DISPLAY] add missing font patterns
+[BX1/FLOPPY] support i/o ports around fdc
+[BX1/KEYBOARD] support PROG.SELECT switch
+[BX1/PRINTER] support AUTO PRINT switch
+[MZ1500/JOTSTICK] support joystick (thanks Mr.Koucha-Youkan)
+[PC6001] remove some codes from iP6 Plus
+[X1TURBO/DISPLAY] support smooth vertical scroll
 
 
-8/14/2020
+2/7/2021
 
-[OSD/WIN32] support x64 build (thank Mr.Marukun)
-[OSD/WIN32] support Direct2D
+[WINMAIN] improve WM_KEYDOW/WM_KEYUP events for VK_PROCESSKEY case
+[WIN32/CONSLE] improve routine to change console size
 
-[MICOM_MAHJONG] support Nippon Mail Service MICOM MAHJONG (thanks Mr.GORRY)
-[TVBOY] support GAKKEN TV BOY (thanks Mr.tanam)
+[VM/DISK] fix density flag when loading solid image with fm sectors
+[VM/MC6843] fix track zero flag in STRA
+[VM/MC6843] fix seek error flag in STRB
+[VM/MC6843] fix seek command
+
+[BX1/DISPLAY] improve for drawing digitron display
+[BX1/KEYBOARD] improve I/O ports for detecting key pressed/released
+[BX1/PRINTER] add ugly patch for printer process
+
+1/24/2021
+
+[VM/I8279] support 8279 (based on MAME)
+
+[MP85] support MITEC MP-85
+
+
+1/17/2021
+
+[VM/UPD765A] improve for the case tc is asserted while reading/writing sector
+
+[PC8801/PC88] improve to render screen with port params at end of disp timing
+[X1TURBO/FLOPPY] fix to change type of all drives (thanks Mr.Sato)
+
+
+1/3/2021
+
+[WINMAIN] improve for pressing shift key and numpad key
+
+[MZ80K] fix roman/kana conversion
+[MZ80K/KEYBOARD] improve for pressing right shift key and numpad key
+
+
+12/31/2020
+
+[PC8801/PC88] improve crtc to refer reverse setting in start display command
+
+
+12/21/2020
+
+[VM/SCSI_CDROM] fix start frame of CD-DA playing when track number is specified
+
+[PCENGINE/PCE] fix issue that ADPCM is mistakenly looped
+
+
+12/19/2020
+
+[VM/SCSI_CDROM] fix pre-gap of first track when it is audio track
+
+
+12/18/2020
+
+[VM/SCSI_CDROM] improve routine to get start/end frame of CD-DA playing
+
+[PC8801/PC88] support 8inch DMA-type floppy drives for PC-8001mkII/SR
+[PC9801/DISPLAY] improve EGC (thanks Mr.Ryuji Okamoto)
+
+
+12/16/2020
+
+[PC8801/DISKIO] improve to read/write files in initial current directory
+[PC8801/PC88] support force ready/drq mask register for DMA-type FDD
+[PC8801/PC88] fix PC-8001mkIISR hiragana font when PCG-8100 is enabled
+
+
+12/15/2020
+
+[PC8801/DISKIO] support M88 DiskDrv (thanks Mr.CISC and Mr.apaslothy)
+[PC8801/PC88] support PC-8001mkIISR hiragana font
+[PC8801/PC88] support to disable 5inch/8inch-FDD interfaces
+[PC8801/PC88] support to disable updating scan line setting automatically
+[PC8801/PC88] fix mouse data when position is not latched
+
+
+12/14/2020
+
+[PC8801/PC88] support 8inch DMA-type floppy drives
+
+
+12/13/2020
+
+[VM/MC6843] support MC6843 (based on MAME)
+[[VM/SCSI_CDROM] fix to reset logical block size in Test Unit Ready command
+
+[BX1] support CANON BX-1 (not work)
+[MZ1500/QUICKDISK] improve for BSD record (thanks Mr.Motochan1500)
+[PC8801/PC88] fix hireso graphic screen when scan line is disabled
+
+
+12/12/2020
+
+[PC8801/PC88] fix to clear attibutes at starting new frame
+[PC8801/PC88] fix to read status of 2nd OPNA
+
+
+12/11/2020
+
+[PC8801/PC88] fix to run dma from memory to crtc when (rd,wr)=(0,0)
+[PC8801/PC88] fix to run dma from scsi to memory only when count > 0
+
+
+12/8/2020
+
+[COMMON] fix build error on VC++2019 (thanks Mr.Sato)
+
+[VM/Z80CTC] fix not to clear in-service at software reset (thanks Mr.Sato)
+[VM/Z80DMA] fix stall cycles at BUSACK in byte mode (thanks Mr.Sato)
+
+[X1TURBOZ/DISPLAY] fix zpalette in 64 colors, 2 screens mode (thanks Mr.Sato)
+
+
+12/6/2020-2
+
+[MZ1500] fix inp(0xe8) to detect voice board is missing (thanks Mr.kitahei88)
+[X1TURBOZ/DISPLAY] fix to update zpalette at vline=0 (thanks Mr.Sato)
+
+
+12/6/2020
+
+[OSD/WIN32] import Unity plug-in code (thanks Mr.Marukun)
+
+[VM/I386_NP21] update to Neko Project 21/W ver0.86 rev79 beta4
+[VM/UPD765A] fix transfer size to 128 << min(N, 7) (thanks Mr.Kugimoto)
+
+[MZ1500/QUICKDISK] improve for QDF format (thanks Mr.kitahei88)
+[MZ1500/QUICKDISK] improve for BSD record (thanks Mr.Yuushi)
+[PC9801/MEMORY] fix switching BIOS ROM/RAM
+[X1/CZ8RB] support CZ-8RB (thanks Mr.Meister)
 
 -----
 

@@ -1,3 +1,495 @@
+commit ab2601af3b0de22bd806ce5312ebf06823a16405
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 1 22:22:45 2021 +0900
+
+    [Qt][I18N] Update I18N.
+
+commit 2d7fcfc6f5883814a622efb624a62155f369239e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 1 21:53:23 2021 +0900
+
+    [VM][FMTOWNS][CDROM] Re-implement parcing CCD image file.Still ugly.
+
+commit 75da6fa01d79a386c58fbcadfb6f6659d4cd1862
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 1 01:22:11 2021 +0900
+
+    [DOC] Update revision (maybe temporally).
+
+commit eb249cc075c1cd1aca58e3a3ffa7f8d136063f8f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 31 23:46:19 2021 +0900
+
+    [DOC][VM][FMTOWNS] Update status.
+
+commit 995272dfb73acc7ab1c02a4aa384b424237a718f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 31 23:31:36 2021 +0900
+
+    [VM][FMTOWNS][KEYBOARD] SPECIAL_RESET: Available to boot with special key code (i.e. "CD" "DEBUG").
+
+commit 58af86e4456d5bfa946a5ae7d5ffa4d99b61d0a1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 31 20:01:23 2021 +0900
+
+    [VM][FMTOWNS][CDROM] Temporally remove new moduler CDROM:: classes.Only exitsts in towns_cdrom_v3 .
+
+commit d797b63c5c3cdc8d240704dcc9fdafe17c8ea34e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 31 19:52:54 2021 +0900
+
+    [VM][FMTOWNS][JOYPAD] Remove older source file(s).
+
+commit f3108450785783585b85e911c681a8d89363ef2c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 31 12:50:58 2021 +0900
+
+    [BUILD][LLVM12][CXX20] Improve configuration support for C++20.
+
+commit 749eed9aad95fadb2ff430094efa280b5698c335
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 31 12:50:33 2021 +0900
+
+    [BUILD][CMAKE] Reduce warning with CMake >= 3.0 .
+
+commit 8f7df6ae8fbda3ab2bdd9d976f715252a8927759
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 31 11:50:54 2021 +0900
+
+    [VM][FMTOWNS][JOYSTICK] Remove unused variables and logging.
+
+commit cf10779e9db374c1699a36452506a7702a754838
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jul 31 11:21:44 2021 +0900
+
+    [VM][FMTOWNS][MOUSE][JOYSTICK] Mouse maybe works with TonwsOS 2.x.
+
+commit 5d2a018b1cc1f6130e99d65f1dd9bfecc8cfa280
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jul 30 12:23:52 2021 +0900
+
+    [VM][FMTOWNS][MOUSE] Still not working.
+
+commit 0b6557a07309d382d1122cd10373b993fd2093e6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jul 29 18:35:39 2021 +0900
+
+    [VM][FMTOWNS][MOUSE] Make buses negative logic.
+
+commit 0251d0d7a7084151e308854f11868f2d49c93f32
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jul 29 11:46:08 2021 +0900
+
+    [DOC][VM][FMTOWNS] Update 00_status.ja.md .
+
+commit acada32c6f1c295a58d58f701eb0a88aa47e3345
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jul 29 11:45:37 2021 +0900
+
+    [VM][FMTOWNS][JOYSTICK] Adjust reset sequence and initilize.
+
+commit 9067ae4706c8e1d809e3dab193ae29e28ecb44fc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jul 28 17:49:00 2021 +0900
+
+    [VM][FMTOWNS][JOYSTICK][MOUSE] Re-Implement mouse.Still not working.
+    
+    [VM][FMTOWNS][JOYSTICK][6BUTTONS_PAD] Maybe work fine.
+
+commit f1b16b7ec41a7831efdf69442094a48c5d4df708
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jul 28 17:48:18 2021 +0900
+
+    [JOY_THREAD][SDL2][GAMECONTROLLER] Fix sample initial value.
+
+commit b249334420280f83894ee13e1e27ec28714a4fc9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jul 28 11:31:43 2021 +0900
+
+    [VM][FMTOWNS][JOYSTICK] Improve plug/unplug sequences.Add debugging feature.
+
+commit e795208cdd1fda97bca76abd0cf894c560a2b901
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jul 28 11:31:16 2021 +0900
+
+    [UI][Qt] Buildable with before changes.
+
+commit 6c484347058768abb07c887eb8a62349e1a8d836
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jul 28 03:45:20 2021 +0900
+
+    [CONFIG][FMTOWNS] Add config.machine_features[32] to use machine configuration (w/o DIP SWITCH).Still not be bulidable.
+    
+    Note: See vm/fmtowns/joystick.cpp, FMTOWNS::JOYSTICK::update_config().
+
+commit a2a910d2a252c8b5bb5f7fb164038adbd668bf5f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 26 21:41:04 2021 +0900
+
+    [VM][FMTOWNS][JOYSTICK] Re-Implement Joypads.Still not implement MOUSE, and fixed to 2 buttons.
+
+commit 5d2f33f82c31d142a2ecafafdeccab8f6270bf03
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 26 03:50:07 2021 +0900
+
+    [VM][FMTOWNS][JOYPORT] First sequence after reset().
+
+commit 243867904ad9a090723260ef5412c095e0da651d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 26 03:48:12 2021 +0900
+
+    [VM][JOYSTICK][FMTOWNS] Add template class of JOYSTICK DEVICES.
+
+commit 960c0c9ca5ce25145b88b7528777064b9b9df9bd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jul 21 10:01:29 2021 +0900
+
+    [Build][CMake] Check supporting C++20 before making menu entry, CSP_BUILD_WITH_CXX20.
+
+commit 5e67022661440a4bb41369202c2aca150c95df15
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jul 21 09:06:52 2021 +0900
+
+    [VM][PC9801][EGC] Fix FTBFS with C++20 ; "error: ISO C++17 does not allow 'register' storage class specifier".
+
+commit f5c593bed37d5bc08b235a690e6fb3c72478fd92
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jul 21 03:27:31 2021 +0900
+
+    [BUILD][CMAKE] Add *Very Experimental* C++20 build settings.
+
+commit 8066f967ddf6b912af9e05fc3392bcf1d811ab35
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jul 21 02:23:55 2021 +0900
+
+    [VM][UPD71071][FMTOWNS][DMAC] TRY: 16bit access I/O even 16B(REG00:bit2) == '0'.
+
+commit 13bcee37a435b64a92d35ad2ccbdf22f0af65bc2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jul 21 01:53:05 2021 +0900
+
+    [VM][FMTOWNS][MEMORY] Add hints of branch-prediction expect to be faster memory access.
+
+commit fba5f7de5fe9d68f01ba663c1d74c376f0baa6a4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jul 21 01:50:32 2021 +0900
+
+    [VM][I386_NP21] Add hints of branch-prediction whether accessing memory (and some of interrupts) is legal.
+    
+    This reduces HOST CPU USAGE especially high-VM-clocks.
+
+commit 0a8b803464401c8390439c93a1fa5ccecce5817d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jul 21 01:12:59 2021 +0900
+
+    [VM][FMTOWNS][CRTC][SPRITE][PLANE_VRAM][VRAM] Add hints for branch prediction.
+
+commit bb612581fdd0ff4e08f838c51c77c87412adfcc5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jul 21 00:29:42 2021 +0900
+
+    [VM][COMMON][FMTOWNS][VRAM] Add __LIKELY_IF() and __UNLIKELY_IF() to assist compiler's optimization.
+    
+    See [read|write]_memory_mapped_io32() and read_memory_mapped_io16() at FMTOWNS::TOWNS_VRAM class.
+
+commit 920e066478fe74f9c6fd8e264874d55bc0c46353
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 20 04:11:24 2021 +0900
+
+    [VM][FMTOWNS][VRAM] Pad data when reading upper 7FFFCh.
+
+commit 5c72e677f6af30e55be49f62a692d63d4773378b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jul 20 02:59:02 2021 +0900
+
+    [VM][FMTOWNS][VRAM] More faster VRAM access for packed pixel mode.
+
+commit fdc05d91915d8e601813ac61027125870e4eebda
+Merge: 601aa728 39555395
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jul 19 22:46:50 2021 +0900
+
+    Merge branch 'upstream_20210502'
+
+commit 395553953338e1e5b34aef2244bbe3483097151a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 30 01:57:32 2021 +0900
+
+    [VM][FMTOWNS][TIMER] Clear OV and INTR when enabling interval timer.
+
+commit 933a7ef705f2d32ed61d8c6f623479f7ee48f375
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 30 01:56:46 2021 +0900
+
+    [VM][FMTOWNS][KEYBOARD][WIP] Try:Around special boot.This still be imcompleted.
+
+commit 27f4635563e91a51ffb18c8a40acaf98c123380a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 30 00:22:17 2021 +0900
+
+    [VM][FMTOWNS][KEYBOARD] Implement AUTO REPEAT.
+
+commit 3fdc0afe0585070db346bd60af8489216687ec0c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 28 15:39:33 2021 +0900
+
+    [VM][FMTOWNS][JOYPAD][MOUSE] .
+
+commit 68e03949d13998503cf04be10aa7687f4d4a6c6a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 28 14:11:39 2021 +0900
+
+    [VM][FMTOWNS][MOUSE][JOYSTICK] More accurate emulation for JoyPort BUS.
+
+commit 47081860f6bd565f9d8f1042472312206c380942
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jun 28 00:11:57 2021 +0900
+
+    [VM][FMTOWNS][MOUSE][JOYSTICK] More integrate to common interface.
+
+commit 90c5053e5067ef3623d2aed2fc1a397eb6f602e0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 23 16:05:06 2021 +0900
+
+    [VM][FMTOWNS][MOUSE][JOYSTICK] .
+
+commit ff9811ecd64b9981a5a628aebb30c62a65261863
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 23 15:24:30 2021 +0900
+
+    [VM][FMTOWNS][JOYSTICK][MOUSE] Readerble port value from connected device.
+
+commit ef8c9355e467a1a52d74cf59162e0d5b6fcbb741
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 23 03:42:55 2021 +0900
+
+    [VM][FMTOWNS][MOUSE][WIP] Integrating mouse to a bus.WIP.
+
+commit 82845836479a03667c33a384ae31c7ce84131b42
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 22 14:39:46 2021 +0900
+
+    [VM][X1][MOUSE] Fix FTBFS.
+
+commit 739eb605ae98da3843bc3447c2918e375b410e9d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 22 13:40:30 2021 +0900
+
+    [VM][FMTOWNS][MOUSE] Fix FTBFS.
+
+commit 0955e5a3505622aa9d43365dfb3ce7d0725d186b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 22 13:40:12 2021 +0900
+
+    [EMU][OSD][MOUSE][JOYSTICK][OOPS] Fix FTBFS.
+
+commit f3571e78eadf737bf7615edc3ad3c072a11ed8d7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 22 13:10:06 2021 +0900
+
+    [VM][OSD][EMU][MOUSE][JOYSTICK] Should LOCK/UNLOCK per referring buffers of joystick/mouse.
+    
+    Note: This is MAJOR API CHANGE around mouse and joystick.
+          See DIFFs of this commit.
+
+commit a70cb0373d4b719b2c3e3fd9ea9e4cc6ad2be5ce
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 22 03:14:07 2021 +0900
+
+    [VM][FMTOWNS][JOYPAD][MOUSE][WIP] Around MOUSE/Joystick.
+
+commit e81d8de8758d76f129b9bf71fb467b922bc6b075
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 22 01:56:45 2021 +0900
+
+    [VM][FMTOWNS][MEMORY][VRAM] Add features around CACHE for after i486.Still be dummy.
+
+commit 7484d52db8eca1ef9e9a6cf47f8fae009df87710
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 22 01:56:19 2021 +0900
+
+    [BUILD][CMake][FMTOWNS] Add FM Towns2 HG Series.
+
+commit 9c0691db27911365b09c07672138a64fa1c7310b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jun 22 01:55:41 2021 +0900
+
+    [VM][FMTOWNS][FLOPPY] Add support for 1.44MB 2HD (2HC).
+
+commit 01a9513b06293ab43a26ec3743c3336c91525b18
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 17 04:36:27 2021 +0900
+
+    [FMTOWNS][VRAM][WIP] Will BE more faster vram accessing.
+
+commit d8624bae72c975559972daf556163b3c65534173
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 17 03:31:49 2021 +0900
+
+    [VM][FMTOWNS][VRAM] .
+
+commit ce33e3203dc85128fd435d8c59ca3c370f8ece90
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 17 03:31:18 2021 +0900
+
+    [VM][I286_NP21][WIP] Around wait.
+
+commit d87b8bbc0866a70d8fdfc1f927ba087b88bb701b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jun 17 03:30:40 2021 +0900
+
+    [VM][FMTOWNS][MOUSE][JOYSTICK] Split MOUSE to separate class.
+
+commit b7abe607dca7938ac709f51e78abe900aa6ba107
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jun 16 22:50:35 2021 +0900
+
+    [VM][FMTOWNS][JOYSTICK] Fix confused mouse mask.
+
+commit 601aa728562d4418c191655d08aa61d8ff592009
+Merge: e1453e4b 44a41c73
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 31 14:04:57 2021 +0900
+
+    Merge branch 'master' of github.com:Artanejp/common_source_project-fm7
+
+commit e1453e4b7b84c5d3a7339e17dcf3ad46174cbc78
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 31 14:04:22 2021 +0900
+
+    [Build][CMake][Win32] Update revision of ffmpeg to 4.4.
+
+commit 44a41c73bc7a8ad4f6883a86a7ebd2930ffce0e0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 31 13:51:49 2021 +0900
+
+    [Build][Cross] Available to build some libraries(for MinGW-cross) with CLANG12.
+    
+    * Updated x264 to git stable branch (see source/tools/libx264/00_gitlog.txt).
+    * Updatet ffmpeg to 4.4 .
+
+commit c5befb7a41982c5b872f28489d72bcd72a592187
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 30 06:57:54 2021 +0000
+
+    [WIn32][CrosBuild][ICU] Avaiable to build with CLANG12/Cross/MinGW-w64 .
+
+commit 6e1f29b4e83f3241d1e573212b1ba02776eb57ba
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 30 06:29:16 2021 +0000
+
+    [Qt][Build][Win32] Mostly available to build with cross toolchain, excepts QDoc.
+
+commit 8a6b166ac0018d5501d1abd118cc8c8a6694f791
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 29 21:28:50 2021 +0000
+
+    [Win32][Qt][Cross] Mostly complete to Qt configure script with LLVM12/MinGW-w64/Cross.
+
+commit f68019b6363dea7d9b34c7e6797c312e88a27b12
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 29 21:07:29 2021 +0000
+
+    .
+
+commit c11f7cd8ed4a30460874a9f2a6ff9282994c0e12
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 29 21:06:46 2021 +0000
+
+    [CROSS_BUILD][Qt] Now updating (imcompleted) Qt cross building script.
+
+commit a13d4d6bf8d4c48b149f18f869ee0c10d0ebe7d1
+Merge: 150280ef baf104c6
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 29 19:02:53 2021 +0000
+
+    Merge branch 'master' of github.com:Artanejp/common_source_project-fm7
+
+commit 150280efaeaae60a5387ea125c30b53388a71d42
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 29 19:02:17 2021 +0000
+
+    [CMake][Win32] Remove obsolete toolchains.
+
+commit 22d9f90076cb1cb5216cc90f19aa0e41cf32590a
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 29 19:01:05 2021 +0000
+
+    [Build][Win32] LLVM12/MinGW-w64/Cross : Add libc++abi and others to toolchain.
+
+commit baf104c668505f8446db73a21ac50299ea30fdc1
+Merge: 4f92f972 a82fa52a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 30 00:28:09 2021 +0900
+
+    Merge branch 'master' of github.com:Artanejp/common_source_project-fm7
+
+commit 4f92f972a4c52276d131ffbd0ff0bcdf8e851602
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 30 00:27:30 2021 +0900
+
+    [Build][CMake] Update script for native building with clang12.
+
+commit a82fa52aa0b68ab474e4a1a2c9defabf5cd265d2
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 29 15:15:51 2021 +0000
+
+    [Build][CMake][Win32] Avaiable to build with Corss toolchain, LLVM12/Clang.
+
+commit d1cf6549c00ea8214d5416e39382c1c8573ea3e9
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 28 18:47:17 2021 +0900
+
+    [BUILD] Still unable to build with LLVM/MinGW-w64.
+
+commit 50c048f65586fa71a039a5cc210a852bd243f955
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 27 17:55:40 2021 +0000
+
+    [BUILD][CMake] Prepare to support LLVM12, but now unable to build Win32 version with llvm12 due to _aligned_alloc() and _aligned_free().
+
+commit 24cef3d0a568ee32d28bfd5c97f18a3fdd534d2e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 16 16:58:56 2021 +0900
+
+    [General] Update revisions.
+
+commit e34f296af745710bbc638ebe11996f73bc960c3c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 16 16:36:06 2021 +0900
+
+    [VM][General] Merge Upstream 2021-05-06. Some variants of PC-6001 are temporally dropped.
+
+commit 57add612eb0ca855767a2db3828aeec4114e4dd0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 11 22:55:33 2021 +0900
+
+    [VM][BX1][MC6843][DISK] Merge Upstream 2021-02-07 excepts OSD::open_console().
+
+commit 14cd25acd0c2e57f7054f50aad3f7b7344c62562
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 11 13:29:26 2021 +0900
+
+    [BUILD][CMake] Add samplescripts supports GCC-11 initially.
+
+commit 2871f100436022756893f1ba057daed8b47d8b6c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 7 20:58:08 2021 +0900
+
+    [BUILD][CMAKE] Add support for LLVM CLANG 12 (Native).
+
+commit 619439c420ce886bd45db3da66be0e497a7d12ac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 7 20:45:21 2021 +0900
+
+    [VM][FMTOWNS][ICCARD] Improve logic around open/close.
+
+commit ddfdd4510e65ddf3ecadab2444c0c8c2cc9f8724
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri May 7 20:44:46 2021 +0900
+
+    [VM][FMTOWNS][CDROM][CRTC] Remove unused (comment outed) part.
+
 commit 03edc20ce74dff97ac38b3f433a259c3fee73e31
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed May 5 01:42:32 2021 +0900

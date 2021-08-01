@@ -1,5 +1,51 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT August 01, 2021
+  * Upstream 2021-05-02.
+  * [BUILD/CMAKE] Add *Very Experimental* C++20 build settings.
+  * [OSD/EMU][MOUSE/JOYSTICK] Should LOCK/UNLOCK per referring buffers of joystick/mouse.
+    Note: This is MAJOR API CHANGE around mouse and joystick.
+  * [CONFIG/FMTOWNS] Add config.machine_features[32] to use machine configuration (w/o DIP SWITCH).Still not be bulidable.
+    Note: See vm/fmtowns/joystick.cpp, FMTOWNS::JOYSTICK::update_config().
+  * [FMTOWNS/KEYBOARD] SPECIAL_RESET: Available to boot with special key code (i.e. "CD" "DEBUG").
+  * [FMTOWNS/CDROM] Re-implement parsing CCD image file.Still ugly.
+  * [FMTOWNS/VRAM] Add __LIKELY_IF() and __UNLIKELY_IF() to assist compiler's optimization.
+    See [read|write]_memory_mapped_io32() and read_memory_mapped_io16() at FMTOWNS::TOWNS_VRAM class.
+  * [VM/I386_NP21] Add hints of branch-prediction whether accessing memory (and some of interrupts) is legal.
+    This reduces HOST CPU USAGE especially high-VM-clocks.
+  * [FMTOWNS/VRAM] More faster vram accessing.
+  * [FMTOWNS/MEMORY/VRAM] Add features around CACHE for after i486.Still be dummy.
+  * [FMTOWNS/CRTC] Use more SIMDs to be faster rendering.
+  * [FMTOWNS/KEYBOARD] Implement AUTO REPEAT.
+  * [FMTOWNS/TIMER] Clear OV and INTR when enabling interval timer.
+  * [FMTOWNS/VRAM] More faster VRAM access for packed pixel mode.
+  * [FMTOWNS/CDROM] Even reply without REQ_STATUS bit (0x20) with PAUSE/RESUME CDDA (85h/87h).
+  * [FMTOWNS/CDROM] Falldown intr even stat_reply_intr (04C2:bit6) == 0 on MCU interrupt.
+  * [FMTOWNS/CDROM] Reply error when reading beyond track on READ_SECTOR.
+  * [FMTOWNS/CDROM] Fix around booting from some version(s?) of TOWNS OS.
+	 i.e)AYAYO 4.
+  * [FMTOWNS/CRTC/TIMER/MEMORY] Improve around I/O.
+  * [FMTOWNS/DMAC] Remove some variables.Update state save version.
+  * [FMTOWNS/SCSI] Add a PORT: 0C34h.
+  * [FMTOWNS/MEMORY] Revert to use primitive_[read|write]. Fix CDROM's some issues (i.e. Crashing Ayayo4).
+  * [FMTOWNS/MEMORY] Add dma read/write functions with wait.
+  * [FMTOWNS/ICCARD] Improve logic around open/close.
+  * [FMTOWNS/JOYSTICK] Fix confused mouse mask.
+  * [FMTOWNS] Split MOUSE and JOYPADs to separate class.
+  * [FMTOWNS/FLOPPY] Add support for 1.44MB 2HD (2HC).
+  * [I286/I86/V30] Separate namespace CPUTYPE ENUMS.
+  * [I286/I86] Fix weird bitmask default value.
+  * [VM/UPD71071] Add read_io16(), write_io16() and ACK feature.
+  * [PC9801/EGC] Fix FTBFS with C++20 ; "error: ISO C++17 does not allow 'register' storage class specifier".
+  * [BUILD/CMake] Add samplescripts supports GCC-11 initially.
+  * [BUILD/CMake] Prepare to support LLVM12, but now unable to build Win32 version with llvm12 due to _aligned_alloc() and _aligned_free().
+  * [Build/Win32] LLVM12/MinGW-w64/Cross : Add libc++abi and others to toolchain.
+  * [Build/Win32] Update revision of ffmpeg to 4.4.
+  * [JOY_THREAD/SDL2/GAMECONTROLLER] Fix sample initial value.
+  * Built with ab2601af3b0de22bd806ce5312ebf06823a16405 (or later).
+
+-- Aug 01, 2021 22:34:13 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT December 16, 2020
   * Upstream 2020-08-16.
   * Important: Build system moved to CMake *perfectly*.See INSTALL.md or INSTALL.en.md.
