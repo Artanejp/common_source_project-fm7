@@ -34,7 +34,6 @@ void KEYBOARD::initialize()
 	
 	special_boot_num = -1;
 	boot_seq = false;
-	memset(table, 0, sizeof(table));
 	memset(boot_code, 0x00, sizeof(boot_code));
 }
 
@@ -50,6 +49,15 @@ void KEYBOARD::release()
 void KEYBOARD::reset()
 {
 //	reset_device();
+	if(boot_seq) {
+		repeat_start_ms = 400;
+		repeat_tick_ms = 30;
+		special_boot_num = -1;
+		boot_seq = false;
+		reset_device();
+		memset(boot_code, 0x00, sizeof(boot_code));
+		memset(table, 0, sizeof(table));
+	}
 }
 
 void KEYBOARD::reset_device()
