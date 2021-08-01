@@ -1436,20 +1436,20 @@ If changed, need to restart this emulator.</source>
         <translation>エミュレータのログを、ダイアログで見ます。</translation>
     </message>
     <message>
-        <source>OpenGL ES v2.0</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>OpenGL ES v3.1</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Configure Mouse</source>
         <translation>マウスを設定する</translation>
     </message>
     <message>
         <source>Setup mouse sensitivity.</source>
         <translation>マウスの感度を設定します。</translation>
+    </message>
+    <message>
+        <source>OpenGL ES v2.0</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>OpenGL ES v3.1</source>
+        <translation></translation>
     </message>
 </context>
 <context>

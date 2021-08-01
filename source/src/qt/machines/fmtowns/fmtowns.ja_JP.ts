@@ -68,84 +68,138 @@
     </message>
     <message>
         <location filename="MainWindow.cpp" line="51"/>
-        <source>Mouse</source>
-        <translation>マウス</translation>
+        <source>Joystick Port #1</source>
+        <translation>ジョイスティックポート1</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="53"/>
+        <location filename="MainWindow.cpp" line="52"/>
+        <source>Joystick Port #2</source>
+        <translation>ジョイスティックポート2</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="56"/>
+        <source>2Buttons PAD</source>
+        <translation>2ボタンパッド</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="57"/>
+        <source>6Buttons PAD</source>
+        <translation>6ボタンパッド</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="58"/>
+        <source>Towns Mouse</source>
+        <translation>Townsマウス</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="59"/>
+        <source>Analog Stick</source>
+        <translation>アナログスティック</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="60"/>
+        <source>Joystick for Libble Rabble</source>
+        <translation>リブルラブル用ジョイスティック</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="68"/>
+        <source>No devices are connected to this port</source>
+        <translation>何のデバイスもこのポートにはつなぎません</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="69"/>
+        <source>Connect standard Towns PAD, 2Buttons.</source>
+        <translation>通常の２ボタン Townsパッドを接続します。</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="70"/>
+        <source>Connect extended Towns PAD, 6Buttons.</source>
+        <translation>6ボタン Townsパッドを接続します。</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="71"/>
+        <source>Connect MOUSE</source>
+        <translation>マウスを接続します</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="72"/>
+        <source>Connect analog joystick, this still be unimplemented</source>
+        <translation>アナログジョイスティック(電波新聞社 サイバースティック）を接続します。
+まだ、実装されていません</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="73"/>
+        <source>Connect hacked joystick for Libble Rabble, this still be unimplemented.</source>
+        <translation>リブルラブルで使えるハックされたジョイスティックを接続します。
+まだ、実装されていません。</translation>
+    </message>
+    <message>
+        <source>Mouse</source>
+        <translation type="vanished">マウス</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="55"/>
         <source>none</source>
         <translation>なし</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="54"/>
         <source>Not connect mouse.</source>
-        <translation>マウスをつなぎません</translation>
+        <translation type="vanished">マウスをつなぎません</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="55"/>
         <source>PAD port1</source>
-        <translation>パッドポート１</translation>
+        <translation type="vanished">パッドポート１</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="56"/>
         <source>Connect mouse to PAD port #1.</source>
-        <translation>マウスをパッドポート１につなぎます。</translation>
+        <translation type="vanished">マウスをパッドポート１につなぎます。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="57"/>
         <source>PAD port2</source>
-        <translation>パッドポート２</translation>
+        <translation type="vanished">パッドポート２</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="58"/>
         <source>Connect mouse to PAD port #2.</source>
-        <translation>マウスをパッドポート２につなぎます。</translation>
+        <translation type="vanished">マウスをパッドポート２につなぎます。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="61"/>
         <source>None</source>
-        <translation>なし</translation>
+        <translation type="vanished">なし</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="62"/>
         <source>NotConnected.</source>
-        <translation>何も接続しません。</translation>
+        <translation type="vanished">何も接続しません。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="63"/>
         <source>2 buttons</source>
-        <translation>２ボタンパッド</translation>
+        <translation type="vanished">２ボタンパッド</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="64"/>
         <source>Connect 2 buttons Towns PAD to PORTs.</source>
-        <translation>２ボタンのTownsパッドをポートにつなぎます。</translation>
+        <translation type="vanished">２ボタンのTownsパッドをポートにつなぎます。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="65"/>
         <source>6 buttons</source>
-        <translation>６ボタンパッド</translation>
+        <translation type="vanished">６ボタンパッド</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="66"/>
         <source>Connect 6 buttons Towns PAD to PORTs.</source>
-        <translation>６ボタンのTownsパッドをつなぎます。</translation>
+        <translation type="vanished">６ボタンのTownsパッドをつなぎます。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="67"/>
         <source>Towns PAD</source>
-        <translation>Townsパッド</translation>
+        <translation type="vanished">Townsパッド</translation>
     </message>
 </context>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="MainWindow.cpp" line="71"/>
+        <location filename="MainWindow.cpp" line="80"/>
         <source>IC1</source>
         <translation>IC1</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="74"/>
+        <location filename="MainWindow.cpp" line="83"/>
         <source>IC2</source>
         <translation>IC2</translation>
     </message>
