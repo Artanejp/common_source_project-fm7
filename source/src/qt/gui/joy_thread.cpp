@@ -716,7 +716,7 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 			id = eventQueue->cbutton.which;
 			i = get_joyid_from_instanceID(id);
 			//button = SDL_GameControllerGetButton(controller_table[i], cont_button);
-			debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "Press button: %d", cont_button);
+			//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "Press button: %d", cont_button);
 			controller_button_down(i, cont_button);
 			break;
 		case SDL_CONTROLLERBUTTONUP:
