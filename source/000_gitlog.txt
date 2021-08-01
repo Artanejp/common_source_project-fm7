@@ -1,3 +1,27 @@
+commit 8e74d0180e94531f54c0fb1a99176d79b7fea84e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 2 01:25:20 2021 +0900
+
+    [Build][CMake] Update bootstrap script for CLANG12/Win32.
+
+commit 6924cfc4013e2f4c908e33c0138005b7b639c120
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 2 00:53:02 2021 +0900
+
+    [Qt][JOY_THREAD][OOPS] Comment out a debug message.
+
+commit 70da2faf36975db983957f2c6aa9b97c864f6433
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Aug 2 00:51:39 2021 +0900
+
+    [VM][FMTOWNS][KEYBOARD][OOPS] Fix wrong reset after keys-pressed-reset.
+
+commit b2b4f8852216b55eee529927b6a720e4740c7ffa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Aug 1 22:39:27 2021 +0900
+
+    [DOC] Update for SNAPSHOT 2021-08-01.
+
 commit ab2601af3b0de22bd806ce5312ebf06823a16405
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Aug 1 22:22:45 2021 +0900
