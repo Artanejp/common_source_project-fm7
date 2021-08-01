@@ -121,6 +121,31 @@ enum {
 	MODE_NONE
 };
 enum {
+	CCD_PHASE_NULL = 0,
+	CCD_PHASE_ENTRY = 1,
+	CCD_PHASE_SESSION,
+	CCD_PHASE_CLONECD,
+	CCD_PHASE_DISC,
+	CCD_PHASE_TRACK
+};
+enum {
+	CCD_TYPE_NULL = 0,
+	CCD_POINT = 1,
+	CCD_CONTROL,
+	CCD_PLBA,
+	CCD_ALBA,
+	CCD_INDEX_0,
+	CCD_INDEX_1,
+	CCD_MODE,
+
+	CCD_TOC_ENTRIES = 0x101,
+	CCD_CDTEXT_LENGTH,
+
+	CCD_PREGAP_MODE = 0x201,
+	CCD_PREGAP_SUBC
+};
+	
+enum {
 	CDROM_READ_MODE1 = 1,
 	CDROM_READ_MODE2 = 2,
 	CDROM_READ_RAW   = 3,
@@ -408,7 +433,8 @@ protected:
 	uint32_t __FASTCALL lba_to_msf(uint32_t lba);
 	uint32_t __FASTCALL lba_to_msf_alt(uint32_t lba);
 	int __FASTCALL get_frames_from_msf(const char *s);
-	int __FASTCALL hexatoi(const char *s);
+	int64_t __FASTCALL hexatoi(const char *s);
+	int64_t __FASTCALL string_to_numeric(std::string s);
 
 	virtual void open_from_cmd(const _TCHAR* file_path);
 	virtual void close_from_cmd();
