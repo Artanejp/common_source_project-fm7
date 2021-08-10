@@ -278,7 +278,7 @@
 #if /*!defined(_WIN32) || */!defined(SOCKET)
 	typedef uintptr_t SOCKET;
 #endif
-typedef union {
+typedef union pair16_t {
 	struct {
 #ifdef __BIG_ENDIAN__
 		uint8_t h, l;
@@ -362,7 +362,7 @@ typedef union {
 
 } pair16_t;
 
-typedef union {
+typedef union pair32_t {
 	struct {
 #ifdef __BIG_ENDIAN__
 		uint8_t h3, h2, h, l;
@@ -529,7 +529,7 @@ typedef union {
 } pair32_t;
 
 
-typedef union {
+typedef union pair64_t {
 	struct {
 #ifdef __BIG_ENDIAN__
 		uint8_t h7, h6, h5, h4, h3, h2, h, l;
