@@ -17,8 +17,8 @@ L_LIB_CLANGPP_FLAGS=""
 cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_llvm12.cmake" \
       -DCMAKE_BUILD_TYPE=Relwithdebinfo \
       -DCMAKE_C_FLAGS_RELWITHDEBINFO=" \
-      		-g2 \
-		-gz=zlib \
+      		-gdwarf \
+		-gz \
 		-O3 \
 		-flto \
 		-msse2 \
@@ -31,11 +31,10 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_llvm1
 		${SANITIZER_FLAGS} \
 		${I_LIB_CLANG_FLAGS} \
 		${L_LIB_CLANG_FLAGS} \
-		-Wa,--compress-debug-sections=zlib \
 		" \
       -DCMAKE_CXX_FLAGS_RELWITHDEBINFO=" \
-      		-g2 \
-		-gz=zlib \
+      		-gdwarf \
+		-gz \
 		-O3 \
 		-flto \
 		-msse2 \
@@ -48,23 +47,10 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_llvm1
 		${I_LIB_CLANGPP_FLAGS} \
 		${L_LIB_CLANGPP_FLAGS} \
 		${SANITIZER_FLAGS} \
-		-Wa,--compress-debug-sections=zlib \
 		" \
       -DCMAKE_EXE_LINKER_FLAGS="\
-      		-g2 \
-		-gz=zlib \
-		-O3 \
-		-flto \
-		-msse2 \
-		${I_LIB_CLANG_FLAGS} \
-		${L_LIB_CLANG_FLAGS} \
-		${I_LIB_CLANGPP_FLAGS} \
-		${L_LIB_CLANGPP_FLAGS} \
-		${SANITIZER_FLAGS} \
-		-Wl,--compress-debug-sections=zlib \
-		" \
-      -DCMAKE_MODULE_LINKER_FLAGS="\
-      		-g \
+		-fuse-ld=lld-12 \
+      		-gdwarf \
 		-gz \
 		-O3 \
 		-flto \
@@ -75,5 +61,21 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_llvm1
 		${L_LIB_CLANGPP_FLAGS} \
 		${SANITIZER_FLAGS} \
 		-Wl,--compress-debug-sections=zlib \
+		-Wl,--lto-O3 \
+		" \
+      -DCMAKE_MODULE_LINKER_FLAGS="\
+		-fuse-ld=lld-12 \
+      		-gdwarf \
+		-gz \
+		-O3 \
+		-flto \
+		-msse2 \
+		${I_LIB_CLANG_FLAGS} \
+		${L_LIB_CLANG_FLAGS} \
+		${I_LIB_CLANGPP_FLAGS} \
+		${L_LIB_CLANGPP_FLAGS} \
+		${SANITIZER_FLAGS} \
+		-Wl,--compress-debug-sections=zlib \
+		-Wl,--lto-O3 \
 		" \
 		-DCSP_BUILD_WITH_CXX20=ON
