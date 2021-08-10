@@ -61,16 +61,16 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 		}
 	}
 	QPointF pos;
-	if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
+//	if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
 		pos = event->localPos();
-	} else {
-		pos = event->screenPos();
-	}
+//	} else {
+//		pos = event->screenPos();
+//	}
 	double xpos = (double)(pos.x()) / (double)width();
 	double ypos = (double)(pos.y()) / (double)height();
 	double gxpos = (double)(event->globalPos().x()) / (double)width();
 	double gypos = (double)(event->globalPos().y()) / (double)height();
-	//printf("@@ %d %d\n", pos.x(), pos.y());
+
 	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse() || (using_flags->get_max_button() > 0)) {
 		if(!enable_mouse) return;
 		//if(QApplication::overrideCursor() == NULL) {
@@ -115,7 +115,7 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 		gyy = gypos * (double)d_hh;
 	}
 
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Mouse Move: (%f,%f) -> (%d, %d)\n", xpos, ypos, (int)xx, (int)yy);
+	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Mouse Move: (%f,%f) : (%f,%f) -> (%g, %g)(%g, %g)", pos.x(), pos.y(), xpos, ypos, xx, yy, gxx, gyy);
 	emit sig_notify_move_mouse(xx, yy, gxx, gyy);
 
 }

@@ -217,11 +217,11 @@ protected:
 	
 	int32_t mouse_status[3];	// x, y, button (b0 = left, b1 = right)
 	bool mouse_enabled;
-	int mouse_ptrx;
-	int mouse_ptry;
-	int mouse_button;
-	int mouse_oldx;
-	int mouse_oldy;
+	double mouse_ptrx;
+	double mouse_ptry;
+    int32_t mouse_button;
+	double mouse_oldx;
+	double mouse_oldy;
 	//Qt::CursorShape mouse_shape;
 	
 	QImage background_image;
@@ -458,7 +458,7 @@ public:
 	void toggle_mouse();
 	bool is_mouse_enabled();
 	//QImage *getPseudoVramClass(void) { return pPseudoVram;}
-	void set_mouse_pointer(int x, int y);
+	void set_mouse_pointer(double x, double y);
 	void set_mouse_button(int button);
 	void modify_key_buffer(int code, uint8_t val);
 	uint8_t* get_key_buffer();

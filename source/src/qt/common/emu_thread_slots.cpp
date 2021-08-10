@@ -861,16 +861,18 @@ void EmuThreadClassBase::set_romakana(bool flag)
 void EmuThreadClassBase::moved_mouse(double x, double y, double globalx, double globaly)
 {
 	if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
-		mouse_x = (int)floor(x);
-		mouse_y = (int)floor(y);
+		mouse_x = x;
+		mouse_y = y;
 //		bool flag = p_osd->is_mouse_enabled();
 //		if(!flag) return;
 //		printf("Mouse Moved: %g, %g\n", x, y);
 //		p_osd->set_mouse_pointer(floor(x), floor(y));
 	} else if(using_flags->is_use_mouse()) {
-		double factor = (double)(p_config->mouse_sensitivity & ((1 << 16) - 1));
-		mouse_x = (int)(floor((x * factor) / 8192.0));
-		mouse_y = (int)(floor((y * factor) / 8192.0));
+//		double factor = (double)(p_config->mouse_sensitivity & ((1 << 16) - 1));
+//		mouse_x = (int)(floor((globalx * factor) / 8192.0));
+//		mouse_y = (int)(floor((globaly * factor) / 8192.0));
+		mouse_x = globalx;
+		mouse_y = globaly;
 		//printf("Moved Mouse %d, %d\n", x, y);
 		bool flag = p_osd->is_mouse_enabled();
 		if(!flag) return;

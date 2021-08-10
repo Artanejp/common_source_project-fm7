@@ -65,8 +65,8 @@ void OSD_BASE::initialize_input()
 		mouse_enabled = false;
 	}
 
-	mouse_ptrx = mouse_oldx = get_screen_width() / 2;
-	mouse_ptry = mouse_oldy = get_screen_height() / 2;
+	mouse_ptrx = mouse_oldx = (double)(get_screen_width() / 2);
+	mouse_ptry = mouse_oldy = (double)(get_screen_height() / 2);
 	// initialize keycode convert table
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(bios_path(_T("keycode.cfg")), FILEIO_READ_BINARY)) {
@@ -114,14 +114,18 @@ void OSD_BASE::update_input_mouse()
 	memset(mouse_status, 0, sizeof(mouse_status));
 	//bool hid = false;
 	if(mouse_enabled) {
-		int xx = mouse_ptrx;
-		int yy = mouse_ptry;
-		mouse_status[0] = xx - mouse_oldx;
-		mouse_status[1] = yy - mouse_oldy; 
+		double diffx = mouse_ptrx - mouse_oldx;
+		double diffy = mouse_ptry - mouse_oldy;
+		double factor = (double)(p_config->mouse_sensitivity & ((1 << 16) - 1));
+		diffx = (diffx * factor) / 8192.0;
+		diffy = (diffy * factor) / 8192.0;
+		
+		mouse_status[0] = (int32_t)rint(diffx);
+		mouse_status[1] = (int32_t)rint(diffy); 
 		mouse_status[2] = mouse_button;
 		//printf("Mouse delta(%d, %d)\n", delta_x, delta_y);
-		mouse_oldx = xx;
-		mouse_oldy = yy;
+		mouse_oldx = mouse_ptrx;
+		mouse_oldy = mouse_ptry;
 	}
 
 }
@@ -798,6 +802,7 @@ void OSD_BASE::release_joy_buffer(uint32_t* ptr)
 
 int32_t* OSD_BASE::get_mouse_buffer()
 {
+	QMutexLocker n(mouse_mutex);
 	update_input_mouse();
 	return mouse_status;
 }
@@ -826,8 +831,8 @@ void OSD_BASE::enable_mouse()
 	// enable mouse emulation
 	if(!mouse_enabled) {
 		QMutexLocker n(mouse_mutex);
-		int xx = get_screen_width() / 2;
-		int yy = get_screen_height() / 2;
+		double xx = (double)(get_screen_width() / 2);
+		double yy = (double)(get_screen_height() / 2);
 		
 		mouse_oldx = xx;
 		mouse_oldy = yy;
@@ -865,17 +870,13 @@ bool OSD_BASE::is_mouse_enabled()
 	return mouse_enabled;
 }
 
-void OSD_BASE::set_mouse_pointer(int x, int y)
+void OSD_BASE::set_mouse_pointer(double x, double y)
 {
 	if((mouse_enabled)) {
 		QMutexLocker n(mouse_mutex);
 		
 		mouse_ptrx = x;
 		mouse_ptry = y;
-		
-//		mouse_oldx = mouse_ptrx;
-//		mouse_oldy = mouse_ptry;
-//		printf("Mouse Moved: (%d, %d)\n", mouse_ptrx, mouse_ptry);
 	}
 }
 

@@ -65,7 +65,8 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, USING_FLAG
 	vMovieQueue.clear();
 	
 	drawCond = new QWaitCondition();
-	keyMutex = new QMutex(QMutex::Recursive);
+//	keyMutex = new QMutex(QMutex::Recursive);
+
 	mouse_x = 0;
 	mouse_y = 0;
 	if(using_flags->is_use_tape() && !using_flags->is_tape_binary_only()) {
@@ -83,10 +84,11 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, USING_FLAG
 								 p_config->sound_volume_l[i]) / 2;
 		}
 	}
-	keyMutex->lock();
+	QMutexLocker _n(&keyMutex);
+
 	key_fifo = new FIFO(512 * 6);
 	key_fifo->clear();
-	keyMutex->unlock();
+
 
 };
 
@@ -134,14 +136,16 @@ void EmuThreadClassBase::button_pressed_mouse(Qt::MouseButton button)
 		if(using_flags->get_max_button() > 0) {
 			button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
 			if(vm_buttons_d == NULL) return;
+			int _x = (int)rint(mouse_x);
+			int _y = (int)rint(mouse_y);
 			switch(button) {
 			case Qt::LeftButton:
 //			case Qt::RightButton:
 				for(int i = 0; i < using_flags->get_max_button(); i++) {
-					if((mouse_x >= vm_buttons_d[i].x) &&
-					   (mouse_x < (vm_buttons_d[i].x + vm_buttons_d[i].width))) {
-						if((mouse_y >= vm_buttons_d[i].y) &&
-						   (mouse_y < (vm_buttons_d[i].y + vm_buttons_d[i].height))) {
+					if((_x >= vm_buttons_d[i].x) &&
+					   (_x < (vm_buttons_d[i].x + vm_buttons_d[i].width))) {
+						if((_y >= vm_buttons_d[i].y) &&
+						   (_y < (vm_buttons_d[i].y + vm_buttons_d[i].height))) {
 							if(vm_buttons_d[i].code != 0x00) {
 								key_queue_t sp;
 								sp.code = vm_buttons_d[i].code;
@@ -170,15 +174,16 @@ void EmuThreadClassBase::button_released_mouse(Qt::MouseButton button)
 		if(using_flags->get_max_button() > 0) {
 			button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
 			if(vm_buttons_d == NULL) return;
-			
+			int _x = (int)rint(mouse_x);
+			int _y = (int)rint(mouse_y);
 			switch(button) {
 			case Qt::LeftButton:
 //			case Qt::RightButton:
 				for(int i = 0; i < using_flags->get_max_button(); i++) {
-					if((mouse_x >= vm_buttons_d[i].x) &&
-					   (mouse_x < (vm_buttons_d[i].x + vm_buttons_d[i].width))) {
-						if((mouse_y >= vm_buttons_d[i].y) &&
-						   (mouse_y < (vm_buttons_d[i].y + vm_buttons_d[i].height))) {
+					if((_x >= vm_buttons_d[i].x) &&
+					   (_x < (vm_buttons_d[i].x + vm_buttons_d[i].width))) {
+						if((_y >= vm_buttons_d[i].y) &&
+						   (_y < (vm_buttons_d[i].y + vm_buttons_d[i].height))) {
 							if(vm_buttons_d[i].code != 0x00) {
 								key_queue_t sp;
 								sp.code = vm_buttons_d[i].code;
