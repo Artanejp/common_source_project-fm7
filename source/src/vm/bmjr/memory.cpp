@@ -383,8 +383,12 @@ void MEMORY::draw_screen()
 					dest[6] = (pat & 0x02) ? fore : back;
 					dest[7] = (pat & 0x01) ? fore : back;
 #else
-					scrntype_vec8_t* vdest = (scrntype_vec8_t*)dest;
-					*vdest = ConvertByteToMonochromePackedPixel(pat, &bit_table, fore, back);
+					__DECL_ALIGNED(32) scrntype_vec8_t vdest;
+					vdest = ConvertByteToMonochromePackedPixel(pat, &bit_table, fore, back);
+			__DECL_VECTORIZED_LOOP
+					for(int __i = 0; __i < 8; __i++) {
+						dest[__i] = vdest.w[__i];
+					}
 #endif
 				}
 				taddr++;
@@ -420,8 +424,12 @@ void MEMORY::draw_screen()
 					dest[6] = (pat & 0x02) ? fore : back;
 					dest[7] = (pat & 0x01) ? fore : back;
 #else
-					scrntype_vec8_t* vdest = (scrntype_vec8_t*)dest;
-					*vdest = ConvertByteToMonochromePackedPixel(pat, &bit_table, fore, back);
+					__DECL_ALIGNED(32) scrntype_vec8_t vdest;
+					vdest = ConvertByteToMonochromePackedPixel(pat, &bit_table, fore, back);
+			__DECL_VECTORIZED_LOOP
+					for(int __i = 0; __i < 8; __i++) {
+						dest[__i] = vdest.w[__i];
+					}
 #endif
 				}
 				taddr++;
