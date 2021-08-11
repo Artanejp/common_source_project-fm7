@@ -1353,7 +1353,7 @@ __DECL_VECTORIZED_LOOP
 		}
 	}
 	palbuf[0] = RGBA_COLOR(0, 0, 0, 0);
-	static const __DECL_ALIGNED(32) scrntype_t maskdata[16] =
+	__DECL_ALIGNED(32) static const scrntype_t maskdata[16] =
 	{
 		RGBA_COLOR(0, 0, 0, 0),
 		RGBA_COLOR(255, 255, 255, 255),
