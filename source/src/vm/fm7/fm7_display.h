@@ -334,7 +334,6 @@ protected:
 #endif
 	MC6809 *subcpu;
 	
-	void CopyDrawnData(scrntype_t* src, scrntype_t* dst, int width, bool scan_line);
 #if defined(_FM77L4)
 	scrntype_t GETVRAM_TEXTCOLOR(uint8_t attr, bool do_green);
 	uint8_t GETVRAM_TEXTPIX(uint8_t bitdata, bool reverse, bool cursor_rev);

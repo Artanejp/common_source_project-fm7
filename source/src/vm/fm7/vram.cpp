@@ -465,41 +465,6 @@ void DISPLAY::reset_screen_update(void)
 	screen_update_flag = false;
 }
 
-void DISPLAY::CopyDrawnData(scrntype_t* src, scrntype_t* dst, int width, bool scan_line)
-{
-	if(dst == NULL) return;
-	if(src == NULL) return;
-#if defined(_RGB555) || defined(_RGBA565)
-	static const int shift_factor = 2;
-#else // 24bit
-	static const int shift_factor = 3;
-#endif
-	scrntype_vec8_t* vsrc = (scrntype_vec8_t*)src;
-	scrntype_vec8_t* vdst = (scrntype_vec8_t*)dst;
-	__DECL_ALIGNED(32) scrntype_vec8_t tmp_dd;
-	__DECL_ALIGNED(32) scrntype_vec8_t sline;
-	
-	if(scan_line) {
-__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 8; i++) {
-			sline.w[i] = (scrntype_t)RGBA_COLOR(31, 31, 31, 255);
-		}
-__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < width; i++) {
-			tmp_dd.v = vsrc[i].v;
-			tmp_dd.v = tmp_dd.v >> shift_factor;
-			tmp_dd.v = tmp_dd.v & sline.v;
-			vdst[i].v = tmp_dd.v;
-		}
-	} else {
-__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < width; i++) {
-			tmp_dd.v = vsrc[i].v;
-			vdst[i].v = tmp_dd.v;
-		}
-	}
-}
-
 
 #if defined(_FM77L4)
 scrntype_t DISPLAY::GETVRAM_TEXTCOLOR(uint8_t attr, bool do_green)
@@ -552,7 +517,6 @@ void DISPLAY::GETVRAM_1_400L(int yoff, scrntype_t *p)
 	uint16_vec8_t *ppx = (uint16_vec8_t *)(&(bit_trans_table_0[pixel][0]));
 	__DECL_ALIGNED(16) uint16_vec8_t tmp_d;
 	__DECL_ALIGNED(32) scrntype_vec8_t tmp_dd;
-	scrntype_vec8_t *vp = (scrntype_vec8_t *)p;
 
 	tmp_d.v = ppx->v;
 	tmp_d.v = tmp_d.v >> 5;
@@ -561,8 +525,11 @@ __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_dd.w[i] = dpalette_pixel[tmp_d.w[i]];
 	}
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		p[i] = tmp_dd.w[i];
+	}
 
-	vp->v = tmp_dd.v;
 }
 
 void DISPLAY::GETVRAM_1_400L_GREEN(int yoff, scrntype_t *p)
@@ -574,7 +541,7 @@ void DISPLAY::GETVRAM_1_400L_GREEN(int yoff, scrntype_t *p)
 	uint16_vec8_t *ppx = (uint16_vec8_t *)(&(bit_trans_table_0[pixel][0]));
 	__DECL_ALIGNED(16) uint16_vec8_t tmp_d;
 	__DECL_ALIGNED(32) scrntype_vec8_t tmp_dd;
-	scrntype_vec8_t *vp = (scrntype_vec8_t *)p;
+
 
 	tmp_d.v = ppx->v;
 	tmp_d.v = tmp_d.v >> 5;
@@ -583,7 +550,10 @@ __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_dd.w[i] = dpalette_pixel_green[tmp_d.w[i]];
 	}
-	vp->v = tmp_dd.v;
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		p[i] = tmp_dd.w[i];
+	}
 
 }
 #endif
@@ -682,24 +652,29 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,
 	pixels.v = pixels.v & *mp;
 	
 
-	scrntype_vec8_t *vp = (scrntype_vec8_t*)p;
+
 	scrntype_vec8_t *dp = (scrntype_vec8_t*)tmp_dd;
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_dd[i] = analog_palette_pixel[pixels[i]];
 	}
-	vp->v = dp->v;
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		p[i] = tmp_dd[i];
+	}
 #else
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_dd[i * 2] = tmp_dd[i * 2 + 1] = analog_palette_pixel[pixels.w[i]];;
 	}
-	scrntype_vec8_t *vpx = (scrntype_vec8_t*)px;
 	__DECL_ALIGNED(32) scrntype_vec8_t vmask;
-__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 2; i++) {
-		vp[i].v = dp[i].v;
+		scrntype_t* vp = &(p[i << 3]);
+__DECL_VECTORIZED_LOOP
+		for(int ii = 0 ; ii < 8; ii++) {
+			vp[ii] = dp[i].w[ii];
+		}
 	}
 	if(scan_line) {
 /* Fancy scanline */
@@ -717,15 +692,21 @@ __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			vmask.w[i] = (const scrntype_t)RGBA_COLOR(31, 31, 31, 255);
 		}
-__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 2; i++) {
-			dp[i].v = dp[i].v & vmask.v; 
-			vpx[i].v = dp[i].v;
+			scrntype_t* vpx = &(px[i << 3]);
+			dp[i].v = dp[i].v & vmask.v;
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				vpx[ii] = dp[i].w[ii];
+			}
 		}
 	} else {
-__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 2; i++) {
-			vpx[i].v = dp[i].v;
+			scrntype_t* vpx = &(px[i << 3]);
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				vpx[ii] = dp[i].w[ii];
+			}
 		}
 	}
 #endif	
@@ -856,28 +837,33 @@ __DECL_VECTORIZED_LOOP
 		}
 	}
 
-	scrntype_vec8_t* vpp = (scrntype_vec8_t*)p;
 	scrntype_vec8_t* dp = (scrntype_vec8_t*)tmp_dd;
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_dd[i] = RGB_COLOR(_rtmp.w[i], _gtmp.w[i], _btmp.w[i]);
 	}
-	vpp->v = dp->v;
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		p[i] = tmp_dd[i];
+	}
 #else
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_dd[i * 2] = tmp_dd[i * 2 + 1] = RGB_COLOR(_rtmp.w[i], _gtmp.w[i], _btmp.w[i]);
 	}
 
-__DECL_VECTORIZED_LOOP
+
 	for(int i = 0; i < 2; i++) {
-		vpp[i].v = dp[i].v;
+		scrntype_t* vpp = &(p[i << 3]);
+__DECL_VECTORIZED_LOOP
+		for(int ii = 0; ii < 8; ii++) {
+			vpp[ii] = dp[i].w[ii];
+		}
 	}
-	scrntype_vec8_t* vpx = (scrntype_vec8_t*)px;
 	if(scan_line) {
 /* Fancy scanline */
-__DECL_VECTORIZED_LOOP
+
 		for(int i = 0; i < 2; i++) {
 #if defined(_RGB888) || defined(_RGBA888)
 			dp[i].v = dp[i].v >> 3;
@@ -892,14 +878,21 @@ __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			scanline_data.w[i] = RGBA_COLOR(31, 31, 31, 255);
 		}
-__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 2; i++) {
 			dp[i].v = dp[i].v & scanline_data.v;
-			vpx[i].v = dp[i].v;
+			scrntype_t* vpx = &(px[i << 3]);
+__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				vpx[ii] = dp[i].w[ii];
+			}
 		}
 	} else {
 		for(int i = 0; i < 2; i++) {
-			vpx[i].v = dp[i].v;
+			scrntype_t* vpx = &(px[i << 3]);
+__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				vpx[ii] = dp[i].w[ii];
+			}
 		}
 	}
 #endif	
