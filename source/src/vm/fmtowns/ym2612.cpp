@@ -325,7 +325,7 @@ void YM2612::mix(int32_t* buffer, int cnt)
 		int32_t *q = buffer;
 		__DECL_ALIGNED(32) int32_t tmpp[8];
 		__DECL_ALIGNED(32) int32_t tmpq[8];
-		const __DECL_ALIGNED(32) int32_t tvol[8] =
+		__DECL_ALIGNED(32) int32_t tvol[8] =
 			{v_left_volume, v_right_volume,
 			 v_left_volume, v_right_volume,
 			 v_left_volume, v_right_volume,
