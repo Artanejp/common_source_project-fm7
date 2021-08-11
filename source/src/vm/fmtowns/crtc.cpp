@@ -857,7 +857,7 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int laye
 {
 	__UNLIKELY_IF(dst == NULL) return false;
 	
-	int trans = (display_linebuf == 0) ? 3 : ((display_linebuf - 1) & 3);
+	int trans = (display_linebuf == 0) ? display_linebuf_mask : ((display_linebuf - 1) & display_linebuf_mask);
 //	int trans = display_linebuf & 3;
 	int magx = linebuffers[trans][y].mag[layer];
 	int pwidth = linebuffers[trans][y].pixels[layer];
@@ -1130,7 +1130,7 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y)
 {
 	// 256 colors
 	__UNLIKELY_IF(dst == NULL) return false;
-	int trans = (display_linebuf == 0) ? 3 : ((display_linebuf - 1) & 3);
+	int trans = (display_linebuf == 0) ? display_linebuf_mask : ((display_linebuf - 1) & display_linebuf_mask);
 //	int trans = display_linebuf & 3;
 	int magx = linebuffers[trans][y].mag[0];
 	int pwidth = linebuffers[trans][y].pixels[0];
@@ -1294,7 +1294,7 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 {
 	__UNLIKELY_IF(dst == NULL) return false;
 
-	int trans = (display_linebuf == 0) ? 3 : ((display_linebuf - 1) & 3);
+	int trans = (display_linebuf == 0) ? display_linebuf_mask : ((display_linebuf - 1) & display_linebuf_mask);
 //	int trans = display_linebuf & 3;
 	int magx = linebuffers[trans][y].mag[layer];
 	int pwidth = linebuffers[trans][y].pixels[layer];
@@ -1612,7 +1612,7 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1)
 	__UNLIKELY_IF(width > TOWNS_CRTC_MAX_PIXELS) width = TOWNS_CRTC_MAX_PIXELS;
 	__UNLIKELY_IF(width <= 0) return;
 
-	int trans = (display_linebuf == 0) ? 3 : ((display_linebuf - 1) & 3);
+	int trans = (display_linebuf == 0) ? display_linebuf_mask : ((display_linebuf - 1) & display_linebuf_mask);
 	
 	int bitshift0 = linebuffers[trans][y].bitshift[0];
 	int bitshift1 = linebuffers[trans][y].bitshift[1];
@@ -1733,8 +1733,8 @@ __DECL_VECTORIZED_LOOP
 
 void TOWNS_CRTC::draw_screen()
 {
-	int trans = (display_linebuf == 0) ? 3 : ((display_linebuf - 1) & 3);
-	int trans2 = ((display_linebuf - 2) & 3);
+	int trans = (display_linebuf == 0) ? display_linebuf_mask : ((display_linebuf - 1) & display_linebuf_mask);
+	//int trans2 = ((display_linebuf - 2) & display_linebuf_mask);
 	bool do_alpha = false; // ToDo: Hardware alpha rendaring.
 	__UNLIKELY_IF((linebuffers[trans] == NULL) || (d_vram == NULL)) {
 		return;
@@ -1946,9 +1946,10 @@ void TOWNS_CRTC::transfer_line(int line)
 	prio = voutreg_prio;
 	
 	//int trans = (display_linebuf - 1) & 3;
-	int trans = display_linebuf & 3;
+	int trans = display_linebuf & display_linebuf_mask;
 	__UNLIKELY_IF(linebuffers[trans] == NULL) return;
 
+__DECL_VECTORIZED_LOOP						
 	for(int i = 0; i < 4; i++) {
 		linebuffers[trans][line].mode[i] = 0;
 		linebuffers[trans][line].pixels[i] = 0;
@@ -2157,7 +2158,7 @@ __DECL_VECTORIZED_LOOP
 						//pixels += (bit_shift * magx);
 						bit_shift = 0;
 					}
-					if(pixels >= TOWNS_CRTC_MAX_PIXELS) pixels = TOWNS_CRTC_MAX_PIXELS;
+					__UNLIKELY_IF(pixels >= TOWNS_CRTC_MAX_PIXELS) pixels = TOWNS_CRTC_MAX_PIXELS;
 					linebuffers[trans][line].bitshift[l] = bit_shift * magx;
 					linebuffers[trans][line].pixels[l] = pixels;
 					linebuffers[trans][line].mag[l] = magx; // ToDo: Real magnif
@@ -2167,7 +2168,7 @@ __DECL_VECTORIZED_LOOP
 						npixels = pixels / magx;
 					}
 //					out_debug_log(_T("LAYER=%d Y=%d NPIXELS=%d"), l, line, npixels);
-					if(npixels >= TOWNS_CRTC_MAX_PIXELS) npixels = TOWNS_CRTC_MAX_PIXELS;
+					__UNLIKELY_IF(npixels >= TOWNS_CRTC_MAX_PIXELS) npixels = TOWNS_CRTC_MAX_PIXELS;
 					bool is_256 = false;
 					uint32_t tr_bytes = 0;
 					switch(linebuffers[trans][line].mode[l]) {
@@ -2288,7 +2289,7 @@ void TOWNS_CRTC::event_pre_frame()
 
 void TOWNS_CRTC::event_frame()
 {
-	display_linebuf = (display_linebuf + 1) & 3; // Incremant per vstart
+	display_linebuf = (display_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
 	hst[display_linebuf] = hst_tmp;
 	vst[display_linebuf] = vst_tmp;
 	lines_per_frame = max_lines;

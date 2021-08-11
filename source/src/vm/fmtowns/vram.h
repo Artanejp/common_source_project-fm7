@@ -39,6 +39,7 @@
 #define SIG_TOWNS_VRAM_SWAP_FRAMEBUFFER  0x11
 
 namespace FMTOWNS {
+	
 class TOWNS_VRAM : public DEVICE
 {
 protected:

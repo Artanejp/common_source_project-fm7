@@ -320,6 +320,8 @@ protected:
 	int event_id_hde[2];
 
 	int display_linebuf;
+	int display_linebuf_mask;
+	
 	linebuffer_t *linebuffers[4];
 
 	// Render buffer
@@ -373,6 +375,7 @@ public:
 		d_vram = NULL;
 		d_font = NULL;
 		is_sprite = false;
+		display_linebuf_mask = 1;
 		set_device_name(_T("FM-Towns CRTC"));
 	}
 	~TOWNS_CRTC() {}
