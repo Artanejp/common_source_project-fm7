@@ -2383,32 +2383,32 @@ bool DISK::cpdread_to_d88(FILEIO *fio)
 
 bool DISK::nfdr0_to_d88(FILEIO *fio)
 {
-	// from NFD r0å`éÆÉtÉ@ÉCÉãç\ë¢édól 2001/01/22 LED
+	// from NFD r0ÂΩ¢Âºè„Éï„Ç°„Ç§„É´ÊßãÈÄ†‰ªïÊßò 2001/01/22 LED
 	typedef struct {
-	    BYTE  C;                            // C Åi0xFFÇÃéûÉZÉNÉ^ñ≥ÇµÅj
+	    BYTE  C;                            // C Ôºà0xFF„ÅÆÊôÇ„Çª„ÇØ„ÇøÁÑ°„ÅóÔºâ
 	    BYTE  H;                            // H
 	    BYTE  R;                            // R
 	    BYTE  N;                            // N
 	    BYTE  flMFM;                        // 0:FM / 1:MFM
 	    BYTE  flDDAM;                       // 0:DAM / 1:DDAM
-	    BYTE  byStatus;                     // READ DATA(FDDBIOS)ÇÃåãâ 
-	    BYTE  byST0;                        // READ DATA(FDDBIOS)ÇÃåãâ  ST0
-	    BYTE  byST1;                        // READ DATA(FDDBIOS)ÇÃåãâ  ST1
-	    BYTE  byST2;                        // READ DATA(FDDBIOS)ÇÃåãâ  ST2
-	    BYTE  byPDA;                        // FDDBIOSÇ≈égópÇ∑ÇÈÉAÉhÉåÉX
-	    char Reserve1[5];                   // ó\ñÒ
+	    BYTE  byStatus;                     // READ DATA(FDDBIOS)„ÅÆÁµêÊûú
+	    BYTE  byST0;                        // READ DATA(FDDBIOS)„ÅÆÁµêÊûú ST0
+	    BYTE  byST1;                        // READ DATA(FDDBIOS)„ÅÆÁµêÊûú ST1
+	    BYTE  byST2;                        // READ DATA(FDDBIOS)„ÅÆÁµêÊûú ST2
+	    BYTE  byPDA;                        // FDDBIOS„Åß‰ΩøÁî®„Åô„Çã„Ç¢„Éâ„É¨„Çπ
+	    char Reserve1[5];                   // ‰∫àÁ¥Ñ
 	}NFD_SECT_ID,*LP_NFD_SECT_ID;
 	
 	typedef struct {
-	    char  szFileID[15];                 // éØï ID "T98FDDIMAGE.R0"
-	    char  Reserve1[1];                  // ó\ñÒ
-	    char  szComment[0x100];             // ÉCÉÅÅ[ÉWÉRÉÅÉìÉg(ASCIIz)
-	    DWORD dwHeadSize;                   // ÉwÉbÉ_ïîÇÃÉTÉCÉY
-	    BYTE  flProtect;                    // 0à»äO : ÉâÉCÉgÉvÉçÉeÉNÉg
-	    BYTE  byHead;                       // ÉwÉbÉhêî
-	    char  Reserve2[10];                 // ó\ñÒ
-	    NFD_SECT_ID si[163][26];            // ÉZÉNÉ^ID(å„èq)
-	    char  Reserve3[0x10];               // ó\ñÒ
+	    char  szFileID[15];                 // Ë≠òÂà•ID "T98FDDIMAGE.R0"
+	    char  Reserve1[1];                  // ‰∫àÁ¥Ñ
+	    char  szComment[0x100];             // „Ç§„É°„Éº„Ç∏„Ç≥„É°„É≥„Éà(ASCIIz)
+	    DWORD dwHeadSize;                   // „Éò„ÉÉ„ÉÄÈÉ®„ÅÆ„Çµ„Ç§„Ç∫
+	    BYTE  flProtect;                    // 0‰ª•Â§ñ : „É©„Ç§„Éà„Éó„É≠„ÉÜ„ÇØ„Éà
+	    BYTE  byHead;                       // „Éò„ÉÉ„ÉâÊï∞
+	    char  Reserve2[10];                 // ‰∫àÁ¥Ñ
+	    NFD_SECT_ID si[163][26];            // „Çª„ÇØ„ÇøID(ÂæåËø∞)
+	    char  Reserve3[0x10];               // ‰∫àÁ¥Ñ
 	}NFD_FILE_HEAD,*LP_NFD_FILE_HEAD;
 	
 	// check nfd header
@@ -2500,26 +2500,26 @@ bool DISK::nfdr0_to_d88(FILEIO *fio)
 
 bool DISK::nfdr1_to_d88(FILEIO *fio)
 {
-	// from NFD r1å`éÆÉtÉ@ÉCÉãç\ë¢édól 2001/09/14 LED
+	// from NFD r1ÂΩ¢Âºè„Éï„Ç°„Ç§„É´ÊßãÈÄ†‰ªïÊßò 2001/09/14 LED
 	typedef struct {
-//	    char szFileID[sizeof(NFD_FILE_ID1)];        /* éØï ID "T98FDDIMAGE.R1"  */
-//	    char Reserv1[0x10-sizeof(NFD_FILE_ID1)];    /* ó\îı                     */
-	    char  szFileID[15];                         /* éØï ID "T98FDDIMAGE.R1"  */
-	    char  Reserve1[1];                          /* ó\ñÒ                     */
-	    char szComment[0x100];                      /* ÉRÉÅÉìÉg                 */
-	    DWORD dwHeadSize;                           /* ÉwÉbÉ_ÇÃÉTÉCÉY           */
-	    BYTE flProtect;                             /* ÉâÉCÉgÉvÉçÉeÉNÉg0à»äO    */
-	    BYTE byHead;                                /* ÉwÉbÉhêî 1-2             */
-	    char Reserv2[0x10-4-1-1];                   /* ó\îı                     */
-	    DWORD dwTrackHead[164];                     /* ÉgÉâÉbÉNIDà íu           */
-	    DWORD dwAddInfo;                            /* í«â¡èÓïÒÉwÉbÉ_ÇÃÉAÉhÉåÉX */
-	    char Reserv3[0x10-4];                       /* ó\îı                     */
+//	    char szFileID[sizeof(NFD_FILE_ID1)];        /* Ë≠òÂà•ID "T98FDDIMAGE.R1"  */
+//	    char Reserv1[0x10-sizeof(NFD_FILE_ID1)];    /* ‰∫àÂÇô                     */
+	    char  szFileID[15];                         /* Ë≠òÂà•ID "T98FDDIMAGE.R1"  */
+	    char  Reserve1[1];                          /* ‰∫àÁ¥Ñ                     */
+	    char szComment[0x100];                      /* „Ç≥„É°„É≥„Éà                 */
+	    DWORD dwHeadSize;                           /* „Éò„ÉÉ„ÉÄ„ÅÆ„Çµ„Ç§„Ç∫           */
+	    BYTE flProtect;                             /* „É©„Ç§„Éà„Éó„É≠„ÉÜ„ÇØ„Éà0‰ª•Â§ñ    */
+	    BYTE byHead;                                /* „Éò„ÉÉ„ÉâÊï∞ 1-2             */
+	    char Reserv2[0x10-4-1-1];                   /* ‰∫àÂÇô                     */
+	    DWORD dwTrackHead[164];                     /* „Éà„É©„ÉÉ„ÇØID‰ΩçÁΩÆ           */
+	    DWORD dwAddInfo;                            /* ËøΩÂä†ÊÉÖÂ†±„Éò„ÉÉ„ÉÄ„ÅÆ„Ç¢„Éâ„É¨„Çπ */
+	    char Reserv3[0x10-4];                       /* ‰∫àÂÇô                     */
 	}NFD_FILE_HEAD1,*LP_NFD_FILE_HEAD1;
 	
 	typedef struct {
-	    WORD wSector;                               /* ÉZÉNÉ^IDêî               */
-	    WORD wDiag;                                 /* ì¡éÍ IDêî                */
-	    char Reserv1[0x10-4];                       /* ó\îı                     */
+	    WORD wSector;                               /* „Çª„ÇØ„ÇøIDÊï∞               */
+	    WORD wDiag;                                 /* ÁâπÊÆä IDÊï∞                */
+	    char Reserv1[0x10-4];                       /* ‰∫àÂÇô                     */
 	}NFD_TRACK_ID1,*LP_NFD_TRACK_ID1;
 	
 	typedef struct {
@@ -2533,9 +2533,9 @@ bool DISK::nfdr1_to_d88(FILEIO *fio)
 	    BYTE    bySTS0;                             /* ST0                      */
 	    BYTE    bySTS1;                             /* ST1                      */
 	    BYTE    bySTS2;                             /* ST2                      */
-	    BYTE    byRetry;                            /* RetryDataÇ»Çµ(0)Ç†ÇË(1-) */
+	    BYTE    byRetry;                            /* RetryData„Å™„Åó(0)„ÅÇ„Çä(1-) */
 	    BYTE    byPDA;                              /* PDA                      */
-	    char Reserv1[0x10-12];                      /* ó\îı                     */
+	    char Reserv1[0x10-12];                      /* ‰∫àÂÇô                     */
 	}NFD_SECT_ID1,*LP_NFD_SECT_ID1;
 	
 	typedef struct {
@@ -2548,10 +2548,10 @@ bool DISK::nfdr1_to_d88(FILEIO *fio)
 	    BYTE    bySTS0;                             /* ST0                      */
 	    BYTE    bySTS1;                             /* ST1                      */
 	    BYTE    bySTS2;                             /* ST2                      */
-	    BYTE    byRetry;                            /* RetryDataÇ»Çµ(0)Ç†ÇË(1-) */
+	    BYTE    byRetry;                            /* RetryData„Å™„Åó(0)„ÅÇ„Çä(1-) */
 	    DWORD   dwDataLen;
 	    BYTE    byPDA;                              /* PDA                      */
-	    char Reserv1[0x10-15];                      /* ó\îı                     */
+	    char Reserv1[0x10-15];                      /* ‰∫àÂÇô                     */
 	}NFD_DIAG_ID1,*LP_NFD_DIAG_ID1;
 	
 	// check nfd header
