@@ -72,182 +72,6 @@ void DLL_PREFIX common_initialize()
 	get_initial_current_path();
 }
 
-uint32_t DLL_PREFIX EndianToLittle_DWORD(uint32_t x)
-{
-#if defined(__LITTLE_ENDIAN__)
-	return x;
-#else
-	uint32_t y;
-	y = ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) |
-	    ((x & 0x00ff0000) >> 8)  | ((x & 0xff000000) >> 24);
-	return y;
-#endif
-}
-
-uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x)
-{
-#if defined(__LITTLE_ENDIAN__)
-	return x;
-#else
-	uint16_t y;
-	y = ((x & 0x00ff) << 8) | ((x & 0xff00) >> 8);
-	return y;
-#endif
-}
-
-uint32_t DLL_PREFIX EndianFromLittle_DWORD(uint32_t x)
-{
-#if defined(__LITTLE_ENDIAN__)
-	return x;
-#else
-	uint32_t y;
-	y = ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) |
-	    ((x & 0x00ff0000) >> 8)  | ((x & 0xff000000) >> 24);
-	return y;
-#endif
-}
-
-uint16_t DLL_PREFIX EndianFromLittle_WORD(uint16_t x)
-{
-#if defined(__LITTLE_ENDIAN__)
-	return x;
-#else
-	uint16_t y;
-	y = ((x & 0x00ff) << 8) | ((x & 0xff00) >> 8);
-	return y;
-#endif
-}
-
-
-uint32_t DLL_PREFIX EndianToBig_DWORD(uint32_t x)
-{
-#if defined(__BIG_ENDIAN__)
-	return x;
-#else
-	uint32_t y;
-	y = ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) |
-	    ((x & 0x00ff0000) >> 8)  | ((x & 0xff000000) >> 24);
-	return y;
-#endif
-}
-
-uint16_t DLL_PREFIX EndianToBig_WORD(uint16_t x)
-{
-#if defined(__BIG_ENDIAN__)
-	return x;
-#else
-	uint16_t y;
-	y = ((x & 0x00ff) << 8) | ((x & 0xff00) >> 8);
-	return y;
-#endif
-}
-
-uint32_t DLL_PREFIX EndianFromBig_DWORD(uint32_t x)
-{
-#if defined(__BIG_ENDIAN__)
-	return x;
-#else
-	uint32_t y;
-	y = ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) |
-	    ((x & 0x00ff0000) >> 8)  | ((x & 0xff000000) >> 24);
-	return y;
-#endif
-}
-
-uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x)
-{
-#if defined(__BIG_ENDIAN__)
-	return x;
-#else
-	uint16_t y;
-	y = ((x & 0x00ff) << 8) | ((x & 0xff00) >> 8);
-	return y;
-#endif
-}
-
-
-#ifndef _MSC_VER
-int DLL_PREFIX max(int a, int b)
-{
-	if(a > b) {
-		return a;
-	} else {
-		return b;
-	}
-}
-
-
-unsigned DLL_PREFIX int max(unsigned int a, int b)
-{
-	if(b < 0) return a;
-	if(a > (unsigned int)b) {
-		return a;
-	} else {
-		return b;
-	}
-}
-
-unsigned DLL_PREFIX int max(int a, unsigned int b)
-{
-	if(a < 0) return b;
-	if((unsigned int)a > b) {
-		return a;
-	} else {
-		return b;
-	}
-}
-
-unsigned int DLL_PREFIX max(unsigned int a, unsigned int b)
-{
-	if(a > b) {
-		return a;
-	} else {
-		return b;
-	}
-}
-
-int DLL_PREFIX min(int a, int b)
-{
-	if(a < b) {
-		return a;
-	} else {
-		return b;
-	}
-}
-
-int DLL_PREFIX min(unsigned int a, int b)
-{
-	if(b < 0) return b;
-	if(a > INT_MAX) return b;
-	
-	if((int)a < b) {
-		return (int)a;
-	} else {
-		return b;
-	}
-}
-
-int DLL_PREFIX min(int a, unsigned int b)
-{
-	if(a < 0) return a;
-	if(b > INT_MAX) return a;
-	
-	if(a < (int)b) {
-		return a;
-	} else {
-		return (int)b;
-	}
-}
-
-unsigned int DLL_PREFIX min(unsigned int a, unsigned int b)
-{
-	if(a < b) {
-		return a;
-	} else {
-		return b;
-	}
-}
-#endif
 
 #ifndef SUPPORT_SECURE_FUNCTIONS
 //errno_t my_tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode)
@@ -337,13 +161,6 @@ int DLL_PREFIX my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TC
 }
 #endif
 
-//#ifdef USE_FAST_MEMCPY
-
-void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
-{
-	return memcpy(dst, src, len);
-}
-//#endif
 
 
 #ifndef _WIN32
@@ -475,7 +292,7 @@ UINT DLL_PREFIX MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT
 #endif
 
 #if defined(_RGB555)
-scrntype_t DLL_PREFIX RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
+scrntype_t DLL_PREFIX  __FASTCALL RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
 {
 	scrntype_t rr = ((scrntype_t)r * 0x1f) / 0xff;
 	scrntype_t gg = ((scrntype_t)g * 0x1f) / 0xff;
@@ -483,38 +300,38 @@ scrntype_t DLL_PREFIX RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
 	return (rr << 10) | (gg << 5) | bb;
 }
 
-scrntype_t DLL_PREFIX RGBA_COLOR(uint32_t r, uint32_t g, uint b, uint32_t a)
+scrntype_t DLL_PREFIX  __FASTCALL RGBA_COLOR(uint32_t r, uint32_t g, uint b, uint32_t a)
 {
 	return RGB_COLOR(r, g, b);
 }
 
-uint8_t DLL_PREFIX R_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX  __FASTCALL R_OF_COLOR(scrntype_t c)
 {
 	c = (c >> 10) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8_t)c;
 }
 
-uint8_t DLL_PREFIX G_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX  __FASTCALL G_OF_COLOR(scrntype_t c)
 {
 	c = (c >>  5) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8_t)c;
 }
 
-uint8_t DLL_PREFIX B_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX  __FASTCALL B_OF_COLOR(scrntype_t c)
 {
 	c = (c >>  0) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8_t)c;
 }
 
-uint8_t DLL_PREFIX A_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX  __FASTCALL A_OF_COLOR(scrntype_t c)
 {
 	return 0xff; //
 }
 #elif defined(_RGB565)
-scrntype_t DLL_PREFIX RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
+scrntype_t DLL_PREFIX  __FASTCALL RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
 {
 	scrntype_t rr = ((scrntype_t)r * 0x1f) / 0xff;
 	scrntype_t gg = ((scrntype_t)g * 0x3f) / 0xff;
@@ -522,33 +339,33 @@ scrntype_t DLL_PREFIX RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
 	return (rr << 11) | (gg << 5) | bb;
 }
 
-scrntype_t DLL_PREFIX RGBA_COLOR(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
+scrntype_t DLL_PREFIX  __FASTCALL RGBA_COLOR(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
 {
 	return RGB_COLOR(r, g, b);
 }
 
-uint8_t DLL_PREFIX R_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX  __FASTCALL R_OF_COLOR(scrntype_t c)
 {
 	c = (c >> 11) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8_t)c;
 }
 
-uint8_t DLL_PREFIX G_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX  __FASTCALL G_OF_COLOR(scrntype_t c)
 {
 	c = (c >>  5) & 0x3f;
 	c = (c * 0xff) / 0x3f;
 	return (uint8_t)c;
 }
 
-uint8_t DLL_PREFIX B_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX  __FASTCALL B_OF_COLOR(scrntype_t c)
 {
 	c = (c >>  0) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8_t)c;
 }
 
-uint8_t DLL_PREFIX A_OF_COLOR(scrntype_t c)
+uint8_t DLL_PREFIX  __FASTCALL A_OF_COLOR(scrntype_t c)
 {
 	return 0xff; // Alpha = 255
 }
@@ -817,9 +634,9 @@ void DLL_PREFIX Render8Colors_Line(_render_command_data_t *src, scrntype_t *dst,
 	scrntype_t dummy_palette[8]; // fallback
 	scrntype_t *palette = src->palette;
 	
-	uint16_vec8_t *vpb = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[0], sizeof(uint16_vec8_t));
-	uint16_vec8_t *vpr = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[1], sizeof(uint16_vec8_t));
-	uint16_vec8_t *vpg = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[2], sizeof(uint16_vec8_t));
+	uint16_vec8_t *vpb = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[0], sizeof(uint16_vec8_t));
+	uint16_vec8_t *vpr = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[1], sizeof(uint16_vec8_t));
+	uint16_vec8_t *vpg = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[2], sizeof(uint16_vec8_t));
 
 	uint32_t x;
 	__DECL_ALIGNED(16) uint32_t offset[4] = {0};
@@ -929,10 +746,10 @@ void DLL_PREFIX Render16Colors_Line(_render_command_data_t *src, scrntype_t *dst
 	scrntype_t dummy_palette[16]; // fallback
 	scrntype_t *palette = src->palette;
 	
-	uint16_vec8_t *vpb = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[0], sizeof(uint16_vec8_t));
-	uint16_vec8_t *vpr = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[1], sizeof(uint16_vec8_t));
-	uint16_vec8_t *vpg = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[2], sizeof(uint16_vec8_t));
-	uint16_vec8_t *vpn = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[3], sizeof(uint16_vec8_t));
+	uint16_vec8_t *vpb = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[0], sizeof(uint16_vec8_t));
+	uint16_vec8_t *vpr = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[1], sizeof(uint16_vec8_t));
+	uint16_vec8_t *vpg = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[2], sizeof(uint16_vec8_t));
+	uint16_vec8_t *vpn = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[3], sizeof(uint16_vec8_t));
 
 	uint32_t x;
 	__DECL_ALIGNED(16) uint32_t offset[4];
@@ -1041,7 +858,7 @@ void DLL_PREFIX Render2NColors_Line(_render_command_data_t *src, scrntype_t *dst
 	
 	uint16_vec8_t* vp[16];
 	for(int i = 0; i < planes; i++) {
-		vp[i] = (uint16_vec8_t*)__builtin_assume_aligned(src->bit_trans_table[i], sizeof(uint16_vec8_t));
+		vp[i] = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[i], sizeof(uint16_vec8_t));
 	}
 
 	uint32_t x;
@@ -1135,7 +952,7 @@ void DLL_PREFIX Convert2NColorsToByte_Line(_render_command_data_t *src, uint8_t 
 		
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < planes; i++) {
-		bp[i] = (uint16_vec8_t*)__builtin_assume_aligned(&(src->bit_trans_table[i]->plane_table[0]), sizeof(uint16_vec8_t));
+		bp[i] = (uint16_vec8_t*)___assume_aligned(&(src->bit_trans_table[i]->plane_table[0]), sizeof(uint16_vec8_t));
 		srcp[i] = &(src->data[i][src->baseaddress[i]]);
 	}
 	uint32_t addrmask = src->addrmask;
@@ -1183,7 +1000,7 @@ void DLL_PREFIX Convert2NColorsToByte_LineZoom2(_render_command_data_t *src, uin
 		
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < planes; i++) {
-		bp[i] = (uint16_vec8_t*)__builtin_assume_aligned(&(src->bit_trans_table[i]->plane_table[0]), sizeof(uint16_vec8_t));
+		bp[i] = (uint16_vec8_t*)___assume_aligned(&(src->bit_trans_table[i]->plane_table[0]), sizeof(uint16_vec8_t));
 		srcp[i] = &(src->data[i][src->baseaddress[i]]);
 	}
 	uint32_t addrmask = src->addrmask;
@@ -1231,9 +1048,9 @@ void DLL_PREFIX Convert8ColorsToByte_Line(_render_command_data_t *src, uint8_t *
 	__DECL_ALIGNED(16) uint16_vec8_t bdat;
 	__DECL_ALIGNED(16) uint16_vec8_t tmpd;
 
-	uint16_vec8_t* bpb = (uint16_vec8_t*)__builtin_assume_aligned(&(src->bit_trans_table[0]->plane_table[0]), sizeof(uint16_vec8_t));
-	uint16_vec8_t* bpr = (uint16_vec8_t*)__builtin_assume_aligned(&(src->bit_trans_table[1]->plane_table[0]), sizeof(uint16_vec8_t));
-	uint16_vec8_t* bpg = (uint16_vec8_t*)__builtin_assume_aligned(&(src->bit_trans_table[2]->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t* bpb = (uint16_vec8_t*)___assume_aligned(&(src->bit_trans_table[0]->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t* bpr = (uint16_vec8_t*)___assume_aligned(&(src->bit_trans_table[1]->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t* bpg = (uint16_vec8_t*)___assume_aligned(&(src->bit_trans_table[2]->plane_table[0]), sizeof(uint16_vec8_t));
 	
 	uint32_t addrmask = src->addrmask;
 	uint32_t offsetmask = src->addrmask2;
@@ -1782,7 +1599,7 @@ int DLL_PREFIX ucs4_kana_zenkaku_to_hankaku(const uint32_t in, uint32_t *buf, in
 	return letters;
 }
 
-const _TCHAR *DLL_PREFIX create_string(const _TCHAR* format, ...)
+const _TCHAR *DLL_PREFIX  create_string(const _TCHAR* format, ...)
 {
 	static _TCHAR buffer[8][1024];
 	static unsigned int table_index = 0;
@@ -1795,7 +1612,7 @@ const _TCHAR *DLL_PREFIX create_string(const _TCHAR* format, ...)
 	return (const _TCHAR *)buffer[output_index];
 }
 
-int32_t DLL_PREFIX muldiv_s32(int32_t nNumber, int32_t nNumerator, int32_t nDenominator)
+int32_t DLL_PREFIX  __FASTCALL muldiv_s32(int32_t nNumber, int32_t nNumerator, int32_t nDenominator)
 {
 	try {
 		int64_t tmp;
@@ -1816,7 +1633,7 @@ int32_t DLL_PREFIX muldiv_s32(int32_t nNumber, int32_t nNumerator, int32_t nDeno
 	}
 }
 
-uint32_t DLL_PREFIX muldiv_u32(uint32_t nNumber, uint32_t nNumerator, uint32_t nDenominator)
+uint32_t DLL_PREFIX  __FASTCALL muldiv_u32(uint32_t nNumber, uint32_t nNumerator, uint32_t nDenominator)
 {
 	try {
 		uint64_t tmp;
@@ -1851,7 +1668,7 @@ static void init_crc32_table(void)
 	_crc_initialized = true;
 }
 
-uint32_t DLL_PREFIX get_crc32(uint8_t data[], int size)
+uint32_t DLL_PREFIX  get_crc32(uint8_t data[], int size)
 {
 	const uint32_t *table = (const uint32_t *)_crc_table;
 	if(!_crc_initialized) {
@@ -1865,7 +1682,7 @@ uint32_t DLL_PREFIX get_crc32(uint8_t data[], int size)
 	return ~c;
 }
 
-uint32_t DLL_PREFIX calc_crc32(uint32_t seed, uint8_t data[], int size)
+uint32_t DLL_PREFIX  calc_crc32(uint32_t seed, uint8_t data[], int size)
 {
 #if 0
 	if(!_crc_initialized) {
@@ -1901,55 +1718,6 @@ uint32_t DLL_PREFIX calc_crc32(uint32_t seed, uint8_t data[], int size)
 #endif
 }
 
-uint16_t DLL_PREFIX jis_to_sjis(uint16_t jis)
-{
-	pair32_t tmp;
-	
-	tmp.w.l = jis - 0x2121;
-	if(tmp.w.l & 0x100) {
-		tmp.w.l += 0x9e;
-	} else {
-		tmp.w.l += 0x40;
-	}
-	if(tmp.b.l > 0x7f) {
-		tmp.w.l += 0x01;
-	}
-	tmp.b.h = (tmp.b.h >> 1) + 0x81;
-	if(tmp.w.l >= 0xa000) {
-		tmp.w.l += 0x4000;
-	}
-	return tmp.w.l;
-}
-
-int DLL_PREFIX decibel_to_volume(int decibel)
-{
-	// +1 equals +0.5dB (same as fmgen)
-	return (int)(1024.0 * pow(10.0, decibel / 40.0) + 0.5);
-}
-
-int32_t DLL_PREFIX __FASTCALL apply_volume(int32_t sample, int volume)
-{
-//	int64_t output;
-	int32_t output;
-	if(sample < 0) {
-		output = -sample;
-		output *= volume;
-		output >>= 10;
-		output = -output;
-	} else {
-		output = sample;
-		output *= volume;
-		output >>= 10;
-	}
-//	if(output > 2147483647) {
-//		return 2147483647;
-//	} else if(output < (-2147483647 - 1)) {
-//		return (-2147483647 - 1);
-//	} else {
-//		return (int32_t)output;
-//	}
-	return output;
-}
 
 void DLL_PREFIX get_host_time(cur_time_t* cur_time)
 {

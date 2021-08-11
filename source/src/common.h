@@ -189,6 +189,79 @@
 	#endif
 #endif
 
+// hint for SIMD
+#if defined(__clang__)
+	#define __DECL_VECTORIZED_LOOP   _Pragma("clang loop vectorize(enable) distribute(enable)")
+#elif defined(__GNUC__)
+	#define __DECL_VECTORIZED_LOOP	_Pragma("GCC ivdep")
+#else
+	#define __DECL_VECTORIZED_LOOP
+#endif
+
+// 20181104 K.O:
+// Below routines aim to render common routine.
+#if defined(__cplusplus) && (__cplusplus >= 201103L)
+	#define __DECL_ALIGNED(foo) alignas(foo)
+#elif defined(_MSC_VER)
+	#define __DECL_ALIGNED(foo) __declspec(align(foo))
+#elif defined(__GNUC__)
+	// C++ >= C++11
+	#define __DECL_ALIGNED(foo) __attribute__((aligned(foo)))
+#else
+	// ToDo
+	#define __DECL_ALIGNED(foo)
+#endif
+
+#if defined(__cplusplus) && (__cplusplus >= 202002L)
+	#include <memory>
+	#define ___assume_aligned(foo, a) std::assume_aligned<a>(foo)
+#elif _MSC_VER
+	#ifndef __builtin_assume_aligned
+		#define ___assume_aligned(foo, a) foo
+	#else
+		#define ___assume_aligned(foo, a) __builtin_assume_aligned(foo, a)
+	#endif
+#elif defined(__GNUC__)
+	#define ___assume_aligned(foo, a) __builtin_assume_aligned(foo, a)
+#else
+		#define ___assume_aligned(foo, a) foo
+#endif
+// hint for branch-optimize. 20210720 K.O
+// Usage:
+// __LIKELY_IF(expr) : Mostly (expr) will be effected.
+// __UNLIKELY_IF(expr) : Mostly (expr) will not be effected.
+#undef __LIKELY_IF
+#undef __UNLIKELY_IF
+
+#if defined(__cplusplus)
+	#if (__cplusplus >= 202000L)
+	#define __LIKELY_IF(foo) if(foo) [[likely]]
+	#define __UNLIKELY_IF(foo) if(foo) [[unlikely]]
+	#endif
+#endif
+
+#if !defined(__LIKELY_IF) || !defined(__UNLIKELY_IF)
+	#undef __HAS_LIKELY_UNLIKELY_TYPE1__
+	#if defined(__clang__)
+		#define __HAS_LIKELY_UNLIKELY_TYPE1__
+	#elif defined(__GNUC__)
+		#if __GNUC__ >= 3
+			#define __HAS_LIKELY_UNLIKELY_TYPE1__
+		#endif
+	#endif
+	// ToDo: Implement for other compilers.
+	#if defined(__HAS_LIKELY_UNLIKELY_TYPE1__)
+	// OK, This compiler seems to have __builtin_expect(foo, bar).
+		#define __LIKELY_IF(foo) if(__builtin_expect((foo), 1))
+		#define __UNLIKELY_IF(foo) if(__builtin_expect((foo), 0))
+	#else
+		// Fallthrough: maybe not have __builtin_expect()
+		#define __LIKELY_IF(foo) if(foo)
+		#define __UNLIKELY_IF(foo) if(foo)
+	#endif
+	#undef __HAS_LIKELY_UNLIKELY_TYPE1__
+#endif
+
 #ifndef SUPPORT_CPLUSPLUS_11
 	#ifndef int8_t
 		typedef signed char int8_t;
@@ -286,6 +359,7 @@ typedef union pair16_t {
 		uint8_t l, h;
 #endif
 	} b;
+	uint8_t barray[2];
 	struct {
 #ifdef __BIG_ENDIAN__
 		int8_t h, l;
@@ -293,6 +367,7 @@ typedef union pair16_t {
 		int8_t l, h;
 #endif
 	} sb;
+	int8_t sbarray[2];
 	uint16_t u16; // ToDo: Remove
 	int16_t s16; // ToDo: Remove
 	uint16_t w;
@@ -300,23 +375,46 @@ typedef union pair16_t {
 
 	inline void __FASTCALL read_2bytes_le_from(uint8_t *t)
 	{
+		// ToDo: for Unalignment data.
+		#ifdef __BIG_ENDIAN__
 		b.l = t[0]; b.h = t[1];
+		#else
+		w = *((uint16_t*)t);
+		#endif
 	}
 	inline void __FASTCALL write_2bytes_le_to(uint8_t *t)
 	{
+		// ToDo: for Unalignment data.
+		#ifdef __BIG_ENDIAN__
 		t[0] = b.l; t[1] = b.h;
+		#else
+		*((uint16_t*)t) = w;
+		#endif
 	}
 	inline void __FASTCALL read_2bytes_be_from(uint8_t *t)
 	{
+		// ToDo: for Unalignment data.
+		#ifdef __BIG_ENDIAN__
+		w = *((uint16_t*)t);
+		#else
 		b.h = t[0]; b.l = t[1];
+		#endif
 	}
 	inline void __FASTCALL write_2bytes_be_to(uint8_t *t)
 	{
+		// ToDo: for Unalignment data.
+		#ifdef __BIG_ENDIAN__
+		*((uint16_t*)t) = w;
+		#else
 		t[0] = b.h; t[1] = b.l;
+		#endif
 	}
 	
 	inline void __FASTCALL set_2bytes_be_from(uint16_t n)
 	{
+		#ifdef __BIG_ENDIAN__
+		w = n;
+		#else
 		union {
 			uint16_t w;
 			struct {
@@ -325,9 +423,11 @@ typedef union pair16_t {
 		} bigv;
 		bigv.w = n;
 		b.l = bigv.b.l; b.h = bigv.b.h;
+		#endif
 	}
 	inline void __FASTCALL set_2bytes_le_from(uint16_t n)
 	{
+		#ifdef __BIG_ENDIAN__
 		union {
 			uint16_t w;
 			struct {
@@ -336,9 +436,15 @@ typedef union pair16_t {
 		} littlev;
 		littlev.w = n;
 		b.l = littlev.b.l; b.h = littlev.b.h;
+		#else
+		w = n;
+		#endif
 	}
 	inline uint16_t __FASTCALL get_2bytes_be_to()
 	{
+		#ifdef __BIG_ENDIAN__
+		return w;
+		#else
 		union {
 			uint16_t w;
 			struct {
@@ -347,9 +453,11 @@ typedef union pair16_t {
 		} bigv;
 		bigv.b.l = b.l; bigv.b.h = b.h;
 		return bigv.w;
+		#endif
 	}
 	inline uint16_t __FASTCALL get_2bytes_le_to()
 	{
+		#ifdef __BIG_ENDIAN__
 		union {
 			uint16_t w;
 			struct {
@@ -358,6 +466,9 @@ typedef union pair16_t {
 		} littlev;
 		littlev.b.l = b.l; littlev.b.h = b.h;
 		return littlev.w;
+		#else
+		return w;
+		#endif
 	}
 
 } pair16_t;
@@ -370,6 +481,7 @@ typedef union pair32_t {
 		uint8_t l, h, h2, h3;
 #endif
 	} b;
+	uint8_t barray[4];
 	struct {
 #ifdef __BIG_ENDIAN__
 		int8_t h3, h2, h, l;
@@ -377,6 +489,7 @@ typedef union pair32_t {
 		int8_t l, h, h2, h3;
 #endif
 	} sb;
+	int8_t sbarray[4];
 	struct {
 #ifdef __BIG_ENDIAN__
 		uint16_t h, l;
@@ -404,39 +517,85 @@ typedef union pair32_t {
   
 	inline void __FASTCALL read_2bytes_le_from(uint8_t *t)
 	{
-		b.l = t[0]; b.h = t[1]; b.h2 = b.h3 = 0;
+		d = 0;
+		#ifdef __BIG_ENDIAN__
+		b.l = t[0]; b.h = t[1];
+		#else
+		// ToDo: Support for unaligned.
+		w.l = *((uint16_t*)t);
+		#endif
 	}
 	inline void __FASTCALL write_2bytes_le_to(uint8_t *t)
 	{
+		#ifdef __BIG_ENDIAN__
 		t[0] = b.l; t[1] = b.h;
+		#else
+		// ToDo: Support for unaligned.
+		*((uint16_t*)t) = w.l;
+		#endif
 	}
 	inline void __FASTCALL read_2bytes_be_from(uint8_t *t)
 	{
-		b.h3 = b.h2 = 0; b.h = t[0]; b.l = t[1];
+		d = 0;
+		#ifdef __BIG_ENDIAN__
+		// ToDo: Support for unaligned.
+		w.l = *((uint16_t*)t);
+		#else
+		b.h = t[0]; b.l = t[1];
+		#endif
 	}
 	inline void __FASTCALL write_2bytes_be_to(uint8_t *t)
 	{
+		#ifdef __BIG_ENDIAN__
+		// ToDo: Support for unaligned.
+		*((uint16_t*)t) = w.l;
+		#else
 		t[0] = b.h; t[1] = b.l;
+		#endif
 	}
 	inline void __FASTCALL read_4bytes_le_from(uint8_t *t)
 	{
+		#ifdef __BIG_ENDIAN__
 		b.l = t[0]; b.h = t[1]; b.h2 = t[2]; b.h3 = t[3];
+		#else
+		// ToDo: Support for unaligned.
+		d = *((uint32_t*)t);
+		#endif
 	}
 	inline void __FASTCALL write_4bytes_le_to(uint8_t *t)
 	{
+		#ifdef __BIG_ENDIAN__
 		t[0] = b.l; t[1] = b.h; t[2] = b.h2; t[3] = b.h3;
+		#else
+		// ToDo: Support for unaligned.
+		*((uint32_t*)t) = d;
+		#endif
 	}
 	inline void __FASTCALL read_4bytes_be_from(uint8_t *t)
 	{
+		#ifdef __BIG_ENDIAN__
+		// ToDo: Support for unaligned.
+		d = *((uint32_t*)t);
+		#else
 		b.h3 = t[0]; b.h2 = t[1]; b.h = t[2]; b.l = t[3];
+		#endif
 	}
 	inline void __FASTCALL write_4bytes_be_to(uint8_t *t)
 	{
+		#ifdef __BIG_ENDIAN__
+		// ToDo: Support for unaligned.
+		*((uint32_t*)t) = d;
+		#else
 		t[0] = b.h3; t[1] = b.h2; t[2] = b.h; t[3] = b.l;
+		#endif
 	}
 
 	inline void __FASTCALL set_2bytes_be_from(uint16_t n)
 	{
+		#ifdef __BIG_ENDIAN__
+		w.h = 0;
+		w.l = n;
+		#else
 		union {
 			uint16_t w;
 			struct {
@@ -445,10 +604,12 @@ typedef union pair32_t {
 		} bigv;
 		bigv.w = n;
 		b.l = bigv.b.l; b.h = bigv.b.h;
-		b.h2 = 0; b.h3 = 0;
+		w.h = 0;
+		#endif
 	}
 	inline void __FASTCALL set_2bytes_le_from(uint16_t n)
 	{
+		#ifdef __BIG_ENDIAN__
 		union {
 			uint16_t w;
 			struct {
@@ -457,10 +618,17 @@ typedef union pair32_t {
 		} littlev;
 		littlev.w = n;
 		b.l = littlev.b.l; b.h = littlev.b.h;
-		b.h2 = 0; b.h3 = 0;
+		w.h = 0;
+		#else
+		w.h = 0;
+		w.l = n;
+		#endif
 	}
 	inline uint16_t __FASTCALL get_2bytes_be_to()
 	{
+		#ifdef __BIG_ENDIAN__
+		return w.l;
+		#else
 		union {
 			uint16_t w;
 			struct {
@@ -469,9 +637,11 @@ typedef union pair32_t {
 		} bigv;
 		bigv.b.l = b.l; bigv.b.h = b.h;
 		return bigv.w;
+		#endif
 	}
 	inline uint16_t __FASTCALL get_2bytes_le_to()
 	{
+		#ifdef __BIG_ENDIAN__
 		union {
 			uint16_t w;
 			struct {
@@ -480,10 +650,16 @@ typedef union pair32_t {
 		} littlev;
 		littlev.b.l = b.l; littlev.b.h = b.h;
 		return littlev.w;
+		#else
+		return w.l;
+		#endif
 	}
 	
 	inline void __FASTCALL set_4bytes_be_from(uint32_t n)
 	{
+		#ifdef __BIG_ENDIAN__
+		d = n;
+		#else
 		union {
 			uint32_t dw;
 			struct {
@@ -492,9 +668,11 @@ typedef union pair32_t {
 		} bigv;
 		bigv.dw = n;
 		b.l = bigv.b.l; b.h = bigv.b.h; b.h2 = bigv.b.h2; b.h3 = bigv.b.h3;
+		#endif
 	}
 	inline void __FASTCALL set_4bytes_le_from(uint32_t n)
 	{
+		#ifdef __BIG_ENDIAN__
 		union {
 			uint32_t dw;
 			struct {
@@ -503,9 +681,15 @@ typedef union pair32_t {
 		} littlev;
 		littlev.dw = n;
 		b.l = littlev.b.l; b.h = littlev.b.h; b.h2 = littlev.b.h2; b.h3 = littlev.b.h3;
+		#else
+		d = n;
+		#endif
 	}
 	inline uint32_t __FASTCALL get_4bytes_be_to()
 	{
+		#ifdef __BIG_ENDIAN__
+		return d;
+		#else
 		union {
 			uint32_t dw;
 			struct {
@@ -514,9 +698,11 @@ typedef union pair32_t {
 		} bigv;
 		bigv.b.l = b.l; bigv.b.h = b.h; bigv.b.h2 = b.h2; bigv.b.h3 = b.h3;
 		return bigv.dw;
+		#endif
 	}
 	inline uint32_t __FASTCALL get_4bytes_le_to()
 	{
+		#ifdef __BIG_ENDIAN__
 		union {
 			uint32_t dw;
 			struct {
@@ -525,6 +711,9 @@ typedef union pair32_t {
 		} littlev;
 		littlev.b.l = b.l; littlev.b.h = b.h; littlev.b.h2 = b.h2; littlev.b.h3 = b.h3;
 		return littlev.dw;
+		#else
+		return d;
+		#endif
 	}
 } pair32_t;
 
@@ -537,6 +726,7 @@ typedef union pair64_t {
 		uint8_t l, h, h2, h3, h4, h5, h6, h7;
 #endif
 	} b;
+	uint8_t barray[8];
 	struct {
 #ifdef __BIG_ENDIAN__
 		int8_t h7, h6, h5, h4, h3, h2, h, l;
@@ -544,6 +734,7 @@ typedef union pair64_t {
 		int8_t l, h, h2, h3, h4, h5, h6, h7;
 #endif
 	} sb;
+	uint8_t sbarray[8];
 	struct {
 #ifdef __BIG_ENDIAN__
 		uint16_t h3, h2, h, l;
@@ -598,64 +789,162 @@ typedef union pair64_t {
 	double df; // double float
 	inline void __FASTCALL read_2bytes_le_from(uint8_t *t)
 	{
-		b.l = t[0]; b.h = t[1]; b.h2 = b.h3 = 0;
-		b.h4 = 0; b.h5 = 0; b.h6 = 0; b.h7 = 0;
+		q = 0;
+		#ifdef __BIG_ENDIAN__
+		b.l = t[0]; b.h = t[1]; //b.h2 = b.h3 = 0;
+//		b.h4 = 0; b.h5 = 0; b.h6 = 0; b.h7 = 0;
+		#else
+		// ToDo: Support unaligned.
+		w.l = *((uint16_t*)t);
+		#endif
 	}
 	inline void __FASTCALL write_2bytes_le_to(uint8_t *t)
 	{
+		#ifdef __BIG_ENDIAN__
 		t[0] = b.l; t[1] = b.h;
+		#else
+		// ToDo: Support unaligned.
+		*((uint16_t*)t) = w.l;
+		#endif
 	}
 	inline void __FASTCALL read_2bytes_be_from(uint8_t *t)
 	{
-		b.h3 = b.h2 = 0; b.h = t[0]; b.l = t[1];
-		b.h4 = 0; b.h5 = 0; b.h6 = 0; b.h7 = 0;
+		q = 0;
+		#ifdef __BIG_ENDIAN__
+		// ToDo: Support unaligned.
+		w.l = *((uint16_t*)t);
+		#else
+		b.h = t[0]; b.l = t[1];
+		#endif
 	}
 	inline void __FASTCALL write_2bytes_be_to(uint8_t *t)
 	{
+		#ifdef __BIG_ENDIAN__
+		// ToDo: Support unaligned.
+		*((uint16_t*)t) = w.l;
+		#else
 		t[0] = b.h; t[1] = b.l;
+		#endif
 	}
 	inline void __FASTCALL read_4bytes_le_from(uint8_t *t)
 	{
+		q = 0;
+		#ifdef __BIG_ENDIAN__
 		b.l = t[0]; b.h = t[1]; b.h2 = t[2]; b.h3 = t[3];
-		b.h4 = 0; b.h5 = 0; b.h6 = 0; b.h7 = 0;
+		#else
+		// ToDo: Support unaligned.
+		d.l = *((uint32_t*)t);
+		#endif
 	}
 	inline void __FASTCALL write_4bytes_le_to(uint8_t *t)
 	{
+		#ifdef __BIG_ENDIAN__
 		t[0] = b.l; t[1] = b.h; t[2] = b.h2; t[3] = b.h3;
+		#else
+		// ToDo: Support unaligned.
+		*((uint32_t*)t) = d.l;
+		#endif
 	}
 	inline void __FASTCALL read_4bytes_be_from(uint8_t *t)
 	{
+		q = 0;
+		#ifdef __BIG_ENDIAN__
+		// ToDo: Support unaligned.
+		d.l = *((uint32_t*)t);
+		#else
 		b.h3 = t[0]; b.h2 = t[1]; b.h = t[2]; b.l = t[3];
-		b.h4 = 0; b.h5 = 0; b.h6 = 0; b.h7 = 0;
+		#endif
 	}
 	inline void __FASTCALL write_4bytes_be_to(uint8_t *t)
 	{
+		#ifdef __BIG_ENDIAN__
+		// ToDo: Support unaligned.
+		*((uint32_t*)t) = d.l;
+		#else
 		t[0] = b.h3; t[1] = b.h2; t[2] = b.h; t[3] = b.l;
+		#endif
 	}
-	
+
+	// Note: Expect to optimize by SIMD when aligned this value. 20210811 K.O
 	inline void __FASTCALL read_8bytes_le_from(uint8_t *t)
 	{
-		b.l = t[0];  b.h = t[1];  b.h2 = t[2]; b.h3 = t[3];
-		b.h4 = t[4]; b.h5 = t[5]; b.h6 = t[6]; b.h7 = t[7];
+		#ifdef __BIG_ENDIAN__
+			int ij = 7;
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				barray[ii] = t[ij];
+				ij--;
+			}
+		#else
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				barray[ii] = t[ii];
+			}
+		#endif
+//		b.l = t[0];  b.h = t[1];  b.h2 = t[2]; b.h3 = t[3];
+//		b.h4 = t[4]; b.h5 = t[5]; b.h6 = t[6]; b.h7 = t[7];
 	}
 	inline void __FASTCALL write_8bytes_le_to(uint8_t *t)
 	{
-		t[0] = b.l;  t[1] = b.h;  t[2] = b.h2; t[3] = b.h3;
-		t[4] = b.h4; t[5] = b.h5; t[6] = b.h6; t[7] = b.h7;
+		#ifdef __BIG_ENDIAN__
+			int ij = 7;
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				t[ij] = barray[ii];
+				ij--;
+			}
+		#else
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				t[ii] = barray[ii];
+			}
+		#endif
+//		t[0] = b.l;  t[1] = b.h;  t[2] = b.h2; t[3] = b.h3;
+//		t[4] = b.h4; t[5] = b.h5; t[6] = b.h6; t[7] = b.h7;
 	}
 	inline void __FASTCALL read_8bytes_be_from(uint8_t *t)
 	{
-		b.h7 = t[0]; b.h6 = t[1]; b.h5 = t[2]; b.h4 = t[3];
-		b.h3 = t[4]; b.h2 = t[5]; b.h = t[6];  b.l = t[7];
+		#ifdef __BIG_ENDIAN__
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				barray[ii] = t[ii];
+			}
+		#else
+			int ij = 7;
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				barray[ii] = t[ij];
+				ij--;
+			}
+		#endif
+//		b.h7 = t[0]; b.h6 = t[1]; b.h5 = t[2]; b.h4 = t[3];
+//		b.h3 = t[4]; b.h2 = t[5]; b.h = t[6];  b.l = t[7];
 	}
 	inline void __FASTCALL write_8bytes_be_to(uint8_t *t)
 	{
-		t[0] = b.h7; t[1] = b.h6; t[2] = b.h5; t[3] = b.h4;
-		t[4] = b.h3; t[5] = b.h2; t[6] = b.h;  t[7] = b.l;
+		#ifdef __BIG_ENDIAN__
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				t[ii] = barray[ii];
+			}
+		#else
+			int ij = 7;
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				t[ij] = barray[ii];
+				ij--;
+			}
+		#endif
+//		t[0] = b.h7; t[1] = b.h6; t[2] = b.h5; t[3] = b.h4;
+//		t[4] = b.h3; t[5] = b.h2; t[6] = b.h;  t[7] = b.l;
 	}
 
 	inline void __FASTCALL set_2bytes_be_from(uint16_t n)
 	{
+		q = 0;
+		#ifdef __BIG_ENDIAN__
+		w.l = n;
+		#else
 		union {
 			uint16_t w;
 			struct {
@@ -664,11 +953,14 @@ typedef union pair64_t {
 		} bigv;
 		bigv.w = n;
 		b.l = bigv.b.l; b.h = bigv.b.h;
-		b.h2 = 0; b.h3 = 0;
-		b.h4 = 0; b.h5 = 0; b.h6 = 0; b.h7 = 0;
+//		b.h2 = 0; b.h3 = 0;
+//		b.h4 = 0; b.h5 = 0; b.h6 = 0; b.h7 = 0;
+		#endif
 	}
 	inline void __FASTCALL set_2bytes_le_from(uint16_t n)
 	{
+		q = 0;
+		#ifdef __BIG_ENDIAN__
 		union {
 			uint16_t w;
 			struct {
@@ -677,11 +969,17 @@ typedef union pair64_t {
 		} littlev;
 		littlev.w = n;
 		b.l = littlev.b.l; b.h = littlev.b.h;
-		b.h2 = 0; b.h3 = 0;
-		b.h4 = 0; b.h5 = 0; b.h6 = 0; b.h7 = 0;
+//		b.h2 = 0; b.h3 = 0;
+//		b.h4 = 0; b.h5 = 0; b.h6 = 0; b.h7 = 0;
+		#else
+		w.l = n;
+		#endif
 	}
 	inline uint16_t __FASTCALL get_2bytes_be_to()
 	{
+		#ifdef __BIG_ENDIAN__
+		return w.l;
+		#else
 		union {
 			uint16_t w;
 			struct {
@@ -690,9 +988,11 @@ typedef union pair64_t {
 		} bigv;
 		bigv.b.l = b.l; bigv.b.h = b.h;
 		return bigv.w;
+		#endif
 	}
 	inline uint16_t __FASTCALL get_2bytes_le_to()
 	{
+		#ifdef __BIG_ENDIAN__
 		union {
 			uint16_t w;
 			struct {
@@ -701,10 +1001,17 @@ typedef union pair64_t {
 		} littlev;
 		littlev.b.l = b.l; littlev.b.h = b.h;
 		return littlev.w;
+		#else
+		return w.l;
+		#endif
 	}
 	
 	inline void __FASTCALL set_4bytes_be_from(uint32_t n)
 	{
+		q = 0;
+		#ifdef __BIG_ENDIAN__
+		d.l = n;
+		#else
 		union {
 			uint32_t dw;
 			struct {
@@ -713,10 +1020,13 @@ typedef union pair64_t {
 		} bigv;
 		bigv.dw = n;
 		b.l = bigv.b.l; b.h = bigv.b.h; b.h2 = bigv.b.h2; b.h3 = bigv.b.h3;
-		b.h4 = 0;       b.h5 = 0;       b.h6 = 0;         b.h7 = 0;
+//		b.h4 = 0;       b.h5 = 0;       b.h6 = 0;         b.h7 = 0;
+		#endif
 	}
 	inline void __FASTCALL set_4bytes_le_from(uint32_t n)
 	{
+		q = 0;
+		#ifdef __BIG_ENDIAN__
 		union {
 			uint32_t dw;
 			struct {
@@ -725,10 +1035,16 @@ typedef union pair64_t {
 		} littlev;
 		littlev.dw = n;
 		b.l = littlev.b.l; b.h = littlev.b.h; b.h2 = littlev.b.h2; b.h3 = littlev.b.h3;
-		b.h4 = 0;          b.h5 = 0;          b.h6 = 0;            b.h7 = 0;
+		//b.h4 = 0;          b.h5 = 0;          b.h6 = 0;            b.h7 = 0;
+		#else
+		d.l = n;
+		#endif
 	}
 	inline uint32_t __FASTCALL  get_4bytes_be_to()
 	{
+		#ifdef __BIG_ENDIAN__
+		return d.l;
+		#else
 		union {
 			uint32_t dw;
 			struct {
@@ -737,9 +1053,11 @@ typedef union pair64_t {
 		} bigv;
 		bigv.b.l = b.l; bigv.b.h = b.h; bigv.b.h2 = b.h2; bigv.b.h3 = b.h3;
 		return bigv.dw;
+		#endif
 	}
 	inline uint32_t __FASTCALL get_4bytes_le_to()
 	{
+		#ifdef __BIG_ENDIAN__
 		union {
 			uint32_t dw;
 			struct {
@@ -748,80 +1066,184 @@ typedef union pair64_t {
 		} littlev;
 		littlev.b.l = b.l; littlev.b.h = b.h; littlev.b.h2 = b.h2; littlev.b.h3 = b.h3;
 		return littlev.dw;
+		#else
+		return d.l;
+		#endif
 	}
 
 	inline void __FASTCALL set_8bytes_be_from(uint64_t n)
 	{
-		union {
+		__DECL_ALIGNED(16) union {
 			uint64_t qw;
 			struct {
 				uint8_t h7, h6, h5, h4, h3, h2, h, l;
 			}b;
+			uint8_t barray[8];
 		} bigv;
 		bigv.qw = n;
-		b.l = bigv.b.l;   b.h = bigv.b.h;   b.h2 = bigv.b.h2; b.h3 = bigv.b.h3;
-		b.h4 = bigv.b.h4; b.h5 = bigv.b.h5; b.h6 = bigv.b.h6; b.h7 = bigv.b.h7;
+		#ifdef __BIG_ENDIAN__
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				barray[ii] = bigv.barray[ii];
+			}
+		#else
+		int ij = 7;
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				barray[ii] = bigv.barray[ij];
+				ij--;
+			}
+		#endif
+		//b.l = bigv.b.l;   b.h = bigv.b.h;   b.h2 = bigv.b.h2; b.h3 = bigv.b.h3;
+		//b.h4 = bigv.b.h4; b.h5 = bigv.b.h5; b.h6 = bigv.b.h6; b.h7 = bigv.b.h7;
 	}
 	inline void __FASTCALL set_8bytes_le_from(uint64_t n)
 	{
-		union {
+		__DECL_ALIGNED(16) union {
 			uint64_t qw;
 			struct {
 				uint8_t l, h, h2, h3, h4, h5, h6, h7;
 			}b;
+			uint8_t barray[8];
 		} littlev;
 		littlev.qw = n;
-		b.l = littlev.b.l;   b.h = littlev.b.h;   b.h2 = littlev.b.h2; b.h3 = littlev.b.h3;
-		b.h4 = littlev.b.h4; b.h5 = littlev.b.h5; b.h6 = littlev.b.h6; b.h7 = littlev.b.h7;
+		#ifdef __BIG_ENDIAN__
+		int ij = 7;
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				barray[ii] = littlev.barray[ij];
+				ij--;
+			}
+		#else
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				barray[ii] = littlev.barray[ii];
+			}
+		#endif
+//		b.l = littlev.b.l;   b.h = littlev.b.h;   b.h2 = littlev.b.h2; b.h3 = littlev.b.h3;
+//		b.h4 = littlev.b.h4; b.h5 = littlev.b.h5; b.h6 = littlev.b.h6; b.h7 = littlev.b.h7;
 	}
 	inline uint64_t __FASTCALL get_8bytes_be_to()
 	{
-		union {
+		__DECL_ALIGNED(16) union {
 			uint64_t qw;
 			struct {
 				uint8_t h7, h6, h5, h4, h3, h2, h, l;
 			}b;
+			uint8_t barray[8];
 		} bigv;
-		bigv.b.l = b.l;   bigv.b.h = b.h;   bigv.b.h2 = b.h2; bigv.b.h3 = b.h3;
-		bigv.b.h4 = b.h4; bigv.b.h5 = b.h5; bigv.b.h6 = b.h6; bigv.b.h7 = b.h7;
+		#ifdef __BIG_ENDIAN__
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				bigv.barray[ii] = barray[ii];
+			}
+		#else
+		int ij = 7;
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				bigv.barray[ii] = barray[ij];
+				ij--;
+			}
+		#endif
+		//bigv.b.l = b.l;   bigv.b.h = b.h;   bigv.b.h2 = b.h2; bigv.b.h3 = b.h3;
+		//bigv.b.h4 = b.h4; bigv.b.h5 = b.h5; bigv.b.h6 = b.h6; bigv.b.h7 = b.h7;
 		return bigv.qw;
 	}
 	inline uint64_t __FASTCALL get_8bytes_le_to()
 	{
-		union {
+		__DECL_ALIGNED(16) union {
 			uint64_t qw;
 			struct {
 				uint8_t l, h, h2, h3, h4, h5, h6, h7;
 			}b;
+			uint8_t barray[8];
 		} littlev;
-		littlev.b.l = b.l;   littlev.b.h = b.h;   littlev.b.h2 = b.h2; littlev.b.h3 = b.h3;
-		littlev.b.h4 = b.h4; littlev.b.h5 = b.h5; littlev.b.h6 = b.h6; littlev.b.h7 = b.h7;
+		#ifdef __BIG_ENDIAN__
+		int ij = 7;
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				littlev.barray[ii] = barray[ij];
+				ij--;
+			}
+		#else
+		__DECL_VECTORIZED_LOOP
+			for(int ii = 0; ii < 8; ii++) {
+				littlev.barray[ii] = barray[ii];
+			}
+		#endif
+		//littlev.b.l = b.l;   littlev.b.h = b.h;   littlev.b.h2 = b.h2; littlev.b.h3 = b.h3;
+		//littlev.b.h4 = b.h4; littlev.b.h5 = b.h5; littlev.b.h6 = b.h6; littlev.b.h7 = b.h7;
 		return littlev.qw;
 	}
 
 } pair64_t;
 
-uint32_t DLL_PREFIX EndianToLittle_DWORD(uint32_t x);
-uint16_t DLL_PREFIX EndianToLittle_WORD(uint16_t x);
-uint32_t DLL_PREFIX EndianFromLittle_DWORD(uint32_t x);
-uint16_t DLL_PREFIX EndianFromLittle_WORD(uint16_t x);
 
-uint32_t DLL_PREFIX EndianToBig_DWORD(uint32_t x);
-uint16_t DLL_PREFIX EndianToBig_WORD(uint16_t x);
-uint32_t DLL_PREFIX EndianFromBig_DWORD(uint32_t x);
-uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
+inline uint32_t __FASTCALL EndianToLittle_DWORD(uint32_t x)
+{
+	pair32_t xx;
+	xx.d = x;
+	return xx.get_4bytes_le_to();
+}
+
+inline uint16_t  __FASTCALL EndianToLittle_WORD(uint16_t x)
+{
+	pair16_t xx;
+	xx.w = x;
+	return xx.get_2bytes_le_to();
+}
+
+inline uint32_t  __FASTCALL EndianFromLittle_DWORD(uint32_t x)
+{
+	pair32_t xx;
+	xx.set_4bytes_le_from(x);
+	return xx.d;
+}
+
+inline uint16_t  __FASTCALL EndianFromLittle_WORD(uint16_t x)
+{
+	pair16_t xx;
+	xx.set_2bytes_le_from(x);
+	return xx.w;
+}
+
+
+inline uint32_t  __FASTCALL  EndianToBig_DWORD(uint32_t x)
+{
+	pair32_t xx;
+	xx.d = x;
+	return xx.get_4bytes_be_to();
+}
+
+inline uint16_t  __FASTCALL EndianToBig_WORD(uint16_t x)
+{
+	pair16_t xx;
+	xx.w = x;
+	return xx.get_2bytes_be_to();
+}
+
+inline uint32_t  __FASTCALL EndianFromBig_DWORD(uint32_t x)
+{
+	pair32_t xx;
+	xx.set_4bytes_be_from(x);
+	return xx.d;
+}
+
+inline uint16_t  __FASTCALL EndianFromBig_WORD(uint16_t x)
+{
+	pair16_t xx;
+	xx.set_2bytes_be_from(x);
+	return xx.w;
+}
 // max/min
 #ifndef _MSC_VER
-	#undef max
-	#undef min
-	int DLL_PREFIX max(int a, int b);
-	unsigned int DLL_PREFIX max(int a, unsigned int b);
-	unsigned int DLL_PREFIX max(unsigned int a, int b);
-	unsigned int DLL_PREFIX max(unsigned int a, unsigned int b);
-	int DLL_PREFIX min(int a, int b);
-	int DLL_PREFIX min(unsigned int a, int b);
-	int DLL_PREFIX min(int a, unsigned int b);
-	unsigned int DLL_PREFIX min(unsigned int a, unsigned int b);
+	#include <algorithm>
+//#undef max
+//	#undef min
+//	#define max(a,b) std::max(a,b)
+//	#define min(a,b) std::min(a,b)
+	using std::min;
+	using std::max;
 #endif
 
 // string
@@ -943,57 +1365,7 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 #endif
 
 // memory
-#ifndef _MSC_VER
-	void *DLL_PREFIX my_memcpy(void *dst, void *src, size_t len);
-#else
-	#define my_memcpy memcpy
-#endif
-
-// hint for SIMD
-#if defined(__clang__)
-	#define __DECL_VECTORIZED_LOOP   _Pragma("clang loop vectorize(enable) distribute(enable)")
-#elif defined(__GNUC__)
-	#define __DECL_VECTORIZED_LOOP	_Pragma("GCC ivdep")
-#else
-	#define __DECL_VECTORIZED_LOOP
-#endif
-
-// hint for branch-optimize. 20210720 K.O
-// Usage:
-// __LIKELY_IF(expr) : Mostly (expr) will be effected.
-// __UNLIKELY_IF(expr) : Mostly (expr) will not be effected.
-#undef __LIKELY_IF
-#undef __UNLIKELY_IF
-
-#if defined(__cplusplus)
-	#if (__cplusplus >= 202000L)
-	#define __LIKELY_IF(foo) if(foo) [[likely]]
-	#define __UNLIKELY_IF(foo) if(foo) [[unlikely]]
-	#endif
-#endif
-
-#if !defined(__LIKELY_IF) || !defined(__UNLIKELY_IF)
-	#undef __HAS_LIKELY_UNLIKELY_TYPE1__
-	#if defined(__clang__)
-		#define __HAS_LIKELY_UNLIKELY_TYPE1__
-	#elif defined(__GNUC__)
-		#if __GNUC__ >= 3
-			#define __HAS_LIKELY_UNLIKELY_TYPE1__
-		#endif
-	#endif
-	// ToDo: Implement for other compilers.
-	#if defined(__HAS_LIKELY_UNLIKELY_TYPE1__)
-	// OK, This compiler seems to have __builtin_expect(foo, bar).
-		#define __LIKELY_IF(foo) if(__builtin_expect((foo), 1))
-		#define __UNLIKELY_IF(foo) if(__builtin_expect((foo), 0))
-	#else
-		// Fallthrough: maybe not have __builtin_expect()
-		#define __LIKELY_IF(foo) if(foo)
-		#define __UNLIKELY_IF(foo) if(foo)
-	#endif
-	#undef __HAS_LIKELY_UNLIKELY_TYPE1__
-#endif
-
+#define my_memcpy memcpy
 
 
 // C99 math functions
@@ -1020,29 +1392,103 @@ uint16_t DLL_PREFIX EndianFromBig_WORD(uint16_t x);
 	#define MyGetPrivateProfileInt GetPrivateProfileInt
 #endif
 
+inline uint64_t __FASTCALL ExchangeEndianU64(uint64_t __in)
+{
+	__DECL_ALIGNED(16) pair64_t __i, __o;
+	__i.q = __in;
+	int ij = 7;
+__DECL_VECTORIZED_LOOP
+	for(int ii = 0; ii < 8; ii++) {
+		__o.barray[ij] = __i.barray[ii];
+		ij--;
+	}
+//	__o.b.h7  = __i.b.l;
+//	__o.b.h6  = __i.b.h;
+//	__o.b.h5  = __i.b.h2;
+//	__o.b.h4  = __i.b.h3;
+//	__o.b.h3  = __i.b.h4;
+//	__o.b.h2  = __i.b.h5;
+//	__o.b.h   = __i.b.h6;
+//	__o.b.l   = __i.b.h7;
+	return __o.q;
+}
+
+inline int64_t __FASTCALL ExchangeEndianS64(uint64_t __in)
+{
+	__DECL_ALIGNED(16) pair64_t __i, __o;
+	__i.q = __in;
+	int ij = 7;
+__DECL_VECTORIZED_LOOP
+	for(int ii = 0; ii < 8; ii++) {
+		__o.barray[ij] = __i.barray[ii];
+		ij--;
+	}
+	return __o.sq;
+}
+inline uint32_t __FASTCALL ExchangeEndianU32(uint32_t __in)
+{
+	__DECL_ALIGNED(4) pair32_t __i, __o;
+	__i.d = __in;
+	int ij = 3;
+__DECL_VECTORIZED_LOOP
+	for(int ii = 0; ii < 4; ii++) {
+		__o.barray[ij] = __i.barray[ii];
+		ij--;
+	}
+	
+//	__o.b.h3 = __i.b.l;
+//	__o.b.h2 = __i.b.h;
+//	__o.b.h  = __i.b.h2;
+//	__o.b.l  = __i.b.h3;
+	return __o.d;
+}
+
+inline int32_t __FASTCALL ExchangeEndianS32(uint32_t __in)
+{
+	__DECL_ALIGNED(4) pair32_t __i, __o;
+	__i.d = __in;
+	int ij = 3;
+__DECL_VECTORIZED_LOOP
+	for(int ii = 0; ii < 4; ii++) {
+		__o.barray[ij] = __i.barray[ii];
+		ij--;
+	}
+	return __o.sd;
+}
+
+inline uint16_t __FASTCALL ExchangeEndianU16(uint16_t __in)
+{
+	pair16_t __i, __o;
+	__i.u16 = __in;
+	__o.b.h = __i.b.l;
+	__o.b.l  = __i.b.h;
+	return __o.u16;
+}
+
+inline int16_t __FASTCALL ExchangeEndianS16(uint16_t __in)
+{
+	pair16_t __i, __o;
+	__i.u16 = __in;
+	__o.b.h = __i.b.l;
+	__o.b.l = __i.b.h;
+	return __o.s16;
+}
+
 // rgb color
 #if !defined(_RGB555) && !defined(_RGB565) && !defined(_RGB888)
 	#define _RGB888
 #endif
 
-inline uint16_t __FASTCALL swap_endian_u16(uint16_t n)
-{
-	pair16_t r1, r2;
-	r1.w = n;
-	r2.b.h = r1.b.l;
-	r2.b.l = r1.b.h;
-	n = r2.w;
-	return n;
-}
+#define swap_endian_u16(foo) ExchangeEndianU16(foo)
 
 #if defined(_RGB555) || defined(_RGB565)
 	typedef uint16_t scrntype_t;
-	scrntype_t DLL_PREFIX RGB_COLOR(uint32_t r, uint32_t g, uint32_t b);
-	scrntype_t DLL_PREFIX RGBA_COLOR(uint32_t r, uint32_t g, uint32_t b, uint32_t a);
-	uint8_t DLL_PREFIX R_OF_COLOR(scrntype_t c);
-	uint8_t DLL_PREFIX G_OF_COLOR(scrntype_t c);
-	uint8_t DLL_PREFIX B_OF_COLOR(scrntype_t c);
-	uint8_t DLL_PREFIX A_OF_COLOR(scrntype_t c);
+	scrntype_t DLL_PREFIX  __FASTCALL RGB_COLOR(uint32_t r, uint32_t g, uint32_t b);
+	scrntype_t DLL_PREFIX  __FASTCALL RGBA_COLOR(uint32_t r, uint32_t g, uint32_t b, uint32_t a);
+	uint8_t DLL_PREFIX  __FASTCALL R_OF_COLOR(scrntype_t c);
+	uint8_t DLL_PREFIX  __FASTCALL G_OF_COLOR(scrntype_t c);
+	uint8_t DLL_PREFIX  __FASTCALL B_OF_COLOR(scrntype_t c);
+	uint8_t DLL_PREFIX  __FASTCALL A_OF_COLOR(scrntype_t c);
 	#if defined(_RGB565)
 inline scrntype_t __FASTCALL rgb555le_to_scrntype_t(uint16_t n)
 {
@@ -1105,23 +1551,6 @@ inline scrntype_t __FASTCALL msb_to_alpha_mask_u16le(uint16_t n)
 	#define B_OF_COLOR(c)		(((c)      ) & 0xff)
 	#define A_OF_COLOR(c)		(((c) >> 24) & 0xff)
 #endif
-// 20181104 K.O:
-// Below routines aim to render common routine.
-
-#ifdef _MSC_VER
-	#define __DECL_ALIGNED(foo) __declspec(align(foo))
-	#ifndef __builtin_assume_aligned
-		#define __builtin_assume_aligned(foo, a) foo
-	#endif
-#elif defined(__GNUC__)
-	// C++ >= C++11
-	#define __DECL_ALIGNED(foo) __attribute__((aligned(foo)))
-	//#define __DECL_ALIGNED(foo) alignas(foo)
-#else
-	// ToDo
-	#define __builtin_assume_aligned(foo, a) foo
-	#define __DECL_ALIGNED(foo)
-#endif
 
 inline scrntype_t __FASTCALL rgb555le_to_scrntype_t(uint16_t n)
 {
@@ -1170,45 +1599,45 @@ inline scrntype_t __FASTCALL msb_to_alpha_mask_u16le(uint16_t n)
 
 // ToDo: for MSVC
 #if defined(_RGB555) || defined(_RGBA565)
-typedef	__DECL_ALIGNED(16) union {
+typedef	union {
 	scrntype_t w[8];
 	__v8hi v;
 } scrntype_vec8_t;
-typedef	__DECL_ALIGNED(16) union {
+typedef	union {
 	scrntype_t w[16];
 	__v8hi v[2];
 } scrntype_vec16_t;
 #else
-typedef	__DECL_ALIGNED(32) union {
+typedef	 union {
 	scrntype_t w[8];
 	__v16hi v;
 } scrntype_vec8_t;
-typedef	__DECL_ALIGNED(32) union {
+typedef	union {
 	scrntype_t w[16];
 	__v16hi v[2];
 } scrntype_vec16_t;
 #endif
 
-typedef __DECL_ALIGNED(16) union {
+typedef  union {
 	__v4hi v;
 	uint8_t w[8];
 } uint8_vec8_t;
 
-typedef __DECL_ALIGNED(16) union {
+typedef union {
 	__v8hi v;
 	uint16_t w[8];
 } uint16_vec8_t;
 
-typedef __DECL_ALIGNED(16) union {
+typedef union {
 	__v16hi v;
 	uint32_t w[8];
 } uint32_vec8_t;
 
-typedef __DECL_ALIGNED(16) struct {
+typedef struct {
 	uint16_vec8_t plane_table[256];
 } _bit_trans_table_t;
 
-typedef __DECL_ALIGNED(sizeof(scrntype_vec8_t)) struct {
+typedef struct {
 	scrntype_vec8_t plane_table[256];
 } _bit_trans_table_scrn_t;
 
@@ -1232,7 +1661,7 @@ inline scrntype_vec8_t ConvertByteToMonochromePackedPixel(uint8_t src, _bit_tran
 {
 	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
 	__DECL_ALIGNED(32) scrntype_vec8_t tmpdd;
-	_bit_trans_table_t*  vt = (_bit_trans_table_t*)__builtin_assume_aligned(tbl, sizeof(uint16_vec8_t));
+	_bit_trans_table_t*  vt = (_bit_trans_table_t*)___assume_aligned(tbl, sizeof(uint16_vec8_t));
 
 	tmpd.v = vt->plane_table[src].v;
 __DECL_VECTORIZED_LOOP
@@ -1253,7 +1682,7 @@ void DLL_PREFIX ConvertByteToSparceUint8(uint8_t *src, uint16_t* dst, int bytes,
 inline scrntype_vec8_t ConvertByteToPackedPixel_PixelTbl(uint8_t src, _bit_trans_table_scrn_t *tbl)
 {
 	__DECL_ALIGNED(32) scrntype_vec8_t tmpdd;
-	_bit_trans_table_scrn_t*  vt = (_bit_trans_table_scrn_t*)__builtin_assume_aligned(tbl, sizeof(uint16_vec8_t));
+	_bit_trans_table_scrn_t*  vt = (_bit_trans_table_scrn_t*)___assume_aligned(tbl, sizeof(uint16_vec8_t));
 
 	tmpdd.v = vt->plane_table[src].v;
 	return tmpdd;
@@ -1264,7 +1693,7 @@ inline scrntype_vec16_t ConvertByteToDoublePackedPixel_PixelTbl(uint8_t src, _bi
 {
 	__DECL_ALIGNED(32) scrntype_vec16_t tmpdd;
 	__DECL_ALIGNED(32) scrntype_vec8_t tmpd;
-	_bit_trans_table_scrn_t*  vt = (_bit_trans_table_scrn_t*)__builtin_assume_aligned(tbl, sizeof(uint16_vec8_t));
+	_bit_trans_table_scrn_t*  vt = (_bit_trans_table_scrn_t*)___assume_aligned(tbl, sizeof(uint16_vec8_t));
 	tmpd.v = vt->plane_table[src].v;
 	int j = 0;
 __DECL_VECTORIZED_LOOP
@@ -1280,7 +1709,7 @@ __DECL_VECTORIZED_LOOP
 inline void ConvertByteToDoubleMonochromeUint8(uint8_t src, uint8_t* dst, _bit_trans_table_t* tbl)
 {
 	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
-	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  vt = (uint16_vec8_t*)___assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
 
 	__DECL_ALIGNED(16) uint8_t d[16];
 	tmpd = vt[src];
@@ -1300,7 +1729,7 @@ __DECL_VECTORIZED_LOOP
 inline void ConvertByteToMonochromeUint8(uint8_t src, uint8_t* dst, _bit_trans_table_t* tbl)
 {
 	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
-	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  vt = (uint16_vec8_t*)___assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
 
 	tmpd = vt[src];
 __DECL_VECTORIZED_LOOP
@@ -1312,9 +1741,9 @@ __DECL_VECTORIZED_LOOP
 inline void ConvertRGBTo8ColorsUint8(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, _bit_trans_table_t* rtbl, _bit_trans_table_t* gtbl, _bit_trans_table_t* btbl, int shift)
 {
 	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
-	uint16_vec8_t*  rvt = (uint16_vec8_t*)__builtin_assume_aligned(&(rtbl->plane_table[0]), sizeof(uint16_vec8_t));
-	uint16_vec8_t*  gvt = (uint16_vec8_t*)__builtin_assume_aligned(&(gtbl->plane_table[0]), sizeof(uint16_vec8_t));
-	uint16_vec8_t*  bvt = (uint16_vec8_t*)__builtin_assume_aligned(&(btbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  rvt = (uint16_vec8_t*)___assume_aligned(&(rtbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  gvt = (uint16_vec8_t*)___assume_aligned(&(gtbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  bvt = (uint16_vec8_t*)___assume_aligned(&(btbl->plane_table[0]), sizeof(uint16_vec8_t));
 
 	tmpd.v = rvt[r].v;
 	tmpd.v = tmpd.v | gvt[g].v;
@@ -1329,9 +1758,9 @@ __DECL_VECTORIZED_LOOP
 inline void ConvertRGBTo8ColorsUint8_Zoom2Left(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, _bit_trans_table_t* rtbl, _bit_trans_table_t* gtbl, _bit_trans_table_t* btbl, int shift)
 {
 	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
-	uint16_vec8_t*  rvt = (uint16_vec8_t*)__builtin_assume_aligned(&(rtbl->plane_table[0]), sizeof(uint16_vec8_t));
-	uint16_vec8_t*  gvt = (uint16_vec8_t*)__builtin_assume_aligned(&(gtbl->plane_table[0]), sizeof(uint16_vec8_t));
-	uint16_vec8_t*  bvt = (uint16_vec8_t*)__builtin_assume_aligned(&(btbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  rvt = (uint16_vec8_t*)___assume_aligned(&(rtbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  gvt = (uint16_vec8_t*)___assume_aligned(&(gtbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  bvt = (uint16_vec8_t*)___assume_aligned(&(btbl->plane_table[0]), sizeof(uint16_vec8_t));
 
 	tmpd.v = rvt[r].v;
 	tmpd.v = tmpd.v | gvt[g].v;
@@ -1347,9 +1776,9 @@ __DECL_VECTORIZED_LOOP
 inline void ConvertRGBTo8ColorsUint8_Zoom2Right(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, _bit_trans_table_t* rtbl, _bit_trans_table_t* gtbl, _bit_trans_table_t* btbl, int shift)
 {
 	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
-	uint16_vec8_t*  rvt = (uint16_vec8_t*)__builtin_assume_aligned(&(rtbl->plane_table[0]), sizeof(uint16_vec8_t));
-	uint16_vec8_t*  gvt = (uint16_vec8_t*)__builtin_assume_aligned(&(gtbl->plane_table[0]), sizeof(uint16_vec8_t));
-	uint16_vec8_t*  bvt = (uint16_vec8_t*)__builtin_assume_aligned(&(btbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  rvt = (uint16_vec8_t*)___assume_aligned(&(rtbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  gvt = (uint16_vec8_t*)___assume_aligned(&(gtbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  bvt = (uint16_vec8_t*)___assume_aligned(&(btbl->plane_table[0]), sizeof(uint16_vec8_t));
 
 	tmpd.v = rvt[r].v;
 	tmpd.v = tmpd.v | gvt[g].v;
@@ -1365,9 +1794,9 @@ __DECL_VECTORIZED_LOOP
 inline void ConvertRGBTo8ColorsUint8_Zoom2Double(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, _bit_trans_table_t* rtbl, _bit_trans_table_t* gtbl, _bit_trans_table_t* btbl, int shift)
 {
 	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
-	uint16_vec8_t*  rvt = (uint16_vec8_t*)__builtin_assume_aligned(&(rtbl->plane_table[0]), sizeof(uint16_vec8_t));
-	uint16_vec8_t*  gvt = (uint16_vec8_t*)__builtin_assume_aligned(&(gtbl->plane_table[0]), sizeof(uint16_vec8_t));
-	uint16_vec8_t*  bvt = (uint16_vec8_t*)__builtin_assume_aligned(&(btbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  rvt = (uint16_vec8_t*)___assume_aligned(&(rtbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  gvt = (uint16_vec8_t*)___assume_aligned(&(gtbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  bvt = (uint16_vec8_t*)___assume_aligned(&(btbl->plane_table[0]), sizeof(uint16_vec8_t));
 
 	tmpd.v = rvt[r].v;
 	tmpd.v = tmpd.v | gvt[g].v;
@@ -1383,7 +1812,7 @@ __DECL_VECTORIZED_LOOP
 inline void ConvertByteToMonochromeUint8Cond_Zoom2(uint8_t src, uint8_t* dst, _bit_trans_table_t* tbl, uint8_t on_color, uint8_t off_color)
 {
 	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
-	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  vt = (uint16_vec8_t*)___assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
 
 	__DECL_ALIGNED(16) uint8_t d[16];
 	tmpd = vt[src];
@@ -1403,7 +1832,7 @@ __DECL_VECTORIZED_LOOP
 inline void ConvertByteToMonochromeUint8Cond(uint8_t src, uint8_t* dst, _bit_trans_table_t* tbl, uint8_t on_color, uint8_t off_color)
 {
 	__DECL_ALIGNED(16) uint16_vec8_t   tmpd;
-	uint16_vec8_t*  vt = (uint16_vec8_t*)__builtin_assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
+	uint16_vec8_t*  vt = (uint16_vec8_t*)___assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
 
 	tmpd = vt[src];
 __DECL_VECTORIZED_LOOP
@@ -1425,76 +1854,6 @@ void DLL_PREFIX Render2NColors_Line(_render_command_data_t *src, scrntype_t *dst
 void DLL_PREFIX Convert8ColorsToByte_Line(_render_command_data_t *src, uint8_t *dst);
 void DLL_PREFIX Convert2NColorsToByte_Line(_render_command_data_t *src, uint8_t *dst, int planes);
 void DLL_PREFIX Convert2NColorsToByte_LineZoom2(_render_command_data_t *src, uint8_t *dst, int planes);
-
-inline uint64_t __FASTCALL ExchangeEndianU64(uint64_t __in)
-{
-	pair64_t __i, __o;
-	__i.q = __in;
-	__o.b.h7  = __i.b.l;
-	__o.b.h6  = __i.b.h;
-	__o.b.h5  = __i.b.h2;
-	__o.b.h4  = __i.b.h3;
-	__o.b.h3  = __i.b.h4;
-	__o.b.h2  = __i.b.h5;
-	__o.b.h   = __i.b.h6;
-	__o.b.l   = __i.b.h7;
-	return __o.q;
-}
-
-inline int64_t __FASTCALL ExchangeEndianS64(uint64_t __in)
-{
-	pair64_t __i, __o;
-	__i.q = __in;
-	__o.b.h7  = __i.b.l;
-	__o.b.h6  = __i.b.h;
-	__o.b.h5  = __i.b.h2;
-	__o.b.h4  = __i.b.h3;
-	__o.b.h3  = __i.b.h4;
-	__o.b.h2  = __i.b.h5;
-	__o.b.h   = __i.b.h6;
-	__o.b.l   = __i.b.h7;
-	return __o.sq;
-}
-inline uint32_t __FASTCALL ExchangeEndianU32(uint32_t __in)
-{
-	pair32_t __i, __o;
-	__i.d = __in;
-	__o.b.h3 = __i.b.l;
-	__o.b.h2 = __i.b.h;
-	__o.b.h  = __i.b.h2;
-	__o.b.l  = __i.b.h3;
-	return __o.d;
-}
-
-inline int32_t __FASTCALL ExchangeEndianS32(uint32_t __in)
-{
-	pair32_t __i, __o;
-	__i.d = __in;
-	__o.b.h3 = __i.b.l;
-	__o.b.h2 = __i.b.h;
-	__o.b.h  = __i.b.h2;
-	__o.b.l  = __i.b.h3;
-	return __o.sd;
-}
-
-inline uint16_t __FASTCALL ExchangeEndianU16(uint16_t __in)
-{
-	pair16_t __i, __o;
-	__i.u16 = __in;
-	__o.b.h = __i.b.l;
-	__o.b.l  = __i.b.h;
-	return __o.u16;
-}
-
-inline int16_t __FASTCALL ExchangeEndianS16(uint16_t __in)
-{
-	pair16_t __i, __o;
-	__i.u16 = __in;
-	__o.b.h = __i.b.l;
-	__o.b.l = __i.b.h;
-	return __o.s16;
-}
-
 
 // wav file header
 #pragma pack(1)
@@ -1561,13 +1920,13 @@ void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t d
 const _TCHAR* DLL_PREFIX get_parent_dir(const _TCHAR* file);
 
 // string
-const _TCHAR *DLL_PREFIX create_string(const _TCHAR* format, ...);
+const _TCHAR *DLL_PREFIX  create_string(const _TCHAR* format, ...);
 const wchar_t *DLL_PREFIX char_to_wchar(const char *cs);
-const char *DLL_PREFIX wchar_to_char(const wchar_t *ws);
-const _TCHAR *DLL_PREFIX char_to_tchar(const char *cs);
-const char *DLL_PREFIX tchar_to_char(const _TCHAR *ts);
-const _TCHAR *DLL_PREFIX wchar_to_tchar(const wchar_t *ws);
-const wchar_t *DLL_PREFIX tchar_to_wchar(const _TCHAR *ts);
+const char *DLL_PREFIX  wchar_to_char(const wchar_t *ws);
+const _TCHAR *DLL_PREFIX  char_to_tchar(const char *cs);
+const char *DLL_PREFIX  tchar_to_char(const _TCHAR *ts);
+const _TCHAR *DLL_PREFIX  wchar_to_tchar(const wchar_t *ws);
+const wchar_t *DLL_PREFIX  tchar_to_wchar(const _TCHAR *ts);
 
 // Convert Zenkaku KATAKANA/HIRAGANA/ALPHABET to Hankaku.Data must be UCS-4 encoding Unicode (UTF-32).
 int DLL_PREFIX ucs4_kana_zenkaku_to_hankaku(const uint32_t in, uint32_t *buf, int bufchars);
@@ -1579,15 +1938,61 @@ uint32_t DLL_PREFIX get_relative_address_32bit(uint32_t base, uint32_t mask, int
 // misc
 void DLL_PREFIX common_initialize();
 
-int32_t DLL_PREFIX muldiv_s32(int32_t nNumber, int32_t nNumerator, int32_t nDenominator);
-uint32_t DLL_PREFIX muldiv_u32(uint32_t nNumber, uint32_t nNumerator, uint32_t nDenominator);
+int32_t DLL_PREFIX  __FASTCALL muldiv_s32(int32_t nNumber, int32_t nNumerator, int32_t nDenominator);
+uint32_t DLL_PREFIX __FASTCALL muldiv_u32(uint32_t nNumber, uint32_t nNumerator, uint32_t nDenominator);
 
-uint32_t DLL_PREFIX get_crc32(uint8_t data[], int size);
-uint32_t DLL_PREFIX calc_crc32(uint32_t seed, uint8_t data[], int size);
-uint16_t DLL_PREFIX jis_to_sjis(uint16_t jis);
+uint32_t DLL_PREFIX  get_crc32(uint8_t data[], int size);
+uint32_t DLL_PREFIX  calc_crc32(uint32_t seed, uint8_t data[], int size);
 
-int DLL_PREFIX decibel_to_volume(int decibel);
-int32_t DLL_PREFIX __FASTCALL apply_volume(int32_t sample, int volume);
+inline uint16_t __FASTCALL jis_to_sjis(uint16_t jis)
+{
+	pair32_t tmp;
+	
+	tmp.w.l = jis - 0x2121;
+	if(tmp.w.l & 0x100) {
+		tmp.w.l += 0x9e;
+	} else {
+		tmp.w.l += 0x40;
+	}
+	if(tmp.b.l > 0x7f) {
+		tmp.w.l += 0x01;
+	}
+	tmp.b.h = (tmp.b.h >> 1) + 0x81;
+	if(tmp.w.l >= 0xa000) {
+		tmp.w.l += 0x4000;
+	}
+	return tmp.w.l;
+}
+
+inline int __FASTCALL decibel_to_volume(int decibel)
+{
+	// +1 equals +0.5dB (same as fmgen)
+	return (int)(1024.0 * pow(10.0, decibel / 40.0) + 0.5);
+}
+
+inline int32_t __FASTCALL apply_volume(int32_t sample, int volume)
+{
+//	int64_t output;
+	int32_t output;
+	if(sample < 0) {
+		output = -sample;
+		output *= volume;
+		output >>= 10;
+		output = -output;
+	} else {
+		output = sample;
+		output *= volume;
+		output >>= 10;
+	}
+//	if(output > 2147483647) {
+//		return 2147483647;
+//	} else if(output < (-2147483647 - 1)) {
+//		return (-2147483647 - 1);
+//	} else {
+//		return (int32_t)output;
+//	}
+	return output;
+}
 
 // High pass filter and Low pass filter.
 void DLL_PREFIX calc_high_pass_filter(int32_t* dst, int32_t* src, int sample_freq, int hpf_freq, int samples, double quality = 1.0, bool is_add = true);
