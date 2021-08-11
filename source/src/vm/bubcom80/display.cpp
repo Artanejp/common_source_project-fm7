@@ -559,7 +559,7 @@ void crtc_t::write_param(uint8_t data)
 	case 0:
 		switch(cmd_ptr) {
 		case 0:
-			width = min((data & 0x7f) + 2, 80);
+			width = min((data & 0x7f) + 2, (uint8_t)80);
 			break;
 		case 1:
 			if(height != (data & 0x3f) + 1) {
@@ -584,7 +584,7 @@ void crtc_t::write_param(uint8_t data)
 			break;
 		case 4:
 			mode = (data >> 5) & 7;
-			attrib.num = (mode & 1) ? 0 : min((data & 0x1f) + 1, 20);
+			attrib.num = (mode & 1) ? 0 : min((data & 0x1f) + 1, (uint8_t)20);
 			break;
 		}
 		break;
