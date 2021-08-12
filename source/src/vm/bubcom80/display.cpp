@@ -352,7 +352,7 @@ void DISPLAY::draw_text()
 					for(int i = 2 * (crtc.attrib.num - 1); i >= 0; i -= 2) {
 						flags[buffer[ofs + i + 80] & 0x7f] = 1;
 					}
-					crtc.attrib.data &= 0xf3; // for PC-8801mkIIFR 付属デモ
+					crtc.attrib.data &= 0xf3; // for PC-8801mkIIFR 莉伜ｱ槭ョ繝｢
 					
 					for(int cx = 0, pos = 0; cx < crtc.width; cx++) {
 						if(flags[cx]) {
@@ -559,7 +559,7 @@ void crtc_t::write_param(uint8_t data)
 	case 0:
 		switch(cmd_ptr) {
 		case 0:
-			width = min((data & 0x7f) + 2, (uint8_t)80);
+			width = min((data & 0x7f) + 2, 80);
 			break;
 		case 1:
 			if(height != (data & 0x3f) + 1) {
@@ -584,7 +584,7 @@ void crtc_t::write_param(uint8_t data)
 			break;
 		case 4:
 			mode = (data >> 5) & 7;
-			attrib.num = (mode & 1) ? 0 : min((data & 0x1f) + 1, (uint8_t)20);
+			attrib.num = (mode & 1) ? 0 : min((data & 0x1f) + 1, 20);
 			break;
 		}
 		break;
@@ -723,7 +723,7 @@ void crtc_t::expand_buffer()
 				for(int i = 2 * (attrib.num - 1); i >= 0; i -= 2) {
 					flags[read_buffer(ofs + i + 80) & 0x7f] = 1;
 				}
-				attrib.data &= 0xf3; // for PC-8801mkIIFR 付属デモ
+				attrib.data &= 0xf3; // for PC-8801mkIIFR 莉伜ｱ槭ョ繝｢
 				
 				for(int cx = 0, pos = 0; cx < width; cx++) {
 					if(flags[cx]) {
