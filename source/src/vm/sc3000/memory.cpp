@@ -81,7 +81,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 		memset(cart, 0xff, sizeof(cart));
 		fio->Fread(cart, sizeof(cart), 1);
 		if(fio->Ftell() > 0x8000) {
-			// ƒz[ƒ€–ƒ(32KB+16KB) or ƒƒŒƒbƒ^‚ÌÑ‘œ(128KB)
+			// ãƒ›ãƒ¼ãƒ éº»é›€(32KB+16KB) or ãƒ­ãƒ¬ãƒƒã‚¿ã®è‚–åƒ(128KB)
 			bank[0] = 0;
 			bank[1] = 1;
 			bank[2] = 2;

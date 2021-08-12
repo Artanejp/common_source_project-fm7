@@ -1154,15 +1154,15 @@ int DATAREC::load_t77_image()
 	new tape file format for t-tune (from tape_fmt.txt)
 
 	offset:size :
-	00H   :  4  : ���ʃC���f�b�N�X "TAPE"
-	04H   : 17  : �e�[�v�̖��O(asciiz)
-	15H   :  5  : ���U�[�u
-	1AH   :  1  : ���C�g�v���e�N�g�m�b�`(00H=�������݉A10H=�������݋֎~�j
-	1BH   :  1  : �L�^�t�H�[�}�b�g�̎��(01H=�葬�T���v�����O���@�j
-	1CH   :  4  : �T���v�����O���g��(�g���P�ʁj
-	20H   :  4  : �e�[�v�f�[�^�̃T�C�Y�i�r�b�g�P�ʁj
-	24H   :  4  : �e�[�v�̈ʒu�i�r�b�g�P�ʁj
-	28H   :  ?  : �e�[�v�̃f�[�^
+	00H   :  4  : 識別インデックス "TAPE"
+	04H   : 17  : テープの名前(asciiz)
+	15H   :  5  : リザーブ
+	1AH   :  1  : ライトプロテクトノッチ(00H=書き込み可、10H=書き込み禁止）
+	1BH   :  1  : 記録フォーマットの種類(01H=定速サンプリング方法）
+	1CH   :  4  : サンプリング周波数(Ｈｚ単位）
+	20H   :  4  : テープデータのサイズ（ビット単位）
+	24H   :  4  : テープの位置（ビット単位）
+	28H   :  ?  : テープのデータ
 */
 
 int DATAREC::load_tap_image()
@@ -1347,7 +1347,7 @@ int DATAREC::load_mzt_image()
 			MZT_PUT_BIT(1, 1);
 		} else {
 //#else
-			// format info written in �����ɏo��X1
+			// format info written in 試験に出るX1
 			MZT_PUT_BIT(0, 10000);
 			MZT_PUT_BIT(1, 40);
 			MZT_PUT_BIT(0, 40);

@@ -27,7 +27,7 @@
 
 // TODO: check refresh rate
 #define FRAMES_PER_SEC		59.9
-// —v’²¸
+// è¦èª¿æŸ»
 #define LINES_PER_FRAME 	440
 #define CHARS_PER_LINE		54
 #define CPU_CLOCKS		9545456

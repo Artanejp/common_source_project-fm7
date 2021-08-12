@@ -17,16 +17,16 @@
 #define SIG_KEYBOARD_INSLED	0
 
 /*
-	‚Ð‚ç‚ª‚È/ƒ[ƒ}Žš	‚Ð‚ç‚ª‚È
-	”¼Šp/‘SŠp		”¼Šp/‘SŠp
-	•ÏŠ·			•ÏŠ·
-	–³•ÏŠ·			–³•ÏŠ·
-	‚©‚È/Š¿Žš
-	ƒJƒ^ƒJƒi
-	‘Os			PgUp
-	ŽŸs			PgDn
-	ŽÀs			F12
-	ŽæÁ			F11
+	ã²ã‚‰ãŒãª/ãƒ­ãƒ¼ãƒžå­—	ã²ã‚‰ãŒãª
+	åŠè§’/å…¨è§’		åŠè§’/å…¨è§’
+	å¤‰æ›			å¤‰æ›
+	ç„¡å¤‰æ›			ç„¡å¤‰æ›
+	ã‹ãª/æ¼¢å­—
+	ã‚«ã‚¿ã‚«ãƒŠ
+	å‰è¡Œ			PgUp
+	æ¬¡è¡Œ			PgDn
+	å®Ÿè¡Œ			F12
+	å–æ¶ˆ			F11
 	COPY
 */
 namespace FM16BETA {

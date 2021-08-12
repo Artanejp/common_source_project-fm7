@@ -1009,7 +1009,7 @@ void PSUB::write_io8(uint32_t addr, uint32_t data)
 //			register_event(this, EVENT_STRIG, 3000, false, &StrigEventID); // 3msec
 			register_event(this, EVENT_STRIG, 100, false, &StrigEventID); // 0.1msec
 		}
-		else if (data==0x3e || data==0x3d) { //	‚P|‚Pj0x3E óM(1200baudj@‚Ü‚½‚Í@0x3D óM(600baudj
+		else if (data==0x3e || data==0x3d) { //	ï¼‘âˆ’ï¼‘ï¼‰0x3E å—ä¿¡(1200baudï¼‰ã€€ã¾ãŸã¯ã€€0x3D å—ä¿¡(600baudï¼‰
 			CasBaud=(data==0x3e)?1200:600;
 		}
 		else if (data==0x39) { ///
@@ -1018,7 +1018,7 @@ void PSUB::write_io8(uint32_t addr, uint32_t data)
 		else if (data==0x38) { /* CMT SAVE DATA */
 			CasMode=CAS_SAVEBYTE;
 		}
-		else if (data==0x1e || data==0x1d) { //	‚P|‚Pj0x1E óM(1200baudj@‚Ü‚½‚Í@0x1D óM(600baudj
+		else if (data==0x1e || data==0x1d) { //	ï¼‘âˆ’ï¼‘ï¼‰0x1E å—ä¿¡(1200baudï¼‰ã€€ã¾ãŸã¯ã€€0x1D å—ä¿¡(600baudï¼‰
 			CasBaud=(data==0x1e)?1200:600;
 		}
 		else if (data==0x1a && CasMode!=CAS_NONE) { /* CMT LOAD STOP */

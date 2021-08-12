@@ -496,7 +496,7 @@ Save/Load State info:
 	MESS PC-8801 driver
 - vm/pc9801/display.*
 	Neko Project 2 by Mr.Yui
-	Improved for EGC by Mr.Ryuji Okamoto (qemu/9821‰ü‘¢”Å)
+	Improved for EGC by Mr.Ryuji Okamoto (qemu/9821æ”¹é€ ç‰ˆ)
 - vm/pcengine/pce.*
 	Ootake (joypad)
 	xpce (psg)

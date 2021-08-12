@@ -1,5 +1,5 @@
 //
-// ƒÊPD7752 flavour voice engine
+// Î¼PD7752 flavour voice engine
 //
 // Copyright (c) 2004 cisc.
 // All rights reserved.
@@ -179,7 +179,7 @@ int	UPD7752::Synth(uint8_t *param, D7752_SAMPLE *frame)
 
 		// generate noise
 		if (vu & 2)
-			if(rand() & 1) y += amp_table[F2I(curr->amp)] * 4 - 1;	 //	XXX	ƒmƒCƒYÚ×•s–¾
+			if(rand() & 1) y += amp_table[F2I(curr->amp)] * 4 - 1;	 //	XXX	ãƒã‚¤ã‚ºè©³ç´°ä¸æ˜
 
 		// mysterious filter
 		for (j=0; j<5; j++) {

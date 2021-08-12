@@ -1,8 +1,8 @@
-common source code project�ɂ�����C���_
+common source code projectにおける修正点
 
-- fmtimer���ŁATimer A�̒l�����ɂȂ�Ȃ��悤�ɃV�t�g�ʂ𒲐�
-- ReadIRQ()��ǉ�
-- ���Y�������̃t�@�C���p�X�̌^��*_TCHAR�ɕύX
-- �e�N���X��ProcessState()��ǉ�
-- FileIO�N���X�̑ւ�ɁAFILEIO�N���X���g�p����悤�ɕύX
-- �e�{�����[�������E�ʂɐݒ�ł���悤�ɕύX
+- fmtimer内で、Timer Aの値が負にならないようにシフト量を調整
+- ReadIRQ()を追加
+- リズム音源のファイルパスの型を*_TCHARに変更
+- 各クラスにProcessState()を追加
+- FileIOクラスの替りに、FILEIOクラスを使用するように変更
+- 各ボリュームを左右別に設定できるように変更

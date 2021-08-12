@@ -29,7 +29,7 @@ enum
 typedef struct
 {
 	bool f_tms;
-	bool f_interleave; /* sc7/8 ‚É‚¨‚¯‚é“Á•Ê‚Èƒ}ƒbƒsƒ“ƒOƒ‚[ƒh */
+	bool f_interleave; /* sc7/8 ã«ãŠã‘ã‚‹ç‰¹åˆ¥ãªãƒãƒƒãƒ”ãƒ³ã‚°ãƒ¢ãƒ¼ãƒ‰ */
 
 	int xsize;
 	int xshift;
@@ -51,8 +51,8 @@ typedef struct
 
 	uint8_t *vram;
 
-	int scanline, n_scanlines; /* ˆ—’†‚Ì scanline ‚Æ scanline ”B
-	                               ??? ‚à‚Á‚Æ‚æ‚¢ƒl[ƒ~ƒ“ƒOH */
+	int scanline, n_scanlines; /* å‡¦ç†ä¸­ã® scanline ã¨ scanline æ•°ã€‚
+	                               ??? ã‚‚ã£ã¨ã‚ˆã„ãƒãƒ¼ãƒŸãƒ³ã‚°ï¼Ÿ */
 
 
 /* private */

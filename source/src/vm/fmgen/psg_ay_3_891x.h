@@ -14,33 +14,33 @@
 
 // ---------------------------------------------------------------------------
 //	class PSG
-//	PSG ‚É—Ç‚­Ž—‚½‰¹‚ð¶¬‚·‚é‰¹Œ¹ƒ†ƒjƒbƒg
+//	PSG ã«è‰¯ãä¼¼ãŸéŸ³ã‚’ç”Ÿæˆã™ã‚‹éŸ³æºãƒ¦ãƒ‹ãƒƒãƒˆ
 //	
 //	interface:
 //	bool SetClock(uint clock, uint rate)
-//		‰Šú‰»D‚±‚ÌƒNƒ‰ƒX‚ðŽg—p‚·‚é‘O‚É‚©‚È‚ç‚¸ŒÄ‚ñ‚Å‚¨‚­‚±‚ÆD
-//		PSG ‚ÌƒNƒƒbƒN‚â PCM ƒŒ[ƒg‚ðÝ’è‚·‚é
+//		åˆæœŸåŒ–ï¼Žã“ã®ã‚¯ãƒ©ã‚¹ã‚’ä½¿ç”¨ã™ã‚‹å‰ã«ã‹ãªã‚‰ãšå‘¼ã‚“ã§ãŠãã“ã¨ï¼Ž
+//		PSG ã®ã‚¯ãƒ­ãƒƒã‚¯ã‚„ PCM ãƒ¬ãƒ¼ãƒˆã‚’è¨­å®šã™ã‚‹
 //
-//		clock:	PSG ‚Ì“®ìƒNƒƒbƒN
-//		rate:	¶¬‚·‚é PCM ‚ÌƒŒ[ƒg
-//		retval	‰Šú‰»‚É¬Œ÷‚·‚ê‚Î true
+//		clock:	PSG ã®å‹•ä½œã‚¯ãƒ­ãƒƒã‚¯
+//		rate:	ç”Ÿæˆã™ã‚‹ PCM ã®ãƒ¬ãƒ¼ãƒˆ
+//		retval	åˆæœŸåŒ–ã«æˆåŠŸã™ã‚Œã° true
 //
 //	void Mix(Sample* dest, int nsamples)
-//		PCM ‚ð nsamples •ª‡¬‚µC dest ‚ÅŽn‚Ü‚é”z—ñ‚É‰Á‚¦‚é(‰ÁŽZ‚·‚é)
-//		‚ ‚­‚Ü‚Å‰ÁŽZ‚È‚Ì‚ÅCÅ‰‚É”z—ñ‚ðƒ[ƒƒNƒŠƒA‚·‚é•K—v‚ª‚ ‚é
+//		PCM ã‚’ nsamples åˆ†åˆæˆã—ï¼Œ dest ã§å§‹ã¾ã‚‹é…åˆ—ã«åŠ ãˆã‚‹(åŠ ç®—ã™ã‚‹)
+//		ã‚ãã¾ã§åŠ ç®—ãªã®ã§ï¼Œæœ€åˆã«é…åˆ—ã‚’ã‚¼ãƒ­ã‚¯ãƒªã‚¢ã™ã‚‹å¿…è¦ãŒã‚ã‚‹
 //	
 //	void Reset()
-//		ƒŠƒZƒbƒg‚·‚é
+//		ãƒªã‚»ãƒƒãƒˆã™ã‚‹
 //
 //	void SetReg(uint reg, uint8 data)
-//		ƒŒƒWƒXƒ^ reg ‚É data ‚ð‘‚«ž‚Þ
+//		ãƒ¬ã‚¸ã‚¹ã‚¿ reg ã« data ã‚’æ›¸ãè¾¼ã‚€
 //	
 //	uint GetReg(uint reg)
-//		ƒŒƒWƒXƒ^ reg ‚Ì“à—e‚ð“Ç‚Ýo‚·
+//		ãƒ¬ã‚¸ã‚¹ã‚¿ reg ã®å†…å®¹ã‚’èª­ã¿å‡ºã™
 //	
 //	void SetVolume(int db_l, int db_r)
-//		Še‰¹Œ¹‚Ì‰¹—Ê‚ð’²ß‚·‚é
-//		’PˆÊ‚Í–ñ 1/2 dB
+//		å„éŸ³æºã®éŸ³é‡ã‚’èª¿ç¯€ã™ã‚‹
+//		å˜ä½ã¯ç´„ 1/2 dB
 //
 class DLL_PREFIX PSG_AY_3_891X : public PSG
 {

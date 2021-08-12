@@ -14,60 +14,60 @@
 class CSP_Logger;
 // ---------------------------------------------------------------------------
 //	class OPM
-//	OPM ‚É—Ç‚­Ž—‚½(?)‰¹‚ð¶¬‚·‚é‰¹Œ¹ƒ†ƒjƒbƒg
+//	OPM ã«è‰¯ãä¼¼ãŸ(?)éŸ³ã‚’ç”Ÿæˆã™ã‚‹éŸ³æºãƒ¦ãƒ‹ãƒƒãƒˆ
 //	
 //	interface:
 //	bool Init(uint clock, uint rate, bool);
-//		‰Šú‰»D‚±‚ÌƒNƒ‰ƒX‚ðŽg—p‚·‚é‘O‚É‚©‚È‚ç‚¸ŒÄ‚ñ‚Å‚¨‚­‚±‚ÆD
-//		’ˆÓ: üŒ`•âŠ®ƒ‚[ƒh‚Í”pŽ~‚³‚ê‚Ü‚µ‚½
+//		åˆæœŸåŒ–ï¼Žã“ã®ã‚¯ãƒ©ã‚¹ã‚’ä½¿ç”¨ã™ã‚‹å‰ã«ã‹ãªã‚‰ãšå‘¼ã‚“ã§ãŠãã“ã¨ï¼Ž
+//		æ³¨æ„: ç·šå½¢è£œå®Œãƒ¢ãƒ¼ãƒ‰ã¯å»ƒæ­¢ã•ã‚Œã¾ã—ãŸ
 //
-//		clock:	OPM ‚ÌƒNƒƒbƒNŽü”g”(Hz)
+//		clock:	OPM ã®ã‚¯ãƒ­ãƒƒã‚¯å‘¨æ³¢æ•°(Hz)
 //
-//		rate:	¶¬‚·‚é PCM ‚Ì•W–{Žü”g”(Hz)
+//		rate:	ç”Ÿæˆã™ã‚‹ PCM ã®æ¨™æœ¬å‘¨æ³¢æ•°(Hz)
 //
 //				
-//		•Ô’l	‰Šú‰»‚É¬Œ÷‚·‚ê‚Î true
+//		è¿”å€¤	åˆæœŸåŒ–ã«æˆåŠŸã™ã‚Œã° true
 //
 //	bool SetRate(uint clock, uint rate, bool)
-//		ƒNƒƒbƒN‚â PCM ƒŒ[ƒg‚ð•ÏX‚·‚é
-//		ˆø”“™‚Í Init ‚Æ“¯—lD
+//		ã‚¯ãƒ­ãƒƒã‚¯ã‚„ PCM ãƒ¬ãƒ¼ãƒˆã‚’å¤‰æ›´ã™ã‚‹
+//		å¼•æ•°ç­‰ã¯ Init ã¨åŒæ§˜ï¼Ž
 //	
 //	void Mix(Sample* dest, int nsamples)
-//		Stereo PCM ƒf[ƒ^‚ð nsamples •ª‡¬‚µC dest ‚ÅŽn‚Ü‚é”z—ñ‚É
-//		‰Á‚¦‚é(‰ÁŽZ‚·‚é)
-//		Edest ‚É‚Í sample*2 ŒÂ•ª‚Ì—Ìˆæ‚ª•K—v
-//		EŠi”[Œ`Ž®‚Í L, R, L, R... ‚Æ‚È‚éD
-//		E‚ ‚­‚Ü‚Å‰ÁŽZ‚È‚Ì‚ÅC‚ ‚ç‚©‚¶‚ß”z—ñ‚ðƒ[ƒƒNƒŠƒA‚·‚é•K—v‚ª‚ ‚é
-//		EFM_SAMPLETYPE ‚ª short Œ^‚Ìê‡ƒNƒŠƒbƒsƒ“ƒO‚ªs‚í‚ê‚é.
-//		E‚±‚ÌŠÖ”‚Í‰¹Œ¹“à•”‚Ìƒ^ƒCƒ}[‚Æ‚Í“Æ—§‚µ‚Ä‚¢‚éD
-//		  Timer ‚Í Count ‚Æ GetNextEvent ‚Å‘€ì‚·‚é•K—v‚ª‚ ‚éD
+//		Stereo PCM ãƒ‡ãƒ¼ã‚¿ã‚’ nsamples åˆ†åˆæˆã—ï¼Œ dest ã§å§‹ã¾ã‚‹é…åˆ—ã«
+//		åŠ ãˆã‚‹(åŠ ç®—ã™ã‚‹)
+//		ãƒ»dest ã«ã¯ sample*2 å€‹åˆ†ã®é ˜åŸŸãŒå¿…è¦
+//		ãƒ»æ ¼ç´å½¢å¼ã¯ L, R, L, R... ã¨ãªã‚‹ï¼Ž
+//		ãƒ»ã‚ãã¾ã§åŠ ç®—ãªã®ã§ï¼Œã‚ã‚‰ã‹ã˜ã‚é…åˆ—ã‚’ã‚¼ãƒ­ã‚¯ãƒªã‚¢ã™ã‚‹å¿…è¦ãŒã‚ã‚‹
+//		ãƒ»FM_SAMPLETYPE ãŒ short åž‹ã®å ´åˆã‚¯ãƒªãƒƒãƒ”ãƒ³ã‚°ãŒè¡Œã‚ã‚Œã‚‹.
+//		ãƒ»ã“ã®é–¢æ•°ã¯éŸ³æºå†…éƒ¨ã®ã‚¿ã‚¤ãƒžãƒ¼ã¨ã¯ç‹¬ç«‹ã—ã¦ã„ã‚‹ï¼Ž
+//		  Timer ã¯ Count ã¨ GetNextEvent ã§æ“ä½œã™ã‚‹å¿…è¦ãŒã‚ã‚‹ï¼Ž
 //	
 //	void Reset()
-//		‰¹Œ¹‚ðƒŠƒZƒbƒg(‰Šú‰»)‚·‚é
+//		éŸ³æºã‚’ãƒªã‚»ãƒƒãƒˆ(åˆæœŸåŒ–)ã™ã‚‹
 //
 //	void SetReg(uint reg, uint data)
-//		‰¹Œ¹‚ÌƒŒƒWƒXƒ^ reg ‚É data ‚ð‘‚«ž‚Þ
+//		éŸ³æºã®ãƒ¬ã‚¸ã‚¹ã‚¿ reg ã« data ã‚’æ›¸ãè¾¼ã‚€
 //	
 //	uint ReadStatus()
-//		‰¹Œ¹‚ÌƒXƒe[ƒ^ƒXƒŒƒWƒXƒ^‚ð“Ç‚Ýo‚·
-//		busy ƒtƒ‰ƒO‚Íí‚É 0
+//		éŸ³æºã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒ¬ã‚¸ã‚¹ã‚¿ã‚’èª­ã¿å‡ºã™
+//		busy ãƒ•ãƒ©ã‚°ã¯å¸¸ã« 0
 //	
 //	bool ReadIRQ()
-//		IRQ o—Í‚ð“Ç‚Ýo‚·
+//		IRQ å‡ºåŠ›ã‚’èª­ã¿å‡ºã™
 //	
 //	bool Count(uint32 t)
-//		‰¹Œ¹‚Ìƒ^ƒCƒ}[‚ð t [clock] i‚ß‚éD
-//		‰¹Œ¹‚Ì“à•”ó‘Ô‚É•Ï‰»‚ª‚ ‚Á‚½Žž(timer ƒI[ƒo[ƒtƒ[)
-//		true ‚ð•Ô‚·
+//		éŸ³æºã®ã‚¿ã‚¤ãƒžãƒ¼ã‚’ t [clock] é€²ã‚ã‚‹ï¼Ž
+//		éŸ³æºã®å†…éƒ¨çŠ¶æ…‹ã«å¤‰åŒ–ãŒã‚ã£ãŸæ™‚(timer ã‚ªãƒ¼ãƒãƒ¼ãƒ•ãƒ­ãƒ¼)
+//		true ã‚’è¿”ã™
 //
 //	uint32 GetNextEvent()
-//		‰¹Œ¹‚Ìƒ^ƒCƒ}[‚Ì‚Ç‚¿‚ç‚©‚ªƒI[ƒo[ƒtƒ[‚·‚é‚Ü‚Å‚É•K—v‚È
-//		ŽžŠÔ[clock]‚ð•Ô‚·
-//		ƒ^ƒCƒ}[‚ª’âŽ~‚µ‚Ä‚¢‚éê‡‚Í 0 ‚ð•Ô‚·D
+//		éŸ³æºã®ã‚¿ã‚¤ãƒžãƒ¼ã®ã©ã¡ã‚‰ã‹ãŒã‚ªãƒ¼ãƒãƒ¼ãƒ•ãƒ­ãƒ¼ã™ã‚‹ã¾ã§ã«å¿…è¦ãª
+//		æ™‚é–“[clock]ã‚’è¿”ã™
+//		ã‚¿ã‚¤ãƒžãƒ¼ãŒåœæ­¢ã—ã¦ã„ã‚‹å ´åˆã¯ 0 ã‚’è¿”ã™ï¼Ž
 //	
 //	void SetVolume(int db_l, int db_r)
-//		Še‰¹Œ¹‚Ì‰¹—Ê‚ð{|•ûŒü‚É’²ß‚·‚éD•W€’l‚Í 0.
-//		’PˆÊ‚Í–ñ 1/2 dBC—LŒø”ÍˆÍ‚ÌãŒÀ‚Í 20 (10dB)
+//		å„éŸ³æºã®éŸ³é‡ã‚’ï¼‹âˆ’æ–¹å‘ã«èª¿ç¯€ã™ã‚‹ï¼Žæ¨™æº–å€¤ã¯ 0.
+//		å˜ä½ã¯ç´„ 1/2 dBï¼Œæœ‰åŠ¹ç¯„å›²ã®ä¸Šé™ã¯ 20 (10dB)
 //
 namespace FM
 {

@@ -42,15 +42,15 @@ void PRINTER::reset()
 
 /*
 $E210: read / write
-$E211: readi‚µ‚Ä‚©‚çreti) / write ($0193‚Ìw‚·ƒAƒhƒŒƒX‚©‚ç“]‘—)
-$E212: read (bit‘€ì‚µ‚Ä$E210‚Éwrite)
+$E211: readï¼ˆã—ã¦ã‹ã‚‰reti) / write ($0193ã®æŒ‡ã™ã‚¢ãƒ‰ãƒ¬ã‚¹ã‹ã‚‰è»¢é€)
+$E212: read (bitæ“ä½œã—ã¦$E210ã«write)
 */
 
 void PRINTER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	case 0xe210:
-		// C1 -> A1‚Å$E211‚Ìƒf[ƒ^‚ªo—Í‚³‚ê‚éH
+		// C1 -> A1ã§$E211ã®ãƒ‡ãƒ¼ã‚¿ãŒå‡ºåŠ›ã•ã‚Œã‚‹ï¼Ÿ
 		if((strobe & 0xe1) == 0xc1 && (data & 0xe1) == 0xa1) {
 //			output(outdata);
 		}

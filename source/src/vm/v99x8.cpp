@@ -79,7 +79,7 @@ typedef struct
 typedef struct
 {
 	//md_video_surface_t *screen;
-	int w, h;					/* —v‹‚µ‚½ƒTƒCƒY */
+	int w, h;					/* è¦æ±‚ã—ãŸã‚µã‚¤ã‚º */
 }	md_video_t;
 
 
@@ -436,7 +436,7 @@ void	v99x8_out_1(uint8_t n)	/* ctrl out */
 				v99x8_ctrl(n & 0x3f, latch1);
 		} else
 		{
-/* ??? read/write ‚Ì‹æ•Ê */
+/* ??? read/write ã®åŒºåˆ¥ */
 			vram_addr = ((int)(n & 0x3f) << 8) + latch1;
 		}
 		latch1 = -1;
@@ -586,7 +586,7 @@ int V99X8::hsync(int v/*void*/)
 			v99x8.status[2] |= 0x40;    /* VBlank on */
 
 			v99x8.status[1] &= ~0x01;   /* ?? H-sync off*/
-			z80_intreq(Z80_NOINT);      /* ?? H-sync ‚ğ clear */
+			z80_intreq(Z80_NOINT);      /* ?? H-sync ã‚’ clear */
 
 /* XXX sprite check */
 			break;
@@ -604,7 +604,7 @@ int V99X8::hsync(int v/*void*/)
 			v99x8.status[2] &= ~0x40;   /* VBlank off */
 			v99x8.status[0] &= ~0x40;   /* 5sprit off */
 			v99x8.status[0] &= ~0x80;   /* Vsync off */
-			z80_intreq(Z80_NOINT);      /* ?? V-sync ‚ğ clear */
+			z80_intreq(Z80_NOINT);      /* ?? V-sync ã‚’ clear */
 
 			/*if (flag_frame)
 				v99x8_refresh_clear();*/ // deleted by umaiboux
@@ -960,21 +960,21 @@ static void vcom_lcopy(uint8_t *dst, uint8_t *src, int nx, int ny)
 
 /* 
   XXX
-	‚±‚ê‚Í‚ ‚­‚Ü‚Å‚»‚Ìê‚µ‚Ì‚¬‚È‚à‚ÌB
+	ã“ã‚Œã¯ã‚ãã¾ã§ãã®å ´ã—ã®ããªã‚‚ã®ã€‚
 	memo:
-		src‚Ìƒf[ƒ^‚ğbuf‚ÉƒoƒCƒgƒRƒs[‚µAdst‚Ìæ“ª‚‚‰‚˜‚…‚ŒˆÊ’u‚É‚ ‚¤‚æ‚¤‚ÉƒrƒbƒgƒVƒtƒg‚µA
-		æ’[‚ÆI’[‚Ìƒf[ƒ^‚ğdst‚Æ‡¬‚µ‚ÄA‚»‚ê‚ğdst‚Ölogop‚ğl—¶‚µ‚Â‚ÂAƒoƒCƒgƒRƒs
-		[‚·‚ê‚Î‚¢‚¢‚Ì‚©H
+		srcã®ãƒ‡ãƒ¼ã‚¿ã‚’bufã«ãƒã‚¤ãƒˆã‚³ãƒ”ãƒ¼ã—ã€dstã®å…ˆé ­ï½ï½‰ï½˜ï½…ï½Œä½ç½®ã«ã‚ã†ã‚ˆã†ã«ãƒ“ãƒƒãƒˆã‚·ãƒ•ãƒˆã—ã€
+		å…ˆç«¯ã¨çµ‚ç«¯ã®ãƒ‡ãƒ¼ã‚¿ã‚’dstã¨åˆæˆã—ã¦ã€ãã‚Œã‚’dstã¸logopã‚’è€ƒæ…®ã—ã¤ã¤ã€ãƒã‚¤ãƒˆã‚³ãƒ”
+		ãƒ¼ã™ã‚Œã°ã„ã„ã®ã‹ï¼Ÿ
 
-		‚ÅASCREEN8‚Ì‚âAsrc‚Ædst‚ÌpixelˆÊ’u‚ª“¯‚¶‚È‚çAƒVƒtƒgˆ—‚ğ‚µ‚È‚¢‚æ‚¤
-		‚É‚·‚éA‚ÆB
+		ã§ã€SCREEN8ã®æ™‚ã‚„ã€srcã¨dstã®pixelä½ç½®ãŒåŒã˜ãªã‚‰ã€ã‚·ãƒ•ãƒˆå‡¦ç†ã‚’ã—ãªã„ã‚ˆã†
+		ã«ã™ã‚‹ã€ã¨ã€‚
 
-		ƒRƒXƒg‚Í‚©‚©‚é‚¯‚ÇA1pix‚¸‚Â‚¿‚Ü‚¿‚ÜƒRƒs[‚·‚é‚æ‚è‚©‚Í‘¬‚»‚¤‚È‹C‚ª‚·‚éB
+		ã‚³ã‚¹ãƒˆã¯ã‹ã‹ã‚‹ã‘ã©ã€1pixãšã¤ã¡ã¾ã¡ã¾ã‚³ãƒ”ãƒ¼ã™ã‚‹ã‚ˆã‚Šã‹ã¯é€Ÿãã†ãªæ°—ãŒã™ã‚‹ã€‚
 
-		‚»‚Ìê‡ vcom_lset ‚É‚àè’¼‚µ‚ª•K—v‚É‚È‚é‚Æ(T•t‚«˜_—‰‰Z•”•ª)B
-		‚¾‚¯‚Ç memmove ‚ÌŒ‚Ì‚æ‚¤‚ÉAˆê’Ubuf‚ÉƒZ[ƒu‚·‚é‚ÆAVRAM‰ó‚µ‚¿‚á‚¤‚©‚àB
+		ãã®å ´åˆ vcom_lset ã«ã‚‚æ‰‹ç›´ã—ãŒå¿…è¦ã«ãªã‚‹ã¨(Tä»˜ãè«–ç†æ¼”ç®—éƒ¨åˆ†)ã€‚
+		ã ã‘ã© memmove ã®ä»¶ã®ã‚ˆã†ã«ã€ä¸€æ—¦bufã«ã‚»ãƒ¼ãƒ–ã™ã‚‹ã¨ã€VRAMå£Šã—ã¡ã‚ƒã†ã‹ã‚‚ã€‚
 
-		‚Æ‚·‚é‚Æc‰º‚İ‚½‚¢‚É‚¿‚Ü‚¿‚ÜƒRƒs[‚µ‚Ä‚­‚µ‚©‚È‚¢‚Ì‚©‚È‚Ÿc
+		ã¨ã™ã‚‹ã¨â€¦ä¸‹ã¿ãŸã„ã«ã¡ã¾ã¡ã¾ã‚³ãƒ”ãƒ¼ã—ã¦ãã—ã‹ãªã„ã®ã‹ãªãâ€¦
 */
 #ifdef YAN_V99X8_TEST
 static void vcom_lbcopy(int sx, int sy, int dx, int dy, int nx, int ny)
@@ -1023,7 +1023,7 @@ static void vcom_lbcopy(int sx, int sy, int dx, int dy, int nx, int ny)
 #endif /* YAN_V99X8_TEST */
 
 
-void vcom_lputc(int m)  /* XXX ¶•ûŒüAã•ûŒü‚ÌƒeƒXƒg‚Í‚µ‚Ä‚Ü‚¹‚ñ */
+void vcom_lputc(int m)  /* XXX å·¦æ–¹å‘ã€ä¸Šæ–¹å‘ã®ãƒ†ã‚¹ãƒˆã¯ã—ã¦ã¾ã›ã‚“ */
 {
 	uint8_t *dst;
 	int dot;
@@ -1115,7 +1115,7 @@ void vcom_lputc(int m)  /* XXX ¶•ûŒüAã•ûŒü‚ÌƒeƒXƒg‚Í‚µ‚Ä‚Ü‚¹‚ñ */
 }
 
 
-void vcom_hputc(int m) /* XXX ¶•ûŒüAã•ûŒü‚ÌƒeƒXƒg‚Í‚µ‚Ä‚Ü‚¹‚ñ */
+void vcom_hputc(int m) /* XXX å·¦æ–¹å‘ã€ä¸Šæ–¹å‘ã®ãƒ†ã‚¹ãƒˆã¯ã—ã¦ã¾ã›ã‚“ */
 {
 	*vcom_vram(r44.x, r44.y) = m;
 
@@ -1411,8 +1411,8 @@ static void lmmm_(void);
 
 static void vcom_lfill(uint8_t *p, int clr, int n)
 {
-	if (n == 0)     /* ƒoƒCƒg”’PˆÊ‚Åˆ—‚ğ‚¨‚±‚È‚¤‚½‚ß */
-		n = 1;      /* 1dot‚ª–³‹‚³‚ê‚Ä‚µ‚Ü‚¤‘Î‰ */
+	if (n == 0)     /* ãƒã‚¤ãƒˆæ•°å˜ä½ã§å‡¦ç†ã‚’ãŠã“ãªã†ãŸã‚ */
+		n = 1;      /* 1dotãŒç„¡è¦–ã•ã‚Œã¦ã—ã¾ã†å¯¾å¿œ */
 
 	switch(vcom.lop)
 	{
@@ -1459,7 +1459,7 @@ static void vcom_lfill(uint8_t *p, int clr, int n)
 
 }
 
-static void lmmv(void)   /* XXX byte ’PˆÊ‚Åˆ—‚µ‚Ä‚é‚Ì‚Íè”²‚«(^^; */
+static void lmmv(void)   /* XXX byte å˜ä½ã§å‡¦ç†ã—ã¦ã‚‹ã®ã¯æ‰‹æŠœã(^^; */
 {
 	int n, ny, clr;
 
@@ -1728,7 +1728,7 @@ static void v99x8_pallete_init(void)
 
 
 static uint8_t tbl_yjk_b[32 * 64 * 64], tbl_yjk_rg[62 + 32];
-static uint8_t blackbuf[256];      /* sprite ”ñ•\¦—pƒoƒbƒtƒ@ */
+static uint8_t blackbuf[256];      /* sprite éè¡¨ç¤ºç”¨ãƒãƒƒãƒ•ã‚¡ */
 
 
 void v99x8_refresh_init(void)
@@ -1887,12 +1887,12 @@ static __inline__ void pixel_put(void *pb, int n, uint32_t p1)
 		*p = (*p & ~mask) | (pix2bpp & mask);
 		break;
 
-/* XXX 2bpp ‘Î‰•û–@
+/* XXX 2bpp å¯¾å¿œæ–¹æ³•
  *
- *  1. ‚Ü‚¸‘Î‰‚·‚é 2bit ‚ğ & ‚Å 0 ƒNƒŠƒA‚·‚é
- *  2. Ÿ‚ÉA2bit ‚ğ | ‚Å‰Á‚¦‚é
+ *  1. ã¾ãšå¯¾å¿œã™ã‚‹ 2bit ã‚’ & ã§ 0 ã‚¯ãƒªã‚¢ã™ã‚‹
+ *  2. æ¬¡ã«ã€2bit ã‚’ | ã§åŠ ãˆã‚‹
  *
- * ‚Æ‚¢‚¤è‡‚ª•K—vB‘Î‰‚ÍŒã“ú‚É‚Ä.... --‚k
+ * ã¨ã„ã†æ‰‹é †ãŒå¿…è¦ã€‚å¯¾å¿œã¯å¾Œæ—¥ã«ã¦.... --ï¼¬
  */
 
 	}
@@ -2832,7 +2832,7 @@ uint8_t *V99X8::md_video_lockline(int x, int y, int w, int h)
 	return (uint8_t*)(screen+y*_SCREEN_WIDTH+x);
 #if 0
 	if (SDL_MUSTLOCK(video.screen))
-		SDL_LockSurface(video.screen); /* –ß‚è’lƒ`ƒFƒbƒNH */
+		SDL_LockSurface(video.screen); /* æˆ»ã‚Šå€¤ãƒã‚§ãƒƒã‚¯ï¼Ÿ */
 
 	return (Uint8_t *)video.screen->pixels
 	       + video.screen->format->BytesPerPixel * (video.w + x)

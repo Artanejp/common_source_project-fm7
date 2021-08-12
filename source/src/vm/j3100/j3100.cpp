@@ -256,7 +256,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// special registers for J-3100SL/SS/SE
 #ifdef TYPE_SL
 //	62	bit0
-//		bit1	1=8087‚ ‚è
+//		bit1	1=8087ã‚ã‚Š
 	io->set_iovalue_single_r(0x62, 0x26);	// unknown
 //	io->set_flipflop_single_rw(0x63, 0x00);	// unknown
 	static const int iovalues[0x20] = {

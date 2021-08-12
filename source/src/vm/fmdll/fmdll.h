@@ -18,7 +18,7 @@
 #define	SUPPORT_FM_8		0x00000080
 #define	SUPPORT_FM_A		0x00000007
 #define	SUPPORT_FM_B		0x00000038
-#define	SUPPORT_FM_C		0x000000c0	// OPM—p
+#define	SUPPORT_FM_C		0x000000c0	// OPMç”¨
 #define	SUPPORT_FM			(SUPPORT_FM_A+SUPPORT_FM_B+SUPPORT_FM_C)
 #define	SUPPORT_PSG_1		0x00000100
 #define	SUPPORT_PSG_2		0x00000200
@@ -37,12 +37,12 @@
 #define	SUPPORT_PSGPCM		0x00100000
 #define	SUPPORT_BEEPPCM		0x00200000
 
-#define	SUPPORT_CSM			0x00800000	// DLL“à‚ÅCSM‚ğˆ—‚·‚é‚©
-#define	SUPPORT_TIMER		0x01000000	// ƒ^ƒCƒ}[A/B
+#define	SUPPORT_CSM			0x00800000	// DLLå†…ã§CSMã‚’å‡¦ç†ã™ã‚‹ã‹
+#define	SUPPORT_TIMER		0x01000000	// ã‚¿ã‚¤ãƒãƒ¼A/B
 #define	SUPPORT_STATUS		0x02000000	// BUSY/TIMER/ID
 #define	SUPPORT_REG			0x04000000	// GetReg
-#define	SUPPORT_INFO		0x08000000	// fm_getver/fm_getauthor“™
-#define	SUPPORT_MULTIPLE	0x10000000	// •¡”chip
+#define	SUPPORT_INFO		0x08000000	// fm_getver/fm_getauthorç­‰
+#define	SUPPORT_MULTIPLE	0x10000000	// è¤‡æ•°chip
 
 
 #define	SUPPORT_FAILED		0x80000000
@@ -66,7 +66,7 @@ typedef	DWORD (__cdecl *DLLFUNC1)(LPVOID);
 typedef	DWORD (__cdecl *DLLFUNC2)(LPVOID, DWORD);
 typedef	DWORD (__cdecl *DLLFUNC3)(LPVOID, DWORD, DWORD);
 
-//	DLL“à‚Å‚àCriticalSection‚µ‚Ä‚¢‚é
+//	DLLå†…ã§ã‚‚CriticalSectionã—ã¦ã„ã‚‹
 //	#define USE_CS
 #ifdef USE_CS
 #define	CLI()	EnterCriticalSection(&cs)
@@ -131,7 +131,7 @@ public:
 			fm_getcaps = (DLLFUNC1) GetProcAddress(hDll, "fm_getcaps");
 			fm_getdllver = (DLLFUNC1) GetProcAddress(hDll, "fm_getdllver");
 			
-			//	‚±‚ÌŠÖ”‚ª‚ ‚é‚Ì‚ÍV1ˆÈ~
+			//	ã“ã®é–¢æ•°ãŒã‚ã‚‹ã®ã¯V1ä»¥é™
 			if (fm_getdllver == NULL) {
 				FreeLibrary(hDll);
 				hDll = NULL;
@@ -154,13 +154,13 @@ public:
 		}
 	}
 
-	//	DLL‚Ì‘¶İƒtƒ‰ƒO
+	//	DLLã®å­˜åœ¨ãƒ•ãƒ©ã‚°
 	BOOL IsDll(void) {
 		return (hDll != NULL ? TRUE : FALSE);
 	}
 
-	//	‰¹Œ¹ì¬(&chip‚È‚Ì‚É’ˆÓ)
-	//	chip‚É‚ÍNULL‚ğ“ü‚ê‚Ä‚¨‚­–
+	//	éŸ³æºä½œæˆ(&chipãªã®ã«æ³¨æ„)
+	//	chipã«ã¯NULLã‚’å…¥ã‚Œã¦ãŠãäº‹
 	BOOL Create(LPVOID *chip, int clock, int rate) {
 		BOOL	bRet = FALSE;
 		if (hDll != NULL && fm_create != NULL) {
@@ -170,7 +170,7 @@ public:
 //			bRet = fm_create(&lpv, clock, rate);
 //			*chip = lpv;
 #if 0
-			//	chip‚Ì“à—e‚Å”»’f
+			//	chipã®å†…å®¹ã§åˆ¤æ–­
 			if (!bRet) {
 				FreeLibrary(hDll);
 				hDll = NULL;
@@ -181,7 +181,7 @@ public:
 		return bRet;
 	}
 		
-	//	‰¹Œ¹ƒŠƒZƒbƒg
+	//	éŸ³æºãƒªã‚»ãƒƒãƒˆ
 	void Reset(LPVOID chip) {
 		if (hDll != NULL && fm_reset != NULL) {
 			CLI();
@@ -190,7 +190,7 @@ public:
 		}
 	}
 	
-	//	‡¬ƒŒ[ƒgİ’è
+	//	åˆæˆãƒ¬ãƒ¼ãƒˆè¨­å®š
 	void SetRate(LPVOID chip, int clock, int rate) {
 		if (hDll != NULL && fm_setrate != NULL) {
 			CLI();
@@ -199,7 +199,7 @@ public:
 		}
 	}
 	
-	//	ƒŒƒWƒXƒ^İ’è
+	//	ãƒ¬ã‚¸ã‚¹ã‚¿è¨­å®š
 	void SetReg(LPVOID chip, UINT adr, BYTE data) {
 		if (hDll != NULL && fm_setreg != NULL) {
 			CLI();
@@ -208,7 +208,7 @@ public:
 		}
 	}
 	
-	//	ƒŒƒWƒXƒ^İ’è
+	//	ãƒ¬ã‚¸ã‚¹ã‚¿è¨­å®š
 	DWORD GetReg(LPVOID chip, UINT adr) {
 		DWORD	dwRet = 0;
 		if (hDll != NULL && fm_getreg != NULL) {
@@ -219,7 +219,7 @@ public:
 		return dwRet;
 	}
 	
-	//	FM‰¹Œ¹ƒ{ƒŠƒ…[ƒ€İ’è(fmgenŒİŠ·)
+	//	FMéŸ³æºãƒœãƒªãƒ¥ãƒ¼ãƒ è¨­å®š(fmgenäº’æ›)
 	void SetVolumeFM(LPVOID chip, int vol) {
 		if (hDll != NULL && fm_setvolfm != NULL) {
 			CLI();
@@ -228,7 +228,7 @@ public:
 		}
 	}
 	
-	//	PSG‰¹Œ¹ƒ{ƒŠƒ…[ƒ€İ’è(fmgenŒİŠ·)
+	//	PSGéŸ³æºãƒœãƒªãƒ¥ãƒ¼ãƒ è¨­å®š(fmgenäº’æ›)
 	void SetVolumePSG(LPVOID chip, int vol) {
 		if (hDll != NULL && fm_setvolpsg != NULL) {
 			CLI();
@@ -237,7 +237,7 @@ public:
 		}
 	}
 	
-	//	ƒŠƒYƒ€‰¹Œ¹‘S‘Ìƒ{ƒŠƒ…[ƒ€İ’è(fmgenŒİŠ·)
+	//	ãƒªã‚ºãƒ éŸ³æºå…¨ä½“ãƒœãƒªãƒ¥ãƒ¼ãƒ è¨­å®š(fmgenäº’æ›)
 	void SetVolumeRhythmTotal(LPVOID chip, int vol) {
 		if (hDll != NULL && fm_setvolrhythmtotal != NULL) {
 			CLI();
@@ -246,7 +246,7 @@ public:
 		}
 	}
 	
-	//	ŠeƒŠƒYƒ€‰¹Œ¹ƒ{ƒŠƒ…[ƒ€İ’è(fmgenŒİŠ·)
+	//	å„ãƒªã‚ºãƒ éŸ³æºãƒœãƒªãƒ¥ãƒ¼ãƒ è¨­å®š(fmgenäº’æ›)
 	void SetVolumeRhythm(LPVOID chip, int no, int vol) {
 		if (hDll != NULL && fm_setvolrhythm != NULL) {
 			CLI();
@@ -255,7 +255,7 @@ public:
 		}
 	}
 
-	//	ADPCMƒ{ƒŠƒ…[ƒ€İ’è(fmgenŒİŠ·)
+	//	ADPCMãƒœãƒªãƒ¥ãƒ¼ãƒ è¨­å®š(fmgenäº’æ›)
 	void SetVolumeADPCM(LPVOID chip, int vol) {
 		if (hDll != NULL && fm_setvoladpcm != NULL) {
 			CLI();
@@ -264,7 +264,7 @@ public:
 		}
 	}
 	
-	//	ƒ`ƒƒƒ“ƒlƒ‹ƒ}ƒXƒN(fmgenŒİŠ·)
+	//	ãƒãƒ£ãƒ³ãƒãƒ«ãƒã‚¹ã‚¯(fmgenäº’æ›)
 	void SetChannelMask(LPVOID chip, int mask) {
 		if (hDll != NULL && fm_setchannelmask != NULL) {
 			CLI();
@@ -273,7 +273,7 @@ public:
 		}
 	}
 	
-	//	ƒ^ƒCƒ}XV(fmgenŒİŠ·)
+	//	ã‚¿ã‚¤ãƒæ›´æ–°(fmgenäº’æ›)
 	void Count(LPVOID chip, DWORD us) {
 		if (hDll != NULL && fm_updatetimer != NULL) {
 			CLI();
@@ -282,7 +282,7 @@ public:
 		}
 	}
 	
-	//	Ÿƒ^ƒCƒ}[ƒCƒxƒ“ƒg‚Ü‚Å‚ÌŠÔæ“¾(fmgenŒİŠ·)
+	//	æ¬¡ã‚¿ã‚¤ãƒãƒ¼ã‚¤ãƒ™ãƒ³ãƒˆã¾ã§ã®æ™‚é–“å–å¾—(fmgenäº’æ›)
 	DWORD GetNextEvent(LPVOID chip) {
 		DWORD	dwRet = 0xffffffff;
 		if (hDll != NULL && fm_getnextevent != NULL) {
@@ -293,7 +293,7 @@ public:
 		return dwRet;
 	}
 	
-	//	‡¬
+	//	åˆæˆ
 	void Mix(LPVOID chip, int *pcm, int samples) {
 		if (hDll != NULL && fm_getpcm != NULL) {
 			CLI();
@@ -302,7 +302,7 @@ public:
 		}
 	}
 #if 0
-	//	Šeƒ`ƒƒƒ“ƒlƒ‹PCMƒf[ƒ^æ“¾(ƒ‚ƒmƒ‰ƒ‹)
+	//	å„ãƒãƒ£ãƒ³ãƒãƒ«PCMãƒ‡ãƒ¼ã‚¿å–å¾—(ãƒ¢ãƒãƒ©ãƒ«)
 	int* GetBuffer(LPVOID chip, int no) {
 		int	*p = NULL;
 		if (hDll != NULL && fm_getpcmbuf != NULL) {
@@ -313,8 +313,8 @@ public:
 		return p;
 	}
 #endif
-	//	ADPCMƒoƒbƒtƒ@(256KB)
-	//	buf‚Æbuffer‚ª¬İ‚µ‚Ä‚éc
+	//	ADPCMãƒãƒƒãƒ•ã‚¡(256KB)
+	//	bufã¨bufferãŒæ··åœ¨ã—ã¦ã‚‹â€¦
 	LPBYTE GetADPCMBuffer(LPVOID chip) {
 		LPBYTE	p = NULL;
 		if (hDll != NULL && fm_getadpcmbuf != NULL) {
@@ -324,7 +324,7 @@ public:
 		}
 		return p;
 	}
-	//	ŠJ•ú
+	//	é–‹æ”¾
 	void Release(LPVOID chip) {
 		if (hDll != NULL && fm_release != NULL) {
 			CLI();
@@ -344,7 +344,7 @@ public:
 		return dwRet;
 	}
 	
-	//	ƒTƒ|[ƒg‚µ‚Ä‚¢‚é‹@”\‚ğ•Ô‚·
+	//	ã‚µãƒãƒ¼ãƒˆã—ã¦ã„ã‚‹æ©Ÿèƒ½ã‚’è¿”ã™
 	DWORD GetCaps(LPVOID chip) {
 		DWORD	dwRet = 0;
 		if (hDll != NULL && fm_getcaps != NULL) {

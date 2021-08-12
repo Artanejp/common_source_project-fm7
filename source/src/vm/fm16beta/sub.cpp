@@ -438,7 +438,7 @@ uint32_t SUB::read_memory(uint32_t addr)
 		case 0xff93:
 			return mainack;
 		case 0xff94:
-			return 0x80; // ‘æ“ñ…€‚ ‚è
+			return 0x80; // ç¬¬äºŒæ°´æº–ã‚ã‚Š
 		case 0xff96:
 			return kanji16[(kj_ofs | ((kj_row & 0xf) << 1)) & 0x3ffff];
 		case 0xff97:

@@ -7,8 +7,8 @@
 	[ memory ]
 */
 
-// AUTO/STEP�X�C�b�`�̂��߂Ɏ������̃\�[�X
-// ���ۂɎg�p���邩�͖���
+// AUTO/STEPスイッチのために実装中のソース
+// 実際に使用するかは未定
 
 #include "./memory.h"
 #include "../i8080.h"
