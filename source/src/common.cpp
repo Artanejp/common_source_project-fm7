@@ -577,9 +577,7 @@ void DLL_PREFIX Render8Colors_Line(_render_command_data_t *src, scrntype_t *dst,
 //		if(src->bit_trans_table[i] == NULL) return;
 //		if(src->data[i] == NULL) return;
 //	}
-	scrntype_t dummy_palette[8]; // fallback
-	scrntype_t *palette = src->palette;
-	
+	__DECL_ALIGNED(32) std::valarray<scrntype_t> palette(8); // fallback
 	uint16_vec8_t *vpb = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[0], sizeof(uint16_vec8_t));
 	uint16_vec8_t *vpr = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[1], sizeof(uint16_vec8_t));
 	uint16_vec8_t *vpg = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[2], sizeof(uint16_vec8_t));
@@ -593,42 +591,54 @@ __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 3; i++) {
 		offset[i] = src->voffset[i];
 	}
-	__UNLIKELY_IF(palette == NULL) {
+	__UNLIKELY_IF(src->palette == NULL) {
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
-			dummy_palette[i] = RGB_COLOR(((i & 2) << 5) | 0x1f,
+			palette[i] = RGB_COLOR(((i & 2) << 5) | 0x1f,
 										 ((i & 4) << 5) | 0x1f,
 										 ((i & 1) << 5) | 0x1f);
 		}
-		palette = dummy_palette;
+	} else {
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 8; i++) {
+			palette[i] = src->palette[i];
+		}
 	}
 	uint8_t *bp = &(src->data[0][src->baseaddress[0]]);
 	uint8_t *rp = &(src->data[1][src->baseaddress[1]]);
 	uint8_t *gp = &(src->data[2][src->baseaddress[2]]);
 	
-	uint8_t r, g, b;
+	__DECL_ALIGNED(8) std::valarray<uint8_t> brg(4);
+	__DECL_ALIGNED(8) std::valarray<uint8_t> rmask((const uint8_t)0, 4);
+	__DECL_VECTORIZED_LOOP
+		for(int ii = 0; ii < 3; ii++) {
+			if(src->is_render[ii]) rmask[ii] = 0xff;
+		}
+	enum {
+		_b = 0,
+		_r,
+		_g,
+		_n
+	};
+	
 	int shift = src->shift;
-	const bool is_render[3] = { src->is_render[0], src->is_render[1],  src->is_render[2] };
 	__DECL_ALIGNED(16) std::valarray<uint16_t> tmpd(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> vb(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> vr(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> vg(8);
 	__DECL_ALIGNED(16) std::valarray<scrntype_t> tmpdd(8);
-	//scrntype_vec8_t* vdp = (scrntype_vec8_t*)dst;
 	
 	x = src->begin_pos;
 	uint32_t n = x;
+	
 	if(dst2 == NULL) {
 		for(uint32_t xx = 0; xx < src->render_width; xx++) {
-			b = (is_render[0]) ? bp[(offset[0] + n) & mask] : 0;
-			r = (is_render[1]) ? rp[(offset[1] + n) & mask] : 0;
-			g = (is_render[2]) ? gp[(offset[2] + n) & mask] : 0;
-	__DECL_VECTORIZED_LOOP
-			for(int j = 0; j < 8; j++) {
-				vb[j] = vpb[b].w[j];
-				vr[j] = vpr[r].w[j];
-				vg[j] = vpg[g].w[j];
-			}
+			brg[_b] =  bp[(offset[0] + n) & mask];
+			brg[_r] =  rp[(offset[1] + n) & mask];
+			brg[_g] =  gp[(offset[2] + n) & mask];
+
+			brg &= rmask;
+			
+			__DECL_ALIGNED(16) std::valarray<uint16_t> vb(vpb[brg[_b]].w, 8);
+			__DECL_ALIGNED(16) std::valarray<uint16_t> vr(vpr[brg[_r]].w, 8);
+			__DECL_ALIGNED(16) std::valarray<uint16_t> vg(vpg[brg[_g]].w, 8);
 			tmpd = vb;
 			tmpd = tmpd | vr;
 			tmpd = tmpd | vg;
@@ -636,7 +646,11 @@ __DECL_VECTORIZED_LOOP
 			n = (n + 1) & offsetmask;
 	__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
-				dst[i] = palette[tmpd[i]];
+				tmpdd[i] = palette[tmpd[i]];
+			}
+	__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < 8; i++) {
+				dst[i] = tmpdd[i];
 			}
 			dst += 8;
 		}
@@ -646,20 +660,18 @@ __DECL_VECTORIZED_LOOP
 #else // 24bit
 		static const int shift_factor = 3;
 #endif
-		__DECL_ALIGNED(32) std::valarray<scrntype_t> sline(8);
-		scrntype_vec8_t* vdp2 = (scrntype_vec8_t*)dst2;
-		sline = (scrntype_t)RGBA_COLOR(31, 31, 31, 255);
-
+		__DECL_ALIGNED(32) std::valarray<scrntype_t> sline(RGBA_COLOR(31, 31, 31, 255), 8);
 		for(uint32_t xx = 0; xx < src->render_width; xx++) {
-			b = (is_render[0]) ? bp[(offset[0] + n) & mask] : 0;
-			r = (is_render[1]) ? rp[(offset[1] + n) & mask] : 0;
-			g = (is_render[2]) ? gp[(offset[2] + n) & mask] : 0;
-	__DECL_VECTORIZED_LOOP
-			for(int j = 0; j < 8; j++) {
-				vb[j] = vpb[b].w[j];
-				vr[j] = vpr[r].w[j];
-				vg[j] = vpg[g].w[j];
-			}
+			brg[_b] =  bp[(offset[0] + n) & mask];
+			brg[_r] =  rp[(offset[1] + n) & mask];
+			brg[_g] =  gp[(offset[2] + n) & mask];
+
+			brg &= rmask;
+			
+			__DECL_ALIGNED(16) std::valarray<uint16_t> vb(vpb[brg[_b]].w, 8);
+			__DECL_ALIGNED(16) std::valarray<uint16_t> vr(vpr[brg[_r]].w, 8);
+			__DECL_ALIGNED(16) std::valarray<uint16_t> vg(vpg[brg[_g]].w, 8);
+			
 			tmpd = vb;
 			tmpd = tmpd | vr;
 			tmpd = tmpd | vg;
@@ -701,17 +713,11 @@ void DLL_PREFIX Render16Colors_Line(_render_command_data_t *src, scrntype_t *dst
 //		if(src->bit_trans_table[i] == NULL) return;
 //		if(src->data[i] == NULL) return;
 //	}
-	__DECL_ALIGNED(32) scrntype_t dummy_palette[16]; // fallback
-	scrntype_t *palette = src->palette;
-	
+	__DECL_ALIGNED(32) std::valarray<scrntype_t> palette(16); // fallback
 	uint16_vec8_t *vpb = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[0], sizeof(uint16_vec8_t));
 	uint16_vec8_t *vpr = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[1], sizeof(uint16_vec8_t));
 	uint16_vec8_t *vpg = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[2], sizeof(uint16_vec8_t));
 	uint16_vec8_t *vpn = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[3], sizeof(uint16_vec8_t));
-	__DECL_ALIGNED(16) std::valarray<uint16_t> vb(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> vr(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> vg(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> vn(8);
 
 	uint32_t x;
 	__DECL_ALIGNED(16) uint32_t offset[4];
@@ -723,42 +729,55 @@ __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 4; i++) {
 		offset[i] = src->voffset[i];
 	}
-	if(palette == NULL) {
+	__UNLIKELY_IF(src->palette == NULL) {
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
-			dummy_palette[i] = RGB_COLOR((((i & 2) + (i & 8)) << 4) | 0x0f,
+			palette[i] = RGB_COLOR((((i & 2) + (i & 8)) << 4) | 0x0f,
 										 (((i & 4) + (i & 8)) << 4) | 0x0f,
 										 (((i & 1) + (i & 8)) << 4) | 0x0f);
 		}
-		palette = dummy_palette;
+	} else {
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 16; i++) {
+			palette[i] = src->palette[i];
+		}
 	}
 	uint8_t *bp = &(src->data[0][src->baseaddress[0]]);
 	uint8_t *rp = &(src->data[1][src->baseaddress[1]]);
 	uint8_t *gp = &(src->data[2][src->baseaddress[2]]);
 	uint8_t *np = &(src->data[3][src->baseaddress[3]]);
 	
-	uint8_t r, g, b, n;
+	__DECL_ALIGNED(8) std::valarray<uint8_t> brgn(4);
+	__DECL_ALIGNED(8) std::valarray<uint8_t> rmask((const uint8_t)0, 4);
+	__DECL_VECTORIZED_LOOP
+		for(int ii = 0; ii < 4; ii++) {
+			if(src->is_render[ii]) rmask[ii] = 0xff;
+		}
+	enum {
+		_b = 0,
+		_r,
+		_g,
+		_n
+	};
 	int shift = src->shift;
-	const bool is_render[4] = { src->is_render[0], src->is_render[1],  src->is_render[2], src->is_render[3] };
 	__DECL_ALIGNED(16) std::valarray<uint16_t> tmpd(8);
 	__DECL_ALIGNED(32) std::valarray<scrntype_t> tmp_dd(8); 
-	scrntype_vec8_t* vdp = (scrntype_vec8_t*)dst;
-	
 	x = src->begin_pos;
+	
 	uint32_t xn = x;
 	if(dst2 == NULL) {	
 		for(uint32_t xx = 0; xx < src->render_width; xx++) {
-			b = (is_render[0]) ? bp[(offset[0] + xn) & mask] : 0;
-			r = (is_render[1]) ? rp[(offset[1] + xn) & mask] : 0;
-			g = (is_render[2]) ? gp[(offset[2] + xn) & mask] : 0;
-			n = (is_render[3]) ? np[(offset[3] + xn) & mask] : 0;
-	__DECL_VECTORIZED_LOOP
-			for(int j = 0; j < 8; j++) {
-				vb[j] = vpb[b].w[j];
-				vr[j] = vpr[r].w[j];
-				vg[j] = vpg[g].w[j];
-				vn[j] = vpn[n].w[j];
-			}
+			brgn[_b] =  bp[(offset[0] + xn) & mask];
+			brgn[_r] =  rp[(offset[1] + xn) & mask];
+			brgn[_g] =  gp[(offset[2] + xn) & mask];
+			brgn[_n] =  gp[(offset[3] + xn) & mask];
+			brgn &= rmask;
+			
+			__DECL_ALIGNED(16) std::valarray<uint16_t> vb(vpb[brgn[_b]].w, 8);
+			__DECL_ALIGNED(16) std::valarray<uint16_t> vr(vpr[brgn[_r]].w, 8);
+			__DECL_ALIGNED(16) std::valarray<uint16_t> vg(vpg[brgn[_g]].w, 8);
+			__DECL_ALIGNED(16) std::valarray<uint16_t> vn(vpn[brgn[_n]].w, 8);
+			
 			tmpd = vb;
 			tmpd = tmpd | vr;
 			tmpd = tmpd | vg;
@@ -772,8 +791,9 @@ __DECL_VECTORIZED_LOOP
 			}
 	__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
-				vdp[xx].w[i] = tmp_dd[i];
+				dst[i] = tmp_dd[i];
 			}
+			dst += 8;
 		}
 	} else {
 #if defined(_RGB555) || defined(_RGBA565)
@@ -781,44 +801,45 @@ __DECL_VECTORIZED_LOOP
 #else // 24bit
 		static const int shift_factor = 3;
 #endif
-		__DECL_ALIGNED(32) std::valarray<scrntype_t> sline(8);
-		scrntype_vec8_t* vdp2 = (scrntype_vec8_t*)dst2;
-		sline = (scrntype_t)RGBA_COLOR(31, 31, 31, 255);
-
+		__DECL_ALIGNED(32) std::valarray<scrntype_t> sline(RGBA_COLOR(31, 31, 31, 255), 8);
 		for(uint32_t xx = 0; xx < src->render_width; xx++) {
-			b = (is_render[0]) ? bp[(offset[0] + xn) & mask] : 0;
-			r = (is_render[1]) ? rp[(offset[1] + xn) & mask] : 0;
-			g = (is_render[2]) ? gp[(offset[2] + xn) & mask] : 0;
-			n = (is_render[3]) ? np[(offset[3] + xn) & mask] : 0;
-	__DECL_VECTORIZED_LOOP
-			for(int j = 0; j < 8; j++) {
-				vb[j] = vpb[b].w[j];
-				vr[j] = vpr[r].w[j];
-				vg[j] = vpg[g].w[j];
-				vn[j] = vpn[n].w[j];
-			}
+			brgn[_b] =  bp[(offset[0] + xn) & mask];
+			brgn[_r] =  rp[(offset[1] + xn) & mask];
+			brgn[_g] =  gp[(offset[2] + xn) & mask];
+			brgn[_n] =  gp[(offset[3] + xn) & mask];
+			brgn &= rmask;
+			
+			__DECL_ALIGNED(16) std::valarray<uint16_t> vb(vpb[brgn[_b]].w, 8);
+			__DECL_ALIGNED(16) std::valarray<uint16_t> vr(vpr[brgn[_r]].w, 8);
+			__DECL_ALIGNED(16) std::valarray<uint16_t> vg(vpg[brgn[_g]].w, 8);
+			__DECL_ALIGNED(16) std::valarray<uint16_t> vn(vpn[brgn[_n]].w, 8);
+			
 			tmpd = vb;
 			tmpd = tmpd | vr;
 			tmpd = tmpd | vg;
 			tmpd = tmpd | vn;
 			tmpd = tmpd >> shift;
 			xn = (xn + 1) & offsetmask;
+			
 	__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
 				tmp_dd[i] = palette[tmpd[i]];
 			}
 	__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
-				vdp[xx].w[i] = tmp_dd[i];
+				dst[i] = tmp_dd[i];
 			}
+			dst += 8;
+
 			if(scan_line) {
 				tmp_dd = tmp_dd >> shift_factor;
 				tmp_dd = tmp_dd & sline;
 			}
 	__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
-				vdp2[xx].w[i] = tmp_dd[i];
+				dst2[i] = tmp_dd[i];
 			}
+			dst2 += 8;
 		}
 	}
 }
@@ -836,7 +857,7 @@ void DLL_PREFIX Render2NColors_Line(_render_command_data_t *src, scrntype_t *dst
 //		if(src->bit_trans_table[i] == NULL) return;
 //		if(src->data[i] == NULL) return;
 //	}
-	scrntype_t *palette = src->palette;
+	std::valarray<scrntype_t> palette(src->palette, 8);
 	
 	uint16_vec8_t* vp[16];
 	for(int i = 0; i < planes; i++) {
@@ -857,31 +878,34 @@ __DECL_VECTORIZED_LOOP
 		pp[i] = &(src->data[i][src->baseaddress[i]]);
 	}
 	
-	__DECL_ALIGNED(16) uint8_t d[16];
 	int shift = src->shift;
-	const bool is_render[4] = { src->is_render[0], src->is_render[1],  src->is_render[2], src->is_render[3] };
+	__DECL_ALIGNED(16) std::valarray<bool> is_render(src->is_render, 16);
+	__DECL_ALIGNED(16) std::valarray<uint8_t> rmask((const uint8_t)0, 16);
+
 	__DECL_ALIGNED(16) std::valarray<uint16_t> tmpd(8);
 	__DECL_ALIGNED(32) std::valarray<scrntype_t> tmp_dd(8); 
-
+	for(int i = 0; i < planes; i++) {
+		if(is_render[i]) rmask[i] = 0xff;
+	}
 	
 	x = src->begin_pos;
 	if(dst2 == NULL) {
 		uint32_t n = x;
 
 		for(uint32_t xx = 0; xx < src->render_width; xx++) {
-			d[0] = (is_render[0]) ? pp[0][(offset[0] + n) & mask] : 0;
-	__DECL_VECTORIZED_LOOP
-			for(int j = 0; j < 8; j++) {
-				tmpd[j] = vp[0][d[0]].w[j];
+			__DECL_ALIGNED(16) std::valarray<uint8_t> d((const uint8_t)0, 16);
+
+			for(int i = 0; i < planes; i++) {
+				d[i] = pp[i][(offset[i] + n) & mask];
 			}
-			for(int i = 1; i < planes; i++) {
-				d[i] = (is_render[i]) ? pp[i][(offset[i] + n) & mask] : 0;
-				
-	__DECL_VECTORIZED_LOOP
-				for(int j = 0; j < 8; j++) {
-					tmpd[j] |= vp[i][d[i]].w[j];
-				}
+			d &= rmask;
+			tmpd = 0;
+			
+			for(int i = 0; i < planes; i++) {
+				__DECL_ALIGNED(16) std::valarray<uint16_t> tmpr(vp[i][d[i]].w, 8);
+				tmpd |= tmpr;
 			}
+
 			n = (n + 1) & offsetmask;
 			tmpd = tmpd >> shift;
 	__DECL_VECTORIZED_LOOP
@@ -901,24 +925,22 @@ __DECL_VECTORIZED_LOOP
 		static const int shift_factor = 3;
 #endif
 		__DECL_ALIGNED(32) std::valarray<scrntype_t> sline(8);
-		scrntype_vec8_t* vdp2 = (scrntype_vec8_t*)dst2;
 		sline = (scrntype_t)RGBA_COLOR(31, 31, 31, 255);
 
 		uint32_t n = x;
 
 		for(uint32_t xx = 0; xx < src->render_width; xx++) {
-			d[0] = (is_render[0]) ? pp[0][(offset[0] + n) & mask] : 0;
-	__DECL_VECTORIZED_LOOP
-			for(int j = 0; j < 8; j++) {
-				tmpd[j] = vp[0][d[0]].w[j];
-			}
+			__DECL_ALIGNED(16) std::valarray<uint8_t> d((const uint8_t)0, 16);
 
-			for(int i = 1; i < planes; i++) {
-				d[i] = (is_render[i]) ? pp[i][(offset[i] + n) & mask] : 0;
-	__DECL_VECTORIZED_LOOP
-				for(int j = 0; j < 8; j++) {
-					tmpd[j] = tmpd[j] | vp[i][d[i]].w[j];
-				}
+			for(int i = 0; i < planes; i++) {
+				d[i] = pp[i][(offset[i] + n) & mask];
+			}
+			d &= rmask;
+			tmpd = 0;
+			
+			for(int i = 0; i < planes; i++) {
+				__DECL_ALIGNED(16) std::valarray<uint16_t> tmpr(vp[i][d[i]].w, 8);
+				tmpd |= tmpr;
 			}
 			n = (n + 1) & offsetmask;
 			tmpd = tmpd >> shift;
@@ -952,7 +974,6 @@ void DLL_PREFIX Convert2NColorsToByte_Line(_render_command_data_t *src, uint8_t 
 
 	__DECL_ALIGNED(32) uint8_t* srcp[8];
 	__DECL_ALIGNED(32) uint32_t offset[8] = {0};
-	__DECL_ALIGNED(16) std::valarray<uint16_t> dat(8);
 	uint16_vec8_t* bp[8] ;
 		
 
@@ -970,24 +991,18 @@ __DECL_VECTORIZED_LOOP
 	}
 
 	uint32_t noffset = src->begin_pos & offsetmask;
-	__DECL_ALIGNED(16) uint8_t td[16];
 
 	for(int x = 0; x < src->render_width; x++) {
+		__DECL_ALIGNED(16) std::valarray<uint8_t> td((const uint8_t)0, 16);
 
 		for(int i = 0; i < planes; i++) {
 			td[i] = srcp[i][(noffset + offset[i]) & addrmask];
 		}
 		noffset = (noffset + 1) & offsetmask;
-__DECL_VECTORIZED_LOOP
-		for(int j = 0; j < 8; j++) {
-			dat[j] = bp[0][td[0]].w[j];
-		}
-
-		for(int i = 1; i < planes; i++) {
-__DECL_VECTORIZED_LOOP
-			for(int j = 0; j < 8; j++) {
-				dat[j] = dat[j] | bp[i][td[i]].w[j];
-			}
+		__DECL_ALIGNED(16) std::valarray<uint16_t> dat((const uint16_t)0, 8);
+		for(int i = 0; i < planes; i++) {
+			__DECL_ALIGNED(16) std::valarray<uint16_t> _bd(bp[i][td[i]].w, 8);
+			dat |= _bd;
 		}
 		dat = dat >> shift;
 __DECL_VECTORIZED_LOOP
@@ -1006,7 +1021,6 @@ void DLL_PREFIX Convert2NColorsToByte_LineZoom2(_render_command_data_t *src, uin
 
 	uint8_t* srcp[8];
 	__DECL_ALIGNED(32) uint32_t offset[8] = {0};
-	__DECL_ALIGNED(16) std::valarray<uint16_t> dat(8);
 	uint16_vec8_t* bp[8] ;
 		
 
@@ -1024,25 +1038,20 @@ __DECL_VECTORIZED_LOOP
 	}
 
 	uint32_t noffset = src->begin_pos & offsetmask;
-	uint8_t td[16];
 
 	for(int x = 0; x < src->render_width; x++) {
 
+		__DECL_ALIGNED(16) std::valarray<uint8_t> td((const uint8_t)0, 16);
 		for(int i = 0; i < planes; i++) {
 			td[i] = srcp[i][(noffset + offset[i]) & addrmask];
 		}
 		noffset = (noffset + 1) & offsetmask;
-__DECL_VECTORIZED_LOOP
-		for(int j = 0; j < 8; j++) {
-			dat[j] = bp[0][td[0]].w[j];
+		__DECL_ALIGNED(16) std::valarray<uint16_t> dat((const uint16_t)0, 8);
+		for(int i = 0; i < planes; i++) {
+			__DECL_ALIGNED(16) std::valarray<uint16_t> _bd(bp[i][td[i]].w, 8);
+			dat |= _bd;
 		}
-
-		for(int i = 1; i < planes; i++) {
-__DECL_VECTORIZED_LOOP
-			for(int j = 0; j < 8; j++) {
-				dat[j] = dat[j] | bp[i][td[i]].w[j];
-			}
-		}
+		noffset = (noffset + 1) & offsetmask;
 		dat = dat >> shift;
 __DECL_VECTORIZED_LOOP
 		for(int i = 0, j = 0; i < 16; i +=2, j++) {
