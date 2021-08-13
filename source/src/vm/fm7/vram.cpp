@@ -512,23 +512,21 @@ uint8_t DISPLAY::GETVRAM_TEXTPIX(uint8_t bitdata, bool reverse, bool cursor_rev)
 void DISPLAY::GETVRAM_1_400L(int yoff, scrntype_t *p)
 {
 	uint8_t pixel;
-	if(p == NULL) return;
+	__UNLIKELY_IF(p == NULL) return;
 	yoff_d = yoff & 0x7fff;
 	pixel = gvram_shadow[yoff_d];
-	uint16_vec8_t *ppx = (uint16_vec8_t *)(&(bit_trans_table_0[pixel][0]));
-	__DECL_ALIGNED(16) uint16_vec8_t tmp_d;
-	__DECL_ALIGNED(32) scrntype_vec8_t tmp_dd;
+	uint16_t *ppx = (uint16_t *)___assume_aligned(&(bit_trans_table_0[pixel][0]), sizeof(uint16_vec8_t));
+	__DECL_ALIGNED(16) std::valarray<uint16_t> tmp_d(ppx, 8);
+	__DECL_ALIGNED(32) std::valarray<scrntype_t> tmp_dd(8);
 
-	tmp_d.v = ppx->v;
-	tmp_d.v = tmp_d.v >> 5;
-	
+	tmp_d = tmp_d >> 5;
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
-		tmp_dd.w[i] = dpalette_pixel[tmp_d.w[i]];
+		tmp_dd[i] = dpalette_pixel[tmp_d[i]];
 	}
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
-		p[i] = tmp_dd.w[i];
+		p[i] = tmp_dd[i];
 	}
 
 }
@@ -536,24 +534,21 @@ __DECL_VECTORIZED_LOOP
 void DISPLAY::GETVRAM_1_400L_GREEN(int yoff, scrntype_t *p)
 {
 	uint8_t pixel;
-	if(p == NULL) return;
+	__UNLIKELY_IF(p == NULL) return;
 	yoff_d = yoff & 0x7fff;
 	pixel = gvram_shadow[yoff_d];
-	uint16_vec8_t *ppx = (uint16_vec8_t *)(&(bit_trans_table_0[pixel][0]));
-	__DECL_ALIGNED(16) uint16_vec8_t tmp_d;
-	__DECL_ALIGNED(32) scrntype_vec8_t tmp_dd;
+	uint16_t *ppx = (uint16_t *)___assume_aligned(&(bit_trans_table_0[pixel][0]), sizeof(uint16_vec8_t));
+	__DECL_ALIGNED(16) std::valarray<uint16_t> tmp_d(ppx, 8);
+	__DECL_ALIGNED(32) std::valarray<scrntype_t> tmp_dd(8);
 
-
-	tmp_d.v = ppx->v;
-	tmp_d.v = tmp_d.v >> 5;
-	
+	tmp_d = tmp_d >> 5;
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
-		tmp_dd.w[i] = dpalette_pixel_green[tmp_d.w[i]];
+		tmp_dd[i] = dpalette_pixel_green[tmp_d[i]];
 	}
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
-		p[i] = tmp_dd.w[i];
+		p[i] = tmp_dd[i];
 	}
 
 }
