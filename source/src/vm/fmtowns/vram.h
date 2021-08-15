@@ -15,8 +15,11 @@
 #include "../../common.h"
 #include "towns_common.h"
 
-#if defined(_USE_QT)
-#include <QMutex>
+#include <mutex>
+
+#if !defined(__lock_vram)
+#define __lock_vram(foo) std::lock_guard<std::recursive_mutex>__vram_tmp_lock(foo)
+//#define __lock_vram(foo)
 #endif
 
 // Older Towns.
@@ -45,14 +48,9 @@ class TOWNS_VRAM : public DEVICE
 protected:
 	DEVICE* d_sprite;
 	DEVICE* d_crtc;
-	
-#if defined(_USE_QT)
-	// If you use other framework, place mutex lock.
-	QMutex vram_lock[2][2]; // [bank][layer];
-#endif
+
 	
 	bool access_page1;
-
 	bool dirty_flag[0x80000 >> 3]; // Per 8bytes : 16pixels(16colors) / 8pixels(256) / 4pixels(32768)
 	
 	// FMR50 Compatible registers. They are mostly dummy.
@@ -119,16 +117,18 @@ public:
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 
 	// Unique Functions
-	virtual uint8_t* __FASTCALL get_vram_address(uint32_t offset)
+	virtual inline uint8_t* __FASTCALL get_vram_address(uint32_t offset)
 	{
-		if(offset >= 0x80000) return NULL; // ToDo
+		__UNLIKELY_IF(offset >= 0x80000) return NULL; // ToDo
 		return &(vram[offset]);
 	}
-	virtual bool __FASTCALL set_buffer_to_vram(uint32_t offset, uint8_t *buf, int words)
+	virtual inline bool __FASTCALL set_buffer_to_vram(uint32_t offset, uint8_t *buf, int words)
 	{
 		offset &= 0x7ffff;
 //		if(words > 16) return false;
-		if(words <= 0) return false;
+		__UNLIKELY_IF(words <= 0) return false;
+		__lock_vram(vram_lock);
+
 		uint8_t* p = &(vram[offset]);
 		__LIKELY_IF((offset + (words << 1)) <= 0x80000) {
 			memcpy(p, buf, words << 1);
@@ -142,11 +142,13 @@ public:
 		}
 		return true;
 	}
-	virtual bool __FASTCALL get_vram_to_buffer(uint32_t offset, uint8_t *buf, int words)
+	virtual inline bool __FASTCALL get_vram_to_buffer(uint32_t offset, uint8_t *buf, int words)
 	{
 		offset &= 0x7ffff;
 //		if(words > 16) return false;
-		if(words <= 0) return false;
+		__UNLIKELY_IF(words <= 0) return false;
+		
+		__lock_vram(vram_lock);
 		uint8_t* p = &(vram[offset]);
 		__LIKELY_IF((offset + (words << 1)) <= 0x80000) {
 			memcpy(buf, p, words << 1);
@@ -161,21 +163,9 @@ public:
 		return true;
 	}
 	virtual void __FASTCALL make_dirty_vram(uint32_t addr, int bytes);
-	virtual uint32_t __FASTCALL get_vram_size()
+	virtual inline uint32_t __FASTCALL get_vram_size()
 	{
 		return 0x80000; // ToDo
-	}
-	virtual void __FASTCALL lock_framebuffer(int layer, int bank)
-	{
-#if defined(_USE_QT)
-		vram_lock[bank][layer].lock();
-#endif
-	}
-	virtual void __FASTCALL unlock_framebuffer(int layer, int bank)
-	{
-#if defined(_USE_QT)
-		vram_lock[bank][layer].unlock();
-#endif
 	}
 	void set_context_sprite(DEVICE *dev)
 	{
@@ -193,6 +183,11 @@ public:
 	{
 		machine_id = val & 0xfff8;
 	}
+
+	// If you use other framework, place mutex lock.
+	//std::recursive_mutex vram_lock[2][2]; // [bank][layer];
+	std::recursive_mutex vram_lock; // [bank][layer];
+	
 	// New APIs?
 	// End.
 };

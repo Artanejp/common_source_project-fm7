@@ -302,6 +302,7 @@ __DECL_VECTORIZED_LOOP
 			int yoff = (yy + ry) & 0x1ff;
 			if(yoff < 256) {
 				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
+				
 				__DECL_ALIGNED(32) uint8_t source[32] = {0};
 				d_vram->get_vram_to_buffer(vpaddr + noffset, source, __xend);
 __DECL_VECTORIZED_LOOP						
@@ -352,6 +353,7 @@ __DECL_VECTORIZED_LOOP
 			__xend = 256 - rx;
 		}
 		if(__xend <= 0) return;
+		
 		for(int yy = 0; yy < 16;  yy++) {
 			int yoff = (yy + ry) & 0x1ff;
 			if(yoff < 256) {
@@ -448,11 +450,13 @@ __DECL_VECTORIZED_LOOP
 			__xend = 256 - rx;
 		}
 		if(__xend <= 0) return;
+
 		for(int yy = (__ystart << 1); yy < (__yend << 1);  yy += 2) {
 			int yoff = ((yy >> 1) + ry) & 0x1ff;
 			if(yoff < 256) {
 				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
 				__DECL_ALIGNED(32) uint8_t source[32] = {0};
+
 				d_vram->get_vram_to_buffer(vpaddr + noffset, source, __xend);
 __DECL_VECTORIZED_LOOP						
 				for(int xx = 0; xx < 16; xx++) {
@@ -532,11 +536,13 @@ __DECL_VECTORIZED_LOOP
 			__xend = 256 - rx;
 		}
 		if(__xend <= 0) return;
+		
 		for(int yy = (__ystart << 1); yy < (__yend << 1);  yy += 2) {
 			int yoff = ((yy >> 1) + ry) & 0x1ff;
 			if(yoff < 256) {
 				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
 				__DECL_ALIGNED(16) uint8_t source[16] = {0};
+				
 				d_vram->get_vram_to_buffer(vpaddr + noffset, source, __xend);
 				__DECL_ALIGNED(32) uint16_t sbuf2[32] = {0};
 				__DECL_ALIGNED(32) uint16_t sbuf3[32];
@@ -907,6 +913,7 @@ void TOWNS_SPRITE::check_and_clear_vram()
 			uint32_t noffset = (disp_page1) ? 0x40000 : 0x60000;
 			draw_page1 = disp_page1;
 			__LIKELY_IF(render_num < 1024) {
+				__lock_vram(d_vram->vram_lock);
 				pair16_t *p = (pair16_t*)(d_vram->get_vram_address(noffset));
 				__LIKELY_IF(p != NULL) {
 					for(int x = 0; x < 0x10000; x++) {

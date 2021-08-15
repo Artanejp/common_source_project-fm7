@@ -109,6 +109,7 @@ uint32_t PLANEVRAM::read_memory_mapped_io8(uint32_t addr)
 	addr = (addr & 0x7fff) << 2;
 	__UNLIKELY_IF(d_vram == NULL) return 0xff;
 	
+	__lock_vram(d_vram->vram_lock);
 	uint8_t *p = d_vram->get_vram_address(x_addr + addr);
 	__UNLIKELY_IF(p == NULL) return 0xff;
 //	p = &(p[x_addr + addr]); 
@@ -143,6 +144,8 @@ void PLANEVRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 	addr = (addr & 0x7fff) << 2;
 
 	__UNLIKELY_IF(d_vram == NULL) return;
+	
+	__lock_vram(d_vram->vram_lock);
 	uint8_t *p = d_vram->get_vram_address(x_addr + addr);
 	__UNLIKELY_IF(p == NULL) return;
 	

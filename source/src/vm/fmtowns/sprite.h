@@ -151,9 +151,9 @@ public:
 	{
 		d_debugger = p;
 	}
-	void get_tvram_snapshot(uint8_t *p)
+	inline void __FASTCALL get_tvram_snapshot(uint8_t *p)
 	{
-		if(p != NULL) {
+		__LIKELY_IF(p != NULL) {
 			memcpy(&(p[0x0000]), &(pattern_ram[0x0000]), 0x4000);
 		}
 	}

@@ -322,7 +322,7 @@ protected:
 	int display_linebuf;
 	int display_linebuf_mask;
 	
-	linebuffer_t *linebuffers[4];
+	__DECL_ALIGNED(32) linebuffer_t linebuffers[4][TOWNS_CRTC_MAX_LINES];
 
 	// Render buffer
 		// ToDo: faster alpha blending.
@@ -368,9 +368,6 @@ public:
 	TOWNS_CRTC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_int_vsync);
-		for(int i = 0; i < 4; i++) {
-			linebuffers[i] = NULL;
-		}
 		d_sprite = NULL;
 		d_vram = NULL;
 		d_font = NULL;
@@ -411,12 +408,11 @@ public:
 		return 0x1;
 	}
 	// unique function
-	linebuffer_t* __FASTCALL get_line_buffer(int page, int line)
+	inline linebuffer_t* __FASTCALL get_line_buffer(int page, int line)
 	{
 		page = page & 1;
-		if(line < 0) return NULL;
-		if(line >= TOWNS_CRTC_MAX_LINES) return NULL;
-		if(linebuffers[page] == NULL) return NULL;
+		__UNLIKELY_IF(line < 0) return NULL;
+		__UNLIKELY_IF(line >= TOWNS_CRTC_MAX_LINES) return NULL;
 		return &(linebuffers[page][line]);
 	}
 	

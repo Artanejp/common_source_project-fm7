@@ -27,6 +27,7 @@ void TOWNS_VRAM::initialize()
 
 void TOWNS_VRAM::reset()
 {
+	__lock_vram(vram_lock);
 	for(int i = 0; i < (sizeof(dirty_flag) / sizeof(bool)); i++) {
 		dirty_flag[i] = true;
 	}
@@ -65,6 +66,8 @@ void TOWNS_VRAM::make_dirty_vram(uint32_t addr, int bytes)
 void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	
+	__lock_vram(vram_lock);
+
 	uint32_t naddr = addr & 0x7ffff;
 	uint8_t mask = packed_pixel_mask_reg[naddr & 3];
 	uint8_t nd = vram[naddr];
@@ -76,6 +79,9 @@ void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 
 void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 {
+
+	__lock_vram(vram_lock);
+	
 	uint32_t naddr = addr & 0x7ffff;
 	uint32_t maddr = addr & 3;
 	pair16_t dmask;
@@ -103,6 +109,8 @@ void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	
 void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 {
+
+	__lock_vram(vram_lock);
 
 	__DECL_ALIGNED(8) uint8_t mask[8];
 	uint32_t naddr = addr & 0x7ffff;
@@ -136,6 +144,8 @@ void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 
 uint32_t TOWNS_VRAM::read_memory_mapped_io8(uint32_t addr)
 {
+	__lock_vram(vram_lock);
+
 	return vram[addr & 0x7ffff];
 }
 
@@ -143,6 +153,8 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io16(uint32_t addr)
 {
 	uint32_t naddr = addr & 0x7ffff;
 	pair16_t data;
+	__lock_vram(vram_lock);
+
 	__LIKELY_IF(naddr != 0x7ffff) {
 		data.b.l = vram[naddr + 0];
 		data.b.h = vram[naddr + 1];
@@ -158,6 +170,8 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 	uint32_t naddr = addr & 0x7ffff;
 	pair32_t data;
 	
+	__lock_vram(vram_lock);
+
 	data.b.l  = vram[naddr + 0];
 	data.b.h  = vram[naddr + 1];
 	data.b.h2 = vram[naddr + 2];
@@ -296,7 +310,7 @@ bool TOWNS_VRAM::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-
+	__lock_vram(vram_lock);
 	state_fio->StateValue(access_page1);
 	state_fio->StateArray(dirty_flag, sizeof(dirty_flag), 1);
 	state_fio->StateArray(layer_display_flags, sizeof(layer_display_flags), 1);
