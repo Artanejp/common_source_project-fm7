@@ -10,7 +10,8 @@
 #include "common.h"
 #include "../vm.h"
 #include "../../emu.h"
-#include "device.h"
+#include "../device_params.h"
+#include "./device.h"
 #if defined(_USE_QT)
 #include "../qt/gui/csp_logger.h"
 extern DLL_PREFIX_I CSP_Logger *csp_logger;
