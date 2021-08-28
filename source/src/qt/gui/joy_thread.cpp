@@ -396,7 +396,7 @@ void JoyThreadClass::x_axis_changed(int idx, int type, int value)
 	int true_index = get_joy_num(idx);
 
 	if((true_index < 0) || (true_index >= 4)) return;
-	p_osd->lock_vm();
+
 	uint32_t *joy_status = (uint32_t *)(p_osd->get_joy_buffer());
 	//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "X AXIS Changed #%d/%d, TYPE=%d VAL=%d", idx, true_index, type, value);
 	if(joy_status != NULL) {
@@ -419,7 +419,7 @@ void JoyThreadClass::x_axis_changed(int idx, int type, int value)
 		}
 	}
 	p_osd->release_joy_buffer(joy_status);
-	p_osd->unlock_vm();
+
 }
 	   
 void JoyThreadClass::y_axis_changed(int idx, int type, int value)
@@ -429,7 +429,7 @@ void JoyThreadClass::y_axis_changed(int idx, int type, int value)
 	int true_index = get_joy_num(idx);
 	
 	if((true_index < 0) || (true_index >= 4)) return;
-	p_osd->lock_vm();
+
 	uint32_t *joy_status = p_osd->get_joy_buffer();
 	//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "Y AXIS Changed #%d/%d, TYPE=%d VAL=%d", idx, true_index, type, value);
 	if(joy_status != NULL) {
@@ -452,7 +452,6 @@ void JoyThreadClass::y_axis_changed(int idx, int type, int value)
 		}
 	}
 	p_osd->release_joy_buffer(joy_status);
-	p_osd->unlock_vm();
 }
 
 void JoyThreadClass::button_down(int idx, unsigned int button)
@@ -463,7 +462,7 @@ void JoyThreadClass::button_down(int idx, unsigned int button)
 	
 	if((true_index < 0) || (true_index >= 4)) return;
 	if(button >= SDL_CONTROLLER_BUTTON_MAX) return;
-	p_osd->lock_vm();
+
 	uint32_t *joy_status = p_osd->get_joy_buffer();
 
 	if(joy_status != NULL) {
@@ -477,7 +476,7 @@ void JoyThreadClass::button_down(int idx, unsigned int button)
 		}
 	}
 	p_osd->release_joy_buffer(joy_status);
-	p_osd->unlock_vm();
+
 }
 
 void JoyThreadClass::controller_button_down(int idx, unsigned int button)
@@ -488,7 +487,6 @@ void JoyThreadClass::controller_button_down(int idx, unsigned int button)
 	
 	if((true_index < 0) || (true_index >= 4)) return;
 	if(button >= SDL_CONTROLLER_BUTTON_MAX) return;
-	p_osd->lock_vm();
 	uint32_t *joy_status = p_osd->get_joy_buffer();
 
 	if(joy_status != NULL) {
@@ -552,7 +550,7 @@ void JoyThreadClass::controller_button_down(int idx, unsigned int button)
 		}
 	}
 	p_osd->release_joy_buffer(joy_status);
-	p_osd->unlock_vm();
+
 }
 
 void JoyThreadClass::button_up(int idx, unsigned int button)
@@ -563,7 +561,7 @@ void JoyThreadClass::button_up(int idx, unsigned int button)
 	
 	if((true_index < 0) || (true_index >= 4)) return;
 	if(button >= 16) return;
-	p_osd->lock_vm();
+
 	uint32_t *joy_status = p_osd->get_joy_buffer();
 	if(joy_status != NULL) {
 		switch(button) {
@@ -575,7 +573,7 @@ void JoyThreadClass::button_up(int idx, unsigned int button)
 		}
 	}
 	p_osd->release_joy_buffer(joy_status);
-	p_osd->unlock_vm();
+
 }
 
 void JoyThreadClass::controller_button_up(int idx, unsigned int button)
@@ -587,7 +585,7 @@ void JoyThreadClass::controller_button_up(int idx, unsigned int button)
 	
 	if((true_index < 0) || (true_index >= 4)) return;
 	if(button >= 12) return;
-	p_osd->lock_vm();
+
 	uint32_t *joy_status = p_osd->get_joy_buffer();
 	if(joy_status != NULL) {
 		switch(button) {
@@ -645,7 +643,6 @@ void JoyThreadClass::controller_button_up(int idx, unsigned int button)
 		}
 	}
 	p_osd->release_joy_buffer(joy_status);
-	p_osd->unlock_vm();
 }
 
 #if defined(USE_SDL2)			   
