@@ -291,7 +291,7 @@ public:
 	/*!
 	 * @brief save state values of this device to a file.
 	 * @param state_fio pointer of state file i/o.
-	 * @note may not use this normally, use process_state() instead of this.
+	 * @note may not use this normally, use process_state(state_fio, false) instead of this.
 	 */
 	virtual void save_state(FILEIO* state_fio) {}
 	/*!
@@ -300,7 +300,7 @@ public:
 	 * @return loading status
 	 * @retval true succeeded to load state values.
 	 * @retval false failed to load state values.
-	 * @note may not use this normally, use process_state() instead of this.
+	 * @note may not use this normally, use process_state(state_fio, true) instead of this.
 	 */
 	virtual bool load_state(FILEIO* state_fio)
 	{
@@ -877,45 +877,105 @@ public:
 	{
 		return read_io32(addr);
 	}
+	/*!
+	 * @brief transfer 8bit width data from dma to I/O bus with wait.
+	 * @param addr I/O address to write.
+	 * @param data value to transfer.
+	 * @param wait pointer for wait result value.
+	 */
 	virtual void __FASTCALL write_dma_io8w(uint32_t addr, uint32_t data, int* wait)
 	{
 		write_io8w(addr, data, wait);
 	}
+	/*!
+	 * @brief transfer 8bit width data from I/O bus to dma with wait.
+	 * @param addr I/O address to write.
+	 * @param wait pointer for wait result value.
+	 * @return read value from I/O.
+	 */
 	virtual uint32_t __FASTCALL read_dma_io8w(uint32_t addr, int* wait)
 	{
 		return read_io8w(addr, wait);
 	}
+	/*!
+	 * @brief transfer 16bit width data from dma to I/O bus with wait.
+	 * @param addr I/O address to write.
+	 * @param data value to transfer.
+	 * @param wait pointer for wait result value.
+	 */
 	virtual void __FASTCALL write_dma_io16w(uint32_t addr, uint32_t data, int* wait)
 	{
 		write_io16w(addr, data, wait);
 	}
+	/*!
+	 * @brief transfer 16bit width data from I/O bus to dma with wait.
+	 * @param addr I/O address to write.
+	 * @param wait pointer for wait result value.
+	 * @return read value from I/O.
+	 */
 	virtual uint32_t __FASTCALL read_dma_io16w(uint32_t addr, int* wait)
 	{
 		return read_io16w(addr, wait);
 	}
+	/*!
+	 * @brief transfer 32bit width data from dma to I/O bus with wait.
+	 * @param addr I/O address to write.
+	 * @param data value to transfer.
+	 * @param wait pointer for wait result value.
+	 */
 	virtual void __FASTCALL write_dma_io32w(uint32_t addr, uint32_t data, int* wait)
 	{
 		write_io32w(addr, data, wait);
 	}
+	/*!
+	 * @brief transfer 32bit width data from I/O bus to dma with wait.
+	 * @param addr I/O address to write.
+	 * @param wait pointer for wait result value.
+	 * @return read value from I/O.
+	 */
 	virtual uint32_t __FASTCALL read_dma_io32w(uint32_t addr, int* wait)
 	{
 		return read_io32w(addr, wait);
 	}
 	
 	// memory mapped i/o
+	/*!
+	  @brief write 8bit width data to this device's MMIO (or MEMORY).
+	  @param addr address of MMIO. normally global address.
+	  @param data data to write to MMIO.
+	  @note This method is called from another device, normally MEMORY BUS.
+	*/
 	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data)
 	{
 		write_io8(addr, data);
 	}
+	/*!
+	  @brief read 8bit width data from this device's MMIO (or MEMORY).
+	  @param addr address of MMIO. normally global address.
+	  @return data data to read from MMIO.
+	  @note This method is called from another device, normally MEMORY BUS.
+	*/
 	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr)
 	{
 		return read_io8(addr);
 	}
+	/*!
+	  @brief write 16bit width data to this device's MMIO (or MEMORY).
+	  @param addr address of MMIO. normally global address.
+	  @param data data to write to MMIO.
+	  @note This method is called from another device, normally MEMORY BUS.
+	*/
 	virtual void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	{
 		write_memory_mapped_io8(addr,     (data     ) & 0xff);
 		write_memory_mapped_io8(addr + 1, (data >> 8) & 0xff);
 	}
+	/*!
+	  @brief read 16bit width data from this device's MMIO (or MEMORY).
+	  @param addr address of MMIO. normally global address.
+	  @return data data to read from MMIO.
+	  @note This method is called from another device, normally MEMORY BUS.
+	*/
 	virtual uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr)
 	{
 		uint32_t val;
@@ -923,6 +983,12 @@ public:
 		val |= read_memory_mapped_io8(addr + 1) << 8;
 		return val;
 	}
+	/*!
+	  @brief write 32bit width data to this device's MMIO (or MEMORY).
+	  @param addr address of MMIO. normally global address.
+	  @param data data to write to MMIO.
+	  @note This method is called from another device, normally MEMORY BUS.
+	*/
 	virtual void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data)
 	{
 		if(!(addr & 1)) {
@@ -934,6 +1000,12 @@ public:
 			write_memory_mapped_io8 (addr + 3, (data >> 24) & 0x00ff);
 		}
 	}
+	/*!
+	  @brief read 32bit width data from this device's MMIO (or MEMORY).
+	  @param addr address of MMIO. normally global address.
+	  @return data data to read from MMIO.
+	  @note This method is called from another device, normally MEMORY BUS.
+	*/
 	virtual uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr)
 	{
 		if(!(addr & 1)) {
@@ -949,16 +1021,37 @@ public:
 			return val;
 		}
 	}
+	/*!
+	  @brief write 8bit width data to this device's MMIO (or MEMORY) with wait.
+	  @param addr address of MMIO. normally global address.
+	  @param data data to write to MMIO.
+	  @param wait pointer for wait result.
+	  @note This method is called from another device, normally MEMORY BUS.
+	*/
 	virtual void __FASTCALL write_memory_mapped_io8w(uint32_t addr, uint32_t data, int* wait)
 	{
 		*wait = 0;
 		write_memory_mapped_io8(addr, data);
 	}
+	/*!
+	  @brief read 8bit width data from this device's MMIO (or MEMORY) with wait.
+	  @param addr address of MMIO. normally global address.
+	  @param wait pointer for wait result.
+	  @return data data to read from MMIO.
+	  @note This method is called from another device, normally MEMORY BUS.
+	*/
 	virtual uint32_t __FASTCALL read_memory_mapped_io8w(uint32_t addr, int* wait)
 	{
 		*wait = 0;
 		return read_memory_mapped_io8(addr);
 	}
+	/*!
+	  @brief write 16bit width data to this device's MMIO (or MEMORY) with wait.
+	  @param addr address of MMIO. normally global address.
+	  @param data data to write to MMIO.
+	  @param wait pointer for wait result.
+	  @note This method is called from another device, normally MEMORY BUS.
+	*/
 	virtual void __FASTCALL write_memory_mapped_io16w(uint32_t addr, uint32_t data, int* wait)
 	{
 		int wait_0, wait_1;
@@ -966,6 +1059,13 @@ public:
 		write_memory_mapped_io8w(addr + 1, (data >> 8) & 0xff, &wait_1);
 		*wait = wait_0 + wait_1;
 	}
+	/*!
+	  @brief read 16bit width data from this device's MMIO (or MEMORY) with wait.
+	  @param addr address of MMIO. normally global address.
+	  @param wait pointer for wait result.
+	  @return data data to read from MMIO.
+	  @note This method is called from another device, normally MEMORY BUS.
+	*/
 	virtual uint32_t __FASTCALL  read_memory_mapped_io16w(uint32_t addr, int* wait)
 	{
 		int wait_0, wait_1;
@@ -975,6 +1075,13 @@ public:
 		*wait = wait_0 + wait_1;
 		return val;
 	}
+	/*!
+	  @brief write 32bit width data to this device's MMIO (or MEMORY) with wait.
+	  @param addr address of MMIO. normally global address.
+	  @param data data to write to MMIO.
+	  @param wait pointer for wait result.
+	  @note This method is called from another device, normally MEMORY BUS.
+	*/
 	virtual void __FASTCALL write_memory_mapped_io32w(uint32_t addr, uint32_t data, int* wait)
 	{
 		if(!(addr & 1)) {
@@ -990,6 +1097,13 @@ public:
 			*wait = wait_0 + wait_1 + wait_2;
 		}
 	}
+	/*!
+	  @brief read 32bit width data from this device's MMIO (or MEMORY) with wait.
+	  @param addr address of MMIO. normally global address.
+	  @param wait pointer for wait result.
+	  @return data data to read from MMIO.
+	  @note This method is called from another device, normally MEMORY BUS.
+	*/
 	virtual uint32_t __FASTCALL read_memory_mapped_io32w(uint32_t addr, int* wait)
 	{
 		if(!(addr & 1)) {
@@ -1179,7 +1293,7 @@ public:
 		return 0xff;
 	}
 	/*!
-	 * @brief update interrupt signal (to target devices)
+	 * @brief update interrupt signals (to target devices)
 	 */
 	virtual void update_intr() {}
 	/*!
@@ -1317,6 +1431,9 @@ public:
 	virtual bool bios_ret_z80(uint16_t PC, pair32_t* af, pair32_t* bc, pair32_t* de, pair32_t* hl, pair32_t* ix, pair32_t* iy, uint8_t* iff1)	{
 		return false;
 	}
+	/*!
+	  @deprecated this function already is not used any components.
+	*/
 	virtual bool __FASTCALL address_translate(int space, int intention, uint64_t &taddress) { return true; /* If not present, always succeeded.*/ }
 	// misc
 	/*!
@@ -1329,7 +1446,7 @@ public:
 	}
    
 	// event manager
-	DEVICE* event_manager;
+	DEVICE* event_manager; //<! event manager for this device (normally EVENT::). 
 	/*!
 	 * @brief set event manager of this device
 	 * @param device pointer if event manager.
@@ -1509,8 +1626,9 @@ public:
 	}
 
 	/*!
-	 * @brief register a device for event at start of frame
-	 * @param device target device, normally this
+	  @brief register a device for event at start of frame
+	  @param device target device, normally this
+	  @note call device->event_frame() and device->event_pre_frame() from event manager every frame period.
 	 */
 	virtual void register_frame_event(DEVICE* device)
 	{
@@ -1520,8 +1638,9 @@ public:
 		event_manager->register_frame_event(device);
 	}
 	/*!
-	 * @brief register a device for event at every start of vertical line
-	 * @param device target device, normally this
+	  @brief register a device for event at every start of vertical line
+	  @param device target device, normally this
+	  @note call device->event_vline() from event manager every vertical line period.
 	 */
 	virtual void register_vline_event(DEVICE* device)
 	{
@@ -1530,6 +1649,12 @@ public:
 		}
 		event_manager->register_vline_event(device);
 	}
+	/*!
+	  @brief inspect scheduled remain clocks until happened a event. 
+	  @param register_id event id what wish to check remain.
+	  @return remain clock count until happen this event.
+	  @retval 0 already happened or evenr_id dont' exists.
+	 */
 	virtual uint32_t __FASTCALL get_event_remaining_clock(int register_id)
 	{
 		if(event_manager == NULL) {
@@ -1537,6 +1662,12 @@ public:
 		}
 		return event_manager->get_event_remaining_clock(register_id);
 	}
+	/*!
+	  @brief inspect scheduled remain uSecs until happened a event. 
+	  @param register_id event id what wish to check remain.
+	  @return remain time by uSecs until happen this event.
+	  @retval 0.0 already happened or evenr_id dont' exists.
+	 */
 	virtual double __FASTCALL get_event_remaining_usec(int register_id)
 	{
 		if(event_manager == NULL) {
@@ -1544,6 +1675,11 @@ public:
 		}
 		return event_manager->get_event_remaining_usec(register_id);
 	}
+	/*!
+	 @brief get current clock count with unsigned 32bit value
+	 @return current clock count value
+	 @note this return value is 32bit width, sometimes overwrap.
+	*/
 	virtual uint32_t get_current_clock()
 	{
 		if(event_manager == NULL) {
@@ -1551,6 +1687,11 @@ public:
 		}
 		return event_manager->get_current_clock();
 	}
+	/*!
+	 @brief get passed over clock counts from previous clock count.
+	 @return passed clock counts
+	 @note this function culculated by 32bit width inetrnally, maybe wrong result when overwrapping.
+	*/
 	virtual uint32_t __FASTCALL get_passed_clock(uint32_t prev)
 	{
 		if(event_manager == NULL) {
@@ -1558,6 +1699,11 @@ public:
 		}
 		return event_manager->get_passed_clock(prev);
 	}
+	/*!
+	 @brief get passed over uSecs from previous clock count.
+	 @return passed time (by uSec).
+	 @note this function culculated by 32bit width internally , maybe wrong result when overwrapping.
+	*/
 	virtual double __FASTCALL get_passed_usec(uint32_t prev)
 	{
 		if(event_manager == NULL) {
@@ -1565,6 +1711,11 @@ public:
 		}
 		return event_manager->get_passed_usec(prev);
 	}
+	/*!
+	 @brief calculate clocks from recent vertical line period
+	 @return clock count value
+	 @note this function culculated by 32bit width, maybe wrong result when overwrapping.
+	*/
 	virtual uint32_t get_passed_clock_since_vline()
 	{
 		if(event_manager == NULL) {
@@ -1572,6 +1723,11 @@ public:
 		}
 		return event_manager->get_passed_clock_since_vline();
 	}
+	/*!
+	 @brief calculate time (by uSec) from recent vertical line period
+	 @return passed time by uSec
+	 @note this function culculated by 32bit width, maybe wrong result when overwrapping.
+	*/
 	virtual double get_passed_usec_since_vline()
 	{
 		if(event_manager == NULL) {
@@ -1591,6 +1747,10 @@ public:
 		}
 		return event_manager->get_cur_vline();
 	}
+	/*!
+	  @brief get related clock count of this vertical line.
+	  @return relative clock value to next vertical line (or end of this frame).
+	*/
 	virtual int get_cur_vline_clocks()
 	{
 		if(event_manager == NULL) {
@@ -1598,6 +1758,12 @@ public:
 		}
 		return event_manager->get_cur_vline_clocks();
 	}
+	/*!
+	  @brief get program counter value of a CPU
+	  @param index CPU index
+	  @return PC value.
+	  @note if CPU[index] don't exists, will make undefined behavior.
+	*/
 	virtual uint32_t __FASTCALL get_cpu_pc(int index)
 	{
 		if(event_manager == NULL) {
@@ -1605,6 +1771,11 @@ public:
 		}
 		return event_manager->get_cpu_pc(index);
 	}
+	/*!
+	 @brief get current clock count with unsigned 64bit value
+	 @return current clock count value
+	 @note this return value is 64bit width, sometimes overwrap.
+	*/
 	virtual uint64_t get_current_clock_uint64()
 	{ 
 		if(event_manager == NULL) {
@@ -1612,6 +1783,12 @@ public:
 		}
 		return event_manager->get_current_clock_uint64();
 	}
+	/*!
+	 @brief inspect CPU clock value by Hz.
+	 @param index CPU number to inspect.
+	 @return clock value (by Hz).
+	 @retval 0 maybe this CPU don't exists.
+	*/
 	virtual uint32_t __FASTCALL get_cpu_clock(int index)
 	{
 		if(event_manager == NULL) {
@@ -1619,6 +1796,10 @@ public:
 		}
 		return event_manager->get_cpu_clock(index);
 	}
+	/*!
+	  @brief request to skip next frame.
+	  @note this is for "FRAME SKIP" feature .
+	*/
 	virtual void request_skip_frames()
 	{
 		if(event_manager == NULL) {
@@ -1626,6 +1807,10 @@ public:
 		}
 		event_manager->request_skip_frames();
 	}
+	/*!
+	  @brief set frame rate.
+	  @param frames display frames per one second.
+	*/
 	virtual void set_frames_per_sec(double frames)
 	{
 		if(event_manager == NULL) {
@@ -1633,6 +1818,12 @@ public:
 		}
 		event_manager->set_frames_per_sec(frames);
 	}
+	/*!
+	  @brief set vertical lines in a frame.
+	  @param lines vertical lines in a frame.
+	  @note this setting will effect after next frame period, not effect immediately.
+	  @note calculate time doesn't care VBLANK after last line.
+	*/
 	virtual void set_lines_per_frame(int lines)
 	{
 		if(event_manager == NULL) {
@@ -1640,6 +1831,10 @@ public:
 		}
 		event_manager->set_lines_per_frame(lines);
 	}
+	/*!
+	  @brief get number of vertical lines of this frame.
+	  @return number of vertical lines.
+	*/
 	virtual int get_lines_per_frame()
 	{
 		if(event_manager == NULL) {
@@ -1683,17 +1878,64 @@ public:
 	{
 		set_realtime_render(this, flag);
 	}
+	/*!
+	  @brief update timing factors for thi device and frame.
+	  @param new_clocks clocks of this device expect to update.
+	  @param new_frames_per_sec frame rate expect to update.
+	  @param new_lines_per_frame number of vertical lines expect to update.
+	  @note any parameters has no means, as of DEVICE definitions.
+	*/ 
 	virtual void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame) {}
 	
 	// event callback
+	/*!
+	  @brief event handler of this device
+	  @param event_id called id to process.
+	  @param err local value
+	  @note normally, err is not used.
+	*/
 	virtual void __FASTCALL event_callback(int event_id, int err) {}
+	/*!
+	  @brief fixed handler before processing a frame.
+	  @note must call register_frame_event(this) before using (normally initialize()).
+	*/  
 	virtual void event_pre_frame() {}	// this event is to update timing settings
+	/*!
+	  @brief fixed handler processing a top of frame.
+	  @note must call register_frame_event(this) before using (normally initialize()).
+	*/  
 	virtual void event_frame() {}
+	/*!
+	  @brief fixed handler per begin of vertical lines.
+	  @param v position of vertical line.
+	  @param clock relative clocks
+	  @note must call register_vline_event(this) before using (normally initialize()).
+	*/  
 	virtual void event_vline(int v, int clock) {}
+	/*!
+	  @brief fixed handler per a pixel (HSYNC).
+	  @param v position of vertical line.
+	  @param h pixel offset position of this vertical line.
+	  @param clock relative clocks
+	  @note this still not be used.
+	*/  
 	virtual void event_hsync(int v, int h, int clock) {}
 	
 	// sound
+	/*!
+	  @brief render sound samples
+	  @param buffer target sound buffer.
+	  @cnt sound sample counts
+	  @note data adds to buffer value already exists.
+	  @note Must clamp to -32768 to +32767 insize of this function.
+	*/
 	virtual void __FASTCALL mix(int32_t* buffer, int cnt) {}
+	/*!
+	  @brief set render sound volume by decibel
+	  @param ch local channel to set volume
+	  @param decibel_l left volume by decibel
+	  @param decivel_r right volume by decibel
+	*/
 	virtual void set_volume(int ch, int decibel_l, int decibel_r) {} // +1 equals +0.5dB (same as fmgen)
 	/*!
 	  @brief set name of this device
@@ -1734,62 +1976,194 @@ public:
 		// write memory
 	}
 */
+	/*!
+	  @brief write 8bit data to memory from debugger.
+	  @param addr target address to write.
+	  @param data data to write.
+	*/
 	virtual void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data) {}
+	/*!
+	  @brief read 8bit data to debugger from memory.
+	  @param addr target address to read.
+	  @return data data from memory.
+	*/
 	virtual uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr)
 	{
 		return 0xff;
 	}
+	/*!
+	  @brief write 16bit data to memory from debugger.
+	  @param addr target address to write.
+	  @param data data to write.
+	*/
 	virtual void __FASTCALL write_via_debugger_data16(uint32_t addr, uint32_t data) {}
+	/*!
+	  @brief read 16bit data to debugger from memory.
+	  @param addr target address to read.
+	  @return data data from memory.
+	*/
 	virtual uint32_t __FASTCALL read_via_debugger_data16(uint32_t addr)
 	{
 		return 0xffff;
 	}
+	/*!
+	  @brief write 32bit data to memory from debugger.
+	  @param addr target address to write.
+	  @param data data to write.
+	*/
 	virtual void __FASTCALL write_via_debugger_data32(uint32_t addr, uint32_t data) {}
+	/*!
+	  @brief read 32bit data to debugger from memory.
+	  @param addr target address to read.
+	  @return data data from memory.
+	*/
 	virtual uint32_t __FASTCALL read_via_debugger_data32(uint32_t addr)
 	{
 		return 0xffffffff;
 	}
+	/*!
+	  @brief write 8bit data to memory from debugger with wait.
+	  @param addr target address to write.
+	  @param data data to write.
+	  @param wait pointer of wait result value.
+	*/
 	virtual void __FASTCALL write_via_debugger_data8w(uint32_t addr, uint32_t data, int* wait) {}
+	/*!
+	  @brief read 8bit data to debugger from memory with wait.
+	  @param addr target address to read.
+	  @param wait pointer of wait result value.
+	  @return data data from memory.
+	*/
 	virtual uint32_t __FASTCALL read_via_debugger_data8w(uint32_t addr, int* wait)
 	{
 		return 0xff;
 	}
+	/*!
+	  @brief write 16bit data to memory from debugger with wait.
+	  @param addr target address to write.
+	  @param data data to write.
+	  @param wait pointer of wait result value.
+	*/
 	virtual void __FASTCALL write_via_debugger_data16w(uint32_t addr, uint32_t data, int* wait) {}
+	/*!
+	  @brief read 16bit data to debugger from memory with wait.
+	  @param addr target address to read.
+	  @param wait pointer of wait result value.
+	  @return data data from memory.
+	*/
 	virtual uint32_t __FASTCALL read_via_debugger_data16w(uint32_t addr, int* wait)
 	{
 		return 0xffff;
 	}
+	/*!
+	  @brief write 32bit data to memory from debugger with wait.
+	  @param addr target address to write.
+	  @param data data to write.
+	  @param wait pointer of wait result value.
+	*/
 	virtual void __FASTCALL write_via_debugger_data32w(uint32_t addr, uint32_t data, int* wait) {}
+	/*!
+	  @brief read 32bit data to debugger from memory with wait.
+	  @param addr target address to read.
+	  @param wait pointer of wait result value.
+	  @return data data from memory.
+	*/
 	virtual uint32_t __FASTCALL read_via_debugger_data32w(uint32_t addr, int* wait)
 	{
 		return 0xffffffff;
 	}
+	/*!
+	  @brief write 8bit data to I/O bus from debugger.
+	  @param addr target address to write.
+	  @param data data to write.
+	*/
 	virtual void __FASTCALL write_via_debugger_io8(uint32_t addr, uint32_t data) {}
+	/*!
+	  @brief read 8bit data to debugger from I/O bus.
+	  @param addr target address to read.
+	  @return data data from memory.
+	*/
 	virtual uint32_t __FASTCALL read_via_debugger_io8(uint32_t addr)
 	{
 		return 0xff;
 	}
+	/*!
+	  @brief write 16bit data to I/O bus from debugger.
+	  @param addr target address to write.
+	  @param data data to write.
+	*/
 	virtual void __FASTCALL write_via_debugger_io16(uint32_t addr, uint32_t data) {}
+	/*!
+	  @brief read 16bit data to debugger from I/O bus.
+	  @param addr target address to read.
+	  @return data data from memory.
+	*/
 	virtual uint32_t __FASTCALL read_via_debugger_io16(uint32_t addr)
 	{
 		return 0xffff;
 	}
+	/*!
+	  @brief write 32bit data to I/O bus from debugger with wait.
+	  @param addr target address to write.
+	  @param data data to write.
+	*/
 	virtual void __FASTCALL write_via_debugger_io32(uint32_t addr, uint32_t data) {}
+	/*!
+	  @brief read 32bit data to debugger from I/O bus.
+	  @param addr target address to read.
+	  @return data data from memory.
+	*/
 	virtual uint32_t __FASTCALL read_via_debugger_io32(uint32_t addr)
 	{
 		return 0xffffffff;
 	}
+	/*!
+	  @brief write 8bit data to I/O bus from debugger with wait.
+	  @param addr target address to write.
+	  @param data data to write.
+	  @param wait pointer of wait result value.
+	*/
 	virtual void __FASTCALL write_via_debugger_io8w(uint32_t addr, uint32_t data, int* wait) {}
+	/*!
+	  @brief read 8bit data to debugger from I/O bus with wait.
+	  @param addr target address to read.
+	  @param wait pointer of wait result value.
+	  @return data data from memory.
+	*/
 	virtual uint32_t __FASTCALL read_via_debugger_io8w(uint32_t addr, int* wait)
 	{
 		return 0xff;
 	}
+	/*!
+	  @brief write 16bit data to I/O bus from debugger with wait.
+	  @param addr target address to write.
+	  @param data data to write.
+	  @param wait pointer of wait result value.
+	*/
 	virtual void __FASTCALL write_via_debugger_io16w(uint32_t addr, uint32_t data, int* wait) {}
+	/*!
+	  @brief read 16bit data to debugger from I/O bus with wait.
+	  @param addr target address to read.
+	  @param wait pointer of wait result value.
+	  @return data data from memory.
+	*/
 	virtual uint32_t __FASTCALL read_via_debugger_io16w(uint32_t addr, int* wait)
 	{
 		return 0xffff;
 	}
+	/*!
+	  @brief write 32bit data to I/O bus from debugger with wait.
+	  @param addr target address to write.
+	  @param data data to write.
+	  @param wait pointer of wait result value.
+	*/
 	virtual void __FASTCALL write_via_debugger_io32w(uint32_t addr, uint32_t data, int* wait) {}
+	/*!
+	  @brief read 32bit data to debugger from I/O bus with wait.
+	  @param addr target address to read.
+	  @param wait pointer of wait result value.
+	  @return data data from memory.
+	*/
 	virtual uint32_t __FASTCALL read_via_debugger_io32w(uint32_t addr, int* wait)
 	{
 		return 0xffffffff;
@@ -1886,105 +2260,229 @@ public:
 	{
 		return NULL;
 	}
+	/*!
+	  @brief get address mask of program address space for debugger.
+	*/
 	virtual uint32_t get_debug_prog_addr_mask()
 	{
 		return 0;
 	}
+	/*!
+	  @brief get address mask of data address space for debugger.
+	*/
 	virtual uint32_t get_debug_data_addr_mask()
 	{
 		return 0;
 	}
+	/*!
+	  @brief get size of address space for debugger.
+	*/
 	virtual uint64_t get_debug_data_addr_space()
 	{
 		// override this function when memory space is not (2 << n)
 		return (uint64_t)get_debug_data_addr_mask() + 1;
 	}
+	/*!
+	  @brief write 8bit data from debugger to this device (mostly memory bus).
+	  @param addr address to write
+	  @param data data to write
+	*/
 	virtual void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data)
 	{
 //		write_data8(addr, data);
 	}
+	/*!
+	  @brief inspect 8bit data from this device (mostly internal memory) to debugger.
+	  @param addr address to inspect
+	  @return read data.
+	*/
 	virtual uint32_t __FASTCALL read_debug_data8(uint32_t addr)
 	{
 //		return read_data8(addr);
 		return 0xff;
 	}
+	/*!
+	  @brief write 16bit data from debugger to this device (mostly memory bus).
+	  @param addr address to write
+	  @param data data to write
+	*/
 	virtual void __FASTCALL write_debug_data16(uint32_t addr, uint32_t data)
 	{
 		write_debug_data8(addr, data & 0xff);
 		write_debug_data8(addr + 1, (data >> 8) & 0xff);
 	}
+	/*!
+	  @brief inspect 16bit data from this device (mostly internal memory) to debugger.
+	  @param addr address to inspect
+	  @return read data.
+	*/
 	virtual uint32_t __FASTCALL read_debug_data16(uint32_t addr)
 	{
 		uint32_t val = read_debug_data8(addr);
 		val |= read_debug_data8(addr + 1) << 8;
 		return val;
 	}
+	/*!
+	  @brief write 32bit data from debugger to this device (mostly memory bus).
+	  @param addr address to write
+	  @param data data to write
+	*/
 	virtual void __FASTCALL write_debug_data32(uint32_t addr, uint32_t data)
 	{
 		write_debug_data16(addr, data & 0xffff);
 		write_debug_data16(addr + 2, (data >> 16) & 0xffff);
 	}
+	/*!
+	  @brief inspect 32bit data from this device (mostly internal memory) to debugger.
+	  @param addr address to inspect
+	  @return read data.
+	*/
 	virtual uint32_t __FASTCALL read_debug_data32(uint32_t addr)
 	{
 		uint32_t val = read_debug_data16(addr);
 		val |= read_debug_data16(addr + 2) << 16;
 		return val;
 	}
+	/*!
+	  @brief write 8bit data from debugger to this device (mostly I/O port).
+	  @param addr address to write
+	  @param data data to write
+	*/
 	virtual void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data)
 	{
 //		write_io8(addr, data);
 	}
+	/*!
+	  @brief inspect 8bit data from this device (mostly I/O port) to debugger.
+	  @param addr address to inspect
+	  @return read data.
+	*/
 	virtual uint32_t __FASTCALL read_debug_io8(uint32_t addr)
 	{
 //		return read_io8(addr);
 		return 0xff;
 	}
+	/*!
+	  @brief write 16bit data from debugger to this device (mostly I/O port).
+	  @param addr address to write
+	  @param data data to write
+	*/
 	virtual void __FASTCALL write_debug_io16(uint32_t addr, uint32_t data)
 	{
 		write_debug_io8(addr, data & 0xff);
 		write_debug_io8(addr + 1, (data >> 8) & 0xff);
 	}
+	/*!
+	  @brief inspect 16bit data from this device (mostly I/O port) to debugger.
+	  @param addr address to inspect
+	  @return read data.
+	*/
 	virtual uint32_t __FASTCALL read_debug_io16(uint32_t addr)
 	{
 		uint32_t val = read_debug_io8(addr);
 		val |= read_debug_io8(addr + 1) << 8;
 		return val;
 	}
+	/*!
+	  @brief write 32bit data from debugger to this device (mostly I/O port).
+	  @param addr address to write
+	  @param data data to write
+	*/
 	virtual void __FASTCALL write_debug_io32(uint32_t addr, uint32_t data)
 	{
 		write_debug_io16(addr, data & 0xffff);
 		write_debug_io16(addr + 2, (data >> 16) & 0xffff);
 	}
+	/*!
+	  @brief inspect 32bit data from this device (mostly I/O port) to debugger.
+	  @param addr address to inspect
+	  @return read data.
+	*/
 	virtual uint32_t __FASTCALL read_debug_io32(uint32_t addr)
 	{
 		uint32_t val = read_debug_io16(addr);
 		val |= read_debug_io16(addr + 2) << 16;
 		return val;
 	}
+	/*!
+	  @brief modify an internal register from debugger
+	  @param reg name of register.
+	  @param data value expect to modify.
+	  @return modify result.
+	  @retval true modifying succeeded.
+	  @retval false modifying falied.
+	*/
 	virtual bool write_debug_reg(const _TCHAR *reg, uint32_t data)
 	{
 		return false;
 	}
+	/*!
+	  @brief read value from a register.
+	  @param reg name of register.
+	  @return register value.
+	  @retval 0 maybe register has not found (or has found and value is zero).
+	*/
 	virtual uint32_t __FASTCALL read_debug_reg(const _TCHAR *reg)
 	{
 		return 0;
 	}
+	/*!
+	  @brief dump registers value information to string
+	  @param buffer pointer of result string.
+	  @param buffer_len length of buffer.
+	  @return dump results
+	  @retval true succeed to dump.
+	  @retval false failed to dump, has not any result.
+	*/
 	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	{
 		return false;
 	}
+	/*!
+	 @brief get descriptions of registers.
+	 @param buffer pointer of result string.
+	 @param buffer_len length of buffer.
+	 @return results.
+	 @retval true this device has description of registers.
+	 @retval false this device doesn't have descpriction of registers.
+	*/ 
 	virtual bool get_debug_regs_description(_TCHAR *buffer, size_t buffer_len)
 	{
 		return false;
 	}
+	/*!
+	  @brief disassemble one instruction.
+	  @param pc address expect to disassemble.
+	  @param buffer pointer of result string.
+	  @param buffer_len length of buffer.
+	  @return bytes of instructions to disassemble.
+	*/
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	{
 		return debug_dasm_with_userdata(pc, buffer, buffer_len, 0);
 	}
+	/*!
+	  @brief disassemble one instruction with attached data.
+	  @param pc address expect to disassemble.
+	  @param buffer pointer of result string.
+	  @param buffer_len length of buffer.
+	  @param userdata attached data of this position.
+	  @return bytes of instructions to disassemble.
+	  @note this is useful to trace.
+	*/
 	virtual int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0)
 	{
 		return 0;
 	}
+	/*!
+	  @brief dump call trace
+	  @param pc address expect to trace.
+	  @param size maximum trace depth, this will be modified to trace really.
+	  @param buffer pointer of result string
+	  @param buffer_len length of buffer
+	  @param userdata attached data, useful to trace.
+	  @return status to dump
+	*/
 	virtual bool debug_rewind_call_trace(uint32_t pc, int &size, _TCHAR* buffer, size_t buffer_len, uint64_t userdata = 0)
 	{
 		size = 0;
