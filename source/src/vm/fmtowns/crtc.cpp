@@ -1909,7 +1909,7 @@ void TOWNS_CRTC::render_text()
 				uint8_t *p = d_vram->get_vram_address(of + plane_offset);
 				__LIKELY_IF(p != nullptr) {
 					
-				__lock_vram(d_vram->vram_lock);
+					d_vram->lock();
 __DECL_VECTORIZED_LOOP
 					for(int nb = 0; nb < 8; nb += 2) {
 //						pix = 0;
@@ -1918,6 +1918,7 @@ __DECL_VECTORIZED_LOOP
 						tmpdata <<= 2;
 						*p++ = pix;
 					}
+					d_vram->unlock();
 				}
 				of = (of + linesize) & 0x3ffff;
 			}
@@ -2180,7 +2181,7 @@ __DECL_VECTORIZED_LOOP
 					}
 					uint8_t *p = d_vram->get_vram_address(offset);
 					__LIKELY_IF((tr_bytes > 0) && (p != nullptr)) {
-						__lock_vram(d_vram->vram_lock);
+						d_vram->lock();
 						__UNLIKELY_IF(((offset & address_mask[l]) + tr_bytes) > address_mask[l]) {
 							// Wrap
 							int __left = (address_mask[l] + 1 - (offset & address_mask[l])); 
@@ -2197,6 +2198,8 @@ __DECL_VECTORIZED_LOOP
 						} else {
 							my_memcpy(&(linebuffers[trans][line].pixels_layer[(is_256) ? 0 : l][0]), p, tr_bytes);
 						}
+						d_vram->unlock();
+
 					}
 					did_transfer[l] = true;
 				}

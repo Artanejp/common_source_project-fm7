@@ -913,13 +913,14 @@ void TOWNS_SPRITE::check_and_clear_vram()
 			uint32_t noffset = (disp_page1) ? 0x40000 : 0x60000;
 			draw_page1 = disp_page1;
 			__LIKELY_IF(render_num < 1024) {
-				__lock_vram(d_vram->vram_lock);
+				d_vram->lock();
 				pair16_t *p = (pair16_t*)(d_vram->get_vram_address(noffset));
 				__LIKELY_IF(p != NULL) {
 					for(int x = 0; x < 0x10000; x++) {
 						p[x].w = 0x8000; //
 					}
 				}
+				d_vram->unlock();
 			}
 			page_changed = false;
 		}

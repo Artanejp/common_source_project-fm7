@@ -27,7 +27,7 @@ void TOWNS_VRAM::initialize()
 
 void TOWNS_VRAM::reset()
 {
-	__lock_vram(vram_lock);
+	lock();
 	for(int i = 0; i < (sizeof(dirty_flag) / sizeof(bool)); i++) {
 		dirty_flag[i] = true;
 	}
@@ -41,6 +41,7 @@ __DECL_VECTORIZED_LOOP
 	sprite_disp_page = false;
 	
 	layer_display_flags[0] = layer_display_flags[1] = 0;
+	unlock();
 }
 	
 void TOWNS_VRAM::make_dirty_vram(uint32_t addr, int bytes)
@@ -65,22 +66,24 @@ void TOWNS_VRAM::make_dirty_vram(uint32_t addr, int bytes)
 	
 void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
-	
-	__lock_vram(vram_lock);
-
 	uint32_t naddr = addr & 0x7ffff;
 	uint8_t mask = packed_pixel_mask_reg[naddr & 3];
+
+	lock();
 	uint8_t nd = vram[naddr];
 	uint8_t dd = data;
 	dd = dd & mask;
 	nd = nd & ~mask;
+
 	vram[naddr] = nd | dd;
+	unlock();	
+	
 }
 
 void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 {
 
-	__lock_vram(vram_lock);
+	lock();
 	
 	uint32_t naddr = addr & 0x7ffff;
 	uint32_t maddr = addr & 3;
@@ -104,13 +107,14 @@ void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	vram[naddr + 0] = xdata.b.l;
 	vram[naddr + 1] = xdata.b.h;
 	
+	unlock();
 	return;
 }
 	
 void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 {
 
-	__lock_vram(vram_lock);
+	lock();
 
 	__DECL_ALIGNED(8) uint8_t mask[8];
 	uint32_t naddr = addr & 0x7ffff;
@@ -139,22 +143,24 @@ void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 	vram[naddr + 2] = xdata.b.h2;
 	vram[naddr + 3] = xdata.b.h3;
 
+	unlock();
 	return;
 }
 
 uint32_t TOWNS_VRAM::read_memory_mapped_io8(uint32_t addr)
 {
-	__lock_vram(vram_lock);
-
-	return vram[addr & 0x7ffff];
+	lock();
+	uint32_t n = vram[addr & 0x7ffff];
+	unlock();
+	return n;
 }
 
 uint32_t TOWNS_VRAM::read_memory_mapped_io16(uint32_t addr)
 {
 	uint32_t naddr = addr & 0x7ffff;
 	pair16_t data;
-	__lock_vram(vram_lock);
 
+	lock();	
 	__LIKELY_IF(naddr != 0x7ffff) {
 		data.b.l = vram[naddr + 0];
 		data.b.h = vram[naddr + 1];
@@ -162,6 +168,7 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io16(uint32_t addr)
 		data.b.l = vram[naddr + 0];
 		data.b.h = 0xff;
 	}	
+	unlock();	
 	return (uint32_t)(data.w);
 }
 
@@ -170,12 +177,13 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 	uint32_t naddr = addr & 0x7ffff;
 	pair32_t data;
 	
-	__lock_vram(vram_lock);
-
+	lock();	
 	data.b.l  = vram[naddr + 0];
 	data.b.h  = vram[naddr + 1];
 	data.b.h2 = vram[naddr + 2];
 	data.b.h3 = vram[naddr + 3];
+	unlock();	
+		
 	__UNLIKELY_IF(naddr > 0x7fffc) {
 		static const uint32_t mask[4] = {0x00000000, 0xff000000, 0xffff0000, 0xffffff00};
 		data.d |= mask[naddr & 3];
@@ -310,7 +318,9 @@ bool TOWNS_VRAM::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	__lock_vram(vram_lock);
+
+	lock();
+	
 	state_fio->StateValue(access_page1);
 	state_fio->StateArray(dirty_flag, sizeof(dirty_flag), 1);
 	state_fio->StateArray(layer_display_flags, sizeof(layer_display_flags), 1);
@@ -323,6 +333,7 @@ bool TOWNS_VRAM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(packed_pixel_mask_reg, sizeof(packed_pixel_mask_reg), 1);
 	state_fio->StateArray(vram, sizeof(vram), 1);
 	
+	unlock();
 	return true;
 }
 

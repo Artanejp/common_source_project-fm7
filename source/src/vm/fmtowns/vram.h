@@ -17,10 +17,8 @@
 
 #include <mutex>
 
-#if !defined(__lock_vram)
-#define __lock_vram(foo) std::lock_guard<std::recursive_mutex>__vram_tmp_lock(foo)
-//#define __lock_vram(foo)
-#endif
+//<! @note set below when using multi threaded vram accessing
+//#define USE_TOWNS_VRAM_PARALLEL_ACCESS
 
 // Older Towns.
 #define TOWNS_VRAM_ADDR_MASK 0x7ffff
@@ -45,6 +43,9 @@ namespace FMTOWNS {
 	
 class TOWNS_VRAM : public DEVICE
 {
+private:
+	std::recursive_mutex vram_lock; // [bank][layer];
+
 protected:
 	DEVICE* d_sprite;
 	DEVICE* d_crtc;
@@ -127,9 +128,9 @@ public:
 		offset &= 0x7ffff;
 //		if(words > 16) return false;
 		__UNLIKELY_IF(words <= 0) return false;
-		__lock_vram(vram_lock);
-
 		uint8_t* p = &(vram[offset]);
+		
+		lock();
 		__LIKELY_IF((offset + (words << 1)) <= 0x80000) {
 			memcpy(p, buf, words << 1);
 		} else {
@@ -140,6 +141,7 @@ public:
 				memcpy(vram, &(buf[nb]), nnb);
 			}
 		}
+		unlock();
 		return true;
 	}
 	virtual inline bool __FASTCALL get_vram_to_buffer(uint32_t offset, uint8_t *buf, int words)
@@ -148,7 +150,7 @@ public:
 //		if(words > 16) return false;
 		__UNLIKELY_IF(words <= 0) return false;
 		
-		__lock_vram(vram_lock);
+		lock();
 		uint8_t* p = &(vram[offset]);
 		__LIKELY_IF((offset + (words << 1)) <= 0x80000) {
 			memcpy(buf, p, words << 1);
@@ -160,6 +162,7 @@ public:
 				memcpy(&(buf[nb]), vram, nnb);
 			}
 		}
+		unlock();
 		return true;
 	}
 	virtual void __FASTCALL make_dirty_vram(uint32_t addr, int bytes);
@@ -183,14 +186,41 @@ public:
 	{
 		machine_id = val & 0xfff8;
 	}
-
 	// If you use other framework, place mutex lock.
 	//std::recursive_mutex vram_lock[2][2]; // [bank][layer];
-	std::recursive_mutex vram_lock; // [bank][layer];
+	inline void lock() noexcept;
+	inline void unlock() noexcept;
+	inline bool try_lock() noexcept;
 	
 	// New APIs?
 	// End.
 };
 
+inline void TOWNS_VRAM::lock() noexcept
+{
+#if defined(USE_TOWNS_VRAM_PARALLEL_ACCESS)
+	vram_lock.lock();
+#endif
+}
+inline void TOWNS_VRAM::unlock() noexcept
+{
+#if defined(USE_TOWNS_VRAM_PARALLEL_ACCESS)
+	vram_lock.unlock();
+#endif
+}
+
+inline bool TOWNS_VRAM::try_lock() noexcept
+{
+#if defined(USE_TOWNS_VRAM_PARALLEL_ACCESS)
+	return vram_lock.try_lock();
+#else
+	return true;
+#endif
+}
+	
+
+#if defined(USE_TOWNS_VRAM_PARALLEL_ACCESS)
+	#undef USE_TOWNS_VRAM_PARALLEL_ACCESS
+#endif
 }
 #endif

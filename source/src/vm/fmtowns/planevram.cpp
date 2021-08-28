@@ -109,7 +109,6 @@ uint32_t PLANEVRAM::read_memory_mapped_io8(uint32_t addr)
 	addr = (addr & 0x7fff) << 2;
 	__UNLIKELY_IF(d_vram == NULL) return 0xff;
 	
-	__lock_vram(d_vram->vram_lock);
 	uint8_t *p = d_vram->get_vram_address(x_addr + addr);
 	__UNLIKELY_IF(p == NULL) return 0xff;
 //	p = &(p[x_addr + addr]); 
@@ -122,6 +121,9 @@ uint32_t PLANEVRAM::read_memory_mapped_io8(uint32_t addr)
 	uint8_t lmask = nmask[r50_readplane & 3] & 0x0f;
 	uint8_t hval = 0x80;
 	uint8_t lval = 0x40;
+
+	d_vram->lock();
+	
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 4; i++) {
 		val |= ((p[i] & hmask) != 0) ? hval : 0x00; 
@@ -129,6 +131,9 @@ __DECL_VECTORIZED_LOOP
 		hval >>= 2;
 		lval >>= 2;
 	}
+
+	d_vram->unlock();
+	
 	return val;
 }
 
@@ -145,7 +150,6 @@ void PLANEVRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 
 	__UNLIKELY_IF(d_vram == NULL) return;
 	
-	__lock_vram(d_vram->vram_lock);
 	uint8_t *p = d_vram->get_vram_address(x_addr + addr);
 	__UNLIKELY_IF(p == NULL) return;
 	
@@ -159,7 +163,6 @@ void PLANEVRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 	uint32_t tmp_m2 = 0x0f000000/* & write_plane_mask*/;
 	tmp_m1 &= (((uint32_t)ntmp) << 28);
 	tmp_m2 &= (((uint32_t)ntmp) << 24);
-	
 #else
 	uint32_t tmp_m1 = 0x0000000f/* & write_plane_mask*/;
 	uint32_t tmp_m2 = 0x000000f0/* & write_plane_mask*/;
@@ -187,14 +190,19 @@ __DECL_VECTORIZED_LOOP
 //	uint32_t mask2 = packed_pixel_mask_reg.d;
 //	tmp &= mask2;
 //	mask = mask & mask2;
+	d_vram->lock();
+
 	tmp_r1 = *pp;
 	tmp_r2 = tmp_r1;
 	tmp_r1 = tmp_r1 & ~mask;
 	tmp_r1 = tmp | tmp_r1;
+
 //	if(tmp_r2 != tmp_r1) {
 		*pp = tmp_r1;
 //		d_vram->make_dirty_vram(x_addr + addr, 4);
 //	}
+	d_vram->unlock();
+
 }
 
 #define STATE_VERSION	1
