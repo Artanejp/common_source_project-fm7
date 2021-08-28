@@ -10,8 +10,8 @@
 #ifndef _DEBUGGER_H_
 #define _DEBUGGER_H_
 
-//#include "vm.h"
-//#include "../emu.h"
+#include "vm_template.h"
+#include "../emu_template.h"
 #include "device.h"
 
 //#ifdef USE_DEBUGGER

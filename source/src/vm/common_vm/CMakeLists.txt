@@ -1,9 +1,11 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 3.9.3)
+SET(THIS_LIB_VERSION 3.10.0)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
+
+	../device.cpp
 	../315-5124.cpp
 	../am9511.cpp
 	../and.cpp
@@ -169,7 +171,7 @@ set(s_vm_common_vm_srcs
     ../np21/i386c/ia32/instructions/sse/sse.cpp
     ../np21/i386c/ia32/instructions/sse2/sse2.cpp
     ../np21/i386c/ia32/instructions/sse3/sse3.cpp
-	../libcpu_newdev/device.cpp
+#	../libcpu_newdev/device.cpp
 )
 
 #set_directory_properties(PROPERTIES
