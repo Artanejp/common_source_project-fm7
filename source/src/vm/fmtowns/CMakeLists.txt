@@ -27,6 +27,10 @@ set(VM_FMTOWNS_DEV_SRCS
 	dictionary.cpp
 	
 	cdrom.cpp
+	cdrom_cue_parser.cpp
+	cdrom_ccd_parser.cpp
+	cdrom_iso_parser.cpp
+	
 	crtc.cpp
 	towns_memory.cpp
 	towns_scsi_host.cpp
