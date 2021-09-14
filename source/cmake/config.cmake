@@ -88,6 +88,7 @@ endif()
   include_directories(${Qt5OpenGL_INCLUDE_DIRS})
   include_directories(${Qt5Network_INCLUDE_DIRS})
   add_definitions(-D_USE_OPENGL -DUSE_OPENGL)
+  
 if(DEFINED QT5_ROOT_PATH)
   SET(CMAKE_FIND_ROOT_PATH  ${QT5_ROOT_PATH} ${CMAKE_FIND_ROOT_PATH})
 endif()
@@ -133,6 +134,13 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_definitions(-D_USE_QT)
 add_definitions(-DUSE_QT)
+
+# 20210914 K.O Start to migrate for Qt6.
+# See, https://doc.qt.io/qt-6/portingguide.html
+if(${Qt5Widgets_VERSION} VERSION_GREATER_EQUAL "5.15.0")
+   add_compile_definitions(QT_DISABLE_DEPRECATED_BEFORE=0x050F00)
+endif()
+
 add_definitions(-DQT_MAJOR_VERSION=${Qt5Widgets_VERSION_MAJOR})
 add_definitions(-DQT_MINOR_VERSION=${Qt5Widgets_VERSION_MINOR})
 

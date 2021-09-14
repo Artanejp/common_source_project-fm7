@@ -319,7 +319,7 @@ void OSD_BASE::create_font(font_t *font, const _TCHAR *family, int width, int he
 	font->hFont.setItalic(italic);
 	font->hFont.setBold(bold);	
 	QFontMetrics metric(font->hFont);
-	font->hFont.setStretch((width * 10000) / (metric.width("F") * 100));
+	font->hFont.setStretch((width * 10000) / (metric.maxWidth() * 100));
 	font->rotate = rotate;
 	font->init_flag = true;
 	//debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_PRINTER, "Create Font: Family=%s WIDTH=%d HEIGHT=%d",fontName.toUtf8().constData(), width, height);
@@ -362,7 +362,8 @@ int OSD_BASE::get_text_width(bitmap_t *bitmap, font_t *font, const char *text)
 	QFontMetrics fm(font->hFont);
 	QTextCodec *codec = QTextCodec::codecForName("Shift-JIS");
 	QString s = codec->toUnicode(text);
-	return fm.width(s);
+	QSize ss = fm.size(Qt::TextExpandTabs, s);
+	return ss.width();
 }
 
 void OSD_BASE::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, uint8_t r, uint8_t g, uint8_t b)
