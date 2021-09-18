@@ -42,7 +42,7 @@
 #include "./vram.h"
 
 // Electric Volume
-//#include "mb87078.h"
+#include "mb87078.h"
 //YM-2612 "OPN2"
 //#include "../ym2612.h"
 //RF5C68 PCM
@@ -168,8 +168,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	adc = new AD7820KR(this, emu);
 	rf5c68 = new RF5C68(this, emu);
-//	e_volume[0] = new MB87878(this, emu);
-//	e_volume[1] = new MB87878(this, emu);
+	e_volumes[0] = new MB87078(this, emu);
+	e_volumes[1] = new MB87078(this, emu);
 	
 	sio = new I8251(this, emu);
 	pit0 = new I8253(this, emu);
@@ -297,26 +297,12 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	mic_in_ch = -1;
 
 	// Use pseudo mixer instead of event.Due to using ADC.
-#if 0
-	line_mix_ch = -1;
-	modem_mix_ch = -1;
-	mic_mix_ch = -1;
-	//line_mix_ch = mixer->set_context_sound(line_in);
-	//modem_mix_ch = mixer->set_context_sound(modem_in);
-	//mic_mix_ch = mixer->set_context_sound(mic_in);
-	beep_mix_ch = mixer->set_context_sound(beep);
-	pcm_mix_ch  = mixer->set_context_sound(rf5c68);
-	opn2_mix_ch = mixer->set_context_sound(opn2);
-	cdc_mix_ch = mixer->set_context_sound(cdrom);
-	mixer->set_interpolate_filter_freq(pcm_mix_ch, 4000); // channel, freq; disable if freq <= 0.
-	event->set_context_sound(mixer);
-#else
 	// Temporally not use mixer.
 	event->set_context_sound(beep);
 	event->set_context_sound(opn2);
 	event->set_context_sound(rf5c68);
 	event->set_context_sound(cdrom);
-#endif
+
 	fdc->set_context_noise_seek(seek_sound);
 	fdc->set_context_noise_head_down(head_down_sound);
 	fdc->set_context_noise_head_up(head_up_sound);
@@ -379,14 +365,22 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	crtc->set_context_vram(vram);
 	crtc->set_context_font(fontrom);
 
-	//e_volume[0]->set_context_ch0(line_in, MB87878_VOLUME_LEFT);
-	//e_volume[0]->set_context_ch1(line_in, MB87878_VOLUME_RIGHT);
-	//e_volume[0]->set_context_ch2(NULL, MB87878_VOLUME_LEFT);
-	//e_volume[0]->set_context_ch3(NULL, MB87878_VOLUME_RIGHT);
-//	e_volume[1]->set_context_ch0(cdrom, MB87878_VOLUME_LEFT);
-//	e_volume[1]->set_context_ch1(cdrom, MB87878_VOLUME_RIGHT);
-	//e_volume[1]->set_context_ch2(mic, MB87878_VOLUME_LEFT | MB87878_VOLUME_RIGHT);
-	//e_volume[1]->set_context_ch3(modem, MB87878_VOLUME_LEFT | MB87878_VOLUME_RIGHT);
+//	e_volumes[0]->set_context_device(0, line_in, 0,
+//									 MB87078_TYPE_MASK_LEFT);
+//	e_volumes[0]->set_context_device(1, line_in, 0,
+//									 MB87078_TYPE_MASK_RIGHT);
+	e_volumes[1]->set_context_device(0, cdrom, 0,
+									 MB87078_TYPE_MASK_LEFT, SIG_TOWNS_CDROM_MUTE_L,
+									 0xffffffff,
+									 0xffffffff,
+									 false
+		);
+	e_volumes[1]->set_context_device(1, cdrom, 0,
+									 MB87078_TYPE_MASK_RIGHT, SIG_TOWNS_CDROM_MUTE_R,
+									 0xffffffff,
+									 0xffffffff,
+									 false
+		);
 	
 	memory->set_context_cpu(cpu);
 	memory->set_context_dmac(dma);
@@ -599,10 +593,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_w (0x04dc, opn2, 2);  // Addrreg 1(W)
 	io->set_iomap_alias_w (0x04de, opn2, 3);  // Datareg 1(W)
 	// Electrical volume
-//	io->set_iomap_alias_rw(0x04e0, e_volume[0], 0);
-//	io->set_iomap_alias_rw(0x04e1, e_volume[0], 1);
-//	io->set_iomap_alias_rw(0x04e2, e_volume[1], 0);
-//	io->set_iomap_alias_rw(0x04e3, e_volume[1], 1);
+	io->set_iomap_alias_rw(0x04e0, e_volumes[0], 0);
+	io->set_iomap_alias_rw(0x04e1, e_volumes[0], 1);
+	io->set_iomap_alias_rw(0x04e2, e_volumes[1], 0);
+	io->set_iomap_alias_rw(0x04e3, e_volumes[1], 1);
 
 	// ADPCM
 	io->set_iomap_range_rw(0x04e7, 0x04ec, adpcm); // A/D SAMPLING DATA REG 
@@ -1034,47 +1028,15 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 #ifndef HAS_2ND_ADPCM
 //	if(ch >= 10) ch++;
 #endif
-#if 0	
-	if(ch == 0) { // BEEP
-		mixer->set_volume(beep_mix_ch, decibel_l, decibel_r);
-	}
-	else if(ch == 1) { // CD-ROM
-		//e_volume[1]->set_volume(0, decibel_l);
-		//e_volume[1]->set_volume(1, decibel_r);
-		mixer->set_volume(cdc_mix_ch, decibel_l, decibel_r);
-	}
-	else if(ch == 2) { // OPN2
-		mixer->set_volume(opn2_mix_ch, decibel_l, decibel_r);
-	}
-	else if(ch == 3) { // ADPCM
-		mixer->set_volume(pcm_mix_ch, decibel_l, decibel_r);
-	}
-	else if(ch == 4) { // LINE IN
-		//mixer->set_volume(line_mix_ch, decibel_l, decibel_r);
-	} 
-	else if(ch == 5) { // MIC
-		//mic->set_volume(0, (decibel_l + decibel_r) / 2);
-	} 
-	else if(ch == 6) { // MODEM
-		//modem->set_volume(0, (decibel_l + decibel_r) / 2);
-	}
-#ifdef HAS_2ND_ADPCM
-	else if(ch == 7) { // ADPCM
-		adpcm2->set_volume(0, decibel_l, decibel_r);
-	}
-#endif
-	else if(ch == 8) { // FDD
-		fdc->set_volume(0, decibel_l, decibel_r);
-	}
-	else if(ch == 9) { // HDD(ToDo)
-		fdc->set_volume(0, decibel_l, decibel_r);
-	}	
-#else
 	if(ch == 0) { // BEEP
 		beep->set_volume(0, decibel_l, decibel_r);
 	}
 	else if(ch == 1) { // CD-ROM
-		cdrom->set_volume(0, decibel_l, decibel_r);
+		if(e_volumes[1] != nullptr) {
+			e_volumes[1]->set_volumes(0, decibel_l, 1, decibel_r);
+		} else {
+			cdrom->set_volume(0, decibel_l, decibel_r);
+		}
 	}	
 	else if(ch == 2) { // OPN2
 		opn2->set_volume(0, decibel_l, decibel_r);
@@ -1088,7 +1050,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		head_down_sound->set_volume(0, decibel_l, decibel_r);
 	}
 	
-#endif
+
 }
 #endif
 
@@ -1210,7 +1172,7 @@ uint64_t VM::get_current_clock_uint64()
 		return event->get_current_clock_uint64();
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1237,13 +1199,6 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
  		}
  	}
 	// Machine specified.
-	state_fio->StateValue(beep_mix_ch);
-	state_fio->StateValue(cdc_mix_ch);
-	state_fio->StateValue(opn2_mix_ch);
-	state_fio->StateValue(pcm_mix_ch);
-	state_fio->StateValue(line_mix_ch);
-	state_fio->StateValue(modem_mix_ch);
-	state_fio->StateValue(mic_mix_ch);
 
 	state_fio->StateValue(boot_seq);
 	

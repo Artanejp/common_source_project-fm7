@@ -36,6 +36,9 @@
 #define SIG_TOWNS_CDROM_RESET				0x23
 #define SIG_TOWNS_CDROM_DMAINT				0x24
 #define SIG_TOWNS_CDROM_DMAACK				0x25
+#define SIG_TOWNS_CDROM_MUTE_L				0x29
+#define SIG_TOWNS_CDROM_MUTE_R				0x2a
+#define SIG_TOWNS_CDROM_MUTE_ALL			0x2b
 
 class SCSI_HOST;
 class FIFO;
@@ -337,6 +340,8 @@ protected:
 	int cdda_sample_l;
 	int cdda_sample_r;
 		
+	int _decibel_l;
+	int _decibel_r;
 	int volume_l;
 	int volume_r;
 
@@ -460,6 +465,9 @@ public:
 		access = false;
 		databuffer = NULL;
 		status_queue = NULL;
+		_decibel_l = 0;
+		_decibel_r = 0;
+		
 		memset(subq_buffer, 0x00, sizeof(subq_buffer));
 		
 		initialize_output_signals(&outputs_drq);
@@ -508,6 +516,7 @@ public:
 
 	
 	virtual void set_volume(int ch, int decibel_l, int decibel_r);
+	virtual void get_volume(int ch, int& decibel_l, int& decibel_r);
 	virtual bool read_buffer(int sectors);
 	
 	virtual bool read_raw(int sectors);

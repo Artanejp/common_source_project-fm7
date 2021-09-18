@@ -338,7 +338,7 @@ class NOISE;
 class IO;
 class RF5C68;      // DAC
 class YM2612;      // OPNB
-//class MB87078;     // VOLUME
+class MB87078;     // VOLUME
 class AD7820KR;    // A/D Converter.
 class PCM1BIT;
 
@@ -405,7 +405,7 @@ protected:
 	NOISE*    head_down_sound;
 	
 	RF5C68*   rf5c68;
-//	MB87078*  e_volumes;
+	MB87078*  e_volumes[2];
 	AD7820KR* adc;
 	PCM1BIT*  beep;
 	YM2612*   opn2;
@@ -449,13 +449,6 @@ protected:
 	int modem_in_ch;
 	int mic_in_ch;
 
-	int beep_mix_ch;
-	int cdc_mix_ch;
-	int opn2_mix_ch;
-	int pcm_mix_ch;
-	int line_mix_ch;
-	int modem_mix_ch;
-	int mic_mix_ch;
 /*
 	scrntype_t *d_renderbuffer[2][2]; // [bank][layer]
 	uint32_t renderbuffer_size[2][2];

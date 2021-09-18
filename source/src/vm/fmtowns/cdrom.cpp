@@ -2531,8 +2531,18 @@ void TOWNS_CDROM::mix(int32_t* buffer, int cnt)
 
 void TOWNS_CDROM::set_volume(int ch, int decibel_l, int decibel_r)
 {
-	volume_l = decibel_to_volume(decibel_l + 6.0);
-	volume_r = decibel_to_volume(decibel_r + 6.0);
+	_decibel_l = decibel_l;
+	_decibel_r = decibel_r;
+	volume_l = decibel_to_volume(_decibel_l + 6.0);
+	volume_r = decibel_to_volume(_decibel_r + 6.0);
+}
+
+void TOWNS_CDROM::get_volume(int ch, int& decibel_l, int& decibel_r)
+{
+	decibel_l = _decibel_l;
+	decibel_r = _decibel_r;
+//	decibel_l = volume_l;
+//	decibel_r = volume_r;
 }
 
 
@@ -2747,7 +2757,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	9
+#define STATE_VERSION	10
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2831,8 +2841,8 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cdda_sample_r);
 	state_fio->StateValue(cdda_stopped);
 	
-	state_fio->StateValue(volume_l);
-	state_fio->StateValue(volume_r);
+	state_fio->StateValue(_decibel_l);
+	state_fio->StateValue(_decibel_r);
 	
 	if(loading) {
 		offset = state_fio->FgetUint32_LE();
@@ -2863,6 +2873,10 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 		} else {
 			close_from_cmd();
 		}
+
+		volume_l = decibel_to_volume(_decibel_l + 6.0);
+		volume_r = decibel_to_volume(_decibel_r + 6.0);
+
  	}
 	state_fio->StateValue(event_seek);
 	state_fio->StateValue(event_cdda);
