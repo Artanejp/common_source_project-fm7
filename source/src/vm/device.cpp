@@ -1137,6 +1137,12 @@ void DEVICE::set_volume(int ch, int decibel_l, int decibel_r)
 	// +1 equals +0.5dB (same as fmgen)
 }
 
+void DEVICE::get_volume(int ch, int &decibel_l, int &decibel_r)
+{
+	decibel_l = 0;
+	decibel_r = 0;
+}
+
 void DEVICE::set_device_name(const _TCHAR *format, ...)
 {
 	if(format != NULL) {

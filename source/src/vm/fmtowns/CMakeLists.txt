@@ -40,6 +40,9 @@ set(VM_FMTOWNS_DEV_SRCS
 	planevram.cpp
 	../scsi_host.cpp
 	../msm58321.cpp
+
+	./mb87078.cpp
+	
 	fmtowns.cpp
 )
 

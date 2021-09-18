@@ -1219,6 +1219,16 @@ public:
 	  @note +1 equals +0.5dB (same as fmgen)
 	*/
 	virtual void set_volume(int ch, int decibel_l, int decibel_r);
+	
+	/*!
+	  @brief get render sound volume values 
+	  @param ch local channel to set volume
+	  @param decibel_l left volume value by 0.5 decibel
+	  @param decivel_r right volume value by 0.5 decibel
+	  @note normally replies 0.
+	  @note +1 equals +0.5dB (same as fmgen)
+	*/
+	virtual void get_volume(int ch, int& decibel_l, int& decibel_r);
 	/*!
 	  @brief set name of this device
 	  @param format name of this device (printf style)
