@@ -2514,6 +2514,7 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 
 uint32_t TOWNS_CRTC::read_signal(int ch)
 {
+	uint32_t d;
 	switch(ch) {
 	case SIG_TOWNS_CRTC_HSYNC:
 		return (hsync) ? 0xffffffff : 0;
@@ -2537,13 +2538,15 @@ uint32_t TOWNS_CRTC::read_signal(int ch)
 		return (hdisp[1]) ? 0xffffffff : 0;
 		break;
 	case SIG_TOWNS_CRTC_MMIO_CFF82H:
-		{
-			uint8_t d;
-			d = ((r50_planemask & 0x08) != 0) ? 0x60 : 0x40;
-			d = d | (r50_planemask & 0x07);
-			d = d | (r50_pagesel << 4);
-			return d;
-		}
+		d = 0x40;
+		d = d | ((r50_planemask & 0x08) << 2);
+		d = d | (r50_planemask & 0x07);
+		d = d | (r50_pagesel << 4);
+		return d;
+		break;
+	case SIG_TOWNS_CRTC_MMIO_CFF86H:
+		d = ((vsync) ? 0x04 : 0) | ((hsync) ? 0x80 : 0) | 0x10;
+		return d;
 		break;
 	case SIG_TOWNS_CRTC_COMPATIBLE_MMIO:
 		return (is_compatible) ? 0xffffffff : 0x00000000;

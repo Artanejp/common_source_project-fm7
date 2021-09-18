@@ -17,7 +17,7 @@ protected:
 	uint8_t mix_reg;             // MMIO 000CH:FF80H
 	uint8_t r50_readplane;       // MMIO 000CH:FF81H : BIT 7 and 6.
 	uint8_t r50_ramsel;          // MMIO 000CH:FF81H : BIT 3 to 0.
-	uint8_t r50_gvramsel;        // MMIO 000CH:FF83H : bit4 (and 3).
+	uint32_t r50_gvramsel;        // MMIO 000CH:FF83H : bit4 (and 3).
 
 public:
 	PLANEVRAM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE*parent_emu) : DEVICE(parent_vm, parent_emu)
