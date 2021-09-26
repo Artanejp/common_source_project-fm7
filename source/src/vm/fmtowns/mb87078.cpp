@@ -86,15 +86,15 @@ void MB87078::set_volume_internal(int ch, int vol, bool _force)
 			switch(channels[ch].channelmask & 3) {
 			case 0:  // NONE
 				break;
-			case MB87078_TYPE_MASK_LEFT: //
-				left = vol + left;
+			case MB87078_TYPE_SET_LEFT: //
+				left = channels[ch].extvalue + vol;
 				break;	
-			case MB87078_TYPE_MASK_RIGHT: //
-				right = vol + right;
+			case MB87078_TYPE_SET_RIGHT: //
+				right = channels[ch].extvalue + vol;
 				break;
-			case MB87078_TYPE_MASK_CENTER: //
-				right = vol + right;
-				left = vol + left;
+			case MB87078_TYPE_SET_CENTER: //
+				left = channels[ch].extvalue + vol;
+				right = left;
 				break;
 			}
 			channels[ch].dev->set_volume(channels[ch].devch, left, right);
@@ -118,8 +118,11 @@ void MB87078::device_reset()
 void MB87078::set_volume_per_channel(int ch, int db)
 {
 	if((ch >= 0) && (ch < 4)) {
+		int bak_db = channels[ch].extvalue;
 		channels[ch].extvalue = db;
-		set_volume_internal(ch, channels[ch].intvalue, true);
+		if(bak_db != db) {
+			set_volume_internal(ch, channels[ch].intvalue, true);
+		}
 	}
 }
 

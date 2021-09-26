@@ -370,13 +370,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //	e_volumes[0]->set_context_device(1, line_in, 0,
 //									 MB87078_TYPE_MASK_RIGHT);
 	e_volumes[1]->set_context_device(0, cdrom, 0,
-									 MB87078_TYPE_MASK_LEFT, SIG_TOWNS_CDROM_MUTE_L,
+									 MB87078_TYPE_SET_LEFT, SIG_TOWNS_CDROM_MUTE_L,
 									 0xffffffff,
 									 0xffffffff,
 									 false
 		);
 	e_volumes[1]->set_context_device(1, cdrom, 0,
-									 MB87078_TYPE_MASK_RIGHT, SIG_TOWNS_CDROM_MUTE_R,
+									 MB87078_TYPE_SET_RIGHT, SIG_TOWNS_CDROM_MUTE_R,
 									 0xffffffff,
 									 0xffffffff,
 									 false
