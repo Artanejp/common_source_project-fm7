@@ -141,11 +141,20 @@ void TOWNS_CDROM::initialize()
 	is_iso = false;
 	current_track = 0;
 	read_sector = 0;
-	
+
 	transfer_speed = 1;	
 	for(int i = 0; i < 99; i++) {
 		memset(track_data_path[i], 0x00, _MAX_PATH * sizeof(_TCHAR));
 	}
+	/*!
+	  @note values related muting/voluming are set by electric volume,
+	        not inside of CD-ROM DRIVE.
+	*/ 
+	_decibel_l = 0;
+	_decibel_r = 0;
+	mute_left = false;
+	mute_right = false;
+
 }
 
 void TOWNS_CDROM::release()
@@ -287,6 +296,16 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 		if((data & mask) != 0) {
 			reset_device();
 		}
+		break;
+	case SIG_TOWNS_CDROM_MUTE_L:
+		mute_left = ((data & mask) != 0) ? true : false;
+		break;
+	case SIG_TOWNS_CDROM_MUTE_R:
+		mute_right = ((data & mask) != 0) ? true : false;
+		break;
+	case SIG_TOWNS_CDROM_MUTE_ALL:
+		mute_left = ((data & mask) != 0) ? true : false;
+		mute_right = mute_left;
 		break;
 		// By DMA/TC, EOT.
 	case SIG_TOWNS_CDROM_DMAINT:
@@ -2519,8 +2538,8 @@ void TOWNS_CDROM::mix(int32_t* buffer, int cnt)
 		}
 //		int32_t val_l = apply_volume(apply_volume(cdda_sample_l, volume_m), volume_l);
 //		int32_t val_r = apply_volume(apply_volume(cdda_sample_r, volume_m), volume_r);
-		int32_t val_l = apply_volume(cdda_sample_l, volume_l);
-		int32_t val_r = apply_volume(cdda_sample_r, volume_r);
+		int32_t val_l = (mute_left) ? 0 : apply_volume(cdda_sample_l, volume_l);
+		int32_t val_r = (mute_right) ? 0 : apply_volume(cdda_sample_r, volume_r);
 		
 		for(int i = 0; i < cnt; i++) {
 			*buffer++ += val_l; // L
@@ -2757,7 +2776,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	10
+#define STATE_VERSION	11
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2843,6 +2862,9 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	
 	state_fio->StateValue(_decibel_l);
 	state_fio->StateValue(_decibel_r);
+	
+	state_fio->StateValue(mute_left);
+	state_fio->StateValue(mute_right);
 	
 	if(loading) {
 		offset = state_fio->FgetUint32_LE();

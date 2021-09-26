@@ -345,6 +345,9 @@ protected:
 	int volume_l;
 	int volume_r;
 
+	bool mute_left;
+	bool mute_right;
+	
 	uint8_t w_regs[16];
 	static const uint16_t crc_table[256];
 

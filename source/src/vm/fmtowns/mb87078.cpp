@@ -7,7 +7,7 @@ void MB87078::reset()
 	device_reset();
 	for(int ch = 0; ch < 4; ch++) {
 		set_volume_internal(ch, channels[ch].intvalue, true);
-//		set_enable_internal(ch, current_en, true);
+		set_enable_internal(ch, channels[ch].enabled, true);
 	}
 }
 
@@ -16,7 +16,7 @@ void MB87078::initialize()
 	device_reset();
 	for(int ch = 0; ch < 4; ch++) {
 		set_volume_internal(ch, channels[ch].intvalue, true);
-		set_enable_internal(ch, current_en, true);
+		set_enable_internal(ch, channels[ch].enabled, true);
 	}
 }
 
@@ -111,7 +111,7 @@ void MB87078::device_reset()
 	
 	for(int ch = 0; ch < 4; ch++) {
 		set_volume_internal(ch, channels[ch].intvalue, true);
-//		set_enable_internal(ch, current_en, true);
+		set_enable_internal(ch, current_en, true);
 	}	
 }
 
