@@ -20,6 +20,8 @@
 #include <QDateTime>
 #include <QThread>
 
+#include <cstdint>
+
 void OSD_BASE::audio_capture_callback(void *udata, Uint8 *stream, int len)
 {
 	if(len <= 0) return;
@@ -55,6 +57,7 @@ void OSD_BASE::audio_capture_callback(void *udata, Uint8 *stream, int len)
 	}
 }
 
+
 void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 {
 	if(len <= 0) return;
@@ -84,10 +87,13 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 		format_len = sizeof(float);
 		break;
 	}
+	
+	
+	if(pData->p_config->general_sound_level < INT16_MIN) pData->p_config->general_sound_level = INT16_MIN;
+	if(pData->p_config->general_sound_level > INT16_MAX)  pData->p_config->general_sound_level = INT16_MAX;
+	*pData->snd_total_volume = (uint8_t)(((uint32_t)(pData->p_config->general_sound_level + (-INT16_MIN))) >> 9);
+		
 	do {
-		if(pData->p_config->general_sound_level < -32768) pData->p_config->general_sound_level = -32768;
-		if(pData->p_config->general_sound_level > 32767)  pData->p_config->general_sound_level = 32767;
-		*pData->snd_total_volume = (uint8_t)(((uint32_t)(pData->p_config->general_sound_level + 32768)) >> 9);
 		sndlen = *(pData->sound_data_len);
 		bufsize = *(pData->sound_buffer_size);
 		sndpos = *(pData->sound_write_pos);
@@ -150,7 +156,6 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 		}
 		*(pData->sound_data_len)  -= (sndlen / format_len);
 		if(*(pData->sound_data_len) <= 0) return;
-		if(*pData->sound_exit) return;
 		if(spos >= len3) return;
 		// WIP: Do place wait (1ms)?
 	} while(len > 0);

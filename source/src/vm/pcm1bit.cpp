@@ -133,8 +133,8 @@ void PCM1BIT::mix(int32_t* buffer, int cnt)
 	}
 	for(int i = 0; i < (cnt * 2); i++) {
 		buffer[i] = buffer[i] + pp[i];
-		if(buffer[i] >  32767) buffer[i] = 32767;
-		if(buffer[i] < -32768) buffer[i] = -32768;
+//		if(buffer[i] >  32767) buffer[i] = 32767;
+//		if(buffer[i] < -32768) buffer[i] = -32768;
 	}
 	prev_clock = get_current_clock();
 	positive_clocks = negative_clocks = 0;

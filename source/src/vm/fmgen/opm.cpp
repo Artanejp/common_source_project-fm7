@@ -482,8 +482,10 @@ inline void OPM::MixSubL(int activech, ISample** idest)
 //
 void OPM::Mix(Sample* buffer, int nsamples)
 {
-#define IStoSampleL(s)	((Limit(s, 0xffff, -0x10000) * fmvolume_l) >> 14)
-#define IStoSampleR(s)	((Limit(s, 0xffff, -0x10000) * fmvolume_r) >> 14)
+//#define IStoSampleL(s)	((Limit(s, 0xffff, -0x10000) * fmvolume_l) >> 14)
+//#define IStoSampleR(s)	((Limit(s, 0xffff, -0x10000) * fmvolume_r) >> 14)
+#define IStoSampleL(s)	((s * fmvolume_l) >> 14)
+#define IStoSampleR(s)	((s * fmvolume_r) >> 14)
 //#define IStoSample(s)	((s * fmvolume) >> 14)
 	
 	// odd bits - active, even bits - lfo

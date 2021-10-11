@@ -25,14 +25,16 @@ Ui_SndSliderObject::~Ui_SndSliderObject()
 {
 }
 
+#include <cstdint>
+
 void Ui_SndSliderObject::setValue(int level)
 {
 	if(bind_num < 0) return;
 	if(bind_num == 0) {
 		QString tmps, s_val;
 		float n;
-		if(level < -32768) level = -32678;
-		if(level > 32767)  level = 32767;
+		if(level < INT16_MIN) level = INT16_MIN;
+		if(level > INT16_MAX) level = INT16_MAX;
 		p_config->general_sound_level = level;
 		
 		tmps = QApplication::translate("Ui_SoundDialog", "Set Volume", 0);

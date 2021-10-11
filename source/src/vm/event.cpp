@@ -717,11 +717,15 @@ void EVENT::mix_sound(int samples)
 	}
 }
 
+#include <cstdint>
+
 uint16_t* EVENT::create_sound(int* extra_frames)
 {
 	if(prev_skip && dont_skip_frames == 0 && !sound_changed) {
 		memset(sound_buffer, 0, sound_samples * sizeof(uint16_t) * 2);
-		*extra_frames = 0;
+		if(extra_frames != nullptr) {
+			*extra_frames = 0;
+		}
 		return sound_buffer;
 	}
 	int frames = 0;
@@ -731,6 +735,10 @@ uint16_t* EVENT::create_sound(int* extra_frames)
 		drive();
 		if(!(event_half)) frames++;
 	}
+	int _total_div = (sound_samples * 2) >> 3;
+	int _total_mod = (sound_samples * 2) - (((sound_samples * 2) >> 3) << 3);
+	__DECL_ALIGNED(32) int32_t tmpbuf[8];
+	
 #ifdef LOW_PASS_FILTER
 	// low-pass filter
 	for(int i = 0; i < sound_samples - 1; i++) {
@@ -739,27 +747,45 @@ uint16_t* EVENT::create_sound(int* extra_frames)
 	}
 #endif
 	// copy to buffer
-	for(int i = 0; i < sound_samples * 2; i++) {
-		int dat = sound_tmp[i];
-		uint16_t highlow = (uint16_t)(dat & 0x0000ffff);
-		
-		if((dat > 0) && (highlow >= 0x8000)) {
-			sound_buffer[i] = 0x7fff;
-			continue;
+	int ii = 0;
+	for(int i = 0; i < _total_div; i++) {
+		__DECL_VECTORIZED_LOOP
+		for(int j = 0; j < 8; j++) {
+			tmpbuf[j] = sound_tmp[ii + j];
 		}
-		if((dat < 0) && (highlow < 0x8000)) {
-			sound_buffer[i] = 0x8000;
-			continue;
+		// Clipping
+		__DECL_VECTORIZED_LOOP
+		for(int j = 0; j < 8; j++) {
+			if(tmpbuf[j] > INT16_MAX) tmpbuf[j] = INT16_MAX;
+			if(tmpbuf[j] < INT16_MIN) tmpbuf[j] = INT16_MIN;
 		}
-		sound_buffer[i] = highlow;
+		// Copy
+		int16_t* np = (int16_t*)(&sound_buffer[ii]);
+		__DECL_VECTORIZED_LOOP
+		for(int j = 0; j < 8; j++) {
+			np[j] = tmpbuf[j];
+		}
+		ii += 8;
 	}
+	
+	int16_t* np = (int16_t*)(&sound_buffer[ii]);
+	for(int i = 0; i < _total_mod; i++) {
+		int32_t dat = sound_tmp[ii + i];
+		if(dat > INT16_MAX) dat = INT16_MAX;
+		if(dat < INT16_MIN) dat = INT16_MIN;
+		np[i] = dat;
+	}
+
+	// Move next datas to head.
 	if(buffer_ptr > sound_samples) {
 		buffer_ptr -= sound_samples;
 		memcpy(sound_tmp, sound_tmp + sound_samples * 2, buffer_ptr * sizeof(int32_t) * 2);
 	} else {
 		buffer_ptr = 0;
 	}
-	*extra_frames = frames;
+	if(extra_frames != nullptr) {
+		*extra_frames = frames;
+	}
 	return sound_buffer;
 }
 

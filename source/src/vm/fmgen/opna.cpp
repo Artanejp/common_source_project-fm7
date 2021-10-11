@@ -395,8 +395,10 @@ void OPN::SetChannelMask(uint mask)
 //	合成(2ch)
 void OPN::Mix(Sample* buffer, int nsamples)
 {
-#define IStoSampleL(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_l) >> 14)
-#define IStoSampleR(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_r) >> 14)
+//#define IStoSampleL(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_l) >> 14)
+//#define IStoSampleR(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_r) >> 14)
+#define IStoSampleL(s)	((s * fmvolume_l) >> 14)
+#define IStoSampleR(s)	((s * fmvolume_r) >> 14)
 	
 	psg.Mix(buffer, nsamples);
 	
@@ -1251,8 +1253,10 @@ inline void OPNABase::LFO()
 // ---------------------------------------------------------------------------
 //	合成
 //
-#define IStoSampleL(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_l) >> 14)
-#define IStoSampleR(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_r) >> 14)
+//#define IStoSampleL(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_l) >> 14)
+//#define IStoSampleR(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_r) >> 14)
+#define IStoSampleL(s)	((s * fmvolume_l) >> 14)
+#define IStoSampleR(s)	((s * fmvolume_r) >> 14)
 
 void OPNABase::Mix6(Sample* buffer, int nsamples, int activech)
 {
