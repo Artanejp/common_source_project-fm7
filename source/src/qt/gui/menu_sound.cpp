@@ -37,6 +37,7 @@ void Ui_MainWindowBase::do_set_host_sound_device(int num)
 	if(p_config != NULL) {
 		p_config->sound_device_num = num;
 	}
+	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::do_set_host_sound_name(int num, QString s)
