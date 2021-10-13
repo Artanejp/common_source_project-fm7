@@ -1152,7 +1152,7 @@ void SetupSDL(void)
 				_nl = _s.indexOf('=');
 				if(_nl >= 0) {
 					skey = _s.left(_nl);
-					svar = _s.right(_s.length() - _nl);
+					svar = _s.right(_s.length() - (_nl + 1));
 				} else {
 					skey = _s;
 					svar = QString::fromUtf8("");
@@ -1211,6 +1211,10 @@ int MainLoop(int argc, char *argv[])
 	delim = "/";
 #endif
 	
+	QApplication *GuiMain = NULL;
+	
+	GuiMain = new QApplication(argc, argv);
+	GuiMain->setObjectName(QString::fromUtf8("Gui_Main"));
     QCommandLineParser cmdparser;
 
 	virtualMediaList.clear();
@@ -1236,10 +1240,6 @@ int MainLoop(int argc, char *argv[])
 	cmdparser.process(arglist);
 	ProcessCmdLine(&cmdparser, &virtualMediaList);
 
-	QApplication *GuiMain = NULL;
-	
-	GuiMain = new QApplication(argc, argv);
-	GuiMain->setObjectName(QString::fromUtf8("Gui_Main"));
 	_envvers = QProcessEnvironment::systemEnvironment();
 
 	SetupLogger(GuiMain, emustr, CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1);
