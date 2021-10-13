@@ -278,6 +278,7 @@ protected:
 	static void audio_capture_callback(void *udata, Uint8 *stream, int len);
 	static void audio_callback(void *udata, Uint8 *stream, int len);
 	void convert_sound_format(uint8_t* dst1, uint8_t* dst2, int16_t* src1, int16_t* src2, int samples1, int samples2);
+	virtual void get_sound_device_list();
 
 	int sound_rate, sound_samples;
 	bool sound_ok, sound_started, now_mute;

@@ -70,6 +70,8 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QObject(0)
 	
 	is_glcontext_shared = false;
 	glContext = NULL;
+
+	get_sound_device_list();
 }
 
 OSD_BASE::~OSD_BASE()

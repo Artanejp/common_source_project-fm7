@@ -189,6 +189,22 @@ int OSD_BASE::get_sound_device_num()
 	return sound_device_list.count();
 }
 
+void OSD_BASE::get_sound_device_list()
+{
+	sound_device_list.clear();
+#if defined(USE_SDL2)
+	const _TCHAR* drvname = SDL_GetCurrentAudioDriver();
+	if(drvname == nullptr) return;
+	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "Using Sound Driver: %s\n", drvname);
+	for(int i = 0; i < SDL_GetNumAudioDevices(0); i++) {
+		QString tmps = QString::fromUtf8(SDL_GetAudioDeviceName(i, 0));
+		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
+				  "Audio Device #%d: %s", i, tmps.toLocal8Bit().constData());
+		sound_device_list.append(tmps);
+	}
+#endif
+}
+
 void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
 {
 	std::string devname;
@@ -279,17 +295,6 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 	snd_spec_req.callback = &(this->audio_callback);
 	snd_spec_req.userdata = (void *)&snddata;
 #if defined(USE_SDL2)
-	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "Using Sound Driver: %s\n", SDL_GetCurrentAudioDriver());
-	sound_device_list.clear();
-	for(i = 0; i < SDL_GetNumAudioDevices(0); i++) {
-		QString tmps = QString::fromUtf8(SDL_GetAudioDeviceName(i, 0));
-		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
-				  "Audio Device #%d: %s", i, tmps.toLocal8Bit().constData());
-		sound_device_list.append(tmps);
-	}
-	
-	//QString sdev = QString::fromUtf8("\"") + sound_device_list.at(audio_dev_id) + QString::fromUtf8("\"");
-	//audio_dev_id = SDL_OpenAudioDevice(NULL, 0, &snd_spec_req, &snd_spec_presented, SDL_AUDIO_ALLOW_ANY_CHANGE);
 	audio_dev_id = 0;
 	if(!(sound_device_list.isEmpty())) {
 		QString sdev;
