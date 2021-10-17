@@ -245,15 +245,22 @@ protected:
 	outputs_t outputs_mcuint;
 	FILEIO* fio_img;
 //	FIFO* subq_buffer;
-	FIFO* databuffer;
+	uint8_t sector_buffer[8192]; //!< main memory.Reading a sector.
+	uint8_t prefetch_buffer[65536]; //!< prefetch buffer, this is only enabled after Towns2HR.
+//	FIFO* databuffer;
 	FIFO* status_queue;
 
 	// For Debugging, will remove 20200822 K.O
 	DEVICE* d_cpu;
 	DEVICE* d_dmac;
+
+	uint32_t main_read_ptr;
+	uint32_t main_write_ptr;
+	int32_t main_left;
 	
-	uint32_t max_fifo_length;
-	uint32_t fifo_length;
+	uint32_t prefetch_read_ptr;
+	uint32_t prefetch_write_ptr;
+	int32_t prefetch_left;
 	
 	uint16_t cpu_id;
 	uint16_t machine_id;

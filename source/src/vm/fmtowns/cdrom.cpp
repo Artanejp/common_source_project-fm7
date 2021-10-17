@@ -130,12 +130,7 @@ void TOWNS_CDROM::initialize()
 	event_time_out = -1;
 	event_eot = -1;
 
-	// ToDo: larger buffer for later VMs.
-	max_fifo_length = ((machine_id == 0x0700) || (machine_id >= 0x0900)) ? 65536 : 8192;
-	fifo_length = 8192;
-//	fifo_length = 65536;
-	databuffer = new FIFO(max_fifo_length);
-
+	
 	cdda_status = CDDA_OFF;
 	is_cue = false;
 	is_iso = false;
@@ -165,11 +160,6 @@ void TOWNS_CDROM::release()
 		}
 		fio_img = NULL;
 		delete fio_img;
-	}
-	if(databuffer != NULL) {
-		databuffer->release();
-		delete databuffer;
-		databuffer = NULL;
 	}
 	if(status_queue != NULL) {
 		status_queue->release();
@@ -241,7 +231,7 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 	clear_event(this, event_eot);
 	clear_event(this, event_drq);
 	
-	if((read_length <= 0) && (databuffer->empty())) {
+	if((read_length <= 0) && ((main_read_left <= 0) || (main_write_left >= 8192))) {
 		clear_event(this, event_next_sector);
 		clear_event(this, event_seek_completed);
 		status_read_done(false);
@@ -710,22 +700,9 @@ uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
 {
 //	bool is_empty = databuffer->empty();
 	if(dma_transfer_phase) {
-		data_reg = (uint8_t)(databuffer->read() & 0xff);
-		/*
-	if((databuffer->empty()) && (read_length <= 0)) {
-	//cdrom_debug_log(_T("EOT(DMA) by read_dma_io8()"));
-	read_length_bak = 0;
-	// Fallback
-	#if 0
-	event_callback(EVENT_CDROM_EOT, 0);
-	#else
-	register_event(this, EVENT_CDROM_EOT,
-//					   0.2 * 1.0e6 / ((double)transfer_speed * 150.0e3 ),
-					   1.0e3,
-					   false, &event_eot);
-					   #endif
-					   }
-		*/
+		bool is_success = true;
+		bool is_eot = false;
+		data_reg = fetch_a_byte_from_mainmem(is_success, is_eot);
 	}
 	return data_reg;
 }
@@ -806,7 +783,8 @@ void TOWNS_CDROM::read_cdrom()
 	double usec = get_seek_time(lba1);
 	status_seek = true;
 	if(usec < 10.0) usec = 10.0;
-	databuffer->clear();
+	// Clear a buffer
+	
 	register_event(this, EVENT_CDROM_SEEK_COMPLETED, usec, false, &event_seek_completed);
 	if(req_status) {
 		// May not need extra status, integrated after reading. 20200906 K.O
@@ -1909,7 +1887,20 @@ void TOWNS_CDROM::reset_device()
 
 	media_changed = false;
 
-	databuffer->clear();
+	// ToDo: larger buffer for later VMs.
+	memset(sector_buffer, 0x00, sizeof(sector_buffer));
+	memset(prefetch_buffer, 0x00, sizeof(prefetch_buffer));
+	main_read_ptr = 0;
+	main_write_ptr = 0;
+	main_write_left = (uint32_t)sizeof(sector_buffer);
+	main_read_left = 0;
+	
+	prefetch_read_ptr = 0;
+	prefetch_write_ptr = 0;
+	prefetch_write_left = (uint32_t)sizeof(prefetch_buffer);
+	
+	cdrom_prefetch = false;
+	
 	status_queue->clear();
 	latest_command = 0x00;
 	prev_command = 0x00;
@@ -1950,7 +1941,163 @@ bool TOWNS_CDROM::is_device_ready()
 	return mounted();
 }
 
+bool TOWNS_CDROM::read_a_physical_sector(bool is_prefetch_memory)
+{
+	if(!(cdrom_prefetch) || !(_USE_CDROM_PREFETCH)) {
+		is_prefetch = false;
+	}
 
+	if(!(seek_relative_frame_in_image(read_sector))) {
+		status_illegal_lba(0, 0x00, 0x00, 0x00);			
+		return false;
+	}
+
+	uint32_t writep = main_write_ptr;
+	uint32_t addrmask = 0x1fff; // 8KB - 1
+	int mleft = main_write_left;
+	uint8_t* dst = &(sector_buffer[0]);
+	if(is_prefetch_memory) {
+		writep = prefetch_write_ptr;
+		mleft = prefetch_write_left;
+		addrmask = 0xffff; // 64KB - 1
+		dst = &(prefetch_buffer[0]);
+	}
+	if(mleft < 2352) return false; // failed to read;
+	
+	int pbs = (is_iso) ? 2048 : physical_block_size();
+	if(pbs <= 0) return false;
+	
+	bool _result = false;
+	uint8_t tmpbuf[2352] = {0};
+
+	if(pbs > 2352) pbs = 2352;
+	if(fio_img->Fread(tmpbuf, pbs, 1) != 1) {
+		status_illegal_lba(0, 0x00, 0x00, 0x00);			
+		return false;
+	}
+
+	typedef union cd_tmpbuf_s {
+		uint8_t rawdata[2352];
+		cd_data_mode1_t mode1;
+		cd_data_mode2_t mode2;
+		cd_audio_sector_t audio;
+	} cd_tmpbuf_t;
+	cd_tmpbuf_t tmpbuf2;
+	
+	memset(&(tmpbuf2.rawdata[0]), 0x00, sizeof(tmpbuf2.rawdata));
+	if(pbs != 2352) {
+		// ToDo: Make HEADER and CRC, ECC.
+		switch(read_mode) {
+		case CDROM_READ_MODE1:
+			memcpy(&(tmpbuf2.mode1.data), tmpbuf, ((pbs < sizeof(tmpbuf2.mode1.data)) ? pbs : sizeof(tmpbuf2.mode1.data)));
+			break;
+		case CDROM_READ_MODE2:
+			memcpy(&(tmpbuf2.mode2.data), tmpbuf, ((pbs < sizeof(tmpbuf2.mode2.data)) ? pbs : sizeof(tmpbuf2.mode2.data)));
+			break;
+		case CDROM_READ_RAW:
+			memcpy(&(tmpbuf2.rawdata), tmpbuf, ((pbs < sizeof(tmpbuf2.rawdata)) ? pbs : sizeof(tmpbuf2.rawdata)));
+			break;
+		}
+	} else {
+		memcpy(&(tmpbuf2.rawdata[0]), tmpbuf, 2352);
+	}
+	// copy raw buffer to memory.
+	for(int i = 0; i < 2352; i++) {
+		dst[writep] = tmpbuf2.rawdata[i];
+		writep = (writep + 1) & addrmask;
+	}
+	mleft -= 2352;
+	if(mleft < 0) mleft = 0;
+	
+	if(is_prefetch_memory) {
+		prefetch_write_left = mleft;
+		prefetch_write_ptr = writep;
+	} else {
+		main_write_left = mleft;
+		main_write_ptr = writep;
+		main_read_left += 2352;
+		if(main_read_left >= sizeof(main_buffer)) main_read_left = sizeof(main_buffer);
+	}
+	return true;
+}
+
+bool TOWNS_CDROM::transfer_a_prefetched_sector_to_main()
+{
+	if(!(cdrom_prefetch) || !(_USE_CDROM_PREFETCH)) {
+		return false; // None effected.
+	}
+	if(prefetch_write_left > (sizeof(prefetch_buffer) - 2352)) {
+		return false; // Maybe cache empty.
+	}
+	uint8_t data;
+	for(int i = 0; i < 2352; i++) {
+		data = prefetch_buffer[prefetch_read_ptr];
+		main_buffer[main_write_ptr] = data;
+		prefetch_read_ptr = (prefetch_read_ptr + 1) & 0xffff; // 64KB
+		main_write_ptr = (main_write_ptr + 1) & 0x1fff; // 8KB
+	}
+	prefetch_write_left += 2352;
+	main_read_left += 2352;
+	if(prefetch_write_left >= sizeof(prefetch_buffer)) prefetch_write_left = sizeof(prefetch_buffer);
+	if(main_read_left >= sizeof(main_buffer)) main_read_left = sizeof(main_buffer);
+	return true;
+}
+
+uint8_t TOWNS_CDROM::fetch_a_byte_from_mainmem(bool& is_success, bool& is_eot)
+{
+	is_success = false;
+	is_eot = false;
+	if((main_read_left <= 0) || (main_write_left >= 8192))  {
+//		is_eot = true;
+		return 0x00; // EMPTY
+	}
+	if(local_data_count <= 0) {
+		switch(read_mode) {
+		case CDROM_READ_MODE1:
+		case CDROM_READ_MODE2:
+			main_read_ptr = (main_read_ptr + sizeof(cd_data_head_t)) & 0x1fff;
+			main_write_left += sizeof(cd_data_head_t); 
+			main_read_left -= sizeof(cd_data_head_t); 
+			break;
+		}
+		local_data_count = logical_block_size();
+	}
+	uint8_t data = 0;
+	if((main_read_left > 0) && (main_write_left < 8192)) {
+		data = main_buffer[main_read_ptr];
+		main_read_ptr = (main_read_ptr + 1) & 0x1fff;
+		
+		main_read_left -= 1;
+		main_write_left += 1;
+	
+		local_data_count--;
+		if(local_data_count <= 0) {
+			// Skip to next sector;
+			// Note: FOOTER is had with only MODE1, not MODE2.
+			int footer_size = 0;
+			switch(read_mode) {
+			case CDROM_READ_MODE1:
+				// CRC32, RESERVED, ECC
+				footer_size = (4 + 8 + 276);
+				main_read_ptr = (main_read_ptr + footer_size) & 0x1fff;
+				main_write_left = main_write_left + footer_size;
+				main_read_left = main_read_left - footer_size;
+				break;
+			}
+		}
+	}
+	
+	if((main_read_left <= 0) || (main_write_left >= 8192)) {
+		if(main_read_left < 0) main_read_left = 0;
+		if(main_write_left > 8192) main_write_left = 8192;
+		local_data_count = 0;
+		if(!(transfer_a_prefetched_sector_to_main())) {
+			is_eot = true;
+		}
+	}
+	is_success = true;
+	return data;
+}
 void TOWNS_CDROM::get_track_by_track_num(int track)
 {
 	if((track <= 0) || (track >= track_num)) {
@@ -2595,12 +2742,15 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 		break;
 	case 0x04:
 		if((pio_transfer_phase) && (pio_transfer)) {
-			if(databuffer->left() == logical_block_size()) {
+			if(local_data_count <= 0) {
 				cdrom_debug_log(_T("PIO READ START FROM 04C4h"));
 			}
-			val = (databuffer->read() & 0xff);
+			bool is_success = false;
+			bool is_eot = false;
+			val = fetch_a_byte_from_mainmem(is_success, is_eot);
+			//val = (databuffer->read() & 0xff);
 			data_reg = val;
-			if((read_length <= 0) && (databuffer->empty())) {
+			if((read_length <= 0) && (is_eot)) {
 				pio_transfer_phase = false;
 				mcu_ready = false;
 				clear_event(this, event_next_sector);
@@ -2612,7 +2762,7 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 					//if((stat_reply_intr) && !(dma_intr_mask)) {
 					write_mcuint_signals(0xffffffff);
 				}
-			} else if(databuffer->empty()) {
+			} else if(is_eot) {
 				pio_transfer_phase = false;
 				mcu_ready = false;
 				clear_event(this, event_time_out);
@@ -2714,12 +2864,31 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 
 void TOWNS_CDROM::write_debug_data8(uint32_t addr, uint32_t data)
 {
-	databuffer->write_not_push(addr % max_fifo_length, data & 0xff);
+	if(!(_USE_CDROM_PREFETCH)) {
+		main_buffer[addr & 0x1fff] = data;
+	} else {
+		if(addr < 0x2000) {
+			main_buffer[addr] = data;
+		} else {
+			prefetch_buffer[(addr - 0x2000) & 0xffff] = data;
+		}
+	}
 }
 
 uint32_t TOWNS_CDROM::read_debug_data8(uint32_t addr)
 {
-	return databuffer->read_not_remove(addr % max_fifo_length) & 0xff;
+	uint8_t data = 0;
+	
+	if(!(_USE_CDROM_PREFETCH)) {
+		data = main_buffer[addr & 0x1fff];
+	} else {
+		if(addr < 0x2000) {
+			data = main_buffer[addr];
+		} else {
+			data = prefetch_buffer[(addr - 0x2000) & 0xffff];
+		}
+	}
+
 }
 
 
@@ -2776,7 +2945,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	11
+#define STATE_VERSION	12
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2786,9 +2955,6 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	if(!(databuffer->process_state((void *)state_fio, loading))) {
-		return false;
-	}
 	if(!(status_queue->process_state((void *)state_fio, loading))) {
 		return false;
 	}
@@ -2798,6 +2964,21 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateValue(machine_id);
 	state_fio->StateValue(cpu_id);
+
+	state_fio->StateArray(main_buffer, sizeof(main_buffer), 1);
+	state_fio->StateValue(main_read_ptr);
+	state_fio->StateValue(main_write_ptr);
+	state_fio->StateValue(main_write_left);
+	state_fio->StateValue(main_read_left);
+	state_fio->StateValue(local_data_count);
+	
+	if(_USE_CDROM_PREFETCH) {
+		state_fio->StateArray(prefetch_buffer, sizeof(prefetch_buffer), 1);
+		state_fio->StateValue(prefetch_read_ptr);
+		state_fio->StateValue(prefetch_write_ptr);
+		state_fio->StateValue(prefetch_write_left);
+	}
+	
 	state_fio->StateValue(max_fifo_length);
 	state_fio->StateValue(fifo_length);
 	
