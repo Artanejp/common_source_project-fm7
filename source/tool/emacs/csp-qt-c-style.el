@@ -35,9 +35,12 @@
 	(c-noise-macro-names . (
 							"__DECL_VECTORIZED_LOOP"
 							"__FASTCALL"
-							"QT_BEGIN_NAMESPACE"
-							"QT_END_NAMESPACE"
-							"Q_OBJECT"
+							"INLINE"
+							"MEMCALL"
+							"IOINPCALL"
+							"IOOUTCALL"
+							"QT_\\sw+"
+							"Q_\\sw+"
 							)
 						 )
 	(c-font-lock-extra-types . (
@@ -109,12 +112,20 @@
 							("\\<UINT\\>" . font-lock-type-face)
 							("\\<UINT[0-9]+\\>" . font-lock-type-face)
 							
+							("\\<SINT\\>" . font-lock-type-face)
+							("\\<SINT[0-9]+\\>" . font-lock-type-face)
+							("\\<REG[0-9]+\\>" . font-lock-type-face)
+
 							("\\<Q_\\sw+\\>" . font-lock-preprocessor-face)
 							("\\<QT_\\sw+\\>" . font-lock-preprocessor-face)
 							
 							("\\<Q\\sw+\\>" . font-lock-type-face)
 							
 							("\\<__FASTCALL\\>" . font-lock-keyword-face)
+							("\\<INLINE\\>" . font-lock-keyword-face)
+							("\\<MEMCALL\\>" . font-lock-keyword-face)
+							("\\<IOINPCALL\\>" . font-lock-keyword-face)
+							("\\<IOOUTCALL\\>" . font-lock-keyword-face)
 							("\\<DLL_PREFIX\\>" . font-lock-keyword-face)
 							("\\<DLL_PREFIX_I\\>" . font-lock-keyword-face)
 
@@ -125,12 +136,28 @@
 							("\\<STATE_VERSION\\>" . font-lock-constant-face)					
 							("\\<FRAMES_PER_SEC\\>" . font-lock-constant-face)					
 							("\\<LINES_PER_FRAME\\>" . font-lock-constant-face)					
-							("\\<SCREEN_\\sw+\\>" . font-lock-constant-face)												("\\<USE_\\sw+\\>" . font-lock-constant-face)
-							("\\<CONFIG_\\sw+\\>" . font-lock-constant-face)
-							("\\<CSP_LOG_\\sw+\\>" . font-lock-constant-face)
+							("\\<SCREEN_\\sw+\\>" . font-lock-constant-face)											   ("\\<_USE_\\sw+\\>" . font-lock-constant-face)
+							("\\<_HAS_\\sw+\\>" . font-lock-constant-face)
+							("\\<_SUPPORT_\\sw+\\>" . font-lock-constant-face)
+							
+						    ("\\<USE_\\sw+\\>" . font-lock-preprocessor-face)
+							("\\<HAS_\\sw+\\>" . font-lock-preprocessor-face)
+							("\\<SUPPORT_\\sw+\\>" . font-lock-preprocessor-face)
+							("\\<\\sw+_ADDR_MAX\\>" . font-lock-constant-face)
+							("\\<\\sw+_SIZE\\>" . font-lock-constant-face)
+							("\\<ONE_BOARD_MICRO_COMPUTER\\>" . font-lock-preprocessor-face)
+							("\\<_ONE_BOARD_MICRO_COMPUTER\\>" . font-lock-constant-face)
+							
+							("\\<CONFIG_\\sw+\\>" . font-lock-preprocessor-face)
+							("\\<CSP_LOG_\\sw+\\>" . font-lock-preprocessor-face)
 							("\\<SIG_\\sw+\\>" . font-lock-constant-face)
 							("\\<MAX_\\sw+\\>" . font-lock-constant-face)
 							("\\<EVENT_\\sw+\\>" . font-lock-constant-face)
+							("\\<SCSI_\\sw+\\>" . font-lock-constant-face)
+							("\\<FILEIO_\\sw+\\>" . font-lock-constant-face)
+							("\\<CPU_CLOCKS\\>" . font-lock-constant-face)
+							("\\<MEDIA_TYPE_\\sw+\\>" . font-lock-constant-face)
+							
 							)
 						  )
    (c-add-style "csp-qt" csp-qt-set-c-style t)
