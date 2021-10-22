@@ -32,10 +32,6 @@
     (c-basic-offset . 4)
     (c-recognize-knr-p . nil)
     (c-enable-xemacs-performance-kludge-p . t) ; speed up indentation in XEmacs
-	(c-access-key . (
-					 "\\<\\(signals\\|public\\|protected\\|private\\|public slots\\|protected slots\\|private slots\\):"
-					 )
-				  )
 	(c-noise-macro-names . (
 							"__DECL_VECTORIZED_LOOP"
 							"__FASTCALL"
@@ -46,10 +42,12 @@
 						 )
 	(c-font-lock-extra-types . (
 								"\\sw+_t"
+								"_TCHAR"
 								)
 							 )
 	(c++-font-lock-extra-types . (
 								"\\sw+_t"
+								"_TCHAR"
 								)
 							 )
     (c-offsets-alist . ((statement-case-open . +)
@@ -83,22 +81,56 @@
 (defun csp-qt-set-c-style ()
   "Set the current buffer's c-style to Common Source code Project/Qt with Visual Studio like style. "
   (font-lock-add-keywords nil
-						  '(("__DECL_VECTORIZED_LOOP" . font-lock-preprocessor-face)
+						  '(("\\<__DECL_VECTORIZED_LOOP\\>" . font-lock-preprocessor-face)
 							("__LIKELY_IF" . font-lock-keyword-face)
 							("__UNLIKELY_IF" . font-lock-keyword-face)
 							("___assume_aligned" . font-lock-type-face)
 							("__DECL_ALIGNED" . font-lock-type-face)
-							("\\<\\(signals\\|public slots\\|protected slots\\|private slots\\):" . font-lock-keyword-face)
+							("^\\(public\\|protected\\|private\\|signals\\|public\\s-slots\\|protected\\s-slots\\|private\\s-slots\\):" . font-lock-keyword-face)
+							("\\<\\(public\\|protected\\|private\\)\\>" . font-lock-keyword-face)
 
 							;("_T" . font-lock-string-face)
-							("\\sw+_t" . font-lock-type-face)
-							("QObject" . font-lock-type-face)
-							("__FASTCALL" . font-lock-type-face)
-							("DLL_PREFIX" . font-lock-type-face)
-							("DLL_PREFIX_I" . font-lock-type-face)
-							("QT_BEGIN_NAMESPACE" . font-lock-preprocessor-face)
-							("QT_END_NAMESPACE" . font-lock-preprocessor-face)
-							("Q_OBJECT" . font-lock-preprocessor-face)
+							("\\<\\sw+_t\\>" . font-lock-type-face)
+							("\\<_TCHAR\\>" . font-lock-type-face)
+							("\\<SOCKET\\>" . font-lock-type-face)
+							
+							("\\<LPCTSTR\\>" . font-lock-type-face)
+							("\\<LPTSTR\\>" . font-lock-type-face)
+							
+							("\\<BOOL\\>" . font-lock-type-face)
+							
+							("\\<BYTE\\>" . font-lock-type-face)
+							("\\<WORD\\>" . font-lock-type-face)
+							("\\<DWORD\\>" . font-lock-type-face)
+							("\\<QWORD\\>" . font-lock-type-face)
+
+							("\\<INT\\>" . font-lock-type-face)
+							("\\<INT[0-9]+\\>" . font-lock-type-face)
+							("\\<UINT\\>" . font-lock-type-face)
+							("\\<UINT[0-9]+\\>" . font-lock-type-face)
+							
+							("\\<Q_\\sw+\\>" . font-lock-preprocessor-face)
+							("\\<QT_\\sw+\\>" . font-lock-preprocessor-face)
+							
+							("\\<Q\\sw+\\>" . font-lock-type-face)
+							
+							("\\<__FASTCALL\\>" . font-lock-keyword-face)
+							("\\<DLL_PREFIX\\>" . font-lock-keyword-face)
+							("\\<DLL_PREFIX_I\\>" . font-lock-keyword-face)
+
+							
+							("\\<TRUE\\>" . font-lock-constant-face)
+							("\\<FALSE\\>" . font-lock-constant-face)
+							("\\<_MAX_PATH\\>" . font-lock-constant-face)					
+							("\\<STATE_VERSION\\>" . font-lock-constant-face)					
+							("\\<FRAMES_PER_SEC\\>" . font-lock-constant-face)					
+							("\\<LINES_PER_FRAME\\>" . font-lock-constant-face)					
+							("\\<SCREEN_\\sw+\\>" . font-lock-constant-face)												("\\<USE_\\sw+\\>" . font-lock-constant-face)
+							("\\<CONFIG_\\sw+\\>" . font-lock-constant-face)
+							("\\<CSP_LOG_\\sw+\\>" . font-lock-constant-face)
+							("\\<SIG_\\sw+\\>" . font-lock-constant-face)
+							("\\<MAX_\\sw+\\>" . font-lock-constant-face)
+							("\\<EVENT_\\sw+\\>" . font-lock-constant-face)
 							)
 						  )
    (c-add-style "csp-qt" csp-qt-set-c-style t)
