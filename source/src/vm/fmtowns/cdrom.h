@@ -457,10 +457,13 @@ protected:
 	virtual void close_from_cmd();
 	virtual void do_dma_eot(bool by_signal);
 
-	void __FASTCALL write_mcuint_signals(uint32_t val)
+	void __FASTCALL write_mcuint_signals(bool val, bool force = false)
 	{
-		mcuint_val = (val != 0) ? true : false;
-		write_signals(&outputs_mcuint, val);
+		bool _old = mcuint_val;
+		mcuint_val = val;
+		if((force) || (val != _old)) {
+			write_signals(&outputs_mcuint, (val) ? 0xffffffff : 0x0);
+		}
 	}
 	virtual bool __FASTCALL read_a_physical_sector(bool is_prefetch = false);
 	virtual bool transfer_a_prefetched_sector_to_main();
