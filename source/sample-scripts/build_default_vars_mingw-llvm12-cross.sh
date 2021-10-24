@@ -51,7 +51,7 @@ QT5_DIR="${LIBS_PREFIX}/Qt5.15/mingw_82x"
 
 PATH=/opt/llvm-mingw-12/bin:$PATH
 cmake .. \
-	-DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_mingw_cross_llvm12.cmake" \
+	-DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_mingw_cross_llvm-versioned.cmake" \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_FLAGS_RELWITHDEBINFO=" \
       		-g2 \

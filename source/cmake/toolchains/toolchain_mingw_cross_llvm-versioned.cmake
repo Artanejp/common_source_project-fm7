@@ -1,0 +1,92 @@
+# the name of the target operating system
+SET(CMAKE_SYSTEM_NAME Windows)
+
+if(NOT (DEFINED TRGET_ARCH))
+    SET(TARGET_ARCH i686-w64-mingw32)
+endif()
+
+if(NOT (DEFINED LIBS_PREFIX))
+    SET(LIBS_PREFIX /usr/local/i586-mingw-msvc)
+endif()
+
+UNSET(CSP_LLVM_TOOLCHAIN_SUFFIX)
+
+UNSET(CSP_LLVM_TOOLCHAIN_SUFFIX)
+if(DEFINED CMAKE_CSP_LLVM_VERSION)
+   SET(CSP_LLVM_TOOLCHAIN_SUFFIX "-${CMAKE_CSP_LLVM_VERSION}")
+endif()
+
+
+if(DEFINED CSP_FFMPEG_VERSION)
+    SET(CSP_FFMPEG_PREFIX "ffmpeg-${CSP_FFMPEG_VERSION}"
+else()
+    SET(CSP_FFMPEG_PREFIX "ffmpeg"
+endif()
+
+if(NOT (DEFINED QT5_ROOT_DIR))
+    if(NOT (DEFINED CSP_LIBS_QT_PREFIX))
+        SET(CSP_LIBS_QT_PREFIX "${LIBS_PREFIX}")
+    endif()
+    SET(QT5_ROOT_DIR "${CSP_LIBS_QT_PREFIX}/Qt${CSP_QT_VERSION}/${QT5_DIR_SUFFIX}"
+endif()
+
+if(NOT (DEFINED LIBAV_ROOT_DIR))
+    if(NOT (DEFINED CSP_LIBS_LIBAV_PREFIX))
+        SET(CSP_LIBS_LIBAV_PREFIX "${LIBS_PREFIX}")
+    endif()
+    SET(LIBAV_ROOT_DIR "${CSP_LIBS_LIBAV_PREFIX}/${CSP_FFMPEG_PREFIX}")
+endif()
+   
+# which compilers to use for C and C++
+SET(CMAKE_C_COMPILER ${TARGET_ARCH}-clang${CSP_LLVM_TOOLCHAIN_SUFFIX})
+SET(CMAKE_CXX_COMPILER ${TARGET_ARCH}-clang++${CSP_LLVM_TOOLCHAIN_SUFFIX})
+SET(CMAKE_RC_COMPILER ${TARGET_ARCH}-windres${CSP_LLVM_TOOLCHAIN_SUFFIX})
+SET(CMAKE_AR  ${TARGET_ARCH}-ar${CSP_LLVM_TOOLCHAIN_SUFFIX})
+SET(CMAKE_LD  ${TARGET_ARCH}-lld${CSP_LLVM_TOOLCHAIN_SUFFIX})
+SET(CMAKE_RANLIB  ${TARGET_ARCH}-ranlib${CSP_LLVM_TOOLCHAIN_SUFFIX})
+
+# here is the target environment located
+set(USE_SDL2 ON)
+if(NOT (DEFINED CMAKE_CSP_SDL_PREFIX))
+   if(USE_SDL2)
+       SET(CMAKE_CSP_SDL_PREFIX ${LIBS_PREFIX}/SDL/)
+   else
+       SET(CMAKE_CSP_SDL_PREFIX ${LIBS_PREFIX}/SDL1/)
+   endif()
+endif()
+
+if(NOT (DEFINED SDL_TARGET_ARCH))
+   SET(SDL_TARGET_ARCH ${TARGET_ARCH})
+endif()
+if(NOT (DEFINED CMAKE_CSP_SDL_PATH))
+   SET(CMAKE_CSP_SDL_PATH "${CMAKE_CSP_SDL_PREFIX}/${SDL_TARGET_ARCH}")
+endif()
+SET(CMAKE_FIND_ROOT_PATH  /usr/${TARGET_ARCH} 
+                          ${LIBS_PREFIX}
+			  ${CMAKE_CSP_SDL_PATH}
+			  ${QT5_ROOT_DIR}
+			  )
+
+SET(CSP_CROSS_BUILD 1)
+
+# adjust the default behaviour of the FIND_XXX() commands:
+# search headers and libraries in the target environment, search 
+# programs in the host environment
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+
+set(SDL2_LIBRARIES
+                         ${CMAKE_CSP_SDL_PATH}/lib/libSDL2.dll.a 
+			 ${CMAKE_CSP_SDL_PATH}/lib/libSDL2main.a)
+set(SDL2_INCLUDE_DIRS    ${CMAKE_CSP_SDL_PREFIX}/include/SDL2)
+
+set(SDL_LIBRARIES
+                         ${CMAKE_CSP_SDL_PATH}/lib/libSDL.dll.a 
+			 ${CMAKE_CSP_SDL_PATH}/lib/libSDLmain.a)
+set(SDL_INCLUDE_DIRS ${CMAKE_CSP_SDL_PREFIX}/include/SDL)
+
+set(SDLMAIN_LIBRARY "")
+
+set(ADDITIONAL_LIBRARIES -lssp -lc++abi -lunwind libwinmm.a)
+set(ADDITIONAL_DLL_LIBRARIES -lssp -lc++abi -lunwind)
