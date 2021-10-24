@@ -300,7 +300,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 			if(read_length <= 0) {
 				do_dma_eot(false);
 			}
-//			force_register_event(this, EVENT_CDROM_DRQ, 1.0 / 8.0, false, event_drq);
+			//force_register_event(this, EVENT_CDROM_DRQ, 1.0 / 2.0, false, event_drq);
 //			event_callback(EVENT_CDROM_DRQ, 0);
 		}
 		break;
@@ -741,7 +741,8 @@ void TOWNS_CDROM::read_cdrom()
 	extra_status = 0;
 	read_length = 0;
 	read_length_bak = 0;
-	
+	read_sectors_count = 0;
+
 	if((lba1 > lba2) || (lba1 < 0) || (lba2 < 0)) { // NOOP?
 		status_parameter_error(false);
 		return;
@@ -759,6 +760,7 @@ void TOWNS_CDROM::read_cdrom()
 				  param_queue[3], param_queue[4], param_queue[5],
 				  pad1, dcmd);
 	__remain = (lba2 - lba1 + 1);
+	read_sectors_count = __remain;
 	read_length = __remain * logical_block_size();
 	read_length_bak = read_length;
 	read_sector = lba1;
@@ -1336,15 +1338,15 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		clear_event(this, event_time_out);
 		// ToDo: Prefetch 20201116
 //		if((databuffer->left() < logical_block_size()) && (read_length > 0)) {
-		if((local_data_count > 0) && (read_length > 0)) {
-			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
-						   2.0,
-						   false,
-						   &event_seek_completed);
-			break; // EXIT
-		}
-		if(read_length > 0) {
+//		if((local_data_count > 0) && (read_sectors_count > 0)) {
+//			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
+//						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
+//						   2.0,
+//						   false,
+//						   &event_seek_completed);
+//			break; // EXIT
+//		}
+		if(read_sectors_count > 0) {
 			mcu_ready = false;
 			bool stat = false;
 //			cdrom_debug_log(_T("READ DATA SIZE=%d BUFFER COUNT=%d"), logical_block_size(), databuffer->count());
@@ -1355,6 +1357,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			//stat = read_buffer(1);
 			stat = read_a_physical_sector(false); // ToDo: Support prefetching.
 			if(stat) {
+				read_sectors_count--;
 				register_event(this, EVENT_CDROM_NEXT_SECTOR,
 							   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
 							   ((double)(physical_block_size())) * 
@@ -1681,7 +1684,7 @@ void TOWNS_CDROM::reset_device()
 	has_status = false;
 	req_status = false;
 	next_status_byte = 0x00;
-
+	
 	cdda_repeat_count = -1;
 	touch_sound();
 	clear_event(this, event_cdda);
@@ -1698,6 +1701,7 @@ void TOWNS_CDROM::reset_device()
 	
 	read_length = 0;
 	read_length_bak = 0;
+	read_sectors_count = 0;
 
 	media_changed = false;
 
@@ -1739,6 +1743,8 @@ void TOWNS_CDROM::reset_device()
 	dma_intr = false;
 	mcu_intr_mask = false;
 	dma_intr_mask = false;
+	mcuint_val = false;
+	
 //	dma_transfer = true;
 	dma_transfer = false;
 	pio_transfer = false;
@@ -1809,7 +1815,7 @@ bool TOWNS_CDROM::read_a_physical_sector(bool is_prefetch)
 	}
 	read_sector++;
 	access = true;
-	
+
 	// copy raw buffer to memory.
 	for(int i = 0; i < 2352; i++) {
 		dst[writep] = tmpbuf.rawdata[i];
@@ -2667,8 +2673,8 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 					uint32_t _t = d_dmac->read_signal(SIG_UPD71071_IS_TRANSFERING + 3);
 					if((_t != 0)) {
 						dma_transfer_phase = true;
-//						force_register_event(this, EVENT_CDROM_DRQ, 1.0 / 8.0, false, event_drq);
-						force_register_event(this, EVENT_CDROM_DRQ, 1.0, true, event_drq);
+//						force_register_event(this, EVENT_CDROM_DRQ, 1.0 / 2.0, false, event_drq);
+						force_register_event(this, EVENT_CDROM_DRQ, 1.0 / 2.0, true, event_drq);
 					}
 				}
 			}
@@ -2766,7 +2772,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	12
+#define STATE_VERSION	13
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2819,6 +2825,7 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(transfer_speed);
 	state_fio->StateValue(read_length);
 	state_fio->StateValue(read_length_bak);
+	state_fio->StateValue(read_sectors_count);
 	state_fio->StateValue(next_seek_lba);
 
 	state_fio->StateValue(mcuint_val);

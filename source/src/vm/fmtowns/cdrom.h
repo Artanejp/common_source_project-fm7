@@ -315,6 +315,7 @@ protected:
 	int transfer_speed;
 	int read_length;
 	int read_length_bak;
+	int read_sectors_count;
 	int next_seek_lba;
 	int read_mode;
 	
