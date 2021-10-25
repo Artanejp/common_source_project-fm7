@@ -245,25 +245,16 @@ protected:
 	outputs_t outputs_mcuint;
 	FILEIO* fio_img;
 //	FIFO* subq_buffer;
-	uint8_t sector_buffer[8192]; //!< main memory.Reading a sector.
-	uint8_t prefetch_buffer[65536]; //!< prefetch buffer, this is only enabled after Towns2HR.
-//	FIFO* databuffer;
+	FIFO* databuffer;
 	FIFO* status_queue;
 
 	// For Debugging, will remove 20200822 K.O
 	DEVICE* d_cpu;
 	DEVICE* d_dmac;
-
-	uint32_t main_read_ptr;
-	uint32_t main_write_ptr;
-	int32_t main_read_left;
-	int32_t main_write_left;
 	
-	uint32_t prefetch_read_ptr;
-	uint32_t prefetch_write_ptr;
-	int32_t prefetch_write_left;
-
-	int32_t local_data_count;
+	uint32_t max_fifo_length;
+	uint32_t fifo_length;
+	
 	uint16_t cpu_id;
 	uint16_t machine_id;
 	
@@ -315,7 +306,6 @@ protected:
 	int transfer_speed;
 	int read_length;
 	int read_length_bak;
-	int read_sectors_count;
 	int next_seek_lba;
 	int read_mode;
 	
@@ -458,18 +448,11 @@ protected:
 	virtual void close_from_cmd();
 	virtual void do_dma_eot(bool by_signal);
 
-	void __FASTCALL write_mcuint_signals(bool val, bool force = false)
+	void __FASTCALL write_mcuint_signals(uint32_t val)
 	{
-		bool _old = mcuint_val;
-		mcuint_val = val;
-		if((force) || (val != _old)) {
-			write_signals(&outputs_mcuint, (val) ? 0xffffffff : 0x0);
-		}
+		mcuint_val = (val != 0) ? true : false;
+		write_signals(&outputs_mcuint, val);
 	}
-	virtual bool __FASTCALL read_a_physical_sector(bool is_prefetch = false);
-	virtual bool transfer_a_prefetched_sector_to_main();
-	virtual uint8_t __FASTCALL fetch_a_byte_from_mainmem(bool& is_success, bool& is_eot);
-	
 	void cdrom_debug_log(const char *fmt, ...);
 
 	bool __CDROM_DEBUG_LOG;
@@ -483,7 +466,7 @@ public:
 		bytes_per_sec = 2048 * 75; // speed x1
 		max_logical_block = 0;
 		access = false;
-		//databuffer = NULL;
+		databuffer = NULL;
 		status_queue = NULL;
 		_decibel_l = 0;
 		_decibel_r = 0;
@@ -537,6 +520,12 @@ public:
 	
 	virtual void set_volume(int ch, int decibel_l, int decibel_r);
 	virtual void get_volume(int ch, int& decibel_l, int& decibel_r);
+	virtual bool read_buffer(int sectors);
+	
+	virtual bool read_raw(int sectors);
+	virtual bool read_mode1(int sectors);
+	virtual bool read_mode2(int sectors);
+	virtual bool read_mode1_iso(int sectors);
 
 	// unique functions
 	// Towns specified command
@@ -546,6 +535,60 @@ public:
 	virtual uint8_t read_status();
 	virtual const int logical_block_size();
 	virtual const int physical_block_size();
+	virtual bool write_a_byte(uint8_t val)
+	{
+		uint32_t n = val;
+		n = n & 0xff;
+//		if(databuffer->count() >= fifo_length) {
+//			return false;
+//		}
+		databuffer->write((int)n);
+		return true;
+	}
+	virtual bool write_bytes(uint8_t* val, int bytes)
+	{
+		int n_count = databuffer->count();
+		if((val == NULL) ||
+		   (n_count >= max_fifo_length) || ((n_count + bytes) >= fifo_length)) {
+			return false;
+		}
+		for(int i = 0; i < bytes; i++) {
+			int d = ((int)val[i]) & 0xff ;
+			databuffer->write(d);
+		}
+		return true;
+	}
+	virtual bool change_buffer_size(int size)
+	{
+		if((size <= 0) || (size >= max_fifo_length) || (databuffer == NULL)) return false;
+		uint8_t tbuf[size];
+		if(fifo_length > size) { // truncate
+			// Dummy read
+			for(int i = 0; i < (fifo_length - size); i++) {
+				uint8_t dummy = (uint8_t)(databuffer->read() & 0xff);
+			}
+			for(int i = 0; i < size; i++) {
+				tbuf[i] = (uint8_t)(databuffer->read() & 0xff);
+			}
+			databuffer->clear();
+			for(int i = 0; i < size; i++) {
+				databuffer->write(tbuf[i]);
+			}
+		} else if(fifo_length < size) {
+			for(int i = 0; i < fifo_length; i++) {
+				tbuf[i] = (uint8_t)(databuffer->read() & 0xff);
+			}
+			databuffer->clear();
+			for(int i = 0; i < fifo_length; i++) {
+				databuffer->write(tbuf[i]);
+			}
+//			for(int i = 0; i < (size - fifo_size); i++) {
+//				databuffer->write(0);
+//			}
+		}
+		fifo_length = size;
+		return true;
+	}
 	uint8_t get_cdda_status()
 	{
 		return cdda_status;
