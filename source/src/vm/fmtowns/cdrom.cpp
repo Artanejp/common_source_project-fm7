@@ -230,8 +230,6 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 {
 	static const _TCHAR by_dma[] = _T("SIGNAL");
 	static const _TCHAR by_event[] =  _T("EVENT");
-//	dma_transfer_phase = false;
-//	dma_transfer = false;
 	mcu_ready = false;
 	
 	dma_intr = true;
@@ -245,7 +243,6 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 		clear_event(this, event_next_sector);
 		clear_event(this, event_seek_completed);
 		status_read_done(false);
-//		clear_event(this, event_drq);
 		cdrom_debug_log(_T("EOT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 	} else {
 		cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
@@ -315,8 +312,10 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 		break;
 	case SIG_TOWNS_CDROM_DMAACK:
 		if(((data & mask) != 0) && (dma_transfer_phase)) {
-			force_register_event(this, EVENT_CDROM_DRQ, 1.0 / 8.0, false, event_drq);
-//			event_callback(EVENT_CDROM_DRQ, 0);
+			//force_register_event(this, EVENT_CDROM_DRQ, 1.0 / 8.0, false, event_drq);
+			if((read_length <= 0) && (databuffer->empty())) {
+				clear_event(this, event_drq);
+			}
 		}
 		break;
 	default:
@@ -711,21 +710,7 @@ uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
 //	bool is_empty = databuffer->empty();
 	if(dma_transfer_phase) {
 		data_reg = (uint8_t)(databuffer->read() & 0xff);
-		/*
-	if((databuffer->empty()) && (read_length <= 0)) {
-	//cdrom_debug_log(_T("EOT(DMA) by read_dma_io8()"));
-	read_length_bak = 0;
-	// Fallback
-	#if 0
-	event_callback(EVENT_CDROM_EOT, 0);
-	#else
-	register_event(this, EVENT_CDROM_EOT,
-//					   0.2 * 1.0e6 / ((double)transfer_speed * 150.0e3 ),
-					   1.0e3,
-					   false, &event_eot);
-					   #endif
-					   }
-		*/
+		// ToDo: Force register EOT JOB IF (read_length <= 0) && (databuffer->empty()).
 	}
 	return data_reg;
 }
@@ -774,7 +759,6 @@ void TOWNS_CDROM::read_cdrom()
 	int track = 0;
 	extra_status = 0;
 	read_length = 0;
-	read_length_bak = 0;
 	
 	if((lba1 > lba2) || (lba1 < 0) || (lba2 < 0)) { // NOOP?
 		status_parameter_error(false);
@@ -794,7 +778,7 @@ void TOWNS_CDROM::read_cdrom()
 				  pad1, dcmd);
 	__remain = (lba2 - lba1 + 1);
 	read_length = __remain * logical_block_size();
-	read_length_bak = read_length;
+
 	read_sector = lba1;
 	dma_transfer_phase = false;
 	pio_transfer_phase = false;
@@ -1407,14 +1391,13 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDROM_DRQ:
 		// ToDo: Buffer OVERFLOW at PIO mode.
-		event_drq = -1;
 		if(dma_transfer_phase) {
 			if(!(databuffer->empty())) {
 				write_signals(&outputs_drq, 0xffffffff);
-			} else if(read_length > 0) {
-				// Retry DRQ if buffert empty.
-				force_register_event(this, EVENT_CDROM_DRQ, 1.0 / 8.0, false, event_drq);
+			} else if(read_length <= 0){
+				clear_event(this, event_drq);
 			}
+			// Retry DRQ if buffert empty and remains sectors. 
 		}
 		break;
 	case EVENT_CDROM_EOT:
@@ -1446,16 +1429,16 @@ bool TOWNS_CDROM::read_mode1_iso(int sectors)
 			return false;
 		}
 		for(int i = 0; i < sizeof(tmpbuf.data); i++) {
-//			if(read_length < 0) {
+			if(read_length < 0) {
 				// ToDo: Change to sector error.
-//				status_illegal_lba(0, 0x00, 0x00, 0x00);			
-//				return false;
-//			}
-//			if(databuffer->full()) {
+				status_illegal_lba(0, 0x00, 0x00, 0x00);			
+				return false;
+			}
+			if(databuffer->full()) {
 				// ToDo: Change to buffer overflow
-//				status_illegal_lba(0, 0x00, 0x00, 0x00);			
-//				return false;
-//			}
+				status_illegal_lba(0, 0x00, 0x00, 0x00);			
+				return false;
+			}
 			uint8_t value = tmpbuf.data[i];
 			write_a_byte(value);
 			read_length--;
@@ -1905,7 +1888,6 @@ void TOWNS_CDROM::reset_device()
 	clear_event(this, event_eot);
 	
 	read_length = 0;
-	read_length_bak = 0;
 
 	media_changed = false;
 
@@ -2266,6 +2248,7 @@ void TOWNS_CDROM::set_subq(void)
 		uint32_t frame;
 		uint32_t msf_abs;
 		uint32_t msf_rel;
+		// ToDo: Process when Foo.sub (for Foo.cue or Foo.ccd), this may be sub-channel data.
 		if(toc_table[track].is_audio) { // OK? (or force ERROR) 20181120 K.O
 			frame = ((cdda_status == CDDA_OFF) || (cdda_status == CDDA_ENDED)) ? cdda_start_frame : cdda_playing_frame;
 			msf_rel = lba_to_msf_alt(frame - toc_table[track].index0);
@@ -2697,7 +2680,8 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 					uint32_t _t = d_dmac->read_signal(SIG_UPD71071_IS_TRANSFERING + 3);
 					if((_t != 0)) {
 						dma_transfer_phase = true;
-						force_register_event(this, EVENT_CDROM_DRQ, 1.0 / 8.0, false, event_drq);
+//						force_register_event(this, EVENT_CDROM_DRQ, 1.0 / 8.0, false, event_drq);
+						force_register_event(this, EVENT_CDROM_DRQ, 1.0 / 4.0, true, event_drq);
 					}
 				}
 			}
@@ -2776,7 +2760,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	11
+#define STATE_VERSION	16
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2818,7 +2802,7 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(dma_intr_mask);
 	state_fio->StateValue(transfer_speed);
 	state_fio->StateValue(read_length);
-	state_fio->StateValue(read_length_bak);
+
 	state_fio->StateValue(next_seek_lba);
 
 	state_fio->StateValue(mcuint_val);
