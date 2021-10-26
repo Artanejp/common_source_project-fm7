@@ -111,6 +111,19 @@ namespace FMTOWNS {
 		uint8_t data[2048];
 	} cd_data_iso_t;
 #pragma pack()
+#pragma pack(1)
+	/*!
+	 * @note 
+	 * @note 20201116 K.O
+	 */
+	typedef union cdimage_buffer_s {
+		uint8_t rawdata[2352]; //!< @note OK?
+		cd_data_mode1_t mode1;
+		cd_data_mode2_t mode2;
+		cd_audio_sector_t audio;
+	} cdimage_buffer_t;
+#pragma pack()
+
 // From Towns Linux : include/linux/towns_cd.h
 enum {
 	MODE_AUDIO = 0,
@@ -152,6 +165,7 @@ enum {
 	CDROM_READ_MODE1 = 1,
 	CDROM_READ_MODE2 = 2,
 	CDROM_READ_RAW   = 3,
+	CDROM_READ_AUDIO = 4,
 	CDROM_READ_NONE = 0
 };
 enum {
@@ -390,11 +404,12 @@ protected:
 	void set_status_extra_toc_data(uint8_t s1, uint8_t s2, uint8_t s3);
 	bool __FASTCALL check_cdda_track_boundary(uint32_t &frame_no);
 	bool seek_relative_frame_in_image(uint32_t frame_no);
-    int prefetch_audio_sectors(int read_secs);
-	void read_cdrom();
-	void read_cdrom_mode1();
-	void read_cdrom_mode2();
-	void read_cdrom_raw();
+    virtual int prefetch_audio_sectors(int sectors);
+	virtual int __FASTCALL dequeue_audio_data(pair16_t& left, pair16_t& right);
+	
+	virtual void read_cdrom();
+	virtual int read_sectors_image(int sectors, uint32_t& transferred_bytes);	
+
 	bool check_notready_and_changed(bool force_int);
 	
 	virtual void execute_command(uint8_t command);
@@ -521,11 +536,6 @@ public:
 	virtual void set_volume(int ch, int decibel_l, int decibel_r);
 	virtual void get_volume(int ch, int& decibel_l, int& decibel_r);
 	virtual bool read_buffer(int sectors);
-	
-	virtual bool read_raw(int sectors);
-	virtual bool read_mode1(int sectors);
-	virtual bool read_mode2(int sectors);
-	virtual bool read_mode1_iso(int sectors);
 
 	// unique functions
 	// Towns specified command
@@ -622,4 +632,5 @@ public:
 	}
 };
 
+	
 }

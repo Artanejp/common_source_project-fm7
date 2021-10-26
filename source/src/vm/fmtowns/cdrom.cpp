@@ -505,16 +505,19 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		break;
 	case CDROM_COMMAND_READ_MODE2: // 01h
 		cdrom_debug_log(_T("CMD READ MODE2(%02X)"), command);
-		read_cdrom_mode2();
+		read_mode = CDROM_READ_MODE2;
+		read_cdrom();
 //		status_not_accept(0, 0xff, 0xff, 0xff);
 		break;
 	case CDROM_COMMAND_READ_MODE1: // 02h
 		cdrom_debug_log(_T("CMD READ MODE1(%02X)"), command);
-		read_cdrom_mode1();
+		read_mode = CDROM_READ_MODE1;
+		read_cdrom();
 		break;
 	case CDROM_COMMAND_READ_RAW: // 03h
 		cdrom_debug_log(_T("CMD READ RAW(%02X)"), command);
-		read_cdrom_raw();
+		read_mode = CDROM_READ_RAW;
+		read_cdrom();
 		break;
 	case CDROM_COMMAND_PLAY_TRACK: // 04h
 		cdrom_debug_log(_T("CMD PLAY TRACK(%02X)"), command);
@@ -805,23 +808,6 @@ void TOWNS_CDROM::read_cdrom()
 	}
 }	
 
-void TOWNS_CDROM::read_cdrom_mode1()
-{
-	read_mode = CDROM_READ_MODE1;
-	read_cdrom();
-}
-
-void TOWNS_CDROM::read_cdrom_mode2()
-{
-	read_mode = CDROM_READ_MODE2;
-	read_cdrom();
-}	
-
-void TOWNS_CDROM::read_cdrom_raw()
-{
-	read_mode = CDROM_READ_RAW;
-	read_cdrom();
-}	
 
 void TOWNS_CDROM::set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
 {
@@ -1270,7 +1256,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		event_cdda_delay_play = -1;
 		access = true;
 		databuffer->clear();
-		if(prefetch_audio_sectors(1) != 1) {
+		if(prefetch_audio_sectors(2) < 1) {
 			set_cdda_status(CDDA_OFF);
 			set_subq();
 			access = false;
@@ -1414,173 +1400,112 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	}
 }
 
-bool TOWNS_CDROM::read_mode1_iso(int sectors)
+int TOWNS_CDROM::read_sectors_image(int sectors, uint32_t& transferred_bytes)
 {
+
+	cdimage_buffer_t tmpbuf;
+	size_t _read_size;		//!< read size from image file. 
+	size_t _transfer_size;	//!< transfer size to data buffer.
+	size_t _offset = sizeof(cd_data_head_t); //!< Data offset from head of sector.
+
+	uint8_t* startp;
+	uint8_t* datap;
+	
+	transferred_bytes = 0;
+	
+	switch(read_mode) {
+	case CDROM_READ_MODE1:
+		_transfer_size = 2048;
+		if(is_iso) {
+			_read_size = 2048;
+			startp = &(tmpbuf.mode1.data[0]);
+		} else {
+			_read_size = 2352;
+			startp = (uint8_t*)(&tmpbuf);
+		}
+		datap = &(tmpbuf.mode1.data[0]);
+		break;
+	case CDROM_READ_MODE2:
+		_transfer_size = 2336;
+		if(is_iso) {
+			_read_size = 2336;
+			startp = &(tmpbuf.mode2.data[0]);
+		} else {
+			_read_size = 2352;
+			startp = (uint8_t*)(&tmpbuf);
+		}
+		datap = &(tmpbuf.mode2.data[0]);
+		break;
+	case CDROM_READ_RAW:
+	case CDROM_READ_AUDIO:
+		_offset = 0;
+		_read_size = 2352;
+		_transfer_size = 2352;
+		startp = (uint8_t*)(&tmpbuf);
+		datap = (uint8_t*)(&tmpbuf);
+		break;
+	default:
+		// ToDo: Implement for unexpected type.
+		return -1; // None sectors.
+		break;
+	}
+	int seccount = 0;
 	while(sectors > 0) {
-		cd_data_iso_t tmpbuf;
 		memset(&tmpbuf, 0x00, sizeof(tmpbuf));
-		int tmp_length = sizeof(cd_data_iso_t);
 		if(!(seek_relative_frame_in_image(read_sector))) {
 			status_illegal_lba(0, 0x00, 0x00, 0x00);			
-			return false;
+			return seccount;
 		}
-		if(fio_img->Fread(&tmpbuf, tmp_length, 1) != 1) {
+		// Phase 1: Check whether buffer remains.
+		// Phase 2: Read data from image.
+		if(!(fio_img->IsOpened())) {
+			status_illegal_lba(0, 0x00, 0x00, 0x00); //<! OK? Maybe read error.			
+			return seccount;
+		}
+		// Read data from Image, maybe includes (or doed not include) header and footer.
+		if(fio_img->Fread(startp, _read_size, 1) != 1) {
 			status_illegal_lba(0, 0x00, 0x00, 0x00);			
-			return false;
+			return seccount;
 		}
-		for(int i = 0; i < sizeof(tmpbuf.data); i++) {
-			if(read_length < 0) {
-				// ToDo: Change to sector error.
-				status_illegal_lba(0, 0x00, 0x00, 0x00);			
-				return false;
+		// ToDo: Make pseudo header for ISO images.
+		// ToDo: Read or Make sub-channel field.
+		
+		// Phase 3: Transfer main data to buffers.
+		__UNLIKELY_IF(read_length < _transfer_size) {
+			// Buffer over flow
+			status_illegal_lba(0, 0x00, 0x00, 0x00);			
+			return seccount;
+		}
+		uint32_t tbytes_bak = transferred_bytes;
+		int rlen_bak = read_length;
+
+		for(int i = 0; i < _transfer_size; i++) {
+			__UNLIKELY_IF(databuffer->full()) {
+				// Buffer over flow
+				// ToDo: Re-Scheduling data transfer.
+				access = false;
+				transferred_bytes = tbytes_bak;
+				read_length = rlen_bak;
+				int _dummy;
+				for(int j = 0; j < i; j++) {
+					_dummy = databuffer->read();
+				}
+				if(!(seek_relative_frame_in_image(read_sector))) {
+					// Try to restore before sector.
+					status_illegal_lba(0, 0x00, 0x00, 0x00);			
+				}
+				return seccount;
 			}
-			if(databuffer->full()) {
-				// ToDo: Change to buffer overflow
-				status_illegal_lba(0, 0x00, 0x00, 0x00);			
-				return false;
-			}
-			uint8_t value = tmpbuf.data[i];
-			write_a_byte(value);
+			write_a_byte(datap[i]);
+			transferred_bytes++;
 			read_length--;
 		}
-		read_sector++;
-		sectors--;
 		access = true;
-	}
-	return true;
-}
-
-bool TOWNS_CDROM::read_mode1(int sectors)
-{
-//	if(!(seek_relative_frame_in_image(read_sector))) {
-//		status_illegal_lba(0, 0x00, 0x00, 0x00);
-//		return false;
-//	}
-	while(sectors > 0) {
-		cd_data_mode1_t tmpbuf;
-		int tmp_length = sizeof(cd_data_mode1_t);
-		memset(&tmpbuf, 0x00, sizeof(tmpbuf));
-		if(!(seek_relative_frame_in_image(read_sector))) {
-			status_illegal_lba(0, 0x00, 0x00, 0x00);
-			return false;
-		}
-		if(fio_img->Fread(&tmpbuf, tmp_length, 1) != 1) {
-			status_illegal_lba(0, 0x00, 0x00, 0x00);			
-			return false;
-		}
-		//! ToDo: Check header address.
-		pair32_t msf;
-		msf.d = lba_to_msf(read_sector + toc_table[current_track].pregap);
-		if((tmpbuf.header.addr_m != msf.b.h2) ||
-		   (tmpbuf.header.addr_s != msf.b.h) ||
-		   (tmpbuf.header.addr_f != msf.b.l)) {
-			out_debug_log(_T("WARNING: Reading from different sector MSF\nEXPECTED=%02X/%02X/%02X\nREAD    =%02X/%02X/%02X"),
-						  tmpbuf.header.addr_m, tmpbuf.header.addr_s, tmpbuf.header.addr_f,
-						  msf.b.h2, msf.b.h, msf.b.l);
-		}
-		for(int i = 0; i < sizeof(tmpbuf.data); i++) {
-			if(read_length < 0) {
-				// ToDo: Change to sector error.
-				status_illegal_lba(0, 0x00, 0x00, 0x00);			
-				return false;
-			}
-			if(databuffer->full()) {
-				// ToDo: Change to buffer overflow
-				status_illegal_lba(0, 0x00, 0x00, 0x00);			
-				return false;
-			}
-			uint8_t value = tmpbuf.data[i];
-			write_a_byte(value);
-			read_length--;
-		}
-		read_sector++;
+		read_sector++; // ToDo: Check boundary.
+		seccount++;
 		sectors--;
-		access = true;
 	}
-	return true;
-}
-
-bool TOWNS_CDROM::read_mode2(int sectors)
-{
-	while(sectors > 0) {
-		cd_data_mode2_t tmpbuf;
-		memset(&tmpbuf, 0x00, sizeof(tmpbuf));
-		int tmp_length = sizeof(cd_data_mode2_t);
-		if(!(seek_relative_frame_in_image(read_sector))) {
-			status_illegal_lba(0, 0x00, 0x00, 0x00);
-			return false;
-		}
-		if(fio_img->Fread(&tmpbuf, tmp_length, 1) != 1) {
-			status_illegal_lba(0, 0x00, 0x00, 0x00);			
-			return false;
-		}
-		//! ToDo: Check header address.
-		pair32_t msf;
-		msf.d = lba_to_msf(read_sector + toc_table[current_track].pregap);
-		if((tmpbuf.header.addr_m != msf.b.h2) ||
-		   (tmpbuf.header.addr_s != msf.b.h) ||
-		   (tmpbuf.header.addr_f != msf.b.l)) {
-			out_debug_log(_T("WARNING: Reading from different sector MSF\nEXPECTED=%02X/%02X/%02X\nREAD    =%02X/%02X/%02X"),
-						  tmpbuf.header.addr_m, tmpbuf.header.addr_s, tmpbuf.header.addr_f,
-						  msf.b.h2, msf.b.h, msf.b.l);
-		}
-		for(int i = 0; i < sizeof(tmpbuf.data); i++) {
-			if(read_length < 0) {
-				// ToDo: Change to sector error.
-				status_illegal_lba(0, 0x00, 0x00, 0x00);			
-				return false;
-			}
-			if(databuffer->full()) {
-				// ToDo: Change to buffer overflow
-				status_illegal_lba(0, 0x00, 0x00, 0x00);			
-				return false;
-			}
-			uint8_t value = tmpbuf.data[i];
-			write_a_byte(value);
-			read_length--;
-		}
-		read_sector++;
-		sectors--;
-		access = true;
-	}
-	return true;
-}
-
-
-bool TOWNS_CDROM::read_raw(int sectors)
-{
-	while(sectors > 0) {
-		uint8_t tmpbuf[2352];
-		int tmp_length = 2352;
-		memset(tmpbuf, 0x00, sizeof(tmpbuf));
-		if(!(seek_relative_frame_in_image(read_sector))) {
-			status_illegal_lba(0, 0x00, 0x00, 0x00);
-			return false;
-		}
-		if(fio_img->Fread(tmpbuf, tmp_length, 1) != 1) {
-			status_illegal_lba(0, 0x00, 0x00, 0x00);			
-			return false;
-		}
-		for(int i = 0; i < 2352; i++) {
-			if(read_length < 0) {
-				// ToDo: Change to sector error.
-				status_illegal_lba(0, 0x00, 0x00, 0x00);			
-				return false;
-			}
-			if(databuffer->full()) {
-				// ToDo: Change to buffer overflow
-				status_illegal_lba(0, 0x00, 0x00, 0x00);			
-				return false;
-			}
-			uint8_t value = tmpbuf[i];
-			write_a_byte(value);
-			read_length--;
-		}
-		read_sector++;
-		sectors--;
-		access = true;
-	}
-	return true;
+	return seccount; // OK.
 }
 
 bool TOWNS_CDROM::read_buffer(int sectors)
@@ -1593,6 +1518,16 @@ bool TOWNS_CDROM::read_buffer(int sectors)
 		status_media_changed(false);
 		return false;
 	}
+#if 1
+	uint32_t nbytes; // transferred_bytes
+	int rsectors = read_sectors_image(sectors, nbytes);
+	if(rsectors != sectors) {
+		// ToDo: Partly reading error.
+		return false;
+	} else {
+		return true;
+	}
+#else
 	if(is_iso) return read_mode1_iso(sectors);
 	switch(read_mode) {
 	case CDROM_READ_MODE1:
@@ -1609,11 +1544,30 @@ bool TOWNS_CDROM::read_buffer(int sectors)
 		break;
 	}
 	return false;
+#endif
+}
+
+int TOWNS_CDROM::dequeue_audio_data(pair16_t& left, pair16_t& right)
+{
+	uint8_t data[4];
+	if(databuffer->count() < 4) return 0;
+	
+	for(int i = 0; i < 4; i++) {
+		data[i] = (uint8_t)(databuffer->read() & 0xff);
+	}
+	__UNLIKELY_IF(config.swap_audio_byteorder[0]) {
+		left.read_2bytes_be_from(&(data[0]));
+		right.read_2bytes_be_from(&(data[2]));
+	} else {
+		left.read_2bytes_le_from(&(data[0]));
+		right.read_2bytes_le_from(&(data[2]));
+	}
+	return 4;
 }
 
 void TOWNS_CDROM::read_a_cdda_sample()
 {
-	if(event_cdda_delay_play > -1) {
+	__UNLIKELY_IF(event_cdda_delay_play > -1) {
 		// Post process
 		if(((cdda_buffer_ptr % 2352) == 0) && (cdda_status == CDDA_PLAYING)) {
 			set_subq();
@@ -1623,25 +1577,23 @@ void TOWNS_CDROM::read_a_cdda_sample()
 	}
 	// read 16bit 2ch samples in the cd-da buffer, called 44100 times/sec
 	pair16_t sample_l, sample_r;
-	if(databuffer->count() >= 4) {
-		sample_l.b.l = databuffer->read();
-		sample_l.b.h = databuffer->read();
-		sample_r.b.l = databuffer->read();
-		sample_r.b.h = databuffer->read();
-		cdda_sample_l = sample_l.sw;
-		cdda_sample_r = sample_r.sw;
-	} else {
-		return;
+	int rlen = dequeue_audio_data(sample_l, sample_r);
+	__UNLIKELY_IF(rlen != 4) {
+		// May recover buffer.
+		if(rlen <= 0) return; // None dequeued.
+		// ToDo: Recover queue.
+		return; // 
 	}
-
+	cdda_sample_l = sample_l.sw;
+	cdda_sample_r = sample_r.sw;
 	cdda_buffer_ptr = cdda_buffer_ptr + 4;
 	bool force_seek = false;
-	if((cdda_buffer_ptr % 2352) == 0) {
+	__UNLIKELY_IF((cdda_buffer_ptr % 2352) == 0) {
 		// one frame finished
 		cdda_playing_frame++;
 		cdda_buffer_ptr = 0;
 		
-		if(cdda_playing_frame >= cdda_end_frame) {
+		__UNLIKELY_IF(cdda_playing_frame >= cdda_end_frame) {
 			if(cdda_repeat_count < 0) {
 				// Infinity Loop (from Towns Linux v2.2.26)
 				cdda_playing_frame = cdda_start_frame;
@@ -1666,20 +1618,20 @@ void TOWNS_CDROM::read_a_cdda_sample()
 			}
 		}
 		check_cdda_track_boundary(cdda_loading_frame);
-		if(force_seek) {
+		__UNLIKELY_IF(force_seek) {
 			seek_relative_frame_in_image(cdda_loading_frame);
 		}
-		cdda_playing_frame = cdda_loading_frame;
-		if(databuffer->count() <= physical_block_size()) {
+		//cdda_playing_frame = cdda_loading_frame;
+		if(databuffer->count() <= sizeof(cd_audio_sector_t)) {
 			// Kick prefetch
-			if(event_next_sector < 0) {
+			//(event_next_sector < 0) {
 				// TMP: prefetch 2 sectors
 				prefetch_audio_sectors(2);
-			}
+			//
 		}
 	}
 	// Post process
-	if(((cdda_buffer_ptr % 2352) == 0) && (cdda_status == CDDA_PLAYING)) {
+	__UNLIKELY_IF(((cdda_buffer_ptr % 2352) == 0) && (cdda_status == CDDA_PLAYING)) {
 		set_subq();
 	}
 }
@@ -1701,16 +1653,27 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 	uint8_t tmpbuf[sectors * 2448 + 8];
 	int n_sectors = 0;
 	int m_sectors = 0;
-	bool last_read = false;
+	bool last_read;
+	if(cdda_loading_frame >= cdda_end_frame) {
+		return 0; // OK?
+	}
+	if(check_cdda_track_boundary(cdda_loading_frame)) {
+		return 0;
+	}
+	
+	read_length = sectors * sizeof(cd_audio_sector_t); // Hack.
 	while(sectors > 0) {
 		n_sectors = 0;
+		read_sector = cdda_loading_frame;
+		uint32_t lframe = cdda_loading_frame;
+		last_read = false;
 		for(int i = 0; i < sectors; i++) {
-			cdda_loading_frame++;
-			if(cdda_loading_frame >= cdda_end_frame) {
+			lframe++;
+			if(lframe >= cdda_end_frame) {
 				last_read = true;
 				break; // OK?
 			}
-			if(check_cdda_track_boundary(cdda_loading_frame)) {
+			if(check_cdda_track_boundary(lframe)) {
 				last_read = true;
 				break; // OK?
 			}
@@ -1718,36 +1681,33 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 		}
 		if(n_sectors >= 1) {
 			//access = true;
-			if(fio_img->Fread(tmpbuf, 2352 * n_sectors * sizeof(uint8_t), 1) != 1) {
-				set_cdda_status(CDDA_OFF);
-				set_subq();
-				access = false;
-				return 0;
-			}
-			int bytes = 0;
-			if(config.swap_audio_byteorder[0]) {
-				int ip = 0;
-				for(int i = 0; i < n_sectors; i++) {
-					uint8_t tn[2352];
-					for(int j = 0; j < 2352; j += 2) {
-						tn[j + 0] = tmpbuf[j + ip + 1];
-						tn[j + 1] = tmpbuf[j + ip + 0];
-					}
-					if(!(write_bytes(tn, 2352))) break;
-					ip += 2352;
-					bytes += 2352;
+			read_mode = CDROM_READ_AUDIO;
+			uint32_t nbytes; // transferred_bytes
+			int rsectors = read_sectors_image(n_sectors, nbytes);
+			cdrom_debug_log(_T("READ AUDIO SECTOR(s) LBA=%d SECTORS=%d -> %d bytes=%d"),
+						  read_sector, n_sectors, rsectors, nbytes);
+			if(rsectors < n_sectors) {
+				if((rsectors <= 0) && (m_sectors <= 0)) {
+					// Error
+					set_cdda_status(CDDA_OFF);
+					set_subq();
+					access = false;
+					return m_sectors; // OK?
+				}
+				if(rsectors <= 0) {
+					// Expected to next frame.
+					access = false;
+					set_subq();
+					return m_sectors;
+					//n_sectors = 0;
+				} else {
+					// 0 < read_sectors < n_sectors
+					n_sectors = rsectors;
 				}
 			} else {
-				int ip = 0;
-				for(int i = 0; i < n_sectors; i++) {
-					if(!(write_bytes(&(tmpbuf[ip]), 2352))) break;
-					ip += 2352;
-					bytes += 2352;
-				}
+				// ToDo: Read too many audio buffer.
 			}
-			if(bytes < (2352 * n_sectors)) {
-				return (bytes / 2352);
-			}
+			cdda_loading_frame += n_sectors;
 		}
 		m_sectors += n_sectors;
 		if(last_read) {
