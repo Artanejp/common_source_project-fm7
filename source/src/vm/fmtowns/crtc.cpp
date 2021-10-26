@@ -1025,56 +1025,62 @@ __DECL_VECTORIZED_LOOP
 	__LIKELY_IF(k >= width) return true;
 	
 	__UNLIKELY_IF((pwidth & 7) != 0) {
+
 __DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 8; i++) {
+			pbuf[i] = 0x8000;
+		}
+		
 		for(int i = 0; i < rwidth; i++) {
 			ptmp16.read_2bytes_le_from(p);
 			pbuf[i] = ptmp16.w;
 			p += 2;
 		}
+
 __DECL_VECTORIZED_LOOP
-		for(int i = 0; i < rwidth; i++) {
+		for(int i = 0; i < 8; i++) {
 			rbuf[i] = pbuf[i];
 			gbuf[i] = pbuf[i];
 			bbuf[i] = pbuf[i];
 		}			
+
 __DECL_VECTORIZED_LOOP
-		for(int i = 0; i < rwidth; i++) {
+		for(int i = 0; i < 8; i++) {
 			rbuf[i] = (rbuf[i] >> 5) & 0x1f;
 			gbuf[i] = (gbuf[i] >> 10) & 0x1f;
 			bbuf[i] = bbuf[i] & 0x1f;
 		}
+
 __DECL_VECTORIZED_LOOP
-		for(int i = 0; i < rwidth; i++) {
+		for(int i = 0; i < 8; i++) {
 			rbuf[i] <<= 3;
 			gbuf[i] <<= 3;
 			bbuf[i] <<= 3;
 		}
 		__UNLIKELY_IF(do_alpha) {
 __DECL_VECTORIZED_LOOP
-			for(int i = 0; i < rwidth; i++) {
+			for(int i = 0; i < 8; i++) {
 				a2buf[i] = (pbuf[i] & 0x8000) ? 0 : 255;
 			}
 __DECL_VECTORIZED_LOOP
-			for(int i = 0; i < rwidth; i++) {
+			for(int i = 0; i < 8; i++) {
 				sbuf[i] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], a2buf[i]);
 			}
 		} else {
 __DECL_VECTORIZED_LOOP
-			for(int i = 0; i < rwidth; i++) {
+			for(int i = 0; i < 8; i++) {
 				abuf[i] = (pbuf[i] & 0x8000) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
 			}
 __DECL_VECTORIZED_LOOP
-			for(int i = 0; i < rwidth; i++) {
+			for(int i = 0; i < 8; i++) {
 				sbuf[i] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], 255);
 			}
 		}			
 		__UNLIKELY_IF(magx == 1) {
-__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < rwidth; i++) {
 				*q++ = sbuf[i];
 			}
 			__LIKELY_IF(r2 != nullptr) {
-__DECL_VECTORIZED_LOOP
 				for(int i = 0; i < rwidth; i++) {
 					*r2++ = abuf[i];
 				}
@@ -1082,7 +1088,6 @@ __DECL_VECTORIZED_LOOP
 			k += 8;
 			__UNLIKELY_IF(k >= width) return true;
 		} else if(magx == 2) {
-__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < rwidth; i++) {
 				q[0] = sbuf[i];
 				q[1] = sbuf[i];
@@ -1098,7 +1103,6 @@ __DECL_VECTORIZED_LOOP
 			k += 16;
 			__UNLIKELY_IF(k >= width) return true;
 		} else {
-__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < rwidth; i++) {
 				for(int j = 0; j < magx; j++) {
 					*q++ = sbuf[i];
@@ -1435,7 +1439,6 @@ __DECL_VECTORIZED_LOOP
 				q += 64;
 				break;
 			default:
-__DECL_VECTORIZED_LOOP
 				for(int i = 0; i < 16; i++) {
 					for(int j = 0; j < magx; j++) {
 						*q++ = sbuf[i];
@@ -1446,7 +1449,6 @@ __DECL_VECTORIZED_LOOP
 				break;
 			}
 		} else {
-__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 16; i++) {
 				for(int j = 0; j < magx; j++) {
 					*q++ = sbuf[i];
@@ -1484,7 +1486,6 @@ __DECL_VECTORIZED_LOOP
 					r2 += 64;
 					break;
 				default:
-__DECL_VECTORIZED_LOOP
 					for(int i = 0; i < 16; i++) {
 						for(int j = 0; j < magx; j++) {
 							*r2++ = abuf[i];
@@ -1495,7 +1496,6 @@ __DECL_VECTORIZED_LOOP
 					break;
 				}
 			} else {
-__DECL_VECTORIZED_LOOP
 				for(int i = 0; i < 16; i++) {
 					for(int j = 0; j < magx; j++) {
 						*r2++ = abuf[i];
