@@ -2136,10 +2136,23 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 			end_tmp = toc_table[track + 1].index0 - 1;
 		}			
 		if(cdda_status == CDDA_PLAYING) {
+			int track_tmp_s = get_track_noop(start_tmp);
+			int track_tmp_e = get_track_noop(end_tmp);
 			if((start_tmp == cdda_start_frame) && (end_tmp == cdda_end_frame)) {
 				// Dummy
 				set_status_cddareply(true, 1, TOWNS_CD_STATUS_ACCEPT, 0, 0x00, 0x00);
 				return;
+			}
+			// Workaround for Puyo Puyo, Interval stage.
+			if((track_tmp_s != current_track) || (track_tmp_e != current_track)) {
+				if(cdda_status == CDDA_PLAYING) {
+					set_cdda_status(CDDA_OFF);
+				}
+				if(!(toc_table[track_tmp_s].is_audio)) {
+					// If target LBA is not CDDA, reject command.
+					set_status_cddareply(true, 1, TOWNS_CD_STATUS_ACCEPT, 0, 0x00, 0x00);
+					return;
+				}
 			}
 		}
 		cdda_start_frame = start_tmp;
@@ -2147,6 +2160,9 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 		
 		track = get_track(cdda_start_frame);
 		if(!(toc_table[track].is_audio)) {
+			if(cdda_status == CDDA_PLAYING) {
+				set_cdda_status(CDDA_OFF);
+			}
 			status_hardware_error(false); // OK?
 //			status_not_accept(0, 0x0, 0x00, 0x00);
 			return;
@@ -2170,9 +2186,8 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 					  is_repeat, repeat_count);
 		double usec = get_seek_time(cdda_playing_frame);
 		if(usec < 10.0) usec = 10.0;
-		set_cdda_status(CDDA_PLAYING);
+
 		force_register_event(this, EVENT_CDDA_DELAY_PLAY, usec, false, event_cdda_delay_play);
-//		register_event(this, EVENT_CDDA_DELAY_PLAY, 100.0, false, &event_cdda_delay_play);
 	}
 	set_subq(); // First
 	/*!
