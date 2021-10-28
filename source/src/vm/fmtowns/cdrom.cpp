@@ -673,7 +673,7 @@ void TOWNS_CDROM::set_status_extra(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s
 	status_queue->write(s1);
 	status_queue->write(s2);
 	status_queue->write(s3);
-	//cdrom_debug_log(_T("SET EXTRA STATUS %02x: %02x %02x %02x %02x EXTRA COUNT=%d"), latest_command, s0, s1, s2, s3, extra_status);
+	cdrom_debug_log(_T("SET EXTRA STATUS %02x: %02x %02x %02x %02x EXTRA COUNT=%d"), latest_command, s0, s1, s2, s3, extra_status);
 	set_delay_ready();
 }
 
@@ -811,6 +811,11 @@ void TOWNS_CDROM::read_cdrom()
 
 void TOWNS_CDROM::set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
 {
+	cdrom_debug_log(_T("SET STATUS: %02X %02X %02X %02X, EXTRA=%d REQ_STATUS=%s"),
+					s0, s1, s2, s3,
+					extra,
+					(_req_status) ? _T("Yes"): _T("No")
+		);
 	status_queue->clear();
 	extra_status = 0;
 	if(_req_status) {
@@ -827,6 +832,11 @@ void TOWNS_CDROM::set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1
 
 void TOWNS_CDROM::set_status_read_done(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
 {
+	cdrom_debug_log(_T("SET STATUS(READ DONE): %02X %02X %02X %02X, EXTRA=%d REQ_STATUS=%s"),
+					s0, s1, s2, s3,
+					extra,
+					(_req_status) ? _T("Yes"): _T("No")
+		);
 	status_queue->clear();
 	extra_status = 0;
 //	if(_req_status) {
@@ -844,6 +854,11 @@ void TOWNS_CDROM::set_status_read_done(bool _req_status, int extra, uint8_t s0, 
 
 void TOWNS_CDROM::set_status_cddareply(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
 {
+	cdrom_debug_log(_T("SET STATUS(CDDA REPLY): %02X %02X %02X %02X, EXTRA=%d REQ_STATUS=%s"),
+					s0, s1, s2, s3,
+					extra,
+					(_req_status) ? _T("Yes"): _T("No")
+		);
 	status_queue->clear();
 	extra_status = 0;
 	if(_req_status) {
@@ -858,6 +873,11 @@ void TOWNS_CDROM::set_status_cddareply(bool _req_status, int extra, uint8_t s0, 
 
 void TOWNS_CDROM::set_status_immediate(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
 {
+	cdrom_debug_log(_T("SET STATUS(IMMEDIATE): %02X %02X %02X %02X, EXTRA=%d REQ_STATUS=%s"),
+					s0, s1, s2, s3,
+					extra,
+					(_req_status) ? _T("Yes"): _T("No")
+		);
 	status_queue->clear();
 	extra_status = 0;
 	if(_req_status) {
