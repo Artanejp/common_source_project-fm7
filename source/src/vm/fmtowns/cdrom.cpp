@@ -243,9 +243,11 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 		clear_event(this, event_next_sector);
 		clear_event(this, event_seek_completed);
 		status_read_done(false);
-		cdrom_debug_log(_T("EOT(%s/DMA)"), (by_signal) ? by_dma : by_event);
+		//cdrom_debug_log(_T("EOT(%s/DMA)"), (by_signal) ? by_dma : by_event);
+		out_debug_log(_T("EOT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 	} else {
-		cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
+		//cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
+		out_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 		// TRY: Register after EOT. 20201123 K.O
 //		status_seek = true;
 //		register_event(this, EVENT_CDROM_SEEK_COMPLETED,
@@ -2622,6 +2624,7 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 	 * 04C6h : Transfer control register.
 	 */
 	w_regs[addr & 0x0f] = data;
+	out_debug_log(_T("OUT8 %04X,%02X"), addr & 0xffff, data & 0xff);
 	switch(addr & 0x0f) {
 	case 0x00: // Master control register
 		//cdrom_debug_log(_T("PORT 04C0h <- %02X"), data);
@@ -2685,7 +2688,8 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 				pio_transfer_phase = true;
 			}
 		}
-		cdrom_debug_log(_T("SET TRANSFER MODE to %02X"), data);
+		out_debug_log(_T("SET TRANSFER MODE to %02X"), data);
+//		cdrom_debug_log(_T("SET TRANSFER MODE to %02X"), data);
 //		}
 		break;
 	}

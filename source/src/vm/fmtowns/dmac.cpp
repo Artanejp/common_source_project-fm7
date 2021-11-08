@@ -25,6 +25,7 @@ void TOWNS_DMAC::reset()
 void TOWNS_DMAC::write_io16(uint32_t addr, uint32_t data)
 {
 	pair32_t _d, _bd;
+	out_debug_log(_T("OUT16 %04X,%04X"), addr & 0xffff, data & 0xffff);
 //	if(b16 != 0) {
 		switch(addr & 0x0f) {
 		case 0x02:
@@ -84,6 +85,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 {
 //	if((addr & 0x0f) == 0x0c) out_debug_log("WRITE REG: %08X %08X", addr, data);
 //	out_debug_log("WRITE REG: %04X %02X", addr, data);
+	out_debug_log(_T("OUT8 %04X,%02X"), addr & 0xffff, data & 0xff);
 	uint naddr;
 	pair32_t _d;
 	pair32_t _bd;
