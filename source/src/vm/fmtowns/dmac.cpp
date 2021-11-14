@@ -25,7 +25,7 @@ void TOWNS_DMAC::reset()
 void TOWNS_DMAC::write_io16(uint32_t addr, uint32_t data)
 {
 	pair32_t _d, _bd;
-	out_debug_log(_T("OUT16 %04X,%04X"), addr & 0xffff, data & 0xffff);
+//	out_debug_log(_T("OUT16 %04X,%04X"), addr & 0xffff, data & 0xffff);
 //	if(b16 != 0) {
 		switch(addr & 0x0f) {
 		case 0x02:
@@ -62,12 +62,24 @@ void TOWNS_DMAC::write_io16(uint32_t addr, uint32_t data)
 			break;
 		case 0x08:
 		case 0x09:
+			if((data & 0x04) != (cmd & 0x04)) {
+				if((data & 0x04) != 0) {
+					out_debug_log(_T("START TRANSFER:CH=%d CMD=%04X -> %04X AREG=%08X BAREG=%08X CREG=%04X BCREG=%04X"),
+								  selch,
+								  cmd, data & 0xffff,
+								  dma[selch].areg, dma[selch].bareg,
+								  dma[selch].creg, dma[selch].bcreg
+						);
+				} else {
+					out_debug_log(_T("CLEAR TRANSFER:CH=%d CMD=%04X -> %04X AREG=%08X BAREG=%08X CREG=%04X BCREG=%04X"),
+								  selch,
+								  cmd, data & 0xffff,
+								  dma[selch].areg, dma[selch].bareg,
+								  dma[selch].creg, dma[selch].bcreg
+						);
+				}
+			}
 			cmd = data & 0xffff;
-//			if(((data & 0x04) != (cmd & 0x04)) && (selch == 3)) {
-//				if((data & 0x04) == 0) {
-//					out_debug_log(_T("TRANSFER: CMD=%04X -> %04X CH=%d\nADDR=%08X"), cmd, (cmd & 0xff00) | (data & 0xff), selch, dma[selch].areg);
-//				}
-//			}
 			break;
 		default:
 //			write_io8(addr & 0x0e, data);
@@ -85,7 +97,6 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 {
 //	if((addr & 0x0f) == 0x0c) out_debug_log("WRITE REG: %08X %08X", addr, data);
 //	out_debug_log("WRITE REG: %04X %02X", addr, data);
-	out_debug_log(_T("OUT8 %04X,%02X"), addr & 0xffff, data & 0xff);
 	uint naddr;
 	pair32_t _d;
 	pair32_t _bd;
@@ -114,10 +125,23 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		return;
 		break;
 	case 0x08:
-//		if(((data & 0x04) != (cmd & 0x04)) && (selch == 3)) {
-//			if((data & 0x04) != 0) break;
-//			out_debug_log(_T("TRANSFER: CMD=%04X -> %04X CH=%d\nADDR=%08X"), cmd, (cmd & 0xff00) | (data & 0xff), selch, dma[selch].areg);
-//		}
+		if((data & 0x04) != (cmd & 0x04)) {
+			if((data & 0x04) != 0) {
+				out_debug_log(_T("START TRANSFER:CH=%d CMD=%04X -> %04X AREG=%08X BAREG=%08X CREG=%04X BCREG=%04X"),
+							  selch,
+							  cmd, (cmd & 0xff00) | (data & 0x00ff),
+							  dma[selch].areg, dma[selch].bareg,
+							  dma[selch].creg, dma[selch].bcreg
+					);
+			} else {
+				out_debug_log(_T("CLEAR TRANSFER:CH=%d CMD=%04X -> %04X  AREG=%08X BAREG=%08X CREG=%04X BCREG=%04X"),
+							  selch,
+							  cmd, (cmd & 0xff00) | (data & 0x00ff), 
+							  dma[selch].areg, dma[selch].bareg,
+							  dma[selch].creg, dma[selch].bcreg
+					);
+			}
+		}
 		break;
 	case 0x0a:
 //		if((selch == 3)) {
@@ -294,17 +318,23 @@ void TOWNS_DMAC::do_dma_inc_dec_ptr_16bit(int c)
 
 bool TOWNS_DMAC::do_dma_epilogue(int c)
 {
-	if(dma[c].creg == 0) {  // OK?
+	if((dma[c].creg == 0) || ((dma[c].endreq) && !(dma[c].end) && ((dma[c].mode & 0xc0) != 0x40))) {  // OK?
 		// TC
-//		if(c == 3) {
-//			out_debug_log(_T("TRANSFER COMPLETED CH.3: AREG=%08X BAREG=%08X CREG=%08X BCREG=%08X"),
-//						  (dma[c].areg & 0xffffffff) ,
-//						  (dma[c].bareg & 0xffffffff) ,
-//						  dma[c].creg & 0x00ffffff,
-//						  dma[c].bcreg & 0x00ffffff
-//				);
-//						  
-//		}
+		bool is_tc = false;
+		if((dma[c].end) || (dma[c].endreq)) is_tc = true;
+		// TC
+		if(dma[c].bcreg < (dma[c].creg - 1)) {
+			is_tc = true;
+		}
+		if(is_tc) {
+			out_debug_log(_T("TRANSFER COMPLETED:CH=%d  AREG=%08X BAREG=%08X CREG=%08X BCREG=%08X"),
+						  c,
+						  (dma[c].areg & 0xffffffff) ,
+						  (dma[c].bareg & 0xffffffff) ,
+						  dma[c].creg & 0x00ffffff,
+						  dma[c].bcreg & 0x00ffffff
+				);
+		}
 	}
 	return UPD71071::do_dma_epilogue(c);
 }
