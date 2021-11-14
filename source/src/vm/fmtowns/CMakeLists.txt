@@ -26,10 +26,10 @@ set(VM_FMTOWNS_DEV_SRCS
 	serialrom.cpp
 	dictionary.cpp
 	
-	cdrom.cpp
-	cdrom_cue_parser.cpp
-	cdrom_ccd_parser.cpp
-	cdrom_iso_parser.cpp
+	cdrom/cdrom.cpp
+	cdrom/cdrom_cue_parser.cpp
+	cdrom/cdrom_ccd_parser.cpp
+	cdrom/cdrom_iso_parser.cpp
 	
 	crtc.cpp
 	towns_memory.cpp

@@ -7,8 +7,8 @@
 	[FM-Towns CD-ROM : ISO PARSER]
 */
 
-#include "./cdrom.h"
-#include "../../fileio.h"
+#include "../cdrom.h"
+#include "../../../fileio.h"
 
 #include <string>
 #include <map>
