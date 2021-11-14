@@ -315,8 +315,12 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_TOWNS_CDROM_DMAACK:
 		if(((data & mask) != 0) && (dma_transfer_phase)) {
 			//force_register_event(this, EVENT_CDROM_DRQ, 1.0 / 8.0, false, event_drq);
-			if((read_length <= 0) && (databuffer->empty())) {
+			if(/* (read_length <= 0) && */(databuffer->empty())) {
 				clear_event(this, event_drq);
+				if((read_length <= 0)) { // ToDo: With prefetch.
+					//force_register_event(this, EVENT_CDROM_EOT, 1.0, false, event_eot);
+					do_dma_eot(false);
+				}
 			}
 		}
 		break;
@@ -1364,6 +1368,9 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			/// 20200926 K.O
 			stat = read_buffer(1);
 			if((stat)) {
+				if((event_drq < 0) && (dma_transfer_phase)) {
+					register_event(this, EVENT_CDROM_DRQ, 1.0 / 4.0, true, &event_drq);
+				}
 				register_event(this, EVENT_CDROM_NEXT_SECTOR,
 							   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
 							   ((double)(physical_block_size())) * 
@@ -1402,7 +1409,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		if(dma_transfer_phase) {
 			if(!(databuffer->empty())) {
 				write_signals(&outputs_drq, 0xffffffff);
-			} else if(read_length <= 0){
+			} else if(read_length <= 0){ // READ_LENGTH <= 0 && databuffer->empty)()
 				clear_event(this, event_drq);
 			}
 			// Retry DRQ if buffert empty and remains sectors. 
@@ -1473,6 +1480,7 @@ int TOWNS_CDROM::read_sectors_image(int sectors, uint32_t& transferred_bytes)
 	}
 	int seccount = 0;
 	while(sectors > 0) {
+		out_debug_log(_T("TRY TO READ SECTOR:LBA=%d"), read_sector);
 		memset(&tmpbuf, 0x00, sizeof(tmpbuf));
 		if(!(seek_relative_frame_in_image(read_sector))) {
 			status_illegal_lba(0, 0x00, 0x00, 0x00);			
@@ -2624,7 +2632,7 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 	 * 04C6h : Transfer control register.
 	 */
 	w_regs[addr & 0x0f] = data;
-	out_debug_log(_T("OUT8 %04X,%02X"), addr & 0xffff, data & 0xff);
+//	out_debug_log(_T("OUT8 %04X,%02X"), addr & 0xffff, data & 0xff);
 	switch(addr & 0x0f) {
 	case 0x00: // Master control register
 		//cdrom_debug_log(_T("PORT 04C0h <- %02X"), data);
@@ -2674,6 +2682,7 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 		pio_transfer = ((data & 0x08) != 0) ? true : false;
 		if(dma_transfer) {
 			if(!(dma_transfer_phase)) {
+#if 0				
 				if(d_dmac != NULL) {
 					uint32_t _t = d_dmac->read_signal(SIG_UPD71071_IS_TRANSFERING + 3);
 					if((_t != 0)) {
@@ -2682,13 +2691,19 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 						force_register_event(this, EVENT_CDROM_DRQ, 1.0 / 4.0, true, event_drq);
 					}
 				}
+#else
+				dma_transfer_phase = true;
+				if((event_drq < 0) && !(databuffer->empty())) {
+					register_event(this, EVENT_CDROM_DRQ, 1.0 / 4.0, true, &event_drq);
+				}
+#endif
 			}
 		} else if(pio_transfer) {
 			if(!(pio_transfer_phase)) {
 				pio_transfer_phase = true;
 			}
 		}
-		out_debug_log(_T("SET TRANSFER MODE to %02X"), data);
+//		out_debug_log(_T("SET TRANSFER MODE to %02X"), data);
 //		cdrom_debug_log(_T("SET TRANSFER MODE to %02X"), data);
 //		}
 		break;
