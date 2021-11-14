@@ -200,10 +200,10 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 		dma[selch].bareg = _bd.d;
 		break;
 	case 0x08:
-		cmd = (cmd & 0xff00) | data;
+		cmd = (cmd & 0xff00) | (data & 0x00ff);
 		break;
 	case 0x09:
-		cmd = (cmd & 0xff) | (data << 8);
+		cmd = (cmd & 0xff) | ((data & 0x00ff) << 8);
 		break;
 	case 0x0a:
 		dma[selch].mode = data;
@@ -702,12 +702,13 @@ bool UPD71071::do_dma_per_channel(int c)
 				}
 				do_dma_inc_dec_ptr_8bit(c);
 			}
+			set_dma_ack(c);
 			if(do_dma_epilogue(c)) {
 //				//break;
-				set_dma_ack(c);
+//				set_dma_ack(c);
 				return true;
 			}
-			set_dma_ack(c);
+//			set_dma_ack(c);
 		}
 	}
 	return false;
