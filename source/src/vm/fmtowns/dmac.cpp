@@ -63,7 +63,7 @@ void TOWNS_DMAC::write_io16(uint32_t addr, uint32_t data)
 		case 0x08:
 		case 0x09:
 			if((data & 0x04) != (cmd & 0x04)) {
-				if((data & 0x04) != 0) {
+				if((data & 0x04) == 0) {
 					out_debug_log(_T("START TRANSFER:CH=%d CMD=%04X -> %04X AREG=%08X BAREG=%08X CREG=%04X BCREG=%04X"),
 								  selch,
 								  cmd, data & 0xffff,
@@ -126,7 +126,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x08:
 		if((data & 0x04) != (cmd & 0x04)) {
-			if((data & 0x04) != 0) {
+			if((data & 0x04) == 0) {
 				out_debug_log(_T("START TRANSFER:CH=%d CMD=%04X -> %04X AREG=%08X BAREG=%08X CREG=%04X BCREG=%04X"),
 							  selch,
 							  cmd, (cmd & 0xff00) | (data & 0x00ff),
