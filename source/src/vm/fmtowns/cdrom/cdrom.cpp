@@ -2581,8 +2581,8 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 	case 0x00:
 		val = val | ((mcu_intr)					? 0x80 : 0x00);
 		val = val | ((dma_intr)					? 0x40 : 0x00);
-		val = val | ((pio_transfer_phase)				? 0x20 : 0x00);
-		val = val | ((dma_transfer_phase)				? 0x10 : 0x00); // USING DMAC ch.3
+		val = val | ((pio_transfer_phase)		? 0x20 : 0x00);
+		val = val | ((dma_transfer_phase)		? 0x10 : 0x00); // USING DMAC ch.3
 		val = val | ((has_status)				? 0x02 : 0x00);
 		val = val | ((mcu_ready)				? 0x01 : 0x00);
 //		if((mcu_intr) || (dma_intr)) { 
