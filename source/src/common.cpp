@@ -542,7 +542,7 @@ __DECL_VECTORIZED_LOOP
 		for(int j = 0; j < 8; j++) {
 			tmpd[j] = vt[src[i]].w[j];
 		}
-		tmpdet = (tmpd == 0);
+		tmpdet = (tmpd == (uint16_t)0);
 		
 __DECL_VECTORIZED_LOOP
 		for(int j = 0; j < 8; j++) {
@@ -648,7 +648,12 @@ __DECL_VECTORIZED_LOOP
 			vtmpg[i] = ppg[i];
 		}
 		tmpd = vtmpb | vtmpr | vtmpg;
-		tmpd = tmpd >> shift;
+		__LIKELY_IF(shift >= 0) {
+			tmpd = tmpd >> (uint16_t)shift;
+		} else {
+			tmpd = tmpd << (uint16_t)(-shift);
+		}
+
 		n = (n + 1) & offsetmask;
 
 	__DECL_VECTORIZED_LOOP
@@ -663,9 +668,9 @@ __DECL_VECTORIZED_LOOP
 		__LIKELY_IF(dst2 != nullptr) {
 			if(scan_line) {
 #if defined(_RGB555) || defined(_RGBA565)
-				tmpdd >>= 2;
+				tmpdd >>= (scrntype_t)2;
 #else // 24bit
-				tmpdd >>= 3;
+				tmpdd >>= (scrntype_t)3;
 #endif
 				tmpdd = tmpdd & sline;
 			}
@@ -757,7 +762,11 @@ __DECL_VECTORIZED_LOOP
 			tmpd = tmpd | vr;
 			tmpd = tmpd | vg;
 			tmpd = tmpd | vn;
-			tmpd = tmpd >> shift;
+			__LIKELY_IF(shift >= 0) {
+				tmpd = tmpd >> (uint16_t)shift;
+			} else {
+				tmpd = tmpd << (uint16_t)(-shift);
+			}
 			xn = (xn + 1) & offsetmask;
 
 	__DECL_VECTORIZED_LOOP
@@ -772,9 +781,9 @@ __DECL_VECTORIZED_LOOP
 		}
 	} else {
 #if defined(_RGB555) || defined(_RGBA565)
-		static const int shift_factor = 2;
+		static const scrntype_t shift_factor = 2;
 #else // 24bit
-		static const int shift_factor = 3;
+		static const scrntype_t shift_factor = 3;
 #endif
 		__DECL_ALIGNED(32) std::valarray<scrntype_t> sline(RGBA_COLOR(31, 31, 31, 255), 8);
 		for(uint32_t xx = 0; xx < src->render_width; xx++) {
@@ -793,7 +802,11 @@ __DECL_VECTORIZED_LOOP
 			tmpd = tmpd | vr;
 			tmpd = tmpd | vg;
 			tmpd = tmpd | vn;
-			tmpd = tmpd >> shift;
+			__LIKELY_IF(shift >= 0) {
+				tmpd = tmpd >> (uint16_t)shift;
+			} else {
+				tmpd = tmpd << (uint16_t)(-shift);
+			}
 			xn = (xn + 1) & offsetmask;
 			
 	__DECL_VECTORIZED_LOOP
@@ -882,7 +895,11 @@ __DECL_VECTORIZED_LOOP
 			}
 
 			n = (n + 1) & offsetmask;
-			tmpd = tmpd >> shift;
+			__LIKELY_IF(shift >= 0) {
+				tmpd = tmpd >> (uint16_t)shift;
+			} else {
+				tmpd = tmpd << (uint16_t)(-shift);
+			}
 	__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
 				tmp_dd[i] = palette[tmpd[i]];
@@ -895,9 +912,9 @@ __DECL_VECTORIZED_LOOP
 		}
 	} else {
 #if defined(_RGB555) || defined(_RGBA565)
-		static const int shift_factor = 2;
+		static const scrntype_t shift_factor = 2;
 #else // 24bit
-		static const int shift_factor = 3;
+		static const scrntype_t shift_factor = 3;
 #endif
 		__DECL_ALIGNED(32) std::valarray<scrntype_t> sline(8);
 		sline = (scrntype_t)RGBA_COLOR(31, 31, 31, 255);
@@ -918,8 +935,11 @@ __DECL_VECTORIZED_LOOP
 				tmpd |= tmpr;
 			}
 			n = (n + 1) & offsetmask;
-			tmpd = tmpd >> shift;
-
+			__LIKELY_IF(shift >= 0) {
+				tmpd = tmpd >> (uint16_t)shift;
+			} else {
+				tmpd = tmpd << (uint16_t)(-shift);
+			}
 	__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
 				tmp_dd[i] = palette[tmpd[i]];
@@ -979,7 +999,12 @@ __DECL_VECTORIZED_LOOP
 			__DECL_ALIGNED(16) std::valarray<uint16_t> _bd(bp[i][td[i]].w, 8);
 			dat |= _bd;
 		}
-		dat = dat >> shift;
+		__LIKELY_IF(shift >= 0) {
+			dat = dat >> (uint16_t)shift;
+		} else {
+			dat = dat << (uint16_t)(-shift);
+		}
+
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			dst[i] = (uint8_t)(dat[i]);
@@ -1027,7 +1052,12 @@ __DECL_VECTORIZED_LOOP
 			dat |= _bd;
 		}
 		noffset = (noffset + 1) & offsetmask;
-		dat = dat >> shift;
+		__LIKELY_IF(shift >= 0) {
+			dat = dat >> (uint16_t)shift;
+		} else {
+			dat = dat << (uint16_t)(-shift);
+		}
+
 __DECL_VECTORIZED_LOOP
 		for(int i = 0, j = 0; i < 16; i +=2, j++) {
 			dst[i]     = (uint8_t)(dat[j]);
@@ -1081,7 +1111,11 @@ __DECL_VECTORIZED_LOOP
 		tmpd = bdat;
 		tmpd = tmpd | rdat;
 		tmpd = tmpd | gdat;
-		tmpd = tmpd >> shift;
+		__LIKELY_IF(shift >= 0) {
+			tmpd = tmpd >> (uint16_t)shift;
+		} else {
+			tmpd = tmpd << (uint16_t)(-shift);
+		}
 
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {

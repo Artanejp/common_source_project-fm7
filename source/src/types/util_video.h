@@ -244,7 +244,12 @@ __DECL_VECTORIZED_LOOP
 //	tmpd.v = rvt[r].v;
 	tmpd = tmpd | tmpg;
 	tmpd = tmpd | tmpb;
-	tmpd = tmpd >> shift;
+	__LIKELY_IF(shift >= 0) {
+		tmpd = tmpd >> (uint16_t)shift;
+	} else {
+		tmpd = tmpd << (uint16_t)(-shift);
+	}
+
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		dst[i] = (uint8_t)(tmpd[i]);
@@ -275,7 +280,12 @@ __DECL_VECTORIZED_LOOP
 
 	tmpd = tmpd | tmpg;
 	tmpd = tmpd | tmpb;
-	tmpd = tmpd >> shift;
+	__LIKELY_IF(shift >= 0) {
+		tmpd = tmpd >> (uint16_t)shift;
+	} else {
+		tmpd = tmpd << (uint16_t)(-shift);
+	}
+
 __DECL_VECTORIZED_LOOP
 	for(int i = 0, j = 0; i < 8; i += 2, j++) {
 		dst[i]     = (uint8_t)(tmpd[j]);
@@ -307,7 +317,11 @@ __DECL_VECTORIZED_LOOP
 
 	tmpd = tmpd | tmpg;
 	tmpd = tmpd | tmpb;
-	tmpd = tmpd >> shift;
+	__LIKELY_IF(shift >= 0) {
+		tmpd = tmpd >> (uint16_t)shift;
+	} else {
+		tmpd = tmpd << (uint16_t)(-shift);
+	}
 	
 __DECL_VECTORIZED_LOOP
 	for(int i = 0, j = 4; i < 8; i += 2, j++) {
@@ -340,8 +354,12 @@ __DECL_VECTORIZED_LOOP
 
 	tmpd = tmpd | tmpg;
 	tmpd = tmpd | tmpb;
-	tmpd = tmpd >> shift;
-	
+	__LIKELY_IF(shift >= 0) {
+		tmpd = tmpd >> (uint16_t)shift;
+	} else {
+		tmpd = tmpd << (uint16_t)(-shift);
+	}
+
 __DECL_VECTORIZED_LOOP
 	for(int i = 0, j = 0; i < 16; i += 2, j++) {
 		dst[i]     = (uint8_t)(tmpd[j]);
@@ -362,7 +380,7 @@ __DECL_VECTORIZED_LOOP
 
 	int j = 0;
 	__DECL_ALIGNED(16) std::valarray<bool> tmpdet(8);
-	tmpdet = (tmpd == 0) ;
+	tmpdet = (tmpd == (uint16_t)0) ;
 	__DECL_ALIGNED(16) std::valarray<uint8_t> dd(8);
 	for(int i = 0; i < 8; i++) {
 		dd[i] = (tmpdet[i]) ? off_color : on_color;
@@ -393,7 +411,7 @@ __DECL_VECTORIZED_LOOP
 		tmpd[i] = vt->w[i];
 	}
 	__DECL_ALIGNED(16) std::valarray<bool> tmpdet(8);
-	tmpdet = (tmpd == 0) ;
+	tmpdet = (tmpd == (uint16_t)0) ;
 	__DECL_ALIGNED(16) std::valarray<uint8_t> dd(8);
 	for(int i = 0; i < 8; i++) {
 		dd[i] = (tmpdet[i]) ? off_color : on_color;
