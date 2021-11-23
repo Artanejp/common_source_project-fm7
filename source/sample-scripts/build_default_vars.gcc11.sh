@@ -39,3 +39,4 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_gcc11
 		-Wl,--compress-debug-sections=zlib \
 		-Wa,--compress-debug-sections=zlib \
 		" \
+	-DCSP_BUILD_WITH_CXX20=ON
