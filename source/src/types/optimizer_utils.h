@@ -13,7 +13,9 @@
 	#define __DECL_VECTORIZED_LOOP
 #endif
 
-#include <version>
+#if defined(__cplusplus) && (__cplusplus >= 202002L)
+	#include <version>
+#endif
 // 20181104 K.O:
 // Below routines aim to render common routine.
 #if defined(__cplusplus) && (__cplusplus >= 201103L)
@@ -59,11 +61,11 @@
 #undef __LIKELY_IF
 #undef __UNLIKELY_IF
 
-#if defined(__cplusplus)
-	#if (__cplusplus >= 202000L) && (__has_cpp_attribute(likely))
+#if defined(__cplusplus) && (__cplusplus >= 202000L) && defined(__has_cpp_attribute)
+	#if (__has_cpp_attribute(likely))
 		#define __LIKELY_IF(foo) if(foo) [[likely]]
 	#endif
-	#if (__cplusplus >= 202000L) && (__has_cpp_attribute(unlikely))
+	#if (__has_cpp_attribute(unlikely))
 		#define __UNLIKELY_IF(foo) if(foo) [[unlikely]]
 	#endif
 #endif
@@ -74,11 +76,11 @@
 			#define __LIKELY_IF(foo) if(__builtin_expect((foo), 1))
 			#define __UNLIKELY_IF(foo) if(__builtin_expect((foo), 0))
 		#else
-		// Fallthrough: maybe not have __builtin_expect()
 			#define __LIKELY_IF(foo) if(foo)
 			#define __UNLIKELY_IF(foo) if(foo)
 		#endif
 	#else
+			// Fallthrough: maybe not have __builtin_expect()
 			#define __LIKELY_IF(foo) if(foo)
 			#define __UNLIKELY_IF(foo) if(foo)
 	#endif
