@@ -258,7 +258,7 @@
 
 #define dll_cur_time_t DLL_PREFIX_I struct cur_time_s
 
-typedef DLL_PREFIX struct cur_time_s {
+typedef struct cur_time_s {
 	int year, month, day, day_of_week, hour, minute, second;
 	bool initialized;
 	DLL_PREFIX cur_time_s()

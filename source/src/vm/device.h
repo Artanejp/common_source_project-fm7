@@ -149,7 +149,7 @@ public:
 	 * @retval NULL if not be used this buffer.
 	 * @note this function may be before (or after) initialize().
 	 */
-	virtual int16_t* __FASTCALL get_sound_in_buf_ptr(int bank);
+	virtual int16_t* get_sound_in_buf_ptr(int bank);
 	/*!
 	 * @brief write datas to sound buffer.
 	 * @param bank bank number expect to write.
@@ -948,7 +948,7 @@ public:
 	 * @return cpu clocks value (by HZ).
 	 * @retval CPU_CLOCKS when target is *not* CPU 
 	 */
-	virtual uint32_t get_cpu_clocks(DEVICE* device);
+	virtual uint32_t __FASTCALL get_cpu_clocks(DEVICE* device);
 	/*!
 	 * @brief process extra events by clocks.
 	 * @param clock clocks period for primary CPU.

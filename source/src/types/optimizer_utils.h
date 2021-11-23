@@ -13,6 +13,7 @@
 	#define __DECL_VECTORIZED_LOOP
 #endif
 
+#include <version>
 // 20181104 K.O:
 // Below routines aim to render common routine.
 #if defined(__cplusplus) && (__cplusplus >= 201103L)
@@ -29,17 +30,27 @@
 
 #if defined(__cplusplus) && (__cplusplus >= 202002L)
 	#include <memory>
-	#define ___assume_aligned(foo, a) std::assume_aligned<a>(foo)
+	#if __cpp_lib_assume_aligned
+		#define ___assume_aligned(foo, a) std::assume_aligned<a>(foo)
+	#else
+		#define ___assume_aligned(foo, a) __builtin_assume_aligned(foo, a)
+	#endif
 #elif _MSC_VER
 	#ifndef __builtin_assume_aligned
 		#define ___assume_aligned(foo, a) foo
 	#else
 		#define ___assume_aligned(foo, a) __builtin_assume_aligned(foo, a)
 	#endif
-#elif defined(__GNUC__)
-	#define ___assume_aligned(foo, a) __builtin_assume_aligned(foo, a)
 #else
-		#define ___assume_aligned(foo, a) foo
+	#if defined(__has_builtin)
+		#if (__has_builtin(__builtin_assume_aligned))
+			#define ___assume_aligned(foo, a) __builtin_assume_aligned(foo, a)
+		#else
+			#define ___assume_aligned(foo, a) foo
+		#endif
+	#else
+			#define ___assume_aligned(foo, a) foo
+	#endif
 #endif
 // hint for branch-optimize. 20210720 K.O
 // Usage:
@@ -49,30 +60,26 @@
 #undef __UNLIKELY_IF
 
 #if defined(__cplusplus)
-	#if (__cplusplus >= 202000L)
-	#define __LIKELY_IF(foo) if(foo) [[likely]]
-	#define __UNLIKELY_IF(foo) if(foo) [[unlikely]]
+	#if (__cplusplus >= 202000L) && (__has_cpp_attribute(likely))
+		#define __LIKELY_IF(foo) if(foo) [[likely]]
+	#endif
+	#if (__cplusplus >= 202000L) && (__has_cpp_attribute(unlikely))
+		#define __UNLIKELY_IF(foo) if(foo) [[unlikely]]
 	#endif
 #endif
 
 #if !defined(__LIKELY_IF) || !defined(__UNLIKELY_IF)
-	#undef __HAS_LIKELY_UNLIKELY_TYPE1__
-	#if defined(__clang__)
-		#define __HAS_LIKELY_UNLIKELY_TYPE1__
-	#elif defined(__GNUC__)
-		#if __GNUC__ >= 3
-			#define __HAS_LIKELY_UNLIKELY_TYPE1__
-		#endif
-	#endif
-	// ToDo: Implement for other compilers.
-	#if defined(__HAS_LIKELY_UNLIKELY_TYPE1__)
-	// OK, This compiler seems to have __builtin_expect(foo, bar).
-		#define __LIKELY_IF(foo) if(__builtin_expect((foo), 1))
-		#define __UNLIKELY_IF(foo) if(__builtin_expect((foo), 0))
-	#else
+	#if defined(__has_builtin)
+		#if (__has_builtin(__builtin_expect))
+			#define __LIKELY_IF(foo) if(__builtin_expect((foo), 1))
+			#define __UNLIKELY_IF(foo) if(__builtin_expect((foo), 0))
+		#else
 		// Fallthrough: maybe not have __builtin_expect()
-		#define __LIKELY_IF(foo) if(foo)
-		#define __UNLIKELY_IF(foo) if(foo)
+			#define __LIKELY_IF(foo) if(foo)
+			#define __UNLIKELY_IF(foo) if(foo)
+		#endif
+	#else
+			#define __LIKELY_IF(foo) if(foo)
+			#define __UNLIKELY_IF(foo) if(foo)
 	#endif
-	#undef __HAS_LIKELY_UNLIKELY_TYPE1__
 #endif
