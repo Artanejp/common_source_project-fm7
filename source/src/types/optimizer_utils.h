@@ -29,7 +29,8 @@
 
 #if defined(__cplusplus) && (__cplusplus >= 202002L)
 	#include <memory>
-	#define ___assume_aligned(foo, a) std::assume_aligned<a>(foo)
+	//#define ___assume_aligned(foo, a) std::assume_aligned<a>(foo)
+	#define ___assume_aligned(foo, a) __builtin_assume_aligned(foo, a)
 #elif _MSC_VER
 	#ifndef __builtin_assume_aligned
 		#define ___assume_aligned(foo, a) foo

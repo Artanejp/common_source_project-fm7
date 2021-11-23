@@ -631,17 +631,17 @@ __DECL_VECTORIZED_LOOP
 
 		brg &= rmask;
 		// Note: Should pre-allocate valarrays to improbe speed.
-		uint16_t *ppb = ___assume_aligned(vpb[brg[_b]].w, sizeof(uint16_t) * 8);
+		uint16_t *ppb = (uint16_t*)___assume_aligned(vpb[brg[_b]].w, sizeof(uint16_t) * 8);
 	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			vtmpb[i] = ppb[i];
 		}
-		uint16_t *ppr = ___assume_aligned(vpr[brg[_r]].w, sizeof(uint16_t) * 8);
+		uint16_t *ppr = (uint16_t*)___assume_aligned(vpr[brg[_r]].w, sizeof(uint16_t) * 8);
 	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			vtmpr[i] = ppr[i];
 		}
-		uint16_t *ppg = ___assume_aligned(vpg[brg[_g]].w, sizeof(uint16_t) * 8);
+		uint16_t *ppg = (uint16_t*)___assume_aligned(vpg[brg[_g]].w, sizeof(uint16_t) * 8);
 	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
 			vtmpg[i] = ppg[i];
