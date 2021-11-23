@@ -137,8 +137,10 @@ add_definitions(-DUSE_QT)
 
 # 20210914 K.O Start to migrate for Qt6.
 # See, https://doc.qt.io/qt-6/portingguide.html
-if(${Qt5Widgets_VERSION} VERSION_GREATER_EQUAL "5.15.0")
-   add_compile_definitions(QT_DISABLE_DEPRECATED_BEFORE=0x050F00)
+if(${Qt5Widgets_VERSION_MAJOR} VERSION_GREATER "4")
+    if(${Qt5Widgets_VERSION_MINOR} VERSION_GREATER "14")
+        add_compile_definitions(QT_DISABLE_DEPRECATED_BEFORE=0x050F00)
+    endif()
 endif()
 
 add_definitions(-DQT_MAJOR_VERSION=${Qt5Widgets_VERSION_MAJOR})
