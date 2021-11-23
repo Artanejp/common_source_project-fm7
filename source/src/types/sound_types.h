@@ -1,6 +1,6 @@
 #pragma once
 
-
+//! @todo Support Big-Endian. 20211123 K.O
 // wav file header
 #pragma pack(1)
 typedef struct {
