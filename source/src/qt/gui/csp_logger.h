@@ -176,9 +176,9 @@ public:
 	void set_osd(OSD_BASE *p) { p_osd = p; }
 	void open(bool b_syslog, bool cons, const char *devname);
 	void reset(void);
-	void __FASTCALL debug_log(int level, const char *fmt, ...);
-	void __FASTCALL debug_log(int level, int domain_num, const char *fmt, ...);
-	void __FASTCALL debug_log(int level, int domain_num, char *strbuf);
+	void debug_log(int level, const char *fmt, ...);
+	void debug_log(int level, int domain_num, const char *fmt, ...);
+	void debug_log(int level, int domain_num, char *strbuf);
 	void close(void);
 	void set_log_status(bool sw);
 	void set_log_syslog(int level, bool sw);
