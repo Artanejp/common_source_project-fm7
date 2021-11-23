@@ -8,5 +8,7 @@
 
 ;; Keywords: c, tools
  ('csp-qt-set-c-style )
+ ('vs-set-c-style )
  (setq c-file-style "csp-qt")
+; (setq c-file-style "vs")
 
