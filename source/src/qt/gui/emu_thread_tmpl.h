@@ -15,7 +15,12 @@
 #include <QString>
 #include <QStringList>
 #include <QElapsedTimer>
-#include <QRecursiveMutex>
+#if QT_VERSION >= 0x051400
+	#include <QRecursiveMutex>
+#else
+	#include <QMutex>
+#endif
+
 #include <QMutexLocker>
 
 #include "fifo.h"
@@ -81,9 +86,13 @@ protected:
 	config_t *p_config;
 	
 	QWaitCondition *drawCond;
+#if QT_VERSION >= 0x051400
 	QRecursiveMutex keyMutex;
 	QRecursiveMutex mouseMutex;
-	
+#else
+	QMutex keyMutex;
+	QMutex mouseMutex;
+#endif	
 	//class META_MainWindow *MainWindow;
 	Ui_MainWindowBase *MainWindow;
 	QElapsedTimer tick_timer;
@@ -101,7 +110,11 @@ protected:
 	QString sStateFile;
 	QString lStateFile;
 
+#if QT_VERSION >= 0x051400
 	QRecursiveMutex uiMutex;
+#else   
+	QMutex uiMutex;
+#endif
 	char dbg_prev_command[MAX_COMMAND_LEN];
 	int fd_open_wait_count[8];
 	QString fd_reserved_path[8];

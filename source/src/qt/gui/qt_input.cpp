@@ -198,7 +198,11 @@ void GLDrawClass::initKeyCode(void)
 				QStringList nlist;
 				bool ok1, ok2;
 				nstr = QString::fromUtf8(buf);
-				nlist = nstr.split(",", Qt::SkipEmptyParts);
+				#if QT_VERSION >= 0x051400
+					nlist = nstr.split(",", Qt::SkipEmptyParts);
+				#else
+					nlist = nstr.split(","); // ToDo: Empty field.
+				#endif
 				if(nlist.count() < 2) continue;
 				uint32_t vk   = nlist.at(0).toULong(&ok1, 16);
 				uint32_t scan = nlist.at(1).toULong(&ok2, 16);
