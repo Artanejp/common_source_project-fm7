@@ -21,103 +21,124 @@ typedef union pair16_t {
 	int16_t s16; // ToDo: Remove
 	uint16_t w;
 	int16_t sw;
-
+	inline uint16_t __FASTCALL read_raw_2bytes_from_ptr(uint8_t *t)
+	{
+	#if defined(__NEED_ALIGNED_UINT32)
+		union {
+			uint16_t ww;
+			uint8_t  b[2];
+		} tmp16;
+		
+		tmp16.b[0] = t[0];
+		tmp16.b[1] = t[1];
+		return tmp16.ww;
+	#else
+		return *((uint16_t*)t);
+	#endif
+	}
+	inline void __FASTCALL store_raw_2bytes_to_ptr(uint8_t *t, uint16_t nn)
+	{
+	#if defined(__NEED_ALIGNED_UINT32)
+		union {
+			uint16_t ww;
+			uint8_t  b[2];
+		} tmp16;
+		tmp16.ww = nn;
+		t[0] = tmp16.b[0];
+		t[1] = tmp16.b[1];
+	#else
+		*((uint16_t*)t) = nn;
+	#endif
+	}
+	inline uint16_t __FASTCALL swap_2bytes(uint16_t nn)
+	{
+	#if defined(__has_builtin) && (__has_builtin(__builtin_bswap16))
+		uint16_t tmp;
+		tmp = __builtin_bswap16(nn);
+		return tmp;
+	#else
+		uint8_t tt;
+		union {
+			uint16_t ww;
+			uint8_t  b[2];
+		} tmp16;
+		tmp16.ww = nn;
+		uint8_t tt = tmp16.b[0];
+		tmp16.b[0] = tmp16.b[1];
+		tmp16.b[1] = tt;
+		return tmp16.ww;
+	#endif
+	}
 	inline void __FASTCALL read_2bytes_le_from(uint8_t *t)
 	{
-		// ToDo: for Unalignment data.
-		#ifdef __BIG_ENDIAN__
-		b.l = t[0]; b.h = t[1];
-		#else
-		w = *((uint16_t*)t);
-		#endif
+		uint16_t nn = read_raw_2bytes_from_ptr(t);
+	#ifdef __BIG_ENDIAN__
+		w = swap_2bytes(nn);
+	#else
+		w = nn;
+	#endif
 	}
 	inline void __FASTCALL write_2bytes_le_to(uint8_t *t)
 	{
-		// ToDo: for Unalignment data.
-		#ifdef __BIG_ENDIAN__
-		t[0] = b.l; t[1] = b.h;
-		#else
-		*((uint16_t*)t) = w;
-		#endif
+		uint16_t nn;
+	#ifdef __BIG_ENDIAN__
+		nn = swap_2bytes(w);
+	#else
+		nn = w;
+	#endif
+		store_raw_2bytes_to_ptr(t, nn);
 	}
 	inline void __FASTCALL read_2bytes_be_from(uint8_t *t)
 	{
-		// ToDo: for Unalignment data.
-		#ifdef __BIG_ENDIAN__
-		w = *((uint16_t*)t);
-		#else
-		b.h = t[0]; b.l = t[1];
-		#endif
+		uint16_t nn = read_raw_2bytes_from_ptr(t);
+	#ifndef __BIG_ENDIAN__
+		w = swap_2bytes(nn);
+	#else
+		w = nn;
+	#endif
 	}
 	inline void __FASTCALL write_2bytes_be_to(uint8_t *t)
 	{
-		// ToDo: for Unalignment data.
-		#ifdef __BIG_ENDIAN__
-		*((uint16_t*)t) = w;
-		#else
-		t[0] = b.h; t[1] = b.l;
-		#endif
+		uint16_t nn;
+	#ifndef __BIG_ENDIAN__
+		nn = swap_2bytes(w);
+	#else
+		nn = w;
+	#endif
+		store_raw_2bytes_to_ptr(t, nn);
 	}
 	
 	inline void __FASTCALL set_2bytes_be_from(uint16_t n)
 	{
-		#ifdef __BIG_ENDIAN__
+	#ifdef __BIG_ENDIAN__
 		w = n;
-		#else
-		union {
-			uint16_t w;
-			struct {
-				uint8_t h, l;
-			}b;
-		} bigv;
-		bigv.w = n;
-		b.l = bigv.b.l; b.h = bigv.b.h;
-		#endif
+	#else
+		w = swap_2bytes(n);
+	#endif
 	}
 	inline void __FASTCALL set_2bytes_le_from(uint16_t n)
 	{
-		#ifdef __BIG_ENDIAN__
-		union {
-			uint16_t w;
-			struct {
-				uint8_t l, h;
-			}b;
-		} littlev;
-		littlev.w = n;
-		b.l = littlev.b.l; b.h = littlev.b.h;
-		#else
+	#ifndef __BIG_ENDIAN__
 		w = n;
-		#endif
+	#else
+		w = swap_2bytes(n);
+	#endif
 	}
 	inline uint16_t __FASTCALL get_2bytes_be_to()
 	{
-		#ifdef __BIG_ENDIAN__
+	#ifdef __BIG_ENDIAN__
 		return w;
-		#else
-		union {
-			uint16_t w;
-			struct {
-				uint8_t h, l;
-			}b;
-		} bigv;
-		bigv.b.l = b.l; bigv.b.h = b.h;
-		return bigv.w;
-		#endif
+	#else
+		return swap_2bytes(w);
+	#endif
 	}
 	inline uint16_t __FASTCALL get_2bytes_le_to()
 	{
-		#ifdef __BIG_ENDIAN__
-		union {
-			uint16_t w;
-			struct {
-				uint8_t l, h;
-			}b;
-		} littlev;
-		littlev.b.l = b.l; littlev.b.h = b.h;
-		return littlev.w;
-		#else
+	#ifndef __BIG_ENDIAN__
 		return w;
-		#endif
+	#else
+		return swap_2bytes(w);
+	#endif
 	}
 
 } pair16_t;
