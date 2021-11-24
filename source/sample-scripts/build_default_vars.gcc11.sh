@@ -22,21 +22,19 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_gcc11
 		-Wa,--compress-debug-sections=zlib \
 		" \
       -DCMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO="\
-		-ggdb \
+      		-ggdb \
 		-gz \
 		-O3 \
-		-flto=6 \
 		-msse2 \
+		-flto=auto \
 		-Wl,--compress-debug-sections=zlib \
-		-Wa,--compress-debug-sections=zlib \
 		" \
       -DCMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO="\
       		-ggdb \
 		-gz \
 		-O3 \
-		-flto=6 \
 		-msse2 \
+		-flto=auto \
 		-Wl,--compress-debug-sections=zlib \
-		-Wa,--compress-debug-sections=zlib \
 		" \
 	-DCSP_BUILD_WITH_CXX20=ON
