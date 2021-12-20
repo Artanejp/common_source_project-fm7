@@ -430,6 +430,7 @@ void TOWNS_CDROM::status_accept(int extra, uint8_t s3, uint8_t s4)
 	
 	cdda_stopped = false;
 	media_changed = false;
+	out_debug_log(_T("SET STATUS %02X %02X %02X %02X EXTRA=%d"), TOWNS_CD_STATUS_ACCEPT, playcode, s3, s4, extra);
 	set_status(req_status, extra,
 			   TOWNS_CD_STATUS_ACCEPT, playcode, s3, s4);
 	next_status_byte = 0x00;
@@ -605,7 +606,12 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				status_media_changed(false);
 				break;;
 			}
-			if(((cdda_status == CDDA_ENDED) || (cdda_status == CDDA_OFF))
+			if(cdda_status == CDDA_PLAYING) {
+				//status_accept(1, 0x00, 0x00);
+				set_status(req_status, 1, 0x00, TOWNS_CD_ACCEPT_CDDA_PLAYING, 0x00, 0x00);
+				//set_status(req_status, 0, 0x00, TOWNS_CD_ACCEPT_CDDA_PLAYING, 0x00, 0x00);
+				break;
+			} else if(((cdda_status == CDDA_ENDED) || (cdda_status == CDDA_OFF))
 			   && ((prev_command & 0x9f) == CDROM_COMMAND_STOP_CDDA)) {
 				/// @note RANCEIII (and maybe others) polls until below status.
 				/// @note 20201110 K.O
@@ -614,14 +620,11 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 					set_cdda_status(CDDA_OFF);
 				}
 				break;
-			} else if(cdda_status == CDDA_PLAYING) {
-				//status_accept(1, 0x00, 0x00);
-				set_status(req_status, 1, 0x00, TOWNS_CD_ACCEPT_CDDA_PLAYING, 0x00, 0x00);
-				break;
 			} else if((cdda_status == CDDA_PAUSED) &&
 				((prev_command & 0x9f) == CDROM_COMMAND_PAUSE_CDDA)) {
 				/// @note SUPER READ MAHJONG PIV (and maybe others) polls until below status.
 				/// @note 20201110 K.O
+				//set_status(req_status, 0, TOWNS_CD_STATUS_ACCEPT, TOWNS_CD_ACCEPT_WAIT, 0x00, 0x00);
 				set_status(req_status, 0, TOWNS_CD_STATUS_ACCEPT, TOWNS_CD_ACCEPT_WAIT, 0x00, 0x00);
 				break;
 			}
@@ -1494,7 +1497,7 @@ int TOWNS_CDROM::read_sectors_image(int sectors, uint32_t& transferred_bytes)
 	}
 	int seccount = 0;
 	while(sectors > 0) {
-		out_debug_log(_T("TRY TO READ SECTOR:LBA=%d"), read_sector);
+		//out_debug_log(_T("TRY TO READ SECTOR:LBA=%d"), read_sector);
 		memset(&tmpbuf, 0x00, sizeof(tmpbuf));
 		if(!(seek_relative_frame_in_image(read_sector))) {
 			status_illegal_lba(0, 0x00, 0x00, 0x00);			
@@ -2677,7 +2680,8 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 			if(d_cpu == NULL) {
 				cdrom_debug_log(_T("CMD=%02X"), data);
 			} else {
-				cdrom_debug_log(_T("CMD=%02X from PC=%08X"), data, d_cpu->get_pc());
+				//cdrom_debug_log(_T("CMD=%02X from PC=%08X"), data, d_cpu->get_pc());
+				out_debug_log(_T("CMD=%02X from PC=%08X"), data, d_cpu->get_pc());
 			}
 			prev_command = latest_command;
 			execute_command(data);
