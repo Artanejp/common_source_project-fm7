@@ -16,8 +16,8 @@
 namespace FM
 {
 
-int OPM::amtable[4][OPM_LFOENTS] = { -1, };
-int OPM::pmtable[4][OPM_LFOENTS];
+__DECL_ALIGNED(16) int OPM::amtable[4][OPM_LFOENTS] = { -1, };
+__DECL_ALIGNED(16) int OPM::pmtable[4][OPM_LFOENTS];
 
 // ---------------------------------------------------------------------------
 //	構築
@@ -153,11 +153,11 @@ void OPM::SetVolume(int db_l, int db_r)
 	db_l = Min(db_l, 20);
 	db_r = Min(db_r, 20);
 	
-	if (db_l > -192)
+	__LIKELY_IF (db_l > -192)
 		fmvolume_l = int(16384.0 * pow(10.0, db_l / 40.0));
 	else
 		fmvolume_l = 0;
-	if (db_r > -192)
+	__LIKELY_IF (db_r > -192)
 		fmvolume_r = int(16384.0 * pow(10.0, db_r / 40.0));
 	else
 		fmvolume_r = 0;
@@ -193,7 +193,7 @@ void OPM::ResetStatus(uint bits)
 //
 void OPM::SetReg(uint addr, uint data)
 {
-	if (addr >= 0x100)
+	__UNLIKELY_IF (addr >= 0x100)
 		return;
 	
 	int c = addr & 7;
@@ -298,12 +298,12 @@ void OPM::SetReg(uint addr, uint data)
 //
 void OPM::SetParameter(uint addr, uint data)
 {
-	const static uint8 sltable[16] = 
+	__DECL_ALIGNED(16) const static uint8 sltable[16] = 
 	{
 		  0,   4,   8,  12,  16,  20,  24,  28,
 		 32,  36,  40,  44,  48,  52,  56, 124,
 	};
-	const static uint8 slottable[4] = { 0, 2, 1, 3 };
+	__DECL_ALIGNED(16) const static uint8 slottable[4] = { 0, 2, 1, 3 };
 
 	uint slot = slottable[(addr >> 3) & 3];
 	Operator* op = &ch[addr & 7].op[slot];
@@ -346,7 +346,7 @@ void OPM::SetParameter(uint addr, uint data)
 //
 void OPM::BuildLFOTable()
 {
-	if (amtable[0][0] != -1)
+	__UNLIKELY_IF (amtable[0][0] != -1)
 		return;
 
 	for (int type=0; type<4; type++)
@@ -414,7 +414,7 @@ inline void OPM::LFO()
 	}
 	lfo_count_prev_ = lfo_count_;
 	lfo_step_++;
-	if ((lfo_step_ & 7) == 0)
+	__UNLIKELY_IF ((lfo_step_ & 7) == 0)
 	{
 		lfo_count_ += lfo_count_diff_;
 	}
@@ -451,7 +451,7 @@ inline void OPM::MixSub(int activech, ISample** idest)
 	if (activech & 0x0004) (*idest[6] += ch[6].Calc());
 	if (activech & 0x0001)
 	{
-		if (noisedelta & 0x80)
+		__UNLIKELY_IF (noisedelta & 0x80)
 			*idest[7] += ch[7].CalcN(Noise());
 		else
 			*idest[7] += ch[7].Calc();
@@ -469,7 +469,7 @@ inline void OPM::MixSubL(int activech, ISample** idest)
 	if (activech & 0x0004) (*idest[6] += ch[6].CalcL());
 	if (activech & 0x0001)
 	{
-		if (noisedelta & 0x80)
+		__UNLIKELY_IF (noisedelta & 0x80)
 			*idest[7] += ch[7].CalcLN(Noise());
 		else
 			*idest[7] += ch[7].CalcL();
@@ -482,10 +482,10 @@ inline void OPM::MixSubL(int activech, ISample** idest)
 //
 void OPM::Mix(Sample* buffer, int nsamples)
 {
-//#define IStoSampleL(s)	((Limit(s, 0xffff, -0x10000) * fmvolume_l) >> 14)
-//#define IStoSampleR(s)	((Limit(s, 0xffff, -0x10000) * fmvolume_r) >> 14)
-#define IStoSampleL(s)	((s * fmvolume_l) >> 14)
-#define IStoSampleR(s)	((s * fmvolume_r) >> 14)
+#define IStoSampleL(s)	((Limit(s, 0xffff, -0x10000) * fmvolume_l) >> 14)
+#define IStoSampleR(s)	((Limit(s, 0xffff, -0x10000) * fmvolume_r) >> 14)
+//#define IStoSampleL(s)	((s * fmvolume_l) >> 14)
+//#define IStoSampleR(s)	((s * fmvolume_r) >> 14)
 //#define IStoSample(s)	((s * fmvolume) >> 14)
 	
 	// odd bits - active, even bits - lfo
@@ -515,7 +515,7 @@ void OPM::Mix(Sample* buffer, int nsamples)
 		for (Sample* dest = buffer; dest < limit; dest+=2)
 		{
 			ibuf[1] = ibuf[2] = ibuf[3] = 0;
-			if (activech & 0xaaaa)
+			__LIKELY_IF (activech & 0xaaaa)
 				LFO(), MixSubL(activech, idest);
 			else
 				LFO(), MixSub(activech, idest);

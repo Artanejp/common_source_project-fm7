@@ -257,7 +257,7 @@ inline void Channel4::SetChip(Chip* chip)
 //
 inline void StoreSample(Sample& dest, ISample data)
 {
-	if (sizeof(Sample) == 2)
+	__UNLIKELY_IF(sizeof(Sample) == 2)
 		dest = (Sample) Limit(dest + data, 0x7fff, -0x8000);
 	else
 		dest += data;

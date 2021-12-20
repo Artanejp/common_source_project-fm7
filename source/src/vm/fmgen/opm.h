@@ -145,16 +145,16 @@ namespace FM
 		bool	interrupt;
 		uint8	reg01;
 
-		uint8	kc[8];
-		uint8	kf[8];
-		uint8	pan[8];
+		__DECL_ALIGNED(16) uint8	kc[8];
+		__DECL_ALIGNED(16) uint8	kf[8];
+		__DECL_ALIGNED(16) uint8	pan[8];
 
-		Channel4 ch[8];
+		__DECL_ALIGNED(16) Channel4 ch[8];
 		Chip	chip;
 
 		static void	BuildLFOTable();
-		static int amtable[4][OPM_LFOENTS];
-		static int pmtable[4][OPM_LFOENTS];
+		__DECL_ALIGNED(16) static int amtable[4][OPM_LFOENTS];
+		__DECL_ALIGNED(16) static int pmtable[4][OPM_LFOENTS];
 
 	public:
 		int		dbgGetOpOut(int c, int s) { return ch[c].op[s].dbgopout_; }

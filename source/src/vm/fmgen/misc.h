@@ -6,20 +6,33 @@
 
 #ifndef __FMGEN_MISC_H
 #define __FMGEN_MISC_H
+#include <algorithm>
 
-inline int Max(int x, int y) { return (x > y) ? x : y; }
-inline int Min(int x, int y) { return (x < y) ? x : y; }
+inline int Max(int x, int y) { return std::max(x, y); }
+inline int Min(int x, int y) { return std::min(x, y); }
+
 inline int Abs(int x) { return x >= 0 ? x : -x; }
 
+//#if defined(__cplusplus) && (__cplusplus >= 201703L)
+//#define Limit(foo, max, min) std::clamp((int)foo, (int)min, (int)max)
+//#else
 inline int Limit(int v, int max, int min) 
-{ 
+{
 	return v > max ? max : (v < min ? min : v); 
 }
+//#endif
 
+#if defined(__has_builtin) && (__has_builtin(__builtin_bswap32))
+inline unsigned int BSwap(unsigned int a)
+{
+	return __builtin_bswap32(a);
+}
+#else
 inline unsigned int BSwap(unsigned int a)
 {
 	return (a >> 24) | ((a >> 8) & 0xff00) | ((a << 8) & 0xff0000) | (a << 24);
 }
+#endif
 
 inline unsigned int NtoBCD(unsigned int a)
 {
@@ -32,6 +45,10 @@ inline unsigned int BCDtoN(unsigned int v)
 }
 
 
+#if defined(__cplusplus) && (__cplusplus >= 201703L)
+#include <numeric>
+using std::gcd;
+#else
 template<class T>
 inline T gcd(T x, T y)
 {
@@ -45,6 +62,7 @@ inline T gcd(T x, T y)
 	return x;
 }
 
+#endif
 
 template<class T>
 T bessel0(T x)

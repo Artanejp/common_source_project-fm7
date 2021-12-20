@@ -42,7 +42,7 @@ namespace FM
 
 #if defined(BUILD_OPN) || defined(BUILD_OPNA) || defined (BUILD_OPNB) || defined(BUILD_OPN2)
 
-uint32	OPNBase::lfotable[8];			// OPNA/B 用
+__DECL_ALIGNED(16) uint32	OPNBase::lfotable[8];			// OPNA/B 用
 
 OPNBase::OPNBase()
 {
@@ -391,14 +391,14 @@ void OPN::SetChannelMask(uint mask)
 	psg.SetChannelMask(mask >> 6);
 }
 
+#define IStoSampleL(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_l) >> 14)
+#define IStoSampleR(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_r) >> 14)
+//#define IStoSampleL(s)	((s * fmvolume_l) >> 14)
+//#define IStoSampleR(s)	((s * fmvolume_r) >> 14)
 
 //	合成(2ch)
 void OPN::Mix(Sample* buffer, int nsamples)
 {
-//#define IStoSampleL(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_l) >> 14)
-//#define IStoSampleR(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_r) >> 14)
-#define IStoSampleL(s)	((s * fmvolume_l) >> 14)
-#define IStoSampleR(s)	((s * fmvolume_r) >> 14)
 	
 	psg.Mix(buffer, nsamples);
 	
@@ -432,8 +432,6 @@ void OPN::Mix(Sample* buffer, int nsamples)
 			StoreSample(dest[1], s_r);
 		}
 	}
-#undef IStoSampleL
-#undef IStoSampleR
 }
 
 // ---------------------------------------------------------------------------
@@ -470,10 +468,10 @@ bool OPN::ProcessState(void *f, bool loading)
 
 #if defined(BUILD_OPNA) || defined(BUILD_OPNB)
 
-int OPNABase::amtable[FM_LFOENTS] = { -1, };
-int OPNABase::pmtable[FM_LFOENTS];
+__DECL_ALIGNED(16) int OPNABase::amtable[FM_LFOENTS] = { -1, };
+__DECL_ALIGNED(16) int OPNABase::pmtable[FM_LFOENTS];
 
-int32 OPNABase::tltable[FM_TLENTS+FM_TLPOS];
+__DECL_ALIGNED(16) int32 OPNABase::tltable[FM_TLENTS+FM_TLPOS];
 bool OPNABase::tablehasmade = false;
 
 OPNABase::OPNABase()
@@ -1198,22 +1196,50 @@ void OPNABase::FMMix(Sample* buffer, int nsamples)
 
 void OPNABase::MixSubSL(int activech, ISample** dest)
 {
+#if 1
+	int _mask = 0x001;
+	__LIKELY_IF((activech & _mask) != 0) {
+		*dest[0] = ch[0].CalcL();
+	}
+	_mask <<= 2;
+	for(int i = 1; i < 6; i++) {
+		__LIKELY_IF((activech & _mask) != 0) {
+			*dest[i] += ch[i].CalcL();
+		}
+		_mask <<= 2;
+	}
+#else
 	if (activech & 0x001) (*dest[0]  = ch[0].CalcL());
 	if (activech & 0x004) (*dest[1] += ch[1].CalcL());
 	if (activech & 0x010) (*dest[2] += ch[2].CalcL());
 	if (activech & 0x040) (*dest[3] += ch[3].CalcL());
 	if (activech & 0x100) (*dest[4] += ch[4].CalcL());
 	if (activech & 0x400) (*dest[5] += ch[5].CalcL());
+#endif
 }
 
 inline void OPNABase::MixSubS(int activech, ISample** dest)
 {
+#if 1
+	int _mask = 0x001;
+	__UNLIKELY_IF((activech & _mask) != 0) {
+		*dest[0] = ch[0].Calc();
+	}
+	_mask <<= 2;
+	for(int i = 1; i < 6; i++) {
+		__UNLIKELY_IF((activech & _mask) != 0) {
+			*dest[i] += ch[i].Calc();
+		}
+		_mask <<= 2;
+	}
+#else
 	if (activech & 0x001) (*dest[0]  = ch[0].Calc());
 	if (activech & 0x004) (*dest[1] += ch[1].Calc());
 	if (activech & 0x010) (*dest[2] += ch[2].Calc());
 	if (activech & 0x040) (*dest[3] += ch[3].Calc());
 	if (activech & 0x100) (*dest[4] += ch[4].Calc());
 	if (activech & 0x400) (*dest[5] += ch[5].Calc());
+#endif
 }
 
 // ---------------------------------------------------------------------------
@@ -1253,16 +1279,12 @@ inline void OPNABase::LFO()
 // ---------------------------------------------------------------------------
 //	合成
 //
-//#define IStoSampleL(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_l) >> 14)
-//#define IStoSampleR(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_r) >> 14)
-#define IStoSampleL(s)	((s * fmvolume_l) >> 14)
-#define IStoSampleR(s)	((s * fmvolume_r) >> 14)
 
 void OPNABase::Mix6(Sample* buffer, int nsamples, int activech)
 {
 	// Mix
-	ISample ibuf[4];
-	ISample* idest[6];
+	__DECL_ALIGNED(16) ISample ibuf[4];
+	__DECL_ALIGNED(16) ISample* idest[6];
 	idest[0] = &ibuf[pan[0]];
 	idest[1] = &ibuf[pan[1]];
 	idest[2] = &ibuf[pan[2]];
@@ -1271,10 +1293,11 @@ void OPNABase::Mix6(Sample* buffer, int nsamples, int activech)
 	idest[5] = &ibuf[pan[5]];
 
 	Sample* limit = buffer + nsamples * 2;
+
 	for (Sample* dest = buffer; dest < limit; dest+=2)
 	{
 		ibuf[1] = ibuf[2] = ibuf[3] = 0;
-		if (activech & 0xaaa)
+		__LIKELY_IF(activech & 0xaaa)
 			LFO(), MixSubSL(activech, idest);
 		else
 			MixSubS(activech, idest);
@@ -1641,7 +1664,7 @@ void OPNA::RhythmMix(Sample* buffer, uint count)
 		for (int i=0; i<6; i++)
 		{
 			Rhythm& r = rhythm[i];
-			if ((rhythmkey & (1 << i)) && r.level < 128)
+			if ((rhythmkey & (1 << i)) /*&& r.level < 128*/)
 			{
 				int db_l = Limit(rhythmtl+rhythmtvol_l+r.level+r.volume_l, 127, -31);
 				int db_r = Limit(rhythmtl+rhythmtvol_r+r.level+r.volume_r, 127, -31);
@@ -2020,7 +2043,7 @@ uint OPNB::ReadStatusEx()
 // ---------------------------------------------------------------------------
 //	YM2610
 //
-int OPNB::jedi_table[(48+1)*16];
+__DECL_ALIGNED(16) int OPNB::jedi_table[(48+1)*16];
 
 void OPNB::InitADPCMATable()
 {
@@ -2057,7 +2080,7 @@ void OPNB::ADPCMAMix(Sample* buffer, uint count)
 		for (int i=0; i<6; i++)
 		{
 			ADPCMA& r = adpcma[i];
-			if ((adpcmakey & (1 << i)) && r.level < 128)
+			if ((adpcmakey & (1 << i)) /*&& r.level < 128*/)
 			{
 				uint mask_l = r.pan & 2 ? -1 : 0;
 				uint mask_r = r.pan & 1 ? -1 : 0;
@@ -2168,10 +2191,10 @@ void OPNB::Mix(Sample* buffer, int nsamples)
 
 #if defined(BUILD_OPN2)
 
-int OPN2Base::amtable[FM_LFOENTS] = { -1, };
-int OPN2Base::pmtable[FM_LFOENTS];
+__DECL_ALIGNED(16) int OPN2Base::amtable[FM_LFOENTS] = { -1, };
+__DECL_ALIGNED(16) int OPN2Base::pmtable[FM_LFOENTS];
 
-int32 OPN2Base::tltable[FM_TLENTS+FM_TLPOS];
+__DECL_ALIGNED(16) int32 OPN2Base::tltable[FM_TLENTS+FM_TLPOS];
 bool OPN2Base::tablehasmade = false;
 
 OPN2Base::OPN2Base()
@@ -2488,8 +2511,8 @@ void OPN2Base::MixSubSL(int activech, ISample** dest)
 	if (activech & 0x040) (*dest[3] += ch[3].CalcL());
 	if (activech & 0x100) (*dest[4] += ch[4].CalcL());
 	if (activech & 0x400) {
-		ISample tmp = ((ISample) dac_data) << 5;
-		if ((dac_enabled)) {
+		__UNLIKELY_IF ((dac_enabled)) {
+			ISample tmp = ((ISample) dac_data) << 5;
 			(*dest[5] += tmp);
 		} else {
 			(*dest[5] += ch[5].CalcL());
@@ -2505,8 +2528,8 @@ inline void OPN2Base::MixSubS(int activech, ISample** dest)
 	if (activech & 0x040) (*dest[3] += ch[3].Calc());
 	if (activech & 0x100) (*dest[4] += ch[4].Calc());
 	if (activech & 0x400) {
-		ISample tmp = ((ISample) dac_data) << 5;
-		if ((dac_enabled)) {
+		__UNLIKELY_IF ((dac_enabled)) {
+			ISample tmp = ((ISample) dac_data) << 5;
 			(*dest[5] += tmp);
 		} else {
 			(*dest[5] += ch[5].Calc());
@@ -2551,14 +2574,11 @@ inline void OPN2Base::LFO()
 // ---------------------------------------------------------------------------
 //	合成
 //
-//#define IStoSampleL(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_l) >> 14)
-//#define IStoSampleR(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_r) >> 14)
-
 void OPN2Base::Mix6(Sample* buffer, int nsamples, int activech)
 {
 	// Mix
-	ISample ibuf[4];
-	ISample* idest[6];
+	__DECL_ALIGNED(16) ISample ibuf[4];
+	__DECL_ALIGNED(16) ISample* idest[6];
 	idest[0] = &ibuf[pan[0]];
 	idest[1] = &ibuf[pan[1]];
 	idest[2] = &ibuf[pan[2]];
@@ -2566,10 +2586,11 @@ void OPN2Base::Mix6(Sample* buffer, int nsamples, int activech)
 	idest[4] = &ibuf[pan[4]];
 	idest[5] = &ibuf[pan[5]];
 	Sample* limit = buffer + nsamples * 2;
+
 	for (Sample* dest = buffer; dest < limit; dest+=2)
 	{
 		ibuf[1] = ibuf[2] = ibuf[3] = 0;
-		if (activech & 0xaaa)
+		__LIKELY_IF (activech & 0xaaa)
 			LFO(), MixSubSL(activech, idest);
 		else
 			MixSubS(activech, idest);
@@ -2577,6 +2598,9 @@ void OPN2Base::Mix6(Sample* buffer, int nsamples, int activech)
 		StoreSample(dest[1], IStoSampleR(ibuf[1] + ibuf[3]));
 	}
 }
+#undef IStoSampleL
+#undef IStoSampleR
+
 // ---------------------------------------------------------------------------
 //	ステートセーブ
 //

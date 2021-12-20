@@ -123,8 +123,7 @@ namespace FM
 		Channel4* csmch;
 		
 
-		static  uint32 lfotable[8];
-	
+		__DECL_ALIGNED(16) static  uint32 lfotable[8];
 	private:
 		void	TimerA();
 		
@@ -180,8 +179,8 @@ namespace FM
 		int		DecodeADPCMBSample(uint);
 		
 	// FM 音源関係
-		uint8	pan[6];
-		uint8	fnum2[9];
+		__DECL_ALIGNED(16) uint8	pan[6];
+		__DECL_ALIGNED(16) uint8	fnum2[9];
 		
 		uint8	reg22;
 		uint	reg29;		// OPNA only?
@@ -192,8 +191,8 @@ namespace FM
 		uint32	lfocount;
 		uint32	lfodcount;
 		
-		uint	fnum[6];
-		uint	fnum3[3];
+		__DECL_ALIGNED(16) uint	fnum[6];
+		__DECL_ALIGNED(16) uint	fnum3[3];
 		
 	// ADPCM 関係
 		uint8*	adpcmbuf;		// ADPCM RAM
@@ -228,16 +227,16 @@ namespace FM
 
 		uint8	control1;		// ADPCM コントロールレジスタ１
 		uint8	control2;		// ADPCM コントロールレジスタ２
-		uint8	adpcmreg[8];	// ADPCM レジスタの一部分
+		__DECL_ALIGNED(16) uint8	adpcmreg[8];	// ADPCM レジスタの一部分
 
 		int		rhythmmask_;
 
-		Channel4 ch[6];
+		__DECL_ALIGNED(16) Channel4 ch[6];
 
 		static void	BuildLFOTable();
-		static int amtable[FM_LFOENTS];
-		static int pmtable[FM_LFOENTS];
-		static int32 tltable[FM_TLENTS+FM_TLPOS];
+		__DECL_ALIGNED(16) static int amtable[FM_LFOENTS];
+		__DECL_ALIGNED(16) static int pmtable[FM_LFOENTS];
+		__DECL_ALIGNED(16) static int32 tltable[FM_TLENTS+FM_TLPOS];
 		static bool	tablehasmade;
 	};
 
@@ -279,8 +278,8 @@ namespace FM
 		void	LFO();
 
 	// FM 音源関係
-		uint8	pan[6];
-		uint8	fnum2[9];
+		__DECL_ALIGNED(16) uint8	pan[6];
+		__DECL_ALIGNED(16) uint8	fnum2[9];
 		
 		uint8	reg22;
 		uint	reg29;		// OPNA only?
@@ -290,17 +289,17 @@ namespace FM
 		uint32	lfocount;
 		uint32	lfodcount;
 		
-		uint	fnum[6];
-		uint	fnum3[3];
+		__DECL_ALIGNED(16) uint	fnum[6];
+		__DECL_ALIGNED(16) uint	fnum3[3];
 		
-		Channel4 ch[6];
+		__DECL_ALIGNED(16) Channel4 ch[6];
 		int32   dac_data;
 		bool    dac_enabled;
 
 		static void	BuildLFOTable();
-		static int amtable[FM_LFOENTS];
-		static int pmtable[FM_LFOENTS];
-		static int32 tltable[FM_TLENTS+FM_TLPOS];
+		__DECL_ALIGNED(16) static int amtable[FM_LFOENTS];
+		__DECL_ALIGNED(16) static int pmtable[FM_LFOENTS];
+		__DECL_ALIGNED(16) static int32 tltable[FM_TLENTS+FM_TLPOS];
 		static bool	tablehasmade;
 	};
 	//	YM2203(OPN) ----------------------------------------------------
@@ -332,11 +331,11 @@ namespace FM
 		void	SetStatus(uint bit);
 		void	ResetStatus(uint bit);
 		
-		uint	fnum[3];
-		uint	fnum3[3];
-		uint8	fnum2[6];
+		__DECL_ALIGNED(16) uint	fnum[3];
+		__DECL_ALIGNED(16) uint	fnum3[3];
+		__DECL_ALIGNED(16) uint8	fnum2[6];
 		
-		Channel4 ch[3];
+		__DECL_ALIGNED(16) Channel4 ch[3];
 	};
 
 	//	YM2608(OPNA) ---------------------------------------------------
@@ -385,7 +384,7 @@ namespace FM
 		void	RhythmMix(Sample* buffer, uint count);
 
 	// リズム音源関係
-		Rhythm	rhythm[6];
+		__DECL_ALIGNED(16) Rhythm	rhythm[6];
 		int8	rhythmtl;		// リズム全体の音量
 		int		rhythmtvol_l;		
 		int		rhythmtvol_r;		
@@ -441,17 +440,17 @@ namespace FM
 	// ADPCMA 関係
 		uint8*	adpcmabuf;		// ADPCMA ROM
 		int		adpcmasize;
-		ADPCMA	adpcma[6];
+		__DECL_ALIGNED(16) ADPCMA	adpcma[6];
 		int8	adpcmatl;		// ADPCMA 全体の音量
 		int		adpcmatvol_l;		
 		int		adpcmatvol_r;		
 		uint8	adpcmakey;		// ADPCMA のキー
 		int		adpcmastep;
-		uint8	adpcmareg[32];
+		__DECL_ALIGNED(16) uint8	adpcmareg[32];
  
-		static int jedi_table[(48+1)*16];
+		__DECL_ALIGNED(16) static int jedi_table[(48+1)*16];
 
-		Channel4 ch[6];
+		__DECL_ALIGNED(16) Channel4 ch[6];
 	};
 
 	//	YM2612/3438(OPN2) ----------------------------------------------------
