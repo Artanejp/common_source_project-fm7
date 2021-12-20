@@ -828,7 +828,7 @@ void TOWNS_CDROM::read_cdrom()
 
 void TOWNS_CDROM::set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
 {
-	cdrom_debug_log(_T("SET STATUS: %02X %02X %02X %02X, EXTRA=%d REQ_STATUS=%s"),
+	out_debug_log(_T("SET STATUS: %02X %02X %02X %02X, EXTRA=%d REQ_STATUS=%s"),
 					s0, s1, s2, s3,
 					extra,
 					(_req_status) ? _T("Yes"): _T("No")
