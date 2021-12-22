@@ -217,6 +217,7 @@ enum {
 enum {
 	TOWNS_CD_ACCEPT_NOERROR			= 0x00,
 	TOWNS_CD_ACCEPT_DATA_TRACK		= 0x01,
+	TOWNS_CD_ACCEPT_CDDA_PAUSED		= 0x01,
 	TOWNS_CD_ACCEPT_CDDA_PLAYING	= 0x03,
 	TOWNS_CD_ACCEPT_04H_FOR_CMD_A0H	= 0x04,
 	TOWNS_CD_ACCEPT_08H_FOR_CMD_A0H	= 0x08,
@@ -286,7 +287,6 @@ protected:
 	int subq_bitwidth;
 	bool subq_overrun;
 	bool is_playing;
-	uint8_t next_status_byte;
 	
 	int stat_track;
 
