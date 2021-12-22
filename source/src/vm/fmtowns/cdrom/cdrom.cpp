@@ -324,7 +324,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 					clear_event(this, event_next_sector);
 					clear_event(this, event_seek_completed);
 					status_read_done(false);
-//					do_dma_eot(true);
+//					do_dma_eot(false);
 				}
 			} else {
 				
@@ -2234,6 +2234,7 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 		double usec = get_seek_time(cdda_playing_frame);
 		if(usec < 10.0) usec = 10.0;
 
+		set_cdda_status(CDDA_PLAYING);
 		force_register_event(this, EVENT_CDDA_DELAY_PLAY, usec, false, event_cdda_delay_play);
 	}
 	set_subq(); // First
