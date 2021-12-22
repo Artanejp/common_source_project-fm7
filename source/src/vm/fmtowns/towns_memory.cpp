@@ -27,24 +27,36 @@ namespace FMTOWNS {
 
 #define ADDR_MASK (addr_max - 1)
 #define BANK_MASK (bank_size - 1)
-	
-void TOWNS_MEMORY::config_page00()
+
+void TOWNS_MEMORY::config_page_c0()
 {
 	if(dma_is_vram) {
 		 // OK? From TSUGARU
 		set_memory_mapped_io_rw(0x000c0000, 0x000c7fff, d_planevram);
-		set_memory_mapped_io_rw(0x000c8000, 0x000cbfff, d_sprite);
-		set_memory_mapped_io_rw(0x000ca000, 0x000cafff, d_sprite);
+		set_memory_mapped_io_rw(0x000c8000, 0x000c9fff, d_sprite);
 		if(ankcg_enabled) {
 			set_memory_mapped_io_r(0x000ca000, 0x000ca7ff, d_font);
 			set_memory_r          (0x000ca800, 0x000cafff, rd_dummy);
 			set_memory_mapped_io_r(0x000cb000, 0x000cbfff, d_font);
+			
+			set_memory_w          (0x000ca000, 0x000cafff, wr_dummy); // OK?
+			//set_memory_mapped_io_w(0x000ca000, 0x000cbfff, d_sprite); // OK?
+		} else {
+			set_memory_mapped_io_rw(0x000ca000, 0x000cbfff, d_sprite);
 		}
 		set_memory_rw          (0x000cc000, 0x000cffff, &(ram_pagec[0xc000]));
 		set_memory_mapped_io_rw(0x000cfc00, 0x000cffff, this); // MMIO
+		// ToDo: Correctness wait value.
+		set_wait_rw(0x000c0000, 0x000cffff, vram_wait_val);
 	} else {
 		set_memory_rw          (0x000c0000, 0x000cffff, ram_pagec);
+		// ToDo: Correctness wait value.
+		set_wait_rw(0x000c0000, 0x000cffff, mem_wait_val);
 	}
+}
+
+void TOWNS_MEMORY::config_page_d0_f8()
+{
 	if((select_d0_rom) && (select_d0_dict)) { 
 		set_memory_mapped_io_rw(0x000d0000, 0x000dffff, d_dictionary);
 	} else {
@@ -58,12 +70,12 @@ void TOWNS_MEMORY::config_page00()
 	} else {
 		set_memory_rw          (0x000f8000, 0x000fffff, &(ram_pagef[0x8000]));
 	}		
-	if(dma_is_vram) {
-		set_wait_rw(0x000c0000, 0x000cffff, vram_wait_val);
-	} else {
-		set_wait_rw(0x000c0000, 0x000cffff, mem_wait_val);
-	}
-
+}
+	
+void TOWNS_MEMORY::config_page00()
+{
+	config_page_c0();
+	config_page_d0_f8();
 }
 	
 void TOWNS_MEMORY::initialize()
@@ -575,13 +587,24 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x0404: // System Status Reg.
-		dma_is_vram = ((data & 0x80) == 0);
-		config_page00();
+		{
+			bool _b = dma_is_vram;
+			dma_is_vram = ((data & 0x80) == 0);
+			if((_b != dma_is_vram) || (dma_is_vram)) {
+				config_page_c0();
+			}
+		}
 		break;
 	case 0x0480:
-		select_d0_dict = ((data & 0x01) != 0) ? true : false;
-		select_d0_rom = ((data & 0x02) == 0) ? true : false;
-		config_page00();
+		{
+			bool _dict = select_d0_dict;
+			bool _rom = select_d0_rom;
+			select_d0_dict = ((data & 0x01) != 0) ? true : false;
+			select_d0_rom = ((data & 0x02) == 0) ? true : false;
+			if((_rom != select_d0_rom) || (_dict != select_d0_dict)) {
+				config_page_d0_f8();
+			}
+		}
 		break;
 	case 0x05c0:
 		extra_nmi_mask = ((data & 0x08) == 0);
@@ -590,16 +613,20 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		// From AB.COM
 		if(machine_id < 0x0200) { // Towns 1/2
 			uint8_t nval = data & 7;
+			uint8_t val_bak = mem_wait_val;
 			if(nval < 1) nval = 1;
 			if(nval > 5) nval = 5;
 			mem_wait_val = nval + 1;
 			vram_wait_val = nval + 3 + 1;
 			wait_register = nval;
-			set_wait_values();
+			if(val_bak != mem_wait_val) {
+				set_wait_values();
+			}
 		}
 		break;
 	case 0x05e2:
 		if(machine_id >= 0x0200) { // After Towns 1H/2F. Hidden wait register.
+			uint8_t val_bak = mem_wait_val;
 			if(data != 0x83) {
 				uint8_t nval = data & 7;
 				if(machine_id <= 0x0200) { // Towns 1H/2F.
@@ -614,15 +641,21 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 				vram_wait_val = 6;
 				wait_register = data;
 			}
-			set_wait_values();
+			if(val_bak != mem_wait_val) {
+				set_wait_values();
+			}
 		}
 		break;
 	case 0x05ec:
 		if(machine_id >= 0x0500) { // Towns2 CX :
+			uint8_t val_bak = mem_wait_val;
+			uint32_t clk_bak = cpu_clock_val;
 			vram_wait_val = ((data & 0x01) != 0) ? 3 : 6;
 			mem_wait_val = ((data & 0x01) != 0) ? 0 : 3;
 			cpu_clock_val = ((data & 0x01) != 0) ? (get_cpu_clocks(d_cpu)) : (16 * 1000 * 1000);
-			set_wait_values();
+			if((val_bak != mem_wait_val) || (cpu_clock_val != clk_bak)) {
+				set_wait_values();
+			}
 		}
 		break;
 	case 0xfda4:
@@ -653,8 +686,13 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0xff99:
-		ankcg_enabled = ((data & 1) != 0) ? true : false;
-		config_page00();
+		{
+			bool _b = ankcg_enabled;
+			ankcg_enabled = ((data & 1) != 0) ? true : false;
+			if((_b != ankcg_enabled) && (dma_is_vram)) {
+				config_page_c0();
+			}
+		}
 		break;
 	case 0xff9e:
 		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
@@ -1111,14 +1149,20 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 			d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP_REG, wrap_val, 0xff);
 		}
 	} else if(ch == SIG_FMTOWNS_RAM_WAIT) {
+		uint8_t _bak = mem_wait_val;
 		mem_wait_val = (int)data;
-		set_wait_values();
+		if(_bak != mem_wait_val) {
+			set_wait_values();
+		}
 	} else if(ch == SIG_FMTOWNS_ROM_WAIT) {
 //		mem_wait_val = (int)data;
 		set_wait_values();
 	} else if(ch == SIG_FMTOWNS_VRAM_WAIT) {
+		uint8_t _bak = vram_wait_val;
 		vram_wait_val = (int)data;
-		set_wait_values();
+		if(_bak != vram_wait_val) {
+			set_wait_values();
+		}
 	}
 }
 
