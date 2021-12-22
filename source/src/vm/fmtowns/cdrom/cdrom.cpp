@@ -393,7 +393,8 @@ void TOWNS_CDROM::status_read_done(bool forceint)
 void TOWNS_CDROM::status_data_ready(bool forceint)
 {
 	set_status((forceint) ? true : req_status, 0, TOWNS_CD_STATUS_DATA_READY, 0, 0, 0);
-//	cdrom_debug_log(_T("DATA READY"));
+//	set_status(true, 0, TOWNS_CD_STATUS_DATA_READY, 0, 0, 0);
+	cdrom_debug_log(_T("DATA READY"));
 }
 
 void TOWNS_CDROM::status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3)
@@ -631,7 +632,6 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				((prev_command & 0x9f) == CDROM_COMMAND_PAUSE_CDDA)) {
 				/// @note SUPER READ MAHJONG PIV (and maybe others) polls until below status.
 				/// @note 20201110 K.O
-				//set_status(req_status, 0, TOWNS_CD_STATUS_ACCEPT, TOWNS_CD_ACCEPT_WAIT, 0x00, 0x00);
 				set_status(req_status, 0, TOWNS_CD_STATUS_ACCEPT, TOWNS_CD_ACCEPT_WAIT, 0x00, 0x00);
 			} else if(status_seek) {
 				if(!(toc_table[current_track].is_audio)) {
@@ -650,6 +650,9 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 //		stat_reply_intr = true; // OK?
 		cdrom_debug_log(_T("CMD CDDA SET(%02X)"), command);
 		if(req_status) {
+			// FROM Tsugaru:
+			// I don't know what to do with this command.
+			// CDROM BIOS AH=52H fires command 0xA1 with parameters {07 FF 00 00 00 00 00 00}
 			if(!(status_media_changed_or_not_ready(false))) {
 				status_accept(0, 0x00, 0x00);
 			}
@@ -788,7 +791,7 @@ void TOWNS_CDROM::read_cdrom()
 		return;
 	}
 
-	cdrom_debug_log(_T("READ_CDROM TRACK=%d LBA1=%d LBA2=%d M1/S1/F1=%02X/%02X/%02X M2/S2/F2=%02X/%02X/%02X PAD=%02X DCMD=%02X"), track, lba1, lba2,
+	out_debug_log(_T("READ_CDROM TRACK=%d LBA1=%d LBA2=%d M1/S1/F1=%02X/%02X/%02X M2/S2/F2=%02X/%02X/%02X PAD=%02X DCMD=%02X"), track, lba1, lba2,
 				  param_queue[0], param_queue[1], param_queue[2],
 				  param_queue[3], param_queue[4], param_queue[5],
 				  pad1, dcmd);
@@ -808,6 +811,7 @@ void TOWNS_CDROM::read_cdrom()
 	if(usec < 10.0) usec = 10.0;
 	databuffer->clear();
 	register_event(this, EVENT_CDROM_SEEK_COMPLETED, usec, false, &event_seek_completed);
+	/*
 	if(req_status) {
 		// May not need extra status, integrated after reading. 20200906 K.O
 //		set_status(req_status, 0, 0x00, 0x00, 0x00, 0x00);
@@ -819,6 +823,9 @@ void TOWNS_CDROM::read_cdrom()
 			set_status(true, 0, TOWNS_CD_STATUS_DATA_READY, 0x00, 0x00, 0x00);
 		}
 	}
+	*/
+	status_accept(2, 0x00, 0x00);
+
 }	
 
 
@@ -852,7 +859,7 @@ void TOWNS_CDROM::set_status_read_done(bool _req_status, int extra, uint8_t s0, 
 		);
 	status_queue->clear();
 	extra_status = 0;
-//	if(_req_status) {
+	if(_req_status) {
 		if(extra > 0) extra_status = extra;
 		status_queue->write(s0);
 		status_queue->write(s1);
@@ -860,7 +867,7 @@ void TOWNS_CDROM::set_status_read_done(bool _req_status, int extra, uint8_t s0, 
 		status_queue->write(s3);
 //	} else {
 //		set_delay_ready_eot();
-//	}
+	}
 	set_delay_ready_eot();
 
 }
@@ -1400,7 +1407,9 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
 			set_dma_intr(true);
 		} else {
-			status_data_ready(false);
+			//if(req_status) {
+				status_data_ready(false);
+			//}
 			if((event_drq < 0) && (dma_transfer_phase)) {
 				register_event_by_clock(this, EVENT_CDROM_DRQ, 2, true, &event_drq);
 			}
