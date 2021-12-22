@@ -414,8 +414,10 @@ protected:
 	
 	virtual void execute_command(uint8_t command);
 	
-	void __FASTCALL status_not_ready(bool forceint);
-	void __FASTCALL status_media_changed(bool forceint);
+	bool __FASTCALL status_not_ready(bool forceint);
+	bool __FASTCALL status_media_changed(bool forceint);
+	bool __FASTCALL status_media_changed_or_not_ready(bool forceint);
+	
 	void __FASTCALL status_hardware_error(bool forceint);
 	void __FASTCALL status_parameter_error(bool forceint);
 	void __FASTCALL status_read_done(bool forceint);

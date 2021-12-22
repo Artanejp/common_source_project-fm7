@@ -309,7 +309,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 		// By DMA/TC, EOT.
 	case SIG_TOWNS_CDROM_DMAINT:
 		if(((data & mask) != 0) && (dma_transfer_phase)) {
-			out_debug_log(_T("CAUSED DMA INTERRUPT FROM DMAC"));
+			//out_debug_log(_T("CAUSED DMA INTERRUPT FROM DMAC"));
 			do_dma_eot(true);
 		}
 		break;
@@ -338,20 +338,37 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 
 }
 
-void TOWNS_CDROM::status_not_ready(bool forceint)
+bool TOWNS_CDROM::status_media_changed_or_not_ready(bool forceint)
 {
-	cdrom_debug_log(_T("CMD (%02X) BUT DISC NOT ACTIVE"), latest_command);
-	set_status((forceint) ? true : req_status, 0,
-			   TOWNS_CD_STATUS_CMD_ABEND, TOWNS_CD_ABEND_DRIVE_NOT_READY, 0, 0);
+	if(status_not_ready(forceint)) {
+		return true;
+	}
+	if(status_media_changed(forceint)) {
+		return true;
+	}
+	return false;
 }
 
-void TOWNS_CDROM::status_media_changed(bool forceint)
+bool TOWNS_CDROM::status_not_ready(bool forceint)
 {
+	bool _b = mounted();
+	if(!(_b)) {
+		cdrom_debug_log(_T("CMD (%02X) BUT DISC NOT ACTIVE"), latest_command);
+		set_status((forceint) ? true : req_status, 0,
+				   TOWNS_CD_STATUS_CMD_ABEND, TOWNS_CD_ABEND_DRIVE_NOT_READY, 0, 0);
+	}
+	return !(_b);
+}
+
+bool TOWNS_CDROM::status_media_changed(bool forceint)
+{
+	bool _b = media_changed;
 	if(media_changed) {
 		set_status((forceint) ? true : req_status, 0,
 				   TOWNS_CD_STATUS_CMD_ABEND, TOWNS_CD_ABEND_MEDIA_CHANGED, 0, 0);
 	}
 	media_changed = false;
+	return _b;
 }
 
 void TOWNS_CDROM::status_hardware_error(bool forceint)
@@ -541,12 +558,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 	case CDROM_COMMAND_READ_TOC: // 05h
 		cdrom_debug_log(_T("CMD READ TOC(%02X)"), command);
 		if(req_status) {
-			if(!(mounted())) {
-				status_not_ready(false);
-				break;
-			}
-			if((media_changed)) {
-				status_media_changed(false);
+			if(status_media_changed_or_not_ready(false)) {
 				break;
 			}
 			status_accept(1, 0x00, 0x00);
@@ -558,12 +570,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		break;
 	case CDROM_COMMAND_READ_CDDA_STATE: // 06h
 		if(req_status) {
-			if(!(mounted())) {
-				status_not_ready(false);
-				break;
-			}
-			if((media_changed)) {
-				status_media_changed(false);
+			if(status_media_changed_or_not_ready(false)) {
 				break;
 			}
 			status_accept(1, 0x00, 0x00);
@@ -573,12 +580,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 	case CDROM_COMMAND_1F:
 		cdrom_debug_log(_T("CMD UNKNOWN 1F(%02X)"), command);
 		if(req_status) {
-			if(!(mounted())) {
-				status_not_ready(false);
-				break;
-			}
-			if((media_changed)) {
-				status_media_changed(false);
+			if(status_media_changed_or_not_ready(false)) {
 				break;
 			}
 			status_accept(0, 0x00, 0x00);
@@ -598,13 +600,8 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			);
 		if(req_status) {
 			// ToDo:
-			if(!(mounted())) {
-				status_not_ready(false);
+			if(status_media_changed_or_not_ready(false)) {
 				break;
-			}
-			if((media_changed)) {
-				status_media_changed(false);
-				break;;
 			}
 			if(cdda_status == CDDA_PLAYING) {
 				//status_accept(1, 0x00, 0x00);
@@ -645,13 +642,8 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 //		stat_reply_intr = true; // OK?
 		cdrom_debug_log(_T("CMD CDDA SET(%02X)"), command);
 		if(req_status) {
-			if(!(mounted())) {
-				status_not_ready(false);
+			if(status_media_changed_or_not_ready(false)) {
 				break;
-			}
-			if((media_changed)) {
-				status_media_changed(false);
-				break;;
 			}
 			status_accept(0, 0x00, 0x00);
 		}
@@ -752,9 +744,7 @@ void TOWNS_CDROM::read_cdrom()
 	} else {
 		set_cdda_status(CDDA_OFF);
 	}
-	if(!(is_device_ready())) {
-		cdrom_debug_log(_T("DEVICE NOT READY"));
-		status_not_ready(false);
+	if(status_not_ready(false)) {
 		return;
 	}
 
@@ -1557,12 +1547,8 @@ int TOWNS_CDROM::read_sectors_image(int sectors, uint32_t& transferred_bytes)
 
 bool TOWNS_CDROM::read_buffer(int sectors)
 {
-	if(!(mounted())) {
-		status_not_ready(false);
-		return false;
-	}
-	if(media_changed) {
-		status_media_changed(false);
+	if(status_media_changed_or_not_ready(false)) {
+		// @note ToDo: Make status interrupted. 
 		return false;
 	}
 #if 1
@@ -1686,15 +1672,11 @@ void TOWNS_CDROM::read_a_cdda_sample()
 // -1 = End of sector.
 int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 {
-	if(!(mounted())) {
-		status_not_ready(false);
-		return -1;
-	}
-	if(media_changed) {
-		status_media_changed(false);
-		return -1;
-	}
 	if(sectors < 1) {
+		return -1;
+	}
+	if(status_media_changed_or_not_ready(false)) {
+		// @note ToDo: Make status interrupted. 
 		return -1;
 	}
 	uint8_t tmpbuf[sectors * 2448 + 8];
@@ -2049,12 +2031,7 @@ uint32_t TOWNS_CDROM::lba_to_msf_alt(uint32_t lba)
 
 void TOWNS_CDROM::unpause_cdda_from_cmd()
 {
-	if(!(mounted())) {
-		status_not_ready(false);
-		return;
-	}
-	if((media_changed)) {
-		status_media_changed(false);
+	if(status_media_changed_or_not_ready(false)) {
 		return;
 	}
 
@@ -2070,13 +2047,7 @@ void TOWNS_CDROM::unpause_cdda_from_cmd()
 
 void TOWNS_CDROM::stop_cdda_from_cmd()
 {
-	if(!(mounted())) {
-		status_not_ready(false);
-		return;
-	}
-	if(media_changed) {
-		status_media_changed(false);
-		//next_status_byte = 0x0d;
+	if(status_media_changed_or_not_ready(false)) {
 		return;
 	}
 	/// @note Even make additional status even stop.Workaround for RANCEIII.
@@ -2089,12 +2060,7 @@ void TOWNS_CDROM::stop_cdda_from_cmd()
 
 void TOWNS_CDROM::pause_cdda_from_cmd()
 {
-	if(!(mounted())) {
-		status_not_ready(false);
-		return;
-	}
-	if((media_changed)) {
-		status_media_changed(false);
+	if(status_media_changed_or_not_ready(false)) {
 		return;
 	}
 	set_cdda_status(CDDA_PAUSED);
@@ -2150,12 +2116,7 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 	uint8_t is_repeat    = param_queue[6]; // From Towns Linux v1.1/towns_cd.c
 	uint8_t repeat_count = param_queue[7];
 	cdda_repeat_count = -1;
-	if(!(mounted())) {
-		status_not_ready(false);
-		return;
-	}
-	if((media_changed)) {
-		status_media_changed(false);
+	if(status_media_changed_or_not_ready(false)) {
 		return;
 	}
 	uint32_t start_tmp = FROM_BCD(f_start) + (FROM_BCD(s_start) + FROM_BCD(m_start) * 60) * 75;
