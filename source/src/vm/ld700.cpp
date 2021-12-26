@@ -28,6 +28,7 @@
 
 #include "ld700.h"
 #include "../types/util_sound.h"
+#include "../types/util_configwrapper.h"
 
 #include "../fifo.h"
 #if !defined(__GNUC__) && !defined(__CYGWIN__) && !defined(Q_OS_CYGWIN)

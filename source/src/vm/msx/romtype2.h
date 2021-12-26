@@ -13,6 +13,8 @@
 //#include <stdlib.h>
 //#include <stdio.h>
 
+#include "../../types/util_configwrapper.h"
+
 static RomType hashRomType(uint8_t *rom, int size)
 {
 	int crc32 = get_crc32(rom, size);
