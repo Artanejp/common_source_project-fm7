@@ -325,7 +325,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 					clear_event(this, event_next_sector);
 					clear_event(this, event_seek_completed);
 					status_read_done(false);
-//					do_dma_eot(false);
+					do_dma_eot(false);
 				}
 			} else {
 				
