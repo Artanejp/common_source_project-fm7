@@ -97,7 +97,5 @@
 	typedef uintptr_t SOCKET;
 #endif
 
-#include "./types/pair16_t.h"
-#include "./types/pair32_t.h"
-#include "./types/pair64_t.h"
+
 

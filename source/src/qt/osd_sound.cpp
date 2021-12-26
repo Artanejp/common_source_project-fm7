@@ -9,6 +9,8 @@
 
 #include "../emu.h"
 #include "../fileio.h"
+#include "../types/util_sound.h"
+#include "../types/util_endians.h"
 
 #include <SDL.h>
 

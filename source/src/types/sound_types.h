@@ -1,5 +1,9 @@
 #pragma once
 
+#include "./basic_types.h"
+#include "./pair16_t.h"
+#include "./pair32_t.h"
+
 //! @todo Support Big-Endian. 20211123 K.O
 // wav file header
 #pragma pack(1)

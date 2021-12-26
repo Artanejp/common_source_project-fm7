@@ -1,5 +1,7 @@
 #pragma once
 
+#include "./basic_types.h"
+
 typedef union pair32_t {
 	struct {
 #ifdef __BIG_ENDIAN__
@@ -78,7 +80,6 @@ typedef union pair32_t {
 		tmp = __builtin_bswap16(nn);
 		return tmp;
 	#else
-		uint8_t tt;
 		union {
 			uint16_t ww;
 			uint8_t  b[2];
@@ -130,7 +131,6 @@ typedef union pair32_t {
 		tmp = __builtin_bswap32(nn);
 		return tmp;
 	#else
-		uint8_t tt;
 		union {
 			uint32_t dd;
 			uint8_t  b[4];

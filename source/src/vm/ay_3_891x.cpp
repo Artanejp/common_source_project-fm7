@@ -9,6 +9,7 @@
 
 #include "ay_3_891x.h"
 #include "debugger.h"
+#include "../types/util_sound.h"
 
 #define EVENT_FM_TIMER	0
 

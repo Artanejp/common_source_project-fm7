@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "./system_dep.h"
+
 // string
 #if defined(__GNUC__) || defined(__CYGWIN__) || defined(Q_OS_CYGWIN)
 	#define stricmp(a,b) strcasecmp(a,b)

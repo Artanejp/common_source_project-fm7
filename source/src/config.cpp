@@ -28,6 +28,8 @@ extern CSP_Logger *csp_logger;
 #define CONFIG_NAME "conf"
 #endif
 
+#include "./types/util_configwrapper.h"
+
 BOOL MyWritePrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, int Value, LPCTSTR lpFileName)
 {
 	return MyWritePrivateProfileString(lpAppName, lpKeyName, create_string(_T("%d"), Value), lpFileName);

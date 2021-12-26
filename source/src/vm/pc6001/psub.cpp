@@ -14,6 +14,7 @@
 #include "psub.h"
 #include "timer.h"
 #include "../i8255.h"
+#include "../../types/util_sound.h"
 
 #define STICK0_SPACE	0x80
 #define STICK0_LEFT		0x20

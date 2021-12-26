@@ -8,6 +8,8 @@
 */
 
 #include "scsi_cdrom.h"
+#include "../types/util_sound.h"
+
 #include "../fifo.h"
 
 #include <algorithm>

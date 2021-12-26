@@ -8,6 +8,7 @@
 */
 
 #include "noise.h"
+#include "../types/util_sound.h"
 
 #define EVENT_SAMPLE	0
 

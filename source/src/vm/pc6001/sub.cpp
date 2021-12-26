@@ -16,6 +16,7 @@
 #include "../datarec.h"
 #include "../i8255.h"
 #include "../mcs48.h"
+#include "../../types/util_sound.h"
 
 #define EVENT_PLAY	0
 #define EVENT_STOP	1

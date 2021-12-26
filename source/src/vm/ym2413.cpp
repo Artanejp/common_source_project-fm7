@@ -32,6 +32,7 @@ to do:
 
 #include <math.h>
 #include "ym2413.h"
+#include "../types/util_sound.h"
 
 #define MAME_INLINE static
 #define logerror(...)

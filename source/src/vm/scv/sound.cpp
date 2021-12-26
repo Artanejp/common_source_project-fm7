@@ -10,6 +10,8 @@
 #include <math.h>
 #include "sound.h"
 #include "sound_tbl.h"
+#include "../../types/util_sound.h"
+
 #include "../upd7801.h"
 
 //#define SOUND_DEBUG

@@ -27,6 +27,7 @@
 #include "qt_debugger_tmpl.h"
 #include "qt_lineeditplus.h"
 #include "osd_base.h"
+#include "menu_flags.h"
 
 void CSP_Debugger_Tmpl::set_string_attr(QString color, bool is_strong)
 {

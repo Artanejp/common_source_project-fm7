@@ -10,6 +10,7 @@
 
 #include <math.h>
 #include "apu.h"
+#include "../../types/util_sound.h"
 
 //#define APU_USE_QUEUE
 

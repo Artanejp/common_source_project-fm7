@@ -9,7 +9,6 @@
 //#include "emu.h"
 
 #include "../osd_types.h"
-
 #include "qt_gldraw.h"
 
 #include "gl/qt_glutil_gl_tmpl.h"

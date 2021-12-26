@@ -480,3 +480,12 @@ void OSD_BASE::power_off()
 	emit sig_close_window();
 }
 
+scrntype_t *bitmap_s::get_buffer(int y)
+{
+	if((is_mapped) && (glv != NULL)) {
+		scrntype_t *p = NULL;
+			p = glv->get_screen_buffer(y);
+			if(p != NULL) return p;
+		}
+		return (scrntype_t *)pImage.scanLine(y);
+}

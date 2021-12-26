@@ -8,6 +8,7 @@
 */
 
 #include "sn76489an.h"
+#include "../types/util_sound.h"
 
 //#ifdef HAS_SN76489
 // SN76489

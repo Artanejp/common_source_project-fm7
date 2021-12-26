@@ -21,6 +21,7 @@
 
 #include <math.h>
 #include "msm5205.h"
+#include "../types/util_sound.h"
 
 #define EVENT_TIMER	0
 

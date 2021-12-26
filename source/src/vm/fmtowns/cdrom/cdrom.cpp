@@ -16,6 +16,7 @@
 #include "../../../fifo.h"
 #include "../../../fileio.h"
 #include "../../debugger.h"
+#include "../../types/util_sound.h"
 
 //#include <iostream>
 //#include <utility>

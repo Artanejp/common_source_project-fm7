@@ -11,7 +11,7 @@
 #define _QT_OSD_TYPES_H_
 
 
-#include <QWidget>
+//#include <QWidget>
 #include <QThread>
 #include <QMutex>
 #include <QPainter>
@@ -30,7 +30,7 @@
 #include "../fifo.h"
 
 class GLDrawClass;
-#include "gui/qt_gldraw.h"
+//#include "gui/qt_gldraw.h"
 
 #if !defined(Q_OS_WIN32)
 #include "qt_input.h"
@@ -111,14 +111,7 @@ typedef struct bitmap_s {
 	QImage pImage;
 	GLDrawClass *glv;
 	bool is_mapped;
-	scrntype_t *get_buffer(int y) {
-		if((is_mapped) && (glv != NULL)) {
-			scrntype_t *p = NULL;
-			p = glv->get_screen_buffer(y);
-			if(p != NULL) return p;
-		}
-		return (scrntype_t *)pImage.scanLine(y);
-	};
+	scrntype_t *DLL_PREFIX get_buffer(int y);
 	scrntype_t* lpBuf;
 	QPainter hPainter;
 } bitmap_t;

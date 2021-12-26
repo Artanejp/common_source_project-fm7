@@ -8,6 +8,7 @@
 #include "../../common.h"
 #include "./rf5c68.h"
 #include "../debugger.h"
+#include "../../types/util_sound.h"
 
 void RF5C68::initialize()
 {

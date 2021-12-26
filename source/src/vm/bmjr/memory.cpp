@@ -9,6 +9,7 @@
 
 #include "memory.h"
 #include "../datarec.h"
+#include "../../types/util_sound.h"
 
 namespace BMJR {
 #define SET_BANK(s, e, w, r) { \

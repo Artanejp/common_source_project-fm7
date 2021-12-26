@@ -10,6 +10,7 @@
 #include "datarec.h"
 //#include "event.h"
 #include "noise.h"
+#include "../types/util_sound.h"
 
 #define EVENT_SIGNAL	0
 #define EVENT_SOUND	1

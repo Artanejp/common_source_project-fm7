@@ -14,6 +14,8 @@
 #include <math.h>
 #include "pce.h"
 #include "../huc6280.h"
+#include "../../types/util_sound.h"
+
 #ifdef SUPPORT_CDROM
 #include "../msm5205.h"
 #include "../scsi_host.h"

@@ -19,6 +19,8 @@
 
 #include "fmsound.h"
 #include "../i8259.h"
+#include "../../types/util_sound.h"
+
 #include "../../fifo.h"
 
 // From http://www.webtech.co.jp/company/doc/undocumented_mem/io_sound.txt .

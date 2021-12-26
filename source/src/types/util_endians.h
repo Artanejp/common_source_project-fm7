@@ -1,5 +1,9 @@
 #pragma once
 
+#include "../types/system_dep.h"
+#include "../types/system_endians.h"
+
+#include "../types/optimizer_utils.h"
 #include "../types/pair16_t.h"
 #include "../types/pair32_t.h"
 #include "../types/pair64_t.h"

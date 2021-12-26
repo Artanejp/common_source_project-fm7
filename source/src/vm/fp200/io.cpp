@@ -10,6 +10,7 @@
 #include "io.h"
 #include "../datarec.h"
 #include "../i8080.h"
+#include "../../types/util_sound.h"
 
 namespace FP200 {
 	

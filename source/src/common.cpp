@@ -162,6 +162,7 @@ int DLL_PREFIX my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TC
 #endif
 
 
+#include "./types/util_configwrapper.h"
 
 #ifndef _WIN32
 BOOL DLL_PREFIX MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName)
@@ -1909,6 +1910,7 @@ const _TCHAR *DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCH
 	return name[output_index];
 }
 
+#include "./types/util_sound.h"
 // Use this before writing wav_data.
 bool DLL_PREFIX write_dummy_wav_header(void *__fio)
 {

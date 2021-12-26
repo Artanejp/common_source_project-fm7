@@ -10,6 +10,8 @@
 #include "fmgeninl.h"
 
 #include "../../common.h"
+#include "../../types/util_endians.h"
+#include "../../types/util_sound.h"
 #include "../../fileio.h"
 
 

@@ -8,6 +8,7 @@
 */
 
 #include "beep.h"
+#include "../types/util_sound.h"
 
 void BEEP::reset()
 {

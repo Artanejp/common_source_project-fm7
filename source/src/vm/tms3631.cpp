@@ -9,6 +9,7 @@
 */
 
 #include "tms3631.h"
+#include "../types/util_sound.h"
 
 // from tms3631c.c
 static const uint16_t np2_freq_table[] = {

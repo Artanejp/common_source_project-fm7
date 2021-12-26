@@ -8,6 +8,7 @@
 */
 
 #include "cmt.h"
+#include "../../types/util_sound.h"
 
 #define SAMPLE_RATE 48000
 

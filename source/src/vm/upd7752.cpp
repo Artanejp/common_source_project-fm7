@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include "upd7752.h"
+#include "../types/util_sound.h"
 
 // internal	macros
 #define	I2F(a) (((D7752_FIXED) a) << 16)

@@ -9,6 +9,7 @@
 
 #include <math.h>
 #include "./psg.h"
+#include "../../types/util_sound.h"
 
 #define PSG_CLOCK
 #define PSG_VOLUME	8192

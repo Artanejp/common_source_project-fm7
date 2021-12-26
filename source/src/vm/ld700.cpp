@@ -27,6 +27,8 @@
 #define SEEK_WAIT		0x5f
 
 #include "ld700.h"
+#include "../types/util_sound.h"
+
 #include "../fifo.h"
 #if !defined(__GNUC__) && !defined(__CYGWIN__) && !defined(Q_OS_CYGWIN)
 #define strnicmp(a,b,c) _strnicmp(a,b,c)

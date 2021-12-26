@@ -46,6 +46,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "scc.h"
+#include "../../types/util_sound.h"
 
 #define SCC EMU2212
 

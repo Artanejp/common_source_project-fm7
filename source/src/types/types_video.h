@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../types/scrntype_t.h"
+
 // ToDo: for MSVC, without C++11.
 typedef	 union {
 	scrntype_t w[8];

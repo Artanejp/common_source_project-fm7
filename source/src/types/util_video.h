@@ -4,8 +4,9 @@
 
 #pragma once
 
+#include "../types/types_video.h"
+
 #if defined(_RGB555) || defined(_RGB565)
-	typedef uint16_t scrntype_t;
 	scrntype_t DLL_PREFIX  __FASTCALL RGB_COLOR(uint32_t r, uint32_t g, uint32_t b);
 	scrntype_t DLL_PREFIX  __FASTCALL RGBA_COLOR(uint32_t r, uint32_t g, uint32_t b, uint32_t a);
 	uint8_t DLL_PREFIX  __FASTCALL R_OF_COLOR(scrntype_t c);
@@ -58,7 +59,6 @@ inline scrntype_t __FASTCALL msb_to_alpha_mask_u16le(uint16_t n)
 }
 
 #elif defined(_RGB888)
-	typedef uint32_t scrntype_t;
 #if defined(__LITTLE_ENDIAN__)
 	#define RGB_COLOR(r, g, b)	(((uint32_t)(b) << 16) | ((uint32_t)(g) << 8) | ((uint32_t)(r) << 0) | (0xff << 24))
 	#define RGBA_COLOR(r, g, b, a)	(((uint32_t)(b) << 16) | ((uint32_t)(g) << 8) | ((uint32_t)(r) << 0) | ((uint32_t)(a) << 24))
@@ -119,9 +119,6 @@ inline scrntype_t __FASTCALL msb_to_alpha_mask_u16le(uint16_t n)
 	return _n;
 }
 #endif
-
-#include "../types/types_video.h"
-
 
 inline scrntype_vec8_t ConvertByteToMonochromePackedPixel(uint8_t src, _bit_trans_table_t *tbl,scrntype_t on_val, scrntype_t off_val)
 {
