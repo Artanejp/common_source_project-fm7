@@ -103,6 +103,7 @@
 //	#undef min
 //	#define max(a,b) std::max(a,b)
 //	#define min(a,b) std::min(a,b)
+	#include <algorithm>
 	using std::min;
 	using std::max;
 #endif
