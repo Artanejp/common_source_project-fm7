@@ -507,7 +507,7 @@ public:
 	{
 		d_io = device;
 	}
-	void set_context_intr(DEVICE* device, uint32_t bit = 0xfffffffff)
+	void set_context_intr(DEVICE* device, uint32_t bit = 0xffffffff)
 	{
 		d_intr = device;
 	}
