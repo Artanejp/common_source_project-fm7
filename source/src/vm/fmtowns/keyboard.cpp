@@ -394,7 +394,7 @@ void KEYBOARD::key_down(int code)
 
 void KEYBOARD::key_down2(int code)
 {
-	if(code = key_table[code]) {
+	if((code = key_table[code])) {
 		// $11:CTRL, $10:SHIFT
 		if((code >= 0x70) && (code < 0x7a)) {
 			// If PFkey, press with /*SHIFT or */RALT, PF += 10.
@@ -403,15 +403,15 @@ void KEYBOARD::key_down2(int code)
 											   0x77, 0x78, 0x79, 0x7a, 0x7b};
 				code = pf1xtbl[code - 0x70];
 			}
-		} else if((code == 0x7d)) { // Print Screen + RALT -> Kanji Jisho
+		} else if(code == 0x7d) { // Print Screen + RALT -> Kanji Jisho
 			if(table[0xa5]) { // RALT
 				code = 0x6b;
 			}
-		} else if((code == 0x7c)) { // Pause Break + RALT -> Tango Touroku
+		} else if(code == 0x7c) { // Pause Break + RALT -> Tango Touroku
 			if(table[0xa5]) { // RALT
 				code = 0x6d;
 			}
-		} else if((code == 0x6c)) { // Scroll Lock + RALT -> Tango Massyou.
+		} else if(code == 0x6c) { // Scroll Lock + RALT -> Tango Massyou.
 			if(table[0xa5]) { // RALT
 				code = 0x6c;
 			}
@@ -451,7 +451,7 @@ void KEYBOARD::key_up(int code)
 void KEYBOARD::key_up2(int code)
 {
 //	if(table[code]) {
-		if(code = key_table[code]) {
+	if((code = key_table[code])) {
 			if((code >= 0x70) && (code < 0x7a)) {
 				// If PFkey, press with /*SHIFT or */RALT, PF += 10.
 				if((table[0xa5]) /*|| (table[0x10])*/) { // RALT /*or SHIFT*/
@@ -459,15 +459,15 @@ void KEYBOARD::key_up2(int code)
 												   0x77, 0x78, 0x79, 0x7a, 0x7b};
 					code = pf1xtbl[code - 0x70];
 				}
-			} else if((code == 0x7d)) { // Print Screen + RALT -> Kanji Jisho
+			} else if(code == 0x7d) { // Print Screen + RALT -> Kanji Jisho
 				if(table[0xa5]) { // RALT
 					code = 0x6b;
 				}
-			} else if((code == 0x7c)) { // Pause Break + RALT -> Tango Touroku
+			} else if(code == 0x7c) { // Pause Break + RALT -> Tango Touroku
 				if(table[0xa5]) { // RALT
 					code = 0x6d;
 				}
-			} else if((code == 0x6c)) { // Scroll Lock + RALT -> Tango Massyou.
+			} else if(code == 0x6c) { // Scroll Lock + RALT -> Tango Massyou.
 				if(table[0xa5]) { // RALT
 					code = 0x6c;
 				}
@@ -478,7 +478,7 @@ void KEYBOARD::key_up2(int code)
 				key_buf->write(0xd0 | (table[0x11] ? 8 : 0) | (table[0x10] ? 4 : 0));
 			}
 			key_buf->write(code & 0x7f);
-		}
+	}
 //	}
 }
 
