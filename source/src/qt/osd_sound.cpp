@@ -1113,7 +1113,7 @@ bool OSD_BASE::open_sound_capture_device(int num, int req_rate, int req_channels
 		memset(&(sound_capture_buffer[num][0]), 0x00, buflen);
 		
 		for(int ch = 0; ch < MAX_SOUND_CAPTURE_DEVICES; ch++) {
-			if((sound_capture_desc[ch].physical_dev == num)) {
+			if(sound_capture_desc[ch].physical_dev == num) {
 				sound_capture_desc[ch].read_format = desired.format;
 				sound_capture_desc[ch].read_rate = desired.freq;
 				sound_capture_desc[ch].read_silence = desired.silence;
