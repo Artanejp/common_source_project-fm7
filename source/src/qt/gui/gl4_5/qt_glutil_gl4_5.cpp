@@ -270,7 +270,7 @@ bool GLDraw_4_5::initGridShaders(const QString vertex_fixed, const QString verte
 	QString versionext = QString::fromUtf8("");
 	if(((_version.first == 4) && (_version.second >= 3)) || (_version.first >= 5)) {
 		versionext = QString::fromUtf8("#version 430 core \n"); // OK?
-	} else if((_version.first == 4)) {
+	} else if(_version.first == 4) {
 		versionext = QString::fromUtf8("#version 400 core \n");
 	} else { // Require GLVersion >= 3.2
 		versionext = QString::fromUtf8("#version 150 \n");

@@ -218,11 +218,11 @@ void GLDraw_Tmpl::initButtons(void)
 	} else {
 		if(((_version.first == 4) && (_version.second >= 3)) || (_version.first >= 5)) {
 			versionext = QString::fromUtf8("#version 430 core \n"); // OK?
-		} else if((_version.first == 4)) {
+		} else if(_version.first == 4) {
 			versionext = QString::fromUtf8("#version 400 core \n");
 		} else if((_version.first == 3) && (_version.second >= 3)) {
 			versionext = QString::fromUtf8("#version 330 core \n");
-		} else if((_version.first == 3)) {
+		} else if(_version.first == 3) {
 			versionext = QString::fromUtf8("#version 130 \n");
 		} else { // Require GLVersion >= 2
 			versionext = QString::fromUtf8("#version 120 \n");
