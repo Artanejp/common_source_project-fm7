@@ -16,12 +16,12 @@ namespace TVBOY {
 #define SET_BANK(s, e, w, r) {			\
 	int sb = (s) >> 10, eb = (e) >> 10; \
 	for(int i = sb; i <= eb; i++) { \
-		if((w) == wdmy) { \
+		if(((uintptr_t)w) == ((uintptr_t)wdmy)) {	\
 			wbank[i] = wdmy; \
 		} else { \
 			wbank[i] = (w) + 0x400 * (i - sb); \
 		} \
-		if((r) == rdmy) { \
+		if(((uintptr_t)r) == ((uintptr_t)rdmy)) {	\
 			rbank[i] = rdmy; \
 		} else { \
 			rbank[i] = (r) + 0x400 * (i - sb); \

@@ -15,12 +15,12 @@ namespace PC98HA {
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 14, eb = (e) >> 14; \
 	for(int i = sb; i <= eb; i++) { \
-		if((w) == wdmy) { \
+		if(((uintptr_t)w) == ((uintptr_t)wdmy)) {	\
 			wbank[i] = wdmy; \
 		} else { \
 			wbank[i] = (w) + 0x4000 * (i - sb); \
 		} \
-		if((r) == rdmy) { \
+		if(((uintptr_t)r) == ((uintptr_t)rdmy)) {	\
 			rbank[i] = rdmy + 0x4000 * (i & 3); \
 		} else { \
 			rbank[i] = (r) + 0x4000 * (i - sb); \

@@ -56,7 +56,7 @@ void KEYBOARD::key_down(int code)
 {
 //	if(!table[code]) {
 		table[code] = 1;
-		if(code = key_table[code]) {
+		if((code = key_table[code])) {
 //code=0x20;
 			key_buf->write(code);
 		}
@@ -67,7 +67,7 @@ void KEYBOARD::key_up(int code)
 {
 //	if(table[code]) {
 		table[code] = 0;
-		if(code = key_table[code]) {
+		if((code = key_table[code])) {
 //code=0x20;
 			key_buf->write(code| 0x80);
 		}

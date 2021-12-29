@@ -265,9 +265,9 @@ void DISPLAY::reset()
 		if(regs != NULL) {
 			usec = ((regs[10] & 0x20) == 0) ? 160.0 : 320.0;
 			usec = usec * 1000.0;
-			register_event(this, EVENT_FM7SUB_CURSOR_BLINK, true, usec, &event_id_l4_cursor_blink);
+			register_event(this, EVENT_FM7SUB_CURSOR_BLINK, usec, true, &event_id_l4_cursor_blink);
 			usec = 160.0 * 1000.0;
-			register_event(this, EVENT_FM7SUB_TEXT_BLINK, true, usec, &event_id_l4_cursor_blink);
+			register_event(this, EVENT_FM7SUB_TEXT_BLINK, usec, true, &event_id_l4_text_blink);
 		}						
 	}
 	//memset(crtc_regs, 0x00, sizeof(crtc_regs));
@@ -1986,9 +1986,9 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 					if(regs != NULL) {
 						usec = ((regs[10] & 0x20) == 0) ? 160.0 : 320.0;
 						usec = usec * 1000.0;
-						register_event(this, EVENT_FM7SUB_CURSOR_BLINK, true, usec, &event_id_l4_cursor_blink);
+						register_event(this, EVENT_FM7SUB_CURSOR_BLINK, usec, true, &event_id_l4_cursor_blink);
 						usec = 160.0 * 1000.0;
-						register_event(this, EVENT_FM7SUB_TEXT_BLINK, true, usec, &event_id_l4_cursor_blink);
+						register_event(this, EVENT_FM7SUB_TEXT_BLINK, usec, true, &event_id_l4_text_blink);
 					}						
 				} else {
 					display_mode = DISPLAY_MODE_8_200L;
@@ -2832,7 +2832,7 @@ void DISPLAY::write_mmio(uint32_t addr, uint8_t data)
 						}
 						usec = ((data & 0x20) == 0) ? 160.0 : 320.0;
 						usec = usec * 1000.0;
-						register_event(this, EVENT_FM7SUB_CURSOR_BLINK, true, usec, &event_id_l4_cursor_blink);
+						register_event(this, EVENT_FM7SUB_CURSOR_BLINK, usec, true, &event_id_l4_cursor_blink);
 					}
 					break;
 				case 12:

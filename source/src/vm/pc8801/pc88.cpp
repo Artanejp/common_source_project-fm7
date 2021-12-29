@@ -191,12 +191,12 @@ namespace PC88DEV
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
 	for(int i = sb; i <= eb; i++) { \
-		if((w) == wdmy) { \
+		if(((uintptr_t)w) == ((uintptr_t)wdmy)) {	\
 			wbank[i] = wdmy; \
 		} else { \
 			wbank[i] = (w) + 0x1000 * (i - sb); \
 		} \
-		if((r) == rdmy) { \
+		if(((uintptr_t)r) == ((uintptr_t)rdmy)) {	\
 			rbank[i] = rdmy; \
 		} else { \
 			rbank[i] = (r) + 0x1000 * (i - sb); \
@@ -207,7 +207,7 @@ namespace PC88DEV
 #define SET_BANK_W(s, e, w) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
 	for(int i = sb; i <= eb; i++) { \
-		if((w) == wdmy) { \
+		if(((uintptr_t)w) == ((uintptr_t)wdmy)) {	\
 			wbank[i] = wdmy; \
 		} else { \
 			wbank[i] = (w) + 0x1000 * (i - sb); \
@@ -218,7 +218,7 @@ namespace PC88DEV
 #define SET_BANK_R(s, e, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
 	for(int i = sb; i <= eb; i++) { \
-		if((r) == rdmy) { \
+		if(((uintptr_t)r) == ((uintptr_t)rdmy)) {	\
 			rbank[i] = rdmy; \
 		} else { \
 			rbank[i] = (r) + 0x1000 * (i - sb); \
