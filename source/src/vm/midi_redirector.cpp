@@ -76,7 +76,9 @@ uint32_t MIDI_REDIRECTOR::read_signal(int id)
 		break;
 	default:
 		return 0;
+		break;
 	}
+	return 0;
 }
 void MIDI_REDIRECTOR::write_signal(int id, uint32_t data, uint32_t mask)
 {
