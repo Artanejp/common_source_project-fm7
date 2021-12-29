@@ -22,11 +22,18 @@ inline int Limit(int v, int max, int min)
 }
 //#endif
 
-#if defined(__has_builtin) && (__has_builtin(__builtin_bswap32))
+#if defined(__has_builtin)
+	#if (__has_builtin(__builtin_bswap32))
 inline unsigned int BSwap(unsigned int a)
 {
 	return (unsigned int)__builtin_bswap32((uint32_t)a);
 }
+	#else
+inline unsigned int BSwap(unsigned int a)
+{
+	return (a >> 24) | ((a >> 8) & 0xff00) | ((a << 8) & 0xff0000) | (a << 24);
+}
+	#endif
 #else
 inline unsigned int BSwap(unsigned int a)
 {
