@@ -59,7 +59,7 @@ public:
 		set_device_name(_T("HD6301 MPU"));
 	}
 	~HD6301() {}
-	bool process_state(FILEIO* state_fio, bool loading);
+	bool process_state(FILEIO* state_fio, bool loading) override;
 
 	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0) override;
 

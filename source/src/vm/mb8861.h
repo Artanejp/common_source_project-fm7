@@ -46,7 +46,7 @@ public:
 		set_device_name(_T("MB8861 MPU"));
 	}
 	~MB8861() {}
-	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
+	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0) override;
 };
 
 #endif

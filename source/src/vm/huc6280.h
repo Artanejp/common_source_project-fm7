@@ -43,40 +43,40 @@ public:
 	~HUC6280_BASE() {}
 	
 	// common functions
-	virtual void initialize();
-	virtual void release();
-	virtual void reset();
-	virtual int __FASTCALL run(int clock);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t get_pc();
-	uint32_t get_next_pc();
+	virtual void initialize() override;
+	virtual void release() override;
+	virtual void reset() override;
+	virtual int __FASTCALL run(int clock)  override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	uint32_t get_pc() override;
+	uint32_t get_next_pc() override;
 //#ifdef USE_DEBUGGER
-	bool is_cpu()
+	bool is_cpu() override
 	{
 		return true;
 	}
-	bool is_debugger_available()
+	bool is_debugger_available() override
 	{
 		return true;
 	}
-	void *get_debugger()
+	void *get_debugger() override
 	{
 		return d_debugger;
 	}
-	uint32_t get_debug_prog_addr_mask()
+	uint32_t get_debug_prog_addr_mask() override
 	{
 		return 0xffff;
 	}
-	uint32_t get_debug_data_addr_mask()
+	uint32_t get_debug_data_addr_mask() override
 	{
 		return 0x1fffff;
 	}
-	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
-	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
-	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
-	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr) override;
+	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_debug_io8(uint32_t addr) override;
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data) override;
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
 	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0) override;
 //#endif
 	
@@ -107,11 +107,11 @@ public:
 	~HUC6280() {}
 	
 	// common functions
-	void initialize();
-	void release();
-	void reset();
-	int __FASTCALL run(int clock);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void initialize() override;
+	void release() override;
+	void reset() override;
+	int __FASTCALL run(int clock) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
 
 #ifdef USE_DEBUGGER
 	void set_context_debugger(DEBUGGER* device)

@@ -87,7 +87,7 @@ protected:
 	
 	uint32_t __FASTCALL mc6801_io_r(uint32_t offset);
 	virtual void __FASTCALL mc6801_io_w(uint32_t offset, uint32_t data);
-	void __FASTCALL increment_counter(int amount);
+	void __FASTCALL increment_counter(int amount) override;
 
 	uint32_t __FASTCALL RM(uint32_t Addr) override;
 	void __FASTCALL WM(uint32_t Addr, uint32_t Value) override;
@@ -135,11 +135,11 @@ public:
 	}
 	~MC6801() {}
 	void initialize() override;
-	void release();
+	void release() override;
 	void reset() override;
 	int __FASTCALL run(int clock) override;
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
-	bool process_state(FILEIO* state_fio, bool loading);
+	bool process_state(FILEIO* state_fio, bool loading) override;
 
 
 	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0) override;
