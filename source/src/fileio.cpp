@@ -576,9 +576,16 @@ void FILEIO::FputDouble_LE(double val)
 _TCHAR FILEIO::FgetTCHAR_LE()
 {
 	switch(sizeof(_TCHAR)) {
-	case 2: return (_TCHAR)FgetUint16_LE();
-	case 4: return (_TCHAR)FgetUint32_LE();
-	case 8: return (_TCHAR)FgetUint64_LE();
+	case 1:
+		return (_TCHAR)FgetUint8();
+	case 2:
+		return (_TCHAR)FgetUint16_LE();
+	case 4:
+		return (_TCHAR)FgetUint32_LE();
+	case 8:
+		return (_TCHAR)FgetUint64_LE();
+	default:
+		break;
 	}
 	return (_TCHAR)FgetUint8();
 }
@@ -586,11 +593,22 @@ _TCHAR FILEIO::FgetTCHAR_LE()
 void FILEIO::FputTCHAR_LE(_TCHAR val)
 {
 	switch(sizeof(_TCHAR)) {
-	case 2: FputUint16_LE((uint16_t)val); return;
-	case 4: FputUint32_LE((uint32_t)val); return;
-	case 8: FputUint32_LE((uint64_t)val); return;
+	case 1:
+		FputUint8((uint8_t)val);
+		break;
+	case 2:
+		FputUint16_LE((uint16_t)val);
+		break;
+	case 4:
+		FputUint32_LE((uint32_t)val);
+		break;
+	case 8:
+		FputUint32_LE((uint64_t)val);
+		break;
+	default:
+		FputUint8((uint8_t )val);
+		break;
 	}
-	FputUint8((uint8_t )val);
 }
 
 uint16_t FILEIO::FgetUint16_BE()
@@ -772,9 +790,16 @@ void FILEIO::FputDouble_BE(double val)
 _TCHAR FILEIO::FgetTCHAR_BE()
 {
 	switch(sizeof(_TCHAR)) {
-	case 2: return (_TCHAR)FgetUint16_BE();
-	case 4: return (_TCHAR)FgetUint32_BE();
-	case 8: return (_TCHAR)FgetUint64_BE();
+	case 1:
+		return (_TCHAR)FgetUint8();
+	case 2:
+		return (_TCHAR)FgetUint16_BE();
+	case 4:
+		return (_TCHAR)FgetUint32_BE();
+	case 8:
+		return (_TCHAR)FgetUint64_BE();
+	default:
+		break;
 	}
 	return (_TCHAR)FgetUint8();
 }
@@ -782,11 +807,22 @@ _TCHAR FILEIO::FgetTCHAR_BE()
 void FILEIO::FputTCHAR_BE(_TCHAR val)
 {
 	switch(sizeof(_TCHAR)) {
-	case 2: FputUint16_BE((uint16_t)val); return;
-	case 4: FputUint32_BE((uint32_t)val); return;
-	case 8: FputUint32_BE((uint64_t)val); return;
+	case 1:
+		FputUint8((uint8_t )val);
+		break;
+	case 2:
+		FputUint16_BE((uint16_t)val);
+		break;
+	case 4:
+		FputUint32_BE((uint32_t)val);
+		break;
+	case 8:
+		FputUint32_BE((uint64_t)val);
+		break;
+	default:
+		FputUint8((uint8_t )val);
+		break;
 	}
-	FputUint8((uint8_t )val);
 }
 
 int FILEIO::Fgetc()
