@@ -173,7 +173,7 @@ void JOYSTICK::update_strobe(bool flag)
 {
 	if(mouse_strobe != flag) {
 		mouse_strobe = flag;
-		if((mouse_phase == 0)) {
+		if(mouse_phase == 0) {
 			lx = -dx;
 			ly = -dy;
 			dx = 0;
