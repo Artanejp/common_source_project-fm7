@@ -100,7 +100,7 @@ void MB8877::register_drq_event(int bytes)
 		nf = true;
 	}
 	if(type_fm7) {
-		if((disk[drvreg]->is_special_disk == SPECIAL_DISK_FM7_GAMBLER)) {
+		if(disk[drvreg]->is_special_disk == SPECIAL_DISK_FM7_GAMBLER) {
 		   /* (disk[drvreg]->is_special_disk == SPECIAL_DISK_FM77AV_PSYOBLADE) || */
 			nf = true;
 		}
