@@ -543,8 +543,9 @@ void* debugger_thread(void *lpx)
 		if(!p->request_terminate && enter_done) {
 			_TCHAR *params[32], *token = NULL, *context = NULL;
 			int num = 0;
+		
 			for(int i = 0; i < ((sizeof(params) / sizeof(_TCHAR *))); i++) {
-				params[i] = _T("");
+				params[i] = (_TCHAR *)(_T(""));
 			}
 			if((token = my_tcstok_s(command, _T(" "), &context)) != NULL) {
 				params[num++] = token;
