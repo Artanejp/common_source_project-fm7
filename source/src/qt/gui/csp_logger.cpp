@@ -381,7 +381,7 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 			if(!level_dev_out_console[domain_num - CSP_LOG_TYPE_VM_DEVICE_0][level]) cons_log_level_n = 0;
 		} else if((domain_num >= CSP_LOG_TYPE_VFILE_HEAD) && (domain_num < CSP_LOG_TYPE_VFILE_END)) {
 			domain_s = vfile_names.at(domain_num - CSP_LOG_TYPE_VFILE_HEAD);
-		} else if((domain_num == CSP_LOG_TYPE_VM_STATE)) {
+		} else if(domain_num == CSP_LOG_TYPE_VM_STATE) {
 			domain_s = QString::fromUtf8("STATE");
 			record_flag = level_state_out_record;
 			if(!level_state_out_syslog) sys_log_level_n = 0;
