@@ -1332,7 +1332,13 @@ __DECL_VECTORIZED_LOOP
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
 			tmp_r[i] = ((i & 2) != 0) ? (((i & 8) != 0) ? 255 : 128) : 0;
+		}
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 16; i++) {
 			tmp_g[i] = ((i & 4) != 0) ? (((i & 8) != 0) ? 255 : 128) : 0;
+		}
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 16; i++) {
 			tmp_b[i] = ((i & 1) != 0) ? (((i & 8) != 0) ? 255 : 128) : 0;
 		}
 __DECL_VECTORIZED_LOOP
@@ -1682,7 +1688,7 @@ __DECL_VECTORIZED_LOOP
 				scrntype_t *px1 = &(lbuffer1[xptr + of1]);
 				scrntype_t *px0 = &(lbuffer0[xptr + of0]);
 				scrntype_t *ax = &(abuffer0[xptr + of0]);
-__DECL_VECTORIZED_LOOP
+
 				for(int ii = 0; ii < rrwidth; ii++) {
 					pix0 = px0[ii];
 					mask0 = ax[ii];
@@ -2052,14 +2058,26 @@ __DECL_VECTORIZED_LOOP
 	// Fill by skelton colors;
 	for(int l = 0; l < 2; l++) {
 		uint32_t *p = (uint32_t*)(&(linebuffers[trans][line].pixels_layer[l][0]));
-		uint32_t pix = 0x00000000;
+		__DECL_ALIGNED(16) pair32_t pix[8];
 		if(!(to_disp[l])) {
 			if(linebuffers[trans][line].mode[l] == DISPMODE_32768) {
-				pix = 0x80008000;
+__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 8; i++) {
+					pix[i].w.l = 0x8000;
+					pix[i].w.h = 0x8000;
+				}
+			} else {
+__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 8; i++) {
+					pix[i].d = 0x00000000;
+				}
 			}
-__DECL_VECTORIZED_LOOP		
-			for(int x = 0; x < (TOWNS_CRTC_MAX_PIXELS >> 1); x++) {
-				p[x] = pix; // Clear color
+			for(int x = 0; x < (TOWNS_CRTC_MAX_PIXELS >> 1); x += 8) {
+__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 8; i++) {
+					p[i] = pix[i].d; // Clear color
+				}
+				p += 8;
 			}
 		}
 	}
