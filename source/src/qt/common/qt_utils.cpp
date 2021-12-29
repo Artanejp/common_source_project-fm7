@@ -492,9 +492,10 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 		save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 #else
 		{
-			char tmps[128];
+			char tmps[128] = {0};
 			std::string localstr;
-			snprintf(tmps, sizeof(tmps), _T("%s.ini"), _T(CONFIG_NAME));
+			//snprintf(tmps, sizeof(tmps), _T("%s.ini"), _T(CONFIG_NAME));
+			my_stprintf_s(tmps, sizeof(tmps) - 1, _T("%s.ini"), _T(CONFIG_NAME));
 			localstr = tmps;
 			localstr = cpp_confdir + localstr;
 			save_config(localstr.c_str());
@@ -998,7 +999,7 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 			strncpy(tmps, cmdparser->value(*_opt_cfgfile).toLocal8Bit().constData(), 127);
 		}
 		if(strlen(tmps) <= 0){
-			snprintf(tmps, sizeof(tmps), _T("%s.ini"), _T(CONFIG_NAME));
+			my_stprintf_s(tmps, sizeof(tmps) - 1, _T("%s.ini"), _T(CONFIG_NAME));
 		}
 		localstr = tmps;
 		localstr = cpp_confdir + localstr;
