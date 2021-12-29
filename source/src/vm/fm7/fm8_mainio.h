@@ -51,27 +51,27 @@ public:
 	FM8_MAINIO(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~FM8_MAINIO();
 	
-	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_data8(uint32_t addr);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_data8(uint32_t addr) override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
 
-	void __FASTCALL event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err) override;
 	void reset() override;
-	void initialize();
-	void update_config();
+	void initialize() override;
+	void update_config() override;
 	bool process_state(FILEIO *state_fio, bool loading) override;
 
-	void set_context_kanjirom_class2(DEVICE *p)
+	void set_context_kanjirom_class2(DEVICE *p) override
 	{
 	}
 # if defined(USE_AY_3_8910_AS_PSG)
-	void set_context_psg(AY_3_891X *p)
+	void set_context_psg(AY_3_891X *p) override
 	{
 		psg = p;
 		connect_psg = true;
 	}
 # else
-	void set_context_psg(YM2203 *p)
+	void set_context_psg(YM2203 *p) override
 	{
 		psg = p;
 		connect_psg = true;

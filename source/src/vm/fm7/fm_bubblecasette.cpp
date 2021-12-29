@@ -361,6 +361,7 @@ void BUBBLECASETTE::write_data8(uint32_t address, uint32_t data)
 
 uint32_t BUBBLECASETTE::read_signal(int address)
 {
+	return 0;
 }
 
 void BUBBLECASETTE::write_signal(int id, uint32_t data, uint32_t mask)
