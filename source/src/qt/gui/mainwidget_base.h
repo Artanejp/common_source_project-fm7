@@ -652,7 +652,6 @@ public slots:
 	void _open_binary_load(int drive, const QString fname);
 	void _open_binary_save(int drive, const QString fname);
 
-	void open_quick_disk_dialog(int drv);
 	int set_recent_quick_disk(int drive, int num); 
 	int write_protect_Qd(int drv, bool flag);
 	void _open_quick_disk(int drv, const QString fname);

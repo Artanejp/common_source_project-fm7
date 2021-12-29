@@ -49,44 +49,6 @@ void Ui_MainWindowBase::ConfigQuickDiskMenuSub(int drv)
 }
 
 
-// Common Routine
-void Ui_MainWindowBase::open_quick_disk_dialog(int drv)
-{
-	QString ext = "*.mzt *.q20 *.qdf";
-	QString desc1 = "Quick DIsk";
-	QString desc2;
-	CSP_DiskDialog dlg;
-	QString dirname;
-
-	dlg.setWindowTitle("Open Quick Disk");
-  
-	desc2 = desc1 + " (" + ext.toLower() + " " + ext.toUpper() + ")";
-	//desc2 = desc1 + " (" + ext.toLower() + ")";
-	//desc1 = desc1 + " (" + ext.toUpper() + ")";
-	if(p_config->initial_quick_disk_dir != NULL) {
-		dirname = p_config->initial_quick_disk_dir;	        
-	} else {
-		char app[_MAX_PATH];
-		QDir df;
-		dirname = df.currentPath();
-		memset(app, 0x00, _MAX_PATH * sizeof(char));
-		strncpy(app, dirname.toLocal8Bit().constData(), _MAX_PATH - 1);
-		dirname = get_parent_dir(app);
-	}
-	QStringList filter;
-	filter << desc2;
-
-	dlg.param->setDrive(drv);
-	dlg.setDirectory(dirname);
-	dlg.setNameFilters(filter);
-	QObject::connect(&dlg, SIGNAL(fileSelected(QString)),
-			 dlg.param, SLOT(_open_quick_disk(QString))); 
-	QObject::connect(dlg.param, SIGNAL(do_open_quick_disk(int, QString)),
-			 this, SLOT(_open_quick_disk(int, QString))); 
-	dlg.show();
-	dlg.exec();
-	return;
-}
 
 int Ui_MainWindowBase::write_protect_Qd(int drv, bool flag)
 {
