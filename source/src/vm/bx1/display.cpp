@@ -92,7 +92,7 @@ void DISPLAY::initialize()
 	// test font pattern
 	for(int i = 0; i < 0x80; i++) {
 		for(int j = 0; j < 7; j++) {
-			this->out_debug_log(create_string(_T("%02X:%d\t%c%c%c%c%c\n"),
+			this->out_debug_log("%s", create_string(_T("%02X:%d\t%c%c%c%c%c\n"),
 				i, j,
 				font[i][j] & 0x10 ? _T('#') : _T(' '),
 				font[i][j] & 0x08 ? _T('#') : _T(' '),
