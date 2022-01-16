@@ -233,6 +233,13 @@ public:
 	~MOVIE_SAVER();
 	bool is_recording(void);
 	QString get_avio_version();
+	template <class... Args>
+		void out_debug_log(int type, int subtype, Args... args)
+	{
+		__LIKELY_IF(p_logger != nullptr) {
+			p_logger->debug_log(type, subtype, args...);
+		}
+	}
 
 public slots:
 	void run();

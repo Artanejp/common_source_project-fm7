@@ -6,10 +6,11 @@
  */
 
 #include <QDateTime>
+
+#include "./csp_avio_basic.h"
 #include "movie_saver.h"
 #include "../osd.h"
 #include "csp_logger.h"
-
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -65,21 +66,21 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 	/* find the encoder */
 	*codec = avcodec_find_encoder(codec_id);
 	if (!(*codec)) {
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not find encoder for '%s'\n",
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not find encoder for '%s'\n",
 				(const char *)avcodec_get_name(codec_id));
 		return false;
 	}
 
 	ost->st = avformat_new_stream(oc, *codec);
 	if (!ost->st) {
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate stream\n");
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate stream\n");
 		return false;
 	}
 	ost->st->id = oc->nb_streams-1;
 #ifdef AVCODEC_UPPER_V56
 	ost->context = avcodec_alloc_context3(*codec);
 	if (ost->context == NULL) {
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Failed to allocate context for encoding: \n");
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Failed to allocate context for encoding: \n");
 		return false;
 	}
 #endif
@@ -144,6 +145,7 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 
 		//c->gop_size	  = rec_fps; /* emit one intra frame every one second */
 		c->pix_fmt	   = STREAM_PIX_FMT;
+		#ifndef AVCODEC_UPPER_V56
 		if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
 			/* just for testing, we also add B frames */
 			c->max_b_frames = 2;
@@ -161,6 +163,30 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 		if (c->codec_id == AV_CODEC_ID_H264) {
 			setup_h264((void *)c);
 		}
+		#else
+		{
+			int __type = CSP_AVIO_BASIC::csp_avio_get_codec_type((_TCHAR*)avcodec_get_name(c->codec_id));
+			switch(__type) {
+			case CSP_AVIO_BASIC::TYPE_MPEG1:
+				c->mb_decision = 2;
+				break;
+			/* just for testing, we also add B frames */
+			case CSP_AVIO_BASIC::TYPE_MPEG2:
+				c->max_b_frames = 2;
+				c->gop_size  = rec_fps; /* emit one intra frame every one second */
+				break;
+			case CSP_AVIO_BASIC::TYPE_MPEG4:
+				setup_mpeg4((void *)c);
+				break;
+			case CSP_AVIO_BASIC::TYPE_H264:
+			case CSP_AVIO_BASIC::TYPE_LIBX264:
+				setup_h264((void *)c);
+				break;
+			default:
+				break;
+			}
+		}
+		#endif
 	break;
 
 	default:
@@ -314,12 +340,12 @@ bool MOVIE_SAVER::do_open_main()
 	if (!(fmt->flags & AVFMT_NOFILE)) {
 		ret = avio_open(&oc->pb, _filename.toLocal8Bit().constData(), AVIO_FLAG_WRITE);
 		if (ret < 0) {
-			p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
+			out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
 								  "Could not open '%s': %s\n", _filename.toLocal8Bit().constData(),
 					err2str(ret).toLocal8Bit().constData());
 			goto _err_final;
 		} else {
-			p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
+			out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
 								  "Success to Open file: '%s\n", _filename.toLocal8Bit().constData());
 		}			
 	}
@@ -331,7 +357,7 @@ bool MOVIE_SAVER::do_open_main()
 	/* Write the stream header, if any. */
 	ret = avformat_write_header(oc, &raw_options_list);
 	if (ret < 0) {
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
 							  "Error occurred when opening output file: %s\n",
 				err2str(ret).toLocal8Bit().constData());
 		goto _err_final;
@@ -468,15 +494,15 @@ void MOVIE_SAVER::do_close_main()
 	}
 	video_data_queue.clear();
 
-	p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
+	out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
 						  "Close: Left:  Video %lld frames, Audio %lld frames",
 				  leftq_v,
 				  leftq_a
 	);
 	// Message
-	p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
+	out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
 				  "MOVIE: Close: Write:  Video %lld frames, Audio %lld frames", totalDstFrame, totalAudioFrame);
-	p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
+	out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
 						  "MOVIE: Close: Dequeue:  Video %lld frames, Audio %lld frames", totalDstFrame, audio_count);
 	totalSrcFrame = 0;
 	totalDstFrame = 0;

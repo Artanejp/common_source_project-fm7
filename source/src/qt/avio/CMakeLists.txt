@@ -1,10 +1,11 @@
 message("* qt/avio")
 
-SET(THIS_LIB_VERSION 3.4.6)
+SET(THIS_LIB_VERSION 4.0.0)
 set(s_qt_avio_headers
-	  movie_saver.h
-	  movie_loader.h
-	  sound_loader.h
+	csp_avio_basic.h
+	movie_saver.h
+	movie_loader.h
+	sound_loader.h
 )
 
 set(s_qt_avio_srcs

@@ -64,7 +64,7 @@ private:
 	int video_dst_bufsize;
 	int video_stream_idx, audio_stream_idx; //int video_stream_idx = -1, audio_stream_idx = -1;
 	AVFrame *frame; //AVFrame *frame = NULL;
-	AVPacket pkt;
+	AVPacket *pkt;
 	struct SwsContext *sws_context;
 	struct SwrContext *swr_context;
 
@@ -120,6 +120,14 @@ public:
 	bool is_playing(void);
 	bool is_pausing(void);
 
+	template <class... Args>
+		void out_debug_log(int type, int subtype, Args... args)
+	{
+		__LIKELY_IF(p_logger != nullptr) {
+			p_logger->debug_log(type, subtype, args...);
+		}
+	}
+	
 public slots:
 	void do_set_dst_geometry(int width, int height);
 	void do_set_enable_hwaccel_decoding(bool enable);

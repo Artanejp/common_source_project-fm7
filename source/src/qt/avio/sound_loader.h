@@ -37,7 +37,7 @@ private:
 	
 	int audio_stream_idx; //int video_stream_idx = -1, audio_stream_idx = -1;
 	AVFrame *frame; //AVFrame *frame = NULL;
-	AVPacket pkt;
+	AVPacket *packet;
 	struct SwrContext *swr_context;
 	int get_format_from_sample_fmt(const char **fmt, enum AVSampleFormat sample_fmt);
 	int open_codec_context(int *stream_idx, AVFormatContext *fmt_ctx, AVCodecContext **ctx, enum AVMediaType type);
@@ -72,5 +72,14 @@ public:
 	void set_sound_rate(int rate);
 	
 	void free_sound_buffer(int16_t *p);
+
+	template <class... Args>
+		void out_debug_log(int type, int subtype, Args... args)
+	{
+		__LIKELY_IF(p_logger != nullptr) {
+			p_logger->debug_log(type, subtype, args...);
+		}
+	}
+
 };
 #endif

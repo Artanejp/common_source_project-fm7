@@ -5,6 +5,8 @@
  *  History: May 27, 2016 : Initial. This refer from avidemux 2.5.6 .
  */
 #include <QDateTime>
+
+#include "./csp_avio_basic.h"
 #include "movie_saver.h"
 #include "../osd.h"
 #include "csp_logger.h"
@@ -39,7 +41,7 @@ void *MOVIE_SAVER::alloc_audio_frame(uint64_t _sample_fmt,
 	int ret;
 	enum AVSampleFormat sample_fmt = (enum AVSampleFormat)_sample_fmt; 
 	if (!frame) {
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error allocating an audio frame\n");
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error allocating an audio frame\n");
 		exit(1);
 	}
 
@@ -51,7 +53,7 @@ void *MOVIE_SAVER::alloc_audio_frame(uint64_t _sample_fmt,
 	if (nb_samples) {
 		ret = av_frame_get_buffer(frame, 0);
 		if (ret < 0) {
-			p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error allocating an audio buffer\n");
+			out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error allocating an audio buffer\n");
 			return NULL;
 		}
 	}
@@ -87,7 +89,7 @@ bool MOVIE_SAVER::open_audio(void)
 #ifdef AVCODEC_UPPER_V56
 		avcodec_free_context(&(ost->context));
 #endif
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not open audio codec: %s\n", err2str(ret).toLocal8Bit().constData());
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not open audio codec: %s\n", err2str(ret).toLocal8Bit().constData());
 		return false;
 	}
 
@@ -107,7 +109,7 @@ bool MOVIE_SAVER::open_audio(void)
 #ifdef AVCODEC_UPPER_V56
 		avcodec_free_context(&(ost->context));
 #endif
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate resampler context\n");
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate resampler context\n");
 		return false;
 	}
 	av_opt_set_int	   (ost->swr_ctx, "in_channel_count",   c->channels,	   0);
@@ -122,17 +124,17 @@ bool MOVIE_SAVER::open_audio(void)
 #ifdef AVCODEC_UPPER_V56 
 		avcodec_free_context(&(ost->context));
 #endif
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Failed to initialize the resampling context\n");
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Failed to initialize the resampling context\n");
 		return false;
 	}
 #ifdef AVCODEC_UPPER_V56
 	ret = avcodec_parameters_from_context(ost->st->codecpar, c);
 	if (ret < 0) {
-		p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Could not copy the stream parameters\n");
+		out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Could not copy the stream parameters\n");
 		return false;
 	}
 #endif
-	p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Open to write audio : Success.");
+	out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Open to write audio : Success.");
 	return true;
 #else
 	return true;
@@ -207,7 +209,7 @@ int MOVIE_SAVER::write_audio_frame()
 	AVFormatContext *oc = output_context;
 	OutputStream *ost = &audio_st;
 	AVCodecContext *c;
-	AVPacket pkt = { 0 }; // data and size must be 0;
+	AVPacket *pkt = NULL; // data and size must be 0;
 	AVFrame *frame_src;
 	AVFrame *frame_dst;
 	int ret;
@@ -219,10 +221,23 @@ int MOVIE_SAVER::write_audio_frame()
 	#else
 	c = ost->st->codec;
 	#endif
-	av_init_packet(&pkt);
+#ifdef AVCODEC_UPPER_V56
+	pkt = av_packet_alloc();
+	if(pkt == nullptr) {
+		return 0;
+	}
+#else
+	pkt = malloc(sizeof(AVPacket));
+	if(pkt == nullptr) {
+		return 0;
+	}
+	av_init_packet(pkt);
+#endif	
 	frame_src = (AVFrame *)get_audio_frame();
 	//if(req_close) return 1;
-	if (frame_src == NULL) return 0;
+	if (frame_src == NULL) {
+		goto __ret_zero;
+	}
 	{
 		/* convert samples from native format to destination codec format, using the resampler */
 		/* compute destination number of samples */
@@ -240,16 +255,16 @@ int MOVIE_SAVER::write_audio_frame()
 		 */
 		ret = av_frame_make_writable(ost->frame);
 		if (ret < 0) {
-			p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Audio: Fail to make writable frame.");
-			return -1;
+			out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "Audio: Fail to make writable frame.");
+			goto __error_1;
 		}
 		/* convert to destination format */
 		ret = swr_convert(ost->swr_ctx,
 						  ost->frame->data, dst_nb_samples,
 						  (const uint8_t **)frame_src->data, frame_src->nb_samples);
 		if (ret < 0) {
-			p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while converting\n");
-			return -1;
+			out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while converting\n");
+			goto __error_1;
 		}
 
 		frame_dst = ost->frame;
@@ -265,46 +280,41 @@ int MOVIE_SAVER::write_audio_frame()
 	{
 		ret = avcodec_send_frame(c, frame_dst);
 		if(ret < 0) {
-			return -1;
-			if(ret == AVERROR_EOF) {
-//				return 0;
-				return 1;
-			}
-			return ((ret == AVERROR(EAGAIN)) ? 0 : -1);
+			goto __error_1;
 		}
 		while (ret >= 0) {
-			ret = avcodec_receive_packet(c, &pkt);
+			ret = avcodec_receive_packet(c, pkt);
 			if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-				return (got_packet || frame_dst) ? 0 : 1;
+				
+				goto __return_normal;
 			} else if (ret < 0) {
-				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing audio frame: %s\n",
+				out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing audio frame: %s\n",
 									err2str(ret).toLocal8Bit().constData());
-				return -1;
+				goto __error_1;
 			}
 			got_packet = 1;
-			pkt.stream_index = 1;
-			int ret2 = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)&pkt);
+			pkt->stream_index = 1;
+			int ret2 = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)pkt);
 			if (ret2 < 0) {
-				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing audio frame: %s\n", err2str(ret2).toLocal8Bit().constData());
-				return -1;
+				out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing audio frame: %s\n", err2str(ret2).toLocal8Bit().constData());
+				goto __error_1;
 			}
-			av_packet_unref(&pkt);
+			av_packet_unref(pkt);
 		}
 	}
-	return (frame_dst || got_packet) ? 0 : 1;
 #else
-	ret = avcodec_encode_audio2(c, &pkt, frame_dst, &got_packet);
+	ret = avcodec_encode_audio2(c, pkt, frame_dst, &got_packet);
 	if (ret < 0) {
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error encoding audio frame: %s\n", err2str(ret).toLocal8Bit().constData());
-		return -1;
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error encoding audio frame: %s\n", err2str(ret).toLocal8Bit().constData());
+		goto __error_1;
 	}
 
 	if (got_packet) {
-		ret = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)&pkt);
+		ret = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)pkt);
 		if (ret < 0) {
-			p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing audio frame: %s\n",
+			out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing audio frame: %s\n",
 					err2str(ret).toLocal8Bit().constData());
-			return -1;
+			goto __error_1;
 		}
 		//if(frame_dst) {
 		//	char buf[256];
@@ -313,8 +323,36 @@ int MOVIE_SAVER::write_audio_frame()
 		//	AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Write audio to file. pts=%s", s);
 		//}
 	}
-	return (frame_dst || got_packet) ? 0 : 1;
 #endif
+__return_normal:
+#ifdef AVCODEC_UPPER_V56
+		av_packet_free(&pkt);
+#else
+		free(pkt);
+#endif
+	return (frame_dst || got_packet) ? 0 : 1;
+__error_1:
+#ifdef AVCODEC_UPPER_V56
+		av_packet_free(&pkt);
+#else
+		free(pkt);
+#endif
+		return -1;
+__ret_zero:
+#ifdef AVCODEC_UPPER_V56
+		av_packet_free(&pkt);
+#else
+		free(pkt);
+#endif
+		return 0;
+__eof:
+#ifdef AVCODEC_UPPER_V56
+		av_packet_free(&pkt);
+#else
+		free(pkt);
+#endif
+		return 1;
+
 #else
 	return 1;
 #endif
@@ -330,7 +368,6 @@ void MOVIE_SAVER::setup_audio(void *_codec_context, void **_codec)
 	c->sample_fmt  = (*codec)->sample_fmts ? (*codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
 	c->bit_rate	= audio_bit_rate;
 	c->sample_rate = audio_sample_rate;
-	#endif
 	if(c->codec_id == AUDIO_CODEC_AAC) {
 		c->strict_std_compliance = -2; // For internal AAC
 		c->global_quality = 100;
@@ -339,6 +376,23 @@ void MOVIE_SAVER::setup_audio(void *_codec_context, void **_codec)
 		c->compression_level = 9; // Quality
 		// ABR/CBR/VBR
 	}
+	#else
+	int __type = CSP_AVIO_BASIC::csp_avio_get_codec_type((_TCHAR*)avcodec_get_name(c->codec_id));
+	switch(__type) {
+	case CSP_AVIO_BASIC::TYPE_MP3:
+		c->compression_level = 9; // Quality
+		// ABR/CBR/VBR
+		break;
+	case CSP_AVIO_BASIC::TYPE_AAC:
+	case CSP_AVIO_BASIC::TYPE_AAC_LATM:
+		c->strict_std_compliance = -2; // For internal AAC
+		c->global_quality = 100;
+		break;
+	default:
+		break;
+	}
+	#endif
+	
 	if(audio_sample_rate < 32000) {
 		c->cutoff = (audio_sample_rate * 3) / 5;
 	} else {

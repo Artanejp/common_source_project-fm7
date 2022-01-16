@@ -55,6 +55,8 @@ MOVIE_LOADER::MOVIE_LOADER(OSD *osd, config_t *cfg) : QObject(NULL)
 	audio_dec_ctx = NULL;
 	sws_context = NULL;
 	swr_context = NULL;
+	pkt = NULL;
+
 	video_stream = NULL;
 	audio_stream = NULL;
 	for(int i = 0; i < 4; i++) video_dst_data[i] = NULL;
@@ -78,9 +80,12 @@ MOVIE_LOADER::~MOVIE_LOADER()
 int MOVIE_LOADER::decode_audio(AVCodecContext *dec_ctx, int *got_frame)
 {
     int ret = 0;
+	if(pkt == nullptr) {
+		return ret;
+	}
 #if (LIBAVCODEC_VERSION_MAJOR > 56)
     /* send the packet with the compressed data to the decoder */
-    ret = avcodec_send_packet(dec_ctx, &pkt);
+    ret = avcodec_send_packet(dec_ctx, pkt);
     if (ret < 0) {
 		return ret;
     }
@@ -100,10 +105,13 @@ int MOVIE_LOADER::decode_audio(AVCodecContext *dec_ctx, int *got_frame)
 int MOVIE_LOADER::decode_video(AVCodecContext *dec_ctx, int *got_frame)
 {
     int ret = 0;
+	if(pkt == nullptr) {
+		return ret;
+	}
 #if (LIBAVCODEC_VERSION_MAJOR > 56)
     /* send the packet with the compressed data to the decoder */
 	if(got_frame != NULL) *got_frame = 0;
-    ret = avcodec_send_packet(dec_ctx, &pkt);
+    ret = avcodec_send_packet(dec_ctx, pkt);
     if (ret < 0) {
 //		printf("0\n");
 		return ret;
@@ -126,21 +134,24 @@ int MOVIE_LOADER::decode_video(AVCodecContext *dec_ctx, int *got_frame)
 int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 {
 	int ret = 0;
-	int decoded = pkt.size;
+	if(pkt == nullptr) {
+		return ret;
+	}
+	int decoded = pkt->size;
 	
 	*got_frame = 0;
 	
-	if (pkt.stream_index == video_stream_idx) {
+	if (pkt->stream_index == video_stream_idx) {
 		/* decode video frame */
 #if (LIBAVCODEC_VERSION_MAJOR > 56)
 		ret = decode_video(video_dec_ctx, got_frame);
 #else
-		ret = avcodec_decode_video2(video_dec_ctx, frame, got_frame, &pkt);
+		ret = avcodec_decode_video2(video_dec_ctx, frame, got_frame, pkt);
 #endif
 		if (ret < 0) {
 			char str_buf[AV_ERROR_MAX_STRING_SIZE] = {0};
 			av_make_error_string(str_buf, AV_ERROR_MAX_STRING_SIZE, ret);
-			p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Error decoding video frame (%s)\n", str_buf);
+			out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Error decoding video frame (%s)\n", str_buf);
 			return ret;
 		}
 		if (*got_frame) {
@@ -148,7 +159,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
                 frame->format != pix_fmt) {
                 /* To handle this change, one could call av_image_alloc again and
                  * decode the following frames into another rawvideo file. */
-                p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Error: Width, height and pixel format have to be "
+                out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Error: Width, height and pixel format have to be "
 							  "constant in a rawvideo file, but the width, height or "
 							  "pixel format of the input video changed:\n"
 							  "old: width = %d, height = %d, format = %s\n"
@@ -166,7 +177,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 									 dst_width, dst_height, AV_PIX_FMT_RGBA, 1);
 				
 				if(ret < 0) {
-					p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "MOVIE_LOADER: Could not re-allocate output buffer\n");
+					out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "MOVIE_LOADER: Could not re-allocate output buffer\n");
 					old_dst_width = dst_width;
 					old_dst_height = dst_height;
 					//video_mutex->unlock();
@@ -182,7 +193,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 
 			video_frame_count++;
 			//av_ts_make_time_string(str_buf2, frame->pts, &video_dec_ctx->time_base);
-			//p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_LOADER, "video_frame%s n:%d coded_n:%d pts:%s\n",
+			//out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_LOADER, "video_frame%s n:%d coded_n:%d pts:%s\n",
 			//			  cached ? "(cached)" : "",
 			//			  video_frame_count++, frame->coded_picture_number,
 			//			  str_buf2);
@@ -195,10 +206,10 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 											 dst_width, dst_height,
 											 AV_PIX_FMT_RGBA,
 											 SCALE_FLAGS, NULL, NULL, NULL);
-				//p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_LOADER, "Src frame=%dx%d Allocate frame: %dx%d", frame->width, frame->height, dst_width, dst_height);
+				//out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_LOADER, "Src frame=%dx%d Allocate frame: %dx%d", frame->width, frame->height, dst_width, dst_height);
 
 				if (sws_context == NULL) {
-					p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER,
+					out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER,
 								  "MOVIE_LOADER: Could not initialize the conversion context\n");
 					return -1;
 				}
@@ -211,24 +222,24 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 			req_transfer = true;
 			video_mutex->unlock();
 		}
-	} else if (pkt.stream_index == audio_stream_idx) {
+	} else if (pkt->stream_index == audio_stream_idx) {
 		/* decode audio frame */
 #if (LIBAVCODEC_VERSION_MAJOR > 56)
 		ret = decode_audio(audio_dec_ctx, got_frame);
 #else
-		ret = avcodec_decode_audio4(audio_dec_ctx, frame, got_frame, &pkt);
+		ret = avcodec_decode_audio4(audio_dec_ctx, frame, got_frame, pkt);
 #endif
 		if (ret < 0) {
 			char str_buf[AV_ERROR_MAX_STRING_SIZE] = {0};
 			av_make_error_string(str_buf, AV_ERROR_MAX_STRING_SIZE, ret);
-			p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Error decoding audio frame (%s)\n", str_buf);
+			out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Error decoding audio frame (%s)\n", str_buf);
 			return ret;
 		}
 		/* Some audio decoders decode only part of the packet, and have to be
 		 * called again with the remainder of the packet data.
 		 * Sample: fate-suite/lossless-audio/luckynight-partial.shn
 		 * Also, some decoders might over-read the packet. */
-		decoded = FFMIN(ret, pkt.size);
+		decoded = FFMIN(ret, pkt->size);
 			
 		if (*got_frame) {
 			//size_t unpadded_linesize = frame->nb_samples * av_get_bytes_per_sample((enum AVSampleFormat)frame->format);
@@ -236,7 +247,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 //			AVCodecContext *c = avcodec_alloc_context3(NULL);
 			AVCodecContext *c = audio_dec_ctx;
 			if (c == NULL) {
-				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Audio: Failed to allocate context\n");
+				out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Audio: Failed to allocate context\n");
 				return -1;
 			}
 #if LIBAVCODEC_VERSION_MAJOR > 56
@@ -245,7 +256,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 			int dst_nb_samples = av_rescale_rnd(swr_get_delay(swr_context, c->sample_rate) + frame->nb_samples,
 												c->sample_rate, c->sample_rate,  AV_ROUND_UP);
 			//av_ts_make_time_string(str_buf, frame->pts, &audio_dec_ctx->time_base);
-			//p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_LOADER,"audio_frame%s n:%d nb_samples:%d pts:%s\n",
+			//out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_LOADER,"audio_frame%s n:%d nb_samples:%d pts:%s\n",
 			//			  cached ? "(cached)" : "",
 			//			  audio_frame_count++, frame->nb_samples,
 			//			  str_buf);
@@ -264,7 +275,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 				px->data[1] = px->data[2] = px->data[3] = NULL;
 				if(px->data[0] == NULL) {
 					free(px);
-					p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Error while converting\n");
+					out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Error while converting\n");
 					//avcodec_free_context(&c);
 					return -1;
 				}
@@ -275,7 +286,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 					free(px->data[0]);
 					free(px);
 					//avcodec_free_context(&c);
-					p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Error while converting\n");
+					out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Error while converting\n");
 					return -1;
 				}
 				px->unpadded_linesize = (long)dst_nb_samples * 2 * sizeof(int16_t);
@@ -284,7 +295,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 				snd_write_lock->unlock();
 				//avcodec_free_context(&c);
 			} else {
-				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Error while converting\n");
+				out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Error while converting\n");
 				//avcodec_free_context(&c);
 				return -1;
 			}
@@ -301,7 +312,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 }
 
 int MOVIE_LOADER::open_codec_context(int *stream_idx,
-									 AVFormatContext *fmt_ctx, AVCodecContext **ctx, enum AVMediaType type)
+									 AVFormatContext *_fmt_ctx, AVCodecContext **ctx, enum AVMediaType type)
 {
     int ret, stream_index;
     AVStream *st;
@@ -309,14 +320,14 @@ int MOVIE_LOADER::open_codec_context(int *stream_idx,
     AVCodec *__dec = NULL;
     AVDictionary *opts = NULL;
 	
-    ret = av_find_best_stream(fmt_ctx, type, -1, -1, NULL, 0);
+    ret = av_find_best_stream(_fmt_ctx, type, -1, -1, NULL, 0);
     if (ret < 0) {
-        p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not find %s stream in input file '%s'\n",
+        out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not find %s stream in input file '%s'\n",
                 av_get_media_type_string(type), _filename.toLocal8Bit().constData());
         return ret;
     } else {
         stream_index = ret;
-        st = fmt_ctx->streams[stream_index];
+        st = _fmt_ctx->streams[stream_index];
 		
         /* find decoder for the stream */
 #if LIBAVCODEC_VERSION_MAJOR <= 56
@@ -326,21 +337,21 @@ int MOVIE_LOADER::open_codec_context(int *stream_idx,
 		__dec = avcodec_find_decoder(st->codecpar->codec_id);
 		if (!__dec) {
 			//avcodec_free_context(&dec_ctx);
-            p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Failed to find %s codec\n",
+            out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Failed to find %s codec\n",
                     av_get_media_type_string(type));
             return AVERROR(EINVAL);
         }
 		dec_ctx = avcodec_alloc_context3(__dec);
 		avcodec_parameters_to_context(dec_ctx, st->codecpar);
 #endif
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "CODEC %s\n", __dec->name);
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "CODEC %s\n", __dec->name);
 		if(ctx != NULL) {
 			*ctx = dec_ctx;
 		}
         /* Init the decoders, with or without reference counting */
         av_dict_set(&opts, "refcounted_frames", refcount ? "1" : "0", 0);
         if ((ret = avcodec_open2(dec_ctx, __dec, &opts)) < 0) {
-            p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Failed to open %s codec\n",
+            out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Failed to open %s codec\n",
                     av_get_media_type_string(type));
             return ret;
         }
@@ -373,7 +384,7 @@ int MOVIE_LOADER::get_format_from_sample_fmt(const char **fmt,
         }
     }
 
-    p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER,
+    out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER,
             "sample format %s is not supported as output format\n",
             av_get_sample_fmt_name(sample_fmt));
     return -1;
@@ -400,13 +411,17 @@ bool MOVIE_LOADER::open(QString filename)
 #endif
     /* open input file, and allocate format context */
     if (avformat_open_input(&fmt_ctx, _filename.toLocal8Bit().constData(), NULL, NULL) < 0) {
-        p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not open source file %s\n", _filename.toLocal8Bit().constData());
+        out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not open source file %s\n", _filename.toLocal8Bit().constData());
+		if(fmt_ctx != nullptr) {
+			avformat_free_context(fmt_ctx);
+			fmt_ctx = NULL;
+		}
         return -1;
     }
 
     /* retrieve stream information */
     if (avformat_find_stream_info(fmt_ctx, NULL) < 0) {
-        p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not find stream information\n");
+        out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not find stream information\n");
         return -1;;
     }
 
@@ -432,7 +447,7 @@ bool MOVIE_LOADER::open(QString filename)
 #endif
 		frame_rate = av_q2d(rate);
         if (ret < 0) {
-            p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not allocate raw video buffer\n");
+            out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not allocate raw video buffer\n");
             goto _end;
         }
         video_dst_bufsize = ret;
@@ -443,7 +458,7 @@ bool MOVIE_LOADER::open(QString filename)
     }
 	swr_context = swr_alloc();
 	if(swr_context == NULL) {
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not allocate resampler context\n");
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not allocate resampler context\n");
 		goto _end;
 	}
 	av_opt_set_int	   (swr_context, "in_channel_count",   audio_dec_ctx->channels,	   0);
@@ -455,31 +470,49 @@ bool MOVIE_LOADER::open(QString filename)
 	
 	/* initialize the resampling context */
 	if ((ret = swr_init(swr_context)) < 0) {
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Failed to initialize the resampling context\n");
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Failed to initialize the resampling context\n");
 		goto _end;
 	}
 
     /* dump input information to stderr */
     av_dump_format(fmt_ctx, 0, _filename.toLocal8Bit().constData(), 0);
-	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Video is %f fps", frame_rate);
-	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Audio is %d Hz ", sound_rate);
+	out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Video is %f fps", frame_rate);
+	out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Audio is %d Hz ", sound_rate);
     if (!audio_stream && !video_stream) {
-        p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not find audio or video stream in the input, aborting\n");
+        out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not find audio or video stream in the input, aborting\n");
         ret = 1;
         goto _end;
     }
 
     frame = av_frame_alloc();
     if (!frame) {
-        p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not allocate frame\n");
+        out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not allocate frame\n");
         ret = AVERROR(ENOMEM);
         goto _end;
     }
 
     /* initialize packet, set data to NULL, let the demuxer fill it */
-    av_init_packet(&pkt);
-    pkt.data = NULL;
-    pkt.size = 0;
+	if(pkt != nullptr) {
+#if LIBAVCODEC_VERSION_MAJOR <= 56
+		free(pkt);
+#else
+		av_packet_free(&pkt);
+#endif
+	}
+#if LIBAVCODEC_VERSION_MAJOR <= 56
+	pkt = malloc(sizeof(AVPacket));
+	if(pkt == nullptr) {
+		goto _end;
+	}
+    av_init_packet(pkt);
+#else
+	pkt = av_packet_alloc();
+	if(pkt == nullptr) {
+		goto _end;
+	}
+#endif
+    pkt->data = NULL;
+    pkt->size = 0;
 
 	// Re-allocate buffer;
 	video_mutex->lock();
@@ -489,13 +522,13 @@ bool MOVIE_LOADER::open(QString filename)
 	old_dst_height = dst_height;
 	video_mutex->unlock();
 	if(ret < 0) {
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "MOVIE_LOADER: Could not re-allocate output buffer\n");
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "MOVIE_LOADER: Could not re-allocate output buffer\n");
 		//video_mutex->unlock();
 		goto _end;
 	}
 	// KEEP CONTEXTS.
 	// ToDo : Initialize SWScaler and SWresampler.
-	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "MOVIE_LOADER: Loading movie completed.\n");
+	out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "MOVIE_LOADER: Loading movie completed.\n");
 	return true;
 _end:
 	this->close();
@@ -512,7 +545,10 @@ void MOVIE_LOADER::close(void)
 		avcodec_close(audio_dec_ctx);
 		avcodec_free_context(&audio_dec_ctx);
 	}
-    avformat_close_input(&fmt_ctx);
+	if(fmt_ctx != nullptr) {
+		avformat_close_input(&fmt_ctx);
+	}
+	fmt_ctx = NULL;
 	if(sws_context != NULL) {
 		sws_freeContext(sws_context);
 	}
@@ -527,7 +563,15 @@ void MOVIE_LOADER::close(void)
 		video_dst_linesize[i] = 0;
 	}
 	video_mutex->unlock();
-	
+
+	if(pkt != nullptr) {
+#if LIBAVCODEC_VERSION_MAJOR <= 56
+		free(pkt);
+#else
+		av_packet_free(&pkt);
+#endif
+		pkt = NULL;
+	}
 	video_dec_ctx = NULL;
 	audio_dec_ctx = NULL;
 	sws_context = NULL;
@@ -537,7 +581,7 @@ void MOVIE_LOADER::close(void)
 	
 	now_playing = false;
 	now_pausing = false;
-	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "MOVIE_LOADER: Close movie.");
+	out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "MOVIE_LOADER: Close movie.");
 }
 
 double MOVIE_LOADER::get_movie_frame_rate(void)
@@ -569,8 +613,10 @@ bool MOVIE_LOADER::is_pausing(void)
 
 void MOVIE_LOADER::do_play()
 {
-	now_playing = true;
-	now_pausing = false;
+	if(fmt_ctx != nullptr) {
+		now_playing = true;
+		now_pausing = false;
+	}
 }
 
 void MOVIE_LOADER::do_stop()
@@ -616,7 +662,7 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 		return;
 	}
 
-	if(!now_playing || now_pausing) {
+	if(!now_playing || now_pausing || (fmt_ctx == nullptr)) {
 		uint8_t *null_sound;
 		double t;
 		uint32_t l;
@@ -647,9 +693,9 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 	while(v_f || a_f) {
 		v_f = (av_rescale_rnd(video_frame_count, 1000000000, (int64_t)(frame_rate * 1000.0), AV_ROUND_UP) < duration_us);
 		a_f = (av_rescale_rnd(audio_total_samples, 1000000, sound_rate, AV_ROUND_UP) < duration_us);
-		//p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_LOADER, "%lld usec. V=%lld A=%lld, %d - %d\n", duration_us, video_frame_count, audio_total_samples, v_f, a_f);
+		//out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_LOADER, "%lld usec. V=%lld A=%lld, %d - %d\n", duration_us, video_frame_count, audio_total_samples, v_f, a_f);
 		if(!a_f && !v_f) break; 
-		if(av_read_frame(fmt_ctx, &pkt) < 0) {
+		if(av_read_frame(fmt_ctx, pkt) < 0) {
 			this->close();
 			return;
 		}
@@ -680,7 +726,7 @@ void MOVIE_LOADER::get_video_frame()
 	QMutexLocker Locker_V(video_mutex);
 
 	if(req_transfer) {
-		//p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_LOADER, "Transfer frame: %dx%d", dst_width, dst_height);
+		//out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_LOADER, "Transfer frame: %dx%d", dst_width, dst_height);
 		req_transfer = false;
 		for(int yy = 0; yy < dst_height; yy++) {
 			q = (uint32_t *)(p_osd->get_vm_screen_buffer(yy));

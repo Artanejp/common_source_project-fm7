@@ -7,6 +7,8 @@
 
 #include <QDateTime>
 #include "common.h"
+
+#include "./csp_avio_basic.h"
 #include "movie_saver.h"
 #include "../osd.h"
 #include "csp_logger.h"
@@ -178,14 +180,14 @@ bool MOVIE_SAVER::open_video()
 	ret = avcodec_open2(c, codec, &opt);
 	av_dict_free(&opt);
 	if (ret < 0) {
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not open video codec: %s\n", err2str(ret).toLocal8Bit().constData());
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not open video codec: %s\n", err2str(ret).toLocal8Bit().constData());
 		return false;
 	}
 
 	/* allocate and init a re-usable frame */
 	ost->frame = (AVFrame *)alloc_picture(c->pix_fmt, c->width, c->height);
 	if (!ost->frame) {
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate video frame\n");
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not allocate video frame\n");
 		return false;
 	}
 
@@ -197,18 +199,18 @@ bool MOVIE_SAVER::open_video()
 	//if (c->pix_fmt != AV_PIX_FMT_YUV420P) {
 	ost->tmp_frame = (AVFrame *)alloc_picture(AV_PIX_FMT_RGBA, _width, _height);
 	if (!ost->tmp_frame) {
-		p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,  "Could not allocate temporary picture\n");
+		out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,  "Could not allocate temporary picture\n");
 		return false;
 	}
 	//}
 #ifdef AVCODEC_UPPER_V56
 	ret = avcodec_parameters_from_context(ost->st->codecpar, c);
 	if (ret < 0) {
-		p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,  "Could not copy the stream parameters\n");
+		out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,  "Could not copy the stream parameters\n");
 		return false;
 	}
 #endif
-	p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
+	out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
 						  "MOVIE: Open to write video : Success.");
 	return true;
 #else
@@ -241,7 +243,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 			av_frame_free(&ost->tmp_frame);
 			ost->tmp_frame = (AVFrame *)alloc_picture(AV_PIX_FMT_RGBA, _width, _height);
 			if (ost->tmp_frame == NULL) {
-				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not re-allocate video frame\n");
+				out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not re-allocate video frame\n");
 				return (void *)NULL;
 			}
 		}
@@ -257,7 +259,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 									  c->pix_fmt,
 									  SCALE_FLAGS, NULL, NULL, NULL);
 		if (!ost->sws_ctx) {
-			p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
+			out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
 					"Could not initialize the conversion context\n");
 			return (void *)NULL;
 		}
@@ -337,9 +339,8 @@ int MOVIE_SAVER::write_video_frame()
 	OutputStream *ost = &video_st;
 	AVCodecContext *c;
 	AVFrame *frame;
+	AVPacket *pkt = NULL;
 	int got_packet = 0;
-	AVPacket pkt = { 0 };
-
 #ifdef AVCODEC_UPPER_V56
 	c = ost->context;
 #else
@@ -347,61 +348,75 @@ int MOVIE_SAVER::write_video_frame()
 #endif
 
 	frame = (AVFrame *)get_video_frame();
-	av_init_packet(&pkt);
+	if(frame == nullptr) {
+		return -1;
+	}
 	/* encode the image */
 	frame->pts = totalDstFrame;
 	//got_packet = 1;
 	//while(got_packet) {
 #ifdef AVCODEC_UPPER_V56
+	pkt = av_packet_alloc();
+	if(pkt == nullptr) {
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "%s: Failed to allocate a packet",
+							__FUNCTION__);
+		return -1;
+	}
+	
 	if(frame != NULL) {
 		ret = avcodec_send_frame(c, frame);
 		if(ret < 0) {
-			return -1;
-			if(ret == AVERROR_EOF) {	
-				return 1;
-				//return 0;
-			}
-			return ((ret == AVERROR(EAGAIN)) ? 0 : -1);
+			out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "%s: Failed to send a frame: %s\n",
+								__FUNCTION__,
+								err2str(ret).toLocal8Bit().constData());
+			goto __error_1;
 		}
 		totalDstFrame++;
 		while (ret  >= 0) {
-			ret = avcodec_receive_packet(c, &pkt);
-			if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-				return (frame || got_packet) ? 0 : 1;
+			ret = avcodec_receive_packet(c, pkt);
+			if((ret == AVERROR(EAGAIN)) || (ret == AVERROR_EOF)) {
+				break;
 			} else if (ret < 0) {
-				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing video frame: %s\n",
+				out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing video frame: %s\n",
 									err2str(ret).toLocal8Bit().constData());
-				return -1;
+				goto __error_1;
 			}
-			pkt.stream_index = 0;
-			int ret2 = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)&pkt);
+			pkt->stream_index = 0;
+			int ret2 = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)pkt);
+			
 			if (ret2 < 0) {
-				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing video frame: %s\n", err2str(ret2).toLocal8Bit().constData());
-				return -1;
+				out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "%s: Error while writing video frame: %s\n", err2str(ret2).toLocal8Bit().constData());
+				goto __error_1;
 			}
 			got_packet = 1;
-			av_packet_unref(&pkt);
 		}
+		av_packet_unref(pkt);
 	}
-	return (frame || got_packet) ? 0 : 1;
 #else
-	ret = avcodec_encode_video2(c, &pkt, frame, &got_packet);
-	if (ret < 0) {
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error encoding video frame: %s\n", err2str(ret).toLocal8Bit().constData());
+	pkt = malloc(sizeof(AVPacket));
+	if(pkt == nullptr) {
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "%s: Failed to allocate a packet",
+							__FUNCTION__);
 		return -1;
+	}
+	av_init_packet(pkt);
+	ret = avcodec_encode_video2(c, pkt, frame, &got_packet);
+	if (ret < 0) {
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error encoding video frame: %s\n", err2str(ret).toLocal8Bit().constData());
+		goto __error_1;
 	}
 	//if(!got_packet) break;
 	totalDstFrame++;
 	if (got_packet) {
-		ret = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)&pkt);
+		ret = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)pkt);
 		
 		// ret = write_frame(oc, &c->time_base, ost->st, &pkt);
 	} else {
 		ret = 0;
 	}
 	if (ret < 0) {
-		p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing video frame: %s\n", err2str(ret).toLocal8Bit().constData());
-		return -1;
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing video frame: %s\n", err2str(ret).toLocal8Bit().constData());
+		goto __error_1;
 	}
 	
 	//}
@@ -411,8 +426,35 @@ int MOVIE_SAVER::write_video_frame()
 	//	char *s = av_ts_make_time_string(buf, frame->pts, &c->time_base);
 	//	AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Write video to file. sec=%s", s);
 	//}
-	return (frame || got_packet) ? 0 : 1;
 #endif
+__return_normal:
+#ifdef AVCODEC_UPPER_V56
+		av_packet_free(&pkt);
+#else
+		free(pkt);
+#endif
+	return (frame || got_packet) ? 0 : 1;
+__error_1:
+#ifdef AVCODEC_UPPER_V56
+		av_packet_free(&pkt);
+#else
+		free(pkt);
+#endif
+		return -1;
+__ret_zero:
+#ifdef AVCODEC_UPPER_V56
+		av_packet_free(&pkt);
+#else
+		free(pkt);
+#endif
+		return 0;
+__eof:
+#ifdef AVCODEC_UPPER_V56
+		av_packet_free(&pkt);
+#else
+		free(pkt);
+#endif
+		return 1;
 #else
 	return 1;
 #endif
