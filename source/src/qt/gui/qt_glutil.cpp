@@ -28,7 +28,7 @@
 #ifdef USE_OPENMP
 #include <omp.h>
 #endif //_OPENMP
-#include <QGLContext>
+#include <QOpenGLContext>
 #include <QPair>
 #include <QSurfaceFormat>
 

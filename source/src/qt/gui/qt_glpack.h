@@ -11,7 +11,7 @@
 #define _QT_COMMON_GLPACK_H
 
 #include <QString>
-#include <QGLWidget>
+
 
 #include <QOpenGLBuffer>
 #include <QOpenGLFramebufferObject>
