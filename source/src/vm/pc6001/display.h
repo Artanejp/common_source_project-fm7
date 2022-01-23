@@ -4,7 +4,7 @@
 	Author : Takeda.Toshiya
 	Date   : 2013.08.22-
 
-	[ joystick ]
+	[ display ]
 */
 
 #ifndef _DISPLAY_H_

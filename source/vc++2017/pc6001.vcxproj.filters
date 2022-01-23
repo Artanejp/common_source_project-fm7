@@ -156,9 +156,6 @@
     <ClCompile Include="..\src\vm\pc6001\pc6001.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\pc6001\psub.cpp">
-      <Filter>Source Files\VM Driver Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\vm\pc6001\sub.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
@@ -273,9 +270,6 @@
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\pc6001\pc6001.h">
-      <Filter>Header Files\VM Driver Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\vm\pc6001\psub.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\pc6001\sub.h">

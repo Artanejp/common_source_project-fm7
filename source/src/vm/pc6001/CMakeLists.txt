@@ -6,7 +6,6 @@ set(BASIC_VM_FILES_PC6001
 	../mcs48.cpp
 	joystick.cpp
 	memory.cpp
-	psub.cpp
 	sub.cpp
 	timer.cpp
 	

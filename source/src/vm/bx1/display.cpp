@@ -128,33 +128,52 @@ void DISPLAY::event_frame()
 void DISPLAY::draw_screen()
 {
 	scrntype_t cyan = RGB_COLOR(0, 255, 255);
+	scrntype_t red = RGB_COLOR(255, 0, 0);
+	scrntype_t back = RGB_COLOR(13, 13, 13);
 	
-	for(int i = 0; i < SCREEN_HEIGHT; i++) {
-		scrntype_t *dest = emu->get_screen_buffer(i);
-		memset(dest, 0, sizeof(scrntype_t) * SCREEN_WIDTH);
-	}
-	for(int l = 0; l < 7; l++) {
-		scrntype_t *dest1 = emu->get_screen_buffer(5 * l + 1);
-		scrntype_t *dest2 = emu->get_screen_buffer(5 * l + 2);
-		scrntype_t *dest3 = emu->get_screen_buffer(5 * l + 3);
-		for(int c = 0; c < 16; c++) {
-			uint8_t d = buffer[c] & 0x7f;
+	for(int c = 0; c < 16; c++) {
+		uint8_t d = buffer[c] & 0x7f;
+		
+		for(int y = 0; y < 47; y++) {
+			scrntype_t *dest = emu->get_screen_buffer(vm_ranges[c].y + y) + vm_ranges[c].x;
+			
+			for(int x = 0; x < 33; x++) {
+				dest[x] = back;
+			}
+		}
+		for(int l = 0, ll = vm_ranges[c].y; l < 7; l++, ll += 7) {
+			scrntype_t *dest1 = emu->get_screen_buffer(ll + 0) + vm_ranges[c].x;
+			scrntype_t *dest2 = emu->get_screen_buffer(ll + 1) + vm_ranges[c].x;
+			scrntype_t *dest3 = emu->get_screen_buffer(ll + 2) + vm_ranges[c].x;
+			scrntype_t *dest4 = emu->get_screen_buffer(ll + 3) + vm_ranges[c].x;
+			scrntype_t *dest5 = emu->get_screen_buffer(ll + 4) + vm_ranges[c].x;
 			uint8_t pattern = font[d][l];
 			
-			for(int d = 0; d < 5; d++) {
+			for(int dd = 0; dd < 5; dd++) {
 				if(pattern & 0x10) {
-					dest1[1] = dest1[2] = dest1[3] = 
-					dest2[1] = dest2[2] = dest2[3] = 
-					dest3[1] = dest3[2] = dest3[3] = cyan;
+					           dest1[1] = dest1[2] = dest1[3] = 
+					dest2[0] = dest2[1] = dest2[2] = dest2[3] = dest2[4] = 
+					dest3[0] = dest3[1] = dest3[2] = dest3[3] = dest3[4] = 
+					dest4[0] = dest4[1] = dest4[2] = dest4[3] = dest4[4] = 
+					           dest5[1] = dest5[2] = dest5[3] = cyan;
 				}
-				dest1 += 5;
-				dest2 += 5;
-				dest3 += 5;
+				dest1 += 7;
+				dest2 += 7;
+				dest3 += 7;
+				dest4 += 7;
+				dest5 += 7;
 				pattern <<= 1;
 			}
-			dest1 += 5;
-			dest2 += 5;
-			dest3 += 5;
+		}
+	}
+	for(int c = 0; c < 3; c++) {
+		scrntype_t color = (c == 0) || (c == 1 && 0) || (c == 2 && (config.dipswitch & 2)) ? red : back;
+		
+		for(int y = 0; y < 7; y++) {
+			scrntype_t *dest = emu->get_screen_buffer(vm_ranges[c + 16].y + y) + vm_ranges[c + 16].x;
+			
+			dest[0] = dest[6] = (y == 0 || y == 6) ? back : color;
+			dest[1] = dest[2] = dest[3] = dest[4] = dest[5] = color;
 		}
 	}
 }

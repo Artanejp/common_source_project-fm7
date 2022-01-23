@@ -279,8 +279,9 @@
 #define ID_VM_SOUND_TYPE7               41118
 #define ID_VM_SOUND_NOISE_FDD           41121
 #define ID_VM_SOUND_NOISE_CMT           41122
-#define ID_VM_SOUND_PLAY_TAPE           41123
-#define ID_VM_SOUND_MENU_END            41123
+#define ID_VM_SOUND_TAPE_SIGNAL         41123
+#define ID_VM_SOUND_TAPE_VOICE          41124
+#define ID_VM_SOUND_MENU_END            41124
 
 #define ID_VM_MONITOR_MENU_START        41131
 #define ID_VM_MONITOR_TYPE0             41131

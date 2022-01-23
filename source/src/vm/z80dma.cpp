@@ -526,7 +526,7 @@ void Z80DMA::do_dma()
 //#ifndef SINGLE_MODE_DMA
 restart:
 //#endif
-	while(enabled && now_ready() && !(upcount == blocklen || found)) {
+	while(enabled && now_ready() && !(upcount >= blocklen || found)) {
 		if(dma_stop) {
 			if(upcount < blocklen) {
 				upcount++;

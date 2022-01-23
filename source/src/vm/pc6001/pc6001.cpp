@@ -49,7 +49,7 @@
 #endif
 #include "joystick.h"
 #include "memory.h"
-#include "psub.h"
+//#include "psub.h"
 #include "sub.h"
 #include "timer.h"
 
@@ -62,7 +62,6 @@ using PC6001::FLOPPY;
 
 using PC6001::JOYSTICK;
 using PC6001::MEMORY;
-using PC6001::PSUB;
 using PC6001::SUB;
 using PC6001::TIMER;
 
@@ -172,12 +171,12 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		pio_sub->set_context_port_c(cpu_sub, SIG_CPU_IRQ, 0x80, 0);
 		drec->set_context_ear(sub, SIG_SUB_DATAREC, 1);
 		timer->set_context_sub(sub);
-	} else {
-		psub = new PSUB(this, emu);
-		psub->set_context_pio(pio_sub);
-		psub->set_context_timer(timer);
-		timer->set_context_sub(psub);
-		cpu_sub = NULL;
+//	} else {
+//		psub = new PSUB(this, emu);
+//		psub->set_context_pio(pio_sub);
+//		psub->set_context_timer(timer);
+//		timer->set_context_sub(psub);
+//		cpu_sub = NULL;
 	}
 	if(support_pc80s31k) {
 		pio_fdd = new I8255(this, emu);
@@ -241,8 +240,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// i/o bus
 	if(support_sub_cpu) {
 		io->set_iomap_range_rw(0x90, 0x93, sub);
-	} else {
-		io->set_iomap_range_rw(0x90, 0x93, psub);
+//	} else {
+//		io->set_iomap_range_rw(0x90, 0x93, psub);
 	}
 	io->set_iomap_alias_w(0xa0, psg, 0);			// PSG ch
 	io->set_iomap_alias_w(0xa1, psg, 1);			// PSG data
@@ -445,16 +444,16 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 
 void VM::key_down(int code, bool repeat)
 {
-	if(!support_sub_cpu) {
-		psub->key_down(code);
-	}
+//	if(!support_sub_cpu) {
+//		psub->key_down(code);
+//	}
 }
 
 void VM::key_up(int code)
 {
-	if(!support_sub_cpu) {
-		psub->key_up(code);
-	}
+//	if(!support_sub_cpu) {
+//		psub->key_up(code);
+//	}
 }
 
 // ----------------------------------------------------------------------------
@@ -598,9 +597,9 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 #else
 		sub->play_tape(file_path);	// temporary
 #endif
-	} else {
-		// support only p6/p6t
-		psub->play_tape(file_path);
+//	} else {
+//		// support only p6/p6t
+//		psub->play_tape(file_path);
 	}
 }
 
@@ -618,9 +617,9 @@ void VM::rec_tape(int drv, const _TCHAR* file_path)
 #else
 		sub->rec_tape(file_path);	// temporary
 #endif
-	} else {
-		// support both p6/p6t and wav
-		psub->rec_tape(file_path);
+//	} else {
+//		// support both p6/p6t and wav
+//		psub->rec_tape(file_path);
 	}
 }
 
@@ -635,8 +634,8 @@ void VM::close_tape(int drv)
 			emu->unlock_vm();
 			drec->set_remote(false);
 		}
-	} else {
-		psub->close_tape();
+//	} else {
+//		psub->close_tape();
 	}
 }
 
@@ -644,8 +643,8 @@ bool VM::is_tape_inserted(int drv)
 {
 	if(support_sub_cpu) {
 		return drec->is_tape_inserted() || sub->is_tape_inserted();
-	} else {
-		return psub->is_tape_inserted();
+//	} else {
+//		return psub->is_tape_inserted();
 	}
 }
 

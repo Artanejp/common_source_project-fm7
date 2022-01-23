@@ -920,26 +920,6 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\pc6001\psub.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath="..\src\vm\pc6001\sub.cpp"
 					>
 					<FileConfiguration
@@ -1146,10 +1126,6 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\pc6001\pc6001.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\pc6001\psub.h"
 					>
 				</File>
 				<File

@@ -64,12 +64,20 @@ void Ui_MainWindowBase::do_set_sound_strict_rendering(bool f)
 	}
 }
 
-void Ui_MainWindowBase::do_set_sound_play_tape(bool f)
+void Ui_MainWindowBase::do_set_sound_tape_signal(bool f)
 {
 	if(using_flags != NULL) {
-		p_config->sound_play_tape = f;
+		p_config->sound_tape_signal = f;
 	}
 }
+
+void Ui_MainWindowBase::do_set_sound_tape_voice(bool f)
+{
+	if(using_flags != NULL) {
+		p_config->sound_tape_voice = f;
+	}
+}
+
 
 void Ui_MainWindowBase::rise_volume_dialog(void)
 {
@@ -106,9 +114,12 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 	SET_ACTION_CHECKABLE_SINGLE_CONNECT(menuSound, actionSoundStrictRendering,
 										"actionSoundStrictRendering", p_config->sound_strict_rendering,
 										SIGNAL(toggled(bool)), SLOT(do_set_sound_strict_rendering(bool)));
-	SET_ACTION_CHECKABLE_SINGLE_CONNECT(menuSound, actionSoundPlayTape,
-										"actionSoundPlayTape", p_config->sound_play_tape,
-										SIGNAL(toggled(bool)), SLOT(do_set_sound_play_tape(bool)));
+	SET_ACTION_CHECKABLE_SINGLE_CONNECT(menuSound, actionSoundTapeSignal,
+										"actionSoundTapeSignal", p_config->sound_tape_signal,
+										SIGNAL(toggled(bool)), SLOT(do_set_sound_tape_signal(bool)));
+	SET_ACTION_CHECKABLE_SINGLE_CONNECT(menuSound, actionSoundTapeVoice,
+										"actionSoundTapeVoice", p_config->sound_tape_voice,
+										SIGNAL(toggled(bool)), SLOT(do_set_sound_tape_voice(bool)));
 	
 	//actionSoundStrictRendering = new Action_Control(this, using_flags);
 	//actionSoundStrictRendering->setObjectName(QString::fromUtf8("actionSoundStrictRendering"));
@@ -275,11 +286,17 @@ void Ui_MainWindowBase::retranslateSoundMenu(void)
 	
 	actionSoundStrictRendering->setText(QApplication::translate("MenuSound", "Strict Rendering", 0));
 	actionSoundStrictRendering->setToolTip(QApplication::translate("MenuSound", "Rendering per a sample.Select to slower, but accurate rendering sound.", 0));
-	actionSoundPlayTape->setText(QApplication::translate("MenuSound", "Play CMT sound", 0));
-	actionSoundPlayTape->setToolTip(QApplication::translate("MenuSound", "Play sound from CMTs.", 0));
+	actionSoundTapeSignal->setText(QApplication::translate("MenuSound", "Play CMT Signal", 0));
+	actionSoundTapeSignal->setToolTip(QApplication::translate("MenuSound", "Play Signal from CMTs.", 0));
 
+	actionSoundTapeVoice->setText(QApplication::translate("MenuSound", "Play CMT Voice", 0));
+	actionSoundTapeVoice->setToolTip(QApplication::translate("MenuSound", "Play Audio/Voice from CMTs.", 0));
+	
 	if(using_flags->is_tape_binary_only()) {
-		actionSoundPlayTape->setEnabled(false);
+		actionSoundTapeSignal->setEnabled(false);
+		actionSoundTapeVoice->setEnabled(false);
+		actionSoundTapeSignal->setVisible(false);
+		actionSoundTapeVoice->setVisible(false);
 	}
 
 	menuSound_HostDevices->setTitle(QApplication::translate("MenuSound", "Output to:", 0));

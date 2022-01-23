@@ -27,7 +27,11 @@
 #ifdef _MSC_VER
 #include <io.h>
 #include <math.h>
-#include <typeinfo.h>
+	#if _MSC_VER < 1920
+		#include <typeinfo.h>
+	#else
+		#include <vcruntime_typeinfo.h>
+	#endif
 #else
 #include <typeinfo>
 #endif
