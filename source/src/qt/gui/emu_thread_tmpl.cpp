@@ -434,14 +434,14 @@ void EmuThreadClassBase::print_framerate(int frames)
 			if(get_power_state() == false){ 	 
 				my_stprintf_s(buf, 255, _T("*Power OFF*"));
 			} else if(now_skip) {
-				int ratio = (int)(100.0 * (double)total_frames / (get_emu_frame_rate() * 2) + 0.5);
+				int ratio = (int)(100.0 * (((double)total_frames / get_emu_frame_rate())  * 2.0) + 0.5);
 				my_stprintf_s(buf, 255, _T("%s - Skip Frames (%d %%)"), get_device_name(), ratio);
 			} else {
 					if(get_message_count() > 0) {
 						snprintf(buf, 255, _T("%s - %s"), get_device_name(), get_emu_message());
 						dec_message_count();
 					} else {
-						int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
+						int ratio = (int)(100.0 * ((double)draw_frames / (double)total_frames) * 2.0 + 0.5);
 						snprintf(buf, 255, _T("%s - %d fps (%d %%)"), get_device_name(), draw_frames, ratio);
 					}
 				}
