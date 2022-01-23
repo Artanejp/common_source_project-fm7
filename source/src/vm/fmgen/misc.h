@@ -7,6 +7,7 @@
 #ifndef __FMGEN_MISC_H
 #define __FMGEN_MISC_H
 #include <algorithm>
+#include <cstdint>
 
 inline int Max(int x, int y) { return std::max(x, y); }
 inline int Min(int x, int y) { return std::min(x, y); }

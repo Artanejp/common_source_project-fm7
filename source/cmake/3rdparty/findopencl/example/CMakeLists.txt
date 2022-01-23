@@ -1,7 +1,7 @@
 # This is an example project to show and test the usage of the FindOpenCL
 # script.
 
-cmake_minimum_required( VERSION 2.6 )
+cmake_minimum_required( VERSION 3.0 )
 project( Example )
 
 # This is only required for the script to work in the version control

@@ -74,6 +74,9 @@ if(USE_CCACHE)
    SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
 endif()
 
+SET(USE_QT_5 ON CACHE BOOL "Build with Qt5 API.If set USE_QT_6 and Qt6 exists, not effectable.")
+SET(USE_QT_6 OFF CACHE BOOL "Build with Qt6.If not available, will fallback to Qt5.")
+
 if(WIN32)
   FIND_PACKAGE(Qt5Core REQUIRED)
 else()
@@ -101,7 +104,7 @@ function(APPEND_SOCKET_FEATURE)
    endif()
 endfunction(APPEND_SOCKET_FEATURE)
 
-SET(USE_QT_5 ON)
+
 set(USE_QT5_4_APIS ON CACHE BOOL "Build with Qt5.4 (or later) APIs if you can.")
 set(USE_GCC_OLD_ABI ON CACHE BOOL "Build with older GCC ABIs if you can.")
 set(USE_SDL2 ON CACHE BOOL "Build with libSDL2. DIsable is building with libSDL1.")
@@ -338,7 +341,7 @@ function(set_std TARGET)
 #		set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 11)
 #		set_property(TARGET ${TARGET} PROPERTY C_STANDARD 11)
 #	endif()
-endfunction(SET_STD)
+endfunction(set_std)
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/qt" osd)
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/qt/avio" qt/avio)
@@ -401,7 +404,10 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 			${RESOURCE_${EXE_NAME}}
 		)
     endif()
-	QT5_USE_MODULES(${EXE_NAME} Widgets Core Gui OpenGL Network)
+	#QT5_USE_MODULES(${EXE_NAME} Widgets Core Gui OpenGL Network)
+	set(QT_LIBRARIES ${QT_LIBRARIES}
+	  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Network)
+	
 	target_include_directories(${EXE_NAME} 
 		PRIVATE "${PROJECT_SOURCE_DIR}/src/qt/machines/${VM_NAME}"
 		PRIVATE "${PROJECT_SOURCE_DIR}/src/vm/${VM_NAME}"
