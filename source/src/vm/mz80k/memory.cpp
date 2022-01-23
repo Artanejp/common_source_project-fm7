@@ -493,7 +493,7 @@ void MEMORY::draw_line(int v)
 #endif
 		
 		// 8255(PIO) PC0 is /V-GATE 2016.11.21 by Suga
-		if((d_pio->read_io8(2) & 0x01) == 0x00) {
+		if((d_pio->read_signal(2) & 0x01) == 0x00) {
 			pat = 0x00;
 		}
 #if defined(_MZ1200) || defined(_MZ80A)

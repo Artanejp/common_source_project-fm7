@@ -840,8 +840,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				emu->update_config();
 			}
 			break;
-		case ID_VM_SOUND_PLAY_TAPE:
-			config.sound_play_tape = !config.sound_play_tape;
+		case ID_VM_SOUND_TAPE_SIGNAL:
+			config.sound_tape_signal = !config.sound_tape_signal;
+			break;
+		case ID_VM_SOUND_TAPE_VOICE:
+			config.sound_tape_voice = !config.sound_tape_voice;
 			break;
 #endif
 #ifdef USE_MONITOR_TYPE
@@ -1481,14 +1484,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break;
 #endif
 #ifdef ONE_BOARD_MICRO_COMPUTER
-		case ID_BUTTON +  0: case ID_BUTTON +  1: case ID_BUTTON +  2: case ID_BUTTON +  3:
-		case ID_BUTTON +  4: case ID_BUTTON +  5: case ID_BUTTON +  6: case ID_BUTTON +  7:
-		case ID_BUTTON +  8: case ID_BUTTON +  9: case ID_BUTTON + 10: case ID_BUTTON + 11:
-		case ID_BUTTON + 12: case ID_BUTTON + 13: case ID_BUTTON + 14: case ID_BUTTON + 15:
-		case ID_BUTTON + 16: case ID_BUTTON + 17: case ID_BUTTON + 18: case ID_BUTTON + 19:
-		case ID_BUTTON + 20: case ID_BUTTON + 21: case ID_BUTTON + 22: case ID_BUTTON + 23:
-		case ID_BUTTON + 24: case ID_BUTTON + 25: case ID_BUTTON + 26: case ID_BUTTON + 27:
-		case ID_BUTTON + 28: case ID_BUTTON + 29: case ID_BUTTON + 30: case ID_BUTTON + 31:
+		case ID_BUTTON +  0: case ID_BUTTON +  1: case ID_BUTTON +  2: case ID_BUTTON +  3: case ID_BUTTON +  4:
+		case ID_BUTTON +  5: case ID_BUTTON +  6: case ID_BUTTON +  7: case ID_BUTTON +  8: case ID_BUTTON +  9:
+		case ID_BUTTON + 10: case ID_BUTTON + 11: case ID_BUTTON + 12: case ID_BUTTON + 13: case ID_BUTTON + 14:
+		case ID_BUTTON + 15: case ID_BUTTON + 16: case ID_BUTTON + 17: case ID_BUTTON + 18: case ID_BUTTON + 19:
+		case ID_BUTTON + 20: case ID_BUTTON + 21: case ID_BUTTON + 22: case ID_BUTTON + 23: case ID_BUTTON + 24:
+		case ID_BUTTON + 25: case ID_BUTTON + 26: case ID_BUTTON + 27: case ID_BUTTON + 28: case ID_BUTTON + 29:
+		case ID_BUTTON + 30: case ID_BUTTON + 31: case ID_BUTTON + 32: case ID_BUTTON + 33: case ID_BUTTON + 34:
+		case ID_BUTTON + 35: case ID_BUTTON + 36: case ID_BUTTON + 37: case ID_BUTTON + 38: case ID_BUTTON + 39:
+		case ID_BUTTON + 40: case ID_BUTTON + 41: case ID_BUTTON + 42: case ID_BUTTON + 43: case ID_BUTTON + 44:
+		case ID_BUTTON + 45: case ID_BUTTON + 46: case ID_BUTTON + 47: case ID_BUTTON + 48: case ID_BUTTON + 49:
+		case ID_BUTTON + 50: case ID_BUTTON + 51: case ID_BUTTON + 52: case ID_BUTTON + 53: case ID_BUTTON + 54:
+		case ID_BUTTON + 55: case ID_BUTTON + 56: case ID_BUTTON + 57: case ID_BUTTON + 58: case ID_BUTTON + 59:
+		case ID_BUTTON + 60: case ID_BUTTON + 61: case ID_BUTTON + 62: case ID_BUTTON + 63: case ID_BUTTON + 64:
+		case ID_BUTTON + 65: case ID_BUTTON + 66: case ID_BUTTON + 67: case ID_BUTTON + 68: case ID_BUTTON + 69:
+		case ID_BUTTON + 70: case ID_BUTTON + 71: case ID_BUTTON + 72: case ID_BUTTON + 73: case ID_BUTTON + 74:
+		case ID_BUTTON + 75: case ID_BUTTON + 76: case ID_BUTTON + 77: case ID_BUTTON + 78: case ID_BUTTON + 79:
+		case ID_BUTTON + 80: case ID_BUTTON + 81: case ID_BUTTON + 82: case ID_BUTTON + 83: case ID_BUTTON + 84:
+		case ID_BUTTON + 85: case ID_BUTTON + 86: case ID_BUTTON + 87: case ID_BUTTON + 88: case ID_BUTTON + 89:
+		case ID_BUTTON + 90: case ID_BUTTON + 91: case ID_BUTTON + 92: case ID_BUTTON + 93: case ID_BUTTON + 94:
+		case ID_BUTTON + 95: case ID_BUTTON + 96: case ID_BUTTON + 97: case ID_BUTTON + 98: case ID_BUTTON + 99:
 			if(emu) {
 				emu->press_button(LOWORD(wParam) - ID_BUTTON);
 			}
@@ -1895,7 +1910,8 @@ void update_vm_sound_menu(HMENU hMenu)
 #endif
 #ifdef USE_TAPE
 	CheckMenuItem(hMenu, ID_VM_SOUND_NOISE_CMT, config.sound_noise_cmt ? MF_CHECKED : MF_UNCHECKED);
-	CheckMenuItem(hMenu, ID_VM_SOUND_PLAY_TAPE, config.sound_play_tape ? MF_CHECKED : MF_UNCHECKED);
+	CheckMenuItem(hMenu, ID_VM_SOUND_TAPE_SIGNAL, config.sound_tape_signal ? MF_CHECKED : MF_UNCHECKED);
+	CheckMenuItem(hMenu, ID_VM_SOUND_TAPE_VOICE, config.sound_tape_voice ? MF_CHECKED : MF_UNCHECKED);
 #endif
 }
 #endif

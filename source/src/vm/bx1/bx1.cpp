@@ -327,7 +327,15 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 void VM::key_down(int code, bool repeat)
 {
 	if(!repeat) {
-		keyboard->key_down(code);
+		if(code == 0x77) {
+			// F8: PROG.SELECT
+			config.dipswitch ^= 2;
+		} else if(code == 0x83) {
+			// F20: AUTO PRINT
+			config.dipswitch ^= 1;
+		} else {
+			keyboard->key_down(code);
+		}
 	}
 }
 

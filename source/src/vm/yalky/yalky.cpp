@@ -31,7 +31,8 @@ using YALKY::IO;
 
 VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 {
-	config.sound_play_tape = false;
+	config.sound_tape_signal = false;
+	config.sound_tape_voice = true;
 	config.wave_shaper[0] = false;
 	
 	// create devices

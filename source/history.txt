@@ -1,3 +1,22 @@
+12/30/2021
+
+[VM/DATAREC] support to enable/disable playing signal and voice separately
+[VM/I386_NP21] fix DAA/DAS/AAA/AAS/AAM/AAD based on DOSBox
+[VM/I386_NP21] fix SHLD/SHRD for n > 15 case
+[VM/I386_NP21] fix FCOM/FCOMI/FXAM for NaN and INF cases
+[VM/I386_NP21] fix FDECSTP/FINCSTP to clear C1 flag
+[VM/I386_NP21] fix FLD to set/clear C1 flag when stack overflow occurs or not
+[VM/I386_NP21] fix FSTENV/FLDENV/FSAVE/FLDENV to consider data16 prefix
+[VM/Z80DMA] fix not to enter too long loop (thanks Mr.YAT)
+
+[BX1] add keyboard and display artwork
+[MZ80K/MEMORY] fix v-gate signal (thanks Mr.Hlide Fremen)
+[MZ700/MEMORY] fix vblank signal timing (thanks Mr.Koucha-Youkan)
+[PC6001] remove some codes from iP6 Plus (thanks Mr.tanam)
+[PHC25/KEYBOARD] support _ and kana key
+[PHC25/SYSTEM] support GM1 signal (thanks Mr.Moroboshi)
+
+
 5/2/2021
 
 [VM/DATAREC] fix mixing sound track
@@ -14,7 +33,7 @@
 [BX1/KEYBOARD] support PROG.SELECT switch
 [BX1/PRINTER] support AUTO PRINT switch
 [MZ1500/JOTSTICK] support joystick (thanks Mr.Koucha-Youkan)
-[PC6001] remove some codes from iP6 Plus
+[PC6001] remove some codes from iP6 Plus (thanks Mr.tanam)
 [X1TURBO/DISPLAY] support smooth vertical scroll
 
 

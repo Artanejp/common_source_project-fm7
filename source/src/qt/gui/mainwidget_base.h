@@ -219,7 +219,8 @@ private:
 	QActionGroup   *actionGroup_Sound_HostDevices;
 	//class Action_Control *actionSoundCMT;
 	class Action_Control *action_VolumeDialog;
-	class Action_Control *actionSoundPlayTape;
+	class Action_Control *actionSoundTapeSignal;
+	class Action_Control *actionSoundTapeVoice;
 	class Action_Control *actionSoundStrictRendering;
 	class Action_Control *action_SoundFilesFDD;
 	class Action_Control *action_SoundFilesRelay;
@@ -709,7 +710,8 @@ public slots:
 	void set_latency(int);
 	void set_sound_device(int);
 	void do_set_sound_strict_rendering(bool f);
-	void do_set_sound_play_tape(bool f);
+	void do_set_sound_tape_signal(bool f);
+	void do_set_sound_tape_voice(bool f);
 	void do_set_host_sound_device(int num);
 	void do_set_host_sound_name(int num, QString sname);	
 	void set_monitor_type(int);

@@ -23,14 +23,14 @@
 // memory offset
 #define RAM_BASE		0
 #define RAM_SIZE		0x10000
-#define BASICROM_BASE		(RAM_BASE + RAM_SIZE)
-#define BASICROM_SIZE		0x8000
+#define BASICROM_BASE	(RAM_BASE + RAM_SIZE)
+#define BASICROM_SIZE	0x8000
 #define EXTROM_BASE		(BASICROM_BASE + BASICROM_SIZE)
 #define EXTROM_SIZE		0x4000
 #define CGROM1_BASE		(EXTROM_BASE + EXTROM_SIZE)
 #define CGROM1_SIZE		0x4000
-#define EmptyRAM_BASE		(CGROM1_BASE + CGROM1_SIZE)
-#define EmptyRAM_SIZE		0x2000
+#define EmptyRAM_BASE	(CGROM1_BASE + CGROM1_SIZE)
+#define EmptyRAM_SIZE	0x2000
 
 #define MEMORY_SIZE		(EmptyRAM_BASE + EmptyRAM_SIZE)
 
@@ -42,15 +42,12 @@ private:
 	DEVICE *d_cpu;
 	uint8_t MEMORY_BASE[MEMORY_SIZE];
 	uint8_t *CGROM;
-	uint8_t *EXTROM1;				// EXTEND ROM 1
-	uint8_t *EXTROM2;				// EXTEND ROM 2
-	uint8_t *RdMem[8];			// READ  MEMORY MAPPING ADDRESS
-	uint8_t *WrMem[8];			// WRITE MEMORY MAPPING ADDRESS
+	uint8_t *EXTROM1;
+	uint8_t *EXTROM2;
 	uint8_t *VRAM;
-	uint8_t EnWrite[4];			// MEMORY MAPPING WRITE ENABLE [N60/N66]
 	uint8_t CGSW93;
-	bool inserted;
 	uint8_t CRTKILL;
+	bool inserted;
 
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)

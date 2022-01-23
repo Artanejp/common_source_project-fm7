@@ -165,7 +165,7 @@ namespace PC6001 {
 namespace PC6001 {
 	class JOYSTICK;
 	class MEMORY;
-	class PSUB;
+	//class PSUB;
 	class SUB;
 	class TIMER;
 }
@@ -203,7 +203,7 @@ protected:
 #endif
 	PC6001::JOYSTICK* joystick;
 	PC6001::MEMORY* memory;
-	PC6001::PSUB* psub;
+//	PC6001::PSUB* psub;
 	PC6001::TIMER* timer;
 	
 	MCS48* cpu_sub;

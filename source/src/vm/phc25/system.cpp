@@ -30,7 +30,7 @@ void SYSTEM::write_io8(uint32_t addr, uint32_t data)
 	d_drec->write_signal(SIG_DATAREC_REMOTE, ~data, 0x02);
 	// bit2 : kana lock led ???
 	// bit3 : printer strobe
-	d_vdp->write_signal(SIG_MC6847_GM, (data & 0x20) ? 7 : 6, 7);
+	d_vdp->write_signal(SIG_MC6847_GM, ((data & 0x10) >> 3) | ((data & 0x20) >> 5) | 4, 7);
 	d_vdp->write_signal(SIG_MC6847_CSS, data, 0x40);
 	d_vdp->write_signal(SIG_MC6847_AG, data, 0x80);
 }

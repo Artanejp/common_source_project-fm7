@@ -24,6 +24,8 @@
 #if defined(_MZ1500)
 #define EVENT_HBLANK_PCG	5
 #endif
+#define EVENT_VBLANK_S		6
+#define EVENT_VBLANK_E		7
 
 #define MEM_BANK_MON_L		0x01
 #define MEM_BANK_MON_H		0x02
@@ -220,8 +222,8 @@ void MEMORY::update_config()
 void MEMORY::event_vline(int v, int clock)
 {
 	// vblank / vsync
-	set_vblank(v >= 200);
 #if defined(_MZ800)
+	set_vblank(v >= 200);
 	vsync = (v >= 240 && v <= 242);
 #else
 	vsync = (v >= 221 && v <= 223);
@@ -237,6 +239,11 @@ void MEMORY::event_vline(int v, int clock)
 	register_event_by_clock(this, EVENT_HBLANK, 165, false, NULL);	// NTSC 60Hz
 //	register_event_by_clock(this, EVENT_HSYNC_S, 180, false, NULL);
 //	register_event_by_clock(this, EVENT_HSYNC_E, 194, false, NULL);
+	if (v == 199) {
+		register_event_by_clock(this, EVENT_VBLANK_S, 166, false, NULL);
+	} else if (v == 261) {
+		register_event_by_clock(this, EVENT_VBLANK_E, 166, false, NULL);
+	}
 #endif
 	
 #if defined(_MZ700) || defined(_MZ1500)
@@ -284,6 +291,10 @@ void MEMORY::event_callback(int event_id, int err)
 		}
 		hblank_pcg = true;
 #endif
+	} else if(event_id == EVENT_VBLANK_S) {
+		set_vblank(true);
+	} else if(event_id == EVENT_VBLANK_E) {
+		set_vblank(false);
 	}
 }
 

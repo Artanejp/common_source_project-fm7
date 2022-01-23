@@ -16,7 +16,7 @@ void PRINTER::initialize()
 	DEVICE::initialize();
 	fio = new FILEIO();
 
-	osd->open_console(80, 30, create_string(_T("Printer - %s"), osd->get_vm_device_name()));
+	osd->open_console(80, 25, create_string(_T("Printer - %s"), osd->get_vm_device_name()));
 
 	register_vline_event(this);
 }

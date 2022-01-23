@@ -207,6 +207,309 @@
     <Image Include="..\src\res\bx1.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="..\src\res\bx1\board.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button00.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button01.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button02.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button03.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button04.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button05.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button06.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button07.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button08.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button09.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button10.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button11.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button12.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button13.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button14.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button15.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button17.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button18.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button19.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button20.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button21.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button22.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button23.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button24.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button25.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button26.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button27.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button28.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button29.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button30.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button31.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button32.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button33.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button34.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button35.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button36.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button37.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button38.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button39.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button40.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button41.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button42.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button43.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button44.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button45.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button46.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button47.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button48.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button49.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button50.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button51.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button52.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button53.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button54.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button55.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button56.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button57.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button58.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button59.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button60.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button61.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button62.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button63.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button64.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button65.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button66.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button67.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button68.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button69.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button70.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button71.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button72.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button73.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button74.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button75.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button76.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button77.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button78.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button79.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button80.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button81.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button82.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button83.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button84.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button85.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button86.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button87.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button88.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button89.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button90.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button91.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button92.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button93.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button94.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button95.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button96.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button97.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button98.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\bx1\button99.png">
+      <Filter>Resource Files</Filter>
+    </Image>
     <Image Include="..\src\res\indicator\access_off.bmp">
       <Filter>Resource Files</Filter>
     </Image>

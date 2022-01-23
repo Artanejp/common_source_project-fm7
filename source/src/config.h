@@ -274,7 +274,8 @@ typedef struct {
 #endif
 #if defined(USE_FIXED_CONFIG) || defined(USE_TAPE)
 	bool sound_noise_cmt;
-	bool sound_play_tape;
+	bool sound_tape_signal;
+	bool sound_tape_voice;
 #endif
 #if defined(USE_FIXED_CONFIG) || defined(USE_SOUND_VOLUME)
 	int sound_volume_l[MAX_VOLUME_TMP];

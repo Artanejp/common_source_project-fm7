@@ -139,7 +139,8 @@ BEGIN
         POPUP "Sound"
         BEGIN
             MENUITEM "Play CMT Noise",          ID_VM_SOUND_NOISE_CMT, GRAYED
-            MENUITEM "Play CMT Sound",          ID_VM_SOUND_PLAY_TAPE, GRAYED
+            MENUITEM "Play CMT Signal",         ID_VM_SOUND_TAPE_SIGNAL, GRAYED
+            MENUITEM "Play CMT Voice",          ID_VM_SOUND_TAPE_VOICE, GRAYED
         END
     END
     POPUP "Host"
