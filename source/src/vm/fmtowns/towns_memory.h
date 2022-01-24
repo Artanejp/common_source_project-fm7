@@ -124,7 +124,8 @@ protected:
 	uint8_t reg_misc4; // 0025
 	virtual void set_wait_values();
 	virtual void config_page_c0();
-	virtual void config_page_d0_f8();
+	virtual void config_page_d0_e0();
+	virtual void config_page_f8_rom();
 	virtual void config_page00();
 	virtual void update_machine_features();
 

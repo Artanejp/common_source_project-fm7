@@ -39,12 +39,12 @@ void TOWNS_MEMORY::config_page_c0()
 			set_memory_r          (0x000ca800, 0x000cafff, rd_dummy);
 			set_memory_mapped_io_r(0x000cb000, 0x000cbfff, d_font);
 			
-			set_memory_w          (0x000ca000, 0x000cafff, wr_dummy); // OK?
+			set_memory_w          (0x000ca000, 0x000cbfff, wr_dummy); // OK?
 			//set_memory_mapped_io_w(0x000ca000, 0x000cbfff, d_sprite); // OK?
 		} else {
 			set_memory_mapped_io_rw(0x000ca000, 0x000cbfff, d_sprite);
 		}
-		set_memory_rw          (0x000cc000, 0x000cffff, &(ram_pagec[0xc000]));
+		set_memory_rw          (0x000cc000, 0x000cfbff, &(ram_pagec[0xc000]));
 		set_memory_mapped_io_rw(0x000cfc00, 0x000cffff, this); // MMIO
 		// ToDo: Correctness wait value.
 		set_wait_rw(0x000c0000, 0x000cffff, vram_wait_val);
@@ -55,27 +55,44 @@ void TOWNS_MEMORY::config_page_c0()
 	}
 }
 
-void TOWNS_MEMORY::config_page_d0_f8()
+void TOWNS_MEMORY::config_page_d0_e0()
 {
-	if((select_d0_rom) && (select_d0_dict)) { 
-		set_memory_mapped_io_rw(0x000d0000, 0x000dffff, d_dictionary);
-	} else {
+	// Change as of
+	// TownsPhysicalMemory::UpdateSysROMDicROMMappingFlag(bool , bool )
+	// at src/towns/memory/pysmem.cpp, TSUGARU.
+	// -- 20220125 K.O
+	if(!(dma_is_vram)) {
 		set_memory_rw          (0x000d0000, 0x000dffff, ram_paged);
+		set_memory_rw          (0x000e0000, 0x000effff, ram_pagee);
+	} else {
+		if(select_d0_dict) { 
+			set_memory_mapped_io_rw(0x000d0000, 0x000d9fff, d_dictionary);
+		} else {
+			//set_memory_rw          (0x000d0000, 0x000dffff, ram_paged);
+			set_memory_r          (0x000d0000, 0x000d9fff, rd_dummy);
+			set_memory_w          (0x000d0000, 0x000d9fff, wr_dummy);
+		}
+		set_memory_r          (0x000da000, 0x000effff, rd_dummy);
+		set_memory_w          (0x000da000, 0x000effff, wr_dummy);
 	}
+}
+
+void TOWNS_MEMORY::config_page_f8_rom()
+{
+		
 	if(select_d0_rom) {
 		set_memory_mapped_io_r (0x000f8000, 0x000fffff, d_sysrom);
-//		set_memory_w	       (0x000f8000, 0x000fffff, &(ram_pagef[0x8000]));
-//		set_memory_mapped_io_rw(0x000f8000, 0x000fffff, d_sysrom);
 		set_memory_w	       (0x000f8000, 0x000fffff, wr_dummy);
 	} else {
 		set_memory_rw          (0x000f8000, 0x000fffff, &(ram_pagef[0x8000]));
-	}		
+	}
 }
 	
 void TOWNS_MEMORY::config_page00()
 {
 	config_page_c0();
-	config_page_d0_f8();
+	config_page_d0_e0();
+	config_page_f8_rom();
 }
 	
 void TOWNS_MEMORY::initialize()
@@ -113,9 +130,10 @@ void TOWNS_MEMORY::initialize()
 	initialized = true;
 	extram_size = extram_size & 0x3ff00000;
 	set_extra_ram_size(extram_size >> 20); // Check extra ram size.
+
 	if(extram_size >= 0x00100000) {
 		extra_ram = (uint8_t*)malloc(extram_size);
-		__UNLIKELY_IF(extra_ram != NULL) {
+		__LIKELY_IF(extra_ram != NULL) {
 			set_memory_rw(0x00100000, (extram_size + 0x00100000) - 1, extra_ram);
 			memset(extra_ram, 0x00, extram_size);
 		}
@@ -132,10 +150,7 @@ void TOWNS_MEMORY::initialize()
 	dma_is_vram = true;
 	// Lower 100000h
 	set_memory_rw          (0x00000000, 0x000bffff, ram_page0);
-	set_memory_rw          (0x000d0000, 0x000dffff, ram_paged);
-	set_memory_rw          (0x000e0000, 0x000effff, ram_pagee);
 	set_memory_rw          (0x000f0000, 0x000f7fff, ram_pagef);
-	set_memory_mapped_io_rw(0x000f8000, 0x000fffff, d_sysrom);
 	config_page00();
 	
 	set_memory_mapped_io_rw(0x80000000, 0x8007ffff, d_vram);
@@ -590,8 +605,9 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		{
 			bool _b = dma_is_vram;
 			dma_is_vram = ((data & 0x80) == 0);
-			if((_b != dma_is_vram) || (dma_is_vram)) {
+			if((_b != dma_is_vram)/* || (dma_is_vram)*/) {
 				config_page_c0();
+				config_page_d0_e0();
 			}
 		}
 		break;
@@ -601,8 +617,11 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 			bool _rom = select_d0_rom;
 			select_d0_dict = ((data & 0x01) != 0) ? true : false;
 			select_d0_rom = ((data & 0x02) == 0) ? true : false;
-			if((_rom != select_d0_rom) || (_dict != select_d0_dict)) {
-				config_page_d0_f8();
+			if(_rom != select_d0_rom) {
+				config_page_f8_rom();
+			}
+			if(_dict != select_d0_dict) {
+				config_page_d0_e0();
 			}
 		}
 		break;
@@ -742,6 +761,7 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io32(uint32_t addr)
 uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
+#if 0	
 	__UNLIKELY_IF((addr >= 0xc0000) && (addr <= 0xc7fff)) {
 		__LIKELY_IF(d_planevram != NULL) {
 			return d_planevram->read_memory_mapped_io8(addr);
@@ -779,6 +799,10 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 	}
 	
 	__UNLIKELY_IF((addr < 0xcfc00) || (addr >= 0xd0000)) return 0xff;
+#endif
+	__LIKELY_IF((addr < 0xcff80) || (addr > 0xcffbb)) {
+		return ram_pagec[addr & 0xffff];
+	}
 	switch(addr) {
 	case 0xcff88:
 	case 0xcff94:
@@ -792,10 +816,7 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 		val = read_io8(addr & 0xffff);
 		break;
 	default:
-		if((addr < 0xcff80) || (addr > 0xcffbb)) {
-			return ram_pagec[addr & 0xffff];
-		}
-		if(d_planevram != NULL) {
+		__LIKELY_IF(d_planevram != NULL) {
 			val = d_planevram->read_io8(addr & 0xffff);
 		}
 		break;
