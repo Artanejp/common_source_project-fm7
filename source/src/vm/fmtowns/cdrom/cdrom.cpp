@@ -584,6 +584,8 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		// TOC READING
 		break;
 	case CDROM_COMMAND_READ_CDDA_STATE: // 06h
+		// ToDo: Some softwares check via this command, strongly to be fixed.
+		// -- 20220125 K.O
 		if(req_status) {
 			if(status_media_changed_or_not_ready(false)) {
 				break;
