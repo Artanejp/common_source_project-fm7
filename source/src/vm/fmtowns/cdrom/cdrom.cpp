@@ -1167,39 +1167,49 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 		}
 		break;
 	case SIG_TOWNS_CDROM_RELATIVE_MSF:
-#if 0		
+#if 1		
 		if(toc_table[current_track].is_audio) {
+			int index1 = toc_table[current_track].index1;
 			if(!(is_device_ready())) {
 				return 0;
 			}
-			if(cdda_playing_frame <= cdda_start_frame) {
+			if(cdda_playing_frame <= index1) {
 				return 0;
 			}
 			uint32_t msf;
-			if(cdda_playing_frame > cdda_end_frame) {
+			if(cdda_playing_frame >= (cdda_end_frame - 1)) {
 				if(cdda_repeat_count >= 0) {
 					return 0;
 				} else {
-					msf = lba_to_msf(cdda_end_frame - cdda_start_frame);
+					msf = lba_to_msf(cdda_end_frame - index1);
 					return msf;
 				}
 			}
-			msf = lba_to_msf(cdda_playing_frame - cdda_start_frame);
+			msf = lba_to_msf(cdda_playing_frame - index1);
 			return msf;
 		} else {
 			if(!(is_device_ready())) {
 				return 0;
 			}
-			if(fio_img->IsOpened()) {
-				uint32_t cur_position = (uint32_t)fio_img->Ftell();
-				cur_position = cur_position / ((is_iso) ? 2048 : physical_block_size());
-				if(cur_position >= max_logical_block) {
-					cur_position = max_logical_block;
-				}
-				uint32_t msf = lba_to_msf(cur_position);
-				return msf;
+			int lba = read_sector;
+			if(lba > max_logical_block) {
+				lba = max_logical_block;
 			}
-			return 0;
+			if(lba < 0) {
+				lba = 0;
+			}
+			if((current_track > 0) && (current_track < track_num)) {
+				int index0 = toc_table[current_track].index0;
+				int index1 = toc_table[current_track].index1;
+				int pregap = toc_table[current_track].pregap;
+				lba = lba - index1;
+				if(lba < 0) {
+					lba = 0;
+				}
+			} else {
+				lba = 0;
+			}
+			return lba_to_msf((uint32_t)lba);
 		}
 #else
 		if(!(is_device_ready())) {
@@ -1215,6 +1225,7 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 				int index1 = toc_table[current_track].index1;
 				//int pregap = toc_table[current_track].pregap;
 				if(toc_table[current_track].is_audio) {
+					lba = cdda_playing_frame;
 					if((lba > cdda_end_frame) || (cdda_status != CDDA_PLAYING)) {
 						lba = cdda_end_frame;
 					}
@@ -1230,20 +1241,31 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 #endif
 		break;
 	case SIG_TOWNS_CDROM_ABSOLUTE_MSF:
-#if 0		
+#if 1		
 		if(!(is_device_ready())) {
-			return 75 * 2;
+			return 0;
 		}
-		if(cdda_status == CDDA_PLAYING) {
-			uint32_t msf;
-			if(cdda_end_frame > max_logical_block) {
-				msf = lba_to_msf(cdda_end_frame + 75 * 2); // With start gap
+		if(toc_table[current_track].is_audio) {
+			if(cdda_status == CDDA_PLAYING) {
+				uint32_t msf;
+				if(cdda_playing_frame > max_logical_block) {
+					msf = lba_to_msf(max_logical_block + 75 * 2); // With start gap
+				} else {
+					msf = lba_to_msf(cdda_playing_frame + 75 * 2); // With start gap
+				}
+				return msf;
 			} else {
-				msf = lba_to_msf(cdda_playing_frame + 75 * 2); // With start gap
+				return lba_to_msf(cdda_end_frame + 75 + 2); // With start gap
 			}
-			return msf;
 		} else {
-			return lba_to_msf(cdda_end_frame + 75 * 2); // With start gap
+			int lba = read_sector;
+			if(lba > max_logical_block) {
+				lba = max_logical_block;
+			}
+			if(lba < 0) {
+				lba = 0;
+			}
+			return lba_to_msf((uint32_t)lba + 75 * 2);
 		}
 #else
 		if(!(is_device_ready())) {
@@ -1730,7 +1752,7 @@ void TOWNS_CDROM::read_a_cdda_sample()
 		cdda_playing_frame++;
 		cdda_buffer_ptr = 0;
 		
-		__UNLIKELY_IF(cdda_playing_frame > cdda_end_frame) {
+		__UNLIKELY_IF(cdda_playing_frame >= cdda_end_frame) {
 			if(cdda_repeat_count < 0) {
 				// Infinity Loop (from Towns Linux v2.2.26)
 				cdda_playing_frame = cdda_start_frame;
@@ -1802,7 +1824,7 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 		last_read = false;
 		for(int i = 0; i < sectors; i++) {
 			lframe++;
-			if(lframe > cdda_end_frame) {
+			if(lframe >= cdda_end_frame) {
 				last_read = true;
 				break; // OK?
 			}
@@ -2250,9 +2272,9 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 		} else if(start_tmp >= max_logical_block) {
 			start_tmp = max_logical_block - 1;
 		}
-		if(end_tmp >= toc_table[track + 1].index0) {
+		/* if(end_tmp >= toc_table[track + 1].index0) {
 			end_tmp = toc_table[track + 1].index0 - 1;
-		} else if(end_tmp >= max_logical_block) {
+		} else */if(end_tmp >= max_logical_block) {
 			end_tmp = max_logical_block - 1;
 		} else if(end_tmp == 0) { //! Workaround of Puyo Puyo 20201116 K.O
 			end_tmp = toc_table[track + 1].index0 - 1;
