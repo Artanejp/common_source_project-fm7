@@ -1167,6 +1167,7 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 		}
 		break;
 	case SIG_TOWNS_CDROM_RELATIVE_MSF:
+#if 0		
 		if(toc_table[current_track].is_audio) {
 			if(!(is_device_ready())) {
 				return 0;
@@ -1175,7 +1176,7 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 				return 0;
 			}
 			uint32_t msf;
-			if(cdda_playing_frame >= cdda_end_frame) {
+			if(cdda_playing_frame > cdda_end_frame) {
 				if(cdda_repeat_count >= 0) {
 					return 0;
 				} else {
@@ -1200,8 +1201,36 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 			}
 			return 0;
 		}
+#else
+		if(!(is_device_ready())) {
+			return 0;
+		}
+		{
+			int lba = read_sector;
+			if(lba > max_logical_block) {
+				lba = max_logical_block;
+			}
+			if((current_track > 0) && (current_track < track_num)) {
+				int index0 = toc_table[current_track].index0;
+				int index1 = toc_table[current_track].index1;
+				//int pregap = toc_table[current_track].pregap;
+				if(toc_table[current_track].is_audio) {
+					if((lba > cdda_end_frame) || (cdda_status != CDDA_PLAYING)) {
+						lba = cdda_end_frame;
+					}
+					lba = lba - index0;
+				} else {
+					lba = lba - index0;
+				}
+				if(lba < 0) lba = 0;
+				return lba_to_msf((uint32_t)lba);
+			}
+			return lba_to_msf(75 * 2);
+		}
+#endif
 		break;
 	case SIG_TOWNS_CDROM_ABSOLUTE_MSF:
+#if 0		
 		if(!(is_device_ready())) {
 			return 75 * 2;
 		}
@@ -1216,6 +1245,31 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 		} else {
 			return lba_to_msf(cdda_end_frame + 75 * 2); // With start gap
 		}
+#else
+		if(!(is_device_ready())) {
+			return 75 * 2;
+		}
+		{
+			int lba = read_sector;
+			if(lba > max_logical_block) {
+				lba = max_logical_block;
+			}
+			if((current_track > 0) && (current_track < track_num)) {
+				//int index0 = toc_table[current_track].index0;
+				//int index1 = toc_table[current_track].index1;
+				//int pregap = toc_table[current_track].pregap;
+				if(toc_table[current_track].is_audio) {
+					if((lba > cdda_end_frame) || (cdda_status != CDDA_PLAYING)) {
+						lba = cdda_end_frame;
+					}
+				}
+				if(lba < 0) lba = 0;
+				lba = lba + 75 * 2;
+				return lba_to_msf((uint32_t)lba);
+			}
+			return lba_to_msf((uint32_t)(lba + 75 * 2));
+		}
+#endif
 		break;
 	case SIG_TOWNS_CDROM_GET_ADR:
 		return cdrom_get_adr(stat_track);
@@ -1339,9 +1393,8 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			set_cdda_status(CDDA_PLAYING);
 		}
 		event_cdda_delay_play = -1;
-		access = true;
 		databuffer->clear();
-		if(prefetch_audio_sectors(2) < 1) {
+		if(prefetch_audio_sectors(1) < 1) {
 			set_cdda_status(CDDA_OFF);
 			set_subq();
 			access = false;
@@ -1601,7 +1654,6 @@ int TOWNS_CDROM::read_sectors_image(int sectors, uint32_t& transferred_bytes)
 			transferred_bytes++;
 			read_length--;
 		}
-		access = true;
 		read_sector++; // ToDo: Check boundary.
 		seccount++;
 		sectors--;
@@ -1613,11 +1665,17 @@ bool TOWNS_CDROM::read_buffer(int sectors)
 {
 	if(status_media_changed_or_not_ready(false)) {
 		// @note ToDo: Make status interrupted. 
+		access = false;
 		return false;
 	}
 
 	uint32_t nbytes; // transferred_bytes
 	int rsectors = read_sectors_image(sectors, nbytes);
+	if(rsectors > 0) {
+		access = true;
+	} else {
+		access = false;
+	}
 	if(rsectors != sectors) {
 		// ToDo: Partly reading error.
 		return false;
@@ -1672,7 +1730,7 @@ void TOWNS_CDROM::read_a_cdda_sample()
 		cdda_playing_frame++;
 		cdda_buffer_ptr = 0;
 		
-		__UNLIKELY_IF(cdda_playing_frame >= cdda_end_frame) {
+		__UNLIKELY_IF(cdda_playing_frame > cdda_end_frame) {
 			if(cdda_repeat_count < 0) {
 				// Infinity Loop (from Towns Linux v2.2.26)
 				cdda_playing_frame = cdda_start_frame;
@@ -1701,11 +1759,11 @@ void TOWNS_CDROM::read_a_cdda_sample()
 			seek_relative_frame_in_image(cdda_loading_frame);
 		}
 		//cdda_playing_frame = cdda_loading_frame;
-		if(databuffer->count() <= sizeof(cd_audio_sector_t)) {
+		if(databuffer->count() <= (sizeof(cd_audio_sector_t) / 2)) {
 			// Kick prefetch
 			//(event_next_sector < 0) {
 				// TMP: prefetch 2 sectors
-				prefetch_audio_sectors(2);
+				prefetch_audio_sectors(1);
 			//
 		}
 	}
@@ -1744,7 +1802,7 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 		last_read = false;
 		for(int i = 0; i < sectors; i++) {
 			lframe++;
-			if(lframe >= cdda_end_frame) {
+			if(lframe > cdda_end_frame) {
 				last_read = true;
 				break; // OK?
 			}
@@ -1942,7 +2000,7 @@ void TOWNS_CDROM::reset_device()
 	}
 	current_track = 0;
 	cdda_start_frame = 0;
-	cdda_end_frame = 0;
+	cdda_end_frame = 150;
 	cdda_playing_frame = 0;
 	cdda_loading_frame = 0;
    
