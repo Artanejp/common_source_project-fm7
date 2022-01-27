@@ -350,6 +350,7 @@ protected:
 	int event_delay_command;
 	int event_time_out;
 	int event_eot;
+	int event_execute_command;
 	
 	int cdda_sample_l;
 	int cdda_sample_r;
@@ -371,6 +372,8 @@ protected:
 	uint8_t param_pre_queue[8];
 	uint8_t param_queue[8];
 
+	bool command_received;
+	
 	double seek_time;
 	int track_num;
 	uint32_t max_logical_block;
@@ -436,6 +439,13 @@ protected:
 
 	void __FASTCALL set_dma_intr(bool val);
 	void __FASTCALL set_mcu_intr(bool val);
+	/*!
+	 * @brief set interrupts without stat_reply_intr.
+	 * @param mcu interrupt value to set.
+	 * @param dma interrupt value to set.
+	 * @param use_mask true when masking mcu and dma.
+	 */
+	void __FASTCALL set_intrs_force(bool mcu, bool dma, bool use_mask = false);
 	
 	void __FASTCALL make_bitslice_subc_q(uint8_t *data, int bitwidth);
 	uint16_t __FASTCALL calc_subc_crc16(uint8_t *databuf, int bytes, uint16_t initval);
