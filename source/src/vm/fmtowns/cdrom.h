@@ -393,20 +393,20 @@ protected:
 
 	bool is_device_ready();
 	void reset_device();
-	void read_a_cdda_sample();
+	virtual void read_a_cdda_sample();
 
 	void send_mcu_ready();
-	void set_extra_status();
+	virtual void set_extra_status();
 
 	void set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_read_done(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_cddareply(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_immediate(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-	void set_status_extra(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+	virtual void set_status_extra(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra_toc_addr(uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra_toc_data(uint8_t s1, uint8_t s2, uint8_t s3);
-	bool __FASTCALL check_cdda_track_boundary(uint32_t &frame_no);
-	bool seek_relative_frame_in_image(uint32_t frame_no);
+	virtual int __FASTCALL check_cdda_track_boundary(uint32_t frame_no);
+	virtual bool seek_relative_frame_in_image(uint32_t frame_no);
     virtual int prefetch_audio_sectors(int sectors);
 	virtual int __FASTCALL dequeue_audio_data(pair16_t& left, pair16_t& right);
 	
@@ -462,8 +462,9 @@ protected:
 	virtual uint8_t get_subq_status();
 	virtual void set_subq(void);
 	
-	int get_track_noop(uint32_t lba);
-	void get_track_by_track_num(int track);
+	virtual int get_track_noop(uint32_t lba);
+	virtual void get_track_by_track_num(int track);
+	virtual uint32_t get_image_cur_position();
 
 	uint32_t __FASTCALL lba_to_msf(uint32_t lba);
 	uint32_t __FASTCALL lba_to_msf_alt(uint32_t lba);
@@ -481,6 +482,8 @@ protected:
 		write_signals(&outputs_mcuint, val);
 	}
 	void cdrom_debug_log(const char *fmt, ...);
+	virtual const _TCHAR* __FASTCALL get_cdda_status_name(int _status);
+	virtual const _TCHAR* __FASTCALL get_command_name_from_command(uint8_t cmd);
 
 	bool __CDROM_DEBUG_LOG;
 	bool _USE_CDROM_PREFETCH;
