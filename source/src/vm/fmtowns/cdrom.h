@@ -300,7 +300,7 @@ protected:
 		bool is_audio;
 		int physical_size;
 		int logical_size;
-	} toc_table[1024];
+	} toc_table[108];
 	_TCHAR track_data_path[100][_MAX_PATH];
 	_TCHAR img_file_path_bak[_MAX_PATH];
 	bool with_filename[100];
@@ -308,7 +308,7 @@ protected:
 	uint32_t cdda_start_frame;
 	uint32_t cdda_end_frame;
 	uint32_t cdda_playing_frame;
-	uint32_t cdda_loading_frame;
+
 	int cdda_status;
 	int cdda_repeat_count;
 	bool cdda_interrupt;

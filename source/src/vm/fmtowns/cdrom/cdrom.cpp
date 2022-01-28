@@ -1240,7 +1240,8 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 			return 0;
 		}
 		if(toc_table[current_track].is_audio) {
-			uint32_t index1 = toc_table[current_track].index1;
+//			uint32_t index1 = toc_table[current_track].index1;
+			uint32_t index1 = cdda_start_frame;
 			if(cdda_playing_frame <= cdda_start_frame) {
 				return 0;
 			}
@@ -1638,6 +1639,14 @@ int TOWNS_CDROM::read_sectors_image(int sectors, uint32_t& transferred_bytes)
 	while(sectors > 0) {
 		//out_debug_log(_T("TRY TO READ SECTOR:LBA=%d"), read_sector);
 		memset(&tmpbuf, 0x00, sizeof(tmpbuf));
+		int _trk = check_cdda_track_boundary(read_sector);
+		if(_trk <= 0) { // END
+			status_illegal_lba(0, 0x00, 0x00, 0x00);			
+			return seccount;
+		}
+		if(_trk != current_track) { // END
+			get_track_by_track_num(_trk);
+		}
 		if(!(seek_relative_frame_in_image(read_sector))) {
 			status_illegal_lba(0, 0x00, 0x00, 0x00);			
 			return seccount;
@@ -1766,7 +1775,7 @@ void TOWNS_CDROM::read_a_cdda_sample()
 			if(cdda_repeat_count < 0) {
 				// Infinity Loop (from Towns Linux v2.2.26)
 				cdda_playing_frame = cdda_start_frame;
-				cdda_loading_frame = cdda_start_frame;
+				read_sector = cdda_start_frame;
 				force_seek = true;
 			} else if(cdda_repeat_count == 0) {
 				set_cdda_status(CDDA_ENDED);
@@ -1775,7 +1784,7 @@ void TOWNS_CDROM::read_a_cdda_sample()
 				return;
 			} else {
 				cdda_playing_frame = cdda_start_frame;
-				cdda_loading_frame = cdda_start_frame;
+				read_sector = cdda_start_frame;
 				force_seek = true;
 				cdda_repeat_count--;
 				if(cdda_repeat_count == 0) {
@@ -1786,13 +1795,14 @@ void TOWNS_CDROM::read_a_cdda_sample()
 				}
 			}
 		}
-		int _ntrk =	_ntrk = check_cdda_track_boundary(cdda_loading_frame);
+/*		int _ntrk =	_ntrk = check_cdda_track_boundary(read_sector);
 		__UNLIKELY_IF((_ntrk != current_track) && (_ntrk < track_num) && (_ntrk > 0)) {
-			current_track = get_track(cdda_loading_frame);
-		} else if(force_seek) {
-			seek_relative_frame_in_image(cdda_loading_frame);
+			current_track = get_track(read_sector);
+			seek_relative_frame_in_image(read_sector);
+		} else */if(force_seek) {
+			seek_relative_frame_in_image(read_sector);
 		}
-		//cdda_playing_frame = cdda_loading_frame;
+		//cdda_playing_frame = read_sector;
 		if(databuffer->count() <= sizeof(cd_audio_sector_t)) {
 			// Kick prefetch
 			//(event_next_sector < 0) {
@@ -1818,79 +1828,46 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 		return -1;
 	}
 	uint8_t tmpbuf[sectors * 2448 + 8];
-	int n_sectors = 0;
-	int m_sectors = 0;
-	bool last_read;
-	if((cdda_loading_frame >= cdda_end_frame) || (cdda_loading_frame >= max_logical_block)) {
+	if((read_sector >= cdda_end_frame) || (read_sector >= max_logical_block)) {
 		return 0; // OK?
-	}
-	//if(check_cdda_track_boundary(cdda_loading_frame)) {
-	//	return 0;
-		//}
-	int _ntrk = check_cdda_track_boundary(cdda_loading_frame);
-	if((_ntrk != current_track) && (_ntrk < track_num) && (_ntrk > 0)) {
-		current_track = get_track(cdda_loading_frame);
 	}
 	if((current_track >= track_num) || (current_track <= 0)) {
 		return 0;
 	}
-	read_length = sectors * sizeof(cd_audio_sector_t); // Hack.
-	while(sectors > 0) {
-		n_sectors = 0;
-		read_sector = cdda_loading_frame;
-		uint32_t lframe = cdda_loading_frame;
-		last_read = false;
-		for(int i = 0; i < sectors; i++) {
-			lframe++;
-			if((lframe >= cdda_end_frame) || (lframe >= max_logical_block)) {
-				last_read = true;
-				break; // OK?
-			}
-			
-			if(check_cdda_track_boundary(lframe) != current_track) {
-				last_read = true;
-				break; // OK?
-			}
-			n_sectors++;
-		}
-		if(n_sectors >= 1) {
-			//access = true;
-			read_mode = CDROM_READ_AUDIO;
-			uint32_t nbytes; // transferred_bytes
-			int rsectors = read_sectors_image(n_sectors, nbytes);
-			cdrom_debug_log(_T("READ AUDIO SECTOR(s) LBA=%d SECTORS=%d -> %d bytes=%d"),
-						  read_sector, n_sectors, rsectors, nbytes);
-			if(rsectors < n_sectors) {
-				if((rsectors <= 0) && (m_sectors <= 0)) {
-					// Error
-					//set_cdda_status(CDDA_OFF);
-					set_subq();
-					access = false;
-					return 0; // OK?
-				}
-				if(rsectors <= 0) {
-					// Expected to next frame.
-					access = false;
-					set_subq();
-					return m_sectors;
-					//n_sectors = 0;
-				} else {
-					// 0 < read_sectors < n_sectors
-					n_sectors = rsectors;
-				}
-			} else {
-				// ToDo: Read too many audio buffer.
-			}
-			cdda_loading_frame += n_sectors;
-			m_sectors += n_sectors;
-			sectors -= n_sectors;
-		}
-		if(last_read) {
-			// Maybe across the boundary.
-			break;
-		}
+	if((read_sector + sectors) > cdda_end_frame) {
+		sectors = cdda_end_frame - read_sector;
 	}
-	return m_sectors;
+	if((read_sector + sectors) > max_logical_block) {
+		sectors = max_logical_block - read_sector;
+	}
+	__UNLIKELY_IF(databuffer->left() < read_length) {
+		int tl = databuffer->left();
+		if(tl < sizeof(cd_audio_sector_t)) return 0; // Pending
+		int _s = tl / sizeof(cd_audio_sector_t);
+		if(_s < 1) return 0; // Pending
+		sectors = _s;
+	}
+
+	read_length = sectors * sizeof(cd_audio_sector_t); // Hack.
+	read_mode = CDROM_READ_AUDIO;
+	
+	uint32_t nbytes; // transferred_bytes
+	int _sectors = 0;
+	while(sectors > 0) {
+		int rsectors = read_sectors_image(sectors, nbytes);
+		cdrom_debug_log(_T("READ AUDIO SECTOR(s) LBA=%d SECTORS=%d -> %d bytes=%d"),
+						read_sector, sectors, rsectors, nbytes);
+		if(rsectors <= 0) {
+			// Error
+			//set_cdda_status(CDDA_OFF);
+			set_subq();
+			access = false;
+			return _sectors; // OK?
+		}
+		sectors -= rsectors;
+		_sectors += rsectors;
+	}
+	return _sectors;
 }
 
 void TOWNS_CDROM::set_cdda_status(uint8_t status)
@@ -2001,7 +1978,7 @@ void TOWNS_CDROM::reset_device()
 	cdda_start_frame = 0;
 	cdda_end_frame = 150;
 	cdda_playing_frame = 0;
-	cdda_loading_frame = 0;
+	read_sector = 0;
    
 	read_sector = 0;
 	
@@ -2313,7 +2290,7 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 		}
 		track = current_track;
 		cdda_playing_frame = cdda_start_frame;
-		cdda_loading_frame = cdda_start_frame;
+		read_sector = cdda_start_frame;
 		status_seek = true;
 		seek_relative_frame_in_image(cdda_playing_frame);
 		cdrom_debug_log(_T("PLAY_CDROM TRACK=%d START=%02X:%02X:%02X(%d) END=%02X:%02X:%02X(%d) IS_REPEAT=%d REPEAT_COUNT=%d"),
@@ -2874,7 +2851,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 					  ,
 					  playstatus, cdda_repeat_count,
 					  cdda_start_frame, cdda_end_frame,
-					  cdda_playing_frame, cdda_loading_frame
+					  cdda_playing_frame, read_sector
 			);
 	} else {
 		my_stprintf_s(moreinfo, sizeof(moreinfo) - 1,
@@ -2911,7 +2888,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	18
+#define STATE_VERSION	19
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2987,7 +2964,6 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cdda_start_frame);
 	state_fio->StateValue(cdda_end_frame);
 	state_fio->StateValue(cdda_playing_frame);
-	state_fio->StateValue(cdda_loading_frame);
 	state_fio->StateValue(cdda_status);
 	state_fio->StateValue(cdda_repeat_count);
 	state_fio->StateValue(cdda_interrupt);
