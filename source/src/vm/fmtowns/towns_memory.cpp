@@ -78,13 +78,14 @@ void TOWNS_MEMORY::config_page_d0_e0()
 
 void TOWNS_MEMORY::config_page_f8_rom()
 {
-		
-	if(select_d0_rom) {
-		set_memory_mapped_io_r (0x000f8000, 0x000fffff, d_sysrom);
-		set_memory_w	       (0x000f8000, 0x000fffff, wr_dummy);
-	} else {
-		set_memory_rw          (0x000f8000, 0x000fffff, &(ram_pagef[0x8000]));
-	}
+	set_memory_mapped_io_rw (0x000f8000, 0x000fffff, this);
+//		
+//	if(select_d0_rom) {
+//		set_memory_mapped_io_r (0x000f8000, 0x000fffff, d_sysrom);
+//		set_memory_w	       (0x000f8000, 0x000fffff, wr_dummy);
+//	} else {
+//		set_memory_rw          (0x000f8000, 0x000fffff, &(ram_pagef[0x8000]));
+//	}
 }
 	
 void TOWNS_MEMORY::config_page00()
@@ -612,12 +613,12 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	case 0x0480:
 		{
 			bool _dict = select_d0_dict;
-			bool _rom = select_d0_rom;
+			//	bool _rom = select_d0_rom;
 			select_d0_dict = ((data & 0x01) != 0) ? true : false;
 			select_d0_rom = ((data & 0x02) == 0) ? true : false;
-			if(_rom != select_d0_rom) {
-				config_page_f8_rom();
-			}
+			//if(_rom != select_d0_rom) {
+			//	config_page_f8_rom();
+			//}
 			if(_dict != select_d0_dict) {
 				config_page_d0_e0();
 			}
@@ -762,6 +763,15 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 	__LIKELY_IF(addr < 0xcff80) {
 		return ram_pagec[addr & 0xffff];
 	}
+	__LIKELY_IF((addr >= 0x000f8000) && (addr < 0x00100000)) {
+		__LIKELY_IF(!(select_d0_rom)) {
+			return ram_pagef[addr & 0xffff];
+		} else {
+			__LIKELY_IF(d_sysrom != nullptr) {
+				return d_sysrom->read_memory_mapped_io8(addr);
+			}
+		}
+	}
 	__UNLIKELY_IF(addr >= 0xd0000) {
 		return 0xff;
 	}
@@ -813,6 +823,12 @@ void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	__LIKELY_IF(addr < 0xcff80) {
 		ram_pagec[addr & 0xffff] = data;
+		return;
+	}
+	__LIKELY_IF((addr >= 0x000f8000) && (addr < 0x00100000)) {
+		__LIKELY_IF(!(select_d0_rom)) {
+			ram_pagef[addr & 0xffff] = data;
+		}
 		return;
 	}
 	__UNLIKELY_IF(addr >= 0xd0000) {
