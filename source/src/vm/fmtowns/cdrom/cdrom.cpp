@@ -255,10 +255,6 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 {
 	static const _TCHAR by_dma[] = _T("SIGNAL");
 	static const _TCHAR by_event[] =  _T("EVENT");
-	mcu_ready = false;
-	
-	dma_intr = true;
-	mcu_intr = false;
 	
 	clear_event(this, event_time_out);
 	clear_event(this, event_eot);
@@ -267,9 +263,23 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 	if((read_length <= 0) && (databuffer->empty())) {
 //		clear_event(this, event_next_sector);
 //		clear_event(this, event_seek_completed);
-//		status_read_done(false);
-		//cdrom_debug_log(_T("EOT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 		out_debug_log(_T("EOT(%s/DMA)"), (by_signal) ? by_dma : by_event);
+		mcu_ready = true;
+		write_signals(&outputs_drq, 0x00000000);
+
+		status_queue->clear();
+		status_read_done(false);
+		dma_transfer_phase = false;
+		dma_transfer = false;
+
+		if(req_status) {
+			mcu_intr = true;
+			if(!(mcu_intr_mask) && (stat_reply_intr)) {
+				write_mcuint_signals(0xffffffff);
+			}
+		} else {
+			mcu_intr = false;
+		}
 	} else {
 		//cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 		out_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
@@ -280,13 +290,14 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 //					   false,
 //					   &event_seek_completed);
 //			status_data_ready(false);
-	}
-	write_signals(&outputs_drq, 0x00000000);
-	if(dma_transfer_phase) {
-		dma_transfer_phase = false;
-
-		if(!(dma_intr_mask) && (stat_reply_intr)) {
-			write_mcuint_signals(0xffffffff);
+		write_signals(&outputs_drq, 0x00000000);
+		if(dma_transfer_phase) {
+			dma_transfer_phase = false;
+//			dma_transfer = false;
+			dma_intr = true;
+			if(!(dma_intr_mask)/* && (stat_reply_intr)*/) {
+				write_mcuint_signals(0xffffffff);
+			}
 		}
 	}
 }
@@ -348,7 +359,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 					//force_register_event(this, EVENT_CDROM_EOT, 1.0, false, event_eot);
 					clear_event(this, event_next_sector);
 					clear_event(this, event_seek_completed);
-					status_read_done(false);
+					
 					do_dma_eot(false);
 				}
 			} else {
@@ -411,13 +422,17 @@ void TOWNS_CDROM::status_parameter_error(bool forceint)
 void TOWNS_CDROM::status_read_done(bool forceint)
 {
 	if(forceint) stat_reply_intr = true;
-	set_status_read_done(req_status, 0, TOWNS_CD_STATUS_READ_DONE, 0, 0, 0);
+	set_status_read_done(true, 0, TOWNS_CD_STATUS_READ_DONE, 0, 0, 0);
 //	cdrom_debug_log(_T("READ DONE"));
 }
 
 void TOWNS_CDROM::status_data_ready(bool forceint)
 {
 	set_status((forceint) ? true : req_status, 0, TOWNS_CD_STATUS_DATA_READY, 0, 0, 0);
+//	dma_transfer_phase = false;
+//	pio_transfer_phase = false;
+	dma_intr = false;
+	mcu_intr = true;
 //	set_status(true, 0, TOWNS_CD_STATUS_DATA_READY, 0, 0, 0);
 	cdrom_debug_log(_T("DATA READY"));
 }
@@ -814,13 +829,9 @@ uint8_t TOWNS_CDROM::read_status()
 {
 	uint8_t val = 0x00;
 	if(status_queue->empty()) {
-		has_status = false;
 		return val;
 	}
 	val = status_queue->read();
-	if(status_queue->empty()) {
-		has_status = false;
-	}
 	if((latest_command & 0x9f) == 0x80) {
 		cdrom_debug_log(_T("STAT: %02X"), val);
 	}
@@ -910,6 +921,9 @@ void TOWNS_CDROM::read_cdrom()
 	read_sector = lba1;
 	dma_transfer_phase = false;
 	pio_transfer_phase = false;
+	dma_intr = false;
+	mcu_intr = false;
+	
 	clear_event(this, event_drq);
 	clear_event(this, event_next_sector);
 	clear_event(this, event_seek_completed);
@@ -968,7 +982,7 @@ void TOWNS_CDROM::set_status_read_done(bool _req_status, int extra, uint8_t s0, 
 		);
 	status_queue->clear();
 	extra_status = 0;
-	if(_req_status) {
+//	if(_req_status) {
 		if(extra > 0) extra_status = extra;
 		status_queue->write(s0);
 		status_queue->write(s1);
@@ -976,8 +990,8 @@ void TOWNS_CDROM::set_status_read_done(bool _req_status, int extra, uint8_t s0, 
 		status_queue->write(s3);
 //	} else {
 //		set_delay_ready_eot();
-	}
-	set_delay_ready_eot();
+//	}
+//	set_delay_ready_eot();
 
 }
 
@@ -1397,7 +1411,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDROM_DELAY_READY: // CALL READY TO ACCEPT COMMAND WITH STATUS
 		event_delay_ready = -1;
-		has_status = true;
 		mcu_ready = true;
 		set_mcu_intr(true);
 		break;
@@ -1409,14 +1422,11 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_CDROM_READY_EOT:  // CALL END-OF-TRANSFER FROM CDC.
 		event_delay_ready = -1;
 		mcu_ready = true;
-		has_status = true;
-//		has_status = (req_status) ? true : false;
 		set_mcu_intr(true);
 		break;
 	case EVENT_CDROM_READY_CDDAREPLY: // READY TO ACCEPT A COMMAND FROM CDC.
 		event_delay_ready = -1;
 		mcu_ready = true;
-		has_status = true;
 		//mcu_intr = true;
 		set_mcu_intr(true);
 		break;
@@ -1543,9 +1553,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
 			set_dma_intr(true);
 		} else {
-			//if(req_status) {
-				status_data_ready(false);
-			//}
+			status_data_ready(true);
 			if((event_drq < 0) && (dma_transfer_phase)) {
 				register_event_by_clock(this, EVENT_CDROM_DRQ, 2, true, &event_drq);
 			}
@@ -1988,7 +1996,6 @@ void TOWNS_CDROM::reset_device()
 	dma_intr = false;
 	dma_transfer_phase = false;
 	pio_transfer_phase = false;
-	has_status = false;
 	mcu_ready = true;
 	
 	req_status = false;
@@ -2642,7 +2649,7 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 		val = val | ((dma_intr)					? 0x40 : 0x00);
 		val = val | ((pio_transfer_phase)		? 0x20 : 0x00);
 		val = val | ((dma_transfer_phase)		? 0x10 : 0x00); // USING DMAC ch.3
-		val = val | ((has_status)				? 0x02 : 0x00);
+		val = val | (!(status_queue->empty())	? 0x02 : 0x00);
 		val = val | ((mcu_ready)				? 0x01 : 0x00);
 //		if((mcu_intr) || (dma_intr)) { 
 //			mcu_intr = false;
@@ -2692,7 +2699,7 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 		val = get_subq_status();
 		break;
 	}
-
+	//out_debug_log(_T("READ IO8: %04X %02X"), addr, val);
 	return val;
 }
 
@@ -2704,8 +2711,8 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 	 * 04C4h : Parameter register
 	 * 04C6h : Transfer control register.
 	 */
+	out_debug_log(_T("WRITE IO8: %04X %02X"), addr, data);
 	w_regs[addr & 0x0f] = data;
-//	out_debug_log(_T("OUT8 %04X,%02X"), addr & 0xffff, data & 0xff);
 	bool is_cmd_param = false;
 	switch(addr & 0x0f) {
 	case 0x00: // Master control register
@@ -2780,10 +2787,19 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 //		}
 		break;
 	}
+
 	if((is_cmd_param) && (command_received) && (param_ptr >= 8)) {
 		if(mcu_ready) {
 			mcu_ready = false;
 			force_register_event(this, EVENT_EXECUTE_COMMAND, 50.0, false, event_execute_command);
+			_TCHAR param_str[128] = {0};
+			_TCHAR tstr[8];
+			for(int i = 0; i < 8; i++) {
+				memset(tstr, 0x00, sizeof(tstr));
+				my_stprintf_s(tstr, 7, _T("%02X "), param_queue[i]);
+				my_tcscat_s(param_str, 127, tstr);
+			}
+			out_debug_log(_T("REGISTER COMMAND %02X PARAM=%s"), latest_command, param_str); 
 		}
 	}
 }
@@ -2874,7 +2890,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				  , (mcu_intr) ? _T("ON ") : _T("OFF"), (dma_intr) ? _T("ON ") : _T("OFF")
 				  , (pio_transfer_phase) ? _T("PIO") : _T("   ")
 				  , (dma_transfer_phase) ? _T("DMA") : _T("   ")
-				  , (has_status) ? _T("ON ") : _T("OFF"), (mcu_ready) ? _T("ON ") : _T("OFF")
+				  , !(status_queue->empty()) ? _T("ON ") : _T("OFF"), (mcu_ready) ? _T("ON ") : _T("OFF")
 				  , current_track, index0, index1, pregap, lba_size, lba_offset
 				  , read_sector, read_length, databuffer->count()
 				  , latest_command, cmdname,  param, param_ptr, prev_command, prev_cmdname
@@ -2888,7 +2904,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	19
+#define STATE_VERSION	20
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2925,7 +2941,6 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(pio_transfer_phase);
 	state_fio->StateValue(dma_transfer_phase);
 	state_fio->StateValue(mcu_ready);
-	state_fio->StateValue(has_status);
 	state_fio->StateValue(mcu_intr_mask);
 	state_fio->StateValue(dma_intr_mask);
 	state_fio->StateValue(transfer_speed);

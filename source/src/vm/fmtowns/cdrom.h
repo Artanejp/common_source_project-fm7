@@ -329,7 +329,7 @@ protected:
 	bool req_status;
 	bool stat_reply_intr;
 	bool mcu_ready;
-	bool has_status;
+
 	bool mcu_intr;
 	bool dma_intr;
 	bool mcu_intr_mask;

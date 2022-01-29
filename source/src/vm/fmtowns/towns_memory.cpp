@@ -338,7 +338,7 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 		// From FMTowns::MachineID()  of TSUGARU,
 		// git 83d4ec2309ac9fcbb8c01f26061ff0d49c5321e4.
 //		if((config.dipswitch & TOWNS_DIPSW_PRETEND_I386) != 0) {
-//			val = ((machine_id & 0xf8) | 0x01);
+//			val = ((machine_id & 0xf8) | 1);
 //		} else {
 			val = ((machine_id & 0xf8) | (cpu_id & 7));
 //		}
