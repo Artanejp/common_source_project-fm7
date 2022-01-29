@@ -234,7 +234,8 @@
 #else
 #define MEMORY_ADDR_MAX 0x100000000 /* 4GiB */
 #endif
-#define MEMORY_BANK_SIZE 1024
+
+#define MEMORY_BANK_SIZE 0x1000
 
 // device informations for virtual machine
 #define FRAMES_PER_SEC		55.4 // OK?

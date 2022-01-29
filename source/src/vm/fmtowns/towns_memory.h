@@ -95,9 +95,8 @@ protected:
 	// RAM
 	uint8_t ram_page0[0xc0000];       // 0x00000000 - 0x000bffff : RAM
 	uint8_t ram_pagec[0x10000];       // 0x000c0000 - 0x000cffff : URA? RAM
-	uint8_t ram_paged[0x10000];       // 0x000d0000 - 0x000dffff : RAM
-	uint8_t ram_pagee[0x10000];       // 0x000e0000 - 0x000effff : RAM
-	uint8_t ram_pagef[0x10000];       // 0x000f0000 - 0x000f8fff : RAM
+	uint8_t ram_paged[0x20000];       // 0x000d0000 - 0x000effff : RAM
+	uint8_t ram_pagef[0x10000];       // 0x000f0000 - 0x000fffff : RAM
 
 	uint8_t *extra_ram;                  // 0x00100000 - (0x3fffffff) : Size is defined by extram_size;
 	uint32_t extram_size;

@@ -39,7 +39,8 @@ uint8_t FONT_ROMS::read_direct_data8(uint32_t addr)
 
 uint32_t FONT_ROMS::read_memory_mapped_io8(uint32_t addr)
 {
-	if((addr >= 0xc2100000) && (addr < 0xc2140000)) {
+	
+	__LIKELY_IF((addr >= 0xc2100000) && (addr < 0xc2140000)) {
 		return (uint32_t)(font_kanji16[addr & 0x3ffff]);
 	} else if((addr >= 0x000ca000) && (addr < 0x000ca800)) {
 		return (uint32_t)(font_kanji16[0x3d000 + (addr & 0x7ff)]);

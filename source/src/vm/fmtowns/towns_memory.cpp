@@ -35,17 +35,17 @@ void TOWNS_MEMORY::config_page_c0()
 		set_memory_mapped_io_rw(0x000c0000, 0x000c7fff, d_planevram);
 		set_memory_mapped_io_rw(0x000c8000, 0x000c9fff, d_sprite);
 		if(ankcg_enabled) {
-			set_memory_mapped_io_r(0x000ca000, 0x000ca7ff, d_font);
-			set_memory_r          (0x000ca800, 0x000cafff, rd_dummy);
-			set_memory_mapped_io_r(0x000cb000, 0x000cbfff, d_font);
-			
+			set_memory_mapped_io_r(0x000ca000, 0x000cbfff, d_font);
+//			set_memory_mapped_io_r(0x000ca000, 0x000ca7ff, d_font);
+//			set_memory_r          (0x000ca800, 0x000cafff, rd_dummy);
+//			set_memory_mapped_io_r(0x000cb000, 0x000cbfff, d_font);
 			set_memory_w          (0x000ca000, 0x000cbfff, wr_dummy); // OK?
 			//set_memory_mapped_io_w(0x000ca000, 0x000cbfff, d_sprite); // OK?
 		} else {
 			set_memory_mapped_io_rw(0x000ca000, 0x000cbfff, d_sprite);
 		}
-		set_memory_rw          (0x000cc000, 0x000cfbff, &(ram_pagec[0xc000]));
-		set_memory_mapped_io_rw(0x000cfc00, 0x000cffff, this); // MMIO
+//		set_memory_rw          (0x000cc000, 0x000cfbff, &(ram_pagec[0xc000]));
+		set_memory_mapped_io_rw(0x000cc000, 0x000cffff, this); // MMIO and higher RAM.
 		// ToDo: Correctness wait value.
 		set_wait_rw(0x000c0000, 0x000cffff, vram_wait_val);
 	} else {
@@ -62,18 +62,17 @@ void TOWNS_MEMORY::config_page_d0_e0()
 	// at src/towns/memory/pysmem.cpp, TSUGARU.
 	// -- 20220125 K.O
 	if(!(dma_is_vram)) {
-		set_memory_rw          (0x000d0000, 0x000dffff, ram_paged);
-		set_memory_rw          (0x000e0000, 0x000effff, ram_pagee);
+		set_memory_rw          (0x000d0000, 0x000effff, ram_paged);
 	} else {
 		if(select_d0_dict) { 
 			set_memory_mapped_io_rw(0x000d0000, 0x000d9fff, d_dictionary);
+			set_memory_r           (0x000da000, 0x000effff, rd_dummy);
+			set_memory_w           (0x000da000, 0x000effff, wr_dummy);
 		} else {
 			//set_memory_rw          (0x000d0000, 0x000dffff, ram_paged);
-			set_memory_r          (0x000d0000, 0x000d9fff, rd_dummy);
-			set_memory_w          (0x000d0000, 0x000d9fff, wr_dummy);
+			set_memory_r           (0x000d0000, 0x000effff, rd_dummy);
+			set_memory_w           (0x000d0000, 0x000effff, wr_dummy);
 		}
-		set_memory_r          (0x000da000, 0x000effff, rd_dummy);
-		set_memory_w          (0x000da000, 0x000effff, wr_dummy);
 	}
 }
 
@@ -141,7 +140,6 @@ void TOWNS_MEMORY::initialize()
 	memset(ram_page0, 0x00, sizeof(ram_page0));
 	memset(ram_pagec, 0x00, sizeof(ram_pagec));
 	memset(ram_paged, 0x00, sizeof(ram_paged));
-	memset(ram_pagee, 0x00, sizeof(ram_pagee));
 	memset(ram_pagef, 0x00, sizeof(ram_pagef));
 	
 	select_d0_dict = false;
@@ -761,47 +759,11 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io32(uint32_t addr)
 uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
-#if 0	
-	__UNLIKELY_IF((addr >= 0xc0000) && (addr <= 0xc7fff)) {
-		__LIKELY_IF(d_planevram != NULL) {
-			return d_planevram->read_memory_mapped_io8(addr);
-		}
-		return 0xff;
-	} else __UNLIKELY_IF((addr >= 0xc8000) && (addr <= 0xc9fff)) {
-		__LIKELY_IF(d_sprite != NULL) {
-			d_sprite->read_memory_mapped_io8(addr);
-		} else {
-			return 0xff;
-		}
-	} else __UNLIKELY_IF((addr >= 0xca000) && (addr <= 0xcbfff)) {
-		if(ankcg_enabled) {
-			if((addr >= 0xca000) && (addr <= 0xca7ff)) {
-				__LIKELY_IF(d_font != NULL) {
-					d_font->read_memory_mapped_io8(addr);
-				} else {
-					return 0xff;
-				}
-			} else if((addr >= 0xcb000) && (addr <= 0xcbfff)) {
-				__LIKELY_IF(d_font != NULL) {
-					d_font->read_memory_mapped_io8(addr);
-				} else {
-					return 0xff;
-				}
-			} else if((addr >= 0xca800) && (addr <= 0xcafff)) {
-				return 0xff;
-			}
-		}
-		__LIKELY_IF(d_sprite != NULL) {
-			d_sprite->read_memory_mapped_io8(addr);
-		} else {
-			return 0xff;
-		}
-	}
-	
-	__UNLIKELY_IF((addr < 0xcfc00) || (addr >= 0xd0000)) return 0xff;
-#endif
-	__LIKELY_IF((addr < 0xcff80) || (addr > 0xcffbb)) {
+	__LIKELY_IF(addr < 0xcff80) {
 		return ram_pagec[addr & 0xffff];
+	}
+	__UNLIKELY_IF(addr >= 0xd0000) {
+		return 0xff;
 	}
 	switch(addr) {
 	case 0xcff88:
@@ -849,23 +811,13 @@ void TOWNS_MEMORY::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 
 void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
-	if((addr >= 0xc0000) && (addr <= 0xc7fff)) {
-		__LIKELY_IF(d_planevram != NULL) {
-			d_planevram->write_memory_mapped_io8(addr, data);
-		}
-		return;
-	} else if((addr >= 0xc8000) && (addr <= 0xc9fff)) {
-		__LIKELY_IF(d_sprite != NULL) {
-			d_sprite->write_memory_mapped_io8(addr, data);
-		}
-		return;
-	} else if((addr >= 0xca000) && (addr <= 0xcbfff)) {
-		__LIKELY_IF(d_sprite != NULL) {
-			d_sprite->write_memory_mapped_io8(addr, data);
-		}
+	__LIKELY_IF(addr < 0xcff80) {
+		ram_pagec[addr & 0xffff] = data;
 		return;
 	}
-	__LIKELY_IF((addr < 0xcfc00) || (addr >= 0xd0000)) return;
+	__UNLIKELY_IF(addr >= 0xd0000) {
+		return;
+	}
 	switch(addr) {
 	case 0xcff94:
 	case 0xcff95:
@@ -875,10 +827,6 @@ void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 		write_io8(addr & 0xffff, data);
 		break;
 	default:
-		if((addr < 0xcff80) || (addr > 0xcffbb)) {
-			ram_pagec[addr & 0xffff] = data;
-			return;
-		}
 		__LIKELY_IF(d_planevram != NULL) {
 			d_planevram->write_io8(addr & 0xffff, data);
 		}
@@ -1243,7 +1191,6 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(ram_page0,  sizeof(ram_page0), 1);
 	state_fio->StateArray(ram_pagec,  sizeof(ram_pagec), 1);
 	state_fio->StateArray(ram_paged,  sizeof(ram_paged), 1);
-	state_fio->StateArray(ram_pagee,  sizeof(ram_pagee), 1);
 	state_fio->StateArray(ram_pagef,  sizeof(ram_pagef), 1);
 
 	state_fio->StateValue(select_d0_rom);
