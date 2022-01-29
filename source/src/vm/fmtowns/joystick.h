@@ -51,6 +51,7 @@ private:
 	JSDEV_TEMPLATE* d_port[2][8];
 	std::mutex _locker;
 	
+	bool force_update;
 	int port_count[2];
 	int port_using[2];
 

@@ -16,6 +16,7 @@ namespace FMTOWNS {
 void JOYSTICK::reset()
 {
 	update_config(); // Update MOUSE PORT.
+	force_update = true;
 	write_port(0x00);
 }
 
@@ -25,12 +26,12 @@ void JOYSTICK::initialize()
 		reset_input_data(i);
 	}
 	reg_val = 0x00;
+	force_update = true;
 	data_mask[0] = 0x00;
 	data_mask[1] = 0x00;
 	
-	
 	if(d_debugger != NULL) {
-		d_debugger->set_device_name(_T("Debugger (RICOH RF5C68)"));
+		d_debugger->set_device_name(_T("Debugger (JOYSTICK PORT)"));
 		d_debugger->set_context_mem(this);
 		d_debugger->set_context_io(vm->dummy);
 	}
@@ -95,10 +96,11 @@ void JOYSTICK::write_port(uint8_t data)
 void JOYSTICK::write_io8(uint32_t address, uint32_t data)
 {
 	// ToDo: Mouse
-	if(address == 0x04d6) {
-		//if(data != reg_val) { // OK?
+	__LIKELY_IF(address == 0x04d6) {
+		if((data != reg_val) || (force_update)) { // OK?
+			force_update = false;
 			write_port(data);
-		//}
+		}
 	}
 }
 
@@ -135,9 +137,11 @@ void JOYSTICK::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_JSPORT_COM:
 		stat_com[ch] = ((data & mask) != 0) ? true : false;
 		data_reg[ch] = (data_reg[ch] & 0x3f) | ((stat_com[ch]) ? 0xc0 : 0x80);
+		force_update = true;
 		break;
 	case SIG_JSPORT_DATA:
 		data_reg[ch] = (data & 0x3f) | ((stat_com[ch]) ? 0xc0 : 0x80);
+		force_update = true;
 		break;
 	}
 }	
@@ -194,6 +198,7 @@ void JOYSTICK::update_config(void)
 			reset_input_data(i);
 		}
 	}
+	force_update = true;
 	
 	// Plug a device if changed (and usable).
 	out_debug_log(_T("update_config() : PORT1=%d PORT2=%d"),
@@ -238,7 +243,7 @@ bool JOYSTICK::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	return true;
 }
 
-#define STATE_VERSION 19
+#define STATE_VERSION 20
 
 bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 {
@@ -252,6 +257,7 @@ bool JOYSTICK::process_state(FILEIO *state_fio, bool loading)
 	}
 
 	state_fio->StateValue(reg_val);
+	state_fio->StateValue(force_update);
 	
 	state_fio->StateArray(data_reg, sizeof(data_reg), 1);
 	state_fio->StateArray(data_reg, sizeof(data_mask), 1);
