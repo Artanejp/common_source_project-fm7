@@ -46,7 +46,6 @@
 #define EVENT_CDROM_TIMEOUT					115
 #define EVENT_CDROM_READY_EOT				116
 #define EVENT_CDROM_READY_CDDAREPLY			117
-#define EVENT_EXECUTE_COMMAND				128
 
 //#define _CDROM_DEBUG_LOG
 
@@ -132,7 +131,6 @@ void TOWNS_CDROM::initialize()
 	event_cdda_delay_stop = -1;
 	event_time_out = -1;
 	event_eot = -1;
-	event_execute_command = -1;
 	
 	// ToDo: larger buffer for later VMs.
 	max_fifo_length = ((machine_id == 0x0700) || (machine_id >= 0x0900)) ? 65536 : 8192;
@@ -247,7 +245,7 @@ void TOWNS_CDROM::set_mcu_intr(bool val)
 	// Execute next command if reserved.
 	if((mcu_ready) && (command_received) && (param_ptr >= 8)) {
 		mcu_ready = false;
-		force_register_event(this, EVENT_EXECUTE_COMMAND, 50.0, false, event_execute_command);
+		execute_command(latest_command);
 	}
 }
 
@@ -272,17 +270,17 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 		dma_transfer_phase = false;
 		dma_transfer = false;
 
-		if(req_status) {
-			mcu_intr = true;
-			if(!(mcu_intr_mask) && (stat_reply_intr)) {
-				write_mcuint_signals(0xffffffff);
-			}
-		} else {
-			mcu_intr = false;
-		}
+//		if(req_status) {
+//			mcu_intr = true;
+//			if(!(mcu_intr_mask) && (stat_reply_intr)) {
+//				write_mcuint_signals(0xffffffff);
+//			}
+//		} else {
+//			mcu_intr = false;
+//		}
 	} else {
 		//cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
-		out_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
+		//out_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 		// TRY: Register after EOT. 20201123 K.O
 //		status_seek = true;
 //		register_event(this, EVENT_CDROM_SEEK_COMPLETED,
@@ -501,7 +499,7 @@ void TOWNS_CDROM::status_accept(int extra, uint8_t s3, uint8_t s4)
 _next_phase:	
 	cdda_stopped = false;
 	media_changed = false;
-	out_debug_log(_T("SET STATUS %02X %02X %02X %02X EXTRA=%d"), TOWNS_CD_STATUS_ACCEPT, playcode, s3, s4, extra);
+	//out_debug_log(_T("SET STATUS %02X %02X %02X %02X EXTRA=%d"), TOWNS_CD_STATUS_ACCEPT, playcode, s3, s4, extra);
 	set_status(req_status, extra,
 			   TOWNS_CD_STATUS_ACCEPT, playcode, s3, s4);
 
@@ -872,7 +870,7 @@ void TOWNS_CDROM::read_cdrom()
 //		return;
 //	}
 	if((track_num <= 0) || !(mounted())) {
-		set_status(stat_reply_intr, 0,
+		set_status(req_status, 0,
 				   TOWNS_CD_STATUS_CMD_ABEND, TOWNS_CD_ABEND_MEDIA_CHANGED, 0, 0);
 		return;
 	}
@@ -991,7 +989,7 @@ void TOWNS_CDROM::set_status_read_done(bool _req_status, int extra, uint8_t s0, 
 //	} else {
 //		set_delay_ready_eot();
 //	}
-//	set_delay_ready_eot();
+	set_delay_ready_eot();
 
 }
 
@@ -1040,7 +1038,7 @@ void TOWNS_CDROM::set_status_immediate(bool _req_status, int extra, uint8_t s0, 
 	}
 	if((mcu_ready) && (command_received) && (param_ptr >= 8)) {
 		mcu_ready = false;
-		force_register_event(this, EVENT_EXECUTE_COMMAND, 50.0, false, event_execute_command);
+		execute_command(latest_command);
 	}
 //	cdrom_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
 }
@@ -1422,7 +1420,15 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_CDROM_READY_EOT:  // CALL END-OF-TRANSFER FROM CDC.
 		event_delay_ready = -1;
 		mcu_ready = true;
-		set_mcu_intr(true);
+		if(req_status) {
+			mcu_intr = true;
+			if(!(mcu_intr_mask) && (stat_reply_intr)) {
+				write_mcuint_signals(0xffffffff);
+			}
+		} else {
+			mcu_intr = false;
+		}
+//		set_mcu_intr(true);
 		break;
 	case EVENT_CDROM_READY_CDDAREPLY: // READY TO ACCEPT A COMMAND FROM CDC.
 		event_delay_ready = -1;
@@ -1539,11 +1545,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}// else {
 		//	status_read_done(false);
 		//}
-		break;
-	case EVENT_EXECUTE_COMMAND:
-		event_execute_command = -1;
-		execute_command(latest_command);
-		//prev_command = latest_command;
 		break;
 	case EVENT_CDROM_NEXT_SECTOR:  // READY TO READ (A) NEXT SECTOR(S).
 		event_next_sector = -1;
@@ -1966,7 +1967,6 @@ void TOWNS_CDROM::reset_device()
 	clear_event(this, event_delay_ready);
 	clear_event(this, event_time_out);
 	clear_event(this, event_eot);
-	clear_event(this, event_execute_command);
 	
 	read_length = 0;
 
@@ -2711,7 +2711,7 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 	 * 04C4h : Parameter register
 	 * 04C6h : Transfer control register.
 	 */
-	out_debug_log(_T("WRITE IO8: %04X %02X"), addr, data);
+	//out_debug_log(_T("WRITE IO8: %04X %02X"), addr, data);
 	w_regs[addr & 0x0f] = data;
 	bool is_cmd_param = false;
 	switch(addr & 0x0f) {
@@ -2742,19 +2742,13 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 //		if(mcu_intr) {
 //			data = data | (prev_command & 0x60); // For FRACTAL ENGINE DEMO (from TSUGARU).
 //		}
-		//if(mcu_ready) {
+		if(mcu_ready) {
 			//dma_transfer_phase = false;
 			//pio_transfer_phase = false;
-			if(d_cpu == NULL) {
-				cdrom_debug_log(_T("CMD=%02X"), data);
-			} else {
-				//cdrom_debug_log(_T("CMD=%02X from PC=%08X"), data, d_cpu->get_pc());
-				out_debug_log(_T("CMD=%02X from PC=%08X"), data, d_cpu->get_pc());
-			}
 			latest_command = data;
 			is_cmd_param = true;
 			command_received = true;
-			//}
+		}
 		break;
 	case 0x04: // Param
 		if(param_ptr >= 8) {
@@ -2791,7 +2785,7 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 	if((is_cmd_param) && (command_received) && (param_ptr >= 8)) {
 		if(mcu_ready) {
 			mcu_ready = false;
-			force_register_event(this, EVENT_EXECUTE_COMMAND, 50.0, false, event_execute_command);
+			execute_command(latest_command);
 			_TCHAR param_str[128] = {0};
 			_TCHAR tstr[8];
 			for(int i = 0; i < 8; i++) {
@@ -2799,7 +2793,14 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 				my_stprintf_s(tstr, 7, _T("%02X "), param_queue[i]);
 				my_tcscat_s(param_str, 127, tstr);
 			}
-			out_debug_log(_T("REGISTER COMMAND %02X PARAM=%s"), latest_command, param_str); 
+			_TCHAR _pcstr[128] = {0};
+			if(d_cpu == NULL) {
+				my_stprintf_s(_pcstr, sizeof(_pcstr) - 1, _T("CMD=%02X"),  latest_command);
+			} else {
+				//cdrom_debug_log(_T("CMD=%02X from PC=%08X"), data, d_cpu->get_pc());
+				my_stprintf_s(_pcstr, sizeof(_pcstr) - 1, _T("CMD=%02X from PC=%08X"), latest_command, d_cpu->get_pc());
+			}
+			out_debug_log(_T("REGISTER COMMAND %s PARAM=%s"), _pcstr, param_str); 
 		}
 	}
 }
@@ -3037,7 +3038,6 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(event_delay_ready);
 	state_fio->StateValue(event_time_out);
 	state_fio->StateValue(event_eot);
-	state_fio->StateValue(event_execute_command);
 	
 	// SCSI_DEV
  	return true;

@@ -350,7 +350,6 @@ protected:
 	int event_delay_command;
 	int event_time_out;
 	int event_eot;
-	int event_execute_command;
 	
 	int cdda_sample_l;
 	int cdda_sample_r;
