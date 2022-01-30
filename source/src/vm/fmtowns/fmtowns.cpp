@@ -417,7 +417,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	scsi->set_context_pic(pic);
 	timer->set_context_pcm(beep);
 	timer->set_context_rtc(rtc);
-	timer->set_context_halt_line(cpu, SIG_CPU_HALTREQ, 0xffffffff);
+	//timer->set_context_halt_line(cpu, SIG_CPU_HALTREQ, 0xffffffff);
+	timer->set_context_halt_line(cpu, SIG_CPU_BUSREQ, 0xffffffff);
 
 	for(int i = 0; i < 2; i++) {
 		// type =
