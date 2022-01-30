@@ -45,6 +45,12 @@ void TIMER::reset()
 		cancel_event(this, event_wait_1us);
 		event_wait_1us = -1;
 	}
+	if(intr_target != nullptr) {
+		intr_target->write_signal(intr_target_id, 0, intr_target_mask);
+	}
+	if(halt_target != nullptr) {
+		halt_target->write_signal(halt_target_id, 0, halt_target_mask);
+	}
 //	do_interval();
 }
 void TIMER::write_io16(uint32_t addr, uint32_t data)
@@ -102,8 +108,12 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x006c: // Wait register.
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-			force_register_event(this, EVENT_1US_WAIT, 1.0, false, event_wait_1us);
-			write_signals(&outputs_halt_line, 0xffffffff);
+			__LIKELY_IF(event_wait_1us < 0) {
+				register_event(this, EVENT_1US_WAIT, 1.0, false, &event_wait_1us);
+				__LIKELY_IF(halt_target != nullptr) {
+					halt_target->write_signal(halt_target_id, 0xffffffff, halt_target_mask);
+				}
+			}
 		}
 		break;
 	case 0x0070:
@@ -120,7 +130,7 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 
 void TIMER::update_beep()
 {
-	if(d_pcm == NULL) return;
+	__UNLIKELY_IF(d_pcm == NULL) return;
 	if((beepon_60h) || (beepon_cff98h)) {
 		d_pcm->write_signal(SIG_PCM1BIT_ON, 1, 1);
 	} else {
@@ -209,8 +219,12 @@ uint32_t TIMER::read_io8(uint32_t addr)
 		// Supposed to be 1us wait when written.
 		// But, mouse BIOS is often reading from this register.
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-			force_register_event(this, EVENT_1US_WAIT, 1.0, false, event_wait_1us);
-			write_signals(&outputs_halt_line, 0xffffffff);
+			__LIKELY_IF(event_wait_1us < 0) {
+				register_event(this, EVENT_1US_WAIT, 1.0, false, &event_wait_1us);
+				__LIKELY_IF(halt_target != nullptr) {
+					halt_target->write_signal(halt_target_id, 0xffffffff, halt_target_mask);
+				}
+			}
 		}
 		break;
 	case 0x0070:
@@ -246,9 +260,13 @@ void TIMER::write_signal(int id, uint32_t data, uint32_t mask)
 void TIMER::update_intr()
 {
 	if((tmout0 && (intr_reg & 1)) || (tmout1 && (intr_reg & 2)) || (intv_i)) {
-		write_signals(&outputs_intr_line, 1);
+		__LIKELY_IF(intr_target != nullptr) {
+			intr_target->write_signal(intr_target_id, 1, intr_target_mask);
+		}
 	} else {
-		write_signals(&outputs_intr_line, 0);
+		__LIKELY_IF(intr_target != nullptr) {
+			intr_target->write_signal(intr_target_id, 0, intr_target_mask);
+		}
 	}
 }
 
@@ -258,7 +276,9 @@ void TIMER::event_callback(int id, int err)
 	case EVENT_1US_WAIT:
 		event_wait_1us = -1;
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-			write_signals(&outputs_halt_line, 0);
+			__LIKELY_IF(halt_target != nullptr) {
+				halt_target->write_signal(halt_target_id, 0, halt_target_mask);
+			}
 		}
 		break;
 	case EVENT_INTERVAL_US:

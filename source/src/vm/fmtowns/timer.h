@@ -25,8 +25,16 @@ class TIMER : public DEVICE
 {
 private:
 	DEVICE *d_pcm, *d_rtc;
-	outputs_t outputs_intr_line;
-	outputs_t outputs_halt_line;
+
+	
+	DEVICE *intr_target;
+	DEVICE *halt_target;
+
+	int halt_target_id;
+	uint32_t halt_target_mask;
+	
+	int intr_target_id;
+	uint32_t intr_target_mask;
 	
 	uint16_t free_run_counter;
 	uint8_t intr_reg, rtc_data;
@@ -54,8 +62,14 @@ public:
 	TIMER(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		machine_id = 0x0100;   // FM-Towns 1,2
-		initialize_output_signals(&outputs_intr_line);
-		initialize_output_signals(&outputs_halt_line);
+
+		intr_target = NULL;
+		intr_target_id = 0;
+		intr_target_mask = 0xffffffff;
+		
+		halt_target = NULL;
+		halt_target_id = 0;
+		halt_target_mask = 0xffffffff;
 		d_pcm = NULL;
 		d_rtc = NULL;
 	}
@@ -94,11 +108,15 @@ public:
 	}
 	void set_context_intr_line(DEVICE* dev, int id, uint32_t mask)
 	{
-		register_output_signal(&outputs_intr_line, dev, id, mask);
+		intr_target = dev;
+		intr_target_id = id;
+		intr_target_mask = mask;
 	}
 	void set_context_halt_line(DEVICE *dev, int id, uint32_t mask)
 	{
-		register_output_signal(&outputs_halt_line, dev, id, mask);
+		halt_target = dev;
+		halt_target_id = id;
+		halt_target_mask = mask;
 	}
 };
 }
