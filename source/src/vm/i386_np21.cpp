@@ -397,7 +397,7 @@ int I386::run(int cycles)
 {
 	if(cycles == -1) {
 		int passed_cycles;
-		if(busreq) {
+		__UNLIKELY_IF(busreq) {
 			// don't run cpu!
 //#ifdef SINGLE_MODE_DMA
 			if(_SINGLE_MODE_DMA) {
@@ -425,14 +425,17 @@ int I386::run(int cycles)
 		int first_cycles = remained_cycles;
 		
 		// run cpu while given clocks
-		while(remained_cycles > 0 && !busreq) {
-			remained_cycles -= run_one_opecode();
-//			remained_cycles -= run(-1);
+		__LIKELY_IF(!(busreq)) {
+			while(remained_cycles > 0 && !busreq) {
+				remained_cycles -= run_one_opecode();
+				//			remained_cycles -= run(-1);
+				__UNLIKELY_IF(busreq) break;
+			}
 		}
 		// if busreq is raised, spin cpu while remained clock
-		if(remained_cycles > 0 && busreq) {
+		__UNLIKELY_IF(remained_cycles > 0 && busreq) {
 //#ifdef USE_DEBUGGER
-			if(_USE_DEBUGGER) {
+			__LIKELY_IF(_USE_DEBUGGER) {
 				total_cycles += remained_cycles;
 			}
 //#endif
