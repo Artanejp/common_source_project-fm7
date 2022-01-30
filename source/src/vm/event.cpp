@@ -200,7 +200,7 @@ void EVENT::drive()
 			//d_cpu[i].update_clocks = (int)(4096.0 * (double)d_cpu[i].cpu_clocks / (double)d_cpu[0].cpu_clocks + 0.5);
 		}
 		for(DEVICE* device = vm->first_device; device; device = device->next_device) {
-			if(device->get_event_manager_id() == this_device_id) {
+			__UNLIKELY_IF(device->get_event_manager_id() == this_device_id) {
 				device->update_timing(d_cpu[0].cpu_clocks, frames_per_sec, lines_per_frame);
 			}
 		}
@@ -241,10 +241,10 @@ skip1:
 	
 	while(event_remain > 0) {
 		int event_done = event_remain;
-		if(cpu_remain > 0) {
+		__LIKELY_IF(cpu_remain > 0) {
 			event_extra = 0;
 			int cpu_done_tmp;
-			if(dcount_cpu == 1) {
+			__LIKELY_IF(dcount_cpu == 1) {
 				// run one opecode on primary cpu
 //				cpu_done_tmp = d_cpu[0].device->run(-1);
 				cpu_done_tmp = d_cpu[0].device->run(-1);
@@ -268,7 +268,7 @@ skip1:
 					int sub_clock = 0;
 					int sub_clock2 = 0;
 					if(clock_result > 0) {
-						if(clock_result >= 0x400) { // OVER 1 clocks with HOST, to reduce risk of overflow@accum_clocks.
+						__UNLIKELY_IF(clock_result >= 0x400) { // OVER 1 clocks with HOST, to reduce risk of overflow@accum_clocks.
 							// Upper clocks are not to need to add accum_clocks,
 							// accum_clocks may be effected by lower value of clock_result,
 							// *excepts multiply value (of adding value to accum_clocks) isn't 2^x*.
@@ -281,7 +281,7 @@ skip1:
 						d_cpu[i].accum_clocks += clock_result; // At most, 1 host clocks.Guranteed maximum at 1 host clocks.
 						sub_clock2 = (int)(d_cpu[i].accum_clocks >> 10);
 						sub_clock += sub_clock2;
-						if(sub_clock > 0) {
+						__LIKELY_IF(sub_clock > 0) {
 							d_cpu[i].accum_clocks -= sub_clock2 << 10;
 							d_cpu[i].device->run(sub_clock);
 						}
@@ -296,7 +296,7 @@ skip1:
 					int sub_clock;
 					d_cpu[i].accum_clocks += clock_result; // At most, 16 host clocks.Guranteed maximum at 16 host clocks.
 					sub_clock = (int)(d_cpu[i].accum_clocks >> 10);
-					if(sub_clock > 0) {
+					__LIKELY_IF(sub_clock > 0) {
 						d_cpu[i].accum_clocks -= sub_clock << 10;
 						d_cpu[i].device->run(sub_clock);
 					}
@@ -309,9 +309,9 @@ skip1:
 			cpu_accum -= event_done << power;
 			event_done -= event_extra;
 		}
-		if(event_done > 0) {
+		__LIKELY_IF(event_done > 0) {
 			if(event_remain > 0) {
-				if(event_done > event_remain) {
+				__UNLIKELY_IF(event_done > event_remain) {
 					update_event(event_remain);
 				} else {
 					update_event(event_done);
@@ -349,10 +349,10 @@ void EVENT::update_event(int clock)
 		uint64_t expired_clock = event_handle->expired_clock;
 		
 		first_fire_event = event_handle->next;
-		if(first_fire_event != NULL) {
+		__UNLIKELY_IF(first_fire_event != NULL) {
 			first_fire_event->prev = NULL;
 		}
-		if(event_handle->loop_clock != 0) {
+		__LIKELY_IF(event_handle->loop_clock != 0) {
 			event_handle->accum_clocks += event_handle->loop_clock;
 			uint64_t clock_tmp = event_handle->accum_clocks >> 10;
 			event_handle->accum_clocks -= clock_tmp << 10;
@@ -382,7 +382,7 @@ uint64_t EVENT::get_current_clock_uint64()
 double EVENT::get_current_usec()
 {
 	double clock = (double)(d_cpu[0].cpu_clocks);
-	if(clock <= 0.0) return 0.0;
+	__UNLIKELY_IF(clock <= 0.0) return 0.0;
 
 	double usec = ((double)event_clocks / clock) * 1.0e6;
 	return usec;
@@ -390,7 +390,7 @@ double EVENT::get_current_usec()
 
 uint32_t EVENT::get_cpu_clock(int index)
 {
-	if((index < 0) || (index >= MAX_CPU)) return 0;
+	__UNLIKELY_IF((index < 0) || (index >= MAX_CPU)) return 0;
 	return d_cpu[index].cpu_clocks;
 }
 
@@ -423,13 +423,13 @@ uint32_t EVENT::get_cpu_pc(int index)
 void EVENT::register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id)
 {
 #ifdef _DEBUG_LOG
-	if(!initialize_done && !loop) {
+	__UNLIKELY_IF(!initialize_done && !loop) {
 		this->out_debug_log(_T("EVENT: non-loop event is registered before initialize is done\n"));
 	}
 #endif
 	
 	// register event
-	if(first_free_event == NULL) {
+	__UNLIKELY_IF(first_free_event == NULL) {
 #ifdef _DEBUG_LOG
 		this->out_debug_log(_T("EVENT: too many events !!!\n"));
 #endif
@@ -441,14 +441,14 @@ void EVENT::register_event(DEVICE* device, int event_id, double usec, bool loop,
 	event_t *event_handle = first_free_event;
 	first_free_event = first_free_event->next;
 	
-	if(register_id != NULL) {
+	__LIKELY_IF(register_id != NULL) {
 		*register_id = event_handle->index;
 	}
 	event_handle->active = true;
 	event_handle->device = device;
 	event_handle->event_id = event_id;
 	uint64_t clock;
-	if(loop) {
+	__UNLIKELY_IF(loop) {
 		event_handle->loop_clock = (uint64_t)(1024.0 * (double)d_cpu[0].cpu_clocks / 1000000.0 * usec + 0.5);
 		event_handle->accum_clocks = event_handle->loop_clock;
 		clock = event_handle->accum_clocks >> 10;
@@ -466,13 +466,13 @@ void EVENT::register_event(DEVICE* device, int event_id, double usec, bool loop,
 void EVENT::register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id)
 {
 #ifdef _DEBUG_LOG
-	if(!initialize_done && !loop) {
+	__UNLIKELY_IF(!initialize_done && !loop) {
 		this->out_debug_log(_T("EVENT: device (name=%s, id=%d) registeres non-loop event before initialize is done\n"), device->this_device_name, device->this_device_id);
 	}
 #endif
 	
 	// register event
-	if(first_free_event == NULL) {
+	__UNLIKELY_IF(first_free_event == NULL) {
 #ifdef _DEBUG_LOG
 		this->out_debug_log(_T("EVENT: too many events !!!\n"));
 #endif
@@ -484,7 +484,7 @@ void EVENT::register_event_by_clock(DEVICE* device, int event_id, uint64_t clock
 	event_t *event_handle = first_free_event;
 	first_free_event = first_free_event->next;
 	
-	if(register_id != NULL) {
+	__LIKELY_IF(register_id != NULL) {
 		*register_id = event_handle->index;
 	}
 	event_handle->active = true;
@@ -499,13 +499,13 @@ void EVENT::register_event_by_clock(DEVICE* device, int event_id, uint64_t clock
 
 void EVENT::insert_event(event_t *event_handle)
 {
-	if(first_fire_event == NULL) {
+	__UNLIKELY_IF(first_fire_event == NULL) {
 		first_fire_event = event_handle;
 		event_handle->prev = event_handle->next = NULL;
 	} else {
 		for(event_t *insert_pos = first_fire_event; insert_pos != NULL; insert_pos = insert_pos->next) {
-			if(insert_pos->expired_clock > event_handle->expired_clock) {
-				if(insert_pos->prev != NULL) {
+			__UNLIKELY_IF(insert_pos->expired_clock > event_handle->expired_clock) {
+				__LIKELY_IF(insert_pos->prev != NULL) {
 					// insert
 					insert_pos->prev->next = event_handle;
 					event_handle->prev = insert_pos->prev;
@@ -534,22 +534,22 @@ void EVENT::insert_event(event_t *event_handle)
 void EVENT::cancel_event(DEVICE* device, int register_id)
 {
 	// cancel registered event
-	if(0 <= register_id && register_id < MAX_EVENT) {
+	__LIKELY_IF(0 <= register_id && register_id < MAX_EVENT) {
 		event_t *event_handle = &event[register_id];
-		if(device != NULL && device != event_handle->device) {
+		__UNLIKELY_IF(device != NULL && device != event_handle->device) {
 			this->out_debug_log(_T("EVENT: device (name=%s, id=%d) tries to cancel event %d that is not its own (owned by (name=%s id=%d))!!!\n"), device->this_device_name, device->this_device_id,
 								register_id,
 								event_handle->device->this_device_name,
 								event_handle->device->this_device_id);			
 			return;
 		}
-		if(event_handle->active) {
-			if(event_handle->prev != NULL) {
+		__LIKELY_IF(event_handle->active) {
+			__LIKELY_IF(event_handle->prev != NULL) {
 				event_handle->prev->next = event_handle->next;
 			} else {
 				first_fire_event = event_handle->next;
 			}
-			if(event_handle->next != NULL) {
+			__LIKELY_IF(event_handle->next != NULL) {
 				event_handle->next->prev = event_handle->prev;
 			}
 			event_handle->active = false;
@@ -561,9 +561,9 @@ void EVENT::cancel_event(DEVICE* device, int register_id)
 
 void EVENT::register_frame_event(DEVICE* device)
 {
-	if(frame_event_count < MAX_EVENT) {
+	__LIKELY_IF(frame_event_count < MAX_EVENT) {
 		for(int i = 0; i < frame_event_count; i++) {
-			if(frame_event[i] == device) {
+			__UNLIKELY_IF(frame_event[i] == device) {
 #ifdef _DEBUG_LOG
 				this->out_debug_log(_T("EVENT: device (name=%s, id=%d) has already registered frame event !!!\n"), device->this_device_name, device->this_device_id);
 #endif
@@ -580,9 +580,9 @@ void EVENT::register_frame_event(DEVICE* device)
 
 void EVENT::register_vline_event(DEVICE* device)
 {
-	if(vline_event_count < MAX_EVENT) {
+	__LIKELY_IF(vline_event_count < MAX_EVENT) {
 		for(int i = 0; i < vline_event_count; i++) {
-			if(vline_event[i] == device) {
+			__UNLIKELY_IF(vline_event[i] == device) {
 #ifdef _DEBUG_LOG
 				this->out_debug_log(_T("EVENT: device (name=%s, id=%d) has already registered vline event !!!\n"), device->this_device_name, device->this_device_id);
 #endif
@@ -599,7 +599,7 @@ void EVENT::register_vline_event(DEVICE* device)
 
 uint32_t EVENT::get_event_remaining_clock(int register_id)
 {
-	if(0 <= register_id && register_id < MAX_EVENT) {
+	__LIKELY_IF(0 <= register_id && register_id < MAX_EVENT) {
 		event_t *event_handle = &event[register_id];
 		if(event_handle->active && event->expired_clock > event_clocks) {
 			return (uint32_t)(event->expired_clock - event_clocks);
@@ -617,7 +617,7 @@ void EVENT::touch_sound()
 {
 	if(!(config.sound_strict_rendering || (need_mix > 0))) {
 		int samples = mix_counter;
-		if(samples >= (sound_tmp_samples - buffer_ptr)) {
+		__LIKELY_IF(samples >= (sound_tmp_samples - buffer_ptr)) {
 			samples = sound_tmp_samples - buffer_ptr;
 		}
 		if(samples > 0) {
@@ -702,7 +702,7 @@ void EVENT::mix_sound(int samples)
 		}
 		if(!sound_changed) {
 			for(int i = 0; i < samples * 2; i += 2) {
-				if(buffer[i] != sound_tmp[0] || buffer[i + 1] != sound_tmp[1]) {
+				__LIKELY_IF(buffer[i] != sound_tmp[0] || buffer[i + 1] != sound_tmp[1]) {
 					sound_changed = true;
 					break;
 				}
@@ -737,7 +737,7 @@ uint16_t* EVENT::create_sound(int* extra_frames)
 	}
 	int _total_div = (sound_samples * 2) >> 3;
 	int _total_mod = (sound_samples * 2) - (((sound_samples * 2) >> 3) << 3);
-	__DECL_ALIGNED(32) int32_t tmpbuf[8];
+	__DECL_ALIGNED(32) int32_t tmpbuf[16];
 	
 #ifdef LOW_PASS_FILTER
 	// low-pass filter
@@ -757,6 +757,9 @@ uint16_t* EVENT::create_sound(int* extra_frames)
 		__DECL_VECTORIZED_LOOP
 		for(int j = 0; j < 8; j++) {
 			if(tmpbuf[j] > INT16_MAX) tmpbuf[j] = INT16_MAX;
+		}
+		__DECL_VECTORIZED_LOOP
+		for(int j = 0; j < 8; j++) {
 			if(tmpbuf[j] < INT16_MIN) tmpbuf[j] = INT16_MIN;
 		}
 		// Copy
