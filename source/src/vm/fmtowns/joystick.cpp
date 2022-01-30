@@ -10,6 +10,7 @@
 #include "../debugger.h"
 #include "./joystick.h"
 #include "./js_template.h"
+#include "./towns_common.h"
 
 namespace FMTOWNS {
 	
@@ -165,18 +166,21 @@ uint32_t JOYSTICK::read_signal(int id)
 void JOYSTICK::update_config(void)
 {
 	std::unique_lock<std::mutex> _l = lock_device();
-	// BEGIN JOYPORT.
-	// config.machine_features[0,1] : JOYPORT 1,2
-	// value =
-	// 0: None connected
-	// 1: Towns PAD 2buttons
-	// 2: Towns PAD 6buttons
-	// 3: Towns MOUSE
-	// 4: Analog Pad (reserved)
-	// 5: Libble Rabble stick (reserved)
+	/*!
+	  @fn update_config()
+	  @brief Update config values to this class
+	  @details config.machine_features[0,1] : JOYPORT 1,2 
+	  value =
+	  0: None connected
+	  1: Towns PAD 2buttons
+	  2: Towns PAD 6buttons
+	  3: Towns MOUSE
+	  4: Analog Pad (reserved)
+	  5: Libble Rabble stick (reserved)
+	*/
 	bool change_jsport[2] = {false, false};
 	const int js_limit = 3;
-	for(int i = 0; i < 2; i++) {
+	for(int i = TOWNS_MACHINE_JOYPORT1; i <= TOWNS_MACHINE_JOYPORT2; i++) {
 		// Remove connected device if changed.
 		if((port_using[i] >= 0) && ((port_using[i] + 1) != config.machine_features[i])) {
 			change_jsport[i] = true ;
@@ -202,9 +206,9 @@ void JOYSTICK::update_config(void)
 	
 	// Plug a device if changed (and usable).
 	out_debug_log(_T("update_config() : PORT1=%d PORT2=%d"),
-				  config.machine_features[0] - 1,
-				  config.machine_features[1] - 1);
-	for(int i = 0; i < 2; i++) { 
+				  config.machine_features[TOWNS_MACHINE_JOYPORT1] - 1,
+				  config.machine_features[TOWNS_MACHINE_JOYPORT2] - 1);
+	for(int i = TOWNS_MACHINE_JOYPORT1; i <= TOWNS_MACHINE_JOYPORT2; i++) { 
 		if((config.machine_features[i] > 0) && (config.machine_features[i] <= js_limit)) {
 			JSDEV_TEMPLATE* p = d_port[i][config.machine_features[i] - 1];
 			if(p != nullptr) {
