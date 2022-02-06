@@ -109,19 +109,17 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		// Note: This is *temporaly* workaround for 16bit transfer mode with 8bit bus.
 		// 20200318 K.O
 		if(base == 0) {
-			creg_set[selch] = true;
+			bcreg_set[selch] = true;
 		}
-		bcreg_set[selch] = true;
+		creg_set[selch] = true;
 		break;
 	case 0x07:
 		_d.d  = dma[selch].areg;
-		_bd.d = dma[selch].bareg;
 		_d.b.h3  = data;
-		_bd.b.h3 = data;
+		dma[selch].areg = _d.d;
 		if(base == 0) {
-			dma[selch].areg = _d.d;
+			dma[selch].bareg = dma[selch].areg; 
 		}
-		dma[selch].bareg = _bd.d;
 		return;
 		break;
 	case 0x08:
@@ -156,6 +154,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 	case 0x0f:
 		// Note: This is *temporaly* workaround for 16bit transfer mode with 8bit bus.
 		// 20200318 K.O
+#if 0
 #if !defined(USE_QUEUED_SCSI_TRANSFER)
 		if((dma[selch].is_16bit) && !(inputs_ube[selch])) {
 			if(creg_set[selch]) {
@@ -171,6 +170,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		}
 		bcreg_set[selch] = false;
 		creg_set[selch] = false;
+#endif
 #endif
 		break;
 	default:
@@ -238,6 +238,7 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 	case 0x03:
 		if(base == 0) {
 			_d.d = dma[selch].creg;
+#if 0
 #if !defined(USE_QUEUED_SCSI_TRANSFER)
 			if((dma[selch].is_16bit) && !(inputs_ube[selch])) {
 				if(!(creg_set[selch])) {
@@ -245,14 +246,17 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 				}
 			}
 #endif
+#endif
 		} else {
 			_d.d = dma[selch].bcreg;
+#if 0
 #if !defined(USE_QUEUED_SCSI_TRANSFER)
 			if((dma[selch].is_16bit) && !(inputs_ube[selch])) {
 				if(!(bcreg_set[selch])) {
 					_d.d >>= 1;
 				}
 			}
+#endif
 #endif
 		}
 		switch(addr & 0x0f) {

@@ -87,11 +87,11 @@ uint32_t SCSI::read_io8(uint32_t addr)
 	
 	switch(addr & 0xffff) {
 	case 0x0034:
-		if(machine_id >= 0x0600) { // After UG
-			value = 0x7f; // Ready to transfer 16bit width DMA, excepts CX/UX.
-		} else {
+//		if(machine_id >= 0x0600) { // After UG
+//			value = 0x7f; // Ready to transfer 16bit width DMA, excepts CX/UX.
+//		} else {
 			value = 0xff;
-		}
+//		}
 		break;
 	case 0x0c30:
 		// data register

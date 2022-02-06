@@ -156,21 +156,18 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 	case 0x02:
 	case 0x03:
 		_d.w.l  = dma[selch].creg;
-		_bd.w.l = dma[selch].bcreg;
 		switch(addr & 0x0f) {
 		case 0x02:
 			_d.b.l  = data;
-			_bd.b.l = data;
 			break;
 		case 0x03:
 			_d.b.h  = data;
-			_bd.b.h = data;
 			break;
-		}			
-		if(base == 0) {
-			dma[selch].creg = _d.w.l;
 		}
-		dma[selch].bcreg = _bd.w.l;
+		dma[selch].creg = _d.w.l;
+		if(base == 0) {
+			dma[selch].bcreg = dma[selch].creg;
+		}
 		dma[selch].end = false; // OK?
 		dma[selch].endreq = false; // OK?
 		reset_tc(selch);
@@ -179,25 +176,21 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 	case 0x05:
 	case 0x06:
 		_d.d  = dma[selch].areg;
-		_bd.d = dma[selch].bareg;
 		switch(addr & 0x0f) {
 		case 0x04:
 			_d.b.l   = data;
-			_bd.b.l  = data;
 			break;
 		case 0x05:
 			_d.b.h   = data;
-			_bd.b.h  = data;
 			break;
 		case 0x06:
-			_d.b.h2  = data;
-			_bd.b.h2 = data;
+			_d.b.h2   = data;
 			break;
 		}
+		dma[selch].areg = _d.d;
 		if(base == 0) {
-			dma[selch].areg = _d.d;
+			dma[selch].bareg = dma[selch].areg;
 		}
-		dma[selch].bareg = _bd.d;
 		break;
 	case 0x08:
 		cmd = (cmd & 0xff00) | (data & 0x00ff);
@@ -207,7 +200,7 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x0a:
 		dma[selch].mode = data;
-		dma[selch].is_16bit = ((data & 1) != 0) ? true : false;
+		//dma[selch].is_16bit = ((data & 1) != 0) ? true : false;
 		if((data & 0x04) == 0) {
 			dma[selch].end = false;
 			dma[selch].endreq = false;
@@ -702,13 +695,13 @@ bool UPD71071::do_dma_per_channel(int c)
 				}
 				do_dma_inc_dec_ptr_8bit(c);
 			}
-			set_dma_ack(c);
+//			set_dma_ack(c);
 			if(do_dma_epilogue(c)) {
 //				//break;
-//				set_dma_ack(c);
+				set_dma_ack(c);
 				return true;
 			}
-//			set_dma_ack(c);
+			set_dma_ack(c);
 		}
 	}
 	return false;
