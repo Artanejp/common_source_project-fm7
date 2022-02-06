@@ -326,7 +326,9 @@ protected:
 	uint8_t prev_command;
 	uint8_t latest_command;
 	uint8_t reserved_command;
+	bool has_status;
 	bool req_status;
+
 	bool stat_reply_intr;
 	bool mcu_ready;
 
