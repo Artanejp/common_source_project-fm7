@@ -243,10 +243,10 @@ void TOWNS_CDROM::set_mcu_intr(bool val)
 		}
 	}
 	// Execute next command if reserved.
-	if((mcu_ready) && (command_received) && (param_ptr >= 8)) {
-		mcu_ready = false;
-		execute_command(latest_command);
-	}
+//	if((mcu_ready) && (command_received) && (param_ptr >= 8)) {
+//		mcu_ready = false;
+//		execute_command(latest_command);
+//	}
 }
 
 void TOWNS_CDROM::do_dma_eot(bool by_signal)
@@ -618,7 +618,7 @@ const _TCHAR* TOWNS_CDROM::get_command_name_from_command(uint8_t cmd)
  */
 void TOWNS_CDROM::execute_command(uint8_t command)
 {
-//	set_mcu_intr(false);
+	set_mcu_intr(false);
 	clear_event(this, event_time_out);
 
 	mcu_ready = false;
@@ -638,21 +638,22 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			int32_t lba = ((m * (60 * 75)) + (s * 75) + f) - 150;
 			if(lba < 0) lba = 0;
 			next_seek_lba = lba;
-			cdrom_debug_log(_T("CMD SEEK(%02X) M/S/F = %d/%d/%d  M2/S2/F2 = %d/%d/%d LBA=%d"), command,
+			out_debug_log(_T("CMD SEEK(%02X) M/S/F = %d/%d/%d  M2/S2/F2 = %d/%d/%d LBA=%d"), command,
 						  TO_BCD(m), TO_BCD(s), TO_BCD(f),
 						  TO_BCD(param_queue[3]), TO_BCD(param_queue[4]), TO_BCD(param_queue[5]),
 						  lba
 			);
 			double usec = get_seek_time(0); // At first, seek to track 0.
 			if(usec < 10.0) usec = 10.0;
-			usec *= 2.0;
-			mcu_ready = true; // From TSUGARU; MCU ready immediately. 20220128 K.O
+			//usec *= 2.0;
+			//mcu_ready = true; // From TSUGARU; MCU ready immediately. 20220128 K.O
 			// 20200626 K.O
 			// At first, SEEK to LBA0.
 			// Next, SEEK TO ARG's LBA.
 			// Then, If set status to queue if (CMD & 20h) == 20h.
 			// Last, *FORCE TO MAKE* interrupt even (CMD & 20h) != 20h..
 			// See event_callback(EVENT_CDROM_RESTORE, foo).
+			//req_status = true;
 			force_register_event(this,
 						   EVENT_CDROM_RESTORE,
 						   usec, false, event_seek);
@@ -1466,9 +1467,12 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			next_seek_lba = 2;
 		}
 		{
+			if(!(seek_relative_frame_in_image(0))) {
+				current_track = get_track(0);
+			}
 			double usec = get_seek_time(next_seek_lba);
 			if(usec < 10.0) usec = 10.0;
-			usec *= 2.0;
+			//usec *= 2.0;
 			register_event(this,
 						   EVENT_CDROM_SEEK,
 						   usec, false, &event_seek);
@@ -1476,11 +1480,14 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDROM_SEEK: // SEEK TO TARGET LBA (only for command 00h)
 		event_seek = -1;
-//		stat_reply_intr = true;
-		status_seek = false;
-		if(req_status) {
-			status_accept(1, 0x00, 0x00);
+		stat_reply_intr = true;
+		if(!(seek_relative_frame_in_image(next_seek_lba))) {
+			current_track = get_track(next_seek_lba);
 		}
+		status_seek = false;
+//		if(req_status) {
+//			status_accept(1, 0x00, 0x00);
+//		}
 		if((cdda_status != CDDA_OFF) && (mounted())) {
 			if((current_track >= 0) && (current_track < track_num)
 			   && (toc_table[current_track].is_audio)) { // OK?
@@ -1489,11 +1496,15 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			}
 			set_subq();
 		}
-		if(!(req_status)) {
-			//mcu_ready = true;
-			mcu_intr = true;
-			write_mcuint_signals(0xffffffff);
-		}
+		//if(req_status) {
+			status_accept(1, 0x00, 0x00);
+			//}
+//		set_mcu_intr(true);
+//		if(!(req_status)) {
+//			mcu_ready = true;
+//			mcu_intr = true;
+//			write_mcuint_signals(0xffffffff);
+//		}
 		break;
 	case EVENT_CDROM_TIMEOUT:  // CDC TIMEOUT (mostly READ BUFFER OVERRUN)
 		status_seek = false;
