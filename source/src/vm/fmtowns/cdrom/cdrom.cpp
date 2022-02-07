@@ -263,7 +263,7 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 		clear_event(this, event_next_sector);
 		clear_event(this, event_seek_completed);
 		clear_event(this, event_drq);
-		out_debug_log(_T("EOT(%s/DMA)"), (by_signal) ? by_dma : by_event);
+		cdrom_debug_log(_T("EOT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 		if(dma_transfer_phase) {
 			dma_transfer_phase = false;
 			dma_transfer = false;
@@ -273,7 +273,7 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 		}
 	} else {
 		//cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
-		//out_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
+		//cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 		// TRY: Register after EOT. 20201123 K.O
 		write_signals(&outputs_drq, 0x00000000);
 		if(dma_transfer_phase) {
@@ -329,7 +329,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 		// By DMA/TC, EOT.
 	case SIG_TOWNS_CDROM_DMAINT:
 		if(((data & mask) != 0) && (dma_transfer_phase)) {
-			//out_debug_log(_T("CAUSED DMA INTERRUPT FROM DMAC"));
+			//cdrom_debug_log(_T("CAUSED DMA INTERRUPT FROM DMAC"));
 			//clear_event(this, event_drq);
 			do_dma_eot(true);
 		}
@@ -340,7 +340,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 			if(/* (read_length <= 0) && */(databuffer->empty())) {
 				clear_event(this, event_drq);
 				if((read_length <= 0)) { // ToDo: With prefetch.
-					out_debug_log(_T("MAYBE COMPLETE TO TRANSFER ALL DATA"));
+					cdrom_debug_log(_T("MAYBE COMPLETE TO TRANSFER ALL DATA"));
 					//force_register_event(this, EVENT_CDROM_EOT, 1.0, false, event_eot);
 					//clear_event(this, event_next_sector);
 					//clear_event(this, event_seek_completed);
@@ -488,7 +488,7 @@ void TOWNS_CDROM::status_accept(int extra, uint8_t s3, uint8_t s4)
 _next_phase:	
 	cdda_stopped = false;
 	media_changed = false;
-	out_debug_log(_T("status_accept() %02X %02X %02X EXTRA=%d"), playcode, s3, s4, extra);
+	cdrom_debug_log(_T("status_accept() %02X %02X %02X EXTRA=%d"), playcode, s3, s4, extra);
 	set_status(req_status, extra,
 			   TOWNS_CD_STATUS_ACCEPT, playcode, s3, s4);
 
@@ -633,7 +633,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			int32_t lba = ((m * (60 * 75)) + (s * 75) + f) - 150;
 			if(lba < 0) lba = 0;
 			next_seek_lba = lba;
-			out_debug_log(_T("CMD SEEK(%02X) M/S/F = %d/%d/%d  M2/S2/F2 = %d/%d/%d LBA=%d"), command,
+			cdrom_debug_log(_T("CMD SEEK(%02X) M/S/F = %d/%d/%d  M2/S2/F2 = %d/%d/%d LBA=%d"), command,
 						  TO_BCD(m), TO_BCD(s), TO_BCD(f),
 						  TO_BCD(param_queue[3]), TO_BCD(param_queue[4]), TO_BCD(param_queue[5]),
 						  lba
@@ -712,7 +712,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		}
 		break;
 	case CDROM_COMMAND_SET_STATE: // 80h
-		out_debug_log(_T("CMD SET STATE(%02X) PARAM=%02X %02X %02X %02X %02X %02X %02X %02X"),
+		cdrom_debug_log(_T("CMD SET STATE(%02X) PARAM=%02X %02X %02X %02X %02X %02X %02X %02X"),
 					  command,
 					  param_queue[0],
 					  param_queue[1],
@@ -804,7 +804,7 @@ void TOWNS_CDROM::set_status_extra(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s
 	status_queue->write(s1);
 	status_queue->write(s2);
 	status_queue->write(s3);
-	out_debug_log(_T("SET EXTRA STATUS %02x: %02x %02x %02x %02x EXTRA COUNT=%d"), latest_command, s0, s1, s2, s3, extra_status);
+	cdrom_debug_log(_T("SET EXTRA STATUS %02x: %02x %02x %02x %02x EXTRA COUNT=%d"), latest_command, s0, s1, s2, s3, extra_status);
 	set_delay_ready();
 	//set_delay_ready_cddareply();
 }
@@ -898,7 +898,7 @@ void TOWNS_CDROM::read_cdrom()
 	extra_status = 0;
 	read_length = 0;
 	
-	out_debug_log(_T("READ_CDROM LBA1=%d LBA2=%d M1/S1/F1=%02X/%02X/%02X M2/S2/F2=%02X/%02X/%02X PAD=%02X DCMD=%02X"), lba1, lba2,
+	cdrom_debug_log(_T("READ_CDROM LBA1=%d LBA2=%d M1/S1/F1=%02X/%02X/%02X M2/S2/F2=%02X/%02X/%02X PAD=%02X DCMD=%02X"), lba1, lba2,
 				  param_queue[0], param_queue[1], param_queue[2],
 				  param_queue[3], param_queue[4], param_queue[5],
 				  pad1, dcmd);
@@ -953,7 +953,7 @@ void TOWNS_CDROM::read_cdrom()
 
 void TOWNS_CDROM::set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
 {
-	out_debug_log(_T("SET STATUS: %02X %02X %02X %02X, EXTRA=%d REQ_STATUS=%s"),
+	cdrom_debug_log(_T("SET STATUS: %02X %02X %02X %02X, EXTRA=%d REQ_STATUS=%s"),
 					s0, s1, s2, s3,
 					extra,
 					(_req_status) ? _T("Yes"): _T("No")
@@ -975,7 +975,7 @@ void TOWNS_CDROM::set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1
 
 void TOWNS_CDROM::set_status_read_done(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
 {
-	out_debug_log(_T("SET STATUS(READ DONE): %02X %02X %02X %02X, EXTRA=%d REQ_STATUS=%s"),
+	cdrom_debug_log(_T("SET STATUS(READ DONE): %02X %02X %02X %02X, EXTRA=%d REQ_STATUS=%s"),
 					s0, s1, s2, s3,
 					extra,
 					(_req_status) ? _T("Yes"): _T("No")
@@ -1691,7 +1691,7 @@ int TOWNS_CDROM::read_sectors_image(int sectors, uint32_t& transferred_bytes)
 	}
 	int seccount = 0;
 	while(sectors > 0) {
-		//out_debug_log(_T("TRY TO READ SECTOR:LBA=%d"), read_sector);
+		//cdrom_debug_log(_T("TRY TO READ SECTOR:LBA=%d"), read_sector);
 		memset(&tmpbuf, 0x00, sizeof(tmpbuf));
 		int _trk = check_cdda_track_boundary(read_sector);
 		if(_trk <= 0) { // END
@@ -2746,7 +2746,7 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 		val = get_subq_status();
 		break;
 	}
-	//out_debug_log(_T("READ IO8: %04X %02X"), addr, val);
+	//cdrom_debug_log(_T("READ IO8: %04X %02X"), addr, val);
 	return val;
 }
 
@@ -2758,7 +2758,7 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 	 * 04C4h : Parameter register
 	 * 04C6h : Transfer control register.
 	 */
-	//out_debug_log(_T("WRITE IO8: %04X %02X"), addr, data);
+	//cdrom_debug_log(_T("WRITE IO8: %04X %02X"), addr, data);
 	w_regs[addr & 0x0f] = data;
 	switch(addr & 0x0f) {
 	case 0x00: // Master control register
@@ -2827,7 +2827,7 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 				pio_transfer_phase = true;
 			}
 		}
-//		out_debug_log(_T("SET TRANSFER MODE to %02X"), data);
+//		cdrom_debug_log(_T("SET TRANSFER MODE to %02X"), data);
 //		cdrom_debug_log(_T("SET TRANSFER MODE to %02X"), data);
 //		}
 		break;
@@ -2848,7 +2848,7 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 			//cdrom_debug_log(_T("CMD=%02X from PC=%08X"), data, d_cpu->get_pc());
 			my_stprintf_s(_pcstr, sizeof(_pcstr) - 1, _T("CMD=%02X from PC=%08X"), latest_command, d_cpu->get_pc());
 		}
-		out_debug_log(_T("REGISTER COMMAND %s PARAM=%s"), _pcstr, param_str); 
+		cdrom_debug_log(_T("REGISTER COMMAND %s PARAM=%s"), _pcstr, param_str); 
 		execute_command(latest_command);
 	}
 #endif
