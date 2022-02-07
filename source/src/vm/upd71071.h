@@ -84,6 +84,8 @@ protected:
 	virtual void __FASTCALL reset_dma_ack(int ch);
 	virtual void __FASTCALL set_dma_ack(int ch);
 	virtual void reset_all_tc();
+	inline uint16_t __FASTCALL manipulate_a_byte_from_word_le(uint16_t src, uint8_t pos, uint8_t data);
+	inline uint32_t __FASTCALL manipulate_a_byte_from_dword_le(uint32_t src, uint8_t pos, uint8_t data);
 
 public:
 	UPD71071(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -220,6 +222,42 @@ public:
 		register_output_signal(&outputs_ube[3], device, id, _mask);
 	}
 };
+
+inline uint16_t UPD71071::manipulate_a_byte_from_word_le(uint16_t src, uint8_t pos, uint8_t data)
+{
+	pair16_t n;
+	n.w = src;
+	switch(pos) {
+	case 0:
+		n.b.l = data;
+		break;
+	case 1:
+		n.b.h = data;
+		break;
+	}
+	return n.w;
+}
+
+inline uint32_t UPD71071::manipulate_a_byte_from_dword_le(uint32_t src, uint8_t pos, uint8_t data)
+{
+	pair32_t n;
+	n.d = src;
+	switch(pos) {
+	case 0:
+		n.b.l  = data;
+		break;
+	case 1:
+		n.b.h  = data;
+		break;
+	case 2:
+		n.b.h2 = data;
+		break;
+	case 3:
+		n.b.h3 = data;
+		break;
+	}
+	return n.d;
+}
 
 #endif
 

@@ -78,9 +78,8 @@ void UPD71071::write_io16(uint32_t addr, uint32_t data)
 {
 	pair32_t _d, _bd;
 //	if(b16 != 0) {
-		switch(addr & 0x0f) {
+		switch(addr & 0x0e) {
 		case 0x02:
-		case 0x03:
 			if(base == 0) {
 				dma[selch].creg = data & 0xffff;
 			}
@@ -88,28 +87,26 @@ void UPD71071::write_io16(uint32_t addr, uint32_t data)
 			return;
 			break;
 		case 0x04:
-		case 0x05:
-		case 0x06:
-			_d.d = dma[selch].areg;
-			_bd.d = dma[selch].bareg;
-			if((addr & 0x0f) < 6) {
-				if(base == 0) {
-					_d.w.l = (data & 0xffff);
-					dma[selch].areg = _d.d;
-				}
-				_bd.w.l = (data & 0xffff);
-				dma[selch].bareg = _bd.d;
-			} else {
-				if(base == 0) {
-					_d.b.h2 = (data & 0xff);
-					dma[selch].areg = _d.d;
-				}
-				_bd.b.h2 = (data & 0xff);
-				dma[selch].bareg = _bd.d;
+			if(base == 0) {
+				_d.d = dma[selch].areg;
+				_d.w.l = data;
+				dma[selch].areg = _d.d;
 			}
+			_d.d = dma[selch].bareg;
+			_d.w.l = data;
+			dma[selch].bareg = _d.d;
+			break;
+		case 0x06:
+			if(base == 0) {
+				_d.d = dma[selch].areg;
+				_d.b.h2 = data;
+				dma[selch].areg = _d.d;
+			}
+			_d.d = dma[selch].bareg;
+			_d.b.h2 = data;
+			dma[selch].bareg = _d.d;
 			break;
 		case 0x08:
-		case 0x09:
 			cmd = data & 0xffff;
 			break;
 		default:
@@ -124,10 +121,11 @@ void UPD71071::write_io16(uint32_t addr, uint32_t data)
 //	}
 }
 
+
 void UPD71071::write_io8(uint32_t addr, uint32_t data)
 {
 	pair32_t _d;
-	pair32_t _bd;
+	uint8_t ad[4];
 	switch(addr & 0x0f) {
 	case 0x00:
 		b16 = data & 2;
@@ -155,18 +153,9 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x02:
 	case 0x03:
-		_d.w.l  = dma[selch].creg;
-		switch(addr & 0x0f) {
-		case 0x02:
-			_d.b.l  = data;
-			break;
-		case 0x03:
-			_d.b.h  = data;
-			break;
-		}
-		dma[selch].creg = _d.w.l;
+		dma[selch].bcreg = manipulate_a_byte_from_word_le(dma[selch].bcreg, (addr & 0x0f) - 2, data);
 		if(base == 0) {
-			dma[selch].bcreg = dma[selch].creg;
+			dma[selch].creg = manipulate_a_byte_from_word_le(dma[selch].creg, (addr & 0x0f) - 2, data);
 		}
 		dma[selch].end = false; // OK?
 		dma[selch].endreq = false; // OK?
@@ -175,21 +164,9 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 	case 0x04:
 	case 0x05:
 	case 0x06:
-		_d.d  = dma[selch].areg;
-		switch(addr & 0x0f) {
-		case 0x04:
-			_d.b.l   = data;
-			break;
-		case 0x05:
-			_d.b.h   = data;
-			break;
-		case 0x06:
-			_d.b.h2   = data;
-			break;
-		}
-		dma[selch].areg = _d.d;
+		dma[selch].bareg = manipulate_a_byte_from_dword_le(dma[selch].bareg, (addr & 0x0f) - 4, data);
 		if(base == 0) {
-			dma[selch].bareg = dma[selch].areg;
+			dma[selch].areg = manipulate_a_byte_from_dword_le(dma[selch].areg, (addr & 0x0f) - 4, data);
 		}
 		break;
 	case 0x08:
@@ -234,47 +211,36 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 uint32_t UPD71071::read_io16(uint32_t addr)
 {
 //	if(b16 != 0) {
-		switch(addr & 0x0f) {
-		case 0x02:
-		case 0x03:
-			if(base == 0) {
-				return (dma[selch].creg & 0xffff);
-			} else {
-				return (dma[selch].bcreg & 0xffff);
-			}
-			break;
-		case 0x04:
-		case 0x05:
-			if(base == 0) {
-				return (dma[selch].areg & 0xffff);
-			} else {
-				return (dma[selch].bareg & 0xffff);
-			}
-			break;
-		case 0x06:
-			if(base == 0) {
-				return ((dma[selch].areg >> 16) & 0xff);
-			} else {
-				return ((dma[selch].bareg >> 16) & 0xff);
-			}
-			break;
-		case 0x08:
-		case 0x09:
-			return (uint32_t)(cmd & 0xffff);
-			break;
-		default:
-			return read_io8(addr);
-//			return read_io8(addr & 0x0e);
-			break;
+	switch(addr & 0x0e) {
+	case 0x02:
+		if(base == 0) {
+			return (dma[selch].creg & 0xffff);
+		} else {
+			return (dma[selch].bcreg & 0xffff);
 		}
-//	} else {
-//		pair16_t _d;
-//		_d.w = 0;
-//		_d.b.l = read_io8(addr);
-////		_d.b.l = read_io8((addr & 0x0e) + 0);
-////		_d.b.h = read_io8((addr & 0x0e) + 1);
-//		return (uint32_t)(_d.w);
-//	}
+		break;
+	case 0x04:
+		if(base == 0) {
+			return (dma[selch].areg & 0xffff);
+		} else {
+			return (dma[selch].bareg & 0xffff);
+		}
+		break;
+	case 0x06:
+		if(base == 0) {
+			return ((dma[selch].areg >> 16) & 0xff);
+		} else {
+			return ((dma[selch].bareg >> 16) & 0xff);
+		}
+		break;
+	case 0x08:
+		return (uint32_t)(cmd & 0xffff);
+		break;
+	default:
+//			return read_io8(addr & 0x0e);
+		break;
+	}
+	return read_io8(addr);
 }
 
 uint32_t UPD71071::read_io8(uint32_t addr)
@@ -695,13 +661,13 @@ bool UPD71071::do_dma_per_channel(int c)
 				}
 				do_dma_inc_dec_ptr_8bit(c);
 			}
-//			set_dma_ack(c);
+			set_dma_ack(c);
 			if(do_dma_epilogue(c)) {
 //				//break;
-				set_dma_ack(c);
+//				set_dma_ack(c);
 				return true;
 			}
-			set_dma_ack(c);
+//			set_dma_ack(c);
 		}
 	}
 	return false;

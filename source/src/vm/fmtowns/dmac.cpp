@@ -27,70 +27,45 @@ void TOWNS_DMAC::write_io16(uint32_t addr, uint32_t data)
 	pair32_t _d, _bd;
 //	out_debug_log(_T("OUT16 %04X,%04X"), addr & 0xffff, data & 0xffff);
 //	if(b16 != 0) {
-		switch(addr & 0x0f) {
-		case 0x02:
-		case 0x03:
-			if(base == 0) {
-				creg_set[selch] = true;
-				dma[selch].creg = data & 0xffff;
-			}
-			dma[selch].bcreg = data & 0xffff;
-			bcreg_set[selch] = true;
-			return;
-			break;
-		case 0x04:
-		case 0x05:
-		case 0x06:
-		case 0x07:
-			_d.d = dma[selch].areg;
-			_bd.d = dma[selch].bareg;
-			if((addr & 0x0f) < 6) {
-				if(base == 0) {
-					_d.w.l = (data & 0xffff);
-					dma[selch].areg = _d.d;
-				}
-				_bd.w.l = (data & 0xffff);
-				dma[selch].bareg = _bd.d;
-			} else {
-				if(base == 0) {
-					_d.w.h = (data & 0xffff);
-					dma[selch].areg = _d.d;
-				}
-				_bd.w.h = (data & 0xffff);
-				dma[selch].bareg = _bd.d;
-			}
-			break;
-		case 0x08:
-		case 0x09:
-			if((data & 0x04) != (cmd & 0x04)) {
-				if((data & 0x04) == 0) {
-					out_debug_log(_T("START TRANSFER:CH=%d CMD=%04X -> %04X AREG=%08X BAREG=%08X CREG=%04X BCREG=%04X"),
-								  selch,
-								  cmd, data & 0xffff,
-								  dma[selch].areg, dma[selch].bareg,
-								  dma[selch].creg, dma[selch].bcreg
-						);
-				} else {
-					out_debug_log(_T("CLEAR TRANSFER:CH=%d CMD=%04X -> %04X AREG=%08X BAREG=%08X CREG=%04X BCREG=%04X"),
-								  selch,
-								  cmd, data & 0xffff,
-								  dma[selch].areg, dma[selch].bareg,
-								  dma[selch].creg, dma[selch].bcreg
-						);
-				}
-			}
-			cmd = data & 0xffff;
-			break;
-		default:
-//			write_io8(addr & 0x0e, data);
-			write_io8(addr, data);
-			break;
+	switch(addr & 0x0e) {
+	case 0x02:
+		if(base == 0) {
+			creg_set[selch] = true;
 		}
-//	} else {
-//		write_io8(addr, data);
-////	write_io8((addr & 0x0e) + 0, data);
-////	write_io8((addr & 0x0e) + 1, data);
-//	}
+		bcreg_set[selch] = true;
+		break;
+	case 0x06:
+		if(base == 0) {
+			_d.d = dma[selch].areg;
+			_d.w.h = data;
+			dma[selch].areg = _d.d;
+		}
+		_d.d = dma[selch].bareg;
+		_d.w.h = data;
+		dma[selch].bareg = _d.d;
+		return;
+		break;
+	case 0x08:
+		if((data & 0x04) != (cmd & 0x04)) {
+			if((data & 0x04) == 0) {
+				out_debug_log(_T("START TRANSFER:CH=%d CMD=%04X -> %04X AREG=%08X BAREG=%08X CREG=%04X BCREG=%04X"),
+							  selch,
+							  cmd, data & 0xffff,
+							  dma[selch].areg, dma[selch].bareg,
+							  dma[selch].creg, dma[selch].bcreg
+					);
+			} else {
+				out_debug_log(_T("CLEAR TRANSFER:CH=%d CMD=%04X -> %04X AREG=%08X BAREG=%08X CREG=%04X BCREG=%04X"),
+							  selch,
+							  cmd, data & 0xffff,
+							  dma[selch].areg, dma[selch].bareg,
+							  dma[selch].creg, dma[selch].bcreg
+					);
+			}
+		}
+		break;
+	}
+	UPD71071::write_io16(addr, data);
 }
 
 void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
@@ -109,16 +84,14 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		// Note: This is *temporaly* workaround for 16bit transfer mode with 8bit bus.
 		// 20200318 K.O
 		if(base == 0) {
-			bcreg_set[selch] = true;
+			creg_set[selch] = true;
 		}
-		creg_set[selch] = true;
+		bcreg_set[selch] = true;
 		break;
 	case 0x07:
-		_d.d  = dma[selch].areg;
-		_d.b.h3  = data;
-		dma[selch].areg = _d.d;
+		dma[selch].bareg = manipulate_a_byte_from_dword_le(dma[selch].bareg, 3, data);
 		if(base == 0) {
-			dma[selch].bareg = dma[selch].areg; 
+			dma[selch].areg = manipulate_a_byte_from_dword_le(dma[selch].areg, 3, data);
 		}
 		return;
 		break;
@@ -181,49 +154,19 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 
 uint32_t TOWNS_DMAC::read_io16(uint32_t addr)
 {
-//	if(b16 != 0) {
-		switch(addr & 0x0f) {
-		case 0x02:
-		case 0x03:
-			if(base == 0) {
-				return (dma[selch].creg & 0xffff);
-			} else {
-				return (dma[selch].bcreg & 0xffff);
-			}
-			break;
-		case 0x04:
-		case 0x05:
-			if(base == 0) {
-				return (dma[selch].areg & 0xffff);
-			} else {
-				return (dma[selch].bareg & 0xffff);
-			}
-			break;
-		case 0x06:
-		case 0x07:
-			if(base == 0) {
-				return ((dma[selch].areg >> 16) & 0xffff);
-			} else {
-				return ((dma[selch].bareg >> 16) & 0xffff);
-			}
-			break;
-		case 0x08:
-		case 0x09:
-			return (uint32_t)(cmd & 0xffff);
-			break;
-		default:
-			return read_io8(addr);
-//			return read_io8(addr & 0x0e);
-			break;
+	switch(addr & 0x0e) {
+	case 0x06:
+		if(base == 0) {
+			return ((dma[selch].areg >> 16) & 0xffff);
+		} else {
+			return ((dma[selch].bareg >> 16) & 0xffff);
 		}
-//	} else {
-//		pair16_t _d;
-//		_d.w = 0;
-//		_d.b.l = read_io8(addr);
-////		_d.b.l = read_io8((addr & 0x0e) + 0);
-////		_d.b.h = read_io8((addr & 0x0e) + 1);
-//		return (uint32_t)(_d.w);
-//	}
+		break;
+	default:
+//			return read_io8(addr & 0x0e);
+		break;
+	}
+	return UPD71071::read_io16(addr);
 }
 
 uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
@@ -231,43 +174,6 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 	uint32_t val;
 	pair32_t _d;
 	switch(addr & 0x0f) {
-	case 0x01:
-		return (base << 3) | (1 << (selch & 3));
-		break;
-	case 0x02:
-	case 0x03:
-		if(base == 0) {
-			_d.d = dma[selch].creg;
-#if 0
-#if !defined(USE_QUEUED_SCSI_TRANSFER)
-			if((dma[selch].is_16bit) && !(inputs_ube[selch])) {
-				if(!(creg_set[selch])) {
-					_d.d >>= 1;
-				}
-			}
-#endif
-#endif
-		} else {
-			_d.d = dma[selch].bcreg;
-#if 0
-#if !defined(USE_QUEUED_SCSI_TRANSFER)
-			if((dma[selch].is_16bit) && !(inputs_ube[selch])) {
-				if(!(bcreg_set[selch])) {
-					_d.d >>= 1;
-				}
-			}
-#endif
-#endif
-		}
-		switch(addr & 0x0f) {
-		case 2:
-			return _d.b.l;
-			break;
-		case 3:
-			return _d.b.h;
-			break;
-		}
-		break;
 	case 0x07:
 		if(base == 0) {
 			_d.d = dma[selch].areg;
