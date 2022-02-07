@@ -37,6 +37,8 @@ private:
 	uint32_t intr_target_mask;
 	
 	uint16_t free_run_counter;
+	uint16_t next_interval;
+	
 	uint8_t intr_reg, rtc_data;
 	bool rtc_busy;
 	bool tmout0, tmout1;
@@ -58,6 +60,8 @@ private:
 	virtual void update_intr(void);
 	virtual void update_beep(void);
 	virtual void do_interval(void);
+	virtual void update_interval_timer(void);
+	
 public:
 	TIMER(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

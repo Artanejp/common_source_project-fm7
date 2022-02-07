@@ -21,6 +21,7 @@ namespace FMTOWNS {
 void TIMER::initialize()
 {
 	free_run_counter = 0;
+	next_interval = 0;
 	intr_reg = rtc_data = 0;
 	tmout0 = tmout1 = false;
 	event_interval_us = -1;
@@ -32,6 +33,7 @@ void TIMER::reset()
 {
 	interval_enabled = false;
 	interval_us.w = 0;
+
 	intv_i = false;
 	intv_ov = false;
 	beepon_cff98h = false;
@@ -41,18 +43,20 @@ void TIMER::reset()
 	}
 	update_beep();
 
-	if(event_wait_1us >= 0) {
-		cancel_event(this, event_wait_1us);
-		event_wait_1us = -1;
-	}
+	clear_event(this, event_wait_1us);
+	clear_event(this, event_interval_us);
 	if(intr_target != nullptr) {
 		intr_target->write_signal(intr_target_id, 0, intr_target_mask);
 	}
 	if(halt_target != nullptr) {
 		halt_target->write_signal(halt_target_id, 0, halt_target_mask);
 	}
-//	do_interval();
+	if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
+		register_event(this, EVENT_INTERVAL_US, 1.0, true, &event_interval_us);
+		do_interval();
+	}
 }
+
 void TIMER::write_io16(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xfffe) {
@@ -141,16 +145,7 @@ void TIMER::update_beep()
 void TIMER::do_interval(void)
 {
 	if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-		if(interval_enabled) {
-			uint32_t interval = interval_us.w;
-			if(interval == 0) interval = 65536;
-			// Update interval
-			if(event_interval_us >= 0) cancel_event(this, event_interval_us);
-			register_event(this, EVENT_INTERVAL_US, 1.0 * (double)interval, true, &event_interval_us);
-		} else {
-			if(event_interval_us >= 0) cancel_event(this, event_interval_us);
-			event_interval_us = -1;
-		}
+		next_interval = free_run_counter + interval_us.w;
 	}
 }
 
@@ -159,8 +154,7 @@ uint32_t TIMER::read_io16(uint32_t addr)
 	switch(addr & 0xfffe) {
 	case 0x0026:
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-			free_run_counter = (uint16_t)get_passed_usec(0);
-			return free_run_counter & 0xffff;
+			return free_run_counter;
 		} else {
 			return 0xffff;
 		}
@@ -177,7 +171,6 @@ uint32_t TIMER::read_io8(uint32_t addr)
 	switch(addr) {
 	case 0x0026:
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-			free_run_counter = (uint16_t)get_passed_usec(0);
 			return free_run_counter & 0xff;
 		} else {
 			return 0xff;
@@ -282,16 +275,26 @@ void TIMER::event_callback(int id, int err)
 		}
 		break;
 	case EVENT_INTERVAL_US:
-		if(interval_enabled) {
-			if(intv_i) intv_ov = true;
-			intv_i = true;
-			update_intr();
+		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
+			free_run_counter++;
+			if(interval_enabled) {
+				if(next_interval == free_run_counter) {
+					update_interval_timer();
+				}
+			}
 		}
 		break;
 	}
 }
 
-#define STATE_VERSION	2
+void TIMER::update_interval_timer()
+{
+	if(intv_i) intv_ov = true;
+	intv_i = true;
+	update_intr();
+}
+
+#define STATE_VERSION	3
 
 bool TIMER::process_state(FILEIO* state_fio, bool loading)
 {
@@ -304,6 +307,7 @@ bool TIMER::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(machine_id);
 	state_fio->StateValue(cpu_id);
 	state_fio->StateValue(free_run_counter);
+	state_fio->StateValue(next_interval);
 	state_fio->StateValue(intr_reg);
 	state_fio->StateValue(rtc_data);
 	state_fio->StateValue(rtc_busy);
