@@ -45,10 +45,10 @@ void TIMER::reset()
 
 	clear_event(this, event_wait_1us);
 	clear_event(this, event_interval_us);
-	if(intr_target != nullptr) {
+	__LIKELY_IF(intr_target != nullptr) {
 		intr_target->write_signal(intr_target_id, 0, intr_target_mask);
 	}
-	if(halt_target != nullptr) {
+	__LIKELY_IF(halt_target != nullptr) {
 		halt_target->write_signal(halt_target_id, 0, halt_target_mask);
 	}
 	if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
