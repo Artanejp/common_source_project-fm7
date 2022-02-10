@@ -184,7 +184,9 @@ public:
 	uint32_t get_address_mask();
 	void set_shutdown_flag(int shutdown);
 	int get_shutdown_flag();
+	// These is using from NP21 core.
 	int64_t i386_memory_wait;
+	uint32_t realclock;
 	int device_model;
 };
 

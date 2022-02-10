@@ -581,7 +581,7 @@ extern I386MSR		i386msr;
 #ifndef __cplusplus
 extern sigjmp_buf	exec_1step_jmpbuf;
 #endif
-extern UINT32		realclock;
+//extern UINT32		realclock;
 extern I386			*device_cpu;
 extern DEVICE		*device_mem;
 extern DEVICE		*device_io;

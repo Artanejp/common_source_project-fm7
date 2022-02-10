@@ -1134,6 +1134,9 @@ WRMSR(void)
 	}
 }
 
+#include "../../../../i386_np21.h"
+extern I386* device_cpu;
+
 void
 RDTSC(void)
 {

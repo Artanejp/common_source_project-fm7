@@ -265,6 +265,8 @@ void I386::reset()
  	
 	UINT32 PREV_CPU_ADRSMASK = CPU_ADRSMASK;
 	
+	realclock = get_cpu_clocks(this);
+	
 	CPU_RESET();
 //	CPU_ADRSMASK = address_mask;
 	CPU_TYPE = 0;

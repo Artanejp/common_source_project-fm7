@@ -53,7 +53,7 @@
 #ifndef __cplusplus
 sigjmp_buf exec_1step_jmpbuf;
 #endif
-UINT32 realclock;
+//UINT32 realclock;
 
 #if defined(IA32_INSTRUCTION_TRACE)
 typedef struct {
