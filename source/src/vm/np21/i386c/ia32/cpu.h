@@ -592,7 +592,7 @@ extern DEVICE		*device_bios;
 extern DEVICE		*device_dma;
 extern DEBUGGER		*device_debugger;
 //#endif
-extern int64_t      i386_memory_wait;
+//extern int64_t      i386_memory_wait;
 extern UINT32		codefetch_address;
 
 /*

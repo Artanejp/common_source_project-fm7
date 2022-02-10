@@ -78,7 +78,7 @@ private:
 	
 	int run_one_opecode();
 	uint32_t __FASTCALL convert_address(uint32_t cs, uint32_t eip);
-	void __FASTCALL cpu_wait(int clocks);
+	inline void __FASTCALL cpu_wait(int clocks, int64_t& memory_wait);
 
 public:
 	I386(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -184,7 +184,34 @@ public:
 	uint32_t get_address_mask();
 	void set_shutdown_flag(int shutdown);
 	int get_shutdown_flag();
+	int64_t i386_memory_wait;
 	int device_model;
 };
+
+inline void __FASTCALL I386::cpu_wait(int clocks, int64_t& memory_wait)
+{
+	__UNLIKELY_IF(clocks < 0) {
+		clocks = 0;
+	}
+	int64_t wfactor = waitfactor;
+	int64_t wcount = waitcount;
+	int64_t mwait = memory_wait;
+	int64_t ncount;
+	__UNLIKELY_IF(wfactor > 65536) {
+		wcount += ((wfactor - 65536) * clocks); // Append wait due to be slower clock.
+		wcount += (wfactor * mwait);  // memory wait
+	} else {
+		wcount += (mwait << 16);
+	}
+	__LIKELY_IF(wcount >= 65536) {
+		ncount = wcount >> 16;
+		wcount = wcount - (ncount << 16);
+		extra_cycles += (int)ncount;
+	} else __UNLIKELY_IF(wcount < 0) {
+		wcount = 0;
+	}
+	waitcount = wcount;
+	memory_wait = 0;
+}
 
 #endif

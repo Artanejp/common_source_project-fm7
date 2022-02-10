@@ -280,35 +280,11 @@ void I386::reset()
 	write_signals(&outputs_extreset, 0xffffffff);
 }
 
-void I386::cpu_wait(int clocks)
-{
-	if(clocks <= 0) clocks = 1;
-	int64_t wfactor = waitfactor;
-	int64_t wcount = waitcount;
-	int64_t mwait = i386_memory_wait;
-	int64_t ncount;
-	if(wfactor > 65536) {
-		wcount += ((wfactor - 65536) * clocks); // Append wait due to be slower clock.
-		wcount += (wfactor * mwait);  // memory wait
-	} else {
-		wcount += (mwait << 16);
-	}
-	if(wcount >= 65536) {
-		ncount = wcount >> 16;
-		wcount = wcount - (ncount << 16);
-		extra_cycles += (int)ncount;
-	} else if(wcount < 0) {
-		wcount = 0;
-	}
-	waitcount = wcount;
-	i386_memory_wait = 0;
-}
-
 bool I386::check_interrupts()
 {
-	if(nmi_pending) {
+	__UNLIKELY_IF(nmi_pending) {
 		return true;
-	} else if(irq_pending && CPU_isEI) {
+	} else __LIKELY_IF(irq_pending && CPU_isEI) {
 		return true;
 	}
 	return false;
@@ -319,12 +295,13 @@ int I386::run_one_opecode()
 //#ifdef USE_DEBUGGER
 	
 	bool now_debugging = false;
-	if((_USE_DEBUGGER) && (device_debugger != NULL)) {
+	__LIKELY_IF((_USE_DEBUGGER) && (device_debugger != NULL)) {
 		now_debugging = device_debugger->now_debugging;
 	}
-	if((now_debugging)) {
+	
+	__UNLIKELY_IF(now_debugging) {
 		device_debugger->check_break_points(get_next_pc());
-		if(device_debugger->now_suspended) {
+		__UNLIKELY_IF(device_debugger->now_suspended) {
 			device_debugger->now_waiting = true;
 			emu->start_waiting_in_debugger();
 			while(device_debugger->now_debugging && device_debugger->now_suspended) {
@@ -333,59 +310,40 @@ int I386::run_one_opecode()
 			emu->finish_waiting_in_debugger();
 			device_debugger->now_waiting = false;
 		}
-		if(device_debugger->now_debugging) {
+		__LIKELY_IF(device_debugger->now_debugging) {
 			device_mem = device_io = device_debugger;
 		} else {
 			now_debugging = false;
 		}
-		
-		PREV_CS_BASE = CS_BASE;
-		CPU_REMCLOCK = CPU_BASECLOCK = 1;
-		CPU_EXEC();
-		if(nmi_pending) {
-			CPU_INTERRUPT(2, 0);
-			if(device_debugger != NULL) {
-				device_debugger->add_cpu_trace_irq(get_pc(), 2);
-			}
-			nmi_pending = false;
-		} else if(irq_pending && CPU_isEI) {
-			uint32_t intr_level = device_pic->get_intr_ack();
-			CPU_INTERRUPT(intr_level, 0);
-			if(device_debugger != NULL) {
-				device_debugger->add_cpu_trace_irq(get_pc(), intr_level);
-			}
-			irq_pending = false;
-			device_pic->update_intr();
-		}
-		check_interrupts();
-		if(now_debugging) {
-			if(!device_debugger->now_going) {
-				device_debugger->now_suspended = true;
-			}
-			device_mem = device_mem_stored;
-			device_io = device_io_stored;
-		}
-		return CPU_BASECLOCK - CPU_REMCLOCK;
-	} else {
+	}
+	{
 //#endif
 		PREV_CS_BASE = CS_BASE;
 		CPU_REMCLOCK = CPU_BASECLOCK = 1;
 		CPU_EXEC();
-		if(nmi_pending) {
+		__UNLIKELY_IF(nmi_pending) {
 			CPU_INTERRUPT(2, 0);
-			if(device_debugger != NULL) {
+			__LIKELY_IF(device_debugger != NULL) {
 				device_debugger->add_cpu_trace_irq(get_pc(), 2);
 			}
 			nmi_pending = false;
-		} else if(irq_pending && CPU_isEI) {
+		} else __LIKELY_IF(irq_pending && CPU_isEI) {
 			// ToDo: Multiple interrupt within rep prefix.
 			uint32_t intr_level = device_pic->get_intr_ack();
 			CPU_INTERRUPT(intr_level, 0);
-			if(device_debugger != NULL) {
+			__LIKELY_IF(device_debugger != NULL) {
 				device_debugger->add_cpu_trace_irq(get_pc(), intr_level);
 			}
 			irq_pending = false;
 			device_pic->update_intr();
+		}
+		//check_interrupts();  // OK?This may be enable only debugging;
+		__UNLIKELY_IF(now_debugging) {
+			__UNLIKELY_IF(!device_debugger->now_going) {
+				device_debugger->now_suspended = true;
+			}
+			device_mem = device_mem_stored;
+			device_io = device_io_stored;
 		}
 		return CPU_BASECLOCK - CPU_REMCLOCK;
 //#ifdef USE_DEBUGGER
@@ -395,12 +353,13 @@ int I386::run_one_opecode()
 
 int I386::run(int cycles)
 {
-	if(cycles == -1) {
+	// Prefer to run as one step (cycles == -1). 20220210 K.O
+	__LIKELY_IF(cycles == -1) {
 		int passed_cycles;
 		__UNLIKELY_IF(busreq) {
 			// don't run cpu!
 //#ifdef SINGLE_MODE_DMA
-			if(_SINGLE_MODE_DMA) {
+			__LIKELY_IF(_SINGLE_MODE_DMA) {
 				if(device_dma != NULL) device_dma->do_dma();
 			}
 //#endif
@@ -413,11 +372,11 @@ int I386::run(int cycles)
 			passed_cycles += run_one_opecode();
 		}
 //#ifdef USE_DEBUGGER
-		if(_USE_DEBUGGER) {
+		__UNLIKELY_IF(_USE_DEBUGGER) {
 			total_cycles += passed_cycles;
 		}
 //#endif
-		cpu_wait(passed_cycles);
+		cpu_wait(passed_cycles, i386_memory_wait);
 		return passed_cycles;
 	} else {
 		remained_cycles += cycles + extra_cycles;
@@ -442,7 +401,7 @@ int I386::run(int cycles)
 			remained_cycles = 0;
 		}
 		int passed_cycles = first_cycles - remained_cycles;
-		cpu_wait(passed_cycles);
+		cpu_wait(passed_cycles, i386_memory_wait);
 		return passed_cycles;
 	}
 }
