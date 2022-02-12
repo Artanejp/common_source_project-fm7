@@ -175,9 +175,13 @@ void TOWNS_CRTC::reset()
 		crtout_top[i] = true;
 	}
 	crtout_reg = 0x0f;
-	for(int i = 0; i < 4; i++) {
+	for(int i = 0; i < 2; i++) {
 		frame_offset[i] = 0;
 		line_offset[i] = 80;
+	}
+	for(int i = 0; i < 2; i++) {
+		frame_offset_bak[i] = frame_offset[i];
+		line_offset_bak[i] = line_offset[i];
 	}
 	for(int i = 0; i < 2; i++) {
 		vstart_addr[i] = 0;
@@ -736,9 +740,9 @@ uint32_t TOWNS_CRTC::read_io16(uint32_t addr)
 	}
 	switch(addr & 0xfffe) {
 	case 0x0442:
-		if(crtc_ch == 21) { // FO1
+/*		if(crtc_ch == 21) { // FO1
 			return ((regs[21] & 0x7fff) + fo1_offset_value); 
-		} else if(crtc_ch == 30) {
+			} else */if(crtc_ch == 30) {
 			return (uint32_t)read_reg30();
 		} else {
 			return regs[crtc_ch];
@@ -873,9 +877,9 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int laye
 	}
 	__UNLIKELY_IF(pwidth > TOWNS_CRTC_MAX_PIXELS) pwidth = TOWNS_CRTC_MAX_PIXELS;
 	__UNLIKELY_IF(pwidth <= 0) return false;
-//	if(y == 128) {
-//		out_debug_log("RENDER_32768 Y=%d LAYER=%d WIDTH=%d DST=%08X MASK=%08X ALPHA=%d", y, layer, pwidth, dst, mask, do_alpha);
-//	}
+	if(y == 128) {
+		out_debug_log("RENDER_32768 Y=%d LAYER=%d PWIDTH=%d WIDTH=%d DST=%08X MASK=%08X ALPHA=%d", y, layer, pwidth, width, dst, mask, do_alpha);
+	}
 	__DECL_ALIGNED(16) uint16_t pbuf[8];
 	__DECL_ALIGNED(16) uint16_t rbuf[8];
 	__DECL_ALIGNED(16) uint16_t gbuf[8];
@@ -1612,7 +1616,9 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1)
 	int bitshift0 = linebuffers[trans][y].bitshift[0];
 	int bitshift1 = linebuffers[trans][y].bitshift[1];
 	scrntype_t *pp = osd->get_vm_screen_buffer(y);
-//	out_debug_log(_T("MIX_SCREEN Y=%d DST=%08X"), y, pp);
+	if(y == 128) {
+		out_debug_log(_T("MIX_SCREEN Y=%d WIDTH=%d DST=%08X"), y, width, pp);
+	}
 	/*
 	if(width < -(bitshift0)) {
 		do_mix0 = false;
@@ -1681,6 +1687,7 @@ __DECL_VECTORIZED_LOOP
 				}
 				pp += 8;
 			}
+#if 0			
 			int rrwidth = width & 7;
 			if(rrwidth > 0) {
 				scrntype_t pix0, pix1, mask0, mask1;
@@ -1700,6 +1707,7 @@ __DECL_VECTORIZED_LOOP
 					pp[ii]	= pix0;
 				}
 			}
+#endif
 		} else if(do_mix0) {
 			if(bitshift0 < 0) {
 				if(-(bitshift0) < width) {
@@ -1806,6 +1814,9 @@ void TOWNS_CRTC::draw_screen()
 				}
 			}
 		}
+//		if(y == 128) {
+//			out_debug_log(_T("MIX: %d %d width=%d"), do_mix0, do_mix1, width);
+//		}
 		mix_screen(y, width, do_mix0, do_mix1);
 	}
 	
@@ -2139,7 +2150,7 @@ __DECL_VECTORIZED_LOOP
 			offset = offset + (int)head_address[l];
 			offset <<= ashift;
 //			bit_shift = _x >> ashift;
-			if((trans & 1) != 0) offset = offset + (frame_offset[l] <<= ashift);
+			if((trans & 1) != 0) offset = offset + (frame_offset_bak[l] <<= ashift);
 			if(l == 1) {
 				offset = offset + (fo1_offset_value <<= ashift);
 			}
@@ -2229,7 +2240,7 @@ __DECL_VECTORIZED_LOOP
 				zoom_count_vert[l] = zoom_factor_vert[l];
 				// ToDo: Interlace
 				if(to_disp[l]) {
-					head_address[l] += line_offset[l];
+					head_address[l] += line_offset_bak[l];
 				}
 			}
 		}
@@ -2291,6 +2302,10 @@ void TOWNS_CRTC::event_pre_frame()
 	__UNLIKELY_IF(lb != lines_per_frame) {
 		set_lines_per_frame(lines_per_frame);
 	}
+	for(int i = 0; i < 2; i++) {
+		frame_offset_bak[i] = frame_offset[i];
+		line_offset_bak[i] = line_offset[i];
+	}
 //	if(pb != pixels_per_line) {
 		// ToDo: Resize texture.
 		//set_pixels_per_line(pixels_per_line);
@@ -2312,6 +2327,7 @@ void TOWNS_CRTC::event_frame()
 	line_count[0] = line_count[1] = 0;
 	vert_line_count = -1;
 	hsync = false;
+
 	//! @note at event_pre_frame() at SPRITE, clear VRAM if enabled.
 	is_sprite = (d_sprite->read_signal(SIG_TOWNS_SPRITE_ENABLED) != 0) ? true : false;
 	if(is_sprite) {
@@ -2396,7 +2412,11 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		my_stprintf_s(tmps, sizeof(tmps) / sizeof(_TCHAR), "+%02d:   ", r);
 		my_tcscat_s(regstr, sizeof(regstr) / sizeof(_TCHAR), tmps);
 		for(int q = 0; q < 8; q++) {
-			my_stprintf_s(tmps, sizeof(tmps) / sizeof(_TCHAR), _T("%04X "), regs[r + q]);
+			if((r + q) == 30) {
+				my_stprintf_s(tmps, sizeof(tmps) / sizeof(_TCHAR), _T("%04X "), read_reg30());
+			} else {
+				my_stprintf_s(tmps, sizeof(tmps) / sizeof(_TCHAR), _T("%04X "), regs[r + q]);
+			}
 			my_tcscat_s(regstr, sizeof(regstr) / sizeof(_TCHAR), tmps);
 		}
 		my_tcscat_s(regstr, sizeof(regstr) / sizeof(_TCHAR), _T("\n"));
@@ -2587,7 +2607,7 @@ void TOWNS_CRTC::write_signal(int ch, uint32_t data, uint32_t mask)
 }
 
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2620,10 +2640,13 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(vstart_addr, sizeof(vstart_addr), 1);
 	state_fio->StateArray(hstart_words, sizeof(hstart_words), 1);
 	state_fio->StateArray(hend_words, sizeof(hend_words), 1);
-	state_fio->StateArray(vstart_lines, sizeof(vstart_lines), 1);
-	state_fio->StateArray(vend_lines, sizeof(vend_lines), 1);
-	state_fio->StateArray(line_offset, sizeof(line_offset), 1);
+	
 	state_fio->StateArray(frame_offset, sizeof(frame_offset), 1);
+	state_fio->StateArray(line_offset, sizeof(line_offset), 1);
+	
+	state_fio->StateArray(frame_offset_bak, sizeof(frame_offset_bak), 1);
+	state_fio->StateArray(line_offset_bak, sizeof(line_offset_bak), 1);
+	
 	state_fio->StateArray(head_address, sizeof(head_address), 1);
 	state_fio->StateArray(impose_mode,  sizeof(impose_mode), 1);
 	state_fio->StateArray(carry_enable, sizeof(carry_enable), 1);

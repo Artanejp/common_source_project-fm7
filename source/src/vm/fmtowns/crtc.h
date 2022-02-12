@@ -228,13 +228,15 @@ protected:
 
 	double frames_per_sec;
 
-	uint32_t vstart_addr[4];  // VSTART ADDRESS
-    uint32_t hstart_words[4]; // HSTART ((HDS[01] * clock) : Horizonal offset words (Related by ZH[01]). Maybe 0.
-    uint32_t hend_words[4];   // HEND   ((HDE[01] * clock) : Horizonal offset words (Related by ZH[01]). Maybe 0.
-    uint32_t vstart_lines[2]; // VSTART ((VDS[01] * clock) : Horizonal offset words (Related by VH[01]).
-    uint32_t vend_lines[4];   // VEND   ((VDE[01] * clock) : Horizonal offset words (Related by VH[01]).
-	uint32_t frame_offset[4]; // FO.
-	uint32_t line_offset[4]; // FO.
+	uint32_t vstart_addr[2];  // VSTART ADDRESS
+    uint32_t hstart_words[2]; // HSTART ((HDS[01] * clock) : Horizonal offset words (Related by ZH[01]). Maybe 0.
+    uint32_t hend_words[2];   // HEND   ((HDE[01] * clock) : Horizonal offset words (Related by ZH[01]). Maybe 0.
+	uint32_t frame_offset[2]; // FOx.
+	uint32_t line_offset[2]; // LOx.
+	
+	uint32_t frame_offset_bak[2]; // FOx(Backup).
+	uint32_t line_offset_bak[2]; // LOx(Backup).
+	
 	uint32_t head_address[2];
 	int horiz_offset_tmp[2];
 	int vert_offset_tmp[2];
