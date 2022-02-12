@@ -738,20 +738,17 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	_TCHAR sregstr[512] = {0};
 	_TCHAR dbgregstr[512] = {0};
 	_TCHAR testregstr[512] = {0};
+#if 1	
 	for(int i = 0; i < 6; i++) {
 		_TCHAR segdesc[128] = {0};
-		my_stprintf_s(segdesc, 127, _T("%s: %04X BASE=%08X LIMIT=%08X"),
+		my_stprintf_s(segdesc, 127, _T("%s: %04X BASE=%08X LIMIT=%08X (PAGED BASE=%08X) \n"),
 					  sregname[i],
 					  CPU_REGS_SREG(i),
 					  (CPU_STAT_PM) ? CPU_STAT_SREGBASE(i) : (CPU_STAT_SREGBASE(i) & 0xfffff),
-					  (CPU_STAT_PM) ? CPU_STAT_SREGLIMIT(i) : (CPU_STAT_SREGLIMIT(i) & 0xffff)
+					  (CPU_STAT_PM) ? CPU_STAT_SREGLIMIT(i) : (CPU_STAT_SREGLIMIT(i) & 0xffff),
+					  convert_address(CPU_STAT_SREGBASE(i), 0)
 			);
 		my_tcscat_s(sregstr, 511, segdesc);
-		if((i & 1) == 0) {
-			my_tcscat_s(sregstr, 511, _T(" / "));
-		} else {
-			my_tcscat_s(sregstr, 511, _T("\n"));
-		}			
 	}
 	my_stprintf_s(dbgregstr, 511, _T("DEBUG REG:"));
 	for(int i = 0; i < CPU_DEBUG_REG_NUM; i++) {
@@ -767,12 +764,19 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	}
 		
 	if(CPU_STAT_PM) {
+		// ToDo: Dump/Convert PDE/PTE TABLE.
+		_TCHAR pde_desc[256] = {0};
+		if(CPU_STAT_PAGING) {
+			my_stprintf_s(pde_desc, sizeof(pde_desc) -1,
+						  _T("PAGING TABLE: PDE BASE=%08X\n"),
+						  CPU_STAT_PDE_BASE);
+		}
 		my_stprintf_s(buffer, buffer_len,
 		_T("PM %s %s %s %s MODE=%01X CPL=%02X\n")
 		_T("EFLAGS=%08X FLAG=[%s%s%s%s][%c%c%c%c%c%c%c%c%c]\n")
 		_T("EAX=%08X  EBX=%08X  ECX=%08X  EDX=%08X\n")
 		_T("ESP=%08X  EBP=%08X  ESI=%08X  EDI=%08X\n")
-	    _T("%s")
+	    _T("%s%s")
 	    _T("PC=%08X ")			  
 		_T("EIP=%08X PREV_EIP=%08X PREV_ESP=%08X\n")
 		_T("CRx=%08X %08X %08X %08X %08X MXCSR=%08X\n")
@@ -801,8 +805,9 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		(CPU_FLAG & C_FLAG) ? _T('C') : _T('-'),
 
 		CPU_EAX, CPU_EBX, CPU_ECX, CPU_EDX, CPU_ESP, CPU_EBP, CPU_ESI, CPU_EDI,
-		sregstr,
-		((CPU_STAT_SREGBASE(CPU_CS_INDEX) + CPU_EIP) & 0xffffffff),
+	    sregstr,
+	    pde_desc,			  
+	    get_pc(),
  	    CPU_EIP, CPU_PREV_EIP, CPU_PREV_ESP,
 		CPU_CR0, CPU_CR1, CPU_CR2, CPU_CR3, CPU_CR4, CPU_MXCSR,
 	    CPU_GDTR_BASE, CPU_GDTR_LIMIT, CPU_LDTR_BASE, CPU_LDTR_LIMIT,
@@ -839,6 +844,10 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		total_cycles, total_cycles - prev_total_cycles,
 		get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
 	}
+#else
+	my_stprintf_s(buffer, buffer_len,
+				  _T("%s\n"), cpu_reg2str());
+#endif
 	prev_total_cycles = total_cycles;
 	return true;
 }
