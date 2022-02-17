@@ -8,8 +8,9 @@ message("* common/common")
 cmake_minimum_required (VERSION 3.0)
 cmake_policy(SET CMP0011 NEW)
 cmake_policy(SET CMP0043 OLD)
-
-
+if(CMAKE_VERSION VERSION_GREATER 3.8)
+cmake_policy(SET CMP0069 NEW)
+endif()
 # Note: Belows are temporally disabled, not implemented older CMake.
 #project (CSP
 #		DESCRIPTION "Common Source Code Project/Qt")

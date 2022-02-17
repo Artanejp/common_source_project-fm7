@@ -167,6 +167,7 @@ if(WIN32)
 	${s_qt_gui_headers_MOC}
 	${s_qt_gui_RCC}
 	)
+  
   if(USE_QT_6)
 	target_link_libraries(CSPgui 
 	  PRIVATE 	  CSPosd

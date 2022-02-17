@@ -151,8 +151,11 @@ set(USE_LTO ON CACHE BOOL "Use link-time-optimization to build.")
 set(USE_OPENMP OFF CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 
-#if(USE_LTO) 
+#set(IS_ENABLE_LTO FALSE)
+#if(CMAKE_VERSION VERSION_GREATER 3.8)
+#  if(USE_LTO) 
 #	include(CheckIPOSupported)
+#  endif()
 #endif()
 
 if(USE_QT5_4_APIS)
@@ -396,6 +399,15 @@ function(set_std TARGET)
 #	endif()
 endfunction(set_std)
 
+#if(CMAKE_VERSION VERSION_GREATER 3.8)
+#  if(USE_LTO)
+#	check_ipo_supported(RESULT IS_ENABLE_LTO LANGUAGES CXX)
+#  endif()
+#endif()
+#if(IS_ENABLE_LTO)
+#  set_property(GLOBAL PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+#endif()
+
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/qt" osd)
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/qt/avio" qt/avio)
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/qt/gui" qt/gui)
@@ -461,7 +473,7 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 			${RESOURCE_${EXE_NAME}}
 		)
     endif()
-	#QT5_USE_MODULES(${EXE_NAME} Widgets Core Gui OpenGL Network)
+	
 	if(USE_QT_6)
 	  set(QT_LIBRARIES ${QT_LIBRARIES}
 		Qt6::Widgets Qt6::Core Qt6::Gui Qt6::OpenGL Qt6::OpenGLWidgets Qt6::Network Qt6::Core5Compat)

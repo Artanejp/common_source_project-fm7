@@ -32,6 +32,7 @@ add_library(CSPosd SHARED
 )
 set_std(CSPosd)
 
+
 if(WIN32)
   if(USE_QT_6)
 	target_link_libraries(CSPosd PUBLIC

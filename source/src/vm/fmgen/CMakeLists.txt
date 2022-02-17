@@ -48,9 +48,9 @@ else()
       INSTALL(TARGETS CSPfmgen DESTINATION ${LIBCSP_INSTALL_DIR})
 	set_std(CSPfmgen)
   else()
-      add_library(fmgen STATIC
-                  ${s_vm_fmgen_srcs}
-		  )
+    add_library(fmgen STATIC
+      ${s_vm_fmgen_srcs}
+	)
 	set_std(fmgen)
   endif()
 endif()
