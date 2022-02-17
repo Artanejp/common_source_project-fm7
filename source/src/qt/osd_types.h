@@ -13,7 +13,6 @@
 
 //#include <QWidget>
 #include <QThread>
-#include <QMutex>
 #include <QPainter>
 #include <QElapsedTimer>
 #include <QString>

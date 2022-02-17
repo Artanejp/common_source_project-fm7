@@ -14,8 +14,13 @@
 #include <QQueue>
 #include <QString>
 #include <QElapsedTimer>
-#include <QMutexLocker>
-#include <QMutex>
+//#include <QMutexLocker>
+
+//#if QT_VERSION >= 0x051400
+//#include <QRecursiveMutex>
+//#else
+//#include <QMutex>
+//#endif
 
 #include "common.h"
 #include "commonclasses.h"

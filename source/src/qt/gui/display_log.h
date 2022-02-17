@@ -26,7 +26,13 @@ class QFontDialog;
 class QPushButton;
 class QResizeEvent;
 class QTimer;
+
+#if QT_VERSION >= 0x051400
+class QRecursiveMutex;
+#else
 class QMutex;
+#endif
+
 class USING_FLAGS;
 class CSP_Logger;
 class DLL_PREFIX Dlg_LogViewerBind : public QObject
@@ -69,7 +75,12 @@ protected:
 	QPushButton *FontDlgButton;
 
 	USING_FLAGS *using_flags;
+
+#if QT_VERSION >= 0x051400
+	QRecursiveMutex *lock_mutex;
+#else
 	QMutex *lock_mutex;
+#endif
 public:
 	Dlg_LogViewer(USING_FLAGS *p, CSP_Logger * logger, QWidget *parent, QString _domain = QString::fromUtf8(""), uint32_t _level = 0xffffffff);
 	~Dlg_LogViewer();

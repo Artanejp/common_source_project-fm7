@@ -74,38 +74,75 @@ if(USE_CCACHE)
    SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
 endif()
 
-SET(USE_QT_5 ON CACHE BOOL "Build with Qt5 API.If set USE_QT_6 and Qt6 exists, not effectable.")
-SET(USE_QT_6 OFF CACHE BOOL "Build with Qt6.If not available, will fallback to Qt5.")
 
-if(WIN32)
-  FIND_PACKAGE(Qt5Core REQUIRED)
-else()
-  FIND_PACKAGE(Qt5Widgets REQUIRED)
+if(DEFINED QT6_ROOT_PATH)
+  SET(CMAKE_FIND_ROOT_PATH  ${QT6_ROOT_PATH} ${CMAKE_FIND_ROOT_PATH})
+elseif(DEFINED QT5_ROOT_PATH)
+  SET(CMAKE_FIND_ROOT_PATH  ${QT5_ROOT_PATH} ${CMAKE_FIND_ROOT_PATH})
 endif()
-  FIND_PACKAGE(Qt5Gui REQUIRED)
-  FIND_PACKAGE(Qt5OpenGL REQUIRED)
-  FIND_PACKAGE(Qt5Network REQUIRED)
+
+SET(USE_QT_5 ON CACHE BOOL "Build with Qt5 API.If set USE_QT_6 and Qt6 exists, not effectable.")
+
+if(CMAKE_VERSION VERSION_LESS 3.16)
+  SET(USE_QT_6 OFF)
+else()
+  SET(USE_QT_6 OFF CACHE BOOL "Build with Qt6.If not available, will fallback to Qt5.")
+endif()
+
+if(USE_QT_6)
+  FIND_PACKAGE(Qt6 COMPONENTS Core Widgets Gui OpenGL OpenGLWidgets Network)
+#  if(NOT QT6_Found)
+#	SET(USE_QT_6 OFF)
+#	SET(USE_QT_5 ON)
+#  endif()
+endif()
+
+if(USE_QT_6)
+  SET(WITH_QT_VERSION_MAJOR 6)
+  find_package(Qt6 COMPONENTS Core5Compat REQUIRED)
+  
+  include_directories(${Qt6Widgets_INCLUDE_DIRS})
+  include_directories(${Qt6Core_INCLUDE_DIRS})
+  include_directories(${Qt6Gui_INCLUDE_DIRS})
+  include_directories(${Qt6OpenGL_INCLUDE_DIRS})
+  include_directories(${Qt6OpenGLWidgets_INCLUDE_DIRS})
+  include_directories(${Qt6Network_INCLUDE_DIRS})
+  include_directories(${Qt6Core5Compat_INCLUDE_DIRS})
+  add_definitions(-D_USE_QT6)
+  set(USE_QT_5 OFF)
+elseif(USE_QT_5)
+  FIND_PACKAGE(Qt6 COMPONENTS Core Widgets Gui OpenGL Network)
+  SET(WITH_QT_VERSION_MAJOR 5)
   include_directories(${Qt5Widgets_INCLUDE_DIRS})
   include_directories(${Qt5Core_INCLUDE_DIRS})
   include_directories(${Qt5Gui_INCLUDE_DIRS})
   include_directories(${Qt5OpenGL_INCLUDE_DIRS})
   include_directories(${Qt5Network_INCLUDE_DIRS})
-  add_definitions(-D_USE_OPENGL -DUSE_OPENGL)
-  
-if(DEFINED QT5_ROOT_PATH)
-  SET(CMAKE_FIND_ROOT_PATH  ${QT5_ROOT_PATH} ${CMAKE_FIND_ROOT_PATH})
+  add_definitions(-D_USE_QT5)
+else()
+  #Error
 endif()
+
+add_definitions(-D_USE_OPENGL -DUSE_OPENGL)
 
 #socket
 function(APPEND_SOCKET_FEATURE)
   if(${USE_SOCKET_${EXE_NAME}})
+	if(DEFINED USE_QT_6)
+      FIND_PACKAGE(Qt6Network REQUIRED)
+      include_directories(${Qt6Network_INCLUDE_DIRS})
+	else()
      FIND_PACKAGE(Qt5Network REQUIRED)
      include_directories(${Qt5Network_INCLUDE_DIRS})
+	 endif()
    endif()
 endfunction(APPEND_SOCKET_FEATURE)
 
-
-set(USE_QT5_4_APIS ON CACHE BOOL "Build with Qt5.4 (or later) APIs if you can.")
+if(USE_QT_6)
+  set(USE_QT5_4_APIS ON)
+else()
+  set(USE_QT5_4_APIS ON CACHE BOOL "Build with Qt5.4 (or later) APIs if you can.")
+endif()
 set(USE_GCC_OLD_ABI ON CACHE BOOL "Build with older GCC ABIs if you can.")
 set(USE_SDL2 ON CACHE BOOL "Build with libSDL2. DIsable is building with libSDL1.")
 set(USE_MOVIE_SAVER ON CACHE BOOL "Save screen/audio as MP4 MOVIE. Needs libav .")
@@ -117,7 +154,6 @@ set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 #if(USE_LTO) 
 #	include(CheckIPOSupported)
 #endif()
-add_definitions(-D_USE_QT5)
 
 if(USE_QT5_4_APIS)
   add_definitions(-D_USE_QT_5_4)
@@ -140,19 +176,22 @@ add_definitions(-DUSE_QT)
 
 # 20210914 K.O Start to migrate for Qt6.
 # See, https://doc.qt.io/qt-6/portingguide.html
-if(${Qt5Widgets_VERSION_MAJOR} VERSION_GREATER "4")
-  if(${Qt5Widgets_VERSION_MAJOR} VERSION_EQUAL "5")
-    if(${Qt5Widgets_VERSION_MINOR} VERSION_GREATER "14")
-      add_compile_definitions(QT_DISABLE_DEPRECATED_BEFORE=0x050F00)
-    endif()
-  else()
+if(USE_QT_6)
 	#Qt6 or later
-    add_compile_definitions(QT_DISABLE_DEPRECATED_BEFORE=0x060000)
+    add_compile_definitions(QT_DISABLE_DEPRECATED_BEFORE=0x060200)
+elseif(USE_QT_5)
+  if(Qt5Widgets_VERSION VERSION_GREATER 5.15)
+      add_compile_definitions(QT_DISABLE_DEPRECATED_BEFORE=0x050F00)
   endif()
 endif()
 
-add_definitions(-DQT_MAJOR_VERSION=${Qt5Widgets_VERSION_MAJOR})
-add_definitions(-DQT_MINOR_VERSION=${Qt5Widgets_VERSION_MINOR})
+if(USE_QT_6)
+  add_definitions(-DQT_MAJOR_VERSION=${Qt6Widgets_VERSION_MAJOR})
+  add_definitions(-DQT_MINOR_VERSION=${Qt6Widgets_VERSION_MINOR})
+elseif(USE_QT_5)
+  add_definitions(-DQT_MAJOR_VERSION=${Qt5Widgets_VERSION_MAJOR})
+  add_definitions(-DQT_MINOR_VERSION=${Qt5Widgets_VERSION_MINOR})
+endif()
 
 if(USE_OPENMP)
   find_package(OpenMP)
@@ -255,7 +294,12 @@ endif(HAVE_NANOSLEEP OR LIB_RT_HAS_NANOSLEEP)
 
 set(SRC_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../src)
 
-if(USE_QT_5)
+if(USE_QT_6)
+	if(NOT WIN32)
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+	endif()
+elseif(USE_QT_5)
 	if(NOT WIN32)
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
@@ -335,6 +379,15 @@ else()
 		set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
 endif()
 
+
+macro(MAKE_WRAP_CPP)
+  if(USE_QT_6)
+	QT_WRAP_CPP(${ARGV})
+  elseif(USE_QT_5)
+	QT5_WRAP_CPP(${ARGV})
+  endif()
+endmacro(MAKE_WRAP_CPP)
+
 function(set_std TARGET)
 #	if(CMAKE_VERSION VERSION_LESS "3.1")
 #	else()
@@ -357,6 +410,7 @@ else()
 	add_subdirectory("${PROJECT_SOURCE_DIR}/src/vm/fmgen" vm/fmgen)
 endif()
 
+
 function(ADD_VM VM_NAME EXE_NAME VMDEF)
 	set(COMMON_DIRECTORY ${PROJECT_SOURCE_DIR}/src/qt/common)
 	set(s_qt_common_headers
@@ -364,10 +418,13 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 		${COMMON_DIRECTORY}/mainwidget.h
 		${PROJECT_SOURCE_DIR}/src/qt/osd.h
 	)
-	
+  if(USE_QT_6)
+	QT_ADD_RESOURCES(RESOURCE_${EXE_NAME} ${RESOURCE})
+	QT_WRAP_CPP(s_qt_common_headers_MOC ${s_qt_common_headers})
+  elseif(USE_QT_5)
 	QT5_ADD_RESOURCES(RESOURCE_${EXE_NAME} ${RESOURCE})
 	QT5_WRAP_CPP(s_qt_common_headers_MOC ${s_qt_common_headers})
-	
+  endif()	
 	set(QT_COMMON_BASE
 		${COMMON_DIRECTORY}/main.cpp
 		${COMMON_DIRECTORY}/qt_utils.cpp
@@ -405,9 +462,14 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 		)
     endif()
 	#QT5_USE_MODULES(${EXE_NAME} Widgets Core Gui OpenGL Network)
-	set(QT_LIBRARIES ${QT_LIBRARIES}
-	  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Network)
-	
+	if(USE_QT_6)
+	  set(QT_LIBRARIES ${QT_LIBRARIES}
+		Qt6::Widgets Qt6::Core Qt6::Gui Qt6::OpenGL Qt6::OpenGLWidgets Qt6::Network Qt6::Core5Compat)
+    elseif(USE_QT_5)
+	  set(QT_LIBRARIES ${QT_LIBRARIES}
+		Qt5::Widgets Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Network)
+	endif()
+  
 	target_include_directories(${EXE_NAME} 
 		PRIVATE "${PROJECT_SOURCE_DIR}/src/qt/machines/${VM_NAME}"
 		PRIVATE "${PROJECT_SOURCE_DIR}/src/vm/${VM_NAME}"

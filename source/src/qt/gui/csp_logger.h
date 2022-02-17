@@ -106,14 +106,23 @@ public:
 	bool check_domain(QString s, bool case_sensitive = false);
 };
 
+#if QT_VERSION >= 0x051400
+class QRecursiveMutex;
+#else
 class QMutex;
+#endif
+
 class OSD_BASE;
 
 class DLL_PREFIX CSP_Log_ConsoleThread: public QThread {
 	Q_OBJECT
 	QContiguousCache<QString> conslog;
 	//QQueue<QString> conslog;
+#if QT_VERSION >= 0x051400
+	QRecursiveMutex *_mutex;
+#else
 	QMutex *_mutex;
+#endif
 public:
 	CSP_Log_ConsoleThread(QObject *parent);
 	~CSP_Log_ConsoleThread();
@@ -162,7 +171,11 @@ private:
 	bool level_cpu_out_console[8][CSP_LOG_LEVELS]; // Console log chain
 	
 	QVector<CSP_LoggerLine *> squeue;
+#if QT_VERSION >= 0x051400
+	QRecursiveMutex *lock_mutex;
+#else
 	QMutex *lock_mutex;
+#endif
 	OSD_BASE *p_osd;
 
 	int max_devices;

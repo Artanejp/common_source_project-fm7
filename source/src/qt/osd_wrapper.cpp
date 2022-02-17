@@ -12,7 +12,12 @@
 #include <QObject>
 #include <QWidget>
 
-#include <QMutex>
+#if QT_VERSION >= 0x051400
+	#include <QRecursiveMutex>
+#else
+	#include <QMutex>
+#endif
+
 #include <QSemaphore>
 #include <QPainter>
 #include <QElapsedTimer>
@@ -24,7 +29,7 @@
 #include <QString>
 #include <QObject>
 #include <QThread>
-#include <QMutex>
+
 #include <QOpenGLContext>
 
 #include <QImage>

@@ -36,8 +36,11 @@
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
-#include <QMutex>
-
+#if QT_VERSION >= 0x051400
+	#include <QRecursiveMutex>
+#else
+	#include <QMutex>
+#endif
 #include <QOpenGLFunctions_4_5_Core>
 
 //extern USING_FLAGS *using_flags;
@@ -55,7 +58,11 @@ GLDraw_4_5::GLDraw_4_5(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, 
 	main_texture_buffer = 0;
 	main_read_texture_buffer = 0;
 	map_base_address = NULL;
+#if QT_VERSION >= 0x051400
+	main_mutex = new QRecursiveMutex();
+#else
 	main_mutex = new QMutex();
+#endif
 	main_texture_ready = false;
 	sync_fence = 0;
 

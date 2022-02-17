@@ -4,7 +4,7 @@ set(s_qt_tvboy_headers_${EXE_NAME}
 	  menuclasses.h
 )
 
-QT5_WRAP_CPP(s_qt_tvboy_headers_${EXE_NAME}_MOC ${s_qt_tvboy_headers_${EXE_NAME}})
+MAKE_WRAP_CPP(s_qt_tvboy_headers_${EXE_NAME}_MOC ${s_qt_tvboy_headers_${EXE_NAME}})
 
 add_library(qt_${EXE_NAME}
 	  MainWindow.cpp

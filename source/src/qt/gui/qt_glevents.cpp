@@ -62,15 +62,24 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 	}
 	QPointF pos;
 //	if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
-		pos = event->localPos();
+#if QT_VERSION >= 0x060000
+	pos = event->position();
+#else
+	pos = event->localPos();
+#endif
 //	} else {
 //		pos = event->screenPos();
 //	}
 	double xpos = (double)(pos.x()) / (double)width();
 	double ypos = (double)(pos.y()) / (double)height();
+#if QT_VERSION >= 0x060000
+	// ToDo: Use QCursor instead of Event. 20220217 K.O
+	double gxpos = (double)(event->globalPosition().x()) / (double)width();
+	double gypos = (double)(event->globalPosition().y()) / (double)height();
+#else
 	double gxpos = (double)(event->globalPos().x()) / (double)width();
 	double gypos = (double)(event->globalPos().y()) / (double)height();
-
+#endif
 	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse() || (using_flags->get_max_button() > 0)) {
 		if(!enable_mouse) return;
 		//if(QApplication::overrideCursor() == NULL) {

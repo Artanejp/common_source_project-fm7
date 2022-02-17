@@ -4,7 +4,7 @@ set(s_qt_b2nd_headers
 	  menuclasses.h
 )
 
-QT5_WRAP_CPP(s_qt_b2nd_headers_MOC ${s_qt_b2nd_headers})
+MAKE_WRAP_CPP(s_qt_b2nd_headers_MOC ${s_qt_b2nd_headers})
 
 add_library(qt_emubabbage2nd
 	  MainWindow.cpp

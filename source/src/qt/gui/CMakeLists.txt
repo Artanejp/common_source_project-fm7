@@ -143,27 +143,44 @@ set(s_qt_gui_srcs
 )
 add_definitions(-D__GUI_LIBRARY_NAME=\"libCSPgui.${THIS_LIB_VERSION}\")
 
-if(USE_QT_5)
-  QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
+MAKE_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
+if(USE_QT_6)
+  QT_ADD_RESOURCES(s_qt_gui_RCC ${RESOURCE}
+              ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/commontexts.qrc
+		      ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/shaders.qrc
+  		      ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/i18n_global.qrc
+		      ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/icons.qrc
+		      )
+elseif(USE_QT_5)
   QT5_ADD_RESOURCES(s_qt_gui_RCC ${RESOURCE}
               ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/commontexts.qrc
 		      ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/shaders.qrc
   		      ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/i18n_global.qrc
 		      ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/icons.qrc
 		      )
-else()
-  QT4_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
 endif()
 
 if(WIN32)
-include (GenerateExportHeader)
-add_library(CSPgui SHARED
-	  ${s_qt_gui_srcs}
-	  ${s_qt_gui_headers_MOC}
-	  ${s_qt_gui_RCC}
+  include (GenerateExportHeader)
+  add_library(CSPgui SHARED
+	${s_qt_gui_srcs}
+	${s_qt_gui_headers_MOC}
+	${s_qt_gui_RCC}
+	)
+  if(USE_QT_6)
+	target_link_libraries(CSPgui 
+	  PRIVATE 	  CSPosd
+	  CSPavio
+	  CSPemu_utils
+	  Qt::Core
+	  Qt::Gui
+	  Qt::OpenGL
+	  Qt::Widgets
+	  ${SDL2_LIBRARIES}
+	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
-
-target_link_libraries(CSPgui 
+  elseif(USE_QT_5)
+	target_link_libraries(CSPgui 
 	  PRIVATE 	  CSPosd
 	  CSPavio
 	  CSPemu_utils
@@ -174,30 +191,41 @@ target_link_libraries(CSPgui
 	  ${SDL2_LIBRARIES}
 	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
-set_target_properties(CSPgui PROPERTIES
-			     SOVERSION ${THIS_LIB_VERSION}
-			     VERSION ${THIS_LIB_VERSION}
-			     LINK_INTERFACE_LIBRARIES ""
-			     )
-generate_export_header(CSPgui
-        BASE_NAME CSPgui
-        EXPORT_MACRO_NAME CSPgui_EXPORT
-        EXPORT_FILE_NAME CSPgui_Export.h
-        STATIC_DEFINE CSPgui_BUILT_AS_STATIC
-)
-	set_std(CSPgui)
+  endif()
+  set_target_properties(CSPgui PROPERTIES
+	SOVERSION ${THIS_LIB_VERSION}
+	VERSION ${THIS_LIB_VERSION}
+	LINK_INTERFACE_LIBRARIES ""
+	)
+  generate_export_header(CSPgui
+    BASE_NAME CSPgui
+    EXPORT_MACRO_NAME CSPgui_EXPORT
+    EXPORT_FILE_NAME CSPgui_Export.h
+    STATIC_DEFINE CSPgui_BUILT_AS_STATIC
+	)
+  set_std(CSPgui)
 else()
-set(s_qt_gui_srcs ${s_qt_gui_srcs} qt_main.cpp)
+  set(s_qt_gui_srcs ${s_qt_gui_srcs} qt_main.cpp)
 
-add_library(CSPgui SHARED
-	  ${s_qt_gui_srcs}
-	  ${s_qt_gui_headers_MOC}
-	  ${s_qt_gui_RCC}
-)
-#add_precompiled_header(CSPgui pch_list
-#		SOURCE_CXX pch.cpp FORCEINCLUDE
-#)
-target_link_libraries(CSPgui PUBLIC
+  add_library(CSPgui SHARED
+	${s_qt_gui_srcs}
+	${s_qt_gui_headers_MOC}
+	${s_qt_gui_RCC}
+	)
+  #add_precompiled_header(CSPgui pch_list
+  #		SOURCE_CXX pch.cpp FORCEINCLUDE
+  #)
+  if(USE_QT_6)
+	target_link_libraries(CSPgui PUBLIC
+	  Qt::Core
+	  Qt::Gui
+	  Qt::OpenGL
+	  Qt::Widgets
+	  ${SDL2_LIBRARIES}
+	  ${ADDITIONAL_DLL_LIBRARIES}
+	  )
+  elseif(USE_QT_5)	
+	target_link_libraries(CSPgui PUBLIC
 	  Qt5::Core
 	  Qt5::Gui
 	  Qt5::OpenGL
@@ -205,12 +233,12 @@ target_link_libraries(CSPgui PUBLIC
 	  ${SDL2_LIBRARIES}
 	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
+  endif()
 
-set_target_properties(CSPgui PROPERTIES 
-			     SOVERSION ${THIS_LIB_VERSION}
-			     VERSION ${THIS_LIB_VERSION}
-			     )
-INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
-	set_std(CSPgui)
-
+  set_target_properties(CSPgui PROPERTIES 
+	SOVERSION ${THIS_LIB_VERSION}
+	VERSION ${THIS_LIB_VERSION}
+	)
+  INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
+  set_std(CSPgui)
 endif()

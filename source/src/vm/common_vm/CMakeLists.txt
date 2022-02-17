@@ -181,50 +181,40 @@ set(s_vm_common_vm_srcs
 add_definitions(-D__LIBRARY_NAME=\"libCSPcommon_vm.${THIS_LIB_VERSION}\")
 
 if(WIN32)
-include (GenerateExportHeader)
-add_library(CSPcommon_vm SHARED
-   ${s_vm_common_vm_srcs}
+  include (GenerateExportHeader)
+  add_library(CSPcommon_vm SHARED
+	${s_vm_common_vm_srcs}
     )
    
-target_link_libraries(CSPcommon_vm PRIVATE
-          CSPosd
-	  CSPemu_utils
-	  CSPfmgen
-#	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPosd.dll.a
-#	  ${CMAKE_CURRENT_SOURCE_DIR}/../../../build-cmake/bin-win32/libCSPemu_utils.dll.a
-#	  Qt5::Core
-#	  Qt5::Gui
-#	  Qt5::OpenGL
-#	  Qt5::Widgets
-	  ${SDL2_LIBRARIES}
-	  ${ADDITIONAL_DLL_LIBRARIES}
-	  )
-set_target_properties(CSPcommon_vm PROPERTIES
-			     SOVERSION ${THIS_LIB_VERSION}
-			     VERSION ${THIS_LIB_VERSION}
-			     LINK_INTERFACE_LIBRARIES ""
-			     )
-	set_std(CSPcommon_vm)
-generate_export_header(CSPcommon_vm
-       BASE_NAME CSPcommon_vm
-        EXPORT_MACRO_NAME CSPcommon_vm_EXPORT
-        EXPORT_FILE_NAME CSPcommon_vm_Export.h
-        STATIC_DEFINE CSPcommon_vm_BUILT_AS_STATIC
-)
-#add_library(vm_common_vm
-#   ${s_vm_common_vm_srcs}
-#    )
+  target_link_libraries(CSPcommon_vm PRIVATE
+	CSPosd
+	CSPemu_utils
+	CSPfmgen
+	${SDL2_LIBRARIES}
+	${ADDITIONAL_DLL_LIBRARIES}
+	)
+  set_target_properties(CSPcommon_vm PROPERTIES
+	SOVERSION ${THIS_LIB_VERSION}
+	VERSION ${THIS_LIB_VERSION}
+	LINK_INTERFACE_LIBRARIES ""
+	)
+  set_std(CSPcommon_vm)
+  generate_export_header(CSPcommon_vm
+    BASE_NAME CSPcommon_vm
+    EXPORT_MACRO_NAME CSPcommon_vm_EXPORT
+    EXPORT_FILE_NAME CSPcommon_vm_Export.h
+    STATIC_DEFINE CSPcommon_vm_BUILT_AS_STATIC
+	)
 else()
-
   add_library(CSPcommon_vm SHARED
     ${s_vm_common_vm_srcs}
-  )
+	)
   set_target_properties(CSPcommon_vm PROPERTIES 
-     SOVERSION ${THIS_LIB_VERSION}
-     VERSION ${THIS_LIB_VERSION}
-  )
-	set_std(CSPcommon_vm)
-#  cotire(CSPcommon_vm)
+    SOVERSION ${THIS_LIB_VERSION}
+    VERSION ${THIS_LIB_VERSION}
+	)
+  set_std(CSPcommon_vm)
+  #  cotire(CSPcommon_vm)
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()
 

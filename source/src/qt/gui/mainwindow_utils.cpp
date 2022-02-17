@@ -7,6 +7,7 @@
  * Jan 24, 2014 : Moved from some files.
  */
 #include <QApplication>
+#include <QActionGroup>
 #include <QMenu>
 #include <QMenuBar>
 #include <QThread>

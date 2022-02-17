@@ -10,7 +10,12 @@
 #include <Qt>
 #include <QApplication>
 #include <SDL.h>
-#include <QMutex>
+
+#if QT_VERSION >= 0x051400
+	#include <QRecursiveMutex>
+#else
+	#include <QMutex>
+#endif
 #include <QMutexLocker>
 
 //#include "../emu.h"

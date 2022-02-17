@@ -6,7 +6,13 @@
  * Licence : GPLv2
  */
 #include <QObject>
-#include <QMutex>
+
+#if QT_VERSION >= 0x051400
+	#include <QRecursiveMutex>
+#else
+	#include <QMutex>
+#endif
+
 #include <QMutexLocker>
 
 #include "csp_logger.h"
@@ -105,7 +111,11 @@ bool CSP_LoggerLine::contains_mainstr(QString s, bool case_sensitive)
 CSP_Logger::CSP_Logger(QObject *parent, bool b_syslog, bool cons, const char *devname) : QObject(parent)
 {
 	p_osd = NULL;
+#if QT_VERSION >= 0x051400
+	lock_mutex = new QRecursiveMutex();
+#else
 	lock_mutex = new QMutex(QMutex::Recursive);
+#endif
 	this->reset();
 	this->open(b_syslog, cons, devname);
 	level_state_out_record = false;
@@ -842,7 +852,11 @@ double CSP_Logger::get_vm_clocks_usec()
 
 CSP_Log_ConsoleThread::CSP_Log_ConsoleThread(QObject *parent) : QThread(parent)
 {
+#if QT_VERSION >= 0x051400
+	_mutex = new QRecursiveMutex();
+#else
 	_mutex = new QMutex(QMutex::Recursive);
+#endif
 	conslog.setCapacity(256);
 }
 

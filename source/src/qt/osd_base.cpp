@@ -13,7 +13,12 @@
 #include <QObject>
 #include <QWidget>
 
-#include <QMutex>
+#if QT_VERSION >= 0x051400
+	#include <QRecursiveMutex>
+#else
+	#include <QMutex>
+#endif
+
 #include <QMutexLocker>
 #include <QSemaphore>
 #include <QPainter>
@@ -26,7 +31,7 @@
 #include <QString>
 #include <QObject>
 #include <QThread>
-#include <QMutex>
+
 #include <QOpenGLContext>
 
 #include "simd_types.h"
@@ -49,17 +54,26 @@
 OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QObject(0)
 {
 	using_flags = p;
-	vm_mutex = new QMutex(QMutex::Recursive);
 	locked_vm = false;
+	
+#if QT_VERSION >= 0x051400
+	vm_mutex = new QRecursiveMutex();
+	screen_mutex = new QRecursiveMutex();
+	joystick_mutex = new QRecursiveMutex();
+	mouse_mutex = new QRecursiveMutex();
+	log_mutex = new QRecursiveMutex();
+	debug_mutex = new QRecursiveMutex();
+#else
+	vm_mutex = new QMutex(QMutex::Recursive);
 	screen_mutex = new QMutex(QMutex::Recursive);
 	joystick_mutex = new QMutex(QMutex::Recursive);
 	mouse_mutex = new QMutex(QMutex::Recursive);
 	log_mutex = new QMutex(QMutex::Recursive);
-	
+	debug_mutex = new QMutex(QMutex::Recursive);
+#endif
 	device_node_list.clear();
 	max_vm_nodes = 0;
 	p_logger = logger;
-	debug_mutex = new QMutex(QMutex::Recursive);
 	vm = NULL;
 	
 	SupportedFeatures.clear();

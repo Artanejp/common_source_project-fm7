@@ -9,7 +9,11 @@
 #include "movie_loader.h"
 #include "csp_logger.h"
 
-#include <QMutex>
+#if QT_VERSION >= 0x051400
+	#include <QRecursiveMutex>
+#else
+	#include <QMutex>
+#endif
 #include <QMutexLocker>
 
 MOVIE_LOADER::MOVIE_LOADER(OSD *osd, config_t *cfg) : QObject(NULL)
@@ -18,9 +22,13 @@ MOVIE_LOADER::MOVIE_LOADER(OSD *osd, config_t *cfg) : QObject(NULL)
 	p_cfg = cfg;
 	p_logger = osd->get_logger();
 	
+#if QT_VERSION >= 0x051400
+	video_mutex = new QRecursiveMutex();
+	snd_write_lock = new QRecursiveMutex();
+#else
 	video_mutex = new QMutex(QMutex::Recursive);
 	snd_write_lock = new QMutex(QMutex::Recursive);
-	
+#endif	
 	frame_rate = 29.97;
 	video_frame_count = 0;
 	duration_us = 0;

@@ -21,7 +21,11 @@ class QOpenGLBuffer;
 class QOpenGLVertexArrayObject;
 class QOpenGLShaderProgram;
 class QOpenGLPixelTransferOptions;
+#if QT_VERSION >= 0x051400
+class QRecursiveMutex;
+#else
 class QMutex;
+#endif
 
 class DLL_PREFIX GLDraw_4_5 : public GLDraw_Tmpl
 {
@@ -35,7 +39,13 @@ protected:
 	GLuint main_texture_buffer;
 	GLuint main_read_texture_buffer;
 	GLsync sync_fence;
+
+#if QT_VERSION >= 0x051400
+	QRecursiveMutex *main_mutex;
+#else
 	QMutex *main_mutex;
+#endif
+	
 	scrntype_t *map_base_address;
 
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,

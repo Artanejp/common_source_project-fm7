@@ -6,6 +6,7 @@
  *     Jan 13 2015 : Start
  */
 #include <QApplication>
+#include <QActionGroup>
 
 #include "commonclasses.h"
 #include "mainwidget_base.h"

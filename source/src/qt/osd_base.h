@@ -74,7 +74,12 @@ class CSP_KeyTables;
 class USING_FLAGS;
 class CSP_logger;
 
+#if QT_VERSION >= 0x051400
+class QRecursiveMutex;
+#else
 class QMutex;
+#endif
+
 class QOpenGLContext;
 class MIDI_REDIRECTOR;
 class SIO_REDIRECTOR;
@@ -367,13 +372,21 @@ public:
 	VM_TEMPLATE* vm;
 	//EMU* emu;
 	class Ui_MainWindow *main_window_handle;
+#if QT_VERSION >= 0x051400
+	QRecursiveMutex *screen_mutex;
+	QRecursiveMutex *vm_mutex;
+	QRecursiveMutex *debug_mutex;
+	QRecursiveMutex *joystick_mutex;
+	QRecursiveMutex *mouse_mutex;
+	QRecursiveMutex *log_mutex;
+#else
 	QMutex *screen_mutex;
 	QMutex *vm_mutex;
 	QMutex *debug_mutex;
 	QMutex *joystick_mutex;
 	QMutex *mouse_mutex;
 	QMutex *log_mutex;
-	
+#endif	
 	int host_cpus;
 	bool now_auto_key;
 	

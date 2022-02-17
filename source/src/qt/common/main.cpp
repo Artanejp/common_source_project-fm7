@@ -87,11 +87,12 @@ void DLL_PREFIX CSP_DebugHandler(QtMsgType type, const QMessageLogContext &conte
 	
 	nmsg_l2.append(" ");
 	nmsg_l2.append(msgString);
-   
+
+	QString tmps_l1 = QString("%1").arg(context.line);
 	nmsg_l1.append(" In line ");
-	nmsg_l1.append(context.line);
+	nmsg_l1.append(tmps_l1);
 	nmsg_l1.append(" of ");
-	nmsg_l1.append(context.line);
+	nmsg_l1.append(context.file);
 	nmsg_l1.append(" (Function: ");
 	nmsg_l1.append(context.function);
 	nmsg_l1.append(" )");

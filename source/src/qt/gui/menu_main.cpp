@@ -1038,6 +1038,7 @@ void Ui_MainWindowBase::delete_emu_thread(void)
 	emit sig_quit_all();
 }  
 // Utility
+#include <QActionGroup>
 #include <QTextCodec>
 #include <QString>
 #include <QByteArray>

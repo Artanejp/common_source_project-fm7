@@ -9,6 +9,7 @@
 #include <QApplication>
 #include <QMenu>
 #include <QMenuBar>
+#include <QActionGroup>
 
 #include "commonclasses.h"
 #include "mainwidget_base.h"

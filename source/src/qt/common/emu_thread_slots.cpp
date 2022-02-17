@@ -462,7 +462,11 @@ void EmuThreadClassBase::do_start_auto_key(QString ctext)
 			uint val = (*itr);
 			int chrs = ucs4_kana_zenkaku_to_hankaku((const uint32_t)val, pool, sizeof(pool) / sizeof(uint32_t));
 			if(chrs > 0) {
+		#if QT_VERSION >= 0x060000
+				dst.append(QString::fromUcs4((char32_t*)pool, chrs));
+		#else
 				dst.append(QString::fromUcs4((uint*)pool, chrs));
+		#endif
 			}
 		}
 		clipBoardText = dst;

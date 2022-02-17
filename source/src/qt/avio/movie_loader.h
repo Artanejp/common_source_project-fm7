@@ -43,7 +43,13 @@ typedef struct {
 
 QT_BEGIN_NAMESPACE
 class OSD;
+
+#if QT_VERSION >= 0x051400
+class QRecursiveMutex;
+#else
 class QMutex;
+#endif
+
 class CSP_Logger;
 class DLL_PREFIX MOVIE_LOADER: public QObject
 {
@@ -81,8 +87,13 @@ protected:
 	OSD *p_osd;
 	config_t *p_cfg;
 
+#if QT_VERSION >= 0x051400
+	QRecursiveMutex *video_mutex;
+	QRecursiveMutex *snd_write_lock;
+#else
 	QMutex *video_mutex;
 	QMutex *snd_write_lock;
+#endif
 	double frame_rate;
 	double mod_frames;
 	int sound_rate;

@@ -19,6 +19,11 @@
 #include <QFontDialog>
 #include <QPushButton>
 #include <QTimer>
+#if QT_VERSION >= 0x051400
+	#include <QRecursiveMutex>
+#else
+	#include <QMutex>
+#endif
 #include <QMutexLocker>
 #include <QResizeEvent>
 #include <QSize>
@@ -119,7 +124,11 @@ void Dlg_LogViewer::resizeEvent(QResizeEvent *event)
 
 Dlg_LogViewer::Dlg_LogViewer(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, QString _domain, uint32_t level) : QWidget(parent)
 {
+#if QT_VERSION >= 0x051400
+	lock_mutex = new QRecursiveMutex();
+#else
 	lock_mutex = new QMutex(QMutex::Recursive);
+#endif
 	log_str.clear();
 	domain_name = _domain;
 	level_map = level;

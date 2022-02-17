@@ -1,6 +1,7 @@
 
 #include <QOpenGLContext>
 #include <QOpenGLTexture>
+#include <QOpenGLVersionProfile>
 #include <QMatrix4x2>
 #include <QMatrix4x4>
 #include <QImage>

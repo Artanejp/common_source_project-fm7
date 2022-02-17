@@ -50,7 +50,7 @@
 	#include <stdarg.h>
 #endif
 #ifdef _USE_QT
-	#ifdef _USE_QT5
+	#if defined(_USE_QT5) || defined(_USE_QT6)
 		#include <QString>
 		#include <QFile>
 		#include <QtEndian>

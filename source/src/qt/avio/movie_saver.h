@@ -88,7 +88,13 @@ typedef struct OutputStream {
 } OutputStream;
 
 class OSD;
+
+#if QT_VERSION >= 0x051400
+class QRecursiveMutex;
+#else
 class QMutex;
+#endif
+
 class CSP_Logger;
 QT_BEGIN_NAMESPACE
 class DLL_PREFIX VIDEO_DATA {

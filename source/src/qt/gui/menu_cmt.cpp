@@ -8,6 +8,7 @@
 
 #include <QApplication>
 #include <QStyle>
+#include <QActionGroup>
 
 #include "commonclasses.h"
 #include "mainwidget_base.h"

@@ -8,6 +8,7 @@
 #include <QImageReader>
 #include <QImage>
 #include <QMenu>
+#include <QActionGroup>
 
 #include "commonclasses.h"
 #include "mainwidget_base.h"
