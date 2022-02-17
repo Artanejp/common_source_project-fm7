@@ -23,9 +23,6 @@
 #include "csp_logger.h"
 #include "menu_flags.h"
 
-#ifndef Ulong
-#define Ulong unsigned long
-#endif
 
 #define KEY_KEEP_FRAMES 3
 
@@ -282,7 +279,6 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	uint32_t scan;
 	uint32_t vk;
    
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_KEYBOARD, "Key_DOWN_IN: count=%d key=%08x MOD=%08x", event->count(), key, mod);
 	if(event->isAutoRepeat()) return;
 	scan = event->nativeScanCode();
 	vk = get106Scancode2VK(scan);

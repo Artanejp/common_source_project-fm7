@@ -169,7 +169,9 @@ void Ui_MainWindowBase::do_set_window_focus_type(bool flag)
 		graphicsView->setFocus(Qt::MouseFocusReason);
 	} else {
 		graphicsView->setFocusPolicy(Qt::NoFocus);
-		graphicsView->clearFocus();
+		//graphicsView->setFocus(Qt::OtherFocusReason);
+		graphicsView->setFocus(Qt::ActiveWindowFocusReason);
+		//graphicsView->clearFocus();
 	}
 }
 
@@ -520,7 +522,9 @@ void Ui_MainWindowBase::setupUi(void)
 		graphicsView->setFocus(Qt::MouseFocusReason);
 	} else {
 		graphicsView->setFocusPolicy(Qt::NoFocus);
+		graphicsView->setFocus(Qt::ActiveWindowFocusReason);
 	}
+	
 	driveData->setOrientation(p_config->virtual_media_position);
 	connect(this, SIGNAL(sig_set_orientation_osd(int)), driveData, SLOT(setOrientation(int)));
 	connect(graphicsView, SIGNAL(sig_resize_osd(int)), driveData, SLOT(setScreenWidth(int)));
