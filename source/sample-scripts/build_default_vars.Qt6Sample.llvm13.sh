@@ -25,14 +25,15 @@ CSP_BASIC_DEBUGFLAGS=" \
 	"
 
 CSP_BASIC_CFLAGS=" \
-	-flto=thin \
+	-flto \
         -Wreserved-user-defined-literal \
         -fslp-vectorize \
         -fvectorize \
 	-fstrict-vtable-pointers \
 	-fstrict-enums \
 	"
-	
+#	-flto=thin \
+
 CSP_ARCH_CFLAGS=" \
 	${CSP_SIMD_FLAGS} \
 	"
@@ -46,15 +47,14 @@ CSP_ADDITIONAL_LDFLAGS_DLL=" \
 	-Wl,--compress-debug-sections=zlib \
 	-Wl,--lto-O3 \
 	"
-#	-Wl,--compress-debug-sections=zlib \
-#	-Wl,--lto-O3 \
 
 CSP_ADDITIONAL_LDFLAGS_EXE=" \
 	-flto=jobserver \
-	-fwhole-program-vtables \
 	-Wl,--compress-debug-sections=zlib \
 	-Wl,--lto-O3 \
+	-fwhole-program-vtables \
 	"
+
 
 cmake .. -DCMAKE_TOOLCHAIN_FILE="$PWD/../cmake/toolchains/toolchain_native_llvm-versioned.cmake" \
       -DCMAKE_CSP_LLVM_VERSION=${CSP_LLVM_TOOLCHAIN_VERSION} \
