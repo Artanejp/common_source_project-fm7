@@ -27,11 +27,11 @@ CSP_BASIC_DEBUGFLAGS=" \
 CSP_BASIC_CFLAGS=" \
 	-flto \
         -Wreserved-user-defined-literal \
-        -fslp-vectorize \
-        -fvectorize \
-	-fstrict-vtable-pointers \
-	-fstrict-enums \
 	"
+#        -fslp-vectorize \
+#        -fvectorize \
+#	-fstrict-vtable-pointers \
+#	-fstrict-enums \
 #	-flto=thin \
 
 CSP_ARCH_CFLAGS=" \
