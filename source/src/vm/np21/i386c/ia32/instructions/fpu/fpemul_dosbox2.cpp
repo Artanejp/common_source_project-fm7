@@ -57,8 +57,8 @@
 
 #ifndef _MSC_VER
 #include <cmath>
-#define _isnan(foo) isnan(foo)
-#define _finite(foo) finite(foo)
+#define _isnan(foo) std::isnan(foo)
+#define _finite(foo) std::isfinite(foo)
 #endif
 
 #include "../../ia32.mcr"
