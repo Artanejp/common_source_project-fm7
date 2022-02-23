@@ -46,8 +46,8 @@ if(WIN32)
 	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
   elseif(USE_QT_5)
-	target_link_libraries(CSPosd PUBLIC
-	  CSPemu_utils
+	target_link_libraries(CSPosd
+	  PUBLIC CSPemu_utils
 	  Qt5::Core
 	  Qt5::Gui
 	  Qt5::OpenGL

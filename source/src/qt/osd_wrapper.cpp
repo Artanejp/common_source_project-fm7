@@ -649,6 +649,16 @@ SOCKET OSD::get_socket(int ch)
 //
 
 // Screen
+scrntype_t DLL_PREFIX *bitmap_s::get_buffer(int y)
+{
+	if((is_mapped) && (glv != NULL)) {
+		scrntype_t *p = NULL;
+			p = glv->get_screen_buffer(y);
+			if(p != NULL) return p;
+		}
+		return (scrntype_t *)pImage.scanLine(y);
+}
+
 scrntype_t* OSD::get_buffer(bitmap_t *p, int y)
 {
 	if(p_glv->is_ready_to_map_vram_texture()) {
