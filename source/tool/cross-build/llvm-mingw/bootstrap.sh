@@ -9,7 +9,7 @@ WORKDIR_2=$PWD
 
 : ${FORCE_THREADS:=$(nproc 2>/dev/null)}
 : ${FORCE_THREADS:=$(sysctl -n hw.ncpu 2>/dev/null)}
-: ${FORCE_THREADS:=4}
+: ${FORCE_THREADS:=8}
 
 : ${LLVM_VERSION:=llvmorg-13.0.1}
 : ${FORCE_WORKLOADS:=15.0}
@@ -70,12 +70,12 @@ nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-llvm.sh \
 #${WORKDIR_2}/scripts/strip-llvm.sh \
 #		       ${TOOLCHAIN_PREFIX}
 
-#if [ $? -ne 0 ] ; then
-#   echo "PHASE ${ncount}: script: ${_sc} failed. Abort building"
-#   exit $?
-#fi
+if [ $? -ne 0 ] ; then
+   echo "PHASE ${ncount}: script: ${_sc} failed. Abort building"
+   exit $?
+fi
 
-ncount=$((${ncount}+1))
+#ncount=$((${ncount}+1))
 
 nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/install-wrappers.sh \
 		       ${TOOLCHAIN_PREFIX}
@@ -92,18 +92,18 @@ mkdir -p "${WORKDIR_2}/build/build"
 cd "${WORKDIR_2}/build/build"
 nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-mingw-w64.sh \
            ${THREAD_PARAM} \
-	       ${TOOLCHAIN_PREFIX}
+	   ${TOOLCHAIN_PREFIX}
 	       
 cd "${WORKDIR_2}/build"
 nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-compiler-rt.sh \
-            ${THREAD_PARAM} \
-            ${TOOLCHAIN_PREFIX} 
+           ${THREAD_PARAM} \
+           ${TOOLCHAIN_PREFIX} 
 
 
 cd "${WORKDIR_2}/build/build"
 nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-mingw-w64-libraries.sh \
             ${THREAD_PARAM} \
- 	        ${TOOLCHAIN_PREFIX}
+	    ${TOOLCHAIN_PREFIX}
 
 
 
@@ -130,10 +130,10 @@ nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-libcxx.sh \
 # Build sanitizers. Ubsan includes <typeinfo> from the C++ headers, so
 # we need to build this after libcxx.
 # Sanitizers on windows only support x86.
-cd "${WORKDIR_2}/build"
-nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-compiler-rt.sh \
-           ${THREAD_PARAM} \
-           ${TOOLCHAIN_PREFIX}
+#cd "${WORKDIR_2}/build"
+#nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-compiler-rt.sh \
+#           ${THREAD_PARAM} \
+#           ${TOOLCHAIN_PREFIX}
 
 #  		   --build-sanitizers \
 
