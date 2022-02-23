@@ -8,7 +8,10 @@ if [ $# -lt 1 ]; then
 fi
 while [ $# -gt 0 ]; do
     if [ "$1" = "--build-threads" ]; then
-	: ${CORES:=$2}
+	: ${CORES=$2}
+	shift
+    elif [ "$1" = "--workload" ]; then
+	: ${WORKLOADS=$2}
 	shift
     else
         PREFIX="$1"
@@ -16,22 +19,23 @@ while [ $# -gt 0 ]; do
     fi
     shift
 done
- mkdir -p "$PREFIX"
+mkdir -p "$PREFIX"
 PREFIX="$(cd "$PREFIX" && pwd)"
 export PATH=$PREFIX/bin:$PATH
 
 : ${CORES:=$(nproc 2>/dev/null)}
 : ${CORES:=$(sysctl -n hw.ncpu 2>/dev/null)}
 : ${CORES:=4}
+: ${WORKLOADS:=99.9}
 : ${ARCHS:=${TOOLCHAIN_ARCHS-i686 x86_64 armv7 aarch64}}
 
-if [ ! -d libssp ]; then
-    svn checkout -q svn://gcc.gnu.org/svn/gcc/tags/gcc_7_3_0_release/libssp
+if [ ! -d gcc-libssp/libssp ]; then
+    git clone https://gcc.gnu.org/git/gcc.git gcc-libssp
+#    svn checkout -q svn://gcc.gnu.org/svn/gcc/tags/gcc_7_3_0_release/libssp
 fi
-
-cp libssp-Makefile libssp/Makefile
-
-cd libssp
+cd gcc-libssp/libssp
+git checkout releases/gcc-10.3.0
+cp ../../libssp-Makefile ./Makefile
 
 # gcc/libssp's configure script runs checks for flags that clang doesn't
 # implement. We actually just need to set a few HAVE defines and compile
@@ -48,13 +52,13 @@ done
 cat ssp/ssp.h.in | sed 's/@ssp_have_usable_vsnprintf@/define/' > ssp/ssp.h
 
 for arch in $ARCHS; do
-     mkdir -p build-$arch
+    mkdir -p build-$arch
     cd build-$arch
-    make -f ../Makefile -j$CORES CROSS=$arch-w64-mingw32-
+    make -f ../Makefile -j$CORES -l $WORKLOADS CROSS=$arch-w64-mingw32-
     mkdir -p $PREFIX/$arch-w64-mingw32/bin
-     cp libssp.a $PREFIX/$arch-w64-mingw32/lib
-     cp libssp_nonshared.a $PREFIX/$arch-w64-mingw32/lib
-     cp libssp.dll.a $PREFIX/$arch-w64-mingw32/lib
-     cp libssp-0.dll $PREFIX/$arch-w64-mingw32/bin
+    cp libssp.a $PREFIX/$arch-w64-mingw32/lib
+    cp libssp_nonshared.a $PREFIX/$arch-w64-mingw32/lib
+    cp libssp.dll.a $PREFIX/$arch-w64-mingw32/lib
+    cp libssp-0.dll $PREFIX/$arch-w64-mingw32/bin
     cd ..
 done

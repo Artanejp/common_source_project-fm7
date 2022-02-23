@@ -6,7 +6,8 @@ ASSERTS=OFF
 BUILDDIR=build
 FORCE_THREADS=OFF
 OVERRIDE_THREADS=0
-LLVM_VERSION=llvmorg-11.0.0
+FORCE_WORKLOADS=OFF
+OVERRIDE_WORKLOADS=0
 
 while [ $# -gt 0 ]; do
     if [ "$1" = "--disable-asserts" ]; then
@@ -20,7 +21,12 @@ while [ $# -gt 0 ]; do
     elif [ "$1" = "--build-threads" ]; then
         FORCE_THREADS=ON
 	OVERRIDE_THREADS="$2"
-	: ${CORES:="$2"}
+	: ${CORES="$2"}
+	shift
+    elif [ "$1" = "--workload" ]; then
+        FORCE_WORKLOADS=ON
+	OVERRIDE_WORKLOADS="$2"
+	: ${WORKLOADS="$2"}
 	shift
     elif [ "$1" = "--llvm-version" ]; then
         LLVM_VERSION="$2"
@@ -42,6 +48,8 @@ fi
 : ${CORES:=$(nproc 2>/dev/null)}
 : ${CORES:=$(sysctl -n hw.ncpu 2>/dev/null)}
 : ${CORES:=4}
+
+: ${WORKLOADS:=99.9}
 
 if [ ! -d llvm-project ]; then
     # When cloning master and checking out a pinned old hash, we can't use --depth=1.
@@ -162,5 +170,5 @@ cmake \
 #     ninja -j$CORES install/strip
 #else
 #    make -j$CORES 
-     make -j$CORES install/strip
+     make -j$CORES -l ${WORKLOADS} install/strip
 #fi

@@ -1,11 +1,19 @@
 #!/usr/bin/bash
 
-TOOLCHAIN_PREFIX=/opt/llvm-mingw-11
-TOOLCHAIN_ARCHS="i686 x86_64 armv7 aarch64"
-TOOLCHAIN_TARGET_OSES="mingw32 mings32uwp"
-WORKDIR=$PWD/build
-LLVM_VERSION=llvmorg-11.0.0
-FORCE_THREADS=8
+
+: ${TOOLCHAIN_PREFIX:="/opt/llvm-mingw-13"}
+WORKDIR_2=$PWD
+
+: ${TOOLCHAIN_ARCHS="i686 x86_64 armv7 aarch64"}
+: ${TOOLCHAIN_TARGET_OSES="mingw32 mings32uwp"}
+
+: ${FORCE_THREADS:=$(nproc 2>/dev/null)}
+: ${FORCE_THREADS:=$(sysctl -n hw.ncpu 2>/dev/null)}
+: ${FORCE_THREADS:=4}
+
+: ${LLVM_VERSION:=llvmorg-13.0.1}
+: ${FORCE_WORKLOADS:=15.0}
+: ${NICE_VALUE:=20}
 
 typeset -i CLEANING
 CLEANING=0
@@ -17,7 +25,13 @@ fi
 export TOOLCHAIN_ARCHS
 export TOOLCHAIN_PREFIX
 export TOOLCHAIN_TARGET_OSES
-#export WORKDIR
+
+export LLVM_VERSION
+export FORCE_THREADS
+export FORCE_WORKLOADS
+export NICE_VALUE
+
+export WORKDIR_2
 
 typeset -i ncount
 ncount=1
@@ -26,21 +40,24 @@ THREAD_PARAM=""
 if [ -n "${FORCE_THREADS}" ] ; then
    THREAD_PARAM="--build-threads ${FORCE_THREADS}"
 fi
+if [ -n "${FORCE_WORKLOADS}" ] ; then
+   THREAD_PARAM="${THREAD_PARAM} --workload ${FORCE_WORKLOADS}"
+fi
 
-mkdir -p "${WORKDIR}/"
-mkdir -p "${WORKDIR}/scripts"
-mkdir -p "${WORKDIR}/scripts/wrappers"
-mkdir -p "${WORKDIR}/build"
+mkdir -p "${WORKDIR_2}/"
+mkdir -p "${WORKDIR_2}/scripts"
+mkdir -p "${WORKDIR_2}/scripts/wrappers"
+mkdir -p "${WORKDIR_2}/build"
 
-cp -ar scripts/  "${WORKDIR}/"
-cp -ar ${WORKDIR}/scripts/wrappers/* ${WORKDIR}/build/scripts/wrappers
-cp -ar ${WORKDIR}/scripts/test/* ${WORKDIR}/build/test/
+cp -ar scripts/*.sh  "${WORKDIR_2}/build/"
+cp -ar ${WORKDIR_2}/scripts/wrappers ${WORKDIR_2}/build/wrappers
+cp -ar ${WORKDIR_2}/scripts/test ${WORKDIR_2}/build/test/
 pushd .
 
-cd "${WORKDIR}/build"
-echo "BUILD LLVM Toolchain for Win32/64 to ${WORKDIR}/build/"
+cd "${WORKDIR_2}/build"
+echo "BUILD LLVM Toolchain for Win32/64 to ${WORKDIR_2}/build/"
 
-${WORKDIR}/scripts/build-llvm.sh \
+nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-llvm.sh \
                --llvm-version ${LLVM_VERSION} \
 	       ${THREAD_PARAM} \
 	       ${TOOLCHAIN_PREFIX}
@@ -50,7 +67,7 @@ ${WORKDIR}/scripts/build-llvm.sh \
 #   exit $?
 #fi
 
-#${WORKDIR}/scripts/strip-llvm.sh \
+#${WORKDIR_2}/scripts/strip-llvm.sh \
 #		       ${TOOLCHAIN_PREFIX}
 
 #if [ $? -ne 0 ] ; then
@@ -60,9 +77,8 @@ ${WORKDIR}/scripts/build-llvm.sh \
 
 ncount=$((${ncount}+1))
 
-${WORKDIR}/scripts/install-wrappers.sh \
-                       ${WORKDIR} \
-		       ${TOOLCHAIN_PREFIX} \
+nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/install-wrappers.sh \
+		       ${TOOLCHAIN_PREFIX}
 		       
 if [ $? -ne 0 ] ; then
    echo "PHASE ${ncount}: script: ${_sc} failed. Abort building"
@@ -72,31 +88,32 @@ ncount=$((${ncount}+1))
 
 export PATH="${TOOLCHAIN_PREFIX}/bin:${PATH}"
 
-mkdir -p "${WORKDIR}/build/build"
-cd "${WORKDIR}/build/build"
-${WORKDIR}/scripts/build-mingw-w64.sh \
-               ${THREAD_PARAM} \
+mkdir -p "${WORKDIR_2}/build/build"
+cd "${WORKDIR_2}/build/build"
+nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-mingw-w64.sh \
+           ${THREAD_PARAM} \
 	       ${TOOLCHAIN_PREFIX}
 	       
-cd "${WORKDIR}/build"
-${WORKDIR}/scripts/build-compiler-rt.sh \
-                   ${TOOLCHAIN_PREFIX} 
+cd "${WORKDIR_2}/build"
+nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-compiler-rt.sh \
+            ${THREAD_PARAM} \
+            ${TOOLCHAIN_PREFIX} 
 
 
-cd "${WORKDIR}/build/build"
-${WORKDIR}/scripts/build-mingw-w64-libraries.sh \
+cd "${WORKDIR_2}/build/build"
+nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-mingw-w64-libraries.sh \
+            ${THREAD_PARAM} \
+ 	        ${TOOLCHAIN_PREFIX}
+
+
+
+cd "${WORKDIR_2}/build"
+nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-libcxx.sh \
                ${THREAD_PARAM} \
 	       ${TOOLCHAIN_PREFIX}
 
 
-
-cd "${WORKDIR}/build"
-${WORKDIR}/scripts/build-libcxx.sh \
-               ${THREAD_PARAM} \
-	       ${TOOLCHAIN_PREFIX}
-
-
-#cd "${WORKDIR}/build/test"
+#cd "${WORKDIR_2}/build/test"
 #for arch in $TOOLCHAIN_ARCHS; do
 #    mkdir -p $arch
 #    for test in hello hello-tls crt-test setjmp; do
@@ -113,13 +130,15 @@ ${WORKDIR}/scripts/build-libcxx.sh \
 # Build sanitizers. Ubsan includes <typeinfo> from the C++ headers, so
 # we need to build this after libcxx.
 # Sanitizers on windows only support x86.
-cd "${WORKDIR}/build"
-${WORKDIR}/scripts/build-compiler-rt.sh \
-                   ${TOOLCHAIN_PREFIX} \
-		   --build-sanitizers
+cd "${WORKDIR_2}/build"
+nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-compiler-rt.sh \
+           ${THREAD_PARAM} \
+           ${TOOLCHAIN_PREFIX}
+
+#  		   --build-sanitizers \
 
 
-#cd "${WORKDIR}/build/test"
+#cd "${WORKDIR_2}/build/test"
 #for arch in $TOOLCHAIN_ARCHS; do
 #        case $arch in
 #        i686|x86_64)
@@ -138,23 +157,23 @@ ${WORKDIR}/scripts/build-compiler-rt.sh \
 
 # Build libssp
 
-cd "${WORKDIR}/build"
-cp "${WORKDIR}/scripts/libssp-Makefile" "${WORKDIR}/build"
+cd "${WORKDIR_2}/build"
+cp "${WORKDIR_2}/scripts/libssp-Makefile" "${WORKDIR_2}/build"
 _sc=""
-${WORKDIR}/scripts/build-libssp.sh \
+nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-libssp.sh \
                    ${THREAD_PARAM} \
 		   ${TOOLCHAIN_PREFIX} \
 		   #--build-sanitizers
 
 
-#cd "${WORKDIR}/build/test"
+#cd "${WORKDIR_2}/build/test"
 #for arch in $TOOLCHAIN_ARCHS; do
 #    mkdir -p $arch
 #    for test in stacksmash; do
 #        $arch-w64-mingw32-clang $test.c -o $arch/$test.exe -fstack-protector-strong || exit 1
 #    done
 #done
-#cd "${WORKDIR}/build/test"
+#cd "${WORKDIR_2}/build/test"
 #for arch in $TOOLCHAIN_ARCHS; do
 #     cp $TOOLCHAIN_PREFIX/$arch-w64-mingw32/bin/*.dll $arch || exit 1
 #done

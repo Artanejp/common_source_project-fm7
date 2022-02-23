@@ -8,10 +8,14 @@ if [ $# -lt 1 ]; then
 fi
 while [ $# -gt 0 ]; do
     if [ "$1" = "--build-threads" ]; then
-	: ${CORES:=$2}
+	: ${CORES=$2}
+	shift
+    elif [ "$1" = "--workload" ]; then
+	: ${WORKLOADS=$2}
 	shift
     else
         PREFIX="$1"
+	break
     fi
     shift
 done
@@ -22,6 +26,7 @@ export PATH=$PREFIX/bin:$PATH
 : ${CORES:=$(nproc 2>/dev/null)}
 : ${CORES:=$(sysctl -n hw.ncpu 2>/dev/null)}
 : ${CORES:=4}
+: ${WORKLOADS:=99.9}
 : ${ARCHS:=${TOOLCHAIN_ARCHS-i686 x86_64 armv7 aarch64}}
 
 cd mingw-w64/mingw-w64-libraries
@@ -31,7 +36,7 @@ for lib in winpthreads winstorecompat; do
         mkdir -p build-$arch
         cd build-$arch
         ../configure --host=$arch-w64-mingw32 --prefix=$PREFIX/$arch-w64-mingw32
-        make -j$CORES
+        make -j$CORES -l ${WORKLOADS}
         make install
         cd ..
     done

@@ -11,7 +11,10 @@ while [ $# -gt 0 ]; do
         BUILD_SUFFIX=-sanitizers
         SANITIZERS=1
     elif [ "$1" = "--build-threads" ]; then
-	: ${CORES:=$2}
+	: ${CORES=$2}
+	shift
+    elif [ "$1" = "--workload" ]; then
+	: ${WORKLOADS=$2}
 	shift
     else
         PREFIX="$1"
@@ -23,13 +26,14 @@ if [ -z "$PREFIX" ]; then
     exit 1
 fi
 
- mkdir -p "$PREFIX"
-PREFIX="$(cd $PREFIX && pwd)"
+mkdir -p "$PREFIX"
+PREFIX="$(cd "$PREFIX" && pwd)"
 export PATH=$PREFIX/bin:$PATH
 
 : ${CORES:=$(nproc 2>/dev/null)}
 : ${CORES:=$(sysctl -n hw.ncpu 2>/dev/null)}
 : ${CORES:=4}
+: ${WORKLOADS:=99.9}
 : ${ARCHS:=${TOOLCHAIN_ARCHS-i686 x86_64 armv7 aarch64}}
 
 CLANG_VERSION=$(basename $(dirname $(dirname $(dirname $($PREFIX/bin/clang --print-libgcc-file-name -rtlib=compiler-rt)))))
@@ -42,7 +46,7 @@ fi
 # i686-w64-mingw32, but due to the compiler-rt cmake peculiarities, we
 # need to refer to it as i386 at this stage.
 if [ ! -e $PREFIX/i386-w64-mingw32 ]; then
-     ln -sfn i686-w64-mingw32 $PREFIX/i386-w64-mingw32 || true
+    ln -sfn i686-w64-mingw32 $PREFIX/i386-w64-mingw32 || true
 fi
 
 cd llvm-project/compiler-rt
@@ -78,7 +82,7 @@ for arch in $ARCHS; do
         ;;
     esac
 
-     mkdir -p build-$arch$BUILD_SUFFIX
+    mkdir -p build-$arch$BUILD_SUFFIX
     cd build-$arch$BUILD_SUFFIX
     cmake \
         ${CMAKE_GENERATOR+-G} "$CMAKE_GENERATOR" \
@@ -95,19 +99,19 @@ for arch in $ARCHS; do
         -DCOMPILER_RT_DEFAULT_TARGET_ONLY=TRUE \
         -DCOMPILER_RT_USE_BUILTINS_LIBRARY=TRUE \
         $SRC_DIR
-    make -j$CORES
-     mkdir -p $PREFIX/lib/clang/$CLANG_VERSION/lib/windows
-     mkdir -p $PREFIX/$arch-w64-mingw32/bin
+    make -j$CORES -l ${WORKLOADS}
+    mkdir -p $PREFIX/lib/clang/$CLANG_VERSION/lib/windows
+    mkdir -p $PREFIX/$arch-w64-mingw32/bin
     for i in lib/windows/libclang_rt.*-$buildarchname*.a; do
-         cp $i $PREFIX/lib/clang/$CLANG_VERSION/lib/windows/$(basename $i | sed s/$buildarchname/$libarchname/)
+        cp $i $PREFIX/lib/clang/$CLANG_VERSION/lib/windows/$(basename $i | sed s/$buildarchname/$libarchname/)
     done
     for i in lib/windows/libclang_rt.*-$buildarchname*.dll; do
         if [ -f $i ]; then
-             cp $i $PREFIX/$arch-w64-mingw32/bin
+            cp $i $PREFIX/$arch-w64-mingw32/bin
         fi
     done
     if [ -n "$SANITIZERS" ]; then
-         make install-compiler-rt-headers
+        make install-compiler-rt-headers
     fi
     cd ..
 done

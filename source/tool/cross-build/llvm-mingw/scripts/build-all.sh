@@ -11,8 +11,12 @@ FORCE_THREADS=OFF
 __NARG=""
 while [ $# -gt 0 ]; do
     if [ "$1" = "--build-threads" ]; then
-	${CORES:="$2"}
-	__NARG="--build-threads $2"
+	${CORES="$2"}
+	__NARG="${__NARG} --build-threads $2"
+	shift
+    elif [ "$1" = "--workload" ]; then
+	${WORKLOADS="$2"}
+	__NARG="${__NARG} --workload $2"
 	shift
      else
         PREFIX="$1"
@@ -20,6 +24,7 @@ while [ $# -gt 0 ]; do
      fi
      shift
 done
+
 
 ./build-llvm.sh ${__NARG} $PREFIX
 ./install-wrappers.sh $PREFIX
