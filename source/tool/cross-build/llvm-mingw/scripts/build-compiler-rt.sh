@@ -95,17 +95,24 @@ for arch in $ARCHS; do
         -DCMAKE_RANLIB=$PREFIX/bin/llvm-ranlib \
         -DCMAKE_C_COMPILER_WORKS=1 \
         -DCMAKE_CXX_COMPILER_WORKS=1 \
-        -DCMAKE_C_COMPILER_TARGET=$buildarchname-windows-gnu \
+        -DCMAKE_C_COMPILER_TARGET=${buildarchname}-windows-gnu \
         -DCOMPILER_RT_DEFAULT_TARGET_ONLY=TRUE \
         -DCOMPILER_RT_USE_BUILTINS_LIBRARY=TRUE \
         $SRC_DIR
     make -j$CORES -l ${WORKLOADS}
     mkdir -p $PREFIX/lib/clang/$CLANG_VERSION/lib/windows
     mkdir -p $PREFIX/$arch-w64-mingw32/bin
-    for i in lib/windows/libclang_rt.*-$buildarchname*.a; do
-        cp $i $PREFIX/lib/clang/$CLANG_VERSION/lib/windows/$(basename $i | sed s/$buildarchname/$libarchname/)
+    for i in lib/windows/libclang_rt.builtins-${buildarchname}.a; do
+        if [ -f $i ]; then
+            cp $i $PREFIX/lib/clang/$CLANG_VERSION/lib/windows/$(basename $i | sed s/$buildarchname/$libarchname/)
+	fi
     done
-    for i in lib/windows/libclang_rt.*-$buildarchname*.dll; do
+    for i in lib/windows/libclang_rt.builtins-${libarchname}.a; do
+        if [ -f $i ]; then
+            cp $i $PREFIX/lib/clang/$CLANG_VERSION/lib/windows/
+	fi
+    done
+    for i in lib/windows/libclang_rt.builtins-${libarchname}*.dll; do
         if [ -f $i ]; then
             cp $i $PREFIX/$arch-w64-mingw32/bin
         fi
