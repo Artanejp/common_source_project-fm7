@@ -34,7 +34,7 @@ void PLANEVRAM::write_io8(uint32_t addr, uint32_t data)
 		r50_ramsel = data & 0x0f;
 		break;
 	case 0xff82:
-		if(d_crtc != NULL) {
+		__LIKELY_IF(d_crtc != NULL) {
 			d_crtc->write_signal(SIG_TOWNS_CRTC_MMIO_CFF82H, data, 0xffffffff);
 //			out_debug_log(_T("WRITE CFF82h <- %02X"), data);
 		}
@@ -48,7 +48,7 @@ void PLANEVRAM::write_io8(uint32_t addr, uint32_t data)
 	case 0xffa0:
 		break;
 	default:
-		if(d_sprite != NULL) {
+		__LIKELY_IF(d_sprite != NULL) {
 			d_sprite->write_data8(addr & 0x7fff, data);
 		}
 		break;
@@ -65,7 +65,9 @@ uint32_t PLANEVRAM::read_io8(uint32_t addr)
 		return ((r50_readplane << 6) | r50_ramsel);
 		break;
 	case 0xff82:
-		return d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CFF82H);
+		__LIKELY_IF(d_crtc != NULL) {
+			return d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CFF82H);
+		}
 		break;
 	case 0xff83:
 		return ((r50_gvramsel != 0x00000) ? 0x10 : 0x00);
@@ -74,7 +76,9 @@ uint32_t PLANEVRAM::read_io8(uint32_t addr)
 		return 0x7f; // Reserve.FIRQ
 		break;
 	case 0xff86:
-		return d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CFF86H);
+		__LIKELY_IF(d_crtc != NULL) {
+			return d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CFF86H);
+		}
 		break;
 	case 0xffa0:
 		{
@@ -85,7 +89,7 @@ uint32_t PLANEVRAM::read_io8(uint32_t addr)
 		}
 		break;
 	default:
-		if(d_sprite != NULL) {
+		__LIKELY_IF(d_sprite != NULL) {
 			return d_sprite->read_data8(addr & 0x7fff);
 		}
 		break;
@@ -107,36 +111,32 @@ uint32_t PLANEVRAM::read_memory_mapped_io8(uint32_t addr)
 	
 	// 8bit -> 32bit
 	uint8_t val = 0;
-	const uint8_t nmask[4] = {0x11, 0x22, 0x44, 0x88};
-	uint8_t hmask = nmask[r50_readplane & 3] & 0xf0;
-	uint8_t lmask = nmask[r50_readplane & 3] & 0x0f;
-	uint8_t hval = 0x80;
-	uint8_t lval = 0x40;
+	const uint8_t lmask = 1 << (r50_readplane & 3);
+	const uint8_t hmask = lmask << 4;
 	
 	d_vram->lock();
 	__DECL_ALIGNED(8) uint8_t extra_p[8];
 	__DECL_ALIGNED(8) uint8_t extra_mask[8];
-	__DECL_ALIGNED(8) uint8_t extra_value[8];
+	const uint8_t extra_value[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	__DECL_ALIGNED(8) uint8_t extra_bool[8];
+	__DECL_ALIGNED(8) uint8_t cache[4];
 	
 __DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 8; i += 2) {
-		extra_p[i    ] = p[i >> 1];
-		extra_p[i + 1] = p[i >> 1];
+	for(int i = 0; i < 4; i++) {
+		cache[i] = p[i];
+	}
+	
+__DECL_VECTORIZED_LOOP
+	for(int i = 0, j = 0; i < 8; i += 2, j++) {
+		extra_p[i    ] = cache[j];
+		extra_p[i + 1] = cache[j];
 	}
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i += 2) {
 		extra_mask[i    ] = hmask;
 		extra_mask[i + 1] = lmask;
 	}
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 8; i += 2) {
-		extra_value[i    ] = hval;
-		extra_value[i + 1] = lval;
-		hval >>= 2;
-		lval >>= 2;
-	}
-
+	
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		extra_bool[i] = ((extra_mask[i] & extra_p[i]) != 0) ? 0xff : 0x00;
@@ -144,7 +144,11 @@ __DECL_VECTORIZED_LOOP
 
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
-		val |= (extra_bool[i] & extra_value[i]);
+		extra_bool[i] &= extra_value[i];
+	}
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		val |= extra_bool[i];
 	}
 	d_vram->unlock();
 	
