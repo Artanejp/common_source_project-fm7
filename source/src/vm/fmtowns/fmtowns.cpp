@@ -354,9 +354,6 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	sprite->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	
-	vram->set_context_sprite(sprite);
-	vram->set_context_crtc(crtc);
-	
 	planevram->set_context_vram(vram);
 	planevram->set_context_sprite(sprite);
 	planevram->set_context_crtc(crtc);

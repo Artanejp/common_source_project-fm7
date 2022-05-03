@@ -28,41 +28,15 @@ void TOWNS_VRAM::initialize()
 void TOWNS_VRAM::reset()
 {
 	lock();
-	for(int i = 0; i < (sizeof(dirty_flag) / sizeof(bool)); i++) {
-		dirty_flag[i] = true;
-	}
 	
 __DECL_VECTORIZED_LOOP						
 	for(int i = 0; i < 8; i++) {
 		packed_pixel_mask_reg[i] = 0xff;
 	}
 	vram_access_reg_addr = 0;
-	sprite_busy = false;
-	sprite_disp_page = false;
-	
-	layer_display_flags[0] = layer_display_flags[1] = 0;
 	unlock();
 }
 	
-void TOWNS_VRAM::make_dirty_vram(uint32_t addr, int bytes)
-{
-	uint32_t amask = 0x7ffff;
-	uint32_t naddr1 = (addr & amask) >> 3;
-	switch(bytes) {
-	case 1:
-		dirty_flag[naddr1] = true;
-		break;
-	case 2:
-	case 3:
-	case 4:
-		{
-			uint32_t naddr2 = ((addr + bytes - 1) & amask) >> 3;
-			dirty_flag[naddr1] = true;
-			dirty_flag[naddr2] = true;
-		}
-		break;
-	}
-}
 	
 void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
@@ -307,7 +281,7 @@ uint32_t TOWNS_VRAM::read_io16(uint32_t address)
 	return 0xffff;
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool TOWNS_VRAM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -321,16 +295,9 @@ bool TOWNS_VRAM::process_state(FILEIO* state_fio, bool loading)
 
 	lock();
 	
-	state_fio->StateValue(access_page1);
-	state_fio->StateArray(dirty_flag, sizeof(dirty_flag), 1);
-	state_fio->StateArray(layer_display_flags, sizeof(layer_display_flags), 1);
-
-	state_fio->StateValue(sprite_busy);
-	state_fio->StateValue(sprite_disp_page);
-
 	state_fio->StateValue(vram_access_reg_addr);
-	
 	state_fio->StateArray(packed_pixel_mask_reg, sizeof(packed_pixel_mask_reg), 1);
+	
 	state_fio->StateArray(vram, sizeof(vram), 1);
 	
 	unlock();

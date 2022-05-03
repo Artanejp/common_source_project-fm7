@@ -47,20 +47,6 @@ private:
 	std::recursive_mutex vram_lock; // [bank][layer];
 
 protected:
-	DEVICE* d_sprite;
-	DEVICE* d_crtc;
-
-	
-	bool access_page1;
-	bool dirty_flag[0x80000 >> 3]; // Per 8bytes : 16pixels(16colors) / 8pixels(256) / 4pixels(32768)
-	
-	// FMR50 Compatible registers. They are mostly dummy.
-	// Digital paletts. I/O FD98H - FD9FH.
-	bool layer_display_flags[2]; // I/O FDA0H (WO) : bit3-2 (Layer1) or bit1-0 (Layer0).Not 0 is true.
-	
-	
-	bool sprite_busy;            // I/O 044CH (RO) : bit1. Must update from write_signal().
-	bool sprite_disp_page;       // I/O 044CH (RO) : bit0. Must update from write_signal().
 	// Accessing VRAM. Will be separated.
 	// Memory description:
 	// All of accessing must be little endian.
@@ -90,8 +76,6 @@ public:
 	TOWNS_VRAM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		memset(vram, 0x00, sizeof(vram));
-		d_sprite = NULL;
-		d_crtc = NULL;
 		cpu_id = 0x01; // for 05EEh
 		machine_id = 0x0100;
 		set_device_name(_T("FM-Towns VRAM"));
@@ -165,18 +149,9 @@ public:
 		unlock();
 		return true;
 	}
-	virtual void __FASTCALL make_dirty_vram(uint32_t addr, int bytes);
 	virtual inline uint32_t __FASTCALL get_vram_size()
 	{
 		return 0x80000; // ToDo
-	}
-	void set_context_sprite(DEVICE *dev)
-	{
-		d_sprite = dev;
-	}
-	void set_context_crtc(DEVICE *dev)
-	{
-		d_crtc = dev;
 	}
 	void set_cpu_id(uint16_t val)
 	{
