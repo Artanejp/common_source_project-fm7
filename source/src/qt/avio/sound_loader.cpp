@@ -38,7 +38,7 @@ SOUND_LOADER::~SOUND_LOADER()
 {
 	if(sound_buffer != NULL) free(sound_buffer);
 	for(int i = 0; i < 4; i++) {
-		if(_data[i] != NULL) free(_data);
+		if(_data[i] != NULL) free(_data[i]);
 	}
 }
 
