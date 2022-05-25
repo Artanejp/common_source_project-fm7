@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Maybe WORK-IN-PROGRESS 20220526 K.O
+
 if [ "__x__${CROSS_LIBS_PREFIX}" = "__x__" ] ; then
 	CROSS_LIBS_PREFIX="/usr/local/lib/i586-mingw-msvc"
 fi

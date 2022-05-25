@@ -1,0 +1,11 @@
+# Copy this to CURRENT_DIR/build_setup_defaults.txt .
+BUILD_TYPE=Relwithdebinfo
+TOOLCHAIN_TYPE=gcc
+TOOLCHAIN_VERSION=11
+
+USE_QT6=0
+USE_LTO=1
+USE_CXX20=1
+
+
+
