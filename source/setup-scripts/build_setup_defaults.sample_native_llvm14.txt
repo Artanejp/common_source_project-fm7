@@ -1,0 +1,11 @@
+# Copy this to CURRENT_DIR/build_setup_defaults.txt .
+BUILD_TYPE=Relwithdebinfo
+TOOLCHAIN_TYPE=llvm
+TOOLCHAIN_VERSION=14
+
+USE_QT6=1
+USE_LTO=1
+USE_CXX20=1
+
+
+
