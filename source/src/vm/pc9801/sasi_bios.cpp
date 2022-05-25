@@ -136,6 +136,7 @@ bool BIOS::bios_int_i86(int intnum, uint16_t regs[], const uint16_t sregs[], int
 bool BIOS::bios_int_ia32(int intnum, uint32_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	// SASI
+	//printf("INT %02x\n", intnum);
 	switch(intnum) {
 	case 0x1b: // SASI BIOS (INT3)
 		if(d_mem->is_sasi_bios_load()) return false;
@@ -170,13 +171,17 @@ bool BIOS::bios_call_far_ia32(uint32_t PC, uint32_t regs[], const uint16_t sregs
 	this->out_debug_log(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
 #endif
 	// ToDo: Check ITF BANK for EPSON :
-	// Check ADDRESS: This pseudo-bios acts only $fffc4 ($1B) or $00ffffc4: 
+	// Check ADDRESS: This pseudo-bios acts only $fffc4 ($1B) or $00ffffc4:
+//#if defined(HAS_I386)
+//	if(((PC != 0xfffc4) && (PC != 0x00ffffc4)) &&
+//	   ((PC < 0xd7000) && (PC > 0xd7fff))) return false; // INT 1Bh
+//#else	
 	if((PC != 0xfffc4) && (PC != 0x00ffffc4)) return false; // INT 1Bh
-	
+//#endif
 	static const int elapsed_cycle = 200; // From NP2 0.86+trunk/ OK?
 #if 1		
 
-	/*	if((((AL & 0xf0) != 0x00) && ((AL & 0xf0) != 0x80))) */	{
+	/*if((((AL & 0xf0) != 0x00) && ((AL & 0xf0) != 0x80))) */	{
 		uint8_t seg = d_mem->read_data8(0x004b0 + (AL >> 4));
 		uint32_t sp, ss;	
 		if ((seg != 0)) {

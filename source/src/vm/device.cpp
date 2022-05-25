@@ -714,7 +714,7 @@ bool DEVICE::bios_call_far_ia32(uint32_t PC, uint32_t regs[], const uint16_t sre
 {
 	return false;
 }
-bool DEVICE::bios_int_ia32(int intnum, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
+bool DEVICE::bios_int_ia32(int intnum, uint32_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
 	return false;
 }

@@ -893,7 +893,7 @@ public:
 	 * @param total_cycles pointer to calculate clock cycles (of this period).
 	 * @retval true if use pseudo bios, not process native CPU instructions more.
 	 */
-	virtual bool bios_int_ia32(int intnum, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles);
+	virtual bool bios_int_ia32(int intnum, uint32_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles);
 	/*!
 	 * @brief hook of pseudo bios for Z80 variants
 	 * @param PC value of PC

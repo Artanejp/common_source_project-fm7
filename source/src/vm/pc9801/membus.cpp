@@ -1009,8 +1009,8 @@ void MEMBUS::update_sound_bios()
 #if defined(SUPPORT_SASI_IF)
 void MEMBUS::update_sasi_bios()
 {
-//	out_debug_log(_T("SASI BIOS SELECTED: %s RAM=%s\n"), (sasi_bios_selected) ? _T("YES") : _T("NO"),
-//				  (sasi_bios_ram_selected) ? _T("YES") : _T("NO"));
+	//out_debug_log(_T("SASI BIOS SELECTED: %s RAM=%s\n"), (sasi_bios_selected) ? _T("YES") : _T("NO"),
+	//			  (sasi_bios_ram_selected) ? _T("YES") : _T("NO"));
 	if(sasi_bios_selected) {
 		if(sasi_bios_ram_selected) {
 			set_memory_rw(0xd7000, 0xd7fff, sasi_bios_ram);

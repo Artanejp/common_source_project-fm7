@@ -950,7 +950,7 @@ CALL_PSEUDO_BIOS(UINT16 new_ip, UINT16 new_cs)
 {
 	if (device_bios != NULL) {
 //		uint16_t regs[8] = {CPU_AX, CPU_CX, CPU_DX, CPU_BX, CPU_SP, CPU_BP, CPU_SI, CPU_DI};
-		uint32_t regs[8] = {CPU_EAX, CPU_ECX, CPU_EDX, CPU_EBX, CPU_ESP, CPU_EBP, CPU_ESI, CPU_EDI};
+		uint32_t regs[10] = {CPU_EAX, CPU_ECX, CPU_EDX, CPU_EBX, CPU_ESP, CPU_EBP, CPU_ESI, CPU_EDI, 0, 0};
 		uint16_t sregs[4] = {CPU_ES, CPU_CS, CPU_SS, CPU_DS};
 		int32_t ZeroFlag = ((CPU_FLAG & Z_FLAG) ? 1 : 0);
 		int32_t CarryFlag = ((CPU_FLAG & C_FLAG) ? 1 : 0);
@@ -958,7 +958,7 @@ CALL_PSEUDO_BIOS(UINT16 new_ip, UINT16 new_cs)
 		int cycles = 0;
 		uint64_t total_cycles = 0;
 //		if (device_bios->bios_call_far_i86((new_cs << 4) + new_ip, regs, sregs, &ZeroFlag, &CarryFlag)) {
-		if (device_bios->bios_call_far_ia32((new_cs << 4) + new_ip, regs, sregs, &ZeroFlag, &CarryFlag, &cycles, &total_cycles)) {
+		if (device_bios->bios_call_far_ia32(((new_cs << 4) + new_ip) /*& CPU_ADRSMASK*/, regs, sregs, &ZeroFlag, &CarryFlag, &cycles, &total_cycles)) {
 			CPU_EAX = regs[0];
 			CPU_ECX = regs[1];
 			CPU_EDX = regs[2];
@@ -977,7 +977,13 @@ CALL_PSEUDO_BIOS(UINT16 new_ip, UINT16 new_cs)
 			} else {
 				CPU_FLAG &= ~C_FLAG;
 			}
-			CPU_WORKCLOCK(1000); // temporary
+			/*if((regs[8] != 0x0000) || (regs[9] != 0x0000)) {
+					uint32_t hi = regs[9];
+					uint32_t lo = regs[8];
+					uint32_t addr = (hi << 16) | lo;				
+					CPU_EIP = addr;				
+					}*/
+			CPU_WORKCLOCK(cycles); // temporary
 			return 1;
 		}
 	}
@@ -1033,10 +1039,11 @@ CALL32_Ap(void)
 	GET_PCDWORD(new_ip);
 	GET_PCWORD(new_cs);
 	if (!CPU_STAT_PM || CPU_STAT_VM86) {
+			// Note: Temporally disable calling pseudo-bios from 32bit. 20220526 K.O
 //#ifdef I86_PSEUDO_BIOS
-		if (CALL_PSEUDO_BIOS(new_ip, new_cs)) {
-			return;
-		}
+//		if (CALL_PSEUDO_BIOS(new_ip, new_cs)) {
+//			return;
+//		}
 //#endif
 		/* Real mode or VM86 mode */
 		CPU_SET_PREV_ESP();
@@ -1114,10 +1121,11 @@ CALL32_Ep(UINT32 op)
 		new_ip = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, madr);
 		new_cs = cpu_vmemoryread_w(CPU_INST_SEGREG_INDEX, madr + 4);
 		if (!CPU_STAT_PM || CPU_STAT_VM86) {
+			// Note: Temporally disable calling pseudo-bios from 32bit. 20220526 K.O
 //#ifdef I86_PSEUDO_BIOS
-			if (CALL_PSEUDO_BIOS(new_ip, new_cs)) {
-				return;
-			}
+//			if (CALL_PSEUDO_BIOS(new_ip, new_cs)) {
+//				return;
+//			}
 //#endif
 			/* Real mode or VM86 mode */
 			CPU_SET_PREV_ESP();

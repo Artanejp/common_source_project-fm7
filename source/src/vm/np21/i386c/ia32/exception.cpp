@@ -245,14 +245,15 @@ interrupt(int num, int intrtype, int errorp, int error_code)
 	VERBOSE(("interrupt: num = 0x%02x, intrtype = %s, errorp = %s, error_code = %08x", num, (intrtype == INTR_TYPE_EXTINTR) ? "external" : (intrtype == INTR_TYPE_EXCEPTION ? "exception" : "softint"), errorp ? "on" : "off", error_code));
 
 //#ifdef I86_PSEUDO_BIOS
-	__LIKELY_IF((!CPU_STAT_PM || CPU_STAT_VM86) && intrtype == INTR_TYPE_SOFTINTR && device_bios != NULL) {
+	__UNLIKELY_IF(/*(!CPU_STAT_PM || CPU_STAT_VM86) && */intrtype == INTR_TYPE_SOFTINTR && device_bios != NULL) {
 //		uint16_t regs[8] = {CPU_AX, CPU_CX, CPU_DX, CPU_BX, CPU_SP, CPU_BP, CPU_SI, CPU_DI};
-		uint32_t regs[8] = {CPU_EAX, CPU_ECX, CPU_EDX, CPU_EBX, CPU_ESP, CPU_EBP, CPU_ESI, CPU_EDI};
-		uint16_t sregs[4] = {CPU_ES, CPU_CS, CPU_SS, CPU_DS};
+		uint32_t regs[10] = {CPU_EAX, CPU_ECX, CPU_EDX, CPU_EBX, CPU_ESP, CPU_EBP, CPU_ESI, CPU_EDI, 0, 0};
+		const uint16_t sregs[4] = {CPU_ES, CPU_CS, CPU_SS, CPU_DS};
 		int32_t ZeroFlag = ((CPU_FLAG & Z_FLAG) ? 1 : 0);
 		int32_t CarryFlag = ((CPU_FLAG & C_FLAG) ? 1 : 0);
 		int cycles = 0;
 		uint64_t total_cycles = 0;
+		//printf("%s\n", device_bios->get_device_name());
 //		if (device_bios->bios_int_i86(num, regs, sregs, &ZeroFlag, &CarryFlag)) {
 		if (device_bios->bios_int_ia32(num, regs, sregs, &ZeroFlag, &CarryFlag, &cycles, &total_cycles)) {
 			CPU_EAX = regs[0];
@@ -275,6 +276,12 @@ interrupt(int num, int intrtype, int errorp, int error_code)
 			}
 			CPU_WORKCLOCK(1000); // temporary
 			CPU_REMCLOCK -= cycles;
+			/*if((regs[8] != 0x0000) || (regs[9] != 0x0000)) {
+				uint32_t hi = regs[9];
+				uint32_t lo = regs[8];
+				uint32_t __addr = (hi << 16) | lo;
+				CPU_EIP = __addr;
+			}*/
 			return;
 		}
 	}
