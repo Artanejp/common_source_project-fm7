@@ -1,0 +1,48 @@
+#!/bin/bash
+
+if [ __x__"${BUILD_TYPE}" = __x__Debug ] ; then
+	USE_LTO=0
+	OPTIMIZE_LEVEL="-O0"
+	DEBUGFLAGS+=(-ggdb)
+	DEBUGFLAGS+=(-gz)
+elif [ __x__"${BUILD_TYPE}" = __x__Relwithdebinfo ] ; then
+	OPTIMIZE_LEVEL="-O3"
+	DEBUGFLAGS+=(-ggdb)
+	DEBUGFLAGS+=(-gz)
+else
+	OPTIMIZE_LEVEL="-O3"
+fi
+
+BASICOPTS+=(${OPTIMIZE_LEVEL})
+if [ __x__"${BUILD_TYPE}" != __x__Release ] ; then
+	COPTS+=(-Wa,--compress-debug-sections=zlib)
+fi
+
+if [ $USE_LTO -ne 0 ] ; then
+	BASICOPTS+=(-flto)
+	COPTS+=(-flto-compression-level=9)
+	COPTS+=(-ffat-lto-objects)
+fi
+
+# ToDo: Determine SIMD TYPES
+. ${SCRIPTS_DIR}/additional_defines_simd_types_gcc.sh
+
+if [ $USE_LTO -ne 0 ] ; then
+	DLL_LDOPTS+=(-flto=auto)
+	EXE_LDOPTS+=(-flto=auto)
+fi
+
+case ${BUILD_TYPE} in
+	Relwithdebinfo )
+		DLL_LDOPTS+=(-Wl,--compress-debug-sections=zlib)
+		EXE_LDOPTS+=(-Wl,--compress-debug-sections=zlib)
+		;;
+	Debug )
+		DLL_LDOPTS+=(-Wl,--compress-debug-sections=zlib)
+		EXE_LDOPTS+=(-Wl,--compress-debug-sections=zlib)
+		;;
+	Release | * )
+		DLL_LDOPTS+=(-s)
+		EXE_LDOPTS+=(-s)
+		;;
+esac
