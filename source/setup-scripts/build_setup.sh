@@ -181,11 +181,11 @@ case "${TOOLCHAIN_TYPE}" in
 esac
 if [ __x__"${TOOLCHAIN_NAME}" = __x__ ] ; then
 	case "${TOOLCHAIN_TYPE}" in
-		llvm* )
+		llvm* | llvm )
 			TOOLCHAIN_NAME="${TOOLCHAIN_NAME_PREFIX}_llvm-versioned.cmake"
 			TOOLCHAIN_SHORT_NAME="llvm"
 			;;
-		gcc* )
+		gcc* | gcc )
 			TOOLCHAIN_NAME="${TOOLCHAIN_NAME_PREFIX}_gcc${TOOLCHAIN_VERSION}.cmake"
 			TOOLCHAIN_SHORT_NAME="gcc"
 			;;

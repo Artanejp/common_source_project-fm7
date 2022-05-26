@@ -22,7 +22,8 @@ fi
 
 if [ $USE_LTO -ne 0 ] ; then
 	BASICOPTS+=(-flto)
-	COPTS+=(-flto-compression-level=9)
+	LDOPTS+=(-flto-compression-level=19)
+	COPTS+=(-flto-compression-level=19)
 	COPTS+=(-ffat-lto-objects)
 fi
 
