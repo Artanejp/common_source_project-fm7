@@ -1,0 +1,276 @@
+2016 New Year's Anniversary & eFM-7 Transplant One Year Anniversary
+"eFM-7 and everything else."
+Jan 1,2016 K.Ohta <whatisthis.sowhat _at_ gmail.com>
+
+* Sorry, this document is written in Japanese only,
+I can't use english well, if you interest of this
+and you can translate from Japanese to any languages,
+please translate this.
+This document is released with GFDL, you can copy
+and redistribute this document under GFDL.
+This document is written with UTF-8.
+This document is in line with the GNU Free Document License (GFDL).
+You can copy and redistribute.
+As I am not good at English, I will write only in Japanese. Sorry (´・ω・｀)
+If there is anyone who can translate from Japanese to other languages, please do so.
+Yes m(_ _)m
+
+
+1) What is this (literal translation)
+The Common Source Code Project (CSP) is a pre-stage to eFM-7.
+To Qt + OpenGL on December 30th last year.
+So, maybe in about 30 years, it might be worth something historically.
+I thought that I don't know. (^ _ ^ ; I will summarize various things until now.
+I thought so.
+
+2. Prehistory : XM7/SDL
+There has been a very good FM-7 emulator [1] called XM7.
+However, this only worked on Windows.
+Whether it was 2008 or 09, this was the South Korean GP2X [2]
+I want to play Xanadu on a portable game console. The feeling of [3]
+I asked PI. who made the base with XM7 creator Takegami for permission.
+Although Mr. PI readily accepted it, I wonder if Mr. Takegami can really do it.
+At first, it was not so good, but SDL and Gtk
+When I show you the code and screenshots of the temporary port
+It was relatively easy to get permission, so we started full-scale work.
+
+[1] http://retropc.net/ryu/xm7/ Development completed at present
+[2] https://ja.wikipedia.org/wiki/GP2X
+[3] In the end, I gave up porting to the GP2X series due to the problem of the machine spec.
+
+In the beginning, Mr. Gimons ported it to Gtk around 05.
+So we started by porting the then latest version of XM7 to Gtk and SDL.
+On top of that, just because Gtk doesn't work with GP2X, you can't run it on SDL.
+I looked for a GUI toolkit that worked with, and I arrived at something called Agar [4] and adopted it.
+That's why.
+[4] http://www.libagar.org/
+
+At that time, there were a lot of illnesses, and I was on the verge of falling asleep, so I didn't have a keyboard.
+There are not a few days to hit from a futon, and if you think about it now, even if you die of disease
+I was in a perfectly normal state, and when I was sick and unable to move my body
+At the beginning of 2010, there was something that was reasonably practical.
+I'm here.
+<B> except that Agar is full of bugs </B>.
+Then, after eliminating the bugs one by one and seriously considering load balancing along the way
+Offloading from multithreading [5] to OpenCL around 2011.
+On top of that, development became sluggish.
+
+[5] This is also leveraged by eFM-7 and CSP/Qt. OpenCL is
+I don't think I will do it in the future because the performance doesn't come out.
+
+The original family (Taegami version XM7) has almost completed it.
+However, after the Great East Japan Earthquake, I realized the importance of radio.
+I have decided to focus on the project called Radio [6] [7].
+
+[6] https://osdn.jp/projects/openi2cradio/
+[7] http://sky.geocities.jp/artanejp/
+
+Until the end of 2014, these two projects
+Open I2C Radio will be nearly stable by mid- 2013 (I think it was)
+The next project is a USB port for 1-segment reception using RTL2832U.
+I have done a project (listed in [7]) to convert K to receive short waves and Nakanami.
+I was doing it.
+
+3. About XM7
+With EM7, the prototype of which was originally created when C++ didn't have much performance
+The GUI part of C++, the FM sound source emulator, and the main body of C language.
+It's very different, but it does have performance and accuracy.
+It's better than my eFM7. On top of that, I used a C++ centric UI and SDL
+Add a renderer, and it becomes like a stack of roof houses.
+In the middle of 2014, there was a desire to remake it (Sange).
+On top of that, there is an emulator collector called Anna Wu from Germany (he said).
+Since about the middle of 2014, Mr. Takegami and his wife, Mr. Takegami
+But in the end, Mr. Takegami and his surroundings were able to communicate in English.
+But he didn't like it and had a trouble.
+
+So I watched the process on Twitter, and I got tired of it, I said
+He's a terrible English speaker, but originally a bug in Debian GNU/Linux [8], etc.
+We throw reports, and when we need them, Discussions about development in the English community
+It is also a person who has become a normal person to do so, so the process is amazing.
+I felt something was wrong, and thought, "This is not where I should be."
+He also complained to his old friend, and he was working for a foreign manufacturer.
+(I can't name him and maybe he's not famous, but the technology is domestic.
+I think it's top-of-the-line. complaints … "Well, it's good to do it in English.
+He said "ATA-RI-MAE-YAN (^^)" and pressed his back.
+
+It was December 28, 2014.
+In the end, we turned the rudder to put the FM-7 series on the CSP and git on December 30th, 2014.
+We built a repository [9] and put in it the latest CSP source code of the day.
+SWISH
+
+[8] Strangely, on 28 December 2015, Mr. Ian Murdok was beaten to death by the police.
+He died at the age of 42.
+[9] https://github.com/Artanejp/common_source_project-fm7
+
+4. Start of CSP transplantation
+
+For porting, I initially used Agar as a toolkit.
+<B> It will work for now, because it's easy to do verification work </B>.
+So we started with the X1 Turbo and the PC-8801MA. [10] Then
+Agar has a lot of bugs, portability, and other problems, so it's more general.
+We decided to use the toolkit. [11]
+
+[10] There was a lot of software to verify the operation (^_^;
+[11] I've given up running it on GP2X (^_^;
+
+So, what should I use? I thought, but Gtk has become 3 and I can get more and more.
+In addition to the need for it, Gnome 3 has a lot of bugs and it didn't make a good impression.
+So <B> Well, I've never used it, but let's make it Qt. </B>
+I looked into it, and I didn't have voice and joystick as standard.
+So let's leave it to SDL. OpenGL-required around the drawing. There is no mercy.
+That's why we made a rough policy and transplanted it.
+This work itself is very dirty and inconsistent code that uses Qt groping.
+By March 2015, most VMs will be available.
+I got it.
+If you look at the git log
+・ On January 8th, X1 on Agar was almost passed by the compiler and roughly operated.
+(commit fc894319809e05692fd447fda5f232a46ebdf17c7 )
+・ On January 10th, we decided to switch to Qt by raising the sound of the failure of Agar.
+(commit 98ac2645ec6a3798072445ac003f08d529d6065c )
+On January 11th, the compiler went through in Qt.
+(commit 1033cc86e36b8e1d38771ef404e7d43ad07ebb39 )
+・ On January 12th, the drawing system and the basics of the GUI were completed and the VM worked? (but there are bugs)
+(commit e5887aa7464c7276eef9d2578ea880988f3da60d )
+・ On January 13th, the keyboard system was established and the drawing system bug was removed once.
+(commit 6deec5abac027eca1a71fa89e485650d3c9735da )
+Start on December 30 December 30th, and then Agar for the next 10 days.
+
+The design was done, and within a week the basic parts of what we have were built.
+That's why.
+Until January 28th, we will be running a number of VMs.
+Go [12] and from there you can make your existing VMs work and implement FM-7 in earnest.
+[13]
+
+[12] commit ce574213769b2685ead0df84c81f193e519d3906 or later
+[13] We tried to implement FM-7 on December 31st, 2014.
+(after commit e409be1add5f6b9ddf76bada7c24469cb35ae2bc)
+I've had a lot to do, so apply Agar and Qt to the home first.
+But.
+
+5.eFM-7
+Now, if we come to this point, it is the transplantation of FM-7. In the 80 s, he was protected from his parents' house.
+Oh! FM magazine and FM-7 I/O map scattered on the web and VM code of the original CSP.
+I took the content of the Tips-like hack in the published XM7 source code and made it my own.
+I rebuilt the code (I don't want to infringe copyright …)
+We implemented FM-7 from February to March 2015.
+And even if it doesn't move on March 11th (this is the fourth anniversary of the Great East Japan Earthquake!)
+The link goes through [14], 6809 MPU description error [15], disk. cpp/mb8877. cpp
+At the end of March, a number of FM-7 sofs are available, fixing the corresponding part of [16].
+[17]
+
+[14] commit 65fe797cd5a681ba25c14a88566d7c80d0a8cd9a
+[15] This is due to the old version of the underlying MAME code.
+Of course, miscellaneous undefined instructions were not implemented, and flag behavior is also a problem.
+Here it is.
+The correction work around here was dragged until November 2015. Kanagawa prefectural government
+I went to Kawasaki Library and obtained a lot of materials (which were destroyed at my parents' house).
+We repeated the correction including the part other than MC6809.
+I think I can say that the current mc0. 6809. cpp is a completed version. It is dirty (^ _ ^ ;
+[16] MB8877 converts F5, F6, and F7 in the data string at the time of formatting into commands to the FDC.
+Since it has been allocated, if you don't do something special, it is difficult to write sector numbers F5 to F7.
+I can't do it. In the' 80 s, computers used this software for copy protection
+At that time, the character code of F5 to F7 was "hour, minute and second".
+This kind of special format was called "hour, minute and second format".
+Check the hour, minute and second code written in the sector and gap of this "hour, minute and second" ID
+Or important programs to prevent copying = protect.
+However, many copy tools (such as CopyBoy7) require only a user's disk drive.
+It is now possible to reproduce the min-sec format.
+We put special data in a sector, and read the sector to see if the data changes
+A set of protection that checks "right" and time, minute and second protection.
+It has come to be used.
+[17] commit 3c875fb911e484c15bfdad2f67dadb9bdedd5e75
+
+The next target was the FM77AV.
+It contains proprietary devices such as MMU and ALU.
+The basic command strings for ALU were inspired by XM7.
+The biggest reason for the dispute between Anna and Takegami is that Mess is inside the devices around here.
+Despite a protest through Anna over the full ripping of the description from XM7, MESS
+That there was no response from the community at all.
+So I thought I wrote this part more carefully than the other parts. [18]
+At the moment, it works as designed, and it may not be able to hack fine ALU.
+(like drawing Siobredo).
+There are some problems with the timing calculation, so I am looking for an opportunity to fix it.
+
+[18] Internal structure of ALU, written using C division operation with linear interpolation function
+Actually, that is the reason.
+
+Including around here, 2 channel's "old PC" board, PC emulator comprehensive wear.
+I often throw binaries and ask all the Sleazy residents for bug reports and improvements.
+I think it started around here. At that time it didn't work on Windows.
+(you'll be able to move it later).
+This work has been difficult in various ways, so that most of the software will work without any discrepancy.
+It was around June 16th. It took three months after all. [19]
+
+[19] commit 1b4320ef6229e75013478fe1ec66ed1eb3c47bd5
+
+Next, I made the FM-77. It went without so much pain. However
+It is by giving up the 400 line part of FM-77L4 which does not have the actual product.
+However, the boot sequence and memory map are slightly different between FM-7 and 77 av.
+There were things that I noticed later when I almost missed it. especially around boot RAM.
+
+Now, it is inevitable to implement the DMAC of FM77AV40EX and so on.
+For a reason. if the number of running software increases, various bugs will come out and need to adjust routines a lot.
+It will be gone, so it took several months even here for some reasons.
+Many of the results of this period were fed back into the work of Mr. Takeda, the original author of the CSP.
+Thank you very much, Takeda-san m(_ _)m
+
+… So on September 14th, the AV40EX was almost OK [20], and from there Windows application
+And port all VMs.
+As for FM-8, I have done a fraud, but I am thinking of doing it.
+
+[20] commit bbf5ed7132304d6e4c19da3cb2d634923eb55a5b
+
+And in less than a month, we built a cross-development environment for Windows using MinGW.
+The Win32 version is also included in the binary package as much as possible to absorb the differences in the API of the library and the API of the library.
+While having a discussion with Takeda-san through 2channel
+Translation.
+
+5) Finally
+Both CSP and Qt adaptation are still evolving. Some suggestions from my side, Takeda
+There are also the ones that incorporate the suggestions of Ms. and the ones that incorporate the suggestions of the Sure-tenant of 2channel.
+I think it's really nice to be able to do something kind of thing which is the best part of FOSS.
+As for the FM-7 series, it cannot be denied that the verification of the AV series is especially lenient, so I have been doing various things.
+There will be a lot of trouble, but, well, I will continue to do it at my own pace.
+Thank you everyone including Takeda-san and users. m(_ _)m
+
+2016 1.1 K.Ohta <whatisthis.sowhat _at_ gmail.com>
+
+* Postscript :
+
+6. Bonus 1 : About the "1/60 second problem".
+The emulator has a "1/60 second problem".
+The difference in vertical retrace speed between the actual display and the emulated display.
+At the very least, the actual display will be out of sync.
+How do you deal with a gap of 1/60 second per frame?
+If you don't, there will be a lot of discussion.
+There are emulators that sell the deviation within 1/60 seconds.
+My position is, "It can't be helped even if you miss 2 frames."
+What this means is that the one frame delay comes from the difference between the machines mentioned above.
+The delay of one frame is due to the fact that Direct X or OpenGL is in between.
+The structure is commonly provided on the OS side of the host machine.
+These areas can be difficult to touch directly from the application.
+In other words, at worst, the shift of about two frames (a little more when the vertical blanking frequency is significantly different)
+Vertical blanking of the display Let's consider that it cannot be avoided as long as the frequency is different.
+It's not something a normal application can do to go that far, and it's relaxed by setting on the OS side.
+It is possible in some cases.
+In the end, the CSP should synchronize itself with the VBLANK interrupt provided by the OS.
+I personally think that I don't feel like thinking about such a thing. There's a lot of CSP
+Try it for those of you who want to customize the base (maybe GL, Direct X or Vulkan pretty much).
+The code will change …). That's why GPLv2 is there. and so on.
+(^_^;
+
+
+Revision History :
+2022/06/22 FOSS License Clear, National Institute of Information and Communications
+I retranslated it with "Minna no Machine Translation@TexTra®" ( https://mt-auto-minhon-mlt.ucri.jgn-x.jp ).
+This still haven't finish yet.
+
+2016/01/05 Based on what you pointed out in the 2 channel emulator general thread
+Obtain permission Revised part of the description of the facts. Added paragraph 6 after that.
+
+In response to the indication about the expression of hour, minute and second protection / format on the board in 2016-01-07 ↑
+Postscript corrected (scary)
+
+09/15/2016 Added Google translated Japanese sentence as ABOUT_eFM7_1.en.txt.
+W E   H A V E N ' T   F I N I S H E D   Y E T .
+
