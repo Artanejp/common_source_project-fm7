@@ -20,11 +20,6 @@
 
 //extern USING_FLAGS *using_flags;
 // WIP: Move another header.
-#if (SCREEN_WIDTH > 320)
-const static float screen_multiply_table[] = {0.5, 1.0, 1.5, 2.0, 2.25, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 8.0, 0.0};
-#else
-const static float screen_multiply_table[] = {0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.5, 10.0, 12.0, 15.0, 0.0};
-#endif
 void Object_Menu_Control::set_screen_aspect(void) {
 	int num = getValue1();
 	emit sig_screen_aspect(num);
@@ -147,19 +142,19 @@ void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 	int ix = 0;
 	double _iimul = 1.0;
 	double _zmul = using_flags->get_custom_screen_zoom_factor();
-	double _mul = screen_multiply_table[ix];
+	double _mul = getScreenMultiply(ix);
 	for(i = 0; i < using_flags->get_screen_mode_num();i++) {
 		double _ymul = _zmul * _iimul;
 		_ymul = _zmul *  _iimul;
 		if((_mul == 0.5) && (i > 0) && (_zmul > 0.0)) {
 			_mul = _mul * _zmul;
-		} else if((_ymul > 0.0) && (_ymul < screen_multiply_table[ix + 1]) /*&& (ix > 0)*/) {
-			if(screen_multiply_table[ix + 1] != 0.0) {
-				if(_ymul < screen_multiply_table[ix]) {
+		} else if((_ymul > 0.0) && (_ymul < getScreenMultiply(ix + 1)) /*&& (ix > 0)*/) {
+			if(getScreenMultiply(ix + 1) != 0.0) {
+				if(_ymul < getScreenMultiply(ix)) {
 					_mul = _ymul;
 					_iimul = _iimul + 1.0;
 				} else {
-					_mul = screen_multiply_table[ix];
+					_mul = getScreenMultiply(ix);
 					ix++;
 				}
 			} else {
@@ -167,7 +162,7 @@ void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 				_iimul = _iimul + 1.0;
 			}
 		} else {
-			_mul = screen_multiply_table[ix];
+			_mul = getScreenMultiply(ix);
 			ix++;
 		}			
 		w = (int)(_mul * (double)using_flags->get_screen_width());

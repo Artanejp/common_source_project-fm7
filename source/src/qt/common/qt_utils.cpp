@@ -135,7 +135,16 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(glv, SIGNAL(sig_key_up(uint32_t, uint32_t)),hRunEmu, SLOT(do_key_up(uint32_t, uint32_t)));
 	connect(this, SIGNAL(sig_quit_widgets()), glv, SLOT(do_stop_run_vm()));
 
-	
+	if(action_ResetFixedCpu != nullptr) {
+		connect(action_ResetFixedCpu, SIGNAL(triggered()),
+				hRunEmu, SLOT(do_set_emu_thread_to_fixed_cpu_from_action()));
+		
+	}
+	for(int i = 0 ; i < 128 ; i++) {
+		if(action_SetFixedCpu[i] == nullptr) break;
+		connect(action_SetFixedCpu[i], SIGNAL(triggered()),
+				hRunEmu, SLOT(do_set_emu_thread_to_fixed_cpu_from_action()));
+	}
 	//connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
 	connect(this, SIGNAL(sig_vm_reset()), hRunEmu, SLOT(do_reset()));
 	connect(this, SIGNAL(sig_vm_specialreset(int)), hRunEmu, SLOT(do_special_reset(int)));

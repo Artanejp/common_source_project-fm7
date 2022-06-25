@@ -549,6 +549,14 @@ void EmuThreadClassBase::set_floppy_disk_protected(int drive, bool flag)
 #include <pthread.h>
 #endif
 
+void EmuThreadClassBase::do_set_emu_thread_to_fixed_cpu_from_action(void)
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int cpunum = cp->data.value<int>();
+	set_emu_thread_to_fixed_cpu(cpunum);
+}
+
 void EmuThreadClassBase::set_emu_thread_to_fixed_cpu(int cpunum)
 {
 #if defined(Q_OS_LINUX)

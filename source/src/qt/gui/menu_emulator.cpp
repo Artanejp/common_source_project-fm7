@@ -296,15 +296,13 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 			action_EmulateCursorAs[i] = new Action_Control(this, using_flags);
 			action_EmulateCursorAs[i]->setObjectName(QString::fromUtf8("action_EmulateCursorAs", -1) + tmps);
 			action_EmulateCursorAs[i]->setCheckable(true);
-			action_EmulateCursorAs[i]->binds->setValue1(i);
+			action_EmulateCursorAs[i]->setData(QVariant(i));
 			actionGroup_EmulateCursorAs->addAction(action_EmulateCursorAs[i]);
 			menu_EmulateCursorAs->addAction(action_EmulateCursorAs[i]);
 			if(i == p_config->cursor_as_ten_key) action_EmulateCursorAs[i]->setChecked(true);
 				
 			connect(action_EmulateCursorAs[i], SIGNAL(triggered()),
-					action_EmulateCursorAs[i], SLOT(do_set_emulate_cursor_as()));
-			connect(action_EmulateCursorAs[i], SIGNAL(sig_set_emulate_cursor_as(int)),
-					this, SLOT(do_set_emulate_cursor_as(int)));
+					this, SLOT(do_set_emulate_cursor_as()));
 		}
 	}
 	
@@ -384,26 +382,18 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 		action_ResetFixedCpu = new Action_Control(this, using_flags);
 		action_ResetFixedCpu->setObjectName(QString::fromUtf8("action_SetFixedCpu", -1) + tmps);
 		action_ResetFixedCpu->setCheckable(true);
-		action_ResetFixedCpu->binds->setValue1(-1);
+		action_ResetFixedCpu->setData(QVariant((int)-1));
 		actionGroup_SetFixedCpu->addAction(action_ResetFixedCpu);
 		menu_SetFixedCpu->addAction(action_ResetFixedCpu);
-		connect(action_ResetFixedCpu, SIGNAL(triggered()),
-				action_ResetFixedCpu->binds, SLOT(do_select_fixed_cpu(void)));
-		connect(action_ResetFixedCpu->binds, SIGNAL(sig_set_fixed_cpu(int)),
-				this, SLOT(do_select_fixed_cpu(int)));
 		
 		for(i = 0; i < cpus; i++) {
 			tmps = QString::number(i);
 			action_SetFixedCpu[i] = new Action_Control(this, using_flags);
 			action_SetFixedCpu[i]->setObjectName(QString::fromUtf8("action_SetFixedCpu", -1) + tmps);
 			action_SetFixedCpu[i]->setCheckable(true);
-			action_SetFixedCpu[i]->binds->setValue1(i);
+			action_SetFixedCpu[i]->setData(QVariant(i));
 			actionGroup_SetFixedCpu->addAction(action_SetFixedCpu[i]);
 			menu_SetFixedCpu->addAction(action_SetFixedCpu[i]);
-			connect(action_SetFixedCpu[i], SIGNAL(triggered()),
-					action_SetFixedCpu[i]->binds, SLOT(do_select_fixed_cpu(void)));
-			connect(action_SetFixedCpu[i]->binds, SIGNAL(sig_set_fixed_cpu(int)),
-					this, SLOT(do_select_fixed_cpu(int)));
 		}
 	}
 	menu_SetRenderPlatform = new QMenu(this);
@@ -420,7 +410,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 				action_SetRenderPlatform[i] = new Action_Control(this, using_flags);
 				action_SetRenderPlatform[i]->setObjectName(QString::fromUtf8("action_SetRenderPlatform", -1) + tmps);
 				action_SetRenderPlatform[i]->setCheckable(true);
-				action_SetRenderPlatform[i]->binds->setValue1(i);
+				action_SetRenderPlatform[i]->setData(QVariant(i));
 				actionGroup_SetRenderPlatform->addAction(action_SetRenderPlatform[i]);
 				menu_SetRenderPlatform->addAction(action_SetRenderPlatform[i]);
 				if(i >= RENDER_PLATFORMS_END) {
@@ -455,9 +445,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 					}						
 				}
 				connect(action_SetRenderPlatform[i], SIGNAL(triggered()),
-						action_SetRenderPlatform[i], SLOT(do_select_render_platform(void)));
-				connect(action_SetRenderPlatform[i], SIGNAL(sig_select_render_platform(int)),
-						this, SLOT(do_select_render_platform(int)));
+						this, SLOT(do_select_render_platform(void)));
 			}
 	}
 	action_SetupKeyboard = new Action_Control(this, using_flags);

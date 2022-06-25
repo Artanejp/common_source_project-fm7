@@ -290,8 +290,12 @@ void Ui_MainWindowBase::do_set_state_log_to_record(bool f)
 
 
 
-void Ui_MainWindowBase::do_set_emulate_cursor_as(int num)
+void Ui_MainWindowBase::do_set_emulate_cursor_as(void)
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int num = cp->data.value<int>();
+	
 	if((num < 0) || (num > 2)) return;
 	p_config->cursor_as_ten_key = num;
 	emit sig_emu_update_config();
@@ -303,8 +307,12 @@ void Ui_MainWindowBase::do_set_dev_log_to_syslog(int num, bool f)
 	p_config->dev_log_to_syslog[num][0] = f;
 }
 
-void Ui_MainWindowBase::do_select_render_platform(int num)
+void Ui_MainWindowBase::do_select_render_platform(void)
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int num = cp->data.value<int>();
+	
 	int _major = 0;
 	int _minor = 0;
 	int _type = -1;
@@ -797,17 +805,16 @@ void Ui_MainWindowBase::setupUi(void)
 		}
 	}
 	graphicsView->setFixedSize(w, h);
-	for(int i = 0; i < using_flags->get_screen_mode_num(); i++) {
-		if(actionScreenSize[i] != NULL) {
-			connect(actionScreenSize[i]->binds, SIGNAL(sig_screen_multiply(float)),
-				graphicsView, SLOT(do_set_screen_multiply(float)));
+	connect(this, SIGNAL(sig_screen_multiply(float)), graphicsView, SLOT(do_set_screen_multiply(float)), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_glv_set_fixed_size(int, int)), graphicsView, SLOT(do_set_fixed_size(int, int)), Qt::QueuedConnection);
+	
+	set_screen_size(w, h);
+	set_screen_aspect(p_config->window_stretch_type);
+	{
+		float nd = getScreenMultiply(p_config->window_mode);
+		if(nd > 0.0f) {
+			graphicsView->do_set_screen_multiply(nd);
 		}
-	}
-	this->set_screen_size(w, h);
-	this->set_screen_aspect(p_config->window_stretch_type);
-	if(actionScreenSize[p_config->window_mode] != NULL) {
-		double nd = actionScreenSize[p_config->window_mode]->binds->getDoubleValue();
-		graphicsView->do_set_screen_multiply(nd);
 	}
 	if(using_flags->is_use_mouse()) {
 		connect(action_SetupMouse, SIGNAL(triggered()), this, SLOT(rise_mouse_dialog()));

@@ -117,7 +117,7 @@ QT_BEGIN_NAMESPACE
 		__action[_i] = new Action_Control(__parent, __using_flags);		\
 		__action[_i]->setCheckable(__checkable);						\
 		__action[_i]->setEnabled(__enabled);							\
-		__action[_i]->binds->setValue1(_i);								\
+		__action[_i]->binds->setValue1((_i);							\
 		__menu->addAction(__action[_i]);								\
 		if(p_config->__cnf[_i][0]) __action[_i]->setChecked(true); \
 		connect(__action[_i], __signal1, __action[_i], __slot1);		\
@@ -373,6 +373,19 @@ protected:
 
 	QTimer *statusUpdateTimer;
 	QTimer *ledUpdateTimer;
+	
+	const float screen_multiply_table[16] = {
+		0.5, 1.0, 1.5, 2.0,
+		2.25, 2.5, 3.0, 3.5,
+		4.0, 5.0, 6.0, 8.0,
+		0.0, 0.0, 0.0, 0.0
+	};
+	const float screen_multiply_table_mini[16] = {
+		0.5, 1.0, 1.5, 2.0,
+		3.0, 4.0, 5.0, 6.0,
+		7.5, 10.0, 12.0, 15.0,
+		0.0, 0.0, 0.0, 0.0
+	};
 
 	int screen_mode_count;
 	// Virtual medias.
@@ -516,7 +529,17 @@ protected:
 	int max_vm_nodes;
 	bool ui_retranslate_completed;
 	bool about_to_close;
-	
+
+	virtual float getScreenMultiply(int num)
+	{
+		if(using_flags == nullptr) return 0.0f;
+		if((num < 0) || (num > 15)) return 0.0f;
+		if(using_flags->get_screen_width() > 320) {
+			return screen_multiply_table[num];
+		} else {
+			return screen_multiply_table_mini[num];
+		}
+	}
 	virtual void closeEvent(QCloseEvent *event);
 	// CPU Type
 	void ConfigCPUTypes(int num);
