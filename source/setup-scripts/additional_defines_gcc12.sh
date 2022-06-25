@@ -7,10 +7,16 @@ if [ __x__"${BUILD_TYPE}" = __x__Debug ] ; then
 	OPTIMIZE_LEVEL="-O0"
 	DEBUGFLAGS+=(-ggdb)
 	DEBUGFLAGS+=(-gz)
+	DEBUGFLAGS+=(-fmerge-debug-strings)
+	DEBUGFLAGS+=(-feliminate-unused-debug-symbols)
+	DEBUGFLAGS+=(-feliminate-unused-debug-types)
 elif [ __x__"${BUILD_TYPE}" = __x__Relwithdebinfo ] ; then
 	OPTIMIZE_LEVEL="-O3"
 	DEBUGFLAGS+=(-ggdb)
 	DEBUGFLAGS+=(-gz)
+	DEBUGFLAGS+=(-fmerge-debug-strings)
+	DEBUGFLAGS+=(-feliminate-unused-debug-symbols)
+	DEBUGFLAGS+=(-feliminate-unused-debug-types)
 else
 	OPTIMIZE_LEVEL="-O3"
 fi
