@@ -26,6 +26,15 @@ class QActionGroup;
 class USING_FLAGS;
 class Action_Control;
 
+namespace CSP_Ui_Menu {
+	struct DriveIndex_pair {
+		int drive;
+		int index;
+	};
+}
+
+Q_DECLARE_METATYPE(CSP_Ui_Menu::DriveIndex_pair)
+
 class DLL_PREFIX Menu_MetaClass : public QMenu {
 	Q_OBJECT
 private:

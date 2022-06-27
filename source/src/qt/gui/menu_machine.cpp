@@ -101,7 +101,7 @@ void Ui_MainWindowBase::ConfigMonitorType(void)
 		actionGroup_MonitorType = new QActionGroup(this);
 		actionGroup_MonitorType->setExclusive(true);
 		for(ii = 0; ii < using_flags->get_use_monitor_type(); ii++) {
-			SET_ACTION_NUMERIC_CONNECT(actionMonitorType[ii], ii, p_config->monitor_type,  SIGNAL(triggered()), SLOT(do_set_monitor_type()), SIGNAL(sig_monitor_type(int)),SLOT(set_monitor_type(int)));
+			SET_ACTION_NUMERIC_CONNECT(actionMonitorType[ii], ii, p_config->monitor_type,  SIGNAL(triggered()), SLOT(set_monitor_type()));
 			
 			actionGroup_MonitorType->addAction(actionMonitorType[ii]);
 			menuMonitorType->addAction(actionMonitorType[ii]);

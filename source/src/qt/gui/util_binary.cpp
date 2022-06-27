@@ -7,6 +7,8 @@
  * Jan 24, 2014 : Moved from some files.
  */
 #include <QApplication>
+#include <QVariant>
+#include <QAction>
 
 #include "mainwidget_base.h"
 #include "commonclasses.h"
@@ -36,11 +38,17 @@ void Object_Menu_Control::insert_binary_save(void) {
 	emit sig_open_binary(getDrive(), false);
 }
 
-int Ui_MainWindowBase::set_recent_binary_load(int drv, int num) 
+int Ui_MainWindowBase::set_recent_binary_load(void) 
 {
 
 	QString s_path;
 	char path_shadow[PATH_MAX];
+	
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->value<CSP_Ui_Menu::DriveIndexPair>();
+	drv = tmp.drive;
+	num = tmp.index;
 	
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	
@@ -58,10 +66,16 @@ int Ui_MainWindowBase::set_recent_binary_load(int drv, int num)
 	return 0;
 }
 
-int Ui_MainWindowBase::set_recent_binary_save(int drv, int num) 
+int Ui_MainWindowBase::set_recent_binary_save(void) 
 {
 	QString s_path;
 	char path_shadow[PATH_MAX];
+	
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->value<CSP_Ui_Menu::DriveIndexPair>();
+	drv = tmp.drive;
+	num = tmp.index;
 	
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	

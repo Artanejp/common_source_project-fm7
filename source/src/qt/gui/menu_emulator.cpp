@@ -328,18 +328,12 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	
 	menuDevLogToSyslog = new QMenu(this);
 	menuDevLogToSyslog->setToolTipsVisible(true);
-	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
-		action_DevLogToSyslog[i] = new Action_Control(this, using_flags);
-		action_DevLogToSyslog[i]->setCheckable(true);
-		action_DevLogToSyslog[i]->setEnabled(false);
-		action_DevLogToSyslog[i]->binds->setValue1(i);
-		menuDevLogToSyslog->addAction(action_DevLogToSyslog[i]);
-		if(p_config->dev_log_to_syslog[i][0]) action_DevLogToSyslog[i]->setChecked(true);
-		connect(action_DevLogToSyslog[i], SIGNAL(toggled(bool)),
-				action_DevLogToSyslog[i], SLOT(do_set_dev_log_to_syslog(bool)));
-		connect(action_DevLogToSyslog[i], SIGNAL(sig_set_dev_log_to_syslog(int, bool)),
-				this, SLOT(do_set_dev_log_to_syslog(int, bool)));
-	}
+	SET_ACTION_CONTROL_ARRAY(0, (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1),
+							 this, using_flags,
+							 menuDevLogToSyslog, action_DevLogToSyslog, true, false,
+							 dev_log_to_syslog,
+							 SIGNAL(toggled(bool)),
+							 SLOT(do_set_dev_log_to_syslog(bool)));
 #endif
 	
 	SET_ACTION_SINGLE(action_LogToConsole, true, true, (p_config->log_to_console != 0));
@@ -353,9 +347,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 							 menuDevLogToConsole, action_DevLogToConsole, true, false,
 							 dev_log_to_console,
 							 SIGNAL(toggled(bool)),
-							 SLOT(do_set_dev_log_to_console(bool)),
-							 SIGNAL(sig_set_dev_log_to_console(int, bool)),
-							 SLOT(do_set_dev_log_to_console(int, bool)));
+							 SLOT(do_set_dev_log_to_console(bool)));
 	
 	action_LogView = new Action_Control(this, using_flags);
 	connect(action_LogView, SIGNAL(triggered()),

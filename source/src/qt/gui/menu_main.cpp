@@ -121,15 +121,6 @@ void Action_Control::do_check_grab_mouse(bool flag)
 	this->toggle();
 }
 
-void Action_Control::do_send_string(void)
-{
-	emit sig_send_string(bindString);
-}
-
-void Action_Control::do_set_string(QString s)
-{
-	bindString = s;
-}
 
 void Action_Control::do_select_render_platform(void)
 {
@@ -148,17 +139,6 @@ void Action_Control::do_set_emulate_cursor_as(void)
 	emit sig_set_emulate_cursor_as(num);
 }
 
-void Action_Control::do_set_dev_log_to_console(bool f)
-{
-	int num = this->binds->getValue1();
-	emit sig_set_dev_log_to_console(num, f);
-}
-
-void Action_Control::do_set_dev_log_to_syslog(bool f)
-{
-	int num = this->binds->getValue1();
-	emit sig_set_dev_log_to_syslog(num, f);
-}
 
 
 void Ui_MainWindowBase::do_set_window_focus_type(bool flag)
@@ -192,8 +172,14 @@ void Ui_MainWindowBase::do_show_about(void)
 	dlg->show();
 }
 
-void Ui_MainWindowBase::do_browse_document(QString fname)
+, __action, SLOT(do_send_string())); \
+	connect(__action, SIGNAL(sig_send_string(QString)),
+void Ui_MainWindowBase::do_browse_document()
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	QString fname = cp->data.toString();
+	
 	Dlg_BrowseText *dlg = new Dlg_BrowseText(fname, using_flags);
 	dlg->show();
 }
@@ -266,6 +252,10 @@ void Ui_MainWindowBase::do_set_logging_fdc(bool f)
 
 void Ui_MainWindowBase::do_set_dev_log_to_console(int num, bool f)
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int num = cp->data.value<int>();
+	
 	csp_logger->set_device_node_log(num, 2, CSP_LOG_DEBUG, f);
 	p_config->dev_log_to_console[num][0] = f;
 }
@@ -301,8 +291,12 @@ void Ui_MainWindowBase::do_set_emulate_cursor_as(void)
 	emit sig_emu_update_config();
 }
 
-void Ui_MainWindowBase::do_set_dev_log_to_syslog(int num, bool f)
+void Ui_MainWindowBase::do_set_dev_log_to_syslog(bool f)
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int num = cp->data.value<int>();
+	
 	csp_logger->set_device_node_log(num, 2, CSP_LOG_DEBUG, f);
 	p_config->dev_log_to_syslog[num][0] = f;
 }
@@ -1155,11 +1149,11 @@ void Ui_MainWindowBase::do_release_emu_resources(void)
 {
 }
 
-void Ui_MainWindowBase::OnOpenDebugger(int no)
+void Ui_MainWindowBase::OnOpenDebugger(void)
 {
 }
 
-void Ui_MainWindowBase::OnCloseDebugger(void )
+void Ui_MainWindowBase::OnCloseDebugger(void)
 {
 }
 

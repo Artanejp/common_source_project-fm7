@@ -201,13 +201,13 @@ typedef class DLL_PREFIX Action_Control: public QAction {
 	//   virtual void addedTo ( int index, QPopupMenu * menu ){}
 	QString bindString;
  public:
-	Object_Menu_Control *binds;
+	//Object_Menu_Control *binds;
 	Action_Control (QObject *parent, USING_FLAGS *p) : QAction(parent) {
-		binds = new Object_Menu_Control(parent, p);
+		//binds = new Object_Menu_Control(parent, p);
 		bindString.clear();
 	}
 	~Action_Control() {
-		delete binds;
+		//delete binds;
 	}
 public slots:
   	void do_check_grab_mouse(bool);
@@ -227,8 +227,6 @@ signals:
 	int sig_set_dev_log_to_console(int, bool);
 	int sig_set_dev_log_to_syslog(int, bool);
 	int sig_select_render_platform(int);
-	int sig_save_state(QString);
-	int sig_load_state(QString);
 	int sig_set_window_focus_type(bool);
 	int sig_set_emulate_cursor_as(int);
 } ActionControl;

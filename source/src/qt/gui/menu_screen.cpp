@@ -72,27 +72,6 @@ void Object_Menu_Control::set_screen_size(void) {
 	emit sig_screen_multiply(nd);
 }
 
-void Object_Menu_Control::do_save_as_movie(void)
-{
-	int fps = p_config->video_frame_rate;
-	emit sig_start_record_movie(fps);
-}
-
-void Object_Menu_Control::do_stop_saving_movie(void)
-{
-	emit sig_stop_record_movie();
-}
-
-
-void Ui_MainWindowBase::do_stop_saving_movie(void)
-{
-	emit sig_stop_saving_movie();
-}
-
-void Ui_MainWindowBase::do_start_saving_movie(void)
-{
-	emit sig_start_saving_movie();
-}
 
 void Ui_MainWindowBase::do_set_render_mode_std(void)
 {

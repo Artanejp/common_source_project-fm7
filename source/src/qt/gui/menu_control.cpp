@@ -76,21 +76,7 @@ void Object_Menu_Control::do_set_drive_type(void)
 	emit sig_drive_type(getValue1());
 }
 
-void Action_Control::do_load_state(void)
-{
-	emit sig_load_state(binds->getStringValue());
-}
 
-void Action_Control::do_save_state(void)
-{
-	emit sig_save_state(binds->getStringValue());
-}
-
-void Ui_MainWindowBase::do_special_reset(int num)
-{
-//	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, _T("Special reset #%d"), getValue1());
-	emit sig_vm_specialreset(num);
-}
 
 void Ui_MainWindowBase::ConfigCpuSpeed(void)
 {
@@ -98,37 +84,33 @@ void Ui_MainWindowBase::ConfigCpuSpeed(void)
 	actionSpeed_x1->setObjectName(QString::fromUtf8("actionSpeed_x1"));
 	actionSpeed_x1->setCheckable(true);
 	actionSpeed_x1->setChecked(true);
-	actionSpeed_x1->binds->setValue1(0);
-	connect(actionSpeed_x1, SIGNAL(triggered()), actionSpeed_x1->binds, SLOT(set_cpupower())); // OK?  
-	connect(actionSpeed_x1->binds, SIGNAL(on_cpu_power(int)), this, SLOT(set_cpu_power(int))); // OK?  
+	actionSpeed_x1->setData(QVariant((int)0));
   
 	actionSpeed_x2 = new Action_Control(this, using_flags);
 	actionSpeed_x2->setObjectName(QString::fromUtf8("actionSpeed_x2"));
 	actionSpeed_x2->setCheckable(true);
-	actionSpeed_x2->binds->setValue1(1);
-	connect(actionSpeed_x2, SIGNAL(triggered()), actionSpeed_x2->binds, SLOT(set_cpupower())); // OK?  
-	connect(actionSpeed_x2->binds, SIGNAL(on_cpu_power(int)), this, SLOT(set_cpu_power(int))); // OK?  
+	actionSpeed_x2->setData(QVariant((int)1));
   
 	actionSpeed_x4 = new Action_Control(this, using_flags);
 	actionSpeed_x4->setObjectName(QString::fromUtf8("actionSpeed_x4"));
 	actionSpeed_x4->setCheckable(true);
-	actionSpeed_x4->binds->setValue1(2);
-	connect(actionSpeed_x4, SIGNAL(triggered()), actionSpeed_x4->binds, SLOT(set_cpupower())); // OK?  
-	connect(actionSpeed_x4->binds, SIGNAL(on_cpu_power(int)), this, SLOT(set_cpu_power(int))); // OK?  
+	actionSpeed_x4->setData(QVariant((int)2));
   
 	actionSpeed_x8 = new Action_Control(this, using_flags);
 	actionSpeed_x8->setObjectName(QString::fromUtf8("actionSpeed_x8"));
 	actionSpeed_x8->setCheckable(true);
-	actionSpeed_x8->binds->setValue1(3);
-	connect(actionSpeed_x8, SIGNAL(triggered()), actionSpeed_x8->binds, SLOT(set_cpupower())); // OK?  
-	connect(actionSpeed_x8->binds, SIGNAL(on_cpu_power(int)), this, SLOT(set_cpu_power(int))); // OK?  
+	actionSpeed_x8->setData(QVariant((int)3));
   
 	actionSpeed_x16 = new Action_Control(this, using_flags);
 	actionSpeed_x16->setObjectName(QString::fromUtf8("actionSpeed_x16"));
 	actionSpeed_x16->setCheckable(true);
-	actionSpeed_x16->binds->setValue1(4);
-	connect(actionSpeed_x16, SIGNAL(triggered()), actionSpeed_x16->binds, SLOT(set_cpupower())); // OK?  
-	connect(actionSpeed_x16->binds, SIGNAL(on_cpu_power(int)), this, SLOT(set_cpu_power(int))); // OK?  
+	actionSpeed_x16->setData(QVariant((int)4));
+	
+	connect(actionSpeed_x1 , SIGNAL(triggered()), this, SLOT(do_set_cpu_power())); // OK?  
+	connect(actionSpeed_x2 , SIGNAL(triggered()), this, SLOT(do_set_cpu_power())); // OK?  
+	connect(actionSpeed_x4 , SIGNAL(triggered()), this, SLOT(do_set_cpu_power())); // OK?  
+	connect(actionSpeed_x8 , SIGNAL(triggered()), this, SLOT(do_set_cpu_power())); // OK?  
+	connect(actionSpeed_x16, SIGNAL(triggered()), this, SLOT(do_set_cpu_power())); // OK?  
 
 	actionGroup_CpuSpeed = new QActionGroup(this);
 	actionGroup_CpuSpeed->setExclusive(true);
@@ -161,8 +143,12 @@ void Ui_MainWindowBase::ConfigCpuSpeed(void)
 		break;
 	}
 }
-void Ui_MainWindowBase::do_change_boot_mode(int mode)
+void Ui_MainWindowBase::do_change_boot_mode(void)
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int mode = cp->data.value<int>();
+	
 	if((mode < 0) || (mode >= 8)) return;
 	p_config->boot_mode = mode;
 	emit sig_emu_update_config();
@@ -174,6 +160,7 @@ void Ui_MainWindowBase::ConfigCPUBootMode(int num)
 {
 	int i;
 	QString tmps;
+	
 	if(num <= 0) return;
 	if(num >= 8) num = 8;
   
@@ -188,17 +175,20 @@ void Ui_MainWindowBase::ConfigCPUBootMode(int num)
 		actionBootMode[i]->setObjectName(tmps);
 		actionBootMode[i]->setCheckable(true);
 		if(i == p_config->boot_mode) actionBootMode[i]->setChecked(true);
-		actionBootMode[i]->binds->setValue1(i);
+		actionBootMode[i]->setData(QVariant(i));
 		menuBootMode->addAction(actionBootMode[i]);
 		actionGroup_BootMode->addAction(actionBootMode[i]);
-		connect(actionBootMode[i], SIGNAL(triggered()), actionBootMode[i]->binds, SLOT(set_boot_mode())); // OK?  
-		connect(actionBootMode[i]->binds, SIGNAL(on_boot_mode(int)), this, SLOT(do_change_boot_mode(int))); // OK?  
+		connect(actionBootMode[i], SIGNAL(triggered()), this, SLOT(do_change_boot_mode())); // OK?  
 	}
 	menuMachine->addAction(menuBootMode->menuAction());
 }
 
-void Ui_MainWindowBase::do_change_cpu_type(int mode)
+void Ui_MainWindowBase::do_change_cpu_type(void)
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int num = cp->data.value<int>();
+	
 	if((mode < 0) || (mode >= 8)) return;
 	p_config->cpu_type = mode;
 	emit sig_emu_update_config();
@@ -222,11 +212,10 @@ void Ui_MainWindowBase::ConfigCPUTypes(int num)
 		actionCpuType[i]->setObjectName(tmps);
 		actionCpuType[i]->setCheckable(true);
 		if(i == p_config->cpu_type) actionCpuType[i]->setChecked(true);
-		actionCpuType[i]->binds->setValue1(i);
+		actionCpuType[i]->setData(QVariant(i));
 		menuCpuType->addAction(actionCpuType[i]);
 		actionGroup_CpuType->addAction(actionCpuType[i]);
-		connect(actionCpuType[i], SIGNAL(triggered()), actionCpuType[i]->binds, SLOT(set_cpu_type())); // OK?  
-		connect(actionCpuType[i]->binds, SIGNAL(on_cpu_type(int)), this, SLOT(do_change_cpu_type(int))); // OK?  
+		connect(actionCpuType[i], SIGNAL(triggered()), this, SLOT(do_change_cpu_type())); // OK?  
 	}
 	menuMachine->addAction(menuCpuType->menuAction());
 }
@@ -246,11 +235,9 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 			tmps = QString::fromUtf8("actionSpecial_Reset") + tmps;
 			actionSpecial_Reset[i] = new Action_Control(this, using_flags);
 			actionSpecial_Reset[i]->setObjectName(tmps);
-			actionSpecial_Reset[i]->binds->setValue1(i);
+			actionSpecial_Reset[i]->setData(QVariant(i));
 			connect(actionSpecial_Reset[i], SIGNAL(triggered()),
-					actionSpecial_Reset[i]->binds, SLOT(do_special_reset())); // OK?
-			connect(actionSpecial_Reset[i]->binds, SIGNAL(sig_specialreset(int)),
-					this, SLOT(do_special_reset(int))); // OK?
+					this, SLOT(do_special_reset())); // OK?
 			if(i >= 15) break;
 		}
 	}
@@ -288,15 +275,8 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 			tmps = QString::fromUtf8("actionLoad_State") + tmpss;
 			actionLoad_State[i]->setObjectName(tmps);
 			tmps = QString::fromLocal8Bit(tmpbuf);
-			actionSave_State[i]->binds->setStringValue(tmps);
-			actionLoad_State[i]->binds->setStringValue(tmps);
-				
-		
-			connect(actionLoad_State[i], SIGNAL(triggered()),
-					actionLoad_State[i], SLOT(do_load_state())); // OK?
-			connect(actionSave_State[i], SIGNAL(triggered()),
-					actionSave_State[i], SLOT(do_save_state())); // OK?
-			
+			actionSave_State[i]->setData(QVariant(tmps));
+			actionLoad_State[i]->setData(QVariant(tmps));
 		}
 	}
 	if(using_flags->is_use_debugger()) {
@@ -305,11 +285,9 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 			tmps.setNum(i);
 			actionDebugger[i] = new Action_Control(this, using_flags);
 			actionDebugger[i]->setObjectName(QString::fromUtf8("actionDebugger") + tmps);
-			actionDebugger[i]->binds->setValue1(i);
+			actionDebugger[i]->setData(QVariant(i));
 			connect(actionDebugger[i], SIGNAL(triggered()),
-					actionDebugger[i]->binds, SLOT(open_debugger())); // OK?  
-			connect(actionDebugger[i]->binds, SIGNAL(on_open_debugger(int)),
-					this, SLOT(OnOpenDebugger(int))); // OK?
+					this, SLOT(OnOpenDebugger())); // OK?
 		}
 	}
 	ConfigCpuSpeed();

@@ -43,8 +43,10 @@ void Menu_BinaryClass::create_pulldown_menu_device_sub(void)
 		for(ii = 0; ii < MAX_HISTORY; ii++) {
 			tmps = history.value(ii, "");
 			action_recent_save_list[ii] = new Action_Control(p_wid, using_flags);
-			action_recent_save_list[ii]->binds->setDrive(media_drive);
-			action_recent_save_list[ii]->binds->setNumber(ii);
+			struct CSP_Ui_Menu::DriveIndexPair tmp;
+			tmp.drive = media_drive;
+			tmp.index = ii;
+			action_recent_save_list[ii]->setData(QVariant(tmp));
 			
 			action_recent_save_list[ii]->setText(tmps);
 			action_group_save_recent->addAction(action_recent_save_list[ii]);
@@ -98,13 +100,9 @@ void Menu_BinaryClass::connect_menu_device_sub(void)
 	action_eject->setVisible(false);
 	for(ii = 0; ii < MAX_HISTORY; ii++) {
 		connect(action_recent_save_list[ii], SIGNAL(triggered()),
-				action_recent_save_list[ii]->binds, SLOT(on_recent_binary_save()));
-		connect(action_recent_save_list[ii]->binds, SIGNAL(set_recent_binary_save(int, int)),
-				this, SLOT(do_open_recent_media_save(int, int)));
+				p_wid, SLOT(set_recent_binary_save());
 	}
 	connect(action_saving, SIGNAL(triggered()),	this, SLOT(do_open_save_dialog()));
-	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_binary_load(int, int)));
-	connect(this, SIGNAL(sig_set_recent_media_save(int, int)), p_wid, SLOT(set_recent_binary_save(int, int)));
 
 	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_binary_load(int, QString)));
 	connect(this, SIGNAL(sig_open_media_save(int, QString)), p_wid, SLOT(_open_binary_save(int, QString)));

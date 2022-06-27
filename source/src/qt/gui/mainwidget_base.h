@@ -70,17 +70,17 @@ QT_BEGIN_NAMESPACE
 		}														  \
 		connect(__action, __signal1, this, __slot1);			  
 
-#define SET_ACTION_NUMERIC_CONNECT(__action,__num,__condval,__signal1,__slot1,__signal2,__slot2) \
+#define SET_ACTION_NUMERIC_CONNECT(__action,__num,__condval,__signal1,__slot1) \
 	__action = new Action_Control(this, using_flags);					\
 	__action->setCheckable(true);										\
 	__action->setEnabled(true);											\
-	__action->binds->setValue1(__num);											\
+	__action->setData(QVariant((int)__num));							\
 	__action->setChecked(false);										\
 	if(__condval == __num) {											\
 		__action->setChecked(true);										\
 	}																	\
-	connect(__action, __signal1, __action->binds, __slot1);				\
-	connect(__action->binds, __signal2, this, __slot2); 
+	/*connect(__action, __signal1, __action->binds, __slot1);*/			\
+	connect(__action, __signal1, this, __slot1); 
 
 
 #define SET_ACTION_CHECKABLE_SINGLE_CONNECT(__menu,__action,__objname,__cond,__signal1,__slot1) \
@@ -101,9 +101,8 @@ QT_BEGIN_NAMESPACE
 #define SET_HELP_MENUENTRY(__menu,__action,__objname,__txtname) \
 	__action = new Action_Control(this, using_flags); \
 	__action->setObjectName(QString::fromUtf8(__objname)); \
-	__action->do_set_string(QString::fromUtf8(__txtname)); \
-	connect(__action, SIGNAL(triggered()), __action, SLOT(do_send_string())); \
-	connect(__action, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString))); \
+	__action->setData(QVariant(QString::fromUtf8(__txtname)));			\
+	connect(__action, SIGNAL(triggered()), this, SLOT(do_browse_document())); \
 	__menu->addAction(__action);
 	
 
@@ -111,17 +110,17 @@ QT_BEGIN_NAMESPACE
 								 __parent,__using_flags,				\
 								 __menu,__action,						\
 								 __checkable,__enabled,__cnf,			\
-								 __signal1,__slot1,						\
-								 __signal2,__slot2) 					\
+								 __signal1,__slot1						\
+								 ) 					\
 	for(int _i = __start; _i < __end;  _i++) {							\
 		__action[_i] = new Action_Control(__parent, __using_flags);		\
 		__action[_i]->setCheckable(__checkable);						\
 		__action[_i]->setEnabled(__enabled);							\
-		__action[_i]->binds->setValue1((_i);							\
+		__action[_i]->setData(QVariant(_i));							\
 		__menu->addAction(__action[_i]);								\
 		if(p_config->__cnf[_i][0]) __action[_i]->setChecked(true); \
-		connect(__action[_i], __signal1, __action[_i], __slot1);		\
-		connect(__action[_i], __signal2, this, __slot2);				\
+		/*connect(__action[_i], __signal1, __action[_i], __slot1);*/	\
+		connect(__action[_i], __signal1, this, __slot1);				\
 	}																	\
 
 class OSD;
@@ -645,11 +644,16 @@ public slots:
 	void do_set_state_saving_movie(bool state);
 	void set_osd_virtual_media(bool f);
 	
-	virtual void OnOpenDebugger(int n);
+	virtual void OnOpenDebugger(void);
 	virtual void OnCloseDebugger(void);
 	void doBeforeCloseMainWindow(void);	
 	void set_gl_crt_filter(bool);
-	void set_cpu_power(int pw) {
+	void set_cpu_power(void)
+	{
+		QAction *cp = qobject_cast<QAction*>(QObject::sender());
+		if(cp == nullptr) return;
+		int pw = cp->data.value<int>();
+		
 		OnCpuPower(pw);
 	}
 	virtual void on_actionExit_triggered();
@@ -737,7 +741,7 @@ public slots:
 	void do_set_sound_tape_voice(bool f);
 	void do_set_host_sound_device(int num);
 	void do_set_host_sound_name(int num, QString sname);	
-	void set_monitor_type(int);
+	void set_monitor_type(void);
 	void message_status_bar(QString);
 	void resize_statusbar(int w, int h);
 	virtual void do_release_emu_resources(void);
@@ -752,7 +756,7 @@ public slots:
 	void set_gl_scan_line_horiz(bool);
 	void set_printer_device(int);
 	void do_show_about(void);
-	void do_browse_document(QString);
+	void do_browse_document(void);
 	void set_dipsw(int num, bool flag);
 	bool get_dipsw(int num);
 
@@ -870,8 +874,6 @@ signals:
 	int quit_debugger_thread(void);
 	int sig_quit_widgets(void);
 
-	int sig_load_state(QString);
-	int sig_save_state(QString);
 	int sig_emu_thread_to_fixed_cpu(int);
 	int sig_add_keyname_table(uint32_t, QString);
 

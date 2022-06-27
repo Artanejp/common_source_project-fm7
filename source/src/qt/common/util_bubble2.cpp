@@ -57,6 +57,8 @@ int Ui_MainWindow::set_recent_bubble(int drv, int num)
 	QString s_path;
 	char path_shadow[PATH_MAX];
 	int i;
+
+	
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	s_path = QString::fromLocal8Bit(p_config->recent_bubble_casette_path[drv][num]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);

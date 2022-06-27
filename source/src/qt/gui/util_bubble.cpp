@@ -7,6 +7,8 @@
  * Mar 24, 2016 : Initial.
  */
 #include <QApplication>
+#include <QVariant>
+#include <QAction>
 
 #include "mainwidget_base.h"
 #include "commonclasses.h"

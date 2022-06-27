@@ -278,28 +278,43 @@ void EmuThreadClassBase::do_start_emu_thread()
 {
 	start(QThread::TimeCriticalPriority);
 }
-void EmuThreadClassBase::do_special_reset(int num)
+
+void EmuThreadClassBase::do_special_reset(void)
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int num = cp->data.value<int>();
+	
 	if(num < 0) return;
 	if(num >= using_flags->get_use_special_reset_num()) return;
 	bSpecialResetReq = true;
 	specialResetNum = num;
 }
 
-void EmuThreadClassBase::do_load_state(QString s)
+void EmuThreadClassBase::do_load_state(void)
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	QString s = cp->data.toString();
+	
 	lStateFile = s;
 	bLoadStateReq = true;
 }
 
-void EmuThreadClassBase::do_save_state(QString s)
+void EmuThreadClassBase::do_save_state(void)
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	QString s = cp->data.toString();
+	
 	sStateFile = s;
 	bSaveStateReq = true;
 }
 
-void EmuThreadClassBase::do_start_record_video(int fps)
+void EmuThreadClassBase::do_start_record_video()
 {
+	if(p_config == nullptr) return;
+	int fps = p_config->video_frame_rate;
 	record_fps = fps;
 	bStartRecordMovieReq = true;
 }

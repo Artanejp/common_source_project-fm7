@@ -147,8 +147,13 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	}
 	//connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
 	connect(this, SIGNAL(sig_vm_reset()), hRunEmu, SLOT(do_reset()));
-	connect(this, SIGNAL(sig_vm_specialreset(int)), hRunEmu, SLOT(do_special_reset(int)));
-
+	
+	for(int i = 0 ; i < using_flags->get_use_special_reset_num() ; i++) {
+		if(actionSpecial_Reset[i] != nullptr) {
+			connect(actionSpecial_Reset[i], SIGNAL(triggered()), hRunEmu, SLOT(do_special_reset()));
+		}
+		if(i >= 15) break;
+	}
 	connect(this, SIGNAL(sig_emu_update_config()), hRunEmu, SLOT(do_update_config()));
 	connect(this, SIGNAL(sig_emu_update_volume_level(int, int)), hRunEmu, SLOT(do_update_volume_level(int, int)));
 	connect(this, SIGNAL(sig_emu_update_volume_balance(int, int)), hRunEmu, SLOT(do_update_volume_balance(int, int)));
@@ -159,8 +164,8 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	
 	if(using_flags->is_use_state()) {
 		for(int i = 0; i < 10; i++) {
-			connect(actionLoad_State[i], SIGNAL(sig_load_state(QString)), hRunEmu, SLOT(do_load_state(QString))); // OK?
-			connect(actionSave_State[i], SIGNAL(sig_save_state(QString)), hRunEmu, SLOT(do_save_state(QString))); // OK?
+			connect(actionLoad_State[i], SIGNAL(triggered()), hRunEmu, SLOT(do_load_state())); // OK?
+			connect(actionSave_State[i], SIGNAL(triggered()), hRunEmu, SLOT(do_save_state())); // OK?
 		}
 	}
 #if defined(USE_FLOPPY_DISK)
@@ -318,16 +323,13 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Launch done.");
 
 	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, (OSD*)(emu->get_osd()), &config);
-	
-	connect(actionStart_Record_Movie->binds, SIGNAL(sig_start_record_movie(int)), hRunEmu, SLOT(do_start_record_video(int)));
-	connect(this, SIGNAL(sig_start_saving_movie()),
-			actionStart_Record_Movie->binds, SLOT(do_save_as_movie()));
-	connect(actionStart_Record_Movie, SIGNAL(triggered()), this, SLOT(do_start_saving_movie()));
 
-	connect(actionStop_Record_Movie->binds, SIGNAL(sig_stop_record_movie()), hRunEmu, SLOT(do_stop_record_video()));
-	connect(this, SIGNAL(sig_stop_saving_movie()), actionStop_Record_Movie->binds, SLOT(do_stop_saving_movie()));
+	// SAVING MOVIES
+//	connect(this, SIGNAL(sig_start_saving_movie()),	hRunEmu, SLOT(do_start_record_video()));
+	connect(actionStart_Record_Movie, SIGNAL(triggered()), hRunEmu, SLOT(do_start_record_video()));
+	connect(actionStop_Record_Movie, SIGNAL(triggered()), hRunEmu, SLOT(do_stop_record_video()));
+	
 	connect(hSaveMovieThread, SIGNAL(sig_set_state_saving_movie(bool)), this, SLOT(do_set_state_saving_movie(bool)));
-	connect(actionStop_Record_Movie, SIGNAL(triggered()), this, SLOT(do_stop_saving_movie()));
 
 	connect((OSD*)(emu->get_osd()), SIGNAL(sig_save_as_movie(QString, int, int)),
 			hSaveMovieThread, SLOT(do_open(QString, int, int)));
@@ -1451,8 +1453,12 @@ QString Ui_MainWindow::GetBubbleB77BubbleName(int drv, int num)
 #ifdef USE_DEBUGGER
 #include <../debugger/qt_debugger.h>
 
-void Ui_MainWindow::OnOpenDebugger(int no)
+void Ui_MainWindow::OnOpenDebugger()
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int no = cp->data.value<int>();
+
 	if((no < 0) || (no > 7)) return;
 	//emu->open_debugger(no);
 	VM *vm = static_cast<VM*>(emu->get_vm());

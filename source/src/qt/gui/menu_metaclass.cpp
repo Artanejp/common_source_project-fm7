@@ -277,10 +277,12 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 		for(ii = 0; ii < MAX_HISTORY; ii++) {
 			tmps = history.value(ii, "");
 			action_recent_list[ii] = new Action_Control(p_wid, using_flags);
-			action_recent_list[ii]->binds->setDrive(media_drive);
-			action_recent_list[ii]->binds->setNumber(ii);
-			
+			struct CSP_Ui_Menu::DriveIndexPair tmp;
+			tmp.drive = media_drive;
+			tmp.index = ii;
+ 			action_recent_list[ii]->setData(QVariant(tmp));
 			action_recent_list[ii]->setText(tmps);
+			
 			action_group_recent->addAction(action_recent_list[ii]);
 			if(!tmps.isEmpty()) {
 				action_recent_list[ii]->setVisible(true);
@@ -298,8 +300,11 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 		for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
 			tmps = history.value(ii, "");
 			action_select_media_list[ii] = new Action_Control(p_wid, using_flags);
-			action_select_media_list[ii]->binds->setDrive(media_drive);
-			action_select_media_list[ii]->binds->setNumber(ii);
+			struct CSP_Ui_Menu::DriveIndexPair tmp;
+			tmp.drive = media_drive;
+			tmp.index = ii;
+			action_select_media_list[ii]->setData(tmp);
+			
 			action_select_media_list[ii]->setText(tmps);
 			action_select_media_list[ii]->setCheckable(true);
 			if(ii == 0) action_select_media_list[ii]->setChecked(true);
@@ -319,14 +324,12 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 		action_write_protect_on->setObjectName(QString::fromUtf8("action_write_protect_on_") + object_desc);
 		action_write_protect_on->setCheckable(true);
 		action_write_protect_on->setChecked(true);
-		action_write_protect_on->binds->setDrive(media_drive);
-		action_write_protect_on->binds->setNumber(0);
+		action_write_protect_on->setData(QVariant(media_drive));
 		
 		action_write_protect_off = new Action_Control(p_wid, using_flags);
 		action_write_protect_off->setObjectName(QString::fromUtf8("action_write_protect_off_") + object_desc);
 		action_write_protect_off->setCheckable(true);
-		action_write_protect_off->binds->setDrive(media_drive);
-		action_write_protect_off->binds->setNumber(0);
+		action_write_protect_off->setData(QVariant(media_drive));
 		
 		action_group_protect->addAction(action_write_protect_on);
 		action_group_protect->addAction(action_write_protect_off);
