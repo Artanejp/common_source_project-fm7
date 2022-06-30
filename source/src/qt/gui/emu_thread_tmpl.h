@@ -242,13 +242,13 @@ public slots:
 	void doExit(void);
 	
 	void do_reset();
-	void do_special_reset(int num);
-	void do_load_state(QString name);
-	void do_save_state(QString name);
+	void do_special_reset(void);
+	void do_load_state();
+	void do_save_state();
 	void do_update_config();
 	void do_start_record_sound();
 	void do_stop_record_sound();
-	void do_start_record_video(int fps);
+	void do_start_record_video();
 	void do_stop_record_video();
 	void do_update_volume_level(int num, int level);
 	void do_update_volume_balance(int num, int level);
@@ -262,7 +262,7 @@ public slots:
 	void do_block();
 	void do_unblock();
 	void do_start_emu_thread();
-
+	void do_set_emu_thread_to_fixed_cpu_from_action();
 	// From emu_thread_slots.cpp .
 	void do_set_display_size(int w, int h, int ww, int wh);
 	void moved_mouse(double x, double y, double globalx, double globaly);
@@ -309,7 +309,6 @@ signals:
 	int sig_screen_size(int, int);
 	int sig_finished(void);
 	int call_emu_thread(EMU *);
-	int sig_check_grab_mouse(bool);
 	int sig_mouse_enable(bool);
 	int sig_update_recent_disk(int);
 	int sig_update_recent_hard_disk(int);

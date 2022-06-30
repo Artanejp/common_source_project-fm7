@@ -26,6 +26,7 @@ extern "C" {
 	#include "libavformat/avformat.h"
 	#include "libswscale/swscale.h"
 	#include "libswresample/swresample.h"
+	#include "libavcodec/avcodec.h"
 }
 #endif
 // Copy from FFMPEG-3.0.2; doc/example/muxing.c .

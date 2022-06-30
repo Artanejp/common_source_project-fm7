@@ -283,7 +283,7 @@ void EmuThreadClassBase::do_special_reset(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	int num = cp->data.value<int>();
+	int num = cp->data().value<int>();
 	
 	if(num < 0) return;
 	if(num >= using_flags->get_use_special_reset_num()) return;
@@ -295,7 +295,7 @@ void EmuThreadClassBase::do_load_state(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	QString s = cp->data.toString();
+	QString s = cp->data().toString();
 	
 	lStateFile = s;
 	bLoadStateReq = true;
@@ -305,7 +305,7 @@ void EmuThreadClassBase::do_save_state(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	QString s = cp->data.toString();
+	QString s = cp->data().toString();
 	
 	sStateFile = s;
 	bSaveStateReq = true;
@@ -568,7 +568,7 @@ void EmuThreadClassBase::do_set_emu_thread_to_fixed_cpu_from_action(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	int cpunum = cp->data.value<int>();
+	int cpunum = cp->data().value<int>();
 	set_emu_thread_to_fixed_cpu(cpunum);
 }
 

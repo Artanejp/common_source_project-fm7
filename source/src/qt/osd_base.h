@@ -467,9 +467,6 @@ public:
 	uint16_t GetAsyncKeyState(uint32_t vk);  // Win32 GetAsyncKeyState() wrappeer.
 # endif
 	void key_modifiers(uint32_t mod);
-	void enable_mouse();
-	void disable_mouse();
-	void toggle_mouse();
 	bool is_mouse_enabled();
 	//QImage *getPseudoVramClass(void) { return pPseudoVram;}
 	void set_mouse_pointer(double x, double y);
@@ -685,20 +682,29 @@ public:
 	void process_waiting_in_debugger();
 
 public slots:
-	void do_write_inputdata(QString s);
-	void do_set_input_string(QString s);
-	void close_debugger_console();
-	void do_close_debugger_thread();
-	void do_assign_js_setting(int jsnum, int axis_idx, int assigned_value);
+	void enable_mouse();
+	void disable_mouse();
+	void toggle_mouse();
+	
 	void upload_bitmap(QImage *p);
 	void set_buttons();
+	
+	int no_draw_screen();
+
+	void do_write_inputdata(QString s);
+	void do_set_input_string(QString s);
+	
+	void close_debugger_console();
+	void do_close_debugger_thread();
+	
+	void do_assign_js_setting(int jsnum, int axis_idx, int assigned_value);
 	void do_start_record_video();
 	virtual void do_decode_movie(int frames);
 	void do_video_movie_end(bool flag);
 	void do_video_decoding_error(int num);
 	virtual void do_run_movie_audio_callback(uint8_t *data, long len);
 	virtual int draw_screen();
-	int no_draw_screen();
+
 	void do_draw(bool flag);
 	
 	void set_dbg_completion_list(std::list<std::string> *p);

@@ -305,7 +305,7 @@ int SOUND_LOADER::open_codec_context(int *stream_idx,
 
         /* find decoder for the stream */
 #if LIBAVCODEC_VERSION_MAJOR > 56
-		dec = avcodec_find_decoder(st->codecpar->codec_id);
+		dec = (AVCodec *)avcodec_find_decoder(st->codecpar->codec_id);
         if (!dec) {
             out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Failed to find %s codec\n",
                     av_get_media_type_string(type));

@@ -64,7 +64,7 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 	AVCodec **codec = (AVCodec **)_codec;
 	enum AVCodecID codec_id = (enum AVCodecID)_codec_id;
 	/* find the encoder */
-	*codec = avcodec_find_encoder(codec_id);
+	*codec = (AVCodec *)avcodec_find_encoder(codec_id);
 	if (!(*codec)) {
 		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not find encoder for '%s'\n",
 				(const char *)avcodec_get_name(codec_id));
@@ -291,7 +291,7 @@ bool MOVIE_SAVER::do_open_main()
 	if (!oc)
 		return false;
 
-	fmt = oc->oformat;
+	fmt = (AVOutputFormat *)(oc->oformat);
 	switch(p_config->video_codec_type) {
 	case VIDEO_CODEC_MPEG4:
 		fmt->video_codec = AV_CODEC_ID_MPEG4;
@@ -389,7 +389,7 @@ void MOVIE_SAVER::do_close_main()
 #if defined(USE_LIBAV)
 	if(output_context != NULL) {
 		AVFormatContext *oc = output_context;
-		AVOutputFormat *fmt = oc->oformat;
+		AVOutputFormat *fmt = (AVOutputFormat *)(oc->oformat);
 		//AVPacket pkt = {0};
 		//AVCodecContext *c = video_st.st->codec;
 		bool a_f, v_f;

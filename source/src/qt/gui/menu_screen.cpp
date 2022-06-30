@@ -18,31 +18,29 @@
 #include "qt_gldraw.h"
 #include "menu_flags.h"
 
-//extern USING_FLAGS *using_flags;
-// WIP: Move another header.
-void Object_Menu_Control::set_screen_aspect(void) {
-	int num = getValue1();
-	emit sig_screen_aspect(num);
-}
+void Ui_MainWindowBase::do_set_screen_size(void)
+{
 
-void Object_Menu_Control::do_set_screen_rotate(void) {
-	int num = getValue1();
-	emit sig_screen_rotate(num);
-}
-
-void Object_Menu_Control::set_screen_size(void) {
+	if(using_flags == nullptr) return;
+	if(p_config == nullptr) return;
+	
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int __n = cp->data().value<int>();
+	
 	int w, h;
-	float nd, ww, hh;
-	float xzoom = using_flags->get_screen_x_zoom();
-	float yzoom = using_flags->get_screen_y_zoom();
-	p_config->window_mode = getNumber();
-	nd = getDoubleValue();
-	ww = (float)using_flags->get_screen_width();
-	hh = (float)using_flags->get_screen_height();
+	double ww, hh;
+	double xzoom = using_flags->get_screen_x_zoom();
+	double yzoom = using_flags->get_screen_y_zoom();
+	p_config->window_mode = __n;
+	double nd = getScreenMultiply(__n);
+	
+	ww = (double)using_flags->get_screen_width();
+	hh = (double)using_flags->get_screen_height();
 	if((using_flags->get_screen_height_aspect() != using_flags->get_screen_height()) ||
 	   (using_flags->get_screen_width_aspect() != using_flags->get_screen_width())) {
-		float par_w = (float)using_flags->get_screen_width_aspect() / ww;
-		float par_h = (float)using_flags->get_screen_height_aspect() / hh;
+		double par_w = (double)using_flags->get_screen_width_aspect() / ww;
+		double par_h = (double)using_flags->get_screen_height_aspect() / hh;
 		//float par = par_h / par_w;
 		switch(p_config->window_stretch_type) {
 		case 0: // refer to X and Y.
@@ -68,7 +66,7 @@ void Object_Menu_Control::set_screen_size(void) {
 	}
 	w = (int)ww;
 	h = (int)hh;
-	emit sig_screen_size(w, h);
+	set_screen_size(w, h);
 	emit sig_screen_multiply(nd);
 }
 
@@ -113,7 +111,10 @@ void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 {
 	int w, h;
 	QString tmps;
-	int i;
+	
+	for(int i = 0; i < (sizeof(actionScreenSize) / sizeof(Action_Control *)); i++) {
+		actionScreenSize[i] = nullptr;
+	}
 	
 	actionGroup_ScreenSize = new QActionGroup(this);
 	actionGroup_ScreenSize->setExclusive(true);
@@ -122,7 +123,7 @@ void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 	double _iimul = 1.0;
 	double _zmul = using_flags->get_custom_screen_zoom_factor();
 	double _mul = getScreenMultiply(ix);
-	for(i = 0; i < using_flags->get_screen_mode_num();i++) {
+	for(int i = 0; i < using_flags->get_screen_mode_num();i++) {
 		double _ymul = _zmul * _iimul;
 		_ymul = _zmul *  _iimul;
 		if((_mul == 0.5) && (i > 0) && (_zmul > 0.0)) {
@@ -157,21 +158,13 @@ void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 		actionScreenSize[i] = new Action_Control(this, using_flags);
 		actionScreenSize[i]->setObjectName(QString::fromUtf8("actionScreenSize", -1) + tmps);
 		actionScreenSize[i]->setCheckable(true);
-		actionScreenSize[i]->binds->setNumber(i);
 
 		if(i == p_config->window_mode)  actionScreenSize[i]->setChecked(true);  // OK?
 
 		actionGroup_ScreenSize->addAction(actionScreenSize[i]);
-		actionScreenSize[i]->binds->setDoubleValue(_mul);
+		actionScreenSize[i]->setData(QVariant(i));
 		
-		connect(actionScreenSize[i], SIGNAL(triggered()),
-			actionScreenSize[i]->binds, SLOT(set_screen_size()));
-
-		connect(actionScreenSize[i]->binds, SIGNAL(sig_screen_size(int, int)),
-			this, SLOT(set_screen_size(int, int)));
-	}
-	for(; i < using_flags->get_screen_mode_num(); i++) {
-		actionScreenSize[i] = NULL;
+		connect(actionScreenSize[i], SIGNAL(triggered()), this, SLOT(do_set_screen_size()));
 	}
 }
 void Ui_MainWindowBase::ConfigScreenMenu(void)
@@ -230,11 +223,10 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 		actionRotate[i] = new Action_Control(this, using_flags);
 		actionRotate[i]->setObjectName(QString::fromUtf8("actionRotate") + QString("%1").arg(i));
 		actionRotate[i]->setCheckable(true);
-		actionRotate[i]->binds->setValue1(i);
+		actionRotate[i]->setData(QVariant(i));
 		actionGroup_RotateType->addAction(actionRotate[i]);
 		if(p_config->rotate_type == i) actionRotate[i]->setChecked(true);
-		connect(actionRotate[i], SIGNAL(triggered()), actionRotate[i]->binds, SLOT(do_set_screen_rotate()));
-		connect(actionRotate[i]->binds, SIGNAL(sig_screen_rotate(int)), this, SLOT(do_set_screen_rotate(int)));
+		connect(actionRotate[i], SIGNAL(triggered()), this, SLOT(do_set_screen_rotate()));
 	}
 
 	actionOpenGL_Filter = new Action_Control(this, using_flags);
@@ -250,24 +242,24 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 		actionDot_by_Dot->setObjectName(QString::fromUtf8("actionDot_by_Dot"));
 		actionDot_by_Dot->setCheckable(true);
 		if(p_config->window_stretch_type == 0) actionDot_by_Dot->setChecked(true);
-		actionDot_by_Dot->binds->setValue1(0);
+		actionDot_by_Dot->setData(QVariant((int)0));
 		
 		actionReferToX_Display = new Action_Control(this, using_flags);
 		actionReferToX_Display->setObjectName(QString::fromUtf8("actionReferToX_Display"));
 		actionReferToX_Display->setCheckable(true);
-		actionReferToX_Display->binds->setValue1(1);
+		actionReferToX_Display->setData(QVariant((int)1));
 		if(p_config->window_stretch_type == 1) actionReferToX_Display->setChecked(true);
 		
 		actionReferToY_Display = new Action_Control(this, using_flags);
 		actionReferToY_Display->setObjectName(QString::fromUtf8("actionReferToY_Display"));
 		actionReferToY_Display->setCheckable(true);
-		actionReferToY_Display->binds->setValue1(2);
+		actionReferToY_Display->setData(QVariant((int)2));
 		if(p_config->window_stretch_type == 2) actionReferToY_Display->setChecked(true);
 	
 		actionFill_Display = new Action_Control(this, using_flags);
 		actionFill_Display->setObjectName(QString::fromUtf8("actionFill_Display"));
 		actionFill_Display->setCheckable(true);
-		actionFill_Display->binds->setValue1(3);
+		actionFill_Display->setData(QVariant((int)3));
 		if(p_config->window_stretch_type == 3) actionFill_Display->setChecked(true);
 	
 		actionGroup_Stretch = new QActionGroup(this);
@@ -276,17 +268,10 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 		actionGroup_Stretch->addAction(actionReferToX_Display);
 		actionGroup_Stretch->addAction(actionReferToY_Display);
 		actionGroup_Stretch->addAction(actionFill_Display);
-		connect(actionDot_by_Dot,   SIGNAL(triggered()), actionDot_by_Dot->binds,   SLOT(set_screen_aspect()));
-		connect(actionDot_by_Dot->binds,   SIGNAL(sig_screen_aspect(int)), this,    SLOT(set_screen_aspect(int)));
-		
-		connect(actionReferToX_Display,  SIGNAL(triggered()), actionReferToX_Display->binds,  SLOT(set_screen_aspect()));
-		connect(actionReferToX_Display->binds,  SIGNAL(sig_screen_aspect(int)), this,    SLOT(set_screen_aspect(int)));
-		
-		connect(actionReferToY_Display,  SIGNAL(triggered()), actionReferToY_Display->binds,  SLOT(set_screen_aspect()));
-		connect(actionReferToY_Display->binds,  SIGNAL(sig_screen_aspect(int)), this,    SLOT(set_screen_aspect(int)));
-		
-		connect(actionFill_Display, SIGNAL(triggered()), actionFill_Display->binds, SLOT(set_screen_aspect()));
-		connect(actionFill_Display->binds, SIGNAL(sig_screen_aspect(int)), this, SLOT(set_screen_aspect(int)));
+		connect(actionDot_by_Dot,   SIGNAL(triggered()), this, SLOT(do_set_screen_aspect()));
+		connect(actionReferToX_Display,  SIGNAL(triggered()), this, SLOT(do_set_screen_aspect()));
+		connect(actionReferToY_Display,  SIGNAL(triggered()), this, SLOT(do_set_screen_aspect()));
+		connect(actionFill_Display, SIGNAL(triggered()), this, SLOT(do_set_screen_aspect()));
 	}
 	actionCapture_Screen = new Action_Control(this, using_flags);
 	actionCapture_Screen->setObjectName(QString::fromUtf8("actionCapture_Screen"));
@@ -313,7 +298,7 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 			action_SetRenderMode[i]->setCheckable(true);
 			action_SetRenderMode[i]->setEnabled(false);
 			action_SetRenderMode[i]->setVisible(false);
-			action_SetRenderMode[i]->binds->setValue1(i);
+			action_SetRenderMode[i]->setData(QVariant(i));
 			
 			if(i == p_config->rendering_type) action_SetRenderMode[i]->setChecked(true);
 			if(i == CONFIG_RENDER_TYPE_STD) {
@@ -475,9 +460,9 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 	double s_mul;
 	for(i = 0; i < using_flags->get_screen_mode_num(); i++) {
 		if(actionScreenSize[i] == NULL) continue;
-		s_mul =	actionScreenSize[i]->binds->getDoubleValue();
-;
-		if(s_mul <= 0) break;
+		s_mul = getScreenMultiply(actionScreenSize[i]->data().value<int>());
+		if(s_mul <= 0.0f) break;
+		
 		tmps = QString::number(s_mul);
 		tmps = QString::fromUtf8("x", -1) + tmps;
 		actionScreenSize[i]->setText(tmps);

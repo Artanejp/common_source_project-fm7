@@ -74,7 +74,7 @@ void Ui_MainWindow::set_window(int mode)
 			width = desktop_width;
 			height = desktop_height;
 		} else {
-			double nd = actionScreenSize[mode]->binds->getDoubleValue();
+			double nd = actionScreenSize[mode]->data().value<double>();
 			width = (int)(nd * (double)using_flags->get_screen_width());
 			height = (int)(nd * (double)using_flags->get_screen_height());
 

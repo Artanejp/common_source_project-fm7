@@ -42,15 +42,15 @@ public:
 		return 0;
 	}
 signals:
-	int do_open_disk(int, QString);
-	int do_close_disk(int);
+	int sig_open_disk(int, QString);
+	int sig_close_disk(int);
 	int sig_open_cart(int, QString);
-	int do_close_cart(int);
-	int do_open_cmt(bool, QString);
-	int do_close_cmt();
+	int sig_close_cart(int);
+	int sig_open_cmt(bool, QString);
+	int sig_close_cmt();
 	int sig_open_binary_file(int, QString, bool);
-	int do_open_quick_disk(int, QString);
-	public slots:
+	int sig_open_quick_disk(int, QString);
+public slots:
 	void _open_disk(const QString fname);
 	void _open_cart(const QString fname);
 	void _open_cmt(const QString fname);

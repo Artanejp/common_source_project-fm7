@@ -12,6 +12,7 @@
 #include <QStringList>
 #include <QMenu>
 #include <QIcon>
+#include <QVariant>
 
 #include "common.h"
 #include "config.h"
@@ -27,13 +28,13 @@ class USING_FLAGS;
 class Action_Control;
 
 namespace CSP_Ui_Menu {
-	struct DriveIndex_pair {
+	struct DriveIndexPair {
 		int drive;
 		int index;
 	};
 }
 
-Q_DECLARE_METATYPE(CSP_Ui_Menu::DriveIndex_pair)
+Q_DECLARE_METATYPE(CSP_Ui_Menu::DriveIndexPair)
 
 class DLL_PREFIX Menu_MetaClass : public QMenu {
 	Q_OBJECT
@@ -108,8 +109,8 @@ public slots:
 	void do_open_media(int drv, QString name);
 	void do_insert_media(void);
 	void do_eject_media(void);
-	void do_open_inner_media(int drv, int s_num);
-	void do_open_recent_media(int drv, int s_num);
+	void do_open_inner_media(void);
+	void do_open_recent_media(void);
 	void do_write_protect_media(void);
 	void do_write_unprotect_media(void);
 	void do_add_media_extension(QString ext, QString description);
@@ -132,6 +133,7 @@ signals:
 							QStringList lst, int num, bool use_d88_menus);
 	int sig_update_inner_bubble(int drv, QStringList base, class Action_Control **action_select_media_list,
 								QStringList lst, int num, bool use_d88_menus);
+	int sig_emu_update_config();
 
 };
 QT_END_NAMESPACE

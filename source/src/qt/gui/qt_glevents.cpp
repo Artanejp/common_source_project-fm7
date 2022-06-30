@@ -133,7 +133,7 @@ void GLDrawClass::mousePressEvent(QMouseEvent *event)
 {
 	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse() || (using_flags->get_max_button() > 0)) {
 		if(event->button() == Qt::MiddleButton)	{
-			emit sig_check_grab_mouse(true);
+			emit sig_toggle_grab_mouse();
 			return;
 		}
 		if(!enable_mouse) return;
@@ -186,6 +186,11 @@ void GLDrawClass::do_save_frame_screen(const char *name)
 void GLDrawClass::do_set_screen_multiply(float mul)
 {
 	if(extfunc != NULL) extfunc->do_set_screen_multiply(mul);
+}
+
+void GLDrawClass::do_set_screen_multiply(double mul)
+{
+	if(extfunc != NULL) extfunc->do_set_screen_multiply((float)mul);
 }
 
 void GLDrawClass::do_set_texture_size(QImage *p, int w, int h)

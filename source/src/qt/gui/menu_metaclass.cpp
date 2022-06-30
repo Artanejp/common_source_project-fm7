@@ -59,6 +59,8 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, USING_FLAGS *
 	icon_write_enabled = QIcon();
 	setToolTipsVisible(true);
 
+	connect(this, SIGNAL(sig_emu_update_config()), p_wid, SLOT(do_emu_update_config()));
+	
 	tmps = QString::fromUtf8("%1").arg(drv + base_drv);
 	tmps = desc + tmps;
 	setTitle(tmps);
@@ -91,29 +93,45 @@ void Menu_MetaClass::do_set_initialize_directory(const char *s)
 	initial_dir = QString::fromLocal8Bit(s);
 }
 
-void Menu_MetaClass::do_open_media(int drv, QString name) {
+void Menu_MetaClass::do_open_media(int drv, QString name)
+{
 	//write_protect = false; // Right? On D88, May be writing entry  exists. 
 	emit sig_open_media(drv, name);
 }
 
-void Menu_MetaClass::do_insert_media(void) {
+void Menu_MetaClass::do_insert_media(void)
+{
 	//write_protect = false; // Right? On D88, May be writing entry  exists. 
 	emit sig_insert_media(media_drive);
 }
-void Menu_MetaClass::do_eject_media(void) {
+
+void Menu_MetaClass::do_eject_media(void)
+{
 	write_protect = false;
 	emit sig_eject_media(media_drive);
 }
 
-void Menu_MetaClass::do_open_inner_media(int drv, int s_num) {
-	emit sig_set_inner_slot(media_drive, s_num);
+void Menu_MetaClass::do_open_inner_media(void)
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	
+	emit sig_set_inner_slot(tmp.drive, tmp.index);
 }
 
-void Menu_MetaClass::do_open_recent_media(int drv, int s_num){
+void Menu_MetaClass::do_open_recent_media(void)
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	
   //   write_protect = false; // Right? On D88, May be writing entry  exists. 
-	emit sig_set_recent_media(media_drive, s_num);
+	emit sig_set_recent_media(tmp.drive, tmp.index);
 }
-void Menu_MetaClass::do_write_protect_media(void) {
+
+void Menu_MetaClass::do_write_protect_media(void)
+{
 	write_protect = true;
 	{
 		if(use_write_protect) {
@@ -198,7 +216,7 @@ void Menu_MetaClass::do_open_dialog()
 	dlg.setWindowTitle(tmps);
 	
 	QObject::connect(&dlg, SIGNAL(fileSelected(QString)), dlg.param, SLOT(_open_disk(QString))); 
-	QObject::connect(dlg.param, SIGNAL(do_open_disk(int, QString)), this, SLOT(do_open_media(int, QString)));
+	QObject::connect(dlg.param, SIGNAL(sig_open_disk(int, QString)), this, SLOT(do_open_media(int, QString)));
 
 	dlg.show();
 	dlg.exec();
@@ -257,13 +275,27 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 {
 	action_insert = new Action_Control(p_wid, using_flags);
 	action_insert->setObjectName(QString::fromUtf8("action_insert_") + object_desc);
-	action_insert->binds->setDrive(media_drive);
+	
+	struct CSP_Ui_Menu::DriveIndexPair tmp;
+	QVariant _tmp_ins;
+	
+	tmp.drive = media_drive;
+	tmp.index = 0;
+	_tmp_ins.setValue(tmp);
+	action_insert->setData(_tmp_ins);
+	
 	connect(action_insert, SIGNAL(triggered()), this, SLOT(do_open_dialog()));
 	action_insert->setIcon(icon_insert);
 	
 	action_eject = new Action_Control(p_wid, using_flags);
 	action_eject->setObjectName(QString::fromUtf8("action_eject_") + object_desc);
-	action_eject->binds->setDrive(media_drive);
+
+	QVariant _tmp_eject;
+	tmp.drive = media_drive;
+	tmp.index = 0;
+	_tmp_eject.setValue(tmp);
+	action_eject->setData(_tmp_eject);
+
 	connect(action_eject, SIGNAL(triggered()), this, SLOT(do_eject_media()));
 	action_eject->setIcon(icon_eject);
 
@@ -277,10 +309,13 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 		for(ii = 0; ii < MAX_HISTORY; ii++) {
 			tmps = history.value(ii, "");
 			action_recent_list[ii] = new Action_Control(p_wid, using_flags);
-			struct CSP_Ui_Menu::DriveIndexPair tmp;
-			tmp.drive = media_drive;
-			tmp.index = ii;
- 			action_recent_list[ii]->setData(QVariant(tmp));
+			struct CSP_Ui_Menu::DriveIndexPair tmp2;
+			tmp2.drive = media_drive;
+			tmp2.index = ii;
+			QVariant _tmp2v;
+			_tmp2v.setValue(tmp2);
+			
+ 			action_recent_list[ii]->setData(_tmp2v);
 			action_recent_list[ii]->setText(tmps);
 			
 			action_group_recent->addAction(action_recent_list[ii]);
@@ -300,10 +335,12 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 		for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
 			tmps = history.value(ii, "");
 			action_select_media_list[ii] = new Action_Control(p_wid, using_flags);
-			struct CSP_Ui_Menu::DriveIndexPair tmp;
-			tmp.drive = media_drive;
-			tmp.index = ii;
-			action_select_media_list[ii]->setData(tmp);
+			struct CSP_Ui_Menu::DriveIndexPair tmp2;
+			tmp2.drive = media_drive;
+			tmp2.index = ii;
+			QVariant _tmp2v;
+			_tmp2v.setValue(tmp2);
+			action_select_media_list[ii]->setData(_tmp2v);
 			
 			action_select_media_list[ii]->setText(tmps);
 			action_select_media_list[ii]->setCheckable(true);
@@ -410,16 +447,12 @@ void Menu_MetaClass::create_pulldown_menu(void)
 	
 	for(ii = 0; ii < MAX_HISTORY; ii++) {
 		connect(action_recent_list[ii], SIGNAL(triggered()),
-				action_recent_list[ii]->binds, SLOT(on_recent_disk()));
-		connect(action_recent_list[ii]->binds, SIGNAL(set_recent_disk(int, int)),
-				this, SLOT(do_open_recent_media(int, int)));
+				this, SLOT(do_open_recent_media()));
 	}
 	if(use_d88_menus) {
 		for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
 			connect(action_select_media_list[ii], SIGNAL(triggered()),
-					action_select_media_list[ii]->binds, SLOT(on_d88_slot()));
-			connect(action_select_media_list[ii]->binds, SIGNAL(set_d88_slot(int, int)),
-					this, SLOT(do_open_inner_media(int, int)));
+					this, SLOT(do_open_inner_media()));
 		}
 	}
 }

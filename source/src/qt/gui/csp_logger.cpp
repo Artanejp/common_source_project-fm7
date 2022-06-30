@@ -539,6 +539,8 @@ void CSP_Logger::set_device_name(int num, char *devname)
 	QString tmps;
 	if(num < 0) return;
 	if(num > (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0)) return;
+	
+	QMutexLocker locker(lock_mutex);
 	if(devname == NULL) {
 		QString s;
 		s.setNum(num);
@@ -556,6 +558,8 @@ void CSP_Logger::set_cpu_name(int num, char *devname)
 	if(num < 0) return;
 	if(num > (CSP_LOG_TYPE_VM_CPU7 - CSP_LOG_TYPE_VM_CPU0)) return;
 	if(devname == NULL) return;
+	QMutexLocker locker(lock_mutex);
+	
 	QString tmps = QString::fromUtf8(devname);
 	device_names.replace(num, tmps);
 	if(max_cpus <= num) max_cpus = num + 1;
@@ -565,6 +569,7 @@ void CSP_Logger::set_state_log(int to_output, bool flag)
 {
 	if(to_output < 0) return;
 	if(to_output > 2) return;
+	QMutexLocker locker(lock_mutex);
 	switch(to_output)
 	{
 	case 0:
@@ -587,6 +592,7 @@ void CSP_Logger::set_device_node_log(int device_id, int to_output, int type, boo
 	if(to_output < 0) return;
 	if(to_output > 2) return;
 	if(device_id > (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0)) return;
+	QMutexLocker locker(lock_mutex);
 	if(device_id < 0) { // Flush all device
 		for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
 			// 0 = record, 1 = syslog, 2 = console;

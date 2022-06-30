@@ -46,7 +46,9 @@ void Menu_BinaryClass::create_pulldown_menu_device_sub(void)
 			struct CSP_Ui_Menu::DriveIndexPair tmp;
 			tmp.drive = media_drive;
 			tmp.index = ii;
-			action_recent_save_list[ii]->setData(QVariant(tmp));
+			QVariant _tmpv;
+			_tmpv.setValue(tmp);
+			action_recent_save_list[ii]->setData(_tmpv);
 			
 			action_recent_save_list[ii]->setText(tmps);
 			action_group_save_recent->addAction(action_recent_save_list[ii]);
@@ -100,7 +102,7 @@ void Menu_BinaryClass::connect_menu_device_sub(void)
 	action_eject->setVisible(false);
 	for(ii = 0; ii < MAX_HISTORY; ii++) {
 		connect(action_recent_save_list[ii], SIGNAL(triggered()),
-				p_wid, SLOT(set_recent_binary_save());
+				p_wid, SLOT(set_recent_binary_save()));
 	}
 	connect(action_saving, SIGNAL(triggered()),	this, SLOT(do_open_save_dialog()));
 
@@ -132,7 +134,7 @@ void Menu_BinaryClass::do_open_save_dialog()
 
 	QObject::connect(&dlg, SIGNAL(fileSelected(QString)),
 					 dlg.param, SLOT(_open_disk(QString))); 
-	QObject::connect(dlg.param, SIGNAL(do_open_disk(int, QString)),
+	QObject::connect(dlg.param, SIGNAL(sig_open_disk(int, QString)),
 					 this, SLOT(do_open_media_save(int, QString)));
 	dlg.show();
 	dlg.exec();

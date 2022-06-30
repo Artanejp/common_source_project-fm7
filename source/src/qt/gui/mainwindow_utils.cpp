@@ -20,6 +20,22 @@
 #include "qt_dialogs.h"
 //#include "csp_logger.h"
 
+
+void Ui_MainWindowBase::do_set_single_dipswitch(bool f)
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	uint32_t nval = cp->data().value<uint32_t>();
+
+	if(p_config == nullptr) return;
+	if(f) { // ON
+		p_config->dipswitch |= nval;
+	} else { // OFF
+		p_config->dipswitch &= (~nval);	
+	}
+	emit sig_emu_update_config();
+}
+
 void Ui_MainWindowBase::do_block_task(void)
 {
 	emit sig_block_task();
@@ -41,7 +57,7 @@ void Ui_MainWindowBase::do_start_draw_thread(void)
 	emit sig_start_draw_thread();
 }
 
-void Ui_MainWindowBase::set_latency(void)
+void Ui_MainWindowBase::do_set_latency(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
@@ -52,7 +68,7 @@ void Ui_MainWindowBase::set_latency(void)
 	emit sig_emu_update_config();
 }
 
-void Ui_MainWindowBase::set_freq(void)
+void Ui_MainWindowBase::do_set_freq(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
@@ -64,7 +80,7 @@ void Ui_MainWindowBase::set_freq(void)
 	emit sig_emu_update_config();
 }
 
-void Ui_MainWindowBase::set_sound_device(void)
+void Ui_MainWindowBase::do_set_sound_device(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
@@ -74,8 +90,6 @@ void Ui_MainWindowBase::set_sound_device(void)
 	p_config->sound_type = num;
 	emit sig_emu_update_config();
 }
-
-
 
 void Ui_MainWindowBase::start_record_sound(bool start)
 {
@@ -137,7 +151,7 @@ void Ui_MainWindowBase::update_screen_size(int num)
 	float xzoom = using_flags->get_screen_x_zoom();
 	float yzoom = using_flags->get_screen_y_zoom();
 	nd = getScreenMultiply(num);
-	if(nd <= 0.0f) retrun;
+	if(nd <= 0.0f) return;
 	
 	ww = (float)using_flags->get_screen_width();
 	hh = (float)using_flags->get_screen_height();
@@ -171,8 +185,7 @@ void Ui_MainWindowBase::update_screen_size(int num)
 	w = (int)ww;
 	h = (int)hh;
 	set_screen_size(w, h);
-	emit sig_screen_multiply(nd);
-	
+	emit sig_screen_multiply((double)nd);
 }
 
 void Ui_MainWindowBase::set_gl_crt_filter(bool flag)
@@ -201,7 +214,7 @@ void Ui_MainWindowBase::set_device_type(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	int num = cp->data.value<int>();
+	int num = cp->data().value<int>();
 	
 	if((num >= using_flags->get_use_device_type()) && (num < 0)) return;
 	p_config->device_type = num;
@@ -213,7 +226,7 @@ void Ui_MainWindowBase::set_keyboard_type(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	int num = cp->data.value<int>();
+	int num = cp->data().value<int>();
 	
 	if((num >= using_flags->get_use_keyboard_type()) && (num < 0)) return;
 	p_config->keyboard_type = num;
@@ -224,7 +237,7 @@ void Ui_MainWindowBase::set_joystick_type(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	int num = cp->data.value<int>();
+	int num = cp->data().value<int>();
 	
 	if((num >= using_flags->get_use_joystick_type()) && (num < 0)) return;
 	p_config->joystick_type = num;
@@ -235,7 +248,7 @@ void Ui_MainWindowBase::set_drive_type(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	int num = cp->data.value<int>();
+	int num = cp->data().value<int>();
 	
 	if((num >= using_flags->get_use_drive_type()) && (num < 0)) return;
 	p_config->drive_type = num;
@@ -257,18 +270,13 @@ void Ui_MainWindowBase::set_screen_size(int w, int h)
 	MainWindow->adjustSize();
 }
 
-void Ui_MainWindowBase::set_screen_aspect(void)
+void Ui_MainWindowBase::set_screen_aspect(int num)
 {
-	QAction *cp = qobject_cast<QAction*>(QObject::sender());
-	if(cp == nullptr) return;
-	int num = cp->data.value<int>();
-	
 	if((num < 0) || (num >= 4)) return;
 	// 0 = DOT
 	// 1 = ASPECT(Scale X)
 	// 2 = ASPECT(SCale Y)
 	// 3 = ASPECT(Scale X,Y)
-	
 	p_config->window_stretch_type = num;
 	
 	if(using_flags->get_emu()) {
@@ -314,6 +322,14 @@ void Ui_MainWindowBase::set_screen_aspect(void)
 		h = (int)hh;
 		set_screen_size(w, h);
 	}
+}
+
+void Ui_MainWindowBase::do_set_screen_aspect(void)
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int num = cp->data().value<int>();
+	set_screen_aspect(num);
 }
 
 
@@ -479,7 +495,7 @@ void Ui_MainWindowBase::ConfigSoundDeviceType(void)
 			menuSoundDevice->addAction(actionSoundDevice[i]);
 			actionGroup_SoundDevice->addAction(actionSoundDevice[i]);
 			connect(actionSoundDevice[i], SIGNAL(triggered()),
-					this, SLOT(set_sound_device()));
+					this, SLOT(do_set_sound_device()));
 		}
 	}
 }
@@ -503,7 +519,7 @@ void Ui_MainWindowBase::ConfigPrinterType(void)
 		for(i = 0; i < ilim; i++) {
 			actionPrintDevice[i] = new Action_Control(this, using_flags);
 			actionPrintDevice[i]->setCheckable(true);
-			actionPrintDevice[i]->setData(QVariant(ii));
+			actionPrintDevice[i]->setData(QVariant(i));
 			if(i == p_config->printer_type) actionPrintDevice[i]->setChecked(true); // Need to write configure
 			tmps = QString::fromUtf8("actionPrintDevice_");
 			actionPrintDevice[i]->setObjectName(tmps + QString::number(i));
@@ -519,7 +535,7 @@ void Ui_MainWindowBase::set_printer_device(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	int p_type = cp->data.value<int>();
+	int p_type = cp->data().value<int>();
 	
 	// 0 = PRNFILE
 	if(p_type < 0) p_type = 0; // OK?

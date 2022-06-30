@@ -14,31 +14,6 @@
 #include "csp_logger.h"
 #include "menu_quickdisk.h"
 
-void Object_Menu_Control::insert_Qd(void) {
-	//write_protect = false; // Right? On D88, May be writing entry  exists. 
-	emit sig_insert_Qd(drive);
-}
-void Object_Menu_Control::eject_Qd(void) {
-	write_protect = false;
-	emit sig_eject_Qd(drive);
-}
-void Object_Menu_Control::on_recent_quick_disk(void){
-	//   write_protect = false; // Right? On D88, May be writing entry  exists. 
-	emit set_recent_quick_disk(drive, s_num);
-}
-
-void CSP_FileParams::_open_quick_disk(QString s){
-	//   write_protect = false; // Right? On D88, May be writing entry  exists. 
-	emit do_open_quick_disk(getDrive(), s);
-}
-void Object_Menu_Control::write_protect_Qd(void) {
-	write_protect = true;
-	emit sig_write_protect_Qd(drive, write_protect);
-}
-void Object_Menu_Control::no_write_protect_Qd(void) {
-	write_protect = false;
-	emit sig_write_protect_Qd(drive, write_protect);
-}
 
 void Ui_MainWindowBase::CreateQuickDiskPulldownMenu(int drv)
 {

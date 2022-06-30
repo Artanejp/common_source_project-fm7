@@ -145,6 +145,7 @@ public slots:
 	void do_set_horiz_lines(int lines);
 	
 	void do_set_screen_multiply(float mul);
+	void do_set_screen_multiply(double mul);
 	void do_update_keyboard_scan_code(uint32_t vk, uint32_t scan);
 	void do_set_mouse_enabled(bool flag);
 	void do_stop_run_vm();
@@ -156,7 +157,7 @@ public slots:
 	void do_set_led_width(int bitwidth);
 	void do_update_icon(int icon_type,  int localnum, QPixmap *p);
 	void do_update_icon(int icon_type, int localnum, QString message, QColor bg, QColor fg, QColor fg2, QColor fg3, QColor lg, QColor tg, float pt);
-
+	virtual void do_set_fixed_size(int w, int h) { setFixedSize(w, h); }
 signals:
 	void update_screenChanged(int tick);
 	void sig_notify_move_mouse(double x, double y, double globalx, double globaly);
@@ -164,7 +165,7 @@ signals:
 	void sig_toggle_mouse(void);
 	void do_notify_button_pressed(Qt::MouseButton button);
 	void do_notify_button_released(Qt::MouseButton button);
-	void sig_check_grab_mouse(bool);
+	void sig_toggle_grab_mouse();
 	void sig_resize_uibar(int, int);
 	void sig_draw_timing(void);
 	int sig_finished(void);

@@ -201,9 +201,6 @@ public:
 	void set_emu_vm_name(const char *devname);
 	void set_device_name(int num, char *devname);
 	void set_cpu_name(int num, char *devname);
-	void set_device_node_log(int device_id, int to_output, int type, bool flag);
-	void set_device_node_log(int to_output, int type, bool* flags, int start, int devices);
-	void set_device_node_log(int to_output, int type, int *flags, int start, int devices);
 
 	void set_state_log(int to_output, bool flag);
 
@@ -215,6 +212,10 @@ public:
 	void *get_raw_data(bool forget = false, int64_t start = 0, int64_t *end_line = NULL);
 public slots:
 	void do_debug_log(int level, int domain_num, QString mes);
+	void set_device_node_log(int device_id, int to_output, int type, bool flag);
+	void set_device_node_log(int to_output, int type, bool* flags, int start, int devices);
+	void set_device_node_log(int to_output, int type, int *flags, int start, int devices);
+	
 signals:
 	int sig_console_message(QString, QString);
 	int sig_console_quit();

@@ -129,8 +129,8 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	int drvs;
 	
 	hRunEmu = m;
-	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
-	connect(hRunEmu, SIGNAL(sig_is_enable_mouse(bool)), glv, SLOT(do_set_mouse_enabled(bool)));
+	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)), Qt::QueuedConnection);
+	connect(hRunEmu, SIGNAL(sig_is_enable_mouse(bool)), this, SLOT(do_set_mouse_enable(bool)));
 	connect(glv, SIGNAL(sig_key_down(uint32_t, uint32_t, bool)), hRunEmu, SLOT(do_key_down(uint32_t, uint32_t, bool)));
 	connect(glv, SIGNAL(sig_key_up(uint32_t, uint32_t)),hRunEmu, SLOT(do_key_up(uint32_t, uint32_t)));
 	connect(this, SIGNAL(sig_quit_widgets()), glv, SLOT(do_stop_run_vm()));
@@ -236,7 +236,8 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 		connect(menu_bubbles[ii],
 				SIGNAL(sig_update_inner_bubble(int ,QStringList , class Action_Control **, QStringList , int, bool)),
 				this,
-				SLOT(do_update_inner_bubble(int ,QStringList , class Action_Control **, QStringList , int, bool)));
+				SLOT(do_update_inner_bubble(int ,QStringList , class Action_Control **, QStringList , int, bool))
+			);
 	}
 #endif
 	
@@ -247,7 +248,7 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	
 	hRunEmu->set_tape_play(false);
 #if defined(USE_KEY_LOCKED) || defined(USE_LED_DEVICE)
-	connect(hRunEmu, SIGNAL(sig_send_data_led(quint32)), this, SLOT(do_recv_data_led(quint32)));
+	connect(hRunEmu, SIGNAL(sig_send_data_led(quint32)), this, SLOT(do_recv_data_led(quint32)), Qt::QueuedConnection);
 #endif
 #ifdef USE_AUTO_KEY
 	connect(this, SIGNAL(sig_start_auto_key(QString)), hRunEmu, SLOT(do_start_auto_key(QString)));
@@ -273,19 +274,19 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	emu->get_osd()->set_buttons();
 #endif
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Start.");
-	connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
+	connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)), Qt::DirectConnection);
 	//connect((OSD*)(emu->get_osd()), SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
-	connect(hRunEmu, SIGNAL(window_title_changed(QString)), this, SLOT(do_set_window_title(QString)));
+	connect(hRunEmu, SIGNAL(window_title_changed(QString)), this, SLOT(do_set_window_title(QString)), Qt::QueuedConnection);
 	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(actionCapture_Screen, SIGNAL(triggered()), glv, SLOT(do_save_frame_screen()));
 	connect(this, SIGNAL(sig_emu_launched()), glv, SLOT(set_emu_launched()));
 
 	/*if(config.use_separate_thread_draw) {
-		connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), hDrawEmu, SLOT(doDraw(bool)), Qt::QueuedConnection);
-		connect(hRunEmu, SIGNAL(sig_set_draw_fps(double)), hDrawEmu, SLOT(do_set_frames_per_second(double)), Qt::QueuedConnection);
-		connect(hRunEmu, SIGNAL(sig_draw_one_turn(bool)), hDrawEmu, SLOT(do_draw_one_turn(bool)), Qt::QueuedConnection);
-		} else*/ {
 		connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), hDrawEmu, SLOT(doDraw(bool)));
+		connect(hRunEmu, SIGNAL(sig_set_draw_fps(double)), hDrawEmu, SLOT(do_set_frames_per_second(double)));
+		connect(hRunEmu, SIGNAL(sig_draw_one_turn(bool)), hDrawEmu, SLOT(do_draw_one_turn(bool)));
+		} else*/ {
+		connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), hDrawEmu, SLOT(doDraw(bool)), Qt::DirectConnection);
 		connect(hRunEmu, SIGNAL(sig_set_draw_fps(double)), hDrawEmu, SLOT(do_set_frames_per_second(double)));
 		connect(hRunEmu, SIGNAL(sig_draw_one_turn(bool)), hDrawEmu, SLOT(do_draw_one_turn(bool)));
 	}
@@ -302,16 +303,17 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 #ifdef USE_MOUSE
 	connect(glv, SIGNAL(sig_toggle_mouse(void)),
 			this, SLOT(do_toggle_mouse(void)));
+	connect(glv, SIGNAL(sig_toggle_grab_mouse()), this, SLOT(do_toggle_mouse()));
 #endif
 	connect(hRunEmu, SIGNAL(sig_resize_screen(int, int)),
-			glv, SLOT(resizeGL(int, int)));
-	connect(hRunEmu, SIGNAL(sig_resize_osd(int)), driveData, SLOT(setScreenWidth(int)));
-	connect(hRunEmu, SIGNAL(sig_change_osd(int, int, QString)), driveData, SLOT(updateMessage(int, int, QString)));
+			glv, SLOT(resizeGL(int, int)), Qt::QueuedConnection);
+	connect(hRunEmu, SIGNAL(sig_resize_osd(int)), driveData, SLOT(setScreenWidth(int)), Qt::QueuedConnection);
+	connect(hRunEmu, SIGNAL(sig_change_osd(int, int, QString)), driveData, SLOT(updateMessage(int, int, QString)), Qt::QueuedConnection);
 	
 	connect(glv, SIGNAL(sig_resize_uibar(int, int)),
-			this, SLOT(resize_statusbar(int, int)));
+			this, SLOT(resize_statusbar(int, int)), Qt::QueuedConnection);
 	connect(hRunEmu, SIGNAL(sig_resize_uibar(int, int)),
-			this, SLOT(resize_statusbar(int, int)));
+			this, SLOT(resize_statusbar(int, int)), Qt::QueuedConnection);
 
 	connect((OSD*)(emu->get_osd()), SIGNAL(sig_req_encueue_video(int, int, int)),
 			hDrawEmu, SLOT(do_req_encueue_video(int, int, int)));
@@ -357,9 +359,9 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "MovieThread : Launch done.");
 
 	connect(action_SetupMovie, SIGNAL(triggered()), this, SLOT(rise_movie_dialog()));
-	connect(hRunEmu, SIGNAL(sig_change_access_lamp(int, int, QString)), driveData, SLOT(updateLabel(int, int, QString)));
-	connect(hRunEmu, SIGNAL(sig_set_access_lamp(int, bool)), graphicsView, SLOT(do_display_osd_leds(int, bool)));
-	connect(hRunEmu, SIGNAL(sig_change_virtual_media(int, int, QString)), driveData, SLOT(updateMediaFileName(int, int, QString)));
+	connect(hRunEmu, SIGNAL(sig_change_access_lamp(int, int, QString)), driveData, SLOT(updateLabel(int, int, QString)), Qt::QueuedConnection);
+	connect(hRunEmu, SIGNAL(sig_set_access_lamp(int, bool)), graphicsView, SLOT(do_display_osd_leds(int, bool)), Qt::QueuedConnection);
+	connect(hRunEmu, SIGNAL(sig_change_virtual_media(int, int, QString)), driveData, SLOT(updateMediaFileName(int, int, QString)), Qt::QueuedConnection);
 	connect((OSD*)(emu->get_osd()), SIGNAL(sig_change_virtual_media(int, int, QString)), driveData, SLOT(updateMediaFileName(int, int, QString)));
 	connect((OSD*)(emu->get_osd()), SIGNAL(sig_enable_mouse()), glv, SLOT(do_enable_mouse()));
 	connect((OSD*)(emu->get_osd()), SIGNAL(sig_disable_mouse()), glv, SLOT(do_disable_mouse()));
@@ -1457,7 +1459,7 @@ void Ui_MainWindow::OnOpenDebugger()
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	int no = cp->data.value<int>();
+	int no = cp->data().value<int>();
 
 	if((no < 0) || (no > 7)) return;
 	//emu->open_debugger(no);

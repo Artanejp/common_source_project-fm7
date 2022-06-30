@@ -13,17 +13,6 @@
 #include "qt_dialogs.h"
 //#include "csp_logger.h"
 
-void Object_Menu_Control::insert_cart(void) {
-	emit sig_insert_cart(getDrive());
-}
-void Object_Menu_Control::eject_cart(void) {
-	write_protect = false;
-	emit sig_eject_cart(getDrive());
-}
-void Object_Menu_Control::on_recent_cart(void){
-	emit set_recent_cart(drive, s_num);
-}
-
 void Ui_MainWindowBase::_open_cart(int drv, const QString fname)
 {
 	char path_shadow[PATH_MAX];

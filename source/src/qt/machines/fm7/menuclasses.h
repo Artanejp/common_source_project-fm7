@@ -2,7 +2,6 @@
 #ifndef _CSP_QT_MENUCLASSES_H
 #define _CSP_QT_MENUCLASSES_H
 
-#include "commonclasses.h"
 #include "mainwidget.h"
 #include "vm.h"
 // This extends class CSP_MainWindow as Ui_MainWindow.
@@ -10,48 +9,6 @@
 QT_BEGIN_NAMESPACE
 class Ui_SoundDialog;
 class USING_FLAGS;
-
-class Object_Menu_Control_7: public Object_Menu_Control
-{
-	Q_OBJECT
-public:
-	Object_Menu_Control_7(QObject *parent, USING_FLAGS *p);
-	~Object_Menu_Control_7();
-signals:
-	//  int sig_sound_device(int);
-	int sig_emu_update_config(void);
-public slots:
-
-	void do_set_z80card_on(bool flag);
-	void do_set_z80_irq(bool flag);
-	void do_set_z80_firq(bool flag);
-	void do_set_z80_nmi(bool flag);
-	void do_set_hsync(bool flag);
-
-	void do_set_kanji_rom(bool flag);
-	void do_set_320kFloppy(bool flag);
-	
-	void do_set_1MFloppy(bool flag);
-	void do_set_protect_ram(bool flag);
-
-	void do_set_cyclesteal(bool flag);
-	void do_set_jcommcard(bool flag);
-
-	void do_set_uart(bool flag);
-	void do_set_autokey_5_8(void);
-};
-
-class Action_Control_7 : public Action_Control
-{
-	Q_OBJECT
-public:
-	Object_Menu_Control_7 *fm7_binds;
-	Action_Control_7(QObject *parent, USING_FLAGS *p);
-	~Action_Control_7();
-public slots:
-	void do_set_frameskip();
-};
-
 class CSP_Logger;
 class Ui_MainWindow;
 //  wrote of Specific menu.
@@ -60,46 +17,46 @@ class META_MainWindow : public Ui_MainWindow {
 protected:
 	QMenu *menuFrameSkip;
 	QActionGroup *actionGroup_FrameSkip;
-	class Action_Control_7 *actionFrameSkip[4];
+	class Action_Control *actionFrameSkip[4];
 # if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
-	class Action_Control_7 *actionExtRam;
+	class Action_Control *actionExtRam;
 # endif
 # if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
-	class Action_Control_7 *actionKanjiRom;
+	class Action_Control *actionKanjiRom;
 # endif
 # if defined(CAPABLE_JCOMMCARD)
-	class Action_Control_7 *actionJCOMMCARD;
+	class Action_Control *actionJCOMMCARD;
 # endif
 	
 # if defined(_FM8)
-	class Action_Control_7 *actionRamProtect;
+	class Action_Control *actionRamProtect;
 # else	
-	class Action_Control_7 *actionCycleSteal;
+	class Action_Control *actionCycleSteal;
 # endif  
 
-	class Action_Control_7 *actionSyncToHsync;
+	class Action_Control *actionSyncToHsync;
 
 #if defined(CAPABLE_DICTROM) && !defined(_FM77AV40EX) && !defined(_FM77AV40SX)
-	class Action_Control_7 *actionDictCard;
+	class Action_Control *actionDictCard;
 #endif
 	QActionGroup *actionGroup_Auto_5_8key;
 	QMenu *menuAuto5_8Key;
-	class Action_Control_7 *action_Neither_5_or_8key;
-	class Action_Control_7 *action_Auto_5key;
-	class Action_Control_7 *action_Auto_8key;
+	class Action_Control *action_Neither_5_or_8key;
+	class Action_Control *action_Auto_5key;
+	class Action_Control *action_Auto_8key;
 # if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
-	class Action_Control_7 *action_320kFloppy;
+	class Action_Control *action_320kFloppy;
 # endif  
 # if defined(HAS_2HD)
-	class Action_Control_7 *action_1MFloppy;
+	class Action_Control *action_1MFloppy;
 # endif  
 # if defined(WITH_Z80)
-	class Action_Control_7 *actionZ80CARD_ON;
-	class Action_Control_7 *actionZ80_IRQ;
-	class Action_Control_7 *actionZ80_FIRQ;
-	class Action_Control_7 *actionZ80_NMI;
+	class Action_Control *actionZ80CARD_ON;
+	class Action_Control *actionZ80_IRQ;
+	class Action_Control *actionZ80_FIRQ;
+	class Action_Control *actionZ80_NMI;
 #endif
-	class Action_Control_7 *actionUART[3];
+	class Action_Control *actionUART[3];
 	
 	void setupUI_Emu(void);
 	void retranslateUi(void);
@@ -108,10 +65,9 @@ public:
 	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
-	void do_set_extram(bool flag);
-#if defined(CAPABLE_DICTROM) && !defined(_FM77AV40EX) && !defined(_FM77AV40SX)
-	void do_set_use_dictcard(bool flag);
-#endif
+	void do_set_frameskip();
+	void do_set_autokey_5_8(void);
+	
 };
 
 QT_END_NAMESPACE

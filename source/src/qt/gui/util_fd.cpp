@@ -20,47 +20,6 @@
 //extern USING_FLAGS *using_flags;
 //extern class EMU *emu;
 
-void Object_Menu_Control::insert_fd(void) {
-	emit sig_insert_fd(getDrive());
-}
-void Object_Menu_Control::eject_fd(void) {
-	write_protect = false;
-	emit sig_eject_fd(getDrive());
-}
-void Object_Menu_Control::on_d88_slot(void) {
-	emit set_d88_slot(drive, s_num);
-}
-void Object_Menu_Control::on_recent_disk(void){
-  //   write_protect = false; // Right? On D88, May be writing entry  exists. 
-	emit set_recent_disk(drive, s_num);
-}
-void Object_Menu_Control::write_protect_fd(void) {
-	write_protect = true;
-	emit sig_write_protect_fd(drive, write_protect);
-}
-void Object_Menu_Control::no_write_protect_fd(void) {
-	write_protect = false;
-	emit sig_write_protect_fd(drive, write_protect);
-}
-
-void Object_Menu_Control::do_set_ignore_crc_error(bool flag)
-{
-	p_config->ignore_disk_crc[drive] = flag;
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control::do_set_correct_disk_timing(bool flag)
-{
-	p_config->correct_disk_timing[drive] = flag;
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control::do_set_disk_count_immediate(bool flag)
-{
-	p_config->disk_count_immediate[drive] = flag;
-	emit sig_emu_update_config();
-}
-
 
 int Ui_MainWindowBase::write_protect_fd(int drv, bool flag)
 {

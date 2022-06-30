@@ -457,8 +457,6 @@ public slots:
 	virtual void do_set_led_width(int bitwidth) { }
 	virtual bool is_mapped_buffer(void) { return false; }
 	virtual GLuint get_mapped_buffer_num(int region) { return (GLuint)0; }
-	virtual void do_set_fixed_size(int w, int h) { setFixedSize(w, h); }
-
 signals:
 	int sig_push_image_to_movie(int, int, int, QImage *);
 };

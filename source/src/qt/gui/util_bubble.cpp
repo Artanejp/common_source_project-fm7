@@ -17,30 +17,6 @@
 #include "qt_dialogs.h"
 //#include "csp_logger.h"
 
-void Object_Menu_Control::insert_bubble(void) {
-	emit sig_insert_bubble(getDrive());
-}
-void Object_Menu_Control::eject_bubble(void) {
-	write_protect = false;
-	emit sig_eject_bubble(getDrive());
-}
-void Object_Menu_Control::on_b77_slot(void) {
-	emit set_b77_slot(drive, s_num);
-}
-void Object_Menu_Control::on_recent_bubble(void){
-	emit set_recent_bubble(drive, s_num);
-}
-void Object_Menu_Control::write_protect_bubble(void) {
-	write_protect = true;
-	emit sig_write_protect_bubble(drive, write_protect);
-}
-void Object_Menu_Control::no_write_protect_bubble(void) {
-	write_protect = false;
-	emit sig_write_protect_bubble(drive, write_protect);
-}
-
-
-
 int Ui_MainWindowBase::write_protect_bubble(int drv, bool flag)
 {
 	if((drv < 0) || (drv >= using_flags->get_max_bubble())) return -1;

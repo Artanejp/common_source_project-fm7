@@ -16,17 +16,6 @@
 #include "menu_laserdisc.h"
 
 
-void Object_Menu_Control::insert_laserdisc(void) {
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "%d", play);
-	emit sig_insert_laserdisc(play);
-}
-void Object_Menu_Control::eject_laserdisc(void) {
-	emit sig_eject_laserdisc();
-}
-void Object_Menu_Control::on_recent_laserdisc(){
-	emit sig_recent_laserdisc(s_num);
-}
-
 void Ui_MainWindowBase::CreateLaserdiscMenu(int drv, int drv_base)
 {
 	QString ext_play, desc_play;

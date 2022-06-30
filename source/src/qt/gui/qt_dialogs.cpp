@@ -24,7 +24,7 @@ void CSP_DiskParams::_open_disk(QString s)
 	int d = getDrive();
 	//int n = d + CSP_LOG_TYPE_VFILE_FLOPPY;
 	//csp_logger->debug_log(CSP_LOG_INFO, n, "Try to open media image: %s", s.toLocal8Bit().constData());
-	emit do_open_disk(d, s);
+	emit sig_open_disk(d, s);
 }
 
 void CSP_DiskParams::_open_cart(QString s)
@@ -34,13 +34,20 @@ void CSP_DiskParams::_open_cart(QString s)
 }
 void CSP_DiskParams::_open_cmt(QString s)
 {
-	emit do_open_cmt(play, s);
+	emit sig_open_cmt(play, s);
 }
 
 void CSP_DiskParams::_open_binary(QString s) {
 	emit sig_open_binary_file(drive, s, play);
 }
 
+void CSP_DiskParams::_open_quick_disk(QString s)
+{
+	int d = getDrive();
+	//int n = d + CSP_LOG_TYPE_VFILE_FLOPPY;
+	//csp_logger->debug_log(CSP_LOG_INFO, n, "Try to open media image: %s", s.toLocal8Bit().constData());
+	emit sig_open_quick_disk(d, s);
+}
 
 CSP_CreateDiskDialog::CSP_CreateDiskDialog(bool *masks, QWidget *parent) : QWidget(parent)
 {

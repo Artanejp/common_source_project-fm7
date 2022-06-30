@@ -13,30 +13,10 @@
 #include "mainwidget_base.h"
 #include "commonclasses.h"
 #include "qt_dialogs.h"
+
 //#include "csp_logger.h"
 
 #include "menu_binary.h"
-
-void Object_Menu_Control::on_recent_binary_load(void){
-	//   write_protect = false; // Right? On D88, May be writing entry  exists. 
-	emit set_recent_binary_load(drive, s_num);
-}
-void Object_Menu_Control::on_recent_binary_save(void){
-	//   write_protect = false; // Right? On D88, May be writing entry  exists. 
-	emit set_recent_binary_save(drive, s_num);
-}
-
-void Object_Menu_Control::_open_binary(QString s){
-	bool load = this->isPlay();
-	int d = this->getDrive();
-	emit sig_open_binary_file(d, s, load);
-}
-void Object_Menu_Control::insert_binary_load(void) {
-	emit sig_open_binary(getDrive(), true);
-}
-void Object_Menu_Control::insert_binary_save(void) {
-	emit sig_open_binary(getDrive(), false);
-}
 
 int Ui_MainWindowBase::set_recent_binary_load(void) 
 {
@@ -45,10 +25,10 @@ int Ui_MainWindowBase::set_recent_binary_load(void)
 	char path_shadow[PATH_MAX];
 	
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
-	if(cp == nullptr) return;
-	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->value<CSP_Ui_Menu::DriveIndexPair>();
-	drv = tmp.drive;
-	num = tmp.index;
+	if(cp == nullptr) return -1;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	int num = tmp.index;
 	
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	
@@ -72,10 +52,10 @@ int Ui_MainWindowBase::set_recent_binary_save(void)
 	char path_shadow[PATH_MAX];
 	
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
-	if(cp == nullptr) return;
-	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->value<CSP_Ui_Menu::DriveIndexPair>();
-	drv = tmp.drive;
-	num = tmp.index;
+	if(cp == nullptr) return -1;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	int num = tmp.index;
 	
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	

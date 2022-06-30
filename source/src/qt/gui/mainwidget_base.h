@@ -7,15 +7,15 @@
 #ifndef _CSP_QT_MAINWIDGET_BASE_H
 #define _CSP_QT_MAINWIDGET_BASE_H
 
-//#include <QVariant>
-//#include <QObject>
-//#include <QApplication>
+#include <QVariant>
+#include <QObject>
+#include <QApplication>
 #include <QMainWindow>
 #include <QIcon>
 #include <QString>
 #include <QStringList>
 #include <QMap>
-//#include <QMenu>
+#include <QAction>
 //#include <QMenuBar>
 
 #include "common.h"
@@ -125,7 +125,6 @@ QT_BEGIN_NAMESPACE
 
 class OSD;
 class QVariant;
-class QAction;
 class QActionGroup;
 class QButtonGroup;
 class QGraphicsView;
@@ -608,6 +607,9 @@ public:
 	virtual QString get_system_version();
 	virtual QString get_build_date();
 	QString get_gui_version();
+	void set_screen_size(int w, int h);
+	void set_screen_aspect(int num);
+	void update_screen_size(int num);
 
 	// Basic slots
 public slots:
@@ -621,15 +623,14 @@ public slots:
 	void do_recv_data_led(quint32 d);
 
 	void do_update_volume(int level);
-	void set_screen_aspect(int num);
-	void set_screen_size(int w, int h);
-	void do_set_screen_rotate(int type);
+	void do_set_screen_aspect(void);
+	void do_set_screen_size(void);
+	void do_set_screen_rotate(void);
 	void OnReset(void);
-	void do_special_reset(int);	
 
 	virtual void do_set_mouse_enable(bool flag);
 	virtual void do_toggle_mouse(void);
-	void do_set_sound_device(int);
+	void do_set_sound_device(void);
 	void do_emu_update_volume_balance(int num, int level);
 	void do_emu_update_volume_level(int num, int level);
 	void rise_log_viewer(void);
@@ -639,8 +640,6 @@ public slots:
 	void rise_joykey_dialog(void);
 	void rise_keyboard_dialog(void);
 	virtual void rise_movie_dialog(void);
-	void do_stop_saving_movie(void);
-	void do_start_saving_movie(void);
 	void do_set_state_saving_movie(bool state);
 	void set_osd_virtual_media(bool f);
 	
@@ -648,11 +647,11 @@ public slots:
 	virtual void OnCloseDebugger(void);
 	void doBeforeCloseMainWindow(void);	
 	void set_gl_crt_filter(bool);
-	void set_cpu_power(void)
+	void do_set_cpu_power(void)
 	{
 		QAction *cp = qobject_cast<QAction*>(QObject::sender());
 		if(cp == nullptr) return;
-		int pw = cp->data.value<int>();
+		int pw = cp->data().value<int>();
 		
 		OnCpuPower(pw);
 	}
@@ -675,8 +674,8 @@ public slots:
 	void CreateBinaryMenu(int drv, int drv_base);
 	void CreateBinaryPulldownMenu(int drv);
 	void ConfigBinaryMenuSub(int drv);
-	int set_recent_binary_load(int drv, int num);
-	int set_recent_binary_save(int drv, int num);
+	int set_recent_binary_load(void);
+	int set_recent_binary_save(void);
 	void _open_binary_load(int drive, const QString fname);
 	void _open_binary_save(int drive, const QString fname);
 
@@ -689,8 +688,8 @@ public slots:
 	void _open_cart(int drv, const QString fname);
 	void eject_cmt(int drv);
 	
-	void do_change_boot_mode(int mode);
-	void do_change_cpu_type(int mode);
+	void do_change_boot_mode();
+	void do_change_cpu_type();
 	
 	void do_write_protect_cmt(int drv, bool flag);
 	int  set_recent_cmt(int drv, int num);
@@ -733,28 +732,27 @@ public slots:
 	int set_recent_hard_disk(int, int);
 
 	void start_record_sound(bool rec);
-	void set_freq(int);
-	void set_latency(int);
-	void set_sound_device(int);
+	void do_set_freq(void);
+	void do_set_latency(void);
 	void do_set_sound_strict_rendering(bool f);
 	void do_set_sound_tape_signal(bool f);
 	void do_set_sound_tape_voice(bool f);
-	void do_set_host_sound_device(int num);
+	void do_set_host_sound_device(void);
 	void do_set_host_sound_name(int num, QString sname);	
 	void set_monitor_type(void);
 	void message_status_bar(QString);
 	void resize_statusbar(int w, int h);
 	virtual void do_release_emu_resources(void);
 	virtual void set_window_title();
-	void set_device_type(int);
-	void set_mouse_type(int);
-	void set_keyboard_type(int);
-	void set_joystick_type(int);
-	void set_drive_type(int);
+	void set_device_type(void);
+	void set_mouse_type(void);
+	void set_keyboard_type(void);
+	void set_joystick_type(void);
+	void set_drive_type();
 	void set_scan_line(bool);
 	void set_gl_scan_line_vert(bool);
 	void set_gl_scan_line_horiz(bool);
-	void set_printer_device(int);
+	void set_printer_device();
 	void do_show_about(void);
 	void do_browse_document(void);
 	void set_dipsw(int num, bool flag);
@@ -765,13 +763,13 @@ public slots:
 	void do_set_conslog(bool);
 	void do_set_syslog(bool);
 	void do_update_device_node_name(int id, const _TCHAR *name);	
-	void do_set_dev_log_to_console(int id, bool f);
-	void do_set_dev_log_to_syslog(int id, bool f);
+	void do_set_dev_log_to_console(bool f);
+	void do_set_dev_log_to_syslog(bool f);
 	void do_set_roma_kana(bool f);
 	void do_set_numpad_enter_as_fullkey(bool f);
 	void do_set_render_mode_std(void);
 	void do_set_render_mode_tv(void);
-	void do_select_render_platform(int num);
+	void do_select_render_platform(void);
 	void do_set_window_focus_type(bool flag);
 
 	void do_set_visible_virtual_media_none();
@@ -780,7 +778,7 @@ public slots:
 	void do_set_visible_virtual_media_left();
 	void do_set_visible_virtual_media_right();
 
-	void do_set_emulate_cursor_as(int num);
+	void do_set_emulate_cursor_as(void);
 	void do_set_logging_fdc(bool onoff);	
 	void do_set_separate_thread_draw(bool f);
 	void do_set_print_cpu_statistics(bool flag);
@@ -798,6 +796,8 @@ public slots:
 
 	void do_set_machine_feature(int devnum, uint32_t value);
 
+	void do_set_single_dipswitch(bool f);
+	
 	void do_start_emu_thread();
 	void do_start_draw_thread();
 signals:
@@ -812,17 +812,15 @@ signals:
 	int sig_start_saving_movie(void);
 	int on_boot_mode(int);
 	int on_cpu_type(int);
-	int on_cpu_power(int);
 	int on_open_debugger(int);
 	int on_insert_fd(int);
 	int on_eject_fd(int);
-	int do_open_disk(int, QString);
+	int sig_open_disk(int, QString);
 	
 	int closed(void);
 	int sig_quit_all(void);
 	int sig_vm_reset(void);
 	int sig_vm_specialreset(int);
-	int sig_check_grab_mouse(bool);
 	int sig_resize_uibar(int, int);
 	int sig_resize_screen(int, int);
 	int sig_update_screen(void);
@@ -834,6 +832,7 @@ signals:
 	int sig_emu_update_volume_balance(int, int);
 
 	int sig_resize_osd(int);
+	int sig_screen_multiply(double);
 	
 	int sig_write_protect_disk(int drv, bool flag);
 	int sig_open_disk(int, QString, int);
@@ -882,6 +881,11 @@ signals:
 	int sig_start_emu_thread(void);
 	int sig_start_draw_thread(void);
 	int sig_emu_launched(void);
+	int sig_glv_set_fixed_size(int, int);
+	
+	int sig_set_device_node_log(int, int, int, bool);
+	int sig_set_device_node_log(int, int, bool*, int, int);
+	int sig_set_device_node_log(int, int, int*, int, int);
 };
 
 QT_END_NAMESPACE

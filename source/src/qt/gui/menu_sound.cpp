@@ -21,20 +21,13 @@
 const double s_late_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};
 extern USING_FLAGS *using_flags;
 
-void Object_Menu_Control::on_set_freq(void) {
-   emit sig_freq(s_num);
-}
 
-void Object_Menu_Control::on_set_latency(void) {
-   emit sig_latency(s_num);
-}
-
-void Object_Menu_Control::on_set_host_sound_device(void) {
-   emit sig_set_host_sound_device(s_num);
-}
-
-void Ui_MainWindowBase::do_set_host_sound_device(int num)
+void Ui_MainWindowBase::do_set_host_sound_device(void)
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int num = cp->data().value<int>();
+	
 	if(p_config != NULL) {
 		p_config->sound_device_num = num;
 	}
@@ -137,9 +130,7 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 		if(action_HostSoundDevice[i] != NULL) {
 			menuSound_HostDevices->addAction(action_HostSoundDevice[i]);
 			connect(action_HostSoundDevice[i], SIGNAL(triggered()),
-					action_HostSoundDevice[i]->binds, SLOT(on_set_host_sound_device()));
-			connect(action_HostSoundDevice[i]->binds, SIGNAL(sig_set_host_sound_device(int)),
-					this, SLOT(do_set_host_sound_device(int)));
+					this, SLOT(do_set_host_sound_device()));
 		}
 	}
 	
@@ -151,9 +142,7 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 	for(i = 0; i < 8; i++) {
 		menuOutput_Frequency->addAction(action_Freq[i]);
 		connect(action_Freq[i], SIGNAL(triggered()),
-			action_Freq[i]->binds, SLOT(on_set_freq()));
-		connect(action_Freq[i]->binds, SIGNAL(sig_freq(int)),
-			this, SLOT(set_freq(int)));
+			this, SLOT(do_set_freq()));
 	}
 	menuSound_Latency = new QMenu(menuSound);
 	menuSound_Latency->setObjectName(QString::fromUtf8("menuSound_Latency"));
@@ -161,9 +150,7 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 	for(i = 0; i < 5; i++) {
 		menuSound_Latency->addAction(action_Latency[i]);
 		connect(action_Latency[i], SIGNAL(triggered()),
-			action_Latency[i]->binds, SLOT(on_set_latency()));
-		connect(action_Latency[i]->binds, SIGNAL(sig_latency(int)),
-			this, SLOT(set_latency(int)));
+			this, SLOT(do_set_latency()));
 	}
 
 	menuSound->addSeparator();
@@ -197,7 +184,7 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 	   
 		action_HostSoundDevice[i]->setObjectName(tmps);
 		action_HostSoundDevice[i]->setCheckable(true);
-		action_HostSoundDevice[i]->binds->setNumber(i);
+		action_HostSoundDevice[i]->setData(QVariant(i));
 		if(i == p_config->sound_device_num) {
 			action_HostSoundDevice[i]->setChecked(true);
 			//freq = using_flags->get_s_freq_table(i);
@@ -209,11 +196,12 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 	actionGroup_Sound_Freq->setExclusive(true);
 	for(i = 0; i < 8; i++) {
 		action_Freq[i] = new Action_Control(this, using_flags);
-		tmps.setNum(using_flags->get_s_freq_table(i));
+		int _freq = using_flags->get_s_freq_table(i);
+		tmps.setNum(_freq);
 		tmps = QString::fromUtf8("action") + tmps + QString::fromUtf8("Hz");
 		action_Freq[i]->setObjectName(tmps);
 		action_Freq[i]->setCheckable(true);
-		action_Freq[i]->binds->setNumber(i);
+		action_Freq[i]->setData(QVariant(i));
 		if(i == p_config->sound_frequency) {
 			action_Freq[i]->setChecked(true);
 			//freq = using_flags->get_s_freq_table(i);
@@ -227,11 +215,11 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 		action_Latency[i] = new Action_Control(this, using_flags);
 		dval = s_late_table[i];
 		dval = dval * 1000.0;
-		tmps.setNum((int)dval);
+		tmps.setNum(dval);
 		tmps = QString::fromUtf8("action") + tmps + QString::fromUtf8("ms");
 		action_Latency[i]->setObjectName(tmps);
 		action_Latency[i]->setCheckable(true);
-		action_Latency[i]->binds->setNumber(i);
+		action_Latency[i]->setData(QVariant(i));
 		if(i == p_config->sound_latency) action_Latency[i]->setChecked(true);
 		actionGroup_Sound_Latency->addAction(action_Latency[i]);
 	}

@@ -79,7 +79,15 @@ Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, CSP_Logger *logger, QWidget
 	phys_key_name_map.clear();
 	hRunJoy = NULL;
 	about_to_close = false;
-
+	if(csp_logger != nullptr) {
+		connect(this, SIGNAL(sig_set_device_node_log(int, int, int, bool)),
+				csp_logger, SLOT(set_device_node_log(int, int, int, bool)), Qt::QueuedConnection);
+		connect(this, SIGNAL(sig_set_device_node_log(int, int, bool*, int, int)),
+				csp_logger, SLOT(set_device_node_log(int, int, bool*, int, int)), Qt::QueuedConnection);
+		connect(this, SIGNAL(sig_set_device_node_log(int, int, int*, int, int)),
+				csp_logger, SLOT(set_device_node_log(int, int, int*, int, int)), Qt::QueuedConnection);
+		
+	}
 }
 
 Ui_MainWindowBase::~Ui_MainWindowBase()
@@ -116,28 +124,13 @@ QString Ui_MainWindowBase::get_gui_version()
 	return retval;
 }
 
-void Action_Control::do_check_grab_mouse(bool flag)
-{
-	this->toggle();
-}
 
-
-void Action_Control::do_select_render_platform(void)
-{
-	int num = this->binds->getValue1();
-	emit sig_select_render_platform(num);
-}
 
 void Action_Control::do_set_window_focus_type(bool f)
 {
 	emit sig_set_window_focus_type(f);
 }
 
-void Action_Control::do_set_emulate_cursor_as(void)
-{
-	int num = this->binds->getValue1();
-	emit sig_set_emulate_cursor_as(num);
-}
 
 
 
@@ -172,13 +165,11 @@ void Ui_MainWindowBase::do_show_about(void)
 	dlg->show();
 }
 
-, __action, SLOT(do_send_string())); \
-	connect(__action, SIGNAL(sig_send_string(QString)),
 void Ui_MainWindowBase::do_browse_document()
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	QString fname = cp->data.toString();
+	QString fname = cp->data().toString();
 	
 	Dlg_BrowseText *dlg = new Dlg_BrowseText(fname, using_flags);
 	dlg->show();
@@ -250,11 +241,11 @@ void Ui_MainWindowBase::do_set_logging_fdc(bool f)
 	emit sig_emu_update_config();
 }
 
-void Ui_MainWindowBase::do_set_dev_log_to_console(int num, bool f)
+void Ui_MainWindowBase::do_set_dev_log_to_console(bool f)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	int num = cp->data.value<int>();
+	int num = cp->data().value<int>();
 	
 	csp_logger->set_device_node_log(num, 2, CSP_LOG_DEBUG, f);
 	p_config->dev_log_to_console[num][0] = f;
@@ -284,7 +275,7 @@ void Ui_MainWindowBase::do_set_emulate_cursor_as(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	int num = cp->data.value<int>();
+	int num = cp->data().value<int>();
 	
 	if((num < 0) || (num > 2)) return;
 	p_config->cursor_as_ten_key = num;
@@ -295,7 +286,7 @@ void Ui_MainWindowBase::do_set_dev_log_to_syslog(bool f)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	int num = cp->data.value<int>();
+	int num = cp->data().value<int>();
 	
 	csp_logger->set_device_node_log(num, 2, CSP_LOG_DEBUG, f);
 	p_config->dev_log_to_syslog[num][0] = f;
@@ -305,7 +296,7 @@ void Ui_MainWindowBase::do_select_render_platform(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	int num = cp->data.value<int>();
+	int num = cp->data().value<int>();
 	
 	int _major = 0;
 	int _minor = 0;
@@ -614,8 +605,6 @@ void Ui_MainWindowBase::setupUi(void)
 //		actionMouseEnable->setChecked(false);
 //		connect(actionMouseEnable, SIGNAL(toggled(bool)),
 //				this, SLOT(do_set_mouse_enable(bool)));
-		connect(graphicsView, SIGNAL(sig_check_grab_mouse(bool)),
-				actionMouseEnable, SLOT(do_check_grab_mouse(bool)));
 		menuMachine->addAction(actionMouseEnable);
 	}
 	if(using_flags->is_use_ram_size()) {
@@ -768,8 +757,8 @@ void Ui_MainWindowBase::setupUi(void)
 	if(p_config->window_mode >= using_flags->get_screen_mode_num()) p_config->window_mode = using_flags->get_screen_mode_num() - 1;
 	w = using_flags->get_screen_width();
 	h = using_flags->get_screen_height();
-	if(actionScreenSize[p_config->window_mode] != NULL) {
-		double nd = actionScreenSize[p_config->window_mode]->binds->getDoubleValue();
+	if(actionScreenSize[p_config->window_mode] != nullptr) {
+		double nd = getScreenMultiply(p_config->window_mode);
 		w = (int)(nd * (double)w);
 		h = (int)(nd * (double)h);
 		switch(p_config->rotate_type) {
@@ -799,13 +788,13 @@ void Ui_MainWindowBase::setupUi(void)
 		}
 	}
 	graphicsView->setFixedSize(w, h);
-	connect(this, SIGNAL(sig_screen_multiply(float)), graphicsView, SLOT(do_set_screen_multiply(float)), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_screen_multiply(double)), graphicsView, SLOT(do_set_screen_multiply(double)), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_glv_set_fixed_size(int, int)), graphicsView, SLOT(do_set_fixed_size(int, int)), Qt::QueuedConnection);
 	
 	set_screen_size(w, h);
 	set_screen_aspect(p_config->window_stretch_type);
 	{
-		float nd = getScreenMultiply(p_config->window_mode);
+		double nd = getScreenMultiply(p_config->window_mode);
 		if(nd > 0.0f) {
 			graphicsView->do_set_screen_multiply(nd);
 		}

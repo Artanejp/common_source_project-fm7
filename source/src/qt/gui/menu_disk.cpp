@@ -98,24 +98,67 @@ void Menu_FDClass::do_create_media(quint8 media_type, QString name)
 	emit sig_create_d88_media((int)media_drive, media_type, name);
 }
 
+void Menu_FDClass::do_set_correct_disk_timing(bool flag)
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int drive = cp->data().value<int>();
+	if(p_config == nullptr) return;
+	
+	p_config->correct_disk_timing[drive] = flag;
+	emit sig_emu_update_config();
+}
+
+void Menu_FDClass::do_set_disk_count_immediate(bool flag)
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int drive = cp->data().value<int>();
+	if(p_config == nullptr) return;
+	
+	p_config->disk_count_immediate[drive] = flag;
+	emit sig_emu_update_config();
+}
+
+void Menu_FDClass::do_set_ignore_crc_error(bool flag)
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int drive = cp->data().value<int>();
+	
+	if(p_config == nullptr) return;
+	p_config->ignore_disk_crc[drive] = flag;
+	emit sig_emu_update_config();
+}
 
 void Menu_FDClass::create_pulldown_menu_device_sub(void)
 {
 	config_t *p;
+	struct CSP_Ui_Menu::DriveIndexPair tmp;
+	
 	action_ignore_crc_error = new Action_Control(p_wid, using_flags);
 	action_ignore_crc_error->setVisible(true);
 	action_ignore_crc_error->setCheckable(true);
-	action_ignore_crc_error->binds->setDrive(media_drive);
+	tmp.drive = media_drive;
+	tmp.index = 0;
+	QVariant _tmp_ic;
+	_tmp_ic.setValue(tmp);
+	action_ignore_crc_error->setData(_tmp_ic);
+	
 	
 	action_correct_timing = new Action_Control(p_wid, using_flags);
 	action_correct_timing->setVisible(true);
 	action_correct_timing->setCheckable(true);
-	action_correct_timing->binds->setDrive(media_drive);
+	QVariant _tmp_ct;
+	_tmp_ct.setValue(tmp);
+	action_correct_timing->setData(_tmp_ct);
 
 	action_count_immediate = new Action_Control(p_wid, using_flags);
 	action_count_immediate->setVisible(true);
 	action_count_immediate->setCheckable(true);
-	action_count_immediate->binds->setDrive(media_drive);
+	QVariant _tmp_ci;
+	_tmp_ci.setValue(tmp);
+	action_count_immediate->setData(_tmp_ci);
 	
 	action_create_fd = new Action_Control(p_wid, using_flags);
 	action_create_fd->setVisible(true);
@@ -140,18 +183,19 @@ void Menu_FDClass::connect_menu_device_sub(void)
 	this->addAction(action_count_immediate);
 	
 	connect(action_ignore_crc_error, SIGNAL(toggled(bool)),
-			action_ignore_crc_error->binds, SLOT(do_set_ignore_crc_error(bool)));
+			this, SLOT(do_set_ignore_crc_error(bool)));
 	
 	connect(action_correct_timing, SIGNAL(toggled(bool)),
-			action_correct_timing->binds, SLOT(do_set_correct_disk_timing(bool)));
+			this, SLOT(do_set_correct_disk_timing(bool)));
 	
 	connect(action_count_immediate, SIGNAL(toggled(bool)),
-			action_count_immediate->binds, SLOT(do_set_disk_count_immediate(bool)));
+			this, SLOT(do_set_disk_count_immediate(bool)));
 
 	connect(action_create_fd, SIGNAL(triggered()), this, SLOT(do_open_dialog_create_fd()));
 	
    	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_disk(int, QString)));
 	connect(this, SIGNAL(sig_eject_media(int)), p_wid, SLOT(eject_fd(int)));
+	
 	connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(write_protect_fd(int, bool)));	
 	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_disk(int, int)));
 	connect(this, SIGNAL(sig_set_inner_slot(int, int)), p_wid, SLOT(set_d88_slot(int, int)));
@@ -174,5 +218,6 @@ void Menu_FDClass::retranslate_pulldown_menu_device_sub(void)
 	action_count_immediate->setText(QApplication::translate("MenuMedia", "Immediate increment", 0));
 	action_count_immediate->setToolTip(QApplication::translate("MenuMedia", "Increment data pointer immediately.\nThis is test hack for MB8877.\nUseful for some softwares\n needs strict transfer timing.", 0));
 }
+
 
 

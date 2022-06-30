@@ -342,7 +342,7 @@ int MOVIE_LOADER::open_codec_context(int *stream_idx,
 		dec_ctx = st->codec;
 		__dec = avcodec_find_decoder(dec_ctx->codec_id);
 #else
-		__dec = avcodec_find_decoder(st->codecpar->codec_id);
+		__dec = (AVCodec *)avcodec_find_decoder(st->codecpar->codec_id);
 		if (!__dec) {
 			//avcodec_free_context(&dec_ctx);
             out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Failed to find %s codec\n",

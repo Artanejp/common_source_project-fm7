@@ -14,68 +14,6 @@
 #include "mainwidget_base.h"
 #include "menu_flags.h"
 
-//extern USING_FLAGS *using_flags;
-void Object_Menu_Control::do_select_fixed_cpu(void)
-{
-	emit sig_set_fixed_cpu(getValue1());
-}
-
-// ToDo: Call dialogs.
-void Object_Menu_Control::do_select_machine_feature_single(void)
-{
-	int devnum = getNumber();
-	uint32_t value = (uint32_t)getValue1();
-	emit sig_set_machine_feature(devnum, value);
-	// Not NEED to call sig_emu_update_config()
-}
-
-void Object_Menu_Control::do_set_monitor_type()
-{
-	emit sig_monitor_type(getValue1());
-}
-
-void Object_Menu_Control::do_special_reset(void)
-{
-//	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, _T("Special reset #%d"), getValue1());
-	emit sig_specialreset(getValue1());
-}
-
-void Object_Menu_Control::set_boot_mode(void) {
-	emit on_boot_mode(bindValue);
-}
-   
-void Object_Menu_Control::set_cpu_type(void) {
-	emit on_cpu_type(bindValue);
-}
-void Object_Menu_Control::set_cpupower(void) {
-	emit on_cpu_power(bindValue);
-}
-void Object_Menu_Control::open_debugger(void) {
-	emit on_open_debugger(bindValue);
-}
-void Object_Menu_Control::do_set_device_type(void){
-	emit sig_device_type(this->getValue1());
-}
-void Object_Menu_Control::do_set_joystick_type(void){
-	emit sig_joystick_type(this->getValue1());
-}
-void Object_Menu_Control::do_set_keyboard_type(void){
-	emit sig_keyboard_type(this->getValue1());
-}
-void Object_Menu_Control::do_set_mouse_type(void){
-	emit sig_mouse_type(this->getValue1());
-}
-void Object_Menu_Control::do_set_printer_device(void){
-	emit sig_printer_device(this->getValue1());
-}
-void Object_Menu_Control::do_set_sound_device(void){
-	emit sig_sound_device(this->getValue1());
-}
-void Object_Menu_Control::do_set_drive_type(void)
-{
-	emit sig_drive_type(getValue1());
-}
-
 
 
 void Ui_MainWindowBase::ConfigCpuSpeed(void)
@@ -147,7 +85,7 @@ void Ui_MainWindowBase::do_change_boot_mode(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	int mode = cp->data.value<int>();
+	int mode = cp->data().value<int>();
 	
 	if((mode < 0) || (mode >= 8)) return;
 	p_config->boot_mode = mode;
@@ -187,7 +125,7 @@ void Ui_MainWindowBase::do_change_cpu_type(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	int num = cp->data.value<int>();
+	int mode = cp->data().value<int>();
 	
 	if((mode < 0) || (mode >= 8)) return;
 	p_config->cpu_type = mode;
@@ -236,8 +174,6 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 			actionSpecial_Reset[i] = new Action_Control(this, using_flags);
 			actionSpecial_Reset[i]->setObjectName(tmps);
 			actionSpecial_Reset[i]->setData(QVariant(i));
-			connect(actionSpecial_Reset[i], SIGNAL(triggered()),
-					this, SLOT(do_special_reset())); // OK?
 			if(i >= 15) break;
 		}
 	}
@@ -437,9 +373,3 @@ void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  b
 	}
 }
 
-void Ui_MainWindowBase::do_set_sound_device(int num)
-{
-	if((num < 0) || (num >= using_flags->get_use_sound_device_type())) return;
-	p_config->sound_type = num;
-	emit sig_emu_update_config();
-}
