@@ -50,6 +50,14 @@ enum {
 
 QT_BEGIN_NAMESPACE
 
+namespace CSP_Ui_MainWidgets {
+	struct DipswitchPair {
+		uint32_t data;
+		uint32_t mask;
+	};
+}
+
+Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::DriveIndexPair)
 
 #define SET_ACTION_SINGLE(__action,__checkable,__enabled,__cfgif) \
 		__action = new Action_Control(this, using_flags);		  \
@@ -82,6 +90,21 @@ QT_BEGIN_NAMESPACE
 	/*connect(__action, __signal1, __action->binds, __slot1);*/			\
 	connect(__action, __signal1, this, __slot1); 
 
+#define SET_ACTION_ANYVALUES(__action,__vars) \
+	__action = new Action_Control(this, using_flags);					\
+	__action->setCheckable(true);										\
+	__action->setEnabled(true);											\
+	__action->setData(QVariant(__vars));							\
+	__action->setChecked(false);										\
+
+#define SET_ACTION_ANYVALUES_CONNECT(__action,__vars,__signal1,__slot1) \
+	__action = new Action_Control(this, using_flags);					\
+	__action->setCheckable(true);										\
+	__action->setEnabled(true);											\
+	__action->setData(QVariant(__vars));							\
+	__action->setChecked(false);										\
+	/*connect(__action, __signal1, __action->binds, __slot1);*/			\
+	connect(__action, __signal1, this, __slot1); 
 
 #define SET_ACTION_CHECKABLE_SINGLE_CONNECT(__menu,__action,__objname,__cond,__signal1,__slot1) \
 	__action = new Action_Control(this, using_flags);					\
@@ -124,7 +147,6 @@ QT_BEGIN_NAMESPACE
 	}																	\
 
 class OSD;
-class QVariant;
 class QActionGroup;
 class QButtonGroup;
 class QGraphicsView;
@@ -588,7 +610,12 @@ public:
 	// Screen
 	virtual void OnWindowMove(void);
 	virtual void OnWindowRedraw(void);
-   
+
+	// GUI Utilities
+	virtual void setTextAndToolTip(QAction *p, QString text, QString tooltip);
+	virtual void setTextAndToolTip(QWidget *p, QString text, QString tooltip);
+	virtual void setTextAndToolTip(QMenu *p, QString text, QString tooltip);
+
 	// Getting important widgets.
 	QMainWindow *getWindow(void) { return MainWindow; }
 	QMenuBar    *getMenuBar(void) { return menubar;}

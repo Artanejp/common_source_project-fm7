@@ -549,3 +549,26 @@ void Ui_MainWindowBase::set_printer_device(void)
 	p_config->printer_type = p_type;
 	emit sig_emu_update_config();
 }
+
+void Ui_MainWindowBase::setTextAndToolTip(QAction *p, QString text, QString tooltip)
+{
+	if(p == nullptr) return;
+	p->setText(text);
+	p->setToolTip(tooltip);
+}
+
+void Ui_MainWindowBase::setTextAndToolTip(QWidget *p, QString text, QString tooltip)
+{
+	if(p == nullptr) return;
+	p->setText(text);
+	p->setToolTip(tooltip);
+}
+
+void Ui_MainWindowBase::setTextAndToolTip(QMenu *p, QString text, QString tooltip)
+{
+	if(p == nullptr) return;
+//	p->setText(text);
+	p->setTitle(text);
+	p->setToolTip(tooltip);
+}
+
