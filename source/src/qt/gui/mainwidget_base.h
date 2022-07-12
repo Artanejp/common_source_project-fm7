@@ -57,76 +57,91 @@ namespace CSP_Ui_MainWidgets {
 	};
 }
 
-Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::DriveIndexPair)
+Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::DipswitchPair)
 
-#define SET_ACTION_SINGLE(__action,__checkable,__enabled,__cfgif) \
+#define SET_ACTION_SINGLE(__action,__checkable,__enabled,__cfgif) { \
 		__action = new Action_Control(this, using_flags);		  \
 		__action->setCheckable(__checkable);					  \
 		__action->setEnabled(__enabled);						  \
-		__action->setChecked(false);							  \
-		if(__cfgif) {											  \
-			__action->setChecked(true);							  \
-		}														  \
+		__action->setChecked(__cfgif);							  \
+	}
 
-#define SET_ACTION_SINGLE_CONNECT(__action,__checkable,__enabled,__cfgif,__signal1,__slot1) \
-		__action = new Action_Control(this, using_flags);		  \
-		__action->setCheckable(__checkable);					  \
-		__action->setEnabled(__enabled);						  \
-		__action->setChecked(false);							  \
-		if(__cfgif) {											  \
-			__action->setChecked(true);							  \
-		}														  \
-		connect(__action, __signal1, this, __slot1);			  
+#define SET_ACTION_SINGLE_CONNECT(__action,__checkable,__enabled,__cfgif,__signal1,__slot1) { \
+		SET_ACTION_SINGLE(__action,__checkable,__enabled,__cfgif);		\
+		connect(__action, __signal1, this, __slot1);					\
+	}
 
-#define SET_ACTION_NUMERIC_CONNECT(__action,__num,__condval,__signal1,__slot1) \
-	__action = new Action_Control(this, using_flags);					\
-	__action->setCheckable(true);										\
-	__action->setEnabled(true);											\
-	__action->setData(QVariant((int)__num));							\
-	__action->setChecked(false);										\
-	if(__condval == __num) {											\
-		__action->setChecked(true);										\
-	}																	\
-	/*connect(__action, __signal1, __action->binds, __slot1);*/			\
-	connect(__action, __signal1, this, __slot1); 
+#define SET_ACTION_NUMERIC(__action,__num,__condval) {					\
+		SET_ACTION_SINGLE(__action, true, true, (__condval == __num));	\
+		__action->setData(QVariant((int)__num));						\
+	}
 
-#define SET_ACTION_ANYVALUES(__action,__vars) \
-	__action = new Action_Control(this, using_flags);					\
-	__action->setCheckable(true);										\
-	__action->setEnabled(true);											\
-	__action->setData(QVariant(__vars));							\
-	__action->setChecked(false);										\
+#define SET_ACTION_NUMERIC_CONNECT(__action,__num,__condval,__signal1,__slot1) { \
+		SET_ACTION_NUMERIC(__action, __num, __condval);					\
+		connect(__action, __signal1, this, __slot1);					\
+	}
 
-#define SET_ACTION_ANYVALUES_CONNECT(__action,__vars,__signal1,__slot1) \
-	__action = new Action_Control(this, using_flags);					\
-	__action->setCheckable(true);										\
-	__action->setEnabled(true);											\
-	__action->setData(QVariant(__vars));							\
-	__action->setChecked(false);										\
-	/*connect(__action, __signal1, __action->binds, __slot1);*/			\
-	connect(__action, __signal1, this, __slot1); 
 
-#define SET_ACTION_CHECKABLE_SINGLE_CONNECT(__menu,__action,__objname,__cond,__signal1,__slot1) \
-	__action = new Action_Control(this, using_flags);					\
-	__action->setObjectName(QString::fromUtf8(__objname));				\
-	__action->setCheckable(true);										\
-	if(__cond) __action->setChecked(true);								\
-	connect(__action, __signal1, this, __slot1);						\
-	__menu->addAction(__action);
+#define SET_ACTION_DIPSWITCH(__action,__dipsw_val,__dipsw_mask,__condval) {	\
+		SET_ACTION_SINGLE(__action, true, true, ((__dipsw_val & __dipsw_mask) == (__condval & __dipsw_mask))); \
+		struct CSP_Ui_MainWidgets::DipswitchPair __x__vars;				\
+		__x__vars.data = __dipsw_val;									\
+		__x__vars.mask = __dipsw_mask;									\
+		QVariant __v__vars;												\
+		__v__vars.setValue(__x__vars);									\
+		__action->setData(__v__vars);									\
+	}
 
-#define SET_ACTION_CHECKABLE_SINGLE_CONNECT_NOMENU(__action,__objname,__cond,__signal1,__slot1) \
-	__action = new Action_Control(this, using_flags);					\
-	__action->setObjectName(QString::fromUtf8(__objname));				\
-	__action->setCheckable(true);										\
-	if(__cond) __action->setChecked(true);								\
-	connect(__action, __signal1, this, __slot1);						\
 
-#define SET_HELP_MENUENTRY(__menu,__action,__objname,__txtname) \
-	__action = new Action_Control(this, using_flags); \
-	__action->setObjectName(QString::fromUtf8(__objname)); \
-	__action->setData(QVariant(QString::fromUtf8(__txtname)));			\
-	connect(__action, SIGNAL(triggered()), this, SLOT(do_browse_document())); \
-	__menu->addAction(__action);
+#define SET_ACTION_DIPSWITCH_CONNECT(__action,__dipsw_val,__dipsw_mask,__condval,__signal1,__slot1) { \
+		SET_ACTION_DIPSWITCH(__action,__dipsw_val,__dipsw_mask,__condval); \
+		connect(__action, __signal1, this, __slot1);					\
+	}
+
+#define SET_ACTION_SINGLE_DIPSWITCH(__action,__dipsw_val_mask,__condval) { \
+		uint32_t __d_mask = __dipsw_val_mask;							\
+		uint32_t __d_data = __dipsw_val_mask;							\
+		SET_ACTION_DIPSWITCH(__action,__d_data,__d_mask,__condval);		\
+	}
+
+#define SET_ACTION_SINGLE_DIPSWITCH_CONNECT(__action,__dipsw_val_mask,__condval,__signal1,__slot1) { \
+		uint32_t __d_data = __dipsw_val_mask;							\
+		uint32_t __d_mask = __dipsw_val_mask;							\
+		SET_ACTION_DIPSWITCH_CONNECT(__action,__d_data,__d_mask,__condval,__signal1,__slot1); \
+	}
+
+
+#define SET_ACTION_ANYVALUES(__action,__vars) {							\
+		__action = new Action_Control(this, using_flags);				\
+		__action->setCheckable(true);									\
+		__action->setEnabled(true);										\
+		__action->setData(QVariant(__vars));							\
+		__action->setChecked(false);									\
+	}
+
+#define SET_ACTION_ANYVALUES_CONNECT(__action,__vars,__signal1,__slot1) { \
+		SET_ACTION_ANYVALUES(__action,__vars);							\
+		connect(__action, __signal1, this, __slot1);					\
+	}
+
+#define SET_ACTION_CHECKABLE_SINGLE_CONNECT(__menu,__action,__objname,__cond,__signal1,__slot1) { \
+		SET_ACTION_SINGLE_CONNECT(__action, true, true, __cond, __signal1, __slot1); \
+		__action->setObjectName(QString::fromUtf8(__objname));			\
+		__menu->addAction(__action);									\
+	}
+
+#define SET_ACTION_CHECKABLE_SINGLE_CONNECT_NOMENU(__action,__objname,__cond,__signal1,__slot1) { \
+		SET_ACTION_SINGLE_CONNECT(__action, true, true, __cond, __signal1, __slot1); \
+		__action->setObjectName(QString::fromUtf8(__objname));			\
+	}
+
+#define SET_HELP_MENUENTRY(__menu,__action,__objname,__txtname) {		\
+		__action = new Action_Control(this, using_flags);				\
+		__action->setObjectName(QString::fromUtf8(__objname));			\
+		__action->setData(QVariant(QString::fromUtf8(__txtname)));		\
+		connect(__action, SIGNAL(triggered()), this, SLOT(do_browse_document())); \
+		__menu->addAction(__action);									\
+	}
 	
 
 #define SET_ACTION_CONTROL_ARRAY(__start,__end,							\
@@ -134,17 +149,19 @@ Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::DriveIndexPair)
 								 __menu,__action,						\
 								 __checkable,__enabled,__cnf,			\
 								 __signal1,__slot1						\
-								 ) 					\
-	for(int _i = __start; _i < __end;  _i++) {							\
-		__action[_i] = new Action_Control(__parent, __using_flags);		\
-		__action[_i]->setCheckable(__checkable);						\
-		__action[_i]->setEnabled(__enabled);							\
-		__action[_i]->setData(QVariant(_i));							\
-		__menu->addAction(__action[_i]);								\
-		if(p_config->__cnf[_i][0]) __action[_i]->setChecked(true); \
-		/*connect(__action[_i], __signal1, __action[_i], __slot1);*/	\
-		connect(__action[_i], __signal1, this, __slot1);				\
-	}																	\
+	)																	\
+	{																	\
+		for(int _i = __start; _i < __end;  _i++) {						\
+			__action[_i] = new Action_Control(__parent, __using_flags);	\
+			__action[_i]->setCheckable(__checkable);					\
+			__action[_i]->setEnabled(__enabled);						\
+			__action[_i]->setData(QVariant(_i));						\
+			__menu->addAction(__action[_i]);							\
+			__action[_i]->setChecked(p_config->__cnf[_i][0]);			\
+			/*connect(__action[_i], __signal1, __action[_i], __slot1);*/ \
+			connect(__action[_i], __signal1, this, __slot1);			\
+		}																\
+	}
 
 class OSD;
 class QActionGroup;
@@ -200,14 +217,14 @@ private:
 
 	// File
 	QActionGroup *actionGroup_CpuSpeed;
-	class Action_Control *actionSpeed_x1;
-	class Action_Control *actionSpeed_x2;
-	class Action_Control *actionSpeed_x4;
-	class Action_Control *actionSpeed_x8;
-	class Action_Control *actionSpeed_x16;
-	class Action_Control *actionSpeed_FULL;
-	class Action_Control *actionPaste_from_Clipboard;
-	class Action_Control *actionStop_Pasting;
+	Action_Control *actionSpeed_x1;
+	Action_Control *actionSpeed_x2;
+	Action_Control *actionSpeed_x4;
+	Action_Control *actionSpeed_x8;
+	Action_Control *actionSpeed_x16;
+	Action_Control *actionSpeed_FULL;
+	Action_Control *actionPaste_from_Clipboard;
+	Action_Control *actionStop_Pasting;
 	QMenu *menuSave_State;
 	QMenu *menuLoad_State;
 
@@ -215,21 +232,21 @@ private:
 	QActionGroup *actionGroup_Stretch;
 	QActionGroup *actionGroup_SetRenderPlatform;
 	QActionGroup *actionGroup_RotateType;
-	class Action_Control *action_ScreenSeparateThread;
-	class Action_Control *action_ScreenUseOSD;
-	class Action_Control *actionZoom;
-	class Action_Control *actionDisplay_Mode;
-	class Action_Control *actionScanLine;
-	class Action_Control *actionGLScanLineHoriz;
-	class Action_Control *actionGLScanLineVert;
+	Action_Control *action_ScreenSeparateThread;
+	Action_Control *action_ScreenUseOSD;
+	Action_Control *actionZoom;
+	Action_Control *actionDisplay_Mode;
+	Action_Control *actionScanLine;
+	Action_Control *actionGLScanLineHoriz;
+	Action_Control *actionGLScanLineVert;
 	
-	class Action_Control *actionRotate[4];
-	class Action_Control *actionCRT_Filter;
-	class Action_Control *actionOpenGL_Filter;
-	class Action_Control *actionDot_by_Dot;
-	class Action_Control *actionReferToX_Display;
-	class Action_Control *actionReferToY_Display;
-	class Action_Control *actionFill_Display;
+	Action_Control *actionRotate[4];
+	Action_Control *actionCRT_Filter;
+	Action_Control *actionOpenGL_Filter;
+	Action_Control *actionDot_by_Dot;
+	Action_Control *actionReferToX_Display;
+	Action_Control *actionReferToY_Display;
+	Action_Control *actionFill_Display;
 	QActionGroup *actionGroup_ScreenSize;
 	QActionGroup *actionGroup_RenderMode;
 
@@ -237,14 +254,14 @@ private:
 	QActionGroup   *actionGroup_Sound_Freq;
 	QActionGroup   *actionGroup_Sound_Latency;
 	QActionGroup   *actionGroup_Sound_HostDevices;
-	//class Action_Control *actionSoundCMT;
-	class Action_Control *action_VolumeDialog;
-	class Action_Control *actionSoundTapeSignal;
-	class Action_Control *actionSoundTapeVoice;
-	class Action_Control *actionSoundStrictRendering;
-	class Action_Control *action_SoundFilesFDD;
-	class Action_Control *action_SoundFilesRelay;
-	class Action_Control *action_HostSoundDevice[16];
+	//Action_Control *actionSoundCMT;
+	Action_Control *action_VolumeDialog;
+	Action_Control *actionSoundTapeSignal;
+	Action_Control *actionSoundTapeVoice;
+	Action_Control *actionSoundStrictRendering;
+	Action_Control *action_SoundFilesFDD;
+	Action_Control *action_SoundFilesRelay;
+	Action_Control *action_HostSoundDevice[16];
 	//QMenu *menuLogToConsole;
 	//QMenu *menuLogToSyslog;
 	QMenu *menuDevLogToConsole;
@@ -254,49 +271,49 @@ private:
 	// Misc
 	QMenu *menu_DispVirtualMedias;
 	QActionGroup *actionGroup_DispVirtualMedias;
-	class Action_Control *action_DispVirtualMedias[5];
-	class Action_Control *action_FocusWithClick;
-	class Action_Control *action_UseRomaKana;
-	class Action_Control *action_NumPadEnterAsFullkey;
-	class Action_Control *action_UseJoykey;
-	class Action_Control *action_Logging_FDC;
-	class Action_Control *action_LogToSyslog;
-	class Action_Control *action_LogToConsole;
-	class Action_Control *action_LogRecord;
-	class Action_Control *action_DevLogToSyslog[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
-	class Action_Control *action_DevLogToConsole[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
-	class Action_Control *action_DevLogRecord[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
+	Action_Control *action_DispVirtualMedias[5];
+	Action_Control *action_FocusWithClick;
+	Action_Control *action_UseRomaKana;
+	Action_Control *action_NumPadEnterAsFullkey;
+	Action_Control *action_UseJoykey;
+	Action_Control *action_Logging_FDC;
+	Action_Control *action_LogToSyslog;
+	Action_Control *action_LogToConsole;
+	Action_Control *action_LogRecord;
+	Action_Control *action_DevLogToSyslog[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
+	Action_Control *action_DevLogToConsole[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
+	Action_Control *action_DevLogRecord[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
 	// Emulator
-	class Action_Control *action_SetupMouse;
-	class Action_Control *action_SetupJoystick;
-	class Action_Control *action_SetupJoykey;
-	class Action_Control *action_SetupKeyboard;
-	class Action_Control *action_LogView;
-	class Action_Control *action_PrintCpuStatistics;
+	Action_Control *action_SetupMouse;
+	Action_Control *action_SetupJoystick;
+	Action_Control *action_SetupJoykey;
+	Action_Control *action_SetupKeyboard;
+	Action_Control *action_LogView;
+	Action_Control *action_PrintCpuStatistics;
 
 	QMenu *menu_EmulateCursorAs;
 	QActionGroup *actionGroup_EmulateCursorAs;
-	class Action_Control *action_EmulateCursorAs[4];
+	Action_Control *action_EmulateCursorAs[4];
 
 	// Help
-	class Action_Control *actionHelp_README_BIOS;
-	class Action_Control *actionHelp_README;
-	class Action_Control *actionHelp_README_QT;
-	class Action_Control *actionHelp_README_MR_TANAM;
-	class Action_Control *actionHelp_README_MR_GORRY;
-	class Action_Control *actionHelp_README_MR_MEISTER;
-	class Action_Control *actionHelp_README_Artane;
-	class Action_Control *actionHelp_README_Umaiboux;
-	class Action_Control *actionHelp_README_FAQ;
-	class Action_Control *actionHelp_README_FAQ_JP;
-	class Action_Control *actionHelp_README_FM7;
-	class Action_Control *actionHelp_README_FM7_JP;
-	class Action_Control *actionHelp_History;
-	class Action_Control *actionHelp_History_Relnote;
-	class Action_Control *actionHelp_History_ChangeLog;
-	class Action_Control *actionHelp_History_MR_TANAM;
-	class Action_Control *actionHelp_License;
-	class Action_Control *actionHelp_License_JP;
+	Action_Control *actionHelp_README_BIOS;
+	Action_Control *actionHelp_README;
+	Action_Control *actionHelp_README_QT;
+	Action_Control *actionHelp_README_MR_TANAM;
+	Action_Control *actionHelp_README_MR_GORRY;
+	Action_Control *actionHelp_README_MR_MEISTER;
+	Action_Control *actionHelp_README_Artane;
+	Action_Control *actionHelp_README_Umaiboux;
+	Action_Control *actionHelp_README_FAQ;
+	Action_Control *actionHelp_README_FAQ_JP;
+	Action_Control *actionHelp_README_FM7;
+	Action_Control *actionHelp_README_FM7_JP;
+	Action_Control *actionHelp_History;
+	Action_Control *actionHelp_History_Relnote;
+	Action_Control *actionHelp_History_ChangeLog;
+	Action_Control *actionHelp_History_MR_TANAM;
+	Action_Control *actionHelp_License;
+	Action_Control *actionHelp_License_JP;
 	
 	// Led: OSD.
 	bool flags_led[32];
@@ -426,31 +443,31 @@ protected:
 	// Some Functions
 	QActionGroup *actionGroup_BootMode;
 	QActionGroup *actionGroup_CpuType;
-	class Action_Control *actionReset;
-	class Action_Control *actionSpecial_Reset[16];
-	class Action_Control *actionExit_Emulator;
-	class Action_Control *actionCpuType[8];
-	class Action_Control *actionBootMode[8];
-	class Action_Control *actionDebugger[_MAX_DEBUGGER];
-	class Action_Control *actionSave_State[10];
-	class Action_Control *actionLoad_State[10];
-	//class Action_Control *actionClose_Debuggers;
-	class Action_Control *actionScreenSize[32];
-	class Action_Control *actionAbout;
-	class Action_Control *actionMouseEnable;
-	class Action_Control *actionHelp_AboutQt;
-	class Action_Control *action_ResetFixedCpu;
-	class Action_Control *action_SetFixedCpu[128];
+	Action_Control *actionReset;
+	Action_Control *actionSpecial_Reset[16];
+	Action_Control *actionExit_Emulator;
+	Action_Control *actionCpuType[8];
+	Action_Control *actionBootMode[8];
+	Action_Control *actionDebugger[_MAX_DEBUGGER];
+	Action_Control *actionSave_State[10];
+	Action_Control *actionLoad_State[10];
+	//Action_Control *actionClose_Debuggers;
+	Action_Control *actionScreenSize[32];
+	Action_Control *actionAbout;
+	Action_Control *actionMouseEnable;
+	Action_Control *actionHelp_AboutQt;
+	Action_Control *action_ResetFixedCpu;
+	Action_Control *action_SetFixedCpu[128];
 
-	class Action_Control *action_RAMSize;
+	Action_Control *action_RAMSize;
 	// Screen
-	class Action_Control *actionCapture_Screen;
-	class Action_Control *action_SetRenderMode[8];
+	Action_Control *actionCapture_Screen;
+	Action_Control *action_SetRenderMode[8];
 	// Sound
-	class Action_Control *action_Freq[8];
-	class Action_Control *action_Latency[6];
-	class Action_Control *actionStart_Record;
-	class Action_Control *actionStop_Record;
+	Action_Control *action_Freq[8];
+	Action_Control *action_Latency[6];
+	Action_Control *actionStart_Record;
+	Action_Control *actionStop_Record;
 
 	// Emulator
 	QActionGroup *actionGroup_DeviceType;
@@ -470,19 +487,19 @@ protected:
 	QMenu *menuPrintDevice;
 	QMenu *menu_SetFixedCpu;
 	
-	class Action_Control *actionDeviceType[16];
-	class Action_Control *actionKeyboardType[16];
-	class Action_Control *actionJoystickType[16];
-	class Action_Control *actionMouseType[8];
-	class Action_Control *actionDriveType[8];
-	class Action_Control *actionSoundDevice[32]; //
-	class Action_Control *actionPrintDevice[16];
-	class Action_Control *action_SetRenderPlatform[MAX_RENDER_PLATFORMS];
+	Action_Control *actionDeviceType[16];
+	Action_Control *actionKeyboardType[16];
+	Action_Control *actionJoystickType[16];
+	Action_Control *actionMouseType[8];
+	Action_Control *actionDriveType[8];
+	Action_Control *actionSoundDevice[32]; //
+	Action_Control *actionPrintDevice[16];
+	Action_Control *action_SetRenderPlatform[MAX_RENDER_PLATFORMS];
 
 	
-	class Action_Control *actionStart_Record_Movie;
-	class Action_Control *actionStop_Record_Movie;
-	class Action_Control *action_SetupMovie; // 15, 24, 30, 60
+	Action_Control *actionStart_Record_Movie;
+	Action_Control *actionStop_Record_Movie;
+	Action_Control *action_SetupMovie; // 15, 24, 30, 60
 
 	QMenu *menuMonitorType;
 	QActionGroup *actionGroup_MonitorType;
@@ -613,7 +630,6 @@ public:
 
 	// GUI Utilities
 	virtual void setTextAndToolTip(QAction *p, QString text, QString tooltip);
-	virtual void setTextAndToolTip(QWidget *p, QString text, QString tooltip);
 	virtual void setTextAndToolTip(QMenu *p, QString text, QString tooltip);
 
 	// Getting important widgets.
@@ -824,6 +840,7 @@ public slots:
 	void do_set_machine_feature(int devnum, uint32_t value);
 
 	void do_set_single_dipswitch(bool f);
+	void do_set_multi_dipswitch();
 	
 	void do_start_emu_thread();
 	void do_start_draw_thread();

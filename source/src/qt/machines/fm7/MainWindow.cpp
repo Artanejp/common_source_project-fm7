@@ -184,35 +184,35 @@ void META_MainWindow::retranslateUi(void)
 #if defined(_FM77_VARIANTS)
 	actionBootMode[0]->setText(QString::fromUtf8("BASIC + S1 (BANK0)"));
 	actionBootMode[0]->setToolTip(QApplication::translate("Machine", "BASIC boot mode with S1 has turned ON.\nThis is FM-77 feature and I don't know about this.", 0));
-	actionBootMode[0]->setValue(QVariant((int)2));
+	actionBootMode[0]->setData(QVariant((int)2));
 	
 	actionBootMode[4]->setText(QApplication::translate("Machine", "BASIC (BANK4)", 0));
 	actionBootMode[4]->setToolTip(QApplication::translate("Machine", "Boot with F-BASIC.", 0));
-	actionBootMode[4]->setValue(QVariant((int)0));
+	actionBootMode[4]->setData(QVariant((int)0));
 	
 	actionBootMode[5]->setText(QApplication::translate("Machine", "DOS 320K(BOOT2 / BANK5)", 0));	
 	actionBootMode[5]->setToolTip(QApplication::translate("Machine", "DOS boot mode.\nUse for CP/M, FLEX, OS-9, R-DOS and some OSs.", 0));
-	actionBootMode[5]->setValue(QVariant((int)1));
+	actionBootMode[5]->setData(QVariant((int)1));
 	
 	actionBootMode[6]->setText(QString::fromUtf8("1MB FD (BOOT1 / BANK6)"));
 	actionBootMode[6]->setToolTip(QApplication::translate("Machine", "Boot from 1MB FD for FM-77.\n", 0));
-	actionBootMode[6]->setValue(QVariant((int)3));
+	actionBootMode[6]->setData(QVariant((int)3));
 	
 	actionBootMode[1]->setText(QString::fromUtf8("BUBBLE 128K (BOOT2 + S1 / BANK1)"));
 	actionBootMode[1]->setToolTip(QApplication::translate("Machine", "Boot from 128K Bubble casette.\nThis is FM-77 feature and I don't know about this.", 0));
-	actionBootMode[1]->setValue(QVariant((int)5));
+	actionBootMode[1]->setData(QVariant((int)5));
 	
 	actionBootMode[2]->setText(QString::fromUtf8("BUBBLE 32K (BOOT1 + S1 / BANK2)"));
 	actionBootMode[2]->setToolTip(QApplication::translate("Machine", "Boot from 32K Bubble casette.\nThis is FM-77 feature and I don't know about this.", 0));
-	actionBootMode[2]->setValue(QVariant((int)6));
+	actionBootMode[2]->setData(QVariant((int)6));
 	
 	actionBootMode[3]->setText(QString::fromUtf8("RESERVE 1 (BANK3)"));
 	actionBootMode[3]->setToolTip(QApplication::translate("Machine", "RESERVE AREA 1\nThis is FM-77 feature and I don't know about this.", 0));
-	actionBootMode[3]->setValue(QVariant((int)3));
+	actionBootMode[3]->setData(QVariant((int)3));
 	
 	actionBootMode[7]->setText(QString::fromUtf8("RESERVE 2 (BANK7)"));
 	actionBootMode[7]->setToolTip(QApplication::translate("Machine", "RESERVED AREA 2\nThis is FM-77 feature and I don't know about this.", 0));
-	actionBootMode[7]->setValue(QVariant((int)4));
+	actionBootMode[7]->setData(QVariant((int)4));
 	
 	for(int i = 0; i < 7; i++) {
 		int _n = actionBootMode[i]->data().value<int>(); 
@@ -224,38 +224,38 @@ void META_MainWindow::retranslateUi(void)
 	}
 #elif defined(_FM8)
 	actionBootMode[0]->setText(QApplication::translate("Machine", "BASIC  (SM11-14 BANK0)", 0));
-	actionBootMode[0]->setValue(QVariant((int)0));
+	actionBootMode[0]->setData(QVariant((int)0));
 
 	actionBootMode[2]->setText(QApplication::translate("Machine", "DOS    (SM11-14 BANK2)", 0));	
-	actionBootMode[2]->setValue(QVariant((int)1));
+	actionBootMode[2]->setData(QVariant((int)1));
 
 	actionBootMode[2]->setToolTip(QApplication::translate("Machine", "DOS boot mode.\nUse for CP/M, FLEX, OS-9, R-DOS and some OSs.", 0));
 	
 	actionBootMode[1]->setText(QApplication::translate("Machine", "BUBBLE  (SM11-14 BANK1)", 0));
 	actionBootMode[1]->setToolTip(QApplication::translate("Machine", "Boot for bubble casette.\nYou must install boot rom for this.", 0));
-	actionBootMode[1]->setValue(QVariant((int)2));
+	actionBootMode[1]->setData(QVariant((int)2));
 	
 	actionBootMode[7]->setText(QApplication::translate("Machine", "8Inch FD (SM11-15 BANK3)", 0));
 	actionBootMode[7]->setToolTip(QApplication::translate("Machine", "Boot for 8inch floppy disk.\nYou must install boot rom for this.", 0));
-	actionBootMode[7]->setValue(QVariant((int)7));
+	actionBootMode[7]->setData(QVariant((int)7));
 	
 	actionBootMode[4]->setText(QApplication::translate("Machine", "BASIC    (SM11-15 BANK0)", 0));
-	actionBootMode[4]->setValue(QVariant((int)4));
+	actionBootMode[4]->setData(QVariant((int)4));
 
 	actionBootMode[6]->setText(QApplication::translate("Machine", "DOS      (SM11-15 BANK2)", 0));
-	actionBootMode[6]->setValue(QVariant((int)5));
+	actionBootMode[6]->setData(QVariant((int)5));
 
 	actionBootMode[4]->setToolTip(QApplication::translate("Machine", "Boot with F-BASIC.", 0));
 	actionBootMode[6]->setToolTip(QApplication::translate("Machine", "DOS boot mode.\nUse for CP/M, FLEX, OS-9, R-DOS and some OSs.", 0));
 	
 	actionBootMode[5]->setText(QApplication::translate("Machine", "BUBBLE   (SM11-15 BANK1)", 0));
 	actionBootMode[5]->setToolTip(QApplication::translate("Machine", "Boot for bubble casette.\nYou must install boot rom for this.", 0));
-	actionBootMode[5]->setValue(QVariant((int)6));
+	actionBootMode[5]->setData(QVariant((int)6));
 
 	
 	actionBootMode[3]->setText(QApplication::translate("Machine", "DEBUG    (SM11-14 BANK3)", 0));
 	actionBootMode[3]->setToolTip(QApplication::translate("Machine", "Boot for DEBUG.\nThis is SM11-14's feature and I don't know about this.", 0));
-	actionBootMode[3]->setValue(QVariant((int)3));
+	actionBootMode[3]->setData(QVariant((int)3));
 	
 	for(int i = 0; i < 8; i++) {
 		actionBootMode[i]->setVisible(true);
@@ -458,78 +458,59 @@ void META_MainWindow::retranslateUi(void)
 void META_MainWindow::setupUI_Emu(void)
 {
 	uint32_t i;
-	uint32_t skip;
 	uint32_t _val;
 	
 	menuFrameSkip = new QMenu(menuMachine);
 	menuFrameSkip->setObjectName(QString::fromUtf8("menuControl_FrameSkip"));
 	actionGroup_FrameSkip = new QActionGroup(this);
 	actionGroup_FrameSkip->setExclusive(true);
-	skip = (p_config->dipswitch >> 28) & 3;
-	for(i = 0; i < 4; i++) {
-		actionFrameSkip[i] = new Action_Control(this, using_flags);
-		actionFrameSkip[i]->setCheckable(true);
-		actionFrameSkip[i]->setVisible(true);
-		_val = i << 28;
-		actionFrameSkip[i]->setData(QVariant(_val));
 		
+	for(i = 0; i < 4; i++) {
+		uint32_t __bit = ((uint32_t)i) << 28;
+		const uint32_t 	__mask = 3 << 28;
+		const uint32_t __skip =  p_config->dipswitch & __mask;
+		SET_ACTION_DIPSWITCH_CONNECT(actionFrameSkip[i], __bit, __mask, __skip,
+									 SIGNAL(triggered()),  SLOT(do_set_frameskip()));
 		actionGroup_FrameSkip->addAction(actionFrameSkip[i]);
 		menuFrameSkip->addAction(actionFrameSkip[i]);
-		if(i == skip) actionFrameSkip[i]->setChecked(true);
-		connect(actionFrameSkip[i], SIGNAL(triggered()),  this, SLOT(do_set_frameskip()));
 	}
 	menuMachine->addAction(menuFrameSkip->menuAction());
 	
 	ConfigCPUTypes(2);
 	ConfigCPUBootMode(USE_BOOT_MODE);
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
-	actionKanjiRom = new Action_Control(this, using_flags);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionKanjiRom, FM7_DIPSW_CONNECT_KANJIROM,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionKanjiRom);
-	actionKanjiRom->setCheckable(true);
-	actionKanjiRom->setVisible(true);
-	_val = FM7_DIPSW_CONNECT_KANJIROM;
-	actionKanjiRom->setData(QVariant(_val));
-	if((p_config->dipswitch & FM7_DIPSW_CONNECT_KANJIROM) != 0) actionKanjiRom->setChecked(true);
-	connect(actionKanjiRom, SIGNAL(toggled(bool)), this, SLOT(do_set_single_dipswitch(bool)));
 #endif
 
 #if defined(WITH_Z80)
 	menuMachine->addSeparator();
-	actionZ80CARD_ON = new Action_Control(this, using_flags);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionZ80CARD_ON, FM7_DIPSW_Z80CARD_ON,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionZ80CARD_ON);
-	actionZ80CARD_ON->setCheckable(true);
-	actionZ80CARD_ON->setVisible(true);
-	_val = FM7_DIPSW_Z80CARD_ON;
-	actionZ80CARD_ON->setData(QVariant(_val));
-	if((p_config->dipswitch & FM7_DIPSW_Z80CARD_ON) != 0) actionZ80CARD_ON->setChecked(true);
-	connect(actionZ80CARD_ON, SIGNAL(toggled(bool)),  this, SLOT(do_set_single_dipswitch(bool)));
 		
-	actionZ80_IRQ = new Action_Control(this, using_flags);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionZ80_IRQ, FM7_DIPSW_Z80_IRQ_ON,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionZ80_IRQ);
-	actionZ80_IRQ->setCheckable(true);
-	actionZ80_IRQ->setVisible(true);
-	_val = FM7_DIPSW_Z80_IRQ_ON; 
-	actionZ80_IRQ->setData(QVariant(_val));
-	if((p_config->dipswitch & FM7_DIPSW_Z80_IRQ_ON) != 0) actionZ80_IRQ->setChecked(true);
-	connect(actionZ80_IRQ, SIGNAL(toggled(bool)),  this, SLOT(do_set_single_dipswitch(bool)));
 
-	actionZ80_FIRQ = new Action_Control(this, using_flags);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionZ80_FIRQ, FM7_DIPSW_Z80_FIRQ_ON,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionZ80_FIRQ);
-	actionZ80_FIRQ->setCheckable(true);
-	actionZ80_FIRQ->setVisible(true);
-	_val = FM7_DIPSW_Z80_FIRQ_ON; 
-	actionZ80_FIRQ->setData(QVariant(_val));
-	if((p_config->dipswitch & FM7_DIPSW_Z80_FIRQ_ON) != 0) actionZ80_FIRQ->setChecked(true);
-	connect(actionZ80_FIRQ, SIGNAL(toggled(bool)),  this, SLOT(do_set_single_dipswitch(bool)));
 
-	actionZ80_NMI = new Action_Control(this, using_flags);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionZ80_NMI, FM7_DIPSW_Z80_NMI_ON,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionZ80_NMI);
-	actionZ80_NMI->setCheckable(true);
-	actionZ80_NMI->setVisible(true);
-	_val = FM7_DIPSW_Z80_NMI_ON; 
-	actionZ80_NMI->setData(QVariant(_val));
-	if((p_config->dipswitch & FM7_DIPSW_Z80_NMI_ON) != 0) actionZ80_NMI->setChecked(true);
-	connect(actionZ80_NMI, SIGNAL(toggled(bool)), this, SLOT(do_set_single_dipswitch(bool)));
 	
 	if((p_config->dipswitch & FM7_DIPSW_Z80CARD_ON) == 0) {
 		actionZ80_IRQ->setVisible(false);
@@ -546,110 +527,78 @@ void META_MainWindow::setupUI_Emu(void)
 			FM7_DIPSW_MIDI_ON,
 		};
 		
-		actionUART[i] = new Action_Control(this, using_flags);
-		actionUART[i]->setCheckable(true);
-		actionUART[i]->setVisible(true);
-		actionUART[i]->setData(QVariant(uart_list[i]));
-		menuMachine->addAction(actionUART[i]);
-		connect(actionUART[i], SIGNAL(toggled(bool)), this, SLOT(do_set_single_dipswitch(bool)));
+		SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionUART[i],
+									 uart_list[i],
+									 p_config->dipswitch,
+									 SIGNAL(toggled(bool)),
+									 SLOT(do_set_single_dipswitch(bool)));
 	}
-	if((p_config->dipswitch & FM7_DIPSW_RS232C_ON) != 0) actionUART[0]->setChecked(true);
-	if((p_config->dipswitch & FM7_DIPSW_MODEM_ON) != 0) actionUART[1]->setChecked(true);
-	if((p_config->dipswitch & FM7_DIPSW_MIDI_ON) != 0) actionUART[2]->setChecked(true);
-	
 	
 #if defined(CAPABLE_JCOMMCARD)
-	actionJCOMMCARD = new Action_Control(this, using_flags);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionJCOMMCARD, FM7_DIPSW_JSUBCARD_ON,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionJCOMMCARD);
-	actionJCOMMCARD->setCheckable(true);
-	actionJCOMMCARD->setVisible(true);
-	_val = FM7_DIPSW_JSUBCARD_ON; 
-	actionJCOMMCARD->setData(QVariant(_val));
-	if((p_config->dipswitch & FM7_DIPSW_JSUBCARD_ON) != 0) actionJCOMMCARD->setChecked(true);
-	connect(actionJCOMMCARD, SIGNAL(toggled(bool)), this, SLOT(do_set_single_dipswitch(bool)));
 #endif
 
 #if defined(_FM8)
-	actionRamProtect = new Action_Control(this, using_flags);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionRamProtect, FM7_DIPSW_FM8_PROTECT_FD0F,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionRamProtect);
-	actionRamProtect->setCheckable(true);
-	actionRamProtect->setVisible(true);
-	_val = FM7_DIPSW_FM8_PROTECT_FD0F; 
-	actionRamProtect->setData(QVariant(_val));
-	if((p_config->dipswitch & FM7_DIPSW_FM8_PROTECT_FD0F) != 0) actionRamProtect->setChecked(true);
-	connect(actionRamProtect, SIGNAL(toggled(bool)), this, SLOT(do_set_single_dipswitch(bool)));
-#else	
-	actionCycleSteal = new Action_Control(this, using_flags);
+	
+#else		
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionCycleSteal, FM7_DIPSW_CYCLESTEAL,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionCycleSteal);
-	actionCycleSteal->setCheckable(true);
-	actionCycleSteal->setVisible(true);
-	_val = FM7_DIPSW_CYCLESTEAL; 
-	actionCycleSteal->setData(QVariant(_val));
-	
-	if((p_config->dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) actionCycleSteal->setChecked(true);
-	connect(actionCycleSteal, SIGNAL(toggled(bool)), this, SLOT(do_set_single_dipswitch(bool)));
 #endif	
-	actionSyncToHsync = new Action_Control(this, using_flags);	
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionSyncToHsync, FM7_DIPSW_SYNC_TO_HSYNC,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionSyncToHsync);
-	actionSyncToHsync->setCheckable(true);
-	actionSyncToHsync->setVisible(true);
-	_val = FM7_DIPSW_SYNC_TO_HSYNC; 
-	actionSyncToHsync->setData(QVariant(_val));
-	
-	if((p_config->dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) actionSyncToHsync->setChecked(true);
-	connect(actionSyncToHsync, SIGNAL(toggled(bool)), this, SLOT(do_set_single_dipswitch(bool)));
+
 
 #if defined(CAPABLE_DICTROM) && !defined(_FM77AV40EX) && !defined(_FM77AV40SX)
-	actionDictCard = new Action_Control(this, using_flags);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionDictCard, FM7_DIPSW_DICTROM_AV,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionDictCard);
-	actionDictCard->setCheckable(true);
-	actionDictCard->setVisible(true);
-	_val = FM7_DIPSW_DICTROM_AV; 
-	actionDictCard->setData(QVariant(_val));
-	
-	if((p_config->dipswitch & FM7_DIPSW_DICTROM_AV) != 0) actionDictCard->setChecked(true);
-	connect(actionDictCard, SIGNAL(toggled(bool)), this, SLOT(do_set_single_dipswitch(bool)));
 #endif
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-	actionExtRam = new Action_Control(this, using_flags);
-	menuMachine->addAction(actionExtRam);
-	actionExtRam->setCheckable(true);
-	actionExtRam->setVisible(true);
-	
 # if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77_VARIANTS)
-	if((p_config->dipswitch & FM7_DIPSW_EXTRAM) != 0) actionExtRam->setChecked(true);
-	_val = FM7_DIPSW_EXTRAM; 
-	actionExtRam->setData(QVariant(_val));
-	
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionExtRam, FM7_DIPSW_EXTRAM,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
 # elif defined(_FM77AV_VARIANTS)
-	if((p_config->dipswitch & FM7_DIPSW_EXTRAM_AV) != 0) actionExtRam->setChecked(true);
-	_val = FM7_DIPSW_EXTRAM_AV; 
-	actionExtRam->setData(QVariant(_val));
-	
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionExtRam, FM7_DIPSW_EXTRAM_AV,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
 # endif   
-	connect(actionExtRam, SIGNAL(toggled(bool)), this, SLOT(do_set_single_dipswitch(bool)));
+	menuMachine->addAction(actionExtRam);
+
 #endif
+
 # if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
-	action_320kFloppy = new Action_Control(this, using_flags);	
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(action_320kFloppy, FM7_DIPSW_CONNECT_320KFDC,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(action_320kFloppy);
-	action_320kFloppy->setCheckable(true);
-	action_320kFloppy->setVisible(true);
-	_val = FM7_DIPSW_CONNECT_320KFDC; 
-	action_320kFloppy->setData(QVariant(_val));
-	
-	if((p_config->dipswitch & FM7_DIPSW_CONNECT_320KFDC) != 0) action_320kFloppy->setChecked(true);
-	connect(action_320kFloppy, SIGNAL(toggled(bool)), this, SLOT(do_set_single_dipswitch(bool)));
 # endif	
 # if defined(HAS_2HD)
-	action_1MFloppy = new Action_Control(this, using_flags);	
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(action_1MFloppy, FM7_DIPSW_CONNECT_1MFDC,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(action_1MFloppy);
-	action_1MFloppy->setCheckable(true);
-	action_1MFloppy->setVisible(true);
-	_val = FM7_DIPSW_CONNECT_1MFDC; 
-	action_1MFloppy->setData(QVariant(_val));
-	
-	if((p_config->dipswitch & FM7_DIPSW_CONNECT_1MFDC) != 0) action_1MFloppy->setChecked(true);
-	connect(action_1MFloppy, SIGNAL(toggled(bool)), this, SLOT(do_set_single_dipswitch(bool)));
 # endif
 	uint32_t tmpv = p_config->dipswitch & (FM7_DIPSW_SELECT_5_OR_8KEY | FM7_DIPSW_AUTO_5_OR_8KEY);
 	
