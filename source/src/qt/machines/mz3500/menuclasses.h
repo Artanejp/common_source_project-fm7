@@ -10,28 +10,6 @@ QT_BEGIN_NAMESPACE
 class USING_FLAGS;
 class CSP_Logger;
 //  wrote of MZ3500 Specific menu.
-class Object_Menu_Control_MZ3500: public Object_Menu_Control
-{
-	Q_OBJECT
-public:
-	Object_Menu_Control_MZ3500(QObject *parent, USING_FLAGS *p);
-	~Object_Menu_Control_MZ3500();
-signals:
-	int sig_dipsw(int, bool);
-	int sig_update_config();
-public slots:
-	void set_dipsw(bool);
-};
-
-class Action_Control_MZ3500 : public Action_Control
-{
-	Q_OBJECT
-public:
-	Object_Menu_Control_MZ3500 *mz_binds;
-	Action_Control_MZ3500(QObject *parent, USING_FLAGS *p);
-	~Action_Control_MZ3500();
-};
-
 class QMenu;
 class QActionGroup;
 class Ui_MainWindow;
@@ -42,7 +20,7 @@ protected:
 	void retranslateUi(void);
 	QMenu *menu_Emu_DipSw;
 	QActionGroup *actionGroup_DipSw;
-	Action_Control_MZ3500 *action_Emu_DipSw[3];
+	Action_Control *action_Emu_DipSw[3];
   
 public:
 	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);

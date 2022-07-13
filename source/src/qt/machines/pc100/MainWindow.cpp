@@ -16,25 +16,6 @@
 #include "menuclasses.h"
 #include "qt_main.h"
 
-extern config_t config;
-
-Action_Control_PC100::Action_Control_PC100(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
-{
-	pc100_binds = new Object_Menu_Control_PC100(parent, p);
-}
-
-Action_Control_PC100::~Action_Control_PC100(){
-	delete pc100_binds;
-}
-
-Object_Menu_Control_PC100::Object_Menu_Control_PC100(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
-{
-}
-
-Object_Menu_Control_PC100::~Object_Menu_Control_PC100(){
-}
-
-
 void META_MainWindow::setupUI_Emu(void)
 {
 	int i;
