@@ -18,8 +18,6 @@ class META_MainWindow : public Ui_MainWindow {
 protected:
 	void setupUI_Emu(void);
 	void retranslateUi(void);
-	
-	QMenu *menu_Emu_DipSw;
 public:
 	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~META_MainWindow();
