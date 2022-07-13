@@ -19,52 +19,16 @@
 
 //QT_BEGIN_NAMESPACE
 	
-Object_Menu_Control_BX1::Object_Menu_Control_BX1(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
-{
-}
-
-Object_Menu_Control_BX1::~Object_Menu_Control_BX1()
-{
-}
-
-void Object_Menu_Control_BX1::do_set_dipsw(bool flag)
-{
-	int bitpos = getValue1();
-	uint32_t bit = 0x00000001;
-	if((bitpos < 0) || (bitpos >= 32)) return;
-	bit = bit << bitpos;
-	if(flag) {
-		config.dipswitch = config.dipswitch | bit;
-	} else {
-		config.dipswitch = config.dipswitch & ((uint32_t)~bit);
-	}
-}
-
-Action_Control_BX1::Action_Control_BX1(QObject *parent, USING_FLAGS *p, int num) : Action_Control(parent, p)
-{
-	bx1_binds = new Object_Menu_Control_BX1(parent, p);
-	bx1_binds->setValue1(num);
-}
-
-Action_Control_BX1::~Action_Control_BX1()
-{
-	delete bx1_binds;
-}
-
 void META_MainWindow::setupUI_Emu(void)
 {
 	menuMachine->addSeparator();
 	uint32_t _bit = 0x00000001;
 	for(int i = 0; i < 4; i++) {
-		action_DipSWs[i] = new Action_Control_BX1(this, using_flags, i);
-		action_DipSWs[i]->setCheckable(true);
-		action_DipSWs[i]->setVisible(true);
-		action_DipSWs[i]->setEnabled(true);
+		SET_ACTION_SINGLE_DIPSWITCH_CONNECT(action_DipSWs[i], _bit,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
 		menuMachine->addAction(action_DipSWs[i]);
-		if((config.dipswitch & _bit) != 0) action_DipSWs[i]->setChecked(true);
-
-		connect(action_DipSWs[i], SIGNAL(toggled(bool)), action_DipSWs[i]->binds, SLOT(do_set_dipsw(bool)));
-		connect(action_DipSWs[i]->binds, SIGNAL(sig_emu_update_config()), this, SLOT(do_emu_update_config()));
 		_bit <<= 1;
 	}
 }

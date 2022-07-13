@@ -12,33 +12,10 @@ class CSP_Logger;
 
 QT_BEGIN_NAMESPACE
 
-class Object_Menu_Control_BX1: public Object_Menu_Control
-{
-	Q_OBJECT
-public:
-	Object_Menu_Control_BX1(QObject *parent, USING_FLAGS *p);
-	~Object_Menu_Control_BX1();
-signals:
-	//  int sig_sound_device(int);
-	int sig_emu_update_config(void);
-public slots:
-	void do_set_dipsw(bool flag);
-};
-
-class Action_Control_BX1 : public Action_Control
-{
-	Q_OBJECT
-public:
-	Object_Menu_Control_BX1 *bx1_binds;
-	Action_Control_BX1(QObject *parent, USING_FLAGS *p, int num);
-	~Action_Control_BX1();
-public slots:
-};
-
 class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
 protected:
-	Action_Control_BX1 *action_DipSWs[4];
+	Action_Control *action_DipSWs[4];
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 public:
