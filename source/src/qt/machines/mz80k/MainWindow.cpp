@@ -18,48 +18,19 @@
 #include "emu.h"
 #include "qt_main.h"
 
-extern config_t config;
-
-Action_Control_MZ80::Action_Control_MZ80(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
-{
-	mz_binds = new Object_Menu_Control_MZ80(parent, p);
-}
-
-Action_Control_MZ80::~Action_Control_MZ80(){
-	delete mz_binds;
-}
-
-Object_Menu_Control_MZ80::Object_Menu_Control_MZ80(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
-{
-}
-
-Object_Menu_Control_MZ80::~Object_Menu_Control_MZ80(){
-}
-
-void Object_Menu_Control_MZ80::set_dipsw(bool flag)
-{
-	emit sig_dipsw(getValue1(), flag);
-}
-
-
 void META_MainWindow::setupUI_Emu(void)
 {
 	QString tmps;
 	menuMachine->setVisible(true);
-	action_Emu_DipSw = new Action_Control_MZ80(this, using_flags);
-	action_Emu_DipSw->setCheckable(true);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(action_Emu_DipSw, 0x01,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
+	
 	tmps = QString::fromUtf8("actionEmu_DipSw0");
 	action_Emu_DipSw->setObjectName(tmps);
-	action_Emu_DipSw->mz_binds->setValue1(0);
-	menuMachine->addAction(action_Emu_DipSw);
 	
-	if((1 & config.dipswitch) != 0) action_Emu_DipSw->setChecked(true);
-
-	connect(action_Emu_DipSw, SIGNAL(toggled(bool)),
-			action_Emu_DipSw->mz_binds, SLOT(set_dipsw(bool)));
-	connect(action_Emu_DipSw->mz_binds, SIGNAL(sig_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-
+	menuMachine->addAction(action_Emu_DipSw);
 }
 
 void META_MainWindow::retranslateUi(void)

@@ -20,43 +20,16 @@
 
 //QT_BEGIN_NAMESPACE
 
-extern config_t config;
-
-Action_Control_MZ700::Action_Control_MZ700(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
-{
-	mz_binds = new Object_Menu_Control_MZ700(parent, p);
-}
-
-Action_Control_MZ700::~Action_Control_MZ700(){
-	delete mz_binds;
-}
-
-Object_Menu_Control_MZ700::Object_Menu_Control_MZ700(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
-{
-}
-
-Object_Menu_Control_MZ700::~Object_Menu_Control_MZ700(){
-}
-
-
-void META_MainWindow::do_set_pcg(bool flag)
-{
-#ifdef _MZ700
-	this->set_dipsw(0, flag);
-	//this->do_emu_update_config();
-#endif
-}
-
 void META_MainWindow::setupUI_Emu(void)
 {
 #if !defined(_MZ800)
 	//menuMachine->setVisible(false);
 #endif   
 #if defined(_MZ700)
-	action_PCG700 = new QAction(menuMachine);
-	action_PCG700->setCheckable(true);
-	if((config.dipswitch & 0x0001) != 0) action_PCG700->setChecked(true);
-	connect(action_PCG700, SIGNAL(toggled(bool)), this, SLOT(do_set_pcg(bool)));
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(action_PCG700, 0x01,
+										p_config->dipswitch,
+										SIGNAL(toggled(bool)),
+										SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(action_PCG700);
 	menuMachine->addSeparator();
 #endif
