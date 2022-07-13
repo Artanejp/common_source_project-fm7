@@ -21,117 +21,6 @@
 //QT_BEGIN_NAMESPACE
 extern config_t config;
 
-Object_Menu_Control_98::Object_Menu_Control_98(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
-{
-}
-
-Object_Menu_Control_98::~Object_Menu_Control_98()
-{
-}
-
-void Object_Menu_Control_98::do_set_memory_wait(bool flag)
-{
-	emit sig_set_dipsw(0, flag);
-}
-
-void Object_Menu_Control_98::do_set_connect_2hd(bool flag)
-{
-	emit sig_set_dipsw(0, flag);
-}
-
-void  Object_Menu_Control_98::do_set_connect_2d(bool flag)
-{
-	emit sig_set_dipsw(2, flag);
-}
-
-void Object_Menu_Control_98::do_set_connect_2dd(bool flag)
-{
-	emit sig_set_dipsw(1, flag);
-}
-
-
-void Object_Menu_Control_98::do_set_enable_v30(bool flag)
-{
-	emit sig_set_dipsw(DIPSWITCH_POSITION_USE_V30, flag);
-}
-
-void Object_Menu_Control_98::do_set_cmd_sing(bool flag)
-{
-	emit sig_set_dipsw(4, flag);
-	emit sig_emu_update_config();
-}
-void Object_Menu_Control_98::do_set_palette_vblank(bool flag)
-{
-	emit sig_set_dipsw(5, flag);
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control_98::do_set_fdd_5inch(bool flag)
-{
-	emit sig_set_dipsw(6, flag);
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control_98::do_set_m88drv(bool flag)
-{
-	emit sig_set_dipsw(8, flag);
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control_98::do_set_quasis88_cmt(bool flag)
-{
-	emit sig_set_dipsw(9, flag);
-	emit sig_emu_update_config();
-}
-
-
-
-void Object_Menu_Control_98::do_set_egc(bool flag)
-{
-	emit sig_set_dipsw(DIPSWITCH_POSITION_EGC, flag);
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control_98::do_set_gdc_fast(bool flag)
-{
-	emit sig_set_dipsw(DIPSWITCH_POSITION_GDC_FAST, flag);
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control_98::do_set_ram_512k(bool flag)
-{
-	emit sig_set_dipsw(DIPSWITCH_POSITION_RAM512K, flag);
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control_98::do_set_init_memsw(bool flag)
-{
-	emit sig_set_dipsw(DIPSWITCH_POSITION_NOINIT_MEMSW, !flag);
-	emit sig_emu_update_config();
-}
-
-Action_Control_98::Action_Control_98(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
-{
-	pc98_binds = new Object_Menu_Control_98(parent, p);
-	pc98_binds->setValue1(0);
-}
-
-Action_Control_98::~Action_Control_98()
-{
-	delete pc98_binds;
-}
-
-// DIPSW 3-8
-void META_MainWindow::do_use_ix86()
-{
-	set_dipsw(DIPSWITCH_POSITION_CPU_MODE, false);
-}
-
-void META_MainWindow::do_use_v30()
-{
-	set_dipsw(DIPSWITCH_POSITION_CPU_MODE, true);
-}
-
 void META_MainWindow::retranslateUi(void)
 {
 	const char *title="";
@@ -339,32 +228,14 @@ void META_MainWindow::setupUI_Emu(void)
 
 #if !defined(SUPPORT_HIRESO)
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-	actionSUB_V30 = new Action_Control_98(this, using_flags);
-	actionSUB_V30->setCheckable(true);
-	actionSUB_V30->setVisible(true);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionSUB_V30, ((0x1) << DIPSWITCH_POSITION_USE_V30), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionSUB_V30);
-	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_USE_V30)) != 0) actionSUB_V30->setChecked(true); // Emulation with V30
-	connect(actionSUB_V30, SIGNAL(toggled(bool)),
-			actionSUB_V30->pc98_binds, SLOT(do_set_enable_v30(bool)));
-	connect(actionSUB_V30->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionSUB_V30->pc98_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 
 	actionGroup_RunningCpu = new QActionGroup(this);
 	actionGroup_RunningCpu->setExclusive(true);
-	
-	actionRunMainCPU = new Action_Control_98(this, using_flags);
-	actionRunMainCPU->setCheckable(true);
-	actionRunMainCPU->setVisible(true);
-	actionGroup_RunningCpu->addAction(actionRunMainCPU);
-	connect(actionRunMainCPU, SIGNAL(triggered()), this, SLOT(do_use_ix86()));
 
-	actionRunSubCPU = new Action_Control_98(this, using_flags);
-	actionRunSubCPU->setCheckable(true);
-	actionRunSubCPU->setVisible(true);
-	actionGroup_RunningCpu->addAction(actionRunSubCPU);
-	connect(actionRunSubCPU, SIGNAL(triggered()), this, SLOT(do_use_v30()));
+	SET_ACTION_DIPSWITCH_CONNECT(actionRunMainCPU, ((0x0) << DIPSWITCH_POSITION_CPU_MODE), ((0x1) << DIPSWITCH_POSITION_CPU_MODE), p_config->dipswitch, SIGNAL(triggered()), SLOT(do_set_multi_dipswitch()));
+	SET_ACTION_DIPSWITCH_CONNECT(actionRunSubCPU, ((0x1) << DIPSWITCH_POSITION_CPU_MODE), ((0x1) << DIPSWITCH_POSITION_CPU_MODE), p_config->dipswitch, SIGNAL(triggered()), SLOT(do_set_multi_dipswitch()));
 
 	if((config.dipswitch & (1 << DIPSWITCH_POSITION_CPU_MODE)) != 0) {
 		actionRunSubCPU->setChecked(true);
@@ -378,178 +249,54 @@ void META_MainWindow::setupUI_Emu(void)
 #endif
 #endif
    
-	actionRAM_512K = new Action_Control_98(this, using_flags);
-	actionRAM_512K->setCheckable(true);
-	actionRAM_512K->setVisible(true);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionRAM_512K, ((0x1) << DIPSWITCH_POSITION_RAM512K), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionRAM_512K);
-	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_RAM512K)) != 0) actionRAM_512K->setChecked(true); // DipSW 1-8
-	connect(actionRAM_512K, SIGNAL(toggled(bool)),
-			actionRAM_512K->pc98_binds, SLOT(do_set_ram_512k(bool)));
-	connect(actionRAM_512K->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionRAM_512K->pc98_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 	
-	actionINIT_MEMSW = new Action_Control_98(this, using_flags);
-	actionINIT_MEMSW->setCheckable(true);
-	actionINIT_MEMSW->setVisible(true);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT_NEGATIVE(actionINIT_MEMSW, ((0x1) << DIPSWITCH_POSITION_NOINIT_MEMSW), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch_negative(bool)));
 	menuMachine->addAction(actionINIT_MEMSW);
-	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_NOINIT_MEMSW)) == 0) actionINIT_MEMSW->setChecked(true); // DipSW 1-8
-	connect(actionINIT_MEMSW, SIGNAL(toggled(bool)),
-			actionINIT_MEMSW->pc98_binds, SLOT(do_set_init_memsw(bool)));
-	connect(actionINIT_MEMSW->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionINIT_MEMSW->pc98_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
-	
-	actionGDC_FAST = new Action_Control_98(this, using_flags);
-	actionGDC_FAST->setCheckable(true);
-	actionGDC_FAST->setVisible(true);
+
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionGDC_FAST, ((0x1) << DIPSWITCH_POSITION_GDC_FAST), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionGDC_FAST);
-	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_GDC_FAST)) != 0) actionGDC_FAST->setChecked(true); // DipSW 1-8
-	connect(actionGDC_FAST, SIGNAL(toggled(bool)),
-			actionGDC_FAST->pc98_binds, SLOT(do_set_gdc_fast(bool)));
-	connect(actionGDC_FAST->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionGDC_FAST->pc98_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 	
 #if defined(SUPPORT_EGC)
-	actionEGC = new Action_Control_98(this, using_flags);
-	actionEGC->setCheckable(true);
-	actionEGC->setVisible(true);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionEGC, ((0x1) << DIPSWITCH_POSITION_EGC), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionEGC);
-	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_EGC)) != 0) actionEGC->setChecked(true); // DipSW 1-8
-	connect(actionEGC, SIGNAL(toggled(bool)),
-			actionEGC->pc98_binds, SLOT(do_set_egc(bool)));
-	connect(actionEGC->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionEGC->pc98_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 #endif
 	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
-	actionMemoryWait = new Action_Control_98(this, using_flags);
-	actionMemoryWait->setCheckable(true);
-	actionMemoryWait->setVisible(true);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionMemoryWait, 0x0001, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionMemoryWait);
-	if((config.dipswitch & 0x0001) != 0) actionMemoryWait->setChecked(true);
-	connect(actionMemoryWait, SIGNAL(toggled(bool)),
-			actionMemoryWait->pc98_binds, SLOT(do_set_memory_wait(bool)));
-	connect(actionMemoryWait->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionMemoryWait->pc98_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 	
-	actionPalette = new Action_Control_98(this, using_flags);
-	actionPalette->setCheckable(true);
-	actionPalette->setVisible(true);
-	actionPalette->setChecked(false);
-	   
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionPalette, 0x1 << 5, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionPalette);
-	if((config.dipswitch & (1 << 5)) != 0) actionPalette->setChecked(true);
-	connect(actionPalette, SIGNAL(toggled(bool)),
-			actionPalette->pc98_binds, SLOT(do_set_palette_vblank(bool)));
-	connect(actionPalette->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionPalette->pc98_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
-	menuMachine->addSeparator();
 
-	actionFDD_5Inch = new Action_Control_98(this, using_flags);
-	actionFDD_5Inch->setCheckable(true);
-	actionFDD_5Inch->setVisible(true);
-	actionFDD_5Inch->setChecked(false);
-   
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionFDD_5Inch, 0x1 << 6, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionFDD_5Inch);
-	if((config.dipswitch & (1 << 6)) != 0) actionFDD_5Inch->setChecked(true);
-	connect(actionFDD_5Inch, SIGNAL(toggled(bool)),
-			actionFDD_5Inch->pc98_binds, SLOT(do_set_fdd_5inch(bool)));
-	connect(actionFDD_5Inch->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionFDD_5Inch->pc98_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 	
 #if defined(SUPPORT_M88_DISKDRV)
-	actionM88DRV = new Action_Control_98(this, using_flags);
-	actionM88DRV->setCheckable(true);
-	actionM88DRV->setVisible(true);
-	actionM88DRV->setChecked(false);
-   
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionM88DRV, 0x1 << 8, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionM88DRV);
-	if((config.dipswitch & (1 << 8)) != 0) actionM88DRV->setChecked(true);
-	connect(actionM88DRV, SIGNAL(toggled(bool)),
-			actionM88DRV->pc98_binds, SLOT(do_set_m88drv(bool)));
-	connect(actionM88DRV->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionM88DRV->pc98_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 #endif
 #if defined(SUPPORT_QUASIS88_CMT)
-	actionQuasiS88CMT = new Action_Control_98(this, using_flags);
-	actionQuasiS88CMT->setCheckable(true);
-	actionQuasiS88CMT->setVisible(true);
-	actionQuasiS88CMT->setChecked(false);
-   
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionQuasiS88CMT, 0x1 << 9, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionQuasiS88CMT);
-	if((config.dipswitch & (1 << 9)) != 0) actionQuasiS88CMT->setChecked(true);
-	connect(actionQuasiS88CMT, SIGNAL(toggled(bool)),
-			actionQuasiS88CMT->pc98_binds, SLOT(do_set_quasis88_cmt(bool)));
-	connect(actionQuasiS88CMT->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionQuasiS88CMT->pc98_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 #endif
 #if defined(SUPPORT_QUASIS88_CMT) || defined(SUPPORT_M88_DISKDRV)
 	menuMachine->addSeparator();
 #endif
-	actionCMD_Sing = new Action_Control_98(this, using_flags);
-	actionCMD_Sing->setCheckable(true);
-	actionCMD_Sing->setVisible(true);
-	actionCMD_Sing->setChecked(false);
-   
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionCMD_Sing, DIPSWITCH_CMDSING, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionCMD_Sing);
-	if((config.dipswitch & DIPSWITCH_CMDSING) != 0) actionCMD_Sing->setChecked(true);
-	connect(actionCMD_Sing, SIGNAL(toggled(bool)),
-			actionCMD_Sing->pc98_binds, SLOT(do_set_cmd_sing(bool)));
-	connect(actionCMD_Sing->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionCMD_Sing->pc98_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 	menuMachine->addSeparator();
-
 #endif   
 #if defined(SUPPORT_320KB_FDD_IF)
-	actionConnect2D = new Action_Control_98(this, using_flags);
-	actionConnect2D->setCheckable(true);
-	actionConnect2D->setVisible(true);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionConnect2D, 0x0004, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionConnect2D);
-	if((config.dipswitch & 0x0004) != 0) actionConnect2D->setChecked(true);
-	connect(actionConnect2D, SIGNAL(toggled(bool)),
-			actionConnect2D->pc98_binds, SLOT(do_set_connect_2d(bool)));
-	connect(actionConnect2D->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
 #endif
 #if defined(_PC9801) || defined(_PC9801E)
-	actionConnect2DD = new Action_Control_98(this, using_flags);
-	actionConnect2DD->setCheckable(true);
-	actionConnect2DD->setVisible(true);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionConnect2DD, 0x0002, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionConnect2DD);
-	if((config.dipswitch & 0x0002) != 0) actionConnect2DD->setChecked(true);
-	connect(actionConnect2DD, SIGNAL(toggled(bool)),
-			actionConnect2DD->pc98_binds, SLOT(do_set_connect_2dd(bool)));
-	connect(actionConnect2DD->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	
-	actionConnect2HD = new Action_Control_98(this, using_flags);
-	actionConnect2HD->setCheckable(true);
-	actionConnect2HD->setVisible(true);
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionConnect2HD, 0x0001, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionConnect2HD);
-	if((config.dipswitch & 0x0001) != 0) actionConnect2HD->setChecked(true);
-	connect(actionConnect2HD, SIGNAL(toggled(bool)),
-			actionConnect2HD->pc98_binds, SLOT(do_set_connect_2hd(bool)));
-	connect(actionConnect2HD->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
 #endif
 #ifdef USE_BOOT_MODE
 	ConfigCPUBootMode(USE_BOOT_MODE);
