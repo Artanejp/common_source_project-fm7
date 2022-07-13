@@ -10,52 +10,11 @@
 #include <QApplication>
 #include <QVariant>
 #include <QtGui>
-#include <QMenu>
-#include <QActionGroup>
 
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
-
-//QT_BEGIN_NAMESPACE
-
-extern config_t config;
-
-Object_Menu_Control_60::Object_Menu_Control_60(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
-{
-}
-
-Object_Menu_Control_60::~Object_Menu_Control_60()
-{
-}
-
-void Object_Menu_Control_60::do_set_sound_device(void)
-{
-	emit sig_sound_device(this->getValue1());
-}
-
-
-Action_Control_60::Action_Control_60(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
-{
-	pc60_binds = new Object_Menu_Control_60(parent, p);
-	pc60_binds->setValue1(0);
-}
-
-Action_Control_60::~Action_Control_60()
-{
-	delete pc60_binds;
-}
-
-
-void META_MainWindow::do_set_sound_device(int num)
-{
-	if((num < 0) || (num >= 2)) return;
-#ifdef USE_SOUND_TYPE
-	config.sound_type = num;
-	this->do_emu_update_config();
-#endif
-}
 
 void META_MainWindow::retranslateUi(void)
 {
