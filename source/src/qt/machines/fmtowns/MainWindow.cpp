@@ -109,34 +109,14 @@ void META_MainWindow::setupUI_Emu(void)
 		actionGroup_JOYPortType[i]->setExclusive(true);
 		actionGroup_JOYPortType[i]->setObjectName(QString("actionGroupJOYPort%1").arg(i + 1));
 		for(int j = 0; j < 8; j++) {
-			actionJOYPORT_TYPE[i][j] = new Action_Control(this, using_flags);
-			actionJOYPORT_TYPE[i][j]->setCheckable(true);
-			actionJOYPORT_TYPE[i][j]->setVisible(false);
-			if(p_config->machine_features[i] == (uint32_t)j) {
-				actionJOYPORT_TYPE[i][j]->setChecked(true);
-			} else {
-				actionJOYPORT_TYPE[i][j]->setChecked(false);
-			}
-			actionJOYPORT_TYPE[i][j]->binds->setNumber(i);
-			actionJOYPORT_TYPE[i][j]->binds->setValue1(j);
+			SET_ACTION_MACHINE_FEATURE_CONNECT(actionJOYPORT_TYPE[i][j], i, (uint32_t)j, (p_config->machine_features[i] == (uint32_t)j), SIGNAL(triggered()), SLOT(do_set_machine_feature()));
+
+			actionJOYPORT_TYPE[i][j]->setVisible((j < 6) ? true : false);
+			
 			actionGroup_JOYPortType[i]->addAction(actionJOYPORT_TYPE[i][j]);
 			menuMachineFeatures[i]->addAction(actionJOYPORT_TYPE[i][j]);
-			connect(actionJOYPORT_TYPE[i][j], SIGNAL(triggered()),
-					actionJOYPORT_TYPE[i][j]->binds, SLOT(do_select_machine_feature_single()));
-			connect(actionJOYPORT_TYPE[i][j]->binds,
-					SIGNAL(sig_set_machine_feature(int, uint32_t)),
-					this, SLOT(do_set_machine_feature(int, uint32_t)));
-		}
-		for(int j = 0; j < 6; j++) {
-			actionJOYPORT_TYPE[i][j]->setVisible(true);
 		}
 	}
-	/*
-	for(int i = 2; i < 6; i++) {
-		menuMachineFeatures[i]->setVisible(false);
-		menuMachineFeatures[i]->setEnabled(false);
-	}		
-	*/
 #endif
 }
 
