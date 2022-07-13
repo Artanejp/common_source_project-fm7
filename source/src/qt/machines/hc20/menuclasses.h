@@ -15,27 +15,6 @@ class Ui_MainWindow;
 class USING_FLAGS;
 class CSP_Logger;
 //  wrote of HC20 Specific menu.
-class Object_Menu_Control_HC20: public Object_Menu_Control
-{
-	Q_OBJECT
-public:
-	Object_Menu_Control_HC20(QObject *parent, USING_FLAGS *p);
-	~Object_Menu_Control_HC20();
-signals:
-	int sig_dipsw(int, bool);
-public slots:
-	 void set_dipsw(bool);
-};
-
-class Action_Control_HC20 : public Action_Control
-{
-	Q_OBJECT
-public:
-	Object_Menu_Control_HC20 *hc20_binds;
-	Action_Control_HC20(QObject *parent, USING_FLAGS *p);
-	~Action_Control_HC20();
-};
-
 class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
 protected:
@@ -44,8 +23,7 @@ protected:
   
 	QMenu *menu_Emu_DipSw;
 	QActionGroup *actionGroup_DipSw;
-	Action_Control_HC20 *action_Emu_DipSw[4];
-
+	Action_Control *action_Emu_DipSw[4];
 public:
 	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
 	~META_MainWindow();
