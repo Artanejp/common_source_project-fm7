@@ -14,26 +14,6 @@ QT_BEGIN_NAMESPACE
 class Ui_MainWindow;
 class USING_FLAGS;
 class CSP_Logger;
-class Action_Control_EX80 : public Action_Control
-{
-	Q_OBJECT
-private:
-	int bind_int;
-	bool bind_bool;
-public:
-	Action_Control_EX80(QObject *parent, USING_FLAGS *pp);
-	~Action_Control_EX80();
-	void setBoolValue(bool flag);
-	void setIntValue(int val);
-	
-public slots:
-	void do_set_sw1();
-	void do_set_sw2();
-	void do_set_vram_addr();
-signals:
-	int sig_set_dipsw(int, bool);
-};
-
 class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
 private:
@@ -45,13 +25,13 @@ private:
 	QActionGroup *actionGroup_DipSW2;
 	QActionGroup *actionGroup_VramAddr;
 	
-	Action_Control_EX80 *actionDipSW1_ON;
-	Action_Control_EX80 *actionDipSW1_OFF;
+	Action_Control *actionDipSW1_ON;
+	Action_Control *actionDipSW1_OFF;
 	
-	Action_Control_EX80 *actionDipSW2_ON;
-	Action_Control_EX80 *actionDipSW2_OFF;
+	Action_Control *actionDipSW2_ON;
+	Action_Control *actionDipSW2_OFF;
 	
-	Action_Control_EX80 *actionVramAddr[4];
+	Action_Control *actionVramAddr[4];
 protected:
 	void setupUI_Emu(void);
 	void retranslateUi(void);
