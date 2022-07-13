@@ -21,88 +21,6 @@
 
 //QT_BEGIN_NAMESPACE
 
-extern config_t config;
-
-Object_Menu_Control_88::Object_Menu_Control_88(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
-{
-}
-
-Object_Menu_Control_88::~Object_Menu_Control_88()
-{
-}
-
-
-void Object_Menu_Control_88::do_set_memory_wait(bool flag)
-{
-	emit sig_set_dipsw(0, flag);
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control_88::do_set_hmb20(bool flag)
-{
-	emit sig_set_dipsw(1, flag);
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control_88::do_set_gsx8800(bool flag)
-{
-	emit sig_set_dipsw(2, flag);
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control_88::do_set_pcg8100(bool flag)
-{
-	emit sig_set_dipsw(3, flag);
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control_88::do_set_cmd_sing(bool flag)
-{
-	emit sig_set_dipsw(4, flag);
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control_88::do_set_palette_vblank(bool flag)
-{
-	emit sig_set_dipsw(5, flag);
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control_88::do_set_fdd_5inch(bool flag)
-{
-	emit sig_set_dipsw(6, flag);
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control_88::do_set_fdd_8inch(bool flag)
-{
-	emit sig_set_dipsw(7, flag);
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control_88::do_set_m88drv(bool flag)
-{
-	emit sig_set_dipsw(8, flag);
-	emit sig_emu_update_config();
-}
-
-void Object_Menu_Control_88::do_set_quasis88_cmt(bool flag)
-{
-	emit sig_set_dipsw(9, flag);
-	emit sig_emu_update_config();
-}
-
-Action_Control_88::Action_Control_88(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
-{
-	pc88_binds = new Object_Menu_Control_88(parent, p);
-	pc88_binds->setValue1(0);
-}
-
-Action_Control_88::~Action_Control_88()
-{
-	delete pc88_binds;
-}
-
 void META_MainWindow::retranslateVolumeLabels(Ui_SoundDialog *p)
 {
 	if(p != NULL) {
@@ -154,7 +72,7 @@ void META_MainWindow::retranslateUi(void)
 	const char *title="";
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(title, false);
-	config_sound_device_type = config.sound_type;
+	config_sound_device_type = p_config->sound_type;
 	
 	this->setWindowTitle(QApplication::translate("MenuPC88", "MainWindow", 0));
 	
@@ -226,11 +144,9 @@ void META_MainWindow::retranslateUi(void)
 	#if defined(_PC8001SR)
 		menuSoundDevice->setTitle(QApplication::translate("MenuPC88", "Sound Board", 0));
 		actionSoundDevice[0]->setText(QString::fromUtf8("OPN"));
-		actionSoundDevice[1]->setText(QString::fromUtf8("OPNA"));   
-		actionSoundDevice[2]->setText(QString::fromUtf8("OPN + OPNA"));   
+		actionSoundDevice[1]->setText(QString::fromUtf8("OPN + OPN"));   
 		actionSoundDevice[0]->setToolTip(QApplication::translate("MenuPC88", "Using YM2203(OPN) as FM sounder.", 0));
-		actionSoundDevice[1]->setToolTip(QApplication::translate("MenuPC88", "Using YM2608(OPNA) as FM sounder.", 0));
-		actionSoundDevice[2]->setToolTip(QApplication::translate("MenuPC88", "Using YM2203(OPN) and YM2608(OPNA) as FM sounder.", 0));
+		actionSoundDevice[1]->setToolTip(QApplication::translate("MenuPC88", "Using Twin YM2203(OPN) as FM sounder.", 0));
 	#else
 		menuSoundDevice->setTitle(QApplication::translate("MenuPC88", "Sound Board", 0));
 		actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-23 (OPNA)"));
@@ -248,14 +164,15 @@ void META_MainWindow::retranslateUi(void)
 	#endif
 #elif defined(SUPPORT_PC88_OPN1) || defined(SUPPORT_PC88_OPN2)
 	menuSoundDevice->setTitle(QApplication::translate("MenuPC88", "Sound Board", 0));
+
+	actionSoundDevice[0]->setText(QString::fromUtf8("None"));
+	actionSoundDevice[0]->setToolTip(QApplication::translate("MenuPC88", "None.", 0));
 	#if defined(SUPPORT_OPNA)
-		actionSoundDevice[0]->setToolTip(QApplication::translate("MenuPC88", "PC-8801-11 (OPN).", 0));
-		actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));
 		actionSoundDevice[1]->setText(QString::fromUtf8("PC-8801-23 (OPNA)"));
 		actionSoundDevice[1]->setToolTip(QApplication::translate("MenuPC88", "PC-8801-23 (OPNA).", 0));
 	#else
-		actionSoundDevice[0]->setToolTip(QApplication::translate("MenuPC88", "PC-8801-11 (OPN).", 0));
-		actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));
+		actionSoundDevice[1]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));
+		actionSoundDevice[1]->setToolTip(QApplication::translate("MenuPC88", "PC-8801-11 (OPN).", 0));
 	#endif
 #endif
 #ifdef USE_DEBUGGER
@@ -350,163 +267,52 @@ void META_MainWindow::setupUI_Emu(void)
 #endif
 
 #if defined(_PC8001SR) || defined(PC8801SR_VARIANT)
-	actionMemoryWait = new Action_Control_88(this, using_flags);
-	actionMemoryWait->setCheckable(true);
-	actionMemoryWait->setVisible(true);
-	actionMemoryWait->setChecked(false);
-   
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionMemoryWait, DIPSWITCH_MEMWAIT, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionMemoryWait);
-	if((config.dipswitch & DIPSWITCH_MEMWAIT) != 0) actionMemoryWait->setChecked(true);
-	connect(actionMemoryWait, SIGNAL(toggled(bool)),
-			actionMemoryWait->pc88_binds, SLOT(do_set_memory_wait(bool)));
-	connect(actionMemoryWait->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionMemoryWait->pc88_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 #endif
-	actionPalette = new Action_Control_88(this, using_flags);
-	actionPalette->setCheckable(true);
-	actionPalette->setVisible(true);
-	actionPalette->setChecked(false);
-   
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionPalette, DIPSWITCH_PALETTE, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
+	
 	menuMachine->addAction(actionPalette);
-	if((config.dipswitch & DIPSWITCH_PALETTE) != 0) actionPalette->setChecked(true);
-	connect(actionPalette, SIGNAL(toggled(bool)),
-			actionPalette->pc88_binds, SLOT(do_set_palette_vblank(bool)));
-	connect(actionPalette->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionPalette->pc88_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
-
 	menuMachine->addSeparator();
 
 #if defined(SUPPORT_M88_DISKDRV)
-	actionM88DRV = new Action_Control_88(this, using_flags);
-	actionM88DRV->setCheckable(true);
-	actionM88DRV->setVisible(true);
-	actionM88DRV->setChecked(false);
-   
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionM88DRV, DIPSWITCH_M88_DISKDRV, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionM88DRV);
-	if((config.dipswitch & DIPSWITCH_M88_DISKDRV) != 0) actionM88DRV->setChecked(true);
-	connect(actionM88DRV, SIGNAL(toggled(bool)),
-			actionM88DRV->pc88_binds, SLOT(do_set_m88drv(bool)));
-	connect(actionM88DRV->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionM88DRV->pc88_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 #endif
 #if defined(SUPPORT_QUASIS88_CMT)
-	actionQuasiS88CMT = new Action_Control_88(this, using_flags);
-	actionQuasiS88CMT->setCheckable(true);
-	actionQuasiS88CMT->setVisible(true);
-	actionQuasiS88CMT->setChecked(false);
-   
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionQuasiS88CMT, DIPSWITCH_QUASIS88_CMT, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionQuasiS88CMT);
-	if((config.dipswitch & DIPSWITCH_QUASIS88_CMT) != 0) actionQuasiS88CMT->setChecked(true);
-	connect(actionQuasiS88CMT, SIGNAL(toggled(bool)),
-			actionQuasiS88CMT->pc88_binds, SLOT(do_set_quasis88_cmt(bool)));
-	connect(actionQuasiS88CMT->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionQuasiS88CMT->pc88_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 #endif
 #if defined(SUPPORT_QUASIS88_CMT) || defined(SUPPORT_M88_DISKDRV)
 	menuMachine->addSeparator();
 #endif
 	
 #if defined(PC8801_VARIANT)
-	actionCMD_Sing = new Action_Control_88(this, using_flags);
-	actionCMD_Sing->setCheckable(true);
-	actionCMD_Sing->setVisible(true);
-	actionCMD_Sing->setChecked(false);
-   
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionCMD_Sing, DIPSWITCH_CMDSING, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionCMD_Sing);
-	if((config.dipswitch & DIPSWITCH_CMDSING) != 0) actionCMD_Sing->setChecked(true);
-	connect(actionCMD_Sing, SIGNAL(toggled(bool)),
-			actionCMD_Sing->pc88_binds, SLOT(do_set_cmd_sing(bool)));
-	connect(actionCMD_Sing->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionCMD_Sing->pc88_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 	menuMachine->addSeparator();
 #endif
-
-	actionFDD_5Inch = new Action_Control_88(this, using_flags);
-	actionFDD_5Inch->setCheckable(true);
-	actionFDD_5Inch->setVisible(true);
-	actionFDD_5Inch->setChecked(false);
-   
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionFDD_5Inch, DIPSWITCH_FDD_5INCH, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionFDD_5Inch);
-	if((config.dipswitch & DIPSWITCH_FDD_5INCH) != 0) actionFDD_5Inch->setChecked(true);
-	connect(actionFDD_5Inch, SIGNAL(toggled(bool)),
-			actionFDD_5Inch->pc88_binds, SLOT(do_set_fdd_5inch(bool)));
-	connect(actionFDD_5Inch->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionFDD_5Inch->pc88_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 	
 #if defined(SUPPORT_PC88_FDD_8INCH)
-	actionFDD_8Inch = new Action_Control_88(this, using_flags);
-	actionFDD_8Inch->setCheckable(true);
-	actionFDD_8Inch->setVisible(true);
-	actionFDD_8Inch->setChecked(false);
-   
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionFDD_8Inch, DIPSWITCH_FDD_8INCH, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionFDD_8Inch);
-	if((config.dipswitch & DIPSWITCH_FDD_8INCH) != 0) actionFDD_8Inch->setChecked(true);
-	connect(actionFDD_8Inch, SIGNAL(toggled(bool)),
-			actionFDD_8Inch->pc88_binds, SLOT(do_set_fdd_8inch(bool)));
-	connect(actionFDD_8Inch->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionFDD_8Inch->pc88_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 #endif
 	menuMachine->addSeparator();
 #ifdef SUPPORT_PC88_HMB20
-	actionHMB20 = new Action_Control_88(this, using_flags);
-	actionHMB20->setCheckable(true);
-	actionHMB20->setVisible(true);
-	actionHMB20->setChecked(false);
-
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionHMB20, DIPSWITCH_HMB20, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionHMB20);
-	if((config.dipswitch & DIPSWITCH_HMB20) != 0) actionHMB20->setChecked(true);
-	connect(actionHMB20, SIGNAL(toggled(bool)),
-			actionHMB20->pc88_binds, SLOT(do_set_hmb20(bool)));
-	connect(actionHMB20->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionHMB20->pc88_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
+	
 #endif	
 #ifdef SUPPORT_PC88_GSX8800
-	actionGSX8800 = new Action_Control_88(this, using_flags);
-	actionGSX8800->setCheckable(true);
-	actionGSX8800->setVisible(true);
-	actionGSX8800->setChecked(false);
-
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionGSX8800, DIPSWITCH_GSX8800, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionGSX8800);
-	if((config.dipswitch & DIPSWITCH_GSX8800) != 0) actionGSX8800->setChecked(true);
-	connect(actionGSX8800, SIGNAL(toggled(bool)),
-			actionGSX8800->pc88_binds, SLOT(do_set_gsx8800(bool)));
-	connect(actionGSX8800->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionGSX8800->pc88_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 #endif
 #ifdef SUPPORT_PC88_PCG8100
-	actionPCG8100 = new Action_Control_88(this, using_flags);
-	actionPCG8100->setCheckable(true);
-	actionPCG8100->setVisible(true);
-	actionPCG8100->setChecked(false);
-
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionPCG8100, DIPSWITCH_PCG8100, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionPCG8100);
-	if((config.dipswitch & DIPSWITCH_PCG8100) != 0) actionPCG8100->setChecked(true);
-	connect(actionPCG8100, SIGNAL(toggled(bool)),
-			actionPCG8100->pc88_binds, SLOT(do_set_pcg8100(bool)));
-	connect(actionPCG8100->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
-			this, SLOT(set_dipsw(int, bool)));
-	connect(actionPCG8100->pc88_binds, SIGNAL(sig_emu_update_config()),
-			this, SLOT(do_emu_update_config()));
 #endif
-
 }
 
 
