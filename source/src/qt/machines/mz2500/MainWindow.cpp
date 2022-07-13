@@ -18,22 +18,6 @@
 #include "qt_main.h"
 #include "vm.h"
 
-Action_Control_MZ25::Action_Control_MZ25(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
-{
-	mz25_binds = new Object_Menu_Control_MZ25(parent, p);
-}
-
-Action_Control_MZ25::~Action_Control_MZ25(){
-	delete mz25_binds;
-}
-
-Object_Menu_Control_MZ25::Object_Menu_Control_MZ25(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
-{
-}
-
-Object_Menu_Control_MZ25::~Object_Menu_Control_MZ25(){
-}
-
 
 
 void META_MainWindow::setupUI_Emu(void)

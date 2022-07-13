@@ -11,27 +11,6 @@ QT_BEGIN_NAMESPACE
 class Ui_MainWindow;
 class USING_FLAGS;
 class CSP_Logger;
-
-class Object_Menu_Control_MZ25: public Object_Menu_Control
-{
-	Q_OBJECT
-public:
-	Object_Menu_Control_MZ25(QObject *parent, USING_FLAGS *p);
-	~Object_Menu_Control_MZ25();
-signals:
-	int sig_update_config();
-public slots:
-};
-
-class Action_Control_MZ25 : public Action_Control
-{
-	Q_OBJECT
-public:
-	Object_Menu_Control_MZ25 *mz25_binds;
-	Action_Control_MZ25(QObject *parent, USING_FLAGS *p);
-	~Action_Control_MZ25();
-};
-
 class QMenu;
 class QActionGroup;
 class META_MainWindow : public Ui_MainWindow {
@@ -40,7 +19,7 @@ protected:
 	QMenu *menuDisplayType;
 	QActionGroup *actionGroup_DisplayType;
 	
-	Action_Control_MZ25 *action_DisplayType[4];
+	//Action_Control *action_DisplayType[4];
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 public:
