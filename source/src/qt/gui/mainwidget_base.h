@@ -126,7 +126,20 @@ Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::ScreenSize)
 		SET_ACTION_DIPSWITCH_CONNECT(__action,__d_data,__d_mask,__condval,__signal1,__slot1); \
 	}
 
-
+#define SET_ACTION_SINGLE_DIPSWITCH_NEGATIVE(__action,__dipsw_val_mask,__condval) {	\
+		SET_ACTION_SINGLE(__action, true, true, ((__condval & __dipsw_val_mask) == 0)); \
+		struct CSP_Ui_MainWidgets::DipSwitchPair __x__vars;				\
+		__x__vars.data = __dipsw_val_mask;								\
+		__x__vars.mask = __dipsw_val_mask;								\
+		QVariant __v__vars;												\
+		__v__vars.setValue(__x__vars);									\
+		__action->setData(__v__vars);									\
+	}
+#define SET_ACTION_SINGLE_DIPSWITCH_CONNECT_NEGATIVE(__action,__dipsw_val_mask,__condval,__signal1,__slot1) { \
+		SET_ACTION_SINGLE_DIPSWITCH_NEGATIVE(__action,__dipsw_val_mask,__condval); \
+		connect(__action, __signal1, this, __slot1);					\
+	}
+	
 #define SET_ACTION_ANYVALUES(__action,__vars) {							\
 		__action = new Action_Control(this, using_flags);				\
 		__action->setCheckable(true);									\
@@ -907,6 +920,7 @@ public slots:
 	void do_set_machine_feature();
 
 	void do_set_single_dipswitch(bool f);
+	void do_set_single_dipswitch_negative(bool f);
 	void do_set_multi_dipswitch();
 	
 	void do_start_emu_thread();

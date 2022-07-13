@@ -51,6 +51,22 @@ void Ui_MainWindowBase::do_set_single_dipswitch(bool f)
 	emit sig_emu_update_config();
 }
 
+void Ui_MainWindowBase::do_set_single_dipswitch_negative(bool f)
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_MainWidgets::DipSwitchPair pval = cp->data().value<CSP_Ui_MainWidgets::DipSwitchPair>();
+
+	if(p_config == nullptr) return;
+
+	uint32_t nval = (pval.data & pval.mask);
+	p_config->dipswitch &= ~(pval.mask);
+	if(!(f)) { // ON
+		p_config->dipswitch |= nval;
+	}
+	emit sig_emu_update_config();
+}
+
 void Ui_MainWindowBase::do_set_multi_dipswitch()
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
