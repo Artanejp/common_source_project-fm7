@@ -26,14 +26,16 @@ void Ui_MainWindowBase::do_set_screen_size(void)
 	
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	int __n = cp->data().value<int>();
-	
+	struct CSP_Ui_MainWidgets::ScreenMultiplyPair __val = cp->data().value<CSP_Ui_MainWidgets::ScreenMultiplyPair>();
+
+	int __n = __val.index;
+	double nd = __val.value;
 	int w, h;
 	double ww, hh;
 	double xzoom = using_flags->get_screen_x_zoom();
 	double yzoom = using_flags->get_screen_y_zoom();
 	p_config->window_mode = __n;
-	double nd = getScreenMultiply(__n);
+
 	
 	ww = (double)using_flags->get_screen_width();
 	hh = (double)using_flags->get_screen_height();
@@ -154,17 +156,11 @@ void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 			break;
 		}
 		screen_mode_count++;
+		SET_ACTION_SCREEN_MULTIPLY_CONNECT(actionScreenSize[i], i, _mul, (i == p_config->window_mode), SIGNAL(triggered()), SLOT(do_set_screen_size()));
+
 		tmps = QString::number(i);
-		actionScreenSize[i] = new Action_Control(this, using_flags);
 		actionScreenSize[i]->setObjectName(QString::fromUtf8("actionScreenSize", -1) + tmps);
-		actionScreenSize[i]->setCheckable(true);
-
-		if(i == p_config->window_mode)  actionScreenSize[i]->setChecked(true);  // OK?
-
 		actionGroup_ScreenSize->addAction(actionScreenSize[i]);
-		actionScreenSize[i]->setData(QVariant(i));
-		
-		connect(actionScreenSize[i], SIGNAL(triggered()), this, SLOT(do_set_screen_size()));
 	}
 }
 void Ui_MainWindowBase::ConfigScreenMenu(void)
@@ -457,13 +453,12 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 	menuRecord_as_movie->setToolTipsVisible(true);
 
 	menuScreenSize->setTitle(QApplication::translate("MenuScreen", "Screen Size", 0));
-	double s_mul;
+	struct CSP_Ui_MainWidgets::ScreenMultiplyPair s_mul;
 	for(i = 0; i < using_flags->get_screen_mode_num(); i++) {
-		if(actionScreenSize[i] == NULL) continue;
-		s_mul = getScreenMultiply(actionScreenSize[i]->data().value<int>());
-		if(s_mul <= 0.0f) break;
-		
-		tmps = QString::number(s_mul);
+		if(actionScreenSize[i] == nullptr) continue;
+		s_mul = actionScreenSize[i]->data().value<CSP_Ui_MainWidgets::ScreenMultiplyPair>();
+		if(s_mul.value <= 0.0f) break;
+		tmps = QString::number(s_mul.value);
 		tmps = QString::fromUtf8("x", -1) + tmps;
 		actionScreenSize[i]->setText(tmps);
 	}

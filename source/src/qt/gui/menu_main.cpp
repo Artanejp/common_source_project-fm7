@@ -338,13 +338,6 @@ void Ui_MainWindowBase::do_select_render_platform(void)
 	}
 }
 
-void Ui_MainWindowBase::do_set_machine_feature(int devnum, uint32_t value)
-{
-	if((devnum < 0) || (devnum >= using_flags->get_use_machine_features())) return;
-	p_config->machine_features[devnum] = value;
-	emit sig_emu_update_config();
-}
-
 void Ui_MainWindowBase::set_dipsw(int num, bool flag)
 {
 	if((num < 0) || (num >= 32)) return;
@@ -758,7 +751,9 @@ void Ui_MainWindowBase::setupUi(void)
 	w = using_flags->get_screen_width();
 	h = using_flags->get_screen_height();
 	if(actionScreenSize[p_config->window_mode] != nullptr) {
-		double nd = getScreenMultiply(p_config->window_mode);
+		struct CSP_Ui_MainWidgets::ScreenMultiplyPair s_mul;
+		s_mul = actionScreenSize[p_config->window_mode]->data().value<CSP_Ui_MainWidgets::ScreenMultiplyPair>();
+		double nd = s_mul.value;
 		w = (int)(nd * (double)w);
 		h = (int)(nd * (double)h);
 		switch(p_config->rotate_type) {
@@ -788,13 +783,17 @@ void Ui_MainWindowBase::setupUi(void)
 		}
 	}
 	graphicsView->setFixedSize(w, h);
+	
 	connect(this, SIGNAL(sig_screen_multiply(double)), graphicsView, SLOT(do_set_screen_multiply(double)), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_glv_set_fixed_size(int, int)), graphicsView, SLOT(do_set_fixed_size(int, int)), Qt::QueuedConnection);
 	
 	set_screen_size(w, h);
 	set_screen_aspect(p_config->window_stretch_type);
-	{
-		double nd = getScreenMultiply(p_config->window_mode);
+	if(actionScreenSize[p_config->window_mode] != nullptr) {
+		struct CSP_Ui_MainWidgets::ScreenMultiplyPair s_mul;
+		s_mul = actionScreenSize[p_config->window_mode]->data().value<CSP_Ui_MainWidgets::ScreenMultiplyPair>();
+		double nd = s_mul.value;
+
 		if(nd > 0.0f) {
 			graphicsView->do_set_screen_multiply(nd);
 		}

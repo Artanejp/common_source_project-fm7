@@ -51,13 +51,29 @@ enum {
 QT_BEGIN_NAMESPACE
 
 namespace CSP_Ui_MainWidgets {
-	struct DipswitchPair {
-		uint32_t data;
-		uint32_t mask;
+	struct DipSwitchPair { // config.dipswitch
+		uint32_t data; // DipSwitch data
+		uint32_t mask; // DipSwitch bit mask 
+	};
+	struct MachineFeaturePair { // config.machine_features[devnum]
+		int devnum; // Index of device.
+		uint32_t value; // Feature value.
+	};
+	struct ScreenMultiplyPair { // config.machine_features[devnum]
+		int index; // Index of device.
+		double value; // Feature value.
+	};
+	struct ScreenSize { // config.machine_features[devnum]
+		int index; // Index of device.
+		int width; //
+		int height; //
 	};
 }
 
-Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::DipswitchPair)
+Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::DipSwitchPair)
+Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::MachineFeaturePair)
+Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::ScreenMultiplyPair)
+Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::ScreenSize)
 
 #define SET_ACTION_SINGLE(__action,__checkable,__enabled,__cfgif) { \
 		__action = new Action_Control(this, using_flags);		  \
@@ -84,7 +100,7 @@ Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::DipswitchPair)
 
 #define SET_ACTION_DIPSWITCH(__action,__dipsw_val,__dipsw_mask,__condval) {	\
 		SET_ACTION_SINGLE(__action, true, true, ((__dipsw_val & __dipsw_mask) == (__condval & __dipsw_mask))); \
-		struct CSP_Ui_MainWidgets::DipswitchPair __x__vars;				\
+		struct CSP_Ui_MainWidgets::DipSwitchPair __x__vars;				\
 		__x__vars.data = __dipsw_val;									\
 		__x__vars.mask = __dipsw_mask;									\
 		QVariant __v__vars;												\
@@ -119,6 +135,26 @@ Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::DipswitchPair)
 		__action->setChecked(false);									\
 	}
 
+#define SET_ACTION_MACHINE_FEATURE(__action,__devnum,__value,__condval) { \
+		SET_ACTION_SINGLE(__action, true, true, __condval);				\
+		struct CSP_Ui_MainWidgets::MachineFeaturePair __x__vars;		\
+		__x__vars.devnum = __devnum;									\
+		__x__vars.value  = __value;										\
+		QVariant __v__vars;												\
+		__v__vars.setValue(__x__vars);									\
+		__action->setData(__v__vars);									\
+	}
+
+#define SET_ACTION_MACHINE_FEATURE_CONNECT(__action,__devnum,__value,__condval,__signal1,__slot1) { \
+		SET_ACTION_SINGLE_CONNECT(__action, true, true, __condval, __signal1, __slot1);	\
+		struct CSP_Ui_MainWidgets::MachineFeaturePair __x__vars;		\
+		__x__vars.devnum = __devnum;									\
+		__x__vars.value  = __value;										\
+		QVariant __v__vars;												\
+		__v__vars.setValue(__x__vars);									\
+		__action->setData(__v__vars);									\
+	}
+
 #define SET_ACTION_ANYVALUES_CONNECT(__action,__vars,__signal1,__slot1) { \
 		SET_ACTION_ANYVALUES(__action,__vars);							\
 		connect(__action, __signal1, this, __slot1);					\
@@ -133,6 +169,37 @@ Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::DipswitchPair)
 #define SET_ACTION_CHECKABLE_SINGLE_CONNECT_NOMENU(__action,__objname,__cond,__signal1,__slot1) { \
 		SET_ACTION_SINGLE_CONNECT(__action, true, true, __cond, __signal1, __slot1); \
 		__action->setObjectName(QString::fromUtf8(__objname));			\
+	}
+
+#define SET_ACTION_SCREEN_MULTIPLY(__action,__index,__value,__condval) { \
+		SET_ACTION_SINGLE(__action, true, true, __condval);				\
+		struct CSP_Ui_MainWidgets::ScreenMultiplyPair __x__vars;		\
+		__x__vars.index = __index;										\
+		__x__vars.value  = __value;										\
+		QVariant __v__vars;												\
+		__v__vars.setValue(__x__vars);									\
+		__action->setData(__v__vars);									\
+	}
+
+#define SET_ACTION_SCREEN_MULTIPLY_CONNECT(__action,__index,__value,__condval,__signal1,__slot1) { \
+		SET_ACTION_SCREEN_MULTIPLY(__action,__index,__value,__condval);	\
+		connect(__action,__signal1, this, __slot1);						\
+	}
+
+#define SET_ACTION_SCREEN_SIZE(__action,__index,__width,__height,__condval) {	\
+		SET_ACTION_SINGLE(__action, true, true, __condval);				\
+		struct CSP_Ui_MainWidgets::ScreenSize __x__vars;				\
+		__x__vars.index  = __index;										\
+		__x__vars.width  = __width;										\
+		__x__vars.height = __height;									\
+		QVariant __v__vars;												\
+		__v__vars.setValue(__x__vars);									\
+		__action->setData(__v__vars);									\
+	}
+
+#define SET_ACTION_SCREEN_SIZE_CONNECT(__action,__index,__width,__height,__condval,__signal1,__slot1) { \
+		SET_ACTION_SCREEN_SIZE(__action,__index,__width,__height,__condval); \
+		connect(__action, __signal1, this, __slot1);					\
 	}
 
 #define SET_HELP_MENUENTRY(__menu,__action,__objname,__txtname) {		\
@@ -837,7 +904,7 @@ public slots:
 	void do_block_task();
 	void do_unblock_task();
 
-	void do_set_machine_feature(int devnum, uint32_t value);
+	void do_set_machine_feature();
 
 	void do_set_single_dipswitch(bool f);
 	void do_set_multi_dipswitch();

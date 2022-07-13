@@ -21,11 +21,25 @@
 //#include "csp_logger.h"
 
 
+void Ui_MainWindowBase::do_set_machine_feature(void)
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_MainWidgets::MachineFeaturePair pval = cp->data().value<CSP_Ui_MainWidgets::MachineFeaturePair>();
+
+	int devnum = pval.devnum;
+	uint32_t value = pval.value;
+	if((devnum < 0) || (devnum >= using_flags->get_use_machine_features())) return;
+	p_config->machine_features[devnum] = value;
+	emit sig_emu_update_config();
+}
+
+
 void Ui_MainWindowBase::do_set_single_dipswitch(bool f)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	struct CSP_Ui_MainWidgets::DipswitchPair pval = cp->data().value<CSP_Ui_MainWidgets::DipswitchPair>();
+	struct CSP_Ui_MainWidgets::DipSwitchPair pval = cp->data().value<CSP_Ui_MainWidgets::DipSwitchPair>();
 
 	if(p_config == nullptr) return;
 
@@ -41,7 +55,7 @@ void Ui_MainWindowBase::do_set_multi_dipswitch()
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	struct CSP_Ui_MainWidgets::DipswitchPair pval = cp->data().value<CSP_Ui_MainWidgets::DipswitchPair>();
+	struct CSP_Ui_MainWidgets::DipSwitchPair pval = cp->data().value<CSP_Ui_MainWidgets::DipSwitchPair>();
 
 	if(p_config == nullptr) return;
 
@@ -162,19 +176,25 @@ void Ui_MainWindowBase::do_set_screen_rotate(void)
 
 void Ui_MainWindowBase::update_screen_size(int num)
 {
-	int w, h;
-	float nd, ww, hh;
-	float xzoom = using_flags->get_screen_x_zoom();
-	float yzoom = using_flags->get_screen_y_zoom();
-	nd = getScreenMultiply(num);
-	if(nd <= 0.0f) return;
+	if(using_flags == nullptr) return;
+	if((num < 0) || (num >= using_flags->get_screen_mode_num())) return;
+	if(actionScreenSize[num] == nullptr) return;
 	
-	ww = (float)using_flags->get_screen_width();
-	hh = (float)using_flags->get_screen_height();
+	int w, h;
+	double nd, ww, hh;
+	double xzoom = using_flags->get_screen_x_zoom();
+	double yzoom = using_flags->get_screen_y_zoom();
+
+	struct CSP_Ui_MainWidgets::ScreenMultiplyPair s_mul;
+	s_mul = actionScreenSize[num]->data().value<CSP_Ui_MainWidgets::ScreenMultiplyPair>();
+	nd = s_mul.value;
+	
+	ww = (double)using_flags->get_screen_width();
+	hh = (double)using_flags->get_screen_height();
 	if((using_flags->get_screen_height_aspect() != using_flags->get_screen_height()) ||
 	   (using_flags->get_screen_width_aspect() != using_flags->get_screen_width())) {
-		float par_w = (float)using_flags->get_screen_width_aspect() / ww;
-		float par_h = (float)using_flags->get_screen_height_aspect() / hh;
+		double par_w = (double)using_flags->get_screen_width_aspect() / ww;
+		double par_h = (double)using_flags->get_screen_height_aspect() / hh;
 		//float par = par_h / par_w;
 		switch(p_config->window_stretch_type) {
 		case 0: // refer to X and Y.
@@ -201,7 +221,7 @@ void Ui_MainWindowBase::update_screen_size(int num)
 	w = (int)ww;
 	h = (int)hh;
 	set_screen_size(w, h);
-	emit sig_screen_multiply((double)nd);
+	emit sig_screen_multiply(nd);
 }
 
 void Ui_MainWindowBase::set_gl_crt_filter(bool flag)
@@ -288,6 +308,8 @@ void Ui_MainWindowBase::set_screen_size(int w, int h)
 
 void Ui_MainWindowBase::set_screen_aspect(int num)
 {
+	if(p_config == nullptr) return;
+	if(using_flags == nullptr) return;
 	if((num < 0) || (num >= 4)) return;
 	// 0 = DOT
 	// 1 = ASPECT(Scale X)
@@ -297,20 +319,26 @@ void Ui_MainWindowBase::set_screen_aspect(int num)
 	
 	if(using_flags->get_emu()) {
 		int w, h, n;
-		float nd, ww, hh;
-		float xzoom = using_flags->get_screen_x_zoom();
-		float yzoom = using_flags->get_screen_y_zoom();
+		double nd, ww, hh;
+		double xzoom = using_flags->get_screen_x_zoom();
+		double yzoom = using_flags->get_screen_y_zoom();
 		n = p_config->window_mode;
-		nd = getScreenMultiply(n);
+		if((n < 0) || (n >= using_flags->get_screen_mode_num())) return;
+		if(actionScreenSize[n] == nullptr) return;
+		
+		struct CSP_Ui_MainWidgets::ScreenMultiplyPair s_mul;
+		s_mul = actionScreenSize[n]->data().value<CSP_Ui_MainWidgets::ScreenMultiplyPair>();
+		nd = s_mul.value;
+		
 		if(nd <= 0.0f) return;
 		
-		ww = (float)using_flags->get_screen_width();
-		hh = (float)using_flags->get_screen_height();
+		ww = (double)using_flags->get_screen_width();
+		hh = (double)using_flags->get_screen_height();
 		
 		if((using_flags->get_screen_height_aspect() != using_flags->get_screen_height()) ||
 		   (using_flags->get_screen_width_aspect() != using_flags->get_screen_width())) {
-			float par_w = (float)using_flags->get_screen_width_aspect() / ww;
-			float par_h = (float)using_flags->get_screen_height_aspect() / hh;
+			double par_w = (double)using_flags->get_screen_width_aspect() / ww;
+			double par_h = (double)using_flags->get_screen_height_aspect() / hh;
 			//double par = par_h / par_w;
 			switch(p_config->window_stretch_type) {
 			case 0: // refer to X and Y.
