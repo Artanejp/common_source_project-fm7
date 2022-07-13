@@ -48,7 +48,7 @@
 #include "floppy.h"
 #endif
 #include "joystick.h"
-#include "memory.h"
+#include "./memory.h"
 //#include "psub.h"
 #include "sub.h"
 #include "timer.h"
@@ -77,7 +77,20 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #else
 	support_sub_cpu = FILEIO::IsFileExisting(create_local_path(_T(SUB_CPU_ROM_FILE_NAME)));
 #endif
+	// Initialize any devices, this is error for some situations.20220713 K.O
+	drec = NULL;
+	sub = NULL;
+	cpu_sub = NULL;
 	
+	pio_fdd = NULL;
+	pio_pc80s31k = NULL;
+	fdc_pc80s31k = NULL;
+	cpu_pc80s31k = NULL;
+
+	pc6031 = NULL;
+#if defined(_PC6601) || defined(_PC6601SR)
+	floppy = NULL;
+#endif
 	// create devices
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
@@ -462,7 +475,7 @@ void VM::key_up(int code)
 
 void VM::open_cart(int drv, const _TCHAR* file_path)
 {
-	if(drv == 0) {
+	if((drv == 0) && (memory != nullptr)) {
 		memory->open_cart(file_path);
 		reset();
 	}
@@ -470,7 +483,7 @@ void VM::open_cart(int drv, const _TCHAR* file_path)
 
 void VM::close_cart(int drv)
 {
-	if(drv == 0) {
+	if((drv == 0) && (memory != nullptr)) {
 		memory->close_cart();
 		reset();
 	}
@@ -478,7 +491,7 @@ void VM::close_cart(int drv)
 
 bool VM::is_cart_inserted(int drv)
 {
-	if(drv == 0) {
+	if((drv == 0) && (memory != nullptr)) {
 		return memory->is_cart_inserted();
 	} else {
 		return false;
@@ -489,15 +502,17 @@ void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
 	if(drv < 2) {
-		floppy->open_disk(drv, file_path, bank);
+		if(floppy != nullptr) {
+			floppy->open_disk(drv, file_path, bank);
+		}
 		return;
 	} else {
 		drv -= 2;
 	}
 #endif
-	if(support_pc80s31k) {
+	if((support_pc80s31k) && (fdc_pc80s31k != nullptr)) {
 		fdc_pc80s31k->open_disk(drv, file_path, bank);
-	} else {
+	} else if(pc6031 != nullptr) {
 		pc6031->open_disk(drv, file_path, bank);
 	}
 }
@@ -506,15 +521,17 @@ void VM::close_floppy_disk(int drv)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
 	if(drv < 2) {
-		floppy->close_disk(drv);
+		if(floppy != nullptr) {
+			floppy->close_disk(drv);
+		}
 		return;
 	} else {
 		drv -= 2;
 	}
 #endif
-	if(support_pc80s31k) {
+	if((support_pc80s31k) && (fdc_pc80s31k != nullptr)) {
 		fdc_pc80s31k->close_disk(drv);
-	} else {
+	} else if(pc6031 != nullptr) {
 		pc6031->close_disk(drv);
 	}
 }
@@ -523,31 +540,37 @@ bool VM::is_floppy_disk_inserted(int drv)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
 	if(drv < 2) {
-		return floppy->is_disk_inserted(drv);
+		if(floppy != nullptr) {
+			return floppy->is_disk_inserted(drv);
+		}
+		return false;
 	} else {
 		drv -= 2;
 	}
 #endif
-	if(support_pc80s31k) {
+	if((support_pc80s31k) && (fdc_pc80s31k != nullptr)) {
 		return fdc_pc80s31k->is_disk_inserted(drv);
-	} else {
+	} else if(pc6031 != nullptr) {
 		return pc6031->is_disk_inserted(drv);
 	}
+	return false;
 }
 
 void VM::is_floppy_disk_protected(int drv, bool value)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
 	if(drv < 2) {
-		floppy->is_disk_protected(drv, value);
+		if(floppy != nullptr) {
+			floppy->is_disk_protected(drv, value);
+		}
 		return;
 	} else {
 		drv -= 2;
 	}
 #endif
-	if(support_pc80s31k) {
+	if((support_pc80s31k) && (fdc_pc80s31k != nullptr)) {
 		fdc_pc80s31k->is_disk_protected(drv, value);
-	} else {
+	} else if(pc6031 != nullptr) {
 		pc6031->is_disk_protected(drv, value);
 	}
 }
@@ -556,29 +579,35 @@ bool VM::is_floppy_disk_protected(int drv)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
 	if(drv < 2) {
-		return floppy->is_disk_protected(drv);
+		if(floppy != nullptr) {
+			return floppy->is_disk_protected(drv);
+		}
+		return false;
 	} else {
 		drv -= 2;
 	}
 #endif
-	if(support_pc80s31k) {
+	if((support_pc80s31k) && (fdc_pc80s31k != nullptr)) {
 		return fdc_pc80s31k->is_disk_protected(drv);
-	} else {
+	} else if(pc6031 != nullptr) {
 		return pc6031->is_disk_protected(drv);
 	}
+	return false;
 }
 
 uint32_t VM::is_floppy_disk_accessed()
 {
 	uint32_t status = 0; /// fdc->read_signal(0);
-	if(support_pc80s31k) {
+	if((support_pc80s31k) && (fdc_pc80s31k != nullptr)) {
 		status |= fdc_pc80s31k->read_signal(0);
-	} else {
+	} else if(pc6031 != nullptr) {
 		status |= pc6031->read_signal(0);
 	}
 #if defined(_PC6601) || defined(_PC6601SR)
 	status <<= 2;
-	status |= floppy->read_signal(0);
+	if(floppy != nullptr) {
+		status |= floppy->read_signal(0);
+	}
 #endif
 	return status;
 }
@@ -588,14 +617,18 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 	if(support_sub_cpu) {
 		// support both p6/p6t and wav
 #if 1
-		bool remote = drec->get_remote();
+		if(drec != nullptr) {
+			bool remote = drec->get_remote();
 		
-		if(drec->play_tape(file_path) && remote) {
-			// if machine already sets remote on, start playing now
-			push_play(drv);
+			if(drec->play_tape(file_path) && remote) {
+				// if machine already sets remote on, start playing now
+				push_play(drv);
+			}
 		}
 #else
-		sub->play_tape(file_path);	// temporary
+		if(sub != nullptr) {
+			sub->play_tape(file_path);	// temporary
+		}
 #endif
 //	} else {
 //		// support only p6/p6t
@@ -608,14 +641,17 @@ void VM::rec_tape(int drv, const _TCHAR* file_path)
 	if(support_sub_cpu) {
 		// support both p6/p6t and wav
 #if 0
-		bool remote = drec->get_remote();
-		
-		if(drec->rec_tape(file_path) && remote) {
-			// if machine already sets remote on, start recording now
-			push_play(drv);
+		if(drec != nullptr) {
+			bool remote = drec->get_remote();
+			if(drec->rec_tape(file_path) && remote) {
+				// if machine already sets remote on, start recording now
+				push_play(drv);
+			}
 		}
 #else
-		sub->rec_tape(file_path);	// temporary
+		if(sub != nullptr) {
+			sub->rec_tape(file_path);	// temporary
+		}
 #endif
 //	} else {
 //		// support both p6/p6t and wav
@@ -626,13 +662,15 @@ void VM::rec_tape(int drv, const _TCHAR* file_path)
 void VM::close_tape(int drv)
 {
 	if(support_sub_cpu) {
-		if(sub->is_tape_inserted()) {
-			sub->close_tape();	// temporary
-		} else {
-			emu->lock_vm();
-			drec->close_tape();
-			emu->unlock_vm();
-			drec->set_remote(false);
+		if((sub != nullptr) && (drec != nullptr)) {
+			if(sub->is_tape_inserted()) {
+				sub->close_tape();	// temporary
+			} else {
+				emu->lock_vm();
+				drec->close_tape();
+				emu->unlock_vm();
+				drec->set_remote(false);
+			}
 		}
 //	} else {
 //		psub->close_tape();
@@ -642,51 +680,61 @@ void VM::close_tape(int drv)
 bool VM::is_tape_inserted(int drv)
 {
 	if(support_sub_cpu) {
-		return drec->is_tape_inserted() || sub->is_tape_inserted();
-//	} else {
-//		return psub->is_tape_inserted();
+		bool l = false;
+		if(drec != nullptr) {
+			l |= drec->is_tape_inserted();
+		}
+		if(sub != nullptr) {
+			l |= sub->is_tape_inserted();
+		}
+		return l;
 	}
+	return false;
 }
 
 bool VM::is_tape_playing(int drv)
 {
 	if(support_sub_cpu) {
-		return drec->is_tape_playing();
-	} else {
-		return false;
+		if(drec != nullptr) {
+			return drec->is_tape_playing();
+		}
 	}
+	return false;
 }
 
 bool VM::is_tape_recording(int drv)
 {
 	if(support_sub_cpu) {
-		return drec->is_tape_recording();
-	} else {
-		return false;
+		if(drec != nullptr) {
+			return drec->is_tape_recording();
+		}
 	}
+	return false;
 }
 
 int VM::get_tape_position(int drv)
 {
 	if(support_sub_cpu) {
-		return drec->get_tape_position();
-	} else {
-		return 0;
+		if(drec != nullptr) {
+			return drec->get_tape_position();
+		}
 	}
+	return 0;
 }
 
 const _TCHAR* VM::get_tape_message(int drv)
 {
 	if(support_sub_cpu) {
-		return drec->get_message();
-	} else {
-		return NULL;
+		if(drec != nullptr) {
+			return drec->get_message();
+		}
 	}
+	return NULL;
 }
 
 void VM::push_play(int drv)
 {
-	if(support_sub_cpu) {
+	if((support_sub_cpu) && (drec != nullptr)) {
 		drec->set_remote(false);
 		drec->set_ff_rew(0);
 		drec->set_remote(true);
@@ -695,14 +743,14 @@ void VM::push_play(int drv)
 
 void VM::push_stop(int drv)
 {
-	if(support_sub_cpu) {
+	if((support_sub_cpu) && (drec != nullptr)) {
 		drec->set_remote(false);
 	}
 }
 
 void VM::push_fast_forward(int drv)
 {
-	if(support_sub_cpu) {
+	if((support_sub_cpu)  && (drec != nullptr)) {
 		drec->set_remote(false);
 		drec->set_ff_rew(1);
 		drec->set_remote(true);
@@ -711,7 +759,7 @@ void VM::push_fast_forward(int drv)
 
 void VM::push_fast_rewind(int drv)
 {
-	if(support_sub_cpu) {
+	if((support_sub_cpu)  && (drec != nullptr)) {
 		drec->set_remote(false);
 		drec->set_ff_rew(-1);
 		drec->set_remote(true);
