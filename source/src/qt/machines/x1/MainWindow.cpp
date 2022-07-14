@@ -18,29 +18,8 @@
 #include "emu.h"
 #include "qt_main.h"
 
-Action_Control_X1::Action_Control_X1(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
-{
-	x1_binds = new Object_Menu_Control_X1(parent, p);
-}
-
-Action_Control_X1::~Action_Control_X1(){
-	delete x1_binds;
-}
-
-Object_Menu_Control_X1::Object_Menu_Control_X1(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
-{
-}
-
-Object_Menu_Control_X1::~Object_Menu_Control_X1(){
-}
-
-
-extern config_t config;
-
 void META_MainWindow::setupUI_Emu(void)
 {
-   int i;
-  
 }
 
 void META_MainWindow::retranslateUi(void)

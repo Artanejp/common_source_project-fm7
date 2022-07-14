@@ -20,41 +20,6 @@
 #include "menu_cmt.h"
 #include "menu_binary.h"
 
-extern config_t config;
-//QT_BEGIN_NAMESPACE
-Object_Menu_Control_TK::Object_Menu_Control_TK(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
-{
-}
-
-Object_Menu_Control_TK::~Object_Menu_Control_TK()
-{
-}
-
-
-void Object_Menu_Control_TK::do_set_dipsw(bool flag)
-{
-	int bitpos = getValue1();
-	uint32_t bit = 0x00000001;
-	if((bitpos < 0) || (bitpos >= 32)) return;
-	bit = bit << bitpos;
-	if(flag) {
-		config.dipswitch = config.dipswitch | bit;
-	} else {
-		config.dipswitch = config.dipswitch & ((uint32_t)~bit);
-	}
-}
-
-Action_Control_TK::Action_Control_TK(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
-{
-	tk_binds = new Object_Menu_Control_TK(parent, p);
-	tk_binds->setValue1(0);
-}
-
-Action_Control_TK::~Action_Control_TK()
-{
-	delete tk_binds;
-}
-
 void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
@@ -96,15 +61,8 @@ void META_MainWindow::setupUI_Emu(void)
 	menuMachine->addSeparator();
 	uint32_t _bit = 0x00000001;
 	for(int i = 0; i < 1; i++) {
-		action_DipSWs[i] = new Action_Control_TK(this, using_flags);
-		action_DipSWs[i]->setCheckable(true);
-		action_DipSWs[i]->setVisible(true);
-		action_DipSWs[i]->setEnabled(true);
+		SET_ACTION_SINGLE_DIPSWITCH_CONNECT(action_DipSWs[i], _bit, p_config->dipswitch , SIGNAL(toggled(bool)) , SLOT(do_set_single_dipswitdh(bool)));
 		menuMachine->addAction(action_DipSWs[i]);
-		if((config.dipswitch & _bit) != 0) action_DipSWs[i]->setChecked(true);
-		action_DipSWs[i]->tk_binds->setValue1(i);
-		connect(action_DipSWs[i], SIGNAL(toggled(bool)), action_DipSWs[i]->binds, SLOT(do_set_dipsw(bool)));
-		connect(action_DipSWs[i]->binds, SIGNAL(sig_emu_update_config()), this, SLOT(do_emu_update_config()));
 		_bit <<= 1;
 	}
 }

@@ -14,8 +14,6 @@ class CSP_Logger;
 class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
 protected:
-	QActionGroup   *actionGroup_SoundDevice;
-	QMenu *menu_Emu_SoundDevice;
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 public:

@@ -878,8 +878,6 @@ public slots:
 	void set_printer_device();
 	void do_show_about(void);
 	void do_browse_document(void);
-	void set_dipsw(int num, bool flag);
-	bool get_dipsw(int num);
 
 	void do_set_sound_files_fdd(bool f);
 	void do_set_sound_files_relay(bool f);

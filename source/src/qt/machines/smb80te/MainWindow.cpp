@@ -17,46 +17,6 @@
 #include "menu_binary.h"
 
 //QT_BEGIN_NAMESPACE
-extern config_t config;
-
-Object_Menu_Control_SMB::Object_Menu_Control_SMB(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
-{
-}
-
-Object_Menu_Control_SMB::~Object_Menu_Control_SMB()
-{
-}
-
-void Object_Menu_Control_SMB::do_set_adrs_base()
-{
-	int val = getValue1();
-	if((val >= 0) && (val < 4)) {
-		uint32_t xval = ((uint32_t)val) << 2;
-		config.dipswitch = (config.dipswitch & (~(3 << 2))) | xval;
-	}
-}
-
-Action_Control_SMB::Action_Control_SMB(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
-{
-	smb_binds = new Object_Menu_Control_SMB(parent, p);
-	smb_binds->setValue1(0);
-}
-
-Action_Control_SMB::~Action_Control_SMB()
-{
-	delete smb_binds;
-}
-
-
-
-void META_MainWindow::do_set_adrs_8000(bool flag)
-{
-	if(flag) {
-		config.dipswitch = config.dipswitch | 0x00000001;
-	} else {
-		config.dipswitch = config.dipswitch & ~0x00000001;
-	}
-}
 
 void META_MainWindow::retranslateUi(void)
 {
@@ -87,30 +47,18 @@ void META_MainWindow::retranslateUi(void)
 
 void META_MainWindow::setupUI_Emu(void)
 {
-	actionAddress8000 = new QAction(this);
-	actionAddress8000->setCheckable(true);
-	actionAddress8000->setVisible(true);
+
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionAddress8000, 0x00000001, p_config->dipswitch , SIGNAL(toggled(bool)) , SLOT(do_set_single_dipswitdh(bool)));
 	menuMachine->addAction(actionAddress8000);
-	actionAddress8000->setChecked(((config.dipswitch & 0x00000001) != 0) ? true : false);
-	connect(actionAddress8000, SIGNAL(toggled(bool)), this, SLOT(do_set_adrs_8000(bool)));
 
 	menuAddrBase = new QMenu(menuMachine);
 	menuAddrBase->setObjectName(QString::fromUtf8("menuAddrBase"));
 	menuMachine->addAction(menuAddrBase->menuAction());
 	menuAddrBase->setToolTipsVisible(true);
 	for(int i = 0; i < 4; i++) {
-		actionAddressBase[i] = new Action_Control_SMB(this, using_flags);
-		actionAddressBase[i]->setCheckable(true);
-		actionAddressBase[i]->setVisible(true);
-		actionAddressBase[i]->setChecked(false);
+		SET_ACTION_DIPSWITCH_CONNECT(actionAddressBase[i], (((uint32_t)i) << 2), (0x03 << 2), p_config->dipswitch , SIGNAL(triggered()) ,SLOT(do_set_multi_dipswitch()));
 		menuAddrBase->addAction(actionAddressBase[i]);
-		actionAddressBase[i]->smb_binds->setValue1(i);
-		connect(actionAddressBase[i], SIGNAL(triggered()),
-				actionAddressBase[i]->smb_binds, SLOT(do_set_adrs_base()));
-
 	}
-	uint32_t xval = (config.dipswitch >> 2) & 3;
-	actionAddressBase[xval]->setChecked(true);
 }
 
 

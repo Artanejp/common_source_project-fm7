@@ -22,28 +22,6 @@
 
 //QT_BEGIN_NAMESPACE
 
-extern config_t config;
-
-Object_Menu_Control_YIS::Object_Menu_Control_YIS(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
-{
-}
-
-Object_Menu_Control_YIS::~Object_Menu_Control_YIS()
-{
-}
-
-
-Action_Control_YIS::Action_Control_YIS(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
-{
-	yis_binds = new Object_Menu_Control_YIS(parent, p);
-    yis_binds->setValue1(0);
-}
-
-Action_Control_YIS::~Action_Control_YIS()
-{
-	delete yis_binds;
-}
-
 
 void META_MainWindow::retranslateUi(void)
 {

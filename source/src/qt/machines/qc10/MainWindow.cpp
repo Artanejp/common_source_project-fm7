@@ -17,30 +17,6 @@
 #include "emu.h"
 #include "qt_main.h"
 
-extern config_t config;
-
-Action_Control_QC10::Action_Control_QC10(QObject *parent, USING_FLAGS *p) : Action_Control(parent, p)
-{
-	qc_binds = new Object_Menu_Control_QC10(parent, p);
-}
-
-Action_Control_QC10::~Action_Control_QC10(){
-	delete qc_binds;
-}
-
-Object_Menu_Control_QC10::Object_Menu_Control_QC10(QObject *parent, USING_FLAGS *p) : Object_Menu_Control(parent, p)
-{
-}
-
-Object_Menu_Control_QC10::~Object_Menu_Control_QC10(){
-}
-
-void Object_Menu_Control_QC10::set_dipsw(bool flag)
-{
-	emit sig_dipsw(getValue1(), flag);
-}
-	
-
 void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
@@ -76,20 +52,13 @@ void META_MainWindow::setupUI_Emu(void)
 	menuMachine->addAction(menu_Emu_DipSw->menuAction());
 	
 	for(i = 0; i < 8; i++) {
-		action_Emu_DipSw[i] = new Action_Control_QC10(this, using_flags);
-		action_Emu_DipSw[i]->setCheckable(true);
-		action_Emu_DipSw[i]->qc_binds->setValue1(i);
+		SET_ACTION_SINGLE_DIPSWITCH_CONNECT(action_Emu_DipSw[i], (0x01 << i), p_config->dipswitch , SIGNAL(toggled(bool)) , SLOT(do_set_single_dipswitch(bool)));
+		
 		tmps.number(i + 1);
 		tmps = QString::fromUtf8("actionEmu_DipSw") + tmps;
 		action_Emu_DipSw[i]->setObjectName(tmps);
 		menu_Emu_DipSw->addAction(action_Emu_DipSw[i]);
-		if((config.dipswitch & (1 << i)) != 0) action_Emu_DipSw[i]->setChecked(true);
-		
 		actionGroup_DipSw->addAction(action_Emu_DipSw[i]);
-		connect(action_Emu_DipSw[i], SIGNAL(toggled(bool)),
-				action_Emu_DipSw[i]->qc_binds, SLOT(set_dipsw(bool)));
-		connect(action_Emu_DipSw[i]->qc_binds, SIGNAL(sig_dipsw(int, bool)),
-				this, SLOT(set_dipsw(int, bool)));
 	}
 
 }

@@ -8,29 +8,8 @@
 // This extends class CSP_MainWindow as Ui_MainWindow.
 // You may use this as 
 QT_BEGIN_NAMESPACE
+
 class USING_FLAGS;
-class Object_Menu_Control_QC10: public Object_Menu_Control
-{
-	Q_OBJECT
-public:
-	Object_Menu_Control_QC10(QObject *parent, USING_FLAGS *p);
-	~Object_Menu_Control_QC10();
-signals:
-	int sig_dipsw(int, bool);
-public slots:
-	void set_dipsw(bool);
-};
-
-class Action_Control_QC10 : public Action_Control
-{
-	Q_OBJECT
-public:
-	Object_Menu_Control_QC10 *qc_binds;
-	Action_Control_QC10(QObject *parent, USING_FLAGS *p);
-	~Action_Control_QC10();
-};
-
-class Ui_MainWindow;
 class CSP_Logger;
 //  wrote of Specific menu.
 class META_MainWindow : public Ui_MainWindow {
@@ -38,7 +17,7 @@ class META_MainWindow : public Ui_MainWindow {
 protected:
 	QMenu *menu_Emu_DipSw;
 	QActionGroup *actionGroup_DipSw;
-	Action_Control_QC10 *action_Emu_DipSw[8];
+	Action_Control *action_Emu_DipSw[8];
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 public:

@@ -17,8 +17,6 @@ class CSP_Logger;
 class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
 protected:
-	QActionGroup   *actionGroup_SoundDevice;
-	QMenu *menu_Emu_SoundDevice;
 	Action_Control *actionRAM_512K;
 	Action_Control *actionINIT_MEMSW;
 	Action_Control *actionGDC_FAST;

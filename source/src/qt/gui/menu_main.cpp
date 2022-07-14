@@ -338,23 +338,6 @@ void Ui_MainWindowBase::do_select_render_platform(void)
 	}
 }
 
-void Ui_MainWindowBase::set_dipsw(int num, bool flag)
-{
-	if((num < 0) || (num >= 32)) return;
-	if(flag) {
-		p_config->dipswitch = p_config->dipswitch | (1 << num);
-	} else {
-		p_config->dipswitch = p_config->dipswitch & ~(1 << num);
-	}
-}
-
-bool Ui_MainWindowBase::get_dipsw(int num)
-{
-	if((num < 0) || (num >= 32)) return false;
-	if(((1 << num) & p_config->dipswitch) == 0) return false;
-	return true;
-}
-
 void Ui_MainWindowBase::closeEvent(QCloseEvent *event)
 {
 	if(about_to_close) {

@@ -1,6 +1,3 @@
-
-
-
 #ifndef _CSP_QT_MENUCLASSES_H
 #define _CSP_QT_MENUCLASSES_H
 
@@ -10,7 +7,6 @@
 // You may use this as 
 QT_BEGIN_NAMESPACE
 
-class Ui_MainWindow;
 class USING_FLAGS;
 class CSP_Logger;
 class META_MainWindow : public Ui_MainWindow {
