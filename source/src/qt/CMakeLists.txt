@@ -1,5 +1,5 @@
 message("* qt/osd")
-SET(THIS_LIB_VERSION 4.2.0)
+SET(THIS_LIB_VERSION 5.0.0)
 
 set(s_qt_osd_headers
 	osd_base.h
@@ -42,6 +42,7 @@ if(WIN32)
 	  Qt::OpenGL
 	  Qt::Widgets
 	  Qt::Network
+	  Qt::Multimedia
 	  ${SDL2_LIBRARIES}
 	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
@@ -53,6 +54,7 @@ if(WIN32)
 	  Qt5::OpenGL
 	  Qt5::Widgets
 	  Qt5::Network
+	  Qt5::Multimedia
 	  ${SDL2_LIBRARIES}
 	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
@@ -74,6 +76,7 @@ else()
 		Qt::Gui
 		Qt::Widgets
 		Qt::Network
+		Qt::Multimedia
 		${SDL2_LIBRARIES}
 		${ADDITIONAL_DLL_LIBRARIES}
 		)
@@ -83,6 +86,7 @@ else()
 		Qt5::Gui
 		Qt5::Widgets
 		Qt5::Network
+		Qt5::Multimedia
 		${SDL2_LIBRARIES}
 		${ADDITIONAL_DLL_LIBRARIES}
 		)

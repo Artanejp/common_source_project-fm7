@@ -16,6 +16,8 @@
 #include <QString>
 #include <QStringList>
 #include <QImage>
+#include <QAudioFormat>
+#include <QAudioDevice>
 #include <SDL.h>
 
 #include <string>
@@ -158,9 +160,27 @@ typedef struct {
 	uint8_t *out_buffer;
 } osd_snd_capture_desc_t;
 
+
+class QAudioSource;
+class QAudioSink;
+class QBuffer;
+class FIFO;
+
 class DLL_PREFIX OSD_BASE : public  QObject
 {
 	Q_OBJECT
+private:
+	QAudioFormat m_audioOutputFormat;
+	QAudioDevice m_audioOutputDevice;
+	QAudioSink   *m_audioOutputSink;
+	FIFO         *m_audioOutputBuffer;
+	QIODevice    *m_audioOutput;
+	
+	QAudioFormat m_audioInputFormat;
+	QAudioDevice m_audioInputDevice;
+	QAudioSource *m_audioInputSource;
+	FIFO         *m_audioInputBuffer;
+	QIODevice    *m_audioInput;
 protected:
 	EmuThreadClass *parent_thread;
 	sdl_snddata_t snddata;
@@ -710,6 +730,7 @@ public slots:
 	void set_dbg_completion_list(std::list<std::string> *p);
 	void clear_dbg_completion_list(void);
 	void set_hdd_image_name(int drv, _TCHAR *filename);
+	void handleStateChanged(QAudio::State newState);
 
 signals:
 	int sig_update_screen(void *, bool);

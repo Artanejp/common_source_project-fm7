@@ -6,9 +6,14 @@
 
 	[Qt/SDL sound ]
 */
+/*
+  Note: 20220715 K.Ohta : This will be based on QtMultimedia's audio driver,
+		But this still has a lot of delay.Will fix or discard.
+*/
 
 #include "../emu.h"
 #include "../fileio.h"
+#include "../fifo.h"
 #include "../types/util_sound.h"
 #include "../types/util_endians.h"
 
@@ -21,7 +26,8 @@
 #include <QString>
 #include <QDateTime>
 #include <QThread>
-
+#include <QByteArray>
+#include <QBuffer>
 #include <cstdint>
 
 void OSD_BASE::audio_capture_callback(void *udata, Uint8 *stream, int len)
@@ -190,7 +196,7 @@ int OSD_BASE::get_sound_device_num()
 {
 	return sound_device_list.count();
 }
-
+#if 0
 void OSD_BASE::get_sound_device_list()
 {
 	sound_device_list.clear();
@@ -417,7 +423,159 @@ void OSD_BASE::release_sound()
 	sound_buf_ptr = NULL;
 	// stop recording
 }
+#else
+// QT_Multimedia
+#include <QtMultimedia>
 
+void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
+{
+	// ToDo: Sound Input
+	QAudioFormat desired;
+
+	if(m_audioOutputSink != nullptr) {
+		m_audioOutputSink->stop();
+		delete m_audioOutputSink;
+		m_audioOutputSink = nullptr;
+	}
+	desired.setChannelCount(2);
+	desired.setSampleRate(rate);
+	desired.setSampleFormat(QAudioFormat::Int16);
+	desired.setChannelConfig(QAudioFormat::ChannelConfigStereo);
+
+	bool output_available = false;
+	if(m_audioOutputDevice.isFormatSupported(desired)) {
+		    desired = m_audioOutputDevice.preferredFormat();
+	}
+	m_audioOutputFormat = desired;
+	m_audioOutputSink = new QAudioSink(m_audioOutputDevice, m_audioOutputFormat, this);
+//	if(m_audioOutput != nullptr) {
+//		if(m_audioOutput->isOpen()) {
+//			m_audioOutput->close();
+//		}
+//		delete m_audioOutput;
+//		m_audioOutput = nullptr;
+//	}
+	if(m_audioOutputBuffer != nullptr) {
+		delete m_audioOutputBuffer;
+	}
+	rate = m_audioOutputFormat.sampleRate();
+	if(rate <= 0) rate = 8000;
+	int wordsize = sizeof(int16_t);
+	switch(m_audioOutputFormat.sampleFormat()) {
+	case QAudioFormat::UInt8:
+		wordsize = sizeof(uint8_t);
+		break;
+	case QAudioFormat::Int16:
+		wordsize = sizeof(int16_t);
+		break;
+	case QAudioFormat::Int32:
+		wordsize = sizeof(int32_t);
+		break;
+	case QAudioFormat::Float:
+		wordsize = sizeof(float);
+		break;
+	}
+	int outbuffer_length = 2 * 2 * samples * 4;
+	m_audioOutputBuffer = new FIFO(outbuffer_length);
+	if(m_audioOutputBuffer != nullptr) {
+		sound_samples = samples;
+		sound_rate = rate;
+//		m_audioOutput = new QBuffer(m_audioOutputBuffer, this);
+//		if(m_audioOutput != nullptr) {
+//			m_audioOutput->open(QIODeviceBase::ReadWrite);
+//		}
+	} else {
+		sound_samples = samples;
+		sound_rate = rate;
+	}
+//	sound_samples = samples;
+//	sound_rate = rate;
+	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,"Sample rate=%d samples=%d\n", sound_rate, sound_samples);
+	
+	rec_sound_buffer_ptr = 0;
+	sound_ok = sound_started = now_mute = now_record_sound = false;
+	sound_write_pos = 0;
+	sound_data_len = 0;
+	sound_buffer_size = 0;
+	sound_data_pos = 0;
+	sound_exit = false;
+	sound_debug = false;
+	//sound_debug = true;
+	sound_buf_ptr = NULL;
+
+	if(presented_rate != nullptr) {
+		*presented_rate = sound_rate;
+	}
+	if(presented_samples != nullptr) {
+		*presented_samples = sound_samples;
+	}
+
+	
+//	if(m_audioOutput != nullptr) {
+		if(m_audioOutputSink != nullptr) {
+			sound_ok = true;
+			sound_initialized = true;
+			//connect(m_audioOutputSink, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleStateChanged(QAudio::State)));
+			m_audioOutputSink->setBufferSize(sound_samples * 2 * sizeof(int16_t) * 4);
+			m_audioOutput = m_audioOutputSink->start();
+			//m_audioOutputSink->suspend();
+		} else {
+			sound_ok = false;
+			sound_initialized = false;
+			m_audioOutput = nullptr;
+		}
+//	}
+	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
+						  "Sound OK: BufSize = %d", outbuffer_length);
+
+}
+
+void OSD_BASE::release_sound()
+{
+	// ToDo: Sound Input
+	// release Qt Multimedia sound
+	sound_exit = true;
+	sound_initialized = false;
+	if(m_audioOutputSink != nullptr) {
+		m_audioOutputSink->stop();
+		int timeout = 1000;
+		while((m_audioOutputSink->state() != QAudio::StoppedState) && (timeout >= 0)) {
+			QThread::usleep(1000); // Wait 1mS
+			timeout--;
+		}
+		delete m_audioOutputSink;
+		m_audioOutputSink = nullptr;
+	}
+//	if(m_audioOutput != nullptr) {
+//		if(m_audioOutput->isOpen()) {
+//			m_audioOutput->close();
+//		}
+//		delete m_audioOutput;
+//		m_audioOutput = nullptr;
+//	}
+	if(m_audioOutputBuffer != nullptr) {
+		delete m_audioOutputBuffer;
+		m_audioOutputBuffer = nullptr;
+	}
+	sound_ok = false;
+	sound_initialized = false;
+}
+
+void OSD_BASE::get_sound_device_list()
+{
+	sound_device_list.clear();
+	QList<QAudioDevice> tmplist = QMediaDevices::audioOutputs();
+	int i = 0;
+	for(auto p = tmplist.begin(); p != tmplist.end(); ++p) {
+		QString tmps = (*p).description();
+		sound_device_list.append(tmps);
+		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
+				  "Audio Device #%d: %s", i, tmps.toLocal8Bit().constData());
+		i++;
+	}
+}
+		
+#endif
 void OSD_BASE::convert_sound_format(uint8_t* dst1, uint8_t* dst2, int16_t* src1, int16_t* src2, int samples1, int samples2)
 {
 	if(dst1 == NULL) return;
@@ -699,7 +857,7 @@ void OSD_BASE::convert_sound_format(uint8_t* dst1, uint8_t* dst2, int16_t* src1,
 		break;
 	}
 }
-
+#if 0
 void OSD_BASE::update_sound(int* extra_frames)
 {
 	*extra_frames = 0;
@@ -902,7 +1060,246 @@ void OSD_BASE::stop_sound()
 		//sound_exit = false;
 	}
 }
+void OSD_BASE::handleStateChanged(QAudio::State newState)
+{
+}
+#else
 
+void OSD_BASE::handleStateChanged(QAudio::State newState)
+{
+	switch(newState) {
+	case QAudio::ActiveState:
+		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, _T("AUDIO:ACTIVE"));
+		break;
+	case QAudio::IdleState:
+		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, _T("AUDIO:IDLE"));
+#if 0		
+		if((m_audioOutput != nullptr) && (m_audioOutputBuffer != nullptr)) {
+			if(!(m_audioOutputBuffer->empty())) {
+				int _count = m_audioOutputBuffer->count();
+				int remain = m_audioOutputSink->bytesFree() / sizeof(int16_t);
+				if(_count > remain) _count = remain;
+				if(_count <= 0) return;
+				uint8_t *buf = new uint8_t[_count * sizeof(int16_t)];
+				for(int i = 0; i < _count; i++) {
+					int d =  m_audioOutputBuffer->read();
+					buf[(i << 1) + 0] = d & 0xff;
+					buf[(i << 1) + 1] = (d & 0xff00) >> 8;
+				}
+				m_audioOutput->write((const char *)buf, _count * sizeof(int16_t));
+			}
+		} else {
+			//m_audioOutputSink->suspend();
+		}
+#endif
+		break;
+	case QAudio::StoppedState:
+		m_audioOutput = nullptr;
+		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, _T("AUDIO:STOP"));
+		break;
+	case QAudio::SuspendedState:
+		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, _T("AUDIO:SUSPEND"));
+		break;
+	}
+}
+void OSD_BASE::update_sound(int* extra_frames)
+{
+	*extra_frames = 0;
+	
+	now_mute = false;
+	if(sound_ok) {
+		if(m_audioOutputBuffer == nullptr) return;
+		if((m_audioOutputSink != nullptr) /*&& (written > 0)*/) {
+			if(m_audioOutputBuffer->count() >= ((sound_samples) * 2)) {
+				if((m_audioOutput != nullptr) && (m_audioOutputBuffer != nullptr)) {
+					if(!(m_audioOutputBuffer->empty())) {
+						int _count = m_audioOutputBuffer->count();
+						int remain = m_audioOutputSink->bytesFree() / sizeof(int16_t);
+						if(_count > remain) _count = remain;
+						if(_count > 0) {
+							uint8_t *buf = new uint8_t[_count * sizeof(int16_t)];
+							for(int i = 0; i < _count; i++) {
+								int d =  m_audioOutputBuffer->read();
+								buf[(i << 1) + 0] = d & 0xff;
+								buf[(i << 1) + 1] = (d & 0xff00) >> 8;
+							}
+							m_audioOutput->write((const char *)buf, _count * sizeof(int16_t));
+						}
+					}
+				}
+			}
+			if(m_audioOutputSink->bytesFree() < ((sound_samples * 2 * sizeof(int16_t)))) {
+				if(((m_audioOutputSink->state() == QAudio::ActiveState))) {
+					return;
+				}
+			}
+		}
+		
+//m_audioOutputSink->suspend();
+				
+//				if(((m_audioOutputSink->state() == QAudio::ActiveState))) {
+//					return;
+//				}
+//			}
+#if 0		
+			if((m_audioOutput != nullptr) && (m_audioOutputBuffer != nullptr)) {
+				if(!(m_audioOutputBuffer->empty())) {
+					int _count = m_audioOutputBuffer->count();
+					int remain = m_audioOutputSink->bytesFree() / sizeof(int16_t);
+					if(_count > remain) _count = remain;
+					if(_count > 0) {
+						uint8_t *buf = new uint8_t[_count * sizeof(int16_t)];
+						for(int i = 0; i < _count; i++) {
+							int d =  m_audioOutputBuffer->read();
+							buf[(i << 1) + 0] = d & 0xff;
+							buf[(i << 1) + 1] = (d & 0xff00) >> 8;
+						}
+						m_audioOutput->write((const char *)buf, _count * sizeof(int16_t));
+					}
+				}
+			} else {
+				//m_audioOutputSink->suspend();
+			}
+#endif			
+				//return;
+		// Input
+		int16_t* sound_buffer = (int16_t*)create_sound(extra_frames);
+		if(now_record_sound || now_record_video) {
+			if(sound_samples > rec_sound_buffer_ptr) {
+				int samples = sound_samples - rec_sound_buffer_ptr;
+				int length = samples * sizeof(int16_t) * 2; // stereo
+				rec_sound_bytes += length;
+				if(now_record_video) {
+					//AGAR_DebugLog(AGAR_LOG_DEBUG, "Push Sound %d bytes\n", length);
+					emit sig_enqueue_audio((int16_t *)(&(sound_buffer[rec_sound_buffer_ptr * 2])), length);
+				}
+				// record sound
+				if(now_record_sound) {
+					rec_sound_fio->Fwrite(sound_buffer + rec_sound_buffer_ptr * 2, length, 1);
+				}
+				//if(now_record_video) {
+				//	// sync video recording
+				//	static double frames = 0;
+				//	static int prev_samples = -1;
+				//	static double prev_fps = -1;
+				//	double fps = this->vm_frame_rate();
+				//	frames = fps * (double)samples / (double)sound_rate;
+				//}
+				//printf("Wrote %d samples ptr=%d\n", samples, rec_sound_buffer_ptr);
+				rec_sound_buffer_ptr += samples;
+				if(rec_sound_buffer_ptr >= sound_samples) rec_sound_buffer_ptr = 0;
+			}
+		}
+		//if(sound_initialized) return;
+		if(sound_buffer != nullptr) {
+			if(m_audioOutput != nullptr) {
+				int wordsize = sizeof(int32_t);
+				switch(m_audioOutputFormat.sampleFormat()) {
+				case QAudioFormat::UInt8:
+					wordsize = sizeof(uint8_t);
+					break;
+				case QAudioFormat::Int16:
+					wordsize = sizeof(int16_t);
+					break;
+				case QAudioFormat::Int32:
+					wordsize = sizeof(int32_t);
+					break;
+				case QAudioFormat::Float:
+					wordsize = sizeof(float);
+					break;
+				}
+				// ToDo: Not Int16.
+				//qint64 sound_len = sound_samples * sound_rate * 2 * wordsize;
+				qint64 sound_len = sound_samples * 2;
+				qint64 written = 0;
+#if 1
+				if(m_audioOutputBuffer != nullptr) {
+					int ptr = 0;
+					while(!(m_audioOutputBuffer->full()) && (sound_len > 0)) {
+						m_audioOutputBuffer->write(sound_buffer[ptr]);
+						ptr++;
+						sound_len--;
+					}
+					written = m_audioOutputBuffer->count();
+				}
+			
+#endif
+#if 0
+			int _count = sound_len * sizeof(int16_t);
+			int remain = m_audioOutputSink->bytesFree();
+			if(_count > remain) _count = remain;
+			//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "COUNT=%d", _count);
+			if(_count > 0) {
+				m_audioOutput->write((const char *)sound_buffer, _count);
+			}
+#endif
+			}
+		}
+	}
+}
+
+void OSD_BASE::mute_sound()
+{
+	if(!now_mute && sound_ok) {
+		if(m_audioOutputSink != nullptr) {
+			switch(m_audioOutputSink->state()) {
+			case QAudio::ActiveState:
+			case QAudio::IdleState:
+				m_audioOutputSink->suspend();
+				break;
+			}
+		}
+		if(m_audioOutput != nullptr) {
+			int wordsize = sizeof(int32_t);
+			switch(m_audioOutputFormat.sampleFormat()) {
+			case QAudioFormat::UInt8:
+				wordsize = sizeof(uint8_t);
+				break;
+			case QAudioFormat::Int16:
+				wordsize = sizeof(int16_t);
+				break;
+			case QAudioFormat::Int32:
+				wordsize = sizeof(int32_t);
+				break;
+			case QAudioFormat::Float:
+				wordsize = sizeof(float);
+				break;
+			}
+			// ToDo: Not Int16.
+			//qint64 sound_len = sound_samples * sound_rate * 2 * wordsize;
+			qint64 sound_len = sound_samples * 2 * sizeof(int16_t);
+			qint64 written = 0;
+			bool stat = false;
+			//stat = m_audioOutput->open(QIODeviceBase::WriteOnly);
+			stat = m_audioOutput->isOpen();
+			if(stat) {
+				m_audioOutput->reset();
+				while(!(m_audioOutputBuffer->full()) && (sound_len > 0)) {
+					m_audioOutputBuffer->write(0x00);
+					sound_len--;
+				}
+				//m_audioOutput->close();
+			}
+		}
+	}
+	now_mute = true;
+}
+void OSD_BASE::stop_sound()
+{
+	if(sound_ok) {
+		if(m_audioOutputSink != nullptr) {
+			switch(m_audioOutputSink->state()) {
+			case QAudio::ActiveState:
+			case QAudio::IdleState:
+			case QAudio::SuspendedState:
+				m_audioOutputSink->stop();
+				break;
+			}
+		}
+	}
+}
+
+#endif
 void OSD_BASE::start_record_sound()
 {
    
@@ -943,8 +1340,13 @@ void OSD_BASE::stop_record_sound()
 			// update wave header
 			wav_header_t wav_header;
 			wav_chunk_t wav_chunk;
+	#if 0		
 			if(!set_wav_header(&wav_header, &wav_chunk, 2, snd_spec_presented.freq, 16,
 							 (size_t)(rec_sound_bytes + sizeof(wav_header) + sizeof(wav_chunk)))) {
+	#else
+			if(!set_wav_header(&wav_header, &wav_chunk, 2, (uint32_t)(m_audioOutputFormat.sampleRate()), 16,
+							 (size_t)(rec_sound_bytes + sizeof(wav_header) + sizeof(wav_chunk)))) {
+	#endif
 				delete rec_sound_fio;
 				now_record_sound = false;
 				return;
@@ -969,11 +1371,17 @@ void OSD_BASE::restart_record_sound()
 	}
 }
 
+#if 0
 int OSD_BASE::get_sound_rate()
 {
 	return snd_spec_presented.freq;
 }
-
+#else
+int OSD_BASE::get_sound_rate()
+{
+	return (int)(m_audioOutputFormat.sampleRate());
+}
+#endif
 
 void OSD_BASE::close_capture_sound_emu(int ch)
 {
