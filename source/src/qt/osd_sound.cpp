@@ -9,6 +9,20 @@
 /*
   Note: 20220715 K.Ohta : This will be based on QtMultimedia's audio driver,
 		But this still has a lot of delay.Will fix or discard.
+  Quote from "Audio Overview" of Qt6.3.1 's documentation;
+	https://doc.qt.io/qt-6/audiooverview.html 
+	Push and Pull
+		The low level audio classes can operate in two modes - push and pull. 
+		In pull mode, the audio device is started by giving it a QIODevice. 
+		For an output device, the QAudioSink class will pull data from the 
+		QIODevice (using QIODevice::read()) when more audio data is required. 
+		Conversely, for pull mode with QAudioSource, when audio data is available
+		then the data will be written directly to the QIODevice.
+		
+		In push mode, the audio device provides a QIODevice instance that can be
+		written or read to as needed. 
+		Typically, this results in simpler code but more buffering, 
+		which may affect latency.
 */
 
 #include "../emu.h"
