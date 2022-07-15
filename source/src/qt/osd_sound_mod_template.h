@@ -192,6 +192,12 @@ namespace OSD_SOUND {
 			std::lock_guard<std::recursive_mutex> locker(m_locker);
 			return ((m_buf != nullptr) && (m_bufSize > 0));
 		}
+		bool empty()
+		{
+			bool f = available();
+			std::lock_guard<std::recursive_mutex> locker(m_locker);
+			return (!(f) || (m_dataCount <= 0));
+		}
 		bool read_ready()
 		{
 			bool f = available();
@@ -203,6 +209,12 @@ namespace OSD_SOUND {
 			bool f = available();
 			std::lock_guard<std::recursive_mutex> locker(m_locker);
 			return ((f) && (m_dataCount < m_bufSize));
+		}
+		bool full()
+		{
+			bool f = available();
+			std::lock_guard<std::recursive_mutex> locker(m_locker);
+			return (!(f) || (m_dataCount >= m_bufSize));
 		}
 		
 		int64_t count()
