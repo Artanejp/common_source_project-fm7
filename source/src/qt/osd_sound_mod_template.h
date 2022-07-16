@@ -13,237 +13,9 @@
 #include <mutex>
 
 #include "../common.h"
+#include "../fifo_templates.h"
 
 QT_BEGIN_NAMESPACE
-
-namespace OSD_SOUND {
-	template <class T >
-		class RINGBUFFER {
-		T* m_buf;
-		int64_t m_bufSize;
-		int64_t m_rptr;
-		int64_t m_wptr;
-		int64_t m_dataCount;
-		std::recursive_mutex m_locker;
-	public:
-		RINGBUFFER(int64_t size = 4096) :
-		m_bufSize(size), m_rptr(0), m_wptr(0), m_dataCount(0)
-		{
-			if(size <= 0) {
-				m_buf = nullptr;
-			} else {
-				try {
-					m_buf = new T[size];
-				} catch (std::bad_alloc& e) {
-					m_buf = nullptr;
-				}
-			}
-		}
-		~RINGBUFFER()
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			if(m_buf != nullptr) {
-				delete[] m_buf;
-			}
-		}
-		//!< Read one data
-		T read(bool& success)
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			if((m_buf == nullptr) || (m_dataCount < 1) || (m_bufSize <= 0)) {
-				success = false;
-				return (T)0;
-			}
-			T tmpval;
-			if(m_dataCount > m_bufSize) m_dataCount = m_bufSize; // OK?
-			if(m_rptr >= m_bufSize) {
-				m_rptr = (m_rptr - m_bufSize) % m_bufSize;
-			} else if(m_rptr < 0) {
-				m_rptr = (m_bufSize + m_rptr) % m_bufSize;
-			}
-			tmpval = m_buf[m_rptr++];
-			m_dataCount--;
-			success = true;
-			return tmpval;
-		}
-		T read(void)
-		{
-			bool dummy;
-			return read(dummy);
-		}
-		int64_t read(T* dst, int64_t count, bool& success)
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			if((dst == nullptr) || (count <= 0) || (m_buf == nullptr) || (m_bufSize <= 0)){
-				success = false;
-				return 0;
-			}
-			if(m_dataCount > m_bufSize) m_dataCount = m_bufSize; // OK?
-			if(count > m_bufSize) {
-				count = m_bufSize;
-			}
-			if(count > m_dataCount) {
-				count = m_dataCount;
-			}
-			if(count <= 0) {
-				success = false;
-				return 0;
-			}
-			if(m_rptr >= m_bufSize) {
-				m_rptr = (m_rptr - m_bufSize) % m_bufSize;
-			} else if(m_rptr < 0) {
-				m_rptr = (m_bufSize + m_rptr) % m_bufSize;
-			}
-			// OK, Transfer
-			int64_t xptr = m_rptr;
-			if((xptr + count) >= m_bufSize) {
-				int64_t count2 = (xptr + count) - m_bufSize;
-				int64_t count1 = count - count2;
-				for(int64_t i = 0; i < count1; i++) {
-					dst[i] = m_buf[xptr++];
-				}
-				xptr = 0;
-				for(int64_t i = 0; i < count2; i++) {
-					dst[i] = m_buf[xptr++];
-				}
-				m_rptr = xptr;
-				m_dataCount -= count;
-
-			} else {
-				// Inside buffer
-				for(int64_t i = 0; i < count; i++) {
-					dst[i] = m_buf[xptr++];
-				}
-				m_dataCount -= count;
-				m_rptr = xptr;
-			}
-			success = true;
-			return count;
-		}
-		bool write(T data)
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			if((m_buf == nullptr) || (m_dataCount >= m_bufSize) || (m_bufSize <= 0)) {
-				return false;
-			}
-			if(m_dataCount < 0) m_dataCount = 0; // OK?
-			if(m_wptr >= m_bufSize) {
-				m_wptr = (m_wptr - m_bufSize) % m_bufSize;
-			} else if(m_wptr < 0) {
-				m_wptr = (m_bufSize + -m_wptr) % m_bufSize;
-			}
-			m_buf[m_wptr++] = data;
-			m_dataCount++;
-			return true;
-		}
-		int64_t write(T* src, int64_t count, bool& success)
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			if((src == nullptr) || (count <= 0) || (m_buf == nullptr) || (m_bufSize <= 0)){
-				success = false;
-				return 0;
-			}
-			if(m_dataCount < 0) m_dataCount = 0; // OK?
-			if(count > m_bufSize) {
-				count = m_bufSize;
-			}
-			if((count + m_dataCount) >= m_bufSize) {
-				count = m_bufSize - m_dataCount;
-			}
-			if(count <= 0) {
-				success = false;
-				return 0;
-			}
-			if(m_wptr >= m_bufSize) {
-				m_wptr = (m_wptr - m_bufSize) % m_bufSize;
-			} else if(m_wptr < 0) {
-				m_wptr = (m_bufSize + m_wptr) % m_bufSize;
-			}
-			// OK, Transfer
-			int64_t xptr = m_wptr;
-			if((xptr + count) >= m_bufSize) {
-				int64_t count2 = (xptr + count) - m_bufSize;
-				int64_t count1 = count - count2;
-				for(int64_t i = 0; i < count1; i++) {
-					m_buf[xptr++] = src[i];
-				}
-				xptr = 0;
-				for(int64_t i = 0; i < count2; i++) {
-					m_buf[xptr++] = src[i];
-				}
-				m_wptr = xptr;
-				m_dataCount += count;
-
-			} else {
-				// Inside buffer
-				for(int64_t i = 0; i < count; i++) {
-					m_buf[xptr++] = src[i];
-				}
-				m_dataCount += count;
-				m_wptr = xptr;
-			}
-			success = true;
-			return count;
-		}
-
-		
-		bool available()
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return ((m_buf != nullptr) && (m_bufSize > 0));
-		}
-		bool empty()
-		{
-			bool f = available();
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return (!(f) || (m_dataCount <= 0));
-		}
-		bool read_ready()
-		{
-			bool f = available();
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return ((f) && (m_dataCount > 0));
-		}
-		bool write_ready()
-		{
-			bool f = available();
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return ((f) && (m_dataCount < m_bufSize));
-		}
-		bool full()
-		{
-			bool f = available();
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return (!(f) || (m_dataCount >= m_bufSize));
-		}
-		
-		int64_t count()
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return (m_dataCount > 0) ? m_dataCount : 0;
-		}
-		int64_t size()
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return (m_bufSize > 0) ? m_bufSize : 0;
-		}
-		bool resize(int64_t size)
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			if(size <= 0) retrun false;
-			try {
-				T *tmpptr = new T[size];
-			} catch (std::bad_alloc& e) {
-				return false;
-			}
-			if(m_buf != nullptr) {
-				delete[] m_buf;
-			}
-			m_buf = tmpptr;
-			return true;
-		}
-	};
-}
 
 class OSD_BASE;
 class USING_FLAGS;
@@ -256,7 +28,7 @@ protected:
 	USING_FLAGS *m_using_flags;
 	CSP_Logger  *m_logger;
 	void        *m_extconfig;
-	OSD_SOUND::RINGBUFFER<int16_t> *m_queue;
+	FIFO_BASE::LOCKED_RINGBUFFER<int16_t> *m_queue;
 	std::recursive_mutex m_locker;
 	std::recursive_mutex m_locker_outqueue;
 public:
@@ -265,7 +37,7 @@ public:
 		m_extconfig(configvalues), 
 		QObject(qobject_cast<QObject*>parent)
 	{
-		m_queue = new OSD_SOUND::RINGBUFFER<int16_t>(buffer_size);
+		m_queue = new FIFO_BASE::LOCKED_RINGBUFFER<int16_t>(buffer_size);
 	}
 	~SOUND_MODULE_BASE()
 	{
