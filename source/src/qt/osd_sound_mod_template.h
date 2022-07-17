@@ -32,7 +32,7 @@ protected:
 	std::recursive_mutex m_locker;
 	std::recursive_mutex m_locker_outqueue;
 public:
-	SOUND_MODULE_BASE(OSD_BASE *parent, USING_FLAGS *pflags, CSP_Logger *logger, int64_t buffer_size = 4096, void *configvalues = nullptr)
+	SOUND_MODULE_BASE(OSD_BASE *parent, USING_FLAGS *pflags, CSP_Logger *logger, int buffer_size = 4096, void *configvalues = nullptr)
 		: m_OSD(parent), m_using_flags(pflags), m_logger(logger),
 		m_extconfig(configvalues), 
 		QObject(qobject_cast<QObject*>parent)

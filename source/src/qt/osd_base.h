@@ -175,12 +175,14 @@ private:
 	QAudioSink   *m_audioOutputSink;
 	FIFO         *m_audioOutputBuffer;
 	QIODevice    *m_audioOutput;
+	QByteArray   *m_audioOutInternalBuffer;
 	
 	QAudioFormat m_audioInputFormat;
 	QAudioDevice m_audioInputDevice;
 	QAudioSource *m_audioInputSource;
 	FIFO         *m_audioInputBuffer;
 	QIODevice    *m_audioInput;
+
 protected:
 	EmuThreadClass *parent_thread;
 	sdl_snddata_t snddata;

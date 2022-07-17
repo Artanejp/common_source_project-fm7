@@ -58,12 +58,14 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QObject(0)
 	locked_vm = false;
 	m_audioOutputDevice = QMediaDevices::defaultAudioOutput();
 	m_audioInputDevice = QMediaDevices::defaultAudioInput();
+	
 //	m_audioOutputFormat.reset();
 //	m_audioInputFormat.reset();
 	
 	m_audioOutputSink = nullptr;
 	m_audioOutputBuffer = nullptr;
 	m_audioOutput = nullptr;
+	m_audioOutInternalBuffer = nullptr;
 	m_audioInputSource = nullptr;
 	m_audioInputBuffer = nullptr;
 	m_audioInput = nullptr;
