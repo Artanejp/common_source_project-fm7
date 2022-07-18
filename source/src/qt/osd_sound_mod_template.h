@@ -20,6 +20,7 @@ QT_BEGIN_NAMESPACE
 class OSD_BASE;
 class USING_FLAGS;
 class CSP_Logger;
+
 class DLL_PREFIX SOUND_MODULE_BASE : public QObject
 {
 	Q_OBJECT

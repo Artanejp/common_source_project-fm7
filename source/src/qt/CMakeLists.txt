@@ -1,9 +1,11 @@
 message("* qt/osd")
-SET(THIS_LIB_VERSION 5.0.0)
+SET(THIS_LIB_VERSION 6.0.0)
 
 set(s_qt_osd_headers
 	osd_base.h
 	osd_socket.h
+	
+    sound_buffer_qt.h
 )
 
 MAKE_WRAP_CPP(s_qt_osd_headers_MOC ${s_qt_osd_headers})
@@ -19,8 +21,9 @@ SET(s_qt_osd_srcs
 	osd_video.cpp
 	qudpsocket2.cpp
 	qtcpsocket2.cpp
+	sound_buffer_qt.cpp
+	
 	${s_qt_osd_headers_MOC}
-
 )
 add_definitions(-D__LIBOSD_VERSION=\"libCSPosd.${THIS_LIB_VERSION}\")
 

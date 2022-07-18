@@ -165,17 +165,17 @@ class QAudioSource;
 class QAudioSink;
 class QBuffer;
 class FIFO;
+class SOUND_BUFFER_QT;
 
 class DLL_PREFIX OSD_BASE : public  QObject
 {
 	Q_OBJECT
 private:
+	SOUND_BUFFER_QT *m_audioOutput;
+	QAudioSink   *m_audioOutputSink;
 	QAudioFormat m_audioOutputFormat;
 	QAudioDevice m_audioOutputDevice;
-	QAudioSink   *m_audioOutputSink;
-	FIFO         *m_audioOutputBuffer;
-	QIODevice    *m_audioOutput;
-	QByteArray   *m_audioOutInternalBuffer;
+
 	
 	QAudioFormat m_audioInputFormat;
 	QAudioDevice m_audioInputDevice;
