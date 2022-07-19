@@ -735,7 +735,7 @@ public slots:
 	virtual void do_set_host_sound_output_device(QString device_name);
 	virtual void do_update_master_volume(int level);
 
-	void handleStateChanged(QAudio::State newState);
+	void handleAudioOutputStateChanged(QAudio::State newState);
 
 signals:
 	int sig_update_screen(void *, bool);

@@ -529,7 +529,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 				double _ll = (double)(p_config->general_sound_level + INT16_MAX) / 65535.0;
 				m_audioOutputSink->setVolume(_ll);
 			}
-			connect(m_audioOutputSink, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleStateChanged(QAudio::State)));
+			connect(m_audioOutputSink, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleAudioOutputStateChanged(QAudio::State)));
 			//m_audioOutputSink->setBufferSize(1024);
 			//m_audioOutputSink->setBufferSize(sound_samples * 2 * sizeof(int16_t) * 2);
 			m_audioOutput->reset();
@@ -1134,12 +1134,12 @@ void OSD_BASE::stop_sound()
 		//sound_exit = false;
 	}
 }
-void OSD_BASE::handleStateChanged(QAudio::State newState)
+void OSD_BASE::handleAudioOutputStateChanged(QAudio::State newState)
 {
 }
 #else
 
-void OSD_BASE::handleStateChanged(QAudio::State newState)
+void OSD_BASE::handleAudioOutputStateChanged(QAudio::State newState)
 {
 	switch(newState) {
 	case QAudio::ActiveState:
