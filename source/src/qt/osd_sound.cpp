@@ -462,8 +462,9 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		    desired = m_audioOutputDevice.preferredFormat();
 	}
 	m_audioOutputFormat = desired;
-	m_audioOutputSink = new QAudioSink(m_audioOutputDevice, m_audioOutputFormat, this);
-#if 0	
+	//m_audioOutputSink = new QAudioSink(m_audioOutputDevice, m_audioOutputFormat, this);
+	m_audioOutputSink = new QAudioSink(m_audioOutputFormat, this);
+#if 1	
 	if(m_audioOutput != nullptr) {
 		if(m_audioOutput->isOpen()) {
 			m_audioOutput->close();
@@ -562,7 +563,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			sound_initialized = true;
 			connect(m_audioOutputSink, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleStateChanged(QAudio::State)));
 			#if 1
-			m_audioOutputSink->setBufferSize(sound_samples);
+			m_audioOutputSink->setBufferSize(1024);
 			//m_audioOutputSink->setBufferSize(sound_samples * 2 * sizeof(int16_t) * 2);
 			//m_audioOutput = reinterpret_cast<SOUND_BUFFER_QT*>(m_audioOutputSink->start());
 			m_audioOutputSink->start(m_audioOutput);
@@ -1177,10 +1178,16 @@ void OSD_BASE::update_sound(int* extra_frames)
 		//	}
 		//}
 		//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "Sink->bytesFree() = %d", m_audioOutputSink->bytesFree());
+		int now_mixed_ptr = 0;
+		if(vm != nullptr) {
+			now_mixed_ptr = vm->get_sound_buffer_ptr();
+		}
 		if(sound_started) {
-			//if(m_audioOutputSink->bytesFree() < (sound_samples * 2  * sizeof(int16_t))) {
-			if((m_audioOutputSink->state() == QAudio::ActiveState)) {
-				return;
+			if(now_mixed_ptr < sound_samples) {
+				//if(m_audioOutputSink->bytesFree() < (sound_samples * 2  * sizeof(int16_t))) {
+				if((m_audioOutputSink->state() == QAudio::ActiveState)) {
+					return;
+				}
 			}
 			//}
 		}
