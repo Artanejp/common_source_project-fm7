@@ -496,44 +496,14 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		break;
 	}
 	int outbuffer_length = samples * 2;
-#if 0	
-	m_audioOutputBuffer = new FIFO(outbuffer_length);
-	if(m_audioOutInternalBuffer != nullptr) {
-		delete m_audioOutInternalBuffer;
-	}
-	m_audioOutInternalBuffer = new QByteArray(wordsize * outbuffer_length * 2, 0x00);
-	if(m_audioOutputBuffer != nullptr) {
-		sound_samples = samples;
-		sound_rate = rate;
-#if 0		
-		m_audioOutput = new QBuffer(m_audioOutInternalBuffer, this);
-		if(m_audioOutput != nullptr) {
-			m_audioOutput->open(QIODeviceBase::ReadWrite);
-			m_audioOutput->reset();
-			//for(int i = 0; i < (wordsize * outbuffer_length); i++) {
-			//	m_audioOutput->write(0x00);
-			//}
-		}
-#endif
-	} else {
-		sound_samples = samples;
-		sound_rate = rate;
-	}
-#else
 	#if 1
-	m_audioOutput = new SOUND_BUFFER_QT(samples * 2 * sizeof(int16_t) * 2);
+	m_audioOutput = new SOUND_BUFFER_QT(samples * 2 * sizeof(int16_t) * 4);
 	if(m_audioOutput != nullptr) {
 		m_audioOutput->open(QIODeviceBase::ReadWrite);
-		//m_audioOutput->reset();
-		//for(int i = 0; i < (wordsize * outbuffer_length); i++) {
-		//	m_audioOutput->write(0x00);
-		//}
 	}
 	#endif
 	sound_samples = samples;
 	sound_rate = rate;
-#endif
-	
 //	sound_samples = samples;
 //	sound_rate = rate;
 	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,"Sample rate=%d samples=%d\n", sound_rate, sound_samples);
@@ -562,18 +532,10 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			sound_ok = true;
 			sound_initialized = true;
 			connect(m_audioOutputSink, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleStateChanged(QAudio::State)));
-			#if 1
-			m_audioOutputSink->setBufferSize(1024);
+			//m_audioOutputSink->setBufferSize(1024);
 			//m_audioOutputSink->setBufferSize(sound_samples * 2 * sizeof(int16_t) * 2);
-			//m_audioOutput = reinterpret_cast<SOUND_BUFFER_QT*>(m_audioOutputSink->start());
 			m_audioOutputSink->start(m_audioOutput);
-			//m_audioOutputSink->start();
-			//m_audioOutputSink->suspend();
-			#else
-				m_audioOutput = new QBuffer(m_audioOutInternalBuffer, this);
-				//m_audioOutput->open(QIODeviceBase::WriteOnly);
-				m_audioOutputSink->start(m_audioOutput);
-			#endif
+			m_audioOutputSink->suspend();
 		} else {
 			sound_ok = false;
 			sound_initialized = false;
@@ -1170,27 +1132,17 @@ void OSD_BASE::update_sound(int* extra_frames)
 	
 	now_mute = false;
 	if(sound_ok) {
-		//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, _T("CALL update_sound()"));
-		//if(m_audioOutputBuffer == nullptr) return;
-		//if(m_audioOutputSink->bytesFree() < (sound_samples * 2 * sizeof(int16_t))) {
-		//	if((m_audioOutputSink->state() != QAudio::IdleState)) {
-		//		return;
-		//	}
-		//}
 		//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "Sink->bytesFree() = %d", m_audioOutputSink->bytesFree());
 		int now_mixed_ptr = 0;
 		if(vm != nullptr) {
 			now_mixed_ptr = vm->get_sound_buffer_ptr();
 		}
-		if(sound_started) {
+//		if(sound_started) {
 			if(now_mixed_ptr < sound_samples) {
-				//if(m_audioOutputSink->bytesFree() < (sound_samples * 2  * sizeof(int16_t))) {
-				if((m_audioOutputSink->state() == QAudio::ActiveState)) {
 					return;
-				}
 			}
 			//}
-		}
+//		}
 		// Input
 		int16_t* sound_buffer = (int16_t*)create_sound(extra_frames);
 		if(now_record_sound || now_record_video) {
@@ -1244,8 +1196,14 @@ void OSD_BASE::update_sound(int* extra_frames)
 				qint64 written = 0;
 #if 1
 				int _count = sound_samples * 2;
+				if(m_audioOutputSink->state() == QAudio::SuspendedState) {
+					m_audioOutputSink->resume();
+				} else if(m_audioOutputSink->state() == QAudio::StoppedState) {
+					m_audioOutputSink->start(m_audioOutput);
+				}
+
 				qint64 _result = m_audioOutput->write((const char *)sound_buffer, _count * sizeof(int16_t));
-				debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "write_to_buffer: desired=%d wrote=%d", _count * sizeof(int16_t), _result);
+				//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "write_to_buffer: desired=%d wrote=%d", _count * sizeof(int16_t), _result);
 				//			m_audioOutputSink->start(m_audioOutput);
 
 				//sound_data_len += _count;
