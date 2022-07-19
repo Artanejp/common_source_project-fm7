@@ -10,6 +10,8 @@
 #include <QMenu>
 #include <QActionGroup>
 
+#include <cstdint>
+
 #include "commonclasses.h"
 #include "mainwidget_base.h"
 //#include "menuclasses.h"
@@ -19,17 +21,62 @@
 
 // WIP: Will move to another file
 const double s_late_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};
-extern USING_FLAGS *using_flags;
 
+void Ui_MainWindowBase::do_update_sound_output_list(void)
+{
+	if((p_config == nullptr) || (using_flags == nullptr)) return;
+	int _match = -1;
+	QString matched_devname = QString::fromUtf8("Default");
+	do_set_host_sound_name(0, QString::fromUtf8("Default"));
+	
+	if(action_HostSoundDevice[0] != nullptr) {
+		action_HostSoundDevice[0]->setChecked(true);
+	}
+	QString _setname = QString::fromLocal8Bit(p_config->sound_device_name);
+	_setname.truncate(1023);
+	for(int i = 1; i < 16; i++) {
+		if(action_HostSoundDevice[i] != nullptr) {
+			action_HostSoundDevice[i]->setChecked(false);
+		}
+		const _TCHAR* sp = using_flags->get_sound_device_name(i - 1);
+		QString sname;
+		sname.clear();
+		if(sp != NULL) {
+			sname = QString::fromUtf8(sp);
+			sname.truncate(1023);
+		}
+		
+		if(sname == _setname) {
+			_match = i;
+			matched_devname = sname;
+		}
+		do_set_host_sound_name(i, sname);
+	}
+	if(_match > 0) {
+		if(action_HostSoundDevice[_match] != nullptr) {
+			action_HostSoundDevice[_match]->setChecked(true);
+		}
+	} else {
+		if(action_HostSoundDevice[0] != nullptr) {
+			action_HostSoundDevice[0]->setChecked(true);
+		}
+	}
+	emit sig_osd_sound_output_device(matched_devname);
+}
 
-void Ui_MainWindowBase::do_set_host_sound_device(void)
+void Ui_MainWindowBase::do_set_host_sound_output_device(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
-	int num = cp->data().value<int>();
+	QString _name = cp->data().value<QString>();
 	
 	if(p_config != NULL) {
-		p_config->sound_device_num = num;
+		QString _old = QString::fromLocal8Bit(p_config->sound_device_name, 1023);
+		_name.truncate(1023);
+		if((_old != _name) && !(_name.isEmpty())) {
+			my_tcscpy_s(p_config->sound_device_name, 1023, _name.toLocal8Bit().constData());
+			emit sig_osd_sound_output_device(_name);
+		}
 	}
 	emit sig_emu_update_config();
 }
@@ -42,11 +89,15 @@ void Ui_MainWindowBase::do_set_host_sound_name(int num, QString s)
 	if(s.isEmpty()) {
 		if(action_HostSoundDevice[num] != NULL) {
 			action_HostSoundDevice[num]->setVisible(false);
+			QVariant v = QVariant(QString::fromUtf8(""));
+			action_HostSoundDevice[num]->setData(v);
 		}
 	} else {
 		if(action_HostSoundDevice[num] != NULL) {
 			action_HostSoundDevice[num]->setVisible(true);
 			action_HostSoundDevice[num]->setText(s);
+			QVariant v = QVariant(s);
+			action_HostSoundDevice[num]->setData(v);
 		}
 	}
 }
@@ -130,7 +181,7 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 		if(action_HostSoundDevice[i] != NULL) {
 			menuSound_HostDevices->addAction(action_HostSoundDevice[i]);
 			connect(action_HostSoundDevice[i], SIGNAL(triggered()),
-					this, SLOT(do_set_host_sound_device()));
+					this, SLOT(do_set_host_sound_output_device()));
 		}
 	}
 	
@@ -181,14 +232,10 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 		action_HostSoundDevice[i] = new Action_Control(this, using_flags);
 		tmps.setNum(i);	
 		tmps = QString::fromUtf8("action_HostSoundDevice") + tmps;
-	   
 		action_HostSoundDevice[i]->setObjectName(tmps);
 		action_HostSoundDevice[i]->setCheckable(true);
-		action_HostSoundDevice[i]->setData(QVariant(i));
-		if(i == p_config->sound_device_num) {
-			action_HostSoundDevice[i]->setChecked(true);
-			//freq = using_flags->get_s_freq_table(i);
-		}
+		QVariant v = QVariant(QString::fromUtf8(""));
+		action_HostSoundDevice[i]->setData(v);
 		actionGroup_Sound_HostDevices->addAction(action_HostSoundDevice[i]);
 	}
 	
@@ -239,7 +286,7 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 void Ui_MainWindowBase::do_update_volume(int level)
 {
 	if(using_flags->is_without_sound()) return;
-	if(level <= -32768) {
+	if(level <= INT16_MIN) {
 		action_VolumeDialog->setIcon(VolumeMutedIcon);
 	} else if(level < -4096) {
 		action_VolumeDialog->setIcon(VolumeLowIcon);
@@ -248,6 +295,7 @@ void Ui_MainWindowBase::do_update_volume(int level)
 	} else {
 		action_VolumeDialog->setIcon(VolumeHighIcon);
 	}
+	emit sig_update_master_volume(level);
 }
 	
 void Ui_MainWindowBase::retranslateSoundMenu(void)

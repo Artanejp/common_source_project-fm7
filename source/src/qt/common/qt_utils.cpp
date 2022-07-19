@@ -1316,23 +1316,21 @@ int MainLoop(int argc, char *argv[])
 	}
 	csp_logger->set_osd((OSD*)(emu->get_osd()));
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "InitInstance() OK.");
+	
 	// ToDo: Update raltime.
-	for(int i = 0; i < 16; i++) {
-		const _TCHAR* sp = emu->get_osd()->get_sound_device_name(i);
-		QString sname;
-		sname.clear();
-		if(sp != NULL) {
-			sname = QString::fromUtf8(sp);
-		}
-		rMainWindow->do_set_host_sound_name(i, sname);
-	}
+	QObject::connect(rMainWindow, SIGNAL(sig_osd_sound_output_device(QString)), (OSD*)(emu->get_osd()), SLOT(do_set_host_sound_output_device(QString)));
+	rMainWindow->do_update_sound_output_list();
+
+	QObject::connect(rMainWindow, SIGNAL(sig_update_master_volume(int)), (OSD*)(emu->get_osd()), SLOT(do_update_master_volume(int)));
+	
 	QObject::connect(GuiMain, SIGNAL(lastWindowClosed()),
 					 rMainWindow, SLOT(on_actionExit_triggered()));
 
 	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_clear_keyname_table()),	 rMainWindow, SLOT(do_clear_keyname_table()));
 	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_add_keyname_table(uint32_t, QString)),	 rMainWindow, SLOT(do_add_keyname_table(uint32_t, QString)));
 	emu->get_osd()->update_keyname_table();
-	
+
+
 	GLDrawClass *pgl = rMainWindow->getGraphicsView();
 	pgl->do_set_texture_size(NULL, -1, -1);  // It's very ugly workaround (;_;) 20191028 K.Ohta
 //	pgl->setFixedSize(pgl->width(), pgl->height());

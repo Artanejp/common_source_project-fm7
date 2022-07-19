@@ -66,6 +66,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QObject(0)
 	m_audioInputSource = nullptr;
 	m_audioInputBuffer = nullptr;
 	m_audioInput = nullptr;
+	sound_initialized = false;
 	
 #if QT_VERSION >= 0x051400
 	vm_mutex = new QRecursiveMutex();

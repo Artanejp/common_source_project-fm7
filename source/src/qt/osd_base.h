@@ -176,7 +176,6 @@ private:
 	QAudioFormat m_audioOutputFormat;
 	QAudioDevice m_audioOutputDevice;
 
-	
 	QAudioFormat m_audioInputFormat;
 	QAudioDevice m_audioInputDevice;
 	QAudioSource *m_audioInputSource;
@@ -732,6 +731,10 @@ public slots:
 	void set_dbg_completion_list(std::list<std::string> *p);
 	void clear_dbg_completion_list(void);
 	void set_hdd_image_name(int drv, _TCHAR *filename);
+
+	virtual void do_set_host_sound_output_device(QString device_name);
+	virtual void do_update_master_volume(int level);
+
 	void handleStateChanged(QAudio::State newState);
 
 signals:

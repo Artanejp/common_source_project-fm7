@@ -860,7 +860,7 @@ public slots:
 	void do_set_sound_strict_rendering(bool f);
 	void do_set_sound_tape_signal(bool f);
 	void do_set_sound_tape_voice(bool f);
-	void do_set_host_sound_device(void);
+	void do_set_host_sound_output_device(void);
 	void do_set_host_sound_name(int num, QString sname);	
 	void set_monitor_type(void);
 	void message_status_bar(QString);
@@ -920,6 +920,7 @@ public slots:
 	void do_set_single_dipswitch(bool f);
 	void do_set_single_dipswitch_negative(bool f);
 	void do_set_multi_dipswitch();
+	void do_update_sound_output_list();
 	
 	void do_start_emu_thread();
 	void do_start_draw_thread();
@@ -953,9 +954,10 @@ signals:
 	int sig_emu_set_display_size(int, int, int, int);
 	int sig_emu_update_volume_level(int, int);
 	int sig_emu_update_volume_balance(int, int);
-
+	int sig_osd_sound_output_device(QString);
 	int sig_resize_osd(int);
 	int sig_screen_multiply(double);
+	int sig_update_master_volume(int);
 	
 	int sig_write_protect_disk(int drv, bool flag);
 	int sig_open_disk(int, QString, int);
@@ -995,7 +997,7 @@ signals:
 	int sig_set_roma_kana(bool);
 	int quit_debugger_thread(void);
 	int sig_quit_widgets(void);
-
+	
 	int sig_emu_thread_to_fixed_cpu(int);
 	int sig_add_keyname_table(uint32_t, QString);
 

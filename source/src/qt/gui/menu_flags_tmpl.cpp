@@ -277,10 +277,22 @@ const _TCHAR *USING_FLAGS::get_sound_device_name(int num)
 	return NULL;
 }
 
-int USING_FLAGS::get_sound_device_num()
+const _TCHAR *USING_FLAGS::get_sound_device_name()
 {
-	return -1;
+	return NULL;
 }
+
+const int USING_FLAGS::get_sound_sample_rate(int num)
+{
+	const int sound_frequency_table[8] = {
+		2000, 4000, 8000, 11025, 22050, 44100,
+		48000,
+		96000,
+	};
+	if((num < 0) || (num >= 8)) return 44100;
+	return sound_frequency_table[num];
+}
+
 
 bool USING_FLAGS::is_support_phy_key_name()
 {

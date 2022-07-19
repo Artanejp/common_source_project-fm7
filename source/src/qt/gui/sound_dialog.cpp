@@ -24,7 +24,7 @@ Ui_SndSliderObject::Ui_SndSliderObject(USING_FLAGS *p, Qt::Orientation orientati
 Ui_SndSliderObject::~Ui_SndSliderObject()
 {
 }
-
+#include "../osd_base.h"
 #include <cstdint>
 
 void Ui_SndSliderObject::setValue(int level)
@@ -38,10 +38,11 @@ void Ui_SndSliderObject::setValue(int level)
 		p_config->general_sound_level = level;
 		
 		tmps = QApplication::translate("Ui_SoundDialog", "Set Volume", 0);
-		n = (float)(((level + 32768) * 1000) / 65535) / 10.0;
+		n = (float)(((level + INT16_MAX) * 1000) / 65535) / 10.0;
 		s_val.setNum(n, 'f', 1);
 		tmps = tmps + QString::fromUtf8(" (") + s_val + QString::fromUtf8("%)");
 		parent_widget->setWindowTitle(tmps);
+		emit sig_update_master_osd_volume(level);
 		emit sig_update_master_volume(level);
 		emit sig_emu_update_config();
 	}
@@ -124,7 +125,9 @@ Ui_SoundDialog::Ui_SoundDialog(USING_FLAGS *p, QWidget *parent) : QWidget(0)
 	VBoxMasterVolume->addWidget(sliderMasterVolume);
 	boxMasterVolume->setLayout(VBoxMasterVolume);
 	connect(sliderMasterVolume, SIGNAL(sig_update_master_volume(int)), parent_widget, SLOT(do_update_volume(int)));
-
+	if(using_flags->get_osd() != nullptr) {
+		connect(sliderMasterVolume, SIGNAL(sig_update_master_osd_volume(int)), using_flags->get_osd(), SLOT(do_update_master_volume(int)));
+	}
 	if(using_flags->get_use_sound_volume() > 0) {
 		MasterLayout->addWidget(boxMasterVolume, 0, 0, 1, 2);
 	} else {

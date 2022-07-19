@@ -372,8 +372,14 @@ public:
 	void set_osd(OSD_BASE *p);
 	OSD_BASE *get_osd(void);
 	virtual const _TCHAR *get_sound_device_name(int num);
-	virtual int get_sound_device_num();
-	
+	virtual const _TCHAR *get_sound_device_name();
+	virtual const int get_sound_sample_rate(int num);
+	virtual const double get_sound_latency(int num)
+	{
+		const double sound_latency_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};
+		if((num < 0) || (num >= 5)) num = 1;
+		return sound_latency_table[num];
+	}
 	virtual int get_vm_node_size();
 	virtual void set_vm_node_name(int id, const _TCHAR *name);
 	virtual _TCHAR *get_vm_node_name(int id);

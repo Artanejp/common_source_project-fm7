@@ -26,8 +26,8 @@ public:
 	void set_vm_node_name(int id, const _TCHAR *name);
 	_TCHAR *get_vm_node_name(int id);
 	const _TCHAR *get_sound_device_name(int num);
-	int get_sound_device_num();
-	
+	const _TCHAR *get_sound_device_name();
+	const int get_sound_sample_rate(int num);
 };
 	
 

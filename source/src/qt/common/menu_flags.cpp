@@ -524,13 +524,27 @@ _TCHAR *USING_FLAGS_EXT::get_vm_node_name(int id)
 
 const _TCHAR *USING_FLAGS_EXT::get_sound_device_name(int num)
 {
-	if(p_emu == NULL) return NULL;
+	if(p_emu == nullptr) return NULL;
 	return (const _TCHAR *)(p_emu->get_osd()->get_sound_device_name(num));
 }
 
-int USING_FLAGS_EXT::get_sound_device_num()
+const _TCHAR *USING_FLAGS_EXT::get_sound_device_name()
 {
-	if(p_emu == NULL) return -1;
-	return p_emu->get_osd()->get_sound_device_num();
+	if(p_emu == nullptr) return NULL;
+	return (const _TCHAR *)(p_emu->get_osd()->get_sound_device_name(-1));
 }
 
+const int USING_FLAGS_EXT::get_sound_sample_rate(int num)
+{
+	const int sound_frequency_table[8] = {
+		2000, 4000, 8000, 11025, 22050, 44100,
+#ifdef OVERRIDE_SOUND_FREQ_48000HZ
+		OVERRIDE_SOUND_FREQ_48000HZ,
+#else
+		48000,
+#endif
+		96000,
+	};
+	if((num < 0) || (num >= 8)) return 44100;
+	return sound_frequency_table[num];
+}

@@ -58,6 +58,7 @@ signals:
 	int sig_emu_update_volume_label(int, int);
 	int sig_emu_update_volume_balance(int, int);
 	int sig_update_master_volume(int);
+	int sig_update_master_osd_volume(int);
 };
 
 class DLL_PREFIX Ui_SoundDialog : public QWidget
