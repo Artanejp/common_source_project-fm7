@@ -491,7 +491,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 	}
 	int outbuffer_length = samples * 2;
 	#if 1
-	m_audioOutput = new SOUND_BUFFER_QT(samples * 2 * sizeof(int16_t) * 2);
+	m_audioOutput = new SOUND_BUFFER_QT(samples * 2 * sizeof(int16_t) * 4);
 	if(m_audioOutput != nullptr) {
 		m_audioOutput->open(QIODeviceBase::ReadWrite);
 	}
