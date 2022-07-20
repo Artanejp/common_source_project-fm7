@@ -92,6 +92,15 @@ Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, CSP_Logger *logger, QWidget
 
 Ui_MainWindowBase::~Ui_MainWindowBase()
 {
+	// May need delete items via QVector.
+	if(!(action_HostSoundDevice.empty())) {
+		for(auto ix = action_HostSoundDevice.begin(); ix != action_HostSoundDevice.end(); ++ix) {
+			if((*ix) != nullptr) {
+				(*ix)->disconnect();
+				delete *ix;
+			}
+		}
+	}
 	graphicsView->releaseKeyboard();
 	if(ledUpdateTimer != NULL) delete ledUpdateTimer;
 	if(driveData != NULL) delete driveData;

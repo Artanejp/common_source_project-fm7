@@ -16,6 +16,7 @@
 #include <QStringList>
 #include <QMap>
 #include <QAction>
+#include <QVector>
 //#include <QMenuBar>
 
 #include "common.h"
@@ -341,7 +342,7 @@ private:
 	Action_Control *actionSoundStrictRendering;
 	Action_Control *action_SoundFilesFDD;
 	Action_Control *action_SoundFilesRelay;
-	Action_Control *action_HostSoundDevice[16];
+	QVector<Action_Control *> action_HostSoundDevice;
 	//QMenu *menuLogToConsole;
 	//QMenu *menuLogToSyslog;
 	QMenu *menuDevLogToConsole;

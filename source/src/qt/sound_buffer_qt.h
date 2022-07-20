@@ -16,7 +16,11 @@ public:
 	SOUND_BUFFER_QT(uint64_t depth = 0, QObject *parent = nullptr);
 	~SOUND_BUFFER_QT();
 	
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	virtual bool open(QIODeviceBase::OpenMode flags) override;
+#else
+	virtual bool open(QIODevice::OpenMode flags) override;
+#endif
 	virtual void close() override;
 	virtual bool resize(qint64 sz);
 	virtual bool isSequential() const override;

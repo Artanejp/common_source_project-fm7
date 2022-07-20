@@ -17,7 +17,12 @@
 #include <QStringList>
 #include <QImage>
 #include <QAudioFormat>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 #include <QAudioDevice>
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#include <QAudioDeviceInfo>
+#endif	
+
 #include <SDL.h>
 
 #include <string>
@@ -161,10 +166,14 @@ typedef struct {
 } osd_snd_capture_desc_t;
 
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 class QAudioSource;
 class QAudioSink;
-class QBuffer;
-class FIFO;
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+class QAudioInput;
+class QAudioOutput;
+#endif
+
 class SOUND_BUFFER_QT;
 
 class DLL_PREFIX OSD_BASE : public  QObject
@@ -172,15 +181,25 @@ class DLL_PREFIX OSD_BASE : public  QObject
 	Q_OBJECT
 private:
 	SOUND_BUFFER_QT *m_audioOutput;
-	QAudioSink   *m_audioOutputSink;
+	SOUND_BUFFER_QT *m_audioInput;
+	
 	QAudioFormat m_audioOutputFormat;
-	QAudioDevice m_audioOutputDevice;
-
 	QAudioFormat m_audioInputFormat;
-	QAudioDevice m_audioInputDevice;
+	
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	QAudioSink   *m_audioOutputSink;
 	QAudioSource *m_audioInputSource;
-	FIFO         *m_audioInputBuffer;
-	QIODevice    *m_audioInput;
+	
+	QAudioDevice m_audioOutputDevice;
+	QAudioDevice m_audioInputDevice;
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	QAudioOutput *m_audioOutputSink;
+	QAudioInput  *m_audioInputSource;
+
+	QAudioDeviceInfo m_audioOutputDevice;
+	QAudioDeviceInfo m_audioInputDevice;
+#endif	
+
 
 protected:
 	EmuThreadClass *parent_thread;
@@ -732,8 +751,8 @@ public slots:
 	void clear_dbg_completion_list(void);
 	void set_hdd_image_name(int drv, _TCHAR *filename);
 
-	virtual void do_set_host_sound_output_device(QString device_name);
-	virtual void do_update_master_volume(int level);
+	void do_set_host_sound_output_device(QString device_name);
+	void do_update_master_volume(int level);
 
 	void handleAudioOutputStateChanged(QAudio::State newState);
 

@@ -56,15 +56,17 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QObject(0)
 {
 	using_flags = p;
 	locked_vm = false;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	m_audioOutputDevice = QMediaDevices::defaultAudioOutput();
-	m_audioInputDevice = QMediaDevices::defaultAudioInput();
-	
-//	m_audioOutputFormat.reset();
-//	m_audioInputFormat.reset();
+	m_audioInputDevice  = QMediaDevices::defaultAudioInput();
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	m_audioOutputDevice = QAudioDeviceInfo::defaultOutputDevice();
+	m_audioInputDevice  = QAudioDeviceInfo::defaultInputDevice();
+#endif	
 	m_audioOutputSink = nullptr;
 	m_audioOutput = nullptr;
 	m_audioInputSource = nullptr;
-	m_audioInputBuffer = nullptr;
+	
 	m_audioInput = nullptr;
 	sound_initialized = false;
 	

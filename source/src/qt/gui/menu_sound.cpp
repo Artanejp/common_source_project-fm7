@@ -17,7 +17,7 @@
 //#include "menuclasses.h"
 #include "sound_dialog.h"
 #include "menu_flags.h"
-
+#include "../osd_base.h"
 
 // WIP: Will move to another file
 const double s_late_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};
@@ -27,37 +27,58 @@ void Ui_MainWindowBase::do_update_sound_output_list(void)
 	if((p_config == nullptr) || (using_flags == nullptr)) return;
 	int _match = -1;
 	QString matched_devname = QString::fromUtf8("Default");
-	do_set_host_sound_name(0, QString::fromUtf8("Default"));
-	
-	if(action_HostSoundDevice[0] != nullptr) {
-		action_HostSoundDevice[0]->setChecked(true);
+	if(!(action_HostSoundDevice.empty())) {
+		for(auto ix = action_HostSoundDevice.begin(); ix != action_HostSoundDevice.end(); ++ix) {
+			if((*ix) != nullptr) {
+				if(actionGroup_Sound_HostDevices != nullptr) {
+					actionGroup_Sound_HostDevices->removeAction(*ix);
+				}
+				(*ix)->disconnect();
+				delete *ix;
+			}
+		}
 	}
+	action_HostSoundDevice.clear();
+	action_HostSoundDevice.append(new Action_Control(this, using_flags));
+	action_HostSoundDevice[0]->setChecked(true);
+	action_HostSoundDevice[0]->setObjectName(QString::fromUtf8("action_HostSoundDevice0"));
+	action_HostSoundDevice[0]->setCheckable(true);
+	actionGroup_Sound_HostDevices->addAction(action_HostSoundDevice[0]);
+	menuSound_HostDevices->addAction(action_HostSoundDevice[0]);
+	connect(action_HostSoundDevice[0], SIGNAL(triggered()),
+			this, SLOT(do_set_host_sound_output_device()));
+	do_set_host_sound_name(0, QString::fromUtf8("Default"));
+
 	QString _setname = QString::fromLocal8Bit(p_config->sound_device_name);
 	_setname.truncate(1023);
-	for(int i = 1; i < 16; i++) {
-		if(action_HostSoundDevice[i] != nullptr) {
-			action_HostSoundDevice[i]->setChecked(false);
+	if(using_flags->get_osd() != nullptr) {
+		int devs_count = using_flags->get_osd()->get_sound_device_num();
+		for(int i = 0; i < devs_count; i++) {
+			const _TCHAR* sp = using_flags->get_sound_device_name(i);
+			QString sname;
+			sname.clear();
+			if(sp != NULL) {
+				sname = QString::fromUtf8(sp);
+				sname.truncate(1023);
+			}
+			if(sname == _setname) {
+				_match = i + 1;
+				matched_devname = sname;
+			}
+			action_HostSoundDevice.append(new Action_Control(this, using_flags));
+			QString tmps;
+			tmps.setNum(i + 1);
+			action_HostSoundDevice[i + 1]->setObjectName(QString::fromUtf8("action_HostSoundDevice") + tmps);
+			action_HostSoundDevice[i + 1]->setCheckable(true);
+			actionGroup_Sound_HostDevices->addAction(action_HostSoundDevice[i + 1]);
+			menuSound_HostDevices->addAction(action_HostSoundDevice[i + 1]);
+			connect(action_HostSoundDevice[i + 1], SIGNAL(triggered()),
+					this, SLOT(do_set_host_sound_output_device()));
+			do_set_host_sound_name(i + 1, sname);
 		}
-		const _TCHAR* sp = using_flags->get_sound_device_name(i - 1);
-		QString sname;
-		sname.clear();
-		if(sp != NULL) {
-			sname = QString::fromUtf8(sp);
-			sname.truncate(1023);
-		}
-		
-		if(sname == _setname) {
-			_match = i;
-			matched_devname = sname;
-		}
-		do_set_host_sound_name(i, sname);
-	}
-	if(_match > 0) {
-		if(action_HostSoundDevice[_match] != nullptr) {
+		if(_match > 0) {
 			action_HostSoundDevice[_match]->setChecked(true);
-		}
-	} else {
-		if(action_HostSoundDevice[0] != nullptr) {
+		} else {
 			action_HostSoundDevice[0]->setChecked(true);
 		}
 	}
@@ -69,11 +90,11 @@ void Ui_MainWindowBase::do_set_host_sound_output_device(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	QString _name = cp->data().value<QString>();
-	
+
 	if(p_config != NULL) {
 		QString _old = QString::fromLocal8Bit(p_config->sound_device_name, 1023);
 		_name.truncate(1023);
-		if((_old != _name) && !(_name.isEmpty())) {
+		if(/*(_old != _name) &&*/ !(_name.isEmpty())) {
 			my_tcscpy_s(p_config->sound_device_name, 1023, _name.toLocal8Bit().constData());
 			emit sig_osd_sound_output_device(_name);
 		}
@@ -84,21 +105,17 @@ void Ui_MainWindowBase::do_set_host_sound_output_device(void)
 void Ui_MainWindowBase::do_set_host_sound_name(int num, QString s)
 {
 	if(num < 0) return;
-	if(num >= 16) return;
+	if(num >= action_HostSoundDevice.size()) return;
 	
 	if(s.isEmpty()) {
-		if(action_HostSoundDevice[num] != NULL) {
-			action_HostSoundDevice[num]->setVisible(false);
-			QVariant v = QVariant(QString::fromUtf8(""));
-			action_HostSoundDevice[num]->setData(v);
-		}
+		action_HostSoundDevice[num]->setVisible(false);
+		QVariant v = QVariant(QString::fromUtf8(""));
+		action_HostSoundDevice[num]->setData(v);
 	} else {
-		if(action_HostSoundDevice[num] != NULL) {
-			action_HostSoundDevice[num]->setVisible(true);
-			action_HostSoundDevice[num]->setText(s);
-			QVariant v = QVariant(s);
-			action_HostSoundDevice[num]->setData(v);
-		}
+		action_HostSoundDevice[num]->setVisible(true);
+		action_HostSoundDevice[num]->setText(s);
+		QVariant v = QVariant(s);
+		action_HostSoundDevice[num]->setData(v);
 	}
 }
 
@@ -177,13 +194,6 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 	menuSound_HostDevices = new QMenu(menuSound);
 	menuSound_HostDevices->setObjectName(QString::fromUtf8("menuSound_HostDevices"));
 	menuSound->addAction(menuSound_HostDevices->menuAction());
-	for(i = 0; i < 16; i++) {
-		if(action_HostSoundDevice[i] != NULL) {
-			menuSound_HostDevices->addAction(action_HostSoundDevice[i]);
-			connect(action_HostSoundDevice[i], SIGNAL(triggered()),
-					this, SLOT(do_set_host_sound_output_device()));
-		}
-	}
 	
 	menuSound->addSeparator();
 	
@@ -228,16 +238,6 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 	//int freq = 48000;
 
 	actionGroup_Sound_HostDevices = new QActionGroup(this);
-	for(i = 0; i < 16; i++) {
-		action_HostSoundDevice[i] = new Action_Control(this, using_flags);
-		tmps.setNum(i);	
-		tmps = QString::fromUtf8("action_HostSoundDevice") + tmps;
-		action_HostSoundDevice[i]->setObjectName(tmps);
-		action_HostSoundDevice[i]->setCheckable(true);
-		QVariant v = QVariant(QString::fromUtf8(""));
-		action_HostSoundDevice[i]->setData(v);
-		actionGroup_Sound_HostDevices->addAction(action_HostSoundDevice[i]);
-	}
 	
 	actionGroup_Sound_Freq = new QActionGroup(this);
 	actionGroup_Sound_Freq->setExclusive(true);

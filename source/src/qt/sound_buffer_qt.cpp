@@ -14,13 +14,14 @@ SOUND_BUFFER_QT::~SOUND_BUFFER_QT()
 		
 }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 bool SOUND_BUFFER_QT::open(QIODeviceBase::OpenMode flags)
 {
 //	printf("open() flags=%08x\n", flags);
     if ((flags & (QIODeviceBase::Append | QIODeviceBase::Truncate)) != 0)
         flags |= QIODeviceBase::WriteOnly;
     if ((flags & (QIODeviceBase::ReadOnly | QIODeviceBase::WriteOnly)) == 0) {
-        qWarning("QBuffer::open: Buffer access not specified");
+        qWarning("SOUND_BUFFER_QT::open: Buffer access not specified");
         return false;
     }
 
@@ -31,6 +32,25 @@ bool SOUND_BUFFER_QT::open(QIODeviceBase::OpenMode flags)
     return QIODevice::open(flags | QIODevice::Unbuffered);
     //return QIODevice::open(flags);
 }
+#else
+bool SOUND_BUFFER_QT::open(QIODevice::OpenMode flags)
+{
+//	printf("open() flags=%08x\n", flags);
+    if ((flags & (QIODevice::Append | QIODevice::Truncate)) != 0)
+        flags |= QIODevice::WriteOnly;
+    if ((flags & (QIODevice::ReadOnly | QIODevice::WriteOnly)) == 0) {
+        qWarning("SOUND_BUFFER_QT::open: Buffer access not specified");
+        return false;
+    }
+
+    if ((flags & QIODevice::Truncate) == QIODevice::Truncate) {
+		std::shared_ptr<FIFO_BASE::LOCKED_RINGBUFFER<uint8_t>> p = m_buffer;
+		p->clear();
+	}
+    return QIODevice::open(flags | QIODevice::Unbuffered);
+    //return QIODevice::open(flags);
+}
+#endif
 
 void SOUND_BUFFER_QT::close()
 {
