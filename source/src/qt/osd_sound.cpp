@@ -507,7 +507,9 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		m_audioOutput->reset();
 		if(m_audioOutputSink != nullptr) {
 			m_audioOutputSink->start(m_audioOutput);
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 			m_audioOutputSink->suspend();
+	#endif
 			sound_us_before_rendered = m_audioOutputSink->elapsedUSecs();
 		}
 	}
