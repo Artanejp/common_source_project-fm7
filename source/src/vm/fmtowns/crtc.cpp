@@ -878,7 +878,7 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int laye
 	__UNLIKELY_IF(pwidth > TOWNS_CRTC_MAX_PIXELS) pwidth = TOWNS_CRTC_MAX_PIXELS;
 	__UNLIKELY_IF(pwidth <= 0) return false;
 	if(y == 128) {
-		out_debug_log("RENDER_32768 Y=%d LAYER=%d PWIDTH=%d WIDTH=%d DST=%08X MASK=%08X ALPHA=%d", y, layer, pwidth, width, dst, mask, do_alpha);
+		//out_debug_log("RENDER_32768 Y=%d LAYER=%d PWIDTH=%d WIDTH=%d DST=%08X MASK=%08X ALPHA=%d", y, layer, pwidth, width, dst, mask, do_alpha);
 	}
 	__DECL_ALIGNED(16) uint16_t pbuf[8];
 	__DECL_ALIGNED(16) uint16_t rbuf[8];
@@ -1617,7 +1617,7 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1)
 	int bitshift1 = linebuffers[trans][y].bitshift[1];
 	scrntype_t *pp = osd->get_vm_screen_buffer(y);
 	if(y == 128) {
-		out_debug_log(_T("MIX_SCREEN Y=%d WIDTH=%d DST=%08X"), y, width, pp);
+		//out_debug_log(_T("MIX_SCREEN Y=%d WIDTH=%d DST=%08X"), y, width, pp);
 	}
 	/*
 	if(width < -(bitshift0)) {
