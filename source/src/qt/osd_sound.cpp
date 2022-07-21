@@ -456,6 +456,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		m_audioOutputSink->stop();
 		delete m_audioOutputSink;
 		m_audioOutputSink = nullptr;
+		sound_us_before_rendered = 0;
 	}
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	desired.setChannelCount(2);
@@ -494,22 +495,26 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 	rate = m_audioOutputFormat.sampleRate();
 	if(rate <= 0) rate = 8000;
 	int outbuffer_length = samples * 2;
+	
+	sound_us_before_rendered = 0;
 	m_audioOutput = new SOUND_BUFFER_QT(samples * 2 * sizeof(int16_t) * 4);
+	if(m_audioOutput != nullptr) {
 	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-	if(m_audioOutput != nullptr) {
 		m_audioOutput->open(QIODeviceBase::ReadWrite);
-		//m_audioOutputSink->start(m_audioOutput);
-	}
 	#else
-	if(m_audioOutput != nullptr) {
 		m_audioOutput->open(QIODevice::ReadWrite);
-		m_audioOutputSink->start(m_audioOutput);
-	}
 	#endif
+		m_audioOutput->reset();
+		if(m_audioOutputSink != nullptr) {
+			m_audioOutputSink->start(m_audioOutput);
+			m_audioOutputSink->suspend();
+			sound_us_before_rendered = m_audioOutputSink->elapsedUSecs();
+		}
+	}
+	
 	sound_samples = samples;
 	sound_rate = rate;
-//	sound_samples = samples;
-//	sound_rate = rate;
+	
 	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,"Sample rate=%d samples=%d\n", sound_rate, sound_samples);
 	
 	rec_sound_buffer_ptr = 0;
@@ -529,29 +534,21 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 	if(presented_samples != nullptr) {
 		*presented_samples = sound_samples;
 	}
-
 	
-//	if(m_audioOutput != nullptr) {
-		if(m_audioOutputSink != nullptr) {
-			sound_ok = true;
-			sound_initialized = true;
-			if(p_config != nullptr) {
-				double _ll = (double)(p_config->general_sound_level + INT16_MAX) / 65535.0;
-				m_audioOutputSink->setVolume(_ll);
-			}
-			connect(m_audioOutputSink, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleAudioOutputStateChanged(QAudio::State)));
-	
-			//m_audioOutputSink->setBufferSize(1024);
-			//m_audioOutputSink->setBufferSize(sound_samples * 2 * sizeof(int16_t) * 2);
-			m_audioOutput->reset();
-			//m_audioOutputSink->start(m_audioOutput);
-			//m_audioOutputSink->suspend();
-		} else {
-			sound_ok = false;
-			sound_initialized = false;
-			m_audioOutput = nullptr;
+	if(m_audioOutputSink != nullptr) {
+		sound_ok = true;
+		sound_initialized = true;
+		if(p_config != nullptr) {
+			double _ll = (double)(p_config->general_sound_level + INT16_MAX) / 65535.0;
+			m_audioOutputSink->setVolume(_ll);
 		}
-//	}
+		connect(m_audioOutputSink, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleAudioOutputStateChanged(QAudio::State)));
+	} else {
+		sound_ok = false;
+		sound_initialized = false;
+		m_audioOutput = nullptr;
+		sound_us_before_rendered = 0;
+	}
 	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
 						  "Sound OK: BufSize = %d", outbuffer_length);
 
@@ -1210,24 +1207,34 @@ void OSD_BASE::update_sound(int* extra_frames)
 	now_mute = false;
 	if(sound_ok) {
 		//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "Sink->bytesFree() = %d", m_audioOutputSink->bytesFree());
-		if(!sound_started) {
-			if((m_audioOutput != nullptr) /*&& (m_audioOutputSink != nullptr)*/) {
-				sound_started = true;
-				m_audioOutput->reset();
-	#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-				if(m_audioOutputSink->state() == QAudio::StoppedState) {
-					m_audioOutput->reset();
-					m_audioOutputSink->start(m_audioOutput);
-				} else
-	#endif
-					if(m_audioOutputSink->state() == QAudio::SuspendedState) {
-					m_audioOutput->reset();
-					m_audioOutputSink->resume();
-				}
-			}
-			//return;
-		}
 		
+		#if 1
+		const int64_t sound_us_now = (int64_t)m_audioOutputSink->elapsedUSecs();
+		const int64_t  _period_usec = (((int64_t)sound_samples * (int64_t)10000) / (int64_t)sound_rate) * 100;
+		int64_t _diff = sound_us_now - (int64_t)sound_us_before_rendered;
+		if((_diff < 0) && ((INT64_MAX - (int64_t)sound_us_before_rendered + 1) <= _period_usec)) {
+			// For uS overflow
+			_diff = sound_us_now + (INT64_MAX - (int64_t)sound_us_before_rendered + 1);
+		}
+		//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "update_sound(): _diff=%lld _period_usec=%lld", _diff, _period_usec);
+		int now_mixed_ptr = 0;
+		if(vm != nullptr) {
+			now_mixed_ptr = vm->get_sound_buffer_ptr();
+		}
+		if(!(sound_started)) {
+			if((now_mixed_ptr < ((sound_samples * 98) / 100))) {
+				// First, must emulate 95% of sound latency.
+				return;
+			}
+		} else if((now_mixed_ptr < sound_samples) && (_diff < (_period_usec - 2000))) {
+			// Second, wait fill buffer until latency - 2m Sec.
+			return;
+		}  else if(now_mixed_ptr < ((sound_samples * 90) / 100)) {
+			// Render even emulate 90% of latency when remain seconds is less than 2m Sec.
+			return;
+		}
+		   
+		#else
 		int now_mixed_ptr = 0;
 		if(vm != nullptr) {
 			now_mixed_ptr = vm->get_sound_buffer_ptr();
@@ -1236,8 +1243,25 @@ void OSD_BASE::update_sound(int* extra_frames)
 		//if(m_audioOutput->size() > (sound_samples * 2 * sizeof(int16_t))) {
 			return;
 		}
+		#endif
 		// Input
 		int16_t* sound_buffer = (int16_t*)create_sound(extra_frames);
+		if(sound_buffer != nullptr) {
+			if(!(sound_started)) {
+				m_audioOutput->reset();
+			#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+				if(m_audioOutputSink->state() == QAudio::StoppedState) {
+					m_audioOutputSink->start(m_audioOutput);
+				}
+			#endif
+			}
+			sound_started = true;
+			if(m_audioOutputSink->state() == QAudio::SuspendedState) {
+				m_audioOutput->reset();
+				m_audioOutputSink->resume();
+			}
+			sound_us_before_rendered = m_audioOutputSink->elapsedUSecs();
+		}
 		if(now_record_sound || now_record_video) {
 			if(sound_samples > rec_sound_buffer_ptr) {
 				int samples = sound_samples - rec_sound_buffer_ptr;
@@ -1272,21 +1296,10 @@ void OSD_BASE::update_sound(int* extra_frames)
 				qint64 sound_len = sound_samples * 2;
 				qint64 written = 0;
 				int _count = sound_samples * 2;
-				if(m_audioOutputSink->state() != QAudio::ActiveState) {
-					m_audioOutput->reset();
-					if(m_audioOutputSink->state() == QAudio::SuspendedState) {
-						m_audioOutputSink->resume();
-					}
-				} 
-				if(m_audioOutputSink->state() != QAudio::StoppedState) {
-					double _ll = (double)(p_config->general_sound_level + INT16_MAX) / 65535.0;
-					m_audioOutputSink->setVolume(_ll);
-					qint64 _result = m_audioOutput->write((const char *)sound_buffer, _count * sizeof(int16_t));
-				}
-				//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "write_to_buffer: desired=%d wrote=%d", _count * sizeof(int16_t), _result);
-				//			m_audioOutputSink->start(m_audioOutput);
 
-				//sound_data_len += _count;
+				double _ll = (double)(p_config->general_sound_level + INT16_MAX) / 65535.0;
+				m_audioOutputSink->setVolume(_ll);
+				qint64 _result = m_audioOutput->write((const char *)sound_buffer, _count * sizeof(int16_t));
 			}
 		}
 	}

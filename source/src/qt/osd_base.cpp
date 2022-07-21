@@ -56,6 +56,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QObject(0)
 {
 	using_flags = p;
 	locked_vm = false;
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	m_audioOutputDevice = QMediaDevices::defaultAudioOutput();
 	m_audioInputDevice  = QMediaDevices::defaultAudioInput();
@@ -69,7 +70,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QObject(0)
 	
 	m_audioInput = nullptr;
 	sound_initialized = false;
-	
+	sound_us_before_rendered = 0;	
 #if QT_VERSION >= 0x051400
 	vm_mutex = new QRecursiveMutex();
 	screen_mutex = new QRecursiveMutex();
