@@ -11,7 +11,7 @@ class DLL_PREFIX SOUND_BUFFER_QT : public QIODevice
     Q_OBJECT
 	
 protected:	
-	std::shared_ptr<FIFO_BASE::LOCKED_RINGBUFFER<uint8_t>>m_buffer;
+	std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>>m_buffer;
 public:
 	SOUND_BUFFER_QT(uint64_t depth = 0, QObject *parent = nullptr);
 	~SOUND_BUFFER_QT();
@@ -30,6 +30,8 @@ public:
 	virtual qint64 bytesAvailable() const override;
 
 	virtual qint64 pos() const override;
+	virtual bool seek(qint64 pos) override;
+
 	virtual bool   atEnd() const override;
 	virtual bool   reset() override;
 
