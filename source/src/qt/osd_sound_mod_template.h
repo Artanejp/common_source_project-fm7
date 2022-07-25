@@ -11,9 +11,10 @@
 
 #include <QObject>
 #include <mutex>
+#include <memory>
 
 #include "../common.h"
-#include "../fifo_templates.h"
+#include "./sound_buffer_qt.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -21,201 +22,125 @@ class OSD_BASE;
 class USING_FLAGS;
 class CSP_Logger;
 
-class DLL_PREFIX SOUND_MODULE_BASE : public QObject
+class DLL_PREFIX SOUND_OUTPUT_MODULE_BASE : public QObject
 {
 	Q_OBJECT
 protected:
 	OSD_BASE    *m_OSD;
 	USING_FLAGS *m_using_flags;
 	CSP_Logger  *m_logger;
-	void        *m_extconfig;
-	FIFO_BASE::LOCKED_RINGBUFFER<int16_t> *m_queue;
-	std::recursive_mutex m_locker;
-	std::recursive_mutex m_locker_outqueue;
+
+	std::atomic_bool     m_config_ok;
+	std::atomic<void *>  m_extconfig;
+	int	m_rate;
+	int m_channels;
+	int	m_latency_ms;
+	std::recursive_mutex             m_locker;
+	std::atomic_int	m_loglevel;
+	std::atomic_int m_logdomain;
 public:
-	SOUND_MODULE_BASE(OSD_BASE *parent, USING_FLAGS *pflags, CSP_Logger *logger, int buffer_size = 4096, void *configvalues = nullptr)
-		: m_OSD(parent), m_using_flags(pflags), m_logger(logger),
-		m_extconfig(configvalues), 
-		QObject(qobject_cast<QObject*>parent)
+	SOUND_OUTPUT_MODULE_BASE(
+		OSD_BASE *parent,
+		USING_FLAGS *pflags,
+		CSP_Logger *logger,
+		int base_rate = 48000,
+		int base_latency_ms = 100,
+		int base_channels = 2,
+		void *extra_configvalues = nullptr)
+		: m_OSD(parent), 
+		m_using_flags(pflags),
+		m_logger(logger),
+		QObject(qobject_cast<QObject*>parent),
 	{
-		m_queue = new FIFO_BASE::LOCKED_RINGBUFFER<int16_t>(buffer_size);
+		if(m_logger != nullptr) {
+			QObject::connect(this, SIGNAL(sig_send_log(int, int, QString)),
+							 m_logger, SLOT(do_debug_log(int, int, QString)),
+							 Qt::QueueedConnection);
+		}
+		m_rate = base_rate;
+		m_latency_ms = base_latency_ms;
+		m_channels = base_channels;
+		m_extconfig = configvalues;
+		m_config_ok = real_reconfig_sound(m_rate, m_channels, m_latency_ms);
+		m_loglevel = CSP_LOG_INFO;
+		m_logdomain = CSP_LOG_TYPE_SOUND;
 	}
-	~SOUND_MODULE_BASE()
+	~SOUND_OUTPUT_MODULE_BASE()
+	{
+	}
+	
+	int get_sound_rate()
 	{
 		std::lock_guard<std::recursive_mutex> locker(m_locker);
-		std::lock_guard<std::recursive_mutex> locker(m_locker_outqueue);
-		if(m_queue != nullptr) {
-			delete m_queue;
-		}
+		return m_rate;
 	}
-	virtual int get_sound_rate(bool is_input = false, int dev_channel = 0)
+	int get_latency()
 	{
-		return 44100;
+		std::lock_guard<std::recursive_mutex> locker(m_locker);
+		return m_latency_ms;
 	}
-	
-	virtual int64_t enqueueOutputSink(int16_t* p, int64_t size)
+	int get_channels()
 	{
-		std::lock_guard<std::recursive_mutex> locker(m_locker_outqueue);
-		if(m_queue != nullptr) {
-			bool flag;
-			int64_t wsize = m_queue->write(p, size, flag);
-			if((wsize > size) || (wsize <= 0) || !(flag)) {
-				return 0;
-			}
-			return wsize;
-		}
-		return 0;
+		std::lock_guard<std::recursive_mutex> locker(m_locker);
+		return m_channels;
 	}
-	
-	virtual int64_t dequeueOutputSink(int16_t* p, int64_t size)
+	virtual bool real_reconfig_sound(int& rate,int& channels,int& latency_ms) {
+		return true;
+	}	
+	template <class... Args>
+		bool debug_log(Args... args)
 	{
-		std::lock_guard<std::recursive_mutex> locker(m_locker_outqueue);
-		if(m_queue != nullptr) {
-			bool flag;
-			int64_t rsize = m_queue->read(p, size, flag);
-			if((rsize > size) || (rsize <= 0) || !(flag)) {
-				return 0;
-			}
-			return rsize;
-		}
-		return 0;
-	}
-	virtual int64_t enqueueInputSource(int device_ch, int16_t* p, int64_t size)
-	{
-		return 0;
-	}
-	virtual int64_t dequeueInputSource(int device_ch, int16_t* p, int64_t size)
-	{
-		return 0;
-	}
-	
-	virtual int64_t outputSinkQueueSize()
-	{
-		std::lock_guard<std::recursive_mutex> locker(m_locker_outqueue);
-		if(m_queue != nullptr) {
-			return m_queue->size();
-		}
-		return 0;
-	}
-	virtual int64_t outputSinkDataCount()
-	{
-		std::lock_guard<std::recursive_mutex> locker(m_locker_outqueue);
-		if(m_queue != nullptr) {
-			return m_queue->count();
-		}
-		return 0;
-	}
-	virtual bool outputSinkQueueAvailable()
-	{
-		std::lock_guard<std::recursive_mutex> locker(m_locker_outqueue);
-		if(m_queue != nullptr) {
-			return m_queue->available();
-		}
-		return false;
-	}
-	virtual bool outputSinkQueueReadReady()
-	{
-		std::lock_guard<std::recursive_mutex> locker(m_locker_outqueue);
-		if(m_queue != nullptr) {
-			return m_queue->read_ready();
-		}
-		return false;
-	}
-	virtual bool outputSinkQueueWriteReady()
-	{
-		std::lock_guard<std::recursive_mutex> locker(m_locker_outqueue);
-		if(m_queue != nullptr) {
-			return m_queue->write_ready();
-		}
-		return false;
-	}
-
-
-	virtual int64_t inputSourceQueueSize(int input_ch = 0)
-	{
-		return 0;
-	}
-	virtual int64_t inputSourceDataCount(int input_ch = 0)
-	{
-		return 0;
-	}
-	virtual bool inputSourceQueueAvailable(int input_ch = 0)
-	{
-		return false;
-	}
-	virtual bool inputSourceQueueReadReady(int input_ch = 0)
-	{
-		return false;
-	}
-	virtual bool inputSourceQueueWriteReady(int input_ch = 0)
-	{
-		return false;
-	}
-	
-	virtual bool initalizeSoundOutputDevice(int channels, int sample_rate, int& samples_per_chunk, int& chunks, std::string device_name)
-	{
+		_TCHAR buf[512] = {0};
+		my_sprintf_s(buf, sizeof(buf) - 1, args); 
+		QString s = QString::fromUtf8(buf);
+		emit sig_send_log(m_loglevel, m_logdomain, s);
 		return true;
 	}
-
-	virtual bool initalizeSoundOutputDevice(int channels, int sample_rate, int& samples_per_chunk, int& chunks, int device_num)
+	template <class... Args>
+		bool debug_log(imt level, int domain, Args... args)
 	{
+		_TCHAR buf[512] = {0};
+		my_sprintf_s(buf, sizeof(buf) - 1, args); 
+		QString s = QString::fromUtf8(buf);
+		emit sig_send_log(level, domain, s);
 		return true;
 	}
-	virtual bool detachSoundOutputDevice()
+	bool config_ok()
 	{
-		return true;
-	}
-	virtual bool isSoundOutputDeviceReady()
-	{
-		return false;
-	}
-
-	virtual bool initalizeSoundInputDevice(int channels, int sample_rate, int& samples_per_chunk, int& chunks, std::string device_name)
-	{
-		return true;
-	}
-
-	virtual bool initalizeSoundInputDevice(int input_channel, int channels, int sample_rate, int& samples_per_chunk, int& chunks, int device_num)
-	{
-		return true;
-	}
-	virtual void detachSoundInputDevice(int input_channel = 0)
-	{
-		return true;
-	}
-	virtual bool isSoundInputDeviceReady(int input_channel = 0)
-	{
-		return false;
-	}
-	
-	virtual void soundOutHandler(int64_t& req_size, void* userdata = nullptr)
-	{
-	}
-	virtual void soundInHandler(int64_t &req_size, void* userdata = nullptr)
-	{
-	}
-	// Kick sound out handler
-	virtual bool soundOutReq()
-	{
-		return true;
-	}
-	// Kick sound in handler
-	virtual bool soundInReq(int input_ch)
-	{
-		return true;
+		return m_config_ok.load();
 	}
 public slot:
-	virtual void initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
+	bool update_rate(int& rate)
 	{
-		std::lock_guard<std::recursive_mutex> locker(m_locker_outqueue);
-		// more lock via m_locker etc, if needs.
-		if(presented_rate != nullptr) {
-			*presenyted_rate = rate;
-		}
-		if(presented_samples != nullptr) {
-			*presenyted_samples = samples;
-		}
+		return reconfig_sound(rate, m_channels, m_latency_ms);
 	}
+	bool update_latency(int& latency_ms)
+	{
+		return reconfig_sound(m_rate, m_channels, latency_ms);
+	}
+	bool update_channels(int& channels)
+	{
+		return reconfig_sound(rate, m_channels, m_latency_ms);
+	}
+	bool reconfig_sound(int& rate, int& channels, int& latency_ms)
+	{
+		// ToDo
+		std::lock_guard<std::recursive_mutex> locker(m_locker);
+		if((rate != m_rate) || (channels != m_channels) || (latency_ms != m_latency_ms)) {
+			if(real_reconfig_sound(rate, channels, latency_ms)) {
+				m_rate = rate;
+				m_channels = channels;
+				m_latency_ms = latency_ms;
+				m_config_ok = true;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	virtual void initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples) {}
+	virtual void release_sound() {}
+
 	virtual void update_sound(int* extra_frames) {}
 	virtual void mute_sound() {}
 	virtual void stop_sound() {}
@@ -225,14 +150,20 @@ public slot:
 	virtual void do_stop_recording_sound() {}
 	virtual void do_restart_recording_sound() {}
 	virtual void do_request_capture_sound(int ch) {}
-	virtual void do_resize_output_buffer(int count, int channels) {}
-	virtual void do_resize_capture_buffer(int ch, int count, int channels) {}
-	virtual void do_receive_external_sound(int count, int channels, int16_t* data) {}
-
+	
 	virtual void set_logger(CSP_Logger* logger)
 	{
 		std::lock_guard<std::recursive_mutex> locker(m_locker);
+		if(m_logger != nullptr) {
+			QObject::disconnect(this, SIGNAL(sig_send_log(int, int, QString)),
+								m_logger, SLOT(do_debug_log(int, int, QString)));
+		}
 		m_logger = logger;
+		if(m_logger != nullptr) {
+			QObject::connect(this, SIGNAL(sig_send_log(int, int, QString)),
+							 m_logger, SLOT(do_debug_log(int, int, QString)),
+							 Qt::QueueedConnection);
+		}
 	}
 	virtual void set_osd(OSD_BASE* p)
 	{
@@ -251,13 +182,26 @@ public slot:
 		m_extconfig = p;
 		// more lock via m_locker_outqueue etc, if needs.
 	}
-	
+	virtual int result_opening_external_file()
+	{
+		return 0;
+	}
+	virtual int64_t wrote_data_to()
+	{
+		return 0;
+	}
+	virtual bool result_closing_external_file()
+	{
+		return true;
+	}
 signals:
-	void sig_send_log(QString);
-	void sig_send_log_with_class(int, int, QString);
-	void sig_req_input(int64_t);
-	void sig_complete_output(int64_t);
-	void sig_send_captured_sound_data(int, int64_t, int, int16_t[]);
+	// loglevel, logdomain, message
+	void sig_send_log(int, int, QString);
+	// rate, channels, path
+	void sig_req_open_sound(int, int, QString);
+	// 
+	void sig_req_close_sound();
+	// samples, channel, data
 	void sig_send_output_sound_data(int64_t, int, int16_t[]);
 };
 
