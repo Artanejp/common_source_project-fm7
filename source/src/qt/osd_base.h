@@ -13,20 +13,26 @@
 
 #include <QList>
 #include <QObject>
+#include <QThread>
 #include <QString>
 #include <QStringList>
 #include <QImage>
 #include <QAudioFormat>
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 #include <QAudioDevice>
+#include <QAudioSource>
+#include <QAudioSink>
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QAudioDeviceInfo>
+#include <QAudioInput>
+#include <QAudioOutput>
 #endif	
 
 #include <SDL.h>
 
 #include <string>
 #include <list>
+#include <memory>
 
 #include "../config.h"
 #define SOCKET_MAX 4
@@ -166,13 +172,6 @@ typedef struct {
 } osd_snd_capture_desc_t;
 
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-class QAudioSource;
-class QAudioSink;
-#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-class QAudioInput;
-class QAudioOutput;
-#endif
 
 class SOUND_BUFFER_QT;
 
@@ -186,16 +185,17 @@ private:
 	
 	QAudioFormat m_audioOutputFormat;
 	QAudioFormat m_audioInputFormat;
+	std::shared_ptr<QThread> m_audioOutputThread;
 	
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-	QAudioSink   *m_audioOutputSink;
-	QAudioSource *m_audioInputSource;
+	std::shared_ptr<QAudioSink> m_audioOutputSink;
+	std::shared_ptr<QAudioSource> m_audioInputSource;
 	
 	QAudioDevice m_audioOutputDevice;
 	QAudioDevice m_audioInputDevice;
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	QAudioOutput *m_audioOutputSink;
-	QAudioInput  *m_audioInputSource;
+	std::shared_ptr<QAudioOutput> m_audioOutputSink;
+	std::shared_ptr<QAudioInput> m_audioInputSource;
 
 	QAudioDeviceInfo m_audioOutputDevice;
 	QAudioDeviceInfo m_audioInputDevice;

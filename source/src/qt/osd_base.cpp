@@ -60,14 +60,19 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QObject(0)
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	m_audioOutputDevice = QMediaDevices::defaultAudioOutput();
 	m_audioInputDevice  = QMediaDevices::defaultAudioInput();
+
+	m_audioOutputSink.reset(new QAudioSink(m_audioOutputDevice, m_audioOutputDevice.preferredFormat()));
+	m_audioInputSource.reset();
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	m_audioOutputDevice = QAudioDeviceInfo::defaultOutputDevice();
 	m_audioInputDevice  = QAudioDeviceInfo::defaultInputDevice();
+
+	m_audioOutputSink.reset(new QAudioOutput(m_audioOutputDevice, m_audioOutputDevice->preferredFormat()));
+	m_audioInputSource.reset();
 #endif	
-	m_audioOutputSink = nullptr;
-	m_audioOutput = nullptr;
-	m_audioInputSource = nullptr;
+	m_audioOutputSink->moveToThread(this->thread());
 	
+	m_audioOutput = nullptr;
 	m_audioInput = nullptr;
 	sound_initialized = false;
 	sound_us_before_rendered = 0;	
