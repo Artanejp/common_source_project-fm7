@@ -453,10 +453,20 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 	// ToDo: Sound Input
 	QAudioFormat desired;
 	
-//	if(m_audioOutputSink->state() != QAudio::StoppedState) {
-//		m_audioOutputSink->stop();
-//	}
+	//m_audioOutputSink.get()->moveToThread(QThread::currentThread());
+	if(m_audioOutputSink->state() != QAudio::StoppedState) {
+		m_audioOutputSink->stop();
+	}
 	sound_us_before_rendered = 0;
+	if(m_audioOutput != nullptr) {
+		//m_audioOutput->moveToThread(this->thread());
+		if(m_audioOutput->isOpen()) {
+			m_audioOutput->close();
+		}
+		delete m_audioOutput;
+		m_audioOutput = nullptr;
+	}
+	m_audioOutputSink->moveToThread(this->thread());
 	
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	desired.setChannelCount(2);
@@ -486,15 +496,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	m_audioOutputSink.reset(new QAudioOutput(m_audioOutputDevice, m_audioOutputDevice->preferredFormat()));
 #endif
-	m_audioOutputSink->moveToThread(this->thread());
-	
-	if(m_audioOutput != nullptr) {
-		if(m_audioOutput->isOpen()) {
-			m_audioOutput->close();
-		}
-		delete m_audioOutput;
-		m_audioOutput = nullptr;
-	}
+
 	rate = m_audioOutputFormat.sampleRate();
 	if(rate <= 0) rate = 8000;
 	int outbuffer_length = samples * 2;
@@ -570,7 +572,7 @@ void OSD_BASE::release_sound()
 	m_audioOutputDevice = QMediaDevices::defaultAudioOutput();
 	m_audioInputDevice  = QMediaDevices::defaultAudioInput();
 	
-	m_audioOutputSink.reset(new QAudioSink(m_audioOutputDevice, m_audioOutputDevice.preferredFormat(), this));
+	m_audioOutputSink.reset(new QAudioSink(m_audioOutputDevice, m_audioOutputDevice.preferredFormat()));
 #else
 	m_audioOutputDevice = QAudioDeviceInfo::defaultOutputDevice();
 	m_audioInputDevice  = QAudioDeviceInfo::defaultInputDevice();
@@ -1228,13 +1230,14 @@ void OSD_BASE::update_sound(int* extra_frames)
 		if(vm != nullptr) {
 			now_mixed_ptr = vm->get_sound_buffer_ptr();
 		}
-		if(now_mixed_ptr < ((sound_samples * 98) / 100)) {
-			// Render even emulate 98% of latency when remain seconds is less than 2m Sec.
+		if(now_mixed_ptr < ((sound_samples * 100) / 100)) {
+			// Render even emulate 100% of latency when remain seconds is less than 2m Sec.
 			return;
 		}
-		if((sound_started) && (_diff < (_period_usec - 2000))) {
-			return;
-		}
+		//if((sound_started) && (_diff < (_period_usec - 2000))) { // 2mSec
+		//	return;
+		//}
+	
 		qint64 left = 0;
 		qint64 _size = sound_samples * 2 * sizeof(int16_t) * 4;
 		if(m_audioOutput != nullptr) {
@@ -1242,7 +1245,8 @@ void OSD_BASE::update_sound(int* extra_frames)
 		}
 		if(left < (sound_samples * 2 * sizeof(int16_t))) {
 			return;
-		}		   
+		}
+
 		// Input
 		int16_t* sound_buffer = (int16_t*)create_sound(extra_frames);
 		

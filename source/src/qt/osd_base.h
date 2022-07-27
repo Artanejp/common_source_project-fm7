@@ -185,7 +185,6 @@ private:
 	
 	QAudioFormat m_audioOutputFormat;
 	QAudioFormat m_audioInputFormat;
-	std::shared_ptr<QThread> m_audioOutputThread;
 	
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	std::shared_ptr<QAudioSink> m_audioOutputSink;
