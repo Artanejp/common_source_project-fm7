@@ -90,8 +90,7 @@ void Ui_MainWindowBase::do_set_host_sound_output_device(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	QString _name = cp->data().value<QString>();
-
-	if(p_config != NULL) {
+	if(p_config != nullptr) {
 		QString _old = QString::fromLocal8Bit(p_config->sound_device_name, 1023);
 		_name.truncate(1023);
 		if(/*(_old != _name) &&*/ !(_name.isEmpty())) {

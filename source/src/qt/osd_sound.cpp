@@ -510,6 +510,15 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			m_audioOutputSink->start(m_audioOutput);
 			#endif
 			sound_us_before_rendered = 0;
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+			debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
+					  "Sound Device to: %s",
+					  m_audioOutputDevice.description().toLocal8Bit().constData());
+	#else
+			debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
+					  "Sound Device to: %s",
+					  m_audioOutputDevice.deviceName().toLocal8Bit().constData());
+	#endif
 		}
 	}
 	
@@ -538,7 +547,6 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 	
 	if(m_audioOutputSink != nullptr) {
 		sound_ok = true;
-		sound_initialized = true;
 		if(p_config != nullptr) {
 			double _ll = (double)(p_config->general_sound_level + INT16_MAX) / 65535.0;
 			m_audioOutputSink->setVolume(_ll);
@@ -546,10 +554,10 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		connect(m_audioOutputSink, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleAudioOutputStateChanged(QAudio::State)));
 	} else {
 		sound_ok = false;
-		sound_initialized = false;
 		m_audioOutput = nullptr;
 		sound_us_before_rendered = 0;
 	}
+	sound_initialized = true;
 	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
 						  "Sound OK: BufSize = %d", outbuffer_length);
 
@@ -582,8 +590,6 @@ void OSD_BASE::do_update_master_volume(int level)
 {
 	QMutexLocker l(vm_mutex);
 	double _ll = (double)(level + INT16_MAX) / 65535.0;
-	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
-			  "Set Master Volume to %f .", _ll);
 	if(m_audioOutputSink != nullptr) {
 		m_audioOutputSink->setVolume(_ll);
 	}
@@ -591,10 +597,7 @@ void OSD_BASE::do_update_master_volume(int level)
 
 void OSD_BASE::do_set_host_sound_output_device(QString device_name)
 {
-	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
-				  "Set Audio Device to %s", device_name.toLocal8Bit().constData());
 	if(device_name.isEmpty()) return;
-	
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	QString _older;
 	_older = m_audioOutputDevice.description();
@@ -604,7 +607,7 @@ void OSD_BASE::do_set_host_sound_output_device(QString device_name)
 		QList<QAudioDevice> devlist = QMediaDevices::audioOutputs();
 		for(auto p = devlist.begin(); p != devlist.end() ; ++p) {
 			if((*p).description() == device_name) {
-				m_audioOutputDevice = *p;
+				m_audioOutputDevice = QAudioDevice((const QAudioDevice)(*p));
 				break;
 			}
 		}
@@ -631,7 +634,7 @@ void OSD_BASE::do_set_host_sound_output_device(QString device_name)
 #endif	
 	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
 				  "Set Audio Device to %s", _newer.toLocal8Bit().constData());
-	if(_older.compare(_newer) != 0) {
+	/*if(_older.compare(_newer) != 0) */{
 		QMutexLocker l(vm_mutex);
 		if((p_config != nullptr) && (using_flags != nullptr)) {
 			int freq_val = using_flags->get_sound_sample_rate(p_config->sound_frequency);
@@ -1283,8 +1286,6 @@ void OSD_BASE::update_sound(int* extra_frames)
 				qint64 written = 0;
 				int _count = sound_samples * 2;
 
-				double _ll = (double)(p_config->general_sound_level + INT16_MAX) / 65535.0;
-				m_audioOutputSink->setVolume(_ll);
 				qint64 _result = m_audioOutput->write((const char *)sound_buffer, _count * sizeof(int16_t));
 				sound_us_before_rendered = m_audioOutputSink->elapsedUSecs();
 			}

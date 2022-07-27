@@ -25,6 +25,8 @@
 #include "fileio.h"
 #include "config.h"
 #include "emu.h"
+#include "../osd.h"
+
 #include "menuclasses.h"
 #include "mainwidget.h"
 #include "commonclasses.h"
@@ -498,6 +500,11 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	}
 	if(hRunEmu != NULL) {
 		OnCloseDebugger();
+		OSD* op = (OSD*)(emu->get_osd());
+		if(op != nullptr) {
+			op->setParent(this);
+			op->moveToThread(this->thread());
+		}
 		hRunEmu->quit();
 		hRunEmu->wait();
 		delete hRunEmu;
@@ -1318,7 +1325,7 @@ int MainLoop(int argc, char *argv[])
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "InitInstance() OK.");
 	
 	// ToDo: Update raltime.
-	QObject::connect(rMainWindow, SIGNAL(sig_osd_sound_output_device(QString)), (OSD*)(emu->get_osd()), SLOT(do_set_host_sound_output_device(QString)));
+	rMainWindow->connect(rMainWindow, SIGNAL(sig_osd_sound_output_device(QString)), (OSD*)(emu->get_osd()), SLOT(do_set_host_sound_output_device(QString)));
 	rMainWindow->do_update_sound_output_list();
 
 	QObject::connect(rMainWindow, SIGNAL(sig_update_master_volume(int)), (OSD*)(emu->get_osd()), SLOT(do_update_master_volume(int)));

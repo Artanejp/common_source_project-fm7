@@ -757,6 +757,7 @@ public slots:
 
 	void handleAudioOutputStateChanged(QAudio::State newState);
 
+
 signals:
 	int sig_update_screen(void *, bool);
 	int sig_save_screen(const char *);

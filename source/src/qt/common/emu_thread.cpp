@@ -61,6 +61,7 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, USING_FLAGS *p, QO
 	connect(this, SIGNAL(sig_set_d88_num(int, int)), MainWindow, SLOT(set_d88_slot(int, int)));
 	connect(this, SIGNAL(sig_set_b77_num(int, int)), MainWindow, SLOT(set_b77_slot(int, int)));
 
+	p_osd->setParent(this);
 	p_osd->moveToThread(this);
 }
 
