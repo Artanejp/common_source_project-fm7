@@ -903,5 +903,5 @@ void CSP_Log_ConsoleThread::run()
 
 
 #if defined(CSP_OS_WINDOWS)
-CSP_Logger DLL_PREFIX *csp_logger;
+std::shared_ptr<CSP_Logger> DLL_PREFIX csp_logger;
 #endif
