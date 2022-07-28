@@ -378,7 +378,7 @@ void OSD::notify_socket_connected(int ch)
 void OSD::do_notify_socket_connected(int ch)
 {
 #ifdef USE_SOCKET
-	QMutexLocker lv(vm_mutex);
+	//QMutexLocker lv(vm_mutex);
 	vm->notify_socket_connected(ch);
 #endif	
 }
@@ -852,7 +852,6 @@ int OSD::add_video_frames()
 
 double OSD::get_vm_current_usec()
 {
-	QMutexLocker lv(vm_mutex);
 	if(vm == nullptr) {
 		return 0.0;
 	}
@@ -863,7 +862,6 @@ double OSD::get_vm_current_usec()
 
 uint64_t OSD::get_vm_current_clock_uint64()
 {
-	QMutexLocker lv(vm_mutex);
 	if(vm == nullptr) {
 		return (uint64_t)0;
 	}
@@ -873,7 +871,7 @@ uint64_t OSD::get_vm_current_clock_uint64()
 
 const _TCHAR *OSD::get_lib_common_vm_version()
 {
-	QMutexLocker lv(vm_mutex);
+//	QMutexLocker lv(vm_mutex);
 	if(vm->first_device != NULL) {
 		return vm->first_device->get_lib_common_vm_version();
 	} else {
@@ -883,7 +881,7 @@ const _TCHAR *OSD::get_lib_common_vm_version()
 
 void OSD::reset_vm_node(void)
 {
-	QMutexLocker lv(vm_mutex);
+//	QMutexLocker lv(vm_mutex);
 	device_node_t sp;
 	device_node_list.clear();
 	p_logger->reset();
