@@ -23,12 +23,8 @@
 #include "emu.h"
 #include "qt_main.h"
 #include "menu_flags.h"
-#include "../gui/csp_logger.h"
 
-extern CSP_Logger *csp_logger;
-extern EMU* emu;
-
-Ui_MainWindow::Ui_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent) : Ui_MainWindowBase(p, logger, parent)
+Ui_MainWindow::Ui_MainWindow(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : Ui_MainWindowBase(p, logger, parent)
 {
 }
 
@@ -50,8 +46,9 @@ void Ui_MainWindow::set_window(int mode)
 	if(mode >= 0 && mode < using_flags->get_screen_mode_num()) {
 		if(mode >= screen_mode_count) return;
 		// window
-		int width = emu->get_window_mode_width(mode);
-		int height = emu->get_window_mode_height(mode);
+		OSD_BASE* p_osd = using_flags->get_osd();
+		int width = p_osd->get_window_mode_width(mode);
+		int height = p_osd->get_window_mode_height(mode);
 		
 		this->resize(width + 10, height + 100); // OK?
 		int dest_x = 0;

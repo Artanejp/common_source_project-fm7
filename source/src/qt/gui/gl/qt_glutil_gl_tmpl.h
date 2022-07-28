@@ -10,6 +10,8 @@
 #ifndef _QT_COMMON_GLUTIL_TMPL_H
 #define _QT_COMMON_GLUTIL_TMPL_H
 
+#include <memory>
+
 #include <QObject>
 #include <QVector>
 #include <QWidget>
@@ -185,7 +187,7 @@ protected:
 	
 	USING_FLAGS *using_flags;
 	QImage *imgptr;
-	CSP_Logger *csp_logger;
+	std::shared_ptr<CSP_Logger> csp_logger;
 	config_t *p_config;
 
 	const float luma_filter[24 + 1] = {
@@ -382,7 +384,7 @@ protected:
 	virtual void set_osd_vertex(int xbit) { }
 
 public:
-	GLDraw_Tmpl(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu = 0);
+	GLDraw_Tmpl(GLDrawClass *parent, USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu = 0);
 	~GLDraw_Tmpl();
 	virtual void initGLObjects() {}
 	virtual void initFBO(void) {}

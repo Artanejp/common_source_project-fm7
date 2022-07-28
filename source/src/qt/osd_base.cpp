@@ -52,7 +52,7 @@
 #include "gui/dock_disks.h"
 #include "../vm/vm_template.h"
 
-OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QObject(0)
+OSD_BASE::OSD_BASE(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger) : QObject(0)
 {
 	using_flags = p;
 	locked_vm = false;
@@ -109,7 +109,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QObject(0)
 
 OSD_BASE::~OSD_BASE()
 {
-	if(p_logger != NULL) {
+	{
 		QMutexLocker l(log_mutex);
 		p_logger->set_osd(NULL);
 	}
@@ -407,13 +407,13 @@ void OSD_BASE::reset_vm_node(void)
 
 void OSD_BASE::debug_log(int level, int domain_num, char *strbuf)
 {
-	if(p_logger != NULL) p_logger->debug_log(level, domain_num, strbuf);
+	p_logger->debug_log(level, domain_num, strbuf);
 }
 
 
 void OSD_BASE::set_device_name(int id, char *name)
 {
-	if(p_logger != NULL)	p_logger->set_device_name(id, (char *)name);
+	p_logger->set_device_name(id, (char *)name);
 }
 
 void OSD_BASE::set_vm_node(int id, const _TCHAR *name)

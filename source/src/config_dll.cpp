@@ -12,7 +12,9 @@
 # if defined(Q_OS_WIN)
 # include <windows.h>
 # endif
-extern CSP_Logger *csp_logger;
+#include <memory>
+extern std::shared_ptr<CSP_Logger> csp_logger;
+
 #endif
 
 //#include <stdlib.h>

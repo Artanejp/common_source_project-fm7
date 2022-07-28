@@ -18,6 +18,7 @@
  */
 
 #include <stdarg.h>
+#include <memory>
 
 #include "../common.h"
 #include "../fileio.h"
@@ -45,7 +46,7 @@ protected:
 	VM_TEMPLATE* vm;		//!< POINTER OF LINKED VIRTUAL MACHINE
 	EMU_TEMPLATE* emu;		//!< POINTER OF EMULATION CORE
 	OSD_BASE* osd;			//!< POINTER OF OSD (OS DEPENDED part)
-	CSP_Logger *p_logger;	//!< POINTER OF LOGGING LOGGER
+	std::shared_ptr<CSP_Logger> p_logger;	//!< POINTER OF LOGGING LOGGER
 
 public:
 	/*!

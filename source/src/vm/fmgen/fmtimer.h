@@ -18,7 +18,7 @@ namespace FM
 	class DLL_PREFIX Timer
 	{
 	protected:
-		CSP_Logger *p_logger;
+		std::shared_ptr<CSP_Logger> p_logger;
 	public:
 		void	Reset();
 		bool	Count(int32 clock);

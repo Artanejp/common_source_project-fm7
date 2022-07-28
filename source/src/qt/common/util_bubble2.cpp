@@ -3,7 +3,6 @@
 #include "menu_bubble.h"
 
 #include "qt_dialogs.h"
-//#include "csp_logger.h"
 
 #if defined(USE_BUBBLE)
 

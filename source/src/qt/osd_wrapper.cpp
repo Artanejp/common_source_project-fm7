@@ -378,6 +378,7 @@ void OSD::notify_socket_connected(int ch)
 void OSD::do_notify_socket_connected(int ch)
 {
 #ifdef USE_SOCKET
+	QMutexLocker lv(vm_mutex);
 	vm->notify_socket_connected(ch);
 #endif	
 }
@@ -400,6 +401,7 @@ void OSD::do_notify_socket_disconnected(int ch)
 void OSD::update_socket()
 {
 #ifdef USE_SOCKET
+	QMutexLocker lv(vm_mutex);
 	qint64 bytes;
 	for(int i = 0; i < SOCKET_MAX; i++) {
 		QIODevice *p = NULL;
@@ -416,7 +418,7 @@ void OSD::update_socket()
 				}
 			}
 		}
-		if(p != NULL) {	
+		if((p != nullptr) && (vm != nullptr)) {	
 			// recv
 			bytes = p->bytesAvailable();
 			if(bytes > 0) {
@@ -526,6 +528,7 @@ void OSD::disconnect_socket(int ch)
 {
 //	soc[ch] = -1;
 #ifdef USE_SOCKET
+	QMutexLocker lv(vm_mutex);
 	if(host_mode[ch]) {
 		if(is_tcp[ch]) {
 			if(tcp_socket[ch] != NULL) {
@@ -546,7 +549,8 @@ void OSD::disconnect_socket(int ch)
 				udp_socket[ch]->disconnectFromHost();
 			}
 		}
-	}		
+	}
+	if(vm == nullptr) return;
 	vm->notify_socket_disconnected(ch);
 #endif	
 }
@@ -554,6 +558,7 @@ void OSD::disconnect_socket(int ch)
 bool OSD::listen_socket(int ch)
 {
 #ifdef USE_SOCKET
+	QMutexLocker lv(vm_mutex);
 	//QHostAddress addr = QHostAddress(QHostAddress::AnyIPv4); // OK?
 	// This unit is dummy?
 	//connect(udp_socket[ch], SIGNAL(connected()), udp_socket[ch], SLOT(do_connected()));
@@ -567,6 +572,8 @@ bool OSD::listen_socket(int ch)
 void OSD::send_socket_data_tcp(int ch)
 {
 #ifdef USE_SOCKET
+	QMutexLocker lv(vm_mutex);
+	if(vm == nullptr) return;
 	if(is_tcp[ch]) {
 		while(1) {
 			int size;
@@ -596,8 +603,10 @@ void OSD::send_socket_data_tcp(int ch)
 void OSD::send_socket_data_udp(int ch, uint32_t ipaddr, int port)
 {
 #ifdef USE_SOCKET
+	QMutexLocker lv(vm_mutex);
 	QHostAddress addr = QHostAddress((quint32)ipaddr);
-	if(!is_tcp[ch]) {
+	if(vm == nullptr) return;
+	if(!(is_tcp[ch])) {
 		while(1) {
 			int size;
 			uint8_t *buf = vm->get_socket_send_buffer(ch, &size);
@@ -843,20 +852,28 @@ int OSD::add_video_frames()
 
 double OSD::get_vm_current_usec()
 {
-	if(vm == NULL) return 0.0;
+	QMutexLocker lv(vm_mutex);
+	if(vm == nullptr) {
+		return 0.0;
+	}
 	QMutexLocker l(log_mutex);
-	return vm->get_current_usec();
+	double _d = vm->get_current_usec();
+	return _d;
 }
 
 uint64_t OSD::get_vm_current_clock_uint64()
 {
-	if(vm == NULL) return (uint64_t)0;
+	QMutexLocker lv(vm_mutex);
+	if(vm == nullptr) {
+		return (uint64_t)0;
+	}
 	QMutexLocker l(log_mutex);
 	return vm->get_current_clock_uint64();
 }
 
 const _TCHAR *OSD::get_lib_common_vm_version()
 {
+	QMutexLocker lv(vm_mutex);
 	if(vm->first_device != NULL) {
 		return vm->first_device->get_lib_common_vm_version();
 	} else {
@@ -866,6 +883,7 @@ const _TCHAR *OSD::get_lib_common_vm_version()
 
 void OSD::reset_vm_node(void)
 {
+	QMutexLocker lv(vm_mutex);
 	device_node_t sp;
 	device_node_list.clear();
 	p_logger->reset();

@@ -23,11 +23,11 @@
 #include "qt_main.h"
 
 // emulation core
-
+#include <memory>
 #if defined(CSP_OS_WINDOWS)
-CSP_Logger DLL_PREFIX_I *csp_logger;
+std::shared_ptr<CSP_Logger> DLL_PREFIX_I csp_logger;
 #else
-extern CSP_Logger *csp_logger;
+extern std::shared_ptr<CSP_Logger> csp_logger;
 #endif
 
 // Start to define MainWindow.
@@ -83,7 +83,7 @@ void DLL_PREFIX CSP_DebugHandler(QtMsgType type, const QMessageLogContext &conte
 	msgString = msgString.right(msgString.size() - 1);
    }
 #endif   
-        if(_nr_line) {
+    if(_nr_line) {
 	
 	nmsg_l2.append(" ");
 	nmsg_l2.append(msgString);
@@ -96,7 +96,7 @@ void DLL_PREFIX CSP_DebugHandler(QtMsgType type, const QMessageLogContext &conte
 	nmsg_l1.append(" (Function: ");
 	nmsg_l1.append(context.function);
 	nmsg_l1.append(" )");
-	if(csp_logger != NULL) {
+	if(csp_logger.get() != nullptr) {
 		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, nmsg_l1.toLocal8Bit().constData());
 		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, nmsg_l2.toLocal8Bit().constData());
 	} else {
@@ -104,7 +104,7 @@ void DLL_PREFIX CSP_DebugHandler(QtMsgType type, const QMessageLogContext &conte
 		fprintf(stderr, "%s\n", nmsg_l2.toLocal8Bit().constData());
 	}		
 	} else {
-	if(csp_logger != NULL) {
+		if(csp_logger.get() != NULL) {
 		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, msgString.toLocal8Bit().constData());
 	} else {
 		fprintf(stderr, "%s\n", msgString.toLocal8Bit().constData());
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 	/*
 	 * Get current DIR
 	 */
-	csp_logger = NULL;
+	csp_logger.reset();
 /*
  * アプリケーション初期化
  */

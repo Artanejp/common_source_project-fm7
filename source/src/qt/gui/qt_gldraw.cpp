@@ -125,7 +125,7 @@ void GLDrawClass::do_display_osd_leds(int lednum, bool onoff)
 #endif
 
 
-GLDrawClass::GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, const QSurfaceFormat &fmt)
+GLDrawClass::GLDrawClass(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent, const QSurfaceFormat &fmt)
 	: QOpenGLWidget(parent, Qt::Widget)
 {
 

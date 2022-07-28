@@ -7,6 +7,7 @@
 	[ config ]
 */
 #if defined(_USE_QT)
+#include <memory>
 #include <string>
 #include <vector>
 #include "fileio.h"
@@ -15,8 +16,8 @@
 # if defined(Q_OS_WIN)
 # include <windows.h>
 # endif
+extern std::shared_ptr<CSP_Logger> csp_logger;
 
-extern CSP_Logger *csp_logger;
 #endif
 
 #include <stdlib.h>

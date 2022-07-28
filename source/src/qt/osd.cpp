@@ -8,7 +8,10 @@
 */
 
 #include "emu.h"
+
+#include <memory>
 #include <string>
+
 #include <QDateTime>
 #include <QDate>
 #include <QTime>
@@ -20,7 +23,7 @@
 #include "osd.h"
 #include "config.h"
 
-OSD::OSD(USING_FLAGS *p, CSP_Logger *logger) : OSD_BASE(p, logger)
+OSD::OSD(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger) : OSD_BASE(p, logger)
 {
 	//p_config = using_flags->get_config_ptr();
 	p_config = &config;

@@ -9,7 +9,7 @@
 
 #include "types.h"
 #include "common.h"
-
+#include <memory>
 // ---------------------------------------------------------------------------
 //	出力サンプルの型
 //
@@ -49,7 +49,7 @@ namespace FM
 	class Operator
 	{
 	protected:
-		class CSP_Logger *p_logger;
+		std::shared_ptr<CSP_Logger> p_logger;
 		int tmp_eg_phase;
 		int tmp_ams;
 		int operators_num;
@@ -207,7 +207,7 @@ namespace FM
 		int tmp_out_bufptr[3];
 		int tmp_pms;
 		int channel4s_num;
-		class CSP_Logger *p_logger;
+		std::shared_ptr<CSP_Logger> p_logger;
 	public:
 		Channel4();
 		void SetChip(Chip* chip);
@@ -256,7 +256,7 @@ namespace FM
 	class Chip
 	{
 	protected:
-		class CSP_Logger *p_logger;
+		std::shared_ptr<CSP_Logger> p_logger;
 		int chip_num;
 	public:
 		Chip();

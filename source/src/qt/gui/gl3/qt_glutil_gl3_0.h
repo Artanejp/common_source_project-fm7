@@ -82,7 +82,7 @@ protected:
 	virtual void set_led_vertex(int bit);
 	virtual void set_osd_vertex(int bit);
 public:
-	GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu = 0);
+	GLDraw_3_0(GLDrawClass *parent, USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu = 0);
 	~GLDraw_3_0();
 	void drawButtons(void);
 	virtual void initGLObjects();

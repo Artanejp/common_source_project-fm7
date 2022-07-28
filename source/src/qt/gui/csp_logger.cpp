@@ -134,7 +134,10 @@ CSP_Logger::CSP_Logger(QObject *parent, bool b_syslog, bool cons, const char *de
 CSP_Logger::~CSP_Logger()
 {
 	emit sig_console_quit();
-	console_printer->wait();
+	if(!(console_printer->wait(100))) {
+		console_printer->terminate();
+		QThread::msleep(100);
+	}
 	delete console_printer;
 	
 	loglist.clear();

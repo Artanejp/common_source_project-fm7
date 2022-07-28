@@ -64,7 +64,7 @@ void DLL_PREFIX _resource_free(void)
 	Q_CLEANUP_RESOURCE(commontexts);
 }
 
-Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent) : QMainWindow(parent)
+Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : QMainWindow(parent)
 {
 	csp_logger = logger;
 	using_flags = p;
@@ -79,15 +79,12 @@ Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, CSP_Logger *logger, QWidget
 	phys_key_name_map.clear();
 	hRunJoy = NULL;
 	about_to_close = false;
-	if(csp_logger != nullptr) {
-		connect(this, SIGNAL(sig_set_device_node_log(int, int, int, bool)),
-				csp_logger, SLOT(set_device_node_log(int, int, int, bool)), Qt::QueuedConnection);
-		connect(this, SIGNAL(sig_set_device_node_log(int, int, bool*, int, int)),
-				csp_logger, SLOT(set_device_node_log(int, int, bool*, int, int)), Qt::QueuedConnection);
-		connect(this, SIGNAL(sig_set_device_node_log(int, int, int*, int, int)),
-				csp_logger, SLOT(set_device_node_log(int, int, int*, int, int)), Qt::QueuedConnection);
-		
-	}
+	connect(this, SIGNAL(sig_set_device_node_log(int, int, int, bool)),
+			csp_logger.get(), SLOT(set_device_node_log(int, int, int, bool)), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_set_device_node_log(int, int, bool*, int, int)),
+			csp_logger.get(), SLOT(set_device_node_log(int, int, bool*, int, int)), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_set_device_node_log(int, int, int*, int, int)),
+			csp_logger.get(), SLOT(set_device_node_log(int, int, int*, int, int)), Qt::QueuedConnection);
 }
 
 Ui_MainWindowBase::~Ui_MainWindowBase()
@@ -1140,5 +1137,5 @@ void Ui_MainWindowBase::OnCloseDebugger(void)
 /*
  * This is main for Qt.
  */
-DLL_PREFIX CSP_Logger *csp_logger;
+DLL_PREFIX std::shared_ptr<CSP_Logger> csp_logger;
 

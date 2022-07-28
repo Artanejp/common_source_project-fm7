@@ -124,7 +124,7 @@ private:
 protected:
 	OSD *p_osd;
 	config_t *p_config;
-	CSP_Logger *p_logger;
+	std::shared_ptr<CSP_Logger> p_logger;
 	
 	bool req_close;
 	bool req_stop;

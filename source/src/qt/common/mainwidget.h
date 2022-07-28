@@ -26,7 +26,7 @@ class Ui_MainWindow : public Ui_MainWindowBase
 protected:
 	
 public:
-	Ui_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
+	Ui_MainWindow(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~Ui_MainWindow();
 
 	void set_window(int mode);

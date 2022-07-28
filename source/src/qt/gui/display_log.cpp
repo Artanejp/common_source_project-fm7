@@ -33,7 +33,7 @@
 #include "menu_flags.h"
 #include "csp_logger.h"
 
-Dlg_LogViewerBind::Dlg_LogViewerBind(QObject *parent, CSP_Logger *logger, QString _str, int _bind_int) : QObject(parent)
+Dlg_LogViewerBind::Dlg_LogViewerBind(QObject *parent, std::shared_ptr<CSP_Logger> logger, QString _str, int _bind_int) : QObject(parent)
 {
 	bind_int =_bind_int;
 	str = _str;
@@ -122,7 +122,7 @@ void Dlg_LogViewer::resizeEvent(QResizeEvent *event)
 }
 
 
-Dlg_LogViewer::Dlg_LogViewer(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent, QString _domain, uint32_t level) : QWidget(parent)
+Dlg_LogViewer::Dlg_LogViewer(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent, QString _domain, uint32_t level) : QWidget(parent)
 {
 #if QT_VERSION >= 0x051400
 	lock_mutex = new QRecursiveMutex();
@@ -139,7 +139,7 @@ Dlg_LogViewer::Dlg_LogViewer(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent
 //	TextBox->setStyleSheet("font: 12pt \"Sans\";");
 	TextBox->setMinimumSize(800, 470);
 	TextBox->setOpenExternalLinks(true);
-	if(csp_logger != NULL) {
+	if(csp_logger.get() != nullptr) {
 		CSP_LoggerLine *p;
 		QString tmpstr;
 		QString beforestr;

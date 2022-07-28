@@ -25,7 +25,7 @@ protected:
 	QActionGroup *actionGroup_DipSw;
 	Action_Control *action_Emu_DipSw[4];
 public:
-	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
+	META_MainWindow(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
 };

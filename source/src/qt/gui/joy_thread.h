@@ -10,6 +10,7 @@
 #ifndef _CSP_QT_JOY_THREAD_H
 #define _CSP_QT_JOY_THREAD_H
 
+#include <memory>
 #include <QThread>
 #include <SDL.h>
 #include <QStringList>
@@ -51,7 +52,7 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 
  protected:
 	bool bRunThread;
-	CSP_Logger *csp_logger;
+	std::shared_ptr<CSP_Logger> csp_logger;
 	
 	void joystick_plugged(int num);
 	void joystick_unplugged(int num);

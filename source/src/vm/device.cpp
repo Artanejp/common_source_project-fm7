@@ -15,10 +15,11 @@
 #endif
 
 #include "./device.h"
+#include <memory>
 
 #if defined(_USE_QT)
 #include "../qt/gui/csp_logger.h"
-extern DLL_PREFIX_I CSP_Logger *csp_logger;
+extern DLL_PREFIX_I std::shared_ptr<CSP_Logger> csp_logger;
 #endif
 
 DEVICE::DEVICE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : vm(parent_vm), emu(parent_emu)

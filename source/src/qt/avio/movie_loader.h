@@ -8,6 +8,7 @@
 #ifndef _QT_OSD_MOVIE_LOADER_H
 #define _QT_OSD_MOVIE_LOADER_H
 
+#include <memory>
 #if defined(USE_LIBAV)
 extern "C" {
 	#include "libavutil/channel_layout.h"
@@ -57,7 +58,7 @@ class DLL_PREFIX MOVIE_LOADER: public QObject
 	Q_OBJECT
 private:
 	bool req_transfer;
-	CSP_Logger *p_logger;
+	std::shared_ptr<CSP_Logger> p_logger;
 	int decode_audio(AVCodecContext *dec_ctx,  int *got_frame);
 	int decode_video(AVCodecContext *dec_ctx,  int *got_frame);
 #if defined(USE_LIBAV)
@@ -135,7 +136,7 @@ public:
 	template <class... Args>
 		void out_debug_log(int type, int subtype, Args... args)
 	{
-		__LIKELY_IF(p_logger != nullptr) {
+		__LIKELY_IF(p_logger.get() != nullptr) {
 			p_logger->debug_log(type, subtype, args...);
 		}
 	}

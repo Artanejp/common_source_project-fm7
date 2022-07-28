@@ -11,9 +11,7 @@
 #define _CSP_QT_DRAW_THREAD_H
 
 #include <QThread>
-
-#include <SDL.h>
-
+#include <memory>
 #include "qt_gldraw.h"
 
 class Ui_MainWindowBase;
@@ -54,7 +52,7 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	bool bRecentRenderStatus;
 	bool use_separate_thread_draw;
 	bitmap_t *draw_screen_buffer;
-	CSP_Logger *csp_logger;
+	std::shared_ptr<CSP_Logger> csp_logger;
 	int ncount;
 	double emu_frame_rate;
 
@@ -65,7 +63,7 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	bool mapped_drawn;
 	void doDrawMain(bool flag);
  public:
-	DrawThreadClass(OSD_BASE *o, CSP_Logger *logger, QObject *parent = 0);
+	DrawThreadClass(OSD_BASE *o, std::shared_ptr<CSP_Logger> logger, QObject *parent = 0);
 	~DrawThreadClass();
 	QSemaphore *renderSemaphore;
 	QSemaphore *textureMappingSemaphore;

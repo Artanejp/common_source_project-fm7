@@ -16,10 +16,6 @@
 #include "menu_cart.h"
 
 #include "qt_dialogs.h"
-//#include "emu.h"
-//#include "csp_logger.h"
-
-
 Menu_CartClass::Menu_CartClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv, int base_drv) : Menu_MetaClass(root_entry, desc, p, parent, drv, base_drv)
 {
 	use_write_protect = false;

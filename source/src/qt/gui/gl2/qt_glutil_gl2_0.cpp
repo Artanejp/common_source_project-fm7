@@ -20,7 +20,7 @@
 #include "qt_glutil_gl2_0.h"
 #include "menu_flags.h"
 
-GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, CSP_Logger *logger, EMU_TEMPLATE *emu) : GLDraw_Tmpl(parent, p, logger, emu)
+GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu) : GLDraw_Tmpl(parent, p, logger, emu)
 {
 	extfunc_2 = NULL;
 	

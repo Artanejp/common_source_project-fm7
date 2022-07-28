@@ -18,6 +18,7 @@
 #include <QAction>
 #include <QVector>
 //#include <QMenuBar>
+#include <memory>
 
 #include "common.h"
 #include "config.h"
@@ -477,7 +478,8 @@ private:
 protected:
 	USING_FLAGS *using_flags;
 	config_t *p_config;
-	CSP_Logger *csp_logger;
+	std::shared_ptr<CSP_Logger> csp_logger;
+
 	QMainWindow *MainWindow;
 	QApplication *CoreApplication;
 	QMap<uint32_t, QString>phys_key_name_map; // VK, NAME
@@ -682,7 +684,7 @@ protected:
 	QMenu  *createMenuNode(QMenu *parent, QString objname = QString::fromUtf8(""));
 
 public:
-	Ui_MainWindowBase(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
+	Ui_MainWindowBase(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~Ui_MainWindowBase();
 
 	// Initializer : using from InitContext.
@@ -726,7 +728,7 @@ public:
 	bool get_wave_shaper(int drive);
 	bool get_direct_load_mzt(int drive);
 	virtual bool GetPowerState(void);
-	void set_logger(CSP_Logger *logger) { csp_logger = logger; }
+	void set_logger(std::shared_ptr<CSP_Logger> logger) { csp_logger = logger; }
 
 	virtual QString get_system_version();
 	virtual QString get_build_date();

@@ -20,7 +20,7 @@ protected:
 	Action_Control *actionAddress8000;
 	Action_Control *actionAddressBase[4]; //
 public:
-	META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0);
+	META_MainWindow(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~META_MainWindow();
 };
 

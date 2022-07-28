@@ -316,7 +316,7 @@ void META_MainWindow::setupUI_Emu(void)
 }
 
 
-META_MainWindow::META_MainWindow(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent) : Ui_MainWindow(p, logger, parent)
+META_MainWindow::META_MainWindow(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : Ui_MainWindow(p, logger, parent)
 {
 	config_sound_device_type = 0;
 	setupUI_Emu();

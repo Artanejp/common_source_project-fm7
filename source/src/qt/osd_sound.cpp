@@ -566,6 +566,7 @@ void OSD_BASE::release_sound()
 	sound_exit = true;
 	sound_initialized = false;
 	
+	m_audioOutputSink->stop();
 	m_audioOutputSink->disconnect();
 
 	#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)

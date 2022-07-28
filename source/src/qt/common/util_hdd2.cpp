@@ -5,7 +5,6 @@
 
 #include "qt_dialogs.h"
 #include "emu.h"
-//#include "csp_logger.h"
 
 #include "menu_flags.h"
 

@@ -13,8 +13,9 @@
 #include "../device_params.h"
 #include "./device.h"
 #if defined(_USE_QT)
+#include <memory>
 #include "../qt/gui/csp_logger.h"
-extern DLL_PREFIX_I CSP_Logger *csp_logger;
+extern DLL_PREFIX_I std::shared_ptr<CSP_Logger> csp_logger;
 #endif
 
 DEVICE::DEVICE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : vm(parent_vm), emu(parent_emu)
@@ -447,7 +448,6 @@ void DEVICE::set_device_name(const _TCHAR *format, ...)
 void DEVICE::out_debug_log(const char *fmt, ...)
 {
 #if defined(_USE_QT)
-	if(p_logger == NULL) return;
    	char strbuf[4096];
 	va_list ap;
 	
@@ -470,7 +470,6 @@ void DEVICE::out_debug_log_with_switch(bool logging, const char *fmt, ...)
 {
 	if(!(logging)) return;
 #if defined(_USE_QT)
-	if(p_logger == NULL) return;
    	char strbuf[4096];
 	va_list ap;
 	

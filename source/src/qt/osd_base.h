@@ -206,7 +206,7 @@ protected:
 	sdl_snddata_t snddata;
 	USING_FLAGS *using_flags;
 	config_t *p_config;
-	CSP_Logger *p_logger;
+	std::shared_ptr<CSP_Logger> p_logger;
 	
 	QOpenGLContext *glContext;
 	bool is_glcontext_shared;
@@ -405,7 +405,7 @@ protected:
 	virtual void update_input_mouse();
 
 public:
-	OSD_BASE(USING_FLAGS *p, CSP_Logger *logger);
+	OSD_BASE(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger);
 	~OSD_BASE();
 	
 	// common
@@ -711,7 +711,7 @@ public:
 	USING_FLAGS *get_config_flags(void) { return using_flags; }
 
 	// Special
-	CSP_Logger *get_logger(void) { return p_logger; }
+	std::shared_ptr<CSP_Logger> get_logger(void) { return p_logger; }
 	virtual bool set_glview(GLDrawClass *glv) { /* Dummy */ return false;}
 	QOpenGLContext *get_gl_context();
 	virtual GLDrawClass *get_gl_view() { return NULL; }

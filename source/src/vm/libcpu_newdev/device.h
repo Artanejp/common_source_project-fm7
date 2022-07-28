@@ -10,6 +10,7 @@
 #ifndef _LIBCPU_NEWDEV_DEVICE_H_
 #define _LIBCPU_NEWDEV_DEVICE_H_
 
+#include <memory>
 #include <stdarg.h>
 //#include "vm_template.h"
 #include "../../emu_template.h"
@@ -31,7 +32,7 @@ protected:
 	VM_TEMPLATE* vm;
 	EMU_TEMPLATE* emu;
 	OSD_BASE* osd;
-	CSP_Logger *p_logger;
+	std::shared_ptr<CSP_Logger> p_logger;
 public:
 	DEVICE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~DEVICE() {}

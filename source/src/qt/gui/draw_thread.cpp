@@ -29,7 +29,7 @@
 #include "config.h"
 
 
-DrawThreadClass::DrawThreadClass(OSD_BASE *o, CSP_Logger *logger,QObject *parent) : QThread(parent) {
+DrawThreadClass::DrawThreadClass(OSD_BASE *o, std::shared_ptr<CSP_Logger> logger,QObject *parent) : QThread(parent) {
 	MainWindow = (Ui_MainWindowBase *)parent;
 	glv = MainWindow->getGraphicsView();
 	p_osd = o;

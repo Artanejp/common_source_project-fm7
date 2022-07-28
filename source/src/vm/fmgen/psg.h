@@ -48,7 +48,7 @@ class DLL_PREFIX  PSG
 protected:
 	int chip_num;
 	int tmp_envelop_l;
-	CSP_Logger *p_logger;
+	std::shared_ptr<CSP_Logger> p_logger;
 public:
 	typedef PSG_SAMPLETYPE Sample;
 	

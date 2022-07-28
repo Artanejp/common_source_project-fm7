@@ -34,7 +34,8 @@ static const double sound_latency_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};
 // Please permit at least them m(.. )m
 //extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 #include <string>
-extern CSP_Logger *csp_logger;
+#include <memory>
+extern std::shared_ptr<CSP_Logger> csp_logger;
 #endif
 
 #if defined(_USE_QT)
@@ -141,7 +142,11 @@ EMU::~EMU()
 #ifdef USE_DEBUGGER
 	release_debugger();
 #endif
+	osd->lock_vm();
 	delete vm;
+	vm = nullptr;
+	osd->vm = nullptr;
+	osd->unlock_vm();
 	osd->release();
 	delete osd;
 #ifdef _DEBUG_LOG
@@ -267,6 +272,8 @@ void EMU::reset()
 		// reinitialize virtual machine
 		osd->lock_vm();		
 		delete vm;
+		vm = nullptr;
+		osd->vm = nullptr;
 		vm = new VM(this);
  		osd->vm = vm;;
 #if defined(_USE_QT)
@@ -2051,11 +2058,10 @@ void EMU::out_debug_log(const _TCHAR* format, ...)
 		return;
 	}
 	my_tcscpy_s(prev_buffer, 2048, buffer);
-	
+
 #if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
-	if((csp_logger != NULL)) {
-		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, "%s", buffer);
-	}
+	std::shared_ptr<CSP_Logger> lp = csp_logger;
+	lp->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, "%s", buffer);
 #else
 	if(debug_log) {
 		_ftprintf(debug_log, _T("(%f uS) %s"), vm->get_current_usec(), buffer);
@@ -2082,8 +2088,8 @@ void EMU::force_out_debug_log(const _TCHAR* format, ...)
 	my_tcscpy_s(prev_buffer, 1024, buffer);
 	
 #if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
-	if(csp_logger == NULL) return;
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, "%s", buffer);
+	std::shared_ptr<CSP_Logger> lp = csp_logger;
+    lp->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, "%s", buffer);
 #else
 	if(debug_log) {
 		_ftprintf(debug_log, _T("%s"), buffer);
@@ -3257,6 +3263,7 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 					// reinitialize virtual machine
 					osd->stop_sound();
 					delete vm;
+					osd->vm = nullptr;
 					vm = new VM(this);
 					osd->vm = vm;
 # if defined(_USE_QT)

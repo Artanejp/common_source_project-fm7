@@ -4,14 +4,14 @@
  *  License: GPLv2
  *  History: Oct 02, 2016 : Initial. 
  */
-
+#include <memory>
 #include "csp_logger.h"
 
 #include "./csp_avio_basic.h"
 #include "sound_loader.h"
 #include "../osd_base.h"
 
-SOUND_LOADER::SOUND_LOADER(void *prev_sound_loader, CSP_Logger *logger)
+SOUND_LOADER::SOUND_LOADER(void *prev_sound_loader, std::shared_ptr<CSP_Logger> logger)
 {
 	_filename.clear();
 	_dst_size = _dataptr = 0;

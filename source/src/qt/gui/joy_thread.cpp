@@ -38,15 +38,13 @@ JoyThreadClass::JoyThreadClass(EMU_TEMPLATE *p, USING_FLAGS *pflags, config_t *c
 	}
 	p_config = cfg;
 	using_flags = pflags;
-	csp_logger = NULL;
+	csp_logger.reset();
 	joydb.clear();
 	
 	if(p_osd != NULL) {
 		csp_logger = p_osd->get_logger();
-		if(csp_logger != NULL) {
-			connect(this, SIGNAL(sig_debug_log(int, int, QString)),
-					csp_logger, SLOT(do_debug_log(int, int, QString)));
-		}
+		connect(this, SIGNAL(sig_debug_log(int, int, QString)),
+				csp_logger.get(), SLOT(do_debug_log(int, int, QString)));
 	}
 	
 	char tmp_string[2048] = {0};
@@ -126,9 +124,7 @@ JoyThreadClass::~JoyThreadClass()
 
 void JoyThreadClass::debug_log(int level, int domain_num, QString msg)
 {
-	if(csp_logger != NULL) {
-		emit sig_debug_log(level, domain_num, msg);
-	}
+	emit sig_debug_log(level, domain_num, msg);
 }
 
 int JoyThreadClass::read_joydb()
@@ -222,16 +218,14 @@ bool JoyThreadClass::replace_joydb_by_guid(QString guid, QString after)
 
 void JoyThreadClass::debug_log(int level, int domain_num, const char *fmt, ...)
 {
-	if(csp_logger != NULL) {
-		char strbuf[4096] = {0};
+	char strbuf[4096] = {0};
 		
-		va_list ap;
-		va_start(ap, fmt);	
-		vsnprintf(strbuf, 4095, fmt, ap);
-		va_end(ap);
+	va_list ap;
+	va_start(ap, fmt);	
+	vsnprintf(strbuf, 4095, fmt, ap);
+	va_end(ap);
 			
-		emit sig_debug_log(level, domain_num, QString::fromUtf8(strbuf));
-	}
+	emit sig_debug_log(level, domain_num, QString::fromUtf8(strbuf));
 }
 
 QString JoyThreadClass::default_joyassign()

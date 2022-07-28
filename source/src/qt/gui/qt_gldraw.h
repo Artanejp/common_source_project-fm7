@@ -13,6 +13,7 @@
 #include "config.h"
 #include "menu_flags.h"
 
+#include <memory>
 
 #include <QOpenGLWidget>
 #include <QSurfaceFormat>
@@ -40,7 +41,7 @@ class DLL_PREFIX GLDrawClass: public QOpenGLWidget
 {
 	Q_OBJECT
  private:
-	CSP_Logger *csp_logger;
+	std::shared_ptr<CSP_Logger> csp_logger;
 	USING_FLAGS *using_flags;
 	config_t *p_config;
 	
@@ -77,7 +78,7 @@ class DLL_PREFIX GLDrawClass: public QOpenGLWidget
 
 public:
 
-	GLDrawClass(USING_FLAGS *p, CSP_Logger *logger, QWidget *parent = 0, const QSurfaceFormat &fmt = QSurfaceFormat::defaultFormat());
+	GLDrawClass(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0, const QSurfaceFormat &fmt = QSurfaceFormat::defaultFormat());
 	~GLDrawClass();
 	GLDraw_Tmpl *extfunc;
 	

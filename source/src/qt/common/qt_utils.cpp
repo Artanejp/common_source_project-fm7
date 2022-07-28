@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <memory>
+
 #include <QApplication>
 #include <QString>
 #include <QTextCodec>
@@ -51,9 +53,9 @@ EMU* emu;
 //QApplication *GuiMain = NULL;
 extern config_t config;
 #if defined(CSP_OS_WINDOWS)
-CSP_Logger DLL_PREFIX_I *csp_logger;
+std::shared_ptr<CSP_Logger> DLL_PREFIX_I csp_logger;
 #else
-extern CSP_Logger *csp_logger;
+extern std::shared_ptr<CSP_Logger> csp_logger;
 #endif
 
 // Start to define MainWindow.
@@ -487,16 +489,22 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	emit sig_quit_movie_thread();
 	emit sig_quit_widgets();
 	
-	if(hSaveMovieThread != NULL) {
-		hSaveMovieThread->wait();
+	if(hSaveMovieThread != nullptr) {
+		// When recording movie, stopping will spend a lot of seconds.
+		if(!(hSaveMovieThread->wait(60 * 1000))) { // 60 Sec
+			hSaveMovieThread->terminate();
+			QThread::msleep(1000);
+		}
 		delete hSaveMovieThread;
 		hSaveMovieThread = NULL;
 	}
    
-	if(hDrawEmu != NULL) {
-		hDrawEmu->wait();
+	if(hDrawEmu != nullptr) {
+		if(!(hDrawEmu->wait(1000))) {
+			hDrawEmu->terminate();
+		}
 		delete hDrawEmu;
-		hDrawEmu = NULL;
+		hDrawEmu = nullptr;
 	}
 	if(hRunEmu != NULL) {
 		OnCloseDebugger();
@@ -506,8 +514,12 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 			op->moveToThread(this->thread());
 		}
 		hRunEmu->quit();
-		hRunEmu->wait();
+		if(!(hRunEmu->wait(2000))) {
+			hRunEmu->terminate();
+			QThread::msleep(100);
+		}
 		delete hRunEmu;
+		hRunEmu = nullptr;
 #if 0
 		save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 #else
@@ -523,10 +535,12 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 #endif
 	}
 #if defined(USE_JOYSTICK)
-	if(hRunJoy != NULL) {
-		hRunJoy->wait();
+	if(hRunJoy != nullptr) {
+		if(!(hRunJoy->wait(1000))) {
+			hRunJoy->terminate();
+		}
 		delete hRunJoy;
-		hRunJoy = NULL;
+		hRunJoy = nullptr;
 	}
 #endif
 	do_release_emu_resources();
@@ -1135,25 +1149,26 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 
 void OpeningMessage(std::string archstr)
 {
-	csp_logger->set_emu_vm_name(DEVICE_NAME); // Write to syslog, console
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Start Common Source Project '%s'", my_procname.c_str());
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "(C) Toshiya Takeda / Qt Version K.Ohta");
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Architecture: %s", archstr.c_str());
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Use -h or --help for help.");
+	std::shared_ptr<CSP_Logger>p_logger = csp_logger;
+	p_logger->set_emu_vm_name(DEVICE_NAME); // Write to syslog, console
+	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Start Common Source Project '%s'", my_procname.c_str());
+	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "(C) Toshiya Takeda / Qt Version K.Ohta");
+	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Architecture: %s", archstr.c_str());
+	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Use -h or --help for help.");
 	
-	//csp_logger->debug_log(AGAR_LOG_INFO, " -? is print help(s).");
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Home = %s, Resource directory = %s",
+	//p_logger->debug_log(AGAR_LOG_INFO, " -? is print help(s).");
+	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Home = %s, Resource directory = %s",
 						  cpp_homedir.c_str(),
 						  sRssDir.c_str()); // Debug
 	
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Config dir = %s, config_file = %s",
+	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Config dir = %s, config_file = %s",
 						  cpp_confdir.c_str(),
 						  config_fullpath.c_str()); // Debug
 	
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DIPSW VALUE IS 0x%08x", config.dipswitch);
+	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DIPSW VALUE IS 0x%08x", config.dipswitch);
 	if(virtualMediaList.size() >= 2) {
 		for(int i = 0; i < virtualMediaList.size(); i += 2) {
-			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Virtual media %d, type %s, name %s",
+			p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Virtual media %d, type %s, name %s",
 								  i / 2,
 								  virtualMediaList.at(i).toLocal8Bit().constData(),
 								  virtualMediaList.at(i + 1).toLocal8Bit().constData());
@@ -1164,6 +1179,7 @@ void OpeningMessage(std::string archstr)
 void SetupSDL(void)
 {
 	QStringList _el = _envvers.toStringList();
+	std::shared_ptr<CSP_Logger>p_logger = csp_logger;
 	if(_el.size() > 0) {
 		for(int i = 0; i < _el.size(); i++) {
 			QString _s = _el.at(i);
@@ -1179,7 +1195,7 @@ void SetupSDL(void)
 					svar = QString::fromUtf8("");
 				}
 				SDL_setenv(skey.toLocal8Bit().constData(), svar.toLocal8Bit().constData(), 1);
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Note: SDL ENVIROMENT : %s to %s.",
+				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Note: SDL ENVIROMENT : %s to %s.",
 									  skey.toLocal8Bit().constData(),
 									  svar.toLocal8Bit().constData());
 			}
@@ -1192,14 +1208,14 @@ void SetupSDL(void)
 #else
 	SDL_Init(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_VIDEO);
 #endif
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Audio subsystem was initialised.");
+	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Audio subsystem was initialised.");
 }
 
 
 void SetupLogger(QObject *parent, std::string emustr, int _size)
 {
 
-	csp_logger = new CSP_Logger(parent, config.log_to_syslog, config.log_to_console, emustr.c_str()); // Write to syslog, console
+	csp_logger.reset(new CSP_Logger(parent, config.log_to_syslog, config.log_to_console, emustr.c_str())); // Write to syslog, console
 	csp_logger->set_log_stdout(CSP_LOG_DEBUG, true);
 	csp_logger->set_log_stdout(CSP_LOG_INFO, true);
 	csp_logger->set_log_stdout(CSP_LOG_WARN, true);
@@ -1267,6 +1283,7 @@ int MainLoop(int argc, char *argv[])
 	SetupLogger(GuiMain, emustr, CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1);
 	OpeningMessage(archstr);
 	SetupSDL();
+	std::shared_ptr<CSP_Logger>p_logger = csp_logger;
 
 	/*
 	 * Into Qt's Loop.
@@ -1298,16 +1315,16 @@ int MainLoop(int argc, char *argv[])
 		QProcessEnvironment ev = _envvers;
 		QStringList el = _envvers.toStringList();
 		if(el.size() > 0) {
-			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Environment Variables:");
+			p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Environment Variables:");
 			for(int i = 0; i < el.size(); i++) {
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "#%d : %s", i, el.at(i).toLocal8Bit().constData());
+				p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "#%d : %s", i, el.at(i).toLocal8Bit().constData());
 			}
 		}
 	}
 	
 //	USING_FLAGS_EXT *using_flags = new USING_FLAGS_EXT(&config);
 	// initialize emulation core
-	rMainWindow = new META_MainWindow(using_flags, csp_logger);
+	rMainWindow = new META_MainWindow(using_flags, p_logger);
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));
 	rMainWindow->setCoreApplication(GuiMain);
 	rMainWindow->getWindow()->show();
@@ -1321,8 +1338,8 @@ int MainLoop(int argc, char *argv[])
 	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
 		rMainWindow->do_update_device_node_name(i, using_flags->get_vm_node_name(i));
 	}
-	csp_logger->set_osd((OSD*)(emu->get_osd()));
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "InitInstance() OK.");
+	p_logger->set_osd((OSD*)(emu->get_osd()));
+	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "InitInstance() OK.");
 	
 	// ToDo: Update raltime.
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_osd_sound_output_device(QString)), (OSD*)(emu->get_osd()), SLOT(do_set_host_sound_output_device(QString)));
@@ -1506,13 +1523,16 @@ void Ui_MainWindow::OnCloseDebugger(void )
  	if(emu->now_debugging) {
 		if(emu->hDebugger->debugger_thread_param.running) {
 			emit quit_debugger_thread();
-			//emu->hDebugger->wait();
+			//if(!(emu->hDebugger->wait(2000))) {
+			//	emu->hDebugger->terminate();
+			//	QThread::msleep(100);
+			//}
 		}
  	}
 	if(emu != NULL) {
-		if(emu->hDebugger != NULL) {
+		if(emu->hDebugger != nullptr) {
 			delete emu->hDebugger;
-			emu->hDebugger = NULL;
+			emu->hDebugger = nullptr;
 		}
 		emu->now_debugging = false;
 	}
