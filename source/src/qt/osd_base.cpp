@@ -67,7 +67,7 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, CSP_Logger *logger) : QObject(0)
 	m_audioOutputDevice = QAudioDeviceInfo::defaultOutputDevice();
 	m_audioInputDevice  = QAudioDeviceInfo::defaultInputDevice();
 
-	m_audioOutputSink.reset(new QAudioOutput(m_audioOutputDevice, m_audioOutputDevice->preferredFormat()));
+	m_audioOutputSink.reset(new QAudioOutput(m_audioOutputDevice, m_audioOutputDevice.preferredFormat()));
 	m_audioInputSource.reset();
 #endif
 	//m_audioOutputSink->moveToThread(this->thread());

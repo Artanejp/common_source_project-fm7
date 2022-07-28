@@ -494,7 +494,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	m_audioOutputSink.reset(new QAudioSink(m_audioOutputDevice, m_audioOutputFormat));
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	m_audioOutputSink.reset(new QAudioOutput(m_audioOutputDevice, m_audioOutputDevice->preferredFormat()));
+	m_audioOutputSink.reset(new QAudioOutput(m_audioOutputDevice, m_audioOutputFormat));
 #endif
 
 	rate = m_audioOutputFormat.sampleRate();
@@ -568,17 +568,17 @@ void OSD_BASE::release_sound()
 	
 	m_audioOutputSink->disconnect();
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	m_audioOutputDevice = QMediaDevices::defaultAudioOutput();
 	m_audioInputDevice  = QMediaDevices::defaultAudioInput();
 	
 	m_audioOutputSink.reset(new QAudioSink(m_audioOutputDevice, m_audioOutputDevice.preferredFormat()));
-#else
+	#else
 	m_audioOutputDevice = QAudioDeviceInfo::defaultOutputDevice();
 	m_audioInputDevice  = QAudioDeviceInfo::defaultInputDevice();
 	
 	m_audioOutputSink.reset(new QAudioOutput(m_audioOutputDevice, m_audioOutputDevice.preferredFormat(), this));	
-#endif
+	#endif
 
 	if(m_audioOutput != nullptr) {
 		if(m_audioOutput->isOpen()) {
@@ -603,7 +603,7 @@ void OSD_BASE::do_update_master_volume(int level)
 void OSD_BASE::do_set_host_sound_output_device(QString device_name)
 {
 	if(device_name.isEmpty()) return;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	QString _older;
 	_older = m_audioOutputDevice.description();
 	if(device_name == QString::fromUtf8("Default")) {
@@ -619,7 +619,7 @@ void OSD_BASE::do_set_host_sound_output_device(QString device_name)
 	}
 	QString _newer;
 	_newer = m_audioOutputDevice.description();
-#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	QString _older;
 	_older = m_audioOutputDevice.deviceName();
 	if(device_name == QString::fromUtf8("Default")) {
@@ -636,7 +636,7 @@ void OSD_BASE::do_set_host_sound_output_device(QString device_name)
 	}
 	QString _newer;
 	_newer = m_audioOutputDevice.deviceName();
-#endif	
+	#endif	
 	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
 				  "Set Audio Device to %s", _newer.toLocal8Bit().constData());
 	/*if(_older.compare(_newer) != 0) */{
@@ -1216,8 +1216,11 @@ void OSD_BASE::update_sound(int* extra_frames)
 	now_mute = false;
 	if(sound_ok) {
 		//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "Sink->bytesFree() = %d", m_audioOutputSink->bytesFree());	
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 		std::shared_ptr<QAudioSink>sink_ptr = m_audioOutputSink;
-	
+	#else
+		std::shared_ptr<QAudioOutput>sink_ptr = m_audioOutputSink;
+	#endif	
 		const int64_t sound_us_now = (int64_t)(sink_ptr->elapsedUSecs());
 		const int64_t  _period_usec = (((int64_t)sound_samples * (int64_t)10000) / (int64_t)sound_rate) * 100;
 		int64_t _diff = sound_us_now - (int64_t)sound_us_before_rendered;
@@ -1305,7 +1308,12 @@ void OSD_BASE::update_sound(int* extra_frames)
 void OSD_BASE::mute_sound()
 {
 	if(!(now_mute) && (sound_ok)) {
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 		std::shared_ptr<QAudioSink>sink_ptr = m_audioOutputSink;
+	#else
+		std::shared_ptr<QAudioOutput>sink_ptr = m_audioOutputSink;
+	#endif	
+
 		switch(sink_ptr->state()) {
 		case QAudio::ActiveState:
 		case QAudio::IdleState:
@@ -1323,7 +1331,12 @@ void OSD_BASE::mute_sound()
 void OSD_BASE::stop_sound()
 {
 	if((sound_ok) && (sound_started)) {
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 		std::shared_ptr<QAudioSink>sink_ptr = m_audioOutputSink;
+	#else
+		std::shared_ptr<QAudioOutput>sink_ptr = m_audioOutputSink;
+	#endif	
+
 		switch(sink_ptr->state()) {
 		case QAudio::ActiveState:
 		case QAudio::IdleState:
