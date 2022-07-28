@@ -12,12 +12,7 @@
 #include <QObject>
 #include <QWidget>
 
-#if QT_VERSION >= 0x051400
-	#include <QRecursiveMutex>
-#else
-	#include <QMutex>
-#endif
-
+#include <chrono>
 #include <QSemaphore>
 #include <QPainter>
 #include <QElapsedTimer>
@@ -53,7 +48,6 @@
 #endif
 #include "qt_gldraw.h"
 #include "csp_logger.h"
-
 
 bool OSD::get_use_socket(void)
 {
@@ -378,7 +372,7 @@ void OSD::notify_socket_connected(int ch)
 void OSD::do_notify_socket_connected(int ch)
 {
 #ifdef USE_SOCKET
-	//QMutexLocker lv(vm_mutex);
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
 	vm->notify_socket_connected(ch);
 #endif	
 }
@@ -401,7 +395,7 @@ void OSD::do_notify_socket_disconnected(int ch)
 void OSD::update_socket()
 {
 #ifdef USE_SOCKET
-	QMutexLocker lv(vm_mutex);
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
 	qint64 bytes;
 	for(int i = 0; i < SOCKET_MAX; i++) {
 		QIODevice *p = NULL;
@@ -528,7 +522,8 @@ void OSD::disconnect_socket(int ch)
 {
 //	soc[ch] = -1;
 #ifdef USE_SOCKET
-	QMutexLocker lv(vm_mutex);
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
+
 	if(host_mode[ch]) {
 		if(is_tcp[ch]) {
 			if(tcp_socket[ch] != NULL) {
@@ -558,7 +553,8 @@ void OSD::disconnect_socket(int ch)
 bool OSD::listen_socket(int ch)
 {
 #ifdef USE_SOCKET
-	QMutexLocker lv(vm_mutex);
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
+
 	//QHostAddress addr = QHostAddress(QHostAddress::AnyIPv4); // OK?
 	// This unit is dummy?
 	//connect(udp_socket[ch], SIGNAL(connected()), udp_socket[ch], SLOT(do_connected()));
@@ -572,7 +568,8 @@ bool OSD::listen_socket(int ch)
 void OSD::send_socket_data_tcp(int ch)
 {
 #ifdef USE_SOCKET
-	QMutexLocker lv(vm_mutex);
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
+
 	if(vm == nullptr) return;
 	if(is_tcp[ch]) {
 		while(1) {
@@ -603,7 +600,8 @@ void OSD::send_socket_data_tcp(int ch)
 void OSD::send_socket_data_udp(int ch, uint32_t ipaddr, int port)
 {
 #ifdef USE_SOCKET
-	QMutexLocker lv(vm_mutex);
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
+
 	QHostAddress addr = QHostAddress((quint32)ipaddr);
 	if(vm == nullptr) return;
 	if(!(is_tcp[ch])) {
@@ -685,9 +683,10 @@ scrntype_t* OSD::get_buffer(bitmap_t *p, int y)
 int OSD::draw_screen()
 {
 	// draw screen
-	QMutexLocker Locker_S(screen_mutex);
+	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
+
 	bool mapped = false;
-	//QMutexLocker Locker_VM(vm_mutex);
+	//QMutexLocker Locker_VM(&vm_mutex);
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
 		//emit sig_movie_set_width(vm_screen_width);
 		//emit sig_movie_set_height(vm_screen_height);
@@ -852,26 +851,36 @@ int OSD::add_video_frames()
 
 double OSD::get_vm_current_usec()
 {
-	if(vm == nullptr) {
-		return 0.0;
+	if(log_mutex.try_lock_for(std::chrono::milliseconds(100))) {
+		if(vm == nullptr) {
+			log_mutex.unlock();
+			return 0.0;
+		}
+		double _d = vm->get_current_usec();
+		log_mutex.unlock();
+		return _d;
 	}
-	QMutexLocker l(log_mutex);
-	double _d = vm->get_current_usec();
-	return _d;
+	return 0.0;
 }
 
 uint64_t OSD::get_vm_current_clock_uint64()
 {
-	if(vm == nullptr) {
-		return (uint64_t)0;
+	if(log_mutex.try_lock_for(std::chrono::milliseconds(100))) {
+		if(vm == nullptr) {
+			log_mutex.unlock();
+			return 0;
+		}
+		uint64_t _n = vm->get_current_clock_uint64();
+		log_mutex.unlock();
+		return _n;
 	}
-	QMutexLocker l(log_mutex);
-	return vm->get_current_clock_uint64();
+	return 0;
 }
 
 const _TCHAR *OSD::get_lib_common_vm_version()
 {
-//	QMutexLocker lv(vm_mutex);
+//	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
+
 	if(vm->first_device != NULL) {
 		return vm->first_device->get_lib_common_vm_version();
 	} else {
@@ -881,7 +890,8 @@ const _TCHAR *OSD::get_lib_common_vm_version()
 
 void OSD::reset_vm_node(void)
 {
-//	QMutexLocker lv(vm_mutex);
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
+
 	device_node_t sp;
 	device_node_list.clear();
 	p_logger->reset();

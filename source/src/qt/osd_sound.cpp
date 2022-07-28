@@ -595,7 +595,8 @@ void OSD_BASE::release_sound()
 
 void OSD_BASE::do_update_master_volume(int level)
 {
-	QMutexLocker l(vm_mutex);
+	//std::lock_guard<std::recursive_timed_mutex> l(vm_mutex);
+
 	double _ll = (double)(level + INT16_MAX) / 65535.0;
 	m_audioOutputSink->setVolume(_ll);
 }
@@ -641,7 +642,7 @@ void OSD_BASE::do_set_host_sound_output_device(QString device_name)
 	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
 				  "Set Audio Device to %s", _newer.toLocal8Bit().constData());
 	/*if(_older.compare(_newer) != 0) */{
-		QMutexLocker l(vm_mutex);
+		std::lock_guard<std::recursive_timed_mutex> l(vm_mutex);
 		if((p_config != nullptr) && (using_flags != nullptr)) {
 			int freq_val = using_flags->get_sound_sample_rate(p_config->sound_frequency);
 			double latency_val = using_flags->get_sound_latency(p_config->sound_latency);

@@ -28,8 +28,10 @@
 #include <QAudioOutput>
 #endif	
 
+
 #include <SDL.h>
 
+#include <mutex>
 #include <string>
 #include <list>
 #include <memory>
@@ -87,11 +89,6 @@ class CSP_KeyTables;
 class USING_FLAGS;
 class CSP_logger;
 
-#if QT_VERSION >= 0x051400
-class QRecursiveMutex;
-#else
-class QMutex;
-#endif
 
 class QOpenGLContext;
 class MIDI_REDIRECTOR;
@@ -412,21 +409,13 @@ public:
 	VM_TEMPLATE* vm;
 	//EMU* emu;
 	class Ui_MainWindow *main_window_handle;
-#if QT_VERSION >= 0x051400
-	QRecursiveMutex *screen_mutex;
-	QRecursiveMutex *vm_mutex;
-	QRecursiveMutex *debug_mutex;
-	QRecursiveMutex *joystick_mutex;
-	QRecursiveMutex *mouse_mutex;
-	QRecursiveMutex *log_mutex;
-#else
-	QMutex *screen_mutex;
-	QMutex *vm_mutex;
-	QMutex *debug_mutex;
-	QMutex *joystick_mutex;
-	QMutex *mouse_mutex;
-	QMutex *log_mutex;
-#endif	
+
+	std::recursive_timed_mutex screen_mutex;
+	std::recursive_timed_mutex vm_mutex;
+	std::recursive_timed_mutex debug_mutex;
+	std::recursive_timed_mutex joystick_mutex;
+	std::recursive_timed_mutex mouse_mutex;
+	std::recursive_timed_mutex log_mutex;
 	int host_cpus;
 	bool now_auto_key;
 	

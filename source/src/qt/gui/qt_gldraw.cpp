@@ -42,7 +42,7 @@ void GLDrawClass::drawUpdateTexture(void *p, bool was_mapped)
 {
 	bitmap_t* pp = (bitmap_t*)p;
 	if(using_flags->get_osd() == NULL) return;
-	QMutexLocker Locker_S(static_cast<OSD_BASE *>(using_flags->get_osd())->screen_mutex);
+	std::lock_guard<std::recursive_timed_mutex> Locker_S(static_cast<OSD_BASE *>(using_flags->get_osd())->screen_mutex);
 	if((pp != NULL)) {
 		if(extfunc != NULL) {
 // Will fix at implemenitin PX7.

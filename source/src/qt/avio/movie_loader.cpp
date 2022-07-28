@@ -9,6 +9,8 @@
 #include "movie_loader.h"
 #include "csp_logger.h"
 
+#include <mutex>
+
 #if QT_VERSION >= 0x051400
 	#include <QRecursiveMutex>
 #else
@@ -730,7 +732,8 @@ void MOVIE_LOADER::get_video_frame()
 	uint32_t *q;
 	int xx;
 
-	QMutexLocker Locker_S(p_osd->screen_mutex);
+	std::lock_guard<std::recursive_timed_mutex> Locker_S(p_osd->screen_mutex);
+	//std::lock_guard<std::recursive_timed_mutex> Locker_V(video_mutex);
 	QMutexLocker Locker_V(video_mutex);
 
 	if(req_transfer) {

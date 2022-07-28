@@ -13,13 +13,9 @@
 #include <QObject>
 #include <QWidget>
 
-#if QT_VERSION >= 0x051400
-	#include <QRecursiveMutex>
-#else
-	#include <QMutex>
-#endif
+#include <mutex>
+#include <chrono>
 
-#include <QMutexLocker>
 #include <QSemaphore>
 #include <QPainter>
 #include <QElapsedTimer>
@@ -74,22 +70,8 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger) : QObject
 	m_audioOutput = nullptr;
 	m_audioInput = nullptr;
 	sound_initialized = false;
-	sound_us_before_rendered = 0;	
-#if QT_VERSION >= 0x051400
-	vm_mutex = new QRecursiveMutex();
-	screen_mutex = new QRecursiveMutex();
-	joystick_mutex = new QRecursiveMutex();
-	mouse_mutex = new QRecursiveMutex();
-	log_mutex = new QRecursiveMutex();
-	debug_mutex = new QRecursiveMutex();
-#else
-	vm_mutex = new QMutex(QMutex::Recursive);
-	screen_mutex = new QMutex(QMutex::Recursive);
-	joystick_mutex = new QMutex(QMutex::Recursive);
-	mouse_mutex = new QMutex(QMutex::Recursive);
-	log_mutex = new QMutex(QMutex::Recursive);
-	debug_mutex = new QMutex(QMutex::Recursive);
-#endif
+	sound_us_before_rendered = 0;
+	
 	device_node_list.clear();
 	max_vm_nodes = 0;
 	p_logger = logger;
@@ -109,15 +91,10 @@ OSD_BASE::OSD_BASE(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger) : QObject
 
 OSD_BASE::~OSD_BASE()
 {
-	{
-		QMutexLocker l(log_mutex);
+	if(log_mutex.try_lock_for(std::chrono::milliseconds(100))) {
 		p_logger->set_osd(NULL);
+		log_mutex.unlock();
 	}
-  	delete joystick_mutex;
-  	delete mouse_mutex;
-  	delete vm_mutex;
-	delete screen_mutex;
-	delete log_mutex;
 }
 
 extern std::string cpp_homedir;
@@ -290,7 +267,8 @@ bool OSD_BASE::get_use_video_capture(void)
 
 void OSD_BASE::vm_key_down(int code, bool flag)
 {
-	QMutexLocker _nn(vm_mutex);
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
+
 	if(vm != NULL) {
 		vm->key_down(code, flag);
 	}
@@ -298,7 +276,8 @@ void OSD_BASE::vm_key_down(int code, bool flag)
 
 void OSD_BASE::vm_key_up(int code)
 {
-	QMutexLocker _nn(vm_mutex);
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
+
 	if(vm != NULL) {
 		vm->key_up(code);
 	}
@@ -306,7 +285,8 @@ void OSD_BASE::vm_key_up(int code)
 
 void OSD_BASE::vm_reset(void)
 {
-	QMutexLocker _nn(vm_mutex);
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
+
 	if(vm != NULL) {
 		vm->reset();
 	}
@@ -335,16 +315,12 @@ int OSD_BASE::get_screen_height(void)
 void OSD_BASE::lock_vm(void)
 {
 	locked_vm = true;
-	if(vm_mutex != NULL) {
-		vm_mutex->lock();
-	}
+	vm_mutex.lock();
 }
 
 void OSD_BASE::unlock_vm(void)
 {
-	if(vm_mutex != NULL) {
-		vm_mutex->unlock();
-	}
+	vm_mutex.unlock();
 	locked_vm = false;
 }
 
@@ -356,9 +332,7 @@ bool OSD_BASE::is_vm_locked(void)
 
 void OSD_BASE::force_unlock_vm(void)
 {
-	if(vm_mutex != NULL) {
-		vm_mutex->unlock();
-	}
+	vm_mutex.unlock();
 	locked_vm = false;
 }
 
@@ -626,13 +600,13 @@ uint8_t OSD_BASE::get_feature_uint8_value(const _TCHAR *key)
 void OSD_BASE::start_waiting_in_debugger()
 {
 	// ToDo: Wait for rising up debugger window.
-	debug_mutex->lock(); 
+	debug_mutex.lock(); 
 }
 
 void OSD_BASE::finish_waiting_in_debugger()
 {
 	// ToDo: Wait for closing up debugger window.
-	debug_mutex->unlock(); 
+	debug_mutex.unlock(); 
 }
 
 void OSD_BASE::process_waiting_in_debugger()
@@ -673,7 +647,8 @@ const _TCHAR *OSD_BASE::get_lib_common_vm_version()
 
 const _TCHAR *OSD_BASE::get_lib_common_vm_git_version()
 {
-	QMutexLocker _nn(vm_mutex);
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
+
 	return vm->get_vm_git_version();
 }
 
@@ -686,13 +661,15 @@ void OSD_BASE::vm_draw_screen(void)
 
 double OSD_BASE::vm_frame_rate(void)
 {
-	QMutexLocker _nn(vm_mutex);
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
+
 	return vm->get_frame_rate();
 }
 
 Sint16* OSD_BASE::create_sound(int *extra_frames)
 {
-	QMutexLocker _nn(vm_mutex);
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
+
 	return (Sint16 *)vm->create_sound(extra_frames);
 }
 
