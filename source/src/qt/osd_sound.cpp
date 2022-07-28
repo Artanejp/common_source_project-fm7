@@ -1234,6 +1234,9 @@ void OSD_BASE::update_sound(int* extra_frames)
 		if(vm != nullptr) {
 			now_mixed_ptr = vm->get_sound_buffer_ptr();
 		}
+		if((sound_started) && (_diff < (_period_usec - 5000))) { // 2mSec
+			return;
+		}  
 		if(now_mixed_ptr < ((sound_samples * 100) / 100)) {
 			// Render even emulate 100% of latency when remain seconds is less than 2m Sec.
 			return;
