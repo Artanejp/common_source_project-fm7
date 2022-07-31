@@ -93,6 +93,24 @@
 		typedef unsigned int UINT;
 	#endif
 #endif
+
+#undef __HAS_BUILTIN_BSWAP16_X
+#undef __HAS_BUILTIN_BSWAP32_X
+#undef __HAS_BUILTIN_BSWAP64_X
+
+#if defined(__has_builtin)
+	#if __has_builtin(__builtin_bswap16)
+	#define __HAS_BUILTIN_BSWAP16_X 1
+	#endif
+	#if __has_builtin(__builtin_bswap32)
+	#define __HAS_BUILTIN_BSWAP32_X 1
+	#endif
+	#if __has_builtin(__builtin_bswap64)
+	#define __HAS_BUILTIN_BSWAP64_X 1
+	#endif
+#endif
+
+
 #if /*!defined(_WIN32) || */!defined(SOCKET)
 	typedef uintptr_t SOCKET;
 #endif

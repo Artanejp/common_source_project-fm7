@@ -103,7 +103,7 @@ typedef union pair64_t {
 	}
 	inline uint16_t __FASTCALL swap_2bytes(uint16_t nn)
 	{
-	#if defined(__has_builtin) && (__has_builtin(__builtin_bswap16))
+	#if defined(__HAS_BUILTIN_BSWAP16_X)
 		uint16_t tmp;
 		tmp = __builtin_bswap16(nn);
 		return tmp;
@@ -154,7 +154,7 @@ typedef union pair64_t {
 	}
 	inline uint32_t __FASTCALL swap_4bytes(uint32_t nn)
 	{
-	#if defined(__has_builtin) && (__has_builtin(__builtin_bswap32))
+	#if defined(__HAS_BUILTIN_BSWAP32_X)
 		uint32_t tmp;
 		tmp = __builtin_bswap32(nn);
 		return tmp;
@@ -207,7 +207,7 @@ typedef union pair64_t {
 	}
 	inline uint64_t __FASTCALL swap_8bytes(uint64_t nn)
 	{
-	#if defined(__has_builtin) && (__has_builtin(__builtin_bswap64))
+	#if defined(__HAS_BUILTIN_BSWAP64_X)
 		uint64_t tmp;
 		tmp = __builtin_bswap64(nn);
 		return tmp;

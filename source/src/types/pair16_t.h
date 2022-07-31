@@ -2,6 +2,7 @@
 
 #include "./basic_types.h"
 
+
 typedef union pair16_t {
 	struct {
 #ifdef __BIG_ENDIAN__
@@ -54,7 +55,7 @@ typedef union pair16_t {
 	}
 	inline uint16_t __FASTCALL swap_2bytes(uint16_t nn)
 	{
-	#if defined(__has_builtin) && (__has_builtin(__builtin_bswap16))
+	#if __HAS_BUILTIN_BSWAP16_X
 		uint16_t tmp;
 		tmp = __builtin_bswap16(nn);
 		return tmp;
