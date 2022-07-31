@@ -4,6 +4,7 @@
 #include <QMap>
 
 #include "common.h"
+#include <memory>
 
 namespace CSP_AVIO_BASIC {
 	enum {

@@ -15,6 +15,7 @@
 #include <QThread>
 #include <QSize>
 #include <QImage>
+#include <memory>
 #include "config.h"
 
 #if defined(USE_LIBAV)
