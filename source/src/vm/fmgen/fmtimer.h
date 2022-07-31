@@ -9,6 +9,7 @@
 
 #include "types.h"
 #include "common.h"
+#include <memory>
 
 class CSP_Logger;
 // ---------------------------------------------------------------------------

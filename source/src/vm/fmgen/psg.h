@@ -9,6 +9,7 @@
 
 #include "types.h"
 #include "common.h"
+#include <memory>
 
 #define PSG_SAMPLETYPE		int32		// int32 or int16
 
