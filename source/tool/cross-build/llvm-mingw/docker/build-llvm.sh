@@ -6,8 +6,6 @@ ASSERTS=OFF
 BUILDDIR=build
 FORCE_THREADS=OFF
 OVERRIDE_THREADS=0
-FORCE_WORKLOADS=OFF
-OVERRIDE_WORKLOADS=0
 
 while [ $# -gt 0 ]; do
     if [ "$1" = "--disable-asserts" ]; then
@@ -21,12 +19,7 @@ while [ $# -gt 0 ]; do
     elif [ "$1" = "--build-threads" ]; then
         FORCE_THREADS=ON
 	OVERRIDE_THREADS="$2"
-	: ${CORES="$2"}
-	shift
-    elif [ "$1" = "--workload" ]; then
-        FORCE_WORKLOADS=ON
-	OVERRIDE_WORKLOADS="$2"
-	: ${WORKLOADS="$2"}
+	: ${CORES:="$2"}
 	shift
     elif [ "$1" = "--llvm-version" ]; then
         LLVM_VERSION="$2"
@@ -45,11 +38,9 @@ if [ -z "$PREFIX" ]; then
     exit 1
 fi
 
-#: ${CORES:=$(nproc 2>/dev/null)}
-#: ${CORES:=$(sysctl -n hw.ncpu 2>/dev/null)}
-: ${CORES:=8}
-
-: ${WORKLOADS:=16.0}
+: ${CORES:=$(nproc 2>/dev/null)}
+: ${CORES:=$(sysctl -n hw.ncpu 2>/dev/null)}
+: ${CORES:=4}
 
 if [ ! -d llvm-project ]; then
     # When cloning master and checking out a pinned old hash, we can't use --depth=1.
@@ -105,7 +96,6 @@ if [ -n "$HOST" ]; then
         CMAKEFLAGS="$CMAKEFLAGS -DCLANG_TABLEGEN=$native/clang-tblgen"
         CMAKEFLAGS="$CMAKEFLAGS -DLLVM_CONFIG_PATH=$native/llvm-config"
     fi
-
     CROSS_ROOT=$(cd $(dirname $(which $HOST-gcc))/../$HOST && pwd)
     CMAKEFLAGS="$CMAKEFLAGS -DCMAKE_FIND_ROOT_PATH=$CROSS_ROOT"
     CMAKEFLAGS="$CMAKEFLAGS -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER"
@@ -157,56 +147,19 @@ cmake \
     ${CMAKE_GENERATOR+-G} "$CMAKE_GENERATOR" \
     -DCMAKE_INSTALL_PREFIX="$PREFIX" \
     -DCMAKE_BUILD_TYPE=Release \
-    -DLLVM_CCACHE_BUILD=ON \
-    -DLLVM_ENABLE_PIC=OFF \
     -DLLVM_ENABLE_ASSERTIONS=$ASSERTS \
-    -DLLVM_ENABLE_PROJECTS="clang;lld;parallel-libs;polly;pstl" \
+    ${EXPLICIT_PROJECTS+-DLLVM_ENABLE_PROJECTS="clang;lld"} \
     -DLLVM_TARGETS_TO_BUILD="ARM;AArch64;X86" \
     -DLLVM_INSTALL_TOOLCHAIN_ONLY=$TOOLCHAIN_ONLY \
     -DLLVM_TOOLCHAIN_TOOLS="llvm-ar;llvm-ranlib;llvm-objdump;llvm-rc;llvm-cvtres;llvm-nm;llvm-strings;llvm-readobj;llvm-dlltool;llvm-pdbutil;llvm-objcopy;llvm-strip;llvm-cov;llvm-profdata;llvm-addr2line" \
     ${HOST+-DLLVM_HOST_TRIPLE=$HOST} \
     $CMAKEFLAGS \
-   ..
-
-cmake ..
-
+    ..
 
 #if [ -n "$NINJA" ]; then
 #    ninja -j$CORES
 #     ninja -j$CORES install/strip
 #else
 #    make -j$CORES 
-     make -j$CORES -l ${WORKLOADS} 
-     make -j$CORES -l ${WORKLOADS} runtimes
-     
-     make -j$CORES -l ${WORKLOADS} install/strip
+     make -j$CORES install/strip
 #fi
-
-exit 0
-
--DLLVM_ENABLE_RUNTIMES="compiler-rt;libunwind;libcxxabi;libcxx;openmp" \
-    -DLLVM_RUNTIME_TARGETS="x86_64-w64-mingw32;i686-w64-mingw32;aarch64-w64-mingw32;armv7-w64-mingw32" \
-    -DCOMPILER_RT_DEFAULT_TARGET_ONLY=TRUE \
-    -DCOMPILER_RT_USE_BUILTINS_LIBRARY=TRUE \
-    -DLIBUNWIND_USE_COMPILER_RT=TRUE \
-    -DLIBUNWIND_ENABLE_THREADS=TRUE \
-    -DLIBCXXABI_USE_COMPILER_RT=ON \
-    -DLIBCXXABI_ENABLE_EXCEPTIONS=ON \
-    -DLIBCXXABI_ENABLE_THREADS=ON \
-    -DLIBCXXABI_ENABLE_NEW_DELETE_DEFINITIONS=ON \
-    -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
-    -DLIBCXX_USE_COMPILER_RT=ON \
-    -DLIBCXX_INSTALL_HEADERS=ON \
-    -DLIBCXX_ENABLE_EXCEPTIONS=ON \
-    -DLIBCXX_ENABLE_THREADS=ON \
-    -DLIBCXX_HAS_WIN32_THREAD_API=ON \
-    -DLIBCXX_ENABLE_MONOTONIC_CLOCK=ON \
-    -DLIBCXX_SUPPORTS_STD_EQ_CXX11_FLAG=TRUE \
-    -DLIBCXX_HAVE_CXX_ATOMICS_WITHOUT_LIB=TRUE \
-    -DLIBCXX_ENABLE_EXPERIMENTAL_LIBRARY=OFF \
-    -DLIBCXX_ENABLE_FILESYSTEM=OFF \
-    -DLIBCXX_CXX_ABI=libcxxabi \
-    -DLIBCXX_LIBDIR_SUFFIX="" \
-    -DLIBCXX_ENABLE_NEW_DELETE_DEFINITIONS=OFF \
-    -DLIBCXX_INCLUDE_TESTS=FALSE \
-    -DLIBCXX_ENABLE_ABI_LINKER_SCRIPT=FALSE \

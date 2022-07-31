@@ -8,13 +8,8 @@ DEFAULT_MSVCRT=ucrt
 while [ $# -gt 0 ]; do
     case "$1" in
     --build-threads)
-        : ${CORES="$2"}
-	__NARG="${__NARG} --build-threads $2"
-	shift
-	;;
-    --workload)
-        : ${WORKLOADS="$2"}
-	__NARG="${__NARG} --workload $2"
+        : ${CORES:="$2"}
+	__NARG="--build-threads $2"
 	shift
 	;;
     --skip-include-triplet-prefix)
@@ -53,7 +48,6 @@ fi
 : ${CORES:=$(nproc 2>/dev/null)}
 : ${CORES:=$(sysctl -n hw.ncpu 2>/dev/null)}
 : ${CORES:=4}
-: ${WORKLOADS:=99.9}
 : ${ARCHS:=${TOOLCHAIN_ARCHS-i686 x86_64 armv7 aarch64}}
 
 if [ ! -d mingw-w64 ]; then
@@ -65,7 +59,8 @@ cd mingw-w64
 
 if [ -n "$SYNC" ] || [ -n "$CHECKOUT" ]; then
     [ -z "$SYNC" ] || git fetch
-    git checkout v8.x
+    #git checkout v8.x
+    git checkout v9.x
 #    git checkout 0a1d495478d8ed1a94fc77b9dbb428b7e0372588
 fi
 
@@ -114,7 +109,7 @@ if [ -z "$HOST" ]; then
         esac
         FLAGS="$FLAGS --with-default-msvcrt=$DEFAULT_MSVCRT"
         ../configure --host=$arch-w64-mingw32 --prefix=$PREFIX/$arch-w64-mingw32 $FLAGS
-        make -j$CORES -l $WORKLOADS
+        make -j$CORES
         make install
         cd ..
     done
@@ -151,7 +146,7 @@ for arch in $ARCHS; do
     mkdir -p build-$CROSS_NAME$arch
     cd build-$CROSS_NAME$arch
     ../configure --prefix=$PREFIX --target=$arch-w64-mingw32 $CONFIGFLAGS LDFLAGS="-Wl,-s"
-    make -j$CORES -l $WORKLOADS
+    make -j$CORES
     make install
     cd ..
 done

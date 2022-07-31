@@ -1,19 +1,11 @@
 #!/usr/bin/bash
 
-
-: ${TOOLCHAIN_PREFIX:="/opt/llvm-mingw-13"}
+TOOLCHAIN_PREFIX=/opt/llvm-mingw-14
+TOOLCHAIN_ARCHS="i686 x86_64 armv7 aarch64"
+TOOLCHAIN_TARGET_OSES="mingw32 mings32uwp"
 WORKDIR_2=$PWD
-
-: ${TOOLCHAIN_ARCHS="i686 x86_64 armv7 aarch64"}
-: ${TOOLCHAIN_TARGET_OSES="mingw32 mings32uwp"}
-
-: ${FORCE_THREADS:=$(nproc 2>/dev/null)}
-: ${FORCE_THREADS:=$(sysctl -n hw.ncpu 2>/dev/null)}
-: ${FORCE_THREADS:=8}
-
-: ${LLVM_VERSION:=llvmorg-13.0.1}
-: ${FORCE_WORKLOADS:=15.0}
-: ${NICE_VALUE:=20}
+LLVM_VERSION=llvmorg-14.0.0
+FORCE_THREADS=6
 
 typeset -i CLEANING
 CLEANING=0
@@ -25,12 +17,6 @@ fi
 export TOOLCHAIN_ARCHS
 export TOOLCHAIN_PREFIX
 export TOOLCHAIN_TARGET_OSES
-
-export LLVM_VERSION
-export FORCE_THREADS
-export FORCE_WORKLOADS
-export NICE_VALUE
-
 export WORKDIR_2
 
 typeset -i ncount
@@ -39,9 +25,6 @@ ncount=1
 THREAD_PARAM=""
 if [ -n "${FORCE_THREADS}" ] ; then
    THREAD_PARAM="--build-threads ${FORCE_THREADS}"
-fi
-if [ -n "${FORCE_WORKLOADS}" ] ; then
-   THREAD_PARAM="${THREAD_PARAM} --workload ${FORCE_WORKLOADS}"
 fi
 
 mkdir -p "${WORKDIR_2}/"
@@ -57,7 +40,7 @@ pushd .
 cd "${WORKDIR_2}/build"
 echo "BUILD LLVM Toolchain for Win32/64 to ${WORKDIR_2}/build/"
 
-nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-llvm.sh \
+${WORKDIR_2}/scripts/build-llvm.sh \
                --llvm-version ${LLVM_VERSION} \
 	       ${THREAD_PARAM} \
 	       ${TOOLCHAIN_PREFIX}
@@ -70,14 +53,14 @@ nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-llvm.sh \
 #${WORKDIR_2}/scripts/strip-llvm.sh \
 #		       ${TOOLCHAIN_PREFIX}
 
-if [ $? -ne 0 ] ; then
-   echo "PHASE ${ncount}: script: ${_sc} failed. Abort building"
-   exit $?
-fi
+#if [ $? -ne 0 ] ; then
+#   echo "PHASE ${ncount}: script: ${_sc} failed. Abort building"
+#   exit $?
+#fi
 
-#ncount=$((${ncount}+1))
+ncount=$((${ncount}+1))
 
-nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/install-wrappers.sh \
+${WORKDIR_2}/scripts/install-wrappers.sh \
 		       ${TOOLCHAIN_PREFIX}
 		       
 if [ $? -ne 0 ] ; then
@@ -90,25 +73,25 @@ export PATH="${TOOLCHAIN_PREFIX}/bin:${PATH}"
 
 mkdir -p "${WORKDIR_2}/build/build"
 cd "${WORKDIR_2}/build/build"
-nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-mingw-w64.sh \
+${WORKDIR_2}/scripts/build-mingw-w64.sh \
            ${THREAD_PARAM} \
-	   ${TOOLCHAIN_PREFIX}
+	       ${TOOLCHAIN_PREFIX}
 	       
 cd "${WORKDIR_2}/build"
-nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-compiler-rt.sh \
-           ${THREAD_PARAM} \
-           ${TOOLCHAIN_PREFIX} 
+${WORKDIR_2}/scripts/build-compiler-rt.sh \
+            ${THREAD_PARAM} \
+            ${TOOLCHAIN_PREFIX} 
 
 
 cd "${WORKDIR_2}/build/build"
-nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-mingw-w64-libraries.sh \
+${WORKDIR_2}/scripts/build-mingw-w64-libraries.sh \
             ${THREAD_PARAM} \
-	    ${TOOLCHAIN_PREFIX}
+ 	        ${TOOLCHAIN_PREFIX}
 
 
 
 cd "${WORKDIR_2}/build"
-nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-libcxx.sh \
+${WORKDIR_2}/scripts/build-libcxx.sh \
                ${THREAD_PARAM} \
 	       ${TOOLCHAIN_PREFIX}
 
@@ -130,10 +113,10 @@ nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-libcxx.sh \
 # Build sanitizers. Ubsan includes <typeinfo> from the C++ headers, so
 # we need to build this after libcxx.
 # Sanitizers on windows only support x86.
-#cd "${WORKDIR_2}/build"
-#nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-compiler-rt.sh \
-#           ${THREAD_PARAM} \
-#           ${TOOLCHAIN_PREFIX}
+cd "${WORKDIR_2}/build"
+${WORKDIR_2}/scripts/build-compiler-rt.sh \
+           ${THREAD_PARAM} \
+           ${TOOLCHAIN_PREFIX}
 
 #  		   --build-sanitizers \
 
@@ -160,7 +143,7 @@ nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-libcxx.sh \
 cd "${WORKDIR_2}/build"
 cp "${WORKDIR_2}/scripts/libssp-Makefile" "${WORKDIR_2}/build"
 _sc=""
-nice -n ${NICE_VALUE} ${WORKDIR_2}/scripts/build-libssp.sh \
+${WORKDIR_2}/scripts/build-libssp.sh \
                    ${THREAD_PARAM} \
 		   ${TOOLCHAIN_PREFIX} \
 		   #--build-sanitizers

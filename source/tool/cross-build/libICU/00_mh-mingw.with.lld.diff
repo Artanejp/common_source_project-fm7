@@ -1,0 +1,11 @@
+--- mh-mingw.orig	2019-04-11 22:14:27.000000000 +0000
++++ mh-mingw	2022-07-31 17:17:40.626319034 +0000
+@@ -41,7 +41,7 @@
+ #LINK.cc=      $(CXX) $(CXXFLAGS) $(LDFLAGS)
+ 
+ ## Shared library options
+-LD_SOOPTIONS= -Wl,-Bsymbolic
++LD_SOOPTIONS= -Wl,-Bdynamic
+ 
+ ## Commands to make a shared library
+ SHLIB.c=	$(CC) $(CFLAGS) $(LDFLAGS) -shared $(LD_SOOPTIONS) -Wl,--enable-auto-import -Wl,--out-implib=$(dir $@)lib$(notdir $(@:$(SO_TARGET_VERSION_MAJOR).$(SO)=))$(IMPORT_LIB_EXT)#M#

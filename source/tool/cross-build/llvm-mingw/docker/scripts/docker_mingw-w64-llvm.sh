@@ -2,7 +2,7 @@
 
 #CIDFILE=`mktemp`
 CONTAINER_NAME=`uuidgen`
-CONTAINER_TAG='artanejp/mingw-w64-llvm10-ubuntu20.04:using'
+CONTAINER_TAG='artanejp/mingw-w64-llvm12-ubuntu20.04:using'
 CONTAINER_CMD='/bin/bash -i'
 #CONTAINER_HOME="/Please_Modify_This/home/"
 BEGIN_DATE=`date`
