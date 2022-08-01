@@ -6,25 +6,23 @@ DIRECTX_ARCH=x86
 SDK_PREFIX="/usr/local/i586-mingw-msvc"
 SDK_PREFIX_DIRECTX="/usr/local/i586-mingw-msvc/DirectX_June_2010"
 
-VULKAN_SDK="${SDK_PREFIX}/Vulkan"
-LLVM_INSTALL_DIR="/opt/llvm-mingw-12"
+VULKAN_SDK="${SDK_PREFIX}"
+LLVM_INSTALL_DIR="/opt/llvm-mingw"
 
 ADDITIONAL_FLAGS=""
 BUILD_WITH_VULKAN=1
 
 #export PATH="$PATH:~/src/fxc2"
 export PATH="${LLVM_INSTALL_DIR}/bin:$PATH:$SDK_PREFIX"
-export PATH="$PATH:$SDK_PREFIX/icu/bin"
-export PATH="$PATH:$SDK_PREFIX/icu/lib"
-export PATH="$PATH:$SDK_PREFIX/Angle/bin"
-export PATH="$PATH:$SDK_PREFIX/SDL/i686-w64-mingw32/bin"
+export PATH="$PATH:$SDK_PREFIX/bin"
+export PATH="$PATH:$SDK_PREFIX/lib"
 export PATH="$PATH:$SDK_PREFIX_DIRECTX/Utilities/bin/${DIRECTX_ARCH}"
 export PATH="$PATH:$SDK_PREFIX_DIRECTX/Developer Runtime/${DIRECTX_ARCH}"
 export PATH="$PATH:$VULKAN_SDK/bin"
 
-export PKG_CONFIG_LIBDIR=${SDK_PREFIX}/pkgconfig/lib
-export PKG_CONFIG_PATH=${SDK_PREFIX}/pkgconfig/lib/pkgconfig
-export PKG_CONFIG_SYSROOT_DIR=${SDK_PREFIX}/pkgconfig
+export PKG_CONFIG_LIBDIR=${SDK_PREFIX}/lib
+export PKG_CONFIG_PATH=${SDK_PREFIX}/lib/pkgconfig
+export PKG_CONFIG_SYSROOT_DIR=${SDK_PREFIX}
 #export QMAKE_DXSDK_DIR=${SDK_PREFIX}/DirectX_June_2010/
 
 if [ ${BUILD_WITH_VULKAN} -ne 0 ] ; then
@@ -46,32 +44,29 @@ fi
 	    -device-option CROSS_COMPILE=i686-w64-mingw32- \
 	    -optimized-tools \
             -platform linux-g++ \
-            -prefix ${SDK_PREFIX}/Qt5.15/mingw_82x \
+            -prefix ${SDK_PREFIX}/Qt5.15/mingw_90x \
 	    -xplatform win32-clang-g++ \
 	    -qt-libpng \
 	    -qt-libjpeg \
 	    -qt-freetype \
 	    -device-option LLVM_INSTALL_DIR="${LLVM_INSTALL_DIR}" \
-	    -I ${SDK_PREFIX}/Angle/include \
-	    -L ${SDK_PREFIX}/Angle/lib \
-	    -L ${SDK_PREFIX}/Angle/bin \
-	    -I $SDK_PREFIX/SDL/i686-w64-mingw32/include/SDL2 \
-	    -I $SDK_PREFIX/SDL/i686-w64-mingw32/include \
-	    -L $SDK_PREFIX/SDL/i686-w64-mingw32/lib \
+	    -I ${SDK_PREFIX}/include \
+	    -I ${SDK_PREFIX}/include/SDL2 \
+	    -L ${SDK_PREFIX}/lib \
+	    -L ${SDK_PREFIX}/bin \
 	    -I ${SDK_PREFIX_DIRECTX}/Include \
 	    -L ${SDK_PREFIX_DIRECTX}/Lib/${DIRECTX_ARCH} \
-	    -I $SDK_PREFIX/icu/include \
-	    -L $SDK_PREFIX/icu/lib \
 	    -L ${LLVM_INSTALL_DIR}/i686-w64-mingw32/lib \
-	    -device-option SDL_PREFIX=$SDK_PREFIX/SDL/i686-w64-mingw32 \
-	    -device-option SDL2_PREFIX=$SDK_PREFIX/SDL/i686-w64-mingw32 \
+	    -I ${LLVM_INSTALL_DIR}/i686-w64-mingw32/include \
+	    -device-option SDL_PREFIX=$SDK_PREFIX \
+	    -device-option SDL2_PREFIX=$SDK_PREFIX \
 	    -device-option LIBS_SDL2+=SDLmain \
-	    -device-option ICU_PREFIX=$SDK_PREFIX/icu \
+	    -device-option ICU_PREFIX=$SDK_PREFIX \
 	    -device-option LIBS_OPENGL_ES2+=GLESv2 \
 	    -device-option LIBS_OPENGL_ES2+=EGL \
 	    -device-option LIBEGL_NAME=EGL.dll \
 	    -device-option LIBGLESV2_NAME=GLESv2.dll \
-	    -device-option OPENGL_ES2_PREFIX=$SDK_PREFIX/Angle \
+	    -device-option OPENGL_ES2_PREFIX=$SDK_PREFIX \
 	    -device-option QMAKE_DXSDK_DIR=${SDK_PREFIX_DIRECTX} \
 	    -device-option DXSDK_DIR=${SDK_PREFIX_DIRECTX} \
 	    -device-option QSG_RHI=1 \

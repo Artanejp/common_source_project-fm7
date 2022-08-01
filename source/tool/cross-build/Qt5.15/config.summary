@@ -1,6 +1,6 @@
 Building on: linux-g++ (x86_64, CPU features: mmx sse sse2)
 Building for: win32-clang-g++ (i386, CPU features: mmx sse sse2)
-Target compiler: clang 12.0.1
+Target compiler: clang 14.0.6
 Configuration: cross_compile sse2 aesni sse3 ssse3 sse4_1 sse4_2 avx avx2 avx512f avx512bw avx512cd avx512dq avx512er avx512ifma avx512pf avx512vbmi avx512vl compile_examples f16c largefile precompile_header rdrnd rdseed shani x86SimdAlways shared shared release c++11 c++14 c++17 c++1z concurrent dbus release_tools stl
 Build options:
   Mode ................................... release; optimized tools
@@ -32,7 +32,7 @@ Qt modules and options:
 Support enabled for:
   Using pkg-config ....................... yes
   udev ................................... no
-  Using system zlib ...................... no
+  Using system zlib ...................... yes
   Zstandard support ...................... no
 Qt Core:
   DoubleConversion ....................... yes
@@ -47,7 +47,7 @@ Qt Core:
     syslog ............................... no
     slog2 ................................ no
   PCRE2 .................................. yes
-    Using system PCRE2 ................... no
+    Using system PCRE2 ................... yes
 Qt Network:
   getifaddrs() ........................... no
   IPv6 ifname ............................ no
@@ -218,7 +218,7 @@ Qt Multimedia:
   Resource Policy (libresourceqt5) ....... no
   Windows Audio Services ................. no
   DirectShow ............................. yes
-  Windows Media Foundation ............... no
+  Windows Media Foundation ............... yes
 Qt TextToSpeech:
   Flite .................................. no
   Flite with ALSA ........................ no
