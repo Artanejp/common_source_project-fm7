@@ -61,6 +61,11 @@ static const int vm_auto_key_table_base[][2] = {
 #include "../../common.h"
 #include "../../fileio.h"
 #include "../vm_template.h"
+//#if defined(_WIN32)
+//	#define _USE_MATH_DEFINES
+//	#include <math.h>
+//#endif
+
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
