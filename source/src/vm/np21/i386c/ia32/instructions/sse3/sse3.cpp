@@ -29,7 +29,6 @@
 #include <math.h>
 #include <float.h>
 
-#define isnan(x) (_isnan(x))
 
 #include "../../cpu.h"
 #include "../../ia32.mcr"
@@ -37,6 +36,14 @@
 #include "../sse/sse.h"
 #include "../sse2/sse2.h"
 #include "sse3.h"
+
+#if !defined(isnan)
+#if defined(_MSC_VER)
+#define isnan(x) (_isnan(x))
+#else
+#define isnan(x) (__isnan(x))
+#endif
+#endif
 
 #if defined(USE_SSE3) && defined(USE_SSE2) && defined(USE_SSE) && defined(USE_FPU)
 
